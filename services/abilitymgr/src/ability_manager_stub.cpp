@@ -354,6 +354,9 @@ int AbilityManagerStub::OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel
     if (interfaceCode == AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_IN_CHILD_PROCESS) {
         return StartSelfUIAbilityInChildProcessInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::START_SANDBOX_CLONE_ABILITY) {
+        return StartSandboxCloneAbilityInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -5817,6 +5820,22 @@ int32_t AbilityManagerStub::StartSelfUIAbilityByAppContextInner(MessageParcel &d
         return ERR_INVALID_VALUE;
     }
     int32_t result = StartSelfUIAbilityByAppContext(*want);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::StartSandboxCloneAbilityInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartSandboxCloneAbility stub called");
+    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "want null");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t userId = data.ReadInt32();
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "userId=%{public}d", userId);
+
+    int32_t result = StartSandboxCloneAbility(*want, userId);
     reply.WriteInt32(result);
     return NO_ERROR;
 }

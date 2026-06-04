@@ -2862,6 +2862,22 @@ protected:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int StartSelfUIAbilityByAppContext(const Want &want) override;
+
+    /**
+     * StartSandboxCloneAbility - Start sandbox clone ability with clawIndex support.
+     * This interface is specifically designed for CLI tools (like ohos-aa) to launch
+     * sandbox clone applications by specifying the clawIndex parameter in the Want.
+     *
+     * @param want The want of the ability to start, should contain ability name, bundle name,
+     *             and the clawIndex parameter (CLAW_CLONE_INDEX) for specifying which clone
+     *             instance to launch. Must be within valid range (MIN_SANDBOX_CLONE_INDEX to
+     *             MAX_SANDBOX_CLONE_INDEX).
+     * @param userId Target user ID, DEFAULT_INVAL_VALUE for current user.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t StartSandboxCloneAbility(const Want &want,
+        int32_t userId = DEFAULT_INVAL_VALUE) override;
+
 private:
     int GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId = 0);
 
@@ -3054,6 +3070,20 @@ private:
     bool IsSystemUI(const std::string &bundleName) const;
     int32_t GetUidByCloneBundleInfo(std::string &bundleName, int32_t callerUid, int32_t userId,
         int32_t &appIndex) const;
+
+    // Sandbox clone application support
+    // Get creator bundle name based on permission check
+    // Returns the creator bundle name to use for BMS query
+    std::string GetCreatorBundleNameForSandboxClone(const Want &want,
+        const sptr<IRemoteObject> &callerToken, int32_t &errCode);
+
+    // Process sandbox clone app launch with clawIndex
+    // This function implements the complete flow for launching a sandbox clone app
+    // @param abilityInfo: Output parameter to receive the queried abilityInfo
+    //                     to avoid redundant BMS queries.
+    int32_t ProcessSandboxCloneLaunch(Want &want, const sptr<IRemoteObject> &callerToken, int32_t userId,
+        AppExecFwk::AbilityInfo &abilityInfo);
+
     sptr<IWantSender> GetWantSenderByUserId(const WantSenderInfo &wantSenderInfo,
         const sptr<IRemoteObject> &callerToken, int32_t uid, int32_t callerUid, int32_t callerUserId);
 

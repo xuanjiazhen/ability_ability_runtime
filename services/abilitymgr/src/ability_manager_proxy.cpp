@@ -8416,5 +8416,37 @@ int32_t AbilityManagerProxy::QuerySkillType(const std::string &bundleName, const
     }
     return result;
 }
+
+int32_t AbilityManagerProxy::StartSandboxCloneAbility(const Want &want, int32_t userId)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartSandboxCloneAbility proxy called, userId=%{public}d", userId);
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write interface token fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteParcelable(&want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write want fail");
+        return ERR_WRITE_WANT;
+    }
+
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write userId fail");
+        return INNER_ERR;
+    }
+
+    auto ret = SendRequest(AbilityManagerInterfaceCode::START_SANDBOX_CLONE_ABILITY, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request fail:%{public}d", ret);
+        return ret;
+    }
+
+    return reply.ReadInt32();
+}
 } // namespace AAFwk
 } // namespace OHOS

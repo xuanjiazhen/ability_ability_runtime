@@ -1131,6 +1131,21 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode StartAbilityForPrelaunch(const Want &want, const int32_t frameNum = 0);
+
+    /**
+     * StartSandboxCloneAbility - Start sandbox clone ability with clawIndex support.
+     * This interface is specifically designed for CLI tools (like ohos-aa) to launch
+     * sandbox clone applications by specifying the clawIndex parameter in the Want.
+     *
+     * @param want The want of the ability to start, should contain ability name, bundle name,
+     *             and the clawIndex parameter (CLAW_CLONE_INDEX) for specifying which clone
+     *             instance to launch.
+     * @param userId Target user ID, DEFAULT_INVAL_VALUE for current user.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode StartSandboxCloneAbility(const Want &want,
+        int32_t userId = DEFAULT_INVAL_VALUE);
+
     /**
      * CallRequestDone, after invoke callRequest, ability will call this interface to return callee.
      *

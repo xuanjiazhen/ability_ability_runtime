@@ -1300,6 +1300,16 @@ ErrCode AbilityManagerClient::StartAbilityForPrelaunch(const Want &want, const i
     return abms->StartAbilityForPrelaunch(want, frameNum);
 }
 
+ErrCode AbilityManagerClient::StartSandboxCloneAbility(const Want &want, int32_t userId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartSandboxCloneAbility, ability:%{public}s/%{public}s, userId:%{public}d",
+        want.GetBundle().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
+    return abms->StartSandboxCloneAbility(want, userId);
+}
+
 void AbilityManagerClient::CallRequestDone(sptr<IRemoteObject> token, sptr<IRemoteObject> callStub)
 {
     AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(token, "AbilityManagerClient::CallRequestDone");

@@ -2173,6 +2173,18 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int StartSelfUIAbilityByAppContext(const Want &want) override;
+
+    /**
+     * StartSandboxCloneAbility - Start sandbox clone ability with clawIndex support.
+     * The clawIndex should be included in the Want as CLAW_CLONE_INDEX parameter.
+     *
+     * @param want The want of the ability to start, should contain CLAW_CLONE_INDEX parameter.
+     * @param userId Target user ID.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t StartSandboxCloneAbility(const Want &want,
+        int32_t userId = DEFAULT_INVAL_VALUE) override;
+
 private:
     template <typename T>
     int GetParcelableInfos(MessageParcel &reply, std::vector<T> &parcelableInfos);

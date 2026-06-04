@@ -134,9 +134,19 @@ int32_t StartAbilityUtils::CheckAppProvisionMode(const Want& want, int32_t userI
 StartAbilityInfoWrap::StartAbilityInfoWrap(const Want &want, int32_t validUserId, int32_t appIndex,
     const sptr<IRemoteObject> &callerToken, bool isExtension)
 {
+    bool reuseExistingCache = false;
     if (StartAbilityUtils::startAbilityInfo != nullptr) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "startAbilityInfo created");
+        const std::string& cachedBundleName = StartAbilityUtils::startAbilityInfo->abilityInfo.bundleName;
+        const std::string& targetBundleName = want.GetBundle(); //目标拉起应用的bundleName
+        int32_t cachedAppIndex = StartAbilityUtils::startAbilityInfo->abilityInfo.applicationInfo.appIndex;
+        // Check both bundleName and appIndex to distinguish between main app and clones
+        if (!cachedBundleName.empty() && cachedBundleName == targetBundleName && cachedAppIndex == appIndex) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "Reusing existing startAbilityInfo cache for bundle = %{public}s, "
+                "appIndex = %{public}d", cachedBundleName.c_str(), cachedAppIndex);
+            reuseExistingCache = true;
     }
+
     Want localWant = want;
     if (!StartAbilityUtils::IsCallFromAncoShellOrBroker(callerToken)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "not call from anco or broker.");
@@ -148,17 +158,21 @@ StartAbilityInfoWrap::StartAbilityInfoWrap(const Want &want, int32_t validUserId
         localWant.SetParam(Want::PARAM_RESV_CALLER_TOKEN, static_cast<int32_t>(IPCSkeleton::GetCallingTokenID()));
         localWant.SetParam(Want::PARAM_RESV_CALLER_UID, IPCSkeleton::GetCallingUid());
     }
-    if (isExtension) {
-        StartAbilityUtils::startAbilityInfo = StartAbilityInfo::CreateStartExtensionInfo(localWant,
-            validUserId, appIndex);
-    } else {
-        StartAbilityUtils::startAbilityInfo = StartAbilityInfo::CreateStartAbilityInfo(localWant,
-            validUserId, appIndex, callerToken);
+
+    // Only create new cache if not reusing existing one
+    if (!reuseExistingCache) {
+        if (isExtension) {
+            StartAbilityUtils::startAbilityInfo = StartAbilityInfo::CreateStartExtensionInfo(localWant,
+                validUserId, appIndex);
+        } else {
+            StartAbilityUtils::startAbilityInfo = StartAbilityInfo::CreateStartAbilityInfo(localWant,
+                validUserId, appIndex, callerToken);
+        }
     }
     if (StartAbilityUtils::startAbilityInfo != nullptr &&
-        StartAbilityUtils::startAbilityInfo->abilityInfo.type == AppExecFwk::AbilityType::EXTENSION) {
-        StartAbilityUtils::skipCrowTest = true;
-        StartAbilityUtils::skipStartOther = true;
+            StartAbilityUtils::startAbilityInfo->abilityInfo.type == AppExecFwk::AbilityType::EXTENSION) {
+            StartAbilityUtils::skipCrowTest = true;
+            StartAbilityUtils::skipStartOther = true;
     }
 
     if (StartAbilityUtils::callerAbilityInfo != nullptr) {
@@ -201,10 +215,21 @@ StartAbilityInfoWrap::~StartAbilityInfoWrap()
 void StartAbilityInfoWrap::SetStartAbilityInfo(const AppExecFwk::AbilityInfo& abilityInfo)
 {
     if (StartAbilityUtils::startAbilityInfo != nullptr) {
-        return;
+        const std::string& cachedBundleName = StartAbilityUtils::startAbilityInfo->abilityInfo.bundleName;
+        int32_t cachedAppIndex = StartAbilityUtils::startAbilityInfo->abilityInfo.applicationInfo.appIndex;
+
+        // If bundleName and appIndex match, reuse existing cache
+        if (!cachedBundleName.empty() && cachedBundleName == abilityInfo.bundleName &&
+            cachedAppIndex == abilityInfo.applicationInfo.appIndex) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "SetStartAbilityInfo: cache already exists and matches, bundle=%{public}s, appIndex=%{public}d",
+                cachedBundleName.c_str(), cachedAppIndex);
+            return;
+        }
     }
     StartAbilityUtils::startAbilityInfo = std::make_shared<StartAbilityInfo>();
     StartAbilityUtils::startAbilityInfo->abilityInfo = abilityInfo;
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "SetStartAbilityInfo: cache set, bundle=%{public}s, appIndex=%{public}d",
+        abilityInfo.bundleName.c_str(), abilityInfo.applicationInfo.appIndex);
 }
 
 namespace {
