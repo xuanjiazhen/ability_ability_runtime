@@ -28,6 +28,7 @@ public:
         const std::string &eventId, const sptr<ICliToolManagerScheduler> &scheduler) override;
     int32_t BatchQueryPermissionBySubCommand(
         const std::vector<Command> &cmds, std::vector<CommandPermission> &cmdPermissions) override;
+    int32_t IsCliToolSupported(bool &isSupported) override;
 };
 } // namespace CliTool
 } // namespace OHOS

@@ -15,6 +15,8 @@
 
 #include "cli_tool_manager_service.h"
 
+#include <algorithm>
+#include <iterator>
 #include <sys/wait.h>
 
 #include "ability_manager_client.h"
@@ -40,6 +42,8 @@ namespace CliTool {
 namespace {
 constexpr const char* PERMISSION_EXEC_CLI_TOOL = "ohos.permission.EXEC_CLI_TOOL";
 constexpr const char* PERMISSION_QUERY_CLI_TOOL = "ohos.permission.QUERY_CLI_TOOL";
+constexpr const char* PERMISSION_EXEC_PUBLIC_CLI_TOOL = "ohos.permission.EXEC_PUBLIC_CLI_TOOL";
+constexpr const char* PERMISSION_QUERY_PUBLIC_CLI_TOOL = "ohos.permission.QUERY_PUBLIC_CLI_TOOL";
 
 constexpr int32_t COEFFICIENT = 1000;
 constexpr int32_t QUERY_SUCCESS = 0;
@@ -417,61 +421,150 @@ void CliToolManagerService::UnregisterSessionWithMonitors(const std::string &ses
     }
 }
 
+int32_t CliToolManagerService::ValidateQueryCaller(CliCallerContext &context)
+{
+    context.tokenId = IPCSkeleton::GetCallingTokenID();
+    context.fullTokenId = IPCSkeleton::GetCallingFullTokenID();
+    context.type = CliCallerType::INVALID;
+    bool isSystemApp = AccessToken::TokenIdKit::IsSystemAppByFullTokenID(context.fullTokenId);
+    if (isSystemApp && PermissionUtil::VerifyAccessToken(context.tokenId, PERMISSION_QUERY_CLI_TOOL)) {
+        context.type = CliCallerType::SYSTEM;
+        return ERR_OK;
+    }
+    if (PermissionUtil::VerifyAccessToken(context.tokenId, PERMISSION_QUERY_PUBLIC_CLI_TOOL)) {
+        context.type = CliCallerType::NORMAL;
+        return ERR_OK;
+    }
+    TAG_LOGE(AAFwkTag::CLI_TOOL, "ValidateQueryCaller denied: no system or public query permission");
+    return ERR_PERMISSION_DENIED;
+}
+
+int32_t CliToolManagerService::ValidateExecCaller(CliCallerContext &context)
+{
+    context.tokenId = IPCSkeleton::GetCallingTokenID();
+    context.fullTokenId = IPCSkeleton::GetCallingFullTokenID();
+    context.type = CliCallerType::INVALID;
+    bool isSystemApp = AccessToken::TokenIdKit::IsSystemAppByFullTokenID(context.fullTokenId);
+    if (isSystemApp && PermissionUtil::VerifyAccessToken(context.tokenId, PERMISSION_EXEC_CLI_TOOL)) {
+        context.type = CliCallerType::SYSTEM;
+        return ERR_OK;
+    }
+    if (PermissionUtil::VerifyAccessToken(context.tokenId, PERMISSION_EXEC_PUBLIC_CLI_TOOL)) {
+        context.type = CliCallerType::NORMAL;
+        return ERR_OK;
+    }
+    TAG_LOGE(AAFwkTag::CLI_TOOL, "ValidateExecCaller denied: no system or public exec permission");
+    return ERR_PERMISSION_DENIED;
+}
+
+int32_t CliToolManagerService::ValidateExecToolPermissions()
+{
+    CliCallerContext context;
+    return ValidateExecCaller(context);
+}
+
+bool CliToolManagerService::CanAccessPublicCliTools(const CliCallerContext &context) const
+{
+    if (context.type == CliCallerType::SYSTEM) {
+        return true;
+    }
+    return CcmUtil::GetInstance().IsPublicCliToolsEnabled();
+}
+
+bool CliToolManagerService::IsPublicToolAllowed(const CliCallerContext &context, const ToolInfo &tool) const
+{
+    if (context.type == CliCallerType::SYSTEM) {
+        return true;
+    }
+    return CanAccessPublicCliTools(context) && tool.isPublic;
+}
+
+std::vector<ToolInfo> CliToolManagerService::FilterPublicTools(const CliCallerContext &context,
+    const std::vector<ToolInfo> &tools) const
+{
+    std::vector<ToolInfo> filteredTools;
+    if (!CanAccessPublicCliTools(context)) {
+        return filteredTools;
+    }
+    std::copy_if(tools.begin(), tools.end(), std::back_inserter(filteredTools),
+        [](const ToolInfo &tool) {
+            return tool.isPublic;
+        });
+    return filteredTools;
+}
+
 int32_t CliToolManagerService::GetAllToolInfos(ToolsRawData &tools)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllToolInfos called");
     InterfaceCallCounter counter(interfaceCalledCount_);
-    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
-    if (!AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolInfos: Not system app");
-        return ERR_NOT_SYSTEM_APP;
+    CliCallerContext context;
+    if (auto ret = ValidateQueryCaller(context); ret != ERR_OK) {
+        return ret;
     }
-
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_QUERY_CLI_TOOL)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolInfos: Permission denied");
-        return ERR_PERMISSION_DENIED;
+    if (context.type == CliCallerType::SYSTEM) {
+        return CliToolDataManager::GetInstance().GetAllToolsRawData(tools);
     }
-
-    return CliToolDataManager::GetInstance().GetAllToolsRawData(tools);
+    std::vector<ToolInfo> allTools;
+    if (auto ret = CliToolDataManager::GetInstance().GetAllTools(allTools); ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolInfos: GetAllTools failed, ret=%{public}d", ret);
+        return ret;
+    }
+    ToolsRawData::FromToolInfoVec(FilterPublicTools(context, allTools), tools);
+    return ERR_OK;
 }
 
 int32_t CliToolManagerService::GetAllToolSummaries(std::vector<ToolSummary> &summaries)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllToolSummaries called");
     InterfaceCallCounter counter(interfaceCalledCount_);
-    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
-    if (!AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolSummaries: Not system app");
-        return ERR_NOT_SYSTEM_APP;
+    CliCallerContext context;
+    if (auto ret = ValidateQueryCaller(context); ret != ERR_OK) {
+        return ret;
     }
-
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_QUERY_CLI_TOOL)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolSummaries: Permission denied");
-        return ERR_PERMISSION_DENIED;
+    if (context.type == CliCallerType::SYSTEM) {
+        return CliToolDataManager::GetInstance().QueryToolSummaries(summaries);
     }
-
-    return CliToolDataManager::GetInstance().QueryToolSummaries(summaries);
+    std::vector<ToolInfo> allTools;
+    if (auto ret = CliToolDataManager::GetInstance().GetAllTools(allTools); ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolSummaries: GetAllTools failed, ret=%{public}d", ret);
+        return ret;
+    }
+    summaries.clear();
+    for (const auto &tool : FilterPublicTools(context, allTools)) {
+        ToolSummary summary;
+        summary.name = tool.name;
+        summary.version = tool.version;
+        summary.description = tool.description;
+        summaries.emplace_back(std::move(summary));
+    }
+    return ERR_OK;
 }
 
 int32_t CliToolManagerService::GetToolInfoByName(const std::string &name, ToolInfo &tool)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "GetToolInfoByName called, name='%{public}s'", name.c_str());
     InterfaceCallCounter counter(interfaceCalledCount_);
-    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
-    if (!AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetToolInfoByName: Not system app");
-        return ERR_NOT_SYSTEM_APP;
+    CliCallerContext context;
+    if (auto ret = ValidateQueryCaller(context); ret != ERR_OK) {
+        return ret;
     }
-
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_QUERY_CLI_TOOL)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetToolInfoByName: Permission denied");
-        return ERR_PERMISSION_DENIED;
+    if (context.type == CliCallerType::SYSTEM) {
+        return CliToolDataManager::GetInstance().GetToolByName(name, tool);
     }
-
-    return CliToolDataManager::GetInstance().GetToolByName(name, tool);
+    if (!CanAccessPublicCliTools(context)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetToolInfoByName: public CLI tools disabled, name='%{public}s'", name.c_str());
+        return ERR_TOOL_NOT_EXIST;
+    }
+    if (auto ret = CliToolDataManager::GetInstance().GetToolByName(name, tool); ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetToolInfoByName: tool not found, name='%{public}s', ret=%{public}d",
+            name.c_str(), ret);
+        return ret;
+    }
+    if (!IsPublicToolAllowed(context, tool)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetToolInfoByName: tool not public, name='%{public}s'", name.c_str());
+        return ERR_TOOL_NOT_EXIST;
+    }
+    return ERR_OK;
 }
 
 int32_t CliToolManagerService::RegisterTool(const ToolInfo &tool)
@@ -480,18 +573,15 @@ int32_t CliToolManagerService::RegisterTool(const ToolInfo &tool)
     return ERR_PERMISSION_DENIED;
 }
 
-int32_t CliToolManagerService::ValidateExecToolPermissions()
+int32_t CliToolManagerService::IsCliToolSupported(bool &isSupported)
 {
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "IsCliToolSupported called");
     auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
-    if (!AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Not system app");
-        return ERR_NOT_SYSTEM_APP;
+    if (AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
+        isSupported = true;
+        return ERR_OK;
     }
-
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL)) {
-        return ERR_PERMISSION_DENIED;
-    }
+    isSupported = CcmUtil::GetInstance().IsPublicCliToolsEnabled();
     return ERR_OK;
 }
 
@@ -507,13 +597,8 @@ int32_t CliToolManagerService::ValidateSessionLimit()
 }
 
 int32_t CliToolManagerService::ValidateAndPrepareTool(const ExecToolParam &param, uint32_t tokenId,
-    ToolInfo &toolInfo, std::string &sandboxConfig, std::string &bundleName)
+    const ToolInfo &toolInfo, std::string &sandboxConfig, std::string &bundleName)
 {
-    if (CliToolDataManager::GetInstance().GetToolByName(param.toolName, toolInfo) != ERR_OK) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Tool not found");
-        return ERR_TOOL_NOT_EXIST;
-    }
-
     auto checkPramRet = ToolUtil::ValidateProperties(toolInfo, const_cast<ExecToolParam &>(param), tokenId);
     if (checkPramRet != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Input schema validation failed");
@@ -609,7 +694,8 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
     InterfaceCallCounter counter(interfaceCalledCount_);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecTool called: toolName=%{public}s, subcommand=%{public}s",
         param.toolName.c_str(), param.subcommand.c_str());
-    if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
+    CliCallerContext context;
+    if (auto ret = ValidateExecCaller(context); ret != ERR_OK) {
         return ret;
     }
     int32_t callerPid = IPCSkeleton::GetCallingPid();
@@ -619,6 +705,15 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
     }
 
     ToolInfo toolInfo;
+    if (CliToolDataManager::GetInstance().GetToolByName(param.toolName, toolInfo) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Tool not found");
+        return ERR_TOOL_NOT_EXIST;
+    }
+    if (!IsPublicToolAllowed(context, toolInfo)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Tool not public: %{public}s", param.toolName.c_str());
+        return ERR_TOOL_NOT_EXIST;
+    }
+
     bool dispatched = false;
     auto skillRet = TryDispatchSkillSession(param, eventId, toolInfo, dispatched);
     if (skillRet != ERR_OK) {
@@ -632,10 +727,9 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
         return ret;
     }
 
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
     std::string sandboxConfig;
     std::string bundleName;
-    if (auto ret = ValidateAndPrepareTool(param, tokenId, toolInfo, sandboxConfig, bundleName); ret != ERR_OK) {
+    if (auto ret = ValidateAndPrepareTool(param, context.tokenId, toolInfo, sandboxConfig, bundleName); ret != ERR_OK) {
         return ret;
     }
 
@@ -799,17 +893,10 @@ std::shared_ptr<SessionRecord> CliToolManagerService::CreateSessionRecord(const 
 int32_t CliToolManagerService::ClearSession(const std::string &sessionId)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
-    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
-    if (!AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Not system app");
-        return ERR_NOT_SYSTEM_APP;
+    CliCallerContext context;
+    if (auto ret = ValidateExecCaller(context); ret != ERR_OK) {
+        return ret;
     }
-
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL)) {
-        return ERR_PERMISSION_DENIED;
-    }
-
     auto record = GetSessionRecord(sessionId);
     if (record == nullptr) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "ClearSession failed: sessionId=%{public}s not found", sessionId.c_str());
@@ -847,15 +934,9 @@ int32_t CliToolManagerService::SubscribeSession(const std::string &sessionId, co
     const sptr<ICliToolManagerScheduler> &scheduler)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
-    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
-    if (!AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Not system app");
-        return ERR_NOT_SYSTEM_APP;
-    }
-
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL)) {
-        return ERR_PERMISSION_DENIED;
+    CliCallerContext context;
+    if (auto ret = ValidateExecCaller(context); ret != ERR_OK) {
+        return ret;
     }
 
     if (sessionId.empty() || subscriptionId.empty()) {
@@ -897,14 +978,18 @@ int32_t CliToolManagerService::SubscribeSession(const std::string &sessionId, co
 int32_t CliToolManagerService::UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
-    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
-    if (!AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Not system app");
-        return ERR_NOT_SYSTEM_APP;
+    CliCallerContext context;
+    if (auto ret = ValidateExecCaller(context); ret != ERR_OK) {
+        return ret;
     }
-
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL)) {
+    auto record = GetSessionRecord(sessionId);
+    if (record == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL,
+            "UnsubscribeSession failed: sessionId=%{public}s not found, subscriptionId=%{public}s",
+            sessionId.c_str(), subscriptionId.c_str());
+        return ERR_CLI_SESSION_NOT_FOUND;
+    }
+    if (!IsSessionOwner(record, "UnsubscribeSession")) {
         return ERR_PERMISSION_DENIED;
     }
 
@@ -918,17 +1003,10 @@ int32_t CliToolManagerService::UnsubscribeSession(const std::string &sessionId, 
 int32_t CliToolManagerService::QuerySession(const std::string &sessionId, CliSessionInfo &session)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
-    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
-    if (!AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Not system app");
-        return ERR_NOT_SYSTEM_APP;
+    CliCallerContext context;
+    if (auto ret = ValidateExecCaller(context); ret != ERR_OK) {
+        return ret;
     }
-
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL)) {
-        return ERR_PERMISSION_DENIED;
-    }
-
     auto record = GetSessionRecord(sessionId);
     if (record == nullptr) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "QuerySession failed: sessionId=%{public}s not found", sessionId.c_str());
@@ -946,17 +1024,10 @@ int32_t CliToolManagerService::SendMessage(const std::string &sessionId,
     const sptr<ICliToolManagerScheduler> &scheduler)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
-    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
-    if (!AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Not system app");
-        return ERR_NOT_SYSTEM_APP;
+    CliCallerContext context;
+    if (auto ret = ValidateExecCaller(context); ret != ERR_OK) {
+        return ret;
     }
-
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL)) {
-        return ERR_PERMISSION_DENIED;
-    }
-
     auto record = GetSessionRecord(sessionId);
     if (record == nullptr) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "SendMessage failed: sessionId=%{public}s not found", sessionId.c_str());

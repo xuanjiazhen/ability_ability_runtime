@@ -35,6 +35,7 @@ public:
         const std::string &eventId, const sptr<ICliToolManagerScheduler> &scheduler) = 0;
     virtual int32_t BatchQueryPermissionBySubCommand(
         const std::vector<Command> &cmds, std::vector<CommandPermission> &cmdPermissions) = 0;
+    virtual int32_t IsCliToolSupported(bool &isSupported) = 0;
 };
 } // namespace CliTool
 } // namespace OHOS

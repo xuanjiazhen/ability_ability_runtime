@@ -111,6 +111,11 @@ napi_value JSCliManager::QueryTools(napi_env env, napi_callback_info info)
     GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnQueryTools);
 }
 
+napi_value JSCliManager::IsCliToolSupported(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnIsCliToolSupported);
+}
+
 napi_value JSCliManager::OnExecTool(napi_env env, size_t argc, napi_value *argv)
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManager::OnExecTool called");
@@ -443,6 +448,17 @@ napi_value JSCliManager::OnQueryTools(napi_env env, size_t argc, napi_value *arg
     return handleEscape.Escape(asyncResult);
 }
 
+napi_value JSCliManager::OnIsCliToolSupported(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManager::OnIsCliToolSupported called");
+    HandleEscape handleEscape(env);
+    bool isSupported = false;
+    if (CliToolMGRClient::GetInstance().IsCliToolSupported(isSupported) != ERR_OK) {
+        isSupported = false;
+    }
+    return handleEscape.Escape(AppExecFwk::WrapBoolToJS(env, isSupported));
+}
+
 napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "Init JSCliManager");
@@ -464,6 +480,7 @@ napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "getToolInfoByName", moduleName, JSCliManager::GetToolInfoByName);
     BindNativeFunction(env, exportObj, "queryToolSummaries", moduleName, JSCliManager::QueryToolSummaries);
     BindNativeFunction(env, exportObj, "queryTools", moduleName, JSCliManager::QueryTools);
+    BindNativeFunction(env, exportObj, "isCliToolSupported", moduleName, JSCliManager::IsCliToolSupported);
 
     TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManagerInit end");
     return CreateJsUndefined(env);

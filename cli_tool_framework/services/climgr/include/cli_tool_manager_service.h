@@ -19,6 +19,7 @@
 #include <atomic>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -94,6 +95,8 @@ public:
         const std::string &inputText, const std::string &eventId,
         const sptr<ICliToolManagerScheduler> &scheduler) override;
 
+    int32_t IsCliToolSupported(bool &isSupported) override;
+
     /**
      * @brief Batch query command permissions (Inner API, for SA only).
      */
@@ -126,6 +129,13 @@ private:
     };
 
     enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
+    enum class CliCallerType { INVALID, SYSTEM, NORMAL };
+
+    struct CliCallerContext {
+        CliCallerType type = CliCallerType::INVALID;
+        uint32_t tokenId = 0;
+        uint64_t fullTokenId = 0;
+    };
 
     void Init();
     void DelayUnloadTask();
@@ -140,10 +150,15 @@ private:
     bool RegisterSessionWithMonitors(const std::shared_ptr<SessionRecord> &record, const ExecToolParam &param);
     void UnregisterSessionWithMonitors(const std::string &sessionId);
 
+    int32_t ValidateQueryCaller(CliCallerContext &context);
+    int32_t ValidateExecCaller(CliCallerContext &context);
     int32_t ValidateExecToolPermissions();
+    bool CanAccessPublicCliTools(const CliCallerContext &context) const;
+    bool IsPublicToolAllowed(const CliCallerContext &context, const ToolInfo &tool) const;
+    std::vector<ToolInfo> FilterPublicTools(const CliCallerContext &context, const std::vector<ToolInfo> &tools) const;
     int32_t ValidateSessionLimit();
     int32_t ValidateAndPrepareTool(const ExecToolParam &param, uint32_t tokenId,
-        ToolInfo &toolInfo, std::string &sandboxConfig, std::string &bundleName);
+        const ToolInfo &toolInfo, std::string &sandboxConfig, std::string &bundleName);
     int32_t SetupAndStartSession(const ExecToolParam &param, const std::string &eventId,
         const ToolInfo &toolInfo, const std::string &sandboxConfig, const std::string &bundleName);
 
