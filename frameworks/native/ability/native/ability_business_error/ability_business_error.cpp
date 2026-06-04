@@ -300,6 +300,9 @@ constexpr const char* ERROR_MSG_START_ABILITY_CALLER_NOT_FOUND =
     "Internal error. The caller ability does not exist. Ensure the ability is still active.";
 constexpr const char* ERROR_MSG_QUERY_ENTITY_EXECUTE_MANAGER_NULL =
     "Internal error. The intent execution manager is unavailable. Try again later.";
+constexpr const char* ERROR_MSG_INTENT_DONE_STATE_NOT_EXECUTING =
+    "Internal error. The intent execution is not in progress. "
+    "It may have already completed or timed out.";
 
 // follow ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST of appexecfwk_errors.h in bundle_framework
 constexpr int32_t ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST = 8521220;
@@ -604,6 +607,7 @@ static std::unordered_map<int32_t, const char*> INNER_ERROR_MSG_BY_NATIVE_CODE {
     {ERR_START_ABILITY_INTENT_ID_NOT_FOUND, ERROR_MSG_START_ABILITY_INTENT_ID_NOT_FOUND},
     {ERR_START_ABILITY_CALLER_NOT_FOUND, ERROR_MSG_START_ABILITY_CALLER_NOT_FOUND},
     {ERR_QUERY_ENTITY_EXECUTE_MANAGER_NULL, ERROR_MSG_QUERY_ENTITY_EXECUTE_MANAGER_NULL},
+    {ERR_INTENT_DONE_STATE_NOT_EXECUTING, ERROR_MSG_INTENT_DONE_STATE_NOT_EXECUTING},
 };
 
 static std::unordered_map<AbilityInnerErrorMsg, const char*> INNER_ERROR_MSG_BY_SCENE {

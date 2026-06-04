@@ -1210,6 +1210,9 @@ enum {
     // Result (2099444) for query entity but execute manager is null.
     ERR_QUERY_ENTITY_EXECUTE_MANAGER_NULL = 2099444,
 
+    // Result (2099445) for intent done state is not executing.
+    ERR_INTENT_DONE_STATE_NOT_EXECUTING = 2099445,
+
     /**
      * Native error(3000000) for target bundle not exist.
      */

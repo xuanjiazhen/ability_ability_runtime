@@ -14,14 +14,13 @@
  */
 
 #include "insight_intent_delay_result_callback_mgr.h"
+
+#include "ability_manager_errors.h"
 #include "event_report.h"
 #include "hilog_tag_wrapper.h"
- 
+
 namespace OHOS {
 namespace AbilityRuntime {
-namespace {
-    constexpr int ERROR_CODE_INVALID_ID = 16000003;
-}
 InsightIntentDelayResultCallbackMgr &InsightIntentDelayResultCallbackMgr::GetInstance()
 {
     static InsightIntentDelayResultCallbackMgr instance;
@@ -63,7 +62,7 @@ int32_t InsightIntentDelayResultCallbackMgr::HandleExecuteDone(const uint64_t in
         auto ret = callback(result);
         return ret;
     }
-    return ERROR_CODE_INVALID_ID;
+    return AAFwk::ERR_CODE_INVALID_ID;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -312,7 +312,7 @@ int32_t InsightIntentExecuteManager::ExecuteIntentDone(uint64_t intentId, int32_
         TAG_LOGW(AAFwkTag::INTENT, "insight intent execute state is not EXECUTING, id:%{public}" PRIu64, intentId);
         eventInfo.errReason = "intent state error";
         SendIntentReport(eventInfo, INTENT_STATE_NOT_EXECUTING);
-        return ERR_INVALID_OPERATION;
+        return ERR_INTENT_DONE_STATE_NOT_EXECUTING;
     }
     record->state = InsightIntentExecuteState::EXECUTE_DONE;
 
