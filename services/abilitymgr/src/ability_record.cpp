@@ -191,7 +191,12 @@ void AbilityRecord::Init(const AbilityRequest &abilityRequest)
 {
     SetUid(abilityRequest.uid);
     int32_t appIndex = 0;
-    (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);
+    if (abilityRequest.isWebSandBoxClone) {
+        appIndex = abilityRequest.abilityInfo.applicationInfo.appIndex;
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Web sandbox clone, using appIndex from abilityInfo: %{public}d", appIndex);
+    } else {
+        (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);
+    }
     SetAppIndex(appIndex);
     SetSecurityFlag(abilityRequest.want.GetBoolParam(DLP_PARAMS_SECURITY_FLAG, false));
     SetCallerAccessTokenId(abilityRequest.callerAccessTokenId);
@@ -338,7 +343,7 @@ int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide, pid_t calli
         MainElementUtils::IsMainUIAbility(abilityInfo_.bundleName, abilityInfo_.name, userId);
     MainElementUtils::SetMainUIAbilityKeepAliveFlag(isMainUIAbility,
         abilityInfo_.bundleName, loadParam);
-    auto result = DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(
+    auto result = DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility( //无需传入createBundleName
         loadParam, abilityInfo_, abilityInfo_.applicationInfo, want_);
     want_.RemoveParam(IS_HOOK);
     want_.RemoveParam(ABILITY_OWNER_USERID);
@@ -1393,7 +1398,7 @@ void AbilityRecord::SendResultToCallers(bool schedulerdied)
         }
         std::shared_ptr<AbilityRecord> callerAbilityRecord = caller->GetCaller();
         if (callerAbilityRecord != nullptr && callerAbilityRecord->GetResult() != nullptr) {
-            bool isSandboxApp = appIndex_ > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX ? true : false;
+            bool isSandboxApp = AbilityRuntime::GlobalConstant::IsDlpIndex(appIndex_); // 是否有问题
             callerAbilityRecord->SendResult(isSandboxApp, abilityInfo_.applicationInfo.accessTokenId, schedulerdied);
         } else {
             std::shared_ptr<SystemAbilityCallerRecord> callerSystemAbilityRecord = caller->GetSaCaller();
@@ -2816,8 +2821,8 @@ void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName,
     }
     // reject sandbox to grant uri permission by start ability
     auto caller = GetCallerRecord();
-    if (caller && caller->appIndex_ > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "sandbox can not grant UriPermission");
+    if (caller && AbilityRuntime::GlobalConstant::IsDlpIndex(caller->appIndex_)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "DLP sandbox can not grant UriPermission");
         return;
     }
     auto callerTokenId = tokenId > 0 ? tokenId :
@@ -2866,7 +2871,7 @@ void AbilityRecord::HandleDlpAttached()
         DelayedSingleton<ConnectionStateManager>::GetInstance()->AddDlpManager(shared_from_this());
     }
 
-    if (appIndex_ > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+    if (AbilityRuntime::GlobalConstant::IsDlpIndex(appIndex_)) {
         DelayedSingleton<ConnectionStateManager>::GetInstance()->AddDlpAbility(shared_from_this());
     }
 }
@@ -2877,7 +2882,7 @@ void AbilityRecord::HandleDlpClosed()
         DelayedSingleton<ConnectionStateManager>::GetInstance()->RemoveDlpManager(shared_from_this());
     }
 
-    if (appIndex_ > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+    if (AbilityRuntime::GlobalConstant::IsDlpIndex(appIndex_)) {
         DelayedSingleton<ConnectionStateManager>::GetInstance()->RemoveDlpAbility(shared_from_this());
     }
 }

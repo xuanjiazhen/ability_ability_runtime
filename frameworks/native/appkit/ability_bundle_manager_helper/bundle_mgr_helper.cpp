@@ -110,7 +110,7 @@ ErrCode BundleMgrHelper::InstallSandboxApp(const std::string &bundleName, int32_
 ErrCode BundleMgrHelper::UninstallSandboxApp(const std::string &bundleName, int32_t appIndex, int32_t userId)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
-    if (bundleName.empty() || appIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+    if (bundleName.empty() || appIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) { //是否需要加上sandboxCloneIndex的逻辑？
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "invalid params");
         return ERR_APPEXECFWK_SANDBOX_INSTALL_PARAM_ERROR;
     }
@@ -678,7 +678,8 @@ bool BundleMgrHelper::GetApplicationInfoWithAppIndex(
         if (bundleMgr->GetApplicationInfo(appName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, userId, appInfo)) {
             return true;
         }
-    } else if (appIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+    } else if (AbilityRuntime::GlobalConstant::IsAppCloneIndex(appIndex) ||
+               AbilityRuntime::GlobalConstant::IsSandboxCloneIndex(appIndex)) {
         if (bundleMgr->GetCloneBundleInfo(appName,
             static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
             appIndex, bundleInfo, userId) == ERR_OK) {
