@@ -24,6 +24,7 @@
 
 #include "ability_business_error_utils.h"
 #include "ability_manager_client.h"
+#include "app_mgr_client.h"
 #include "app_mgr_interface.h"
 #include "context.h"
 #include "context/application_context.h"
@@ -575,3 +576,81 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextNotifyPageChanged(
     }
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
+
+#ifdef SUPPORT_CHILD_PROCESS
+namespace {
+struct ChildProcessInfoItem {
+    int32_t pid;
+    int32_t hostPid;
+    char* processName;
+};
+
+struct ChildProcessInfosImpl {
+    ChildProcessInfoItem* items;
+    uint32_t count;
+};
+
+static bool CreateAndFillInfos(const std::vector<AppExecFwk::ChildProcessInfo>& childInfos,
+    Ability_ChildProcessInfos** infos, uint32_t* count)
+{
+    *count = static_cast<uint32_t>(childInfos.size());
+    if (childInfos.empty()) {
+        *infos = nullptr;
+        return true;
+    }
+    auto* result = new (std::nothrow) ChildProcessInfosImpl();
+    if (result == nullptr) {
+        return false;
+    }
+    result->count = *count;
+    result->items = new (std::nothrow) ChildProcessInfoItem[result->count];
+    if (result->items == nullptr) {
+        delete result;
+        *infos = nullptr;
+        *count = 0;
+        return false;
+    }
+    for (uint32_t i = 0; i < result->count; i++) {
+        result->items[i].pid = childInfos[i].pid;
+        result->items[i].hostPid = childInfos[i].hostPid;
+        result->items[i].processName = strdup(childInfos[i].processName.c_str());
+        if (result->items[i].processName == nullptr) {
+            for (uint32_t j = 0; j < i; j++) {
+                free(result->items[j].processName);
+            }
+            delete[] result->items;
+            delete result;
+            *infos = nullptr;
+            *count = 0;
+            return false;
+        }
+    }
+    *infos = reinterpret_cast<Ability_ChildProcessInfos*>(result);
+    return true;
+}
+} // namespace
+
+AbilityRuntime_ErrorCode OH_AbilityRuntime_GetUIAbilityChildProcesses(
+    Ability_ChildProcessInfos** infos, uint32_t* count)
+{
+    if (infos == nullptr || count == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "invalid params");
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    std::vector<AppExecFwk::ChildProcessInfo> childInfos;
+    auto client = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+    if (client == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "AppMgrClient is nullptr");
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+    int32_t ret = client->GetUIAbilityChildProcessesForSelf(childInfos);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "GetUIAbilityChildProcessesForSelf failed, ret=%{public}d", ret);
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+    if (!CreateAndFillInfos(childInfos, infos, count)) {
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+#endif // SUPPORT_CHILD_PROCESS

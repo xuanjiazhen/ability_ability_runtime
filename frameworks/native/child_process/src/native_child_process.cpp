@@ -17,6 +17,7 @@
 #include <map>
 #include <mutex>
 #include <regex>
+#include "ability_runtime_common.h"
 #include "app_mgr_client.h"
 #include "child_process_configs.h"
 #include "hilog_tag_wrapper.h"
@@ -371,4 +372,114 @@ bool OH_Ability_IsNativeChildProcessSupported()
     bool result = ChildProcessManager::GetInstance().IsNativeChildProcessSupported();
     TAG_LOGD(AAFwkTag::PROCESSMGR, "IsNativeChildProcessSupported: %{public}d", result);
     return result;
+}
+
+// Internal struct definitions for opaque pointer pattern
+struct ChildProcessInfoItem {
+    int32_t pid;
+    int32_t hostPid;
+    char* processName;  // strdup'd, freed by Destroy
+};
+
+struct Ability_ChildProcessInfos {
+    ChildProcessInfoItem* items;
+    uint32_t count;
+};
+
+static Ability_NativeChildProcess_ErrCode CreateAndFillInfos(
+    const std::vector<AppExecFwk::ChildProcessInfo>& childInfos,
+    Ability_ChildProcessInfos** infos, uint32_t* count)
+{
+    *count = static_cast<uint32_t>(childInfos.size());
+    if (childInfos.empty()) {
+        *infos = nullptr;
+        return NCP_NO_ERROR;
+    }
+    auto* result = new (std::nothrow) Ability_ChildProcessInfos();
+    if (result == nullptr) {
+        return NCP_ERR_INTERNAL;
+    }
+    result->count = *count;
+    result->items = new (std::nothrow) ChildProcessInfoItem[result->count];
+    if (result->items == nullptr) {
+        delete result;
+        *infos = nullptr;
+        *count = 0;
+        return NCP_ERR_INTERNAL;
+    }
+    for (uint32_t i = 0; i < result->count; i++) {
+        result->items[i].pid = childInfos[i].pid;
+        result->items[i].hostPid = childInfos[i].hostPid;
+        result->items[i].processName = strdup(childInfos[i].processName.c_str());
+        if (result->items[i].processName == nullptr) {
+            for (uint32_t j = 0; j < i; j++) {
+                free(result->items[j].processName);
+            }
+            delete[] result->items;
+            delete result;
+            *infos = nullptr;
+            *count = 0;
+            return NCP_ERR_INTERNAL;
+        }
+    }
+    *infos = result;
+    return NCP_NO_ERROR;
+}
+
+Ability_NativeChildProcess_ErrCode OH_Ability_GetChildProcesses(
+    Ability_ChildProcessInfos** infos, uint32_t* count)
+{
+    if (infos == nullptr || count == nullptr) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "invalid params");
+        return NCP_ERR_INVALID_PARAM;
+    }
+    std::vector<AppExecFwk::ChildProcessInfo> childInfos;
+    auto cpmErr = ChildProcessManager::GetInstance().GetChildProcesses(childInfos);
+    if (cpmErr != ChildProcessManagerErrorCode::ERR_OK) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "GetChildProcesses failed, err=%{public}d", static_cast<int>(cpmErr));
+        return NCP_ERR_INTERNAL;
+    }
+    return CreateAndFillInfos(childInfos, infos, count);
+}
+
+Ability_NativeChildProcess_ErrCode OH_Ability_ChildProcessInfos_GetPid(
+    Ability_ChildProcessInfos* infos, uint32_t index, int32_t* pid)
+{
+    if (infos == nullptr || pid == nullptr || index >= infos->count) {
+        return NCP_ERR_INVALID_PARAM;
+    }
+    *pid = infos->items[index].pid;
+    return NCP_NO_ERROR;
+}
+
+Ability_NativeChildProcess_ErrCode OH_Ability_ChildProcessInfos_GetHostPid(
+    Ability_ChildProcessInfos* infos, uint32_t index, int32_t* hostPid)
+{
+    if (infos == nullptr || hostPid == nullptr || index >= infos->count) {
+        return NCP_ERR_INVALID_PARAM;
+    }
+    *hostPid = infos->items[index].hostPid;
+    return NCP_NO_ERROR;
+}
+
+Ability_NativeChildProcess_ErrCode OH_Ability_ChildProcessInfos_GetProcessName(
+    Ability_ChildProcessInfos* infos, uint32_t index, const char** processName)
+{
+    if (infos == nullptr || processName == nullptr || index >= infos->count) {
+        return NCP_ERR_INVALID_PARAM;
+    }
+    *processName = infos->items[index].processName;
+    return NCP_NO_ERROR;
+}
+
+void OH_Ability_DestroyChildProcessInfos(Ability_ChildProcessInfos* infos)
+{
+    if (infos == nullptr) {
+        return;
+    }
+    for (uint32_t i = 0; i < infos->count; i++) {
+        free(infos->items[i].processName);
+    }
+    delete[] infos->items;
+    delete infos;
 }

@@ -455,6 +455,12 @@ int32_t AppMgrStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &dat
             return HandleRegisterImageProcessStateObserver(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::IS_CHILD_PROCESS_SUPPORTED):
             return HandleIsChildProcessSupported(data, reply);
+#ifdef SUPPORT_CHILD_PROCESS
+        case static_cast<uint32_t>(AppMgrInterfaceCode::GET_CHILD_PROCESSES_FOR_SELF):
+            return HandleGetChildProcessesForSelf(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::GET_UIABILITY_CHILD_PROCESSES_FOR_SELF):
+            return HandleGetUIAbilityChildProcessesForSelf(data, reply);
+#endif // SUPPORT_CHILD_PROCESS
     }
     return INVALID_FD;
 }
@@ -2163,6 +2169,44 @@ int32_t AppMgrStub::HandleCreateNativeChildProcess(MessageParcel &data, MessageP
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "write result failed.");
         return IPC_STUB_ERR;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleGetChildProcessesForSelf(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    std::vector<ChildProcessInfo> infos;
+    auto result = GetChildProcessesForSelf(infos);
+    reply.WriteInt32(infos.size());
+    for (auto &it : infos) {
+        if (!reply.WriteParcelable(&it)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Write ChildProcessInfo failed, pid=%{public}d", it.pid);
+            return ERR_INVALID_VALUE;
+        }
+    }
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write result failed");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleGetUIAbilityChildProcessesForSelf(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    std::vector<ChildProcessInfo> infos;
+    auto result = GetUIAbilityChildProcessesForSelf(infos);
+    reply.WriteInt32(infos.size());
+    for (auto &it : infos) {
+        if (!reply.WriteParcelable(&it)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Write ChildProcessInfo failed, pid=%{public}d", it.pid);
+            return ERR_INVALID_VALUE;
+        }
+    }
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write result failed");
+        return ERR_INVALID_VALUE;
     }
     return NO_ERROR;
 }
