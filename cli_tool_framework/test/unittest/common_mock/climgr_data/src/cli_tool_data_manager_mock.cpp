@@ -12,18 +12,22 @@
 namespace OHOS {
 namespace CliTool {
 int32_t CliToolDataManagerMock::getToolByNameResult = ERR_TOOL_NOT_EXIST;
+bool CliToolDataManagerMock::toolIsPublic = false;
 bool CliToolDataManagerMock::toolHasSubCommand = false;
 std::string CliToolDataManagerMock::subCommandName = "build";
 std::vector<std::string> CliToolDataManagerMock::toolPermissions = {};
 std::vector<std::string> CliToolDataManagerMock::subCommandPermissions = {};
+std::vector<ToolInfo> CliToolDataManagerMock::allTools = {};
 
 void CliToolDataManagerMock::Reset()
 {
     getToolByNameResult = ERR_TOOL_NOT_EXIST;
+    toolIsPublic = false;
     toolHasSubCommand = false;
     subCommandName = "build";
     toolPermissions.clear();
     subCommandPermissions.clear();
+    allTools.clear();
 }
 
 CliToolDataManager::CliToolDataManager() noexcept = default;
@@ -43,7 +47,7 @@ int32_t CliToolDataManager::EnsureToolsLoaded()
 
 int32_t CliToolDataManager::GetAllTools(std::vector<ToolInfo> &tools)
 {
-    tools.clear();
+    tools = CliToolDataManagerMock::allTools;
     return ERR_OK;
 }
 
@@ -78,6 +82,7 @@ int32_t CliToolDataManager::GetToolByName(const std::string &name, ToolInfo &too
     toolInfo.version = "1.0.0";
     toolInfo.description = "mock tool";
     toolInfo.executablePath = "/system/bin/mock";
+    toolInfo.isPublic = CliToolDataManagerMock::toolIsPublic;
     toolInfo.requirePermissions = CliToolDataManagerMock::toolPermissions;
     toolInfo.inputSchema = "{}";
     toolInfo.outputSchema = "{}";
