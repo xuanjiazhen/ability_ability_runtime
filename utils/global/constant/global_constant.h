@@ -19,6 +19,8 @@
 namespace OHOS::AbilityRuntime {
 namespace GlobalConstant {
 constexpr int32_t MAX_APP_CLONE_INDEX = 1000;
+constexpr int32_t MIN_SANDBOX_CLONE_INDEX = 2000;
+constexpr int32_t MAX_SANDBOX_CLONE_INDEX = 3000;
 
 constexpr int32_t TIMEOUT_UNIT_TIME = 1000;
 constexpr int32_t TIMEOUT_UNIT_TIME_MICRO = 1000 * 1000;
