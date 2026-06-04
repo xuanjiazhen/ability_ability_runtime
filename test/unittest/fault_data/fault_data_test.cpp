@@ -61,6 +61,9 @@ void TestFaultDataUnmarshalling(MessageParcel& message)
     message.WriteBool(true);
     message.WriteString(helloWord);
     message.WriteString(helloWord);
+    message.WriteString(helloWord);
+    message.WriteBool(true);
+    message.WriteString(helloWord);
     message.WriteInt32(testValue1);
     message.WriteInt32(testValue1);
     message.WriteInt32(testValue1);
@@ -156,6 +159,9 @@ HWTEST_F(FaultDataTest, FaultDataTest_ReadFromParcel_002, TestSize.Level1)
     messageSixth.WriteBool(true);
     messageSixth.WriteString(helloWord);
     messageSixth.WriteString(helloWord);
+    messageSixth.WriteString(helloWord);
+    messageSixth.WriteBool(true);
+    messageSixth.WriteString(helloWord);
     messageSixth.WriteInt32(12);
     messageSixth.WriteInt32(12);
     messageSixth.WriteInt32(12);
@@ -230,43 +236,39 @@ HWTEST_F(FaultDataTest, Marshalling_001, TestSize.Level1)
 }
 
 /**
- * @tc.name: ReadFromParcel_002
+ * @tc.name: FaultDataTest_ReadFromParcel_002
  * @tc.desc: Verify that the ReadFromParcel interface calls normally
  * @tc.type: FUNC
  */
-HWTEST_F(FaultDataTest, ReadFromParcel_002, TestSize.Level1)
+HWTEST_F(FaultDataTest, FaultDataTest_ReadFromParcel_002, TestSize.Level1)
 {
-    auto appFaultDataBySA = std::make_shared<AppFaultDataBySA>();
-    MessageParcel messageFirst;
-    bool retFirst = appFaultDataBySA->ReadFromParcel(messageFirst);
-    EXPECT_EQ(false, retFirst);
-
-    MessageParcel messageSecond;
+    auto faultData = std::make_shared<FaultData>();
     std::string helloWord = "HelloWord";
-    messageSecond.WriteString(helloWord);
-    bool retSecond = appFaultDataBySA->ReadFromParcel(messageSecond);
-    EXPECT_EQ(false, retSecond);
-
-    MessageParcel messageThird;
-    messageThird.WriteString(helloWord);
-    messageThird.WriteString(helloWord);
-    bool retThird = appFaultDataBySA->ReadFromParcel(messageThird);
-    EXPECT_EQ(false, retThird);
-
-    MessageParcel messageFourth;
-    messageFourth.WriteString(helloWord);
-    messageFourth.WriteString(helloWord);
-    messageFourth.WriteString(helloWord);
-    bool retFourth = appFaultDataBySA->ReadFromParcel(messageFourth);
-    EXPECT_EQ(false, retFourth);
-
-    MessageParcel messageFifth;
-    messageFifth.WriteString(helloWord);
-    messageFifth.WriteString(helloWord);
-    messageFifth.WriteString(helloWord);
-    messageFifth.WriteInt32(12);
-    bool retFifth = appFaultDataBySA->ReadFromParcel(messageFifth);
-    EXPECT_EQ(false, retFifth);
+    MessageParcel messageSixth;
+    messageSixth.WriteString(helloWord);
+    messageSixth.WriteString(helloWord);
+    messageSixth.WriteString(helloWord);
+    messageSixth.WriteString(helloWord);
+    messageSixth.WriteInt32(1);
+    messageSixth.WriteString(helloWord);
+    messageSixth.WriteBool(true);
+    messageSixth.WriteBool(true);
+    messageSixth.WriteBool(true);
+    messageSixth.WriteBool(true);
+    messageSixth.WriteUint32(12);
+    messageSixth.WriteInt32(12);
+    messageSixth.WriteUint64(12);
+    messageSixth.WriteUint64(12);
+    messageSixth.WriteInt32(12);
+    messageSixth.WriteUint64(12);
+    messageSixth.WriteUint64(12);
+    messageSixth.WriteUint32(12);
+    messageSixth.WriteInt32(12);
+    messageSixth.WriteInt32(12);
+    messageSixth.WriteUint32(12);
+    TestFaultDataUnmarshalling(messageSixth);
+    bool retSixth = faultData->ReadFromParcel(messageSixth);
+    EXPECT_EQ(true, retSixth);
 }
 
 /**
@@ -303,6 +305,9 @@ HWTEST_F(FaultDataTest, ReadFromParcel_003, TestSize.Level1)
     messageSixth.WriteBool(true);
     messageSixth.WriteBool(true);
     messageSixth.WriteString(helloWord);
+    messageSixth.WriteString(helloWord);
+    messageSixth.WriteString(helloWord);
+    messageSixth.WriteBool(true);
     messageSixth.WriteString(helloWord);
     messageSixth.WriteInt32(1);
     messageSixth.WriteUint64(12);
@@ -354,6 +359,9 @@ HWTEST_F(FaultDataTest, Unmarshalling_002, TestSize.Level1)
     message.WriteBool(true);
     message.WriteBool(true);
     message.WriteString(helloWord);
+    message.WriteString(helloWord);
+    message.WriteString(helloWord);
+    message.WriteBool(true);
     message.WriteString(helloWord);
     message.WriteInt32(1);
     message.WriteUint64(12);
