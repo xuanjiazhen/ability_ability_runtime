@@ -29,6 +29,10 @@ ohos_shared_library("intent_client") {
 
   public_configs = [ ":intent_client_config" ]
 
+  sanitize = {
+    cfi = false
+  }
+
   external_deps = [
     "ability_base:want",
     "c_utils:utils",

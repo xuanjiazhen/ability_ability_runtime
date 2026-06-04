@@ -27,8 +27,8 @@ namespace AAFwk {
 
 namespace {
 constexpr int32_t ABILITY_SERVICE_NOT_CONNECTED = -1;
-constexpr HiviewDFX::HiLogLabel LABEL = { LOG_CORE, 0xD001300, "IntentClient" };
 constexpr const char *PERMISSION_DESC = "ohos.aafwk.AbilityManager";
+constexpr const char *TAG = "IntentClient";
 
 std::u16string ToUtf16(const std::string &str)
 {
@@ -51,12 +51,12 @@ sptr<IRemoteObject> IntentClient::GetAbilityManagerRemote()
     }
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (samgr == nullptr) {
-        HiLog::Error(LABEL, "get samgr failed");
+        HILOG_ERROR("get samgr failed");
         return nullptr;
     }
     remoteObj_ = samgr->GetSystemAbility(ABILITY_MGR_SERVICE_ID);
     if (remoteObj_ == nullptr) {
-        HiLog::Error(LABEL, "get ability manager failed");
+        HILOG_ERROR("get ability manager failed");
         return nullptr;
     }
     deathRecipient_ = sptr<IRemoteObject::DeathRecipient>(new DeathRecipient());
@@ -76,7 +76,7 @@ void IntentClient::ResetRemote(wptr<IRemoteObject> remote)
 
 void IntentClient::DeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
-    HiLog::Info(LABEL, "ability manager remote died");
+    HILOG_INFO("ability manager remote died");
     IntentClient::GetInstance().ResetRemote(remote);
 }
 
@@ -85,41 +85,41 @@ int32_t IntentClient::ExecuteIntentByFunctionCall(uint64_t key, const sptr<IRemo
 {
     auto remote = GetAbilityManagerRemote();
     if (remote == nullptr) {
-        HiLog::Error(LABEL, "service not connected");
+        HILOG_ERROR("service not connected");
         return ABILITY_SERVICE_NOT_CONNECTED;
     }
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(ToUtf16(PERMISSION_DESC))) {
-        HiLog::Error(LABEL, "write interface token failed");
+        HILOG_ERROR("write interface token failed");
         return -1;
     }
     if (!data.WriteUint64(key)) {
-        HiLog::Error(LABEL, "write key failed");
+        HILOG_ERROR("write key failed");
         return -1;
     }
     if (!data.WriteRemoteObject(callerToken)) {
-        HiLog::Error(LABEL, "write callerToken failed");
+        HILOG_ERROR("write callerToken failed");
         return -1;
     }
     if (!data.WriteString(bundleName)) {
-        HiLog::Error(LABEL, "write bundleName failed");
+        HILOG_ERROR("write bundleName failed");
         return -1;
     }
     if (!data.WriteString(intentName)) {
-        HiLog::Error(LABEL, "write intentName failed");
+        HILOG_ERROR("write intentName failed");
         return -1;
     }
     if (!data.WriteParcelable(&wantParam)) {
-        HiLog::Error(LABEL, "write wantParam failed");
+        HILOG_ERROR("write wantParam failed");
         return -1;
     }
     int32_t err = remote->SendRequest(
         static_cast<uint32_t>(AbilityManagerInterfaceCode::EXECUTE_INTENT_BY_FUNCTION_CALL),
         data, reply, option);
     if (err != 0) {
-        HiLog::Error(LABEL, "send request failed: %{public}d", err);
+        HILOG_ERROR("send request failed: %{public}d", err);
         return err;
     }
     return reply.ReadInt32();
