@@ -28,7 +28,12 @@ ohos_shared_headers("abilityms_target") {
 }
 
 config("abilityms_exception_config") {
-  cflags_cc = [ "-fexceptions" ]
+  cflags_cc = [
+    "-fexceptions",
+    "-ffunction-sections",
+    "-fdata-sections",
+    "-O2"
+  ]
 }
 
 config("abilityms_config") {
@@ -313,7 +318,11 @@ ohos_shared_library("abilityms") {
     defines += [ "DISABLE_LAUNCHER" ]
   }
 
-  ldflags = [ "-Wl,-Bsymbolic" ]
+  ldflags = [
+    "-Wl,-Bsymbolic",
+    "-Wl,--gc-sections"
+  ]
+
 
   version_script = "libabilityms.map"
   subsystem_name = "ability"

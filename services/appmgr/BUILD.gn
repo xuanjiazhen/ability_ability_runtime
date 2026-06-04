@@ -31,6 +31,13 @@ group("appms_target") {
   deps = [ ":libappms" ]
 }
 
+config("appmgr_exception_config") {
+  cflags_cc = [
+    "-fexceptions",
+    "-Oz",
+  ]
+}
+
 ohos_shared_library("libappms") {
   use_exceptions = true
   sanitize = {
@@ -104,7 +111,10 @@ ohos_shared_library("libappms") {
     defines += [ "ABILITY_PLATFORM_CHECK_PERMISSION" ]
   }
 
-  configs = [ ":appmgr_config" ]
+  configs = [
+    ":appmgr_config",
+    ":appmgr_exception_config",
+  ]
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
