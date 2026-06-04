@@ -191,6 +191,8 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
     AbilityRuntime::StartParamsBySCB &params, bool &isColdStart)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "[StartUIAbility:190] ENTRY, isWebSandBoxClone: %{public}d",
+        abilityRequest.isWebSandBoxClone);
     if (params.isRestart && !HandleRestartUIAbility(sessionInfo)) {
         return ERR_INVALID_VALUE;
     }
@@ -440,6 +442,8 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::HandleAbilityRecordReused(
 UIAbilityRecordPtr UIAbilityLifecycleManager::GenerateAbilityRecord(AbilityRequest &abilityRequest,
     sptr<SessionInfo> sessionInfo, bool &isColdStart)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "[GenerateAbilityRecord:442] ENTRY, isWebSandBoxClone: %{public}d",
+        abilityRequest.isWebSandBoxClone);
     auto iter = sessionAbilityMap_.find(sessionInfo->persistentId);
     bool isLowMemKill = (iter != sessionAbilityMap_.end()) &&
         (iter->second != nullptr) && (iter->second->IsKillPrecedeStart());
@@ -536,6 +540,8 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::CreateAbilityRecord(AbilityRequest
     sptr<SessionInfo> sessionInfo) const
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "[CreateAbilityRecord:539] ENTRY, isWebSandBoxClone: %{public}d",
+        abilityRequest.isWebSandBoxClone);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Create ability record.");
     if (sessionInfo->startSetting != nullptr) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "startSetting is valid.");
@@ -726,6 +732,8 @@ bool UIAbilityLifecycleManager::AddStartCallerTimestamp(int32_t callerUid)
 int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &abilityRequest)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "[NotifySCBToStartUIAbility:726] ENTRY, isWebSandBoxClone: %{public}d",
+        abilityRequest.isWebSandBoxClone);
     if (!AddStartCallerTimestamp(abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_UID, -1))) {
         return ERR_FREQ_START_ABILITY;
     }
