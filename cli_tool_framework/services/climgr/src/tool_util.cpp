@@ -179,6 +179,14 @@ bool ToolUtil::GenerateSandboxConfig(const ExecToolParam &param, AccessToken::Ac
     config["bundleName"] = bundleInfo.name;
     config["cliName"] = param.toolName;
     config["subCliName"] = param.subcommand;
+
+    // Construct env string for sandbox clone application support (pass-through to sandbox-loader)
+    nlohmann::json envConfig; // 是否有问题，上面config已设置有bundleName、callerUid、callerTokenId
+    envConfig["ohos.cli.callerBundleName"] = bundleInfo.name;
+    envConfig["ohos.cli.callerUid"] = std::to_string(IPCSkeleton::GetCallingUid());
+    envConfig["ohos.cli.callerTokenId"] = std::to_string(IPCSkeleton::GetCallingFullTokenID());
+    config["env"] = envConfig.dump();
+
     sandboxConfig = config.dump();
     bundleName = bundleInfo.name;
     TAG_LOGI(AAFwkTag::CLI_TOOL, "bundleName:%{public}s, gid:%{public}d, cliName:%{public}s, subCliName:%{public}s",
