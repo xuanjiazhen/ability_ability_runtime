@@ -67,6 +67,7 @@
 #include "pending_want_manager.h"
 #include "permission_verification.h"
 #include "resident_process_manager.h"
+#include "sandbox_clone_params.h"
 #include "scene_board/ui_ability_lifecycle_manager.h"
 #include "start_ability_handler.h"
 #include "sub_managers_helper.h"
@@ -2862,6 +2863,15 @@ protected:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int StartSelfUIAbilityByAppContext(const Want &want) override;
+
+    /**
+     * StartSandboxCloneAbility - Start sandbox clone ability.
+     * @param want The want of the ability to start.
+     * @param params Parameters containing caller information.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t StartSandboxCloneAbility(const Want &want, const SandboxCloneParams &params) override;
+
 private:
     int GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId = 0);
 
@@ -3054,6 +3064,13 @@ private:
     bool IsSystemUI(const std::string &bundleName) const;
     int32_t GetUidByCloneBundleInfo(std::string &bundleName, int32_t callerUid, int32_t userId,
         int32_t &appIndex) const;
+
+    std::string GetCreatorBundleNameForSandboxClone(const Want &want,
+        const sptr<IRemoteObject> &callerToken, int32_t &errCode);
+
+    int32_t ProcessSandboxCloneLaunch(Want &want, const sptr<IRemoteObject> &callerToken, int32_t userId,
+        AppExecFwk::AbilityInfo &abilityInfo);
+
     sptr<IWantSender> GetWantSenderByUserId(const WantSenderInfo &wantSenderInfo,
         const sptr<IRemoteObject> &callerToken, int32_t uid, int32_t callerUid, int32_t callerUserId);
 

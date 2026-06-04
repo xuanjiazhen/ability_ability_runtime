@@ -80,6 +80,7 @@ struct StartAbilityUtils {
     static thread_local bool isWantWithAppCloneIndex;
     static thread_local bool ermsSupportBackToCallerFlag;
     static thread_local bool startSpecifiedBySCB;
+    static thread_local bool isSandBoxClone;
 };
 
 struct StartAbilityInfoWrap {

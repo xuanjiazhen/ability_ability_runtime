@@ -43,6 +43,7 @@ thread_local int32_t StartAbilityUtils::ermsResultCode = ERMS_ISALLOW_RESULTCODE
 thread_local bool StartAbilityUtils::isWantWithAppCloneIndex = false;
 thread_local bool StartAbilityUtils::ermsSupportBackToCallerFlag = false;
 thread_local bool StartAbilityUtils::startSpecifiedBySCB = false;
+thread_local bool StartAbilityUtils::isSandBoxClone = false;
 
 bool StartAbilityUtils::GetAppIndex(const Want &want, sptr<IRemoteObject> callerToken, int32_t &appIndex)
 {
@@ -137,6 +138,10 @@ StartAbilityInfoWrap::StartAbilityInfoWrap(const Want &want, int32_t validUserId
     if (StartAbilityUtils::startAbilityInfo != nullptr) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "startAbilityInfo created");
     }
+    if (StartAbilityUtils::isSandBoxClone) {
+        return;
+    }
+
     Want localWant = want;
     if (!StartAbilityUtils::IsCallFromAncoShellOrBroker(callerToken)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "not call from anco or broker.");
@@ -148,12 +153,13 @@ StartAbilityInfoWrap::StartAbilityInfoWrap(const Want &want, int32_t validUserId
         localWant.SetParam(Want::PARAM_RESV_CALLER_TOKEN, static_cast<int32_t>(IPCSkeleton::GetCallingTokenID()));
         localWant.SetParam(Want::PARAM_RESV_CALLER_UID, IPCSkeleton::GetCallingUid());
     }
+
     if (isExtension) {
-        StartAbilityUtils::startAbilityInfo = StartAbilityInfo::CreateStartExtensionInfo(localWant,
-            validUserId, appIndex);
+            StartAbilityUtils::startAbilityInfo = StartAbilityInfo::CreateStartExtensionInfo(localWant,
+                validUserId, appIndex);
     } else {
-        StartAbilityUtils::startAbilityInfo = StartAbilityInfo::CreateStartAbilityInfo(localWant,
-            validUserId, appIndex, callerToken);
+            StartAbilityUtils::startAbilityInfo = StartAbilityInfo::CreateStartAbilityInfo(localWant,
+                validUserId, appIndex, callerToken);
     }
     if (StartAbilityUtils::startAbilityInfo != nullptr &&
         StartAbilityUtils::startAbilityInfo->abilityInfo.type == AppExecFwk::AbilityType::EXTENSION) {
@@ -184,6 +190,7 @@ StartAbilityInfoWrap::StartAbilityInfoWrap()
     StartAbilityUtils::ermsResultCode = ERMS_ISALLOW_RESULTCODE;
     StartAbilityUtils::isWantWithAppCloneIndex = false;
     StartAbilityUtils::ermsSupportBackToCallerFlag = false;
+    StartAbilityUtils::isSandBoxClone = false; //是否需要？
 }
 
 StartAbilityInfoWrap::~StartAbilityInfoWrap()
@@ -196,15 +203,19 @@ StartAbilityInfoWrap::~StartAbilityInfoWrap()
     StartAbilityUtils::ermsResultCode = ERMS_ISALLOW_RESULTCODE;
     StartAbilityUtils::isWantWithAppCloneIndex = false;
     StartAbilityUtils::ermsSupportBackToCallerFlag = false;
+    StartAbilityUtils::isSandBoxClone = false;
 }
 
 void StartAbilityInfoWrap::SetStartAbilityInfo(const AppExecFwk::AbilityInfo& abilityInfo)
 {
     if (StartAbilityUtils::startAbilityInfo != nullptr) {
-        return;
+            return;
+        }
     }
     StartAbilityUtils::startAbilityInfo = std::make_shared<StartAbilityInfo>();
     StartAbilityUtils::startAbilityInfo->abilityInfo = abilityInfo;
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "SetStartAbilityInfo: cache set, bundle = %{public}s, appIndex = %{public}d",
+        abilityInfo.bundleName.c_str(), abilityInfo.applicationInfo.appIndex);
 }
 
 namespace {
