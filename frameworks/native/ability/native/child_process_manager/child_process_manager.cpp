@@ -662,5 +662,39 @@ bool ChildProcessManager::IsNativeChildProcessSupported()
     }
     return isSupported;
 }
+
+ChildProcessManagerErrorCode ChildProcessManager::GetChildProcesses(
+    std::vector<AppExecFwk::ChildProcessInfo> &infos)
+{
+    TAG_LOGD(AAFwkTag::PROCESSMGR, "called");
+    auto client = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+    if (client == nullptr) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "AppMgrClient instance is nullptr");
+        return ChildProcessManagerErrorCode::ERR_SERVICE_ERROR;
+    }
+    auto ret = client->GetChildProcessesForSelf(infos);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "GetChildProcessesForSelf failed, ret=%{public}d", ret);
+        return ChildProcessManagerErrorCode::ERR_SERVICE_ERROR;
+    }
+    return ChildProcessManagerErrorCode::ERR_OK;
+}
+
+ChildProcessManagerErrorCode ChildProcessManager::GetUIAbilityChildProcesses(
+    std::vector<AppExecFwk::ChildProcessInfo> &infos)
+{
+    TAG_LOGD(AAFwkTag::PROCESSMGR, "called");
+    auto client = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+    if (client == nullptr) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "AppMgrClient instance is nullptr");
+        return ChildProcessManagerErrorCode::ERR_SERVICE_ERROR;
+    }
+    auto ret = client->GetUIAbilityChildProcessesForSelf(infos);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "GetUIAbilityChildProcessesForSelf failed, ret=%{public}d", ret);
+        return ChildProcessManagerErrorCode::ERR_SERVICE_ERROR;
+    }
+    return ChildProcessManagerErrorCode::ERR_OK;
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
