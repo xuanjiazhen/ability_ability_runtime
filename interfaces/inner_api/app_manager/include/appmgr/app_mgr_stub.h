@@ -184,6 +184,8 @@ private:
     int32_t HandleCheckCallingIsUserTestMode(MessageParcel &data, MessageParcel &reply);
 #ifdef SUPPORT_CHILD_PROCESS
     int32_t HandleCreateNativeChildProcess(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleGetChildProcessesForSelf(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleGetUIAbilityChildProcessesForSelf(MessageParcel &data, MessageParcel &reply);
 #endif // SUPPORT_CHILD_PROCESS
     int32_t HandleNotifyProcessDependedOnWeb(MessageParcel &data, MessageParcel &reply);
     int32_t HandleKillProcessDependedOnWeb(MessageParcel &data, MessageParcel &reply);

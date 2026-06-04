@@ -1016,6 +1016,10 @@ public:
 
     int32_t IsChildProcessSupported(bool isNative, bool &isSupported);
 
+    int32_t GetChildProcessesForSelf(std::vector<ChildProcessInfo> &infos);
+
+    int32_t GetUIAbilityChildProcessesForSelf(std::vector<ChildProcessInfo> &infos);
+
     int32_t SetProcessCacheEnable(int32_t pid, bool enable);
 
     int32_t LockProcessCache(int32_t pid, bool isLock);

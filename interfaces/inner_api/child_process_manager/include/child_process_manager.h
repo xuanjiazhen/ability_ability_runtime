@@ -79,6 +79,8 @@ public:
     void SetApplication(std::shared_ptr<AppExecFwk::OHOSApplication> application);
     ChildProcessManagerErrorCode KillChildProcessByPid(int32_t pid);
 
+    ChildProcessManagerErrorCode GetChildProcesses(std::vector<AppExecFwk::ChildProcessInfo> &infos);
+
 private:
     ChildProcessManager();
 
