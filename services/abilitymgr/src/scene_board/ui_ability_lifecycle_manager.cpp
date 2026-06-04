@@ -795,6 +795,21 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &ability
         sessionInfo->persistentId = persistentId;
         sessionInfo->reuse = reuse;
     }
+    // Store isWebSandBoxClone and appIndex in want for SCB callback.
+    if (abilityRequest.isWebSandBoxClone) {
+        sessionInfo->want.SetParam("ohos.ability.params.isWebSandBoxClone", abilityRequest.isWebSandBoxClone);
+        sessionInfo->want.SetParam("ohos.ability.params.sandBoxCloneIndex",
+            abilityRequest.abilityInfo.applicationInfo.appIndex);
+        // Store sandbox clone params from abilityRequest.want to sessionInfo->want for later use
+        std::string callerBundleName = abilityRequest.want.GetStringParam("ohos.ability.cli.callerBundleName");
+        std::string callerTokenId = abilityRequest.want.GetStringParam("ohos.ability.cli.callerTokenId");
+        int32_t validUserId = abilityRequest.want.GetIntParam("ohos.ability.params.validUserId", 0);
+        sessionInfo->want.SetParam("ohos.ability.cli.callerBundleName", callerBundleName);
+        sessionInfo->want.SetParam("ohos.ability.cli.callerTokenId", callerTokenId);
+        sessionInfo->want.SetParam("ohos.ability.params.validUserId", validUserId);
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "WebSandBoxClone params: bundle=%{public}s, tokenId=%{public}s, uid=%{public}d",
+            callerBundleName.c_str(), callerTokenId.c_str(), validUserId);
+    }
     sessionInfo->userId = userId_;
     sessionInfo->isAtomicService = (abilityInfo.applicationInfo.bundleType == AppExecFwk::BundleType::ATOMIC_SERVICE);
     TAG_LOGI(AAFwkTag::ABILITYMGR,
@@ -1969,6 +1984,10 @@ sptr<SessionInfo> UIAbilityLifecycleManager::CreateSessionInfo(const AbilityRequ
     if (abilityRequest.isStartByOEExt && abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
         sessionInfo->specifiedFlag = abilityRequest.specifiedFlag;
     }
+    // 是在此设置还是NotifySCBToStartUIAbility即可？
+    // sessionInfo->want.SetParam("isWebSandBoxClone", abilityRequest.isWebSandBoxClone);
+    // TAG_LOGI(AAFwkTag::ABILITYMGR, "[CreateSessionInfo:1973] Set isWebSandBoxClone in want: %{public}d",
+    //     abilityRequest.isWebSandBoxClone);
     return sessionInfo;
 }
 
