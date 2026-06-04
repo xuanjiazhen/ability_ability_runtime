@@ -479,7 +479,7 @@ int32_t AppMgrService::ClearUpApplicationData(const std::string &bundleName, int
             return AAFwk::CHECK_PERMISSION_FAILED;
         }
     }
-    if (appCloneIndex < 0 || appCloneIndex > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+    if (appCloneIndex < 0 || appCloneIndex > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) { //是否需要适配？
         TAG_LOGE(AAFwkTag::APPMGR, "appCloneIndex invalid");
         return AAFwk::ERR_APP_CLONE_INDEX_INVALID;
     }
