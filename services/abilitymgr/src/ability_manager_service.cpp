@@ -304,6 +304,7 @@ constexpr int32_t INSTALL_TYPE_UPGRADE = 2;
 constexpr int64_t CLEAR_USER_LOCKED_BUNDLE_LIST_KEY_DELAY_TIME = 60 * 1000; // 60s
 constexpr const char* VPN_PERMISSION_IF = "libnet_vpn_permission_if.z.so";
 constexpr const char* INTENT_USER_ID = "ohos.insightIntent.userId";
+constexpr const char* CLAW_CLONE_INDEX = "ohos.cli.clawCloneIndex";
 constexpr const char* START_SELF_UI_ABILITY_IN_CHILD_PROCESS_FLAG = "startSelfUIAbilityInChildProcessFlag";
 constexpr const char* DMS_CALLER_APP_ID = "ohos.dms.param.sourceCallerAppId";
 
@@ -359,6 +360,7 @@ constexpr const char* BOOTEVENT_BOOT_ANIMATION_READY = "bootevent.bootanimation.
 constexpr const char* NEED_STARTINGWINDOW = "ohos.ability.NeedStartingWindow";
 constexpr const char* PERMISSIONMGR_BUNDLE_NAME = "com.ohos.permissionmanager";
 constexpr const char* PERMISSIONMGR_ABILITY_NAME = "com.ohos.permissionmanager.GrantAbility";
+constexpr const char* PERMISSION_DELEGATE_MANAGE_SANDBOX = "ohos.permission.DELEGATE_MANAGE_SANDBOX_BUNDLE";
 constexpr const char* SCENEBOARD_BUNDLE_NAME = "com.ohos.sceneboard";
 constexpr const char* SPECIFY_TOKEN_ID = "specifyTokenId";
 constexpr int CREATE_STATUS_BAR_TIMEOUT_MILLISECONDS = 5000;  // 5s
@@ -1455,6 +1457,15 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     }
 
     int32_t validUserId = oriValidUserId;
+
+    // Process sandbox clone app launch if clawIndex parameter is present
+    auto cloneRet = ProcessSandboxCloneLaunch(param.want, param.callerToken, validUserId);
+    if (cloneRet != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ProcessSandboxCloneLaunch failed: %{public}d", cloneRet);
+        AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, cloneRet, "ProcessSandboxCloneLaunch failed");
+        return cloneRet;
+    }
+
     StartAbilityUtils::SetTargetCloneIndexInSameBundle(param.want, param.callerToken);
     int32_t appIndex = 0;
     if (!StartAbilityUtils::GetAppIndex(param.want, param.callerToken, appIndex)) {
@@ -6644,6 +6655,114 @@ int32_t AbilityManagerService::GetUidByCloneBundleInfo(
         return -1;
     }
     return bundleInfo.uid;
+}
+
+std::string AbilityManagerService::GetCreatorBundleNameForSandboxClone(const Want &want,
+    const sptr<IRemoteObject> &callerToken, int32_t &errCode)
+{
+    errCode = ERR_OK;
+    std::string creatorBundleName;
+
+    // Get caller bundle name from Want (passed from CLI tool environment variable)
+    std::string callerBundleName = want.GetStringParam("callerBundleName");
+    // Get creator bundle name from Want (passed from CLI tool command line parameter)
+    std::string inputCreatorBundleName = want.GetStringParam("creatorBundleName");
+
+    // Check if caller has PERMISSION_DELEGATE_MANAGE_SANDBOX permission
+    auto callerTokenId = IPCSkeleton::GetCallingTokenID();
+    bool hasManageSandboxPermission = Security::AccessToken::AccessTokenKit::VerifyAccessToken(
+        callerTokenId, PERMISSION_DELEGATE_MANAGE_SANDBOX, false) ==
+        Security::AccessToken::PermissionState::PERMISSION_GRANTED;
+
+    if (hasManageSandboxPermission) {
+        // If caller has permission, use the creator bundle name from command line (trusted)
+        if (!inputCreatorBundleName.empty()) {
+            creatorBundleName = inputCreatorBundleName;
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "Has permission, using creator bundle name from CLI: %{public}s",
+                creatorBundleName.c_str());
+        } else {
+            // Fallback to caller bundle name if no creator bundle name provided
+            creatorBundleName = callerBundleName;
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "Has permission, using caller bundle name: %{public}s",
+                creatorBundleName.c_str());
+        }
+    } else {
+        // If caller doesn't have permission, use caller's own bundle name (untrusted input)
+        creatorBundleName = callerBundleName;
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "No permission, using caller bundle name: %{public}s",
+            creatorBundleName.c_str());
+    }
+
+    // Verify creator bundle name was successfully obtained
+    if (creatorBundleName.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get creator bundle name");
+        errCode = ERR_INVALID_VALUE;
+        return "";
+    }
+
+    return creatorBundleName;
+}
+
+/**
+ * Process sandbox clone app launch with clawIndex
+ *
+ * This function implements the complete flow for launching a sandbox clone app:
+ * 1. Extract clawIndex from Want
+ * 2. Get creator bundle name based on permission check
+ * 3. Query clone ability info from BMS
+ * 4. Update Want with the queried ability info
+ * 5. Return success to continue with normal launch flow
+ */
+int32_t AbilityManagerService::ProcessSandboxCloneLaunch(Want &want,
+    const sptr<IRemoteObject> &callerToken, int32_t userId)
+{
+    // Check if this is a sandbox clone launch (has clawIndex parameter)
+    if (!want.HasParameter(CLAW_CLONE_INDEX)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Not a sandbox clone launch, no clawIndex parameter");
+        return ERR_OK;
+    }
+
+    int32_t clawCloneIndex = want.GetIntParam(CLAW_CLONE_INDEX, 0);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ProcessSandboxCloneLaunch: clawCloneIndex = %{public}d", clawCloneIndex);
+
+    // Validate clone index range
+    if (clawCloneIndex < 0 || clawCloneIndex >= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Invalid clawCloneIndex: %{public}d", clawCloneIndex);
+        return ERR_APP_CLONE_INDEX_INVALID;
+    }
+
+    // Step 1: Get creator bundle name based on permission check
+    int32_t errCode = ERR_OK;
+    std::string creatorBundleName = GetCreatorBundleNameForSandboxClone(want, callerToken, errCode);
+    if (errCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetCreatorBundleNameForSandboxClone failed: %{public}d", errCode);
+        return errCode;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Creator bundle name: %{public}s", creatorBundleName.c_str());
+
+    // Step 2: Query clone ability info from BMS using QueryAbilityInfo
+    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    CHECK_POINTER_AND_RETURN(bundleMgrHelper, GET_ABILITY_SERVICE_FAILED);
+
+    AppExecFwk::AbilityInfo abilityInfo;
+    CHECK_TRUE_RETURN_RET(!IN_PROCESS_CALL(bundleMgrHelper->QuerySandboxCloneAbilityInfo(creatorBundleName,
+        clawCloneIndex, want, AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, userId, abilityInfo)),
+        RESOLVE_ABILITY_ERR, "failed to get SandboxCloneAbilityInfo");
+
+    // Step 3: Update Want with queried ability info
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "Clone ability info queried: moduleName=%{public}s, bundleName=%{public}s, appIndex=%{public}d",
+        abilityInfo.moduleName.c_str(), abilityInfo.bundleName.c_str(), abilityInfo.applicationInfo.appIndex);
+
+    // Update want with module name from queried ability info
+    if (!abilityInfo.moduleName.empty()) {
+        want.SetModuleName(abilityInfo.moduleName);
+    }
+
+    // The clone index is already set in the Want, continue with normal launch flow
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ProcessSandboxCloneLaunch success, continuing with normal launch flow");
+    return ERR_OK;
 }
 
 sptr<IWantSender> AbilityManagerService::GetWantSenderByUserId(const WantSenderInfo &wantSenderInfo,
