@@ -35,6 +35,11 @@ namespace AAFwk {
 using TerminateReason = AbilityStartWithWaitObserverUtil::TerminateReason;
 namespace {
 constexpr int INNER_ERR_START = 10108101;
+
+// Sandbox clone index range constants (must match AbilityRuntime::GlobalConstant)
+constexpr int32_t MIN_SANDBOX_CLONE_INDEX = 2000;
+constexpr int32_t MAX_SANDBOX_CLONE_INDEX = 3000;
+const std::string CLAW_CLONE_INDEX = "ohos.cli.clawCloneIndex";
 const std::string ERR_INVALID_COMMAND = "ERR_INVALID_COMMAND";
 const std::string ERR_INVALID_INPUT = "ERR_INVALID_INPUT";
 constexpr int START_HELP_CODE = 10108104;
@@ -306,6 +311,18 @@ ErrCode ClawAaShellCommand::RunAsStartAbility()
     if (result == OHOS::ERR_OK) {
         if (startAbilityWithWaitFlag_) {
             result = StartAbilityWithWait(want);
+        } else if (StartSandboxCloneAbilityFlag_) {
+            SandboxCloneParams params;
+            // Get caller info from environment variables (set by SA-CLI via config["env"])
+            if (const char* envCallerUid = std::getenv("ohos_cli_callerUid"))
+                params.callerUid = std::stoi(envCallerUid);
+            if (const char* envCallerTokenId = std::getenv("ohos_cli_callerTokenId"))
+                params.callerTokenId = std::stoul(envCallerTokenId);
+            if (const char* envCallerBundleName = std::getenv("ohos_cli_callerBundleName"))
+                params.callerBundleName = envCallerBundleName;
+            TAG_LOGI(AAFwkTag::AA_TOOL, "StartSandboxCloneAbility with callerUid=%{public}d, callerTokenId=%{public}u, "
+                "callerBundleName=%{public}s", params.callerUid, params.callerTokenId, params.callerBundleName.c_str());
+            result = AbilityManagerClient::GetInstance()->StartSandboxCloneAbility(want, params);
         } else {
             result = AbilityManagerClient::GetInstance()->StartAbility(want);
         }
@@ -627,6 +644,10 @@ ErrCode ClawAaShellCommand::MakeWantFromCmd(Want& want, int32_t& userId)
     bool hasWindowHeight = false;
     int windowWidth = 0;
     bool hasWindowWidth = false;
+    int32_t clawIndex = 0;          // Claw sandbox index for clone application
+    bool hasClawIndex = false;
+    std::string creatorBundleName;  // Creator bundle name (untrusted, from command line)
+    std::string callerBundleName;  // Caller bundle name (trusted, from environment)
 
     while (true) {
         counter++;
@@ -906,6 +927,38 @@ ErrCode ClawAaShellCommand::MakeWantFromCmd(Want& want, int32_t& userId)
                 
                 break;
             }
+            case OPTION_CLAW_INDEX: {
+                // 'ohos-aa start --claw-index xxx'
+                if (optarg != nullptr) {
+                    std::string clawIndexStr = optarg;
+                    if (!std::regex_match(clawIndexStr, std::regex(STRING_TEST_REGEX_INTEGER_NUMBERS))) {
+                        TAG_LOGE(AAFwkTag::AA_TOOL, "invalid claw-index: %{public}s", clawIndexStr.c_str());
+                        result = OHOS::ERR_INVALID_VALUE;
+                        break;
+                    }
+                    clawIndex = std::stoi(clawIndexStr);
+                    // Validate clawIndex range at source (ohos-aa)
+                    if (clawIndex < MIN_SANDBOX_CLONE_INDEX || clawIndex > MAX_SANDBOX_CLONE_INDEX) {
+                        TAG_LOGE(AAFwkTag::AA_TOOL, "clawIndex out of valid range [%{public}d-%{public}d]: %{public}d",
+                            MIN_SANDBOX_CLONE_INDEX, MAX_SANDBOX_CLONE_INDEX, clawIndex);
+                        result = OHOS::ERR_INVALID_VALUE;
+                        break;
+                    }
+                    hasClawIndex = true;
+                    StartSandboxCloneAbilityFlag_ = true;  // Set flag to use new interface
+                    TAG_LOGI(AAFwkTag::AA_TOOL, "clawIndex = %{public}d, StartSandboxCloneAbilityFlag_ set to true",
+                        clawIndex);
+                }
+                break;
+            }
+            case OPTION_CREATOR_BUNDLE: {
+                // 'ohos-aa start --creator-bundle xxx'
+                if (optarg != nullptr) {
+                    creatorBundleName = optarg;
+                    TAG_LOGI(AAFwkTag::AA_TOOL, "creatorBundleName = %{public}s", creatorBundleName.c_str());
+                }
+                break;
+            }
             case OPTION_URI: {
                 // 'aa start -U xxx'
 
@@ -1004,6 +1057,15 @@ ErrCode ClawAaShellCommand::MakeWantFromCmd(Want& want, int32_t& userId)
             }
             if (hasWindowWidth) {
                 want.SetParam(Want::PARAM_RESV_WINDOW_WIDTH, windowWidth);
+            }
+            // Sandbox clone application support parameters
+            if (hasClawIndex) {
+                want.SetParam(CLAW_CLONE_INDEX, clawIndex);
+            }
+            // Set creator bundle name (untrusted, from command line parameter)
+            if (!creatorBundleName.empty()) {
+                want.SetParam("creatorBundleName", creatorBundleName);
+                TAG_LOGI(AAFwkTag::AA_TOOL, "creatorBundleName: %{public}s", creatorBundleName.c_str());
             }
         }
     }
