@@ -191,7 +191,12 @@ void AbilityRecord::Init(const AbilityRequest &abilityRequest)
 {
     SetUid(abilityRequest.uid);
     int32_t appIndex = 0;
-    (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);
+    if (abilityRequest.isWebSandBoxClone) {
+        appIndex = abilityRequest.abilityInfo.applicationInfo.appIndex;
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Web sandbox clone, using appIndex from abilityInfo: %{public}d", appIndex);
+    } else {
+        (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);
+    }
     SetAppIndex(appIndex);
     SetSecurityFlag(abilityRequest.want.GetBoolParam(DLP_PARAMS_SECURITY_FLAG, false));
     SetCallerAccessTokenId(abilityRequest.callerAccessTokenId);
@@ -338,7 +343,7 @@ int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide, pid_t calli
         MainElementUtils::IsMainUIAbility(abilityInfo_.bundleName, abilityInfo_.name, userId);
     MainElementUtils::SetMainUIAbilityKeepAliveFlag(isMainUIAbility,
         abilityInfo_.bundleName, loadParam);
-    auto result = DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(
+    auto result = DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility( //无需传入createBundleName
         loadParam, abilityInfo_, abilityInfo_.applicationInfo, want_);
     want_.RemoveParam(IS_HOOK);
     want_.RemoveParam(ABILITY_OWNER_USERID);
@@ -2866,7 +2871,7 @@ void AbilityRecord::HandleDlpAttached()
         DelayedSingleton<ConnectionStateManager>::GetInstance()->AddDlpManager(shared_from_this());
     }
 
-    if (appIndex_ > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+    if (appIndex_ > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) { // > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX  就认为是DLP，但可能是沙箱分身应用
         DelayedSingleton<ConnectionStateManager>::GetInstance()->AddDlpAbility(shared_from_this());
     }
 }
@@ -2877,7 +2882,7 @@ void AbilityRecord::HandleDlpClosed()
         DelayedSingleton<ConnectionStateManager>::GetInstance()->RemoveDlpManager(shared_from_this());
     }
 
-    if (appIndex_ > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+    if (appIndex_ > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) { //
         DelayedSingleton<ConnectionStateManager>::GetInstance()->RemoveDlpAbility(shared_from_this());
     }
 }
