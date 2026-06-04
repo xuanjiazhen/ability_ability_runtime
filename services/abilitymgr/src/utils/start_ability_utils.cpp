@@ -43,12 +43,13 @@ thread_local int32_t StartAbilityUtils::ermsResultCode = ERMS_ISALLOW_RESULTCODE
 thread_local bool StartAbilityUtils::isWantWithAppCloneIndex = false;
 thread_local bool StartAbilityUtils::ermsSupportBackToCallerFlag = false;
 thread_local bool StartAbilityUtils::startSpecifiedBySCB = false;
+thread_local bool StartAbilityUtils::isSandBoxClone = false;
 
 bool StartAbilityUtils::GetAppIndex(const Want &want, sptr<IRemoteObject> callerToken, int32_t &appIndex)
 {
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
     if (abilityRecord && abilityRecord->GetApplicationInfo().bundleName == want.GetBundle() &&
-        abilityRecord->GetAppIndex() > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+        AbilityRuntime::GlobalConstant::IsDlpIndex(abilityRecord->GetAppIndex())) { // 是否有问题？保持原状？
         appIndex = abilityRecord->GetAppIndex();
         return true;
     }
@@ -137,6 +138,12 @@ StartAbilityInfoWrap::StartAbilityInfoWrap(const Want &want, int32_t validUserId
     if (StartAbilityUtils::startAbilityInfo != nullptr) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "startAbilityInfo created");
     }
+    if (StartAbilityUtils::isSandBoxClone) {
+        //StartAbilityUtils::isSandBoxClone = false;
+        //DisposedRuleInterceptor::DoProcess
+        return; //下面走的拦截器场景 也会再调用startAbilityInner接口，此时是不是仍然会复用sandbox分身的AbilityInfo，因为走到拦截器调用时 还没析构。
+    }
+
     Want localWant = want;
     if (!StartAbilityUtils::IsCallFromAncoShellOrBroker(callerToken)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "not call from anco or broker.");
@@ -151,7 +158,7 @@ StartAbilityInfoWrap::StartAbilityInfoWrap(const Want &want, int32_t validUserId
     if (isExtension) {
         StartAbilityUtils::startAbilityInfo = StartAbilityInfo::CreateStartExtensionInfo(localWant,
             validUserId, appIndex);
-    } else {
+    } else { // 如果appIndex在2000-3000，调用包管理新接口？因为从SCB回来，abilityInfo又要重新生成（AbilityManagerService::StartUIAbilityBySCBDefault）
         StartAbilityUtils::startAbilityInfo = StartAbilityInfo::CreateStartAbilityInfo(localWant,
             validUserId, appIndex, callerToken);
     }
@@ -184,6 +191,7 @@ StartAbilityInfoWrap::StartAbilityInfoWrap()
     StartAbilityUtils::ermsResultCode = ERMS_ISALLOW_RESULTCODE;
     StartAbilityUtils::isWantWithAppCloneIndex = false;
     StartAbilityUtils::ermsSupportBackToCallerFlag = false;
+    StartAbilityUtils::isSandBoxClone = false; //是否需要？
 }
 
 StartAbilityInfoWrap::~StartAbilityInfoWrap()
@@ -196,6 +204,7 @@ StartAbilityInfoWrap::~StartAbilityInfoWrap()
     StartAbilityUtils::ermsResultCode = ERMS_ISALLOW_RESULTCODE;
     StartAbilityUtils::isWantWithAppCloneIndex = false;
     StartAbilityUtils::ermsSupportBackToCallerFlag = false;
+    StartAbilityUtils::isSandBoxClone = false;
 }
 
 void StartAbilityInfoWrap::SetStartAbilityInfo(const AppExecFwk::AbilityInfo& abilityInfo)
@@ -205,6 +214,8 @@ void StartAbilityInfoWrap::SetStartAbilityInfo(const AppExecFwk::AbilityInfo& ab
     }
     StartAbilityUtils::startAbilityInfo = std::make_shared<StartAbilityInfo>();
     StartAbilityUtils::startAbilityInfo->abilityInfo = abilityInfo;
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "SetStartAbilityInfo: cache set, bundle = %{public}s, appIndex = %{public}d",
+        abilityInfo.bundleName.c_str(), abilityInfo.applicationInfo.appIndex);
 }
 
 namespace {
