@@ -3054,6 +3054,17 @@ private:
     bool IsSystemUI(const std::string &bundleName) const;
     int32_t GetUidByCloneBundleInfo(std::string &bundleName, int32_t callerUid, int32_t userId,
         int32_t &appIndex) const;
+
+    // Sandbox clone application support
+    // Get creator bundle name based on permission check
+    // Returns the creator bundle name to use for BMS query
+    std::string GetCreatorBundleNameForSandboxClone(const Want &want,
+        const sptr<IRemoteObject> &callerToken, int32_t &errCode);
+
+    // Process sandbox clone app launch with clawIndex
+    // This function implements the complete flow for launching a sandbox clone app
+    int32_t ProcessSandboxCloneLaunch(Want &want, const sptr<IRemoteObject> &callerToken, int32_t userId);
+
     sptr<IWantSender> GetWantSenderByUserId(const WantSenderInfo &wantSenderInfo,
         const sptr<IRemoteObject> &callerToken, int32_t uid, int32_t callerUid, int32_t callerUserId);
 
