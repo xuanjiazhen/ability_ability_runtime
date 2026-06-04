@@ -2016,6 +2016,30 @@ int32_t AppMgrService::CreateNativeChildProcess(const std::string &libName,
     return appMgrServiceInner_->CreateNativeChildProcess(
         IPCSkeleton::GetCallingPid(), libName, callback, request);
 }
+
+int32_t AppMgrService::AcquireChildProcessesForSelf(std::vector<ChildProcessInfo> &infos);
+{
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    
+    return appMgrServiceInner_->AcquireChildProcessesForSelf(infos);
+}
+
+int32_t AppMgrService::AcquireUIAbilityChildProcessesForSelf(std::vector<ChildProcessInfo> &infos);
+{
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    
+    return appMgrServiceInner_->AcquireUIAbilityChildProcessesForSelf(infos);
+}
 #endif // SUPPORT_CHILD_PROCESS
 
 int32_t AppMgrService::CheckCallingIsUserTestMode(const pid_t pid, bool &isUserTest)
