@@ -28,6 +28,8 @@ UIAbilityRecord::UIAbilityRecord(const Want &want, const AppExecFwk::AbilityInfo
 
 std::shared_ptr<UIAbilityRecord> UIAbilityRecord::CreateAbilityRecord(const AbilityRequest &abilityRequest)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "[UIAbilityRecord::CreateAbilityRecord:29] ENTRY, isWebSandBoxClone: %{public}d",
+        abilityRequest.isWebSandBoxClone);
     auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->Init(abilityRequest);
