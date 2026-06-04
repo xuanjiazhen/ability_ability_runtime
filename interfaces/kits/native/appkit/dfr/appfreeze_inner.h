@@ -42,6 +42,9 @@
         _rc;                                       \
     })
 
+namespace panda {
+struct GCStatistic;
+}
 namespace OHOS {
 namespace AppExecFwk {
 class AppfreezeInner {
@@ -81,12 +84,15 @@ private:
     bool GetReportLifeCycleAsAppfreeze();
     void EnableFreezeSample(FaultData& newFaultData);
     void ReportAppfreezeTask(const FaultData& faultData, bool onlyMainThread);
-    std::string LogFormat(size_t totalSize, size_t objectSize);
+    std::string LogFormatHeapSize(size_t totalSize, size_t objectSize, size_t sharedSize);
     void GetApplicationInfo(FaultData& faultData);
     bool GetProcessStartTime(pid_t tid, unsigned long long &startTime);
     bool ReadFdToString(int fd, std::string& content);
     int TransformHicollieFaultNumber(const std::string& faultName);
     std::string GetMainStackDump(int32_t pid);
+    std::string LogFormatGC(const panda::GCStatistic& gCStatistic);
+    std::string ParseIOValue(std::string ioStr);
+    std::string GetProcessIOStr();
 
     static std::mutex singletonMutex_;
     static std::shared_ptr<AppfreezeInner> instance_;
