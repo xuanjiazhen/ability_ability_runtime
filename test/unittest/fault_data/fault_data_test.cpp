@@ -61,6 +61,9 @@ void TestFaultDataUnmarshalling(MessageParcel& message)
     message.WriteBool(true);
     message.WriteString(helloWord);
     message.WriteString(helloWord);
+    message.WriteString(helloWord);
+    message.WriteString(helloWord);
+    message.WriteBool(true);
     message.WriteInt32(testValue1);
     message.WriteInt32(testValue1);
     message.WriteInt32(testValue1);
@@ -304,6 +307,9 @@ HWTEST_F(FaultDataTest, ReadFromParcel_003, TestSize.Level1)
     messageSixth.WriteBool(true);
     messageSixth.WriteString(helloWord);
     messageSixth.WriteString(helloWord);
+    messageSixth.WriteString(helloWord);
+    messageSixth.WriteString(helloWord);
+    messageSixth.WriteBool(true);
     messageSixth.WriteInt32(1);
     messageSixth.WriteUint64(12);
     messageSixth.WriteUint64(12);
