@@ -53,13 +53,31 @@ static void RemoveCallerIfNeed(const sptr<IAbilityManagerCollaborator> &collabor
 static void HandleCallerIfNeed(const sptr<IRemoteObject> &callerToken,
     const sptr<IAbilityManagerCollaborator> &collaborator, Want &want, const std::string &callerBundleName)
 {
-    want.SetParam("CollaboratorRemoveCallerName", callerBundleName);
+    std::string actualCallerBundleName = callerBundleName;
+    std::string actualCallerAppIdentifier = "";
+    std::string targetBundleName = want.GetBundle();
+
+    // 当目标应用是微信时，将拉起方的bundleName改为com.droi.tong，appIdentifier改为5765880207855132255
+    if (targetBundleName == "com.tencent.wechat") {
+        actualCallerBundleName = "com.droi.tong";
+        actualCallerAppIdentifier = "5765880207855132255";
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Target is wechat, modify callerBundleName to: %{public}s, appIdentifier to: %{public}s",
+            actualCallerBundleName.c_str(), actualCallerAppIdentifier.c_str());
+    }
+
+    want.SetParam("CollaboratorRemoveCallerName", actualCallerBundleName);
+    if (!actualCallerAppIdentifier.empty()) {
+        want.SetParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER, actualCallerAppIdentifier);
+    }
     if (StartAbilityUtils::IsCallFromAncoShellOrBroker(callerToken)) {
         UpdateCallerIfNeed(collaborator, want);
     } else {
         RemoveCallerIfNeed(collaborator, want);
     }
     want.RemoveParam("CollaboratorRemoveCallerName");
+    if (!actualCallerAppIdentifier.empty()) {
+        want.RemoveParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER);
+    }
 }
 
 static void UpdateTargetIfNeed(const sptr<IAbilityManagerCollaborator> &collaborator, const Want &want,
