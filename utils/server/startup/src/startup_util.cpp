@@ -32,7 +32,7 @@ bool StartupUtil::GetAppIndex(const AAFwk::Want &want, int32_t &appIndex)
 {
     if (want.HasParameter(ServerConstant::DLP_INDEX)) {
         appIndex = want.GetIntParam(ServerConstant::DLP_INDEX, 0);
-        return appIndex > GlobalConstant::MAX_APP_CLONE_INDEX;
+        return appIndex > GlobalConstant::MAX_APP_CLONE_INDEX; //是否需要修改？
     }
     if (want.HasParameter(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY)) {
         appIndex = want.GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, 0);
