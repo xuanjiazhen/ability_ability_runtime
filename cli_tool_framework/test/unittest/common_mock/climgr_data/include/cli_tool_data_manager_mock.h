@@ -10,15 +10,20 @@
 #include <string>
 #include <vector>
 
+#include "tool_info.h"
+
 namespace OHOS {
 namespace CliTool {
 class CliToolDataManagerMock {
 public:
     static int32_t getToolByNameResult;
+    static int32_t getAllToolsResult;
+    static bool toolIsPublic;
     static bool toolHasSubCommand;
     static std::string subCommandName;
     static std::vector<std::string> toolPermissions;
     static std::vector<std::string> subCommandPermissions;
+    static std::vector<ToolInfo> allTools;
 
     static void Reset();
 };
