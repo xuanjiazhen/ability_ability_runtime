@@ -1052,6 +1052,26 @@ public:
     {
         return 0;
     };
+
+    /**
+     * Acquire child processes for self (non-UIAbility child processes).
+     * @param infos Output vector of child process info.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t AcquireChildProcessesForSelf(std::vector<ChildProcessInfo> &infos)
+    {
+        return 0;
+    }
+
+    /**
+     * Acquire UIAbility child processes for self.
+     * @param infos Output vector of child process info.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t AcquireUIAbilityChildProcessesForSelf(std::vector<ChildProcessInfo> &infos)
+    {
+        return 0;
+    }
 #endif // SUPPORT_CHILD_PROCESS
 
      /**

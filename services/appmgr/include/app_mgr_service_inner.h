@@ -1491,6 +1491,10 @@ public:
      */
     virtual int32_t CreateNativeChildProcess(const pid_t hostPid, const std::string &libName,
         const sptr<IRemoteObject> &callback, const ChildProcessRequest &request);
+
+    virtual int32_t AcquireChildProcessesForSelf(std::vector<ChildProcessInfo> &infos);
+
+    virtual int32_t AcquireUIAbilityChildProcessesForSelf(std::vector<ChildProcessInfo> &infos);
 #endif // SUPPORT_CHILD_PROCESS
 
     virtual int32_t RegisterNativeChildExitNotify(const sptr<INativeChildNotify> &callback);

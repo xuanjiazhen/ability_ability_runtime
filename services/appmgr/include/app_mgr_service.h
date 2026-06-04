@@ -901,6 +901,20 @@ public:
      */
     int32_t CreateNativeChildProcess(const std::string &libName,
         const sptr<IRemoteObject> &callback, const ChildProcessRequest &request) override;
+
+    /**
+     * Acquire child processes for self (non-UIAbility child processes).
+     * @param infos Output vector of child process info.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t AcquireChildProcessesForSelf(std::vector<ChildProcessInfo> &infos) override;
+    
+    /**
+     * Acquire UIAbility child processes for self.
+     * @param infos Output vector of child process info.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t AcquireUIAbilityChildProcessesForSelf(std::vector<ChildProcessInfo> &infos) override;
 #endif // SUPPORT_CHILD_PROCESS
 
     /**

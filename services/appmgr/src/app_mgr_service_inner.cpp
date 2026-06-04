@@ -4437,6 +4437,74 @@ void AppMgrServiceInner::GetChildrenProcesses(const std::shared_ptr<AppRunningRe
         }
     }
 }
+
+int32_t AppMgrServiceInner::AcquireChildProcessesForSelf(std::vector<ChildProcessInfo> &infos)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (!appRunningManager_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
+        return ERR_NO_INIT;
+    }
+    auto callingPid = IPCSkeleton::GetCallingPid();
+    auto appRecord = appRunningManager_->GetAppRunningRecordByPid(callingPid);
+    if (appRecord == nullptr) {
+        TAG_LOGW(AAFwkTag::APPMGR, "no appRecord for pid:%{public}d", callingPid);
+        return ERR_INVALID_VALUE;
+    }
+    auto callingTokenId = IPCSkeleton::GetCallingTokenID();
+    auto applicationInfo = appRecord->GetApplicationInfo();
+    if (applicationInfo == nullptr || callingTokenId != applicationInfo->accessTokenId) {
+        TAG_LOGW(AAFwkTag::APPMGR, "token mismatch, callingPid:%{public}d", callingPid);
+        return ERR_INVALID_VALUE;
+    }
+    auto childProcessRecordMap = appRecord->GetChildProcessRecordMap();
+    for (const auto &iter : childProcessRecordMap) {
+        auto childRecord = iter.second;
+        if (childRecord == nullptr) {
+            continue;
+        }
+        ChildProcessInfo info;
+        info.pid = childRecord->GetPid();
+        info.hostPid = callingPid;
+        info.processName = childRecord->GetProcessName();
+        infos.emplace_back(info);
+    }
+    return ERR_OK;
+}
+
+int32_t AppMgrServiceInner::AcquireUIAbilityChildProcessesForSelf(std::vector<ChildProcessInfo> &infos)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (!appRunningManager_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
+        return ERR_NO_INIT;
+    }
+    auto callingPid = IPCSkeleton::GetCallingPid();
+    auto appRecord = appRunningManager_->GetAppRunningRecordByPid(callingPid);
+    if (appRecord == nullptr) {
+        TAG_LOGW(AAFwkTag::APPMGR, "no appRecord for pid:%{public}d", callingPid);
+        return ERR_INVALID_VALUE;
+    }
+    auto callingTokenId = IPCSkeleton::GetCallingTokenID();
+    auto applicationInfo = appRecord->GetApplicationInfo();
+    if (applicationInfo == nullptr || callingTokenId != applicationInfo->accessTokenId) {
+        TAG_LOGW(AAFwkTag::APPMGR, "token mismatch, callingPid:%{public}d", callingPid);
+        return ERR_INVALID_VALUE;
+    }
+    auto childAppRecordMap = appRecord->GetChildAppRecordMap();
+    for (const auto &iter : childAppRecordMap) {
+        auto childAppRecord = iter.second.lock();
+        if (childAppRecord == nullptr) {
+            continue;
+        }
+        ChildProcessInfo info;
+        info.pid = childAppRecord->GetPid();
+        info.hostPid = callingPid;
+        info.processName = childAppRecord->GetProcessName();
+        infos.emplace_back(info);
+    }
+    return ERR_OK;
+}
 #endif // SUPPORT_CHILD_PROCESS
 
 int32_t AppMgrServiceInner::KillProcessByPid(const pid_t pid, const std::string& reason, bool isKillPrecedeStart,

@@ -662,5 +662,22 @@ bool ChildProcessManager::IsNativeChildProcessSupported()
     }
     return isSupported;
 }
+
+ChildProcessManagerErrorCode ChildProcessManager::AcquireChildProcesses(
+    std::vector<AppExecFwk::ChildProcessInfo> &infos)
+{
+    TAG_LOGD(AAFwkTag::PROCESSMGR, "called");
+    auto client = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+    if (client == nullptr) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "AppMgrClient instance is nullptr");
+        return ChildProcessManagerErrorCode::ERR_GET_APP_MGR_FAILED;
+    }
+    auto ret = client->AcquireChildProcessesForSelf(infos);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "AcquireChildProcessesForSelf failed, ret=%{public}d", ret);
+        return ChildProcessManagerErrorCode::ERR_APP_MGR_FAILED_INNER;
+    }
+    return ChildProcessManagerErrorCode::ERR_OK;
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
