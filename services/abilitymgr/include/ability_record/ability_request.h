@@ -76,6 +76,7 @@ struct AbilityRequest {
     std::shared_ptr<ProcessOptions> processOptions = nullptr;
     std::shared_ptr<StartWindowOption> startWindowOption = nullptr;
     std::shared_ptr<StartSpecifiedAbilityParams> startSpecifiedParams = nullptr;
+    std::shared_ptr<SandboxCloneParams> sandboxCloneParams = nullptr;
     sptr<UIExtensionAbilityConnectInfo> uiExtensionAbilityConnectInfo = nullptr;
 
     int64_t restartTime = 0;
@@ -105,6 +106,7 @@ struct AbilityRequest {
     bool isFromIcon = false;
     bool isShellCall = false;
     bool isTargetPlugin = false;
+    bool isWebSandBoxClone = false;  // Indicates web sandbox clone launch
     // ERMS embedded atomic service
     bool isQueryERMS = false;
     bool isEmbeddedAllowed = false;
