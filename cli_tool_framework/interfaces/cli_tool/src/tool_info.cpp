@@ -52,6 +52,7 @@ bool ToolInfo::Marshalling(Parcel &parcel) const
            parcel.WriteString(eventSchemas) &&
            parcel.WriteStringVector(eventTypes) &&
            parcel.WriteBool(hasSubCommand) &&
+           parcel.WriteBool(isPublic) &&
            parcel.WriteString(subcommandsJson);
 }
 
@@ -73,6 +74,7 @@ ToolInfo *ToolInfo::Unmarshalling(Parcel &parcel)
         !parcel.ReadString(tool->eventSchemas) ||
         !parcel.ReadStringVector(&tool->eventTypes) ||
         !parcel.ReadBool(tool->hasSubCommand) ||
+        !parcel.ReadBool(tool->isPublic) ||
         !parcel.ReadString(subcommandsJson)) {
         delete tool;
         return nullptr;
@@ -299,6 +301,15 @@ bool ToolInfo::ParseFromJson(const nlohmann::json &json, ToolInfo &tool)
         }
         tool.hasSubCommand = json["hasSubCommand"];
     }
+    if (json.contains("isPublic")) {
+        if (!json["isPublic"].is_boolean()) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "ParseFromJson failed: isPublic is not a boolean");
+            return false;
+        }
+        tool.isPublic = json["isPublic"];
+    } else {
+        tool.isPublic = false;
+    }
     if (tool.hasSubCommand) {
         if (!json.contains("subcommands") || !json["subcommands"].is_object() || json["subcommands"].empty()) {
             TAG_LOGE(AAFwkTag::CLI_TOOL, "ParseFromJson failed: subcommands is required when hasSubCommand is true");
@@ -353,6 +364,7 @@ nlohmann::json ToolInfo::ParseToJson() const
     }
     j["eventTypes"] = eventTypes;
     j["hasSubCommand"] = hasSubCommand;
+    j["isPublic"] = isPublic;
     if (!subcommands.empty()) {
         nlohmann::json subcommandsJson;
         for (const auto &pair : subcommands) {

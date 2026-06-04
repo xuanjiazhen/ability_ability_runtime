@@ -21,7 +21,9 @@ int32_t CliToolMgrClientFlag::retClearSession = ERR_OK;
 int32_t CliToolMgrClientFlag::retQuerySession = ERR_OK;
 int32_t CliToolMgrClientFlag::retSendMessage = ERR_OK;
 int32_t CliToolMgrClientFlag::retBatchQueryPermission = ERR_OK;
+int32_t CliToolMgrClientFlag::retIsXXSupported = ERR_OK;
 int32_t CliToolMgrClientFlag::retLoadSystemAbility = ERR_OK;
+bool CliToolMgrClientFlag::isXXSupported = true;
 bool CliToolMgrClientFlag::nullSystemAbility = false;
 bool CliToolMgrClientFlag::shouldCallback = true;
 sptr<IRemoteObject> CliToolMgrClientFlag::cliToolMgr = nullptr;
@@ -45,7 +47,9 @@ void CliToolMgrClientFlag::Reset()
     retQuerySession = ERR_OK;
     retSendMessage = ERR_OK;
     retBatchQueryPermission = ERR_OK;
+    retIsXXSupported = ERR_OK;
     retLoadSystemAbility = ERR_OK;
+    isXXSupported = true;
     nullSystemAbility = false;
     shouldCallback = true;
     cliToolMgr = nullptr;
@@ -126,6 +130,12 @@ int32_t MockCliToolMgrService::BatchQueryPermissionBySubCommand(
 {
     cmdPermissions = CliToolMgrClientFlag::commandPermissions;
     return CliToolMgrClientFlag::retBatchQueryPermission;
+}
+
+int32_t MockCliToolMgrService::IsXXSupported(bool &isSupported)
+{
+    isSupported = CliToolMgrClientFlag::isXXSupported;
+    return CliToolMgrClientFlag::retIsXXSupported;
 }
 } // namespace CliTool
 } // namespace OHOS

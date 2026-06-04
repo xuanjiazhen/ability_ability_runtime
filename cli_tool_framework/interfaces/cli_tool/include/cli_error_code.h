@@ -80,6 +80,7 @@ enum {
      * Result (35700012): fail to kill.
      */
     ERR_NOT_KILL = 35700012,
+
 };
 
 } // namespace CliTool

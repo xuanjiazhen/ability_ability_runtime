@@ -30,7 +30,6 @@ ohos_unittest("cli_tool_mgr_service_test") {
   ]
 
   sources = [
-    "cli_tool_mgr_service_test.cpp",
     "${cli_tool_framework_path}/services/climgr/src/cli_tool_app_state_observer.cpp",
     "${cli_tool_framework_path}/services/climgr/src/cli_tool_manager_service.cpp",
     "${cli_tool_framework_path}/services/climgr/src/event_dispatcher.cpp",
@@ -40,8 +39,9 @@ ohos_unittest("cli_tool_mgr_service_test") {
     "${cli_tool_framework_path}/services/climgr/src/session_record.cpp",
     "${cli_tool_framework_path}/services/climgr/src/tool_util.cpp",
     "${cli_tool_framework_path}/services/common/src/ccm_util.cpp",
-    "permission_util_mock.cpp",
     "${cli_tool_framework_path}/test/unittest/common_mock/climgr_data/src/cli_tool_data_manager_mock.cpp",
+    "cli_tool_mgr_service_test.cpp",
+    "permission_util_mock.cpp",
   ]
 
   cflags = []
@@ -50,8 +50,8 @@ ohos_unittest("cli_tool_mgr_service_test") {
   }
 
   deps = [
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
-    "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_innerkits_path}/ability_manager",
+    "${ability_runtime_innerkits_path}/app_manager",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${cli_tool_framework_path}/interfaces/cli_tool:cli_tool_client",
   ]

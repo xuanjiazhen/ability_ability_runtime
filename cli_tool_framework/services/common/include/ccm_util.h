@@ -17,6 +17,10 @@
 #define OHOS_ABILITY_RUNTIME_CCM_UTIL_H
 
 #include <mutex>
+#include <set>
+#include <string>
+
+#include "nlohmann/json.hpp"
 
 namespace OHOS {
 namespace CliTool {
@@ -47,14 +51,24 @@ public:
      */
     int32_t GetCliConcurrencyLimit();
 
+    /**
+     * GetPublicCliToolNames, Get public cli tool names.
+     *
+     * @return Public cli tool names.
+     */
+    std::set<std::string> GetPublicCliToolNames();
+
 private:
     /**
      * CcmUtil, private constructor.
      *
      */
     CcmUtil() = default;
+    bool ParsePublicCliToolNames(const nlohmann::json &object, std::set<std::string> &publicNames) const;
 
     volatile DeviceConfiguration<int32_t> maxCliQuantity_ = {false, DEFAULT_MAX_CLI_QUANTITY};
+    std::mutex publicCliToolNamesMutex_;
+    DeviceConfiguration<std::set<std::string>> publicCliToolNames_;
 };
 
 } // namespace CliTool
