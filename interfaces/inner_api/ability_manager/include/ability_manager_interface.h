@@ -2614,6 +2614,21 @@ public:
         return 0;
     }
 
+    /**
+     * StartSandboxCloneAbility - Start sandbox clone ability with clawIndex support.
+     * @param want The want of the ability to start, should contain ability name, bundle name,
+     *             and the clawIndex parameter (CLAW_CLONE_INDEX) for specifying which clone
+     *             instance to launch. Must be within valid range (MIN_SANDBOX_CLONE_INDEX to
+     *             MAX_SANDBOX_CLONE_INDEX).
+     * @param userId Target user ID, DEFAULT_INVAL_VALUE for current user.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t StartSandboxCloneAbility(const Want &want,
+        int32_t userId = DEFAULT_INVAL_VALUE)
+    {
+        return 0;
+    }
+
     virtual int32_t UpdateKioskApplicationList(const std::vector<std::string> &appList)
     {
         return 0;
