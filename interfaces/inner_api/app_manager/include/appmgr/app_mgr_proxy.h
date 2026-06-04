@@ -861,6 +861,8 @@ public:
         const sptr<IRemoteObject> &callback, const ChildProcessRequest &request) override;
 #endif // SUPPORT_CHILD_PROCESS
 
+    int32_t GetAllUIAbilityChildProcesses(std::vector<ChildProcessInfo> &infos) override;
+
     /**
      * Notify that the process depends on web by itself.
      */

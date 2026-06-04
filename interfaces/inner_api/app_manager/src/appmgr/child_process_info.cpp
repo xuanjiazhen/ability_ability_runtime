@@ -28,9 +28,9 @@ bool ChildProcessInfo::ReadFromParcel(Parcel &parcel)
     READ_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, pidData);
     pid = static_cast<int32_t>(pidData);
 
-    int32_t hostPidData;
-    READ_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, hostPidData);
-    hostPid = static_cast<int32_t>(hostPidData);
+    int32_t parentPidData;
+    READ_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, parentPidData);
+    parentPid = static_cast<int32_t>(parentPidData);
 
     int32_t uidData;
     READ_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, uidData);
@@ -90,7 +90,7 @@ ChildProcessInfo *ChildProcessInfo::Unmarshalling(Parcel &parcel)
 bool ChildProcessInfo::Marshalling(Parcel &parcel) const
 {
     WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, static_cast<int32_t>(pid));
-    WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, static_cast<int32_t>(hostPid));
+    WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, static_cast<int32_t>(parentPid));
     WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, static_cast<int32_t>(uid));
     WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, static_cast<int32_t>(hostUid));
     WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, static_cast<int32_t>(userId));
