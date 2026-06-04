@@ -90,12 +90,12 @@ ohos_shared_library("climanager_napi") {
   ]
 
   deps = [
+    ":cli_manager_error_utils_src",
+    ":js_cli_event_handler_manager_src",
     "${ability_runtime_innerkits_path}/error_utils:ability_runtime_error_util",
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
     "${cli_tool_framework_path}/interfaces/cli_tool:cli_tool_client",
-    ":cli_manager_error_utils_src",
-    ":js_cli_event_handler_manager_src",
   ]
 
   external_deps = [
@@ -104,6 +104,7 @@ ohos_shared_library("climanager_napi") {
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "json:nlohmann_json_static",
     "napi:ace_napi",
   ]
 
