@@ -34,7 +34,9 @@
 
 #include "cli_error_code.h"
 #include "cli_tool_app_state_observer.h"
+#define private public
 #include "ccm_util.h"
+#undef private
 #include "cli_tool_manager_scheduler_stub.h"
 #include "cli_tool_data_manager_mock.h"
 #include "event_dispatcher.h"
@@ -53,15 +55,23 @@ using namespace testing::ext;
 using namespace OHOS::CliTool;
 
 namespace OHOS {
+namespace CliTool {
+bool g_isSystemApp = true;
+}
 namespace Security {
 namespace AccessToken {
 bool TokenIdKit::IsSystemAppByFullTokenID(uint64_t)
 {
-    return true;
+    return CliTool::g_isSystemApp;
 }
 } // namespace AccessToken
 } // namespace Security
 namespace CliTool {
+extern bool g_verifySystemExecPermission;
+extern bool g_verifySystemQueryPermission;
+extern bool g_verifyUserExecPermission;
+extern bool g_verifyUserQueryPermission;
+
 namespace {
 const char *CLI_TOOL_PERMS[] = {
     "ohos.permission.EXEC_CLI_TOOL",
@@ -129,6 +139,13 @@ void CliToolManagerServiceTest::SetUp()
 {
     service_ = CliToolManagerService::GetInstance();
     service_->interfaceCalledCount_.store(0);
+    g_verifySystemExecPermission = true;
+    g_verifySystemQueryPermission = true;
+    g_verifyUserExecPermission = true;
+    g_verifyUserQueryPermission = true;
+    g_isSystemApp = true;
+    CcmUtil::GetInstance().publicCliToolsEnabled_.isLoaded = true;
+    CcmUtil::GetInstance().publicCliToolsEnabled_.value = false;
     CliToolDataManagerMock::Reset();
     EventDispatcher::GetInstance().ClearAll();
     std::lock_guard<ffrt::mutex> guard(service_->sessionsMutex_);
@@ -139,6 +156,13 @@ void CliToolManagerServiceTest::SetUp()
 void CliToolManagerServiceTest::TearDown()
 {
     service_->interfaceCalledCount_.store(0);
+    g_verifySystemExecPermission = true;
+    g_verifySystemQueryPermission = true;
+    g_verifyUserExecPermission = true;
+    g_verifyUserQueryPermission = true;
+    g_isSystemApp = true;
+    CcmUtil::GetInstance().publicCliToolsEnabled_.isLoaded = true;
+    CcmUtil::GetInstance().publicCliToolsEnabled_.value = false;
     CliToolDataManagerMock::Reset();
     EventDispatcher::GetInstance().ClearAll();
     std::lock_guard<ffrt::mutex> guard(service_->sessionsMutex_);
@@ -374,6 +398,9 @@ HWTEST_F(CliToolManagerServiceTest, ExecTool_0110, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "CliToolManagerService_ExecTool_0110 start";
 
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolIsPublic = true;
+
     auto cliQuantity = CcmUtil::GetInstance().GetCliConcurrencyLimit();
     for (int32_t i = 0; i < cliQuantity; ++i) {
         auto record = std::make_shared<SessionRecord>();
@@ -447,18 +474,15 @@ HWTEST_F(CliToolManagerServiceTest, ValidateAndPrepareTool_0100, TestSize.Level1
     ExecToolParam param;
     param.toolName = "prepare_tool";
     ToolInfo toolInfo;
+    toolInfo.name = "prepare_tool";
     std::string sandboxConfig;
     std::string bundleName;
 
-    EXPECT_EQ(service_->ValidateAndPrepareTool(param, IPCSkeleton::GetCallingTokenID(),
-        toolInfo, sandboxConfig, bundleName), ERR_TOOL_NOT_EXIST);
-
-    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    // ValidateAndPrepareTool no longer fetches the tool — it validates and prepares sandbox config
     int32_t result = service_->ValidateAndPrepareTool(param, IPCSkeleton::GetCallingTokenID(),
         toolInfo, sandboxConfig, bundleName);
     EXPECT_TRUE(result == ERR_OK || result == ERR_NOT_HAP);
     if (result == ERR_OK) {
-        EXPECT_EQ(toolInfo.name, param.toolName);
         EXPECT_FALSE(sandboxConfig.empty());
     }
 
@@ -617,6 +641,147 @@ HWTEST_F(CliToolManagerServiceTest, GetToolInfoByName_Permission_0100, TestSize.
                 result == ERR_NO_INIT || result == ERR_TOOL_NOT_EXIST);
 
     GTEST_LOG_(INFO) << "CliToolManagerService_GetToolInfoByName_Permission_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_IsCliToolSupported_0100
+ * @tc.desc: Test IsCliToolSupported is always true for system apps and follows the product switch for normal apps
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, IsCliToolSupported_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_IsCliToolSupported_0100 start";
+
+    bool isSupported = true;
+    EXPECT_EQ(service_->IsCliToolSupported(isSupported), ERR_OK);
+    EXPECT_TRUE(isSupported);
+
+    g_isSystemApp = false;
+    EXPECT_EQ(service_->IsCliToolSupported(isSupported), ERR_OK);
+    EXPECT_FALSE(isSupported);
+
+    CcmUtil::GetInstance().publicCliToolsEnabled_.value = true;
+    EXPECT_EQ(service_->IsCliToolSupported(isSupported), ERR_OK);
+    EXPECT_TRUE(isSupported);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_IsCliToolSupported_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_ValidateCaller_0200
+ * @tc.desc: Test user CLI permissions select the normal caller branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ValidateCaller_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_ValidateCaller_0200 start";
+
+    g_verifySystemQueryPermission = false;
+    g_verifySystemExecPermission = false;
+
+    CliToolManagerService::CliCallerContext queryContext;
+    EXPECT_EQ(service_->ValidateQueryCaller(queryContext), ERR_OK);
+    EXPECT_EQ(queryContext.type, CliToolManagerService::CliCallerType::NORMAL);
+
+    CliToolManagerService::CliCallerContext execContext;
+    EXPECT_EQ(service_->ValidateExecCaller(execContext), ERR_OK);
+    EXPECT_EQ(execContext.type, CliToolManagerService::CliCallerType::NORMAL);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_ValidateCaller_0200 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_PublicToolFilter_0100
+ * @tc.desc: Test normal caller filtering requires isPublic and the product switch
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, PublicToolFilter_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_PublicToolFilter_0100 start";
+
+    CliToolManagerService::CliCallerContext systemContext;
+    systemContext.type = CliToolManagerService::CliCallerType::SYSTEM;
+    CliToolManagerService::CliCallerContext normalContext;
+    normalContext.type = CliToolManagerService::CliCallerType::NORMAL;
+
+    ToolInfo allowedTool;
+    allowedTool.name = "public_allowed";
+    allowedTool.isPublic = true;
+    ToolInfo configOnlyTool;
+    configOnlyTool.name = "config_only";
+    configOnlyTool.isPublic = false;
+    ToolInfo publicOnlyTool;
+    publicOnlyTool.name = "public_only";
+    publicOnlyTool.isPublic = true;
+
+    EXPECT_TRUE(service_->IsPublicToolAllowed(systemContext, configOnlyTool));
+    EXPECT_FALSE(service_->IsPublicToolAllowed(normalContext, allowedTool));
+    EXPECT_FALSE(service_->IsPublicToolAllowed(normalContext, configOnlyTool));
+
+    auto filteredTools = service_->FilterPublicTools(normalContext, {allowedTool, configOnlyTool, publicOnlyTool});
+    EXPECT_TRUE(filteredTools.empty());
+
+    CcmUtil::GetInstance().publicCliToolsEnabled_.value = true;
+    EXPECT_TRUE(service_->IsPublicToolAllowed(normalContext, allowedTool));
+    EXPECT_FALSE(service_->IsPublicToolAllowed(normalContext, configOnlyTool));
+    EXPECT_TRUE(service_->IsPublicToolAllowed(normalContext, publicOnlyTool));
+
+    filteredTools = service_->FilterPublicTools(normalContext, {allowedTool, configOnlyTool, publicOnlyTool});
+    ASSERT_EQ(filteredTools.size(), 2);
+    EXPECT_EQ(filteredTools[0].name, allowedTool.name);
+    EXPECT_EQ(filteredTools[1].name, publicOnlyTool.name);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_PublicToolFilter_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_GetAllToolSummaries_0200
+ * @tc.desc: Test normal caller receives public tool summaries when product switch is enabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetAllToolSummaries_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_GetAllToolSummaries_0200 start";
+
+    g_verifySystemQueryPermission = false;
+    ToolInfo publicTool;
+    publicTool.name = "public_tool";
+    publicTool.description = "public tool";
+    publicTool.version = "1.0.0";
+    publicTool.isPublic = true;
+    CliToolDataManagerMock::allTools = {publicTool};
+
+    std::vector<ToolSummary> summaries;
+    EXPECT_EQ(service_->GetAllToolSummaries(summaries), ERR_OK);
+    EXPECT_TRUE(summaries.empty());
+
+    CcmUtil::GetInstance().publicCliToolsEnabled_.value = true;
+    EXPECT_EQ(service_->GetAllToolSummaries(summaries), ERR_OK);
+    ASSERT_EQ(summaries.size(), 1);
+    EXPECT_EQ(summaries[0].name, publicTool.name);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_GetAllToolSummaries_0200 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecTool_0800
+ * @tc.desc: Test normal caller cannot execute public tool when product switch is disabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecTool_0800, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_ExecTool_0800 start";
+
+    g_verifySystemExecPermission = false;
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolIsPublic = true;
+
+    ExecToolParam param;
+    param.toolName = "public_tool_without_ccm_allowlist";
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    EXPECT_EQ(service_->ExecTool(param, "event_exec_public_without_ccm", scheduler), ERR_TOOL_NOT_EXIST);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_ExecTool_0800 end";
 }
 
 /**
@@ -1654,7 +1819,8 @@ HWTEST_F(CliToolManagerServiceTest, UnsubscribeSession_0100, TestSize.Level1)
 
     int32_t result = service_->UnsubscribeSession("session", "subscription");
 
-    EXPECT_TRUE(result == ERR_OK || result == ERR_NO_INIT || IsPermissionGateResult(result));
+    EXPECT_TRUE(result == ERR_OK || result == ERR_NO_INIT || result == ERR_CLI_SESSION_NOT_FOUND ||
+        IsPermissionGateResult(result));
 
     GTEST_LOG_(INFO) << "CliToolManagerService_UnsubscribeSession_0100 end";
 }
@@ -1936,6 +2102,9 @@ HWTEST_F(CliToolManagerServiceTest, ExecTool_0700, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "CliToolManagerService_ExecTool_0700 start";
 
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolIsPublic = true;
+
     ExecToolParam param;
     param.toolName = "ohos-arkTSScript";
 
@@ -2204,6 +2373,411 @@ HWTEST_F(CliToolManagerServiceTest, ExecCmd_0700, TestSize.Level1)
     EXPECT_TRUE(result == ERR_INVALID_PARAM || IsPermissionGateResult(result));
 
     GTEST_LOG_(INFO) << "CliToolManagerService_ExecCmd_0700 end";
+}
+
+// ==================== ValidateCaller Permission Denied Tests ====================
+
+/**
+ * @tc.name: CliToolManagerService_ValidateCaller_0300
+ * @tc.desc: Test ValidateQueryCaller and ValidateExecCaller deny when both system and public permissions fail
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ValidateCaller_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_ValidateCaller_0300 start";
+
+    g_isSystemApp = false;
+    g_verifySystemQueryPermission = false;
+    g_verifyUserQueryPermission = false;
+    g_verifySystemExecPermission = false;
+    g_verifyUserExecPermission = false;
+
+    CliToolManagerService::CliCallerContext queryContext;
+    EXPECT_EQ(service_->ValidateQueryCaller(queryContext), ERR_PERMISSION_DENIED);
+    EXPECT_EQ(queryContext.type, CliToolManagerService::CliCallerType::INVALID);
+
+    CliToolManagerService::CliCallerContext execContext;
+    EXPECT_EQ(service_->ValidateExecCaller(execContext), ERR_PERMISSION_DENIED);
+    EXPECT_EQ(execContext.type, CliToolManagerService::CliCallerType::INVALID);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_ValidateCaller_0300 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_ValidateCaller_0400
+ * @tc.desc: Test ValidateQueryCaller selects SYSTEM when system app has QUERY_CLI_TOOL
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ValidateCaller_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_ValidateCaller_0400 start";
+
+    g_isSystemApp = true;
+    g_verifySystemQueryPermission = true;
+    g_verifyUserQueryPermission = false;
+
+    CliToolManagerService::CliCallerContext queryContext;
+    EXPECT_EQ(service_->ValidateQueryCaller(queryContext), ERR_OK);
+    EXPECT_EQ(queryContext.type, CliToolManagerService::CliCallerType::SYSTEM);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_ValidateCaller_0400 end";
+}
+
+// ==================== GetAllToolInfos Normal Caller Tests ====================
+
+/**
+ * @tc.name: CliToolManagerService_GetAllToolInfos_0200
+ * @tc.desc: Test NORMAL caller receives filtered public tools
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetAllToolInfos_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_GetAllToolInfos_0200 start";
+
+    g_verifySystemQueryPermission = false;
+    ToolInfo publicTool;
+    publicTool.name = "public_tool";
+    publicTool.version = "1.0.0";
+    publicTool.description = "public";
+    publicTool.executablePath = "/system/bin/public_tool";
+    publicTool.isPublic = true;
+    ToolInfo privateTool;
+    privateTool.name = "private_tool";
+    privateTool.version = "1.0.0";
+    privateTool.description = "private";
+    privateTool.executablePath = "/system/bin/private_tool";
+    privateTool.isPublic = false;
+    CliToolDataManagerMock::allTools = {publicTool, privateTool};
+
+    // disabled: FilterPublicTools returns empty → FromToolInfoVec writes count=0
+    ToolsRawData toolsRawData;
+    EXPECT_EQ(service_->GetAllToolInfos(toolsRawData), ERR_OK);
+    // count=0 → size is just sizeof(uint32_t)=4
+    EXPECT_EQ(toolsRawData.size, static_cast<uint32_t>(sizeof(uint32_t)));
+
+    // enabled: should return only public tools (count=1)
+    CcmUtil::GetInstance().publicCliToolsEnabled_.value = true;
+    EXPECT_EQ(service_->GetAllToolInfos(toolsRawData), ERR_OK);
+    EXPECT_GT(toolsRawData.size, static_cast<uint32_t>(sizeof(uint32_t)));
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_GetAllToolInfos_0200 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_GetAllToolInfos_0300
+ * @tc.desc: Test NORMAL caller GetAllToolInfos propagates data manager failure
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetAllToolInfos_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_GetAllToolInfos_0300 start";
+
+    g_verifySystemQueryPermission = false;
+    CliToolDataManagerMock::getAllToolsResult = ERR_NO_INIT;
+
+    ToolsRawData toolsRawData;
+    EXPECT_EQ(service_->GetAllToolInfos(toolsRawData), ERR_NO_INIT);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_GetAllToolInfos_0300 end";
+}
+
+// ==================== GetAllToolSummaries Normal Caller Data Failure ====================
+
+/**
+ * @tc.name: CliToolManagerService_GetAllToolSummaries_0300
+ * @tc.desc: Test NORMAL caller GetAllToolSummaries propagates data manager failure
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetAllToolSummaries_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_GetAllToolSummaries_0300 start";
+
+    g_verifySystemQueryPermission = false;
+    CliToolDataManagerMock::getAllToolsResult = ERR_NO_INIT;
+
+    std::vector<ToolSummary> summaries;
+    EXPECT_EQ(service_->GetAllToolSummaries(summaries), ERR_NO_INIT);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_GetAllToolSummaries_0300 end";
+}
+
+// ==================== GetToolInfoByName Normal Caller Tests ====================
+
+/**
+ * @tc.name: CliToolManagerService_GetToolInfoByName_0200
+ * @tc.desc: Test NORMAL caller GetToolInfoByName returns ERR_TOOL_NOT_EXIST when public tools disabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetToolInfoByName_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_GetToolInfoByName_0200 start";
+
+    g_verifySystemQueryPermission = false;
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolIsPublic = true;
+
+    ToolInfo tool;
+    EXPECT_EQ(service_->GetToolInfoByName("some_tool", tool), ERR_TOOL_NOT_EXIST);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_GetToolInfoByName_0200 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_GetToolInfoByName_0300
+ * @tc.desc: Test NORMAL caller GetToolInfoByName returns error when tool not found in data manager
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetToolInfoByName_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_GetToolInfoByName_0300 start";
+
+    g_verifySystemQueryPermission = false;
+    CcmUtil::GetInstance().publicCliToolsEnabled_.value = true;
+    CliToolDataManagerMock::getToolByNameResult = ERR_TOOL_NOT_EXIST;
+
+    ToolInfo tool;
+    EXPECT_EQ(service_->GetToolInfoByName("missing_tool", tool), ERR_TOOL_NOT_EXIST);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_GetToolInfoByName_0300 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_GetToolInfoByName_0400
+ * @tc.desc: Test NORMAL caller GetToolInfoByName returns ERR_TOOL_NOT_EXIST for non-public tool
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetToolInfoByName_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_GetToolInfoByName_0400 start";
+
+    g_verifySystemQueryPermission = false;
+    CcmUtil::GetInstance().publicCliToolsEnabled_.value = true;
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolIsPublic = false;
+
+    ToolInfo tool;
+    EXPECT_EQ(service_->GetToolInfoByName("private_tool", tool), ERR_TOOL_NOT_EXIST);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_GetToolInfoByName_0400 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_GetToolInfoByName_0500
+ * @tc.desc: Test NORMAL caller GetToolInfoByName succeeds for public tool when enabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetToolInfoByName_0500, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_GetToolInfoByName_0500 start";
+
+    g_verifySystemQueryPermission = false;
+    CcmUtil::GetInstance().publicCliToolsEnabled_.value = true;
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolIsPublic = true;
+
+    ToolInfo tool;
+    EXPECT_EQ(service_->GetToolInfoByName("public_tool", tool), ERR_OK);
+    EXPECT_EQ(tool.name, "public_tool");
+    EXPECT_TRUE(tool.isPublic);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_GetToolInfoByName_0500 end";
+}
+
+// ==================== ExecTool Normal Caller Public Tool Tests ====================
+
+/**
+ * @tc.name: CliToolManagerService_ExecTool_0900
+ * @tc.desc: Test NORMAL caller cannot exec non-public tool even when product switch enabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecTool_0900, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_ExecTool_0900 start";
+
+    g_verifySystemExecPermission = false;
+    CcmUtil::GetInstance().publicCliToolsEnabled_.value = true;
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    CliToolDataManagerMock::toolIsPublic = false;
+
+    ExecToolParam param;
+    param.toolName = "non_public_tool";
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    EXPECT_EQ(service_->ExecTool(param, "event_exec_non_public", scheduler), ERR_TOOL_NOT_EXIST);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_ExecTool_0900 end";
+}
+
+// ==================== UnsubscribeSession Normal Caller Tests ====================
+
+/**
+ * @tc.name: CliToolManagerService_UnsubscribeSession_0200
+ * @tc.desc: Test NORMAL caller UnsubscribeSession works with EXEC_PUBLIC_CLI_TOOL permission
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnsubscribeSession_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_UnsubscribeSession_0200 start";
+
+    g_verifySystemExecPermission = false;
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "unsubscribe_normal_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+
+    int32_t result = service_->UnsubscribeSession(record->sessionId, "subscription");
+    EXPECT_TRUE(result == ERR_OK || result == ERR_NO_INIT);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_UnsubscribeSession_0200 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_UnsubscribeSession_0300
+ * @tc.desc: Test NORMAL caller UnsubscribeSession returns not found for missing session
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnsubscribeSession_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_UnsubscribeSession_0300 start";
+
+    g_verifySystemExecPermission = false;
+    EXPECT_EQ(service_->UnsubscribeSession("missing_session", "subscription"), ERR_CLI_SESSION_NOT_FOUND);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_UnsubscribeSession_0300 end";
+}
+
+// ==================== ClearSession Normal Caller Tests ====================
+
+/**
+ * @tc.name: CliToolManagerService_ClearSession_0400
+ * @tc.desc: Test NORMAL caller ClearSession works with EXEC_PUBLIC_CLI_TOOL permission
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ClearSession_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_ClearSession_0400 start";
+
+    g_verifySystemExecPermission = false;
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "clear_normal_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->sessionType = SessionType::SKILL;
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+
+    EXPECT_EQ(service_->ClearSession(record->sessionId), ERR_OK);
+    EXPECT_EQ(service_->GetSessionRecord(record->sessionId), nullptr);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_ClearSession_0400 end";
+}
+
+// ==================== QuerySession Normal Caller Tests ====================
+
+/**
+ * @tc.name: CliToolManagerService_QuerySession_0300
+ * @tc.desc: Test NORMAL caller QuerySession works with EXEC_PUBLIC_CLI_TOOL permission
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, QuerySession_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_QuerySession_0300 start";
+
+    g_verifySystemExecPermission = false;
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "query_normal_session";
+    record->toolName = "query_normal_tool";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+
+    CliSessionInfo session;
+    EXPECT_EQ(service_->QuerySession(record->sessionId, session), ERR_OK);
+    EXPECT_EQ(session.sessionId, record->sessionId);
+    EXPECT_EQ(session.toolName, record->toolName);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_QuerySession_0300 end";
+}
+
+// ==================== SendMessage Normal Caller Tests ====================
+
+/**
+ * @tc.name: CliToolManagerService_SendMessage_0200
+ * @tc.desc: Test NORMAL caller SendMessage works with EXEC_PUBLIC_CLI_TOOL permission
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, SendMessage_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_SendMessage_0200 start";
+
+    g_verifySystemExecPermission = false;
+    auto oldMonitor = service_->ioMonitor_;
+    service_->ioMonitor_ = nullptr;
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "send_normal_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    EXPECT_EQ(service_->SendMessage(record->sessionId, "input", "event", scheduler), ERR_CLI_SEND_MESSAGE);
+    service_->ioMonitor_ = oldMonitor;
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_SendMessage_0200 end";
+}
+
+// ==================== Query/Exec Permission Denied via API ====================
+
+/**
+ * @tc.name: CliToolManagerService_QueryPermissionDenied_0100
+ * @tc.desc: Test query APIs return ERR_PERMISSION_DENIED when both system and public query permissions fail
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, QueryPermissionDenied_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_QueryPermissionDenied_0100 start";
+
+    g_isSystemApp = false;
+    g_verifySystemQueryPermission = false;
+    g_verifyUserQueryPermission = false;
+
+    ToolsRawData toolsRawData;
+    EXPECT_EQ(service_->GetAllToolInfos(toolsRawData), ERR_PERMISSION_DENIED);
+
+    std::vector<ToolSummary> summaries;
+    EXPECT_EQ(service_->GetAllToolSummaries(summaries), ERR_PERMISSION_DENIED);
+
+    ToolInfo tool;
+    EXPECT_EQ(service_->GetToolInfoByName("any_tool", tool), ERR_PERMISSION_DENIED);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_QueryPermissionDenied_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecPermissionDenied_0100
+ * @tc.desc: Test exec APIs return ERR_PERMISSION_DENIED when both system and public exec permissions fail
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecPermissionDenied_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_ExecPermissionDenied_0100 start";
+
+    g_isSystemApp = false;
+    g_verifySystemExecPermission = false;
+    g_verifyUserExecPermission = false;
+
+    ExecToolParam param;
+    param.toolName = "any_tool";
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    EXPECT_EQ(service_->ExecTool(param, "event", scheduler), ERR_PERMISSION_DENIED);
+    EXPECT_EQ(service_->ClearSession("any_session"), ERR_PERMISSION_DENIED);
+    EXPECT_EQ(service_->SubscribeSession("session", "sub", scheduler), ERR_PERMISSION_DENIED);
+    EXPECT_EQ(service_->UnsubscribeSession("session", "sub"), ERR_PERMISSION_DENIED);
+
+    CliSessionInfo session;
+    EXPECT_EQ(service_->QuerySession("session", session), ERR_PERMISSION_DENIED);
+    EXPECT_EQ(service_->SendMessage("session", "input", "event", scheduler), ERR_PERMISSION_DENIED);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_ExecPermissionDenied_0100 end";
 }
 
 } // namespace CliTool

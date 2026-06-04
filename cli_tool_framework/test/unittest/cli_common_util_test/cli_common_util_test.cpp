@@ -38,6 +38,8 @@ public:
         auto &ccmUtil = CcmUtil::GetInstance();
         ccmUtil.maxCliQuantity_.isLoaded = false;
         ccmUtil.maxCliQuantity_.value = DEFAULT_MAX_CLI_QUANTITY;
+        ccmUtil.publicCliToolsEnabled_.isLoaded = false;
+        ccmUtil.publicCliToolsEnabled_.value = false;
     }
 
     void TearDown() override
@@ -58,6 +60,20 @@ HWTEST_F(CliCommonUtilTest, CcmUtil_GetCliConcurrencyLimit_0100, TestSize.Level1
 
     CliCommonMock::intParameterValue = CUSTOM_CLI_LIMIT + 1;
     EXPECT_EQ(CcmUtil::GetInstance().GetCliConcurrencyLimit(), CUSTOM_CLI_LIMIT);
+}
+
+/**
+ * @tc.name: CcmUtil_IsPublicCliToolsEnabled_0200
+ * @tc.desc: Test public cli tools enabled flag loads parameter once and then uses cached value
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliCommonUtilTest, CcmUtil_IsPublicCliToolsEnabled_0200, TestSize.Level1)
+{
+    CliCommonMock::boolParameterValue = true;
+    EXPECT_TRUE(CcmUtil::GetInstance().IsPublicCliToolsEnabled());
+
+    CliCommonMock::boolParameterValue = false;
+    EXPECT_TRUE(CcmUtil::GetInstance().IsPublicCliToolsEnabled());
 }
 
 /**

@@ -179,6 +179,10 @@ HWTEST_F(CliToolMGRClientTest, QueryInterfaces_0100, TestSize.Level1)
     EXPECT_EQ(tools[0].name, "ohos-tool");
 
     EXPECT_EQ(CliToolMGRClient::GetInstance().RegisterTool(tool), ERR_OK);
+
+    bool isSupported = false;
+    EXPECT_EQ(CliToolMGRClient::GetInstance().IsCliToolSupported(isSupported), ERR_OK);
+    EXPECT_TRUE(isSupported);
 }
 
 /**
@@ -193,14 +197,17 @@ HWTEST_F(CliToolMGRClientTest, QueryInterfaces_0200, TestSize.Level1)
     CliToolMgrClientFlag::retGetToolInfoByName = ERR_INVALID_VALUE;
     CliToolMgrClientFlag::retGetAllToolInfos = ERR_INVALID_VALUE;
     CliToolMgrClientFlag::retRegisterTool = ERR_INVALID_VALUE;
+    CliToolMgrClientFlag::retIsCliToolSupported = ERR_INVALID_VALUE;
 
     std::vector<ToolSummary> summaries;
     ToolInfo tool;
     std::vector<ToolInfo> tools;
+    bool isSupported = true;
     EXPECT_EQ(CliToolMGRClient::GetInstance().GetAllToolSummaries(summaries), ERR_INVALID_VALUE);
     EXPECT_EQ(CliToolMGRClient::GetInstance().GetToolInfoByName("ohos-tool", tool), ERR_INVALID_VALUE);
     EXPECT_EQ(CliToolMGRClient::GetInstance().GetAllToolInfos(tools), ERR_INVALID_VALUE);
     EXPECT_EQ(CliToolMGRClient::GetInstance().RegisterTool(tool), ERR_INVALID_VALUE);
+    EXPECT_EQ(CliToolMGRClient::GetInstance().IsCliToolSupported(isSupported), ERR_INVALID_VALUE);
 }
 
 /**
@@ -218,6 +225,7 @@ HWTEST_F(CliToolMGRClientTest, NullProxyInterfaces_0100, TestSize.Level1)
     std::vector<CommandPermission> permissions;
     CliSessionInfo session;
     std::string subscriptionId;
+    bool isSupported = true;
 
     EXPECT_EQ(CliToolMGRClient::GetInstance().GetAllToolSummaries(summaries), GET_CLI_TOOL_MGR_SERVICE_FAILED);
     EXPECT_EQ(CliToolMGRClient::GetInstance().GetToolInfoByName("tool", tool), GET_CLI_TOOL_MGR_SERVICE_FAILED);
@@ -235,6 +243,7 @@ HWTEST_F(CliToolMGRClientTest, NullProxyInterfaces_0100, TestSize.Level1)
         GET_CLI_TOOL_MGR_SERVICE_FAILED);
     EXPECT_EQ(CliToolMGRClient::GetInstance().BatchQueryPermissionBySubCommand(commands, permissions),
         GET_CLI_TOOL_MGR_SERVICE_FAILED);
+    EXPECT_EQ(CliToolMGRClient::GetInstance().IsCliToolSupported(isSupported), GET_CLI_TOOL_MGR_SERVICE_FAILED);
 }
 
 /**

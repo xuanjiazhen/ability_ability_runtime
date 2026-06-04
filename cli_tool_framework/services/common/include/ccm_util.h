@@ -16,7 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_CCM_UTIL_H
 #define OHOS_ABILITY_RUNTIME_CCM_UTIL_H
 
-#include <mutex>
+#include <cstdint>
 
 namespace OHOS {
 namespace CliTool {
@@ -47,6 +47,13 @@ public:
      */
     int32_t GetCliConcurrencyLimit();
 
+    /**
+     * IsPublicCliToolsEnabled, Query whether public cli tools are enabled for normal apps.
+     *
+     * @return true if public cli tools are enabled.
+     */
+    bool IsPublicCliToolsEnabled();
+
 private:
     /**
      * CcmUtil, private constructor.
@@ -55,6 +62,7 @@ private:
     CcmUtil() = default;
 
     volatile DeviceConfiguration<int32_t> maxCliQuantity_ = {false, DEFAULT_MAX_CLI_QUANTITY};
+    volatile DeviceConfiguration<bool> publicCliToolsEnabled_ = {false, false};
 };
 
 } // namespace CliTool
