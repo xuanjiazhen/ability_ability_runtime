@@ -767,6 +767,7 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &ability
             AbilityRequest request;
             request.callerToken = abilityRequest.callerToken;
             request.requestCallback = abilityRequest.requestCallback;
+            request.isWebSandBoxClone = abilityRequest.isWebSandBoxClone; //是否有必要？
             sptr<SessionInfo> hookSessionInfo = abilityRecord->GetSessionInfo();
             if (hookSessionInfo != nullptr) {
                 hookSessionInfo->want = abilityRequest.want;
