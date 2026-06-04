@@ -2705,6 +2705,10 @@ bool AppMgrServiceInner::GetBundleAndHapInfo(const AbilityInfo &abilityInfo,
             static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) |
             static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_REQUESTED_PERMISSION),
             appIndex, bundleInfo, userId));
+    } else if (AbilityRuntime::GlobalConstant::MIN_SANDBOX_CLONE_INDEX <= appIndex <=
+        AbilityRuntime::GlobalConstant::MAX_SANDBOX_CLONE_INDEX) {
+        bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper->GetSandboxCloneBundleInfo(appInfo->bundleName,
+            appIndex, userId, bundleInfo)); //无需传createBundleName
     } else {
         bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper->GetSandboxBundleInfo(appInfo->bundleName,
             appIndex, userId, bundleInfo));
