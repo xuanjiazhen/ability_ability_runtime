@@ -66,7 +66,8 @@ public:
         return nullptr;
     }
 
-    virtual int32_t ClearUpApplicationData(const std::string& bundleName, int32_t appCloneIndex, int32_t userId = -1)
+    virtual int32_t ClearUpApplicationData(const std::string& bundleName, int32_t appCloneIndex, int32_t userId = -1,
+        bool isFromBM = false)
     {
         return 0;
     }

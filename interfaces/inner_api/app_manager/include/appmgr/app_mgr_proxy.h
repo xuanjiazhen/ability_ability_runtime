@@ -117,10 +117,11 @@ public:
      * @param bundleName, bundle name in Application record.
      * @param appCloneIndex the app clone id.
      * @param userId the user id.
+     * @param isFromBM true, from BM; Otherwise not from BM.
      * @return ErrCode
      */
     virtual int32_t ClearUpApplicationData(const std::string &bundleName, int32_t appCloneIndex,
-        int32_t userId = -1) override;
+        int32_t userId = -1, bool isFromBM = false) override;
 
     /**
      * ClearUpApplicationData, call ClearUpApplicationData() through proxy project,
