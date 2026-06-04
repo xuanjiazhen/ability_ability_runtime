@@ -125,7 +125,7 @@ class MockAppMgrStub : public AppMgrStub {
     }
 
     int32_t ClearUpApplicationData(const std::string &bundleName, int32_t appCloneIndex,
-        int32_t userId = -1) override
+        int32_t userId = -1, bool isFromBM = false) override
     {
         return 0;
     }

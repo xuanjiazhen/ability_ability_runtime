@@ -58,7 +58,8 @@ void AmsIpcAppmgrModuleTest::TearDown()
 class MockMockAppMgrService : public MockAppMgrService {
 public:
     MOCK_METHOD0(GetAmsMgr, sptr<IAmsMgr>());
-    MOCK_METHOD3(ClearUpApplicationData, int32_t(const std::string&, int32_t appCloneIndex, int32_t userId));
+    MOCK_METHOD4(
+        ClearUpApplicationData, int32_t(const std::string&, int32_t appCloneIndex, int32_t userId, bool isFromBM));
     MOCK_METHOD1(IsBackgroundRunningRestricted, int(const std::string& bundleName));
     MOCK_METHOD1(GetAllRunningProcesses, int(std::vector<RunningProcessInfo>&));
 };
@@ -216,13 +217,13 @@ HWTEST_F(AmsIpcAppmgrModuleTest, ExcuteAppmgrIPCInterface_007, TestSize.Level3)
         std::string testBundleName("testApp");
         bool testResult = false;
 
-        auto mockHandler = [&](const std::string& name, int32_t appCloneIndex, int32_t userId) {
+        auto mockHandler = [&](const std::string& name, int32_t appCloneIndex, int32_t userId, bool isFromBM) {
             testResult = (name == testBundleName);
             mockMockAppMgr->Post();
             return 0;
         };
 
-        EXPECT_CALL(*mockMockAppMgr, ClearUpApplicationData(_, _, _)).WillOnce(Invoke(mockHandler));
+        EXPECT_CALL(*mockMockAppMgr, ClearUpApplicationData(_, _, _, _)).WillOnce(Invoke(mockHandler));
 
         appMgrClient->ClearUpApplicationData(testBundleName, 0);
         mockMockAppMgr->Wait();

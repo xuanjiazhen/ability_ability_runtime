@@ -18,12 +18,16 @@
 #include "bundle_mgr_helper.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "parameters.h"
+#include "permission_constants.h"
 #include "permission_verification.h"
 #include "quick_fix_error_utils.h"
 #include "quick_fix_utils.h"
 
 namespace OHOS {
 namespace AAFwk {
+constexpr const char* DEVELOPER_MODE_STATE = "const.security.developermode.state";
+
 std::mutex QuickFixManagerService::mutex_;
 sptr<QuickFixManagerService> QuickFixManagerService::instance_;
 
@@ -56,16 +60,27 @@ bool QuickFixManagerService::Init()
 }
 
 int32_t QuickFixManagerService::ApplyQuickFix(const std::vector<std::string> &quickFixFiles, bool isDebug,
-    bool isReplace)
+    bool isReplace, bool isFromBM)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::QUICKFIX, "called");
-    if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
-        TAG_LOGE(AAFwkTag::QUICKFIX, "caller not system-app,not use system-api");
-        return QUICK_FIX_NOT_SYSTEM_APP;
-    }
-    if (!AAFwk::PermissionVerification::GetInstance()->VerifyInstallBundlePermission()) {
-        return QUICK_FIX_VERIFY_PERMISSION_FAILED;
+    bool isCheckDebugApp = false;
+    if (!isFromBM) {
+        if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
+            TAG_LOGE(AAFwkTag::QUICKFIX, "caller not system-app,not use system-api");
+            return QUICK_FIX_NOT_SYSTEM_APP;
+        }
+        if (!AAFwk::PermissionVerification::GetInstance()->VerifyInstallBundlePermission()) {
+            return QUICK_FIX_VERIFY_PERMISSION_FAILED;
+        }
+    } else {
+        if (!OHOS::system::GetBoolParameter(DEVELOPER_MODE_STATE, false) ||
+            !AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+                AAFwk::PermissionConstants::PERMISSION_ALLOW_USE_BM)) {
+            TAG_LOGE(AAFwkTag::QUICKFIX, "verify permission failed");
+            return QUICK_FIX_VERIFY_PERMISSION_FAILED;
+        }
+        isCheckDebugApp = true;
     }
 
     auto bundleQfMgr = QuickFixUtil::GetBundleQuickFixMgrProxy();
@@ -81,22 +96,33 @@ int32_t QuickFixManagerService::ApplyQuickFix(const std::vector<std::string> &qu
     }
     auto applyTask = std::make_shared<QuickFixManagerApplyTask>(bundleQfMgr, appMgr, eventHandler_, this);
     AddApplyTask(applyTask);
-    applyTask->Run(quickFixFiles, isDebug, isReplace);
+    applyTask->Run(quickFixFiles, isDebug, isReplace, isCheckDebugApp);
 
     return QUICK_FIX_OK;
 }
 
 int32_t QuickFixManagerService::GetApplyedQuickFixInfo(const std::string &bundleName,
-    ApplicationQuickFixInfo &quickFixInfo)
+    ApplicationQuickFixInfo &quickFixInfo, bool isFromBM)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::QUICKFIX, "called");
-    if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
-        TAG_LOGE(AAFwkTag::QUICKFIX, "caller not system-app,not use system-api");
-        return QUICK_FIX_NOT_SYSTEM_APP;
-    }
-    if (!AAFwk::PermissionVerification::GetInstance()->VerifyGetBundleInfoPrivilegedPermission()) {
-        return QUICK_FIX_VERIFY_PERMISSION_FAILED;
+    bool isCheckDebugApp = false;
+    if (!isFromBM) {
+        if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
+            TAG_LOGE(AAFwkTag::QUICKFIX, "caller not system-app,not use system-api");
+            return QUICK_FIX_NOT_SYSTEM_APP;
+        }
+        if (!AAFwk::PermissionVerification::GetInstance()->VerifyGetBundleInfoPrivilegedPermission()) {
+            return QUICK_FIX_VERIFY_PERMISSION_FAILED;
+        }
+    } else {
+        if (!OHOS::system::GetBoolParameter(DEVELOPER_MODE_STATE, false) ||
+            !AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+                AAFwk::PermissionConstants::PERMISSION_ALLOW_USE_BM)) {
+            TAG_LOGE(AAFwkTag::QUICKFIX, "verify permission failed");
+            return QUICK_FIX_VERIFY_PERMISSION_FAILED;
+        }
+        isCheckDebugApp = true;
     }
 
     auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
@@ -110,6 +136,11 @@ int32_t QuickFixManagerService::GetApplyedQuickFixInfo(const std::string &bundle
         AppExecFwk::Constants::ANY_USERID)) {
         TAG_LOGE(AAFwkTag::QUICKFIX, "get bundleInfo failed");
         return QUICK_FIX_GET_BUNDLE_INFO_FAILED;
+    }
+    if (isCheckDebugApp &&
+        bundleInfo.applicationInfo.appProvisionType != AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG) {
+        TAG_LOGE(AAFwkTag::QUICKFIX, "not debug version");
+        return QUICK_FIX_VERIFY_PERMISSION_FAILED;
     }
 
     quickFixInfo.bundleName = bundleName;
