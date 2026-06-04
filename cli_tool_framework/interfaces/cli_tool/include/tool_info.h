@@ -64,6 +64,7 @@ public:
     std::vector<std::string> eventTypes;
     std::string eventSchemas;      // JSON string (map of event type to schema)
     bool hasSubCommand = false;
+    bool isPublic = false;
     std::map<std::string, SubCommandInfo> subcommands;
 
     ToolInfo() = default;

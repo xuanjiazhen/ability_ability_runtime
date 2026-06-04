@@ -14,6 +14,7 @@ class CcmUtil {
 public:
     static CcmUtil &GetInstance();
     int32_t GetCliConcurrencyLimit();
+    bool IsPublicCliToolsEnabled();
 };
 } // namespace CliTool
 } // namespace OHOS

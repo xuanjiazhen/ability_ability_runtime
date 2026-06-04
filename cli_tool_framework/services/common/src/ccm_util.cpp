@@ -22,6 +22,7 @@ namespace OHOS {
 namespace CliTool {
 namespace {
 constexpr const char* MAX_CLI_QUANTITY = "const.sys.cli.limit_maximum_concurrency_quantity";
+constexpr const char* PUBLIC_CLI_TOOLS_SETTING_ENABLED = "const.product.public_cli_tools.setting.enabled";
 }
 
 CcmUtil &CcmUtil::GetInstance()
@@ -39,6 +40,16 @@ int32_t CcmUtil::GetCliConcurrencyLimit()
     }
     TAG_LOGD(AAFwkTag::CLI_TOOL, "MaxCLiQuantity: %{public}d", maxCliQuantity_.value);
     return maxCliQuantity_.value;
+}
+
+bool CcmUtil::IsPublicCliToolsEnabled()
+{
+    if (!publicCliToolsEnabled_.isLoaded) {
+        publicCliToolsEnabled_.value = system::GetBoolParameter(PUBLIC_CLI_TOOLS_SETTING_ENABLED, false);
+        publicCliToolsEnabled_.isLoaded = true;
+    }
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "PublicCliToolsEnabled: %{public}d", publicCliToolsEnabled_.value);
+    return publicCliToolsEnabled_.value;
 }
 } // namespace CliTool
 } // namespace OHOS

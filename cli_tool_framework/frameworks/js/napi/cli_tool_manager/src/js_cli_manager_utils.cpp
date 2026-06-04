@@ -441,8 +441,10 @@ napi_value CreateJsCliSessionInfo(napi_env env, const CliSessionInfo &session)
             napi_value jsSignalNumber = AppExecFwk::WrapInt32ToJS(env, session.result->signalNumber);
             napi_set_named_property(env, jsResult, "signalNumber", jsSignalNumber);
         }
-        // Set timeOut
-        napi_set_named_property(env, jsResult, "timeOut", AppExecFwk::WrapBoolToJS(env, session.result->timeout));
+        // Set timeout status with legacy and new property names.
+        napi_value jsTimeout = AppExecFwk::WrapBoolToJS(env, session.result->timeout);
+        napi_set_named_property(env, jsResult, "timeOut", jsTimeout);
+        napi_set_named_property(env, jsResult, "timeout", jsTimeout);
         // Set executionTime
         napi_value jsExecutionTime = AppExecFwk::WrapInt64ToJS(env, session.result->executionTime);
         napi_set_named_property(env, jsResult, "executionTime", jsExecutionTime);
@@ -599,6 +601,9 @@ napi_value CreateJsToolInfo(napi_env env, const ToolInfo &tool)
     // Set hasSubCommand
     napi_value jsHasSubCommand = AppExecFwk::WrapBoolToJS(env, tool.hasSubCommand);
     napi_set_named_property(env, jsObj, "hasSubCommand", jsHasSubCommand);
+
+    napi_value jsIsPublic = AppExecFwk::WrapBoolToJS(env, tool.isPublic);
+    napi_set_named_property(env, jsObj, "isPublic", jsIsPublic);
 
     // Set subcommands (map)
     napi_value jsSubcommands = nullptr;

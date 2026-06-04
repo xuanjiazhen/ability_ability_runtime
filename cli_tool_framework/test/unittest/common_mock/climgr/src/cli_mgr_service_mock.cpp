@@ -42,6 +42,7 @@ int32_t CliMgrServiceMock::registerAppObserverResult = ERR_OK;
 int32_t CliMgrServiceMock::querySkillTypeResult = ERR_OK;
 int32_t CliMgrServiceMock::executeSkillResult = ERR_OK;
 int32_t CliMgrServiceMock::skillType = -1;
+bool CliMgrServiceMock::publicCliToolsEnabled = false;
 std::string CliMgrServiceMock::lastSkillName;
 bool CliMgrServiceMock::toolHasSubCommand = false;
 std::string CliMgrServiceMock::subCommandName = "build";
@@ -64,6 +65,7 @@ void CliMgrServiceMock::Reset()
     querySkillTypeResult = ERR_OK;
     executeSkillResult = ERR_OK;
     skillType = -1;
+    publicCliToolsEnabled = false;
     lastSkillName.clear();
     toolHasSubCommand = false;
     subCommandName = "build";
@@ -200,6 +202,11 @@ CcmUtil &CcmUtil::GetInstance()
 int32_t CcmUtil::GetCliConcurrencyLimit()
 {
     return 10;
+}
+
+bool CcmUtil::IsPublicCliToolsEnabled()
+{
+    return CliMgrServiceMock::publicCliToolsEnabled;
 }
 
 EventDispatcher &EventDispatcher::GetInstance()

@@ -158,6 +158,13 @@ public:
                         const EventReplyCallback &callback);
 
     /**
+     * @brief Query whether public cli tool list is supported.
+     * @param isSupported Output support result.
+     * @return ErrCode ERR_OK on success.
+     */
+    ErrCode IsCliToolSupported(bool &isSupported);
+
+    /**
      * @brief Batch query command permissions (Inner API, for SA only).
      * @param cmds Command list to query.
      * @param cmdPermissions Query result list.

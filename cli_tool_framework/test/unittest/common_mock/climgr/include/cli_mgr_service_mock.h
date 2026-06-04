@@ -36,6 +36,7 @@ public:
     static int32_t querySkillTypeResult;
     static int32_t executeSkillResult;
     static int32_t skillType;
+    static bool publicCliToolsEnabled;
     static std::string lastSkillName;
     static bool toolHasSubCommand;
     static std::string subCommandName;

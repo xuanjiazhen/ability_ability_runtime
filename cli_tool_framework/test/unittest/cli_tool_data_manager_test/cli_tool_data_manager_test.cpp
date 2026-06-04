@@ -207,6 +207,7 @@ HWTEST_F(CliToolDataManagerTest, ToolInfo_ParseToJson_001, TestSize.Level1)
     tool.executablePath = "/bin/test";
     tool.requirePermissions = {"ohos.permission.INTERNET"};
     tool.hasSubCommand = false;
+    tool.isPublic = true;
 
     nlohmann::json json = tool.ParseToJson();
     std::string jsonStr = json.dump();
@@ -214,6 +215,7 @@ HWTEST_F(CliToolDataManagerTest, ToolInfo_ParseToJson_001, TestSize.Level1)
     EXPECT_FALSE(jsonStr.empty());
     EXPECT_NE(jsonStr.find("test_tool"), std::string::npos);
     EXPECT_NE(jsonStr.find("1.0.0"), std::string::npos);
+    EXPECT_TRUE(json["isPublic"]);
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ParseToJson_001 end");
 }
@@ -269,6 +271,7 @@ HWTEST_F(CliToolDataManagerTest, ToolInfo_ParseFromJson_001, TestSize.Level1)
         "timeout": 30000,
         "eventTypes": ["stdout"],
         "hasSubCommand": false,
+        "isPublic": true,
         "subcommands": {}
     })"_json;
 
@@ -281,6 +284,7 @@ HWTEST_F(CliToolDataManagerTest, ToolInfo_ParseFromJson_001, TestSize.Level1)
     EXPECT_EQ(tool.description, "JSON test tool");
     EXPECT_EQ(tool.executablePath, "/bin/jsontest");
     EXPECT_EQ(tool.hasSubCommand, false);
+    EXPECT_TRUE(tool.isPublic);
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ParseFromJson_001 end");
 }
@@ -395,6 +399,7 @@ HWTEST_F(CliToolDataManagerTest, ToolInfo_ParseFromJson_ParseToJson_RoundTrip_00
     EXPECT_EQ(resultJson["executablePath"], originalJson["executablePath"]);
     EXPECT_EQ(resultJson["hasSubCommand"], originalJson["hasSubCommand"]);
     EXPECT_EQ(resultJson["eventTypes"], originalJson["eventTypes"]);
+    EXPECT_EQ(resultJson["isPublic"], false);
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ParseFromJson_ParseToJson_RoundTrip_001 end");
 }

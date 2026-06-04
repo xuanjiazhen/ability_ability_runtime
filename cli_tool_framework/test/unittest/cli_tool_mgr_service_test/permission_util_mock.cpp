@@ -17,8 +17,25 @@
 
 namespace OHOS {
 namespace CliTool {
-bool PermissionUtil::VerifyAccessToken(Security::AccessToken::AccessTokenID, const std::string &)
+bool g_verifySystemExecPermission = true;
+bool g_verifySystemQueryPermission = true;
+bool g_verifyUserExecPermission = true;
+bool g_verifyUserQueryPermission = true;
+
+bool PermissionUtil::VerifyAccessToken(Security::AccessToken::AccessTokenID, const std::string &permission)
 {
+    if (permission == "ohos.permission.EXEC_CLI_TOOL") {
+        return g_verifySystemExecPermission;
+    }
+    if (permission == "ohos.permission.QUERY_CLI_TOOL") {
+        return g_verifySystemQueryPermission;
+    }
+    if (permission == "ohos.permission.EXEC_PUBLIC_CLI_TOOL") {
+        return g_verifyUserExecPermission;
+    }
+    if (permission == "ohos.permission.QUERY_PUBLIC_CLI_TOOL") {
+        return g_verifyUserQueryPermission;
+    }
     return true;
 }
 } // namespace CliTool

@@ -36,7 +36,9 @@ public:
     static int32_t retQuerySession;
     static int32_t retSendMessage;
     static int32_t retBatchQueryPermission;
+    static int32_t retIsCliToolSupported;
     static int32_t retLoadSystemAbility;
+    static bool isCliToolSupported;
     static bool nullSystemAbility;
     static bool shouldCallback;
     static sptr<IRemoteObject> cliToolMgr;
