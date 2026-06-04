@@ -102,6 +102,9 @@ struct FaultData : public Parcelable {
     bool isEnableMainThreadSample;
     bool reportLifecycleToFreeze = false;
     std::string applicationHeapInfo;
+    std::string applicationGCInfo;
+    std::string applicationIOInfo;
+    bool isBlockInGc = false;
     std::string processLifeTime;
     int32_t markedId = 0;
     int32_t processedId = 0;
@@ -146,6 +149,9 @@ struct AppFaultDataBySA : public Parcelable {
     bool isEnableMainThreadSample;
     bool reportLifecycleToFreeze = false;
     std::string applicationHeapInfo;
+    std::string applicationGCInfo;
+    std::string applicationIOInfo;
+    bool isBlockInGc = false;
     std::string processLifeTime;
     LeakObject leakObject;
     AppTelemetryLeakType atLeakType;
