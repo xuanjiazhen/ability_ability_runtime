@@ -105,6 +105,7 @@ struct AbilityRequest {
     bool isFromIcon = false;
     bool isShellCall = false;
     bool isTargetPlugin = false;
+    bool isWebSandBoxClone = false;  // Indicates web sandbox clone launch
     // ERMS embedded atomic service
     bool isQueryERMS = false;
     bool isEmbeddedAllowed = false;
