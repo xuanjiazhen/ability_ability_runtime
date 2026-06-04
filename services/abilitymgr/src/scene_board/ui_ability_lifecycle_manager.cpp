@@ -191,6 +191,8 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
     AbilityRuntime::StartParamsBySCB &params, bool &isColdStart)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "[StartUIAbility:190] ENTRY, isWebSandBoxClone: %{public}d",
+        abilityRequest.isWebSandBoxClone);
     if (params.isRestart && !HandleRestartUIAbility(sessionInfo)) {
         return ERR_INVALID_VALUE;
     }
@@ -440,6 +442,8 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::HandleAbilityRecordReused(
 UIAbilityRecordPtr UIAbilityLifecycleManager::GenerateAbilityRecord(AbilityRequest &abilityRequest,
     sptr<SessionInfo> sessionInfo, bool &isColdStart)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "[GenerateAbilityRecord:442] ENTRY, isWebSandBoxClone: %{public}d",
+        abilityRequest.isWebSandBoxClone);
     auto iter = sessionAbilityMap_.find(sessionInfo->persistentId);
     bool isLowMemKill = (iter != sessionAbilityMap_.end()) &&
         (iter->second != nullptr) && (iter->second->IsKillPrecedeStart());
@@ -536,6 +540,8 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::CreateAbilityRecord(AbilityRequest
     sptr<SessionInfo> sessionInfo) const
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "[CreateAbilityRecord:539] ENTRY, isWebSandBoxClone: %{public}d",
+        abilityRequest.isWebSandBoxClone);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Create ability record.");
     if (sessionInfo->startSetting != nullptr) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "startSetting is valid.");
@@ -726,6 +732,8 @@ bool UIAbilityLifecycleManager::AddStartCallerTimestamp(int32_t callerUid)
 int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &abilityRequest)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "[NotifySCBToStartUIAbility:726] ENTRY, isWebSandBoxClone: %{public}d",
+        abilityRequest.isWebSandBoxClone); // 取出的abilityRequest.abilityInfo.application.index 有问题。
     if (!AddStartCallerTimestamp(abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_UID, -1))) {
         return ERR_FREQ_START_ABILITY;
     }
@@ -788,13 +796,30 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &ability
         return ERROR_UIABILITY_IS_ALREADY_EXIST;
     }
 
-    auto sessionInfo = CreateSessionInfo(abilityRequest, requestId);
+    auto sessionInfo = CreateSessionInfo(abilityRequest, requestId); // 需要在此里面设置isWebSandBoxClone，还是下面设置即可
     sessionInfo->requestCode = abilityRequest.requestCode;
     auto isCreating = abilityRequest.want.GetBoolParam(Want::CREATE_APP_INSTANCE_KEY, false);
     if (abilityInfo.applicationInfo.multiAppMode.multiAppModeType != AppExecFwk::MultiAppModeType::MULTI_INSTANCE ||
         !isCreating) {
         sessionInfo->persistentId = persistentId;
         sessionInfo->reuse = reuse;
+    }
+    // Store isWebSandBoxClone and appIndex in want for SCB callback
+    if (abilityRequest.isWebSandBoxClone) {
+        sessionInfo->want.SetParam("ohos.ability.params.isWebSandBoxClone", abilityRequest.isWebSandBoxClone);
+        sessionInfo->want.SetParam("ohos.ability.params.sandBoxCloneIndex",
+            abilityRequest.abilityInfo.applicationInfo.appIndex);
+        // Store sandbox clone params from abilityRequest.want to sessionInfo->want for later use
+        std::string callerBundleName = abilityRequest.want.GetStringParam("ohos.ability.cli.callerBundleName", "");
+        int32_t callerTokenId = abilityRequest.want.GetIntParam("ohos.ability.cli.callerTokenId", 0);
+        int32_t validUserId = abilityRequest.want.GetIntParam("ohos.ability.params.validUserId", 0);
+        sessionInfo->want.SetParam("ohos.ability.cli.callerBundleName", callerBundleName);
+        sessionInfo->want.SetParam("ohos.ability.cli.callerTokenId", callerTokenId);
+        sessionInfo->want.SetParam("ohos.ability.params.validUserId", validUserId);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "ldr [NotifySCBToStartUIAbility] Stored sandbox clone params: bundle=%{public}s, tokenId=%{public}d, uid=%{public}d",
+            callerBundleName.c_str(), callerTokenId, callerUid);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "ldr [NotifySCBToStartUIAbility:810] Set isWebSandBoxClone: %{public}d, appIndex: %{public}d in want",
+            abilityRequest.isWebSandBoxClone, abilityRequest.abilityInfo.applicationInfo.appIndex);
     }
     sessionInfo->userId = userId_;
     sessionInfo->isAtomicService = (abilityInfo.applicationInfo.bundleType == AppExecFwk::BundleType::ATOMIC_SERVICE);
@@ -1963,6 +1988,10 @@ sptr<SessionInfo> UIAbilityLifecycleManager::CreateSessionInfo(const AbilityRequ
     if (abilityRequest.isStartByOEExt && abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
         sessionInfo->specifiedFlag = abilityRequest.specifiedFlag;
     }
+    // 是在此设置还是NotifySCBToStartUIAbility即可？
+    // sessionInfo->want.SetParam("isWebSandBoxClone", abilityRequest.isWebSandBoxClone);
+    // TAG_LOGI(AAFwkTag::ABILITYMGR, "[CreateSessionInfo:1973] Set isWebSandBoxClone in want: %{public}d",
+    //     abilityRequest.isWebSandBoxClone);
     return sessionInfo;
 }
 
