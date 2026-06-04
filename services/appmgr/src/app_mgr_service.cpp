@@ -2012,11 +2012,23 @@ int32_t AppMgrService::CreateNativeChildProcess(const std::string &libName,
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
-    
+
     return appMgrServiceInner_->CreateNativeChildProcess(
         IPCSkeleton::GetCallingPid(), libName, callback, request);
 }
 #endif // SUPPORT_CHILD_PROCESS
+
+int32_t AppMgrService::GetAllUIAbilityChildProcesses(std::vector<ChildProcessInfo> &infos)
+{
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+
+    return appMgrServiceInner_->GetAllUIAbilityChildProcesses(infos);
+}
 
 int32_t AppMgrService::CheckCallingIsUserTestMode(const pid_t pid, bool &isUserTest)
 {

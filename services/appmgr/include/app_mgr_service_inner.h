@@ -1493,6 +1493,11 @@ public:
         const sptr<IRemoteObject> &callback, const ChildProcessRequest &request);
 #endif // SUPPORT_CHILD_PROCESS
 
+    virtual int32_t GetAllUIAbilityChildProcesses(std::vector<ChildProcessInfo> &infos);
+
+    virtual void GetUIAbilityChildProcesses(const std::shared_ptr<AppRunningRecord> &appRecord,
+        std::vector<ChildProcessInfo> &info);
+
     virtual int32_t RegisterNativeChildExitNotify(const sptr<INativeChildNotify> &callback);
 
     virtual int32_t UnregisterNativeChildExitNotify(const sptr<INativeChildNotify> &callback);

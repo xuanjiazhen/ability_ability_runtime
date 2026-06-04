@@ -43,6 +43,7 @@
 #include "ability_runtime_common.h"
 #include "context_constant.h"
 #include "start_options.h"
+#include "child_process_info.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -414,6 +415,25 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetLatestParameter(
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextNotifyPageChanged(
     const char* targetPageName, int32_t targetPageNameLength, int32_t windowId);
+
+/**
+ * @brief Acquires UIAbility child process infos of the current application.
+ *
+ * Includes child processes created via startAbility with ProcessMode.NEW_PROCESS_ATTACH_TO_PARENT.
+ *
+ * @param infos Output parameter, pointer to child process info collection. Must not be nullptr.
+ *      When no child processes exist, the dereferenced value of the pointer **infos** is set to nullptr.
+ * @param count Output parameter, returns the number of child processes. Must not be nullptr.
+ * @return <ul>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the call is successful.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the arguments provided are invalid.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if an internal error occurs.</li>
+ *      </ul>
+ * @release OH_AbilityRuntime_ReleaseChildProcessInfos {infos}
+ * @since 26.0.0
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_AcquireUIAbilityChildProcessInfos(
+    OH_AbilityRuntime_ChildProcessInfosHandle* infos, uint32_t* count);
 
 #ifdef __cplusplus
 } // extern "C"
