@@ -81,6 +81,7 @@
 #endif
 #include "ihidden_start_observer.h"
 #include "kiosk_status.h"
+#include "sandbox_clone_params.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -2610,6 +2611,21 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t SetAppServiceExtensionKeepAlive(const std::string &bundleName, bool flag)
+    {
+        return 0;
+    }
+
+    /**
+     * StartSandboxCloneAbility - Start sandbox clone ability with clawIndex support.
+     * @param want The want of the ability to start, should contain ability name, bundle name,
+     *             and the clawIndex parameter (CLAW_CLONE_INDEX) for specifying which clone
+     *             instance to launch. Must be within valid range (MIN_SANDBOX_CLONE_INDEX to
+     *             MAX_SANDBOX_CLONE_INDEX).
+     * @param params Parameters containing caller information (callerBundleName, callerUid,
+     *               callerTokenId). The userId will be obtained by the service automatically.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t StartSandboxCloneAbility(const Want &want, const SandboxCloneParams &params)
     {
         return 0;
     }
