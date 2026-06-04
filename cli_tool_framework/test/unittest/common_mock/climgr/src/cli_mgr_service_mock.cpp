@@ -184,6 +184,11 @@ int32_t CcmUtil::GetCliConcurrencyLimit()
     return 10;
 }
 
+std::set<std::string> CcmUtil::GetPublicCliToolNames()
+{
+    return {};
+}
+
 EventDispatcher &EventDispatcher::GetInstance()
 {
     static EventDispatcher instance;
