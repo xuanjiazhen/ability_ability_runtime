@@ -124,6 +124,11 @@ ohos_shared_library("ability_runtime") {
     defines += [ "START_WINDOW_OPTIONS_WITH_PIXELMAP" ]
   }
 
+  if (ability_runtime_child_process) {
+    defines += [ "SUPPORT_CHILD_PROCESS" ]
+    include_dirs += [ "${ability_runtime_native_path}/child_process/include" ]
+  }
+
   output_extension = "so"
   innerapi_tags = [ "ndk" ]
   install_images = [ "system" ]
