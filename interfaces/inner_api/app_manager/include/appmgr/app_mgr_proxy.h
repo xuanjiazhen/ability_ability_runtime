@@ -859,6 +859,10 @@ public:
      */
     int32_t CreateNativeChildProcess(const std::string &libName,
         const sptr<IRemoteObject> &callback, const ChildProcessRequest &request) override;
+
+    int32_t GetChildProcessesForSelf(std::vector<ChildProcessInfo> &infos) override;
+
+    int32_t GetUIAbilityChildProcessesForSelf(std::vector<ChildProcessInfo> &infos) override;
 #endif // SUPPORT_CHILD_PROCESS
 
     /**
