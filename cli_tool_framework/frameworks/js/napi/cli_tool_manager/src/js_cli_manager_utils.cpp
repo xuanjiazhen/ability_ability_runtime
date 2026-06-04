@@ -406,6 +406,9 @@ napi_value CreateJsToolInfo(napi_env env, const ToolInfo &tool)
     napi_value jsHasSubCommand = AppExecFwk::WrapBoolToJS(env, tool.hasSubCommand);
     napi_set_named_property(env, jsObj, "hasSubCommand", jsHasSubCommand);
 
+    napi_value jsIsPublic = AppExecFwk::WrapBoolToJS(env, tool.isPublic);
+    napi_set_named_property(env, jsObj, "isPublic", jsIsPublic);
+
     // Set subcommands (map)
     napi_value jsSubcommands = nullptr;
     napi_create_object(env, &jsSubcommands);
