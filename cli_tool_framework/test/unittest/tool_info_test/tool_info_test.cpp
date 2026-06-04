@@ -124,6 +124,7 @@ HWTEST_F(ToolInfoTest, ToolInfo_Unmarshalling_0100, TestSize.Level1)
     original.eventSchemas = "{}";
     original.eventTypes = {"stdout", "stderr", "exit"};
     original.hasSubCommand = true;
+    original.isPublic = true;
     SubCommandInfo buildSubCmd;
     buildSubCmd.description = "Build subcommand";
     buildSubCmd.inputSchema = "{}";
@@ -141,6 +142,7 @@ HWTEST_F(ToolInfoTest, ToolInfo_Unmarshalling_0100, TestSize.Level1)
     EXPECT_EQ(result->version, "3.0.0");
     EXPECT_EQ(result->requirePermissions.size(), 2u);
     EXPECT_TRUE(result->hasSubCommand);
+    EXPECT_TRUE(result->isPublic);
     EXPECT_EQ(result->subcommands.size(), 1u);
 
     delete result;
@@ -284,6 +286,7 @@ HWTEST_F(ToolInfoTest, ToolInfo_Unmarshalling_0500, TestSize.Level1)
     ASSERT_TRUE(parcel.WriteString(""));
     ASSERT_TRUE(parcel.WriteStringVector({}));
     ASSERT_TRUE(parcel.WriteBool(true));
+    ASSERT_TRUE(parcel.WriteBool(false));
     ASSERT_TRUE(parcel.WriteString(invalidSubcommands.dump()));
     parcel.RewindRead(0);
 
@@ -585,6 +588,7 @@ HWTEST_F(ToolInfoTest, ToolInfo_ParseToJson_0100, TestSize.Level1)
     tool.eventSchemas = R"({"stdout": {"type": "string"}})";
     tool.eventTypes = {"stdout", "stderr"};
     tool.hasSubCommand = false;
+    tool.isPublic = true;
 
     nlohmann::json json = tool.ParseToJson();
 
@@ -592,6 +596,7 @@ HWTEST_F(ToolInfoTest, ToolInfo_ParseToJson_0100, TestSize.Level1)
     EXPECT_EQ(json["version"], "1.0.0");
     EXPECT_EQ(json["description"], "JSON test tool");
     EXPECT_EQ(json["executablePath"], "/bin/json");
+    EXPECT_EQ(json["isPublic"], true);
 
     GTEST_LOG_(INFO) << "ToolInfo_ParseToJson_0100 end";
 }
@@ -663,7 +668,8 @@ HWTEST_F(ToolInfoTest, ToolInfo_ParseFromJson_0100, TestSize.Level1)
         "outputSchema": {"type": "array"},
         "eventSchemas": {"exit": {"type": "number"}},
         "eventTypes": ["stdout", "exit"],
-        "hasSubCommand": false
+        "hasSubCommand": false,
+        "isPublic": true
     })"_json;
 
     ToolInfo tool;
@@ -676,6 +682,7 @@ HWTEST_F(ToolInfoTest, ToolInfo_ParseFromJson_0100, TestSize.Level1)
     EXPECT_EQ(tool.executablePath, "/bin/parsed");
     EXPECT_EQ(tool.requirePermissions.size(), 1u);
     EXPECT_FALSE(tool.hasSubCommand);
+    EXPECT_TRUE(tool.isPublic);
 
     GTEST_LOG_(INFO) << "ToolInfo_ParseFromJson_0100 end";
 }
@@ -789,6 +796,7 @@ HWTEST_F(ToolInfoTest, ToolInfo_ParseFromJson_ParseToJson_RoundTrip_0100, TestSi
     EXPECT_EQ(resultJson["executablePath"], originalJson["executablePath"]);
     EXPECT_EQ(resultJson["hasSubCommand"], originalJson["hasSubCommand"]);
     EXPECT_EQ(resultJson["eventTypes"], originalJson["eventTypes"]);
+    EXPECT_EQ(resultJson["isPublic"], false);
 
     GTEST_LOG_(INFO) << "ToolInfo_ParseFromJson_ParseToJson_RoundTrip_0100 end";
 }
