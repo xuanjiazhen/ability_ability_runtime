@@ -627,6 +627,10 @@ ErrCode ClawAaShellCommand::MakeWantFromCmd(Want& want, int32_t& userId)
     bool hasWindowHeight = false;
     int windowWidth = 0;
     bool hasWindowWidth = false;
+    int32_t clawIndex = 0;          // Claw sandbox index for clone application
+    bool hasClawIndex = false;
+    std::string creatorBundleName;  // Creator bundle name (untrusted, from command line)
+    std::string callerBundleName;  // Caller bundle name (trusted, from environment)
 
     while (true) {
         counter++;
@@ -903,7 +907,30 @@ ErrCode ClawAaShellCommand::MakeWantFromCmd(Want& want, int32_t& userId)
                 // parse option arguments into a key-value map
                 parametersString[optarg] = "";
                 result = OHOS::ERR_OK;
-                
+
+                break;
+            }
+            case OPTION_CLAW_INDEX: {
+                // 'ohos-aa start --claw-index xxx'
+                if (optarg != nullptr) {
+                    std::string clawIndexStr = optarg;
+                    if (!std::regex_match(clawIndexStr, std::regex(STRING_TEST_REGEX_INTEGER_NUMBERS))) {
+                        TAG_LOGE(AAFwkTag::AA_TOOL, "invalid claw-index: %{public}s", clawIndexStr.c_str());
+                        result = OHOS::ERR_INVALID_VALUE;
+                        break;
+                    }
+                    clawIndex = std::stoi(clawIndexStr);
+                    hasClawIndex = true;
+                    TAG_LOGI(AAFwkTag::AA_TOOL, "clawIndex=%{public}d", clawIndex);
+                }
+                break;
+            }
+            case OPTION_CREATOR_BUNDLE: {
+                // 'ohos-aa start --creator-bundle xxx'
+                if (optarg != nullptr) {
+                    creatorBundleName = optarg;
+                    TAG_LOGI(AAFwkTag::AA_TOOL, "creatorBundleName=%{public}s", creatorBundleName.c_str());
+                }
                 break;
             }
             case OPTION_URI: {
@@ -1004,6 +1031,25 @@ ErrCode ClawAaShellCommand::MakeWantFromCmd(Want& want, int32_t& userId)
             }
             if (hasWindowWidth) {
                 want.SetParam(Want::PARAM_RESV_WINDOW_WIDTH, windowWidth);
+            }
+            // Sandbox clone application support parameters
+            if (hasClawIndex) {
+                want.SetParam("ohos.cli.clawCloneIndex", clawIndex); // key 有问题
+                // Get caller bundle name from environment variable (trusted)
+                if (const char* envCallerBundle = std::getenv("ohos.cli.callerBundleName")) {
+                    // callerBundleName: 从环境变量 ohos.cli.callerBundleName 获取（可信），是否有问题？
+                    // SA-CLI中写入config文件：config["env"] = envConfig.dump();
+                    callerBundleName = envCallerBundle;
+                    want.SetParam("callerBundleName", callerBundleName);
+                    TAG_LOGI(AAFwkTag::AA_TOOL, "callerBundleName from env: %{public}s", callerBundleName.c_str());
+                } else {
+                    TAG_LOGW(AAFwkTag::AA_TOOL, "ohos.cli.callerBundleName not found in environment");
+                }
+            }
+            // Set creator bundle name (untrusted, from command line parameter)
+            if (!creatorBundleName.empty()) {
+                want.SetParam("creatorBundleName", creatorBundleName);
+                TAG_LOGI(AAFwkTag::AA_TOOL, "creatorBundleName: %{public}s", creatorBundleName.c_str());
             }
         }
     }
