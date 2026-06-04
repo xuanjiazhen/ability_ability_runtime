@@ -315,3 +315,54 @@ aa force-stop <bundle-name>
 - `ace_engine`：ArkUI 引擎
 - `ets_runtime`：ETS 运行时
 - `napi`：NAPI 框架
+
+## 当前进行中的任务
+
+### Task: 新增 ExecuteIntentByFunctionCall 接口
+
+**分支**: `feature/dev`（基于 gitcode/master 最新代码）
+
+**目标**: 新增 `ExecuteIntentByFunctionCall` 接口，简化意图执行调用。与现有 `ExecuteIntent` 逻辑一致，但只需 4 个输入参数：`bundleName`、`intentName`、`callerToken`、`wantParam`。服务端自动通过意图数据库查找补全 moduleName、abilityName、executeMode 等信息。
+
+**仅实现异步版本**，同步版本暂不实现。
+
+**修改文件清单**（按实现顺序）：
+
+1. `interfaces/inner_api/ability_manager/include/ability_manager_ipc_interface_code.h` — 新增 IPC 消息码
+2. `interfaces/inner_api/ability_manager/include/ability_manager_interface.h` — 新增虚函数声明
+3. `services/abilitymgr/include/ability_manager_stub.h` — 新增 Stub 内部方法声明
+4. `services/abilitymgr/src/ability_manager_stub.cpp` — 新增 dispatch + 反序列化实现
+5. `services/abilitymgr/include/ability_manager_proxy.h` — 新增 Proxy 方法声明
+6. `services/abilitymgr/src/ability_manager_proxy.cpp` — 新增序列化 + IPC 发送实现
+7. `services/abilitymgr/include/ability_manager_service.h` — 新增 Service 方法声明
+8. `services/abilitymgr/src/ability_manager_service.cpp` — 核心实现（意图查找 → 参数补全 → ExecuteIntentCommon）
+9. `services/abilitymgr/include/ability_manager_client.h` — 新增 Client 方法声明
+10. `services/abilitymgr/src/ability_manager_client.cpp` — Client 实现（调 proxy）
+
+**服务端核心逻辑**:
+1. `InsightIntentDbCache::GetInsightIntentGenericInfoByName(bundleName, userId)` 获取 bundle 全部意图
+2. 用 `intentName` 匹配找到对应意图配置
+3. 提取 moduleName、abilityName、executeMode、decoratorType
+4. 构造 `InsightIntentExecuteParam`，复用 `ExecuteIntentCommon` 执行
+
+**详细计划文件**: `C:\Users\22702\.claude\plans\twinkling-kindling-dragonfly.md`
+
+**状态**: 已完成异步版本实现，客户端已拆分到独立轻量 SO `intent_client`
+
+**服务端修改（保持不变）**:
+1. ✅ `interfaces/inner_api/ability_manager/include/ability_manager_ipc_interface_code.h` — 新增 `EXECUTE_INTENT_BY_FUNCTION_CALL = 1146`
+2. ✅ `interfaces/inner_api/ability_manager/include/ability_manager_interface.h` — 新增虚函数声明（默认返回0）
+3. ✅ `services/abilitymgr/include/ability_manager_stub.h` — 新增 `ExecuteIntentByFunctionCallInner`
+4. ✅ `services/abilitymgr/src/ability_manager_stub.cpp` — dispatch + 反序列化
+5. ✅ `services/abilitymgr/include/ability_manager_proxy.h` — 新增 proxy 方法声明
+6. ✅ `services/abilitymgr/src/ability_manager_proxy.cpp` — 序列化 + SendRequest
+7. ✅ `services/abilitymgr/include/ability_manager_service.h` — 新增 service 方法声明
+8. ✅ `services/abilitymgr/src/ability_manager_service.cpp` — 核心实现
+
+**客户端拆分为独立轻量 SO `intent_client`**:
+- ✅ `interfaces/kits/native/intent_client/include/intent_client.h` — 轻量客户端头文件
+- ✅ `interfaces/kits/native/intent_client/src/intent_client.cpp` — 直接 IPC，不依赖 ability_manager
+- ✅ `interfaces/kits/native/intent_client/BUILD.gn` — 仅依赖 ability_base:want, ipc:ipc_core, samgr:samgr_proxy, hilog
+- ✅ 已从 `ability_manager_client.h/cpp` 中移除 `ExecuteIntentByFunctionCall`
+
+**调用方接入方式**: 链接 `intent_client` SO，include `intent_client.h`，调用 `IntentClient::GetInstance().ExecuteIntentByFunctionCall(...)`
