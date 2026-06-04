@@ -229,7 +229,8 @@ sptr<IAmsMgr> AppMgrProxy::GetAmsMgr()
     return amsMgr;
 }
 
-int32_t AppMgrProxy::ClearUpApplicationData(const std::string &bundleName, int32_t appCloneIndex, const int32_t userId)
+int32_t AppMgrProxy::ClearUpApplicationData(const std::string &bundleName, int32_t appCloneIndex, const int32_t userId,
+    bool isFromBM)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "Called.");
     MessageParcel data;
@@ -241,7 +242,7 @@ int32_t AppMgrProxy::ClearUpApplicationData(const std::string &bundleName, int32
     PARCEL_UTIL_WRITE_RET_INT(data, String, bundleName);
     PARCEL_UTIL_WRITE_RET_INT(data, Int32, appCloneIndex);
     PARCEL_UTIL_WRITE_RET_INT(data, Int32, userId);
-
+    PARCEL_UTIL_WRITE_RET_INT(data, Bool, isFromBM);
     PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::APP_CLEAR_UP_APPLICATION_DATA, data, reply, option);
     return reply.ReadInt32();
 }

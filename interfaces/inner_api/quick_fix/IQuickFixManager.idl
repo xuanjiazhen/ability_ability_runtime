@@ -15,7 +15,9 @@
 
 sequenceable QuickFixInfo..OHOS.AAFwk.ApplicationQuickFixInfo;
 interface OHOS.AAFwk.IQuickFixManager {
-    void ApplyQuickFix([in] String[] quickFixFiles, [in] boolean isDebug, [in] boolean isReplace);
-    void GetApplyedQuickFixInfo([in] String bundleName, [out] ApplicationQuickFixInfo quickFixInfo);
+    void ApplyQuickFix([in] String[] quickFixFiles, [in] boolean isDebug, [in] boolean isReplace,
+        [in] boolean isFromBM);
+    void GetApplyedQuickFixInfo([in] String bundleName, [out] ApplicationQuickFixInfo quickFixInfo,
+        [in] boolean isFromBM);
     void RevokeQuickFix([in] String bundleName);
 }
