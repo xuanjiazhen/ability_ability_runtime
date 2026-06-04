@@ -20,6 +20,7 @@
 namespace OHOS {
 namespace CliTool {
 int32_t CliCommonMock::intParameterValue = 8;
+bool CliCommonMock::boolParameterValue = false;
 int32_t CliCommonMock::vectorPermissionResult = Security::AccessToken::PermissionState::PERMISSION_GRANTED;
 int32_t CliCommonMock::singlePermissionResult = Security::AccessToken::PermissionState::PERMISSION_GRANTED;
 std::vector<int32_t> CliCommonMock::permissionStateList;
@@ -27,6 +28,7 @@ std::vector<int32_t> CliCommonMock::permissionStateList;
 void CliCommonMock::Reset()
 {
     intParameterValue = 8;
+    boolParameterValue = false;
     vectorPermissionResult = Security::AccessToken::PermissionState::PERMISSION_GRANTED;
     singlePermissionResult = Security::AccessToken::PermissionState::PERMISSION_GRANTED;
     permissionStateList.clear();

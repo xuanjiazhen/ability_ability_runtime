@@ -25,6 +25,7 @@ namespace CliTool {
 class CliCommonMock {
 public:
     static int32_t intParameterValue;
+    static bool boolParameterValue;
     static int32_t vectorPermissionResult;
     static int32_t singlePermissionResult;
     static std::vector<int32_t> permissionStateList;
