@@ -252,7 +252,7 @@ bool CheckConnectAlreadyExist(napi_env env, AAFwk::Want &want,
         std::unique_ptr<NapiAsyncTask> asyncTask =
             CreateAsyncTaskWithLastParam(env, nullptr, nullptr, nullptr, &result);
         connection->AddDuplicatedPendingTask(asyncTask);
-        return false;
+        return true;
     }
 
     // Connection exists and proxy is ready, resolve immediately
@@ -643,14 +643,7 @@ sptr<JSAgentConnection> JsAgentManager::CreateAgentConnection(napi_env env,
 
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Connection created, stub and agentId set");
 
-    // Create async task for promise
-    napi_value result = nullptr;
-    std::unique_ptr<NapiAsyncTask> asyncTask =
-        CreateAsyncTaskWithLastParam(env, nullptr, nullptr, nullptr, &result);
-    std::shared_ptr<NapiAsyncTask> asyncTaskShared = std::move(asyncTask);
-
     connection->SetJsConnectionObject(callbackObject);
-    connection->SetNapiAsyncTask(asyncTaskShared);
 
     // Insert into registry
     int64_t connectionId = AgentConnectionUtils::InsertAgentConnection(connection, want);
@@ -744,6 +737,9 @@ napi_value JsAgentManager::OnDisconnectAgentExtensionAbility(napi_env env, size_
         }
 
         *innerErrCode = AgentConnectionManager::GetInstance().DisconnectAgentExtensionAbility(connection);
+        if (*innerErrCode != ERR_OK) {
+            AgentConnectionUtils::RemoveAgentConnection(connectionId);
+        }
     };
 
     NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {
