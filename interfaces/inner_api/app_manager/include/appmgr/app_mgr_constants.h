@@ -16,6 +16,8 @@
 #ifndef OHOS_ABILITY_RUNTIME_APP_MGR_CONSTANTS_H
 #define OHOS_ABILITY_RUNTIME_APP_MGR_CONSTANTS_H
 
+#include <cstdint>
+
 namespace OHOS {
 namespace AppExecFwk {
 namespace Constants {
@@ -168,6 +170,22 @@ enum class SupportProcessCacheState {
     UNSPECIFIED = 0,
     SUPPORT,
     NOT_SUPPORT
+};
+
+enum class RenderStateMessage : int32_t {
+    // Compatibility values for the existing foreground/background render state
+    // reported through UpdateRenderState and RenderStateObserver.
+    RENDER_STATE_FOREGROUND = 0,
+    RENDER_STATE_BACKGROUND = 1,
+
+    // Killability messages reported through the same UpdateRenderState path.
+    RENDER_KILLABLE_MESSAGE = 100,
+    RENDER_NOT_KILLABLE_MESSAGE = 101,
+};
+
+enum class RenderKillState : int32_t {
+    RENDER_NOT_KILLABLE = 0,
+    RENDER_KILLABLE = 1,
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

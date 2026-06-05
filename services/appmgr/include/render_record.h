@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_RENDER_RECORD_H
 #define OHOS_ABILITY_RUNTIME_RENDER_RECORD_H
 
+#include "app_mgr_constants.h"
 #include "irender_scheduler.h"
 #include "app_death_recipient.h"
 #include "fd_guard.h"
@@ -62,6 +63,8 @@ public:
     void RegisterDeathRecipient();
     void SetState(int32_t state);
     int32_t GetState() const;
+    void SetKillState(RenderKillState killState);
+    RenderKillState GetKillState() const;
     void SetProcessType(ProcessType type);
     void SetProcessName(const std::string &processName);
     void SetAttachTimeoutStartTime(const std::chrono::system_clock::time_point &time);
@@ -76,6 +79,7 @@ private:
     int32_t uid_ = 0;
     int32_t hostUid_ = 0;
     int32_t state_ = 0;
+    RenderKillState killState_ = RenderKillState::RENDER_NOT_KILLABLE;
     ProcessType processType_ = ProcessType::RENDER;
     FdGuard ipcFd_;
     FdGuard sharedFd_;
