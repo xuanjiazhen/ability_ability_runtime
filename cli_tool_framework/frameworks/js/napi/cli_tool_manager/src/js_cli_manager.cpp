@@ -15,6 +15,7 @@
 
 #include "js_cli_manager.h"
 
+#include <atomic>
 #include <string>
 
 #include "cli_error_code.h"
@@ -22,7 +23,11 @@
 #include "cli_session_info.h"
 #include "cli_tool_mgr_client.h"
 #include "exec_result.h"
+#include "ffrt.h"
+#include "function_info.h"
 #include "hilog_tag_wrapper.h"
+#include "insight_intent_execute_result.h"
+#include "intent_client.h"
 #include "js_cli_event_handler_manager.h"
 #include "js_cli_manager_utils.h"
 #include "js_cli_session_event_callback.h"
@@ -40,6 +45,7 @@ constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t INDEX_TWO = 2;
 constexpr int32_t INDEX_THREE = 3;
 constexpr int32_t INDEX_FOUR = 4;
+constexpr int32_t INVOKE_FUNCTION_TIMEOUT_US = 30000000;
 
 int32_t DispatchCliTool(const ExecToolParam &param, napi_env env,
     std::shared_ptr<NapiAsyncTask> asyncTask)
@@ -62,6 +68,99 @@ int32_t DispatchCliTool(const ExecToolParam &param, napi_env env,
                 });
         };
     return CliToolMGRClient::GetInstance().ExecTool(param, replyCallback);
+}
+
+struct InvokeFunctionResultData {
+    bool success = false;
+    int32_t errorCode = ERR_OK;
+    AppExecFwk::InsightIntentExecuteResult executeResult;
+};
+
+struct InvokeFunctionTsfnContext {
+    napi_deferred deferred = nullptr;
+    napi_threadsafe_function tsfn = nullptr;
+    std::shared_ptr<std::atomic<bool>> completed;
+};
+
+class JsInvokeFunctionCallbackClient
+    : public InsightIntentExecuteCallbackInterface,
+      public std::enable_shared_from_this<JsInvokeFunctionCallbackClient> {
+public:
+    explicit JsInvokeFunctionCallbackClient(std::shared_ptr<InvokeFunctionTsfnContext> tsfnContext)
+        : tsfnContext_(tsfnContext) {}
+
+    virtual ~JsInvokeFunctionCallbackClient() = default;
+
+    void ProcessInsightIntentExecute(int32_t resultCode,
+        AppExecFwk::InsightIntentExecuteResult executeResult) override
+    {
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "invokeFunction result callback, resultCode=%{public}d", resultCode);
+        if (tsfnContext_ == nullptr || tsfnContext_->completed == nullptr) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "tsfnContext or completed is null");
+            return;
+        }
+        bool expected = false;
+        if (!tsfnContext_->completed->compare_exchange_strong(expected, true)) {
+            TAG_LOGW(AAFwkTag::CLI_TOOL, "invokeFunction already completed");
+            return;
+        }
+        auto *data = new InvokeFunctionResultData();
+        data->success = (resultCode == 0);
+        data->errorCode = (resultCode == 0) ? 0 : ERR_FUNCTION_EXECUTE_FAILED;
+        data->executeResult = std::move(executeResult);
+        napi_call_threadsafe_function(tsfnContext_->tsfn, data, napi_tsfn_nonblocking);
+    }
+
+private:
+    std::shared_ptr<InvokeFunctionTsfnContext> tsfnContext_;
+};
+
+void InvokeFunctionFinalize(napi_env env, void *finalizeData, void *finalizeHint)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "InvokeFunctionTsfn finalize");
+    if (finalizeData == nullptr) {
+        return;
+    }
+    auto ctx = static_cast<std::shared_ptr<InvokeFunctionTsfnContext> *>(finalizeData);
+    // Note: callback registration in InsightIntentHostClient is managed by
+    // IntentClient::ExecuteIntentByFunctionCall internally; it is auto-cleaned
+    // when OnExecuteDone fires. intentKey is no longer exposed here.
+    delete ctx;
+}
+
+void InvokeFunctionCallJs(napi_env env, napi_value jsCb, void *context, void *data)
+{
+    if (env == nullptr || context == nullptr || data == nullptr) {
+        return;
+    }
+    auto *ctx = static_cast<InvokeFunctionTsfnContext *>(context);
+    auto *resultData = static_cast<InvokeFunctionResultData *>(data);
+    HandleScope handleScope(env);
+
+    if (resultData->success) {
+        napi_value jsResult = CreateJsInvokeResult(env, resultData->executeResult);
+        napi_resolve_deferred(env, ctx->deferred, jsResult);
+    } else {
+        napi_value jsError = CreateCliJsErrorByNativeErr(env, resultData->errorCode);
+        napi_reject_deferred(env, ctx->deferred, jsError);
+    }
+    napi_release_threadsafe_function(ctx->tsfn, napi_tsfn_release);
+    delete resultData;
+}
+
+void ReportInvokeError(InvokeFunctionTsfnContext &tsfnContext, int32_t errorCode)
+{
+    if (tsfnContext.completed == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "completed is null");
+        return;
+    }
+    bool expected = false;
+    if (tsfnContext.completed->compare_exchange_strong(expected, true)) {
+        auto *data = new InvokeFunctionResultData();
+        data->success = false;
+        data->errorCode = errorCode;
+        napi_call_threadsafe_function(tsfnContext.tsfn, data, napi_tsfn_nonblocking);
+    }
 }
 } // namespace
 
@@ -109,6 +208,11 @@ napi_value JSCliManager::QueryToolSummaries(napi_env env, napi_callback_info inf
 napi_value JSCliManager::QueryTools(napi_env env, napi_callback_info info)
 {
     GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnQueryTools);
+}
+
+napi_value JSCliManager::InvokeFunction(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnInvokeFunction);
 }
 
 napi_value JSCliManager::OnExecTool(napi_env env, size_t argc, napi_value *argv)
@@ -443,6 +547,118 @@ napi_value JSCliManager::OnQueryTools(napi_env env, size_t argc, napi_value *arg
     return handleEscape.Escape(asyncResult);
 }
 
+void ExecuteInvokeFunction(const std::string &bundleName, const std::string &functionName,
+    const AAFwk::WantParams &wantParams,
+    const std::shared_ptr<InvokeFunctionTsfnContext> &tsfnContext)
+{
+    if (tsfnContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "tsfnContext is null");
+        return;
+    }
+
+    // Step 1: Query function info
+    FunctionInfo functionInfo;
+    ErrCode queryErr = CliToolMGRClient::GetInstance().GetFunctionInfo(bundleName, functionName, functionInfo);
+    if (queryErr != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionInfo failed: %{public}d", queryErr);
+        ReportInvokeError(*tsfnContext, ERR_FUNCTION_QUERY_FAILED);
+        return;
+    }
+
+    // Step 2: Validate function type
+    if (functionInfo.functionType != FunctionType::INTENT_FUNCTION) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Function type not supported: %{public}d",
+            static_cast<int32_t>(functionInfo.functionType));
+        ReportInvokeError(*tsfnContext, ERR_FUNCTION_TYPE_NOT_SUPPORTED);
+        return;
+    }
+
+    // Step 3: Execute intent via IntentClient (handles callback registration + IPC)
+    auto client = std::make_shared<JsInvokeFunctionCallbackClient>(tsfnContext);
+
+    AAFwk::ExecuteIntentParam param;
+    param.bundleName = bundleName;
+    param.intentName = functionName;
+    param.wantParam = wantParams;
+    param.callback = client;
+
+    auto err = AAFwk::IntentClient::GetInstance().ExecuteIntentByFunctionCall(param);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "ExecuteIntentByFunctionCall failed: %{public}d", err);
+        ReportInvokeError(*tsfnContext, ERR_FUNCTION_EXECUTE_FAILED);
+    }
+    // Success: result will come via ProcessInsightIntentExecute callback
+}
+
+void SetupInvokeTimeout(const std::shared_ptr<InvokeFunctionTsfnContext> &tsfnContext)
+{
+    ffrt::submit([tsfnContext]() {
+        ReportInvokeError(*tsfnContext, ERR_FUNCTION_EXECUTE_TIMEOUT);
+    }, ffrt::task_attr().delay(INVOKE_FUNCTION_TIMEOUT_US));
+}
+
+napi_value JSCliManager::OnInvokeFunction(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "JSCliManager::OnInvokeFunction called");
+    HandleEscape handleEscape(env);
+    if (argc < INDEX_THREE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    // Parse bundleName
+    std::string bundleName;
+    if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ZERO], bundleName) || bundleName.empty()) {
+        ThrowInvalidParamError(env, "bundleName is required");
+        return CreateJsUndefined(env);
+    }
+
+    // Parse function name
+    std::string functionName;
+    if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ONE], functionName) || functionName.empty()) {
+        ThrowInvalidParamError(env, "name is required");
+        return CreateJsUndefined(env);
+    }
+
+    // Parse args → WantParams
+    AAFwk::WantParams wantParams;
+    if (!AppExecFwk::UnwrapWantParams(env, argv[INDEX_TWO], wantParams)) {
+        ThrowInvalidParamError(env, "args is required");
+        return CreateJsUndefined(env);
+    }
+
+    // Create promise
+    napi_value promise = nullptr;
+    napi_deferred deferred = nullptr;
+    napi_create_promise(env, &deferred, &promise);
+
+    // Create threadsafe function context
+    auto tsfnContext = std::make_shared<InvokeFunctionTsfnContext>();
+    tsfnContext->deferred = deferred;
+    tsfnContext->completed = std::make_shared<std::atomic<bool>>(false);
+
+    // Create threadsafe function
+    napi_value workName = nullptr;
+    napi_create_string_utf8(env, "InvokeFunctionTsfn", NAPI_AUTO_LENGTH, &workName);
+    napi_status tsfnStatus = napi_create_threadsafe_function(env, nullptr, nullptr, workName, 0, 1,
+        new std::shared_ptr<InvokeFunctionTsfnContext>(tsfnContext), InvokeFunctionFinalize,
+        tsfnContext.get(), InvokeFunctionCallJs, &tsfnContext->tsfn);
+    if (tsfnStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to create threadsafe function");
+        napi_value jsError = CreateCliJsErrorByNativeErr(env, ERR_FUNCTION_EXECUTE_FAILED);
+        napi_reject_deferred(env, deferred, jsError);
+        return handleEscape.Escape(promise);
+    }
+
+    // Submit ffrt tasks
+    ffrt::submit([bundleName, functionName, wantParams, tsfnContext]() {
+        ExecuteInvokeFunction(bundleName, functionName, wantParams, tsfnContext);
+    });
+    SetupInvokeTimeout(tsfnContext);
+
+    return handleEscape.Escape(promise);
+}
+
 napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "Init JSCliManager");
@@ -464,6 +680,7 @@ napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "getToolInfoByName", moduleName, JSCliManager::GetToolInfoByName);
     BindNativeFunction(env, exportObj, "queryToolSummaries", moduleName, JSCliManager::QueryToolSummaries);
     BindNativeFunction(env, exportObj, "queryTools", moduleName, JSCliManager::QueryTools);
+    BindNativeFunction(env, exportObj, "invokeFunction", moduleName, JSCliManager::InvokeFunction);
 
     TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManagerInit end");
     return CreateJsUndefined(env);

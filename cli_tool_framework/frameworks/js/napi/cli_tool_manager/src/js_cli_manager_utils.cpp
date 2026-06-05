@@ -23,6 +23,7 @@
 #include "hilog_tag_wrapper.h"
 #include "icli_tool_data.h"
 #include "napi_common_util.h"
+#include "napi_common_want.h"
 
 using namespace OHOS::AbilityRuntime;
 
@@ -440,6 +441,32 @@ napi_value CreateJsToolSummary(napi_env env, const ToolSummary &summary)
     // Set description
     napi_value jsDescription = AppExecFwk::WrapStringToJS(env, summary.description);
     napi_set_named_property(env, jsObj, "description", jsDescription);
+
+    return jsObj;
+}
+
+napi_value CreateJsInvokeResult(napi_env env, const AppExecFwk::InsightIntentExecuteResult &executeResult)
+{
+    napi_value jsObj = nullptr;
+    napi_status status = napi_create_object(env, &jsObj);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to create JS InvokeResult");
+        return nullptr;
+    }
+
+    int32_t errorCode = executeResult.code;
+    napi_set_named_property(env, jsObj, "success", AppExecFwk::WrapBoolToJS(env, errorCode == 0));
+
+    if (executeResult.result != nullptr) {
+        napi_value jsData = AppExecFwk::CreateJsWantParams(env, *executeResult.result);
+        if (jsData != nullptr) {
+            napi_set_named_property(env, jsObj, "data", jsData);
+        }
+    }
+
+    if (errorCode != 0) {
+        napi_set_named_property(env, jsObj, "errorCode", AppExecFwk::WrapInt32ToJS(env, errorCode));
+    }
 
     return jsObj;
 }

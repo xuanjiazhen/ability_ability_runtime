@@ -20,8 +20,10 @@
 #include <string>
 
 #include "native_engine/native_engine.h"
+#include "insight_intent_execute_result.h"
 #include "tool_info.h"
 #include "tool_summary.h"
+#include "function_info.h"
 
 namespace OHOS {
 namespace CliTool {
@@ -89,6 +91,14 @@ napi_value CreateJsToolInfo(napi_env env, const ToolInfo &tool);
  * @return Returns the JavaScript object.
  */
 napi_value CreateJsToolSummary(napi_env env, const ToolSummary &summary);
+
+/**
+ * @brief Create JavaScript InvokeResult object from executeResult.
+ * @param env The N-API environment.
+ * @param executeResult The insight intent execute result.
+ * @return Returns the JavaScript object.
+ */
+napi_value CreateJsInvokeResult(napi_env env, const AppExecFwk::InsightIntentExecuteResult &executeResult);
 
 } // namespace CliTool
 } // namespace OHOS

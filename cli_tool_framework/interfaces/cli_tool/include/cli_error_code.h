@@ -105,6 +105,31 @@ enum {
      * Result (35700016): KVStore not ready.
      */
     ERR_KVSTORE_NOT_READY = 35700016,
+
+    /*
+     * Result (35700014): Function type not supported.
+     */
+    ERR_FUNCTION_TYPE_NOT_SUPPORTED = 35700014,
+
+    /*
+     * Result (35700015): Function param validate failed.
+     */
+    ERR_FUNCTION_PARAM_VALIDATE_FAILED = 35700015,
+
+    /*
+     * Result (35700016): Function execute failed.
+     */
+    ERR_FUNCTION_EXECUTE_FAILED = 35700016,
+
+    /*
+     * Result (35700017): Function execute timeout.
+     */
+    ERR_FUNCTION_EXECUTE_TIMEOUT = 35700017,
+
+    /*
+     * Result (35700018): Function query failed.
+     */
+    ERR_FUNCTION_QUERY_FAILED = 35700018,
 };
 
 } // namespace CliTool
