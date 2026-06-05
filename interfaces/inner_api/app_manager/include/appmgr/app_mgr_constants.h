@@ -16,6 +16,8 @@
 #ifndef OHOS_ABILITY_RUNTIME_APP_MGR_CONSTANTS_H
 #define OHOS_ABILITY_RUNTIME_APP_MGR_CONSTANTS_H
 
+#include <cstdint>
+
 namespace OHOS {
 namespace AppExecFwk {
 namespace Constants {
@@ -169,6 +171,10 @@ enum class SupportProcessCacheState {
     SUPPORT,
     NOT_SUPPORT
 };
+
+// Render process killability state for system-wide render process reclaim.
+constexpr int32_t RENDER_PROCESS_KILLABLE = 100;
+constexpr int32_t RENDER_PROCESS_NOT_KILLABLE = 101;
 }  // namespace AppExecFwk
 }  // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_APP_MGR_CONSTANTS_H

@@ -62,6 +62,8 @@ public:
     void RegisterDeathRecipient();
     void SetState(int32_t state);
     int32_t GetState() const;
+    void SetKillState(int32_t killState);
+    int32_t GetKillState() const;
     void SetProcessType(ProcessType type);
     void SetProcessName(const std::string &processName);
     void SetAttachTimeoutStartTime(const std::chrono::system_clock::time_point &time);
@@ -76,6 +78,7 @@ private:
     int32_t uid_ = 0;
     int32_t hostUid_ = 0;
     int32_t state_ = 0;
+    int32_t killState_ = 0;
     ProcessType processType_ = ProcessType::RENDER;
     FdGuard ipcFd_;
     FdGuard sharedFd_;
