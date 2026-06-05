@@ -36,6 +36,7 @@
 #include "app_config_data_manager.h"
 #include "app_hybrid_spawn_manager.h"
 #include "app_mem_info.h"
+#include "app_mgr_constants.h"
 #include "app_mgr_service.h"
 #include "app_mgr_event.h"
 #include "app_process_data.h"
@@ -11372,6 +11373,13 @@ int32_t AppMgrServiceInner::UpdateRenderState(pid_t renderPid, int32_t state)
         TAG_LOGE(AAFwkTag::APPMGR, "renderPid:%{pubclic}d unexist", renderPid);
         return ERR_INVALID_VALUE;
     }
+
+    if (state == RENDER_PROCESS_KILLABLE || state == RENDER_PROCESS_NOT_KILLABLE) {
+        renderRecord->SetKillState(state);
+        return DelayedSingleton<RenderStateObserverManager>::GetInstance()->OnRenderStateChanged(
+            renderRecord, state);
+    }
+
     renderRecord->SetState(state);
     return DelayedSingleton<RenderStateObserverManager>::GetInstance()->OnRenderStateChanged(
         renderRecord, state);
