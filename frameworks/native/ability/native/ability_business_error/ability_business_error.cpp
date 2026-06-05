@@ -256,6 +256,10 @@ constexpr const char* ERROR_MSG_WRITE_KIOSK_STATUS_FAILED =
     "Internal error. Failed to write the kiosk status. Try again later.";
 constexpr const char* ERROR_MSG_WRITE_CALLER_TOKEN_FAILED =
     "Internal error. Failed to write the caller token. Try again later.";
+constexpr const char* ERROR_MSG_QUERY_ATOMIC_SERVICE_STARTUP_RULE_FAILED =
+    "Internal error. Failed to query the atomic service startup rule. Try again later.";
+constexpr const char* ERROR_MSG_RESTART_SELF_ATOMIC_SERVICE_FAILED =
+    "Internal error. Failed to restart the current atomic service. Try again later.";
 constexpr const char* ERROR_MSG_SERVICE_UNAVAILABLE =
     "Internal error. Service unavailable. Try again later.";
 constexpr const char* ERROR_MSG_OPERATION_FAILED =
@@ -581,9 +585,11 @@ static std::unordered_map<AbilityInnerErrorMsg, const char*> INNER_ERROR_MSG_BY_
     {AbilityInnerErrorMsg::CREATE_CALLBACK_FAILED, ERROR_MSG_CREATE_CALLBACK_FAILED},
     {AbilityInnerErrorMsg::CALLBACK_NOT_REGISTERED, ERROR_MSG_CALLBACK_NOT_REGISTERED},
     {AbilityInnerErrorMsg::START_CHILD_PROCESS_FAILED, ERROR_MSG_START_CHILD_PROCESS_FAILED},
+    {AbilityInnerErrorMsg::QUERY_ATOMIC_SERVICE_STARTUP_RULE_FAILED,
+        ERROR_MSG_QUERY_ATOMIC_SERVICE_STARTUP_RULE_FAILED},
+    {AbilityInnerErrorMsg::RESTART_SELF_ATOMIC_SERVICE_FAILED, ERROR_MSG_RESTART_SELF_ATOMIC_SERVICE_FAILED},
     {AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED, ERROR_MSG_CONNECT_AGENT_EXTENSION_FAILED},
     {AbilityInnerErrorMsg::AGENT_EXTENSION_CONNECTION_ENDED, ERROR_MSG_AGENT_EXTENSION_CONNECTION_ENDED},
-    {AbilityInnerErrorMsg::DISCONNECT_AGENT_EXTENSION_NOT_EXIST, ERROR_MSG_DISCONNECT_AGENT_EXTENSION_NOT_EXIST},
     {AbilityInnerErrorMsg::TRANSFER_EXTENSION_DATA_FAILED, ERROR_MSG_TRANSFER_EXTENSION_DATA_FAILED},
     {AbilityInnerErrorMsg::UI_WINDOW_NULL, ERROR_MSG_UI_WINDOW_NULL},
     {AbilityInnerErrorMsg::RELOAD_IN_MODAL_RESULT_NULL, ERROR_MSG_RELOAD_IN_MODAL_RESULT_NULL},
@@ -664,7 +670,7 @@ std::string GetAgentManagerErrorMsg(int32_t errCode, AgentManagerErrorOperation 
     }
     if (errCode == CONNECTION_NOT_EXIST) {
         if (operation == AgentManagerErrorOperation::DISCONNECT_AGENT_EXTENSION) {
-            return GetInnerErrorMsg(AbilityInnerErrorMsg::DISCONNECT_AGENT_EXTENSION_NOT_EXIST);
+            return ERROR_MSG_DISCONNECT_AGENT_EXTENSION_NOT_EXIST;
         }
         if (operation == AgentManagerErrorOperation::COMPLETE_LOW_CODE_AGENT) {
             return GetInnerErrorMsg(AbilityInnerErrorMsg::OPERATION_FAILED);
