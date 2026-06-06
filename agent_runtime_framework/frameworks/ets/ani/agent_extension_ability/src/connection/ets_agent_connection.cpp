@@ -37,6 +37,22 @@ constexpr const char *SIGNATURE_AGENT_EXTENSION_CALLBACK =
     "application.AgentExtensionConnectCallback.AgentExtensionConnectCallback";
 constexpr const char *SIGNATURE_ON_DATA_AND_AUTH = "C{std.core.String}:";
 constexpr const char *SIGNATURE_VOID = ":";
+
+bool IsSameAgentConnection(const AAFwk::Want &storedWant, const AAFwk::Want &want, const std::string &agentId)
+{
+    std::string existingId = storedWant.GetStringParam(AGENTID_KEY);
+    if (existingId.empty() || agentId.empty() || existingId != agentId) {
+        return false;
+    }
+    const auto &storedElement = storedWant.GetElement();
+    const auto &element = want.GetElement();
+    if (storedElement.GetBundleName() != element.GetBundleName() ||
+        storedElement.GetAbilityName() != element.GetAbilityName()) {
+        return false;
+    }
+    return storedElement.GetModuleName().empty() || element.GetModuleName().empty() ||
+        storedElement.GetModuleName() == element.GetModuleName();
+}
 } // namespace
 
 namespace AgentConnectionUtils {
@@ -101,21 +117,13 @@ void FindAgentConnection(int64_t connectId, sptr<EtsAgentConnection> &connection
     }
 }
 
-void FindAgentConnection(ani_env *env, AAFwk::Want &want, ani_object callback,
-    sptr<EtsAgentConnection> &connection)
+void FindAgentConnection(const AAFwk::Want &want, const std::string &agentId, sptr<EtsAgentConnection> &connection)
 {
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "FindAgentConnection by want+callback");
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "FindAgentConnection by target");
     std::lock_guard<std::recursive_mutex> lock(g_agentConnectsLock_);
     auto item = std::find_if(g_agentConnects.begin(), g_agentConnects.end(),
-        [&want, env, callback](const auto &obj) {
-        std::string existingId = obj.first.want.GetStringParam(AGENTID_KEY);
-        std::string agentId = want.GetStringParam(AGENTID_KEY);
-        bool wantEquals = obj.first.want.GetElement() == want.GetElement() &&
-            !existingId.empty() && !agentId.empty() && existingId == agentId;
-        ani_ref tempCallbackRef = obj.second->GetEtsConnectionObject();
-        bool callbackObjectEquals =
-            EtsAgentConnection::IsEtsCallbackObjectEquals(env, tempCallbackRef, callback);
-        return wantEquals && callbackObjectEquals;
+        [&want, &agentId](const auto &obj) {
+        return IsSameAgentConnection(obj.first.want, want, agentId);
     });
     if (item == g_agentConnects.end()) {
         TAG_LOGD(AAFwkTag::SER_ROUTER, "Connection not found");
