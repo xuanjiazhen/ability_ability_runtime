@@ -232,13 +232,13 @@ void RemoveServiceConnection(int64_t connectionId)
 }
 
 // Helper function to check for duplicate connections
-bool CheckConnectAlreadyExist(napi_env env, AAFwk::Want &want,
+bool CheckConnectAlreadyExist(napi_env env, const AAFwk::Want &want, const std::string &agentId,
     napi_value callback, napi_value &result)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "CheckConnectAlreadyExist called");
 
     sptr<JSAgentConnection> connection = nullptr;
-    AgentConnectionUtils::FindAgentConnection(env, want, callback, connection);
+    AgentConnectionUtils::FindAgentConnection(env, want, agentId, callback, connection);
     if (connection == nullptr) {
         TAG_LOGD(AAFwkTag::SER_ROUTER, "No duplicate connection found");
         return false;
@@ -566,7 +566,7 @@ napi_value JsAgentManager::OnConnectAgentExtensionAbility(napi_env env, size_t a
 
     // 2. Check for duplicate connection
     napi_value result = nullptr;
-    bool duplicated = CheckConnectAlreadyExist(env, want, callbackObject, result);
+    bool duplicated = CheckConnectAlreadyExist(env, want, agentId, callbackObject, result);
     if (duplicated) {
         TAG_LOGI(AAFwkTag::SER_ROUTER, "Duplicated connection found");
         return result;
