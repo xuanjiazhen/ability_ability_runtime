@@ -69,9 +69,10 @@ public:
     static CliSessionInfo BuildSkillSessionInfo(const std::string &sessionId,
         int32_t resultCode, const AppExecFwk::SkillExecuteResult &skillResult);
 
-private:
     static bool GetBundleInfoByTokenId(AccessToken::AccessTokenID tokenId,
         AppExecFwk::BundleInfo &bundleInfo);
+
+private:
     static int32_t ValidateInputSchemaProperties(const std::string &inputSchema, const AAFwk::WantParams &args);
 
     // Helper methods for type validation
