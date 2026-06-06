@@ -20,6 +20,7 @@
 #include "ability_manager_errors.h"
 #include "agent_card.h"
 #include "agent_extension_connection_constants.h"
+#include "agent_service_connection.h"
 
 #define private public
 #include "agent_bundle_event_callback.h"
@@ -128,6 +129,7 @@ void AgentManagerServiceTest::SetUp(void)
     auto service = AgentManagerService::GetInstance();
     service->trackedConnections_.clear();
     service->callerConnectionCounts_.clear();
+    service->standardSessions_.clear();
     MyFlag::connectAbilityWithExtensionTypeCallCount = 0;
     MyFlag::disconnectAbilityCallCount = 0;
     MyFlag::lastConnectAbilityConnection = nullptr;
@@ -1444,6 +1446,43 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_026, TestSize.Lev
     ASSERT_EQ(receiver->invokedAgentIds.size(), 2);
     EXPECT_EQ(receiver->invokedAgentIds[1], "agentB");
     EXPECT_EQ(connectionB->connectDoneCount, 1);
+}
+
+/**
+ * @tc.name  : ConnectAgentExtensionAbility_039
+ * @tc.number: ConnectAgentExtensionAbility_039
+ * @tc.desc  : Test low-code connect reuses host session when moduleName is empty then explicit
+ */
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_039, TestSize.Level1)
+{
+    auto service = AgentManagerService::GetInstance();
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::LOW_CODE);
+    MyFlag::agentCardBundleName = "lowcode.bundle";
+    MyFlag::agentCardAbilityName = "LowCodeExtAbility";
+    MyFlag::agentCardModuleName = "entry";
+
+    AAFwk::Want wantA;
+    wantA.SetParam(AGENTID_KEY, std::string("agentA"));
+    wantA.SetElementName("", "lowcode.bundle", "LowCodeExtAbility", "");
+    sptr<MockAbilityConnection> connectionA = new MockAbilityConnection();
+
+    AAFwk::Want wantB;
+    wantB.SetParam(AGENTID_KEY, std::string("agentB"));
+    wantB.SetElementName("", "lowcode.bundle", "LowCodeExtAbility", "entry");
+    sptr<MockAbilityConnection> connectionB = new MockAbilityConnection();
+
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(wantA, connectionA), ERR_OK);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 1);
+    ASSERT_EQ(service->agentHostSessions_.size(), 1);
+    EXPECT_EQ(service->agentHostSessions_.begin()->first.moduleName, "entry");
+
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(wantB, connectionB), ERR_OK);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 1);
+    EXPECT_EQ(service->agentHostSessions_.size(), 1);
+    EXPECT_EQ(service->agentOwners_.size(), 2);
+    ASSERT_EQ(service->callerConnectionCounts_.size(), 1);
+    EXPECT_EQ(service->callerConnectionCounts_.begin()->second, 1);
 }
 
 /**
@@ -3693,6 +3732,440 @@ HWTEST_F(AgentManagerServiceTest, HandleConnectionDone_002, TestSize.Level1)
 
     EXPECT_TRUE(AgentManagerService::GetInstance()->trackedConnections_.empty());
     EXPECT_TRUE(AgentManagerService::GetInstance()->callerConnectionCounts_.empty());
+}
+
+/**
+ * @tc.name  : ConnectAgentExtensionAbility_033
+ * @tc.number: ConnectAgentExtensionAbility_033
+ * @tc.desc  : Test standard agent duplicate connect only triggers one AMS connect
+ */
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_033, TestSize.Level1)
+{
+    MyFlag::retVerifyCallingPermission = true;
+    MyFlag::retGetProcessRunningInfoByPid = ERR_OK;
+    MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardAgentId = "testAgent";
+    MyFlag::agentCardModuleName = "entry";
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::APP);
+    MyFlag::retConnectAbilityWithExtensionType = ERR_OK;
+
+    AAFwk::Want want;
+    want.SetParam(AGENTID_KEY, std::string("testAgent"));
+    want.SetBundle("test.bundle");
+    want.SetElementName("test.bundle", "TestAbility");
+
+    sptr<MockAbilityConnection> connection1 = new MockAbilityConnection();
+    sptr<MockAbilityConnection> connection2 = new MockAbilityConnection();
+
+    auto service = AgentManagerService::GetInstance();
+
+    // First connect
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(want, connection1), ERR_OK);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 1);
+
+    // Second connect (same caller+agentId+target) should not trigger another AMS connect
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(want, connection2), ERR_OK);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 1);
+
+    // Only one quota should be consumed
+    ASSERT_EQ(service->callerConnectionCounts_.size(), 1);
+    EXPECT_EQ(service->callerConnectionCounts_.begin()->second, 1);
+
+    // Only one standard session should exist
+    ASSERT_EQ(service->standardSessions_.size(), 1);
+    auto &session = service->standardSessions_.front();
+    ASSERT_EQ(session->pendingCallbacks.size(), 2);
+}
+
+/**
+ * @tc.name  : ConnectAgentExtensionAbility_034
+ * @tc.number: ConnectAgentExtensionAbility_034
+ * @tc.desc  : Test standard agent session notifies all pending callers on connect done
+ */
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_034, TestSize.Level1)
+{
+    MyFlag::retVerifyCallingPermission = true;
+    MyFlag::retGetProcessRunningInfoByPid = ERR_OK;
+    MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardAgentId = "testAgent";
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::APP);
+    MyFlag::retConnectAbilityWithExtensionType = ERR_OK;
+
+    AAFwk::Want want;
+    want.SetParam(AGENTID_KEY, std::string("testAgent"));
+    want.SetBundle("test.bundle");
+    want.SetElementName("test.bundle", "TestAbility");
+
+    sptr<MockAbilityConnection> connection1 = new MockAbilityConnection();
+    sptr<MockAbilityConnection> connection2 = new MockAbilityConnection();
+
+    auto service = AgentManagerService::GetInstance();
+
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(want, connection1), ERR_OK);
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(want, connection2), ERR_OK);
+
+    ASSERT_EQ(service->standardSessions_.size(), 1);
+    auto svcConn = service->standardSessions_.front()->serviceConnection;
+
+    // Simulate AMS connect done
+    AppExecFwk::ElementName element("", "test.bundle", "TestAbility");
+    sptr<MockAbilityConnection> mockRemote = new MockAbilityConnection();
+    auto *rawSvcConn = static_cast<AgentServiceConnection *>(svcConn.GetRefPtr());
+    rawSvcConn->OnAbilityConnectDone(element, mockRemote->AsObject(), ERR_OK);
+
+    // Both callers should be notified
+    EXPECT_EQ(connection1->connectDoneCount, 1);
+    EXPECT_EQ(connection2->connectDoneCount, 1);
+}
+
+/**
+ * @tc.name  : ConnectAgentExtensionAbility_035
+ * @tc.number: ConnectAgentExtensionAbility_035
+ * @tc.desc  : Test standard agent duplicate connect after connected returns cached proxy immediately
+ */
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_035, TestSize.Level1)
+{
+    MyFlag::retVerifyCallingPermission = true;
+    MyFlag::retGetProcessRunningInfoByPid = ERR_OK;
+    MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardAgentId = "testAgent";
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::APP);
+    MyFlag::retConnectAbilityWithExtensionType = ERR_OK;
+
+    AAFwk::Want want;
+    want.SetParam(AGENTID_KEY, std::string("testAgent"));
+    want.SetBundle("test.bundle");
+    want.SetElementName("test.bundle", "TestAbility");
+
+    sptr<MockAbilityConnection> connection1 = new MockAbilityConnection();
+    sptr<MockAbilityConnection> connection2 = new MockAbilityConnection();
+    sptr<MockAbilityConnection> connection3 = new MockAbilityConnection();
+
+    auto service = AgentManagerService::GetInstance();
+
+    // First connect
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(want, connection1), ERR_OK);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 1);
+
+    // Simulate connect done
+    ASSERT_EQ(service->standardSessions_.size(), 1);
+    auto svcConn = service->standardSessions_.front()->serviceConnection;
+    AppExecFwk::ElementName element("", "test.bundle", "TestAbility");
+    sptr<MockAbilityConnection> mockRemote = new MockAbilityConnection();
+    auto *rawSvcConn = static_cast<AgentServiceConnection *>(svcConn.GetRefPtr());
+    rawSvcConn->OnAbilityConnectDone(element, mockRemote->AsObject(), ERR_OK);
+    EXPECT_EQ(connection1->connectDoneCount, 1);
+
+    // Second connect (connecting) - added as pending but already moved to connected
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(want, connection2), ERR_OK);
+    // Should not trigger another AMS connect
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 1);
+    // Should immediately notify with cached proxy
+    EXPECT_EQ(connection2->connectDoneCount, 1);
+
+    // Third connect also gets cached proxy
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(want, connection3), ERR_OK);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 1);
+    EXPECT_EQ(connection3->connectDoneCount, 1);
+
+    // Still only one quota
+    ASSERT_EQ(service->callerConnectionCounts_.size(), 1);
+    EXPECT_EQ(service->callerConnectionCounts_.begin()->second, 1);
+}
+
+/**
+ * @tc.name  : ConnectAgentExtensionAbility_036
+ * @tc.number: ConnectAgentExtensionAbility_036
+ * @tc.desc  : Test standard agent connect with empty moduleName still deduplicates
+ */
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_036, TestSize.Level1)
+{
+    MyFlag::retVerifyCallingPermission = true;
+    MyFlag::retGetProcessRunningInfoByPid = ERR_OK;
+    MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardAgentId = "testAgent";
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::APP);
+    MyFlag::retConnectAbilityWithExtensionType = ERR_OK;
+
+    AAFwk::Want wantA;
+    wantA.SetParam(AGENTID_KEY, std::string("testAgent"));
+    wantA.SetBundle("test.bundle");
+    wantA.SetElementName("test.bundle", "TestAbility", "");
+
+    AAFwk::Want wantB;
+    wantB.SetParam(AGENTID_KEY, std::string("testAgent"));
+    wantB.SetBundle("test.bundle");
+    wantB.SetElementName("test.bundle", "TestAbility", "entry");
+
+    sptr<MockAbilityConnection> connection1 = new MockAbilityConnection();
+    sptr<MockAbilityConnection> connection2 = new MockAbilityConnection();
+
+    auto service = AgentManagerService::GetInstance();
+
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(wantA, connection1), ERR_OK);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 1);
+    ASSERT_EQ(service->standardSessions_.size(), 1);
+    ASSERT_NE(service->standardSessions_.front(), nullptr);
+    EXPECT_EQ(service->standardSessions_.front()->key.moduleName, "entry");
+
+    // Different moduleName should still deduplicate when first was empty
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(wantB, connection2), ERR_OK);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 1);
+    EXPECT_EQ(service->standardSessions_.size(), 1);
+}
+
+/**
+ * @tc.name  : DisconnectAgentExtensionAbility_011
+ * @tc.number: DisconnectAgentExtensionAbility_011
+ * @tc.desc  : Test standard agent disconnect releases collapsed session and notifies all callers
+ */
+HWTEST_F(AgentManagerServiceTest, DisconnectAgentExtensionAbility_011, TestSize.Level1)
+{
+    MyFlag::retVerifyCallingPermission = true;
+    MyFlag::retGetProcessRunningInfoByPid = ERR_OK;
+    MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardAgentId = "testAgent";
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::APP);
+    MyFlag::retConnectAbilityWithExtensionType = ERR_OK;
+
+    AAFwk::Want want;
+    want.SetParam(AGENTID_KEY, std::string("testAgent"));
+    want.SetBundle("test.bundle");
+    want.SetElementName("test.bundle", "TestAbility");
+
+    sptr<MockAbilityConnection> connection1 = new MockAbilityConnection();
+    sptr<MockAbilityConnection> connection2 = new MockAbilityConnection();
+
+    auto service = AgentManagerService::GetInstance();
+
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(want, connection1), ERR_OK);
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(want, connection2), ERR_OK);
+
+    // Simulate connect done
+    ASSERT_EQ(service->standardSessions_.size(), 1);
+    auto svcConn = service->standardSessions_.front()->serviceConnection;
+    AppExecFwk::ElementName element("", "test.bundle", "TestAbility");
+    sptr<MockAbilityConnection> mockRemote = new MockAbilityConnection();
+    auto *rawSvcConn = static_cast<AgentServiceConnection *>(svcConn.GetRefPtr());
+    rawSvcConn->OnAbilityConnectDone(element, mockRemote->AsObject(), ERR_OK);
+
+    // Disconnect with the duplicate caller callback; it should tear down the collapsed session.
+    EXPECT_EQ(service->DisconnectAgentExtensionAbility(connection2), ERR_OK);
+    EXPECT_EQ(MyFlag::disconnectAbilityCallCount, 1);
+
+    // Simulate disconnect done
+    rawSvcConn->OnAbilityDisconnectDone(element, ERR_OK);
+    EXPECT_EQ(connection1->disconnectDoneCount, 1);
+    EXPECT_EQ(connection2->disconnectDoneCount, 1);
+
+    // Session should be cleaned up
+    EXPECT_TRUE(service->standardSessions_.empty());
+    EXPECT_TRUE(service->trackedConnections_.empty());
+    EXPECT_TRUE(service->callerConnectionCounts_.empty());
+}
+
+/**
+ * @tc.name  : ConnectAgentExtensionAbility_037
+ * @tc.number: ConnectAgentExtensionAbility_037
+ * @tc.desc  : Test different targets create different standard sessions
+ */
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_037, TestSize.Level1)
+{
+    MyFlag::retVerifyCallingPermission = true;
+    MyFlag::retGetProcessRunningInfoByPid = ERR_OK;
+    MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardAgentId = "testAgent";
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::APP);
+    MyFlag::retConnectAbilityWithExtensionType = ERR_OK;
+
+    AAFwk::Want wantA;
+    wantA.SetParam(AGENTID_KEY, std::string("testAgent"));
+    wantA.SetBundle("test.bundle");
+    wantA.SetElementName("test.bundle", "AbilityA");
+
+    AAFwk::Want wantB;
+    wantB.SetParam(AGENTID_KEY, std::string("testAgent"));
+    wantB.SetBundle("test.bundle");
+    wantB.SetElementName("test.bundle", "AbilityB");
+
+    sptr<MockAbilityConnection> connectionA = new MockAbilityConnection();
+    sptr<MockAbilityConnection> connectionB = new MockAbilityConnection();
+
+    auto service = AgentManagerService::GetInstance();
+
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(wantA, connectionA), ERR_OK);
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(wantB, connectionB), ERR_OK);
+
+    // Two different targets should trigger two AMS connects
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 2);
+    ASSERT_EQ(service->standardSessions_.size(), 2);
+
+    // Two quotas consumed
+    ASSERT_EQ(service->callerConnectionCounts_.size(), 1);
+    EXPECT_EQ(service->callerConnectionCounts_.begin()->second, 2);
+}
+
+/**
+ * @tc.name  : ConnectAgentExtensionAbility_038
+ * @tc.number: ConnectAgentExtensionAbility_038
+ * @tc.desc  : Test standard agent connect failure cleans collapsed session and tracked callers
+ */
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_038, TestSize.Level1)
+{
+    MyFlag::retConnectAbilityWithExtensionType = ERR_OK;
+
+    AAFwk::Want want;
+    want.SetParam(AGENTID_KEY, std::string("testAgent"));
+    want.SetBundle("test.bundle");
+    want.SetElementName("test.bundle", "TestAbility");
+
+    sptr<MockAbilityConnection> connection1 = new MockAbilityConnection();
+    sptr<MockAbilityConnection> connection2 = new MockAbilityConnection();
+    auto service = AgentManagerService::GetInstance();
+
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(want, connection1), ERR_OK);
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(want, connection2), ERR_OK);
+    ASSERT_EQ(service->standardSessions_.size(), 1);
+    auto svcConn = service->standardSessions_.front()->serviceConnection;
+
+    AppExecFwk::ElementName element("", "test.bundle", "TestAbility");
+    auto *rawSvcConn = static_cast<AgentServiceConnection *>(svcConn.GetRefPtr());
+    rawSvcConn->OnAbilityConnectDone(element, nullptr, ERR_INVALID_VALUE);
+
+    EXPECT_EQ(connection1->connectDoneCount, 1);
+    EXPECT_EQ(connection1->lastConnectResultCode, ERR_INVALID_VALUE);
+    EXPECT_EQ(connection2->connectDoneCount, 1);
+    EXPECT_EQ(connection2->lastConnectResultCode, ERR_INVALID_VALUE);
+    EXPECT_TRUE(service->standardSessions_.empty());
+    EXPECT_TRUE(service->trackedConnections_.empty());
+    EXPECT_TRUE(service->callerConnectionCounts_.empty());
+}
+
+/**
+ * @tc.name  : DisconnectAgentExtensionAbility_012
+ * @tc.number: DisconnectAgentExtensionAbility_012
+ * @tc.desc  : Test standard agent disconnect returns OK without AMS call when session already disconnecting
+ */
+HWTEST_F(AgentManagerServiceTest, DisconnectAgentExtensionAbility_012, TestSize.Level1)
+{
+    AAFwk::Want want;
+    want.SetParam(AGENTID_KEY, std::string("testAgent"));
+    want.SetBundle("test.bundle");
+    want.SetElementName("test.bundle", "TestAbility");
+
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+    auto service = AgentManagerService::GetInstance();
+
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(want, connection), ERR_OK);
+    ASSERT_EQ(service->standardSessions_.size(), 1);
+    service->standardSessions_.front()->isDisconnecting = true;
+
+    EXPECT_EQ(service->DisconnectAgentExtensionAbility(connection), ERR_OK);
+    EXPECT_EQ(MyFlag::disconnectAbilityCallCount, 0);
+    ASSERT_EQ(service->callerConnectionCounts_.size(), 1);
+    EXPECT_EQ(service->callerConnectionCounts_.begin()->second, 1);
+}
+
+/**
+ * @tc.name  : DisconnectAgentExtensionAbility_013
+ * @tc.number: DisconnectAgentExtensionAbility_013
+ * @tc.desc  : Test standard agent disconnect failure rolls back session, tracked caller, and quota state
+ */
+HWTEST_F(AgentManagerServiceTest, DisconnectAgentExtensionAbility_013, TestSize.Level1)
+{
+    AAFwk::Want want;
+    want.SetParam(AGENTID_KEY, std::string("testAgent"));
+    want.SetBundle("test.bundle");
+    want.SetElementName("test.bundle", "TestAbility");
+
+    sptr<MockAbilityConnection> connection1 = new MockAbilityConnection();
+    sptr<MockAbilityConnection> connection2 = new MockAbilityConnection();
+    auto service = AgentManagerService::GetInstance();
+
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(want, connection1), ERR_OK);
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(want, connection2), ERR_OK);
+    ASSERT_EQ(service->standardSessions_.size(), 1);
+    auto svcConn = service->standardSessions_.front()->serviceConnection;
+    AppExecFwk::ElementName element("", "test.bundle", "TestAbility");
+    sptr<MockAbilityConnection> mockRemote = new MockAbilityConnection();
+    auto *rawSvcConn = static_cast<AgentServiceConnection *>(svcConn.GetRefPtr());
+    rawSvcConn->OnAbilityConnectDone(element, mockRemote->AsObject(), ERR_OK);
+
+    MyFlag::retDisconnectAbility = ERR_INVALID_VALUE;
+    EXPECT_EQ(service->DisconnectAgentExtensionAbility(connection2), ERR_INVALID_VALUE);
+    EXPECT_EQ(MyFlag::disconnectAbilityCallCount, 1);
+
+    ASSERT_EQ(service->standardSessions_.size(), 1);
+    EXPECT_FALSE(service->standardSessions_.front()->isDisconnecting);
+    auto trackedIt = service->trackedConnections_.find(connection2->AsObject());
+    ASSERT_NE(trackedIt, service->trackedConnections_.end());
+    EXPECT_FALSE(trackedIt->second.isDisconnecting);
+    ASSERT_EQ(service->callerConnectionCounts_.size(), 1);
+    EXPECT_EQ(service->callerConnectionCounts_.begin()->second, 1);
+}
+
+/**
+ * @tc.name  : HandleStandardAgentConnectDone_001
+ * @tc.number: HandleStandardAgentConnectDone_001
+ * @tc.desc  : Test unknown standard service remote is ignored
+ */
+HWTEST_F(AgentManagerServiceTest, HandleStandardAgentConnectDone_001, TestSize.Level1)
+{
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+    AgentManagerService::StandardAgentKey key;
+    key.callerUid = IPCSkeleton::GetCallingUid();
+    key.agentId = "testAgent";
+    key.bundleName = "test.bundle";
+    key.abilityName = "TestAbility";
+
+    auto service = AgentManagerService::GetInstance();
+    auto session = std::make_shared<AgentManagerService::StandardAgentSession>();
+    session->key = key;
+    session->pendingCallbacks.push_back(connection);
+    session->serviceConnection = sptr<AgentServiceConnection>::MakeSptr(connection);
+    service->standardSessions_.emplace_back(session);
+
+    AppExecFwk::ElementName element("", "test.bundle", "TestAbility");
+    sptr<MockAbilityConnection> unknownConnection = new MockAbilityConnection();
+    service->HandleStandardAgentConnectDone(unknownConnection->AsObject(), element, unknownConnection->AsObject(),
+        ERR_OK);
+
+    EXPECT_EQ(connection->connectDoneCount, 0);
+    ASSERT_EQ(service->standardSessions_.size(), 1);
+    EXPECT_EQ(service->standardSessions_.front()->state,
+        AgentManagerService::StandardAgentState::CONNECTING);
+}
+
+/**
+ * @tc.name  : StandardAgentKey_001
+ * @tc.number: StandardAgentKey_001
+ * @tc.desc  : Test standard session key matching handles explicit and empty moduleName correctly
+ */
+HWTEST_F(AgentManagerServiceTest, StandardAgentKey_001, TestSize.Level1)
+{
+    auto service = AgentManagerService::GetInstance();
+    AgentManagerService::StandardAgentKey keyModuleA;
+    keyModuleA.callerUid = IPCSkeleton::GetCallingUid();
+    keyModuleA.agentId = "testAgent";
+    keyModuleA.bundleName = "test.bundle";
+    keyModuleA.moduleName = "moduleA";
+    keyModuleA.abilityName = "TestAbility";
+
+    AgentManagerService::StandardAgentKey keyModuleB = keyModuleA;
+    keyModuleB.moduleName = "moduleB";
+    AgentManagerService::StandardAgentKey keyWithoutModule = keyModuleA;
+    keyWithoutModule.moduleName = "";
+
+    EXPECT_FALSE(service->IsStandardAgentKeyEqual(keyModuleA, keyModuleB));
+    EXPECT_FALSE(service->IsStandardAgentKeyMatched(keyModuleA, keyModuleB));
+    EXPECT_TRUE(service->IsStandardAgentKeyMatched(keyModuleA, keyWithoutModule));
+    EXPECT_TRUE(service->IsStandardAgentKeyMatched(keyWithoutModule, keyModuleA));
 }
 } // namespace AgentRuntime
 } // namespace OHOS
