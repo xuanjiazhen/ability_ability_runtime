@@ -81,10 +81,11 @@ void FindAgentConnection(int64_t connectId, sptr<JSAgentConnection> &connection)
  *
  * @param env The N-API environment.
  * @param want The want information to match.
+ * @param agentId The agent ID to match.
  * @param callback The callback object to match.
  * @param connection Output parameter for the found connection.
  */
-void FindAgentConnection(napi_env env, AAFwk::Want &want, napi_value callback,
+void FindAgentConnection(napi_env env, const AAFwk::Want &want, const std::string &agentId, napi_value callback,
     sptr<JSAgentConnection> &connection);
 }
 
