@@ -80,10 +80,11 @@ void FindAgentConnection(int64_t connectId, sptr<EtsAgentConnection> &connection
  *
  * @param env The ANI environment.
  * @param want The want information to match.
+ * @param agentId The agent ID to match.
  * @param callback The callback object to match.
  * @param connection Output parameter for the found connection.
  */
-void FindAgentConnection(ani_env *env, AAFwk::Want &want, ani_object callback,
+void FindAgentConnection(ani_env *env, const AAFwk::Want &want, const std::string &agentId, ani_object callback,
     sptr<EtsAgentConnection> &connection);
 }
 
