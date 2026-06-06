@@ -57,12 +57,12 @@ class EtsAgentServiceConnection;
 std::map<int64_t, sptr<EtsAgentServiceConnection>> g_serviceConnections;
 int64_t g_serviceConnectionSerialNumber = 0;
 
-bool CheckConnectAlreadyExist(ani_env *env, AAFwk::Want &want,
-    ani_object callback, ani_object asyncCallback)
+bool CheckConnectAlreadyExist(ani_env *env, const AAFwk::Want &want, const std::string &agentId,
+    ani_object asyncCallback)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "CheckConnectAlreadyExist called");
     sptr<EtsAgentConnection> connection = nullptr;
-    AgentConnectionUtils::FindAgentConnection(env, want, callback, connection);
+    AgentConnectionUtils::FindAgentConnection(want, agentId, connection);
     if (connection == nullptr) {
         TAG_LOGD(AAFwkTag::SER_ROUTER, "null connection");
         return false;
@@ -531,7 +531,7 @@ void EtsAgentManager::ConnectAgentExtensionAbility(ani_env *env, ani_object aniW
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
 
     // Check for duplicate connection
-    if (CheckConnectAlreadyExist(env, want, callbackObj, asyncCallback)) {
+    if (CheckConnectAlreadyExist(env, want, agentId, asyncCallback)) {
         TAG_LOGI(AAFwkTag::SER_ROUTER, "Duplicate connection found");
         return;
     }
