@@ -76,6 +76,71 @@ bool IsPermissionGateResult(int32_t result)
 {
     return result == ERR_NOT_SYSTEM_APP || result == ERR_PERMISSION_DENIED;
 }
+
+// Mock functions for cli_event_report
+void ReportExecuteCli(const std::string& bundleName, const std::string& cliName, const std::string& args)
+{
+    // Mock implementation - do nothing in test
+}
+
+void ReportExecuteCliFailed(const std::string& bundleName, const std::string& cliName, const std::string& reason)
+{
+    // Mock implementation - do nothing in test
+}
+
+void ReportCliRunTimeout(const std::string& bundleName, const std::string& cliName, int64_t durationMs)
+{
+    // Mock implementation - do nothing in test
+}
+
+void ReportCliRunError(const std::string& cliName, int32_t signalNum)
+{
+    // Mock implementation - do nothing in test
+}
+
+std::string GetFailureReason(int32_t errorCode)
+{
+    switch (errorCode) {
+        case ERR_PERMISSION_DENIED:
+            return "PERMISSION_DENIED";
+        case ERR_TOOL_NOT_EXIST:
+            return "TOOL_NOT_EXIST";
+        case ERR_SESSION_LIMIT_EXCEEDED:
+            return "SESSION_LIMIT_EXCEEDED";
+        case ERR_NO_INIT:
+            return "PROCESS_CREATE_FAILED";
+        case ERR_INVALID_PARAM:
+        case ERR_INNER_PARAM_INVALID:
+            return "INVALID_PARAM";
+        case ERR_NOT_HAP:
+            return "NOT_HAP";
+        case ERR_NOT_SYSTEM_APP:
+            return "NOT_SYSTEM_APP";
+        default:
+            return "UNKNOWN";
+    }
+}
+
+std::string FormatWantParamsToString(const AAFwk::WantParams& args)
+{
+    std::string result;
+    for (const auto& [key, value] : args.GetParams()) {
+        if (value == nullptr) {
+            continue;
+        }
+        result += key + "=";
+        // Try String
+        if (auto strObj = AAFwk::IString::Query(value)) {
+            std::string strValue;
+            if (strObj->GetString(strValue) == ERR_OK) {
+                result += strValue + " ";
+                continue;
+            }
+        }
+        result += " ";
+    }
+    return result;
+}
 }
 
 class TestScheduler : public CliToolManagerSchedulerStub {

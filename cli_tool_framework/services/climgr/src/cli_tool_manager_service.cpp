@@ -22,6 +22,7 @@
 #include "app_mgr_client.h"
 #include "ccm_util.h"
 #include "cli_error_code.h"
+#include "cli_event_report.h"
 #include "cli_tool_app_state_observer.h"
 #include "cli_function_data_manager.h"
 #include "event_dispatcher.h"
@@ -86,6 +87,19 @@ void CliToolManagerService::HandleProcessTimeout(const std::string &sessionId)
     TAG_LOGI(AAFwkTag::CLI_TOOL, "HandleProcessTimeout: sessionId=%{public}s", sessionId.c_str());
     record->SetTimeout(true);
     record->SetState(SessionState::CANCELLING);
+
+    // Set end time for timeout reporting
+    record->SetTerminalResult(0, 0);
+
+    // Report timeout event
+    int64_t durationMs = record->GetEndTimeMs() - record->startTime;
+    std::string bundleName;
+    auto tokenId = static_cast<AccessToken::AccessTokenID>(IPCSkeleton::GetCallingTokenID());
+    AppExecFwk::BundleInfo bundleInfo;
+    if (ToolUtil::GetBundleInfoByTokenId(tokenId, bundleInfo)) {
+        bundleName = bundleInfo.name;
+    }
+    ReportCliRunTimeout(bundleName, record->toolName, durationMs);
 
     auto oldBackground = record->SetBackground(true);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "HandleProcessTimeout: sessionId=%{public}s, background=%{public}d",
@@ -772,12 +786,24 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
     InterfaceCallCounter counter(interfaceCalledCount_);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecTool called: toolName=%{public}s, subcommand=%{public}s",
         param.toolName.c_str(), param.subcommand.c_str());
+
+    std::string bundleName;
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+
+    // Get bundle name for event reporting
+    AppExecFwk::BundleInfo bundleInfo;
+    if (ToolUtil::GetBundleInfoByTokenId(tokenId, bundleInfo)) {
+        bundleName = bundleInfo.name;
+    }
+
     if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
+        ReportExecuteCliFailed(bundleName, param.toolName, GetFailureReason(ret));
         return ret;
     }
     int32_t callerPid = IPCSkeleton::GetCallingPid();
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
+        ReportExecuteCliFailed(bundleName, param.toolName, REASON_UNKNOWN);
         return ERR_NO_INIT;
     }
 
@@ -785,24 +811,36 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
     bool dispatched = false;
     auto skillRet = TryDispatchSkillSession(param, eventId, toolInfo, dispatched);
     if (skillRet != ERR_OK) {
+        ReportExecuteCliFailed(bundleName, param.toolName, GetFailureReason(skillRet));
         return skillRet;
     }
     if (dispatched) {
+        // Report EXECUTE_CLI for skill sessions
+        ReportExecuteCli(bundleName, param.toolName, param.subcommand);
         return ERR_OK;
     }
 
     if (auto ret = ValidateSessionLimit(); ret != ERR_OK) {
+        ReportExecuteCliFailed(bundleName, param.toolName, GetFailureReason(ret));
         return ret;
     }
 
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
     std::string sandboxConfig;
-    std::string bundleName;
     if (auto ret = ValidateAndPrepareTool(param, tokenId, toolInfo, sandboxConfig, bundleName); ret != ERR_OK) {
+        ReportExecuteCliFailed(bundleName, param.toolName, GetFailureReason(ret));
         return ret;
     }
 
-    return SetupAndStartSession(param, eventId, toolInfo, sandboxConfig, bundleName);
+    auto ret = SetupAndStartSession(param, eventId, toolInfo, sandboxConfig, bundleName);
+    if (ret == ERR_OK) {
+        // Report EXECUTE_CLI for successful CLI execution start
+        std::string args = param.subcommand.empty() ? "" : param.subcommand + " ";
+        args += FormatWantParamsToString(param.args);
+        ReportExecuteCli(bundleName, param.toolName, args);
+    } else {
+        ReportExecuteCliFailed(bundleName, param.toolName, GetFailureReason(ret));
+    }
+    return ret;
 }
 
 int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::string &eventId,
@@ -902,6 +940,10 @@ void CliToolManagerService::WaitPid(pid_t pid, int32_t status, int32_t sig)
     TAG_LOGI(AAFwkTag::CLI_TOOL, "WaitPid delete tool pid:%{public}d", pid);
     if (record) {
         record->SetTerminalResult(status, sig);
+        // Report error exit if process was killed by signal
+        if (sig != 0 && sig != SIGTERM && sig != SIGHUP) {
+            ReportCliRunError(record->toolName, sig);
+        }
         if (record->OutputDrained()) {
             FinalizeBackgroundSession(record);
         }
