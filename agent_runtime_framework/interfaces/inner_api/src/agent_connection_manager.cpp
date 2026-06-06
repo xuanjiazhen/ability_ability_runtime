@@ -16,6 +16,7 @@
 #include "agent_connection_manager.h"
 
 #include <algorithm>
+#include <atomic>
 #include <unistd.h>
 
 #include "ability_manager_errors.h"
@@ -31,11 +32,13 @@ namespace AgentRuntime {
 namespace {
 constexpr int64_t CONNECTING_TIMEOUT = 30000;
 constexpr int32_t DIED = -1;
+std::atomic_uint64_t g_connectionOrder { 0 };
 }
 
 AgentConnectionInfo::AgentConnectionInfo(const std::string &agentId,
     const AAFwk::Operation &connectReceiver, const sptr<AgentConnection> &agentConnection)
-    : agentId(agentId), connectReceiver(connectReceiver), agentConnection(agentConnection)
+    : agentId(agentId), connectReceiver(connectReceiver), agentConnection(agentConnection),
+      connectionOrder(++g_connectionOrder)
 {}
 
 void AgentConnection::OnAbilityConnectDone(
@@ -248,16 +251,17 @@ bool AgentConnectionManager::MatchConnection(const std::string &agentId, const A
     if (agentId != connection.first.agentId) {
         return false;
     }
-    // 2. Match by agentExtProxy
-    void *agentExtProxy = GetAgentExtProxyPtr(connectReceiver);
-    if (agentExtProxy != connection.first.agentExtProxy) {
+    // 2. Match by connectReceiver (bundleName, moduleName, abilityName).
+    // AGENTEXTENSIONHOSTPROXY_KEY is per connect call, so it must not split reusable connections.
+    const AAFwk::Operation &storedReceiver = connection.first.connectReceiver;
+    const AppExecFwk::ElementName &element = connectReceiver.GetElement();
+    if (element.GetBundleName() != storedReceiver.GetBundleName() ||
+        element.GetAbilityName() != storedReceiver.GetAbilityName()) {
         return false;
     }
-    // 3. Match by connectReceiver (bundleName, moduleName, abilityName)
-    const AAFwk::Operation &storedReceiver = connection.first.connectReceiver;
-    return connectReceiver.GetElement().GetBundleName() == storedReceiver.GetBundleName() &&
-        connectReceiver.GetElement().GetModuleName() == storedReceiver.GetModuleName() &&
-        connectReceiver.GetElement().GetAbilityName() == storedReceiver.GetAbilityName();
+    const std::string &moduleName = element.GetModuleName();
+    const std::string &storedModuleName = storedReceiver.GetModuleName();
+    return moduleName.empty() || storedModuleName.empty() || moduleName == storedModuleName;
 }
 
 ErrCode AgentConnectionManager::CreateConnection(const AAFwk::Want &want,
