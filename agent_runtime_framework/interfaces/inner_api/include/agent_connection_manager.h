@@ -17,6 +17,7 @@
 #define OHOS_AGENT_RUNTIME_AGENT_CONNECTION_MANAGER_H
 
 #include <chrono>
+#include <functional>
 #include <map>
 #include <mutex>
 #include <vector>
@@ -39,7 +40,7 @@ class AgentConnection;
  * @struct AgentConnectionInfo
  * @brief Stores information about an agent connection.
  *
- * The connection key consists of: agentId + agentExtProxy + connectReceiver
+ * The connection key consists of: agentId + connectReceiver
  */
 struct AgentConnectionInfo {
     // Target agent identifier (from Want parameter AGENTID_KEY)
@@ -49,8 +50,8 @@ struct AgentConnectionInfo {
     AAFwk::Operation connectReceiver;
     // The connection object
     sptr<AgentConnection> agentConnection;
-    // Agent extension proxy for bidirectional communication
-    // (from Want parameter AGENTEXTENSIONHOSTPROXY_KEY)
+    // Agent extension host proxy from Want parameter AGENTEXTENSIONHOSTPROXY_KEY.
+    // It is per API call and is not part of the reusable connection identity.
     void *agentExtProxy = nullptr;
     // Connection timestamp for timeout detection
     int64_t connectingTime = 0;
@@ -87,7 +88,7 @@ struct AgentConnectionInfo {
     /**
      * @brief Comparison operator for map key ordering.
      *
-     * Compares by: agentId -> agentExtProxy -> connectingTime -> connectReceiver
+     * Compares by: agentId -> connectReceiver -> connectingTime -> agentConnection
      * (bundleName -> moduleName -> abilityName)
      *
      * @param that The other AgentConnectionInfo to compare with.
@@ -98,28 +99,34 @@ struct AgentConnectionInfo {
         if (agentId < that.agentId) {
             return true;
         }
-        if (agentExtProxy < that.agentExtProxy) {
-            return true;
-        }
-        if (connectingTime < that.connectingTime) {
-            return true;
+        if (that.agentId < agentId) {
+            return false;
         }
         if (connectReceiver.GetBundleName() < that.connectReceiver.GetBundleName()) {
             return true;
         }
-        if (connectReceiver.GetBundleName() == that.connectReceiver.GetBundleName() &&
-            connectReceiver.GetModuleName() < that.connectReceiver.GetModuleName()) {
+        if (that.connectReceiver.GetBundleName() < connectReceiver.GetBundleName()) {
+            return false;
+        }
+        if (connectReceiver.GetModuleName() < that.connectReceiver.GetModuleName()) {
             return true;
         }
-        if (connectReceiver.GetBundleName() == that.connectReceiver.GetBundleName() &&
-            connectReceiver.GetModuleName() == that.connectReceiver.GetModuleName() &&
-            connectReceiver.GetAbilityName() < that.connectReceiver.GetAbilityName()) {
+        if (that.connectReceiver.GetModuleName() < connectReceiver.GetModuleName()) {
+            return false;
+        }
+        if (connectReceiver.GetAbilityName() < that.connectReceiver.GetAbilityName()) {
             return true;
         }
-        if (connectReceiver.GetBundleName() == that.connectReceiver.GetBundleName() &&
-            connectReceiver.GetModuleName() == that.connectReceiver.GetModuleName() &&
-            connectReceiver.GetAbilityName() == that.connectReceiver.GetAbilityName() &&
-            !(connectReceiver == that.connectReceiver)) {
+        if (that.connectReceiver.GetAbilityName() < connectReceiver.GetAbilityName()) {
+            return false;
+        }
+        if (connectingTime < that.connectingTime) {
+            return true;
+        }
+        if (that.connectingTime < connectingTime) {
+            return false;
+        }
+        if (std::less<AgentConnection *>()(agentConnection.GetRefPtr(), that.agentConnection.GetRefPtr())) {
             return true;
         }
         return false;
@@ -170,7 +177,7 @@ private:
  * @brief Manages connections to AgentExtensionAbility instances.
  *
  * This class is similar to ConnectionManager but specifically for agent extensions.
- * Connections are identified by: agentId + agentExtProxy + connectReceiver.
+ * Connections are identified by: agentId + connectReceiver.
  */
 class AgentConnectionManager {
 public:
@@ -255,7 +262,7 @@ private:
      */
     void *GetAgentExtProxyPtr(const AAFwk::Want &want);
     /**
-     * @brief Match connection by agentId + agentExtProxy + connectReceiver.
+     * @brief Match connection by agentId + connectReceiver.
      *
      * @param agentId The agent ID to match.
      * @param connectReceiver The connect receiver (Want) to match.
