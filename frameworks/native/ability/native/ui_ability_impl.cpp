@@ -283,13 +283,36 @@ bool UIAbilityImpl::HandleExecuteSkill(const AAFwk::Want &want, bool onlyExecute
         return true;
     }
 
+    if (ability_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability");
+        if (!param->requestCode_.empty()) {
+            AppExecFwk::SkillExecuteResult failResult;
+            failResult.code = -1;
+            AAFwk::AbilityManagerClient::GetInstance()->ExecuteSkillDone(
+                token_, param->requestCode_, -1, failResult);
+        }
+        if (!onlyExecuteSkill) {
+            Background();
+        }
+        return true;
+    }
+
     TAG_LOGD(AAFwkTag::UIABILITY,
         "skill bundle:%{public}s module:%{public}s name:%{public}s "
         "scriptPath:%{public}s func:%{public}s requestCode:%{public}s",
         param->bundleName_.c_str(), param->moduleName_.c_str(),
         param->skillName_.c_str(), param->scriptPath_.c_str(),
         param->functionName_.c_str(), param->requestCode_.c_str());
-    ability_->ExecuteSkill(want, param);
+    auto ret = ability_->ExecuteSkill(want, param);
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "execute skill failed");
+        if (!param->requestCode_.empty()) {
+            AppExecFwk::SkillExecuteResult failResult;
+            failResult.code = -1;
+            AAFwk::AbilityManagerClient::GetInstance()->ExecuteSkillDone(
+                token_, param->requestCode_, -1, failResult);
+        }
+    }
     if (!onlyExecuteSkill) {
         Background();
     }
