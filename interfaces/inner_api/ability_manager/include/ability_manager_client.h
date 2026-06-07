@@ -2277,12 +2277,6 @@ public:
      */
     int32_t SetAppRecoveryFlag(const sptr<IRemoteObject>& token, int flag);
 
-    ErrCode ExecuteInAppSkill(const std::string &bundleName, const std::string &moduleName,
-        const std::string &skillName, const std::string &arkTSPath = "",
-        const std::string &funcName = "",
-        const std::shared_ptr<AAFwk::WantParams> &skillArgs = nullptr,
-        const sptr<ISkillExecuteCallback> &callback = nullptr);
-
     ErrCode ExecuteInAppSkillWithTokenId(const AppExecFwk::SkillExecuteRequest &request,
         const sptr<ISkillExecuteCallback> &callback);
 

@@ -221,6 +221,8 @@ protected:
     void Background(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo);
 
 private:
+    void ReportSkillFailed(const Want &want);
+
     inline bool UIExtensionAbilityExecuteInsightIntent(const Want &want);
 
     bool skipCommandExtensionWithIntent_ = false;
