@@ -21,8 +21,8 @@
       {
         "name": "default",
         "signingConfig": "default",
-        "compileSdkVersion": 26,
-        "compatibleSdkVersion": 9
+        "compileSdkVersion": "26.1.1",
+        "compatibleSdkVersion": "26.1.1"
       }
     ]
   },
