@@ -2199,6 +2199,12 @@ public:
         int32_t userId = DEFAULT_INVAL_VALUE, uint64_t specifiedFullTokenId = 0);
     int32_t ExecuteIntentForDistributed(const Want &want, const std::string &srcDeviceId,
         uint64_t requestCode, uint64_t specifiedFullTokenId = 0) override;
+    int32_t ExecuteIntentByFunctionCall(uint64_t key, const sptr<IRemoteObject> &callerToken,
+        const std::string &bundleName, const std::string &intentName, const WantParams &wantParam) override;
+    int32_t GetMatchedIntentInfo(const std::string &bundleName, const std::string &intentName,
+        AbilityRuntime::ExtractInsightIntentGenericInfo &matchedInfo);
+    int32_t ParseIntentExecuteMode(const AbilityRuntime::ExtractInsightIntentGenericInfo &matchedInfo,
+        std::string &abilityName, int32_t &executeMode);
     void RemoveIntentTimeout(uint64_t insightIntentId);
     void RemoveIntentTask(uint64_t insightIntentId);
 
