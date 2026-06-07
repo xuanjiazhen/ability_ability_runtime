@@ -151,9 +151,6 @@ private:
         const std::string &eventId, const ToolInfo &toolInfo, bool &dispatched);
     int32_t SetupAndStartSkillSession(const ExecToolParam &param,
         const std::string &eventId, const ToolInfo &toolInfo);
-    int32_t ValidateSkillTypeFromParam(const ExecToolParam &param, int32_t &skillType);
-    int32_t ValidateSkillType(const std::string &bundleName,
-        const std::string &moduleName, const std::string &skillName, int32_t &skillType);
     void HandleSkillSessionComplete(const std::string &sessionId, int32_t callerPid, int32_t callerUid,
         const std::string &eventId, int32_t resultCode, const CliSessionInfo &session);
     void HandleSkillSessionTimeout(const std::string &sessionId);

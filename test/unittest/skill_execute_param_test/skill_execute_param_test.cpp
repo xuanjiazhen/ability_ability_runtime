@@ -508,5 +508,103 @@ HWTEST_F(SkillExecuteParamTest, CallerTokenId_WriteAndRead_0200, TestSize.Level1
     EXPECT_EQ(result, 0U);
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
+
+/**
+ * @tc.name: GenerateFromWant_0400
+ * @tc.desc: Test GenerateFromWant returns false when srcCount exceeds max.
+ * @tc.type: FUNC
+ */
+HWTEST_F(SkillExecuteParamTest, GenerateFromWant_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    AAFwk::Want want;
+    want.SetParam(SKILL_EXECUTE_PARAM_SKILL_NAME, TEST_SKILL_NAME);
+    want.SetParam(SKILL_EXECUTE_PARAM_SRC_ENTRIES_COUNT, AAFwk::String::Box("501"));
+    SkillExecuteParam param;
+    EXPECT_FALSE(SkillExecuteParam::GenerateFromWant(want, param));
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: GenerateFromWant_0500
+ * @tc.desc: Test GenerateFromWant returns false when srcCount is negative.
+ * @tc.type: FUNC
+ */
+HWTEST_F(SkillExecuteParamTest, GenerateFromWant_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    AAFwk::Want want;
+    want.SetParam(SKILL_EXECUTE_PARAM_SKILL_NAME, TEST_SKILL_NAME);
+    want.SetParam(SKILL_EXECUTE_PARAM_SRC_ENTRIES_COUNT, AAFwk::String::Box("-1"));
+    SkillExecuteParam param;
+    EXPECT_FALSE(SkillExecuteParam::GenerateFromWant(want, param));
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: GenerateFromWant_0600
+ * @tc.desc: Test GenerateFromWant returns false when srcCount is non-numeric.
+ * @tc.type: FUNC
+ */
+HWTEST_F(SkillExecuteParamTest, GenerateFromWant_0600, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    AAFwk::Want want;
+    want.SetParam(SKILL_EXECUTE_PARAM_SKILL_NAME, TEST_SKILL_NAME);
+    want.SetParam(SKILL_EXECUTE_PARAM_SRC_ENTRIES_COUNT, AAFwk::String::Box("abc"));
+    SkillExecuteParam param;
+    EXPECT_FALSE(SkillExecuteParam::GenerateFromWant(want, param));
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: GenerateFromWant_0700
+ * @tc.desc: Test GenerateFromWant succeeds with srcCount at boundary (500).
+ * @tc.type: FUNC
+ */
+HWTEST_F(SkillExecuteParamTest, GenerateFromWant_0700, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    AAFwk::Want want;
+    want.SetParam(SKILL_EXECUTE_PARAM_SKILL_NAME, TEST_SKILL_NAME);
+    want.SetParam(SKILL_EXECUTE_PARAM_SRC_ENTRIES_COUNT, AAFwk::String::Box("0"));
+    SkillExecuteParam param;
+    EXPECT_TRUE(SkillExecuteParam::GenerateFromWant(want, param));
+    EXPECT_EQ(param.srcEntries_.size(), 0U);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: GenerateFromWant_0800
+ * @tc.desc: Test GenerateFromWant returns false when srcCount has trailing chars.
+ * @tc.type: FUNC
+ */
+HWTEST_F(SkillExecuteParamTest, GenerateFromWant_0800, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    AAFwk::Want want;
+    want.SetParam(SKILL_EXECUTE_PARAM_SKILL_NAME, TEST_SKILL_NAME);
+    want.SetParam(SKILL_EXECUTE_PARAM_SRC_ENTRIES_COUNT, AAFwk::String::Box("3abc"));
+    SkillExecuteParam param;
+    EXPECT_FALSE(SkillExecuteParam::GenerateFromWant(want, param));
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: RemoveSkillParam_0400
+ * @tc.desc: Test RemoveSkillParam with invalid srcCount still returns true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(SkillExecuteParamTest, RemoveSkillParam_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    AAFwk::Want want;
+    want.SetParam(SKILL_EXECUTE_PARAM_SKILL_NAME, TEST_SKILL_NAME);
+    want.SetParam(SKILL_EXECUTE_PARAM_SRC_ENTRIES_COUNT, AAFwk::String::Box("999"));
+    EXPECT_TRUE(SkillExecuteParam::RemoveSkillParam(want));
+    EXPECT_FALSE(want.HasParameter(SKILL_EXECUTE_PARAM_SKILL_NAME));
+    EXPECT_FALSE(want.HasParameter(SKILL_EXECUTE_PARAM_SRC_ENTRIES_COUNT));
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
 } // namespace AppExecFwk
 } // namespace OHOS
