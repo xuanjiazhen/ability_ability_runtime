@@ -60,6 +60,7 @@
 #include "insight_intent_db_cache.h"
 #include "skill/skill_execute_manager.h"
 #include "insight_intent_utils.h"
+#include "extract_insight_intent_profile.h"
 #include "interceptor/ability_jump_interceptor.h"
 #include "interceptor/block_all_app_start_interceptor.h"
 #include "interceptor/control_interceptor.h"
