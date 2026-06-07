@@ -20,10 +20,12 @@
 #include "ability_event_handler.h"
 #include "ability_manager_errors.h"
 #include "ability_manager_service.h"
+#include "accesstoken_kit.h"
 #include "bundle_mgr_helper.h"
 #include "hilog_tag_wrapper.h"
 #include "in_process_call_wrapper.h"
 #include "iservice_registry.h"
+#include "permission_constants.h"
 #include "permission_verification.h"
 #include "system_ability_definition.h"
 #ifdef SUPPORT_UPMS
@@ -89,39 +91,39 @@ int32_t SkillExecuteManager::CheckSkillPermission(const AppExecFwk::SkillInfo &s
         skillInfo.skillName.c_str());
 
     auto permVerif = PermissionVerification::GetInstance();
-    if (callerTokenId == 0) {
-        if (!permVerif->JudgeCallerIsAllowedToUseSystemAPI()) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "caller not allowed to use system API");
-            return ERR_NOT_SYSTEM_APP;
-        }
+    if (!permVerif->IsSACall()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller is not SA");
+        return ERR_NOT_SYSTEM_APP;
     }
 
+    if (skillInfo.permissions.empty() ||
+        Security::AccessToken::AccessTokenKit::VerifyAccessToken(
+            callerTokenId, PermissionConstants::PERMISSION_START_INVISIBLE_ABILITY, false) == ERR_OK) {
+        return ERR_OK;
+    }
+
+    for (const auto &permission : skillInfo.permissions) {
+        if (permission.empty()) {
+            continue;
+        }
+        auto ret = Security::AccessToken::AccessTokenKit::VerifyAccessToken(
+            callerTokenId, permission, false);
+        if (ret != Security::AccessToken::PermissionState::PERMISSION_GRANTED) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR,
+                "caller lacks permission:%{public}s for skill:%{public}s",
+                permission.c_str(), skillInfo.skillName.c_str());
+            return ERR_PERMISSION_DENIED;
+        }
+    }
     return ERR_OK;
 }
 
 int32_t SkillExecuteManager::GenerateSkillWant(const AppExecFwk::SkillInfo &skillInfo, Want &want,
-    int32_t userId, const std::string &requestCode, AppExecFwk::ExtensionAbilityType &targetType,
+    const std::string &requestCode,
     const std::string &scriptPath, const std::string &functionName,
     const std::shared_ptr<AAFwk::WantParams> &skillArgs)
 {
-    std::string abilityName = skillInfo.abilityName;
-    if (abilityName.empty()) {
-        abilityName = ResolveDefaultAbilityName(skillInfo.bundleName, skillInfo.moduleName, userId);
-        if (abilityName.empty()) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR,
-                "no abilityName in skillProfile and no default ability found for bundle:%{public}s module:%{public}s",
-                skillInfo.bundleName.c_str(), skillInfo.moduleName.c_str());
-            return ERR_INVALID_VALUE;
-        }
-        TAG_LOGD(AAFwkTag::ABILITYMGR,
-            "abilityName not specified, resolved default ability:%{public}s", abilityName.c_str());
-    }
-
-    targetType = ResolveTargetType(skillInfo.bundleName, skillInfo.moduleName, abilityName, userId);
-    TAG_LOGD(AAFwkTag::ABILITYMGR,
-        "generate skill want, bundle:%{public}s ability:%{public}s type:%{public}d",
-        skillInfo.bundleName.c_str(), abilityName.c_str(), static_cast<int>(targetType));
-
+    const std::string &abilityName = skillInfo.abilityName;
     want.SetElementName("", skillInfo.bundleName, abilityName, skillInfo.moduleName);
     AppExecFwk::SkillExecuteParam::WriteToWant(want, skillInfo.bundleName, skillInfo.moduleName,
         skillInfo.skillName, scriptPath, functionName, skillArgs, skillInfo.srcEntries, requestCode,
@@ -158,6 +160,13 @@ std::string SkillExecuteManager::CreateExecuteRecord(const sptr<IRemoteObject> &
             [this](const std::string &reqCode) { OnCallerDied(reqCode); }, requestCode);
         callerToken->AddDeathRecipient(deathRecipient);
         record->deathRecipient = deathRecipient;
+    }
+
+    if (callerToken == nullptr && callback != nullptr && callback->AsObject() != nullptr) {
+        auto cbDeathRecipient = sptr<CallerDeathRecipient>::MakeSptr(
+            [this](const std::string &reqCode) { OnCallbackDied(reqCode); }, requestCode);
+        callback->AsObject()->AddDeathRecipient(cbDeathRecipient);
+        record->callbackDeathRecipient = cbDeathRecipient;
     }
 
     records_[requestCode] = record;
@@ -226,6 +235,10 @@ void SkillExecuteManager::RemoveRecord(const std::string &requestCode)
     if (record->callerToken != nullptr && record->deathRecipient != nullptr) {
         record->callerToken->RemoveDeathRecipient(record->deathRecipient);
     }
+    if (record->callback != nullptr && record->callbackDeathRecipient != nullptr &&
+        record->callback->AsObject() != nullptr) {
+        record->callback->AsObject()->RemoveDeathRecipient(record->callbackDeathRecipient);
+    }
     records_.erase(it);
 }
 
@@ -234,80 +247,67 @@ void SkillExecuteManager::OnCallerDied(const std::string &requestCode)
     TAG_LOGD(AAFwkTag::ABILITYMGR, "caller died, requestCode:%{public}s", requestCode.c_str());
     std::lock_guard<ffrt::mutex> lock(mutex_);
     auto it = records_.find(requestCode);
-    if (it != records_.end()) {
+    if (it != records_.end() && it->second->state == SkillExecuteState::EXECUTING) {
         RemoveSkillExecuteTimeoutLocked(it->second->requestCodeSeq);
         it->second->state = SkillExecuteState::REMOTE_DIED;
         RemoveRecord(requestCode);
     }
 }
 
-std::string SkillExecuteManager::ResolveDefaultAbilityName(const std::string &bundleName,
-    const std::string &moduleName, int32_t userId)
+void SkillExecuteManager::OnCallbackDied(const std::string &requestCode)
 {
-    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
-    if (bundleMgrHelper == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to get BundleMgrHelper");
-        return "";
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "callback died, requestCode:%{public}s", requestCode.c_str());
+    std::lock_guard<ffrt::mutex> lock(mutex_);
+    auto it = records_.find(requestCode);
+    if (it != records_.end() && it->second->state == SkillExecuteState::EXECUTING) {
+        RemoveSkillExecuteTimeoutLocked(it->second->requestCodeSeq);
+        it->second->state = SkillExecuteState::REMOTE_DIED;
+        it->second->callbackDeathRecipient = nullptr;
+        RemoveRecord(requestCode);
     }
-
-    AppExecFwk::BundleInfo bundleInfo;
-    auto flags = static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE) |
-        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_ABILITY);
-    auto ret = IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfoV9(bundleName, flags, bundleInfo, userId));
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetBundleInfoV9 failed for bundle:%{public}s",
-            bundleName.c_str());
-        return "";
-    }
-
-    for (const auto &hapModuleInfo : bundleInfo.hapModuleInfos) {
-        if (hapModuleInfo.moduleName != moduleName) {
-            continue;
-        }
-        std::string mainElement;
-        if (hapModuleInfo.isModuleJson) {
-            mainElement = hapModuleInfo.mainElementName;
-        } else {
-            mainElement = hapModuleInfo.mainAbility;
-        }
-        TAG_LOGD(AAFwkTag::ABILITYMGR,
-            "resolved default ability for module:%{public}s",
-            moduleName.c_str());
-        return mainElement;
-    }
-
-    TAG_LOGE(AAFwkTag::ABILITYMGR, "module not found:%{public}s in bundle:%{public}s",
-        moduleName.c_str(), bundleName.c_str());
-    return "";
 }
 
-AppExecFwk::ExtensionAbilityType SkillExecuteManager::ResolveTargetType(const std::string &bundleName,
-    const std::string &moduleName, const std::string &abilityName, int32_t userId)
+int32_t SkillExecuteManager::ResolveTargetType(const std::string &bundleName,
+    const std::string &moduleName, const std::string &abilityName,
+    int32_t userId, AppExecFwk::ExtensionAbilityType &targetType)
 {
     auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to get BundleMgrHelper");
-        return AppExecFwk::ExtensionAbilityType::UNSPECIFIED;
+        return ERR_INVALID_VALUE;
     }
 
     Want queryWant;
     queryWant.SetElementName("", bundleName, abilityName, moduleName);
+
     std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
-    auto flags = static_cast<int32_t>(
+    auto extFlags = static_cast<int32_t>(
         AppExecFwk::GetExtensionAbilityInfoFlag::GET_EXTENSION_ABILITY_INFO_DEFAULT);
-    bool ret = IN_PROCESS_CALL(bundleMgrHelper->QueryExtensionAbilityInfos(
-        queryWant, flags, userId, extensionInfos));
-    if (ret && !extensionInfos.empty()) {
-        auto type = extensionInfos[0].type;
-        TAG_LOGD(AAFwkTag::ABILITYMGR,
-            "abilityName:%{public}s is extension, type:%{public}d",
-            abilityName.c_str(), static_cast<int>(type));
-        return type;
+    bool extRet = IN_PROCESS_CALL(bundleMgrHelper->QueryExtensionAbilityInfos(
+        queryWant, extFlags, userId, extensionInfos));
+    if (extRet && !extensionInfos.empty()) {
+        if (extensionInfos[0].type == AppExecFwk::ExtensionAbilityType::SERVICE) {
+            targetType = AppExecFwk::ExtensionAbilityType::SERVICE;
+            return ERR_OK;
+        }
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "unsupported extension type:%{public}d for ability:%{public}s",
+            static_cast<int>(extensionInfos[0].type), abilityName.c_str());
+        return ERR_INVALID_VALUE;
     }
 
-    TAG_LOGD(AAFwkTag::ABILITYMGR,
-        "abilityName:%{public}s is not extension, default to UIAbility", abilityName.c_str());
-    return AppExecFwk::ExtensionAbilityType::UNSPECIFIED;
+    AppExecFwk::AbilityInfo abilityInfo;
+    auto abilityFlags = static_cast<int32_t>(AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_DEFAULT);
+    bool abRet = IN_PROCESS_CALL(bundleMgrHelper->QueryAbilityInfo(
+        queryWant, abilityFlags, userId, abilityInfo));
+    if (abRet && abilityInfo.type == AppExecFwk::AbilityType::PAGE) {
+        targetType = AppExecFwk::ExtensionAbilityType::UNSPECIFIED;
+        return ERR_OK;
+    }
+
+    TAG_LOGE(AAFwkTag::ABILITYMGR,
+        "ability:%{public}s is neither UIAbility nor ServiceExtension", abilityName.c_str());
+    return ERR_INVALID_VALUE;
 }
 
 void SkillExecuteManager::PostSkillExecuteTimeout(
@@ -367,6 +367,17 @@ void SkillExecuteManager::OnTimeout(int64_t requestCodeSeq)
         AppExecFwk::SkillExecuteResult emptyResult;
         record->callback->OnExecuteDone(requestCode, ERR_TIMED_OUT, emptyResult);
     }
+    RemoveRecord(requestCode);
+}
+
+void SkillExecuteManager::CancelExecuteRecord(const std::string &requestCode)
+{
+    std::lock_guard<ffrt::mutex> lock(mutex_);
+    auto it = records_.find(requestCode);
+    if (it == records_.end()) {
+        return;
+    }
+    RemoveSkillExecuteTimeoutLocked(it->second->requestCodeSeq);
     RemoveRecord(requestCode);
 }
 
