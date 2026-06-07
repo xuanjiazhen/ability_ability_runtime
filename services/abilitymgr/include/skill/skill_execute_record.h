@@ -36,6 +36,7 @@ struct SkillExecuteRecord {
     std::string requestCode;
     sptr<IRemoteObject> callerToken = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient = nullptr;
+    sptr<IRemoteObject::DeathRecipient> callbackDeathRecipient = nullptr;
     std::string targetBundleName;
     std::string callerBundleName;
     uint32_t callerTokenId = 0;
