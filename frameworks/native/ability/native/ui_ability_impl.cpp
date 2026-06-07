@@ -283,6 +283,20 @@ bool UIAbilityImpl::HandleExecuteSkill(const AAFwk::Want &want, bool onlyExecute
         return true;
     }
 
+    if (ability_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability");
+        if (!param->requestCode_.empty()) {
+            AppExecFwk::SkillExecuteResult failResult;
+            failResult.code = -1;
+            AAFwk::AbilityManagerClient::GetInstance()->ExecuteSkillDone(
+                token_, param->requestCode_, -1, failResult);
+        }
+        if (!onlyExecuteSkill) {
+            Background();
+        }
+        return true;
+    }
+
     TAG_LOGD(AAFwkTag::UIABILITY,
         "skill bundle:%{public}s module:%{public}s name:%{public}s "
         "scriptPath:%{public}s func:%{public}s requestCode:%{public}s",

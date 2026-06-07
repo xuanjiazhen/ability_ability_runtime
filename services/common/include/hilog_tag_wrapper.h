@@ -104,6 +104,7 @@ enum class AAFwkLogTag : uint32_t {
     APP_SERVICE_EXT,
     VERTICAL_PANEL,
     USER_CONTROLLER,
+    SKILL,
 
     END = 256,               // N.B. never use it
 };
@@ -181,7 +182,8 @@ inline const char* GetDomainName5(AAFwkLogTag tag)
 
 inline const char* GetDomainName6(AAFwkLogTag tag)
 {
-    const char* tagNames[] = { "LocalCall", "SaInterceptor", "AppServiceExt", "VerticalPanel" };
+    const char* tagNames[] = { "LocalCall", "SaInterceptor", "AppServiceExt", "VerticalPanel",
+        "UserController", "Skill" };
     uint32_t offset = GetOffset(tag, AAFwkLogTag::LOCAL_CALL);
     if (offset >= sizeof(tagNames) / sizeof(const char*)) {
         return "UN";

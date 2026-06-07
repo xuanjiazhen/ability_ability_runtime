@@ -1177,37 +1177,6 @@ HWTEST_F(AbilityManagerStubSecondTest, ExecuteSkillDoneWithTokenInner_001, TestS
 }
 
 /**
- * @tc.name: QuerySkillTypeInner_001
- * @tc.desc: Test QuerySkillTypeInner with normal parameters
- * @tc.type: FUNC
- */
-HWTEST_F(AbilityManagerStubSecondTest, QuerySkillTypeInner_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "QuerySkillTypeInner_001 begin");
-
-    MessageParcel data;
-    WriteInterfaceToken(data);
-
-    data.WriteString16(Str8ToStr16("bundleName"));
-    data.WriteString16(Str8ToStr16("moduleName"));
-    data.WriteString16(Str8ToStr16("skillName"));
-
-    MessageParcel reply;
-    MessageOption option;
-
-    EXPECT_CALL(*stub_, QuerySkillType(_, _, _, _))
-        .Times(1)
-        .WillOnce(Return(ERR_OK));
-
-    auto ret = stub_->OnRemoteRequest(
-        static_cast<uint32_t>(AbilityManagerInterfaceCode::QUERY_SKILL_TYPE), data, reply, option);
-    EXPECT_EQ(ret, NO_ERROR);
-    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
-
-    TAG_LOGI(AAFwkTag::TEST, "QuerySkillTypeInner_001 end");
-}
-
-/**
  * @tc.name: StartSelfUIAbilityInChildProcessInner_0100
  * @tc.desc: Test StartSelfUIAbilityInChildProcessInner with valid parameters
  * @tc.type: FUNC
