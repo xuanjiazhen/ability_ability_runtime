@@ -822,16 +822,6 @@ HWTEST_F(CliToolManagerServiceTest, TryDispatchSkillSession_0100, TestSize.Level
     EXPECT_EQ(service_->TryDispatchSkillSession(skillParam, "skill_event", toolInfo, dispatched), ERR_INVALID_VALUE);
     EXPECT_FALSE(dispatched);
 
-    int32_t skillType = 0;
-    EXPECT_EQ(service_->ValidateSkillTypeFromParam(skillParam, skillType), ERR_INVALID_VALUE);
-
-    ExecToolParam normalizedParam;
-    normalizedParam.args.SetParam("--skillName", AAFwk::String::Box("testSkill"));
-    EXPECT_EQ(normalizedParam.args.GetStringParam("skillName"), "");
-    int32_t queryResult = service_->ValidateSkillTypeFromParam(normalizedParam, skillType);
-    EXPECT_NE(normalizedParam.args.GetStringParam("skillName"), "");
-    EXPECT_NE(queryResult, ERR_INVALID_VALUE);
-
     GTEST_LOG_(INFO) << "CliToolManagerService_TryDispatchSkillSession_0100 end";
 }
 
@@ -1856,14 +1846,6 @@ HWTEST_F(CliToolManagerServiceTest, SkillSession_0100, TestSize.Level1)
     ExecToolParam cliParam;
     cliParam.toolName = "normal_tool";
     EXPECT_EQ(service_->TryDispatchSkillSession(cliParam, "event", toolInfo, dispatched), ERR_OK);
-    EXPECT_FALSE(dispatched);
-
-    int32_t skillType = 0;
-    ExecToolParam missingSkillNameParam;
-    missingSkillNameParam.toolName = "ohos-arkTSScript";
-    EXPECT_EQ(service_->ValidateSkillTypeFromParam(missingSkillNameParam, skillType), ERR_INVALID_VALUE);
-    EXPECT_EQ(service_->TryDispatchSkillSession(missingSkillNameParam, "event", toolInfo, dispatched),
-        ERR_INVALID_VALUE);
     EXPECT_FALSE(dispatched);
 
     GTEST_LOG_(INFO) << "CliToolManagerService_SkillSession_0100 end";

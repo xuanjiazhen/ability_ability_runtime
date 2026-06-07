@@ -15,6 +15,7 @@
 
 #include "skill_execute_param.h"
 
+#include <cstdlib>
 #include <sstream>
 
 #include "hilog_tag_wrapper.h"
@@ -24,6 +25,22 @@ namespace OHOS {
 namespace AppExecFwk {
 namespace {
 constexpr int32_t MAX_SRC_ENTRIES_COUNT = 500;
+
+bool SafeParseSrcCount(const std::string &str, int32_t &out)
+{
+    if (str.empty()) {
+        out = 0;
+        return true;
+    }
+    char *end = nullptr;
+    long val = std::strtol(str.c_str(), &end, 10);
+    if (end == str.c_str() || *end != '\0' || val < 0 || val > MAX_SRC_ENTRIES_COUNT) {
+        TAG_LOGE(AAFwkTag::SKILL, "invalid srcCount:%{public}s", str.c_str());
+        return false;
+    }
+    out = static_cast<int32_t>(val);
+    return true;
+}
 } // namespace
 
 bool SkillExecuteParam::ReadFromParcel(Parcel &parcel)
@@ -123,8 +140,9 @@ bool SkillExecuteParam::GenerateFromWant(const AAFwk::Want &want, SkillExecutePa
 
     int32_t srcCount = 0;
     auto srcCountStr = wantParams.GetStringParam(SKILL_EXECUTE_PARAM_SRC_ENTRIES_COUNT);
-    if (!srcCountStr.empty()) {
-        srcCount = std::stoi(srcCountStr);
+    if (!SafeParseSrcCount(srcCountStr, srcCount)) {
+        TAG_LOGE(AAFwkTag::SKILL, "invalid srcCount in GenerateFromWant");
+        return false;
     }
     for (int32_t i = 0; i < srcCount; i++) {
         auto key = std::string(SKILL_EXECUTE_PARAM_SRC_ENTRY_PREFIX) + std::to_string(i);
@@ -161,7 +179,10 @@ bool SkillExecuteParam::RemoveSkillParam(AAFwk::Want &want)
         }
     }
     if (!srcCountStr.empty()) {
-        int32_t srcCount = std::stoi(srcCountStr);
+        int32_t srcCount = 0;
+        if (!SafeParseSrcCount(srcCountStr, srcCount)) {
+            return true;
+        }
         for (int32_t i = 0; i < srcCount; i++) {
             auto key = std::string(SKILL_EXECUTE_PARAM_SRC_ENTRY_PREFIX) + std::to_string(i);
             want.RemoveParam(key);
