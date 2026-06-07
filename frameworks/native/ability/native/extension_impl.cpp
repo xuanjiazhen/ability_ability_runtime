@@ -453,16 +453,31 @@ bool ExtensionImpl::HandleExecuteSkill(const Want &want)
     TAG_LOGD(AAFwkTag::EXT, "call");
     if (extension_ == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "null extension_");
+        ReportSkillFailed(want);
         return false;
     }
     PreHandleExtensionParam(const_cast<AAFwk::Want &>(want));
     auto ret = extension_->HandleExecuteSkill(want);
     if (!ret) {
         TAG_LOGE(AAFwkTag::EXT, "handle failed");
+        ReportSkillFailed(want);
         return false;
     }
     TAG_LOGD(AAFwkTag::EXT, "ok");
     return true;
+}
+
+void ExtensionImpl::ReportSkillFailed(const Want &want)
+{
+    auto requestCode = want.GetStringParam(
+        AppExecFwk::SKILL_EXECUTE_PARAM_REQUEST_CODE);
+    if (requestCode.empty()) {
+        return;
+    }
+    AppExecFwk::SkillExecuteResult failResult;
+    failResult.code = -1;
+    AAFwk::AbilityManagerClient::GetInstance()->ExecuteSkillDone(
+        token_, requestCode, -1, failResult);
 }
 
 void ExtensionImpl::CommandExtensionWindow(const Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo,
