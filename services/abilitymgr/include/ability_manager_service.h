@@ -2220,14 +2220,12 @@ public:
     int32_t ExecuteInsightIntentDone(const sptr<IRemoteObject> &token, uint64_t intentId,
         const InsightIntentExecuteResult &result) override;
 
-    int32_t ExecuteInAppSkill(const std::string &bundleName, const std::string &moduleName,
-        const std::string &skillName, const std::string &arkTSPath = "",
-        const std::string &funcName = "",
-        const std::shared_ptr<AAFwk::WantParams> &skillArgs = nullptr,
-        const sptr<ISkillExecuteCallback> &callback = nullptr) override;
-
     int32_t ExecuteInAppSkillWithTokenId(const AppExecFwk::SkillExecuteRequest &request,
         const sptr<ISkillExecuteCallback> &callback) override;
+
+    int32_t PrepareSkillExecution(const AppExecFwk::SkillExecuteRequest &request,
+        int32_t &userId, std::string &callerBundleName, AppExecFwk::SkillInfo &skillInfo,
+        AppExecFwk::ExtensionAbilityType &targetType);
 
     int32_t StartAbilityByCallWithSkill(const Want &want,
         const sptr<IRemoteObject> &callerToken, int32_t userId = DEFAULT_INVAL_VALUE);

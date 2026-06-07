@@ -35,7 +35,7 @@ class SkillExecuteManager {
 DECLARE_DELAYED_SINGLETON(SkillExecuteManager)
 public:
     int32_t GenerateSkillWant(const AppExecFwk::SkillInfo &skillInfo, Want &want,
-        int32_t userId, const std::string &requestCode, AppExecFwk::ExtensionAbilityType &targetType,
+        const std::string &requestCode,
         const std::string &scriptPath = "", const std::string &functionName = "",
         const std::shared_ptr<AAFwk::WantParams> &skillArgs = nullptr);
 
@@ -43,7 +43,11 @@ public:
         const std::string &skillName, int32_t userId, AppExecFwk::SkillInfo &skillInfo);
 
     int32_t CheckSkillPermission(const AppExecFwk::SkillInfo &skillInfo,
-        uint32_t callerTokenId = 0);
+        uint32_t callerTokenId);
+
+    int32_t ResolveTargetType(const std::string &bundleName,
+        const std::string &moduleName, const std::string &abilityName,
+        int32_t userId, AppExecFwk::ExtensionAbilityType &targetType);
 
     std::string CreateExecuteRecord(const sptr<IRemoteObject> &callerToken,
         const std::string &targetBundleName, const std::string &callerBundleName,
@@ -56,6 +60,8 @@ public:
         const std::string &callerBundleName);
 
     void OnTimeout(int64_t requestCodeSeq);
+
+    void CancelExecuteRecord(const std::string &requestCode);
 
 private:
     class CallerDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -74,12 +80,9 @@ private:
     };
 
     sptr<AppExecFwk::IBundleSkillManager> GetSkillManagerProxy();
-    std::string ResolveDefaultAbilityName(const std::string &bundleName,
-        const std::string &moduleName, int32_t userId);
-    AppExecFwk::ExtensionAbilityType ResolveTargetType(const std::string &bundleName,
-        const std::string &moduleName, const std::string &abilityName, int32_t userId);
     void RemoveRecord(const std::string &requestCode);
     void OnCallerDied(const std::string &requestCode);
+    void OnCallbackDied(const std::string &requestCode);
     void PostSkillExecuteTimeout(const std::string &requestCode, uint64_t requestCodeSeq);
     void RemoveSkillExecuteTimeoutLocked(uint64_t requestCodeSeq);
 
