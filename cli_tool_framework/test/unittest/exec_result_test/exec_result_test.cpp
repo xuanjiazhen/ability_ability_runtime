@@ -42,7 +42,7 @@ HWTEST_F(ExecResultTest, ExecResult_Parcelable_0100, TestSize.Level1)
     result.outputText = "stdout text";
     result.errorText = "stderr text";
     result.signalNumber = 9;
-    result.timedOut = true;
+    result.timeout = true;
     result.executionTime = TEST_TIMEOUT;
 
     Parcel parcel;
@@ -55,7 +55,7 @@ HWTEST_F(ExecResultTest, ExecResult_Parcelable_0100, TestSize.Level1)
     EXPECT_EQ(unmarshalled->outputText, "stdout text");
     EXPECT_EQ(unmarshalled->errorText, "stderr text");
     EXPECT_EQ(unmarshalled->signalNumber, 9);
-    EXPECT_TRUE(unmarshalled->timedOut);
+    EXPECT_TRUE(unmarshalled->timeout);
     EXPECT_EQ(unmarshalled->executionTime, TEST_TIMEOUT);
 }
 
