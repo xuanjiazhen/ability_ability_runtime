@@ -86,6 +86,7 @@
 #include "cj_runtime.h"
 #endif
 #include "native_lib_util.h"
+#include "cold_page_provider.h"
 #include "ets_native_lib_util.h"
 #include "native_startup_task.h"
 #include "nlohmann/json.hpp"
@@ -2317,6 +2318,7 @@ void MainThread::LoadNativeLibrary(const BundleInfo &bundleInfo, std::string &na
     }
     char resolvedPath[PATH_MAX] = {0};
     void *handleAbilityLib = nullptr;
+    auto &coldPageProvider = AbilityBase::ColdPageProvider::GetInstance();
     for (auto fileEntry : nativeFileEntries_) {
         if (fileEntry.empty() || fileEntry.size() >= PATH_MAX) {
             continue;
@@ -2325,6 +2327,7 @@ void MainThread::LoadNativeLibrary(const BundleInfo &bundleInfo, std::string &na
             TAG_LOGE(AAFwkTag::APPKIT, "errno = %{public}d", errno);
             continue;
         }
+        coldPageProvider.WaitForSoFileReady(resolvedPath);
         handleAbilityLib = dlopen(resolvedPath, RTLD_NOW | RTLD_GLOBAL);
         if (handleAbilityLib == nullptr) {
             if (fileEntry.find("libformrender.z.so") == std::string::npos) {
@@ -3302,6 +3305,7 @@ void MainThread::LoadAbilityLibrary(const std::vector<std::string> &libraryPaths
 
     char resolvedPath[PATH_MAX] = {0};
     void *handleAbilityLib = nullptr;
+    auto &coldPageProvider = AbilityBase::ColdPageProvider::GetInstance();
     for (const auto& fileEntry : fileEntries_) {
         if (fileEntry.empty() || fileEntry.size() >= PATH_MAX) {
             continue;
@@ -3310,6 +3314,8 @@ void MainThread::LoadAbilityLibrary(const std::vector<std::string> &libraryPaths
             TAG_LOGE(AAFwkTag::APPKIT, "errno = %{public}d", errno);
             continue;
         }
+
+        coldPageProvider.WaitForSoFileReady(resolvedPath);
 
         handleAbilityLib = dlopen(resolvedPath, RTLD_NOW | RTLD_GLOBAL);
         if (handleAbilityLib == nullptr) {
