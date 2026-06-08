@@ -360,6 +360,7 @@ public:
     }
 
     static int32_t TransferRestartWSError(Rosen::WSError srcError);
+    static int32_t TransferSetAbilityInstanceInfoErr(Rosen::WSError srcError);
 #endif
 
     /**
@@ -417,6 +418,8 @@ public:
 
     ErrCode StartSelfUIAbilityInCurrentProcess(const AAFwk::Want &want, const std::string &specifiedFlag,
         const AAFwk::StartOptions &startOptions, bool hasOptions) override;
+
+    ErrCode StartSelfUIAbilityInChildProcess(const AAFwk::Want &want, const std::string &specifiedFlag) override;
 
 private:
     sptr<IRemoteObject> token_ = nullptr;

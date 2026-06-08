@@ -286,7 +286,11 @@ void UIAbility::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessio
     securityFlag_ = want.GetBoolParam(DLP_PARAMS_SECURITY_FLAG, false);
     (const_cast<AAFwk::Want &>(want)).RemoveParam(DLP_PARAMS_SECURITY_FLAG);
 #endif // WITH_DLP
-    SetWant(want);
+
+    AAFwk::Want wantWithoutRequestId = want;
+    wantWithoutRequestId.RemoveParam(AAFwk::Want::PARAM_RESV_APP_REQUEST_ID);
+    wantWithoutRequestId.RemoveParam(AAFwk::Want::PARAM_RESV_SCB_REQUEST_ID);
+    SetWant(wantWithoutRequestId);
     TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", abilityInfo_->name.c_str());
 #ifdef SUPPORT_SCREEN
     if (sessionInfo != nullptr) {
@@ -344,6 +348,9 @@ void UIAbility::OnStop()
 #ifdef SUPPORT_SCREEN
     Rosen::DisplayManager::GetInstance().RemoveDisplayIdFromAms(token_);
 #endif
+
+    // Set isDestroyed to true after onDestroy callback
+    isDestroyed_ = true;
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 

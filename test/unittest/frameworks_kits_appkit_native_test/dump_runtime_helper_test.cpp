@@ -142,9 +142,8 @@ HWTEST_F(DumpRuntimeHelperTest, DumpMem_0100, Function | MediumTest | Level1)
     info.pid = 1;
     info.needLeakobj = false;
     info.dumpType = MemDumpType::KMP_KOTLIN;
-    std::string dumpResult;
     auto helper = std::make_shared<DumpRuntimeHelper>(application);
-    helper->DumpMem(info, dumpResult);
+    helper->DumpMem(info, nullptr);
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpMem_0100 end";
 }
 
@@ -162,10 +161,48 @@ HWTEST_F(DumpRuntimeHelperTest, DumpMem_0200, Function | MediumTest | Level1)
     info.pid = 1;
     info.needLeakobj = false;
     info.dumpType = MemDumpType::NATIVE;
-    std::string dumpResult;
     auto helper = std::make_shared<DumpRuntimeHelper>(application);
-    helper->DumpMem(info, dumpResult);
+    helper->DumpMem(info, nullptr);
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpMem_0200 end";
+}
+
+/**
+ * @tc.number: DumpMem_0300
+ * @tc.name: DumpMem
+ * @tc.desc: Test whether DumpMem and are called normally.
+ */
+HWTEST_F(DumpRuntimeHelperTest, DumpMem_0300, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpMem_0300 start";
+    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+    EXPECT_NE(application, nullptr);
+    OHOS::AppExecFwk::MemDumpInfo info;
+    info.pid = 1;
+    info.needLeakobj = false;
+    info.dumpType = MemDumpType::JSVM;
+    auto helper = std::make_shared<DumpRuntimeHelper>(application);
+    helper->DumpMem(info, nullptr);
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpMem_0300 end";
+}
+
+/**
+ * @tc.number: DumpMem_0400
+ * @tc.name: DumpMem
+ * @tc.desc: Test whether DumpMem and are called normally.
+ */
+HWTEST_F(DumpRuntimeHelperTest, DumpMem_0400, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpMem_0400 start";
+    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+    EXPECT_NE(application, nullptr);
+    OHOS::AppExecFwk::MemDumpInfo info;
+    info.pid = 1;
+    info.needLeakobj = false;
+    info.dumpType = MemDumpType::ARKWEB_JS;
+    info.renderPid = 1234;
+    auto helper = std::make_shared<DumpRuntimeHelper>(application);
+    helper->DumpMem(info, nullptr);
+    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpMem_0400 end";
 }
 
 /**

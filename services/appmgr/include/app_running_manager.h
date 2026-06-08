@@ -36,6 +36,7 @@
 #include "configuration_policy.h"
 #include "iremote_object.h"
 #include "kill_process_config.h"
+#include "mem_dump_callback_interface.h"
 #include "record_query_result.h"
 #include "refbase.h"
 #include "running_process_info.h"
@@ -117,6 +118,8 @@ public:
     std::shared_ptr<AppRunningRecord> FindMasterProcessAppRunningRecord(const std::string &appName,
         const AppExecFwk::AbilityInfo &abilityInfo, const int uid);
 
+    std::shared_ptr<AppRunningRecord> FindMainProcessAppRunningRecord(const int uid);
+
     bool CheckMasterProcessAppRunningRecordIsExist(const std::string &appName,
         const AppExecFwk::AbilityInfo &abilityInfo, const int uid);
 
@@ -179,6 +182,17 @@ public:
      * @return process record.
      */
     std::shared_ptr<AppRunningRecord> GetAppRunningRecordByPid(const pid_t pid);
+
+    /**
+     * GetValidAppRunningRecordByPid, Get valid process record by pid.
+     * Process is considered invalid if terminating, killing, restart flagged,
+     * user request cleaning, caching with blocked flag, or kill precede start.
+     *
+     * @param pid, the application pid.
+     *
+     * @return valid process record, or nullptr if not found or invalid.
+     */
+    std::shared_ptr<AppRunningRecord> GetValidAppRunningRecordByPid(const pid_t pid);
 
     /**
      * GetAppRunningRecordByAbilityToken, Get process record by ability token.
@@ -311,10 +325,10 @@ public:
      * triggerGC and dump application's memory info.
      *
      * @param info The information to be dumped
-     * @param dumpResult The dump result string
+     * @param callback The callback to receive dump result
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult);
+    int32_t DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback);
 
     /**
      * Set AbilityForegroundingFlag of an app-record to true.

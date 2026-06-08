@@ -334,6 +334,26 @@ pid_t BaseExtensionRecord::GetClientPid() const
     return clientPid_;
 }
 
+void BaseExtensionRecord::SetIsInProcess(bool isInProcess)
+{
+    isInProcess_ = isInProcess;
+}
+
+bool BaseExtensionRecord::IsInProcess() const
+{
+    return isInProcess_;
+}
+
+void BaseExtensionRecord::SetRequestId(const std::string &requestId)
+{
+    requestId_ = requestId;
+}
+
+std::string BaseExtensionRecord::GetRequestId() const
+{
+    return requestId_;
+}
+
 void BaseExtensionRecord::PostUIExtensionAbilityTimeoutTask(uint32_t messageId)
 {
     if (IsDebug()) {

@@ -307,6 +307,34 @@ HWTEST_F(JsRuntimeTest, JsRuntimeGetHeapObjectSizeTest_0100, TestSize.Level2)
 }
 
 /**
+ * @tc.name: JsRuntimeGetSharedHeapSizeTest_0100
+ * @tc.desc: JsRuntime test for GetSharedHeapSize.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, JsRuntimeGetSharedHeapSize_0100, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetSharedHeapSize start");
+    std::unique_ptr<JsRuntime> jsRuntime = std::make_unique<AbilityRuntime::JsRuntime>();
+    size_t ret = jsRuntime->GetSharedHeapSize();
+    EXPECT_TRUE(ret >= 0);
+    TAG_LOGI(AAFwkTag::TEST, "GetSharedHeapSize end");
+}
+
+/**
+ * @tc.name: JsRuntimeGetGCStatisticTest_0100
+ * @tc.desc: JsRuntime test for GetGCStatistic.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, JsRuntimeGetGCStatistic_0100, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetGCStatistic start");
+    std::unique_ptr<JsRuntime> jsRuntime = std::make_unique<AbilityRuntime::JsRuntime>();
+    EXPECT_TRUE(jsRuntime != nullptr);
+    auto ret = jsRuntime->GetGCStatistic();
+    TAG_LOGI(AAFwkTag::TEST, "GetGCStatistic end");
+}
+
+/**
  * @tc.name: JsRuntimePreloadSystemModuleTest_0100
  * @tc.desc: JsRuntime test for PreloadSystemModule.
  * @tc.type: FUNC
@@ -1429,6 +1457,166 @@ HWTEST_F(JsRuntimeTest, DumpHeapSnapshot_0600, TestSize.Level1)
     jsRuntime->DumpHeapSnapshot(tid, param);
     EXPECT_TRUE(jsRuntime != nullptr);
     TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot end");
+}
+
+/**
+ * @tc.name: DumpHeapSnapshot_0700
+ * @tc.desc: JsRuntime test for DumpHeapSnapshot with JsHeapDumpParam, only isFullGC is true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, DumpHeapSnapshot_0700, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_0700 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    uint32_t tid = 100;
+    OHOS::AbilityRuntime::Runtime::JsHeapDumpParam param;
+    param.isFullGC = true;
+    param.isBinary = false;
+    param.isClearNodeIdCache = false;
+    param.isProcDump = false;
+    jsRuntime->DumpHeapSnapshot(tid, param);
+    EXPECT_TRUE(jsRuntime != nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_0700 end");
+}
+
+/**
+ * @tc.name: DumpHeapSnapshot_0800
+ * @tc.desc: JsRuntime test for DumpHeapSnapshot with JsHeapDumpParam, only isBinary is true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, DumpHeapSnapshot_0800, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_0800 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    uint32_t tid = 200;
+    OHOS::AbilityRuntime::Runtime::JsHeapDumpParam param;
+    param.isFullGC = false;
+    param.isBinary = true;
+    param.isClearNodeIdCache = false;
+    param.isProcDump = false;
+    jsRuntime->DumpHeapSnapshot(tid, param);
+    EXPECT_TRUE(jsRuntime != nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_0800 end");
+}
+
+/**
+ * @tc.name: DumpHeapSnapshot_0900
+ * @tc.desc: JsRuntime test for DumpHeapSnapshot with JsHeapDumpParam, only isClearNodeIdCache is true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, DumpHeapSnapshot_0900, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_0900 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    uint32_t tid = 300;
+    OHOS::AbilityRuntime::Runtime::JsHeapDumpParam param;
+    param.isFullGC = false;
+    param.isBinary = false;
+    param.isClearNodeIdCache = true;
+    param.isProcDump = false;
+    jsRuntime->DumpHeapSnapshot(tid, param);
+    EXPECT_TRUE(jsRuntime != nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_0900 end");
+}
+
+/**
+ * @tc.name: DumpHeapSnapshot_1000
+ * @tc.desc: JsRuntime test for DumpHeapSnapshot with JsHeapDumpParam, only isProcDump is true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, DumpHeapSnapshot_1000, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_1000 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    uint32_t tid = 400;
+    OHOS::AbilityRuntime::Runtime::JsHeapDumpParam param;
+    param.isFullGC = false;
+    param.isBinary = false;
+    param.isClearNodeIdCache = false;
+    param.isProcDump = true;
+    jsRuntime->DumpHeapSnapshot(tid, param);
+    EXPECT_TRUE(jsRuntime != nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_1000 end");
+}
+
+/**
+ * @tc.name: DumpHeapSnapshot_1100
+ * @tc.desc: JsRuntime test for DumpHeapSnapshot with JsHeapDumpParam, isFullGC and isBinary both true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, DumpHeapSnapshot_1100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_1100 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    uint32_t tid = 500;
+    OHOS::AbilityRuntime::Runtime::JsHeapDumpParam param;
+    param.isFullGC = true;
+    param.isBinary = true;
+    param.isClearNodeIdCache = false;
+    param.isProcDump = false;
+    jsRuntime->DumpHeapSnapshot(tid, param);
+    EXPECT_TRUE(jsRuntime != nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_1100 end");
+}
+
+/**
+ * @tc.name: DumpHeapSnapshot_1200
+ * @tc.desc: JsRuntime test for DumpHeapSnapshot with JsHeapDumpParam, isFullGC and isProcDump both true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, DumpHeapSnapshot_1200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_1200 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    uint32_t tid = 600;
+    OHOS::AbilityRuntime::Runtime::JsHeapDumpParam param;
+    param.isFullGC = true;
+    param.isBinary = false;
+    param.isClearNodeIdCache = false;
+    param.isProcDump = true;
+    jsRuntime->DumpHeapSnapshot(tid, param);
+    EXPECT_TRUE(jsRuntime != nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_1200 end");
+}
+
+/**
+ * @tc.name: DumpHeapSnapshot_1300
+ * @tc.desc: JsRuntime test for DumpHeapSnapshot with JsHeapDumpParam, tid is 0.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, DumpHeapSnapshot_1300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_1300 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    uint32_t tid = 0;
+    OHOS::AbilityRuntime::Runtime::JsHeapDumpParam param;
+    param.isFullGC = false;
+    param.isBinary = false;
+    param.isClearNodeIdCache = false;
+    param.isProcDump = false;
+    jsRuntime->DumpHeapSnapshot(tid, param);
+    EXPECT_TRUE(jsRuntime != nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_1300 end");
+}
+
+/**
+ * @tc.name: DumpHeapSnapshot_1400
+ * @tc.desc: JsRuntime test for DumpHeapSnapshot with JsHeapDumpParam, tid is UINT32_MAX.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, DumpHeapSnapshot_1400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_1400 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    uint32_t tid = UINT32_MAX;
+    OHOS::AbilityRuntime::Runtime::JsHeapDumpParam param;
+    param.isFullGC = true;
+    param.isBinary = true;
+    param.isClearNodeIdCache = true;
+    param.isProcDump = true;
+    jsRuntime->DumpHeapSnapshot(tid, param);
+    EXPECT_TRUE(jsRuntime != nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_1400 end");
 }
 
 /**

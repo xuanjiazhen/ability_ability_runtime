@@ -29,6 +29,7 @@
 #include "overlay_manager_proxy.h"
 #include "ability_connect_callback_stub.h"
 #include "app_scheduler_const.h"
+#include "res_sched_util.h"
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::AAFwk;
@@ -3853,6 +3854,181 @@ HWTEST_F(AppMgrServiceInnerEighthTest, PostChildProcessAttachTimeoutTask_004, Te
     auto ret = childRecord->GetAttachTimeoutStartTime().time_since_epoch().count();
     EXPECT_NE(ret, 0);
     TAG_LOGI(AAFwkTag::TEST, "PostChildProcessAttachTimeoutTask_004 end");
+}
+
+/**
+ * @tc.name: ReportAbilityStartInfoForSpecified_001
+ * @tc.desc: test appRecord null, launchMode SPECIFIED -> early return, mock not called
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, ReportAbilityStartInfoForSpecified_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ReportAbilityStartInfoForSpecified_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AbilityInfo abilityInfo;
+    abilityInfo.launchMode = LaunchMode::SPECIFIED;
+    EXPECT_CALL(ResSchedUtil::GetInstance(), ReportAbilityStartInfoToRSS(testing::_, testing::_,
+        testing::_, testing::_, testing::_, testing::_)).Times(0);
+    appMgrServiceInner->ReportAbilityStartInfoForSpecified(nullptr, abilityInfo);
+    TAG_LOGI(AAFwkTag::TEST, "ReportAbilityStartInfoForSpecified_001 end");
+}
+
+/**
+ * @tc.name: ReportAbilityStartInfoForSpecified_002
+ * @tc.desc: test appRecord valid, launchMode STANDARD -> early return, mock not called
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, ReportAbilityStartInfoForSpecified_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ReportAbilityStartInfoForSpecified_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().appRecordGetPid_ = 100;
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 100, "testProcess");
+    AbilityInfo abilityInfo;
+    abilityInfo.launchMode = LaunchMode::STANDARD;
+    EXPECT_CALL(ResSchedUtil::GetInstance(), ReportAbilityStartInfoToRSS(testing::_, testing::_,
+        testing::_, testing::_, testing::_, testing::_)).Times(0);
+    appMgrServiceInner->ReportAbilityStartInfoForSpecified(appRecord, abilityInfo);
+    TAG_LOGI(AAFwkTag::TEST, "ReportAbilityStartInfoForSpecified_002 end");
+}
+
+/**
+ * @tc.name: ReportAbilityStartInfoForSpecified_003
+ * @tc.desc: test SPECIFIED launchMode, pid > 0, PRELOAD_NONE, not cached -> mock called with correct params
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, ReportAbilityStartInfoForSpecified_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ReportAbilityStartInfoForSpecified_003 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().appRecordGetPid_ = 100;
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 100, "testProcess");
+    appRecord->SetPreloadMode(AppExecFwk::PreloadMode::PRELOAD_NONE);
+    AbilityInfo abilityInfo;
+    abilityInfo.launchMode = LaunchMode::SPECIFIED;
+    abilityInfo.name = "testAbility";
+    EXPECT_CALL(ResSchedUtil::GetInstance(), ReportAbilityStartInfoToRSS(testing::_, Eq(100),
+        Eq(true), Eq(false), Eq(static_cast<int32_t>(AppExecFwk::PreloadMode::PRELOAD_NONE)),
+        Eq(false))).Times(1);
+    appMgrServiceInner->ReportAbilityStartInfoForSpecified(appRecord, abilityInfo);
+    TAG_LOGI(AAFwkTag::TEST, "ReportAbilityStartInfoForSpecified_003 end");
+}
+
+/**
+ * @tc.name: ReportAbilityStartInfoForSpecified_004
+ * @tc.desc: test SPECIFIED launchMode, preloadMode PRE_MAKE -> supportWarmSmartGC true
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, ReportAbilityStartInfoForSpecified_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ReportAbilityStartInfoForSpecified_004 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().appRecordGetPid_ = 100;
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 100, "testProcess");
+    appRecord->SetPreloadMode(AppExecFwk::PreloadMode::PRE_MAKE);
+    AbilityInfo abilityInfo;
+    abilityInfo.launchMode = LaunchMode::SPECIFIED;
+    abilityInfo.name = "testAbility";
+    EXPECT_CALL(ResSchedUtil::GetInstance(), ReportAbilityStartInfoToRSS(testing::_, Eq(100),
+        Eq(true), Eq(true), Eq(static_cast<int32_t>(AppExecFwk::PreloadMode::PRE_MAKE)),
+        Eq(false))).Times(1);
+    appMgrServiceInner->ReportAbilityStartInfoForSpecified(appRecord, abilityInfo);
+    TAG_LOGI(AAFwkTag::TEST, "ReportAbilityStartInfoForSpecified_004 end");
+}
+
+/**
+ * @tc.name: ReportAbilityStartInfoForSpecified_005
+ * @tc.desc: test SPECIFIED launchMode, preloadMode PRELOAD_MODULE -> supportWarmSmartGC true
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, ReportAbilityStartInfoForSpecified_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ReportAbilityStartInfoForSpecified_005 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().appRecordGetPid_ = 200;
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 200, "testProcess");
+    appRecord->SetPreloadMode(AppExecFwk::PreloadMode::PRELOAD_MODULE);
+    AbilityInfo abilityInfo;
+    abilityInfo.launchMode = LaunchMode::SPECIFIED;
+    abilityInfo.name = "testAbility";
+    EXPECT_CALL(ResSchedUtil::GetInstance(), ReportAbilityStartInfoToRSS(testing::_, Eq(200),
+        Eq(true), Eq(true), Eq(static_cast<int32_t>(AppExecFwk::PreloadMode::PRELOAD_MODULE)),
+        Eq(false))).Times(1);
+    appMgrServiceInner->ReportAbilityStartInfoForSpecified(appRecord, abilityInfo);
+    TAG_LOGI(AAFwkTag::TEST, "ReportAbilityStartInfoForSpecified_005 end");
+}
+
+/**
+ * @tc.name: ReportAbilityStartInfoForSpecified_006
+ * @tc.desc: test SPECIFIED launchMode, pid = 0 -> isColdStart false
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, ReportAbilityStartInfoForSpecified_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ReportAbilityStartInfoForSpecified_006 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().appRecordGetPid_ = 0;
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 0, "testProcess");
+    appRecord->SetPreloadMode(AppExecFwk::PreloadMode::PRE_LAUNCH);
+    AbilityInfo abilityInfo;
+    abilityInfo.launchMode = LaunchMode::SPECIFIED;
+    abilityInfo.name = "testAbility";
+    EXPECT_CALL(ResSchedUtil::GetInstance(), ReportAbilityStartInfoToRSS(testing::_, Eq(0),
+        Eq(false), Eq(false), Eq(static_cast<int32_t>(AppExecFwk::PreloadMode::PRE_LAUNCH)),
+        Eq(false))).Times(1);
+    appMgrServiceInner->ReportAbilityStartInfoForSpecified(appRecord, abilityInfo);
+    TAG_LOGI(AAFwkTag::TEST, "ReportAbilityStartInfoForSpecified_006 end");
+}
+
+/**
+ * @tc.name: TryToUseImageInfo_NotifyAppRunningStatusEvent_001
+ * @tc.desc: Test TryToUseImageInfo when appMultiUserExistFlag is false, should call NotifyAppRunningStatusEvent
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, TryToUseImageInfo_NotifyAppRunningStatusEvent_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "TryToUseImageInfo_NotifyAppRunningStatusEvent_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto appRunningManager = std::make_shared<AppRunningManager>();
+    appMgrServiceInner->appRunningManager_ = appRunningManager;
+    
+    auto abilityInfo = std::make_shared<AbilityInfo>();
+    abilityInfo->name = "testAbility";
+    abilityInfo->bundleName = "testBundle";
+    
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "testBundle";
+    appInfo->uid = 100;
+    appInfo->accessTokenId = 1000;
+    
+    AppMgrServiceInner::MakeImageRequest request {
+        .bundleName = "testBundle",
+        .abilityName = "testAbility",
+        .userId = 0,
+        .appCloneIndex = 0
+    };
+    
+    auto imageInfo = std::make_shared<ForkImageInfo>();
+    imageInfo->imagePid = 100;
+    auto baseAppRecord = std::make_shared<AppRunningRecord>(appInfo, 1, "testProcess");
+    baseAppRecord->SetInstanceKey("instanceKey");
+    baseAppRecord->SetSpecifiedProcessFlag("");
+    baseAppRecord->SetCustomProcessFlag("");
+    imageInfo->baseAppRecord = baseAppRecord;
+    appMgrServiceInner->imageInfoMap_[request] = imageInfo;
+    
+    AAFwk::MyStatus::GetInstance().checkAppRunningByUid_ = false;
+    
+    std::shared_ptr<AppRunningRecord> appRecord = nullptr;
+    appMgrServiceInner->TryToUseImageInfo(abilityInfo, appInfo, nullptr, "callerKey", 0, "testProcess",
+        "instanceKey", "", "", appRecord);
+    
+    TAG_LOGI(AAFwkTag::TEST, "TryToUseImageInfo_NotifyAppRunningStatusEvent_001 end");
 }
 } // namespace AppExecFwk
 } // namespace OHOS

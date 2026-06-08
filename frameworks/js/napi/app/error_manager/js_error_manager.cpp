@@ -752,11 +752,13 @@ static void RemoveGlobalRejection(napi_env env, napi_value promise, std::string 
         napi_value prom = nullptr;
         if (napi_get_reference_value(env, (*iter)->promiseRef, &prom) != napi_ok) {
             TAG_LOGI(AAFwkTag::JSNAPI, "Get Promise Failed");
+            iter++;
             continue;
         }
         bool isEqual = false;
         if (napi_strict_equals(env, promise, prom, &isEqual) != napi_ok) {
             TAG_LOGI(AAFwkTag::JSNAPI, "Strict Equals Failed");
+            iter++;
             continue;
         }
         if (isEqual) {
@@ -1104,6 +1106,7 @@ private:
         }
         if (CheckTypeForNapiValue(env, function, napi_undefined)) {
             TAG_LOGI(AAFwkTag::JSNAPI, "func is undefined.");
+            function = nullptr;
         }
         std::lock_guard<std::mutex> lock(g_defaultFreezeMtx);
         napi_value object = nullptr;
@@ -1579,21 +1582,31 @@ private:
         return result;
     }
 
+    static napi_value DeleteUnhandledRejectionObservers(napi_env env)
+    {
+        auto res = CreateJsUndefined(env);
+        for (auto& iter : unhandledRejectionObservers) {
+            napi_delete_reference(env, iter);
+        }
+        unhandledRejectionObservers.clear();
+        return res;
+    }
+
     napi_value OnOffUnhandledRejection(napi_env env, size_t argc, napi_value* argv)
     {
         auto res = CreateJsUndefined(env);
         if (argc == ARGC_ONE) {
-            for (auto& iter : unhandledRejectionObservers) {
-                napi_delete_reference(env, iter);
-            }
-            unhandledRejectionObservers.clear();
-            return res;
+            return DeleteUnhandledRejectionObservers(env);
         }
         napi_value function = argv[INDEX_ONE];
         if (function == nullptr || CheckTypeForNapiValue(env, function, napi_null)) {
             TAG_LOGE(AAFwkTag::JSNAPI, "null function.");
             ThrowInvalidNumParametersError(env);
             return CreateJsUndefined(env);
+        }
+        if (CheckTypeForNapiValue(env, function, napi_undefined)) {
+            TAG_LOGI(AAFwkTag::JSNAPI, "undefined function.");
+            return DeleteUnhandledRejectionObservers(env);
         }
         for (auto& iter : unhandledRejectionObservers) {
             napi_value observer = nullptr;

@@ -21,6 +21,8 @@
 #include "hilog_tag_wrapper.h"
 #include "image_error_handler_stub.h"
 #include "image_process_state_observer_stub.h"
+#include "mem_dump_callback_interface.h"
+#include "mem_dump_callback_stub.h"
 #include "mock_ability_foreground_state_observer_stub.h"
 #include "mock_app_mgr_service.h"
 #include "quick_fix_callback_stub.h"
@@ -92,6 +94,18 @@ public:
     {
         TAG_LOGD(AAFwkTag::TEST, "function called.");
     }
+};
+
+class MemDumpCallbackMock : public MemDumpCallbackStub {
+public:
+    MemDumpCallbackMock() = default;
+    virtual ~MemDumpCallbackMock() = default;
+
+    void OnMemDumpDone(const std::string &dumpResult) override
+    {
+        dumpResult_ = dumpResult;
+    }
+    std::string dumpResult_;
 };
 
 class AppMgrProxyTest : public testing::Test {
@@ -1564,5 +1578,145 @@ HWTEST_F(AppMgrProxyTest, UpdateFreezeExcludedPid_001, TestSize.Level1)
     appMgrProxy_->UpdateFreezeExcludedPid(isAdd, pid, profilerPid);
     EXPECT_EQ(mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_FREEZE_EXCLUDED_PID));
 }
+
+/**
+ * @tc.name: EnableDelayedProcessExit_0100
+ * @tc.desc: Test EnableDelayedProcessExit with successful SendRequest.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, EnableDelayedProcessExit_0100, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            reply.WriteInt32(ERR_OK);
+            return NO_ERROR;
+        });
+
+    auto ret = appMgrProxy_->EnableDelayedProcessExit(1234, true);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: EnableDelayedProcessExit_0200
+ * @tc.desc: Test EnableDelayedProcessExit with disabled flag.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, EnableDelayedProcessExit_0200, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            reply.WriteInt32(ERR_OK);
+            return NO_ERROR;
+        });
+
+    auto ret = appMgrProxy_->EnableDelayedProcessExit(1234, false);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: EnableDelayedProcessExit_0300
+ * @tc.desc: Test EnableDelayedProcessExit with failed SendRequest.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, EnableDelayedProcessExit_0300, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            reply.WriteInt32(ERR_INVALID_VALUE);
+            return NO_ERROR;
+        });
+
+    auto ret = appMgrProxy_->EnableDelayedProcessExit(-1, true);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: CancelDelayedExitTask_0100
+ * @tc.desc: Test CancelDelayedExitTask with successful SendRequest.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, CancelDelayedExitTask_0100, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            return NO_ERROR;
+        });
+
+    appMgrProxy_->CancelDelayedExitTask(1234);
+}
+
+/**
+ * @tc.name: AppMgrProxy_DumpMem_001
+ * @tc.desc: DumpMem with valid info and null callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, AppMgrProxy_DumpMem_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+
+    MemDumpInfo info;
+    info.pid = 1;
+    sptr<IMemDumpCallback> callback = nullptr;
+    appMgrProxy_->DumpMem(info, callback);
+    EXPECT_EQ(mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::DUMP_MEM_PROCESS));
+}
+
+/**
+ * @tc.name: AppMgrProxy_ReportDumpMemResult_001
+ * @tc.desc: ReportDumpMemResult with null callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, AppMgrProxy_ReportDumpMemResult_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(0);
+
+    sptr<IMemDumpCallback> callback = nullptr;
+    std::string dumpResult = "test result";
+    auto ret = appMgrProxy_->ReportDumpMemResult(callback, dumpResult);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: AppMgrProxy_DumpMem_002
+ * @tc.desc: DumpMem with valid info and non-null callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, AppMgrProxy_DumpMem_002, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+
+    MemDumpInfo info;
+    info.pid = 1;
+    sptr<IMemDumpCallback> callback = new (std::nothrow) MemDumpCallbackMock();
+    appMgrProxy_->DumpMem(info, callback);
+    EXPECT_EQ(mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::DUMP_MEM_PROCESS));
+}
+
+/**
+ * @tc.name: AppMgrProxy_ReportDumpMemResult_002
+ * @tc.desc: ReportDumpMemResult with non-null callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, AppMgrProxy_ReportDumpMemResult_002, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+
+    sptr<IMemDumpCallback> callback = new (std::nothrow) MemDumpCallbackMock();
+    std::string dumpResult = "test result";
+    appMgrProxy_->ReportDumpMemResult(callback, dumpResult);
+    EXPECT_EQ(mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::REPORT_DUMP_MEM_RESULT));
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS
