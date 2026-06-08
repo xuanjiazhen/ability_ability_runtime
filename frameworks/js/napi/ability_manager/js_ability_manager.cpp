@@ -352,7 +352,8 @@ private:
     {
         if (observerForeground_ == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
-            ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+            ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::OBSERVER_NOT_REGISTERED));
             return CreateJsUndefined(env);
         }
         if (argc == ARGC_TWO) {

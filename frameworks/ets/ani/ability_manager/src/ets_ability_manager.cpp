@@ -560,7 +560,8 @@ void EtsAbilityManager::NativeOff(ani_env *env, ani_string aniType, ani_object a
     }
     if (observerForeground_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
-        EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        EtsErrorUtil::ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+            GetInnerErrorMsg(AbilityInnerErrorMsg::OBSERVER_NOT_REGISTERED));
         return;
     }
     ani_status status = ANI_OK;
