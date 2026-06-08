@@ -793,7 +793,7 @@ void AbilityRecord::BackgroundAbility(const Closure &task)
     std::lock_guard guard(wantLock_);
     isLaunching_ = false;
 }
-//kaishi
+
 bool AbilityRecord::PrepareTerminateAbility(bool isSCBCall)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
@@ -839,7 +839,7 @@ bool AbilityRecord::PrepareTerminateAbility(bool isSCBCall)
     }
     return isPrepareTerminate_;
 }
-//jieshu
+
 void AbilityRecord::PrepareTerminateAbilityDone(bool isTerminate)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call PrepareTerminateAbilityDone");
