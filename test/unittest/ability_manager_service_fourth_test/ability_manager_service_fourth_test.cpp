@@ -20,6 +20,7 @@
 #define protected public
 #include "mock_ipc_skeleton.h"
 #include "mock_permission_verification.h"
+#include "mock_app_utils.h"
 #include "mock_my_flag.h"
 #include "mock_parameters.h"
 #include "ability_manager_service.h"
@@ -92,6 +93,7 @@ std::shared_ptr<AbilityRecord> AbilityManagerServiceFourthTest::MockAbilityRecor
     abilityRequest.appInfo.bundleName = "com.test.demo";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = abilityType;
+    abilityRequest.abilityInfo.bundleName = "com.test.demo";
     return AbilityRecord::CreateAbilityRecord(abilityRequest);
 }
 
@@ -723,6 +725,157 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityByInsightIntent_001, TestS
     auto ret = abilityMs_->StartAbilityByInsightIntent(want, callerToken, intentId, userId);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartAbilityByInsightIntent_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityByInsightIntent
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService StartAbilityByInsightIntent
+ * CaseDescription: Verify null callerToken returns ERR_INVALID_VALUE (abilityRecord null branch)
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityByInsightIntent_NullToken_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityByInsightIntent_NullToken_001 start");
+    Want want;
+    uint64_t key{0};
+    std::string bundleName{"com.test.demo"};
+    uint64_t intentId{1};
+    int32_t userId{0};
+    std::string callerBundleName = "com.example.TDDTest";
+    DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->AddRecord(key, nullptr, bundleName, intentId,
+        callerBundleName);
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    auto ret = abilityMs_->StartAbilityByInsightIntent(want, nullptr, intentId, userId);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityByInsightIntent_NullToken_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityByInsightIntent
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService StartAbilityByInsightIntent
+ * CaseDescription: Verify bundle name mismatch returns ERR_INSIGHT_INTENT_START_INVALID_COMPONENT
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityByInsightIntent_BundleMismatch_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityByInsightIntent_BundleMismatch_001 start");
+    Want want;
+    want.SetElementName("com.test.demo", "MainAbility");
+    auto callerToken = MockToken(AbilityType::PAGE);
+    uint64_t key{0};
+    std::string bundleName{"com.other.app"};
+    uint64_t intentId{1};
+    int32_t userId{0};
+    std::string callerBundleName = "com.example.TDDTest";
+    DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->AddRecord(key, callerToken, bundleName, intentId,
+        callerBundleName);
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    auto ret = abilityMs_->StartAbilityByInsightIntent(want, callerToken, intentId, userId);
+    EXPECT_EQ(ret, ERR_INSIGHT_INTENT_START_INVALID_COMPONENT);
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityByInsightIntent_BundleMismatch_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityByInsightIntent
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService StartAbilityByInsightIntent
+ * CaseDescription: Verify bundle name match enters StartAbility path
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityByInsightIntent_BundleMatch_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityByInsightIntent_BundleMatch_001 start");
+    Want want;
+    want.SetElementName("com.test.demo", "MainAbility");
+    auto callerToken = MockToken(AbilityType::PAGE);
+    uint64_t key{0};
+    std::string bundleName{"com.test.demo"};
+    uint64_t intentId{1};
+    int32_t userId{0};
+    std::string callerBundleName = "com.example.TDDTest";
+    DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->AddRecord(key, callerToken, bundleName, intentId,
+        callerBundleName);
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    auto ret = abilityMs_->StartAbilityByInsightIntent(want, callerToken, intentId, userId);
+    EXPECT_NE(ret, ERR_INSIGHT_INTENT_START_INVALID_COMPONENT);
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityByInsightIntent_BundleMatch_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityByInsightIntent
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService StartAbilityByInsightIntent
+ * CaseDescription: Verify IsForbidStart returns INNER_ERR (Block 1)
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityByInsightIntent_ForbidStart_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityByInsightIntent_ForbidStart_001 start");
+    SetForbidStart(true);
+    Want want;
+    auto callerToken = MockToken(AbilityType::PAGE);
+    uint64_t key{0};
+    std::string bundleName{"com.test.demo"};
+    uint64_t intentId{1};
+    int32_t userId{0};
+    std::string callerBundleName = "com.example.TDDTest";
+    DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->AddRecord(key, callerToken, bundleName, intentId,
+        callerBundleName);
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    auto ret = abilityMs_->StartAbilityByInsightIntent(want, callerToken, intentId, userId);
+    EXPECT_EQ(ret, INNER_ERR);
+    SetForbidStart(false);
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityByInsightIntent_ForbidStart_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityByUIContentSession
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService StartAbilityByUIContentSession
+ * CaseDescription: Verify IsForbidStart returns INNER_ERR (Block 3)
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityByUIContentSession_ForbidStart_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityByUIContentSession_ForbidStart_001 start");
+    SetForbidStart(true);
+    Want want;
+    auto callerToken = MockToken(AbilityType::PAGE);
+    sptr<SessionInfo> sessionInfo = MockSessionInfo(0);
+    int32_t userId{0};
+    int requestCode{0};
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    auto ret = abilityMs_->StartAbilityByUIContentSession(want, callerToken, sessionInfo, userId, requestCode);
+    EXPECT_EQ(ret, INNER_ERR);
+    SetForbidStart(false);
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityByUIContentSession_ForbidStart_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityByUIContentSession
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService StartAbilityByUIContentSession
+ * CaseDescription: Verify IsForbidStart returns INNER_ERR (Block 5)
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityByUIContentSessionWithOptions_ForbidStart_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityByUIContentSessionWithOptions_ForbidStart_001 start");
+    SetForbidStart(true);
+    Want want;
+    StartOptions startOptions;
+    auto callerToken = MockToken(AbilityType::PAGE);
+    sptr<SessionInfo> sessionInfo = MockSessionInfo(0);
+    int32_t userId{0};
+    int requestCode{0};
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    auto ret = abilityMs_->StartAbilityByUIContentSession(want, startOptions, callerToken, sessionInfo, userId,
+        requestCode);
+    EXPECT_EQ(ret, INNER_ERR);
+    SetForbidStart(false);
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityByUIContentSessionWithOptions_ForbidStart_001 end");
 }
 
 /*
@@ -1829,5 +1982,83 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartSelf_005, TestSize.Level1)
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartSelf_005 end");
 }
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbility (HandleDlpApp path in StartAbilityInner)
+ * SubFunction: NA
+ * FunctionPoints: Cover Block 7 - HandleDlpApp branch
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartAbility_HandleDlpApp_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartAbility_HandleDlpApp_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    Want want;
+    want.SetParam("ohos.dlp.params.sandbox", true);
+    want.SetElementName("test.bundleName", "test.abilityName");
+    auto callerToken = MockToken(AbilityType::PAGE);
+    int32_t userId = 0;
+    int requestCode = 0;
+    auto ret = abilityMs_->StartAbility(want, callerToken, userId, requestCode);
+    // HandleDlpApp returns true → enters Block 7 → StartExtensionAbilityInner called
+    // Should NOT get ERR_INVALID_CALLER (which is from token verification after Block 7 at line 1428)
+    EXPECT_NE(ret, ERR_INVALID_CALLER);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartAbility_HandleDlpApp_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityInner (FLAG_ABILITY_PREPARE_CONTINUATION path)
+ * SubFunction: NA
+ * FunctionPoints: Cover Block 8 - FLAG_ABILITY_PREPARE_CONTINUATION branch with non-DMS caller
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityInner_PrepareContinuationFlag_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartAbilityInner_PrepareContinuationFlag_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    Want want;
+    want.SetFlags(Want::FLAG_ABILITY_PREPARE_CONTINUATION);
+    abilityMs_->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+    int32_t userId = 0;
+    int requestCode = 0;
+    AAFwk::StartAbilityWrapParam param = {
+        .want = want,
+        .callerToken = nullptr,
+        .requestCode = requestCode,
+        .userId = userId,
+    };
+    auto ret = abilityMs_->StartAbilityInner(param);
+    // uid_ defaults to 0, NOT DMS_UID (5522) → flag check fails → ERR_INVALID_CONTINUATION_FLAG
+    EXPECT_EQ(ret, ERR_INVALID_CONTINUATION_FLAG);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartAbilityInner_PrepareContinuationFlag_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityForOptionInner (IsStartFreeInstall path)
+ * SubFunction: NA
+ * FunctionPoints: Cover Block 14 - IsStartFreeInstall branch in StartAbilityForOptionInner
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityForOptionInner_FreeInstall_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartAbilityForOptionInner_FreeInstall_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    Want want;
+    want.SetFlags(Want::FLAG_INSTALL_ON_DEMAND);
+    StartOptions startOptions;
+    int32_t userId = 0;
+    int requestCode = 0;
+    uint32_t specifyTokenId = 0;
+    bool isStartAsCaller = false;
+    bool isImplicit = false;
+    bool isCallByShortcut = false;
+    abilityMs_->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+    auto ret = abilityMs_->StartAbilityForOptionInner(want, startOptions, nullptr, false, userId, requestCode,
+        isStartAsCaller, specifyTokenId, isImplicit, isCallByShortcut);
+    // IsStartFreeInstall returns true → enters Block 14 → tries free install
+    // freeInstallManager_ is null → returns ERR_INVALID_VALUE
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartAbilityForOptionInner_FreeInstall_001 end");
+}
+
 } // namespace AAFwk
 } // namespace OHOS

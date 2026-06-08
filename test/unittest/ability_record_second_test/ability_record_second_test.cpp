@@ -255,6 +255,70 @@ HWTEST_F(AbilityRecordSecondTest, AbilityRecord_PrepareTerminateAbilityDone_001,
 
 /*
  * Feature: AbilityRecord
+ * Function: PrepareTerminateAbilityDone
+ * SubFunction: PrepareTerminateAbilityDone
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord PrepareTerminateAbilityDone when called flag is false
+ */
+HWTEST_F(AbilityRecordSecondTest, AbilityRecord_PrepareTerminateAbilityDone_002, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    abilityRecord->isPrepareTerminateAbilityCalled_.store(false);
+    abilityRecord->PrepareTerminateAbilityDone(false);
+    EXPECT_EQ(abilityRecord->isPrepareTerminate_, false);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: PrepareTerminateAbility
+ * SubFunction: PrepareTerminateAbility
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord PrepareTerminateAbility when lifecycleDeal_ is nullptr
+ */
+HWTEST_F(AbilityRecordSecondTest, AbilityRecord_PrepareTerminateAbility_003, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    abilityRecord->lifecycleDeal_ = nullptr;
+    bool result = abilityRecord->PrepareTerminateAbility(true);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: PrepareTerminateAbility
+ * SubFunction: PrepareTerminateAbility
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord PrepareTerminateAbility when isSCBCall is false
+ */
+HWTEST_F(AbilityRecordSecondTest, AbilityRecord_PrepareTerminateAbility_004, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    abilityRecord->lifecycleDeal_ = std::make_unique<LifecycleDeal>();
+    bool result = abilityRecord->PrepareTerminateAbility(false);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: PrepareTerminateAbility
+ * SubFunction: PrepareTerminateAbility
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord PrepareTerminateAbility when isSCBCall is true
+ */
+HWTEST_F(AbilityRecordSecondTest, AbilityRecord_PrepareTerminateAbility_005, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    abilityRecord->lifecycleDeal_ = std::make_unique<LifecycleDeal>();
+    bool result = abilityRecord->PrepareTerminateAbility(true);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * Feature: AbilityRecord
  * Function: TerminateAbility
  * SubFunction: TerminateAbility
  * FunctionPoints: NA

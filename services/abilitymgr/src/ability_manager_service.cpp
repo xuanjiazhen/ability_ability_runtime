@@ -872,8 +872,10 @@ int32_t AbilityManagerService::StartAbilityByInsightIntent(const Want &want, con
     uint64_t intentId, int32_t userId)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
+//kaishi
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
         return INNER_ERR;
+//jieshu
     }
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     XCOLLIE_TIMER_LESS_IGNORE(__PRETTY_FUNCTION__, !want.GetElement().GetDeviceID().empty());
@@ -884,6 +886,7 @@ int32_t AbilityManagerService::StartAbilityByInsightIntent(const Want &want, con
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no such bundle matched intentId");
         return ERR_INVALID_VALUE;
     }
+//kaishi
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
     if (abilityRecord == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no such bundle matched token");
@@ -898,6 +901,7 @@ int32_t AbilityManagerService::StartAbilityByInsightIntent(const Want &want, con
     }
     TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleName not match");
     return ERR_INSIGHT_INTENT_START_INVALID_COMPONENT;
+//jieshu
 }
 
 int32_t AbilityManagerService::StartAbilityByOEExt(const Want &want,
@@ -936,8 +940,10 @@ int AbilityManagerService::StartAbilityByUIContentSession(const Want &want, cons
     const sptr<SessionInfo> &sessionInfo, int32_t userId, int requestCode)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
+//kaishi
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
         return INNER_ERR;
+//jieshu
     }
     XCOLLIE_TIMER_LESS_IGNORE(__PRETTY_FUNCTION__, !want.GetElement().GetDeviceID().empty());
     if (!callerToken || !sessionInfo) {
@@ -951,11 +957,13 @@ int AbilityManagerService::StartAbilityByUIContentSession(const Want &want, cons
         Rosen::WindowManager::GetInstance().GetFocusWindowInfo(focusChangeInfo);
         token = focusChangeInfo.abilityToken_;
     } else {
+//kaishi
         if (!GetWMSHandler()) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "wmsHandler_ null");
             return ERR_INVALID_VALUE;
         }
         GetWMSHandler()->GetFocusWindow(token);
+//jieshu
     }
 #endif // SUPPORT_SCREEN
     if (!token) {
@@ -975,8 +983,10 @@ int AbilityManagerService::StartAbilityByUIContentSession(const Want &want, cons
     const sptr<IRemoteObject> &callerToken, const sptr<SessionInfo> &sessionInfo, int32_t userId, int requestCode)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
+//kaishi
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
         return INNER_ERR;
+//jieshu
     }
     XCOLLIE_TIMER_LESS_IGNORE(__PRETTY_FUNCTION__, !want.GetElement().GetDeviceID().empty());
     if (!callerToken || !sessionInfo) {
@@ -990,10 +1000,12 @@ int AbilityManagerService::StartAbilityByUIContentSession(const Want &want, cons
         Rosen::WindowManager::GetInstance().GetFocusWindowInfo(focusChangeInfo);
         token = focusChangeInfo.abilityToken_;
     } else {
+//kaishi
         if (!GetWMSHandler()) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "wmsHandler_ null");
             return ERR_INVALID_VALUE;
         }
+//jieshu
         GetWMSHandler()->GetFocusWindow(token);
     }
 #endif // SUPPORT_SCREEN
@@ -1068,7 +1080,7 @@ int AbilityManagerService::ImplicitStartAbilityAsCaller(const Want &want, const 
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
-        return INNER_ERR;
+        return INNER_ERR;//没走到
     }
     return StartAbilityAsCallerDetails(want, callerToken, asCallerSourceToken, userId,
         requestCode, true);
@@ -1389,11 +1401,13 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     }
 
     if (AbilityUtil::HandleDlpApp(param.want)) {
+//kaishi
         InsightIntentExecuteParam::RemoveInsightIntent(param.want);
         result = StartExtensionAbilityInner(param.want, param.callerToken, param.userId,
             AppExecFwk::ExtensionAbilityType::SERVICE, false, false, true, param.isStartAsCaller);
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "StartExtensionAbilityInner failed");
         return result;
+//jieshu
     }
     bool isTargetPlugin = false;
     if (auto pluginRet = CheckStartPlugin(param.want, param.callerToken, isTargetPlugin); pluginRet != ERR_OK) {
@@ -1454,18 +1468,22 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     }
 
     if ((param.want.GetFlags() & Want::FLAG_ABILITY_PREPARE_CONTINUATION) == Want::FLAG_ABILITY_PREPARE_CONTINUATION &&
+//kaishi        
         IPCSkeleton::GetCallingUid() != DMS_UID) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "flag only support DMS, flag:%{public}d", param.want.GetFlags());
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CONTINUATION_FLAG, "flag only support DMS");
         return ERR_INVALID_CONTINUATION_FLAG;
+//jieshu
     }
 
     if (param.callerToken != nullptr && CheckIfOperateRemote(param.want)) {
+//kaishi
         TAG_LOGI(AAFwkTag::ABILITYMGR, "try to StartRemoteAbility");
         result = StartRemoteAbility(param.want, param.requestCode, validUserId, param.callerToken,
             param.specifyTokenId);
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "StartRemoteAbility failed");
         return AbilityErrorUtil::ConvertToOriginErrorCode(result);
+//jieshu
     }
 
     if (!JudgeMultiUserConcurrency(validUserId)) {
@@ -1482,6 +1500,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     abilityRequest.specifiedFlag = param.specifiedFlag;
 #ifdef SUPPORT_SCREEN
     if (ImplicitStartProcessor::IsImplicitStartAction(param.want)) {
+//kaishi
         TAG_LOGD(AAFwkTag::ABILITYMGR, "is implicit start action");
         auto checkResult = AbilityUtil::CheckInstanceKey(param.want);
         if (checkResult != ERR_OK) {
@@ -1505,11 +1524,14 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
             AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "implicit start error");
         }
         return AbilityErrorUtil::ConvertToOriginErrorCode(result);
+//jieshu
     }
     if (param.want.GetAction().compare(ACTION_CHOOSE) == 0) {
+//kaishi
         result = ShowPickerDialog(param.want, validUserId, param.callerToken);
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "ShowPickerDialog failed");
         return result;
+//jieshu
     }
 #endif
     auto abilityRecord = Token::GetAbilityRecordByToken(param.callerToken);
@@ -1555,7 +1577,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "GenerateAbilityRequest error");
         return result;
     }
-
+//kaishi
     if (abilityRequest.requestCode != DEFAULT_REQUEST_CODE &&
         ForegroundAppConnectionManager::IsForegroundAppConnection(abilityRequest.abilityInfo, abilityRecord)) {
         DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->OnCallerStarted(IPCSkeleton::GetCallingPid(),
@@ -1735,6 +1757,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     result = missionListManager->StartAbility(abilityRequest);
     AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "missionListManager StartAbility failed");
     return result;
+//jieshu
 }
 
 int AbilityManagerService::PreStartFreeInstall(const Want &want, sptr<IRemoteObject> callerToken,
@@ -1941,6 +1964,7 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
         return result;
     }
 #endif
+//kaishi
     result = GenerateAbilityRequest(want, requestCode, abilityRequest, callerToken, validUserId);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "generate ability request local error:%{public}d", result);
@@ -2031,6 +2055,7 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
     }
     UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityRequest.want, callerToken);
     return missionListManager->StartAbility(abilityRequest);
+//jieshu
 }
 
 int AbilityManagerService::StartAbility(const Want &want, const StartOptions &startOptions,
@@ -2259,6 +2284,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
     }
 
     if (AbilityUtil::IsStartFreeInstall(want)) {
+//kaishi
         if (CheckIfOperateRemote(want) || freeInstallManager_ == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "not allow remote free install");
             AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_VALUE, "not allow remote free install");
@@ -2278,6 +2304,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         result = freeInstallManager_->StartFreeInstall(localWant, validUserId, requestCode, callerToken, param);
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "StartFreeInstall failed");
         return AbilityErrorUtil::ConvertToOriginErrorCode(result);
+//jieshu
     }
     if (!JudgeMultiUserConcurrency(validUserId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "multi-user non-concurrent unsatisfied:%{public}d", ERR_CROSS_USER);
@@ -2311,6 +2338,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         WindowOptionsUtils::SetWindowPositionAndSize(abilityRequest.want, callerToken, startOptions);
         abilityRequest.callType = AbilityCallType::START_OPTIONS_TYPE;
         CHECK_POINTER_AND_RETURN(implicitStartProcessor_, ERR_IMPLICIT_START_ABILITY_FAIL);
+//kaishi
         if (specifyTokenId > 0 && callerToken) { // for sa specify tokenId and caller token
             UpdateCallerInfoUtil::GetInstance().UpdateCallerInfoFromToken(abilityRequest.want, callerToken);
         } else if (!isStartAsCaller) {
@@ -2330,6 +2358,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
             AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "implicit start error");
         }
         return AbilityErrorUtil::ConvertToOriginErrorCode(result);
+//jieshu
     }
     if (want.GetAction().compare(ACTION_CHOOSE) == 0) {
         result = ShowPickerDialog(want, validUserId, callerToken);
@@ -2343,7 +2372,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "GenerateAbilityRequest error");
         return result;
     }
-
+//kaishi
     auto callerRecord = Token::GetAbilityRecordByToken(callerToken);
     if (abilityRequest.requestCode != DEFAULT_REQUEST_CODE &&
         ForegroundAppConnectionManager::IsForegroundAppConnection(abilityRequest.abilityInfo, callerRecord)) {
@@ -2527,6 +2556,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
             DisplayUtil::GetDefaultDisplayId());
     }
     return missionListManager->StartAbility(abilityRequest);
+//jieshu
 }
 
 int32_t AbilityManagerService::CheckWantForSplitMode(const AAFwk::Want &secondaryWant, sptr<IRemoteObject> callerToken,
