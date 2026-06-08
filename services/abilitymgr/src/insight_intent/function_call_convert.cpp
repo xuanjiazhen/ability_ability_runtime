@@ -128,7 +128,8 @@ bool ConvertFromConfigIntent(const std::vector<AbilityRuntime::InsightIntentInfo
 
 bool RegisterInsightIntentFunctions(
     const AbilityRuntime::ExtractInsightIntentProfileInfoVec &profileInfos,
-    const std::vector<AbilityRuntime::InsightIntentInfo> &configInfos)
+    const std::vector<AbilityRuntime::InsightIntentInfo> &configInfos,
+    const std::string &bundleName)
 {
     std::vector<FunctionInfo> functions;
     ConvertFromExtractProfile(profileInfos, functions);
@@ -139,6 +140,9 @@ bool RegisterInsightIntentFunctions(
     }
 
     for (auto &func : functions) {
+        if (func.bundleName.empty() && !bundleName.empty()) {
+            func.bundleName = bundleName;
+        }
         AddInsightIntentOptions(func);
     }
 

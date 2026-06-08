@@ -105,7 +105,7 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
             // save database
             DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->SaveInsightIntentTotalInfo(
                 bundleName, moduleNameLocal, userId, bundleInfo.versionCode, infos, configIntentInfos);
-            CliTool::RegisterInsightIntentFunctions(infos, configIntentInfos);
+            CliTool::RegisterInsightIntentFunctions(infos, configIntentInfos, bundleName);
         }
         DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->BackupRdb();
     });

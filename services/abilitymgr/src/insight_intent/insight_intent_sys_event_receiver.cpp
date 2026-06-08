@@ -88,7 +88,7 @@ void InsightIntentSysEventReceiver::SaveInsightIntentInfos(const std::string &bu
                 "userId: %{public}d", bundleName.c_str(), moduleNameLocal.c_str(), userId);
             continue;
         }
-        CliTool::RegisterInsightIntentFunctions(infos, configIntentInfos);
+        CliTool::RegisterInsightIntentFunctions(infos, configIntentInfos, bundleName);
 
         TAG_LOGI(AAFwkTag::INTENT, "save intent info success, bundleName: %{public}s, moduleName: %{public}s, "
             "userId: %{public}d", bundleName.c_str(), moduleNameLocal.c_str(), userId);

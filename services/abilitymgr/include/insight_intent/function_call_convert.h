@@ -21,7 +21,8 @@ bool ConvertFromConfigIntent(const std::vector<AbilityRuntime::InsightIntentInfo
 
 bool RegisterInsightIntentFunctions(
     const AbilityRuntime::ExtractInsightIntentProfileInfoVec &profileInfos,
-    const std::vector<AbilityRuntime::InsightIntentInfo> &configInfos);
+    const std::vector<AbilityRuntime::InsightIntentInfo> &configInfos,
+    const std::string &bundleName = "");
 
 } // namespace CliTool
 } // namespace OHOS
