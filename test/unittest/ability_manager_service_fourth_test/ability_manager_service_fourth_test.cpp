@@ -28,11 +28,13 @@
 #include "modal_system_dialog/modal_system_dialog_ui_extension.h"
 #include "user_controller/user_controller.h"
 #include "utils/modal_system_dialog_util.h"
+#include "app_utils.h"
 #undef private
 #undef protected
 #include "hilog_tag_wrapper.h"
 #include "mock_ability_token.h"
 #include "ability_bundle_event_callback.h"
+#include "request_start_ability_callback_stub.h"
 #include "session/host/include/session.h"
 #include "start_ability_utils.h"
 #include "start_params_by_SCB.h"
@@ -49,6 +51,7 @@ using OHOS::AppExecFwk::ExtensionAbilityType;
 constexpr char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 constexpr const char* DEBUG_APP = "debugApp";
 constexpr const char* START_ABILITY_TYPE = "ABILITY_INNER_START_WITH_ACCOUNT";
+constexpr const char* SUPPORT_NATIVE_UI_ABILITY = "persist.sys.abilityms.support_native_ui_ability";
 
 constexpr int32_t FOUNDATION_UID = 5523;
 constexpr int32_t TEST_VALID_USER_ID = 100;
@@ -173,6 +176,18 @@ public:
 
 public:
     bool isSuccess_ = false;
+};
+
+class RequestAbilityImplCallback : public AAFwk::RequestStartAbilityCallbackStub {
+public:
+    void OnRequestStartAbilityResult(bool result) override
+    {
+        TAG_LOGI(AAFwkTag::TEST, "start request result: %{public}s",
+            result ? "success" : "failed");
+        result_ = result;
+    }
+
+bool result_ = false;
 };
 
 /*
@@ -1826,6 +1841,103 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartUIExtensionAbilityTset_001, TestS
     EXPECT_EQ(abilityManagerService->StartUIExtensionAbility(extensionSessionInfoTest, 1), ERR_INVALID_VALUE);
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartUIExtensionAbilityTset_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityAsCallerDetails
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityAsCallerDetails with non-null callback on failure
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityAsCallerDetails_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartAbilityAsCallerDetails_002 start");
+    Want want;
+    auto callerToken = MockToken(AbilityType::PAGE);
+    auto asCallerSourceToken = MockToken(AbilityType::PAGE);
+    int32_t userId = 0;
+    int requestCode = 0;
+    bool isImplicit = true;
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs_, nullptr);
+
+    sptr<RequestAbilityImplCallback> callback = new RequestAbilityImplCallback();
+    auto ret = abilityMs_->StartAbilityAsCallerDetails(
+        want, callerToken, asCallerSourceToken, userId, requestCode, isImplicit, false, 0, callback);
+    EXPECT_NE(ret, ERR_OK);
+    EXPECT_EQ(callback->result_, false);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartAbilityAsCallerDetails_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityAsCallerDetails
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityAsCallerDetails with null callback on failure
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityAsCallerDetails_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartAbilityAsCallerDetails_003 start");
+    Want want;
+    auto callerToken = MockToken(AbilityType::PAGE);
+    auto asCallerSourceToken = MockToken(AbilityType::PAGE);
+    int32_t userId = 0;
+    int requestCode = 0;
+    bool isImplicit = true;
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs_, nullptr);
+
+    sptr<IRequestStartAbilityCallback> callback = nullptr;
+    auto ret = abilityMs_->StartAbilityAsCallerDetails(
+        want, callerToken, asCallerSourceToken, userId, requestCode, isImplicit, false, 0, callback);
+    EXPECT_NE(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartAbilityAsCallerDetails_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartUIAbilityWithCallback
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService StartUIAbilityWithCallback with SA check failed
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartUIAbilityWithCallback_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartUIAbilityWithCallback_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    sptr<RequestAbilityImplCallback> callback = new RequestAbilityImplCallback();
+    MyFlag::flag_ = 0;
+    auto result = abilityMs->StartUIAbilityWithCallback(want, nullptr, callback);
+    EXPECT_NE(result, ERR_OK);
+    EXPECT_EQ(callback->result_, false);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartUIAbilityWithCallback_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartUIAbilityWithCallback
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService StartUIAbilityWithCallback with SA check passed but ability not exist
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartUIAbilityWithCallback_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartUIAbilityWithCallback_002 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    Want want;
+    want.SetElementName("com.test.bundle", "NonExistAbility");
+    sptr<IRemoteObject> callerToken = MockToken(AbilityType::PAGE);
+    sptr<RequestAbilityImplCallback> callback = new RequestAbilityImplCallback();
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    MyFlag::flag_ = 1;
+    auto result = abilityMs->StartUIAbilityWithCallback(want, callerToken, callback);
+    EXPECT_NE(result, ERR_OK);
+    result = abilityMs->StartUIAbilityWithCallback(want, callerToken, nullptr);
+    EXPECT_NE(result, ERR_OK);
+    EXPECT_EQ(callback->result_, false);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartUIAbilityWithCallback_002 end");
 }
 
 /*

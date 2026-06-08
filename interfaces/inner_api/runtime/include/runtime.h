@@ -29,7 +29,6 @@ class EventRunner;
 namespace AbilityRuntime {
 struct CommonHspBundleInfo {
     uint32_t versionCode;
-    int32_t aotCompileStatus;
     std::string bundleName;
     std::string moduleName;
     std::string hapPath;
@@ -91,6 +90,8 @@ public:
         uint32_t versionCode = 0;
         bool enableWarmStartupSmartGC = false;
         std::string arkTSMode;
+        bool isMainProcess = true;
+        std::vector<std::string> staticPluginHspPathList;
     };
 
     struct DebugOption {

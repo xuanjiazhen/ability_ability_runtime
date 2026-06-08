@@ -97,6 +97,7 @@ ohos_shared_library("appkit_native") {
     "${ability_runtime_napi_path}/inner/napi_common/ani_common",
     "${ability_runtime_utils_path}/global/constant",
     "${ability_runtime_path}/interfaces/inner_api/app_manager",
+    "${ability_runtime_path}/interfaces/kits/c/ability_runtime",
   ]
 
   configs = [
@@ -126,6 +127,7 @@ ohos_shared_library("appkit_native") {
     "${ability_runtime_native_path}/appkit/app/dump_ipc_helper.cpp",
     "${ability_runtime_native_path}/appkit/app/dump_runtime_helper.cpp",
     "${ability_runtime_native_path}/appkit/app/extension_plugin_info.cpp",
+    "${ability_runtime_native_path}/appkit/app/forkall_helper.cpp",
     "${ability_runtime_native_path}/appkit/app/idle_time.cpp",
     "${ability_runtime_native_path}/appkit/app/main_thread.cpp",
     "${ability_runtime_native_path}/appkit/app/native_lib_util.cpp",
@@ -184,6 +186,7 @@ ohos_shared_library("appkit_native") {
     "${ability_runtime_path}/js_environment/frameworks/js_environment:js_environment",
     "${ability_runtime_path}/utils/global/common:runtime_utils",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${ability_runtime_path}/utils/server/startup:startup_util",
     "${ability_runtime_services_path}/common:app_util",
     "${ability_runtime_services_path}/common:hisysevent_report",
     "${ability_runtime_services_path}/common:task_handler_wrap",
@@ -292,7 +295,10 @@ ohos_shared_library("appkit_native") {
   if (memory_utils_purgeable_ashmem_enable && defined(global_parts_info) &&
       defined(global_parts_info.resourceschedule_memmgr_override)) {
     defines += [ "IMAGE_PURGEABLE_PIXELMAP" ]
-    external_deps += [ "memmgr:libpurgeablemem_plugin" ]
+    external_deps += [ 
+      "memmgr:libpurgeablemem_plugin",
+      "memory_utils:libpurgeablemem"
+    ]
   }
 
   if (cj_frontend) {
@@ -895,7 +901,10 @@ ohos_shared_library("appkit_child") {
     debug = false
   }
 
-  include_dirs = []
+  include_dirs = [
+    "${ability_runtime_path}/interfaces/kits/c/ability_runtime",
+    "${ability_runtime_path}/interfaces/inner_api/connect_server_manager/include",
+  ]
 
   configs = [
     ":appkit_config",
