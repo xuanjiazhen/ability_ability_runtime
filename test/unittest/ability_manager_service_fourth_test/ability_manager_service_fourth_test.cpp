@@ -38,6 +38,7 @@
 #include "start_params_by_SCB.h"
 #include "system_ability_definition.h"
 #include "ability_util.h"
+#include "ability_manager_errors.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -756,7 +757,7 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityByInsightIntent_NullToken_
  * Function: StartAbilityByInsightIntent
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService StartAbilityByInsightIntent
- * CaseDescription: Verify bundle name mismatch returns ERR_INSIGHT_INTENT_START_INVALID_COMPONENT
+ * CaseDescription: Verify bundle name mismatch 
  */
 HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityByInsightIntent_BundleMismatch_001, TestSize.Level1)
 {
@@ -1982,6 +1983,32 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartSelf_005, TestSize.Level1)
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartSelf_005 end");
 }
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartSelf
+ * FunctionPoints: AbilityManagerService StartSelf when device does not support Native UI Ability
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartSelf_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartSelf_006 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    auto &appUtils = AppUtils::GetInstance();
+    bool srcCacheLoaded = appUtils.isSupportNativeUIAbility_.isLoaded;
+    bool srcCacheValue = appUtils.isSupportNativeUIAbility_.value;
+    bool srcSupportNativeUiAbility = OHOS::system::GetBoolParameter(SUPPORT_NATIVE_UI_ABILITY, false);
+    OHOS::system::SetBoolParameter(SUPPORT_NATIVE_UI_ABILITY, false);
+    appUtils.isSupportNativeUIAbility_.isLoaded = false;
+    auto callerToken = MockToken(AbilityType::PAGE);
+    ASSERT_NE(callerToken, nullptr);
+    auto ret = abilityMs_->StartSelf(callerToken);
+    EXPECT_EQ(ret, ERR_CAPABILITY_NOT_SUPPORT);
+    OHOS::system::SetBoolParameter(SUPPORT_NATIVE_UI_ABILITY, srcSupportNativeUiAbility);
+    appUtils.isSupportNativeUIAbility_.isLoaded = srcCacheLoaded;
+    appUtils.isSupportNativeUIAbility_.value = srcCacheValue;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartSelf_006 end");
+}
+
 /*
  * Feature: AbilityManagerService
  * Function: StartAbility (HandleDlpApp path in StartAbilityInner)
@@ -2059,6 +2086,5 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityForOptionInner_FreeInstall
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartAbilityForOptionInner_FreeInstall_001 end");
 }
-
 } // namespace AAFwk
 } // namespace OHOS
