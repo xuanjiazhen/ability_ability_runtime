@@ -77,13 +77,16 @@ int64_t InsertAgentConnection(sptr<JSAgentConnection> connection, const AAFwk::W
 void FindAgentConnection(int64_t connectId, sptr<JSAgentConnection> &connection);
 
 /**
- * Find agent connection by target identity.
+ * Find agent connection by target identity and JS callback object.
  *
  * @param want The want information to match.
  * @param agentId The agent ID to match.
+ * @param env The N-API environment.
+ * @param callbackObject The JS callback object to match.
  * @param connection Output parameter for the found connection.
  */
-void FindAgentConnection(const AAFwk::Want &want, const std::string &agentId, sptr<JSAgentConnection> &connection);
+void FindAgentConnection(const AAFwk::Want &want, const std::string &agentId, napi_env env,
+    napi_value callbackObject, sptr<JSAgentConnection> &connection);
 }
 
 class JsAgentConnectorStubImpl;
@@ -158,28 +161,44 @@ public:
     void SetNapiAsyncTask(std::shared_ptr<AbilityRuntime::NapiAsyncTask> &task);
 
     /**
-     * Add a duplicated pending task.
-     * Used when multiple connection requests are made for the same extension.
-     *
-     * @param task The unique pointer to the pending async task.
+     * Add a duplicate logical connect request waiting on this real IPC connection.
      */
-    void AddDuplicatedPendingTask(std::unique_ptr<AbilityRuntime::NapiAsyncTask> &task);
+    void AddDuplicatedPendingConnection(const sptr<JSAgentConnection> &connection);
 
     /**
-     * Resolve all duplicated pending tasks with the proxy.
-     *
-     * @param env The N-API environment.
-     * @param proxy The proxy object to resolve with.
+     * Resolve pending duplicate requests with separate JS proxy objects.
      */
-    void ResolveDuplicatedPendingTask(napi_env env, napi_value proxy);
+    void ResolveDuplicatedPendingConnection(napi_env env, const sptr<IRemoteObject> &remoteObject);
 
     /**
-     * Reject all duplicated pending tasks with error.
-     *
-     * @param env The N-API environment.
-     * @param error The error object to reject with.
+     * Reject pending duplicate requests when the real connect request fails.
      */
-    void RejectDuplicatedPendingTask(napi_env env, napi_value error);
+    void RejectDuplicatedPendingConnection(napi_env env, napi_value error);
+
+    /**
+     * Resolve this connection promise with a proxy bound to this connection ID.
+     */
+    bool ResolveWithRemoteObject(const sptr<IRemoteObject> &remoteObject);
+
+    /**
+     * Reject this connection promise with the given JS error.
+     */
+    void RejectWithError(napi_value error);
+
+    /**
+     * Get the remote object cached from a completed real IPC connect.
+     */
+    sptr<IRemoteObject> GetRemoteObject() const { return remoteObject_; }
+
+    /**
+     * Mark whether this record owns the real AMS connection or only a duplicate logical connection.
+     */
+    void SetRealConnection(bool isRealConnection) { isRealConnection_ = isRealConnection; }
+
+    /**
+     * Check whether disconnect should close the real AMS connection.
+     */
+    bool IsRealConnection() const { return isRealConnection_; }
 
     /**
      * Called when agent extension sends data.
@@ -301,6 +320,11 @@ private:
     sptr<JsAgentConnectorStubImpl> serviceHostStub_;
 
     /**
+     * Remote object cached after real connect succeeds and reused for duplicate logical connects.
+     */
+    sptr<IRemoteObject> remoteObject_;
+
+    /**
      * The async task for the connection promise.
      */
     std::shared_ptr<AbilityRuntime::NapiAsyncTask> napiAsyncTask_;
@@ -311,9 +335,14 @@ private:
     std::unique_ptr<NativeReference> serviceProxyObject_;
 
     /**
-     * List of pending tasks for duplicate connection requests.
+     * Duplicate logical connections waiting for the real connect callback.
      */
-    std::vector<std::unique_ptr<AbilityRuntime::NapiAsyncTask>> duplicatedPendingTaskList_;
+    std::vector<sptr<JSAgentConnection>> duplicatedPendingConnections_;
+
+    /**
+     * False for duplicate logical connections that should only be removed locally on disconnect.
+     */
+    bool isRealConnection_ = true;
 };
 
 } // namespace AgentRuntime

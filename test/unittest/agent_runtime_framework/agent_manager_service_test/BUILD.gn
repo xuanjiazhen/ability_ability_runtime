@@ -28,6 +28,7 @@ ohos_unittest("agent_manager_service_test") {
   sources = [
     "agent_manager_service_test.cpp",
     "mock/src/bundle_mgr_client.cpp",
+    "mock/src/ipc_skeleton.cpp",
     "mock/src/mock_ability_manager_client.cpp",
     "mock/src/mock_agent_card_mgr.cpp",
     "mock/src/mock_app_mgr_client.cpp",
