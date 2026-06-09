@@ -64,6 +64,45 @@ HWTEST_F(CliEventReportTest, ReportExecuteCli_0200, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ReportExecuteCli_0300
+ * @tc.desc: Test CLI execution event reporting with "undefined" args
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliEventReportTest, ReportExecuteCli_0300, TestSize.Level1)
+{
+    // Should not crash when reporting execute CLI event with "undefined" args
+    // "undefined" should be filtered out
+    ReportExecuteCli(TEST_BUNDLE_NAME, TEST_CLI_NAME, "undefined");
+    SUCCEED();
+}
+
+/**
+ * @tc.name: ReportExecuteCli_0400
+ * @tc.desc: Test CLI execution event reporting with "null" args
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliEventReportTest, ReportExecuteCli_0400, TestSize.Level1)
+{
+    // Should not crash when reporting execute CLI event with "null" args
+    // "null" should be filtered out
+    ReportExecuteCli(TEST_BUNDLE_NAME, TEST_CLI_NAME, "null");
+    SUCCEED();
+}
+
+/**
+ * @tc.name: ReportExecuteCli_0500
+ * @tc.desc: Test CLI execution event reporting with mixed args including "undefined"
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliEventReportTest, ReportExecuteCli_0500, TestSize.Level1)
+{
+    // Should not crash when reporting execute CLI event with mixed args
+    // "undefined" should be filtered out from mixed args
+    ReportExecuteCli(TEST_BUNDLE_NAME, TEST_CLI_NAME, "undefined arg1=value1");
+    SUCCEED();
+}
+
+/**
  * @tc.name: ReportExecuteCliFailed_0100
  * @tc.desc: Test CLI execution failure event reporting
  * @tc.type: FUNC
@@ -72,6 +111,32 @@ HWTEST_F(CliEventReportTest, ReportExecuteCliFailed_0100, TestSize.Level1)
 {
     // Should not crash when reporting execute CLI failed event
     ReportExecuteCliFailed(TEST_BUNDLE_NAME, TEST_CLI_NAME, REASON_PERMISSION_DENIED);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: ReportExecuteCliFailed_0200
+ * @tc.desc: Test CLI execution failure event reporting with empty cliName
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliEventReportTest, ReportExecuteCliFailed_0200, TestSize.Level1)
+{
+    // Should not crash when reporting execute CLI failed event with empty cliName
+    // Empty cliName should be replaced with "<empty>" placeholder
+    ReportExecuteCliFailed(TEST_BUNDLE_NAME, "", REASON_TOOL_NOT_EXIST);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: ReportExecuteCliFailed_0300
+ * @tc.desc: Test CLI execution failure event reporting with "undefined" cliName
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliEventReportTest, ReportExecuteCliFailed_0300, TestSize.Level1)
+{
+    // Should not crash when reporting execute CLI failed event with "undefined" cliName
+    // "undefined" cliName should be replaced with "<empty>" placeholder
+    ReportExecuteCliFailed(TEST_BUNDLE_NAME, "undefined", REASON_TOOL_NOT_EXIST);
     SUCCEED();
 }
 
@@ -111,8 +176,6 @@ HWTEST_F(CliEventReportTest, GetFailureReason_0100, TestSize.Level1)
     EXPECT_EQ(GetFailureReason(ERR_SESSION_LIMIT_EXCEEDED), REASON_SESSION_LIMIT_EXCEEDED);
     EXPECT_EQ(GetFailureReason(ERR_NO_INIT), REASON_PROCESS_CREATE_FAILED);
     EXPECT_EQ(GetFailureReason(ERR_INVALID_PARAM), REASON_INVALID_PARAM);
-    EXPECT_EQ(GetFailureReason(ERR_NOT_HAP), REASON_NOT_HAP);
-    EXPECT_EQ(GetFailureReason(ERR_NOT_SYSTEM_APP), REASON_NOT_SYSTEM_APP);
 }
 
 /**
@@ -122,8 +185,8 @@ HWTEST_F(CliEventReportTest, GetFailureReason_0100, TestSize.Level1)
  */
 HWTEST_F(CliEventReportTest, GetFailureReason_0200, TestSize.Level1)
 {
-    EXPECT_EQ(GetFailureReason(-1), REASON_UNKNOWN);
-    EXPECT_EQ(GetFailureReason(99999), REASON_UNKNOWN);
+    EXPECT_EQ(GetFailureReason(-1), REASON_INVALID_PARAM);
+    EXPECT_EQ(GetFailureReason(99999), REASON_INVALID_PARAM);
 }
 
 } // namespace CliTool

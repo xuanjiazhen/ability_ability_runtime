@@ -790,7 +790,7 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
     int32_t callerPid = IPCSkeleton::GetCallingPid();
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
-        ReportExecuteCliFailed(bundleName, param.toolName, REASON_UNKNOWN);
+        ReportExecuteCliFailed(bundleName, param.toolName, GetFailureReason(ERR_NO_INIT));
         return ERR_NO_INIT;
     }
 
@@ -926,11 +926,17 @@ void CliToolManagerService::WaitPid(pid_t pid, int32_t status, int32_t sig)
     AccessToken::AccessTokenKit::DeleteToolTokenByPid(pid);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "WaitPid delete tool pid:%{public}d", pid);
     if (record) {
-        record->SetTerminalResult(status, sig);
-        // Report error exit if process was killed by signal
-        if (sig != 0 && sig != SIGTERM && sig != SIGHUP) {
-            ReportCliRunError(record->toolName, sig);
+        // 新增：异常退出打点
+        int32_t termSignal = 0;
+        if (WIFSIGNALED(status)) {
+            termSignal = WTERMSIG(status);
+            if (termSignal != 0 && termSignal != SIGTERM && termSignal != SIGHUP) {
+                ReportCliRunError(record->toolName, termSignal);
+            }
         }
+
+        // 保持原有逻辑不变
+        record->SetTerminalResult(status, sig);
         if (record->OutputDrained()) {
             FinalizeBackgroundSession(record);
         }
