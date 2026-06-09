@@ -72,6 +72,7 @@ bool IsPermissionGateResult(int32_t result)
 {
     return result == ERR_NOT_SYSTEM_APP || result == ERR_PERMISSION_DENIED;
 }
+} // namespace {
 
 // Mock functions for cli_event_report
 void ReportExecuteCli(const std::string& bundleName, const std::string& cliName, const std::string& args)
@@ -108,12 +109,8 @@ std::string GetFailureReason(int32_t errorCode)
         case ERR_INVALID_PARAM:
         case ERR_INNER_PARAM_INVALID:
             return "INVALID_PARAM";
-        case ERR_NOT_HAP:
-            return "NOT_HAP";
-        case ERR_NOT_SYSTEM_APP:
-            return "NOT_SYSTEM_APP";
         default:
-            return "UNKNOWN";
+            return "INVALID_PARAM";
     }
 }
 
@@ -136,7 +133,6 @@ std::string FormatWantParamsToString(const AAFwk::WantParams& args)
         result += " ";
     }
     return result;
-}
 }
 
 class TestScheduler : public CliToolManagerSchedulerStub {

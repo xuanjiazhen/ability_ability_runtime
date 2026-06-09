@@ -40,9 +40,6 @@ constexpr const char* REASON_TOOL_NOT_EXIST = "TOOL_NOT_EXIST";
 constexpr const char* REASON_SESSION_LIMIT_EXCEEDED = "SESSION_LIMIT_EXCEEDED";
 constexpr const char* REASON_PROCESS_CREATE_FAILED = "PROCESS_CREATE_FAILED";
 constexpr const char* REASON_INVALID_PARAM = "INVALID_PARAM";
-constexpr const char* REASON_NOT_HAP = "NOT_HAP";
-constexpr const char* REASON_NOT_SYSTEM_APP = "NOT_SYSTEM_APP";
-constexpr const char* REASON_UNKNOWN = "UNKNOWN";
 
 /**
  * @brief Report CLI execution event

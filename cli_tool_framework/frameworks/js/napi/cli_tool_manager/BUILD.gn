@@ -80,6 +80,7 @@ ohos_shared_library("climanager_napi") {
     "include",
     "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime",
     "${cli_tool_framework_path}/interfaces/cli_tool/include",
+    "${cli_tool_framework_path}/services/common/include",
   ]
 
   sources = [
@@ -94,12 +95,15 @@ ohos_shared_library("climanager_napi") {
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
     "${cli_tool_framework_path}/interfaces/cli_tool:cli_tool_client",
+    "${cli_tool_framework_path}/services/common:cli_common",
     ":cli_manager_error_utils_src",
     ":js_cli_event_handler_manager_src",
   ]
 
   external_deps = [
     "ability_base:base",
+    "access_token:libaccesstoken_sdk",
+    "bundle_framework:appexecfwk_client",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",

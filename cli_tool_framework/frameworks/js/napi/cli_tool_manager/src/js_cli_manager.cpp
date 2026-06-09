@@ -17,19 +17,24 @@
 
 #include <string>
 
+#include "accesstoken_kit.h"
+#include "bundle_manager_client.h"
 #include "cli_error_code.h"
+#include "cli_event_report.h"
 #include "cli_manager_error_utils.h"
 #include "cli_session_info.h"
 #include "cli_tool_mgr_client.h"
 #include "exec_cmd_param.h"
 #include "exec_result.h"
 #include "hilog_tag_wrapper.h"
+#include "ipc_skeleton.h"
 #include "js_cli_event_handler_manager.h"
 #include "js_cli_manager_utils.h"
 #include "js_cli_session_event_callback.h"
 #include "js_error_utils.h"
 #include "napi_common_util.h"
 #include "napi_common_want.h"
+#include "tokenid_kit.h"
 
 using namespace OHOS::AbilityRuntime;
 
@@ -41,6 +46,25 @@ constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t INDEX_TWO = 2;
 constexpr int32_t INDEX_THREE = 3;
 constexpr int32_t INDEX_FOUR = 4;
+
+std::string GetBundleName()
+{
+    std::string bundleName;
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    AppExecFwk::BundleInfo bundleInfo;
+    AppExecFwk::BundleMgrClient bundleMgrClient;
+    if (bundleMgrClient.GetBundleInfoForSelf(tokenId, bundleInfo) == ERR_OK) {
+        bundleName = bundleInfo.name;
+    }
+    return bundleName;
+}
+
+void ReportExecToolFailed(const std::string &toolName, const std::string &subcommand, int32_t errorCode)
+{
+    std::string bundleName = GetBundleName();
+    std::string effectiveToolName = toolName.empty() || toolName == "undefined" ? "<empty>" : toolName;
+    ReportExecuteCliFailed(bundleName, effectiveToolName, GetFailureReason(errorCode));
+}
 
 int32_t DispatchCliTool(const ExecToolParam &param, napi_env env,
     std::shared_ptr<NapiAsyncTask> asyncTask)
@@ -152,27 +176,32 @@ napi_value JSCliManager::OnExecTool(napi_env env, size_t argc, napi_value *argv)
 
     ExecToolParam param;
     if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ZERO], param.toolName) || param.toolName.empty()) {
+        ReportExecToolFailed("", "", ERR_INVALID_PARAM);
         ThrowInvalidParamError(env, "Tool toolName is required");
         return CreateJsUndefined(env);
     }
 
     if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ONE], param.subcommand)) {
+        ReportExecToolFailed(param.toolName, "", ERR_INVALID_PARAM);
         ThrowInvalidParamError(env, "Tool subcommand is required");
         return CreateJsUndefined(env);
     }
 
     if (!AppExecFwk::UnwrapWantParams(env, argv[INDEX_TWO], param.args)) {
+        ReportExecToolFailed(param.toolName, param.subcommand, ERR_INVALID_PARAM);
         ThrowInvalidParamError(env, "Tool args is required");
         return CreateJsUndefined(env);
     }
 
     if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_THREE], param.challenge) || param.challenge.empty()) {
+        ReportExecToolFailed(param.toolName, param.subcommand, ERR_INVALID_PARAM);
         ThrowInvalidParamError(env, "Tool challenge is required");
         return CreateJsUndefined(env);
     }
 
     if (argc > INDEX_FOUR && argv[INDEX_FOUR] != nullptr) {
         if (!UnwrapExecOptions(env, argv[INDEX_FOUR], param.options)) {
+            ReportExecToolFailed(param.toolName, param.subcommand, ERR_INVALID_PARAM);
             ThrowInvalidParamError(env, "Tool options is required");
             return CreateJsUndefined(env);
         }
