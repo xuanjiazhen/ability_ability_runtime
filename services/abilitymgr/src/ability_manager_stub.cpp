@@ -1180,8 +1180,8 @@ int AbilityManagerStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Mess
 
 int AbilityManagerStub::GetTopAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
-    bool isNeedLocalDeviceId = data.ReadBool();
-    AppExecFwk::ElementName result = GetTopAbility(isNeedLocalDeviceId);
+    int32_t userId = data.ReadInt32();
+    AppExecFwk::ElementName result = GetTopAbility(userId);
     if (result.GetDeviceID().empty()) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "GetTopAbilityInner is nullptr");
     }
@@ -3041,8 +3041,9 @@ int AbilityManagerStub::FinishUserTestInner(MessageParcel &data, MessageParcel &
 
 int AbilityManagerStub::GetTopAbilityTokenInner(MessageParcel &data, MessageParcel &reply)
 {
+    int32_t userId = data.ReadInt32();
     sptr<IRemoteObject> token;
-    auto result = GetTopAbility(token);
+    auto result = GetTopAbility(token, userId);
     if (!reply.WriteRemoteObject(token)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "data write fail");
         return ERR_INVALID_VALUE;
