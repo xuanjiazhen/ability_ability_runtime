@@ -72,72 +72,7 @@ bool IsPermissionGateResult(int32_t result)
 {
     return result == ERR_NOT_SYSTEM_APP || result == ERR_PERMISSION_DENIED;
 }
-
-// Mock functions for cli_event_report
-void ReportExecuteCli(const std::string& bundleName, const std::string& cliName, const std::string& args)
-{
-    // Mock implementation - do nothing in test
-}
-
-void ReportExecuteCliFailed(const std::string& bundleName, const std::string& cliName, const std::string& reason)
-{
-    // Mock implementation - do nothing in test
-}
-
-void ReportCliRunTimeout(const std::string& bundleName, const std::string& cliName, int64_t durationMs)
-{
-    // Mock implementation - do nothing in test
-}
-
-void ReportCliRunError(const std::string& cliName, int32_t signalNum)
-{
-    // Mock implementation - do nothing in test
-}
-
-std::string GetFailureReason(int32_t errorCode)
-{
-    switch (errorCode) {
-        case ERR_PERMISSION_DENIED:
-            return "PERMISSION_DENIED";
-        case ERR_TOOL_NOT_EXIST:
-            return "TOOL_NOT_EXIST";
-        case ERR_SESSION_LIMIT_EXCEEDED:
-            return "SESSION_LIMIT_EXCEEDED";
-        case ERR_NO_INIT:
-            return "PROCESS_CREATE_FAILED";
-        case ERR_INVALID_PARAM:
-        case ERR_INNER_PARAM_INVALID:
-            return "INVALID_PARAM";
-        case ERR_NOT_HAP:
-            return "NOT_HAP";
-        case ERR_NOT_SYSTEM_APP:
-            return "NOT_SYSTEM_APP";
-        default:
-            return "UNKNOWN";
-    }
-}
-
-std::string FormatWantParamsToString(const AAFwk::WantParams& args)
-{
-    std::string result;
-    for (const auto& [key, value] : args.GetParams()) {
-        if (value == nullptr) {
-            continue;
-        }
-        result += key + "=";
-        // Try String
-        if (auto strObj = AAFwk::IString::Query(value)) {
-            std::string strValue;
-            if (strObj->GetString(strValue) == ERR_OK) {
-                result += strValue + " ";
-                continue;
-            }
-        }
-        result += " ";
-    }
-    return result;
-}
-}
+} // namespace {
 
 class TestScheduler : public CliToolManagerSchedulerStub {
 public:
@@ -514,13 +449,14 @@ HWTEST_F(CliToolManagerServiceTest, ValidateAndPrepareTool_0100, TestSize.Level1
     ToolInfo toolInfo;
     std::string sandboxConfig;
     std::string bundleName;
+    std::string detail;
 
     EXPECT_EQ(service_->ValidateAndPrepareTool(param, IPCSkeleton::GetCallingTokenID(),
-        toolInfo, sandboxConfig, bundleName), ERR_TOOL_NOT_EXIST);
+        toolInfo, sandboxConfig, bundleName, detail), ERR_TOOL_NOT_EXIST);
 
     CliToolDataManagerMock::getToolByNameResult = ERR_OK;
     int32_t result = service_->ValidateAndPrepareTool(param, IPCSkeleton::GetCallingTokenID(),
-        toolInfo, sandboxConfig, bundleName);
+        toolInfo, sandboxConfig, bundleName, detail);
     EXPECT_TRUE(result == ERR_OK || result == ERR_NOT_HAP);
     if (result == ERR_OK) {
         EXPECT_EQ(toolInfo.name, param.toolName);
@@ -601,7 +537,8 @@ HWTEST_F(CliToolManagerServiceTest, ExecTool_0500, TestSize.Level1)
     param.subcommand = "invalid_subcmd";
     param.challenge = "test_challenge";
 
-    int32_t result = ToolUtil::ValidateProperties(toolInfo, param, 0);
+    std::string detail;
+    int32_t result = ToolUtil::ValidateProperties(toolInfo, param, 0, detail);
 
     EXPECT_EQ(result, ERR_TOOL_NOT_EXIST);
 
