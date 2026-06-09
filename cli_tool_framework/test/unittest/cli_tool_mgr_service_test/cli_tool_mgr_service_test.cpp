@@ -72,6 +72,7 @@ bool IsPermissionGateResult(int32_t result)
 {
     return result == ERR_NOT_SYSTEM_APP || result == ERR_PERMISSION_DENIED;
 }
+} // namespace {
 
 // Mock functions for cli_event_report
 void ReportExecuteCli(const std::string& bundleName, const std::string& cliName, const std::string& args)
@@ -136,7 +137,6 @@ std::string FormatWantParamsToString(const AAFwk::WantParams& args)
         result += " ";
     }
     return result;
-}
 }
 
 class TestScheduler : public CliToolManagerSchedulerStub {

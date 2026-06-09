@@ -24,7 +24,10 @@ ohos_unittest("cli_event_report_test_bin") {
   subsystem_name = "ability"
   part_name = "ability_runtime"
 
-  sources = [ "cli_event_report_test.cpp" ]
+  sources = [
+    "cli_event_report_test.cpp",
+    "${cli_tool_framework_path}/services/climgr/src/cli_event_report.cpp",
+  ]
 
   include_dirs = [
     "//third_party/googletest/googletest/include",
@@ -35,11 +38,14 @@ ohos_unittest("cli_event_report_test_bin") {
 
   deps = [
     "${ability_runtime_services_path}/common:services_common",
+    "${ability_runtime_services_path}/common:hisysevent_report_static",
   ]
 
   external_deps = [
+    "ability_base:want",
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
   ]
 
   defines = [ "AMS_LOG_TAG = \"CliEventReportTest\"" ]
