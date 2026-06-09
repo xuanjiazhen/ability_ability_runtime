@@ -17,7 +17,6 @@
 
 #include <unistd.h>
 
-#include "hisysevent.h"
 #include "hisysevent_report.h"
 #include "hilog_tag_wrapper.h"
 #include "cli_error_code.h"
@@ -39,7 +38,7 @@ void ReportExecuteCli(const std::string& bundleName, const std::string& cliName,
     report.InsertParam("ARGS", args);
     report.InsertParam("PID", static_cast<int32_t>(getpid()));
 
-    int32_t ret = report.Report(DOMAIN_CLI_TOOL, EVENT_EXECUTE_CLI, HiSysEventType::BEHAVIOR);
+    int32_t ret = report.Report(DOMAIN_CLI_TOOL, EVENT_EXECUTE_CLI, HISYSEVENT_BEHAVIOR);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "Report EXECUTE_CLI: bundle=%{public}s, cli=%{public}s, ret=%{public}d",
         bundleName.c_str(), cliName.c_str(), ret);
 }
@@ -54,7 +53,7 @@ void ReportExecuteCliFailed(const std::string& bundleName, const std::string& cl
     report.InsertParam("REASON", reason);
     report.InsertParam("PID", static_cast<int32_t>(getpid()));
 
-    int32_t ret = report.Report(DOMAIN_CLI_TOOL, EVENT_EXECUTE_CLI_FAILED, HiSysEventType::FAULT);
+    int32_t ret = report.Report(DOMAIN_CLI_TOOL, EVENT_EXECUTE_CLI_FAILED, HISYSEVENT_FAULT);
     TAG_LOGI(AAFwkTag::CLI_TOOL,
         "Report EXECUTE_CLI_FAILED: bundle=%{public}s, cli=%{public}s, reason=%{public}s, ret=%{public}d",
         bundleName.c_str(), cliName.c_str(), reason.c_str(), ret);
@@ -70,9 +69,9 @@ void ReportCliRunTimeout(const std::string& bundleName, const std::string& cliNa
     report.InsertParam("DURATION_MS", durationMs);
     report.InsertParam("PID", static_cast<int32_t>(getpid()));
 
-    int32_t ret = report.Report(DOMAIN_CLI_TOOL, EVENT_CLI_RUN_TIMEOUT, HiSysEventType::FAULT);
+    int32_t ret = report.Report(DOMAIN_CLI_TOOL, EVENT_CLI_RUN_TIMEOUT, HISYSEVENT_FAULT);
     TAG_LOGI(AAFwkTag::CLI_TOOL,
-        "Report CLI_RUN_TIMEOUT: bundle=%{public}s, cli=%{public}s, duration=%{public}ld, ret=%{public}d",
+        "Report CLI_RUN_TIMEOUT: bundle=%{public}s, cli=%{public}s, duration=%{public}lld, ret=%{public}d",
         bundleName.c_str(), cliName.c_str(), durationMs, ret);
 }
 
@@ -85,7 +84,7 @@ void ReportCliRunError(const std::string& cliName, int32_t signalNum)
     report.InsertParam("SIGNAL_NUM", signalNum);
     report.InsertParam("PID", static_cast<int32_t>(getpid()));
 
-    int32_t ret = report.Report(DOMAIN_CLI_TOOL, EVENT_CLI_RUN_ERROR, HiSysEventType::FAULT);
+    int32_t ret = report.Report(DOMAIN_CLI_TOOL, EVENT_CLI_RUN_ERROR, HISYSEVENT_FAULT);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "Report CLI_RUN_ERROR: cli=%{public}s, signal=%{public}d, ret=%{public}d",
         cliName.c_str(), signalNum, ret);
 }
@@ -175,3 +174,4 @@ std::string FormatWantParamsToString(const AAFwk::WantParams& args)
 
 } // namespace CliTool
 } // namespace OHOS
+# CLI Event Reporting Fix
