@@ -26,54 +26,63 @@ class WantParams;
 namespace CliTool {
 
 // Event names
-constexpr const char* EVENT_EXECUTE_CLI = "EXECUTE_CLI";
-constexpr const char* EVENT_EXECUTE_CLI_FAILED = "EXECUTE_CLI_FAILED";
-constexpr const char* EVENT_CLI_RUN_TIMEOUT = "CLI_RUN_TIMEOUT";
-constexpr const char* EVENT_CLI_RUN_ERROR = "CLI_RUN_ERROR";
+constexpr const char* EVENT_CLI_EXECUTE_FAILED = "EXECUTE_CLI_FAILED";
 
 // Event domain
 constexpr const char* DOMAIN_CLI_TOOL = "AAFWK";
 
+// Failure types for TYPE field (INT32)
+constexpr int32_t TYPE_FAILED = 1;
+constexpr int32_t TYPE_TIMEOUT = 2;
+constexpr int32_t TYPE_SIGNAL = 3;
+
 // Failure reasons
 constexpr const char* REASON_PERMISSION_DENIED = "PERMISSION_DENIED";
-constexpr const char* REASON_TOOL_NOT_EXIST = "TOOL_NOT_EXIST";
+constexpr const char* REASON_TOOL_NOT_FOUND = "TOOL_NOT_FOUND";
 constexpr const char* REASON_SESSION_LIMIT_EXCEEDED = "SESSION_LIMIT_EXCEEDED";
 constexpr const char* REASON_PROCESS_CREATE_FAILED = "PROCESS_CREATE_FAILED";
 constexpr const char* REASON_INVALID_PARAM = "INVALID_PARAM";
-constexpr const char* REASON_NOT_HAP = "NOT_HAP";
-constexpr const char* REASON_NOT_SYSTEM_APP = "NOT_SYSTEM_APP";
-constexpr const char* REASON_UNKNOWN = "UNKNOWN";
+
+// Detail codes for TOOL_NOT_FOUND
+constexpr const char* DETAIL_TOOL_NOT_FOUND = "tool_not_found";
+constexpr const char* DETAIL_SUBCOMMAND_NOT_FOUND = "subcommand_not_found";
+constexpr const char* DETAIL_SUBCOMMAND_NOT_SUPPORTED = "subcommand_not_supported";
+
+// Detail codes for INVALID_PARAM
+constexpr const char* DETAIL_TIMEOUT_NEGATIVE = "timeout_negative";
+constexpr const char* DETAIL_YIELD_MS_NEGATIVE = "yieldMs_negative";
+constexpr const char* DETAIL_TIMEOUT_EXCEEDS_LIMIT = "timeout_exceeds_limit";
+constexpr const char* DETAIL_YIELD_EXCEEDS_TIMEOUT = "yield_exceeds_timeout";
+constexpr const char* DETAIL_INPUT_SCHEMA_EMPTY = "input_schema_empty";
+constexpr const char* DETAIL_PARAM_NOT_FOUND = "param_not_found";
+constexpr const char* DETAIL_PARAM_TYPE_MISMATCH = "param_type_mismatch";
+constexpr const char* DETAIL_HELP_WITH_OTHER_PARAMS = "help_with_other_params";
 
 /**
- * @brief Report CLI execution event
- * @param bundleName Caller bundle name
- * @param cliName CLI tool name
- * @param args CLI arguments (optional)
- */
-void ReportExecuteCli(const std::string& bundleName, const std::string& cliName, const std::string& args = "");
-
-/**
- * @brief Report CLI execution failure event
+ * @brief Report CLI execution failed event (TYPE=FAILED)
  * @param bundleName Caller bundle name
  * @param cliName CLI tool name
  * @param reason Failure reason
+ * @param detail Detailed failure information
  */
-void ReportExecuteCliFailed(const std::string& bundleName, const std::string& cliName, const std::string& reason);
+void ReportCliExecuteFailed(const std::string& bundleName, const std::string& cliName,
+    const std::string& reason, const std::string& detail = "");
 
 /**
- * @brief Report CLI timeout event
+ * @brief Report CLI timeout event (TYPE=TIMEOUT)
  * @param bundleName Caller bundle name
  * @param cliName CLI tool name
- * @param durationMs Execution duration in milliseconds
+ * @param durationMs Timeout duration in milliseconds
  */
-void ReportCliRunTimeout(const std::string& bundleName, const std::string& cliName, int64_t durationMs);
+void ReportCliTimeout(const std::string& bundleName, const std::string& cliName,
+    const std::string& durationMs);
 
 /**
- * @brief Report CLI error exit event
+ * @brief Report CLI signal event (TYPE=SIGNAL)
  * @param cliName CLI tool name
- * @param signalNum Signal number that caused the error exit
+ * @param signalNum Signal number
  */
-void ReportCliRunError(const std::string& cliName, int32_t signalNum);
+void ReportCliSignal(const std::string& cliName, const std::string& signalNum);
 
 /**
  * @brief Get failure reason string from error code
