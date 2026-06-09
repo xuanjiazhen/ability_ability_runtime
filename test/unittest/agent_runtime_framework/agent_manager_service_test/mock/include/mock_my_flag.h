@@ -77,6 +77,7 @@ public:
     static sptr<AAFwk::IAbilityConnection> lastDisconnectAbilityConnection;
     static int32_t connectAbilityWithExtensionTypeCallCount;
     static int32_t disconnectAbilityCallCount;
+    static std::vector<int32_t> disconnectAbilityResults;
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS
