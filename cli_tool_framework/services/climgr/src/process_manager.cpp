@@ -120,7 +120,7 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std
         if (ToolUtil::GetBundleInfoByTokenId(tokenId, bundleInfo)) {
             bundleName = bundleInfo.name;
         }
-        ReportExecuteCliFailed(bundleName, param.toolName, REASON_PROCESS_CREATE_FAILED);
+        ReportCliExecuteFailed(bundleName, param.toolName, REASON_PROCESS_CREATE_FAILED);
         return ERR_NO_INIT;
     }
     pid_t pid = fork();
@@ -134,7 +134,7 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std
         if (ToolUtil::GetBundleInfoByTokenId(tokenId, bundleInfo)) {
             bundleName = bundleInfo.name;
         }
-        ReportExecuteCliFailed(bundleName, param.toolName, REASON_PROCESS_CREATE_FAILED);
+        ReportCliExecuteFailed(bundleName, param.toolName, REASON_PROCESS_CREATE_FAILED);
         return ERR_NO_INIT;
     }
 
