@@ -107,24 +107,24 @@ enum {
     ERR_KVSTORE_NOT_READY = 35700016,
 
     /*
-     * Result (35700014): Function type not supported.
+     * Result (35700019): Function type not supported.
      */
-    ERR_FUNCTION_TYPE_NOT_SUPPORTED = 35700014,
+    ERR_FUNCTION_TYPE_NOT_SUPPORTED = 35700019,
 
     /*
-     * Result (35700015): Function param validate failed.
+     * Result (35700020): Function param validate failed.
      */
-    ERR_FUNCTION_PARAM_VALIDATE_FAILED = 35700015,
+    ERR_FUNCTION_PARAM_VALIDATE_FAILED = 35700020,
 
     /*
-     * Result (35700016): Function execute failed.
+     * Result (35700021): Function execute failed.
      */
-    ERR_FUNCTION_EXECUTE_FAILED = 35700016,
+    ERR_FUNCTION_EXECUTE_FAILED = 35700021,
 
     /*
-     * Result (35700017): Function execute timeout.
+     * Result (35700022): Function execute timeout.
      */
-    ERR_FUNCTION_EXECUTE_TIMEOUT = 35700017,
+    ERR_FUNCTION_EXECUTE_TIMEOUT = 35700022,
 
     /*
      * Result (35700018): Function query failed.

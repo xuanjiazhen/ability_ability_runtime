@@ -71,9 +71,11 @@ int32_t DispatchCliTool(const ExecToolParam &param, napi_env env,
 }
 
 struct InvokeFunctionResultData {
-    bool success = false;
-    int32_t errorCode = ERR_OK;
-    AppExecFwk::InsightIntentExecuteResult executeResult;
+    bool success = false;                                   // Promise resolve/reject decision
+    int32_t errorCode = ERR_OK;                             // native err code for reject path
+    int32_t resultCode = 0;                                 // executeResult.code, drives InvokeResult.success/errorCode
+    std::shared_ptr<AAFwk::WantParams> result;              // data carried into InvokeResult.data
+    std::string message;                                    // message carried into InvokeResult.message
 };
 
 struct InvokeFunctionTsfnContext {
@@ -105,9 +107,18 @@ public:
             return;
         }
         auto *data = new InvokeFunctionResultData();
+        // Two distinct authorities split the framework status from the app status:
+        //  - Promise resolve/reject is decided SOLELY by resultCode (framework-level
+        //    status from InsightIntentExecuteManager). resultCode == 0 means the
+        //    intent was delivered and the target replied; anything else rejects.
+        //  - InvokeResult.success/errorCode (built in CreateJsInvokeResult) is decided
+        //    by the application-level executeResult.code, surfacing the target's own
+        //    business result to the caller even when the framework delivery succeeded.
         data->success = (resultCode == 0);
         data->errorCode = (resultCode == 0) ? 0 : ERR_FUNCTION_EXECUTE_FAILED;
-        data->executeResult = std::move(executeResult);
+        data->resultCode = executeResult.code;  // app-level code drives InvokeResult
+        data->result = executeResult.result;  // share WantParams ownership
+        // message is reserved for future app-supplied description; empty for now.
         napi_call_threadsafe_function(tsfnContext_->tsfn, data, napi_tsfn_nonblocking);
     }
 
@@ -138,7 +149,8 @@ void InvokeFunctionCallJs(napi_env env, napi_value jsCb, void *context, void *da
     HandleScope handleScope(env);
 
     if (resultData->success) {
-        napi_value jsResult = CreateJsInvokeResult(env, resultData->executeResult);
+        napi_value jsResult = CreateJsInvokeResult(env, resultData->resultCode,
+            resultData->result, resultData->message);
         napi_resolve_deferred(env, ctx->deferred, jsResult);
     } else {
         napi_value jsError = CreateCliJsErrorByNativeErr(env, resultData->errorCode);
@@ -561,7 +573,12 @@ void ExecuteInvokeFunction(const std::string &bundleName, const std::string &fun
     ErrCode queryErr = CliToolMGRClient::GetInstance().GetFunctionInfo(bundleName, functionName, functionInfo);
     if (queryErr != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionInfo failed: %{public}d", queryErr);
-        ReportInvokeError(*tsfnContext, ERR_FUNCTION_QUERY_FAILED);
+        // Preserve specific error semantics; collapse others (KVStore/IPC/JSON etc.) into QUERY_FAILED.
+        int32_t reportErr = ERR_FUNCTION_QUERY_FAILED;
+        if (queryErr == ERR_PERMISSION_DENIED || queryErr == ERR_FUNCTION_NOT_EXIST) {
+            reportErr = queryErr;
+        }
+        ReportInvokeError(*tsfnContext, reportErr);
         return;
     }
 
@@ -585,7 +602,16 @@ void ExecuteInvokeFunction(const std::string &bundleName, const std::string &fun
     auto err = AAFwk::IntentClient::GetInstance().ExecuteIntentByFunctionCall(param);
     if (err != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "ExecuteIntentByFunctionCall failed: %{public}d", err);
-        ReportInvokeError(*tsfnContext, ERR_FUNCTION_EXECUTE_FAILED);
+        // ExecuteIntentByFunctionCall returns the AAFwk/common error space. The ability
+        // manager's authorization gate reports a permission failure as the common
+        // OHOS::ERR_PERMISSION_DENIED (caller lacks EXECUTE_INSIGHT_INTENT); preserve that
+        // precise semantics (-> business 201) instead of collapsing it into the generic
+        // EXECUTE_FAILED. Qualify with OHOS:: to disambiguate from the cli
+        // ERR_PERMISSION_DENIED (35700007) in this namespace.
+        int32_t reportErr = (err == OHOS::ERR_PERMISSION_DENIED)
+            ? ERR_PERMISSION_DENIED
+            : ERR_FUNCTION_EXECUTE_FAILED;
+        ReportInvokeError(*tsfnContext, reportErr);
     }
     // Success: result will come via ProcessInsightIntentExecute callback
 }

@@ -35,10 +35,13 @@ interface InvokeOptions {
 ```TypeScript
 interface InvokeResult {
   success: boolean;    // 由 executeResult.code 决定，code == 0 时为 true
-  data?: any;          // executeResult.result (WantParams) 转换的 JS 对象
+  data?: any;          // result (WantParams) 转换的 JS 对象，仅在非空时返回
   errorCode?: number;  // executeResult.code，仅在非 0 时返回
+  message?: string;    // 描述信息，仅在非空时返回（预留，当前为空）
 }
 ```
+
+> 注：`InvokeResult` 的 `success` 与 `errorCode` 由应用返回的 `executeResult.code` 决定（业务级口径），与 Promise 的 resolve/reject（由框架级 `resultCode` 决定）解耦——详见 6.3.1。`CreateJsInvokeResult` 入参为 `(env, resultCode=executeResult.code, result, message)`，由调用方显式传入这四个字段，函数内部不再读取 `InsightIntentExecuteResult` 结构体其它字段。
 
 ## 3. 依赖的数据结构
 
@@ -79,14 +82,16 @@ ErrCode GetFunctionInfo(const std::string &bundleName, const std::string &functi
 
 ```cpp
 ERR_FUNCTION_NOT_EXIST = 35700013,              // Function not exist（已有）
-ERR_FUNCTION_TYPE_NOT_SUPPORTED = 35700014,     // Function type not supported
-ERR_FUNCTION_PARAM_VALIDATE_FAILED = 35700015,  // Function param validate failed
-ERR_FUNCTION_EXECUTE_FAILED = 35700016,          // Function execute failed
-ERR_FUNCTION_EXECUTE_TIMEOUT = 35700017,          // Function execute timeout
-ERR_FUNCTION_QUERY_FAILED = 35700018,             // Function query failed
+ERR_FUNCTION_QUERY_FAILED = 35700018,           // Function query failed
+ERR_FUNCTION_TYPE_NOT_SUPPORTED = 35700019,     // Function type not supported
+ERR_FUNCTION_PARAM_VALIDATE_FAILED = 35700020,  // Function param validate failed
+ERR_FUNCTION_EXECUTE_FAILED = 35700021,          // Function execute failed
+ERR_FUNCTION_EXECUTE_TIMEOUT = 35700022,          // Function execute timeout
 ```
 
-对应的业务错误码（`cli_manager_error_utils.h`）：
+> 注：invokeFunction 新增的错误码统一从 `35700019` 起编，避免与既有的 `ERR_JSON_PARSE_FAILED` (35700014)、`ERR_FILE_NOT_FOUND` (35700015)、`ERR_KVSTORE_NOT_READY` (35700016)、`ERR_FUNCTION_EXIST` (35700017) 冲突。`ERR_FUNCTION_QUERY_FAILED` = 35700018 为本组起始衔接值。
+
+对应的业务错误码（`cli_manager_error_utils.h`，356xxxxx 段，无冲突）：
 
 ```cpp
 ERROR_FUNCTION_NOT_EXIST = 35600060,
@@ -101,10 +106,42 @@ ERROR_FUNCTION_QUERY_FAILED = 35600065,
 
 | 错误码 | 触发场景 | 返回方式 |
 |--------|----------|----------|
-| `ERR_FUNCTION_QUERY_FAILED` | GetFunctionInfo 返回非 ERR_OK | Promise reject |
+| `ERR_PERMISSION_DENIED` | GetFunctionInfo 返回 `ERR_PERMISSION_DENIED`（缺少 `ohos.permission.QUERY_CLI_TOOL`） | Promise reject |
+| `ERR_FUNCTION_NOT_EXIST` | GetFunctionInfo 返回 `ERR_FUNCTION_NOT_EXIST`（KVStore KEY_NOT_FOUND） | Promise reject |
+| `ERR_FUNCTION_QUERY_FAILED` | GetFunctionInfo 返回其它非 ERR_OK 值（IPC 失败、KVStore 未就绪、JSON 解析失败等） | Promise reject |
 | `ERR_FUNCTION_TYPE_NOT_SUPPORTED` | FunctionInfo.functionType 不是 INTENT_FUNCTION | Promise reject |
-| `ERR_FUNCTION_EXECUTE_FAILED` | IntentClient::ExecuteIntentByFunctionCall 返回非0，或意图回调 resultCode != 0 | Promise reject |
+| `ERR_PERMISSION_DENIED` | ExecuteIntentByFunctionCall 返回 `OHOS::ERR_PERMISSION_DENIED`（调用方缺少 `ohos.permission.EXECUTE_INSIGHT_INTENT`） | Promise reject |
+| `ERR_FUNCTION_EXECUTE_FAILED` | ExecuteIntentByFunctionCall 返回其它非0值，或意图回调 resultCode != 0 | Promise reject |
 | `ERR_FUNCTION_EXECUTE_TIMEOUT` | ffrt 超时任务触发 | Promise reject |
+
+### 4.1 GetFunctionInfo 错误归因映射
+
+`ExecuteInvokeFunction` 的 Step 1 查询阶段对 GetFunctionInfo 的返回值按下表归因，保留权限/不存在等关键语义，其余兜底为 `ERR_FUNCTION_QUERY_FAILED`：
+
+| GetFunctionInfo 返回值 | 来源 | 归因（reportErr） | 最终业务码 |
+|----------------------|------|------------------|-----------|
+| `ERR_OK` | 查询成功 | 不 reject，继续 Step 2 | — |
+| `ERR_PERMISSION_DENIED` (35700007) | Service 权限校验 | `ERR_PERMISSION_DENIED` | 201 |
+| `ERR_FUNCTION_NOT_EXIST` (35700013) | KVStore KEY_NOT_FOUND | `ERR_FUNCTION_NOT_EXIST` | 35600060 |
+| `ERR_NO_INIT` (35700004) | KVStore 未就绪 | `ERR_FUNCTION_QUERY_FAILED` | 35600065 |
+| `ERR_JSON_PARSE_FAILED` (35700014) | JSON 解析/反序列化失败 | `ERR_FUNCTION_QUERY_FAILED` | 35600065 |
+| `GET_CLI_TOOL_MGR_SERVICE_FAILED` (35700000) | SA 未注册 | `ERR_FUNCTION_QUERY_FAILED` | 35600065 |
+| IPC 层错误（binder 死亡/超时等） | Proxy `SendRequest` 失败 | `ERR_FUNCTION_QUERY_FAILED` | 35600065 |
+| KVStore 原生 Status（DB_ERROR/IPC_ERROR 等） | KVStore Get 非成功 | `ERR_FUNCTION_QUERY_FAILED` | 35600065 |
+
+### 4.2 ExecuteIntentByFunctionCall 错误归因映射
+
+`ExecuteInvokeFunction` 的 Step 3 执行阶段对 `IntentClient::ExecuteIntentByFunctionCall` 的返回值按下表归因。注意该接口返回 **AAFwk/通用错误空间**（非 cli 357xxxxx 段），权限失败由 `InsightIntentExecuteManager` 的授权门以通用 `OHOS::ERR_PERMISSION_DENIED`（= EPERM = 1）返回，需单独保留其精确语义，其余兜底为 `ERR_FUNCTION_EXECUTE_FAILED`：
+
+| ExecuteIntentByFunctionCall 返回值 | 来源 | 归因（reportErr） | 最终业务码 |
+|------------------------------------|------|------------------|-----------|
+| `ERR_OK` (0) | IPC 成功，等待回调 | 不 reject，等待 `ProcessInsightIntentExecute` | — |
+| `OHOS::ERR_PERMISSION_DENIED` (1) | Service 授权校验失败（缺 `EXECUTE_INSIGHT_INTENT`） | `ERR_PERMISSION_DENIED` | 201 |
+| `ABILITY_SERVICE_NOT_CONNECTED` (2097154) | AbilityManagerService 未连接 | `ERR_FUNCTION_EXECUTE_FAILED` | 35600063 |
+| `INNER_ERR` (2097167) | IPC parcel 写入失败 | `ERR_FUNCTION_EXECUTE_FAILED` | 35600063 |
+| 其它非0 AAFwk/IPC 错误 | Proxy `SendRequest` 失败或服务端其它返回 | `ERR_FUNCTION_EXECUTE_FAILED` | 35600063 |
+
+> 注：代码中以 `err == OHOS::ERR_PERMISSION_DENIED` 限定通用命名空间符号判定（值 1），与 cli 自身的 `ERR_PERMISSION_DENIED`（35700007，位于 `OHOS::CliTool` 命名空间）区分，避免不加限定的同名遮蔽导致误比较。
 
 ## 5. 异步方案设计
 
@@ -205,19 +242,50 @@ JS 线程: OnInvokeFunction
 
 ### 6.3 结果转换
 
-在 `InvokeFunctionCallJs`（JS 线程 tsfn 回调）中：
+#### 6.3.1 双权威：框架 resultCode 与应用 executeResult.code 解耦（核心契约）
+
+意图执行结果将 **框架级 `resultCode`** 与 **应用级 `executeResult.code`** 解耦，分别驱动 Promise 决策与 `InvokeResult` 字段：
+
+| 判定 | 依据 | 取值来源 |
+|------|------|---------|
+| **Promise resolve/reject** | `resultCode`（callback 第 1 参数） | `InsightIntentExecuteManager` 框架级状态，由 `innerErr` 透传 |
+| **InvokeResult.success / errorCode** | `executeResult.code`（callback 第 2 参数 `executeResult.code`） | 应用通过 `InsightIntentExecuteResult.code` 返回的业务级状态 |
+
+**契约**：
+- **Promise**：`resultCode == 0` → resolve；`resultCode != 0` → reject `ERR_FUNCTION_EXECUTE_FAILED`。
+- **InvokeResult**：`executeResult.code == 0` → `success = true`；`executeResult.code != 0` → `success = false` 且 `errorCode = executeResult.code`。
+
+> 两层口径相互独立：可能出现框架投递成功（`resultCode == 0`，Promise resolve）但应用业务失败（`executeResult.code != 0`，`InvokeResult.success = false`）的情况，调用方需依据 `InvokeResult.success` 进一步判断业务结果。
+
+`InvokeFunctionResultData.resultCode` 携带 `executeResult.code`，连同 `result`（WantParams）、`message` 透传到 `CreateJsInvokeResult`，构造 `InvokeResult`；Promise 决策由同一结构体的 `success`/`errorCode`（仍按框架 `resultCode` 计算）驱动。
+
+#### 6.3.2 resultCode 取值表（`ProcessInsightIntentExecute` 第 1 参数）
+
+| resultCode | 值 | 来源 | 触发场景 |
+|-----------|-----|------|---------|
+| `INSIGHT_INTENT_ERR_OK` | 0 | 应用 `ExecuteInsightIntentDone`、`OpenLink` 成功 | 意图执行成功 → **resolve** |
+| `INSIGHT_INTENT_INTERNAL_ERROR` | 1 | 应用显式设置 innerErr（罕见） | 应用内部错误 → reject `EXECUTE_FAILED` |
+| `INSIGHT_INTENT_EXECUTE_REPLY_FAILED` | 2097278 | 应用 `ReplyFailedInner`、调用方进程死亡清理、remote 空回复 | 应用执行失败 / JS 回复异常 / 调用方死亡 → reject `EXECUTE_FAILED` |
+| `ERR_INTENT_DEVICE_DISCONNECTED` | 2099421 | 远程意图超时、远程链路断开 | 分布式设备断连 → reject `EXECUTE_FAILED` |
+
+> 注：`free_install_manager` / `remote_intent_result_callback` 路径会透传上游 resultCode，理论上可能传入上述之外的值，仍统一归到 reject `ERR_FUNCTION_EXECUTE_FAILED`。
+
+#### 6.3.3 InvokeFunctionCallJs 处理逻辑
+
+在 `InvokeFunctionCallJs`（JS 线程 tsfn 回调）中（注意 `resultData->resultCode` 实际承载 `executeResult.code`）：
 
 ```
-success=true (resultCode == 0):
-  → resolve(CreateJsInvokeResult(executeResult))
-    - success = (executeResult.code == 0)
-    - data = executeResult.result → WantParams → JS Object
+success=true (框架 resultCode == 0):
+  → resolve(CreateJsInvokeResult(env, resultData->resultCode, result, message))
+    - success   = (executeResult.code == 0)    // 应用业务级口径
+    - data      = result → WantParams → JS Object (result 非空时)
     - errorCode = executeResult.code (仅非0时设置)
-success=false:
-  → reject(CreateCliJsErrorByNativeErr(errorCode))
+    - message   = message (仅非空时设置；当前预留为空)
+success=false (框架 resultCode != 0):
+  → reject(CreateCliJsErrorByNativeErr(errorCode))   // errorCode = ERR_FUNCTION_EXECUTE_FAILED
 ```
 
-`CreateJsInvokeResult` 直接接收 `InsightIntentExecuteResult`，内部统一处理 `code`、`result` 到 `InvokeResult` 的映射。
+`CreateJsInvokeResult(env, resultCode, result, message)` 接收四个显式字段，函数内部不再依赖 `InsightIntentExecuteResult` 结构体其它字段。
 
 ## 7. 错误处理策略
 
@@ -243,7 +311,8 @@ success=false:
        │   → reject(ERR_FUNCTION_TYPE_NOT_SUPPORTED)
        │
        ├─ IntentClient::ExecuteIntentByFunctionCall 返回非0
-       │   → reject(ERR_FUNCTION_EXECUTE_FAILED)
+       │   ├─ 返回 OHOS::ERR_PERMISSION_DENIED → reject(ERR_PERMISSION_DENIED)
+       │   └─ 其它非0 → reject(ERR_FUNCTION_EXECUTE_FAILED)
        │
        ├─ 意图执行回调 resultCode != 0
        │   → reject(ERR_FUNCTION_EXECUTE_FAILED)
