@@ -97,7 +97,6 @@ void AbilityStartupServiceFuzztest1(bool boolParam, std::string &stringParam, in
     service->GetAbilityTypeName(abilityInfo); // branch
     service->GetBundleMgrClient();
     service->CheckPermissionForSystem();
-    service->CheckPermissionForSelf(stringParam);
     service->SetApplicationAutoStartupByEDM(info, boolParam);
     service->CancelApplicationAutoStartupByEDM(info, boolParam);
     service->InnerApplicationAutoStartupByEDM(info, boolParam, boolParam);

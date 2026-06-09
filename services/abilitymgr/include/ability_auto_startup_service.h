@@ -173,7 +173,6 @@ private:
     std::string GetExtensionTypeName(const AppExecFwk::ExtensionAbilityInfo &extensionInfo);
     std::shared_ptr<AppExecFwk::BundleMgrClient> GetBundleMgrClient();
     int32_t CheckPermissionForSystem();
-    int32_t CheckPermissionForSelf(const std::string &bundleName);
     int32_t CheckPermissionForEDM();
     int32_t InnerApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool isSet, bool flag);
     int32_t GetAbilityInfo(const AutoStartupInfo &info, AutoStartupAbilityData &abilityData);
