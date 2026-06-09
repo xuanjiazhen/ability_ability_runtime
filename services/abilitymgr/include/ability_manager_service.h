@@ -1715,7 +1715,7 @@ public:
      * @param token, the token of top ability.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int GetTopAbility(sptr<IRemoteObject> &token) override;
+    virtual int GetTopAbility(sptr<IRemoteObject> &token, int32_t userId = INVALID_USER_ID) override;
 
     virtual int CheckUIExtensionIsFocused(
         uint32_t uiExtensionTokenId, bool& isFocused, uint64_t displayId = 0) override;
@@ -1774,7 +1774,7 @@ public:
     bool GetDataAbilityUri(const std::vector<AppExecFwk::AbilityInfo> &abilityInfos,
         const std::string &mainAbility, std::string &uri);
 
-    virtual AppExecFwk::ElementName GetTopAbility(bool isNeedLocalDeviceId = true) override;
+    virtual AppExecFwk::ElementName GetTopAbility(int32_t userId = INVALID_USER_ID) override;
 
     virtual AppExecFwk::ElementName GetElementNameByToken(sptr<IRemoteObject> token,
         bool isNeedLocalDeviceId = true) override;
@@ -2863,7 +2863,7 @@ protected:
      */
     virtual int StartSelfUIAbilityByAppContext(const Want &want) override;
 private:
-    int GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId = 0);
+    int GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId = 0, int32_t userId = INVALID_USER_ID);
 
     /**
      * @brief Get the top ability token for specified user.

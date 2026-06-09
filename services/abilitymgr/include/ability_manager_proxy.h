@@ -711,10 +711,10 @@ public:
     /**
      * Get top ability.
      *
-     * @param isNeedLocalDeviceId is need local device id.
+     * @param userId The user id.
      * @return Returns front desk focus ability elementName.
      */
-    virtual AppExecFwk::ElementName GetTopAbility(bool isNeedLocalDeviceId = true) override;
+    virtual AppExecFwk::ElementName GetTopAbility(int32_t userId = INVALID_USER_ID) override;
 
     /**
      * Get element name by token.

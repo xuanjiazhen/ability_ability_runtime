@@ -1747,7 +1747,7 @@ ErrCode AbilityManagerClient::FreeInstallAbilityFromRemote(const Want &want, spt
     return abms->FreeInstallAbilityFromRemote(want, callback, userId, requestCode);
 }
 
-AppExecFwk::ElementName AbilityManagerClient::GetTopAbility(bool isNeedLocalDeviceId)
+AppExecFwk::ElementName AbilityManagerClient::GetTopAbility(int32_t userId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     {
@@ -1773,7 +1773,7 @@ AppExecFwk::ElementName AbilityManagerClient::GetTopAbility(bool isNeedLocalDevi
         return {};
     }
 
-    return abms->GetTopAbility(isNeedLocalDeviceId);
+    return abms->GetTopAbility(userId);
 }
 
 ErrCode AbilityManagerClient::DumpAbilityInfoDone(std::vector<std::string> &infos,

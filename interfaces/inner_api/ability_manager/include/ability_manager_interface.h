@@ -623,7 +623,7 @@ public:
         return false;
     }
 
-    virtual AppExecFwk::ElementName GetTopAbility(bool isNeedLocalDeviceId = true)
+    virtual AppExecFwk::ElementName GetTopAbility(int32_t userId = INVALID_USER_ID)
     {
         return {};
     }

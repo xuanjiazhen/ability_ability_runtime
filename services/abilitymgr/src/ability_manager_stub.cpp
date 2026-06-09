@@ -1180,8 +1180,8 @@ int AbilityManagerStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Mess
 
 int AbilityManagerStub::GetTopAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
-    bool isNeedLocalDeviceId = data.ReadBool();
-    AppExecFwk::ElementName result = GetTopAbility(isNeedLocalDeviceId);
+    int32_t userId = data.ReadInt32();
+    AppExecFwk::ElementName result = GetTopAbility(userId);
     if (result.GetDeviceID().empty()) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "GetTopAbilityInner is nullptr");
     }

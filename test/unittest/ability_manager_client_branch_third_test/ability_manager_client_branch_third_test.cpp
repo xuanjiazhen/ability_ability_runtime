@@ -1068,8 +1068,8 @@ HWTEST_F(AbilityManagerClientBranchThirdTest, PrepareTerminateAbility_0100, Test
 HWTEST_F(AbilityManagerClientBranchThirdTest, GetTopAbility_0300, TestSize.Level1)
 {
     ErrorTestBoardDisable();
-    EXPECT_CALL(*mock_, GetTopAbility(testing::An<bool>())).Times(0);
-    auto result = client_->GetTopAbility(false);
+    EXPECT_CALL(*mock_, GetTopAbility(testing::An<int32_t>())).Times(0);
+    auto result = client_->GetTopAbility();
 }
 
 /**
@@ -1080,8 +1080,8 @@ HWTEST_F(AbilityManagerClientBranchThirdTest, GetTopAbility_0300, TestSize.Level
 HWTEST_F(AbilityManagerClientBranchThirdTest, GetTopAbility_0400, TestSize.Level1)
 {
     NormalTestBoardDisable();
-    EXPECT_CALL(*mock_, GetTopAbility(testing::An<bool>())).Times(1);
-    auto result = client_->GetTopAbility(false);
+    EXPECT_CALL(*mock_, GetTopAbility(testing::An<int32_t>())).Times(1);
+    auto result = client_->GetTopAbility();
 }
 
 /**
@@ -1093,7 +1093,7 @@ HWTEST_F(AbilityManagerClientBranchThirdTest, GetTopAbility_0500, TestSize.Level
 {
     NormalTestBoardEnable();
     SessionManagerLite::GetInstance().sceneSessionManagerLiteProxy_ = nullptr;
-    auto result = client_->GetTopAbility(false);
+    auto result = client_->GetTopAbility();
     SessionManagerLite::GetInstance().sceneSessionManagerLiteProxy_ = mockSceneSessionManagerLite_;
     ElementName elementName = {};
     EXPECT_EQ(result, elementName);
