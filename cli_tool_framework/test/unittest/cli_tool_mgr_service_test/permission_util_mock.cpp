@@ -14,11 +14,21 @@
  */
 
 #include "permission_util.h"
+#include "tool_util.h"
+#include "bundle_manager/bundle_manager_interface.h"
 
 namespace OHOS {
 namespace CliTool {
 bool PermissionUtil::VerifyAccessToken(Security::AccessToken::AccessTokenID, const std::string &)
 {
+    return true;
+}
+
+bool ToolUtil::GetBundleInfoByTokenId(AccessToken::AccessTokenID, AppExecFwk::BundleInfo &bundleInfo)
+{
+    bundleInfo.name = "test_bundle";
+    bundleInfo.uid = 1000;
+    bundleInfo.gid = 1000;
     return true;
 }
 } // namespace CliTool
