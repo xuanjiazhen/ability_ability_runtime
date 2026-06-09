@@ -15,9 +15,6 @@
 
 #include "cli_event_report.h"
 
-#include <unistd.h>
-
-#include "hisysevent.h"
 #include "hisysevent_report.h"
 #include "hilog_tag_wrapper.h"
 #include "cli_error_code.h"
@@ -29,65 +26,71 @@
 namespace OHOS {
 namespace CliTool {
 
-void ReportExecuteCli(const std::string& bundleName, const std::string& cliName, const std::string& args)
+void ReportCliExecuteFailed(const std::string& bundleName, const std::string& cliName,
+    const std::string& reason, const std::string& detail)
 {
-    constexpr int32_t PARAM_COUNT = 4;
+    constexpr int32_t PARAM_COUNT = 5;
     AAFwk::HisyseventReport report(PARAM_COUNT);
 
+    // Use placeholder when cliName is empty or "undefined" to ensure event is properly reported
+    std::string effectiveCliName = cliName;
+    if (cliName.empty() || cliName == "undefined") {
+        effectiveCliName = "<empty>";
+    }
+
+    report.InsertParam("TYPE", TYPE_FAILED);
     report.InsertParam("BUNDLE_NAME", bundleName);
-    report.InsertParam("CLI_NAME", cliName);
-    report.InsertParam("ARGS", args);
-    report.InsertParam("PID", static_cast<int32_t>(getpid()));
-
-    int32_t ret = report.Report(DOMAIN_CLI_TOOL, EVENT_EXECUTE_CLI, HiSysEventType::BEHAVIOR);
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "Report EXECUTE_CLI: bundle=%{public}s, cli=%{public}s, ret=%{public}d",
-        bundleName.c_str(), cliName.c_str(), ret);
-}
-
-void ReportExecuteCliFailed(const std::string& bundleName, const std::string& cliName, const std::string& reason)
-{
-    constexpr int32_t PARAM_COUNT = 4;
-    AAFwk::HisyseventReport report(PARAM_COUNT);
-
-    report.InsertParam("BUNDLE_NAME", bundleName);
-    report.InsertParam("CLI_NAME", cliName);
+    report.InsertParam("CLI_NAME", effectiveCliName);
     report.InsertParam("REASON", reason);
-    report.InsertParam("PID", static_cast<int32_t>(getpid()));
+    report.InsertParam("DETAIL", detail);
 
-    int32_t ret = report.Report(DOMAIN_CLI_TOOL, EVENT_EXECUTE_CLI_FAILED, HiSysEventType::FAULT);
-    TAG_LOGI(AAFwkTag::CLI_TOOL,
-        "Report EXECUTE_CLI_FAILED: bundle=%{public}s, cli=%{public}s, reason=%{public}s, ret=%{public}d",
-        bundleName.c_str(), cliName.c_str(), reason.c_str(), ret);
+    int32_t ret = report.Report(DOMAIN_CLI_TOOL, EVENT_CLI_EXECUTE_FAILED, HISYSEVENT_FAULT);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Report CLI_EXECUTE_FAILED: type=%{public}d, bundle=%{public}s, cli=%{public}s, "
+        "reason=%{public}s, detail=%{public}s, ret=%{public}d",
+        TYPE_FAILED, bundleName.c_str(), effectiveCliName.c_str(), reason.c_str(), detail.c_str(), ret);
 }
 
-void ReportCliRunTimeout(const std::string& bundleName, const std::string& cliName, int64_t durationMs)
+void ReportCliTimeout(const std::string& bundleName, const std::string& cliName,
+    const std::string& durationMs)
 {
     constexpr int32_t PARAM_COUNT = 4;
     AAFwk::HisyseventReport report(PARAM_COUNT);
 
-    report.InsertParam("BUNDLE_NAME", bundleName);
-    report.InsertParam("CLI_NAME", cliName);
-    report.InsertParam("DURATION_MS", durationMs);
-    report.InsertParam("PID", static_cast<int32_t>(getpid()));
+    // Use placeholder when cliName is empty or "undefined" to ensure event is properly reported
+    std::string effectiveCliName = cliName;
+    if (cliName.empty() || cliName == "undefined") {
+        effectiveCliName = "<empty>";
+    }
 
-    int32_t ret = report.Report(DOMAIN_CLI_TOOL, EVENT_CLI_RUN_TIMEOUT, HiSysEventType::FAULT);
-    TAG_LOGI(AAFwkTag::CLI_TOOL,
-        "Report CLI_RUN_TIMEOUT: bundle=%{public}s, cli=%{public}s, duration=%{public}ld, ret=%{public}d",
-        bundleName.c_str(), cliName.c_str(), durationMs, ret);
+    report.InsertParam("TYPE", TYPE_TIMEOUT);
+    report.InsertParam("BUNDLE_NAME", bundleName);
+    report.InsertParam("CLI_NAME", effectiveCliName);
+    report.InsertParam("DURATION_MS", static_cast<int64_t>(std::stoll(durationMs)));
+
+    int32_t ret = report.Report(DOMAIN_CLI_TOOL, EVENT_CLI_EXECUTE_FAILED, HISYSEVENT_FAULT);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Report CLI_TIMEOUT: type=%{public}d, bundle=%{public}s, cli=%{public}s, "
+        "duration=%{public}s, ret=%{public}d",
+        TYPE_TIMEOUT, bundleName.c_str(), effectiveCliName.c_str(), durationMs.c_str(), ret);
 }
 
-void ReportCliRunError(const std::string& cliName, int32_t signalNum)
+void ReportCliSignal(const std::string& cliName, const std::string& signalNum)
 {
     constexpr int32_t PARAM_COUNT = 3;
     AAFwk::HisyseventReport report(PARAM_COUNT);
 
-    report.InsertParam("CLI_NAME", cliName);
-    report.InsertParam("SIGNAL_NUM", signalNum);
-    report.InsertParam("PID", static_cast<int32_t>(getpid()));
+    // Use placeholder when cliName is empty or "undefined" to ensure event is properly reported
+    std::string effectiveCliName = cliName;
+    if (cliName.empty() || cliName == "undefined") {
+        effectiveCliName = "<empty>";
+    }
 
-    int32_t ret = report.Report(DOMAIN_CLI_TOOL, EVENT_CLI_RUN_ERROR, HiSysEventType::FAULT);
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "Report CLI_RUN_ERROR: cli=%{public}s, signal=%{public}d, ret=%{public}d",
-        cliName.c_str(), signalNum, ret);
+    report.InsertParam("TYPE", TYPE_SIGNAL);
+    report.InsertParam("CLI_NAME", effectiveCliName);
+    report.InsertParam("SIGNAL_NUM", static_cast<int32_t>(std::stoi(signalNum)));
+
+    int32_t ret = report.Report(DOMAIN_CLI_TOOL, EVENT_CLI_EXECUTE_FAILED, HISYSEVENT_FAULT);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Report CLI_SIGNAL: type=%{public}d, cli=%{public}s, signal=%{public}s, ret=%{public}d",
+        TYPE_SIGNAL, effectiveCliName.c_str(), signalNum.c_str(), ret);
 }
 
 std::string GetFailureReason(int32_t errorCode)
@@ -96,7 +99,7 @@ std::string GetFailureReason(int32_t errorCode)
         case ERR_PERMISSION_DENIED:
             return REASON_PERMISSION_DENIED;
         case ERR_TOOL_NOT_EXIST:
-            return REASON_TOOL_NOT_EXIST;
+            return REASON_TOOL_NOT_FOUND;
         case ERR_SESSION_LIMIT_EXCEEDED:
             return REASON_SESSION_LIMIT_EXCEEDED;
         case ERR_NO_INIT:
@@ -104,12 +107,8 @@ std::string GetFailureReason(int32_t errorCode)
         case ERR_INVALID_PARAM:
         case ERR_INNER_PARAM_INVALID:
             return REASON_INVALID_PARAM;
-        case ERR_NOT_HAP:
-            return REASON_NOT_HAP;
-        case ERR_NOT_SYSTEM_APP:
-            return REASON_NOT_SYSTEM_APP;
         default:
-            return REASON_UNKNOWN;
+            return REASON_INVALID_PARAM;
     }
 }
 
