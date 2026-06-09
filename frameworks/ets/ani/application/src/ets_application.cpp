@@ -303,6 +303,87 @@ void EtsApplication::CreateModuleContext(ani_env *env,
     SetCreateCompleteCallback(env, moduleContext, callback);
 }
 
+ani_object EtsApplication::CreateModuleContextSync(ani_env *env,
+    ani_object contextObj, ani_string bundleName, ani_string moduleName)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "CreateModuleContextSync Call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return nullptr;
+    }
+    std::string stdBundleName = "";
+    std::string stdModuleName = "";
+    AppExecFwk::GetStdString(env, bundleName, stdBundleName);
+    AppExecFwk::GetStdString(env, moduleName, stdModuleName);
+
+    ani_boolean stageMode = false;
+    ani_status status = IsStageContext(env, contextObj, stageMode);
+    if (status != ANI_OK || !stageMode) {
+        TAG_LOGE(AAFwkTag::APPKIT, "not stageMode");
+        EtsErrorUtil::ThrowInvalidParamError(env,
+            "Parse param context failed, must be a context of stageMode.");
+        return nullptr;
+    }
+    auto context = GetStageModeContext(env, contextObj);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null context");
+        EtsErrorUtil::ThrowInvalidParamError(env,
+            "Parse param context failed, must not be nullptr.");
+        return nullptr;
+    }
+    auto inputContextPtr = Context::ConvertTo<Context>(context);
+    if (inputContextPtr == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Convert to context failed");
+        EtsErrorUtil::ThrowInvalidParamError(env,
+            "Parse param context failed, must be a context.");
+        return nullptr;
+    }
+
+    std::shared_ptr<ContextImpl> contextImpl = std::make_shared<ContextImpl>();
+    if (contextImpl == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null contextImpl");
+        EtsErrorUtil::ThrowInvalidParamError(env, "create context failed.");
+        return nullptr;
+    }
+    contextImpl->SetProcessName(context->GetProcessName());
+
+    std::shared_ptr<Context> moduleContext = nullptr;
+    if (stdBundleName.empty()) {
+        moduleContext = contextImpl->CreateModuleContext(stdModuleName, inputContextPtr);
+    } else {
+        if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall()) {
+            TAG_LOGE(AAFwkTag::APPKIT, "no system app");
+            EtsErrorUtil::ThrowNotSystemAppError(env);
+            return nullptr;
+        }
+        if (!AAFwk::PermissionVerification::GetInstance()->VerifyGetBundleInfoPrivilegedPermission()) {
+            TAG_LOGE(AAFwkTag::APPKIT, "no permission");
+            EtsErrorUtil::ThrowNoPermissionError(env, PERMISSION_GET_BUNDLE_INFO);
+            return nullptr;
+        }
+        moduleContext = contextImpl->CreateModuleContext(stdBundleName, stdModuleName, inputContextPtr);
+    }
+
+    if (!moduleContext) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to create module context");
+        EtsErrorUtil::ThrowInvalidParamError(env, "create module context failed.");
+        return nullptr;
+    }
+
+    ani_class cls {};
+    if ((status = env->FindClass(CONTEXT_CLASS_NAME, &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "find Context failed status: %{public}d", status);
+        return nullptr;
+    }
+    ani_object resultContextObj = nullptr;
+    if (!SetNativeContextLong(env, moduleContext, cls, resultContextObj)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "set nativeContextLong failed");
+        return nullptr;
+    }
+    ContextUtil::CreateEtsBaseContext(env, cls, resultContextObj, moduleContext);
+    return resultContextObj;
+}
+
 void EtsApplication::CreateBundleContextCheck(ani_env *env,
     ani_object contextObj, ani_string bundleName)
 {
@@ -663,6 +744,12 @@ void ApplicationInit(ani_env *env)
             "C{application.Context.Context}C{std.core.String}C{std.core.String}"
             "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsApplication::CreateModuleContext)
+        },
+        ani_native_function {
+            "nativeCreateModuleContextSync",
+            "C{application.Context.Context}C{std.core.String}C{std.core.String}"
+            ":C{application.Context.Context}",
+            reinterpret_cast<void *>(EtsApplication::CreateModuleContextSync)
         },
         ani_native_function {
             "nativeCreateModuleContextCheck",

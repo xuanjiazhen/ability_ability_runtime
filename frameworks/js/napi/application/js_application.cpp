@@ -415,6 +415,98 @@ napi_value JsApplication::OnCreateModuleContext(napi_env env, NapiCallbackInfo &
     return handleEscape.Escape(result);
 }
 
+napi_value JsApplication::CreateModuleContextSync(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsApplication, OnCreateModuleContextSync);
+}
+
+napi_value JsApplication::OnCreateModuleContextSync(napi_env env, NapiCallbackInfo &info)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "Called");
+    if (info.argc < ARGC_TWO) {
+        TAG_LOGE(AAFwkTag::APPKIT, "invalid argc");
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    bool stageMode = false;
+    napi_status status = OHOS::AbilityRuntime::IsStageContext(env, info.argv[ARGC_ZERO], stageMode);
+    if (status != napi_ok || !stageMode) {
+        TAG_LOGE(AAFwkTag::APPKIT, "not stageMode");
+        ThrowInvalidParamError(env, "Parse param context failed, must be a context of stageMode.");
+        return CreateJsUndefined(env);
+    }
+
+    auto context = OHOS::AbilityRuntime::GetStageModeContext(env, info.argv[ARGC_ZERO]);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null context");
+        ThrowInvalidParamError(env, "Parse param context failed, must not be nullptr.");
+        return CreateJsUndefined(env);
+    }
+
+    auto inputContextPtr = Context::ConvertTo<Context>(context);
+    if (inputContextPtr == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Convert to context failed");
+        ThrowInvalidParamError(env, "Parse param context failed, must be a context.");
+        return CreateJsUndefined(env);
+    }
+
+    std::shared_ptr<ContextImpl> contextImpl = std::make_shared<ContextImpl>();
+    if (contextImpl == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null contextImpl");
+        ThrowInvalidParamError(env, "create context failed.");
+        return CreateJsUndefined(env);
+    }
+    contextImpl->SetProcessName(context->GetProcessName());
+    std::string moduleName = "";
+    std::string bundleName = "";
+    if (info.argc == ARGC_TWO) {
+        TAG_LOGD(AAFwkTag::APPKIT, "Called");
+        if (!ConvertFromJsValue(env, info.argv[ARGC_ONE], moduleName)) {
+            TAG_LOGE(AAFwkTag::APPKIT, "Parse failed");
+            ThrowInvalidParamError(env, "Parse param moduleName failed, moduleName must be string.");
+            return CreateJsUndefined(env);
+        }
+    } else {
+        TAG_LOGD(AAFwkTag::APPKIT, "Called");
+        if (!CheckCallerIsSystemApp()) {
+            TAG_LOGE(AAFwkTag::APPKIT, "no system app");
+            ThrowNotSystemAppError(env);
+            return CreateJsUndefined(env);
+        }
+
+        if (!CheckCallerPermission(PERMISSION_GET_BUNDLE_INFO)) {
+            TAG_LOGE(AAFwkTag::APPKIT, "no permission");
+            ThrowNoPermissionError(env, PERMISSION_GET_BUNDLE_INFO);
+            return CreateJsUndefined(env);
+        }
+
+        if (!ConvertFromJsValue(env, info.argv[ARGC_TWO], moduleName)
+            || !ConvertFromJsValue(env, info.argv[ARGC_ONE], bundleName)) {
+            TAG_LOGE(AAFwkTag::APPKIT, "Parse failed");
+            ThrowInvalidParamError(env, "Parse param failed, moduleName and bundleName must be string.");
+            return CreateJsUndefined(env);
+        }
+    }
+    TAG_LOGD(AAFwkTag::APPKIT, "moduleName: %{public}s, bundlename: %{public}s",
+        moduleName.c_str(), bundleName.c_str());
+
+    std::shared_ptr<Context> moduleContext = nullptr;
+    if (bundleName.empty()) {
+        moduleContext = contextImpl->CreateModuleContext(moduleName, inputContextPtr);
+    } else {
+        moduleContext = contextImpl->CreateModuleContext(bundleName, moduleName, inputContextPtr);
+    }
+
+    if (!moduleContext) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to create module context");
+        ThrowInvalidParamError(env, "create module context failed.");
+        return CreateJsUndefined(env);
+    }
+
+    return CreateJsContext(env, moduleContext);
+}
+
 bool JsApplication::CheckCallerIsSystemApp()
 {
     auto selfToken = IPCSkeleton::GetSelfTokenID();
@@ -735,6 +827,9 @@ napi_value ApplicationInit(napi_env env, napi_value exportObj)
 
     BindNativeFunction(env, exportObj, "createModuleContext", moduleName,
         JsApplication::CreateModuleContext);
+
+    BindNativeFunction(env, exportObj, "createModuleContextSync", moduleName,
+        JsApplication::CreateModuleContextSync);
 
     BindNativeFunction(env, exportObj, "createBundleContext", moduleName,
         JsApplication::CreateBundleContext);

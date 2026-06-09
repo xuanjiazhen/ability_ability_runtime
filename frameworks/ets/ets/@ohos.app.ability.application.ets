@@ -57,6 +57,8 @@ export default namespace application {
 
   export native function nativeGetAppPreloadType(): AppPreloadType;
 
+  export native function nativeCreateModuleContextSync(context: Context, bundleName: string, moduleName: string): Context;
+
   export native function nativeCreateModuleContextCheck(context: Context, moduleName: string, bundleName?: string): void;
   export function createModuleContext(context: Context, moduleName: string): Promise<Context> {
     application.nativeCreateModuleContextCheck(context, moduleName);
@@ -92,6 +94,16 @@ export default namespace application {
         });
       });
     return p;
+  }
+
+  export function createModuleContextSync(context: Context, moduleName: string): Context {
+    application.nativeCreateModuleContextCheck(context, moduleName);
+    return application.nativeCreateModuleContextSync(context, "", moduleName);
+  }
+
+  export function createModuleContextSync(context: Context, bundleName: string, moduleName: string): Context {
+    application.nativeCreateModuleContextCheck(context, moduleName, bundleName);
+    return application.nativeCreateModuleContextSync(context, bundleName, moduleName);
   }
 
   export native function nativeCreateBundleContextCheck(context: Context, bundleName: string): void;
