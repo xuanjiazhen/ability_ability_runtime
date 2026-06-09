@@ -1486,6 +1486,129 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_026, TestSize.Lev
 }
 
 /**
+ * @tc.name  : ConnectAgentExtensionAbility_041
+ * @tc.number: ConnectAgentExtensionAbility_041
+ * @tc.desc  : Test low-code connects with different host proxies create separate logical host sessions
+ */
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_041, TestSize.Level1)
+{
+    auto service = AgentManagerService::GetInstance();
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::LOW_CODE);
+    MyFlag::agentCardBundleName = "lowcode.bundle";
+    MyFlag::agentCardAbilityName = "LowCodeExtAbility";
+    MyFlag::agentCardModuleName = "entry";
+
+    AAFwk::Want wantA;
+    wantA.SetParam(AGENTID_KEY, std::string("agentA"));
+    wantA.SetElementName("", "lowcode.bundle", "LowCodeExtAbility", "entry");
+    sptr<MockAbilityConnection> hostProxyA = new MockAbilityConnection();
+    wantA.SetParam(AGENTEXTENSIONHOSTPROXY_KEY, hostProxyA->AsObject());
+    sptr<MockAbilityConnection> connectionA = new MockAbilityConnection();
+
+    AAFwk::Want wantB;
+    wantB.SetParam(AGENTID_KEY, std::string("agentB"));
+    wantB.SetElementName("", "lowcode.bundle", "LowCodeExtAbility", "entry");
+    sptr<MockAbilityConnection> hostProxyB = new MockAbilityConnection();
+    wantB.SetParam(AGENTEXTENSIONHOSTPROXY_KEY, hostProxyB->AsObject());
+    sptr<MockAbilityConnection> connectionB = new MockAbilityConnection();
+
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(wantA, connectionA), ERR_OK);
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(wantB, connectionB), ERR_OK);
+
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 2);
+    ASSERT_EQ(service->agentHostSessions_.size(), 2);
+    ASSERT_EQ(service->callerConnectionCounts_.size(), 1);
+    EXPECT_EQ(service->callerConnectionCounts_.begin()->second, 1);
+    EXPECT_TRUE(service->IsLowCodeHostQuotaKeyMatched(service->agentHostSessions_.begin()->first,
+        std::next(service->agentHostSessions_.begin())->first));
+}
+
+/**
+ * @tc.name  : ConnectAgentExtensionAbility_042
+ * @tc.number: ConnectAgentExtensionAbility_042
+ * @tc.desc  : Test duplicate active low-code agent is rejected even with different host proxy
+ */
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_042, TestSize.Level1)
+{
+    auto service = AgentManagerService::GetInstance();
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::LOW_CODE);
+    MyFlag::agentCardBundleName = "lowcode.bundle";
+    MyFlag::agentCardAbilityName = "LowCodeExtAbility";
+    MyFlag::agentCardModuleName = "entry";
+
+    AAFwk::Want wantA;
+    wantA.SetParam(AGENTID_KEY, std::string("agentA"));
+    wantA.SetElementName("", "lowcode.bundle", "LowCodeExtAbility", "entry");
+    sptr<MockAbilityConnection> hostProxyA = new MockAbilityConnection();
+    wantA.SetParam(AGENTEXTENSIONHOSTPROXY_KEY, hostProxyA->AsObject());
+    sptr<MockAbilityConnection> connectionA = new MockAbilityConnection();
+
+    AAFwk::Want wantB = wantA;
+    sptr<MockAbilityConnection> hostProxyB = new MockAbilityConnection();
+    wantB.SetParam(AGENTEXTENSIONHOSTPROXY_KEY, hostProxyB->AsObject());
+    sptr<MockAbilityConnection> connectionB = new MockAbilityConnection();
+
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(wantA, connectionA), ERR_OK);
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(wantB, connectionB),
+        ERR_LOW_CODE_AGENT_ALREADY_ACTIVE);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 1);
+    EXPECT_EQ(service->agentHostSessions_.size(), 1);
+}
+
+/**
+ * @tc.name  : DisconnectAgentExtensionAbility_015
+ * @tc.number: DisconnectAgentExtensionAbility_015
+ * @tc.desc  : Test low-code disconnect closes requested host session and transfers quota to another session
+ */
+HWTEST_F(AgentManagerServiceTest, DisconnectAgentExtensionAbility_015, TestSize.Level1)
+{
+    auto service = AgentManagerService::GetInstance();
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::LOW_CODE);
+    MyFlag::agentCardBundleName = "lowcode.bundle";
+    MyFlag::agentCardAbilityName = "LowCodeExtAbility";
+    MyFlag::agentCardModuleName = "entry";
+
+    AAFwk::Want wantA;
+    wantA.SetParam(AGENTID_KEY, std::string("agentA"));
+    wantA.SetElementName("", "lowcode.bundle", "LowCodeExtAbility", "entry");
+    sptr<MockAbilityConnection> hostProxyA = new MockAbilityConnection();
+    wantA.SetParam(AGENTEXTENSIONHOSTPROXY_KEY, hostProxyA->AsObject());
+    sptr<MockAbilityConnection> connectionA = new MockAbilityConnection();
+
+    AAFwk::Want wantB;
+    wantB.SetParam(AGENTID_KEY, std::string("agentB"));
+    wantB.SetElementName("", "lowcode.bundle", "LowCodeExtAbility", "entry");
+    sptr<MockAbilityConnection> hostProxyB = new MockAbilityConnection();
+    wantB.SetParam(AGENTEXTENSIONHOSTPROXY_KEY, hostProxyB->AsObject());
+    sptr<MockAbilityConnection> connectionB = new MockAbilityConnection();
+
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(wantA, connectionA), ERR_OK);
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(wantB, connectionB), ERR_OK);
+    ASSERT_EQ(service->agentHostSessions_.size(), 2);
+    ASSERT_EQ(service->callerConnectionCounts_.size(), 1);
+    EXPECT_EQ(service->callerConnectionCounts_.begin()->second, 1);
+
+    auto hostKeyA = service->trackedConnections_[connectionA->AsObject()].hostKey;
+    EXPECT_EQ(service->DisconnectAgentExtensionAbility(connectionA), ERR_OK);
+    EXPECT_EQ(MyFlag::disconnectAbilityCallCount, 1);
+    ASSERT_EQ(service->callerConnectionCounts_.size(), 1);
+    EXPECT_EQ(service->callerConnectionCounts_.begin()->second, 1);
+    EXPECT_TRUE(service->trackedConnections_[connectionB->AsObject()].countTowardsCallerLimit);
+
+    AppExecFwk::ElementName element("", "lowcode.bundle", "LowCodeExtAbility", "entry");
+    service->HandleAgentHostDisconnectDone(hostKeyA, element, ERR_OK);
+    EXPECT_EQ(connectionA->disconnectDoneCount, 1);
+    EXPECT_EQ(connectionB->disconnectDoneCount, 0);
+    EXPECT_EQ(service->agentHostSessions_.size(), 1);
+    EXPECT_EQ(service->trackedConnections_.size(), 1);
+    ASSERT_EQ(service->callerConnectionCounts_.size(), 1);
+    EXPECT_EQ(service->callerConnectionCounts_.begin()->second, 1);
+}
+
+/**
  * @tc.name  : ConnectAgentExtensionAbility_039
  * @tc.number: ConnectAgentExtensionAbility_039
  * @tc.desc  : Test low-code connect reuses host session when moduleName is empty then explicit
@@ -4164,6 +4287,89 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_037, TestSize.Lev
     // Two quotas consumed
     ASSERT_EQ(service->callerConnectionCounts_.size(), 1);
     EXPECT_EQ(service->callerConnectionCounts_.begin()->second, 2);
+}
+
+/**
+ * @tc.name  : ConnectAgentExtensionAbility_040
+ * @tc.number: ConnectAgentExtensionAbility_040
+ * @tc.desc  : Test same caller and target with different host proxies creates separate logical sessions
+ */
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_040, TestSize.Level1)
+{
+    MyFlag::retVerifyCallingPermission = true;
+    MyFlag::retGetProcessRunningInfoByPid = ERR_OK;
+    MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardAgentId = "testAgent";
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::APP);
+    MyFlag::retConnectAbilityWithExtensionType = ERR_OK;
+
+    AAFwk::Want wantA;
+    wantA.SetParam(AGENTID_KEY, std::string("testAgent"));
+    wantA.SetBundle("test.bundle");
+    wantA.SetElementName("test.bundle", "TestAbility");
+    sptr<MockAbilityConnection> hostProxyA = new MockAbilityConnection();
+    wantA.SetParam(AGENTEXTENSIONHOSTPROXY_KEY, hostProxyA->AsObject());
+
+    AAFwk::Want wantB = wantA;
+    sptr<MockAbilityConnection> hostProxyB = new MockAbilityConnection();
+    wantB.SetParam(AGENTEXTENSIONHOSTPROXY_KEY, hostProxyB->AsObject());
+
+    sptr<MockAbilityConnection> connectionA = new MockAbilityConnection();
+    sptr<MockAbilityConnection> connectionB = new MockAbilityConnection();
+    auto service = AgentManagerService::GetInstance();
+
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(wantA, connectionA), ERR_OK);
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(wantB, connectionB), ERR_OK);
+
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 2);
+    ASSERT_EQ(service->standardSessions_.size(), 2);
+    ASSERT_EQ(service->callerConnectionCounts_.size(), 1);
+    EXPECT_EQ(service->callerConnectionCounts_.begin()->second, 1);
+
+    auto first = service->standardSessions_.front();
+    auto second = service->standardSessions_.back();
+    ASSERT_NE(first, nullptr);
+    ASSERT_NE(second, nullptr);
+    EXPECT_FALSE(service->IsStandardAgentKeyMatched(first->key, second->key));
+    EXPECT_TRUE(service->IsStandardAgentQuotaKeyMatched(first->key, second->key));
+}
+
+/**
+ * @tc.name  : DisconnectAgentExtensionAbility_014
+ * @tc.number: DisconnectAgentExtensionAbility_014
+ * @tc.desc  : Test standard quota transfers to another host-proxy session and rolls back on disconnect failure
+ */
+HWTEST_F(AgentManagerServiceTest, DisconnectAgentExtensionAbility_014, TestSize.Level1)
+{
+    auto service = AgentManagerService::GetInstance();
+    auto keyA = BuildTestStandardKey();
+    sptr<MockAbilityConnection> hostProxyA = new MockAbilityConnection();
+    keyA.hostProxyRemote = hostProxyA->AsObject();
+    auto keyB = keyA;
+    sptr<MockAbilityConnection> hostProxyB = new MockAbilityConnection();
+    keyB.hostProxyRemote = hostProxyB->AsObject();
+
+    sptr<MockAbilityConnection> connectionA = new MockAbilityConnection();
+    sptr<MockAbilityConnection> connectionB = new MockAbilityConnection();
+    auto svcConnA = sptr<AgentServiceConnection>::MakeSptr(connectionA);
+    auto svcConnB = sptr<AgentServiceConnection>::MakeSptr(connectionB);
+    AddTestStandardSession(service, keyA, svcConnA, { connectionA->AsObject() });
+    AddTestStandardSession(service, keyB, svcConnB, { connectionB->AsObject() });
+    AddTestStandardTrackedConnection(service, keyA, connectionA, svcConnA, true);
+    AddTestStandardTrackedConnection(service, keyB, connectionB, svcConnB, false);
+    service->callerConnectionCounts_[keyA.callerUid] = 1;
+
+    MyFlag::retDisconnectAbility = ERR_INVALID_VALUE;
+    EXPECT_EQ(service->DisconnectAgentExtensionAbility(connectionA), ERR_INVALID_VALUE);
+    EXPECT_EQ(MyFlag::disconnectAbilityCallCount, 1);
+
+    ASSERT_EQ(service->callerConnectionCounts_.size(), 1);
+    EXPECT_EQ(service->callerConnectionCounts_.begin()->second, 1);
+    EXPECT_TRUE(service->trackedConnections_[connectionA->AsObject()].countTowardsCallerLimit);
+    EXPECT_FALSE(service->trackedConnections_[connectionB->AsObject()].countTowardsCallerLimit);
+    ASSERT_EQ(service->standardSessions_.size(), 2);
+    EXPECT_FALSE(service->standardSessions_.front()->isDisconnecting);
 }
 
 /**
