@@ -72,7 +72,6 @@ config("abilityms_config") {
     "${ability_runtime_utils_path}/global/constant",
     "${ability_runtime_path}/utils/global/time/include",
     "${ability_runtime_utils_path}/server/constant",
-    "$ace_root/interfaces/inner_api/ui_session",
   ]
 
   defines = []
@@ -134,7 +133,6 @@ ohos_shared_library("abilityms") {
     ":abilityms_exception_config",
   ]
   include_dirs = [
-    "$ace_root/interfaces/inner_api/ui_session",
     "${ability_runtime_services_path}/appdfr/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_service_extension_ability/connection",
     "${ability_runtime_path}/utils/global/time/include",
