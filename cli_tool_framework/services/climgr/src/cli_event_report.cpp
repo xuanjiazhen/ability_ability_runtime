@@ -175,3 +175,4 @@ std::string FormatWantParamsToString(const AAFwk::WantParams& args)
 
 } // namespace CliTool
 } // namespace OHOS
+# CLI Event Reporting Fix
