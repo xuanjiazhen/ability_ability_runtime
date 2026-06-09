@@ -57,6 +57,7 @@
 #include "extension_running_timeout_monitor.h"
 #include "background_user_extension_monitor.h"
 #include "insight_intent_execute_manager.h"
+#include "insight_intent/ui_operation_chain_executor.h"
 #include "insight_intent_db_cache.h"
 #include "skill/skill_execute_manager.h"
 #include "insight_intent_utils.h"
@@ -7945,6 +7946,26 @@ void AbilityManagerService::DataDumpSysStateInner(
     }
 }
 
+void AbilityManagerService::DumpSysUIOperationInner(
+    const std::string& args, std::vector<std::string>& info)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "DumpSysUIOperationInner");
+    std::vector<std::string> argList;
+    SplitStr(args, " ", argList);
+    // argList[0] = "-o", argList[1..] = <windowId> <command> [args...]
+    if (argList.size() < 3) {
+        info.push_back("Usage: hidumper -s AbilityManagerService -a '-o <windowId> <command> [args...]'");
+        info.push_back("       aa dump -o <windowId> <command> [args...]");
+        auto executor = std::make_shared<AAFwk::UiOperationChainExecutor>();
+        executor->ShowDumpHelp(info);
+        return;
+    }
+    // Skip the first arg ("-o"), pass windowId + command + args
+    std::vector<std::string> params(argList.begin() + 1, argList.end());
+    auto executor = std::make_shared<AAFwk::UiOperationChainExecutor>();
+    executor->HandleDump(params, eventHandler_, info);
+}
+
 void AbilityManagerService::DumpInner(const std::string &args, std::vector<std::string> &info)
 {
     auto userId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
@@ -8141,6 +8162,9 @@ void AbilityManagerService::DumpSysState(
             break;
         case DumpUtils::KEY_DUMP_SYS_ABILITY:
             DumpSysAbilityInner(args, info, isClient, isUserID, userId);
+            break;
+        case DumpUtils::KEY_DUMP_SYS_UI_OPERATION:
+            DumpSysUIOperationInner(args, info);
             break;
         default:
             info.push_back("error: invalid argument, please see 'ability dump -h'.");
