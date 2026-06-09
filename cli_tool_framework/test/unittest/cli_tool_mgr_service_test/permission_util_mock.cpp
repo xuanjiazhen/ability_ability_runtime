@@ -14,11 +14,29 @@
  */
 
 #include "permission_util.h"
+#include "tool_util.h"
 
 namespace OHOS {
+namespace AppExecFwk {
+// Forward declaration - BundleInfo is defined in bundle_framework
+struct BundleInfo {
+    std::string name;
+    int uid = -1;
+    int gid = -1;
+};
+} // namespace AppExecFwk
+
 namespace CliTool {
 bool PermissionUtil::VerifyAccessToken(Security::AccessToken::AccessTokenID, const std::string &)
 {
+    return true;
+}
+
+bool ToolUtil::GetBundleInfoByTokenId(AccessToken::AccessTokenID, AppExecFwk::BundleInfo &bundleInfo)
+{
+    bundleInfo.name = "test_bundle";
+    bundleInfo.uid = 1000;
+    bundleInfo.gid = 1000;
     return true;
 }
 } // namespace CliTool
