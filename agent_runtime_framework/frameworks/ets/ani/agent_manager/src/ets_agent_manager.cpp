@@ -57,28 +57,21 @@ class EtsAgentServiceConnection;
 std::map<int64_t, sptr<EtsAgentServiceConnection>> g_serviceConnections;
 int64_t g_serviceConnectionSerialNumber = 0;
 
-bool CheckConnectAlreadyExist(ani_env *env, const AAFwk::Want &want, const std::string &agentId,
-    ani_object asyncCallback)
+bool ResolveDuplicatedAgentConnection(ani_env *env, const sptr<EtsAgentConnection> &existingConnection,
+    const sptr<EtsAgentConnection> &connection)
 {
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "CheckConnectAlreadyExist called");
-    sptr<EtsAgentConnection> connection = nullptr;
-    AgentConnectionUtils::FindAgentConnection(want, agentId, connection);
-    if (connection == nullptr) {
-        TAG_LOGD(AAFwkTag::SER_ROUTER, "null connection");
+    if (env == nullptr || existingConnection == nullptr || connection == nullptr) {
         return false;
     }
-    ani_ref proxy = connection->GetProxyObject();
-    if (proxy == nullptr) {
-        TAG_LOGW(AAFwkTag::SER_ROUTER, "null proxy");
-        if (!connection->AddDuplicatedPendingCallback(asyncCallback)) {
-            AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
-                EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER), nullptr);
-        }
-    } else {
-        TAG_LOGI(AAFwkTag::SER_ROUTER, "Resolve, got proxy object");
-        AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
-            EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(AbilityErrorCode::ERROR_OK)),
-            reinterpret_cast<ani_object>(proxy));
+    sptr<IRemoteObject> remoteObject = existingConnection->GetRemoteObject();
+    if (remoteObject == nullptr) {
+        existingConnection->AddDuplicatedPendingConnection(connection);
+        return true;
+    }
+    if (!connection->ResolveWithRemoteObject(env, remoteObject)) {
+        connection->RejectWithError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+            AbilityInnerErrorMsg::OPERATION_FAILED);
+        AgentConnectionUtils::RemoveAgentConnection(connection->GetConnectionId());
     }
     return true;
 }
@@ -533,11 +526,8 @@ void EtsAgentManager::ConnectAgentExtensionAbility(ani_env *env, ani_object aniW
     TAG_LOGI(AAFwkTag::SER_ROUTER, "Connecting to: %{public}s.%{public}s",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
 
-    // Check for duplicate connection
-    if (CheckConnectAlreadyExist(env, want, agentId, asyncCallback)) {
-        TAG_LOGI(AAFwkTag::SER_ROUTER, "Duplicate connection found");
-        return;
-    }
+    sptr<EtsAgentConnection> existingConnection = nullptr;
+    AgentConnectionUtils::FindAgentConnection(want, agentId, env, callbackObj, existingConnection);
 
     // Get aniVM
     ani_vm *aniVM = nullptr;
@@ -569,6 +559,12 @@ void EtsAgentManager::ConnectAgentExtensionAbility(ani_env *env, ani_object aniW
 
     // Insert into registry
     int64_t connectionId = AgentConnectionUtils::InsertAgentConnection(connection, want);
+
+    if (existingConnection != nullptr) {
+        connection->SetRealConnection(false);
+        ResolveDuplicatedAgentConnection(env, existingConnection, connection);
+        return;
+    }
 
     // connect
     int32_t innerErrorCode = AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(want, connection);
@@ -610,6 +606,13 @@ void EtsAgentManager::DisconnectAgentExtensionAbility(ani_env *env, ani_object a
         TAG_LOGW(AAFwkTag::SER_ROUTER, "null connection");
         AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
             EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM), nullptr);
+        return;
+    }
+
+    if (!connection->IsRealConnection()) {
+        AgentConnectionUtils::RemoveAgentConnection(connectionId);
+        AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
         return;
     }
 
