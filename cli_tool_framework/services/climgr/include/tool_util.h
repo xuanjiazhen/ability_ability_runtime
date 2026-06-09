@@ -48,9 +48,9 @@ using namespace OHOS::Security;
 class ToolUtil {
 public:
     static int32_t ValidateProperties(const ToolInfo &toolInfo, ExecToolParam &param,
-        AccessToken::AccessTokenID tokenId);
+        AccessToken::AccessTokenID tokenId, std::string& detail);
 
-    static int32_t ValidateExecOptionsProperties(ExecOptions &options);
+    static int32_t ValidateExecOptionsProperties(ExecOptions &options, std::string& detail);
 
     static std::string GenerateCliSessionId(const std::string &name, std::shared_ptr<SessionRecord> record);
 
@@ -73,7 +73,7 @@ public:
         AppExecFwk::BundleInfo &bundleInfo);
 
 private:
-    static int32_t ValidateInputSchemaProperties(const std::string &inputSchema, const AAFwk::WantParams &args);
+    static int32_t ValidateInputSchemaProperties(const std::string &inputSchema, const AAFwk::WantParams &args, std::string& detail);
 
     // Helper methods for type validation
     static bool ValidateParamType(const sptr<AAFwk::IInterface> &value, const std::string &expectedType,
