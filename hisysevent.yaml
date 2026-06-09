@@ -525,28 +525,28 @@ EXTENSION_RUNNING_TIMEOUT:
 # CLI tool event
 
 EXECUTE_CLI:
-  __BASE: {type: BEHAVIOR, level: MINOR, tag: cli, desc: execute CLI tool}
+  __BASE: {type: BEHAVIOR, level: MINOR, desc: execute CLI tool}
   BUNDLE_NAME: {type: STRING, desc: caller bundle name}
   CLI_NAME: {type: STRING, desc: CLI tool name}
   ARGS: {type: STRING, desc: CLI arguments}
   PID: {type: INT32, desc: process id}
 
 EXECUTE_CLI_FAILED:
-  __BASE: {type: FAULT, level: MINOR, tag: cli, desc: execute CLI tool failed}
+  __BASE: {type: FAULT, level: MINOR, desc: execute CLI tool failed}
   BUNDLE_NAME: {type: STRING, desc: caller bundle name}
   CLI_NAME: {type: STRING, desc: CLI tool name}
   REASON: {type: STRING, desc: failure reason}
   PID: {type: INT32, desc: process id}
 
 CLI_RUN_TIMEOUT:
-  __BASE: {type: FAULT, level: MINOR, tag: cli, desc: CLI tool execution timeout}
+  __BASE: {type: FAULT, level: MINOR, desc: CLI tool execution timeout}
   BUNDLE_NAME: {type: STRING, desc: caller bundle name}
   CLI_NAME: {type: STRING, desc: CLI tool name}
   DURATION_MS: {type: INT64, desc: execution duration in milliseconds}
   PID: {type: INT32, desc: process id}
 
 CLI_RUN_ERROR:
-  __BASE: {type: FAULT, level: MINOR, tag: cli, desc: CLI tool execution error exit}
+  __BASE: {type: FAULT, level: MINOR, desc: CLI tool execution error exit}
   CLI_NAME: {type: STRING, desc: CLI tool name}
   SIGNAL_NUM: {type: INT32, desc: signal number}
   PID: {type: INT32, desc: process id}
