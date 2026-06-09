@@ -11,36 +11,47 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos.gni")
+import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
-group("cli_event_report_test") {
-  testonly = true
-  deps = [ ":cli_event_report_test_bin" ]
-}
+module_output_path = "ability_runtime/ability_runtime/clitool"
 
-ohos_unittest("cli_event_report_test_bin") {
-  module_name = "CliEventReportTest"
-  subsystem_name = "ability"
-  part_name = "ability_runtime"
+ohos_unittest("cli_event_report_test") {
+  module_out_path = module_output_path
 
-  sources = [ "cli_event_report_test.cpp" ]
+  sources = [
+    "cli_event_report_test.cpp",
+    "${cli_tool_framework_path}/services/common/src/cli_event_report.cpp",
+  ]
 
   include_dirs = [
-    "//third_party/googletest/googletest/include",
-    "${ability_runtime_path}/cli_tool_framework/services/climgr/include",
-    "${ability_runtime_path}/cli_tool_framework/interfaces/cli_tool/include",
     "${ability_runtime_services_path}/common/include",
+    "${ability_runtime_innerkits_path}/ability_manager/include/appmgr",
+    "${cli_tool_framework_path}/services/common/include",
+    "${cli_tool_framework_path}/interfaces/cli_tool/include",
   ]
 
   deps = [
-    "${ability_runtime_services_path}/common:services_common",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_services_path}/common:hisysevent_report_static",
   ]
 
   external_deps = [
+    "ability_base:want",
+    "access_token:libaccesstoken_sdk",
+    "bundle_framework:appexecfwk_base",
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "ipc:ipc_core",
   ]
 
   defines = [ "AMS_LOG_TAG = \"CliEventReportTest\"" ]
+}
+
+group("unittest") {
+  testonly = true
+  deps = [ ":cli_event_report_test" ]
 }
