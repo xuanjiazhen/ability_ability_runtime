@@ -54,28 +54,6 @@ public:
      * @return Number of nodes, or 0 on parse failure.
      */
     static int32_t GetNodeCount(const std::string& treeJson);
-
-private:
-    /**
-     * @brief Recursively traverse a JSON node and collect matching IDs.
-     * @param node The JSON object representing a tree node.
-     * @param componentType Component type to match (case-insensitive).
-     * @param contentMatcher Content substring to match.
-     * @param results Output vector to append matching node IDs.
-     * @param[out] totalCount Incremented for every node visited.
-     */
-    static void TraverseNode(const void* node, const std::string& componentType,
-        const std::string& contentMatcher, std::vector<int32_t>& results, int32_t& totalCount);
-
-    /**
-     * @brief Case-insensitive string comparison.
-     */
-    static bool CaseInsensitiveEqual(const std::string& a, const std::string& b);
-
-    /**
-     * @brief Case-insensitive substring search.
-     */
-    static bool CaseInsensitiveContains(const std::string& haystack, const std::string& needle);
 };
 
 } // namespace AAFwk

@@ -34,6 +34,28 @@ constexpr const char* FIELD_ATTRS = "$attrs";
 constexpr const char* ATTR_CONTENT = "content";
 constexpr const char* ATTR_LABEL = "label";
 
+bool CaseInsensitiveEqual(const std::string& a, const std::string& b)
+{
+    if (a.size() != b.size()) {
+        return false;
+    }
+    return std::equal(a.begin(), a.end(), b.begin(),
+        [](unsigned char ca, unsigned char cb) { return std::tolower(ca) == std::tolower(cb); });
+}
+
+bool CaseInsensitiveContains(const std::string& haystack, const std::string& needle)
+{
+    if (needle.empty()) {
+        return true;
+    }
+    if (haystack.size() < needle.size()) {
+        return false;
+    }
+    auto it = std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end(),
+        [](unsigned char ch1, unsigned char ch2) { return std::tolower(ch1) == std::tolower(ch2); });
+    return it != haystack.end();
+}
+
 void TraverseNode(const nlohmann::json& node, const std::string& componentType,
     const std::string& contentMatcher, std::vector<int32_t>& results, int32_t& totalCount)
 {
@@ -46,7 +68,7 @@ void TraverseNode(const nlohmann::json& node, const std::string& componentType,
     bool typeMatched = false;
     if (node.contains(FIELD_TYPE) && node[FIELD_TYPE].is_string()) {
         std::string nodeType = node[FIELD_TYPE].get<std::string>();
-        typeMatched = UiOperationTreeParser::CaseInsensitiveEqual(nodeType, componentType);
+        typeMatched = CaseInsensitiveEqual(nodeType, componentType);
     }
 
     // Check content match if type matched
@@ -59,11 +81,11 @@ void TraverseNode(const nlohmann::json& node, const std::string& componentType,
                 const auto& attrs = node[FIELD_ATTRS];
                 if (attrs.contains(ATTR_CONTENT) && attrs[ATTR_CONTENT].is_string()) {
                     std::string content = attrs[ATTR_CONTENT].get<std::string>();
-                    contentMatched = UiOperationTreeParser::CaseInsensitiveContains(content, contentMatcher);
+                    contentMatched = CaseInsensitiveContains(content, contentMatcher);
                 }
                 if (!contentMatched && attrs.contains(ATTR_LABEL) && attrs[ATTR_LABEL].is_string()) {
                     std::string label = attrs[ATTR_LABEL].get<std::string>();
-                    contentMatched = UiOperationTreeParser::CaseInsensitiveContains(label, contentMatcher);
+                    contentMatched = CaseInsensitiveContains(label, contentMatcher);
                 }
             }
         }
@@ -120,28 +142,6 @@ int32_t UiOperationTreeParser::GetNodeCount(const std::string& treeJson)
         TAG_LOGE(AAFwkTag::INTENT, "JSON parse error: %{public}s", e.what());
         return 0;
     }
-}
-
-bool UiOperationTreeParser::CaseInsensitiveEqual(const std::string& a, const std::string& b)
-{
-    if (a.size() != b.size()) {
-        return false;
-    }
-    return std::equal(a.begin(), a.end(), b.begin(),
-        [](unsigned char ca, unsigned char cb) { return std::tolower(ca) == std::tolower(cb); });
-}
-
-bool UiOperationTreeParser::CaseInsensitiveContains(const std::string& haystack, const std::string& needle)
-{
-    if (needle.empty()) {
-        return true;
-    }
-    if (haystack.size() < needle.size()) {
-        return false;
-    }
-    auto it = std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end(),
-        [](unsigned char ch1, unsigned char ch2) { return std::tolower(ch1) == std::tolower(ch2); });
-    return it != haystack.end();
 }
 
 } // namespace AAFwk

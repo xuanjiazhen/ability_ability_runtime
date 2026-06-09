@@ -795,7 +795,8 @@ const std::map<std::string, UiOperationChainExecutor::DumpHandler>
         auto arkUICb = [&i](int32_t winId,
             const std::unordered_map<int32_t, std::shared_ptr<Media::PixelMap>>& res,
             Ace::MultiImageQueryErrorCode code) {
-            i.push_back("ArkUI images winId=" + std::to_string(winId) + " code=" + std::to_string(code));
+            i.push_back("ArkUI images winId=" + std::to_string(winId)
+                + " code=" + std::to_string(static_cast<int32_t>(code)));
         };
         if (idx >= paramSize) {
             s->GetImagesById(arkUIIds, arkUICb, {}, nullptr);
@@ -817,7 +818,8 @@ const std::map<std::string, UiOperationChainExecutor::DumpHandler>
         auto arkWebCb = [&i](int32_t winId,
             const std::map<int32_t, std::map<int32_t, std::shared_ptr<Media::PixelMap>>>& res,
             Ace::MultiImageQueryErrorCode code) {
-            i.push_back("ArkWeb images winId=" + std::to_string(winId) + " code=" + std::to_string(code));
+            i.push_back("ArkWeb images winId=" + std::to_string(winId)
+                + " code=" + std::to_string(static_cast<int32_t>(code)));
         };
         s->GetImagesById(arkUIIds, arkUICb, arkWebs, arkWebCb);
     }},
@@ -827,7 +829,8 @@ const std::map<std::string, UiOperationChainExecutor::DumpHandler>
             auto cb = [&i](int32_t winId, int32_t wbId, const std::string& req,
                 const std::string& result, Ace::WebRequestErrorCode code) {
                 i.push_back("WebInfo winId=" + std::to_string(winId) + " webId=" + std::to_string(wbId) +
-                    " code=" + std::to_string(code) + " result=" + result.substr(0, 200));
+                    " code=" + std::to_string(static_cast<int32_t>(code))
+                    + " result=" + result.substr(0, 200));
             };
             s->GetWebInfoByRequest(webId, p[2], cb);
         }
