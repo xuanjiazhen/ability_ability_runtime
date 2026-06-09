@@ -753,28 +753,6 @@ HWTEST_F(AbilityAutoStartupServiceTest, CheckPermissionForSystem_001, TestSize.L
 
 /*
  * Feature: AbilityAutoStartupService
- * Function: CheckPermissionForSelf
- * SubFunction: NA
- * FunctionPoints: AbilityAutoStartupService CheckPermissionForSelf
- */
-HWTEST_F(AbilityAutoStartupServiceTest, CheckPermissionForSelf_001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "AbilityAutoStartupServiceTest CheckPermissionForSelf_001 start";
-    auto abilityAutoStartupService = std::make_shared<AbilityAutoStartupService>();
-    EXPECT_NE(abilityAutoStartupService, nullptr);
-    std::string bundleName = AUTO_STARTUP_SERVICE_EMPTY;
-    auto result = abilityAutoStartupService->CheckPermissionForSelf(bundleName);
-    if (!system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
-        GTEST_LOG_(INFO) << "Disabled config";
-        EXPECT_EQ(result, ERR_NOT_SUPPORTED_PRODUCT_TYPE);
-    } else {
-        EXPECT_EQ(result, ERR_OK);
-    }
-    GTEST_LOG_(INFO) << "AbilityAutoStartupServiceTest CheckPermissionForSelf_001 end";
-}
-
-/*
- * Feature: AbilityAutoStartupService
  * Function: GetAbilityInfo
  * SubFunction: NA
  * FunctionPoints: AbilityAutoStartupService GetAbilityInfo

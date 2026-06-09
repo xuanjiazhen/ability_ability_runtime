@@ -56,12 +56,12 @@ bool AppUtils::InOnNewProcessEnableList(const std::string &bundleName)
     return isInOnNewProcessEnableList_;
 }
 
-bool AppUtils::IsProductAppbootSettingEnabled()
+bool AppUtils::IsAutoStartupSupported()
 {
     return true;
 }
 
-bool AppUtils::IsEnterpriseDeviceType()
+bool AppUtils::IsProductAppbootSettingEnabled()
 {
     return true;
 }

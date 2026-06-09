@@ -29,8 +29,8 @@ public:
     bool IsStartOptionsWithAnimation();
     bool IsPrepareTerminateEnabled();
     bool IsStartOptionsWithProcessOptions();
+    bool IsAutoStartupSupported();
     bool IsProductAppbootSettingEnabled();
-    bool IsEnterpriseDeviceType();
 
 private:
     AppUtils();
