@@ -157,29 +157,35 @@ public:
     void SetAniAsyncCallback(ani_object asyncCallback);
 
     /**
-     * Add a duplicated pending callback.
-     * Used when multiple connection requests are made for the same extension.
-     *
-     * @param duplicatedCallback The callback object from ETS.
+     * Add a duplicate logical connect request waiting on this real IPC connection.
      */
-    bool AddDuplicatedPendingCallback(ani_object duplicatedCallback);
+    void AddDuplicatedPendingConnection(const sptr<EtsAgentConnection> &connection);
 
     /**
-     * Resolve all duplicated pending callbacks with the proxy.
-     *
-     * @param env The ANI environment.
-     * @param proxyObj The proxy object to resolve with.
+     * Resolve pending duplicate requests with separate ETS proxy objects.
      */
-    void ResolveDuplicatedPendingCallbacks(ani_env *env, ani_object proxyObj);
+    void ResolveDuplicatedPendingConnections(ani_env *env, const sptr<IRemoteObject> &remoteObject);
 
     /**
-     * Reject all duplicated pending callbacks with error.
-     *
-     * @param env The ANI environment.
-     * @param error The error code.
+     * Reject pending duplicate requests when the real connect request fails.
      */
-    void RejectDuplicatedPendingCallbacks(
+    void RejectDuplicatedPendingConnections(
         ani_env *env, int32_t error, AbilityRuntime::AbilityInnerErrorMsg fallbackMessage);
+
+    /**
+     * Resolve this connection promise with a proxy bound to this connection ID.
+     */
+    bool ResolveWithRemoteObject(ani_env *env, const sptr<IRemoteObject> &remoteObject);
+
+    /**
+     * Reject this connection promise with the given business error.
+     */
+    void RejectWithError(ani_env *env, int32_t error, AbilityRuntime::AbilityInnerErrorMsg fallbackMessage);
+
+    /**
+     * Get the remote object cached from a completed real IPC connect.
+     */
+    sptr<IRemoteObject> GetRemoteObject() const { return remoteObject_; }
 
     /**
      * Called when agent extension sends data.
@@ -252,9 +258,25 @@ public:
      */
     void ReleaseObjectReference(ani_env *env, ani_ref etsObjRef);
 
-    void SetConnectionId(int32_t id) { connectionId_ = id; }
+    /**
+     * Set the implicit connection ID carried by the returned AgentProxy.
+     */
+    void SetConnectionId(int64_t id) { connectionId_ = id; }
 
-    int32_t GetConnectionId() { return connectionId_; }
+    /**
+     * Get the implicit connection ID used to distinguish duplicate connects.
+     */
+    int64_t GetConnectionId() { return connectionId_; }
+
+    /**
+     * Mark whether this record owns the real AMS connection or only a duplicate logical connection.
+     */
+    void SetRealConnection(bool isRealConnection) { isRealConnection_ = isRealConnection; }
+
+    /**
+     * Check whether disconnect should close the real AMS connection.
+     */
+    bool IsRealConnection() const { return isRealConnection_; }
 
 private:
     /**
@@ -301,6 +323,11 @@ private:
     sptr<EtsAgentConnectorStubImpl> serviceHostStub_;
 
     /**
+     * Remote object cached after real connect succeeds and reused for duplicate logical connects.
+     */
+    sptr<IRemoteObject> remoteObject_;
+
+    /**
      * The async callback stored from ETS for promise resolution.
      */
     ani_ref aniAsyncCallback_ = nullptr;
@@ -316,9 +343,14 @@ private:
     ani_ref serviceProxyObject_ = nullptr;
 
     /**
-     * List of pending callbacks for duplicate connection requests.
+     * Duplicate logical connections waiting for the real connect callback.
      */
-    std::vector<ani_ref> duplicatedPendingCallbacks_;
+    std::vector<sptr<EtsAgentConnection>> duplicatedPendingConnections_;
+
+    /**
+     * False for duplicate logical connections that should only be removed locally on disconnect.
+     */
+    bool isRealConnection_ = true;
 };
 } // namespace AgentRuntime
 } // namespace OHOS
