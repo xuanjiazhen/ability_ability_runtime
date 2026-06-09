@@ -30,6 +30,7 @@
 #include "param_config.h"
 #include "ui_content_errors.h"
 #include "ui_content_proxy_error_code.h"
+#include "ui_content_service_interface.h"
 
 class EventHandler;
 

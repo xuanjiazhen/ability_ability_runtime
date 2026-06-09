@@ -58,6 +58,7 @@
 #include "background_user_extension_monitor.h"
 #include "insight_intent_execute_manager.h"
 #include "insight_intent/ui_operation_chain_executor.h"
+#include "event_handler.h"
 #include "insight_intent_db_cache.h"
 #include "skill/skill_execute_manager.h"
 #include "insight_intent_utils.h"
@@ -7963,7 +7964,8 @@ void AbilityManagerService::DumpSysUIOperationInner(
     // Skip the first arg ("-o"), pass windowId + command + args
     std::vector<std::string> params(argList.begin() + 1, argList.end());
     auto executor = std::make_shared<AAFwk::UiOperationChainExecutor>();
-    executor->HandleDump(params, eventHandler_, info);
+    auto dumpHandler = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Current());
+    executor->HandleDump(params, dumpHandler, info);
 }
 
 void AbilityManagerService::DumpInner(const std::string &args, std::vector<std::string> &info)
