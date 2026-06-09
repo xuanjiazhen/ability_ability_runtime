@@ -10292,7 +10292,7 @@ int AbilityManagerService::StartUser(int userId, uint64_t displayId, sptr<IUserC
         return ERR_ALL_APP_START_BLOCKED;
     }
     // Lister screen unlock for auto startup apps.
-    if (AppUtils::GetInstance().IsProductAppbootSettingEnabled() && abilityAutoStartupService_ &&
+    if (AppUtils::GetInstance().IsAutoStartupSupported() && abilityAutoStartupService_ &&
         !abilityAutoStartupService_->FindHandledAutoStartupUsers(userId)) {
         SubscribeScreenUnlockedEvent();
     }
@@ -10352,7 +10352,7 @@ int AbilityManagerService::StopUser(int userId, const sptr<IUserCallback> &callb
     }
 
     // clear userInfo for autoStartup
-    if (AppUtils::GetInstance().IsProductAppbootSettingEnabled() && abilityAutoStartupService_) {
+    if (AppUtils::GetInstance().IsAutoStartupSupported() && abilityAutoStartupService_) {
         abilityAutoStartupService_->RemoveHandledAutoStartupUsers(userId);
     }
     AbilityRuntime::AbilityEventMapManager::GetInstance().RemoveUser(userId);
@@ -10424,7 +10424,7 @@ int AbilityManagerService::LogoutUser(int32_t userId, sptr<IUserCallback> callba
         return checkRet;
     }
     // clear userInfo for autoStartup
-    if (AppUtils::GetInstance().IsProductAppbootSettingEnabled() && abilityAutoStartupService_) {
+    if (AppUtils::GetInstance().IsAutoStartupSupported() && abilityAutoStartupService_) {
         abilityAutoStartupService_->RemoveHandledAutoStartupUsers(userId);
     }
     AbilityRuntime::AbilityEventMapManager::GetInstance().RemoveUser(userId);
