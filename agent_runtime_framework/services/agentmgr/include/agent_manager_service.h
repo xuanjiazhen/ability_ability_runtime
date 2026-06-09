@@ -88,7 +88,7 @@ private:
 
     /**
      * @struct StandardAgentKey
-     * @brief Identity key for deduplicating non-low-code agent connections: callerUid + agentId + target.
+     * @brief Identity key for deduplicating non-low-code agent connections by caller uid and target.
      */
     struct StandardAgentKey {
         int32_t callerUid = 0;
@@ -96,6 +96,7 @@ private:
         std::string bundleName;
         std::string moduleName;
         std::string abilityName;
+        sptr<IRemoteObject> hostProxyRemote = nullptr;
     };
 
     enum class StandardAgentState : int32_t {
@@ -105,7 +106,7 @@ private:
 
     /**
      * @struct StandardAgentSession
-     * @brief Collapsed session for standard agent connections sharing the same (callerUid, agentId, target).
+     * @brief Collapsed session for standard agent connections sharing the same caller uid and target.
      */
     struct StandardAgentSession {
         StandardAgentKey key;
@@ -113,6 +114,9 @@ private:
         sptr<AAFwk::IAbilityConnection> serviceConnection = nullptr;
         std::vector<sptr<AAFwk::IAbilityConnection>> pendingCallbacks;
         std::vector<sptr<AAFwk::IAbilityConnection>> connectedCallbacks;
+        std::map<sptr<IRemoteObject>, sptr<AAFwk::IAbilityConnection>> standardServiceConnections;
+        std::map<sptr<IRemoteObject>, sptr<AAFwk::IAbilityConnection>> pendingCallbackByServiceRemote;
+        std::set<sptr<IRemoteObject>> pendingDisconnectServiceRemotes;
         std::vector<sptr<IRemoteObject>> callerRemotes;
         AppExecFwk::ElementName cachedElement;
         sptr<IRemoteObject> cachedRemoteObject = nullptr;
@@ -138,16 +142,40 @@ private:
 
     using TrackedConnectionIter = std::map<sptr<IRemoteObject>, TrackedConnectionRecord>::iterator;
     using StandardSessionIter = std::list<std::shared_ptr<StandardAgentSession>>::iterator;
+    using AgentHostSessionIter = std::list<std::shared_ptr<AgentHostSession>>::iterator;
+    using AgentOwnerIter = std::list<AgentOwnerRecord>::iterator;
 
     struct AgentDisconnectPlan {
         sptr<AAFwk::IAbilityConnection> serviceConnection = nullptr;
+        std::vector<sptr<AAFwk::IAbilityConnection>> serviceConnections;
         sptr<AgentHostConnection> hostConnection = nullptr;
         sptr<IRemoteObject> callerRemote = nullptr;
         AgentHostKey hostKey;
         bool hasHostKey = false;
+        bool lowCodeQuotaReleased = false;
         bool isStandard = false;
+        bool standardQuotaReleased = false;
         int32_t standardCallerUid = 0;
         StandardAgentKey standardKey;
+        sptr<IRemoteObject> lowCodeQuotaTransferFrom = nullptr;
+        sptr<IRemoteObject> lowCodeQuotaTransferTo = nullptr;
+        sptr<IRemoteObject> standardQuotaTransferFrom = nullptr;
+        sptr<IRemoteObject> standardQuotaTransferTo = nullptr;
+        sptr<AAFwk::IAbilityConnection> lowCodeCallerConnection = nullptr;
+        std::map<std::string, LowCodeAgentRecord> lowCodeRemovedAgents;
+        std::set<sptr<IRemoteObject>> lowCodeRemovedHostProxies;
+    };
+
+    struct LowCodeCompleteRollbackInfo {
+        AgentHostKey hostKey;
+        AgentOwnerKey ownerKey;
+        LowCodeAgentRecord agentRecord;
+        sptr<IRemoteObject> callerRemote = nullptr;
+        sptr<IRemoteObject> hostProxyRemote = nullptr;
+        sptr<AAFwk::IAbilityConnection> callerConnection = nullptr;
+        sptr<IRemoteObject> quotaTransferFrom = nullptr;
+        sptr<IRemoteObject> quotaTransferTo = nullptr;
+        bool needRollback = false;
     };
 
     AgentManagerService();
@@ -170,6 +198,11 @@ private:
      * @brief Resolves the host uid that owns the low-code agent target.
      */
     int32_t ResolveLowCodeHostInfo(const AAFwk::Want &want, int32_t userId, int32_t &hostUid) const;
+    int32_t ConnectStandardAgentExtensionAbility(const AAFwk::Want &connectWant, const std::string &agentId,
+        const AgentCard &card, const sptr<AAFwk::IAbilityConnection> &connection, int32_t callerUid);
+    int32_t ConnectExistingStandardSession(const AAFwk::Want &connectWant,
+        const std::shared_ptr<StandardAgentSession> &session,
+        const sptr<AAFwk::IAbilityConnection> &connection, bool &handled);
     /**
      * @brief Validates service-extension connect input for the caller-token based connect path.
      */
@@ -184,6 +217,9 @@ private:
      */
     int32_t RegisterTrackedConnectionAndGetServiceConnection(const sptr<AAFwk::IAbilityConnection> &connection,
         int32_t callerUid, bool countTowardsCallerLimit, sptr<AAFwk::IAbilityConnection> &serviceConnection);
+    /**
+     * @brief Checks whether the caller has consumed all available agent connection slots.
+     */
     bool HasReachedCallerConnectionLimitLocked(int32_t callerUid) const;
     /**
      * @brief Adds one tracked connection record, optionally binding it to a shared low-code host session.
@@ -191,35 +227,163 @@ private:
     int32_t TryRegisterConnectionLocked(const sptr<AAFwk::IAbilityConnection> &connection, int32_t callerUid,
         const sptr<AAFwk::IAbilityConnection> &serviceConnection = nullptr, const AgentHostKey *hostKey = nullptr,
         bool countTowardsCallerLimit = true);
+    int32_t CheckExistingTrackedConnectionLocked(const sptr<IRemoteObject> &callerRemote,
+        const AgentHostKey *hostKey) const;
+    sptr<AAFwk::IAbilityConnection> EnsureServiceConnection(const sptr<AAFwk::IAbilityConnection> &connection,
+        const sptr<AAFwk::IAbilityConnection> &serviceConnection) const;
+    /**
+     * @brief Returns the binder object used as the identity of one caller-visible connection request.
+     */
     sptr<IRemoteObject> GetConnectionIdentityRemote(const sptr<AAFwk::IAbilityConnection> &connection) const;
     /**
      * @brief Finds the tracked record that matches the caller callback object or the fallback caller uid path.
      */
     TrackedConnectionIter FindTrackedConnectionLocked(const sptr<AAFwk::IAbilityConnection> &connection,
         int32_t callerUid);
+    /**
+     * @brief Builds the disconnect plan and removes bookkeeping that must be restored on AMS failure.
+     */
     int32_t PrepareAgentDisconnectLocked(const sptr<AAFwk::IAbilityConnection> &connection,
         AgentDisconnectPlan &plan);
+    int32_t ExecuteAgentDisconnectPlan(const AgentDisconnectPlan &plan);
+    /**
+     * @brief Prepares disconnect state for a low-code caller in a shared host session.
+     */
     int32_t PrepareLowCodeDisconnectLocked(TrackedConnectionIter it, AgentDisconnectPlan &plan);
+    bool RemoveLowCodeAgentsForCallerLocked(const std::shared_ptr<AgentHostSession> &session,
+        const sptr<IRemoteObject> &callerRemote, AgentDisconnectPlan &plan,
+        std::set<sptr<IRemoteObject>> &removedHostProxies);
+    int32_t PrepareLowCodeCallerQuotaForDisconnectLocked(TrackedConnectionIter it,
+        const std::shared_ptr<AgentHostSession> &session, AgentDisconnectPlan &plan);
+    void SelectLowCodeDisconnectConnectionLocked(const std::shared_ptr<AgentHostSession> &session,
+        const std::set<sptr<IRemoteObject>> &removedHostProxies, AgentDisconnectPlan &plan);
+    /**
+     * @brief Prepares disconnect state for a standard collapsed agent session.
+     */
     int32_t PrepareStandardDisconnectLocked(TrackedConnectionIter it, AgentDisconnectPlan &plan);
+    int32_t PrepareMatchedStandardDisconnectLocked(TrackedConnectionIter it,
+        const std::shared_ptr<StandardAgentSession> &session, AgentDisconnectPlan &plan);
+    void CollectStandardDisconnectConnectionsLocked(const std::shared_ptr<StandardAgentSession> &session,
+        AgentDisconnectPlan &plan);
+    void ArmStandardDisconnectLocked(const std::shared_ptr<StandardAgentSession> &session,
+        const AgentDisconnectPlan &plan);
+    /**
+     * @brief Restores connection bookkeeping when the real disconnect request cannot be issued.
+     */
     void RollbackAgentDisconnectLocked(const AgentDisconnectPlan &plan);
+    /**
+     * @brief Restores low-code host session and caller quota state after a failed host disconnect request.
+     */
+    void RollbackLowCodeAgentDisconnectLocked(const AgentDisconnectPlan &plan);
+    /**
+     * @brief Restores standard agent session and caller quota state after a failed service disconnect request.
+     */
+    void RollbackStandardAgentDisconnectLocked(const AgentDisconnectPlan &plan);
+    /**
+     * @brief Restores a quota transfer by making the original owner count again.
+     */
+    void RollbackTransferredCallerLimitLocked(const sptr<IRemoteObject> &transferFrom,
+        const sptr<IRemoteObject> &transferTo);
+    /**
+     * @brief Clears the caller-visible disconnecting flag and restores simple tracked quota state.
+     */
+    void RollbackTrackedAgentDisconnectLocked(const AgentDisconnectPlan &plan);
+    /**
+     * @brief Releases one caller quota slot by caller uid when no binder identity is available.
+     */
     void ReleaseCallerConnectionCountByUidLocked(int32_t callerUid);
     /**
      * @brief Forwards connect/disconnect completion from the service-side wrapper back to the original caller.
      */
     void HandleConnectionDone(const sptr<AAFwk::IAbilityConnection> &connection, int32_t resultCode, bool isDisconnect);
+    void AddDeathRecipientLocked(TrackedConnectionRecord &record);
+    /**
+     * @brief Releases the quota slot associated with a tracked caller binder.
+     */
     bool ReleaseCallerConnectionCountLocked(const sptr<IRemoteObject> &callerRemote);
+    /**
+     * @brief Removes one tracked connection and releases any related quota state.
+     */
     void ReleaseTrackedConnection(const sptr<AAFwk::IAbilityConnection> &connection);
+    /**
+     * @brief Removes one tracked connection by binder identity while the connection lock is held.
+     */
     void ReleaseTrackedConnectionByRemoteLocked(const sptr<IRemoteObject> &callerRemote);
+    /**
+     * @brief Moves a low-code quota slot to another caller in the same shared host session when possible.
+     */
     void TransferLowCodeCallerLimitLocked(const std::shared_ptr<AgentHostSession> &session,
         const sptr<IRemoteObject> &callerRemote);
+    /**
+     * @brief Compares low-code host keys for one caller and target AgentExt.
+     */
+    bool IsLowCodeHostQuotaKeyMatched(const AgentHostKey &left, const AgentHostKey &right) const;
+    /**
+     * @brief Compares low-code host keys for shared host-session identity.
+     */
+    bool IsLowCodeHostKeyMatched(const AgentHostKey &left, const AgentHostKey &right) const;
+    /**
+     * @brief Finds the shared low-code host session that exactly matches the given key.
+     */
+    AgentHostSessionIter FindAgentHostSessionLocked(const AgentHostKey &key);
+    /**
+     * @brief Compares low-code agent owner keys without relying on ordered-key operators.
+     */
+    bool IsAgentOwnerKeyEqual(const AgentOwnerKey &left, const AgentOwnerKey &right) const;
+    /**
+     * @brief Finds the reverse owner index for a low-code agent.
+     */
+    AgentOwnerIter FindAgentOwnerLocked(const AgentOwnerKey &key);
+    /**
+     * @brief Creates or updates the reverse owner index for a low-code agent.
+     */
+    void SetAgentOwnerLocked(const AgentOwnerKey &key, const std::shared_ptr<AgentHostSession> &session);
+    /**
+     * @brief Removes the reverse owner index for a low-code agent.
+     */
+    void EraseAgentOwnerLocked(const AgentOwnerKey &key);
+    /**
+     * @brief Checks whether a caller already holds quota for the same low-code host target.
+     */
+    bool HasLowCodeHostQuotaLocked(const AgentHostKey &hostKey, int32_t callerUid) const;
+    /**
+     * @brief Transfers quota between low-code host sessions that share the same quota identity.
+     */
+    bool TransferLowCodeCallerLimitAcrossSessionsLocked(const AgentHostKey &hostKey, int32_t callerUid,
+        const sptr<IRemoteObject> &transferFrom, sptr<IRemoteObject> &transferTo);
+    /**
+     * @brief Handles death-recipient cleanup from a weak caller binder reference.
+     */
     void HandleCallerConnectionDied(const wptr<IRemoteObject> &remote);
+    /**
+     * @brief Handles death-recipient cleanup from a resolved caller binder.
+     */
     void HandleCallerConnectionDied(const sptr<IRemoteObject> &remote);
+    /**
+     * @brief Cleans a dead standard connection and returns the real service connection to disconnect.
+     */
     void CleanupDeadStandardConnectionLocked(TrackedConnectionIter it, const sptr<IRemoteObject> &remote,
-        sptr<AAFwk::IAbilityConnection> &serviceConnection);
+        std::vector<sptr<AAFwk::IAbilityConnection>> &serviceConnections);
+    void RemoveDeadStandardCallerFromSessionLocked(const std::shared_ptr<StandardAgentSession> &session,
+        const sptr<IRemoteObject> &remote, const sptr<AAFwk::IAbilityConnection> &deadServiceConnection);
+    void TransferStandardQuotaAfterCallerDiedLocked(const StandardAgentKey &stdKey,
+        const sptr<IRemoteObject> &remote);
+    /**
+     * @brief Cleans a dead low-code connection and returns the host connection to disconnect when needed.
+     */
     void CleanupDeadLowCodeConnectionLocked(TrackedConnectionIter it, const sptr<IRemoteObject> &remote,
-        sptr<AgentHostConnection> &hostConnection);
-    void DisconnectDeadServiceConnection(const sptr<AAFwk::IAbilityConnection> &serviceConnection);
-    void DisconnectDeadHostConnection(const sptr<AgentHostConnection> &hostConnection);
+        std::vector<sptr<AgentHostConnection>> &hostConnections);
+    void CollectDeadLowCodeHostConnectionsLocked(const std::shared_ptr<AgentHostSession> &session,
+        const std::set<sptr<IRemoteObject>> &removedHostProxies,
+        std::vector<sptr<AgentHostConnection>> &hostConnections);
+    /**
+     * @brief Issues AMS disconnect for a real service connection after caller death cleanup.
+     */
+    void DisconnectDeadServiceConnections(const std::vector<sptr<AAFwk::IAbilityConnection>> &serviceConnections);
+    /**
+     * @brief Issues AMS disconnect for a real low-code host connection after caller death cleanup.
+     */
+    void DisconnectDeadHostConnections(const std::vector<sptr<AgentHostConnection>> &hostConnections);
     /**
      * @brief Connect path for LOW_CODE agents, which reuse one shared host session per target host.
      */
@@ -231,6 +395,13 @@ private:
      */
     int32_t PrepareLowCodeConnectPlan(const AgentHostKey &hostKey, int32_t hostUid, const std::string &agentId,
         const sptr<AAFwk::IAbilityConnection> &connection, int32_t callingUid, AgentConnectPlan &plan);
+    int32_t GetOrCreateLowCodeHostSessionLocked(const AgentHostKey &hostKey, int32_t hostUid,
+        const sptr<IRemoteObject> &hostProxyRemote, std::shared_ptr<AgentHostSession> &session,
+        AgentConnectPlan &plan);
+    int32_t RegisterLowCodePlanLocked(const AgentHostKey &hostKey, const std::string &agentId,
+        const sptr<AAFwk::IAbilityConnection> &connection, int32_t callingUid,
+        const sptr<IRemoteObject> &callerRemote, const sptr<IRemoteObject> &hostProxyRemote,
+        const std::shared_ptr<AgentHostSession> &session, AgentConnectPlan &plan);
     /**
      * @brief Delivers an already-established shared host connection to a new low-code caller.
      */
@@ -254,18 +425,54 @@ private:
      */
     StandardAgentKey BuildStandardAgentKey(int32_t callerUid, const std::string &agentId,
         const AAFwk::Want &want) const;
+    /**
+     * @brief Compares standard keys for exact identity after both keys are normalized.
+     */
     bool IsStandardAgentKeyEqual(const StandardAgentKey &left, const StandardAgentKey &right) const;
+    /**
+     * @brief Matches standard keys for session lookup while tolerating a missing module name.
+     */
     bool IsStandardAgentKeyMatched(const StandardAgentKey &storedKey, const StandardAgentKey &incomingKey) const;
+    /**
+     * @brief Compares standard keys for caller quota grouping, excluding per-callback host binder identity.
+     */
+    bool IsStandardAgentQuotaKeyMatched(const StandardAgentKey &storedKey, const StandardAgentKey &incomingKey) const;
     /**
      * @brief Finds an existing standard session matching the given key.
      */
     std::shared_ptr<StandardAgentSession> FindStandardSessionLocked(const StandardAgentKey &key) const;
+    /**
+     * @brief Finds a standard session by the service-side wrapper binder used for AMS callbacks.
+     */
     StandardSessionIter FindStandardSessionByServiceRemoteLocked(const sptr<IRemoteObject> &serviceRemote);
     /**
      * @brief Registers a caller callback against an existing standard session without consuming another quota slot.
      */
     int32_t RegisterStandardSessionCallerLocked(const std::shared_ptr<StandardAgentSession> &session,
-        const sptr<AAFwk::IAbilityConnection> &connection, bool countTowardsCallerLimit);
+        const sptr<AAFwk::IAbilityConnection> &connection,
+        const sptr<AAFwk::IAbilityConnection> &serviceConnection, bool countTowardsCallerLimit,
+        bool forcePending, bool &isNewCaller);
+    int32_t EnsureStandardTrackedCallerLocked(const std::shared_ptr<StandardAgentSession> &session,
+        const sptr<AAFwk::IAbilityConnection> &connection,
+        const sptr<AAFwk::IAbilityConnection> &serviceConnection, bool countTowardsCallerLimit,
+        sptr<IRemoteObject> &callerRemote);
+    void AddStandardSessionCallbackLocked(const std::shared_ptr<StandardAgentSession> &session,
+        const sptr<AAFwk::IAbilityConnection> &connection,
+        const sptr<AAFwk::IAbilityConnection> &serviceConnection, bool forcePending);
+    /**
+     * @brief Removes one newly registered standard caller after its real connect request fails immediately.
+     */
+    void RollbackStandardSessionCallerLocked(const std::shared_ptr<StandardAgentSession> &session,
+        const sptr<AAFwk::IAbilityConnection> &connection);
+    /**
+     * @brief Checks whether the caller already holds quota for the same standard agent target.
+     */
+    bool HasStandardAgentQuotaLocked(const StandardAgentKey &key) const;
+    /**
+     * @brief Transfers a standard-agent quota slot to another logical connection when possible.
+     */
+    bool TransferStandardCallerLimitLocked(const StandardAgentKey &disconnectingKey,
+        sptr<IRemoteObject> &transferFrom, sptr<IRemoteObject> &transferTo);
     /**
      * @brief Creates a new collapsed standard session, registers one quota, and issues the real AMS connect.
      */
@@ -276,11 +483,27 @@ private:
      */
     void HandleStandardAgentConnectDone(const sptr<IRemoteObject> &serviceRemote,
         const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int32_t resultCode);
+    bool HandlePendingStandardConnectDoneLocked(const sptr<IRemoteObject> &serviceRemote,
+        const sptr<IRemoteObject> &remoteObject, int32_t resultCode,
+        const StandardSessionIter &sessionIt, std::vector<sptr<AAFwk::IAbilityConnection>> &callbacks,
+        std::vector<sptr<AAFwk::IAbilityConnection>> &failedCallbacks);
+    void HandleLegacyStandardConnectDoneLocked(const sptr<IRemoteObject> &remoteObject, int32_t resultCode,
+        const StandardSessionIter &sessionIt, std::vector<sptr<AAFwk::IAbilityConnection>> &callbacks,
+        std::vector<sptr<AAFwk::IAbilityConnection>> &failedCallbacks);
     /**
      * @brief Handles AMS disconnect completion for a standard collapsed session.
      */
     void HandleStandardAgentDisconnectDone(const sptr<IRemoteObject> &serviceRemote,
         const AppExecFwk::ElementName &element, int32_t resultCode);
+    int32_t RemoveCompletedLowCodeAgentLocked(const std::string &agentId,
+        sptr<AgentHostConnection> &hostConnection, LowCodeCompleteRollbackInfo &rollbackInfo);
+    bool LowCodeCallerStillOwnsAgentLocked(const std::shared_ptr<AgentHostSession> &session,
+        const std::string &agentId, const sptr<IRemoteObject> &callerRemote) const;
+    void RemoveCompletedLowCodeCallerLocked(const std::shared_ptr<AgentHostSession> &session,
+        const sptr<IRemoteObject> &callerRemote, const sptr<IRemoteObject> &hostProxyRemote,
+        LowCodeCompleteRollbackInfo &rollbackInfo);
+    void RollbackLowCodeAgentCompleteLocked(const std::string &agentId,
+        const LowCodeCompleteRollbackInfo &rollbackInfo);
     /**
      * @brief Marks the target low-code agent as invoked so future callers can detect duplicate activation.
      */
@@ -294,6 +517,13 @@ private:
      */
     void HandleAgentHostConnectDone(const AgentHostKey &key, const AppExecFwk::ElementName &element,
         const sptr<IRemoteObject> &remoteObject, int resultCode);
+    void CollectPendingLowCodeConnectCallbacksLocked(const std::shared_ptr<AgentHostSession> &session,
+        const sptr<IRemoteObject> &hostProxyRemote, std::vector<sptr<AAFwk::IAbilityConnection>> &callbacks,
+        std::vector<std::string> &pendingAgentIds);
+    void CleanupFailedLowCodeHostConnectLocked(const std::shared_ptr<AgentHostSession> &session,
+        const AgentHostKey &key, const sptr<IRemoteObject> &hostProxyRemote,
+        const std::vector<sptr<AAFwk::IAbilityConnection>> &callbacks,
+        const std::vector<std::string> &pendingAgentIds);
     /**
      * @brief Handles AMS completion for the shared low-code host disconnect.
      */
@@ -316,8 +546,8 @@ private:
     std::map<sptr<IRemoteObject>, TrackedConnectionRecord> trackedConnections_;
     std::map<int32_t, size_t> callerConnectionCounts_;
     std::mutex agentHostMutex_;
-    std::map<AgentHostKey, std::shared_ptr<AgentHostSession>> agentHostSessions_;
-    std::map<AgentOwnerKey, std::shared_ptr<AgentHostSession>> agentOwners_;
+    std::list<std::shared_ptr<AgentHostSession>> agentHostSessions_;
+    std::list<AgentOwnerRecord> agentOwners_;
     std::list<std::shared_ptr<StandardAgentSession>> standardSessions_;
 };
 }  // namespace AgentRuntime
