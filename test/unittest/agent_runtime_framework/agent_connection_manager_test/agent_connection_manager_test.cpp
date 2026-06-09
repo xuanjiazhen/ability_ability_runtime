@@ -831,30 +831,30 @@ HWTEST_F(AgentConnectionManagerTest, IsConnectReceiverEqual_003, TestSize.Level1
 }
 
 /**
-* @tc.name  : GetAgentExtProxyPtr_ShouldReturnNullptr_WhenRemoteObjectIsNull
-* @tc.number: GetAgentExtProxyPtr_001
-* @tc.desc  : Test GetAgentExtProxyPtr returns nullptr when remote object is null
+* @tc.name  : GetAgentExtProxy_ShouldReturnNullptr_WhenRemoteObjectIsNull
+* @tc.number: GetAgentExtProxy_001
+* @tc.desc  : Test GetAgentExtProxy returns nullptr when remote object is null
 */
-HWTEST_F(AgentConnectionManagerTest, GetAgentExtProxyPtr_001, TestSize.Level1)
+HWTEST_F(AgentConnectionManagerTest, GetAgentExtProxy_001, TestSize.Level1)
 {
     Want want;
-    auto result = AgentConnectionManager::GetInstance().GetAgentExtProxyPtr(want);
+    auto result = AgentConnectionManager::GetInstance().GetAgentExtProxy(want);
     EXPECT_EQ(result, nullptr);
 }
 
 /**
-* @tc.name  : GetAgentExtProxyPtr_ShouldReturnRefPtr_WhenRemoteObjectExists (L243-244 coverage)
-* @tc.number: GetAgentExtProxyPtr_002
-* @tc.desc  : Test GetAgentExtProxyPtr returns ref pointer when remote object exists
+* @tc.name  : GetAgentExtProxy_ShouldReturnRemoteObject_WhenRemoteObjectExists
+* @tc.number: GetAgentExtProxy_002
+* @tc.desc  : Test GetAgentExtProxy returns remote object when remote object exists
 */
-HWTEST_F(AgentConnectionManagerTest, GetAgentExtProxyPtr_002, TestSize.Level1)
+HWTEST_F(AgentConnectionManagerTest, GetAgentExtProxy_002, TestSize.Level1)
 {
     Want want;
     sptr<IRemoteObject> remoteObj = sptr<MockIRemoteObject>::MakeSptr();
     want.SetParam(AGENTEXTENSIONHOSTPROXY_KEY, remoteObj);
 
-    auto result = AgentConnectionManager::GetInstance().GetAgentExtProxyPtr(want);
-    EXPECT_NE(result, nullptr);
+    auto result = AgentConnectionManager::GetInstance().GetAgentExtProxy(want);
+    EXPECT_EQ(result, remoteObj);
 }
 
 /**
@@ -884,9 +884,9 @@ HWTEST_F(AgentConnectionManagerTest, MatchConnection_001, TestSize.Level1)
 }
 
 /**
-* @tc.name  : MatchConnection_ShouldReturnTrue_WhenAgentExtProxyDiffers
+* @tc.name  : MatchConnection_ShouldReturnFalse_WhenAgentExtProxyDiffers
 * @tc.number: MatchConnection_002
-* @tc.desc  : Test MatchConnection returns true when only agentExtProxy differs
+* @tc.desc  : Test MatchConnection returns false when only agentExtProxy differs
 */
 HWTEST_F(AgentConnectionManagerTest, MatchConnection_002, TestSize.Level1)
 {
@@ -908,7 +908,7 @@ HWTEST_F(AgentConnectionManagerTest, MatchConnection_002, TestSize.Level1)
 
     auto &connectionEntry = *AgentConnectionManager::GetInstance().agentConnections_.begin();
     auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, connectionEntry);
-    EXPECT_TRUE(result);
+    EXPECT_FALSE(result);
 }
 
 /**
@@ -1158,9 +1158,9 @@ HWTEST_F(AgentConnectionManagerTest, CreateConnection_002, TestSize.Level1)
 }
 
 /**
-* @tc.name  : CreateConnection_ShouldStoreAgentExtProxyPtr
+* @tc.name  : CreateConnection_ShouldStoreAgentExtProxy
 * @tc.number: CreateConnection_003
-* @tc.desc  : Test CreateConnection stores agentExtProxyPtr in connection info
+* @tc.desc  : Test CreateConnection stores agentExtProxy in connection info
 */
 HWTEST_F(AgentConnectionManagerTest, CreateConnection_003, TestSize.Level1)
 {
@@ -1176,10 +1176,10 @@ HWTEST_F(AgentConnectionManagerTest, CreateConnection_003, TestSize.Level1)
     auto result = AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(want, callback);
 
     EXPECT_EQ(result, ERR_OK);
-    // Verify the connection was created and stored with agentExtProxyPtr
+    // Verify the connection was created and stored with agentExtProxy
     EXPECT_EQ(AgentConnectionManager::GetInstance().agentConnections_.size(), static_cast<size_t>(1));
     auto &connectionInfo = AgentConnectionManager::GetInstance().agentConnections_.begin()->first;
-    EXPECT_NE(connectionInfo.agentExtProxy, nullptr);
+    EXPECT_EQ(connectionInfo.agentExtProxy, remoteObj);
 }
 
 /**
@@ -1265,9 +1265,9 @@ HWTEST_F(AgentConnectionManagerTest, ConnectAbilityInner_002, TestSize.Level1)
 }
 
 /**
-* @tc.name  : ConnectAbilityInner_ShouldReuseConnection_WhenHostProxyDiffers
+* @tc.name  : ConnectAbilityInner_ShouldCreateNewConnection_WhenHostProxyDiffers
 * @tc.number: ConnectAbilityInner_004
-* @tc.desc  : Test ConnectAbilityInner reuses connection for same agent and target with different host proxies
+* @tc.desc  : Test ConnectAbilityInner creates a separate connection for different host proxies
 */
 HWTEST_F(AgentConnectionManagerTest, ConnectAbilityInner_004, TestSize.Level1)
 {
@@ -1291,8 +1291,8 @@ HWTEST_F(AgentConnectionManagerTest, ConnectAbilityInner_004, TestSize.Level1)
     sptr<MockAbilityConnectCallback> callback2 = new MockAbilityConnectCallback();
     result = AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(want2, callback2);
     EXPECT_EQ(result, ERR_OK);
-    EXPECT_EQ(AgentConnectionManager::GetInstance().agentConnections_.size(), static_cast<size_t>(1));
-    EXPECT_EQ(AgentConnectionManager::GetInstance().agentConnections_.begin()->second.size(), static_cast<size_t>(2));
+    EXPECT_EQ(AgentConnectionManager::GetInstance().agentConnections_.size(), static_cast<size_t>(2));
+    EXPECT_EQ(AgentConnectionManager::GetInstance().agentConnections_.begin()->second.size(), static_cast<size_t>(1));
 }
 
 /**

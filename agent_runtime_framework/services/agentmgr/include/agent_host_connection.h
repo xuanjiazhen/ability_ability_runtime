@@ -19,6 +19,7 @@
 #include <string>
 
 #include "ability_connect_callback_stub.h"
+#include "iremote_object.h"
 
 namespace OHOS {
 namespace AgentRuntime {
@@ -31,6 +32,7 @@ struct AgentHostKey {
     std::string bundleName;
     std::string moduleName;
     std::string abilityName;
+    sptr<IRemoteObject> hostProxyRemote = nullptr;
 
     bool operator<(const AgentHostKey &that) const
     {
@@ -43,7 +45,10 @@ struct AgentHostKey {
         if (moduleName != that.moduleName) {
             return moduleName < that.moduleName;
         }
-        return abilityName < that.abilityName;
+        if (abilityName != that.abilityName) {
+            return abilityName < that.abilityName;
+        }
+        return hostProxyRemote.GetRefPtr() < that.hostProxyRemote.GetRefPtr();
     }
 };
 

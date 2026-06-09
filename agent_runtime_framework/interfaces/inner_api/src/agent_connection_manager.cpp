@@ -235,10 +235,9 @@ bool AgentConnectionManager::IsConnectReceiverEqual(const AAFwk::Operation &conn
         connectReceiver.GetAbilityName() == connectReceiverOther.GetAbilityName();
 }
 
-void *AgentConnectionManager::GetAgentExtProxyPtr(const AAFwk::Want &want)
+sptr<IRemoteObject> AgentConnectionManager::GetAgentExtProxy(const AAFwk::Want &want)
 {
-    sptr<IRemoteObject> agentExtProxySptr = want.GetRemoteObject(AGENTEXTENSIONHOSTPROXY_KEY);
-    return agentExtProxySptr != nullptr ? agentExtProxySptr.GetRefPtr() : nullptr;
+    return want.GetRemoteObject(AGENTEXTENSIONHOSTPROXY_KEY);
 }
 
 bool AgentConnectionManager::MatchConnection(const std::string &agentId, const AAFwk::Want &connectReceiver,
@@ -248,8 +247,12 @@ bool AgentConnectionManager::MatchConnection(const std::string &agentId, const A
     if (agentId != connection.first.agentId) {
         return false;
     }
-    // 2. Match by connectReceiver (bundleName, moduleName, abilityName).
-    // AGENTEXTENSIONHOSTPROXY_KEY is per connect call, so it must not split reusable connections.
+    // 2. Match by host proxy IPC object. Each host proxy maps to one logical onConnect.
+    if (GetAgentExtProxy(connectReceiver) != connection.first.agentExtProxy) {
+        return false;
+    }
+
+    // 3. Match by connectReceiver (bundleName, moduleName, abilityName).
     const AAFwk::Operation &storedReceiver = connection.first.connectReceiver;
     const AppExecFwk::ElementName &element = connectReceiver.GetElement();
     if (element.GetBundleName() != storedReceiver.GetBundleName() ||
@@ -277,7 +280,7 @@ ErrCode AgentConnectionManager::CreateConnection(const AAFwk::Want &want,
     // Create AgentConnectionInfo
     AAFwk::Operation connectReceiver = want.GetOperation();
     AgentConnectionInfo connectionInfo(agentId, connectReceiver, agentConnection);
-    connectionInfo.SetAgentExtProxyPtr(GetAgentExtProxyPtr(want));
+    connectionInfo.SetAgentExtProxy(GetAgentExtProxy(want));
     connectionInfo.RecordConnectingTime();
 
     {

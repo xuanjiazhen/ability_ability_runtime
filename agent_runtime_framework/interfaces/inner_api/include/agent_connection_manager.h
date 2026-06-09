@@ -51,8 +51,8 @@ struct AgentConnectionInfo {
     // The connection object
     sptr<AgentConnection> agentConnection;
     // Agent extension host proxy from Want parameter AGENTEXTENSIONHOSTPROXY_KEY.
-    // It is per API call and is not part of the reusable connection identity.
-    void *agentExtProxy = nullptr;
+    // Different host proxy IPC objects represent different logical connections.
+    sptr<IRemoteObject> agentExtProxy = nullptr;
     // Connection timestamp for timeout detection
     int64_t connectingTime = 0;
 
@@ -67,13 +67,13 @@ struct AgentConnectionInfo {
         const sptr<AgentConnection> &agentConnection);
 
     /**
-     * @brief Set the agent extension proxy pointer.
+     * @brief Set the agent extension host proxy.
      *
-     * @param proxyPtr The proxy pointer to set.
+     * @param proxy The host proxy remote object to set.
      */
-    void SetAgentExtProxyPtr(void *proxyPtr)
+    void SetAgentExtProxy(const sptr<IRemoteObject> &proxy)
     {
-        agentExtProxy = proxyPtr;
+        agentExtProxy = proxy;
     }
 
     /**
@@ -211,9 +211,9 @@ private:
      * @brief Extract agentExtProxy from Want parameters.
      *
      * @param want The Want containing the proxy.
-     * @return Returns the proxy pointer, or nullptr if not found.
+     * @return Returns the host proxy remote object, or nullptr if not found.
      */
-    void *GetAgentExtProxyPtr(const AAFwk::Want &want);
+    sptr<IRemoteObject> GetAgentExtProxy(const AAFwk::Want &want);
     /**
      * @brief Match connection by agentId + connectReceiver.
      *
