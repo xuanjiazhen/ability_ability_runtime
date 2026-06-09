@@ -137,6 +137,7 @@ JSAgentConnection::~JSAgentConnection()
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "~JSAgentConnection destructor");
     serviceHostStub_ = nullptr;
+    remoteObject_ = nullptr;
     napiAsyncTask_ = nullptr;
     ReleaseNativeReference(serviceProxyObject_.release());
 }
@@ -173,35 +174,25 @@ void JSAgentConnection::HandleOnAbilityConnectDone(const AppExecFwk::ElementName
         napi_value error = CreateJsErrorByNativeErr(env_, resultCode, "",
             AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED));
         napiAsyncTask_->Reject(env_, error);
-        RejectDuplicatedPendingTask(env_, error);
+        RejectDuplicatedPendingConnection(env_, error);
         napiAsyncTask_ = nullptr;
         AgentConnectionUtils::RemoveAgentConnection(connectionId_);
         return;
     }
 
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "Creating JsAgentReceiverProxy");
-    sptr<JsAgentConnectorStubImpl> hostStub = GetServiceHostStub();
-    sptr<IRemoteObject> hostProxy = nullptr;
-    if (hostStub != nullptr) {
-        hostProxy = hostStub->AsObject();
-    }
-    napi_value proxy = AgentRuntime::JsAgentReceiverProxy::CreateJsAgentReceiverProxy(env_, remoteObject,
-        connectionId_, hostProxy);
-    if (proxy == nullptr) {
+    remoteObject_ = remoteObject;
+    if (!ResolveWithRemoteObject(remoteObject)) {
         napi_value error = CreateJsErrorByNativeErr(env_,
             static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), "",
             AbilityRuntime::GetInnerErrorMsg(
                 AbilityRuntime::AbilityInnerErrorMsg::OPERATION_FAILED));
-        napiAsyncTask_->Reject(env_, error);
-        RejectDuplicatedPendingTask(env_, error);
+        RejectWithError(error);
+        RejectDuplicatedPendingConnection(env_, error);
         napiAsyncTask_ = nullptr;
         AgentConnectionUtils::RemoveAgentConnection(connectionId_);
         return;
     }
-    SetProxyObject(proxy);
-    napiAsyncTask_->ResolveWithNoError(env_, proxy);
-    ResolveDuplicatedPendingTask(env_, proxy);
-    napiAsyncTask_ = nullptr;
+    ResolveDuplicatedPendingConnection(env_, remoteObject);
 }
 
 void JSAgentConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
@@ -231,7 +222,7 @@ void JSAgentConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::ElementN
             static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), "",
             AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::AGENT_EXTENSION_CONNECTION_ENDED));
         napiAsyncTask_->Reject(env_, innerError);
-        RejectDuplicatedPendingTask(env_, innerError);
+        RejectDuplicatedPendingConnection(env_, innerError);
         napiAsyncTask_ = nullptr;
     }
 
@@ -264,34 +255,81 @@ void JSAgentConnection::SetNapiAsyncTask(std::shared_ptr<AbilityRuntime::NapiAsy
     napiAsyncTask_ = task;
 }
 
-void JSAgentConnection::AddDuplicatedPendingTask(std::unique_ptr<AbilityRuntime::NapiAsyncTask> &task)
+void JSAgentConnection::AddDuplicatedPendingConnection(const sptr<JSAgentConnection> &connection)
 {
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "AddDuplicatedPendingTask");
-    duplicatedPendingTaskList_.push_back(std::move(task));
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "AddDuplicatedPendingConnection");
+    if (connection != nullptr) {
+        duplicatedPendingConnections_.push_back(connection);
+    }
 }
 
-void JSAgentConnection::ResolveDuplicatedPendingTask(napi_env env, napi_value proxy)
+void JSAgentConnection::ResolveDuplicatedPendingConnection(napi_env env, const sptr<IRemoteObject> &remoteObject)
 {
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "ResolveDuplicatedPendingTask, count: %{public}zu",
-        duplicatedPendingTaskList_.size());
-    for (auto &task : duplicatedPendingTaskList_) {
-        if (task != nullptr) {
-            task->ResolveWithNoError(env, proxy);
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "ResolveDuplicatedPendingConnection, count: %{public}zu",
+        duplicatedPendingConnections_.size());
+    for (auto &connection : duplicatedPendingConnections_) {
+        if (connection == nullptr) {
+            continue;
         }
+        sptr<JSAgentConnection> registeredConnection = nullptr;
+        AgentConnectionUtils::FindAgentConnection(connection->GetConnectionId(), registeredConnection);
+        if (registeredConnection != connection) {
+            continue;
+        }
+        if (connection->ResolveWithRemoteObject(remoteObject)) {
+            continue;
+        }
+        napi_value error = CreateJsErrorByNativeErr(env,
+            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), "",
+            AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::OPERATION_FAILED));
+        connection->RejectWithError(error);
+        AgentConnectionUtils::RemoveAgentConnection(connection->GetConnectionId());
     }
-    duplicatedPendingTaskList_.clear();
+    duplicatedPendingConnections_.clear();
 }
 
-void JSAgentConnection::RejectDuplicatedPendingTask(napi_env env, napi_value error)
+void JSAgentConnection::RejectDuplicatedPendingConnection(napi_env env, napi_value error)
 {
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "RejectDuplicatedPendingTask, count: %{public}zu",
-        duplicatedPendingTaskList_.size());
-    for (auto &task : duplicatedPendingTaskList_) {
-        if (task != nullptr) {
-            task->Reject(env, error);
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "RejectDuplicatedPendingConnection, count: %{public}zu",
+        duplicatedPendingConnections_.size());
+    for (auto &connection : duplicatedPendingConnections_) {
+        if (connection != nullptr) {
+            connection->RejectWithError(error);
+            AgentConnectionUtils::RemoveAgentConnection(connection->GetConnectionId());
         }
     }
-    duplicatedPendingTaskList_.clear();
+    duplicatedPendingConnections_.clear();
+}
+
+bool JSAgentConnection::ResolveWithRemoteObject(const sptr<IRemoteObject> &remoteObject)
+{
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "ResolveWithRemoteObject");
+    sptr<JsAgentConnectorStubImpl> hostStub = GetServiceHostStub();
+    sptr<IRemoteObject> hostProxy = nullptr;
+    if (hostStub != nullptr) {
+        hostProxy = hostStub->AsObject();
+    }
+    napi_value proxy = AgentRuntime::JsAgentReceiverProxy::CreateJsAgentReceiverProxy(env_, remoteObject,
+        connectionId_, hostProxy);
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "CreateJsAgentReceiverProxy failed");
+        return false;
+    }
+    remoteObject_ = remoteObject;
+    SetProxyObject(proxy);
+    if (napiAsyncTask_ != nullptr) {
+        napiAsyncTask_->ResolveWithNoError(env_, proxy);
+        napiAsyncTask_ = nullptr;
+    }
+    return true;
+}
+
+void JSAgentConnection::RejectWithError(napi_value error)
+{
+    if (napiAsyncTask_ != nullptr) {
+        napiAsyncTask_->Reject(env_, error);
+        napiAsyncTask_ = nullptr;
+    }
 }
 
 int32_t JSAgentConnection::OnSendData(const std::string &data)

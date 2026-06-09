@@ -157,29 +157,21 @@ public:
      */
     void SetNapiAsyncTask(std::shared_ptr<AbilityRuntime::NapiAsyncTask> &task);
 
-    /**
-     * Add a duplicated pending task.
-     * Used when multiple connection requests are made for the same extension.
-     *
-     * @param task The unique pointer to the pending async task.
-     */
-    void AddDuplicatedPendingTask(std::unique_ptr<AbilityRuntime::NapiAsyncTask> &task);
+    void AddDuplicatedPendingConnection(const sptr<JSAgentConnection> &connection);
 
-    /**
-     * Resolve all duplicated pending tasks with the proxy.
-     *
-     * @param env The N-API environment.
-     * @param proxy The proxy object to resolve with.
-     */
-    void ResolveDuplicatedPendingTask(napi_env env, napi_value proxy);
+    void ResolveDuplicatedPendingConnection(napi_env env, const sptr<IRemoteObject> &remoteObject);
 
-    /**
-     * Reject all duplicated pending tasks with error.
-     *
-     * @param env The N-API environment.
-     * @param error The error object to reject with.
-     */
-    void RejectDuplicatedPendingTask(napi_env env, napi_value error);
+    void RejectDuplicatedPendingConnection(napi_env env, napi_value error);
+
+    bool ResolveWithRemoteObject(const sptr<IRemoteObject> &remoteObject);
+
+    void RejectWithError(napi_value error);
+
+    sptr<IRemoteObject> GetRemoteObject() const { return remoteObject_; }
+
+    void SetRealConnection(bool isRealConnection) { isRealConnection_ = isRealConnection; }
+
+    bool IsRealConnection() const { return isRealConnection_; }
 
     /**
      * Called when agent extension sends data.
@@ -300,6 +292,8 @@ private:
      */
     sptr<JsAgentConnectorStubImpl> serviceHostStub_;
 
+    sptr<IRemoteObject> remoteObject_;
+
     /**
      * The async task for the connection promise.
      */
@@ -310,10 +304,9 @@ private:
      */
     std::unique_ptr<NativeReference> serviceProxyObject_;
 
-    /**
-     * List of pending tasks for duplicate connection requests.
-     */
-    std::vector<std::unique_ptr<AbilityRuntime::NapiAsyncTask>> duplicatedPendingTaskList_;
+    std::vector<sptr<JSAgentConnection>> duplicatedPendingConnections_;
+
+    bool isRealConnection_ = true;
 };
 
 } // namespace AgentRuntime

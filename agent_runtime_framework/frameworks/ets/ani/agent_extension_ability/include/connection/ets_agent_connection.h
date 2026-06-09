@@ -156,30 +156,18 @@ public:
      */
     void SetAniAsyncCallback(ani_object asyncCallback);
 
-    /**
-     * Add a duplicated pending callback.
-     * Used when multiple connection requests are made for the same extension.
-     *
-     * @param duplicatedCallback The callback object from ETS.
-     */
-    bool AddDuplicatedPendingCallback(ani_object duplicatedCallback);
+    void AddDuplicatedPendingConnection(const sptr<EtsAgentConnection> &connection);
 
-    /**
-     * Resolve all duplicated pending callbacks with the proxy.
-     *
-     * @param env The ANI environment.
-     * @param proxyObj The proxy object to resolve with.
-     */
-    void ResolveDuplicatedPendingCallbacks(ani_env *env, ani_object proxyObj);
+    void ResolveDuplicatedPendingConnections(ani_env *env, const sptr<IRemoteObject> &remoteObject);
 
-    /**
-     * Reject all duplicated pending callbacks with error.
-     *
-     * @param env The ANI environment.
-     * @param error The error code.
-     */
-    void RejectDuplicatedPendingCallbacks(
+    void RejectDuplicatedPendingConnections(
         ani_env *env, int32_t error, AbilityRuntime::AbilityInnerErrorMsg fallbackMessage);
+
+    bool ResolveWithRemoteObject(ani_env *env, const sptr<IRemoteObject> &remoteObject);
+
+    void RejectWithError(ani_env *env, int32_t error, AbilityRuntime::AbilityInnerErrorMsg fallbackMessage);
+
+    sptr<IRemoteObject> GetRemoteObject() const { return remoteObject_; }
 
     /**
      * Called when agent extension sends data.
@@ -252,9 +240,13 @@ public:
      */
     void ReleaseObjectReference(ani_env *env, ani_ref etsObjRef);
 
-    void SetConnectionId(int32_t id) { connectionId_ = id; }
+    void SetConnectionId(int64_t id) { connectionId_ = id; }
 
-    int32_t GetConnectionId() { return connectionId_; }
+    int64_t GetConnectionId() { return connectionId_; }
+
+    void SetRealConnection(bool isRealConnection) { isRealConnection_ = isRealConnection; }
+
+    bool IsRealConnection() const { return isRealConnection_; }
 
 private:
     /**
@@ -300,6 +292,8 @@ private:
      */
     sptr<EtsAgentConnectorStubImpl> serviceHostStub_;
 
+    sptr<IRemoteObject> remoteObject_;
+
     /**
      * The async callback stored from ETS for promise resolution.
      */
@@ -315,10 +309,9 @@ private:
      */
     ani_ref serviceProxyObject_ = nullptr;
 
-    /**
-     * List of pending callbacks for duplicate connection requests.
-     */
-    std::vector<ani_ref> duplicatedPendingCallbacks_;
+    std::vector<sptr<EtsAgentConnection>> duplicatedPendingConnections_;
+
+    bool isRealConnection_ = true;
 };
 } // namespace AgentRuntime
 } // namespace OHOS

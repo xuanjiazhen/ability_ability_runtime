@@ -96,6 +96,7 @@ private:
         std::string bundleName;
         std::string moduleName;
         std::string abilityName;
+        sptr<IRemoteObject> hostProxyRemote = nullptr;
     };
 
     enum class StandardAgentState : int32_t {
@@ -138,6 +139,8 @@ private:
 
     using TrackedConnectionIter = std::map<sptr<IRemoteObject>, TrackedConnectionRecord>::iterator;
     using StandardSessionIter = std::list<std::shared_ptr<StandardAgentSession>>::iterator;
+    using AgentHostSessionIter = std::list<std::shared_ptr<AgentHostSession>>::iterator;
+    using AgentOwnerIter = std::list<AgentOwnerRecord>::iterator;
 
     struct AgentDisconnectPlan {
         sptr<AAFwk::IAbilityConnection> serviceConnection = nullptr;
@@ -145,9 +148,15 @@ private:
         sptr<IRemoteObject> callerRemote = nullptr;
         AgentHostKey hostKey;
         bool hasHostKey = false;
+        bool lowCodeQuotaReleased = false;
         bool isStandard = false;
+        bool standardQuotaReleased = false;
         int32_t standardCallerUid = 0;
         StandardAgentKey standardKey;
+        sptr<IRemoteObject> lowCodeQuotaTransferFrom = nullptr;
+        sptr<IRemoteObject> lowCodeQuotaTransferTo = nullptr;
+        sptr<IRemoteObject> standardQuotaTransferFrom = nullptr;
+        sptr<IRemoteObject> standardQuotaTransferTo = nullptr;
     };
 
     AgentManagerService();
@@ -212,6 +221,16 @@ private:
     void ReleaseTrackedConnectionByRemoteLocked(const sptr<IRemoteObject> &callerRemote);
     void TransferLowCodeCallerLimitLocked(const std::shared_ptr<AgentHostSession> &session,
         const sptr<IRemoteObject> &callerRemote);
+    bool IsLowCodeHostQuotaKeyMatched(const AgentHostKey &left, const AgentHostKey &right) const;
+    bool IsLowCodeHostKeyMatched(const AgentHostKey &left, const AgentHostKey &right) const;
+    AgentHostSessionIter FindAgentHostSessionLocked(const AgentHostKey &key);
+    bool IsAgentOwnerKeyEqual(const AgentOwnerKey &left, const AgentOwnerKey &right) const;
+    AgentOwnerIter FindAgentOwnerLocked(const AgentOwnerKey &key);
+    void SetAgentOwnerLocked(const AgentOwnerKey &key, const std::shared_ptr<AgentHostSession> &session);
+    void EraseAgentOwnerLocked(const AgentOwnerKey &key);
+    bool HasLowCodeHostQuotaLocked(const AgentHostKey &hostKey, int32_t callerUid) const;
+    bool TransferLowCodeCallerLimitAcrossSessionsLocked(const AgentHostKey &hostKey, int32_t callerUid,
+        const sptr<IRemoteObject> &transferFrom, sptr<IRemoteObject> &transferTo);
     void HandleCallerConnectionDied(const wptr<IRemoteObject> &remote);
     void HandleCallerConnectionDied(const sptr<IRemoteObject> &remote);
     void CleanupDeadStandardConnectionLocked(TrackedConnectionIter it, const sptr<IRemoteObject> &remote,
@@ -256,6 +275,7 @@ private:
         const AAFwk::Want &want) const;
     bool IsStandardAgentKeyEqual(const StandardAgentKey &left, const StandardAgentKey &right) const;
     bool IsStandardAgentKeyMatched(const StandardAgentKey &storedKey, const StandardAgentKey &incomingKey) const;
+    bool IsStandardAgentQuotaKeyMatched(const StandardAgentKey &storedKey, const StandardAgentKey &incomingKey) const;
     /**
      * @brief Finds an existing standard session matching the given key.
      */
@@ -266,6 +286,9 @@ private:
      */
     int32_t RegisterStandardSessionCallerLocked(const std::shared_ptr<StandardAgentSession> &session,
         const sptr<AAFwk::IAbilityConnection> &connection, bool countTowardsCallerLimit);
+    bool HasStandardAgentQuotaLocked(const StandardAgentKey &key) const;
+    bool TransferStandardCallerLimitLocked(const StandardAgentKey &disconnectingKey,
+        sptr<IRemoteObject> &transferFrom, sptr<IRemoteObject> &transferTo);
     /**
      * @brief Creates a new collapsed standard session, registers one quota, and issues the real AMS connect.
      */
@@ -316,8 +339,8 @@ private:
     std::map<sptr<IRemoteObject>, TrackedConnectionRecord> trackedConnections_;
     std::map<int32_t, size_t> callerConnectionCounts_;
     std::mutex agentHostMutex_;
-    std::map<AgentHostKey, std::shared_ptr<AgentHostSession>> agentHostSessions_;
-    std::map<AgentOwnerKey, std::shared_ptr<AgentHostSession>> agentOwners_;
+    std::list<std::shared_ptr<AgentHostSession>> agentHostSessions_;
+    std::list<AgentOwnerRecord> agentOwners_;
     std::list<std::shared_ptr<StandardAgentSession>> standardSessions_;
 };
 }  // namespace AgentRuntime
