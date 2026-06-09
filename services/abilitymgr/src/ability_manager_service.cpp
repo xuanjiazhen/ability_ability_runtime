@@ -60,6 +60,8 @@
 #include "insight_intent_db_cache.h"
 #include "skill/skill_execute_manager.h"
 #include "insight_intent_utils.h"
+#include "extract_insight_intent_profile.h"
+#include "insight_intent_profile.h"
 #include "interceptor/ability_jump_interceptor.h"
 #include "interceptor/block_all_app_start_interceptor.h"
 #include "interceptor/control_interceptor.h"
@@ -114,6 +116,7 @@
 #endif
 #include "status_bar_delegate_interface.h"
 #include "string_wrapper.h"
+#include "array_wrapper.h"
 #include "support_system_ability_permission.h"
 #include "time_util.h"
 #include "tokenid_kit.h"
@@ -14182,6 +14185,194 @@ int32_t AbilityManagerService::ExecuteIntentForDistributed(const Want &want, con
     options.requestCode = requestCode;
     options.specifiedFullTokenId = specifiedFullTokenId;
     return ExecuteIntentCommon(nullptr, paramCopy, callerBundlename, options);
+}
+
+void AbilityManagerService::ConvertConfigToGenericInfo(const AbilityRuntime::InsightIntentInfo &config,
+    AbilityRuntime::ExtractInsightIntentGenericInfo &generic)
+{
+    generic.bundleName = config.bundleName;
+    generic.moduleName = config.moduleName;
+    generic.intentName = config.intentName;
+    generic.decoratorType = "";
+    if (!config.uiAbilityIntentInfo.abilityName.empty()) {
+        generic.set<AbilityRuntime::InsightIntentEntryInfo>();
+        auto &entry = generic.get<AbilityRuntime::InsightIntentEntryInfo>();
+        entry.abilityName = config.uiAbilityIntentInfo.abilityName;
+        entry.executeMode = config.uiAbilityIntentInfo.supportExecuteMode;
+    } else if (!config.serviceExtensionIntentInfo.abilityName.empty()) {
+        generic.set<AbilityRuntime::InsightIntentEntryInfo>();
+        auto &entry = generic.get<AbilityRuntime::InsightIntentEntryInfo>();
+        entry.abilityName = config.serviceExtensionIntentInfo.abilityName;
+        entry.executeMode = {AppExecFwk::ExecuteMode::SERVICE_EXTENSION_ABILITY};
+    } else if (!config.uiExtensionIntentInfo.abilityName.empty()) {
+        generic.set<AbilityRuntime::InsightIntentEntryInfo>();
+        auto &entry = generic.get<AbilityRuntime::InsightIntentEntryInfo>();
+        entry.abilityName = config.uiExtensionIntentInfo.abilityName;
+        entry.executeMode = {AppExecFwk::ExecuteMode::UI_EXTENSION_ABILITY};
+    } else if (!config.formIntentInfo.abilityName.empty()) {
+        generic.set<AbilityRuntime::InsightIntentFormInfo>();
+        auto &form = generic.get<AbilityRuntime::InsightIntentFormInfo>();
+        form.abilityName = config.formIntentInfo.abilityName;
+        form.formName = config.formIntentInfo.formName;
+    }
+}
+
+int32_t AbilityManagerService::GetMatchedIntentInfo(const std::string &bundleName,
+    const std::string &intentName, AbilityRuntime::ExtractInsightIntentGenericInfo &matchedInfo)
+{
+    int32_t userId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+    std::vector<AbilityRuntime::ExtractInsightIntentGenericInfo> allInfos;
+    DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->GetInsightIntentGenericInfoByName(
+        bundleName, GetValidUserId(userId), allInfos);
+    for (const auto &info : allInfos) {
+        if (info.intentName == intentName) {
+            matchedInfo = info;
+            return ERR_OK;
+        }
+    }
+
+    std::vector<AbilityRuntime::InsightIntentInfo> configInfos;
+    DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->GetConfigInsightIntentInfoByName(
+        bundleName, GetValidUserId(userId), configInfos);
+    for (const auto &config : configInfos) {
+        if (config.intentName == intentName) {
+            ConvertConfigToGenericInfo(config, matchedInfo);
+            return ERR_OK;
+        }
+    }
+
+    TAG_LOGE(AAFwkTag::INTENT, "intent not found: %{public}s/%{public}s",
+        bundleName.c_str(), intentName.c_str());
+    return ERR_INVALID_VALUE;
+}
+
+namespace {
+void ApplyInsightIntentOptionsFromWantParam(const WantParams &wantParam,
+    std::shared_ptr<InsightIntentExecuteParam> &param)
+{
+    if (!wantParam.HasParam("ohos.insightIntent.options")) {
+        return;
+    }
+    auto options = wantParam.GetWantParams("ohos.insightIntent.options");
+    std::string executeModeStr = options.GetStringParam("executeMode");
+    if (!executeModeStr.empty()) {
+        if (executeModeStr == "UI_ABILITY_FOREGROUND") {
+            param->executeMode_ = AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND;
+        } else if (executeModeStr == "UI_ABILITY_BACKGROUND") {
+            param->executeMode_ = AppExecFwk::ExecuteMode::UI_ABILITY_BACKGROUND;
+        } else if (executeModeStr == "UI_EXTENSION_ABILITY") {
+            param->executeMode_ = AppExecFwk::ExecuteMode::UI_EXTENSION_ABILITY;
+        } else if (executeModeStr == "SERVICE_EXTENSION_ABILITY") {
+            param->executeMode_ = AppExecFwk::ExecuteMode::SERVICE_EXTENSION_ABILITY;
+        } else {
+            char *end = nullptr;
+            long val = std::strtol(executeModeStr.c_str(), &end, 10);
+            if (end != executeModeStr.c_str() && *end == '\0') {
+                param->executeMode_ = static_cast<int32_t>(val);
+            }
+        }
+    }
+    auto uriValue = options.GetParam("uris");
+    IArray *ao = IArray::Query(uriValue);
+    if (ao != nullptr && AAFwk::Array::IsStringArray(ao)) {
+        std::vector<std::string> uris;
+        AAFwk::Array::ForEach(ao, [&uris](IInterface *object) {
+            if (object != nullptr) {
+                IString *value = IString::Query(object);
+                if (value != nullptr) {
+                    uris.push_back(String::Unbox(value));
+                }
+            }
+        });
+        if (!uris.empty()) {
+            param->uris_ = std::move(uris);
+        }
+    }
+    std::string flagsStr = options.GetStringParam("flags");
+    if (!flagsStr.empty()) {
+        char *end = nullptr;
+        long val = std::strtol(flagsStr.c_str(), &end, 0);
+        if (end != flagsStr.c_str() && *end == '\0') {
+            param->flags_ = static_cast<int32_t>(val);
+        }
+    }
+}
+} // namespace
+
+int32_t AbilityManagerService::ParseIntentExecuteMode(
+    const AbilityRuntime::ExtractInsightIntentGenericInfo &matchedInfo,
+    std::string &abilityName, int32_t &executeMode)
+{
+    executeMode = AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND;
+    if (matchedInfo.currentType == AbilityRuntime::InfoType::Entry) {
+        auto &entryInfo = matchedInfo.get<AbilityRuntime::InsightIntentEntryInfo>();
+        abilityName = entryInfo.abilityName;
+        if (!entryInfo.executeMode.empty()) {
+            executeMode = static_cast<int32_t>(entryInfo.executeMode.front());
+        }
+    } else if (matchedInfo.currentType == AbilityRuntime::InfoType::Function) {
+        executeMode = static_cast<int32_t>(AppExecFwk::ExecuteMode::SERVICE_EXTENSION_ABILITY);
+    } else if (matchedInfo.currentType == AbilityRuntime::InfoType::Page) {
+        auto &pageInfo = matchedInfo.get<AbilityRuntime::InsightIntentPageInfo>();
+        abilityName = pageInfo.uiAbility;
+    } else if (matchedInfo.currentType == AbilityRuntime::InfoType::Form) {
+        auto &formInfo = matchedInfo.get<AbilityRuntime::InsightIntentFormInfo>();
+        abilityName = formInfo.abilityName;
+    } else if (matchedInfo.currentType == AbilityRuntime::InfoType::Link) {
+        abilityName = "";
+    }
+    if (abilityName.empty() && matchedInfo.currentType != AbilityRuntime::InfoType::Link &&
+        matchedInfo.currentType != AbilityRuntime::InfoType::Function) {
+        TAG_LOGE(AAFwkTag::INTENT, "abilityName empty");
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
+int32_t AbilityManagerService::ExecuteIntentByFunctionCall(uint64_t key,
+    const sptr<IRemoteObject> &callerToken, const std::string &bundleName,
+    const std::string &intentName, const WantParams &wantParam)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "called, bundleName: %{public}s, intentName: %{public}s",
+        bundleName.c_str(), intentName.c_str());
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (bundleName.empty() || intentName.empty()) {
+        TAG_LOGE(AAFwkTag::INTENT, "invalid params");
+        return ERR_INVALID_VALUE;
+    }
+
+    AbilityRuntime::ExtractInsightIntentGenericInfo matchedInfo;
+    int32_t ret = GetMatchedIntentInfo(bundleName, intentName, matchedInfo);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    std::string abilityName;
+    int32_t executeMode = 0;
+    ret = ParseIntentExecuteMode(matchedInfo, abilityName, executeMode);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    auto param = std::make_shared<InsightIntentExecuteParam>();
+    param->bundleName_ = bundleName;
+    param->moduleName_ = matchedInfo.moduleName;
+    param->abilityName_ = abilityName;
+    param->insightIntentName_ = intentName;
+    param->executeMode_ = executeMode;
+    param->userId_ = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+    param->insightIntentParam_ = std::make_shared<WantParams>(wantParam);
+    ApplyInsightIntentOptionsFromWantParam(wantParam, param);
+
+    bool openLinkExecuteFlag =
+        matchedInfo.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_LINK;
+    bool ignoreAbilityName = openLinkExecuteFlag ||
+        (matchedInfo.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_PAGE) ||
+        (matchedInfo.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_FUNCTION);
+
+    auto callerBundleName = InsightIntentGetcallerBundleName();
+    AbilityRuntime::ExecuteIntentCommonOptions options(ignoreAbilityName, matchedInfo, key);
+    return ExecuteIntentCommon(callerToken, param, callerBundleName, options);
 }
 
 int32_t AbilityManagerService::ExecuteIntentCommon(const sptr<IRemoteObject> &callerToken,
