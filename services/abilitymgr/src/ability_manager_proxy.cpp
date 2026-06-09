@@ -115,7 +115,7 @@ int AbilityManagerProxy::StartAbility(const Want &want, int32_t userId, int requ
     return reply.ReadInt32();
 }
 
-AppExecFwk::ElementName AbilityManagerProxy::GetTopAbility(bool isNeedLocalDeviceId)
+AppExecFwk::ElementName AbilityManagerProxy::GetTopAbility(int32_t userId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     MessageParcel data;
@@ -124,7 +124,7 @@ AppExecFwk::ElementName AbilityManagerProxy::GetTopAbility(bool isNeedLocalDevic
     if (!WriteInterfaceToken(data)) {
         return {};
     }
-    if (!data.WriteBool(isNeedLocalDeviceId)) {
+    if (!data.WriteInt32(userId)) {
         return {};
     }
 
@@ -4361,13 +4361,18 @@ int AbilityManagerProxy::FinishUserTest(
     return reply.ReadInt32();
 }
 
-int AbilityManagerProxy::GetTopAbility(sptr<IRemoteObject> &token)
+int AbilityManagerProxy::GetTopAbility(sptr<IRemoteObject> &token, int32_t userId)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
 
     if (!WriteInterfaceToken(data)) {
+        return INNER_ERR;
+    }
+
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write userId fail");
         return INNER_ERR;
     }
 
