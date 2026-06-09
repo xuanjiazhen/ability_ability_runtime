@@ -284,6 +284,8 @@ HWTEST_F(AgentServiceConnectionTest, OnAbilityDisconnectDone_002, TestSize.Level
     auto agentConnection = sptr<AgentServiceConnection>::MakeSptr(nullptr);
     agentConnection->SetStandardSessionMode();
     session->serviceConnection = agentConnection;
+    session->isDisconnecting = true;
+    session->pendingDisconnectServiceRemotes.insert(agentConnection->AsObject());
 
     // Also set up a tracked connection for the first caller so HandleConnectionDone can clean up
     AgentManagerService::TrackedConnectionRecord record;
