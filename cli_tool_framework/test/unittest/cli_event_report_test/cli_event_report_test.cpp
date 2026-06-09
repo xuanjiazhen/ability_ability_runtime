@@ -26,9 +26,6 @@ namespace CliTool {
 namespace {
 constexpr const char* TEST_BUNDLE_NAME = "com.test.example";
 constexpr const char* TEST_CLI_NAME = "test_tool";
-constexpr const char* TEST_ARGS = "arg1=value1 arg2=value2";
-constexpr int32_t TEST_SIGNAL_NUM = 9;  // SIGKILL
-constexpr int64_t TEST_DURATION_MS = 5000;
 }
 
 class CliEventReportTest : public testing::Test {
@@ -40,62 +37,64 @@ public:
 };
 
 /**
- * @tc.name: ReportExecuteCli_0100
- * @tc.desc: Test CLI execution event reporting
+ * @tc.name: ReportCliExecuteFailed_0100
+ * @tc.desc: Test CLI execution failed event reporting
  * @tc.type: FUNC
  */
-HWTEST_F(CliEventReportTest, ReportExecuteCli_0100, TestSize.Level1)
-{
-    // Should not crash when reporting execute CLI event
-    ReportExecuteCli(TEST_BUNDLE_NAME, TEST_CLI_NAME, TEST_ARGS);
-    SUCCEED();
-}
-
-/**
- * @tc.name: ReportExecuteCli_0200
- * @tc.desc: Test CLI execution event reporting without args
- * @tc.type: FUNC
- */
-HWTEST_F(CliEventReportTest, ReportExecuteCli_0200, TestSize.Level1)
-{
-    // Should not crash when reporting execute CLI event without args
-    ReportExecuteCli(TEST_BUNDLE_NAME, TEST_CLI_NAME, "");
-    SUCCEED();
-}
-
-/**
- * @tc.name: ReportExecuteCliFailed_0100
- * @tc.desc: Test CLI execution failure event reporting
- * @tc.type: FUNC
- */
-HWTEST_F(CliEventReportTest, ReportExecuteCliFailed_0100, TestSize.Level1)
+HWTEST_F(CliEventReportTest, ReportCliExecuteFailed_0100, TestSize.Level1)
 {
     // Should not crash when reporting execute CLI failed event
-    ReportExecuteCliFailed(TEST_BUNDLE_NAME, TEST_CLI_NAME, REASON_PERMISSION_DENIED);
+    ReportCliExecuteFailed(TEST_BUNDLE_NAME, TEST_CLI_NAME, REASON_INVALID_PARAM, "");
     SUCCEED();
 }
 
 /**
- * @tc.name: ReportCliRunTimeout_0100
- * @tc.desc: Test CLI timeout event reporting
+ * @tc.name: ReportCliExecuteFailed_0200
+ * @tc.desc: Test CLI execution failed event reporting with empty cliName
  * @tc.type: FUNC
  */
-HWTEST_F(CliEventReportTest, ReportCliRunTimeout_0100, TestSize.Level1)
+HWTEST_F(CliEventReportTest, ReportCliExecuteFailed_0200, TestSize.Level1)
 {
-    // Should not crash when reporting CLI timeout event
-    ReportCliRunTimeout(TEST_BUNDLE_NAME, TEST_CLI_NAME, TEST_DURATION_MS);
+    // Should not crash when reporting execute CLI failed event with empty cliName
+    // Empty cliName should be replaced with "<empty>" placeholder
+    ReportCliExecuteFailed(TEST_BUNDLE_NAME, "", REASON_INVALID_PARAM, "");
     SUCCEED();
 }
 
 /**
- * @tc.name: ReportCliRunError_0100
- * @tc.desc: Test CLI error exit event reporting
+ * @tc.name: ReportCliExecuteFailed_0300
+ * @tc.desc: Test CLI execution failed event reporting with "undefined" cliName
  * @tc.type: FUNC
  */
-HWTEST_F(CliEventReportTest, ReportCliRunError_0100, TestSize.Level1)
+HWTEST_F(CliEventReportTest, ReportCliExecuteFailed_0300, TestSize.Level1)
 {
-    // Should not crash when reporting CLI error exit event
-    ReportCliRunError(TEST_CLI_NAME, TEST_SIGNAL_NUM);
+    // Should not crash when reporting execute CLI failed event with "undefined" cliName
+    // "undefined" cliName should be replaced with "<empty>" placeholder
+    ReportCliExecuteFailed(TEST_BUNDLE_NAME, "undefined", REASON_INVALID_PARAM, "");
+    SUCCEED();
+}
+
+/**
+ * @tc.name: ReportCliExecuteFailed_0400
+ * @tc.desc: Test CLI execution failed event reporting with timeout reason
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliEventReportTest, ReportCliExecuteFailed_0400, TestSize.Level1)
+{
+    // Should not crash when reporting execute CLI failed event with timeout
+    ReportCliExecuteFailed(TEST_BUNDLE_NAME, TEST_CLI_NAME, REASON_TIMEOUT, "5000ms");
+    SUCCEED();
+}
+
+/**
+ * @tc.name: ReportCliExecuteFailed_0500
+ * @tc.desc: Test CLI execution failed event reporting with signal reason
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliEventReportTest, ReportCliExecuteFailed_0500, TestSize.Level1)
+{
+    // Should not crash when reporting execute CLI failed event with signal
+    ReportCliExecuteFailed(TEST_BUNDLE_NAME, TEST_CLI_NAME, REASON_SIGNAL, "9");
     SUCCEED();
 }
 
@@ -107,12 +106,12 @@ HWTEST_F(CliEventReportTest, ReportCliRunError_0100, TestSize.Level1)
 HWTEST_F(CliEventReportTest, GetFailureReason_0100, TestSize.Level1)
 {
     EXPECT_EQ(GetFailureReason(ERR_PERMISSION_DENIED), REASON_PERMISSION_DENIED);
-    EXPECT_EQ(GetFailureReason(ERR_TOOL_NOT_EXIST), REASON_TOOL_NOT_EXIST);
+    EXPECT_EQ(GetFailureReason(ERR_TOOL_NOT_EXIST), REASON_TOOL_NOT_FOUND);
+    EXPECT_EQ(GetFailureReason(ERR_SUBCOMMAND_NOT_FOUND), REASON_SUBCOMMAND_NOT_FOUND);
+    EXPECT_EQ(GetFailureReason(ERR_SUBCOMMAND_NOT_SUPPORTED), REASON_SUBCOMMAND_NOT_SUPPORTED);
     EXPECT_EQ(GetFailureReason(ERR_SESSION_LIMIT_EXCEEDED), REASON_SESSION_LIMIT_EXCEEDED);
     EXPECT_EQ(GetFailureReason(ERR_NO_INIT), REASON_PROCESS_CREATE_FAILED);
     EXPECT_EQ(GetFailureReason(ERR_INVALID_PARAM), REASON_INVALID_PARAM);
-    EXPECT_EQ(GetFailureReason(ERR_NOT_HAP), REASON_NOT_HAP);
-    EXPECT_EQ(GetFailureReason(ERR_NOT_SYSTEM_APP), REASON_NOT_SYSTEM_APP);
 }
 
 /**
@@ -122,8 +121,8 @@ HWTEST_F(CliEventReportTest, GetFailureReason_0100, TestSize.Level1)
  */
 HWTEST_F(CliEventReportTest, GetFailureReason_0200, TestSize.Level1)
 {
-    EXPECT_EQ(GetFailureReason(-1), REASON_UNKNOWN);
-    EXPECT_EQ(GetFailureReason(99999), REASON_UNKNOWN);
+    EXPECT_EQ(GetFailureReason(-1), REASON_INVALID_PARAM);
+    EXPECT_EQ(GetFailureReason(99999), REASON_INVALID_PARAM);
 }
 
 } // namespace CliTool

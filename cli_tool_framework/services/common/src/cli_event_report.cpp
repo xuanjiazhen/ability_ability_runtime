@@ -15,9 +15,6 @@
 
 #include "cli_event_report.h"
 
-#include <unistd.h>
-
-#include "hisysevent.h"
 #include "hisysevent_report.h"
 #include "hilog_tag_wrapper.h"
 #include "cli_error_code.h"
@@ -29,65 +26,71 @@
 namespace OHOS {
 namespace CliTool {
 
-void ReportExecuteCli(const std::string& bundleName, const std::string& cliName, const std::string& args)
+namespace {
+std::string SanitizeArgs(const std::string& args)
 {
-    constexpr int32_t PARAM_COUNT = 4;
-    AAFwk::HisyseventReport report(PARAM_COUNT);
+    if (args.empty()) {
+        return args;
+    }
 
-    report.InsertParam("BUNDLE_NAME", bundleName);
-    report.InsertParam("CLI_NAME", cliName);
-    report.InsertParam("ARGS", args);
-    report.InsertParam("PID", static_cast<int32_t>(getpid()));
+    // Check if entire args string is just "undefined" or "null"
+    if (args == "undefined" || args == "null") {
+        return "";
+    }
 
-    int32_t ret = report.Report(DOMAIN_CLI_TOOL, EVENT_EXECUTE_CLI, HiSysEventType::BEHAVIOR);
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "Report EXECUTE_CLI: bundle=%{public}s, cli=%{public}s, ret=%{public}d",
-        bundleName.c_str(), cliName.c_str(), ret);
+    // For complex args, replace individual "undefined" and "null" tokens
+    std::string result = args;
+    size_t pos = 0;
+
+    // Replace "undefined " (undefined followed by space or end)
+    while ((pos = result.find("undefined ")) != std::string::npos) {
+        result.erase(pos, 10); // Remove "undefined " (10 chars including space)
+    }
+    // Handle trailing "undefined"
+    if (result.size() >= 9 && result.substr(result.size() - 9) == "undefined") {
+        result.erase(result.size() - 9);
+    }
+
+    // Replace "null " (null followed by space or end)
+    while ((pos = result.find("null ")) != std::string::npos) {
+        result.erase(pos, 5); // Remove "null " (5 chars including space)
+    }
+    // Handle trailing "null"
+    if (result == "null") {
+        result.clear();
+    }
+
+    // Trim leading/trailing spaces
+    size_t start = result.find_first_not_of(" ");
+    if (start == std::string::npos) {
+        return "";
+    }
+    size_t end = result.find_last_not_of(" ");
+    return result.substr(start, end - start + 1);
+}
 }
 
-void ReportExecuteCliFailed(const std::string& bundleName, const std::string& cliName, const std::string& reason)
+void ReportCliExecuteFailed(const std::string& bundleName, const std::string& cliName,
+    const std::string& reason, const std::string& detail)
 {
     constexpr int32_t PARAM_COUNT = 4;
     AAFwk::HisyseventReport report(PARAM_COUNT);
 
+    // Use placeholder when cliName is empty or "undefined" to ensure event is properly reported
+    std::string effectiveCliName = cliName;
+    if (cliName.empty() || cliName == "undefined") {
+        effectiveCliName = "<empty>";
+    }
+
     report.InsertParam("BUNDLE_NAME", bundleName);
-    report.InsertParam("CLI_NAME", cliName);
+    report.InsertParam("CLI_NAME", effectiveCliName);
     report.InsertParam("REASON", reason);
-    report.InsertParam("PID", static_cast<int32_t>(getpid()));
+    report.InsertParam("DETAIL", detail);
 
-    int32_t ret = report.Report(DOMAIN_CLI_TOOL, EVENT_EXECUTE_CLI_FAILED, HiSysEventType::FAULT);
+    int32_t ret = report.Report(DOMAIN_CLI_TOOL, EVENT_CLI_EXECUTE_FAILED, HISYSEVENT_FAULT);
     TAG_LOGI(AAFwkTag::CLI_TOOL,
-        "Report EXECUTE_CLI_FAILED: bundle=%{public}s, cli=%{public}s, reason=%{public}s, ret=%{public}d",
-        bundleName.c_str(), cliName.c_str(), reason.c_str(), ret);
-}
-
-void ReportCliRunTimeout(const std::string& bundleName, const std::string& cliName, int64_t durationMs)
-{
-    constexpr int32_t PARAM_COUNT = 4;
-    AAFwk::HisyseventReport report(PARAM_COUNT);
-
-    report.InsertParam("BUNDLE_NAME", bundleName);
-    report.InsertParam("CLI_NAME", cliName);
-    report.InsertParam("DURATION_MS", durationMs);
-    report.InsertParam("PID", static_cast<int32_t>(getpid()));
-
-    int32_t ret = report.Report(DOMAIN_CLI_TOOL, EVENT_CLI_RUN_TIMEOUT, HiSysEventType::FAULT);
-    TAG_LOGI(AAFwkTag::CLI_TOOL,
-        "Report CLI_RUN_TIMEOUT: bundle=%{public}s, cli=%{public}s, duration=%{public}ld, ret=%{public}d",
-        bundleName.c_str(), cliName.c_str(), durationMs, ret);
-}
-
-void ReportCliRunError(const std::string& cliName, int32_t signalNum)
-{
-    constexpr int32_t PARAM_COUNT = 3;
-    AAFwk::HisyseventReport report(PARAM_COUNT);
-
-    report.InsertParam("CLI_NAME", cliName);
-    report.InsertParam("SIGNAL_NUM", signalNum);
-    report.InsertParam("PID", static_cast<int32_t>(getpid()));
-
-    int32_t ret = report.Report(DOMAIN_CLI_TOOL, EVENT_CLI_RUN_ERROR, HiSysEventType::FAULT);
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "Report CLI_RUN_ERROR: cli=%{public}s, signal=%{public}d, ret=%{public}d",
-        cliName.c_str(), signalNum, ret);
+        "Report CLI_EXECUTE_FAILED: bundle=%{public}s, cli=%{public}s, reason=%{public}s, detail=%{public}s, ret=%{public}d",
+        bundleName.c_str(), effectiveCliName.c_str(), reason.c_str(), detail.c_str(), ret);
 }
 
 std::string GetFailureReason(int32_t errorCode)
@@ -96,7 +99,11 @@ std::string GetFailureReason(int32_t errorCode)
         case ERR_PERMISSION_DENIED:
             return REASON_PERMISSION_DENIED;
         case ERR_TOOL_NOT_EXIST:
-            return REASON_TOOL_NOT_EXIST;
+            return REASON_TOOL_NOT_FOUND;
+        case ERR_SUBCOMMAND_NOT_FOUND:
+            return REASON_SUBCOMMAND_NOT_FOUND;
+        case ERR_SUBCOMMAND_NOT_SUPPORTED:
+            return REASON_SUBCOMMAND_NOT_SUPPORTED;
         case ERR_SESSION_LIMIT_EXCEEDED:
             return REASON_SESSION_LIMIT_EXCEEDED;
         case ERR_NO_INIT:
@@ -104,12 +111,8 @@ std::string GetFailureReason(int32_t errorCode)
         case ERR_INVALID_PARAM:
         case ERR_INNER_PARAM_INVALID:
             return REASON_INVALID_PARAM;
-        case ERR_NOT_HAP:
-            return REASON_NOT_HAP;
-        case ERR_NOT_SYSTEM_APP:
-            return REASON_NOT_SYSTEM_APP;
         default:
-            return REASON_UNKNOWN;
+            return REASON_INVALID_PARAM;
     }
 }
 

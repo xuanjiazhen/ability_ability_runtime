@@ -53,6 +53,16 @@ enum {
     ERR_TOOL_NOT_EXIST = 35700005,
 
     /*
+     * Result (35700019): Subcommand not found.
+     */
+    ERR_SUBCOMMAND_NOT_FOUND = 35700019,
+
+    /*
+     * Result (35700020): Tool does not support subcommand.
+     */
+    ERR_SUBCOMMAND_NOT_SUPPORTED = 35700020,
+
+    /*
      * Result (35700006): Fail to crate js CliSessionInfo.
      */
     ERR_INNER_PARAM_INVALID = 35700006,

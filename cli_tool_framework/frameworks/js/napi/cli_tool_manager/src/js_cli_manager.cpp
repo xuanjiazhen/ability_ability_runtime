@@ -17,6 +17,7 @@
 
 #include <string>
 
+#include "bundle_manager_client.h"
 #include "cli_error_code.h"
 #include "cli_manager_error_utils.h"
 #include "cli_session_info.h"

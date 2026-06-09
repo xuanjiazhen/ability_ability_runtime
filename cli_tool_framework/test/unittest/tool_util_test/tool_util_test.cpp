@@ -1675,7 +1675,8 @@ HWTEST_F(ToolUtilTest, ValidateExecOptionsProperties_0100, TestSize.Level1)
     options.yieldMs = 0;
     options.background = false;
 
-    EXPECT_EQ(ToolUtil::ValidateExecOptionsProperties(options), ERR_OK);
+    std::string detail;
+    EXPECT_EQ(ToolUtil::ValidateExecOptionsProperties(options, detail), ERR_OK);
 
     GTEST_LOG_(INFO) << "ToolUtil_ValidateExecOptionsProperties_0100 end";
 }
@@ -1693,7 +1694,8 @@ HWTEST_F(ToolUtilTest, ValidateExecOptionsProperties_0200, TestSize.Level1)
     options.timeout = -1;
     options.yieldMs = 0;
 
-    EXPECT_EQ(ToolUtil::ValidateExecOptionsProperties(options), ERR_INVALID_PARAM);
+    std::string detail;
+    EXPECT_EQ(ToolUtil::ValidateExecOptionsProperties(options, detail), ERR_INVALID_PARAM);
 
     GTEST_LOG_(INFO) << "ToolUtil_ValidateExecOptionsProperties_0200 end";
 }
@@ -1711,7 +1713,8 @@ HWTEST_F(ToolUtilTest, ValidateExecOptionsProperties_0300, TestSize.Level1)
     options.timeout = 30;
     options.yieldMs = -1;
 
-    EXPECT_EQ(ToolUtil::ValidateExecOptionsProperties(options), ERR_INVALID_PARAM);
+    std::string detail;
+    EXPECT_EQ(ToolUtil::ValidateExecOptionsProperties(options, detail), ERR_INVALID_PARAM);
 
     GTEST_LOG_(INFO) << "ToolUtil_ValidateExecOptionsProperties_0300 end";
 }
@@ -1729,11 +1732,13 @@ HWTEST_F(ToolUtilTest, ValidateExecOptionsProperties_0400, TestSize.Level1)
     options.timeout = 1801; // MAX_TIMEOUT = 30 * 60 = 1800
     options.yieldMs = 0;
 
-    EXPECT_EQ(ToolUtil::ValidateExecOptionsProperties(options), ERR_INVALID_PARAM);
+    std::string detail;
+    EXPECT_EQ(ToolUtil::ValidateExecOptionsProperties(options, detail), ERR_INVALID_PARAM);
 
     // Boundary: exactly MAX_TIMEOUT should pass
     options.timeout = 1800;
-    EXPECT_EQ(ToolUtil::ValidateExecOptionsProperties(options), ERR_OK);
+    std::string detail;
+    EXPECT_EQ(ToolUtil::ValidateExecOptionsProperties(options, detail), ERR_OK);
 
     GTEST_LOG_(INFO) << "ToolUtil_ValidateExecOptionsProperties_0400 end";
 }
@@ -1752,7 +1757,8 @@ HWTEST_F(ToolUtilTest, ValidateExecOptionsProperties_0500, TestSize.Level1)
     options.timeout = 1;            // 1 second
     options.yieldMs = 50000;        // 50 seconds > 1 * 1000 = 1000 ms
 
-    EXPECT_EQ(ToolUtil::ValidateExecOptionsProperties(options), ERR_INVALID_PARAM);
+    std::string detail;
+    EXPECT_EQ(ToolUtil::ValidateExecOptionsProperties(options, detail), ERR_INVALID_PARAM);
 
     GTEST_LOG_(INFO) << "ToolUtil_ValidateExecOptionsProperties_0500 end";
 }
@@ -1772,7 +1778,8 @@ HWTEST_F(ToolUtilTest, ValidateExecOptionsProperties_0600, TestSize.Level1)
     options.yieldMs = 50000;
 
     // Background mode skips the yieldMs > timeout check
-    EXPECT_EQ(ToolUtil::ValidateExecOptionsProperties(options), ERR_OK);
+    std::string detail;
+    EXPECT_EQ(ToolUtil::ValidateExecOptionsProperties(options, detail), ERR_OK);
 
     GTEST_LOG_(INFO) << "ToolUtil_ValidateExecOptionsProperties_0600 end";
 }
@@ -1792,11 +1799,13 @@ HWTEST_F(ToolUtilTest, ValidateExecOptionsProperties_0700, TestSize.Level1)
     options.yieldMs = 10000; // exactly timeout * 1000
 
     // yieldMs > timeout * 1000 is the check, so equal should pass
-    EXPECT_EQ(ToolUtil::ValidateExecOptionsProperties(options), ERR_OK);
+    std::string detail;
+    EXPECT_EQ(ToolUtil::ValidateExecOptionsProperties(options, detail), ERR_OK);
 
     // yieldMs just one ms over should fail
     options.yieldMs = 10001;
-    EXPECT_EQ(ToolUtil::ValidateExecOptionsProperties(options), ERR_INVALID_PARAM);
+    std::string detail;
+    EXPECT_EQ(ToolUtil::ValidateExecOptionsProperties(options, detail), ERR_INVALID_PARAM);
 
     GTEST_LOG_(INFO) << "ToolUtil_ValidateExecOptionsProperties_0700 end";
 }
@@ -1814,7 +1823,8 @@ HWTEST_F(ToolUtilTest, ValidateExecOptionsProperties_0800, TestSize.Level1)
     options.timeout = -5;
     options.yieldMs = -10;
 
-    EXPECT_EQ(ToolUtil::ValidateExecOptionsProperties(options), ERR_INVALID_PARAM);
+    std::string detail;
+    EXPECT_EQ(ToolUtil::ValidateExecOptionsProperties(options, detail), ERR_INVALID_PARAM);
 
     GTEST_LOG_(INFO) << "ToolUtil_ValidateExecOptionsProperties_0800 end";
 }
