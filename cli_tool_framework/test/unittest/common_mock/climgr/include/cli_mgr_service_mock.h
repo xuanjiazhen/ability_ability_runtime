@@ -11,14 +11,6 @@
 #include <vector>
 
 namespace OHOS {
-namespace AppExecFwk {
-// Provide AppMgrResultCode enum for tests
-enum AppMgrResultCode {
-    RESULT_OK = 0,
-    ERROR_SERVICE_NOT_READY = -1,
-};
-} // namespace AppExecFwk
-
 namespace CliTool {
 class CliMgrServiceMock {
 public:

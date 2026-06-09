@@ -19,10 +19,19 @@ namespace OHOS {
 namespace Security {
 namespace AccessToken {
 
+// 可配置的 token 类型，默认返回 HAP 以支持 GetBundleInfoByTokenId 成功
+static ATokenTypeEnum g_tokenTypeFlag = ATokenTypeEnum::TOKEN_HAP;
+
 ATokenTypeEnum AccessTokenKit::GetTokenTypeFlag(uint64_t tokenID)
 {
     (void)tokenID;
-    return ATokenTypeEnum::TOKEN_NATIVE;
+    return g_tokenTypeFlag;
+}
+
+// 提供设置函数用于测试
+void SetTokenTypeFlag(ATokenTypeEnum tokenType)
+{
+    g_tokenTypeFlag = tokenType;
 }
 
 int32_t AccessTokenKit::VerifyAccessToken(AccessTokenID tokenID, const std::string &permissionName, bool crossIpc)
@@ -37,6 +46,15 @@ int32_t AccessTokenKit::DeleteToolTokenByPid(int32_t pid)
 {
     (void)pid;
     return 0;  // Mock implementation - return success
+}
+
+AccessTokenKitRet AccessTokenKit::GetHapTokenInfo(AccessTokenID tokenID, HapTokenInfo& hapTokenInfo)
+{
+    (void)tokenID;
+    hapTokenInfo.bundleName = "test_bundle";
+    hapTokenInfo.userID = 0;
+    hapTokenInfo.instIndex = 0;
+    return AccessTokenKitRet::RET_SUCCESS;
 }
 
 } // namespace AccessToken
