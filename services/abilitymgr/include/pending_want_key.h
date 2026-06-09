@@ -42,6 +42,9 @@ public:
     void SetCode(int32_t code);
     void SetUserId(int32_t userId);
     void SetAppIndex(int32_t appIndex);
+    void SetInsightIntentName(const std::string &insightIntentName);
+    void SetModuleName(const std::string &moduleName);
+    void SetInsightIntentExecuteMode(int32_t executeMode);
 
     int32_t GetType();
     std::string GetBundleName();
@@ -58,6 +61,9 @@ public:
     int32_t GetAppIndex();
     void GetAllBundleNames(std::vector<std::string> &bundleNames);
     void ClearAllWantsInfosFd();
+    std::string GetInsightIntentName();
+    std::string GetModuleName();
+    int32_t GetInsightIntentExecuteMode();
 
 private:
     int32_t type_ = {};
@@ -71,6 +77,9 @@ private:
     std::string requestWho_ = {};
     std::vector<WantsInfo> allWantsInfos_ = {};
     Want requestWant_ = {};
+    std::string insightIntentName_ = {};
+    std::string moduleName_ = {};
+    int32_t insightIntentExecuteMode_ = 0;
     std::mutex wantsInfosMutex_;
     std::mutex requestWantMutex_;
 };

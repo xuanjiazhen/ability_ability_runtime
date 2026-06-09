@@ -136,6 +136,11 @@ ErrCode WantAgentHelper::GetWantAgent(
         case WantAgentConstant::OperationType::START_SERVICE_EXTENSION:
             result = PendingWant::GetServiceExtension(context, requestCode, wants[0], flags, pendingWant);
             break;
+        case WantAgentConstant::OperationType::EXECUTE_INSIGHT_INTENT:
+            result = PendingWant::GetInsightIntent(context, requestCode, wants[0],
+                paramsInfo.GetInsightIntentName(), paramsInfo.GetModuleName(),
+                paramsInfo.GetInsightIntentExecuteMode(), flags, pendingWant);
+            break;
         default:
             TAG_LOGE(AAFwkTag::WANTAGENT, "operation type is error");
             result = ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
@@ -629,6 +634,29 @@ ErrCode WantAgentHelper::GetType(const std::shared_ptr<WantAgent> &agent, int32_
         return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_WANTAGENT;
     }
     return agent->GetPendingWant()->GetType(agent->GetPendingWant()->GetTarget(), operType);
+}
+
+ErrCode WantAgentHelper::GetInsightIntentWantAgent(
+    const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context,
+    int requestCode, const std::shared_ptr<AAFwk::Want> &want,
+    const std::string &insightIntentName, const std::string &moduleName,
+    int32_t executeMode, unsigned int flags,
+    std::shared_ptr<WantAgent> &wantAgent)
+{
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
+        return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
+    }
+
+    std::shared_ptr<PendingWant> pendingWant = nullptr;
+    ErrCode result = PendingWant::GetInsightIntent(context, requestCode, want,
+        insightIntentName, moduleName, executeMode, flags, pendingWant);
+    if (result != ERR_OK || pendingWant == nullptr) {
+        return result;
+    }
+
+    wantAgent = std::make_shared<WantAgent>(pendingWant);
+    return ERR_OK;
 }
 
 ErrCode WantAgentHelper::GetWant(const std::shared_ptr<WantAgent> &agent, std::shared_ptr<AAFwk::Want> &want)

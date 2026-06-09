@@ -187,6 +187,29 @@ public:
         std::shared_ptr<PendingWant> &pendingWant);
 
     /**
+     * Retrieve a PendingWant that will execute an insight intent.
+     *
+     * @param context The Context in which this PendingWant should execute
+     * the insight intent.
+     * @param requestCode Private request code for the sender
+     * @param want An Want describing the target ability.
+     * @param insightIntentName The name of the insight intent to execute.
+     * @param moduleName The module name of the insight intent.
+     * @param executeMode The execute mode of the insight intent.
+     * @param flags May be FLAG_ONE_SHOT, FLAG_NO_CREATE,
+     * FLAG_CANCEL_CURRENT, FLAG_UPDATE_CURRENT,
+     * FLAG_IMMUTABLE.
+     *
+     * @return Returns ERR_OK If get PendingWant correctly.
+     */
+    static ErrCode GetInsightIntent(
+        const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context,
+        int requestCode, const std::shared_ptr<AAFwk::Want> &want,
+        const std::string &insightIntentName, const std::string &moduleName,
+        int32_t executeMode, unsigned int flags,
+        std::shared_ptr<PendingWant> &pendingWant);
+
+    /**
      * @description: Marshals a Want into a Parcel.
      * Fields in the Want are marshalled separately. If any field fails to be marshalled, false is returned.
      * @param parcel Indicates the Parcel object for marshalling.

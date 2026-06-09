@@ -73,7 +73,12 @@ enum class OperationType {
     /**
      * Starts a service extension.
      */
-    START_SERVICE_EXTENSION
+    START_SERVICE_EXTENSION,
+
+    /**
+     * Executes an insight intent.
+     */
+    EXECUTE_INSIGHT_INTENT
 };
 
 enum class Flags {
@@ -182,6 +187,9 @@ public:
         int32_t userId);
     int32_t PendingWantPublishCommonEvent(const Want &want, const SenderInfo &senderInfo, int32_t publisherUid,
         int32_t callerTokenId);
+    int32_t PendingWantExecuteInsightIntent(const Want &want, const sptr<IRemoteObject> &callerToken,
+        const std::string &insightIntentName, const std::string &moduleName, int32_t executeMode,
+        int32_t userId, int32_t callerUid);
     void ClearPendingWantRecord(const std::string &bundleName, int32_t uid);
 
     void Dump(std::vector<std::string> &info);

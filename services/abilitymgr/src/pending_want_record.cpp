@@ -208,6 +208,11 @@ int32_t PendingWantRecord::ExecuteOperation(
         case static_cast<int32_t>(OperationType::START_SERVICE_EXTENSION):
             res = pendingWantManager->PendingWantStartServiceExtension(want, senderInfo.callerToken);
             break;
+        case static_cast<int32_t>(OperationType::EXECUTE_INSIGHT_INTENT):
+            res = pendingWantManager->PendingWantExecuteInsightIntent(want, senderInfo.callerToken,
+                key_->GetInsightIntentName(), key_->GetModuleName(), key_->GetInsightIntentExecuteMode(),
+                key_->GetUserId(), callerUid_);
+            break;
         default:
             break;
     }

@@ -208,6 +208,47 @@ ErrCode PendingWant::GetForegroundService(
         pendingWant);
 }
 
+ErrCode PendingWant::GetInsightIntent(
+    const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context,
+    int requestCode, const std::shared_ptr<AAFwk::Want> &want,
+    const std::string &insightIntentName, const std::string &moduleName,
+    int32_t executeMode, unsigned int flags,
+    std::shared_ptr<PendingWant> &pendingWant)
+{
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
+        return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
+    }
+
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "input param want is nullptr");
+        return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
+    }
+
+    WantsInfo wantsInfo;
+    wantsInfo.want = *want;
+    wantsInfo.resolvedTypes = want->GetType();
+
+    WantSenderInfo wantSenderInfo;
+    wantSenderInfo.type = static_cast<int32_t>(WantAgentConstant::OperationType::EXECUTE_INSIGHT_INTENT);
+    wantSenderInfo.allWants.push_back(wantsInfo);
+    wantSenderInfo.bundleName = context->GetBundleName();
+    wantSenderInfo.flags = flags;
+    wantSenderInfo.userId = -1;
+    wantSenderInfo.requestCode = requestCode;
+    wantSenderInfo.insightIntentName = insightIntentName;
+    wantSenderInfo.moduleName = moduleName;
+    wantSenderInfo.insightIntentExecuteMode = executeMode;
+
+    sptr<IWantSender> target = nullptr;
+    ErrCode result = WantAgentClient::GetInstance().GetWantSender(wantSenderInfo, nullptr, target);
+    if (result != ERR_OK) {
+        return result;
+    }
+    pendingWant = std::make_shared<PendingWant>(target);
+    return ERR_OK;
+}
+
 ErrCode PendingWant::BuildServicePendingWant(
     const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context,
     int requestCode, const std::shared_ptr<Want> &want,

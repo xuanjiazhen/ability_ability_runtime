@@ -19,6 +19,7 @@
 #include "ability_util.h"
 #include "distributed_client.h"
 #include "hitrace_meter.h"
+#include "insight_intent_execute_param.h"
 #include "permission_constants.h"
 #include "session_manager_lite.h"
 #include "utils/app_mgr_util.h"
@@ -186,6 +187,9 @@ sptr<IWantSender> PendingWantManager::GetWantSenderLocked(const int32_t callingU
     pendingKey->SetUserId(wantSenderInfo.userId);
     pendingKey->SetType(wantSenderInfo.type);
     pendingKey->SetAppIndex(appIndex);
+    pendingKey->SetInsightIntentName(wantSenderInfo.insightIntentName);
+    pendingKey->SetModuleName(wantSenderInfo.moduleName);
+    pendingKey->SetInsightIntentExecuteMode(wantSenderInfo.insightIntentExecuteMode);
     if (wantSenderInfo.allWants.size() > 0) {
         pendingKey->SetRequestWant(wantSenderInfo.allWants.back().want);
         pendingKey->SetRequestResolvedType(wantSenderInfo.allWants.back().resolvedTypes);
@@ -293,6 +297,18 @@ bool PendingWantManager::CheckPendingWantRecordByKey(
 
     if (!inputKey->IsEqualsRequestWant(key->GetRequestWantRef())) {
         return false;
+    }
+
+    if (inputKey->GetType() == static_cast<int32_t>(OperationType::EXECUTE_INSIGHT_INTENT)) {
+        if (inputKey->GetInsightIntentName().compare(key->GetInsightIntentName()) != 0) {
+            return false;
+        }
+        if (inputKey->GetModuleName().compare(key->GetModuleName()) != 0) {
+            return false;
+        }
+        if (inputKey->GetInsightIntentExecuteMode() != key->GetInsightIntentExecuteMode()) {
+            return false;
+        }
     }
 
     return true;
@@ -505,6 +521,40 @@ int32_t PendingWantManager::PendingWantPublishCommonEvent(
     bool result = IN_PROCESS_CALL(DelayedSingleton<EventFwk::CommonEvent>::GetInstance()->PublishCommonEvent(
         eventData, eventPublishData, nullptr, publisherUid, callerTokenId));
     return ((result == true) ? ERR_OK : (-1));
+}
+
+int32_t PendingWantManager::PendingWantExecuteInsightIntent(const Want &want,
+    const sptr<IRemoteObject> &callerToken, const std::string &insightIntentName,
+    const std::string &moduleName, int32_t executeMode, int32_t userId, int32_t callerUid)
+{
+    TAG_LOGI(AAFwkTag::WANTAGENT, "execute insight intent, intentName: %{public}s, moduleName: %{public}s, "
+        "executeMode: %{public}d, userId: %{public}d",
+        insightIntentName.c_str(), moduleName.c_str(), executeMode, userId);
+
+    auto param = std::make_shared<AppExecFwk::InsightIntentExecuteParam>();
+    param->bundleName_ = want.GetBundle();
+    param->moduleName_ = moduleName;
+    param->abilityName_ = want.GetElement().GetAbilityName();
+    param->insightIntentName_ = insightIntentName;
+    param->executeMode_ = executeMode;
+    param->userId_ = userId;
+    param->insightIntentParam_ = std::make_shared<WantParams>(want.GetParams());
+
+    auto ams = DelayedSingleton<AbilityManagerService>::GetInstance();
+    if (ams == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "AbilityManagerService is null");
+        return ERR_INVALID_VALUE;
+    }
+
+    uint64_t key = static_cast<uint64_t>(IPCSkeleton::GetCallingPid()) << 32 |
+                   static_cast<uint64_t>(IPCSkeleton::GetCallingUid());
+    int32_t ret = ams->ExecuteIntent(key, callerToken, *param);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "ExecuteIntent failed: %{public}d", ret);
+        return ret;
+    }
+
+    return ERR_OK;
 }
 
 int32_t PendingWantManager::PendingRecordIdCreate()

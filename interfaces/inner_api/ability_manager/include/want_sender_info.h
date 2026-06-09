@@ -34,6 +34,9 @@ struct WantSenderInfo : public Parcelable {
     std::string bundleName;
     std::string resultWho;
     std::vector<WantsInfo> allWants;
+    std::string insightIntentName;
+    std::string moduleName;
+    int32_t insightIntentExecuteMode = 0;
 
     bool ReadFromParcel(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;

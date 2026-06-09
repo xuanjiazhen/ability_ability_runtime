@@ -205,6 +205,27 @@ public:
      */
     static std::shared_ptr<WantAgent> FromString(const std::string &jsonString, int32_t uid = -1);
 
+    /**
+     * Obtains an WantAgent object for executing insight intent.
+     *
+     * @param context Indicates the context of the caller. This parameter cannot be null.
+     * @param requestCode Private request code for the sender
+     * @param want An Want describing the target ability.
+     * @param insightIntentName The name of the insight intent to execute.
+     * @param moduleName The module name of the insight intent.
+     * @param executeMode The execute mode of the insight intent.
+     * @param flags May be FLAG_ONE_SHOT, FLAG_NO_CREATE,
+     * FLAG_CANCEL_CURRENT, FLAG_UPDATE_CURRENT,
+     * FLAG_IMMUTABLE.
+     * @return Returns ERR_OK If get wantaget correctly.
+     */
+    static ErrCode GetInsightIntentWantAgent(
+        const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context,
+        int requestCode, const std::shared_ptr<AAFwk::Want> &want,
+        const std::string &insightIntentName, const std::string &moduleName,
+        int32_t executeMode, unsigned int flags,
+        std::shared_ptr<WantAgent> &wantAgent);
+
 private:
     WantAgentHelper();
     virtual ~WantAgentHelper() = default;

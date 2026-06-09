@@ -139,4 +139,34 @@ int WantAgentInfo::GetUserId() const
 {
     return userId_;
 }
+
+void WantAgentInfo::SetInsightIntentName(const std::string &insightIntentName)
+{
+    insightIntentName_ = insightIntentName;
+}
+
+std::string WantAgentInfo::GetInsightIntentName() const
+{
+    return insightIntentName_;
+}
+
+void WantAgentInfo::SetModuleName(const std::string &moduleName)
+{
+    moduleName_ = moduleName;
+}
+
+std::string WantAgentInfo::GetModuleName() const
+{
+    return moduleName_;
+}
+
+void WantAgentInfo::SetInsightIntentExecuteMode(int32_t executeMode)
+{
+    insightIntentExecuteMode_ = executeMode;
+}
+
+int32_t WantAgentInfo::GetInsightIntentExecuteMode() const
+{
+    return insightIntentExecuteMode_;
+}
 }  // namespace OHOS::AbilityRuntime::WantAgent

@@ -79,6 +79,9 @@ struct WantAgentWantsParas {
     int32_t userId = -1;
     std::vector<WantAgentConstant::Flags> wantAgentFlags = {};
     AAFwk::WantParams extraInfo = {};
+    std::string insightIntentName = "";
+    std::string moduleName = "";
+    int32_t insightIntentExecuteMode = -1;
 };
 
 class JsWantAgent : public std::enable_shared_from_this<JsWantAgent> {

@@ -129,7 +129,15 @@ public:
         /// </summary>
         START_FOREGROUND_SERVICE,
 
-        START_SERVICE_EXTENSION
+        /// <summary>
+        /// Starts a service extension.
+        /// </summary>
+        START_SERVICE_EXTENSION,
+
+        /// <summary>
+        /// Executes an insight intent.
+        /// </summary>
+        EXECUTE_INSIGHT_INTENT
     };
 
 private:

@@ -158,5 +158,35 @@ void PendingWantKey::ClearAllWantsInfosFd()
         wantInfo.want.CloseAllFd();
     }
 }
+
+void PendingWantKey::SetInsightIntentName(const std::string &insightIntentName)
+{
+    insightIntentName_ = insightIntentName;
+}
+
+void PendingWantKey::SetModuleName(const std::string &moduleName)
+{
+    moduleName_ = moduleName;
+}
+
+void PendingWantKey::SetInsightIntentExecuteMode(int32_t executeMode)
+{
+    insightIntentExecuteMode_ = executeMode;
+}
+
+std::string PendingWantKey::GetInsightIntentName()
+{
+    return insightIntentName_;
+}
+
+std::string PendingWantKey::GetModuleName()
+{
+    return moduleName_;
+}
+
+int32_t PendingWantKey::GetInsightIntentExecuteMode()
+{
+    return insightIntentExecuteMode_;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

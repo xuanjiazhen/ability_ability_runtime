@@ -144,6 +144,48 @@ public:
      */
     int GetUserId() const;
 
+    /**
+     * Sets the insight intent name.
+     *
+     * @param insightIntentName The insight intent name to set.
+     */
+    void SetInsightIntentName(const std::string &insightIntentName);
+
+    /**
+     * Obtains the insight intent name.
+     *
+     * @return Returns the insight intent name.
+     */
+    std::string GetInsightIntentName() const;
+
+    /**
+     * Sets the module name.
+     *
+     * @param moduleName The module name to set.
+     */
+    void SetModuleName(const std::string &moduleName);
+
+    /**
+     * Obtains the module name.
+     *
+     * @return Returns the module name.
+     */
+    std::string GetModuleName() const;
+
+    /**
+     * Sets the insight intent execute mode.
+     *
+     * @param executeMode The execute mode to set.
+     */
+    void SetInsightIntentExecuteMode(int32_t executeMode);
+
+    /**
+     * Obtains the insight intent execute mode.
+     *
+     * @return Returns the insight intent execute mode.
+     */
+    int32_t GetInsightIntentExecuteMode() const;
+
 private:
     int requestCode_ = 0;
     int userId_ = -1;
@@ -152,6 +194,9 @@ private:
     std::vector<WantAgentConstant::Flags> flags_ = std::vector<WantAgentConstant::Flags>();
     std::vector<std::shared_ptr<AAFwk::Want>> wants_ = std::vector<std::shared_ptr<AAFwk::Want>>();
     std::shared_ptr<AAFwk::WantParams> extraInfo_;
+    std::string insightIntentName_;
+    std::string moduleName_;
+    int32_t insightIntentExecuteMode_ = 0;
 };
 }  // namespace OHOS::AbilityRuntime::WantAgent
 #endif  // OHOS_ABILITY_RUNTIME_WANT_AGENT_INFO_H

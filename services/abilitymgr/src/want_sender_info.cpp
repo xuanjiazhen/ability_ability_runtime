@@ -44,6 +44,9 @@ bool WantSenderInfo::ReadFromParcel(Parcel &parcel)
     flags = parcel.ReadUint32();
     userId = parcel.ReadInt32();
     appIndex = parcel.ReadInt32();
+    insightIntentName = Str16ToStr8(parcel.ReadString16());
+    moduleName = Str16ToStr8(parcel.ReadString16());
+    insightIntentExecuteMode = parcel.ReadInt32();
     return true;
 }
 
@@ -79,6 +82,9 @@ bool WantSenderInfo::Marshalling(Parcel &parcel) const
     parcel.WriteUint32(flags);
     parcel.WriteInt32(userId);
     parcel.WriteInt32(appIndex);
+    parcel.WriteString16(Str8ToStr16(insightIntentName));
+    parcel.WriteString16(Str8ToStr16(moduleName));
+    parcel.WriteInt32(insightIntentExecuteMode);
     return true;
 }
 }  // namespace AAFwk

@@ -1080,6 +1080,40 @@ int32_t JsWantAgent::GetWantAgentParam(napi_env env, napi_callback_info info, Wa
             return PARAMETER_ERROR;
         }
     }
+
+    bool hasInsightIntentName = false;
+    napi_has_named_property(env, argv[0], "insightIntentName", &hasInsightIntentName);
+    if (hasInsightIntentName) {
+        napi_value jsInsightIntentName = nullptr;
+        napi_get_named_property(env, argv[0], "insightIntentName", &jsInsightIntentName);
+        if (!ConvertFromJsValue(env, jsInsightIntentName, paras.insightIntentName)) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "Convert insightIntentName failed");
+            return PARAMETER_ERROR;
+        }
+    }
+
+    bool hasModuleName = false;
+    napi_has_named_property(env, argv[0], "moduleName", &hasModuleName);
+    if (hasModuleName) {
+        napi_value jsModuleName = nullptr;
+        napi_get_named_property(env, argv[0], "moduleName", &jsModuleName);
+        if (!ConvertFromJsValue(env, jsModuleName, paras.moduleName)) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "Convert moduleName failed");
+            return PARAMETER_ERROR;
+        }
+    }
+
+    bool hasExecuteMode = false;
+    napi_has_named_property(env, argv[0], "insightIntentExecuteMode", &hasExecuteMode);
+    if (hasExecuteMode) {
+        napi_value jsExecuteMode = nullptr;
+        napi_get_named_property(env, argv[0], "insightIntentExecuteMode", &jsExecuteMode);
+        if (!ConvertFromJsValue(env, jsExecuteMode, paras.insightIntentExecuteMode)) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "Convert insightIntentExecuteMode failed");
+            return PARAMETER_ERROR;
+        }
+    }
+
     return BUSINESS_ERROR_CODE_OK;
 }
 
@@ -1113,6 +1147,9 @@ napi_value JsWantAgent::OnGetWantAgent(napi_env env, napi_callback_info info)
                                     parasobj->wantAgentFlags,
                                     parasobj->wants,
                                     extraInfo);
+        wantAgentInfo.SetInsightIntentName(parasobj->insightIntentName);
+        wantAgentInfo.SetModuleName(parasobj->moduleName);
+        wantAgentInfo.SetInsightIntentExecuteMode(parasobj->insightIntentExecuteMode);
 
         auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
         std::shared_ptr<WantAgent> wantAgent = nullptr;
