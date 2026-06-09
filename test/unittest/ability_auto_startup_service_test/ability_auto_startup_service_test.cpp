@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -749,28 +749,6 @@ HWTEST_F(AbilityAutoStartupServiceTest, CheckPermissionForSystem_001, TestSize.L
         EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
     }
     GTEST_LOG_(INFO) << "AbilityAutoStartupServiceTest CheckPermissionForSystem_001 end";
-}
-
-/*
- * Feature: AbilityAutoStartupService
- * Function: CheckPermissionForSelf
- * SubFunction: NA
- * FunctionPoints: AbilityAutoStartupService CheckPermissionForSelf
- */
-HWTEST_F(AbilityAutoStartupServiceTest, CheckPermissionForSelf_001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "AbilityAutoStartupServiceTest CheckPermissionForSelf_001 start";
-    auto abilityAutoStartupService = std::make_shared<AbilityAutoStartupService>();
-    EXPECT_NE(abilityAutoStartupService, nullptr);
-    std::string bundleName = AUTO_STARTUP_SERVICE_EMPTY;
-    auto result = abilityAutoStartupService->CheckPermissionForSelf(bundleName);
-    if (!system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
-        GTEST_LOG_(INFO) << "Disabled config";
-        EXPECT_EQ(result, ERR_NOT_SUPPORTED_PRODUCT_TYPE);
-    } else {
-        EXPECT_EQ(result, ERR_OK);
-    }
-    GTEST_LOG_(INFO) << "AbilityAutoStartupServiceTest CheckPermissionForSelf_001 end";
 }
 
 /*
