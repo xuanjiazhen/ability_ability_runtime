@@ -3420,19 +3420,12 @@ bool AbilityManagerService::IsDmsAlive() const
 
 void AbilityManagerService::AppUpgradeCompleted(int32_t uid, int32_t installType)
 {
-    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "not sa call");
+    if (!VerifyPermissionAndUserForUpgrade(uid)) {
         return;
     }
 
     auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER(bms);
-    auto userId = uid / BASE_USER_RANGE;
-    if (userId != U0_USER_ID && userId != U1_USER_ID &&
-        !AbilityRuntime::UserController::GetInstance().IsForegroundUser(userId)) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "not current user");
-        return;
-    }
 
     AppExecFwk::BundleInfo bundleInfo;
     std::string bundleName;
@@ -3454,11 +3447,13 @@ void AbilityManagerService::AppUpgradeCompleted(int32_t uid, int32_t installType
 
     KeepAliveType type = KeepAliveType::UNSPECIFIED;
     if (!KeepAliveUtils::IsKeepAliveBundle(bundleInfo, userId, type)) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "not keep-alive application");
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "not keep-alive application uid: %{public}d", uid);
         return;
     }
 
     std::vector<AppExecFwk::BundleInfo> bundleInfos = { bundleInfo };
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "keep-alive upgrade completed uid: %{public}d, keepAliveType: %{public}d, "
+        "installType: %{public}d", uid, type, installType);
     if (type == KeepAliveType::THIRD_PARTY && installType == INSTALL_TYPE_UPGRADE) {
         KeepAliveProcessManager::GetInstance().StartKeepAliveAfterAppUpgrade(bundleInfos, uid);
         if (IN_PROCESS_CALL(KeepAliveProcessManager::GetInstance().CheckNeedRestartAfterUpgrade(uid))) {
@@ -3473,6 +3468,24 @@ void AbilityManagerService::AppUpgradeCompleted(int32_t uid, int32_t installType
             residentProcessManager->StartResidentProcess(bundleInfos);
         }
     }
+}
+
+bool AbilityManagerService::VerifyPermissionAndUserForUpgrade(int32_t uid) const
+{
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Permission denied: not SA call, uid=%{public}d", uid);
+        return false;
+    }
+
+    auto userId = uid / BASE_USER_RANGE;
+    if (userId != U0_USER_ID && userId != U1_USER_ID &&
+        !AbilityRuntime::UserController::GetInstance().IsForegroundUser(userId)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Invalid user for upgrade: userId=%{public}d, uid=%{public}d",
+            userId, uid);
+        return false;
+    }
+
+    return true;
 }
 
 int32_t AbilityManagerService::RecordAppExitReason(const ExitReason &exitReason)
@@ -11355,12 +11368,12 @@ int AbilityManagerService::FinishUserTest(
     return DelayedSingleton<AppScheduler>::GetInstance()->FinishUserTest(msg, resultCode, bundleName);
 }
 
-int AbilityManagerService::GetTopAbility(sptr<IRemoteObject> &token)
+int AbilityManagerService::GetTopAbility(sptr<IRemoteObject> &token, int32_t userId)
 {
-    return GetTopAbilityInner(token);
+    return GetTopAbilityInner(token, 0, userId);
 }
 
-int AbilityManagerService::GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId)
+int AbilityManagerService::GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId, int32_t userId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
@@ -11371,7 +11384,9 @@ int AbilityManagerService::GetTopAbilityInner(sptr<IRemoteObject> &token, uint64
 #ifdef SUPPORT_SCREEN
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         Rosen::FocusChangeInfo focusChangeInfo;
-        Rosen::WindowManager::GetInstance().GetFocusWindowInfo(focusChangeInfo, displayId);
+        userId = (userId == INVALID_USER_ID) ? GetValidUserId(INVALID_USER_ID) : userId;
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "GetTopAbilityInner userId: %{public}d", userId);
+        Rosen::WindowManager::GetInstance(userId).GetFocusWindowInfo(focusChangeInfo, displayId);
         token = focusChangeInfo.abilityToken_;
     } else {
         if (!GetWMSHandler()) {
@@ -11893,7 +11908,7 @@ int AbilityManagerService::FreeInstallAbilityFromRemote(const Want &want, const 
     return freeInstallManager_->FreeInstallAbilityFromRemote(want, callback, validUserId, requestCode);
 }
 
-AppExecFwk::ElementName AbilityManagerService::GetTopAbility(bool isNeedLocalDeviceId)
+AppExecFwk::ElementName AbilityManagerService::GetTopAbility(int32_t userId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}s start.", __func__);
@@ -11909,7 +11924,7 @@ AppExecFwk::ElementName AbilityManagerService::GetTopAbility(bool isNeedLocalDev
     }
 #ifdef SUPPORT_GRAPHICS
     sptr<IRemoteObject> token;
-    int ret = IN_PROCESS_CALL(GetTopAbility(token));
+    int ret = IN_PROCESS_CALL(GetTopAbility(token, userId));
     if (ret) {
         return elementName;
     }
@@ -11925,7 +11940,7 @@ AppExecFwk::ElementName AbilityManagerService::GetTopAbility(bool isNeedLocalDev
     elementName = abilityRecord->GetElementName();
     bool isDeviceEmpty = elementName.GetDeviceID().empty();
     std::string localDeviceId;
-    if (isDeviceEmpty && isNeedLocalDeviceId && GetLocalDeviceId(localDeviceId)) {
+    if (isDeviceEmpty && GetLocalDeviceId(localDeviceId)) {
         elementName.SetDeviceID(localDeviceId);
     }
 #endif

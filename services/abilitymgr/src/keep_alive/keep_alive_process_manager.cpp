@@ -600,7 +600,7 @@ void KeepAliveProcessManager::SaveKeepAliveAppRestartAfterUpgrade(const std::str
 
     if (isRunning) {
         std::lock_guard<std::mutex> lock(restartAfterUpgradeMutex_);
-        TAG_LOGD(AAFwkTag::KEEP_ALIVE, "keepAliveApp is running while update. uid: %{public}d", uid);
+        TAG_LOGI(AAFwkTag::KEEP_ALIVE, "keepAliveApp is running while update. uid: %{public}d", uid);
         keepAliveRestartAfterUpgradeList_.insert(uid);
     }
 }
@@ -623,6 +623,7 @@ bool KeepAliveProcessManager::KeepAliveCheckNeedRestartAfterUpgrade(int32_t uid)
     if (iter == keepAliveRestartAfterUpgradeList_.end()) {
         return false;
     }
+    TAG_LOGI(AAFwkTag::KEEP_ALIVE, "remove restart keepAliveApp uid: %{public}d", uid);
     keepAliveRestartAfterUpgradeList_.erase(iter);
     return true;
 }
@@ -637,10 +638,11 @@ void KeepAliveProcessManager::StartKeepAliveAfterAppUpgrade(std::vector<AppExecF
     int32_t uid)
 {
     if (!KeepAliveCheckNeedRestartAfterUpgrade(uid)) {
-        TAG_LOGD(AAFwkTag::KEEP_ALIVE, "keepAlive no need to restart after update. uid: %{public}d", uid);
+        TAG_LOGI(AAFwkTag::KEEP_ALIVE, "keepAliveApp no need to restart after update. uid: %{public}d", uid);
         return;
     }
     int32_t userId = uid / BASE_USER_RANGE;
+    TAG_LOGI(AAFwkTag::KEEP_ALIVE, "start keepAliveApp after update. uid: %{public}d", uid);
     StartKeepAliveProcessWithMainElement(bundleInfos, userId);
 }
 }  // namespace AAFwk
