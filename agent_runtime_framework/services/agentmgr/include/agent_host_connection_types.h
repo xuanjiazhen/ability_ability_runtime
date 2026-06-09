@@ -16,8 +16,8 @@
 #ifndef OHOS_AGENT_RUNTIME_FRAMEWORK_AGENT_HOST_CONNECTION_TYPES_H
 #define OHOS_AGENT_RUNTIME_FRAMEWORK_AGENT_HOST_CONNECTION_TYPES_H
 
-#include <memory>
 #include <map>
+#include <memory>
 #include <string>
 
 #include "agent_host_connection.h"
@@ -31,14 +31,17 @@ namespace AgentRuntime {
 struct AgentOwnerKey {
     int32_t hostUid = 0;
     std::string agentId;
+};
 
-    bool operator<(const AgentOwnerKey &that) const
-    {
-        if (hostUid != that.hostUid) {
-            return hostUid < that.hostUid;
-        }
-        return agentId < that.agentId;
-    }
+struct AgentHostSession;
+
+/**
+ * @struct AgentOwnerRecord
+ * @brief Stores one explicit reverse owner-index entry without relying on ordered key comparison.
+ */
+struct AgentOwnerRecord {
+    AgentOwnerKey key;
+    std::shared_ptr<AgentHostSession> session = nullptr;
 };
 
 /**
