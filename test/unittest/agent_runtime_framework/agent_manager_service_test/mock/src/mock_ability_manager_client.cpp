@@ -28,6 +28,7 @@ AppExecFwk::ExtensionAbilityType MyFlag::lastConnectAbilityExtensionType =
 sptr<AAFwk::IAbilityConnection> MyFlag::lastDisconnectAbilityConnection = nullptr;
 int32_t MyFlag::connectAbilityWithExtensionTypeCallCount = 0;
 int32_t MyFlag::disconnectAbilityCallCount = 0;
+std::vector<int32_t> MyFlag::disconnectAbilityResults;
 }
 
 namespace AAFwk {
@@ -52,6 +53,11 @@ ErrCode AbilityManagerClient::DisconnectAbility(sptr<IAbilityConnection> connect
 {
     AgentRuntime::MyFlag::lastDisconnectAbilityConnection = connect;
     AgentRuntime::MyFlag::disconnectAbilityCallCount++;
+    if (!AgentRuntime::MyFlag::disconnectAbilityResults.empty()) {
+        auto ret = AgentRuntime::MyFlag::disconnectAbilityResults.front();
+        AgentRuntime::MyFlag::disconnectAbilityResults.erase(AgentRuntime::MyFlag::disconnectAbilityResults.begin());
+        return ret;
+    }
     return AgentRuntime::MyFlag::retDisconnectAbility;
 }
 }  // namespace AAFwk
