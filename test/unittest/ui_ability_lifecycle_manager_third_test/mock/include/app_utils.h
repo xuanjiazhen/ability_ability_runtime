@@ -33,8 +33,7 @@ public:
     bool IsStartSpecifiedProcess();
     bool IsStartOptionsWithProcessOptions();
     bool InOnNewProcessEnableList(const std::string &bundleName);
-    bool IsProductAppbootSettingEnabled();
-    bool IsEnterpriseDeviceType();
+    bool IsAutoStartupSupported();
 
 private:
     AppUtils();
