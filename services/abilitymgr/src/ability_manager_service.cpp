@@ -7964,8 +7964,7 @@ void AbilityManagerService::DumpSysUIOperationInner(
     // Skip the first arg ("-o"), pass windowId + command + args
     std::vector<std::string> params(argList.begin() + 1, argList.end());
     auto executor = std::make_shared<AAFwk::UiOperationChainExecutor>();
-    auto dumpHandler = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Current());
-    executor->HandleDump(params, dumpHandler, info);
+    executor->HandleDump(params, info);
 }
 
 void AbilityManagerService::DumpInner(const std::string &args, std::vector<std::string> &info)

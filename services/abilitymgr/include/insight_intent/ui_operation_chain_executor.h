@@ -221,7 +221,6 @@ public:
      * @param info Output vector for dump result strings.
      */
     void HandleDump(const std::vector<std::string>& params,
-        std::shared_ptr<AppExecFwk::EventHandler> handler,
         std::vector<std::string>& info);
 
     /**

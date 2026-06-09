@@ -943,7 +943,6 @@ const std::map<std::string, UiOperationChainExecutor::DumpHandler>
 };
 
 void UiOperationChainExecutor::HandleDump(const std::vector<std::string>& params,
-    std::shared_ptr<AppExecFwk::EventHandler> handler,
     std::vector<std::string>& info)
 {
     TAG_LOGI(AAFwkTag::INTENT, "HandleDump params=%{public}zu", params.size());
@@ -976,7 +975,7 @@ void UiOperationChainExecutor::HandleDump(const std::vector<std::string>& params
     if (cmd != "Connect" && !service->IsConnect()) {
         info.push_back("Not connected, auto-connecting...");
         auto connectCb = [](std::string) {};
-        service->Connect(connectCb, handler);
+        service->Connect(connectCb);
     }
 
     // Build sub-params (skip windowId, keep command + args)
