@@ -366,7 +366,7 @@ int MockAbilityDelegatorStub2::GetTopAbility(sptr<IRemoteObject>& token)
     return OHOS::ERR_INVALID_VALUE;
 }
 
-AppExecFwk::ElementName MockAbilityDelegatorStub2::GetTopAbility(bool isNeedLocalDeviceId)
+AppExecFwk::ElementName MockAbilityDelegatorStub2::GetTopAbility(int32_t userId)
 {
     TAG_LOGI(AAFwkTag::TEST, "GetTopAbility.");
     AppExecFwk::ElementName elementName = {};
