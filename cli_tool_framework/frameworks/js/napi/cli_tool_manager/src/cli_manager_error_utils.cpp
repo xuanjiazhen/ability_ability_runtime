@@ -31,6 +31,12 @@ static const std::map<CliManagerErrorCode, std::string> ERROR_MSG_MAP = {
     {CliManagerErrorCode::ERROR_SESSION_NOT_FOUND, "The session not found."},
     {CliManagerErrorCode::ERROR_SEND_MESSAGE, "Sending Message to failure."},
     {CliManagerErrorCode::ERROR_INNER, "Internal error."},
+    {CliManagerErrorCode::ERROR_FUNCTION_NOT_EXIST, "The function does not exist."},
+    {CliManagerErrorCode::ERROR_FUNCTION_TYPE_NOT_SUPPORTED, "The function type is not supported."},
+    {CliManagerErrorCode::ERROR_FUNCTION_PARAM_VALIDATE_FAILED, "The function param validate failed."},
+    {CliManagerErrorCode::ERROR_FUNCTION_EXECUTE_FAILED, "The function execute failed."},
+    {CliManagerErrorCode::ERROR_FUNCTION_EXECUTE_TIMEOUT, "The function execute timeout."},
+    {CliManagerErrorCode::ERROR_FUNCTION_QUERY_FAILED, "The function query failed."},
 };
 
 static const std::map<int32_t, CliManagerErrorCode> NATIVE_TO_BUSINESS_ERROR_MAP = {
@@ -41,6 +47,12 @@ static const std::map<int32_t, CliManagerErrorCode> NATIVE_TO_BUSINESS_ERROR_MAP
     {ERR_SESSION_LIMIT_EXCEEDED, CliManagerErrorCode::ERROR_REACH_LIMIT},
     {ERR_CLI_SESSION_NOT_FOUND, CliManagerErrorCode::ERROR_SESSION_NOT_FOUND},
     {ERR_CLI_SEND_MESSAGE, CliManagerErrorCode::ERROR_SEND_MESSAGE},
+    {ERR_FUNCTION_NOT_EXIST, CliManagerErrorCode::ERROR_FUNCTION_NOT_EXIST},
+    {ERR_FUNCTION_TYPE_NOT_SUPPORTED, CliManagerErrorCode::ERROR_FUNCTION_TYPE_NOT_SUPPORTED},
+    {ERR_FUNCTION_PARAM_VALIDATE_FAILED, CliManagerErrorCode::ERROR_FUNCTION_PARAM_VALIDATE_FAILED},
+    {ERR_FUNCTION_EXECUTE_FAILED, CliManagerErrorCode::ERROR_FUNCTION_EXECUTE_FAILED},
+    {ERR_FUNCTION_EXECUTE_TIMEOUT, CliManagerErrorCode::ERROR_FUNCTION_EXECUTE_TIMEOUT},
+    {ERR_FUNCTION_QUERY_FAILED, CliManagerErrorCode::ERROR_FUNCTION_QUERY_FAILED},
 };
 
 std::string GetErrorMsg(CliManagerErrorCode errCode)
