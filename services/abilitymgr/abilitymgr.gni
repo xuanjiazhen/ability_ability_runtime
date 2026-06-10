@@ -154,6 +154,7 @@ abilityms_files = [
   "src/insight_intent/ui_operation_chain_param.cpp",
   "src/insight_intent/ui_operation_tree_parser.cpp",
   "src/insight_intent/ui_operation_chain_executor.cpp",
+  "src/insight_intent/gui_intent_executor.cpp",
 
   #skill execution
   "src/skill/skill_execute_callback_proxy.cpp",
