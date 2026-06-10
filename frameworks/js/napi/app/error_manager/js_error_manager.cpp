@@ -1018,14 +1018,10 @@ private:
             ThrowError(env, AbilityErrorCode::ERROR_CODE_MAIN_THREAD);
             return CreateJsUndefined(env);
         }
-        if (CheckTypeForNapiValue(env, function, napi_null)) {
+        if (CheckTypeForNapiValue(env, function, napi_null) ||CheckTypeForNapiValue(env, function, napi_undefined)) {
             TAG_LOGE(AAFwkTag::JSNAPI, "null function.");
             ThrowInvalidNumParametersError(env);
             return CreateJsUndefined(env);
-        }
-        if (CheckTypeForNapiValue(env, function, napi_undefined)) {
-            TAG_LOGI(AAFwkTag::JSNAPI, "Get defaultHandler undefined");
-            function = nullptr;
         }
         std::lock_guard<std::mutex> lock(defaultHandlerMtx);
         napi_value object = nullptr;
@@ -1480,10 +1476,9 @@ private:
             }
             return res;
         }
-        if (CheckTypeForNapiValue(env, function, napi_null)) {
+        if (!ValidateFunction(env, function)) {
             TAG_LOGE(AAFwkTag::JSNAPI, "null function.");
-            ThrowInvalidNumParametersError(env);
-            return CreateJsUndefined(env);
+            return nullptr;
         }
         napi_value observer = nullptr;
         NAPI_CALL(env, napi_get_reference_value(env, freezeObserver.ref, &observer));
@@ -1599,10 +1594,9 @@ private:
             return DeleteUnhandledRejectionObservers(env);
         }
         napi_value function = argv[INDEX_ONE];
-        if (function == nullptr || CheckTypeForNapiValue(env, function, napi_null)) {
+        if (!ValidateFunction(env, function)) {
             TAG_LOGE(AAFwkTag::JSNAPI, "null function.");
-            ThrowInvalidNumParametersError(env);
-            return CreateJsUndefined(env);
+            return res;
         }
         if (CheckTypeForNapiValue(env, function, napi_undefined)) {
             TAG_LOGI(AAFwkTag::JSNAPI, "undefined function.");
