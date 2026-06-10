@@ -1310,6 +1310,30 @@ HWTEST_F(DataAbilityHelperForObserverTest, AaFwk_DataAbilityHelper_BatchInsert_0
 }
 
 /**
+ * @tc.number: AaFwk_DataAbilityHelper_BatchInsert_0500
+ * @tc.name: BatchInsert
+ * @tc.desc: Verify that an oversized values list is rejected
+ */
+HWTEST_F(DataAbilityHelperForObserverTest, AaFwk_DataAbilityHelper_BatchInsert_0500, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_DataAbilityHelper_BatchInsert_0500 start";
+
+    constexpr size_t OVERSIZED_BATCH_SIZE = 1001;
+    std::shared_ptr<MockAbilitySchedulerTools> mockTools = MockAbilitySchedulerTools::GetInstance();
+    mockTools->SetMockStatus(true);
+    std::shared_ptr<Context> context = std::make_shared<AbilityContext>();
+    std::shared_ptr<Uri> uri =
+        std::make_shared<Uri>("dataability://device_id/com.domainname.dataability.persondata/person/10");
+    std::shared_ptr<DataAbilityHelper> dataAbilityHelper = DataAbilityHelper::Creator(context, uri);
+    std::vector<NativeRdb::ValuesBucket> values(OVERSIZED_BATCH_SIZE);
+    EXPECT_CALL(*mockTools->GetMockAbilityScheduler(), BatchInsert(testing::_, testing::_)).Times(0);
+
+    EXPECT_EQ(dataAbilityHelper->BatchInsert(*uri, values), -1);
+
+    GTEST_LOG_(INFO) << "AaFwk_DataAbilityHelper_BatchInsert_0500 end";
+}
+
+/**
  * @tc.number: AaFwk_DataAbilityHelper_NormalizeUri_0100
  * @tc.name: NormalizeUri
  * @tc.desc: Simulate successful test cases
