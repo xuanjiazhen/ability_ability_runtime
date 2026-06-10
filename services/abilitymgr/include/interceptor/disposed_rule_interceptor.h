@@ -31,7 +31,8 @@ class DisposedRuleInterceptor : public IAbilityInterceptor,
 public:
     DisposedRuleInterceptor() = default;
     ~DisposedRuleInterceptor() = default;
-    static std::string GenerateTimeoutTaskName(int32_t uid);
+    static std::string GenerateTimeoutTaskName(int32_t uid, const std::string &moduleName,
+        const std::string &abilityName);
     static std::string GenerateEventTaskName(int32_t uid);
     ErrCode DoProcess(AbilityInterceptorParam param) override;
     void SetTaskHandler(std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler) override
@@ -48,9 +49,13 @@ private:
         AppExecFwk::DisposedRule &disposedRule);
     ErrCode StartNonBlockRule(const Want &want, AppExecFwk::DisposedRule &disposedRule,
         const std::shared_ptr<AppExecFwk::AbilityInfo> &abilityInfo);
+    std::function<void()> GenerateAbilityTimeoutTask(const sptr<OHOS::AppExecFwk::IAppMgr> &appManager,
+        int32_t uid, const std::string &moduleName, const std::string &abilityName);
     ErrCode CreateModalUIExtension(const Want &want, const sptr<IRemoteObject> &callerToken);
     void SetInterceptInfo(const Want &want, AppExecFwk::DisposedRule &disposedRule);
     bool IsSkipDisposeRule(AppExecFwk::PageJumpMode mode, const AbilityInterceptorParam &param);
+    void CancelTimeoutTasks(int32_t uid, const sptr<DisposedObserver> &observer);
+    void DoUnregisterObserver(int32_t uid, const sptr<DisposedObserver> &observer);
 private:
     std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
     std::map<int32_t, sptr<DisposedObserver>> disposedObserverMap_;
