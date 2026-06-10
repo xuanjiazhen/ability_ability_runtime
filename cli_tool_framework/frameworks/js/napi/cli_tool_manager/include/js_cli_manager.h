@@ -211,6 +211,26 @@ private:
      * @return Returns the N-API value.
      */
     napi_value OnQueryTools(napi_env env, size_t argc, napi_value *argv);
+
+    /**
+     * @brief Implementation for querying all functions.
+     *
+     * @param env The N-API environment.
+     * @param argc The argument count.
+     * @param argv The argument values.
+     * @return Returns the N-API value.
+     */
+    napi_value OnQueryAllFunctions(napi_env env, size_t argc, napi_value *argv);
+
+    /**
+     * @brief Implementation for invoking a function.
+     *
+     * @param env The N-API environment.
+     * @param argc The argument count.
+     * @param argv The argument values.
+     * @return Returns the N-API value.
+     */
+    napi_value OnInvokeFunction(napi_env env, size_t argc, napi_value *argv);
 };
 
 /**

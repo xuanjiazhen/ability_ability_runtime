@@ -41,8 +41,7 @@ namespace CliTool {
  * first compare_exchange_strong winner may deliver a result.
  */
 class InvokeFunctionCallbackClient
-    : public AbilityRuntime::InsightIntentExecuteCallbackInterface,
-      public std::enable_shared_from_this<InvokeFunctionCallbackClient> {
+    : public AbilityRuntime::InsightIntentExecuteCallbackInterface {
 public:
     using CompletedFlag = std::atomic<bool>;
 
@@ -52,7 +51,6 @@ public:
      * @param callback  Invoked exactly once if this client wins the race.
      */
     InvokeFunctionCallbackClient(std::shared_ptr<CompletedFlag> completed, InvokeResultCallback callback);
-    ~InvokeFunctionCallbackClient() override = default;
 
     void ProcessInsightIntentExecute(int32_t resultCode,
         AppExecFwk::InsightIntentExecuteResult executeResult) override;

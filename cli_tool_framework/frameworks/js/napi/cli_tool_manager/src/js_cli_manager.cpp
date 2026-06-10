@@ -573,11 +573,15 @@ napi_value JSCliManager::OnInvokeFunction(napi_env env, size_t argc, napi_value 
     // Create threadsafe function
     napi_value workName = nullptr;
     napi_create_string_utf8(env, "InvokeFunctionTsfn", NAPI_AUTO_LENGTH, &workName);
+    // finalizeData is heap-allocated so napi can own it and InvokeFunctionFinalize can delete it.
+    // On creation failure napi never takes ownership, so we free it here to avoid a leak.
+    auto *finalizeData = new std::shared_ptr<InvokeFunctionTsfnContext>(tsfnContext);
     napi_status tsfnStatus = napi_create_threadsafe_function(env, nullptr, nullptr, workName, 0, 1,
-        new std::shared_ptr<InvokeFunctionTsfnContext>(tsfnContext), InvokeFunctionFinalize,
+        finalizeData, InvokeFunctionFinalize,
         tsfnContext.get(), InvokeFunctionCallJs, &tsfnContext->tsfn);
     if (tsfnStatus != napi_ok) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to create threadsafe function");
+        delete finalizeData;
         napi_value jsError = CreateCliJsErrorByNativeErr(env, ERR_FUNCTION_EXECUTE_FAILED);
         napi_reject_deferred(env, deferred, jsError);
         return handleEscape.Escape(promise);
