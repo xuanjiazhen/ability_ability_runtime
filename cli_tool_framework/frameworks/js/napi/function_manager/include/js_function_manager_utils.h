@@ -18,6 +18,7 @@
 
 #include "native_engine/native_engine.h"
 #include "function_info.h"
+#include "want_params.h"
 
 namespace OHOS {
 namespace CliTool {
@@ -29,6 +30,24 @@ namespace CliTool {
  * @return Returns the JavaScript object.
  */
 napi_value CreateJsFunctionInfo(napi_env env, const FunctionInfo &function);
+
+/**
+ * @brief Create JavaScript InvokeResult object from explicit fields.
+ *
+ * Unified contract: resultCode is the single authority for the `success` field
+ * (resultCode == 0 → success). `result` populates `data` (omitted when null),
+ * `message` populates `message` (omitted when empty). `errorCode` carries
+ * resultCode when non-zero.
+ *
+ * @param env The N-API environment.
+ * @param resultCode The result code driving InvokeResult.success/errorCode;
+ *                   the caller passes executeResult.code (application-level).
+ * @param result The WantParams data returned by the intent (may be null).
+ * @param message The descriptive message (may be empty).
+ * @return Returns the JavaScript object.
+ */
+napi_value CreateJsInvokeResult(napi_env env, int32_t resultCode,
+    const std::shared_ptr<AAFwk::WantParams> &result, const std::string &message);
 
 } // namespace CliTool
 } // namespace OHOS
