@@ -27,7 +27,7 @@ int RecordAppExitReason(int exitReason, const char *exitMsg)
     }
 
     OHOS::AAFwk::Reason reason = static_cast<OHOS::AAFwk::Reason>(exitReason);
-    std::string exitMsgStr(exitMsg);
+    std::string exitMsgStr = (exitMsg != nullptr) ? std::string(exitMsg) : std::string();
     OHOS::AAFwk::ExitReason exitReasonData = { reason, exitMsgStr };
 
     auto instance = OHOS::AAFwk::AbilityManagerClient::GetInstance();
