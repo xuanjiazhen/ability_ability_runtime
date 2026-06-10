@@ -54,13 +54,35 @@ UiOperationChain UiOperationChain::ParseFromJson(const std::string& jsonStr)
             return chain;
         }
 
+        if (json.contains("waitForPageChange") && json["waitForPageChange"].is_boolean()) {
+            chain.waitForPageChange = json["waitForPageChange"].get<bool>();
+        }
+        if (json.contains("pageChangeTimeoutMs") && json["pageChangeTimeoutMs"].is_number_integer()) {
+            chain.pageChangeTimeoutMs = json["pageChangeTimeoutMs"].get<int32_t>();
+        }
+
         for (const auto& stepJson : json["steps"]) {
             UiOperationStep step;
-            if (stepJson.contains("componentType") && stepJson["componentType"].is_string()) {
-                step.componentType = stepJson["componentType"].get<std::string>();
+            if (stepJson.contains("compId") && stepJson["compId"].is_string()) {
+                step.compId = stepJson["compId"].get<std::string>();
             }
-            if (stepJson.contains("contentMatcher") && stepJson["contentMatcher"].is_string()) {
-                step.contentMatcher = stepJson["contentMatcher"].get<std::string>();
+            if (stepJson.contains("compType") && stepJson["compType"].is_string()) {
+                step.compType = stepJson["compType"].get<std::string>();
+            } else if (stepJson.contains("componentType") && stepJson["componentType"].is_string()) {
+                step.compType = stepJson["componentType"].get<std::string>();
+            }
+            if (stepJson.contains("compName") && stepJson["compName"].is_string()) {
+                step.compName = stepJson["compName"].get<std::string>();
+            }
+            if (stepJson.contains("compText") && stepJson["compText"].is_string()) {
+                step.compText = stepJson["compText"].get<std::string>();
+            } else if (stepJson.contains("contentMatcher") && stepJson["contentMatcher"].is_string()) {
+                step.compText = stepJson["contentMatcher"].get<std::string>();
+            }
+            if (stepJson.contains("compIndex") && stepJson["compIndex"].is_number_integer()) {
+                step.compIndex = stepJson["compIndex"].get<int32_t>();
+            } else if (stepJson.contains("matchIndex") && stepJson["matchIndex"].is_number_integer()) {
+                step.compIndex = stepJson["matchIndex"].get<int32_t>();
             }
             if (stepJson.contains("command") && stepJson["command"].is_string()) {
                 step.command = stepJson["command"].get<std::string>();
@@ -68,12 +90,10 @@ UiOperationChain UiOperationChain::ParseFromJson(const std::string& jsonStr)
             if (stepJson.contains("useAsync") && stepJson["useAsync"].is_boolean()) {
                 step.useAsync = stepJson["useAsync"].get<bool>();
             }
-            if (stepJson.contains("matchIndex") && stepJson["matchIndex"].is_number_integer()) {
-                step.matchIndex = stepJson["matchIndex"].get<int32_t>();
-            }
             if (stepJson.contains("timeoutMs") && stepJson["timeoutMs"].is_number_integer()) {
                 step.timeoutMs = stepJson["timeoutMs"].get<int32_t>();
             }
+            step.SyncLegacy();
             chain.steps.push_back(step);
         }
     } catch (const nlohmann::json::exception& e) {
@@ -88,15 +108,19 @@ std::string UiOperationChain::ToJsonString() const
     auto json = nlohmann::json::object();
     json["windowId"] = windowId;
     json["totalTimeoutMs"] = totalTimeoutMs;
+    json["waitForPageChange"] = waitForPageChange;
+    json["pageChangeTimeoutMs"] = pageChangeTimeoutMs;
 
     auto stepsArr = nlohmann::json::array();
     for (const auto& step : steps) {
         auto stepObj = nlohmann::json::object();
-        stepObj["componentType"] = step.componentType;
-        stepObj["contentMatcher"] = step.contentMatcher;
+        stepObj["compId"] = step.compId;
+        stepObj["compType"] = step.compType;
+        stepObj["compName"] = step.compName;
+        stepObj["compText"] = step.compText;
+        stepObj["compIndex"] = step.compIndex;
         stepObj["command"] = step.command;
         stepObj["useAsync"] = step.useAsync;
-        stepObj["matchIndex"] = step.matchIndex;
         stepObj["timeoutMs"] = step.timeoutMs;
         stepsArr.push_back(stepObj);
     }

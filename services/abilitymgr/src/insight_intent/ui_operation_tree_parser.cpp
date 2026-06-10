@@ -33,6 +33,8 @@ constexpr const char* FIELD_CHILDREN = "$children";
 constexpr const char* FIELD_ATTRS = "$attrs";
 constexpr const char* ATTR_CONTENT = "content";
 constexpr const char* ATTR_LABEL = "label";
+constexpr const char* ATTR_COMP_ID = "id";
+constexpr const char* ATTR_CLICKABLE = "clickable";
 
 bool CaseInsensitiveEqual(const std::string& a, const std::string& b)
 {
@@ -54,6 +56,26 @@ bool CaseInsensitiveContains(const std::string& haystack, const std::string& nee
     auto it = std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end(),
         [](unsigned char ch1, unsigned char ch2) { return std::tolower(ch1) == std::tolower(ch2); });
     return it != haystack.end();
+}
+
+void ExtractNodeAttrs(const nlohmann::json& node, MatchedNodeInfo& info)
+{
+    if (!node.contains(FIELD_ATTRS) || !node[FIELD_ATTRS].is_object()) {
+        return;
+    }
+    const auto& attrs = node[FIELD_ATTRS];
+    if (attrs.contains(ATTR_COMP_ID) && attrs[ATTR_COMP_ID].is_string()) {
+        info.compId = attrs[ATTR_COMP_ID].get<std::string>();
+    }
+    if (attrs.contains(ATTR_CONTENT) && attrs[ATTR_CONTENT].is_string()) {
+        info.content = attrs[ATTR_CONTENT].get<std::string>();
+    }
+    if (attrs.contains(ATTR_LABEL) && attrs[ATTR_LABEL].is_string()) {
+        info.label = attrs[ATTR_LABEL].get<std::string>();
+    }
+    if (attrs.contains(ATTR_CLICKABLE) && attrs[ATTR_CLICKABLE].is_boolean()) {
+        info.clickable = attrs[ATTR_CLICKABLE].get<bool>();
+    }
 }
 
 void TraverseNode(const nlohmann::json& node, const std::string& componentType,
@@ -102,6 +124,67 @@ void TraverseNode(const nlohmann::json& node, const std::string& componentType,
         }
     }
 }
+
+void TraverseNodeWithAttrs(const nlohmann::json& node, const std::string& componentType,
+    const std::string& compId, const std::string& contentMatcher,
+    std::vector<MatchedNodeInfo>& results, int32_t& totalCount)
+{
+    if (!node.is_object()) {
+        return;
+    }
+    totalCount++;
+
+    // Check $type match (case-insensitive)
+    bool typeMatched = false;
+    std::string nodeType;
+    if (node.contains(FIELD_TYPE) && node[FIELD_TYPE].is_string()) {
+        nodeType = node[FIELD_TYPE].get<std::string>();
+        typeMatched = CaseInsensitiveEqual(nodeType, componentType);
+    }
+    if (!typeMatched) {
+        // Recurse into children
+        if (node.contains(FIELD_CHILDREN) && node[FIELD_CHILDREN].is_array()) {
+            for (const auto& child : node[FIELD_CHILDREN]) {
+                TraverseNodeWithAttrs(child, componentType, compId, contentMatcher, results, totalCount);
+            }
+        }
+        return;
+    }
+
+    // Type matched -- extract full attributes
+    MatchedNodeInfo info;
+    info.compType = nodeType;
+    if (node.contains(FIELD_ID) && node[FIELD_ID].is_number_integer()) {
+        info.nodeId = node[FIELD_ID].get<int32_t>();
+    }
+    ExtractNodeAttrs(node, info);
+
+    // Check compId match (if specified)
+    bool compIdMatched = true;
+    if (!compId.empty()) {
+        compIdMatched = CaseInsensitiveEqual(info.compId, compId);
+    }
+
+    // Check content match
+    bool contentMatched = true;
+    if (!contentMatcher.empty()) {
+        contentMatched = CaseInsensitiveContains(info.content, contentMatcher);
+        if (!contentMatched) {
+            contentMatched = CaseInsensitiveContains(info.label, contentMatcher);
+        }
+    }
+
+    if (compIdMatched && contentMatched && info.nodeId >= 0) {
+        results.push_back(info);
+    }
+
+    // Recurse into children
+    if (node.contains(FIELD_CHILDREN) && node[FIELD_CHILDREN].is_array()) {
+        for (const auto& child : node[FIELD_CHILDREN]) {
+            TraverseNodeWithAttrs(child, componentType, compId, contentMatcher, results, totalCount);
+        }
+    }
+}
 } // anonymous namespace
 
 std::vector<int32_t> UiOperationTreeParser::FindMatchingNodes(const std::string& treeJson,
@@ -120,6 +203,30 @@ std::vector<int32_t> UiOperationTreeParser::FindMatchingNodes(const std::string&
         TAG_LOGI(AAFwkTag::INTENT, "FindMatchingNodes: type=%{public}s, matcher=%{public}s, "
             "found=%{public}zu, total=%{public}d",
             componentType.c_str(), contentMatcher.c_str(), results.size(), totalCount);
+    } catch (const nlohmann::json::exception& e) {
+        TAG_LOGE(AAFwkTag::INTENT, "JSON parse error: %{public}s", e.what());
+    }
+
+    return results;
+}
+
+std::vector<MatchedNodeInfo> UiOperationTreeParser::FindMatchingNodesWithAttributes(
+    const std::string& treeJson, const std::string& componentType,
+    const std::string& compId, const std::string& contentMatcher)
+{
+    std::vector<MatchedNodeInfo> results;
+    if (treeJson.empty() || componentType.empty()) {
+        TAG_LOGE(AAFwkTag::INTENT, "treeJson or componentType is empty");
+        return results;
+    }
+
+    try {
+        auto json = nlohmann::json::parse(treeJson);
+        int32_t totalCount = 0;
+        TraverseNodeWithAttrs(json, componentType, compId, contentMatcher, results, totalCount);
+        TAG_LOGI(AAFwkTag::INTENT, "FindMatchingNodesWithAttributes: type=%{public}s, "
+            "compId=%{public}s, matcher=%{public}s, found=%{public}zu, total=%{public}d",
+            componentType.c_str(), compId.c_str(), contentMatcher.c_str(), results.size(), totalCount);
     } catch (const nlohmann::json::exception& e) {
         TAG_LOGE(AAFwkTag::INTENT, "JSON parse error: %{public}s", e.what());
     }

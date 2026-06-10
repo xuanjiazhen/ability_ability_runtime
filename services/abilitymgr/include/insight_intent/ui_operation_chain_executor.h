@@ -63,23 +63,20 @@ enum UiOperationErrorCode {
     UI_OPERATION_ERR_CHAIN_TIMEOUT = 104,
     UI_OPERATION_ERR_WINDOW_NOT_FOUND = 105,
     UI_OPERATION_ERR_CANCELLED = 106,
+    UI_OPERATION_ERR_ACTION_NOT_ALLOWED = 107,     // Component not actionable (e.g. click on non-clickable)
+    UI_OPERATION_ERR_PAGE_CHANGE_TIMEOUT = 108,    // ContentChangeCallback PAGE not received within timeout
 };
 
 /**
  * @brief Executor that drives a UiOperationChain step by step.
- * Also provides standalone UI session operations (mirroring ui_sa_sample)
- * for dump-based testing and direct UI interaction.
  *
- * Standalone operations (for dump testing):
- *   Connect / GetVisibleInspectorTree / GetCurrentPageName /
- *   SendCommand / SendCommandAsync /
- *   RegisterContentChangeCallback / UnregisterContentChangeCallback /
- *   GetCurrentImagesShowing / GetImagesById / GetWebInfoByRequest /
- *   RegisterComponentChangeEventCallback / UnregisterComponentChangeEventCallback /
- *   ExeAppAIFunction / GetWebViewCurrentLanguage / StartWebViewTranslate /
- *   GetStateMgmtInfo / RegisterTextChangeEventCallback / UnregisterTextChangeEventCallback /
- *   RegisterSelectTextEventCallback / UnregisterSelectTextEventCallback /
- *   GetSpecifiedContentOffsets / HighlightSpecifiedContent
+ * Supports:
+ * - Two-level component matching (compId+type+text > type+text)
+ * - Actionability checks (e.g. clickable=true for "click" command)
+ * - RegisterContentChangeCallback once per chain (before first step)
+ * - Callback-wait after each step (waitForPageChange mode)
+ * - UnregisterContentChangeCallback on chain completion
+ * - All standalone UI session operations for dump-based testing.
  */
 class UiOperationChainExecutor : public std::enable_shared_from_this<UiOperationChainExecutor> {
 public:
@@ -94,7 +91,7 @@ public:
 
     /**
      * @brief Start executing the operation chain.
-     * @param chain The chain definition (windowId, steps, timeout).
+     * @param chain The chain definition (windowId, steps, timeout, waitForPageChange).
      * @param handler EventHandler for posting callbacks to the caller's thread.
      * @param onComplete Called when chain finishes (all steps done or error).
      */
@@ -205,40 +202,20 @@ public:
         const std::vector<std::string>& nodeIds = {}, const std::string& configs = "");
 
     // ================================================================
-    // Dump entry point (mirrors UiSaService::Dump + DUMP_MAP)
-    // Usage: dump -o <windowId> <command> [args...]
-    //   e.g. dump -o 1 Connect
-    //        dump -o 1 GetVisibleInspectorTree [-tofile]
-    //        dump -o 1 SendCommand <nodeId> <command>
-    //        dump -o 1 SendCommandAsync <nodeId> <command>
-    //        dump -o 1 ExecuteChain <chainJson>
+    // Dump entry point
     // ================================================================
 
-    /**
-     * @brief Unified dump dispatch entry (mirrors UiSaService::Dump).
-     * @param params Args vector: [windowId, command, arg1, arg2, ...]
-     * @param handler EventHandler for callbacks.
-     * @param info Output vector for dump result strings.
-     */
     void HandleDump(const std::vector<std::string>& params,
         std::vector<std::string>& info);
 
-    /**
-     * @brief Show available dump commands.
-     */
     void ShowDumpHelp(std::vector<std::string>& info);
 
 private:
-    /**
-     * @brief Obtain IUiContentService proxy for a window (with caching).
-     */
     sptr<Ace::IUiContentService> GetUiContentService(int32_t windowId);
 
-    /** @brief Internal connect implementation. */
     void DoConnect(sptr<Ace::IUiContentService> service,
         std::function<void(bool success)> onConnected);
 
-    /** @brief Internal tree request (handles multi-part callback assembly). */
     void DoRequestInspectorTree(sptr<Ace::IUiContentService> service,
         const Ace::ParamConfig& config,
         std::function<void(std::string, bool)> onTreeReady);
@@ -251,6 +228,44 @@ private:
 
     /** @brief Handle chain completion. */
     void OnChainComplete(int32_t resultCode, int32_t failedStepIndex);
+
+    // --- Extended step execution (for GuiIntent) ---
+
+    /**
+     * @brief Execute step with two-level matching + actionability check + callback-wait.
+     * Called by ExecuteStep when chain.waitForPageChange is true.
+     */
+    void ExecuteStepWithPageWait(size_t stepIndex);
+
+    /**
+     * @brief Resolve matching nodes with two-level priority:
+     *   1) compId + compType + compText
+     *   2) compType + compText (fallback)
+     */
+    std::vector<MatchedNodeInfo> ResolveMatchingNodes(const std::string& treeJson,
+        const UiOperationStep& step);
+
+    /**
+     * @brief Check if the actionType is allowed on the given node.
+     * e.g. "click" requires clickable=true.
+     */
+    bool CheckActionability(const MatchedNodeInfo& nodeInfo, const std::string& command);
+
+    /**
+     * @brief Register content change callback for the current chain window.
+     */
+    void RegisterChainContentCallback();
+
+    /**
+     * @brief Unregister content change callback for the current chain window.
+     */
+    void UnregisterChainContentCallback();
+
+    /**
+     * @brief Wait for a PAGE change callback within timeout.
+     * @return true if PAGE callback received within timeout.
+     */
+    bool WaitForPageChange(size_t stepIndex);
 
     // --- Dump sub-handlers ---
     using DumpHandler = std::function<void(sptr<Ace::IUiContentService>, const std::vector<std::string>&,
@@ -320,6 +335,12 @@ private:
 
     bool cancelled_ = false;
     bool executing_ = false;
+
+    // --- Content change callback state ---
+    ffrt::mutex callbackMutex_;
+    bool contentCallbackReceived_ = false;
+    Ace::ChangeType receivedChangeType_ = Ace::ChangeType::PAGE;
+    std::string receivedCallbackTree_;
 };
 
 } // namespace AAFwk

@@ -26,14 +26,38 @@ namespace AAFwk {
 /**
  * @brief Single step in a UI operation chain.
  * Describes how to find a target component and what command to execute on it.
+ *
+ * Component matching priority (two-level, caller-controlled):
+ *   1) compId + compType + compText  (preferred)
+ *   2) compType + compText           (fallback when compId fails)
  */
 struct UiOperationStep {
-    std::string componentType;   // Target component type, e.g. "Button", "Text"
-    std::string contentMatcher;  // Substring match against node text/content
-    std::string command;         // UI command to execute, e.g. "click", "focus"
-    bool useAsync = false;       // true=SendCommandAsync, false=SendCommand(synchronous)
-    int32_t matchIndex = 0;      // Which matched node to use when multiple matches (0-based)
-    int32_t timeoutMs = 5000;    // Per-step timeout in milliseconds
+    // --- Component matching fields ---
+    std::string compId;           // Component ID to match against $attrs.id (empty = skip)
+    std::string compType;         // Component type, e.g. "Button", "Text"
+    std::string compName;         // Component name (reserved)
+    std::string compText;         // Component text/content to match against $attrs.content/$attrs.label
+    int32_t compIndex = 0;        // Target index when multiple matches (list item position)
+
+    // --- Action fields ---
+    std::string command;          // Action to execute, e.g. "click"
+    bool useAsync = false;        // true=SendCommandAsync, false=SendCommand(synchronous)
+    int32_t timeoutMs = 5000;     // Per-step timeout in milliseconds
+
+    // --- Legacy aliases (kept for backward compatibility with existing chain executor) ---
+    std::string componentType;    // = compType (alias)
+    std::string contentMatcher;   // = compText (alias)
+    int32_t matchIndex = 0;       // = compIndex (alias)
+
+    /**
+     * @brief Sync legacy fields from the new fields (called after parsing).
+     */
+    void SyncLegacy()
+    {
+        componentType = compType;
+        contentMatcher = compText;
+        matchIndex = compIndex;
+    }
 };
 
 /**
@@ -46,6 +70,10 @@ struct UiOperationChain {
     std::vector<UiOperationStep> steps;           // Ordered list of operation steps
     int32_t totalTimeoutMs = 30000;               // Overall chain timeout in milliseconds
 
+    // --- Callback-wait fields (for page transition verification) ---
+    bool waitForPageChange = false;               // If true, wait for RegisterContentChangeCallback after each step
+    int32_t pageChangeTimeoutMs = 5000;           // Max wait for PAGE change callback (per step)
+
     /**
      * @brief Parse a UiOperationChain from a JSON string.
      * @param jsonStr JSON string describing the chain.
@@ -54,8 +82,8 @@ struct UiOperationChain {
      *   "windowId": 1,
      *   "totalTimeoutMs": 30000,
      *   "steps": [
-     *     { "componentType": "Button", "contentMatcher": "Submit", "command": "click" },
-     *     { "componentType": "Text", "contentMatcher": "result", "command": "focus" }
+     *     { "compType": "Button", "compText": "Submit", "command": "click" },
+     *     { "compType": "Text", "compText": "result", "command": "focus" }
      *   ]
      * }
      * @return Parsed UiOperationChain. windowId will be -1 if parsing fails.

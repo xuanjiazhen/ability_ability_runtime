@@ -15,6 +15,8 @@
 
 #include "insight_intent/ui_operation_chain_executor.h"
 
+#include <thread>
+
 #include "hilog_tag_wrapper.h"
 #include "ui_content_proxy.h"
 #include "ui_content_service_interface.h"
@@ -469,7 +471,7 @@ int32_t UiOperationChainExecutor::HighlightSpecifiedContent(int32_t windowId,
 void UiOperationChainExecutor::ExecuteChain(const UiOperationChain& chain,
     std::shared_ptr<AppExecFwk::EventHandler> handler, ChainCompleteCallback onComplete)
 {
-    TAG_LOGI(AAFwkTag::INTENT, "ExecuteChain windowId=%{public}d, steps=%{public}zu",
+    TAG_LOGI(AAFwkTag::INTENT, "ExecuteChain windowId=%{public}d, steps=%{public}zu, ",
         chain.windowId, chain.steps.size());
 
     if (!chain.IsValid()) {
@@ -498,6 +500,12 @@ void UiOperationChainExecutor::ExecuteChain(const UiOperationChain& chain,
         accumulatedTree_.clear();
     }
 
+    {
+        std::lock_guard<ffrt::mutex> lock(callbackMutex_);
+        contentCallbackReceived_ = false;
+        receivedCallbackTree_.clear();
+    }
+
     auto service = GetUiContentService(chain.windowId);
     if (service == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "cannot get service for window %{public}d", chain.windowId);
@@ -510,6 +518,10 @@ void UiOperationChainExecutor::ExecuteChain(const UiOperationChain& chain,
         if (!success) {
             self->OnChainComplete(UI_OPERATION_ERR_CONNECT_FAILED, -1);
             return;
+        }
+        // Register content change callback once for the whole chain
+        if (self->chain_.waitForPageChange) {
+            self->RegisterChainContentCallback();
         }
         self->ProceedToStep(0);
     });
@@ -524,6 +536,7 @@ void UiOperationChainExecutor::Cancel()
         executing_ = false;
         auto callback = std::move(onComplete_);
         onComplete_ = nullptr;
+        UnregisterChainContentCallback();
         if (eventHandler_) {
             eventHandler_->PostTask([callback]() {
                 callback(UI_OPERATION_ERR_CANCELLED, -1);
@@ -541,6 +554,7 @@ void UiOperationChainExecutor::Cancel()
 void UiOperationChainExecutor::ExecuteStep(size_t stepIndex)
 {
     UiOperationStep step;
+    bool waitForPageChange;
     {
         std::lock_guard<ffrt::mutex> lock(mutex_);
         if (cancelled_) {
@@ -553,10 +567,17 @@ void UiOperationChainExecutor::ExecuteStep(size_t stepIndex)
             return;
         }
         step = chain_.steps[stepIndex];
+        waitForPageChange = chain_.waitForPageChange;
     }
 
+    if (waitForPageChange) {
+        ExecuteStepWithPageWait(stepIndex);
+        return;
+    }
+
+    // --- Legacy path: no page-change callback-wait ---
     TAG_LOGI(AAFwkTag::INTENT, "ExecuteStep[%{public}zu]: type=%{public}s, matcher=%{public}s, cmd=%{public}s",
-        stepIndex, step.componentType.c_str(), step.contentMatcher.c_str(), step.command.c_str());
+        stepIndex, step.compType.c_str(), step.compText.c_str(), step.command.c_str());
 
     auto service = GetUiContentService(chain_.windowId);
     if (service == nullptr) {
@@ -573,17 +594,17 @@ void UiOperationChainExecutor::ExecuteStep(size_t stepIndex)
         }
 
         auto matchingIds = UiOperationTreeParser::FindMatchingNodes(
-            treeJson, step.componentType, step.contentMatcher);
+            treeJson, step.compType, step.compText);
 
         if (matchingIds.empty()) {
             TAG_LOGE(AAFwkTag::INTENT, "step[%{public}zu] component not found: type=%{public}s, matcher=%{public}s",
-                stepIndex, step.componentType.c_str(), step.contentMatcher.c_str());
+                stepIndex, step.compType.c_str(), step.compText.c_str());
             self->OnChainComplete(UI_OPERATION_ERR_COMPONENT_NOT_FOUND, static_cast<int32_t>(stepIndex));
             return;
         }
 
-        int32_t targetIndex = (step.matchIndex >= 0 &&
-            static_cast<size_t>(step.matchIndex) < matchingIds.size()) ? step.matchIndex : 0;
+        int32_t targetIndex = (step.compIndex >= 0 &&
+            static_cast<size_t>(step.compIndex) < matchingIds.size()) ? step.compIndex : 0;
         int32_t nodeId = matchingIds[targetIndex];
         TAG_LOGI(AAFwkTag::INTENT, "step[%{public}zu] found node id=%{public}d (match %{public}d/%{public}zu)",
             stepIndex, nodeId, targetIndex, matchingIds.size());
@@ -619,6 +640,7 @@ void UiOperationChainExecutor::ProceedToStep(size_t stepIndex)
         std::lock_guard<ffrt::mutex> lock(mutex_);
         if (cancelled_) { return; }
         if (stepIndex >= chain_.steps.size()) {
+            UnregisterChainContentCallback();
             OnChainComplete(UI_OPERATION_ERR_OK, -1);
             return;
         }
@@ -644,12 +666,236 @@ void UiOperationChainExecutor::OnChainComplete(int32_t resultCode, int32_t faile
         onComplete_ = nullptr;
     }
 
+    UnregisterChainContentCallback();
+
     TAG_LOGI(AAFwkTag::INTENT, "chain complete: code=%{public}d, failedStep=%{public}d",
         resultCode, failedStepIndex);
 
     if (callback) {
         callback(resultCode, failedStepIndex);
     }
+}
+
+// ============================================================
+// Private: Extended step execution (two-level matching + actionability + callback-wait)
+// ============================================================
+
+void UiOperationChainExecutor::ExecuteStepWithPageWait(size_t stepIndex)
+{
+    UiOperationStep step;
+    {
+        std::lock_guard<ffrt::mutex> lock(mutex_);
+        if (cancelled_) { return; }
+        if (stepIndex >= chain_.steps.size()) {
+            OnChainComplete(UI_OPERATION_ERR_OK, -1);
+            return;
+        }
+        step = chain_.steps[stepIndex];
+    }
+
+    TAG_LOGI(AAFwkTag::INTENT, "ExecuteStepWithPageWait[%{public}zu]: compId=%{public}s, "
+        "compType=%{public}s, compText=%{public}s, cmd=%{public}s",
+        stepIndex, step.compId.c_str(), step.compType.c_str(), step.compText.c_str(), step.command.c_str());
+
+    auto service = GetUiContentService(chain_.windowId);
+    if (service == nullptr) {
+        OnChainComplete(UI_OPERATION_ERR_WINDOW_NOT_FOUND, static_cast<int32_t>(stepIndex));
+        return;
+    }
+
+    auto self = shared_from_this();
+    auto treeReady = [self, step, stepIndex](std::string treeJson, bool success) {
+        if (!success || treeJson.empty()) {
+            TAG_LOGE(AAFwkTag::INTENT, "step[%{public}zu] tree request failed", stepIndex);
+            self->OnChainComplete(UI_OPERATION_ERR_TREE_TIMEOUT, static_cast<int32_t>(stepIndex));
+            return;
+        }
+
+        // Two-level matching
+        auto matchingNodes = self->ResolveMatchingNodes(treeJson, step);
+        if (matchingNodes.empty()) {
+            TAG_LOGE(AAFwkTag::INTENT, "step[%{public}zu] component not found: compId=%{public}s, "
+                "type=%{public}s, text=%{public}s",
+                stepIndex, step.compId.c_str(), step.compType.c_str(), step.compText.c_str());
+            self->OnChainComplete(UI_OPERATION_ERR_COMPONENT_NOT_FOUND, static_cast<int32_t>(stepIndex));
+            return;
+        }
+
+        int32_t targetIndex = (step.compIndex >= 0 &&
+            static_cast<size_t>(step.compIndex) < matchingNodes.size()) ? step.compIndex : 0;
+        const auto& nodeInfo = matchingNodes[targetIndex];
+        TAG_LOGI(AAFwkTag::INTENT, "step[%{public}zu] found node: id=%{public}d, compId=%{public}s, "
+            "clickable=%{public}d (match %{public}d/%{public}zu)",
+            stepIndex, nodeInfo.nodeId, nodeInfo.compId.c_str(),
+            nodeInfo.clickable, targetIndex, matchingNodes.size());
+
+        // Actionability check
+        if (!self->CheckActionability(nodeInfo, step.command)) {
+            TAG_LOGE(AAFwkTag::INTENT, "step[%{public}zu] action not allowed: cmd=%{public}s, "
+                "clickable=%{public}d",
+                stepIndex, step.command.c_str(), nodeInfo.clickable);
+            self->OnChainComplete(UI_OPERATION_ERR_ACTION_NOT_ALLOWED, static_cast<int32_t>(stepIndex));
+            return;
+        }
+
+        // Reset callback flag before sending command
+        {
+            std::lock_guard<ffrt::mutex> cbLock(self->callbackMutex_);
+            self->contentCallbackReceived_ = false;
+        }
+
+        // Execute command
+        auto svc = self->GetUiContentService(self->chain_.windowId);
+        if (svc == nullptr) {
+            self->OnChainComplete(UI_OPERATION_ERR_WINDOW_NOT_FOUND, static_cast<int32_t>(stepIndex));
+            return;
+        }
+        int32_t cmdRet = step.useAsync ?
+            svc->SendCommandAsync(nodeInfo.nodeId, step.command) :
+            svc->SendCommand(nodeInfo.nodeId, step.command);
+
+        if (cmdRet != Ace::NO_ERROR) {
+            TAG_LOGE(AAFwkTag::INTENT, "step[%{public}zu] SendCommand failed, ret=%{public}d", stepIndex, cmdRet);
+            self->OnChainComplete(UI_OPERATION_ERR_COMMAND_FAILED, static_cast<int32_t>(stepIndex));
+            return;
+        }
+
+        TAG_LOGI(AAFwkTag::INTENT, "step[%{public}zu] command sent, waiting for PAGE change callback...", stepIndex);
+
+        // Wait for PAGE change callback
+        if (!self->WaitForPageChange(stepIndex)) {
+            TAG_LOGE(AAFwkTag::INTENT, "step[%{public}zu] PAGE change timeout or wrong type", stepIndex);
+            self->OnChainComplete(UI_OPERATION_ERR_PAGE_CHANGE_TIMEOUT, static_cast<int32_t>(stepIndex));
+            return;
+        }
+
+        TAG_LOGI(AAFwkTag::INTENT, "step[%{public}zu] PAGE change confirmed", stepIndex);
+        self->ProceedToStep(stepIndex + 1);
+    };
+
+    DoRequestInspectorTree(service, Ace::ParamConfig(), treeReady);
+}
+
+std::vector<MatchedNodeInfo> UiOperationChainExecutor::ResolveMatchingNodes(
+    const std::string& treeJson, const UiOperationStep& step)
+{
+    // Level 1: compId + compType + compText
+    if (!step.compId.empty()) {
+        auto results = UiOperationTreeParser::FindMatchingNodesWithAttributes(
+            treeJson, step.compType, step.compId, step.compText);
+        if (!results.empty()) {
+            TAG_LOGI(AAFwkTag::INTENT, "resolve L1 (compId): found %{public}zu nodes", results.size());
+            return results;
+        }
+        TAG_LOGI(AAFwkTag::INTENT, "resolve L1 (compId): no match, falling back to L2");
+    }
+
+    // Level 2: compType + compText (fallback)
+    auto results = UiOperationTreeParser::FindMatchingNodesWithAttributes(
+        treeJson, step.compType, "", step.compText);
+    TAG_LOGI(AAFwkTag::INTENT, "resolve L2 (type+text): found %{public}zu nodes", results.size());
+    return results;
+}
+
+bool UiOperationChainExecutor::CheckActionability(const MatchedNodeInfo& nodeInfo, const std::string& command)
+{
+    // "click" requires clickable=true
+    if (command == "click") {
+        return nodeInfo.clickable;
+    }
+    // "focus" — always allowed (any visible node can receive focus)
+    if (command == "focus" || command == "blur") {
+        return true;
+    }
+    // "input" / "setText" — allowed for now (text input validation layer TBD)
+    if (command == "input" || command == "setText") {
+        return true;
+    }
+    // Unknown command — allow by default (extensible)
+    TAG_LOGW(AAFwkTag::INTENT, "CheckActionability: unknown command=%{public}s, allowing", command.c_str());
+    return true;
+}
+
+// ============================================================
+// Private: Content change callback registration (once per chain)
+// ============================================================
+
+void UiOperationChainExecutor::RegisterChainContentCallback()
+{
+    auto service = GetUiContentService(chain_.windowId);
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "RegisterChainContentCallback: service null");
+        return;
+    }
+
+    Ace::ContentChangeConfig config;
+    config.minReportTime = 0; // Report immediately
+
+    auto self = shared_from_this();
+    auto callback = [self](Ace::ChangeType type, const std::string& simpleTree) {
+        TAG_LOGI(AAFwkTag::INTENT, "ContentChangeCallback: type=%{public}d, treeSize=%{public}zu",
+            static_cast<int>(type), simpleTree.size());
+        std::lock_guard<ffrt::mutex> lock(self->callbackMutex_);
+        self->contentCallbackReceived_ = true;
+        self->receivedChangeType_ = type;
+        self->receivedCallbackTree_ = simpleTree;
+    };
+
+    service->RegisterContentChangeCallback(config, callback);
+    TAG_LOGI(AAFwkTag::INTENT, "RegisterChainContentCallback done for window %{public}d", chain_.windowId);
+}
+
+void UiOperationChainExecutor::UnregisterChainContentCallback()
+{
+    auto service = GetUiContentService(chain_.windowId);
+    if (service == nullptr) {
+        return;
+    }
+    service->UnregisterContentChangeCallback();
+    TAG_LOGI(AAFwkTag::INTENT, "UnregisterChainContentCallback done for window %{public}d", chain_.windowId);
+}
+
+bool UiOperationChainExecutor::WaitForPageChange(size_t stepIndex)
+{
+    int32_t timeoutMs;
+    {
+        std::lock_guard<ffrt::mutex> lock(mutex_);
+        timeoutMs = chain_.pageChangeTimeoutMs > 0 ? chain_.pageChangeTimeoutMs : 5000;
+    }
+
+    constexpr int32_t POLL_INTERVAL_MS = 50;
+    int32_t elapsed = 0;
+
+    while (elapsed < timeoutMs) {
+        {
+            std::lock_guard<ffrt::mutex> lock(mutex_);
+            if (cancelled_) {
+                TAG_LOGI(AAFwkTag::INTENT, "WaitForPageChange step[%{public}zu] cancelled", stepIndex);
+                return false;
+            }
+        }
+
+        {
+            std::lock_guard<ffrt::mutex> cbLock(callbackMutex_);
+            if (contentCallbackReceived_) {
+                if (receivedChangeType_ == Ace::ChangeType::PAGE) {
+                    contentCallbackReceived_ = false;
+                    return true;
+                }
+                // Received a non-PAGE change — reset and keep waiting
+                TAG_LOGI(AAFwkTag::INTENT, "WaitForPageChange step[%{public}zu] received ChangeType=%{public}d, "
+                    "not PAGE, continuing to wait", stepIndex, static_cast<int>(receivedChangeType_));
+                contentCallbackReceived_ = false;
+            }
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(POLL_INTERVAL_MS));
+        elapsed += POLL_INTERVAL_MS;
+    }
+
+    TAG_LOGE(AAFwkTag::INTENT, "WaitForPageChange step[%{public}zu] timeout after %{public}d ms",
+        stepIndex, timeoutMs);
+    return false;
 }
 
 // ============================================================
@@ -923,8 +1169,6 @@ const std::map<std::string, UiOperationChainExecutor::DumpHandler>
         }
     }},
     { "ExecuteChain", [](sptr<Ace::IUiContentService> s, auto& p, auto& i) {
-        // params: [ExecuteChain, chainJson]
-        // chainJson example: {"windowId":1,"steps":[{"componentType":"Button","command":"click"}]}
         if (p.size() < 2) {
             i.push_back("Usage: ExecuteChain <chainJson>");
             return;
@@ -936,8 +1180,6 @@ const std::map<std::string, UiOperationChainExecutor::DumpHandler>
         }
         i.push_back("Chain parsed: windowId=" + std::to_string(chain.windowId) +
             " steps=" + std::to_string(chain.steps.size()));
-        // Note: full chain execution requires async handler; dump is sync.
-        // For dump testing, chain execution is logged via the standalone methods.
         i.push_back("(Use ExecuteChain via programmatic API for full async execution)");
     }},
 };
@@ -952,7 +1194,6 @@ void UiOperationChainExecutor::HandleDump(const std::vector<std::string>& params
         return;
     }
 
-    // params[0] = windowId, params[1] = command, params[2..] = args
     if (params.size() < 2) {
         info.push_back("Usage: -o <windowId> <command> [args...]");
         ShowDumpHelp(info);
@@ -964,21 +1205,18 @@ void UiOperationChainExecutor::HandleDump(const std::vector<std::string>& params
 
     TAG_LOGI(AAFwkTag::INTENT, "HandleDump windowId=%{public}d cmd=%{public}s", windowId, cmd.c_str());
 
-    // Get or auto-connect
     auto service = GetUiContentService(windowId);
     if (service == nullptr) {
         info.push_back("Error: cannot get UIContentService for window " + std::to_string(windowId));
         return;
     }
 
-    // For commands requiring connection, auto-connect
     if (cmd != "Connect" && !service->IsConnect()) {
         info.push_back("Not connected, auto-connecting...");
         auto connectCb = [](std::string) {};
         service->Connect(connectCb);
     }
 
-    // Build sub-params (skip windowId, keep command + args)
     std::vector<std::string> subParams(params.begin() + 1, params.end());
 
     auto it = DUMP_HANDLER_MAP.find(cmd);
