@@ -17,11 +17,13 @@
 #define OHOS_CLI_TOOL_JS_CLI_MANAGER_UTILS_H
 
 #include <map>
+#include <memory>
 #include <string>
 
 #include "js_cli_session_event_callback.h"
 #include "js_common_utils.h"
 #include "native_engine/native_engine.h"
+#include "want_params.h"
 #include "tool_info.h"
 #include "tool_summary.h"
 

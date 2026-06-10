@@ -26,6 +26,7 @@
 #include "icli_tool_data.h"
 #include "js_cli_session_event_callback.h"
 #include "napi_common_util.h"
+#include "napi_common_want.h"
 
 using namespace OHOS::AbilityRuntime;
 
