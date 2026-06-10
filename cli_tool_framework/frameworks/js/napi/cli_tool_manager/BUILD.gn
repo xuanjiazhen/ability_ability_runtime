@@ -79,11 +79,15 @@ ohos_shared_library("climanager_napi") {
   include_dirs = [
     "include",
     "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime",
+    "${ability_runtime_path}/interfaces/kits/native/ability/native",
+    "${ability_runtime_innerkits_path}/ability_manager/include",
     "${cli_tool_framework_path}/interfaces/cli_tool/include",
   ]
 
   sources = [
     "src/cli_tool_manager_module.cpp",
+    "src/invoke_function_callback_client.cpp",
+    "src/invoke_function_executor.cpp",
     "src/js_cli_manager.cpp",
     "src/js_cli_manager_utils.cpp",
     "src/js_cli_session_event_callback.cpp",
@@ -93,6 +97,7 @@ ohos_shared_library("climanager_napi") {
     "${ability_runtime_innerkits_path}/error_utils:ability_runtime_error_util",
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_path}/interfaces/kits/native/intent_client:intent_client",
     "${cli_tool_framework_path}/interfaces/cli_tool:cli_tool_client",
     ":cli_manager_error_utils_src",
     ":js_cli_event_handler_manager_src",
@@ -102,6 +107,7 @@ ohos_shared_library("climanager_napi") {
     "ability_base:base",
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_single",
     "napi:ace_napi",

@@ -23,6 +23,7 @@
 #include "cli_tool_mgr_client.h"
 #include "exec_result.h"
 #include "hilog_tag_wrapper.h"
+#include "invoke_function_executor.h"
 #include "js_cli_event_handler_manager.h"
 #include "js_cli_manager_utils.h"
 #include "js_cli_session_event_callback.h"
@@ -62,6 +63,44 @@ int32_t DispatchCliTool(const ExecToolParam &param, napi_env env,
                 });
         };
     return CliToolMGRClient::GetInstance().ExecTool(param, replyCallback);
+}
+
+struct InvokeFunctionTsfnContext {
+    napi_deferred deferred = nullptr;
+    napi_threadsafe_function tsfn = nullptr;
+};
+
+void InvokeFunctionFinalize(napi_env env, void *finalizeData, void *finalizeHint)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "InvokeFunctionTsfn finalize");
+    if (finalizeData == nullptr) {
+        return;
+    }
+    auto ctx = static_cast<std::shared_ptr<InvokeFunctionTsfnContext> *>(finalizeData);
+    delete ctx;
+}
+
+void InvokeFunctionCallJs(napi_env env, napi_value jsCb, void *context, void *data)
+{
+    if (env == nullptr || context == nullptr || data == nullptr) {
+        return;
+    }
+    auto *ctx = static_cast<InvokeFunctionTsfnContext *>(context);
+    // The executor delivers a pure-C++ InvokeFunctionResult; copy it onto the heap
+    // here as the tsfn payload and own its lifetime in this callback.
+    auto *result = static_cast<InvokeFunctionResult *>(data);
+    HandleScope handleScope(env);
+
+    if (result->success) {
+        napi_value jsResult = CreateJsInvokeResult(env, result->resultCode,
+            result->result, result->message);
+        napi_resolve_deferred(env, ctx->deferred, jsResult);
+    } else {
+        napi_value jsError = CreateCliJsErrorByNativeErr(env, result->errorCode);
+        napi_reject_deferred(env, ctx->deferred, jsError);
+    }
+    napi_release_threadsafe_function(ctx->tsfn, napi_tsfn_release);
+    delete result;
 }
 } // namespace
 
@@ -109,6 +148,16 @@ napi_value JSCliManager::QueryToolSummaries(napi_env env, napi_callback_info inf
 napi_value JSCliManager::QueryTools(napi_env env, napi_callback_info info)
 {
     GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnQueryTools);
+}
+
+napi_value JSCliManager::QueryAllFunctions(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnQueryAllFunctions);
+}
+
+napi_value JSCliManager::InvokeFunction(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnInvokeFunction);
 }
 
 napi_value JSCliManager::OnExecTool(napi_env env, size_t argc, napi_value *argv)
@@ -443,6 +492,113 @@ napi_value JSCliManager::OnQueryTools(napi_env env, size_t argc, napi_value *arg
     return handleEscape.Escape(asyncResult);
 }
 
+napi_value JSCliManager::OnQueryAllFunctions(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManager::OnQueryAllFunctions called");
+    HandleEscape handleEscape(env);
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    auto functions = std::make_shared<std::vector<FunctionInfo>>();
+
+    NapiAsyncTask::ExecuteCallback execute = [innerErrCode, functions]() {
+        *innerErrCode = CliToolMGRClient::GetInstance().GetAllFunctions(*functions);
+    };
+
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode, functions](
+        napi_env env, NapiAsyncTask &task, int32_t status) {
+        HandleScope handleScope(env);
+        if (*innerErrCode != ERR_OK) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "QueryAllFunctions error: %{public}d", *innerErrCode);
+            task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
+            return;
+        }
+
+        napi_value jsArray = nullptr;
+        napi_create_array(env, &jsArray);
+        for (size_t i = 0; i < functions->size(); i++) {
+            napi_value jsFunction = CreateJsFunctionInfo(env, (*functions)[i]);
+            if (jsFunction != nullptr) {
+                napi_set_element(env, jsArray, i, jsFunction);
+            }
+        }
+        task.ResolveWithNoError(env, jsArray);
+    };
+
+    napi_value asyncResult = nullptr;
+    NapiAsyncTask::Schedule("JsCliManager::OnQueryAllFunctions", env,
+        CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &asyncResult));
+    return handleEscape.Escape(asyncResult);
+}
+
+napi_value JSCliManager::OnInvokeFunction(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "JSCliManager::OnInvokeFunction called");
+    HandleEscape handleEscape(env);
+    if (argc < INDEX_THREE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    // Parse bundleName
+    std::string bundleName;
+    if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ZERO], bundleName) || bundleName.empty()) {
+        ThrowInvalidParamError(env, "bundleName is required");
+        return CreateJsUndefined(env);
+    }
+
+    // Parse function name
+    std::string functionName;
+    if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ONE], functionName) || functionName.empty()) {
+        ThrowInvalidParamError(env, "name is required");
+        return CreateJsUndefined(env);
+    }
+
+    // Parse args → WantParams
+    AAFwk::WantParams wantParams;
+    if (!AppExecFwk::UnwrapWantParams(env, argv[INDEX_TWO], wantParams)) {
+        ThrowInvalidParamError(env, "args is required");
+        return CreateJsUndefined(env);
+    }
+
+    // Create promise
+    napi_value promise = nullptr;
+    napi_deferred deferred = nullptr;
+    napi_create_promise(env, &deferred, &promise);
+
+    // Create threadsafe function context
+    auto tsfnContext = std::make_shared<InvokeFunctionTsfnContext>();
+    tsfnContext->deferred = deferred;
+
+    // Create threadsafe function
+    napi_value workName = nullptr;
+    napi_create_string_utf8(env, "InvokeFunctionTsfn", NAPI_AUTO_LENGTH, &workName);
+    // finalizeData is heap-allocated so napi can own it and InvokeFunctionFinalize can delete it.
+    // On creation failure napi never takes ownership, so we free it here to avoid a leak.
+    auto *finalizeData = new std::shared_ptr<InvokeFunctionTsfnContext>(tsfnContext);
+    napi_status tsfnStatus = napi_create_threadsafe_function(env, nullptr, nullptr, workName, 0, 1,
+        finalizeData, InvokeFunctionFinalize,
+        tsfnContext.get(), InvokeFunctionCallJs, &tsfnContext->tsfn);
+    if (tsfnStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to create threadsafe function");
+        delete finalizeData;
+        napi_value jsError = CreateCliJsErrorByNativeErr(env, ERR_FUNCTION_EXECUTE_FAILED);
+        napi_reject_deferred(env, deferred, jsError);
+        return handleEscape.Escape(promise);
+    }
+
+    // Bridge: forward the pure-C++ outcome from the executor (worker/binder thread)
+    // into the threadsafe-function payload. InvokeFunctionExecutor owns all business
+    // logic and is fully decoupled from napi.
+    InvokeResultCallback bridge = [tsfnContext](const InvokeFunctionResult &outcome) {
+        auto *data = new InvokeFunctionResult(outcome);
+        napi_call_threadsafe_function(tsfnContext->tsfn, data, napi_tsfn_nonblocking);
+    };
+
+    InvokeFunctionExecutor::Create()->Execute(bundleName, functionName, wantParams, bridge);
+
+    return handleEscape.Escape(promise);
+}
+
 napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "Init JSCliManager");
@@ -464,6 +620,9 @@ napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "getToolInfoByName", moduleName, JSCliManager::GetToolInfoByName);
     BindNativeFunction(env, exportObj, "queryToolSummaries", moduleName, JSCliManager::QueryToolSummaries);
     BindNativeFunction(env, exportObj, "queryTools", moduleName, JSCliManager::QueryTools);
+    BindNativeFunction(env, exportObj, "queryAllFunctions", moduleName, JSCliManager::QueryAllFunctions);
+    BindNativeFunction(env, exportObj, "invokeFunction", moduleName, JSCliManager::InvokeFunction);
+
 
     TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManagerInit end");
     return CreateJsUndefined(env);
