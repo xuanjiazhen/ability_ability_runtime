@@ -23,6 +23,10 @@
 namespace OHOS {
 namespace AppExecFwk {
 using namespace OHOS::RdbDataAbilityAdapter;
+namespace {
+constexpr size_t MAX_BATCH_INSERT_SIZE = 1000;
+}
+
 DataAbilityHelper::DataAbilityHelper(const std::shared_ptr<DataAbilityHelperImpl> &helperImpl)
 {
     dataAbilityHelperImpl_ = helperImpl;
@@ -558,6 +562,10 @@ int DataAbilityHelper::BatchInsert(Uri &uri, const std::vector<NativeRdb::Values
     HITRACE_METER_NAME(HITRACE_TAG_DISTRIBUTEDDATA, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "called");
     int ret = -1;
+    if (values.size() > MAX_BATCH_INSERT_SIZE) {
+        TAG_LOGE(AAFwkTag::DATA_ABILITY, "Values size exceeds limit");
+        return ret;
+    }
     auto dataAbilityHelperImpl = GetDataAbilityHelperImpl();
     if (dataAbilityHelperImpl) {
         TAG_LOGI(AAFwkTag::DATA_ABILITY, "Ability BatchInsert");
@@ -566,13 +574,13 @@ int DataAbilityHelper::BatchInsert(Uri &uri, const std::vector<NativeRdb::Values
     auto dataShareHelper = GetDataShareHelper();
     if (dataShareHelper) {
         TAG_LOGI(AAFwkTag::DATA_ABILITY, "Share BatchInsert");
-        std::vector<DataShare::DataShareValuesBucket> dataShareValues;
-        for (auto value : values) {
-            DataShare::DataShareValuesBucket dataShareValue = RdbDataAbilityUtils::ToDataShareValuesBucket(value);
-            dataShareValues.push_back(dataShareValue);
-        }
         Uri dataShareUri("");
         if (TransferScheme(uri, dataShareUri)) {
+            std::vector<DataShare::DataShareValuesBucket> dataShareValues;
+            dataShareValues.reserve(values.size());
+            for (const auto &value : values) {
+                dataShareValues.emplace_back(RdbDataAbilityUtils::ToDataShareValuesBucket(value));
+            }
             ret = dataShareHelper->BatchInsert(dataShareUri, dataShareValues);
         }
     }
