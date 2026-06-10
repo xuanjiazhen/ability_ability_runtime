@@ -86,6 +86,8 @@ ohos_shared_library("climanager_napi") {
 
   sources = [
     "src/cli_tool_manager_module.cpp",
+    "src/invoke_function_callback_client.cpp",
+    "src/invoke_function_executor.cpp",
     "src/js_cli_manager.cpp",
     "src/js_cli_manager_utils.cpp",
     "src/js_cli_session_event_callback.cpp",

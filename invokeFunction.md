@@ -195,7 +195,7 @@ JS 线程: OnInvokeFunction
 
 ### 5.3 竞态保护
 
-使用 `std::atomic<bool> completed` 标志 + `compare_exchange_strong` 保证只有第一个完成者（正常回调或超时）能 resolve/reject promise 并释放 tsfn。
+使用执行器成员 `std::atomic<bool> completed_` 标志 + `compare_exchange_strong` 保证只有第一个完成者（正常回调或超时）能上报结果（并经 tsfn resolve/reject promise、释放 tsfn）。该标志属于业务层，封装在 `InvokeFunctionExecutor` 内部。
 
 ### 5.4 超时机制
 
@@ -221,24 +221,29 @@ JS 线程: OnInvokeFunction
 
 `executeMode_`、`moduleName_`、`abilityName_` 等字段由 `AbilityManagerService::ExecuteIntentByFunctionCall` 在服务端根据意图配置自动解析并填充，客户端无需感知。
 
-### 6.2 回调客户端
+### 6.2 业务执行器与回调客户端
 
-`JsInvokeFunctionCallbackClient` 继承 `InsightIntentExecuteCallbackInterface`：
-- 仅持有 `InvokeFunctionTsfnContext` shared_ptr，通过它访问 tsfn、completed 等资源
-- `ProcessInsightIntentExecute` 被调用时，通过 tsfn 将结果（含 `executeResult`）传回 JS 线程
-- 使用 `tsfnContext->completed` 原子标志避免与超时竞态
+invokeFunction 的业务逻辑（查询、类型校验、意图执行、超时、竞态保护）封装在纯 C++ 执行器 `InvokeFunctionExecutor` 中，**不依赖任何 napi 类型**，可独立编译/测试。执行结果通过注入的 `InvokeResultCallback`（`std::function<void(const InvokeFunctionResult &)>`）上抛，NAPI 层在该回调内调用 `napi_call_threadsafe_function` 将结果搬运回 JS 线程。
+
+`InvokeFunctionExecutor`（`invoke_function_executor.h/.cpp`）：
+- `Create()` 工厂创建（`std::make_shared` 单次分配；默认构造为 public 以支持 make_shared）；`Execute(bundleName, name, wantParams, callback)` 发起异步流程
+- 内部 `ffrt::submit` 跑主任务（`DoExecute`）+ 延迟 30s 超时任务（`SetupTimeout`），二者共享执行器成员 `std::atomic<bool> completed_` 做竞态保护
+- 生命周期由内部 ffrt/binder 闭包经 `shared_from_this` 保活，结果恰好上报一次后自动析构，NAPI 层无需长期持有
+
+`InvokeFunctionCallbackClient`（独立类，`invoke_function_callback_client.h/.cpp`，便于脱离 IPC/napi 单测）继承 `InsightIntentExecuteCallbackInterface`：
+- 直接持有共享的 `completed` 标志（`shared_ptr<atomic<bool>>`）与结果 `callback`，**不依赖执行器或 napi**，可注入 `callback` + 原子标志独立测试
+- `ProcessInsightIntentExecute` 被调用时，CAS 命中 `completed` 后构造纯 C++ `InvokeFunctionResult`（`success`/`errorCode` 由框架 `resultCode` 决定，`resultCode` 字段承载应用级 `executeResult.code`，`result` 共享 `WantParams` 所有权）并回调
 - 回调生命周期由 `IntentClient` + `InsightIntentHostClient::OnExecuteDone` 自动管理：
   - IPC 失败时：`IntentClient` 内部立即 `RemoveInsightIntentExecute(key)`
   - IPC 成功后：服务端 `OnExecuteDone` 触发时自动从 `InsightIntentHostClient` 移除
 
-`InvokeFunctionTsfnContext` 字段：
+NAPI 层（`js_cli_manager.cpp`）的 `InvokeFunctionTsfnContext` 仅保留 napi 侧资源：
 | 字段 | 类型 | 用途 |
 |------|------|------|
 | `deferred` | `napi_deferred` | Promise resolve/reject 句柄 |
 | `tsfn` | `napi_threadsafe_function` | 跨线程回调到 JS 线程 |
-| `completed` | `shared_ptr<atomic<bool>>` | 竞态保护标志，保证只有一个完成者 |
 
-> 注：相比上一版方案，本设计移除了 `intentKey` 字段。`intentKey` 由 `IntentClient` 内部持有，不再暴露给调用方，`InvokeFunctionFinalize` 因此也不再需要回滚 `InsightIntentHostClient` 注册。
+> 注：相比耦合版本，`completed` 竞态标志已从 `InvokeFunctionTsfnContext` 下沉为执行器成员 `completed_`；`InvokeFunctionResultData` 删除，tsfn 直接搬运执行器的 `InvokeFunctionResult`。
 
 ### 6.3 结果转换
 
@@ -334,8 +339,12 @@ success=false (框架 resultCode != 0):
 | `cli_tool_framework/frameworks/js/napi/cli_tool_manager/include/js_cli_manager.h` | 新增 InvokeFunction/OnInvokeFunction 声明 |
 | `cli_tool_framework/frameworks/js/napi/cli_tool_manager/include/js_cli_manager_utils.h` | 新增 CreateJsInvokeResult 声明 |
 | `cli_tool_framework/frameworks/js/napi/cli_tool_manager/src/js_cli_manager_utils.cpp` | 实现 CreateJsInvokeResult |
-| `cli_tool_framework/frameworks/js/napi/cli_tool_manager/src/js_cli_manager.cpp` | 核心实现：ffrt + tsfn + 回调客户端 + 超时；通过 `IntentClient::ExecuteIntentByFunctionCall` 发起意图执行 |
-| `cli_tool_framework/frameworks/js/napi/cli_tool_manager/BUILD.gn` | 依赖 `intent_client` SO（替换原 `ability_manager` 依赖），保留 ffrt 等其他依赖 |
+| `cli_tool_framework/frameworks/js/napi/cli_tool_manager/include/invoke_function_executor.h` | **新增**：纯 C++ 执行器 + `InvokeFunctionResult` + `InvokeResultCallback`（不含 napi 头） |
+| `cli_tool_framework/frameworks/js/napi/cli_tool_manager/src/invoke_function_executor.cpp` | **新增**：业务流程（查询/校验/执行/超时/竞态） |
+| `cli_tool_framework/frameworks/js/napi/cli_tool_manager/include/invoke_function_callback_client.h` | **新增**：独立回调客户端 `InvokeFunctionCallbackClient`（可单测，不含 napi） |
+| `cli_tool_framework/frameworks/js/napi/cli_tool_manager/src/invoke_function_callback_client.cpp` | **新增**：`ProcessInsightIntentExecute` 实现，竞态保护 + 结果组装 |
+| `cli_tool_framework/frameworks/js/napi/cli_tool_manager/src/js_cli_manager.cpp` | NAPI 适配层：参数解析、promise/tsfn、bridge 回调注入执行器、`InvokeFunctionCallJs` resolve/reject |
+| `cli_tool_framework/frameworks/js/napi/cli_tool_manager/BUILD.gn` | `sources` 增加 `invoke_function_executor.cpp`；依赖 `intent_client` SO，保留 ffrt 等其他依赖 |
 | `interfaces/kits/native/intent_client` | 已存在的轻量级 SO，提供 `IntentClient::ExecuteIntentByFunctionCall` 及 `ExecuteIntentParam`；本方案直接复用 |
 
 ## 9. 编译验证

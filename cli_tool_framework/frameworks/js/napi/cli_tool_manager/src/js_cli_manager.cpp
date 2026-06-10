@@ -15,7 +15,6 @@
 
 #include "js_cli_manager.h"
 
-#include <atomic>
 #include <string>
 
 #include "cli_error_code.h"
@@ -23,11 +22,8 @@
 #include "cli_session_info.h"
 #include "cli_tool_mgr_client.h"
 #include "exec_result.h"
-#include "ffrt.h"
-#include "function_info.h"
 #include "hilog_tag_wrapper.h"
-#include "insight_intent_execute_result.h"
-#include "intent_client.h"
+#include "invoke_function_executor.h"
 #include "js_cli_event_handler_manager.h"
 #include "js_cli_manager_utils.h"
 #include "js_cli_session_event_callback.h"
@@ -45,7 +41,6 @@ constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t INDEX_TWO = 2;
 constexpr int32_t INDEX_THREE = 3;
 constexpr int32_t INDEX_FOUR = 4;
-constexpr int32_t INVOKE_FUNCTION_TIMEOUT_US = 30000000;
 
 int32_t DispatchCliTool(const ExecToolParam &param, napi_env env,
     std::shared_ptr<NapiAsyncTask> asyncTask)
@@ -70,60 +65,9 @@ int32_t DispatchCliTool(const ExecToolParam &param, napi_env env,
     return CliToolMGRClient::GetInstance().ExecTool(param, replyCallback);
 }
 
-struct InvokeFunctionResultData {
-    bool success = false;                                   // Promise resolve/reject decision
-    int32_t errorCode = ERR_OK;                             // native err code for reject path
-    int32_t resultCode = 0;                                 // executeResult.code, drives InvokeResult.success/errorCode
-    std::shared_ptr<AAFwk::WantParams> result;              // data carried into InvokeResult.data
-    std::string message;                                    // message carried into InvokeResult.message
-};
-
 struct InvokeFunctionTsfnContext {
     napi_deferred deferred = nullptr;
     napi_threadsafe_function tsfn = nullptr;
-    std::shared_ptr<std::atomic<bool>> completed;
-};
-
-class JsInvokeFunctionCallbackClient
-    : public InsightIntentExecuteCallbackInterface,
-      public std::enable_shared_from_this<JsInvokeFunctionCallbackClient> {
-public:
-    explicit JsInvokeFunctionCallbackClient(std::shared_ptr<InvokeFunctionTsfnContext> tsfnContext)
-        : tsfnContext_(tsfnContext) {}
-
-    virtual ~JsInvokeFunctionCallbackClient() = default;
-
-    void ProcessInsightIntentExecute(int32_t resultCode,
-        AppExecFwk::InsightIntentExecuteResult executeResult) override
-    {
-        TAG_LOGI(AAFwkTag::CLI_TOOL, "invokeFunction result callback, resultCode=%{public}d", resultCode);
-        if (tsfnContext_ == nullptr || tsfnContext_->completed == nullptr) {
-            TAG_LOGE(AAFwkTag::CLI_TOOL, "tsfnContext or completed is null");
-            return;
-        }
-        bool expected = false;
-        if (!tsfnContext_->completed->compare_exchange_strong(expected, true)) {
-            TAG_LOGW(AAFwkTag::CLI_TOOL, "invokeFunction already completed");
-            return;
-        }
-        auto *data = new InvokeFunctionResultData();
-        // Two distinct authorities split the framework status from the app status:
-        //  - Promise resolve/reject is decided SOLELY by resultCode (framework-level
-        //    status from InsightIntentExecuteManager). resultCode == 0 means the
-        //    intent was delivered and the target replied; anything else rejects.
-        //  - InvokeResult.success/errorCode (built in CreateJsInvokeResult) is decided
-        //    by the application-level executeResult.code, surfacing the target's own
-        //    business result to the caller even when the framework delivery succeeded.
-        data->success = (resultCode == 0);
-        data->errorCode = (resultCode == 0) ? 0 : ERR_FUNCTION_EXECUTE_FAILED;
-        data->resultCode = executeResult.code;  // app-level code drives InvokeResult
-        data->result = executeResult.result;  // share WantParams ownership
-        // message is reserved for future app-supplied description; empty for now.
-        napi_call_threadsafe_function(tsfnContext_->tsfn, data, napi_tsfn_nonblocking);
-    }
-
-private:
-    std::shared_ptr<InvokeFunctionTsfnContext> tsfnContext_;
 };
 
 void InvokeFunctionFinalize(napi_env env, void *finalizeData, void *finalizeHint)
@@ -133,9 +77,6 @@ void InvokeFunctionFinalize(napi_env env, void *finalizeData, void *finalizeHint
         return;
     }
     auto ctx = static_cast<std::shared_ptr<InvokeFunctionTsfnContext> *>(finalizeData);
-    // Note: callback registration in InsightIntentHostClient is managed by
-    // IntentClient::ExecuteIntentByFunctionCall internally; it is auto-cleaned
-    // when OnExecuteDone fires. intentKey is no longer exposed here.
     delete ctx;
 }
 
@@ -145,34 +86,21 @@ void InvokeFunctionCallJs(napi_env env, napi_value jsCb, void *context, void *da
         return;
     }
     auto *ctx = static_cast<InvokeFunctionTsfnContext *>(context);
-    auto *resultData = static_cast<InvokeFunctionResultData *>(data);
+    // The executor delivers a pure-C++ InvokeFunctionResult; copy it onto the heap
+    // here as the tsfn payload and own its lifetime in this callback.
+    auto *result = static_cast<InvokeFunctionResult *>(data);
     HandleScope handleScope(env);
 
-    if (resultData->success) {
-        napi_value jsResult = CreateJsInvokeResult(env, resultData->resultCode,
-            resultData->result, resultData->message);
+    if (result->success) {
+        napi_value jsResult = CreateJsInvokeResult(env, result->resultCode,
+            result->result, result->message);
         napi_resolve_deferred(env, ctx->deferred, jsResult);
     } else {
-        napi_value jsError = CreateCliJsErrorByNativeErr(env, resultData->errorCode);
+        napi_value jsError = CreateCliJsErrorByNativeErr(env, result->errorCode);
         napi_reject_deferred(env, ctx->deferred, jsError);
     }
     napi_release_threadsafe_function(ctx->tsfn, napi_tsfn_release);
-    delete resultData;
-}
-
-void ReportInvokeError(InvokeFunctionTsfnContext &tsfnContext, int32_t errorCode)
-{
-    if (tsfnContext.completed == nullptr) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "completed is null");
-        return;
-    }
-    bool expected = false;
-    if (tsfnContext.completed->compare_exchange_strong(expected, true)) {
-        auto *data = new InvokeFunctionResultData();
-        data->success = false;
-        data->errorCode = errorCode;
-        napi_call_threadsafe_function(tsfnContext.tsfn, data, napi_tsfn_nonblocking);
-    }
+    delete result;
 }
 } // namespace
 
@@ -559,70 +487,6 @@ napi_value JSCliManager::OnQueryTools(napi_env env, size_t argc, napi_value *arg
     return handleEscape.Escape(asyncResult);
 }
 
-void ExecuteInvokeFunction(const std::string &bundleName, const std::string &functionName,
-    const AAFwk::WantParams &wantParams,
-    const std::shared_ptr<InvokeFunctionTsfnContext> &tsfnContext)
-{
-    if (tsfnContext == nullptr) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "tsfnContext is null");
-        return;
-    }
-
-    // Step 1: Query function info
-    FunctionInfo functionInfo;
-    ErrCode queryErr = CliToolMGRClient::GetInstance().GetFunctionInfo(bundleName, functionName, functionInfo);
-    if (queryErr != ERR_OK) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionInfo failed: %{public}d", queryErr);
-        // Preserve specific error semantics; collapse others (KVStore/IPC/JSON etc.) into QUERY_FAILED.
-        int32_t reportErr = ERR_FUNCTION_QUERY_FAILED;
-        if (queryErr == ERR_PERMISSION_DENIED || queryErr == ERR_FUNCTION_NOT_EXIST) {
-            reportErr = queryErr;
-        }
-        ReportInvokeError(*tsfnContext, reportErr);
-        return;
-    }
-
-    // Step 2: Validate function type
-    if (functionInfo.functionType != FunctionType::INTENT_FUNCTION) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Function type not supported: %{public}d",
-            static_cast<int32_t>(functionInfo.functionType));
-        ReportInvokeError(*tsfnContext, ERR_FUNCTION_TYPE_NOT_SUPPORTED);
-        return;
-    }
-
-    // Step 3: Execute intent via IntentClient (handles callback registration + IPC)
-    auto client = std::make_shared<JsInvokeFunctionCallbackClient>(tsfnContext);
-
-    AAFwk::ExecuteIntentParam param;
-    param.bundleName = bundleName;
-    param.intentName = functionName;
-    param.wantParam = wantParams;
-    param.callback = client;
-
-    auto err = AAFwk::IntentClient::GetInstance().ExecuteIntentByFunctionCall(param);
-    if (err != ERR_OK) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "ExecuteIntentByFunctionCall failed: %{public}d", err);
-        // ExecuteIntentByFunctionCall returns the AAFwk/common error space. The ability
-        // manager's authorization gate reports a permission failure as the common
-        // OHOS::ERR_PERMISSION_DENIED (caller lacks EXECUTE_INSIGHT_INTENT); preserve that
-        // precise semantics (-> business 201) instead of collapsing it into the generic
-        // EXECUTE_FAILED. Qualify with OHOS:: to disambiguate from the cli
-        // ERR_PERMISSION_DENIED (35700007) in this namespace.
-        int32_t reportErr = (err == OHOS::ERR_PERMISSION_DENIED)
-            ? ERR_PERMISSION_DENIED
-            : ERR_FUNCTION_EXECUTE_FAILED;
-        ReportInvokeError(*tsfnContext, reportErr);
-    }
-    // Success: result will come via ProcessInsightIntentExecute callback
-}
-
-void SetupInvokeTimeout(const std::shared_ptr<InvokeFunctionTsfnContext> &tsfnContext)
-{
-    ffrt::submit([tsfnContext]() {
-        ReportInvokeError(*tsfnContext, ERR_FUNCTION_EXECUTE_TIMEOUT);
-    }, ffrt::task_attr().delay(INVOKE_FUNCTION_TIMEOUT_US));
-}
-
 napi_value JSCliManager::OnInvokeFunction(napi_env env, size_t argc, napi_value *argv)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "JSCliManager::OnInvokeFunction called");
@@ -661,7 +525,6 @@ napi_value JSCliManager::OnInvokeFunction(napi_env env, size_t argc, napi_value 
     // Create threadsafe function context
     auto tsfnContext = std::make_shared<InvokeFunctionTsfnContext>();
     tsfnContext->deferred = deferred;
-    tsfnContext->completed = std::make_shared<std::atomic<bool>>(false);
 
     // Create threadsafe function
     napi_value workName = nullptr;
@@ -676,11 +539,15 @@ napi_value JSCliManager::OnInvokeFunction(napi_env env, size_t argc, napi_value 
         return handleEscape.Escape(promise);
     }
 
-    // Submit ffrt tasks
-    ffrt::submit([bundleName, functionName, wantParams, tsfnContext]() {
-        ExecuteInvokeFunction(bundleName, functionName, wantParams, tsfnContext);
-    });
-    SetupInvokeTimeout(tsfnContext);
+    // Bridge: forward the pure-C++ outcome from the executor (worker/binder thread)
+    // into the threadsafe-function payload. InvokeFunctionExecutor owns all business
+    // logic and is fully decoupled from napi.
+    InvokeResultCallback bridge = [tsfnContext](const InvokeFunctionResult &outcome) {
+        auto *data = new InvokeFunctionResult(outcome);
+        napi_call_threadsafe_function(tsfnContext->tsfn, data, napi_tsfn_nonblocking);
+    };
+
+    InvokeFunctionExecutor::Create()->Execute(bundleName, functionName, wantParams, bridge);
 
     return handleEscape.Escape(promise);
 }
