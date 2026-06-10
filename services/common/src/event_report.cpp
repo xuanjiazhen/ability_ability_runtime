@@ -67,6 +67,7 @@ constexpr const char *EVENT_KEY_ERR_REASON = "ERR_REASON";
 constexpr const char *EVENT_KEY_LIFE_CYCLE = "LIFE_CYCLE";
 constexpr const char *EVENT_KEY_PERSISTENT_ID = "PERSISTENT_ID";
 constexpr const char *EVENT_KEY_INTENT_NAME = "INTENT_NAME";
+constexpr const char *EVENT_KEY_INTENT_NAME_LIST = "INTENT_NAME_LIST";
 constexpr const char *EVENT_KEY_ERROR_MESSAGE = "ERROR_MESSAGE";
 constexpr const char *EVENT_KEY_CALLER_PID = "CALLER_PID";
 constexpr const char *EVENT_KEY_EXIT_MESSAGE = "EXIT_MESSAGE";
@@ -878,6 +879,52 @@ void EventReport::SendSnapshotEvent(const EventName &eventName, const SnapshotIn
     hisyseventReport->Report("HM_KERNEL", name.c_str(), HISYSEVENT_STATISTIC);
 }
 
+void EventReport::SendInsightIntentInfoEvent(
+    const EventName &eventName, HiSysEventEventType type, const EventInfo &eventInfo)
+{
+    std::string name = ConvertEventName(eventName);
+    if (name == INVALID_EVENT_NAME) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "invalid eventName");
+        return;
+    }
+    switch (eventName) {
+        case EventName::INSIGHT_INTENT_INSTALL_INFO:
+            LogInsightIntentInstallInfoEvent(name, type, eventInfo);
+            break;
+        case EventName::INSIGHT_INTENT_UNINSTALL_INFO:
+            LogInsightIntentUninstallInfoEvent(name, type, eventInfo);
+            break;
+        default:
+            break;
+    }
+}
+
+void EventReport::LogInsightIntentInstallInfoEvent(
+    const std::string &name, HiSysEventEventType type, const EventInfo &eventInfo)
+{
+    auto hisyseventReport = std::make_shared<HisyseventReport>(4);
+    hisyseventReport->InsertParam(EVENT_KEY_USERID, eventInfo.userId);
+    hisyseventReport->InsertParam(EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName);
+    hisyseventReport->InsertParam(EVENT_KEY_MODULE_NAME, eventInfo.moduleName);
+    std::vector<char*> list = {};
+    list.reserve(eventInfo.intentNameList.size());
+    for (const auto &s : eventInfo.intentNameList) {
+        list.emplace_back(const_cast<char*>(s.c_str()));
+    }
+    hisyseventReport->InsertParam(EVENT_KEY_INTENT_NAME_LIST, list);
+    hisyseventReport->Report("AAFWK", name.c_str(), type);
+}
+
+void EventReport::LogInsightIntentUninstallInfoEvent(
+    const std::string &name, HiSysEventEventType type, const EventInfo &eventInfo)
+{
+    auto hisyseventReport = std::make_shared<HisyseventReport>(3);
+    hisyseventReport->InsertParam(EVENT_KEY_USERID, eventInfo.userId);
+    hisyseventReport->InsertParam(EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName);
+    hisyseventReport->InsertParam(EVENT_KEY_MODULE_NAME, eventInfo.moduleName);
+    hisyseventReport->Report("AAFWK", name.c_str(), type);
+}
+
 std::string EventReport::ConvertEventName(const EventName &eventName)
 {
     const char* eventNames[] = {
@@ -914,6 +961,9 @@ std::string EventReport::ConvertEventName(const EventName &eventName)
 
         // report data
         "USER_DATA_SIZE",
+
+        // insight intent info
+        "INSIGHT_INTENT_INSTALL_INFO", "INSIGHT_INTENT_UNINSTALL_INFO",
 
         // report snapshot info
         "SNAPSHOT_REPORT"

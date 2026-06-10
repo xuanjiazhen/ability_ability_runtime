@@ -43,6 +43,7 @@ struct EventInfo {
     std::string errReason;
     std::string lifeCycle;
     std::string intentName;
+    std::vector<std::string> intentNameList;
     std::string errMsg;
     std::string exitMsg = "";
     std::string componentName;
@@ -166,6 +167,10 @@ enum class EventName {
     // report data
     USER_DATA_SIZE,
 
+    // insight intent info
+    INSIGHT_INTENT_INSTALL_INFO,
+    INSIGHT_INTENT_UNINSTALL_INFO,
+
     // report snapshot info
     SNAPSHOT_REPORT
 };
@@ -205,6 +210,8 @@ public:
     static void SendAppStartupErrorEvent(
         const EventName &eventName, HiSysEventEventType type, const EventInfo &eventInfo);
     static void SendSnapshotEvent(const EventName &eventName, const SnapshotInfo &snapshotInfo);
+    static void SendInsightIntentInfoEvent(
+        const EventName &eventName, HiSysEventEventType type, const EventInfo &eventInfo);
 
 private:
     static std::string ConvertEventName(const EventName &eventName);
@@ -227,6 +234,10 @@ private:
         const std::string &name, HiSysEventEventType type, const EventInfo &eventInfo);
     static void LogSystemErrorEvent(const std::string &name, HiSysEventEventType type, const EventInfo &eventInfo);
     static void LogKillProcessWithReason(const std::string &name, HiSysEventEventType type, const EventInfo &eventInfo);
+    static void LogInsightIntentInstallInfoEvent(
+        const std::string &name, HiSysEventEventType type, const EventInfo &eventInfo);
+    static void LogInsightIntentUninstallInfoEvent(
+        const std::string &name, HiSysEventEventType type, const EventInfo &eventInfo);
 };
 }  // namespace AAFWK
 }  // namespace OHOS
