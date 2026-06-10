@@ -58,7 +58,6 @@
 #include "background_user_extension_monitor.h"
 #include "insight_intent_execute_manager.h"
 #include "insight_intent/ui_operation_chain_executor.h"
-#include "event_handler.h"
 #include "insight_intent_db_cache.h"
 #include "skill/skill_execute_manager.h"
 #include "insight_intent_utils.h"
