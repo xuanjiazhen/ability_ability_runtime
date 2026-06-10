@@ -8020,7 +8020,7 @@ void AbilityManagerService::DumpSysGuiIntentInner(
     std::string failedPage;
 
     auto executor = std::make_shared<GuiIntentExecutor>();
-    executor->Execute(windowId, inputItems, nullptr,
+    executor->Execute(windowId, inputItems,
         [&](int32_t code, const std::string& page) {
             {
                 std::lock_guard<std::mutex> lock(waitMutex);

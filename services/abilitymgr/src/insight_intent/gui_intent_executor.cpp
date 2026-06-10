@@ -334,7 +334,6 @@ GuiIntentExecutor::~GuiIntentExecutor()
 
 void GuiIntentExecutor::Execute(int32_t windowId,
     const std::vector<GuiIntentInputItem>& inputItems,
-    std::shared_ptr<AppExecFwk::EventHandler> handler,
     GuiIntentCompleteCallback onComplete)
 {
     TAG_LOGI(AAFwkTag::INTENT, "GuiIntentExecutor::Execute windowId=%{public}d, items=%{public}zu",
@@ -371,7 +370,6 @@ void GuiIntentExecutor::Execute(int32_t windowId,
         }
         windowId_ = windowId;
         inputItems_ = inputItems;
-        eventHandler_ = handler;
         onComplete_ = std::move(onComplete);
         cancelled_ = false;
         executing_ = true;
@@ -404,11 +402,7 @@ void GuiIntentExecutor::Cancel()
         UnregisterContentCallback();
         auto cb = std::move(onComplete_);
         onComplete_ = nullptr;
-        if (eventHandler_) {
-            eventHandler_->PostTask([cb]() { cb(UI_OPERATION_ERR_CANCELLED, ""); }, "GuiIntentCancel");
-        } else {
-            cb(UI_OPERATION_ERR_CANCELLED, "");
-        }
+        cb(UI_OPERATION_ERR_CANCELLED, "");
     }
 }
 
@@ -427,12 +421,7 @@ void GuiIntentExecutor::StartNextStep()
         }
     }
 
-    if (eventHandler_) {
-        auto self = shared_from_this();
-        eventHandler_->PostTask([self]() { self->ExecuteCurrentStep(); }, "GuiIntentStep");
-    } else {
-        ExecuteCurrentStep();
-    }
+    ExecuteCurrentStep();
 }
 
 void GuiIntentExecutor::ExecuteCurrentStep()
@@ -665,7 +654,7 @@ void GuiIntentExecutor::ConnectWindow(std::function<void(bool success)> onResult
         if (onResult) { onResult(true); }
     };
 
-    int32_t ret = service->Connect(connectCb, eventHandler_);
+    int32_t ret = service->Connect(connectCb, nullptr);
     if (ret != Ace::NO_ERROR) {
         TAG_LOGE(AAFwkTag::INTENT, "gatherWindow: Connect failed, ret=%{public}d", ret);
         if (onResult) { onResult(false); }

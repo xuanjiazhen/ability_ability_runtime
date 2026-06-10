@@ -28,8 +28,6 @@
 #include "insight_intent/ui_operation_tree_parser.h"
 #include "param_config.h"
 
-#include "event_handler.h"
-
 namespace OHOS {
 namespace AAFwk {
 
@@ -136,15 +134,13 @@ public:
     ~GuiIntentExecutor();
 
     /**
-     * @brief Execute a GUI intent.
+     * @brief Execute a GUI intent synchronously.
      * @param windowId      Target window ID.
      * @param inputItems    Ordered execution plan.
-     * @param handler       EventHandler for thread scheduling.
      * @param onComplete    Completion callback.
      */
     void Execute(int32_t windowId,
         const std::vector<GuiIntentInputItem>& inputItems,
-        std::shared_ptr<AppExecFwk::EventHandler> handler,
         GuiIntentCompleteCallback onComplete);
 
     /**
@@ -198,7 +194,6 @@ private:
     int32_t windowId_ = -1;
     std::vector<GuiIntentInputItem> inputItems_;
     size_t currentStepIndex_ = 0;
-    std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
     GuiIntentCompleteCallback onComplete_;
 
     // Decorator data — resolves intentName to pages and components.
