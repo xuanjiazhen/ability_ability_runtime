@@ -88,6 +88,12 @@ size_t DisposedObserver::GetAbilityKeyCount()
     return abilityKeys_.size();
 }
 
+std::vector<std::string> DisposedObserver::GetAllAbilityKeys()
+{
+    std::lock_guard<ffrt::mutex> guard(abilityKeyLock_);
+    return abilityKeys_;
+}
+
 void DisposedObserver::OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData)
 {
     std::lock_guard<ffrt::mutex> guard(abilityKeyLock_);

@@ -39,9 +39,11 @@ constexpr const char* INTERCEPT_MODULE_NAME = "intercept_moduleName";
 constexpr const char* IS_FROM_PARENTCONTROL = "ohos.ability.isFromParentControl";
 }
 
-std::string DisposedRuleInterceptor::GenerateTimeoutTaskName(int32_t uid)
+std::string DisposedRuleInterceptor::GenerateTimeoutTaskName(int32_t uid, const std::string &moduleName,
+    const std::string &abilityName)
 {
-    return UNREGISTER_TIMEOUT_OBSERVER_TASK + std::to_string(uid);
+    return std::string(UNREGISTER_TIMEOUT_OBSERVER_TASK) + "_" + std::to_string(uid) +
+        "_" + moduleName + "_" + abilityName;
 }
 
 std::string DisposedRuleInterceptor::GenerateEventTaskName(int32_t uid)
@@ -207,12 +209,10 @@ ErrCode DisposedRuleInterceptor::StartNonBlockRule(const Want &want, AppExecFwk:
         std::lock_guard<ffrt::mutex> guard(observerLock_);
         auto iter = disposedObserverMap_.find(uid);
         if (iter != disposedObserverMap_.end()) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "observer exists, add key and refresh timeout: %{public}s/%{public}s",
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "observer exists, add key: %{public}s/%{public}s",
                 moduleName.c_str(), abilityName.c_str());
             CHECK_POINTER_AND_RETURN(iter->second, ERR_INVALID_VALUE);
             iter->second->AddAbilityKey(moduleName, abilityName);
-            std::string timeoutTaskName = GenerateTimeoutTaskName(uid);
-            taskHandler_->CancelTask(timeoutTaskName);
         } else {
             auto disposedObserver = sptr<DisposedObserver>::MakeSptr(disposedRule, shared_from_this(), uid);
             CHECK_POINTER_AND_RETURN(disposedObserver, ERR_INVALID_VALUE);
@@ -230,18 +230,37 @@ ErrCode DisposedRuleInterceptor::StartNonBlockRule(const Want &want, AppExecFwk:
         }
     }
 
-    std::string timeoutTaskName = GenerateTimeoutTaskName(uid);
-    auto unregisterTask = [appManager, uid, interceptor = shared_from_this()] () {
-        std::lock_guard<ffrt::mutex> guard{interceptor->observerLock_};
-        auto iter = interceptor->disposedObserverMap_.find(uid);
-        if (iter != interceptor->disposedObserverMap_.end()) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "timeout, unregister observer for uid:%{public}d", uid);
-            IN_PROCESS_CALL(appManager->UnregisterApplicationStateObserver(iter->second));
+    std::string timeoutTaskName = GenerateTimeoutTaskName(uid, moduleName, abilityName);
+    auto timeoutTask = GenerateAbilityTimeoutTask(appManager, uid, moduleName, abilityName);
+    taskHandler_->SubmitTask(timeoutTask, timeoutTaskName, UNREGISTER_OBSERVER_MICRO_SECONDS);
+    return ERR_OK;
+}
+
+std::function<void()> DisposedRuleInterceptor::GenerateAbilityTimeoutTask(
+    const sptr<OHOS::AppExecFwk::IAppMgr> &appManager, int32_t uid,
+    const std::string &moduleName, const std::string &abilityName)
+{
+    return [appManager, uid, moduleName, abilityName, interceptor = shared_from_this()]() {
+        sptr<DisposedObserver> observer;
+        {
+            std::lock_guard<ffrt::mutex> guard{interceptor->observerLock_};
+            auto iter = interceptor->disposedObserverMap_.find(uid);
+            if (iter == interceptor->disposedObserverMap_.end()) {
+                TAG_LOGD(AAFwkTag::ABILITYMGR, "observer already removed for uid:%{public}d", uid);
+                return;
+            }
+            observer = iter->second;
+            CHECK_POINTER(observer);
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "timeout for uid: %{public}d, ability: %{public}s/%{public}s, removing key",
+                uid, moduleName.c_str(), abilityName.c_str());
+            if (!observer->RemoveAbilityKey(moduleName, abilityName)) {
+                return;
+            }
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "all keys removed, unregister observer for uid:%{public}d", uid);
             interceptor->disposedObserverMap_.erase(iter);
         }
+        interceptor->DoUnregisterObserver(uid, observer);
     };
-    taskHandler_->SubmitTask(unregisterTask, timeoutTaskName, UNREGISTER_OBSERVER_MICRO_SECONDS);
-    return ERR_OK;
 }
 
 bool DisposedRuleInterceptor::ValidateNonBlockRule(const Want &want, const AppExecFwk::DisposedRule &disposedRule)
@@ -259,35 +278,74 @@ bool DisposedRuleInterceptor::ValidateNonBlockRule(const Want &want, const AppEx
     return true;
 }
 
+void DisposedRuleInterceptor::CancelTimeoutTasks(int32_t uid, const sptr<DisposedObserver> &observer)
+{
+    if (observer == nullptr || taskHandler_ == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "observer or taskHandler is null, skip cancel tasks");
+        return;
+    }
+
+    auto abilityKeys = observer->GetAllAbilityKeys();
+    for (const auto &key : abilityKeys) {
+        // key format "moduleName/abilityName"
+        size_t pos = key.find('/');
+        if (pos == std::string::npos) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid ability key format: %{public}s", key.c_str());
+            continue;
+        }
+        std::string moduleName = key.substr(0, pos);
+        std::string abilityName = key.substr(pos + 1);
+        std::string taskName = GenerateTimeoutTaskName(uid, moduleName, abilityName);
+        taskHandler_->CancelTask(taskName);
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "cancelled timeout task: %{public}s", taskName.c_str());
+    }
+}
+
 void DisposedRuleInterceptor::UnregisterObserver(int32_t uid)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call, uid:%{public}d", uid);
     CHECK_POINTER(taskHandler_);
-    std::string timeoutTaskName = GenerateTimeoutTaskName(uid);
-    taskHandler_->CancelTask(timeoutTaskName);
     auto unregisterTask = [uid, interceptor = shared_from_this()] () {
-        std::lock_guard<ffrt::mutex> guard{interceptor->observerLock_};
-        auto iter = interceptor->disposedObserverMap_.find(uid);
-        if (iter == interceptor->disposedObserverMap_.end()) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "no find observer for uid:%{public}d", uid);
-            return;
+        sptr<DisposedObserver> disposedObserver;
+        {
+            std::lock_guard<ffrt::mutex> guard{interceptor->observerLock_};
+            auto iter = interceptor->disposedObserverMap_.find(uid);
+            if (iter == interceptor->disposedObserverMap_.end()) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "no find observer for uid:%{public}d", uid);
+                return;
+            }
+
+            disposedObserver = iter->second;
+            CHECK_POINTER(disposedObserver);
+
+            if (disposedObserver->GetAbilityKeyCount() > 0) {
+                TAG_LOGI(AAFwkTag::ABILITYMGR,
+                    "observer still has pending keys, skip unregister for uid:%{public}d", uid);
+                return;
+            }
+
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "unregistering observer for uid:%{public}d", uid);
+            interceptor->disposedObserverMap_.erase(iter);
         }
-
-        auto disposedObserver = iter->second;
-        CHECK_POINTER(disposedObserver);
-
-        if (disposedObserver->GetAbilityKeyCount() > 0) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "observer still has pending keys, skip unregister for uid:%{public}d", uid);
-            return;
-        }
-
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "unregistering observer for uid:%{public}d", uid);
-        sptr<OHOS::AppExecFwk::IAppMgr> appManager = AppMgrUtil::GetAppMgr();
-        CHECK_POINTER(appManager);
-        IN_PROCESS_CALL(appManager->UnregisterApplicationStateObserver(disposedObserver));
-        interceptor->disposedObserverMap_.erase(iter);
+        interceptor->DoUnregisterObserver(uid, disposedObserver);
     };
     taskHandler_->SubmitTask(unregisterTask, GenerateEventTaskName(uid));
+}
+
+void DisposedRuleInterceptor::DoUnregisterObserver(int32_t uid, const sptr<DisposedObserver> &observer)
+{
+    if (observer == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "observer is null, skip unregister");
+        return;
+    }
+    CancelTimeoutTasks(uid, observer);
+    sptr<OHOS::AppExecFwk::IAppMgr> appManager = AppMgrUtil::GetAppMgr();
+    if (appManager == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "appManager is null, failed to unregister observer for uid:%{public}d", uid);
+        return;
+    }
+    IN_PROCESS_CALL(appManager->UnregisterApplicationStateObserver(observer));
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "successfully unregistered observer for uid:%{public}d", uid);
 }
 
 ErrCode DisposedRuleInterceptor::CreateModalUIExtension(const Want &want, const sptr<IRemoteObject> &callerToken)

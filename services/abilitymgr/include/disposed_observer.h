@@ -41,6 +41,8 @@ public:
 
     size_t GetAbilityKeyCount();
 
+    std::vector<std::string> GetAllAbilityKeys();
+
 private:
     void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData) override;
     void OnPageShow(const AppExecFwk::PageStateData &pageStateData) override;

@@ -659,8 +659,10 @@ HWTEST_F(DisposedRuleInterceptorTest, GenerateTimeoutTaskName_001, TestSize.Leve
 {
     TAG_LOGI(AAFwkTag::TEST, "GenerateTimeoutTaskName_001 start");
     int32_t uid = 1001;
-    std::string taskName = DisposedRuleInterceptor::GenerateTimeoutTaskName(uid);
-    std::string expected = "unregister timeout observer task1001";
+    std::string moduleName = "entry";
+    std::string abilityName = "MainAbility";
+    std::string taskName = DisposedRuleInterceptor::GenerateTimeoutTaskName(uid, moduleName, abilityName);
+    std::string expected = "unregister timeout observer task_1001_entry_MainAbility";
     EXPECT_EQ(taskName, expected);
     TAG_LOGI(AAFwkTag::TEST, "GenerateTimeoutTaskName_001 end");
 }
@@ -675,8 +677,10 @@ HWTEST_F(DisposedRuleInterceptorTest, GenerateTimeoutTaskName_002, TestSize.Leve
 {
     TAG_LOGI(AAFwkTag::TEST, "GenerateTimeoutTaskName_002 start");
     int32_t uid = 0;
-    std::string taskName = DisposedRuleInterceptor::GenerateTimeoutTaskName(uid);
-    std::string expected = "unregister timeout observer task0";
+    std::string moduleName = "module1";
+    std::string abilityName = "Ability1";
+    std::string taskName = DisposedRuleInterceptor::GenerateTimeoutTaskName(uid, moduleName, abilityName);
+    std::string expected = "unregister timeout observer task_0_module1_Ability1";
     EXPECT_EQ(taskName, expected);
     TAG_LOGI(AAFwkTag::TEST, "GenerateTimeoutTaskName_002 end");
 }
@@ -691,8 +695,10 @@ HWTEST_F(DisposedRuleInterceptorTest, GenerateTimeoutTaskName_003, TestSize.Leve
 {
     TAG_LOGI(AAFwkTag::TEST, "GenerateTimeoutTaskName_003 start");
     int32_t uid = -1;
-    std::string taskName = DisposedRuleInterceptor::GenerateTimeoutTaskName(uid);
-    std::string expected = "unregister timeout observer task-1";
+    std::string moduleName = "testModule";
+    std::string abilityName = "TestAbility";
+    std::string taskName = DisposedRuleInterceptor::GenerateTimeoutTaskName(uid, moduleName, abilityName);
+    std::string expected = "unregister timeout observer task_-1_testModule_TestAbility";
     EXPECT_EQ(taskName, expected);
     TAG_LOGI(AAFwkTag::TEST, "GenerateTimeoutTaskName_003 end");
 }
