@@ -85,6 +85,12 @@ public:
 
         // dump system data
         KEY_DUMP_SYS_DATA,
+
+        // dump UI operation
+        KEY_DUMP_SYS_UI_OPERATION,
+
+        // dump GUI intent execution
+        KEY_DUMP_SYS_GUI_INTENT,
     };
 
     /**

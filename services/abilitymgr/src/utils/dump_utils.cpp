@@ -109,6 +109,12 @@ std::pair<bool, DumpUtils::DumpsysKey> DumpUtils::DumpsysMap(std::string argStri
     } else if (argString.compare("-d") == 0 || argString.compare("--data") == 0) {
         result.first = true;
         result.second = KEY_DUMP_SYS_DATA;
+    } else if (argString.compare("-o") == 0 || argString.compare("--ui-operation") == 0) {
+        result.first = true;
+        result.second = KEY_DUMP_SYS_UI_OPERATION;
+    } else if (argString.compare("-g") == 0 || argString.compare("--gui-intent") == 0) {
+        result.first = true;
+        result.second = KEY_DUMP_SYS_GUI_INTENT;
     }
     return result;
 }
@@ -131,7 +137,11 @@ void DumpUtils::ShowHelp(std::string& result)
         .append("-r                          ")
         .append("dump all process in the system\n")
         .append("-d                          ")
-        .append("dump all data ability information in the system");
+        .append("dump all data ability information in the system\n")
+        .append("-o <windowId> <cmd> [args] ")
+        .append("UI operation: Connect/GetVisibleInspectorTree/SendCommand/...\n")
+        .append("-g <windowId> <json>       ")
+        .append("GUI intent execution chain");
 }
 }  // namespace AAFwk
 }  // namespace OHOS

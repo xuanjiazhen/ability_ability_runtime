@@ -271,6 +271,7 @@ ohos_shared_library("abilityms") {
       "window_manager:libwsutils",
       "window_manager:scene_session",
       "window_manager:sms",
+      "ace_engine:ui_session",
     ]
   }
 
@@ -474,6 +475,7 @@ ohos_static_library("abilityms_static") {
       "window_manager:libwsutils",
       "window_manager:scene_session",
       "window_manager:sms",
+      "ace_engine:ui_session",
     ]
   }
 

@@ -3037,6 +3037,10 @@ private:
     void DumpUIExtensionProviderRunningInfos(pid_t pid, std::vector<std::string> &info);
     void DataDumpSysStateInner(
         const std::string &args, std::vector<std::string> &info, bool isClient, bool isUserID, int userId);
+    void DumpSysUIOperationInner(
+        const std::string &args, std::vector<std::string> &info);
+    void DumpSysGuiIntentInner(
+        const std::string &args, std::vector<std::string> &info);
     ErrCode ProcessMultiParam(std::vector<std::string>& argsStr, std::string& result);
     int Dump(const std::vector<std::u16string>& args, std::string& result);
 

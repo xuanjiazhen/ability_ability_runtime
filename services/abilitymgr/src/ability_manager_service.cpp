@@ -15,6 +15,8 @@
 
 #include "ability_manager_service.h"
 
+#include <condition_variable>
+#include <mutex>
 #include <sys/epoll.h>
 
 #include "ability_background_connection.h"
@@ -57,6 +59,8 @@
 #include "extension_running_timeout_monitor.h"
 #include "background_user_extension_monitor.h"
 #include "insight_intent_execute_manager.h"
+#include "insight_intent/ui_operation_chain_executor.h"
+#include "insight_intent/gui_intent_executor.h"
 #include "insight_intent_db_cache.h"
 #include "skill/skill_execute_manager.h"
 #include "insight_intent_utils.h"
@@ -7945,6 +7949,108 @@ void AbilityManagerService::DataDumpSysStateInner(
     }
 }
 
+void AbilityManagerService::DumpSysUIOperationInner(
+    const std::string& args, std::vector<std::string>& info)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "DumpSysUIOperationInner");
+    std::vector<std::string> argList;
+    SplitStr(args, " ", argList);
+    // argList[0] = "-o", argList[1..] = <windowId> <command> [args...]
+    if (argList.size() < 3) {
+        info.push_back("Usage: hidumper -s AbilityManagerService -a '-o <windowId> <command> [args...]'");
+        info.push_back("       aa dump -o <windowId> <command> [args...]");
+        auto executor = std::make_shared<AAFwk::UiOperationChainExecutor>();
+        executor->ShowDumpHelp(info);
+        return;
+    }
+    // Skip the first arg ("-o"), pass windowId + command + args
+    std::vector<std::string> params(argList.begin() + 1, argList.end());
+    auto executor = std::make_shared<AAFwk::UiOperationChainExecutor>();
+    executor->HandleDump(params, info);
+}
+
+void AbilityManagerService::DumpSysGuiIntentInner(
+    const std::string& args, std::vector<std::string>& info)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "DumpSysGuiIntentInner");
+    std::vector<std::string> argList;
+    SplitStr(args, " ", argList);
+    // argList[0] = "-g", argList[1] = <windowId>, argList[2] = <guiIntentJson>
+    if (argList.size() < 3) {
+        info.push_back("Usage: hidumper -s AbilityManagerService -a '-g <windowId> <guiIntentJson>'");
+        info.push_back("       aa dump -g <windowId> <guiIntentJson>");
+        info.push_back("  guiIntentJson format:");
+        info.push_back("  [{");
+        info.push_back("    \"pageName\": \"main\",");
+        info.push_back("    \"intentName\": \"openXxx\",");
+        info.push_back("    \"parameters\": {");
+        info.push_back("      \"compId\": \"btn1\",");
+        info.push_back("      \"compType\": \"Button\",");
+        info.push_back("      \"compText\": \"点击\",");
+        info.push_back("      \"actionType\": \"click\",");
+        info.push_back("      \"nextPageName\": \"page2\",");
+        info.push_back("      \"compIndex\": 0");
+        info.push_back("    }");
+        info.push_back("  }, ...]");
+        return;
+    }
+
+    int32_t windowId = static_cast<int32_t>(std::strtol(argList[1].c_str(), nullptr, 10));
+    // argList[2..end] are the JSON (may be split by spaces in some shells, reassemble)
+    std::string inputJson;
+    for (size_t i = 2; i < argList.size(); ++i) {
+        if (i > 2) { inputJson += " "; }
+        inputJson += argList[i];
+    }
+
+    auto inputItems = GuiIntentInputItem::ParseFromJson(inputJson);
+    if (inputItems.empty()) {
+        info.push_back("Failed to parse guiIntentJson, check JSON format");
+        return;
+    }
+
+    info.push_back("GUI Intent: " + std::to_string(inputItems.size()) + " steps loaded");
+    info.push_back("Window: " + std::to_string(windowId));
+
+    // Sync-wait for async chain execution
+    std::mutex waitMutex;
+    std::condition_variable waitCv;
+    bool finished = false;
+    int32_t resultCode = -1;
+    std::string failedPage;
+
+    auto executor = std::make_shared<GuiIntentExecutor>();
+    executor->Execute(windowId, inputItems, eventHandler_,
+        [&](int32_t code, const std::string& page) {
+            {
+                std::lock_guard<std::mutex> lock(waitMutex);
+                resultCode = code;
+                failedPage = page;
+                finished = true;
+            }
+            TAG_LOGI(AAFwkTag::ABILITYMGR,
+                "DumpSysGuiIntentInner callback: code=%{public}d, page=%{public}s",
+                code, page.c_str());
+            waitCv.notify_one();
+        });
+
+    constexpr int32_t GUI_INTENT_DUMP_TIMEOUT_SEC = 30;
+    std::unique_lock<std::mutex> lock(waitMutex);
+    if (waitCv.wait_for(lock, std::chrono::seconds(GUI_INTENT_DUMP_TIMEOUT_SEC),
+        [&finished] { return finished; })) {
+        if (resultCode == UI_OPERATION_ERR_OK) {
+            info.push_back("GUI Intent execution SUCCESS");
+        } else {
+            info.push_back("GUI Intent execution FAILED: code=" +
+                std::to_string(resultCode) + ", failedPage=" + failedPage);
+        }
+    } else {
+        executor->Cancel();
+        info.push_back("GUI Intent execution TIMEOUT after " +
+            std::to_string(GUI_INTENT_DUMP_TIMEOUT_SEC) + "s");
+    }
+}
+
 void AbilityManagerService::DumpInner(const std::string &args, std::vector<std::string> &info)
 {
     auto userId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
@@ -8141,6 +8247,12 @@ void AbilityManagerService::DumpSysState(
             break;
         case DumpUtils::KEY_DUMP_SYS_ABILITY:
             DumpSysAbilityInner(args, info, isClient, isUserID, userId);
+            break;
+        case DumpUtils::KEY_DUMP_SYS_UI_OPERATION:
+            DumpSysUIOperationInner(args, info);
+            break;
+        case DumpUtils::KEY_DUMP_SYS_GUI_INTENT:
+            DumpSysGuiIntentInner(args, info);
             break;
         default:
             info.push_back("error: invalid argument, please see 'ability dump -h'.");
