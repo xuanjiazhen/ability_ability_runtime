@@ -29,7 +29,7 @@ namespace AAFwk {
  */
 struct MatchedNodeInfo {
     int32_t nodeId = -1;       // $ID (ARKUI real node id for SendCommand)
-    std::string compId;        // $attrs.id  (component's own compId)
+    std::string compId;        // node["compid"] (inspector tree top-level), fallback $attrs.id
     std::string compType;      // $type      (component type, e.g. "Button")
     std::string content;       // $attrs.content
     std::string label;         // $attrs.label
@@ -43,6 +43,7 @@ struct MatchedNodeInfo {
  * - "$ID": integer node ID (used for SendCommand)
  * - "$type": component type string, e.g. "Button", "Text", "Column"
  * - "$attrs": object containing attributes like "content", "id", "label", "clickable"
+ * - "compid": top-level string field containing the component's inspector ID (set via .id())
  * - "$children": array of child nodes
  *
  * This parser performs depth-first traversal to find nodes matching
@@ -65,12 +66,12 @@ public:
      * @brief Find nodes with full attribute extraction, supporting compId matching.
      *
      * Matching rules (caller-controlled priority):
-     * - compId non-empty: match $attrs.id == compId (exact, case-insensitive)
+     * - compId non-empty: match node["compid"] == compId, fallback $attrs.id (case-insensitive)
      * - compId empty:     match type only (or type+content)
      *
      * @param treeJson        Inspector tree JSON.
      * @param componentType   Component type to match (case-insensitive).
-     * @param compId          Component ID to match against $attrs.id (empty = skip compId check).
+     * @param compId          Component ID to match against node["compid"] / $attrs.id (empty = skip).
      * @param contentMatcher  Substring to match against $attrs.content / $attrs.label (empty = skip).
      * @return Vector of MatchedNodeInfo (ordered by depth-first traversal).
      */

@@ -33,8 +33,8 @@ constexpr const char* FIELD_CHILDREN = "$children";
 constexpr const char* FIELD_ATTRS = "$attrs";
 constexpr const char* ATTR_CONTENT = "content";
 constexpr const char* ATTR_LABEL = "label";
+constexpr const char* NODE_COMP_ID = "compid";     // top-level field in inspector tree node
 constexpr const char* ATTR_COMP_ID = "id";
-constexpr const char* ATTR_COMP_ID_LEGACY = "compid";
 constexpr const char* ATTR_CLICKABLE = "clickable";
 
 bool CaseInsensitiveEqual(const std::string& a, const std::string& b)
@@ -61,15 +61,23 @@ bool CaseInsensitiveContains(const std::string& haystack, const std::string& nee
 
 void ExtractNodeAttrs(const nlohmann::json& node, MatchedNodeInfo& info)
 {
+    // Priority 1: node["compid"] — DumpSimplifyCommonInfo format (frame_node.cpp:1385)
+    if (node.contains(NODE_COMP_ID) && node[NODE_COMP_ID].is_string()) {
+        info.compId = node[NODE_COMP_ID].get<std::string>();
+    }
+
+    // Priority 2: node["id"] — old inspector tree format (simplified_inspector FillInspectorAttrs)
+    if (info.compId.empty() && node.contains(ATTR_COMP_ID) && node[ATTR_COMP_ID].is_string()) {
+        info.compId = node[ATTR_COMP_ID].get<std::string>();
+    }
+
     if (!node.contains(FIELD_ATTRS) || !node[FIELD_ATTRS].is_object()) {
         return;
     }
     const auto& attrs = node[FIELD_ATTRS];
-    if (attrs.contains(ATTR_COMP_ID) && attrs[ATTR_COMP_ID].is_string()) {
+    // Priority 3: $attrs.id — new inspector tree (ToTreeJson) or old fullAttrs format
+    if (info.compId.empty() && attrs.contains(ATTR_COMP_ID) && attrs[ATTR_COMP_ID].is_string()) {
         info.compId = attrs[ATTR_COMP_ID].get<std::string>();
-    }
-    if (info.compId.empty() && attrs.contains(ATTR_COMP_ID_LEGACY) && attrs[ATTR_COMP_ID_LEGACY].is_string()) {
-        info.compId = attrs[ATTR_COMP_ID_LEGACY].get<std::string>();
     }
     if (attrs.contains(ATTR_CONTENT) && attrs[ATTR_CONTENT].is_string()) {
         info.content = attrs[ATTR_CONTENT].get<std::string>();
