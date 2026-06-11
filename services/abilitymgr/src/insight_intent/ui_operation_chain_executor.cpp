@@ -42,11 +42,19 @@ std::string UiOperationChainExecutor::UnwrapInspectorTree(const std::string& wra
     }
     try {
         auto outer = nlohmann::json::parse(wrappedJson);
-        // ArkUI GetVisibleInspectorTree wraps the tree in {"0": "<string>"}.
-        if (outer.is_object() && outer.contains("0") && outer["0"].is_string()) {
+        if (!outer.is_object() || !outer.contains("0")) {
+            // Not wrapped — return as-is (already raw Inspector tree JSON).
+            return wrappedJson;
+        }
+        // Case 1: {"0": "<string>"} — string-wrapped format
+        if (outer["0"].is_string()) {
             return outer["0"].get<std::string>();
         }
-        // Not wrapped — return as-is (already raw Inspector tree JSON).
+        // Case 2: {"0": {<object>}} — nested object format
+        if (outer["0"].is_object()) {
+            return outer["0"].dump();
+        }
+        // Unknown format — return as-is
         return wrappedJson;
     } catch (const nlohmann::json::exception& e) {
         TAG_LOGW(AAFwkTag::INTENT, "UnwrapInspectorTree parse failed, use raw: %{public}s", e.what());
@@ -146,14 +154,18 @@ void UiOperationChainExecutor::DoRequestInspectorTree(sptr<Ace::IUiContentServic
     auto treeCallback = [self, onTreeReady](const std::string& data, int32_t index, bool isEnd) {
         std::lock_guard<ffrt::mutex> lock(self->mutex_);
         self->accumulatedTree_ += data;
-        TAG_LOGD(AAFwkTag::INTENT, "tree part %{public}d, isEnd=%{public}d, partSize=%{public}zu",
+        TAG_LOGI(AAFwkTag::INTENT, "tree part %{public}d, isEnd=%{public}d, partSize=%{public}zu",
             index, isEnd, data.size());
         if (isEnd) {
             std::string fullTree = std::move(self->accumulatedTree_);
             self->accumulatedTree_.clear();
+            TAG_LOGI(AAFwkTag::INTENT, "raw callback head: %{public}s",
+                fullTree.substr(0, 500).c_str());
             // ArkUI wraps Inspector tree in {"0": "<escaped-json>"}.
             // Unwrap here so the parser receives the raw Inspector tree JSON.
             std::string unwrappedTree = UnwrapInspectorTree(fullTree);
+            TAG_LOGI(AAFwkTag::INTENT, "unwrapped head: %{public}s",
+                unwrappedTree.substr(0, 500).c_str());
             if (onTreeReady) { onTreeReady(unwrappedTree, true); }
         }
     };

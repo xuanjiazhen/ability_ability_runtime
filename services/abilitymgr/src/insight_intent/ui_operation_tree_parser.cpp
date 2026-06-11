@@ -26,17 +26,93 @@ namespace OHOS {
 namespace AAFwk {
 
 namespace {
-// ACE Inspector tree JSON field names
+// ACE Inspector tree JSON field names (ArkUI may output with or without "$" prefix)
 constexpr const char* FIELD_ID = "$ID";
+constexpr const char* FIELD_ID_ALT = "ID";
 constexpr const char* FIELD_TYPE = "$type";
+constexpr const char* FIELD_TYPE_ALT = "type";
 constexpr const char* FIELD_CHILDREN = "$children";
+constexpr const char* FIELD_CHILDREN_ALT = "children";
 constexpr const char* FIELD_ATTRS = "$attrs";
+constexpr const char* FIELD_ATTRS_ALT = "attrs";
 constexpr const char* ATTR_CONTENT = "content";
 constexpr const char* ATTR_LABEL = "label";
-constexpr const char* NODE_COMP_ID = "compid";     // top-level field in inspector tree node
+constexpr const char* NODE_COMP_ID = "compid";
 constexpr const char* ATTR_COMP_ID = "id";
 constexpr const char* ATTR_CLICKABLE = "clickable";
 constexpr size_t MAX_TREE_DUMP_LEN = 2000;
+
+// Lookup helper: try primary key first (with "$"), fallback to alternate (without "$")
+const nlohmann::json* LookupField(const nlohmann::json& node, const char* primary, const char* alt)
+{
+    if (node.contains(primary)) {
+        return &node[primary];
+    }
+    if (alt && node.contains(alt)) {
+        return &node[alt];
+    }
+    return nullptr;
+}
+
+bool HasField(const nlohmann::json& node, const char* primary, const char* alt)
+{
+    return node.contains(primary) || (alt && node.contains(alt));
+}
+
+bool IsStringField(const nlohmann::json& node, const char* primary, const char* alt)
+{
+    auto* val = LookupField(node, primary, alt);
+    return val != nullptr && val->is_string();
+}
+
+bool IsIntField(const nlohmann::json& node, const char* primary, const char* alt)
+{
+    auto* val = LookupField(node, primary, alt);
+    return val != nullptr && val->is_number_integer();
+}
+
+bool IsArrayField(const nlohmann::json& node, const char* primary, const char* alt)
+{
+    auto* val = LookupField(node, primary, alt);
+    return val != nullptr && val->is_array();
+}
+
+bool IsObjectField(const nlohmann::json& node, const char* primary, const char* alt)
+{
+    auto* val = LookupField(node, primary, alt);
+    return val != nullptr && val->is_object();
+}
+
+std::string GetStringField(const nlohmann::json& node, const char* primary, const char* alt,
+    const std::string& def = "")
+{
+    auto* val = LookupField(node, primary, alt);
+    if (val != nullptr && val->is_string()) {
+        return val->get<std::string>();
+    }
+    return def;
+}
+
+int32_t GetIntField(const nlohmann::json& node, const char* primary, const char* alt, int32_t def = -1)
+{
+    auto* val = LookupField(node, primary, alt);
+    if (val != nullptr && val->is_number_integer()) {
+        return val->get<int32_t>();
+    }
+    return def;
+}
+
+const nlohmann::json& GetFieldRef(const nlohmann::json& node, const char* primary, const char* alt)
+{
+    if (node.contains(primary)) {
+        return node[primary];
+    }
+    if (alt && node.contains(alt)) {
+        return node[alt];
+    }
+    static const nlohmann::json nullJson;
+    return nullJson;
+}
 
 bool CaseInsensitiveEqual(const std::string& a, const std::string& b)
 {
@@ -78,10 +154,11 @@ void ExtractNodeAttrs(const nlohmann::json& node, MatchedNodeInfo& info)
         info.clickable = node[ATTR_CLICKABLE].get<bool>();
     }
 
-    if (!node.contains(FIELD_ATTRS) || !node[FIELD_ATTRS].is_object()) {
+    // $attrs / attrs — try both "$attrs" and "attrs" keys
+    if (!IsObjectField(node, FIELD_ATTRS, FIELD_ATTRS_ALT)) {
         return;
     }
-    const auto& attrs = node[FIELD_ATTRS];
+    const auto& attrs = GetFieldRef(node, FIELD_ATTRS, FIELD_ATTRS_ALT);
     // Priority 3: $attrs.id — new inspector tree (ToTreeJson) or old fullAttrs format
     if (info.compId.empty() && attrs.contains(ATTR_COMP_ID) && attrs[ATTR_COMP_ID].is_string()) {
         info.compId = attrs[ATTR_COMP_ID].get<std::string>();
@@ -106,10 +183,10 @@ void TraverseNode(const nlohmann::json& node, const std::string& componentType,
     }
     totalCount++;
 
-    // Check $type match (case-insensitive)
+    // Check type match (case-insensitive), try "$type" then "type"
     bool typeMatched = false;
-    if (node.contains(FIELD_TYPE) && node[FIELD_TYPE].is_string()) {
-        std::string nodeType = node[FIELD_TYPE].get<std::string>();
+    std::string nodeType = GetStringField(node, FIELD_TYPE, FIELD_TYPE_ALT);
+    if (!nodeType.empty()) {
         typeMatched = CaseInsensitiveEqual(nodeType, componentType);
     }
 
@@ -118,9 +195,8 @@ void TraverseNode(const nlohmann::json& node, const std::string& componentType,
         bool contentMatched = true;
         if (!contentMatcher.empty()) {
             contentMatched = false;
-            // Check $attrs.content and $attrs.label
-            if (node.contains(FIELD_ATTRS) && node[FIELD_ATTRS].is_object()) {
-                const auto& attrs = node[FIELD_ATTRS];
+            if (IsObjectField(node, FIELD_ATTRS, FIELD_ATTRS_ALT)) {
+                const auto& attrs = GetFieldRef(node, FIELD_ATTRS, FIELD_ATTRS_ALT);
                 if (attrs.contains(ATTR_CONTENT) && attrs[ATTR_CONTENT].is_string()) {
                     std::string content = attrs[ATTR_CONTENT].get<std::string>();
                     contentMatched = CaseInsensitiveContains(content, contentMatcher);
@@ -132,14 +208,15 @@ void TraverseNode(const nlohmann::json& node, const std::string& componentType,
             }
         }
 
-        if (contentMatched && node.contains(FIELD_ID) && node[FIELD_ID].is_number_integer()) {
-            results.push_back(node[FIELD_ID].get<int32_t>());
+        if (contentMatched && IsIntField(node, FIELD_ID, FIELD_ID_ALT)) {
+            results.push_back(GetIntField(node, FIELD_ID, FIELD_ID_ALT));
         }
     }
 
     // Recurse into children
-    if (node.contains(FIELD_CHILDREN) && node[FIELD_CHILDREN].is_array()) {
-        for (const auto& child : node[FIELD_CHILDREN]) {
+    if (IsArrayField(node, FIELD_CHILDREN, FIELD_CHILDREN_ALT)) {
+        const auto& children = GetFieldRef(node, FIELD_CHILDREN, FIELD_CHILDREN_ALT);
+        for (const auto& child : children) {
             TraverseNode(child, componentType, contentMatcher, results, totalCount);
         }
     }
@@ -155,27 +232,22 @@ void TraverseNodeWithAttrs(const nlohmann::json& node, const std::string& compon
     totalCount++;
 
     // Extract raw fields for every node in DFS
-    int32_t nodeId = -1;
-    std::string nodeType;
+    int32_t nodeId = GetIntField(node, FIELD_ID, FIELD_ID_ALT);
+    std::string nodeType = GetStringField(node, FIELD_TYPE, FIELD_TYPE_ALT);
     std::string nodeCompId;
-    if (node.contains(FIELD_ID) && node[FIELD_ID].is_number_integer()) {
-        nodeId = node[FIELD_ID].get<int32_t>();
-    }
-    if (node.contains(FIELD_TYPE) && node[FIELD_TYPE].is_string()) {
-        nodeType = node[FIELD_TYPE].get<std::string>();
-    }
     if (node.contains(NODE_COMP_ID) && node[NODE_COMP_ID].is_string()) {
         nodeCompId = node[NODE_COMP_ID].get<std::string>();
     }
-    TAG_LOGI(AAFwkTag::INTENT, "DFS[%{public}d]: $type=%{public}s, $ID=%{public}d, compid=%{public}s",
+    TAG_LOGI(AAFwkTag::INTENT, "DFS[%{public}d]: type=%{public}s, ID=%{public}d, compid=%{public}s",
         totalCount, nodeType.c_str(), nodeId, nodeCompId.c_str());
 
-    // Check $type match (case-insensitive)
+    // Check type match (case-insensitive)
     bool typeMatched = !nodeType.empty() && CaseInsensitiveEqual(nodeType, componentType);
     if (!typeMatched) {
         // Recurse into children
-        if (node.contains(FIELD_CHILDREN) && node[FIELD_CHILDREN].is_array()) {
-            for (const auto& child : node[FIELD_CHILDREN]) {
+        if (IsArrayField(node, FIELD_CHILDREN, FIELD_CHILDREN_ALT)) {
+            const auto& children = GetFieldRef(node, FIELD_CHILDREN, FIELD_CHILDREN_ALT);
+            for (const auto& child : children) {
                 TraverseNodeWithAttrs(child, componentType, compId, contentMatcher, results, totalCount);
             }
         }
@@ -188,7 +260,7 @@ void TraverseNodeWithAttrs(const nlohmann::json& node, const std::string& compon
     info.nodeId = nodeId;
     ExtractNodeAttrs(node, info);
 
-    TAG_LOGI(AAFwkTag::INTENT, "type matched: node[%{public}s] $ID=%{public}d, "
+    TAG_LOGI(AAFwkTag::INTENT, "type matched: node[%{public}s] ID=%{public}d, "
         "compid=%{public}s, content=%{public}s, clickable=%{public}d, "
         "expect compId=%{public}s, matcher=%{public}s",
         nodeType.c_str(), info.nodeId, info.compId.c_str(), info.content.c_str(),
@@ -225,8 +297,9 @@ void TraverseNodeWithAttrs(const nlohmann::json& node, const std::string& compon
     }
 
     // Recurse into children
-    if (node.contains(FIELD_CHILDREN) && node[FIELD_CHILDREN].is_array()) {
-        for (const auto& child : node[FIELD_CHILDREN]) {
+    if (IsArrayField(node, FIELD_CHILDREN, FIELD_CHILDREN_ALT)) {
+        const auto& children = GetFieldRef(node, FIELD_CHILDREN, FIELD_CHILDREN_ALT);
+        for (const auto& child : children) {
             TraverseNodeWithAttrs(child, componentType, compId, contentMatcher, results, totalCount);
         }
     }
@@ -268,16 +341,14 @@ std::vector<MatchedNodeInfo> UiOperationTreeParser::FindMatchingNodesWithAttribu
 
     try {
         auto json = nlohmann::json::parse(treeJson);
+        // Always print raw tree head for diagnosis
+        TAG_LOGI(AAFwkTag::INTENT, "parsed tree head: %{public}s",
+            treeJson.substr(0, MAX_TREE_DUMP_LEN).c_str());
         int32_t totalCount = 0;
         TraverseNodeWithAttrs(json, componentType, compId, contentMatcher, results, totalCount);
         TAG_LOGI(AAFwkTag::INTENT, "FindMatchingNodesWithAttributes: type=%{public}s, "
             "compId=%{public}s, matcher=%{public}s, found=%{public}zu, total=%{public}d",
             componentType.c_str(), compId.c_str(), contentMatcher.c_str(), results.size(), totalCount);
-        if (results.empty() && !compId.empty()) {
-            std::string dump = treeJson.substr(0, MAX_TREE_DUMP_LEN);
-            TAG_LOGI(AAFwkTag::INTENT, "compId match failed, tree dump (max %{public}zu): "
-                "%{public}s", MAX_TREE_DUMP_LEN, dump.c_str());
-        }
     } catch (const nlohmann::json::exception& e) {
         TAG_LOGE(AAFwkTag::INTENT, "JSON parse error: %{public}s", e.what());
     }
