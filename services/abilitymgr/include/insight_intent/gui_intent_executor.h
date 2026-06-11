@@ -27,6 +27,7 @@
 #include "insight_intent/ui_operation_chain_param.h"
 #include "insight_intent/ui_operation_tree_parser.h"
 #include "param_config.h"
+#include "task_handler_wrap.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -144,6 +145,13 @@ public:
         GuiIntentCompleteCallback onComplete);
 
     /**
+     * @brief Set the task handler for posting async tasks.
+     * Must be called before Execute(). Used to decouple steps from IPC callback threads.
+     * If not set, TaskHandlerWrap::GetFfrtHandler() is used as default.
+     */
+    void SetTaskHandler(std::shared_ptr<TaskHandlerWrap> handler);
+
+    /**
      * @brief Cancel an in-progress execution.
      */
     void Cancel();
@@ -190,6 +198,7 @@ private:
     ffrt::mutex mutex_;
     bool cancelled_ = false;
     bool executing_ = false;
+    std::shared_ptr<TaskHandlerWrap> taskHandler_;
 
     int32_t windowId_ = -1;
     std::vector<GuiIntentInputItem> inputItems_;

@@ -8020,6 +8020,7 @@ void AbilityManagerService::DumpSysGuiIntentInner(
     std::string failedPage;
 
     auto executor = std::make_shared<GuiIntentExecutor>();
+    executor->SetTaskHandler(taskHandler_);
     executor->Execute(windowId, inputItems,
         [&](int32_t code, const std::string& page) {
             {

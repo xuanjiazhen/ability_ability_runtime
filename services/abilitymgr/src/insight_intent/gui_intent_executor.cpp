@@ -334,6 +334,11 @@ GuiIntentExecutor::~GuiIntentExecutor()
     Cancel();
 }
 
+void GuiIntentExecutor::SetTaskHandler(std::shared_ptr<TaskHandlerWrap> handler)
+{
+    taskHandler_ = handler;
+}
+
 // ============================================================
 // Public: Execute / Cancel
 // ============================================================
@@ -430,7 +435,17 @@ void GuiIntentExecutor::StartNextStep()
             currentStepIndex_, inputItems_.size());
     }
 
-    ExecuteCurrentStep();
+    // Decouple from IPC callback thread: submit to task handler so the binder
+    // thread is freed before the next GetVisibleInspectorTree call.
+    auto handler = taskHandler_ ? taskHandler_ : TaskHandlerWrap::GetFfrtHandler();
+    if (handler) {
+        auto self = shared_from_this();
+        handler->SubmitTask([self]() {
+            self->ExecuteCurrentStep();
+        }, "GuiIntentNextStep");
+    } else {
+        ExecuteCurrentStep();
+    }
 }
 
 void GuiIntentExecutor::ExecuteCurrentStep()
