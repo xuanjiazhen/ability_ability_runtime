@@ -408,7 +408,7 @@ ohos_shared_library("start_window_option") {
   if (ability_runtime_graphics &&
       ability_runtime_start_window_options_with_pixelmap) {
     defines = [ "START_WINDOW_OPTIONS_WITH_PIXELMAP" ]
-    external_deps += [ "image_framework:image_native" ]
+    deps = [ "${ability_runtime_services_path}/common:image_native_bridge" ]
   }
 
   cflags_cc = []
