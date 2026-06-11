@@ -689,8 +689,12 @@ void GuiIntentExecutor::GetInspectorTree(
         }
     };
 
-    int32_t ret = service->GetVisibleInspectorTree(treeCallback, Ace::ParamConfig(),
+    Ace::ParamConfig paramConfig;
+    paramConfig.interactionInfo = true;
+    int32_t ret = service->GetVisibleInspectorTree(treeCallback, paramConfig,
         TREE_REQUEST_TIMEOUT_MS);
+    TAG_LOGI(AAFwkTag::INTENT, "GetInspectorTree ret=%{public}d, interactionInfo=%{public}d",
+        ret, paramConfig.interactionInfo);
     if (ret != Ace::NO_ERROR) {
         TAG_LOGE(AAFwkTag::INTENT, "GetInspectorTree failed, ret=%{public}d", ret);
         if (onResult) { onResult("", false); }

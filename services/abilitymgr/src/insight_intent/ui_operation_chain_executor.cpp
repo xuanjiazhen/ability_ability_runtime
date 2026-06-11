@@ -1036,7 +1036,9 @@ const std::map<std::string, UiOperationChainExecutor::DumpHandler>
                 i.push_back(data.substr(0, 500));
             }
         };
-        s->GetVisibleInspectorTree(cb);
+        Ace::ParamConfig paramConfig;
+        paramConfig.interactionInfo = true;
+        s->GetVisibleInspectorTree(cb, paramConfig);
     }},
     { "GetCurrentPageName", [](sptr<Ace::IUiContentService> s, auto& p, auto& i) {
         auto cb = [&i](std::string name) {
