@@ -22,6 +22,10 @@
 #include "refbase.h"
 
 namespace OHOS {
+namespace AgentRuntime {
+class AgentConnectCallbackIdentity;
+}
+
 namespace AbilityRuntime {
 /**
  * @class AbilityConnectCallback
@@ -58,6 +62,16 @@ public:
      * @param resultCode, ERR_OK on success, others on failure.
      */
     virtual void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) = 0;
+
+    /**
+     * Get optional agent callback identity. Non-agent callbacks keep the default null identity.
+     *
+     * @return Returns the agent callback identity, or nullptr for ordinary ability connections.
+     */
+    virtual const AgentRuntime::AgentConnectCallbackIdentity *GetAgentConnectCallbackIdentity() const
+    {
+        return nullptr;
+    }
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

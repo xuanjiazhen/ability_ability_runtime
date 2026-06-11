@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "ability_connect_callback.h"
+#include "agent_connect_callback_identity.h"
 #include "native_engine/native_value.h"
 #include "want.h"
 
@@ -83,7 +84,8 @@ void FindAgentConnection(int64_t connectId, sptr<JSAgentConnection> &connection)
  * @param agentId The agent ID to match.
  * @param connection Output parameter for the found connection.
  */
-void FindAgentConnection(const AAFwk::Want &want, const std::string &agentId, sptr<JSAgentConnection> &connection);
+void FindAgentConnection(const AAFwk::Want &want, const std::string &agentId, napi_env env,
+    napi_value callbackObject, sptr<JSAgentConnection> &connection);
 }
 
 class JsAgentConnectorStubImpl;
@@ -93,7 +95,7 @@ class JsAgentConnectorStubImpl;
  * Connection class for agent extension that bridges JS callbacks and native IPC.
  * Manages the connection lifecycle between JavaScript and Agent Extension.
  */
-class JSAgentConnection : public AbilityRuntime::AbilityConnectCallback {
+class JSAgentConnection : public AbilityRuntime::AbilityConnectCallback, public AgentConnectCallbackIdentity {
 public:
     /**
      * Constructor.
@@ -282,6 +284,24 @@ public:
      */
     static bool IsJsCallbackObjectEquals(napi_env env,
         std::unique_ptr<NativeReference> &callback, napi_value value);
+
+    /**
+     * @brief Returns the JS callback identity used by AgentConnectionManager.
+     */
+    const AgentConnectCallbackIdentity *GetAgentConnectCallbackIdentity() const override
+    {
+        return this;
+    }
+
+    AgentConnectCallbackKind GetAgentConnectCallbackKind() const override
+    {
+        return AgentConnectCallbackKind::JS;
+    }
+
+    /**
+     * @brief Checks whether another native wrapper owns the same JS callback object.
+     */
+    bool IsSameAgentConnectCallback(const AgentConnectCallbackIdentity &other) const override;
 
 private:
     void HandleOnAbilityConnectDone(const AppExecFwk::ElementName &element,

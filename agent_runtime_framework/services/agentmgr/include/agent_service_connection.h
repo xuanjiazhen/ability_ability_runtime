@@ -16,6 +16,8 @@
 #ifndef OHOS_AGENT_RUNTIME_FRAMEWORK_AGENT_SERVICE_CONNECTION_H
 #define OHOS_AGENT_RUNTIME_FRAMEWORK_AGENT_SERVICE_CONNECTION_H
 
+#include <string>
+
 #include "ability_connect_callback_stub.h"
 
 namespace OHOS {
@@ -23,16 +25,16 @@ namespace AgentRuntime {
 class AgentServiceConnection : public AAFwk::AbilityConnectionStub {
 public:
     explicit AgentServiceConnection(const sptr<AAFwk::IAbilityConnection> &connection);
+    AgentServiceConnection(const sptr<AAFwk::IAbilityConnection> &connection, const std::string &lowCodeOwnerKey);
     ~AgentServiceConnection() override = default;
 
-    void SetStandardSessionMode();
     void OnAbilityConnectDone(
         const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode) override;
     void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) override;
 
 private:
     sptr<AAFwk::IAbilityConnection> callerConnection_;
-    bool isStandardSession_ = false;
+    std::string lowCodeOwnerKey_;
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS
