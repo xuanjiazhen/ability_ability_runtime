@@ -31,6 +31,12 @@ constexpr const char *AGENTEXTENSIONHOSTPROXY_KEY = "ohos.agentruntime.params.Ag
 constexpr const char *AGENTID_KEY = "ohos.agentruntime.params.AgentId";
 
 /**
+ * Key for storing the developer callback owner in Want parameters.
+ * The service uses it only for low-code ownership grouping after AgentCard resolution.
+ */
+constexpr const char *AGENTCALLBACKOWNER_KEY = "ohos.agentruntime.params.AgentCallbackOwner";
+
+/**
  * Signature for agent async callback wrapper.
  * Used to identify the AsyncCallbackWrapper class in utils.AgentUtils.
  */
