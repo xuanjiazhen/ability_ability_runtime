@@ -426,6 +426,8 @@ void GuiIntentExecutor::StartNextStep()
             OnAllStepsComplete();
             return;
         }
+        TAG_LOGI(AAFwkTag::INTENT, "StartNextStep: currentStep=%{public}zu, totalSteps=%{public}zu",
+            currentStepIndex_, inputItems_.size());
     }
 
     ExecuteCurrentStep();
@@ -450,7 +452,10 @@ void GuiIntentExecutor::ExecuteCurrentStep()
         item.actionType.c_str(), item.compId.c_str(), item.nextPageName.c_str());
 
     // Get current inspector tree
+    TAG_LOGI(AAFwkTag::INTENT, "step[%{public}zu] requesting inspector tree...", stepIndex);
     GetInspectorTree([this, stepIndex, item](const std::string& treeJson, bool success) {
+        TAG_LOGI(AAFwkTag::INTENT, "step[%{public}zu] inspector tree callback: success=%{public}d, size=%{public}zu",
+            stepIndex, success, treeJson.size());
         if (!success || treeJson.empty()) {
             TAG_LOGE(AAFwkTag::INTENT, "step[%{public}zu] failed to get inspector tree", stepIndex);
             OnStepComponentNotFound("tree request failed");
@@ -559,6 +564,8 @@ void GuiIntentExecutor::ExecuteCurrentStep()
             std::lock_guard<ffrt::mutex> lock(mutex_);
             if (cancelled_) { return; }
             currentStepIndex_++;
+            TAG_LOGI(AAFwkTag::INTENT, "step[%{public}zu] advancing to step[%{public}zu]",
+                stepIndex, currentStepIndex_);
         }
         StartNextStep();
     });
@@ -673,6 +680,7 @@ void GuiIntentExecutor::ConnectWindow(std::function<void(bool success)> onResult
 void GuiIntentExecutor::GetInspectorTree(
     std::function<void(const std::string& treeJson, bool success)> onResult)
 {
+    TAG_LOGI(AAFwkTag::INTENT, "GetInspectorTree: enter");
     sptr<Ace::IUiContentService> service;
     {
         std::lock_guard<ffrt::mutex> lock(mutex_);
@@ -692,8 +700,12 @@ void GuiIntentExecutor::GetInspectorTree(
         int32_t index, bool isEnd) mutable {
         std::lock_guard<ffrt::mutex> lock(*accumMutex);
         accumulatedTree += data;
+        TAG_LOGI(AAFwkTag::INTENT, "treeCallback: index=%{public}d, isEnd=%{public}d, "
+            "partSize=%{public}zu, totalSize=%{public}zu",
+            index, isEnd, data.size(), accumulatedTree.size());
         if (isEnd) {
             std::string fullTree = std::move(accumulatedTree);
+            TAG_LOGI(AAFwkTag::INTENT, "treeCallback: full tree size=%{public}zu", fullTree.size());
             if (onResult) { onResult(fullTree, true); }
         }
     };
