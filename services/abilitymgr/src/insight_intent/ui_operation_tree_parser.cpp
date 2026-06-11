@@ -36,6 +36,7 @@ constexpr const char* ATTR_LABEL = "label";
 constexpr const char* NODE_COMP_ID = "compid";     // top-level field in inspector tree node
 constexpr const char* ATTR_COMP_ID = "id";
 constexpr const char* ATTR_CLICKABLE = "clickable";
+constexpr size_t MAX_TREE_DUMP_LEN = 2000;
 
 bool CaseInsensitiveEqual(const std::string& a, const std::string& b)
 {
@@ -251,6 +252,11 @@ std::vector<MatchedNodeInfo> UiOperationTreeParser::FindMatchingNodesWithAttribu
         TAG_LOGI(AAFwkTag::INTENT, "FindMatchingNodesWithAttributes: type=%{public}s, "
             "compId=%{public}s, matcher=%{public}s, found=%{public}zu, total=%{public}d",
             componentType.c_str(), compId.c_str(), contentMatcher.c_str(), results.size(), totalCount);
+        if (results.empty() && !compId.empty()) {
+            std::string dump = treeJson.substr(0, MAX_TREE_DUMP_LEN);
+            TAG_LOGI(AAFwkTag::INTENT, "compId match failed, tree dump (max %{public}zu): "
+                "%{public}s", MAX_TREE_DUMP_LEN, dump.c_str());
+        }
     } catch (const nlohmann::json::exception& e) {
         TAG_LOGE(AAFwkTag::INTENT, "JSON parse error: %{public}s", e.what());
     }
