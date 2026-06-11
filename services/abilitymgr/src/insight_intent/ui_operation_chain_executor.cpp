@@ -18,6 +18,7 @@
 #include <thread>
 
 #include "hilog_tag_wrapper.h"
+#include "nlohmann/json.hpp"
 #include "ui_content_proxy.h"
 #include "ui_content_service_interface.h"
 #include "window_manager.h"
@@ -29,6 +30,29 @@ namespace {
 constexpr int32_t MAX_CHAIN_STEPS = 100;
 constexpr int32_t TREE_TIMEOUT_MS = 3000;
 } // anonymous namespace
+
+// ============================================================
+// Private: Inspector tree unwrapping
+// ============================================================
+
+std::string UiOperationChainExecutor::UnwrapInspectorTree(const std::string& wrappedJson)
+{
+    if (wrappedJson.empty()) {
+        return wrappedJson;
+    }
+    try {
+        auto outer = nlohmann::json::parse(wrappedJson);
+        // ArkUI GetVisibleInspectorTree wraps the tree in {"0": "<string>"}.
+        if (outer.is_object() && outer.contains("0") && outer["0"].is_string()) {
+            return outer["0"].get<std::string>();
+        }
+        // Not wrapped — return as-is (already raw Inspector tree JSON).
+        return wrappedJson;
+    } catch (const nlohmann::json::exception& e) {
+        TAG_LOGW(AAFwkTag::INTENT, "UnwrapInspectorTree parse failed, use raw: %{public}s", e.what());
+        return wrappedJson;
+    }
+}
 
 // ============================================================
 // Private: Service management
@@ -127,7 +151,10 @@ void UiOperationChainExecutor::DoRequestInspectorTree(sptr<Ace::IUiContentServic
         if (isEnd) {
             std::string fullTree = std::move(self->accumulatedTree_);
             self->accumulatedTree_.clear();
-            if (onTreeReady) { onTreeReady(fullTree, true); }
+            // ArkUI wraps Inspector tree in {"0": "<escaped-json>"}.
+            // Unwrap here so the parser receives the raw Inspector tree JSON.
+            std::string unwrappedTree = UnwrapInspectorTree(fullTree);
+            if (onTreeReady) { onTreeReady(unwrappedTree, true); }
         }
     };
 
@@ -631,7 +658,9 @@ void UiOperationChainExecutor::ExecuteStep(size_t stepIndex)
         self->ProceedToStep(stepIndex + 1);
     };
 
-    DoRequestInspectorTree(service, Ace::ParamConfig(), treeReady);
+    Ace::ParamConfig paramConfig;
+    paramConfig.interactionInfo = true;
+    DoRequestInspectorTree(service, paramConfig, treeReady);
 }
 
 void UiOperationChainExecutor::ProceedToStep(size_t stepIndex)
@@ -773,7 +802,9 @@ void UiOperationChainExecutor::ExecuteStepWithPageWait(size_t stepIndex)
         self->ProceedToStep(stepIndex + 1);
     };
 
-    DoRequestInspectorTree(service, Ace::ParamConfig(), treeReady);
+    Ace::ParamConfig paramConfig;
+    paramConfig.interactionInfo = true;
+    DoRequestInspectorTree(service, paramConfig, treeReady);
 }
 
 std::vector<MatchedNodeInfo> UiOperationChainExecutor::ResolveMatchingNodes(

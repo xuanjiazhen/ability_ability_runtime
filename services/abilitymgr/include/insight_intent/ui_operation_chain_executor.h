@@ -220,6 +220,12 @@ private:
         const Ace::ParamConfig& config,
         std::function<void(std::string, bool)> onTreeReady);
 
+    /**
+     * @brief Unwrap the {"0": "<escaped-json>"} envelope from ArkUI GetVisibleInspectorTree.
+     * Returns the inner Inspector tree JSON string, or the original string if unwrapping fails.
+     */
+    static std::string UnwrapInspectorTree(const std::string& wrappedJson);
+
     /** @brief Execute a single chain step. */
     void ExecuteStep(size_t stepIndex);
 
