@@ -32,6 +32,7 @@
 #include "js_agent_receiver_proxy.h"
 #include "js_error_utils.h"
 #include "js_runtime_utils.h"
+#include "low_code_agent_registry.h"
 #include "napi/native_api.h"
 #include "napi_common_util.h"
 #include "napi_common_want.h"
@@ -894,8 +895,10 @@ napi_value JsAgentManager::OnNotifyLowCodeAgentComplete(napi_env env, size_t arg
     NapiAsyncTask::ExecuteCallback execute = [agentId, innerErrCode]() {
         *innerErrCode = AgentManagerClient::GetInstance().NotifyLowCodeAgentComplete(agentId);
     };
-    NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {
+    NapiAsyncTask::CompleteCallback complete =
+        [agentId, innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {
         if (*innerErrCode == ERR_OK) {
+            LowCodeAgentRegistry::MarkComplete(agentId);
             task.ResolveWithNoError(env, CreateJsUndefined(env));
         } else {
             task.Reject(env, CreateJsError(env, static_cast<int32_t>(GetJsErrorCodeByNativeError(*innerErrCode)),

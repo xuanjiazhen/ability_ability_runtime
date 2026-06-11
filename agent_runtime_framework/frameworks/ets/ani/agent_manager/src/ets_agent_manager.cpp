@@ -33,6 +33,7 @@
 #include "ets_agent_receiver_proxy.h"
 #include "ets_error_utils.h"
 #include "hilog_tag_wrapper.h"
+#include "low_code_agent_registry.h"
 #include "remote_object_taihe_ani.h"
 
 using namespace OHOS::AgentRuntime;
@@ -751,6 +752,7 @@ void EtsAgentManager::NotifyLowCodeAgentComplete(ani_env *env, ani_string aniAge
             nullptr);
         return;
     }
+    LowCodeAgentRegistry::MarkComplete(agentId);
     AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
         EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
 }
