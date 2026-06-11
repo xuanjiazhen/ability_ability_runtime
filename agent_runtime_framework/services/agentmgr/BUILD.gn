@@ -37,7 +37,6 @@ ohos_shared_library("agentmgr") {
     "src/agent_card_db_mgr.cpp",
     "src/agent_card_mgr.cpp",
     "src/agent_event_handler.cpp",
-    "src/agent_host_connection.cpp",
     "src/agent_manager_service.cpp",
     "src/agent_service_connection.cpp",
   ]

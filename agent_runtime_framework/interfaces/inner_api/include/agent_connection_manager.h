@@ -225,9 +225,34 @@ private:
     using AgentConnectionCallbacks = std::vector<sptr<AbilityRuntime::AbilityConnectCallback>>;
     using AgentConnectionRecord = std::pair<AgentConnectionInfo, AgentConnectionCallbacks>;
     using AgentConnectionRecords = std::list<AgentConnectionRecord>;
+    struct PendingDisconnectRecord {
+        sptr<AgentConnection> agentConnection;
+        sptr<IRemoteObject> backingRemote;
+    };
 
     bool MatchConnection(const std::string &agentId, const AAFwk::Want &connectReceiver,
+        const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback,
         const AgentConnectionRecord &connection);
+    /**
+     * @brief Find the record owned by the callback while connectionsLock_ is held.
+     */
+    AgentConnectionRecords::iterator FindDisconnectRecordLocked(
+        const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback);
+    /**
+     * @brief Remove local records that share the same backing agent remote object.
+     */
+    void RemoveSharedAgentConnectionsLocked(const sptr<IRemoteObject> &backingRemote);
+    /**
+     * @brief Process the matched disconnect record while connectionsLock_ is held.
+     */
+    void ProcessDisconnectRecordLocked(
+        const AgentConnectionRecords::iterator &current,
+        const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback,
+        std::vector<PendingDisconnectRecord> &disconnectConnections);
+    /**
+     * @brief Remove records after AMS accepts the backing disconnect.
+     */
+    void RemoveDisconnectedRecordLocked(const PendingDisconnectRecord &record);
     /**
      * @brief Create a new connection to the agent extension.
      *
