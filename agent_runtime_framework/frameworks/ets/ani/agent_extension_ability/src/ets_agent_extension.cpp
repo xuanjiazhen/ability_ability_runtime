@@ -16,6 +16,7 @@
 #include "ets_agent_extension.h"
 
 #include "ability_business_error.h"
+#include "ability_manager_errors.h"
 #include "agent_extension.h"
 #include "agent_extension_connection_constants.h"
 #include "agent_extension_context.h"
@@ -32,6 +33,7 @@
 #include "ets_runtime.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "low_code_agent_registry.h"
 
 #ifdef WINDOWS_PLATFORM
 #define ETS_EXPORT __declspec(dllexport)
@@ -133,7 +135,9 @@ void EtsAgentExtension::OnStart(const AAFwk::Want &want)
         TAG_LOGE(AAFwkTag::SER_ROUTER, "env not found");
         return;
     }
-    ani_ref wantRef = OHOS::AppExecFwk::WrapWant(env, want);
+    AAFwk::Want etsWant = want;
+    etsWant.RemoveParam(AGENT_LOW_CODE_BACKING_KEY);
+    ani_ref wantRef = OHOS::AppExecFwk::WrapWant(env, etsWant);
     if (wantRef == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null wantRef");
         return;
@@ -170,7 +174,9 @@ sptr<IRemoteObject> EtsAgentExtension::OnConnect(const AAFwk::Want &want,
         return nullptr;
     }
 
-    ani_object aniWant = AppExecFwk::WrapWant(env, want);
+    AAFwk::Want etsWant = want;
+    etsWant.RemoveParam(AGENT_LOW_CODE_BACKING_KEY);
+    ani_object aniWant = AppExecFwk::WrapWant(env, etsWant);
     if (aniWant == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null aniWant");
         return nullptr;
@@ -228,7 +234,9 @@ void EtsAgentExtension::OnDisconnect(const AAFwk::Want &want,
         TAG_LOGW(AAFwkTag::SER_ROUTER, "null hostProxy");
         return;
     }
-    ani_object aniWant = AppExecFwk::WrapWant(env, want);
+    AAFwk::Want etsWant = want;
+    etsWant.RemoveParam(AGENT_LOW_CODE_BACKING_KEY);
+    ani_object aniWant = AppExecFwk::WrapWant(env, etsWant);
     if (aniWant == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null aniWant");
         return;
@@ -266,6 +274,10 @@ int32_t EtsAgentExtension::OnAuthorize(const sptr<IRemoteObject> &hostProxy, con
 int32_t EtsAgentExtension::OnAgentInvoked(const std::string &agentId)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "OnAgentInvoked call");
+    if (!LowCodeAgentRegistry::MarkActive(agentId)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "low-code agent already active");
+        return AAFwk::ERR_LOW_CODE_AGENT_ALREADY_ACTIVE;
+    }
     HandleAgentInvoked(agentId);
     return static_cast<int32_t>(AbilityErrorCode::ERROR_OK);
 }

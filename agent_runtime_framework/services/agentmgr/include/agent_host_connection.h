@@ -31,6 +31,7 @@ struct AgentHostKey {
     std::string bundleName;
     std::string moduleName;
     std::string abilityName;
+    std::string agentId;
 
     bool operator<(const AgentHostKey &that) const
     {
@@ -43,7 +44,10 @@ struct AgentHostKey {
         if (moduleName != that.moduleName) {
             return moduleName < that.moduleName;
         }
-        return abilityName < that.abilityName;
+        if (abilityName != that.abilityName) {
+            return abilityName < that.abilityName;
+        }
+        return agentId < that.agentId;
     }
 };
 
