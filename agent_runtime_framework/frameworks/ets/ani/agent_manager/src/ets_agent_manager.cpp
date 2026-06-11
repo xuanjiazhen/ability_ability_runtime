@@ -33,6 +33,7 @@
 #include "ets_agent_receiver_proxy.h"
 #include "ets_error_utils.h"
 #include "hilog_tag_wrapper.h"
+#include "low_code_agent_registry.h"
 #include "remote_object_taihe_ani.h"
 
 using namespace OHOS::AgentRuntime;
@@ -58,11 +59,11 @@ std::map<int64_t, sptr<EtsAgentServiceConnection>> g_serviceConnections;
 int64_t g_serviceConnectionSerialNumber = 0;
 
 bool CheckConnectAlreadyExist(ani_env *env, const AAFwk::Want &want, const std::string &agentId,
-    ani_object asyncCallback)
+    ani_object callbackObj, ani_object asyncCallback)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "CheckConnectAlreadyExist called");
     sptr<EtsAgentConnection> connection = nullptr;
-    AgentConnectionUtils::FindAgentConnection(want, agentId, connection);
+    AgentConnectionUtils::FindAgentConnection(want, agentId, env, callbackObj, connection);
     if (connection == nullptr) {
         TAG_LOGD(AAFwkTag::SER_ROUTER, "null connection");
         return false;
@@ -534,7 +535,7 @@ void EtsAgentManager::ConnectAgentExtensionAbility(ani_env *env, ani_object aniW
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
 
     // Check for duplicate connection
-    if (CheckConnectAlreadyExist(env, want, agentId, asyncCallback)) {
+    if (CheckConnectAlreadyExist(env, want, agentId, callbackObj, asyncCallback)) {
         TAG_LOGI(AAFwkTag::SER_ROUTER, "Duplicate connection found");
         return;
     }
@@ -751,6 +752,7 @@ void EtsAgentManager::NotifyLowCodeAgentComplete(ani_env *env, ani_string aniAge
             nullptr);
         return;
     }
+    LowCodeAgentRegistry::MarkComplete(agentId);
     AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
         EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
 }

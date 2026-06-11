@@ -32,6 +32,7 @@
 #include "js_agent_receiver_proxy.h"
 #include "js_error_utils.h"
 #include "js_runtime_utils.h"
+#include "low_code_agent_registry.h"
 #include "napi/native_api.h"
 #include "napi_common_util.h"
 #include "napi_common_want.h"
@@ -233,12 +234,13 @@ void RemoveServiceConnection(int64_t connectionId)
 }
 
 // Helper function to check for duplicate connections
-bool CheckConnectAlreadyExist(napi_env env, const AAFwk::Want &want, const std::string &agentId, napi_value &result)
+bool CheckConnectAlreadyExist(napi_env env, const AAFwk::Want &want, const std::string &agentId,
+    napi_value callbackObject, napi_value &result)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "CheckConnectAlreadyExist called");
 
     sptr<JSAgentConnection> connection = nullptr;
-    AgentConnectionUtils::FindAgentConnection(want, agentId, connection);
+    AgentConnectionUtils::FindAgentConnection(want, agentId, env, callbackObject, connection);
     if (connection == nullptr) {
         TAG_LOGD(AAFwkTag::SER_ROUTER, "No duplicate connection found");
         return false;
@@ -580,7 +582,7 @@ napi_value JsAgentManager::OnConnectAgentExtensionAbility(napi_env env, size_t a
 
     // 2. Check for duplicate connection
     napi_value result = nullptr;
-    bool duplicated = CheckConnectAlreadyExist(env, want, agentId, result);
+    bool duplicated = CheckConnectAlreadyExist(env, want, agentId, callbackObject, result);
     if (duplicated) {
         TAG_LOGI(AAFwkTag::SER_ROUTER, "Duplicated connection found");
         return result;
@@ -894,8 +896,10 @@ napi_value JsAgentManager::OnNotifyLowCodeAgentComplete(napi_env env, size_t arg
     NapiAsyncTask::ExecuteCallback execute = [agentId, innerErrCode]() {
         *innerErrCode = AgentManagerClient::GetInstance().NotifyLowCodeAgentComplete(agentId);
     };
-    NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {
+    NapiAsyncTask::CompleteCallback complete =
+        [agentId, innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {
         if (*innerErrCode == ERR_OK) {
+            LowCodeAgentRegistry::MarkComplete(agentId);
             task.ResolveWithNoError(env, CreateJsUndefined(env));
         } else {
             task.Reject(env, CreateJsError(env, static_cast<int32_t>(GetJsErrorCodeByNativeError(*innerErrCode)),
