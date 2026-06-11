@@ -130,6 +130,8 @@ private:
 
     sptr<IRemoteObject> GetHostProxyFromWant(const AAFwk::Want &want);
 
+    ani_object WrapWant(ani_env *env, const AAFwk::Want &want);
+
     ETSRuntime& etsRuntime_;
     std::unique_ptr<ETSNativeReference> etsObj_;
     std::shared_ptr<AbilityContext> aContext_ = nullptr;

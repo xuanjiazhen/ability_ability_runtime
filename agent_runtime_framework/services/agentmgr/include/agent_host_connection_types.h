@@ -21,6 +21,7 @@
 #include <string>
 
 #include "agent_host_connection.h"
+#include "agent_low_code_record.h"
 
 namespace OHOS {
 namespace AgentRuntime {
@@ -29,42 +30,28 @@ namespace AgentRuntime {
  * @brief Maps a logical low-code agent owner to the shared host session that currently serves it.
  */
 struct AgentOwnerKey {
-    int32_t hostUid = 0;
+    AgentCallerIdentity callerIdentity;
     std::string agentId;
 
-    bool operator<(const AgentOwnerKey &that) const
-    {
-        if (hostUid != that.hostUid) {
-            return hostUid < that.hostUid;
-        }
-        return agentId < that.agentId;
-    }
+    AgentOwnerKey() = default;
+    AgentOwnerKey(const AgentCallerIdentity &callerIdentityValue, const std::string &agentIdValue)
+        : callerIdentity(callerIdentityValue), agentId(agentIdValue)
+    {}
+    AgentOwnerKey(int32_t callerUid, const std::string &agentIdValue)
+        : callerIdentity(callerUid), agentId(agentIdValue)
+    {}
 };
 
-/**
- * @struct LowCodeAgentRecord
- * @brief Tracks one caller's registration inside a shared low-code host session.
- */
-struct LowCodeAgentRecord {
-    sptr<IRemoteObject> callerRemote;
-    bool isPending = false;
-};
+using AgentHostSession = AgentLowCodeRecord;
 
-/**
- * @struct AgentHostSession
- * @brief Stores the shared host connection state reused by multiple low-code agents on the same target host.
- */
-struct AgentHostSession {
+struct AgentHostSessionRecord {
     AgentHostKey key;
-    int32_t hostUid = 0;
-    sptr<AgentHostConnection> hostConnection;
-    std::map<sptr<IRemoteObject>, sptr<AAFwk::IAbilityConnection>> callerConnections;
-    std::map<std::string, LowCodeAgentRecord> agents;
-    AppExecFwk::ElementName element;
-    sptr<IRemoteObject> remoteObject;
-    int32_t resultCode = ERR_OK;
-    bool isConnected = false;
-    bool isDisconnecting = false;
+    std::shared_ptr<AgentHostSession> session = nullptr;
+};
+
+struct AgentOwnerRecord {
+    AgentOwnerKey key;
+    std::shared_ptr<AgentHostSession> session = nullptr;
 };
 
 /**
@@ -74,6 +61,7 @@ struct AgentHostSession {
 struct AgentConnectPlan {
     AgentHostKey hostKey;
     int32_t hostUid = 0;
+    AgentCallerIdentity callerIdentity;
     sptr<AgentHostConnection> hostConnection;
     sptr<IRemoteObject> callerRemote;
     AppExecFwk::ElementName cachedElement;

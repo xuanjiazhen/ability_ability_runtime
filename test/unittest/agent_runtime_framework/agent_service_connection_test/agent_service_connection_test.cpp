@@ -85,7 +85,7 @@ HWTEST_F(AgentServiceConnectionTest, OnAbilityConnectDone_001, TestSize.Level1)
     auto callerConnection = sptr<TrackingAbilityConnection>::MakeSptr();
     auto service = AgentManagerService::GetInstance();
     service->callerConnectionCounts_[100] = 1;
-    AgentManagerService::TrackedConnectionRecord record;
+    TrackedConnectionRecord record;
     record.callerUid = 100;
     service->trackedConnections_.emplace(callerConnection->AsObject(), record);
 
@@ -111,7 +111,7 @@ HWTEST_F(AgentServiceConnectionTest, OnAbilityConnectDone_002, TestSize.Level1)
     auto callerConnection = sptr<TrackingAbilityConnection>::MakeSptr();
     auto service = AgentManagerService::GetInstance();
     service->callerConnectionCounts_[100] = 1;
-    AgentManagerService::TrackedConnectionRecord record;
+    TrackedConnectionRecord record;
     record.callerUid = 100;
     service->trackedConnections_.emplace(callerConnection->AsObject(), record);
 
@@ -135,7 +135,7 @@ HWTEST_F(AgentServiceConnectionTest, OnAbilityDisconnectDone_001, TestSize.Level
     auto callerConnection = sptr<TrackingAbilityConnection>::MakeSptr();
     auto service = AgentManagerService::GetInstance();
     service->callerConnectionCounts_[100] = 1;
-    AgentManagerService::TrackedConnectionRecord record;
+    TrackedConnectionRecord record;
     record.callerUid = 100;
     service->trackedConnections_.emplace(callerConnection->AsObject(), record);
 
@@ -178,15 +178,15 @@ HWTEST_F(AgentServiceConnectionTest, OnAbilityConnectDone_003, TestSize.Level1)
     auto caller1 = sptr<TrackingAbilityConnection>::MakeSptr();
     auto caller2 = sptr<TrackingAbilityConnection>::MakeSptr();
 
-    AgentManagerService::StandardAgentKey key;
+    StandardAgentKey key;
     key.callerUid = 100;
     key.agentId = "testAgent";
     key.bundleName = "test.bundle";
     key.abilityName = "TestAbility";
 
-    auto session = std::make_shared<AgentManagerService::StandardAgentSession>();
+    auto session = std::make_shared<AgentStandardRecord>();
     session->key = key;
-    session->state = AgentManagerService::StandardAgentState::CONNECTING;
+    session->state = StandardAgentState::CONNECTING;
     session->pendingCallbacks.push_back(caller1);
     session->pendingCallbacks.push_back(caller2);
 
@@ -211,7 +211,7 @@ HWTEST_F(AgentServiceConnectionTest, OnAbilityConnectDone_003, TestSize.Level1)
     EXPECT_EQ(caller2->lastRemoteObject, remoteObject);
 
     // Session should be CONNECTED and pendingCallbacks should be empty
-    EXPECT_EQ(session->state, AgentManagerService::StandardAgentState::CONNECTED);
+    EXPECT_EQ(session->state, StandardAgentState::CONNECTED);
     EXPECT_TRUE(session->pendingCallbacks.empty());
     // Both should be in connectedCallbacks now
     EXPECT_EQ(session->connectedCallbacks.size(), 2);
@@ -228,15 +228,15 @@ HWTEST_F(AgentServiceConnectionTest, OnAbilityConnectDone_004, TestSize.Level1)
 
     auto caller1 = sptr<TrackingAbilityConnection>::MakeSptr();
 
-    AgentManagerService::StandardAgentKey key;
+    StandardAgentKey key;
     key.callerUid = 100;
     key.agentId = "testAgent";
     key.bundleName = "test.bundle";
     key.abilityName = "TestAbility";
 
-    auto session = std::make_shared<AgentManagerService::StandardAgentSession>();
+    auto session = std::make_shared<AgentStandardRecord>();
     session->key = key;
-    session->state = AgentManagerService::StandardAgentState::CONNECTING;
+    session->state = StandardAgentState::CONNECTING;
     session->pendingCallbacks.push_back(caller1);
 
     auto agentConnection = sptr<AgentServiceConnection>::MakeSptr(nullptr);
@@ -269,15 +269,15 @@ HWTEST_F(AgentServiceConnectionTest, OnAbilityDisconnectDone_002, TestSize.Level
     auto caller1 = sptr<TrackingAbilityConnection>::MakeSptr();
     auto caller2 = sptr<TrackingAbilityConnection>::MakeSptr();
 
-    AgentManagerService::StandardAgentKey key;
+    StandardAgentKey key;
     key.callerUid = 100;
     key.agentId = "testAgent";
     key.bundleName = "test.bundle";
     key.abilityName = "TestAbility";
 
-    auto session = std::make_shared<AgentManagerService::StandardAgentSession>();
+    auto session = std::make_shared<AgentStandardRecord>();
     session->key = key;
-    session->state = AgentManagerService::StandardAgentState::CONNECTED;
+    session->state = StandardAgentState::CONNECTED;
     session->connectedCallbacks.push_back(caller1);
     session->connectedCallbacks.push_back(caller2);
 
@@ -286,7 +286,7 @@ HWTEST_F(AgentServiceConnectionTest, OnAbilityDisconnectDone_002, TestSize.Level
     session->serviceConnection = agentConnection;
 
     // Also set up a tracked connection for the first caller so HandleConnectionDone can clean up
-    AgentManagerService::TrackedConnectionRecord record;
+    TrackedConnectionRecord record;
     record.callerUid = 100;
     record.isDisconnecting = true;
     service->trackedConnections_.emplace(caller1->AsObject(), record);
@@ -318,15 +318,15 @@ HWTEST_F(AgentServiceConnectionTest, OnAbilityConnectDone_005, TestSize.Level1)
 {
     auto service = AgentManagerService::GetInstance();
 
-    AgentManagerService::StandardAgentKey key;
+    StandardAgentKey key;
     key.callerUid = 100;
     key.agentId = "testAgent";
     key.bundleName = "test.bundle";
     key.abilityName = "TestAbility";
 
-    auto session = std::make_shared<AgentManagerService::StandardAgentSession>();
+    auto session = std::make_shared<AgentStandardRecord>();
     session->key = key;
-    session->state = AgentManagerService::StandardAgentState::CONNECTING;
+    session->state = StandardAgentState::CONNECTING;
     // No pending callbacks — session mode should still work without crash
 
     auto agentConnection = sptr<AgentServiceConnection>::MakeSptr(nullptr);
@@ -340,7 +340,7 @@ HWTEST_F(AgentServiceConnectionTest, OnAbilityConnectDone_005, TestSize.Level1)
     // Should not crash even with no pending callbacks
     agentConnection->OnAbilityConnectDone(element, remoteObject, ERR_OK);
 
-    EXPECT_EQ(session->state, AgentManagerService::StandardAgentState::CONNECTED);
+    EXPECT_EQ(session->state, StandardAgentState::CONNECTED);
     EXPECT_TRUE(session->pendingCallbacks.empty());
     EXPECT_TRUE(session->connectedCallbacks.empty());
 }
