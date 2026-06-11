@@ -663,6 +663,13 @@ private:
         int connectRecordId, const Want &want);
 
     /**
+     * Resume pending agent connects after a disconnect callback releases the previous record.
+     *
+     * @param abilityRecord, the ptr of the ability to connect.
+     */
+    void ResumePendingAgentConnectionRecords(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+
+    /**
      * ConnectAbility.Schedule Resume Connect ability
      *
      * @param abilityRecord, the ptr of the ability to connect.

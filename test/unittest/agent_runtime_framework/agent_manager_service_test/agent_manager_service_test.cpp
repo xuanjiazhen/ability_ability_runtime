@@ -74,6 +74,7 @@ AgentCard BuildServiceTestAgentCard(const std::string &agentId)
 AgentManagerService::StandardAgentKey BuildTestStandardKey()
 {
     AgentManagerService::StandardAgentKey key;
+    key.callerIdentity = AgentManagerService::AgentCallerIdentity(100);
     key.callerUid = 100;
     key.agentId = "testAgent";
     key.bundleName = "test.bundle";
@@ -100,6 +101,7 @@ void AddTestStandardTrackedConnection(const sptr<AgentManagerService> &service,
     const sptr<AgentServiceConnection> &serviceConnection, bool countTowardsCallerLimit)
 {
     AgentManagerService::TrackedConnectionRecord record;
+    record.callerIdentity = key.callerIdentity;
     record.callerUid = key.callerUid;
     record.callerRemote = connection->AsObject();
     record.serviceConnection = serviceConnection;
@@ -148,6 +150,7 @@ void AgentManagerServiceTest::SetUp(void)
     MyFlag::retGetProcessRunningInfoByPid = ERR_OK;
     MyFlag::retGetBundleNameByPid = ERR_OK;
     MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
+    MyFlag::processInstanceKey = "";
     MyFlag::retGetAgentCardByAgentId = ERR_OK;
     MyFlag::agentCardsByBundleName.clear();
     MyFlag::agentCardAgentId = "testAgent";
@@ -2514,6 +2517,38 @@ HWTEST_F(AgentManagerServiceTest, ValidateConnectAgentRequest_005, TestSize.Leve
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
     EXPECT_EQ(AgentManagerService::GetInstance()->ValidateConnectAgentRequest(connection, callerUid),
         AAFwk::NOT_TOP_ABILITY);
+}
+
+/**
+* @tc.name  : ValidateConnectAgentRequest_006
+* @tc.number: ValidateConnectAgentRequest_006
+* @tc.desc  : Test ValidateConnectAgentRequest keeps caller instanceKey from RunningProcessInfo
+*/
+HWTEST_F(AgentManagerServiceTest, ValidateConnectAgentRequest_006, TestSize.Level1)
+{
+    MyFlag::processInstanceKey = "cloneA";
+    AgentManagerService::AgentCallerIdentity callerIdentity;
+    auto connection = sptr<MockAbilityConnection>::MakeSptr();
+
+    EXPECT_EQ(AgentManagerService::GetInstance()->ValidateConnectAgentRequest(connection, callerIdentity), ERR_OK);
+    EXPECT_EQ(callerIdentity.uid, IPCSkeleton::GetCallingUid());
+    EXPECT_EQ(callerIdentity.instanceKey, "cloneA");
+}
+
+/**
+* @tc.name  : CallerConnectionQuota_001
+* @tc.number: CallerConnectionQuota_001
+* @tc.desc  : Test caller quota is separated by uid plus instanceKey
+*/
+HWTEST_F(AgentManagerServiceTest, CallerConnectionQuota_001, TestSize.Level1)
+{
+    auto service = AgentManagerService::GetInstance();
+    AgentManagerService::AgentCallerIdentity cloneA(100, "cloneA");
+    AgentManagerService::AgentCallerIdentity cloneB(100, "cloneB");
+    service->callerConnectionCounts_[cloneA] = AgentManagerService::MAX_CONNECTIONS_PER_CALLER;
+
+    EXPECT_TRUE(service->HasReachedCallerConnectionLimitLocked(cloneA));
+    EXPECT_FALSE(service->HasReachedCallerConnectionLimitLocked(cloneB));
 }
 
 /**

@@ -15,6 +15,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <iterator>
 
 #define private public
 #include "agent_connection_manager.h"
@@ -22,6 +23,7 @@
 #include "ability_connect_callback.h"
 #include "ability_connect_callback_interface.h"
 #include "ability_manager_errors.h"
+#include "agent_connect_callback_identity.h"
 #include "agent_extension_connection_constants.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_object_stub.h"
@@ -76,6 +78,47 @@ public:
     {
         MyFlag::isOnAbilityDisconnectDoneCalled = true;
     }
+};
+
+class MockIdentityAbilityConnectCallback : public AbilityConnectCallback, public AgentConnectCallbackIdentity {
+public:
+    explicit MockIdentityAbilityConnectCallback(int32_t identity) : identity_(identity) {}
+    ~MockIdentityAbilityConnectCallback() override = default;
+
+    void OnAbilityConnectDone(
+        const AppExecFwk::ElementName &element,
+        const sptr<IRemoteObject> &remoteObject,
+        int resultCode) override
+    {}
+
+    void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) override
+    {
+        disconnectCount_++;
+    }
+
+    const AgentConnectCallbackIdentity *GetAgentConnectCallbackIdentity() const override
+    {
+        return this;
+    }
+
+    AgentConnectCallbackKind GetAgentConnectCallbackKind() const override
+    {
+        return AgentConnectCallbackKind::JS;
+    }
+
+    bool IsSameAgentConnectCallback(const AgentConnectCallbackIdentity &other) const override
+    {
+        if (other.GetAgentConnectCallbackKind() != AgentConnectCallbackKind::JS) {
+            return false;
+        }
+        const auto &otherCallback = static_cast<const MockIdentityAbilityConnectCallback&>(other);
+        return identity_ == otherCallback.identity_;
+    }
+
+    int32_t disconnectCount_ = 0;
+
+private:
+    int32_t identity_ = 0;
 };
 }
 
@@ -292,6 +335,49 @@ HWTEST_F(AgentConnectionManagerTest, DisconnectAgentExtensionAbility_005, TestSi
 
     auto result = AgentConnectionManager::GetInstance().DisconnectAgentExtensionAbility(callback1);
     EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+* @tc.name  : SuppressSharedDisconnectCallbacks_ShouldKeepOnlyDisconnectOwner
+* @tc.number: DisconnectAgentExtensionAbility_006
+* @tc.desc  : Test shared backing disconnect suppresses duplicate developer callback wrappers
+*/
+HWTEST_F(AgentConnectionManagerTest, DisconnectAgentExtensionAbility_006, TestSize.Level1)
+{
+    Want wantA;
+    wantA.SetParam(AGENTID_KEY, std::string("agentA"));
+    wantA.SetElementName("", "test.bundle", "test.ability", "test.module");
+    Want wantB;
+    wantB.SetParam(AGENTID_KEY, std::string("agentB"));
+    wantB.SetElementName("", "test.bundle", "test.ability", "test.module");
+
+    sptr<MockIdentityAbilityConnectCallback> callbackA = new MockIdentityAbilityConnectCallback(1);
+    sptr<MockIdentityAbilityConnectCallback> callbackB = new MockIdentityAbilityConnectCallback(1);
+    EXPECT_EQ(AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(wantA, callbackA), ERR_OK);
+    EXPECT_EQ(AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(wantB, callbackB), ERR_OK);
+    EXPECT_EQ(AgentConnectionManager::GetInstance().agentConnections_.size(), static_cast<size_t>(2));
+
+    auto first = AgentConnectionManager::GetInstance().agentConnections_.begin();
+    auto second = std::next(first);
+    sptr<IRemoteObject> backingRemote = sptr<MockIRemoteObject>::MakeSptr();
+    first->first.agentConnection->SetRemoteObject(backingRemote);
+    second->first.agentConnection->SetRemoteObject(backingRemote);
+
+    AgentConnectionManager::PendingDisconnectRecord record;
+    record.agentConnection = first->first.agentConnection;
+    record.backingRemote = backingRemote;
+    record.connectCallback = callbackA;
+    AgentConnectionManager::GetInstance().SuppressSharedDisconnectCallbacksLocked(record);
+
+    EXPECT_EQ(first->first.agentConnection->GetCallbackList().size(), static_cast<size_t>(1));
+    EXPECT_EQ(second->first.agentConnection->GetCallbackList().size(), static_cast<size_t>(0));
+    EXPECT_EQ(record.suppressedCallbacks.size(), static_cast<size_t>(1));
+
+    AppExecFwk::ElementName element;
+    second->first.agentConnection->OnAbilityDisconnectDone(element, ERR_OK);
+    first->first.agentConnection->OnAbilityDisconnectDone(element, ERR_OK);
+    EXPECT_EQ(callbackA->disconnectCount_, 1);
+    EXPECT_EQ(callbackB->disconnectCount_, 0);
 }
 
 /**
@@ -879,7 +965,7 @@ HWTEST_F(AgentConnectionManagerTest, MatchConnection_001, TestSize.Level1)
     AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(want2, callback);
 
     auto &connectionEntry = *AgentConnectionManager::GetInstance().agentConnections_.begin();
-    auto result = AgentConnectionManager::GetInstance().MatchConnection("agent1", want, connectionEntry);
+    auto result = AgentConnectionManager::GetInstance().MatchConnection("agent1", want, callback, connectionEntry);
     EXPECT_FALSE(result);
 }
 
@@ -907,7 +993,7 @@ HWTEST_F(AgentConnectionManagerTest, MatchConnection_002, TestSize.Level1)
     AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(want2, callback);
 
     auto &connectionEntry = *AgentConnectionManager::GetInstance().agentConnections_.begin();
-    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, connectionEntry);
+    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, callback, connectionEntry);
     EXPECT_TRUE(result);
 }
 
@@ -931,7 +1017,7 @@ HWTEST_F(AgentConnectionManagerTest, MatchConnection_003, TestSize.Level1)
     AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(want2, callback);
 
     auto &connectionEntry = *AgentConnectionManager::GetInstance().agentConnections_.begin();
-    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, connectionEntry);
+    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, callback, connectionEntry);
     EXPECT_FALSE(result);
 }
 
@@ -955,14 +1041,14 @@ HWTEST_F(AgentConnectionManagerTest, MatchConnection_004, TestSize.Level1)
     AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(want2, callback);
 
     auto &connectionEntry = *AgentConnectionManager::GetInstance().agentConnections_.begin();
-    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, connectionEntry);
+    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, callback, connectionEntry);
     EXPECT_FALSE(result);
 }
 
 /**
-* @tc.name  : MatchConnection_ShouldReturnTrue_WhenModuleNameIsEmpty
+* @tc.name  : MatchConnection_ShouldReturnFalse_WhenModuleNameIsEmpty
 * @tc.number: MatchConnection_007
-* @tc.desc  : Test MatchConnection returns true when the user-passed Want does not specify moduleName
+* @tc.desc  : Test MatchConnection returns false when the user-passed Want does not specify moduleName
 */
 HWTEST_F(AgentConnectionManagerTest, MatchConnection_007, TestSize.Level1)
 {
@@ -979,8 +1065,8 @@ HWTEST_F(AgentConnectionManagerTest, MatchConnection_007, TestSize.Level1)
     AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(want2, callback);
 
     auto &connectionEntry = *AgentConnectionManager::GetInstance().agentConnections_.begin();
-    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, connectionEntry);
-    EXPECT_TRUE(result);
+    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, callback, connectionEntry);
+    EXPECT_FALSE(result);
 }
 
 /**
@@ -1003,7 +1089,7 @@ HWTEST_F(AgentConnectionManagerTest, MatchConnection_005, TestSize.Level1)
     AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(want2, callback);
 
     auto &connectionEntry = *AgentConnectionManager::GetInstance().agentConnections_.begin();
-    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, connectionEntry);
+    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, callback, connectionEntry);
     EXPECT_FALSE(result);
 }
 
@@ -1025,7 +1111,7 @@ HWTEST_F(AgentConnectionManagerTest, MatchConnection_006, TestSize.Level1)
     AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(want, callback);
 
     auto &connectionEntry = *AgentConnectionManager::GetInstance().agentConnections_.begin();
-    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, connectionEntry);
+    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, callback, connectionEntry);
     EXPECT_TRUE(result);
 }
 

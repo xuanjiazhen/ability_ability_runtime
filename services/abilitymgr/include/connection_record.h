@@ -122,7 +122,7 @@ public:
      * complete connect ability and just try to invoke callback.
      *
      */
-    void CompleteConnectAndOnlyCallConnectDone();
+    void CompleteConnectAndOnlyCallConnectDone(const Want &connectWant = Want());
 
     /**
      * complete disconnect ability and invoke callback.
@@ -177,12 +177,15 @@ public:
 
     void SetConnectWant(const Want &want);
     Want GetConnectWant() const;
+    void SetTargetLifecycleConnected(bool connected);
+    bool IsTargetLifecycleConnected() const;
 private:
     void ScheduleDisconnectTimeout();
     void SetDirectCallerInfo();
 
     static int64_t connectRecordId;
     Want connectWant_;
+    bool targetLifecycleConnected_ = true;
     ConnectionState state_;                            // service connection state
     sptr<IRemoteObject> callerToken_ = nullptr;              // from:caller token
     std::shared_ptr<BaseExtensionRecord> targetService_ = nullptr; // target:service need to be connected

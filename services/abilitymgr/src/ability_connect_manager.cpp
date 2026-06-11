@@ -62,6 +62,17 @@ const std::string DEBUG_APP = "debugApp";
 const std::string FRS_APP_INDEX = "ohos.extra.param.key.frs_index";
 const std::string FRS_BUNDLE_NAME = "com.ohos.formrenderservice";
 const std::string MAX_UINT64_VALUE = "18446744073709551615";
+
+bool IsConnectedLowCodeBacking(const AbilityRequest &abilityRequest,
+    const std::shared_ptr<BaseExtensionRecord> &targetService, bool isLoadedAbility)
+{
+    return isLoadedAbility &&
+        targetService != nullptr &&
+        abilityRequest.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
+        abilityRequest.want.GetBoolParam(AgentRuntime::AGENT_LOW_CODE_BACKING_KEY, false) &&
+        targetService->GetConnRemoteObject() != nullptr;
+}
+
 #ifdef SUPPORT_ASAN
 const int LOAD_TIMEOUT_MULTIPLE = 150;
 const int CONNECT_TIMEOUT_MULTIPLE = 45;
@@ -391,10 +402,9 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
     // 3. If this service ability and callback has been connected, There is no need to connect repeatedly
     if (isLoadedAbility && (isCallbackConnected) && (connectedRecord != nullptr)) {
         TAG_LOGI(AAFwkTag::EXT, "service/callback connected");
-        connectedRecord->CompleteConnectAndOnlyCallConnectDone();
+        connectedRecord->CompleteConnectAndOnlyCallConnectDone(abilityRequest.want);
         return ERR_OK;
     }
-
     // 4. Other cases , need to connect the service ability
     auto connectRecord = ConnectionRecord::CreateConnectionRecord(
         callerToken, targetService, connect, shared_from_this());
@@ -414,6 +424,12 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
     targetService->SetSessionInfo(sessionInfo);
     connectRecordList.push_back(connectRecord);
     AddConnectObjectToMap(connectObject, connectRecordList, isCallbackConnected);
+    if (IsConnectedLowCodeBacking(abilityRequest, targetService, isLoadedAbility)) {
+        TAG_LOGI(AAFwkTag::SER_ROUTER, "complete connected low-code backing with connection record");
+        connectRecord->SetTargetLifecycleConnected(false);
+        connectRecord->CompleteConnect();
+        return ERR_OK;
+    }
     HandleConnectionCountIncrement(connectRecord->GetDirectCallerPid(), connectRecord->GetDirectCallerName(),
         abilityRequest.abilityInfo.bundleName + "/" + abilityRequest.abilityInfo.name);
     targetService->SetLaunchReason(LaunchReason::LAUNCHREASON_CONNECT_EXTENSION);
@@ -493,8 +509,11 @@ void AbilityConnectManager::HandleActiveAbility(std::shared_ptr<BaseExtensionRec
         return;
     }
     AppExecFwk::ExtensionAbilityType extType = targetService->GetAbilityInfo().extensionAbilityType;
-    if (extType == AppExecFwk::ExtensionAbilityType::UI_SERVICE ||
-        extType == AppExecFwk::ExtensionAbilityType::AGENT) {
+    if (extType == AppExecFwk::ExtensionAbilityType::AGENT) {
+        if (targetService->GetDisconnectingRecord() != nullptr) {
+            targetService->RemoveSignatureInfo();
+            return;
+        }
         if (connectRecord != nullptr) {
             Want want = connectRecord->GetConnectWant();
             int connectRecordId = connectRecord->GetRecordId();
@@ -524,7 +543,8 @@ std::shared_ptr<ConnectionRecord> AbilityConnectManager::GetAbilityConnectedReco
         if (targetService == nullptr || connectRecord == nullptr) {
             return false;
         }
-        return targetService == connectRecord->GetAbilityRecord();
+        return targetService == connectRecord->GetAbilityRecord() &&
+            connectRecord->GetConnectState() == ConnectionState::CONNECTED;
     };
     auto connectRecord = std::find_if(connectRecordList.begin(), connectRecordList.end(), isMatch);
     if (connectRecord != connectRecordList.end()) {
@@ -584,6 +604,10 @@ int AbilityConnectManager::DisconnectAbilityLocked(const sptr<IAbilityConnection
     }
     for (auto&& connectRecord : list) {
         RemoveConnectionRecordFromMap(connectRecord);
+        auto abilityRecord = connectRecord != nullptr ? connectRecord->GetAbilityRecord() : nullptr;
+        if (abilityRecord != nullptr) {
+            CleanupConnectionAndTerminateIfNeeded(abilityRecord);
+        }
     }
 
     return result;
@@ -946,6 +970,7 @@ int AbilityConnectManager::ScheduleDisconnectAbilityDoneLocked(const sptr<IRemot
     CleanupConnectionAndTerminateIfNeeded(abilityRecord);
 
     RemoveConnectionRecordFromMap(connect);
+    ResumePendingAgentConnectionRecords(abilityRecord);
 
     EventInfo eventInfo = BuildEventInfo(abilityRecord);
     EventReport::SendDisconnectServiceEvent(EventName::DISCONNECT_SERVICE, eventInfo);
@@ -981,6 +1006,22 @@ int AbilityConnectManager::UpdateStateAndCompleteDisconnect(const std::shared_pt
     connect->ScheduleDisconnectAbilityDone();
     abilityRecord->RemoveConnectRecordFromList(connect);
     return ERR_OK;
+}
+
+void AbilityConnectManager::ResumePendingAgentConnectionRecords(
+    const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+{
+    CHECK_POINTER(abilityRecord);
+    auto extensionType = abilityRecord->GetAbilityInfo().extensionAbilityType;
+    if (extensionType != AppExecFwk::ExtensionAbilityType::AGENT) {
+        return;
+    }
+
+    auto connectingList = abilityRecord->GetConnectingRecordList();
+    for (const auto &connectRecord : connectingList) {
+        CHECK_POINTER_CONTINUE(connectRecord);
+        ConnectPerConnectionTypeExtension(abilityRecord, connectRecord->GetRecordId(), connectRecord->GetConnectWant());
+    }
 }
 
 int AbilityConnectManager::CleanupConnectionAndTerminateIfNeeded(std::shared_ptr<BaseExtensionRecord> &abilityRecord)
@@ -2511,7 +2552,8 @@ std::string AbilityConnectManager::GetServiceKey(const std::shared_ptr<BaseExten
     std::string serviceKey = service->GetURI();
     if (FRS_BUNDLE_NAME == service->GetAbilityInfo().bundleName) {
         serviceKey = serviceKey + std::to_string(service->GetIntParam(FRS_APP_INDEX, 0));
-    } else if (service->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+    } else if (service->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
+        !service->GetBoolParam(AgentRuntime::AGENT_LOW_CODE_BACKING_KEY, false)) {
         serviceKey = serviceKey + service->GetStringParam(AgentRuntime::AGENTID_KEY);
     } else if (service->GetAbilityInfo().extensionAbilityType ==
                AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
@@ -2530,7 +2572,8 @@ std::string AbilityConnectManager::GetServiceKey(const AbilityRequest &abilityRe
     std::string serviceKey = element.GetURI();
     if (FRS_BUNDLE_NAME == abilityRequest.abilityInfo.bundleName) {
         serviceKey = serviceKey + std::to_string(abilityRequest.want.GetIntParam(FRS_APP_INDEX, 0));
-    } else if (abilityRequest.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+    } else if (abilityRequest.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
+        !abilityRequest.want.GetBoolParam(AgentRuntime::AGENT_LOW_CODE_BACKING_KEY, false)) {
         serviceKey = serviceKey + abilityRequest.want.GetStringParam(AgentRuntime::AGENTID_KEY);
     } else if (abilityRequest.abilityInfo.extensionAbilityType ==
                AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {

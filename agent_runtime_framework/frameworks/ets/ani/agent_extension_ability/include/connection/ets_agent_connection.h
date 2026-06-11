@@ -23,6 +23,7 @@
 
 #include "ability_connect_callback.h"
 #include "ability_business_error.h"
+#include "agent_connect_callback_identity.h"
 #include "ani.h"
 #include "want.h"
 
@@ -82,7 +83,8 @@ void FindAgentConnection(int64_t connectId, sptr<EtsAgentConnection> &connection
  * @param agentId The agent ID to match.
  * @param connection Output parameter for the found connection.
  */
-void FindAgentConnection(const AAFwk::Want &want, const std::string &agentId, sptr<EtsAgentConnection> &connection);
+void FindAgentConnection(const AAFwk::Want &want, const std::string &agentId, ani_env *env,
+    ani_object callbackObject, sptr<EtsAgentConnection> &connection);
 }
 
 class EtsAgentConnectorStubImpl;
@@ -92,7 +94,7 @@ class EtsAgentConnectorStubImpl;
  * Connection class for agent extension that bridges ETS callbacks and native IPC.
  * Manages the connection lifecycle between ETS and Agent Extension.
  */
-class EtsAgentConnection : public AbilityRuntime::AbilityConnectCallback {
+class EtsAgentConnection : public AbilityRuntime::AbilityConnectCallback, public AgentConnectCallbackIdentity {
 public:
     /**
      * Constructor.
@@ -243,6 +245,24 @@ public:
      * @return Returns true if they are equal, false otherwise.
      */
     static bool IsEtsCallbackObjectEquals(ani_env *env, ani_ref callback, ani_object value);
+
+    /**
+     * @brief Returns the ETS callback identity used by AgentConnectionManager.
+     */
+    const AgentConnectCallbackIdentity *GetAgentConnectCallbackIdentity() const override
+    {
+        return this;
+    }
+
+    AgentConnectCallbackKind GetAgentConnectCallbackKind() const override
+    {
+        return AgentConnectCallbackKind::ETS;
+    }
+
+    /**
+     * @brief Checks whether another native wrapper owns the same ETS callback object.
+     */
+    bool IsSameAgentConnectCallback(const AgentConnectCallbackIdentity &other) const override;
 
     /**
      * Release an object reference.
