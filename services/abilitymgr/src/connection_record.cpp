@@ -20,6 +20,7 @@
 #include "agent_extension_connection_constants.h"
 #include "connection_state_manager.h"
 #include "freeze_util.h"
+#include "iagent_receiver.h"
 #include "ui_service_extension_connection_constants.h"
 
 namespace OHOS {
@@ -30,6 +31,32 @@ const int DISCONNECT_TIMEOUT_MULTIPLE = 75;
 #else
 const int DISCONNECT_TIMEOUT_MULTIPLE = 1;
 #endif
+
+namespace {
+int32_t NotifyLowCodeAgentInvokedIfNeeded(const Want &connectWant, const sptr<IRemoteObject> &remoteObject)
+{
+    if (!connectWant.GetBoolParam(AgentRuntime::AGENT_LOW_CODE_BACKING_KEY, false)) {
+        TAG_LOGI(AAFwkTag::CONNECTION, "skip low-code invoked, not low-code backing");
+        return ERR_OK;
+    }
+    auto agentId = connectWant.GetStringParam(AgentRuntime::AGENTID_KEY);
+    if (agentId.empty() || remoteObject == nullptr) {
+        TAG_LOGW(AAFwkTag::CONNECTION, "invalid low-code invoke state, agentId empty:%{public}d remote null:%{public}d",
+            agentId.empty(), remoteObject == nullptr);
+        return ERR_INVALID_VALUE;
+    }
+
+    // Low-code activation belongs to the target AgentExtension receiver returned from onConnect.
+    auto receiver = iface_cast<AgentRuntime::IAgentReceiver>(remoteObject);
+    if (receiver == nullptr) {
+        TAG_LOGE(AAFwkTag::CONNECTION, "agent receiver null");
+        return ERR_INVALID_VALUE;
+    }
+    auto ret = receiver->AgentInvoked(agentId);
+    TAG_LOGI(AAFwkTag::CONNECTION, "notify low-code invoked result: %{public}d", ret);
+    return ret;
+}
+}
 
 ConnectionRecord::ConnectionRecord(const sptr<IRemoteObject> &callerToken,
     const std::shared_ptr<BaseExtensionRecord> &targetService, const sptr<IAbilityConnection> &connCallback,
@@ -141,6 +168,9 @@ void ConnectionRecord::CompleteConnect()
     auto remoteObject = targetService_->GetConnRemoteObject();
     auto callback = GetAbilityConnectCallback();
     auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
+    TAG_LOGI(AAFwkTag::CONNECTION, "complete connect low-code:%{public}d agentId empty:%{public}d",
+        connectWant_.GetBoolParam(AgentRuntime::AGENT_LOW_CODE_BACKING_KEY, false),
+        connectWant_.GetStringParam(AgentRuntime::AGENTID_KEY).empty());
     if (remoteObject == nullptr) {
         TAG_LOGW(AAFwkTag::CONNECTION, "null remoteObject: %{public}s/%{public}s",
             element.GetBundleName().c_str(), element.GetAbilityName().c_str());
@@ -150,6 +180,21 @@ void ConnectionRecord::CompleteConnect()
                 DelayedSingleton<AbilityManagerService>::GetInstance()->ScheduleDisconnectAbilityDone(
                     service->GetToken());
                 });
+        }
+        return;
+    }
+
+    auto invokeRet = NotifyLowCodeAgentInvokedIfNeeded(connectWant_, remoteObject);
+    if (invokeRet != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONNECTION, "notify low-code invoked failed: %{public}d", invokeRet);
+        if (callback && handler) {
+            handler->SubmitTask([callback, element, remoteObject, invokeRet] {
+                ConnectionRecord::CallOnAbilityConnectDone(callback, element, remoteObject, invokeRet);
+            });
+        }
+        auto abilityConnectManager = abilityConnectManager_.lock();
+        if (abilityConnectManager != nullptr) {
+            abilityConnectManager->HandleExtensionDisconnectTask(shared_from_this());
         }
         return;
     }
@@ -173,7 +218,7 @@ void ConnectionRecord::CompleteConnect()
     TAG_LOGI(AAFwkTag::CONNECTION, "connectState:%{public}d", state_);
 }
 
-void ConnectionRecord::CompleteConnectAndOnlyCallConnectDone()
+void ConnectionRecord::CompleteConnectAndOnlyCallConnectDone(const Want &connectWant)
 {
     if (GetConnectState() != ConnectionState::CONNECTED) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "Connect state is %{public}d, not connected state", GetConnectState());
@@ -190,6 +235,21 @@ void ConnectionRecord::CompleteConnectAndOnlyCallConnectDone()
     if (remoteObject == nullptr) {
         TAG_LOGW(AAFwkTag::CONNECTION, "Complete null remoteObject: %{public}s/%{public}s",
             element.GetBundleName().c_str(), element.GetAbilityName().c_str());
+        return;
+    }
+
+    auto invokeRet = NotifyLowCodeAgentInvokedIfNeeded(connectWant, remoteObject);
+    if (invokeRet != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONNECTION, "notify reused low-code invoked failed: %{public}d", invokeRet);
+        if (callback && handler) {
+            handler->SubmitTask([callback, element, remoteObject, invokeRet] {
+                ConnectionRecord::CallOnAbilityConnectDone(callback, element, remoteObject, invokeRet);
+            });
+        }
+        auto abilityConnectManager = abilityConnectManager_.lock();
+        if (abilityConnectManager != nullptr) {
+            abilityConnectManager->HandleExtensionDisconnectTask(shared_from_this());
+        }
         return;
     }
 
@@ -307,6 +367,8 @@ void ConnectionRecord::ScheduleConnectAbilityDone()
     if (connectWant_.HasParameter(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY)) {
         connectorProxy = connectWant_.GetRemoteObject(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY);
     }
+    bool isLowCodeBacking = connectWant_.GetBoolParam(AgentRuntime::AGENT_LOW_CODE_BACKING_KEY, false);
+    std::string agentId = connectWant_.GetStringParam(AgentRuntime::AGENTID_KEY);
     auto element = connectWant_.GetElement();
     Want::ClearWant(&connectWant_);
     connectWant_.SetElement(element);
@@ -315,6 +377,10 @@ void ConnectionRecord::ScheduleConnectAbilityDone()
     }
     if (connectorProxy != nullptr) {
         connectWant_.SetParam(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY, connectorProxy);
+    }
+    if (isLowCodeBacking) {
+        connectWant_.SetParam(AgentRuntime::AGENT_LOW_CODE_BACKING_KEY, true);
+        connectWant_.SetParam(AgentRuntime::AGENTID_KEY, agentId);
     }
 
     CancelConnectTimeoutTask();

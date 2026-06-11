@@ -83,7 +83,8 @@ void FindAgentConnection(int64_t connectId, sptr<JSAgentConnection> &connection)
  * @param agentId The agent ID to match.
  * @param connection Output parameter for the found connection.
  */
-void FindAgentConnection(const AAFwk::Want &want, const std::string &agentId, sptr<JSAgentConnection> &connection);
+void FindAgentConnection(const AAFwk::Want &want, const std::string &agentId, napi_env env,
+    napi_value callbackObject, sptr<JSAgentConnection> &connection);
 }
 
 class JsAgentConnectorStubImpl;
