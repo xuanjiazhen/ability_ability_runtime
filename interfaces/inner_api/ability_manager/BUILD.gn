@@ -289,7 +289,6 @@ ohos_shared_library("mission_info") {
   ]
   if (ability_runtime_graphics) {
     deps += [ "${ability_runtime_services_path}/common:image_native_bridge" ]
-    public_external_deps += [ "graphic_2d:color_manager" ]
   }
 
   cflags_cc = []
