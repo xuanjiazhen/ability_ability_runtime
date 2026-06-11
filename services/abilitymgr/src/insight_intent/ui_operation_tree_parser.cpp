@@ -304,6 +304,31 @@ void TraverseNodeWithAttrs(const nlohmann::json& node, const std::string& compon
         }
     }
 }
+// Strip the {"0": ...} envelope that ArkUI GetVisibleInspectorTree wraps around the tree.
+// Handles both {"0": "<string>"} and {"0": {<object>}} formats.
+// Returns the raw Inspector tree JSON string.
+std::string StripEnvelope(const std::string& treeJson)
+{
+    if (treeJson.empty()) {
+        return treeJson;
+    }
+    try {
+        auto outer = nlohmann::json::parse(treeJson);
+        if (!outer.is_object() || !outer.contains("0")) {
+            return treeJson; // not wrapped
+        }
+        if (outer["0"].is_string()) {
+            return outer["0"].get<std::string>();
+        }
+        if (outer["0"].is_object()) {
+            return outer["0"].dump();
+        }
+    } catch (...) {
+        // parse failed, return as-is
+    }
+    return treeJson;
+}
+
 } // anonymous namespace
 
 std::vector<int32_t> UiOperationTreeParser::FindMatchingNodes(const std::string& treeJson,
@@ -316,7 +341,8 @@ std::vector<int32_t> UiOperationTreeParser::FindMatchingNodes(const std::string&
     }
 
     try {
-        auto json = nlohmann::json::parse(treeJson);
+        std::string strippedJson = StripEnvelope(treeJson);
+        auto json = nlohmann::json::parse(strippedJson);
         int32_t totalCount = 0;
         TraverseNode(json, componentType, contentMatcher, results, totalCount);
         TAG_LOGI(AAFwkTag::INTENT, "FindMatchingNodes: type=%{public}s, matcher=%{public}s, "
@@ -340,10 +366,11 @@ std::vector<MatchedNodeInfo> UiOperationTreeParser::FindMatchingNodesWithAttribu
     }
 
     try {
-        auto json = nlohmann::json::parse(treeJson);
+        std::string strippedJson = StripEnvelope(treeJson);
+        auto json = nlohmann::json::parse(strippedJson);
         // Always print raw tree head for diagnosis
         TAG_LOGI(AAFwkTag::INTENT, "parsed tree head: %{public}s",
-            treeJson.substr(0, MAX_TREE_DUMP_LEN).c_str());
+            strippedJson.substr(0, MAX_TREE_DUMP_LEN).c_str());
         int32_t totalCount = 0;
         TraverseNodeWithAttrs(json, componentType, compId, contentMatcher, results, totalCount);
         TAG_LOGI(AAFwkTag::INTENT, "FindMatchingNodesWithAttributes: type=%{public}s, "
@@ -362,7 +389,8 @@ int32_t UiOperationTreeParser::GetNodeCount(const std::string& treeJson)
         return 0;
     }
     try {
-        auto json = nlohmann::json::parse(treeJson);
+        std::string strippedJson = StripEnvelope(treeJson);
+        auto json = nlohmann::json::parse(strippedJson);
         int32_t totalCount = 0;
         std::vector<int32_t> unused;
         TraverseNode(json, "", "", unused, totalCount);
