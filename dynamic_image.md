@@ -2,7 +2,7 @@
 
 ## Context
 
-当前 `start_window_option` 共享库（libstart_window_option.z.so）在 `ability_runtime_graphics && ability_runtime_start_window_options_with_pixelmap` 开启时静态依赖 `image_framework:image_native`。但实际上 PixelMap 在该库中仅用于两处 Parcel 序列化/反序列化操作，可以拆分为两个 SO，通过 dlopen 延迟加载，实现按需依赖。
+当前 `start_window_option`、`mission_info` 共享库在图形特性开启时静态依赖 `image_framework:image_native`，但实际上 PixelMap 在这些库中仅用于 Parcel 序列化/反序列化操作，可以拆分为两个 SO，通过 dlopen 延迟加载，实现按需依赖。同时 `ability_manager_c` 的 image_native 依赖经确认完全冗余，直接移除。
 
 代码库中已有成熟的 dlopen 桥接模式：`SubManagersHelper` 通过 `dlopen("libmission_list.z.so")` 动态加载任务管理模块（参见 `services/abilitymgr/src/sub_managers_helper.cpp:610-640`），本次方案复用该模式，并将新文件/库统一放置在 `services/common`。
 
@@ -377,9 +377,16 @@ bool StartWindowOption::Marshalling(Parcel &parcel) const
 - 虚函数表一致性（CFI 兼容）
 - 无需修改 `startWindowIcon` 字段类型，所有下游使用方（`start_options`、`mission_ability_record` 等）零改动
 
+## 本次改动范围
+
+- `start_window_option`：将 `image_framework:image_native` 替换为 `image_native_bridge` 桥接依赖，`start_window_option.cpp` 改用 `PixelMapBridge` 进行 Parcel 读写。
+- `mission_info`：将 `image_framework:image_native` 替换为 `image_native_bridge` 桥接依赖，`mission_snapshot.cpp` 改用 `PixelMapBridge` 进行 Parcel 读写（模式与 start_window_option 完全一致）。
+- `ability_manager_c`：源码不使用 PixelMap，`image_framework:image_native` 依赖冗余，直接移除。
+
 ## 不在本次改动范围
 
-- `abilityms` / `abilityms_static`：它们对 `image_framework:image_native` 的依赖是**无条件的**（用于 mission 快照等其它 PixelMap 操作，见 `services/abilitymgr/BUILD.gn:265/468/797`），且其源码不直接使用 `START_WINDOW_OPTIONS_WITH_PIXELMAP`（grep 确认仅 start_window_option.cpp 与框架层使用）。故本次不动 abilityms。
+- `ability_manager`（`interfaces/inner_api/ability_manager/BUILD.gn` 中的主目标）：其 `ability_manager_proxy.cpp` 中的 `UpdateMissionSnapShot` / `SetMissionIcon` 也仅做 Parcel 写入，理论上可桥接，但该目标体积大（68+ 源文件）且为核心 inner_api，影响面广，待前述目标验证稳定后再评估。
+- `abilityms` / `abilityms_static`：它们对 `image_framework:image_native` 的依赖是**无条件的**（用于 mission 快照等其它 PixelMap 操作，见 `services/abilitymgr/BUILD.gn:265/468/797`），且其源码不直接使用 `START_WINDOW_OPTIONS_WITH_PIXELMAP`。故本次不动 abilityms。
 - ANI / C / NAPI 框架层（`frameworks/ets|c|js`）：它们各自直接依赖 image_native（通过 `GetPixelMapFromEnvSp` / `GetInnerPixelmap` / `pixelmap_napi`），属独立目标，本次不转换。
 
 ## 线程安全

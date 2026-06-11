@@ -288,7 +288,7 @@ ohos_shared_library("mission_info") {
     "bundle_framework:appexecfwk_core",
   ]
   if (ability_runtime_graphics) {
-    external_deps += [ "image_framework:image_native" ]
+    deps += [ "${ability_runtime_services_path}/common:image_native_bridge" ]
     public_external_deps += [ "graphic_2d:color_manager" ]
   }
 
@@ -307,7 +307,6 @@ ohos_shared_library("ability_manager_c") {
   external_deps = [
     "ability_base:session_info",
     "c_utils:utils",
-    "image_framework:image_native",
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "ipc:ipc_single",
