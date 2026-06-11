@@ -29,6 +29,12 @@ namespace AAFwk {
 namespace {
 constexpr int32_t TREE_REQUEST_TIMEOUT_MS = 3000;
 constexpr int32_t PAGE_CHANGE_POLL_INTERVAL_MS = 50;
+
+// ArkUI Pattern::OnRecvCommand expects JSON: {"cmd":"<action>","params":{...}}
+std::string BuildCommandJson(const std::string& action)
+{
+    return R"({"cmd":")" + action + R"("})";
+}
 } // anonymous namespace
 
 // ============================================================
@@ -484,11 +490,14 @@ void GuiIntentExecutor::ExecuteCurrentStep()
         }
 
         // Execute command on matched node
+        std::string commandJson = BuildCommandJson(item.actionType);
+        TAG_LOGI(AAFwkTag::INTENT, "step[%{public}zu] SendCommand nodeId=%{public}d, command=%{public}s",
+            stepIndex, nodeInfo.nodeId, commandJson.c_str());
         int32_t cmdRet = -1;
         {
             std::lock_guard<ffrt::mutex> lock(mutex_);
             if (cachedService_ != nullptr) {
-                cmdRet = cachedService_->SendCommand(nodeInfo.nodeId, item.actionType);
+                cmdRet = cachedService_->SendCommand(nodeInfo.nodeId, commandJson);
             }
         }
 

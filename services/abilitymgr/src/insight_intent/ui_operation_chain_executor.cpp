@@ -29,6 +29,12 @@ namespace AAFwk {
 namespace {
 constexpr int32_t MAX_CHAIN_STEPS = 100;
 constexpr int32_t TREE_TIMEOUT_MS = 3000;
+
+// ArkUI Pattern::OnRecvCommand expects JSON: {"cmd":"<action>","params":{...}}
+std::string BuildCommandJson(const std::string& action)
+{
+    return R"({"cmd":")" + action + R"("})";
+}
 } // anonymous namespace
 
 // ============================================================
@@ -656,10 +662,13 @@ void UiOperationChainExecutor::ExecuteStep(size_t stepIndex)
             self->OnChainComplete(UI_OPERATION_ERR_WINDOW_NOT_FOUND, static_cast<int32_t>(stepIndex));
             return;
         }
+        std::string commandJson = BuildCommandJson(step.command);
+        TAG_LOGI(AAFwkTag::INTENT, "step[%{public}zu] SendCommand nodeId=%{public}d, command=%{public}s",
+            stepIndex, nodeId, commandJson.c_str());
         if (step.useAsync) {
-            cmdRet = svc->SendCommandAsync(nodeId, step.command);
+            cmdRet = svc->SendCommandAsync(nodeId, commandJson);
         } else {
-            cmdRet = svc->SendCommand(nodeId, step.command);
+            cmdRet = svc->SendCommand(nodeId, commandJson);
         }
 
         if (cmdRet != Ace::NO_ERROR) {
@@ -793,9 +802,12 @@ void UiOperationChainExecutor::ExecuteStepWithPageWait(size_t stepIndex)
             self->OnChainComplete(UI_OPERATION_ERR_WINDOW_NOT_FOUND, static_cast<int32_t>(stepIndex));
             return;
         }
+        std::string commandJson = BuildCommandJson(step.command);
+        TAG_LOGI(AAFwkTag::INTENT, "step[%{public}zu] SendCommand nodeId=%{public}d, command=%{public}s",
+            stepIndex, nodeInfo.nodeId, commandJson.c_str());
         int32_t cmdRet = step.useAsync ?
-            svc->SendCommandAsync(nodeInfo.nodeId, step.command) :
-            svc->SendCommand(nodeInfo.nodeId, step.command);
+            svc->SendCommandAsync(nodeInfo.nodeId, commandJson) :
+            svc->SendCommand(nodeInfo.nodeId, commandJson);
 
         if (cmdRet != Ace::NO_ERROR) {
             TAG_LOGE(AAFwkTag::INTENT, "step[%{public}zu] SendCommand failed, ret=%{public}d", stepIndex, cmdRet);
@@ -1049,8 +1061,10 @@ const std::map<std::string, UiOperationChainExecutor::DumpHandler>
     { "SendCommand", [](sptr<Ace::IUiContentService> s, auto& p, auto& i) {
         if (p.size() == SEND_COMMAND_WITH_NODEID) {
             int32_t id = std::atoi(p[1].c_str());
-            int32_t ret = s->SendCommand(id, p[2]);
-            i.push_back("SendCommand nodeId=" + p[1] + " cmd=" + p[2] + " ret=" + std::to_string(ret));
+            std::string cmdJson = BuildCommandJson(p[2]);
+            int32_t ret = s->SendCommand(id, cmdJson);
+            i.push_back("SendCommand nodeId=" + p[1] + " rawCmd=" + p[2] +
+                " command=" + cmdJson + " ret=" + std::to_string(ret));
         } else if (p.size() == SEND_COMMAND_WITHOUT_NODEID) {
             int32_t ret = s->SendCommand(p[1]);
             i.push_back("SendCommand cmd=" + p[1] + " ret=" + std::to_string(ret));
@@ -1059,8 +1073,10 @@ const std::map<std::string, UiOperationChainExecutor::DumpHandler>
     { "SendCommandAsync", [](sptr<Ace::IUiContentService> s, auto& p, auto& i) {
         if (p.size() >= SEND_COMMAND_WITH_NODEID) {
             int32_t id = std::atoi(p[1].c_str());
-            int32_t ret = s->SendCommandAsync(id, p[2]);
-            i.push_back("SendCommandAsync nodeId=" + p[1] + " cmd=" + p[2] + " ret=" + std::to_string(ret));
+            std::string cmdJson = BuildCommandJson(p[2]);
+            int32_t ret = s->SendCommandAsync(id, cmdJson);
+            i.push_back("SendCommandAsync nodeId=" + p[1] + " rawCmd=" + p[2] +
+                " command=" + cmdJson + " ret=" + std::to_string(ret));
         }
     }},
     { "RegisterContentChangeCallback", [](sptr<Ace::IUiContentService> s, auto& p, auto& i) {
