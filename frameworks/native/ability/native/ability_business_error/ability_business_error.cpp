@@ -264,6 +264,22 @@ constexpr const char* ERROR_MSG_SET_ON_NEW_WANT_SKIP_SCENARIOS_FAILED =
     "Internal error. Failed to set onNewWant skip scenarios. Try again later.";
 constexpr const char* ERROR_MSG_WRAP_ABILITY_RESULT_FAILED =
     "Internal error. Failed to create the ability result. Check the returned Want and try again.";
+constexpr const char* ERROR_MSG_GET_APPMS_FAILED =
+    "Internal error. Failed to obtain the application manager service. Try again later.";
+constexpr const char* ERROR_MSG_GET_ABILITYMS_FAILED =
+    "Internal error. Failed to obtain the ability manager service. Try again later.";
+constexpr const char* ERROR_MSG_CREATE_OBSERVER_FAILED =
+    "Internal error. Failed to create the observer object. Try again later.";
+constexpr const char* ERROR_MSG_CONNECTION_NOT_FOUND =
+    "Internal error. The specified connection does not exist. Check the connection object and try again.";
+constexpr const char* ERROR_MSG_INVALID_RET_CODE =
+    "Internal error. Failed to obtain the result code. Try again later.";
+constexpr const char* ERROR_MSG_CREATE_CALLBACK_FAILED =
+    "Internal error. Failed to create the callback object. Try again later.";
+constexpr const char* ERROR_MSG_CALLBACK_NOT_REGISTERED =
+    "Internal error. The callback has not been registered. Register the callback first.";
+constexpr const char* ERROR_MSG_START_CHILD_PROCESS_FAILED =
+    "Internal error. Failed to start the child process. Check the process parameters and try again.";
 
 // follow ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST of appexecfwk_errors.h in bundle_framework
 constexpr int32_t ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST = 8521220;
@@ -558,6 +574,14 @@ static std::unordered_map<AbilityInnerErrorMsg, const char*> INNER_ERROR_MSG_BY_
     {AbilityInnerErrorMsg::RESTORE_WINDOW_STAGE_FAILED, ERROR_MSG_RESTORE_WINDOW_STAGE_FAILED},
     {AbilityInnerErrorMsg::SET_ON_NEW_WANT_SKIP_SCENARIOS_FAILED, ERROR_MSG_SET_ON_NEW_WANT_SKIP_SCENARIOS_FAILED},
     {AbilityInnerErrorMsg::WRAP_ABILITY_RESULT_FAILED, ERROR_MSG_WRAP_ABILITY_RESULT_FAILED},
+    {AbilityInnerErrorMsg::GET_APPMS_FAILED, ERROR_MSG_GET_APPMS_FAILED},
+    {AbilityInnerErrorMsg::GET_ABILITYMS_FAILED, ERROR_MSG_GET_ABILITYMS_FAILED},
+    {AbilityInnerErrorMsg::CREATE_OBSERVER_FAILED, ERROR_MSG_CREATE_OBSERVER_FAILED},
+    {AbilityInnerErrorMsg::CONNECTION_NOT_FOUND, ERROR_MSG_CONNECTION_NOT_FOUND},
+    {AbilityInnerErrorMsg::INVALID_RET_CODE, ERROR_MSG_INVALID_RET_CODE},
+    {AbilityInnerErrorMsg::CREATE_CALLBACK_FAILED, ERROR_MSG_CREATE_CALLBACK_FAILED},
+    {AbilityInnerErrorMsg::CALLBACK_NOT_REGISTERED, ERROR_MSG_CALLBACK_NOT_REGISTERED},
+    {AbilityInnerErrorMsg::START_CHILD_PROCESS_FAILED, ERROR_MSG_START_CHILD_PROCESS_FAILED},
 };
 }
 
