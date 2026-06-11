@@ -179,14 +179,18 @@ void TraverseNodeWithAttrs(const nlohmann::json& node, const std::string& compon
     }
     ExtractNodeAttrs(node, info);
 
+    TAG_LOGI(AAFwkTag::INTENT, "type matched: node[%{public}s] $ID=%{public}d, "
+        "compid=%{public}s, content=%{public}s, clickable=%{public}d, "
+        "expect compId=%{public}s, matcher=%{public}s",
+        nodeType.c_str(), info.nodeId, info.compId.c_str(), info.content.c_str(),
+        info.clickable, compId.c_str(), contentMatcher.c_str());
+
     // Check compId match (if specified)
     bool compIdMatched = true;
     if (!compId.empty()) {
         compIdMatched = CaseInsensitiveEqual(info.compId, compId);
         if (!compIdMatched) {
-            TAG_LOGI(AAFwkTag::INTENT, "compId mismatch: node[%{public}s]=$ID=%{public}d "
-                "compid=%{public}s vs expected=%{public}s",
-                nodeType.c_str(), info.nodeId, info.compId.c_str(), compId.c_str());
+            TAG_LOGI(AAFwkTag::INTENT, "-> rejected: compId mismatch");
         }
     }
 
@@ -197,9 +201,17 @@ void TraverseNodeWithAttrs(const nlohmann::json& node, const std::string& compon
         if (!contentMatched) {
             contentMatched = CaseInsensitiveContains(info.label, contentMatcher);
         }
+        if (!contentMatched) {
+            TAG_LOGI(AAFwkTag::INTENT, "-> rejected: content mismatch");
+        }
+    }
+
+    if (info.nodeId < 0) {
+        TAG_LOGI(AAFwkTag::INTENT, "-> rejected: nodeId invalid");
     }
 
     if (compIdMatched && contentMatched && info.nodeId >= 0) {
+        TAG_LOGI(AAFwkTag::INTENT, "-> matched");
         results.push_back(info);
     }
 
