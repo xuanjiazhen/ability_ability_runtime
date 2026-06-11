@@ -424,15 +424,21 @@ void GuiIntentExecutor::Cancel()
 
 void GuiIntentExecutor::StartNextStep()
 {
+    bool allDone = false;
     {
         std::lock_guard<ffrt::mutex> lock(mutex_);
         if (cancelled_) { return; }
         if (currentStepIndex_ >= inputItems_.size()) {
-            OnAllStepsComplete();
-            return;
+            allDone = true;
+        } else {
+            TAG_LOGI(AAFwkTag::INTENT, "StartNextStep: currentStep=%{public}zu, totalSteps=%{public}zu",
+                currentStepIndex_, inputItems_.size());
         }
-        TAG_LOGI(AAFwkTag::INTENT, "StartNextStep: currentStep=%{public}zu, totalSteps=%{public}zu",
-            currentStepIndex_, inputItems_.size());
+    }
+    // Call outside lock to avoid deadlock: OnAllStepsComplete locks mutex_ internally.
+    if (allDone) {
+        OnAllStepsComplete();
+        return;
     }
 
     // Decouple from IPC callback thread: submit to task handler so the binder
