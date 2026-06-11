@@ -82,7 +82,10 @@ void FindAgentConnection(int64_t connectId, sptr<EtsAgentConnection> &connection
  * @param agentId The agent ID to match.
  * @param connection Output parameter for the found connection.
  */
-void FindAgentConnection(const AAFwk::Want &want, const std::string &agentId, sptr<EtsAgentConnection> &connection);
+void FindAgentConnection(const AAFwk::Want &want, const std::string &agentId, ani_env *env,
+    ani_object callbackObject, sptr<EtsAgentConnection> &connection);
+void FindReusableAgentConnection(ani_env *env, int64_t currentId, const sptr<IRemoteObject> &remoteObject,
+    ani_object callbackObject, sptr<EtsAgentConnection> &connection);
 }
 
 class EtsAgentConnectorStubImpl;
@@ -148,6 +151,10 @@ public:
      * @return Returns the ANI reference of the proxy object.
      */
     ani_ref GetProxyObject();
+
+    void SetRemoteObject(const sptr<IRemoteObject> &remoteObject) { remoteObject_ = remoteObject; }
+
+    sptr<IRemoteObject> GetRemoteObject() const { return remoteObject_; }
 
     /**
      * Set the ANI async callback for promise resolution.
@@ -314,6 +321,8 @@ private:
      * The proxy object returned to ETS.
      */
     ani_ref serviceProxyObject_ = nullptr;
+
+    sptr<IRemoteObject> remoteObject_;
 
     /**
      * List of pending callbacks for duplicate connection requests.

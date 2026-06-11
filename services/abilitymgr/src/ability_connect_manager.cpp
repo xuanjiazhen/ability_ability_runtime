@@ -23,6 +23,7 @@
 #include "ability_resident_process_rdb.h"
 #include "ability_util.h"
 #include "agent_extension_connection_constants.h"
+#include "agent_receiver_proxy.h"
 #include "app_exit_reason_data_manager.h"
 #include "appfreeze_manager.h"
 #include "assert_fault_callback_death_mgr.h"
@@ -62,6 +63,57 @@ const std::string DEBUG_APP = "debugApp";
 const std::string FRS_APP_INDEX = "ohos.extra.param.key.frs_index";
 const std::string FRS_BUNDLE_NAME = "com.ohos.formrenderservice";
 const std::string MAX_UINT64_VALUE = "18446744073709551615";
+
+bool IsConnectedLowCodeBacking(const AbilityRequest &abilityRequest,
+    const std::shared_ptr<BaseExtensionRecord> &targetService, bool isLoadedAbility)
+{
+    return isLoadedAbility &&
+        targetService != nullptr &&
+        abilityRequest.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
+        abilityRequest.want.GetBoolParam(AgentRuntime::AGENT_LOW_CODE_BACKING_KEY, false) &&
+        targetService->GetConnRemoteObject() != nullptr;
+}
+
+void NotifyLowCodeAgentInvoked(const Want &want, const sptr<IRemoteObject> &remoteObject)
+{
+    auto agentId = want.GetStringParam(AgentRuntime::AGENTID_KEY);
+    if (agentId.empty() || remoteObject == nullptr) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER, "invalid low-code invoke, agentId empty:%{public}d remote null:%{public}d",
+            agentId.empty(), remoteObject == nullptr);
+        return;
+    }
+    auto receiver = iface_cast<AgentRuntime::IAgentReceiver>(remoteObject);
+    if (receiver == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "agent receiver null");
+        return;
+    }
+    auto ret = receiver->AgentInvoked(agentId);
+    TAG_LOGI(AAFwkTag::SER_ROUTER, "notify low-code invoked result: %{public}d", ret);
+}
+
+int CompleteConnectedLowCodeBacking(const AbilityRequest &abilityRequest,
+    const std::shared_ptr<BaseExtensionRecord> &targetService, const sptr<IAbilityConnection> &connect)
+{
+    const AppExecFwk::AbilityInfo &abilityInfo = targetService->GetAbilityInfo();
+    AppExecFwk::ElementName element(targetService->GetWant().GetDeviceId(), abilityInfo.bundleName,
+        abilityInfo.name, abilityInfo.moduleName);
+    auto remoteObject = targetService->GetConnRemoteObject();
+    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
+    if (handler == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null handler");
+        return ERR_INVALID_VALUE;
+    }
+    TAG_LOGI(AAFwkTag::SER_ROUTER, "complete connected low-code backing without new connection record");
+    NotifyLowCodeAgentInvoked(abilityRequest.want, remoteObject);
+    handler->SubmitTask([connect, element, remoteObject]() {
+        auto ret = ConnectionRecord::CallOnAbilityConnectDone(connect, element, remoteObject, ERR_OK);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "low-code connect done failed:%{public}d", ret);
+        }
+    });
+    return ERR_OK;
+}
+
 #ifdef SUPPORT_ASAN
 const int LOAD_TIMEOUT_MULTIPLE = 150;
 const int CONNECT_TIMEOUT_MULTIPLE = 45;
@@ -391,8 +443,11 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
     // 3. If this service ability and callback has been connected, There is no need to connect repeatedly
     if (isLoadedAbility && (isCallbackConnected) && (connectedRecord != nullptr)) {
         TAG_LOGI(AAFwkTag::EXT, "service/callback connected");
-        connectedRecord->CompleteConnectAndOnlyCallConnectDone();
+        connectedRecord->CompleteConnectAndOnlyCallConnectDone(abilityRequest.want);
         return ERR_OK;
+    }
+    if (IsConnectedLowCodeBacking(abilityRequest, targetService, isLoadedAbility)) {
+        return CompleteConnectedLowCodeBacking(abilityRequest, targetService, connect);
     }
 
     // 4. Other cases , need to connect the service ability
@@ -2511,7 +2566,8 @@ std::string AbilityConnectManager::GetServiceKey(const std::shared_ptr<BaseExten
     std::string serviceKey = service->GetURI();
     if (FRS_BUNDLE_NAME == service->GetAbilityInfo().bundleName) {
         serviceKey = serviceKey + std::to_string(service->GetIntParam(FRS_APP_INDEX, 0));
-    } else if (service->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+    } else if (service->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
+        !service->GetBoolParam(AgentRuntime::AGENT_LOW_CODE_BACKING_KEY, false)) {
         serviceKey = serviceKey + service->GetStringParam(AgentRuntime::AGENTID_KEY);
     } else if (service->GetAbilityInfo().extensionAbilityType ==
                AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
@@ -2530,7 +2586,8 @@ std::string AbilityConnectManager::GetServiceKey(const AbilityRequest &abilityRe
     std::string serviceKey = element.GetURI();
     if (FRS_BUNDLE_NAME == abilityRequest.abilityInfo.bundleName) {
         serviceKey = serviceKey + std::to_string(abilityRequest.want.GetIntParam(FRS_APP_INDEX, 0));
-    } else if (abilityRequest.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+    } else if (abilityRequest.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
+        !abilityRequest.want.GetBoolParam(AgentRuntime::AGENT_LOW_CODE_BACKING_KEY, false)) {
         serviceKey = serviceKey + abilityRequest.want.GetStringParam(AgentRuntime::AGENTID_KEY);
     } else if (abilityRequest.abilityInfo.extensionAbilityType ==
                AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {

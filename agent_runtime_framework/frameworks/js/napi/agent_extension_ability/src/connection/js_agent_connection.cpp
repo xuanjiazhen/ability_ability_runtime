@@ -42,12 +42,9 @@ bool IsSameAgentConnection(const AAFwk::Want &storedWant, const AAFwk::Want &wan
     }
     const auto &storedElement = storedWant.GetElement();
     const auto &element = want.GetElement();
-    if (storedElement.GetBundleName() != element.GetBundleName() ||
-        storedElement.GetAbilityName() != element.GetAbilityName()) {
-        return false;
-    }
-    return storedElement.GetModuleName().empty() || element.GetModuleName().empty() ||
-        storedElement.GetModuleName() == element.GetModuleName();
+    return storedElement.GetBundleName() == element.GetBundleName() &&
+        storedElement.GetModuleName() == element.GetModuleName() &&
+        storedElement.GetAbilityName() == element.GetAbilityName();
 }
 } // namespace
 
@@ -109,13 +106,18 @@ void FindAgentConnection(int64_t connectId, sptr<JSAgentConnection> &connection)
     }
 }
 
-void FindAgentConnection(const AAFwk::Want &want, const std::string &agentId, sptr<JSAgentConnection> &connection)
+void FindAgentConnection(const AAFwk::Want &want, const std::string &agentId, napi_env env,
+    napi_value callbackObject, sptr<JSAgentConnection> &connection)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "FindAgentConnection by target");
     std::lock_guard<std::recursive_mutex> lock(g_agentConnectsLock_);
     auto item = std::find_if(g_agentConnects.begin(), g_agentConnects.end(),
-        [&want, &agentId](const auto &obj) {
-        return IsSameAgentConnection(obj.first.want, want, agentId);
+        [&want, &agentId, env, callbackObject](const auto &obj) {
+        if (!IsSameAgentConnection(obj.first.want, want, agentId) || obj.second == nullptr) {
+            return false;
+        }
+        return JSAgentConnection::IsJsCallbackObjectEquals(
+            env, obj.second->GetJsConnectionObject(), callbackObject);
     });
     if (item == g_agentConnects.end()) {
         TAG_LOGD(AAFwkTag::SER_ROUTER, "Connection not found");
@@ -123,6 +125,27 @@ void FindAgentConnection(const AAFwk::Want &want, const std::string &agentId, sp
     }
     connection = item->second;
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Found connection");
+}
+
+void FindReusableAgentConnection(napi_env env, int64_t currentId, const sptr<IRemoteObject> &remoteObject,
+    napi_value callbackObject, sptr<JSAgentConnection> &connection)
+{
+    std::lock_guard<std::recursive_mutex> lock(g_agentConnectsLock_);
+    auto item = std::find_if(g_agentConnects.begin(), g_agentConnects.end(),
+        [env, currentId, remoteObject, callbackObject](const auto &obj) {
+            if (obj.first.id == currentId || obj.second == nullptr) {
+                return false;
+            }
+            if (obj.second->GetRemoteObject() != remoteObject || obj.second->GetProxyObject() == nullptr) {
+                return false;
+            }
+            return JSAgentConnection::IsJsCallbackObjectEquals(
+                env, obj.second->GetJsConnectionObject(), callbackObject);
+        });
+    if (item == g_agentConnects.end()) {
+        return;
+    }
+    connection = item->second;
 }
 } // namespace AgentConnectionUtils
 
@@ -179,6 +202,19 @@ void JSAgentConnection::HandleOnAbilityConnectDone(const AppExecFwk::ElementName
         return;
     }
 
+    napi_value callbackObject = jsConnectionObject_ != nullptr ? jsConnectionObject_->GetNapiValue() : nullptr;
+    sptr<JSAgentConnection> reusableConnection = nullptr;
+    AgentConnectionUtils::FindReusableAgentConnection(env_, connectionId_, remoteObject, callbackObject,
+        reusableConnection);
+    if (reusableConnection != nullptr) {
+        napi_value proxy = reusableConnection->GetProxyObject();
+        napiAsyncTask_->ResolveWithNoError(env_, proxy);
+        ResolveDuplicatedPendingTask(env_, proxy);
+        napiAsyncTask_ = nullptr;
+        AgentConnectionUtils::RemoveAgentConnection(connectionId_);
+        return;
+    }
+
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Creating JsAgentReceiverProxy");
     sptr<JsAgentConnectorStubImpl> hostStub = GetServiceHostStub();
     sptr<IRemoteObject> hostProxy = nullptr;
@@ -198,6 +234,7 @@ void JSAgentConnection::HandleOnAbilityConnectDone(const AppExecFwk::ElementName
         AgentConnectionUtils::RemoveAgentConnection(connectionId_);
         return;
     }
+    SetRemoteObject(remoteObject);
     SetProxyObject(proxy);
     napiAsyncTask_->ResolveWithNoError(env_, proxy);
     ResolveDuplicatedPendingTask(env_, proxy);
