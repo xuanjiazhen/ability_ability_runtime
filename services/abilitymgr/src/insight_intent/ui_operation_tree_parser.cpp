@@ -154,13 +154,24 @@ void TraverseNodeWithAttrs(const nlohmann::json& node, const std::string& compon
     }
     totalCount++;
 
-    // Check $type match (case-insensitive)
-    bool typeMatched = false;
+    // Extract raw fields for every node in DFS
+    int32_t nodeId = -1;
     std::string nodeType;
+    std::string nodeCompId;
+    if (node.contains(FIELD_ID) && node[FIELD_ID].is_number_integer()) {
+        nodeId = node[FIELD_ID].get<int32_t>();
+    }
     if (node.contains(FIELD_TYPE) && node[FIELD_TYPE].is_string()) {
         nodeType = node[FIELD_TYPE].get<std::string>();
-        typeMatched = CaseInsensitiveEqual(nodeType, componentType);
     }
+    if (node.contains(NODE_COMP_ID) && node[NODE_COMP_ID].is_string()) {
+        nodeCompId = node[NODE_COMP_ID].get<std::string>();
+    }
+    TAG_LOGI(AAFwkTag::INTENT, "DFS[%{public}d]: $type=%{public}s, $ID=%{public}d, compid=%{public}s",
+        totalCount, nodeType.c_str(), nodeId, nodeCompId.c_str());
+
+    // Check $type match (case-insensitive)
+    bool typeMatched = !nodeType.empty() && CaseInsensitiveEqual(nodeType, componentType);
     if (!typeMatched) {
         // Recurse into children
         if (node.contains(FIELD_CHILDREN) && node[FIELD_CHILDREN].is_array()) {
@@ -174,9 +185,7 @@ void TraverseNodeWithAttrs(const nlohmann::json& node, const std::string& compon
     // Type matched -- extract full attributes
     MatchedNodeInfo info;
     info.compType = nodeType;
-    if (node.contains(FIELD_ID) && node[FIELD_ID].is_number_integer()) {
-        info.nodeId = node[FIELD_ID].get<int32_t>();
-    }
+    info.nodeId = nodeId;
     ExtractNodeAttrs(node, info);
 
     TAG_LOGI(AAFwkTag::INTENT, "type matched: node[%{public}s] $ID=%{public}d, "
