@@ -71,6 +71,12 @@ void ExtractNodeAttrs(const nlohmann::json& node, MatchedNodeInfo& info)
         info.compId = node[ATTR_COMP_ID].get<std::string>();
     }
 
+    // Clickable is written to node top-level by DumpSimplifyCommonInfoOnlyForParamConfig
+    // (frame_node.cpp:1408), not inside $attrs.
+    if (node.contains(ATTR_CLICKABLE) && node[ATTR_CLICKABLE].is_boolean()) {
+        info.clickable = node[ATTR_CLICKABLE].get<bool>();
+    }
+
     if (!node.contains(FIELD_ATTRS) || !node[FIELD_ATTRS].is_object()) {
         return;
     }
@@ -85,7 +91,8 @@ void ExtractNodeAttrs(const nlohmann::json& node, MatchedNodeInfo& info)
     if (attrs.contains(ATTR_LABEL) && attrs[ATTR_LABEL].is_string()) {
         info.label = attrs[ATTR_LABEL].get<std::string>();
     }
-    if (attrs.contains(ATTR_CLICKABLE) && attrs[ATTR_CLICKABLE].is_boolean()) {
+    // Fallback: clickable may also appear in $attrs for some formats
+    if (!info.clickable && attrs.contains(ATTR_CLICKABLE) && attrs[ATTR_CLICKABLE].is_boolean()) {
         info.clickable = attrs[ATTR_CLICKABLE].get<bool>();
     }
 }
@@ -175,6 +182,11 @@ void TraverseNodeWithAttrs(const nlohmann::json& node, const std::string& compon
     bool compIdMatched = true;
     if (!compId.empty()) {
         compIdMatched = CaseInsensitiveEqual(info.compId, compId);
+        if (!compIdMatched) {
+            TAG_LOGI(AAFwkTag::INTENT, "compId mismatch: node[%{public}s]=$ID=%{public}d "
+                "compid=%{public}s vs expected=%{public}s",
+                nodeType.c_str(), info.nodeId, info.compId.c_str(), compId.c_str());
+        }
     }
 
     // Check content match
