@@ -827,7 +827,8 @@ ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
     return &funcs;
 }
 
-void ETSEnvironment::NotifyDebugMode(uint32_t tid, uint32_t instanceId, bool isStartWithDebug, void *jsVm)
+void ETSEnvironment::NotifyDebugMode(uint32_t tid, uint32_t instanceId, bool isStartWithDebug,
+    bool isDebugApp, void *jsVm)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Start");
     AbilityRuntime::ConnectServerManager::Get().StoreInstanceMessage(getproctid(), instanceId, "Debugger");
