@@ -171,6 +171,8 @@ void UiOperationChainExecutor::DoRequestInspectorTree(sptr<Ace::IUiContentServic
     };
 
     int32_t ret = service->GetVisibleInspectorTree(treeCallback, config, TREE_TIMEOUT_MS);
+    TAG_LOGI(AAFwkTag::INTENT, "GetVisibleInspectorTree ret=%{public}d, config.interactionInfo=%{public}d",
+        ret, config.interactionInfo);
     if (ret != Ace::NO_ERROR) {
         TAG_LOGE(AAFwkTag::INTENT, "GetVisibleInspectorTree failed, ret=%{public}d", ret);
         if (onTreeReady) { onTreeReady("", false); }
