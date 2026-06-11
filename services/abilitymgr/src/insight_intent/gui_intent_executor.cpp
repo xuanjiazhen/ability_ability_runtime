@@ -391,8 +391,8 @@ void GuiIntentExecutor::Execute(int32_t windowId,
             OnFailed(UI_OPERATION_ERR_CONNECT_FAILED, "");
             return;
         }
-        // Register content change callback once for the whole chain
-        RegisterContentCallback();
+        // TODO: RegisterContentCallback temporarily disabled — use SendCommand sync return instead
+        // RegisterContentCallback();
         // Start first step
         StartNextStep();
     });
@@ -405,7 +405,8 @@ void GuiIntentExecutor::Cancel()
     cancelled_ = true;
     if (executing_ && onComplete_) {
         executing_ = false;
-        UnregisterContentCallback();
+        // TODO: UnregisterContentCallback temporarily disabled
+        // UnregisterContentCallback();
         auto cb = std::move(onComplete_);
         onComplete_ = nullptr;
         cb(UI_OPERATION_ERR_CANCELLED, "");
@@ -483,11 +484,11 @@ void GuiIntentExecutor::ExecuteCurrentStep()
             return;
         }
 
-        // Reset callback flag before sending command
-        {
-            std::lock_guard<ffrt::mutex> cbLock(callbackMutex_);
-            callbackReceived_ = false;
-        }
+        // TODO: callbackReceived reset temporarily disabled — use SendCommand sync return instead
+        // {
+        //     std::lock_guard<ffrt::mutex> cbLock(callbackMutex_);
+        //     callbackReceived_ = false;
+        // }
 
         // Execute command on matched node
         std::string commandJson = BuildCommandJson(item.actionType);
@@ -508,16 +509,15 @@ void GuiIntentExecutor::ExecuteCurrentStep()
             return;
         }
 
-        TAG_LOGI(AAFwkTag::INTENT, "step[%{public}zu] command sent, waiting for PAGE change...", stepIndex);
+        TAG_LOGI(AAFwkTag::INTENT, "step[%{public}zu] SendCommand success, proceeding to next step", stepIndex);
 
-        // Wait for PAGE change callback
-        if (!WaitForPageChange()) {
-            TAG_LOGE(AAFwkTag::INTENT, "step[%{public}zu] PAGE change timeout", stepIndex);
-            OnStepPageChangeTimeout();
-            return;
-        }
-
-        TAG_LOGI(AAFwkTag::INTENT, "step[%{public}zu] PAGE change confirmed", stepIndex);
+        // TODO: WaitForPageChange temporarily disabled — use SendCommand sync return instead
+        // if (!WaitForPageChange()) {
+        //     TAG_LOGE(AAFwkTag::INTENT, "step[%{public}zu] PAGE change timeout", stepIndex);
+        //     OnStepPageChangeTimeout();
+        //     return;
+        // }
+        // TAG_LOGI(AAFwkTag::INTENT, "step[%{public}zu] PAGE change confirmed", stepIndex);
 
         // Verify page transition: check that nextPageName matches the next input element
         if (!item.nextPageName.empty()) {
@@ -852,7 +852,8 @@ void GuiIntentExecutor::OnStepPageChangeTimeout()
 void GuiIntentExecutor::OnAllStepsComplete()
 {
     TAG_LOGI(AAFwkTag::INTENT, "all steps completed successfully");
-    UnregisterContentCallback();
+    // TODO: UnregisterContentCallback temporarily disabled
+    // UnregisterContentCallback();
 
     GuiIntentCompleteCallback cb;
     {
@@ -869,7 +870,8 @@ void GuiIntentExecutor::OnAllStepsComplete()
 
 void GuiIntentExecutor::OnFailed(int32_t resultCode, const std::string& failedPageName)
 {
-    UnregisterContentCallback();
+    // TODO: UnregisterContentCallback temporarily disabled
+    // UnregisterContentCallback();
 
     GuiIntentCompleteCallback cb;
     {

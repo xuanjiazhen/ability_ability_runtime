@@ -566,10 +566,10 @@ void UiOperationChainExecutor::ExecuteChain(const UiOperationChain& chain,
             self->OnChainComplete(UI_OPERATION_ERR_CONNECT_FAILED, -1);
             return;
         }
-        // Register content change callback once for the whole chain
-        if (self->chain_.waitForPageChange) {
-            self->RegisterChainContentCallback();
-        }
+        // TODO: RegisterChainContentCallback temporarily disabled — use SendCommand sync return instead
+        // if (self->chain_.waitForPageChange) {
+        //     self->RegisterChainContentCallback();
+        // }
         self->ProceedToStep(0);
     });
 }
@@ -583,7 +583,8 @@ void UiOperationChainExecutor::Cancel()
         executing_ = false;
         auto callback = std::move(onComplete_);
         onComplete_ = nullptr;
-        UnregisterChainContentCallback();
+        // TODO: UnregisterChainContentCallback temporarily disabled
+        // UnregisterChainContentCallback();
         if (eventHandler_) {
             eventHandler_->PostTask([callback]() {
                 callback(UI_OPERATION_ERR_CANCELLED, -1);
@@ -692,7 +693,8 @@ void UiOperationChainExecutor::ProceedToStep(size_t stepIndex)
         std::lock_guard<ffrt::mutex> lock(mutex_);
         if (cancelled_) { return; }
         if (stepIndex >= chain_.steps.size()) {
-            UnregisterChainContentCallback();
+            // TODO: UnregisterChainContentCallback temporarily disabled
+            // UnregisterChainContentCallback();
             OnChainComplete(UI_OPERATION_ERR_OK, -1);
             return;
         }
@@ -718,7 +720,8 @@ void UiOperationChainExecutor::OnChainComplete(int32_t resultCode, int32_t faile
         onComplete_ = nullptr;
     }
 
-    UnregisterChainContentCallback();
+    // TODO: UnregisterChainContentCallback temporarily disabled
+    // UnregisterChainContentCallback();
 
     TAG_LOGI(AAFwkTag::INTENT, "chain complete: code=%{public}d, failedStep=%{public}d",
         resultCode, failedStepIndex);
@@ -790,11 +793,11 @@ void UiOperationChainExecutor::ExecuteStepWithPageWait(size_t stepIndex)
             return;
         }
 
-        // Reset callback flag before sending command
-        {
-            std::lock_guard<ffrt::mutex> cbLock(self->callbackMutex_);
-            self->contentCallbackReceived_ = false;
-        }
+        // TODO: callbackReceived reset temporarily disabled — use SendCommand sync return instead
+        // {
+        //     std::lock_guard<ffrt::mutex> cbLock(self->callbackMutex_);
+        //     self->contentCallbackReceived_ = false;
+        // }
 
         // Execute command
         auto svc = self->GetUiContentService(self->chain_.windowId);
@@ -815,16 +818,15 @@ void UiOperationChainExecutor::ExecuteStepWithPageWait(size_t stepIndex)
             return;
         }
 
-        TAG_LOGI(AAFwkTag::INTENT, "step[%{public}zu] command sent, waiting for PAGE change callback...", stepIndex);
+        TAG_LOGI(AAFwkTag::INTENT, "step[%{public}zu] SendCommand success, proceeding to next step", stepIndex);
 
-        // Wait for PAGE change callback
-        if (!self->WaitForPageChange(stepIndex)) {
-            TAG_LOGE(AAFwkTag::INTENT, "step[%{public}zu] PAGE change timeout or wrong type", stepIndex);
-            self->OnChainComplete(UI_OPERATION_ERR_PAGE_CHANGE_TIMEOUT, static_cast<int32_t>(stepIndex));
-            return;
-        }
-
-        TAG_LOGI(AAFwkTag::INTENT, "step[%{public}zu] PAGE change confirmed", stepIndex);
+        // TODO: WaitForPageChange temporarily disabled — use SendCommand sync return instead
+        // if (!self->WaitForPageChange(stepIndex)) {
+        //     TAG_LOGE(AAFwkTag::INTENT, "step[%{public}zu] PAGE change timeout or wrong type", stepIndex);
+        //     self->OnChainComplete(UI_OPERATION_ERR_PAGE_CHANGE_TIMEOUT, static_cast<int32_t>(stepIndex));
+        //     return;
+        // }
+        // TAG_LOGI(AAFwkTag::INTENT, "step[%{public}zu] PAGE change confirmed", stepIndex);
         self->ProceedToStep(stepIndex + 1);
     };
 
