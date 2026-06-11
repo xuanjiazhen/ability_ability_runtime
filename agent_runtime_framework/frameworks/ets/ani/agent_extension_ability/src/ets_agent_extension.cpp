@@ -133,7 +133,7 @@ void EtsAgentExtension::OnStart(const AAFwk::Want &want)
         TAG_LOGE(AAFwkTag::SER_ROUTER, "env not found");
         return;
     }
-    ani_ref wantRef = OHOS::AppExecFwk::WrapWant(env, want);
+    ani_ref wantRef = WrapWant(env, want);
     if (wantRef == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null wantRef");
         return;
@@ -170,7 +170,7 @@ sptr<IRemoteObject> EtsAgentExtension::OnConnect(const AAFwk::Want &want,
         return nullptr;
     }
 
-    ani_object aniWant = AppExecFwk::WrapWant(env, want);
+    ani_object aniWant = WrapWant(env, want);
     if (aniWant == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null aniWant");
         return nullptr;
@@ -228,7 +228,7 @@ void EtsAgentExtension::OnDisconnect(const AAFwk::Want &want,
         TAG_LOGW(AAFwkTag::SER_ROUTER, "null hostProxy");
         return;
     }
-    ani_object aniWant = AppExecFwk::WrapWant(env, want);
+    ani_object aniWant = WrapWant(env, want);
     if (aniWant == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null aniWant");
         return;
@@ -406,6 +406,14 @@ sptr<IRemoteObject> EtsAgentExtension::GetHostProxyFromWant(const AAFwk::Want &w
         return nullptr;
     }
     return want.GetRemoteObject(AGENTEXTENSIONHOSTPROXY_KEY);
+}
+
+ani_object EtsAgentExtension::WrapWant(ani_env *env, const AAFwk::Want &want)
+{
+    AAFwk::Want etsWant = want;
+    etsWant.RemoveParam(AGENTEXTENSIONHOSTPROXY_KEY);
+    etsWant.RemoveParam(AGENTID_KEY);
+    return AppExecFwk::WrapWant(env, etsWant);
 }
 
 void EtsAgentExtension::BindContext(ani_env *env, std::shared_ptr<AAFwk::Want> want)
