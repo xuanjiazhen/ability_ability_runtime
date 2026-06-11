@@ -49,6 +49,9 @@ using ::testing::DoAll;
 
 namespace {
 const std::string PARAM_RESV_CALLER_APP_ID("ohos.aafwk.param.callerAppId");
+const std::string TEST_AGENT_ID_KEY("ohos.agentruntime.params.AgentId");
+const std::string TEST_AGENT_HOST_PROXY_KEY("ohos.agentruntime.params.AgentExtensionHostProxy");
+const std::string TEST_AGENT_LOW_CODE_BACKING_KEY("ohos.agentruntime.params.AgentLowCodeBacking");
 }
 
 namespace OHOS {
@@ -476,6 +479,70 @@ HWTEST_F(AbilityConnectManagerFourthTest, GetServiceKey_001, TestSize.Level1)
     std::string serviceKey = connectManager->GetServiceKey(abilityRecord);
     EXPECT_EQ(serviceKey, "com.example.test0");
     TAG_LOGI(AAFwkTag::TEST, "GetServiceKey_001 end");
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: GetServiceKey
+ */
+HWTEST_F(AbilityConnectManagerFourthTest, GetServiceKey_002, TestSize.Level1)
+{
+    std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
+        abilityRequest_);
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->uri_ = "com.example.agent";
+    abilityRecord->abilityInfo_.extensionAbilityType = ExtensionAbilityType::AGENT;
+    sptr<IRemoteObject> hostProxy = abilityRecord->GetToken();
+
+    Want standardWant;
+    standardWant.SetParam(TEST_AGENT_ID_KEY, std::string("agentA"));
+    abilityRecord->SetWant(standardWant);
+    EXPECT_EQ(AbilityConnectManager::GetServiceKey(abilityRecord), "com.example.agentagentA");
+
+    Want lowCodeWant = standardWant;
+    lowCodeWant.SetParam(TEST_AGENT_HOST_PROXY_KEY, hostProxy);
+    abilityRecord->SetWant(lowCodeWant);
+    EXPECT_EQ(AbilityConnectManager::GetServiceKey(abilityRecord), "com.example.agentagentA");
+
+    lowCodeWant.SetParam(TEST_AGENT_LOW_CODE_BACKING_KEY, true);
+    abilityRecord->SetWant(lowCodeWant);
+    EXPECT_EQ(AbilityConnectManager::GetServiceKey(abilityRecord), "com.example.agent");
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: GetServiceKey
+ */
+HWTEST_F(AbilityConnectManagerFourthTest, GetServiceKey_003, TestSize.Level1)
+{
+    std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
+        abilityRequest_);
+    ASSERT_NE(abilityRecord, nullptr);
+    sptr<IRemoteObject> hostProxy = abilityRecord->GetToken();
+
+    AbilityRequest standardRequest = abilityRequest_;
+    standardRequest.abilityInfo.bundleName = "com.example.agent";
+    standardRequest.abilityInfo.moduleName = "entry";
+    standardRequest.abilityInfo.name = "AgentExtAbility";
+    standardRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::AGENT;
+    standardRequest.want.SetParam(TEST_AGENT_ID_KEY, std::string("agentA"));
+
+    AbilityRequest lowCodeRequestA = standardRequest;
+    lowCodeRequestA.want.SetParam(TEST_AGENT_HOST_PROXY_KEY, hostProxy);
+    lowCodeRequestA.want.SetParam(TEST_AGENT_LOW_CODE_BACKING_KEY, true);
+
+    AbilityRequest lowCodeRequestB = lowCodeRequestA;
+    lowCodeRequestB.want.SetParam(TEST_AGENT_ID_KEY, std::string("agentB"));
+
+    AbilityRequest standardRequestWithHostProxy = standardRequest;
+    standardRequestWithHostProxy.want.SetParam(TEST_AGENT_HOST_PROXY_KEY, hostProxy);
+
+    EXPECT_NE(AbilityConnectManager::GetServiceKey(standardRequest),
+        AbilityConnectManager::GetServiceKey(lowCodeRequestA));
+    EXPECT_NE(AbilityConnectManager::GetServiceKey(standardRequestWithHostProxy),
+        AbilityConnectManager::GetServiceKey(lowCodeRequestA));
+    EXPECT_EQ(AbilityConnectManager::GetServiceKey(lowCodeRequestA),
+        AbilityConnectManager::GetServiceKey(lowCodeRequestB));
 }
 
 /*

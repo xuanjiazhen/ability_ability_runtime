@@ -68,6 +68,7 @@ public:
     static std::vector<std::string> mockProfileInfos;
     static int32_t extensionAbilityUid;
     static int32_t retGetProcessRunningInfoByPid;
+    static std::string runningProcessInstanceKey;
     static AppExecFwk::AppProcessState processState;
     static int32_t retGetBundleNameByPid;
     static AAFwk::Want lastConnectAbilityWant;

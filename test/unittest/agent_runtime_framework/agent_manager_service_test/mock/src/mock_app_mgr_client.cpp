@@ -30,6 +30,7 @@ AppMgrClient::~AppMgrClient()
 int32_t AppMgrClient::GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExecFwk::RunningProcessInfo &info) const
 {
     info.state_ = AgentRuntime::MyFlag::processState;
+    info.instanceKey = AgentRuntime::MyFlag::runningProcessInstanceKey;
     return AgentRuntime::MyFlag::retGetProcessRunningInfoByPid;
 }
 
