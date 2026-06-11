@@ -29,6 +29,7 @@ group("unittest") {
     "agent_load_callback_test:agent_load_callback_test",
     "agent_manager_client_test:agent_manager_client_test",
     "agent_manager_service_test:agent_manager_service_test",
+    "agent_record_test:agent_record_test",
     "agent_receiver_proxy_test:agent_receiver_proxy_test",
     "agent_receiver_stub_test:agent_receiver_stub_test",
     "agent_service_connection_test:agent_service_connection_test",
@@ -36,4 +37,3 @@ group("unittest") {
     "sem_ver_test:sem_ver_test",
   ]
 }
-
