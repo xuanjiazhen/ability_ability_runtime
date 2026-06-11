@@ -25,6 +25,7 @@ bool AgentRuntime::MyFlag::retRegisterBundleEventCallback = false;
 bool AgentRuntime::MyFlag::retGetApplicationInfo = false;
 bool AgentRuntime::MyFlag::isRegisterBundleEventCallbackCalled = false;
 int32_t AgentRuntime::MyFlag::retGetProcessRunningInfoByPid = ERR_OK;
+std::string AgentRuntime::MyFlag::runningProcessInstanceKey = "";
 AppExecFwk::AppProcessState AgentRuntime::MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
 bool AgentRuntime::MyFlag::retQueryExtensionAbilityInfos = true;
 bool AgentRuntime::MyFlag::shouldFillExtensionAbilityInfos = true;

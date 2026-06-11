@@ -51,7 +51,7 @@ struct AgentConnectionInfo {
     // The connection object
     sptr<AgentConnection> agentConnection;
     // Agent extension host proxy from Want parameter AGENTEXTENSIONHOSTPROXY_KEY.
-    // It is per API call and is not part of the reusable connection identity.
+    // It is part of the reusable connection identity.
     void *agentExtProxy = nullptr;
     // Connection timestamp for timeout detection
     int64_t connectingTime = 0;
@@ -244,6 +244,12 @@ private:
      * @return Returns true if timed out, false otherwise.
      */
     bool IsConnectingTimeout(const AgentConnectionInfo &info);
+    ErrCode ValidateConnectAbilityInnerInput(const AAFwk::Want &want,
+        const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback, std::string &agentId) const;
+    AgentConnectionRecords::iterator FindReusableConnectionLocked(const std::string &agentId,
+        const AAFwk::Want &want);
+    bool TryReuseConnectionLocked(AgentConnectionRecords::iterator connectionIter, const AAFwk::Want &want,
+        const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback, ErrCode &result);
     /**
      * @brief Inner connection logic.
      *

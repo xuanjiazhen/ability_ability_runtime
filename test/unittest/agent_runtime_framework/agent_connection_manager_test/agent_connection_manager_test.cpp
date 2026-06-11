@@ -884,9 +884,9 @@ HWTEST_F(AgentConnectionManagerTest, MatchConnection_001, TestSize.Level1)
 }
 
 /**
-* @tc.name  : MatchConnection_ShouldReturnTrue_WhenAgentExtProxyDiffers
+* @tc.name  : MatchConnection_ShouldReturnFalse_WhenAgentExtProxyDiffers
 * @tc.number: MatchConnection_002
-* @tc.desc  : Test MatchConnection returns true when only agentExtProxy differs
+* @tc.desc  : Test MatchConnection returns false when only agentExtProxy differs
 */
 HWTEST_F(AgentConnectionManagerTest, MatchConnection_002, TestSize.Level1)
 {
@@ -908,7 +908,7 @@ HWTEST_F(AgentConnectionManagerTest, MatchConnection_002, TestSize.Level1)
 
     auto &connectionEntry = *AgentConnectionManager::GetInstance().agentConnections_.begin();
     auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, connectionEntry);
-    EXPECT_TRUE(result);
+    EXPECT_FALSE(result);
 }
 
 /**
@@ -981,6 +981,81 @@ HWTEST_F(AgentConnectionManagerTest, MatchConnection_007, TestSize.Level1)
     auto &connectionEntry = *AgentConnectionManager::GetInstance().agentConnections_.begin();
     auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, connectionEntry);
     EXPECT_TRUE(result);
+}
+
+/**
+* @tc.name  : MatchConnection_ShouldReturnTrue_WhenStoredModuleNameIsEmpty
+* @tc.number: MatchConnection_008
+* @tc.desc  : Test MatchConnection returns true when stored Want does not specify moduleName
+*/
+HWTEST_F(AgentConnectionManagerTest, MatchConnection_008, TestSize.Level1)
+{
+    Want want;
+    want.SetParam(AGENTID_KEY, std::string("testAgent"));
+    want.SetElementName("", "test.bundle", "test.ability", "test.module");
+
+    Want want2;
+    want2.SetParam(AGENTID_KEY, std::string("testAgent"));
+    want2.SetElementName("", "test.bundle", "test.ability");
+
+    MyFlag::retConnectAgentExtensionAbility = ERR_OK;
+    sptr<MockAbilityConnectCallback> callback = new MockAbilityConnectCallback();
+    AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(want2, callback);
+
+    auto &connectionEntry = *AgentConnectionManager::GetInstance().agentConnections_.begin();
+    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, connectionEntry);
+    EXPECT_TRUE(result);
+}
+
+/**
+* @tc.name  : ValidateConnectAbilityInnerInput_ShouldReturnExpectedResult
+* @tc.number: ValidateConnectAbilityInnerInput_001
+* @tc.desc  : Test ConnectAbilityInner validation helper branches
+*/
+HWTEST_F(AgentConnectionManagerTest, ValidateConnectAbilityInnerInput_001, TestSize.Level1)
+{
+    Want want;
+    std::string agentId;
+    EXPECT_EQ(AgentConnectionManager::GetInstance().ValidateConnectAbilityInnerInput(want, nullptr, agentId),
+        AAFwk::INVALID_PARAMETERS_ERR);
+
+    sptr<MockAbilityConnectCallback> callback = new MockAbilityConnectCallback();
+    EXPECT_EQ(AgentConnectionManager::GetInstance().ValidateConnectAbilityInnerInput(want, callback, agentId),
+        AAFwk::INVALID_PARAMETERS_ERR);
+
+    want.SetParam(AGENTID_KEY, std::string("testAgent"));
+    want.SetElementName("", "", "test.ability", "test.module");
+    EXPECT_EQ(AgentConnectionManager::GetInstance().ValidateConnectAbilityInnerInput(want, callback, agentId),
+        AAFwk::INVALID_PARAMETERS_ERR);
+
+    want.SetElementName("", "test.bundle", "test.ability", "test.module");
+    EXPECT_EQ(AgentConnectionManager::GetInstance().ValidateConnectAbilityInnerInput(want, callback, agentId),
+        ERR_OK);
+    EXPECT_EQ(agentId, "testAgent");
+}
+
+/**
+* @tc.name  : ReuseConnectionHelpers_ShouldHandleMissingAndDisconnectedConnections
+* @tc.number: ReuseConnectionHelpers_001
+* @tc.desc  : Test reusable connection lookup and disconnected cleanup helper branches
+*/
+HWTEST_F(AgentConnectionManagerTest, ReuseConnectionHelpers_001, TestSize.Level1)
+{
+    Want want;
+    want.SetParam(AGENTID_KEY, std::string("testAgent"));
+    want.SetElementName("", "test.bundle", "test.ability", "test.module");
+    auto &manager = AgentConnectionManager::GetInstance();
+    EXPECT_EQ(manager.FindReusableConnectionLocked("testAgent", want), manager.agentConnections_.end());
+
+    auto agentConnection = sptr<AgentConnection>::MakeSptr();
+    AgentConnectionInfo info("testAgent", want.GetOperation(), agentConnection);
+    manager.agentConnections_.push_back({ info, {} });
+
+    auto iter = manager.FindReusableConnectionLocked("testAgent", want);
+    ASSERT_NE(iter, manager.agentConnections_.end());
+    ErrCode result = ERR_OK;
+    EXPECT_FALSE(manager.TryReuseConnectionLocked(iter, want, new MockAbilityConnectCallback(), result));
+    EXPECT_TRUE(manager.agentConnections_.empty());
 }
 
 /**
