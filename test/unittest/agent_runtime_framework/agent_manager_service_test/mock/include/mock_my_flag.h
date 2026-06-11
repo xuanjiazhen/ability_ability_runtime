@@ -69,6 +69,7 @@ public:
     static int32_t extensionAbilityUid;
     static int32_t retGetProcessRunningInfoByPid;
     static AppExecFwk::AppProcessState processState;
+    static std::string processInstanceKey;
     static int32_t retGetBundleNameByPid;
     static AAFwk::Want lastConnectAbilityWant;
     static sptr<AAFwk::IAbilityConnection> lastConnectAbilityConnection;

@@ -83,7 +83,10 @@ void FindAgentConnection(int64_t connectId, sptr<JSAgentConnection> &connection)
  * @param agentId The agent ID to match.
  * @param connection Output parameter for the found connection.
  */
-void FindAgentConnection(const AAFwk::Want &want, const std::string &agentId, sptr<JSAgentConnection> &connection);
+void FindAgentConnection(const AAFwk::Want &want, const std::string &agentId, napi_env env,
+    napi_value callbackObject, sptr<JSAgentConnection> &connection);
+void FindReusableAgentConnection(napi_env env, int64_t currentId, const sptr<IRemoteObject> &remoteObject,
+    napi_value callbackObject, sptr<JSAgentConnection> &connection);
 }
 
 class JsAgentConnectorStubImpl;
@@ -149,6 +152,12 @@ public:
      * @return Returns the N-API value of the proxy object, or nullptr if not set.
      */
     napi_value GetProxyObject();
+
+    bool HasProxyObject() const { return serviceProxyObject_ != nullptr; }
+
+    void SetRemoteObject(const sptr<IRemoteObject> &remoteObject) { remoteObject_ = remoteObject; }
+
+    sptr<IRemoteObject> GetRemoteObject() const { return remoteObject_; }
 
     /**
      * Set the async task for the connection promise.
@@ -309,6 +318,8 @@ private:
      * The proxy object returned to JavaScript.
      */
     std::unique_ptr<NativeReference> serviceProxyObject_;
+
+    sptr<IRemoteObject> remoteObject_;
 
     /**
      * List of pending tasks for duplicate connection requests.
