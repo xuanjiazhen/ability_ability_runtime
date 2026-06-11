@@ -24,6 +24,8 @@
 #include "refbase.h"
 
 namespace OHOS {
+class IRemoteObject;
+
 namespace AAFwk {
 class Want;
 }
@@ -31,6 +33,7 @@ class Want;
 namespace AgentRuntime {
 // Forward declarations
 class JSAgentConnection;
+class JsAgentConnectorStubImpl;
 
 /**
  * @class JsAgentManager
@@ -196,7 +199,8 @@ private:
      * @return Returns the connection object, or nullptr on failure.
      */
     sptr<JSAgentConnection> CreateAgentConnection(napi_env env,
-        AAFwk::Want &want, const std::string &agentId, napi_value callbackObject);
+        AAFwk::Want &want, const std::string &agentId, napi_value callbackObject,
+        const sptr<IRemoteObject> &callbackOwner = nullptr);
 
     /**
      * Schedule the agent connection asynchronously.
