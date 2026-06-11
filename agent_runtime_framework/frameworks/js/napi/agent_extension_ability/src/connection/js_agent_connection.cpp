@@ -42,12 +42,18 @@ bool IsSameAgentConnection(const AAFwk::Want &storedWant, const AAFwk::Want &wan
     }
     const auto &storedElement = storedWant.GetElement();
     const auto &element = want.GetElement();
-    if (storedElement.GetBundleName() != element.GetBundleName() ||
-        storedElement.GetAbilityName() != element.GetAbilityName()) {
-        return false;
-    }
-    return storedElement.GetModuleName().empty() || element.GetModuleName().empty() ||
-        storedElement.GetModuleName() == element.GetModuleName();
+    return storedElement.GetBundleName() == element.GetBundleName() &&
+        storedElement.GetModuleName() == element.GetModuleName() &&
+        storedElement.GetAbilityName() == element.GetAbilityName();
+}
+
+bool IsSameAgentTarget(const AAFwk::Want &storedWant, const AAFwk::Want &want)
+{
+    const auto &storedElement = storedWant.GetElement();
+    const auto &element = want.GetElement();
+    return storedElement.GetBundleName() == element.GetBundleName() &&
+        storedElement.GetModuleName() == element.GetModuleName() &&
+        storedElement.GetAbilityName() == element.GetAbilityName();
 }
 } // namespace
 
@@ -68,6 +74,19 @@ void RemoveAgentConnection(int64_t connectId)
         g_agentConnects.erase(item);
     } else {
         TAG_LOGD(AAFwkTag::SER_ROUTER, "Connection not found");
+    }
+}
+
+void DetachAgentConnection(int64_t connectId)
+{
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "DetachAgentConnection, connectId: %{public}s", std::to_string(connectId).c_str());
+    std::lock_guard<std::recursive_mutex> lock(g_agentConnectsLock_);
+    auto item = std::find_if(g_agentConnects.begin(), g_agentConnects.end(),
+        [&connectId](const auto &obj) {
+            return connectId == obj.first.id;
+        });
+    if (item != g_agentConnects.end()) {
+        g_agentConnects.erase(item);
     }
 }
 
@@ -109,13 +128,37 @@ void FindAgentConnection(int64_t connectId, sptr<JSAgentConnection> &connection)
     }
 }
 
-void FindAgentConnection(const AAFwk::Want &want, const std::string &agentId, sptr<JSAgentConnection> &connection)
+void FindAgentConnection(napi_env env, const AAFwk::Want &want, const std::string &agentId,
+    napi_value callbackObject, sptr<JSAgentConnection> &connection)
 {
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "FindAgentConnection by target");
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "FindAgentConnection by target and callback");
     std::lock_guard<std::recursive_mutex> lock(g_agentConnectsLock_);
     auto item = std::find_if(g_agentConnects.begin(), g_agentConnects.end(),
-        [&want, &agentId](const auto &obj) {
-        return IsSameAgentConnection(obj.first.want, want, agentId);
+        [env, &want, &agentId, callbackObject](const auto &obj) {
+        if (!IsSameAgentConnection(obj.first.want, want, agentId) || obj.second == nullptr) {
+            return false;
+        }
+        return JSAgentConnection::IsJsCallbackObjectEquals(env, obj.second->GetJsConnectionObject(), callbackObject);
+    });
+    if (item == g_agentConnects.end()) {
+        TAG_LOGD(AAFwkTag::SER_ROUTER, "Connection not found");
+        return;
+    }
+    connection = item->second;
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "Found connection");
+}
+
+void FindAgentConnectionByTarget(napi_env env, const AAFwk::Want &want,
+    napi_value callbackObject, sptr<JSAgentConnection> &connection)
+{
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "FindAgentConnection by target and callback");
+    std::lock_guard<std::recursive_mutex> lock(g_agentConnectsLock_);
+    auto item = std::find_if(g_agentConnects.begin(), g_agentConnects.end(),
+        [env, &want, callbackObject](const auto &obj) {
+        if (!IsSameAgentTarget(obj.first.want, want) || obj.second == nullptr) {
+            return false;
+        }
+        return JSAgentConnection::IsJsCallbackObjectEquals(env, obj.second->GetJsConnectionObject(), callbackObject);
     });
     if (item == g_agentConnects.end()) {
         TAG_LOGD(AAFwkTag::SER_ROUTER, "Connection not found");
@@ -206,15 +249,15 @@ void JSAgentConnection::HandleOnAbilityConnectDone(const AppExecFwk::ElementName
 
 void JSAgentConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
 {
-    wptr<JSAgentConnection> connection = this;
+    sptr<JSAgentConnection> connection = this;
+    AgentConnectionUtils::DetachAgentConnection(connectionId_);
     std::unique_ptr<NapiAsyncTask::CompleteCallback> complete = std::make_unique<NapiAsyncTask::CompleteCallback>
         ([connection, element, resultCode](napi_env env, NapiAsyncTask &task, int32_t status) {
-            sptr<JSAgentConnection> connectionSptr = connection.promote();
-            if (!connectionSptr) {
+            if (connection == nullptr) {
                 TAG_LOGI(AAFwkTag::SER_ROUTER, "null connectionSptr");
                 return;
             }
-            connectionSptr->HandleOnAbilityDisconnectDone(element, resultCode);
+            connection->HandleOnAbilityDisconnectDone(element, resultCode);
         });
     napi_ref callback = nullptr;
     std::unique_ptr<NapiAsyncTask::ExecuteCallback> execute = nullptr;
@@ -237,7 +280,7 @@ void JSAgentConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::ElementN
 
     // release connect
     CallObjectMethod("onDisconnect", nullptr, 0);
-    AgentConnectionUtils::RemoveAgentConnection(connectionId_);
+    RemoveConnectionObject();
 }
 
 void JSAgentConnection::SetProxyObject(napi_value proxy)
