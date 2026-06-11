@@ -879,7 +879,7 @@ HWTEST_F(AgentConnectionManagerTest, MatchConnection_001, TestSize.Level1)
     AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(want2, callback);
 
     auto &connectionEntry = *AgentConnectionManager::GetInstance().agentConnections_.begin();
-    auto result = AgentConnectionManager::GetInstance().MatchConnection("agent1", want, connectionEntry);
+    auto result = AgentConnectionManager::GetInstance().MatchConnection("agent1", want, callback, connectionEntry);
     EXPECT_FALSE(result);
 }
 
@@ -907,7 +907,7 @@ HWTEST_F(AgentConnectionManagerTest, MatchConnection_002, TestSize.Level1)
     AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(want2, callback);
 
     auto &connectionEntry = *AgentConnectionManager::GetInstance().agentConnections_.begin();
-    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, connectionEntry);
+    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, callback, connectionEntry);
     EXPECT_TRUE(result);
 }
 
@@ -931,7 +931,7 @@ HWTEST_F(AgentConnectionManagerTest, MatchConnection_003, TestSize.Level1)
     AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(want2, callback);
 
     auto &connectionEntry = *AgentConnectionManager::GetInstance().agentConnections_.begin();
-    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, connectionEntry);
+    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, callback, connectionEntry);
     EXPECT_FALSE(result);
 }
 
@@ -955,14 +955,14 @@ HWTEST_F(AgentConnectionManagerTest, MatchConnection_004, TestSize.Level1)
     AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(want2, callback);
 
     auto &connectionEntry = *AgentConnectionManager::GetInstance().agentConnections_.begin();
-    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, connectionEntry);
+    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, callback, connectionEntry);
     EXPECT_FALSE(result);
 }
 
 /**
-* @tc.name  : MatchConnection_ShouldReturnTrue_WhenModuleNameIsEmpty
+* @tc.name  : MatchConnection_ShouldReturnFalse_WhenModuleNameIsEmpty
 * @tc.number: MatchConnection_007
-* @tc.desc  : Test MatchConnection returns true when the user-passed Want does not specify moduleName
+* @tc.desc  : Test MatchConnection returns false when the user-passed Want does not specify moduleName
 */
 HWTEST_F(AgentConnectionManagerTest, MatchConnection_007, TestSize.Level1)
 {
@@ -979,8 +979,8 @@ HWTEST_F(AgentConnectionManagerTest, MatchConnection_007, TestSize.Level1)
     AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(want2, callback);
 
     auto &connectionEntry = *AgentConnectionManager::GetInstance().agentConnections_.begin();
-    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, connectionEntry);
-    EXPECT_TRUE(result);
+    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, callback, connectionEntry);
+    EXPECT_FALSE(result);
 }
 
 /**
@@ -1003,7 +1003,7 @@ HWTEST_F(AgentConnectionManagerTest, MatchConnection_005, TestSize.Level1)
     AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(want2, callback);
 
     auto &connectionEntry = *AgentConnectionManager::GetInstance().agentConnections_.begin();
-    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, connectionEntry);
+    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, callback, connectionEntry);
     EXPECT_FALSE(result);
 }
 
@@ -1025,7 +1025,7 @@ HWTEST_F(AgentConnectionManagerTest, MatchConnection_006, TestSize.Level1)
     AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(want, callback);
 
     auto &connectionEntry = *AgentConnectionManager::GetInstance().agentConnections_.begin();
-    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, connectionEntry);
+    auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, callback, connectionEntry);
     EXPECT_TRUE(result);
 }
 
