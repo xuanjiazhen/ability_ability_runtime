@@ -242,23 +242,28 @@ void *AgentConnectionManager::GetAgentExtProxyPtr(const AAFwk::Want &want)
 }
 
 bool AgentConnectionManager::MatchConnection(const std::string &agentId, const AAFwk::Want &connectReceiver,
-    const AgentConnectionRecord &connection)
+    const sptr<AbilityConnectCallback> &connectCallback, const AgentConnectionRecord &connection)
 {
     // 1. Match by agentId
     if (agentId != connection.first.agentId) {
         return false;
     }
-    // 2. Match by connectReceiver (bundleName, moduleName, abilityName).
+    // 2. Match by exact connectReceiver (bundleName, moduleName, abilityName).
     // AGENTEXTENSIONHOSTPROXY_KEY is per connect call, so it must not split reusable connections.
     const AAFwk::Operation &storedReceiver = connection.first.connectReceiver;
     const AppExecFwk::ElementName &element = connectReceiver.GetElement();
     if (element.GetBundleName() != storedReceiver.GetBundleName() ||
+        element.GetModuleName() != storedReceiver.GetModuleName() ||
         element.GetAbilityName() != storedReceiver.GetAbilityName()) {
         return false;
     }
-    const std::string &moduleName = element.GetModuleName();
-    const std::string &storedModuleName = storedReceiver.GetModuleName();
-    return moduleName.empty() || storedModuleName.empty() || moduleName == storedModuleName;
+
+    // 3. Different callback objects are distinct caller ownership even when they share the same target.
+    if (std::find(connection.second.begin(), connection.second.end(), connectCallback) == connection.second.end()) {
+        return false;
+    }
+    TAG_LOGI(AAFwkTag::SER_ROUTER, "matched agent connection by exact target and callback");
+    return true;
 }
 
 ErrCode AgentConnectionManager::CreateConnection(const AAFwk::Want &want,
@@ -348,7 +353,7 @@ ErrCode AgentConnectionManager::ConnectAbilityInner(const AAFwk::Want &want,
         // Search for existing connection
         auto connectionIter = agentConnections_.end();
         for (auto iter = agentConnections_.begin(); iter != agentConnections_.end(); ++iter) {
-            if (MatchConnection(agentId, want, *iter) && !IsConnectingTimeout(iter->first)) {
+            if (MatchConnection(agentId, want, connectCallback, *iter) && !IsConnectingTimeout(iter->first)) {
                 connectionIter = iter;
                 break;
             }
@@ -357,13 +362,11 @@ ErrCode AgentConnectionManager::ConnectAbilityInner(const AAFwk::Want &want,
         if (connectionIter != agentConnections_.end()) {
             // Found existing connection
             std::vector<sptr<AbilityConnectCallback>> &callbacks = connectionIter->second;
-            callbacks.push_back(connectCallback);
             sptr<AgentConnection> agentConnection = connectionIter->first.agentConnection;
             if (!agentConnection) {
                 TAG_LOGE(AAFwkTag::SER_ROUTER, "AgentConnection not exist");
                 return AAFwk::ERR_INVALID_CALLER;
             }
-            agentConnection->AddConnectCallback(connectCallback);
             TAG_LOGI(AAFwkTag::SER_ROUTER, "agentConnectionsSize: %{public}zu, ConnectionState: %{public}d",
                 agentConnections_.size(), agentConnection->GetConnectionState());
             TAG_LOGD(AAFwkTag::SER_ROUTER, "agentConnection exist, callbackSize:%{public}zu", callbacks.size());
