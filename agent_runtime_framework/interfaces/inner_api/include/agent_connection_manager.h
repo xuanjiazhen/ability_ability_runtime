@@ -51,7 +51,7 @@ struct AgentConnectionInfo {
     // The connection object
     sptr<AgentConnection> agentConnection;
     // Agent extension host proxy from Want parameter AGENTEXTENSIONHOSTPROXY_KEY.
-    // It is per API call and is not part of the reusable connection identity.
+    // It is part of the reusable connection identity.
     void *agentExtProxy = nullptr;
     // Connection timestamp for timeout detection
     int64_t connectingTime = 0;
@@ -170,6 +170,16 @@ public:
      * @return Returns ERR_OK on success, error code otherwise.
      */
     ErrCode DisconnectAgentExtensionAbility(const sptr<AbilityRuntime::AbilityConnectCallback> &connection);
+    /**
+     * @brief Disconnect the whole AgentProxy owner represented by one callback object.
+     *
+     * JS/ETS AgentProxy disconnection must notify agentmgr even when the local connection entry
+     * has multiple callback owners, because low-code agent ownership is released in agentmgr.
+     *
+     * @param connection The callback owner returned through AgentProxy connectionId.
+     * @return Returns ERR_OK on success, error code otherwise.
+     */
+    ErrCode DisconnectAgentExtensionAbilityByProxy(const sptr<AbilityRuntime::AbilityConnectCallback> &connection);
     ErrCode ConnectServiceExtensionAbility(const sptr<IRemoteObject> &callerToken, const AAFwk::Want &want,
         const sptr<AAFwk::IAbilityConnection> &connection);
     ErrCode DisconnectServiceExtensionAbility(const sptr<IRemoteObject> &callerToken,
@@ -214,20 +224,21 @@ private:
      * @return Returns the proxy pointer, or nullptr if not found.
      */
     void *GetAgentExtProxyPtr(const AAFwk::Want &want);
-    /**
-     * @brief Match connection by agentId + connectReceiver.
-     *
-     * @param agentId The agent ID to match.
-     * @param connectReceiver The connect receiver (Want) to match.
-     * @param connection The existing connection entry.
-     * @return Returns true if matches, false otherwise.
-     */
     using AgentConnectionCallbacks = std::vector<sptr<AbilityRuntime::AbilityConnectCallback>>;
     using AgentConnectionRecord = std::pair<AgentConnectionInfo, AgentConnectionCallbacks>;
     using AgentConnectionRecords = std::list<AgentConnectionRecord>;
 
+    /**
+     * @brief Match an existing connection with the exact target and callback owner.
+     *
+     * @param agentId The agent ID to match.
+     * @param connectReceiver The connect receiver (Want) to match.
+     * @param connectCallback The callback owner that must already belong to the connection.
+     * @param connection The existing connection entry.
+     * @return Returns true if matches, false otherwise.
+     */
     bool MatchConnection(const std::string &agentId, const AAFwk::Want &connectReceiver,
-        const AgentConnectionRecord &connection);
+        const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback, const AgentConnectionRecord &connection);
     /**
      * @brief Create a new connection to the agent extension.
      *
@@ -244,6 +255,16 @@ private:
      * @return Returns true if timed out, false otherwise.
      */
     bool IsConnectingTimeout(const AgentConnectionInfo &info);
+    ErrCode ValidateConnectAbilityInnerInput(const AAFwk::Want &want,
+        const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback, std::string &agentId) const;
+    AgentConnectionRecords::iterator FindConnectionByCallbackLocked(
+        const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback);
+    ErrCode DisconnectConnectionRecord(const AgentConnectionRecord &connectionRecord);
+    void RestoreConnectionRecord(const AgentConnectionRecord &connectionRecord);
+    AgentConnectionRecords::iterator FindReusableConnectionLocked(const std::string &agentId,
+        const AAFwk::Want &want, const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback);
+    bool TryReuseConnectionLocked(AgentConnectionRecords::iterator connectionIter, const AAFwk::Want &want,
+        const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback, ErrCode &result);
     /**
      * @brief Inner connection logic.
      *

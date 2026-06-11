@@ -60,6 +60,13 @@ namespace AgentConnectionUtils {
 void RemoveAgentConnection(int64_t connectId);
 
 /**
+ * Detach agent connection from duplicate-connection lookup without clearing callback state.
+ *
+ * @param connectId The connection ID to detach.
+ */
+void DetachAgentConnection(int64_t connectId);
+
+/**
  * Insert agent connection into registry.
  *
  * @param connection The connection object to insert.
@@ -77,13 +84,27 @@ int64_t InsertAgentConnection(sptr<JSAgentConnection> connection, const AAFwk::W
 void FindAgentConnection(int64_t connectId, sptr<JSAgentConnection> &connection);
 
 /**
- * Find agent connection by target identity.
+ * Find agent connection by target identity and developer callback object.
  *
+ * @param env The N-API environment.
  * @param want The want information to match.
  * @param agentId The agent ID to match.
+ * @param callbackObject The JavaScript callback object to match.
  * @param connection Output parameter for the found connection.
  */
-void FindAgentConnection(const AAFwk::Want &want, const std::string &agentId, sptr<JSAgentConnection> &connection);
+void FindAgentConnection(napi_env env, const AAFwk::Want &want, const std::string &agentId,
+    napi_value callbackObject, sptr<JSAgentConnection> &connection);
+
+/**
+ * Find agent connection by resolved AgentExt target and developer callback object.
+ *
+ * @param env The N-API environment.
+ * @param want The want information to match.
+ * @param callbackObject The JavaScript callback object to match.
+ * @param connection Output parameter for the found connection.
+ */
+void FindAgentConnectionByTarget(napi_env env, const AAFwk::Want &want,
+    napi_value callbackObject, sptr<JSAgentConnection> &connection);
 }
 
 class JsAgentConnectorStubImpl;

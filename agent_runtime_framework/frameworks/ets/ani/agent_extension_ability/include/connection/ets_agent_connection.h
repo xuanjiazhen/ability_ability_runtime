@@ -76,13 +76,27 @@ int64_t InsertAgentConnection(sptr<EtsAgentConnection> connection, const AAFwk::
 void FindAgentConnection(int64_t connectId, sptr<EtsAgentConnection> &connection);
 
 /**
- * Find agent connection by target identity.
+ * Find agent connection by target identity and developer callback object.
  *
+ * @param env The ANI environment.
  * @param want The want information to match.
  * @param agentId The agent ID to match.
+ * @param callbackObject The ETS callback object to match.
  * @param connection Output parameter for the found connection.
  */
-void FindAgentConnection(const AAFwk::Want &want, const std::string &agentId, sptr<EtsAgentConnection> &connection);
+void FindAgentConnection(ani_env *env, const AAFwk::Want &want, const std::string &agentId,
+    ani_object callbackObject, sptr<EtsAgentConnection> &connection);
+
+/**
+ * Find agent connection by resolved AgentExt target and developer callback object.
+ *
+ * @param env The ANI environment.
+ * @param want The want information to match.
+ * @param callbackObject The ETS callback object to match.
+ * @param connection Output parameter for the found connection.
+ */
+void FindAgentConnectionByTarget(ani_env *env, const AAFwk::Want &want,
+    ani_object callbackObject, sptr<EtsAgentConnection> &connection);
 }
 
 class EtsAgentConnectorStubImpl;
