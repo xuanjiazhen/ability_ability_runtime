@@ -437,13 +437,15 @@ void GuiIntentExecutor::StartNextStep()
 
     // Decouple from IPC callback thread: submit to task handler so the binder
     // thread is freed before the next GetVisibleInspectorTree call.
+    // Delay 500ms to wait for the UI page transition to settle.
     auto handler = taskHandler_ ? taskHandler_ : TaskHandlerWrap::GetFfrtHandler();
     if (handler) {
         auto self = shared_from_this();
         handler->SubmitTask([self]() {
             self->ExecuteCurrentStep();
-        }, "GuiIntentNextStep");
+        }, "GuiIntentNextStep", 500);
     } else {
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
         ExecuteCurrentStep();
     }
 }
