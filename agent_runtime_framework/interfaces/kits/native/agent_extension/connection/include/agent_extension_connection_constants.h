@@ -31,6 +31,13 @@ constexpr const char *AGENTEXTENSIONHOSTPROXY_KEY = "ohos.agentruntime.params.Ag
 constexpr const char *AGENTID_KEY = "ohos.agentruntime.params.AgentId";
 
 /**
+ * Internal key used by AMS service-key calculation.
+ * LOW_CODE agents sharing one backing AgentExtension must reuse the backing
+ * service record instead of creating one service record per agentId.
+ */
+constexpr const char *AGENT_LOW_CODE_BACKING_KEY = "ohos.agentruntime.params.AgentLowCodeBacking";
+
+/**
  * Signature for agent async callback wrapper.
  * Used to identify the AsyncCallbackWrapper class in utils.AgentUtils.
  */
