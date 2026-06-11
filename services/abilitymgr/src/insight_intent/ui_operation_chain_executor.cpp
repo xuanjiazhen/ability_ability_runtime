@@ -779,18 +779,28 @@ void UiOperationChainExecutor::ExecuteStepWithPageWait(size_t stepIndex)
 std::vector<MatchedNodeInfo> UiOperationChainExecutor::ResolveMatchingNodes(
     const std::string& treeJson, const UiOperationStep& step)
 {
-    // Level 1: compId + compType + compText
     if (!step.compId.empty()) {
+        // Level 1a: compId + compType + compText (most precise)
         auto results = UiOperationTreeParser::FindMatchingNodesWithAttributes(
             treeJson, step.compType, step.compId, step.compText);
         if (!results.empty()) {
-            TAG_LOGI(AAFwkTag::INTENT, "resolve L1 (compId): found %{public}zu nodes", results.size());
+            TAG_LOGI(AAFwkTag::INTENT, "resolve L1a (compId+type+text): found %{public}zu nodes", results.size());
             return results;
         }
+
+        // Level 1b: compId + compType (compText as precision hint only, not a rejection criterion)
+        auto resultsNoText = UiOperationTreeParser::FindMatchingNodesWithAttributes(
+            treeJson, step.compType, step.compId, "");
+        if (!resultsNoText.empty()) {
+            TAG_LOGI(AAFwkTag::INTENT, "resolve L1b (compId+type, text mismatch): found %{public}zu nodes",
+                resultsNoText.size());
+            return resultsNoText;
+        }
+
         TAG_LOGI(AAFwkTag::INTENT, "resolve L1 (compId): no match, falling back to L2");
     }
 
-    // Level 2: compType + compText (fallback)
+    // Level 2: compType + compText (fallback, discard compId)
     auto results = UiOperationTreeParser::FindMatchingNodesWithAttributes(
         treeJson, step.compType, "", step.compText);
     TAG_LOGI(AAFwkTag::INTENT, "resolve L2 (type+text): found %{public}zu nodes", results.size());
