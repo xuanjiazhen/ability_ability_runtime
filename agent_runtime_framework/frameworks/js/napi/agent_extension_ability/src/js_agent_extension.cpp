@@ -170,7 +170,7 @@ void JsAgentExtension::OnStart(const AAFwk::Want &want)
     if (context != nullptr) {
         JsExtensionContext::ConfigurationUpdated(env, shellContextRef_, context->GetConfiguration());
     }
-    napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, want);
+    napi_value napiWant = WrapWant(env, want);
     napi_value argv[] = {napiWant};
     CallObjectMethod("onCreate", argv, ARGC_ONE);
 }
@@ -440,6 +440,8 @@ napi_value JsAgentExtension::WrapWant(napi_env env, const AAFwk::Want &want)
 {
     AAFwk::Want jsWant = want;
     jsWant.RemoveParam(AGENTEXTENSIONHOSTPROXY_KEY);
+    jsWant.RemoveParam(AGENTID_KEY);
+    jsWant.RemoveParam(AGENTCALLBACKOWNER_KEY);
     napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, jsWant);
     return napiWant;
 }
