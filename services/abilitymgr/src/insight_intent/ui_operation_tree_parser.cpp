@@ -186,8 +186,8 @@ void ExtractNodeAttrs(const nlohmann::json& node, MatchedNodeInfo& info)
         info.label = attrs[ATTR_LABEL].get<std::string>();
     }
     // Fallback: clickable may also appear in $attrs for some formats
-    if (!info.clickable && attrs.contains(ATTR_CLICKABLE) && attrs[ATTR_CLICKABLE].is_boolean()) {
-        info.clickable = attrs[ATTR_CLICKABLE].get<bool>();
+    if (!info.clickable && attrs.contains(ATTR_CLICKABLE)) {
+        info.clickable = GetBoolField(attrs, ATTR_CLICKABLE);
     }
 }
 
