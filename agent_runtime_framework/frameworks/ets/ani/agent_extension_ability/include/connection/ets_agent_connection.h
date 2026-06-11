@@ -82,7 +82,8 @@ void FindAgentConnection(int64_t connectId, sptr<EtsAgentConnection> &connection
  * @param agentId The agent ID to match.
  * @param connection Output parameter for the found connection.
  */
-void FindAgentConnection(const AAFwk::Want &want, const std::string &agentId, sptr<EtsAgentConnection> &connection);
+void FindAgentConnection(const AAFwk::Want &want, const std::string &agentId, ani_env *env,
+    ani_object callbackObject, sptr<EtsAgentConnection> &connection);
 }
 
 class EtsAgentConnectorStubImpl;
