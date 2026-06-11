@@ -122,7 +122,7 @@ public:
      * complete connect ability and just try to invoke callback.
      *
      */
-    void CompleteConnectAndOnlyCallConnectDone();
+    void CompleteConnectAndOnlyCallConnectDone(const Want &connectWant);
 
     /**
      * complete disconnect ability and invoke callback.

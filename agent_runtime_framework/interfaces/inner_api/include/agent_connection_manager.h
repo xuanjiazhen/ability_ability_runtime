@@ -227,6 +227,7 @@ private:
     using AgentConnectionRecords = std::list<AgentConnectionRecord>;
 
     bool MatchConnection(const std::string &agentId, const AAFwk::Want &connectReceiver,
+        const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback,
         const AgentConnectionRecord &connection);
     /**
      * @brief Create a new connection to the agent extension.

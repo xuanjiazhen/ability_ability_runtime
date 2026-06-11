@@ -2115,6 +2115,9 @@ void AbilityRecord::SetWant(const Want &want)
     if (want_.HasParameter(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY)) {
         want_.RemoveParam(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY);
     }
+    if (want_.HasParameter(AgentRuntime::AGENT_LOW_CODE_BACKING_KEY)) {
+        want_.RemoveParam(AgentRuntime::AGENT_LOW_CODE_BACKING_KEY);
+    }
 }
 
 Want AbilityRecord::GetWant() const
