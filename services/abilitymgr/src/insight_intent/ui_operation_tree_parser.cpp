@@ -114,6 +114,22 @@ const nlohmann::json& GetFieldRef(const nlohmann::json& node, const char* primar
     return nullJson;
 }
 
+// Read a boolean-like value: accepts both JSON boolean (true/false) and integer (0/1).
+bool GetBoolField(const nlohmann::json& obj, const char* key)
+{
+    if (!obj.contains(key)) {
+        return false;
+    }
+    const auto& val = obj[key];
+    if (val.is_boolean()) {
+        return val.get<bool>();
+    }
+    if (val.is_number_integer()) {
+        return val.get<int32_t>() != 0;
+    }
+    return false;
+}
+
 bool CaseInsensitiveEqual(const std::string& a, const std::string& b)
 {
     if (a.size() != b.size()) {
@@ -149,9 +165,9 @@ void ExtractNodeAttrs(const nlohmann::json& node, MatchedNodeInfo& info)
     }
 
     // Clickable is written to node top-level by DumpSimplifyCommonInfoOnlyForParamConfig
-    // (frame_node.cpp:1408), not inside $attrs.
-    if (node.contains(ATTR_CLICKABLE) && node[ATTR_CLICKABLE].is_boolean()) {
-        info.clickable = node[ATTR_CLICKABLE].get<bool>();
+    // (frame_node.cpp:1408), not inside $attrs. May be boolean or integer 0/1.
+    if (node.contains(ATTR_CLICKABLE)) {
+        info.clickable = GetBoolField(node, ATTR_CLICKABLE);
     }
 
     // $attrs / attrs — try both "$attrs" and "attrs" keys
@@ -238,8 +254,10 @@ void TraverseNodeWithAttrs(const nlohmann::json& node, const std::string& compon
     if (node.contains(NODE_COMP_ID) && node[NODE_COMP_ID].is_string()) {
         nodeCompId = node[NODE_COMP_ID].get<std::string>();
     }
-    TAG_LOGI(AAFwkTag::INTENT, "DFS[%{public}d]: type=%{public}s, ID=%{public}d, compid=%{public}s",
-        totalCount, nodeType.c_str(), nodeId, nodeCompId.c_str());
+    // Check clickable at top-level and in $attrs (may be boolean or integer 0/1)
+    bool nodeClickable = GetBoolField(node, ATTR_CLICKABLE);
+    TAG_LOGI(AAFwkTag::INTENT, "DFS[%{public}d]: type=%{public}s, ID=%{public}d, compid=%{public}s, "
+        "clickable=%{public}d", totalCount, nodeType.c_str(), nodeId, nodeCompId.c_str(), nodeClickable);
 
     // Check type match (case-insensitive)
     bool typeMatched = !nodeType.empty() && CaseInsensitiveEqual(nodeType, componentType);
