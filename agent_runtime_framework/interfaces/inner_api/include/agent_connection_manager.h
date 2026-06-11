@@ -227,7 +227,26 @@ private:
     using AgentConnectionRecords = std::list<AgentConnectionRecord>;
 
     bool MatchConnection(const std::string &agentId, const AAFwk::Want &connectReceiver,
+        const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback,
         const AgentConnectionRecord &connection);
+    /**
+     * @brief Find the record owned by the callback while connectionsLock_ is held.
+     */
+    AgentConnectionRecords::iterator FindDisconnectRecordLocked(
+        const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback);
+    /**
+     * @brief Remove records that share the same backing agent remote object.
+     */
+    void CollectSharedAgentConnectionsLocked(
+        const sptr<IRemoteObject> &backingRemote,
+        std::vector<sptr<AgentConnection>> &disconnectConnections);
+    /**
+     * @brief Process the matched disconnect record while connectionsLock_ is held.
+     */
+    void ProcessDisconnectRecordLocked(
+        const AgentConnectionRecords::iterator &current,
+        const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback,
+        std::vector<sptr<AgentConnection>> &disconnectConnections);
     /**
      * @brief Create a new connection to the agent extension.
      *

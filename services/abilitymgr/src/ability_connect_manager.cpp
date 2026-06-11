@@ -391,7 +391,7 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
     // 3. If this service ability and callback has been connected, There is no need to connect repeatedly
     if (isLoadedAbility && (isCallbackConnected) && (connectedRecord != nullptr)) {
         TAG_LOGI(AAFwkTag::EXT, "service/callback connected");
-        connectedRecord->CompleteConnectAndOnlyCallConnectDone();
+        connectedRecord->CompleteConnectAndOnlyCallConnectDone(abilityRequest.want);
         return ERR_OK;
     }
 
@@ -497,6 +497,14 @@ void AbilityConnectManager::HandleActiveAbility(std::shared_ptr<BaseExtensionRec
         extType == AppExecFwk::ExtensionAbilityType::AGENT) {
         if (connectRecord != nullptr) {
             Want want = connectRecord->GetConnectWant();
+            if (extType == AppExecFwk::ExtensionAbilityType::AGENT &&
+                want.GetBoolParam(AgentRuntime::AGENT_LOW_CODE_BACKING_KEY, false) &&
+                targetService->GetConnRemoteObject() != nullptr) {
+                TAG_LOGI(AAFwkTag::SER_ROUTER, "low-code backing already connected");
+                connectRecord->CompleteConnect();
+                targetService->RemoveSignatureInfo();
+                return;
+            }
             int connectRecordId = connectRecord->GetRecordId();
             ConnectPerConnectionTypeExtension(targetService, connectRecordId, want);
         }
@@ -2511,7 +2519,8 @@ std::string AbilityConnectManager::GetServiceKey(const std::shared_ptr<BaseExten
     std::string serviceKey = service->GetURI();
     if (FRS_BUNDLE_NAME == service->GetAbilityInfo().bundleName) {
         serviceKey = serviceKey + std::to_string(service->GetIntParam(FRS_APP_INDEX, 0));
-    } else if (service->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+    } else if (service->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
+        !service->GetBoolParam(AgentRuntime::AGENT_LOW_CODE_BACKING_KEY, false)) {
         serviceKey = serviceKey + service->GetStringParam(AgentRuntime::AGENTID_KEY);
     } else if (service->GetAbilityInfo().extensionAbilityType ==
                AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
@@ -2530,7 +2539,8 @@ std::string AbilityConnectManager::GetServiceKey(const AbilityRequest &abilityRe
     std::string serviceKey = element.GetURI();
     if (FRS_BUNDLE_NAME == abilityRequest.abilityInfo.bundleName) {
         serviceKey = serviceKey + std::to_string(abilityRequest.want.GetIntParam(FRS_APP_INDEX, 0));
-    } else if (abilityRequest.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+    } else if (abilityRequest.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
+        !abilityRequest.want.GetBoolParam(AgentRuntime::AGENT_LOW_CODE_BACKING_KEY, false)) {
         serviceKey = serviceKey + abilityRequest.want.GetStringParam(AgentRuntime::AGENTID_KEY);
     } else if (abilityRequest.abilityInfo.extensionAbilityType ==
                AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
