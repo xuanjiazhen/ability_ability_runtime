@@ -20,6 +20,7 @@
 #include "agent_extension_connection_constants.h"
 #include "connection_state_manager.h"
 #include "freeze_util.h"
+#include "iagent_receiver.h"
 #include "ui_service_extension_connection_constants.h"
 
 namespace OHOS {
@@ -30,6 +31,31 @@ const int DISCONNECT_TIMEOUT_MULTIPLE = 75;
 #else
 const int DISCONNECT_TIMEOUT_MULTIPLE = 1;
 #endif
+
+namespace {
+void NotifyLowCodeAgentInvokedIfNeeded(const Want &connectWant)
+{
+    if (!connectWant.GetBoolParam(AgentRuntime::AGENT_LOW_CODE_BACKING_KEY, false)) {
+        return;
+    }
+    auto agentId = connectWant.GetStringParam(AgentRuntime::AGENTID_KEY);
+    auto receiverObject = connectWant.GetRemoteObject(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY);
+    if (agentId.empty() || receiverObject == nullptr) {
+        TAG_LOGW(AAFwkTag::CONNECTION, "invalid low-code invoke state");
+        return;
+    }
+
+    // The target AgentExtension's onConnect return object is the AgentProxy used by callers.
+    // Low-code activation must be delivered to the host receiver carried by the connect Want.
+    auto receiver = iface_cast<AgentRuntime::IAgentReceiver>(receiverObject);
+    if (receiver == nullptr) {
+        TAG_LOGE(AAFwkTag::CONNECTION, "agent receiver null");
+        return;
+    }
+    auto ret = receiver->AgentInvoked(agentId);
+    TAG_LOGI(AAFwkTag::CONNECTION, "notify low-code invoked result: %{public}d", ret);
+}
+}
 
 ConnectionRecord::ConnectionRecord(const sptr<IRemoteObject> &callerToken,
     const std::shared_ptr<BaseExtensionRecord> &targetService, const sptr<IAbilityConnection> &connCallback,
@@ -154,6 +180,8 @@ void ConnectionRecord::CompleteConnect()
         return;
     }
 
+    NotifyLowCodeAgentInvokedIfNeeded(connectWant_);
+
     if (callback && handler) {
         handler->SubmitTask([callback, element, remoteObject, weakConnectionRecord = weak_from_this(),
             weakConnectManager = abilityConnectManager_] {
@@ -173,7 +201,7 @@ void ConnectionRecord::CompleteConnect()
     TAG_LOGI(AAFwkTag::CONNECTION, "connectState:%{public}d", state_);
 }
 
-void ConnectionRecord::CompleteConnectAndOnlyCallConnectDone()
+void ConnectionRecord::CompleteConnectAndOnlyCallConnectDone(const Want &connectWant)
 {
     if (GetConnectState() != ConnectionState::CONNECTED) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "Connect state is %{public}d, not connected state", GetConnectState());
@@ -192,6 +220,8 @@ void ConnectionRecord::CompleteConnectAndOnlyCallConnectDone()
             element.GetBundleName().c_str(), element.GetAbilityName().c_str());
         return;
     }
+
+    NotifyLowCodeAgentInvokedIfNeeded(connectWant);
 
     if (callback && handler) {
         handler->SubmitTask([callback, element, remoteObject] {
@@ -307,6 +337,8 @@ void ConnectionRecord::ScheduleConnectAbilityDone()
     if (connectWant_.HasParameter(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY)) {
         connectorProxy = connectWant_.GetRemoteObject(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY);
     }
+    bool isLowCodeBacking = connectWant_.GetBoolParam(AgentRuntime::AGENT_LOW_CODE_BACKING_KEY, false);
+    std::string agentId = connectWant_.GetStringParam(AgentRuntime::AGENTID_KEY);
     auto element = connectWant_.GetElement();
     Want::ClearWant(&connectWant_);
     connectWant_.SetElement(element);
@@ -315,6 +347,10 @@ void ConnectionRecord::ScheduleConnectAbilityDone()
     }
     if (connectorProxy != nullptr) {
         connectWant_.SetParam(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY, connectorProxy);
+    }
+    if (isLowCodeBacking) {
+        connectWant_.SetParam(AgentRuntime::AGENT_LOW_CODE_BACKING_KEY, true);
+        connectWant_.SetParam(AgentRuntime::AGENTID_KEY, agentId);
     }
 
     CancelConnectTimeoutTask();
