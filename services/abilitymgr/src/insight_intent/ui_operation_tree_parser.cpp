@@ -34,6 +34,7 @@ constexpr const char* FIELD_ATTRS = "$attrs";
 constexpr const char* ATTR_CONTENT = "content";
 constexpr const char* ATTR_LABEL = "label";
 constexpr const char* ATTR_COMP_ID = "id";
+constexpr const char* ATTR_COMP_ID_LEGACY = "compid";
 constexpr const char* ATTR_CLICKABLE = "clickable";
 
 bool CaseInsensitiveEqual(const std::string& a, const std::string& b)
@@ -66,6 +67,9 @@ void ExtractNodeAttrs(const nlohmann::json& node, MatchedNodeInfo& info)
     const auto& attrs = node[FIELD_ATTRS];
     if (attrs.contains(ATTR_COMP_ID) && attrs[ATTR_COMP_ID].is_string()) {
         info.compId = attrs[ATTR_COMP_ID].get<std::string>();
+    }
+    if (info.compId.empty() && attrs.contains(ATTR_COMP_ID_LEGACY) && attrs[ATTR_COMP_ID_LEGACY].is_string()) {
+        info.compId = attrs[ATTR_COMP_ID_LEGACY].get<std::string>();
     }
     if (attrs.contains(ATTR_CONTENT) && attrs[ATTR_CONTENT].is_string()) {
         info.content = attrs[ATTR_CONTENT].get<std::string>();
