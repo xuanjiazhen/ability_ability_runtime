@@ -42,7 +42,7 @@ int32_t AgentReceiverProxy::SendData(const sptr<IRemoteObject> &connectorProxy, 
 
     MessageParcel parcelData;
     MessageParcel reply;
-    MessageOption option(MessageOption::TF_ASYNC);
+    MessageOption option;
 
     if (!parcelData.WriteInterfaceToken(AgentReceiverProxy::GetDescriptor())) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "write interface token failed");
@@ -150,7 +150,9 @@ int32_t AgentReceiverProxy::AgentInvoked(const std::string &agentId)
         TAG_LOGE(AAFwkTag::SER_ROUTER, "SendRequest error %{public}d", error);
         return static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
     }
-    return ERR_OK;
+    int32_t result = reply.ReadInt32();
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "AgentInvoked result: %{public}d", result);
+    return result;
 }
 
 } // namespace AgentRuntime

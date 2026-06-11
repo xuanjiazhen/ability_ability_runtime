@@ -16,6 +16,7 @@
 #include "js_agent_extension.h"
 
 #include "ability_business_error.h"
+#include "ability_manager_errors.h"
 #include "agent_extension.h"
 #include "agent_extension_connection_constants.h"
 #include "agent_extension_context.h"
@@ -29,6 +30,7 @@
 #include "js_extension_common.h"
 #include "js_extension_context.h"
 #include "js_runtime_utils.h"
+#include "low_code_agent_registry.h"
 #include "napi_common_want.h"
 #include "runtime.h"
 
@@ -170,7 +172,7 @@ void JsAgentExtension::OnStart(const AAFwk::Want &want)
     if (context != nullptr) {
         JsExtensionContext::ConfigurationUpdated(env, shellContextRef_, context->GetConfiguration());
     }
-    napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, want);
+    napi_value napiWant = WrapWant(env, want);
     napi_value argv[] = {napiWant};
     CallObjectMethod("onCreate", argv, ARGC_ONE);
 }
@@ -322,6 +324,10 @@ int32_t JsAgentExtension::OnAuthorize(const sptr<IRemoteObject> &hostProxy, cons
 
 int32_t JsAgentExtension::OnAgentInvoked(const std::string &agentId)
 {
+    if (!LowCodeAgentRegistry::MarkActive(agentId)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "low-code agent already active");
+        return AAFwk::ERR_LOW_CODE_AGENT_ALREADY_ACTIVE;
+    }
     napi_env env = jsRuntime_.GetNapiEnv();
     std::unique_ptr<NapiAsyncTask::CompleteCallback> complete = std::make_unique<NapiAsyncTask::CompleteCallback>
         ([weak = weak_from_this(), agentIdParam = agentId](napi_env env, NapiAsyncTask &task, int32_t status) {
@@ -440,6 +446,8 @@ napi_value JsAgentExtension::WrapWant(napi_env env, const AAFwk::Want &want)
 {
     AAFwk::Want jsWant = want;
     jsWant.RemoveParam(AGENTEXTENSIONHOSTPROXY_KEY);
+    jsWant.RemoveParam(AGENTID_KEY);
+    jsWant.RemoveParam(AGENT_LOW_CODE_BACKING_KEY);
     napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, jsWant);
     return napiWant;
 }

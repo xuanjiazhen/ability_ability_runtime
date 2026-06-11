@@ -41,6 +41,7 @@ ohos_shared_library("agent_extension_connection") {
     "src/agent_connector_stub.cpp",
     "src/agent_receiver_proxy.cpp",
     "src/agent_receiver_stub.cpp",
+    "src/low_code_agent_registry.cpp",
   ]
 
   deps = []

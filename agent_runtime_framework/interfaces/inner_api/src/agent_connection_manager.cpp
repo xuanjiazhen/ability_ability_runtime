@@ -248,17 +248,17 @@ bool AgentConnectionManager::MatchConnection(const std::string &agentId, const A
     if (agentId != connection.first.agentId) {
         return false;
     }
-    // 2. Match by connectReceiver (bundleName, moduleName, abilityName).
+    // 2. Match by exact connectReceiver (bundleName, moduleName, abilityName).
     // AGENTEXTENSIONHOSTPROXY_KEY is per connect call, so it must not split reusable connections.
     const AAFwk::Operation &storedReceiver = connection.first.connectReceiver;
     const AppExecFwk::ElementName &element = connectReceiver.GetElement();
     if (element.GetBundleName() != storedReceiver.GetBundleName() ||
+        element.GetModuleName() != storedReceiver.GetModuleName() ||
         element.GetAbilityName() != storedReceiver.GetAbilityName()) {
         return false;
     }
-    const std::string &moduleName = element.GetModuleName();
-    const std::string &storedModuleName = storedReceiver.GetModuleName();
-    return moduleName.empty() || storedModuleName.empty() || moduleName == storedModuleName;
+    TAG_LOGI(AAFwkTag::SER_ROUTER, "matched agent connection by exact target");
+    return true;
 }
 
 ErrCode AgentConnectionManager::CreateConnection(const AAFwk::Want &want,

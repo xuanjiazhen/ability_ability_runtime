@@ -36,4 +36,3 @@ group("unittest") {
     "sem_ver_test:sem_ver_test",
   ]
 }
-
