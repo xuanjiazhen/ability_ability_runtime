@@ -20,6 +20,7 @@
 #include "agent_extension_connection_constants.h"
 #include "connection_state_manager.h"
 #include "freeze_util.h"
+#include "iagent_receiver.h"
 #include "ui_service_extension_connection_constants.h"
 
 namespace OHOS {
@@ -30,6 +31,27 @@ const int DISCONNECT_TIMEOUT_MULTIPLE = 75;
 #else
 const int DISCONNECT_TIMEOUT_MULTIPLE = 1;
 #endif
+
+namespace {
+void NotifyLowCodeAgentInvokedIfNeeded(const Want &connectWant, const sptr<IRemoteObject> &remoteObject)
+{
+    if (!connectWant.GetBoolParam(AgentRuntime::AGENT_LOW_CODE_BACKING_KEY, false)) {
+        return;
+    }
+    auto agentId = connectWant.GetStringParam(AgentRuntime::AGENTID_KEY);
+    if (agentId.empty() || remoteObject == nullptr) {
+        TAG_LOGW(AAFwkTag::CONNECTION, "invalid low-code invoke state");
+        return;
+    }
+    auto receiver = iface_cast<AgentRuntime::IAgentReceiver>(remoteObject);
+    if (receiver == nullptr) {
+        TAG_LOGE(AAFwkTag::CONNECTION, "agent receiver null");
+        return;
+    }
+    auto ret = receiver->AgentInvoked(agentId);
+    TAG_LOGI(AAFwkTag::CONNECTION, "notify low-code invoked result: %{public}d", ret);
+}
+}
 
 ConnectionRecord::ConnectionRecord(const sptr<IRemoteObject> &callerToken,
     const std::shared_ptr<BaseExtensionRecord> &targetService, const sptr<IAbilityConnection> &connCallback,
@@ -153,6 +175,8 @@ void ConnectionRecord::CompleteConnect()
         }
         return;
     }
+
+    NotifyLowCodeAgentInvokedIfNeeded(connectWant_, remoteObject);
 
     if (callback && handler) {
         handler->SubmitTask([callback, element, remoteObject, weakConnectionRecord = weak_from_this(),
@@ -307,6 +331,8 @@ void ConnectionRecord::ScheduleConnectAbilityDone()
     if (connectWant_.HasParameter(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY)) {
         connectorProxy = connectWant_.GetRemoteObject(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY);
     }
+    bool isLowCodeBacking = connectWant_.GetBoolParam(AgentRuntime::AGENT_LOW_CODE_BACKING_KEY, false);
+    std::string agentId = connectWant_.GetStringParam(AgentRuntime::AGENTID_KEY);
     auto element = connectWant_.GetElement();
     Want::ClearWant(&connectWant_);
     connectWant_.SetElement(element);
@@ -315,6 +341,10 @@ void ConnectionRecord::ScheduleConnectAbilityDone()
     }
     if (connectorProxy != nullptr) {
         connectWant_.SetParam(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY, connectorProxy);
+    }
+    if (isLowCodeBacking) {
+        connectWant_.SetParam(AgentRuntime::AGENT_LOW_CODE_BACKING_KEY, true);
+        connectWant_.SetParam(AgentRuntime::AGENTID_KEY, agentId);
     }
 
     CancelConnectTimeoutTask();
