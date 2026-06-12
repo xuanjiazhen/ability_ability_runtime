@@ -392,6 +392,11 @@ void UIAbilityLifecycleManager::SetRootSceneSession(const sptr<IRemoteObject> &r
 {
 }
 
+sptr<IRemoteObject> UIAbilityLifecycleManager::GetRootSceneSession() const
+{
+    return nullptr;
+}
+
 void UIAbilityLifecycleManager::NotifySCBToHandleException(const UIAbilityRecordPtr &abilityRecord,
     int32_t errorCode, const std::string& errorReason, bool needClearCallerLink)
 {
@@ -783,12 +788,6 @@ int32_t UIAbilityLifecycleManager::NotifyStartupExceptionBySCB(int32_t requestId
 ErrCode UIAbilityLifecycleManager::IsUIAbilityAlreadyExist(const Want &want,
     const std::string &specifiedFlag, int32_t appIndex,
     const std::string &instanceKey, AppExecFwk::LaunchMode launchMode)
-{
-    return ERR_OK;
-}
-
-ErrCode UIAbilityLifecycleManager::IsSpecifiedUIAbilityAlreadyExist(const Want &want,
-    const std::string &specifiedFlag, int32_t appIndex, const std::string &instanceKey)
 {
     return ERR_OK;
 }

@@ -52,8 +52,6 @@ public:
 
     using EventReplyCallback = std::function<void(int32_t)>;
 
-    using ServiceDeathHandler = std::function<void()>;
-
     /**
      * @brief Get the singleton instance of CliToolMGRClient.
      * @return Reference to the CliToolMGRClient instance.
@@ -64,8 +62,6 @@ public:
      * @brief Destructor.
      */
     ~CliToolMGRClient() = default;
-
-    void SetServiceDeathHandler(const ServiceDeathHandler &handler);
 
     /**
      * @brief Get all tool summaries (lightweight for listing)
@@ -159,7 +155,7 @@ private:
     void ClearProxy();
     void SetCliToolMgr(const sptr<IRemoteObject> &remoteObject);
     sptr<ICliToolManager> GetCliToolMgr();
-    ErrCode EnsureSchedulerRegistered();
+    ErrCode EnsureSchedulerStubCreated();
 
     std::condition_variable loadSaCondation_;
     std::mutex loadSaMutex_;
@@ -167,9 +163,7 @@ private:
     std::mutex proxyMutex_;
     sptr<ICliToolManager> cliToolMgr_ = nullptr;
     std::mutex schedulerMutex_;
-    bool schedulerRegistered_ = false;
     sptr<ICliToolManagerScheduler> schedulerStub_ = nullptr;
-    std::vector<ServiceDeathHandler> serviceDeathHandlers_;
 };
 
 } // namespace CliTool

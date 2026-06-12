@@ -187,6 +187,7 @@ public:
      * @param rootSceneSession Indicates root scene session of SCB.
      */
     void SetRootSceneSession(const sptr<IRemoteObject> &rootSceneSession);
+    sptr<IRemoteObject> GetRootSceneSession() const;
 
     int NotifySCBToStartUIAbility(AbilityRequest &abilityRequest);
     int32_t NotifySCBToStartUIAbilities(std::vector<AbilityRequest> &abilityRequestList,
@@ -425,8 +426,6 @@ public:
     ErrCode QueryCallerTokenIdForAnco(const std::string &asCallerForAncoSessionId, uint32_t &callerTokenId);
     ErrCode IsUIAbilityAlreadyExist(const Want &want, const std::string &specifiedFlag,
         int32_t appIndex, const std::string &instanceKey, AppExecFwk::LaunchMode launchMode);
-    ErrCode IsSpecifiedUIAbilityAlreadyExist(const Want &want, const std::string &specifiedFlag,
-        int32_t appIndex, const std::string &instanceKey);
     void HandleUIAbilityDiedByPid(pid_t pid);
     int32_t StartSelf(const UIAbilityRecordPtr &abilityRecord);
 
@@ -563,6 +562,7 @@ private:
     std::unordered_map<int64_t, UIAbilityRecordPtr> tmpAbilityMap_;
     std::unordered_map<UIAbilityRecordPtr, std::list<AbilityRequest>> callRequestCache_;
     std::list<UIAbilityRecordPtr> terminateAbilityList_;
+    ffrt::mutex rootSceneSessionLock_;
     sptr<IRemoteObject> rootSceneSession_;
     int32_t requestId_ = 0;
     sptr<ISessionHandler> handler_;

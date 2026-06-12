@@ -47,6 +47,8 @@ public:
     std::shared_ptr<PendingWantKey> GetKey();
     int32_t GetUid() const;
     void SetCallerUid(const int32_t callerUid);
+    void SetPublisherUid(int32_t publisherUid);
+    int32_t GetPublisherUid() const;
     void SetCanceled();
     bool GetCanceled();
     std::list<sptr<IWantReceiver>> GetCancelCallbacks();
@@ -57,7 +59,6 @@ private:
     int32_t ExecuteOperation(
         std::shared_ptr<PendingWantManager> pendingWantManager, SenderInfo &senderInfo, Want &want);
     void CheckAppInstanceKey(const std::string& bundleName, WantParams &wantParams);
-    bool IsBundleNotExistForUser0(const Want &want);
 
 private:
     int32_t uid_ = 0;
@@ -67,6 +68,7 @@ private:
     std::shared_ptr<PendingWantKey> key_ = {};
     std::list<sptr<IWantReceiver>> mCancelCallbacks_ = {};
     int32_t callerUid_ = 0;
+    int32_t publisherUid_ = 0;
     bool canceled_ = false;
     ffrt::mutex lock_ = {};
     std::mutex mCancelCallbacksMutex_;

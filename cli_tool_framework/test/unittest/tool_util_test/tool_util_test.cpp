@@ -870,6 +870,20 @@ HWTEST_F(ToolUtilTest, ValidateInputSchemaProperties_TypeValidation_1100, TestSi
 }
 
 /**
+ * @tc.name: ToolUtil_ValidateInputSchemaProperties_TypeValidation_1200
+ * @tc.desc: Test ValidateInputSchemaProperties rejects a non-string schema type
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, ValidateInputSchemaProperties_TypeValidation_1200, TestSize.Level1)
+{
+    AAFwk::WantParams args;
+    args.SetParam("target", AAFwk::String::Box("device"));
+
+    EXPECT_EQ(ToolUtil::ValidateInputSchemaProperties(
+        R"({"properties":{"target":{"type":123}}})", args), ERR_INVALID_PARAM);
+}
+
+/**
  * @tc.name: ToolUtil_ValidateInputSchemaProperties_NestedObject_0100
  * @tc.desc: Test ValidateInputSchemaProperties with nested object validation
  * @tc.type: FUNC
@@ -1118,6 +1132,23 @@ HWTEST_F(ToolUtilTest, ValidateInputSchemaProperties_ArrayItems_0300, TestSize.L
         R"({"properties":{"values":{"type":"array","items":{"description":"any"}}}})", args), ERR_OK);
 
     GTEST_LOG_(INFO) << "ToolUtil_ValidateInputSchemaProperties_ArrayItems_0300 end";
+}
+
+/**
+ * @tc.name: ToolUtil_ValidateInputSchemaProperties_ArrayItems_0400
+ * @tc.desc: Test array schema rejects a non-string item type
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, ValidateInputSchemaProperties_ArrayItems_0400, TestSize.Level1)
+{
+    AAFwk::WantParams args;
+    sptr<AAFwk::IArray> array = sptr<AAFwk::Array>::MakeSptr(1, AAFwk::g_IID_IString);
+    ASSERT_NE(array, nullptr);
+    array->Set(0, AAFwk::String::Box("value").GetRefPtr());
+    args.SetParam("values", array);
+
+    EXPECT_EQ(ToolUtil::ValidateInputSchemaProperties(
+        R"({"properties":{"values":{"type":"array","items":{"type":123}}}})", args), ERR_INVALID_PARAM);
 }
 
 /**
@@ -1376,11 +1407,10 @@ HWTEST_F(ToolUtilTest, TransferToCmdParam_0100, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "ToolUtil_TransferToCmdParam_0100 start";
 
-    ToolInfo toolInfo;
     AAFwk::WantParams emptyArgs;
-    std::string emptyCmd;
-    ToolUtil::TransferToCmdParam(toolInfo, emptyArgs, emptyCmd);
-    EXPECT_TRUE(emptyCmd.empty());
+    std::vector<std::string> emptyExecArgs;
+    ToolUtil::TransferToCmdParam(emptyArgs, emptyExecArgs);
+    EXPECT_TRUE(emptyExecArgs.empty());
 
     AAFwk::WantParams args;
     args.SetParam("target", AAFwk::String::Box("device"));
@@ -1399,16 +1429,30 @@ HWTEST_F(ToolUtilTest, TransferToCmdParam_0100, TestSize.Level1)
     values->Set(2, nested);
     args.SetParam("values", values);
 
-    std::string cmdLine;
-    ToolUtil::TransferToCmdParam(toolInfo, args, cmdLine);
+    std::vector<std::string> execArgs;
+    ToolUtil::TransferToCmdParam(args, execArgs);
 
-    EXPECT_NE(cmdLine.find("--target device"), std::string::npos);
-    EXPECT_NE(cmdLine.find("--enabled"), std::string::npos);
-    EXPECT_NE(cmdLine.find("--count 3"), std::string::npos);
-    EXPECT_NE(cmdLine.find("--values first"), std::string::npos);
-    EXPECT_EQ(cmdLine.find("--disabled"), std::string::npos);
-    EXPECT_EQ(cmdLine.find("nullValue"), std::string::npos);
-    EXPECT_EQ(cmdLine.find("nested"), std::string::npos);
+    // Verify the vector contains the expected arguments
+    auto findArg = [&execArgs](const std::string& arg) -> bool {
+        return std::find(execArgs.begin(), execArgs.end(), arg) != execArgs.end();
+    };
+
+    auto findArgPair = [&execArgs](const std::string& key, const std::string& value) -> bool {
+        for (size_t i = 0; i < execArgs.size() - 1; ++i) {
+            if (execArgs[i] == key && execArgs[i + 1] == value) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    EXPECT_TRUE(findArgPair("--target", "device"));
+    EXPECT_TRUE(findArg("--enabled"));
+    EXPECT_TRUE(findArgPair("--count", "3"));
+    EXPECT_TRUE(findArgPair("--values", "first"));
+    EXPECT_FALSE(findArg("--disabled"));
+    EXPECT_FALSE(findArg("--nullValue"));
+    EXPECT_FALSE(findArg("nested"));
 
     GTEST_LOG_(INFO) << "ToolUtil_TransferToCmdParam_0100 end";
 }

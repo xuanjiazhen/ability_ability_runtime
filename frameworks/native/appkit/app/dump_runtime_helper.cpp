@@ -36,7 +36,7 @@
 #include "cj_runtime.h"
 #endif
 #if defined(NWEB)
-#include "nweb_helper.h"
+#include "dump_arkweb_helper.h"
 #endif
 
 namespace OHOS {
@@ -345,12 +345,24 @@ void DumpRuntimeHelper::DumpCjHeap(const OHOS::AppExecFwk::CjHeapDumpInfo &info)
 #endif
 }
 
-void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
 {
     TAG_LOGI(AAFwkTag::APPKIT, "dump type: %{public}d", static_cast<uint32_t>(info.dumpType));
+    auto client = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+
     if (info.dumpType == MemDumpType::NATIVE) {
-        DumpNativeHeap(info, dumpResult);
+        std::string dumpResult;
+        auto task = [self = shared_from_this(), info, callback, client, dumpResult]() mutable {
+            self->DumpNativeHeap(info, dumpResult);
+            if (client != nullptr && callback != nullptr) {
+                client->ReportDumpMemResult(callback, dumpResult);
+            }
+        };
+        ffrt::submit(task, {}, {}, {ffrt::task_attr().name("ffrt_DumpNativeHeap")});
+        return;
     }
+
+    std::string dumpResult;
     if (info.dumpType == MemDumpType::KMP_KOTLIN) {
         DumpKmpKotlinHeap(info);
     }
@@ -359,6 +371,9 @@ void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::
     }
     if (info.dumpType == MemDumpType::ARKWEB_JS) {
         DumpArkwebJsHeap(info);
+    }
+    if (client != nullptr && callback != nullptr) {
+        client->ReportDumpMemResult(callback, dumpResult);
     }
 }
 
@@ -383,7 +398,7 @@ void DumpRuntimeHelper::DumpNativeHeap(const OHOS::AppExecFwk::MemDumpInfo &info
     }
 }
 
-GetMemLeakStringFunc DumpRuntimeHelper::LoadMemLeakFunc()
+GetMemLeakStringFunc DumpRuntimeHelper::LoadMemLeakFunc(void **handle)
 {
     if (SO_NAME[0] == '\0') {
         TAG_LOGW(AAFwkTag::APPKIT, "mem leak so is unsupported on non-64-bit");
@@ -400,12 +415,16 @@ GetMemLeakStringFunc DumpRuntimeHelper::LoadMemLeakFunc()
         dlclose(hd);
         return nullptr;
     }
+    if (handle != nullptr) {
+        *handle = hd;
+    }
     return func;
 }
 
 bool DumpRuntimeHelper::GetDumpResult(std::string &dumpResult)
 {
-    auto func = LoadMemLeakFunc();
+    void* handle = nullptr;
+    auto func = LoadMemLeakFunc(&handle);
     if (!func) {
         return false;
     }
@@ -413,17 +432,21 @@ bool DumpRuntimeHelper::GetDumpResult(std::string &dumpResult)
     bool ret = func(TYPE_TXT, &buf, MEM_LEAK_MAX_SIZE);
     if (!ret) {
         TAG_LOGE(AAFwkTag::APPKIT, "TYPE_TXT Error");
-    } else if (buf != nullptr) {
+    } else if (buf != nullptr && *buf != '\0') {
         dumpResult = buf;
-        TAG_LOGI(AAFwkTag::APPKIT, "TYPE_TXT finish, result:%{public}s", dumpResult.c_str());
+        TAG_LOGI(AAFwkTag::APPKIT, "TYPE_TXT finish, size:%{public}zu", dumpResult.size());
     }
     free(buf);
+    if (handle != nullptr) {
+        dlclose(handle);
+    }
     return ret;
 }
 
 bool DumpRuntimeHelper::GetSnapshot(int fd)
 {
-    auto func = LoadMemLeakFunc();
+    void* handle = nullptr;
+    auto func = LoadMemLeakFunc(&handle);
     if (!func) {
         return false;
     }
@@ -438,11 +461,17 @@ bool DumpRuntimeHelper::GetSnapshot(int fd)
         if (written < 0) {
             TAG_LOGE(AAFwkTag::APPKIT, "write snapshot failed, errno:%{public}d", errno);
             free(buf);
+            if (handle != nullptr) {
+                dlclose(handle);
+            }
             return false;
         }
         TAG_LOGI(AAFwkTag::APPKIT, "TYPE_SNAPSHOT finish");
     }
     free(buf);
+    if (handle != nullptr) {
+        dlclose(handle);
+    }
     return ret;
 }
 
@@ -494,22 +523,8 @@ void DumpRuntimeHelper::DumpArkwebJsHeap(const OHOS::AppExecFwk::MemDumpInfo &in
 #if defined(NWEB)
     TAG_LOGI(AAFwkTag::APPKIT, "dump arkwebjs heaps, renderPid:%{public}u, needDump:%{public}d, "
         "needGc:%{public}d, needRaw:%{public}d", info.renderPid, info.needDump, info.needGc, info.needRaw);
-    int32_t fd = -1;
-    if (info.needDump) {
-        struct FaultLoggerdRequest request{};
-        request.type = info.needRaw ? static_cast<int32_t>(FaultLoggerType::ARKWEB_JS_RAW_SNAPSHOT) :
-                                      static_cast<int32_t>(FaultLoggerType::ARKWEB_JS_HEAP_SNAPSHOT);
-        request.pid = info.pid;
-        request.tid = info.renderPid;
-        request.time = GetCurrentTimestamp();
-        fd = RequestFileDescriptorEx(&request);
-    }
-
-    OHOS::NWeb::NWebHelper &nWebHelper = OHOS::NWeb::NWebHelper::Instance();
-    nWebHelper.DumpArkWebJSHeap(fd, info.renderPid, info.needDump, info.needGc, info.needRaw);
-    if (fd > 0) {
-        close(fd);
-    }
+    DumpArkWebHelper::DumpArkWebJSHeap(static_cast<int32_t>(info.pid), static_cast<int32_t>(info.renderPid),
+        info.needDump, info.needGc, info.needRaw);
 #endif
 }
 

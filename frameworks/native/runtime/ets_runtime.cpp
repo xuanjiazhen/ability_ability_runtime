@@ -17,11 +17,13 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdlib>
 #include <dlfcn.h>
 #include <filesystem>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <regex>
+#include <sys/mman.h>
 #include <unistd.h>
 
 #include "bundle_constants.h"
@@ -63,10 +65,7 @@ const std::string ETS_SYSLIB_PATH =
 #endif
 constexpr char BUNDLE_INSTALL_PATH[] = "/data/storage/el1/bundle/";
 constexpr char SANDBOX_ARK_CACHE_PATH[] = "/data/storage/ark-cache/";
-constexpr char SANDBOX_SHARED_BUNDLE_ARK_CACHE_PATH[] =
-    "/data/service/el1/public/for-all-app/shared_bundles_ark_cache/";
 constexpr char MERGE_ABC_PATH[] = "/ets/modules_static.abc";
-const std::string SYS_HSP_FILE_PATH_PREFIX = "/system/app/";
 const std::string PREINSTALL_HOST_AOT_ARK_CACHE_PATH = "/system/app/ark_cache/";
 const std::string ARK_CACHE_NATIVE_PATH = "arm64/";
 
@@ -154,6 +153,16 @@ std::string GetPreinstallHostAotAnPath(const std::string &bundleName, const std:
         std::string(AbilityBase::Constants::FILE_SEPARATOR) + moduleName + ".an";
 }
 
+std::string GetHostPrivateHspAotAnPath(const CommonHspBundleInfo &bundleInfo)
+{
+    if (bundleInfo.bundleName.empty() || bundleInfo.moduleName.empty()) {
+        return "";
+    }
+    return SANDBOX_ARK_CACHE_PATH + ARK_CACHE_NATIVE_PATH + bundleInfo.bundleName +
+        std::string(AbilityBase::Constants::FILE_SEPARATOR) + std::to_string(bundleInfo.versionCode) +
+        std::string(AbilityBase::Constants::FILE_SEPARATOR) + bundleInfo.moduleName + ".an";
+}
+
 } // namespace
 
 std::unique_ptr<ETSRuntime> ETSRuntime::PreFork(const Options &options,
@@ -215,21 +224,29 @@ std::string ETSRuntime::GetAotPath(const Options &options)
 
     // Handle Outer Hsp
     for (const auto& bundleInfo: options.commonHspBundleInfos) {
-        if (!IsAotCompiledSuccess(bundleInfo.aotCompileStatus) ||
-            bundleInfo.moduleArkTSMode == AppExecFwk::Constants::ARKTS_MODE_DYNAMIC) {
+        if (bundleInfo.moduleArkTSMode == AppExecFwk::Constants::ARKTS_MODE_DYNAMIC) {
+            continue;
+        }
+        if (bundleInfo.bundleName.empty() || bundleInfo.moduleName.empty()) {
+            TAG_LOGW(AAFwkTag::ETSRUNTIME,
+                "skip shared hsp aot with empty bundleName or moduleName, "
+                "bundleName:%{public}s, moduleName:%{public}s",
+                bundleInfo.bundleName.c_str(), bundleInfo.moduleName.c_str());
             continue;
         }
 
-        if (bundleInfo.hapPath.compare(0, SYS_HSP_FILE_PATH_PREFIX.size(), SYS_HSP_FILE_PATH_PREFIX) != 0 &&
-            bundleInfo.hapPath.rfind('/') == std::string::npos) {
+        // Host-private shared HSP AOT is stored in the host app ark cache and has no HSP global AOT status.
+        std::string hostPrivateHspAnPath = GetHostPrivateHspAotAnPath(bundleInfo);
+        if (!hostPrivateHspAnPath.empty() && IsFileExists(hostPrivateHspAnPath)) {
+            TAG_LOGI(AAFwkTag::ETSRUNTIME, "load versioned host private shared hsp aot an: %{public}s",
+                hostPrivateHspAnPath.c_str());
+            aotFiles.push_back(hostPrivateHspAnPath);
             continue;
         }
 
-        // path: <sandbox_path>/<bundleName>/v<versionCode>/arm64/<moduleName>.an
-        std::string outerHspAnPath = SANDBOX_SHARED_BUNDLE_ARK_CACHE_PATH + bundleInfo.bundleName +
-            std::string(AbilityBase::Constants::FILE_SEPARATOR) + std::to_string(bundleInfo.versionCode) +
-            std::string(AbilityBase::Constants::FILE_SEPARATOR) + ARK_CACHE_NATIVE_PATH + bundleInfo.moduleName + ".an";
-        aotFiles.push_back(outerHspAnPath);
+        TAG_LOGW(AAFwkTag::ETSRUNTIME,
+            "host private shared hsp aot file is unavailable, skip loading: %{public}s",
+            hostPrivateHspAnPath.c_str());
     }
 
     std::string aotFilePath;
@@ -271,8 +288,26 @@ bool ETSRuntime::PostFork(const Options &options, std::unique_ptr<Runtime> &jsRu
     }
 
     g_etsEnvFuncs->PostFork(reinterpret_cast<void *>(napiEnv), GetAotPath(options), options.appInnerHspPathList,
-        options.staticHapModuleNameList, options.commonHspBundleInfos, options.eventRunner, options.baseLineProfile);
+        options.staticHapModuleNameList, options.commonHspBundleInfos, options.eventRunner, options.baseLineProfile,
+        options.staticPluginHspPathList, options.bundleName);
     return true;
+}
+
+/*
+ * HWASan's ProtectGap() blocks [0x10000, 0x100000000) with PROT_NONE.
+ * Shadow memory and allocator are placed above 4 GB (aligned to 1 << 32).
+ * ETS runtime needs to allocate heap in the lower 4 GB.
+ * appspawn sets HWASAN_OPTIONS env var whenever HWASan is enabled for
+ * the child process — both via APP_FLAGS_HWASAN_ENABLED and wrap.<bundle>.
+ */
+static void UnmapHwasanProtectGap()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    if (getenv("HWASAN_OPTIONS") == nullptr) {
+        return;
+    }
+    TAG_LOGI(AAFwkTag::ETSRUNTIME, "Unmapping HWASan ProtectGap in lower 4 GB");
+    munmap(reinterpret_cast<void *>(0x10000), 0x100000000UL - 0x10000);
 }
 
 std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options,
@@ -280,6 +315,7 @@ std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options,
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Create called");
+    UnmapHwasanProtectGap();
     if (!RegisterETSEnvFuncs()) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "RegisterETSEnvFuncs failed");
         return std::unique_ptr<ETSRuntime>();
@@ -593,7 +629,7 @@ void ETSRuntime::PreloadModule(const std::string &moduleName, const std::string 
         return;
     }
 
-    std::string modulePath = BUNDLE_INSTALL_PATH + moduleName + MERGE_ABC_PATH;
+    std::string modulePath = ExtractorUtil::GetLoadFilePath(hapPath);
     if (!g_etsEnvFuncs->PreloadModule(modulePath)) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "PreloadModule failed");
     }
@@ -641,7 +677,7 @@ std::unique_ptr<AppExecFwk::ETSNativeReference> ETSRuntime::LoadEtsModule(const 
         return std::unique_ptr<AppExecFwk::ETSNativeReference>();
     }
 
-    std::string modulePath = BUNDLE_INSTALL_PATH + moduleName_ + MERGE_ABC_PATH;
+    std::string modulePath = ExtractorUtil::GetLoadFilePath(hapPath);
     std::string entryPath = HandleOhmUrlSrcEntry(srcEntrance);
     void *cls = nullptr;
     void *obj = nullptr;

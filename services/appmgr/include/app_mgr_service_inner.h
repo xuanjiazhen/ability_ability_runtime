@@ -87,6 +87,7 @@
 #include "multi_user_config_mgr.h"
 #include "user_callback.h"
 #include "native_child_notify_interface.h"
+#include "mem_dump_callback_interface.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -660,10 +661,22 @@ public:
      * triggerGC and dump application's memory info.
      *
      * @param info, pid, tid, needGc, needSnapshot
-     * @param dumpResult The dump result string
+     * @param callback The callback to receive dump result
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult);
+    virtual int32_t DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback);
+
+    /**
+     * ReportDumpMemResult, called by app process to report dump result.
+     * AppMgrServiceInner will forward the result to hidumper via callback.
+     *
+     * @param callback The callback received from app process
+     * @param resultCode The result code of dump operation
+     * @param dumpResult The dump result string
+     * @return ERR_OK ,return back success, others fail.
+     */
+    virtual int32_t ReportDumpMemResult(sptr<IMemDumpCallback> callback,
+        const std::string &dumpResult);
 
     /**
      * @brief Check whether the shared bundle is running.
@@ -2354,6 +2367,7 @@ private:
         const std::string &processName, const bool isOccurException = false);
     int GetExceptionTimerId(const FaultData &faultData, const std::string &bundleName,
         const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid, const int32_t callerUid);
+    bool UpdateForeground(const std::shared_ptr<AppRunningRecord> &appRecord, const std::string &eventName);
     int32_t SubmitDfxFaultTask(const FaultData &faultData, const std::string &bundleName,
         const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid);
     void AddAbilityStageForSpecified(std::shared_ptr<AppRunningRecord> appRecord);
@@ -2428,7 +2442,7 @@ private:
     void SnapshotStartReport(int32_t uid, const std::string &bundleName, int32_t result, const std::string &reason);
     void SnapshotErrorReport(int32_t uid, const std::string &bundleName, int32_t result, const std::string &reason);
 
-    void MarkTemplateProcess(int32_t templatePid, std::string bundleName);
+    void MarkTemplateProcess(const std::shared_ptr<AppRunningRecord> &appRecord, std::string bundleName);
     void UnMarkTemplateProcess(int32_t templatePid);
 
     std::shared_ptr<RemoteClientManager> remoteClientManager_;

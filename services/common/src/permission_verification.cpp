@@ -264,6 +264,16 @@ bool PermissionVerification::VerifyGetBundleInfoPrivilegedPermission() const
     return false;
 }
 
+bool PermissionVerification::VerifySupportCrossAppEmbedForOaPermission() const
+{
+    if (VerifyCallingPermission(PermissionConstants::PERMISSION_SUPPORT_CROSS_APP_EMBED_FOR_OA)) {
+        TAG_LOGI(AAFwkTag::DEFAULT,
+            "Permission %{public}s granted", PermissionConstants::PERMISSION_SUPPORT_CROSS_APP_EMBED_FOR_OA);
+        return true;
+    }
+    return false;
+}
+
 bool PermissionVerification::VerifyStartRecentAbilityPermission() const
 {
     if (VerifyCallingPermission(PermissionConstants::PERMISSION_START_RECENT_ABILITY)) {
@@ -478,7 +488,7 @@ int PermissionVerification::JudgeInvisibleAndBackground(const VerificationInfo &
     }
     if (!isCallByShortcut &&
         !JudgeStartInvisibleAbility(verificationInfo.accessTokenId, verificationInfo.visible,
-        specifyTokenId)) {
+        specifyTokenId) && !(verificationInfo.isCliToolToken && verificationInfo.isLaunchAbility)) {
         TAG_LOGE(AAFwkTag::DEFAULT, "caller INVISIBLE permission invalid");
         return ABILITY_VISIBLE_FALSE_DENY_REQUEST;
     }

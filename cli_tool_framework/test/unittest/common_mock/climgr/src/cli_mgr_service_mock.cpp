@@ -72,7 +72,7 @@ ProcessManager &ProcessManager::GetInstance()
 }
 
 int32_t ProcessManager::CreateChildProcess(const ExecToolParam &, const std::string &, const ToolInfo &,
-    std::shared_ptr<SessionRecord> record) const
+    std::shared_ptr<SessionRecord> record, const std::vector<std::shared_ptr<SessionRecord>> &) const
 {
     if (record != nullptr) {
         record->processId = 1001;
@@ -168,11 +168,6 @@ int32_t CliToolDataManager::GetToolByName(const std::string &name, ToolInfo &too
     return ERR_OK;
 }
 
-bool PermissionUtil::VerifyAccessToken(Security::AccessToken::AccessTokenID, const std::vector<std::string> &)
-{
-    return true;
-}
-
 bool PermissionUtil::VerifyAccessToken(Security::AccessToken::AccessTokenID, const std::string &)
 {
     return true;
@@ -195,19 +190,19 @@ EventDispatcher &EventDispatcher::GetInstance()
     return instance;
 }
 
-bool EventDispatcher::RegisterScheduler(int32_t, const sptr<ICliToolManagerScheduler> &)
+bool EventDispatcher::SetScheduler(int32_t, int32_t, const sptr<ICliToolManagerScheduler> &)
 {
     return true;
 }
 
-void EventDispatcher::UnregisterScheduler(int32_t) {}
+void EventDispatcher::ClearScheduler(int32_t, int32_t) {}
 
-bool EventDispatcher::RegisterSubscriber(const std::string &, const std::string &, int32_t)
+bool EventDispatcher::RegisterSubscriber(const std::string &, const std::string &, int32_t, int32_t)
 {
     return true;
 }
 
-bool EventDispatcher::UnregisterSubscriber(const std::string &, const std::string &, int32_t)
+bool EventDispatcher::UnregisterSubscriber(const std::string &, const std::string &, int32_t, int32_t)
 {
     return true;
 }
@@ -216,12 +211,13 @@ void EventDispatcher::DispatchIOEvent(const std::string &, const std::string &, 
 void EventDispatcher::DispatchErrorEvent(const std::string &, const std::string &) {}
 void EventDispatcher::DispatchExitEvent(const std::string &, int32_t) {}
 
-bool EventDispatcher::DispatchInputReplyEvent(int32_t, const std::string &, int32_t)
+bool EventDispatcher::DispatchInputReplyEvent(int32_t, int32_t, const std::string &, int32_t)
 {
     return true;
 }
 
-bool EventDispatcher::DispatchExecToolReplyEvent(int32_t, const std::string &, int32_t, const CliSessionInfo &)
+bool EventDispatcher::DispatchExecToolReplyEvent(int32_t, int32_t, const std::string &, int32_t,
+    const CliSessionInfo &)
 {
     return true;
 }

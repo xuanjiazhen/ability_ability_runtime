@@ -102,10 +102,7 @@ JsAgentExtension::~JsAgentExtension()
     jsRuntime_.FreeNativeReference(std::move(shellContextRef_));
 
     for (auto& item : hostProxyMap_) {
-        auto &jsProxyObject = item.second;
-        if (jsProxyObject != nullptr) {
-            jsRuntime_.FreeNativeReference(std::move(jsProxyObject));
-        }
+        ReleaseHostProxyReference(item.second);
     }
 }
 
@@ -165,7 +162,7 @@ void JsAgentExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
 void JsAgentExtension::OnStart(const AAFwk::Want &want)
 {
     Extension::OnStart(want);
-    TAG_LOGI(AAFwkTag::SER_ROUTER, "call");
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "call");
     auto context = GetContext();
     HandleScope handleScope(jsRuntime_);
     napi_env env = jsRuntime_.GetNapiEnv();
@@ -176,7 +173,6 @@ void JsAgentExtension::OnStart(const AAFwk::Want &want)
     napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, want);
     napi_value argv[] = {napiWant};
     CallObjectMethod("onCreate", argv, ARGC_ONE);
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "ok");
 }
 
 void JsAgentExtension::OnStop()
@@ -192,13 +188,12 @@ void JsAgentExtension::OnStop()
             TAG_LOGD(AAFwkTag::SER_ROUTER, "The agent extension connection is not disconnected.");
         }
     }
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "ok");
 }
 
 sptr<IRemoteObject> JsAgentExtension::OnConnect(const AAFwk::Want &want,
     AppExecFwk::AbilityTransactionCallbackInfo<sptr<IRemoteObject>> *callbackInfo, bool &isAsyncCallback)
 {
-    TAG_LOGI(AAFwkTag::SER_ROUTER, "call");
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "call");
     HandleScope handleScope(jsRuntime_);
     Extension::OnConnect(want);
     napi_env env = jsRuntime_.GetNapiEnv();
@@ -239,7 +234,7 @@ sptr<IRemoteObject> JsAgentExtension::OnConnect(const AAFwk::Want &want,
 void JsAgentExtension::OnDisconnect(const AAFwk::Want &want,
     AppExecFwk::AbilityTransactionCallbackInfo<> *callbackInfo, bool &isAsyncCallback)
 {
-    TAG_LOGI(AAFwkTag::SER_ROUTER, "call");
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "call");
     HandleScope handleScope(jsRuntime_);
     Extension::OnDisconnect(want);
     napi_env env = jsRuntime_.GetNapiEnv();
@@ -265,8 +260,13 @@ void JsAgentExtension::OnDisconnect(const AAFwk::Want &want,
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null jsHostProxy");
         return;
     }
+    void *nativeProxy = nullptr;
+    if (napi_unwrap(env, jsHostProxy, &nativeProxy) == napi_ok && nativeProxy != nullptr) {
+        static_cast<JsAgentConnectorProxy *>(nativeProxy)->Invalidate();
+    }
     napi_value argv[] = { napiWant, jsHostProxy };
     CallObjectMethod("onDisconnect", argv, ARGC_TWO);
+    ReleaseHostProxyReference(iter->second);
     hostProxyMap_.erase(iter);
 }
 
@@ -451,6 +451,21 @@ sptr<IRemoteObject> JsAgentExtension::GetHostProxyFromWant(const AAFwk::Want &wa
         return nullptr;
     }
     return want.GetRemoteObject(AGENTEXTENSIONHOSTPROXY_KEY);
+}
+
+void JsAgentExtension::ReleaseHostProxyReference(std::unique_ptr<NativeReference> &hostProxyRef)
+{
+    if (hostProxyRef == nullptr) {
+        return;
+    }
+    napi_ref ref = reinterpret_cast<napi_ref>(hostProxyRef.get());
+    napi_status status = napi_delete_reference(jsRuntime_.GetNapiEnv(), ref);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "napi_delete_reference failed %{public}d", status);
+        jsRuntime_.FreeNativeReference(std::move(hostProxyRef));
+        return;
+    }
+    hostProxyRef.release();
 }
 
 void JsAgentExtension::BindContext(napi_env env, napi_value obj, std::shared_ptr<AAFwk::Want> want)

@@ -34,6 +34,9 @@ struct AppfreezeEventInfo {
     std::string freezeInfoFile;
     std::string hitraceInfo;
     std::string applicationHeapInfo;
+    std::string applicationGCInfo;
+    std::string applicationIOInfo;
+    bool isBlockInGc = false;
     std::string processLifeTime;
     std::string mainStack;
     std::string externalLog;
@@ -47,6 +50,7 @@ struct AppfreezeEventInfo {
     bool foregroundState;
     bool enableFreeze;
     bool reportLifecycleToFreeze = false;
+    bool isFrozen = false;
 };
 
 class AppfreezeEventReport {
