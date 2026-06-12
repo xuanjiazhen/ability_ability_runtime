@@ -128,7 +128,7 @@ public:
     /**
      * @brief Batch unregister functions by namespace
      * @param funcNamespace Namespace to delete all functions from
-     * @return int32_t Number of functions deleted, or error code (< 0)
+     * @return int32_t ERR_OK on success, error code otherwise
      */
     int32_t UnregisterFunctionsByNamespace(const std::string &funcNamespace) override;
 
