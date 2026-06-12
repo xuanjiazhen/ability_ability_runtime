@@ -48,6 +48,34 @@ struct FormInfoForQuery {
     std::string formName;
 };
 
+struct ListCompInfoForQuery {
+    std::string compId;
+    std::string name;
+    std::string nextPageName;
+};
+
+struct TabsCompInfoForQuery {
+    std::string compId;
+    std::string name;
+    std::string nextPageName;
+};
+
+struct GUIComponentInfoForQuery {
+    std::string name;
+    std::string description;
+    std::string compId;
+    std::string componentIdWildcard;
+    std::string compType;
+    std::string nextPageName;
+    std::vector<ListCompInfoForQuery> listComp;
+    std::vector<TabsCompInfoForQuery> tabsComp;
+};
+
+struct GUIInfoForQuery {
+    std::string pageName;
+    std::vector<GUIComponentInfoForQuery> components;
+};
+
 struct EntityInfoForQuery {
     std::string className;
     std::string entityId;

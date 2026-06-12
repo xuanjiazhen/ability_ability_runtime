@@ -28,6 +28,8 @@
 #include "insight_intent/ui_operation_tree_parser.h"
 #include "param_config.h"
 #include "task_handler_wrap.h"
+#include "insight_intent/extract_insight_intent_profile.h"
+#include "insight_intent/insight_intent_db_cache.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -36,12 +38,12 @@ namespace AAFwk {
  * @brief Single page's parameters from the input array.
  *
  * Input format: [{pageName, parameters?, intentName}, ...]
- * All elements share the same intentName.
+ * Each element can have a different intentName (per-step independent DB query).
  * First element is the home/main page.
  */
 struct GuiIntentInputItem {
     std::string pageName;           // Target page (unique within the array)
-    std::string intentName;         // Intent identifier (same across all items)
+    std::string intentName;         // Intent identifier for this step
     std::string compId;             // Component ID
     std::string compType;           // Component type, e.g. "Button"
     std::string compName;           // Component name (reserved)
@@ -58,6 +60,9 @@ struct GuiIntentInputItem {
     static std::vector<GuiIntentInputItem> ParseFromJson(const std::string& inputJson);
 };
 
+// [REMOVED] GuiIntentDecoratorInfo — use InsightIntentGUIInfo/GUIComponentInfo from DB directly
+// Reason: per-step DB query via GetInsightIntentInfo; defaultActionType/defaultCompText not needed
+#if 0
 /**
  * @brief GuiIntentDecoratorInfo — as defined in the design spec.
  * Maps an intent to a set of pages, each containing components with action descriptions.
@@ -104,6 +109,7 @@ struct GuiIntentDecoratorInfo {
     };
     std::vector<GuiIntentComponentEntry> components;
 };
+#endif // GuiIntentDecoratorInfo removed
 
 /**
  * @brief Callback for GuiIntent execution completion.
@@ -117,17 +123,14 @@ using GuiIntentCompleteCallback = std::function<void(int32_t resultCode, const s
  *
  * Execution flow:
  *   1. Receive ordered [{pageName, parameters, intentName}] array
- *   2. Resolve GuiIntentDecoratorInfo for each page (hardcoded for now)
- *   3. Register ContentChangeCallback once
- *   4. For each input item:
- *      a) Get visible inspector tree via window
- *      b) Two-level component matching (compId+type+text > type+text)
- *      c) Actionability check (e.g. click → clickable=true)
- *      d) sendCommand(actionType) on matched ARKUI node id
- *      e) Wait for ContentChangeCallback(PAGE) → verify page transition
- *      f) On failure → interrupt chain
- *   5. Unregister ContentChangeCallback
- *   6. Report result
+ *   2. For each input item:
+ *      a) Query DB via GetInsightIntentInfo (per-step, independent)
+ *      b) Get visible inspector tree via window
+ *      c) Two-level component matching (compId+type+text > type+text)
+ *      d) Actionability check (e.g. click -> clickable=true)
+ *      e) sendCommand(actionType) on matched ARKUI node id
+ *      f) On failure -> interrupt chain
+ *   3. Report result
  */
 class GuiIntentExecutor : public std::enable_shared_from_this<GuiIntentExecutor> {
 public:
@@ -137,10 +140,14 @@ public:
     /**
      * @brief Execute a GUI intent synchronously.
      * @param windowId      Target window ID.
+     * @param bundleName    Target bundle name for DB query.
+     * @param moduleName    Target module name for DB query.
+     * @param userId        Target user ID for DB query.
      * @param inputItems    Ordered execution plan.
      * @param onComplete    Completion callback.
      */
     void Execute(int32_t windowId,
+        const std::string &bundleName, const std::string &moduleName, int32_t userId,
         const std::vector<GuiIntentInputItem>& inputItems,
         GuiIntentCompleteCallback onComplete);
 
@@ -156,15 +163,8 @@ public:
      */
     void Cancel();
 
-    /**
-     * @brief Build hardcoded GuiIntentDecoratorInfo[] for testing.
-     * Called before Execute to populate the decorator data.
-     * Replace with DB query later.
-     *
-     * @param intentName Target intent to load (empty = load all hardcoded).
-     * @return Vector of GuiIntentDecoratorInfo for the given intent.
-     */
-    static std::vector<GuiIntentDecoratorInfo> BuildHardcodedData(const std::string& intentName = "");
+    // [REMOVED] BuildHardcodedData — replaced by per-step DB query via GetInsightIntentInfo
+    // static std::vector<GuiIntentDecoratorInfo> BuildHardcodedData(const std::string& intentName = "");
 
 private:
     void StartNextStep();
@@ -183,8 +183,8 @@ private:
     // Component matching (two-level priority)
     std::vector<MatchedNodeInfo> MatchComponent(const std::string& treeJson, const GuiIntentInputItem& item);
 
-    // Look up decorator info by pageName from loaded decoratorInfos_
-    const GuiIntentDecoratorInfo* FindDecoratorByPage(const std::string& pageName) const;
+    // [REMOVED] FindDecoratorByPage — per-step DB query replaces preloaded decorator lookup
+    // const GuiIntentDecoratorInfo* FindDecoratorByPage(const std::string& pageName) const;
 
     // Actionability check
     bool CheckActionable(const MatchedNodeInfo& node, const std::string& actionType);
@@ -205,9 +205,13 @@ private:
     size_t currentStepIndex_ = 0;
     GuiIntentCompleteCallback onComplete_;
 
-    // Decorator data — resolves intentName to pages and components.
-    // Currently hardcoded; will be replaced by DB query later.
-    std::vector<GuiIntentDecoratorInfo> decoratorInfos_;
+    // [REMOVED] decoratorInfos_ — per-step DB query replaces preloaded decorator data
+    // std::vector<GuiIntentDecoratorInfo> decoratorInfos_;
+
+    // DB query params (set in Execute, used per step)
+    std::string bundleName_;
+    std::string moduleName_;
+    int32_t userId_ = -1;
 
     // Content change callback state
     ffrt::mutex callbackMutex_;

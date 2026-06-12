@@ -72,6 +72,16 @@ const std::string INSIGHT_INTENT_ENTITY_PARENT_CLASS_NAME = "parentClassName";
 const std::string INSIGHT_INTENT_ENTITY_PARAMETERS = "parameters";
 const std::string INSIGHT_INTENT_ARKTS_MODE = "arkTSMode";
 const std::string INSIGHT_INTENT_ENTITY_SUPPORTED_QUERY_PROPERTIES = "supportedQueryProperties";
+const std::string INSIGHT_INTENT_PAGE_NAME = "pageName";
+const std::string INSIGHT_INTENT_COMPONENTS = "components";
+const std::string INSIGHT_INTENT_LIST_COMP = "listComp";
+const std::string INSIGHT_INTENT_TABS_COMP = "tabsComp";
+const std::string INSIGHT_INTENT_COMP_NAME = "name";
+const std::string INSIGHT_INTENT_COMP_DESCRIPTION = "description";
+const std::string INSIGHT_INTENT_COMP_ID = "compId";
+const std::string INSIGHT_INTENT_COMP_ID_WILDCARD = "componentIdWildcard";
+const std::string INSIGHT_INTENT_COMP_TYPE = "compType";
+const std::string INSIGHT_INTENT_NEXT_PAGE_NAME = "nextPageName";
 
 enum DecoratorType {
     DECORATOR_LINK = 0,
@@ -79,6 +89,7 @@ enum DecoratorType {
     DECORATOR_ENTRY,
     DECORATOR_FUNCTION,
     DECORATOR_FORM,
+    DECORATOR_GUI,
     DECORATOR_UNKNOWN
 };
 
@@ -89,7 +100,9 @@ DecoratorType StringToEnum(const std::string& input)
         {AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_PAGE, DecoratorType::DECORATOR_PAGE},
         {AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_ENTRY, DecoratorType::DECORATOR_ENTRY},
         {AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_FUNCTION, DecoratorType::DECORATOR_FUNCTION},
-        {AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_FORM, DecoratorType::DECORATOR_FORM}
+        {AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_FORM, DecoratorType::DECORATOR_FORM},
+        {AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_GUI, DecoratorType::DECORATOR_GUI}
+    };
     };
     auto it = mapping.find(input);
     return (it != mapping.end()) ? it->second : DecoratorType::DECORATOR_UNKNOWN;
@@ -184,6 +197,112 @@ void from_json(const nlohmann::json &jsonObject, InsightIntentEntityInfo &entity
             g_extraParseResult = ERR_INVALID_VALUE;
         }
     }
+}
+
+void from_json(const nlohmann::json &jsonObject, ListCompInfo &listComp)
+{
+    TAG_LOGI(AAFwkTag::INTENT, "ListCompInfo from json");
+    const auto &jsonObjectEnd = jsonObject.end();
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_COMP_ID,
+        listComp.compId,
+        false,
+        g_extraParseResult);
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_COMP_NAME,
+        listComp.name,
+        false,
+        g_extraParseResult);
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_NEXT_PAGE_NAME,
+        listComp.nextPageName,
+        false,
+        g_extraParseResult);
+}
+
+void from_json(const nlohmann::json &jsonObject, TabsCompInfo &tabsComp)
+{
+    TAG_LOGI(AAFwkTag::INTENT, "TabsCompInfo from json");
+    const auto &jsonObjectEnd = jsonObject.end();
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_COMP_ID,
+        tabsComp.compId,
+        false,
+        g_extraParseResult);
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_COMP_NAME,
+        tabsComp.name,
+        false,
+        g_extraParseResult);
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_NEXT_PAGE_NAME,
+        tabsComp.nextPageName,
+        false,
+        g_extraParseResult);
+}
+
+void from_json(const nlohmann::json &jsonObject, GUIComponentInfo &component)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "GUIComponentInfo from json");
+    const auto &jsonObjectEnd = jsonObject.end();
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_COMP_NAME,
+        component.name,
+        false,
+        g_extraParseResult);
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_COMP_DESCRIPTION,
+        component.description,
+        false,
+        g_extraParseResult);
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_COMP_ID,
+        component.compId,
+        false,
+        g_extraParseResult);
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_COMP_ID_WILDCARD,
+        component.componentIdWildcard,
+        false,
+        g_extraParseResult);
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_COMP_TYPE,
+        component.compType,
+        false,
+        g_extraParseResult);
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_NEXT_PAGE_NAME,
+        component.nextPageName,
+        false,
+        g_extraParseResult);
+    AppExecFwk::GetValueIfFindKey<std::vector<ListCompInfo>>(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_LIST_COMP,
+        component.listComp,
+        JsonType::ARRAY,
+        false,
+        g_extraParseResult,
+        ArrayType::OBJECT);
+    AppExecFwk::GetValueIfFindKey<std::vector<TabsCompInfo>>(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_TABS_COMP,
+        component.tabsComp,
+        JsonType::ARRAY,
+        false,
+        g_extraParseResult,
+        ArrayType::OBJECT);
 }
 
 void from_json(const nlohmann::json &jsonObject, ExtractInsightIntentProfileInfo &insightIntentInfo)
@@ -374,6 +493,21 @@ void from_json(const nlohmann::json &jsonObject, ExtractInsightIntentProfileInfo
         insightIntentInfo.arkTSMode,
         false,
         g_extraParseResult);
+    
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+            jsonObjectEnd,
+            INSIGHT_INTENT_PAGE_NAME,
+            insightIntentInfo.pageName,
+            false,
+            g_extraParseResult);
+    AppExecFwk::GetValueIfFindKey<std::vector<GUIComponentInfo>>(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_COMPONENTS,
+        insightIntentInfo.components,
+        JsonType::ARRAY,
+        false,
+        g_extraParseResult,
+        ArrayType::OBJECT);
 
     if (jsonObject.find(INSIGHT_INTENT_PARAMETERS) != jsonObjectEnd) {
         if (jsonObject.at(INSIGHT_INTENT_PARAMETERS).is_object()) {
@@ -441,6 +575,41 @@ void to_json(nlohmann::json& jsonObject, const InsightIntentEntityInfo &info)
     }
 }
 
+void to_json(nlohmann::json& jsonObject, const ListCompInfo &info)
+{
+    TAG_LOGI(AAFwkTag::INTENT, "ListCompInfo to json");
+    jsonObject = nlohmann::json {
+        {INSIGHT_INTENT_COMP_ID, info.compId},
+        {INSIGHT_INTENT_COMP_NAME, info.name},
+        {INSIGHT_INTENT_NEXT_PAGE_NAME, info.nextPageName}
+    };
+}
+
+void to_json(nlohmann::json& jsonObject, const TabsCompInfo &info)
+{
+    TAG_LOGI(AAFwkTag::INTENT, "TabsCompInfo to json");
+    jsonObject = nlohmann::json {
+        {INSIGHT_INTENT_COMP_ID, info.compId},
+        {INSIGHT_INTENT_COMP_NAME, info.name},
+        {INSIGHT_INTENT_NEXT_PAGE_NAME, info.nextPageName}
+    };
+}
+
+void to_json(nlohmann::json& jsonObject, const GUIComponentInfo &info)
+{
+    TAG_LOGI(AAFwkTag::INTENT, "GUIComponentInfo to json");
+    jsonObject = nlohmann::json {
+        {INSIGHT_INTENT_COMP_NAME, info.name},
+        {INSIGHT_INTENT_COMP_DESCRIPTION, info.description},
+        {INSIGHT_INTENT_COMP_ID, info.compId},
+        {INSIGHT_INTENT_COMP_ID_WILDCARD, info.componentIdWildcard},
+        {INSIGHT_INTENT_COMP_TYPE, info.compType},
+        {INSIGHT_INTENT_NEXT_PAGE_NAME, info.nextPageName},
+        {INSIGHT_INTENT_LIST_COMP, info.listComp},
+        {INSIGHT_INTENT_TABS_COMP, info.tabsComp}
+    };
+}
+
 void to_json(nlohmann::json& jsonObject, const ExtractInsightIntentProfileInfo& info)
 {
     TAG_LOGI(AAFwkTag::INTENT, "ExtractInsightIntentProfileInfo to json");
@@ -474,7 +643,9 @@ void to_json(nlohmann::json& jsonObject, const ExtractInsightIntentProfileInfo& 
         {INSIGHT_INTENT_FUNCTION_PARAMS, info.functionParams},
         {INSIGHT_INTENT_FORM_NAME, info.formName},
         {INSIGHT_INTENT_ENTITES, info.entities},
-        {INSIGHT_INTENT_ARKTS_MODE, info.arkTSMode}
+        {INSIGHT_INTENT_ARKTS_MODE, info.arkTSMode},
+        {INSIGHT_INTENT_PAGE_NAME, info.pageName},
+        {INSIGHT_INTENT_COMPONENTS, info.components}
     };
 
     if (!info.parameters.empty()) {
@@ -539,6 +710,12 @@ bool CheckProfileSubIntentInfo(const ExtractInsightIntentProfileInfo &insightInt
             if (insightIntent.formName.empty() || insightIntent.abilityName.empty()) {
                 TAG_LOGE(AAFwkTag::INTENT, "empty formName or abilityName, intentName: %{public}s, "
                     "abilityName: %{public}s", insightIntent.intentName.c_str(), insightIntent.abilityName.c_str());
+                return false;
+            }
+            break;
+        case DecoratorType::DECORATOR_GUI:
+            if (insightIntent.pageName.empty()) {
+                TAG_LOGE(AAFwkTag::INTENT, "empty pageName, intentName: %{public}s", insightIntent.intentName.c_str());
                 return false;
             }
             break;
@@ -658,10 +835,19 @@ bool TransformToFormInfo(const ExtractInsightIntentProfileInfo &insightIntent, I
     return true;
 }
 
+bool TransformToGUIInfo(const ExtractInsightIntentProfileInfo &insightIntent, InsightIntentGUIInfo &info)
+{
+    info.pageName = insightIntent.pageName;
+    TAG_LOGD(AAFwkTag::INTENT, "pageName: %{public}s", info.pageName.c_str());
+    info.components.assign(insightIntent.components.begin(), insightIntent.components.end());
+    TAG_LOGD(AAFwkTag::INTENT, "components size: %{public}zu", info.components.size());
+    return true;
+}
+
 bool ExtractInsightIntentProfile::TransformTo(const std::string &profileStr,
     ExtractInsightIntentProfileInfoVec &intentInfos)
 {
-    TAG_LOGD(AAFwkTag::INTENT, "transform profileStr: %{public}s", profileStr.c_str());
+    TAG_LOGI(AAFwkTag::INTENT, "transform profileStr: %{public}s", profileStr.c_str());
     auto jsonObject = nlohmann::json::parse(profileStr, nullptr, false);
     if (jsonObject.is_discarded()) {
         TAG_LOGE(AAFwkTag::INTENT, "discarded jsonObject, profileStr: %{public}s", profileStr.c_str());
@@ -684,7 +870,7 @@ bool ExtractInsightIntentProfile::TransformTo(const std::string &profileStr,
         }
     }
 
-    TAG_LOGD(AAFwkTag::INTENT, "transform success, size: %{public}zu", intentInfos.insightIntents.size());
+    TAG_LOGI(AAFwkTag::INTENT, "transform success, size: %{public}zu", intentInfos.insightIntents.size());
     return true;
 }
 
@@ -759,6 +945,9 @@ bool ExtractInsightIntentProfile::ProfileInfoFormat(const ExtractInsightIntentPr
             break;
         case DecoratorType::DECORATOR_FORM:
             ret = TransformToFormInfo(insightIntent, info.genericInfo.get<InsightIntentFormInfo>());
+            break;
+        case DecoratorType::DECORATOR_GUI:
+            ret = TransformToGUIInfo(insightIntent, info.genericInfo.get<InsightIntentGUIInfo>());
             break;
         default:
             TAG_LOGE(AAFwkTag::INTENT, "invalid decoratorType: %{public}s", insightIntent.decoratorType.c_str());

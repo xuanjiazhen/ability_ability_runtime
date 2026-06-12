@@ -134,9 +134,9 @@ std::vector<GuiIntentInputItem> GuiIntentInputItem::ParseFromJson(const std::str
 }
 
 // ============================================================
-// BuildHardcodedData — hardcoded decorator info (replace with DB)
+// [REMOVED] BuildHardcodedData — replaced by per-step DB query via GetInsightIntentInfo
 // ============================================================
-
+#if 0
 std::vector<GuiIntentDecoratorInfo> GuiIntentExecutor::BuildHardcodedData(const std::string& intentName)
 {
     std::vector<GuiIntentDecoratorInfo> data;
@@ -328,6 +328,7 @@ std::vector<GuiIntentDecoratorInfo> GuiIntentExecutor::BuildHardcodedData(const 
     TAG_LOGI(AAFwkTag::INTENT, "BuildHardcodedData: total=%{public}zu entries", data.size());
     return data;
 }
+#endif // BuildHardcodedData removed
 
 GuiIntentExecutor::~GuiIntentExecutor()
 {
@@ -344,6 +345,7 @@ void GuiIntentExecutor::SetTaskHandler(std::shared_ptr<TaskHandlerWrap> handler)
 // ============================================================
 
 void GuiIntentExecutor::Execute(int32_t windowId,
+    const std::string &bundleName, const std::string &moduleName, int32_t userId,
     const std::vector<GuiIntentInputItem>& inputItems,
     GuiIntentCompleteCallback onComplete)
 {
@@ -361,16 +363,7 @@ void GuiIntentExecutor::Execute(int32_t windowId,
         return;
     }
 
-    // Validate: all items must share the same intentName
-    const std::string& intentName = inputItems[0].intentName;
-    for (const auto& item : inputItems) {
-        if (item.intentName != intentName) {
-            TAG_LOGE(AAFwkTag::INTENT, "intentName mismatch: expected %{public}s, got %{public}s",
-                intentName.c_str(), item.intentName.c_str());
-            if (onComplete) { onComplete(-1, ""); }
-            return;
-        }
-    }
+    // [REMOVED] intentName consistency check — each step queries DB independently
 
     {
         std::lock_guard<ffrt::mutex> lock(mutex_);
@@ -380,6 +373,9 @@ void GuiIntentExecutor::Execute(int32_t windowId,
             return;
         }
         windowId_ = windowId;
+        bundleName_ = bundleName;
+        moduleName_ = moduleName;
+        userId_ = userId;
         inputItems_ = inputItems;
         onComplete_ = std::move(onComplete);
         cancelled_ = false;
@@ -387,8 +383,7 @@ void GuiIntentExecutor::Execute(int32_t windowId,
         currentStepIndex_ = 0;
     }
 
-    // Load decorator data (hardcoded for now, replace with DB query later)
-    decoratorInfos_ = BuildHardcodedData(intentName);
+    // [REMOVED] BuildHardcodedData — each step queries DB via GetInsightIntentInfo
 
     ConnectWindow([this](bool success) {
         if (!success) {
@@ -473,6 +468,34 @@ void GuiIntentExecutor::ExecuteCurrentStep()
         "nextPage=%{public}s",
         stepIndex, item.pageName.c_str(), item.compType.c_str(), item.compText.c_str(),
         item.actionType.c_str(), item.compId.c_str(), item.nextPageName.c_str());
+
+    // Per-step DB query: load intent data for this step
+    {
+        AbilityRuntime::ExtractInsightIntentInfo dbInfo;
+        DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(
+            bundleName_, moduleName_, item.intentName, userId_, dbInfo);
+        if (dbInfo.genericInfo.currentType == AbilityRuntime::InfoType::None) {
+            TAG_LOGE(AAFwkTag::INTENT,
+                "step[%{public}zu] DB query failed: bundle=%{public}s, module=%{public}s, "
+                "intent=%{public}s, userId=%{public}d",
+                stepIndex, bundleName_.c_str(), moduleName_.c_str(),
+                item.intentName.c_str(), userId_);
+            OnStepComponentNotFound("DB query failed, intent not found");
+            return;
+        }
+        if (dbInfo.genericInfo.currentType != AbilityRuntime::InfoType::GUI) {
+            TAG_LOGE(AAFwkTag::INTENT,
+                "step[%{public}zu] intent=%{public}s type mismatch: expected GUI, got %{public}u",
+                stepIndex, item.intentName.c_str(),
+                static_cast<uint8_t>(dbInfo.genericInfo.currentType));
+            OnStepComponentNotFound("intent type mismatch, expected GUI");
+            return;
+        }
+        auto &guiInfo = dbInfo.genericInfo.get<AbilityRuntime::InsightIntentGUIInfo>();
+        TAG_LOGI(AAFwkTag::INTENT, "step[%{public}zu] DB loaded: intentName=%{public}s, "
+            "pageName=%{public}s, components=%{public}zu",
+            stepIndex, item.intentName.c_str(), guiInfo.pageName.c_str(), guiInfo.components.size());
+    }
 
     // Get current inspector tree
     TAG_LOGI(AAFwkTag::INTENT, "step[%{public}zu] requesting inspector tree...", stepIndex);
@@ -569,17 +592,8 @@ void GuiIntentExecutor::ExecuteCurrentStep()
                 return;
             }
 
-            // Verify against decorator data
-            const auto* decorator = FindDecoratorByPage(item.nextPageName);
-            if (decorator == nullptr) {
-                TAG_LOGW(AAFwkTag::INTENT, "step[%{public}zu] nextPageName=%{public}s not found in decorator set",
-                    stepIndex, item.nextPageName.c_str());
-            } else {
-                TAG_LOGI(AAFwkTag::INTENT, "step[%{public}zu] nextPageName=%{public}s matched decorator: "
-                    "displayName=%{public}s, components=%{public}zu",
-                    stepIndex, item.nextPageName.c_str(),
-                    decorator->displayName.c_str(), decorator->components.size());
-            }
+            // [REMOVED] Verify against decorator data — per-step DB query replaces FindDecoratorByPage
+            // const auto* decorator = FindDecoratorByPage(item.nextPageName);
         }
 
         // Advance to next step
@@ -620,9 +634,9 @@ std::vector<MatchedNodeInfo> GuiIntentExecutor::MatchComponent(
 }
 
 // ============================================================
-// Private: Decorator lookup
+// [REMOVED] Private: Decorator lookup — per-step DB query replaces preloaded lookup
 // ============================================================
-
+#if 0
 const GuiIntentDecoratorInfo* GuiIntentExecutor::FindDecoratorByPage(const std::string& pageName) const
 {
     for (const auto& info : decoratorInfos_) {
@@ -632,6 +646,7 @@ const GuiIntentDecoratorInfo* GuiIntentExecutor::FindDecoratorByPage(const std::
     }
     return nullptr;
 }
+#endif // FindDecoratorByPage removed
 
 // ============================================================
 // Private: Actionability check

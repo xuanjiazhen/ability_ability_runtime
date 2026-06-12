@@ -24,6 +24,8 @@ namespace OHOS::AbilityRuntime {
     constexpr char INSIGHT_INTENTS_TYPE_ENTRY[] = "@InsightIntentEntry";
     constexpr char INSIGHT_INTENTS_TYPE_FUNCTION[] = "@InsightIntentFunctionMethod";
     constexpr char INSIGHT_INTENTS_TYPE_FORM[] = "@InsightIntentForm";
+    constexpr char INSIGHT_INTENTS_TYPE_GUI[] = "@InsightIntentGUI";
+
 
     constexpr char INSIGHT_INTENTS_URI[] = "uri";
     constexpr char INSIGHT_INTENT_UI_ABILITY[] = "uiAbility";
@@ -54,6 +56,19 @@ namespace OHOS::AbilityRuntime {
     constexpr char INSIGHT_INTENT_ENTITY_INFO[] = "entities";
     constexpr char INSIGHT_INTENT_FUNCTION_INFO[] = "functionInfo";
     constexpr char INSIGHT_INTENT_FORM_INFO[] = "formInfo";
+    //gui---
+    constexpr char INSIGHT_INTENT_GUI_INFO[] = "guiInfo";
+    constexpr char INSIGHT_INTENTS_TYPE_PAGE_NAME[] = "pageName";
+    constexpr char INSIGHT_INTENTS_TYPE_COMPONENTS[] = "components";
+    constexpr char INSIGHT_INTENTS_TYPE_LIST_COMP[] = "listComp";
+    constexpr char INSIGHT_INTENTS_TYPE_TABS_COMP[] = "tabsComp";
+    constexpr char INSIGHT_INTENTS_TYPE_COMP_NAME[] = "name";
+    constexpr char INSIGHT_INTENTS_TYPE_COMP_DESCRIPTION[] = "description";
+    constexpr char INSIGHT_INTENTS_TYPE_COMP_ID[] = "compId";
+    constexpr char INSIGHT_INTENTS_TYPE_COMP_ID_WILDCARD[] = "componentIdWildcard";
+    constexpr char INSIGHT_INTENTS_TYPE_COMP_TYPE[] = "compType";
+    constexpr char INSIGHT_INTENTS_TYPE_NEXT_PAGE_NAME[] = "nextPageName";
+    
     constexpr char INSIGHT_INTENT_ENTITY_CLASS_NAME[] = "className";
     constexpr char INSIGHT_INTENT_ENTITY_CATEGORY[] = "entityCategory";
     constexpr char INSIGHT_INTENT_ENTITY_ID[] = "entityId";

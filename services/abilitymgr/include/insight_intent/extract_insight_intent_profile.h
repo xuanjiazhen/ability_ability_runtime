@@ -31,6 +31,7 @@ const std::string INSIGHT_INTENTS_DECORATOR_TYPE_PAGE = "@InsightIntentPage";
 const std::string INSIGHT_INTENTS_DECORATOR_TYPE_ENTRY = "@InsightIntentEntry";
 const std::string INSIGHT_INTENTS_DECORATOR_TYPE_FUNCTION = "@InsightIntentFunctionMethod";
 const std::string INSIGHT_INTENTS_DECORATOR_TYPE_FORM = "@InsightIntentForm";
+const std::string INSIGHT_INTENTS_DECORATOR_TYPE_GUI = "@InsightIntentGUI";
 
 struct LinkIntentParamMapping {
     std::string paramName;
@@ -83,12 +84,49 @@ struct InsightIntentFormInfo {
     InsightIntentFormInfo() = default;
 };
 
+struct ListCompInfo {
+    std::string compId;
+    std::string name;
+    std::string nextPageName;
+
+    ListCompInfo() = default;
+};
+
+struct TabsCompInfo {
+    std::string compId;
+    std::string name;
+    std::string nextPageName;
+
+    TabsCompInfo() = default;
+};
+
+struct GUIComponentInfo {
+    std::string name;
+    std::string description;
+    std::string compId;
+    std::string componentIdWildcard;
+    std::string compType;
+    std::string nextPageName;
+    std::vector<ListCompInfo> listComp;
+    std::vector<TabsCompInfo> tabsComp;
+
+    GUIComponentInfo() = default;
+};
+
+struct InsightIntentGUIInfo {
+    std::string pageName;
+    std::vector<GUIComponentInfo> components;
+
+    InsightIntentGUIInfo() = default;
+};
+
 enum class InfoType: uint8_t {
     Link,
     Page,
     Entry,
     Function,
     Form,
+    GUI
     None
 };
 
@@ -105,6 +143,7 @@ struct ExtractInsightIntentGenericInfo {
         InsightIntentEntryInfo,
         InsightIntentFunctionInfo,
         InsightIntentFormInfo,
+        InsightIntentGUIInfo,
         std::monostate
     > data;
 
@@ -138,6 +177,7 @@ private:
         if constexpr (std::is_same_v<T, InsightIntentEntryInfo>) return InfoType::Entry;
         if constexpr (std::is_same_v<T, InsightIntentFunctionInfo>) return InfoType::Function;
         if constexpr (std::is_same_v<T, InsightIntentFormInfo>) return InfoType::Form;
+        if constexpr (std::is_same_v<T, InsightIntentGUIInfo>) return InfoType::GUI;
         return InfoType::None;
     }
 };
@@ -217,6 +257,8 @@ struct ExtractInsightIntentProfileInfo {
     std::string functionReturnType;
     std::string formName;
     std::string arkTSMode;
+    std::string pageName;
+    std::vector<GUIComponentInfo> components;
 };
 
 struct ExtractInsightIntentProfileInfoVec {

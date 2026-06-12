@@ -7975,10 +7975,12 @@ void AbilityManagerService::DumpSysGuiIntentInner(
     TAG_LOGI(AAFwkTag::ABILITYMGR, "DumpSysGuiIntentInner");
     std::vector<std::string> argList;
     SplitStr(args, " ", argList);
-    // argList[0] = "-g", argList[1] = <windowId>, argList[2] = <guiIntentJson>
-    if (argList.size() < 3) {
-        info.push_back("Usage: hidumper -s AbilityManagerService -a '-g <windowId> <guiIntentJson>'");
-        info.push_back("       aa dump -g <windowId> <guiIntentJson>");
+    // argList[0] = "-g", argList[1] = <windowId>, argList[2] = <bundleName>,
+    // argList[3] = <moduleName>, argList[4..end] = <guiIntentJson>
+    if (argList.size() < 5) {
+        info.push_back("Usage: hidumper -s AbilityManagerService -a "
+            "'-g <windowId> <bundleName> <moduleName> <guiIntentJson>'");
+        info.push_back("       aa dump -g <windowId> <bundleName> <moduleName> <guiIntentJson>");
         info.push_back("  guiIntentJson format:");
         info.push_back("  [{");
         info.push_back("    \"pageName\": \"main\",");
@@ -7996,10 +7998,13 @@ void AbilityManagerService::DumpSysGuiIntentInner(
     }
 
     int32_t windowId = static_cast<int32_t>(std::strtol(argList[1].c_str(), nullptr, 10));
-    // argList[2..end] are the JSON (may be split by spaces in some shells, reassemble)
+    std::string bundleName = argList[2];
+    std::string moduleName = argList[3];
+    int32_t userId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+    // argList[4..end] are the JSON (may be split by spaces in some shells, reassemble)
     std::string inputJson;
-    for (size_t i = 2; i < argList.size(); ++i) {
-        if (i > 2) { inputJson += " "; }
+    for (size_t i = 4; i < argList.size(); ++i) {
+        if (i > 4) { inputJson += " "; }
         inputJson += argList[i];
     }
 
@@ -8011,6 +8016,7 @@ void AbilityManagerService::DumpSysGuiIntentInner(
 
     info.push_back("GUI Intent: " + std::to_string(inputItems.size()) + " steps loaded");
     info.push_back("Window: " + std::to_string(windowId));
+    info.push_back("Bundle: " + bundleName + ", Module: " + moduleName + ", User: " + std::to_string(userId));
 
     // Sync-wait for async chain execution
     std::mutex waitMutex;
@@ -8021,7 +8027,7 @@ void AbilityManagerService::DumpSysGuiIntentInner(
 
     auto executor = std::make_shared<GuiIntentExecutor>();
     executor->SetTaskHandler(taskHandler_);
-    executor->Execute(windowId, inputItems,
+    executor->Execute(windowId, bundleName, moduleName, userId, inputItems,
         [&](int32_t code, const std::string& page) {
             {
                 std::lock_guard<std::mutex> lock(waitMutex);

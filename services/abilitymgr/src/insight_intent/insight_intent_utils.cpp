@@ -158,6 +158,51 @@ uint32_t InsightIntentUtils::ConvertExtractInsightIntentGenericInfo(
         queryInfo.formInfo.abilityName = formInfo.abilityName;
         queryInfo.formInfo.formName = formInfo.formName;
         queryInfo.parameters = formInfo.parameters;
+    } } else if (genericInfo.decoratorType == INSIGHT_INTENTS_DECORATOR_TYPE_GUI) {
+        auto guiInfo = genericInfo.get<InsightIntentGUIInfo>();
+        TAG_LOGI(AAFwkTag::INTENT, "GUI decoratorType, pageName: %{public}s, components size: %{public}zu",
+            guiInfo.pageName.c_str(), guiInfo.components.size());
+        //queryInfo.guiInfo.pageName = guiInfo.pageName;
+        for (const auto &comp : guiInfo.components) {
+            TAG_LOGI(AAFwkTag::INTENT, "component name: %{public}s, description: %{public}s, compId: %{public}s, "
+                "componentIdWildcard: %{public}s, compType: %{public}s, nextPageName: %{public}s, "
+                "listComp size: %{public}zu, tabsComp size: %{public}zu",
+                comp.name.c_str(), comp.description.c_str(), comp.compId.c_str(),
+                comp.componentIdWildcard.c_str(), comp.compType.c_str(), comp.nextPageName.c_str(),
+                comp.listComp.size(), comp.tabsComp.size());
+            GUIComponentInfoForQuery compForQuery;
+            compForQuery.name = comp.name;
+            compForQuery.description = comp.description;
+            compForQuery.compId = comp.compId;
+            compForQuery.componentIdWildcard = comp.componentIdWildcard;
+            compForQuery.compType = comp.compType;
+            compForQuery.nextPageName = comp.nextPageName;
+            size_t listCompIndex = 0;
+            for (const auto &listComp : comp.listComp) {
+                TAG_LOGI(AAFwkTag::INTENT, "  listComp[%{public}zu] compId: %{public}s, name: %{public}s, "
+                    "nextPageName: %{public}s", listCompIndex, listComp.compId.c_str(), listComp.name.c_str(),
+                    listComp.nextPageName.c_str());
+                ListCompInfoForQuery listCompForQuery;
+                listCompForQuery.compId = listComp.compId;
+                listCompForQuery.name = listComp.name;
+                listCompForQuery.nextPageName = listComp.nextPageName;
+                compForQuery.listComp.emplace_back(listCompForQuery);
+                listCompIndex++;
+            }
+            size_t tabsCompIndex = 0;
+            for (const auto &tabsComp : comp.tabsComp) {
+                TAG_LOGI(AAFwkTag::INTENT, "  tabsComp[%{public}zu] compId: %{public}s, name: %{public}s, "
+                    "nextPageName: %{public}s", tabsCompIndex, tabsComp.compId.c_str(), tabsComp.name.c_str(),
+                    tabsComp.nextPageName.c_str());
+                TabsCompInfoForQuery tabsCompForQuery;
+                tabsCompForQuery.compId = tabsComp.compId;
+                tabsCompForQuery.name = tabsComp.name;
+                tabsCompForQuery.nextPageName = tabsComp.nextPageName;
+                compForQuery.tabsComp.emplace_back(tabsCompForQuery);
+                tabsCompIndex++;
+            }
+            //queryInfo.guiInfo.components.emplace_back(compForQuery); //注释，避免js意图查询时奔溃
+        }
     } else {
         TAG_LOGE(AAFwkTag::INTENT, "invalid decoratorType:%{public}s", genericInfo.decoratorType.c_str());
         return ERR_INVALID_VALUE;
