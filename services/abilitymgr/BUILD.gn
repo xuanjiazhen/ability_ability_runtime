@@ -753,7 +753,6 @@ ohos_shared_library("mission_list") {
     "config_policy:configpolicy_util",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
-    "graphic_2d:color_manager",
     "hicollie:libhicollie",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
