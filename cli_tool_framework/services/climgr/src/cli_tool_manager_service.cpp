@@ -581,14 +581,14 @@ int32_t CliToolManagerService::UnregisterFunctionsByNamespace(const std::string 
     }
 
     int32_t ret = CliFunctionDataManager::GetInstance().UnregisterFunctionsByNamespace(funcNamespace);
-    if (ret < 0) {
+    if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "UnregisterFunctionsByNamespace: Failed, ret=%{public}d", ret);
         return ret;
     }
 
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully unregistered functions from namespace: %{public}s, count: %{public}d",
-        funcNamespace.c_str(), ret);
-    return ret;
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully unregistered functions from namespace: %{public}s",
+        funcNamespace.c_str());
+    return ERR_OK;
 }
 
 int32_t CliToolManagerService::GetAllFunctions(std::vector<FunctionInfo> &functions)

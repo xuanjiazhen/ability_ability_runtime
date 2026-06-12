@@ -319,7 +319,7 @@ int32_t CliFunctionDataManager::UnregisterFunctionsByNamespace(const std::string
 
     TAG_LOGI(AAFwkTag::CLI_TOOL, "UnregisterFunctionsByNamespace completed: %{public}s, deleted: %{public}d",
         funcNamespace.c_str(), deletedCount);
-    return deletedCount;
+    return ERR_OK;
 }
 
 int32_t CliFunctionDataManager::GetAllFunctions(std::vector<FunctionInfo> &functions)
