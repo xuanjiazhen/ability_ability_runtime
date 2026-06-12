@@ -361,6 +361,10 @@ public:
 
     bool IsStartUIAbilityInCurrentProcess();
 
+    bool IsSupportModularObjectExtension();
+
+    bool IsEnterpriseDeviceType();
+
     bool IsProductAppbootSettingEnabled();
 
     void LoadAppTransferList();
@@ -368,6 +372,15 @@ public:
     bool InAppTransferList(const std::string &bundleName);
 
     bool IsHybridSpawnUnified();
+
+    /**
+     * IsSupportNativeUIAbility, check if it supports native UI ability.
+     *
+     * @return Whether it supports native UI ability.
+     */
+    bool IsSupportNativeUIAbility();
+
+    bool IsSupportDelayedProcessExit();
 private:
     /**
      * LoadResidentProcessInExtremeMemory, load resident process in extreme low memory.
@@ -456,8 +469,12 @@ private:
     volatile DeviceConfiguration<bool> isSupportRestartAppWithWindow_ = {false, false};
     volatile DeviceConfiguration<bool> isSupportAllowDebugPermission_ = {false, false};
     volatile DeviceConfiguration<bool> isStartUIAbilityInCurrentProcess_ = {false, false};
+    volatile DeviceConfiguration<bool> isSupportModularObjectExtension_ = {false, false};
+    volatile DeviceConfiguration<bool> isEnterpriseDeviceType_ = {false, false};
     volatile DeviceConfiguration<bool> isProductAppbootSettingEnabled_ = {false, false};
     volatile DeviceConfiguration<bool> isHybridSpawnUnified_ = {false, false};
+    volatile DeviceConfiguration<bool> isSupportNativeUIAbility_ = {false, false};
+    volatile DeviceConfiguration<bool> isSupportDelayedProcessExit_ = {false, false};
     DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>
         residentProcessInExtremeMemory_ = {false, {}};
     std::mutex residentProcessInExtremeMemoryMutex_;
@@ -467,6 +484,7 @@ private:
     std::mutex requireBigMemoryAppMutex_;
     DeviceConfiguration<std::vector<std::string>>
         allowStartNativeProcessApps_ = {false, {}};
+    std::mutex allowStartNativeProcessAppsMutex_;
     volatile DeviceConfiguration<int32_t> limitMaximumExtensionsPerProc_ = {false, DEFAULT_MAX_EXT_PER_PROC};
     volatile DeviceConfiguration<int32_t> limitMaximumExtensionsPerDevice_ = {false, DEFAULT_MAX_EXT_PER_DEV};
     DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>

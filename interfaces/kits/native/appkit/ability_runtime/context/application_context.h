@@ -18,11 +18,15 @@
 
 #include <vector>
 #include <shared_mutex>
+#include <unordered_map>
+#include <mutex>
 
 #include "ability_lifecycle_callback.h"
 #include "application_state_change_callback.h"
+#include "application_update_callback.h"
 #include "context.h"
 #include "context_impl.h"
+#include "ability_native_thread.h"
 #include "environment_callback.h"
 #include "interop_ability_lifecycle_callback.h"
 #include "system_configuration_updated_callback.h"
@@ -50,6 +54,8 @@ public:
     void UnregisterEnvironmentCallback(const std::shared_ptr<EnvironmentCallback> &environmentCallback);
     void RegisterApplicationStateChangeCallback(
         const std::weak_ptr<ApplicationStateChangeCallback> &applicationStateChangeCallback);
+    void RegisterApplicationUpdateCallback(
+        const std::weak_ptr<ApplicationUpdateCallback> &applicationUpdateCallback);
     void DispatchOnAbilityCreate(const AbilityLifecycleCallbackArgs &ability);
     void DispatchOnAbilityCreate(std::shared_ptr<InteropObject> ability);
     void DispatchOnWindowStageCreate(const AbilityLifecycleCallbackArgs &ability,
@@ -62,8 +68,12 @@ public:
         std::shared_ptr<InteropObject> windowStage);
     void DispatchWindowStageFocus(const AbilityLifecycleCallbackArgs &ability,
         const AbilityLifecycleCallbackArgs &windowStage);
+    void DispatchWindowStageFocus(std::shared_ptr<InteropObject> ability,
+        std::shared_ptr<InteropObject> windowStage);
     void DispatchWindowStageUnfocus(const AbilityLifecycleCallbackArgs &ability,
         const AbilityLifecycleCallbackArgs &windowStage);
+    void DispatchWindowStageUnfocus(std::shared_ptr<InteropObject> ability,
+        std::shared_ptr<InteropObject> windowStage);
     void DispatchOnAbilityDestroy(const AbilityLifecycleCallbackArgs &ability);
     void DispatchOnAbilityDestroy(std::shared_ptr<InteropObject> ability);
     void DispatchOnAbilityForeground(const AbilityLifecycleCallbackArgs &ability);
@@ -71,13 +81,21 @@ public:
     void DispatchOnAbilityBackground(const AbilityLifecycleCallbackArgs &ability);
     void DispatchOnAbilityBackground(std::shared_ptr<InteropObject> ability);
     void DispatchOnAbilityContinue(const AbilityLifecycleCallbackArgs &ability);
+    void DispatchOnAbilityContinue(std::shared_ptr<InteropObject> ability);
     void DispatchOnAbilityWillContinue(const AbilityLifecycleCallbackArgs &ability);
+    void DispatchOnAbilityWillContinue(std::shared_ptr<InteropObject> ability);
     void DispatchOnWindowStageWillRestore(const AbilityLifecycleCallbackArgs &ability,
         const AbilityLifecycleCallbackArgs &windowStage);
+    void DispatchOnWindowStageWillRestore(std::shared_ptr<InteropObject> ability,
+        std::shared_ptr<InteropObject> windowStage);
     void DispatchOnWindowStageRestore(const AbilityLifecycleCallbackArgs &ability,
         const AbilityLifecycleCallbackArgs &windowStage);
+    void DispatchOnWindowStageRestore(std::shared_ptr<InteropObject> ability,
+        std::shared_ptr<InteropObject> windowStage);
     void DispatchOnAbilityWillSaveState(const AbilityLifecycleCallbackArgs &ability);
+    void DispatchOnAbilityWillSaveState(std::shared_ptr<InteropObject> ability);
     void DispatchOnAbilitySaveState(const AbilityLifecycleCallbackArgs &ability);
+    void DispatchOnAbilitySaveState(std::shared_ptr<InteropObject> ability);
     void DispatchConfigurationUpdated(const AppExecFwk::Configuration &config);
     void DispatchMemoryLevel(const int level);
     void NotifyApplicationForeground();
@@ -85,15 +103,36 @@ public:
     void NotifySystemConfigurationUpdated(const AppExecFwk::Configuration& configuration);
     void RegisterSystemConfigurationUpdatedCallback(const std::weak_ptr<SystemConfigurationUpdatedCallback> &Callback);
     void DispatchOnWillNewWant(const AbilityLifecycleCallbackArgs &ability);
+    void DispatchOnWillNewWant(std::shared_ptr<InteropObject> ability);
     void DispatchOnNewWant(const AbilityLifecycleCallbackArgs &ability);
+    void DispatchOnNewWant(std::shared_ptr<InteropObject> ability);
     void DispatchOnAbilityWillCreate(const AbilityLifecycleCallbackArgs &ability);
+    void DispatchOnAbilityWillCreate(std::shared_ptr<InteropObject> ability);
     void DispatchOnWindowStageWillCreate(const AbilityLifecycleCallbackArgs &ability,
         const AbilityLifecycleCallbackArgs &windowStage);
+    void DispatchOnWindowStageWillCreate(std::shared_ptr<InteropObject> ability,
+        std::shared_ptr<InteropObject> windowStage);
     void DispatchOnWindowStageWillDestroy(const AbilityLifecycleCallbackArgs &ability,
         const AbilityLifecycleCallbackArgs &windowStage);
+    void DispatchOnWindowStageWillDestroy(std::shared_ptr<InteropObject> ability,
+        std::shared_ptr<InteropObject> windowStage);
     void DispatchOnAbilityWillDestroy(const AbilityLifecycleCallbackArgs &ability);
+    void DispatchOnAbilityWillDestroy(std::shared_ptr<InteropObject> ability);
     void DispatchOnAbilityWillForeground(const AbilityLifecycleCallbackArgs &ability);
+    void DispatchOnAbilityWillForeground(std::shared_ptr<InteropObject> ability);
     void DispatchOnAbilityWillBackground(const AbilityLifecycleCallbackArgs &ability);
+    void DispatchOnAbilityWillBackground(std::shared_ptr<InteropObject> ability);
+
+    // Native Module related methods
+    bool CreateNativeThread(const AAFwk::NativeAbilityMetaData &metaData, const std::string &bundleName,
+        const std::string &moduleName);
+    std::shared_ptr<AppExecFwk::AbilityNativeThread> GetNativeThread();
+    void AddNativeAbility(const std::string &instanceId, std::shared_ptr<AbilityRuntime_NativeAbilityWrapper> wrapper);
+    std::shared_ptr<AbilityRuntime_NativeAbilityWrapper> GetNativeAbility(const std::string &instanceId);
+    void RemoveNativeAbility(const std::string &instanceId);
+    void PostAbility(const std::string &instanceId, std::shared_ptr<AbilityRuntime_NativeAbilityWrapper> wrapper);
+    void DestroyAbility(const std::string &instanceId);
+    void NotifyProcessExit();
 
     std::string GetBundleName() const override;
     std::shared_ptr<Context> CreateBundleContext(const std::string &bundleName) override;
@@ -150,6 +189,9 @@ public:
     void KillProcessBySelf(const bool clearPageStack = false);
     int32_t GetProcessRunningInformation(AppExecFwk::RunningProcessInfo &info);
     int32_t RestartApp(const AAFwk::Want& want);
+    int32_t EnableDelayedProcessExit();
+    int32_t DisableDelayedProcessExit();
+    int32_t StartSelfUIAbility(const AAFwk::Want &want);
 
     void AttachContextImpl(const std::shared_ptr<ContextImpl> &contextImpl);
 
@@ -196,6 +238,9 @@ public:
     void ProcessSecurityExit(const AAFwk::ExitReason &exitReason);
     napi_env GetMainNapiEnv() const;
 
+    int32_t GetImageProcessType() const;
+    bool IsAbilityCreated() const;
+
     using SelfType = ApplicationContext;
     static const size_t CONTEXT_TYPE_ID;
     std::string GetDataDir();
@@ -213,6 +258,7 @@ protected:
     }
 
 private:
+    bool IsDelayedProcessExitPending();
     std::vector<std::shared_ptr<InteropAbilityLifecycleCallback>> GetInteropCallbacks();
 
 private:
@@ -238,6 +284,13 @@ private:
     std::string dataDir_;
     std::mutex dataDirMutex_;
     std::mutex systemConfigurationUpdatedCallbackLock_;
+
+    // Native Module related members
+    std::shared_ptr<AppExecFwk::AbilityNativeThread> abilityNativeThread_;
+    std::unordered_map<std::string, std::shared_ptr<AbilityRuntime_NativeAbilityWrapper>> nativeAbilities_;
+    std::mutex nativeMutex_;
+    std::mutex delayedProcessExitStateLock_;
+    bool delayedProcessExitEnabled_ = false;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

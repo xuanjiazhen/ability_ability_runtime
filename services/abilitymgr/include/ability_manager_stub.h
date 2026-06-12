@@ -102,6 +102,8 @@ private:
     int StartSelfUIAbilityInner(MessageParcel &data, MessageParcel &reply);
     int StartSelfUIAbilityWithStartOptionsInner(MessageParcel &data, MessageParcel &reply);
     int StartSelfUIAbilityWithPidResultInner(MessageParcel &data, MessageParcel &reply);
+    int StartSelfUIAbilityWithTokenInner(MessageParcel &data, MessageParcel &reply);
+    int StartSelfUIAbilityWithStartOptionsAndTokenInner(MessageParcel &data, MessageParcel &reply);
     int StartAbilityInner(MessageParcel &data, MessageParcel &reply);
     int StartAbilityInnerSpecifyTokenId(MessageParcel &data, MessageParcel &reply);
     int StartAbilityByUIContentSessionAddCallerInner(MessageParcel &data, MessageParcel &reply);
@@ -126,6 +128,7 @@ private:
     int StartAbilityForSettingsInner(MessageParcel &data, MessageParcel &reply);
     int StartAbilityForOptionsInner(MessageParcel &data, MessageParcel &reply);
     int RequestModalUIExtensionInner(MessageParcel &data, MessageParcel &reply);
+    int RequestModalUIExtensionWithAccountInner(MessageParcel &data, MessageParcel &reply);
     int ChangeAbilityVisibilityInner(MessageParcel &data, MessageParcel &reply);
     int ChangeUIAbilityVisibilityBySCBInner(MessageParcel &data, MessageParcel &reply);
     int PreloadUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply);
@@ -145,6 +148,7 @@ private:
     int UnregisterCancelListenerInner(MessageParcel &data, MessageParcel &reply);
 
     int GetPendingRequestWantInner(MessageParcel &data, MessageParcel &reply);
+    int GetPendingRequestWantFromProxyInner(MessageParcel &data, MessageParcel &reply);
     int GetWantSenderInfoInner(MessageParcel &data, MessageParcel &reply);
 
     int GetAppMemorySizeInner(MessageParcel &data, MessageParcel &reply);
@@ -291,6 +295,10 @@ private:
     int32_t GetAutoStartupStatusForSelfInner(MessageParcel &data, MessageParcel &reply);
     int32_t ManualStartAutoStartupAppsInner(MessageParcel &data, MessageParcel &reply);
     int32_t QueryCallerTokenIdForAncoInner(MessageParcel &data, MessageParcel &reply);
+    int32_t LaunchGameCustomizedInner(MessageParcel &data, MessageParcel &reply);
+    int32_t NotifyCancelGamePreLaunchInner(MessageParcel &data, MessageParcel &reply);
+    int32_t NotifyCompleteGamePreLaunchInner(MessageParcel &data, MessageParcel &reply);
+    int32_t SetGamePreLaunchCompleteTimeInner(MessageParcel &data, MessageParcel &reply);
 
     int PrepareTerminateAbilityBySCBInner(MessageParcel &data, MessageParcel &reply);
     int RegisterSessionHandlerInner(MessageParcel &data, MessageParcel &reply);
@@ -301,6 +309,9 @@ private:
     int32_t AttachAppDebugInner(MessageParcel &data, MessageParcel &reply);
     int32_t DetachAppDebugInner(MessageParcel &data, MessageParcel &reply);
     int32_t ExecuteIntentInner(MessageParcel &data, MessageParcel &reply);
+    int32_t ExecuteIntentForDistributedInner(MessageParcel &data, MessageParcel &reply);
+
+    int32_t QueryEntityInner(MessageParcel &data, MessageParcel &reply);
 
     int32_t SetApplicationAutoStartupByEDMInner(MessageParcel &data, MessageParcel &reply);
     int32_t CancelApplicationAutoStartupByEDMInner(MessageParcel &data, MessageParcel &reply);
@@ -315,11 +326,14 @@ private:
     int StartAbilityForResultAsCallerForOptionsInner(MessageParcel &data, MessageParcel &reply);
     int32_t StartUIAbilitiesInSplitWindowModeInner(MessageParcel &data, MessageParcel &reply);
     int32_t StartUIAbilitiesInner(MessageParcel &data, MessageParcel &reply);
+    int32_t RecordAppWithReasonByUserIdInner(MessageParcel &data, MessageParcel &reply);
 
     int32_t StartAbilityOnlyUIAbilityInner(MessageParcel &data, MessageParcel &reply);
 
     //insight intent related
     int32_t StartAbilityByInsightIntentInner(MessageParcel &data, MessageParcel &reply);
+    int32_t StartAbilityByOEExtInner(MessageParcel &data, MessageParcel &reply);
+    int32_t StartSelfInner(MessageParcel &data, MessageParcel &reply);
     int32_t ExecuteInsightIntentDoneInner(MessageParcel &data, MessageParcel &reply);
     int32_t GetForegroundUIAbilitiesInner(MessageParcel &data, MessageParcel &reply);
     int32_t RestartAppInner(MessageParcel &data, MessageParcel &reply);
@@ -353,6 +367,7 @@ private:
     int32_t GetInsightIntentInfoByBundleNameInner(MessageParcel &data, MessageParcel &reply);
     int32_t GetInsightIntentInfoByIntentNameInner(MessageParcel &data, MessageParcel &reply);
     int32_t StartAbilityWithWaitInner(MessageParcel &data, MessageParcel &reply);
+    int32_t StartUIAbilityWithCallbackInner(MessageParcel &data, MessageParcel &reply);
     int32_t RestartSelfAtomicServiceInner(MessageParcel &data, MessageParcel &reply);
     int32_t RegisterSAInterceptorInner(MessageParcel &data, MessageParcel &reply);
     int32_t SuspendExtensionAbilityInner(MessageParcel &data, MessageParcel &reply);
@@ -427,8 +442,15 @@ private:
     int32_t ExitKioskModeInner(MessageParcel &data, MessageParcel &reply);
     int32_t GetKioskStatusInner(MessageParcel &data, MessageParcel &reply);
     int32_t StartSelfUIAbilityInCurrentProcessInner(MessageParcel &data, MessageParcel &reply);
+    int32_t StartSelfUIAbilityInChildProcessInner(MessageParcel &data, MessageParcel &reply);
     int32_t IsRestartAppLimitInner(MessageParcel &data, MessageParcel &reply);
+    int32_t QuerySelfModularObjectExtensionInfosInner(MessageParcel &data, MessageParcel &reply);
     int32_t GetUserLockedBundleListInner(MessageParcel &data, MessageParcel &reply);
+    int32_t ExecuteInAppSkillInner(MessageParcel &data, MessageParcel &reply);
+    int32_t ExecuteInAppSkillWithTokenIdInner(MessageParcel &data, MessageParcel &reply);
+    int32_t ExecuteSkillDoneWithTokenInner(MessageParcel &data, MessageParcel &reply);
+    int32_t QuerySkillTypeInner(MessageParcel &data, MessageParcel &reply);
+    int32_t StartSelfUIAbilityByAppContextInner(MessageParcel &data, MessageParcel &reply);
 };
 }  // namespace AAFwk
 }  // namespace OHOS

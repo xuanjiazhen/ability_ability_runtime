@@ -159,7 +159,9 @@ std::shared_ptr<ExtensionCommon> JsUIExtensionBase::Init(const std::shared_ptr<A
     moduleName.append("::").append(abilityInfo_->name);
     HandleScope handleScope(jsRuntime_);
 
-    jsObj_ = jsRuntime_.LoadModule(
+    std::string key = moduleName + "::" + srcPath;
+    std::unique_ptr<NativeReference> moduleObj = nullptr;
+    jsObj_ = jsRuntime_.PopPreloadObj(key, moduleObj) ? std::move(moduleObj) : jsRuntime_.LoadModule(
         moduleName, srcPath, abilityInfo_->hapPath, abilityInfo_->compileMode == CompileMode::ES_MODULE, false,
         abilityInfo_->srcEntrance);
     if (jsObj_ == nullptr) {
@@ -784,6 +786,10 @@ sptr<Rosen::WindowOption> JsUIExtensionBase::CreateWindowOption(const sptr<AAFwk
         uint64_t temp = (static_cast<uint64_t>(high) << 32) | low;
         launchTimestamp = static_cast<int64_t>(temp);
     }
+    if (context_->GetAbilityInfo()->extensionAbilityType ==
+        AppExecFwk::ExtensionAbilityType::AGENT_UI) {
+        option->SetIsBlockSubwindow(true);
+    }
     option->SetStartModalExtensionTimeStamp(launchTimestamp);
     return option;
 }
@@ -816,7 +822,13 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
         {
             HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::Create");
             option->SetDisplayId(sessionInfo->displayId);
-            uiWindow = Rosen::Window::Create(option, context_, sessionInfo->sessionToken);
+            uiWindow = Rosen::Window::Create(option,
+                context_,
+                sessionInfo->sessionToken,
+                Rosen::DefaultCreateErrCode,
+                "",
+                false,
+                sessionInfo->renderSession);
         }
         if (uiWindow == nullptr) {
             TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow");

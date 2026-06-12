@@ -19,6 +19,7 @@
 #include "fault_data.h"
 #include "message_parcel.h"
 #include "mock_app_scheduler.h"
+#include "mem_dump_callback_interface.h"
 #undef private
 
 using namespace testing;
@@ -194,5 +195,90 @@ HWTEST_F(AppSchedulerHostTest, HandleScheduleDumpArkWeb_001, TestSize.Level1)
             static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_DUMP_ARKWEB), data, reply, option);
     EXPECT_EQ(result, NO_ERROR);
 }
+
+/**
+ * @tc.name: HandleScheduleLaunchAbility_ShouldReturnNoErrWhenNoUpdateInfo
+ * @tc.desc: Verify that HandleScheduleLaunchAbility interface calls normally
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppSchedulerHostTest, HandleScheduleLaunchAbility_ShouldReturnNoErrWhenNoUpdateInfo, TestSize.Level1)
+{
+    EXPECT_NE(mockAppScheduler_, nullptr);
+    EXPECT_CALL(*mockAppScheduler_, ScheduleLaunchAbility(_, _, _, _, _)).Times(1);
+    MessageParcel data;
+    MessageParcel reply;
+    AbilityInfo abilityInfo;
+    data.WriteParcelable(&abilityInfo);
+    data.WriteBool(false);
+    auto want = std::make_shared<AAFwk::Want>();
+    data.WriteParcelable(want.get());
+    int32_t abilityRecordId = 0;
+    data.WriteInt32(abilityRecordId);
+    data.WriteBool(false);
+    EXPECT_EQ(mockAppScheduler_->HandleScheduleLaunchAbility(data, reply), NO_ERROR);
+}
+
+/**
+ * @tc.name: HandleScheduleLaunchAbility_ShouldReturnNoErrWhenHaveUpdateInfo
+ * @tc.desc: Verify that HandleScheduleLaunchAbility interface calls normally
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppSchedulerHostTest, HandleScheduleLaunchAbility_ShouldReturnNoErrWhenHaveUpdateInfo, TestSize.Level1)
+{
+    EXPECT_NE(mockAppScheduler_, nullptr);
+    EXPECT_CALL(*mockAppScheduler_, ScheduleLaunchAbility(_, _, _, _, _)).Times(1);
+    MessageParcel data;
+    MessageParcel reply;
+    AbilityInfo abilityInfo;
+    data.WriteParcelable(&abilityInfo);
+    data.WriteBool(false);
+    auto want = std::make_shared<AAFwk::Want>();
+    data.WriteParcelable(want.get());
+    int32_t abilityRecordId = 0;
+    data.WriteInt32(abilityRecordId);
+    auto updateInfo = std::make_shared<AppUpdateInfo>();
+    data.WriteBool(true);
+    data.WriteParcelable(updateInfo.get());
+    EXPECT_EQ(mockAppScheduler_->HandleScheduleLaunchAbility(data, reply), NO_ERROR);
+}
+
+/**
+ * @tc.name: HandleScheduleMem_001
+ * @tc.desc: Handle schedule mem with valid info and no callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppSchedulerHostTest, HandleScheduleMem_001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    WriteInterfaceToken(data);
+    MemDumpInfo info;
+    info.pid = 1;
+    data.WriteParcelable(&info);
+    data.WriteBool(false);
+    EXPECT_CALL(*mockAppScheduler_, ScheduleMem(_, _)).Times(1);
+    auto result = mockAppScheduler_->OnRemoteRequest(
+        static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_MEM_APPLICATION_TRANSACTION), data, reply, option);
+    EXPECT_EQ(result, NO_ERROR);
+}
+
+/**
+ * @tc.name: HandleScheduleMem_002
+ * @tc.desc: Handle schedule mem with null info returns error.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppSchedulerHostTest, HandleScheduleMem_002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    WriteInterfaceToken(data);
+    EXPECT_CALL(*mockAppScheduler_, ScheduleMem(_, _)).Times(0);
+    auto result = mockAppScheduler_->OnRemoteRequest(
+        static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_MEM_APPLICATION_TRANSACTION), data, reply, option);
+    EXPECT_EQ(result, ERR_APPEXECFWK_PARCEL_ERROR);
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS

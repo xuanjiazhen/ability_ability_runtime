@@ -23,12 +23,14 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "cpp/mutex.h"
 #include "cpp/condition_variable.h"
 #include "fault_data.h"
 #include "freeze_util.h"
+#include "appfreeze_event_report.h"
 
 namespace OHOS {
 using AbilityRuntime::FreezeUtil;
@@ -46,6 +48,7 @@ class AppfreezeManager : public std::enable_shared_from_this<AppfreezeManager> {
 public:
     struct AppInfo {
         bool isOccurException = false;
+        bool isFrozen = false;
         int pid;
         int uid;
         std::string bundleName;
@@ -127,6 +130,11 @@ public:
     AppfreezeManager::ProcessKillInfo GetProcessKillReason(int32_t killId, int32_t pid, const std::string& killMsg);
     void GetExitKernelReason(int32_t pid, ProcessKillInfo& killInfo);
     int GetFreezeExitReason(const std::string& eventName);
+    void UpdateFreezeExcludedPid(bool isAdd, int32_t targetPid, int32_t profilerPid);
+    bool IsFreezeExcludedPid(int32_t targetPid);
+    bool CheckPreloadUIExtension(const std::string& message, const std::string& bundleName, int32_t pid,
+        const std::string& eventName);
+    bool CheckProcessExit(const std::string& eventName, bool foreground);
 
 private:
     struct PeerBinderInfo {
@@ -156,6 +164,12 @@ private:
         bool isRepeatKilledThread = false;
     };
 
+    struct FreezeExcludedPidInfo {
+        int32_t targetPid = 0;
+        int32_t profilerPid = 0;
+        int64_t timestamp = 0;
+    };
+
     AppfreezeManager& operator=(const AppfreezeManager&) = delete;
     AppfreezeManager(const AppfreezeManager&) = delete;
     std::map<int, std::list<AppfreezeManager::PeerBinderInfo>> BinderParser(std::ifstream& fin, std::string& stack,
@@ -171,11 +185,11 @@ private:
     std::set<int> GetBinderPeerPids(std::string& stack, AppfreezeManager::ParseBinderParam params,
         std::set<int>& asyncPids, AppfreezeManager::TerminalBinder& terminalBinder) const;
     void FindStackByPid(std::string& msg, int pid) const;
-    std::pair<std::string, std::string> CatchJsonStacktrace(
-        int pid, const std::string& faultType, const std::string& stack) const;
-    std::string CatcherStacktrace(int pid, const std::string& stack) const;
+    std::pair<std::string, std::string> CatchJsonStacktrace(int pid, const std::string& faultType) const;
+    std::string CatcherStacktrace(int pid) const;
     FaultData GetFaultNotifyData(const FaultData& faultData, int pid);
     int AcquireStack(const FaultData& faultData, const AppInfo& appInfo, const std::string& memoryContent);
+    bool IsAncoProc(int pid);
     std::string GetAppfreezeInfoPath(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo);
     int NotifyANR(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo,
         const std::string& binderInfo, const std::string& memoryContent);
@@ -194,11 +208,22 @@ private:
     std::string GetCatcherStack(const std::string& fileName, const std::string& catcherStack);
     bool IsNeedIgnoreFreezeEvent(const std::string& key, const std::string& eventName,
         int maxReportTimes = DEFAULT_APPFREEZE_REPORT_TIMES);
+    bool IsNeedIgnoreInputBlockEvent(const std::string& key);
+    int ClearOldInputBlockFreezeInfo(size_t maxSize, int64_t maxTimelimit);
     int64_t GetFreezeCurrentTime();
     void SetFreezeState(const std::string& key, int state, const std::string& eventName);
     int GetReportTimes(const std::string& key);
     int64_t GetLastOccurTime(const std::string& key);
     bool ClearOldInfo(std::map<std::string, AppFreezeInfo>& infoMap, size_t maxSize, int64_t maxTimelimit);
+    bool IsHalfTimeout(const std::string& faultType) const;
+    void CleanOldFreezeExcludedPids();
+    bool IsNativeDaemonProcess(int32_t profilerPid) const;
+    AppfreezeEventInfo UpdateEventInfo(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo,
+        const std::string& binderInfo, const std::string& memoryContent);
+
+    static constexpr size_t FREEZE_EXCLUDED_PID_MAX_SIZE = 100;
+    static constexpr size_t FREEZE_EXCLUDED_PID_CLEAN_COUNT = 30;
+    static constexpr const char* const NATIVE_DAEMON_PROCESS_NAME = "native_daemon";
 
     static const inline std::string LOGGER_DEBUG_PROC_PATH = "/proc/transaction_proc";
     std::string name_;
@@ -206,6 +231,7 @@ private:
     static std::shared_ptr<AppfreezeManager> instance_;
     static ffrt::mutex freezeMutex_;
     std::map<std::string, AppFreezeInfo> appfreezeInfo_;
+    std::map<std::string, int64_t> appInputBlockFreezeInfo_;
     static ffrt::mutex catchStackMutex_;
     static std::map<int, std::string> catchStackMap_;
     static ffrt::mutex freezeFilterMutex_;
@@ -217,6 +243,8 @@ private:
     std::map<int32_t, std::map<std::string, AppfreezeEventRecord>> freezeEventMap_;
     std::mutex freezeKillThreadMutex_;
     std::map<std::string, AppFreezeInfo> freezeKillThreadMap_;
+    mutable ffrt::mutex freezeExcludedPidMutex_;
+    std::unordered_map<int32_t, FreezeExcludedPidInfo> freezeExcludedPidMap_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

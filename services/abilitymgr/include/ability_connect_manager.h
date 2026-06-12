@@ -26,12 +26,15 @@
 
 #include "ability_cache_manager.h"
 #include "ability_connect_callback_interface.h"
+#include "caller_info.h"
 #include "task_handler_wrap.h"
 #include "event_handler_wrap.h"
 #include "base_extension_record.h"
 #include "event_report.h"
 #include "extension_config.h"
 #include "extension_running_info.h"
+#include "modular_object_extension_info.h"
+#include "modular_object_manager.h"
 #include "connection_record.h"
 #include "element_name.h"
 #include "res_sched_util.h"
@@ -98,10 +101,12 @@ public:
      * @param connect, Callback used to notify caller the result of connecting or disconnecting.
      * @param callerToken, caller ability token.
      * @param sessionInfo the extension session info of the ability to connect.
+     * @param indirectCallerInfo, Indirect caller information.
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t ConnectAbilityLocked(const AbilityRequest &abilityRequest, const sptr<IAbilityConnection> &connect,
-        const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo = nullptr);
+        const sptr<IRemoteObject> &callerToken, sptr<SessionInfo> sessionInfo = nullptr,
+        std::shared_ptr<IndirectCallerInfo> indirectCallerInfo = nullptr);
 
     /**
      * DisconnectAbilityLocked, disconnect session with callback.
@@ -386,6 +391,7 @@ protected:
     * @param serviceKey The service key to remove.
     */
     void RemoveServiceFromMapSafe(const std::string &serviceKey);
+    void NotifyExtensionTerminated(const std::shared_ptr<BaseExtensionRecord> &record);
 
     /**
     * Load ability with optional callback.
@@ -718,6 +724,8 @@ private:
     */
     void GetOrCreateServiceRecord(const AbilityRequest &abilityRequest, const bool isCreatedByConnect,
         std::shared_ptr<BaseExtensionRecord> &targetAbilityRecord, bool &isLoadedAbility);
+    int32_t HandleExtensionSetup(const AbilityRequest &abilityRequest,
+        std::shared_ptr<BaseExtensionRecord> &targetService, const std::string &serviceKey);
     void SetServiceAfterNewCreate(const AbilityRequest &abilityRequest, BaseExtensionRecord &targetService);
 
     /**
@@ -816,6 +824,7 @@ private:
     void ProcessEliminateAbilityRecord(std::shared_ptr<BaseExtensionRecord> eliminateRecord);
     static std::string GetServiceKey(const std::shared_ptr<BaseExtensionRecord> &service);
     static std::string GetServiceKey(const AbilityRequest &abilityRequest);
+    int32_t CheckModularObjectLimits(const AbilityRequest &abilityRequest);
 
     void SetExtensionLoadParam(AbilityRuntime::LoadParam &loadParam,
         std::shared_ptr<BaseExtensionRecord> abilityRecord);

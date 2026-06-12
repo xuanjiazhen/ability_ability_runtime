@@ -134,13 +134,15 @@ void AppScheduler::MoveToForeground(const sptr<IRemoteObject> &token)
         appMgrClient_->UpdateAbilityState(token, AppExecFwk::AbilityState::ABILITY_STATE_FOREGROUND));
 }
 
-void AppScheduler::MoveToBackground(const sptr<IRemoteObject> &token)
+void AppScheduler::MoveToBackground(const sptr<IRemoteObject> &token, bool isFromScreenOffBackground)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "Move the app to background.");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Move the app to background, isFromScreenOffBackground:%{public}d",
+        isFromScreenOffBackground);
     CHECK_POINTER(appMgrClient_);
     IN_PROCESS_CALL_WITHOUT_RET(
-        appMgrClient_->UpdateAbilityState(token, AppExecFwk::AbilityState::ABILITY_STATE_BACKGROUND));
+        appMgrClient_->UpdateAbilityState(token, AppExecFwk::AbilityState::ABILITY_STATE_BACKGROUND,
+            isFromScreenOffBackground));
 }
 
 void AppScheduler::UpdateAbilityState(const sptr<IRemoteObject> &token, const AppExecFwk::AbilityState state)
@@ -166,6 +168,13 @@ void AppScheduler::KillProcessByAbilityToken(const sptr<IRemoteObject> &token)
     TAG_LOGI(AAFwkTag::ABILITYMGR, "kill process");
     CHECK_POINTER(appMgrClient_);
     appMgrClient_->KillProcessByAbilityToken(token);
+}
+
+int32_t AppScheduler::SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bool isGameSAPrelaunch)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetGameSAPrelaunch, isGameSAPrelaunch: %{public}d", isGameSAPrelaunch);
+    CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
+    return appMgrClient_->SetGameSAPrelaunch(token, isGameSAPrelaunch);
 }
 
 void AppScheduler::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg,
@@ -263,6 +272,13 @@ void AppScheduler::OnStartProcessFailed(const std::vector<sptr<IRemoteObject>> &
     callback->OnStartProcessFailed(abilityTokens);
 }
 
+void AppScheduler::NotifyTerminateAbility(const sptr<IRemoteObject> &token)
+{
+    auto callback = callback_.lock();
+    CHECK_POINTER(callback);
+    callback->NotifyTerminateAbility(token);
+}
+
 void AppScheduler::OnCacheExitInfo(uint32_t accessTokenId, const AppExecFwk::RunningProcessInfo &exitInfo,
     const std::string &bundleName, const std::vector<std::string> &abilityNames,
     const std::vector<std::string> &uiExtensionNames)
@@ -317,7 +333,6 @@ int AppScheduler::ForceKillApplication(const std::string &bundleName,
 int AppScheduler::KillApplicationWithUserId(const std::string &bundleName,
     const int userId, const int appIndex)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
     CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
     int ret = (int)appMgrClient_->KillApplicationWithUserId(bundleName, userId, appIndex);
     if (ret != ERR_OK) {
@@ -435,10 +450,11 @@ void AppScheduler::StartupResidentProcess(const std::vector<AppExecFwk::BundleIn
 }
 
 void AppScheduler::StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
-    int32_t requestId, const std::string &customProcess)
+    int32_t requestId, const std::string &customProcess, bool isWindowStagePreload)
 {
     CHECK_POINTER(appMgrClient_);
-    IN_PROCESS_CALL_WITHOUT_RET(appMgrClient_->StartSpecifiedAbility(want, abilityInfo, requestId, customProcess));
+    IN_PROCESS_CALL_WITHOUT_RET(appMgrClient_->StartSpecifiedAbility(want, abilityInfo, requestId,
+        customProcess, isWindowStagePreload));
 }
 
 void StartSpecifiedAbilityResponse::OnAcceptWantResponse(
@@ -492,6 +508,13 @@ int AppScheduler::GetProcessRunningInfosByUserId(std::vector<AppExecFwk::Running
 {
     CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
     return static_cast<int>(appMgrClient_->GetProcessRunningInfosByUserId(info, userId));
+}
+
+int AppScheduler::GetProcessRunningInfosByAccessTokenId(uint32_t accessTokenId,
+    std::vector<AppExecFwk::RunningProcessInfo> &info)
+{
+    CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
+    return static_cast<int>(appMgrClient_->GetProcessRunningInfosByAccessTokenId(accessTokenId, info));
 }
 
 std::string AppScheduler::ConvertAppState(const AppState &state)

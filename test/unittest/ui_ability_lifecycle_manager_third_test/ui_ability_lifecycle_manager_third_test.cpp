@@ -169,6 +169,15 @@ public:
         return true;
     }
 
+    bool AddRefreshRecipient(const sptr<RefreshRecipient> &recipient) override
+    {
+        return true;
+    }
+    bool RemoveRefreshRecipient(const sptr<RefreshRecipient> &recipient) override
+    {
+        return true;
+    }
+
     bool Marshalling(Parcel &parcel) const override
     {
         return true;
@@ -1694,6 +1703,73 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, HandleAbilityRecordReused_005, Test
 }
 
 /**
+ * @tc.name: HandleAbilityRecordReused_006
+ * @tc.desc: HandleAbilityRecordReused with GameSAPrelaunch flag but SetGameSAPrelaunch fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, HandleAbilityRecordReused_006, TestSize.Level2)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    AbilityRequest abilityRequest;
+    SessionInfo sessionInfo;
+    auto session = sptr<Rosen::Session>::MakeSptr(Rosen::SessionInfo());
+    sessionInfo.sessionToken = session->AsObject();
+    sessionInfo.persistentId = 1;
+    sessionInfo.reuseDelegatorWindow = false;
+
+    abilityRequest.appInfo.bundleName = "com.example.unittest";
+    abilityRequest.abilityInfo.name = "MainAbility";
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    abilityRecord->SetGameSAPreLaunch(true);
+
+    auto originAppMgr = AppMgrUtil::appMgr_;
+    auto appmgr = sptr<AppExecFwk::MockAppMgrService>::MakeSptr();
+    // SetGameSAPrelaunch will fail before reaching LaunchAbility, so LaunchAbility won't be called
+    EXPECT_CALL(*appmgr, LaunchAbility).Times(0);
+    AppMgrUtil::appMgr_ = appmgr;
+
+    auto result = mgr->HandleAbilityRecordReused(abilityRecord, sessionInfo, abilityRequest);
+
+    EXPECT_EQ(result, nullptr);
+
+    AppMgrUtil::appMgr_ = originAppMgr;
+}
+
+/**
+ * @tc.name: HandleAbilityRecordReused_007
+ * @tc.desc: HandleAbilityRecordReused without GameSAPrelaunch flag
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, HandleAbilityRecordReused_007, TestSize.Level2)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    AbilityRequest abilityRequest;
+    SessionInfo sessionInfo;
+    auto session = sptr<Rosen::Session>::MakeSptr(Rosen::SessionInfo());
+    sessionInfo.sessionToken = session->AsObject();
+    sessionInfo.persistentId = 1;
+    sessionInfo.reuseDelegatorWindow = false;
+
+    abilityRequest.appInfo.bundleName = "com.example.unittest";
+    abilityRequest.abilityInfo.name = "MainAbility";
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    abilityRecord->SetGameSAPreLaunch(false);
+
+    auto originAppMgr = AppMgrUtil::appMgr_;
+    auto appmgr = sptr<AppExecFwk::MockAppMgrService>::MakeSptr();
+    // reuseDelegatorWindow = false, so LaunchAbility will not be called
+    EXPECT_CALL(*appmgr, LaunchAbility).Times(0);
+    AppMgrUtil::appMgr_ = appmgr;
+
+    auto result = mgr->HandleAbilityRecordReused(abilityRecord, sessionInfo, abilityRequest);
+
+    EXPECT_EQ(result, nullptr);
+    EXPECT_FALSE(abilityRecord->IsGameSAPreLaunch());
+
+    AppMgrUtil::appMgr_ = originAppMgr;
+}
+
+/**
  * @tc.name: SetProcessPrepareExit_001
  * @tc.desc: SetProcessPrepareExit
  * @tc.type: FUNC
@@ -1763,6 +1839,125 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, SyncLoadExitReasonTask_001, TestSiz
     mgr->SyncLoadExitReasonTask(0);
 
     EXPECT_TRUE(mgr->exitReasonTasks_.empty());
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_HandleStartSelfTimeout_0100
+ * @tc.desc: HandleStartSelfTimeout with null abilityRecord
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, HandleStartSelfTimeout_001, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
+    MyFlag::ffrtSubmitFlag_ = 0;
+    uiAbilityLifecycleManager->HandleStartSelfTimeout(nullptr, false);
+    EXPECT_EQ(MyFlag::ffrtSubmitFlag_, 0);
+    uiAbilityLifecycleManager.reset();
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_HandleStartSelfTimeout_0200
+ * @tc.desc: HandleStartSelfTimeout with native state not CREATED
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, HandleStartSelfTimeout_002, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
+    abilityRecord->SetNativeState(AbilityNativeState::ATTACHED);
+    MyFlag::ffrtSubmitFlag_ = 0;
+    uiAbilityLifecycleManager->HandleStartSelfTimeout(abilityRecord, false);
+    EXPECT_EQ(MyFlag::ffrtSubmitFlag_, 0);
+    uiAbilityLifecycleManager.reset();
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_HandleStartSelfTimeout_0300
+ * @tc.desc: HandleStartSelfTimeout with isHalf=true, should not call ffrt::submit
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, HandleStartSelfTimeout_003, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
+    abilityRecord->SetNativeState(AbilityNativeState::CREATED);
+    MyFlag::ffrtSubmitFlag_ = 0;
+    uiAbilityLifecycleManager->HandleStartSelfTimeout(abilityRecord, true);
+    EXPECT_LE(MyFlag::ffrtSubmitFlag_, 1);
+    uiAbilityLifecycleManager.reset();
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_HandleStartSelfTimeout_0400
+ * @tc.desc: HandleStartSelfTimeout with isHalf=false and native state CREATED, should call ffrt::submit for kill
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, HandleStartSelfTimeout_004, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
+    abilityRecord->SetNativeState(AbilityNativeState::CREATED);
+    MyFlag::ffrtSubmitFlag_ = 0;
+    uiAbilityLifecycleManager->HandleStartSelfTimeout(abilityRecord, false);
+    EXPECT_GE(MyFlag::ffrtSubmitFlag_, 1);
+    uiAbilityLifecycleManager.reset();
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_PostStartSelfTimeoutEvent_0100
+ * @tc.desc: PostStartSelfTimeoutEvent should call ffrt::submit twice for half and full timeout
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, PostStartSelfTimeoutEvent_001, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
+    UIAbilityRecordPtr abilityRecord = InitAbilityRecord();
+    abilityRecord->SetNativeState(AbilityNativeState::NORMAL);
+    MyFlag::ffrtSubmitFlag_ = 0;
+    uiAbilityLifecycleManager->PostStartSelfTimeoutEvent(abilityRecord);
+    EXPECT_GE(MyFlag::ffrtSubmitFlag_, 2);
+    uiAbilityLifecycleManager.reset();
+}
+/**
+ * @tc.name: UIAbilityLifecycleManager_SubmitSpecifiedFailTask_001
+ * @tc.desc: SubmitSpecifiedFailTask with isDelay=false, should submit task immediately
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, SubmitSpecifiedFailTask_001, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    int32_t requestId = 1;
+    AbilityRequest abilityRequest;
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
+        abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
+    mgr->hookSpecifiedMap_ = { { requestId, abilityRecord } };
+
+    MyFlag::ffrtSubmitFlag_ = 0;
+    mgr->SubmitSpecifiedFailTask(requestId, false);
+    EXPECT_GE(MyFlag::ffrtSubmitFlag_, 1);
+    usleep(TIMEOUT_VALUE);
+    EXPECT_EQ(mgr->hookSpecifiedMap_.size(), 0);
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_SubmitSpecifiedFailTask_002
+ * @tc.desc: SubmitSpecifiedFailTask with isDelay=true, should submit delayed task
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, SubmitSpecifiedFailTask_002, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    int32_t requestId = 2;
+    AbilityRequest abilityRequest;
+    auto abilityRecord = std::make_shared<UIAbilityRecord>(
+        abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
+    mgr->hookSpecifiedMap_ = { { requestId, abilityRecord } };
+
+    MyFlag::ffrtSubmitFlag_ = 0;
+    mgr->SubmitSpecifiedFailTask(requestId, true);
+    EXPECT_GE(MyFlag::ffrtSubmitFlag_, 1);
+    usleep(TIMEOUT_VALUE);
+    EXPECT_EQ(mgr->hookSpecifiedMap_.size(), 0);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

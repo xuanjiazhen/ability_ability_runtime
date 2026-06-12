@@ -33,6 +33,7 @@ constexpr const char* PERMISSION_UPDATE_APP_CONFIGURATION = "ohos.permission.UPD
 constexpr const char* PERMISSION_INSTALL_BUNDLE = "ohos.permission.INSTALL_BUNDLE";
 constexpr const char* PERMISSION_LISTEN_BUNDLE_CHANGE = "ohos.permission.LISTEN_BUNDLE_CHANGE";
 constexpr const char* PERMISSION_GET_BUNDLE_INFO_PRIVILEGED = "ohos.permission.GET_BUNDLE_INFO_PRIVILEGED";
+constexpr const char* PERMISSION_SUPPORT_CROSS_APP_EMBED_FOR_OA = "ohos.permission.SUPPORT_CROSS_APP_EMBED_FOR_OA";
 constexpr const char* PERMISSION_START_INVISIBLE_ABILITY = "ohos.permission.START_INVISIBLE_ABILITY";
 constexpr const char* PERMISSION_START_ABILITIES_FROM_BACKGROUND = "ohos.permission.START_ABILITIES_FROM_BACKGROUND";
 constexpr const char* PERMISSION_START_ABILIIES_FROM_BACKGROUND = "ohos.permission.START_ABILIIES_FROM_BACKGROUND";
@@ -85,6 +86,10 @@ constexpr const char* PERMISSION_TRIGGER_LOCAL_WANTAGENT = "ohos.permission.TRIG
 constexpr const char* PERMISSION_GET_EDM_CONFIG = "ohos.permission.GET_EDM_CONFIG";
 constexpr const char* PERMISSION_ALL_DEBUG = "ohos.permission.kernel.ALLOW_DEBUG";
 constexpr const char* PERMISSION_GET_AGENT_CARD = "ohos.permission.GET_AGENT_CARD";
+constexpr const char* PERMISSION_MODIFY_AGENT_CARD = "ohos.permission.MODIFY_AGENT_CARD";
+constexpr const char* PERMISSION_START_ABILITY_TO_PAGE = "ohos.permission.START_ABILITY_TO_PAGE";
+constexpr const char* PERMISSION_CONTINUATION_NOTIFY = "ohos.permission.CONTINUATION_NOTIFY";
+constexpr const char* PERMISSION_EXECUTE_DISTRIBUTED_INTENT = "ohos.permission.EXECUTE_DISTRIBUTED_INTENT";
 } // namespace PermissionConstants
 } // namespace AAFwk
 } // namespace OHOS

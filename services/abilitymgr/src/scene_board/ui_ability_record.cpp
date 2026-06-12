@@ -16,6 +16,9 @@
 #include "ui_ability_record.h"
 
 #include "ability_util.h"
+#include "global_constant.h"
+#include "hilog_tag_wrapper.h"
+#include "native_ability_util.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -28,6 +31,21 @@ std::shared_ptr<UIAbilityRecord> UIAbilityRecord::CreateAbilityRecord(const Abil
     auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->Init(abilityRequest);
+    abilityRecord->SetByOeExt(abilityRequest.isStartByOEExt);
+    NativeAbilityMetaData metaData;
+    NativeAbilityMetaData::InitData(abilityRecord->abilityInfo_, metaData);
+    if (metaData.withNativeModule) {
+        if (metaData.startupPhase == AAFwk::StartupPhase::PRE_WINDOW ||
+            metaData.startupPhase == AAFwk::StartupPhase::PRE_FOREGROUND) {
+            abilityRecord->abilityNativeState_ = AbilityNativeState::INIT;
+        } else {
+            abilityRecord->abilityNativeState_ = AbilityNativeState::NORMAL;
+        }
+    }
+    if (abilityRecord->want_.GetBoolParam(AbilityRuntime::GlobalConstant::GAME_PRELAUNCH, false)) {
+        TAG_LOGI(AAFwkTag::UIABILITY, "abilityRecord: Set game prelaunch flag from want");
+        abilityRecord->SetGameSAPreLaunch(true);
+    }
     return abilityRecord;
 }
 
@@ -41,6 +59,36 @@ void UIAbilityRecord::ScheduleCollaborate(const Want &want)
     std::lock_guard guard(collaborateWantLock_);
     CHECK_POINTER(lifecycleDeal_);
     lifecycleDeal_->ScheduleCollaborate(want);
+}
+
+void UIAbilityRecord::AttachNative()
+{
+    if (GetNativeState() == AbilityNativeState::INIT) {
+        SetNativeState(AbilityNativeState::ATTACHED);
+    }
+}
+
+bool UIAbilityRecord::UpdateWantByLastWant()
+{
+    if (!ShouldUpdateWant()) {
+        return false;
+    }
+    SetShouldUpdateWant(false);
+    std::shared_ptr<Want> lastWant;
+    {
+        std::lock_guard lock(wantLock_);
+        if (lastWant_ == nullptr) {
+            return false;
+        }
+        lastWant = lastWant_;
+        lastWant_ = nullptr;
+    }
+    SetWant(*lastWant);
+#ifdef SUPPORT_UPMS
+    GrantUriPermission();
+#endif // SUPPORT_UPMS
+    SetIsNewWant(true);
+    return true;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

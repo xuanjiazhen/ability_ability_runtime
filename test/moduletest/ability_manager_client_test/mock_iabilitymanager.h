@@ -212,6 +212,10 @@ public:
     {
         return 0;
     }
+    int GetPendingRequestWantFromProxy(const sptr<IWantSender> &target, std::shared_ptr<Want> &want) override
+    {
+        return 0;
+    }
     int GetWantSenderInfo(const sptr<IWantSender> &target, std::shared_ptr<WantSenderInfo> &info) override
     {
         return 0;
@@ -285,7 +289,7 @@ public:
     }
     int StartAbilityByCall(const Want &want, const sptr<IAbilityConnection> &connect,
         const sptr<IRemoteObject> &callerToken, int32_t accountId = DEFAULT_INVAL_VALUE, bool isSilent = false,
-        bool promotePriority = false, bool isVisible = false) override
+        bool promotePriority = false, bool isVisible = false, uint64_t specifiedFullTokenId = 0) override
     {
         return 0;
     }

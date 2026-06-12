@@ -89,6 +89,8 @@ public:
     MOCK_METHOD2(RegisterCancelListener, void(const sptr<IWantSender>& sender, const sptr<IWantReceiver>& receiver));
     MOCK_METHOD2(UnregisterCancelListener, void(const sptr<IWantSender>& sender, const sptr<IWantReceiver>& receiver));
     MOCK_METHOD2(GetPendingRequestWant, int(const sptr<IWantSender>& target, std::shared_ptr<Want>& want));
+    MOCK_METHOD2(GetPendingRequestWantFromProxy, int(const sptr<IWantSender>& target, std::shared_ptr<Want>& want));
+
     MOCK_METHOD1(LockMission, int(int));
     MOCK_METHOD1(UnlockMission, int(int));
     MOCK_METHOD0(GetMissionLockModeState, int());
@@ -136,8 +138,8 @@ public:
     int UnRegisterMissionListener(const std::string& deviceId,
         const sptr<IRemoteMissionListener>& listener) override;
     int StartAbilityByCall(const Want& want, const sptr<IAbilityConnection>& connect,
-        const sptr<IRemoteObject>& callerToken, int32_t accountId = DEFAULT_INVAL_VALUE,
-        bool isSilent = false, bool promotePriority = false, bool isVisible = false) override;
+        const sptr<IRemoteObject>& callerToken, int32_t accountId = DEFAULT_INVAL_VALUE, bool isSilent = false,
+        bool promotePriority = false, bool isVisible = false, uint64_t specifiedFullTokenId = 0) override;
     int StartAbilityForPrelaunch(const Want &want, const int32_t frameNum) override;
     void CallRequestDone(const sptr<IRemoteObject>& token, const sptr<IRemoteObject>& callStub) override;
     int ReleaseCall(const sptr<IAbilityConnection>& connect,
@@ -273,6 +275,8 @@ public:
     MOCK_METHOD2(RegisterCancelListener, void(const sptr<IWantSender>& sender, const sptr<IWantReceiver>& receiver));
     MOCK_METHOD2(UnregisterCancelListener, void(const sptr<IWantSender>& sender, const sptr<IWantReceiver>& receiver));
     MOCK_METHOD2(GetPendingRequestWant, int(const sptr<IWantSender>& target, std::shared_ptr<Want>& want));
+    MOCK_METHOD2(GetPendingRequestWantFromProxy, int(const sptr<IWantSender>& target, std::shared_ptr<Want>& want));
+
     MOCK_METHOD1(LockMission, int(int));
     MOCK_METHOD1(UnlockMission, int(int));
     MOCK_METHOD0(GetMissionLockModeState, int());
@@ -320,8 +324,8 @@ public:
     int UnRegisterMissionListener(const std::string& deviceId,
         const sptr<IRemoteMissionListener>& listener) override;
     int StartAbilityByCall(const Want& want, const sptr<IAbilityConnection>& connect,
-        const sptr<IRemoteObject>& callerToken, int32_t accountId = DEFAULT_INVAL_VALUE,
-        bool isSilent = false, bool promotePriority = false, bool isVisible = false) override;
+        const sptr<IRemoteObject>& callerToken, int32_t accountId = DEFAULT_INVAL_VALUE, bool isSilent = false,
+        bool promotePriority = false, bool isVisible = false, uint64_t specifiedFullTokenId = 0) override;
     int StartAbilityForPrelaunch(const Want &want, const int32_t frameNum) override;
     void CallRequestDone(const sptr<IRemoteObject>& token, const sptr<IRemoteObject>& callStub) override;
     virtual int32_t GetForegroundUIAbilities(std::vector<AppExecFwk::AbilityStateData> &list)

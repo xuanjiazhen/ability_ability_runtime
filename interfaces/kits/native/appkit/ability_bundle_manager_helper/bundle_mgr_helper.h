@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -83,6 +83,8 @@ public:
     bool UnregisterBundleEventCallback(const sptr<IBundleEventCallback> &bundleEventCallback);
     bool QueryExtensionAbilityInfoByUri(
         const std::string &uri, int32_t userId, ExtensionAbilityInfo &extensionAbilityInfo);
+    bool QueryExtensionAbilityInfoByUriOptimal(
+        const std::string &uri, int32_t userId, ExtensionAbilityInfo &extensionAbilityInfo);
     bool ImplicitQueryInfoByPriority(const Want &want, int32_t flags, int32_t userId,
         AbilityInfo &abilityInfo, ExtensionAbilityInfo &extensionInfo);
     bool QueryAbilityInfoByUri(const std::string &abilityUri, int32_t userId, AbilityInfo &abilityInfo);
@@ -133,6 +135,22 @@ public:
         ModuleTestRunner &testRunner);
     ErrCode GetPluginExtensionInfo(const std::string &hostBundleName, const Want &want,
         int32_t userId, ExtensionAbilityInfo &pluginExtensionInfo);
+    /**
+     * @brief Sets whether the bundle is first launch.
+     * @param bundleName Indicates the bundle name.
+     * @param userId Indicates the user id.
+     * @param appIndex Indicates the app index, 0 for normal app, > 0 for clone app.
+     * @param isBundleFirstLaunched Specifies whether the bundle is first launch.
+     * @return Returns ERR_OK if successful; returns error code otherwise.
+     */
+    ErrCode SetBundleFirstLaunch(const std::string &bundleName, int32_t userId, int32_t appIndex,
+        bool isBundleFirstLaunched);
+
+    ErrCode QueryAbilityInfos(const Want &want, int32_t userId, std::vector<AbilityInfo> &abilityInfos);
+    bool QueryEnabledAbilityInfo(const Want &want, int32_t userId, AbilityInfo &abilityInfo);
+    ErrCode QueryExtensionAbilityInfosV9(const Want &want, int32_t userId,
+        std::vector<ExtensionAbilityInfo> &extensionInfos);
+    bool QueryEnabledExtensionAbilityInfo(const Want &want, int32_t userId, ExtensionAbilityInfo &extensionInfo);
 
 private:
     sptr<IBundleMgr> Connect();

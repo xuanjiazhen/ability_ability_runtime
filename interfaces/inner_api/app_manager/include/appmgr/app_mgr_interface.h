@@ -21,6 +21,7 @@
 #include "ams_mgr_interface.h"
 #include "app_foreground_state_observer_interface.h"
 #include "app_malloc_info.h"
+#include "app_mem_dump_info.h"
 #include "app_mgr_ipc_interface_code.h"
 #include "app_record_id.h"
 #include "application_info.h"
@@ -37,10 +38,13 @@
 #include "iapp_state_callback.h"
 #include "iapplication_state_observer.h"
 #include "iconfiguration_observer.h"
+#include "image_error_handler_interface.h"
+#include "image_process_state_observer_interface.h"
 #include "iquick_fix_callback.h"
 #include "iremote_broker.h"
 #include "iremote_object.h"
 #include "irender_state_observer.h"
+#include "mem_dump_callback_interface.h"
 #include "memory_level_info.h"
 #include "page_state_data.h"
 #include "process_memory_state.h"
@@ -90,6 +94,22 @@ public:
     virtual void PreloadModuleFinished(const int32_t recordId)
     {
         return;
+    }
+
+    virtual int32_t MakeImage(const AAFwk::Want &want, int32_t userId,
+        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = 0, sptr<IImageErrorHandler> errorHandler = nullptr)
+    {
+        return 0;
+    }
+
+    virtual int32_t DestroyImage(uint64_t checkpointId, sptr<IImageErrorHandler> errorHandler = nullptr)
+    {
+        return 0;
+    }
+
+    virtual int32_t NotifyTemplateProcessDeepFrozen(int32_t pid)
+    {
+        return 0;
     }
 
     /**
@@ -262,6 +282,18 @@ public:
     virtual int GetProcessRunningInfosByUserId(std::vector<RunningProcessInfo> &info, int32_t userId) = 0;
 
     /**
+     * GetProcessRunningInfosByAccessTokenId, call GetProcessRunningInfosByAccessTokenId()
+     * through proxy project. Obtains information about application processes
+     * that are running on the device by accessTokenId.
+     *
+     * @param accessTokenId, accessTokenId.
+     * @param info, Running process information list.
+     * @return ERR_OK ,return back success，others fail.
+     */
+    virtual int32_t GetProcessRunningInfosByAccessTokenId(uint32_t accessTokenId,
+        std::vector<RunningProcessInfo> &info) = 0;
+
+    /**
      * GetProcessRunningInformation, call GetProcessRunningInformation() through proxy project.
      * Obtains information about current application process which is running on the device.
      *
@@ -323,6 +355,27 @@ public:
     virtual int DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info) = 0;
 
     /**
+     * DumpMem, call DumpMem() through proxy project.
+     * triggerGC and dump application's memory info.
+     *
+     * @param info The information to be dumped
+     * @param callback The callback to receive dump result
+     * @return ERR_OK ,return back success, others fail.
+     */
+    virtual int DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback) = 0;
+
+    /**
+     * ReportDumpMemResult, called by app process to report dump result to appmgr.
+     * appmgr will forward the result to hidumper via callback.
+     *
+     * @param callback The callback received from ScheduleMem
+     * @param dumpResult The dump result string
+     * @return ERR_OK ,return back success, others fail.
+     */
+    virtual int ReportDumpMemResult(sptr<IMemDumpCallback> callback,
+        const std::string &dumpResult) = 0;
+
+    /**
      * Start a resident process
      */
     virtual void StartupResidentProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos) = 0;
@@ -343,6 +396,16 @@ public:
     virtual int32_t RegisterApplicationStateObserverWithFilter(sptr<IApplicationStateObserver> observer,
         const std::vector<std::string> &bundleNameList = {}, const AppStateFilter &appStateFilter = AppStateFilter(),
         bool isUsingFilter = false)
+    {
+        return 0;
+    }
+
+    virtual int32_t RegisterImageProcessStateObserver(const sptr<IImageProcessStateObserver> &observer)
+    {
+        return 0;
+    }
+
+    virtual int32_t UnregisterImageProcessStateObserver(const sptr<IImageProcessStateObserver> &observer)
     {
         return 0;
     }
@@ -583,6 +646,14 @@ public:
      * @return Returns true on success, others on failure.
      */
     virtual bool SetAppFreezeFilter(int32_t pid) = 0;
+
+    /**
+     * @brief Update freeze excluded pid set.
+     * @param isAdd true to add pid, false to remove pid.
+     * @param targetPid The target process id to be added or removed.
+     * @param profilerPid The profiler process id.
+     */
+    virtual void UpdateFreezeExcludedPid(bool isAdd, int32_t targetPid, int32_t profilerPid) = 0;
 
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
     /**
@@ -918,6 +989,12 @@ public:
 
     virtual int32_t IsProcessCacheSupported(int32_t pid, bool &isSupported) = 0;
 
+    virtual int32_t IsChildProcessSupported(bool isNative, bool &isSupported)
+    {
+        isSupported = false;
+        return 0;
+    }
+
     virtual int32_t SetProcessCacheEnable(int32_t pid, bool enable) = 0;
 
     virtual int32_t LockProcessCache(int32_t pid, bool isLock)
@@ -1126,6 +1203,31 @@ public:
     }
 
     virtual void SetProcessPrepareExit(int32_t pid) {}
+
+    /**
+     * @brief set TerminateTimeOut flag.
+     * @param token Ability identify.
+     */
+    virtual void SetTerminateTimeOutFlag(const sptr<IRemoteObject> token) {}
+
+    /**
+     * Get all ability infos
+     *
+     * @param pid if pid is -1, query all ability infos, otherwise query ability infos for this pid
+     * @param infos ability infos
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos)
+    {
+        return 0;
+    }
+
+    virtual int32_t EnableDelayedProcessExit(int32_t pid, bool enabled)
+    {
+        return ERR_OK;
+    }
+
+    virtual void CancelDelayedExitTask(int32_t pid) {}
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

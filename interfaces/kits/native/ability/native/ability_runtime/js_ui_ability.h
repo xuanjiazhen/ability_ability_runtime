@@ -84,6 +84,12 @@ public:
     void OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo = nullptr) override;
 
     /**
+     * @brief Handle Native Module: Create NativeAbilityWrapper and call PostAbility
+     * @param env The napi environment
+     */
+    void HandleNativeModule(napi_env env);
+
+    /**
      * @brief Called when this ability enters the <b>STATE_STOP</b> state.
      * The ability in the <b>STATE_STOP</b> is being destroyed.
      * You can override this function to implement your own processing logic.
@@ -374,6 +380,19 @@ public:
     int32_t OnCollaborate(WantParams &wantParams) override;
 
     /**
+     * @brief Execute skill by loading ArkTS script and calling the target function.
+     *
+     * @param want Want.
+     * @param param Skill execute param containing abc path, function name and arguments.
+     */
+    void ExecuteSkill(const AAFwk::Want &want,
+        const std::shared_ptr<AppExecFwk::SkillExecuteParam> &param) override;
+    napi_value LoadSkillFunction(const std::shared_ptr<AppExecFwk::SkillExecuteParam> &param,
+        napi_value &outJsObj);
+    std::vector<napi_value> BuildSkillCallArgs(napi_env env,
+        const std::shared_ptr<AppExecFwk::SkillExecuteParam> &param);
+
+    /**
      * @brief Called when startAbility request failed.
      * @param requestId, the requestId.
      * @param element, the element to start ability.
@@ -437,15 +456,17 @@ private:
         const std::string &moduleName, const std::string &srcPath);
     void ReleaseOnContinueAsset(const napi_env env, napi_value &promise,
         napi_ref &jsWantParamsRef, AppExecFwk::AbilityTransactionCallbackInfo<int32_t> *callbackInfo);
-    void RemoveShareRouterByBundleType(const Want &want);
     void WriteLifecycleSwitchLog(const std::string lifecycleName);
     void HandleAbilityDelegatorStart();
 
     JsRuntime &jsRuntime_;
     std::shared_ptr<NativeReference> shellContextRef_;
     std::shared_ptr<NativeReference> jsAbilityObj_;
+    std::unique_ptr<NativeReference> skillModuleRef_;
     sptr<IRemoteObject> remoteCallee_;
     bool reusingWindow_ = false;
+    bool isGamePreLaunch_  = false;
+    int32_t goResumeCalledFlag_ = 0;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

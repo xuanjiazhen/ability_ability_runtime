@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
+#include <dlfcn.h>
 #include <gtest/gtest.h>
+#include <cstdarg>
 
 #include "ability_manager_errors.h"
 #include "app_mgr_service_inner.h"
@@ -123,7 +125,7 @@ HWTEST_F(AppMgrServiceInnerSixthTest, CreateAbilityInfo_001, TestSize.Level0)
 
     MyFlag::flag_ = FALSE_VALUE;
     auto ret4 = appMgrServiceInner->CreateAbilityInfo(want, abilityInfo);
-    EXPECT_EQ(ret4, true);
+    EXPECT_EQ(ret4, false);
     TAG_LOGI(AAFwkTag::TEST, "CreateAbilityInfo_001 end");
 }
 
@@ -138,7 +140,7 @@ HWTEST_F(AppMgrServiceInnerSixthTest, CreateAbilityInfo_002, TestSize.Level0)
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
     MyFlag::flag1_ = FALSE_VALUE;
-    MyFlag::flag2_ = TRUE_VALUE;
+    MyFlag::flag2_ = FALSE_VALUE;
     MyFlag::flag_ = TRUE_VALUE;
     AAFwk::Want want;
     want.SetParam(DLP_PARAMS_INDEX, DLP_PARAMS_INDEX_VALUE_ONE);
@@ -146,7 +148,7 @@ HWTEST_F(AppMgrServiceInnerSixthTest, CreateAbilityInfo_002, TestSize.Level0)
     auto ret1 = appMgrServiceInner->CreateAbilityInfo(want, abilityInfo);
     EXPECT_EQ(ret1, true);
 
-    MyFlag::flag2_ = FALSE_VALUE;
+    MyFlag::flag2_ = TRUE_VALUE;
     MyFlag::flag_ = FALSE_VALUE;
     auto ret2 = appMgrServiceInner->CreateAbilityInfo(want, abilityInfo);
     EXPECT_EQ(ret2, false);
@@ -440,48 +442,6 @@ HWTEST_F(AppMgrServiceInnerSixthTest, KillFaultApp_003, TestSize.Level1)
 }
 
 /**
- * @tc.name: KillFaultApp_004
- * @tc.type: FUNC
- * @tc.Function: KillFaultApp
- * @tc.SubFunction: NA
- * @tc.EnvConditions: NA
- */
-HWTEST_F(AppMgrServiceInnerSixthTest, KillFaultApp_004, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "KillFaultApp_004 start";
-    pid_t childPid = fork();
-    if (childPid < 0) {
-        printf("failed to fork process.\n");
-    } else if (childPid == 0) {
-        auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-        EXPECT_NE(appMgrServiceInner, nullptr);
-        auto taskHandlerWrapTest = std::make_shared<TaskHandlerWrapTest>("");
-        EXPECT_NE(taskHandlerWrapTest, nullptr);
-        appMgrServiceInner->taskHandler_ = taskHandlerWrapTest;
-        EXPECT_NE(appMgrServiceInner->taskHandler_, nullptr);
-
-        int pid = 0;
-        std::string bundleName = "KillFaultAppTest";
-        bool isNeedExit = true;
-        FaultData faultData;
-        faultData.forceExit = true;
-        faultData.waitSaveState = false;
-        int32_t result = appMgrServiceInner->KillFaultApp(pid, bundleName, faultData, isNeedExit);
-        EXPECT_EQ(result, 0);
-        int sleepCount = 10;
-        while (sleepCount > 0) {
-            sleepCount = sleep(sleepCount);
-        }
-    } else {
-        if (waitpid(childPid, nullptr, 0) != childPid) {
-            printf("failed to wait process.\n");
-        }
-        printf("waitpid process success.\n");
-    }
-    GTEST_LOG_(INFO) << "KillFaultApp_004 end";
-}
-
-/**
  * @tc.name: SetAppFreezeFilter_004
  * @tc.type: FUNC
  * @tc.Function: SetAppFreezeFilter
@@ -635,6 +595,129 @@ HWTEST_F(AppMgrServiceInnerSixthTest, AllowDebugCheck_001, TestSize.Level1)
 
     appUtils.isSupportAllowDebugPermission_.value = true;
     EXPECT_FALSE(appMgrServiceInner->AllowDebugCheck(applicationInfo));
+}
+
+/**
+ * @tc.name: PreloadModuleFinished_ShouldDonothingWhenImageStateNotPreloadStart
+ * @tc.desc: Test the result of PreloadModuleFinished
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSixthTest, PreloadModuleFinished_ShouldDonothingWhenImageStateNotPreloadStart,
+    TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    int32_t pid = 100;
+    auto applicationInfo = std::make_shared<ApplicationInfo>();
+    appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
+    auto appRunningRecord = std::make_shared<AppRunningRecord>(applicationInfo, 0, "PROCESS_NAME");
+    appRunningRecord->GetPriorityObject()->SetPid(pid);
+    appRunningRecord->SetMakeImageState(MakeImageState::MAKE_IMAGE_START);
+
+    appMgrServiceInner->PreloadModuleFinished(pid);
+
+    appMgrServiceInner->appRunningManager_->appRunningRecordMap_.emplace(pid, appRunningRecord);
+    appMgrServiceInner->PreloadModuleFinished(pid);
+    EXPECT_EQ(appRunningRecord->GetMakeImageState(), MakeImageState::MAKE_IMAGE_START);
+}
+
+/**
+ * @tc.name: PreloadModuleFinished_ShouldUpdateImageStateWhenImageStateIsPreloadStart
+ * @tc.desc: Test the result of PreloadModuleFinished
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSixthTest, PreloadModuleFinished_ShouldUpdateImageStateWhenImageStateIsPreloadStart,
+    TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    int32_t pid = 100;
+    auto applicationInfo = std::make_shared<ApplicationInfo>();
+    appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
+    auto appRunningRecord = std::make_shared<AppRunningRecord>(applicationInfo, 0, "PROCESS_NAME");
+    appRunningRecord->GetPriorityObject()->SetPid(pid);
+    appRunningRecord->SetMakeImageState(MakeImageState::MAKE_PRELOAD_START);
+
+    appMgrServiceInner->PreloadModuleFinished(pid);
+
+    appMgrServiceInner->appRunningManager_->appRunningRecordMap_.emplace(pid, appRunningRecord);
+    appMgrServiceInner->PreloadModuleFinished(pid);
+    EXPECT_EQ(appRunningRecord->GetMakeImageState(), MakeImageState::MAKE_PRELOAD_FINISH);
+}
+
+/**
+ * @tc.name: TryToUseImageInfo_ShouldReturnErrOkWhenAppRunningManagerIsNullptr
+ * @tc.desc: Test the result of TryToUseImageInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSixthTest, TryToUseImageInfo_ShouldReturnErrOkWhenAppRunningManagerIsNullptr,
+    TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "TryToUseImageInfo_ShouldReturnErrOkWhenAppRunningManagerIsNullptr start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    int32_t pid = 100;
+    int32_t appIndex = 0;
+    std::string processName = "processName";
+    std::string instanceKey = "instanceKey";
+    std::string specifiedProcessFlag = "specifiedProcessFlag";
+    std::string customProcessFlag = "customProcessFlag";
+    std::shared_ptr<AppRunningRecord> appRecord;
+    appMgrServiceInner->appRunningManager_ = nullptr;
+    EXPECT_EQ(appMgrServiceInner->TryToUseImageInfo(nullptr, nullptr, nullptr, "callerKey", appIndex, processName,
+        instanceKey, specifiedProcessFlag, customProcessFlag, appRecord), ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "TryToUseImageInfo_ShouldReturnErrOkWhenAppRunningManagerIsNullptr end");
+}
+
+/**
+ * @tc.name: TryToUseImageInfo_ShouldReturnErrOkWhenImageInfoNotExist
+ * @tc.desc: Test the result of TryToUseImageInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSixthTest, TryToUseImageInfo_ShouldReturnErrOkWhenImageInfoNotExist,
+    TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "TryToUseImageInfo_ShouldReturnErrOkWhenImageInfoNotExist start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    int32_t pid = 100;
+    int32_t appIndex = 0;
+    std::string processName = "processName";
+    std::string instanceKey = "instanceKey";
+    std::string specifiedProcessFlag = "specifiedProcessFlag";
+    std::string customProcessFlag = "customProcessFlag";
+    std::shared_ptr<AppRunningRecord> appRecord;
+    appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    EXPECT_EQ(appMgrServiceInner->TryToUseImageInfo(nullptr, appInfo, nullptr, "callerKey", appIndex, processName,
+        instanceKey, specifiedProcessFlag, customProcessFlag, appRecord), ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "TryToUseImageInfo_ShouldReturnErrOkWhenImageInfoNotExist end");
+}
+
+/**
+ * @tc.name: TryToUseImageInfo_ShouldReturnErrOkWhenImageInfoNotMatch
+ * @tc.desc: Test the result of TryToUseImageInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSixthTest, TryToUseImageInfo_ShouldReturnErrOkWhenImageInfoNotMatch,
+    TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "TryToUseImageInfo_ShouldReturnErrOkWhenImageInfoNotMatch start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    int32_t pid = 100;
+    int32_t appIndex = 0;
+    std::string processName = "processName";
+    std::string instanceKey = "instanceKey";
+    std::string specifiedProcessFlag = "specifiedProcessFlag";
+    std::string customProcessFlag = "customProcessFlag";
+    std::shared_ptr<AppRunningRecord> appRecord;
+    std::string bundleName = "com.acts.imagetest";
+    int32_t userId = 100;
+    appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = bundleName;
+    appInfo->uid = userId * BASE_USER_RANGE;
+    PreloadRequest preloadRequest;
+    appMgrServiceInner->PreAddImageInfo(bundleName, userId, appIndex, nullptr, preloadRequest);
+    EXPECT_EQ(appMgrServiceInner->TryToUseImageInfo(nullptr, appInfo, nullptr, "callerKey", appIndex, processName,
+        instanceKey, specifiedProcessFlag, customProcessFlag, appRecord), ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "TryToUseImageInfo_ShouldReturnErrOkWhenImageInfoNotMatch end");
 }
 } // namespace AppExecFwk
 } // namespace OHOS

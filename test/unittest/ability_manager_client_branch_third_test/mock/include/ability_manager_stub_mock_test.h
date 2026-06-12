@@ -288,6 +288,7 @@ public:
     MOCK_METHOD2(UnregisterCancelListener, void(const sptr<IWantSender>& sender,
         const sptr<IWantReceiver>& receiver));
     MOCK_METHOD2(GetPendingRequestWant, int(const sptr<IWantSender>& target, std::shared_ptr<Want>& want));
+    MOCK_METHOD2(GetPendingRequestWantFromProxy, int(const sptr<IWantSender>& target, std::shared_ptr<Want>& want));
     MOCK_METHOD3(StartContinuation, int(const Want& want, const sptr<IRemoteObject>& abilityToken, int32_t status));
     MOCK_METHOD2(NotifyContinuationResult, int(int32_t missionId, int32_t result));
     MOCK_METHOD5(ContinueMission, int(const std::string& srcDeviceId, const std::string& dstDeviceId,
@@ -325,7 +326,7 @@ public:
 
     int StartAbilityByCall(const Want& want, const sptr<IAbilityConnection>& connect,
         const sptr<IRemoteObject>& callerToken, int32_t userId = DEFAULT_INVAL_VALUE, bool isSilent = false,
-        bool promotePriority = false, bool isVisible = false) override
+        bool promotePriority = false, bool isVisible = false, uint64_t specifiedFullTokenId = 0) override
     {
         return 0;
     }
@@ -401,6 +402,7 @@ public:
         const InsightIntentExecuteParam &param));
     MOCK_METHOD3(ExecuteInsightIntentDone, int32_t(const sptr<IRemoteObject> &token, uint64_t intentId,
         const InsightIntentExecuteResult &result));
+    MOCK_METHOD4(StartAbilityByOEExt, int32_t(const Want&, sptr<IRemoteObject>, int32_t, const std::string&));
     MOCK_METHOD5(StartAbilityWithSpecifyTokenId, int(const Want& want, const sptr<IRemoteObject>& callerToken,
         uint32_t specifyTokenId, int32_t userId, int requestCode));
 
@@ -431,6 +433,15 @@ public:
     MOCK_METHOD(void, CompleteFirstFrameDrawing, (int32_t sessionId), (override));
 #endif
     MOCK_METHOD(int32_t, GetUserLockedBundleList, (int32_t, std::unordered_set<std::string> &), (override));
+    MOCK_METHOD7(ExecuteInAppSkill, int32_t(const std::string &, const std::string &,
+        const std::string &, const std::string &, const std::string &,
+        const std::shared_ptr<AAFwk::WantParams> &, const sptr<ISkillExecuteCallback> &));
+    MOCK_METHOD4(ExecuteSkillDone, int32_t(const sptr<IRemoteObject> &, const std::string &,
+        int32_t, const AppExecFwk::SkillExecuteResult &));
+    MOCK_METHOD4(QuerySkillType, int32_t(const std::string &, const std::string &,
+        const std::string &, int32_t &));
+    MOCK_METHOD2(ExecuteInAppSkillWithTokenId, int32_t(const AppExecFwk::SkillExecuteRequest &,
+        const sptr<ISkillExecuteCallback> &));
 };  // namespace AAFwk
 }   // namespace OHOS
 }

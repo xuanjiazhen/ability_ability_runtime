@@ -108,6 +108,7 @@ public:
     MOCK_METHOD2(RegisterCancelListener, void(const sptr<IWantSender>& sender, const sptr<IWantReceiver>& receiver));
     MOCK_METHOD2(UnregisterCancelListener, void(const sptr<IWantSender>& sender, const sptr<IWantReceiver>& receiver));
     MOCK_METHOD2(GetPendingRequestWant, int(const sptr<IWantSender>& target, std::shared_ptr<Want>& want));
+    MOCK_METHOD2(GetPendingRequestWantFromProxy, int(const sptr<IWantSender>& target, std::shared_ptr<Want>& want));
 
     MOCK_METHOD5(StartAbility, int(const Want& want, const AbilityStartSetting& abilityStartSetting,
         const sptr<IRemoteObject>& callerToken, int32_t userId, int requestCode));
@@ -146,8 +147,8 @@ public:
     MOCK_METHOD1(GetProcessRunningInfos, int(std::vector<AppExecFwk::RunningProcessInfo>& info));
 
     MOCK_METHOD2(GetWantSenderInfo, int(const sptr<IWantSender>& target, std::shared_ptr<WantSenderInfo>& info));
-    MOCK_METHOD7(StartAbilityByCall,
-        int(const Want&, const sptr<IAbilityConnection>&, const sptr<IRemoteObject>&, int32_t, bool, bool, bool));
+    MOCK_METHOD8(StartAbilityByCall, int(const Want&, const sptr<IAbilityConnection>&,
+        const sptr<IRemoteObject>&, int32_t, bool, bool, bool, uint64_t));
 
     MOCK_METHOD5(StartAbilityAsCaller, int(const Want& want, const sptr<IRemoteObject>& callerToken,
         sptr<IRemoteObject> asCallerSourceToken, int32_t userId, int requestCode));

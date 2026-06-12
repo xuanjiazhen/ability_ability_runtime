@@ -32,6 +32,17 @@ void GetHspNativeLibPath(const BaseSharedBundleInfo &hspInfo, AppLibPathMap &app
 
 void GetPatchNativeLibPath(const HapModuleInfo &hapInfo, std::string &patchNativeLibraryPath,
     AppLibPathMap &appLibPaths);
+
+void GetLibrarySupportDirectory(
+    const std::vector<HapModuleInfo> &hapModuleInfos,
+    const std::string &nativeLibraryPath,
+    AppLibPathMap &appLibPaths);
+
+void TraverseLibrarySupportDirectory(
+    const std::vector<std::string> &librarySupportDirectory,
+    const std::string &prefixPath,
+    const std::string &appLibPathKey,
+    AppLibPathMap &appLibPaths);
 }  // namespace AppExecFwk
 }  // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_NATIVE_LIB_UTIL_H

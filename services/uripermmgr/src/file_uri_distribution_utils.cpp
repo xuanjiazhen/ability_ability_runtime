@@ -261,16 +261,17 @@ int32_t FUDUtils::GetAppIdByBundleName(const std::string &bundleName, std::strin
     return ERR_OK;
 }
 
-int32_t FUDUtils::GetTokenIdByBundleName(const std::string &bundleName, int32_t appIndex, uint32_t &tokenId)
+int32_t FUDUtils::GetTokenIdByBundleName(const std::string &bundleName, int32_t appIndex, int32_t userId,
+                                         uint32_t &tokenId)
 {
-    TAG_LOGD(AAFwkTag::URIPERMMGR, "BundleName:%{public}s, appIndex:%{public}d", bundleName.c_str(), appIndex);
+    TAG_LOGD(AAFwkTag::URIPERMMGR, "BundleName:%{public}s, appIndex:%{public}d, userId:%{public}d",
+             bundleName.c_str(), appIndex, userId);
     auto bms = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
     if (bms == nullptr) {
         TAG_LOGW(AAFwkTag::URIPERMMGR, "null bms");
         return GET_BUNDLE_MANAGER_SERVICE_FAILED;
     }
     AppExecFwk::BundleInfo bundleInfo;
-    auto userId = GetCurrentAccountId();
     if (appIndex == 0) {
         auto bundleFlag = AppExecFwk::BundleFlag::GET_BUNDLE_WITH_EXTENSION_INFO;
         if (!IN_PROCESS_CALL(bms->GetBundleInfo(bundleName, bundleFlag, bundleInfo, userId))) {
@@ -332,7 +333,7 @@ bool FUDUtils::IsSandboxApp(uint32_t tokenId)
 bool FUDUtils::CheckUriTypeIsValid(Uri &uri)
 {
     auto &&scheme = uri.GetScheme();
-    if (scheme != FUDConstants::FILE_SCHEME && scheme != FUDConstants::CONTENT_SCHEME) {
+    if (scheme != FUDConstants::FILE_SCHEME && scheme != FUDConstants::ANCO_SCHEME) {
         TAG_LOGW(AAFwkTag::URIPERMMGR, "uri invalid: %{public}s-%{private}s", scheme.c_str(), uri.ToString().c_str());
         return false;
     }

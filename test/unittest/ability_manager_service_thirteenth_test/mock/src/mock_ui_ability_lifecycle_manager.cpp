@@ -220,13 +220,29 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::GetUIAbilityRecordBySessionInfo(
     return nullptr;
 }
 
-int32_t UIAbilityLifecycleManager::NotifySCBToMinimizeUIAbility(const sptr<IRemoteObject> token)
+int32_t UIAbilityLifecycleManager::NotifySCBToMinimizeUIAbility(const sptr<IRemoteObject> token,
+    bool shouldBackToCaller, int32_t notifyScbBackgroundReason)
+{
+    return 0;
+}
+
+int32_t UIAbilityLifecycleManager::SetGamePreLaunchCompleteTime(int64_t completeTime)
+{
+    return 0;
+}
+
+int32_t UIAbilityLifecycleManager::NotifyCancelGamePreLaunch(const sptr<IRemoteObject> callerToken)
+{
+    return 0;
+}
+
+int32_t UIAbilityLifecycleManager::NotifyCompleteGamePreLaunch(const sptr<IRemoteObject> callerToken)
 {
     return 0;
 }
 
 int UIAbilityLifecycleManager::MinimizeUIAbility(const UIAbilityRecordPtr &abilityRecord, bool fromUser,
-    uint32_t sceneFlag)
+    uint32_t sceneFlag, int32_t backgroundReason)
 {
     return ERR_OK;
 }
@@ -374,6 +390,11 @@ void UIAbilityLifecycleManager::OnTimeOut(uint32_t msgId, int64_t abilityRecordI
 
 void UIAbilityLifecycleManager::SetRootSceneSession(const sptr<IRemoteObject> &rootSceneSession)
 {
+}
+
+sptr<IRemoteObject> UIAbilityLifecycleManager::GetRootSceneSession() const
+{
+    return nullptr;
 }
 
 void UIAbilityLifecycleManager::NotifySCBToHandleException(const UIAbilityRecordPtr &abilityRecord,
@@ -778,6 +799,11 @@ void UIAbilityLifecycleManager::HandleUIAbilityDiedByPid(pid_t pid)
 
 ErrCode UIAbilityLifecycleManager::QueryCallerTokenIdForAnco(const std::string &asCallerForAncoSessionId,
     uint32_t &callerTokenId)
+{
+    return ERR_OK;
+}
+
+int32_t UIAbilityLifecycleManager::StartSelf(const UIAbilityRecordPtr &abilityRecord)
 {
     return ERR_OK;
 }

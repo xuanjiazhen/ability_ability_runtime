@@ -55,6 +55,12 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CreateAppRunningRecord(
     return AAFwk::MyStatus::GetInstance().createAppRunning_;
 }
 
+bool AppRunningManager::CheckAppProcessNameIsSame(const std::shared_ptr<AppRunningRecord> &appRecord,
+    const std::string &processName, bool isFromPreload)
+{
+    return false;
+}
+
 std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExist(const std::string &appName,
     const std::string &processName, const int uid, const BundleInfo &bundleInfo,
     const std::string &specifiedProcessFlag, bool *isProCache, const std::string &instanceKey,
@@ -108,6 +114,11 @@ int32_t AppRunningManager::GetAllAppRunningRecordCountByBundleName(const std::st
 std::shared_ptr<AppRunningRecord> AppRunningManager::GetAppRunningRecordByPid(const pid_t pid)
 {
     return AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_;
+}
+
+std::shared_ptr<AppRunningRecord> AppRunningManager::GetValidAppRunningRecordByPid(const pid_t pid)
+{
+    return nullptr;
 }
 
 std::shared_ptr<AppRunningRecord> AppRunningManager::GetAppRunningRecordByAbilityToken(
@@ -459,10 +470,12 @@ int32_t AppRunningManager::DumpArkWeb(const std::vector<int32_t> &pids, const st
     return AAFwk::MyStatus::GetInstance().dumpArkWeb_;
 }
 
-bool AppRunningManager::HandleUserRequestClean(const sptr<IRemoteObject> &abilityToken, pid_t &pid, int32_t &uid)
+bool AppRunningManager::HandleUserRequestClean(const sptr<IRemoteObject> &abilityToken, pid_t &pid, int32_t &uid,
+    int32_t &recordId)
 {
     pid = AAFwk::MyStatus::GetInstance().handleUserRequestCleanPid_;
     uid = AAFwk::MyStatus::GetInstance().handleUserRequestCleanUid_;
+    recordId = -1;
     return AAFwk::MyStatus::GetInstance().handleUserRequestClean_;
 }
 
@@ -485,6 +498,11 @@ int32_t AppRunningManager::CheckIsKiaProcess(pid_t pid, bool &isKia)
 bool AppRunningManager::CheckAppRunningRecordIsLast(const std::shared_ptr<AppRunningRecord> &appRecord)
 {
     return true;
+}
+
+int32_t AppRunningManager::GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos)
+{
+    return ERR_OK;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

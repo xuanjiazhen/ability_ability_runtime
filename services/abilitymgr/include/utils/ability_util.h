@@ -210,7 +210,7 @@ static constexpr int64_t MICROSECONDS = 1000000;    // MICROSECONDS mean 10^6 mi
         return false;
     }
     callerPkg = targetWant.GetStringParam(JUMP_INTERCEPTOR_DIALOG_CALLER_PKG);
-    targetPkg = targetWant.GetElement().GetBundleName();
+    targetPkg = targetWant.GetBundle();
     return !callerPkg.empty() && !targetPkg.empty();
 }
 
@@ -356,12 +356,13 @@ static constexpr int64_t MICROSECONDS = 1000000;    // MICROSECONDS mean 10^6 mi
     }
     if (IPCSkeleton::GetCallingTokenID() == accessTokenId && (
         windowMode == AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_PRIMARY ||
-        windowMode == AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_SECONDARY)) {
+        windowMode == AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_SECONDARY ||
+        windowMode == AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_SPLIT)) {
         want.SetParam(Want::PARAM_RESV_WINDOW_MODE, windowMode);
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "set windownMode for inner application split-screen mode");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "set windowMode for inner application split-screen mode");
     } else if (windowMode == AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_FULLSCREEN) {
         want.SetParam(Want::PARAM_RESV_WINDOW_MODE, windowMode);
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "set windownMode for full screen mode");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "set windowMode for full screen mode");
     } else {
         RemoveWindowModeKey(want);
     }

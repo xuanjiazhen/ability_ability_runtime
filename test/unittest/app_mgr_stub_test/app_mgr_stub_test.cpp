@@ -19,11 +19,16 @@
 #define protected public
 #include "app_foreground_state_observer_stub.h"
 #include "app_mgr_stub.h"
+#include "image_error_handler_stub.h"
+#include "image_process_state_observer_stub.h"
 #undef private
 #undef protected
 
 #include "hilog_tag_wrapper.h"
 #include "ipc_types.h"
+#include "mem_dump_callback_interface.h"
+#include "mem_dump_callback_stub.h"
+#include "mem_dump_callback_proxy.h"
 #include "mock_app_mgr_service.h"
 #include "render_state_observer_stub.h"
 #include "native_child_notify_stub.h"
@@ -45,6 +50,26 @@ public:
     {}
 };
 
+class MockImageErrorHandlerStub : public ImageErrorHandlerStub {
+public:
+    MockImageErrorHandlerStub() = default;
+    virtual ~MockImageErrorHandlerStub() = default;
+
+    void OnError(int32_t errCode) override
+    {}
+};
+
+class ImageProcessStateObserverMock : public ImageProcessStateObserverStub {
+public:
+    ImageProcessStateObserverMock() = default;
+    virtual ~ImageProcessStateObserverMock() = default;
+
+    int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override
+    {
+        return 0;
+    }
+};
+
 class RenderStateObserverMock : public RenderStateObserverStub {
 public:
     RenderStateObserverMock() = default;
@@ -62,6 +87,38 @@ public:
     void OnError(int32_t errCode) {}
     int32_t OnNativeChildExit(int32_t pid, int32_t signal) { return 0; }
 };
+
+class MemDumpCallbackMock : public MemDumpCallbackStub {
+public:
+    MemDumpCallbackMock() = default;
+    virtual ~MemDumpCallbackMock() = default;
+
+    void OnMemDumpDone(const std::string &dumpResult) override
+    {
+        dumpResult_ = dumpResult;
+    }
+    std::string dumpResult_;
+};
+
+class MemDumpCallbackProxyTest : public testing::Test {
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
+    void SetUp() override;
+    void TearDown() override;
+};
+
+void MemDumpCallbackProxyTest::SetUpTestCase(void)
+{}
+
+void MemDumpCallbackProxyTest::TearDownTestCase(void)
+{}
+
+void MemDumpCallbackProxyTest::SetUp()
+{}
+
+void MemDumpCallbackProxyTest::TearDown()
+{}
 
 class AppMgrStubTest : public testing::Test {
 public:
@@ -1140,5 +1197,533 @@ HWTEST_F(AppMgrStubTest, SetProcessPrepareExit_0100, TestSize.Level1)
         static_cast<uint32_t>(AppMgrInterfaceCode::SET_PROCESS_PREPARE_EXIT), data, reply, option);
     EXPECT_EQ(result, NO_ERROR);
 }
+
+/**
+ * @tc.name: HandleSetTerminateTimeOutFlag_0100
+ * @tc.desc: Test HandleSetTerminateTimeOutFlag.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleSetTerminateTimeOutFlag_0100, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    data.WriteRemoteObject(nullptr);
+
+    auto result = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::SET_TERMINATE_TIMEOUT_FLAG), data, reply, option);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+}
+
+
+/**
+ * @tc.name: HandleSetTerminateTimeOutFlag_0200
+ * @tc.desc: Test HandleSetTerminateTimeOutFlag.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleSetTerminateTimeOutFlag_0200, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    sptr<IRemoteObject> token = new MockAppMgrService();
+    data.WriteRemoteObject(token);
+
+    auto result = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::SET_TERMINATE_TIMEOUT_FLAG), data, reply, option);
+    EXPECT_EQ(result, NO_ERROR);
+}
+
+/**
+ * @tc.name: HandleMakeImage_ShouldReturnInvalidValueWhenFlagIsTrueAndHandlerIsNullptr
+ * @tc.desc: handle make image.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleMakeImage_ShouldReturnInvalidValueWhenFlagIsTrueAndHandlerIsNullptr, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    std::string bundleName = "com.acts.makeimagetest";
+    AAFwk::Want want;
+    want.SetBundle(bundleName);
+    int32_t userId = 100;
+    PreloadMode preloadMode = PreloadMode::PRE_MAKE;
+    int32_t appIndex = 0;
+    data.WriteParcelable(&want);
+    data.WriteInt32(userId);
+    data.WriteInt32(static_cast<int32_t>(preloadMode));
+    data.WriteInt32(appIndex);
+    data.WriteBool(true);
+    EXPECT_CALL(*mockAppMgrService_, MakeImage(_, _, _, _, _)).Times(0);
+    auto result = mockAppMgrService_->HandleMakeImage(data, reply);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: HandleMakeImage_ShouldReturnNoErrorWhenFlagIsTrueAndHandlerIsNotNullptr
+ * @tc.desc: handle make image.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleMakeImage_ShouldReturnNoErrorWhenFlagIsTrueAndHandlerIsNotNullptr, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    std::string bundleName = "com.acts.makeimagetest";
+    AAFwk::Want want;
+    want.SetBundle(bundleName);
+    int32_t userId = 100;
+    PreloadMode preloadMode = PreloadMode::PRE_MAKE;
+    int32_t appIndex = 0;
+    data.WriteParcelable(&want);
+    data.WriteInt32(userId);
+    data.WriteInt32(static_cast<int32_t>(preloadMode));
+    data.WriteInt32(appIndex);
+    data.WriteBool(true);
+    sptr<MockImageErrorHandlerStub> errorHandler = new (std::nothrow) MockImageErrorHandlerStub();
+    data.WriteRemoteObject(errorHandler->AsObject());
+    EXPECT_CALL(*mockAppMgrService_, MakeImage(_, _, _, _, _)).Times(1);
+    auto result = mockAppMgrService_->HandleMakeImage(data, reply);
+    EXPECT_EQ(result, NO_ERROR);
+}
+
+/**
+ * @tc.name: HandleDestroyImage_ShouldReturnInvalidValueWhenFlagIsTrueAndHandlerIsNullptr
+ * @tc.desc: handle destroy image.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleDestroyImage_ShouldReturnInvalidValueWhenFlagIsTrueAndHandlerIsNullptr, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint64_t checkpointId = 1;
+    data.WriteUint64(checkpointId);
+    data.WriteBool(true);
+    EXPECT_CALL(*mockAppMgrService_, DestroyImage(_, _)).Times(0);
+    auto result = mockAppMgrService_->HandleDestroyImage(data, reply);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: HandleDestroyImage_ShouldReturnNoErrorWhenFlagIsTrueAndHandlerIsNotNullptr
+ * @tc.desc: handle destroy image.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleDestroyImage_ShouldReturnNoErrorWhenFlagIsTrueAndHandlerIsNotNullptr, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint64_t checkpointId = 1;
+    data.WriteUint64(checkpointId);
+    data.WriteBool(true);
+    sptr<MockImageErrorHandlerStub> errorHandler = new (std::nothrow) MockImageErrorHandlerStub();
+    data.WriteRemoteObject(errorHandler->AsObject());
+    EXPECT_CALL(*mockAppMgrService_, DestroyImage(_, _)).Times(1);
+    auto result = mockAppMgrService_->HandleDestroyImage(data, reply);
+    EXPECT_EQ(result, NO_ERROR);
+}
+
+/**
+ * @tc.name: HandleGetAllAbilityInfos_0100
+ * @tc.desc: Test HandleGetAllAbilityInfos when service returns error.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleGetAllAbilityInfos_0100, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    int32_t pid = 1001;
+    data.WriteInt32(pid);
+
+    EXPECT_CALL(*mockAppMgrService_, GetAllAbilityInfos(_, _))
+        .Times(1)
+        .WillOnce(Return(ERR_PERMISSION_DENIED));
+
+    mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::GET_ALL_ABILITY_INFOS), data, reply, option);
+    auto replyResult = reply.ReadInt32();
+    EXPECT_EQ(replyResult, ERR_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: HandleGetAllAbilityInfos_0200
+ * @tc.desc: Test HandleGetAllAbilityInfos when write result fails.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleGetAllAbilityInfos_0200, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    int32_t pid = 1001;
+    data.WriteInt32(pid);
+
+    EXPECT_CALL(*mockAppMgrService_, GetAllAbilityInfos(_, _))
+        .Times(1)
+        .WillOnce(DoAll(SetArgReferee<1>(std::vector<AppExecFwk::AbilityStateData>()), Return(ERR_OK)));
+
+    auto ret = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::GET_ALL_ABILITY_INFOS), data, reply, option);
+    EXPECT_EQ(ret, NO_ERROR);
+    auto replyResult = reply.ReadInt32();
+    EXPECT_EQ(replyResult, ERR_OK);
+}
+
+/**
+ * @tc.name: HandleGetAllAbilityInfos_0300
+ * @tc.desc: Test HandleGetAllAbilityInfos with empty info list.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleGetAllAbilityInfos_0300, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    int32_t pid = -1;
+    data.WriteInt32(pid);
+
+    std::vector<AppExecFwk::AbilityStateData> infos;
+    EXPECT_CALL(*mockAppMgrService_, GetAllAbilityInfos(_, _))
+        .Times(1)
+        .WillOnce(DoAll(SetArgReferee<1>(infos), Return(ERR_OK)));
+
+    auto ret = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::GET_ALL_ABILITY_INFOS), data, reply, option);
+    EXPECT_EQ(ret, NO_ERROR);
+    auto replyResult = reply.ReadInt32();
+    EXPECT_EQ(replyResult, ERR_OK);
+    int32_t infoSize = reply.ReadInt32();
+    EXPECT_EQ(infoSize, 0);
+}
+
+/**
+ * @tc.name: HandleGetAllAbilityInfos_0400
+ * @tc.desc: Test HandleGetAllAbilityInfos with one ability info.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleGetAllAbilityInfos_0400, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    int32_t pid = 1001;
+    data.WriteInt32(pid);
+
+    std::vector<AppExecFwk::AbilityStateData> infos;
+    AppExecFwk::AbilityStateData info;
+    info.abilityRecordId = 1001;
+    info.pid = 1001;
+    info.uid = 1001;
+    info.abilityType = 1;
+    info.extensionAbilityType = 0;
+    infos.push_back(info);
+
+    EXPECT_CALL(*mockAppMgrService_, GetAllAbilityInfos(_, _))
+        .Times(1)
+        .WillOnce(DoAll(SetArgReferee<1>(infos), Return(ERR_OK)));
+
+    auto ret = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::GET_ALL_ABILITY_INFOS), data, reply, option);
+    EXPECT_EQ(ret, NO_ERROR);
+    auto replyResult = reply.ReadInt32();
+    EXPECT_EQ(replyResult, ERR_OK);
+    int32_t infoSize = reply.ReadInt32();
+    EXPECT_EQ(infoSize, 1);
+}
+
+/**
+ * @tc.name: HandleUpdateFreezeExcludedPid_001
+ * @tc.desc: Handle Update Freeze Excluded Pid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleUpdateFreezeExcludedPid_001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    WriteInterfaceToken(data);
+    data.WriteBool(true);
+    data.WriteInt32(1);
+    data.WriteInt32(2);
+    auto result = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_FREEZE_EXCLUDED_PID), data, reply, option);
+    EXPECT_EQ(result, NO_ERROR);
+}
+
+/**
+ * @tc.name: HandleEnableDelayedProcessExit_0100
+ * @tc.desc: Test HandleEnableDelayedProcessExit with enable flag.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleEnableDelayedProcessExit_0100, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    int32_t pid = 1234;
+    data.WriteInt32(pid);
+    data.WriteBool(true);
+
+    EXPECT_CALL(*mockAppMgrService_, EnableDelayedProcessExit(_, _))
+        .Times(1)
+        .WillOnce(Return(ERR_OK));
+
+    auto ret = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::ENABLE_DELAYED_PROCESS_EXIT), data, reply, option);
+    EXPECT_EQ(ret, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+}
+
+/**
+ * @tc.name: HandleEnableDelayedProcessExit_0200
+ * @tc.desc: Test HandleEnableDelayedProcessExit with disable flag.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleEnableDelayedProcessExit_0200, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    int32_t pid = 1234;
+    data.WriteInt32(pid);
+    data.WriteBool(false);
+
+    EXPECT_CALL(*mockAppMgrService_, EnableDelayedProcessExit(_, _))
+        .Times(1)
+        .WillOnce(Return(ERR_INVALID_VALUE));
+
+    auto ret = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::ENABLE_DELAYED_PROCESS_EXIT), data, reply, option);
+    EXPECT_EQ(ret, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: HandleCancelDelayedExitTask_0100
+ * @tc.desc: Test HandleCancelDelayedExitTask.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleCancelDelayedExitTask_0100, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    int32_t pid = 1234;
+    data.WriteInt32(pid);
+
+    EXPECT_CALL(*mockAppMgrService_, CancelDelayedExitTask(_))
+        .Times(1);
+
+    auto ret = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::CANCEL_DELAYED_EXIT_TASK), data, reply, option);
+    EXPECT_EQ(ret, NO_ERROR);
+}
+
+/**
+ * @tc.name: HandleDumpMem_001
+ * @tc.desc: Handle dump mem with valid info and no callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleDumpMem_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    WriteInterfaceToken(data);
+    MemDumpInfo info;
+    info.pid = 1;
+    data.WriteParcelable(&info);
+    data.WriteBool(false);
+
+    EXPECT_CALL(*mockAppMgrService_, DumpMem(_, _)).Times(1);
+
+    auto result = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::DUMP_MEM_PROCESS), data, reply, option);
+    EXPECT_EQ(result, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: HandleDumpMem_002
+ * @tc.desc: Handle dump mem with null info returns error.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleDumpMem_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    WriteInterfaceToken(data);
+
+    auto result = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::DUMP_MEM_PROCESS), data, reply, option);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: HandleReportDumpMemResult_001
+ * @tc.desc: Handle report dump mem result with valid callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleReportDumpMemResult_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    WriteInterfaceToken(data);
+    sptr<IRemoteObject> remoteCallback = nullptr;
+    data.WriteRemoteObject(remoteCallback);
+    std::string dumpResult = "test result";
+    data.WriteString(dumpResult);
+
+    EXPECT_CALL(*mockAppMgrService_, ReportDumpMemResult(_, _)).Times(1);
+
+    auto result = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::REPORT_DUMP_MEM_RESULT), data, reply, option);
+    EXPECT_EQ(result, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: HandleReportDumpMemResult_002
+ * @tc.desc: Handle report dump mem result with null callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleReportDumpMemResult_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    WriteInterfaceToken(data);
+    sptr<IRemoteObject> remoteCallback = nullptr;
+    data.WriteRemoteObject(remoteCallback);
+    std::string dumpResult = "test result";
+    data.WriteString(dumpResult);
+
+    auto result = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::REPORT_DUMP_MEM_RESULT), data, reply, option);
+    EXPECT_EQ(result, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: MemDumpCallbackStub_OnRemoteRequest_001
+ * @tc.desc: MemDumpCallbackStub handle OnMemDumpDone with valid descriptor.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, MemDumpCallbackStub_OnRemoteRequest_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    auto callback = sptr<MemDumpCallbackMock>(new (std::nothrow) MemDumpCallbackMock());
+    ASSERT_NE(callback, nullptr);
+
+    MessageParcel data;
+    data.WriteInterfaceToken(MemDumpCallbackStub::GetDescriptor());
+    std::string dumpResult = "test dump result";
+    data.WriteString(dumpResult);
+    MessageParcel reply;
+    MessageOption option;
+
+    auto result = callback->OnRemoteRequest(
+        static_cast<uint32_t>(IMemDumpCallback::Message::ON_MEM_DUMP_DONE), data, reply, option);
+    EXPECT_EQ(result, NO_ERROR);
+    EXPECT_EQ(callback->dumpResult_, dumpResult);
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: MemDumpCallbackStub_OnRemoteRequest_002
+ * @tc.desc: MemDumpCallbackStub returns error with invalid descriptor.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, MemDumpCallbackStub_OnRemoteRequest_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    auto callback = sptr<MemDumpCallbackMock>(new (std::nothrow) MemDumpCallbackMock());
+    ASSERT_NE(callback, nullptr);
+
+    MessageParcel data;
+    data.WriteString(std::string("invalid_descriptor"));
+    MessageParcel reply;
+    MessageOption option;
+
+    auto result = callback->OnRemoteRequest(
+        static_cast<uint32_t>(IMemDumpCallback::Message::ON_MEM_DUMP_DONE), data, reply, option);
+    EXPECT_EQ(result, ERR_INVALID_STATE);
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: MemDumpCallbackStub_OnRemoteRequest_003
+ * @tc.desc: MemDumpCallbackStub handles unknown code.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, MemDumpCallbackStub_OnRemoteRequest_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    auto callback = sptr<MemDumpCallbackMock>(new (std::nothrow) MemDumpCallbackMock());
+    ASSERT_NE(callback, nullptr);
+
+    MessageParcel data;
+    data.WriteInterfaceToken(MemDumpCallbackStub::GetDescriptor());
+    MessageParcel reply;
+    MessageOption option;
+
+    auto result = callback->OnRemoteRequest(999, data, reply, option);
+    EXPECT_NE(result, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: MemDumpCallbackProxy_OnMemDumpDone_001
+ * @tc.desc: MemDumpCallbackProxy OnMemDumpDone with null remote.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MemDumpCallbackProxyTest, MemDumpCallbackProxy_OnMemDumpDone_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    sptr<IRemoteObject> impl = nullptr;
+    sptr<MemDumpCallbackProxy> proxy = new (std::nothrow) MemDumpCallbackProxy(impl);
+    ASSERT_NE(proxy, nullptr);
+
+    proxy->OnMemDumpDone("test result");
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS

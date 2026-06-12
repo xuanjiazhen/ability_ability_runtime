@@ -33,6 +33,7 @@
 #include "constants.h"
 #include "connect_server_manager.h"
 #include "ecmascript/napi/include/jsnapi.h"
+#include "ecmascript/napi/include/dfx_jsnapi.h"
 #include "extract_resource_manager.h"
 #include "file_mapper.h"
 #include "file_path_utils.h"
@@ -91,6 +92,7 @@ constexpr char MERGE_ABC_PATH[] = "/ets/modules.abc";
 constexpr char BUNDLE_INSTALL_PATH[] = "/data/storage/el1/bundle/";
 constexpr const char* PERMISSION_RUN_ANY_CODE = "ohos.permission.RUN_ANY_CODE";
 constexpr const char* PERMISSION_LOAD_INDEPENDENT_LIBRARY = "ohos.permission.kernel.LOAD_INDEPENDENT_LIBRARY";
+constexpr const char* PERMISSION_LOAD_CERTSIGN_LIBRARY = "ohos.permission.kernel.LOAD_CERTSIGN_LIBRARY_FOR_WEB";
 
 const std::string CONFIG_PATH = "/etc/system_kits_config.json";
 const std::string SYSTEM_KITS_CONFIG_PATH = "/system/etc/system_kits_config.json";
@@ -642,6 +644,7 @@ void JsRuntime::PostPreload(const Options& options)
     CHECK_POINTER(env);
     panda::RuntimeOption postOption;
     postOption.SetBundleName(options.bundleName);
+    postOption.SetArkTSMode(options.arkTSMode);
     if (!options.arkNativeFilePath.empty()) {
         std::string sandBoxAnFilePath = SANDBOX_ARK_CACHE_PATH + options.arkNativeFilePath;
         postOption.SetAnDir(sandBoxAnFilePath);
@@ -763,6 +766,7 @@ bool JsRuntime::Initialize(const Options& options)
             LoadAotFile(options);
             panda::JSNApi::SetBundle(vm, options.isBundle);
             panda::JSNApi::SetBundleName(vm, options.bundleName);
+            panda::JSNApi::SetIsMainProcess(options.isMainProcess);
             panda::JSNApi::SetHostResolveBufferTracker(
                 vm, JsModuleReader(options.bundleName, options.hapPath, options.isUnique));
             isModular = !panda::JSNApi::IsBundle(vm);
@@ -919,6 +923,31 @@ void JsRuntime::SetAppLibPath(const AppLibPathMap& appLibPaths, const bool& isSy
     }
 }
 
+void JsRuntime::SetOrUpdateLibPath(const AppLibPathMap& appLibPaths, const bool& isSystemApp)
+{
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "SetOrUpdate library path");
+
+    if (appLibPaths.size() == 0) {
+        TAG_LOGW(AAFwkTag::JSRUNTIME, "no lib path to set");
+        return;
+    }
+
+    auto moduleManager = NativeModuleManager::GetInstance();
+    if (moduleManager == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null moduleManager");
+        return;
+    }
+
+    for (const auto &appLibPath : appLibPaths) {
+        std::string pluginNamespace;
+        if (moduleManager->GetLdNamespaceName(appLibPath.first, pluginNamespace)) {
+            moduleManager->UpdateNamespaceLibPath(appLibPath.first, appLibPath.second);
+        } else {
+            moduleManager->SetAppLibPath(appLibPath.first, appLibPath.second, isSystemApp);
+        }
+    }
+}
+
 void JsRuntime::InheritPluginNamespace(const std::vector<std::string> &moduleNames)
 {
     auto moduleManager = NativeModuleManager::GetInstance();
@@ -951,7 +980,10 @@ void JsRuntime::CreatePluginDefaultNamespace(const std::string &lddictionaries)
     Security::AccessToken::AccessTokenID selfToken = IPCSkeleton::GetSelfTokenID();
     int result = Security::AccessToken::AccessTokenKit::VerifyAccessToken(selfToken,
         PERMISSION_LOAD_INDEPENDENT_LIBRARY);
-    if (result != Security::AccessToken::PermissionState::PERMISSION_GRANTED) {
+    int resultWeb = Security::AccessToken::AccessTokenKit::VerifyAccessToken(selfToken,
+        PERMISSION_LOAD_CERTSIGN_LIBRARY);
+    if (result != Security::AccessToken::PermissionState::PERMISSION_GRANTED &&
+        resultWeb != Security::AccessToken::PermissionState::PERMISSION_GRANTED) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "verify access token failed: %{public}d", result);
         return;
     }
@@ -1191,33 +1223,34 @@ napi_value JsRuntime::GetExportObjectFromOhmUrl(const std::string &srcEntrance, 
     return ArkNativeEngine::ArkValueToNapiValue(env, exportObj);
 }
 
-bool JsRuntime::ExecuteSecureWithOhmUrl(const std::string &moduleName, const std::string &hapPath,
-    const std::string &srcEntrance)
+std::unique_ptr<AbilityBase::FileMapper> JsRuntime::ExecuteSecureWithOhmUrl(const std::string &moduleName,
+    const std::string &hapPath, const std::string &srcEntrance)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::JSRUNTIME, "moduleName %{public}s, hapPath %{private}s, execute %{private}s",
         moduleName.c_str(), hapPath.c_str(), srcEntrance.c_str());
     auto vm = GetEcmaVm();
-    CHECK_POINTER_AND_RETURN(vm, false);
+    CHECK_POINTER_AND_RETURN(vm, nullptr);
     auto ohmUrl = panda::JSNApi::IsOhmUrl(srcEntrance);
     if (!ohmUrl) {
         TAG_LOGW(AAFwkTag::JSRUNTIME, "srcEntrance %{private}s not ohmurl", srcEntrance.c_str());
-        return false;
+        return nullptr;
     }
 
     bool newCreate = false;
     std::string loadPath = ExtractorUtil::GetLoadFilePath(hapPath);
-    std::shared_ptr<Extractor> extractor = ExtractorUtil::GetExtractor(loadPath, newCreate, true);
+    auto extractor = ExtractorUtil::GetExtractor(loadPath, newCreate, true);
     if (extractor == nullptr) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "get hapPath %{private}s extractor failed", hapPath.c_str());
-        return false;
+        return nullptr;
     }
+    extractor->SetAutoCloseFd(true);
 
     std::string srcFileName = BUNDLE_INSTALL_PATH + moduleName + MERGE_ABC_PATH;
     auto safeData = extractor->GetSafeData(srcFileName);
     if (safeData == nullptr) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "null safeData srcFileName %{private}s", srcFileName.c_str());
-        return false;
+        return nullptr;
     }
 
     auto start = std::chrono::high_resolution_clock::now();
@@ -1226,7 +1259,11 @@ bool JsRuntime::ExecuteSecureWithOhmUrl(const std::string &moduleName, const std
     auto end = std::chrono::high_resolution_clock::now();
     auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     TAG_LOGI(AAFwkTag::JSRUNTIME, "srcEntrance %{public}s timing %{public}lld", srcEntrance.c_str(), duration_ms);
-    return ret;
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "ExecuteSecureWithOhmUrl failed");
+        return nullptr;
+    }
+    return safeData;
 }
 
 bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath, bool useCommonChunk,
@@ -1358,15 +1395,18 @@ void JsRuntime::DumpHeapSnapshot(bool isPrivate)
 
 void JsRuntime::DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary)
 {
-    DumpHeapSnapshot(tid, isFullGC, isBinary, false);
+    OHOS::AbilityRuntime::Runtime::JsHeapDumpParam param;
+    param.isFullGC = isFullGC;
+    param.isBinary = isBinary;
+    DumpHeapSnapshot(tid, param);
 }
 
-void JsRuntime::DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary, bool isClearNodeIdCache)
+void JsRuntime::DumpHeapSnapshot(uint32_t tid, const OHOS::AbilityRuntime::Runtime::JsHeapDumpParam &param)
 {
     auto vm = GetEcmaVm();
     CHECK_POINTER(vm);
     panda::ecmascript::DumpSnapShotOption dumpOption;
-    if (isBinary) {
+    if (param.isBinary) {
         dumpOption.dumpFormat = panda::ecmascript::DumpFormat::BINARY;
     } else {
         dumpOption.dumpFormat = panda::ecmascript::DumpFormat::JSON;
@@ -1374,9 +1414,10 @@ void JsRuntime::DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary, boo
     dumpOption.isVmMode = true;
     dumpOption.isPrivate = false;
     dumpOption.captureNumericValue = true;
-    dumpOption.isFullGC = isFullGC;
+    dumpOption.isFullGC = param.isFullGC;
     dumpOption.isSync = false;
-    dumpOption.isClearNodeIdCache = isClearNodeIdCache;
+    dumpOption.isClearNodeIdCache = param.isClearNodeIdCache;
+    dumpOption.isProcDump = param.isProcDump;
     DFXJSNApi::DumpHeapSnapshot(vm, dumpOption, tid);
 }
 
@@ -1398,6 +1439,22 @@ size_t JsRuntime::GetHeapObjectSize()
         return 0;
     }
     return DFXJSNApi::GetHeapObjectSize(vm);
+}
+
+size_t JsRuntime::GetSharedHeapSize()
+{
+    return DFXJSNApi::GetSharedHeapSize();
+}
+
+panda::GCStatistic JsRuntime::GetGCStatistic()
+{
+    auto vm = GetEcmaVm();
+    if (!vm) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null vm");
+        panda::GCStatistic gCStatistic;
+        return gCStatistic;
+    }
+    return DFXJSNApi::GetGCStatistic(vm);
 }
 
 void JsRuntime::ForceFullGC(uint32_t tid)
@@ -1499,6 +1556,7 @@ bool JsRuntime::PopPreloadObj(const std::string& key, std::unique_ptr<NativeRefe
     if (preloadList_[key] != nullptr) {
         obj = std::move(preloadList_[key]);
         preloadList_.erase(key);
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "PopPreloadObj key: %{public}s", key.c_str());
         return true;
     }
     preloadList_.erase(key);
@@ -1550,18 +1608,19 @@ void JsRuntime::UpdateModuleNameAndAssetPath(const std::string& moduleName)
     panda::JSNApi::SetModuleName(vm, moduleName_);
 }
 
-void JsRuntime::RegisterUncaughtExceptionHandler(const JsEnv::UncaughtExceptionInfo& uncaughtExceptionInfo)
+void JsRuntime::RegisterUncaughtExceptionHandler(const JsEnv::UncaughtExceptionInfo& uncaughtExceptionInfo,
+                                                 bool isStatic)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     CHECK_POINTER(jsEnv_);
-    jsEnv_->RegisterUncaughtExceptionHandler(uncaughtExceptionInfo);
+    jsEnv_->RegisterUncaughtExceptionHandler(uncaughtExceptionInfo, isStatic);
 }
 
-void JsRuntime::RegisterUncatchableExceptionHandler(const JsEnv::UncatchableTask& uncatchableTask)
+void JsRuntime::RegisterUncatchableExceptionHandler(const JsEnv::UncatchableTask& uncatchableTask, bool isStatic)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     CHECK_POINTER(jsEnv_);
-    jsEnv_->RegisterUncatchableExceptionHandler(uncatchableTask);
+    jsEnv_->RegisterUncatchableExceptionHandler(uncatchableTask, isStatic);
 }
 
 void JsRuntime::RegisterQuickFixQueryFunc(const std::map<std::string, std::string>& moduleAndPath)

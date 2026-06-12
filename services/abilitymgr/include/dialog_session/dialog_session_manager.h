@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,6 +46,8 @@ struct DialogCallerInfo {
     SelectorType type = SelectorType::WITHOUT_SELECTOR;
     // for app gallery selector
     bool needGrantUriPermission = false;
+    sptr<IRemoteObject> sessionToken = nullptr;
+    sptr<IRequestStartAbilityCallback> requestCallback = nullptr;
 };
 
 struct StartupSessionInfo {
@@ -182,6 +184,9 @@ private:
     bool NotifyQueryERMSFinished(const std::string &dialogSessionId, bool isAllowed);
 
     void NotifyAbilityRequestFailure(const std::string &dialogSessionId, const Want &want);
+
+    void HandleUserRejected(const std::string &dialogSessionId, const Want &want,
+        const std::shared_ptr<DialogCallerInfo> &dialogCallerInfo);
 
     mutable ffrt::mutex dialogSessionRecordLock_;
     std::unordered_map<std::string, sptr<DialogSessionInfo>> dialogSessionInfoMap_;

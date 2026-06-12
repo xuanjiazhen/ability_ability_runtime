@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "agent_card.h"
+#include "bundle_mgr_helper.h"
 #include "bundle_mgr_client.h"
 
 namespace OHOS {
@@ -40,8 +41,15 @@ public:
 
     int32_t GetAgentCardByAgentId(const std::string &bundleName, const std::string &agentId, AgentCard &card);
 
+    int32_t RegisterAgentCard(const AgentCard &card);
+
+    int32_t UpdateAgentCard(const AgentCard &card);
+
+    int32_t DeleteAgentCard(const std::string &bundleName, const std::string &agentId);
+
 private:
     OHOS::AppExecFwk::BundleMgrClient bundleMgrClient_;
+    mutable std::mutex cardDataMutex_;
     AgentCardMgr();
     ~AgentCardMgr();
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -111,6 +111,9 @@ public:
         const std::string& targetBundleName, int32_t appIndex, uint32_t initiatorTokenId,
         int32_t hideSensitiveType, int32_t& funcResult) override;
 
+    ErrCode GrantUriPermission(const std::vector<std::string>& uriVec, uint32_t flag,
+        uint32_t targetTokenId, uint32_t oriCallerTokenId, int32_t& funcResult) override;
+
     ErrCode GrantUriPermissionByKeyAsCaller(const std::string &key, uint32_t flag, uint32_t callerTokenId,
         uint32_t targetTokenId, int32_t &funcResult) override;
 
@@ -178,6 +181,9 @@ private:
 
     int32_t RevokeContentUriPermission(uint32_t tokenId);
 
+    int32_t VerifyContentUriPermission(const std::vector<std::string> &contentUris, uint32_t flag,
+        uint32_t tokenId, std::vector<bool> &checkResults);
+
     bool IsContentUriGranted(uint32_t tokenId);
 
     void AddContentTokenIdRecord(uint32_t tokenId);
@@ -188,7 +194,8 @@ private:
 
 #ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
     int32_t SandboxManagerSetPolicy(const std::vector<PolicyInfo> &policyInfoVec, uint32_t flag,
-        const FUDAppInfo &callerInfo, const FUDAppInfo &targetInfo, std::vector<uint32_t> &result);
+        const FUDAppInfo &callerInfo, const FUDAppInfo &targetInfo,
+        int32_t userId, std::vector<uint32_t> &result);
 #endif
 
     int32_t GrantBatchUriPermissionImpl(const std::vector<std::string> &uriVec,
@@ -203,7 +210,7 @@ private:
 
     void RevokePolicyUriPermission(uint32_t tokenId);
 
-    int32_t RevokeFileUriPermission(uint32_t tokenId, uint64_t timeNow, int32_t& funcResult);
+    int32_t RevokeFileUriPermission(uint32_t tokenId, int32_t& funcResult);
 
     int32_t RevokeAllMapUriPermissions(uint32_t tokenId);
 
@@ -215,6 +222,14 @@ private:
 
     int32_t DeleteShareFile(uint32_t targetTokenId, const std::vector<std::string> &uriVec);
 
+    // Helper functions for new GrantUriPermission interface
+    int32_t CheckGrantUriPermissionParamsWithTokenId(const std::vector<std::string>& uriVec,
+        uint32_t flag, uint32_t targetTokenId);
+    int32_t GetCallerTokenIdAndUserId(uint32_t oriCallerTokenId, uint32_t& callerTokenId,
+        int32_t& callerUserId);
+    int32_t CheckTargetTokenIdAndUserConstraint(uint32_t targetTokenId, int32_t callerUserId,
+        FUDAppInfo& targetInfo);
+
     int32_t RevokePolicyUriPermissionManually(uint32_t callerTokenId, uint32_t targetTokenId, Uri &uri);
 
     int32_t RevokeMediaUriPermissionManually(uint32_t callerTokenId, uint32_t targetTokenId, Uri &uri);
@@ -225,7 +240,7 @@ private:
 
     bool IsDistributedSubDirUri(const std::string &inputUri, const std::string &cachedUri);
 
-    ErrCode ClearPermissionTokenByMap(uint32_t tokenId, uint64_t timeNow, int32_t& funcResult) override;
+    ErrCode ClearPermissionTokenByMap(uint32_t tokenId, int32_t& funcResult) override;
 
     void BoolVecToCharVec(const std::vector<bool>& boolVector, std::vector<char>& charVector);
 

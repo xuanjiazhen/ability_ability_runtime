@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,7 @@
 #undef private
 #include "hilog_tag_wrapper.h"
 #include "mock_ability_token.h"
+#include "request_start_ability_callback_stub.h"
 #include "start_ability_utils.h"
 
 using OHOS::AppExecFwk::AbilityType;
@@ -78,6 +79,18 @@ sptr<Token> DialogSessionManagerTest::MockToken(AbilityType abilityType)
     }
     return abilityRecord->GetToken();
 }
+
+class RequestAbilityImplCallback : public AAFwk::RequestStartAbilityCallbackStub {
+public:
+    void OnRequestStartAbilityResult(bool result) override
+    {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "UIAbility start request result: %{public}s",
+            result ? "success" : "failed");
+        result_ = result;
+    }
+
+bool result_ = false;
+};
 
 /**
  * @tc.name: GetStartupSessionInfoTest_0100
@@ -165,6 +178,34 @@ HWTEST_F(DialogSessionManagerTest, SendDialogResultTest_0300, TestSize.Level1)
     int32_t ret = dialogSessionManager.SendDialogResult(want, TEST_DIALOG_SESSION_ID, isAllowed);
     EXPECT_EQ(ret, ERR_OK);
     GTEST_LOG_(INFO) << "SendDialogResultTest_0300 end";
+}
+
+/**
+ * @tc.name: SendDialogResultTest_0400
+ * @tc.desc: Test SendDialogResult
+ * @tc.type: FUNC
+ */
+HWTEST_F(DialogSessionManagerTest, SendDialogResultTest_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SendDialogResultTest_0400 start";
+    AbilityRequest abilityRequest;
+    DialogSessionManager dialogSessionManager;
+    Want want;
+    bool isAllowed = false;
+    sptr<DialogSessionInfo> dialogSessionInfo = nullptr;
+    std::shared_ptr<DialogCallerInfo> dialogCallerInfo = std::make_shared<DialogCallerInfo>();
+    dialogSessionManager.SetDialogSessionInfo(TEST_DIALOG_SESSION_ID, dialogSessionInfo, dialogCallerInfo);
+    int32_t ret = dialogSessionManager.SendDialogResult(want, TEST_DIALOG_SESSION_ID, isAllowed);
+    EXPECT_EQ(ret, ERR_OK);
+
+    dialogCallerInfo->sessionToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    dialogSessionManager.SetDialogSessionInfo(TEST_DIALOG_SESSION_ID, dialogSessionInfo, dialogCallerInfo);
+    ret = dialogSessionManager.SendDialogResult(want, TEST_DIALOG_SESSION_ID, isAllowed);
+    EXPECT_EQ(ret, ERR_OK);
+    bool cleared = dialogSessionManager.dialogSessionInfoMap_.find(TEST_DIALOG_SESSION_ID) ==
+        dialogSessionManager.dialogSessionInfoMap_.end();
+    EXPECT_TRUE(cleared);
+    GTEST_LOG_(INFO) << "SendDialogResultTest_0400 end";
 }
 
 /**
@@ -395,6 +436,28 @@ HWTEST_F(DialogSessionManagerTest, OnlySetDialogCallerInfo_0100, TestSize.Level1
     dialogSessionManager.OnlySetDialogCallerInfo(abilityRequest, TEST_USER_ID, type, TEST_DIALOG_SESSION_ID, false);
     EXPECT_NE(dialogSessionManager.GetDialogCallerInfo(TEST_DIALOG_SESSION_ID), nullptr);
     GTEST_LOG_(INFO) << "OnlySetDialogCallerInfo_0100 end";
+}
+
+/**
+ * @tc.name: OnlySetDialogCallerInfo_0200
+ * @tc.desc: OnlySetDialogCallerInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(DialogSessionManagerTest, OnlySetDialogCallerInfo_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "OnlySetDialogCallerInfo_0200 start";
+    SelectorType type = SelectorType::INTERCEPTOR_SELECTOR;
+    AbilityRequest abilityRequest;
+    abilityRequest.sessionInfo = sptr<SessionInfo>::MakeSptr();
+    sptr<IRemoteObject> sessionToken = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    abilityRequest.sessionInfo->sessionToken = sessionToken;
+
+    DialogSessionManager dialogSessionManager;
+    dialogSessionManager.OnlySetDialogCallerInfo(abilityRequest, TEST_USER_ID, type, TEST_DIALOG_SESSION_ID, false);
+    auto info = dialogSessionManager.GetDialogCallerInfo(TEST_DIALOG_SESSION_ID);
+    EXPECT_NE(info, nullptr);
+    EXPECT_EQ(info->sessionToken, sessionToken);
+    GTEST_LOG_(INFO) << "OnlySetDialogCallerInfo_0200 end";
 }
 
 /**
@@ -697,6 +760,33 @@ HWTEST_F(DialogSessionManagerTest, NotifyAbilityRequestFailure_0700, TestSize.Le
     dialogSessionManager.NotifyAbilityRequestFailure(TEST_DIALOG_SESSION_ID, want);
 
     GTEST_LOG_(INFO) << "NotifyAbilityRequestFailure_0700 end";
+}
+
+/**
+ * @tc.name: NotifyAbilityRequestFailure_0800
+ * @tc.desc: Test NotifyAbilityRequestFailure triggers OnRequestStartAbilityResult(false) callback
+ * @tc.type: FUNC
+ */
+HWTEST_F(DialogSessionManagerTest, NotifyAbilityRequestFailure_0800, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "NotifyAbilityRequestFailure_0800 start";
+    DialogSessionManager dialogSessionManager;
+    Want want;
+    want.SetParam(KEY_REQUEST_ID, std::string("test_request_id_0800"));
+    sptr<DialogSessionInfo> dialogSessionInfo = nullptr;
+    std::shared_ptr<DialogCallerInfo> dialogCallerInfo = std::make_shared<DialogCallerInfo>();
+    ASSERT_NE(dialogCallerInfo, nullptr);
+
+    dialogCallerInfo->targetWant = want;
+    sptr<RequestAbilityImplCallback> testCallback = new RequestAbilityImplCallback();
+    dialogCallerInfo->requestCallback = testCallback;
+    dialogSessionManager.SetDialogSessionInfo(TEST_DIALOG_SESSION_ID, dialogSessionInfo, dialogCallerInfo);
+    auto storedCallerInfo = dialogSessionManager.GetDialogCallerInfo(TEST_DIALOG_SESSION_ID);
+    ASSERT_NE(storedCallerInfo, nullptr);
+    ASSERT_NE(storedCallerInfo->requestCallback, nullptr);
+    dialogSessionManager.NotifyAbilityRequestFailure(TEST_DIALOG_SESSION_ID, want);
+    EXPECT_EQ(testCallback->result_, false);
+    GTEST_LOG_(INFO) << "NotifyAbilityRequestFailure_0800 end";
 }
 
 /**

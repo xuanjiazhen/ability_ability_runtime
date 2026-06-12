@@ -51,12 +51,12 @@ class ResSchedUtil final {
 public:
     static ResSchedUtil &GetInstance();
     void ReportAbilityStartInfoToRSS(const AbilityInfo &abilityInfo, int32_t pid, bool isColdStart,
-        bool supportWarmSmartGC, int32_t preloadMode);
+        bool supportWarmSmartGC, int32_t preloadMode, bool isSuggestCache);
     void ReportPreloadApplicationToRSS(const std::shared_ptr<AbilityInfo>& abilityInfo, int32_t preloadMode);
     void ReportAbilityAssociatedStartInfoToRSS(
         const AbilityInfo &abilityInfo, int64_t resSchedType, int32_t callerUid, int32_t callerPid);
     void ReportEventToRSS(const int32_t uid, const std::string &bundleName, const std::string &reason,
-        const int32_t pid = -1, const int32_t callerPid = -1);
+        const int32_t pid = -1, const int32_t callerPid = -1, bool isCreateFromImage = false);
     void ReportUIExtensionProcColdStartToRss(
         int32_t extensionAbilityType, int hostPid, const std::string& hostBundleName, const std::string& bundleName,
         const std::string& abilityName, const std::string& moduleName, bool isPreloadUIExtension);
@@ -73,6 +73,9 @@ public:
     std::unordered_set<std::string> GetNWebPreloadSet() const;
     void ReportAbilityIntentExemptionInfoToRSS(int32_t callerUid, int32_t callerPid);
     void ReportSubHealtyPerfInfoToRSS();
+    void ReportForkAllEventToRSS(int32_t imagePid, int32_t orginalPid,
+        std::shared_ptr<AbilityInfo> abilityInfo, int32_t forkAllState);
+    void ReportGameClickToRSS(const std::string &bundleName, int32_t pid, int32_t uid);
 private:
     ResSchedUtil() = default;
     ~ResSchedUtil() = default;

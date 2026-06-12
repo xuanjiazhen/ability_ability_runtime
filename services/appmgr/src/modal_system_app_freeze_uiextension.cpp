@@ -68,11 +68,10 @@ void ModalSystemAppFreezeUIExtension::ProcessAppFreeze(bool focusFlag, const Fau
     }
     FaultDataType faultType = faultData.faultType;
     std::string name = faultData.errorObject.name;
-    if (name == AppFreezeType::BUSSINESS_THREAD_BLOCK_6S) {
+    if (name == AppFreezeType::THREAD_BLOCK_6S || name == AppFreezeType::BUSSINESS_THREAD_BLOCK_6S) {
         return;
     }
-    bool isAppFreezeDialog = name == AppFreezeType::THREAD_BLOCK_6S ||
-        name == AppFreezeType::APP_INPUT_BLOCK || name == AppFreezeType::BUSINESS_INPUT_BLOCK;
+    bool isAppFreezeDialog = name == AppFreezeType::APP_INPUT_BLOCK || name == AppFreezeType::BUSINESS_INPUT_BLOCK;
     TAG_LOGI(AAFwkTag::ABILITYMGR,
         "ProcessAppFreeze %{public}s is %{public}s pid:%{public}s eventName:%{public}s", bundleName.c_str(),
         focusFlag ? "focus" : "not focus", pid.c_str(), name.c_str());

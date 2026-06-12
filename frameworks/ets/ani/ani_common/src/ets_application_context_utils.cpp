@@ -16,6 +16,7 @@
 
 #include <mutex>
 
+#include "ability_business_error.h"
 #include "ability_runtime_error_util.h"
 #include "ani_enum_convert.h"
 #include "application_context_manager.h"
@@ -98,6 +99,44 @@ ani_int EtsApplicationContextUtils::OnNativeOnEnvironmentSync(ani_env *env, ani_
     applicationContext->RegisterEnvironmentCallback(etsEnviromentCallback_);
 
     return callbackId;
+}
+
+ani_object EtsApplicationContextUtils::OnGetUIAbilityByInstanceId(ani_env *env, ani_string instanceId)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "OnGetUIAbilityByInstanceId called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return nullptr;
+    }
+    auto applicationContext = applicationContext_.lock();
+    if (applicationContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
+        EtsErrorUtil::ThrowRuntimeError(env, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST);
+        return nullptr;
+    }
+
+    std::string instanceIdStr;
+    if (!AppExecFwk::GetStdString(env, instanceId, instanceIdStr)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Parse instanceId failed");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param instanceId failed, instanceId must be string.");
+        return nullptr;
+    }
+
+    auto nativeAbility = applicationContext->GetNativeAbility(instanceIdStr);
+    if (nativeAbility == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "NativeAbility not found for instanceId: %{public}s", instanceIdStr.c_str());
+        EtsErrorUtil::ThrowRuntimeError(env, ERR_ABILITY_RUNTIME_EXTERNAL_NO_SUCH_ID);
+        return nullptr;
+    }
+
+    if (nativeAbility->etsAbilityObj == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "etsAbilityObj is null for instanceId: %{public}s", instanceIdStr.c_str());
+        EtsErrorUtil::ThrowRuntimeError(env, ERR_ABILITY_RUNTIME_EXTERNAL_INTERNAL_ERROR);
+        return nullptr;
+    }
+
+    TAG_LOGD(AAFwkTag::APPKIT, "Get UIAbility for instanceId: %{public}s", instanceIdStr.c_str());
+    return nativeAbility->etsAbilityObj;
 }
 
 void EtsApplicationContextUtils::OnNativeOffEnvironmentSync(ani_env *env, ani_object aniObj,
@@ -546,9 +585,86 @@ void EtsApplicationContextUtils::OnRestartApp(ani_env *env, ani_object aniObj, a
             EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_TOP_ABILITY);
             break;
         default:
-            EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+            EtsErrorUtil::ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::RESTART_APP_FAILED));
     }
     TAG_LOGD(AAFwkTag::APPKIT, "RestartApp errCode is %{public}d", errCode);
+}
+
+void EtsApplicationContextUtils::OnEnableDelayedProcessExit(ani_env *env, ani_object aniObj, ani_object callback)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return;
+    }
+    auto applicationContext = applicationContext_.lock();
+    if (applicationContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,
+            (ani_int)AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT,
+            "applicationContext is already released."), nullptr);
+        return;
+    }
+    auto errCode = applicationContext->EnableDelayedProcessExit();
+    if (errCode == ERR_OK) {
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
+    } else {
+        TAG_LOGE(AAFwkTag::APPKIT, "EnableDelayedProcessExit failed %{public}d", errCode);
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, errCode), nullptr);
+    }
+}
+
+void EtsApplicationContextUtils::OnDisableDelayedProcessExit(ani_env *env, ani_object aniObj, ani_object callback)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return;
+    }
+    auto applicationContext = applicationContext_.lock();
+    if (applicationContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,
+            (ani_int)AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT,
+            "applicationContext is already released."), nullptr);
+        return;
+    }
+    auto errCode = applicationContext->DisableDelayedProcessExit();
+    if (errCode == ERR_OK) {
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
+    } else {
+        TAG_LOGE(AAFwkTag::APPKIT, "DisableDelayedProcessExit failed %{public}d", errCode);
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, errCode), nullptr);
+    }
+}
+
+void EtsApplicationContextUtils::OnStartSelfUIAbility(ani_env *env,
+    ani_object aniObj, ani_object wantObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "StartSelfUIAbility Call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return;
+    }
+    AAFwk::Want want;
+    if (!OHOS::AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Parse want failed");
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateInvalidParamError(env,
+            "Parse param want failed, want must be Want."), nullptr);
+        return;
+    }
+    auto context = applicationContext_.lock();
+    if (!context) {
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env,
+            (int32_t)AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), nullptr);
+        return;
+    }
+    auto errCode = context->StartSelfUIAbility(want);
+    if (errCode == ERR_OK) {
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
+    } else {
+        TAG_LOGE(AAFwkTag::APPKIT, "StartSelfUIAbility failed %{public}d", errCode);
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, errCode), nullptr);
+    }
 }
 
 void EtsApplicationContextUtils::OnSetFont(ani_env *env, ani_object aniObj, ani_string font)
@@ -678,14 +794,16 @@ void EtsApplicationContextUtils::OnGetRunningProcessInformation(ani_env *env, an
         if (aniInfosRef == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "null array");
             AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,
-                (ani_int)AbilityErrorCode::ERROR_CODE_INNER, "Initiate array failed."), emptyArray);
+                (ani_int)AbilityErrorCode::ERROR_CODE_INNER,
+                GetInnerErrorMsg(AbilityInnerErrorMsg::CREATE_PROCESS_INFO_ARRAY_FAILED)), emptyArray);
         } else {
             AppExecFwk::AsyncCallback(env, callback,
                 EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), aniInfosRef);
         }
     } else {
         AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env,
-            (ani_int)AbilityErrorCode::ERROR_CODE_INNER, "Get process infos failed."), emptyArray);
+            (ani_int)AbilityErrorCode::ERROR_CODE_INNER,
+            GetInnerErrorMsg(AbilityInnerErrorMsg::GET_PROCESS_INFO_FAILED)), emptyArray);
     }
 }
 
@@ -759,7 +877,8 @@ void EtsApplicationContextUtils::OnSetSupportedProcessCacheSync(ani_env *env, an
         EtsErrorUtil::ThrowError(env,
             AbilityErrorCode::ERROR_CODE_CAPABILITY_NOT_SUPPORT);
     } else if (errCode != ERR_OK) {
-        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        EtsErrorUtil::ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+            GetInnerErrorMsg(AbilityInnerErrorMsg::SET_PROCESS_CACHE_FAILED));
     }
 }
 
@@ -772,6 +891,40 @@ void EtsApplicationContextUtils::RestartApp(ani_env *env, ani_object aniObj, ani
         return;
     }
     etsContext->OnRestartApp(env, aniObj, wantObj);
+}
+
+void EtsApplicationContextUtils::EnableDelayedProcessExit(ani_env *env, ani_object aniObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "EnableDelayedProcessExit Call");
+    auto etsContext = GeApplicationContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsContext");
+        return;
+    }
+    etsContext->OnEnableDelayedProcessExit(env, aniObj, callback);
+}
+
+void EtsApplicationContextUtils::DisableDelayedProcessExit(ani_env *env, ani_object aniObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "DisableDelayedProcessExit Call");
+    auto etsContext = GeApplicationContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsContext");
+        return;
+    }
+    etsContext->OnDisableDelayedProcessExit(env, aniObj, callback);
+}
+
+void EtsApplicationContextUtils::StartSelfUIAbility(ani_env *env, ani_object aniObj,
+    ani_object wantObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "StartSelfUIAbility Call");
+    auto etsContext = GeApplicationContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsContext");
+        return;
+    }
+    etsContext->OnStartSelfUIAbility(env, aniObj, wantObj, callback);
 }
 
 void EtsApplicationContextUtils::SetFont(ani_env *env, ani_object aniObj, ani_string font)
@@ -1030,6 +1183,19 @@ ani_int EtsApplicationContextUtils::NativeOnEnvironmentSync(ani_env *env, ani_ob
     return etsContext->OnNativeOnEnvironmentSync(env, aniObj, envCallback);
 }
 
+ani_object EtsApplicationContextUtils::GetUIAbilityByInstanceId(
+    ani_env *env, ani_object aniObj, ani_string instanceId)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "GetUIAbilityByInstanceId called");
+    auto etsContext = GeApplicationContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsContext");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return nullptr;
+    }
+    return etsContext->OnGetUIAbilityByInstanceId(env, instanceId);
+}
+
 void EtsApplicationContextUtils::NativeOffEnvironmentCheck(ani_env *env, ani_object aniObj)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "NativeOffEnvironmentCheck Call");
@@ -1255,6 +1421,15 @@ void EtsApplicationContextUtils::BindApplicationContextFunc(ani_env *aniEnv)
                 reinterpret_cast<void *>(EtsApplicationContextUtils::SetFont)},
             ani_native_function {"nativerestartApp", "C{@ohos.app.ability.Want.Want}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::RestartApp)},
+            ani_native_function {"nativeEnableDelayedProcessExitSync",
+                "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                reinterpret_cast<void *>(EtsApplicationContextUtils::EnableDelayedProcessExit)},
+            ani_native_function {"nativeDisableDelayedProcessExitSync",
+                "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                reinterpret_cast<void *>(EtsApplicationContextUtils::DisableDelayedProcessExit)},
+            ani_native_function {"nativeStartSelfUIAbilitySync",
+                "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                reinterpret_cast<void *>(EtsApplicationContextUtils::StartSelfUIAbility)},
             ani_native_function {"nativeOnEnvironmentSync",
                 "C{@ohos.app.ability.EnvironmentCallback.EnvironmentCallback}:i",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::NativeOnEnvironmentSync)},
@@ -1288,6 +1463,9 @@ void EtsApplicationContextUtils::BindApplicationContextFunc(ani_env *aniEnv)
             ani_native_function {"nativeOffSystemConfigurationUpdatedSync",
                 "C{@ohos.app.ability.systemConfiguration.systemConfiguration.UpdatedCallback}:",
                 reinterpret_cast<void*>(EtsApplicationContextUtils::NativeOffSystemConfigurationUpdatedSync)},
+            ani_native_function {"nativeGetUIAbilityByInstanceId",
+                "C{std.core.String}:C{@ohos.app.ability.UIAbility.UIAbility}",
+                reinterpret_cast<void*>(EtsApplicationContextUtils::GetUIAbilityByInstanceId)},
         };
         if ((status = aniEnv->Class_BindNativeMethods(contextClass, applicationContextFunctions.data(),
             applicationContextFunctions.size())) != ANI_OK) {

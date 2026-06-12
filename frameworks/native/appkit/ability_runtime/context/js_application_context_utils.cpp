@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -612,10 +612,121 @@ napi_value JsApplicationContextUtils::OnRestartApp(napi_env env, NapiCallbackInf
     } else if (errCode == AAFwk::NOT_TOP_ABILITY) {
         AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_NOT_TOP_ABILITY);
     } else {
-        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INTERNAL_ERROR);
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INTERNAL_ERROR,
+            GetInnerErrorMsg(AbilityInnerErrorMsg::RESTART_APP_FAILED));
     }
     TAG_LOGE(AAFwkTag::APPKIT, "errCode:%{public}d.", errCode);
     return CreateJsUndefined(env);
+}
+
+napi_value JsApplicationContextUtils::EnableDelayedProcessExit(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils,
+        OnEnableDelayedProcessExit, APPLICATION_CONTEXT_NAME);
+}
+
+napi_value JsApplicationContextUtils::OnEnableDelayedProcessExit(napi_env env, NapiCallbackInfo& info)
+{
+    if (info.argc != ARGC_ZERO) {
+        ThrowInvalidParamError(env, "No parameters are supported.");
+        return CreateJsUndefined(env);
+    }
+    auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute = [applicationContext = applicationContext_, innerErrCode]() {
+        auto context = applicationContext.lock();
+        if (!context) {
+            *innerErrCode = ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST;
+            return;
+        }
+        *innerErrCode = context->EnableDelayedProcessExit();
+    };
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+        HandleScope handleScope(env);
+        if (*innerErrCode == ERR_OK) {
+            task.ResolveWithNoError(env, CreateJsUndefined(env));
+            return;
+        }
+        task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+    };
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("JsApplicationContextUtils::OnEnableDelayedProcessExit",
+        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+    return result;
+}
+
+napi_value JsApplicationContextUtils::DisableDelayedProcessExit(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils,
+        OnDisableDelayedProcessExit, APPLICATION_CONTEXT_NAME);
+}
+
+napi_value JsApplicationContextUtils::OnDisableDelayedProcessExit(napi_env env, NapiCallbackInfo& info)
+{
+    if (info.argc != ARGC_ZERO) {
+        ThrowInvalidParamError(env, "No parameters are supported.");
+        return CreateJsUndefined(env);
+    }
+    auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute = [applicationContext = applicationContext_, innerErrCode]() {
+        auto context = applicationContext.lock();
+        if (!context) {
+            *innerErrCode = ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST;
+            return;
+        }
+        *innerErrCode = context->DisableDelayedProcessExit();
+    };
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+        HandleScope handleScope(env);
+        if (*innerErrCode == ERR_OK) {
+            task.ResolveWithNoError(env, CreateJsUndefined(env));
+            return;
+        }
+        task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+    };
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("JsApplicationContextUtils::OnDisableDelayedProcessExit",
+        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+    return result;
+}
+
+napi_value JsApplicationContextUtils::StartSelfUIAbility(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils,
+        OnStartSelfUIAbility, APPLICATION_CONTEXT_NAME);
+}
+
+napi_value JsApplicationContextUtils::OnStartSelfUIAbility(napi_env env, NapiCallbackInfo& info)
+{
+    if (info.argc != ARGC_ONE) {
+        ThrowInvalidParamError(env, "Exactly one want parameter is required.");
+        return CreateJsUndefined(env);
+    }
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(env, info.argv[INDEX_ZERO], want)) {
+        ThrowInvalidParamError(env, "Parse param want failed, want must be Want.");
+        return CreateJsUndefined(env);
+    }
+    auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute = [applicationContext = applicationContext_, want, innerErrCode]() {
+        auto context = applicationContext.lock();
+        if (!context) {
+            *innerErrCode = ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST;
+            return;
+        }
+        *innerErrCode = context->StartSelfUIAbility(want);
+    };
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+        HandleScope handleScope(env);
+        if (*innerErrCode == ERR_OK) {
+            task.ResolveWithNoError(env, CreateJsUndefined(env));
+            return;
+        }
+        task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+    };
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("JsApplicationContextUtils::OnStartSelfUIAbility",
+        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+    return result;
 }
 
 napi_value JsApplicationContextUtils::GetBundleCodeDir(napi_env env, napi_callback_info info)
@@ -944,19 +1055,20 @@ napi_value JsApplicationContextUtils::OnGetRunningProcessInformation(napi_env en
             if (processInfo->appCloneIndex != -1) {
                 napi_set_named_property(env, object, "appCloneIndex", CreateJsValue(env, processInfo->appCloneIndex));
             }
+            napi_set_named_property(env, object, "isPreload", CreateJsValue(env, processInfo->isPreload));
             napi_value array = nullptr;
             napi_create_array_with_length(env, 1, &array);
             if (array == nullptr) {
                 TAG_LOGE(AAFwkTag::APPKIT, "null array");
                 task.Reject(env, CreateJsError(env, ERR_ABILITY_RUNTIME_EXTERNAL_INTERNAL_ERROR,
-                    "Initiate array failed."));
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::CREATE_PROCESS_INFO_ARRAY_FAILED)));
             } else {
                 napi_set_element(env, array, 0, object);
                 task.ResolveWithNoError(env, array);
             }
         } else {
             task.Reject(env, CreateJsError(env, ERR_ABILITY_RUNTIME_EXTERNAL_INTERNAL_ERROR,
-                "Get process infos failed."));
+                GetInnerErrorMsg(AbilityInnerErrorMsg::GET_PROCESS_INFO_FAILED)));
         }
     };
     napi_value lastParam = (info.argc == ARGC_ONE) ? info.argv[INDEX_ZERO] : nullptr;
@@ -2016,6 +2128,55 @@ napi_value JsApplicationContextUtils::CreateJsApplicationContext(napi_env env)
     return handleEscape.Escape(object);
 }
 
+napi_value JsApplicationContextUtils::GetUIAbilityByInstanceId(napi_env env, napi_callback_info info)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "GetUIAbilityByInstanceId");
+    GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils,
+        OnGetUIAbilityByInstanceId, APPLICATION_CONTEXT_NAME);
+}
+
+napi_value JsApplicationContextUtils::OnGetUIAbilityByInstanceId(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "OnGetUIAbilityByInstanceId");
+    auto applicationContext = applicationContext_.lock();
+    if (!applicationContext) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_CONTEXT_NOT_EXIST);
+        return CreateJsUndefined(env);
+    }
+
+    if (info.argc == 0) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Not enough arguments");
+        ThrowInvalidParamError(env, "Not enough params.");
+        return CreateJsUndefined(env);
+    }
+
+    std::string instanceId;
+    if (!ConvertFromJsValue(env, info.argv[0], instanceId)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Parse instanceId failed");
+        ThrowInvalidParamError(env, "Parse param instanceId failed, instanceId must be string.");
+        return CreateJsUndefined(env);
+    }
+
+    auto nativeAbility = applicationContext->GetNativeAbility(instanceId);
+    if (nativeAbility == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "NativeAbility not found for instanceId: %{public}s", instanceId.c_str());
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_NO_SUCH_ID);
+        return CreateJsUndefined(env);
+    }
+
+    if (nativeAbility->jsAbilityObj == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "jsAbilityObj is null for instanceId: %{public}s", instanceId.c_str());
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INTERNAL_ERROR,
+            GetInnerErrorMsg(AbilityInnerErrorMsg::UI_ABILITY_OBJ_NULL));
+        return CreateJsUndefined(env);
+    }
+
+    napi_value result = nativeAbility->jsAbilityObj->GetNapiValue();
+    TAG_LOGD(AAFwkTag::APPKIT, "Get UIAbility for instanceId: %{public}s", instanceId.c_str());
+    return result;
+}
+
 napi_value JsApplicationContextUtils::SetSupportedProcessCacheSelf(napi_env env, napi_callback_info info)
 {
     GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils,
@@ -2053,7 +2214,8 @@ napi_value JsApplicationContextUtils::OnSetSupportedProcessCacheSelf(napi_env en
         AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_NO_SUCH_SYSCAP);
     } else if (errCode != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "set failed");
-        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INTERNAL_ERROR);
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INTERNAL_ERROR,
+            GetInnerErrorMsg(AbilityInnerErrorMsg::SET_PROCESS_CACHE_FAILED));
     }
     return CreateJsUndefined(env);
 }
@@ -2127,6 +2289,14 @@ void JsApplicationContextUtils::BindNativeApplicationContextTwo(napi_env env, na
     BindNativeFunction(env, object, "setFontSizeScale", MD_NAME,
         JsApplicationContextUtils::SetFontSizeScale);
     BindNativeFunction(env, object, "getAllWindowStages", MD_NAME, JsApplicationContextUtils::GetAllWindowStages);
+    BindNativeFunction(env, object, "getUIAbilityByInstanceId", MD_NAME,
+        JsApplicationContextUtils::GetUIAbilityByInstanceId);
+    BindNativeFunction(env, object, "enableDelayedProcessExit", MD_NAME,
+        JsApplicationContextUtils::EnableDelayedProcessExit);
+    BindNativeFunction(env, object, "disableDelayedProcessExit", MD_NAME,
+        JsApplicationContextUtils::DisableDelayedProcessExit);
+    BindNativeFunction(env, object, "startSelfUIAbility", MD_NAME,
+        JsApplicationContextUtils::StartSelfUIAbility);
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

@@ -127,6 +127,8 @@ public:
      */
     virtual void OnTerminate();
 
+    virtual void OnHyperSnapUpdate();
+
     /**
      * @brief add the ability stage when a hap first load
      *
@@ -150,11 +152,13 @@ public:
      * @brief add the ability stage when a hap first load
      *
      * @param hapModuleInfo
+     * @param preloadAbilityName The ability name for preload scenario
      * @return Returns true on success, false on failure
      */
     bool AddAbilityStage(
         const AppExecFwk::HapModuleInfo &hapModuleInfo,
-        const std::function<void()> &callback, bool &isAsyncCallback);
+        const std::function<void()> &callback, bool &isAsyncCallback,
+        const std::string &preloadAbilityName = "");
 
     /**
      * @brief remove the ability stage when all of the abilities in the hap have been removed
@@ -245,6 +249,8 @@ public:
 
     bool UpdateETSRuntime(AbilityRuntime::Runtime::Options &option);
 
+    void InitJSLeakWatcher(const std::string &bundleName);
+
 #ifdef SUPPORT_GRAPHICS
     bool GetDisplayConfig(uint64_t displayId, float &density, std::string &directionStr);
 #endif
@@ -282,6 +288,17 @@ private:
     void PreloadHybridModule(const HapModuleInfo &hapModuleInfo) const;
     void LoadDeduplicatedHarResource(
         const std::shared_ptr<AbilityRuntime::AbilityStageContext> &stageContext);
+    void SetLaunchElementForStage(
+        const std::shared_ptr<AbilityRuntime::AbilityStageContext> &stageContext,
+        const std::shared_ptr<AppExecFwk::HapModuleInfo> &moduleInfo,
+        const std::string &abilityName);
+    std::shared_ptr<AbilityRuntime::AbilityStageContext> CreateAndInitStageContext(
+        const AppExecFwk::HapModuleInfo &hapModuleInfo);
+    bool ExecuteAutoStartupTasks(std::shared_ptr<AbilityRuntime::AbilityStage> abilityStage,
+        const AppExecFwk::HapModuleInfo &hapModuleInfo,
+        const std::function<void()> &callback,
+        bool &isAsyncCallback,
+        const std::shared_ptr<AbilityRuntime::AbilityStageContext> &stageContext);
 
     const std::function<void()> CreateFirstStartupCallbackForRecord(
         std::shared_ptr<AbilityRuntime::AbilityStage> abilityStage,
@@ -303,6 +320,10 @@ private:
         std::shared_ptr<AbilityRuntime::AbilityStage> abilityStage,
         const AppExecFwk::HapModuleInfo &hapModuleInfo,
         const std::function<void()> &callback);
+
+    void AddAbility(std::shared_ptr<AbilityRuntime::AbilityStage> abilityStage,
+        const sptr<IRemoteObject> &token,
+        const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord);
 
 #ifdef SUPPORT_SCREEN
     void RegisterGetAllUIAbilitiesCallback(

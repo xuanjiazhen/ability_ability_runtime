@@ -17,8 +17,8 @@
 
 #include "ability_business_error.h"
 #include "agent_extension.h"
-#include "agent_extension_context.h"
 #include "agent_extension_connection_constants.h"
+#include "agent_extension_context.h"
 #include "agent_manager_client.h"
 #include "configuration_utils.h"
 #include "connection_manager.h"
@@ -53,9 +53,14 @@ napi_value AttachAgentExtensionContext(napi_env env, void *value, void *)
         TAG_LOGW(AAFwkTag::SER_ROUTER, "null value");
         return nullptr;
     }
-    auto ptr = reinterpret_cast<std::weak_ptr<AgentExtensionContext> *>(value)->lock();
-    if (ptr == nullptr) {
+    auto context = reinterpret_cast<std::weak_ptr<Context> *>(value)->lock();
+    if (context == nullptr) {
         TAG_LOGW(AAFwkTag::SER_ROUTER, "null ptr");
+        return nullptr;
+    }
+    auto ptr = Context::ConvertTo<AgentExtensionContext>(context);
+    if (ptr == nullptr) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER, "context is not AgentExtensionContext");
         return nullptr;
     }
     napi_value object = CreateJsAgentExtensionContext(env, ptr);
@@ -68,11 +73,12 @@ napi_value AttachAgentExtensionContext(napi_env env, void *value, void *)
     auto contextObj = sysModule->GetNapiValue();
     napi_coerce_to_native_binding_object(
         env, contextObj, DetachCallbackFunc, AttachAgentExtensionContext, value, nullptr);
-    auto workContext = new (std::nothrow) std::weak_ptr<AgentExtensionContext>(ptr);
+    SetJsAgentExtensionContext(env, contextObj, ptr);
+    auto workContext = new (std::nothrow) std::weak_ptr<Context>(context);
     auto res = napi_wrap(env, contextObj, workContext,
         [](napi_env, void *data, void *) {
             TAG_LOGD(AAFwkTag::SER_ROUTER, "Finalizer for weak_ptr app service extension context is called");
-            delete static_cast<std::weak_ptr<AgentExtensionContext> *>(data);
+            delete static_cast<std::weak_ptr<Context> *>(data);
         },
         nullptr, nullptr);
     if (res != napi_ok && workContext != nullptr) {
@@ -96,10 +102,7 @@ JsAgentExtension::~JsAgentExtension()
     jsRuntime_.FreeNativeReference(std::move(shellContextRef_));
 
     for (auto& item : hostProxyMap_) {
-        auto &jsProxyObject = item.second;
-        if (jsProxyObject != nullptr) {
-            jsRuntime_.FreeNativeReference(std::move(jsProxyObject));
-        }
+        ReleaseHostProxyReference(item.second);
     }
 }
 
@@ -159,7 +162,7 @@ void JsAgentExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
 void JsAgentExtension::OnStart(const AAFwk::Want &want)
 {
     Extension::OnStart(want);
-    TAG_LOGI(AAFwkTag::SER_ROUTER, "call");
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "call");
     auto context = GetContext();
     HandleScope handleScope(jsRuntime_);
     napi_env env = jsRuntime_.GetNapiEnv();
@@ -170,7 +173,6 @@ void JsAgentExtension::OnStart(const AAFwk::Want &want)
     napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, want);
     napi_value argv[] = {napiWant};
     CallObjectMethod("onCreate", argv, ARGC_ONE);
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "ok");
 }
 
 void JsAgentExtension::OnStop()
@@ -186,13 +188,12 @@ void JsAgentExtension::OnStop()
             TAG_LOGD(AAFwkTag::SER_ROUTER, "The agent extension connection is not disconnected.");
         }
     }
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "ok");
 }
 
 sptr<IRemoteObject> JsAgentExtension::OnConnect(const AAFwk::Want &want,
     AppExecFwk::AbilityTransactionCallbackInfo<sptr<IRemoteObject>> *callbackInfo, bool &isAsyncCallback)
 {
-    TAG_LOGI(AAFwkTag::SER_ROUTER, "call");
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "call");
     HandleScope handleScope(jsRuntime_);
     Extension::OnConnect(want);
     napi_env env = jsRuntime_.GetNapiEnv();
@@ -233,7 +234,7 @@ sptr<IRemoteObject> JsAgentExtension::OnConnect(const AAFwk::Want &want,
 void JsAgentExtension::OnDisconnect(const AAFwk::Want &want,
     AppExecFwk::AbilityTransactionCallbackInfo<> *callbackInfo, bool &isAsyncCallback)
 {
-    TAG_LOGI(AAFwkTag::SER_ROUTER, "call");
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "call");
     HandleScope handleScope(jsRuntime_);
     Extension::OnDisconnect(want);
     napi_env env = jsRuntime_.GetNapiEnv();
@@ -259,8 +260,13 @@ void JsAgentExtension::OnDisconnect(const AAFwk::Want &want,
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null jsHostProxy");
         return;
     }
+    void *nativeProxy = nullptr;
+    if (napi_unwrap(env, jsHostProxy, &nativeProxy) == napi_ok && nativeProxy != nullptr) {
+        static_cast<JsAgentConnectorProxy *>(nativeProxy)->Invalidate();
+    }
     napi_value argv[] = { napiWant, jsHostProxy };
     CallObjectMethod("onDisconnect", argv, ARGC_TWO);
+    ReleaseHostProxyReference(iter->second);
     hostProxyMap_.erase(iter);
 }
 
@@ -314,6 +320,31 @@ int32_t JsAgentExtension::OnAuthorize(const sptr<IRemoteObject> &hostProxy, cons
     return static_cast<int32_t>(AbilityErrorCode::ERROR_OK);
 }
 
+int32_t JsAgentExtension::OnAgentInvoked(const std::string &agentId)
+{
+    napi_env env = jsRuntime_.GetNapiEnv();
+    std::unique_ptr<NapiAsyncTask::CompleteCallback> complete = std::make_unique<NapiAsyncTask::CompleteCallback>
+        ([weak = weak_from_this(), agentIdParam = agentId](napi_env env, NapiAsyncTask &task, int32_t status) {
+            auto extensionSptr = weak.lock();
+            if (!extensionSptr) {
+                TAG_LOGE(AAFwkTag::SER_ROUTER, "null extensionSptr");
+                return;
+            }
+            auto sptrThis = std::static_pointer_cast<JsAgentExtension>(extensionSptr);
+            if (!sptrThis) {
+                TAG_LOGE(AAFwkTag::SER_ROUTER, "null sptrThis");
+                return;
+            }
+            sptrThis->HandleAgentInvoked(agentIdParam);
+        });
+
+    napi_ref callback = nullptr;
+    std::unique_ptr<NapiAsyncTask::ExecuteCallback> execute = nullptr;
+    NapiAsyncTask::Schedule("JsAgentExtension::AgentInvoked",
+        env, std::make_unique<NapiAsyncTask>(callback, std::move(execute), std::move(complete)));
+    return static_cast<int32_t>(AbilityErrorCode::ERROR_OK);
+}
+
 void JsAgentExtension::HandleSendData(sptr<IRemoteObject> hostProxy, const std::string &data)
 {
     if (hostProxy == nullptr) {
@@ -360,6 +391,13 @@ void JsAgentExtension::HandleAuthorize(sptr<IRemoteObject> hostProxy, const std:
     napi_env env = jsRuntime_.GetNapiEnv();
     napi_value argv[] = {jsHostProxy, AbilityRuntime::CreateJsValue(env, data)};
     CallObjectMethod("onAuth", argv, ARGC_TWO);
+}
+
+void JsAgentExtension::HandleAgentInvoked(const std::string &agentId)
+{
+    napi_env env = jsRuntime_.GetNapiEnv();
+    napi_value argv[] = { AbilityRuntime::CreateJsValue(env, agentId) };
+    CallObjectMethod("onAgentInvoked", argv, ARGC_ONE);
 }
 
 napi_value JsAgentExtension::CallObjectMethod(const char* name, napi_value const* argv, size_t argc)
@@ -415,6 +453,21 @@ sptr<IRemoteObject> JsAgentExtension::GetHostProxyFromWant(const AAFwk::Want &wa
     return want.GetRemoteObject(AGENTEXTENSIONHOSTPROXY_KEY);
 }
 
+void JsAgentExtension::ReleaseHostProxyReference(std::unique_ptr<NativeReference> &hostProxyRef)
+{
+    if (hostProxyRef == nullptr) {
+        return;
+    }
+    napi_ref ref = reinterpret_cast<napi_ref>(hostProxyRef.get());
+    napi_status status = napi_delete_reference(jsRuntime_.GetNapiEnv(), ref);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "napi_delete_reference failed %{public}d", status);
+        jsRuntime_.FreeNativeReference(std::move(hostProxyRef));
+        return;
+    }
+    hostProxyRef.release();
+}
+
 void JsAgentExtension::BindContext(napi_env env, napi_value obj, std::shared_ptr<AAFwk::Want> want)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "call");
@@ -429,10 +482,9 @@ void JsAgentExtension::BindContext(napi_env env, napi_value obj, std::shared_ptr
     }
     std::string agentId = want->GetStringParam(AGENTID_KEY);
     std::shared_ptr<AgentCard> agentCard = std::make_shared<AgentCard>();
-    auto innerErrorCode = AgentManagerClient::GetInstance().GetAgentCardByAgentId(
-        want->GetElement().GetBundleName(), agentId, *agentCard);
+    auto innerErrorCode = AgentManagerClient::GetInstance().GetCallerAgentCardByAgentId(agentId, *agentCard);
     if (innerErrorCode != ERR_OK) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "GetAgentCardByAgentId error: %{public}d", innerErrorCode);
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "GetCallerAgentCardByAgentId error: %{public}d", innerErrorCode);
         return;
     }
     context->SetAgentCard(agentCard);
@@ -448,16 +500,17 @@ void JsAgentExtension::BindContext(napi_env env, napi_value obj, std::shared_ptr
         TAG_LOGE(AAFwkTag::SER_ROUTER, "get context native obj failed");
         return;
     }
-    auto workContext = new (std::nothrow) std::weak_ptr<AgentExtensionContext>(context);
+    auto workContext = new (std::nothrow) std::weak_ptr<Context>(std::static_pointer_cast<Context>(context));
     napi_coerce_to_native_binding_object(
         env, contextObj, DetachCallbackFunc, AttachAgentExtensionContext, workContext, nullptr);
+    SetJsAgentExtensionContext(env, contextObj, context);
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Bind");
     context->Bind(jsRuntime_, shellContextRef_.get());
     napi_set_named_property(env, obj, "context", contextObj);
 
     auto res = napi_wrap(env, contextObj, workContext,
         [](napi_env, void* data, void*) {
-            delete static_cast<std::weak_ptr<AgentExtensionContext>*>(data);
+            delete static_cast<std::weak_ptr<Context>*>(data);
         },
         nullptr, nullptr);
     if (res != napi_ok && workContext != nullptr) {

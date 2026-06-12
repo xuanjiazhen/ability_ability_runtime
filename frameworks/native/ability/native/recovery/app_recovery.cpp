@@ -33,6 +33,7 @@
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
 #include "js_ui_ability.h"
+#include "jsnapi_expo.h"
 #include "mission_info.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
@@ -191,6 +192,9 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
 {
     TAG_LOGI(AAFwkTag::RECOVERY, "begin");
     bool ret = IsNeedSaveAppState(reason);
+    if (reason == StateReason::APP_FREEZE) {
+        panda::JSNApi::NotifyOnANR();
+    }
     if (!ret && this->freezeCallback ==  nullptr) {
         return false;
     }
@@ -244,9 +248,7 @@ bool AppRecovery::ExecuteFreezeCallbackWithVMSafety(const std::shared_ptr<OHOS::
         return true;
     }
 #ifdef SUPPORT_SCREEN
-    OHOS::AbilityRuntime::JsUIAbility& jsAbility = static_cast<AbilityRuntime::JsUIAbility&>(*abilityPtr);
-    AbilityRuntime::JsRuntime& runtime = const_cast<AbilityRuntime::JsRuntime&>(jsAbility.GetJsRuntime());
-    panda::ecmascript::EcmaVM* vm = runtime.GetEcmaVm();
+    panda::ecmascript::EcmaVM* vm = GetVMFromAbility(abilityPtr);
     if (!panda::JSNApi::CheckAndSetAllowCrossThreadExecution(vm)) {
         TAG_LOGE(AAFwkTag::RECOVERY, "VM is in gc process");
         return false;
@@ -256,9 +258,6 @@ bool AppRecovery::ExecuteFreezeCallbackWithVMSafety(const std::shared_ptr<OHOS::
         this->freezeCallback();
         TAG_LOGW(AAFwkTag::RECOVERY, "Freeze callback execution completed");
     }
-#ifdef SUPPORT_SCREEN
-    panda::JSNApi::DisallowCrossThreadExecution(vm);
-#endif
     return true;
 }
 
@@ -326,6 +325,7 @@ bool AppRecovery::TryRecoverApp(StateReason reason)
 {
     if (isEnable_) {
         ScheduleSaveAppState(reason);
+        DisallowCrossThreadExecutionInRecovery();
         PersistAppState();
     }
     return ScheduleRecoverApp(reason);
@@ -618,6 +618,31 @@ bool AppRecovery::IsEtsAPP()
     }
     return appInfo->arkTSMode == OHOS::AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2 ||
         appInfo->arkTSMode == OHOS::AbilityRuntime::CODE_LANGUAGE_ARKTS_HYBRID;
+}
+
+panda::ecmascript::EcmaVM* AppRecovery::GetVMFromAbility(const std::shared_ptr<AbilityRuntime::UIAbility>& abilityPtr)
+{
+    if (!abilityPtr) {
+        return nullptr;
+    }
+    OHOS::AbilityRuntime::JsUIAbility& jsAbility = static_cast<AbilityRuntime::JsUIAbility&>(*abilityPtr);
+    AbilityRuntime::JsRuntime& runtime = const_cast<AbilityRuntime::JsRuntime&>(jsAbility.GetJsRuntime());
+    return runtime.GetEcmaVm();
+}
+
+void AppRecovery::DisallowCrossThreadExecutionInRecovery()
+{
+#ifdef SUPPORT_SCREEN
+    auto abilityPtr = ability_.lock();
+    if (!abilityPtr || !abilityPtr->GetAbilityContext()) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "null ability or context");
+        return;
+    }
+    panda::ecmascript::EcmaVM* vm = GetVMFromAbility(abilityPtr);
+    if (vm != nullptr) {
+        panda::JSNApi::DisallowCrossThreadExecution(vm);
+    }
+#endif
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

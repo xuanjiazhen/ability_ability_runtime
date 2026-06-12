@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,11 +17,13 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdlib>
 #include <dlfcn.h>
 #include <filesystem>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <regex>
+#include <sys/mman.h>
 #include <unistd.h>
 
 #include "bundle_constants.h"
@@ -63,10 +65,8 @@ const std::string ETS_SYSLIB_PATH =
 #endif
 constexpr char BUNDLE_INSTALL_PATH[] = "/data/storage/el1/bundle/";
 constexpr char SANDBOX_ARK_CACHE_PATH[] = "/data/storage/ark-cache/";
-constexpr char SANDBOX_SHARED_BUNDLE_ARK_CACHE_PATH[] =
-    "/data/service/el1/public/for-all-app/shared_bundles_ark_cache/";
 constexpr char MERGE_ABC_PATH[] = "/ets/modules_static.abc";
-const std::string SYS_HSP_FILE_PATH_PREFIX = "/system/app/";
+const std::string PREINSTALL_HOST_AOT_ARK_CACHE_PATH = "/system/app/ark_cache/";
 const std::string ARK_CACHE_NATIVE_PATH = "arm64/";
 
 const char *ETS_ENV_LIBNAME = "libets_environment.z.so";
@@ -129,6 +129,40 @@ private:
     AppLibPathMap appLibPathMap_;
 };
 std::shared_ptr<EtsAppLibNamespaceMgr> g_etsAppLibNamespaceMgr;
+
+bool IsFileExists(const std::string &path)
+{
+    std::error_code errorCode;
+    bool isRegularFile = std::filesystem::is_regular_file(path, errorCode);
+    if (errorCode) {
+        const std::string errorMessage = errorCode.message();
+        TAG_LOGW(AAFwkTag::ETSRUNTIME,
+            "check file exists failed, path: %{public}s, errorCode: %{public}d, "
+            "category: %{public}s, message: %{public}s",
+            path.c_str(), errorCode.value(), errorCode.category().name(), errorMessage.c_str());
+    }
+    return isRegularFile;
+}
+
+std::string GetPreinstallHostAotAnPath(const std::string &bundleName, const std::string &moduleName)
+{
+    if (bundleName.empty() || moduleName.empty()) {
+        return "";
+    }
+    return PREINSTALL_HOST_AOT_ARK_CACHE_PATH + bundleName +
+        std::string(AbilityBase::Constants::FILE_SEPARATOR) + moduleName + ".an";
+}
+
+std::string GetHostPrivateHspAotAnPath(const CommonHspBundleInfo &bundleInfo)
+{
+    if (bundleInfo.bundleName.empty() || bundleInfo.moduleName.empty()) {
+        return "";
+    }
+    return SANDBOX_ARK_CACHE_PATH + ARK_CACHE_NATIVE_PATH + bundleInfo.bundleName +
+        std::string(AbilityBase::Constants::FILE_SEPARATOR) + std::to_string(bundleInfo.versionCode) +
+        std::string(AbilityBase::Constants::FILE_SEPARATOR) + bundleInfo.moduleName + ".an";
+}
+
 } // namespace
 
 std::unique_ptr<ETSRuntime> ETSRuntime::PreFork(const Options &options,
@@ -176,26 +210,43 @@ std::string ETSRuntime::GetAotPath(const Options &options)
     for (const auto& status: options.aotCompileStatusMap) {
         if (IsAotCompiledSuccess(status.second)) {
             aotFiles.push_back(SANDBOX_ARK_CACHE_PATH + ARK_CACHE_NATIVE_PATH + status.first + ".an");
+        } else {
+            std::string anPath = GetPreinstallHostAotAnPath(options.bundleName, status.first);
+            if (!IsFileExists(anPath)) {
+                TAG_LOGW(AAFwkTag::ETSRUNTIME, "preinstall host AOT file is unavailable, skip loading: %{public}s",
+                    anPath.c_str());
+                continue;
+            }
+            TAG_LOGI(AAFwkTag::ETSRUNTIME, "load preinstall host aot an: %{public}s", anPath.c_str());
+            aotFiles.push_back(anPath);
         }
     }
 
     // Handle Outer Hsp
     for (const auto& bundleInfo: options.commonHspBundleInfos) {
-        if (!IsAotCompiledSuccess(bundleInfo.aotCompileStatus) ||
-            bundleInfo.moduleArkTSMode == AppExecFwk::Constants::ARKTS_MODE_DYNAMIC) {
+        if (bundleInfo.moduleArkTSMode == AppExecFwk::Constants::ARKTS_MODE_DYNAMIC) {
+            continue;
+        }
+        if (bundleInfo.bundleName.empty() || bundleInfo.moduleName.empty()) {
+            TAG_LOGW(AAFwkTag::ETSRUNTIME,
+                "skip shared hsp aot with empty bundleName or moduleName, "
+                "bundleName:%{public}s, moduleName:%{public}s",
+                bundleInfo.bundleName.c_str(), bundleInfo.moduleName.c_str());
             continue;
         }
 
-        if (bundleInfo.hapPath.compare(0, SYS_HSP_FILE_PATH_PREFIX.size(), SYS_HSP_FILE_PATH_PREFIX) != 0 &&
-            bundleInfo.hapPath.rfind('/') == std::string::npos) {
+        // Host-private shared HSP AOT is stored in the host app ark cache and has no HSP global AOT status.
+        std::string hostPrivateHspAnPath = GetHostPrivateHspAotAnPath(bundleInfo);
+        if (!hostPrivateHspAnPath.empty() && IsFileExists(hostPrivateHspAnPath)) {
+            TAG_LOGI(AAFwkTag::ETSRUNTIME, "load versioned host private shared hsp aot an: %{public}s",
+                hostPrivateHspAnPath.c_str());
+            aotFiles.push_back(hostPrivateHspAnPath);
             continue;
         }
 
-        // path: <sandbox_path>/<bundleName>/v<versionCode>/arm64/<moduleName>.an
-        std::string outerHspAnPath = SANDBOX_SHARED_BUNDLE_ARK_CACHE_PATH + bundleInfo.bundleName +
-            std::string(AbilityBase::Constants::FILE_SEPARATOR) + std::to_string(bundleInfo.versionCode) +
-            std::string(AbilityBase::Constants::FILE_SEPARATOR) + ARK_CACHE_NATIVE_PATH + bundleInfo.moduleName + ".an";
-        aotFiles.push_back(outerHspAnPath);
+        TAG_LOGW(AAFwkTag::ETSRUNTIME,
+            "host private shared hsp aot file is unavailable, skip loading: %{public}s",
+            hostPrivateHspAnPath.c_str());
     }
 
     std::string aotFilePath;
@@ -233,11 +284,30 @@ bool ETSRuntime::PostFork(const Options &options, std::unique_ptr<Runtime> &jsRu
         auto vm = static_cast<JsRuntime *>(jsRuntimeValid->get())->GetEcmaVm();
         panda::JSNApi::SetHostResolveBufferTrackerForHybridApp(
             vm, HybridJsModuleReader(options.bundleName, options.hapPath, options.isUnique));
+        panda::JSNApi::UpdateArkTSMode(vm, options.arkTSMode);
     }
 
     g_etsEnvFuncs->PostFork(reinterpret_cast<void *>(napiEnv), GetAotPath(options), options.appInnerHspPathList,
-        options.staticHapModuleNameList, options.commonHspBundleInfos, options.eventRunner, options.baseLineProfile);
+        options.staticHapModuleNameList, options.commonHspBundleInfos, options.eventRunner, options.baseLineProfile,
+        options.staticPluginHspPathList, options.bundleName);
     return true;
+}
+
+/*
+ * HWASan's ProtectGap() blocks [0x10000, 0x100000000) with PROT_NONE.
+ * Shadow memory and allocator are placed above 4 GB (aligned to 1 << 32).
+ * ETS runtime needs to allocate heap in the lower 4 GB.
+ * appspawn sets HWASAN_OPTIONS env var whenever HWASan is enabled for
+ * the child process — both via APP_FLAGS_HWASAN_ENABLED and wrap.<bundle>.
+ */
+static void UnmapHwasanProtectGap()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    if (getenv("HWASAN_OPTIONS") == nullptr) {
+        return;
+    }
+    TAG_LOGI(AAFwkTag::ETSRUNTIME, "Unmapping HWASan ProtectGap in lower 4 GB");
+    munmap(reinterpret_cast<void *>(0x10000), 0x100000000UL - 0x10000);
 }
 
 std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options,
@@ -245,6 +315,7 @@ std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options,
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Create called");
+    UnmapHwasanProtectGap();
     if (!RegisterETSEnvFuncs()) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "RegisterETSEnvFuncs failed");
         return std::unique_ptr<ETSRuntime>();
@@ -390,6 +461,97 @@ bool ETSRuntime::Initialize(const Options &options, std::unique_ptr<Runtime> &js
     return true;
 }
 
+void ETSRuntime::ForceFullGC(uint32_t tid)
+{
+    auto env = GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "GetAniEnv failed");
+        return;
+    }
+    ani_status status = ANI_ERROR;
+    ani_namespace imageNameSpace;
+    if ((status = env->FindNamespace("std.core.GC", &imageNameSpace)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "FindNamespace failed, status: %{public}d", status);
+        return;
+    }
+    ani_enum aniEnumInt {};
+    if ((status = env->FindEnum("std.core.GC.Cause", &aniEnumInt)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "FindEnum failed, status: %{public}d", status);
+        return;
+    }
+    ani_enum_item full {};
+    if ((status = env->Enum_GetEnumItemByName(aniEnumInt, "FULL", &full)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Enum_GetEnumItemByName failed, status: %{public}d", status);
+        return;
+    }
+    ani_function gcFunc {};
+    if ((status = env->Namespace_FindFunction(imageNameSpace, "startGC", "E{std.core.GC.Cause}C{std.core.Boolean}:l",
+        &gcFunc)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Namespace_FindFunction failed, status: %{public}d", status);
+        return;
+    }
+    ani_long implPtr;
+    ani_boolean inPlaceMode = true;
+    ani_class boolClass {};
+    if ((status = env->FindClass("std.core.Boolean", &boolClass)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "bool FindClass failed, status: %{public}d", status);
+        return;
+    }
+    ani_method boolCtor {};
+    if ((status = env->Class_FindMethod(boolClass, "<ctor>", "z:", &boolCtor)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "bool Class_FindMethod failed, status: %{public}d", status);
+        return;
+    }
+    ani_object boolObj {};
+    if ((status = env->Object_New(boolClass, boolCtor, &boolObj, inPlaceMode)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "bool Object_New failed, status: %{public}d", status);
+        return;
+    }
+    if ((status = env->Function_Call_Long(gcFunc, &implPtr, full, boolObj)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Function_Call_Long failed, status: %{public}d", status);
+        return;
+    }
+}
+
+void ETSRuntime::XGC()
+{
+    auto env = GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "GetAniEnv failed");
+        return;
+    }
+    ani_status status = ANI_ERROR;
+    ani_class cls {};
+    if ((status = env->FindClass("std.interop.js.JSRuntime", &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "FindClass failed, status: %{public}d", status);
+        return;
+    }
+    ani_static_method ctor {};
+    if ((status = env->Class_FindStaticMethod(cls, "xgc", ":l", &ctor)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Class_FindStaticMethod failed, status: %{public}d", status);
+        return;
+    }
+    ani_long longnum;
+    if ((status = env->Class_CallStaticMethod_Long(cls, ctor, &longnum)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Class_CallStaticMethod_Long failed, status: %{public}d", status);
+        return;
+    }
+    ani_namespace imageNameSpace;
+    if ((status = env->FindNamespace("std.core.GC", &imageNameSpace)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "FindNamespace failed, status: %{public}d", status);
+        return;
+    }
+    ani_function gcFunc {};
+    if ((status = env->Namespace_FindFunction(imageNameSpace, "waitForFinishGC", "l:", &gcFunc)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Namespace_FindFunction failed, status: %{public}d", status);
+        return;
+    }
+    if ((status = env->Function_Call_Void(gcFunc, longnum)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Function_Call_Void failed, status: %{public}d", status);
+        return;
+    }
+}
+
 void ETSRuntime::FinishPreload()
 {
     if (jsRuntime_ != nullptr) {
@@ -467,7 +629,7 @@ void ETSRuntime::PreloadModule(const std::string &moduleName, const std::string 
         return;
     }
 
-    std::string modulePath = BUNDLE_INSTALL_PATH + moduleName + MERGE_ABC_PATH;
+    std::string modulePath = ExtractorUtil::GetLoadFilePath(hapPath);
     if (!g_etsEnvFuncs->PreloadModule(modulePath)) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "PreloadModule failed");
     }
@@ -515,7 +677,7 @@ std::unique_ptr<AppExecFwk::ETSNativeReference> ETSRuntime::LoadEtsModule(const 
         return std::unique_ptr<AppExecFwk::ETSNativeReference>();
     }
 
-    std::string modulePath = BUNDLE_INSTALL_PATH + moduleName_ + MERGE_ABC_PATH;
+    std::string modulePath = ExtractorUtil::GetLoadFilePath(hapPath);
     std::string entryPath = HandleOhmUrlSrcEntry(srcEntrance);
     void *cls = nullptr;
     void *obj = nullptr;

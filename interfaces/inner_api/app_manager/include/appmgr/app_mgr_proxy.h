@@ -22,6 +22,7 @@
 #include "app_mgr_interface.h"
 #include "bundle_info.h"
 #include "iremote_proxy.h"
+#include "mem_dump_callback_interface.h"
 #include "memory_level_info.h"
 #include "running_process_info.h"
 #include "want.h"
@@ -59,6 +60,13 @@ public:
      * @param recordId id of the app record
      */
     virtual void PreloadModuleFinished(const int32_t recordId) override;
+
+    virtual int32_t MakeImage(const AAFwk::Want &want, int32_t userId, AppExecFwk::PreloadMode preloadMode,
+        int32_t appIndex = 0, sptr<IImageErrorHandler> errorHandler = nullptr) override;
+
+    virtual int32_t DestroyImage(uint64_t checkpointId, sptr<IImageErrorHandler> errorHandler = nullptr) override;
+
+    virtual int32_t NotifyTemplateProcessDeepFrozen(int32_t pid) override;
 
     /**
      * ApplicationForegrounded, call ApplicationForegrounded() through proxy object,
@@ -212,6 +220,18 @@ public:
     virtual int32_t GetProcessRunningInfosByUserId(std::vector<RunningProcessInfo> &info, int32_t userId) override;
 
     /**
+     * GetProcessRunningInfosByAccessTokenId, call GetProcessRunningInfosByAccessTokenId()
+     * through proxy project. Obtains information about application processes
+     * that are running on the device by accessTokenId.
+     *
+     * @param accessTokenId, accessTokenId.
+     * @param info, Running process information list.
+     * @return ERR_OK ,return back success，others fail.
+     */
+    virtual int32_t GetProcessRunningInfosByAccessTokenId(uint32_t accessTokenId,
+        std::vector<RunningProcessInfo> &info) override;
+
+    /**
      * GetProcessRunningInformation, call GetProcessRunningInformation() through proxy project.
      * Obtains information about current application process which is running on the device.
      *
@@ -267,6 +287,27 @@ public:
     virtual int32_t DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info) override;
 
     /**
+     * DumpMem, call DumpMem() through proxy project.
+     * triggerGC and dump application's memory info.
+     *
+     * @param info, pid tid needGc needSnapshot
+     * @param callback The callback to receive dump result
+     * @return ERR_OK ,return back success, others fail.
+     */
+    virtual int32_t DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback) override;
+
+    /**
+     * ReportDumpMemResult, call ReportDumpMemResult() through proxy project.
+     * Report dump result to appmgr, appmgr will forward to hidumper via callback.
+     *
+     * @param callback The callback received from ScheduleMem
+     * @param dumpResult The dump result string
+     * @return ERR_OK ,return back success, others fail.
+     */
+    virtual int32_t ReportDumpMemResult(sptr<IMemDumpCallback> callback,
+        const std::string &dumpResult) override;
+
+    /**
      * Notify that the ability stage has been updated
      * @param recordId, the app record.
      */
@@ -291,6 +332,10 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UnregisterApplicationStateObserver(const sptr<IApplicationStateObserver> &observer) override;
+
+    int32_t RegisterImageProcessStateObserver(const sptr<IImageProcessStateObserver> &observer) override;
+
+    int32_t UnregisterImageProcessStateObserver(const sptr<IImageProcessStateObserver> &observer) override;
 
     /**
      * Register application or process state observer.
@@ -425,6 +470,8 @@ public:
      * @return Returns true on success, others on failure.
      */
     virtual bool SetAppFreezeFilter(int32_t pid) override;
+
+    virtual void UpdateFreezeExcludedPid(bool isAdd, int32_t targetPid, int32_t profilerPid) override;
 
     virtual int32_t GetConfiguration(Configuration& config) override;
 
@@ -783,6 +830,8 @@ public:
 
     int32_t IsProcessCacheSupported(int32_t pid, bool &isSupported) override;
 
+    int32_t IsChildProcessSupported(bool isNative, bool &isSupported) override;
+
     int32_t SetProcessCacheEnable(int32_t pid, bool enable) override;
 
     int32_t LockProcessCache(int32_t pid, bool isLock) override;
@@ -919,6 +968,30 @@ public:
     virtual int32_t PreloadExtension(const AAFwk::Want &want, int32_t appIndex, int32_t userId) override;
 
     void SetProcessPrepareExit(int32_t pid) override;
+    
+    /**
+     * @brief set TerminateTimeOut flag.
+     * @param token Ability identify.
+     */
+    void SetTerminateTimeOutFlag(const sptr<IRemoteObject> token) override;
+    /**
+     * Get all ability infos
+     *
+     * @param pid if pid is -1, query all ability infos, otherwise query ability infos for this pid
+     * @param infos ability infos
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos) override;
+
+    /**
+     * Enable delayed process exit.
+     *
+     * @param pid Process id.
+     * @param enabled Whether enable delayed process exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t EnableDelayedProcessExit(int32_t pid, bool enabled) override;
+    void CancelDelayedExitTask(int32_t pid) override;
 private:
     bool SendTransactCmd(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     bool WriteInterfaceToken(MessageParcel &data);

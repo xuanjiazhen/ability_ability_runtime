@@ -50,6 +50,7 @@ ohos_shared_library("cj_environment") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
+    cfi_policy = "adaptive"
     debug = false
   }
 
@@ -59,6 +60,7 @@ ohos_shared_library("cj_environment") {
 
   external_deps = [
     "hilog:libhilog",
+    "napi:cj_backtrace",
   ]
 
   if (current_os == "ohos") {

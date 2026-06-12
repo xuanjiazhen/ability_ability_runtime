@@ -30,6 +30,7 @@
 namespace OHOS {
 namespace AAFwk {
 using ProxyClearProxyCallback = std::function<void()>;
+constexpr int32_t DEFAULT_HIDE_SENSITIVE_TYPE = 4;
 #ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
 using namespace AccessControl::SandboxManager;
 #endif // ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
@@ -68,7 +69,7 @@ public:
      */
     int32_t GrantUriPermissionPrivileged(const std::vector<Uri> &uriVec, uint32_t flag,
         const std::string &targetBundleName, int32_t appIndex = 0, uint32_t initiatorTokenId = 0,
-        int32_t hideSensitiveType = 0);
+        int32_t hideSensitiveType = DEFAULT_HIDE_SENSITIVE_TYPE);
     
     /**
      * @brief Authorize the uri permission to targetBundleName with permission type.Only for foundation.
@@ -84,6 +85,18 @@ public:
     int32_t GrantUriPermissionWithType(const std::vector<Uri> &uriVec, uint32_t flag,
         const std::string &targetBundleName, int32_t appIndex, uint32_t initiatorTokenId,
         int32_t hideSensitiveType, const std::vector<int32_t> &permissionTypes);
+
+    /**
+     * @brief Authorize the uri permission to targetTokenId. Only for SA.
+     * @param uriVec The file uri list.
+     * @param flag Want::FLAG_AUTH_READ_URI_PERMISSION or Want::FLAG_AUTH_WRITE_URI_PERMISSION.
+     * @param targetTokenId The target application tokenId.
+     * @param oriCallerTokenId The original caller tokenId. Only effective when the caller has
+     *                        PERMISSION_GRANT_URI_PERMISSION_PRIVILEGED permission.
+     * @return Returns ERR_OK if the authorization is successful, otherwise returns error code.
+     */
+    int32_t GrantUriPermission(const std::vector<std::string>& uriVec, uint32_t flag,
+        uint32_t targetTokenId, uint32_t oriCallerTokenId = 0);
 
     /**
      * @brief Clear user's all uri authorization record with auto remove flag.
@@ -127,7 +140,7 @@ public:
     std::vector<CheckResult> CheckUriAuthorizationWithType(const std::vector<std::string> &uriVec,
         uint32_t flag, uint32_t tokenId);
 
-    int32_t ClearPermissionTokenByMap(uint32_t tokenId, uint64_t timeNow);
+    int32_t ClearPermissionTokenByMap(uint32_t tokenId);
 
     int32_t GrantUriPermissionByKey(const std::string &key, uint32_t flag, uint32_t targetTokenId);
 

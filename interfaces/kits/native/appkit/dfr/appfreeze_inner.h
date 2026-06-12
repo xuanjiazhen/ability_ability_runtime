@@ -20,6 +20,7 @@
 #include <thread>
 #include <set>
 #include <sys/types.h>
+#include <condition_variable>
 
 #include "refbase.h"
 #include "singleton.h"
@@ -30,6 +31,7 @@
 #include "application_impl.h"
 #include "fault_data.h"
 #include "task_handler_wrap.h"
+#include "ffrt.h"
 
 #define OHOS_TEMP_FAILURE_RETRY(exp)               \
     ({                                             \
@@ -40,6 +42,9 @@
         _rc;                                       \
     })
 
+namespace panda {
+struct GCStatistic;
+}
 namespace OHOS {
 namespace AppExecFwk {
 class AppfreezeInner {
@@ -60,6 +65,7 @@ public:
     void SetAppDebug(bool isAppDebug);
     void SetAppInForeground(bool isInForeground);
     void SetMainThreadSample(bool isEnableMainThreadSample);
+    void SetReportLifeCycleAsAppfreeze(bool reportLifecycleToFreeze);
     void SetAppfreezeApplication(const std::shared_ptr<OHOSApplication> &application);
     std::string GetProcessLifeCycle();
 
@@ -70,26 +76,46 @@ private:
     int NotifyANR(const FaultData& faultData);
     bool IsExitApp(const std::string& name);
     bool IsAppFreeze(const std::string& name);
+    bool IsAppFreezeWarning(const std::string& name);
     bool IsHandleAppfreeze();
     std::string GetProcStatm(int32_t pid);
     bool GetAppInForeground();
     bool GetMainThreadSample();
+    bool GetReportLifeCycleAsAppfreeze();
     void EnableFreezeSample(FaultData& newFaultData);
     void ReportAppfreezeTask(const FaultData& faultData, bool onlyMainThread);
-    std::string LogFormat(size_t totalSize, size_t objectSize);
+    std::string LogFormatHeapSize(size_t totalSize, size_t objectSize, size_t sharedSize);
     void GetApplicationInfo(FaultData& faultData);
     bool GetProcessStartTime(pid_t tid, unsigned long long &startTime);
     bool ReadFdToString(int fd, std::string& content);
+    int TransformHicollieFaultNumber(const std::string& faultName);
+    std::string GetMainStackDump(int32_t pid);
+    std::string LogFormatGC(const panda::GCStatistic& gCStatistic);
+    std::string ParseIOValue(std::string ioStr);
+    std::string GetProcessIOStr();
+    int64_t GetFreezeCurrentTime();
+    bool IsBlockTimeInGCPeriod(uint64_t halfTime, uint64_t blockTime,
+        uint64_t lastStartTime, uint64_t lastEndTime);
+    bool CheckBlockInGC(const std::string& faultName, uint64_t lastStartTime, uint64_t lastEndTime);
+    bool CheckSharedGC(std::string lastType);
 
     static std::mutex singletonMutex_;
     static std::shared_ptr<AppfreezeInner> instance_;
     bool isAppDebug_ = false;
     bool isInForeground_ = true;
     bool isEnableMainThreadSample_ = false;
+    bool reportLifecycleToFreeze_ = false;
     std::mutex handlingMutex_;
     std::list<FaultData> handlinglist_;
     std::shared_ptr<AAFwk::TaskHandlerWrap> appfreezeInnerTaskHandler_;
     std::shared_ptr<OHOSApplication> application_ = nullptr;
+
+    ffrt::mutex mainStackMutex_;
+    ffrt::condition_variable mainStackCv_;
+    std::string lastMainStack_ = "";
+    std::atomic<int64_t> lastMainStackTime_ = 0;
+    std::atomic<uint64_t> threadBlock3STime_ = 0;
+    std::atomic<uint64_t> lifeCycleHalfTime_ = 0;
 };
 
 class MainHandlerDumper : public Dumper {

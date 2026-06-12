@@ -25,6 +25,8 @@
 #include "app_malloc_info.h"
 #include "app_jsheap_mem_info.h"
 #include "app_cjheap_mem_info.h"
+#include "app_mem_dump_info.h"
+#include "mem_dump_callback_interface.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -69,7 +71,10 @@ public:
      * @param ability The ability info.
      * @return
      */
-    void LaunchAbility(const std::shared_ptr<AbilityRunningRecord> &ability);
+    void LaunchAbility(const std::shared_ptr<AbilityRunningRecord> &ability,
+        std::shared_ptr<AppUpdateInfo> updateInfo = nullptr);
+
+    void ScheduleUpdateWorkProcessInfo(std::shared_ptr<AppUpdateInfo> updateInfo);
 
     /**
      * ScheduleTerminate, call ScheduleTerminateApplication() through proxy project,
@@ -148,6 +153,17 @@ public:
      * @return
      */
     void ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info);
+
+    /**
+     * ScheduleMem, call ScheduleMem() through proxy project,
+     * triggerGC and dump application's memory info.
+     *
+     * @param info, pid, tid, needGc, needSnapshot
+     * @param callback The callback to receive dump result
+     *
+     * @return
+     */
+    void ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback);
 
     /**
      * LowMemoryWarning, call ScheduleLowMemory() through proxy project,

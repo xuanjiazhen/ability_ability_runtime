@@ -62,7 +62,13 @@ int32_t AgentManagerClient::GetAgentCardsByBundleName(const std::string &bundleN
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentmgr");
         return ERR_NULL_AGENT_MGR_PROXY;
     }
-    return agentMgr->GetAgentCardsByBundleName(bundleName, cards);
+    AgentCardsRawData rawData;
+    auto ret = agentMgr->GetAgentCardsByBundleName(bundleName, rawData);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "get by bundle failed: %{public}d", ret);
+        return ret;
+    }
+    return AgentCardsRawData::ToAgentCardVec(rawData, cards);
 }
 
 int32_t AgentManagerClient::GetAgentCardByAgentId(const std::string &bundleName, const std::string &agentId,
@@ -75,6 +81,50 @@ int32_t AgentManagerClient::GetAgentCardByAgentId(const std::string &bundleName,
         return ERR_NULL_AGENT_MGR_PROXY;
     }
     return agentMgr->GetAgentCardByAgentId(bundleName, agentId, card);
+}
+
+int32_t AgentManagerClient::GetCallerAgentCardByAgentId(const std::string &agentId, AgentCard &card)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto agentMgr = GetAgentMgrProxy();
+    if (agentMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentmgr");
+        return ERR_NULL_AGENT_MGR_PROXY;
+    }
+    return agentMgr->GetCallerAgentCardByAgentId(agentId, card);
+}
+
+int32_t AgentManagerClient::RegisterAgentCard(const AgentCard &card)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto agentMgr = GetAgentMgrProxy();
+    if (agentMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentmgr");
+        return ERR_NULL_AGENT_MGR_PROXY;
+    }
+    return agentMgr->RegisterAgentCard(card);
+}
+
+int32_t AgentManagerClient::UpdateAgentCard(const AgentCard &card)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto agentMgr = GetAgentMgrProxy();
+    if (agentMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentmgr");
+        return ERR_NULL_AGENT_MGR_PROXY;
+    }
+    return agentMgr->UpdateAgentCard(card);
+}
+
+int32_t AgentManagerClient::DeleteAgentCard(const std::string &bundleName, const std::string &agentId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto agentMgr = GetAgentMgrProxy();
+    if (agentMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentmgr");
+        return ERR_NULL_AGENT_MGR_PROXY;
+    }
+    return agentMgr->DeleteAgentCard(bundleName, agentId);
 }
 
 int32_t AgentManagerClient::ConnectAgentExtensionAbility(const AAFwk::Want &want,
@@ -96,6 +146,39 @@ int32_t AgentManagerClient::DisconnectAgentExtensionAbility(const sptr<AAFwk::IA
         return ERR_NULL_AGENT_MGR_PROXY;
     }
     return agentMgr->DisconnectAgentExtensionAbility(connection);
+}
+
+int32_t AgentManagerClient::ConnectServiceExtensionAbility(const sptr<IRemoteObject> &callerToken,
+    const AAFwk::Want &want,
+    const sptr<AAFwk::IAbilityConnection> &connection)
+{
+    auto agentMgr = GetAgentMgrProxy();
+    if (agentMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentmgr");
+        return ERR_NULL_AGENT_MGR_PROXY;
+    }
+    return agentMgr->ConnectServiceExtensionAbility(callerToken, want, connection);
+}
+
+int32_t AgentManagerClient::DisconnectServiceExtensionAbility(const sptr<IRemoteObject> &callerToken,
+    const sptr<AAFwk::IAbilityConnection> &connection)
+{
+    auto agentMgr = GetAgentMgrProxy();
+    if (agentMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentmgr");
+        return ERR_NULL_AGENT_MGR_PROXY;
+    }
+    return agentMgr->DisconnectServiceExtensionAbility(callerToken, connection);
+}
+
+int32_t AgentManagerClient::NotifyLowCodeAgentComplete(const std::string &agentId)
+{
+    auto agentMgr = GetAgentMgrProxy();
+    if (agentMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentmgr");
+        return ERR_NULL_AGENT_MGR_PROXY;
+    }
+    return agentMgr->NotifyLowCodeAgentComplete(agentId);
 }
 
 sptr<IAgentManager> AgentManagerClient::GetAgentMgrProxy()

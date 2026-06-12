@@ -221,6 +221,10 @@ class AbilityContext extends Context {
     return this.__context_impl__.requestModalUIExtension(want, callback);
   }
 
+  requestModalUIExtensionWithAccount(want, accountId, callback) {
+    return this.__context_impl__.requestModalUIExtensionWithAccount(want, accountId, callback);
+  }
+
   showAbility() {
     return this.__context_impl__.showAbility();
   }
@@ -273,8 +277,16 @@ class AbilityContext extends Context {
     return this.__context_impl__.startSelfUIAbilityInCurrentProcess(want, specifiedFlag, options);
   }
 
+  startSelfUIAbilityInChildProcess(want, specifiedFlag) {
+    return this.__context_impl__.startSelfUIAbilityInChildProcess(want, specifiedFlag);
+  }
+
   restartApp(want) {
     return this.__context_impl__.restartApp(want);
+  }
+
+  startSelf() {
+    return this.__context_impl__.startSelf();
   }
 }
 

@@ -177,6 +177,30 @@ int32_t UriPermissionManagerClient::GrantUriPermissionWithType(const std::vector
     return funcResult;
 }
 
+int32_t UriPermissionManagerClient::GrantUriPermission(const std::vector<std::string>& uriVec,
+    uint32_t flag, uint32_t targetTokenId, uint32_t oriCallerTokenId)
+{
+    if (uriVec.empty() || uriVec.size() > MAX_URI_COUNT) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "uriVec empty or exceed maxSize %{public}d, uriVec size: %{public}zu",
+            MAX_URI_COUNT, uriVec.size());
+        return ERR_URI_LIST_OUT_OF_RANGE;
+    }
+    TAG_LOGD(AAFwkTag::URIPERMMGR, "GrantUriPermission with tokenId call");
+    auto uriPermMgr = ConnectUriPermService();
+    if (uriPermMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "null uriPermMgr");
+        return INNER_ERR;
+    }
+    int32_t funcResult = INNER_ERR;
+    auto ret = uriPermMgr->GrantUriPermission(uriVec, flag, targetTokenId, oriCallerTokenId,
+        funcResult);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "IPC failed, error:%{public}d", ret);
+        return INNER_ERR;
+    }
+    return funcResult;
+}
+
 int32_t UriPermissionManagerClient::GrantUriPermissionByKey(const std::string &key, uint32_t flag,
     uint32_t targetTokenId)
 {
@@ -447,7 +471,7 @@ bool UriPermissionManagerClient::IsUriPermServiceStarted()
     return isUriPermServiceStarted_.load();
 }
 
-int32_t UriPermissionManagerClient::ClearPermissionTokenByMap(uint32_t tokenId, uint64_t timeNow)
+int32_t UriPermissionManagerClient::ClearPermissionTokenByMap(uint32_t tokenId)
 {
     if (!IsUriPermServiceStarted()) {
         TAG_LOGD(AAFwkTag::URIPERMMGR, "upms is not started");
@@ -459,7 +483,7 @@ int32_t UriPermissionManagerClient::ClearPermissionTokenByMap(uint32_t tokenId, 
         return INNER_ERR;
     }
     int32_t funcResult = INNER_ERR;
-    auto res = uriPermMgr->ClearPermissionTokenByMap(tokenId, timeNow, funcResult);
+    auto res = uriPermMgr->ClearPermissionTokenByMap(tokenId, funcResult);
     if (res != ERR_OK) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "IPC failed, error:%{public}d", res);
         return INNER_ERR;

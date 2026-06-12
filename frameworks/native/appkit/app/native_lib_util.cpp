@@ -49,6 +49,9 @@ void GetHapSoPath(const HapModuleInfo &hapInfo, AppLibPathMap &appLibPaths, bool
     TAG_LOGD(
         AAFwkTag::APPKIT, "appLibPathKey: %{private}s, lib path: %{private}s", appLibPathKey.c_str(), libPath.c_str());
     appLibPaths[appLibPathKey].emplace_back(libPath);
+    if (!hapInfo.librarySupportDirectory.empty()) {
+        TraverseLibrarySupportDirectory(hapInfo.librarySupportDirectory, libPath, appLibPathKey, appLibPaths);
+    }
 }
 
 void GetHspNativeLibPath(const BaseSharedBundleInfo &hspInfo, AppLibPathMap &appLibPaths, bool isPreInstallApp)
@@ -75,6 +78,10 @@ void GetHspNativeLibPath(const BaseSharedBundleInfo &hspInfo, AppLibPathMap &app
     TAG_LOGD(
         AAFwkTag::APPKIT, "appLibPathKey: %{private}s, libPath: %{private}s", appLibPathKey.c_str(), libPath.c_str());
     appLibPaths[appLibPathKey].emplace_back(libPath);
+
+    if (!hspInfo.librarySupportDirectory.empty()) {
+        TraverseLibrarySupportDirectory(hspInfo.librarySupportDirectory, libPath, appLibPathKey, appLibPaths);
+    }
 }
 
 void GetPatchNativeLibPath(const HapModuleInfo &hapInfo, std::string &patchNativeLibraryPath,
@@ -101,6 +108,37 @@ void GetPatchNativeLibPath(const HapModuleInfo &hapInfo, std::string &patchNativ
     TAG_LOGD(AAFwkTag::APPKIT, "appLibPathKey: %{public}s, patch lib path: %{private}s", appLibPathKey.c_str(),
         patchLibPath.c_str());
     appLibPaths[appLibPathKey].emplace_back(patchLibPath);
+    if (!hapInfo.librarySupportDirectory.empty()) {
+        TraverseLibrarySupportDirectory(hapInfo.librarySupportDirectory, patchLibPath, appLibPathKey, appLibPaths);
+    }
+}
+
+void GetLibrarySupportDirectory(
+    const std::vector<HapModuleInfo> &hapModuleInfos,
+    const std::string &nativeLibraryPath,
+    AppLibPathMap &appLibPaths)
+{
+    std::string libPath = AbilityBase::Constants::LOCAL_CODE_PATH;
+    libPath += (libPath.back() == '/') ? nativeLibraryPath : "/" + nativeLibraryPath;
+    for (auto &hapInfo : hapModuleInfos) {
+        if (hapInfo.librarySupportDirectory.empty() || hapInfo.isLibIsolated) {
+            continue;
+        }
+        TraverseLibrarySupportDirectory(hapInfo.librarySupportDirectory, libPath, "default", appLibPaths);
+    }
+}
+
+void TraverseLibrarySupportDirectory(
+    const std::vector<std::string> &librarySupportDirectory,
+    const std::string &prefixPath,
+    const std::string &appLibPathKey,
+    AppLibPathMap &appLibPaths)
+{
+    for (const auto &dir : librarySupportDirectory) {
+        std::string supportLibPath = prefixPath + "/" + dir;
+        TAG_LOGD(AAFwkTag::APPKIT, "supportLibPath: %{public}s", supportLibPath.c_str());
+        appLibPaths[appLibPathKey].emplace_back(supportLibPath);
+    }
 }
 } // AppExecFwk
 } // namespace OHOS

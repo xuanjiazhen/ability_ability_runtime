@@ -109,6 +109,14 @@ public:
      */
     int32_t OnAuthorize(const sptr<IRemoteObject> &hostProxy, const std::string &data);
 
+    /**
+     * @brief Called when a low-code agent is invoked.
+     *
+     * @param agentId The low-code agent id.
+     * @return Returns 0 on success, error code otherwise.
+     */
+    int32_t OnAgentInvoked(const std::string &agentId);
+
 private:
     napi_value CallObjectMethod(const char* name, napi_value const *argv = nullptr, size_t argc = 0);
 
@@ -122,7 +130,11 @@ private:
 
     void HandleAuthorize(sptr<IRemoteObject> hostProxy, const std::string &data);
 
+    void HandleAgentInvoked(const std::string &agentId);
+
     sptr<IRemoteObject> GetHostProxyFromWant(const AAFwk::Want &want);
+
+    void ReleaseHostProxyReference(std::unique_ptr<NativeReference> &hostProxyRef);
 
     JsRuntime& jsRuntime_;
     std::unique_ptr<NativeReference> jsObj_;

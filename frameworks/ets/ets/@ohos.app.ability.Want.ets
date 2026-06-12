@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -83,7 +83,7 @@ class RecordWriter {
     } else if (obj instanceof Object) {
       const objCls = Class.of(obj);
       if (objCls.isFixedArray()) {
-        this.writeBuildArray(RecordWriter.asFixedArray(obj));
+        this.writeBuildArray(RecordWriter.asFixedArray<Any>(obj));
       }
     } else {
         this.buffer.append('null');
@@ -174,7 +174,7 @@ class RecordWriter {
           let num: number = Number(value);
           if (Number.isInteger(num)) {
             if (num >= int32Min && num <= int32Max) {
-              localWantParams?.setParam(key, num as int);
+              localWantParams?.setParam(key, num.toInt());
             } else {
               localWantParams?.setParam(key, num as double);
             }
@@ -265,7 +265,7 @@ class RecordWriter {
       if (key === VALUE_PROPERTY) {
         let value: double = obj;
         if (Number.isInteger(value) && value >= int32Min && value <= int32Max) {
-          wantParams?.setParam(key, value as int);
+          wantParams?.setParam(key, value.toInt());
         } else {
           wantParams?.setParam(key, value as double);
         }
@@ -308,7 +308,7 @@ class RecordWriter {
           complexArray.doubleList.push(Number(num));
         });
         complexArray.intList = [];
-        complexArray.doubleList.push((element as number));
+        complexArray.doubleList.push((element.toDouble()));
       } else {
         complexArray.intList.push((element as int));
       }
@@ -347,7 +347,7 @@ class RecordWriter {
             complexArray.intList = [];
             complexArray.doubleList.push(enumNum as double);
           } else {
-            complexArray.intList.push(enumNum as int);
+            complexArray.intList.push(enumNum.toInt());
           }
         } else {
           hilog.debug(DOMAIN_ID, TAG, `array value type Class double`);
@@ -390,6 +390,9 @@ class RecordWriter {
           complexArray.boolList.push((element as Boolean));
           break;
         case 'number':
+        case 'int':
+        case 'long':
+        case 'float':
           try {
             this.unwrapArrayElementNumber(element, complexArray);
           } catch (err) {

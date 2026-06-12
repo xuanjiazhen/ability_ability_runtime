@@ -45,7 +45,7 @@ const int64_t START_FLAG_BASE = 1;
 const int32_t MAX_COST_TIME = 500;
 struct AppSpawnStartMsg {
     uint64_t accessTokenIdEx;
-    uint64_t flags;
+    uint64_t flags = 0;
     uint32_t accessTokenId;
     uint32_t hapFlags = 0; // whether is pre installed hap
     std::vector<int32_t> gids;
@@ -57,11 +57,13 @@ struct AppSpawnStartMsg {
     std::string overlayInfo; // overlay hap resource path list
     std::string ownerId;
     std::string provisionType;
+    std::string appDistributionType;
     std::string atomicAccount = "";
     std::string extensionSandboxPath;
     std::string processType = "";
     std::string extensionTypeName;
     std::string appSignType;
+    std::string imageName;
     HspList hspList; // list of harmony shared package
     std::set<std::string> permissions;
     std::map<std::string, std::string> appEnv; // environment variable to be set to the process
@@ -80,6 +82,9 @@ struct AppSpawnStartMsg {
     int32_t childProcessType = CHILD_PROCESS_TYPE_NOT_CHILD;
 #endif // SUPPORT_CHILD_PROCESS
     int32_t hostProcessUid = 0; // host process uid, only use for nwebspawn.
+    int32_t templatePid = -1;
+    int32_t imagePid = -1;
+    uint64_t checkpointId = 0;
     uint8_t setAllowInternet;
     uint8_t allowInternet; // hap socket allowed
     uint8_t reserved1;
@@ -116,6 +121,8 @@ struct StartFlags {
     static const int TEMP_JIT_ALLOW = 28;
     static const int DLP_MANAGER_FULL_CONTROL = 37;
     static const int DLP_MANAGER_READ_ONLY = 38;
+    static const int CLOUD_FILE_SYNC_ENABLED = 39;
+    static const int APP_FLAGS_DEBUGSERVER = 44;
 };
 
 struct CreateStartMsgParam {
@@ -265,6 +272,8 @@ public:
      * @param pid, pid of app process, get from appSpawn.
      */
     virtual int32_t StartProcess(const AppSpawnStartMsg &startMsg, pid_t &pid);
+
+    virtual int32_t StartImageProcess(const AppSpawnStartMsg &startMsg, pid_t &pid, uint64_t &checkpointId);
 
     /**
      * Get render process termination status.

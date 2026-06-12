@@ -58,7 +58,10 @@ void InsightIntentSysEventReceiver::SaveInsightIntentInfos(const std::string &bu
         ret = IN_PROCESS_CALL(bundleMgrHelper->GetJsonProfile(AppExecFwk::INTENT_PROFILE, bundleName,
             moduleNameLocal, profile, userId));
         if (ret != ERR_OK) {
-            TAG_LOGE(AAFwkTag::INTENT, "GetJsonProfile failed, code: %{public}d", ret);
+            TAG_LOGW(AAFwkTag::INTENT, "GetJsonProfile failed, code: %{public}d", ret);
+            if (DelayedSingleton<InsightIntentDbCache>::GetInstance()->HasBundleCache(bundleName)) {
+                DeleteInsightIntent(bundleName, moduleNameLocal, userId);
+            }
             continue;
         }
 
@@ -69,7 +72,10 @@ void InsightIntentSysEventReceiver::SaveInsightIntentInfos(const std::string &bu
             !AbilityRuntime::InsightIntentProfile::TransformTo(profile, configIntentInfos) ||
             configIntentInfos.size() == 0);
         if (isTransformExtractIntent && isTransformConfigIntent) {
-            TAG_LOGD(AAFwkTag::INTENT, "transform profile failed, profile:%{public}s", profile.c_str());
+            TAG_LOGW(AAFwkTag::INTENT,
+                "transform profile failed, deleting config, bundle:%{public}s module:%{public}s",
+                bundleName.c_str(), moduleNameLocal.c_str());
+            DeleteInsightIntent(bundleName, moduleNameLocal, userId);
             continue;
         }
 
@@ -87,9 +93,25 @@ void InsightIntentSysEventReceiver::SaveInsightIntentInfos(const std::string &bu
     }
 }
 
+void InsightIntentSysEventReceiver::DeleteInsightIntent(const std::string &bundleName,
+    const std::string &moduleName, int32_t userId)
+{
+    std::vector<ExtractInsightIntentInfo> intentInfos;
+    std::vector<InsightIntentInfo> configIntentInfos;
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentInfoByName(
+        bundleName, userId, intentInfos);
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetConfigInsightIntentInfoByName(
+        bundleName, userId, configIntentInfos);
+    if (!intentInfos.empty() || !configIntentInfos.empty()) {
+        TAG_LOGI(AAFwkTag::INTENT, "update bundleName: %{public}s to no insight intent",
+            bundleName.c_str());
+        DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->DeleteInsightIntentTotalInfo(
+            bundleName, moduleName, userId);
+    }
+}
+
 void InsightIntentSysEventReceiver::LoadInsightIntentInfos(int32_t userId)
 {
-    std::lock_guard<std::mutex> lock(userIdMutex_);
     if (userId == -1) {
         userId = AppExecFwk::OsAccountManagerWrapper::GetCurrentActiveAccountId();
         if (userId == 0) {
@@ -99,11 +121,7 @@ void InsightIntentSysEventReceiver::LoadInsightIntentInfos(int32_t userId)
         }
     }
 
-    TAG_LOGI(AAFwkTag::INTENT, "init insight intent cache start, userId: %{public}d", userId);
-    if (DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->
-        InitInsightIntentCache(userId) == ERR_OK) {
-        TAG_LOGI(AAFwkTag::INTENT, "Load intent from db success");
-    }
+    DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->InitInsightIntentCache(userId);
 
     auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
     if (bundleMgrHelper == nullptr) {
@@ -119,7 +137,6 @@ void InsightIntentSysEventReceiver::LoadInsightIntentInfos(int32_t userId)
         return;
     }
 
-    TAG_LOGI(AAFwkTag::INTENT, "bundleInfos size: %{public}zu", bundleInfos.size());
     bool hasNewIntent = false;
     for (auto &bundleInfo : bundleInfos) {
         if (DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->
@@ -127,9 +144,6 @@ void InsightIntentSysEventReceiver::LoadInsightIntentInfos(int32_t userId)
             continue;
         }
         for (const auto &hapInfo : bundleInfo.hapModuleInfos) {
-            if (!hapInfo.hasIntent) {
-                continue;
-            }
             SaveInsightIntentInfos(bundleInfo.name, hapInfo.moduleName, bundleInfo.versionCode, userId);
             hasNewIntent = true;
         }
@@ -153,7 +167,9 @@ void InsightIntentSysEventReceiver::DeleteInsightIntentInfoByUserId(int32_t user
 
 void InsightIntentSysEventReceiver::HandleBundleScanFinished()
 {
-    auto task = [self = shared_from_this()]() { self->LoadInsightIntentInfos(); };
+    auto task = [self = shared_from_this()]() {
+        self->LoadInsightIntentInfos();
+    };
     ffrt::submit(task);
 }
 
@@ -173,7 +189,15 @@ void InsightIntentSysEventReceiver::HandleUserSwitched(const EventFwk::CommonEve
     TAG_LOGI(AAFwkTag::INTENT, "userId: %{public}d switch to  current userId: %{public}d", lastUserId_, userId);
     lastUserId_ = userId;
 
-    auto task = [self = shared_from_this(), userId]() { self->LoadInsightIntentInfos(userId); };
+    if (DelayedSingleton<InsightIntentDbCache>::GetInstance()->IsCacheInitialized(userId)) {
+        TAG_LOGI(AAFwkTag::INTENT, "UserSwitched: cache already initialized for userId: %{public}d, skipped",
+            userId);
+        return;
+    }
+
+    auto task = [self = shared_from_this(), userId]() {
+        self->LoadInsightIntentInfos(userId);
+    };
     ffrt::submit(task);
 }
 

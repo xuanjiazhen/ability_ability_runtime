@@ -85,8 +85,12 @@ constexpr const char* PRODUCT_PRELOAD_APPLICATION_SETTING_ENABLED = "const.produ
 constexpr const char* FORBID_START = "persist.sys.abilityms.forbid_start";
 constexpr const char* ALLOW_DEBUG_PERMISSION = "persist.sys.abilityms.allow_debug_permission";
 constexpr const char* START_ABILITY_IN_CURRENT_PROCESS = "persist.sys.abilityms.start_ability_in_current_process";
+constexpr const char* SUPPORT_MODULAR_OBJECT_EXTENSION = "const.abilityms.support_modular_object_extension";
 constexpr const char* RESTART_APP_WITH_WINDOW = "persist.sys.abilityms.restart_app_with_window";
+constexpr const char* SUPPORT_NATIVE_UI_ABILITY = "persist.sys.abilityms.support_native_ui_ability";
 constexpr const char* PRODUCT_APPBOOT_SETTING_ENABLED = "const.product.appboot.setting.enabled";
+constexpr const char* IS_ENTERPRISE_DEVICE_TYPE = "const.edm.is_enterprise_device";
+constexpr const char* SUPPORT_DELAYED_PROCESS_EXIT = "const.abilityms.support_delayed_process_exit";
 // Support prepare terminate
 constexpr int32_t PREPARE_TERMINATE_ENABLE_SIZE = 6;
 constexpr const char* PREPARE_TERMINATE_ENABLE_PARAMETER = "persist.sys.prepare_terminate";
@@ -454,6 +458,7 @@ void AppUtils::LoadResidentProcessInExtremeMemory()
 bool AppUtils::IsAllowNativeChildProcess(const std::string &appIdentifier)
 {
     TAG_LOGD(AAFwkTag::DEFAULT, "appId:%{private}s", appIdentifier.c_str());
+    std::lock_guard lock(allowStartNativeProcessAppsMutex_);
     if (!allowStartNativeProcessApps_.isLoaded) {
         LoadAllowNativeChildProcessApps();
         allowStartNativeProcessApps_.isLoaded = true;
@@ -883,6 +888,36 @@ bool AppUtils::IsStartUIAbilityInCurrentProcess()
     return isStartUIAbilityInCurrentProcess_.value;
 }
 
+bool AppUtils::IsSupportModularObjectExtension()
+{
+    if (!isSupportModularObjectExtension_.isLoaded) {
+        isSupportModularObjectExtension_.value = system::GetBoolParameter(SUPPORT_MODULAR_OBJECT_EXTENSION, false);
+        isSupportModularObjectExtension_.isLoaded = true;
+    }
+    TAG_LOGD(AAFwkTag::DEFAULT, "supportModularObjectExtension: %{public}d", isSupportModularObjectExtension_.value);
+    return isSupportModularObjectExtension_.value;
+}
+
+bool AppUtils::IsSupportDelayedProcessExit()
+{
+    if (!isSupportDelayedProcessExit_.isLoaded) {
+        isSupportDelayedProcessExit_.value = system::GetBoolParameter(SUPPORT_DELAYED_PROCESS_EXIT, false);
+        isSupportDelayedProcessExit_.isLoaded = true;
+    }
+    TAG_LOGD(AAFwkTag::DEFAULT, "supportDelayedProcessExit: %{public}d", isSupportDelayedProcessExit_.value);
+    return isSupportDelayedProcessExit_.value;
+}
+
+bool AppUtils::IsEnterpriseDeviceType()
+{
+    if (!isEnterpriseDeviceType_.isLoaded) {
+        isEnterpriseDeviceType_.value = system::GetBoolParameter(IS_ENTERPRISE_DEVICE_TYPE, false);
+        isEnterpriseDeviceType_.isLoaded = true;
+    }
+    TAG_LOGD(AAFwkTag::DEFAULT, "IsEnterpriseDeviceType: %{public}d", isEnterpriseDeviceType_.value);
+    return isEnterpriseDeviceType_.value;
+}
+
 bool AppUtils::IsProductAppbootSettingEnabled()
 {
     if (!isProductAppbootSettingEnabled_.isLoaded) {
@@ -938,6 +973,16 @@ bool AppUtils::IsHybridSpawnUnified()
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "IsHybridSpawnUnified: %{public}d", isHybridSpawnUnified_.value);
     return isHybridSpawnUnified_.value;
+}
+
+bool AppUtils::IsSupportNativeUIAbility()
+{
+    if (!isSupportNativeUIAbility_.isLoaded) {
+        isSupportNativeUIAbility_.value = system::GetBoolParameter(SUPPORT_NATIVE_UI_ABILITY, false);
+        isSupportNativeUIAbility_.isLoaded = true;
+    }
+    TAG_LOGD(AAFwkTag::DEFAULT, "IsSupportNativeUIAbility: %{public}d", isSupportNativeUIAbility_.value);
+    return isSupportNativeUIAbility_.value;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

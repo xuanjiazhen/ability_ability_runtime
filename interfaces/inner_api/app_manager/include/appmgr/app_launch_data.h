@@ -51,6 +51,15 @@ struct StartupTaskData : public Parcelable {
     static StartupTaskData *Unmarshalling(Parcel &parcel);
 };
 
+struct AppUpdateInfo : public Parcelable {
+    int32_t appRecordId = -1;
+    std::string appRunningUniqueId;
+
+    bool ReadFromParcel(Parcel &parcel);
+    virtual bool Marshalling(Parcel &parcel) const override;
+    static AppUpdateInfo *Unmarshalling(Parcel &parcel);
+};
+
 class AppLaunchData : public Parcelable {
 public:
     /**
@@ -232,6 +241,16 @@ public:
         preloadModuleName_ = moduleName;
     }
 
+    inline std::string GetPreloadAbilityName() const
+    {
+        return preloadAbilityName_;
+    }
+
+    inline void SetPreloadAbilityName(const std::string& abilityName)
+    {
+        preloadAbilityName_ = abilityName;
+    }
+
     inline std::string GetInstanceKey() const
     {
         return instanceKey_;
@@ -250,6 +269,16 @@ public:
     std::shared_ptr<StartupTaskData> GetStartupTaskData() const
     {
         return startupTaskData_;
+    }
+
+    void SetImageProcessType(int32_t imageProcessType)
+    {
+        imageProcessType_ = imageProcessType;
+    }
+
+    int32_t GetImageProcessType() const
+    {
+        return imageProcessType_;
     }
 
     /**
@@ -349,6 +378,9 @@ public:
      */
     bool GetDebugFromLocal() const;
 
+    void SetMainProcess(bool isMainProcess);
+    bool GetMainProcess() const;
+
 private:
     bool debugApp_ = false;
     bool jitEnabled_ = false;
@@ -361,6 +393,7 @@ private:
     int32_t recordId_ = 0;
     int32_t uId_ = 0;
     int32_t appIndex_ = 0;
+    int32_t imageProcessType_ = 0;
     std::shared_ptr<UserTestRecord> userTestRecord_ = nullptr;
     ApplicationInfo applicationInfo_;
     Profile profile_;
@@ -369,7 +402,9 @@ private:
     std::string appRunningUniqueId_;
     std::string instanceKey_;
     std::string preloadModuleName_;
+    std::string preloadAbilityName_; // ability name for preloading specific ability (for image creation)
     bool isDebugFromLocal_;
+    bool isMainProcess_ = true;
     std::shared_ptr<StartupTaskData> startupTaskData_ = nullptr;
 };
 }  // namespace AppExecFwk

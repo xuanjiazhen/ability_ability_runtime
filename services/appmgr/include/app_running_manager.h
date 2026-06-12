@@ -36,6 +36,7 @@
 #include "configuration_policy.h"
 #include "iremote_object.h"
 #include "kill_process_config.h"
+#include "mem_dump_callback_interface.h"
 #include "record_query_result.h"
 #include "refbase.h"
 #include "running_process_info.h"
@@ -117,6 +118,8 @@ public:
     std::shared_ptr<AppRunningRecord> FindMasterProcessAppRunningRecord(const std::string &appName,
         const AppExecFwk::AbilityInfo &abilityInfo, const int uid);
 
+    std::shared_ptr<AppRunningRecord> FindMainProcessAppRunningRecord(const int uid);
+
     bool CheckMasterProcessAppRunningRecordIsExist(const std::string &appName,
         const AppExecFwk::AbilityInfo &abilityInfo, const int uid);
 
@@ -179,6 +182,17 @@ public:
      * @return process record.
      */
     std::shared_ptr<AppRunningRecord> GetAppRunningRecordByPid(const pid_t pid);
+
+    /**
+     * GetValidAppRunningRecordByPid, Get valid process record by pid.
+     * Process is considered invalid if terminating, killing, restart flagged,
+     * user request cleaning, caching with blocked flag, or kill precede start.
+     *
+     * @param pid, the application pid.
+     *
+     * @return valid process record, or nullptr if not found or invalid.
+     */
+    std::shared_ptr<AppRunningRecord> GetValidAppRunningRecordByPid(const pid_t pid);
 
     /**
      * GetAppRunningRecordByAbilityToken, Get process record by ability token.
@@ -307,6 +321,16 @@ public:
     int32_t DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info);
 
     /**
+     * DumpMem, call DumpMem() through proxy project.
+     * triggerGC and dump application's memory info.
+     *
+     * @param info The information to be dumped
+     * @param callback The callback to receive dump result
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback);
+
+    /**
      * Set AbilityForegroundingFlag of an app-record to true.
      *
      * @param pid, pid.
@@ -433,7 +457,7 @@ public:
     bool GetPidsByBundleNameUserIdAndAppIndex(const std::string &bundleName,
         const int userId, const int appIndex, std::list<pid_t> &pids);
 
-    bool HandleUserRequestClean(const sptr<IRemoteObject> &abilityToken, pid_t &pid, int32_t &uid);
+    bool HandleUserRequestClean(const sptr<IRemoteObject> &abilityToken, pid_t &pid, int32_t &uid, int32_t &recordId);
 
     int32_t CheckIsKiaProcess(pid_t pid, bool &isKia);
 
@@ -451,10 +475,13 @@ public:
         std::shared_ptr<ChildProcessRecord> childRecord, std::shared_ptr<AppRunningRecord> appRecord);
     std::shared_ptr<AppRunningRecord> CheckAppRunningRecordForUIExtension(
         int32_t uid, const std::string &instanceKey, const std::string &customProcessFlag);
+    int32_t GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos);
 
 private:
     std::shared_ptr<AbilityRunningRecord> GetAbilityRunningRecord(const int64_t eventId);
     bool isCollaboratorReserveType(const std::shared_ptr<AppRunningRecord> &appRecord);
+    void NotifyTerminateAgentUIExtensionAbility(std::shared_ptr<AppRunningRecord> appRecord,
+        std::shared_ptr<AppMgrServiceInner> appMgrServiceInner);
     void NotifyAppPreCache(const std::shared_ptr<AppRunningRecord>& appRecord,
         const std::shared_ptr<AppMgrServiceInner>& appMgrServiceInner);
     void ExecuteConfigurationTask(const BackgroundAppInfo& info,

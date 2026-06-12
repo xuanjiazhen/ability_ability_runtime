@@ -22,6 +22,7 @@ namespace OHOS {
 bool AgentRuntime::MyFlag::retGetBundleInfo = true;
 bool AgentRuntime::MyFlag::retGetResConfigFile = true;
 bool AgentRuntime::MyFlag::retFromJson = true;
+bool AgentRuntime::MyFlag::mockApplicationInfoIsSystemApp = true;
 std::vector<AppExecFwk::ExtensionAbilityInfo> AgentRuntime::MyFlag::mockExtensionInfos;
 std::vector<AppExecFwk::HapModuleInfo> AgentRuntime::MyFlag::mockHapModuleInfos;
 std::vector<std::string> AgentRuntime::MyFlag::mockProfileInfos;
@@ -31,17 +32,6 @@ namespace AppExecFwk {
 BundleMgrClient::BundleMgrClient() {}
 
 BundleMgrClient::~BundleMgrClient() {}
-
-bool BundleMgrClient::GetBundleInfo(const std::string &bundleName, const BundleFlag flag, BundleInfo &bundleInfo,
-    int32_t userId)
-{
-    if (!AgentRuntime::MyFlag::retGetBundleInfo) {
-        return false;
-    }
-    bundleInfo.extensionInfos = AgentRuntime::MyFlag::mockExtensionInfos;
-    bundleInfo.hapModuleInfos = AgentRuntime::MyFlag::mockHapModuleInfos;
-    return true;
-}
 
 bool BundleMgrClient::GetResConfigFile(const ExtensionAbilityInfo &extensionInfo, const std::string &metadataName,
     std::vector<std::string> &profileInfos, bool includeSysRes) const

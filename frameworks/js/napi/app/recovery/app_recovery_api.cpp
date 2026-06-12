@@ -27,11 +27,19 @@
 #include "napi_common_want.h"
 #include "recovery_param.h"
 #include "want.h"
+#include "ability_manager_client.h"
+#include "exit_reason.h"
+#ifdef APPRECOVERY_ENABLE_API_METRICS
+#include "histogram_plugin_macros.h"
+#endif
 
 namespace OHOS {
 namespace AbilityRuntime {
 using namespace OHOS::AppExecFwk;
 namespace {
+constexpr int RESTART_APP_ID = 3;
+constexpr const char *const  RESTART_APP_REASON = "RestartApp";
+constexpr const char *const  RESTART_REASON = "Restart";
 enum RestartErrno {
     NO_ERROR,
     SAVED_STATE_NOT_EXIST,
@@ -70,6 +78,9 @@ public:
 private:
     napi_value OnEnableAppRecovery(napi_env env, const size_t argc, napi_value* argv)
     {
+    #ifdef APPRECOVERY_ENABLE_API_METRICS
+        HISTOGRAM_BOOLEAN("AbilityKit.ApiCall.enableAppRecovery", 1);
+    #endif
         size_t parameterCount = argc;
         napi_value result = CreateJsUndefined(env);
         constexpr int maxCount = 3;
@@ -109,7 +120,7 @@ private:
     bool CheckParamsValid(const uint16_t params[])
     {
         uint16_t restartFlag = params[0];
-        constexpr uint16_t restartMaxVal = 0x0003;
+        constexpr uint16_t restartMaxVal = 0x0004;
         if ((restartFlag < 0 || restartFlag > restartMaxVal) && (restartFlag != RestartFlag::NO_RESTART)) {
             TAG_LOGE(AAFwkTag::RECOVERY, "invalid restartFlag: %{public}d", restartFlag);
             return false;
@@ -130,6 +141,9 @@ private:
 
     napi_value OnSaveAppState(napi_env env, const size_t argc, napi_value* argv)
     {
+    #ifdef APPRECOVERY_ENABLE_API_METRICS
+        HISTOGRAM_BOOLEAN("AbilityKit.ApiCall.saveAppState", 1);
+    #endif
         if (argc > 1) {
             TAG_LOGE(AAFwkTag::RECOVERY, "invalid argc");
             return CreateJsValue(env, false);
@@ -153,17 +167,32 @@ private:
 
     napi_value OnRestartApp(napi_env env, const size_t argc, napi_value* argv)
     {
+    #ifdef APPRECOVERY_ENABLE_API_METRICS
+        HISTOGRAM_BOOLEAN("AbilityKit.ApiCall.restartApp", 1);
+    #endif
         if (argc != 0) {
             TAG_LOGE(AAFwkTag::RECOVERY, "invalid argc");
             return CreateJsUndefined(env);
         }
 
+        AAFwk::ExitReasonCompability exitReason = { REASON_NORMAL, "" };
+        exitReason.killId = RESTART_APP_ID;
+        exitReason.killMsg = RESTART_REASON;
+        exitReason.innerMsg = RESTART_APP_REASON;
+        int32_t pid = IPCSkeleton::GetCallingPid();
+        int32_t uid = IPCSkeleton::GetCallingUid();
+        auto result = AbilityManagerClient::GetInstance()->RecordAppWithReason(pid, uid, exitReason);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Record recovery restart result=%{public}d, "
+            "pid=%{public}d, uid=%{public}d, killId=%{public}d", result, pid, uid, exitReason.killId);
         AppRecovery::GetInstance().ScheduleRecoverApp(StateReason::DEVELOPER_REQUEST);
         return CreateJsUndefined(env);
     }
 
     napi_value OnSetRestartWant(napi_env env, const size_t argc, napi_value* argv)
     {
+    #ifdef APPRECOVERY_ENABLE_API_METRICS
+        HISTOGRAM_BOOLEAN("AbilityKit.ApiCall.setRestartWant", 1);
+    #endif
         if (argc != 1) {
             TAG_LOGE(AAFwkTag::RECOVERY, "invalid argc");
             return CreateJsUndefined(env);

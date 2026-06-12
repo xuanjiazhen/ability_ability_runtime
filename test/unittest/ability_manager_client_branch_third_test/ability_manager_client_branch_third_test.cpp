@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,6 +36,7 @@
 #include "mock_scene_session_manager_lite.h"
 #include "session/host/include/session.h"
 #include "status_bar_delegate_interface.h"
+#include "skill_execute_result.h"
 
 using namespace testing::ext;
 using namespace testing;
@@ -84,6 +85,16 @@ public:
     }
 
     bool RemoveDeathRecipient(const sptr<DeathRecipient>& recipient)
+    {
+        return true;
+    }
+
+    bool AddRefreshRecipient(const sptr<RefreshRecipient> &recipient)
+    {
+        return true;
+    }
+
+    bool RemoveRefreshRecipient(const sptr<RefreshRecipient> &recipient)
     {
         return true;
     }
@@ -591,6 +602,23 @@ HWTEST_F(AbilityManagerClientBranchThirdTest, GetMissionInfo_0300, TestSize.Leve
         .Times(1).WillOnce(Return(WSError::WS_OK));
     auto result = client_->GetMissionInfo(deviceId, 0, missionInfo);
     EXPECT_EQ(result, static_cast<ErrCode>(WSError::WS_OK));
+}
+
+/**
+ * @tc.name: AbilityManagerClient_GetMissionInfo_0400
+ * @tc.desc: GetMissionInfo with displayInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, GetMissionInfo_0400, TestSize.Level1)
+{
+    ErrorTestBoardDisable();
+    std::string deviceId = "test_deviceId";
+    int32_t missionId = -1;
+    MissionInfo missionInfo;
+    DisplayInfo displayInfo;
+    auto result = client_->GetMissionInfo(deviceId, missionId, missionInfo, displayInfo);
+    EXPECT_NE(result, ERR_OK);
+    EXPECT_EQ(displayInfo.displayName.empty(), true);
 }
 
 /**
@@ -1249,5 +1277,346 @@ HWTEST_F(AbilityManagerClientBranchThirdTest, PreloadApplication_0100, TestSize.
     auto result = client_->PreloadApplication(bundleName, userId, appIndex);
     EXPECT_EQ(result, ERR_OK);
 }
+
+/**
+ * @tc.name: AbilityManagerClient_StartAbilityByOEExt_0100
+ * @tc.desc: StartAbilityByOEExt_0100, proxy is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, StartAbilityByOEExt_0100, TestSize.Level1)
+{
+    ErrorTestBoardDisable();
+    Want want;
+    int32_t hostPid = 1234;
+    std::string specifiedFlag = "test_flag";
+    auto result = client_->StartAbilityByOEExt(want, nullptr, hostPid, specifiedFlag);
+    EXPECT_EQ(result, ABILITY_SERVICE_NOT_CONNECTED);
+}
+
+/**
+ * @tc.name: AbilityManagerClient_StartAbilityByOEExt_0200
+ * @tc.desc: StartAbilityByOEExt_0200, normal case
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, StartAbilityByOEExt_0200, TestSize.Level1)
+{
+    NormalTestBoardDisable();
+    Want want;
+    int32_t hostPid = 1234;
+    std::string specifiedFlag = "test_flag";
+    EXPECT_CALL(*mock_, StartAbilityByOEExt(_, _, _, _)).Times(1).WillOnce(Return(ERR_OK));
+    auto result = client_->StartAbilityByOEExt(want, nullptr, hostPid, specifiedFlag);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AbilityManagerClient_StartAbilityByOEExt_0300
+ * @tc.desc: StartAbilityByOEExt_0300, with error return
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, StartAbilityByOEExt_0300, TestSize.Level1)
+{
+    NormalTestBoardDisable();
+    Want want;
+    int32_t hostPid = 1234;
+    std::string specifiedFlag = "test_flag";
+    EXPECT_CALL(*mock_, StartAbilityByOEExt(_, _, _, _)).Times(1).WillOnce(Return(ERR_INVALID_VALUE));
+    auto result = client_->StartAbilityByOEExt(want, nullptr, hostPid, specifiedFlag);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+}
+
+
+/**
+ * @tc.name: AbilityManagerClient_StartSelfUIAbilityWithToken_0100
+ * @tc.desc: StartSelfUIAbilityWithToken with proxy null
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, StartSelfUIAbilityWithToken_0100, TestSize.Level1)
+{
+    ErrorTestBoardDisable();
+    Want want;
+    sptr<IRemoteObject> callerToken = new IRemoteObjectMocker();
+    auto result = client_->StartSelfUIAbilityWithToken(want, callerToken);
+    EXPECT_EQ(result, ABILITY_SERVICE_NOT_CONNECTED);
+}
+
+/**
+ * @tc.name: AbilityManagerClient_StartSelfUIAbilityWithToken_0200
+ * @tc.desc: StartSelfUIAbilityWithToken normal case
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, StartSelfUIAbilityWithToken_0200, TestSize.Level1)
+{
+    NormalTestBoardDisable();
+    Want want;
+    sptr<IRemoteObject> callerToken = new IRemoteObjectMocker();
+    auto result = client_->StartSelfUIAbilityWithToken(want, callerToken);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AbilityManagerClient_StartSelfUIAbilityWithStartOptionsAndToken_0100
+ * @tc.desc: StartSelfUIAbilityWithStartOptionsAndToken with proxy null
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, StartSelfUIAbilityWithStartOptionsAndToken_0100, TestSize.Level1)
+{
+    ErrorTestBoardDisable();
+    Want want;
+    StartOptions options;
+    sptr<IRemoteObject> callerToken = new IRemoteObjectMocker();
+    auto result = client_->StartSelfUIAbilityWithStartOptionsAndToken(want, options, callerToken);
+    EXPECT_EQ(result, ABILITY_SERVICE_NOT_CONNECTED);
+}
+
+/**
+ * @tc.name: AbilityManagerClient_StartSelfUIAbilityWithStartOptionsAndToken_0200
+ * @tc.desc: StartSelfUIAbilityWithStartOptionsAndToken normal case
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, StartSelfUIAbilityWithStartOptionsAndToken_0200, TestSize.Level1)
+{
+    NormalTestBoardDisable();
+    Want want;
+    StartOptions options;
+    sptr<IRemoteObject> callerToken = new IRemoteObjectMocker();
+    auto result = client_->StartSelfUIAbilityWithStartOptionsAndToken(want, options, callerToken);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: MissionInfoTest_0100
+ * @tc.desc: MissionInfoTest_0100
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, MissionInfoTest_0100, TestSize.Level1)
+{
+    MissionInfo missionInfo;
+    missionInfo.id = 1;
+    missionInfo.runningState = 1;
+    missionInfo.time = "test";
+    Parcel parcel;
+    missionInfo.Marshalling(parcel);
+    MissionInfo* newMissionInfo = MissionInfo::Unmarshalling(parcel);
+    EXPECT_EQ(missionInfo.id, newMissionInfo->id);
+    EXPECT_EQ(missionInfo.runningState, newMissionInfo->runningState);
+    EXPECT_EQ(missionInfo.time, newMissionInfo->time);
+    delete newMissionInfo;
+}
+
+/**
+ * @tc.name: DisplayInfoTest_0100
+ * @tc.desc: DisplayInfoTest_0100
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, DisplayInfoTest_0100, TestSize.Level1)
+{
+    DisplayInfo displayInfo;
+    displayInfo.id = 1;
+    displayInfo.displayName = "test";
+    Parcel parcel;
+    displayInfo.Marshalling(parcel);
+    DisplayInfo* newDisplayInfo = DisplayInfo::Unmarshalling(parcel);
+    EXPECT_NE(newDisplayInfo, nullptr);
+    EXPECT_EQ(displayInfo.id, newDisplayInfo->id);
+    EXPECT_EQ(displayInfo.displayName, newDisplayInfo->displayName);
+    delete newDisplayInfo;
+}
+
+/**
+ * @tc.name: ExecuteInAppSkill_0100
+ * @tc.desc: Test ExecuteInAppSkill with proxy not connected
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, ExecuteInAppSkill_0100, TestSize.Level1)
+{
+    client_->proxy_ = nullptr;
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(*mockSystemAbility_, GetSystemAbility(testing::_)).WillRepeatedly(Return(nullptr));
+    SystemAbilityManagerClient::GetInstance().systemAbilityManager_ = mockSystemAbility_;
+
+    auto skillArgs = std::make_shared<AAFwk::WantParams>();
+    sptr<ISkillExecuteCallback> callback = nullptr;
+    auto ret = client_->ExecuteInAppSkill("bundle", "module", "skill", "path", "func", skillArgs, callback);
+    EXPECT_EQ(ret, ABILITY_SERVICE_NOT_CONNECTED);
+}
+
+/**
+ * @tc.name: ExecuteInAppSkill_0200
+ * @tc.desc: Test ExecuteInAppSkill with proxy connected
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, ExecuteInAppSkill_0200, TestSize.Level1)
+{
+    client_->proxy_ = mock_;
+    auto skillArgs = std::make_shared<AAFwk::WantParams>();
+    sptr<ISkillExecuteCallback> callback = nullptr;
+    EXPECT_CALL(*mock_, ExecuteInAppSkill(_, _, _, _, _, _, _))
+        .Times(1)
+        .WillOnce(Return(ERR_OK));
+    auto ret = client_->ExecuteInAppSkill("bundle", "module", "skill", "path", "func", skillArgs, callback);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: ExecuteSkillDone_0100
+ * @tc.desc: Test ExecuteSkillDone with proxy not connected
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, ExecuteSkillDone_0100, TestSize.Level1)
+{
+    client_->proxy_ = nullptr;
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(*mockSystemAbility_, GetSystemAbility(testing::_)).WillRepeatedly(Return(nullptr));
+    SystemAbilityManagerClient::GetInstance().systemAbilityManager_ = mockSystemAbility_;
+
+    sptr<IRemoteObject> token = sptr<MockAbilityToken>::MakeSptr();
+    AppExecFwk::SkillExecuteResult result;
+    auto ret = client_->ExecuteSkillDone(token, "requestCode", 0, result);
+    EXPECT_EQ(ret, ABILITY_SERVICE_NOT_CONNECTED);
+}
+
+/**
+ * @tc.name: ExecuteSkillDone_0200
+ * @tc.desc: Test ExecuteSkillDone with proxy connected
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, ExecuteSkillDone_0200, TestSize.Level1)
+{
+    client_->proxy_ = mock_;
+    sptr<IRemoteObject> token = sptr<MockAbilityToken>::MakeSptr();
+    AppExecFwk::SkillExecuteResult result;
+    EXPECT_CALL(*mock_, ExecuteSkillDone(_, _, _, _))
+        .Times(1)
+        .WillOnce(Return(ERR_OK));
+    auto ret = client_->ExecuteSkillDone(token, "requestCode", 0, result);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: QuerySkillType_0100
+ * @tc.desc: Test QuerySkillType with proxy not connected
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, QuerySkillType_0100, TestSize.Level1)
+{
+    client_->proxy_ = nullptr;
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(*mockSystemAbility_, GetSystemAbility(testing::_)).WillRepeatedly(Return(nullptr));
+    SystemAbilityManagerClient::GetInstance().systemAbilityManager_ = mockSystemAbility_;
+
+    int32_t skillType = 0;
+    auto ret = client_->QuerySkillType("bundle", "module", "skill", skillType);
+    EXPECT_EQ(ret, ABILITY_SERVICE_NOT_CONNECTED);
+}
+
+/**
+ * @tc.name: QuerySkillType_0200
+ * @tc.desc: Test QuerySkillType with proxy connected
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, QuerySkillType_0200, TestSize.Level1)
+{
+    client_->proxy_ = mock_;
+    int32_t skillType = 0;
+    EXPECT_CALL(*mock_, QuerySkillType(_, _, _, _))
+        .Times(1)
+        .WillOnce(Return(ERR_OK));
+    auto ret = client_->QuerySkillType("bundle", "module", "skill", skillType);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: ExecuteInAppSkillWithTokenId_0100
+ * @tc.desc: Test ExecuteInAppSkillWithTokenId with proxy not connected
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, ExecuteInAppSkillWithTokenId_0100, TestSize.Level1)
+{
+    client_->proxy_ = nullptr;
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(*mockSystemAbility_, GetSystemAbility(testing::_)).WillRepeatedly(Return(nullptr));
+    SystemAbilityManagerClient::GetInstance().systemAbilityManager_ = mockSystemAbility_;
+
+    AppExecFwk::SkillExecuteRequest request;
+    auto ret = client_->ExecuteInAppSkillWithTokenId(request, nullptr);
+    EXPECT_EQ(ret, ABILITY_SERVICE_NOT_CONNECTED);
+}
+
+/**
+ * @tc.name: ExecuteInAppSkillWithTokenId_0200
+ * @tc.desc: Test ExecuteInAppSkillWithTokenId with proxy connected and success
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, ExecuteInAppSkillWithTokenId_0200, TestSize.Level1)
+{
+    client_->proxy_ = mock_;
+    AppExecFwk::SkillExecuteRequest request;
+    sptr<ISkillExecuteCallback> callback = nullptr;
+    EXPECT_CALL(*mock_, ExecuteInAppSkillWithTokenId(_, _))
+        .Times(1)
+        .WillOnce(Return(ERR_OK));
+    auto ret = client_->ExecuteInAppSkillWithTokenId(request, callback);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: ExecuteInAppSkillWithTokenId_0300
+ * @tc.desc: Test ExecuteInAppSkillWithTokenId with proxy returns error
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, ExecuteInAppSkillWithTokenId_0300, TestSize.Level1)
+{
+    client_->proxy_ = mock_;
+    AppExecFwk::SkillExecuteRequest request;
+    sptr<ISkillExecuteCallback> callback = nullptr;
+    EXPECT_CALL(*mock_, ExecuteInAppSkillWithTokenId(_, _))
+        .Times(1)
+        .WillOnce(Return(ERR_CODE_INVALID_ID));
+    auto ret = client_->ExecuteInAppSkillWithTokenId(request, callback);
+    EXPECT_EQ(ret, ERR_CODE_INVALID_ID);
+}
+
+/**
+ * @tc.name: ExecuteIntentWithResult_0100
+ * @tc.desc: Test ExecuteIntentWithResult with proxy not connected
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, ExecuteIntentWithResult_0100, TestSize.Level1)
+{
+    client_->proxy_ = nullptr;
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(*mockSystemAbility_, GetSystemAbility(testing::_)).WillRepeatedly(Return(nullptr));
+    SystemAbilityManagerClient::GetInstance().systemAbilityManager_ = mockSystemAbility_;
+
+    InsightIntentExecuteParam param;
+    InsightIntentExecuteResult result;
+    auto ret = client_->ExecuteIntentWithResult(param, result, 1000);
+    EXPECT_EQ(ret, ABILITY_SERVICE_NOT_CONNECTED);
+}
+
+/**
+ * @tc.name: ExecuteIntentWithResult_0200
+ * @tc.desc: Test ExecuteIntentWithResult with ExecuteIntent returning error
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, ExecuteIntentWithResult_0200, TestSize.Level1)
+{
+    client_->proxy_ = mock_;
+    EXPECT_CALL(*mock_, ExecuteIntent(_, _, _))
+        .Times(1)
+        .WillOnce(Return(ERR_INVALID_VALUE));
+
+    InsightIntentExecuteParam param;
+    InsightIntentExecuteResult result;
+    auto ret = client_->ExecuteIntentWithResult(param, result, 1000);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS

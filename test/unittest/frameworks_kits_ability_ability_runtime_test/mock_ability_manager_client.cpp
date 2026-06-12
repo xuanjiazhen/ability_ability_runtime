@@ -268,7 +268,8 @@ ErrCode AbilityManagerClient::MinimizeUIExtensionAbility(sptr<SessionInfo> exten
     return ERR_OK;
 }
 
-ErrCode AbilityManagerClient::MinimizeUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool fromUser, uint32_t sceneFlag)
+ErrCode AbilityManagerClient::MinimizeUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool fromUser, uint32_t sceneFlag,
+    int32_t backgroundReason)
 {
     return ERR_OK;
 }
@@ -1078,6 +1079,17 @@ ErrCode AbilityManagerClient::StartSelfUIAbilityWithStartOptions(const Want &wan
     return ERR_OK;
 }
 
+ErrCode AbilityManagerClient::StartSelfUIAbilityWithToken(const Want &want, sptr<IRemoteObject> callerToken)
+{
+    return ERR_OK;
+}
+
+ErrCode AbilityManagerClient::StartSelfUIAbilityWithStartOptionsAndToken(const Want &want,
+    const StartOptions &options, sptr<IRemoteObject> callerToken)
+{
+    return ERR_OK;
+}
+
 int AbilityManagerClient::StartSelfUIAbilityWithPidResult(const Want &want, StartOptions &options,
     uint64_t callbackId)
 {
@@ -1116,6 +1128,33 @@ ErrCode AbilityManagerClient::QueryPreLoadUIExtensionRecord(const AppExecFwk::El
 }
 
 ErrCode AbilityManagerClient::RevokeDelegator(sptr<IRemoteObject> token)
+{
+    return ERR_OK;
+}
+
+ErrCode AbilityManagerClient::StartSelf(sptr<IRemoteObject> token)
+{
+    return ERR_OK;
+}
+
+ErrCode AbilityManagerClient::SetOnNewWantSkipScenarios(sptr<IRemoteObject> callerToken, int32_t scenarios)
+{
+    return ERR_OK;
+}
+
+ErrCode AbilityManagerClient::StartSelfUIAbilityInCurrentProcess(const Want &want,
+    const std::string &specifiedFlag, const AAFwk::StartOptions &startOptions,
+    bool hasOptions, sptr<IRemoteObject> callerToken)
+{
+    return ERR_OK;
+}
+
+ErrCode AbilityManagerClient::NotifyCancelGamePreLaunch(const sptr<IRemoteObject> callerToken)
+{
+    return ERR_OK;
+}
+
+ErrCode AbilityManagerClient::NotifyCompleteGamePreLaunch(const sptr<IRemoteObject> callerToken)
 {
     return ERR_OK;
 }
