@@ -102,6 +102,7 @@ constexpr const char* NORMAL_RESIDENT_APPS = "normal_resident_apps";
 constexpr const char* ON_NEW_PROCESS_ENABLE_LIST_PATH = "etc/ability_runtime/on_new_process_enable_list.json";
 constexpr const char* ON_NEW_PROCESS_ENABLE_LIST = "onNewProcessEnableList";
 constexpr const char* HYBRIDSPAWN_UNIFIED = "persist.appspawn.hybridspawn.unified";
+constexpr int32_t RESCUE_MODE_TIMEOUT_RADIO = 5;
 }
 
 AppUtils::~AppUtils() {}
@@ -174,10 +175,23 @@ bool AppUtils::IsSupportAncoApp()
     return isSupportAncoApp_.value;
 }
 
+bool AppUtils::IsRescueMode()
+{
+    if (!isRescueMode_.isLoaded) {
+        isRescueMode_.value = (system::GetParameter("soc.boot.mode", "") == "rescue");
+        TAG_LOGW(AAFwkTag::DEFAULT, "is in rescue mode");
+    }
+    return isRescueMode_.value;
+}
+
 int32_t AppUtils::GetTimeoutUnitTimeRatio()
 {
     if (!timeoutUnitTimeRatio_.isLoaded) {
         timeoutUnitTimeRatio_.value = system::GetIntParameter<int32_t>(TIMEOUT_UNIT_TIME_RATIO, 1);
+        if (IsRescueMode()) {
+            TAG_LOGI(AAFwkTag::DEFAULT, "rescue mode: increase timeout radio");
+            timeoutUnitTimeRatio_.value *= RESCUE_MODE_TIMEOUT_RADIO;
+        }
         timeoutUnitTimeRatio_.isLoaded = true;
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", timeoutUnitTimeRatio_.value);
