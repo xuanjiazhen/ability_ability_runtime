@@ -363,11 +363,31 @@ int PermissionVerification::CheckSkillStartByCallPermission(const VerificationIn
     return ERR_OK;
 }
 
+int PermissionVerification::CheckSkillCallPermission(uint32_t callerTokenId, uint32_t targetAccessTokenId,
+    bool visible, bool isBackgroundCall) const
+{
+    if (callerTokenId == targetAccessTokenId) {
+        TAG_LOGE(AAFwkTag::SKILL, "skill caller is target app, rejected");
+        return CHECK_PERMISSION_FAILED;
+    }
+    if (!VerifyCallingPermission(PermissionConstants::PERMISSION_ABILITY_BACKGROUND_COMMUNICATION,
+        callerTokenId)) {
+        TAG_LOGE(AAFwkTag::SKILL, "skill BACKGROUND_COMMUNICATION permission denied");
+        return CHECK_PERMISSION_FAILED;
+    }
+    if (!JudgeStartInvisibleAbility(targetAccessTokenId, visible, callerTokenId)) {
+        TAG_LOGE(AAFwkTag::SKILL, "skill INVISIBLE permission invalid");
+        return ABILITY_VISIBLE_FALSE_DENY_REQUEST;
+    }
+    if (!JudgeStartAbilityFromBackground(isBackgroundCall, callerTokenId)) {
+        TAG_LOGE(AAFwkTag::SKILL, "skill BACKGROUND permission invalid");
+        return CHECK_PERMISSION_FAILED;
+    }
+    return ERR_OK;
+}
+
 int PermissionVerification::CheckStartByCallPermission(const VerificationInfo &verificationInfo) const
 {
-    if (verificationInfo.skillCallerTokenId != 0) {
-        return CheckSkillStartByCallPermission(verificationInfo);
-    }
     if (IsCallFromSameAccessToken(verificationInfo.accessTokenId)) {
         TAG_LOGE(AAFwkTag::DEFAULT, "StartAbilityByCall reject");
         return CHECK_PERMISSION_FAILED;
@@ -470,9 +490,6 @@ int PermissionVerification::JudgeInvisibleAndBackground(const VerificationInfo &
     bool isCallByShortcut) const
 {
     uint32_t specifyTokenId = verificationInfo.specifyTokenId;
-    if (verificationInfo.skillCallerTokenId != 0) {
-        specifyTokenId = verificationInfo.skillCallerTokenId;
-    }
     TAG_LOGD(AAFwkTag::DEFAULT, "specifyTokenId: %{public}u, isCallByShortcut %{public}d",
         specifyTokenId, isCallByShortcut);
     if (specifyTokenId == 0 &&

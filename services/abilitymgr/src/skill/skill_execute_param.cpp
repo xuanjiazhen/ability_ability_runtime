@@ -168,6 +168,7 @@ bool SkillExecuteParam::RemoveSkillParam(AAFwk::Want &want)
     want.RemoveParam(SKILL_EXECUTE_PARAM_SRC_ENTRIES_COUNT);
     want.RemoveParam(SKILL_EXECUTE_PARAM_HAP_PATH);
     want.RemoveParam(SKILL_EXECUTE_PARAM_REQUEST_CODE);
+    want.RemoveParam(SKILL_EXECUTE_PARAM_CALLER_TOKEN_ID);
 
     if (!argsKeysStr.empty()) {
         std::istringstream stream(argsKeysStr);

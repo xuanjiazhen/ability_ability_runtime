@@ -136,6 +136,9 @@ struct VerificationInfo {
     bool VerifyCustomSandbox(uint32_t accessTokenId) const;
 
     bool VerifySupportCrossAppEmbedForOaPermission() const;
+
+    int CheckSkillCallPermission(uint32_t callerTokenId, uint32_t targetAccessTokenId,
+        bool visible, bool isBackgroundCall) const;
 private:
     DISALLOW_COPY_AND_MOVE(PermissionVerification);
 

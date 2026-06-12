@@ -4373,7 +4373,7 @@ bool AbilityManagerService::CheckWorkSchedulerPermission(const sptr<IRemoteObjec
 
 int32_t AbilityManagerService::StartExtensionAbilityInner(const Want &want, const sptr<IRemoteObject> &callerToken,
     int32_t userId, AppExecFwk::ExtensionAbilityType extensionType, bool checkSystemCaller, bool isImplicit,
-    bool isDlp, bool isStartAsCaller)
+    bool isDlp, bool isStartAsCaller, uint32_t skillCallerTokenId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::SERVICE_EXT,
@@ -4488,6 +4488,16 @@ int32_t AbilityManagerService::StartExtensionAbilityInner(const Want &want, cons
     }
 
     abilityRequest.userId = validUserId;
+
+    // Skill-specific permission check with real caller identity
+    if (skillCallerTokenId != 0) {
+        result = CheckSkillPermission(abilityRequest, skillCallerTokenId);
+        if (result != ERR_OK) {
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "skill permission check failed");
+            return result;
+        }
+    }
+
     if (!HandleExecuteSAInterceptor(want, callerToken, abilityRequest, result)) {
         return result;
     }
@@ -5775,7 +5785,9 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not sa call");
         return CHECK_PERMISSION_FAILED;
     }
-    
+
+    SkillExecuteParam::RemoveSkillParam(const_cast<Want &>(want));
+
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetBundle().c_str());
         return INNER_ERR;
@@ -11721,17 +11733,13 @@ int AbilityManagerService::CheckStaticCfgPermission(const AppExecFwk::AbilityReq
     if (specifyTokenId != 0) {
         isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACallByTokenId(specifyTokenId);
     }
-    uint32_t skillCallerTokenId = static_cast<uint32_t>(
-        abilityRequest.want.GetIntParam(AppExecFwk::SKILL_EXECUTE_PARAM_CALLER_TOKEN_ID, 0));
     if (isSaCall) {
         // do not need check static config permission when start ability by SA
         return AppExecFwk::Constants::PERMISSION_GRANTED;
     }
 
     uint32_t tokenId;
-    if (skillCallerTokenId != 0) {
-        tokenId = skillCallerTokenId;
-    } else if (isStartAsCaller) {
+    if (isStartAsCaller) {
         tokenId = callerTokenId;
     } else if (specifyTokenId != 0) {
         tokenId = specifyTokenId;
@@ -12596,8 +12604,6 @@ int AbilityManagerService::CheckCallServiceExtensionPermission(const AbilityRequ
     verificationInfo.specifyTokenId = (abilityRequest.specifiedFullTokenId != 0) ?
         static_cast<uint32_t>(abilityRequest.specifiedFullTokenId) :
         static_cast<uint32_t>(abilityRequest.specifyTokenId);
-    verificationInfo.skillCallerTokenId = static_cast<uint32_t>(
-        abilityRequest.want.GetIntParam(AppExecFwk::SKILL_EXECUTE_PARAM_CALLER_TOKEN_ID, 0));
     if (isParamStartAbilityEnable_) {
         bool stopContinuousTaskFlag = ShouldPreventStartAbility(abilityRequest);
         if (stopContinuousTaskFlag) {
@@ -13064,8 +13070,6 @@ int AbilityManagerService::CheckStartByCallPermission(const AbilityRequest &abil
     verificationInfo.visible = abilityRequest.abilityInfo.visible;
     verificationInfo.withContinuousTask = IsBackgroundTaskUid(IPCSkeleton::GetCallingUid());
     verificationInfo.specifiedFullTokenId = static_cast<uint32_t>(abilityRequest.specifiedFullTokenId);
-    verificationInfo.skillCallerTokenId = static_cast<uint32_t>(
-        abilityRequest.want.GetIntParam(AppExecFwk::SKILL_EXECUTE_PARAM_CALLER_TOKEN_ID, 0));
 
     if (IsCallFromBackground(abilityRequest, verificationInfo.isBackgroundCall, false) != ERR_OK) {
         return ERR_INVALID_VALUE;
@@ -14787,12 +14791,10 @@ int32_t AbilityManagerService::ExecuteInAppSkill(const std::string &bundleName, 
     }
 
     // 5. Launch target based on type
-    want.SetParam(AppExecFwk::SKILL_EXECUTE_PARAM_CALLER_TOKEN_ID,
-        static_cast<int32_t>(IPCSkeleton::GetCallingTokenID()));
     if (targetType == AppExecFwk::ExtensionAbilityType::SERVICE) {
-        return StartExtensionAbilityWithSkill(want, userId);
+        return StartExtensionAbilityWithSkill(want, userId, callerTokenId);
     }
-    return StartAbilityByCallWithSkill(want, nullptr, userId);
+    return StartAbilityByCallWithSkill(want, nullptr, userId, callerTokenId);
 }
 
 int32_t AbilityManagerService::ExecuteInAppSkillWithTokenId(const AppExecFwk::SkillExecuteRequest &request,
@@ -14843,16 +14845,38 @@ int32_t AbilityManagerService::ExecuteInAppSkillWithTokenId(const AppExecFwk::Sk
     }
 
     // 5. Launch target based on type
-    want.SetParam(AppExecFwk::SKILL_EXECUTE_PARAM_CALLER_TOKEN_ID,
-        static_cast<int32_t>(request.callerTokenId));
     if (targetType == AppExecFwk::ExtensionAbilityType::SERVICE) {
-        return StartExtensionAbilityWithSkill(want, userId);
+        return StartExtensionAbilityWithSkill(want, userId, request.callerTokenId);
     }
-    return StartAbilityByCallWithSkill(want, nullptr, userId);
+    return StartAbilityByCallWithSkill(want, nullptr, userId, request.callerTokenId);
+}
+
+int AbilityManagerService::CheckSkillPermission(
+    const AbilityRequest &abilityRequest, uint32_t callerTokenId)
+{
+    const auto &abilityInfo = abilityRequest.abilityInfo;
+    const auto &appInfo = abilityRequest.appInfo;
+
+    bool isBackgroundCall = false;
+    IsCallFromBackground(abilityRequest, isBackgroundCall, false);
+    int result = AAFwk::PermissionVerification::GetInstance()->CheckSkillCallPermission(
+        callerTokenId, appInfo.accessTokenId, abilityInfo.visible, isBackgroundCall);
+    if (result != ERR_OK) {
+        return result;
+    }
+
+    if (abilityInfo.applicationInfo.accessTokenId == callerTokenId) {
+        return AppExecFwk::Constants::PERMISSION_GRANTED;
+    }
+
+    if (!abilityInfo.isStageBasedModel) {
+        return CheckStaticCfgPermissionForAbility(abilityInfo, callerTokenId);
+    }
+    return CheckStaticCfgPermissionForSkill(abilityRequest, callerTokenId);
 }
 
 int32_t AbilityManagerService::StartAbilityByCallWithSkill(const Want &want,
-    const sptr<IRemoteObject> &callerToken, int32_t userId)
+    const sptr<IRemoteObject> &callerToken, int32_t userId, uint32_t skillCallerTokenId)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "start ability by call with skill intent");
     sptr<IAbilityConnection> connect = sptr<AbilityBackgroundConnection>::MakeSptr();
@@ -14879,6 +14903,15 @@ int32_t AbilityManagerService::StartAbilityByCallWithSkill(const Want &want,
         return result;
     }
 
+    // Skill-specific permission check with real caller identity
+    if (skillCallerTokenId != 0) {
+        result = CheckSkillPermission(abilityRequest, skillCallerTokenId);
+        if (result != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "skill permission check failed");
+            return result;
+        }
+    }
+
     std::shared_ptr<AbilityRecord> targetRecord;
     if (IsAbilityStarted(abilityRequest, targetRecord, oriValidUserId)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "ability already started");
@@ -14896,11 +14929,12 @@ int32_t AbilityManagerService::StartAbilityByCallWithSkill(const Want &want,
     return result;
 }
 
-int32_t AbilityManagerService::StartExtensionAbilityWithSkill(const Want &want, int32_t userId)
+int32_t AbilityManagerService::StartExtensionAbilityWithSkill(
+    const Want &want, int32_t userId, uint32_t skillCallerTokenId)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "start extension ability with skill intent");
     return StartExtensionAbilityInner(want, nullptr, userId,
-        AppExecFwk::ExtensionAbilityType::SERVICE, true);
+        AppExecFwk::ExtensionAbilityType::SERVICE, true, false, false, false, skillCallerTokenId);
 }
 
 int32_t AbilityManagerService::ExecuteSkillDone(const sptr<IRemoteObject> &token,
