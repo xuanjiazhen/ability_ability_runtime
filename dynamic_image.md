@@ -382,11 +382,14 @@ bool StartWindowOption::Marshalling(Parcel &parcel) const
 - `start_window_option`：将 `image_framework:image_native` 替换为 `image_native_bridge` 桥接依赖，`start_window_option.cpp` 改用 `PixelMapBridge` 进行 Parcel 读写。
 - `mission_info`：将 `image_framework:image_native` 替换为 `image_native_bridge` 桥接依赖，`mission_snapshot.cpp` 改用 `PixelMapBridge` 进行 Parcel 读写（模式与 start_window_option 完全一致）。
 - `ability_manager_c`：源码不使用 PixelMap，`image_framework:image_native` 依赖冗余，直接移除。
+- `abilityms` / `abilityms_static`：将 `image_framework:image_native` 替换为 `image_native_bridge` 桥接依赖。涉及 `ability_manager_stub.cpp`（2 处 `ReadParcelable<Media::PixelMap>` 改为桥接读取 + 自定义 deleter）和 `mission_listener_proxy.cpp`（1 处 `WriteParcelable` 改为桥接写入）。这两个 SO 中的 PixelMap 使用均为 Parcel 读/写/透传，与 start_window_option 模式完全一致，无需扩展桥接。`START_WINDOW_OPTIONS_WITH_PIXELMAP` 条件下的冗余 `image_native` 一并移除。
+- `ability_manager`（`interfaces/inner_api/ability_manager/BUILD.gn` 中的主目标）：将 `image_framework:image_native` 替换为 `image_native_bridge` 桥接依赖。涉及 `ability_manager_proxy.cpp`（2 处 `WriteParcelable` 改为桥接写入）。`ability_manager_client.cpp` 仅做 PixelMap 参数透传，无需改动。
+- `app_manager` / `wantagent_innerkits`：源码不使用 PixelMap，`image_framework:image_native` 依赖冗余，直接移除。
+- `graphic_2d:color_manager` 清理：经确认整个代码库无任何源文件实际使用 color_manager，属于幽灵依赖。从 ability_runtime 全部 BUILD.gn（12 个文件、20 处）中彻底移除。
 
 ## 不在本次改动范围
 
-- `ability_manager`（`interfaces/inner_api/ability_manager/BUILD.gn` 中的主目标）：其 `ability_manager_proxy.cpp` 中的 `UpdateMissionSnapShot` / `SetMissionIcon` 也仅做 Parcel 写入，理论上可桥接，但该目标体积大（68+ 源文件）且为核心 inner_api，影响面广，待前述目标验证稳定后再评估。
-- `abilityms` / `abilityms_static`：它们对 `image_framework:image_native` 的依赖是**无条件的**（用于 mission 快照等其它 PixelMap 操作，见 `services/abilitymgr/BUILD.gn:265/468/797`），且其源码不直接使用 `START_WINDOW_OPTIONS_WITH_PIXELMAP`。故本次不动 abilityms。
+- `mission_list`：`mission_data_storage.cpp`、`mission_info_mgr.cpp`、`mission_ability_record.cpp` 中有大量非 Parcel PixelMap 操作（图像缩放、JPEG 编解码、像素内存操作），需要扩展桥接函数，复杂度高，待后续评估。
 - ANI / C / NAPI 框架层（`frameworks/ets|c|js`）：它们各自直接依赖 image_native（通过 `GetPixelMapFromEnvSp` / `GetInnerPixelmap` / `pixelmap_napi`），属独立目标，本次不转换。
 
 ## 线程安全

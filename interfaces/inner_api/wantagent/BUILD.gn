@@ -98,7 +98,6 @@ ohos_shared_library("wantagent_innerkits") {
     "bundle_framework:appexecfwk_core",
     "eventhandler:libeventhandler",
     "icu:shared_icuuc",
-    "image_framework:image_native",
     "resource_management:global_resmgr",
   ]
 
