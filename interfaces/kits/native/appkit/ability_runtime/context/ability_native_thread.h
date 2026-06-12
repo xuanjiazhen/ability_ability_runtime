@@ -91,7 +91,8 @@ public:
      */
     void NotifyProcessExit();
 
-    static void* OpenNativeLibrary(const std::string& bundleModuleName, const std::string& fileName);
+    static void* OpenNativeLibrary(const std::string& bundleModuleName, const std::string& fileName,
+        std::string& errInfo);
 private:
     void *moduleHandle_ = nullptr;
     std::function<void()> ohMainFun_;

@@ -53,10 +53,11 @@ bool AbilityNativeThread::LoadNativeModule(const AAFwk::NativeAbilityMetaData& m
 
     // Load the dynamic library
     std::string bundleModuleName = bundleName + "/" + moduleName;
-    moduleHandle_ = OpenNativeLibrary(bundleModuleName, metaData.nativeModuleSource);
+    std::string errInfo;
+    moduleHandle_ = OpenNativeLibrary(bundleModuleName, metaData.nativeModuleSource, errInfo);
     if (moduleHandle_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "Failed to load native module: %{public}s-%{public}s",
-            bundleModuleName.c_str(), metaData.nativeModuleSource.c_str());
+        TAG_LOGE(AAFwkTag::ABILITY, "Failed to load native module: %{public}s-%{public}s, errInfo: %{public}s",
+            bundleModuleName.c_str(), metaData.nativeModuleSource.c_str(), errInfo.c_str());
         return false;
     }
 
@@ -174,7 +175,8 @@ void AbilityNativeThread::NotifyProcessExit()
     notifyProcessExitFunc_();
 }
 
-LIBHANDLE AbilityNativeThread::OpenNativeLibrary(const std::string& bundleModuleName, const std::string& fileName)
+LIBHANDLE AbilityNativeThread::OpenNativeLibrary(const std::string& bundleModuleName, const std::string& fileName,
+    std::string& errInfo)
 {
     auto moduleManager = NativeModuleManager::GetInstance();
     if (moduleManager == nullptr) {
@@ -200,6 +202,12 @@ LIBHANDLE AbilityNativeThread::OpenNativeLibrary(const std::string& bundleModule
         libName = fileName.substr(pos + 1);
     }
     nativeHandle = dlopen_ns(&ns, libName.c_str(), RTLD_LAZY);
+    if (nativeHandle == nullptr) {
+        char* error = dlerror();
+        if (error != nullptr) {
+            errInfo = error;
+        }
+    }
     return nativeHandle;
 }
 } // namespace AppExecFwk

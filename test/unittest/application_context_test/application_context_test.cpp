@@ -3092,8 +3092,9 @@ HWTEST_F(ApplicationContextTest, AbilityNativeThread_NotifyProcessExit_0200, Tes
 HWTEST_F(ApplicationContextTest, AbilityNativeThread_OpenNativeLibrary_0100, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "AbilityNativeThread_OpenNativeLibrary_0100 start";
+    std::string errInfo;
     auto result = AppExecFwk::AbilityNativeThread::OpenNativeLibrary(
-        "nonexistent/bundle", "lib_nonexistent_999.so");
+        "nonexistent/bundle", "lib_nonexistent_999.so", errInfo);
     EXPECT_EQ(result, nullptr);
     GTEST_LOG_(INFO) << "AbilityNativeThread_OpenNativeLibrary_0100 end";
 }
