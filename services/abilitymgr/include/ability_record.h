@@ -104,7 +104,7 @@ public:
      * foreground the ability.
      *
      */
-    void ForegroundAbility(uint32_t sceneFlag = 0, bool hasLastWant = false);
+    void ForegroundAbility(uint32_t sceneFlag = 0);
     void ForegroundUIExtensionAbility(uint32_t sceneFlag = 0);
 
     /**
@@ -360,6 +360,28 @@ public:
      *
      */
     Want GetWant() const;
+    std::string GetAbilityName() const;
+    std::string GetBundleName() const;
+    std::string GetModuleName() const;
+    std::string GetStringParam(const std::string &key) const;
+    int GetIntParam(const std::string &key, int defaultValue) const;
+    bool GetBoolParam(const std::string &key, bool defaultValue) const;
+    bool HasParameter(const std::string &key) const;
+
+    inline const std::string &GetInfoAbilityName() const
+    {
+        return abilityInfo_.name;
+    }
+
+    inline const std::string &GetInfoBundleName() const
+    {
+        return abilityInfo_.bundleName;
+    }
+
+    inline const std::string &GetInfoModuleName() const
+    {
+        return abilityInfo_.moduleName;
+    }
 
     /**
      * remove signature info of want.
@@ -574,6 +596,7 @@ public:
     void NotifyCallersOnTerminate();
     bool IsStartedByCall() const;
     void SetStartedByCall(const bool isFlag);
+    int32_t GetByCallStatus() const;
     void CallRequest();
     bool CallRequestDone(const sptr<IRemoteObject> &callStub) const;
     bool IsStartToBackground() const;
@@ -586,6 +609,8 @@ public:
     void UpdateSessionInfo(sptr<IRemoteObject> sessionToken);
     void SetMinimizeReason(bool fromUser);
     void SetSceneFlag(uint32_t sceneFlag);
+    void SetIsFromScreenOffBackground(bool isFromScreenOffBackground);
+    bool IsFromScreenOffBackground() const;
     bool IsMinimizeFromUser() const;
     void SetClearMissionFlag(bool clearMissionFlag);
     bool IsClearMissionFlag();
@@ -595,6 +620,7 @@ public:
     void SetWindowMode(int32_t windowMode);
     void RemoveWindowMode();
     LifeCycleStateInfo lifeCycleStateInfo_;                // target life state info
+    bool isFromScreenOffBackground_ = false;              // mark if background caused by screen off
 
     bool CanRestartRootLauncher();
 
@@ -715,6 +741,16 @@ public:
         return isPluginAbility_;
     }
 
+    bool IsGameSAPreLaunch() const
+    {
+        return isGameSAPreLaunch_;
+    }
+
+    void SetGameSAPreLaunch(bool isGameSAPreLaunch)
+    {
+        isGameSAPreLaunch_ = isGameSAPreLaunch;
+    }
+
     // Host-Plugin relationship management
     void AddPluginAbility(std::shared_ptr<AbilityRecord> pluginAbility);
     void RemovePluginAbility(std::shared_ptr<AbilityRecord> pluginAbility);
@@ -732,41 +768,6 @@ public:
 
     void NotifyAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element);
     void NotifyAbilitiesRequestDone(const std::string &requestKey, int32_t resultCode);
-
-    inline void SetLaunchWant(std::shared_ptr<Want> launchWant)
-    {
-        launchWant_ = launchWant;
-    }
-
-    inline std::shared_ptr<Want> GetLaunchWant() const
-    {
-        return launchWant_;
-    }
-
-    inline void SetLastWant(std::shared_ptr<Want> lastWant)
-    {
-        lastWant_ = lastWant;
-    }
-
-    inline bool HasLastWant() const
-    {
-        return lastWant_ != nullptr;
-    }
-
-    inline void SetBackgroundDrivenFlag(bool isLastWantBackgroundDriven)
-    {
-        isLastWantBackgroundDriven_.store(isLastWantBackgroundDriven);
-    }
-
-    inline void SetOnNewWantSkipScenarios(int32_t scenarios)
-    {
-        scenarios_.store(scenarios);
-    }
-
-    inline int32_t GetOnNewWantSkipScenarios() const
-    {
-        return scenarios_.load();
-    }
 
     inline void SetPreloadStart(bool isPreloadStart)
     {
@@ -952,6 +953,7 @@ protected:
     bool isHook_ = false;
     bool isPluginAbility_ = false;
     bool isPrelaunch_ = false;
+    std::atomic<bool> isGameSAPreLaunch_ = false;
 
     int32_t uiExtensionAbilityId_ = 0;                // uiextension ability id
     int32_t uid_ = 0;
@@ -990,21 +992,17 @@ protected:
     std::shared_ptr<CallContainer> callContainer_ = nullptr;       // new version
     std::shared_ptr<Want> connectWant_ = nullptr;
     std::shared_ptr<CallerAbilityInfo> saCallerInfo_ = nullptr;
-    std::shared_ptr<Want> launchWant_ = nullptr;
-    std::shared_ptr<Want> lastWant_ = nullptr;
     std::shared_ptr<UIAbilityProperty> uiAbilityProperty_ = nullptr;
 
     LaunchDebugInfo launchDebugInfo_;
     WindowConfig windowConfig_;
 
-    int64_t startTime_ = 0;                           // records first time of ability start
+    std::atomic_int64_t startTime_ = 0;                           // records first time of ability start
     int64_t restartTime_ = 0;                         // the time of last trying restart
     std::atomic<AbilityState> pendingState_ = AbilityState::INITIAL;    // pending life state
     std::atomic<AbilityVisibilityState> abilityVisibilityState_ = AbilityVisibilityState::INITIAL;
     std::atomic_bool isPrepareTerminateAbilityCalled_ = false;
     std::atomic_bool isPrepareTerminateAbilityDone_ = false;
-    std::atomic_bool isLastWantBackgroundDriven_ = false;
-    std::atomic<int32_t> scenarios_ = 0;
     std::atomic<bool> isPreloaded_ = false;
     std::atomic<bool> isFrozenByPreload_ = false;
     std::atomic<bool> isAbilityConnectionReported_ = false;

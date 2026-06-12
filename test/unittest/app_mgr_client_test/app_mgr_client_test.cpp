@@ -582,7 +582,7 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_StartSpecifiedAbility_001, TestSize.Leve
 HWTEST_F(AppMgrClientTest, AppMgrClient_RegisterStartSpecifiedAbilityResponse_001, TestSize.Level2)
 {
     sptr<IStartSpecifiedAbilityResponse> response = nullptr;
-    auto appMgrClient = std::make_unique<AppMgrClient>();
+    auto appMgrClient = std::make_shared<AppMgrClient>();
     EXPECT_NE(appMgrClient, nullptr);
 
     auto result = appMgrClient->ConnectAppMgrService();
@@ -734,6 +734,40 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_DumpCjHeapMemory_001, TestSize.Level2)
 
     OHOS::AppExecFwk::CjHeapDumpInfo info;
     appMgrClient->DumpCjHeapMemory(info);
+    EXPECT_NE(appMgrClient, nullptr);
+}
+
+/**
+ * @tc.name: AppMgrClient_DumpMem_001
+ * @tc.desc: DumpMem.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, AppMgrClient_DumpMem_001, TestSize.Level2)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    auto result = appMgrClient->ConnectAppMgrService();
+    EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
+
+    OHOS::AppExecFwk::MemDumpInfo info;
+    sptr<IMemDumpCallback> callback = nullptr;
+    appMgrClient->DumpMem(info, callback);
+    EXPECT_NE(appMgrClient, nullptr);
+}
+
+/**
+ * @tc.name: AppMgrClient_ReportDumpMemResult_001
+ * @tc.desc: ReportDumpMemResult.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, AppMgrClient_ReportDumpMemResult_001, TestSize.Level2)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    auto result = appMgrClient->ConnectAppMgrService();
+    EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
+
+    sptr<IMemDumpCallback> callback = nullptr;
+    std::string dumpResult = "test";
+    appMgrClient->ReportDumpMemResult(callback, dumpResult);
     EXPECT_NE(appMgrClient, nullptr);
 }
 
@@ -1697,6 +1731,261 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_UpdateConfigurationByUserIds_002, TestSi
     std::vector<int32_t> userids;
     auto result = appMgrClient->UpdateConfigurationByUserIds(config, userids);
     EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
+}
+
+/**
+ * @tc.name: AppMgrClient_RegisterImageProcessStateObserver_001
+ * @tc.desc: RegisterImageProcessStateObserver.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, AppMgrClient_RegisterImageProcessStateObserver_001, TestSize.Level1)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    EXPECT_NE(appMgrClient, nullptr);
+
+    sptr<IImageProcessStateObserver> observer = nullptr;
+    auto result = appMgrClient->RegisterImageProcessStateObserver(observer);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: AppMgrClient_UnregisterImageProcessStateObserver_001
+ * @tc.desc: UnregisterImageProcessStateObserver.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, AppMgrClient_UnregisterImageProcessStateObserver_001, TestSize.Level1)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    EXPECT_NE(appMgrClient, nullptr);
+
+    sptr<IImageProcessStateObserver> observer = nullptr;
+    auto result = appMgrClient->UnregisterImageProcessStateObserver(observer);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: MakeImage_001
+ * @tc.desc: make image.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, MakeImage_001, TestSize.Level2)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    EXPECT_NE(appMgrClient, nullptr);
+
+    auto result = appMgrClient->ConnectAppMgrService();
+    EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
+
+    std::string bundleName = "com.acts.makeImagetest";
+    AAFwk::Want want;
+    want.SetBundle(bundleName);
+    int32_t userId = 100;
+    PreloadMode preloadMode = PreloadMode::PRE_MAKE;
+    int32_t appIndex = 0;
+    int32_t ret = appMgrClient->MakeImage(want, userId, preloadMode, appIndex, nullptr);
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: DestroyImage_001
+ * @tc.desc: destory image.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, DestroyImage_001, TestSize.Level2)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    EXPECT_NE(appMgrClient, nullptr);
+
+    auto result = appMgrClient->ConnectAppMgrService();
+    EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
+
+    uint64_t checkpointId = 1;
+    int32_t ret = appMgrClient->DestroyImage(checkpointId, nullptr);
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: AppMgrClient_SetGameSAPrelaunch_001
+ * @tc.desc: SetGameSAPrelaunch with null service.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, AppMgrClient_SetGameSAPrelaunch_001, TestSize.Level1)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    EXPECT_NE(appMgrClient, nullptr);
+
+    std::string deviceName = "device";
+    std::string abilityName = "TestAbility";
+    std::string appName = "TestApp";
+    std::string bundleName = "com.test.app";
+    auto abilityReq = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName);
+    auto record = AbilityRecord::CreateAbilityRecord(abilityReq);
+    auto token = record->GetToken();
+
+    bool isGameSAPrelaunch = true;
+    auto result = appMgrClient->SetGameSAPrelaunch(token, isGameSAPrelaunch);
+    EXPECT_EQ(result, AppMgrResultCode::ERROR_SERVICE_NOT_READY);
+}
+
+/**
+ * @tc.name: AppMgrClient_SetGameSAPrelaunch_002
+ * @tc.desc: SetGameSAPrelaunch with valid service and true value.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, AppMgrClient_SetGameSAPrelaunch_002, TestSize.Level1)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    EXPECT_NE(appMgrClient, nullptr);
+
+    auto result = appMgrClient->ConnectAppMgrService();
+    if (result != AppMgrResultCode::RESULT_OK) {
+        GTEST_LOG_(INFO) << "Service not available, skipping test";
+        return;
+    }
+
+    std::string deviceName = "device";
+    std::string abilityName = "TestAbility";
+    std::string appName = "TestApp";
+    std::string bundleName = "com.test.app";
+    auto abilityReq = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName);
+    auto record = AbilityRecord::CreateAbilityRecord(abilityReq);
+    auto token = record->GetToken();
+
+    bool isGameSAPrelaunch = true;
+    result = appMgrClient->SetGameSAPrelaunch(token, isGameSAPrelaunch);
+    EXPECT_EQ(result, AppMgrResultCode::ERROR_SERVICE_NOT_READY);
+}
+
+/**
+ * @tc.name: AppMgrClient_SetGameSAPrelaunch_003
+ * @tc.desc: SetGameSAPrelaunch with valid service and false value.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, AppMgrClient_SetGameSAPrelaunch_003, TestSize.Level1)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    EXPECT_NE(appMgrClient, nullptr);
+
+    auto result = appMgrClient->ConnectAppMgrService();
+    if (result != AppMgrResultCode::RESULT_OK) {
+        GTEST_LOG_(INFO) << "Service not available, skipping test";
+        return;
+    }
+
+    std::string deviceName = "device";
+    std::string abilityName = "TestAbility";
+    std::string appName = "TestApp";
+    std::string bundleName = "com.test.app";
+    auto abilityReq = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName);
+    auto record = AbilityRecord::CreateAbilityRecord(abilityReq);
+    auto token = record->GetToken();
+
+    bool isGameSAPrelaunch = false;
+    result = appMgrClient->SetGameSAPrelaunch(token, isGameSAPrelaunch);
+    EXPECT_EQ(result, AppMgrResultCode::ERROR_SERVICE_NOT_READY);
+}
+
+/**
+ * @tc.name: AppMgrClient_SetGameSAPrelaunch_004
+ * @tc.desc: SetGameSAPrelaunch with null token.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, AppMgrClient_SetGameSAPrelaunch_004, TestSize.Level1)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    EXPECT_NE(appMgrClient, nullptr);
+
+    auto result = appMgrClient->ConnectAppMgrService();
+    if (result != AppMgrResultCode::RESULT_OK) {
+        GTEST_LOG_(INFO) << "Service not available, skipping test";
+        return;
+    }
+
+    sptr<IRemoteObject> token = nullptr;
+    bool isGameSAPrelaunch = true;
+    result = appMgrClient->SetGameSAPrelaunch(token, isGameSAPrelaunch);
+    EXPECT_EQ(result, AppMgrResultCode::ERROR_SERVICE_NOT_READY);
+}
+
+/**
+ * @tc.name: AppMgrClient_UpdateFreezeExcludedPid_001
+ * @tc.desc: Update freeze excluded pid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, AppMgrClient_UpdateFreezeExcludedPid_001, TestSize.Level2)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    EXPECT_NE(appMgrClient, nullptr);
+    int32_t pid = 1;
+    int32_t profilerPid = 2;
+    appMgrClient->UpdateFreezeExcludedPid(true, pid, profilerPid);
+}
+
+/**
+ * @tc.name: EnableDelayedProcessExit_001
+ * @tc.desc: Enable delayed process exit with valid connection.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, EnableDelayedProcessExit_001, TestSize.Level2)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    EXPECT_NE(appMgrClient, nullptr);
+
+    auto result = appMgrClient->ConnectAppMgrService();
+    EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
+
+    int32_t pid = 1234;
+    int32_t ret = appMgrClient->EnableDelayedProcessExit(pid, true);
+    EXPECT_NE(ret, AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED);
+}
+
+/**
+ * @tc.name: EnableDelayedProcessExit_002
+ * @tc.desc: Disable delayed process exit with valid connection.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, EnableDelayedProcessExit_002, TestSize.Level2)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    EXPECT_NE(appMgrClient, nullptr);
+
+    auto result = appMgrClient->ConnectAppMgrService();
+    EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
+
+    int32_t pid = 1234;
+    int32_t ret = appMgrClient->EnableDelayedProcessExit(pid, false);
+    EXPECT_NE(ret, AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED);
+}
+
+/**
+ * @tc.name: CancelDelayedExitTask_001
+ * @tc.desc: Cancel delayed exit task with valid connection.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, CancelDelayedExitTask_001, TestSize.Level2)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    EXPECT_NE(appMgrClient, nullptr);
+
+    auto result = appMgrClient->ConnectAppMgrService();
+    EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
+
+    int32_t pid = 1234;
+    appMgrClient->CancelDelayedExitTask(pid);
+}
+
+/**
+ * @tc.name: CancelDelayedExitTask_002
+ * @tc.desc: Cancel delayed exit task without connecting service (null service).
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, CancelDelayedExitTask_002, TestSize.Level2)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    EXPECT_NE(appMgrClient, nullptr);
+
+    int32_t pid = 1234;
+    appMgrClient->CancelDelayedExitTask(pid);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

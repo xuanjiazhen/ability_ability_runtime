@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "ability_connect_callback.h"
+#include "ability_business_error.h"
 #include "ani.h"
 #include "want.h"
 
@@ -75,29 +76,13 @@ int64_t InsertAgentConnection(sptr<EtsAgentConnection> connection, const AAFwk::
 void FindAgentConnection(int64_t connectId, sptr<EtsAgentConnection> &connection);
 
 /**
- * Find agent connection by want and callback.
+ * Find agent connection by target identity.
  *
- * @param env The ANI environment.
  * @param want The want information to match.
- * @param callback The callback object to match.
+ * @param agentId The agent ID to match.
  * @param connection Output parameter for the found connection.
  */
-void FindAgentConnection(ani_env *env, AAFwk::Want &want, ani_object callback,
-    sptr<EtsAgentConnection> &connection);
-
-/**
- * Get the current count of active agent connections.
- *
- * @return Returns the number of active connections.
- */
-size_t GetAgentConnectionCount();
-
-/**
- * Check if the maximum number of connections has been reached.
- *
- * @return Returns true if max connections reached, false otherwise.
- */
-bool IsMaxConnectionsReached();
+void FindAgentConnection(const AAFwk::Want &want, const std::string &agentId, sptr<EtsAgentConnection> &connection);
 }
 
 class EtsAgentConnectorStubImpl;
@@ -177,7 +162,7 @@ public:
      *
      * @param duplicatedCallback The callback object from ETS.
      */
-    void AddDuplicatedPendingCallback(ani_object duplicatedCallback);
+    bool AddDuplicatedPendingCallback(ani_object duplicatedCallback);
 
     /**
      * Resolve all duplicated pending callbacks with the proxy.
@@ -193,7 +178,8 @@ public:
      * @param env The ANI environment.
      * @param error The error code.
      */
-    void RejectDuplicatedPendingCallbacks(ani_env *env, int32_t error);
+    void RejectDuplicatedPendingCallbacks(
+        ani_env *env, int32_t error, AbilityRuntime::AbilityInnerErrorMsg fallbackMessage);
 
     /**
      * Called when agent extension sends data.

@@ -31,6 +31,7 @@ class EcmaVM;
 } // namespace panda::ecmascript
 namespace panda {
 struct HmsMap;
+struct GCStatistic;
 }
 namespace OHOS {
 namespace AppExecFwk {
@@ -75,6 +76,7 @@ public:
     static std::unique_ptr<JsRuntime> Create(const Options& options);
 
     static void SetAppLibPath(const AppLibPathMap& appLibPaths, const bool& isSystemApp = false);
+    static void SetOrUpdateLibPath(const AppLibPathMap& appLibPaths, const bool& isSystemApp = false);
     static void InheritPluginNamespace(const std::vector<std::string> &moduleNames);
     static void CreatePluginDefaultNamespace(const std::string &lddictorys);
 
@@ -99,7 +101,7 @@ public:
     void ForceFullGC() override;
     void ForceFullGC(uint32_t tid) override;
     void DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary = false) override;
-    void DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary, bool isClearNodeIdCache) override;
+    void DumpHeapSnapshot(uint32_t tid, const OHOS::AbilityRuntime::Runtime::JsHeapDumpParam &param) override;
     void AllowCrossThreadExecution() override;
     void GetHeapPrepare() override;
     void NotifyApplicationState(bool isBackground) override;
@@ -126,8 +128,9 @@ public:
     bool LoadRepairPatch(const std::string& hqfFile, const std::string& hapPath) override;
     bool UnLoadRepairPatch(const std::string& hqfFile) override;
     bool NotifyHotReloadPage() override;
-    void RegisterUncaughtExceptionHandler(const JsEnv::UncaughtExceptionInfo& uncaughtExceptionInfo);
-    void RegisterUncatchableExceptionHandler(const JsEnv::UncatchableTask& uncatchableTask);
+    void RegisterUncaughtExceptionHandler(const JsEnv::UncaughtExceptionInfo& uncaughtExceptionInfo,
+        bool isStatic = false);
+    void RegisterUncatchableExceptionHandler(const JsEnv::UncatchableTask& uncatchableTask, bool isStatic = false);
     bool LoadScript(const std::string& path, std::vector<uint8_t>* buffer = nullptr, bool isBundle = false);
     bool LoadScript(const std::string& path, uint8_t* buffer, size_t len, bool isBundle,
         const std::string& srcEntrance = "");
@@ -163,12 +166,12 @@ public:
     std::unique_ptr<NativeReference> LoadSystemModule(
         const std::string& moduleName, const napi_value* argv = nullptr, size_t argc = 0);
 
-    bool ExecuteSecureWithOhmUrl(const std::string &moduleName, const std::string &hapPath,
-        const std::string &srcEntrance);
+    std::unique_ptr<AbilityBase::FileMapper> ExecuteSecureWithOhmUrl(const std::string &moduleName,
+        const std::string &hapPath, const std::string &srcEntrance);
     napi_value GetExportObjectFromOhmUrl(const std::string &srcEntrance, const std::string &key);
 
     void SetDeviceDisconnectCallback(const std::function<bool()> &cb) override;
-    void SetStopPreloadSoCallback(const std::function<void()> &callback) override;
+    void SetStopPreloadSoCallback(const std::function<void()> &callback);
     void SetPkgContextInfoJson(std::string moduleName, std::string hapPath, std::string packageName);
     void UpdatePkgContextInfoJson(const std::string& moduleName, const std::string& hapPath,
         const std::string& packageName);
@@ -176,6 +179,8 @@ public:
 
     size_t GetHeapTotalSize();
     size_t GetHeapObjectSize();
+    size_t GetSharedHeapSize();
+    panda::GCStatistic GetGCStatistic();
 
 private:
     void FinishPreload() override;

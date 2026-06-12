@@ -25,6 +25,7 @@ using JsonType = AppExecFwk::JsonType;
 using ArrayType = AppExecFwk::ArrayType;
 namespace {
 int32_t g_parseResult = ERR_OK;
+constexpr size_t MAX_IPC_REWDATA_SIZE = 100 * 1024 * 1024;      // max ipc size 100MB
 std::mutex g_extraMutex;
 
 const std::map<AppExecFwk::ExecuteMode, std::string> EXECUTE_MODE_STRING_MAP = {
@@ -213,6 +214,14 @@ void from_json(const nlohmann::json &jsonObject, EntityInfoForQuery &entityInfo)
         entityInfo.parentClassName,
         false,
         g_parseResult);
+    AppExecFwk::GetValueIfFindKey<std::vector<std::string>>(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_ENTITY_SUPPORTED_QUERY_PROPERTIES,
+        entityInfo.supportedQueryProperties,
+        JsonType::ARRAY,
+        false,
+        g_parseResult,
+        ArrayType::STRING);
 }
 
 void to_json(nlohmann::json& jsonObject, const EntityInfoForQuery &info)
@@ -223,7 +232,8 @@ void to_json(nlohmann::json& jsonObject, const EntityInfoForQuery &info)
         {INSIGHT_INTENT_ENTITY_ID, info.entityId},
         {INSIGHT_INTENT_ENTITY_CATEGORY, info.entityCategory},
         {INSIGHT_INTENT_PARAMETERS, info.parameters},
-        {INSIGHT_INTENT_ENTITY_PARENT_CLASS_NAME, info.parentClassName}
+        {INSIGHT_INTENT_ENTITY_PARENT_CLASS_NAME, info.parentClassName},
+        {INSIGHT_INTENT_ENTITY_SUPPORTED_QUERY_PROPERTIES, info.supportedQueryProperties},
     };
 }
 
@@ -671,6 +681,10 @@ bool InsightIntentInfoForQuery::ReadFromParcel(Parcel &parcel)
         TAG_LOGE(AAFwkTag::INTENT, "Invalid data length");
         return false;
     }
+    if (length > MAX_IPC_REWDATA_SIZE) {
+        TAG_LOGE(AAFwkTag::INTENT, "Length is too large");
+        return false;
+    }
     const char *data = reinterpret_cast<const char *>(messageParcel->ReadRawData(length));
     TAG_LOGD(AAFwkTag::INTENT, "ReadFromParcel data: %{public}s", data);
     if (!data) {
@@ -702,6 +716,10 @@ bool InsightIntentInfoForQuery::Marshalling(Parcel &parcel) const
     }
     nlohmann::json jsonObject = *this;
     std::string str = jsonObject.dump();
+    if (str.size() + 1 > MAX_IPC_REWDATA_SIZE) {
+        TAG_LOGE(AAFwkTag::INTENT, "Data size is too large");
+        return false;
+    }
     TAG_LOGD(AAFwkTag::INTENT, "Marshalling str: %{public}s", str.c_str());
     if (!messageParcel->WriteUint32(str.size() + 1)) {
         TAG_LOGE(AAFwkTag::INTENT, "Write intent info size failed");
@@ -726,6 +744,78 @@ InsightIntentInfoForQuery *InsightIntentInfoForQuery::Unmarshalling(Parcel &parc
         info = nullptr;
     }
     return info;
+}
+
+bool InsightIntentInfoForQuery::MarshallingVector(
+    Parcel &parcel, const std::vector<InsightIntentInfoForQuery> &infos)
+{
+    MessageParcel *messageParcel = reinterpret_cast<MessageParcel *>(&parcel);
+    if (!messageParcel) {
+        TAG_LOGE(AAFwkTag::INTENT, "Conversion failed");
+        return false;
+    }
+    nlohmann::json jsonArray = nlohmann::json::array();
+    for (const auto &info : infos) {
+        nlohmann::json item = info;
+        jsonArray.push_back(item);
+    }
+    std::string str = jsonArray.dump();
+    TAG_LOGD(AAFwkTag::INTENT, "MarshallingVector size: %{public}zu", str.size());
+    if (str.size() + 1 > MAX_IPC_REWDATA_SIZE) {
+        TAG_LOGE(AAFwkTag::INTENT, "Data size is too large");
+        return false;
+    }
+    if (!messageParcel->WriteUint32(str.size() + 1)) {
+        TAG_LOGE(AAFwkTag::INTENT, "Write size failed");
+        return false;
+    }
+    if (!messageParcel->WriteRawData(str.c_str(), str.size() + 1)) {
+        TAG_LOGE(AAFwkTag::INTENT, "Write raw data failed");
+        return false;
+    }
+    return true;
+}
+
+bool InsightIntentInfoForQuery::UnmarshallingVector(
+    Parcel &parcel, std::vector<InsightIntentInfoForQuery> &infos)
+{
+    MessageParcel *messageParcel = reinterpret_cast<MessageParcel *>(&parcel);
+    if (!messageParcel) {
+        TAG_LOGE(AAFwkTag::INTENT, "Conversion failed");
+        return false;
+    }
+    uint32_t length = messageParcel->ReadUint32();
+    if (length == 0) {
+        TAG_LOGE(AAFwkTag::INTENT, "Invalid data length");
+        return false;
+    }
+    if (length > MAX_IPC_REWDATA_SIZE) {
+        TAG_LOGE(AAFwkTag::INTENT, "Length is too large");
+        return false;
+    }
+    const char *data = reinterpret_cast<const char *>(messageParcel->ReadRawData(length));
+    if (!data) {
+        TAG_LOGE(AAFwkTag::INTENT, "Fail read raw length = %{public}u", length);
+        return false;
+    }
+    nlohmann::json jsonArray = nlohmann::json::parse(data, nullptr, false);
+    if (jsonArray.is_discarded() || !jsonArray.is_array()) {
+        TAG_LOGE(AAFwkTag::INTENT, "Failed to parse JSON array");
+        return false;
+    }
+    std::lock_guard<std::mutex> lock(g_extraMutex);
+    g_parseResult = ERR_OK;
+    infos.clear();
+    for (const auto &item : jsonArray) {
+        InsightIntentInfoForQuery info = item.get<InsightIntentInfoForQuery>();
+        if (g_parseResult != ERR_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "parse result: %{public}d", g_parseResult);
+            g_parseResult = ERR_OK;
+            return false;
+        }
+        infos.emplace_back(std::move(info));
+    }
+    return true;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

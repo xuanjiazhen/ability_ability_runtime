@@ -332,5 +332,683 @@ HWTEST_F(MultiUserConfigMgrTest, GetConfigurationByUserId_0400, TestSize.Level1)
     multiUserConfigurationMgr->globalConfiguration_ = std::make_shared<AppExecFwk::Configuration>();
     EXPECT_NE(multiUserConfigurationMgr->GetConfigurationByUserId(100), nullptr);
 }
+
+/**
+ * @tc.name: InitConfiguration_0200
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_0200, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "中文" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::SYSTEM_LOCALE, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1002;
+    std::string English{ "英文" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::SYSTEM_LOCALE, English);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_0200
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_0300, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "DARK" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1002;
+    std::string English{ "LIGHT" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE, English);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_0200
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_0400, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "THEME1" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::THEME, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1002;
+    std::string English{ "THEME2" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::THEME, English);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_0200
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_0500, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "ID1" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::THEME_ID, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1002;
+    std::string English{ "ID2" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::THEME_ID, English);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_0200
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_0600, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "ICON" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::THEME_ICON, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1002;
+    std::string English{ "ICON1" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::THEME_ICON, English);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_0200
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_0700, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "1" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::SYSTEM_FONT_ID, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1002;
+    std::string English{ "2" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::SYSTEM_FONT_ID, English);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_0200
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_0800, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "1.1" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::SYSTEM_FONT_SIZE_SCALE, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1002;
+    std::string English{ "1.1" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::SYSTEM_FONT_SIZE_SCALE, English);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_0200
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_0900, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "1" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::SYSTEM_FONT_WEIGHT_SCALE, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1002;
+    std::string English{ "2" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::SYSTEM_FONT_WEIGHT_SCALE, English);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_0200
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_1000, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "MCC" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::SYSTEM_MCC, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1002;
+    std::string English{ "MCC1" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::SYSTEM_MCC, English);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_0200
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_1100, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "MNC" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::SYSTEM_MNC, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1002;
+    std::string English{ "MNC1" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::SYSTEM_MNC, English);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_0200
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_1200, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "1" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::APPLICATION_FONT, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1002;
+    std::string English{ "2" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::APPLICATION_FONT, English);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_0200
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_1300, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "1" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::APP_FONT_SIZE_SCALE, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1002;
+    std::string English{ "2" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::APP_FONT_SIZE_SCALE, English);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_0200
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_1400, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "1" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::APP_FONT_MAX_SCALE, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1002;
+    std::string English{ "2" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::APP_FONT_MAX_SCALE, English);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_0200
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_1500, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "true" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::INPUT_POINTER_DEVICE, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1002;
+    std::string English{ "false" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::INPUT_POINTER_DEVICE, English);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_0200
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_1600, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "1" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::IS_PREFERRED_LANGUAGE, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1002;
+    std::string English{ "2" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::IS_PREFERRED_LANGUAGE, English);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_0200
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_1700, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "PC" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::DEVICE_TYPE, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1002;
+    std::string English{ "PC" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::DEVICE_TYPE, English);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+
+/**
+ * @tc.name: InitConfiguration_0200
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_1800, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "phone" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::DEVICE_TYPE, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1002;
+    std::string English{ "phone" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::DEVICE_TYPE, English);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_1900
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_1900, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "phone1003" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::DEVICE_TYPE, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1003;
+    std::string deviceType{ "phone1003" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::DEVICE_TYPE, deviceType);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_2000
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_2000, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "phone1004" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::DEVICE_TYPE, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1003;
+    std::string deviceType{ "phone1004" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::DEVICE_TYPE, deviceType);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_2100
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_2100, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "phone5" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::DEVICE_TYPE, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1004;
+    std::string deviceType{ "phone5" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::DEVICE_TYPE, deviceType);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_2100
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_2200, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "phone6" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::DEVICE_TYPE, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1005;
+    std::string deviceType{ "phone6" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::DEVICE_TYPE, deviceType);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_2100
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_2300, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "phone7" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::DEVICE_TYPE, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1006;
+    std::string deviceType{ "phone7" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::DEVICE_TYPE, deviceType);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_2100
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_2400, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "phone8" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::DEVICE_TYPE, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1007;
+    std::string deviceType{ "phone8" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::DEVICE_TYPE, deviceType);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_2100
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_2500, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "phone9" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::DEVICE_TYPE, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1008;
+    std::string deviceType{ "phone9" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::DEVICE_TYPE, deviceType);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_2100
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_2600, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "phone10" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::DEVICE_TYPE, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1009;
+    std::string deviceType{ "phone10" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::DEVICE_TYPE, deviceType);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
+
+/**
+ * @tc.name: InitConfiguration_2100
+ * @tc.desc: InitConfiguration.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MultiUserConfigMgrTest, InitConfiguration_2700, TestSize.Level1)
+{
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    int displayId = 1001;
+    std::string val{ "phone11" };
+    config->AddItem(displayId, AAFwk::GlobalConfigurationKey::APP_FONT_MAX_SCALE, val);
+    auto multiUserConfigurationMgr =
+        std::make_shared<AppExecFwk::MultiUserConfigurationMgr>();
+    multiUserConfigurationMgr->globalConfiguration_ = nullptr;
+    multiUserConfigurationMgr->InitConfiguration(config);
+
+    multiUserConfigurationMgr->globalConfiguration_ =
+        std::make_shared<AppExecFwk::Configuration>();
+    int displayId2 = 1010;
+    std::string deviceType{ "phone11" };
+    multiUserConfigurationMgr->globalConfiguration_->AddItem(displayId2,
+        AAFwk::GlobalConfigurationKey::APP_FONT_MAX_SCALE, deviceType);
+    multiUserConfigurationMgr->InitConfiguration(config);
+    EXPECT_EQ(config, multiUserConfigurationMgr->globalConfiguration_);
+}
 } // namespace AppExecFwk
 } // namespace OHOS
+    

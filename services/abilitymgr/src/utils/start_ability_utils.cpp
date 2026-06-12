@@ -23,6 +23,9 @@
 #include "global_constant.h"
 #include "hitrace_meter.h"
 #include "startup_util.h"
+#include "permission_verification.h"
+#include "permission_constants.h"
+#include "ipc_skeleton.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -44,7 +47,7 @@ thread_local bool StartAbilityUtils::startSpecifiedBySCB = false;
 bool StartAbilityUtils::GetAppIndex(const Want &want, sptr<IRemoteObject> callerToken, int32_t &appIndex)
 {
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
-    if (abilityRecord && abilityRecord->GetApplicationInfo().bundleName == want.GetElement().GetBundleName() &&
+    if (abilityRecord && abilityRecord->GetApplicationInfo().bundleName == want.GetBundle() &&
         abilityRecord->GetAppIndex() > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
         appIndex = abilityRecord->GetAppIndex();
         return true;
@@ -107,7 +110,7 @@ std::vector<int32_t> StartAbilityUtils::GetCloneAppIndexes(const std::string &bu
 int32_t StartAbilityUtils::CheckAppProvisionMode(const Want& want, int32_t userId, sptr<IRemoteObject> callerToken)
 {
     auto abilityInfo = StartAbilityUtils::startAbilityInfo;
-    if (!abilityInfo || abilityInfo->GetAppBundleName() != want.GetElement().GetBundleName()) {
+    if (!abilityInfo || abilityInfo->GetAppBundleName() != want.GetBundle()) {
         int32_t appIndex = 0;
         if (!GetAppIndex(want, callerToken, appIndex)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid app clone index");
@@ -297,6 +300,7 @@ std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateStartAbilityInfo(const
             return request;
         }
         request->extensionProcessMode = extensionInfo.extensionProcessMode;
+        request->skipAbilityStageLifecycle = extensionInfo.skipAbilityStageLifecycle;
         // For compatibility translates to AbilityInfo
         AbilityRuntime::StartupUtil::InitAbilityInfoFromExtension(extensionInfo, request->abilityInfo);
     }
@@ -371,6 +375,7 @@ void StartAbilityInfo::FindExtensionInfo(const Want &want, int32_t flags, int32_
         return;
     }
     abilityInfo->customProcess = extensionInfo.customProcess;
+    abilityInfo->skipAbilityStageLifecycle = extensionInfo.skipAbilityStageLifecycle;
     TAG_LOGD(AAFwkTag::ABILITYMGR, "extensionInfo customProcess: %{public}s", abilityInfo->customProcess.c_str());
     if (AbilityRuntime::StartupUtil::IsSupportAppClone(extensionInfo.type)) {
         abilityInfo->extensionProcessMode = extensionInfo.extensionProcessMode;
@@ -415,7 +420,7 @@ void StartAbilityUtils::SetTargetCloneIndexInSameBundle(const Want &want, sptr<I
 {
     auto callerRecord = Token::GetAbilityRecordByToken(callerToken);
     CHECK_POINTER(callerRecord);
-    if (callerRecord->GetAbilityInfo().bundleName != want.GetElement().GetBundleName()) {
+    if (callerRecord->GetAbilityInfo().bundleName != want.GetBundle()) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "not the same bundle");
         return;
     }
@@ -472,6 +477,30 @@ std::string StartAbilityUtils::GenerateAsCallerForAncoSessionId()
     int randomDigit = uni(rng);
     std::string asCallerForAncoSessionId = std::to_string(time) + "_" + std::to_string(randomDigit);
     return asCallerForAncoSessionId;
+}
+
+void StartAbilityUtils::RemoveAtomicServiceShareRouterIfNeeded(Want &want,
+    const AppExecFwk::AbilityInfo &targetAbilityInfo, uint32_t callerTokenId)
+{
+    if (!want.HasParameter(Want::ATOMIC_SERVICE_SHARE_ROUTER)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "No ATOMIC_SERVICE_SHARE_ROUTER parameter, skip check");
+        return;
+    }
+
+    bool isAtomicService = (targetAbilityInfo.applicationInfo.bundleType ==
+        AppExecFwk::BundleType::ATOMIC_SERVICE);
+    if (isAtomicService) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Keep ATOMIC_SERVICE_SHARE_ROUTER");
+        return;
+    }
+
+    bool hasStartAbilityToPagePermission = PermissionVerification::GetInstance()->VerifyCallingPermission(
+        PermissionConstants::PERMISSION_START_ABILITY_TO_PAGE, callerTokenId);
+    if (!hasStartAbilityToPagePermission) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Remove ATOMIC_SERVICE_SHARE_ROUTER: hasPermission=%{public}d",
+            hasStartAbilityToPagePermission);
+        want.RemoveParam(Want::ATOMIC_SERVICE_SHARE_ROUTER);
+    }
 }
 }
 }

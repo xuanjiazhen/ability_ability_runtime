@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -323,13 +323,13 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner_GetApplicationInfo_001, TestSize.Lev
 
 /**
  * @tc.number: AppfreezeInner_LogFormat_001
- * @tc.name: LogFormat
+ * @tc.name: LogFormatHeapSize
  */
 HWTEST_F(AppfreezeInnerTest, AppfreezeInner_LogFormat_001, TestSize.Level1)
 {
-    std::string ret = appfreezeInner->LogFormat(0, 0);
+    std::string ret = appfreezeInner->LogFormatHeapSize(0, 0, 0);
     EXPECT_TRUE(!ret.empty());
-    ret = appfreezeInner->LogFormat(123, 123);
+    ret = appfreezeInner->LogFormatHeapSize(123, 123, 123);
     EXPECT_TRUE(!ret.empty());
 }
 
@@ -373,6 +373,24 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner_IsAppFreeze_001, TestSize.Level1)
     ret = appfreezeInner->IsAppFreeze(AppFreezeType::THREAD_BLOCK_6S);
     EXPECT_EQ(ret, true);
 }
+
+/**
+ * @tc.number: AppfreezeInner_IsAppFreezeWarning_001
+ * @tc.name: IsAppFreezeWarning
+ * @tc.desc: Verify that function IsAppFreezeWarning.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_IsAppFreezeWarning_001, TestSize.Level1)
+{
+    bool ret = appfreezeInner->IsAppFreezeWarning(AppFreezeType::THREAD_BLOCK_3S);
+    EXPECT_EQ(ret, true);
+    ret = appfreezeInner->IsAppFreezeWarning(AppFreezeType::THREAD_BLOCK_6S);
+    EXPECT_EQ(ret, false);
+    ret = appfreezeInner->IsAppFreezeWarning(AppFreezeType::LIFECYCLE_HALF_TIMEOUT);
+    EXPECT_EQ(ret, true);
+    ret = appfreezeInner->IsAppFreezeWarning(AppFreezeType::LIFECYCLE_TIMEOUT);
+    EXPECT_EQ(ret, false);
+}
+
 
 /**
  * @tc.number: AppfreezeInner_ChangeFaultDateInfo_001
@@ -444,6 +462,66 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner_ChangeFaultDateInfo_003, TestSize.Le
     std::string ret = "AppfreezeInner_ChangeFaultDateInfo_003AppfreezeInner_ChangeFaultDateInfo_003";
     EXPECT_EQ(faultData.errorObject.message, ret);
     EXPECT_EQ(faultData.forceExit, true);
+}
+
+/**
+ * @tc.number: AppfreezeInner_ChangeFaultDateInfo_004
+ * @tc.name: ChangeFaultDateInfo
+ * @tc.desc: Verify that function ChangeFaultDateInfo.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_ChangeFaultDateInfo_004, TestSize.Level1)
+{
+    FaultData faultData;
+    std::string msgContent = "AppfreezeInner_ChangeFaultDateInfo_004";
+    faultData.errorObject.name = AppFreezeType::APP_INPUT_BLOCK;
+    appfreezeInner->ChangeFaultDateInfo(faultData, msgContent);
+    EXPECT_TRUE(!faultData.errorObject.message.empty());
+    EXPECT_TRUE(faultData.forceExit);
+}
+
+/**
+ * @tc.number: AppfreezeInner_GetMainStackDump_001
+ * @tc.name: GetMainStackDump
+ * @tc.desc: Verify that function GetMainStackDump.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_GetMainStackDump_001, TestSize.Level1)
+{
+    appfreezeInner->lastMainStack_ = "";
+    int pid = -1;
+    std::string ret = appfreezeInner->GetMainStackDump(pid);
+    pid = getpid();
+    appfreezeInner->GetMainStackDump(pid);
+    pid = 1;
+    appfreezeInner->GetMainStackDump(pid);
+    EXPECT_TRUE(!ret.empty());
+}
+
+/**
+ * @tc.number: AppfreezeInner_GetMainStackDump_002
+ * @tc.name: GetMainStackDump
+ * @tc.desc: Verify that function GetMainStackDump.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_GetMainStackDump_002, TestSize.Level1)
+{
+    appfreezeInner->lastMainStack_ = "";
+    int pid = getpid();
+    std::string firstCall = appfreezeInner->GetMainStackDump(pid);
+    std::string secondCall = appfreezeInner->GetMainStackDump(pid);
+    EXPECT_EQ(firstCall, secondCall);
+}
+
+/**
+ * @tc.number: AppfreezeInner_GetMainStackDump_003
+ * @tc.name: GetMainStackDump
+ * @tc.desc: Verify that function GetMainStackDump.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_GetMainStackDump_003, TestSize.Level1)
+{
+    appfreezeInner->lastMainStack_ = "";
+    int pid = 999999;
+    std::string ret = appfreezeInner->GetMainStackDump(pid);
+    EXPECT_TRUE(ret.empty());
+    appfreezeInner->GetMainStackDump(pid);
 }
 
 /**
@@ -541,20 +619,22 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInnerTest_GetProcessStartTime_001, TestSiz
 /**
  * @tc.number: AppfreezeInnerTest
  * @tc.name: add test
- * @tc.desc: Verify that function LogFormat.
+ * @tc.desc: Verify that function LogFormatHeapSize.
  */
 HWTEST_F(AppfreezeInnerTest, AppfreezeInnerTest_LogFormat_001, TestSize.Level1)
 {
     size_t totalSize = 0;
     size_t objectSize = 0;
-    std::string ret = appfreezeInner->LogFormat(totalSize, objectSize);
-    std::string testValue = "HEAP_TOTAL_SIZE:0,HEAP_OBJECT_SIZE:0,";
+    size_t sharedSize = 0;
+    std::string ret = appfreezeInner->LogFormatHeapSize(totalSize, objectSize, sharedSize);
+    std::string testValue = "HEAP_TOTAL_SIZE:0,HEAP_OBJECT_SIZE:0,HEAP_SHARED_SIZE:0";
     EXPECT_EQ(ret, testValue);
-    ret = appfreezeInner->LogFormat(totalSize, objectSize);
+    ret = appfreezeInner->LogFormatHeapSize(totalSize, objectSize, sharedSize);
     totalSize = 1234;
     objectSize = 1234;
-    ret = appfreezeInner->LogFormat(totalSize, objectSize);
-    testValue = "HEAP_TOTAL_SIZE:1234,HEAP_OBJECT_SIZE:1234,";
+    sharedSize = 1234;
+    ret = appfreezeInner->LogFormatHeapSize(totalSize, objectSize, sharedSize);
+    testValue = "HEAP_TOTAL_SIZE:1234,HEAP_OBJECT_SIZE:1234,HEAP_SHARED_SIZE:1234";
     EXPECT_EQ(ret, testValue);
 }
 
@@ -601,6 +681,30 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInnerTest_GetApplicationInfo_002, TestSize
     faultData.pid = getpid();
     appfreezeInner->GetApplicationInfo(faultData);
     EXPECT_TRUE(!faultData.timeoutMarkers.empty());
+}
+
+/**
+ * @tc.number: AppfreezeInnerTest
+ * @tc.name: add test
+ * @tc.desc: TransformHicollieFaultNumber Test.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInnerTest_TransformHicollieFaultNumber_001, TestSize.Level1)
+{
+    const int businessInputBlockType = 7;
+    int ret = appfreezeInner->TransformHicollieFaultNumber(AppFreezeType::BUSINESS_INPUT_BLOCK);
+    EXPECT_EQ(ret, businessInputBlockType);
+}
+
+/**
+ * @tc.number: AppfreezeInner_ReportLifeCycleAsAppfreeze_001
+ * @tc.name: SetReportLifeCycleAsAppfreeze and GetReportLifeCycleAsAppfreeze
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_ReportLifeCycleAsAppfreeze_001, TestSize.Level1)
+{
+    appfreezeInner->SetReportLifeCycleAsAppfreeze(true);
+    EXPECT_TRUE(appfreezeInner->GetReportLifeCycleAsAppfreeze());
+    appfreezeInner->SetReportLifeCycleAsAppfreeze(false);
+    EXPECT_TRUE(!appfreezeInner->GetReportLifeCycleAsAppfreeze());
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

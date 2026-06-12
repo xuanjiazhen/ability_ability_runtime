@@ -16,9 +16,11 @@
 #ifndef MOCK_AGENT_RUNTIME_MY_FLAG_H
 #define MOCK_AGENT_RUNTIME_MY_FLAG_H
 
+#include "agent_card_db_mgr.h"
 #include "agent_card.h"
 #include "extension_ability_info.h"
 #include "hap_module_info.h"
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -30,11 +32,18 @@ public:
     static int32_t retDeleteData;
     static int32_t retQueryData;
     static int32_t retQueryAllData;
+    static std::vector<StoredAgentCardEntry> insertedEntries;
+    static std::vector<AgentCard> insertedCards;
+    static std::vector<StoredAgentCardEntry> queryDataEntries;
     static std::vector<AgentCard> queryDataCards;
+    static std::vector<StoredAgentCardEntry> queryAllDataEntries;
     static std::vector<AgentCard> queryAllDataCards;
+    static bool syncQueryDataWithInsert;
+    static std::mutex dbMutex;
     static bool retGetBundleInfo;
     static bool retGetResConfigFile;
     static bool retFromJson;
+    static bool mockApplicationInfoIsSystemApp;
 
     // Mock data for GetBundleInfo
     static std::vector<AppExecFwk::ExtensionAbilityInfo> mockExtensionInfos;

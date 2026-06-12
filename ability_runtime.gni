@@ -26,6 +26,7 @@ ability_runtime_test_path = "${ability_runtime_path}/test"
 ability_runtime_utils_path = "${ability_runtime_path}/utils"
 ace_engine_path = "//foundation/arkui/ace_engine"
 agent_runtime_framework_path = "//foundation/ability/ability_runtime/agent_runtime_framework"
+cli_tool_framework_path = "//foundation/ability/ability_runtime/cli_tool_framework"
 arkui_path = "//foundation/arkui"
 previewer_path = "//ide/tools/previewer"
 simulator_path = "//foundation/ability/ability_runtime/frameworks/simulator"
@@ -123,6 +124,7 @@ declare_args() {
   ability_runtime_check_internet_permission = false
   ability_runtime_media_library_enable = true
   ability_runtime_forbid_start_enabled = false
+  ability_runtime_enable_clone_for_account = false
   ability_runtime_no_screen = false
   ability_runtime_hitrace_enable = true
   ability_runtime_hiperf_enable = true
@@ -256,5 +258,11 @@ declare_args() {
   if (defined(global_parts_info) &&
       !defined(global_parts_info.distributeddatamgr_udmf)) {
     ability_runtime_udmf_enable = false
+  }
+
+  hiviewdfx_runtime_api_metrics_enable = true
+  if (defined(global_parts_info) &&
+      !defined(global_parts_info.hiviewdfx_api_metrics)) {
+    hiviewdfx_runtime_api_metrics_enable = false
   }
 }

@@ -37,6 +37,7 @@ namespace AAFwk {
 
 constexpr const char *CALLER_REQUEST_CODE = "ohos.extra.param.key.callerRequestCode";
 constexpr const char *DMS_CALLER_BUNDLE_NAME = "ohos.dms.param.sourceCallerBundleName";
+const std::string HIDE_SENSITIVE_TYPE = "ohos.media.params.hideSensitiveType";
 
 class UpdateCallerInfoUtilTest : public testing::Test {
 public:
@@ -455,6 +456,47 @@ HWTEST_F(UpdateCallerInfoUtilTest, UpdateDmsCallerInfo_0001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateCallerInfoUtilTest_UpdateByIndirectCallerInfo_0001
+ * @tc.desc: Test UpdateByIndirectCallerInfo with nullptr indirectCallerInfo (should not modify parameters)
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, UpdateByIndirectCallerInfo_0001, TestSize.Level1)
+{
+    auto updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+    int32_t tokenId = 123;
+    int32_t callerUid = 456;
+    int32_t callerPid = 789;
+
+    updateCallerUtil->UpdateByIndirectCallerInfo(nullptr, tokenId, callerUid, callerPid);
+    EXPECT_EQ(tokenId, 123);
+    EXPECT_EQ(callerUid, 456);
+    EXPECT_EQ(callerPid, 789);
+}
+
+/**
+ * @tc.name: UpdateCallerInfoUtilTest_UpdateByIndirectCallerInfo_0002
+ * @tc.desc: Test UpdateByIndirectCallerInfo with valid indirectCallerInfo (should update parameters)
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, UpdateByIndirectCallerInfo_0002, TestSize.Level1)
+{
+    auto updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+    int32_t tokenId = 123;
+    int32_t callerUid = 456;
+    int32_t callerPid = 789;
+
+    auto info = std::make_shared<IndirectCallerInfo>();
+    info->tokenId = 111;
+    info->callerUid = 222;
+    info->callerPid = 333;
+
+    updateCallerUtil->UpdateByIndirectCallerInfo(info, tokenId, callerUid, callerPid);
+    EXPECT_EQ(tokenId, 111);
+    EXPECT_EQ(callerUid, 222);
+    EXPECT_EQ(callerPid, 333);
+}
+
+/**
  * @tc.name: UpdateCallerInfoUtilTest_UpdateCallerInfo_0001
  * @tc.desc: Test UpdateCallerInfo with valid callerToken
  * @tc.type: FUNC
@@ -623,6 +665,44 @@ HWTEST_F(UpdateCallerInfoUtilTest, UpdateCallerAppCloneIndex_0002, TestSize.Leve
 
     updateCallerUtil->UpdateCallerAppCloneIndex(want, zeroIndex);
     EXPECT_EQ(want.GetIntParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX, -1), zeroIndex);
+}
+
+/**
+ * @tc.name: UpdateCallerInfoUtilTest_ClearProtectedWantParam_HideSensitiveType_001
+ * @tc.desc: Test ClearProtectedWantParam with HIDE_SENSITIVE_TYPE parameter
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, ClearProtectedWantParam_HideSensitiveType_001, TestSize.Level1)
+{
+    auto updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+    Want want;
+    want.SetParam(HIDE_SENSITIVE_TYPE, 521);
+    want.SetElementName("com.test.demo", "entry", "TestAbility");
+
+    // ClearProtectedWantParam should trigger event for HIDE_SENSITIVE_TYPE
+    updateCallerUtil->ClearProtectedWantParam(want);
+
+    // Verify the parameter is processed (no exception thrown)
+    EXPECT_EQ(want.GetIntParam(HIDE_SENSITIVE_TYPE, -1), 521);
+}
+
+/**
+ * @tc.name: UpdateCallerInfoUtilTest_ClearProtectedWantParam_HideSensitiveType_002
+ * @tc.desc: Test ClearProtectedWantParam with HIDE_SENSITIVE_TYPE = 4
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, ClearProtectedWantParam_HideSensitiveType_002, TestSize.Level1)
+{
+    auto updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+    Want want;
+    want.SetParam(HIDE_SENSITIVE_TYPE, 4);
+    want.SetElementName("com.test.demo", "entry", "TestAbility");
+
+    // ClearProtectedWantParam should still process the parameter
+    updateCallerUtil->ClearProtectedWantParam(want);
+
+    // Verify the parameter value
+    EXPECT_EQ(want.GetIntParam(HIDE_SENSITIVE_TYPE, -1), 4);
 }
 } // namespace AAFwk
 } // namespace OHOS

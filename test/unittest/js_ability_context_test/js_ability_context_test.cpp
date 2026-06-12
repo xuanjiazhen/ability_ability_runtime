@@ -15,10 +15,12 @@
 
 #include <gtest/gtest.h>
 #include <singleton.h>
+#include <cstring>
 #include <uv.h>
 #include "ability_context.h"
 #include "ability_context_impl.h"
 #include "ability_business_error.h"
+#include "ability_manager_errors.h"
 #include "errors.h"
 #include "hilog_wrapper.h"
 #define private public
@@ -114,6 +116,13 @@ public:
     void DisconnectAbility(const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback,
         int32_t accountId = -1) override
     {}
+
+    virtual ErrCode StartSelfUIAbilityInChildProcess(const AAFwk::Want &want,
+        const std::string &specifiedFlag) override
+    {
+        GTEST_LOG_(INFO) << "StartSelfUIAbilityInChildProcess mock called, ret " << startSelfRet_;
+        return startSelfRet_;
+    }
 public:
     static void DoneConnect(int status)
     {
@@ -129,9 +138,11 @@ public:
         callback_->OnAbilityDisconnectDone(element, 0);
     }
     void SetConnectResult(ErrCode code) { connectRet_ = code; }
+    void SetStartSelfResult(ErrCode code) { startSelfRet_ = code; }
 protected:
     static sptr<AbilityConnectCallback> callback_;
     ErrCode connectRet_ = ERR_OK;
+    ErrCode startSelfRet_ = ERR_OK;
 };
 
 sptr<AbilityConnectCallback> MockAbilityContextImpl::callback_;
@@ -437,5 +448,238 @@ HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_OnStartUIServiceExten
     JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
 }
 
+const char* GetExpectedContextType(int32_t inputType)
+{
+    static const char* contextTypeMap[] = {
+        "ApplicationContext",
+        "AbilityStageContext",
+        "UIAbilityContext",
+        "FormExtensionContext",
+        "AppServiceExtensionContext",
+        "ServiceExtensionContext",
+        "UIServiceExtensionContext",
+        "AutoFillExtensionContext",
+    };
+    if (inputType < 0 || inputType >= static_cast<int32_t>(sizeof(contextTypeMap) / sizeof(contextTypeMap[0]))) {
+        return nullptr;
+    }
+    return contextTypeMap[inputType];
+}
+
+napi_value ContextTypeFunc(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value argv[1];
+    napi_value thisArg;
+    napi_get_cb_info(env, info, &argc, argv, &thisArg, nullptr);
+
+    napi_valuetype valueType;
+    napi_typeof(env, argv[0], &valueType);
+    if (valueType != napi_number) {
+        napi_value result = nullptr;
+        napi_get_boolean(env, false, &result);
+        return result;
+    }
+
+    int32_t inputType = 0;
+    napi_get_value_int32(env, argv[0], &inputType);
+    const char* expectedType = GetExpectedContextType(inputType);
+    if (expectedType == nullptr) {
+        napi_value result = nullptr;
+        napi_get_boolean(env, false, &result);
+        return result;
+    }
+
+    napi_value contextImpl = nullptr;
+    napi_get_named_property(env, thisArg, "__context_impl__", &contextImpl);
+    napi_value actualTypeValue = nullptr;
+    napi_get_named_property(env, contextImpl, "contextType", &actualTypeValue);
+    char actualTypeBuffer[64] = {0};
+    size_t copied = 0;
+    napi_get_value_string_utf8(env, actualTypeValue, actualTypeBuffer, sizeof(actualTypeBuffer), &copied);
+
+    bool match = (strcmp(actualTypeBuffer, expectedType) == 0);
+    napi_value resultValue = nullptr;
+    napi_get_boolean(env, match, &resultValue);
+    return resultValue;
+}
+
+void CreateContextTypeTestEnv(napi_env env, const char* typeStr, napi_value &contextObj, napi_value &contextTypeArg)
+{
+    napi_value contextImpl = nullptr;
+    napi_create_object(env, &contextImpl);
+    napi_value contextTypeValue = nullptr;
+    napi_create_string_utf8(env, typeStr, NAPI_AUTO_LENGTH, &contextTypeValue);
+    napi_set_named_property(env, contextImpl, "contextType", contextTypeValue);
+    napi_create_object(env, &contextObj);
+    napi_set_named_property(env, contextObj, "__context_impl__", contextImpl);
+    contextTypeArg = nullptr;
+}
+
+void CallContextTypeAndCheck(napi_env env, napi_value contextObj, napi_value contextTypeArg, bool expected)
+{
+    napi_value funcValue = nullptr;
+    napi_create_function(env, "isContextOf", NAPI_AUTO_LENGTH, ContextTypeFunc, nullptr, &funcValue);
+    napi_value result = nullptr;
+    napi_call_function(env, contextObj, funcValue, 1, &contextTypeArg, &result);
+    bool boolResult = false;
+    napi_get_value_bool(env, result, &boolResult);
+    if (expected) {
+        EXPECT_TRUE(boolResult);
+    } else {
+        EXPECT_FALSE(boolResult);
+    }
+}
+
+/**
+ * @tc.number: AbilityRuntime_AbilityContext_ContextType_0100
+ * @tc.name: contextType with valid UIAbilityContext type
+ * @tc.desc: Test contextType method with valid context type int (2 for UIAbilityContext)
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_ContextType_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ContextType_0100 start";
+    HandleScope handleScope(env_);
+
+    napi_value contextObj = nullptr;
+    napi_value contextTypeArg = nullptr;
+    CreateContextTypeTestEnv(env_, "UIAbilityContext", contextObj, contextTypeArg);
+    napi_create_int32(env_, 2, &contextTypeArg);
+    CallContextTypeAndCheck(env_, contextObj, contextTypeArg, true);
+
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ContextType_0100 end";
+}
+
+/**
+ * @tc.number: AbilityRuntime_AbilityContext_ContextType_0200
+ * @tc.name: contextType with invalid type
+ * @tc.desc: Test contextType method with invalid context type int (999)
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_ContextType_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ContextType_0200 start";
+    HandleScope handleScope(env_);
+
+    napi_value contextObj = nullptr;
+    napi_value contextTypeArg = nullptr;
+    CreateContextTypeTestEnv(env_, "UIAbilityContext", contextObj, contextTypeArg);
+    napi_create_int32(env_, 999, &contextTypeArg);
+    CallContextTypeAndCheck(env_, contextObj, contextTypeArg, false);
+
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ContextType_0200 end";
+}
+
+/**
+ * @tc.number: AbilityRuntime_AbilityContext_ContextType_0300
+ * @tc.name: contextType with non-number input
+ * @tc.desc: Test contextType method with string input instead of number
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_ContextType_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ContextType_0300 start";
+    HandleScope handleScope(env_);
+
+    napi_value contextObj = nullptr;
+    napi_value contextTypeArg = nullptr;
+    CreateContextTypeTestEnv(env_, "UIAbilityContext", contextObj, contextTypeArg);
+    napi_create_string_utf8(env_, "invalid", NAPI_AUTO_LENGTH, &contextTypeArg);
+    CallContextTypeAndCheck(env_, contextObj, contextTypeArg, false);
+
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ContextType_0300 end";
+}
+
+/**
+ * @tc.number: AbilityRuntime_AbilityContext_ContextType_0400
+ * @tc.name: contextType with mismatched type
+ * @tc.desc: Test contextType method when actual type doesn't match expected type
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_ContextType_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ContextType_0400 start";
+    HandleScope handleScope(env_);
+
+    napi_value contextObj = nullptr;
+    napi_value contextTypeArg = nullptr;
+    CreateContextTypeTestEnv(env_, "UIAbilityContext", contextObj, contextTypeArg);
+    napi_create_int32(env_, 0, &contextTypeArg);
+    CallContextTypeAndCheck(env_, contextObj, contextTypeArg, false);
+
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ContextType_0400 end";
+}
+
+/**
+ * @tc.name: AbilityRuntime_AbilityContext_StartSelfUIAbilityInChildProcess_0100
+ * @tc.desc: Test StartSelfUIAbilityInChildProcess with normal parameters
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_StartSelfUIAbilityInChildProcess_0100, TestSize.Level1)
+{
+    auto contextImpl = std::make_shared<MockAbilityContextImpl>();
+    AAFwk::Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    std::string specifiedFlag = "testFlag";
+    contextImpl->SetStartSelfResult(ERR_OK);
+    auto errCode = contextImpl->StartSelfUIAbilityInChildProcess(want, specifiedFlag);
+    EXPECT_EQ(errCode, ERR_OK);
+}
+
+/**
+ * @tc.name: AbilityRuntime_AbilityContext_StartSelfUIAbilityInChildProcess_0200
+ * @tc.desc: Test StartSelfUIAbilityInChildProcess with empty want
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_StartSelfUIAbilityInChildProcess_0200, TestSize.Level1)
+{
+    auto contextImpl = std::make_shared<MockAbilityContextImpl>();
+    AAFwk::Want want;
+    std::string specifiedFlag = "";
+    contextImpl->SetStartSelfResult(ERR_INVALID_VALUE);
+    auto errCode = contextImpl->StartSelfUIAbilityInChildProcess(want, specifiedFlag);
+    EXPECT_EQ(errCode, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: AbilityRuntime_AbilityContext_StartSelfUIAbilityInChildProcess_0300
+ * @tc.desc: Test StartSelfUIAbilityInChildProcess with specifiedFlag
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_StartSelfUIAbilityInChildProcess_0300, TestSize.Level1)
+{
+    auto contextImpl = std::make_shared<MockAbilityContextImpl>();
+    AAFwk::Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    want.SetParam("testKey", std::string("testValue"));
+    std::string specifiedFlag = "specifiedFlag123";
+    contextImpl->SetStartSelfResult(ERR_OK);
+    auto errCode = contextImpl->StartSelfUIAbilityInChildProcess(want, specifiedFlag);
+    EXPECT_EQ(errCode, ERR_OK);
+}
+
+/**
+ * @tc.name: AbilityRuntime_AbilityContext_OnStartSelfUIAbilityInChildProcess_0100
+ * @tc.desc: Test OnStartSelfUIAbilityInChildProcess JS binding
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_OnStartSelfUIAbilityInChildProcess_0100, TestSize.Level1)
+{
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    ASSERT_EQ(err, napi_status::napi_ok);
+    ASSERT_NE(jsEnv, nullptr);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+
+    NapiCallbackInfo info{2};
+    AAFwk::Want want;
+    info.argv[0] = OHOS::AppExecFwk::WrapWant(env, want);
+    napi_create_string_latin1(env, "testFlag", NAPI_AUTO_LENGTH, &info.argv[1]);
+    jsAbilityContext_->OnStartSelfUIAbilityInChildProcess(env, info);
+
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+}
 }  // namespace AAFwk
 }  // namespace OHOS

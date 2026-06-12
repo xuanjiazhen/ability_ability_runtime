@@ -21,6 +21,9 @@
 
 namespace OHOS {
 namespace AAFwk {
+namespace {
+constexpr int32_t MOCK_FAILED_PID = 654321;
+}
 AppScheduler::AppScheduler()
 {
     TAG_LOGI(AAFwkTag::TEST, " Test AppScheduler::AppScheduler()");
@@ -61,7 +64,7 @@ void AppScheduler::MoveToForeground(const sptr<IRemoteObject>& token)
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::MoveToForeground()");
 }
 
-void AppScheduler::MoveToBackground(const sptr<IRemoteObject>& token)
+void AppScheduler::MoveToBackground(const sptr<IRemoteObject>& token, bool isFromScreenOffBackground)
 {
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::MoveToBackground()");
 }
@@ -158,6 +161,11 @@ void AppScheduler::OnAppRemoteDied(const std::vector<sptr<IRemoteObject>>& abili
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::OnAppRemoteDied()");
 }
 
+void AppScheduler::NotifyTerminateAbility(const sptr<IRemoteObject> &token)
+{
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyTerminateAbility()");
+}
+
 void AppScheduler::OnStartProcessFailed(const std::vector<sptr<IRemoteObject>> &abilityTokens)
 {
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::OnStartProcessFailed()");
@@ -201,8 +209,13 @@ void AppScheduler::GetRunningProcessInfoByToken(const sptr<IRemoteObject>& token
 
 void AppScheduler::GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExecFwk::RunningProcessInfo& info) const
 {
-    info.isAbilityForegrounding = true;
-    info.isFocused = true;
+    if (pid == MOCK_FAILED_PID) {
+        info.isAbilityForegrounding = false;
+        info.isFocused = false;
+    } else {
+        info.isAbilityForegrounding = true;
+        info.isFocused = true;
+    }
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::GetRunningProcessInfoByPid()");
 }
 
@@ -212,7 +225,7 @@ bool AppScheduler::IsMemorySizeSufficient() const
 }
 
 void AppScheduler::StartSpecifiedAbility(const AAFwk::Want&, const AppExecFwk::AbilityInfo&, int32_t,
-    const std::string&) {}
+    const std::string&, bool) {}
 
 int AppScheduler::StartUserTest(
     const Want& want, const sptr<IRemoteObject>& observer, const AppExecFwk::BundleInfo& bundleInfo, int32_t userId)
@@ -325,6 +338,12 @@ int AppScheduler::GetProcessRunningInfosByUserId(std::vector<AppExecFwk::Running
     return 0;
 }
 
+int AppScheduler::GetProcessRunningInfosByAccessTokenId(uint32_t accessTokenId,
+    std::vector<AppExecFwk::RunningProcessInfo> &info)
+{
+    return 0;
+}
+
 std::string AppScheduler::ConvertAppState(const AppState &state)
 {
     return "INVALIDSTATE";
@@ -359,6 +378,15 @@ int32_t AppScheduler::PreloadApplicationByPhase(const std::string &bundleName, i
 int32_t AppScheduler::VerifyKillProcessPermission(const std::string &bundleName) const
 {
     return 0;
+}
+
+void AppScheduler::ClearProcessByToken(sptr<IRemoteObject> token) const
+{
+}
+
+bool AppScheduler::IsKilledForUpgradeWeb(const std::string &bundleName)
+{
+    return true;
 }
 } // namespace AAFwk
 } // namespace OHOS

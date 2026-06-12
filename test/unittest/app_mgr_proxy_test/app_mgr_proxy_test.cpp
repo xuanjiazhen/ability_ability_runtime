@@ -19,6 +19,10 @@
 #include "app_foreground_state_observer_stub.h"
 #include "app_mgr_proxy.h"
 #include "hilog_tag_wrapper.h"
+#include "image_error_handler_stub.h"
+#include "image_process_state_observer_stub.h"
+#include "mem_dump_callback_interface.h"
+#include "mem_dump_callback_stub.h"
 #include "mock_ability_foreground_state_observer_stub.h"
 #include "mock_app_mgr_service.h"
 #include "quick_fix_callback_stub.h"
@@ -41,6 +45,26 @@ public:
 
     void OnAppStateChanged(const AppStateData &appStateData) override
     {}
+};
+
+class MockImageErrorHandlerStub : public ImageErrorHandlerStub {
+public:
+    MockImageErrorHandlerStub() = default;
+    virtual ~MockImageErrorHandlerStub() = default;
+
+    void OnError(int32_t errCode) override
+    {}
+};
+
+class ImageProcessStateObserverMock : public ImageProcessStateObserverStub {
+public:
+    ImageProcessStateObserverMock() = default;
+    virtual ~ImageProcessStateObserverMock() = default;
+
+    int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override
+    {
+        return 0;
+    }
 };
 
 class RenderStateObserverMock : public RenderStateObserverStub {
@@ -70,6 +94,18 @@ public:
     {
         TAG_LOGD(AAFwkTag::TEST, "function called.");
     }
+};
+
+class MemDumpCallbackMock : public MemDumpCallbackStub {
+public:
+    MemDumpCallbackMock() = default;
+    virtual ~MemDumpCallbackMock() = default;
+
+    void OnMemDumpDone(const std::string &dumpResult) override
+    {
+        dumpResult_ = dumpResult;
+    }
+    std::string dumpResult_;
 };
 
 class AppMgrProxyTest : public testing::Test {
@@ -444,7 +480,7 @@ HWTEST_F(AppMgrProxyTest, IsAppRunning_001, TestSize.Level1)
 }
 
 /**
- * @tc.number: RegisterAbilityForegroundStateObserver_0100
+ * @tc.name: RegisterAbilityForegroundStateObserver_0100
  * @tc.desc: Verify that the RegisterAbilityForegroundStateObserver function is called normally.
  * @tc.type: FUNC
  */
@@ -461,7 +497,7 @@ HWTEST_F(AppMgrProxyTest, RegisterAbilityForegroundStateObserver_0100, TestSize.
 }
 
 /**
- * @tc.number: RegisterAbilityForegroundStateObserver_0200
+ * @tc.name: RegisterAbilityForegroundStateObserver_0200
  * @tc.desc: Verify that the RegisterAbilityForegroundStateObserver parameter of the function is null.
  * @tc.type: FUNC
  */
@@ -473,7 +509,7 @@ HWTEST_F(AppMgrProxyTest, RegisterAbilityForegroundStateObserver_0200, TestSize.
 }
 
 /**
- * @tc.number: UnregisterAbilityForegroundStateObserver_0100
+ * @tc.name: UnregisterAbilityForegroundStateObserver_0100
  * @tc.desc: Verify that the UnregisterAbilityForegroundStateObserver function is called normally.
  * @tc.type: FUNC
  */
@@ -490,7 +526,7 @@ HWTEST_F(AppMgrProxyTest, UnregisterAbilityForegroundStateObserver_0100, TestSiz
 }
 
 /**
- * @tc.number: RegisterAbilityForegroundStateObserver_0200
+ * @tc.name: RegisterAbilityForegroundStateObserver_0200
  * @tc.desc: Verify that the UnregisterAbilityForegroundStateObserver parameter of the function is null.
  * @tc.type: FUNC
  */
@@ -1348,5 +1384,339 @@ HWTEST_F(AppMgrProxyTest, SetProcessPrepareExit_001, TestSize.Level2)
     auto pid = 100;
     appMgrProxy_->SetProcessPrepareExit(pid);
 }
+
+/**
+ * @tc.name: SetTerminateTimeOutFlag_001
+ * @tc.desc: SetTerminateTimeOutFlag.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppMgrProxyTest, SetTerminateTimeOutFlag_001, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetTerminateTimeOutFlag_001 start.");
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _)).Times(1);
+    sptr<IRemoteObject> token = new MockAppMgrService();
+    appMgrProxy_->SetTerminateTimeOutFlag(token);
+}
+
+/**
+ * @tc.name: RegisterImageProcessStateObserver_0100
+ * @tc.desc: Verify that the RegisterImageProcessStateObserver parameter of the function is null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, RegisterImageProcessStateObserver_0100, TestSize.Level1)
+{
+    sptr<IImageProcessStateObserver> observer = nullptr;
+    auto result = appMgrProxy_->RegisterImageProcessStateObserver(observer);
+    EXPECT_EQ(result, OHOS::ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: RegisterImageProcessStateObserver_0300
+ * @tc.desc: Verify that the RegisterImageProcessStateObserver function call SendRequestfail.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, RegisterImageProcessStateObserver_0300, TestSize.Level1)
+{
+    sptr<IImageProcessStateObserver> observer = new ImageProcessStateObserverMock();
+    EXPECT_NE(observer->AsObject(), nullptr);
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Return(-1));
+    EXPECT_EQ(appMgrProxy_->RegisterImageProcessStateObserver(observer), -1);
+}
+
+/**
+ * @tc.name: UnregisterImageProcessStateObserver_0100
+ * @tc.desc: Verify that the UnregisterImageProcessStateObserver parameter of the function is null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, UnregisterImageProcessStateObserver_0100, TestSize.Level1)
+{
+    sptr<IImageProcessStateObserver> observer = nullptr;
+    auto result = appMgrProxy_->UnregisterImageProcessStateObserver(observer);
+    EXPECT_EQ(result, OHOS::ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: GetAllAbilityInfos_0100
+ * @tc.desc: Test GetAllAbilityInfos when SendRequest fails.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, GetAllAbilityInfos_0100, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Return(ERR_INVALID_VALUE));
+
+    std::vector<AppExecFwk::AbilityStateData> infos;
+    auto ret = appMgrProxy_->GetAllAbilityInfos(-1, infos);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: GetAllAbilityInfos_0200
+ * @tc.desc: Test GetAllAbilityInfos when service returns error.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, GetAllAbilityInfos_0200, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            reply.WriteInt32(ERR_PERMISSION_DENIED);
+            return NO_ERROR;
+        });
+
+    std::vector<AppExecFwk::AbilityStateData> infos;
+    auto ret = appMgrProxy_->GetAllAbilityInfos(-1, infos);
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: GetAllAbilityInfos_0300
+ * @tc.desc: Test GetAllAbilityInfos when reading infos size fails.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, GetAllAbilityInfos_0300, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            reply.WriteInt32(ERR_OK);
+            reply.WriteInt32(-1);
+            return NO_ERROR;
+        });
+
+    std::vector<AppExecFwk::AbilityStateData> infos;
+    auto ret = appMgrProxy_->GetAllAbilityInfos(-1, infos);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: GetAllAbilityInfos_0400
+ * @tc.desc: Test GetAllAbilityInfos when reading Parcelable fails.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, GetAllAbilityInfos_0400, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            reply.WriteInt32(ERR_OK);
+            reply.WriteInt32(1);
+            return NO_ERROR;
+        });
+
+    std::vector<AppExecFwk::AbilityStateData> infos;
+    auto ret = appMgrProxy_->GetAllAbilityInfos(-1, infos);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: GetAllAbilityInfos_0500
+ * @tc.desc: Test GetAllAbilityInfos when reading empty info list.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, GetAllAbilityInfos_0500, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            reply.WriteInt32(ERR_OK);
+            reply.WriteInt32(0);
+            return NO_ERROR;
+        });
+
+    std::vector<AppExecFwk::AbilityStateData> infos;
+    auto ret = appMgrProxy_->GetAllAbilityInfos(-1, infos);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(infos.empty());
+}
+
+/**
+ * @tc.name: GetAllAbilityInfos_0600
+ * @tc.desc: Test GetAllAbilityInfos when reading one ability info.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, GetAllAbilityInfos_0600, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            reply.WriteInt32(ERR_OK);
+            reply.WriteInt32(1);
+            AppExecFwk::AbilityStateData info;
+            info.abilityRecordId = 1001;
+            info.pid = 1001;
+            info.uid = 1001;
+            info.abilityType = 1;
+            info.extensionAbilityType = 0;
+            reply.WriteParcelable(&info);
+            return NO_ERROR;
+        });
+
+    std::vector<AppExecFwk::AbilityStateData> infos;
+    auto ret = appMgrProxy_->GetAllAbilityInfos(1001, infos);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(infos.size(), 1);
+}
+
+/**
+ * @tc.name: UpdateFreezeExcludedPid_001
+ * @tc.desc: Update freeze excluded pid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, UpdateFreezeExcludedPid_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+    int32_t pid = 1;
+    int32_t profilerPid = 2;
+    bool isAdd = true;
+    appMgrProxy_->UpdateFreezeExcludedPid(isAdd, pid, profilerPid);
+    EXPECT_EQ(mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_FREEZE_EXCLUDED_PID));
+}
+
+/**
+ * @tc.name: EnableDelayedProcessExit_0100
+ * @tc.desc: Test EnableDelayedProcessExit with successful SendRequest.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, EnableDelayedProcessExit_0100, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            reply.WriteInt32(ERR_OK);
+            return NO_ERROR;
+        });
+
+    auto ret = appMgrProxy_->EnableDelayedProcessExit(1234, true);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: EnableDelayedProcessExit_0200
+ * @tc.desc: Test EnableDelayedProcessExit with disabled flag.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, EnableDelayedProcessExit_0200, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            reply.WriteInt32(ERR_OK);
+            return NO_ERROR;
+        });
+
+    auto ret = appMgrProxy_->EnableDelayedProcessExit(1234, false);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: EnableDelayedProcessExit_0300
+ * @tc.desc: Test EnableDelayedProcessExit with failed SendRequest.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, EnableDelayedProcessExit_0300, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            reply.WriteInt32(ERR_INVALID_VALUE);
+            return NO_ERROR;
+        });
+
+    auto ret = appMgrProxy_->EnableDelayedProcessExit(-1, true);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: CancelDelayedExitTask_0100
+ * @tc.desc: Test CancelDelayedExitTask with successful SendRequest.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, CancelDelayedExitTask_0100, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            return NO_ERROR;
+        });
+
+    appMgrProxy_->CancelDelayedExitTask(1234);
+}
+
+/**
+ * @tc.name: AppMgrProxy_DumpMem_001
+ * @tc.desc: DumpMem with valid info and null callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, AppMgrProxy_DumpMem_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+
+    MemDumpInfo info;
+    info.pid = 1;
+    sptr<IMemDumpCallback> callback = nullptr;
+    appMgrProxy_->DumpMem(info, callback);
+    EXPECT_EQ(mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::DUMP_MEM_PROCESS));
+}
+
+/**
+ * @tc.name: AppMgrProxy_ReportDumpMemResult_001
+ * @tc.desc: ReportDumpMemResult with null callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, AppMgrProxy_ReportDumpMemResult_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(0);
+
+    sptr<IMemDumpCallback> callback = nullptr;
+    std::string dumpResult = "test result";
+    auto ret = appMgrProxy_->ReportDumpMemResult(callback, dumpResult);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: AppMgrProxy_DumpMem_002
+ * @tc.desc: DumpMem with valid info and non-null callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, AppMgrProxy_DumpMem_002, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+
+    MemDumpInfo info;
+    info.pid = 1;
+    sptr<IMemDumpCallback> callback = new (std::nothrow) MemDumpCallbackMock();
+    appMgrProxy_->DumpMem(info, callback);
+    EXPECT_EQ(mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::DUMP_MEM_PROCESS));
+}
+
+/**
+ * @tc.name: AppMgrProxy_ReportDumpMemResult_002
+ * @tc.desc: ReportDumpMemResult with non-null callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, AppMgrProxy_ReportDumpMemResult_002, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+
+    sptr<IMemDumpCallback> callback = new (std::nothrow) MemDumpCallbackMock();
+    std::string dumpResult = "test result";
+    appMgrProxy_->ReportDumpMemResult(callback, dumpResult);
+    EXPECT_EQ(mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::REPORT_DUMP_MEM_RESULT));
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS

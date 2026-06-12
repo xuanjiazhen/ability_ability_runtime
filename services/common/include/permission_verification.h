@@ -28,10 +28,14 @@ struct VerificationInfo {
     uint32_t accessTokenId = 0;
     uint32_t specifyTokenId = 0;
     int32_t apiTargetVersion = 0;
+    uint32_t specifiedFullTokenId = 0;
     bool visible = false;
     bool isBackgroundCall = true;
     bool associatedWakeUp = false;
     bool withContinuousTask = false;
+    uint32_t skillCallerTokenId = 0;
+    bool isCliToolToken = false;
+    bool isLaunchAbility = false;
 };
 
     PermissionVerification() = default;
@@ -63,6 +67,8 @@ struct VerificationInfo {
 
     bool VerifyMissionPermission() const;
 
+    bool VerifyContinuationNotifyPermission() const;
+
     int VerifyAppStateObserverPermission() const;
 
     int32_t VerifyUpdateConfigurationPerm() const;
@@ -90,6 +96,8 @@ struct VerificationInfo {
     int CheckCallServiceExtensionPermission(const VerificationInfo &verificationInfo) const;
 
     int CheckStartByCallPermission(const VerificationInfo &verificationInfo) const;
+
+    int CheckCallModularObjectExtensionPermission(const VerificationInfo &verificationInfo) const;
 
     bool JudgeCallerIsAllowedToUseSystemAPI() const;
 
@@ -127,6 +135,7 @@ struct VerificationInfo {
 
     bool VerifyCustomSandbox(uint32_t accessTokenId) const;
 
+    bool VerifySupportCrossAppEmbedForOaPermission() const;
 private:
     DISALLOW_COPY_AND_MOVE(PermissionVerification);
 
@@ -137,11 +146,14 @@ private:
     bool JudgeStartInvisibleAbility(const uint32_t accessTokenId, const bool visible,
         const uint32_t specifyTokenId = 0) const;
 
-    bool JudgeStartAbilityFromBackground(const bool isBackgroundCall) const;
+    bool JudgeStartAbilityFromBackground(const bool isBackgroundCall,
+        const uint32_t specifyTokenId = 0) const;
 
     bool JudgeAssociatedWakeUp(const uint32_t accessTokenId, const bool associatedWakeUp) const;
 
     int JudgeInvisibleAndBackground(const VerificationInfo &verificationInfo, bool isCallByShortcut = false) const;
+
+    int CheckSkillStartByCallPermission(const VerificationInfo &verificationInfo) const;
 
     inline bool IsCallFromSameAccessToken(const uint32_t accessTokenId) const
     {

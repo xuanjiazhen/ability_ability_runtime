@@ -447,6 +447,7 @@ void EtsUIExtensionBase::ForegroundWindowInitInsightIntentExecutorInfo(const AAF
     InsightIntentExecuteParam::GenerateFromWant(want, *executorInfo.executeParam);
     executorInfo.executeParam->executeMode_ = UI_EXTENSION_ABILITY;
     executorInfo.srcEntry = want.GetStringParam(INSIGHT_INTENT_SRC_ENTRY);
+    executorInfo.decoratorClass = want.GetStringParam(INSIGHT_INTENT_DECORATOR_CLASS);
     TAG_LOGD(AAFwkTag::UI_EXT, "executorInfo, insightIntentId: %{public}" PRIu64,
         executorInfo.executeParam->insightIntentId_);
     return;
@@ -708,6 +709,10 @@ sptr<Rosen::WindowOption> EtsUIExtensionBase::CreateWindowOption(const sptr<AAFw
         bool isNotAllow = context_->isNotAllow == 1 ? true : false;
         TAG_LOGD(AAFwkTag::UI_EXT, "isNotAllow: %{public}d", isNotAllow);
         option->SetConstrainedModal(isNotAllow);
+    }
+    if (context_->GetAbilityInfo()->extensionAbilityType ==
+        AppExecFwk::ExtensionAbilityType::AGENT_UI) {
+        option->SetIsBlockSubwindow(true);
     }
     return option;
 }

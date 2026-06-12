@@ -278,6 +278,11 @@ public:
 
     virtual ErrCode TerminateSelf() = 0;
 
+    virtual ErrCode StartSelf()
+    {
+        return 0;
+    }
+
     virtual ErrCode CloseAbility() = 0;
 
     /**
@@ -531,6 +536,23 @@ public:
 
     virtual ErrCode StartSelfUIAbilityInCurrentProcess(const AAFwk::Want &want, const std::string &specifiedFlag,
         const AAFwk::StartOptions &startOptions, bool hasOptions) = 0;
+
+    /**
+     * @brief Notify cancel game prelaunch and kill the process.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode NotifyCancelGamePreLaunch() = 0;
+
+    /**
+     * @brief Notify complete game prelaunch and clear the flag.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode NotifyCompleteGamePreLaunch() = 0;
+
+    virtual ErrCode StartSelfUIAbilityInChildProcess(const AAFwk::Want &want, const std::string &specifiedFlag)
+    {
+        return ERR_INVALID_VALUE;
+    }
 
 protected:
     bool IsContext(size_t contextTypeId) override

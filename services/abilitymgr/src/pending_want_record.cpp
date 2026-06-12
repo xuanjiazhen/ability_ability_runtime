@@ -22,6 +22,7 @@
 #include "event_report.h"
 #include "permission_verification.h"
 #include "ability_util.h"
+#include "os_account_constants.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -128,38 +129,53 @@ int32_t PendingWantRecord::SenderInner(SenderInfo &senderInfo)
 int32_t PendingWantRecord::ExecuteOperation(
     std::shared_ptr<PendingWantManager> pendingWantManager, SenderInfo &senderInfo, Want &want)
 {
-    TAG_LOGI(AAFwkTag::WANTAGENT, "start ability type:%{public}d, bundleName: %{public}s, ability: %{public}s",
-        key_->GetType(), want.GetBundle().c_str(), want.GetElement().GetAbilityName().c_str());
+    TAG_LOGI(AAFwkTag::WANTAGENT,
+        "start ability type:%{public}d, bundleName: %{public}s, ability: %{public}s, userId: %{public}d",
+        key_->GetType(), want.GetBundle().c_str(), want.GetElement().GetAbilityName().c_str(), key_->GetUserId());
     int32_t res = NO_ERROR;
+    int32_t userId = key_->GetUserId();
+    if (userId <= 0 || userId > AccountSA::Constants::MAX_USER_ID) {
+        // Normalize invalid userId value to unspecified (-1).
+        userId = -1;
+    }
     switch (key_->GetType()) {
         case static_cast<int32_t>(OperationType::START_ABILITY):
             res = pendingWantManager->PendingWantStartAbility(want, senderInfo.startOptions,
-                senderInfo.callerToken, -1, callerUid_, callerTokenId_, key_->GetUserId());
+                senderInfo.callerToken, -1, callerUid_, callerTokenId_, userId);
             if (res != NO_ERROR) {
                 SendTriggerFailedEvent(want, key_->GetAppIndex(), callerUid_, res, "Trigger Failed");
             }
             break;
         case static_cast<int32_t>(OperationType::START_ABILITIES): {
             std::vector<WantsInfo> allWantsInfos = key_->GetAllWantsInfos();
-            allWantsInfos.back().want = want;
-            res = pendingWantManager->PendingWantStartAbilitys(allWantsInfos, senderInfo.startOptions,
-                senderInfo.callerToken, -1, callerUid_, callerTokenId_, key_->GetUserId());
-            if (res != NO_ERROR) {
-                SendTriggerFailedEvent(want, key_->GetAppIndex(), callerUid_, res, "Trigger Failed");
+            if (allWantsInfos.empty()) {
+                TAG_LOGE(AAFwkTag::WANTAGENT, "allWantsInfos is empty for START_ABILITIES operation");
+                SendTriggerFailedEvent(want, key_->GetAppIndex(), callerUid_, ERR_INVALID_VALUE,
+                    "Empty wants infos");
+                res = ERR_INVALID_VALUE;
+            } else {
+                allWantsInfos.back().want = want;
+                res = pendingWantManager->PendingWantStartAbilitys(allWantsInfos, senderInfo.startOptions,
+                    senderInfo.callerToken, -1, callerUid_, callerTokenId_, userId);
+                if (res != NO_ERROR) {
+                    SendTriggerFailedEvent(want, key_->GetAppIndex(), callerUid_, res, "Trigger Failed");
+                }
             }
             break;
         }
         case static_cast<int32_t>(OperationType::START_SERVICE):
         case static_cast<int32_t>(OperationType::START_FOREGROUND_SERVICE):
             res = pendingWantManager->PendingWantStartAbility(want, nullptr, senderInfo.callerToken,
-                -1, callerUid_, callerTokenId_, key_->GetUserId());
+                -1, callerUid_, callerTokenId_, userId);
             if (res != NO_ERROR) {
                 SendTriggerFailedEvent(want, key_->GetAppIndex(), callerUid_, res, "Trigger Failed");
             }
             break;
-        case static_cast<int32_t>(OperationType::SEND_COMMON_EVENT):
-            res = pendingWantManager->PendingWantPublishCommonEvent(want, senderInfo, callerUid_, callerTokenId_);
+        case static_cast<int32_t>(OperationType::SEND_COMMON_EVENT): {
+            res = pendingWantManager->PendingWantPublishCommonEvent(want, senderInfo, publisherUid_,
+                callerTokenId_);
             break;
+        }
         case static_cast<int32_t>(OperationType::START_SERVICE_EXTENSION):
             res = pendingWantManager->PendingWantStartServiceExtension(want, senderInfo.callerToken);
             break;
@@ -250,6 +266,16 @@ bool PendingWantRecord::GetCanceled()
 void PendingWantRecord::SetCallerUid(const int32_t callerUid)
 {
     callerUid_ = callerUid;
+}
+
+void PendingWantRecord::SetPublisherUid(int32_t publisherUid)
+{
+    publisherUid_ = publisherUid;
+}
+
+int32_t PendingWantRecord::GetPublisherUid() const
+{
+    return publisherUid_;
 }
 
 std::list<sptr<IWantReceiver>> PendingWantRecord::GetCancelCallbacks()

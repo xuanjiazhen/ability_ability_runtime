@@ -210,7 +210,8 @@ HWTEST_F(AmsAppMgrClientTest, AppMgrClient_005, TestSize.Level1)
     EXPECT_EQ(AppMgrResultCode::RESULT_OK, client_->ConnectAppMgrService());
 
     sptr<IAmsMgr> amsMgrScheduler(new MockAmsMgrScheduler());
-    EXPECT_CALL(*(static_cast<MockAmsMgrScheduler*>(amsMgrScheduler.GetRefPtr())), UpdateAbilityState(_, _)).Times(1);
+    EXPECT_CALL(*(static_cast<MockAmsMgrScheduler*>(amsMgrScheduler.GetRefPtr())),
+        UpdateAbilityState(_, _, _)).Times(1);
     EXPECT_CALL(*(static_cast<MockAppMgrService*>((iface_cast<IAppMgr>(client_->GetRemoteObject())).GetRefPtr())),
         GetAmsMgr())
         .Times(1)
@@ -852,6 +853,68 @@ HWTEST_F(AmsAppMgrClientTest, QueryRunningSharedBundles_003, TestSize.Level1)
     int32_t result = client_->QueryRunningSharedBundles(pid, sharedBundles);
     EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "QueryRunningSharedBundles_003 end");
+}
+
+/*
+ * Feature: AppMgrService
+ * Function: AppMgrClient::GetAllAbilityInfos
+ * SubFunction: GetAllAbilityInfos
+ * FunctionPoints: AppMgrClient GetAllAbilityInfos interface
+ * EnvConditions: Mobile that can run ohos test framework
+ * CaseDescription: Test GetAllAbilityInfos with invalid parameters.
+ */
+HWTEST_F(AmsAppMgrClientTest, GetAllAbilityInfos_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetAllAbilityInfos_001 start");
+    client_->mgrHolder_ = nullptr;
+
+    std::vector<AppExecFwk::AbilityStateData> infos;
+    int32_t result = client_->GetAllAbilityInfos(-1, infos);
+    EXPECT_EQ(result, AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED);
+    TAG_LOGI(AAFwkTag::TEST, "GetAllAbilityInfos_001 end");
+}
+
+/*
+ * Feature: AppMgrService
+ * Function: AppMgrClient::GetAllAbilityInfos
+ * SubFunction: GetAllAbilityInfos
+ * FunctionPoints: AppMgrClient GetAllAbilityInfos interface
+ * EnvConditions: Mobile that can run ohos test framework
+ * CaseDescription: Test GetAllAbilityInfos with invalid parameters.
+ */
+HWTEST_F(AmsAppMgrClientTest, GetAllAbilityInfos_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetAllAbilityInfos_002 start");
+    client_->SetServiceManager(nullptr);
+
+    std::vector<AppExecFwk::AbilityStateData> infos;
+    int32_t result = client_->GetAllAbilityInfos(-1, infos);
+    EXPECT_EQ(result, AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED);
+    TAG_LOGI(AAFwkTag::TEST, "GetAllAbilityInfos_002 end");
+}
+
+/*
+ * Feature: AppMgrService
+ * Function: AppMgrClient::GetAllAbilityInfos
+ * SubFunction: GetAllAbilityInfos
+ * FunctionPoints: AppMgrClient GetAllAbilityInfos interface
+ * EnvConditions: Mobile that can run ohos test framework
+ * CaseDescription: Test GetAllAbilityInfos with valid parameters.
+ */
+HWTEST_F(AmsAppMgrClientTest, GetAllAbilityInfos_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetAllAbilityInfos_003 start");
+    EXPECT_EQ(client_->ConnectAppMgrService(), AppMgrResultCode::RESULT_OK);
+
+    EXPECT_CALL(*(static_cast<MockAppMgrService*>((iface_cast<IAppMgr>(client_->GetRemoteObject())).GetRefPtr())),
+        GetAllAbilityInfos(_, _))
+        .Times(1)
+        .WillOnce(Return(ERR_OK));
+
+    std::vector<AppExecFwk::AbilityStateData> infos;
+    int32_t result = client_->GetAllAbilityInfos(-1, infos);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "GetAllAbilityInfos_003 end");
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

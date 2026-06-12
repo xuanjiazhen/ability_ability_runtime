@@ -410,6 +410,11 @@ public:
         return E_OK;
     }
 
+    virtual int32_t UMountDisShareFile(const std::vector<std::string> &distributeDirs)
+    {
+        return E_OK;
+    }
+
     virtual int32_t InactiveUserPublicDirKey(uint32_t userId) override
     {
         return E_OK;
@@ -480,11 +485,6 @@ public:
         return E_OK;
     }
 
-    virtual int32_t ClearSecondMountPoint(uint32_t userId, const std::string &bundleName) override
-    {
-        return E_OK;
-    }
-
     virtual int32_t Encrypt(const std::string &volumeId, const std::string &password) override
     {
         return E_OK;
@@ -537,6 +537,26 @@ public:
     }
 
     virtual int32_t Decrypt(const std::string &volumeId, const std::string &pazzword) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t GetPartitionTable(const std::string &diskId, PartitionTableInfo &partitionTableInfo)
+    {
+        return E_OK;
+    }
+
+    int32_t CreatePartition(const std::string &diskId, const PartitionParams &partitionParams)
+    {
+        return E_OK;
+    }
+
+    int32_t DeletePartition(const std::string &diskId, uint32_t partitionNum)
+    {
+        return E_OK;
+    }
+
+    int32_t FormatPartition(const std::string &diskId, uint32_t partitionNum, const FormatParams &formatParams)
     {
         return E_OK;
     }

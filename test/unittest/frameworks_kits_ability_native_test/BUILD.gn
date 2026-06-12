@@ -86,14 +86,18 @@ ohos_unittest("ability_test") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/wantagent:wantagent_innerkits",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_native_path}/ability/native:configuration_helper",
     "${ability_runtime_native_path}/ability/native:uiabilitykit_native",
+    "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:application_image_observer_manager",
   ]
 
   external_deps = [
@@ -103,20 +107,18 @@ ohos_unittest("ability_test") {
     "ability_base:session_info",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_context_native",
-    "ability_runtime:runtime",
-    "ability_runtime:wantagent_innerkits",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
+    "form_fwk:form_common_info",
     "form_fwk:form_manager",
     "form_fwk:form_render_info",
-    "form_fwk:form_common_info",
     "googletest:gmock_main",
     "googletest:gtest_main",
+    "hichecker:libhichecker",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
@@ -545,6 +547,7 @@ ohos_unittest("data_ability_operation_test") {
   configs = [ ":module_private_config" ]
 
   deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
   ]
@@ -554,7 +557,6 @@ ohos_unittest("data_ability_operation_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_manager",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "eventhandler:libeventhandler",
@@ -612,6 +614,7 @@ ohos_unittest("ability_impl_active_test") {
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "hichecker:libhichecker",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
@@ -646,6 +649,7 @@ ohos_unittest("ability_impl_test") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
@@ -653,6 +657,7 @@ ohos_unittest("ability_impl_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:application_image_observer_manager",
     "${ability_runtime_path}/services/abilitymgr:abilityms_target",
   ]
 
@@ -662,13 +667,13 @@ ohos_unittest("ability_impl_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "googletest:gtest_main",
+    "hichecker:libhichecker",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
@@ -710,15 +715,17 @@ ohos_unittest("ui_ability_impl_test") {
     "${ability_runtime_innerkits_path}/ability_manager:process_options",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
-    "${ability_runtime_native_path}/ability:ability_context_native",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_native_path}/ability/native:configuration_helper",
     "${ability_runtime_native_path}/ability/native:uiabilitykit_native",
+    "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:application_image_observer_manager",
     "${ability_runtime_path}/services/abilitymgr:abilityms_target",
   ]
 
@@ -728,13 +735,13 @@ ohos_unittest("ui_ability_impl_test") {
     "ability_base:extractortool",
     "ability_base:session_info",
     "ability_base:want",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "googletest:gtest_main",
+    "hichecker:libhichecker",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
@@ -745,6 +752,10 @@ ohos_unittest("ui_ability_impl_test") {
   ]
 
   if (ability_runtime_graphics) {
+    defines = [
+      "SUPPORT_GRAPHICS",
+      "SUPPORT_SCREEN",
+    ]
     sources += [ "ui_ability_impl_test.cpp" ]
     external_deps += [
       "form_fwk:fmskit_native",
@@ -790,6 +801,7 @@ ohos_unittest("ability_thread_test") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/dataobs_manager:dataobs_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
@@ -798,6 +810,7 @@ ohos_unittest("ability_thread_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:application_image_observer_manager",
     "${ability_runtime_services_path}/dataobsmgr:dataobsms_static",
   ]
 
@@ -808,8 +821,6 @@ ohos_unittest("ability_thread_test") {
     "ability_base:extractresourcemanager",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_deps_wrapper",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -818,6 +829,7 @@ ohos_unittest("ability_thread_test") {
     "ffrt:libffrt",
     "googletest:gmock_main",
     "googletest:gtest_main",
+    "hichecker:libhichecker",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
@@ -877,6 +889,7 @@ ohos_unittest("fa_ability_thread_test") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/dataobs_manager:dataobs_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
@@ -885,6 +898,7 @@ ohos_unittest("fa_ability_thread_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:application_image_observer_manager",
     "${ability_runtime_services_path}/dataobsmgr:dataobsms_static",
   ]
 
@@ -895,8 +909,6 @@ ohos_unittest("fa_ability_thread_test") {
     "ability_base:extractresourcemanager",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_deps_wrapper",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -905,6 +917,7 @@ ohos_unittest("fa_ability_thread_test") {
     "ffrt:libffrt",
     "googletest:gmock_main",
     "googletest:gtest_main",
+    "hichecker:libhichecker",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
@@ -939,10 +952,12 @@ ohos_unittest("extension_ability_thread_test") {
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_native_path}/ability/native:extensionkit_native",
+    "${ability_runtime_native_path}/ability/native:modular_object_extension",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
   ]
@@ -951,7 +966,6 @@ ohos_unittest("extension_ability_thread_test") {
     "ability_base:configuration",
     "ability_base:extractortool",
     "ability_base:want",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "eventhandler:libeventhandler",
@@ -1005,6 +1019,7 @@ ohos_unittest("ui_ability_thread_test") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/dataobs_manager:dataobs_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
@@ -1013,6 +1028,7 @@ ohos_unittest("ui_ability_thread_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:application_image_observer_manager",
     "${ability_runtime_services_path}/dataobsmgr:dataobsms_static",
   ]
 
@@ -1022,8 +1038,6 @@ ohos_unittest("ui_ability_thread_test") {
     "ability_base:extractortool",
     "ability_base:extractresourcemanager",
     "ability_base:want",
-    "ability_runtime:ability_deps_wrapper",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -1032,6 +1046,7 @@ ohos_unittest("ui_ability_thread_test") {
     "ffrt:libffrt",
     "googletest:gmock_main",
     "googletest:gtest_main",
+    "hichecker:libhichecker",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
@@ -1071,6 +1086,8 @@ ohos_unittest("service_extension_module_loader_test") {
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:service_extension",
     "${ability_runtime_native_path}/appkit:app_context",
@@ -1082,8 +1099,6 @@ ohos_unittest("service_extension_module_loader_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_deps_wrapper",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -1124,6 +1139,8 @@ ohos_unittest("ability_process_test") {
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
+    "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
@@ -1135,8 +1152,6 @@ ohos_unittest("ability_process_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_deps_wrapper",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -1172,6 +1187,8 @@ ohos_unittest("extension_test") {
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_native_path}/ability/native:extensionkit_native",
@@ -1185,8 +1202,6 @@ ohos_unittest("extension_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_deps_wrapper",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -1226,6 +1241,8 @@ ohos_unittest("extension_second_test") {
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_native_path}/ability/native:extensionkit_native",
@@ -1239,8 +1256,6 @@ ohos_unittest("extension_second_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_deps_wrapper",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -1278,6 +1293,8 @@ ohos_unittest("form_extension_test") {
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_native_path}/ability/native:form_extension",
@@ -1291,15 +1308,13 @@ ohos_unittest("form_extension_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_deps_wrapper",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
+    "form_fwk:form_common_info",
     "form_fwk:form_manager",
     "form_fwk:form_render_info",
-    "form_fwk:form_common_info",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -1334,6 +1349,7 @@ ohos_unittest("ability_thread_call_request_test") {
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
@@ -1346,7 +1362,6 @@ ohos_unittest("ability_thread_call_request_test") {
     "ability_base:extractresourcemanager",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -1383,6 +1398,7 @@ ohos_unittest("form_extension_provider_client_test") {
     deps = [
       "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
       "${ability_runtime_innerkits_path}/app_manager:app_manager",
+      "${ability_runtime_innerkits_path}/runtime:runtime",
       "${ability_runtime_native_path}/ability/native:abilitykit_native",
       "${ability_runtime_native_path}/ability/native:form_extension",
       "${ability_runtime_native_path}/appkit:app_context",
@@ -1391,16 +1407,15 @@ ohos_unittest("form_extension_provider_client_test") {
     external_deps = [
       "ability_base:extractortool",
       "ability_base:want",
-      "ability_runtime:runtime",
       "access_token:libaccesstoken_sdk",
       "bundle_framework:appexecfwk_base",
       "bundle_framework:appexecfwk_core",
       "c_utils:utils",
       "eventhandler:libeventhandler",
       "form_fwk:fmskit_native",
+      "form_fwk:form_common_info",
       "form_fwk:form_manager",
       "form_fwk:form_render_info",
-      "form_fwk:form_common_info",
       "googletest:gmock_main",
       "googletest:gtest_main",
       "hilog:libhilog",
@@ -1446,13 +1461,18 @@ ohos_unittest("data_ability_impl_test") {
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/napi_base_context:napi_base_context",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/wantagent:wantagent_innerkits",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_native_path}/ability/native:configuration_helper",
+    "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:application_image_observer_manager",
   ]
 
   external_deps = [
@@ -1461,12 +1481,6 @@ ohos_unittest("data_ability_impl_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_context_native",
-    "ability_runtime:ability_deps_wrapper",
-    "ability_runtime:ability_manager",
-    "ability_runtime:napi_base_context",
-    "ability_runtime:runtime",
-    "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
@@ -1477,6 +1491,7 @@ ohos_unittest("data_ability_impl_test") {
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "googletest:gtest_main",
+    "hichecker:libhichecker",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
@@ -1523,6 +1538,7 @@ ohos_unittest("data_ability_impl_file_secondpart_test") {
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
@@ -1530,6 +1546,7 @@ ohos_unittest("data_ability_impl_file_secondpart_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:application_image_observer_manager",
   ]
 
   external_deps = [
@@ -1539,8 +1556,6 @@ ohos_unittest("data_ability_impl_file_secondpart_test") {
     "ability_base:extractresourcemanager",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_deps_wrapper",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -1548,6 +1563,7 @@ ohos_unittest("data_ability_impl_file_secondpart_test") {
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "googletest:gtest_main",
+    "hichecker:libhichecker",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
@@ -1591,6 +1607,7 @@ ohos_unittest("data_ability_impl_file_test") {
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
@@ -1598,6 +1615,7 @@ ohos_unittest("data_ability_impl_file_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:application_image_observer_manager",
   ]
 
   external_deps = [
@@ -1607,8 +1625,6 @@ ohos_unittest("data_ability_impl_file_test") {
     "ability_base:extractresourcemanager",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_deps_wrapper",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -1616,6 +1632,7 @@ ohos_unittest("data_ability_impl_file_test") {
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "googletest:gtest_main",
+    "hichecker:libhichecker",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
@@ -1661,6 +1678,7 @@ ohos_unittest("ability_thread_dataability_test") {
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
@@ -1668,6 +1686,7 @@ ohos_unittest("ability_thread_dataability_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:application_image_observer_manager",
   ]
 
   external_deps = [
@@ -1677,8 +1696,6 @@ ohos_unittest("ability_thread_dataability_test") {
     "ability_base:extractresourcemanager",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_deps_wrapper",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -1686,6 +1703,7 @@ ohos_unittest("ability_thread_dataability_test") {
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "googletest:gtest_main",
+    "hichecker:libhichecker",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
@@ -1763,18 +1781,23 @@ ohos_unittest("data_uri_utils_test") {
 
 ohos_unittest("extension_impl_test") {
   module_out_path = module_output_path
-  include_dirs = [ "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include" ]
-
+  include_dirs = [
+    "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include",
+    "${ability_runtime_path}/utils/global/common/include",
+  ]
   sources = [ "extension_impl_test.cpp" ]
 
   configs = [ ":module_private_config" ]
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_native_path}/ability/native:extensionkit_native",
     "${ability_runtime_native_path}/ability/native:form_extension",
+    "${ability_runtime_native_path}/ability/native:ui_extension",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
   ]
@@ -1785,15 +1808,13 @@ ohos_unittest("extension_impl_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_deps_wrapper",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
+    "form_fwk:form_common_info",
     "form_fwk:form_manager",
     "form_fwk:form_render_info",
-    "form_fwk:form_common_info",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -1906,14 +1927,18 @@ ohos_unittest("ui_ability_test") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/wantagent:wantagent_innerkits",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_native_path}/ability/native:configuration_helper",
     "${ability_runtime_native_path}/ability/native:uiabilitykit_native",
+    "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:application_image_observer_manager",
     "${ability_runtime_path}/services/abilitymgr:abilityms_target",
   ]
 
@@ -1923,9 +1948,6 @@ ohos_unittest("ui_ability_test") {
     "ability_base:extractortool",
     "ability_base:session_info",
     "ability_base:want",
-    "ability_runtime:ability_context_native",
-    "ability_runtime:runtime",
-    "ability_runtime:wantagent_innerkits",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -1934,6 +1956,7 @@ ohos_unittest("ui_ability_test") {
     "ffrt:libffrt",
     "googletest:gmock_main",
     "googletest:gtest_main",
+    "hichecker:libhichecker",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
@@ -1962,12 +1985,14 @@ ohos_unittest("data_ability_result_test") {
 
   configs = [ ":module_private_config" ]
 
-  deps = [ "${ability_runtime_native_path}/ability/native:abilitykit_native" ]
+  deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_native_path}/ability/native:abilitykit_native",
+  ]
 
   external_deps = [
     "ability_base:extractortool",
     "ability_base:zuri",
-    "ability_runtime:ability_manager",
     "c_utils:utils",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -2004,6 +2029,7 @@ ohos_unittest("form_host_client_test") {
       "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
       "${ability_runtime_innerkits_path}/app_manager:app_manager",
       "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+      "${ability_runtime_innerkits_path}/runtime:runtime",
       "${ability_runtime_native_path}/ability/native:ability_thread",
       "${ability_runtime_native_path}/ability/native:abilitykit_native",
       "${ability_runtime_native_path}/ability/native:abilitykit_utils",
@@ -2011,25 +2037,25 @@ ohos_unittest("form_host_client_test") {
       "${ability_runtime_native_path}/appkit:app_context",
       "${ability_runtime_native_path}/appkit:appkit_manager_helper",
       "${ability_runtime_native_path}/appkit:appkit_native",
+      "${ability_runtime_native_path}/appkit:application_image_observer_manager",
     ]
 
     external_deps = [
       "ability_base:configuration",
       "ability_base:extractortool",
       "ability_base:want",
-      "ability_runtime:ability_manager",
-      "ability_runtime:runtime",
       "bundle_framework:appexecfwk_base",
       "bundle_framework:appexecfwk_core",
       "c_utils:utils",
       "eventhandler:libeventhandler",
       "ffrt:libffrt",
       "form_fwk:fmskit_native",
+      "form_fwk:form_common_info",
       "form_fwk:form_manager",
       "form_fwk:form_render_info",
-      "form_fwk:form_common_info",
       "googletest:gmock_main",
       "googletest:gtest_main",
+      "hichecker:libhichecker",
       "hilog:libhilog",
       "hitrace:hitrace_meter",
       "i18n:intl_util",
@@ -2063,6 +2089,7 @@ ohos_unittest("continuation_test") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
@@ -2071,6 +2098,7 @@ ohos_unittest("continuation_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:application_image_observer_manager",
   ]
 
   external_deps = [
@@ -2079,7 +2107,6 @@ ohos_unittest("continuation_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -2088,6 +2115,7 @@ ohos_unittest("continuation_test") {
     "ffrt:libffrt",
     "googletest:gmock_main",
     "googletest:gtest_main",
+    "hichecker:libhichecker",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
@@ -2125,13 +2153,16 @@ ohos_unittest("ability_transaction_callback_info_test") {
 
   configs = [ ":module_private_config" ]
 
+  deps = [
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+  ]
+
   external_deps = [
     "ability_base:base",
     "ability_base:configuration",
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "eventhandler:libeventhandler",
@@ -2292,13 +2323,17 @@ ohos_unittest("ability_window_test") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/wantagent:wantagent_innerkits",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_native_path}/ability/native:configuration_helper",
+    "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:application_image_observer_manager",
   ]
 
   external_deps = [
@@ -2307,9 +2342,6 @@ ohos_unittest("ability_window_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_context_native",
-    "ability_runtime:runtime",
-    "ability_runtime:wantagent_innerkits",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -2320,6 +2352,7 @@ ohos_unittest("ability_window_test") {
     "googletest:gtest_main",
     "graphic_2d:librender_service_base",
     "graphic_2d:librender_service_client",
+    "hichecker:libhichecker",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "image_framework:image",
@@ -2365,15 +2398,19 @@ ohos_unittest("ability_handler_test") {
   configs = [ ":module_private_config" ]
 
   deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_native_path}/ability/native:configuration_helper",
+    "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:app_context_utils",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:application_image_observer_manager",
   ]
 
   external_deps = [
@@ -2381,9 +2418,6 @@ ohos_unittest("ability_handler_test") {
     "ability_base:configuration",
     "ability_base:extractortool",
     "ability_base:want",
-    "ability_runtime:ability_context_native",
-    "ability_runtime:ability_manager",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -2391,6 +2425,7 @@ ohos_unittest("ability_handler_test") {
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "googletest:gtest_main",
+    "hichecker:libhichecker",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
@@ -2426,17 +2461,22 @@ ohos_unittest("ability_impl_factory_test") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/dataobs_manager:dataobs_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/napi_base_context:napi_base_context",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/wantagent:wantagent_innerkits",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_native_path}/ability/native:configuration_helper",
     "${ability_runtime_native_path}/ability/native:continuation_ipc",
+    "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:app_context_utils",
     "${ability_runtime_native_path}/appkit:appkit_delegator",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:application_image_observer_manager",
     "${ability_runtime_services_path}/common:app_util",
   ]
 
@@ -2446,11 +2486,6 @@ ohos_unittest("ability_impl_factory_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_context_native",
-    "ability_runtime:ability_deps_wrapper",
-    "ability_runtime:napi_base_context",
-    "ability_runtime:runtime",
-    "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
@@ -2458,6 +2493,7 @@ ohos_unittest("ability_impl_factory_test") {
     "common_event_service:cesfwk_innerkits",
     "ffrt:libffrt",
     "googletest:gtest_main",
+    "hichecker:libhichecker",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
@@ -2707,16 +2743,15 @@ ohos_unittest("ability_connection_manager_test") {
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
-    "${ability_runtime_native_path}/ability:ability_context_native",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
+    "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/appkit:app_context",
   ]
 
   external_deps = [
     "ability_base:extractortool",
     "ability_base:want",
-    "ability_runtime:ability_manager",
-    "ability_runtime:runtime",
     "access_token:libaccesstoken_sdk",
     "access_token:libtoken_callback_sdk",
     "bundle_framework:appexecfwk_base",
@@ -2757,8 +2792,11 @@ ohos_unittest("abilityruntime_test") {
 
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
 
+  deps = [
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+  ]
+
   external_deps = [
-    "ability_runtime:runtime",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "googletest:gmock_main",
@@ -2788,20 +2826,20 @@ ohos_unittest("form_extension_module_loader_test") {
 
   deps = [
     "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_native_path}/ability/native:extensionkit_native",
     "${ability_runtime_native_path}/ability/native:form_extension",
   ]
 
   external_deps = [
     "ability_base:configuration",
     "ability_base:session_info",
-    "ability_runtime:extensionkit_native",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "form_fwk:fmskit_native",
+    "form_fwk:form_common_info",
     "form_fwk:form_manager",
     "form_fwk:form_render_info",
-    "form_fwk:form_common_info",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -3226,6 +3264,8 @@ ohos_unittest("app_service_extension_module_loader_test") {
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:app_service_extension",
     "${ability_runtime_native_path}/appkit:app_context",
@@ -3237,8 +3277,6 @@ ohos_unittest("app_service_extension_module_loader_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_deps_wrapper",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -3284,6 +3322,7 @@ ohos_unittest("js_ui_extension_Callback_test") {
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
@@ -3295,8 +3334,6 @@ ohos_unittest("js_ui_extension_Callback_test") {
     "ability_base:extractortool",
     "ability_base:session_info",
     "ability_base:want",
-    "ability_runtime:ability_manager",
-    "ability_runtime:app_manager",
     "ace_engine:ace_uicontent",
     "c_utils:utils",
     "eventhandler:libeventhandler",
@@ -3388,14 +3425,18 @@ ohos_unittest("ability_second_test") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/wantagent:wantagent_innerkits",
     "${ability_runtime_native_path}/ability/native:ability_thread",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_native_path}/ability/native:configuration_helper",
     "${ability_runtime_native_path}/ability/native:uiabilitykit_native",
+    "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_native_path}/appkit:application_image_observer_manager",
   ]
 
   external_deps = [
@@ -3405,20 +3446,18 @@ ohos_unittest("ability_second_test") {
     "ability_base:session_info",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_context_native",
-    "ability_runtime:runtime",
-    "ability_runtime:wantagent_innerkits",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
+    "form_fwk:form_common_info",
     "form_fwk:form_manager",
     "form_fwk:form_render_info",
-    "form_fwk:form_common_info",
     "googletest:gmock_main",
     "googletest:gtest_main",
+    "hichecker:libhichecker",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",

@@ -1612,5 +1612,428 @@ HWTEST_F(UIExtensionAbilityManagerSecondTest, TerminateAbilityInner_002, TestSiz
     auto ret = connectManager->TerminateAbilityInner(token);
     EXPECT_EQ(ret, ERR_OK); // Should not actually terminate because of connections
 }
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: HandleExtensionAbilityRemove
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify HandleExtensionAbilityRemove when ability is cached
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, HandleExtensionAbilityRemove_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "HandleExtensionAbilityRemove_001 start");
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(connectManager, nullptr);
+
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    abilityRequest.abilityInfo.bundleName = "com.test.uiextension";
+    abilityRequest.abilityInfo.name = "TestUIExtension";
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    EXPECT_NE(abilityRecord, nullptr);
+
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo = sptr<SessionInfo>(new (std::nothrow) SessionInfo());
+    ASSERT_NE(sessionInfo, nullptr);
+    sessionInfo->persistentId = 1;
+    sessionInfo->sessionToken = sptr<Rosen::Session>(new (std::nothrow) Rosen::Session(info));
+    
+    ASSERT_NE(sessionInfo->sessionToken, nullptr);
+    abilityRecord->sessionInfo_ = sessionInfo;
+
+    bool result = connectManager->HandleExtensionAbilityRemove(abilityRecord);
+    EXPECT_FALSE(result);
+    TAG_LOGI(AAFwkTag::TEST, "HandleExtensionAbilityRemove_001 end");
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: HandleExtensionAbilityRemove
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify HandleExtensionAbilityRemove when ability in serviceMap
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, HandleExtensionAbilityRemove_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "HandleExtensionAbilityRemove_002 start");
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(connectManager, nullptr);
+
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    abilityRequest.abilityInfo.bundleName = "com.test.uiextension";
+    abilityRequest.abilityInfo.name = "TestUIExtension";
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    EXPECT_NE(abilityRecord, nullptr);
+
+    AppExecFwk::ElementName element;
+    element.SetBundleName(abilityRequest.abilityInfo.bundleName);
+    element.SetModuleName(abilityRequest.abilityInfo.moduleName);
+    element.SetAbilityName(abilityRequest.abilityInfo.name);
+    std::string serviceKey = element.GetURI();
+    connectManager->serviceMap_[serviceKey] = abilityRecord;
+
+    bool result = connectManager->HandleExtensionAbilityRemove(abilityRecord);
+    EXPECT_TRUE(result);
+    TAG_LOGI(AAFwkTag::TEST, "HandleExtensionAbilityRemove_002 end");
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: HandleExtensionAbilityRemove
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify HandleExtensionAbilityRemove when ability not found
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, HandleExtensionAbilityRemove_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "HandleExtensionAbilityRemove_003 start");
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(connectManager, nullptr);
+
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    abilityRequest.abilityInfo.bundleName = "com.test.uiextension";
+    abilityRequest.abilityInfo.name = "TestUIExtension";
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    EXPECT_NE(abilityRecord, nullptr);
+
+    bool result = connectManager->HandleExtensionAbilityRemove(abilityRecord);
+    EXPECT_FALSE(result);
+    TAG_LOGI(AAFwkTag::TEST, "HandleExtensionAbilityRemove_003 end");
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: CleanupConnectionAndTerminateIfNeeded
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify CleanupConnectionAndTerminateIfNeeded with non-empty connect list
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, CleanupConnectionAndTerminateIfNeeded_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CleanupConnectionAndTerminateIfNeeded_001 start");
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(connectManager, nullptr);
+
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    abilityRequest.abilityInfo.bundleName = "com.test.uiextension";
+    abilityRequest.abilityInfo.name = "TestUIExtension";
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    EXPECT_NE(abilityRecord, nullptr);
+
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo = sptr(new (std::nothrow) SessionInfo());
+    ASSERT_NE(sessionInfo, nullptr);
+    sessionInfo->persistentId = 1;
+    sessionInfo->sessionToken = sptr<Rosen::Session>(new (std::nothrow) Rosen::Session(info));
+    ASSERT_NE(sessionInfo->sessionToken, nullptr);
+    abilityRecord->sessionInfo_ = sessionInfo;
+
+    AppExecFwk::ElementName element;
+    element.SetBundleName(abilityRequest.abilityInfo.bundleName);
+    element.SetModuleName(abilityRequest.abilityInfo.moduleName);
+    element.SetAbilityName(abilityRequest.abilityInfo.name);
+    std::string serviceKey = element.GetURI();
+    connectManager->serviceMap_[serviceKey] = abilityRecord;
+
+    int32_t result = connectManager->CleanupConnectionAndTerminateIfNeeded(abilityRecord);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "CleanupConnectionAndTerminateIfNeeded_001 end");
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: HandleCommandDestroy
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify HandleCommandDestroy with valid sessionInfo and sessionToken
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, HandleCommandDestroy_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "HandleCommandDestroy_001 start");
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(connectManager, nullptr);
+
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo = sptr(new (std::nothrow) SessionInfo());
+    ASSERT_NE(sessionInfo, nullptr);
+    sessionInfo->persistentId = 1;
+    sessionInfo->sessionToken = sptr<Rosen::Session>(new (std::nothrow) Rosen::Session(info));
+    ASSERT_NE(sessionInfo->sessionToken, nullptr);
+
+    connectManager->HandleCommandDestroy(sessionInfo);
+    EXPECT_EQ(connectManager->uiExtRecipientMap_.size(), 0);
+    TAG_LOGI(AAFwkTag::TEST, "HandleCommandDestroy_001 end");
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: HandleCommandDestroy
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify HandleCommandDestroy with null sessionInfo
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, HandleCommandDestroy_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "HandleCommandDestroy_002 start");
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(connectManager, nullptr);
+
+    sptr<SessionInfo> sessionInfo = nullptr;
+
+    connectManager->HandleCommandDestroy(sessionInfo);
+    EXPECT_EQ(connectManager->uiExtensionMap_.size(), 0);
+    TAG_LOGI(AAFwkTag::TEST, "HandleCommandDestroy_002 end");
+}
+
+/**
+ * @tc.name: IsUIExtensionStarting_PidExists_0100
+ * @tc.type: FUNC
+ * @tc.Function: IsUIExtensionStarting
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, IsUIExtensionStarting_UidExists_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionStarting_UidExists_0100 start");
+    std::shared_ptr<UIExtensionAbilityManager> mgr = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mgr, nullptr);
+    int32_t uid = 105678;
+    int64_t recordId = 1;
+    mgr->startingRecordsMap_[{uid, 0, recordId}] = 1;
+    EXPECT_TRUE(mgr->IsUIExtensionStarting(uid));
+    mgr->startingRecordsMap_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionStarting_UidExists_0100 end");
+}
+
+/**
+ * @tc.name: IsUIExtensionStarting_UidNotExists_0200
+ * @tc.type: FUNC
+ * @tc.Function: IsUIExtensionStarting
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, IsUIExtensionStarting_UidNotExists_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionStarting_UidNotExists_0200 start");
+    std::shared_ptr<UIExtensionAbilityManager> mgr = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mgr, nullptr);
+    int32_t uid = 105678;
+    EXPECT_FALSE(mgr->IsUIExtensionStarting(uid));
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionStarting_UidNotExists_0200 end");
+}
+
+/**
+ * @tc.name: AddStartingRecord_FirstAdd_0100
+ * @tc.type: FUNC
+ * @tc.Function: AddStartingRecord
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, AddStartingRecord_FirstAdd_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AddStartingRecord_FirstAdd_0100 start");
+    std::shared_ptr<UIExtensionAbilityManager> mgr = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mgr, nullptr);
+    mgr->startingRecordsMap_.clear();
+    int32_t uid = 101234;
+    int64_t recordId = 1;
+    mgr->AddStartingRecord(uid, 0, recordId, 10);
+    auto key = std::make_tuple(uid, static_cast<pid_t>(0), recordId);
+    EXPECT_EQ(mgr->startingRecordsMap_.count(key), 1u);
+    EXPECT_EQ((mgr->startingRecordsMap_[key]), 1);
+    mgr->startingRecordsMap_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "AddStartingRecord_FirstAdd_0100 end");
+}
+
+/**
+ * @tc.name: AddStartingRecord_CountIncrement_0200
+ * @tc.type: FUNC
+ * @tc.Function: AddStartingRecord
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, AddStartingRecord_CountIncrement_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AddStartingRecord_CountIncrement_0200 start");
+    std::shared_ptr<UIExtensionAbilityManager> mgr = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mgr, nullptr);
+    mgr->startingRecordsMap_.clear();
+    int32_t uid = 101234;
+    int64_t recordId = 1;
+    mgr->AddStartingRecord(uid, 0, recordId, 10);
+    mgr->AddStartingRecord(uid, 5678, recordId, 5);
+    EXPECT_EQ(mgr->startingRecordsMap_.size(), 2u);
+    EXPECT_EQ((mgr->startingRecordsMap_[{uid, 0, recordId}]), 1);
+    EXPECT_EQ((mgr->startingRecordsMap_[{uid, 5678, recordId}]), 1);
+    mgr->startingRecordsMap_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "AddStartingRecord_CountIncrement_0200 end");
+}
+
+/**
+ * @tc.name: AddStartingRecord_InvalidUid_0300
+ * @tc.type: FUNC
+ * @tc.Function: AddStartingRecord
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, AddStartingRecord_InvalidUid_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AddStartingRecord_InvalidUid_0300 start");
+    std::shared_ptr<UIExtensionAbilityManager> mgr = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mgr, nullptr);
+    mgr->startingRecordsMap_.clear();
+    int64_t recordId = 1;
+    mgr->AddStartingRecord(0, 0, recordId, 10);
+    EXPECT_EQ(mgr->startingRecordsMap_.size(), 0u);
+    mgr->AddStartingRecord(-1, 0, recordId, 10);
+    EXPECT_EQ(mgr->startingRecordsMap_.size(), 0u);
+    TAG_LOGI(AAFwkTag::TEST, "AddStartingRecord_InvalidUid_0300 end");
+}
+
+/**
+ * @tc.name: RemoveStartingRecord_CountDecrement_0100
+ * @tc.type: FUNC
+ * @tc.Function: RemoveStartingRecord
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, RemoveStartingRecord_CountDecrement_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RemoveStartingRecord_CountDecrement_0100 start");
+    std::shared_ptr<UIExtensionAbilityManager> mgr = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mgr, nullptr);
+    mgr->startingRecordsMap_.clear();
+    int32_t uid = 101234;
+    int64_t recordId = 1;
+    mgr->AddStartingRecord(uid, 0, recordId, 10);
+    mgr->AddStartingRecord(uid, 5678, recordId, 5);
+    EXPECT_EQ((mgr->startingRecordsMap_[{uid, 0, recordId}]), 1);
+    EXPECT_EQ((mgr->startingRecordsMap_[{uid, 5678, recordId}]), 1);
+    mgr->RemoveStartingRecord(uid, 0, recordId);
+    EXPECT_EQ(mgr->startingRecordsMap_.count({uid, 0, recordId}), 0u);
+    mgr->RemoveStartingRecord(uid, 5678, recordId);
+    EXPECT_EQ(mgr->startingRecordsMap_.empty(), true);
+    TAG_LOGI(AAFwkTag::TEST, "RemoveStartingRecord_CountDecrement_0100 end");
+}
+
+/**
+ * @tc.name: RemoveStartingRecord_NotFound_0200
+ * @tc.type: FUNC
+ * @tc.Function: RemoveStartingRecord
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, RemoveStartingRecord_NotFound_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RemoveStartingRecord_NotFound_0200 start");
+    std::shared_ptr<UIExtensionAbilityManager> mgr = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mgr, nullptr);
+    mgr->startingRecordsMap_.clear();
+    mgr->RemoveStartingRecord(109999, 0, 1);
+    EXPECT_EQ(mgr->startingRecordsMap_.size(), 0u);
+    TAG_LOGI(AAFwkTag::TEST, "RemoveStartingRecord_NotFound_0200 end");
+}
+
+/**
+ * @tc.name: IsUIExtensionStarting_PidMatchRealPid_0300
+ * @tc.type: FUNC
+ * @tc.Function: IsUIExtensionStarting
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, IsUIExtensionStarting_PidMatchRealPid_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionStarting_PidMatchRealPid_0300 start");
+    std::shared_ptr<UIExtensionAbilityManager> mgr = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mgr, nullptr);
+    int32_t uid = 105678;
+    int64_t recordId = 1;
+    pid_t pid = 5678;
+    mgr->startingRecordsMap_[{uid, pid, recordId}] = 1;
+    EXPECT_TRUE(mgr->IsUIExtensionStarting(uid, pid));
+    EXPECT_FALSE(mgr->IsUIExtensionStarting(uid, 9999));
+    mgr->startingRecordsMap_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionStarting_PidMatchRealPid_0300 end");
+}
+
+/**
+ * @tc.name: IsUIExtensionStarting_PidMatchZeroPid_0400
+ * @tc.type: FUNC
+ * @tc.Function: IsUIExtensionStarting
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, IsUIExtensionStarting_PidMatchZeroPid_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionStarting_PidMatchZeroPid_0400 start");
+    std::shared_ptr<UIExtensionAbilityManager> mgr = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mgr, nullptr);
+    int32_t uid = 105678;
+    int64_t recordId = 1;
+    // only pid=0 entry exists (cold start, pid not assigned yet), query with real pid should match via 0 fallback
+    mgr->startingRecordsMap_[{uid, 0, recordId}] = 1;
+    EXPECT_TRUE(mgr->IsUIExtensionStarting(uid, 5678));
+    mgr->startingRecordsMap_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionStarting_PidMatchZeroPid_0400 end");
+}
+
+/**
+ * @tc.name: IsUIExtensionStarting_PidNoMatch_0500
+ * @tc.type: FUNC
+ * @tc.Function: IsUIExtensionStarting
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, IsUIExtensionStarting_PidNoMatch_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionStarting_PidNoMatch_0500 start");
+    std::shared_ptr<UIExtensionAbilityManager> mgr = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mgr, nullptr);
+    int32_t uid = 105678;
+    int64_t recordId = 1;
+    // real pid entry exists, query different pid should return false
+    mgr->startingRecordsMap_[{uid, 5678, recordId}] = 1;
+    EXPECT_FALSE(mgr->IsUIExtensionStarting(uid, 9999));
+    mgr->startingRecordsMap_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionStarting_PidNoMatch_0500 end");
+}
+
+/**
+ * @tc.name: AddStartingRecord_SameKeyCountIncrement_0400
+ * @tc.type: FUNC
+ * @tc.Function: AddStartingRecord
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, AddStartingRecord_SameKeyCountIncrement_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AddStartingRecord_SameKeyCountIncrement_0400 start");
+    std::shared_ptr<UIExtensionAbilityManager> mgr = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mgr, nullptr);
+    mgr->startingRecordsMap_.clear();
+    int32_t uid = 101234;
+    int64_t recordId = 1;
+    mgr->AddStartingRecord(uid, 5678, recordId, 10);
+    EXPECT_EQ((mgr->startingRecordsMap_[{uid, 5678, recordId}]), 1);
+    mgr->AddStartingRecord(uid, 5678, recordId, 10);
+    EXPECT_EQ((mgr->startingRecordsMap_[{uid, 5678, recordId}]), 2);
+    mgr->startingRecordsMap_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "AddStartingRecord_SameKeyCountIncrement_0400 end");
+}
+
+/**
+ * @tc.name: RemoveStartingRecord_CountDecrementNotErase_0300
+ * @tc.type: FUNC
+ * @tc.Function: RemoveStartingRecord
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, RemoveStartingRecord_CountDecrementNotErase_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RemoveStartingRecord_CountDecrementNotErase_0300 start");
+    std::shared_ptr<UIExtensionAbilityManager> mgr = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mgr, nullptr);
+    mgr->startingRecordsMap_.clear();
+    int32_t uid = 101234;
+    int64_t recordId = 1;
+    // add same key twice → count=2
+    mgr->AddStartingRecord(uid, 5678, recordId, 10);
+    mgr->AddStartingRecord(uid, 5678, recordId, 10);
+    EXPECT_EQ((mgr->startingRecordsMap_[{uid, 5678, recordId}]), 2);
+    // first remove → count=1, entry still exists
+    mgr->RemoveStartingRecord(uid, 5678, recordId);
+    EXPECT_EQ(mgr->startingRecordsMap_.count({uid, 5678, recordId}), 1u);
+    EXPECT_EQ((mgr->startingRecordsMap_[{uid, 5678, recordId}]), 1);
+    // second remove → count=0, entry erased
+    mgr->RemoveStartingRecord(uid, 5678, recordId);
+    EXPECT_EQ(mgr->startingRecordsMap_.count({uid, 5678, recordId}), 0u);
+    TAG_LOGI(AAFwkTag::TEST, "RemoveStartingRecord_CountDecrementNotErase_0300 end");
+}
 }  // namespace AAFwk
 }  // namespace OHOS

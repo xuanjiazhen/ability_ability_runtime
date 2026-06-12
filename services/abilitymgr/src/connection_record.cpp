@@ -394,20 +394,26 @@ void ConnectionRecord::Dump(std::vector<std::string> &info) const
                       ConvertConnectionState(GetConnectState()));
 }
 
-void ConnectionRecord::AttachCallerInfo()
+void ConnectionRecord::AttachCallerInfo(std::shared_ptr<IndirectCallerInfo> indirectCallerInfo)
 {
-    callerTokenId_ = IPCSkeleton::GetCallingTokenID(); // tokenId identifies the real caller
-    auto targetRecord = Token::GetAbilityRecordByToken(callerToken_);
-    if (targetRecord) {
-        callerUid_ = targetRecord->GetUid();
-        callerPid_ = targetRecord->GetPid();
-        callerName_ = targetRecord->GetAbilityInfo().bundleName;
+    SetDirectCallerInfo();
+
+    if (indirectCallerInfo != nullptr) {
+        callerTokenId_ = indirectCallerInfo->tokenId;
+        callerUid_ = indirectCallerInfo->callerUid;
+        callerPid_ = indirectCallerInfo->callerPid;
+        callerName_ = ConnectionStateManager::GetProcessNameByPid(callerPid_);
+        TAG_LOGD(AAFwkTag::CONNECTION, "callerTokenId_:%{public}u, callerUid_:%{public}d, callerPid_:%{public}d, "
+            "callerName_:%{public}s", callerTokenId_, callerUid_, callerPid_, callerName_.c_str());
         return;
     }
-
-    callerUid_ = static_cast<int32_t>(IPCSkeleton::GetCallingUid());
-    callerPid_ = static_cast<int32_t>(IPCSkeleton::GetCallingPid());
-    callerName_ = ConnectionStateManager::GetProcessNameByPid(callerPid_);
+    
+    callerTokenId_ = GetDirectCallerTokenId();
+    callerUid_ = GetDirectCallerUid();
+    callerPid_ = GetDirectCallerPid();
+    callerName_ = GetDirectCallerName();
+    TAG_LOGD(AAFwkTag::CONNECTION, "callerTokenId_:%{public}u, callerUid_:%{public}d, callerPid_:%{public}d, "
+        "callerName_:%{public}s", callerTokenId_, callerUid_, callerPid_, callerName_.c_str());
 }
 
 int32_t ConnectionRecord::GetCallerUid() const
@@ -428,6 +434,46 @@ uint32_t ConnectionRecord::GetCallerTokenId() const
 std::string ConnectionRecord::GetCallerName() const
 {
     return callerName_;
+}
+
+int32_t ConnectionRecord::GetDirectCallerUid() const
+{
+    return directCallerUid_;
+}
+
+int32_t ConnectionRecord::GetDirectCallerPid() const
+{
+    return directCallerPid_;
+}
+
+uint32_t ConnectionRecord::GetDirectCallerTokenId() const
+{
+    return directCallerTokenId_;
+}
+
+std::string ConnectionRecord::GetDirectCallerName() const
+{
+    return directCallerName_;
+}
+
+void ConnectionRecord::SetDirectCallerInfo()
+{
+    directCallerTokenId_ = IPCSkeleton::GetCallingTokenID(); // tokenId identifies the real caller
+    auto targetRecord = Token::GetAbilityRecordByToken(callerToken_);
+    if (targetRecord) {
+        directCallerUid_ = targetRecord->GetUid();
+        directCallerPid_ = targetRecord->GetPid();
+        directCallerName_ = targetRecord->GetAbilityInfo().bundleName;
+        return;
+    }
+
+    directCallerUid_ = static_cast<int32_t>(IPCSkeleton::GetCallingUid());
+    directCallerPid_ = static_cast<int32_t>(IPCSkeleton::GetCallingPid());
+    directCallerName_ = ConnectionStateManager::GetProcessNameByPid(directCallerPid_);
+
+    TAG_LOGD(AAFwkTag::CONNECTION, "directCallerTokenId_:%{public}u, directCallerUid_:%{public}d, "
+        "directCallerPid_:%{public}d, directCallerName_:%{public}s", directCallerTokenId_, directCallerUid_,
+        directCallerPid_, directCallerName_.c_str());
 }
 
 sptr<IRemoteObject> ConnectionRecord::GetTargetToken() const

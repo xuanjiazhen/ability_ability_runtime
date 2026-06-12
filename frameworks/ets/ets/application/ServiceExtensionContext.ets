@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,7 +24,7 @@ import OpenLinkOptions from '@ohos.app.ability.OpenLinkOptions';
 import StartOptions from '@ohos.app.ability.StartOptions';
 import Want from '@ohos.app.ability.Want';
 
-class Cleaner {
+export class Cleaner {
   public ptr: long = 0;
 
   constructor(ptr: long) {
@@ -110,6 +110,8 @@ export default class ServiceExtensionContext extends ExtensionContext {
   native nativePreStartMission(bundleName: string, moduleName: string, abilityName: string, startTime: string, callback: AsyncCallbackWrapper<void>): void;
 
   native nativeRequestModalUIExtension(want: Want, callback: AsyncCallbackWrapper<void>): void;
+
+  native nativeRequestModalUIExtensionWithAccount(want: Want, accountId: int, callback: AsyncCallbackWrapper<void>): void;
 
   native nativeStopServiceExtensionAbilityWithAccount(want: Want, accountId: int, callback: AsyncCallbackWrapper<void>): void;
 
@@ -341,6 +343,23 @@ export default class ServiceExtensionContext extends ExtensionContext {
         });
         taskpool.execute((): void => {
           this.nativeRequestModalUIExtension(pickerWant, myCall);
+        }).catch((err: Error): void => {
+          reject(err as BusinessError);
+        });
+      });
+  }
+
+  requestModalUIExtensionWithAccount(pickerWant: Want, accountId: int): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+          this.nativeRequestModalUIExtensionWithAccount(pickerWant, accountId, myCall);
         }).catch((err: Error): void => {
           reject(err as BusinessError);
         });

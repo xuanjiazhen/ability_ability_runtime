@@ -21,6 +21,7 @@
 #include "iremote_proxy.h"
 #include "mock_ability_connect_callback.h"
 #include "mock_ability_token.h"
+#include "skill_execute_result.h"
 
 using namespace testing::ext;
 using namespace testing;
@@ -1081,6 +1082,257 @@ HWTEST_F(AbilityManagerStubSecondTest, PreloadApplicationInner_001, TestSize.Lev
     auto ret = stub_->OnRemoteRequest(
         static_cast<uint32_t>(AbilityManagerInterfaceCode::PRELOAD_APPLICATION), data, reply, option);
     EXPECT_EQ(ret, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerStub
+ * Function: StartAbilityByOEExtInner
+ * SubFunction: Error case with null want
+ * FunctionPoints: Test error handling when want is null
+ * EnvConditions: Invalid want parameter
+ * CaseDescription: Verify that StartAbilityByOEExtInner returns ERR_INVALID_VALUE when want is null
+ */
+HWTEST_F(AbilityManagerStubSecondTest, StartAbilityByOEExtInner_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityByOEExtInner_002 begin");
+
+    MessageParcel data;
+    WriteInterfaceToken(data);
+
+    MessageParcel reply;
+    MessageOption option;
+
+    EXPECT_CALL(*stub_, StartAbilityByOEExt(_, _, _, _))
+        .Times(0);
+
+    auto ret = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_ABILITY_BY_OE_EXT), data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityByOEExtInner_002 end");
+}
+
+/*
+ * Feature: AbilityManagerStub
+ * Function: StartAbilityByOEExtInner
+ * SubFunction: Normal case with valid parameters
+ * FunctionPoints: Test normal execution with valid want, caller token, hostPid and specifiedFlag
+ * EnvConditions: Normal conditions
+ * CaseDescription: Verify that StartAbilityByOEExtInner executes correctly with valid parameters
+ */
+HWTEST_F(AbilityManagerStubSecondTest, StartAbilityByOEExtInner_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityByOEExtInner_001 begin");
+
+    MessageParcel data;
+    WriteInterfaceToken(data);
+
+    Want want;
+    want.SetElementName("com.test.bundle", "com.test.TestAbility", "test");
+    data.WriteParcelable(&want);
+
+    EXPECT_TRUE(data.WriteBool(true));
+    auto token = sptr<IRemoteObject>(new AbilityScheduler());
+    EXPECT_TRUE(data.WriteRemoteObject(token));
+    
+    EXPECT_TRUE(data.WriteInt32(12345));
+    EXPECT_TRUE(data.WriteString("test_flag"));
+
+    MessageParcel reply;
+    MessageOption option;
+
+    EXPECT_CALL(*stub_, StartAbilityByOEExt(_, _, _, _))
+        .Times(1)
+        .WillOnce(Return(ERR_OK));
+
+    auto ret = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_ABILITY_BY_OE_EXT), data, reply, option);
+    EXPECT_EQ(ret, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityByOEExtInner_001 end");
+}
+
+/**
+ * @tc.name: ExecuteSkillDoneWithTokenInner_001
+ * @tc.desc: Test ExecuteSkillDoneWithTokenInner with null token
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubSecondTest, ExecuteSkillDoneWithTokenInner_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExecuteSkillDoneWithTokenInner_001 begin");
+
+    MessageParcel data;
+    WriteInterfaceToken(data);
+
+    data.WriteRemoteObject(nullptr);
+
+    MessageParcel reply;
+    MessageOption option;
+
+    auto ret = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::EXECUTE_SKILL_DONE_WITH_TOKEN), data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "ExecuteSkillDoneWithTokenInner_001 end");
+}
+
+/**
+ * @tc.name: QuerySkillTypeInner_001
+ * @tc.desc: Test QuerySkillTypeInner with normal parameters
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubSecondTest, QuerySkillTypeInner_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "QuerySkillTypeInner_001 begin");
+
+    MessageParcel data;
+    WriteInterfaceToken(data);
+
+    data.WriteString16(Str8ToStr16("bundleName"));
+    data.WriteString16(Str8ToStr16("moduleName"));
+    data.WriteString16(Str8ToStr16("skillName"));
+
+    MessageParcel reply;
+    MessageOption option;
+
+    EXPECT_CALL(*stub_, QuerySkillType(_, _, _, _))
+        .Times(1)
+        .WillOnce(Return(ERR_OK));
+
+    auto ret = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::QUERY_SKILL_TYPE), data, reply, option);
+    EXPECT_EQ(ret, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "QuerySkillTypeInner_001 end");
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityInChildProcessInner_0100
+ * @tc.desc: Test StartSelfUIAbilityInChildProcessInner with valid parameters
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubSecondTest, StartSelfUIAbilityInChildProcessInner_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbilityInChildProcessInner_0100 begin");
+
+    MessageParcel data;
+    WriteInterfaceToken(data);
+
+    Want want;
+    want.SetElementName("com.test.bundle", "com.test.TestAbility", "test");
+    data.WriteParcelable(&want);
+
+    data.WriteString("testFlag");
+
+    data.WriteBool(true);
+    auto token = sptr<IRemoteObject>(new AbilityScheduler());
+    data.WriteRemoteObject(token);
+
+    MessageParcel reply;
+    MessageOption option;
+
+    EXPECT_CALL(*stub_, StartSelfUIAbilityInChildProcess(_, _, _))
+        .Times(1)
+        .WillOnce(Return(ERR_OK));
+
+    auto ret = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_IN_CHILD_PROCESS), data, reply,
+        option);
+    EXPECT_EQ(ret, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbilityInChildProcessInner_0100 end");
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityInChildProcessInner_0200
+ * @tc.desc: Test StartSelfUIAbilityInChildProcessInner with invalid interface token
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubSecondTest, StartSelfUIAbilityInChildProcessInner_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbilityInChildProcessInner_0200 begin");
+
+    MessageParcel data;
+    // Not writing interface token
+
+    Want want;
+    want.SetElementName("com.test.bundle", "com.test.TestAbility", "test");
+    data.WriteParcelable(&want);
+
+    data.WriteString("testFlag");
+
+    MessageParcel reply;
+    MessageOption option;
+
+    auto ret = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_IN_CHILD_PROCESS), data, reply,
+        option);
+    EXPECT_EQ(ret, ERR_INVALID_STATE);
+
+    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbilityInChildProcessInner_0200 end");
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityInChildProcessInner_0300
+ * @tc.desc: Test StartSelfUIAbilityInChildProcessInner with null want
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubSecondTest, StartSelfUIAbilityInChildProcessInner_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbilityInChildProcessInner_0300 begin");
+
+    MessageParcel data;
+    WriteInterfaceToken(data);
+
+    // Not writing want
+
+    MessageParcel reply;
+    MessageOption option;
+
+    auto ret = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_IN_CHILD_PROCESS), data, reply,
+        option);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbilityInChildProcessInner_0300 end");
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityInChildProcessInner_0400
+ * @tc.desc: Test StartSelfUIAbilityInChildProcessInner without callerToken
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubSecondTest, StartSelfUIAbilityInChildProcessInner_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbilityInChildProcessInner_0400 begin");
+
+    MessageParcel data;
+    WriteInterfaceToken(data);
+
+    Want want;
+    want.SetElementName("com.test.bundle", "com.test.TestAbility", "test");
+    data.WriteParcelable(&want);
+
+    data.WriteString("testFlag");
+
+    data.WriteBool(false); // No callerToken
+
+    MessageParcel reply;
+    MessageOption option;
+
+    EXPECT_CALL(*stub_, StartSelfUIAbilityInChildProcess(_, _, _))
+        .Times(1)
+        .WillOnce(Return(ERR_OK));
+
+    auto ret = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_IN_CHILD_PROCESS), data, reply,
+        option);
+    EXPECT_EQ(ret, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbilityInChildProcessInner_0400 end");
 }
 } // namespace AAFwk
 } // namespace OHOS

@@ -123,7 +123,30 @@ public:
      *
      * @param token ability's token
      */
-    int32_t NotifySCBToMinimizeUIAbility(const sptr<IRemoteObject> token);
+    int32_t NotifySCBToMinimizeUIAbility(const sptr<IRemoteObject> token, bool shouldBackToCaller = true,
+        int32_t notifyScbBackgroundReason = 0);
+
+    /**
+     * SetGamePreLaunchCompleteTime, set the complete time (in milliseconds) for the game pre-launch.
+     *
+     * @param completeTime The complete time (in milliseconds) for the game pre-launch.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t SetGamePreLaunchCompleteTime(int64_t completeTime);
+    
+    /**
+     * @brief Cancel game prelaunch and kill the game process.
+     * @param callerToken Token of the caller ability.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t NotifyCancelGamePreLaunch(const sptr<IRemoteObject> callerToken);
+
+    /**
+     * @brief Complete game SA prelaunch by clearing flag and killing process
+     * @param callerToken Token of the game SA prelaunch ability
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t NotifyCompleteGamePreLaunch(const sptr<IRemoteObject> callerToken);
 
     /**
      * MinimizeUIAbility, minimize the special ability by scb.
@@ -132,7 +155,8 @@ public:
      * @param fromUser, Whether form user.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int MinimizeUIAbility(const UIAbilityRecordPtr &abilityRecord, bool fromUser, uint32_t sceneFlag);
+    int MinimizeUIAbility(const UIAbilityRecordPtr &abilityRecord, bool fromUser, uint32_t sceneFlag,
+        int32_t backgroundReason = 0);
 
     /**
      * GetUIAbilityRecordBySessionInfo.
@@ -163,6 +187,7 @@ public:
      * @param rootSceneSession Indicates root scene session of SCB.
      */
     void SetRootSceneSession(const sptr<IRemoteObject> &rootSceneSession);
+    sptr<IRemoteObject> GetRootSceneSession() const;
 
     int NotifySCBToStartUIAbility(AbilityRequest &abilityRequest);
     int32_t NotifySCBToStartUIAbilities(std::vector<AbilityRequest> &abilityRequestList,
@@ -402,6 +427,7 @@ public:
     ErrCode IsUIAbilityAlreadyExist(const Want &want, const std::string &specifiedFlag,
         int32_t appIndex, const std::string &instanceKey, AppExecFwk::LaunchMode launchMode);
     void HandleUIAbilityDiedByPid(pid_t pid);
+    int32_t StartSelf(const UIAbilityRecordPtr &abilityRecord);
 
 private:
     void AddStartingPid(pid_t pid);
@@ -536,6 +562,7 @@ private:
     std::unordered_map<int64_t, UIAbilityRecordPtr> tmpAbilityMap_;
     std::unordered_map<UIAbilityRecordPtr, std::list<AbilityRequest>> callRequestCache_;
     std::list<UIAbilityRecordPtr> terminateAbilityList_;
+    ffrt::mutex rootSceneSessionLock_;
     sptr<IRemoteObject> rootSceneSession_;
     int32_t requestId_ = 0;
     sptr<ISessionHandler> handler_;

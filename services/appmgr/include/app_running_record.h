@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_APP_RUNNING_RECORD_H
 #define OHOS_ABILITY_RUNTIME_APP_RUNNING_RECORD_H
 
+#include <atomic>
 #include <list>
 #include <map>
 #include <memory>
@@ -51,6 +52,7 @@
 #include "app_jsheap_mem_info.h"
 #include "app_cjheap_mem_info.h"
 #include "simple_process_info.h"
+#include "mem_dump_callback_interface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -229,6 +231,13 @@ public:
      * @return Returns the application uid.
      */
     int32_t GetUid() const;
+
+    /**
+     * @brief Obtains the application accessTokenId.
+     *
+     * @return Returns the application accessTokenId.
+     */
+    uint32_t GetAccessTokenId() const;
 
     /**
      * @brief Setting the application uid.
@@ -427,6 +436,13 @@ public:
     void ScheduleTerminate();
 
     /**
+     * ScheduleTerminateByDelayed, Notify application to terminate by delayed.
+     *
+     * @return
+     */
+    void ScheduleTerminateByDelayed(bool isLastUIAbility);
+
+    /**
      * ScheduleTerminate, Notify application process exit safely.
      *
      * @return
@@ -483,6 +499,16 @@ public:
     void ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info);
 
     /**
+     * ScheduleMem, triggerGC and dump application's memory info.
+     *
+     * @param info, pid, tid, needGc, needSnapshot
+     * @param callback The callback to receive dump result
+     *
+     * @return
+     */
+    void ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback);
+
+    /**
      * GetAbilityRunningRecordByToken, Obtaining the ability record through token.
      *
      * @param token, the unique identification to the ability.
@@ -501,7 +527,8 @@ public:
      *
      * @return
      */
-    void UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state);
+    void UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
+        bool isFromScreenOffBackground = false);
 
     /**
      * PopForegroundingAbilityTokens, Extract the token record from the foreground tokens list.
@@ -541,6 +568,8 @@ public:
      * @param appDeathRecipient, application death recipient instance.
      */
     void SetAppDeathRecipient(const sptr<AppDeathRecipient> &appDeathRecipient);
+
+    sptr<AppDeathRecipient> GetAppDeathRecipient() const;
 
     /**
      * @brief Obtains application priority info.
@@ -644,6 +673,16 @@ public:
 
     void SetKeepAliveAppService(bool isKeepAliveAppService);
 
+    inline void SetStartedByCallStatus(int32_t byCallStatus)
+    {
+        byCallStatus_ = byCallStatus;
+    }
+
+    inline int32_t GetStartedByCallStatus() const
+    {
+        return byCallStatus_;
+    }
+
     /**
      * @brief roughly considered as a value from the process's bundle info.
      *
@@ -718,6 +757,8 @@ public:
      * Called when one specified request is finished to clear the request
      */
     void ResetSpecifiedRequest();
+
+    void TryToUpdateWorkProcessInfo();
 
     void SchedulePrepareTerminate(const std::string &moduleName);
 
@@ -915,13 +956,39 @@ public:
 
     bool IsPreloaded() const;
 
+    void SetMakeImageState(MakeImageState state);
+
+    MakeImageState GetMakeImageState() const;
+
+    void SetIsCreateFromImage(bool flag);
+
+    bool GetIsCreateFromImage() const;
+
+    void SetImageProcessType(ImageProcessType type);
+
+    ImageProcessType GetImageProcessType() const;
+
+    void SetNeedRemoveDeathRecipient(bool flag);
+
+    bool GetNeedRemoveDeathRecipient() const;
+
+    void SetNeedUpdate(bool needUpdate);
+
     void SetPreloadMode(PreloadMode mode);
 
     PreloadMode GetPreloadMode();
 
+    void SetUIExtensionPreloadState(bool isPreload);
+
+    bool GetUIExtensionPreloadState() const;
+
     void SetPreloadModuleName(const std::string& preloadModuleName);
 
     std::string GetPreloadModuleName() const;
+
+    void SetPreloadAbilityName(const std::string &abilityName);
+
+    std::string GetPreloadAbilityName() const;
 
     /**
      * @brief Obtains the app record assign tokenId.
@@ -1070,6 +1137,8 @@ public:
      * @return
      */
     void SetWatchdogBackgroundStatusRunning(bool status);
+
+    void GetAllAbilityInfos(std::vector<AppExecFwk::AbilityStateData> &infos);
 
     void SetUserRequestCleaning();
     bool IsUserRequestCleaning() const;
@@ -1232,6 +1301,28 @@ public:
         return isAllowScbProcessMoveToBackground_.load();
     }
 
+    inline void SetIsFromScreenOffBackground(bool isFromScreenOffBackground)
+    {
+        isFromScreenOffBackground_ = isFromScreenOffBackground;
+    }
+
+    inline bool IsFromScreenOffBackground() const
+    {
+        return isFromScreenOffBackground_;
+    }
+
+    bool IsLastAgentExtensionAbility(const sptr<IRemoteObject> &token);
+
+    inline void EnableDelayedProcessExit(bool enabled)
+    {
+        delayedProcessExitEnabled_ = enabled;
+    }
+
+    inline bool IsDelayedProcessExitEnabled() const
+    {
+        return delayedProcessExitEnabled_;
+    }
+
 private:
     /**
      * SearchTheModuleInfoNeedToUpdated, Get an uninitialized abilityStage data.
@@ -1256,7 +1347,8 @@ private:
      *
      * @return
      */
-    void AbilityBackground(const std::shared_ptr<AbilityRunningRecord> &ability);
+    void AbilityBackground(const std::shared_ptr<AbilityRunningRecord> &ability,
+        bool isFromScreenOffBackground = false);
     // drive application state changes when ability state changes.
 
     bool AbilityFocused(const std::shared_ptr<AbilityRunningRecord> &ability);
@@ -1290,6 +1382,8 @@ private:
      * - Collision probability is extremely low (approximately 2^-64)
      */
     uint64_t GenerateRunningId();
+
+    bool HasOnlyOneExtensionType();
 
     bool IsWindowIdsEmpty();
 
@@ -1351,8 +1445,14 @@ private:
     ApplicationPendingState pendingState_ = ApplicationPendingState::READY;
     ApplicationScheduleState scheduleState_ = ApplicationScheduleState::SCHEDULE_READY;
     WatchdogVisibilityState watchdogVisibilityState_ = WatchdogVisibilityState::WATCHDOG_STATE_READY;
-    ProcessChangeReason processChangeReason_ = ProcessChangeReason::REASON_NONE; // render record
+    std::atomic<ProcessChangeReason> processChangeReason_ = ProcessChangeReason::REASON_NONE; // render record
     std::chrono::system_clock::time_point preloadAttachTimeoutStartTime_;
+
+    MakeImageState makeImageState_ = MakeImageState::NONE;
+    bool isCreateFromImage_ = false;
+    ImageProcessType imageProcessType_ = ImageProcessType::UNSPECIFIED;
+    bool needRemoveDeathRecipient_ = true;
+    bool needUpdate_ = false;
 
     int64_t startTimeMillis_ = 0;   // The time of app start(CLOCK_MONOTONIC)
     uint64_t appRunningUniqueId_ = 0; // The unique running ID generated from random number
@@ -1365,12 +1465,14 @@ private:
     int32_t callerTokenId_ = -1;
     int32_t callerUid_ = -1;
     int32_t exitReason_ = 0;
-    int32_t pssValue_ = 0;
+    std::atomic_int32_t pssValue_ = 0;
+    std::atomic<bool> isUIExtensionPreload_ = false;
     int32_t requestProcCode_ = 0; // render record
-    int32_t rssValue_ = 0;
+    std::atomic_int32_t rssValue_ = 0;
     int32_t killId_ = -1;
     int restartResidentProcCount_ = 0;
     pid_t gpuPid_ = 0;
+    int32_t byCallStatus_ = 0;
 
     std::string processName_;  // name of this process
     std::string specifiedProcessFlag_; // flag of specified Process
@@ -1383,6 +1485,7 @@ private:
     std::string moduleName_;
     std::string perfCmd_;
     std::string preloadModuleName_;
+    std::string preloadAbilityName_; // ability name for preloading specific ability
     std::string exitMsg_ = "";
     std::string instanceKey_; // render record
     std::string killReason_ = "";
@@ -1409,18 +1512,19 @@ private:
     bool isKeepAliveDkv_ = false; // Only non-resident keep-alive processes can be set to true, please choose carefully
     bool isKia_ = false;
     bool isMainElementRunning_ = false;
-    bool isMainProcess_ = true; // Only MasterProcess can be keepalive
-    bool isMasterProcess_ = false; // Only MainProcess can be keepalive
+    std::atomic_bool isMainProcess_ = true; // Only MainProcess can be keepalive
+    bool isMasterProcess_ = false; // Only MasterProcess can be keepalive
     bool isMultiThread_ = false;
     bool isNativeDebug_ = false;
     bool isNativeStart_ = false;
     bool isNeedLimitPrio_ = false;
     bool isNeedPreloadModule_ = false;
+    bool delayedProcessExitEnabled_ = false;
     bool isPrepareExit_ = false;
     bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
     bool isSingleton_ = false;
     bool isStageBasedModel_ = false;
-    bool isStrictMode_ = false;
+    std::atomic_bool isStrictMode_ = false;
     bool isTerminating = false;
     bool isUnSetPermission_ = false;
     bool isUserRequestCleaning_ = false;
@@ -1429,8 +1533,9 @@ private:
     bool enableProcessCache_ = true;
     bool networkEnableFlags_ = true;
     bool saEnableFlags_ = true;
-    bool processCacheBlocked = false; // temporarily block process cache feature
+    std::atomic<bool>  processCacheBlocked_ = false; // temporarily block process cache feature
     bool reasonExist_ = false;
+    bool isFromScreenOffBackground_ = false;
 
     ffrt::mutex appInfosLock_;
     ffrt::mutex renderRecordMapLock_; // render record lock

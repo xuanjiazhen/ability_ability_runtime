@@ -24,14 +24,19 @@
 #include "hilog_tag_wrapper.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
+#include "ets_runtime.h"
 #include "singleton.h"
 #include "dfx_jsnapi.h"
 #include "parameters.h"
 #include "ffrt.h"
 #include "directory_ex.h"
 #include "storage_acl.h"
+#include "hidebug_dump.h"
 #ifdef CJ_FRONTEND
 #include "cj_runtime.h"
+#endif
+#if defined(NWEB)
+#include "dump_arkweb_helper.h"
 #endif
 
 namespace OHOS {
@@ -47,11 +52,18 @@ static int g_oomDumpProcessQuota = 0;
 static uint64_t g_lastOOMDumpTime = 0;
 static constexpr const char* const EVENT_XATTR_NAME = "user.appevent";
 static constexpr const char* const OOM_QUOTA_XATTR_NAME = "user.oomdump.quota";
+static constexpr const char* const RUNNING_ID_NAME = "user.runningId";
 static constexpr const char* const PROPERTY2C = "user.oomdumptelemetry.quota";
 static constexpr const char* const HIAPPEVENT_PATH = "/data/storage/el2/base/cache/hiappevent";
 static constexpr const char* const OOM_QUOTA_PATH = "/data/storage/el2/base/cache/rawheap";
 static constexpr const char* const JS_HEAP_LOGTYPE = "user.event_config.js_heap_logtype";
 static constexpr const char* const EVENT_RAWHEAP = "event_rawheap";
+#ifdef __LP64__
+static constexpr const char* const SO_NAME = "libmemleak.z.so";
+#else
+static constexpr const char* const SO_NAME = "";
+#endif
+static constexpr const char* const GET_MEM_LEAK_STRING_SYMBOL = "OHOS_GetMemLeakString";
 static constexpr uint64_t OOM_DUMP_INTERVAL = 7 * 24 * 60 * 60;
 static constexpr uint64_t OOM_DUMP_SPACE_LIMIT = 30ull * 1024 * 1024 * 1024;
 static constexpr uint32_t EVENT_RESOURCE_OVERLIMIT_MASK = 6;
@@ -59,6 +71,9 @@ static constexpr uint64_t BIT_MASK = 1;
 static constexpr uint32_t BUF_SIZE_256 = 256;
 static constexpr int DECIMAL_BASE = 10;
 static constexpr int KB_PER_MB = 1024;
+static constexpr size_t MEM_LEAK_MAX_SIZE = 100;
+static constexpr int JSVM_SNAPSHOT = 0;
+static constexpr int JSVM_RAW = 1;
 
 enum {
     INDEX_DELIVERY_TS = 0,
@@ -73,8 +88,19 @@ enum {
     PROPERTY2C_SIZE
 };
 
+enum {
+    TYPE_TXT = 0,
+    TYPE_VECTOR,
+    TYPE_SNAPSHOT
+};
+
 DumpRuntimeHelper::DumpRuntimeHelper(const std::shared_ptr<OHOSApplication> &application)
     : application_(application)
+{}
+
+DumpRuntimeHelper::DumpRuntimeHelper(const std::shared_ptr<OHOSApplication> &application,
+    const std::shared_ptr<ApplicationInfo> &appInfo)
+    : application_(application), appInfo_(appInfo)
 {}
 
 bool DumpRuntimeHelper::Check2DOOMDumpOpt()
@@ -131,6 +157,17 @@ void DumpRuntimeHelper::SetAppFreezeFilterCallback()
     };
     auto vm = (static_cast<AbilityRuntime::JsRuntime&>(*runtime)).GetEcmaVm();
     panda::DFXJSNApi::SetAppFreezeFilterCallback(vm, appfreezeFilterCallback);
+}
+
+void DumpRuntimeHelper::WriteRunningId()
+{
+    std::string curRunningId = DFX_GetAppRunningUniqueId();
+    if (curRunningId.empty()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "curRunningId is empty");
+        return;
+    }
+
+    SetDirXattr(OOM_QUOTA_PATH, RUNNING_ID_NAME, curRunningId);
 }
 
 bool DumpRuntimeHelper::CheckOomdumpSwitch()
@@ -228,22 +265,59 @@ void DumpRuntimeHelper::DumpJsHeap(const OHOS::AppExecFwk::JsHeapDumpInfo &info)
         TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
         return;
     }
-    if (runtime->GetLanguage() != OHOS::AbilityRuntime::Runtime::Language::JS) {
-        TAG_LOGE(AAFwkTag::APPKIT, "runtime language is not JS");
+    auto language = runtime->GetLanguage();
+    if (language != OHOS::AbilityRuntime::Runtime::Language::JS &&
+        language != OHOS::AbilityRuntime::Runtime::Language::ETS) {
+        TAG_LOGE(AAFwkTag::APPKIT, "runtime language is not JS or ETS");
         return;
     }
-    if (info.needLeakobj) {
+    if (info.needLeakobj && language == OHOS::AbilityRuntime::Runtime::Language::JS) {
         std::string checkList = "";
         GetCheckList(runtime, checkList);
         WriteCheckList(checkList);
     }
 
-    if (info.needSnapshot == true) {
-        runtime->DumpHeapSnapshot(info.tid, info.needGc, info.needBinary, info.needClearNodeIdCache);
-    } else {
-        if (info.needGc == true) {
-            runtime->ForceFullGC(info.tid);
+    if (info.needSnapshot && language == OHOS::AbilityRuntime::Runtime::Language::JS) {
+        OHOS::AbilityRuntime::Runtime::JsHeapDumpParam param;
+        param.isFullGC = info.needGc;
+        param.isBinary = info.needBinary;
+        param.isClearNodeIdCache = info.needClearNodeIdCache;
+        param.isProcDump = info.needProcDump;
+        runtime->DumpHeapSnapshot(info.tid, param);
+        return;
+    }
+    if (info.needGc) {
+        DumpJsHeapGc(runtime, info);
+    }
+}
+
+void DumpRuntimeHelper::DumpJsHeapGc(const std::unique_ptr<AbilityRuntime::Runtime> &runtime,
+    const OHOS::AppExecFwk::JsHeapDumpInfo &info)
+{
+    if (appInfo_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null appInfo");
+        return;
+    }
+    if (appInfo_->arkTSMode == OHOS::AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0) {
+        runtime->ForceFullGC(info.tid);
+        TAG_LOGI(AAFwkTag::APPKIT, "force full gc for arkts 1.0");
+        return;
+    }
+    auto &etsRuntime = static_cast<OHOS::AbilityRuntime::ETSRuntime&>(*runtime);
+    etsRuntime.XGC();
+    if (appInfo_->arkTSMode == OHOS::AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2) {
+        runtime->ForceFullGC(info.tid);
+        TAG_LOGI(AAFwkTag::APPKIT, "force full gc for arkts 1.2");
+        return;
+    }
+    if (appInfo_->arkTSMode == OHOS::AbilityRuntime::CODE_LANGUAGE_ARKTS_HYBRID) {
+        auto& jsRuntimePtr = etsRuntime.GetJsRuntime();
+        auto jsRuntime = static_cast<OHOS::AbilityRuntime::JsRuntime*>(jsRuntimePtr.get());
+        if (jsRuntime != nullptr) {
+            jsRuntime->ForceFullGC(info.tid);
         }
+        runtime->ForceFullGC(info.tid);
+        TAG_LOGI(AAFwkTag::APPKIT, "force full gc for arkts hybrid");
     }
 }
 
@@ -268,6 +342,189 @@ void DumpRuntimeHelper::DumpCjHeap(const OHOS::AppExecFwk::CjHeapDumpInfo &info)
     if (info.needGc == true) {
         cjEnv->forceFullGC();
     }
+#endif
+}
+
+void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
+{
+    TAG_LOGI(AAFwkTag::APPKIT, "dump type: %{public}d", static_cast<uint32_t>(info.dumpType));
+    auto client = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+
+    if (info.dumpType == MemDumpType::NATIVE) {
+        std::string dumpResult;
+        auto task = [self = shared_from_this(), info, callback, client, dumpResult]() mutable {
+            self->DumpNativeHeap(info, dumpResult);
+            if (client != nullptr && callback != nullptr) {
+                client->ReportDumpMemResult(callback, dumpResult);
+            }
+        };
+        ffrt::submit(task, {}, {}, {ffrt::task_attr().name("ffrt_DumpNativeHeap")});
+        return;
+    }
+
+    std::string dumpResult;
+    if (info.dumpType == MemDumpType::KMP_KOTLIN) {
+        DumpKmpKotlinHeap(info);
+    }
+    if (info.dumpType == MemDumpType::JSVM) {
+        DumpJsvmHeap(info);
+    }
+    if (info.dumpType == MemDumpType::ARKWEB_JS) {
+        DumpArkwebJsHeap(info);
+    }
+    if (client != nullptr && callback != nullptr) {
+        client->ReportDumpMemResult(callback, dumpResult);
+    }
+}
+
+void DumpRuntimeHelper::DumpNativeHeap(const OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+{
+    if (info.needLeakobj) {
+        TAG_LOGI(AAFwkTag::APPKIT, "dump native need leakobj");
+        if (!GetDumpResult(dumpResult)) {
+            TAG_LOGE(AAFwkTag::APPKIT, "GetDumpResult failed");
+        }
+    } else {
+        TAG_LOGI(AAFwkTag::APPKIT, "dump native no need leakobj");
+        int32_t fd = RequestFileDescriptor(static_cast<int32_t>(FaultLoggerType::NATIVE_SNAPSHOT));
+        if (fd > 0) {
+            if (!GetSnapshot(fd)) {
+                TAG_LOGE(AAFwkTag::APPKIT, "GetSnapshot failed");
+            }
+            close(fd);
+        } else {
+            TAG_LOGE(AAFwkTag::APPKIT, "RequestFileDescriptor failed");
+        }
+    }
+}
+
+GetMemLeakStringFunc DumpRuntimeHelper::LoadMemLeakFunc(void **handle)
+{
+    if (SO_NAME[0] == '\0') {
+        TAG_LOGW(AAFwkTag::APPKIT, "mem leak so is unsupported on non-64-bit");
+        return nullptr;
+    }
+    void* hd = dlopen(SO_NAME, RTLD_LAZY);
+    if (!hd) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Error loading %{public}s", SO_NAME);
+        return nullptr;
+    }
+    auto func = reinterpret_cast<GetMemLeakStringFunc>(dlsym(hd, GET_MEM_LEAK_STRING_SYMBOL));
+    if (!func) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to resolve symbol: %{public}s", GET_MEM_LEAK_STRING_SYMBOL);
+        dlclose(hd);
+        return nullptr;
+    }
+    if (handle != nullptr) {
+        *handle = hd;
+    }
+    return func;
+}
+
+bool DumpRuntimeHelper::GetDumpResult(std::string &dumpResult)
+{
+    void* handle = nullptr;
+    auto func = LoadMemLeakFunc(&handle);
+    if (!func) {
+        return false;
+    }
+    char* buf = nullptr;
+    bool ret = func(TYPE_TXT, &buf, MEM_LEAK_MAX_SIZE);
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::APPKIT, "TYPE_TXT Error");
+    } else if (buf != nullptr && *buf != '\0') {
+        dumpResult = buf;
+        TAG_LOGI(AAFwkTag::APPKIT, "TYPE_TXT finish, size:%{public}zu", dumpResult.size());
+    }
+    free(buf);
+    if (handle != nullptr) {
+        dlclose(handle);
+    }
+    return ret;
+}
+
+bool DumpRuntimeHelper::GetSnapshot(int fd)
+{
+    void* handle = nullptr;
+    auto func = LoadMemLeakFunc(&handle);
+    if (!func) {
+        return false;
+    }
+    char* buf = nullptr;
+    bool ret = func(TYPE_SNAPSHOT, &buf, MEM_LEAK_MAX_SIZE);
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::APPKIT, "TYPE_SNAPSHOT Error");
+    } else if (buf != nullptr) {
+        size_t len = strlen(buf);
+        lseek(fd, 0, SEEK_END);
+        ssize_t written = write(fd, buf, len);
+        if (written < 0) {
+            TAG_LOGE(AAFwkTag::APPKIT, "write snapshot failed, errno:%{public}d", errno);
+            free(buf);
+            if (handle != nullptr) {
+                dlclose(handle);
+            }
+            return false;
+        }
+        TAG_LOGI(AAFwkTag::APPKIT, "TYPE_SNAPSHOT finish");
+    }
+    free(buf);
+    if (handle != nullptr) {
+        dlclose(handle);
+    }
+    return ret;
+}
+
+void DumpRuntimeHelper::DumpKmpKotlinHeap(const OHOS::AppExecFwk::MemDumpInfo &info)
+{
+    int32_t fd = RequestFileDescriptor(static_cast<int32_t>(FaultLoggerType::KMP_HEAP_SNAPSHOT));
+    if (fd < 0) {
+        TAG_LOGE(AAFwkTag::APPKIT, "RequestFileDescriptor failed");
+        return;
+    }
+    auto& dumpListener = OHOS::HiviewDFX::HidebugMemDumpListener::GetInstance();
+    bool ret = dumpListener.TriggerListener("KMP", fd,
+        OH_HiDebug_MemListenerType::OH_HIDEBUG_DUMP_SNAPSHOT, info.mayReportToOEM, nullptr);
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::APPKIT, "TriggerListener failed");
+        close(fd);
+        return;
+    }
+    close(fd);
+}
+
+void DumpRuntimeHelper::DumpJsvmHeap(const OHOS::AppExecFwk::MemDumpInfo &info)
+{
+    TAG_LOGI(AAFwkTag::APPKIT, "dump jsvm heaps, tid:%{public}d, needRaw:%{public}d", info.tid, info.needRaw);
+    void* jsvmHandle = dlopen("libjsvm.so", RTLD_LAZY);
+    if (jsvmHandle == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "jsvm dlopen failed");
+        return;
+    }
+    using jsvmFunc = int (*)(uint32_t, int);
+    auto jsvmDump = reinterpret_cast<jsvmFunc>(dlsym(jsvmHandle, "jsvm_dump_heapsnapshot"));
+    if (jsvmDump == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "jsvm dlsym failed");
+        dlclose(jsvmHandle);
+        return;
+    }
+    int dumpType = info.needRaw ? JSVM_RAW : JSVM_SNAPSHOT;
+    int ret = jsvmDump(info.tid, dumpType);
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::APPKIT, "jsvm dump failed");
+        dlclose(jsvmHandle);
+        return;
+    }
+    dlclose(jsvmHandle);
+}
+
+void DumpRuntimeHelper::DumpArkwebJsHeap(const OHOS::AppExecFwk::MemDumpInfo &info)
+{
+#if defined(NWEB)
+    TAG_LOGI(AAFwkTag::APPKIT, "dump arkwebjs heaps, renderPid:%{public}u, needDump:%{public}d, "
+        "needGc:%{public}d, needRaw:%{public}d", info.renderPid, info.needDump, info.needGc, info.needRaw);
+    DumpArkWebHelper::DumpArkWebJSHeap(static_cast<int32_t>(info.pid), static_cast<int32_t>(info.renderPid),
+        info.needDump, info.needGc, info.needRaw);
 #endif
 }
 
@@ -368,9 +625,10 @@ void DumpRuntimeHelper::CreateDirDelay(const std::string &path)
     ffrt::submit([=] {
         if (!CreateDir(path)) {
             TAG_LOGE(AAFwkTag::APPKIT, "failed to create %{public}s", path.c_str());
-            return;
+        } else {
+            TAG_LOGI(AAFwkTag::APPKIT, "success to create %{public}s", path.c_str());
         }
-        TAG_LOGI(AAFwkTag::APPKIT, "success to create %{public}s", path.c_str());
+        WriteRunningId();
         }, {}, {}, {ffrt::task_attr().name("ffrt_dfr_CreateDir")});
 }
 

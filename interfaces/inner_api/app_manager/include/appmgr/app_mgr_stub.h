@@ -76,9 +76,13 @@ private:
     int32_t HandleGetAllRunningProcesses(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetRunningProcessesByBundleType(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetProcessRunningInfosByUserId(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleGetProcessRunningInfosByAccessTokenId(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetProcessRunningInformation(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetAllRenderProcesses(MessageParcel &data, MessageParcel &reply);
     int32_t HandlePreloadModuleFinished(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleMakeImage(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleDestroyImage(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleNotifyTemplateProcessDeepFrozen(MessageParcel &data, MessageParcel &reply);
 #ifdef SUPPORT_CHILD_PROCESS
     int32_t HandleGetAllChildrenProcesses(MessageParcel &data, MessageParcel &reply);
 #endif  // SUPPORT_CHILD_PROCESS
@@ -90,6 +94,8 @@ private:
     int32_t HandleStartupResidentProcess(MessageParcel &data, MessageParcel &reply);
     int32_t HandleRegisterApplicationStateObserver(MessageParcel &data, MessageParcel &reply);
     int32_t HandleUnregisterApplicationStateObserver(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleRegisterImageProcessStateObserver(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleUnregisterImageProcessStateObserver(MessageParcel &data, MessageParcel &reply);
     int32_t HandleRegisterAbilityForegroundStateObserver(MessageParcel &data, MessageParcel &reply);
     int32_t HandleUnregisterAbilityForegroundStateObserver(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetForegroundApplications(MessageParcel &data, MessageParcel &reply);
@@ -113,6 +119,8 @@ private:
     int32_t HandleDumpHeapMemory(MessageParcel &data, MessageParcel &reply);
     int32_t HandleDumpJsHeapMemory(MessageParcel &data, MessageParcel &reply);
     int32_t HandleDumpCjHeapMemory(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleDumpMem(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleReportDumpMemResult(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetRunningMultiAppInfoByBundleName(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetAllRunningInstanceKeysBySelf(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetAllRunningInstanceKeysByBundleName(MessageParcel &data, MessageParcel &reply);
@@ -131,6 +139,7 @@ private:
     int32_t HandleNotifyFault(MessageParcel &data, MessageParcel &reply);
     int32_t HandleNotifyFaultBySA(MessageParcel &data, MessageParcel &reply);
     int32_t HandleSetAppFreezeFilter(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleUpdateFreezeExcludedPid(MessageParcel &data, MessageParcel &reply);
     int32_t HandleIsTerminatingByPid(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetBundleNameByPid(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetRunningProcessInfoByPid(MessageParcel &data, MessageParcel &reply);
@@ -168,6 +177,7 @@ private:
     int32_t HandleSetSupportedProcessCacheSelf(MessageParcel &data, MessageParcel &reply);
     int32_t HandleSetSupportedProcessCache(MessageParcel &data, MessageParcel &reply);
     int32_t HandleIsProcessCacheSupported(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleIsChildProcessSupported(MessageParcel &data, MessageParcel &reply);
     int32_t HandleSetProcessCacheEnable(MessageParcel &data, MessageParcel &reply);
     int32_t HandleLockProcessCache(MessageParcel &data, MessageParcel &reply);
     int32_t HandleSaveBrowserChannel(MessageParcel &data, MessageParcel &reply);
@@ -198,6 +208,8 @@ private:
         MessageParcel &reply, MessageOption &option);
     int32_t OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);
+    int32_t OnRemoteRequestInnerNinth(uint32_t code, MessageParcel &data,
+        MessageParcel &reply, MessageOption &option);
     int32_t HandleGetSupportedProcessCachePids(MessageParcel &data, MessageParcel &reply);
     int32_t HandleUpdateProcessMemoryState(MessageParcel &data, MessageParcel &reply);
     int32_t HandleLaunchAbility(MessageParcel &data, MessageParcel &reply);
@@ -211,6 +223,10 @@ private:
     int32_t HandleKillChildProcessByPid(MessageParcel &data, MessageParcel &reply);
     int32_t HandlePreloadExtension(MessageParcel &data, MessageParcel &reply);
     int32_t HandleSetProcessPrepareExit(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleSetTerminateTimeOutFlag(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleGetAllAbilityInfos(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleEnableDelayedProcessExit(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleCancelDelayedExitTask(MessageParcel &data, MessageParcel &reply);
     DISALLOW_COPY_AND_MOVE(AppMgrStub);
 };
 }  // namespace AppExecFwk

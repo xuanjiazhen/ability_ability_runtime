@@ -16,6 +16,8 @@
 #include <gtest/gtest.h>
 
 #include "ui_ability_record.h"
+#include "global_constant.h"
+#include "native_ability_util.h"
 
 using namespace testing::ext;
 using namespace OHOS::AppExecFwk;
@@ -35,9 +37,13 @@ void UIAbilityRecordTest::SetUpTestCase(void)
 void UIAbilityRecordTest::TearDownTestCase(void)
 {}
 void UIAbilityRecordTest::SetUp()
-{}
+{
+    NativeAbilityMetaData::ResetMock();
+}
 void UIAbilityRecordTest::TearDown()
-{}
+{
+    NativeAbilityMetaData::ResetMock();
+}
 
 /**
  * @tc.name: ScheduleCollaborate_0010
@@ -55,6 +61,456 @@ HWTEST_F(UIAbilityRecordTest, ScheduleCollaborate_0010, TestSize.Level2)
     abilityRecord->lifecycleDeal_ = lifecycleDeal;
     EXPECT_CALL(*lifecycleDeal, ScheduleCollaborate).Times(1);
     abilityRecord->ScheduleCollaborate(abilityRequest.want);
+}
+
+/**
+ * @tc.name: CreateAbilityRecord_0100
+ * @tc.desc: Mock InitData: native module disabled, abilityNativeState should be NONE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CreateAbilityRecord_0100, TestSize.Level1)
+{
+    NativeAbilityMetaData::SetMockInitData(false);
+
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::NONE);
+}
+
+/**
+ * @tc.name: CreateAbilityRecord_0200
+ * @tc.desc: Mock InitData: withNativeModule=true, startupPhase=PRE_WINDOW, state should be INIT.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CreateAbilityRecord_0200, TestSize.Level1)
+{
+    NativeAbilityMetaData::SetMockInitData(true, StartupPhase::PRE_WINDOW);
+
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::INIT);
+}
+
+/**
+ * @tc.name: CreateAbilityRecord_0300
+ * @tc.desc: Mock InitData: withNativeModule=true, startupPhase=PRE_FOREGROUND, state should be INIT.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CreateAbilityRecord_0300, TestSize.Level1)
+{
+    NativeAbilityMetaData::SetMockInitData(true, StartupPhase::PRE_FOREGROUND);
+
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::INIT);
+}
+
+/**
+ * @tc.name: CreateAbilityRecord_0400
+ * @tc.desc: Mock InitData: withNativeModule=true, startupPhase=FOREGROUND, state should be NORMAL.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CreateAbilityRecord_0400, TestSize.Level1)
+{
+    NativeAbilityMetaData::SetMockInitData(true, StartupPhase::FOREGROUND);
+
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::NORMAL);
+}
+
+/**
+ * @tc.name: CreateAbilityRecord_0500
+ * @tc.desc: Mock InitData: native module disabled (explicit false), state should remain NONE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CreateAbilityRecord_0500, TestSize.Level1)
+{
+    NativeAbilityMetaData::SetMockInitData(false);
+
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::NONE);
+}
+
+/**
+ * @tc.name: CreateAbilityRecord_0600
+ * @tc.desc: Mock InitData simulates source missing: native module disabled, state should be NONE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CreateAbilityRecord_0600, TestSize.Level1)
+{
+    NativeAbilityMetaData::SetMockInitData(false);
+
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::NONE);
+}
+
+/**
+ * @tc.name: SetNativeState_0100
+ * @tc.desc: Set and Get NativeState.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, SetNativeState_0100, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    // Default is NONE
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::NONE);
+
+    // Set to INIT
+    abilityRecord->SetNativeState(AbilityNativeState::INIT);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::INIT);
+
+    // Set to ATTACH
+    abilityRecord->SetNativeState(AbilityNativeState::ATTACHED);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::ATTACHED);
+
+    // Set to ON_CREATE
+    abilityRecord->SetNativeState(AbilityNativeState::CREATED);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::CREATED);
+
+    // Set to ON_FOREGROUND
+    abilityRecord->SetNativeState(AbilityNativeState::ON_FOREGROUND);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::ON_FOREGROUND);
+
+    // Set to NORMAL
+    abilityRecord->SetNativeState(AbilityNativeState::NORMAL);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::NORMAL);
+}
+
+/**
+ * @tc.name: GetAbilityRecordType_0100
+ * @tc.desc: Verify UIAbilityRecord returns UI_ABILITY type.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, GetAbilityRecordType_0100, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    EXPECT_EQ(abilityRecord->GetAbilityRecordType(), AbilityRecordType::UI_ABILITY);
+}
+
+/**
+ * @tc.name: CheckStartPendingState_0100
+ * @tc.desc: pendingState=INITIAL, should return true regardless of requestId.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0100, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->SetPendingState(AbilityState::INITIAL);
+    EXPECT_TRUE(abilityRecord->CheckStartPendingState(0));
+    EXPECT_TRUE(abilityRecord->CheckStartPendingState(100));
+}
+
+/**
+ * @tc.name: CheckStartPendingState_0200
+ * @tc.desc: pendingState=FOREGROUND, nativeState=CREATED, should return false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0200, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->SetPendingState(AbilityState::FOREGROUND);
+    abilityRecord->SetNativeState(AbilityNativeState::CREATED);
+    EXPECT_FALSE(abilityRecord->CheckStartPendingState(0));
+}
+
+/**
+ * @tc.name: CheckStartPendingState_0300
+ * @tc.desc: pendingState=FOREGROUND, nativeState=NONE, should return false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0300, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->SetPendingState(AbilityState::FOREGROUND);
+    // nativeState defaults to NONE
+    EXPECT_FALSE(abilityRecord->CheckStartPendingState(0));
+}
+
+/**
+ * @tc.name: CheckStartPendingState_0400
+ * @tc.desc: pendingState=FOREGROUND, nativeState=ON_FOREGROUND, requestId matches startSelfRequestId,
+ *           should return true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0400, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->SetPendingState(AbilityState::FOREGROUND);
+    abilityRecord->SetNativeState(AbilityNativeState::ON_FOREGROUND);
+    abilityRecord->SetStartSelfRequestId(42);
+    EXPECT_TRUE(abilityRecord->CheckStartPendingState(42));
+}
+
+/**
+ * @tc.name: CheckStartPendingState_0500
+ * @tc.desc: pendingState=BACKGROUND, should return false regardless of nativeState and requestId.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0500, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->SetPendingState(AbilityState::BACKGROUND);
+    abilityRecord->SetNativeState(AbilityNativeState::CREATED);
+    EXPECT_FALSE(abilityRecord->CheckStartPendingState(0));
+}
+
+/**
+ * @tc.name: CheckStartPendingState_0600
+ * @tc.desc: pendingState=INITIAL with various nativeState values, all should return true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0600, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->SetPendingState(AbilityState::INITIAL);
+    abilityRecord->SetNativeState(AbilityNativeState::NORMAL);
+    EXPECT_TRUE(abilityRecord->CheckStartPendingState(0));
+
+    abilityRecord->SetNativeState(AbilityNativeState::INIT);
+    EXPECT_TRUE(abilityRecord->CheckStartPendingState(0));
+
+    abilityRecord->SetNativeState(AbilityNativeState::ATTACHED);
+    EXPECT_TRUE(abilityRecord->CheckStartPendingState(0));
+}
+
+/**
+ * @tc.name: CheckStartPendingState_0700
+ * @tc.desc: pendingState=FOREGROUND, nativeState=ON_FOREGROUND, requestId does NOT match
+ *           startSelfRequestId_, should return false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0700, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->SetPendingState(AbilityState::FOREGROUND);
+    abilityRecord->SetNativeState(AbilityNativeState::ON_FOREGROUND);
+    abilityRecord->SetStartSelfRequestId(42);
+    EXPECT_FALSE(abilityRecord->CheckStartPendingState(99));
+}
+
+/**
+ * @tc.name: SetStartSelfRequestId_0100
+ * @tc.desc: Set and verify startSelfRequestId value.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, SetStartSelfRequestId_0100, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->SetStartSelfRequestId(0);
+    EXPECT_TRUE(abilityRecord->CheckStartPendingState(0));
+
+    abilityRecord->SetStartSelfRequestId(12345);
+    EXPECT_TRUE(abilityRecord->CheckStartPendingState(12345));
+    EXPECT_TRUE(abilityRecord->CheckStartPendingState(99999));
+}
+
+/**
+ * @tc.name: CreateAbilityRecord_NativeStateTransition_0100
+ * @tc.desc: Verify native state transitions: INIT -> ATTACH -> ON_CREATE -> ON_FOREGROUND -> NORMAL.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CreateAbilityRecord_NativeStateTransition_0100, TestSize.Level1)
+{
+    NativeAbilityMetaData::SetMockInitData(true, StartupPhase::PRE_WINDOW);
+
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::INIT);
+
+    abilityRecord->SetNativeState(AbilityNativeState::ATTACHED);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::ATTACHED);
+
+    abilityRecord->SetNativeState(AbilityNativeState::CREATED);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::CREATED);
+
+    abilityRecord->SetNativeState(AbilityNativeState::ON_FOREGROUND);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::ON_FOREGROUND);
+
+    abilityRecord->SetNativeState(AbilityNativeState::NORMAL);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::NORMAL);
+}
+
+/**
+ * @tc.name: CreateAbilityRecord_NativeDisabled_0100
+ * @tc.desc: Simulates IsSupportNativeUIAbility=false via mock: state remains NONE,
+ *           SetNativeState still works independently.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CreateAbilityRecord_NativeDisabled_0100, TestSize.Level1)
+{
+    // Simulate IsSupportNativeUIAbility=false: InitData sets withNativeModule=false
+    NativeAbilityMetaData::SetMockInitData(false);
+
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::NONE);
+
+    // Even with native disabled, SetNativeState can still be called independently
+    abilityRecord->SetNativeState(AbilityNativeState::INIT);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::INIT);
+}
+
+/**
+ * @tc.name: CreateAbilityRecord_ForegroundPhase_0100
+ * @tc.desc: Mock InitData: FOREGROUND phase sets NORMAL state directly.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CreateAbilityRecord_ForegroundPhase_0100, TestSize.Level1)
+{
+    NativeAbilityMetaData::SetMockInitData(true, StartupPhase::FOREGROUND);
+
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::NORMAL);
+}
+
+/**
+ * @tc.name: UpdateWantByLastWant_0100
+ * @tc.desc: ShouldUpdateWant is false, should return false directly.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, UpdateWantByLastWant_0100, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+
+    abilityRecord->SetShouldUpdateWant(false);
+    EXPECT_FALSE(abilityRecord->UpdateWantByLastWant());
+}
+
+/**
+ * @tc.name: UpdateWantByLastWant_0200
+ * @tc.desc: ShouldUpdateWant is true but lastWant is nullptr, should return false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, UpdateWantByLastWant_0200, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+
+    abilityRecord->SetLastWant(nullptr);
+    abilityRecord->SetShouldUpdateWant(true);
+    EXPECT_FALSE(abilityRecord->UpdateWantByLastWant());
+    // ShouldUpdateWant should be reset to false
+    EXPECT_FALSE(abilityRecord->ShouldUpdateWant());
+}
+
+/**
+ * @tc.name: UpdateWantByLastWant_0300
+ * @tc.desc: ShouldUpdateWant is true and lastWant is valid, should update want and return true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, UpdateWantByLastWant_0300, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    abilityRequest.want.SetElementName("com.test", "MainAbility");
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+
+    auto lastWant = std::make_shared<Want>();
+    lastWant->SetElementName("com.test", "MainAbility");
+    abilityRecord->SetLastWant(lastWant);
+    abilityRecord->SetShouldUpdateWant(true);
+
+    EXPECT_TRUE(abilityRecord->UpdateWantByLastWant());
+
+    // ShouldUpdateWant should be reset to false
+    EXPECT_FALSE(abilityRecord->ShouldUpdateWant());
+    // lastWant should be cleared
+    EXPECT_FALSE(abilityRecord->HasLastWant());
+}
+
+/**
+ * @tc.name: UpdateWantByLastWant_0400
+ * @tc.desc: Call UpdateWantByLastWant twice, second call should return false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, UpdateWantByLastWant_0400, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+
+    auto lastWant = std::make_shared<Want>();
+    lastWant->SetElementName("com.test", "MainAbility");
+    abilityRecord->SetLastWant(lastWant);
+    abilityRecord->SetShouldUpdateWant(true);
+
+    EXPECT_TRUE(abilityRecord->UpdateWantByLastWant());
+    // Second call: ShouldUpdateWant has been reset to false
+    EXPECT_FALSE(abilityRecord->UpdateWantByLastWant());
+}
+
+/**
+ * @tc.name: SetGameSAPreLaunch_0100
+ * @tc.desc: Call SetGameSAPreLaunch
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, SetGameSAPreLaunch_0100, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    abilityRequest.want.SetParam(AbilityRuntime::GlobalConstant::GAME_PRELAUNCH, true);
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+
+    EXPECT_TRUE(abilityRecord->IsGameSAPreLaunch());
+}
+
+/**
+ * @tc.name: CreateAbilityRecord_ByOeExt_0100
+ * @tc.desc: Test CreateAbilityRecord sets isByOeExt from AbilityRequest
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CreateAbilityRecord_ByOeExt_0100, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    abilityRequest.isStartByOEExt = true;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    EXPECT_TRUE(abilityRecord->IsByOeExt());
+
+    abilityRequest.isStartByOEExt = false;
+    abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    EXPECT_FALSE(abilityRecord->IsByOeExt());
 }
 }  // namespace AAFwk
 }  // namespace OHOS

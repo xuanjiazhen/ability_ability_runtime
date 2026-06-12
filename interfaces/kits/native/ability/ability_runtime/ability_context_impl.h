@@ -122,6 +122,8 @@ public:
 
     ErrCode TerminateSelf() override;
 
+    ErrCode StartSelf() override;
+
     ErrCode CloseAbility() override;
 
     sptr<IRemoteObject> GetToken() override;
@@ -358,6 +360,7 @@ public:
     }
 
     static int32_t TransferRestartWSError(Rosen::WSError srcError);
+    static int32_t TransferSetAbilityInstanceInfoErr(Rosen::WSError srcError);
 #endif
 
     /**
@@ -404,6 +407,8 @@ public:
         const sptr<AbilityConnectCallback>& connectCallback, AppExecFwk::ExtensionAbilityType extensionType) override;
     ErrCode SetOnNewWantSkipScenarios(int32_t scenarios) override;
     ErrCode RestartAppWithWindow(const Want &want) override;
+    ErrCode NotifyCancelGamePreLaunch() override;
+    ErrCode NotifyCompleteGamePreLaunch() override;
 
     ErrCode AddCompletionHandlerForAtomicService(const std::string &requestId, OnAtomicRequestSuccess onRequestSucc,
         OnAtomicRequestFailure onRequestFail, const std::string &appId) override;
@@ -413,6 +418,8 @@ public:
 
     ErrCode StartSelfUIAbilityInCurrentProcess(const AAFwk::Want &want, const std::string &specifiedFlag,
         const AAFwk::StartOptions &startOptions, bool hasOptions) override;
+
+    ErrCode StartSelfUIAbilityInChildProcess(const AAFwk::Want &want, const std::string &specifiedFlag) override;
 
 private:
     sptr<IRemoteObject> token_ = nullptr;

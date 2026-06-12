@@ -35,6 +35,7 @@
 #include "inner_event.h"
 #include "ipc_singleton.h"
 #include "js_runtime.h"
+#include "mem_dump_callback_interface.h"
 #include "native_engine/native_engine.h"
 #include "overlay_event_subscriber.h"
 #include "resource_manager.h"
@@ -232,6 +233,15 @@ public:
 
     /**
      *
+     * @brief triggerGC and dump application's memory info.
+     *
+     * @param info, pid, tid, needGc, needSnapshot.
+     * @param callback The callback to receive dump result
+     */
+    void ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback) override;
+
+    /**
+     *
      * @brief Low the memory which used by application.
      *
      */
@@ -263,7 +273,8 @@ public:
     void ScheduleAbilityStage(const HapModuleInfo &abilityStage) override;
 
     void ScheduleLaunchAbility(const AbilityInfo &info, const sptr<IRemoteObject> &token,
-        const std::shared_ptr<AAFwk::Want> &want, int32_t abilityRecordId) override;
+        const std::shared_ptr<AAFwk::Want> &want, int32_t abilityRecordId,
+        std::shared_ptr<AppUpdateInfo> updateInfo) override;
 
     /**
      *
@@ -342,7 +353,9 @@ public:
     int32_t ScheduleNotifyAppFault(const FaultData &faultData) override;
 #ifdef CJ_FRONTEND
     CJUncaughtExceptionInfo CreateCjExceptionInfo(const std::string &bundleName, uint32_t versionCode,
-        const std::string &hapPath);
+        const std::string &hapPath, const std::string &appRunningId);
+    CJEventReportInfo CreateCjEventReportInfo(const std::string &bundleName, uint32_t versionCode,
+        const std::string &hapPath, std::string &appRunningId);
 #endif
     EtsEnv::ETSUncaughtExceptionInfo CreateEtsExceptionInfo(const std::string &bundleName, uint32_t versionCode,
         const std::string &hapPath, std::string &appRunningId, int32_t pid, std::string &processName);
@@ -430,10 +443,12 @@ private:
 
     void HandleCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info);
 
+    void HandleMem(const OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback);
+
     void HandleSchedulePrepareTerminate(const std::string &moduleName);
 
-    void PreloadModule(const AppExecFwk::HapModuleInfo &entryHapModuleInfo,
-        const std::unique_ptr<AbilityRuntime::Runtime>& runtime);
+    void PreloadModule(const BundleInfo &bundleInfo, const AppLaunchData &appLaunchData,
+        const AppExecFwk::HapModuleInfo &entryHapModuleInfo, const std::unique_ptr<AbilityRuntime::Runtime> &runtime);
 
     void ProcessMainAbility(const AbilityInfo &info, const std::unique_ptr<AbilityRuntime::Runtime>& runtime);
 
@@ -507,7 +522,8 @@ private:
      * @param abilityRecord The abilityRecord which belongs to the ability launched.
      *
      */
-    void HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &abilityRecord);
+    void HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &abilityRecord,
+        std::shared_ptr<AppUpdateInfo> updateInfo);
 
     /**
      *
@@ -670,6 +686,10 @@ private:
      * @param runtime runtime the ability runtime
      */
     void UpdateRuntimeModuleChecker(const std::unique_ptr<AbilityRuntime::Runtime> &runtime);
+
+    void UpdateWorkProcessInfo(std::shared_ptr<AppUpdateInfo> updateInfo);
+
+    void ScheduleUpdateWorkProcessInfo(std::shared_ptr<AppUpdateInfo> updateInfo) override;
 
     static void HandleDumpHeapPrepare();
     static void HandleDumpHeap(bool isPrivate);
@@ -836,10 +856,13 @@ private:
         AppLibPathMap &appLibPaths);
     void SetRuntimeLang(ApplicationInfo &appInfo, AbilityRuntime::Runtime::Options &options);
     bool IsEtsAPP(const ApplicationInfo &appInfo);
+    void RegisterHybridException(const std::unique_ptr<AbilityRuntime::Runtime> &runtime,
+        const ApplicationInfo &appInfo, const std::string &hapPath, const UncatchableTaskInfo &uncatchableTaskInfo);
     void SetJsIdleCallback(const std::weak_ptr<OHOSApplication> &wpApplication,
         const std::unique_ptr<AbilityRuntime::Runtime> &runtime);
     void PreloadAppStartup(const BundleInfo &bundleInfo, const AppLaunchData &appLaunchData) const;
     void RunNativeStartupTask(const BundleInfo &bundleInfo, const AppLaunchData &appLaunchData);
+    void LoadExtStartupTasks();
     bool GetTestRunnerTypeAndPath(const std::string bundleName, const std::string moduleName,
         AppExecFwk::ModuleTestRunner &tsTestRunner);
     bool CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord> &abilityRecord);

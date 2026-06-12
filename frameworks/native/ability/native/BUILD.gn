@@ -221,6 +221,10 @@ ohos_shared_library("abilitykit_utils") {
   part_name = "ability_runtime"
 }
 
+config("configuration_helper_exceptions") {
+  cflags_cc = [ "-fexceptions" ]
+}
+
 ohos_shared_library("configuration_helper") {
   sanitize = {
     integer_overflow = true
@@ -229,6 +233,7 @@ ohos_shared_library("configuration_helper") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
 
@@ -251,6 +256,8 @@ ohos_shared_library("configuration_helper") {
   ]
 
   deps = []
+
+  configs = [ ":configuration_helper_exceptions" ]
 
   external_deps = [
     "ability_base:configuration",
@@ -398,6 +405,16 @@ ohos_shared_library("abilitykit_native") {
     "samgr:samgr_proxy",
     "window_manager:windowstage_kit",
   ]
+
+  defines = []
+
+  if (defined(hiviewdfx_runtime_api_metrics_enable) && hiviewdfx_runtime_api_metrics_enable) {
+    defines += [ "HIVIEWDFX_RUNTIME_API_METRICS" ]
+    external_deps += [
+      "api_metrics:histogrammanager",
+    ]
+  }
+
   if (!(host_os == "linux" && host_cpu == "arm64")) {
     external_deps += [ "relational_store:native_rdb" ]
   }
@@ -416,8 +433,6 @@ ohos_shared_library("abilitykit_native") {
     "napi:ace_napi",
     "window_manager:sms",
   ]
-
-  defines = []
 
   if (cj_frontend) {
     sources += [
@@ -539,6 +554,7 @@ ohos_shared_library("cj_abilitykit_native_ffi") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
   defines = [ "AMS_LOG_TAG = \"Ability\"" ]
@@ -604,6 +620,7 @@ config("extensionkit_public_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/ability/native/continuation/distributed",
+    "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_ability",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/continuation/kits",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
     "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime",
@@ -644,6 +661,10 @@ ohos_shared_library("extensionkit_native") {
 
   public_configs = [ ":extensionkit_public_config" ]
   configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
+
+  if (ability_runtime_enable_clone_for_account) {
+    defines += [ "ENABLE_CLONE_FOR_ACCOUNT" ]
+  }
 
   deps = [
     ":abilitykit_utils",
@@ -702,6 +723,7 @@ ohos_shared_library("cj_extensionkit_native") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
   defines = [ "AMS_LOG_TAG = \"Ability\"" ]
@@ -775,6 +797,7 @@ ohos_shared_library("insight_intent_executor") {
     "${ability_runtime_native_path}/ability/native/insight_intent_executor/js_insight_intent_executor.cpp",
     "${ability_runtime_native_path}/ability/native/insight_intent_executor/js_insight_intent_func.cpp",
     "${ability_runtime_native_path}/ability/native/insight_intent_executor/js_insight_intent_page.cpp",
+    "${ability_runtime_native_path}/ability/native/insight_intent_executor/js_insight_intent_query_entity.cpp",
     "${ability_runtime_native_path}/ability/native/insight_intent_executor/js_insight_intent_utils.cpp",
   ]
 
@@ -799,6 +822,7 @@ ohos_shared_library("insight_intent_executor") {
   }
 
   external_deps += [
+    "ability_base:extractortool",
     "ability_base:session_info",
     "ability_base:want",
     "access_token:libaccesstoken_sdk",
@@ -823,13 +847,19 @@ ohos_shared_library("insight_intent_executor_ani") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
 
   include_dirs = [ "${ability_runtime_path}/frameworks/ets/ani/enum_convert" ]
 
   sources = [
+    "${ability_runtime_native_path}/ability/native/insight_intent_executor/ets_insight_intent_entry.cpp",
     "${ability_runtime_native_path}/ability/native/insight_intent_executor/ets_insight_intent_executor.cpp",
+    "${ability_runtime_native_path}/ability/native/insight_intent_executor/ets_insight_intent_func.cpp",
+    "${ability_runtime_native_path}/ability/native/insight_intent_executor/ets_insight_intent_page.cpp",
+    "${ability_runtime_native_path}/ability/native/insight_intent_executor/ets_insight_intent_query_entity.cpp",
+    "${ability_runtime_native_path}/ability/native/insight_intent_executor/ets_insight_intent_utils.cpp",
     "${ability_runtime_path}/frameworks/native/insight_intent/insight_intent_context/ets_insight_intent_context.cpp",
   ]
 
@@ -886,6 +916,7 @@ ohos_shared_library("cj_insight_intent_executor") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
   sources = [
@@ -964,6 +995,7 @@ ohos_shared_library("ui_ability_ani") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
 
@@ -1012,6 +1044,7 @@ ohos_shared_library("ui_ability_ani") {
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/ability/native:insight_intent_executor",
+    "${ability_runtime_native_path}/ability/native:insight_intent_executor_ani",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:app_context_utils",
     "${ability_runtime_native_path}/appkit:appkit_delegator",
@@ -1180,6 +1213,10 @@ ohos_shared_library("uiabilitykit_native") {
     external_deps += [ "hiappevent:hiappevent_innerapi" ]
   }
 
+  if (ability_runtime_enable_clone_for_account) {
+    defines += [ "ENABLE_CLONE_FOR_ACCOUNT" ]
+  }
+
   if (cj_frontend) {
     sources += [
       "${ability_runtime_native_path}/ability/native/ability_runtime/cj_ability_ffi.cpp",
@@ -1296,6 +1333,7 @@ ohos_shared_library("ets_form_extension") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
 
@@ -1353,6 +1391,12 @@ ohos_shared_library("ets_form_extension") {
         "form_fwk:form_render_info",
         "form_fwk:form_common_info",
         "form_fwk:formutil_napi",
+      ]
+    }
+    if (defined(hiviewdfx_runtime_api_metrics_enable) && hiviewdfx_runtime_api_metrics_enable) {
+      defines += [ "HIVIEWDFX_RUNTIME_API_METRICS" ]
+      external_deps += [
+        "api_metrics:histogrammanager",
       ]
     }
   }
@@ -1418,6 +1462,13 @@ ohos_shared_library("form_extension") {
         "form_fwk:formutil_napi",
       ]
     }
+
+    if (defined(hiviewdfx_runtime_api_metrics_enable) && hiviewdfx_runtime_api_metrics_enable) {
+      defines += [ "HIVIEWDFX_RUNTIME_API_METRICS" ]
+      external_deps += [
+        "api_metrics:histogrammanager",
+      ]
+    }
   }
   subsystem_name = "ability"
   part_name = "ability_runtime"
@@ -1431,6 +1482,7 @@ ohos_shared_library("cj_form_extension") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
   defines = [ "AMS_LOG_TAG = \"Ability\"" ]
@@ -1592,6 +1644,13 @@ ohos_shared_library("service_extension") {
     "samgr:samgr_proxy",
   ]
 
+  if (defined(hiviewdfx_runtime_api_metrics_enable) && hiviewdfx_runtime_api_metrics_enable) {
+    defines += [ "HIVIEWDFX_RUNTIME_API_METRICS" ]
+    external_deps += [
+      "api_metrics:histogrammanager",
+    ]
+  }
+
   if (ability_runtime_graphics) {
     external_deps += [
       "image_framework:image",
@@ -1613,6 +1672,7 @@ ohos_shared_library("app_service_extension_ani") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
 
@@ -1686,6 +1746,7 @@ ohos_shared_library("service_extension_ani") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
   defines = [ "AMS_LOG_TAG = \"Ability\"" ]
@@ -1769,6 +1830,7 @@ ohos_shared_library("ui_service_extension_connection") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
   branch_protector_ret = "pac_ret"
@@ -1815,6 +1877,7 @@ ohos_shared_library("ui_service_extension_connection_ani") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
   branch_protector_ret = "pac_ret"
@@ -1872,6 +1935,7 @@ ohos_shared_library("ui_service_extension") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
   branch_protector_ret = "pac_ret"
@@ -1969,6 +2033,7 @@ ohos_shared_library("ui_service_extension_ani") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
   branch_protector_ret = "pac_ret"
@@ -2074,6 +2139,7 @@ ohos_shared_library("ui_service_extension_module") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
   branch_protector_ret = "pac_ret"
@@ -2406,6 +2472,7 @@ group("extension_module") {
     ":embedded_ui_extension_module",
     ":service_extension_module",
     ":ui_extension_module",
+    ":modular_object_extension_module",
   ]
   if (ability_runtime_action_extension) {
     deps += [ ":action_extension_module" ]
@@ -2453,6 +2520,7 @@ ohos_shared_library("ui_extension") {
     "${ability_runtime_native_path}/ability/native/ui_extension_base/js_ui_extension_context.cpp",
     "${ability_runtime_native_path}/ability/native/ui_extension_base/js_uiservice_uiext_connection.cpp",
     "${ability_runtime_native_path}/ability/native/ui_extension_base/ui_extension_context.cpp",
+    "${ability_runtime_native_path}/ability/native/ui_extension_base/ui_extension_modal_callback.cpp",
     "${ability_runtime_native_path}/ability/native/ui_extension_base/ui_extension_servicehost_stub_impl.cpp",
     "${ability_runtime_path}/frameworks/ets/ani/ui_extension_ability/src/ets_ui_extension_instance.cpp",
   ]
@@ -2523,6 +2591,7 @@ ohos_shared_library("photo_editor_extension_ani") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
   configs = [
@@ -2617,6 +2686,7 @@ ohos_shared_library("ui_extension_ani") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
 
@@ -2718,6 +2788,7 @@ ohos_shared_library("cj_ui_extension") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
   include_dirs = [
@@ -2897,6 +2968,7 @@ ohos_shared_library("cj_share_extension") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
   configs = [ ":share_extension_config" ]
@@ -3008,6 +3080,7 @@ ohos_shared_library("cj_action_extension") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
   configs = [ ":action_extension_config" ]
@@ -3233,6 +3306,7 @@ ohos_shared_library("embedded_ui_extension") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
   branch_protector_ret = "pac_ret"
@@ -3294,6 +3368,7 @@ ohos_shared_library("cj_embedded_ui_extension") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
   branch_protector_ret = "pac_ret"
@@ -3347,6 +3422,7 @@ ohos_shared_library("embedded_ui_extension_module") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
   branch_protector_ret = "pac_ret"
@@ -3463,6 +3539,7 @@ ohos_shared_library("auto_fill_extension_ani") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
 
@@ -3506,6 +3583,7 @@ ohos_shared_library("auto_fill_extension_ani") {
     "window_manager:embeddablewindowstage_kit",
     "window_manager:embeddablewindowstageani_kit",
     "window_manager:extensionwindow_napi",
+    "eventhandler:libeventhandler"
   ]
 
   if (ability_runtime_auto_fill) {
@@ -3625,6 +3703,7 @@ ohos_shared_library("photo_editor_extension") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
   configs = [ ":photo_editor_extension_config" ]
@@ -3688,6 +3767,7 @@ ohos_shared_library("cj_photo_editor_extension") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
   configs = [ ":photo_editor_extension_config" ]
@@ -3747,6 +3827,7 @@ ohos_shared_library("photo_editor_extension_module") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
 
@@ -3791,6 +3872,7 @@ ohos_shared_library("app_service_extension") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
   branch_protector_ret = "pac_ret"
@@ -3867,6 +3949,7 @@ ohos_shared_library("app_service_extension_module") {
     cfi = true
     cfi_cross_dso = true
     cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
   branch_protector_ret = "pac_ret"
@@ -3895,6 +3978,128 @@ ohos_shared_library("app_service_extension_module") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "ipc:ipc_core",
+    "ipc:ipc_napi",
+    "json:nlohmann_json_static",
+    "napi:ace_napi",
+  ]
+
+  if (ability_runtime_graphics) {
+    external_deps += [ "window_manager:libwm" ]
+  }
+
+  relative_install_dir = "extensionability/"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+config("modular_object_extension_config") {
+  visibility = [ ":*" ]
+  include_dirs = [
+    "${ability_runtime_path}/interfaces/inner_api",
+    "${ability_runtime_path}/interfaces/inner_api/runtime/include",
+    "${ability_runtime_path}/interfaces/kits/native/ability/native/modular_object_extension",
+    "${ability_runtime_path}/interfaces/kits/native/ability/native",
+    "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime",
+    "${ability_runtime_ndk_path}",
+    "${ability_runtime_ndk_path}/ability_runtime",
+    "${ability_runtime_path}/frameworks/c/ability_runtime/include",
+  ]
+}
+
+ohos_shared_library("modular_object_extension") {
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+  branch_protector_ret = "pac_ret"
+
+  configs = [ 
+    ":modular_object_extension_config",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
+
+  defines = [ "AMS_LOG_TAG = \"Ability\"" ]
+  defines += [ "AMS_LOG_DOMAIN = 0xD001300" ]
+
+  sources = [
+    "${ability_runtime_native_path}/ability/native/modular_object_extension/modular_object_extension.cpp",
+    "${ability_runtime_native_path}/ability/native/modular_object_extension/modular_object_extension_context_impl.cpp",
+    "${ability_runtime_native_path}/ability/native/modular_object_worker_manager.cpp",
+  ]
+
+  deps = [
+    ":abilitykit_native",
+    ":abilitykit_utils",
+    ":extensionkit_native",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_native_path}/ability:ability_context_native",
+    "${ability_runtime_native_path}/ability/native:ability_business_error",
+    "${ability_runtime_native_path}/appkit:app_context",
+  ]
+
+  external_deps = [
+    "ability_base:ability_base_want",
+    "ability_base:configuration",
+    "ability_base:want",
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "ipc:ipc_capi",
+    "ipc:ipc_core",
+    "ipc:ipc_napi",
+    "napi:ace_napi",
+  ]
+
+  innerapi_tags = [ "platformsdk" ]
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+ ohos_shared_library("modular_object_extension_module") {
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+  branch_protector_ret = "pac_ret"
+
+  sources = [ "${ability_runtime_native_path}/ability/native/modular_object_extension/modular_object_extension_module_loader.cpp" ]
+
+  configs = [ 
+    ":modular_object_extension_config",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
+
+  deps = [
+    ":modular_object_extension",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+  ]
+
+  external_deps = [
+    "ability_base:configuration",
+    "ability_base:session_info",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "ipc:ipc_capi",
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "json:nlohmann_json_static",

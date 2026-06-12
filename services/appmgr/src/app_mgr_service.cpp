@@ -44,6 +44,7 @@
 #include "app_mgr_service_dump_error_code.h"
 #include "cache_process_manager.h"
 #include "uri_permission_manager_client.h"
+#include "appfreeze_manager.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -53,6 +54,7 @@ constexpr const char* OPTION_KEY_DUMP_IPC = "--ipc";
 constexpr const char* OPTION_KEY_DUMP_FFRT = "--ffrt";
 constexpr const char* OPTION_KEY_DUMP_WEB = "--web";
 const int32_t HIDUMPER_SERVICE_UID = 1212;
+constexpr int32_t RESOURCE_MANAGER_UID = 1096;
 constexpr const int INDEX_PID = 1;
 constexpr const int INDEX_CMD = 2;
 constexpr const int INDEX_WEB_CUSTOM_ARGS = 2;
@@ -63,6 +65,7 @@ constexpr const int MAX_DUMP_FFRT_PID_NUMBER = 3;
 constexpr const int BASE_TEN = 10;
 constexpr const char SIGN_TERMINAL = '\0';
 constexpr int32_t DEFAULT_CONCURRENT_NUMBER = 1;
+constexpr int32_t HIPROFILER_UID = 3063;
 namespace {
 #define CHECK_CALLER_IS_SYSTEM_APP                                                             \
     if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) { \
@@ -261,6 +264,77 @@ void AppMgrService::PreloadModuleFinished(const int32_t recordId)
         return;
     }
     return appMgrServiceInner_->PreloadModuleFinished(IPCSkeleton::GetCallingPid());
+}
+
+int32_t AppMgrService::MakeImage(const AAFwk::Want &want, int32_t userId,
+    AppExecFwk::PreloadMode preloadMode, int32_t appIndex, sptr<IImageErrorHandler> errorHandler)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "MakeImage called");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "MakeImage failed");
+        return ERR_INVALID_OPERATION;
+    }
+    CHECK_CALLER_IS_SYSTEM_APP;
+    if (!AAFwk::PermissionVerification::GetInstance()->VerifyPreloadApplicationPermission()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "permission verify fail");
+        return ERR_PERMISSION_DENIED;
+    }
+    auto task = [appMgrServiceInner = appMgrServiceInner_, want, userId, preloadMode,
+        appIndex, errorHandler] () {
+        appMgrServiceInner->MakeImage(want, userId, preloadMode, appIndex, errorHandler);
+    };
+    taskHandler_->SubmitTask(task, AAFwk::TaskAttribute{
+        .taskName_ = "MakeImageTask",
+        .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
+    });
+    return ERR_OK;
+}
+
+int32_t AppMgrService::DestroyImage(uint64_t checkpointId, sptr<IImageErrorHandler> errorHandler)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "DestroyImage called");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "DestroyImage failed");
+        return ERR_INVALID_OPERATION;
+    }
+    CHECK_CALLER_IS_SYSTEM_APP;
+    if (!AAFwk::PermissionVerification::GetInstance()->VerifyPreloadApplicationPermission()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "permission verify fail");
+        return ERR_PERMISSION_DENIED;
+    }
+    auto task = [appMgrServiceInner = appMgrServiceInner_, checkpointId, errorHandler] () {
+        appMgrServiceInner->DestroyImage(checkpointId, errorHandler);
+    };
+    taskHandler_->SubmitTask(task, AAFwk::TaskAttribute{
+        .taskName_ = "DestroyImageTask",
+        .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
+    });
+    return ERR_OK;
+}
+
+int32_t AppMgrService::NotifyTemplateProcessDeepFrozen(int32_t pid)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    if (IPCSkeleton::GetCallingUid() != RESOURCE_MANAGER_UID) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not rss");
+        return AAFwk::CHECK_PERMISSION_FAILED;
+    }
+    if (!taskHandler_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null taskHandler_");
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [appMgrServiceInner = appMgrServiceInner_, pid] () {
+        appMgrServiceInner->HandleForkAll(pid);
+    };
+    taskHandler_->SubmitTask(task, AAFwk::TaskAttribute{
+        .taskName_ = "NotifyTemplateProcessDeepFrozenTask",
+        .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
+    });
+    return ERR_OK;
 }
 
 void AppMgrService::ApplicationForegrounded(const int32_t recordId)
@@ -530,6 +604,19 @@ int32_t AppMgrService::GetProcessRunningInfosByUserId(std::vector<RunningProcess
     return appMgrServiceInner_->GetProcessRunningInfosByUserId(info, userId);
 }
 
+int32_t AppMgrService::GetProcessRunningInfosByAccessTokenId(uint32_t accessTokenId,
+    std::vector<RunningProcessInfo> &info)
+{
+    if (!IsReady()) {
+        return ERR_INVALID_OPERATION;
+    }
+    if (IPCSkeleton::GetCallingPid() != getprocpid()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "calling pid is not local process");
+        return ERR_PERMISSION_DENIED;
+    }
+    return appMgrServiceInner_->GetProcessRunningInfosByAccessTokenId(accessTokenId, info);
+}
+
 int32_t AppMgrService::GetProcessRunningInformation(RunningProcessInfo &info)
 {
     if (!IsReady()) {
@@ -592,6 +679,24 @@ int32_t AppMgrService::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
     return appMgrServiceInner_->DumpCjHeapMemory(info);
 }
 
+int32_t AppMgrService::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
+{
+    if (!IsReady() || !HasDumpPermission()) {
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->DumpMem(info, callback);
+}
+
+int32_t AppMgrService::ReportDumpMemResult(sptr<IMemDumpCallback> callback,
+    const std::string &dumpResult)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AppMgrService not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->ReportDumpMemResult(callback, dumpResult);
+}
+
 void AppMgrService::AddAbilityStageDone(const int32_t recordId)
 {
     if (!IsReady()) {
@@ -628,6 +733,26 @@ int32_t AppMgrService::UnregisterApplicationStateObserver(const sptr<IApplicatio
         return ERR_INVALID_OPERATION;
     }
     return appMgrServiceInner_->UnregisterApplicationStateObserver(observer);
+}
+
+int32_t AppMgrService::RegisterImageProcessStateObserver(const sptr<IImageProcessStateObserver> &observer)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "begin");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->RegisterImageProcessStateObserver(observer);
+}
+
+int32_t AppMgrService::UnregisterImageProcessStateObserver(const sptr<IImageProcessStateObserver> &observer)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "begin");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->UnregisterImageProcessStateObserver(observer);
 }
 
 int32_t AppMgrService::RegisterNativeChildExitNotify(const sptr<INativeChildNotify> notify)
@@ -1414,6 +1539,19 @@ bool AppMgrService::SetAppFreezeFilter(int32_t pid)
     return ret;
 }
 
+void AppMgrService::UpdateFreezeExcludedPid(bool isAdd, int32_t targetPid, int32_t profilerPid)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return;
+    }
+    if (IPCSkeleton::GetCallingUid() != HIPROFILER_UID) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Not hiprofiler call.");
+        return;
+    }
+    AppfreezeManager::GetInstance()->UpdateFreezeExcludedPid(isAdd, targetPid, profilerPid);
+}
+
 int32_t AppMgrService::GetProcessMemoryByPid(const int32_t pid, int32_t &memorySize)
 {
     if (!IsReady()) {
@@ -1814,6 +1952,16 @@ int32_t AppMgrService::IsProcessCacheSupported(int32_t pid, bool &isSupported)
     return appMgrServiceInner_->IsProcessCacheSupported(pid, isSupported);
 }
 
+int32_t AppMgrService::IsChildProcessSupported(bool isNative, bool &isSupported)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "IsChildProcessSupported called");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->IsChildProcessSupported(isNative, isSupported);
+}
+
 int32_t AppMgrService::SetProcessCacheEnable(int32_t pid, bool enable)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "set enable process cache");
@@ -2157,6 +2305,54 @@ void AppMgrService::SetProcessPrepareExit(int32_t pid)
         return;
     }
     appMgrServiceInner_->SetProcessPrepareExit(pid);
+}
+
+void AppMgrService::SetTerminateTimeOutFlag(const sptr<IRemoteObject> token)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    pid_t callingPid = IPCSkeleton::GetCallingPid();
+    pid_t pid = getprocpid();
+    if (callingPid != pid) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not process call");
+        return;
+    }
+    appMgrServiceInner_->SetTerminateTimeOutFlag(token);
+}
+
+int32_t AppMgrService::GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos)
+{
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    bool isRssCalling = AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
+        BS_PROCESS_NAME) && (callingUid == RESOURCE_MANAGER_UID);
+    if (!isRssCalling) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Permission denied");
+        return ERR_PERMISSION_DENIED;
+    }
+    if (!appMgrServiceInner_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
+    }
+    return appMgrServiceInner_->GetAllAbilityInfos(pid, infos);
+}
+
+int32_t AppMgrService::EnableDelayedProcessExit(int32_t pid, bool enabled)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->EnableDelayedProcessExit(pid, enabled);
+}
+
+void AppMgrService::CancelDelayedExitTask(int32_t pid)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return;
+    }
+    appMgrServiceInner_->CancelDelayedExitTask(pid);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

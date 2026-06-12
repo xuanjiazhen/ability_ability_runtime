@@ -661,6 +661,7 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_LoadAbility_004, TestSize.Level1)
     abilityRecord->abilityInfo_.type = AbilityType::DATA;
     abilityRecord->abilityInfo_.applicationInfo.name = "app";
     abilityRecord->isLauncherRoot_ = false;
+    abilityRecord->isStartedByCall_ = true;
     abilityRecord->callerList_.push_back(nullptr);
     int res = abilityRecord->LoadAbility();
     EXPECT_EQ(res, ERR_INVALID_VALUE);
@@ -1910,6 +1911,24 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_LoadUIAbility_001, TestSize.Level1)
     EXPECT_EQ(abilityRecord->abilityInfo_.type, AbilityType::DATA);
 }
 
+/**
+ * @tc.name: AbilityRecord_LoadUIAbility_002
+ * @tc.desc: Test LoadUIAbility
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityRecordTest, AbilityRecord_LoadUIAbility_002, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    abilityRecord->abilityInfo_.type = AbilityType::DATA;
+    abilityRecord->abilityInfo_.applicationInfo.name = "app";
+    abilityRecord->abilityInfo_.applicationInfo.asanEnabled = true;
+    abilityRecord->abilityInfo_.applicationInfo.tsanEnabled = true;
+    abilityRecord->isPrelaunch_ = true;
+    abilityRecord->LoadUIAbility();
+    EXPECT_NE(abilityRecord_, nullptr);
+    EXPECT_EQ(abilityRecord->abilityInfo_.type, AbilityType::DATA);
+}
+
 /*
  * Feature: AbilityRecord
  * Function: ForegroundAbility
@@ -1935,30 +1954,13 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ForegroundAbility_005, TestSize.Leve
  * EnvConditions: NA
  * CaseDescription: Verify AbilityRecord ForegroundAbility
  */
-HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ForegroundAbility_006, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    abilityRecord->SetLastWant(std::make_shared<Want>());
-    abilityRecord->ForegroundAbility(0, true);
-    EXPECT_TRUE(abilityRecord != nullptr);
-}
-
-/*
- * Feature: AbilityRecord
- * Function: ForegroundAbility
- * SubFunction: ForegroundAbility
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord ForegroundAbility
- */
 HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ForegroundAbility_007, TestSize.Level1)
 {
     std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    abilityRecord->SetLastWant(std::make_shared<Want>());
     AppUtils::GetInstance().isStartSpecifiedProcess_.isLoaded = true;
     AppUtils::GetInstance().isStartSpecifiedProcess_.value = true;
     abilityRecord->abilityInfo_.applicationInfo.isSystemApp = true;
-    abilityRecord->ForegroundAbility(0, true);
+    abilityRecord->ForegroundAbility(0);
     EXPECT_TRUE(abilityRecord != nullptr);
 }
 
@@ -1973,11 +1975,10 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ForegroundAbility_007, TestSize.Leve
 HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ForegroundAbility_008, TestSize.Level1)
 {
     std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    abilityRecord->SetLastWant(std::make_shared<Want>());
     AppUtils::GetInstance().isStartSpecifiedProcess_.isLoaded = true;
     AppUtils::GetInstance().isStartSpecifiedProcess_.value = true;
     abilityRecord->abilityInfo_.applicationInfo.isSystemApp = false;
-    abilityRecord->ForegroundAbility(0, true);
+    abilityRecord->ForegroundAbility(0);
     EXPECT_TRUE(abilityRecord != nullptr);
 }
 
@@ -1992,11 +1993,10 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ForegroundAbility_008, TestSize.Leve
 HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ForegroundAbility_009, TestSize.Level1)
 {
     std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    abilityRecord->SetLastWant(std::make_shared<Want>());
     AppUtils::GetInstance().isStartSpecifiedProcess_.isLoaded = true;
     AppUtils::GetInstance().isStartSpecifiedProcess_.value = false;
     abilityRecord->abilityInfo_.applicationInfo.isSystemApp = true;
-    abilityRecord->ForegroundAbility(0, true);
+    abilityRecord->ForegroundAbility(0);
     EXPECT_TRUE(abilityRecord != nullptr);
 }
 
@@ -2011,11 +2011,10 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ForegroundAbility_009, TestSize.Leve
 HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ForegroundAbility_010, TestSize.Level1)
 {
     std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    abilityRecord->SetLastWant(std::make_shared<Want>());
     AppUtils::GetInstance().isStartSpecifiedProcess_.isLoaded = true;
     AppUtils::GetInstance().isStartSpecifiedProcess_.value = false;
     abilityRecord->abilityInfo_.applicationInfo.isSystemApp = false;
-    abilityRecord->ForegroundAbility(0, true);
+    abilityRecord->ForegroundAbility(0);
     EXPECT_TRUE(abilityRecord != nullptr);
 }
 
@@ -3378,6 +3377,76 @@ HWTEST_F(AbilityRecordTest, PluginCompleteTerminate_001, TestSize.Level1)
     pluginRecord->PluginCompleteTerminate();
     plugins = hostRecord->GetPluginAbilities();
     EXPECT_TRUE(plugins.empty());
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: GetByCallStatus
+ * SubFunction: GetByCallStatus
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify GetByCallStatus returns NON_BY_CALL when not started by call
+ */
+HWTEST_F(AbilityRecordTest, GetByCallStatus_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetByCallStatus_001 start";
+    EXPECT_NE(abilityRecord_, nullptr);
+    abilityRecord_->SetStartedByCall(false);
+    EXPECT_EQ(abilityRecord_->GetByCallStatus(), 0); // NON_BY_CALL
+    GTEST_LOG_(INFO) << "GetByCallStatus_001 end";
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: GetByCallStatus
+ * SubFunction: GetByCallStatus
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify GetByCallStatus returns CALL_TO_BACKGROUND when started by call without callToForeground
+ */
+HWTEST_F(AbilityRecordTest, GetByCallStatus_002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetByCallStatus_002 start";
+    EXPECT_NE(abilityRecord_, nullptr);
+    abilityRecord_->SetStartedByCall(true);
+    EXPECT_EQ(abilityRecord_->GetByCallStatus(), 1); // CALL_TO_BACKGROUND
+    GTEST_LOG_(INFO) << "GetByCallStatus_002 end";
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: GetByCallStatus
+ * SubFunction: GetByCallStatus
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify GetByCallStatus returns CALL_TO_FOREGROUND when started by call with callToForeground flag
+ */
+HWTEST_F(AbilityRecordTest, GetByCallStatus_003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetByCallStatus_003 start";
+    EXPECT_NE(abilityRecord_, nullptr);
+    abilityRecord_->SetStartedByCall(true);
+    abilityRecord_->want_.SetParam(Want::PARAM_RESV_CALL_TO_FOREGROUND, true);
+    EXPECT_EQ(abilityRecord_->GetByCallStatus(), 2); // CALL_TO_FOREGROUND
+    GTEST_LOG_(INFO) << "GetByCallStatus_003 end";
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: GetByCallStatus
+ * SubFunction: GetByCallStatus
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify GetByCallStatus returns CALL_TO_BACKGROUND when callToForeground is explicitly false
+ */
+HWTEST_F(AbilityRecordTest, GetByCallStatus_004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetByCallStatus_004 start";
+    EXPECT_NE(abilityRecord_, nullptr);
+    abilityRecord_->SetStartedByCall(true);
+    abilityRecord_->want_.SetParam(Want::PARAM_RESV_CALL_TO_FOREGROUND, false);
+    EXPECT_EQ(abilityRecord_->GetByCallStatus(), 1); // CALL_TO_BACKGROUND
+    GTEST_LOG_(INFO) << "GetByCallStatus_004 end";
 }
 }  // namespace AAFwk
 }  // namespace OHOS

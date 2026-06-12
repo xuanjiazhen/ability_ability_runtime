@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,8 +35,10 @@ int KioskInterceptor::DoProcess(AbilityInterceptorParam param)
     if (!kioskManager.IsInKioskMode()) {
         return ERR_OK;
     }
-    auto bundleName = param.want.GetElement().GetBundleName();
+    auto bundleName = param.want.GetBundle();
     if (!kioskManager.IsInWhiteList(bundleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "intercept ability start, bundle %{public}s not in kiosk whitelist",
+            bundleName.c_str());
         return ERR_KIOSK_MODE_NOT_IN_WHITELIST;
     }
     return ERR_OK;

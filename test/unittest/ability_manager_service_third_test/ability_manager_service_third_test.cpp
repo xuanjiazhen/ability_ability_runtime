@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -790,6 +790,10 @@ HWTEST_F(AbilityManagerServiceThirdTest, CheckWindowMode_001, TestSize.Level1)
 
     windowMode = AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_FULLSCREEN;
     EXPECT_FALSE(abilityMs_->CheckWindowMode(windowMode, windowModes));
+
+    windowModes.emplace_back(AppExecFwk::SupportWindowMode::SPLIT);
+    windowMode = AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_SPLIT;
+    EXPECT_TRUE(abilityMs_->CheckWindowMode(windowMode, windowModes));
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest CheckWindowMode_001 end");
 }
 
@@ -1193,7 +1197,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, CheckRestartAppWant_001, TestSize.Level
     EXPECT_NE(abilityMs, nullptr);
     AAFwk::Want want;
     int32_t userId = 100;
-    int32_t res = abilityMs->CheckRestartAppWant(want, 0, userId);
+    int32_t res = abilityMs->CheckRestartAppWant(want.GetElement(), 0, userId);
     EXPECT_EQ(res, AAFwk::ERR_RESTART_APP_INCORRECT_ABILITY);
 }
 
@@ -3336,5 +3340,36 @@ HWTEST_F(AbilityManagerServiceThirdTest, UnRegisterPreloadUIExtensionHostClient_
     auto result = abilityMs_->UnRegisterPreloadUIExtensionHostClient(callerPid);
     EXPECT_NE(result, ERR_OK);
 }
+
+/**
+ * @tc.name: CheckSupportVpn_001
+ * @tc.desc: Test CheckSupportVpn
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceThirdTest, CheckSupportVpn_001, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs_, nullptr);
+    AppExecFwk::AbilityInfo abilityInfo;
+    abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::VPN;
+    auto result = abilityMs_->CheckSupportVpn(abilityInfo);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: CheckSupportVpn_002
+ * @tc.desc: Test CheckSupportVpn
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceThirdTest, CheckSupportVpn_002, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs_, nullptr);
+    AppExecFwk::AbilityInfo abilityInfo;
+    abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SERVICE;
+    auto result = abilityMs_->CheckSupportVpn(abilityInfo);
+    EXPECT_TRUE(result);
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -136,6 +136,11 @@ bool AppLaunchData::MarshallingExtend(Parcel &parcel) const
         return false;
     }
 
+    if (!parcel.WriteString(preloadAbilityName_)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Marshalling, Failed to write preloadAbilityName.");
+        return false;
+    }
+
     if (!parcel.WriteBool(isDebugFromLocal_)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Marshalling, Failed to write isDebugFromLocal");
         return false;
@@ -147,6 +152,14 @@ bool AppLaunchData::MarshallingExtend(Parcel &parcel) const
     }
     if (hasStartupTaskData && !parcel.WriteParcelable(startupTaskData_.get())) {
         TAG_LOGE(AAFwkTag::APPMGR, "Failed to write startupTaskData");
+        return false;
+    }
+    if (!parcel.WriteInt32(imageProcessType_)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Marshalling, Failed to write imageProcessType");
+        return false;
+    }
+    if (!parcel.WriteBool(isMainProcess_)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Marshalling, Failed to write isMainProcess");
         return false;
     }
     return true;
@@ -198,10 +211,13 @@ bool AppLaunchData::ReadFromParcel(Parcel &parcel)
     appPreloadMode_ = static_cast<PreloadMode>(parcel.ReadInt32());
     isAllowedNWebPreload_ = parcel.ReadBool();
     preloadModuleName_ = parcel.ReadString();
+    preloadAbilityName_ = parcel.ReadString();
     isDebugFromLocal_ = parcel.ReadBool();
     if (!ReadStartupTaskDataFromParcel(parcel)) {
         return false;
     }
+    imageProcessType_ = parcel.ReadInt32();
+    isMainProcess_ = parcel.ReadBool();
     return true;
 }
 
@@ -347,6 +363,16 @@ bool AppLaunchData::GetDebugFromLocal() const
     return isDebugFromLocal_;
 }
 
+void AppLaunchData::SetMainProcess(bool isMainProcess)
+{
+    isMainProcess_ = isMainProcess;
+}
+
+bool AppLaunchData::GetMainProcess() const
+{
+    return isMainProcess_;
+}
+
 bool StartupTaskData::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteString(action)) {
@@ -380,6 +406,37 @@ bool StartupTaskData::ReadFromParcel(Parcel &parcel)
     action = parcel.ReadString();
     insightIntentName = parcel.ReadString();
     uri = parcel.ReadString();
+    return true;
+}
+
+bool AppUpdateInfo::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteInt32(appRecordId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write appRecordId");
+        return false;
+    }
+    if (!parcel.WriteString(appRunningUniqueId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write appRunningUniqueId");
+        return false;
+    }
+    return true;
+}
+
+AppUpdateInfo *AppUpdateInfo::Unmarshalling(Parcel &parcel)
+{
+    AppUpdateInfo *data = new (std::nothrow) AppUpdateInfo();
+    if (data && !data->ReadFromParcel(parcel)) {
+        TAG_LOGW(AAFwkTag::APPMGR, "ReadFromParcel failed");
+        delete data;
+        data = nullptr;
+    }
+    return data;
+}
+
+bool AppUpdateInfo::ReadFromParcel(Parcel &parcel)
+{
+    appRecordId = parcel.ReadInt32();
+    appRunningUniqueId = parcel.ReadString();
     return true;
 }
 }  // namespace AppExecFwk
