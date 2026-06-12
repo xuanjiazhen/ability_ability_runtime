@@ -459,6 +459,15 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::GetAppRunningRecordByPid(co
     return ((iter == appRunningRecordMap_.end()) ? nullptr : iter->second);
 }
 
+std::shared_ptr<AppRunningRecord> AppRunningManager::GetValidAppRunningRecordByPid(const pid_t pid)
+{
+    auto appRecord = GetAppRunningRecordByPid(pid);
+    if (!IsAppRunningRecordValid(appRecord)) {
+        return nullptr;
+    }
+    return appRecord;
+}
+
 std::shared_ptr<AppRunningRecord> AppRunningManager::GetAppRunningRecordByAbilityToken(
     const sptr<IRemoteObject> &abilityToken)
 {
@@ -1412,9 +1421,7 @@ int32_t AppRunningManager::NotifyProcMemoryLevel(const std::map<pid_t, MemoryLev
         }
         auto pid = priorityObject->GetPid();
         auto it = procLevelMap.find(pid);
-        if (it == procLevelMap.end()) {
-            TAG_LOGW(AAFwkTag::APPMGR, "pid%{public}d not found", pid);
-        } else {
+        if (it != procLevelMap.end()) {
             TAG_LOGD(AAFwkTag::APPMGR, "pid%{public}d memory level = %{public}d", pid, it->second);
             appRecord->ScheduleMemoryLevel(it->second, isShellCall);
         }
@@ -1469,14 +1476,14 @@ int32_t AppRunningManager::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &in
     return ERR_OK;
 }
 
-int32_t AppRunningManager::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+int32_t AppRunningManager::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
 {
     auto appRecord = GetAppRunningRecordByPid(info.pid);
     if (appRecord == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null appRecord");
         return ERR_INVALID_VALUE;
     }
-    appRecord->ScheduleMem(info, dumpResult);
+    appRecord->ScheduleMem(info, callback);
     return ERR_OK;
 }
 

@@ -31,6 +31,7 @@ std::shared_ptr<UIAbilityRecord> UIAbilityRecord::CreateAbilityRecord(const Abil
     auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->Init(abilityRequest);
+    abilityRecord->SetByOeExt(abilityRequest.isStartByOEExt);
     NativeAbilityMetaData metaData;
     NativeAbilityMetaData::InitData(abilityRecord->abilityInfo_, metaData);
     if (metaData.withNativeModule) {
@@ -83,6 +84,9 @@ bool UIAbilityRecord::UpdateWantByLastWant()
         lastWant_ = nullptr;
     }
     SetWant(*lastWant);
+#ifdef SUPPORT_UPMS
+    GrantUriPermission();
+#endif // SUPPORT_UPMS
     SetIsNewWant(true);
     return true;
 }

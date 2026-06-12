@@ -612,6 +612,10 @@ ohos_shared_library("extensionkit_native") {
   public_configs = [ ":extensionkit_public_config" ]
   configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
 
+  if (ability_runtime_enable_clone_for_account) {
+    defines += [ "ENABLE_CLONE_FOR_ACCOUNT" ]
+  }
+
   deps = [
     ":abilitykit_utils",
     ":configuration_helper",
@@ -1158,6 +1162,10 @@ ohos_shared_library("uiabilitykit_native") {
     external_deps += [ "hiappevent:hiappevent_innerapi" ]
   }
 
+  if (ability_runtime_enable_clone_for_account) {
+    defines += [ "ENABLE_CLONE_FOR_ACCOUNT" ]
+  }
+
   if (cj_frontend) {
     sources += [
       "${ability_runtime_native_path}/ability/native/ability_runtime/cj_ability_ffi.cpp",
@@ -1334,6 +1342,12 @@ ohos_shared_library("ets_form_extension") {
         "form_fwk:formutil_napi",
       ]
     }
+    if (defined(hiviewdfx_runtime_api_metrics_enable) && hiviewdfx_runtime_api_metrics_enable) {
+      defines += [ "HIVIEWDFX_RUNTIME_API_METRICS" ]
+      external_deps += [
+        "api_metrics:histogrammanager",
+      ]
+    }
   }
   subsystem_name = "ability"
   part_name = "ability_runtime"
@@ -1395,6 +1409,13 @@ ohos_shared_library("form_extension") {
         "form_fwk:form_render_info",
         "form_fwk:form_common_info",
         "form_fwk:formutil_napi",
+      ]
+    }
+
+    if (defined(hiviewdfx_runtime_api_metrics_enable) && hiviewdfx_runtime_api_metrics_enable) {
+      defines += [ "HIVIEWDFX_RUNTIME_API_METRICS" ]
+      external_deps += [
+        "api_metrics:histogrammanager",
       ]
     }
   }
@@ -3511,6 +3532,7 @@ ohos_shared_library("auto_fill_extension_ani") {
     "window_manager:embeddablewindowstage_kit",
     "window_manager:embeddablewindowstageani_kit",
     "window_manager:extensionwindow_napi",
+    "eventhandler:libeventhandler"
   ]
 
   if (ability_runtime_auto_fill) {

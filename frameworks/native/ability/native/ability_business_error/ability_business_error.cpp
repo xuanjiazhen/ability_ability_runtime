@@ -116,11 +116,11 @@ constexpr const char* ERROR_MSG_AGENT_ID_NOT_EXIST =
 constexpr const char* ERROR_MSG_AGENT_CARD_LIST_OUT_OF_RANGE =
     "The number of AgentCards in the bundle reaches the limit.";
 constexpr const char* ERROR_MSG_AGENT_CARD_VERSION_TOO_OLD =
-    "The specified agent card version is older than the current version.";
+    "The specified AgentCard version is older than the current version.";
 constexpr const char* ERROR_MSG_AGENT_CARD_VERSION_INVALID =
-    "The specified agent card version is invalid.";
+    "The specified AgentCard version is invalid.";
 constexpr const char* ERROR_MSG_AGENT_CARD_DUPLICATE_REGISTER =
-    "The specified agent card has already been registered. Use updateAgentCard instead.";
+    "The specified AgentCard has already been registered. Use updateAgentCard instead.";
 constexpr const char* ERROR_MSG_MAX_CONNECTIONS_REACHED =
     "Maximum connections from the same caller have been reached. "
     "Please disconnect at least one agent extension beforehand.";
@@ -182,6 +182,93 @@ constexpr const char* ERROR_MSG_DELAYED_PROCESS_EXIT_NOT_PENDING =
     "Delayed process exit is not pending in the current process, and this API cannot be called.";
 constexpr const char* ERROR_MSG_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY =
     "The current process still has another UIAbility, and this API cannot be called.";
+constexpr const char* ERROR_MSG_CREATE_ABILITY_RECORD_FAILED =
+    "Internal error. Failed to create the ability record. Check the Want parameters and try again.";
+constexpr const char* ERROR_MSG_TERMINATE_LAUNCHER_DENIED =
+    "Internal error. The launcher ability cannot be terminated.";
+constexpr const char* ERROR_MSG_CONNECTION_NOT_EXIST =
+    "Internal error. The service connection does not exist. Use a connection ID returned by "
+    "connectServiceExtensionAbility.";
+constexpr const char* ERROR_MSG_INVALID_CONNECTION_STATE =
+    "Internal error. The service connection state is invalid. Reconnect the service extension and try again.";
+constexpr const char* ERROR_MSG_REMOVE_STACK_LAUNCHER_DENIED =
+    "Internal error. The launcher mission stack cannot be removed.";
+constexpr const char* ERROR_MSG_TERMINATE_SERVICE_IS_CONNECTED =
+    "Internal error. The service is still connected. Disconnect the service before stopping it.";
+constexpr const char* ERROR_MSG_START_SERVICE_ABILITY_ACTIVATING =
+    "Internal error. The service ability is starting. Try again after it finishes starting.";
+constexpr const char* ERROR_MSG_MOVE_MISSION_FAILED =
+    "Internal error. Failed to move the mission. Ensure the mission exists and try again.";
+constexpr const char* ERROR_MSG_TERMINATE_ABILITY_RESULT_FAILED =
+    "Internal error. Failed to terminate the ability with result. Ensure the ability is active and try again.";
+constexpr const char* ERROR_MSG_NO_FOUND_ABILITY_BY_CALLER =
+    "Internal error. The caller ability could not be found. Ensure the caller ability is still active.";
+constexpr const char* ERROR_MSG_GET_BUNDLE_INFO_FAILED =
+    "Internal error. Failed to obtain bundle information. Check the target bundle and try again.";
+constexpr const char* ERROR_MSG_RESOLVE_CALL_NO_PERMISSIONS =
+    "Internal error. The caller does not have permission to call the target ability.";
+constexpr const char* ERROR_MSG_RESOLVE_CALL_ABILITY_INNER_ERR =
+    "Internal error. Failed to resolve the callable ability. "
+    "Check the Want parameters and target ability configuration.";
+constexpr const char* ERROR_MSG_RESOLVE_CALL_ABILITY_VERSION_ERR =
+    "Internal error. The target callable ability version is incompatible.";
+constexpr const char* ERROR_MSG_INVALID_USERID_VALUE =
+    "Internal error. The user ID is invalid. Use a valid account ID and try again.";
+constexpr const char* ERROR_MSG_ERR_AAFWK_PARCEL_FAIL =
+    "Internal error. Failed to parcel the request. Check the input parameters and try again.";
+constexpr const char* ERROR_MSG_ERR_REACH_UPPER_LIMIT =
+    "Internal error. The number of instances has reached the upper limit. Release unused instances and try again.";
+constexpr const char* ERROR_MSG_ERR_AAFWK_INVALID_WINDOW_MODE =
+    "Internal error. The window mode is invalid. Use a supported window mode and try again.";
+constexpr const char* ERROR_MSG_ERR_NATIVE_ABILITY_NOT_FOUND =
+    "Internal error. The target ability could not be found. Check the Want parameters and ability configuration.";
+constexpr const char* ERROR_MSG_ERR_NATIVE_ABILITY_STATE_CHECK_FAILED =
+    "Internal error. The ability state is invalid. Ensure the ability is active and try again.";
+constexpr const char* ERROR_MSG_ERR_URI_LIST_OUT_OF_RANGE =
+    "Internal error. The URI list exceeds the supported size. Reduce the number of URIs and try again.";
+constexpr const char* ERROR_MSG_RESTORE_WINDOW_STAGE_FAILED =
+    "Internal error. Failed to restore the window stage. Check the local storage object and try again.";
+constexpr const char* ERROR_MSG_WRAP_ABILITY_RESULT_FAILED =
+    "Internal error. Failed to create the ability result. Check the returned Want and try again.";
+constexpr const char* ERROR_MSG_QUERY_ATOMIC_SERVICE_STARTUP_RULE_FAILED =
+    "Internal error. Failed to query the atomic service startup rule. Try again later.";
+constexpr const char* ERROR_MSG_RESTART_SELF_ATOMIC_SERVICE_FAILED =
+    "Internal error. Failed to restart the current atomic service. Try again later.";
+constexpr const char* ERROR_MSG_SERVICE_UNAVAILABLE =
+    "Internal error. Service unavailable. Try again later.";
+constexpr const char* ERROR_MSG_OPERATION_FAILED =
+    "Internal error. Operation failed. Try again later.";
+constexpr const char* ERROR_MSG_TIMEOUT =
+    "Internal error. Operation timed out. Try again later.";
+constexpr const char* ERROR_MSG_IPC_FAILED =
+    "Internal error. IPC failed. Try again later.";
+constexpr const char* ERROR_MSG_CONNECT_AGENT_EXTENSION_FAILED =
+    "Internal error. Failed to connect to the agent extension ability. Verify the target and try again.";
+constexpr const char* ERROR_MSG_AGENT_EXTENSION_CONNECTION_ENDED =
+    "Internal error. The agent extension connection ended before it was ready. Connect again.";
+constexpr const char* ERROR_MSG_DISCONNECT_AGENT_EXTENSION_NOT_EXIST =
+    "Internal error. The agent extension connection does not exist. "
+    "Use an AgentProxy returned by connectAgentExtensionAbility.";
+constexpr const char* ERROR_MSG_TRANSFER_EXTENSION_DATA_FAILED =
+    "Internal error. Failed to transfer extension data to the window. Try again later.";
+constexpr const char* ERROR_MSG_UI_WINDOW_NULL =
+    "Internal error. The UI window is not available. Try again later.";
+constexpr const char* ERROR_MSG_RELOAD_IN_MODAL_RESULT_NULL =
+    "Internal error. Failed to create reload result. Try again later.";
+constexpr const char* ERROR_MSG_OBSERVER_CREATE_FAILED =
+    "Internal error. Failed to create the observer.";
+constexpr const char* ERROR_MSG_OBSERVER_NOT_EXIST =
+    "Internal error. The observer does not exist. Register the observer first.";
+constexpr const char* ERROR_MSG_RESTART_APP_FAILED =
+    "Internal error. Failed to restart the application. Try again later.";
+constexpr const char* ERROR_MSG_CREATE_PROCESS_INFO_ARRAY_FAILED =
+    "Internal error. Failed to create the process information array.";
+constexpr const char* ERROR_MSG_GET_PROCESS_INFO_FAILED =
+    "Internal error. Failed to get process information. Try again later.";
+constexpr const char* ERROR_MSG_SET_PROCESS_CACHE_FAILED =
+    "Internal error. Failed to set the process cache state. Try again later.";
+constexpr const char* ERROR_MSG_UI_ABILITY_OBJ_NULL =
+    "Internal error. The UIAbility object is not available. Verify the ability is active and try again.";
 
 // follow ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST of appexecfwk_errors.h in bundle_framework
 constexpr int32_t ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST = 8521220;
@@ -431,6 +518,69 @@ static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP 
     {ERR_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY,
         AbilityErrorCode::ERROR_CODE_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY},
 };
+
+static std::unordered_map<int32_t, const char*> INNER_ERROR_MSG_BY_NATIVE_CODE {
+    {GET_ABILITY_SERVICE_FAILED, ERROR_MSG_SERVICE_UNAVAILABLE},
+    {ABILITY_SERVICE_NOT_CONNECTED, ERROR_MSG_SERVICE_UNAVAILABLE},
+    {CREATE_MISSION_STACK_FAILED, ERROR_MSG_OPERATION_FAILED},
+    {CREATE_ABILITY_RECORD_FAILED, ERROR_MSG_CREATE_ABILITY_RECORD_FAILED},
+    {TERMINATE_LAUNCHER_DENIED, ERROR_MSG_TERMINATE_LAUNCHER_DENIED},
+    {CONNECTION_NOT_EXIST, ERROR_MSG_CONNECTION_NOT_EXIST},
+    {INVALID_CONNECTION_STATE, ERROR_MSG_INVALID_CONNECTION_STATE},
+    {LOAD_ABILITY_TIMEOUT, ERROR_MSG_TIMEOUT},
+    {CONNECTION_TIMEOUT, ERROR_MSG_TIMEOUT},
+    {GET_BUNDLE_MANAGER_SERVICE_FAILED, ERROR_MSG_SERVICE_UNAVAILABLE},
+    {REMOVE_MISSION_FAILED, ERROR_MSG_OPERATION_FAILED},
+    {GET_RECENT_MISSIONS_FAILED, ERROR_MSG_OPERATION_FAILED},
+    {REMOVE_STACK_LAUNCHER_DENIED, ERROR_MSG_REMOVE_STACK_LAUNCHER_DENIED},
+    {TERMINATE_SERVICE_IS_CONNECTED, ERROR_MSG_TERMINATE_SERVICE_IS_CONNECTED},
+    {START_SERVICE_ABILITY_ACTIVATING, ERROR_MSG_START_SERVICE_ABILITY_ACTIVATING},
+    {MOVE_MISSION_FAILED, ERROR_MSG_MOVE_MISSION_FAILED},
+    {TERMINATE_ABILITY_RESULT_FAILED, ERROR_MSG_TERMINATE_ABILITY_RESULT_FAILED},
+    {NO_FOUND_ABILITY_BY_CALLER, ERROR_MSG_NO_FOUND_ABILITY_BY_CALLER},
+    {GET_BUNDLENAME_BY_UID_FAIL, ERROR_MSG_OPERATION_FAILED},
+    {GET_BUNDLE_INFO_FAILED, ERROR_MSG_GET_BUNDLE_INFO_FAILED},
+    {RESOLVE_CALL_NO_PERMISSIONS, ERROR_MSG_RESOLVE_CALL_NO_PERMISSIONS},
+    {RESOLVE_CALL_ABILITY_INNER_ERR, ERROR_MSG_RESOLVE_CALL_ABILITY_INNER_ERR},
+    {RESOLVE_CALL_ABILITY_VERSION_ERR, ERROR_MSG_RESOLVE_CALL_ABILITY_VERSION_ERR},
+    {RELEASE_CALL_ABILITY_INNER_ERR, ERROR_MSG_OPERATION_FAILED},
+    {INVALID_USERID_VALUE, ERROR_MSG_INVALID_USERID_VALUE},
+    {ERR_AAFWK_PARCEL_FAIL, ERROR_MSG_ERR_AAFWK_PARCEL_FAIL},
+    {ERR_REACH_UPPER_LIMIT, ERROR_MSG_ERR_REACH_UPPER_LIMIT},
+    {ERR_AAFWK_INVALID_WINDOW_MODE, ERROR_MSG_ERR_AAFWK_INVALID_WINDOW_MODE},
+    {ERR_CONNECT_ERMS_FAILED, ERROR_MSG_SERVICE_UNAVAILABLE},
+    {ERR_NATIVE_IPC_PARCEL_FAILED, ERROR_MSG_IPC_FAILED},
+    {ERR_NATIVE_ABILITY_NOT_FOUND, ERROR_MSG_ERR_NATIVE_ABILITY_NOT_FOUND},
+    {ERR_NATIVE_ABILITY_STATE_CHECK_FAILED, ERROR_MSG_ERR_NATIVE_ABILITY_STATE_CHECK_FAILED},
+    {ERR_URI_LIST_OUT_OF_RANGE, ERROR_MSG_ERR_URI_LIST_OUT_OF_RANGE},
+    {ERR_WRITE_INTERFACE_TOKEN_FAILED, ERROR_MSG_IPC_FAILED},
+    {ERR_READ_RESULT_PARCEL_FAILED, ERROR_MSG_IPC_FAILED},
+    {ERR_WRITE_RESULT_CODE_FAILED, ERROR_MSG_IPC_FAILED},
+    {ERR_WRITE_KIOSK_STATUS_FAILED, ERROR_MSG_IPC_FAILED},
+    {ERR_WRITE_CALLER_TOKEN_FAILED, ERROR_MSG_IPC_FAILED},
+};
+
+static std::unordered_map<AbilityInnerErrorMsg, const char*> INNER_ERROR_MSG_BY_SCENE {
+    {AbilityInnerErrorMsg::SERVICE_UNAVAILABLE, ERROR_MSG_SERVICE_UNAVAILABLE},
+    {AbilityInnerErrorMsg::OPERATION_FAILED, ERROR_MSG_OPERATION_FAILED},
+    {AbilityInnerErrorMsg::RESTORE_WINDOW_STAGE_FAILED, ERROR_MSG_RESTORE_WINDOW_STAGE_FAILED},
+    {AbilityInnerErrorMsg::WRAP_ABILITY_RESULT_FAILED, ERROR_MSG_WRAP_ABILITY_RESULT_FAILED},
+    {AbilityInnerErrorMsg::QUERY_ATOMIC_SERVICE_STARTUP_RULE_FAILED,
+        ERROR_MSG_QUERY_ATOMIC_SERVICE_STARTUP_RULE_FAILED},
+    {AbilityInnerErrorMsg::RESTART_SELF_ATOMIC_SERVICE_FAILED, ERROR_MSG_RESTART_SELF_ATOMIC_SERVICE_FAILED},
+    {AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED, ERROR_MSG_CONNECT_AGENT_EXTENSION_FAILED},
+    {AbilityInnerErrorMsg::AGENT_EXTENSION_CONNECTION_ENDED, ERROR_MSG_AGENT_EXTENSION_CONNECTION_ENDED},
+    {AbilityInnerErrorMsg::TRANSFER_EXTENSION_DATA_FAILED, ERROR_MSG_TRANSFER_EXTENSION_DATA_FAILED},
+    {AbilityInnerErrorMsg::UI_WINDOW_NULL, ERROR_MSG_UI_WINDOW_NULL},
+    {AbilityInnerErrorMsg::RELOAD_IN_MODAL_RESULT_NULL, ERROR_MSG_RELOAD_IN_MODAL_RESULT_NULL},
+    {AbilityInnerErrorMsg::OBSERVER_CREATE_FAILED, ERROR_MSG_OBSERVER_CREATE_FAILED},
+    {AbilityInnerErrorMsg::OBSERVER_NOT_EXIST, ERROR_MSG_OBSERVER_NOT_EXIST},
+    {AbilityInnerErrorMsg::RESTART_APP_FAILED, ERROR_MSG_RESTART_APP_FAILED},
+    {AbilityInnerErrorMsg::CREATE_PROCESS_INFO_ARRAY_FAILED, ERROR_MSG_CREATE_PROCESS_INFO_ARRAY_FAILED},
+    {AbilityInnerErrorMsg::GET_PROCESS_INFO_FAILED, ERROR_MSG_GET_PROCESS_INFO_FAILED},
+    {AbilityInnerErrorMsg::SET_PROCESS_CACHE_FAILED, ERROR_MSG_SET_PROCESS_CACHE_FAILED},
+    {AbilityInnerErrorMsg::UI_ABILITY_OBJ_NULL, ERROR_MSG_UI_ABILITY_OBJ_NULL},
+};
 }
 
 std::string GetErrorMsg(const AbilityErrorCode& errCode)
@@ -456,6 +606,64 @@ AbilityErrorCode GetJsErrorCodeByNativeError(int32_t errCode)
     }
 
     return AbilityErrorCode::ERROR_CODE_INNER;
+}
+
+std::string GetInnerErrorMsg(AbilityInnerErrorMsg innerErrMsg)
+{
+    auto it = INNER_ERROR_MSG_BY_SCENE.find(innerErrMsg);
+    if (it != INNER_ERROR_MSG_BY_SCENE.end()) {
+        return it->second;
+    }
+    return GetErrorMsg(AbilityErrorCode::ERROR_CODE_INNER);
+}
+
+static AbilityInnerErrorMsg GetAgentManagerFailureMessage(AgentManagerErrorOperation operation)
+{
+    switch (operation) {
+        case AgentManagerErrorOperation::CONNECT_AGENT_EXTENSION:
+            return AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED;
+        default:
+            return AbilityInnerErrorMsg::OPERATION_FAILED;
+    }
+}
+
+std::string GetErrorMsgByNativeError(int32_t errCode, const std::string& innerErrMsg, const std::string& permission)
+{
+    auto jsErrCode = GetJsErrorCodeByNativeError(errCode);
+    if (jsErrCode == AbilityErrorCode::ERROR_CODE_PERMISSION_DENIED && !permission.empty()) {
+        return GetNoPermissionErrorMsg(permission);
+    }
+    if (jsErrCode != AbilityErrorCode::ERROR_CODE_INNER) {
+        return GetErrorMsg(jsErrCode);
+    }
+
+    auto nativeMsg = INNER_ERROR_MSG_BY_NATIVE_CODE.find(errCode);
+    if (nativeMsg != INNER_ERROR_MSG_BY_NATIVE_CODE.end()) {
+        return nativeMsg->second;
+    }
+    if (!innerErrMsg.empty()) {
+        return innerErrMsg;
+    }
+    return GetErrorMsg(jsErrCode);
+}
+
+std::string GetAgentManagerErrorMsg(int32_t errCode, AgentManagerErrorOperation operation)
+{
+    if (GetJsErrorCodeByNativeError(errCode) != AbilityErrorCode::ERROR_CODE_INNER) {
+        return GetErrorMsgByNativeError(errCode);
+    }
+    if (errCode == ERR_NULL_AGENT_MGR_PROXY) {
+        return GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE);
+    }
+    if (errCode == CONNECTION_NOT_EXIST) {
+        if (operation == AgentManagerErrorOperation::DISCONNECT_AGENT_EXTENSION) {
+            return ERROR_MSG_DISCONNECT_AGENT_EXTENSION_NOT_EXIST;
+        }
+        if (operation == AgentManagerErrorOperation::COMPLETE_LOW_CODE_AGENT) {
+            return GetInnerErrorMsg(AbilityInnerErrorMsg::OPERATION_FAILED);
+        }
+    }
+    return GetErrorMsgByNativeError(errCode, GetInnerErrorMsg(GetAgentManagerFailureMessage(operation)));
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

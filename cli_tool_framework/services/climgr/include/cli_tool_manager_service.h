@@ -75,25 +75,24 @@ public:
      */
     int32_t RegisterTool(const ToolInfo &tool) override;
 
-    int32_t RegisterScheduler(const sptr<ICliToolManagerScheduler> &scheduler) override;
-
-    int32_t UnregisterScheduler() override;
-
     /**
      * @brief Execute a CLI tool with key-value pairs (convenience method).
      * @param param The CLI tool param.
      * @param objectCallback The callback RemoteObject.
      * @return Returns ERR_OK on success, error code otherwise.
      */
-    int32_t ExecTool(const ExecToolParam &param, const std::string &eventId) override;
+    int32_t ExecTool(const ExecToolParam &param, const std::string &eventId,
+        const sptr<ICliToolManagerScheduler> &scheduler) override;
 
     int32_t ClearSession(const std::string &sessionId) override;
-    int32_t SubscribeSession(const std::string &sessionId, const std::string &subscriptionId) override;
+    int32_t SubscribeSession(const std::string &sessionId, const std::string &subscriptionId,
+        const sptr<ICliToolManagerScheduler> &scheduler) override;
     int32_t UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId) override;
     
     int32_t QuerySession(const std::string &sessionId, CliSessionInfo &session) override;
     int32_t SendMessage(const std::string &sessionId,
-        const std::string &inputText, const std::string &eventId) override;
+        const std::string &inputText, const std::string &eventId,
+        const sptr<ICliToolManagerScheduler> &scheduler) override;
 
     /**
      * @brief Batch query command permissions (Inner API, for SA only).
@@ -134,7 +133,9 @@ private:
     std::shared_ptr<SessionRecord> CreateSessionRecord(const ExecToolParam &param, const std::string &eventId);
     void AddSessionRecord(const std::shared_ptr<SessionRecord> &record);
     std::shared_ptr<SessionRecord> GetSessionRecord(const std::string &sessionId);
+    std::vector<std::shared_ptr<SessionRecord>> GetSessionRecords();
     void RemoveSessionRecord(const std::string &sessionId);
+    bool IsSessionOwner(const std::shared_ptr<SessionRecord> &record, const char *action) const;
 
     bool RegisterSessionWithMonitors(const std::shared_ptr<SessionRecord> &record, const ExecToolParam &param);
     void UnregisterSessionWithMonitors(const std::string &sessionId);
@@ -153,7 +154,7 @@ private:
     int32_t ValidateSkillTypeFromParam(const ExecToolParam &param, int32_t &skillType);
     int32_t ValidateSkillType(const std::string &bundleName,
         const std::string &moduleName, const std::string &skillName, int32_t &skillType);
-    void HandleSkillSessionComplete(const std::string &sessionId, int32_t callerPid,
+    void HandleSkillSessionComplete(const std::string &sessionId, int32_t callerPid, int32_t callerUid,
         const std::string &eventId, int32_t resultCode, const CliSessionInfo &session);
     void HandleSkillSessionTimeout(const std::string &sessionId);
 
@@ -182,19 +183,21 @@ private:
     std::atomic<int32_t> interfaceCalledCount_ = 0;
     ffrt::mutex sessionsMutex_;
     std::unordered_map<std::string, std::shared_ptr<SessionRecord>> sessionRecords_;
+    ffrt::mutex observerMutex_;
     std::unordered_map<std::string, sptr<AppExecFwk::IApplicationStateObserver>> bundleObservers_;
 };
 
 class SkillCallbackAdapter : public AAFwk::SkillExecuteCallbackStub {
 public:
     SkillCallbackAdapter(const std::string &sessionId,
-        int32_t callerPid, const std::string &eventId);
+        int32_t callerPid, int32_t callerUid, const std::string &eventId);
     void OnExecuteDone(const std::string &requestCode, int32_t resultCode,
         const AppExecFwk::SkillExecuteResult &result) override;
 
 private:
     std::string sessionId_;
     int32_t callerPid_;
+    int32_t callerUid_;
     std::string eventId_;
 };
 

@@ -174,16 +174,15 @@ ani_object EtsErrorUtil::CreateNoPermissionError(ani_env *env, const std::string
         env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_PERMISSION_DENIED), GetNoPermissionErrorMsg(permission));
 }
 
-ani_object EtsErrorUtil::CreateErrorByNativeErr(ani_env *env, int32_t err, const std::string &permission)
+ani_object EtsErrorUtil::CreateErrorByNativeErr(
+    ani_env *env, int32_t err, const std::string &permission, const std::string &innerErrMsg)
 {
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::ANI, "null env");
         return nullptr;
     }
     auto errCode = GetJsErrorCodeByNativeError(err);
-    auto errMsg = (errCode == AbilityErrorCode::ERROR_CODE_PERMISSION_DENIED && !permission.empty())
-                      ? GetNoPermissionErrorMsg(permission)
-                      : GetErrorMsg(errCode);
+    auto errMsg = GetErrorMsgByNativeError(err, innerErrMsg, permission);
     return EtsErrorUtil::CreateError(env, static_cast<int32_t>(errCode), errMsg);
 }
 

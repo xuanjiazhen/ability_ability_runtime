@@ -85,8 +85,20 @@ void ProcessManager::CloseAllPipes(SessionRecord &record) const
     record.stderrPipe[1] = -1;
 }
 
+void ProcessManager::CloseFatherSessionPipes(
+    const std::vector<std::shared_ptr<SessionRecord>> &fatherSessionRecords) const
+{
+    for (const auto &fatherRecord : fatherSessionRecords) {
+        if (fatherRecord == nullptr) {
+            continue;
+        }
+        CloseAllPipes(*fatherRecord);
+    }
+}
+
 int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std::string &sandboxConfig,
-    const ToolInfo &toolInfo, std::shared_ptr<SessionRecord> record) const
+    const ToolInfo &toolInfo, std::shared_ptr<SessionRecord> record,
+    const std::vector<std::shared_ptr<SessionRecord>> &fatherSessionRecords) const
 {
     if (CreatePipes(*record) == false) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to create pipes");
@@ -109,6 +121,7 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std
         close(record->stdinPipe[0]);
         close(record->stdoutPipe[1]);
         close(record->stderrPipe[1]);
+        CloseFatherSessionPipes(fatherSessionRecords);
 
         std::string clawSandbox = "/system/bin/claw_sandbox";
         std::string configPrompt = "--config";
@@ -118,13 +131,17 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std
         execArgs.push_back(const_cast<char *>(configPrompt.c_str()));
         execArgs.push_back(const_cast<char *>(sandboxConfig.c_str()));
         execArgs.push_back(const_cast<char *>(cmdPrompt.c_str()));
-        std::string cmdLine = toolInfo.executablePath;
+        execArgs.push_back(const_cast<char *>(toolInfo.executablePath.c_str()));
         if (!param.subcommand.empty()) {
-            cmdLine += " " + param.subcommand;
+            execArgs.push_back(const_cast<char *>(param.subcommand.c_str()));
         }
-        ToolUtil::TransferToCmdParam(toolInfo, param.args, cmdLine);
-        execArgs.push_back(const_cast<char *>(cmdLine.c_str()));
-        TAG_LOGI(AAFwkTag::CLI_TOOL, "cmd: %{public}s", cmdLine.c_str());
+        std::vector<std::string> tmpExecArgs;
+        ToolUtil::TransferToCmdParam(param.args, tmpExecArgs);
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "args:");
+        for (auto &element : tmpExecArgs) {
+            TAG_LOGI(AAFwkTag::CLI_TOOL, "%{public}s", element.c_str());
+            execArgs.push_back(const_cast<char *>(element.c_str()));
+        }
         execArgs.push_back(nullptr);
         TAG_LOGI(AAFwkTag::CLI_TOOL, "Before execvp");
         execvp(execArgs[0], execArgs.data());
@@ -144,7 +161,7 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std
 
 bool ProcessManager::Killpg(pid_t pid) const
 {
-    int32_t killRet = kill(0 - pid, SIGTERM);
+    int32_t killRet = kill(0 - pid, SIGKILL);
     if (killRet != 0) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "killpg result:%{public}d", killRet);
         return false;

@@ -35,6 +35,7 @@
 #include "permission_constants.h"
 #include "process_options.h"
 #include "request_id_util.h"
+#include "res_sched_util.h"
 #include "restart_app_manager.h"
 #include "session_info.h"
 #include "start_ability_utils.h"
@@ -390,6 +391,9 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::HandleAbilityRecordReused(
         return nullptr;
     }
     if (uiAbilityRecord->IsGameSAPreLaunch()) {
+        // Report game prelaunch user click event to RSS.
+        ResSchedUtil::GetInstance().ReportGameClickToRSS(
+            uiAbilityRecord->GetBundleName(), uiAbilityRecord->GetPid(), uiAbilityRecord->GetUid());
         // Clear the game SA prelaunch flag in AbilityRecord and AppRecord when reusing AbilityRecord.
         uiAbilityRecord->SetGameSAPreLaunch(false);
         int32_t ret = IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->SetGameSAPrelaunch(
@@ -950,7 +954,7 @@ int32_t UIAbilityLifecycleManager::BatchNotifySCBPendingActivations(const Abilit
 
     auto callerAbilityRecord = GetAbilityRecordByToken(abilitiesRequest.callerToken);
     if (callerAbilityRecord == nullptr || callerAbilityRecord->GetRestartAppFlag()) {
-        auto tmpSceneSession = iface_cast<Rosen::ISession>(rootSceneSession_);
+        auto tmpSceneSession = iface_cast<Rosen::ISession>(GetRootSceneSession());
         if (tmpSceneSession == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "null tmpSceneSession, scb does not exist");
             return ERR_INVALID_VALUE;
@@ -1975,7 +1979,7 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivationInSplitMode(sptr<Sessio
     sessionInfo->hideStartWindow = abilityRequest.hideStartWindow;
     sessionInfo->windowCreateParams = abilityRequest.startOptions.windowCreateParams_;
 
-    auto tmpSceneSession = iface_cast<Rosen::ISession>(rootSceneSession_);
+    auto tmpSceneSession = iface_cast<Rosen::ISession>(GetRootSceneSession());
     if (tmpSceneSession == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null tmpSceneSession, scb does not exist");
         return ERR_INVALID_VALUE;
@@ -2054,7 +2058,7 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         }
         return ret;
     }
-    auto tmpSceneSession = iface_cast<Rosen::ISession>(rootSceneSession_);
+    auto tmpSceneSession = iface_cast<Rosen::ISession>(GetRootSceneSession());
     if (tmpSceneSession == nullptr) {
         errMsg = "null tmpSceneSession, scb does not exist";
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s", errMsg.c_str());
@@ -2396,6 +2400,10 @@ int UIAbilityLifecycleManager::CloseUIAbility(const UIAbilityRecordPtr &abilityR
         return ERR_OK;
     }
 
+    if (abilityRecord->IsByOeExt()) {
+        isClearSession = false;
+    }
+
     // If this is a host ability, terminate all associated plugin abilities first
     auto pluginAbilities = abilityRecord->GetPluginAbilities();
     abilityRecord->ClearPluginAbilities();
@@ -2691,9 +2699,15 @@ void UIAbilityLifecycleManager::SetRootSceneSession(const sptr<IRemoteObject> &r
         TAG_LOGE(AAFwkTag::ABILITYMGR, "rootSceneSession invalid");
         return;
     }
-    std::lock_guard guard(sessionLock_);
+    std::lock_guard guard(rootSceneSessionLock_);
     rootSceneSession_ = rootSceneSession;
     TAG_LOGI(AAFwkTag::ABILITYMGR, "SetRootSceneSession end");
+}
+
+sptr<IRemoteObject> UIAbilityLifecycleManager::GetRootSceneSession() const
+{
+    std::lock_guard guard(rootSceneSessionLock_);
+    return rootSceneSession_;
 }
 
 void UIAbilityLifecycleManager::NotifySCBToHandleException(const UIAbilityRecordPtr &abilityRecord,
@@ -3136,7 +3150,7 @@ int UIAbilityLifecycleManager::SendSessionInfoToSCB(UIAbilityRecordPtr &callerAb
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_MAX_WINDOW_WIDTH, 0),
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_MAX_WINDOW_HEIGHT, 0),
         sessionInfo->specifiedFlag.c_str());
-    auto tmpSceneSession = iface_cast<Rosen::ISession>(rootSceneSession_);
+    auto tmpSceneSession = iface_cast<Rosen::ISession>(GetRootSceneSession());
     sptr<SessionInfo> callerSessionInfo = nullptr;
     if (callerAbility != nullptr && (callerSessionInfo = callerAbility->GetSessionInfo()) != nullptr &&
         callerSessionInfo->sessionToken != nullptr) {
@@ -3211,7 +3225,7 @@ int UIAbilityLifecycleManager::SendSessionInfoToSCBInSplitMode(int primaryWindow
     std::vector<sptr<SessionInfo>> sessionInfoList;
     std::vector<Rosen::PendingSessionActivationConfig> configList;
     CreateSessionConfigurations(sessionInfoList, primaryWindowId, configList, sessionInfo);
-    auto tmpSceneSession = iface_cast<Rosen::ISession>(rootSceneSession_);
+    auto tmpSceneSession = iface_cast<Rosen::ISession>(GetRootSceneSession());
     CHECK_POINTER_AND_RETURN(tmpSceneSession, ERR_INVALID_VALUE);
     for (auto &sessionInfo : sessionInfoList) {
         sessionInfo->canStartAbilityFromBackground = true;
@@ -3840,7 +3854,7 @@ void UIAbilityLifecycleManager::DumpMissionListByRecordId(std::vector<std::strin
 int UIAbilityLifecycleManager::MoveMissionToFront(int32_t sessionId, std::shared_ptr<StartOptions> startOptions)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    auto tmpSceneSession = iface_cast<Rosen::ISession>(rootSceneSession_);
+    auto tmpSceneSession = iface_cast<Rosen::ISession>(GetRootSceneSession());
     CHECK_POINTER_AND_RETURN(tmpSceneSession, ERR_INVALID_VALUE);
     UIAbilityRecordPtr abilityRecord = GetAbilityRecordsById(sessionId);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
@@ -4515,10 +4529,12 @@ void UIAbilityLifecycleManager::StartSpecifiedRequest(SpecifiedRequest &specifie
             TAG_LOGI(AAFwkTag::ABILITYMGR, "StartSpecifiedRequest cold");
             std::string errMsg;
             auto result = NotifySCBPendingActivation(sessionInfo, request, errMsg);
+            sessionInfo->want.RemoveAllFd();
             if (result != ERR_OK) {
                 RemoveInstanceKey(request);
+                SubmitSpecifiedFailTask(specifiedRequest.requestId, false);
+                return;
             }
-            sessionInfo->want.RemoveAllFd();
         } else {
             DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedAbility(request.want,
                 request.abilityInfo, specifiedRequest.requestId, request.customProcess,
@@ -4530,14 +4546,23 @@ void UIAbilityLifecycleManager::StartSpecifiedRequest(SpecifiedRequest &specifie
         TAG_LOGI(AAFwkTag::ABILITYMGR, "StartSpecifiedRequest debug mode");
         return;
     }
-    auto timeoutTask = [requestId = specifiedRequest.requestId, wThis = weak_from_this()]() {
+    SubmitSpecifiedFailTask(specifiedRequest.requestId, true);
+}
+
+void UIAbilityLifecycleManager::SubmitSpecifiedFailTask(int32_t requestId, bool isDelay)
+{
+    auto timeoutTask = [requestId, wThis = weak_from_this()]() {
         auto pThis = wThis.lock();
         if (pThis) {
             pThis->OnStartSpecifiedFailed(requestId);
         }
     };
-    ffrt::submit(std::move(timeoutTask), ffrt::task_attr().name("SpecifiedFinalTimeout")
+    if (!isDelay) {
+        ffrt::submit(std::move(timeoutTask));
+    } else {
+        ffrt::submit(std::move(timeoutTask), ffrt::task_attr().name("SpecifiedFinalTimeout")
         .delay(GlobalConstant::TIMEOUT_UNIT_TIME_MICRO * (int64_t)GlobalConstant::COLDSTART_TIMEOUT_MULTIPLE));
+    }
 }
 
 void UIAbilityLifecycleManager::RemoveInstanceKey(const AbilityRequest &abilityRequest) const
@@ -4828,6 +4853,7 @@ ErrCode UIAbilityLifecycleManager::IsUIAbilityAlreadyExist(const Want &want,
     }
     std::string moduleName = want.GetModuleName();
     std::string abilityName = want.GetElement().GetAbilityName();
+    std::string bundleName = want.GetElement().GetBundleName();
 
     for (auto it = tempSessionAbilityMap.begin(); it != tempSessionAbilityMap.end(); it++) {
         if (it->second == nullptr) {
@@ -4835,39 +4861,17 @@ ErrCode UIAbilityLifecycleManager::IsUIAbilityAlreadyExist(const Want &want,
         }
         if (launchMode == AppExecFwk::LaunchMode::SPECIFIED && it->second->GetSpecifiedFlag() == specifiedFlag &&
             it->second->GetAbilityInfo().name == abilityName &&
+            it->second->GetAbilityInfo().bundleName == bundleName &&
             (moduleName.empty() || it->second->GetAbilityInfo().moduleName == moduleName) &&
             it->second->GetAppIndex() == appIndex && it->second->GetInstanceKey() == instanceKey) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "specifiedFlag already exists");
             return ERROR_UIABILITY_IS_ALREADY_EXIST;
         }
         if (launchMode != AppExecFwk::LaunchMode::SPECIFIED && it->second->GetAbilityInfo().name == abilityName &&
+            it->second->GetAbilityInfo().bundleName == bundleName &&
             (moduleName.empty() || it->second->GetAbilityInfo().moduleName == moduleName) &&
             it->second->GetInstanceKey() == instanceKey && it->second->GetAppIndex() == appIndex) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "UIAbility already exists");
-            return ERROR_UIABILITY_IS_ALREADY_EXIST;
-        }
-    }
-    return ERR_OK;
-}
-
-ErrCode UIAbilityLifecycleManager::IsSpecifiedUIAbilityAlreadyExist(const Want &want,
-    const std::string &specifiedFlag, int32_t appIndex, const std::string &instanceKey)
-{
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
-    std::string bundleName = want.GetElement().GetBundleName();
-    std::string moduleName = want.GetElement().GetModuleName();
-    std::string abilityName = want.GetElement().GetAbilityName();
-
-    for (auto it = sessionAbilityMap_.begin(); it != sessionAbilityMap_.end(); it++) {
-        if (it->second == nullptr) {
-            continue;
-        }
-        if (it->second->GetSpecifiedFlag() == specifiedFlag &&
-            it->second->GetAbilityInfo().name == abilityName &&
-            it->second->GetAbilityInfo().bundleName == bundleName &&
-            (moduleName.empty() || it->second->GetAbilityInfo().moduleName == moduleName) &&
-            it->second->GetAppIndex() == appIndex && it->second->GetInstanceKey() == instanceKey) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "specifiedFlag already exists");
             return ERROR_UIABILITY_IS_ALREADY_EXIST;
         }
     }

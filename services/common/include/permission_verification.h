@@ -34,6 +34,8 @@ struct VerificationInfo {
     bool associatedWakeUp = false;
     bool withContinuousTask = false;
     uint32_t skillCallerTokenId = 0;
+    bool isCliToolToken = false;
+    bool isLaunchAbility = false;
 };
 
     PermissionVerification() = default;
@@ -133,6 +135,7 @@ struct VerificationInfo {
 
     bool VerifyCustomSandbox(uint32_t accessTokenId) const;
 
+    bool VerifySupportCrossAppEmbedForOaPermission() const;
 private:
     DISALLOW_COPY_AND_MOVE(PermissionVerification);
 

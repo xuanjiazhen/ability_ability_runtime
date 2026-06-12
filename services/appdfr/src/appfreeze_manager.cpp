@@ -42,7 +42,6 @@
 #include "hitrace/hitracechain.h"
 #endif
 #include "appfreeze_cpu_freq_manager.h"
-#include "appfreeze_event_report.h"
 #include "appfreeze_util.h"
 #include "xcollie/process_kill_reason.h"
 
@@ -323,6 +322,9 @@ int AppfreezeManager::AppfreezeHandleWithStack(const FaultData& faultData, const
     faultNotifyData.isEnableMainThreadSample = faultData.isEnableMainThreadSample;
     faultNotifyData.reportLifecycleToFreeze = faultData.reportLifecycleToFreeze;
     faultNotifyData.applicationHeapInfo = faultData.applicationHeapInfo;
+    faultNotifyData.applicationGCInfo = faultData.applicationGCInfo;
+    faultNotifyData.applicationIOInfo = faultData.applicationIOInfo;
+    faultNotifyData.isBlockInGc = faultData.isBlockInGc;
     faultNotifyData.processLifeTime = faultData.processLifeTime;
     faultNotifyData.markedId = faultData.markedId;
     faultNotifyData.processedId = faultData.processedId;
@@ -451,6 +453,9 @@ FaultData AppfreezeManager::GetFaultNotifyData(const FaultData& faultData, int p
     faultNotifyData.isEnableMainThreadSample = faultData.isEnableMainThreadSample;
     faultNotifyData.reportLifecycleToFreeze = faultData.reportLifecycleToFreeze;
     faultNotifyData.applicationHeapInfo = faultData.applicationHeapInfo;
+    faultNotifyData.applicationGCInfo = faultData.applicationGCInfo;
+    faultNotifyData.applicationIOInfo = faultData.applicationIOInfo;
+    faultNotifyData.isBlockInGc = faultData.isBlockInGc;
     faultNotifyData.processLifeTime = faultData.processLifeTime;
     faultNotifyData.markedId = faultData.markedId;
     faultNotifyData.processedId = faultData.processedId;
@@ -472,24 +477,34 @@ int AppfreezeManager::AcquireStack(const FaultData& faultData,
     AppfreezeManager::ParseBinderParam params = {pid, faultNotifyData.tid, pid, 0};
     std::set<int> asyncPids;
     std::set<int> syncPids = GetBinderPeerPids(binderInfo, params, asyncPids, terminalBinder);
-    if (syncPids.empty()) {
-        binderInfo += "PeerBinder pids is empty\n";
-    }
+    std::string binderProcessNameStr;
+    std::string binderProcessStackStr;
     for (auto& pidTemp : syncPids) {
         TAG_LOGI(AAFwkTag::APPDFR, "PeerBinder pidTemp pids:%{public}d", pidTemp);
-        if (pidTemp == pid) {
+        if (pidTemp == pid || IsAncoProc(pidTemp)) {
             continue;
         }
         std::string content = "Binder catcher stacktrace, type is peer, pid : " + std::to_string(pidTemp) + "\n";
         content += CatcherStacktrace(pidTemp);
         binderPidsStr += " " + std::to_string(pidTemp);
+        binderProcessNameStr += std::to_string(pidTemp) + "(" +
+            AppfreezeUtil::GetProcessNameFromProcCmdline(pidTemp) + ");";
         if (terminalBinder.pid > 0 && pidTemp == terminalBinder.pid) {
             terminalBinder.tid  = (terminalBinder.tid > 0) ? terminalBinder.tid : terminalBinder.pid;
             content = "Binder catcher stacktrace, terminal binder tag\n" + content +
                 "Binder catcher stacktrace, terminal binder tag\n";
             terminalBinderTid = std::to_string(terminalBinder.tid);
         }
-        binderInfo += content;
+        binderProcessStackStr += content;
+    }
+    if (syncPids.empty()) {
+        binderInfo += "PeerBinder pids is empty\n";
+    } else {
+        if (!binderProcessNameStr.empty()) {
+            binderProcessNameStr.pop_back();
+            binderProcessNameStr = "BINDER_PROC_NAME: " + binderProcessNameStr + "\n";
+        }
+        binderInfo = binderInfo + binderProcessNameStr + binderProcessStackStr;
     }
     binderInfo += CatchASyncByPid(asyncPids, syncPids, pid);
     std::string fileName = faultData.errorObject.name + "_" +
@@ -499,6 +514,13 @@ int AppfreezeManager::AcquireStack(const FaultData& faultData,
 
     int ret = NotifyANR(faultNotifyData, appInfo, binderInfo, memoryContent);
     return ret;
+}
+
+bool AppfreezeManager::IsAncoProc(int pid)
+{
+    std::string cgroupPath = "/proc/" + std::to_string(pid) + "/cgroup";
+    std::string firstLine = GetFirstLine(cgroupPath);
+    return firstLine.find("isulad") != std::string::npos;
 }
 
 std::string AppfreezeManager::CatchASyncByPid(const std::set<int> &asyncPids, const std::set<int> &syncPids, int pid)
@@ -511,7 +533,7 @@ std::string AppfreezeManager::CatchASyncByPid(const std::set<int> &asyncPids, co
             continue;
         }
         TAG_LOGI(AAFwkTag::APPDFR, "AsyncBinder pidTemp pids:%{public}d", pidTemp);
-        if (pidTemp != pid && syncPids.find(pidTemp) == syncPids.end()) {
+        if (pidTemp != pid && !IsAncoProc(pidTemp) && syncPids.find(pidTemp) == syncPids.end()) {
             std::string content = "Binder catcher stacktrace, type is async, pid : " + std::to_string(pidTemp) + "\n";
             content += CatcherStacktrace(pidTemp);
             binderInfo += content;
@@ -580,27 +602,25 @@ std::string AppfreezeManager::GetAppfreezeInfoPath(const FaultData& faultData,
     return cpuInfoFile;
 }
 
-int AppfreezeManager::NotifyANR(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo,
+AppfreezeEventInfo AppfreezeManager::UpdateEventInfo(
+    const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo,
     const std::string& binderInfo, const std::string& memoryContent)
 {
-    std::string eventName = faultData.errorObject.name;
-    this->PerfStart(eventName);
-    int64_t startTime = AbilityRuntime::TimeUtil::CurrentTimeMillis();
-    int tid = faultData.tid;
-    std::string appRunningUniqueId = faultData.appRunningUniqueId;
     AppfreezeEventInfo eventInfo;
+    int tid = faultData.tid;
     eventInfo.tid = tid > 0 ? tid : 0;
     eventInfo.pid = appInfo.pid;
     eventInfo.uid = appInfo.uid;
+    eventInfo.isFrozen = appInfo.isFrozen;
     eventInfo.eventId = faultData.eventId;
     eventInfo.bundleName = appInfo.bundleName;
     eventInfo.processName = appInfo.processName;
     eventInfo.binderInfo = binderInfo;
     eventInfo.freezeMemory = memoryContent + "\n" + faultData.procStatm;
-    eventInfo.appRunningUniqueId = appRunningUniqueId;
+    eventInfo.appRunningUniqueId = faultData.appRunningUniqueId;
     eventInfo.errorStack = faultData.errorObject.stack;
     eventInfo.mainStack = faultData.errorObject.mainStack;
-    eventInfo.errorName = eventName;
+    eventInfo.errorName = faultData.errorObject.name;
     eventInfo.errorMessage = faultData.errorObject.message;
     eventInfo.freezeInfoFile = GetAppfreezeInfoPath(faultData, appInfo);
     eventInfo.hitraceInfo = GetHitraceInfo();
@@ -608,11 +628,24 @@ int AppfreezeManager::NotifyANR(const FaultData& faultData, const AppfreezeManag
     eventInfo.enableFreeze = faultData.isEnableMainThreadSample;
     eventInfo.reportLifecycleToFreeze = faultData.reportLifecycleToFreeze;
     eventInfo.applicationHeapInfo = faultData.applicationHeapInfo;
+    eventInfo.applicationGCInfo = faultData.applicationGCInfo;
+    eventInfo.applicationIOInfo = faultData.applicationIOInfo;
+    eventInfo.isBlockInGc = faultData.isBlockInGc;
     eventInfo.processLifeTime = faultData.processLifeTime;
     eventInfo.markedId = faultData.markedId;
     eventInfo.processedId = faultData.processedId;
     eventInfo.dispatchedEventId = faultData.dispatchedEventId;
     eventInfo.externalLog = faultData.callbackLog;
+    return eventInfo;
+}
+
+int AppfreezeManager::NotifyANR(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo,
+    const std::string& binderInfo, const std::string& memoryContent)
+{
+    std::string eventName = faultData.errorObject.name;
+    this->PerfStart(eventName);
+    int64_t startTime = AbilityRuntime::TimeUtil::CurrentTimeMillis();
+    AppfreezeEventInfo eventInfo = UpdateEventInfo(faultData, appInfo, binderInfo, memoryContent);
 
     int ret = AppfreezeEventReport::SendAppfreezeEvent(eventName, HISYSEVENT_FAULT, eventInfo);
     TAG_LOGW(AAFwkTag::APPDFR, "reportEvent:%{public}s, pid:%{public}d, tid:%{public}d, bundleName:%{public}s, "
@@ -621,7 +654,7 @@ int AppfreezeManager::NotifyANR(const FaultData& faultData, const AppfreezeManag
         " reportFreeze:%{public}d, applicationHeapInfo:%{public}s processLifeTime:%{public}s "
         "hisysevent write ret: %{public}d",
         faultData.errorObject.name.c_str(), appInfo.pid, faultData.tid, appInfo.bundleName.c_str(),
-        appRunningUniqueId.c_str(), AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str(),
+        faultData.appRunningUniqueId.c_str(), AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str(),
         AbilityRuntime::TimeUtil::CurrentTimeMillis() - startTime, faultData.eventId,
         eventInfo.freezeInfoFile.c_str(), eventInfo.foregroundState, eventInfo.enableFreeze,
         eventInfo.reportLifecycleToFreeze, eventInfo.applicationHeapInfo.c_str(),
@@ -981,6 +1014,44 @@ bool AppfreezeManager::IsNeedIgnoreFreezeEvent(const std::string& key, const std
     return false;
 }
 
+int AppfreezeManager::ClearOldInputBlockFreezeInfo(size_t maxSize, int64_t maxTimelimit)
+{
+    if (appInputBlockFreezeInfo_.size() <= maxSize) {
+        return 0;
+    }
+    int ret = 0;
+    int64_t curTime = GetFreezeCurrentTime();
+    for (auto it = appInputBlockFreezeInfo_.begin(); it != appInputBlockFreezeInfo_.end();) {
+        auto interval = curTime - it->second;
+        if (interval > maxTimelimit || interval < 0) {
+            it = appInputBlockFreezeInfo_.erase(it);
+            ret++;
+        } else {
+            ++it;
+        }
+    }
+    return ret;
+}
+
+bool AppfreezeManager::IsNeedIgnoreInputBlockEvent(const std::string& key)
+{
+    std::lock_guard<ffrt::mutex> lock(freezeMutex_);
+    ClearOldInputBlockFreezeInfo(FREEZEMAP_SIZE_MAX, FREEZE_TIME_LIMIT);
+
+    int64_t curTime = GetFreezeCurrentTime();
+    auto it = appInputBlockFreezeInfo_.find(key);
+    if (it != appInputBlockFreezeInfo_.end()) {
+        int64_t lastTime = it->second;
+        int64_t diff = curTime - lastTime;
+        if (diff >= 0 && diff <= FREEZE_TIME_LIMIT) {
+            return true;
+        }
+    }
+    appInputBlockFreezeInfo_[key] = curTime;
+    TAG_LOGI(AAFwkTag::APPDFR, "Set input block info, key: %{public}s", key.c_str());
+    return false;
+}
+
 bool AppfreezeManager::CancelAppFreezeDetect(int32_t pid, const std::string& bundleName)
 {
     if (bundleName.empty()) {
@@ -1119,7 +1190,7 @@ void AppfreezeManager::ReportAppFreezeSysEvents(int32_t pid, const std::string& 
     hisyseventReport->InsertParam("APP_PID", pid);
     hisyseventReport->InsertParam("REPEAT_KILLED_THREAD",
         freezeEventMap_[pid][KILL_EVENT_NAME].isRepeatKilledThread);
-    int ret = hisyseventReport->Report("RELIABILITY", "APP_FREEZE_STATISTIC", HISYSEVENT_STATISTIC);
+    int ret = hisyseventReport->Report("RELIABILITY", "APP_FREEZE_STATISTICS", HISYSEVENT_STATISTIC);
     freezeEventMap_.erase(pid);
 }
 
@@ -1183,7 +1254,7 @@ bool AppfreezeManager::CheckInBackGround(const FaultData &faultData)
 bool AppfreezeManager::CheckAppfreezeHappend(const std::string& key, const std::string& eventName)
 {
     bool result = false;
-    if (eventName == AppFreezeType::LIFECYCLE_TIMEOUT || eventName == AppFreezeType::APP_INPUT_BLOCK ||
+    if (eventName == AppFreezeType::LIFECYCLE_TIMEOUT ||
         eventName == AppFreezeType::THREAD_BLOCK_6S || eventName == AppFreezeType::THREAD_BLOCK_3S ||
         eventName == AppFreezeType::BUSSINESS_THREAD_BLOCK_3S ||
         eventName == AppFreezeType::BUSSINESS_THREAD_BLOCK_6S) {
@@ -1192,7 +1263,13 @@ bool AppfreezeManager::CheckAppfreezeHappend(const std::string& key, const std::
         eventName == AppFreezeType::LIFECYCLE_TIMEOUT_WARNING) {
         std::string warningKey = eventName;
         result = IsNeedIgnoreFreezeEvent(warningKey, eventName);
-    }
+    } else if (eventName == AppFreezeType::APP_INPUT_BLOCK) {
+#ifdef APP_NO_RESPONSE_DIALOG
+        result = IsNeedIgnoreInputBlockEvent(key);
+#else
+        result = IsNeedIgnoreFreezeEvent(key, eventName);
+#endif
+     }
     if (result) {
         TAG_LOGE(AAFwkTag::APPDFR, "appFreeze happend, key:%{public}s, eventName:%{public}s",
             key.c_str(), eventName.c_str());
@@ -1450,14 +1527,22 @@ bool AppfreezeManager::IsFreezeExcludedPid(int32_t targetPid)
 }
 
 bool AppfreezeManager::CheckPreloadUIExtension(const std::string& message, const std::string& bundleName,
-    int32_t pid)
+    int32_t pid, const std::string& eventName)
 {
+    if (eventName != AppFreezeType::LIFECYCLE_HALF_TIMEOUT && eventName != AppFreezeType::LIFECYCLE_TIMEOUT) {
+        return false;
+    }
     if (message.find(PRELOAD_UIEXTENSION) != std::string::npos) {
         TAG_LOGW(AAFwkTag::APPDFR, "don't report event, msg: PreloadUIExtension, bundleName: %{public}s "
             "pid: %{public}d", bundleName.c_str(), pid);
         return true;
     }
     return false;
+}
+
+bool AppfreezeManager::CheckProcessExit(const std::string& eventName, bool foreground)
+{
+    return foreground || (eventName != AppFreezeType::THREAD_BLOCK_6S);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
