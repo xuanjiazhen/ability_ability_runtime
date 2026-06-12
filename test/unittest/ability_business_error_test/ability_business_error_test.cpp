@@ -126,7 +126,15 @@ HWTEST_F(AbilityBusinessErrorTest, GetErrorMsgByNativeError_0100, TestSize.Level
     const std::string innerErrMsg = "Internal error. Failed to start the ability. Try again later.";
     EXPECT_EQ(GetErrorMsgByNativeError(0), "OK.");
     EXPECT_EQ(GetErrorMsgByNativeError(-1000), "Internal error.");
-    EXPECT_EQ(GetErrorMsgByNativeError(-1000, innerErrMsg), "Internal error.");
+    EXPECT_EQ(GetErrorMsgByNativeError(-1000, innerErrMsg), innerErrMsg);
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::GET_ABILITY_SERVICE_FAILED),
+        "Internal error. Service unavailable. Try again later.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::CREATE_MISSION_STACK_FAILED),
+        "Internal error. Operation failed. Try again later.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::LOAD_ABILITY_TIMEOUT),
+        "Internal error. Operation timed out. Try again later.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_NATIVE_IPC_PARCEL_FAILED),
+        "Internal error. IPC failed. Try again later.");
     EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::CONNECTION_NOT_EXIST, innerErrMsg),
         "Internal error. The service connection does not exist. Use a connection ID returned by "
         "connectServiceExtensionAbility.");
@@ -146,10 +154,61 @@ HWTEST_F(AbilityBusinessErrorTest, GetErrorMsgByNativeError_0100, TestSize.Level
  */
 HWTEST_F(AbilityBusinessErrorTest, GetInnerErrorMsg_0100, TestSize.Level2)
 {
-    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::CREATE_CALLER_FAILED),
-        "Internal error. Failed to create the caller object. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE),
+        "Internal error. Service unavailable. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::OPERATION_FAILED),
+        "Internal error. Operation failed. Try again later.");
     EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::RESTORE_WINDOW_STAGE_FAILED),
         "Internal error. Failed to restore the window stage. Check the local storage object and try again.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::QUERY_ATOMIC_SERVICE_STARTUP_RULE_FAILED),
+        "Internal error. Failed to query the atomic service startup rule. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::RESTART_SELF_ATOMIC_SERVICE_FAILED),
+        "Internal error. Failed to restart the current atomic service. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED),
+        "Internal error. Failed to connect to the agent extension ability. Verify the target and try again.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::AGENT_EXTENSION_CONNECTION_ENDED),
+        "Internal error. The agent extension connection ended before it was ready. Connect again.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::TRANSFER_EXTENSION_DATA_FAILED),
+        "Internal error. Failed to transfer extension data to the window. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::UI_WINDOW_NULL),
+        "Internal error. The UI window is not available. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::RELOAD_IN_MODAL_RESULT_NULL),
+        "Internal error. Failed to create reload result. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::OBSERVER_CREATE_FAILED),
+        "Internal error. Failed to create the observer.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::OBSERVER_NOT_EXIST),
+        "Internal error. The observer does not exist. Register the observer first.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::RESTART_APP_FAILED),
+        "Internal error. Failed to restart the application. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::CREATE_PROCESS_INFO_ARRAY_FAILED),
+        "Internal error. Failed to create the process information array.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::GET_PROCESS_INFO_FAILED),
+        "Internal error. Failed to get process information. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::SET_PROCESS_CACHE_FAILED),
+        "Internal error. Failed to set the process cache state. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::UI_ABILITY_OBJ_NULL),
+        "Internal error. The UIAbility object is not available. Verify the ability is active and try again.");
+}
+
+/**
+ * @tc.name: GetAgentManagerErrorMsg_0100
+ * @tc.desc: Verify agentManager operation policy selects centralized messages without replacing mapped errors.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityBusinessErrorTest, GetAgentManagerErrorMsg_0100, TestSize.Level2)
+{
+    EXPECT_EQ(GetAgentManagerErrorMsg(-1000, AgentManagerErrorOperation::READ_AGENT_CARDS),
+        GetInnerErrorMsg(AbilityInnerErrorMsg::OPERATION_FAILED));
+    EXPECT_EQ(GetAgentManagerErrorMsg(AAFwk::ERR_NULL_AGENT_MGR_PROXY,
+        AgentManagerErrorOperation::READ_AGENT_CARDS),
+        GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE));
+    EXPECT_EQ(GetAgentManagerErrorMsg(AAFwk::CONNECTION_NOT_EXIST,
+        AgentManagerErrorOperation::DISCONNECT_AGENT_EXTENSION),
+        "Internal error. The agent extension connection does not exist. "
+        "Use an AgentProxy returned by connectAgentExtensionAbility.");
+    EXPECT_EQ(GetAgentManagerErrorMsg(AAFwk::ERR_MAX_AGENT_CONNECTIONS_REACHED,
+        AgentManagerErrorOperation::CONNECT_AGENT_EXTENSION),
+        GetErrorMsg(AbilityErrorCode::ERROR_CODE_MAX_CONNECTIONS_REACHED));
 }
 }  // namespace AAFwk
 }  // namespace OHOS

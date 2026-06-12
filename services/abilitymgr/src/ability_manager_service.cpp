@@ -73,6 +73,7 @@
 #include "int_wrapper.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
+#include "os_account_constants.h"
 #include "keep_alive_process_manager.h"
 #include "keep_alive_utils.h"
 #include "main_element_utils.h"
@@ -109,6 +110,9 @@
 #include "start_ability_utils.h"
 #include "start_options_utils.h"
 #include "startup_util.h"
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+#include "clone_for_account_util.h"
+#endif
 #include "status_bar_delegate_interface.h"
 #include "string_wrapper.h"
 #include "support_system_ability_permission.h"
@@ -284,6 +288,8 @@ constexpr int32_t BROKER_UID = 5557;
 constexpr int64_t FLOOD_ATTACK_INTERVAL_MAX = 1000;
 constexpr size_t FLOOD_ATTACK_NUMBER_MAX = 10;
 constexpr int32_t DEFAULT_USER_ID = 100;
+constexpr uint32_t REMOTE_INTENT_TIMEOUT_SECONDS = 40 * 1000;
+constexpr uint32_t MILL_TO_MICRO = 1000;
 
 const std::unordered_set<std::string> COMMON_PICKER_TYPE = {
     "share", "action", "navigation", "mail", "finance", "flight", "express", "photoEditor"
@@ -690,6 +696,13 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
         TAG_LOGW(AAFwkTag::ABILITYMGR, "specifiedFullTokenId only support for DMS");
         specifiedFullTokenId = 0;
     }
+    if (userId == DEFAULT_INVAL_VALUE) {
+        userId = GetValidUserId(userId);
+    }
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), userId),
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     XCOLLIE_TIMER_LESS_IGNORE(__PRETTY_FUNCTION__, !want.GetDeviceId().empty());
     bool isDebugApp = want.GetBoolParam(AbilityConfig::DEBUG_APP, false);
@@ -714,9 +727,6 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
             return ERR_NOT_DEVELOPER_MODE;
         }
         int32_t err = ERR_OK;
-        if (userId == DEFAULT_INVAL_VALUE) {
-            userId = GetValidUserId(userId);
-        }
         if ((err = StartAbilityUtils::CheckAppProvisionMode(want, userId, nullptr)) != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "checkAppProvisionMode returns errcode=%{public}d", err);
             return err;
@@ -1382,6 +1392,11 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     if (!param.isStartAsCaller || param.isImplicit) {
         param.want.RemoveParam("ability.params.picker.erms.policy");
     }
+    int32_t oriValidUserId = GetValidUserId(param.userId);
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(param.want, oriValidUserId),
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
     std::string dialogSessionId = param.want.GetStringParam("dialogSessionId");
     bool isSendDialogResult = false;
     AAFwk::SelectorType selectorType = AAFwk::SelectorType::WITHOUT_SELECTOR;
@@ -1440,7 +1455,6 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
         TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}s:caller specific system ability", __func__);
     }
 
-    int32_t oriValidUserId = GetValidUserId(param.userId);
     int32_t validUserId = oriValidUserId;
     StartAbilityUtils::SetTargetCloneIndexInSameBundle(param.want, param.callerToken);
     int32_t appIndex = 0;
@@ -1825,6 +1839,11 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
     const sptr<IRemoteObject> &callerToken, int32_t userId, int requestCode, bool isImplicit)
 {
     EventInfo eventInfo = BuildEventInfo(want, userId);
+    int32_t oriValidUserId = GetValidUserId(userId);
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), oriValidUserId),
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
     if (want.GetBoolParam(AbilityConfig::DEBUG_APP, false)) {
         if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "not developer Mode");
@@ -1895,7 +1914,6 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
         return ERR_INVALID_CALLER;
     }
 
-    int32_t oriValidUserId = GetValidUserId(userId);
     int32_t validUserId = oriValidUserId;
     int32_t appIndex = 0;
     if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
@@ -2203,6 +2221,11 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     EventInfo eventInfo = BuildEventInfo(want, userId);
+    int32_t oriValidUserId = GetValidUserId(userId);
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), oriValidUserId),
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
     // prevent the app from dominating the screen
     if (callerToken == nullptr && !IsCallerSceneBoard() && !isCallByShortcut &&
         AbilityPermissionUtil::GetInstance().IsDominateScreen(want, isPendingWantCaller) && !isCallByDelayed) {
@@ -2253,7 +2276,6 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         return ERR_INVALID_CALLER;
     }
 
-    int32_t oriValidUserId = GetValidUserId(userId);
     int32_t validUserId = oriValidUserId;
     StartAbilityUtils::SetTargetCloneIndexInSameBundle(want, callerToken);
     int32_t appIndex = 0;
@@ -2611,6 +2633,10 @@ int32_t AbilityManagerService::StartUIAbilitiesInSplitWindowModeHandleWant(const
     uint32_t specifyTokenId = 0;
     int32_t requestCode = DEFAULT_INVAL_VALUE;
     int32_t appIndex = 0;
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(secondaryWant), validUserId),
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
     AbilityUtil::RemoveShowModeKey(const_cast<Want &>(secondaryWant));
     auto result = CheckWantForSplitMode(secondaryWant, callerToken, validUserId, appIndex);
     if (result != ERR_OK) {
@@ -2760,7 +2786,10 @@ int32_t AbilityManagerService::StartUIAbilitiesHandleWant(const Want &want, sptr
     int32_t validUserId = GetValidUserId(userId);
     uint32_t specifyTokenId = 0;
     int32_t requestCode = DEFAULT_INVAL_VALUE;
-
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), validUserId),
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
     AbilityUtil::RemoveShowModeKey(const_cast<Want &>(want));
 
     if (!want.HasParameter(AppExecFwk::INSIGHT_INTENT_EXECUTE_OPENLINK_FLAG)) {
@@ -2983,6 +3012,10 @@ int32_t AbilityManagerService::RequestDialogServiceInner(const Want &want, const
 
     AbilityUtil::RemoveShowModeKey(const_cast<Want &>(want));
     int32_t validUserId = GetValidUserId(userId);
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), validUserId, true),
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
     StartAbilityInfoWrap threadLocalInfo;
     auto shouldBlockFunc = [aams = shared_from_this()]() { return aams->ShouldBlockAllAppStart(); };
     AbilityInterceptorParam interceptorParam = AbilityInterceptorParam(want, requestCode, validUserId,
@@ -3101,6 +3134,13 @@ int AbilityManagerService::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, Ab
         TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionInfo null");
         return ERR_INVALID_VALUE;
     }
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    if (sessionInfo->want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, true)) {
+        auto currentUserId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+        CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(sessionInfo->want, currentUserId),
+            RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+    }
+#endif
     sessionInfo->want.SetParam(AbilityRuntime::GlobalConstant::PAGE_CONFIG, params.pageConfig);
     EventInfo eventInfo = BuildEventInfo(sessionInfo->want, -1);
 #ifdef MEMMGR_OVERRIDE_ENABLE
@@ -3544,26 +3584,39 @@ int32_t AbilityManagerService::KillAppWithReason(const int32_t pid, const ExitRe
         TAG_LOGE(AAFwkTag::ABILITYMGR, "KillProcess permission verification fail");
         return ERR_PERMISSION_DENIED;
     }
-    if (!exitReason.shouldKillForeground) {
+    ExitReason reason(exitReason.reason, exitReason.subReason, exitReason.exitMsg);
+    bool isKillPrecedeStart = (exitReason.reason == Reason::REASON_RESOURCE_CONTROL &&
+        exitReason.exitMsg == GlobalConstant::LOW_MEMORY_KILL) || exitReason.shouldSkipKillInStartup;
+    auto innerRet = KillAppWithReasonInner(pid, reason, isKillPrecedeStart, exitReason.shouldKillForeground);
+    if (innerRet != ERR_OK) {
+        return innerRet;
+    }
+
+    appExitReasonHelper_->AddAppExitReason(bundleName, pid, uid, appIndex, exitReason);
+    std::vector<int32_t> pidToBeKilled = { pid };
+    return IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->KillProcessesByPids(pidToBeKilled,
+        reason.exitMsg, true, isKillPrecedeStart));
+}
+
+int32_t AbilityManagerService::KillAppWithReasonInner(int32_t pid,
+    const ExitReason &reason, bool isKillPrecedeStart, bool shouldKillForeground)
+{
+    if (!shouldKillForeground) {
         AppExecFwk::RunningProcessInfo processInfo;
         DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(pid, processInfo);
         if (processInfo.isAbilityForegrounding || processInfo.isFocused) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "do not kill foreground apps, pid = %{public}d", pid);
             return ERR_KILL_APP_WHILE_FOREGROUND;
         }
+        if (ProcessLowMemoryKillUIExtension(pid, processInfo.uid_)) {
+            return ERR_KILL_APP_WHILE_STARTING;
+        }
     }
-    bool isKillPrecedeStart = (exitReason.reason == Reason::REASON_RESOURCE_CONTROL &&
-        exitReason.exitMsg == GlobalConstant::LOW_MEMORY_KILL) || exitReason.shouldSkipKillInStartup;
-    ExitReason reason(exitReason.reason, exitReason.subReason, exitReason.exitMsg);
     if (ProcessLowMemoryKill(pid, reason, isKillPrecedeStart)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "%{public}d is starting", pid);
         return ERR_KILL_APP_WHILE_STARTING;
     }
-    
-    appExitReasonHelper_->AddAppExitReason(bundleName, pid, uid, appIndex, exitReason);
-    std::vector<int32_t> pidToBeKilled = { pid };
-    return IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->KillProcessesByPids(pidToBeKilled,
-        reason.exitMsg, true, isKillPrecedeStart));
+    return ERR_OK;
 }
 
 int32_t AbilityManagerService::KillBundleWithReason(
@@ -4043,6 +4096,10 @@ int AbilityManagerService::PreloadUIExtensionAbilityInner(
     TAG_LOGD(AAFwkTag::UI_EXT, "PreloadUIExtension called, elementName: %{public}s/%{public}s",
         want.GetBundle().c_str(), want.GetElement().GetAbilityName().c_str());
     int32_t validUserId = GetValidUserId(userId);
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), validUserId, true),
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
     auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bms, ERR_INVALID_VALUE);
     int32_t callerUid = IPCSkeleton::GetCallingUid();
@@ -4341,6 +4398,10 @@ int32_t AbilityManagerService::StartExtensionAbilityInner(const Want &want, cons
     }
 
     int32_t validUserId = GetValidUserId(userId);
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), validUserId, true),
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
     int32_t appIndex = 0;
     if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
         if (extensionType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
@@ -4725,6 +4786,10 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
         return ERR_INVALID_CALLER;
     }
     StartAbilityInfoWrap threadLocalInfo;
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(extensionSessionInfo->want,
+        GetValidUserId(userId), true), RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
 
     auto shouldBlockFunc = [aams = shared_from_this()]() { return aams->ShouldBlockAllAppStart(); };
     AbilityInterceptorParam interceptorParam = AbilityInterceptorParam(extensionSessionInfo->want, 0,
@@ -4886,6 +4951,10 @@ int AbilityManagerService::StopExtensionAbility(const Want &want, const sptr<IRe
     }
 
     int32_t validUserId = GetValidUserId(userId);
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), validUserId, true),
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
     if (!JudgeMultiUserConcurrency(validUserId)) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "multi-user non-concurrent unsatisfied");
         eventInfo.errCode = ERR_INVALID_VALUE;
@@ -4965,6 +5034,12 @@ void AbilityManagerService::StopSwitchUserDialog()
 void AbilityManagerService::StopSwitchUserDialogInner(const Want &want, const int32_t lastUserId)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Stop switch user dialog inner come");
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    if (!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), lastUserId, true)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "CloneForAccountUtil::ProcessAppIndex failed");
+        return;
+    }
+#endif
     EventInfo eventInfo = BuildEventInfo(want, lastUserId);
     eventInfo.extensionType = static_cast<int32_t>(AppExecFwk::ExtensionAbilityType::SERVICE);
     AbilityRequest abilityRequest;
@@ -5795,7 +5870,8 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
         auto bms = AbilityUtil::GetBundleManagerHelper();
         CHECK_POINTER_AND_RETURN(bms, ERR_INVALID_VALUE);
 
-        bool queryResult = IN_PROCESS_CALL(bms->QueryExtensionAbilityInfoByUri(uri, validUserId, extensionInfo));
+        bool queryResult = 
+            IN_PROCESS_CALL(bms->QueryExtensionAbilityInfoByUriOptimal(uri, validUserId, extensionInfo));
         if (!queryResult || extensionInfo.name.empty() || extensionInfo.bundleName.empty()) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "invalid extension ability info");
             if (extensionType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
@@ -5809,6 +5885,11 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
         }
         abilityWant.SetElementName(extensionInfo.bundleName, extensionInfo.name);
     }
+
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(abilityWant, validUserId, true),
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
 
     if (CheckIfOperateRemote(abilityWant)) {
         // Remote extension connections are handled by DMS and the extension runs on another device.
@@ -5920,7 +6001,8 @@ int AbilityManagerService::ConnectUIExtensionAbility(const Want &want, const spt
         auto bms = AbilityUtil::GetBundleManagerHelper();
         CHECK_POINTER_AND_RETURN(bms, ERR_INVALID_VALUE);
 
-        bool queryResult = IN_PROCESS_CALL(bms->QueryExtensionAbilityInfoByUri(uri, validUserId, extensionInfo));
+        bool queryResult =
+            IN_PROCESS_CALL(bms->QueryExtensionAbilityInfoByUriOptimal(uri, validUserId, extensionInfo));
         if (!queryResult || extensionInfo.name.empty() || extensionInfo.bundleName.empty()) {
             TAG_LOGE(AAFwkTag::UI_EXT, "invalid extension ability info");
             eventInfo.errReason = "invalid extension ability info";
@@ -5929,6 +6011,11 @@ int AbilityManagerService::ConnectUIExtensionAbility(const Want &want, const spt
         }
         abilityWant.SetElementName(extensionInfo.bundleName, extensionInfo.name);
     }
+
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(abilityWant, validUserId, true),
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
 
     UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityWant, callerToken);
 
@@ -6614,14 +6701,11 @@ int32_t AbilityManagerService::GetUidByCloneBundleInfo(
 sptr<IWantSender> AbilityManagerService::GetWantSenderByUserId(const WantSenderInfo &wantSenderInfo,
     const sptr<IRemoteObject> &callerToken, int32_t uid, int32_t callerUid, int32_t callerUserId)
 {
-    bool isSpecifyUserId = wantSenderInfo.userId >= 0;
-    std::string bundleName = "";
-    if (!wantSenderInfo.allWants.empty()) {
-        bundleName = wantSenderInfo.allWants.back().want.GetBundle();
-    }
+    bool isSpecifyUserId = wantSenderInfo.userId > 0;
+    std::string bundleName = wantSenderInfo.allWants.empty() ? "" :
+        wantSenderInfo.allWants.back().want.GetBundle();
     bool isSACall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
     bool isSystemApp = AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall();
-
     int32_t userId = -1;
     int32_t appUid = -1;
     int32_t appIndex = 0;
@@ -6656,10 +6740,11 @@ sptr<IWantSender> AbilityManagerService::GetWantSenderByUserId(const WantSenderI
     }
     const_cast<WantSenderInfo&>(wantSenderInfo).userId = userId;
     TAG_LOGI(AAFwkTag::WANTAGENT, "bundleName: %{public}s, appIndex: %{public}d, isSystemApp: %{public}d, "
-        "isSACall: %{public}d, userId: %{public}d, appUid: %{public}d", bundleName.c_str(), appIndex, isSystemApp,
-        isSACall, userId, appUid);
-
-    return pendingWantManager->GetWantSender(callerUid, appUid, isSystemApp, wantSenderInfo, callerToken, appIndex);
+        "isSACall: %{public}d, userId: %{public}d, appUid: %{public}d", bundleName.c_str(), appIndex,
+        isSystemApp, isSACall, userId, appUid);
+    int32_t publisherUid = (uid >= 0 && appUid >= 0) ? appUid : callerUid;
+    return pendingWantManager->GetWantSender(
+        callerUid, appUid, isSystemApp, wantSenderInfo, callerToken, appIndex, publisherUid);
 }
 
 sptr<IWantSender> AbilityManagerService::GetWantSender(
@@ -6670,7 +6755,7 @@ sptr<IWantSender> AbilityManagerService::GetWantSender(
     int32_t userId = wantSenderInfo.userId;
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     int32_t callerUserId = callerUid / BASE_USER_RANGE;
-    if (userId >= 0 || callerUserId == U0_USER_ID) {
+    if (userId > 0 && userId <= AccountSA::Constants::MAX_USER_ID) {
         return GetWantSenderByUserId(wantSenderInfo, callerToken, uid, callerUid, callerUserId);
     }
     auto pendingWantManager = GetCurrentPendingWantManager();
@@ -6722,7 +6807,9 @@ sptr<IWantSender> AbilityManagerService::GetWantSender(
 
     TAG_LOGI(AAFwkTag::WANTAGENT, "%{public}s#%{public}d, isSystemApp: %{public}d, "
         "userId: %{public}d", wantSenderInfo.bundleName.c_str(), appIndex, isSystemApp, userId);
-    return pendingWantManager->GetWantSender(callerUid, appUid, isSystemApp, wantSenderInfo, callerToken, appIndex);
+    int32_t publisherUid = (uid >= 0 && appUid >= 0) ? appUid : callerUid;
+    return pendingWantManager->GetWantSender(
+        callerUid, appUid, isSystemApp, wantSenderInfo, callerToken, appIndex, publisherUid);
 }
 
 int AbilityManagerService::SendWantSender(sptr<IWantSender> target, SenderInfo &senderInfo)
@@ -6741,7 +6828,7 @@ int AbilityManagerService::SendWantSender(sptr<IWantSender> target, SenderInfo &
         userId = record->GetKey()->GetUserId();
     }
     std::shared_ptr<PendingWantManager> pendingWantManager;
-    if (userId >= 0) {
+    if (userId > 0 && userId <= AccountSA::Constants::MAX_USER_ID) {
         pendingWantManager = GetPendingWantManagerByUserId(userId);
     } else {
         pendingWantManager = GetCurrentPendingWantManager();
@@ -6781,7 +6868,7 @@ void AbilityManagerService::CancelWantSender(const sptr<IWantSender> &sender)
         userId = record->GetKey()->GetUserId();
     }
     std::shared_ptr<PendingWantManager> pendingWantManager;
-    if (userId >= 0) {
+    if (userId > 0 && userId <= AccountSA::Constants::MAX_USER_ID) {
         pendingWantManager = GetPendingWantManagerByUserId(userId);
     } else {
         pendingWantManager = GetCurrentPendingWantManager();
@@ -6810,7 +6897,7 @@ void AbilityManagerService::CancelWantSenderByFlags(const sptr<IWantSender> &sen
         userId = record->GetKey()->GetUserId();
     }
     std::shared_ptr<PendingWantManager> pendingWantManager;
-    if (userId >= 0) {
+    if (userId > 0 && userId <= AccountSA::Constants::MAX_USER_ID) {
         pendingWantManager = GetPendingWantManagerByUserId(userId);
     } else {
         pendingWantManager = GetCurrentPendingWantManager();
@@ -6851,7 +6938,7 @@ int AbilityManagerService::GetPendingWantUid(const sptr<IWantSender> &target)
         userId = record->GetKey()->GetUserId();
     }
     std::shared_ptr<PendingWantManager> pendingWantManager;
-    if (userId >= 0) {
+    if (userId > 0 && userId <= AccountSA::Constants::MAX_USER_ID) {
         pendingWantManager = GetPendingWantManagerByUserId(userId);
     } else {
         pendingWantManager = GetCurrentPendingWantManager();
@@ -6891,7 +6978,7 @@ std::string AbilityManagerService::GetPendingWantBundleName(const sptr<IWantSend
         userId = record->GetKey()->GetUserId();
     }
     std::shared_ptr<PendingWantManager> pendingWantManager;
-    if (userId >= 0) {
+    if (userId > 0 && userId <= AccountSA::Constants::MAX_USER_ID) {
         pendingWantManager = GetPendingWantManagerByUserId(userId);
     } else {
         pendingWantManager = GetCurrentPendingWantManager();
@@ -6920,7 +7007,7 @@ int AbilityManagerService::GetPendingWantCode(const sptr<IWantSender> &target)
         userId = record->GetKey()->GetUserId();
     }
     std::shared_ptr<PendingWantManager> pendingWantManager;
-    if (userId >= 0) {
+    if (userId > 0 && userId <= AccountSA::Constants::MAX_USER_ID) {
         pendingWantManager = GetPendingWantManagerByUserId(userId);
     } else {
         pendingWantManager = GetCurrentPendingWantManager();
@@ -6950,7 +7037,7 @@ int AbilityManagerService::GetPendingWantType(const sptr<IWantSender> &target)
         userId = record->GetKey()->GetUserId();
     }
     std::shared_ptr<PendingWantManager> pendingWantManager;
-    if (userId >= 0) {
+    if (userId > 0 && userId <= AccountSA::Constants::MAX_USER_ID) {
         pendingWantManager = GetPendingWantManagerByUserId(userId);
     } else {
         pendingWantManager = GetCurrentPendingWantManager();
@@ -7001,7 +7088,7 @@ int AbilityManagerService::GetPendingRequestWant(const sptr<IWantSender> &target
         userId = record->GetKey()->GetUserId();
     }
     std::shared_ptr<PendingWantManager> pendingWantManager;
-    if (userId >= 0) {
+    if (userId > 0 && userId <= AccountSA::Constants::MAX_USER_ID) {
         pendingWantManager = GetPendingWantManagerByUserId(userId);
     } else {
         pendingWantManager = GetCurrentPendingWantManager();
@@ -7031,7 +7118,7 @@ int AbilityManagerService::GetPendingRequestWantFromProxy(const sptr<IWantSender
         userId = record->GetKey()->GetUserId();
     }
     std::shared_ptr<PendingWantManager> pendingWantManager;
-    if (userId >= 0) {
+    if (userId > 0 && userId <= AccountSA::Constants::MAX_USER_ID) {
         pendingWantManager = GetPendingWantManagerByUserId(userId);
     } else {
         pendingWantManager = GetCurrentPendingWantManager();
@@ -8682,6 +8769,10 @@ int AbilityManagerService::StopServiceAbility(const Want &want, int32_t userId, 
     }
 
     int32_t validUserId = GetValidUserId(userId);
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), validUserId),
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
     if (!JudgeMultiUserConcurrency(validUserId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "multi-user non-concurrent unsatisfied");
         return ERR_CROSS_USER;
@@ -9920,17 +10011,20 @@ int AbilityManagerService::StartAbilityByCallWithErrMsg(const Want &want, const 
         errMsg = "verify account permission failed";
         return CHECK_PERMISSION_FAILED;
     }
-
+    if (accountId == U0_USER_ID) {
+        accountId = DEFAULT_INVAL_VALUE;
+    }
+    int32_t oriValidUserId = GetValidUserId(accountId);
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), oriValidUserId),
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
     AbilityUtil::RemoveWantKey(const_cast<Want &>(want));
     int32_t appIndex = 0;
     if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
         errMsg = "app index is error";
         return ERR_APP_CLONE_INDEX_INVALID;
     }
-    if (accountId == U0_USER_ID) {
-        accountId = DEFAULT_INVAL_VALUE;
-    }
-    int32_t oriValidUserId = GetValidUserId(accountId);
     auto checkRet = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(const_cast<Want &>(want),
         oriValidUserId, appIndex, callerToken, false);
     if (checkRet != ERR_OK) {
@@ -10043,6 +10137,10 @@ int AbilityManagerService::StartAbilityForPrelaunch(const Want &want, const int3
         return ERR_INVALID_VALUE;
     }
     int32_t oriValidUserId = GetValidUserId(DEFAULT_INVAL_VALUE);
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), oriValidUserId),
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
     auto shouldBlockFunc = [aams = shared_from_this()]() { return aams->ShouldBlockAllAppStart(); };
     AbilityInterceptorParam interceptorParam = AbilityInterceptorParam(want, 0, oriValidUserId, true, nullptr,
         shouldBlockFunc);
@@ -10897,6 +10995,12 @@ void AbilityManagerService::StartSwitchUserDialog()
 void AbilityManagerService::StartSwitchUserDialogInner(const Want &want, int32_t lastUserId)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Start switch user dialog inner come");
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    if (!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), lastUserId, true)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "CloneForAccountUtil::ProcessAppIndex failed");
+        return;
+    }
+#endif
     EventInfo eventInfo = BuildEventInfo(want, lastUserId);
     eventInfo.extensionType = static_cast<int32_t>(AppExecFwk::ExtensionAbilityType::SERVICE);
     AbilityRequest abilityRequest;
@@ -11180,14 +11284,18 @@ int AbilityManagerService::StartUserTest(const Want &want, const sptr<IRemoteObj
     if (checkResult != ERR_OK) {
         return checkResult;
     }
+    int32_t userId = INVALID_USER_ID;
+    auto ret = ParseAndValidateUserId(want, userId);
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want),
+        GetValidUserId(DEFAULT_INVAL_VALUE)), RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
     int32_t appIndex = 0;
     if (!StartAbilityUtils::GetAppIndex(want, nullptr, appIndex) || appIndex != 0) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Not support app clone");
         return ERR_NOT_SUPPORT_APP_CLONE;
     }
 
-    int32_t userId;
-    auto ret = ParseAndValidateUserId(want, userId);
     if (ret != ERR_OK) {
         return ret;
     }
@@ -12874,7 +12982,7 @@ int AbilityManagerService::CheckCallAbilityPermission(const AbilityRequest &abil
     if (verificationInfo.isCliToolToken && bundleMgrHelper) {
         std::vector<AppExecFwk::AbilityInfo> launcherAbilityInfos;
         auto callerUserId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
-        uint32_t res = IN_PROCESS_CALL(bundleMgrHelper->GetLauncherAbilityInfoSync(
+        auto res = IN_PROCESS_CALL(bundleMgrHelper->GetLauncherAbilityInfoSync(
             abilityRequest.abilityInfo.bundleName, callerUserId, launcherAbilityInfos));
         if (res != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "GetLauncherAbilityInfoSync failed: %{public}d", res);
@@ -13684,6 +13792,22 @@ bool AbilityManagerService::ProcessLowMemoryKill(int32_t pid, const ExitReason &
     return false;
 }
 
+bool AbilityManagerService::ProcessLowMemoryKillUIExtension(int32_t pid, int32_t uid)
+{
+    int32_t userId = INVALID_USER_ID;
+    auto ret = DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()
+        ->GetOsAccountLocalIdFromUid(uid, userId);
+    if (ret == 0) {
+        auto uiExtManager = GetUIExtensionAbilityManagerByUserId(userId);
+        if (uiExtManager != nullptr && uiExtManager->IsUIExtensionStarting(uid, pid)) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "UIExtension uid %{public}d pid %{public}d is starting, userId:%{public}d",
+                uid, pid, userId);
+            return true;
+        }
+    }
+    return false;
+}
+
 int32_t AbilityManagerService::KillProcessWithReason(int32_t pid, const ExitReason &reason)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -13731,6 +13855,9 @@ int32_t AbilityManagerService::KillProcessWithReasonInner(int32_t pid, const Exi
         if (processInfo.isAbilityForegrounding || processInfo.isFocused) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "do not kill foreground apps, pid = %{public}d", pid);
             return ERR_KILL_APP_WHILE_FOREGROUND;
+        }
+        if (ProcessLowMemoryKillUIExtension(pid, processInfo.uid_)) {
+            return ERR_KILL_APP_WHILE_STARTING;
         }
     }
 
@@ -14298,11 +14425,66 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
                 paramPtr->insightIntentId_);
  	        return ERR_INTENT_CONNECTION_FAILED;
  	    }
+        SetRemoteIntentTimeout(paramPtr->insightIntentId_);
         return ERR_OK;
  	}
 
     AbilityRuntime::ExecuteIntentCommonOptions options(ignoreAbilityName, infos, key);
     return ExecuteIntentCommon(callerToken, paramPtr, callerBundlename, options);
+}
+
+void AbilityManagerService::SetRemoteIntentTimeout(uint64_t insightIntentId)
+{
+    auto taskWrap = [insightIntentId]() {
+        TAG_LOGW(AAFwkTag::INTENT, "RemoteIntent timeout triggered, intentId: %{public}" PRIu64, insightIntentId);
+        AppExecFwk::InsightIntentExecuteResult errorResult{};
+        errorResult.innerErr = AbilityRuntime::InsightIntentInnerErr::INSIGHT_INTENT_EXECUTE_REPLY_FAILED;
+        DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->ExecuteIntentDone(
+            insightIntentId, ERR_INTENT_DEVICE_DISCONNECTED, errorResult);
+        auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
+        if (abilityMgr == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityMgr is nullptr.");
+            return;
+        }
+        abilityMgr->RemoveIntentTask(insightIntentId);
+    };
+    ffrt::task_attr ffrtTaskAttr;
+    ffrtTaskAttr.delay(REMOTE_INTENT_TIMEOUT_SECONDS * MILL_TO_MICRO);
+    auto ffrtTaskHandle = ffrt::submit_h(std::move(taskWrap), {}, {}, ffrtTaskAttr);
+    if (ffrtTaskHandle == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null ffrtTaskHandle");
+        return;
+    }
+    std::shared_ptr<ffrt::task_handle> taskHandle = std::make_shared<ffrt::task_handle>(
+        std::move(ffrtTaskHandle));
+    std::lock_guard<ffrt::mutex> lock(remoteTaskHandlesMutex_);
+    remoteTaskHandles_.emplace(insightIntentId, taskHandle);
+}
+
+void AbilityManagerService::RemoveIntentTimeout(uint64_t insightIntentId)
+{
+    std::lock_guard<ffrt::mutex> lock(remoteTaskHandlesMutex_);
+    auto iter = remoteTaskHandles_.find(insightIntentId);
+    if (iter == remoteTaskHandles_.end()) {
+        TAG_LOGE(AAFwkTag::INTENT, "not find, insightIntentId: %{public}" PRIu64, insightIntentId);
+        return;
+    }
+    auto taskHandle = iter->second;
+    if (taskHandle == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null taskHandle");
+        return;
+    }
+    auto ret = ffrt::skip(*taskHandle);
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::INTENT, "remote intent task skip failed");
+    }
+    remoteTaskHandles_.erase(insightIntentId);
+}
+
+void AbilityManagerService::RemoveIntentTask(uint64_t insightIntentId)
+{
+    std::lock_guard<ffrt::mutex> lock(remoteTaskHandlesMutex_);
+    remoteTaskHandles_.erase(insightIntentId);
 }
 
 bool AbilityManagerService::IsFloodAttackByCallerUid(int32_t callerUid)
@@ -14454,6 +14636,11 @@ int32_t AbilityManagerService::StartAbilityByCallWithInsightIntent(const Want &w
 
     AbilityUtil::RemoveWantKey(const_cast<Want &>(want));
     AbilityUtil::RemoveInstanceKey(const_cast<Want &>(want));
+    int32_t oriValidUserId = GetValidUserId(userId);
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), oriValidUserId),
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
     AbilityRequest abilityRequest;
     abilityRequest.callType = AbilityCallType::CALL_REQUEST_TYPE;
     abilityRequest.callerUid = IPCSkeleton::GetCallingUid();
@@ -14468,7 +14655,6 @@ int32_t AbilityManagerService::StartAbilityByCallWithInsightIntent(const Want &w
         return result;
     }
     std::shared_ptr<AbilityRecord> targetRecord;
-    int32_t oriValidUserId = GetValidUserId(userId);
     auto missionListMgr = GetMissionListManagerByUserId(oriValidUserId);
     if (IsAbilityStarted(abilityRequest, targetRecord, oriValidUserId)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "ability has already started");
@@ -14671,6 +14857,10 @@ int32_t AbilityManagerService::StartAbilityByCallWithSkill(const Want &want,
     abilityRequest.want = want;
     abilityRequest.connect = connect;
     int32_t oriValidUserId = GetValidUserId(userId);
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), oriValidUserId),
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
     int32_t result = GenerateAbilityRequest(want, -1, abilityRequest, callerToken, oriValidUserId);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "generate ability request error");
@@ -17989,14 +18179,6 @@ ErrCode AbilityManagerService::IsUIAbilityAlreadyExist(const Want &want, const s
     return uiAbilityManager->IsUIAbilityAlreadyExist(want, specifiedFlag, appIndex, instanceKey, launchMode);
 }
 
-ErrCode AbilityManagerService::IsSpecifiedUIAbilityAlreadyExist(const Want &want, const std::string &specifiedFlag,
-    int32_t appIndex, const std::string &instanceKey)
-{
-    auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
-    CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
-    return uiAbilityManager->IsSpecifiedUIAbilityAlreadyExist(want, specifiedFlag, appIndex, instanceKey);
-}
-
 bool AbilityManagerService::IsAppCloneOrMultiInstance(const Want &want, const std::shared_ptr<AbilityRecord> callerRecord,
     int32_t &targetAppIndex, const std::string &callerInstanceKey)
 {
@@ -18086,15 +18268,12 @@ ErrCode AbilityManagerService::StartSelfUIAbilityInCurrentProcess(const Want &wa
 ErrCode AbilityManagerService::StartSelfUIAbilityInChildProcess(
     const Want &want, const std::string &specifiedFlag, sptr<IRemoteObject> callerToken)
 {
-    if (!AppUtils::GetInstance().IsSupportNativeUIAbility()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "device not supported");
-        return ERR_CAPABILITY_NOT_SUPPORT;
-    }
+    CHECK_TRUE_RETURN_RET(!AppUtils::GetInstance().IsSupportNativeUIAbility(),
+        ERR_CAPABILITY_NOT_SUPPORT, "device not supported");
+
     auto callerRecord = Token::GetAbilityRecordByToken(callerToken);
-    if (callerRecord == nullptr || !JudgeSelfCalled(callerRecord)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "not self call");
-        return ERR_INVALID_VALUE;
-    }
+    CHECK_TRUE_RETURN_RET(callerRecord == nullptr || !JudgeSelfCalled(callerRecord),
+        ERR_INVALID_VALUE, "not self call");
 
     AppExecFwk::AbilityInfo abilityInfo;
     auto checkRet = CheckStartSelfUIAbilityInChildProcess(want, specifiedFlag, callerRecord, abilityInfo);
@@ -18119,22 +18298,19 @@ ErrCode AbilityManagerService::StartSelfUIAbilityInChildProcess(
 ErrCode AbilityManagerService::CheckStartSelfUIAbilityInChildProcess(const Want &want, const std::string &specifiedFlag,
     const std::shared_ptr<AbilityRecord> &callerRecord, AppExecFwk::AbilityInfo &abilityInfo)
 {
+    CHECK_POINTER_AND_RETURN(callerRecord, INNER_ERR);
     std::string targetBundleName = want.GetBundle();
     std::string targetAbilityName = want.GetElement().GetAbilityName();
-    if (targetBundleName.empty() || targetAbilityName.empty()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "implicit start not allowed");
-        return START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START;
-    }
+    CHECK_TRUE_RETURN_RET(targetBundleName.empty() || targetAbilityName.empty(),
+        START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START, "implicit start not allowed");
     CHECK_TRUE_RETURN_RET(targetBundleName != callerRecord->GetApplicationInfo().bundleName,
         ERROR_UIABILITY_NOT_BELONG_TO_CALLER, "The UIAbility not belog to caller");
+
     int32_t appIndex = want.GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, -1);
-    auto callerPid = IPCSkeleton::GetCallingPid();
-    AppExecFwk::RunningProcessInfo processInfo;
-    DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByChildProcessPid(callerPid, processInfo);
-    if (IsAppCloneOrMultiInstance(want, callerRecord, appIndex, processInfo.instanceKey)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "not support app clone and multi instance");
-        return ERROR_UIABILITY_NOT_BELONG_TO_CALLER;
-    }
+    std::string instanceKey = callerRecord->GetInstanceKey();
+    CHECK_TRUE_RETURN_RET(IsAppCloneOrMultiInstance(want, callerRecord, appIndex, instanceKey),
+        ERROR_UIABILITY_NOT_BELONG_TO_CALLER, "not support app clone and multi instance");
+
     auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bundleMgrHelper, INNER_ERR);
     auto callerUserId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
@@ -18142,16 +18318,13 @@ ErrCode AbilityManagerService::CheckStartSelfUIAbilityInChildProcess(const Want 
         AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, appIndex, abilityInfo, callerUserId)) != ERR_OK,
         TARGET_BUNDLE_NOT_EXIST, "The specified ability not exist");
 
-    CHECK_TRUE_RETURN_RET(abilityInfo.type != AppExecFwk::AbilityType::PAGE,
-        TARGET_BUNDLE_NOT_EXIST, "not UIAbility");
-    if (specifiedFlag != "" && abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
-        auto ret = IsSpecifiedUIAbilityAlreadyExist(want, specifiedFlag, appIndex, processInfo.instanceKey);
-        if (ret != ERR_OK) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "UIAbility already exist");
-            return ret;
-        }
+    CHECK_TRUE_RETURN_RET(abilityInfo.type != AppExecFwk::AbilityType::PAGE, TARGET_BUNDLE_NOT_EXIST, "not UIAbility");
+    if ((!specifiedFlag.empty() && abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED) ||
+        abilityInfo.launchMode == AppExecFwk::LaunchMode::SINGLETON) {
+        auto ret = IsUIAbilityAlreadyExist(want, specifiedFlag, appIndex, instanceKey, abilityInfo.launchMode);
+        CHECK_RET_RETURN_RET(ret, "UIAbility already exist");
     }
-    CHECK_TRUE_RETURN_RET(processInfo.state_ != AppExecFwk::AppProcessState::APP_STATE_FOREGROUND,
+    CHECK_TRUE_RETURN_RET(!callerRecord->IsForeground() && !callerRecord->GetAbilityForegroundingFlag(),
         NOT_TOP_ABILITY, "caller not foreground");
     return ERR_OK;
 }

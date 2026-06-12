@@ -237,7 +237,8 @@ private:
             observerForeground_ = new (std::nothrow) JSAbilityForegroundStateObserver(env);
             if (observerForeground_ == nullptr) {
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "null observerForeground_");
-                ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+                ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::OBSERVER_CREATE_FAILED));
                 return CreateJsUndefined(env);
             }
             napi_add_env_cleanup_hook(env, JSAbilityForegroundStateObserver::CleanUp,
@@ -352,7 +353,8 @@ private:
     {
         if (observerForeground_ == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
-            ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+            ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::OBSERVER_NOT_EXIST));
             return CreateJsUndefined(env);
         }
         if (argc == ARGC_TWO) {
@@ -877,7 +879,8 @@ private:
         auto ret = AbilityManagerClient::GetInstance()->RestartSelfAtomicService(token);
         if (ret != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "resatrt atomic service failed: %{public}d", ret);
-            ThrowErrorByNativeErr(env, ret);
+            napi_throw(env, CreateJsErrorByNativeErr(env, ret, "",
+                GetInnerErrorMsg(AbilityInnerErrorMsg::RESTART_SELF_ATOMIC_SERVICE_FAILED)));
         }
         return CreateJsUndefined(env);
     }

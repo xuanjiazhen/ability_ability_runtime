@@ -12,30 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef MOCK_IPC_SKELETON_H
+#define MOCK_IPC_SKELETON_H
 
-#ifndef OHOS_ABILITY_RUNTIME_JS_SKILL_DRIVER_H
-#define OHOS_ABILITY_RUNTIME_JS_SKILL_DRIVER_H
-
-#include "native_engine/native_engine.h"
+#include <string>
+#include <sys/types.h>
 
 namespace OHOS {
-namespace CliTool {
-
-class JSSkillDriver final {
+class IPCSkeleton {
 public:
-    JSSkillDriver() {}
-    ~JSSkillDriver() {}
-
-    static void Finalizer(napi_env env, void *data, void *hint);
-    static napi_value ExecSkillTool(napi_env env, napi_callback_info info);
-
-private:
-    napi_value OnExecSkillTool(napi_env env, size_t argc, napi_value *argv);
+    static int32_t GetCallingUid() { return 0; }
+    static pid_t GetCallingPid() { return 0; }
+    static std::string ResetCallingIdentity() { return ""; }
+    static void SetCallingIdentity(const std::string &identity) {}
 };
-
-napi_value JSSkillDriverInit(napi_env env, napi_value exportObj);
-
-} // namespace CliTool
-} // namespace OHOS
-
-#endif // OHOS_ABILITY_RUNTIME_JS_SKILL_DRIVER_H
+}  // namespace OHOS
+#endif

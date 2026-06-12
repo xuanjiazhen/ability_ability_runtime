@@ -35,6 +35,7 @@
 #include "permission_constants.h"
 #include "process_options.h"
 #include "request_id_util.h"
+#include "res_sched_util.h"
 #include "restart_app_manager.h"
 #include "session_info.h"
 #include "start_ability_utils.h"
@@ -390,6 +391,9 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::HandleAbilityRecordReused(
         return nullptr;
     }
     if (uiAbilityRecord->IsGameSAPreLaunch()) {
+        // Report game prelaunch user click event to RSS.
+        ResSchedUtil::GetInstance().ReportGameClickToRSS(
+            uiAbilityRecord->GetBundleName(), uiAbilityRecord->GetPid(), uiAbilityRecord->GetUid());
         // Clear the game SA prelaunch flag in AbilityRecord and AppRecord when reusing AbilityRecord.
         uiAbilityRecord->SetGameSAPreLaunch(false);
         int32_t ret = IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->SetGameSAPrelaunch(
@@ -2394,6 +2398,10 @@ int UIAbilityLifecycleManager::CloseUIAbility(const UIAbilityRecordPtr &abilityR
     if (abilityRecord->IsTerminating() && !abilityRecord->IsForeground()) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "ability on terminating");
         return ERR_OK;
+    }
+
+    if (abilityRecord->IsByOeExt()) {
+        isClearSession = false;
     }
 
     // If this is a host ability, terminate all associated plugin abilities first
@@ -4845,6 +4853,7 @@ ErrCode UIAbilityLifecycleManager::IsUIAbilityAlreadyExist(const Want &want,
     }
     std::string moduleName = want.GetModuleName();
     std::string abilityName = want.GetElement().GetAbilityName();
+    std::string bundleName = want.GetElement().GetBundleName();
 
     for (auto it = tempSessionAbilityMap.begin(); it != tempSessionAbilityMap.end(); it++) {
         if (it->second == nullptr) {
@@ -4852,39 +4861,17 @@ ErrCode UIAbilityLifecycleManager::IsUIAbilityAlreadyExist(const Want &want,
         }
         if (launchMode == AppExecFwk::LaunchMode::SPECIFIED && it->second->GetSpecifiedFlag() == specifiedFlag &&
             it->second->GetAbilityInfo().name == abilityName &&
+            it->second->GetAbilityInfo().bundleName == bundleName &&
             (moduleName.empty() || it->second->GetAbilityInfo().moduleName == moduleName) &&
             it->second->GetAppIndex() == appIndex && it->second->GetInstanceKey() == instanceKey) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "specifiedFlag already exists");
             return ERROR_UIABILITY_IS_ALREADY_EXIST;
         }
         if (launchMode != AppExecFwk::LaunchMode::SPECIFIED && it->second->GetAbilityInfo().name == abilityName &&
+            it->second->GetAbilityInfo().bundleName == bundleName &&
             (moduleName.empty() || it->second->GetAbilityInfo().moduleName == moduleName) &&
             it->second->GetInstanceKey() == instanceKey && it->second->GetAppIndex() == appIndex) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "UIAbility already exists");
-            return ERROR_UIABILITY_IS_ALREADY_EXIST;
-        }
-    }
-    return ERR_OK;
-}
-
-ErrCode UIAbilityLifecycleManager::IsSpecifiedUIAbilityAlreadyExist(const Want &want,
-    const std::string &specifiedFlag, int32_t appIndex, const std::string &instanceKey)
-{
-    std::lock_guard<ffrt::mutex> guard(sessionLock_);
-    std::string bundleName = want.GetElement().GetBundleName();
-    std::string moduleName = want.GetElement().GetModuleName();
-    std::string abilityName = want.GetElement().GetAbilityName();
-
-    for (auto it = sessionAbilityMap_.begin(); it != sessionAbilityMap_.end(); it++) {
-        if (it->second == nullptr) {
-            continue;
-        }
-        if (it->second->GetSpecifiedFlag() == specifiedFlag &&
-            it->second->GetAbilityInfo().name == abilityName &&
-            it->second->GetAbilityInfo().bundleName == bundleName &&
-            (moduleName.empty() || it->second->GetAbilityInfo().moduleName == moduleName) &&
-            it->second->GetAppIndex() == appIndex && it->second->GetInstanceKey() == instanceKey) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "specifiedFlag already exists");
             return ERROR_UIABILITY_IS_ALREADY_EXIST;
         }
     }

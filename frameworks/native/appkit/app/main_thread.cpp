@@ -713,11 +713,7 @@ void MainThread::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpC
             TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
             return;
         }
-        std::string dumpResult;
-        appThread->HandleMem(info, dumpResult);
-        if (callback) {
-            appThread->appMgr_->ReportDumpMemResult(callback, dumpResult);
-        }
+        appThread->HandleMem(info, callback);
     };
     if (!mainHandler_->PostTask(task, "MainThread:HandleMem")) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask HandleMem failed");
@@ -1084,7 +1080,7 @@ void MainThread::HandleCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info
     }
 }
 
-void MainThread::HandleMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+void MainThread::HandleMem(const OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
     if (mainHandler_ == nullptr) {
@@ -1097,7 +1093,7 @@ void MainThread::HandleMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::strin
         return;
     }
     auto helper = std::make_shared<DumpRuntimeHelper>(app);
-    helper->DumpMem(info, dumpResult);
+    helper->DumpMem(info, callback);
 }
 
 /**
@@ -1900,9 +1896,8 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
             }
         }
         for (const auto &hsp : hspList) {
-            options.commonHspBundleInfos.push_back({hsp.versionCode,
-                                                    static_cast<int32_t>(hsp.aotCompileStatus),
-                                                    hsp.bundleName, hsp.moduleName, hsp.hapPath, hsp.moduleArkTSMode});
+            options.commonHspBundleInfos.push_back(
+                {hsp.versionCode, hsp.bundleName, hsp.moduleName, hsp.hapPath, hsp.moduleArkTSMode});
         }
         options.enableWarmStartupSmartGC =
             (appLaunchData.GetAppPreloadMode() == AppExecFwk::PreloadMode::PRE_MAKE ||
@@ -2367,7 +2362,7 @@ void MainThread::PreloadModule(const BundleInfo &bundleInfo, const AppLaunchData
     TAG_LOGI(AAFwkTag::APPKIT, "preload module %{public}s", preloadModuleInfo->moduleName.c_str());
     auto callback = []() {};
     bool isAsyncCallback = false;
-    application_->AddAbilityStage(*preloadModuleInfo, callback, isAsyncCallback);
+    application_->AddAbilityStage(*preloadModuleInfo, callback, isAsyncCallback, preloadAbilityName);
     if (isAsyncCallback) {
         return;
     }
