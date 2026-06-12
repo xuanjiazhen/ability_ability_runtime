@@ -12,18 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef OHOS_ABILITY_RUNTIME_ABILITY_UTIL_H
+#define OHOS_ABILITY_RUNTIME_ABILITY_UTIL_H
 
-#include "native_engine/native_engine.h"
-#include "js_skill_driver.h"
+#include "bundle_mgr_helper.h"
 
-static napi_module _module = {
-    .nm_version = 0,
-    .nm_filename = "app/ability/skilldriver_napi.so/skill_driver.js",
-    .nm_register_func = OHOS::CliTool::JSSkillDriverInit,
-    .nm_modname = "app.ability.skillDriver",
-};
-
-extern "C" __attribute__((constructor)) void NAPI_application_SkillDriver_AutoRegister(void)
+namespace OHOS {
+namespace AAFwk {
+namespace AbilityUtil {
+[[maybe_unused]] static std::shared_ptr<AppExecFwk::BundleMgrHelper> GetBundleManagerHelper()
 {
-    napi_module_register(&_module);
+    return AppExecFwk::BundleMgrHelper::GetInstance();
 }
+}  // namespace AbilityUtil
+}  // namespace AAFwk
+}  // namespace OHOS
+#endif

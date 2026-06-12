@@ -1178,8 +1178,7 @@ private:
         FindConnection(want, connection, connectId, accountId);
         // begin disconnect
         auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
-        NapiAsyncTask::ExecuteCallback execute = [weak = context_, want, connection, accountId,
-            innerErrCode, innerErrorMsg = std::make_shared<std::string>()]() {
+        NapiAsyncTask::ExecuteCallback execute = [weak = context_, want, connection, accountId, innerErrCode]() {
             auto context = weak.lock();
             if (!context) {
                 TAG_LOGW(AAFwkTag::SERVICE_EXT, "context released");
@@ -1189,21 +1188,20 @@ private:
             if (!connection) {
                 TAG_LOGW(AAFwkTag::SERVICE_EXT, "null connection");
                 *innerErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
-                *innerErrorMsg = GetInnerErrorMsg(AbilityInnerErrorMsg::CONNECTION_NOT_FOUND);
                 return;
             }
             TAG_LOGD(AAFwkTag::SERVICE_EXT, "context->DisconnectAbility");
             *innerErrCode = context->DisconnectAbility(want, connection, accountId);
         };
         NapiAsyncTask::CompleteCallback complete =
-            [innerErrCode, innerErrorMsg](napi_env env, NapiAsyncTask& task, int32_t status) {
+            [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
                 HandleScope handleScope(env);
                 if (*innerErrCode == ERR_OK) {
                     task.Resolve(env, CreateJsUndefined(env));
                 } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
                     task.Reject(env, CreateJsError(env, *innerErrCode, "Context is released"));
                 } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER)) {
-                    task.Reject(env, CreateJsError(env, *innerErrCode, *innerErrorMsg));
+                    task.Reject(env, CreateJsError(env, *innerErrCode, "not found connection"));
                 } else {
                     task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
                 }
@@ -1464,11 +1462,13 @@ private:
         }
 
         auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
-        NapiAsyncTask::ExecuteCallback execute = [serviceContext = context_, want, innerErrCode]() {
+        NapiAsyncTask::ExecuteCallback execute = [serviceContext = context_, want,
+            innerErrCode, innerErrorMsg = std::make_shared<std::string>()]() {
             auto context = serviceContext.lock();
             if (!context) {
                 TAG_LOGE(AAFwkTag::APPKIT, "context released");
-                *innerErrCode = static_cast<int>(AbilityErrorCode::ERROR_CODE_INNER);
+                *innerErrCode = static_cast<int>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+                *innerErrorMsg = "Context is released";
                 return;
             }
             *innerErrCode = AAFwk::AbilityManagerClient::GetInstance()->RequestModalUIExtension(want);
@@ -1513,11 +1513,13 @@ private:
         }
 
         auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
-        NapiAsyncTask::ExecuteCallback execute = [serviceContext = context_, want, accountId, innerErrCode]() {
+        NapiAsyncTask::ExecuteCallback execute = [serviceContext = context_, want, accountId,
+            innerErrCode, innerErrorMsg = std::make_shared<std::string>()]() {
             auto context = serviceContext.lock();
             if (!context) {
                 TAG_LOGE(AAFwkTag::APPKIT, "context released");
-                *innerErrCode = static_cast<int>(AbilityErrorCode::ERROR_CODE_INNER);
+                *innerErrCode = static_cast<int>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+                *innerErrorMsg = "Context is released";
                 return;
             }
             auto abilityMgr = AAFwk::AbilityManagerClient::GetInstance();
@@ -1652,8 +1654,7 @@ private:
             HandleScope handleScope(env);
             if (!retCode) {
                 TAG_LOGE(AAFwkTag::SERVICE_EXT, "StartAbility failed");
-                task.Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
-                    GetInnerErrorMsg(AbilityInnerErrorMsg::INVALID_RET_CODE)));
+                task.Reject(env, CreateJsErrorByNativeErr(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER)));
                 return;
             }
             if (*retCode == 0) {
