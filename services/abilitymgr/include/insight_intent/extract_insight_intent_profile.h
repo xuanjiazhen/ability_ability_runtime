@@ -126,7 +126,7 @@ enum class InfoType: uint8_t {
     Entry,
     Function,
     Form,
-    GUI
+    GUI,
     None
 };
 
