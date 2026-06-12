@@ -103,7 +103,6 @@ DecoratorType StringToEnum(const std::string& input)
         {AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_FORM, DecoratorType::DECORATOR_FORM},
         {AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_GUI, DecoratorType::DECORATOR_GUI}
     };
-    };
     auto it = mapping.find(input);
     return (it != mapping.end()) ? it->second : DecoratorType::DECORATOR_UNKNOWN;
 }

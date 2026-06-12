@@ -158,7 +158,7 @@ uint32_t InsightIntentUtils::ConvertExtractInsightIntentGenericInfo(
         queryInfo.formInfo.abilityName = formInfo.abilityName;
         queryInfo.formInfo.formName = formInfo.formName;
         queryInfo.parameters = formInfo.parameters;
-    } } else if (genericInfo.decoratorType == INSIGHT_INTENTS_DECORATOR_TYPE_GUI) {
+    } else if (genericInfo.decoratorType == INSIGHT_INTENTS_DECORATOR_TYPE_GUI) {
         auto guiInfo = genericInfo.get<InsightIntentGUIInfo>();
         TAG_LOGI(AAFwkTag::INTENT, "GUI decoratorType, pageName: %{public}s, components size: %{public}zu",
             guiInfo.pageName.c_str(), guiInfo.components.size());
