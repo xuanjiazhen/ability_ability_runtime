@@ -209,7 +209,6 @@ ohos_shared_library("abilitykit_utils") {
       "form_fwk:form_common_info",
     ]
     public_external_deps += [
-      "image_framework:image_native",
       "window_manager:libdm",
       "window_manager:libwmutil",
     ]
@@ -279,7 +278,6 @@ ohos_shared_library("configuration_helper") {
     external_deps += [
       "ability_base:session_info",
       "icu:shared_icuuc",
-      "image_framework:image_native",
       "window_manager:libdm",
       "window_manager:libwm",
       "window_manager:libwmutil",
@@ -652,7 +650,6 @@ ohos_shared_library("extensionkit_native") {
       "form_fwk:form_common_info",
     ]
     public_external_deps += [
-      "image_framework:image_native",
       "window_manager:libdm",
     ]
   }
@@ -718,7 +715,6 @@ ohos_shared_library("cj_extensionkit_native") {
   if (ability_runtime_graphics) {
     external_deps += [ "ability_base:session_info" ]
     public_external_deps += [
-      "image_framework:image_native",
       "window_manager:libdm",
     ]
   }
@@ -778,7 +774,6 @@ ohos_shared_library("insight_intent_executor") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
-    "image_framework:image_native",
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "napi:ace_napi",
@@ -842,7 +837,6 @@ ohos_shared_library("insight_intent_executor_ani") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
-    "image_framework:image_native",
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "napi:ace_napi",
@@ -897,7 +891,6 @@ ohos_shared_library("cj_insight_intent_executor") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
-    "image_framework:image_native",
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "napi:ace_napi",
@@ -1052,7 +1045,6 @@ ohos_shared_library("ui_ability_ani") {
       "window_manager:windowstage_kit",
     ]
     public_external_deps += [
-      "image_framework:image_native",
       "window_manager:libdm",
     ]
   }
@@ -1191,7 +1183,6 @@ ohos_shared_library("uiabilitykit_native") {
       "form_fwk:form_common_info",
     ]
     public_external_deps += [
-      "image_framework:image_native",
       "window_manager:libdm",
     ]
   }
@@ -1388,7 +1379,6 @@ ohos_shared_library("form_extension") {
       "eventhandler:libeventhandler",
       "hilog:libhilog",
       "hitrace:hitrace_meter",
-      "image_framework:image_native",
       "ipc:ipc_core",
       "ipc:ipc_napi",
       "napi:ace_napi",
@@ -2822,7 +2812,6 @@ ohos_shared_library("ui_extension_module") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
-    "image_framework:image_native",
     "ipc:ipc_napi",
     "ipc:ipc_single",
     "napi:ace_napi",
