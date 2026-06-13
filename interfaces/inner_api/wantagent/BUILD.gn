@@ -98,6 +98,7 @@ ohos_shared_library("wantagent_innerkits") {
     "bundle_framework:appexecfwk_core",
     "eventhandler:libeventhandler",
     "icu:shared_icuuc",
+    # used in push manager service, not this module
     "image_framework:image_native",
     "resource_management:global_resmgr",
   ]

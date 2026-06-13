@@ -17,7 +17,7 @@
 #include "hilog_tag_wrapper.h"
 
 #ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
-#include "pixel_map.h"
+#include "pixel_map_bridge.h"
 #endif
 
 namespace OHOS {
@@ -27,8 +27,15 @@ bool StartWindowOption::ReadFromParcel(Parcel &parcel)
     hasStartWindow = parcel.ReadBool();
     startWindowBackgroundColor = parcel.ReadString();
 #ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
-    std::shared_ptr<Media::PixelMap> pixelMap(parcel.ReadParcelable<Media::PixelMap>());
-    startWindowIcon = pixelMap;
+    auto &bridge = PixelMapBridge::GetInstance();
+    Media::PixelMap *rawPtr = bridge.ReadPixelMapFromParcel(&parcel);
+    if (rawPtr != nullptr) {
+        // Route the delete back through the bridge so it runs inside the wrap
+        // SO (where the PixelMap was allocated), keeping allocation/release
+        // matched and CFI friendly.
+        startWindowIcon = std::shared_ptr<Media::PixelMap>(rawPtr,
+            [&bridge](Media::PixelMap *p) { bridge.DestroyPixelMap(p); });
+    }
 #endif
     return true;
 }
@@ -59,9 +66,12 @@ bool StartWindowOption::Marshalling(Parcel &parcel) const
         return false;
     }
 #ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
-    if (!parcel.WriteParcelable(startWindowIcon.get())) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "startWindowIcon write failed");
-        return false;
+    auto &bridge = PixelMapBridge::GetInstance();
+    if (startWindowIcon != nullptr) {
+        if (!bridge.WritePixelMapToParcel(startWindowIcon.get(), &parcel)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "startWindowIcon write failed");
+            return false;
+        }
     }
 #endif
     return true;
