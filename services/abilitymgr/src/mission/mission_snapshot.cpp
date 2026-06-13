@@ -30,13 +30,14 @@ bool MissionSnapshot::ReadFromParcel(Parcel &parcel)
     topAbility = *ability;
     auto &bridge = PixelMapBridge::GetInstance();
     Media::PixelMap *rawPtr = bridge.ReadPixelMapFromParcel(&parcel);
-    if (rawPtr != nullptr) {
-        // Route the delete back through the bridge so it runs inside the wrap
-        // SO (where the PixelMap was allocated), keeping allocation/release
-        // matched and CFI friendly.
-        snapshot = std::shared_ptr<Media::PixelMap>(rawPtr,
-            [&bridge](Media::PixelMap *p) { bridge.DestroyPixelMap(p); });
+    if (rawPtr == nullptr) {
+        return false;
     }
+    // Route the delete back through the bridge so it runs inside the wrap
+    // SO (where the PixelMap was allocated), keeping allocation/release
+    // matched and CFI friendly.
+    snapshot = std::shared_ptr<Media::PixelMap>(rawPtr,
+        [&bridge](Media::PixelMap *p) { bridge.DestroyPixelMap(p); });
 #endif
     return true;
 }
@@ -61,11 +62,8 @@ bool MissionSnapshot::Marshalling(Parcel &parcel) const
     if (!parcel.WriteParcelable(&topAbility)) {
         return false;
     }
-    if (snapshot != nullptr) {
-        auto &bridge = PixelMapBridge::GetInstance();
-        if (!bridge.WritePixelMapToParcel(snapshot.get(), &parcel)) {
-            return false;
-        }
+    if (!PixelMapBridge::GetInstance().WritePixelMapToParcel(snapshot.get(), &parcel)) {
+        return false;
     }
 #endif
     return true;

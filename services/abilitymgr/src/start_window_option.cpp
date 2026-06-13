@@ -66,12 +66,9 @@ bool StartWindowOption::Marshalling(Parcel &parcel) const
         return false;
     }
 #ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
-    auto &bridge = PixelMapBridge::GetInstance();
-    if (startWindowIcon != nullptr) {
-        if (!bridge.WritePixelMapToParcel(startWindowIcon.get(), &parcel)) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "startWindowIcon write failed");
-            return false;
-        }
+    if (!PixelMapBridge::GetInstance().WritePixelMapToParcel(startWindowIcon.get(), &parcel)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "startWindowIcon write failed");
+        return false;
     }
 #endif
     return true;

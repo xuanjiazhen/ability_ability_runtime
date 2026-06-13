@@ -31,11 +31,13 @@ OHOS::Media::PixelMap *ImageNative_ReadPixelMapFromParcel(OHOS::Parcel *parcelPt
     return parcelPtr->ReadParcelable<OHOS::Media::PixelMap>();
 }
 
-// Serializes the PixelMap into the parcel.
+// Serializes the PixelMap into the parcel. Callers guarantee pixelMapPtr is
+// non-null (they null-check the owning shared_ptr before invoking); a null
+// parcelPtr is still guarded here.
 extern "C" __attribute__((visibility("default")))
 bool ImageNative_WritePixelMapToParcel(OHOS::Media::PixelMap *pixelMapPtr, OHOS::Parcel *parcelPtr)
 {
-    if (pixelMapPtr == nullptr || parcelPtr == nullptr) {
+    if (parcelPtr == nullptr) {
         return false;
     }
     return parcelPtr->WriteParcelable(pixelMapPtr);

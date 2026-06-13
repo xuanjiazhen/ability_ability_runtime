@@ -77,14 +77,13 @@ int MissionListenerStub::OnMissionIconUpdatedInner(MessageParcel &data, MessageP
 {
 #ifdef SUPPORT_SCREEN
     auto missionId = data.ReadInt32();
+    std::shared_ptr<Media::PixelMap> icon;
     auto &bridge = PixelMapBridge::GetInstance();
     Media::PixelMap *rawPtr = bridge.ReadPixelMapFromParcel(&data);
-    if (rawPtr == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "read pixelMap failed");
-        return ERR_INVALID_STATE;
+    if (rawPtr != nullptr) {
+        icon = std::shared_ptr<Media::PixelMap>(rawPtr,
+            [&bridge](Media::PixelMap *p) { bridge.DestroyPixelMap(p); });
     }
-    std::shared_ptr<Media::PixelMap> icon(rawPtr,
-        [&bridge](Media::PixelMap *p) { bridge.DestroyPixelMap(p); });
     OnMissionIconUpdated(missionId, icon);
     return NO_ERROR;
 #else
