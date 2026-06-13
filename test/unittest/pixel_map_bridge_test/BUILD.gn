@@ -18,11 +18,20 @@ module_output_path = "ability_runtime/ability_runtime/pixel_map_bridge"
 
 ohos_unittest("pixel_map_bridge_test") {
   module_out_path = module_output_path
-
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
   configs = [ "${ability_runtime_services_path}/common:common_config" ]
 
+  cflags = [
+    "-Dprivate = public",
+    "-Dprotected = public",
+  ]
+
   if (target_cpu == "arm") {
-    cflags = [ "-DBINDER_IPC_32BIT" ]
+    cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 
   sources = [ "pixel_map_bridge_test.cpp" ]

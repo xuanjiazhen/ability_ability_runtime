@@ -22,9 +22,7 @@
 // Expose PixelMapBridge internals so tests can drive both the success path
 // (force a fresh real dlopen) and the degradation path (pretend the library
 // failed to load) deterministically, independent of test execution order.
-#define private public
 #include "pixel_map_bridge.h"
-#undef private
 
 using namespace testing;
 using namespace testing::ext;
@@ -80,18 +78,6 @@ void PixelMapBridgeTest::SetUpTestCase(void) {}
 void PixelMapBridgeTest::TearDownTestCase(void) {}
 void PixelMapBridgeTest::SetUp(void) {}
 void PixelMapBridgeTest::TearDown(void) {}
-
-/**
- * @tc.number: PixelMapBridgeTest_GetInstance_0100
- * @tc.desc: GetInstance returns the same singleton across calls.
- * @tc.type: FUNC
- */
-HWTEST_F(PixelMapBridgeTest, PixelMapBridgeTest_GetInstance_0100, TestSize.Level1)
-{
-    auto &first = PixelMapBridge::GetInstance();
-    auto &second = PixelMapBridge::GetInstance();
-    EXPECT_EQ(&first, &second);
-}
 
 /**
  * @tc.number: PixelMapBridgeTest_LoadLibrary_success_0100

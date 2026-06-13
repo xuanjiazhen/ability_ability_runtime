@@ -45,8 +45,7 @@ bool ImageNative_WritePixelMapToParcel(OHOS::Media::PixelMap *pixelMapPtr, OHOS:
 
 // Destroys the PixelMap. The delete executes here, in the same SO that allocated
 // it, keeping memory allocation/release matched and CFI friendly.
-extern "C" __attribute__((visibility("default")))
-void ImageNative_DestroyPixelMap(OHOS::Media::PixelMap *pixelMapPtr)
+extern "C" __attribute__((visibility("default"))) void ImageNative_DestroyPixelMap(OHOS::Media::PixelMap *pixelMapPtr)
 {
     if (pixelMapPtr == nullptr) {
         return;
