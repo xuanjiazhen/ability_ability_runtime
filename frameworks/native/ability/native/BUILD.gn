@@ -277,10 +277,8 @@ ohos_shared_library("configuration_helper") {
   if (ability_runtime_graphics) {
     external_deps += [
       "ability_base:session_info",
-      "icu:shared_icuuc",
       "window_manager:libdm",
       "window_manager:libwm",
-      "window_manager:libwmutil",
     ]
   }
 
