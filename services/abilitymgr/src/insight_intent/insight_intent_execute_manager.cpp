@@ -21,7 +21,7 @@
 #include "ability_config.h"
 #include "ability_util.h"
 #include "ability_manager_errors.h"
-#include "ability_record_utils.h"
+#include "ability_record.h"
 #include "distributed_ability_runtime/distributed_client.h"
 #include "extract_insight_intent_profile.h"
 #include "ffrt.h"
@@ -1062,12 +1062,7 @@ void InsightIntentExecuteManager::TriggerGuiIntentPiercing(
 
     // Step 1: Get focus window info
     Rosen::FocusChangeInfo focusInfo;
-    auto ret = Rosen::WindowManager::GetInstance().GetFocusWindowInfo(focusInfo);
-    if (ret != Rosen::WMError::WM_OK) {
-        TAG_LOGE(AAFwkTag::INTENT, "TriggerGuiIntentPiercing: GetFocusWindowInfo failed, ret=%{public}d",
-            static_cast<int32_t>(ret));
-        return;
-    }
+    Rosen::WindowManager::GetInstance().GetFocusWindowInfo(focusInfo);
     int32_t windowId = focusInfo.windowId_;
     TAG_LOGI(AAFwkTag::INTENT, "TriggerGuiIntentPiercing: focus windowId=%{public}d", windowId);
     if (windowId < 0) {
