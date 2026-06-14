@@ -1137,6 +1137,7 @@ int AbilityManagerService::StartAbilityAsCallerDetails(const Want &want, const s
     StartAbilityWrapParam startAbilityWrapParam = {
         .want = newWant,
         .callerToken = callerToken,
+        .asCallerSourceToken = asCallerSourceToken,
         .requestCode = requestCode,
         .userId = userId,
         .isStartAsCaller = true,
@@ -1219,6 +1220,7 @@ int AbilityManagerService::StartAbilityWrap(const StartAbilityWrapParam &startAb
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     StartAbilityParams startParams(const_cast<Want &>(startAbilityWrapParam.want));
     startParams.callerToken = startAbilityWrapParam.callerToken;
+    startParams.asCallerSourceToken = startAbilityWrapParam.asCallerSourceToken;
     startParams.userId = startAbilityWrapParam.userId;
     startParams.requestCode = startAbilityWrapParam.requestCode;
     startParams.isStartAsCaller = startAbilityWrapParam.isStartAsCaller;
@@ -1558,6 +1560,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     auto collaborator = GetCollaborator(CollaboratorType::RESERVE_TYPE);
     CollaboratorUtil::UpdateTargetIfNeed(collaborator, param.want, callerBundleName);
     result = GenerateAbilityRequest(param.want, param.requestCode, abilityRequest, param.callerToken, validUserId);
+    abilityRequest.asCallerSourceToken = param.asCallerSourceToken;
     bool selfFreeInstallEnable = (result == RESOLVE_ABILITY_ERR && param.want.GetModuleName() != "" &&
                                   param.want.GetBundle() == callerBundleName);
     bool isStartFreeInstallByWant = AbilityUtil::IsStartFreeInstall(param.want);
@@ -2134,7 +2137,8 @@ int AbilityManagerService::StartAbilityAsCaller(const Want &want, const StartOpt
     AbilityUtil::RemoveWantKey(const_cast<Want &>(want));
     AAFwk::Want newWant = want;
     UpdateCallerInfoUtil::GetInstance().UpdateAsCallerSourceInfo(newWant, asCallerSourceToken, callerToken);
-    return StartAbilityForOptionWrap(newWant, startOptions, callerToken, false, userId, requestCode, true);
+    return StartAbilityForOptionWrap(newWant, startOptions, callerToken, false, userId, requestCode, true,
+        0, false, false, false, asCallerSourceToken);
 }
 
 int AbilityManagerService::StartAbilityForResultAsCaller(
@@ -2162,6 +2166,7 @@ int AbilityManagerService::StartAbilityForResultAsCaller(
     StartAbilityWrapParam startAbilityWrapParam = {
         .want = newWant,
         .callerToken = callerToken,
+        .asCallerSourceToken = asCallerSourceToken,
         .requestCode = requestCode,
         .userId = userId,
         .isStartAsCaller = true,
@@ -2190,16 +2195,19 @@ int AbilityManagerService::StartAbilityForResultAsCaller(const Want &want, const
     CHECK_POINTER_AND_RETURN(connectManager, ERR_NO_INIT);
     auto asCallerSourceToken = connectManager->GetUIExtensionSourceToken(callerToken);
     UpdateCallerInfoUtil::GetInstance().UpdateAsCallerSourceInfo(newWant, asCallerSourceToken, callerToken);
-    return StartAbilityForOptionWrap(newWant, startOptions, callerToken, false, userId, requestCode, true);
+    return StartAbilityForOptionWrap(newWant, startOptions, callerToken, false, userId, requestCode, true,
+        0, false, false, false, asCallerSourceToken);
 }
 
 int AbilityManagerService::StartAbilityForOptionWrap(const Want &want, const StartOptions &startOptions,
     const sptr<IRemoteObject> &callerToken, bool isPendingWantCaller, int32_t userId, int requestCode,
-    bool isStartAsCaller, uint32_t callerTokenId, bool isImplicit, bool isCallByShortcut, bool isCallByDelayed)
+    bool isStartAsCaller, uint32_t callerTokenId, bool isImplicit, bool isCallByShortcut, bool isCallByDelayed,
+    const sptr<IRemoteObject> &asCallerSourceToken)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     StartAbilityParams startParams(const_cast<Want &>(want));
     startParams.callerToken = callerToken;
+    startParams.asCallerSourceToken = asCallerSourceToken;
     startParams.userId = userId;
     startParams.requestCode = requestCode;
     startParams.isStartAsCaller = isStartAsCaller;
@@ -2212,12 +2220,13 @@ int AbilityManagerService::StartAbilityForOptionWrap(const Want &want, const Sta
     }
 
     return StartAbilityForOptionInner(want, startOptions, callerToken, isPendingWantCaller, userId, requestCode,
-        isStartAsCaller, callerTokenId, isImplicit, isCallByShortcut, isCallByDelayed);
+        isStartAsCaller, callerTokenId, isImplicit, isCallByShortcut, isCallByDelayed, asCallerSourceToken);
 }
 
 int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const StartOptions &startOptions,
     const sptr<IRemoteObject> &callerToken, bool isPendingWantCaller, int32_t userId, int requestCode,
-    bool isStartAsCaller, uint32_t specifyTokenId, bool isImplicit, bool isCallByShortcut, bool isCallByDelayed)
+    bool isStartAsCaller, uint32_t specifyTokenId, bool isImplicit, bool isCallByShortcut, bool isCallByDelayed,
+    const sptr<IRemoteObject> &asCallerSourceToken)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     EventInfo eventInfo = BuildEventInfo(want, userId);
@@ -2390,6 +2399,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
     }
 #endif
     result = GenerateAbilityRequest(want, requestCode, abilityRequest, callerToken, validUserId);
+    abilityRequest.asCallerSourceToken = asCallerSourceToken;
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "generate ability request local error:%{public}d", result);
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "GenerateAbilityRequest error");

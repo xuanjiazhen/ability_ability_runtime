@@ -1944,6 +1944,7 @@ sptr<SessionInfo> UIAbilityLifecycleManager::CreateSessionInfo(const AbilityRequ
     sptr<SessionInfo> sessionInfo = new SessionInfo();
     sessionInfo->requestId = requestId;
     sessionInfo->callerToken = abilityRequest.callerToken;
+    sessionInfo->asCallerSourceToken = abilityRequest.asCallerSourceToken;
     sessionInfo->want = abilityRequest.want;
     sessionInfo->processOptions = abilityRequest.processOptions;
     sessionInfo->startWindowOption = abilityRequest.startWindowOption;

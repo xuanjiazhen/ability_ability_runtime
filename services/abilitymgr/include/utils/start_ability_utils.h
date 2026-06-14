@@ -93,6 +93,7 @@ struct StartAbilityInfoWrap {
 struct StartAbilityWrapParam {
     Want want;
     sptr<IRemoteObject> callerToken = nullptr;
+    sptr<IRemoteObject> asCallerSourceToken = nullptr;
     int requestCode = -1;
     bool isPendingWantCaller = false;
     int32_t userId = -1;

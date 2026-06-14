@@ -1453,7 +1453,8 @@ public:
     int StartAbilityForOptionWrap(const Want &want, const StartOptions &startOptions,
         const sptr<IRemoteObject> &callerToken, bool isPendingWantCaller, int32_t userId = DEFAULT_INVAL_VALUE,
         int requestCode = DEFAULT_INVAL_VALUE, bool isStartAsCaller = false, uint32_t callerTokenId = 0,
-        bool isImplicit = false, bool isCallByShortcut = false, bool isCallByDelayed = false);
+        bool isImplicit = false, bool isCallByShortcut = false, bool isCallByDelayed = false,
+        const sptr<IRemoteObject> &asCallerSourceToken = nullptr);
 
     int StartAbilityForOptionInner(
         const Want &want,
@@ -1466,7 +1467,8 @@ public:
         uint32_t specifyTokenId = 0,
         bool isImplicit = false,
         bool isCallByShortcut = false,
-        bool isCallByDelayed = false);
+        bool isCallByDelayed = false,
+        const sptr<IRemoteObject> &asCallerSourceToken = nullptr);
 
     int ImplicitStartAbility(
         const Want &want,
