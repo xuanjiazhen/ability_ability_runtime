@@ -86,6 +86,7 @@ public:
     static napi_value SwitchArea(napi_env env, napi_callback_info info);
     static napi_value GetArea(napi_env env, napi_callback_info info);
     static napi_value CreateModuleContext(napi_env env, napi_callback_info info);
+    static napi_value CreateModuleContextSync(napi_env env, napi_callback_info info);
     static napi_value CreateSystemHspModuleResourceManager(napi_env env, napi_callback_info info);
     static napi_value CreateModuleResourceManager(napi_env env, napi_callback_info info);
     static napi_value CreateAreaModeContext(napi_env env, napi_callback_info info);
@@ -128,6 +129,7 @@ private:
     napi_value OnSwitchArea(napi_env env, NapiCallbackInfo& info);
     napi_value OnGetArea(napi_env env, NapiCallbackInfo& info);
     napi_value OnCreateModuleContext(napi_env env, NapiCallbackInfo& info);
+    napi_value OnCreateModuleContextSync(napi_env env, NapiCallbackInfo& info);
     napi_value CreateJsModuleContext(napi_env env, const std::shared_ptr<Context>& moduleContext);
     napi_value OnCreateSystemHspModuleResourceManager(napi_env env, NapiCallbackInfo& info);
     napi_value OnCreateModuleResourceManager(napi_env env, NapiCallbackInfo& info);
@@ -238,6 +240,49 @@ napi_value JsBaseContext::OnCreateModuleContext(napi_env env, NapiCallbackInfo& 
         moduleContext = context->CreateModuleContext(bundleName, moduleName);
     }
 
+    if (!moduleContext) {
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return CreateJsUndefined(env);
+    }
+    return CreateJsModuleContext(env, moduleContext);
+}
+
+napi_value JsBaseContext::CreateModuleContextSync(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsBaseContext, OnCreateModuleContextSync, BASE_CONTEXT_NAME);
+}
+
+napi_value JsBaseContext::OnCreateModuleContextSync(napi_env env, NapiCallbackInfo& info)
+{
+    if (info.argc < ARGC_TWO) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Not enough params");
+        ThrowInvalidParamError(env, "Not enough params.");
+        return CreateJsUndefined(env);
+    }
+    auto context = context_.lock();
+    if (!context) {
+        TAG_LOGW(AAFwkTag::APPKIT, "null context");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return CreateJsUndefined(env);
+    }
+    std::string bundleName;
+    if (!ConvertFromJsValue(env, info.argv[0], bundleName)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Parse bundleName failed");
+        ThrowInvalidParamError(env, "Parse param bundleName failed, bundleName must be string.");
+        return CreateJsUndefined(env);
+    }
+    std::string moduleName;
+    if (!ConvertFromJsValue(env, info.argv[1], moduleName)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Parse moduleName failed");
+        ThrowInvalidParamError(env, "Parse param moduleName failed, moduleName must be string.");
+        return CreateJsUndefined(env);
+    }
+    if (!CheckCallerIsSystemApp()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "not system-app");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP);
+        return CreateJsUndefined(env);
+    }
+    auto moduleContext = context->CreateModuleContext(bundleName, moduleName);
     if (!moduleContext) {
         AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
         return CreateJsUndefined(env);
@@ -982,6 +1027,7 @@ void BindPropertyAndFunction(napi_env env, napi_value object, const char* module
     BindNativeFunction(env, object, "switchArea", moduleName, JsBaseContext::SwitchArea);
     BindNativeFunction(env, object, "getArea", moduleName, JsBaseContext::GetArea);
     BindNativeFunction(env, object, "createModuleContext", moduleName, JsBaseContext::CreateModuleContext);
+    BindNativeFunction(env, object, "createModuleContextSync", moduleName, JsBaseContext::CreateModuleContextSync);
     BindNativeFunction(env, object, "createSystemHspModuleResourceManager", moduleName,
         JsBaseContext::CreateSystemHspModuleResourceManager);
     BindNativeFunction(env, object, "createModuleResourceManager", moduleName,
