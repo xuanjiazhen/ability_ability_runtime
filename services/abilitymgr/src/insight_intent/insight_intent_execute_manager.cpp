@@ -177,12 +177,16 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
 
     // Piercing: store extra info for GUI trigger
     {
+        int32_t recordUserId = param->userId_;
+        if (recordUserId == DEFAULT_INVAL_VALUE) {
+            recordUserId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
+        }
         std::lock_guard<ffrt::mutex> lock(mutex_);
         auto recordIt = records_.find(intentId);
         if (recordIt != records_.end() && recordIt->second != nullptr) {
             recordIt->second->moduleName = param->moduleName_;
             recordIt->second->intentName = param->insightIntentName_;
-            recordIt->second->userId = param->userId_;
+            recordIt->second->userId = recordUserId;
         }
     }
     return ERR_OK;
@@ -383,7 +387,7 @@ int32_t InsightIntentExecuteManager::ExecuteIntentDone(uint64_t intentId, int32_
                 return;
             }
             self->TriggerGuiIntentPiercing(guiBundle, guiModule, guiUserId);
-        }, ffrt::task_attr().name("GuiIntentPiercingTrigger"));
+        }, ffrt::task_attr().delay(500000).name("GuiIntentPiercingTrigger"));
     }
     return ERR_OK;
 }
