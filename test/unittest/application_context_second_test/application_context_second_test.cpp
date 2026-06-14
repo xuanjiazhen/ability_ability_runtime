@@ -229,5 +229,142 @@ HWTEST_F(ApplicationContextSecondTest, ApplicationContext_CreateModuleOrPluginCo
     auto context = applicationContext->CreateModuleOrPluginContext(bundleName, moduleName);
     EXPECT_EQ(context, nullptr);
 }
+
+/**
+ * @tc.number: ApplicationContext_CreateModuleContextSync_001
+ * @tc.name: CreateModuleContextSync
+ * @tc.desc: Test ApplicationContext::CreateModuleContext(bundleName, moduleName) with null contextImpl_.
+ *           Covers: contextImpl_ == nullptr -> return nullptr
+ */
+HWTEST_F(ApplicationContextSecondTest, ApplicationContext_CreateModuleContextSync_001, TestSize.Level1)
+{
+    auto applicationContext = std::make_shared<AbilityRuntime::ApplicationContext>();
+    applicationContext->contextImpl_ = nullptr;
+    std::string bundleName = "com.example.bundleName";
+    std::string moduleName = "moduleName";
+    auto context = applicationContext->CreateModuleContext(bundleName, moduleName);
+    EXPECT_EQ(context, nullptr);
+}
+
+/**
+ * @tc.number: ApplicationContext_CreateModuleContextSync_002
+ * @tc.name: CreateModuleContextSync
+ * @tc.desc: Test ApplicationContext::CreateModuleContext(bundleName, moduleName) with mock contextImpl_.
+ *           Covers: contextImpl_ != nullptr -> delegate to ContextImpl::CreateModuleContext
+ */
+HWTEST_F(ApplicationContextSecondTest, ApplicationContext_CreateModuleContextSync_002, TestSize.Level1)
+{
+    auto applicationContext = std::make_shared<AbilityRuntime::ApplicationContext>();
+    applicationContext->contextImpl_ = mock_;
+    std::string bundleName = "com.example.bundleName";
+    std::string moduleName = "moduleName";
+    auto context = applicationContext->CreateModuleContext(bundleName, moduleName);
+    EXPECT_NE(context, nullptr);
+}
+
+/**
+ * @tc.number: ApplicationContext_CreateModuleContextSync_003
+ * @tc.name: CreateModuleContextSync
+ * @tc.desc: Test ApplicationContext::CreateModuleContext(moduleName) single-arg with null contextImpl_.
+ *           Covers: contextImpl_ == nullptr -> return nullptr (single-arg overload)
+ */
+HWTEST_F(ApplicationContextSecondTest, ApplicationContext_CreateModuleContextSync_003, TestSize.Level1)
+{
+    auto applicationContext = std::make_shared<AbilityRuntime::ApplicationContext>();
+    applicationContext->contextImpl_ = nullptr;
+    std::string moduleName = "moduleName";
+    auto context = applicationContext->CreateModuleContext(moduleName);
+    EXPECT_EQ(context, nullptr);
+}
+
+/**
+ * @tc.number: ApplicationContext_CreateModuleContextSync_004
+ * @tc.name: CreateModuleContextSync
+ * @tc.desc: Test ApplicationContext::CreateModuleContext(moduleName) single-arg with mock contextImpl_.
+ *           Covers: contextImpl_ != nullptr -> delegate (single-arg overload)
+ */
+HWTEST_F(ApplicationContextSecondTest, ApplicationContext_CreateModuleContextSync_004, TestSize.Level1)
+{
+    auto applicationContext = std::make_shared<AbilityRuntime::ApplicationContext>();
+    applicationContext->contextImpl_ = mock_;
+    std::string moduleName = "moduleName";
+    auto context = applicationContext->CreateModuleContext(moduleName);
+    EXPECT_NE(context, nullptr);
+}
+
+/**
+ * @tc.number: ApplicationContext_CreateModuleContextSync_005
+ * @tc.name: CreateModuleContextSync
+ * @tc.desc: Test CreateModuleContext(bundleName, moduleName) with mock contextImpl_, empty bundleName.
+ */
+HWTEST_F(ApplicationContextSecondTest, ApplicationContext_CreateModuleContextSync_005, TestSize.Level1)
+{
+    auto applicationContext = std::make_shared<AbilityRuntime::ApplicationContext>();
+    applicationContext->contextImpl_ = mock_;
+    std::string bundleName = "";
+    std::string moduleName = "moduleName";
+    auto context = applicationContext->CreateModuleContext(bundleName, moduleName);
+    EXPECT_NE(context, nullptr);
+}
+
+/**
+ * @tc.number: ApplicationContext_CreateModuleContextSync_006
+ * @tc.name: CreateModuleContextSync
+ * @tc.desc: Test CreateModuleContext(bundleName, moduleName) with mock contextImpl_, empty moduleName.
+ */
+HWTEST_F(ApplicationContextSecondTest, ApplicationContext_CreateModuleContextSync_006, TestSize.Level1)
+{
+    auto applicationContext = std::make_shared<AbilityRuntime::ApplicationContext>();
+    applicationContext->contextImpl_ = mock_;
+    std::string bundleName = "com.example.bundleName";
+    std::string moduleName = "";
+    auto context = applicationContext->CreateModuleContext(bundleName, moduleName);
+    EXPECT_NE(context, nullptr);
+}
+
+/**
+ * @tc.number: ApplicationContext_CreateModuleContextSync_007
+ * @tc.name: CreateModuleContextSync
+ * @tc.desc: Test CreateModuleContext(bundleName, moduleName) with mock contextImpl_, both empty.
+ */
+HWTEST_F(ApplicationContextSecondTest, ApplicationContext_CreateModuleContextSync_007, TestSize.Level1)
+{
+    auto applicationContext = std::make_shared<AbilityRuntime::ApplicationContext>();
+    applicationContext->contextImpl_ = mock_;
+    std::string bundleName = "";
+    std::string moduleName = "";
+    auto context = applicationContext->CreateModuleContext(bundleName, moduleName);
+    EXPECT_NE(context, nullptr);
+}
+
+/**
+ * @tc.number: ApplicationContext_CreateModuleContextSync_008
+ * @tc.name: CreateModuleContextSync
+ * @tc.desc: Test CreateModuleContext(bundleName, moduleName) with real ContextImpl (no BMS), returns nullptr.
+ *           Covers: contextImpl_ != nullptr but inner GetBundleInfo fails -> nullptr
+ */
+HWTEST_F(ApplicationContextSecondTest, ApplicationContext_CreateModuleContextSync_008, TestSize.Level1)
+{
+    auto applicationContext = std::make_shared<AbilityRuntime::ApplicationContext>();
+    applicationContext->contextImpl_ = std::make_shared<AbilityRuntime::ContextImpl>();
+    std::string bundleName = "com.example.bundleName";
+    std::string moduleName = "moduleName";
+    auto context = applicationContext->CreateModuleContext(bundleName, moduleName);
+    EXPECT_EQ(context, nullptr);
+}
+
+/**
+ * @tc.number: ApplicationContext_CreateModuleContextSync_009
+ * @tc.name: CreateModuleContextSync
+ * @tc.desc: Test CreateModuleContext(moduleName) single-arg with real ContextImpl (no BMS).
+ */
+HWTEST_F(ApplicationContextSecondTest, ApplicationContext_CreateModuleContextSync_009, TestSize.Level1)
+{
+    auto applicationContext = std::make_shared<AbilityRuntime::ApplicationContext>();
+    applicationContext->contextImpl_ = std::make_shared<AbilityRuntime::ContextImpl>();
+    std::string moduleName = "moduleName";
+    auto context = applicationContext->CreateModuleContext(moduleName);
+    EXPECT_EQ(context, nullptr);
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS

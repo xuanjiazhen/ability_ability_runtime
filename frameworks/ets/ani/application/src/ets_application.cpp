@@ -303,6 +303,72 @@ void EtsApplication::CreateModuleContext(ani_env *env,
     SetCreateCompleteCallback(env, moduleContext, callback);
 }
 
+ani_object EtsApplication::CreateModuleContextSync(ani_env *env,
+    ani_object contextObj, ani_string bundleName, ani_string moduleName)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "CreateModuleContextSync Call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return nullptr;
+    }
+    ani_ref undefRef = nullptr;
+    ani_status status = env->GetUndefined(&undefRef);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "GetUndefined failed %{public}d", status);
+        return nullptr;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "not system-app");
+        EtsErrorUtil::ThrowNotSystemAppError(env);
+        return reinterpret_cast<ani_object>(undefRef);
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->VerifyGetBundleInfoPrivilegedPermission()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "no permission");
+        EtsErrorUtil::ThrowNoPermissionError(env, PERMISSION_GET_BUNDLE_INFO);
+        return reinterpret_cast<ani_object>(undefRef);
+    }
+    ani_boolean stageMode = false;
+    status = IsStageContext(env, contextObj, stageMode);
+    if (status != ANI_OK || !stageMode) {
+        EtsErrorUtil::ThrowInvalidParamError(env, "must be a context of stageMode.");
+        return reinterpret_cast<ani_object>(undefRef);
+    }
+    auto context = GetStageModeContext(env, contextObj);
+    if (context == nullptr) {
+        EtsErrorUtil::ThrowInvalidParamError(env, "must not be nullptr.");
+        return reinterpret_cast<ani_object>(undefRef);
+    }
+    auto inputContextPtr = Context::ConvertTo<Context>(context);
+    if (inputContextPtr == nullptr) {
+        EtsErrorUtil::ThrowInvalidParamError(env, "must be a context.");
+        return reinterpret_cast<ani_object>(undefRef);
+    }
+    std::string stdBundleName = "";
+    std::string stdModuleName = "";
+    AppExecFwk::GetStdString(env, bundleName, stdBundleName);
+    AppExecFwk::GetStdString(env, moduleName, stdModuleName);
+    std::shared_ptr<ContextImpl> contextImpl = std::make_shared<ContextImpl>();
+    contextImpl->SetProcessName(context->GetProcessName());
+    auto moduleContext = contextImpl->CreateModuleContext(stdBundleName, stdModuleName, inputContextPtr);
+    if (moduleContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null moduleContext");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return reinterpret_cast<ani_object>(undefRef);
+    }
+    ani_class cls {};
+    if ((status = env->FindClass(CONTEXT_CLASS_NAME, &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "FindClass failed: %{public}d", status);
+        return reinterpret_cast<ani_object>(undefRef);
+    }
+    ani_object contextObjResult = nullptr;
+    if (!SetNativeContextLong(env, moduleContext, cls, contextObjResult)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "set nativeContextLong failed");
+        return reinterpret_cast<ani_object>(undefRef);
+    }
+    ContextUtil::CreateEtsBaseContext(env, cls, contextObjResult, moduleContext);
+    return contextObjResult;
+}
+
 void EtsApplication::CreateBundleContextCheck(ani_env *env,
     ani_object contextObj, ani_string bundleName)
 {
@@ -663,6 +729,12 @@ void ApplicationInit(ani_env *env)
             "C{application.Context.Context}C{std.core.String}C{std.core.String}"
             "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsApplication::CreateModuleContext)
+        },
+        ani_native_function {
+            "nativeCreateModuleContextSync",
+            "C{application.Context.Context}C{std.core.String}C{std.core.String}"
+            ":C{application.Context.Context}",
+            reinterpret_cast<void *>(EtsApplication::CreateModuleContextSync)
         },
         ani_native_function {
             "nativeCreateModuleContextCheck",

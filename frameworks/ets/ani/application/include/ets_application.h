@@ -24,6 +24,8 @@ class EtsApplication {
 public:
     static void CreateModuleContext(ani_env *env,
         ani_object contextObj, ani_string bundleName, ani_string moduleName, ani_object callback);
+    static ani_object CreateModuleContextSync(ani_env *env,
+        ani_object contextObj, ani_string bundleName, ani_string moduleName);
     static void CreateModuleContextCheck(ani_env *env,
         ani_object contextObj, ani_string moduleName, ani_object bundleName);
     static void CreateBundleContext(ani_env *env,

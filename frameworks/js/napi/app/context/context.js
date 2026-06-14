@@ -253,6 +253,10 @@ class Context {
     return this.__context_impl__.createModuleContext(bundleName, moduleName);
   }
 
+  createModuleContextSync(bundleName, moduleName) {
+    return this.__context_impl__.createModuleContextSync(bundleName, moduleName);
+  }
+
   createSystemHspModuleResourceManager(bundleName, moduleName) {
     return this.__context_impl__.createSystemHspModuleResourceManager(bundleName, moduleName);
   }

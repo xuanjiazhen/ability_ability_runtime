@@ -218,6 +218,50 @@ napi_value JsApplicationContextUtils::OnCreateModuleContext(napi_env env, NapiCa
     return CreateJsModuleContext(env, moduleContext);
 }
 
+napi_value JsApplicationContextUtils::CreateModuleContextSync(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils,
+        OnCreateModuleContextSync, APPLICATION_CONTEXT_NAME);
+}
+
+napi_value JsApplicationContextUtils::OnCreateModuleContextSync(napi_env env, NapiCallbackInfo& info)
+{
+    if (info.argc < ARGC_TWO) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Not enough params");
+        ThrowInvalidParamError(env, "Not enough params.");
+        return CreateJsUndefined(env);
+    }
+    auto applicationContext = applicationContext_.lock();
+    if (!applicationContext) {
+        TAG_LOGW(AAFwkTag::APPKIT, "null applicationContext");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return CreateJsUndefined(env);
+    }
+    std::string bundleName;
+    if (!ConvertFromJsValue(env, info.argv[0], bundleName)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Parse bundleName failed");
+        ThrowInvalidParamError(env, "Parse param bundleName failed, bundleName must be string.");
+        return CreateJsUndefined(env);
+    }
+    std::string moduleName;
+    if (!ConvertFromJsValue(env, info.argv[1], moduleName)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Parse moduleName failed");
+        ThrowInvalidParamError(env, "Parse param moduleName failed, moduleName must be string.");
+        return CreateJsUndefined(env);
+    }
+    if (!CheckCallerIsSystemApp()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "not system-app");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_NOT_SYSTEM_APP);
+        return CreateJsUndefined(env);
+    }
+    auto moduleContext = applicationContext->CreateModuleContext(bundleName, moduleName);
+    if (!moduleContext) {
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return CreateJsUndefined(env);
+    }
+    return CreateJsModuleContext(env, moduleContext);
+}
+
 napi_value JsApplicationContextUtils::CreateJsModuleContext(napi_env env, const std::shared_ptr<Context>& moduleContext)
 {
     HandleEscape handleEscape(env);
@@ -2245,6 +2289,8 @@ void JsApplicationContextUtils::BindNativeApplicationContextOne(napi_env env, na
     BindNativeFunction(env, object, "switchArea", MD_NAME, JsApplicationContextUtils::SwitchArea);
     BindNativeFunction(env, object, "getArea", MD_NAME, JsApplicationContextUtils::GetArea);
     BindNativeFunction(env, object, "createModuleContext", MD_NAME, JsApplicationContextUtils::CreateModuleContext);
+    BindNativeFunction(env, object, "createModuleContextSync", MD_NAME,
+        JsApplicationContextUtils::CreateModuleContextSync);
     BindNativeFunction(env, object, "createSystemHspModuleResourceManager", MD_NAME,
         JsApplicationContextUtils::CreateSystemHspModuleResourceManager);
     BindNativeFunction(env, object, "createModuleResourceManager", MD_NAME,
