@@ -57,7 +57,13 @@ export default namespace application {
 
   export native function nativeGetAppPreloadType(): AppPreloadType;
 
-  export native function nativeCreateModuleContextCheck(context: Context, moduleName: string, bundleName?: string): void;
+  export native function nativeCreateModuleContextCheck(
+    context: Context, moduleName: string, bundleName?: string): void;
+  export native function nativeCreateModuleContextSync(
+    context: Context, bundleName: string, moduleName: string): Context;
+  export function createModuleContextSync(context: Context, bundleName: string, moduleName: string): Context {
+    return application.nativeCreateModuleContextSync(context, bundleName, moduleName);
+  }
   export function createModuleContext(context: Context, moduleName: string): Promise<Context> {
     application.nativeCreateModuleContextCheck(context, moduleName);
     let p =

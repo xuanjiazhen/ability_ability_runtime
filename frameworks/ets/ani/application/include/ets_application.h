@@ -16,14 +16,23 @@
 #ifndef OHOS_ABILITY_RUNTIME_ETS_APPLICATION_H
 #define OHOS_ABILITY_RUNTIME_ETS_APPLICATION_H
 
+#include <memory>
+
 #include "ani.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
+class Context;
 class EtsApplication {
 public:
     static void CreateModuleContext(ani_env *env,
         ani_object contextObj, ani_string bundleName, ani_string moduleName, ani_object callback);
+    static ani_object CreateModuleContextSync(ani_env *env,
+        ani_object contextObj, ani_string bundleName, ani_string moduleName);
+    static std::shared_ptr<Context> GetModuleContextSyncInput(ani_env *env,
+        ani_object contextObj, ani_ref undefRef);
+    static ani_object CreateModuleContextSyncResult(ani_env *env,
+        std::shared_ptr<Context> moduleContext, ani_ref undefRef);
     static void CreateModuleContextCheck(ani_env *env,
         ani_object contextObj, ani_string moduleName, ani_object bundleName);
     static void CreateBundleContext(ani_env *env,
