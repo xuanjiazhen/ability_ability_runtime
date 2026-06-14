@@ -21,9 +21,11 @@
 #include "ability_config.h"
 #include "ability_util.h"
 #include "ability_manager_errors.h"
+#include "ability_record_utils.h"
 #include "distributed_ability_runtime/distributed_client.h"
 #include "extract_insight_intent_profile.h"
 #include "ffrt.h"
+#include "gui_intent_executor.h"
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_execute_callback_interface.h"
 #include "insight_intent_db_cache.h"
@@ -33,6 +35,7 @@
 #include "time_util.h"
 #include "res_sched_util.h"
 #include "nlohmann/json.hpp"
+#include "window_manager.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -171,6 +174,17 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
     }
 
     param->insightIntentId_ = intentId;
+
+    // Piercing: store extra info for GUI trigger
+    {
+        std::lock_guard<ffrt::mutex> lock(mutex_);
+        auto recordIt = records_.find(intentId);
+        if (recordIt != records_.end() && recordIt->second != nullptr) {
+            recordIt->second->moduleName = param->moduleName_;
+            recordIt->second->intentName = param->insightIntentName_;
+            recordIt->second->userId = param->userId_;
+        }
+    }
     return ERR_OK;
 }
 
@@ -342,13 +356,35 @@ int32_t InsightIntentExecuteManager::ExecuteIntentDone(uint64_t intentId, int32_
         }
         remoteCallback->OnExecuteDone(record->key, resultCode, result);
     }
-    
+
+    // Piercing: check if GUI intent should be triggered (collect data inside lock)
+    bool needGuiTrigger = (record->bundleName == "com.wuzheng.mymusic" &&
+        record->intentName == "NavigateToMyPage");
+    std::string guiBundle = record->bundleName;
+    std::string guiModule = record->moduleName;
+    int32_t guiUserId = record->userId;
+
     if (record->callerToken != nullptr) {
         record->callerToken->RemoveDeathRecipient(record->deathRecipient);
         record->callerToken = nullptr;
     }
     TAG_LOGI(AAFwkTag::INTENT, "execute done, intentId: %{public}" PRIu64 ", records_ size: %{public}zu",
         intentId, records_.size());
+
+    // Piercing: trigger GUI intent asynchronously (outside lock via ffrt)
+    if (needGuiTrigger) {
+        TAG_LOGI(AAFwkTag::INTENT,
+            "Piercing: scheduling GUI intent after bundle=%{public}s intent=%{public}s",
+            guiBundle.c_str(), "NavigateToMyPage");
+        auto weakPtr = weak_from_this();
+        ffrt::submit([weakPtr, guiBundle, guiModule, guiUserId]() {
+            auto self = weakPtr.lock();
+            if (self == nullptr) {
+                return;
+            }
+            self->TriggerGuiIntentPiercing(guiBundle, guiModule, guiUserId);
+        }, ffrt::task_attr().name("GuiIntentPiercingTrigger"));
+    }
     return ERR_OK;
 }
 
@@ -1011,6 +1047,69 @@ int32_t InsightIntentExecuteManager::GenerateQueryEntityWant(
     want.SetParam(INSIGHT_INTENT_QUERY_ENTITY_CLASS_NAME, param->className_);
     want.SetParam(INSIGHT_INTENT_QUERY_TYPE, param->queryEntityParam_.queryType_);
     return ERR_OK;
+}
+
+// ============================================================
+// Piercing: trigger GUI intent after specific intent completes
+// ============================================================
+
+void InsightIntentExecuteManager::TriggerGuiIntentPiercing(
+    const std::string &bundleName, const std::string &moduleName, int32_t userId)
+{
+    TAG_LOGI(AAFwkTag::INTENT,
+        "TriggerGuiIntentPiercing: bundle=%{public}s, module=%{public}s, userId=%{public}d",
+        bundleName.c_str(), moduleName.c_str(), userId);
+
+    // Step 1: Get focus window info
+    Rosen::FocusChangeInfo focusInfo;
+    auto ret = Rosen::WindowManager::GetInstance().GetFocusWindowInfo(focusInfo);
+    if (ret != Rosen::WMError::WM_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "TriggerGuiIntentPiercing: GetFocusWindowInfo failed, ret=%{public}d",
+            static_cast<int32_t>(ret));
+        return;
+    }
+    int32_t windowId = focusInfo.windowId_;
+    TAG_LOGI(AAFwkTag::INTENT, "TriggerGuiIntentPiercing: focus windowId=%{public}d", windowId);
+    if (windowId < 0) {
+        TAG_LOGE(AAFwkTag::INTENT, "TriggerGuiIntentPiercing: invalid windowId");
+        return;
+    }
+
+    // Step 2: Verify focus window's bundleName matches the GUI intent's bundleName
+    auto abilityRecord = Token::GetAbilityRecordByToken(focusInfo.abilityToken_);
+    if (abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "TriggerGuiIntentPiercing: focus ability record is null");
+        return;
+    }
+    const std::string &focusBundleName = abilityRecord->GetAbilityInfo().bundleName;
+    TAG_LOGI(AAFwkTag::INTENT,
+        "TriggerGuiIntentPiercing: focusBundle=%{public}s, guiBundle=%{public}s",
+        focusBundleName.c_str(), bundleName.c_str());
+    if (focusBundleName != bundleName) {
+        TAG_LOGE(AAFwkTag::INTENT,
+            "TriggerGuiIntentPiercing: bundleName mismatch, abort GUI intent");
+        return;
+    }
+
+    // Step 3: Hardcoded GUI intent steps for piercing
+    // TODO: formal approach gets this from record/param
+    std::string guiIntentJson = R"([{"pageName":"main","intentName":"ClickButton","parameters":{"compId":"btn_test","compType":"Button","actionType":"click","compText":"测试"}}])";
+
+    auto inputItems = GuiIntentInputItem::ParseFromJson(guiIntentJson);
+    if (inputItems.empty()) {
+        TAG_LOGE(AAFwkTag::INTENT, "TriggerGuiIntentPiercing: failed to parse guiIntentJson");
+        return;
+    }
+
+    // Step 4: Create executor and execute
+    auto executor = std::make_shared<GuiIntentExecutor>();
+    executor->Execute(windowId, bundleName, moduleName, userId, inputItems,
+        [executor](int32_t code, const std::string &failedPage) {
+            TAG_LOGI(AAFwkTag::INTENT,
+                "TriggerGuiIntentPiercing: GUI intent done, code=%{public}d, page=%{public}s",
+                code, failedPage.c_str());
+        });
+    TAG_LOGI(AAFwkTag::INTENT, "TriggerGuiIntentPiercing: GUI intent triggered");
 }
 } // namespace AAFwk
 } // namespace OHOS

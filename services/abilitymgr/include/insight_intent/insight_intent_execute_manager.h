@@ -46,6 +46,10 @@ struct InsightIntentExecuteRecord {
     bool isDistributed = false;
     std::string deviceId;
     uint64_t requestCode = 0;
+    // Piercing: extra fields for GUI intent trigger
+    std::string moduleName;
+    std::string intentName;
+    int32_t userId = -1;
 };
 
 class InsightIntentExecuteConnection : public AbilityConnectionStub {
@@ -159,6 +163,10 @@ private:
         const AppExecFwk::InsightIntentQueryEntityParam& queryParams);
 
     void SendIntentReport(EventInfo &eventInfo, int32_t errCode);
+
+    // Piercing: trigger GUI intent after specific intent completes
+    void TriggerGuiIntentPiercing(const std::string &bundleName, const std::string &moduleName,
+        int32_t userId);
 
     void HandleDiedRecordsCleanup(const std::vector<uint64_t> &toRemove,
         const AppExecFwk::InsightIntentExecuteResult &errorResult);
