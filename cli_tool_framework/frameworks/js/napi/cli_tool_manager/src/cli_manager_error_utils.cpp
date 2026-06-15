@@ -15,6 +15,8 @@
 
 #include "cli_manager_error_utils.h"
 
+#include <map>
+
 #include "cli_error_code.h"
 #include "hilog_tag_wrapper.h"
 #include "napi_common_util.h"
@@ -29,8 +31,27 @@ static const std::map<CliManagerErrorCode, std::string> ERROR_MSG_MAP = {
     {CliManagerErrorCode::ERROR_TOOL_NOT_FOUND, "The tool does not exist."},
     {CliManagerErrorCode::ERROR_REACH_LIMIT, "Maximum number of processes has been reached."},
     {CliManagerErrorCode::ERROR_SESSION_NOT_FOUND, "The session not found."},
-    {CliManagerErrorCode::ERROR_SEND_MESSAGE, "Sending Message to failure."},
+    {CliManagerErrorCode::ERROR_SEND_MESSAGE, "Failed to send message to the CLI session."},
     {CliManagerErrorCode::ERROR_INNER, "Internal error."},
+};
+
+static const std::map<int32_t, std::string> NATIVE_ERROR_MSG_MAP = {
+    {GET_CLI_TOOL_MGR_SERVICE_FAILED,
+        "Internal error. Failed to connect to the CLI tool manager service. Try again after the service is available."},
+    {ERR_NO_INIT,
+        "Internal error. A required CLI runtime component is not initialized or is unavailable. Try again later."},
+    {ERR_NOT_HAP,
+        "Internal error. Failed to build sandbox configuration. Ensure the caller is a HAP application."},
+    {ERR_NOT_KILL, "Internal error. Failed to terminate the CLI tool process."},
+    {ERR_JSON_PARSE_FAILED,
+        "Internal error. Failed to parse CLI tool metadata JSON. Check the tool configuration JSON format."},
+    {ERR_FILE_NOT_FOUND,
+        "Internal error. CLI tool configuration file or directory was not found. Check the tool installation path."},
+    {ERR_KVSTORE_NOT_READY, "Internal error. CLI tool database is not ready. Try again later."},
+    {ERR_KVSTORE_ERROR, "Internal error. CLI tool database operation failed. Try again later."},
+    {ERR_INVALID_VALUE,
+        "Internal error. Failed to decode CLI tool data returned by the service. The data may be invalid or memory "
+        "allocation may have failed."},
 };
 
 static const std::map<int32_t, CliManagerErrorCode> NATIVE_TO_BUSINESS_ERROR_MAP = {
@@ -43,8 +64,17 @@ static const std::map<int32_t, CliManagerErrorCode> NATIVE_TO_BUSINESS_ERROR_MAP
     {ERR_CLI_SEND_MESSAGE, CliManagerErrorCode::ERROR_SEND_MESSAGE},
 };
 
-std::string GetErrorMsg(CliManagerErrorCode errCode)
+std::string GetErrorMsg(CliManagerErrorCode errCode, int32_t nativeErr)
 {
+    auto nativeIt = NATIVE_ERROR_MSG_MAP.find(nativeErr);
+    if (nativeIt != NATIVE_ERROR_MSG_MAP.end()) {
+        return nativeIt->second;
+    }
+
+    if (errCode == CliManagerErrorCode::ERROR_INNER) {
+        return "Internal error. Operation failed with native error code " + std::to_string(nativeErr) + ".";
+    }
+
     auto it = ERROR_MSG_MAP.find(errCode);
     if (it != ERROR_MSG_MAP.end()) {
         return it->second;
@@ -60,6 +90,14 @@ CliManagerErrorCode GetBusinessErrorCode(int32_t nativeErr)
     }
     return CliManagerErrorCode::ERROR_INNER;
 }
+
+std::string AppendErrorContext(const std::string &errMsg, const std::string &errMsgContext)
+{
+    if (errMsgContext.empty()) {
+        return errMsg;
+    }
+    return errMsg + " " + errMsgContext;
+}
 }  // namespace
 
 napi_value CreateCliManagerError(napi_env env, int32_t errCode, const std::string& errMsg)
@@ -73,10 +111,10 @@ napi_value CreateCliManagerError(napi_env env, int32_t errCode, const std::strin
     return handleEscape.Escape(result);
 }
 
-napi_value CreateCliJsErrorByNativeErr(napi_env env, int32_t nativeErr)
+napi_value CreateCliJsErrorByNativeErr(napi_env env, int32_t nativeErr, const std::string& errMsgContext)
 {
     auto businessErrCode = GetBusinessErrorCode(nativeErr);
-    auto errMsg = GetErrorMsg(businessErrCode);
+    auto errMsg = AppendErrorContext(GetErrorMsg(businessErrCode, nativeErr), errMsgContext);
     return CreateCliManagerError(env, static_cast<int32_t>(businessErrCode), errMsg);
 }
 
