@@ -69,7 +69,7 @@ namespace insightIntent {
     entityId: string;
   }
 
-  abstract class AppIntentEntity<T> implements IntentEntity {
+  export abstract class AppIntentEntity<T> implements IntentEntity {
     displayName: string;
     abstract onQueryEntity(params: QueryEntityParam): Promise<Array<T>>;
 
