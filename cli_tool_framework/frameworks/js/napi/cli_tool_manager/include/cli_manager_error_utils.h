@@ -37,7 +37,7 @@ enum class CliManagerErrorCode {
 
 napi_value CreateCliManagerError(napi_env env, int32_t errCode, const std::string& errMsg = "");
 
-napi_value CreateCliJsErrorByNativeErr(napi_env env, int32_t nativeErr);
+napi_value CreateCliJsErrorByNativeErr(napi_env env, int32_t nativeErr, const std::string& errMsgContext = "");
 
 }  // namespace CliTool
 }  // namespace OHOS
