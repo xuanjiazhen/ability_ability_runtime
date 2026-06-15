@@ -171,6 +171,16 @@ int32_t RenderRecord::GetState() const
     return state_;
 }
 
+void RenderRecord::SetKillState(RenderKillState killState)
+{
+    killState_ = killState;
+}
+
+RenderKillState RenderRecord::GetKillState() const
+{
+    return killState_;
+}
+
 void RenderRecord::SetAttachTimeoutStartTime(const std::chrono::system_clock::time_point &time)
 {
     attachTimeoutStartTime_ = time;

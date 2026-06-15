@@ -36,6 +36,7 @@
 #include "app_config_data_manager.h"
 #include "app_hybrid_spawn_manager.h"
 #include "app_mem_info.h"
+#include "app_mgr_constants.h"
 #include "app_mgr_service.h"
 #include "app_mgr_event.h"
 #include "app_process_data.h"
@@ -256,6 +257,19 @@ const int32_t REPORT_THRESHOLD = 10;
 const std::string TOKEN_ID = "TOKEN_ID";
 const int32_t SIGNAL_KILL = 9;
 constexpr int32_t USER_SCALE = 200000;
+
+bool IsRenderKillStateMessage(int32_t state)
+{
+    return state == static_cast<int32_t>(RenderStateMessage::RENDER_KILLABLE_MESSAGE) ||
+        state == static_cast<int32_t>(RenderStateMessage::RENDER_NOT_KILLABLE_MESSAGE);
+}
+
+RenderKillState ConvertRenderStateMessageToKillState(int32_t state)
+{
+    return state == static_cast<int32_t>(RenderStateMessage::RENDER_KILLABLE_MESSAGE) ?
+        RenderKillState::RENDER_KILLABLE : RenderKillState::RENDER_NOT_KILLABLE;
+}
+
 #define ENUM_TO_STRING(s) #s
 #define APP_ACCESS_BUNDLE_DIR 0x20
 #define APP_OVERLAY_FLAG 0x100
@@ -11372,6 +11386,19 @@ int32_t AppMgrServiceInner::UpdateRenderState(pid_t renderPid, int32_t state)
         TAG_LOGE(AAFwkTag::APPMGR, "renderPid:%{pubclic}d unexist", renderPid);
         return ERR_INVALID_VALUE;
     }
+
+    if (IsRenderKillStateMessage(state)) {
+        TAG_LOGI(AAFwkTag::APPMGR, "UpdateRenderState: kill state received, renderPid:%{public}d state:%{public}d",
+                 renderPid, state);
+        renderRecord->SetKillState(ConvertRenderStateMessageToKillState(state));
+        auto killState = renderRecord->GetKillState();
+        TAG_LOGI(AAFwkTag::APPMGR, "UpdateRenderState: SetKillState done, killState:%{public}d",
+                 static_cast<int32_t>(killState));
+        // Keep observer payload as the original message value; only RenderRecord stores the converted state.
+        return DelayedSingleton<RenderStateObserverManager>::GetInstance()->OnRenderStateChanged(
+            renderRecord, state);
+    }
+
     renderRecord->SetState(state);
     return DelayedSingleton<RenderStateObserverManager>::GetInstance()->OnRenderStateChanged(
         renderRecord, state);
