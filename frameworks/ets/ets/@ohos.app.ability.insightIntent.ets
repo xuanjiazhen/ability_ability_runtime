@@ -65,11 +65,11 @@ namespace insightIntent {
     parameters?: Record<string, RecordData>;
   }
 
-  interface IntentEntity {
+  export interface IntentEntity {
     entityId: string;
   }
 
-  abstract class AppIntentEntity<T> implements IntentEntity {
+  export abstract class AppIntentEntity<T> implements IntentEntity {
     displayName: string;
     abstract onQueryEntity(params: QueryEntityParam): Promise<Array<T>>;
 
