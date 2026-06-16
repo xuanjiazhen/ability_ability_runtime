@@ -15,6 +15,7 @@
 
 #include "ets_app_manager.h"
 
+#include "ability_business_error.h"
 #include "ability_manager_client.h"
 #include "ability_manager_interface.h"
 #include "ani_common_util.h"
@@ -490,7 +491,9 @@ ani_int EtsAppManager::OnOnApplicationStateInner(ani_env *env, ani_string type, 
     if (appManager == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null appManager");
         AbilityRuntime::EtsErrorUtil::ThrowError(env,
-            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
+            AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env,
+                static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), "",
+                AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
         return ANI_ERROR;
     }
     ani_vm *aniVM = nullptr;
@@ -516,7 +519,9 @@ ani_int EtsAppManager::OnOnApplicationStateInner(ani_env *env, ani_string type, 
         int32_t ret = appManager->RegisterApplicationStateObserver(appStateObserver_, bundleNameList);
         TAG_LOGD(AAFwkTag::APPMGR, "err:%{public}d", ret);
         if (ret != ERR_OK) {
-            AbilityRuntime::EtsErrorUtil::ThrowErrorByNativeErr(env, static_cast<int32_t>(ret));
+            AbilityRuntime::EtsErrorUtil::ThrowError(env,
+                AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret), "",
+                    AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::REGISTER_OBSERVER_FAILED)));
             return ANI_ERROR;
         }
     }
@@ -586,7 +591,9 @@ ani_int EtsAppManager::OnOnApplicationStateWithAppStateFilter(ani_env *env, ani_
     if (appManager == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null appManager");
         AbilityRuntime::EtsErrorUtil::ThrowError(env,
-            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
+            AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env,
+                static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), "",
+                AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
         return ANI_ERROR;
     }
     ani_vm *aniVM = nullptr;
@@ -618,7 +625,9 @@ ani_int EtsAppManager::OnOnApplicationStateWithAppStateFilter(ani_env *env, ani_
         TAG_LOGD(AAFwkTag::APPMGR, "OnOnApplicationStateInner end");
         return observerId;
     }
-    AbilityRuntime::EtsErrorUtil::ThrowErrorByNativeErr(env, static_cast<int32_t>(ret));
+    AbilityRuntime::EtsErrorUtil::ThrowError(env,
+        AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret), "",
+            AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::REGISTER_OBSERVER_FAILED)));
     return ANI_ERROR;
 }
 
@@ -1162,8 +1171,9 @@ void EtsAppManager::NativeSetKeepAliveForBundle(ani_env *env, ani_string aniBund
     if (abilityManager == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "abilityManager null ptr");
         AppExecFwk::AsyncCallback(env, callback,
-            AbilityRuntime::EtsErrorUtil::CreateError(
-                env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), nullptr);
+            AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env,
+                static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), "",
+                AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)), nullptr);
         return;
     }
     std::string bundleName;
@@ -1178,7 +1188,8 @@ void EtsAppManager::NativeSetKeepAliveForBundle(ani_env *env, ani_string aniBund
     int32_t innerErrCode = abilityManager->SetApplicationKeepAlive(bundleName, aniUserId, enable);
     TAG_LOGD(AAFwkTag::APPMGR, "innerErrCode:%{public}d", innerErrCode);
     AppExecFwk::AsyncCallback(env, callback,
-        AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(innerErrCode)), nullptr);
+        AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(innerErrCode), "",
+            AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::SET_KEEP_ALIVE_FAILED)), nullptr);
     TAG_LOGD(AAFwkTag::APPMGR, "NativeSetKeepAliveForBundle end");
 }
 
@@ -1195,8 +1206,9 @@ void EtsAppManager::NativeGetKeepAliveBundles(ani_env *env, ani_object callback,
     if (abilityManager == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "abilityManager null ptr");
         AppExecFwk::AsyncCallback(env, callback,
-            AbilityRuntime::EtsErrorUtil::CreateError(
-                env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), nullptr);
+            AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env,
+                static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), "",
+                AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)), nullptr);
         return;
     }
     ani_int appType = 0;
@@ -1228,14 +1240,18 @@ void EtsAppManager::NativeGetKeepAliveBundles(ani_env *env, ani_object callback,
         innerErrCode, infoList.size());
     if (innerErrCode != ERR_OK) {
         AppExecFwk::AsyncCallback(env, callback,
-            AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(innerErrCode)), emptyArray);
+            AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(innerErrCode), "",
+                AbilityRuntime::GetInnerErrorMsg(
+                    AbilityRuntime::AbilityInnerErrorMsg::QUERY_KEEP_ALIVE_BUNDLES_FAILED)), emptyArray);
         return;
     }
     ani_object arrayObj = CreateKeepAliveInfoArray(env, infoList);
     if (arrayObj == nullptr) {
         AppExecFwk::AsyncCallback(env, callback,
             AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env,
-            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER)), emptyArray);
+            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), "",
+                AbilityRuntime::GetInnerErrorMsg(
+                    AbilityRuntime::AbilityInnerErrorMsg::QUERY_KEEP_ALIVE_BUNDLES_FAILED)), emptyArray);
     } else {
         AppExecFwk::AsyncCallback(env, callback,
             AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(innerErrCode)), arrayObj);
@@ -1263,7 +1279,10 @@ void EtsAppManager::OnOnAbilityFirstFrameStateInner(
         new (std::nothrow) AbilityRuntime::ETSAbilityFirstFrameStateObserver(aniVM);
     if (observer == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null abilityMgr_ or observer");
-        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        AbilityRuntime::EtsErrorUtil::ThrowError(env,
+            AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env,
+                static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), "",
+                AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::OBSERVER_CREATE_FAILED)));
         return;
     }
     if (AbilityRuntime::ETSAbilityFirstFrameStateObserverManager::GetInstance()->IsObserverObjectExist(aniObserver)) {
@@ -1356,14 +1375,19 @@ void EtsAppManager::OnOnAppForegroundState(ani_env *env, ani_string type, ani_ob
     }
     if (observerForeground_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null appMgr or observer");
-        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        AbilityRuntime::EtsErrorUtil::ThrowError(env,
+            AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env,
+                static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), "",
+                AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::OBSERVER_CREATE_FAILED)));
         return;
     }
     if (observerForeground_->IsEmpty()) {
         int32_t ret = appMgr->RegisterAppForegroundStateObserver(observerForeground_);
         TAG_LOGD(AAFwkTag::APPMGR, "RegisterAppForegroundStateObserver ret: %{public}d", ret);
         if (ret != NO_ERROR) {
-            AbilityRuntime::EtsErrorUtil::ThrowErrorByNativeErr(env, static_cast<int32_t>(ret));
+            AbilityRuntime::EtsErrorUtil::ThrowError(env,
+                AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret), "",
+                    AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::REGISTER_OBSERVER_FAILED)));
             return;
         }
     }
@@ -1429,8 +1453,7 @@ void EtsAppManager::OnOffAppForegroundState(ani_env *env, ani_string type, ani_o
         return;
     }
     std::string strType;
-    if (!OHOS::AppExecFwk::GetStdString(env, type, strType)
-        && strType != ON_OFF_TYPE_APP_FOREGROUND_STATE) {
+    if (!OHOS::AppExecFwk::GetStdString(env, type, strType) && strType != ON_OFF_TYPE_APP_FOREGROUND_STATE) {
         TAG_LOGE(AAFwkTag::APPMGR, "GetStdString failed");
         AbilityRuntime::EtsErrorUtil::ThrowInvalidParamError(env,
             "Parse param observer failed, must be a AppForegroundStateObserver.");
@@ -1439,12 +1462,16 @@ void EtsAppManager::OnOffAppForegroundState(ani_env *env, ani_string type, ani_o
     sptr<OHOS::AppExecFwk::IAppMgr> appMgr = GetAppManagerInstance();
     if (appMgr == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "appManager null ptr");
-        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env,
+                static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), "",
+                AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
         return;
     }
     if (observerForeground_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null observer or appMgr");
-        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env,
+                static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), "",
+                AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
         return;
     }
     ani_status status = ANI_OK;
@@ -1462,7 +1489,9 @@ void EtsAppManager::OnOffAppForegroundState(ani_env *env, ani_string type, ani_o
         int32_t ret = appMgr->UnregisterAppForegroundStateObserver(observerForeground_);
         TAG_LOGD(AAFwkTag::APPMGR, "ret: %{public}d.", ret);
         if (ret != NO_ERROR) {
-            AbilityRuntime::EtsErrorUtil::ThrowErrorByNativeErr(env, static_cast<int32_t>(ret));
+            AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(
+                env, static_cast<int32_t>(ret), "", AbilityRuntime::GetInnerErrorMsg(
+                        AbilityRuntime::AbilityInnerErrorMsg::UNREGISTER_OBSERVER_FAILED)));
         }
     }
     TAG_LOGD(AAFwkTag::APPMGR, "OnOffAppForegroundState end");
@@ -1671,7 +1700,8 @@ void EtsAppManager::TerminateMission(ani_env *env, ani_int missionId, ani_object
     if (amsClient == nullptr) {
         AppExecFwk::AsyncCallback(env, callback,
             AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env,
-                static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER)), nullptr);
+                static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), "",
+                AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)), nullptr);
         return;
     }
     int32_t ret = amsClient->TerminateMission(missionId);
@@ -1681,7 +1711,9 @@ void EtsAppManager::TerminateMission(ani_env *env, ani_int missionId, ani_object
             AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, ret), nullptr);
     } else {
         AppExecFwk::AsyncCallback(env, callback,
-            AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, ret,  "Terminate mission failed."), nullptr);
+            AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, ret, "",
+                AbilityRuntime::GetInnerErrorMsg(
+                    AbilityRuntime::AbilityInnerErrorMsg::TERMINATE_MISSION_FAILED)), nullptr);
     }
     TAG_LOGD(AAFwkTag::APPMGR, "TerminateMission end");
 }
