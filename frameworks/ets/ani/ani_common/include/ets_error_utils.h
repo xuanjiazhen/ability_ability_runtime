@@ -26,6 +26,8 @@ class EtsErrorUtil {
 public:
     static void ThrowError(ani_env *env, ani_object err);
     static void ThrowError(ani_env *env, int32_t errCode, const std::string &errorMsg = "");
+    static void ThrowError(ani_env *env, int32_t errCode, const std::string &permission,
+        const std::string &innerErrorMsg);
     static void ThrowError(ani_env *env, const AbilityErrorCode &err);
     static void ThrowInvalidCallerError(ani_env *env);
     static void ThrowTooFewParametersError(ani_env *env);
@@ -39,6 +41,8 @@ public:
 
     static ani_object CreateError(ani_env *env, const AbilityErrorCode &err);
     static ani_object CreateError(ani_env *env, ani_int code, const std::string &msg);
+    static ani_object CreateError(ani_env *env, ani_int code, const std::string &permission,
+        const std::string &innerErrMsg);
     static ani_object CreateInvalidParamError(ani_env *env, const std::string &message);
     static ani_object CreateNoPermissionError(ani_env *env, const std::string &permission);
     static ani_object CreateErrorByNativeErr(ani_env *env, int32_t err, const std::string &permission = "",

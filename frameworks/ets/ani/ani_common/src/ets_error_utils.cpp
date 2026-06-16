@@ -58,6 +58,16 @@ void EtsErrorUtil::ThrowError(ani_env *env, const AbilityErrorCode &err)
     EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateError(env, static_cast<int32_t>(err), GetErrorMsg(err)));
 }
 
+void EtsErrorUtil::ThrowError(ani_env *env, int32_t errCode, const std::string &permission,
+    const std::string &innerErrorMsg)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null env");
+        return;
+    }
+    EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateError(env, errCode, permission, innerErrorMsg));
+}
+
 void EtsErrorUtil::ThrowRuntimeError(ani_env *env, int32_t errCode, const std::string &errMessage)
 {
     if (env == nullptr) {
@@ -250,6 +260,17 @@ ani_object EtsErrorUtil::CreateError(ani_env *env, ani_int code, const std::stri
         return nullptr;
     }
     return obj;
+}
+
+ani_object EtsErrorUtil::CreateError(ani_env *env, ani_int code, const std::string &permission,
+    const std::string &innerErrMsg)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null env");
+        return nullptr;
+    }
+    auto errMsg = GetErrorMsgByNativeError(code, innerErrMsg, permission);
+    return EtsErrorUtil::CreateError(env, code, errMsg);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
