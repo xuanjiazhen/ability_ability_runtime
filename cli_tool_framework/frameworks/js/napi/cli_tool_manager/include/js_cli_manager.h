@@ -122,6 +122,15 @@ public:
      */
     static napi_value QueryTools(napi_env env, napi_callback_info info);
 
+    /**
+     * @brief Native method for listing all functions.
+     *
+     * @param env The N-API environment.
+     * @param info The N-API callback info.
+     * @return Returns the N-API value.
+     */
+    static napi_value ListFunctions(napi_env env, napi_callback_info info);
+
 private:
     /**
      * @brief Implementation for executing a CLI tool.
@@ -212,6 +221,16 @@ private:
      * @return Returns the N-API value.
      */
     napi_value OnQueryTools(napi_env env, size_t argc, napi_value *argv);
+
+    /**
+     * @brief Implementation for querying all functions.
+     *
+     * @param env The N-API environment.
+     * @param argc The argument count.
+     * @param argv The argument values.
+     * @return Returns the N-API value.
+     */
+    napi_value OnListFunctions(napi_env env, size_t argc, napi_value *argv);
 };
 
 /**

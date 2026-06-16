@@ -21,6 +21,7 @@
 #include "cli_tool_event.h"
 #include "exec_cmd_param.h"
 #include "exec_options.h"
+#include "function_info.h"
 #include "hilog_tag_wrapper.h"
 #include "icli_tool_data.h"
 #include "js_cli_session_event_callback.h"
@@ -634,6 +635,35 @@ napi_value CreateJsToolSummary(napi_env env, const ToolSummary &summary)
     // Set description
     napi_value jsDescription = AppExecFwk::WrapStringToJS(env, summary.description);
     napi_set_named_property(env, jsObj, "description", jsDescription);
+
+    return jsObj;
+}
+
+napi_value CreateJsFunctionInfo(napi_env env, const FunctionInfo &function)
+{
+    napi_value jsObj = nullptr;
+    napi_status status = napi_create_object(env, &jsObj);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to create JS FunctionInfo object");
+        return nullptr;
+    }
+
+    napi_value jsNamespace = AppExecFwk::WrapStringToJS(env, function.funcNamespace);
+    napi_set_named_property(env, jsObj, "namespace", jsNamespace);
+
+    napi_value jsFunctionName = AppExecFwk::WrapStringToJS(env, function.functionName);
+    napi_set_named_property(env, jsObj, "functionName", jsFunctionName);
+
+    napi_value jsDescription = AppExecFwk::WrapStringToJS(env, function.description);
+    napi_set_named_property(env, jsObj, "description", jsDescription);
+
+    napi_value jsInputSchema = ParseJsonStringToJsObject(env, function.inputSchema);
+    napi_set_named_property(env, jsObj, "inputSchema", jsInputSchema);
+
+    if (!function.outputSchema.empty()) {
+        napi_value jsOutputSchema = ParseJsonStringToJsObject(env, function.outputSchema);
+        napi_set_named_property(env, jsObj, "outputSchema", jsOutputSchema);
+    }
 
     return jsObj;
 }

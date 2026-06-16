@@ -23,6 +23,7 @@
 #include "cli_tool_mgr_client.h"
 #include "exec_cmd_param.h"
 #include "exec_result.h"
+#include "function_info.h"
 #include "hilog_tag_wrapper.h"
 #include "js_cli_event_handler_manager.h"
 #include "js_cli_manager_utils.h"
@@ -139,6 +140,11 @@ napi_value JSCliManager::QueryToolSummaries(napi_env env, napi_callback_info inf
 napi_value JSCliManager::QueryTools(napi_env env, napi_callback_info info)
 {
     GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnQueryTools);
+}
+
+napi_value JSCliManager::ListFunctions(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnListFunctions);
 }
 
 napi_value JSCliManager::OnExecTool(napi_env env, size_t argc, napi_value *argv)
@@ -514,6 +520,44 @@ napi_value JSCliManager::OnQueryTools(napi_env env, size_t argc, napi_value *arg
     return handleEscape.Escape(asyncResult);
 }
 
+napi_value JSCliManager::OnListFunctions(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManager::OnListFunctions called");
+    HandleEscape handleEscape(env);
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    auto functions = std::make_shared<std::vector<FunctionInfo>>();
+
+    NapiAsyncTask::ExecuteCallback execute = [innerErrCode, functions]() {
+        *innerErrCode = CliToolMGRClient::GetInstance().GetAllFunctions(*functions);
+    };
+
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode, functions](
+        napi_env env, NapiAsyncTask &task, int32_t status) {
+        HandleScope handleScope(env);
+        if (*innerErrCode != ERR_OK) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "ListFunctions error: %{public}d", *innerErrCode);
+            task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
+            return;
+        }
+
+        napi_value jsArray = nullptr;
+        napi_create_array(env, &jsArray);
+        for (size_t i = 0; i < functions->size(); i++) {
+            napi_value jsFunction = CreateJsFunctionInfo(env, (*functions)[i]);
+            if (jsFunction != nullptr) {
+                napi_set_element(env, jsArray, i, jsFunction);
+            }
+        }
+        task.ResolveWithNoError(env, jsArray);
+    };
+
+    napi_value asyncResult = nullptr;
+    NapiAsyncTask::Schedule("JsCliManager::OnListFunctions", env,
+        CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &asyncResult));
+    return handleEscape.Escape(asyncResult);
+}
+
 napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "Init JSCliManager");
@@ -536,6 +580,7 @@ napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "getToolInfoByName", moduleName, JSCliManager::GetToolInfoByName);
     BindNativeFunction(env, exportObj, "queryToolSummaries", moduleName, JSCliManager::QueryToolSummaries);
     BindNativeFunction(env, exportObj, "queryTools", moduleName, JSCliManager::QueryTools);
+    BindNativeFunction(env, exportObj, "listFunctions", moduleName, JSCliManager::ListFunctions);
 
     TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManagerInit end");
     return CreateJsUndefined(env);

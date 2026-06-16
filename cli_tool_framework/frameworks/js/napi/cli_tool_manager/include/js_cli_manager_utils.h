@@ -21,6 +21,7 @@
 
 #include "js_cli_session_event_callback.h"
 #include "native_engine/native_engine.h"
+#include "function_info.h"
 #include "tool_info.h"
 #include "tool_summary.h"
 
@@ -106,6 +107,14 @@ napi_value CreateJsToolInfo(napi_env env, const ToolInfo &tool);
  * @return Returns the JavaScript object.
  */
 napi_value CreateJsToolSummary(napi_env env, const ToolSummary &summary);
+
+/**
+ * @brief Create JavaScript FunctionInfo object.
+ * @param env The N-API environment.
+ * @param function The FunctionInfo structure.
+ * @return Returns the JavaScript object.
+ */
+napi_value CreateJsFunctionInfo(napi_env env, const FunctionInfo &function);
 
 } // namespace CliTool
 } // namespace OHOS
