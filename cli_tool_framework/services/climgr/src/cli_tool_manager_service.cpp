@@ -529,7 +529,7 @@ int32_t CliToolManagerService::GetFunctionInfo(const std::string &funcNamespace,
 
     auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
     if (!AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllFunctions: Not system app");
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionInfo: Not system app");
         return ERR_NOT_SYSTEM_APP;
     }
 
