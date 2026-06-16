@@ -1026,10 +1026,7 @@ void JsRuntime::InitSourceMap(const std::string hqfFilePath)
     CHECK_POINTER(jsEnv_);
     auto sourceMapOperator = jsEnv_->GetSourceMapOperator();
     if (sourceMapOperator != nullptr) {
-        auto sourceMapObj = sourceMapOperator->GetSourceMapObj();
-        if (sourceMapObj != nullptr) {
-            sourceMapObj->SplitSourceMap(str);
-        }
+        sourceMapOperator->InitSourceMap(hqfFilePath);
     }
 }
 

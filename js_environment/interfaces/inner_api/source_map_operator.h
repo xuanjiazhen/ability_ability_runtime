@@ -34,21 +34,25 @@ public:
 
     ~SourceMapOperator() = default;
 
-    void InitSourceMap()
+    void InitSourceMap(const std::string& hqfPath)
     {
         sourceMapObj_ = std::make_shared<SourceMap>();
 
-        auto init = [weak = weak_from_this()]() {
+        auto init = [weak = weak_from_this(), hqfPath]() {
             auto sourceMapOperator = weak.lock();
             if (sourceMapOperator != nullptr && sourceMapOperator->sourceMapObj_ != nullptr) {
-                std::vector<std::string> hapList;
-                sourceMapOperator->sourceMapObj_->GetHapPath(sourceMapOperator->bundleName_, hapList);
-                for (auto &hapInfo : hapList) {
-                    if (!hapInfo.empty()) {
-                        sourceMapOperator->sourceMapObj_->Init(sourceMapOperator->hasFile_, hapInfo);
+                if (!hqfPath.empty()) {
+                    sourceMapOperator->sourceMapObj_->Init(sourceMapOperator->hasFile_, hqfPath);
+                } else {
+                    std::vector<std::string> hapList;
+                    sourceMapOperator->sourceMapObj_->GetHapPath(sourceMapOperator->bundleName_, hapList);
+                    for (auto &hapInfo : hapList) {
+                        if (!hapInfo.empty()) {
+                            sourceMapOperator->sourceMapObj_->Init(sourceMapOperator->hasFile_, hapInfo);
+                        }
                     }
+                    sourceMapOperator->initStatus_ = EXECUTED_SUCCESSFULLY;
                 }
-                sourceMapOperator->initStatus_ = EXECUTED_SUCCESSFULLY;
             }
         };
 

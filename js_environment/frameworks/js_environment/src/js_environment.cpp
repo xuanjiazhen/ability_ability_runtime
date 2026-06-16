@@ -132,7 +132,7 @@ void JsEnvironment::InitSourceMap(const std::shared_ptr<JsEnv::SourceMapOperator
     }
 
     if (sourceMapOperator_ != nullptr) {
-        sourceMapOperator_->InitSourceMap();
+        sourceMapOperator_->InitSourceMap("");
     }
 
     auto translateBySourceMapFunc = [&](const std::string& rawStack) -> std::string {
