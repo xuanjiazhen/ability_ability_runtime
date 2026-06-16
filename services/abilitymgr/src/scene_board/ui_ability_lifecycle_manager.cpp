@@ -1944,7 +1944,14 @@ sptr<SessionInfo> UIAbilityLifecycleManager::CreateSessionInfo(const AbilityRequ
     sptr<SessionInfo> sessionInfo = new SessionInfo();
     sessionInfo->requestId = requestId;
     sessionInfo->callerToken = abilityRequest.callerToken;
-    sessionInfo->asCallerSourceToken = abilityRequest.asCallerSourceToken;
+    if (abilityRequest.asCallerSourceToken != nullptr) {
+        auto asCallerAbilityRecord = Token::GetAbilityRecordByToken(abilityRequest.asCallerSourceToken);
+        if (asCallerAbilityRecord != nullptr && asCallerAbilityRecord->GetSessionInfo() != nullptr) {
+            sessionInfo->asCallerSourcePersistentId = asCallerAbilityRecord->GetSessionInfo()->persistentId;
+        } else {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "asCallerSourceToken has no valid ability record or sessionInfo");
+        }
+    }
     sessionInfo->want = abilityRequest.want;
     sessionInfo->processOptions = abilityRequest.processOptions;
     sessionInfo->startWindowOption = abilityRequest.startWindowOption;
