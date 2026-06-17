@@ -100,7 +100,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     pendingWantKey->GetUserId();
 
     // fuzz for PendingWantManager
-    auto pendingWantManager = std::make_shared<PendingWantManager>();
+    static auto pendingWantManager = std::make_shared<PendingWantManager>();
     WantSenderInfo wantSenderInfo;
     pendingWantManager->GetWantSender(int32Param, int32Param, boolParam, wantSenderInfo, token);
     pendingWantManager->GetWantSenderLocked(int32Param, int32Param, int32Param, wantSenderInfo, token);
