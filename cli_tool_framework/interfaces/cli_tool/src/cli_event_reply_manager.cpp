@@ -49,7 +49,10 @@ void CliEventReplyManager::RemoveEventReplyCallback(const std::string &eventId)
     std::lock_guard<std::mutex> lock(mutex_);
     eventReplyTasks_.erase(eventId);
 }
-
+// 1. 加锁，保证多线程安全
+// 2. 根据 name 生成一个 eventId
+// 3. 把 callback 保存到 eventReplyTasks_ 里
+// 4. 返回 eventId
 std::string CliEventReplyManager::AddEventReplyCallback(const std::string &name, const EventReplyCallback &callback)
 {
     std::lock_guard<std::mutex> lock(mutex_);

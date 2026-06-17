@@ -33,12 +33,14 @@ namespace {
 constexpr int32_t ERR_OK = 0;
 } // namespace
 
+// 获取当前进程内访问 CLI tool manager 服务的单例客户端。
 CliToolMGRClient& CliToolMGRClient::GetInstance()
 {
     static CliToolMGRClient instance;
     return instance;
 }
 
+// 向 climgr 发送 execTool 请求，并注册一次性结果回调。
 ErrCode CliToolMGRClient::ExecTool(const ExecToolParam &param, const ExecToolReplyCallback &callback)
 {
     ErrCode ret = EnsureSchedulerStubCreated();
@@ -62,7 +64,7 @@ ErrCode CliToolMGRClient::ExecTool(const ExecToolParam &param, const ExecToolRep
                 cb(result.code, sessionInfo);
             }
         });
-    ret = proxy->ExecTool(param, eventId, schedulerStub_);
+    ret = proxy->ExecTool(param, eventId, schedulerStub_); //只是把任务发给远端服务，不代表工具已经完成。
     if (ret != ERR_OK) {
         CliEventReplyManager::GetInstance().RemoveEventReplyCallback(eventId);
     } else {
@@ -71,6 +73,7 @@ ErrCode CliToolMGRClient::ExecTool(const ExecToolParam &param, const ExecToolRep
     return ret;
 }
 
+// 向 climgr 发送 execCmd 请求，注册结果回调，并准备会话事件订阅。
 ErrCode CliToolMGRClient::ExecCmd(const ExecCmdParam &param,
     const ExecToolReplyCallback &callback, const std::shared_ptr<SessionEventCallback> &sessionEventCallback)
 {
@@ -114,6 +117,7 @@ ErrCode CliToolMGRClient::ExecCmd(const ExecCmdParam &param,
     return ret;
 }
 
+// 创建本进程的 scheduler stub，供 climgr 回调执行结果和会话事件。
 ErrCode CliToolMGRClient::EnsureSchedulerStubCreated()
 {
     std::lock_guard<std::mutex> lock(schedulerMutex_);
@@ -128,6 +132,7 @@ ErrCode CliToolMGRClient::EnsureSchedulerStubCreated()
     return ERR_OK;
 }
 
+// 从远端 manager 服务查询轻量级 CLI 工具摘要。
 ErrCode CliToolMGRClient::GetAllToolSummaries(std::vector<ToolSummary> &summaries)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -139,6 +144,7 @@ ErrCode CliToolMGRClient::GetAllToolSummaries(std::vector<ToolSummary> &summarie
     return proxy->GetAllToolSummaries(summaries);
 }
 
+// 按工具名称从远端 manager 服务查询完整 CLI 工具定义。
 ErrCode CliToolMGRClient::GetToolInfoByName(const std::string &name, ToolInfo &tool)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -150,6 +156,7 @@ ErrCode CliToolMGRClient::GetToolInfoByName(const std::string &name, ToolInfo &t
     return proxy->GetToolInfoByName(name, tool);
 }
 
+// 查询全部 CLI 工具定义，并将远端返回的 raw data 转换成 ToolInfo 列表。
 ErrCode CliToolMGRClient::GetAllToolInfos(std::vector<ToolInfo> &tools)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -167,6 +174,7 @@ ErrCode CliToolMGRClient::GetAllToolInfos(std::vector<ToolInfo> &tools)
     return ToolsRawData::ToToolInfoVec(rawData, tools);
 }
 
+// 将工具注册请求转发给远端 manager 服务。
 ErrCode CliToolMGRClient::RegisterTool(const ToolInfo &tool)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -178,6 +186,7 @@ ErrCode CliToolMGRClient::RegisterTool(const ToolInfo &tool)
     return proxy->RegisterTool(tool);
 }
 
+// 将 function 注册请求转发给远端 manager 服务。
 ErrCode CliToolMGRClient::RegisterFunction(const FunctionInfo &function)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -189,6 +198,7 @@ ErrCode CliToolMGRClient::RegisterFunction(const FunctionInfo &function)
     return proxy->RegisterFunction(function);
 }
 
+// 从远端 manager 服务查询单个已注册 function 定义。
 ErrCode CliToolMGRClient::GetFunctionInfo(const std::string &funcNamespace, const std::string &functionName,
     FunctionInfo &function)
 {
@@ -201,6 +211,7 @@ ErrCode CliToolMGRClient::GetFunctionInfo(const std::string &funcNamespace, cons
     return proxy->GetFunctionInfo(funcNamespace, functionName, function);
 }
 
+// 将 function 反注册请求转发给远端 manager 服务。
 ErrCode CliToolMGRClient::UnregisterFunction(const std::string &funcNamespace, const std::string &functionName)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -212,6 +223,7 @@ ErrCode CliToolMGRClient::UnregisterFunction(const std::string &funcNamespace, c
     return proxy->UnregisterFunction(funcNamespace, functionName);
 }
 
+// 将按命名空间反注册 intent function 的请求转发给远端 manager 服务。
 ErrCode CliToolMGRClient::UnregisterIntentFunctionsByNamespace(const std::string &funcNamespace)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -223,6 +235,7 @@ ErrCode CliToolMGRClient::UnregisterIntentFunctionsByNamespace(const std::string
     return proxy->UnregisterIntentFunctionsByNamespace(funcNamespace);
 }
 
+// 从远端 manager 服务查询全部已注册 function 定义。
 ErrCode CliToolMGRClient::GetAllFunctions(std::vector<FunctionInfo> &functions)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -234,6 +247,7 @@ ErrCode CliToolMGRClient::GetAllFunctions(std::vector<FunctionInfo> &functions)
     return proxy->GetAllFunctions(functions);
 }
 
+// 将批量子命令权限查询请求转发给远端 manager 服务。
 int32_t CliToolMGRClient::BatchQueryPermissionBySubCommand(
     const std::vector<Command> &cmds,
     std::vector<CommandPermission> &cmdPermissions)
@@ -247,6 +261,7 @@ int32_t CliToolMGRClient::BatchQueryPermissionBySubCommand(
     return proxy->BatchQueryPermissionBySubCommand(cmds, cmdPermissions);
 }
 
+// 处理 climgr 按需加载成功回调，并唤醒等待加载结果的客户端线程。
 void CliToolMGRClient::OnLoadSystemAbilitySuccess(const sptr<IRemoteObject> &remoteObject)
 {
     SetCliToolMgr(remoteObject);
@@ -255,6 +270,7 @@ void CliToolMGRClient::OnLoadSystemAbilitySuccess(const sptr<IRemoteObject> &rem
     loadSaCondation_.notify_one();
 }
 
+// 处理 climgr 按需加载失败回调，并唤醒等待加载结果的客户端线程。
 void CliToolMGRClient::OnLoadSystemAbilityFail()
 {
     SetCliToolMgr(nullptr);
@@ -263,6 +279,7 @@ void CliToolMGRClient::OnLoadSystemAbilityFail()
     loadSaCondation_.notify_one();
 }
 
+// 返回缓存的 climgr proxy；没有缓存时加载 SystemAbility 并注册死亡回调。
 sptr<ICliToolManager> CliToolMGRClient::GetCliToolMgrProxy()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -298,6 +315,7 @@ sptr<ICliToolManager> CliToolMGRClient::GetCliToolMgrProxy()
     return cliToolMgr;
 }
 
+// 按需加载 CLI tool manager SystemAbility，并等待加载回调返回。
 bool CliToolMGRClient::LoadCliToolMgrService()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -342,18 +360,21 @@ bool CliToolMGRClient::LoadCliToolMgrService()
     return true;
 }
 
+// 将远端 climgr 对象保存为类型化 manager proxy。
 void CliToolMGRClient::SetCliToolMgr(const sptr<IRemoteObject> &remoteObject)
 {
     std::lock_guard<std::mutex> lock(proxyMutex_);
     cliToolMgr_ = iface_cast<ICliToolManager>(remoteObject);
 }
 
+// 返回当前缓存的 CLI tool manager proxy。
 sptr<ICliToolManager> CliToolMGRClient::GetCliToolMgr()
 {
     std::lock_guard<std::mutex> lock(proxyMutex_);
     return cliToolMgr_;
 }
 
+// 清理缓存的 proxy，并丢弃待处理的事件回复和会话订阅。
 void CliToolMGRClient::ClearProxy()
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "called");
@@ -363,6 +384,7 @@ void CliToolMGRClient::ClearProxy()
     CliSessionSubscriptionManager::GetInstance().ClearAllSubscriptions();
 }
 
+// 在 climgr 进程死亡时触发已注册的 proxy 清理回调。
 void CliToolMGRClient::CliMgrDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
     if (callback_ != nullptr) {
@@ -371,6 +393,7 @@ void CliToolMGRClient::CliMgrDeathRecipient::OnRemoteDied(const wptr<IRemoteObje
     }
 }
 
+// 订阅已有会话事件，并在远端订阅成功后激活本地回调。
 ErrCode CliToolMGRClient::SubscribeSession(const std::string &sessionId,
                                            const std::shared_ptr<SessionEventCallback> &callback,
                                            std::string &subscriptionId)
@@ -403,6 +426,7 @@ ErrCode CliToolMGRClient::SubscribeSession(const std::string &sessionId,
     return ret;
 }
 
+// 移除本地会话订阅，并将取消订阅请求转发给 climgr。
 ErrCode CliToolMGRClient::UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId)
 {
     auto proxy = GetCliToolMgrProxy();
@@ -415,6 +439,7 @@ ErrCode CliToolMGRClient::UnsubscribeSession(const std::string &sessionId, const
     return proxy->UnsubscribeSession(sessionId, subscriptionId);
 }
 
+// 请求 climgr 取消并清理一个运行中的会话。
 ErrCode CliToolMGRClient::ClearSession(const std::string &sessionId)
 {
     auto proxy = GetCliToolMgrProxy();
@@ -425,6 +450,7 @@ ErrCode CliToolMGRClient::ClearSession(const std::string &sessionId)
     return proxy->ClearSession(sessionId);
 }
 
+// 从 climgr 查询当前会话信息。
 ErrCode CliToolMGRClient::QuerySession(const std::string &sessionId, CliSessionInfo &session)
 {
     auto proxy = GetCliToolMgrProxy();
@@ -435,6 +461,7 @@ ErrCode CliToolMGRClient::QuerySession(const std::string &sessionId, CliSessionI
     return proxy->QuerySession(sessionId, session);
 }
 
+// 向运行中的会话发送 stdin 文本，并注册一次性发送结果回调。
 ErrCode CliToolMGRClient::SendMessage(const std::string &sessionId, const std::string &inputText,
     const EventReplyCallback &callback)
 {

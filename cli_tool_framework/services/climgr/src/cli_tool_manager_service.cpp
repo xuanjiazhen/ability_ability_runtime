@@ -58,6 +58,7 @@ std::mutex g_mutex;
 sptr<CliToolManagerService> CliToolManagerService::instance_ = nullptr;
 const bool REGISTER_RESULT = SystemAbility::MakeAndRegisterAbility(CliToolManagerService::GetInstance().GetRefPtr());
 
+// 获取 CLI tool manager 服务的单例实例。
 sptr<CliToolManagerService> CliToolManagerService::GetInstance()
 {
     std::lock_guard<std::mutex> lock(g_mutex);
@@ -68,6 +69,7 @@ sptr<CliToolManagerService> CliToolManagerService::GetInstance()
     return instance_;
 }
 
+// 处理会话超时，标记超时状态并终止 CLI 进程或 skill 会话。
 void CliToolManagerService::HandleProcessTimeout(const std::string &sessionId)
 {
     auto record = GetSessionRecord(sessionId);
@@ -100,6 +102,7 @@ void CliToolManagerService::HandleProcessTimeout(const std::string &sessionId)
     ProcessManager::GetInstance().Killpg(record->processId);
 }
 
+// 在 yield 超时后将前台会话切换为后台会话。
 void CliToolManagerService::HandleProcessYieldTimeout(const std::string &sessionId)
 {
     auto record = GetSessionRecord(sessionId);
@@ -119,6 +122,7 @@ void CliToolManagerService::HandleProcessYieldTimeout(const std::string &session
     }
 }
 
+// 标记 stdout 或 stderr 已关闭，并在输出全部读完后完成会话清理。
 void CliToolManagerService::HandleOutputClosed(const std::string &sessionId, bool isStdout)
 {
     auto record = GetSessionRecord(sessionId);
@@ -138,6 +142,7 @@ void CliToolManagerService::HandleOutputClosed(const std::string &sessionId, boo
     }
 }
 
+// 在子进程退出且输出读完后完成会话收尾。
 void CliToolManagerService::HandleOutputDrained(const std::string &sessionId)
 {
     auto record = GetSessionRecord(sessionId);
@@ -146,6 +151,7 @@ void CliToolManagerService::HandleOutputDrained(const std::string &sessionId)
     }
 }
 
+// 发送后台会话的最终回复和退出事件，清理订阅者并移除会话。
 void CliToolManagerService::FinalizeBackgroundSession(const std::shared_ptr<SessionRecord> &record)
 {
     if (record == nullptr) {
@@ -177,6 +183,7 @@ void CliToolManagerService::FinalizeBackgroundSession(const std::shared_ptr<Sess
     RemoveSessionRecord(sessionId);
 }
 
+// 初始化 SIGCHLD 处理逻辑和 CLI 会话的 I/O 监听回调。
 void CliToolManagerService::Init()
 {
     if (initialized_) {
@@ -227,6 +234,7 @@ void CliToolManagerService::Init()
     initialized_ = true;
 }
 
+// 启动 SystemAbility，加载工具和 function 数据，发布 climgr，并安排延迟卸载。
 void CliToolManagerService::OnStart()
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "climgr start");
@@ -262,6 +270,7 @@ void CliToolManagerService::OnStart()
     TAG_LOGI(AAFwkTag::CLI_TOOL, "climgr start success");
 }
 
+// 停止 climgr，清理所有会话状态，终止运行中的 CLI 进程，并停止 I/O 监听。
 void CliToolManagerService::OnStop()
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "climgr stop");
@@ -293,6 +302,7 @@ void CliToolManagerService::OnStop()
     }
 }
 
+// 仅在没有接口调用、会话和被观察 caller pid 时允许按需卸载。
 int32_t CliToolManagerService::OnIdle(const SystemAbilityOnDemandReason &idlReason)
 {
     int32_t sessionSize = 0;
@@ -313,12 +323,14 @@ int32_t CliToolManagerService::OnIdle(const SystemAbilityOnDemandReason &idlReas
     return 0;
 }
 
+// 按 sessionId 保存新的会话记录。
 void CliToolManagerService::AddSessionRecord(const std::shared_ptr<SessionRecord> &record)
 {
     std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
     sessionRecords_[record->sessionId] = record;
 }
 
+// 查找会话记录，并清理空记录。
 std::shared_ptr<SessionRecord> CliToolManagerService::GetSessionRecord(const std::string &sessionId)
 {
     std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
@@ -334,6 +346,7 @@ std::shared_ptr<SessionRecord> CliToolManagerService::GetSessionRecord(const std
     return it->second;
 }
 
+// 返回当前所有有效会话记录的快照。
 std::vector<std::shared_ptr<SessionRecord>> CliToolManagerService::GetSessionRecords()
 {
     std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
@@ -347,12 +360,14 @@ std::vector<std::shared_ptr<SessionRecord>> CliToolManagerService::GetSessionRec
     return records;
 }
 
+// 从活跃会话表中移除指定会话记录。
 void CliToolManagerService::RemoveSessionRecord(const std::string &sessionId)
 {
     std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
     sessionRecords_.erase(sessionId);
 }
 
+// 检查当前调用进程是否拥有目标会话。
 bool CliToolManagerService::IsSessionOwner(const std::shared_ptr<SessionRecord> &record, const char *action) const
 {
     if (record == nullptr) {
@@ -368,6 +383,7 @@ bool CliToolManagerService::IsSessionOwner(const std::shared_ptr<SessionRecord> 
     return true;
 }
 
+// 安排 climgr 延迟卸载；服务仍忙时重新安排卸载任务。
 void CliToolManagerService::DelayUnloadTask()
 {
     auto task = []() {
@@ -401,6 +417,7 @@ void CliToolManagerService::DelayUnloadTask()
     ffrt::submit(std::move(task), ffrt::task_attr().delay(ACTIVE_TIME * COEFFICIENT));
 }
 
+// 将会话注册到 I/O 监听，并投递 yield 超时和执行超时定时任务。
 bool CliToolManagerService::RegisterSessionWithMonitors(const std::shared_ptr<SessionRecord> &record,
     const ExecOptions &options)
 {
@@ -423,6 +440,7 @@ bool CliToolManagerService::RegisterSessionWithMonitors(const std::shared_ptr<Se
     return true;
 }
 
+// 从 I/O 监听中取消注册指定会话。
 void CliToolManagerService::UnregisterSessionWithMonitors(const std::string &sessionId)
 {
     if (ioMonitor_) {
@@ -430,6 +448,7 @@ void CliToolManagerService::UnregisterSessionWithMonitors(const std::string &ses
     }
 }
 
+// 在完成 system app 和查询权限校验后查询完整 CLI 工具信息。
 int32_t CliToolManagerService::GetAllToolInfos(ToolsRawData &tools)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllToolInfos called");
@@ -449,6 +468,7 @@ int32_t CliToolManagerService::GetAllToolInfos(ToolsRawData &tools)
     return CliToolDataManager::GetInstance().GetAllToolsRawData(tools);
 }
 
+// 在完成 system app 和查询权限校验后查询轻量级 CLI 工具摘要。
 int32_t CliToolManagerService::GetAllToolSummaries(std::vector<ToolSummary> &summaries)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllToolSummaries called");
@@ -468,6 +488,7 @@ int32_t CliToolManagerService::GetAllToolSummaries(std::vector<ToolSummary> &sum
     return CliToolDataManager::GetInstance().QueryToolSummaries(summaries);
 }
 
+// 在完成 system app 和查询权限校验后按名称查询单个 CLI 工具定义。
 int32_t CliToolManagerService::GetToolInfoByName(const std::string &name, ToolInfo &tool)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "GetToolInfoByName called, name='%{public}s'", name.c_str());
@@ -487,12 +508,14 @@ int32_t CliToolManagerService::GetToolInfoByName(const std::string &name, ToolIn
     return CliToolDataManager::GetInstance().GetToolByName(name, tool);
 }
 
+// 拒绝通过当前公开服务入口动态注册 CLI 工具。
 int32_t CliToolManagerService::RegisterTool(const ToolInfo &tool)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "RegisterTool called, tool name='%{public}s'", tool.name.c_str());
     return ERR_PERMISSION_DENIED;
 }
 
+// 校验通过后为 foundation 进程注册 function 定义。
 int32_t CliToolManagerService::RegisterFunction(const FunctionInfo &function)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "RegisterFunction called: %{public}s/%{public}s",
@@ -522,6 +545,7 @@ int32_t CliToolManagerService::RegisterFunction(const FunctionInfo &function)
     return ERR_OK;
 }
 
+// 为 system app 调用方按命名空间和名称查询单个已注册 function。
 int32_t CliToolManagerService::GetFunctionInfo(const std::string &funcNamespace,
     const std::string &functionName, FunctionInfo &function)
 {
@@ -546,6 +570,7 @@ int32_t CliToolManagerService::GetFunctionInfo(const std::string &funcNamespace,
     return ERR_OK;
 }
 
+// 为 foundation 进程反注册指定 function 定义。
 int32_t CliToolManagerService::UnregisterFunction(const std::string &funcNamespace,
     const std::string &functionName)
 {
@@ -570,6 +595,7 @@ int32_t CliToolManagerService::UnregisterFunction(const std::string &funcNamespa
     return ERR_OK;
 }
 
+// 为 foundation 进程反注册指定命名空间下的所有 intent function。
 int32_t CliToolManagerService::UnregisterIntentFunctionsByNamespace(const std::string &funcNamespace)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "UnregisterIntentFunctionsByNamespace called: %{public}s", funcNamespace.c_str());
@@ -593,6 +619,7 @@ int32_t CliToolManagerService::UnregisterIntentFunctionsByNamespace(const std::s
     return ERR_OK;
 }
 
+// 为 system app 调用方查询全部已注册 function。
 int32_t CliToolManagerService::GetAllFunctions(std::vector<FunctionInfo> &functions)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllFunctions called");
@@ -614,6 +641,7 @@ int32_t CliToolManagerService::GetAllFunctions(std::vector<FunctionInfo> &functi
     return ERR_OK;
 }
 
+// 校验调用方是否为 system app 且具备 EXEC_CLI_TOOL 权限。
 int32_t CliToolManagerService::ValidateExecToolPermissions()
 {
     auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
@@ -629,6 +657,7 @@ int32_t CliToolManagerService::ValidateExecToolPermissions()
     return ERR_OK;
 }
 
+// 检查继续创建会话是否会超过配置的并发数量限制。
 int32_t CliToolManagerService::ValidateSessionLimit()
 {
     auto cliQuantity = CcmUtil::GetInstance().GetCliConcurrencyLimit();
@@ -640,6 +669,7 @@ int32_t CliToolManagerService::ValidateSessionLimit()
     return ERR_OK;
 }
 
+// 加载并校验已配置的 CLI 工具，然后生成对应沙箱配置。
 int32_t CliToolManagerService::ValidateAndPrepareTool(const ExecToolParam &param, uint32_t tokenId,
     ToolInfo &toolInfo, std::string &sandboxConfig, std::string &bundleName)
 {
@@ -661,6 +691,7 @@ int32_t CliToolManagerService::ValidateAndPrepareTool(const ExecToolParam &param
     return ERR_OK;
 }
 
+// 校验 shell 命令执行参数，并为 execCmd 生成沙箱配置。
 int32_t CliToolManagerService::ValidateAndPrepareCmd(const ExecCmdParam &param, uint32_t tokenId,
     std::string &sandboxConfig, std::string &bundleName)
 {
@@ -677,6 +708,7 @@ int32_t CliToolManagerService::ValidateAndPrepareCmd(const ExecCmdParam &param, 
     return ERR_OK;
 }
 
+// 创建并启动普通 CLI 子进程会话。
 int32_t CliToolManagerService::SetupAndStartSession(const ExecToolParam &param, const std::string &eventId,
     const ToolInfo &toolInfo, const std::string &sandboxConfig, const std::string &bundleName)
 {
@@ -713,6 +745,7 @@ int32_t CliToolManagerService::SetupAndStartSession(const ExecToolParam &param, 
     return ERR_OK;
 }
 
+// 对继续在后台运行的会话立即发送成功回复。
 void CliToolManagerService::HandleBackgroundSessionReply(
     const std::shared_ptr<SessionRecord> &record, const std::string &eventId)
 {
@@ -722,6 +755,7 @@ void CliToolManagerService::HandleBackgroundSessionReply(
         record->callerPid, record->callerUid, eventId, ERR_OK, session);
 }
 
+// 将非 independent 的 arkTSScript 工具分发到 skill 执行路径。
 int32_t CliToolManagerService::TryDispatchSkillSession(const ExecToolParam &param,
     const std::string &eventId, const ToolInfo &toolInfo, bool &dispatched)
 {
@@ -753,6 +787,7 @@ int32_t CliToolManagerService::TryDispatchSkillSession(const ExecToolParam &para
     return ret;
 }
 
+// 执行已配置的 CLI 工具，或分发 arkTSScript skill 会话。
 int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::string &eventId,
     const sptr<ICliToolManagerScheduler> &scheduler)
 {
@@ -792,6 +827,7 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
     return SetupAndStartSession(param, eventId, toolInfo, sandboxConfig, bundleName);
 }
 
+// 在沙箱会话中执行 shell 命令，并为调用方订阅会话事件。
 int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::string &eventId,
     const sptr<ICliToolManagerScheduler> &scheduler, const std::string &subscriptionId)
 {
@@ -851,6 +887,7 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
     return ERR_OK;
 }
 
+// 投递延迟任务，用于处理 yield 超时或硬执行超时。
 void CliToolManagerService::PostExecToolTask(int64_t time, const std::string &sessionId, bool isTimeout)
 {
     auto timeoutTask = [sessionId, isTimeout]() {
@@ -866,6 +903,7 @@ void CliToolManagerService::PostExecToolTask(int64_t time, const std::string &se
     ffrt::submit(std::move(timeoutTask), ffrt::task_attr().delay(time * COEFFICIENT));
 }
 
+// 记录子进程退出状态，并在输出读完后完成会话收尾。
 void CliToolManagerService::WaitPid(pid_t pid, int32_t status, int32_t sig)
 {
     std::shared_ptr<SessionRecord> record = nullptr;
@@ -895,6 +933,7 @@ void CliToolManagerService::WaitPid(pid_t pid, int32_t status, int32_t sig)
     }
 }
 
+// 处理 SIGCHLD 信号，回收已退出子进程并更新对应会话。
 void CliToolManagerService::sigchld_handler(int32_t sig)
 {
     int32_t status;
@@ -908,6 +947,7 @@ void CliToolManagerService::sigchld_handler(int32_t sig)
     }
 }
 
+// 在调用方应用进程死亡时清理相关会话和进程观察者。
 void CliToolManagerService::OnProcessDied(const std::string &bundleName, pid_t diedPid)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "OnProcessDied called: bundleName=%{public}s, diedPid=%{public}d",
@@ -944,6 +984,7 @@ void CliToolManagerService::OnProcessDied(const std::string &bundleName, pid_t d
     }
 }
 
+// 注册应用状态观察者，以便调用方进程死亡时清理其会话。
 void CliToolManagerService::RegisterAppStateObserver(const std::string &bundleName, pid_t callerPid)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "RegisterAppStateObserver called: bundleName=%{public}s, callerPid=%{public}d",
@@ -991,6 +1032,7 @@ void CliToolManagerService::RegisterAppStateObserver(const std::string &bundleNa
     TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully registered observer for bundleName=%{public}s", bundleName.c_str());
 }
 
+// 根据 execTool 参数和调用方身份创建初始化后的会话记录。
 std::shared_ptr<SessionRecord> CliToolManagerService::CreateSessionRecord(const ExecToolParam &param,
     const std::string &eventId)
 {
@@ -1006,6 +1048,7 @@ std::shared_ptr<SessionRecord> CliToolManagerService::CreateSessionRecord(const 
     return record;
 }
 
+// 取消调用方拥有的运行中会话，并发送清理相关事件。
 int32_t CliToolManagerService::ClearSession(const std::string &sessionId)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
@@ -1053,6 +1096,7 @@ int32_t CliToolManagerService::ClearSession(const std::string &sessionId)
     return ERR_OK;
 }
 
+// 为调用方拥有的运行中会话订阅事件。
 int32_t CliToolManagerService::SubscribeSession(const std::string &sessionId, const std::string &subscriptionId,
     const sptr<ICliToolManagerScheduler> &scheduler)
 {
@@ -1104,6 +1148,7 @@ int32_t CliToolManagerService::SubscribeSession(const std::string &sessionId, co
     return ERR_OK;
 }
 
+// 移除调用方的指定会话事件订阅。
 int32_t CliToolManagerService::UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
@@ -1125,6 +1170,7 @@ int32_t CliToolManagerService::UnsubscribeSession(const std::string &sessionId, 
     return ERR_OK;
 }
 
+// 构建调用方拥有的会话的当前状态信息。
 int32_t CliToolManagerService::QuerySession(const std::string &sessionId, CliSessionInfo &session)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
@@ -1151,6 +1197,7 @@ int32_t CliToolManagerService::QuerySession(const std::string &sessionId, CliSes
     return ERR_OK;
 }
 
+// 向调用方拥有的运行中非 skill 会话发送 stdin 文本。
 int32_t CliToolManagerService::SendMessage(const std::string &sessionId,
     const std::string &inputText, const std::string &eventId,
     const sptr<ICliToolManagerScheduler> &scheduler)
@@ -1203,6 +1250,7 @@ int32_t CliToolManagerService::SendMessage(const std::string &sessionId,
     return ERR_OK;
 }
 
+// 为 native system 调用方批量查询子命令所需权限。
 int32_t CliToolManagerService::BatchQueryPermissionBySubCommand(
     const std::vector<Command> &cmds,
     std::vector<CommandPermission> &cmdPermissions)
@@ -1228,11 +1276,13 @@ int32_t CliToolManagerService::BatchQueryPermissionBySubCommand(
     return PermissionQueryUtil::BatchQueryPermissions(cmds, cmdPermissions);
 }
 
+// 保存会话和调用方上下文，以便 skill 执行回调能路由回 climgr。
 SkillCallbackAdapter::SkillCallbackAdapter(const std::string &sessionId,
     int32_t callerPid, int32_t callerUid, const std::string &eventId)
     : sessionId_(sessionId), callerPid_(callerPid), callerUid_(callerUid), eventId_(eventId)
 {}
 
+// 接收 skill 执行完成回调，并将结果转给服务进行会话清理。
 void SkillCallbackAdapter::OnExecuteDone(const std::string &requestCode, int32_t resultCode,
     const AppExecFwk::SkillExecuteResult &result)
 {
@@ -1264,6 +1314,7 @@ void SkillCallbackAdapter::OnExecuteDone(const std::string &requestCode, int32_t
     service->HandleSkillSessionComplete(sessionId_, callerPid_, callerUid_, eventId_, resultCode, session);
 }
 
+// 从 execTool 参数中提取 skill 参数，并校验目标 skill 类型。
 int32_t CliToolManagerService::ValidateSkillTypeFromParam(const ExecToolParam &param, int32_t &skillType)
 {
     auto &args = const_cast<ExecToolParam &>(param).args;
@@ -1278,6 +1329,7 @@ int32_t CliToolManagerService::ValidateSkillTypeFromParam(const ExecToolParam &p
     return ValidateSkillType(bundleName, moduleName, skillName, skillType);
 }
 
+// 在分发 skill 会话前通过 AbilityManager 查询并确认目标 skill 类型。
 int32_t CliToolManagerService::ValidateSkillType(const std::string &bundleName,
     const std::string &moduleName, const std::string &skillName, int32_t &skillType)
 {
@@ -1290,6 +1342,7 @@ int32_t CliToolManagerService::ValidateSkillType(const std::string &bundleName,
     return ERR_OK;
 }
 
+// 创建 skill 会话记录，构造 skill 请求，并通过 AbilityManager 启动执行。
 int32_t CliToolManagerService::SetupAndStartSkillSession(const ExecToolParam &param,
     const std::string &eventId, const ToolInfo &toolInfo)
 {
@@ -1342,6 +1395,7 @@ int32_t CliToolManagerService::SetupAndStartSkillSession(const ExecToolParam &pa
     return ERR_OK;
 }
 
+// 发送 skill 最终结果事件，并移除已完成的 skill 会话。
 void CliToolManagerService::HandleSkillSessionComplete(const std::string &sessionId,
     int32_t callerPid, int32_t callerUid, const std::string &eventId, int32_t resultCode,
     const CliSessionInfo &session)
@@ -1368,6 +1422,7 @@ void CliToolManagerService::HandleSkillSessionComplete(const std::string &sessio
     RemoveSessionRecord(sessionId);
 }
 
+// 标记 skill 会话超时，分发超时事件，并移除会话。
 void CliToolManagerService::HandleSkillSessionTimeout(const std::string &sessionId)
 {
     auto record = GetSessionRecord(sessionId);
@@ -1394,18 +1449,21 @@ void CliToolManagerService::HandleSkillSessionTimeout(const std::string &session
     RemoveSessionRecord(sessionId);
 }
 
+// 从活跃调用方跟踪集合中移除指定 caller pid。
 void CliToolManagerService::RemoveCallerPid(int64_t pid)
 {
     std::lock_guard<ffrt::mutex> guard(callerPidsMutex_);
     callerPids.erase(pid);
 }
 
+// 将指定 caller pid 加入活跃调用方跟踪集合。
 void CliToolManagerService::AddCallerPid(int64_t pid)
 {
     std::lock_guard<ffrt::mutex> guard(callerPidsMutex_);
     callerPids.insert(pid);
 }
 
+// 返回当前服务正在跟踪的 caller pid 数量。
 int32_t CliToolManagerService::GetCallerPidCount()
 {
     std::lock_guard<ffrt::mutex> guard(callerPidsMutex_);

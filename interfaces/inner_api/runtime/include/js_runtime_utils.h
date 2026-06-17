@@ -37,14 +37,58 @@ constexpr size_t ARGC_MAX_COUNT = 10;
         }                                        \
     } while (0)
 
+/*
+ * GET_CB_INFO_AND_CALL 是一个宏，用来简化 N-API 静态入口函数的写法。
+ *
+ * 参数说明：
+ *   env  ：N-API 环境。
+ *   info ：JS 调用 native 函数时传进来的调用信息，里面包含参数、this 对象等。
+ *   T    ：当前 native 类类型，例如 JSCliManager。
+ *   func ：真正要调用的成员函数名，例如 OnExecTool。
+ *
+ * 作用：
+ *   1. 从 napi_callback_info 中解析 JS 参数；
+ *   2. 从 JS this 对象中取出之前 napi_wrap 绑定的 C++ 对象；
+ *   3. 调用该对象的成员函数 func(env, argc, argv)。
+ */
 #define GET_CB_INFO_AND_CALL(env, info, T, func)                                       \
     do {                                                                               \
+        /*                                                                              \
+         * argc 表示 JS 传入参数的数量。                                                  \
+         * 初始值设为 ARGC_MAX_COUNT，表示最多接收这么多个参数。                         \
+         * GetCbInfoFromCallbackInfo 执行后，argc 会被更新成实际参数个数。               \
+         */                                                                             \
         size_t argc = ARGC_MAX_COUNT;                                                  \
+                                                                                       \
+        /*                                                                              \
+         * argv 用来保存 JS 侧传入的参数。                                                 \
+         * 每个参数都是 napi_value 类型。                                                  \
+         * 例如 JS 调用 execTool(a, b, c)，那么 argv[0]=a, argv[1]=b, argv[2]=c。          \
+         */                                                                             \
         napi_value argv[ARGC_MAX_COUNT] = {nullptr};                                   \
+                                                                                       \
+        /*                                                                              \
+         * GetCbInfoFromCallbackInfo 会做两件核心事情：                                  \
+         *   1. 从 info 中解析出 argc / argv；                                            \
+         *   2. 从 JS this 对象中 unwrap 出之前 napi_wrap 绑定的 C++ 对象指针。           \
+         *                                                                                \
+         * 返回值是 void*，所以这里用 static_cast<T*> 转成具体类型 T*。                  \
+         * 例如 T 是 JSCliManager，那么 me 就是 JSCliManager*。                         \
+         */                                                                             \
         T* me = static_cast<T*>(GetCbInfoFromCallbackInfo(env, info, &argc, argv));    \
+                                                                                       \
+        /*                                                                              \
+         * 如果成功取到 C++ 对象 me，就调用真正的成员函数：                               \
+         *   me->func(env, argc, argv)                                                    \
+         *                                                                                \
+         * 例如：                                                                         \
+         *   me->OnExecTool(env, argc, argv)                                              \
+         *                                                                                \
+         * 如果 me 为空，说明没有成功取到 C++ 对象，直接返回 nullptr。                    \
+         */                                                                             \
         return (me != nullptr) ? me->func(env, argc, argv) : nullptr;                  \
     } while (0)
-
+    
 struct NapiCallbackInfo {
     size_t argc = ARGC_MAX_COUNT;
     napi_value argv[ARGC_MAX_COUNT] = {nullptr};
