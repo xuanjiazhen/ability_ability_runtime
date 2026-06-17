@@ -952,10 +952,29 @@ int32_t JsWantAgent::GetWantAgentParam(napi_env env, napi_callback_info info, Wa
         std::shared_ptr<AAFwk::Want> want = std::make_shared<AAFwk::Want>();
         napi_value jsWant = nullptr;
         napi_get_element(env, jsWants, i, &jsWant);
+        // 打印 UnwrapWant 之前的原始 JS want 对象(JSON.stringify),作为 JS 侧原始数据基线
+        napi_value globalObj = nullptr;
+        napi_get_global(env, &globalObj);
+        napi_value jsonObj = nullptr;
+        napi_get_named_property(env, globalObj, "JSON", &jsonObj);
+        napi_value stringifyFunc = nullptr;
+        napi_get_named_property(env, jsonObj, "stringify", &stringifyFunc);
+        napi_value rawJsonVal = nullptr;
+        if (napi_call_function(env, jsonObj, stringifyFunc, 1, &jsWant, &rawJsonVal) == napi_ok) {
+            std::string rawJsWant;
+            if (ConvertFromJsValue(env, rawJsonVal, rawJsWant)) {
+                TAG_LOGI(AAFwkTag::WANTAGENT, "getWantAgent raw JS want[%{public}u] (before UnwrapWant): %{public}s",
+                    i, rawJsWant.c_str());
+            }
+        }
         if (!UnwrapWant(env, jsWant, *want)) {
             TAG_LOGE(AAFwkTag::WANTAGENT, "UnwrapWant failed");
             return PARAMETER_ERROR;
         }
+        TAG_LOGI(AAFwkTag::WANTAGENT, "getWantAgent from JS, want[%{public}u]: bundle=%{public}s, "
+            "action=%{public}s, ToString=%{public}s",
+            i, want->GetBundle().c_str(), want->GetAction().c_str(), want->ToString().c_str());
+        want->DumpInfo(0);
         paras.wants.emplace_back(want);
     }
 
