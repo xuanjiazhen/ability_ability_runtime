@@ -671,16 +671,6 @@ void JsUIAbility::OnStop()
         DISPATCH_ABILITY_INTEROP(OnAbilityWillDestroy, applicationContext, jsRuntime_, ability);
     }
 
-    // Set isDestroyed to true BEFORE onDestroy callback
-    // This ensures the property is set while all objects are still valid
-    napi_value obj = jsAbilityObj_->GetNapiValue();
-    if (CheckTypeForNapiValue(jsRuntime_.GetNapiEnv(), obj, napi_object)) {
-        napi_value jsIsDestroyed = nullptr;
-        if (napi_get_boolean(jsRuntime_.GetNapiEnv(), true, &jsIsDestroyed) == napi_ok) {
-            napi_set_named_property(jsRuntime_.GetNapiEnv(), obj, "isDestroyed", jsIsDestroyed);
-        }
-    }
-
     WriteLifecycleSwitchLog("onDestroy");
     CallObjectMethod("onDestroy");
     OnStopCallback();
@@ -712,16 +702,6 @@ void JsUIAbility::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callbackI
         DISPATCH_ABILITY_INTEROP(OnAbilityWillDestroy, applicationContext, jsRuntime_, ability);
     }
 
-    // Set isDestroyed to true BEFORE onDestroy callback
-    // This ensures the property is set while all objects are still valid
-    napi_value obj = jsAbilityObj_->GetNapiValue();
-    if (CheckTypeForNapiValue(jsRuntime_.GetNapiEnv(), obj, napi_object)) {
-        napi_value jsIsDestroyed = nullptr;
-        if (napi_get_boolean(jsRuntime_.GetNapiEnv(), true, &jsIsDestroyed) == napi_ok) {
-            napi_set_named_property(jsRuntime_.GetNapiEnv(), obj, "isDestroyed", jsIsDestroyed);
-        }
-    }
-
     WriteLifecycleSwitchLog("onDestroy");
     napi_value result = CallObjectMethod("onDestroy", nullptr, 0, true);
     if (!CheckPromise(result)) {
@@ -750,6 +730,20 @@ void JsUIAbility::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callbackI
 
 void JsUIAbility::OnStopCallback()
 {
+    // Set isDestroyed to true after onDestroy callback completes
+    if (jsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null jsAbilityObj_");
+        return;
+    }
+
+    napi_value obj = jsAbilityObj_->GetNapiValue();
+    if (CheckTypeForNapiValue(jsRuntime_.GetNapiEnv(), obj, napi_object)) {
+        napi_value jsIsDestroyed = nullptr;
+        if (napi_get_boolean(jsRuntime_.GetNapiEnv(), true, &jsIsDestroyed) == napi_ok) {
+            napi_set_named_property(jsRuntime_.GetNapiEnv(), obj, "isDestroyed", jsIsDestroyed);
+        }
+    }
+
     auto property = std::make_shared<AppExecFwk::ADelegatorAbilityProperty>();
     if (CreateProperty(abilityContext_, property)) {
         property->object_ = jsAbilityObj_;
@@ -1368,7 +1362,7 @@ void JsUIAbility::DoOnForegroundForSceneIsNull(const Want &want)
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && sessionToken != nullptr) {
         abilityContext_->SetWeakSessionToken(sessionToken);
         ret = scene_->Init(displayId, abilityContext_, sceneListener_, option, sessionToken, identityToken,
-            reusingWindow_, renderSession_, requestId, scbRequestId);
+            reusingWindow_, requestId, scbRequestId);
         std::string navDestinationInfo = want.GetStringParam(Want::ATOMIC_SERVICE_SHARE_ROUTER);
         if (!navDestinationInfo.empty()) {
             TAG_LOGD(AAFwkTag::UIABILITY, "SetNavDestinationInfo :%{public}s", navDestinationInfo.c_str());

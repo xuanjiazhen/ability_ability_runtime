@@ -13,29 +13,30 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_JS_SKILL_DRIVER_H
-#define OHOS_ABILITY_RUNTIME_JS_SKILL_DRIVER_H
+#ifndef OHOS_ABILITY_RUNTIME_EXEC_CMD_PARAM_H
+#define OHOS_ABILITY_RUNTIME_EXEC_CMD_PARAM_H
 
-#include "native_engine/native_engine.h"
+#include <string>
+
+#include "exec_options.h"
+#include "parcel.h"
 
 namespace OHOS {
 namespace CliTool {
-
-class JSSkillDriver final {
+/**
+ * @brief Parameters for executing a raw shell command.
+ */
+class ExecCmdParam : public Parcelable {
 public:
-    JSSkillDriver() {}
-    ~JSSkillDriver() {}
+    std::string cmd;
+    std::string workDir;
+    std::string env;
+    std::string policy;
+    ExecOptions options;
 
-    static void Finalizer(napi_env env, void *data, void *hint);
-    static napi_value ExecSkillTool(napi_env env, napi_callback_info info);
-
-private:
-    napi_value OnExecSkillTool(napi_env env, size_t argc, napi_value *argv);
+    bool Marshalling(Parcel &parcel) const;
+    static ExecCmdParam *Unmarshalling(Parcel &parcel);
 };
-
-napi_value JSSkillDriverInit(napi_env env, napi_value exportObj);
-
 } // namespace CliTool
 } // namespace OHOS
-
-#endif // OHOS_ABILITY_RUNTIME_JS_SKILL_DRIVER_H
+#endif // OHOS_ABILITY_RUNTIME_EXEC_CMD_PARAM_H

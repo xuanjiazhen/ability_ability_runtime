@@ -787,7 +787,10 @@ ImageError AppMgrServiceInner::MakeImageInner(const AAFwk::Want &want, int32_t u
         TAG_LOGE(AAFwkTag::APPMGR, "only support preloadModule");
         return ImageError::ERR_INVALID_PRELOAD_TYPE;
     }
-
+    if (appIndex != 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not support appIndex yet");
+        return ImageError::ERR_INNER;
+    }
     userId = GetValidUserId(userId);
     // Check image existence: if abilityName is empty, it's a general image
     if (IsImageInfoExist(bundleName, abilityName, userId, appIndex)) {
@@ -1056,7 +1059,8 @@ void AppMgrServiceInner::HandleMakeImageFailed(const std::string& bundleName, co
     int32_t userId, int32_t appIndex, ImageError err)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::APPMGR, "HandleMakeImageFailed, bundleName:%{public}s", bundleName.c_str());
+    TAG_LOGI(AAFwkTag::APPMGR, "HandleMakeImageFailed, bundleName:%{public}s, abilityName:%{public}s, err:%{public}d",
+        bundleName.c_str(), abilityName.c_str(), static_cast<int32_t>(err));
     auto imageInfo = GetImageInfo(bundleName, abilityName, userId, appIndex);
     if (imageInfo == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null imageInfo");
@@ -1459,6 +1463,12 @@ int32_t AppMgrServiceInner::TryToUseImageInfo(std::shared_ptr<AbilityInfo> abili
         NotifyStartProcessFailed(token);
         return ret;
     }
+    bool appExistFlag = appRunningManager_->IsAppExist(appInfo->accessTokenId);
+    bool appMultiUserExistFlag = appRunningManager_->CheckAppRunningRecordIsExistByUid(appInfo->uid);
+    if (!appMultiUserExistFlag) {
+        NotifyAppRunningStatusEvent(
+            appInfo->bundleName, appInfo->uid, AbilityRuntime::RunningStatus::APP_RUNNING_START);
+    }
     appRecord = CreateAppRunningRecordFromImageInfo(imageInfo);
     if (appRecord == nullptr) {
         SnapshotErrorReport(appInfo->uid, appInfo->bundleName, -1, "appRecord not exist");
@@ -1496,7 +1506,6 @@ int32_t AppMgrServiceInner::TryToUseImageInfo(std::shared_ptr<AbilityInfo> abili
     KillingProcessManager::GetInstance().RemoveKillingCallerKey(key);
     OnAppStateChanged(appRecord, ApplicationState::APP_STATE_CREATE, false, false, false);
     DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessCreated(appRecord, false);
-    bool appExistFlag = appRunningManager_->IsAppExist(appInfo->accessTokenId);
     if (!appExistFlag) {
         OnAppStarted(appRecord);
     }
@@ -1717,8 +1726,10 @@ void AppMgrServiceInner::HandlePreloadApplication(const PreloadRequest &request)
     std::string specifiedProcessFlag;
     if (CheckAppRecordExistByPreloadRequest(request, processName, specifiedProcessFlag)) {
         TAG_LOGW(AAFwkTag::APPMGR, "appRecord already exists when preload application");
-        HandleMakeImageFailed(request.appInfo->bundleName, request.abilityName,
-            request.appInfo->uid / BASE_USER_RANGE, request.appIndex, ImageError::ERR_APP_RECORD_EXIST);
+        if (request.needMakeImage) {
+            HandleMakeImageFailed(request.appInfo->bundleName, request.abilityName,
+                request.appInfo->uid / BASE_USER_RANGE, request.appIndex, ImageError::ERR_APP_RECORD_EXIST);
+        }
         return;
     }
 
@@ -9529,6 +9540,9 @@ FaultData AppMgrServiceInner::ConvertDataTypes(const AppFaultDataBySA &faultData
     newfaultData.isEnableMainThreadSample = faultData.isEnableMainThreadSample;
     newfaultData.reportLifecycleToFreeze = faultData.reportLifecycleToFreeze;
     newfaultData.applicationHeapInfo = faultData.applicationHeapInfo;
+    newfaultData.applicationGCInfo = faultData.applicationGCInfo;
+    newfaultData.applicationIOInfo = faultData.applicationIOInfo;
+    newfaultData.isBlockInGc = faultData.isBlockInGc;
     newfaultData.processLifeTime = faultData.processLifeTime;
     newfaultData.leakObject.leakType = faultData.leakObject.leakType;
     newfaultData.leakObject.leakSize = faultData.leakObject.leakSize;

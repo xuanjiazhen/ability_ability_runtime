@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,5 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef MOCK_IPC_SKELETON_H
+#define MOCK_IPC_SKELETON_H
 
-FUZZ
+#include <string>
+#include <sys/types.h>
+
+namespace OHOS {
+class IPCSkeleton {
+public:
+    static int32_t GetCallingUid() { return 0; }
+    static pid_t GetCallingPid() { return 0; }
+    static std::string ResetCallingIdentity() { return ""; }
+    static void SetCallingIdentity(const std::string &identity) {}
+};
+}  // namespace OHOS
+#endif
