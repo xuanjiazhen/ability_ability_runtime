@@ -52,33 +52,27 @@ constexpr size_t PREFIX_DOUBLE_DASH_LEN = 2;
 int32_t ToolUtil::ValidateProperties(const ToolInfo &toolInfo, ExecToolParam &param,
     AccessToken::AccessTokenID tokenId)
 {
-    if (!param.subcommand.empty()) {
-        if (!toolInfo.hasSubCommand) {
-            TAG_LOGE(AAFwkTag::CLI_TOOL, "not have subcommand");
-            return ERR_TOOL_NOT_EXIST;
-        }
-
-        auto search = toolInfo.subcommands.find(param.subcommand);
-        if (search == toolInfo.subcommands.end()) {
-            TAG_LOGE(AAFwkTag::CLI_TOOL, "not have subcommand");
-            return ERR_TOOL_NOT_EXIST;
-        }
-    }
-
     auto res = ValidateExecOptionsProperties(param.options);
     if (res != ERR_OK) {
         return res;
     }
-
+    
     if (param.subcommand.empty()) {
         return ValidateInputSchemaProperties(toolInfo.inputSchema, param.args);
     }
 
-    auto it = toolInfo.subcommands.find(param.subcommand);
-    if (it == toolInfo.subcommands.end()) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "GetSubCommandInfo failed: subcommand=%{public}s", param.subcommand.c_str());
+    if (!toolInfo.hasSubCommand) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "not have subcommand");
+        return ERR_TOOL_NOT_EXIST;
     }
-    return ValidateInputSchemaProperties(it->second.inputSchema, param.args);
+
+    auto search = toolInfo.subcommands.find(param.subcommand);
+    if (search == toolInfo.subcommands.end()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "not have subcommand");
+        return ERR_TOOL_NOT_EXIST;
+    }
+
+    return ValidateInputSchemaProperties(search->second.inputSchema, param.args);
 }
 
 int32_t ToolUtil::ValidateExecOptionsProperties(ExecOptions &options)
