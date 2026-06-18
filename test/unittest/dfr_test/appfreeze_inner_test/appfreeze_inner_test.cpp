@@ -21,6 +21,8 @@
 #undef private
 
 #include "xcollie/watchdog.h"
+#include "parameter.h"
+#include "parameters.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -705,6 +707,76 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner_ReportLifeCycleAsAppfreeze_001, Test
     EXPECT_TRUE(appfreezeInner->GetReportLifeCycleAsAppfreeze());
     appfreezeInner->SetReportLifeCycleAsAppfreeze(false);
     EXPECT_TRUE(!appfreezeInner->GetReportLifeCycleAsAppfreeze());
+}
+
+/**
+ * @tc.number: AppfreezeInner_IsProcessDebug_001
+ * @tc.name: IsProcessDebug
+ * @tc.desc: Verify that function IsProcessDebug.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_IsProcessDebug_001, TestSize.Level1)
+{
+    OHOS::system::SetParameter("hiviewdfx.appfreeze.filter_bundle_name", "");
+    int32_t pid = getpid();
+    bool ret = appfreezeInner->IsProcessDebug(pid, "test_bundle");
+    EXPECT_FALSE(ret);
+    OHOS::system::SetParameter("hiviewdfx.appfreeze.filter_bundle_name", "test_bundle");
+    ret = appfreezeInner->IsProcessDebug(pid, "test_bundle");
+    EXPECT_TRUE(ret);
+    OHOS::system::SetParameter("hiviewdfx.appfreeze.filter_bundle_name", "");
+}
+
+/**
+ * @tc.number: AppfreezeInner_GetBundleNameByApplication_001
+ * @tc.name: GetBundleNameByApplication
+ * @tc.desc: Verify that function GetBundleNameByApplication.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_GetBundleNameByApplication_001, TestSize.Level1)
+{
+    std::string bundleName = appfreezeInner->GetBundleNameByApplication();
+    EXPECT_TRUE(bundleName.empty());
+    auto applicationInfo = std::make_shared<ApplicationInfo>();
+    applicationInfo->bundleName = "test_bundle";
+    appfreezeInner->SetApplicationInfo(applicationInfo);
+    bundleName = appfreezeInner->GetBundleNameByApplication();
+    EXPECT_EQ(bundleName, "test_bundle");
+}
+
+/**
+ * @tc.number: AppfreezeInner_AppfreezeHandleOverReportCount_002
+ * @tc.name: AppfreezeHandleOverReportCount
+ * @tc.desc: Verify IsProcessDebug branch in AppfreezeHandleOverReportCount.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_AppfreezeHandleOverReportCount_002, TestSize.Level1)
+{
+    auto applicationInfo = std::make_shared<ApplicationInfo>();
+    applicationInfo->bundleName = "debug_bundle";
+    appfreezeInner->SetApplicationInfo(applicationInfo);
+    OHOS::system::SetParameter("hiviewdfx.appfreeze.filter_bundle_name", "debug_bundle");
+    appfreezeInner->SetAppDebug(false);
+    bool isSixSecondEvent = false;
+    appfreezeInner->AppfreezeHandleOverReportCount(isSixSecondEvent);
+    OHOS::system::SetParameter("hiviewdfx.appfreeze.filter_bundle_name", "");
+    EXPECT_TRUE(isSixSecondEvent);
+}
+
+/**
+ * @tc.number: AppfreezeInner_AppfreezeHandle_002
+ * @tc.name: AppfreezeHandle
+ * @tc.desc: Verify IsProcessDebug branch in AppfreezeHandle.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_AppfreezeHandle_002, TestSize.Level1)
+{
+    auto applicationInfo = std::make_shared<ApplicationInfo>();
+    applicationInfo->bundleName = "debug_bundle";
+    appfreezeInner->SetApplicationInfo(applicationInfo);
+    OHOS::system::SetParameter("hiviewdfx.appfreeze.filter_bundle_name", "debug_bundle");
+    appfreezeInner->SetAppDebug(false);
+    FaultData faultData;
+    faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
+    int ret = appfreezeInner->AppfreezeHandle(faultData, true);
+    EXPECT_EQ(ret, -1);
+    OHOS::system::SetParameter("hiviewdfx.appfreeze.filter_bundle_name", "");
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
