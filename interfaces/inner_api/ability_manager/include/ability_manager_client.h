@@ -147,10 +147,11 @@ public:
     /**
      * Get top ability.
      *
-     * @param isNeedLocalDeviceId is need local device id.
+     * @param isNeedLocalDeviceId Indicates whether to need local device id.
+     * @param userId The user id.
      * @return Returns front desk focus ability elementName.
      */
-    AppExecFwk::ElementName GetTopAbility(bool isNeedLocalDeviceId = true);
+    AppExecFwk::ElementName GetTopAbility(bool isNeedLocalDeviceId = true, int32_t userId = INVALID_USER_ID);
 
     /**
      * Get element name by token.
