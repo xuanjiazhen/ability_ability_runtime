@@ -45,7 +45,7 @@ const std::string UIEXTENSION_ABILITY_ID = "ability.want.params.uiExtensionAbili
 const std::string UIEXTENSION_ROOT_HOST_PID = "ability.want.params.uiExtensionRootHostPid";
 const std::string DEBUG_APP = "debugApp";
 constexpr int32_t DMS_UID = 5522;
-constexpr int32_t INVALID_USER_ID = 100;
+constexpr int32_t TEST_INVALID_USER_ID = 100;
 }
 
 class AbilityRecordSecondTest : public testing::Test {
@@ -209,7 +209,7 @@ HWTEST_F(AbilityRecordSecondTest, AbilityRecord_GetCurrentAccountId_001, TestSiz
     TAG_LOGE(AAFwkTag::TEST, "AbilityRecord_GetCurrentAccountId_001 start.");
     std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
     auto res = abilityRecord->GetCurrentAccountId();
-    EXPECT_EQ(res, INVALID_USER_ID);
+    EXPECT_EQ(res, TEST_INVALID_USER_ID);
     TAG_LOGE(AAFwkTag::TEST, "AbilityRecord_GetCurrentAccountId_001 end.");
 }
 
