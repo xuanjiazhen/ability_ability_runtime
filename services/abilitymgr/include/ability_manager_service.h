@@ -94,7 +94,6 @@ namespace AAFwk {
 using AutoStartupInfo = AbilityRuntime::AutoStartupInfo;
 enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 constexpr int32_t BASE_USER_RANGE = 200000;
-constexpr int32_t INVALID_USER_ID = -1;
 constexpr const char* KEY_SESSION_ID = "com.ohos.param.sessionId";
 constexpr const char* KEY_REQUEST_ID = "com.ohos.param.requestId";
 using OHOS::AppExecFwk::IAbilityController;
@@ -1715,7 +1714,7 @@ public:
      * @param token, the token of top ability.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int GetTopAbility(sptr<IRemoteObject> &token) override;
+    virtual int GetTopAbility(sptr<IRemoteObject> &token, int32_t userId = INVALID_USER_ID) override;
 
     virtual int CheckUIExtensionIsFocused(
         uint32_t uiExtensionTokenId, bool& isFocused, uint64_t displayId = 0) override;
@@ -1774,7 +1773,8 @@ public:
     bool GetDataAbilityUri(const std::vector<AppExecFwk::AbilityInfo> &abilityInfos,
         const std::string &mainAbility, std::string &uri);
 
-    virtual AppExecFwk::ElementName GetTopAbility(bool isNeedLocalDeviceId = true) override;
+    virtual AppExecFwk::ElementName GetTopAbility(bool isNeedLocalDeviceId = true,
+        int32_t userId = INVALID_USER_ID) override;
 
     virtual AppExecFwk::ElementName GetElementNameByToken(sptr<IRemoteObject> token,
         bool isNeedLocalDeviceId = true) override;
@@ -1887,6 +1887,14 @@ public:
      * @param uid.
      */
     void AppUpgradeCompleted(int32_t uid, int32_t installType);
+
+    /**
+     * Verify permission and user for app upgrade.
+     * @param uid The uid of the app.
+     * @param userId The userId.
+     * @return Returns true if verification passed, others false.
+     */
+    bool VerifyPermissionAndUserForUpgrade(int32_t uid, int32_t userId) const;
 
     /**
      * Record app exit reason.
@@ -2863,7 +2871,7 @@ protected:
      */
     virtual int StartSelfUIAbilityByAppContext(const Want &want) override;
 private:
-    int GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId = 0);
+    int GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId = 0, int32_t userId = INVALID_USER_ID);
 
     /**
      * @brief Get the top ability token for specified user.
