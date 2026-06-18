@@ -266,6 +266,7 @@ ohos_shared_library("configuration_helper") {
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
+    "icu:shared_icuuc",
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "ipc:ipc_single",
