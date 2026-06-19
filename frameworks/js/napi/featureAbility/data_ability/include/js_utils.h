@@ -38,7 +38,7 @@ namespace JSUtils {
 #define DECLARE_JS_PROPERTY(env, key, value) \
     napi_property_descriptor(DECLARE_NAPI_DEFAULT_PROPERTY((key), Convert2JSValue((env), (value))))
 
-#define ASSERT(condition, message, retVal)                       \
+#define JS_UTILS_ASSERT(condition, message, retVal)             \
     do {                                                         \
         if (!(condition)) {                                      \
             LOG_ERROR("test (" #condition ") failed: " message); \
