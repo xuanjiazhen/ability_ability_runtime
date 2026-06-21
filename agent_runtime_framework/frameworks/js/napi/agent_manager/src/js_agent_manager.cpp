@@ -232,8 +232,7 @@ void RemoveServiceConnection(int64_t connectionId)
 }
 
 // Helper function to check for duplicate connections
-bool CheckConnectAlreadyExist(napi_env env, AAFwk::Want &want,
-    napi_value callback, napi_value &result)
+bool CheckConnectAlreadyExist(napi_env env, const AAFwk::Want &want, napi_value callback, napi_value &result)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "CheckConnectAlreadyExist called");
 
@@ -566,6 +565,7 @@ napi_value JsAgentManager::OnConnectAgentExtensionAbility(napi_env env, size_t a
 
     // 2. Check for duplicate connection
     napi_value result = nullptr;
+    want.SetParam(AGENTID_KEY, agentId);
     bool duplicated = CheckConnectAlreadyExist(env, want, callbackObject, result);
     if (duplicated) {
         TAG_LOGI(AAFwkTag::SER_ROUTER, "Duplicated connection found");
@@ -573,7 +573,7 @@ napi_value JsAgentManager::OnConnectAgentExtensionAbility(napi_env env, size_t a
     }
 
     // 3. Create and configure connection
-    auto connection = CreateAgentConnection(env, want, agentId, callbackObject);
+    auto connection = CreateAgentConnection(env, want, callbackObject);
     if (connection == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Failed to create connection");
         return CreateJsUndefined(env);
@@ -612,6 +612,11 @@ bool JsAgentManager::ValidateConnectParameters(napi_env env, size_t argc, napi_v
         ThrowInvalidParamError(env, "Parse param agentId failed, must be a string.");
         return false;
     }
+    if (agentId.empty()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "agentId is empty");
+        ThrowInvalidParamError(env, "Parse param agentId failed, must not be empty.");
+        return false;
+    }
 
     TAG_LOGD(AAFwkTag::SER_ROUTER, "agentId: %{public}s", agentId.c_str());
 
@@ -627,7 +632,7 @@ bool JsAgentManager::ValidateConnectParameters(napi_env env, size_t argc, napi_v
 }
 
 sptr<JSAgentConnection> JsAgentManager::CreateAgentConnection(napi_env env,
-    AAFwk::Want &want, const std::string &agentId, napi_value callbackObject)
+    AAFwk::Want &want, napi_value callbackObject)
 {
     // Create connection object
     sptr<JSAgentConnection> connection = sptr<JSAgentConnection>::MakeSptr(env);
@@ -636,12 +641,11 @@ sptr<JSAgentConnection> JsAgentManager::CreateAgentConnection(napi_env env,
         return nullptr;
     }
 
-    // Set host proxy and agentId in want
+    // Set host proxy in want
     sptr<JsAgentConnectorStubImpl> stub = connection->GetServiceHostStub();
     want.SetParam(AGENTEXTENSIONHOSTPROXY_KEY, stub->AsObject());
-    want.SetParam(AGENTID_KEY, agentId);
 
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "Connection created, stub and agentId set");
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "Connection created, stub set");
 
     connection->SetJsConnectionObject(callbackObject);
 
