@@ -122,6 +122,30 @@ HWTEST_F(AgentConnectionManagerTest, GetInstance_001, TestSize.Level1)
 }
 
 /**
+* @tc.name  : AgentConnectionList_ShouldStoreRecordsWithoutOrderingKey
+* @tc.number: AgentConnectionList_001
+* @tc.desc  : Test framework connection records do not require map ordering
+*/
+HWTEST_F(AgentConnectionManagerTest, AgentConnectionList_001, TestSize.Level1)
+{
+    AAFwk::Operation receiver;
+    receiver.SetBundleName("test.bundle");
+    receiver.SetModuleName("test.module");
+    receiver.SetAbilityName("test.ability");
+    sptr<AgentConnection> connection = sptr<AgentConnection>::MakeSptr();
+    AgentConnectionInfo left("agentA", receiver, connection);
+    AgentConnectionInfo right("agentB", receiver, connection);
+    AgentConnectionList records;
+
+    records.emplace_back(left, std::vector<sptr<AbilityConnectCallback>> {});
+    records.emplace_back(right, std::vector<sptr<AbilityConnectCallback>> {});
+
+    ASSERT_EQ(records.size(), static_cast<size_t>(2));
+    EXPECT_EQ(records[0].first.agentId, "agentA");
+    EXPECT_EQ(records[1].first.agentId, "agentB");
+}
+
+/**
 * @tc.name  : ConnectAgentExtensionAbility_ShouldReturnError_WhenCallbackIsNull
 * @tc.number: ConnectAgentExtensionAbility_001
 * @tc.desc  : Test ConnectAgentExtensionAbility returns INVALID_PARAMETERS_ERR when callback is null
@@ -1238,6 +1262,32 @@ HWTEST_F(AgentConnectionManagerTest, ConnectAbilityInner_002, TestSize.Level1)
 
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(AgentConnectionManager::GetInstance().agentConnections_.size(), static_cast<size_t>(1));
+}
+
+/**
+* @tc.name  : ConnectAbilityInner_ShouldNotReuseConnection_WhenModuleNamePresenceDiffers
+* @tc.number: ConnectAbilityInner_004
+* @tc.desc  : Test omitted moduleName and explicit moduleName are not framework-local duplicates
+*/
+HWTEST_F(AgentConnectionManagerTest, ConnectAbilityInner_004, TestSize.Level1)
+{
+    sptr<IRemoteObject> remoteObj = sptr<MockIRemoteObject>::MakeSptr();
+    Want wantWithoutModule;
+    wantWithoutModule.SetParam(AGENTID_KEY, std::string("testAgent"));
+    wantWithoutModule.SetParam(AGENTEXTENSIONHOSTPROXY_KEY, remoteObj);
+    wantWithoutModule.SetElementName("", "test.bundle", "test.ability", "");
+
+    Want wantWithModule;
+    wantWithModule.SetParam(AGENTID_KEY, std::string("testAgent"));
+    wantWithModule.SetParam(AGENTEXTENSIONHOSTPROXY_KEY, remoteObj);
+    wantWithModule.SetElementName("", "test.bundle", "test.ability", "entry");
+
+    MyFlag::retConnectAgentExtensionAbility = ERR_OK;
+    sptr<MockAbilityConnectCallback> callback = new MockAbilityConnectCallback();
+    EXPECT_EQ(AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(wantWithoutModule, callback), ERR_OK);
+    EXPECT_EQ(AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(wantWithModule, callback), ERR_OK);
+
+    EXPECT_EQ(AgentConnectionManager::GetInstance().agentConnections_.size(), static_cast<size_t>(2));
 }
 
 /**
