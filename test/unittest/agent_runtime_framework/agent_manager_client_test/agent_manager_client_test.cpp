@@ -64,12 +64,19 @@ void AgentManagerClientTest::SetUp(void)
     MyFlag::retConnectServiceExtensionAbility = ERR_OK;
     MyFlag::retDisconnectServiceExtensionAbility = ERR_OK;
     MyFlag::retNotifyLowCodeAgentComplete = ERR_OK;
+    MyFlag::retVerifyAgentConnectRequest = ERR_OK;
+    MyFlag::retVerifyAgentDisconnectRequest = ERR_OK;
     MyFlag::nullSystemAbility = false;
     MyFlag::retRegisterAgentCard = ERR_OK;
     MyFlag::retUpdateAgentCard = ERR_OK;
     MyFlag::retDeleteAgentCard = ERR_OK;
     MyFlag::retToAgentCardVec = ERR_OK;
     MyFlag::convertedCards.clear();
+    MyFlag::lastVerifyAgentConnectWant = AAFwk::Want();
+    MyFlag::lastVerifyAgentDisconnectWant = AAFwk::Want();
+    MyFlag::lastVerifyAgentConnectConnection = nullptr;
+    MyFlag::lastVerifyAgentDisconnectConnection = nullptr;
+    MyFlag::verifyCallerIdentity.clear();
 }
 
 void AgentManagerClientTest::TearDown(void)
@@ -906,6 +913,132 @@ HWTEST_F(AgentManagerClientTest, DisconnectAgentExtensionAbility_003, TestSize.L
     sptr<MockAbilityConnection> connection = new MockAbilityConnection();
     int32_t result = client.DisconnectAgentExtensionAbility(connection);
     EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+* @tc.name  : VerifyAgentConnectRequest_001
+* @tc.number: VerifyAgentConnectRequest_001
+* @tc.desc  : Test VerifyAgentConnectRequest returns ERR_NULL_AGENT_MGR_PROXY when proxy is null
+*/
+HWTEST_F(AgentManagerClientTest, VerifyAgentConnectRequest_001, TestSize.Level1)
+{
+    AgentManagerClient client;
+    MyFlag::nullSystemAbility = true;
+
+    AAFwk::Want want;
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+    std::string callerIdentity = "origin";
+    int32_t result = client.VerifyAgentConnectRequest(want, connection, callerIdentity);
+    EXPECT_EQ(result, ERR_NULL_AGENT_MGR_PROXY);
+    EXPECT_EQ(callerIdentity, "origin");
+}
+
+/**
+* @tc.name  : VerifyAgentConnectRequest_002
+* @tc.number: VerifyAgentConnectRequest_002
+* @tc.desc  : Test VerifyAgentConnectRequest forwards want and connection and returns caller identity
+*/
+HWTEST_F(AgentManagerClientTest, VerifyAgentConnectRequest_002, TestSize.Level1)
+{
+    AgentManagerClient client;
+    MyFlag::nullSystemAbility = false;
+    auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    client.agentMgr_ = mockAgentMgr;
+    MyFlag::retVerifyAgentConnectRequest = ERR_OK;
+    MyFlag::verifyCallerIdentity = "caller.identity";
+
+    AAFwk::Want want;
+    want.SetParam("verify.test.key", std::string("connect"));
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+    std::string callerIdentity;
+    int32_t result = client.VerifyAgentConnectRequest(want, connection, callerIdentity);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(callerIdentity, "caller.identity");
+    EXPECT_EQ(MyFlag::lastVerifyAgentConnectWant.GetStringParam("verify.test.key"), "connect");
+    EXPECT_EQ(MyFlag::lastVerifyAgentConnectConnection.GetRefPtr(), connection.GetRefPtr());
+}
+
+/**
+* @tc.name  : VerifyAgentConnectRequest_003
+* @tc.number: VerifyAgentConnectRequest_003
+* @tc.desc  : Test VerifyAgentConnectRequest returns error when agent mgr call fails
+*/
+HWTEST_F(AgentManagerClientTest, VerifyAgentConnectRequest_003, TestSize.Level1)
+{
+    AgentManagerClient client;
+    MyFlag::nullSystemAbility = false;
+    auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    client.agentMgr_ = mockAgentMgr;
+    MyFlag::retVerifyAgentConnectRequest = ERR_INVALID_VALUE;
+
+    AAFwk::Want want;
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+    std::string callerIdentity;
+    int32_t result = client.VerifyAgentConnectRequest(want, connection, callerIdentity);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+}
+
+/**
+* @tc.name  : VerifyAgentDisconnectRequest_001
+* @tc.number: VerifyAgentDisconnectRequest_001
+* @tc.desc  : Test VerifyAgentDisconnectRequest returns ERR_NULL_AGENT_MGR_PROXY when proxy is null
+*/
+HWTEST_F(AgentManagerClientTest, VerifyAgentDisconnectRequest_001, TestSize.Level1)
+{
+    AgentManagerClient client;
+    MyFlag::nullSystemAbility = true;
+
+    AAFwk::Want want;
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+    std::string callerIdentity = "origin";
+    int32_t result = client.VerifyAgentDisconnectRequest(want, connection, callerIdentity);
+    EXPECT_EQ(result, ERR_NULL_AGENT_MGR_PROXY);
+    EXPECT_EQ(callerIdentity, "origin");
+}
+
+/**
+* @tc.name  : VerifyAgentDisconnectRequest_002
+* @tc.number: VerifyAgentDisconnectRequest_002
+* @tc.desc  : Test VerifyAgentDisconnectRequest forwards want and connection and returns caller identity
+*/
+HWTEST_F(AgentManagerClientTest, VerifyAgentDisconnectRequest_002, TestSize.Level1)
+{
+    AgentManagerClient client;
+    MyFlag::nullSystemAbility = false;
+    auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    client.agentMgr_ = mockAgentMgr;
+    MyFlag::retVerifyAgentDisconnectRequest = ERR_OK;
+    MyFlag::verifyCallerIdentity = "caller.identity";
+
+    AAFwk::Want want;
+    want.SetParam("verify.test.key", std::string("disconnect"));
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+    std::string callerIdentity;
+    int32_t result = client.VerifyAgentDisconnectRequest(want, connection, callerIdentity);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(callerIdentity, "caller.identity");
+    EXPECT_EQ(MyFlag::lastVerifyAgentDisconnectWant.GetStringParam("verify.test.key"), "disconnect");
+    EXPECT_EQ(MyFlag::lastVerifyAgentDisconnectConnection.GetRefPtr(), connection.GetRefPtr());
+}
+
+/**
+* @tc.name  : VerifyAgentDisconnectRequest_003
+* @tc.number: VerifyAgentDisconnectRequest_003
+* @tc.desc  : Test VerifyAgentDisconnectRequest returns error when agent mgr call fails
+*/
+HWTEST_F(AgentManagerClientTest, VerifyAgentDisconnectRequest_003, TestSize.Level1)
+{
+    AgentManagerClient client;
+    MyFlag::nullSystemAbility = false;
+    auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    client.agentMgr_ = mockAgentMgr;
+    MyFlag::retVerifyAgentDisconnectRequest = ERR_INVALID_VALUE;
+
+    AAFwk::Want want;
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+    std::string callerIdentity;
+    int32_t result = client.VerifyAgentDisconnectRequest(want, connection, callerIdentity);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
 }
 
 /**

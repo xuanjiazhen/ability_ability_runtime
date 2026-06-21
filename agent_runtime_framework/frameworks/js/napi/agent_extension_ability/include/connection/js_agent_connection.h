@@ -84,7 +84,7 @@ void FindAgentConnection(int64_t connectId, sptr<JSAgentConnection> &connection)
  * @param callback The callback object to match.
  * @param connection Output parameter for the found connection.
  */
-void FindAgentConnection(napi_env env, AAFwk::Want &want, napi_value callback,
+void FindAgentConnection(napi_env env, const AAFwk::Want &want, napi_value callback,
     sptr<JSAgentConnection> &connection);
 }
 
@@ -158,6 +158,8 @@ public:
      * @param task The shared pointer to the async task.
      */
     void SetNapiAsyncTask(std::shared_ptr<AbilityRuntime::NapiAsyncTask> &task);
+
+    void SetDisconnectAsyncTask(const std::shared_ptr<AbilityRuntime::NapiAsyncTask> &task);
 
     /**
      * Add a duplicated pending task.
@@ -306,6 +308,11 @@ private:
      * The async task for the connection promise.
      */
     std::shared_ptr<AbilityRuntime::NapiAsyncTask> napiAsyncTask_;
+
+    /**
+     * The async task for the disconnect promise.
+     */
+    std::shared_ptr<AbilityRuntime::NapiAsyncTask> disconnectAsyncTask_;
 
     /**
      * The proxy object returned to JavaScript.

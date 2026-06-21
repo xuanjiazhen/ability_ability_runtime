@@ -83,7 +83,7 @@ void FindAgentConnection(int64_t connectId, sptr<EtsAgentConnection> &connection
  * @param callback The callback object to match.
  * @param connection Output parameter for the found connection.
  */
-void FindAgentConnection(ani_env *env, AAFwk::Want &want, ani_object callback,
+void FindAgentConnection(ani_env *env, const AAFwk::Want &want, ani_object callback,
     sptr<EtsAgentConnection> &connection);
 }
 
@@ -157,6 +157,10 @@ public:
      * @param asyncCallback The callback object from ETS.
      */
     void SetAniAsyncCallback(ani_object asyncCallback);
+
+    void SetDisconnectAsyncCallback(ani_env *env, ani_object asyncCallback);
+
+    void ClearDisconnectAsyncCallback(ani_env *env);
 
     /**
      * Add a duplicated pending callback.
@@ -306,6 +310,11 @@ private:
      * The async callback stored from ETS for promise resolution.
      */
     ani_ref aniAsyncCallback_ = nullptr;
+
+    /**
+     * The async callback stored from ETS for disconnect promise resolution.
+     */
+    ani_ref disconnectAsyncCallback_ = nullptr;
 
     /**
      * The ETS connection callback object.
