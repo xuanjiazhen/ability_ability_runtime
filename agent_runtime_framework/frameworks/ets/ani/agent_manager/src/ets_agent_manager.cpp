@@ -21,6 +21,7 @@
 #include "ability_business_error.h"
 #include "ability_connection.h"
 #include "ability_manager_errors.h"
+#include "agent_card.h"
 #include "agent_connection_manager.h"
 #include "agent_extension_connection_constants.h"
 #include "agent_extension_context.h"
@@ -57,8 +58,7 @@ class EtsAgentServiceConnection;
 std::map<int64_t, sptr<EtsAgentServiceConnection>> g_serviceConnections;
 int64_t g_serviceConnectionSerialNumber = 0;
 
-bool CheckConnectAlreadyExist(ani_env *env, AAFwk::Want &want,
-    ani_object callback, ani_object asyncCallback)
+bool CheckConnectAlreadyExist(ani_env *env, const AAFwk::Want &want, ani_object callback, ani_object asyncCallback)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "CheckConnectAlreadyExist called");
     sptr<EtsAgentConnection> connection = nullptr;
@@ -78,6 +78,69 @@ bool CheckConnectAlreadyExist(ani_env *env, AAFwk::Want &want,
             reinterpret_cast<ani_object>(proxy));
     }
     return true;
+}
+
+void ReplyConnectError(ani_env *env, ani_object asyncCallback, int32_t innerErrorCode)
+{
+    AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
+        EtsErrorUtil::CreateError(env, static_cast<int32_t>(GetJsErrorCodeByNativeError(innerErrorCode)),
+            GetAgentManagerErrorMsg(innerErrorCode, AgentManagerErrorOperation::CONNECT_AGENT_EXTENSION)),
+        nullptr);
+}
+
+bool IsLowCodeReuseMiss(int32_t errorCode)
+{
+    return errorCode == AAFwk::CONNECTION_NOT_EXIST || errorCode == ERR_INVALID_VALUE;
+}
+
+bool TryReuseLowCodeConnection(ani_env *env, AAFwk::Want &want, ani_object callbackObj, ani_object asyncCallback)
+{
+    std::vector<sptr<EtsAgentConnection>> candidates;
+    AgentConnectionUtils::FindAgentConnectionCandidatesByTarget(env, want, callbackObj, candidates);
+    if (candidates.empty()) {
+        return false;
+    }
+
+    int32_t currentType = static_cast<int32_t>(AgentCardType::APP);
+    int32_t errorCode = AgentManagerClient::GetInstance().GetAgentCardTypeForConnect(want, currentType);
+    if (errorCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "GetAgentCardTypeForConnect failed: %{public}d", errorCode);
+        ReplyConnectError(env, asyncCallback, errorCode);
+        return true;
+    }
+    if (currentType != static_cast<int32_t>(AgentCardType::LOW_CODE)) {
+        return false;
+    }
+
+    for (const auto &connection : candidates) {
+        if (connection == nullptr) {
+            continue;
+        }
+        auto hostStub = connection->GetServiceHostStub();
+        if (hostStub == nullptr) {
+            continue;
+        }
+        AAFwk::Want reuseWant = want;
+        reuseWant.SetParam(AGENTEXTENSIONHOSTPROXY_KEY, hostStub->AsObject());
+        errorCode = AgentConnectionManager::GetInstance().ReuseLowCodeAgentExtensionAbility(reuseWant, connection);
+        if (IsLowCodeReuseMiss(errorCode)) {
+            continue;
+        }
+        if (errorCode != ERR_OK) {
+            ReplyConnectError(env, asyncCallback, errorCode);
+            return true;
+        }
+
+        ani_ref proxy = connection->GetProxyObject();
+        if (proxy == nullptr) {
+            connection->AddDuplicatedPendingCallback(asyncCallback);
+            return true;
+        }
+        AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), reinterpret_cast<ani_object>(proxy));
+        return true;
+    }
+    return false;
 }
 
 class EtsAgentServiceConnection final : public AbilityConnection {
@@ -526,13 +589,24 @@ void EtsAgentManager::ConnectAgentExtensionAbility(ani_env *env, ani_object aniW
             EtsErrorUtil::CreateInvalidParamError(env, "Parameter error. Convert agentId fail."), nullptr);
         return;
     }
+    if (agentId.empty()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "agentId is empty");
+        AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
+            EtsErrorUtil::CreateInvalidParamError(env, "Parameter error. agentId must not be empty."), nullptr);
+        return;
+    }
 
     TAG_LOGI(AAFwkTag::SER_ROUTER, "Connecting to: %{public}s.%{public}s",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
 
     // Check for duplicate connection
+    want.SetParam(AGENTID_KEY, agentId);
     if (CheckConnectAlreadyExist(env, want, callbackObj, asyncCallback)) {
         TAG_LOGI(AAFwkTag::SER_ROUTER, "Duplicate connection found");
+        return;
+    }
+    if (TryReuseLowCodeConnection(env, want, callbackObj, asyncCallback)) {
+        TAG_LOGI(AAFwkTag::SER_ROUTER, "Low-code connection reused");
         return;
     }
 
@@ -559,10 +633,9 @@ void EtsAgentManager::ConnectAgentExtensionAbility(ani_env *env, ani_object aniW
     connection->SetEtsConnectionCallback(callbackObj);
     connection->SetAniAsyncCallback(asyncCallback);
 
-    // Set host proxy and agentId in want
+    // Set host proxy in want
     sptr<EtsAgentConnectorStubImpl> stub = connection->GetServiceHostStub();
     want.SetParam(AGENTEXTENSIONHOSTPROXY_KEY, stub->AsObject());
-    want.SetParam(AGENTID_KEY, agentId);
 
     // Insert into registry
     int64_t connectionId = AgentConnectionUtils::InsertAgentConnection(connection, want);
@@ -610,19 +683,17 @@ void EtsAgentManager::DisconnectAgentExtensionAbility(ani_env *env, ani_object a
         return;
     }
 
+    connection->SetDisconnectAsyncCallback(env, asyncCallback);
+
     // Call disconnect (replaces context->DisconnectAbility)
     int32_t innerErrCode = AgentConnectionManager::GetInstance().DisconnectAgentExtensionAbility(connection);
     TAG_LOGD(AAFwkTag::SER_ROUTER, "DisconnectAgentExtensionAbility innerErrorCode: %{public}d", innerErrCode);
     if (innerErrCode != ERR_OK) {
+        connection->ClearDisconnectAsyncCallback(env);
         AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
             EtsErrorUtil::CreateError(env, static_cast<int32_t>(GetJsErrorCodeByNativeError(innerErrCode)),
                 GetAgentManagerErrorMsg(innerErrCode, AgentManagerErrorOperation::DISCONNECT_AGENT_EXTENSION)),
             nullptr);
-    } else {
-        // On success, callback is handled by DisconnectAgentExtensionAbility via OnAbilityDisconnectDone
-        // Similar to how OnDisconnectUIServiceExtension always calls callback with ERROR_OK
-        AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
-            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
     }
 }
 
