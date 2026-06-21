@@ -43,6 +43,14 @@ namespace AgentRuntime {
 namespace {
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
+
+void RemoveAgentWantParams(AAFwk::Want &want)
+{
+    want.RemoveParam(AGENTEXTENSIONHOSTPROXY_KEY);
+    want.RemoveParam(AGENTID_KEY);
+    want.RemoveParam(AGENT_CARD_TYPE_KEY);
+    want.RemoveParam(AGENT_VERIFICATION_NONCE_KEY);
+}
 }
 using namespace OHOS::AbilityRuntime;
 using namespace OHOS::AppExecFwk;
@@ -195,14 +203,16 @@ sptr<IRemoteObject> JsAgentExtension::OnConnect(const AAFwk::Want &want,
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "call");
     HandleScope handleScope(jsRuntime_);
-    Extension::OnConnect(want);
     napi_env env = jsRuntime_.GetNapiEnv();
     sptr<IRemoteObject> hostProxy = GetHostProxyFromWant(want);
     if (hostProxy == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null hostProxy");
         return nullptr;
     }
-    napi_value napiWant = WrapWant(env, want);
+    AAFwk::Want userWant = want;
+    RemoveAgentWantParams(userWant);
+    Extension::OnConnect(userWant);
+    napi_value napiWant = WrapWant(env, userWant);
     if (napiWant == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null napiWant");
         return nullptr;
@@ -236,14 +246,16 @@ void JsAgentExtension::OnDisconnect(const AAFwk::Want &want,
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "call");
     HandleScope handleScope(jsRuntime_);
-    Extension::OnDisconnect(want);
     napi_env env = jsRuntime_.GetNapiEnv();
     sptr<IRemoteObject> hostProxy = GetHostProxyFromWant(want);
     if (hostProxy == nullptr) {
         TAG_LOGW(AAFwkTag::SER_ROUTER, "null hostProxy");
         return;
     }
-    napi_value napiWant = WrapWant(env, want);
+    AAFwk::Want userWant = want;
+    RemoveAgentWantParams(userWant);
+    Extension::OnDisconnect(userWant);
+    napi_value napiWant = WrapWant(env, userWant);
     if (napiWant == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null napiWant");
         return;
@@ -439,7 +451,7 @@ napi_value JsAgentExtension::CallObjectMethod(const char* name, napi_value const
 napi_value JsAgentExtension::WrapWant(napi_env env, const AAFwk::Want &want)
 {
     AAFwk::Want jsWant = want;
-    jsWant.RemoveParam(AGENTEXTENSIONHOSTPROXY_KEY);
+    RemoveAgentWantParams(jsWant);
     napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, jsWant);
     return napiWant;
 }

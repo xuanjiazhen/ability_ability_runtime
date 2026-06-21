@@ -54,6 +54,14 @@ constexpr const char *ON_CONNECT_SIGNATURE =
 constexpr const char *ON_DISCONNECT_SIGNATURE =
     "C{@ohos.app.ability.Want.Want}C{application.AgentHostProxy.AgentHostProxy}:";
 constexpr const char *VOID_SIGNATURE = ":";
+
+void RemoveAgentWantParams(AAFwk::Want &want)
+{
+    want.RemoveParam(AGENTEXTENSIONHOSTPROXY_KEY);
+    want.RemoveParam(AGENTID_KEY);
+    want.RemoveParam(AGENT_CARD_TYPE_KEY);
+    want.RemoveParam(AGENT_VERIFICATION_NONCE_KEY);
+}
 } // namespace
 
 EtsAgentExtension::EtsAgentExtension(ETSRuntime& etsRuntime) : etsRuntime_(etsRuntime) {}
@@ -157,7 +165,6 @@ sptr<IRemoteObject> EtsAgentExtension::OnConnect(const AAFwk::Want &want,
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::SER_ROUTER, "call");
-    Extension::OnConnect(want);
     auto env = etsRuntime_.GetAniEnv();
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null env");
@@ -170,7 +177,10 @@ sptr<IRemoteObject> EtsAgentExtension::OnConnect(const AAFwk::Want &want,
         return nullptr;
     }
 
-    ani_object aniWant = AppExecFwk::WrapWant(env, want);
+    AAFwk::Want userWant = want;
+    RemoveAgentWantParams(userWant);
+    Extension::OnConnect(userWant);
+    ani_object aniWant = AppExecFwk::WrapWant(env, userWant);
     if (aniWant == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null aniWant");
         return nullptr;
@@ -217,7 +227,6 @@ void EtsAgentExtension::OnDisconnect(const AAFwk::Want &want,
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::SER_ROUTER, "call");
-    Extension::OnDisconnect(want);
     auto env = etsRuntime_.GetAniEnv();
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null env");
@@ -228,7 +237,10 @@ void EtsAgentExtension::OnDisconnect(const AAFwk::Want &want,
         TAG_LOGW(AAFwkTag::SER_ROUTER, "null hostProxy");
         return;
     }
-    ani_object aniWant = AppExecFwk::WrapWant(env, want);
+    AAFwk::Want userWant = want;
+    RemoveAgentWantParams(userWant);
+    Extension::OnDisconnect(userWant);
+    ani_object aniWant = AppExecFwk::WrapWant(env, userWant);
     if (aniWant == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null aniWant");
         return;

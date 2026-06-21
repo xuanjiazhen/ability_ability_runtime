@@ -17,8 +17,8 @@
 #define OHOS_AGENT_RUNTIME_AGENT_CONNECTION_MANAGER_H
 
 #include <chrono>
-#include <map>
 #include <mutex>
+#include <utility>
 #include <vector>
 
 #include "ability_connect_callback.h"
@@ -84,47 +84,11 @@ struct AgentConnectionInfo {
         connectingTime = std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
     }
 
-    /**
-     * @brief Comparison operator for map key ordering.
-     *
-     * Compares by: agentId -> agentExtProxy -> connectingTime -> connectReceiver
-     * (bundleName -> moduleName -> abilityName)
-     *
-     * @param that The other AgentConnectionInfo to compare with.
-     * @return Returns true if this is less than that.
-     */
-    inline bool operator<(const AgentConnectionInfo &that) const
-    {
-        if (agentId < that.agentId) {
-            return true;
-        }
-        if (agentExtProxy < that.agentExtProxy) {
-            return true;
-        }
-        if (connectingTime < that.connectingTime) {
-            return true;
-        }
-        if (connectReceiver.GetBundleName() < that.connectReceiver.GetBundleName()) {
-            return true;
-        }
-        if (connectReceiver.GetBundleName() == that.connectReceiver.GetBundleName() &&
-            connectReceiver.GetModuleName() < that.connectReceiver.GetModuleName()) {
-            return true;
-        }
-        if (connectReceiver.GetBundleName() == that.connectReceiver.GetBundleName() &&
-            connectReceiver.GetModuleName() == that.connectReceiver.GetModuleName() &&
-            connectReceiver.GetAbilityName() < that.connectReceiver.GetAbilityName()) {
-            return true;
-        }
-        if (connectReceiver.GetBundleName() == that.connectReceiver.GetBundleName() &&
-            connectReceiver.GetModuleName() == that.connectReceiver.GetModuleName() &&
-            connectReceiver.GetAbilityName() == that.connectReceiver.GetAbilityName() &&
-            !(connectReceiver == that.connectReceiver)) {
-            return true;
-        }
-        return false;
-    }
 };
+
+using AgentConnectionRecord =
+    std::pair<AgentConnectionInfo, std::vector<sptr<AbilityRuntime::AbilityConnectCallback>>>;
+using AgentConnectionList = std::vector<AgentConnectionRecord>;
 
 /**
  * @class AgentConnection
@@ -263,8 +227,7 @@ private:
      * @return Returns true if matches, false otherwise.
      */
     bool MatchConnection(const std::string &agentId, const AAFwk::Want &connectReceiver,
-        const std::map<AgentConnectionInfo,
-        std::vector<sptr<AbilityRuntime::AbilityConnectCallback>>>::value_type &connection);
+        const AgentConnectionRecord &connection);
     /**
      * @brief Create a new connection to the agent extension.
      *
@@ -293,7 +256,7 @@ private:
 
 private:
     std::mutex connectionsLock_;
-    std::map<AgentConnectionInfo, std::vector<sptr<AbilityRuntime::AbilityConnectCallback>>> agentConnections_;
+    AgentConnectionList agentConnections_;
 };
 } // namespace AgentRuntime
 } // namespace OHOS
