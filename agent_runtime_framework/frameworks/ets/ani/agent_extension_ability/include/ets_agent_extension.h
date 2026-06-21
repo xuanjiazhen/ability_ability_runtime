@@ -122,6 +122,8 @@ private:
 
     ani_object CreateETSContext(ani_env *env, std::shared_ptr<AgentExtensionContext> context);
 
+    ani_object WrapWant(ani_env *env, const AAFwk::Want &want);
+
     void HandleSendData(sptr<IRemoteObject> hostProxy, const std::string &data);
 
     void HandleAuthorize(sptr<IRemoteObject> hostProxy, const std::string &data);
