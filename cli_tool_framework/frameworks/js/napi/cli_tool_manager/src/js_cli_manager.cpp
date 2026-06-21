@@ -514,6 +514,81 @@ napi_value JSCliManager::OnQueryTools(napi_env env, size_t argc, napi_value *arg
     return handleEscape.Escape(asyncResult);
 }
 
+napi_value JSCliManager::ExecAbc(napi_env env, napi_callback_info info)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManager::ExecAbc called");
+    HandleEscape handleEscape(env);
+    size_t argc = 0;
+    napi_value argv[ARGS_MAX_COUNT] = {nullptr};
+    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+
+    if (argc < INDEX_ONE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    std::string abcPath;
+    if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ZERO], abcPath) || abcPath.empty()) {
+        ThrowInvalidParamError(env, "abcPath is required and must be a non-empty string");
+        return CreateJsUndefined(env);
+    }
+
+    // Parse optional args parameter (argv[1])
+    std::vector<std::string> args;
+    if (argc > INDEX_ONE && argv[INDEX_ONE] != nullptr) {
+        napi_valuetype valueType = napi_undefined;
+        napi_status status = napi_typeof(env, argv[INDEX_ONE], &valueType);
+        if (status == napi_ok && valueType == napi_object) {
+            // Check if it's an array
+            bool isArray = false;
+            napi_is_array(env, argv[INDEX_ONE], &isArray);
+            if (isArray) {
+                uint32_t length = 0;
+                napi_get_array_length(env, argv[INDEX_ONE], &length);
+                for (uint32_t i = 0; i < length; ++i) {
+                    napi_value element;
+                    napi_get_element(env, argv[INDEX_ONE], i, &element);
+                    std::string argStr;
+                    if (AppExecFwk::UnwrapStringFromJS2(env, element, argStr)) {
+                        args.push_back(argStr);
+                    }
+                }
+            }
+        }
+    }
+
+    // Parse optional bundleName parameter (argv[2])
+    std::string bundleName;
+    if (argc > INDEX_TWO && argv[INDEX_TWO] != nullptr) {
+        AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_TWO], bundleName);
+    }
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecAbc: abcPath=%{public}s, args=%{public}zu, bundleName=%{public}s",
+             abcPath.c_str(), args.size(), bundleName.c_str());
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+
+    NapiAsyncTask::ExecuteCallback execute = [innerErrCode, abcPath, args, bundleName]() {
+        *innerErrCode = CliToolMGRClient::GetInstance().ExecAbc(abcPath, args, bundleName);
+    };
+
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode](
+        napi_env env, NapiAsyncTask &task, int32_t status) {
+        HandleScope handleScope(env);
+        if (*innerErrCode != ERR_OK) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "ExecAbc error: %{public}d", *innerErrCode);
+            task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
+            return;
+        }
+        task.ResolveWithNoError(env, CreateJsUndefined(env));
+    };
+
+    napi_value asyncResult = nullptr;
+    NapiAsyncTask::Schedule("JsCliManager::OnExecAbc", env,
+        CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &asyncResult));
+    return handleEscape.Escape(asyncResult);
+}
+
 napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "Init JSCliManager");
@@ -536,6 +611,7 @@ napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "getToolInfoByName", moduleName, JSCliManager::GetToolInfoByName);
     BindNativeFunction(env, exportObj, "queryToolSummaries", moduleName, JSCliManager::QueryToolSummaries);
     BindNativeFunction(env, exportObj, "queryTools", moduleName, JSCliManager::QueryTools);
+    BindNativeFunction(env, exportObj, "execAbc", moduleName, JSCliManager::ExecAbc);
 
     TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManagerInit end");
     return CreateJsUndefined(env);
