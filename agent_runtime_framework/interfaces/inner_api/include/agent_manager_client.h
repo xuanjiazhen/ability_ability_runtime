@@ -71,6 +71,12 @@ public:
      */
     int32_t NotifyLowCodeAgentComplete(const std::string &agentId);
 
+    int32_t VerifyAgentConnectFromAms(const AAFwk::Want &want,
+        const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity);
+
+    int32_t VerifyAgentDisconnectFromAms(
+        const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity);
+
 private:
     sptr<IAgentManager> GetAgentMgrProxy();
     void ClearProxy();

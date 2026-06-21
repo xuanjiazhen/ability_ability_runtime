@@ -28,6 +28,9 @@
 #include "ability_manager_errors.h"
 #include "ability_scheduler.h"
 #include "ability_util.h"
+#include "agent_card.h"
+#include "agent_extension_connection_constants.h"
+#include "agent_internal_constants.h"
 #include "bundlemgr/mock_bundle_manager.h"
 #include "hilog_tag_wrapper.h"
 #include "mock_ability_connect_callback.h"
@@ -3803,6 +3806,30 @@ HWTEST_F(AbilityConnectManagerTest,
     EXPECT_EQ(loadParam.reusePid, -1);
 }
 
+/**
+ * @tc.name: Agent_DisconnectingRecord_ShouldNotBeDuplicateEligible
+ * @tc.desc: Test AGENT reconnect does not treat a disconnecting old record as duplicate
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityConnectManagerTest, Agent_DisconnectingRecord_ShouldNotBeDuplicateEligible, TestSize.Level1)
+{
+    auto connectManager = std::make_shared<TestAbilityConnectManager>(0);
+    auto abilityRecord = InitAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->abilityInfo_.type = AbilityType::EXTENSION;
+    abilityRecord->abilityInfo_.extensionAbilityType = ExtensionAbilityType::AGENT;
+    auto callback = new AbilityConnectCallback();
+    auto disconnectingRecord = ConnectionRecord::CreateConnectionRecord(
+        abilityRecord->GetToken(), abilityRecord, callback, connectManager);
+    ASSERT_NE(disconnectingRecord, nullptr);
+    disconnectingRecord->SetConnectState(ConnectionState::DISCONNECTING);
+    AbilityConnectManager::ConnectListType connectRecordList;
+    connectRecordList.push_back(disconnectingRecord);
+
+    auto duplicate = connectManager->GetAbilityConnectedRecordFromRecordList(abilityRecord, connectRecordList);
+
+    EXPECT_EQ(duplicate, nullptr);
+}
 
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -93,7 +93,6 @@ public:
         MyFlag::extensionAbilityUid = IPCSkeleton::GetCallingUid();
         auto service = AgentManagerService::GetInstance();
         service->trackedConnections_.clear();
-        service->callerConnectionCounts_.clear();
         service->agentHostSessions_.clear();
         service->agentOwners_.clear();
     }
@@ -162,7 +161,6 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityConnectDone_002, TestSize.Level1)
     EXPECT_TRUE(AgentManagerService::GetInstance()->agentHostSessions_.empty());
     EXPECT_TRUE(AgentManagerService::GetInstance()->agentOwners_.empty());
     EXPECT_TRUE(AgentManagerService::GetInstance()->trackedConnections_.empty());
-    EXPECT_TRUE(AgentManagerService::GetInstance()->callerConnectionCounts_.empty());
 }
 
 /**
@@ -190,7 +188,6 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityConnectDone_003, TestSize.Level1)
     EXPECT_TRUE(service->agentHostSessions_.empty());
     EXPECT_TRUE(service->agentOwners_.empty());
     EXPECT_TRUE(service->trackedConnections_.empty());
-    EXPECT_TRUE(service->callerConnectionCounts_.empty());
 }
 
 /**
@@ -224,7 +221,6 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityConnectDone_004, TestSize.Level1)
     record.hostKey = hostKey;
     record.isLowCode = true;
     service->trackedConnections_[callerRemote] = record;
-    service->callerConnectionCounts_[record.callerUid] = 1;
 
     auto hostConnection = session->hostConnection;
     ASSERT_NE(hostConnection, nullptr);
@@ -237,7 +233,6 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityConnectDone_004, TestSize.Level1)
     EXPECT_TRUE(service->agentHostSessions_.empty());
     EXPECT_TRUE(service->agentOwners_.empty());
     EXPECT_TRUE(service->trackedConnections_.empty());
-    EXPECT_TRUE(service->callerConnectionCounts_.empty());
 }
 
 /**
@@ -309,7 +304,6 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityDisconnectDone_001, TestSize.Level1)
     record.hostKey = hostKey;
     record.isLowCode = true;
     service->trackedConnections_[callerRemote] = record;
-    service->callerConnectionCounts_[record.callerUid] = 1;
 
     auto hostConnection = session->hostConnection;
     ASSERT_NE(hostConnection, nullptr);
@@ -322,7 +316,6 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityDisconnectDone_001, TestSize.Level1)
     EXPECT_EQ(callback->disconnectDoneCount, 1);
     EXPECT_TRUE(service->agentHostSessions_.empty());
     EXPECT_TRUE(service->agentOwners_.empty());
-    EXPECT_TRUE(service->callerConnectionCounts_.empty());
 }
 
 /**
@@ -347,7 +340,6 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityDisconnectDone_002, TestSize.Level1)
     EXPECT_TRUE(AgentManagerService::GetInstance()->agentHostSessions_.empty());
     EXPECT_TRUE(AgentManagerService::GetInstance()->agentOwners_.empty());
     EXPECT_TRUE(AgentManagerService::GetInstance()->trackedConnections_.empty());
-    EXPECT_TRUE(AgentManagerService::GetInstance()->callerConnectionCounts_.empty());
 }
 
 /**
@@ -374,7 +366,6 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityDisconnectDone_003, TestSize.Level1)
     EXPECT_TRUE(service->agentHostSessions_.empty());
     EXPECT_TRUE(service->agentOwners_.empty());
     EXPECT_TRUE(service->trackedConnections_.empty());
-    EXPECT_TRUE(service->callerConnectionCounts_.empty());
 }
 }  // namespace AgentRuntime
 }  // namespace OHOS

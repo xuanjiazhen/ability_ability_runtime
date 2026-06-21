@@ -762,6 +762,10 @@ std::vector<std::string> ImplicitStartProcessor::SplitStr(const std::string& str
 bool ImplicitStartProcessor::CheckImplicitStartExtensionIsValid(const AbilityRequest &request,
     const AppExecFwk::ExtensionAbilityInfo &extensionInfo)
 {
+    if (extensionInfo.type == AppExecFwk::ExtensionAbilityType::AGENT) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "ImplicitStart not allowed for AGENT");
+        return false;
+    }
     if (!request.want.GetBundle().empty()) {
         return true;
     }

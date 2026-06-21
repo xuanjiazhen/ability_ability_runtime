@@ -93,17 +93,15 @@ void FindAgentConnection(int64_t connectId, sptr<JSAgentConnection> &connection)
     }
 }
 
-void FindAgentConnection(napi_env env, AAFwk::Want &want, napi_value callback,
+void FindAgentConnection(napi_env env, const AAFwk::Want &want, napi_value callback,
     sptr<JSAgentConnection> &connection)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "FindAgentConnection by want+callback");
     std::lock_guard<std::recursive_mutex> lock(g_agentConnectsLock_);
     auto item = std::find_if(g_agentConnects.begin(), g_agentConnects.end(),
         [&want, env, callback](const auto &obj) {
-        std::string exstingId = obj.first.want.GetStringParam(AGENTID_KEY);
-        std::string agentId = want.GetStringParam(AGENTID_KEY);
         bool wantEquals = obj.first.want.GetElement() == want.GetElement() &&
-            !exstingId.empty() && !agentId.empty() && exstingId == agentId;
+            obj.first.want.GetStringParam(AGENTID_KEY) == want.GetStringParam(AGENTID_KEY);
         std::unique_ptr<NativeReference> &tempCallbackPtr = obj.second->GetJsConnectionObject();
         bool callbackObjectEquals =
             JSAgentConnection::IsJsCallbackObjectEquals(env, tempCallbackPtr, callback);

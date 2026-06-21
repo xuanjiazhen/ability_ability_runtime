@@ -181,6 +181,28 @@ int32_t AgentManagerClient::NotifyLowCodeAgentComplete(const std::string &agentI
     return agentMgr->NotifyLowCodeAgentComplete(agentId);
 }
 
+int32_t AgentManagerClient::VerifyAgentConnectFromAms(const AAFwk::Want &want,
+    const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity)
+{
+    auto agentMgr = GetAgentMgrProxy();
+    if (agentMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentmgr");
+        return ERR_NULL_AGENT_MGR_PROXY;
+    }
+    return agentMgr->VerifyAgentConnectFromAms(want, connection, callerIdentity);
+}
+
+int32_t AgentManagerClient::VerifyAgentDisconnectFromAms(
+    const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity)
+{
+    auto agentMgr = GetAgentMgrProxy();
+    if (agentMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentmgr");
+        return ERR_NULL_AGENT_MGR_PROXY;
+    }
+    return agentMgr->VerifyAgentDisconnectFromAms(connection, callerIdentity);
+}
+
 sptr<IAgentManager> AgentManagerClient::GetAgentMgrProxy()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);

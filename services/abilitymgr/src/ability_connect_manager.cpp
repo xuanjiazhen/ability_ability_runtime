@@ -23,6 +23,7 @@
 #include "ability_resident_process_rdb.h"
 #include "ability_util.h"
 #include "agent_extension_connection_constants.h"
+#include "agent_manager_client.h"
 #include "app_exit_reason_data_manager.h"
 #include "appfreeze_manager.h"
 #include "assert_fault_callback_death_mgr.h"
@@ -48,6 +49,7 @@
 #include "ui_extension_wrapper.h"
 #include "ui_service_extension_connection_constants.h"
 #include "uri_utils.h"
+#include "utils/agent_caller_identity_util.h"
 #include "user_controller/user_controller.h"
 
 namespace OHOS {
@@ -375,7 +377,9 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
         ret = GetOrCreateExtensionRecord(abilityRequest, targetService, isLoadedAbility);
     } else {
         GetOrCreateServiceRecord(abilityRequest, true, targetService, isLoadedAbility);
-        CHECK_POINTER_AND_RETURN(targetService, ERR_INVALID_VALUE);
+        if (targetService == nullptr) {
+            return ERR_INVALID_VALUE;
+        }
         ret = ERR_OK;
     }
     if (ret != ERR_OK) {
@@ -398,7 +402,9 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
     // 4. Other cases , need to connect the service ability
     auto connectRecord = ConnectionRecord::CreateConnectionRecord(
         callerToken, targetService, connect, shared_from_this());
-    CHECK_POINTER_AND_RETURN(connectRecord, ERR_INVALID_VALUE);
+    if (connectRecord == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
     connectRecord->AttachCallerInfo(indirectCallerInfo);
     connectRecord->SetConnectState(ConnectionState::CONNECTING);
     if (targetService->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
@@ -524,7 +530,11 @@ std::shared_ptr<ConnectionRecord> AbilityConnectManager::GetAbilityConnectedReco
         if (targetService == nullptr || connectRecord == nullptr) {
             return false;
         }
-        return targetService == connectRecord->GetAbilityRecord();
+        if (targetService != connectRecord->GetAbilityRecord()) {
+            return false;
+        }
+        auto state = connectRecord->GetConnectState();
+        return state != ConnectionState::DISCONNECTING && state != ConnectionState::DISCONNECTED;
     };
     auto connectRecord = std::find_if(connectRecordList.begin(), connectRecordList.end(), isMatch);
     if (connectRecord != connectRecordList.end()) {
@@ -568,6 +578,23 @@ int AbilityConnectManager::DisconnectAbilityLocked(const sptr<IAbilityConnection
                 static_cast<uint32_t>(IPCSkeleton::GetSelfTokenID() != IPCSkeleton::GetCallingTokenID())) {
                 TAG_LOGW(AAFwkTag::EXT, "inconsistent caller");
                 continue;
+            }
+
+            AgentCallerIdentityScope agentCallerIdentityScope;
+            if (abilityRecord->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+                std::string callerIdentity;
+                result = AgentRuntime::AgentManagerClient::GetInstance().VerifyAgentDisconnectFromAms(
+                    connect, callerIdentity);
+                if (result != ERR_OK) {
+                    TAG_LOGE(AAFwkTag::SER_ROUTER, "AGENT disconnect is not confirmed by AgentMgr: %{public}d",
+                        result);
+                    break;
+                }
+                result = agentCallerIdentityScope.ApplyIfNeeded(
+                    AppExecFwk::ExtensionAbilityType::AGENT, callerIdentity);
+                if (result != ERR_OK) {
+                    break;
+                }
             }
 
             result = DisconnectRecordNormal(list, connectRecord, callerDied);
@@ -683,7 +710,6 @@ int AbilityConnectManager::DisconnectRecordNormal(ConnectListType &list,
         TAG_LOGE(AAFwkTag::EXT, "fail:%{public}d", result);
         return result;
     }
-
     if (connectRecord->GetConnectState() == ConnectionState::DISCONNECTED) {
         TAG_LOGW(AAFwkTag::EXT, "normal:%{public}d", connectRecord->GetRecordId());
         connectRecord->CompleteDisconnect(ERR_OK, callerDied);

@@ -21,6 +21,7 @@
 #include "ability_resident_process_rdb.h"
 #include "ability_scheduler_stub.h"
 #include "agent_extension_connection_constants.h"
+#include "agent_internal_constants.h"
 #include "app_exit_reason_data_manager.h"
 #include "appfreeze_manager.h"
 #include "app_utils.h"
@@ -2114,6 +2115,9 @@ void AbilityRecord::SetWant(const Want &want)
     }
     if (want_.HasParameter(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY)) {
         want_.RemoveParam(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY);
+    }
+    if (want_.HasParameter(AgentRuntime::AGENT_CARD_TYPE_KEY)) {
+        want_.RemoveParam(AgentRuntime::AGENT_CARD_TYPE_KEY);
     }
 }
 
