@@ -169,6 +169,15 @@ public:
         std::vector<CommandPermission> &cmdPermissions);
 
     /**
+     * @brief Execute an ArkTS abc file
+     * @param abcPath Path to the .abc file (absolute path)
+     * @param args Command line arguments to pass to the abc entry method
+     * @param bundleName Bundle name for ArkTS runtime initialization
+     * @return ERR_OK on success, error code otherwise
+     */
+    ErrCode ExecAbc(const std::string &abcPath, const std::vector<std::string> &args = {}, const std::string &bundleName = "");
+
+    /**
      * @brief On load system ability success.
      * @param remoteObject The remote object of system ability.
      */
