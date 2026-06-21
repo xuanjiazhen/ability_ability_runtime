@@ -101,17 +101,15 @@ void FindAgentConnection(int64_t connectId, sptr<EtsAgentConnection> &connection
     }
 }
 
-void FindAgentConnection(ani_env *env, AAFwk::Want &want, ani_object callback,
+void FindAgentConnection(ani_env *env, const AAFwk::Want &want, ani_object callback,
     sptr<EtsAgentConnection> &connection)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "FindAgentConnection by want+callback");
     std::lock_guard<std::recursive_mutex> lock(g_agentConnectsLock_);
     auto item = std::find_if(g_agentConnects.begin(), g_agentConnects.end(),
         [&want, env, callback](const auto &obj) {
-        std::string existingId = obj.first.want.GetStringParam(AGENTID_KEY);
-        std::string agentId = want.GetStringParam(AGENTID_KEY);
         bool wantEquals = obj.first.want.GetElement() == want.GetElement() &&
-            !existingId.empty() && !agentId.empty() && existingId == agentId;
+            obj.first.want.GetStringParam(AGENTID_KEY) == want.GetStringParam(AGENTID_KEY);
         ani_ref tempCallbackRef = obj.second->GetEtsConnectionObject();
         bool callbackObjectEquals =
             EtsAgentConnection::IsEtsCallbackObjectEquals(env, tempCallbackRef, callback);
