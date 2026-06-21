@@ -93,6 +93,24 @@ public:
     {
         return 0;
     }
+
+    virtual int32_t VerifyAgentConnectRequest(const AAFwk::Want &want,
+        const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity)
+    {
+        (void)want;
+        (void)connection;
+        (void)callerIdentity;
+        return 0;
+    }
+
+    virtual int32_t VerifyAgentDisconnectRequest(const AAFwk::Want &want,
+        const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity)
+    {
+        (void)want;
+        (void)connection;
+        (void)callerIdentity;
+        return 0;
+    }
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS

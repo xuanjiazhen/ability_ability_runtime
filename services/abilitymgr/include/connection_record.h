@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_CONNECTION_RECORD_H
 #define OHOS_ABILITY_RUNTIME_CONNECTION_RECORD_H
 
+#include <cstdint>
 #include <mutex>
 #include "ability_connect_callback_interface.h"
 #include "base_extension_record.h"
@@ -177,6 +178,7 @@ public:
 
     void SetConnectWant(const Want &want);
     Want GetConnectWant() const;
+
 private:
     void ScheduleDisconnectTimeout();
     void SetDirectCallerInfo();
@@ -198,7 +200,6 @@ private:
     int32_t directCallerPid_ = 0;                      // direct caller pid
     uint32_t directCallerTokenId_ = 0;                 // direct caller token id
     std::string directCallerName_;                     // direct caller bundleName or processName
-
     DISALLOW_COPY_AND_MOVE(ConnectionRecord);
 };
 }  // namespace AAFwk
