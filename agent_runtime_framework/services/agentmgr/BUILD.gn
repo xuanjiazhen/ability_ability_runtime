@@ -33,12 +33,15 @@ ohos_shared_library("agentmgr") {
     "${agent_runtime_framework_path}/services/common/include",
   ]
   sources = [
+    "src/agent_manager_caller_identity.cpp",
     "src/agent_bundle_event_callback.cpp",
     "src/agent_card_db_mgr.cpp",
     "src/agent_card_mgr.cpp",
+    "src/agent_connection_ledger_types.cpp",
     "src/agent_event_handler.cpp",
     "src/agent_host_connection.cpp",
     "src/agent_manager_service.cpp",
+    "src/agent_manager_service_low_code.cpp",
     "src/agent_service_connection.cpp",
   ]
 
