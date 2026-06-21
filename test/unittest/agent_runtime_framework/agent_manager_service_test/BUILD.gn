@@ -34,10 +34,13 @@ ohos_unittest("agent_manager_service_test") {
     "mock/src/mock_bundle_mgr_helper.cpp",
     "mock/src/mock_permission_verification.cpp",
     "mock/src/mock_system_ability.cpp",
+    "${agent_runtime_framework_path}/services/agentmgr/src/agent_manager_caller_identity.cpp",
     "${agent_runtime_framework_path}/services/agentmgr/src/agent_bundle_event_callback.cpp",
+    "${agent_runtime_framework_path}/services/agentmgr/src/agent_connection_ledger_types.cpp",
     "${agent_runtime_framework_path}/services/agentmgr/src/agent_event_handler.cpp",
     "${agent_runtime_framework_path}/services/agentmgr/src/agent_host_connection.cpp",
     "${agent_runtime_framework_path}/services/agentmgr/src/agent_manager_service.cpp",
+    "${agent_runtime_framework_path}/services/agentmgr/src/agent_manager_service_low_code.cpp",
     "${agent_runtime_framework_path}/services/agentmgr/src/agent_service_connection.cpp",
   ]
 
