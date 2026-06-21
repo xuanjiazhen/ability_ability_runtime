@@ -28,7 +28,10 @@ interface OHOS.AgentRuntime.IAgentManager {
     void DeleteAgentCard([in] String bundleName, [in] String agentId);
     void ConnectAgentExtensionAbility([in] Want want, [in] IAbilityConnection connect);
     void DisconnectAgentExtensionAbility([in] IAbilityConnection connect);
+    void GetAgentCardTypeForConnect([inout] Want want, [out] int cardType);
     void ConnectServiceExtensionAbility([in] IRemoteObject callerToken, [in] Want want, [in] IAbilityConnection connect);
     void DisconnectServiceExtensionAbility([in] IRemoteObject callerToken, [in] IAbilityConnection connect);
     void NotifyLowCodeAgentComplete([in] String agentId);
+    void VerifyAgentConnectRequest([in] Want want, [in] IAbilityConnection connect, [out] String callerIdentity);
+    void VerifyAgentDisconnectRequest([in] Want want, [in] IAbilityConnection connect, [out] String callerIdentity);
 }
