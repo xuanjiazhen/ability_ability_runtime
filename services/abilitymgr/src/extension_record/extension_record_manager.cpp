@@ -226,7 +226,7 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecord(const AAFwk::AbilityR
     if (isAgentUI) {
         auto ret = CheckAgentUILaunchLimit(callerUid, abilityRequest.abilityInfo.bundleName);
         if (ret != ERR_OK) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "agentUI launch limit check failed, ret:%{public}d", ret);
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "agentUI launch limit check failed, ret:%{public}d", ret);
             return ret;
         }
     }
@@ -1215,7 +1215,7 @@ int32_t ExtensionRecordManager::CheckAgentUILaunchLimit(int32_t callerUid, const
             continue;
         }
         if (record.targetRecordIds.size() >= AGENT_UI_MAX_COUNT) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR,
+            TAG_LOGE(AAFwkTag::SER_ROUTER,
                 "agentUI reach limit, callerUid:%{public}d, bundle:%{public}s, count:%{public}zu",
                 callerUid, bundleName.c_str(), record.targetRecordIds.size());
             return ERR_OVERFLOW;
@@ -1223,7 +1223,7 @@ int32_t ExtensionRecordManager::CheckAgentUILaunchLimit(int32_t callerUid, const
         break;
     }
 
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "agentUI launch allowed");
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "agentUI launch allowed");
     return ERR_OK;
 }
 

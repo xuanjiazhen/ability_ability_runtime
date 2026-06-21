@@ -19,7 +19,9 @@
 
 namespace OHOS {
 namespace AgentRuntime {
-AgentHostConnection::AgentHostConnection(const AgentHostKey &key) : key_(key)
+AgentHostConnection::AgentHostConnection(
+    const AgentHostKey &key, const sptr<IRemoteObject> &callerRemote, const std::string &agentId)
+    : key_(key), callerRemote_(callerRemote), agentId_(agentId)
 {}
 
 void AgentHostConnection::OnAbilityConnectDone(const AppExecFwk::ElementName &element,
@@ -29,7 +31,7 @@ void AgentHostConnection::OnAbilityConnectDone(const AppExecFwk::ElementName &el
     if (service == nullptr) {
         return;
     }
-    service->HandleAgentHostConnectDone(key_, element, remoteObject, resultCode);
+    service->HandleAgentHostConnectDone(key_, callerRemote_, agentId_, element, remoteObject, resultCode);
 }
 
 void AgentHostConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
@@ -38,7 +40,7 @@ void AgentHostConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName 
     if (service == nullptr) {
         return;
     }
-    service->HandleAgentHostDisconnectDone(key_, element, resultCode);
+    service->HandleAgentHostDisconnectDone(key_, callerRemote_, agentId_, element, resultCode);
 }
 }  // namespace AgentRuntime
 }  // namespace OHOS
