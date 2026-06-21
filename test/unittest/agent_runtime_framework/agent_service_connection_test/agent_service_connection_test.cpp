@@ -70,7 +70,6 @@ public:
         MyFlag::lastDisconnectAbilityConnection = nullptr;
         auto service = AgentManagerService::GetInstance();
         service->trackedConnections_.clear();
-        service->callerConnectionCounts_.clear();
     }
 };
 
@@ -83,8 +82,7 @@ HWTEST_F(AgentServiceConnectionTest, OnAbilityConnectDone_001, TestSize.Level1)
 {
     auto callerConnection = sptr<TrackingAbilityConnection>::MakeSptr();
     auto service = AgentManagerService::GetInstance();
-    service->callerConnectionCounts_[100] = 1;
-    AgentManagerService::TrackedConnectionRecord record;
+    TrackedConnectionRecord record;
     record.callerUid = 100;
     service->trackedConnections_.emplace(callerConnection->AsObject(), record);
 
@@ -97,7 +95,6 @@ HWTEST_F(AgentServiceConnectionTest, OnAbilityConnectDone_001, TestSize.Level1)
     EXPECT_EQ(callerConnection->lastResultCode, ERR_OK);
     EXPECT_EQ(callerConnection->lastRemoteObject, remoteObject);
     EXPECT_EQ(service->trackedConnections_.size(), 1);
-    EXPECT_EQ(service->callerConnectionCounts_[100], 1);
 }
 
 /**
@@ -109,8 +106,7 @@ HWTEST_F(AgentServiceConnectionTest, OnAbilityConnectDone_002, TestSize.Level1)
 {
     auto callerConnection = sptr<TrackingAbilityConnection>::MakeSptr();
     auto service = AgentManagerService::GetInstance();
-    service->callerConnectionCounts_[100] = 1;
-    AgentManagerService::TrackedConnectionRecord record;
+    TrackedConnectionRecord record;
     record.callerUid = 100;
     service->trackedConnections_.emplace(callerConnection->AsObject(), record);
 
@@ -121,7 +117,6 @@ HWTEST_F(AgentServiceConnectionTest, OnAbilityConnectDone_002, TestSize.Level1)
     EXPECT_EQ(callerConnection->connectDoneCount, 1);
     EXPECT_EQ(callerConnection->lastResultCode, ERR_INVALID_VALUE);
     EXPECT_TRUE(service->trackedConnections_.empty());
-    EXPECT_TRUE(service->callerConnectionCounts_.empty());
 }
 
 /**
@@ -133,8 +128,7 @@ HWTEST_F(AgentServiceConnectionTest, OnAbilityDisconnectDone_001, TestSize.Level
 {
     auto callerConnection = sptr<TrackingAbilityConnection>::MakeSptr();
     auto service = AgentManagerService::GetInstance();
-    service->callerConnectionCounts_[100] = 1;
-    AgentManagerService::TrackedConnectionRecord record;
+    TrackedConnectionRecord record;
     record.callerUid = 100;
     service->trackedConnections_.emplace(callerConnection->AsObject(), record);
 
@@ -145,7 +139,6 @@ HWTEST_F(AgentServiceConnectionTest, OnAbilityDisconnectDone_001, TestSize.Level
     EXPECT_EQ(callerConnection->disconnectDoneCount, 1);
     EXPECT_EQ(callerConnection->lastResultCode, ERR_OK);
     EXPECT_TRUE(service->trackedConnections_.empty());
-    EXPECT_TRUE(service->callerConnectionCounts_.empty());
 }
 }  // namespace AgentRuntime
 }  // namespace OHOS
