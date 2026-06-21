@@ -83,7 +83,7 @@ void FindAgentConnection(int64_t connectId, sptr<EtsAgentConnection> &connection
  * @param callback The callback object to match.
  * @param connection Output parameter for the found connection.
  */
-void FindAgentConnection(ani_env *env, AAFwk::Want &want, ani_object callback,
+void FindAgentConnection(ani_env *env, const AAFwk::Want &want, ani_object callback,
     sptr<EtsAgentConnection> &connection);
 }
 

@@ -23,6 +23,7 @@
 #include "ability_resident_process_rdb.h"
 #include "ability_util.h"
 #include "agent_extension_connection_constants.h"
+#include "agent_manager_client.h"
 #include "app_exit_reason_data_manager.h"
 #include "appfreeze_manager.h"
 #include "assert_fault_callback_death_mgr.h"
@@ -48,6 +49,7 @@
 #include "ui_extension_wrapper.h"
 #include "ui_service_extension_connection_constants.h"
 #include "uri_utils.h"
+#include "utils/agent_caller_identity_util.h"
 #include "user_controller/user_controller.h"
 
 namespace OHOS {
@@ -524,7 +526,14 @@ std::shared_ptr<ConnectionRecord> AbilityConnectManager::GetAbilityConnectedReco
         if (targetService == nullptr || connectRecord == nullptr) {
             return false;
         }
-        return targetService == connectRecord->GetAbilityRecord();
+        if (targetService != connectRecord->GetAbilityRecord()) {
+            return false;
+        }
+        if (targetService->GetAbilityInfo().extensionAbilityType != AppExecFwk::ExtensionAbilityType::AGENT) {
+            return true;
+        }
+        auto state = connectRecord->GetConnectState();
+        return state != ConnectionState::DISCONNECTING && state != ConnectionState::DISCONNECTED;
     };
     auto connectRecord = std::find_if(connectRecordList.begin(), connectRecordList.end(), isMatch);
     if (connectRecord != connectRecordList.end()) {
@@ -564,7 +573,22 @@ int AbilityConnectManager::DisconnectAbilityLocked(const sptr<IAbilityConnection
             if (abilityRecord->GetAbilityInfo().type == AbilityType::EXTENSION) {
                 RemoveExtensionDelayDisconnectTask(connectRecord);
             }
-            if (connectRecord->GetDirectCallerTokenId() != IPCSkeleton::GetCallingTokenID() &&
+            AgentCallerIdentityScope agentCallerIdentityScope;
+            if (abilityRecord->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+                std::string callerIdentity;
+                result = AgentRuntime::AgentManagerClient::GetInstance().VerifyAgentDisconnectRequest(
+                    connectRecord->GetConnectWant(), connect, callerIdentity);
+                if (result != ERR_OK) {
+                    TAG_LOGE(AAFwkTag::SER_ROUTER, "AGENT disconnect is not confirmed by AgentMgr: %{public}d",
+                        result);
+                    break;
+                }
+                result = agentCallerIdentityScope.ApplyIfNeeded(
+                    AppExecFwk::ExtensionAbilityType::AGENT, callerIdentity);
+                if (result != ERR_OK) {
+                    break;
+                }
+            } else if (connectRecord->GetDirectCallerTokenId() != IPCSkeleton::GetCallingTokenID() &&
                 static_cast<uint32_t>(IPCSkeleton::GetSelfTokenID() != IPCSkeleton::GetCallingTokenID())) {
                 TAG_LOGW(AAFwkTag::EXT, "inconsistent caller");
                 continue;
@@ -683,7 +707,6 @@ int AbilityConnectManager::DisconnectRecordNormal(ConnectListType &list,
         TAG_LOGE(AAFwkTag::EXT, "fail:%{public}d", result);
         return result;
     }
-
     if (connectRecord->GetConnectState() == ConnectionState::DISCONNECTED) {
         TAG_LOGW(AAFwkTag::EXT, "normal:%{public}d", connectRecord->GetRecordId());
         connectRecord->CompleteDisconnect(ERR_OK, callerDied);
@@ -954,6 +977,12 @@ int AbilityConnectManager::ScheduleDisconnectAbilityDoneLocked(const sptr<IRemot
 
 int AbilityConnectManager::CheckAbilityStateForDisconnect(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
+    if (abilityRecord->GetAbilityInfo().type == AbilityType::EXTENSION &&
+        abilityRecord->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
+        abilityRecord->IsAbilityState(AbilityState::INACTIVE)) {
+        return ERR_OK;
+    }
+
     if (!abilityRecord->IsAbilityState(AbilityState::ACTIVE)) {
         TAG_LOGE(AAFwkTag::EXT, "ability not active, state: %{public}d",
             abilityRecord->GetAbilityState());
