@@ -307,6 +307,14 @@ void ConnectionRecord::ScheduleConnectAbilityDone()
     if (connectWant_.HasParameter(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY)) {
         connectorProxy = connectWant_.GetRemoteObject(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY);
     }
+    std::string agentId;
+    if (connectWant_.HasParameter(AgentRuntime::AGENTID_KEY)) {
+        agentId = connectWant_.GetStringParam(AgentRuntime::AGENTID_KEY);
+    }
+    bool hasAgentCardType = connectWant_.HasParameter(AgentRuntime::AGENT_CARD_TYPE_KEY);
+    int32_t agentCardType = connectWant_.GetIntParam(AgentRuntime::AGENT_CARD_TYPE_KEY, 0);
+    bool hasAgentNonce = connectWant_.HasParameter(AgentRuntime::AGENT_VERIFICATION_NONCE_KEY);
+    long agentNonce = connectWant_.GetLongParam(AgentRuntime::AGENT_VERIFICATION_NONCE_KEY, 0);
     auto element = connectWant_.GetElement();
     Want::ClearWant(&connectWant_);
     connectWant_.SetElement(element);
@@ -315,6 +323,15 @@ void ConnectionRecord::ScheduleConnectAbilityDone()
     }
     if (connectorProxy != nullptr) {
         connectWant_.SetParam(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY, connectorProxy);
+    }
+    if (!agentId.empty()) {
+        connectWant_.SetParam(AgentRuntime::AGENTID_KEY, agentId);
+    }
+    if (hasAgentCardType) {
+        connectWant_.SetParam(AgentRuntime::AGENT_CARD_TYPE_KEY, agentCardType);
+    }
+    if (hasAgentNonce) {
+        connectWant_.SetParam(AgentRuntime::AGENT_VERIFICATION_NONCE_KEY, agentNonce);
     }
 
     CancelConnectTimeoutTask();

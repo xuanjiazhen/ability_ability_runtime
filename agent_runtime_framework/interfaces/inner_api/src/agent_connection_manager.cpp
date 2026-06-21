@@ -242,7 +242,7 @@ void *AgentConnectionManager::GetAgentExtProxyPtr(const AAFwk::Want &want)
 }
 
 bool AgentConnectionManager::MatchConnection(const std::string &agentId, const AAFwk::Want &connectReceiver,
-    const std::map<AgentConnectionInfo, std::vector<sptr<AbilityConnectCallback>>>::value_type &connection)
+    const AgentConnectionRecord &connection)
 {
     // 1. Match by agentId
     if (agentId != connection.first.agentId) {
@@ -281,14 +281,20 @@ ErrCode AgentConnectionManager::CreateConnection(const AAFwk::Want &want,
 
     {
         std::lock_guard<std::mutex> lock(connectionsLock_);
-        agentConnections_[connectionInfo] = { connectCallback };
+        agentConnections_.emplace_back(connectionInfo, std::vector<sptr<AbilityConnectCallback>> { connectCallback });
     }
 
     ErrCode ret = AgentManagerClient::GetInstance().ConnectAgentExtensionAbility(want, agentConnection);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "error:%{public}d", ret);
         std::lock_guard<std::mutex> lock(connectionsLock_);
-        agentConnections_.erase(connectionInfo);
+        auto iter = std::find_if(agentConnections_.begin(), agentConnections_.end(),
+            [&agentConnection](const AgentConnectionRecord &record) {
+                return record.first.agentConnection == agentConnection;
+            });
+        if (iter != agentConnections_.end()) {
+            agentConnections_.erase(iter);
+        }
     }
     return ret;
 }

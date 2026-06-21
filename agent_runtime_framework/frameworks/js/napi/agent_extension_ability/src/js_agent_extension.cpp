@@ -43,6 +43,14 @@ namespace AgentRuntime {
 namespace {
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
+
+void RemoveAgentWantParams(AAFwk::Want &want)
+{
+    want.RemoveParam(AGENTEXTENSIONHOSTPROXY_KEY);
+    want.RemoveParam(AGENTID_KEY);
+    want.RemoveParam(AGENT_CARD_TYPE_KEY);
+    want.RemoveParam(AGENT_VERIFICATION_NONCE_KEY);
+}
 }
 using namespace OHOS::AbilityRuntime;
 using namespace OHOS::AppExecFwk;
@@ -439,7 +447,7 @@ napi_value JsAgentExtension::CallObjectMethod(const char* name, napi_value const
 napi_value JsAgentExtension::WrapWant(napi_env env, const AAFwk::Want &want)
 {
     AAFwk::Want jsWant = want;
-    jsWant.RemoveParam(AGENTEXTENSIONHOSTPROXY_KEY);
+    RemoveAgentWantParams(jsWant);
     napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, jsWant);
     return napiWant;
 }

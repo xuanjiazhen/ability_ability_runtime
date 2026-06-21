@@ -53,6 +53,12 @@ public:
         const sptr<AAFwk::IAbilityConnection> &connection) override;
 
     virtual int32_t NotifyLowCodeAgentComplete(const std::string &agentId) override;
+
+    virtual int32_t VerifyAgentConnectRequest(const AAFwk::Want &want,
+        const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity) override;
+
+    virtual int32_t VerifyAgentDisconnectRequest(const AAFwk::Want &want,
+        const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity) override;
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS
