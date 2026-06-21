@@ -23,6 +23,8 @@ int32_t MyFlag::retConnectAgentExtensionAbility = 0;
 int32_t MyFlag::retDisconnectAgentExtensionAbility = 0;
 int32_t MyFlag::retConnectServiceExtensionAbility = 0;
 int32_t MyFlag::retDisconnectServiceExtensionAbility = 0;
+int32_t MyFlag::onAbilityConnectDoneCount = 0;
+int32_t MyFlag::onAbilityDisconnectDoneCount = 0;
 bool MyFlag::isOnAbilityConnectDoneCalled = false;
 bool MyFlag::isOnAbilityDisconnectDoneCalled = false;
 
