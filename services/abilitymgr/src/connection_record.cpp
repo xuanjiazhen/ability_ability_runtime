@@ -17,7 +17,9 @@
 
 #include "ability_manager_service.h"
 #include "ability_util.h"
+#include "agent_card.h"
 #include "agent_extension_connection_constants.h"
+#include "agent_receiver_proxy.h"
 #include "connection_state_manager.h"
 #include "freeze_util.h"
 #include "ui_service_extension_connection_constants.h"
@@ -107,6 +109,15 @@ int ConnectionRecord::DisconnectAbility()
     bool isPerConnectionType = (extAbilityType == AppExecFwk::ExtensionAbilityType::UI_SERVICE ||
         extAbilityType == AppExecFwk::ExtensionAbilityType::AGENT);
     size_t connectNums = targetService_->GetConnectRecordList().size();
+    if (extAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+        TAG_LOGI(AAFwkTag::SER_ROUTER,
+            "AGENT disconnect begin: recordId=%{public}d, state=%{public}d, connectNums=%{public}zu, "
+            "agentId=%{public}s, cardType=%{public}d, callbackNull=%{public}d",
+            GetRecordId(), static_cast<int32_t>(state_), connectNums,
+            connectWant_.GetStringParam(AgentRuntime::AGENTID_KEY).c_str(),
+            connectWant_.GetIntParam(AgentRuntime::AGENT_CARD_TYPE_KEY, -1),
+            GetAbilityConnectCallback() == nullptr ? 1 : 0);
+    }
     if (connectNums == 1 || isPerConnectionType) {
         ScheduleDisconnectTimeout();
         if (isPerConnectionType) {
@@ -176,6 +187,14 @@ void ConnectionRecord::CompleteConnect()
 void ConnectionRecord::CompleteConnectAndOnlyCallConnectDone()
 {
     if (GetConnectState() != ConnectionState::CONNECTED) {
+        if (targetService_ != nullptr &&
+            targetService_->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+            TAG_LOGI(AAFwkTag::SER_ROUTER,
+                "AGENT duplicate connect skipped callback: agentId=%{public}s, cardType=%{public}d, state=%{public}d",
+                connectWant_.GetStringParam(AgentRuntime::AGENTID_KEY).c_str(),
+                connectWant_.GetIntParam(AgentRuntime::AGENT_CARD_TYPE_KEY, -1),
+                static_cast<int32_t>(GetConnectState()));
+        }
         TAG_LOGI(AAFwkTag::ABILITYMGR, "Connect state is %{public}d, not connected state", GetConnectState());
         return;
     }
@@ -203,6 +222,24 @@ void ConnectionRecord::CompleteConnectAndOnlyCallConnectDone()
         });
     }
     TAG_LOGI(AAFwkTag::CONNECTION, "Complete connectState:%{public}d", state_);
+}
+
+void ConnectionRecord::QueueLowCodeAgentInvocation(const Want &want, const sptr<IAbilityConnection> &callback)
+{
+    if (!IsLowCodeAgentWant(want)) {
+        return;
+    }
+    if (GetConnectState() == ConnectionState::CONNECTED) {
+        CompleteLowCodeAgentInvocation(want, callback);
+        return;
+    }
+    if (GetConnectState() != ConnectionState::CONNECTING) {
+        TAG_LOGI(AAFwkTag::SER_ROUTER, "skip low-code invocation in state %{public}d",
+            static_cast<int32_t>(GetConnectState()));
+        return;
+    }
+    std::lock_guard lock(pendingLowCodeMutex_);
+    pendingLowCodeInvocations_.push_back({ want, callback });
 }
 
 int32_t ConnectionRecord::CallOnAbilityConnectDone(sptr<IAbilityConnection> callback,
@@ -253,10 +290,27 @@ void ConnectionRecord::CompleteDisconnect(int resultCode, bool isCallerDied, boo
     }
     CHECK_POINTER(targetService_);
     const AppExecFwk::AbilityInfo &abilityInfo = targetService_->GetAbilityInfo();
+    bool isAgent = abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT;
+    if (isAgent) {
+        TAG_LOGI(AAFwkTag::SER_ROUTER,
+            "AGENT complete disconnect: recordId=%{public}d, result=%{public}d, state=%{public}d, "
+            "callerDied=%{public}d, targetDied=%{public}d, agentId=%{public}s, cardType=%{public}d, "
+            "callbackNull=%{public}d",
+            GetRecordId(), resultCode, static_cast<int32_t>(state_), isCallerDied ? 1 : 0,
+            isTargetDied ? 1 : 0, connectWant_.GetStringParam(AgentRuntime::AGENTID_KEY).c_str(),
+            connectWant_.GetIntParam(AgentRuntime::AGENT_CARD_TYPE_KEY, -1),
+            GetAbilityConnectCallback() == nullptr ? 1 : 0);
+    }
     AppExecFwk::ElementName element(targetService_->GetWant().GetDeviceId(), abilityInfo.bundleName,
         abilityInfo.name, abilityInfo.moduleName);
     auto code = isTargetDied ? (resultCode - 1) : resultCode;
-    auto onDisconnectDoneTask = [connCallback = GetAbilityConnectCallback(), element, code]() {
+    auto onDisconnectDoneTask = [connCallback = GetAbilityConnectCallback(), element, code, isAgent,
+        recordId = GetRecordId()]() {
+        if (isAgent) {
+            TAG_LOGI(AAFwkTag::SER_ROUTER,
+                "AGENT disconnect callback task: recordId=%{public}d, callbackNull=%{public}d",
+                recordId, connCallback == nullptr ? 1 : 0);
+        }
         TAG_LOGD(AAFwkTag::CONNECTION, "OnAbilityDisconnectDone");
         if (!connCallback) {
             TAG_LOGD(AAFwkTag::CONNECTION, "null connCallback");
@@ -276,6 +330,16 @@ void ConnectionRecord::CompleteDisconnect(int resultCode, bool isCallerDied, boo
 
 void ConnectionRecord::ScheduleDisconnectAbilityDone()
 {
+    if (targetService_ != nullptr &&
+        targetService_->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+        TAG_LOGI(AAFwkTag::SER_ROUTER,
+            "AGENT record schedule disconnect done: recordId=%{public}d, state=%{public}d, "
+            "agentId=%{public}s, cardType=%{public}d, callbackNull=%{public}d",
+            GetRecordId(), static_cast<int32_t>(state_),
+            connectWant_.GetStringParam(AgentRuntime::AGENTID_KEY).c_str(),
+            connectWant_.GetIntParam(AgentRuntime::AGENT_CARD_TYPE_KEY, -1),
+            GetAbilityConnectCallback() == nullptr ? 1 : 0);
+    }
     if (state_ != ConnectionState::DISCONNECTING) {
         TAG_LOGE(AAFwkTag::CONNECTION, "failed, current state not disconnecting");
         return;
@@ -307,6 +371,14 @@ void ConnectionRecord::ScheduleConnectAbilityDone()
     if (connectWant_.HasParameter(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY)) {
         connectorProxy = connectWant_.GetRemoteObject(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY);
     }
+    std::string agentId;
+    if (connectWant_.HasParameter(AgentRuntime::AGENTID_KEY)) {
+        agentId = connectWant_.GetStringParam(AgentRuntime::AGENTID_KEY);
+    }
+    bool hasAgentCardType = connectWant_.HasParameter(AgentRuntime::AGENT_CARD_TYPE_KEY);
+    int32_t agentCardType = connectWant_.GetIntParam(AgentRuntime::AGENT_CARD_TYPE_KEY, 0);
+    bool hasAgentNonce = connectWant_.HasParameter(AgentRuntime::AGENT_VERIFICATION_NONCE_KEY);
+    long agentNonce = connectWant_.GetLongParam(AgentRuntime::AGENT_VERIFICATION_NONCE_KEY, 0);
     auto element = connectWant_.GetElement();
     Want::ClearWant(&connectWant_);
     connectWant_.SetElement(element);
@@ -316,10 +388,104 @@ void ConnectionRecord::ScheduleConnectAbilityDone()
     if (connectorProxy != nullptr) {
         connectWant_.SetParam(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY, connectorProxy);
     }
+    if (!agentId.empty()) {
+        connectWant_.SetParam(AgentRuntime::AGENTID_KEY, agentId);
+    }
+    if (hasAgentCardType) {
+        connectWant_.SetParam(AgentRuntime::AGENT_CARD_TYPE_KEY, agentCardType);
+    }
+    if (hasAgentNonce) {
+        connectWant_.SetParam(AgentRuntime::AGENT_VERIFICATION_NONCE_KEY, agentNonce);
+    }
 
     CancelConnectTimeoutTask();
+    if (targetService_ != nullptr) {
+        NotifyLowCodeAgentInvoked(targetService_->GetConnRemoteObject());
+    }
 
     CompleteConnect();
+    if (GetConnectState() == ConnectionState::CONNECTED) {
+        FlushPendingLowCodeAgentInvocations();
+    }
+}
+
+bool ConnectionRecord::IsLowCodeAgentConnect() const
+{
+    return IsLowCodeAgentWant(connectWant_);
+}
+
+bool ConnectionRecord::IsLowCodeAgentWant(const Want &want) const
+{
+    return targetService_ != nullptr &&
+        targetService_->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
+        want.GetIntParam(AgentRuntime::AGENT_CARD_TYPE_KEY, -1) ==
+            static_cast<int32_t>(AgentRuntime::AgentCardType::LOW_CODE);
+}
+
+void ConnectionRecord::NotifyLowCodeAgentInvoked(const sptr<IRemoteObject> &remoteObject)
+{
+    NotifyLowCodeAgentInvoked(remoteObject, connectWant_);
+}
+
+void ConnectionRecord::NotifyLowCodeAgentInvoked(const sptr<IRemoteObject> &remoteObject, const Want &want)
+{
+    if (!IsLowCodeAgentWant(want) || targetService_ == nullptr) {
+        return;
+    }
+    if (!targetService_->GetApplicationInfo().isSystemApp) {
+        TAG_LOGI(AAFwkTag::SER_ROUTER, "Skip low-code agent invoked for non-system target");
+        return;
+    }
+    std::string agentId = want.GetStringParam(AgentRuntime::AGENTID_KEY);
+    if (agentId.empty()) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER, "Skip low-code agent invoked without agent id");
+        return;
+    }
+    auto receiver = iface_cast<AgentRuntime::IAgentReceiver>(remoteObject);
+    if (receiver == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "agent receiver null");
+        return;
+    }
+    auto ret = receiver->AgentInvoked(agentId);
+    if (ret != ERR_OK) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER, "AgentInvoked failed: %{public}d", ret);
+    }
+}
+
+void ConnectionRecord::CompleteLowCodeAgentInvocation(const Want &want, const sptr<IAbilityConnection> &callback)
+{
+    CHECK_POINTER(targetService_);
+    const AppExecFwk::AbilityInfo &abilityInfo = targetService_->GetAbilityInfo();
+    AppExecFwk::ElementName element(targetService_->GetWant().GetDeviceId(), abilityInfo.bundleName,
+        abilityInfo.name, abilityInfo.moduleName);
+    auto remoteObject = targetService_->GetConnRemoteObject();
+    if (remoteObject == nullptr) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER, "low-code invocation remote is null");
+        return;
+    }
+    NotifyLowCodeAgentInvoked(remoteObject, want);
+    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
+    if (callback == nullptr || handler == nullptr) {
+        return;
+    }
+    handler->SubmitTask([callback, element, remoteObject] {
+        auto ret = ConnectionRecord::CallOnAbilityConnectDone(callback, element, remoteObject, ERR_OK);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "low-code connect callback failed");
+        }
+    });
+}
+
+void ConnectionRecord::FlushPendingLowCodeAgentInvocations()
+{
+    std::list<LowCodeAgentInvocation> invocations;
+    {
+        std::lock_guard lock(pendingLowCodeMutex_);
+        invocations.swap(pendingLowCodeInvocations_);
+    }
+    for (const auto &invocation : invocations) {
+        CompleteLowCodeAgentInvocation(invocation.want, invocation.callback);
+    }
 }
 
 void ConnectionRecord::CancelConnectTimeoutTask()
