@@ -53,6 +53,8 @@ public:
 
     int32_t DisconnectAgentExtensionAbility(const sptr<AAFwk::IAbilityConnection> &connection);
 
+    int32_t GetAgentCardTypeForConnect(AAFwk::Want &want, int32_t &cardType);
+
     /**
      * @brief Connects a service extension ability on behalf of the given caller token.
      */
@@ -69,6 +71,12 @@ public:
      * @brief Releases the active LOW_CODE agent marker once the caller reports completion.
      */
     int32_t NotifyLowCodeAgentComplete(const std::string &agentId);
+
+    int32_t VerifyAgentConnectRequest(const AAFwk::Want &want,
+        const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity);
+
+    int32_t VerifyAgentDisconnectRequest(const AAFwk::Want &want,
+        const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity);
 
 private:
     sptr<IAgentManager> GetAgentMgrProxy();
