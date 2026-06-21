@@ -22,7 +22,9 @@
 #include "ability_permission_util.h"
 #include "ability_resident_process_rdb.h"
 #include "ability_util.h"
+#include "agent_card.h"
 #include "agent_extension_connection_constants.h"
+#include "agent_manager_client.h"
 #include "app_exit_reason_data_manager.h"
 #include "appfreeze_manager.h"
 #include "assert_fault_callback_death_mgr.h"
@@ -48,6 +50,7 @@
 #include "ui_extension_wrapper.h"
 #include "ui_service_extension_connection_constants.h"
 #include "uri_utils.h"
+#include "utils/agent_caller_identity_util.h"
 #include "user_controller/user_controller.h"
 
 namespace OHOS {
@@ -76,6 +79,7 @@ const int COMMAND_TIMEOUT_MULTIPLE_NEW = 21;
 const int COMMAND_WINDOW_TIMEOUT_MULTIPLE = 5;
 #endif
 constexpr const int32_t LOAD_TIMEOUT_MAX = 30;
+
 const int32_t AUTO_DISCONNECT_INFINITY = -1;
 constexpr const char* FROZEN_WHITE_DIALOG = "com.hmos.cast";
 constexpr char BUNDLE_NAME_DIALOG[] = "com.ohos.amsdialog";
@@ -89,6 +93,13 @@ constexpr uint32_t PROCESS_MODE_RUN_WITH_MAIN_PROCESS =
     1 << static_cast<uint32_t>(AppExecFwk::ExtensionProcessMode::RUN_WITH_MAIN_PROCESS);
 
 const std::string XIAOYI_BUNDLE_NAME = "com.hmos.vassistant";
+
+bool ShouldRecreateAgentRecord(const AbilityRequest &abilityRequest,
+    const std::shared_ptr<BaseExtensionRecord> &targetService)
+{
+    return abilityRequest.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
+        targetService != nullptr && targetService->IsAbilityState(AbilityState::TERMINATING);
+}
 
 }
 
@@ -388,10 +399,36 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
     GetConnectRecordListFromMap(connect, connectRecordList);
     bool isCallbackConnected = !connectRecordList.empty();
     auto connectedRecord = GetAbilityConnectedRecordFromRecordList(targetService, connectRecordList);
+    if (targetService->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+        int32_t connectedState = connectedRecord == nullptr ? -1 :
+            static_cast<int32_t>(connectedRecord->GetConnectState());
+        TAG_LOGI(AAFwkTag::SER_ROUTER,
+            "AGENT connect record check: agentId=%{public}s, cardType=%{public}d, isLoadedAbility=%{public}d, "
+            "isCallbackConnected=%{public}d, hasConnectedRecord=%{public}d, connectedState=%{public}d",
+            abilityRequest.want.GetStringParam(AgentRuntime::AGENTID_KEY).c_str(),
+            abilityRequest.want.GetIntParam(AgentRuntime::AGENT_CARD_TYPE_KEY, -1), isLoadedAbility,
+            isCallbackConnected, connectedRecord != nullptr, connectedState);
+    }
     // 3. If this service ability and callback has been connected, There is no need to connect repeatedly
     if (isLoadedAbility && (isCallbackConnected) && (connectedRecord != nullptr)) {
-        TAG_LOGI(AAFwkTag::EXT, "service/callback connected");
-        connectedRecord->CompleteConnectAndOnlyCallConnectDone();
+        bool isLowCodeAgentConnect = connectedRecord->IsLowCodeAgentConnect() &&
+            abilityRequest.want.GetIntParam(AgentRuntime::AGENT_CARD_TYPE_KEY, -1) ==
+                static_cast<int32_t>(AgentRuntime::AgentCardType::LOW_CODE);
+        if (targetService->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+            TAG_LOGI(AAFwkTag::SER_ROUTER,
+                "AGENT duplicate branch: agentId=%{public}s, cardType=%{public}d, connectedState=%{public}d, "
+                "isLowCodeAgentConnect=%{public}d",
+                abilityRequest.want.GetStringParam(AgentRuntime::AGENTID_KEY).c_str(),
+                abilityRequest.want.GetIntParam(AgentRuntime::AGENT_CARD_TYPE_KEY, -1),
+                static_cast<int32_t>(connectedRecord->GetConnectState()), isLowCodeAgentConnect);
+        }
+        if (isLowCodeAgentConnect) {
+            TAG_LOGI(AAFwkTag::SER_ROUTER, "low-code service/callback connected");
+            connectedRecord->QueueLowCodeAgentInvocation(abilityRequest.want, connect);
+        } else {
+            TAG_LOGI(AAFwkTag::EXT, "service/callback connected");
+            connectedRecord->CompleteConnectAndOnlyCallConnectDone();
+        }
         return ERR_OK;
     }
 
@@ -524,7 +561,14 @@ std::shared_ptr<ConnectionRecord> AbilityConnectManager::GetAbilityConnectedReco
         if (targetService == nullptr || connectRecord == nullptr) {
             return false;
         }
-        return targetService == connectRecord->GetAbilityRecord();
+        if (targetService != connectRecord->GetAbilityRecord()) {
+            return false;
+        }
+        if (targetService->GetAbilityInfo().extensionAbilityType != AppExecFwk::ExtensionAbilityType::AGENT) {
+            return true;
+        }
+        auto state = connectRecord->GetConnectState();
+        return state != ConnectionState::DISCONNECTING && state != ConnectionState::DISCONNECTED;
     };
     auto connectRecord = std::find_if(connectRecordList.begin(), connectRecordList.end(), isMatch);
     if (connectRecord != connectRecordList.end()) {
@@ -564,7 +608,22 @@ int AbilityConnectManager::DisconnectAbilityLocked(const sptr<IAbilityConnection
             if (abilityRecord->GetAbilityInfo().type == AbilityType::EXTENSION) {
                 RemoveExtensionDelayDisconnectTask(connectRecord);
             }
-            if (connectRecord->GetDirectCallerTokenId() != IPCSkeleton::GetCallingTokenID() &&
+            AgentCallerIdentityScope agentCallerIdentityScope;
+            if (abilityRecord->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+                std::string callerIdentity;
+                result = IN_PROCESS_CALL(AgentRuntime::AgentManagerClient::GetInstance().VerifyAgentDisconnectRequest(
+                    connectRecord->GetConnectWant(), connect, callerIdentity));
+                if (result != ERR_OK) {
+                    TAG_LOGE(AAFwkTag::SER_ROUTER, "AGENT disconnect is not confirmed by AgentMgr: %{public}d",
+                        result);
+                    break;
+                }
+                result = agentCallerIdentityScope.ApplyIfNeeded(
+                    AppExecFwk::ExtensionAbilityType::AGENT, callerIdentity);
+                if (result != ERR_OK) {
+                    break;
+                }
+            } else if (connectRecord->GetDirectCallerTokenId() != IPCSkeleton::GetCallingTokenID() &&
                 static_cast<uint32_t>(IPCSkeleton::GetSelfTokenID() != IPCSkeleton::GetCallingTokenID())) {
                 TAG_LOGW(AAFwkTag::EXT, "inconsistent caller");
                 continue;
@@ -683,7 +742,6 @@ int AbilityConnectManager::DisconnectRecordNormal(ConnectListType &list,
         TAG_LOGE(AAFwkTag::EXT, "fail:%{public}d", result);
         return result;
     }
-
     if (connectRecord->GetConnectState() == ConnectionState::DISCONNECTED) {
         TAG_LOGW(AAFwkTag::EXT, "normal:%{public}d", connectRecord->GetRecordId());
         connectRecord->CompleteDisconnect(ERR_OK, callerDied);
@@ -954,6 +1012,12 @@ int AbilityConnectManager::ScheduleDisconnectAbilityDoneLocked(const sptr<IRemot
 
 int AbilityConnectManager::CheckAbilityStateForDisconnect(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
+    if (abilityRecord->GetAbilityInfo().type == AbilityType::EXTENSION &&
+        abilityRecord->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
+        abilityRecord->IsAbilityState(AbilityState::INACTIVE)) {
+        return ERR_OK;
+    }
+
     if (!abilityRecord->IsAbilityState(AbilityState::ACTIVE)) {
         TAG_LOGE(AAFwkTag::EXT, "ability not active, state: %{public}d",
             abilityRecord->GetAbilityState());
@@ -2511,7 +2575,9 @@ std::string AbilityConnectManager::GetServiceKey(const std::shared_ptr<BaseExten
     std::string serviceKey = service->GetURI();
     if (FRS_BUNDLE_NAME == service->GetAbilityInfo().bundleName) {
         serviceKey = serviceKey + std::to_string(service->GetIntParam(FRS_APP_INDEX, 0));
-    } else if (service->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+    } else if (service->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
+        service->GetWant().GetIntParam(AgentRuntime::AGENT_CARD_TYPE_KEY, -1) !=
+            static_cast<int32_t>(AgentRuntime::AgentCardType::LOW_CODE)) {
         serviceKey = serviceKey + service->GetStringParam(AgentRuntime::AGENTID_KEY);
     } else if (service->GetAbilityInfo().extensionAbilityType ==
                AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
@@ -2530,7 +2596,9 @@ std::string AbilityConnectManager::GetServiceKey(const AbilityRequest &abilityRe
     std::string serviceKey = element.GetURI();
     if (FRS_BUNDLE_NAME == abilityRequest.abilityInfo.bundleName) {
         serviceKey = serviceKey + std::to_string(abilityRequest.want.GetIntParam(FRS_APP_INDEX, 0));
-    } else if (abilityRequest.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+    } else if (abilityRequest.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
+        abilityRequest.want.GetIntParam(AgentRuntime::AGENT_CARD_TYPE_KEY, -1) !=
+            static_cast<int32_t>(AgentRuntime::AgentCardType::LOW_CODE)) {
         serviceKey = serviceKey + abilityRequest.want.GetStringParam(AgentRuntime::AGENTID_KEY);
     } else if (abilityRequest.abilityInfo.extensionAbilityType ==
                AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
@@ -3277,6 +3345,14 @@ void AbilityConnectManager::GetOrCreateServiceRecord(const AbilityRequest &abili
         if (targetService != nullptr) {
             AddToServiceMap(serviceKey, targetService);
         }
+    }
+    if (ShouldRecreateAgentRecord(abilityRequest, targetService)) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER,
+            "Recreate AGENT record instead of reusing terminating record: %{public}s/%{public}s",
+            element.GetBundleName().c_str(), element.GetAbilityName().c_str());
+        RemoveServiceFromMapSafe(serviceKey);
+        AbilityCacheManager::GetInstance().Remove(targetService);
+        targetService = nullptr;
     }
     if (noReuse && targetService) {
         if (IsSpecialAbility(abilityRequest.abilityInfo)) {
