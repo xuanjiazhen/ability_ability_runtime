@@ -15,8 +15,20 @@
 
 #include "utils/agent_ability_util.h"
 
+#include "ability_manager_errors.h"
+#include "ability_util.h"
+#include "agent_extension_connection_constants.h"
+#include "hilog_tag_wrapper.h"
+#include "hilog_wrapper.h"
+#include "in_process_call_wrapper.h"
+#include "long_wrapper.h"
+#include "permission_verification.h"
+
 namespace OHOS {
 namespace AAFwk {
+namespace {
+constexpr const char* FOUNDATION_PROCESS_NAME = "foundation";
+}
 
 bool AgentAbilityUtil::IsAgentExtensionType(AppExecFwk::ExtensionAbilityType extensionType)
 {
@@ -45,6 +57,106 @@ bool AgentAbilityUtil::HasAtomicServiceAgentExtensionInfo(
 {
     for (const auto &extensionInfo : extensionInfos) {
         if (IsAtomicServiceAgentExtensionInfo(extensionInfo)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool AgentAbilityUtil::HasAgentOnlyParams(const Want &want)
+{
+    return want.HasParameter(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY) ||
+        want.HasParameter(AgentRuntime::AGENTID_KEY) ||
+        want.HasParameter(AgentRuntime::AGENT_CARD_TYPE_KEY) ||
+        want.HasParameter(AgentRuntime::AGENT_VERIFICATION_NONCE_KEY);
+}
+
+void AgentAbilityUtil::SetAgentVerificationNonceParam(Want &want, int64_t nonce)
+{
+    WantParams params = want.GetParams();
+    params.SetParam(AgentRuntime::AGENT_VERIFICATION_NONCE_KEY, Long::Box64(nonce));
+    want.SetParams(params);
+}
+
+int64_t AgentAbilityUtil::GetAgentVerificationNonceParam(const Want &want)
+{
+    auto value = want.GetParams().GetParam(AgentRuntime::AGENT_VERIFICATION_NONCE_KEY);
+    auto longValue = ILong::Query(value);
+    if (longValue == nullptr) {
+        return 0;
+    }
+    return Long::Unbox64(longValue);
+}
+
+int32_t AgentAbilityUtil::CheckAgentConnectEntry(const Want &want, AppExecFwk::ExtensionAbilityType extensionType)
+{
+    if (IsAgentExtensionType(extensionType)) {
+        bool isFoundationCall =
+            PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS_NAME);
+        if (!isFoundationCall) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "AGENT connect only accepts foundation process callers");
+            return CHECK_PERMISSION_FAILED;
+        }
+        if (want.GetStringParam(AgentRuntime::AGENTID_KEY).empty() ||
+            !want.HasParameter(AgentRuntime::AGENT_CARD_TYPE_KEY) ||
+            GetAgentVerificationNonceParam(want) <= 0) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "invalid AGENT connect request");
+            return ERR_INVALID_VALUE;
+        }
+        if (want.GetRemoteObject(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY) == nullptr) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "invalid AGENT host proxy");
+            return ERR_INVALID_VALUE;
+        }
+        return ERR_OK;
+    }
+
+    if (HasAgentOnlyParams(want)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "non-AGENT lane carries AGENT params");
+        return ERR_WRONG_INTERFACE_CALL;
+    }
+    return ERR_OK;
+}
+
+int32_t AgentAbilityUtil::CheckConnectAgentResolvedTarget(
+    AppExecFwk::ExtensionAbilityType requestType, const AppExecFwk::AbilityInfo &abilityInfo)
+{
+    bool targetIsAgent = IsAgentExtensionAbilityInfo(abilityInfo);
+    if (IsAgentExtensionType(requestType)) {
+        if (!targetIsAgent) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "AGENT lane resolved non-AGENT target");
+            return ERR_WRONG_INTERFACE_CALL;
+        }
+        return ERR_OK;
+    }
+
+    if (targetIsAgent) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "generic connect lane resolved AGENT target");
+        return ERR_WRONG_INTERFACE_CALL;
+    }
+    return ERR_OK;
+}
+
+int32_t AgentAbilityUtil::RejectAgentResolvedTarget(const AppExecFwk::AbilityInfo &abilityInfo,
+    const char *entryName)
+{
+    if (!IsAgentExtensionAbilityInfo(abilityInfo)) {
+        return ERR_OK;
+    }
+    TAG_LOGE(AAFwkTag::SER_ROUTER, "%{public}s cannot create AGENT target", entryName);
+    return ERR_WRONG_INTERFACE_CALL;
+}
+
+bool AgentAbilityUtil::WantResolvesToAgentExtension(const Want &want, int32_t userId)
+{
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bundleMgrHelper, false);
+    std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
+    if (!IN_PROCESS_CALL(bundleMgrHelper->QueryExtensionAbilityInfos(
+        want, AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, userId, extensionInfos))) {
+        return false;
+    }
+    for (const auto &extensionInfo : extensionInfos) {
+        if (IsAgentExtensionInfo(extensionInfo)) {
             return true;
         }
     }
