@@ -28,11 +28,21 @@ int MyFlag::retUpdateAgentCard = 0;
 int MyFlag::retDeleteAgentCard = 0;
 int MyFlag::retConnectAgentExtensionAbility = 0;
 int MyFlag::retDisconnectAgentExtensionAbility = 0;
+int MyFlag::retGetAgentCardTypeForConnect = 0;
 int MyFlag::retConnectServiceExtensionAbility = 0;
 int MyFlag::retDisconnectServiceExtensionAbility = 0;
 int MyFlag::retNotifyLowCodeAgentComplete = 0;
+int MyFlag::retVerifyAgentConnectRequest = 0;
+int MyFlag::retVerifyAgentDisconnectRequest = 0;
 AgentCard MyFlag::lastRegisterCard;
 AgentCard MyFlag::lastUpdateCard;
+AAFwk::Want MyFlag::lastVerifyAgentConnectWant;
+AAFwk::Want MyFlag::lastVerifyAgentDisconnectWant;
+AAFwk::Want MyFlag::lastGetAgentCardTypeWant;
+sptr<AAFwk::IAbilityConnection> MyFlag::lastVerifyAgentConnectConnection = nullptr;
+sptr<AAFwk::IAbilityConnection> MyFlag::lastVerifyAgentDisconnectConnection = nullptr;
+std::string MyFlag::verifyCallerIdentity;
+int MyFlag::resolvedAgentCardType = 0;
 
 MockAgentManagerService::MockAgentManagerService()
 {}
@@ -89,6 +99,13 @@ int32_t MockAgentManagerService::DisconnectAgentExtensionAbility(const sptr<AAFw
     return MyFlag::retDisconnectAgentExtensionAbility;
 }
 
+int32_t MockAgentManagerService::GetAgentCardTypeForConnect(const AAFwk::Want &want, int32_t &cardType)
+{
+    MyFlag::lastGetAgentCardTypeWant = want;
+    cardType = MyFlag::resolvedAgentCardType;
+    return MyFlag::retGetAgentCardTypeForConnect;
+}
+
 int32_t MockAgentManagerService::ConnectServiceExtensionAbility(const sptr<IRemoteObject> &callerToken,
     const AAFwk::Want &want, const sptr<AAFwk::IAbilityConnection> &connection)
 {
@@ -106,6 +123,24 @@ int32_t MockAgentManagerService::DisconnectServiceExtensionAbility(const sptr<IR
 int32_t MockAgentManagerService::NotifyLowCodeAgentComplete(const std::string &agentId)
 {
     return MyFlag::retNotifyLowCodeAgentComplete;
+}
+
+int32_t MockAgentManagerService::VerifyAgentConnectRequest(const AAFwk::Want &want,
+    const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity)
+{
+    MyFlag::lastVerifyAgentConnectWant = want;
+    MyFlag::lastVerifyAgentConnectConnection = connection;
+    callerIdentity = MyFlag::verifyCallerIdentity;
+    return MyFlag::retVerifyAgentConnectRequest;
+}
+
+int32_t MockAgentManagerService::VerifyAgentDisconnectRequest(const AAFwk::Want &want,
+    const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity)
+{
+    MyFlag::lastVerifyAgentDisconnectWant = want;
+    MyFlag::lastVerifyAgentDisconnectConnection = connection;
+    callerIdentity = MyFlag::verifyCallerIdentity;
+    return MyFlag::retVerifyAgentDisconnectRequest;
 }
 }  // namespace AgentRuntime
 }  // namespace OHOS
