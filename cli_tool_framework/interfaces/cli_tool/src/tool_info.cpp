@@ -52,7 +52,8 @@ bool ToolInfo::Marshalling(Parcel &parcel) const
            parcel.WriteString(eventSchemas) &&
            parcel.WriteStringVector(eventTypes) &&
            parcel.WriteBool(hasSubCommand) &&
-           parcel.WriteString(subcommandsJson);
+           parcel.WriteString(subcommandsJson) &&
+           parcel.WriteBool(isLockScreenExecEnabled);
 }
 
 ToolInfo *ToolInfo::Unmarshalling(Parcel &parcel)
@@ -73,7 +74,8 @@ ToolInfo *ToolInfo::Unmarshalling(Parcel &parcel)
         !parcel.ReadString(tool->eventSchemas) ||
         !parcel.ReadStringVector(&tool->eventTypes) ||
         !parcel.ReadBool(tool->hasSubCommand) ||
-        !parcel.ReadString(subcommandsJson)) {
+        !parcel.ReadString(subcommandsJson) ||
+        !parcel.ReadBool(tool->isLockScreenExecEnabled)) {
         delete tool;
         return nullptr;
     }
@@ -299,6 +301,13 @@ bool ToolInfo::ParseFromJson(const nlohmann::json &json, ToolInfo &tool)
         }
         tool.hasSubCommand = json["hasSubCommand"];
     }
+    if (json.contains("isLockScreenExecEnabled")) {
+        if (!json["isLockScreenExecEnabled"].is_boolean()) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "ParseFromJson failed: isLockScreenExecEnabled is not a boolean");
+            return false;
+        }
+        tool.isLockScreenExecEnabled = json["isLockScreenExecEnabled"];
+    }
     if (tool.hasSubCommand) {
         if (!json.contains("subcommands") || !json["subcommands"].is_object() || json["subcommands"].empty()) {
             TAG_LOGE(AAFwkTag::CLI_TOOL, "ParseFromJson failed: subcommands is required when hasSubCommand is true");
@@ -353,6 +362,7 @@ nlohmann::json ToolInfo::ParseToJson() const
     }
     j["eventTypes"] = eventTypes;
     j["hasSubCommand"] = hasSubCommand;
+    j["isLockScreenExecEnabled"] = isLockScreenExecEnabled;
     if (!subcommands.empty()) {
         nlohmann::json subcommandsJson;
         for (const auto &pair : subcommands) {
