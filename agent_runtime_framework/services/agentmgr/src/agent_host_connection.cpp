@@ -15,11 +15,15 @@
 
 #include "agent_host_connection.h"
 
+#include <algorithm>
+
 #include "agent_manager_service.h"
 
 namespace OHOS {
 namespace AgentRuntime {
-AgentHostConnection::AgentHostConnection(const AgentHostKey &key) : key_(key)
+AgentHostConnection::AgentHostConnection(
+    const AgentHostKey &key, const sptr<IRemoteObject> &callerRemote, const std::string &agentId)
+    : key_(key), callerRemote_(callerRemote), agentId_(agentId)
 {}
 
 void AgentHostConnection::OnAbilityConnectDone(const AppExecFwk::ElementName &element,
@@ -29,7 +33,8 @@ void AgentHostConnection::OnAbilityConnectDone(const AppExecFwk::ElementName &el
     if (service == nullptr) {
         return;
     }
-    service->HandleAgentHostConnectDone(key_, element, remoteObject, resultCode);
+    service->HandleAgentHostConnectDone(key_, callerRemote_, TakePendingConnectAgent(), element, remoteObject,
+        resultCode);
 }
 
 void AgentHostConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
@@ -38,7 +43,59 @@ void AgentHostConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName 
     if (service == nullptr) {
         return;
     }
-    service->HandleAgentHostDisconnectDone(key_, element, resultCode);
+    service->HandleAgentHostDisconnectDone(key_, callerRemote_, TakePendingDisconnectAgents(), element, resultCode);
+}
+
+void AgentHostConnection::AddPendingConnectAgent(const std::string &agentId)
+{
+    if (agentId.empty()) {
+        return;
+    }
+    std::lock_guard lock(pendingMutex_);
+    pendingConnectAgentIds_.push_back(agentId);
+}
+
+void AgentHostConnection::RemovePendingConnectAgent(const std::string &agentId)
+{
+    std::lock_guard lock(pendingMutex_);
+    auto iter = std::find(pendingConnectAgentIds_.begin(), pendingConnectAgentIds_.end(), agentId);
+    if (iter != pendingConnectAgentIds_.end()) {
+        pendingConnectAgentIds_.erase(iter);
+    }
+}
+
+void AgentHostConnection::SetPendingDisconnectAgents(const std::set<std::string> &agentIds)
+{
+    std::lock_guard lock(pendingMutex_);
+    pendingDisconnectAgentIds_ = agentIds;
+}
+
+void AgentHostConnection::ClearPendingDisconnectAgents()
+{
+    std::lock_guard lock(pendingMutex_);
+    pendingDisconnectAgentIds_.clear();
+}
+
+std::string AgentHostConnection::TakePendingConnectAgent()
+{
+    std::lock_guard lock(pendingMutex_);
+    if (pendingConnectAgentIds_.empty()) {
+        return agentId_;
+    }
+    auto agentId = pendingConnectAgentIds_.front();
+    pendingConnectAgentIds_.pop_front();
+    return agentId;
+}
+
+std::set<std::string> AgentHostConnection::TakePendingDisconnectAgents()
+{
+    std::lock_guard lock(pendingMutex_);
+    if (pendingDisconnectAgentIds_.empty() && !agentId_.empty()) {
+        return { agentId_ };
+    }
+    std::set<std::string> agentIds;
+    agentIds.swap(pendingDisconnectAgentIds_);
+    return agentIds;
 }
 }  // namespace AgentRuntime
 }  // namespace OHOS
