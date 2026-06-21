@@ -16,10 +16,13 @@
 #ifndef MOCK_AGENT_RUNTIME_MY_FLAG_H
 #define MOCK_AGENT_RUNTIME_MY_FLAG_H
 
+#include <string>
 #include <vector>
 
 #include "agent_card.h"
+#include "iability_connection.h"
 #include "iremote_object.h"
+#include "want.h"
 
 namespace OHOS {
 namespace AgentRuntime {
@@ -35,12 +38,23 @@ public:
     static int retToAgentCardVec;
     static int retConnectAgentExtensionAbility;
     static int retDisconnectAgentExtensionAbility;
+    static int retGetAgentCardTypeForConnect;
     static int retConnectServiceExtensionAbility;
     static int retDisconnectServiceExtensionAbility;
     static int retNotifyLowCodeAgentComplete;
+    static int retVerifyAgentConnectRequest;
+    static int retVerifyAgentDisconnectRequest;
     static std::vector<AgentCard> convertedCards;
     static AgentCard lastRegisterCard;
     static AgentCard lastUpdateCard;
+    static AAFwk::Want lastVerifyAgentConnectWant;
+    static AAFwk::Want lastVerifyAgentDisconnectWant;
+    static AAFwk::Want lastGetAgentCardTypeWant;
+    static sptr<AAFwk::IAbilityConnection> lastVerifyAgentConnectConnection;
+    static sptr<AAFwk::IAbilityConnection> lastVerifyAgentDisconnectConnection;
+    static std::string verifyCallerIdentity;
+    static int resolvedAgentCardType;
+    static long resolvedPreflightNonce;
     static bool nullSystemAbility;
     static sptr<IRemoteObject> agentMgr;
 };
