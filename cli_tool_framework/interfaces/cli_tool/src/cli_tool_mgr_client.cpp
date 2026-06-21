@@ -463,5 +463,20 @@ ErrCode CliToolMGRClient::SendMessage(const std::string &sessionId, const std::s
     }
     return ret;
 }
+
+ErrCode CliToolMGRClient::ExecAbc(const std::string &abcPath, const std::vector<std::string> &args, const std::string &bundleName)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecAbc called: abcPath=%{public}s, args=%{public}zu, bundleName=%{public}s",
+             abcPath.c_str(), args.size(), bundleName.c_str());
+
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+
+    return proxy->ExecAbc(abcPath, args, bundleName);
+}
 } // namespace CliTool
 } // namespace OHOS

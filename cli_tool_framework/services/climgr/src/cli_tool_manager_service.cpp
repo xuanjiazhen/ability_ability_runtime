@@ -19,6 +19,7 @@
 
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
+#include "arkts_executor.h"
 #include "app_mgr_client.h"
 #include "ccm_util.h"
 #include "cli_error_code.h"
@@ -1410,6 +1411,28 @@ int32_t CliToolManagerService::GetCallerPidCount()
 {
     std::lock_guard<ffrt::mutex> guard(callerPidsMutex_);
     return static_cast<int32_t>(callerPids.size());
+}
+
+int32_t CliToolManagerService::ExecAbc(const std::string &abcPath, const std::vector<std::string> &args,
+    const std::string &bundleName)
+{
+    InterfaceCallCounter counter(interfaceCalledCount_);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecAbc called: abcPath=%{public}s, args=%{public}zu, bundleName=%{public}s",
+             abcPath.c_str(), args.size(), bundleName.c_str());
+
+    // Validate abc path
+    if (abcPath.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "abcPath is empty");
+        return ERR_INVALID_PARAM;
+    }
+
+    if (abcPath[0] != '/') {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "abcPath must be absolute path");
+        return ERR_INVALID_PATH;
+    }
+
+    // Execute abc file
+    return ArktsExecutor::ExecuteAbc(abcPath, args, bundleName);
 }
 } // namespace CliTool
 } // namespace OHOS
