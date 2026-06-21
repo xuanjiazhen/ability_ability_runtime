@@ -28,6 +28,9 @@
 #include "ability_connect_callback_stub.h"
 #include "ability_scheduler.h"
 #include "ability_state.h"
+#include "agent_card.h"
+#include "agent_extension_connection_constants.h"
+#include "agent_receiver_stub.h"
 #include "iremote_object.h"
 
 using namespace testing::ext;
@@ -101,6 +104,27 @@ public:
 
     MOCK_METHOD3(OnAbilityConnectDone, void(const ElementName&, const OHOS::sptr<IRemoteObject>&, int));
     MOCK_METHOD2(OnAbilityDisconnectDone, void(const ElementName&, int));
+};
+
+class TestAgentReceiver : public AgentRuntime::AgentReceiverStub {
+public:
+    int32_t SendData(const sptr<IRemoteObject> &, const std::string &) override
+    {
+        return ERR_OK;
+    }
+
+    int32_t Authorize(const sptr<IRemoteObject> &, const std::string &) override
+    {
+        return ERR_OK;
+    }
+
+    int32_t AgentInvoked(const std::string &agentId) override
+    {
+        invokedAgentIds.emplace_back(agentId);
+        return ERR_OK;
+    }
+
+    std::vector<std::string> invokedAgentIds;
 };
 
 class ConnectionRecordTest : public testing::TestWithParam<OHOS::AAFwk::ConnectionState> {
@@ -767,6 +791,63 @@ HWTEST_F(ConnectionRecordTest, ConnectionRecord_ScheduleConnectAbilityDone_008, 
     record->SetConnectWant(want);
     record->ScheduleConnectAbilityDone();
     EXPECT_EQ(record->GetConnectState(), ConnectionState::CONNECTED);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: ScheduleConnectAbilityDone
+ * SubFunction: NA
+ * FunctionPoints: ScheduleConnectAbilityDone
+ * EnvConditions:NA
+ * CaseDescription: Verify low-code system AgentExt invocation is dispatched by AMS connection record
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_ScheduleConnectAbilityDone_009, TestSize.Level1)
+{
+    service_->abilityInfo_.type = AbilityType::EXTENSION;
+    service_->abilityInfo_.extensionAbilityType = ExtensionAbilityType::AGENT;
+    service_->abilityInfo_.applicationInfo.isSystemApp = true;
+    auto receiver = sptr<TestAgentReceiver>::MakeSptr();
+    service_->SetConnRemoteObject(receiver->AsObject());
+    auto record = std::make_shared<ConnectionRecord>(service_->GetToken(), service_, callback_, nullptr);
+    record->SetConnectState(ConnectionState::CONNECTING);
+    Want want;
+    want.SetParam(AgentRuntime::AGENTID_KEY, std::string("agentA"));
+    want.SetParam(AgentRuntime::AGENT_CARD_TYPE_KEY, static_cast<int32_t>(AgentRuntime::AgentCardType::LOW_CODE));
+    record->SetConnectWant(want);
+
+    record->ScheduleConnectAbilityDone();
+
+    EXPECT_EQ(record->GetConnectState(), ConnectionState::CONNECTED);
+    ASSERT_EQ(receiver->invokedAgentIds.size(), 1);
+    EXPECT_EQ(receiver->invokedAgentIds[0], "agentA");
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: ScheduleConnectAbilityDone
+ * SubFunction: NA
+ * FunctionPoints: ScheduleConnectAbilityDone
+ * EnvConditions:NA
+ * CaseDescription: Verify low-code non-system AgentExt invocation is not dispatched
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_ScheduleConnectAbilityDone_010, TestSize.Level1)
+{
+    service_->abilityInfo_.type = AbilityType::EXTENSION;
+    service_->abilityInfo_.extensionAbilityType = ExtensionAbilityType::AGENT;
+    service_->abilityInfo_.applicationInfo.isSystemApp = false;
+    auto receiver = sptr<TestAgentReceiver>::MakeSptr();
+    service_->SetConnRemoteObject(receiver->AsObject());
+    auto record = std::make_shared<ConnectionRecord>(service_->GetToken(), service_, callback_, nullptr);
+    record->SetConnectState(ConnectionState::CONNECTING);
+    Want want;
+    want.SetParam(AgentRuntime::AGENTID_KEY, std::string("agentA"));
+    want.SetParam(AgentRuntime::AGENT_CARD_TYPE_KEY, static_cast<int32_t>(AgentRuntime::AgentCardType::LOW_CODE));
+    record->SetConnectWant(want);
+
+    record->ScheduleConnectAbilityDone();
+
+    EXPECT_EQ(record->GetConnectState(), ConnectionState::CONNECTED);
+    EXPECT_TRUE(receiver->invokedAgentIds.empty());
 }
 
 /*
