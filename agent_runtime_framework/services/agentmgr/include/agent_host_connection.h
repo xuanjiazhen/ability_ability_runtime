@@ -28,22 +28,35 @@ namespace AgentRuntime {
  */
 struct AgentHostKey {
     int32_t userId = 0;
+    int32_t appIndex = 0;
     std::string bundleName;
     std::string moduleName;
     std::string abilityName;
 
-    bool operator<(const AgentHostKey &that) const
+    bool operator<(const AgentHostKey &other) const
     {
-        if (userId != that.userId) {
-            return userId < that.userId;
+        if (userId != other.userId) {
+            return userId < other.userId;
         }
-        if (bundleName != that.bundleName) {
-            return bundleName < that.bundleName;
+        if (appIndex != other.appIndex) {
+            return appIndex < other.appIndex;
         }
-        if (moduleName != that.moduleName) {
-            return moduleName < that.moduleName;
+        if (bundleName != other.bundleName) {
+            return bundleName < other.bundleName;
         }
-        return abilityName < that.abilityName;
+        if (moduleName != other.moduleName) {
+            return moduleName < other.moduleName;
+        }
+        return abilityName < other.abilityName;
+    }
+};
+
+struct AgentHostKeyEqual {
+    bool operator()(const AgentHostKey &left, const AgentHostKey &right) const
+    {
+        return left.userId == right.userId && left.appIndex == right.appIndex &&
+            left.bundleName == right.bundleName && left.moduleName == right.moduleName &&
+            left.abilityName == right.abilityName;
     }
 };
 
@@ -53,7 +66,8 @@ struct AgentHostKey {
  */
 class AgentHostConnection : public AAFwk::AbilityConnectionStub {
 public:
-    explicit AgentHostConnection(const AgentHostKey &key);
+    AgentHostConnection(const AgentHostKey &key, const sptr<IRemoteObject> &callerRemote,
+        const std::string &agentId);
     ~AgentHostConnection() override = default;
 
     void OnAbilityConnectDone(
@@ -62,6 +76,8 @@ public:
 
 private:
     AgentHostKey key_;
+    sptr<IRemoteObject> callerRemote_;
+    std::string agentId_;
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS

@@ -17,7 +17,9 @@
 
 #include "ability_manager_service.h"
 #include "ability_util.h"
+#include "agent_card.h"
 #include "agent_extension_connection_constants.h"
+#include "agent_receiver_proxy.h"
 #include "connection_state_manager.h"
 #include "freeze_util.h"
 #include "ui_service_extension_connection_constants.h"
@@ -307,6 +309,14 @@ void ConnectionRecord::ScheduleConnectAbilityDone()
     if (connectWant_.HasParameter(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY)) {
         connectorProxy = connectWant_.GetRemoteObject(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY);
     }
+    std::string agentId;
+    if (connectWant_.HasParameter(AgentRuntime::AGENTID_KEY)) {
+        agentId = connectWant_.GetStringParam(AgentRuntime::AGENTID_KEY);
+    }
+    bool hasAgentCardType = connectWant_.HasParameter(AgentRuntime::AGENT_CARD_TYPE_KEY);
+    int32_t agentCardType = connectWant_.GetIntParam(AgentRuntime::AGENT_CARD_TYPE_KEY, 0);
+    bool hasAgentNonce = connectWant_.HasParameter(AgentRuntime::AGENT_VERIFICATION_NONCE_KEY);
+    long agentNonce = connectWant_.GetLongParam(AgentRuntime::AGENT_VERIFICATION_NONCE_KEY, 0);
     auto element = connectWant_.GetElement();
     Want::ClearWant(&connectWant_);
     connectWant_.SetElement(element);
@@ -316,10 +326,57 @@ void ConnectionRecord::ScheduleConnectAbilityDone()
     if (connectorProxy != nullptr) {
         connectWant_.SetParam(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY, connectorProxy);
     }
+    if (!agentId.empty()) {
+        connectWant_.SetParam(AgentRuntime::AGENTID_KEY, agentId);
+    }
+    if (hasAgentCardType) {
+        connectWant_.SetParam(AgentRuntime::AGENT_CARD_TYPE_KEY, agentCardType);
+    }
+    if (hasAgentNonce) {
+        connectWant_.SetParam(AgentRuntime::AGENT_VERIFICATION_NONCE_KEY, agentNonce);
+    }
 
     CancelConnectTimeoutTask();
+    if (targetService_ != nullptr) {
+        NotifyLowCodeAgentInvoked(targetService_->GetConnRemoteObject());
+    }
 
     CompleteConnect();
+}
+
+bool ConnectionRecord::IsLowCodeAgentConnect() const
+{
+    if (targetService_ == nullptr ||
+        targetService_->GetAbilityInfo().extensionAbilityType != AppExecFwk::ExtensionAbilityType::AGENT) {
+        return false;
+    }
+    return connectWant_.GetIntParam(AgentRuntime::AGENT_CARD_TYPE_KEY, -1) ==
+        static_cast<int32_t>(AgentRuntime::AgentCardType::LOW_CODE);
+}
+
+void ConnectionRecord::NotifyLowCodeAgentInvoked(const sptr<IRemoteObject> &remoteObject)
+{
+    if (!IsLowCodeAgentConnect() || targetService_ == nullptr) {
+        return;
+    }
+    if (!targetService_->GetApplicationInfo().isSystemApp) {
+        TAG_LOGI(AAFwkTag::SER_ROUTER, "Skip low-code agent invoked for non-system target");
+        return;
+    }
+    std::string agentId = connectWant_.GetStringParam(AgentRuntime::AGENTID_KEY);
+    if (agentId.empty()) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER, "Skip low-code agent invoked without agent id");
+        return;
+    }
+    auto receiver = iface_cast<AgentRuntime::IAgentReceiver>(remoteObject);
+    if (receiver == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "agent receiver null");
+        return;
+    }
+    auto ret = receiver->AgentInvoked(agentId);
+    if (ret != ERR_OK) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER, "AgentInvoked failed: %{public}d", ret);
+    }
 }
 
 void ConnectionRecord::CancelConnectTimeoutTask()
