@@ -70,6 +70,14 @@ public:
      */
     int32_t NotifyLowCodeAgentComplete(const std::string &agentId);
 
+    int32_t GetAgentCardTypeForConnect(AAFwk::Want &want, int32_t &cardType);
+
+    int32_t VerifyAgentConnectRequest(const AAFwk::Want &want,
+        const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity);
+
+    int32_t VerifyAgentDisconnectRequest(const AAFwk::Want &want,
+        const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity);
+
 private:
     sptr<IAgentManager> GetAgentMgrProxy();
     void ClearProxy();
