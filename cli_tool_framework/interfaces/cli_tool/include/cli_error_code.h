@@ -110,6 +110,11 @@ enum {
      * Result (35700018): KVStore operation error.
      */
     ERR_KVSTORE_ERROR = 35700018,
+
+    /*
+     * Result (35700019): Invalid path.
+     */
+    ERR_INVALID_PATH = 35700019,
 };
 
 } // namespace CliTool

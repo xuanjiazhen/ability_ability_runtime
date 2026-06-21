@@ -169,6 +169,13 @@ public:
         std::vector<CommandPermission> &cmdPermissions);
 
     /**
+     * @brief Execute an ArkTS abc file
+     * @param param Execution parameters
+     * @return ERR_OK on success, error code otherwise
+     */
+    ErrCode ExecAbc(const AbcExecuteParam &param);
+
+    /**
      * @brief On load system ability success.
      * @param remoteObject The remote object of system ability.
      */

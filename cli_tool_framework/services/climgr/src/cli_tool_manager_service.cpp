@@ -19,6 +19,7 @@
 
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
+#include "arkts_executor.h"
 #include "app_mgr_client.h"
 #include "ccm_util.h"
 #include "cli_error_code.h"
@@ -1410,6 +1411,22 @@ int32_t CliToolManagerService::GetCallerPidCount()
 {
     std::lock_guard<ffrt::mutex> guard(callerPidsMutex_);
     return static_cast<int32_t>(callerPids.size());
+}
+
+int32_t CliToolManagerService::ExecAbc(const AbcExecuteParam &param)
+{
+    InterfaceCallCounter counter(interfaceCalledCount_);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecAbc called: abcPath=%{public}s, func=%{public}s, args=%{public}zu",
+             param.abcPath.c_str(), param.functionName.c_str(), param.args.size());
+
+    // Validate parameters
+    if (!param.IsValid()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Invalid parameters");
+        return ERR_INVALID_PARAM;
+    }
+
+    // Delegate to ArktsExecutor
+    return ArktsExecutor::ExecuteAbc(param);
 }
 } // namespace CliTool
 } // namespace OHOS

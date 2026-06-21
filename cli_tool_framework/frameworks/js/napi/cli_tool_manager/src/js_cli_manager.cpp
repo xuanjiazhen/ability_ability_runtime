@@ -17,6 +17,7 @@
 
 #include <string>
 
+#include "abc_execute_param.h"
 #include "cli_error_code.h"
 #include "cli_manager_error_utils.h"
 #include "cli_session_info.h"
@@ -514,6 +515,165 @@ napi_value JSCliManager::OnQueryTools(napi_env env, size_t argc, napi_value *arg
     return handleEscape.Escape(asyncResult);
 }
 
+napi_value JSCliManager::ExecAbc(napi_env env, napi_callback_info info)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManager::ExecAbc called");
+    HandleEscape handleEscape(env);
+    size_t argc = 0;
+    napi_value argv[ARGS_MAX_COUNT] = {nullptr};
+    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+
+    if (argc < INDEX_ONE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    AbcExecuteParam param;
+    bool useObjectParam = false;
+
+    // Check if first argument is an object (new interface)
+    napi_valuetype firstType = napi_undefined;
+    napi_status status = napi_typeof(env, argv[INDEX_ZERO], &firstType);
+    if (status == napi_ok && firstType == napi_object) {
+        // Check if it's an array (old interface with array as second arg)
+        bool isArray = false;
+        napi_is_array(env, argv[INDEX_ZERO], &isArray);
+        if (!isArray) {
+            // New interface: object parameter
+            useObjectParam = true;
+
+            // Get abcPath property (optional if using HSP lookup)
+            napi_value abcPathValue = nullptr;
+            napi_get_named_property(env, argv[INDEX_ZERO], "abcPath", &abcPathValue);
+            if (abcPathValue != nullptr) {
+                AppExecFwk::UnwrapStringFromJS2(env, abcPathValue, param.abcPath);
+            }
+
+            // Get HSP lookup properties (optional alternative to abcPath)
+            napi_value hspBundleNameValue = nullptr;
+            napi_get_named_property(env, argv[INDEX_ZERO], "hspBundleName", &hspBundleNameValue);
+            if (hspBundleNameValue != nullptr) {
+                AppExecFwk::UnwrapStringFromJS2(env, hspBundleNameValue, param.hspBundleName);
+            }
+
+            napi_value hspModuleNameValue = nullptr;
+            napi_get_named_property(env, argv[INDEX_ZERO], "hspModuleName", &hspModuleNameValue);
+            if (hspModuleNameValue != nullptr) {
+                AppExecFwk::UnwrapStringFromJS2(env, hspModuleNameValue, param.hspModuleName);
+            }
+
+            // Validate: either abcPath or (hspBundleName + hspModuleName) must be provided
+            if (param.abcPath.empty() && (param.hspBundleName.empty() || param.hspModuleName.empty())) {
+                ThrowInvalidParamError(env, "Either 'abcPath' or both 'hspBundleName' and 'hspModuleName' must be provided");
+                return CreateJsUndefined(env);
+            }
+
+            // Get optional properties
+            napi_value funcNameValue = nullptr;
+            napi_get_named_property(env, argv[INDEX_ZERO], "functionName", &funcNameValue);
+            if (funcNameValue != nullptr) {
+                AppExecFwk::UnwrapStringFromJS2(env, funcNameValue, param.functionName);
+            }
+
+            napi_value bundleNameValue = nullptr;
+            napi_get_named_property(env, argv[INDEX_ZERO], "bundleName", &bundleNameValue);
+            if (bundleNameValue != nullptr) {
+                AppExecFwk::UnwrapStringFromJS2(env, bundleNameValue, param.bundleName);
+            }
+
+            napi_value moduleNameValue = nullptr;
+            napi_get_named_property(env, argv[INDEX_ZERO], "moduleName", &moduleNameValue);
+            if (moduleNameValue != nullptr) {
+                AppExecFwk::UnwrapStringFromJS2(env, moduleNameValue, param.moduleName);
+            }
+
+            // Get args property (array)
+            napi_value argsValue = nullptr;
+            napi_get_named_property(env, argv[INDEX_ZERO], "args", &argsValue);
+            if (argsValue != nullptr) {
+                bool isArgsArray = false;
+                napi_is_array(env, argsValue, &isArgsArray);
+                if (isArgsArray) {
+                    uint32_t length = 0;
+                    napi_get_array_length(env, argsValue, &length);
+                    for (uint32_t i = 0; i < length; ++i) {
+                        napi_value element;
+                        napi_get_element(env, argsValue, i, &element);
+                        std::string argStr;
+                        if (AppExecFwk::UnwrapStringFromJS2(env, element, argStr)) {
+                            param.args.push_back(argStr);
+                        }
+                    }
+                }
+            }
+
+            TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecAbc (new): abcPath=%{public}s, hsp=%{public}s/%{public}s, func=%{public}s, args=%{public}zu",
+                     param.abcPath.c_str(), param.hspBundleName.c_str(), param.hspModuleName.c_str(),
+                     param.functionName.c_str(), param.args.size());
+        }
+    }
+
+    // Old interface: abcPath, args, bundleName
+    if (!useObjectParam) {
+        if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ZERO], param.abcPath) || param.abcPath.empty()) {
+            ThrowInvalidParamError(env, "abcPath is required and must be a non-empty string");
+            return CreateJsUndefined(env);
+        }
+
+        // Parse optional args parameter (argv[1])
+        if (argc > INDEX_ONE && argv[INDEX_ONE] != nullptr) {
+            napi_valuetype valueType = napi_undefined;
+            napi_status status = napi_typeof(env, argv[INDEX_ONE], &valueType);
+            if (status == napi_ok && valueType == napi_object) {
+                bool isArray = false;
+                napi_is_array(env, argv[INDEX_ONE], &isArray);
+                if (isArray) {
+                    uint32_t length = 0;
+                    napi_get_array_length(env, argv[INDEX_ONE], &length);
+                    for (uint32_t i = 0; i < length; ++i) {
+                        napi_value element;
+                        napi_get_element(env, argv[INDEX_ONE], i, &element);
+                        std::string argStr;
+                        if (AppExecFwk::UnwrapStringFromJS2(env, element, argStr)) {
+                            param.args.push_back(argStr);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Parse optional bundleName parameter (argv[2])
+        if (argc > INDEX_TWO && argv[INDEX_TWO] != nullptr) {
+            AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_TWO], param.bundleName);
+        }
+
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecAbc (old): abcPath=%{public}s, args=%{public}zu",
+                 param.abcPath.c_str(), param.args.size());
+    }
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+
+    NapiAsyncTask::ExecuteCallback execute = [innerErrCode, param]() {
+        *innerErrCode = CliToolMGRClient::GetInstance().ExecAbc(param);
+    };
+
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode](
+        napi_env env, NapiAsyncTask &task, int32_t status) {
+        HandleScope handleScope(env);
+        if (*innerErrCode != ERR_OK) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "ExecAbc error: %{public}d", *innerErrCode);
+            task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
+            return;
+        }
+        task.ResolveWithNoError(env, CreateJsUndefined(env));
+    };
+
+    napi_value asyncResult = nullptr;
+    NapiAsyncTask::Schedule("JsCliManager::OnExecAbc", env,
+        CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &asyncResult));
+    return handleEscape.Escape(asyncResult);
+}
+
 napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "Init JSCliManager");
@@ -536,6 +696,7 @@ napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "getToolInfoByName", moduleName, JSCliManager::GetToolInfoByName);
     BindNativeFunction(env, exportObj, "queryToolSummaries", moduleName, JSCliManager::QueryToolSummaries);
     BindNativeFunction(env, exportObj, "queryTools", moduleName, JSCliManager::QueryTools);
+    BindNativeFunction(env, exportObj, "execAbc", moduleName, JSCliManager::ExecAbc);
 
     TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManagerInit end");
     return CreateJsUndefined(env);
