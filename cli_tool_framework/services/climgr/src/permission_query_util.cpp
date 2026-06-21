@@ -27,7 +27,8 @@ int32_t PermissionQueryUtil::BatchQueryPermissions(
     cmdPermissions.reserve(cmds.size());
     for (const auto &cmd : cmds) {
         std::vector<std::string> permissions;
-        int32_t ret = QuerySingleCommand(cmd, permissions);
+        bool isLockScreenExecEnabled = false;
+        int32_t ret = QuerySingleCommand(cmd, permissions, isLockScreenExecEnabled);
         int32_t queryRet;
         if (ret == ERR_OK) {
             queryRet = QueryResult::SUCCESS;
@@ -38,7 +39,7 @@ int32_t PermissionQueryUtil::BatchQueryPermissions(
             queryRet = QueryResult::DB_ERROR;
             permissions.clear();
         }
-        cmdPermissions.push_back(BuildCommandPermission(cmd, permissions, queryRet));
+        cmdPermissions.push_back(BuildCommandPermission(cmd, permissions, queryRet, isLockScreenExecEnabled));
     }
     TAG_LOGI(AAFwkTag::CLI_TOOL, "Batch query completed, total=%{public}zu", cmdPermissions.size());
     return ERR_OK;
@@ -46,21 +47,23 @@ int32_t PermissionQueryUtil::BatchQueryPermissions(
 
 int32_t PermissionQueryUtil::QuerySingleCommand(
     const Command &cmd,
-    std::vector<std::string> &permissions)
+    std::vector<std::string> &permissions,
+    bool &isLockScreenExecEnabled)
 {
     if (cmd.toolName.empty()) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "Tool name is empty");
         return ERR_TOOL_NOT_EXIST;
     }
     if (cmd.subCommand.empty()) {
-        return QueryMainCommandPermission(cmd.toolName, permissions);
+        return QueryMainCommandPermission(cmd.toolName, permissions, isLockScreenExecEnabled);
     }
-    return QuerySubCommandPermission(cmd.toolName, cmd.subCommand, permissions);
+    return QuerySubCommandPermission(cmd.toolName, cmd.subCommand, permissions, isLockScreenExecEnabled);
 }
 
 int32_t PermissionQueryUtil::QueryMainCommandPermission(
     const std::string &toolName,
-    std::vector<std::string> &permissions)
+    std::vector<std::string> &permissions,
+    bool &isLockScreenExecEnabled)
 {
     ToolInfo toolInfo;
     int32_t ret = CliToolDataManager::GetInstance().GetToolByName(toolName, toolInfo);
@@ -72,13 +75,15 @@ int32_t PermissionQueryUtil::QueryMainCommandPermission(
         return ERR_TOOL_NOT_EXIST;
     }
     permissions = toolInfo.requirePermissions;
+    isLockScreenExecEnabled = toolInfo.isLockScreenExecEnabled;
     return ERR_OK;
 }
 
 int32_t PermissionQueryUtil::QuerySubCommandPermission(
     const std::string &toolName,
     const std::string &subCommand,
-    std::vector<std::string> &permissions)
+    std::vector<std::string> &permissions,
+    bool &isLockScreenExecEnabled)
 {
     ToolInfo toolInfo;
     int32_t ret = CliToolDataManager::GetInstance().GetToolByName(toolName, toolInfo);
@@ -100,18 +105,21 @@ int32_t PermissionQueryUtil::QuerySubCommandPermission(
         return ERR_TOOL_NOT_EXIST;
     }
     permissions = it->second.requirePermissions;
+    isLockScreenExecEnabled = toolInfo.isLockScreenExecEnabled;
     return ERR_OK;
 }
 
 CommandPermission PermissionQueryUtil::BuildCommandPermission(
     const Command &cmd,
     const std::vector<std::string> &permissions,
-    int32_t queryRet)
+    int32_t queryRet,
+    bool isLockScreenExecEnabled)
 {
     CommandPermission cmdPerm;
     cmdPerm.cmd = cmd;
     cmdPerm.permissions = permissions;
     cmdPerm.queryRet = queryRet;
+    cmdPerm.isLockScreenExecEnabled = isLockScreenExecEnabled;
     return cmdPerm;
 }
 } // namespace CliTool
