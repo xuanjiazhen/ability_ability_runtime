@@ -17,6 +17,7 @@
 #define OHOS_AGENT_RUNTIME_ETS_AGENT_CONNECTION_H
 
 #include <map>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <vector>
@@ -59,6 +60,13 @@ namespace AgentConnectionUtils {
 void RemoveAgentConnection(int64_t connectId);
 
 /**
+ * Erase agent connection from registry without releasing the callback object.
+ *
+ * @param connectId The connection ID to erase.
+ */
+void EraseAgentConnection(int64_t connectId);
+
+/**
  * Insert agent connection into registry.
  *
  * @param connection The connection object to insert.
@@ -83,8 +91,11 @@ void FindAgentConnection(int64_t connectId, sptr<EtsAgentConnection> &connection
  * @param callback The callback object to match.
  * @param connection Output parameter for the found connection.
  */
-void FindAgentConnection(ani_env *env, AAFwk::Want &want, ani_object callback,
+void FindAgentConnection(ani_env *env, const AAFwk::Want &want, ani_object callback,
     sptr<EtsAgentConnection> &connection);
+
+void FindAgentConnectionCandidatesByTarget(ani_env *env, const AAFwk::Want &want, ani_object callback,
+    std::vector<sptr<EtsAgentConnection>> &candidates);
 }
 
 class EtsAgentConnectorStubImpl;
@@ -96,6 +107,8 @@ class EtsAgentConnectorStubImpl;
  */
 class EtsAgentConnection : public AbilityRuntime::AbilityConnectCallback {
 public:
+    using DisconnectCompleteHandler = std::function<void(const sptr<EtsAgentConnection>&)>;
+
     /**
      * Constructor.
      *
@@ -158,6 +171,10 @@ public:
      */
     void SetAniAsyncCallback(ani_object asyncCallback);
 
+    void SetDisconnectAsyncCallback(ani_env *env, ani_object asyncCallback);
+
+    void ClearDisconnectAsyncCallback(ani_env *env);
+
     /**
      * Add a duplicated pending callback.
      * Used when multiple connection requests are made for the same extension.
@@ -165,6 +182,15 @@ public:
      * @param duplicatedCallback The callback object from ETS.
      */
     void AddDuplicatedPendingCallback(ani_object duplicatedCallback);
+
+    void AddReconnectPendingCallback(ani_env *env, const AAFwk::Want &want, ani_object asyncCallback);
+
+    bool TakeReconnectPendingCallbacks(AAFwk::Want &want, std::vector<ani_ref> &callbacks);
+
+    void AdoptDuplicatedPendingCallbacks(std::vector<ani_ref> &&callbacks);
+
+    void RejectReconnectPendingCallbacks(
+        ani_env *env, int32_t error, AbilityRuntime::AbilityInnerErrorMsg fallbackMessage);
 
     /**
      * Resolve all duplicated pending callbacks with the proxy.
@@ -254,9 +280,19 @@ public:
      */
     void ReleaseObjectReference(ani_env *env, ani_ref etsObjRef);
 
-    void SetConnectionId(int32_t id) { connectionId_ = id; }
+    void ReleaseObjectReference(ani_ref etsObjRef);
 
-    int32_t GetConnectionId() { return connectionId_; }
+    void SetConnectionId(int64_t id) { connectionId_ = id; }
+
+    int64_t GetConnectionId() { return connectionId_; }
+
+    ani_vm *GetEtsVm() const { return etsVm_; }
+
+    void SetDisconnecting(bool disconnecting);
+
+    bool IsDisconnecting();
+
+    void SetDisconnectCompleteHandler(DisconnectCompleteHandler handler);
 
 private:
     /**
@@ -290,8 +326,6 @@ private:
      */
     void HandleOnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode);
 
-    void ReleaseObjectReference(ani_ref etsObjRef);
-
 private:
     ani_vm *etsVm_ = nullptr;
 
@@ -308,6 +342,11 @@ private:
     ani_ref aniAsyncCallback_ = nullptr;
 
     /**
+     * The async callback stored from ETS for disconnect promise resolution.
+     */
+    ani_ref disconnectAsyncCallback_ = nullptr;
+
+    /**
      * The ETS connection callback object.
      */
     ani_ref etsConnectionObject_ = nullptr;
@@ -321,6 +360,12 @@ private:
      * List of pending callbacks for duplicate connection requests.
      */
     std::vector<ani_ref> duplicatedPendingCallbacks_;
+
+    std::mutex stateLock_;
+    bool disconnecting_ = false;
+    AAFwk::Want reconnectWant_;
+    std::vector<ani_ref> reconnectPendingCallbacks_;
+    DisconnectCompleteHandler disconnectCompleteHandler_;
 };
 } // namespace AgentRuntime
 } // namespace OHOS
