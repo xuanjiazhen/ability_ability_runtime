@@ -32,12 +32,12 @@ struct AgentOwnerKey {
     int32_t hostUid = 0;
     std::string agentId;
 
-    bool operator<(const AgentOwnerKey &that) const
+    bool operator<(const AgentOwnerKey &other) const
     {
-        if (hostUid != that.hostUid) {
-            return hostUid < that.hostUid;
+        if (hostUid != other.hostUid) {
+            return hostUid < other.hostUid;
         }
-        return agentId < that.agentId;
+        return agentId < other.agentId;
     }
 };
 
@@ -47,7 +47,12 @@ struct AgentOwnerKey {
  */
 struct LowCodeAgentRecord {
     sptr<IRemoteObject> callerRemote;
+    int32_t callerUid = 0;
     bool isPending = false;
+    sptr<AgentHostConnection> hostConnection = nullptr;
+    std::string originalIdentity;
+    long verificationNonce = 0;
+    bool isDisconnecting = false;
 };
 
 /**
@@ -64,7 +69,6 @@ struct AgentHostSession {
     sptr<IRemoteObject> remoteObject;
     int32_t resultCode = ERR_OK;
     bool isConnected = false;
-    bool isDisconnecting = false;
 };
 
 /**
@@ -74,6 +78,8 @@ struct AgentHostSession {
 struct AgentConnectPlan {
     AgentHostKey hostKey;
     int32_t hostUid = 0;
+    int32_t callerUid = 0;
+    std::string agentId;
     sptr<AgentHostConnection> hostConnection;
     sptr<IRemoteObject> callerRemote;
     AppExecFwk::ElementName cachedElement;
@@ -81,6 +87,9 @@ struct AgentConnectPlan {
     int32_t cachedResultCode = ERR_OK;
     bool notifyExistingConnection = false;
     bool needRealConnect = false;
+    bool reusedHostSession = false;
+    bool reusedCallerConnection = false;
+    bool admittedNewAgent = true;
     bool registeredTrackedConnection = false;
 };
 }  // namespace AgentRuntime
