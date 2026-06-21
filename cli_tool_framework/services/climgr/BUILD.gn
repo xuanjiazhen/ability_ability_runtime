@@ -51,6 +51,7 @@ ohos_shared_library("climgr") {
     "src/event_dispatcher.cpp",
     "src/io_monitor.cpp",
     "src/cli_function_data_manager.cpp",
+    "src/arkts_executor.cpp",
   ]
   defines = [ "AMS_LOG_TAG = \"CliToolManager\"" ]
 
@@ -59,6 +60,7 @@ ohos_shared_library("climgr") {
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${cli_tool_framework_path}/interfaces/cli_tool:cli_tool_client",
+    "${ability_runtime_path}/ets_environment/frameworks/ets_environment:ets_environment",
   ]
 
   external_deps = [
@@ -74,11 +76,42 @@ ohos_shared_library("climgr") {
     "ipc:ipc_single",
     "json:nlohmann_json_static",
     "kv_store:distributeddata_inner",
+    "runtime_core:ani",
+    "runtime_core:common_interfaces_header",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
 
   innerapi_tags = [ "platformsdk" ]
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+# Standalone abc executor binary
+# This program executes ArkTS abc files in a clean process environment
+ohos_executable("abc_executor") {
+  configs = [ ":clisa_config" ]
+
+  sources = [
+    "src/abc_executor_main.cpp",
+  ]
+
+  defines = [ "AMS_LOG_TAG = \"CliToolExecutor\"" ]
+
+  deps = [
+    "${ability_runtime_path}/ets_environment/frameworks/ets_environment:ets_environment",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "ffrt:libffrt",
+    "hilog:libhilog",
+    "runtime_core:ani",
+    "runtime_core:common_interfaces_header",
+  ]
+
+  install_enable = true
+
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }
