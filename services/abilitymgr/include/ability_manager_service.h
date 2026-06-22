@@ -1442,7 +1442,8 @@ public:
         bool checkSystemCaller = true,
         bool isImplicit = false,
         bool isDlp = false,
-        bool isStartAsCaller = false);
+        bool isStartAsCaller = false,
+        uint32_t skillCallerTokenId = 0);
 
     int RequestModalUIExtensionInner(Want want);
 
@@ -2199,6 +2200,8 @@ public:
         int32_t userId = DEFAULT_INVAL_VALUE, uint64_t specifiedFullTokenId = 0);
     int32_t ExecuteIntentForDistributed(const Want &want, const std::string &srcDeviceId,
         uint64_t requestCode, uint64_t specifiedFullTokenId = 0) override;
+    void RemoveIntentTimeout(uint64_t insightIntentId);
+    void RemoveIntentTask(uint64_t insightIntentId);
 
     /**
      * @brief Check if ability controller can start.
@@ -2228,9 +2231,11 @@ public:
         const sptr<ISkillExecuteCallback> &callback) override;
 
     int32_t StartAbilityByCallWithSkill(const Want &want,
-        const sptr<IRemoteObject> &callerToken, int32_t userId = DEFAULT_INVAL_VALUE);
+        const sptr<IRemoteObject> &callerToken, int32_t userId = DEFAULT_INVAL_VALUE,
+        uint32_t skillCallerTokenId = 0);
 
-    int32_t StartExtensionAbilityWithSkill(const Want &want, int32_t userId);
+    int32_t StartExtensionAbilityWithSkill(const Want &want, int32_t userId,
+        uint32_t skillCallerTokenId = 0);
 
     int32_t ExecuteSkillDone(const sptr<IRemoteObject> &token, const std::string &requestCode,
         int32_t resultCode, const AppExecFwk::SkillExecuteResult &result) override;
@@ -3280,9 +3285,6 @@ private:
     ErrCode IsUIAbilityAlreadyExist(const Want &want, const std::string &specifiedFlag,
         int32_t appIndex, const std::string &instanceKey, AppExecFwk::LaunchMode launchMode);
 
-    ErrCode IsSpecifiedUIAbilityAlreadyExist(const Want &want, const std::string &specifiedFlag,
-        int32_t appIndex, const std::string &instanceKey);
-
     ErrCode CheckStartSelfUIAbilityInChildProcess(const Want &want, const std::string &specifiedFlag,
         const std::shared_ptr<AbilityRecord> &callerRecord, AppExecFwk::AbilityInfo &abilityInfo);
 
@@ -3477,6 +3479,9 @@ private:
     void StartKeepAliveAppsInner(int32_t userId);
 
     bool ProcessLowMemoryKill(int32_t pid, const ExitReason &reason, bool isKillPrecedeStart);
+    bool ProcessLowMemoryKillUIExtension(int32_t pid, int32_t uid);
+    int32_t KillAppWithReasonInner(int32_t pid,
+        const ExitReason &reason, bool isKillPrecedeStart, bool shouldKillForeground);
 
     void TimeSequenceKeepAliveRestart(int32_t userId, pid_t pid,
         std::map<int32_t, std::vector<AppExecFwk::BundleInfo>> &bundleInfosMap,
@@ -3623,6 +3628,7 @@ private:
     int32_t ExecuteIntentCommon(const sptr<IRemoteObject> &callerToken,
         const std::shared_ptr<InsightIntentExecuteParam> &param, const std::string &callerBundleName,
         const AbilityRuntime::ExecuteIntentCommonOptions &infos);
+    void SetRemoteIntentTimeout(uint64_t insightIntentId);
     void GetCallerUidAndToken(const std::string &bundleName, int32_t userId,
         int32_t &callerUid, uint32_t &accessToken);
     bool IsDmsSameAPP(const AbilityRequest &abilityRequest);
@@ -3673,6 +3679,9 @@ private:
 
     std::mutex prepareTermiationCallbackMutex_;
     std::map<std::string, sptr<IPrepareTerminateCallback>> prepareTermiationCallbacks_;
+
+    ffrt::mutex remoteTaskHandlesMutex_;
+    std::map<uint32_t, std::shared_ptr<ffrt::task_handle>> remoteTaskHandles_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
