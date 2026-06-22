@@ -467,6 +467,8 @@ void ETSRuntime::DumpHeapSnapshot(uint32_t tid, const OHOS::AbilityRuntime::Runt
         param.languageEnv.c_str());
     if (jsRuntime_ != nullptr) {
         jsRuntime_->DumpHeapSnapshot(tid, param);
+    } else {
+        TAG_LOGE(AAFwkTag::APPKIT, "ETSRuntime::DumpHeapSnapshot null jsRuntime_");
     }
 }
 
