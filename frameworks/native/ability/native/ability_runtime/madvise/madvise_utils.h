@@ -20,6 +20,8 @@
 #include <string>
 #include <vector>
 
+#include "ability_business_error.h"
+
 namespace OHOS {
 namespace AbilityRuntime {
 namespace MadviseUtil {
@@ -28,6 +30,25 @@ bool MadviseSingleLibrary(const char* libName);
 int32_t MadviseGeneralFiles(const std::vector<std::string>& filenames);
 
 int32_t MadviseWithConfigFile(const char* bundleName);
+
+// Evicts file page cache for the given file names by extension:
+// names ending with ".so" go through MadviseSingleLibrary (ELF walk) one by one;
+// all other names (.hap/.hsp) are batched into a single MadviseGeneralFiles call.
+// The caller is responsible for validating extensions. Returns the count of
+// successfully processed files (same semantics as ApplyMadviseWithConfig).
+int32_t EvictFilePages(const std::vector<std::string>& fileNames);
+
+// Checks whether name ends with one of the supported evict extensions:
+// .so, .hap, or .hsp.
+bool IsValidEvictFileName(const std::string& name);
+
+// For each moduleName, resolves the caller's own hap, reads
+// resources/rawfile/memory_optimizer.json, parses the evictFilesPages array,
+// validates extensions, and dispatches eviction via EvictFilePages.
+// Returns ERROR_OK on success; ERROR_CODE_FILE_TYPE_ERROR if any configured
+// file name has an unsupported extension; ERROR_CODE_EVICT_CONFIG_PARSE_ERROR
+// if the caller bundle info / module / config file cannot be obtained or parsed.
+AbilityErrorCode EvictModuleFilesPages(const std::vector<std::string>& moduleNames);
 
 } // namespace MadviseUtil
 } // namespace AbilityRuntime
