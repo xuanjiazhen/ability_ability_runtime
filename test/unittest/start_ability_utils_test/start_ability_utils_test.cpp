@@ -33,6 +33,10 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace AAFwk {
+namespace {
+constexpr int32_t TEST_USER_ID = 100;
+constexpr int32_t BASE_USER_RANGE = 200000;
+}
 
 class StartAbilityUtilsTest : public testing::Test {
 public:
@@ -40,6 +44,8 @@ public:
     static void TearDownTestCase();
     void SetUp();
     void TearDown();
+private:
+    void ResetAppClonePreferenceMock();
 };
 
 void StartAbilityUtilsTest::SetUpTestCase()
@@ -49,10 +55,23 @@ void StartAbilityUtilsTest::TearDownTestCase()
 {}
 
 void StartAbilityUtilsTest::SetUp()
-{}
+{
+    ResetAppClonePreferenceMock();
+}
 
 void StartAbilityUtilsTest::TearDown()
-{}
+{
+    ResetAppClonePreferenceMock();
+}
+
+void StartAbilityUtilsTest::ResetAppClonePreferenceMock()
+{
+    auto &status = MyStatus::GetInstance();
+    status.getAppClonePreferenceRet_ = ERR_OK;
+    status.appClonePreference_ = AppExecFwk::AppClonePreference();
+    status.lastClonePreferenceBundleName_.clear();
+    status.lastClonePreferenceUserId_ = -1;
+}
 
 /**
  * @tc.name: GetApplicationInfo_001
@@ -508,6 +527,99 @@ HWTEST_F(StartAbilityUtilsTest, SetTargetCloneIndexInSameBundle_005, TestSize.Le
 }
 
 /**
+ * @tc.name: ResolveTargetAppCloneIndex_001
+ * @tc.desc: test class StartAbilityUtil ResolveTargetAppCloneIndex explicit want index wins
+ * @tc.type: FUNC
+ */
+HWTEST_F(StartAbilityUtilsTest, ResolveTargetAppCloneIndex_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest ResolveTargetAppCloneIndex_001 start");
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 1);
+    MyStatus::GetInstance().appClonePreference_.type = AppExecFwk::AppClonePreferenceType::CLONE;
+    MyStatus::GetInstance().appClonePreference_.appIndex = 2;
+
+    StartAbilityUtils::ResolveTargetAppCloneIndex(want, nullptr, 100);
+    int32_t appCloneIndex = want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1);
+    EXPECT_EQ(appCloneIndex, 1);
+    EXPECT_TRUE(MyStatus::GetInstance().lastClonePreferenceBundleName_.empty());
+
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest ResolveTargetAppCloneIndex_001 end");
+}
+
+/**
+ * @tc.name: ResolveTargetAppCloneIndex_002
+ * @tc.desc: test class StartAbilityUtil ResolveTargetAppCloneIndex same bundle clone wins
+ * @tc.type: FUNC
+ */
+HWTEST_F(StartAbilityUtilsTest, ResolveTargetAppCloneIndex_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest ResolveTargetAppCloneIndex_002 start");
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    AbilityRequest abilityRequest;
+    std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    EXPECT_NE(abilityRecord, nullptr);
+    abilityRecord->abilityInfo_.bundleName = "com.ohos.test";
+    abilityRecord->abilityInfo_.applicationInfo.appIndex = 1;
+    MyStatus::GetInstance().appClonePreference_.type = AppExecFwk::AppClonePreferenceType::CLONE;
+    MyStatus::GetInstance().appClonePreference_.appIndex = 2;
+    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
+
+    StartAbilityUtils::ResolveTargetAppCloneIndex(want, callerToken, 100);
+    int32_t appCloneIndex = want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1);
+    EXPECT_EQ(appCloneIndex, 1);
+    EXPECT_TRUE(MyStatus::GetInstance().lastClonePreferenceBundleName_.empty());
+
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest ResolveTargetAppCloneIndex_002 end");
+}
+
+/**
+ * @tc.name: ResolveTargetAppCloneIndex_003
+ * @tc.desc: test class StartAbilityUtil ResolveTargetAppCloneIndex uses BMS clone preference
+ * @tc.type: FUNC
+ */
+HWTEST_F(StartAbilityUtilsTest, ResolveTargetAppCloneIndex_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest ResolveTargetAppCloneIndex_003 start");
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    MyStatus::GetInstance().appClonePreference_.type = AppExecFwk::AppClonePreferenceType::CLONE;
+    MyStatus::GetInstance().appClonePreference_.appIndex = 2;
+
+    StartAbilityUtils::ResolveTargetAppCloneIndex(want, nullptr, 100);
+    int32_t appCloneIndex = want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1);
+    EXPECT_EQ(appCloneIndex, 2);
+    EXPECT_EQ(MyStatus::GetInstance().lastClonePreferenceBundleName_, "com.ohos.test");
+    EXPECT_EQ(MyStatus::GetInstance().lastClonePreferenceUserId_, 100);
+
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest ResolveTargetAppCloneIndex_003 end");
+}
+
+/**
+ * @tc.name: ResolveTargetAppCloneIndex_004
+ * @tc.desc: test class StartAbilityUtil ResolveTargetAppCloneIndex ignores non-clone preference
+ * @tc.type: FUNC
+ */
+HWTEST_F(StartAbilityUtilsTest, ResolveTargetAppCloneIndex_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest ResolveTargetAppCloneIndex_004 start");
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    MyStatus::GetInstance().appClonePreference_.type = AppExecFwk::AppClonePreferenceType::MAIN;
+    MyStatus::GetInstance().appClonePreference_.appIndex = 0;
+
+    StartAbilityUtils::ResolveTargetAppCloneIndex(want, nullptr, 100);
+    int32_t appCloneIndex = want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1);
+    EXPECT_EQ(appCloneIndex, -1);
+    EXPECT_EQ(MyStatus::GetInstance().lastClonePreferenceBundleName_, "com.ohos.test");
+    EXPECT_EQ(MyStatus::GetInstance().lastClonePreferenceUserId_, 100);
+
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest ResolveTargetAppCloneIndex_004 end");
+}
+
+/**
  * @tc.name: StartUIAbilitiesProcessAppIndex_001
  * @tc.desc: test class StartAbilityUtil StartUIAbilitiesProcessAppIndex bundleName not equal; no index
  * @tc.type: FUNC
@@ -587,6 +699,38 @@ HWTEST_F(StartAbilityUtilsTest, StartUIAbilitiesProcessAppIndex_003, TestSize.Le
     EXPECT_EQ(ret, ERR_APP_CLONE_INDEX_INVALID);
 
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest StartUIAbilitiesProcessAppIndex_003 end");
+}
+
+/**
+ * @tc.name: StartUIAbilitiesProcessAppIndex_004
+ * @tc.desc: test class StartAbilityUtil StartUIAbilitiesProcessAppIndex uses BMS clone preference
+ * @tc.type: FUNC
+ */
+HWTEST_F(StartAbilityUtilsTest, StartUIAbilitiesProcessAppIndex_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest StartUIAbilitiesProcessAppIndex_004 start");
+    int32_t appIndex = 0;
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    AbilityRequest abilityRequest;
+    std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    EXPECT_NE(abilityRecord, nullptr);
+    abilityRecord->abilityInfo_.bundleName = "com.ohos.test1";
+    abilityRecord->abilityInfo_.applicationInfo.appIndex = -2;
+    abilityRecord->abilityInfo_.applicationInfo.uid = TEST_USER_ID * BASE_USER_RANGE;
+    MyStatus::GetInstance().appClonePreference_.type = AppExecFwk::AppClonePreferenceType::CLONE;
+    MyStatus::GetInstance().appClonePreference_.appIndex = 2;
+    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
+
+    int32_t ret = StartAbilityUtils::StartUIAbilitiesProcessAppIndex(want, callerToken, appIndex);
+    int32_t appCloneIndex = want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1);
+    EXPECT_EQ(appCloneIndex, appIndex);
+    EXPECT_EQ(appIndex, 2);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(MyStatus::GetInstance().lastClonePreferenceBundleName_, "com.ohos.test");
+    EXPECT_EQ(MyStatus::GetInstance().lastClonePreferenceUserId_, TEST_USER_ID);
+
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest StartUIAbilitiesProcessAppIndex_004 end");
 }
 
 /**
