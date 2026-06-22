@@ -1456,7 +1456,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     }
 
     int32_t validUserId = oriValidUserId;
-    StartAbilityUtils::SetTargetCloneIndexInSameBundle(param.want, param.callerToken);
+    StartAbilityUtils::ResolveTargetAppCloneIndex(param.want, param.callerToken, validUserId);
     int32_t appIndex = 0;
     if (!StartAbilityUtils::GetAppIndex(param.want, param.callerToken, appIndex)) {
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_APP_CLONE_INDEX_INVALID, "GetAppIndex failed");
@@ -2276,7 +2276,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
     }
 
     int32_t validUserId = oriValidUserId;
-    StartAbilityUtils::SetTargetCloneIndexInSameBundle(want, callerToken);
+    StartAbilityUtils::ResolveTargetAppCloneIndex(want, callerToken, validUserId);
     int32_t appIndex = 0;
     if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_APP_CLONE_INDEX_INVALID, "GetAppIndex failed");
