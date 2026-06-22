@@ -40,7 +40,9 @@ public:
     void ForceFullGC() override {}
     void ForceFullGC(uint32_t tid) override {}
     void DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary = false) override {}
-    void DumpHeapSnapshot(uint32_t tid, const Runtime::JsHeapDumpParam &param) override {}
+    void DumpHeapSnapshot(uint32_t tid, const Runtime::JsHeapDumpParam &param) override {
+        capturedParam = param;
+    }
     void AllowCrossThreadExecution() override {}
     void GetHeapPrepare() override {}
     void NotifyApplicationState(bool isBackground) override {}
@@ -93,6 +95,7 @@ private:
     mutable bool loadCheckerFlag_ = false;
     bool extensionApiCheckerFlag_ = false;
     mutable std::shared_ptr<ModuleCheckerDelegate> moduleChecker_ = nullptr;
+    Runtime::JsHeapDumpParam capturedParam;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS
