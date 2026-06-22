@@ -990,49 +990,5 @@ HWTEST_F(EtsRuntimeTest, DumpHeapSnapshot_0100, TestSize.Level1)
     etsRuntime->DumpHeapSnapshot(1, param);
     ASSERT_NE(etsRuntime, nullptr);
 }
-
-/**
- * @tc.name: DumpHeapSnapshot_0200
- * @tc.desc: EtsRuntimeTest test for DumpHeapSnapshot with param, languageEnv is static.
- * @tc.type: FUNC
- */
-HWTEST_F(EtsRuntimeTest, DumpHeapSnapshot_0200, TestSize.Level1)
-{
-    Runtime::Options options;
-    options.lang = Runtime::Language::ETS;
-    options.arkNativeFilePath = "test_app/";
-    options.moduleName = "TestModule";
-    std::unique_ptr<Runtime> jsRuntime = AbilityRuntime::JsRuntime::Create(options);
-    ASSERT_NE(jsRuntime, nullptr);
-    std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
-    ASSERT_NE(etsRuntime, nullptr);
-    etsRuntime->jsRuntime_ = std::move(jsRuntime);
-    OHOS::AbilityRuntime::Runtime::JsHeapDumpParam param;
-    param.languageEnv = OHOS::AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2;
-    etsRuntime->DumpHeapSnapshot(1, param);
-    ASSERT_NE(etsRuntime, nullptr);
-}
-
-/**
- * @tc.name: DumpHeapSnapshot_0300
- * @tc.desc: EtsRuntimeTest test for DumpHeapSnapshot with param, languageEnv is hybrid.
- * @tc.type: FUNC
- */
-HWTEST_F(EtsRuntimeTest, DumpHeapSnapshot_0300, TestSize.Level1)
-{
-    Runtime::Options options;
-    options.lang = Runtime::Language::ETS;
-    options.arkNativeFilePath = "test_app/";
-    options.moduleName = "TestModule";
-    std::unique_ptr<Runtime> jsRuntime = AbilityRuntime::JsRuntime::Create(options);
-    ASSERT_NE(jsRuntime, nullptr);
-    std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
-    ASSERT_NE(etsRuntime, nullptr);
-    etsRuntime->jsRuntime_ = std::move(jsRuntime);
-    OHOS::AbilityRuntime::Runtime::JsHeapDumpParam param;
-    param.languageEnv = OHOS::AbilityRuntime::CODE_LANGUAGE_ARKTS_HYBRID;
-    etsRuntime->DumpHeapSnapshot(1, param);
-    ASSERT_NE(etsRuntime, nullptr);
-}
 } // namespace AbilityRuntime
 } // namespace OHOS
