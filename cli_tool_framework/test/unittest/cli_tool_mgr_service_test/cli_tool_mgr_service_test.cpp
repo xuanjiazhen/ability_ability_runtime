@@ -29,6 +29,7 @@
 #define protected public
 #define private public
 #include "cli_tool_manager_service.h"
+#include "cli_function_data_manager.h"
 #undef private
 #undef protected
 
@@ -39,6 +40,7 @@
 #include "cli_tool_data_manager_mock.h"
 #include "event_dispatcher.h"
 #include "exec_options.h"
+#include "function_info.h"
 #include "ipc_skeleton.h"
 #include "nativetoken_kit.h"
 #include "skill/skill_execute_result.h"
@@ -130,6 +132,7 @@ void CliToolManagerServiceTest::SetUp()
     service_ = CliToolManagerService::GetInstance();
     service_->interfaceCalledCount_.store(0);
     CliToolDataManagerMock::Reset();
+    CliFunctionDataManagerMock::Reset();
     EventDispatcher::GetInstance().ClearAll();
     std::lock_guard<ffrt::mutex> guard(service_->sessionsMutex_);
     service_->sessionRecords_.clear();
@@ -140,6 +143,7 @@ void CliToolManagerServiceTest::TearDown()
 {
     service_->interfaceCalledCount_.store(0);
     CliToolDataManagerMock::Reset();
+    CliFunctionDataManagerMock::Reset();
     EventDispatcher::GetInstance().ClearAll();
     std::lock_guard<ffrt::mutex> guard(service_->sessionsMutex_);
     service_->sessionRecords_.clear();
@@ -2206,5 +2210,294 @@ HWTEST_F(CliToolManagerServiceTest, ExecCmd_0700, TestSize.Level1)
     GTEST_LOG_(INFO) << "CliToolManagerService_ExecCmd_0700 end";
 }
 
+/**
+ * @tc.name: CliToolManagerService_RegisterFunction_0100
+ * @tc.desc: Test RegisterFunction with valid function
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, RegisterFunction_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_RegisterFunction_0100 start";
+
+    FunctionInfo function;
+    function.functionName = "test_function";
+    function.functionNamespace = "test_ns";
+    function.functionType = FunctionType::INTENT_FUNCTION;
+
+    // Mock returns ERR_OK by default
+    int32_t ret = service_->RegisterFunction(function);
+
+    EXPECT_EQ(ret, ERR_OK);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_RegisterFunction_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_RegisterFunction_0200
+ * @tc.desc: Test RegisterFunction with invalid function
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, RegisterFunction_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_RegisterFunction_0200 start";
+
+    FunctionInfo function;
+    function.functionName = "";
+    function.functionNamespace = "test_ns";
+    function.functionType = FunctionType::INTENT_FUNCTION;
+
+    int32_t ret = service_->RegisterFunction(function);
+
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_RegisterFunction_0200 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_RegisterFunction_0300
+ * @tc.desc: Test RegisterFunction with non-FOUNDATION UID (permission denied)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, RegisterFunction_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_RegisterFunction_0300 start";
+
+    // Set callingUid to non-FOUNDATION_UID
+    IPCSkeleton::callingUid = 9999;
+
+    FunctionInfo function;
+    function.functionName = "test_function";
+    function.functionNamespace = "test_ns";
+    function.functionType = FunctionType::INTENT_FUNCTION;
+
+    int32_t ret = service_->RegisterFunction(function);
+
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+
+    // Reset to default FOUNDATION_UID
+    IPCSkeleton::Reset();
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_RegisterFunction_0300 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_GetFunctionInfo_0100
+ * @tc.desc: Test GetFunctionInfo success path
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetFunctionInfo_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_GetFunctionInfo_0100 start";
+
+    // First register a function
+    FunctionInfo function;
+    function.functionName = "get_test_function";
+    function.functionNamespace = "get_test_ns";
+    function.functionType = FunctionType::INTENT_FUNCTION;
+    service_->RegisterFunction(function);
+
+    // Then get it
+    FunctionInfo retrievedFunction;
+    int32_t ret = service_->GetFunctionInfo("get_test_ns", "get_test_function", retrievedFunction);
+
+    // Mock returns ERR_OK by default
+    EXPECT_EQ(ret, ERR_OK);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_GetFunctionInfo_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_GetFunctionInfo_0200
+ * @tc.desc: Test GetFunctionInfo with non-existent function
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetFunctionInfo_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_GetFunctionInfo_0200 start";
+
+    FunctionInfo function;
+    int32_t ret = service_->GetFunctionInfo("non_existent_ns", "non_existent_function", function);
+
+    // With mocked FOUNDATION_UID, should pass permission check and reach data manager
+    // Mock returns ERR_OK by default (even for non-existent, as it's a simple mock)
+    EXPECT_EQ(ret, ERR_OK);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_GetFunctionInfo_0200 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_UnregisterFunction_0100
+ * @tc.desc: Test UnregisterFunction success path
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterFunction_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_UnregisterFunction_0100 start";
+
+    // First register a function
+    FunctionInfo function;
+    function.functionName = "unreg_test_function";
+    function.functionNamespace = "unreg_test_ns";
+    function.functionType = FunctionType::INTENT_FUNCTION;
+    service_->RegisterFunction(function);
+
+    // Then unregister it
+    int32_t ret = service_->UnregisterFunction("unreg_test_ns", "unreg_test_function");
+
+    // Mock returns ERR_OK by default
+    EXPECT_EQ(ret, ERR_OK);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_UnregisterFunction_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_UnregisterFunction_0200
+ * @tc.desc: Test UnregisterFunction with non-existent function
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterFunction_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_UnregisterFunction_0200 start";
+
+    int32_t ret = service_->UnregisterFunction("non_existent_ns", "non_existent_function");
+
+    // Mock returns ERR_OK by default
+    EXPECT_EQ(ret, ERR_OK);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_UnregisterFunction_0200 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_UnregisterIntentFunctionsByNamespace_0100
+ * @tc.desc: Test UnregisterIntentFunctionsByNamespace success path
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterIntentFunctionsByNamespace_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_UnregisterIntentFunctionsByNamespace_0100 start";
+
+    int32_t ret = service_->UnregisterIntentFunctionsByNamespace("test_intent_ns");
+
+    // Mock returns ERR_OK by default
+    EXPECT_EQ(ret, ERR_OK);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_UnregisterIntentFunctionsByNamespace_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_UnregisterFunction_0300
+ * @tc.desc: Test UnregisterFunction with non-FOUNDATION UID (permission denied)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterFunction_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_UnregisterFunction_0300 start";
+
+    // Set callingUid to non-FOUNDATION_UID
+    IPCSkeleton::callingUid = 9999;
+
+    int32_t ret = service_->UnregisterFunction("test_ns", "test_function");
+
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+
+    // Reset to default FOUNDATION_UID
+    IPCSkeleton::Reset();
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_UnregisterFunction_0300 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_UnregisterIntentFunctionsByNamespace_0200
+ * @tc.desc: Test UnregisterIntentFunctionsByNamespace with non-FOUNDATION UID (permission denied)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterIntentFunctionsByNamespace_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_UnregisterIntentFunctionsByNamespace_0200 start";
+
+    // Set callingUid to non-FOUNDATION_UID
+    IPCSkeleton::callingUid = 9999;
+
+    int32_t ret = service_->UnregisterIntentFunctionsByNamespace("test_ns");
+
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+
+    // Reset to default FOUNDATION_UID
+    IPCSkeleton::Reset();
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_UnregisterIntentFunctionsByNamespace_0200 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_GetAllFunctions_0100
+ * @tc.desc: Test GetAllFunctions success path
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetAllFunctions_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_GetAllFunctions_0100 start";
+
+    // First register some functions
+    FunctionInfo function1;
+    function1.functionName = "all_test_function1";
+    function1.functionNamespace = "all_test_ns";
+    function1.functionType = FunctionType::INTENT_FUNCTION;
+    service_->RegisterFunction(function1);
+
+    FunctionInfo function2;
+    function2.functionName = "all_test_function2";
+    function2.functionNamespace = "all_test_ns";
+    function2.functionType = FunctionType::INTENT_FUNCTION;
+    service_->RegisterFunction(function2);
+
+    // Then get all functions
+    std::vector<FunctionInfo> functions;
+    int32_t ret = service_->GetAllFunctions(functions);
+
+    // May succeed or return ERR_NO_INIT
+    // With mocked permissions returning true, should not get permission errors
+    EXPECT_TRUE(ret == ERR_OK || ret == ERR_NO_INIT);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_GetAllFunctions_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_FunctionInterfaces_0100
+ * @tc.desc: Test function interfaces with mock returning ERR_NO_INIT
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, FunctionInterfaces_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_FunctionInterfaces_0100 start";
+
+    // Set mock to return ERR_NO_INIT to simulate KVStore not ready
+    CliFunctionDataManagerMock::registerFunctionResult = ERR_NO_INIT;
+    CliFunctionDataManagerMock::getFunctionResult = ERR_NO_INIT;
+    CliFunctionDataManagerMock::unregisterFunctionResult = ERR_NO_INIT;
+    CliFunctionDataManagerMock::unregisterByNamespaceResult = ERR_NO_INIT;
+    CliFunctionDataManagerMock::getAllFunctionsResult = ERR_NO_INIT;
+
+    FunctionInfo function;
+    function.functionName = "null_kv_function";
+    function.functionNamespace = "null_kv_ns";
+    function.functionType = FunctionType::INTENT_FUNCTION;
+
+    EXPECT_EQ(service_->RegisterFunction(function), ERR_NO_INIT);
+
+    FunctionInfo retrievedFunction;
+    EXPECT_EQ(service_->GetFunctionInfo("null_kv_ns", "null_kv_function", retrievedFunction), ERR_NO_INIT);
+
+    EXPECT_EQ(service_->UnregisterFunction("null_kv_ns", "null_kv_function"), ERR_NO_INIT);
+
+    EXPECT_EQ(service_->UnregisterIntentFunctionsByNamespace("null_kv_ns"), ERR_NO_INIT);
+
+    std::vector<FunctionInfo> functions;
+    EXPECT_EQ(service_->GetAllFunctions(functions), ERR_NO_INIT);
+
+    // Reset mock to default values
+    CliFunctionDataManagerMock::Reset();
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_FunctionInterfaces_0100 end";
+}
 } // namespace CliTool
 } // namespace OHOS
