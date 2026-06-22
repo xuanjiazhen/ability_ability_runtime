@@ -97,8 +97,12 @@ bool FunctionInfo::Marshalling(Parcel &parcel) const
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Write functionName failed");
         return false;
     }
-    if (!parcel.WriteString(funcNamespace)) {
+    if (!parcel.WriteString(functionNamespace)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Write namespace failed");
+        return false;
+    }
+    if (!parcel.WriteString(version)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Write version failed");
         return false;
     }
     if (!parcel.WriteString(description)) {
@@ -129,8 +133,12 @@ FunctionInfo *FunctionInfo::Unmarshalling(Parcel &parcel)
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Read functionName failed");
         return nullptr;
     }
-    if (!parcel.ReadString(function->funcNamespace)) {
+    if (!parcel.ReadString(function->functionNamespace)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Read namespace failed");
+        return nullptr;
+    }
+    if (!parcel.ReadString(function->version)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Read version failed");
         return nullptr;
     }
     if (!parcel.ReadString(function->description)) {
@@ -163,7 +171,8 @@ FunctionInfo *FunctionInfo::Unmarshalling(Parcel &parcel)
 bool FunctionInfo::ParseFromJson(const nlohmann::json &json, FunctionInfo &function)
 {
     return ParseRequiredStringField(json, "functionName", function.functionName) &&
-           ParseRequiredStringField(json, "namespace", function.funcNamespace) &&
+           ParseRequiredStringField(json, "functionNamespace", function.functionNamespace) &&
+           ParseRequiredStringField(json, "version", function.version, true) &&
            ParseRequiredStringField(json, "description", function.description, true) &&
            ParseInputSchema(json, function.inputSchema) &&
            ParseOutputSchema(json, function.outputSchema) &&
@@ -175,7 +184,8 @@ nlohmann::json FunctionInfo::ParseToJson() const
     nlohmann::json j;
 
     j["functionName"] = functionName;
-    j["namespace"] = funcNamespace;
+    j["functionNamespace"] = functionNamespace;
+    j["version"] = version;
     j["description"] = description;
 
     if (!inputSchema.empty()) {
@@ -208,7 +218,7 @@ bool FunctionInfo::Validate(const FunctionInfo &function)
         return false;
     }
 
-    if (function.funcNamespace.empty()) {
+    if (function.functionNamespace.empty()) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: namespace is empty");
         return false;
     }
