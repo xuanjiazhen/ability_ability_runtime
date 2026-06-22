@@ -996,5 +996,45 @@ HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_RegisterObserver_051
     SetSelfTokenID(originalToken);
     TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_RegisterObserver_0510 end");
 }
+
+HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_CheckUriSize_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_CheckUriSize_0100 start");
+    auto dataObsMgrServer = std::make_shared<DataObsMgrService>();
+    const sptr<MockDataAbilityObserverStub> dataobsAbility(new (std::nothrow) MockDataAbilityObserverStub());
+    std::string longUriStr = "dataability://device_id/com.domainname.dataability.persondata/person/" +
+        std::string(260, 'a');
+    std::shared_ptr<Uri> uri = std::make_shared<Uri>(longUriStr);
+    int32_t ret = dataObsMgrServer->RegisterObserver(*uri, dataobsAbility);
+    EXPECT_EQ(ret, NO_ERROR);
+    testing::Mock::AllowLeak(dataobsAbility);
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_CheckUriSize_0100 end");
+}
+
+HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_CheckUriSize_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_CheckUriSize_0200 start");
+    auto dataObsMgrServer = std::make_shared<DataObsMgrService>();
+    const sptr<MockDataAbilityObserverStub> dataobsAbility(new (std::nothrow) MockDataAbilityObserverStub());
+    std::string normalUriStr = "dataability://device_id/com.domainname.dataability.persondata/person/10";
+    std::shared_ptr<Uri> uri = std::make_shared<Uri>(normalUriStr);
+    dataObsMgrServer->ReportUriSizeFault(*uri, 0, __FUNCTION__);
+    EXPECT_EQ(uri->ToString().size(), normalUriStr.size());
+    testing::Mock::AllowLeak(dataobsAbility);
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_CheckUriSize_0200 end");
+}
+
+HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_CheckUriSize_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_CheckUriSize_0300 start");
+    auto dataObsMgrServer = std::make_shared<DataObsMgrService>();
+    std::string longUriStr = "dataobs://authority/" + std::string(260, 'b');
+    Uri uri(longUriStr);
+    const sptr<MockDataAbilityObserverStub> dataobsAbility(new (std::nothrow) MockDataAbilityObserverStub());
+    Status ret = dataObsMgrServer->RegisterObserverExt(uri, dataobsAbility, false);
+    EXPECT_EQ(ret, SUCCESS);
+    testing::Mock::AllowLeak(dataobsAbility);
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_CheckUriSize_0300 end");
+}
 }  // namespace AAFwk
 }  // namespace OHOS
