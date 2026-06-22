@@ -5779,6 +5779,13 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
     TAG_LOGI(AAFwkTag::SERVICE_EXT, "element: %{public}s/%{public}s",
         want.GetBundle().c_str(), want.GetElement().GetAbilityName().c_str());
     CheckExtensionRateLimit(want);
+    if (extensionType == AppExecFwk::ExtensionAbilityType::AGENT) {
+        auto ret = ValidateConnectAgentRequest();
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "faile to validate connect agent request");
+            return ret;
+        }
+    }
     if (extensionType == AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
         auto ret = ModularObjectUtils::CheckRateLimit();
         if (ret != ERR_OK) {
@@ -12568,6 +12575,34 @@ bool AbilityManagerService::IsDmsSameAPP(const AbilityRequest &abilityRequest)
         return true;
     }
     return false;
+}
+
+int32_t AbilityManagerService::ValidateConnectAgentRequest()
+{
+    // Reject unauthorized callers before doing any stateful work.
+    if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "caller no system-app, can not use system-api");
+        return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+        AAFwk::PermissionConstants::PERMISSION_CONNECT_AGENT)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "Permission verification failed");
+        return ERR_PERMISSION_DENIED;
+    }
+    // Only foreground apps are allowed to initiate agent connects.
+    auto callerPid = IPCSkeleton::GetCallingPid();
+    AppExecFwk::RunningProcessInfo processInfo;
+    auto ret = IN_PROCESS_CALL(DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->GetRunningProcessInfoByPid(
+        callerPid, processInfo));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "get process failed: %{public}d", ret);
+        return ret;
+    }
+    if (processInfo.state_ != AppExecFwk::AppProcessState::APP_STATE_FOREGROUND) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "not foreground app");
+        return AAFwk::NOT_TOP_ABILITY;
+    }
+    return ERR_OK;
 }
 
 int AbilityManagerService::CheckCallServiceExtensionPermission(const AbilityRequest &abilityRequest)
