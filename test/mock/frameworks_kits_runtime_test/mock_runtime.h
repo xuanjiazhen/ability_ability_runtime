@@ -129,13 +129,10 @@ public:
     void SetExtensionApiCheckCallback(
         std::function<bool(const std::string &className, const std::string &fileName)> &cb) override {}
     void DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary = false) override {}
-    void DumpHeapSnapshot(uint32_t tid, const Runtime::JsHeapDumpParam &param) override {
-        capturedParam = param;
-    }
+    void DumpHeapSnapshot(uint32_t tid, const Runtime::JsHeapDumpParam &param) override {}
     void ForceFullGC(uint32_t tid) override {}
 public:
     Language language;
-    Runtime::JsHeapDumpParam capturedParam;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

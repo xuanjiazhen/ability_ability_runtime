@@ -40,9 +40,7 @@ public:
     void ForceFullGC() override {}
     void ForceFullGC(uint32_t tid) override {}
     void DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary = false) override {}
-    void DumpHeapSnapshot(uint32_t tid, const Runtime::JsHeapDumpParam &param) override {
-        capturedParam = param;
-    }
+    void DumpHeapSnapshot(uint32_t tid, const Runtime::JsHeapDumpParam &param) override {}
     void AllowCrossThreadExecution() override {}
     void GetHeapPrepare() override {}
     void NotifyApplicationState(bool isBackground) override {}
@@ -65,7 +63,6 @@ public:
     void SetLanguage(const Runtime::Language& language) { language_ = language; }
 private:
     Runtime::Language language_ = Runtime::Language::JS;
-    Runtime::JsHeapDumpParam capturedParam;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS
