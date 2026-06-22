@@ -62,7 +62,7 @@ const char BACKTRACE[] = "=====================Backtrace========================
 static const std::string DEBUGGER = "@Debugger";
 static const std::string SYS_HSP_FILE_PATH_PREFIX = "/system/app/";
 constexpr char BUNDLE_INSTALL_PATH[] = "/data/storage/el1/bundle/";
-constexpr char SANDBOX_ARK_PROFILE_PATH[] = "/data/storage/ark-profile/";
+constexpr char SANDBOX_STATIC_ARK_PROFILE_PATH[] = "/data/storage/ark-profile-static/";
 constexpr char ARK_PROFILE_SUFFIX[] = ".ap";
 constexpr char MERGE_ABC_PATH[] = "/ets/modules_static.abc";
 constexpr char ABS_DATA_CODE_PATH[] = "/data/app/el1/bundle/public/";
@@ -741,7 +741,7 @@ std::vector<ETSEnvironment::ProfilePathInfo> ETSEnvironment::BuildProfilePathInf
         }
         std::string abcPath = std::string(BUNDLE_INSTALL_PATH) + moduleName + MERGE_ABC_PATH;
         std::string curProfilePath =
-            std::string(SANDBOX_ARK_PROFILE_PATH) + moduleName + ARK_PROFILE_SUFFIX;
+            std::string(SANDBOX_STATIC_ARK_PROFILE_PATH) + moduleName + ARK_PROFILE_SUFFIX;
         profileInfos.push_back({std::move(abcPath), std::move(curProfilePath), {}});
     }
     return profileInfos;

@@ -668,9 +668,9 @@ HWTEST_F(EtsEnvironmentTest, BuildProfilePathInfos_0100, TestSize.Level1)
     ASSERT_EQ(infos.size(), 2);
 
     const std::string entryAbc = "/data/storage/el1/bundle/entry/ets/modules_static.abc";
-    const std::string entryProfile = "/data/storage/ark-profile/entry.ap";
+    const std::string entryProfile = "/data/storage/ark-profile-static/entry.ap";
     const std::string featureAbc = "/data/storage/el1/bundle/feature/ets/modules_static.abc";
-    const std::string featureProfile = "/data/storage/ark-profile/feature.ap";
+    const std::string featureProfile = "/data/storage/ark-profile-static/feature.ap";
 
     auto findInfo = [&infos](const std::string &abc) -> const ETSEnvironment::ProfilePathInfo * {
         for (const auto &it : infos) {
