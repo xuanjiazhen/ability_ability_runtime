@@ -22,6 +22,7 @@ ohos_unittest("cli_event_reply_manager_test") {
   include_dirs = [
     "${ability_runtime_services_path}/common/include",
     "${cli_tool_framework_path}/interfaces/cli_tool/include",
+    "${cli_tool_framework_path}/interfaces/function/include",
     "${cli_tool_framework_path}/test/unittest/cli_tool_mgr_client_test/mock/include",
   ]
 
@@ -30,6 +31,10 @@ ohos_unittest("cli_event_reply_manager_test") {
     "${cli_tool_framework_path}/interfaces/cli_tool/src/cli_event_reply_manager.cpp",
     "${cli_tool_framework_path}/interfaces/cli_tool/src/cli_session_info.cpp",
     "${cli_tool_framework_path}/interfaces/cli_tool/src/exec_result.cpp",
+  ]
+
+  deps = [
+    "${cli_tool_framework_path}/interfaces/function:function_info",
   ]
 
   external_deps = [
