@@ -25,6 +25,7 @@
 #include "hilog_tag_wrapper.h"
 #include "parameters.h"
 #include "mock_parameters.h"
+#include "mock_bundle_manager.h"
 
 using namespace OHOS;
 using namespace testing;
@@ -39,6 +40,7 @@ const std::string BUNDLE_NAME = "test_bundle";
 const std::string NAME = "test_name";
 const size_t TRUSTLIST_MAX_SIZE = 50;
 const std::string APP_LAUNCH_TRUSTLIST = "ohos.params.appLaunchTrustList";
+constexpr int32_t TEST_USER_ID = 100;
 }
 namespace OHOS {
 namespace AAFwk {
@@ -50,6 +52,7 @@ public:
     static void TearDownTestCase(void);
     void SetUp();
     void TearDown();
+    void ResetAppClonePreferenceMock();
 };
 
 void ImplicitStartProcessorTest::SetUpTestCase(void)
@@ -57,9 +60,21 @@ void ImplicitStartProcessorTest::SetUpTestCase(void)
 void ImplicitStartProcessorTest::TearDownTestCase(void)
 {}
 void ImplicitStartProcessorTest::SetUp()
-{}
+{
+    ResetAppClonePreferenceMock();
+}
 void ImplicitStartProcessorTest::TearDown()
-{}
+{
+    ResetAppClonePreferenceMock();
+}
+
+void ImplicitStartProcessorTest::ResetAppClonePreferenceMock()
+{
+    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    bundleMgrHelper->bmsReady_ = true;
+    bundleMgrHelper->bundleMgr_ = sptr<AppExecFwk::IBundleMgr>(new AppExecFwk::BundleMgrService());
+    AppExecFwk::BundleMgrService::ResetAppClonePreference();
+}
 
 /*
  * Feature: ImplicitStartProcessor
