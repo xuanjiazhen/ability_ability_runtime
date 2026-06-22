@@ -393,7 +393,7 @@ HWTEST_F(DumpRuntimeHelperTestSecond, DumpJsHeap_0800, TestSize.Level1)
     appInfo->arkTSMode = OHOS::AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0;
     auto helper = std::make_shared<DumpRuntimeHelper>(application, appInfo);
     AbilityRuntime::Runtime::Options options;
-    options.lang = AbilityRuntime::Runtime::Language::ETS;
+    options.lang = AbilityRuntime::Runtime::Language::JS;
     auto runtime = AbilityRuntime::Runtime::Create(options);
     application->SetRuntime(std::move(runtime));
     helper = std::make_shared<DumpRuntimeHelper>(application, appInfo);
@@ -463,7 +463,7 @@ HWTEST_F(DumpRuntimeHelperTestSecond, DumpJsHeap_1100, TestSize.Level1)
         ApplicationLoader::GetInstance().GetApplicationByName());
     auto helper = std::make_shared<DumpRuntimeHelper>(application);
     AbilityRuntime::Runtime::Options options;
-    options.lang = AbilityRuntime::Runtime::Language::ETS;
+    options.lang = AbilityRuntime::Runtime::Language::JS;
     auto runtime = AbilityRuntime::Runtime::Create(options);
     application->SetRuntime(std::move(runtime));
     helper = std::make_shared<DumpRuntimeHelper>(application);
