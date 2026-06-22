@@ -211,6 +211,7 @@ ohos_shared_library("appkit_native") {
     "faultloggerd:libdfx_procinfo",
     "faultloggerd:libfaultloggerd",
     "ffrt:libffrt",
+    "form_fwk:form_manager",
     "graphic_2d:2d_graphics",
     "graphic_2d:EGL",
     "graphic_2d:libcomposer",
@@ -507,6 +508,10 @@ ohos_shared_library("app_context") {
 
   external_deps = [
     "ability_base:extractortool",
+    "ability_base:configuration",
+    "ability_base:session_info",
+    "ability_base:want",
+    "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "hilog:libhilog",
@@ -519,12 +524,6 @@ ohos_shared_library("app_context") {
     "resource_management:global_resmgr",
     "samgr:samgr_proxy",
     "icu:shared_icuuc",
-  ]
-  public_external_deps = [
-    "ability_base:configuration",
-    "ability_base:session_info",
-    "ability_base:want",
-    "bundle_framework:appexecfwk_base",
   ]
 
   if (ability_runtime_graphics) {
@@ -586,6 +585,7 @@ ohos_shared_library("app_context_utils") {
     "bundle_framework:appexecfwk_core",
     "bundle_framework:libappexecfwk_common",
     "c_utils:utils",
+    "image_framework:image_native",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
@@ -594,6 +594,7 @@ ohos_shared_library("app_context_utils") {
     "napi:ace_napi",
     "resource_management:global_resmgr",
     "resource_management:resmgr_napi_core",
+    "window_manager:libwmutil",
   ]
 
   public_external_deps = [ "ability_base:configuration" ]
@@ -660,9 +661,11 @@ ohos_shared_library("appkit_delegator") {
   ]
 
   external_deps = [
+    "ability_base:configuration",
     "ability_base:session_info",
     "ability_base:want",
     "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
@@ -672,8 +675,6 @@ ohos_shared_library("appkit_delegator") {
     "napi:ace_napi",
     "samgr:samgr_proxy",
   ]
-
-  public_external_deps = [ "ability_base:configuration" ]
 
   if (cj_frontend) {
     sources += [
@@ -744,6 +745,7 @@ ohos_shared_library("test_runner_ani") {
   ]
 
   external_deps = [
+    "ability_base:configuration",
     "ability_base:session_info",
     "ability_base:want",
     "bundle_framework:appexecfwk_base",
@@ -756,8 +758,6 @@ ohos_shared_library("test_runner_ani") {
     "runtime_core:ani",
     "samgr:samgr_proxy",
   ]
-
-  public_external_deps = [ "ability_base:configuration" ]
 
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"

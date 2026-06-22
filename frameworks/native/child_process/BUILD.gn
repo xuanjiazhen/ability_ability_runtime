@@ -54,6 +54,7 @@ ohos_shared_library("child_process") {
   ]
 
   external_deps = [
+    "ability_base:configuration",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_capi",

@@ -52,6 +52,7 @@ ohos_shared_library("page_config_manager") {
   sources = [ "src/page_config_manager.cpp" ]
 
   external_deps = [
+    "ability_base:configuration",
     "hilog:libhilog",
     "window_manager:libwm",
     "c_utils:utils",

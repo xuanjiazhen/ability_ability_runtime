@@ -25,6 +25,7 @@ ohos_shared_library("abilityconstant_napi") {
   deps = ["${ability_runtime_innerkits_path}/runtime:runtime"]
 
   external_deps = [
+    "ability_base:want",
     "ability_base:zuri",
     "c_utils:utils",
     "hilog:libhilog",
@@ -32,7 +33,6 @@ ohos_shared_library("abilityconstant_napi") {
     "json:nlohmann_json_static",
     "napi:ace_napi",
   ]
-  public_external_deps = [ "ability_base:want" ]
   relative_install_dir = "module/application"
   subsystem_name = "ability"
   part_name = "ability_runtime"
@@ -49,6 +49,7 @@ ohos_shared_library("abilityconstant") {
   deps = ["${ability_runtime_innerkits_path}/runtime:runtime"]
 
   external_deps = [
+    "ability_base:want",
     "ability_base:zuri",
     "c_utils:utils",
     "hilog:libhilog",
@@ -56,7 +57,6 @@ ohos_shared_library("abilityconstant") {
     "json:nlohmann_json_static",
     "napi:ace_napi",
   ]
-  public_external_deps = [ "ability_base:want" ]
   defines = [ "ENABLE_ERRCODE" ]
 
   relative_install_dir = "module/app/ability"

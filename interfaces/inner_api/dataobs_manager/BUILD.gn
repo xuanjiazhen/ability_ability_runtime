@@ -53,12 +53,12 @@ ohos_shared_library("dataobs_manager") {
   deps = []
 
   external_deps = [
+    "ability_base:zuri",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
-  public_external_deps = [ "ability_base:zuri" ]
   innerapi_tags = [
     "platformsdk",
     "sasdk",

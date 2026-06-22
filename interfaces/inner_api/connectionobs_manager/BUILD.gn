@@ -53,6 +53,7 @@ ohos_shared_library("connection_obs_manager") {
 
   external_deps = [
     "ability_base:want",
+    "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_core",
@@ -64,7 +65,6 @@ ohos_shared_library("connection_obs_manager") {
     cflags_cc += [ "-DWITH_DLP" ]
   }
 
-  public_external_deps = [ "bundle_framework:appexecfwk_base" ]
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"

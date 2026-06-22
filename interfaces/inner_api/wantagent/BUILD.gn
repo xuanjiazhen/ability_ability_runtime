@@ -79,7 +79,11 @@ ohos_shared_library("wantagent_innerkits") {
   ]
 
   external_deps = [
+    "ability_base:configuration",
+    "ability_base:session_info",
     "ability_base:want",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
@@ -88,14 +92,6 @@ ohos_shared_library("wantagent_innerkits") {
     "ipc:ipc_core",
     "napi:ace_napi",
     "samgr:samgr_proxy",
-  ]
-
-  public_external_deps = [
-    "ability_base:configuration",
-    "ability_base:session_info",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
-    "eventhandler:libeventhandler",
   ]
 
   if (is_double_framework) {
