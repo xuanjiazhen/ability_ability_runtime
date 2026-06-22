@@ -1463,7 +1463,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     }
 
     int32_t validUserId = oriValidUserId;
-    StartAbilityUtils::SetTargetCloneIndexInSameBundle(param.want, param.callerToken);
+    StartAbilityUtils::ResolveTargetAppCloneIndex(param.want, param.callerToken, validUserId);
     auto sandboxCloneParams = param.sandboxCloneParams;
     if (param.callerToken != nullptr) {
         auto callerRecord = Token::GetAbilityRecordByToken(param.callerToken);
@@ -1966,6 +1966,7 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
     }
 
     int32_t validUserId = oriValidUserId;
+    StartAbilityUtils::ResolveTargetAppCloneIndex(want, callerToken, validUserId);
     int32_t appIndex = 0;
     if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_APP_CLONE_INDEX_INVALID, "GetAppIndex failed");
@@ -2328,7 +2329,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
     }
 
     int32_t validUserId = oriValidUserId;
-    StartAbilityUtils::SetTargetCloneIndexInSameBundle(want, callerToken);
+    StartAbilityUtils::ResolveTargetAppCloneIndex(want, callerToken, validUserId);
     int32_t appIndex = 0;
     if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_APP_CLONE_INDEX_INVALID, "GetAppIndex failed");
@@ -10219,6 +10220,10 @@ int AbilityManagerService::StartAbilityByCallWithErrMsg(const Want &want, const 
         RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
 #endif
     AbilityUtil::RemoveWantKey(const_cast<Want &>(want));
+    bool isWithUI = want.GetBoolParam(Want::PARAM_RESV_CALL_TO_FOREGROUND, false) ? true : !isSilent;
+    if (isWithUI) {
+        StartAbilityUtils::ResolveTargetAppCloneIndex(want, callerToken, oriValidUserId);
+    }
     int32_t appIndex = 0;
     if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
         errMsg = "app index is error";
@@ -10240,7 +10245,6 @@ int AbilityManagerService::StartAbilityByCallWithErrMsg(const Want &want, const 
 
     StartAbilityInfoWrap threadLocalInfo(want, oriValidUserId, appIndex, callerToken);
     auto shouldBlockFunc = [aams = shared_from_this()]() { return aams->ShouldBlockAllAppStart(); };
-    bool isWithUI = want.GetBoolParam(Want::PARAM_RESV_CALL_TO_FOREGROUND, false) ? true : !isSilent;
     AbilityInterceptorParam interceptorParam = AbilityInterceptorParam(want, 0, oriValidUserId, isWithUI, nullptr,
         shouldBlockFunc);
     auto result = interceptorExecuter_ == nullptr ? ERR_INVALID_VALUE :

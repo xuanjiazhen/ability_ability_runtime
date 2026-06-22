@@ -39,6 +39,7 @@ ohos_unittest("ability_manager_service_twelfth_test") {
     "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include",
     "${ability_runtime_services_path}/uripermmgr/include",
     "mock/include",
+    "${ability_runtime_test_path}/unittest/start_ability_utils_test/mock/include",
   ]
 
   sources = [
@@ -69,6 +70,8 @@ ohos_unittest("ability_manager_service_twelfth_test") {
     "${ability_runtime_services_path}/common/src/queue_task_handler_wrap.cpp",
     "${ability_runtime_services_path}/common/src/task_handler_wrap.cpp",
     "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include/mock_ability_manager_client.cpp",
+    "${ability_runtime_test_path}/unittest/start_ability_utils_test/mock/src/mock_bundle_mgr_helper.cpp",
+    "${ability_runtime_test_path}/unittest/start_ability_utils_test/mock/src/mock_my_status.cpp",
     "ability_manager_service_twelfth_test.cpp",
     "mock/src/mock_ability_connect_callback.cpp",
     "mock/src/mock_ipc_skeleton.cpp",
