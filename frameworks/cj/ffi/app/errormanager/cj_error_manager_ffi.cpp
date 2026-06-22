@@ -14,6 +14,7 @@
  */
 
 #include <cstring>
+#include <mutex>
 #include "cj_error_manager_ffi.h"
 #include "cj_error_observer.h"
 #include "application_data_manager.h"
@@ -30,6 +31,7 @@ namespace {
     constexpr const char* ON_OFF_TYPE = "error";
     int32_t g_serialNumber = 0;
     std::shared_ptr<ErrorObserver> g_observer;
+    std::mutex g_errorMtx;
 
     struct CJLoopObserver {
         std::shared_ptr<OHOS::AppExecFwk::EventRunner> mainRunner;
@@ -47,6 +49,7 @@ RetDataI32 FfiOHOSErrorManagerOn(char* onType, CErrorObserver observer)
         TAG_LOGE(AAFwkTag::APPKIT, "FfiOHOSErrorManagerOn failed.");
         return ret;
     }
+    std::lock_guard<std::mutex> lock(g_errorMtx);
     int32_t observerId = g_serialNumber;
     if (g_serialNumber < INT32_MAX) {
         g_serialNumber++;
@@ -77,6 +80,7 @@ int FfiOHOSErrorManagerOff(char* offType, int observerId)
         return ret;
     }
 
+    std::lock_guard<std::mutex> lock(g_errorMtx);
     TAG_LOGI(AAFwkTag::APPKIT, "Unregister errorObserver called.");
     if (g_observer == nullptr || !g_observer->RemoveObserverObject(observerId)) {
         ret = ERROR_CODE_INVALID_ID;
