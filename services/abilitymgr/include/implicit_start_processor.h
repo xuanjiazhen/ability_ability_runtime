@@ -115,6 +115,9 @@ private:
 
     bool IsExistDefaultApp(int32_t userId, const std::string &typeName);
 
+    void ResolveAppClonePreferenceForImplicitStart(int32_t userId,
+        std::vector<AppExecFwk::AbilityInfo> &abilityInfos);
+
     void SetTargetLinkInfo(const std::vector<AppExecFwk::SkillUriForAbilityAndExtension> &skillUri, Want &want);
 
     void OnlyKeepReserveApp(std::vector<AppExecFwk::AbilityInfo> &abilityInfos,

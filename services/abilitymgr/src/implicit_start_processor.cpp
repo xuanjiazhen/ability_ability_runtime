@@ -22,6 +22,7 @@
 #include "ecological_rule/ability_ecological_rule_mgr_service.h"
 #include "global_constant.h"
 #include "hitrace_meter.h"
+#include "multi_app_utils.h"
 #include "start_ability_utils.h"
 #include "startup_util.h"
 #ifdef WITH_DLP
@@ -496,6 +497,7 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId, Abili
         genReqParam.findDefaultApp));
 
     OnlyKeepReserveApp(abilityInfos, extensionInfos, request);
+    ResolveAppClonePreferenceForImplicitStart(userId, abilityInfos);
     if (isOpenLink && extensionInfos.size() > 0) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "clear extensionInfos");
         extensionInfos.clear();
@@ -623,6 +625,44 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId, Abili
     KioskManager::GetInstance().FilterDialogAppInfos(dialogAppInfos);
 
     return ERR_OK;
+}
+
+void ImplicitStartProcessor::ResolveAppClonePreferenceForImplicitStart(int32_t userId,
+    std::vector<AppExecFwk::AbilityInfo> &abilityInfos)
+{
+    if (abilityInfos.empty()) {
+        return;
+    }
+
+    bool hasPreferredApp = false;
+    for (auto &info : abilityInfos) {
+        int32_t appIndex = 0;
+        if (!MultiAppUtils::GetPreferredAppCloneIndex(info.bundleName, userId, appIndex)) {
+            continue;
+        }
+        info.appIndex = appIndex;
+        info.applicationInfo.appIndex = appIndex;
+        hasPreferredApp = true;
+    }
+    if (!hasPreferredApp) {
+        return;
+    }
+
+    std::vector<AppExecFwk::AbilityInfo> abilityInfosWithoutDuplicate;
+    for (const auto &info : abilityInfos) {
+        bool exists = false;
+        for (const auto &addedInfo : abilityInfosWithoutDuplicate) {
+            if (info.bundleName == addedInfo.bundleName && info.moduleName == addedInfo.moduleName &&
+                info.name == addedInfo.name && info.appIndex == addedInfo.appIndex) {
+                exists = true;
+                break;
+            }
+        }
+        if (!exists) {
+            abilityInfosWithoutDuplicate.emplace_back(info);
+        }
+    }
+    abilityInfos = std::move(abilityInfosWithoutDuplicate);
 }
 
 int ImplicitStartProcessor::GenerateAbilityRequestByAppIndexes(int32_t userId, AbilityRequest &request,

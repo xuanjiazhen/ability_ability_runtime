@@ -25,6 +25,7 @@
 #include "hilog_tag_wrapper.h"
 #include "parameters.h"
 #include "mock_parameters.h"
+#include "mock_bundle_manager.h"
 
 using namespace OHOS;
 using namespace testing;
@@ -39,6 +40,8 @@ const std::string BUNDLE_NAME = "test_bundle";
 const std::string NAME = "test_name";
 const size_t TRUSTLIST_MAX_SIZE = 50;
 const std::string APP_LAUNCH_TRUSTLIST = "ohos.params.appLaunchTrustList";
+constexpr int32_t TEST_USER_ID = 100;
+constexpr int32_t PREFERRED_APP_INDEX = 2;
 }
 namespace OHOS {
 namespace AAFwk {
@@ -50,6 +53,7 @@ public:
     static void TearDownTestCase(void);
     void SetUp();
     void TearDown();
+    void ResetAppClonePreferenceMock();
 };
 
 void ImplicitStartProcessorTest::SetUpTestCase(void)
@@ -57,9 +61,21 @@ void ImplicitStartProcessorTest::SetUpTestCase(void)
 void ImplicitStartProcessorTest::TearDownTestCase(void)
 {}
 void ImplicitStartProcessorTest::SetUp()
-{}
+{
+    ResetAppClonePreferenceMock();
+}
 void ImplicitStartProcessorTest::TearDown()
-{}
+{
+    ResetAppClonePreferenceMock();
+}
+
+void ImplicitStartProcessorTest::ResetAppClonePreferenceMock()
+{
+    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    bundleMgrHelper->bmsReady_ = true;
+    bundleMgrHelper->bundleMgr_ = sptr<AppExecFwk::IBundleMgr>(new AppExecFwk::BundleMgrService());
+    AppExecFwk::BundleMgrService::ResetAppClonePreference();
+}
 
 /*
  * Feature: ImplicitStartProcessor
@@ -1235,6 +1251,72 @@ HWTEST_F(ImplicitStartProcessorTest, FindAbilityAppClone_001, TestSize.Level1)
     res = processor->FindAbilityAppClone(abilityInfos);
     EXPECT_TRUE(res);
     TAG_LOGI(AAFwkTag::TEST, "FindAbilityAppClone_001 end");
+}
+
+/*
+ * Feature: ImplicitStartProcessor
+ * Function: ResolveAppClonePreferenceForImplicitStart
+ * SubFunction: NA
+ * FunctionPoints: ImplicitStartProcessor ResolveAppClonePreferenceForImplicitStart
+ * EnvConditions: NA
+ * CaseDescription: Verify implicit ability candidates use bundle manager preferred clone.
+ */
+HWTEST_F(ImplicitStartProcessorTest, ResolveAppClonePreferenceForImplicitStart_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ResolveAppClonePreferenceForImplicitStart_001 start");
+    auto processor = std::make_shared<ImplicitStartProcessor>();
+    AppExecFwk::AbilityInfo mainAbilityInfo;
+    mainAbilityInfo.bundleName = BUNDLE_NAME;
+    mainAbilityInfo.moduleName = "entry";
+    mainAbilityInfo.name = NAME;
+    AppExecFwk::AbilityInfo cloneAbilityInfo = mainAbilityInfo;
+    cloneAbilityInfo.appIndex = 1;
+    cloneAbilityInfo.applicationInfo.appIndex = 1;
+    std::vector<AppExecFwk::AbilityInfo> abilityInfos = { mainAbilityInfo, cloneAbilityInfo };
+    AppExecFwk::BundleMgrService::appClonePreference_.mode = AppExecFwk::AppClonePreferenceMode::CLONE_APP;
+    AppExecFwk::BundleMgrService::appClonePreference_.appIndex = PREFERRED_APP_INDEX;
+
+    processor->ResolveAppClonePreferenceForImplicitStart(TEST_USER_ID, abilityInfos);
+
+    ASSERT_EQ(abilityInfos.size(), 1);
+    EXPECT_EQ(abilityInfos.front().appIndex, PREFERRED_APP_INDEX);
+    EXPECT_EQ(abilityInfos.front().applicationInfo.appIndex, PREFERRED_APP_INDEX);
+    EXPECT_EQ(AppExecFwk::BundleMgrService::lastClonePreferenceBundleName_, BUNDLE_NAME);
+    EXPECT_EQ(AppExecFwk::BundleMgrService::lastClonePreferenceUserId_, TEST_USER_ID);
+    TAG_LOGI(AAFwkTag::TEST, "ResolveAppClonePreferenceForImplicitStart_001 end");
+}
+
+/*
+ * Feature: ImplicitStartProcessor
+ * Function: ResolveAppClonePreferenceForImplicitStart
+ * SubFunction: NA
+ * FunctionPoints: ImplicitStartProcessor ResolveAppClonePreferenceForImplicitStart
+ * EnvConditions: NA
+ * CaseDescription: Verify main app preference selects main app and removes clone duplicates.
+ */
+HWTEST_F(ImplicitStartProcessorTest, ResolveAppClonePreferenceForImplicitStart_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ResolveAppClonePreferenceForImplicitStart_002 start");
+    auto processor = std::make_shared<ImplicitStartProcessor>();
+    AppExecFwk::AbilityInfo mainAbilityInfo;
+    mainAbilityInfo.bundleName = BUNDLE_NAME;
+    mainAbilityInfo.moduleName = "entry";
+    mainAbilityInfo.name = NAME;
+    AppExecFwk::AbilityInfo cloneAbilityInfo = mainAbilityInfo;
+    cloneAbilityInfo.appIndex = 1;
+    cloneAbilityInfo.applicationInfo.appIndex = 1;
+    std::vector<AppExecFwk::AbilityInfo> abilityInfos = { mainAbilityInfo, cloneAbilityInfo };
+    AppExecFwk::BundleMgrService::appClonePreference_.mode = AppExecFwk::AppClonePreferenceMode::MAIN_APP;
+    AppExecFwk::BundleMgrService::appClonePreference_.appIndex = PREFERRED_APP_INDEX;
+
+    processor->ResolveAppClonePreferenceForImplicitStart(TEST_USER_ID, abilityInfos);
+
+    ASSERT_EQ(abilityInfos.size(), 1);
+    EXPECT_EQ(abilityInfos.front().appIndex, 0);
+    EXPECT_EQ(abilityInfos.front().applicationInfo.appIndex, 0);
+    EXPECT_EQ(AppExecFwk::BundleMgrService::lastClonePreferenceBundleName_, BUNDLE_NAME);
+    EXPECT_EQ(AppExecFwk::BundleMgrService::lastClonePreferenceUserId_, TEST_USER_ID);
+    TAG_LOGI(AAFwkTag::TEST, "ResolveAppClonePreferenceForImplicitStart_002 end");
 }
 
 /*
