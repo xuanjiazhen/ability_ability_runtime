@@ -30,8 +30,11 @@ using namespace OHOS::AbilityRuntime;
 
 namespace OHOS {
 namespace CliTool {
+
 namespace {
 constexpr int64_t MAX_TIMEOUT = 30 * 60; // 30 m
+}
+
 napi_value ParseJsonStringToJsObject(napi_env env, const std::string &jsonStr)
 {
     napi_value jsObj = nullptr;
@@ -88,7 +91,7 @@ napi_value ParseJsonStringToJsObject(napi_env env, const std::string &jsonStr)
 
     return jsValue;
 }
-}
+
 bool UnwrapStringMap(napi_env env, napi_value obj,
     std::map<std::string, std::string> &values)
 {

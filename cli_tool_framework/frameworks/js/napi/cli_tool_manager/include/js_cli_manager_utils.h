@@ -107,6 +107,14 @@ napi_value CreateJsToolInfo(napi_env env, const ToolInfo &tool);
  */
 napi_value CreateJsToolSummary(napi_env env, const ToolSummary &summary);
 
+/**
+ * @brief Parse JSON string to JavaScript object.
+ * @param env The N-API environment.
+ * @param jsonStr The JSON string to parse.
+ * @return Returns the JavaScript object.
+ */
+napi_value ParseJsonStringToJsObject(napi_env env, const std::string &jsonStr);
+
 } // namespace CliTool
 } // namespace OHOS
 
