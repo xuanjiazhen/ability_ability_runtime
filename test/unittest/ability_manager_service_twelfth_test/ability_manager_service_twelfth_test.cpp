@@ -18,6 +18,7 @@
 #include "mock_ipc_skeleton.h"
 #include "mock_permission_verification.h"
 #include "mock_my_flag.h"
+#include "mock_my_status.h"
 #include "mock_ability_connect_callback.h"
 #include "ability_manager_service.h"
 #include "modal_system_dialog/modal_system_dialog_ui_extension.h"
@@ -60,6 +61,25 @@ namespace OHOS {
 namespace AAFwk {
 namespace {
 constexpr int32_t ACCOUNT_MGR_SERVICE_UID = 3058;
+constexpr int32_t DEFAULT_CLONE_APP_INDEX = 2;
+
+void ResetAppClonePreferenceMock()
+{
+    auto &status = MyStatus::GetInstance();
+    status.retValue_ = false;
+    status.getAppClonePreferenceRet_ = ERR_OK;
+    status.appClonePreference_ = AppExecFwk::AppClonePreference();
+    status.lastClonePreferenceBundleName_.clear();
+    status.lastClonePreferenceUserId_ = -1;
+    MyFlag::flag_ = MyFlag::FLAG::IS_SA_CALL;
+}
+
+void SetClonePreference(int32_t appIndex)
+{
+    auto &status = MyStatus::GetInstance();
+    status.appClonePreference_.mode = AppExecFwk::AppClonePreferenceMode::CLONE_APP;
+    status.appClonePreference_.appIndex = appIndex;
+}
 } // namespace
 class AbilityManagerServiceTwelfthTest : public testing::Test {
 public:
@@ -593,6 +613,128 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityByCallWithErrMsg_001, Tes
     retCode = abilityMs_->StartAbilityByCallWithErrMsg(want, connect, nullptr, accountId, errMsg);
     EXPECT_EQ(retCode, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityByCallWithErrMsg_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityByCallWithErrMsg
+ * SubFunction: NA
+ * FunctionPoints: Foreground startAbilityByCall applies default clone preference
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityByCallWithErrMsg_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityByCallWithErrMsg_002 start");
+    ResetAppClonePreferenceMock();
+    SetClonePreference(DEFAULT_CLONE_APP_INDEX);
+    MyFlag::flag_ = ERR_OK;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    want.SetParam(Want::PARAM_RESV_CALL_TO_FOREGROUND, true);
+    std::string errMsg;
+    sptr<IAbilityConnection> connect = new AbilityConnectCallback();
+
+    auto retCode = abilityMs->StartAbilityByCallWithErrMsg(want, connect, nullptr,
+        DEFAULT_INVAL_VALUE, errMsg, true);
+
+    EXPECT_EQ(retCode, ERR_INVALID_VALUE);
+    EXPECT_EQ(want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1), DEFAULT_CLONE_APP_INDEX);
+    EXPECT_EQ(MyStatus::GetInstance().lastClonePreferenceBundleName_, "com.ohos.test");
+    ResetAppClonePreferenceMock();
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityByCallWithErrMsg_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityByCallWithErrMsg
+ * SubFunction: NA
+ * FunctionPoints: Explicit clone index wins on foreground startAbilityByCall
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityByCallWithErrMsg_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityByCallWithErrMsg_003 start");
+    ResetAppClonePreferenceMock();
+    SetClonePreference(DEFAULT_CLONE_APP_INDEX);
+    MyFlag::flag_ = ERR_OK;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    want.SetParam(Want::PARAM_RESV_CALL_TO_FOREGROUND, true);
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, ONE);
+    std::string errMsg;
+    sptr<IAbilityConnection> connect = new AbilityConnectCallback();
+
+    auto retCode = abilityMs->StartAbilityByCallWithErrMsg(want, connect, nullptr,
+        DEFAULT_INVAL_VALUE, errMsg, true);
+
+    EXPECT_EQ(retCode, ERR_INVALID_VALUE);
+    EXPECT_EQ(want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1), ONE);
+    EXPECT_TRUE(MyStatus::GetInstance().lastClonePreferenceBundleName_.empty());
+    ResetAppClonePreferenceMock();
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityByCallWithErrMsg_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityByCallWithErrMsg
+ * SubFunction: NA
+ * FunctionPoints: Same-bundle caller clone wins on foreground startAbilityByCall
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityByCallWithErrMsg_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityByCallWithErrMsg_004 start");
+    ResetAppClonePreferenceMock();
+    SetClonePreference(DEFAULT_CLONE_APP_INDEX);
+    MyFlag::flag_ = ERR_OK;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    want.SetParam(Want::PARAM_RESV_CALL_TO_FOREGROUND, true);
+    AbilityRequest abilityRequest;
+    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->abilityInfo_.bundleName = "com.ohos.test";
+    abilityRecord->abilityInfo_.applicationInfo.appIndex = ONE;
+    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
+    std::string errMsg;
+    sptr<IAbilityConnection> connect = new AbilityConnectCallback();
+
+    auto retCode = abilityMs->StartAbilityByCallWithErrMsg(want, connect, callerToken,
+        DEFAULT_INVAL_VALUE, errMsg, true);
+
+    EXPECT_EQ(retCode, ERR_INVALID_VALUE);
+    EXPECT_EQ(want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1), ONE);
+    EXPECT_TRUE(MyStatus::GetInstance().lastClonePreferenceBundleName_.empty());
+    ResetAppClonePreferenceMock();
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityByCallWithErrMsg_004 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityByCallWithErrMsg
+ * SubFunction: NA
+ * FunctionPoints: Silent startAbilityByCall keeps existing behavior
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, StartAbilityByCallWithErrMsg_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityByCallWithErrMsg_005 start");
+    ResetAppClonePreferenceMock();
+    SetClonePreference(DEFAULT_CLONE_APP_INDEX);
+    MyFlag::flag_ = ERR_OK;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    std::string errMsg;
+    sptr<IAbilityConnection> connect = new AbilityConnectCallback();
+
+    auto retCode = abilityMs->StartAbilityByCallWithErrMsg(want, connect, nullptr,
+        DEFAULT_INVAL_VALUE, errMsg, true);
+
+    EXPECT_EQ(retCode, ERR_INVALID_VALUE);
+    EXPECT_FALSE(want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY));
+    EXPECT_TRUE(MyStatus::GetInstance().lastClonePreferenceBundleName_.empty());
+    ResetAppClonePreferenceMock();
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest StartAbilityByCallWithErrMsg_005 end");
 }
 
 /*
