@@ -23,6 +23,10 @@
 namespace OHOS {
 constexpr static int REPOLL_TIME_MICRO_SECONDS = 1000000;
 
+namespace AAFwk {
+class MultiAppUtils;
+}
+
 namespace AppExecFwk {
 using Want = OHOS::AAFwk::Want;
 
@@ -156,6 +160,9 @@ public:
     bool QueryEnabledExtensionAbilityInfo(const Want &want, int32_t userId, ExtensionAbilityInfo &extensionInfo);
 
 private:
+    friend class AAFwk::MultiAppUtils;
+
+    ErrCode GetAppClonePreference(const std::string &bundleName, int32_t userId, AppClonePreference &preference);
     sptr<IBundleMgr> Connect();
     sptr<IBundleMgr> Connect(bool checkBmsReady);
     sptr<IBundleInstaller> ConnectBundleInstaller();

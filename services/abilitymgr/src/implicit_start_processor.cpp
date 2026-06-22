@@ -14,6 +14,8 @@
  */
 #include "implicit_start_processor.h"
 
+#include <unordered_map>
+
 #include "ability_manager_service.h"
 #include "ability_util.h"
 #include "app_scheduler.h"
@@ -22,6 +24,7 @@
 #include "ecological_rule/ability_ecological_rule_mgr_service.h"
 #include "global_constant.h"
 #include "hitrace_meter.h"
+#include "multi_app_utils.h"
 #include "start_ability_utils.h"
 #include "startup_util.h"
 #ifdef WITH_DLP
@@ -56,6 +59,35 @@ const std::string FILE_SCHEME_NAME = "file";
 const std::string APP_CLONE_INDEX = "ohos.extra.param.key.appCloneIndex";
 const std::string APP_LAUNCH_TRUSTLIST = "ohos.params.appLaunchTrustList";
 constexpr const char* SUPPORT_ACTION_START_SELECTOR = "persist.sys.ability.support.action_start_selector";
+
+struct AppClonePreferenceCache {
+    bool hasPreference = false;
+    int32_t appIndex = 0;
+};
+
+bool IsSameAbilityCandidate(const AppExecFwk::AbilityInfo &left, const AppExecFwk::AbilityInfo &right)
+{
+    return left.bundleName == right.bundleName && left.moduleName == right.moduleName && left.name == right.name;
+}
+
+bool IsAbilityAppIndexMatched(const AppExecFwk::AbilityInfo &info, int32_t appIndex)
+{
+    return info.appIndex == appIndex || info.applicationInfo.appIndex == appIndex;
+}
+
+AppClonePreferenceCache GetPreferenceFromCache(const std::string &bundleName, int32_t userId,
+    std::unordered_map<std::string, AppClonePreferenceCache> &cache)
+{
+    auto iter = cache.find(bundleName);
+    if (iter != cache.end()) {
+        return iter->second;
+    }
+
+    AppClonePreferenceCache result;
+    result.hasPreference = MultiAppUtils::GetPreferredAppCloneIndex(bundleName, userId, result.appIndex);
+    cache.emplace(bundleName, result);
+    return result;
+}
 
 void SendAbilityEvent(const EventName &eventName, HiSysEventEventType type, const EventInfo &eventInfo)
 {
@@ -496,6 +528,7 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId, Abili
         genReqParam.findDefaultApp));
 
     OnlyKeepReserveApp(abilityInfos, extensionInfos, request);
+    ResolveAppClonePreferenceForImplicitStart(userId, abilityInfos);
     if (isOpenLink && extensionInfos.size() > 0) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "clear extensionInfos");
         extensionInfos.clear();
@@ -623,6 +656,69 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId, Abili
     KioskManager::GetInstance().FilterDialogAppInfos(dialogAppInfos);
 
     return ERR_OK;
+}
+
+void ImplicitStartProcessor::ResolveAppClonePreferenceForImplicitStart(int32_t userId,
+    std::vector<AppExecFwk::AbilityInfo> &abilityInfos)
+{
+    if (abilityInfos.empty()) {
+        return;
+    }
+
+    std::unordered_map<std::string, AppClonePreferenceCache> preferenceCache;
+    std::vector<AppExecFwk::AbilityInfo> resolvedAbilityInfos;
+    std::vector<bool> resolved(abilityInfos.size(), false);
+    bool hasResolvedPreferredApp = false;
+    for (size_t i = 0; i < abilityInfos.size(); ++i) {
+        if (resolved[i]) {
+            continue;
+        }
+
+        auto preference = GetPreferenceFromCache(abilityInfos[i].bundleName, userId, preferenceCache);
+        size_t preferredIndex = i;
+        bool preferredFound = false;
+        for (size_t j = i; j < abilityInfos.size(); ++j) {
+            if (!IsSameAbilityCandidate(abilityInfos[i], abilityInfos[j])) {
+                continue;
+            }
+            if (preference.hasPreference && IsAbilityAppIndexMatched(abilityInfos[j], preference.appIndex)) {
+                preferredIndex = j;
+                preferredFound = true;
+            }
+            resolved[j] = true;
+        }
+
+        if (!preference.hasPreference) {
+            for (size_t j = i; j < abilityInfos.size(); ++j) {
+                if (IsSameAbilityCandidate(abilityInfos[i], abilityInfos[j])) {
+                    resolvedAbilityInfos.emplace_back(abilityInfos[j]);
+                }
+            }
+            continue;
+        }
+
+        if (!preferredFound) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR,
+                "preferred clone candidate not found, bundle:%{public}s appIndex:%{public}d",
+                abilityInfos[i].bundleName.c_str(), preference.appIndex);
+            for (size_t j = i; j < abilityInfos.size(); ++j) {
+                if (IsSameAbilityCandidate(abilityInfos[i], abilityInfos[j])) {
+                    resolvedAbilityInfos.emplace_back(abilityInfos[j]);
+                }
+            }
+            continue;
+        }
+
+        auto preferredInfo = abilityInfos[preferredIndex];
+        preferredInfo.appIndex = preference.appIndex;
+        preferredInfo.applicationInfo.appIndex = preference.appIndex;
+        resolvedAbilityInfos.emplace_back(preferredInfo);
+        hasResolvedPreferredApp = true;
+    }
+
+    if (hasResolvedPreferredApp) {
+        abilityInfos = std::move(resolvedAbilityInfos);
+    }
 }
 
 int ImplicitStartProcessor::GenerateAbilityRequestByAppIndexes(int32_t userId, AbilityRequest &request,
