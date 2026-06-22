@@ -251,7 +251,7 @@ HWTEST_F(EtsEnvironmentTest, Initialize_0100, TestSize.Level0)
 {
     auto etsEnv = std::make_shared<ETSEnvironment>();
     ASSERT_NE(etsEnv, nullptr);
-    bool result = etsEnv->Initialize(nullptr, false);
+    bool result = etsEnv->Initialize(nullptr, false, "");
     EXPECT_FALSE(result);
 }
 
@@ -297,7 +297,6 @@ HWTEST_F(EtsEnvironmentTest, LoadAbcLinker_0200, TestSize.Level0)
 
     OHOS::AbilityRuntime::CommonHspBundleInfo info;
     info.versionCode = 0;
-    info.aotCompileStatus = 0;
     info.bundleName = "bundle";
     info.moduleName = "module";
     info.hapPath = "/data/app/el1/bundle/public/hsp/test.hsp";
@@ -807,7 +806,6 @@ HWTEST_F(EtsEnvironmentTest, SetHspAbcFiles_0300, TestSize.Level0)
 
     OHOS::AbilityRuntime::CommonHspBundleInfo info;
     info.versionCode = 0;
-    info.aotCompileStatus = 0;
     info.bundleName = "bundle";
     info.moduleName = "module";
     info.hapPath = "/data/app/el1/bundle/public/hsp/test.hsp";
@@ -840,7 +838,6 @@ HWTEST_F(EtsEnvironmentTest, SetHspAbcFiles_0400, TestSize.Level0)
 
     OHOS::AbilityRuntime::CommonHspBundleInfo info;
     info.versionCode = 0;
-    info.aotCompileStatus = 0;
     info.bundleName = "bundle";
     info.moduleName = "module";
     info.hapPath = "/data/app/el1/bundle/public/hsp/test.hsp";
@@ -868,7 +865,6 @@ HWTEST_F(EtsEnvironmentTest, SetHspAbcFiles_0500, TestSize.Level0)
 
     OHOS::AbilityRuntime::CommonHspBundleInfo info;
     info.versionCode = 0;
-    info.aotCompileStatus = 0;
     info.bundleName = "bundle";
     info.moduleName = "module";
     info.hapPath = "/data/app/el1/bundle/public/hsp/test.hsp";
@@ -896,7 +892,6 @@ HWTEST_F(EtsEnvironmentTest, SetHspAbcFiles_0600, TestSize.Level0)
 
     OHOS::AbilityRuntime::CommonHspBundleInfo info;
     info.versionCode = 0;
-    info.aotCompileStatus = 0;
     info.bundleName = "bundle";
     info.moduleName = "module";
     info.hapPath = "/data/app/el1/bundle/public/hsp/test.hsp";

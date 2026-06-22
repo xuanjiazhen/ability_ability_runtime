@@ -22,6 +22,7 @@
 
 #include "cli_session_info.h"
 #include "cli_tool_event.h"
+#include "exec_cmd_param.h"
 #include "exec_options.h"
 #include "icli_tool_manager.h"
 #include "iremote_object.h"
@@ -93,12 +94,54 @@ public:
     ErrCode RegisterTool(const ToolInfo &tool);
 
     /**
+     * @brief Register a function
+     * @param function FunctionInfo to register
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode RegisterFunction(const FunctionInfo &function);
+
+    /**
+     * @brief Get function information by bundleName and functionName
+     * @param bundleName Bundle name
+     * @param functionName Function name
+     * @param function Output FunctionInfo
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode GetFunctionInfo(const std::string &funcNamespace, const std::string &functionName,
+        FunctionInfo &function);
+
+    /**
+     * @brief Unregister a function
+     * @param funcNamespace Namespace
+     * @param functionName Function name
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode UnregisterFunction(const std::string &funcNamespace, const std::string &functionName);
+
+    /**
+     * @brief Batch unregister intentFunctions by namespace
+     * @param funcNamespace Namespace to delete all functions from
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode UnregisterIntentFunctionsByNamespace(const std::string &funcNamespace);
+
+    /**
+     * @brief Get all functions
+     * @param functions Output vector of FunctionInfo
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode GetAllFunctions(std::vector<FunctionInfo> &functions);
+
+    /**
      * @brief Execute a CLI tool with key-value pairs (convenience method).
      * @param param The CLI tool param.
      * @param callback reply callback.
      * @return Returns ERR_OK on success, error code otherwise.
      */
     ErrCode ExecTool(const ExecToolParam &param, const ExecToolReplyCallback &callback);
+
+    ErrCode ExecCmd(const ExecCmdParam &param,
+        const ExecToolReplyCallback &callback, const std::shared_ptr<SessionEventCallback> &sessionEventCallback);
 
     ErrCode SubscribeSession(const std::string &sessionId,
                              const std::shared_ptr<SessionEventCallback> &callback,
