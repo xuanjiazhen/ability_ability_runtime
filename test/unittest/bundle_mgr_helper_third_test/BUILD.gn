@@ -11,45 +11,58 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos.gni")
 import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
-module_output_path = "ability_runtime/ability_runtime/ohos-arkts"
+module_output_path = "ability_runtime/ability_runtime/ability_bundle_manager_helper"
 
-ohos_unittest("ohos-arkts-test") {
+ohos_unittest("bundle_mgr_helper_third_test") {
   module_out_path = module_output_path
 
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "../../cfi_blocklist.txt"
+  }
+
   include_dirs = [
-    "${ability_runtime_path}/tools/ohos-arktsScript/include",
-    "${ability_runtime_innerkits_path}/runtime/include",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper/",
+    "${ability_runtime_services_path}/abilitymgr/include",
+    "${ability_runtime_services_path}/common/include",
   ]
 
   sources = [
-    "arkts_script_test.cpp",
+    "${ability_runtime_native_path}/appkit/ability_bundle_manager_helper/bundle_mgr_helper.cpp",
+    "bundle_mgr_helper_third_test.cpp",
+  ]
+
+  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
+
+  cflags = [
+    "-Dprivate = public",
+    "-Dprotected = public",
   ]
 
   deps = [
-    "${ability_runtime_path}/tools/ohos-arktsScript:arkts_script",
+    "${ability_runtime_services_path}/common:app_util",
   ]
 
   external_deps = [
-    "ability_base:base",
-    "ability_base:configuration",
+    "ability_base:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
-    "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
     "ipc:ipc_core",
-    "json:nlohmann_json_static",
-    "napi:ace_napi",
+    "samgr:samgr_proxy",
   ]
 }
 
 group("unittest") {
   testonly = true
-  deps = [ ":ohos-arkts-test" ]
+  deps = [ ":bundle_mgr_helper_third_test" ]
 }

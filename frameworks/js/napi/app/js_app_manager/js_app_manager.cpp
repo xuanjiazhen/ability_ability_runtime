@@ -442,7 +442,7 @@ private:
         sptr<JSAbilityFirstFrameStateObserver> observer = new (std::nothrow) JSAbilityFirstFrameStateObserver(env);
         if (abilityManager_ == nullptr || observer == nullptr) {
             TAG_LOGE(AAFwkTag::APPMGR, "null abilityMgr_ or observer");
-            ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER,
+            ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
                 abilityManager_ == nullptr ? GetInnerErrorMsg(AbilityInnerErrorMsg::GET_ABILITYMS_FAILED) :
                 GetInnerErrorMsg(AbilityInnerErrorMsg::CREATE_OBSERVER_FAILED));
             return CreateJsUndefined(env);
@@ -1507,7 +1507,7 @@ if (observer == nullptr || appManager == nullptr) {
     {
         auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
         NapiAsyncTask::ExecuteCallback execute = [bundleName, userId, flag,
-            abilityManager = abilityManager_, innerErrCode, innerErrorMsg = std::string()]() {
+            abilityManager = abilityManager_, innerErrCode, innerErrorMsg = std::make_shared<std::string>()]() {
             if (innerErrCode == nullptr) {
                 TAG_LOGE(AAFwkTag::APPMGR, "inner code null");
                 return;
@@ -1515,7 +1515,7 @@ if (observer == nullptr || appManager == nullptr) {
             if (abilityManager == nullptr) {
                 TAG_LOGE(AAFwkTag::APPMGR, "abilityManager nullptr");
                 *innerErrCode = static_cast<int>(AbilityErrorCode::ERROR_CODE_INNER);
-                innerErrorMsg = GetInnerErrorMsg(AbilityInnerErrorMsg::GET_ABILITYMS_FAILED);
+                *innerErrorMsg = GetInnerErrorMsg(AbilityInnerErrorMsg::GET_ABILITYMS_FAILED);
                 return;
             }
             *innerErrCode = abilityManager->SetApplicationKeepAlive(bundleName, userId, flag);
