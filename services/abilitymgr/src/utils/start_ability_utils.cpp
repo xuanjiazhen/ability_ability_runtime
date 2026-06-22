@@ -22,6 +22,7 @@
 #include "app_utils.h"
 #include "global_constant.h"
 #include "hitrace_meter.h"
+#include "multi_app_utils.h"
 #include "startup_util.h"
 #include "permission_verification.h"
 #include "permission_constants.h"
@@ -31,8 +32,21 @@ namespace OHOS {
 namespace AAFwk {
 namespace {
 constexpr int32_t ERMS_ISALLOW_RESULTCODE = 10;
+constexpr int32_t BASE_USER_RANGE = 200000;
 constexpr const char* PARAM_RESV_ANCO_CALLER_UID = "ohos.anco.param.callerUid";
 constexpr const char* PARAM_RESV_ANCO_CALLER_BUNDLENAME = "ohos.anco.param.callerBundleName";
+
+int32_t GetUserIdFromCallerToken(const sptr<IRemoteObject> &callerToken)
+{
+    auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
+    if (abilityRecord != nullptr) {
+        auto uid = abilityRecord->GetApplicationInfo().uid;
+        if (uid >= 0) {
+            return uid / BASE_USER_RANGE;
+        }
+    }
+    return IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+}
 }
 thread_local std::shared_ptr<StartAbilityInfo> StartAbilityUtils::startAbilityInfo;
 thread_local std::shared_ptr<StartAbilityInfo> StartAbilityUtils::callerAbilityInfo;
@@ -446,10 +460,27 @@ void StartAbilityUtils::SetTargetCloneIndexInSameBundle(const Want &want, sptr<I
     }
 }
 
+void StartAbilityUtils::ResolveTargetAppCloneIndex(const Want &want, sptr<IRemoteObject> callerToken, int32_t userId)
+{
+    if (want.HasParameter(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY)) {
+        return;
+    }
+
+    SetTargetCloneIndexInSameBundle(want, callerToken);
+    if (want.HasParameter(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY)) {
+        return;
+    }
+
+    int32_t appIndex = 0;
+    if (MultiAppUtils::GetPreferredAppCloneIndex(want.GetBundle(), userId, appIndex)) {
+        (const_cast<Want &>(want)).SetParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, appIndex);
+    }
+}
+
 int32_t StartAbilityUtils::StartUIAbilitiesProcessAppIndex(Want &want,
     sptr<IRemoteObject> callerToken, int32_t &appIndex)
 {
-    SetTargetCloneIndexInSameBundle(want, callerToken);
+    ResolveTargetAppCloneIndex(want, callerToken, GetUserIdFromCallerToken(callerToken));
     if (!want.HasParameter(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY)) {
         want.SetParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, 0);
     }
