@@ -48,6 +48,7 @@ int32_t InsightRdbStorageMgr::LoadInsightIntentInfos(const int32_t userId,
     std::vector<InsightIntentInfo> &configInfos)
 {
     TAG_LOGD(AAFwkTag::INTENT, "InsightRdbStorageMgr load all intent total infos");
+    std::lock_guard<std::mutex> lock(rdbStorePtrMutex_);
     std::unordered_map<std::string, std::string> value;
     std::string key = std::to_string(userId).append("/");
     bool result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->QueryDataBeginWithKey(key, value);
@@ -70,6 +71,7 @@ int32_t InsightRdbStorageMgr::LoadConfigInsightIntentInfos(const int32_t userId,
     std::vector<InsightIntentInfo> &configInfos)
 {
     TAG_LOGD(AAFwkTag::INTENT, "InsightRdbStorageMgr load config intent total infos");
+    std::lock_guard<std::mutex> lock(rdbStorePtrMutex_);
     std::unordered_map<std::string, std::string> value;
     std::string key = std::to_string(userId).append("/");
     bool result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->QueryDataBeginWithKey(key, value);
@@ -85,6 +87,7 @@ int32_t InsightRdbStorageMgr::LoadConfigInsightIntentInfoByName(const std::strin
     std::vector<InsightIntentInfo> &totalInfos)
 {
     TAG_LOGD(AAFwkTag::INTENT, "load intent total infos by bundleName, %{public}s", bundleName.c_str());
+    std::lock_guard<std::mutex> lock(rdbStorePtrMutex_);
     std::unordered_map<std::string, std::string> value;
     std::string key = std::to_string(userId).append("/").append(bundleName).append("/");
     bool result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->QueryDataBeginWithKey(key, value);
@@ -100,6 +103,7 @@ int32_t InsightRdbStorageMgr::LoadInsightIntentInfoByName(const std::string &bun
     std::vector<ExtractInsightIntentInfo> &totalInfos)
 {
     TAG_LOGD(AAFwkTag::INTENT, "load intent total infos by bundleName, %{public}s", bundleName.c_str());
+    std::lock_guard<std::mutex> lock(rdbStorePtrMutex_);
     std::unordered_map<std::string, std::string> value;
     std::string key = std::to_string(userId).append("/").append(bundleName).append("/");
     bool result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->QueryDataBeginWithKey(key, value);
@@ -116,6 +120,7 @@ int32_t InsightRdbStorageMgr::LoadInsightIntentInfo(const std::string &bundleNam
     const std::string &intentName, const int32_t userId, ExtractInsightIntentInfo &totalInfo)
 {
     TAG_LOGD(AAFwkTag::INTENT, "InsightRdbStorageMgr load intent total info");
+    std::lock_guard<std::mutex> lock(rdbStorePtrMutex_);
     std::unordered_map<std::string, std::string> value;
     std::string key = std::to_string(userId).append("/").append(bundleName).append("/")
         .append(moduleName).append("/").append(intentName);
@@ -144,6 +149,7 @@ int32_t InsightRdbStorageMgr::LoadConfigInsightIntentInfo(const std::string &bun
     const std::string &intentName, const int32_t userId, InsightIntentInfo &totalInfo)
 {
     TAG_LOGD(AAFwkTag::INTENT, "InsightRdbStorageMgr load intent total info");
+    std::lock_guard<std::mutex> lock(rdbStorePtrMutex_);
     std::unordered_map<std::string, std::string> value;
     std::string key = std::to_string(userId).append("/").append(bundleName).append("/")
         .append(moduleName).append("/").append(intentName);
