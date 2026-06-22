@@ -21,10 +21,13 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "cli_tool_manager_stub.h"
 #include "cli_tool_data_manager.h"
+#include "exec_cmd_param.h"
+#include "exec_options.h"
 #include "ffrt.h"
 #include "iremote_object.h"
 #include "system_ability.h"
@@ -84,6 +87,9 @@ public:
     int32_t ExecTool(const ExecToolParam &param, const std::string &eventId,
         const sptr<ICliToolManagerScheduler> &scheduler) override;
 
+    int32_t ExecCmd(const ExecCmdParam &param, const std::string &eventId,
+        const sptr<ICliToolManagerScheduler> &scheduler, const std::string &subscriptionId) override;
+
     int32_t ClearSession(const std::string &sessionId) override;
     int32_t SubscribeSession(const std::string &sessionId, const std::string &subscriptionId,
         const sptr<ICliToolManagerScheduler> &scheduler) override;
@@ -99,6 +105,45 @@ public:
      */
     int32_t BatchQueryPermissionBySubCommand(const std::vector<Command> &cmds,
         std::vector<CommandPermission> &cmdPermissions) override;
+
+    /**
+     * @brief Register a function
+     * @param function FunctionInfo to register
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    int32_t RegisterFunction(const FunctionInfo &function) override;
+
+    /**
+     * @brief Get function information by bundleName and functionName
+     * @param bundleName Bundle name
+     * @param functionName Function name
+     * @param function Output FunctionInfo
+     * @return int32_t ERR_OK if found, error code otherwise
+     */
+    int32_t GetFunctionInfo(const std::string &funcNamespace, const std::string &functionName,
+        FunctionInfo &function) override;
+
+    /**
+     * @brief Unregister a function
+     * @param funcNamespace Namespace
+     * @param functionName Function name
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    int32_t UnregisterFunction(const std::string &funcNamespace, const std::string &functionName) override;
+
+    /**
+     * @brief Batch unregister intentFunctions by namespace
+     * @param funcNamespace Namespace to delete all functions from
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    int32_t UnregisterIntentFunctionsByNamespace(const std::string &funcNamespace) override;
+
+    /**
+     * @brief Get all functions
+     * @param functions Output vector of FunctionInfo
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    int32_t GetAllFunctions(std::vector<FunctionInfo> &functions) override;
 
 protected:
     void OnStart() override;
@@ -137,13 +182,16 @@ private:
     void RemoveSessionRecord(const std::string &sessionId);
     bool IsSessionOwner(const std::shared_ptr<SessionRecord> &record, const char *action) const;
 
-    bool RegisterSessionWithMonitors(const std::shared_ptr<SessionRecord> &record, const ExecToolParam &param);
+    bool RegisterSessionWithMonitors(const std::shared_ptr<SessionRecord> &record, const ExecOptions &options);
     void UnregisterSessionWithMonitors(const std::string &sessionId);
 
     int32_t ValidateExecToolPermissions();
     int32_t ValidateSessionLimit();
     int32_t ValidateAndPrepareTool(const ExecToolParam &param, uint32_t tokenId,
         ToolInfo &toolInfo, std::string &sandboxConfig, std::string &bundleName);
+
+    int32_t ValidateAndPrepareCmd(const ExecCmdParam &param, uint32_t tokenId,
+        std::string &sandboxConfig, std::string &bundleName);
     int32_t SetupAndStartSession(const ExecToolParam &param, const std::string &eventId,
         const ToolInfo &toolInfo, const std::string &sandboxConfig, const std::string &bundleName);
 
@@ -176,6 +224,9 @@ private:
     void WaitPid(pid_t pid, int32_t status, int32_t sig);
     void RegisterAppStateObserver(const std::string &bundleName, pid_t callerPid);
     void OnProcessDied(const std::string &bundleName, pid_t diedPid);
+    void AddCallerPid(int64_t pid);
+    void RemoveCallerPid(int64_t pid);
+    int32_t GetCallerPidCount();
 
     bool initialized_ = false;
     std::shared_ptr<IOMonitor> ioMonitor_ = nullptr;
@@ -185,6 +236,8 @@ private:
     std::unordered_map<std::string, std::shared_ptr<SessionRecord>> sessionRecords_;
     ffrt::mutex observerMutex_;
     std::unordered_map<std::string, sptr<AppExecFwk::IApplicationStateObserver>> bundleObservers_;
+    ffrt::mutex callerPidsMutex_;
+    std::unordered_set<int64_t> callerPids;
 };
 
 class SkillCallbackAdapter : public AAFwk::SkillExecuteCallbackStub {

@@ -338,12 +338,9 @@ enum class AbilityErrorCode {
 };
 
 enum class AbilityInnerErrorMsg {
-    CREATE_ANI_REFERENCE_FAILED,
-    CREATE_CALLER_FAILED,
-    GET_ANI_VM_FAILED,
-    REQUEST_DIALOG_RESULT_FAILED,
+    SERVICE_UNAVAILABLE,
+    OPERATION_FAILED,
     RESTORE_WINDOW_STAGE_FAILED,
-    SET_ON_NEW_WANT_SKIP_SCENARIOS_FAILED,
     WRAP_ABILITY_RESULT_FAILED,
     GET_APPMS_FAILED,
     GET_ABILITYMS_FAILED,
@@ -353,6 +350,31 @@ enum class AbilityInnerErrorMsg {
     CREATE_CALLBACK_FAILED,
     CALLBACK_NOT_REGISTERED,
     START_CHILD_PROCESS_FAILED,
+    QUERY_ATOMIC_SERVICE_STARTUP_RULE_FAILED,
+    RESTART_SELF_ATOMIC_SERVICE_FAILED,
+    CONNECT_AGENT_EXTENSION_FAILED,
+    AGENT_EXTENSION_CONNECTION_ENDED,
+    TRANSFER_EXTENSION_DATA_FAILED,
+    UI_WINDOW_NULL,
+    RELOAD_IN_MODAL_RESULT_NULL,
+    OBSERVER_CREATE_FAILED,
+    OBSERVER_NOT_EXIST,
+    RESTART_APP_FAILED,
+    CREATE_PROCESS_INFO_ARRAY_FAILED,
+    GET_PROCESS_INFO_FAILED,
+    SET_PROCESS_CACHE_FAILED,
+    UI_ABILITY_OBJ_NULL,
+};
+
+enum class AgentManagerErrorOperation {
+    READ_AGENT_CARDS,
+    REGISTER_AGENT_CARD,
+    UPDATE_AGENT_CARD,
+    DELETE_AGENT_CARD,
+    CONNECT_AGENT_EXTENSION,
+    DISCONNECT_AGENT_EXTENSION,
+    DISCONNECT_SERVICE_EXTENSION,
+    COMPLETE_LOW_CODE_AGENT,
 };
 
 std::string GetErrorMsg(const AbilityErrorCode& errCode);
@@ -361,6 +383,7 @@ AbilityErrorCode GetJsErrorCodeByNativeError(int32_t errCode);
 std::string GetInnerErrorMsg(AbilityInnerErrorMsg innerErrMsg);
 std::string GetErrorMsgByNativeError(int32_t errCode, const std::string& innerErrMsg = "",
     const std::string& permission = "");
+std::string GetAgentManagerErrorMsg(int32_t errCode, AgentManagerErrorOperation operation);
 }  // namespace AbilityRuntime
 }  // namespace OHOS
 #endif

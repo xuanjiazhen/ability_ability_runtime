@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,9 +13,22 @@
  * limitations under the License.
  */
 
-#ifndef FUZZTEST_OHOS_ABILITY_NAPICOMMONWANT_FUZZER_H
-#define FUZZTEST_OHOS_ABILITY_NAPICOMMONWANT_FUZZER_H
+#ifndef OHOS_ABILITY_RUNTIME_CLONE_FOR_ACCOUNT_UTIL_H
+#define OHOS_ABILITY_RUNTIME_CLONE_FOR_ACCOUNT_UTIL_H
 
-#define FUZZ_PROJECT_NAME "napicommonwant_fuzzer"
+#include <mutex>
+#include <unordered_map>
+#include <string>
+#include "ability_info.h"
+#include "want.h"
 
-#endif // FUZZTEST_OHOS_ABILITY_NAPICOMMONWANT_FUZZER_H
+namespace OHOS {
+namespace AAFwk {
+class CloneForAccountUtil {
+public:
+    static bool ProcessAppIndex(Want &want, int32_t userId, bool isExtension = false);
+};
+}  // namespace AAFwk
+}  // namespace OHOS
+
+#endif  // OHOS_ABILITY_RUNTIME_CLONE_FOR_ACCOUNT_UTIL_H
