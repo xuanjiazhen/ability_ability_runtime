@@ -80,6 +80,7 @@ ohos_shared_library("climanager_napi") {
     "include",
     "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime",
     "${cli_tool_framework_path}/interfaces/cli_tool/include",
+    "${cli_tool_framework_path}/interfaces/function/include",
   ]
 
   sources = [
@@ -93,6 +94,7 @@ ohos_shared_library("climanager_napi") {
     "${ability_runtime_innerkits_path}/error_utils:ability_runtime_error_util",
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${cli_tool_framework_path}/frameworks/js/napi/common:js_common_utils_src",
     "${cli_tool_framework_path}/interfaces/cli_tool:cli_tool_client",
     ":cli_manager_error_utils_src",
     ":js_cli_event_handler_manager_src",
