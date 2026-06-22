@@ -91,6 +91,7 @@ void* GetNativePointerFromCallbackInfo(napi_env env, napi_callback_info info, co
     return result;
 }
 
+//从 JS 对象拿到对应的 C++ 实例。
 void* GetCbInfoFromCallbackInfo(napi_env env, napi_callback_info info, size_t* argc, napi_value* argv)
 {
     napi_value thisVar = nullptr;
@@ -113,6 +114,13 @@ void* GetNapiCallbackInfoAndThis(napi_env env, napi_callback_info info, NapiCall
     return result;
 }
 
+/*
+env     当前 N-API 环境
+object  要挂载属性的 JS 对象
+name    属性名
+ptr     C++ 对象指针
+func    C++ 对象释放时的回调函数
+*/
 void SetNamedNativePointer(napi_env env, napi_value object, const char* name, void* ptr, napi_finalize func)
 {
     HandleScope handleScope(env);

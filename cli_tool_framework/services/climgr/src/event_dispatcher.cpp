@@ -257,6 +257,7 @@ bool EventDispatcher::DispatchExecToolReplyEvent(int32_t callerPid, int32_t call
 {
     sptr<ICliToolManagerScheduler> scheduler;
     {
+        // 根据调用方 pid/uid 找到客户端注册进来的 scheduler。
         std::lock_guard<std::mutex> lock(mutex_);
         auto schedulerIt = schedulers_.find(SchedulerKey {callerPid, callerUid});
         if (schedulerIt == schedulers_.end() || schedulerIt->second.scheduler == nullptr) {
@@ -265,9 +266,11 @@ bool EventDispatcher::DispatchExecToolReplyEvent(int32_t callerPid, int32_t call
                 "eventId=%{public}s", callerPid, callerUid, eventId.c_str());
             return false;
         }
+        // 拷贝一份 scheduler 后释放锁，避免远程回调期间长时间持有 mutex_。
         scheduler = schedulerIt->second.scheduler;
     }
 
+    // 通过 scheduler 回调客户端，客户端再用 eventId 找到对应 Promise/callback 并返回 session。
     return (scheduler->SchedulerExecToolReplyEvent(eventId, result, session) == ERR_OK);
 }
 

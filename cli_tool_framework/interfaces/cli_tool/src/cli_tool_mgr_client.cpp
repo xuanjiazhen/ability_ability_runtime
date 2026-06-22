@@ -39,37 +39,81 @@ CliToolMGRClient& CliToolMGRClient::GetInstance()
     static CliToolMGRClient instance;
     return instance;
 }
-
-// 向 climgr 发送 execTool 请求，并注册一次性结果回调。
+// 这个函数做的不是“直接执行工具并拿结果”，而是：创建回调通道，注册 eventId 对应的本地 callback，把请求发给服务端，然后等待服务端通过 schedulerStub_ 异步回调回来。
 ErrCode CliToolMGRClient::ExecTool(const ExecToolParam &param, const ExecToolReplyCallback &callback)
 {
+    // 1. 确保客户端已经创建 schedulerStub_。
+    // schedulerStub_ 是客户端提供给服务端的“反向回调通道”。
     ErrCode ret = EnsureSchedulerStubCreated();
+
+    // 2. 如果 schedulerStub_ 创建失败，说明后续服务端无法回调客户端，直接返回错误。
     if (ret != ERR_OK) {
         return ret;
     }
 
+    // 3. 获取 climgr 服务端的代理对象。
+    // proxy 可以理解为“客户端手里的服务端遥控器”。
     auto proxy = GetCliToolMgrProxy();
+
+    // 4. 如果 proxy 为空，说明没有连上 cli tool manager 服务。
     if (proxy == nullptr) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "connect failed");
         return GET_CLI_TOOL_MGR_SERVICE_FAILED;
     }
 
+    // 5. 向 CliEventReplyManager 注册一个一次性回调。
+    // 它会生成一个 eventId，并保存映射关系：
+    //
+    // eventId -> 下面这个 lambda 回调
+    //
+    // 后面服务端执行完，会带着同一个 eventId 回调回来，
+    // 客户端就能用 eventId 找到这次请求对应的 callback。
     std::string eventId = CliEventReplyManager::GetInstance().AddEventReplyCallback(param.toolName,
         [cb = std::move(callback)](const CliEventReplyResult &result) {
+            // 6. cb 就是上层传进来的 ExecToolReplyCallback。
+            // 它最终会继续通知 JS NAPI 层，让 Promise resolve/reject。
             if (cb) {
+                // 7. 默认构造一个 sessionInfo。
                 CliSessionInfo sessionInfo;
+
+                // 8. 如果服务端回调结果里带了 sessionInfo，就取出来。
+                // execTool 成功时通常会带 session 信息，比如 sessionId、状态等。
                 if (result.sessionInfo.has_value()) {
                     sessionInfo = result.sessionInfo.value();
                 }
+
+                // 9. 执行真正的上层回调。
+                // result.code 是服务端返回的执行结果码。
+                // sessionInfo 是服务端创建出来的会话信息。
                 cb(result.code, sessionInfo);
             }
         });
-    ret = proxy->ExecTool(param, eventId, schedulerStub_); //只是把任务发给远端服务，不代表工具已经完成。
+
+    // 10. 通过 Binder IPC 调用服务端 ExecTool。
+    // 传过去三个核心东西：
+    // param：本次要执行的工具参数
+    // eventId：本次请求的唯一编号
+    // schedulerStub_：客户端回调通道
+    //
+    // 注意：这里返回只表示“请求发给服务端并且服务端入口处理返回了”，
+    // 不代表工具已经完整执行结束。
+    ret = proxy->ExecTool(param, eventId, schedulerStub_);
+
+    // 11. 如果 IPC 调用或服务端入口处理失败，
+    // 说明这次 eventId 不会再有正常回调了，所以删除本地保存的 callback。
     if (ret != ERR_OK) {
         CliEventReplyManager::GetInstance().RemoveEventReplyCallback(eventId);
+
+    // 12. 如果请求成功发出，就激活这个 eventId 对应的 callback。
+    // 这里是为了处理竞态：
+    // 有可能服务端回调回来得很快，甚至早于 ActivateEventReplyCallback。
+    // 所以 manager 里有“先缓存结果，再激活后执行”的机制。
     } else {
         CliEventReplyManager::GetInstance().ActivateEventReplyCallback(eventId);
     }
+
+    // 13. 返回本次发送请求的结果。
+    // 注意它不是工具执行最终结果，最终结果会走 callback。
     return ret;
 }
 

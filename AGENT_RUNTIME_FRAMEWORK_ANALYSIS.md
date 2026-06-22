@@ -390,3 +390,110 @@ Agent manager 常见需求和入口：
 - 标准 Agent session 复用、连接失败回滚、断开通知测试。
 - Low-code host session 复用、重复 active、完成通知、caller 死亡清理测试。
 - `IAgentConnector/IAgentReceiver` proxy-stub 的双向通信测试。
+
+## 18. 分层视角和接口差异
+
+从开发者一次 ArkTS/JS API 调用开始，当前 Agent framework 可以按 7 层理解：
+
+```text
+第 1 层：开发者 ArkTS/JS API
+第 2 层：ANI/N-API 适配层
+第 3 层：Native Client / Connection Manager 层
+第 4 层：Binder IPC 接口层
+第 5 层：agentmgr Service 层
+第 6 层：Service 内部 card/连接/session 模块
+第 7 层：真实运行层，AbilityManager + AgentExtensionAbility + 双向 IPC
+```
+
+每层的接口边界和核心职责如下：
+
+- 开发者 ArkTS/JS API: 对外暴露 `getAllAgentCards`、`getAgentCardsByBundleName`、`getAgentCardByAgentId`、`registerAgentCard`、`updateAgentCard`、`deleteAgentCard`、`connectAgentExtensionAbility`、`disconnectAgentExtensionAbility`、`connectServiceExtensionAbility`、`disconnectServiceExtensionAbility`、`notifyLowCodeAgentComplete`。开发者能看见 Promise、BusinessError、AgentCard、AgentProxy、connectId、connectCallback；核心是业务 API。
+- ANI/N-API 适配层: 主要是 `EtsAgentManager::*` 和 `JsAgentManager::*`，负责把 ArkTS/JS 的 `Want`、`AgentCard`、callback、proxy 对象转成 native 数据和连接对象，再把 native 结果转成 Promise 回调或 JS/ETS proxy；核心是 ArkTS/JS 与 C++ 的类型转换和异步回调封装。
+- Native Client / Connection Manager 层: `AgentManagerClient` 负责加载 `agentmgr` SA proxy、转发 card 和连接请求；`AgentConnectionManager` 负责客户端侧 AgentExtension 连接复用、pending promise 和 callback 管理；核心是客户端代理和连接复用。
+- Binder IPC 接口层: `IAgentManager.idl` 是客户端调用服务端的接口；`IAbilityConnection` 是 AbilityManager/agentmgr 用来回调连接完成或断开的接口；`IAgentConnector` 和 `IAgentReceiver` 是 Host 与 AgentExtension 后续双向通信的接口；核心是跨进程协议。
+- agentmgr Service 层: 主要是 `AgentManagerService`，负责权限校验、读取 calling uid/token、查询和修改 AgentCard、解析连接目标、区分 standard/low-code/service extension 路径、管理连接配额和死亡清理；核心是服务端总调度。
+- Service 内部 card/连接/session 模块: `AgentCardMgr` 管 card 业务规则和 bundle metadata 导入，`AgentCardDbMgr` 管 KV 存储，`AgentServiceConnection` 包装标准连接回调，`AgentHostConnection` 包装 low-code shared host 连接，`AgentHostSession`/`StandardAgentSession` 管连接复用状态；核心是把 card 管理和连接生命周期拆开。
+- 真实运行层: `AbilityManagerClient` 真正连接目标 `AgentExtensionAbility` 或 `ServiceExtensionAbility`，Extension runtime 加载 JS/ETS AgentExtension，连接成功后 Host 与 AgentExtension 通过 `IAgentReceiver`/`IAgentConnector` 互发数据；核心是真实 ability 生命周期和双向通信。
+
+Agent framework 里最常见的三条主链路如下。
+
+查询/修改 AgentCard：
+
+```text
+开发者 ArkTS/JS
+  -> agentManager.getAllAgentCards/registerAgentCard/updateAgentCard
+  -> EtsAgentManager 或 JsAgentManager
+  -> AgentManagerClient
+  -> proxy->GetAllAgentCards/RegisterAgentCard/UpdateAgentCard
+  -> AgentManagerService
+  -> AgentCardMgr
+  -> AgentCardDbMgr
+  -> Promise resolve/reject
+```
+
+连接 AgentExtensionAbility：
+
+```text
+开发者 ArkTS/JS
+  -> agentManager.connectAgentExtensionAbility(want, agentId, connectCallback)
+  -> EtsAgentManager 或 JsAgentManager
+  -> 创建 AgentConnection / JSAgentConnection / ETSAgentConnection
+  -> AgentConnectionManager::ConnectAgentExtensionAbility
+  -> AgentManagerClient::ConnectAgentExtensionAbility
+  -> proxy->ConnectAgentExtensionAbility(want, connection)
+  -> AgentManagerService::ConnectAgentExtensionAbility
+  -> ResolveConnectAgentTarget
+  -> standard agent 或 low-code agent 分流
+  -> AbilityManagerClient::ConnectAbilityWithExtensionType(..., AGENT)
+  -> OnAbilityConnectDone 回到客户端 connection
+  -> 创建 AgentProxy
+  -> Promise resolve(AgentProxy)
+```
+
+连接成功后的 Host/Agent 双向通信：
+
+```text
+Host 调 AgentProxy.sendData/authorize
+  -> native receiver/connector proxy
+  -> IAgentReceiver 或 IAgentConnector Binder IPC
+  -> AgentExtensionAbility onData/onAuth
+
+AgentExtension 调 AgentHostProxy.sendData/authorize
+  -> native connector/receiver proxy
+  -> IAgentConnector 或 IAgentReceiver Binder IPC
+  -> Host connectCallback.onData/onAuth
+```
+
+各接口虽然都走 “ArkTS/JS -> ANI/N-API -> Client -> Binder -> Service” 这个大方向，但回调模型不同：
+
+| 接口 | 是否走 AgentManagerService | 是否有连接 callback | 是否返回 proxy/connectId | 核心目的 |
+| --- | --- | --- | --- | --- |
+| `getAllAgentCards` | 是 | 否 | 否 | 查询全部 card |
+| `getAgentCardsByBundleName` | 是 | 否 | 否 | 按 bundle 查询 card |
+| `getAgentCardByAgentId` | 是 | 否 | 否 | 查询单个 card |
+| `registerAgentCard` | 是 | 否 | 否 | API 注册 card |
+| `updateAgentCard` | 是 | 否 | 否 | API 更新 card |
+| `deleteAgentCard` | 是 | 否 | 否 | API 删除 card |
+| `connectAgentExtensionAbility` | 是 | 是 | 返回 `AgentProxy` | 连接 AgentExtension，后续可双向通信 |
+| `disconnectAgentExtensionAbility` | 是 | 依赖已有 connection | 否 | 断开 AgentExtension 连接 |
+| `connectServiceExtensionAbility` | 是 | 是 | 返回 `connectId` | 从 AgentExtensionContext 连接 ServiceExtension |
+| `disconnectServiceExtensionAbility` | 是 | 依赖 `connectId` | 否 | 断开 ServiceExtension 连接 |
+| `notifyLowCodeAgentComplete` | 是 | 否 | 否 | 通知 low-code agent 执行完成并释放 owner/session |
+
+和 CLI framework 的关键差异：
+
+- CLI 的一次性异步结果靠 `eventId + schedulerStub_` 找回 Promise；Agent 的连接结果靠 `IAbilityConnection` 回调对象找回 Promise。
+- CLI 的持续输出靠 `sessionId + subscriptionId` 分发 stdout/stderr/exit；Agent 的持续交互靠 `AgentProxy`、`AgentHostProxy`、`IAgentReceiver`、`IAgentConnector` 双向通信。
+- CLI 的核心状态是 `SessionRecord`；Agent 的核心状态是 `AgentCard`、`StandardAgentSession`、`AgentHostSession`、`TrackedConnectionRecord`。
+- CLI 的 owner 主要绑定 caller pid/uid；Agent 的连接和 low-code owner 更多使用 caller uid、remote object、death recipient、`AgentHostKey`、`AgentOwnerKey`。
+- CLI 执行目标是子进程或 skill；Agent 运行目标是 AbilityManager 管理的 AgentExtensionAbility 或 ServiceExtensionAbility。
+
+可以这样记：
+
+- `AgentCard` 是 agent 能力说明书。
+- `AgentManagerClient` 是客户端访问 agentmgr 的代理。
+- `IAbilityConnection` 是连接建立/断开的回调通道。
+- `AgentProxy` 是 Host 拿到的“调用 AgentExtension 的手柄”。
+- `AgentHostProxy` 是 AgentExtension 拿到的“回调 Host 的手柄”。
+- `IAgentReceiver`/`IAgentConnector` 是连接成功后真正传输 `sendData/authorize` 的双向 Binder 接口。
+- standard agent 用 `callerUid + agentId + bundleName + moduleName + abilityName` 去重；low-code agent 用共享 `AgentHostSession`，并用 `hostUid + agentId` 防止重复 active。

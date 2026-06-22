@@ -359,3 +359,157 @@ CLI manager 常见需求和入口：
 - `sub_command_info_test`
 
 后续改 CLI manager 时，建议优先补对应模块单测；涉及跨模块调用链时，至少覆盖 service + client/N-API 转换边界。
+
+## 16. 分层视角和接口差异
+
+从开发者一次 JS/ArkTS API 调用开始，当前 CLI manager 可以按 7 层理解：
+
+```text
+第 1 层：开发者 JS/ArkTS API
+第 2 层：JS N-API 适配层
+第 3 层：Native Client 层
+第 4 层：Binder IPC 接口层
+第 5 层：climgr Service 层
+第 6 层：Service 内部执行/事件模块
+第 7 层：真实执行层，子进程 / skill
+```
+
+每层的接口边界和核心职责如下：
+
+- 开发者 JS/ArkTS API: 对外暴露 `execTool`、`execCmd`、`subscribeSession`、`clearSession`、`querySession`、`sendMessage`、`getToolInfoByName`、`queryToolSummaries`、`queryTools`。开发者能看见 Promise/callback、JS Error、sessionId、tool 信息；核心是业务 API。
+- JS N-API 适配层: 主要是 `JSCliManager::*`，负责把 JS 参数转成 `ExecToolParam`、`ExecCmdParam` 等 C++ 数据，再把 `CliSessionInfo`、`ToolInfo`、native error 转成 JS 对象或 JS Error；核心是 JS/C++ 类型转换和异步任务封装。
+- Native Client 层: 主要是 `CliToolMGRClient`，负责加载 `climgr` SA proxy、创建 `schedulerStub_`、生成 `eventId`/`subscriptionId`、保存本地 callback；核心是客户端代理和回调管理。
+- Binder IPC 接口层: `ICliToolManager.idl` 是客户端调用服务端的接口，`ICliToolManagerScheduler.idl` 是服务端反向回调客户端的接口；核心是跨进程协议。
+- climgr Service 层: 主要是 `CliToolManagerService`，负责权限校验、读取 calling pid/uid/token、保存 scheduler、查工具配置、创建 session、调度执行、管理 session 生命周期；核心是服务端总调度。
+- Service 内部执行/事件模块: `CliToolDataManager` 管工具配置，`ToolUtil` 管参数和沙箱，`ProcessManager` 拉起进程，`IOMonitor` 监听 stdout/stderr/stdin，`EventDispatcher` 分发回调和事件，`SessionRecord` 保存执行状态；核心是把 service 的大任务拆成小职责。
+- 真实执行层: 普通 CLI 通过 `claw_sandbox` 拉起真实可执行文件，skill tool 可能分流到 AbilityManager skill 执行；核心是真正运行命令并产生输出/退出码。
+
+大体差不多，但不是完全一样。
+
+可以分成 **3 类**：
+
+**1. 一次性请求，直接同步返回**
+
+这些更简单：
+
+```cpp
+getToolInfoByName
+queryToolSummaries
+queryTools
+querySession
+clearSession
+```
+
+大致流程：
+
+```text
+JS
+  -> JSCliManager
+  -> CliToolMGRClient
+  -> proxy 调 service
+  -> service 直接返回结果
+  -> N-API resolve/reject Promise
+```
+
+它们一般**不需要 scheduler/eventId**，因为结果可以在这次 IPC 调用里直接返回。
+
+比如 `querySession(sessionId)`：
+
+```text
+JS querySession
+  -> client proxy->QuerySession(sessionId, session)
+  -> service 找 SessionRecord
+  -> 把 CliSessionInfo 填回去
+  -> JS Promise resolve(session)
+```
+
+**2. 一次性请求，但结果异步回调**
+
+这些和 `execTool` 很像：
+
+```cpp
+execTool
+execCmd
+sendMessage
+```
+
+流程是：
+
+```text
+JS
+  -> N-API 创建 Promise
+  -> client 创建 eventId
+  -> client 保存 eventId -> callback
+  -> client 把 schedulerStub_ 传给 service
+  -> service 先返回“请求已接收”
+  -> 后面通过 scheduler + eventId 回调真正结果
+  -> JS Promise resolve/reject
+```
+
+区别是：
+
+```text
+execTool：执行一个注册的 CLI tool，返回 session
+execCmd：执行 shell command，返回 session，而且通常还带 session event 订阅
+sendMessage：给已有 session 写 stdin，返回写入是否成功
+```
+
+所以 `sendMessage` 不创建新 session，但也需要 `eventId + scheduler`，因为写 stdin 的结果是异步回来的。
+
+**3. 持续订阅类请求**
+
+主要是：
+
+```cpp
+subscribeSession
+unsubscribeSession
+```
+
+`subscribeSession` 不是为了拿一次结果，而是为了持续接收事件：
+
+```text
+stdout
+stderr
+exit
+error
+```
+
+流程是：
+
+```text
+JS 传入 callback/onEvent
+  -> client 创建 subscriptionId
+  -> client 保存 subscriptionId -> session event callback
+  -> client 把 schedulerStub_ 传给 service
+  -> service 注册 sessionId -> subscriptionId -> scheduler
+  -> 后续 stdout/stderr/exit 通过 scheduler 回客户端
+  -> 客户端用 subscriptionId 找到 JS event callback
+```
+
+它和 `execTool` 的区别：
+
+```text
+execTool 用 eventId，处理一次性执行结果。
+subscribeSession 用 subscriptionId，处理持续 session 事件。
+```
+
+可以用一张表记：
+
+```text
+接口                  是否用 eventId     是否用 scheduler     核心目的
+
+execTool              是                是                  创建工具 session
+execCmd               是                是                  创建 shell session
+sendMessage           是                是                  给 session 发 stdin
+subscribeSession      否                是                  订阅 stdout/stderr/exit
+unsubscribeSession    否                否/弱相关            取消订阅
+querySession          否                否                  查 session 状态
+clearSession          否                否                  杀掉/清理 session
+getToolInfoByName     否                否                  查工具详情
+queryToolSummaries    否                否                  查工具摘要
+queryTools            否                否                  查完整工具列表
+```
+
+一句话总结：
+
+**所有接口都是 JS -> N-API -> Client -> Binder -> Service 这个大方向；但只有“结果不能立刻同步返回”或“需要持续事件”的接口，才需要 scheduler 回调通道。**

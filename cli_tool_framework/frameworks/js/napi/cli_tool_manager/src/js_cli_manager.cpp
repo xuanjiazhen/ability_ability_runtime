@@ -179,6 +179,7 @@ napi_value JSCliManager::OnExecTool(napi_env env, size_t argc, napi_value *argv)
     }
 
     napi_value result = nullptr;
+    // 根据是否有回调函数决定创建 Promise 还是 Callback 类型的 AsyncTask
     auto uasyncTask = CreateAsyncTaskWithLastParam(env, nullptr, nullptr, nullptr, &result);
     std::shared_ptr<NapiAsyncTask> asyncTask = std::move(uasyncTask);
 
@@ -537,7 +538,7 @@ napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "queryToolSummaries", moduleName, JSCliManager::QueryToolSummaries);
     BindNativeFunction(env, exportObj, "queryTools", moduleName, JSCliManager::QueryTools);
 
-    TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManagerInit end");
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManagerInit end"); 
     return CreateJsUndefined(env);
 }
 

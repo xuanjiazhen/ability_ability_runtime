@@ -791,32 +791,42 @@ int32_t CliToolManagerService::TryDispatchSkillSession(const ExecToolParam &para
 int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::string &eventId,
     const sptr<ICliToolManagerScheduler> &scheduler)
 {
+    // 记录当前正在执行的服务接口调用次数，避免服务空闲卸载时误判。
     InterfaceCallCounter counter(interfaceCalledCount_);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecTool called: toolName=%{public}s, subcommand=%{public}s",
         param.toolName.c_str(), param.subcommand.c_str());
+
+    // 校验调用方是否为 system app，并且是否具有 EXEC_CLI_TOOL 权限。
     if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
         return ret;
     }
+
+    // 保存调用方的 scheduler，后续服务端通过它把执行结果回调给客户端。
+    // 调用方的 pid + uid 不是它生成的，而是服务端在收到 Binder IPC 请求时，通过 IPC 框架拿到的：
     int32_t callerPid = IPCSkeleton::GetCallingPid();
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
         return ERR_NO_INIT;
     }
 
+    // arkTSScript 类型的工具可能走 AbilityManager 的 skill 执行路径。
     ToolInfo toolInfo;
     bool dispatched = false;
     auto skillRet = TryDispatchSkillSession(param, eventId, toolInfo, dispatched);
     if (skillRet != ERR_OK) {
         return skillRet;
     }
+    // 如果已经分发到 skill 路径，这里直接返回；后续结果由 skill 回调处理。
     if (dispatched) {
         return ERR_OK;
     }
 
+    // 普通 CLI 执行路径需要先检查当前会话数量是否超过并发限制。
     if (auto ret = ValidateSessionLimit(); ret != ERR_OK) {
         return ret;
     }
 
+    // 查询工具配置、校验输入参数，并生成 claw_sandbox 所需的沙箱配置。
     auto tokenId = IPCSkeleton::GetCallingTokenID();
     std::string sandboxConfig;
     std::string bundleName;
@@ -824,6 +834,7 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
         return ret;
     }
 
+    // 创建 session、fork 子进程执行工具，并注册 I/O 监听和超时任务。
     return SetupAndStartSession(param, eventId, toolInfo, sandboxConfig, bundleName);
 }
 
