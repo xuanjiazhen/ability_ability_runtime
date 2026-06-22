@@ -348,11 +348,16 @@ void AppfreezeInner::GetApplicationInfo(FaultData& faultData)
         return;
     }
 
-    if (!application_) {
+    std::shared_ptr<OHOSApplication> application;
+    {
+        std::lock_guard<std::mutex> lock(applicationMutex_);
+        application = application_;
+    }
+    if (application == nullptr) {
         TAG_LOGE(AAFwkTag::APPDFR, "null application_");
         return;
     }
-    auto &runtime = application_->GetRuntime();
+    auto &runtime = application->GetRuntime();
     if (runtime == nullptr) {
         TAG_LOGE(AAFwkTag::APPDFR, "null runtime");
         return;
@@ -502,6 +507,11 @@ void AppfreezeInner::ChangeFaultDateInfo(FaultData& faultData, const std::string
     int faultNum = TransformHicollieFaultNumber(faultData.errorObject.name);
     faultData.callbackLog = OHOS::HiviewDFX::Watchdog::GetInstance().ReadDataFromBuffer(faultNum);
     GetApplicationInfo(faultData);
+    if (faultData.errorObject.name == AppFreezeType::LIFECYCLE_HALF_TIMEOUT) {
+        bool reportLifecycle = GetReportLifeCycleAsAppfreeze();
+        lifecycleHalfTimeoutReported_.store(reportLifecycle);
+        faultData.reportLifecycleToFreeze = reportLifecycle;
+    }
     if (faultData.errorObject.name == AppFreezeType::LIFECYCLE_TIMEOUT) {
         faultData.reportLifecycleToFreeze = GetReportLifeCycleAsAppfreeze();
     }
@@ -831,6 +841,7 @@ void AppfreezeInner::SetAppfreezeApplication(const std::shared_ptr<OHOSApplicati
         TAG_LOGE(AAFwkTag::APPDFR, "null application");
         return;
     }
+    std::lock_guard<std::mutex> lock(applicationMutex_);
     application_ = application;
 }
 
