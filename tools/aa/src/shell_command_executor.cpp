@@ -15,6 +15,7 @@
 
 #include "shell_command_executor.h"
 
+#include <cctype>
 #include <chrono>
 #include <cinttypes>
 #include <iostream>
@@ -81,7 +82,7 @@ bool ShellCommandExecutor::DoWork()
     }
     
     if (!CheckCommand()) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "Invalid command");
+        TAG_LOGE(AAFwkTag::AA_TOOL, "Invalid command, cmd: \"%{public}s\"", cmd_.data());
         return false;
     }
 
@@ -130,10 +131,24 @@ bool ShellCommandExecutor::CheckCommand()
     std::istringstream iss(cmd_);
     std::string firstCommand = "";
     iss >> firstCommand;
-    if (ShellCommandConfigLoader::commands_.find(firstCommand) != ShellCommandConfigLoader::commands_.end()) {
-        return true;
+    if (ShellCommandConfigLoader::commands_.find(firstCommand) == ShellCommandConfigLoader::commands_.end()) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "Command not in whitelist: %{public}s", firstCommand.c_str());
+        return false;
     }
-    return false;
+
+    for (char c : cmd_) {
+        if (!IsAllowedChar(c)) {
+            TAG_LOGE(AAFwkTag::AA_TOOL, "Forbidden char in command: %{public}s", cmd_.c_str());
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ShellCommandExecutor::IsAllowedChar(char c) const
+{
+    return std::isalnum(c) || c == '_' || c == '-' || c == '.' || c == '/' || c == ' ' || c == '\t'
+        || c == '#' || c == ':' || c == '=';
 }
 }  // namespace AAFwk
 }  // namespace OHOS
