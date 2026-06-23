@@ -50,6 +50,7 @@ public:
 private:
     bool DoWork();
     bool CheckCommand();
+    bool IsAllowedChar(char c) const;
 private:
     bool isDone_ = false;
     int64_t timeoutSec_ = 0;
