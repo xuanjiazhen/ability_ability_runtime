@@ -41,17 +41,119 @@ constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t INDEX_TWO = 2;
 constexpr int32_t INDEX_THREE = 3;
 constexpr int32_t INDEX_FOUR = 4;
+constexpr const char* PERMISSION_EXEC_CLI_TOOL = "ohos.permission.EXEC_CLI_TOOL";
+constexpr const char* PERMISSION_QUERY_CLI_TOOL = "ohos.permission.QUERY_CLI_TOOL";
+
+struct CliManagerErrorContext {
+    std::string operation;
+    std::string permissionName;
+    std::string toolName;
+    std::string subcommand;
+    std::string sessionId;
+};
+
+std::string AppendSessionContext(std::string errMsg, const std::string &operation, const std::string &sessionId)
+{
+    bool hasContext = false;
+    if (!operation.empty()) {
+        errMsg += " operation: " + operation;
+        hasContext = true;
+    }
+    if (!sessionId.empty()) {
+        errMsg += hasContext ? ", sessionId: " : " sessionId: ";
+        errMsg += sessionId;
+        hasContext = true;
+    }
+    if (hasContext) {
+        errMsg += ".";
+    }
+    return errMsg;
+}
+
+napi_value CreateCliJsErrorByNativeErrWithContext(napi_env env, int32_t nativeErr,
+    const CliManagerErrorContext &context)
+{
+    if (nativeErr == ERR_PERMISSION_DENIED && !context.permissionName.empty()) {
+        return CreateCliManagerError(env, static_cast<int32_t>(CliManagerErrorCode::ERROR_PERMISSION_DENIED),
+            "Permission denied. Missing permission: " + context.permissionName + ".");
+    }
+
+    if (nativeErr == ERR_TOOL_NOT_EXIST && !context.toolName.empty()) {
+        if (!context.subcommand.empty()) {
+            return CreateCliManagerError(env, static_cast<int32_t>(CliManagerErrorCode::ERROR_TOOL_NOT_FOUND),
+                "The tool or subcommand does not exist. toolName: " + context.toolName +
+                ", subcommand: " + context.subcommand + ".");
+        }
+        return CreateCliManagerError(env, static_cast<int32_t>(CliManagerErrorCode::ERROR_TOOL_NOT_FOUND),
+            "The tool does not exist. toolName: " + context.toolName + ".");
+    }
+
+    if (nativeErr == ERR_CLI_SESSION_NOT_FOUND) {
+        return CreateCliManagerError(env, static_cast<int32_t>(CliManagerErrorCode::ERROR_SESSION_NOT_FOUND),
+            AppendSessionContext("The session was not found.", context.operation, context.sessionId));
+    }
+
+    if (nativeErr == ERR_CLI_SEND_MESSAGE && !context.sessionId.empty()) {
+        return CreateCliManagerError(env, static_cast<int32_t>(CliManagerErrorCode::ERROR_SEND_MESSAGE),
+            "Failed to send message to the CLI session. sessionId: " + context.sessionId + ".");
+    }
+
+    if (nativeErr == ERR_INVALID_PARAM && !context.operation.empty()) {
+        return CreateCliManagerError(env, static_cast<int32_t>(CliManagerErrorCode::ERROR_INVALID_PARAM),
+            "Invalid input parameter. operation: " + context.operation + ".");
+    }
+
+    return CreateCliJsErrorByNativeErr(env, nativeErr);
+}
+
+// 对齐服务侧权限门禁和入参标识，让 Promise reject 信息能带上有用上下文。
+CliManagerErrorContext CreateExecToolErrorContext(const ExecToolParam &param)
+{
+    CliManagerErrorContext context;
+    context.operation = "execTool";
+    context.permissionName = PERMISSION_EXEC_CLI_TOOL;
+    context.toolName = param.toolName;
+    context.subcommand = param.subcommand;
+    return context;
+}
+
+CliManagerErrorContext CreateExecCmdErrorContext()
+{
+    CliManagerErrorContext context;
+    context.operation = "execCmd";
+    context.permissionName = PERMISSION_EXEC_CLI_TOOL;
+    return context;
+}
+
+CliManagerErrorContext CreateSessionErrorContext(const std::string &operation, const std::string &sessionId)
+{
+    CliManagerErrorContext context;
+    context.operation = operation;
+    context.permissionName = PERMISSION_EXEC_CLI_TOOL;
+    context.sessionId = sessionId;
+    return context;
+}
+
+CliManagerErrorContext CreateQueryToolErrorContext(const std::string &operation, const std::string &toolName = "")
+{
+    CliManagerErrorContext context;
+    context.operation = operation;
+    context.permissionName = PERMISSION_QUERY_CLI_TOOL;
+    context.toolName = toolName;
+    return context;
+}
 
 int32_t DispatchCliTool(const ExecToolParam &param, napi_env env,
     std::shared_ptr<NapiAsyncTask> asyncTask)
 {
+    auto errorContext = CreateExecToolErrorContext(param);
     CliToolMGRClient::ExecToolReplyCallback replyCallback =
-        [env, asyncTask](int32_t resultCode, const CliSessionInfo &session) {
+        [env, asyncTask, errorContext](int32_t resultCode, const CliSessionInfo &session) {
             JsCliEventHandlerManager::GetInstance().PostTask(
-                [env, asyncTask, resultCode, session]() {
+                [env, asyncTask, resultCode, session, errorContext]() {
                     HandleScope handleScope(env);
                     if (resultCode != ERR_OK) {
-                        asyncTask->Reject(env, CreateCliJsErrorByNativeErr(env, resultCode));
+                        asyncTask->Reject(env, CreateCliJsErrorByNativeErrWithContext(env, resultCode, errorContext));
                         return;
                     }
                     napi_value jsSession = CreateJsCliSessionInfo(env, session);
@@ -69,13 +171,14 @@ int32_t DispatchCliCmd(const ExecCmdParam &param, napi_env env,
     std::shared_ptr<NapiAsyncTask> asyncTask,
     std::shared_ptr<JsCliSessionEventCallbackImpl> callback)
 {
+    auto errorContext = CreateExecCmdErrorContext();
     CliToolMGRClient::ExecToolReplyCallback replyCallback =
-        [env, asyncTask](int32_t resultCode, const CliSessionInfo &session) {
+        [env, asyncTask, errorContext](int32_t resultCode, const CliSessionInfo &session) {
             JsCliEventHandlerManager::GetInstance().PostTask(
-                [env, asyncTask, resultCode, session]() {
+                [env, asyncTask, resultCode, session, errorContext]() {
                     HandleScope handleScope(env);
                     if (resultCode != ERR_OK) {
-                        asyncTask->Reject(env, CreateCliJsErrorByNativeErr(env, resultCode));
+                        asyncTask->Reject(env, CreateCliJsErrorByNativeErrWithContext(env, resultCode, errorContext));
                         return;
                     }
                     napi_value jsSession = CreateJsCliSessionInfo(env, session);
@@ -184,7 +287,7 @@ napi_value JSCliManager::OnExecTool(napi_env env, size_t argc, napi_value *argv)
 
     int32_t errCode = DispatchCliTool(param, env, asyncTask);
     if (errCode != ERR_OK) {
-        asyncTask->Reject(env, CreateCliJsErrorByNativeErr(env, errCode));
+        asyncTask->Reject(env, CreateCliJsErrorByNativeErrWithContext(env, errCode, CreateExecToolErrorContext(param)));
     }
     return handleEscape.Escape(result);
 }
@@ -225,7 +328,7 @@ napi_value JSCliManager::OnExecCmd(napi_env env, size_t argc, napi_value *argv)
 
     int32_t errCode = DispatchCliCmd(param, env, asyncTask, callback);
     if (errCode != ERR_OK) {
-        asyncTask->Reject(env, CreateCliJsErrorByNativeErr(env, errCode));
+        asyncTask->Reject(env, CreateCliJsErrorByNativeErrWithContext(env, errCode, CreateExecCmdErrorContext()));
     }
     return handleEscape.Escape(result);
 }
@@ -259,11 +362,12 @@ napi_value JSCliManager::OnSubscribeSession(napi_env env, size_t argc, napi_valu
         *innerErrCode = CliToolMGRClient::GetInstance().SubscribeSession(sessionId, callback, subscriptionId);
     };
 
-    NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env,
+    auto errorContext = CreateSessionErrorContext("subscribeSession", sessionId);
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode, errorContext](napi_env env,
         NapiAsyncTask &task, int32_t status) {
         HandleScope handleScope(env);
         if (*innerErrCode != ERR_OK) {
-            task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
+            task.Reject(env, CreateCliJsErrorByNativeErrWithContext(env, *innerErrCode, errorContext));
             return;
         }
         task.ResolveWithNoError(env, CreateJsUndefined(env));
@@ -294,11 +398,12 @@ napi_value JSCliManager::OnClearSession(napi_env env, size_t argc, napi_value *a
         *innerErrCode = CliToolMGRClient::GetInstance().ClearSession(sessionId);
     };
 
-    NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask &task,
+    auto errorContext = CreateSessionErrorContext("clearSession", sessionId);
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode, errorContext](napi_env env, NapiAsyncTask &task,
         int32_t status) {
         HandleScope handleScope(env);
         if (*innerErrCode != ERR_OK) {
-            task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
+            task.Reject(env, CreateCliJsErrorByNativeErrWithContext(env, *innerErrCode, errorContext));
             return;
         }
         task.ResolveWithNoError(env, CreateJsUndefined(env));
@@ -335,11 +440,12 @@ napi_value JSCliManager::OnSendMessage(napi_env env, size_t argc, napi_value *ar
         CreateAsyncTaskWithLastParam(env, lastParam, nullptr, nullptr, &asyncResult);
     std::shared_ptr<NapiAsyncTask> asyncTask = std::move(uasyncTask);
 
-    CliToolMGRClient::EventReplyCallback replyCallback = [env, asyncTask](int32_t resultCode) {
-        JsCliEventHandlerManager::GetInstance().PostTask([env, asyncTask, resultCode]() {
+    auto errorContext = CreateSessionErrorContext("sendMessage", sessionId);
+    CliToolMGRClient::EventReplyCallback replyCallback = [env, asyncTask, errorContext](int32_t resultCode) {
+        JsCliEventHandlerManager::GetInstance().PostTask([env, asyncTask, resultCode, errorContext]() {
             HandleScope handleScope(env);
             if (resultCode != ERR_OK) {
-                asyncTask->Reject(env, CreateCliJsErrorByNativeErr(env, resultCode));
+                asyncTask->Reject(env, CreateCliJsErrorByNativeErrWithContext(env, resultCode, errorContext));
                 return;
             }
             asyncTask->ResolveWithNoError(env, CreateJsUndefined(env));
@@ -347,7 +453,7 @@ napi_value JSCliManager::OnSendMessage(napi_env env, size_t argc, napi_value *ar
     };
     int32_t errCode = CliToolMGRClient::GetInstance().SendMessage(sessionId, inputText, replyCallback);
     if (errCode != ERR_OK) {
-        asyncTask->Reject(env, CreateCliJsErrorByNativeErr(env, errCode));
+        asyncTask->Reject(env, CreateCliJsErrorByNativeErrWithContext(env, errCode, errorContext));
     }
     return handleEscape.Escape(asyncResult);
 }
@@ -372,11 +478,12 @@ napi_value JSCliManager::OnQuerySession(napi_env env, size_t argc, napi_value *a
         *innerErrCode = CliToolMGRClient::GetInstance().QuerySession(sessionId, *session);
     };
 
-    NapiAsyncTask::CompleteCallback complete = [innerErrCode, session](
+    auto errorContext = CreateSessionErrorContext("querySession", sessionId);
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode, session, errorContext](
         napi_env env, NapiAsyncTask &task, int32_t status) {
         HandleScope handleScope(env);
         if (*innerErrCode != ERR_OK) {
-            task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
+            task.Reject(env, CreateCliJsErrorByNativeErrWithContext(env, *innerErrCode, errorContext));
             return;
         }
         napi_value jsSession = CreateJsCliSessionInfo(env, *session);
@@ -414,12 +521,13 @@ napi_value JSCliManager::OnGetToolInfoByName(napi_env env, size_t argc, napi_val
         *innerErrCode = CliToolMGRClient::GetInstance().GetToolInfoByName(toolName, *tool);
     };
 
-    NapiAsyncTask::CompleteCallback complete = [innerErrCode, tool](
+    auto errorContext = CreateQueryToolErrorContext("getToolInfoByName", toolName);
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode, tool, errorContext](
         napi_env env, NapiAsyncTask &task, int32_t status) {
         HandleScope handleScope(env);
         if (*innerErrCode != ERR_OK) {
             TAG_LOGE(AAFwkTag::CLI_TOOL, "GetToolInfoByName error: %{public}d", *innerErrCode);
-            task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
+            task.Reject(env, CreateCliJsErrorByNativeErrWithContext(env, *innerErrCode, errorContext));
             return;
         }
 
@@ -450,12 +558,13 @@ napi_value JSCliManager::OnQueryToolSummaries(napi_env env, size_t argc, napi_va
         *innerErrCode = CliToolMGRClient::GetInstance().GetAllToolSummaries(*summaries);
     };
 
-    NapiAsyncTask::CompleteCallback complete = [innerErrCode, summaries](
+    auto errorContext = CreateQueryToolErrorContext("queryToolSummaries");
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode, summaries, errorContext](
         napi_env env, NapiAsyncTask &task, int32_t status) {
         HandleScope handleScope(env);
         if (*innerErrCode != ERR_OK) {
             TAG_LOGE(AAFwkTag::CLI_TOOL, "QueryToolSummaries error: %{public}d", *innerErrCode);
-            task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
+            task.Reject(env, CreateCliJsErrorByNativeErrWithContext(env, *innerErrCode, errorContext));
             return;
         }
 
@@ -488,12 +597,13 @@ napi_value JSCliManager::OnQueryTools(napi_env env, size_t argc, napi_value *arg
         *innerErrCode = CliToolMGRClient::GetInstance().GetAllToolInfos(*tools);
     };
 
-    NapiAsyncTask::CompleteCallback complete = [innerErrCode, tools](
+    auto errorContext = CreateQueryToolErrorContext("queryTools");
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode, tools, errorContext](
         napi_env env, NapiAsyncTask &task, int32_t status) {
         HandleScope handleScope(env);
         if (*innerErrCode != ERR_OK) {
             TAG_LOGE(AAFwkTag::CLI_TOOL, "QueryTools error: %{public}d", *innerErrCode);
-            task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
+            task.Reject(env, CreateCliJsErrorByNativeErrWithContext(env, *innerErrCode, errorContext));
             return;
         }
 
