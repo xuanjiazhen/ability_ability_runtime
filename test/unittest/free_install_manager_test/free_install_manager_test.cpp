@@ -31,8 +31,8 @@
 #include "ability_record.h"
 #include "mock_app_mgr_service.h"
 #include "mock_bundle_manager_service.h"
-#include "sa_mgr_client.h"
 #include "mock_my_flag.h"
+#include "sa_mgr_client.h"
 
 using namespace testing::ext;
 using namespace OHOS::AAFwk;
@@ -65,8 +65,9 @@ public:
     }
 
     bool QueryExtensionAbilityInfos(const OHOS::AAFwk::Want &, const int32_t &, const int32_t &,
-        std::vector<ExtensionAbilityInfo> &) override
+        std::vector<ExtensionAbilityInfo> &extensionInfos) override
     {
+        extensionInfos.clear();
         return false;
     }
 
@@ -119,8 +120,7 @@ void FreeInstallTest::TearDownTestCase(void) {}
 
 void FreeInstallTest::SetUp(void) {}
 
-void FreeInstallTest::TearDown(void)
-{}
+void FreeInstallTest::TearDown(void) {}
 
 sptr<Token> FreeInstallTest::MockToken()
 {
