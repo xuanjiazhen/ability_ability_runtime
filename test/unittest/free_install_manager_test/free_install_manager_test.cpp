@@ -61,18 +61,20 @@ public:
 
     bool QueryAbilityInfo(const OHOS::AAFwk::Want &, int32_t, int32_t, AbilityInfo &) override
     {
-        return false;
+        return queryAbilityResult_;
     }
 
     bool QueryExtensionAbilityInfos(const OHOS::AAFwk::Want &, const int32_t &, const int32_t &,
-        std::vector<ExtensionAbilityInfo> &) override
+        std::vector<ExtensionAbilityInfo> &extensionInfos) override
     {
-        return false;
+        extensionInfos = extensionInfos_;
+        return queryExtensionResult_;
     }
 
     bool QueryAbilityInfo(const OHOS::AAFwk::Want &want, int32_t, int32_t, AbilityInfo &,
         const sptr<IRemoteObject> &) override
     {
+        queryAbilityInfoWithCallbackCount_++;
         auto freeInstallManager = freeInstallManager_.lock();
         if (freeInstallManager != nullptr) {
             OHOS::AAFwk::FreeInstallInfo taskInfo;
@@ -86,9 +88,30 @@ public:
         return false;
     }
 
+    void SetQueryAbilityResult(bool queryAbilityResult)
+    {
+        queryAbilityResult_ = queryAbilityResult;
+    }
+
+    void SetQueryExtensionResult(bool queryExtensionResult,
+        const std::vector<ExtensionAbilityInfo> &extensionInfos = {})
+    {
+        queryExtensionResult_ = queryExtensionResult;
+        extensionInfos_ = extensionInfos;
+    }
+
+    int32_t GetQueryAbilityInfoWithCallbackCount() const
+    {
+        return queryAbilityInfoWithCallbackCount_;
+    }
+
 private:
     std::weak_ptr<OHOS::AAFwk::FreeInstallManager> freeInstallManager_;
     std::string localBundleName_;
+    bool queryAbilityResult_ = false;
+    bool queryExtensionResult_ = false;
+    std::vector<ExtensionAbilityInfo> extensionInfos_;
+    int32_t queryAbilityInfoWithCallbackCount_ = 0;
 };
 
 class FreeInstallAppMgrService : public MockAppMgrService {
@@ -468,6 +491,157 @@ HWTEST_F(FreeInstallTest, FreeInstall_ConnectFreeInstall_002, TestSize.Level1)
     }
     EXPECT_EQ(crossBundleServiceRes, INVALID_PARAMETERS_ERR);
     EXPECT_NE(agentRes, INVALID_PARAMETERS_ERR);
+    EXPECT_TRUE(freeInstallManager_->freeInstallList_.empty());
+}
+
+/**
+ * @tc.number: FreeInstall_ConnectFreeInstall_003
+ * @tc.name: ConnectFreeInstall
+ * @tc.desc: Test ConnectFreeInstall returns directly when AGENT extension is already installed.
+ */
+HWTEST_F(FreeInstallTest, FreeInstall_ConnectFreeInstall_003, TestSize.Level1)
+{
+    freeInstallManager_ = std::make_shared<FreeInstallManager>();
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+    ASSERT_NE(bundleMgrHelper, nullptr);
+    auto bundleMgrBackup = bundleMgrHelper->bundleMgr_;
+    auto appMgrBackup = AppMgrUtil::appMgr_;
+    sptr<FreeInstallBundleMgrService> mockBundleMgr =
+        new (std::nothrow) FreeInstallBundleMgrService(freeInstallManager_, LOCAL_BUNDLE_NAME);
+    sptr<FreeInstallAppMgrService> mockAppMgr = new (std::nothrow) FreeInstallAppMgrService();
+    ASSERT_NE(mockBundleMgr, nullptr);
+    ASSERT_NE(mockAppMgr, nullptr);
+    bundleMgrHelper->bundleMgr_ = mockBundleMgr;
+    AppMgrUtil::appMgr_ = mockAppMgr;
+
+    ExtensionAbilityInfo agentExtensionInfo;
+    agentExtensionInfo.type = ExtensionAbilityType::AGENT;
+    agentExtensionInfo.applicationInfo.bundleType = BundleType::ATOMIC_SERVICE;
+    mockBundleMgr->SetQueryExtensionResult(true, { agentExtensionInfo });
+
+    Want want;
+    ElementName element("", REMOTE_BUNDLE_NAME, "AgentAbility");
+    want.SetElement(element);
+    const int32_t userId = 1;
+
+    int agentRes = freeInstallManager_->ConnectFreeInstall(
+        want, userId, nullptr, "", AppExecFwk::ExtensionAbilityType::AGENT);
+
+    bundleMgrHelper->bundleMgr_ = bundleMgrBackup;
+    AppMgrUtil::appMgr_ = appMgrBackup;
+    EXPECT_EQ(agentRes, ERR_OK);
+    EXPECT_EQ(mockBundleMgr->GetQueryAbilityInfoWithCallbackCount(), 0);
+    EXPECT_TRUE(freeInstallManager_->freeInstallList_.empty());
+}
+
+/**
+ * @tc.number: FreeInstall_ConnectFreeInstall_004
+ * @tc.name: ConnectFreeInstall
+ * @tc.desc: Test ConnectFreeInstall rejects AGENT connect when an ability target is resolved.
+ */
+HWTEST_F(FreeInstallTest, FreeInstall_ConnectFreeInstall_004, TestSize.Level1)
+{
+    freeInstallManager_ = std::make_shared<FreeInstallManager>();
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+    ASSERT_NE(bundleMgrHelper, nullptr);
+    auto bundleMgrBackup = bundleMgrHelper->bundleMgr_;
+    auto appMgrBackup = AppMgrUtil::appMgr_;
+    sptr<FreeInstallBundleMgrService> mockBundleMgr =
+        new (std::nothrow) FreeInstallBundleMgrService(freeInstallManager_, LOCAL_BUNDLE_NAME);
+    sptr<FreeInstallAppMgrService> mockAppMgr = new (std::nothrow) FreeInstallAppMgrService();
+    ASSERT_NE(mockBundleMgr, nullptr);
+    ASSERT_NE(mockAppMgr, nullptr);
+    bundleMgrHelper->bundleMgr_ = mockBundleMgr;
+    AppMgrUtil::appMgr_ = mockAppMgr;
+    mockBundleMgr->SetQueryAbilityResult(true);
+
+    Want want;
+    ElementName element("", REMOTE_BUNDLE_NAME, "MainAbility");
+    want.SetElement(element);
+    const int32_t userId = 1;
+
+    int agentRes = freeInstallManager_->ConnectFreeInstall(
+        want, userId, nullptr, "", AppExecFwk::ExtensionAbilityType::AGENT);
+
+    bundleMgrHelper->bundleMgr_ = bundleMgrBackup;
+    AppMgrUtil::appMgr_ = appMgrBackup;
+    EXPECT_EQ(agentRes, ERR_WRONG_INTERFACE_CALL);
+    EXPECT_EQ(mockBundleMgr->GetQueryAbilityInfoWithCallbackCount(), 0);
+    EXPECT_TRUE(freeInstallManager_->freeInstallList_.empty());
+}
+
+/**
+ * @tc.number: FreeInstall_ConnectFreeInstall_005
+ * @tc.name: ConnectFreeInstall
+ * @tc.desc: Test ConnectFreeInstall rejects AGENT connect when a non-AGENT extension target is resolved.
+ */
+HWTEST_F(FreeInstallTest, FreeInstall_ConnectFreeInstall_005, TestSize.Level1)
+{
+    freeInstallManager_ = std::make_shared<FreeInstallManager>();
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+    ASSERT_NE(bundleMgrHelper, nullptr);
+    auto bundleMgrBackup = bundleMgrHelper->bundleMgr_;
+    auto appMgrBackup = AppMgrUtil::appMgr_;
+    sptr<FreeInstallBundleMgrService> mockBundleMgr =
+        new (std::nothrow) FreeInstallBundleMgrService(freeInstallManager_, LOCAL_BUNDLE_NAME);
+    sptr<FreeInstallAppMgrService> mockAppMgr = new (std::nothrow) FreeInstallAppMgrService();
+    ASSERT_NE(mockBundleMgr, nullptr);
+    ASSERT_NE(mockAppMgr, nullptr);
+    bundleMgrHelper->bundleMgr_ = mockBundleMgr;
+    AppMgrUtil::appMgr_ = mockAppMgr;
+
+    ExtensionAbilityInfo serviceExtensionInfo;
+    serviceExtensionInfo.type = ExtensionAbilityType::SERVICE;
+    mockBundleMgr->SetQueryExtensionResult(true, { serviceExtensionInfo });
+
+    Want want;
+    ElementName element("", REMOTE_BUNDLE_NAME, "ServiceAbility");
+    want.SetElement(element);
+    const int32_t userId = 1;
+
+    int agentRes = freeInstallManager_->ConnectFreeInstall(
+        want, userId, nullptr, "", AppExecFwk::ExtensionAbilityType::AGENT);
+
+    bundleMgrHelper->bundleMgr_ = bundleMgrBackup;
+    AppMgrUtil::appMgr_ = appMgrBackup;
+    EXPECT_EQ(agentRes, ERR_WRONG_INTERFACE_CALL);
+    EXPECT_EQ(mockBundleMgr->GetQueryAbilityInfoWithCallbackCount(), 0);
+    EXPECT_TRUE(freeInstallManager_->freeInstallList_.empty());
+}
+
+/**
+ * @tc.number: FreeInstall_ConnectFreeInstall_006
+ * @tc.name: ConnectFreeInstall
+ * @tc.desc: Test ConnectFreeInstall starts free install for AGENT connect when no target is resolved.
+ */
+HWTEST_F(FreeInstallTest, FreeInstall_ConnectFreeInstall_006, TestSize.Level1)
+{
+    freeInstallManager_ = std::make_shared<FreeInstallManager>();
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+    ASSERT_NE(bundleMgrHelper, nullptr);
+    auto bundleMgrBackup = bundleMgrHelper->bundleMgr_;
+    auto appMgrBackup = AppMgrUtil::appMgr_;
+    sptr<FreeInstallBundleMgrService> mockBundleMgr =
+        new (std::nothrow) FreeInstallBundleMgrService(freeInstallManager_, LOCAL_BUNDLE_NAME);
+    sptr<FreeInstallAppMgrService> mockAppMgr = new (std::nothrow) FreeInstallAppMgrService();
+    ASSERT_NE(mockBundleMgr, nullptr);
+    ASSERT_NE(mockAppMgr, nullptr);
+    bundleMgrHelper->bundleMgr_ = mockBundleMgr;
+    AppMgrUtil::appMgr_ = mockAppMgr;
+
+    Want want;
+    ElementName element("", REMOTE_BUNDLE_NAME, "AgentAbility");
+    want.SetElement(element);
+    want.SetParam(Want::PARAM_RESV_START_TIME, std::string("0"));
+    const int32_t userId = 1;
+
+    int agentRes = freeInstallManager_->ConnectFreeInstall(
+        want, userId, nullptr, "", AppExecFwk::ExtensionAbilityType::AGENT);
+
+    bundleMgrHelper->bundleMgr_ = bundleMgrBackup;
+    AppMgrUtil::appMgr_ = appMgrBackup;
+    EXPECT_EQ(agentRes, ERR_OK);
+    EXPECT_EQ(mockBundleMgr->GetQueryAbilityInfoWithCallbackCount(), 1);
     EXPECT_TRUE(freeInstallManager_->freeInstallList_.empty());
 }
 
