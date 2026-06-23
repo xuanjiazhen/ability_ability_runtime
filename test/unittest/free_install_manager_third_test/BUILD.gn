@@ -20,11 +20,20 @@ ohos_unittest("free_install_manager_third_test") {
   module_out_path = module_output_path
 
   include_dirs = [
+    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
+    "${ability_runtime_services_path}/uripermmgr/include",
+    "${ability_runtime_test_path}/mock/common/include",
     "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include",
     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/appexecfwk_core/include",
+    "${ability_runtime_test_path}/mock/services_appmgr_test/include",
   ]
 
-  sources = [ "free_install_manager_third_test.cpp" ]
+  sources = [
+    "${ability_runtime_services_path}/abilitymgr/src/free_install_manager.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/utils/agent_ability_util.cpp",
+    "../free_install_manager_test/mock/src/mock_permission_verification.cpp",
+    "free_install_manager_third_test.cpp",
+  ]
 
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
 
@@ -44,6 +53,7 @@ ohos_unittest("free_install_manager_third_test") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
     "${ability_runtime_services_path}/common:perm_verification",
   ]

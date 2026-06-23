@@ -29,10 +29,13 @@
 #undef protected
 
 #include "ability_record.h"
+#include "accesstoken_kit.h"
 #include "mock_app_mgr_service.h"
 #include "mock_bundle_manager_service.h"
-#include "sa_mgr_client.h"
 #include "mock_my_flag.h"
+#include "nativetoken_kit.h"
+#include "sa_mgr_client.h"
+#include "token_setproc.h"
 
 using namespace testing::ext;
 using namespace OHOS::AAFwk;
@@ -45,6 +48,8 @@ const int INVALID_RECORD_ID = -1;
 constexpr const char* KEY_REQUEST_ID = "com.ohos.param.requestId";
 constexpr const char* LOCAL_BUNDLE_NAME = "com.test.demo";
 constexpr const char* REMOTE_BUNDLE_NAME = "com.remote.demo";
+constexpr int32_t TEST_USER_ID = 100;
+constexpr int32_t TEST_API_VERSION = 20;
 
 class FreeInstallBundleMgrService : public OHOS::MockBundleManagerService {
 public:
@@ -61,18 +66,20 @@ public:
 
     bool QueryAbilityInfo(const OHOS::AAFwk::Want &, int32_t, int32_t, AbilityInfo &) override
     {
-        return false;
+        return queryAbilityResult_;
     }
 
     bool QueryExtensionAbilityInfos(const OHOS::AAFwk::Want &, const int32_t &, const int32_t &,
-        std::vector<ExtensionAbilityInfo> &) override
+        std::vector<ExtensionAbilityInfo> &extensionInfos) override
     {
-        return false;
+        extensionInfos = extensionInfos_;
+        return queryExtensionResult_;
     }
 
     bool QueryAbilityInfo(const OHOS::AAFwk::Want &want, int32_t, int32_t, AbilityInfo &,
         const sptr<IRemoteObject> &) override
     {
+        queryAbilityInfoWithCallbackCount_++;
         auto freeInstallManager = freeInstallManager_.lock();
         if (freeInstallManager != nullptr) {
             OHOS::AAFwk::FreeInstallInfo taskInfo;
@@ -86,9 +93,30 @@ public:
         return false;
     }
 
+    void SetQueryAbilityResult(bool queryAbilityResult)
+    {
+        queryAbilityResult_ = queryAbilityResult;
+    }
+
+    void SetQueryExtensionResult(bool queryExtensionResult,
+        const std::vector<ExtensionAbilityInfo> &extensionInfos = {})
+    {
+        queryExtensionResult_ = queryExtensionResult;
+        extensionInfos_ = extensionInfos;
+    }
+
+    int32_t GetQueryAbilityInfoWithCallbackCount() const
+    {
+        return queryAbilityInfoWithCallbackCount_;
+    }
+
 private:
     std::weak_ptr<OHOS::AAFwk::FreeInstallManager> freeInstallManager_;
     std::string localBundleName_;
+    bool queryAbilityResult_ = false;
+    bool queryExtensionResult_ = false;
+    std::vector<ExtensionAbilityInfo> extensionInfos_;
+    int32_t queryAbilityInfoWithCallbackCount_ = 0;
 };
 
 class FreeInstallAppMgrService : public MockAppMgrService {
@@ -98,6 +126,52 @@ public:
         return false;
     }
 };
+
+uint32_t CreateConnectAgentHapToken()
+{
+    using namespace OHOS::Security::AccessToken;
+    NativeTokenInfoParams nativeInfo = {
+        .dcapsNum = 0,
+        .permsNum = 0,
+        .aclsNum = 0,
+        .dcaps = nullptr,
+        .perms = nullptr,
+        .acls = nullptr,
+        .aplStr = "system_core",
+    };
+    nativeInfo.processName = "foundation";
+    auto selfTokenId = GetSelfTokenID();
+    SetSelfTokenID(GetAccessTokenId(&nativeInfo));
+
+    HapInfoParams hapInfo = {
+        .userID = TEST_USER_ID,
+        .bundleName = LOCAL_BUNDLE_NAME,
+        .instIndex = 0,
+        .dlpType = 0,
+        .appIDDesc = LOCAL_BUNDLE_NAME,
+        .apiVersion = TEST_API_VERSION,
+        .isSystemApp = true,
+    };
+    PermissionStateFull permissionState = {
+        .permissionName = PermissionConstants::PERMISSION_CONNECT_AGENT,
+        .isGeneral = true,
+        .resDeviceID = { "local" },
+        .grantStatus = { PermissionState::PERMISSION_GRANTED },
+        .grantFlags = { 0 },
+    };
+    HapPolicyParams hapPolicy;
+    hapPolicy.apl = ATokenAplEnum::APL_SYSTEM_CORE;
+    hapPolicy.domain = LOCAL_BUNDLE_NAME;
+    hapPolicy.permStateList.emplace_back(permissionState);
+
+    AccessTokenIDEx tokenIdEx = { 0 };
+    auto ret = AccessTokenKit::InitHapToken(hapInfo, hapPolicy, tokenIdEx);
+    SetSelfTokenID(selfTokenId);
+    if (ret != RET_SUCCESS) {
+        return 0;
+    }
+    return tokenIdEx.tokenIdExStruct.tokenID;
+}
 }
 class FreeInstallTest : public testing::Test {
 public:
@@ -111,16 +185,37 @@ public:
     void TearDown();
     sptr<Token> MockToken();
     std::shared_ptr<FreeInstallManager> freeInstallManager_ = nullptr;
+    uint64_t selfTokenId_ = 0;
+    static uint32_t connectAgentTokenId_;
 };
 
-void FreeInstallTest::SetUpTestCase(void) {}
+uint32_t FreeInstallTest::connectAgentTokenId_ = 0;
 
-void FreeInstallTest::TearDownTestCase(void) {}
+void FreeInstallTest::SetUpTestCase(void)
+{
+    connectAgentTokenId_ = CreateConnectAgentHapToken();
+}
 
-void FreeInstallTest::SetUp(void) {}
+void FreeInstallTest::TearDownTestCase(void)
+{
+    if (connectAgentTokenId_ != 0) {
+        OHOS::Security::AccessToken::AccessTokenKit::DeleteToken(connectAgentTokenId_);
+        connectAgentTokenId_ = 0;
+    }
+}
+
+void FreeInstallTest::SetUp(void)
+{
+    selfTokenId_ = GetSelfTokenID();
+    if (connectAgentTokenId_ != 0) {
+        SetSelfTokenID(connectAgentTokenId_);
+    }
+}
 
 void FreeInstallTest::TearDown(void)
-{}
+{
+    SetSelfTokenID(selfTokenId_);
+}
 
 sptr<Token> FreeInstallTest::MockToken()
 {
