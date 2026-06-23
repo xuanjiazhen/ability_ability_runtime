@@ -30,8 +30,10 @@ using namespace OHOS::AbilityRuntime;
 
 namespace OHOS {
 namespace CliTool {
+
 namespace {
 constexpr int64_t MAX_TIMEOUT = 30 * 60; // 30 m
+
 napi_value ParseJsonStringToJsObject(napi_env env, const std::string &jsonStr)
 {
     napi_value jsObj = nullptr;
@@ -51,14 +53,14 @@ napi_value ParseJsonStringToJsObject(napi_env env, const std::string &jsonStr)
         napi_create_object(env, &jsValue);
         for (auto it = jsonObj.begin(); it != jsonObj.end(); ++it) {
             napi_value jsItem = nullptr;
-            if (it.value().is_string()) {
+            if (it.value().is_object() || it.value().is_array()) {
+                jsItem = ParseJsonStringToJsObject(env, it.value().dump());
+            } else if (it.value().is_string()) {
                 jsItem = AppExecFwk::WrapStringToJS(env, it.value().get<std::string>());
             } else if (it.value().is_number_integer()) {
                 jsItem = AppExecFwk::WrapInt32ToJS(env, it.value().get<int32_t>());
             } else if (it.value().is_boolean()) {
                 jsItem = AppExecFwk::WrapBoolToJS(env, it.value().get<bool>());
-            } else if (it.value().is_object() || it.value().is_array()) {
-                jsItem = ParseJsonStringToJsObject(env, it.value().dump());
             } else {
                 napi_get_undefined(env, &jsItem);
             }
@@ -69,14 +71,14 @@ napi_value ParseJsonStringToJsObject(napi_env env, const std::string &jsonStr)
         size_t index = 0;
         for (auto &item : jsonObj) {
             napi_value jsItem = nullptr;
-            if (item.is_string()) {
+            if (item.is_object() || item.is_array()) {
+                jsItem = ParseJsonStringToJsObject(env, item.dump());
+            } else if (item.is_string()) {
                 jsItem = AppExecFwk::WrapStringToJS(env, item.get<std::string>());
             } else if (item.is_number_integer()) {
                 jsItem = AppExecFwk::WrapInt32ToJS(env, item.get<int32_t>());
             } else if (item.is_boolean()) {
                 jsItem = AppExecFwk::WrapBoolToJS(env, item.get<bool>());
-            } else if (item.is_object() || item.is_array()) {
-                jsItem = ParseJsonStringToJsObject(env, item.dump());
             } else {
                 napi_get_undefined(env, &jsItem);
             }
@@ -88,7 +90,9 @@ napi_value ParseJsonStringToJsObject(napi_env env, const std::string &jsonStr)
 
     return jsValue;
 }
+
 }
+
 bool UnwrapStringMap(napi_env env, napi_value obj,
     std::map<std::string, std::string> &values)
 {
