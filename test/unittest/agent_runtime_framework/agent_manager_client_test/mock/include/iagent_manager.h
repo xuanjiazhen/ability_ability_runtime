@@ -75,7 +75,7 @@ public:
         return 0;
     }
 
-    virtual int32_t GetAgentCardTypeForConnect(const AAFwk::Want &want, int32_t &cardType)
+    virtual int32_t GetAgentCardTypeForConnect(AAFwk::Want &want, int32_t &cardType)
     {
         (void)want;
         (void)cardType;

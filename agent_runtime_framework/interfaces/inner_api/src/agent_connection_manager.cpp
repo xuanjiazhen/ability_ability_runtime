@@ -352,6 +352,24 @@ sptr<AgentConnection> AgentConnectionManager::FindLowCodeReuseConnectionLocked(
     return nullptr;
 }
 
+void AgentConnectionManager::ReplayLowCodeConnectDoneIfReady(const AAFwk::Want &want,
+    const sptr<AbilityConnectCallback> &connectCallback)
+{
+    if (connectCallback == nullptr) {
+        return;
+    }
+    sptr<AgentConnection> agentConnection;
+    {
+        std::lock_guard<std::mutex> lock(connectionsLock_);
+        agentConnection = FindLowCodeReuseConnectionLocked(want, connectCallback);
+    }
+    if (agentConnection == nullptr || agentConnection->GetConnectionState() != CONNECTION_STATE_CONNECTED) {
+        return;
+    }
+    connectCallback->OnAbilityConnectDone(want.GetElement(), agentConnection->GetRemoteObject(),
+        agentConnection->GetResultCode());
+}
+
 ErrCode AgentConnectionManager::CreateConnection(const AAFwk::Want &want,
     const sptr<AbilityConnectCallback> &connectCallback)
 {

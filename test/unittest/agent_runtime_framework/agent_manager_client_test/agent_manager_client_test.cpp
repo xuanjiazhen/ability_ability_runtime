@@ -81,6 +81,7 @@ void AgentManagerClientTest::SetUp(void)
     MyFlag::lastVerifyAgentDisconnectConnection = nullptr;
     MyFlag::verifyCallerIdentity.clear();
     MyFlag::resolvedAgentCardType = static_cast<int32_t>(AgentCardType::APP);
+    MyFlag::resolvedPreflightNonce = 1000000001L;
 }
 
 void AgentManagerClientTest::TearDown(void)
@@ -952,7 +953,8 @@ HWTEST_F(AgentManagerClientTest, GetAgentCardTypeForConnect_002, TestSize.Level1
     int32_t cardType = static_cast<int32_t>(AgentCardType::APP);
     int32_t result = client.GetAgentCardTypeForConnect(want, cardType);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
-    EXPECT_GT(MyFlag::lastGetAgentCardTypeWant.GetLongParam(AGENT_VERIFICATION_NONCE_KEY, 0), 0);
+    EXPECT_FALSE(MyFlag::lastGetAgentCardTypeWant.HasParameter(AGENT_VERIFICATION_NONCE_KEY));
+    EXPECT_FALSE(want.HasParameter(AGENT_VERIFICATION_NONCE_KEY));
 }
 
 /**
@@ -975,7 +977,8 @@ HWTEST_F(AgentManagerClientTest, GetAgentCardTypeForConnect_003, TestSize.Level1
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(cardType, static_cast<int32_t>(AgentCardType::LOW_CODE));
     EXPECT_EQ(MyFlag::lastGetAgentCardTypeWant.GetStringParam("card.type.test"), "lowCode");
-    EXPECT_GT(MyFlag::lastGetAgentCardTypeWant.GetLongParam(AGENT_VERIFICATION_NONCE_KEY, 0), 0);
+    EXPECT_FALSE(MyFlag::lastGetAgentCardTypeWant.HasParameter(AGENT_VERIFICATION_NONCE_KEY));
+    EXPECT_EQ(want.GetLongParam(AGENT_VERIFICATION_NONCE_KEY, 0), MyFlag::resolvedPreflightNonce);
 }
 
 /**

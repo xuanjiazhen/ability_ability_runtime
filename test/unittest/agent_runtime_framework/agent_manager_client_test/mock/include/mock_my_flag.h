@@ -54,6 +54,7 @@ public:
     static sptr<AAFwk::IAbilityConnection> lastVerifyAgentDisconnectConnection;
     static std::string verifyCallerIdentity;
     static int resolvedAgentCardType;
+    static long resolvedPreflightNonce;
     static bool nullSystemAbility;
     static int retLoadSystemAbility;
     static bool shouldCallback;

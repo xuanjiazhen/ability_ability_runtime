@@ -177,22 +177,28 @@ void EtsAgentConnection::HandleOnAbilityConnectDone(
         TAG_LOGE(AAFwkTag::SER_ROUTER, "AttachAniEnv failed");
         return;
     }
-    if (aniAsyncCallback_ == nullptr) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "aniAsyncCallback_ is null");
+    bool hasPrimaryCallback = aniAsyncCallback_ != nullptr;
+    bool hasDuplicatedPendingCallback = !duplicatedPendingCallbacks_.empty();
+    if (!hasPrimaryCallback && !hasDuplicatedPendingCallback) {
+        TAG_LOGD(AAFwkTag::SER_ROUTER, "No pending connect callback");
         AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
         return;
     }
     if (resultCode != static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_OK)) {
-        AppExecFwk::AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER,
-            reinterpret_cast<ani_object>(aniAsyncCallback_),
-            AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, resultCode, "",
-                AbilityRuntime::GetInnerErrorMsg(
-                    AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED)),
-            nullptr);
+        if (hasPrimaryCallback) {
+            AppExecFwk::AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER,
+                reinterpret_cast<ani_object>(aniAsyncCallback_),
+                AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, resultCode, "",
+                    AbilityRuntime::GetInnerErrorMsg(
+                        AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED)),
+                nullptr);
+        }
         RejectDuplicatedPendingCallbacks(
             env, resultCode, AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED);
-        ReleaseObjectReference(env, aniAsyncCallback_);
-        aniAsyncCallback_ = nullptr;
+        if (hasPrimaryCallback) {
+            ReleaseObjectReference(env, aniAsyncCallback_);
+            aniAsyncCallback_ = nullptr;
+        }
         AgentConnectionUtils::RemoveAgentConnection(connectionId_);
         AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
         return;
@@ -209,31 +215,39 @@ void EtsAgentConnection::HandleOnAbilityConnectDone(
     if (proxy == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "CreateEtsAgentReceiverProxy failed");
         int32_t errorCode = static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
-        AppExecFwk::AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER,
-            reinterpret_cast<ani_object>(aniAsyncCallback_),
-            AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, errorCode, "",
-                AbilityRuntime::GetInnerErrorMsg(
-                    AbilityRuntime::AbilityInnerErrorMsg::OPERATION_FAILED)),
-            nullptr);
+        if (hasPrimaryCallback) {
+            AppExecFwk::AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER,
+                reinterpret_cast<ani_object>(aniAsyncCallback_),
+                AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, errorCode, "",
+                    AbilityRuntime::GetInnerErrorMsg(
+                        AbilityRuntime::AbilityInnerErrorMsg::OPERATION_FAILED)),
+                nullptr);
+        }
         RejectDuplicatedPendingCallbacks(
             env, errorCode, AbilityRuntime::AbilityInnerErrorMsg::OPERATION_FAILED);
-        ReleaseObjectReference(env, aniAsyncCallback_);
-        aniAsyncCallback_ = nullptr;
+        if (hasPrimaryCallback) {
+            ReleaseObjectReference(env, aniAsyncCallback_);
+            aniAsyncCallback_ = nullptr;
+        }
         AgentConnectionUtils::RemoveAgentConnection(connectionId_);
         AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
         return;
     }
 
     SetProxyObject(proxy);
-    AppExecFwk::AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER,
-        reinterpret_cast<ani_object>(aniAsyncCallback_),
-        AbilityRuntime::EtsErrorUtil::CreateError(env,
-            static_cast<AbilityRuntime::AbilityErrorCode>(AbilityRuntime::AbilityErrorCode::ERROR_OK)),
-        proxy);
+    if (hasPrimaryCallback) {
+        AppExecFwk::AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER,
+            reinterpret_cast<ani_object>(aniAsyncCallback_),
+            AbilityRuntime::EtsErrorUtil::CreateError(env,
+                static_cast<AbilityRuntime::AbilityErrorCode>(AbilityRuntime::AbilityErrorCode::ERROR_OK)),
+            proxy);
+    }
 
     ResolveDuplicatedPendingCallbacks(env, proxy);
-    ReleaseObjectReference(env, aniAsyncCallback_);
-    aniAsyncCallback_ = nullptr;
+    if (hasPrimaryCallback) {
+        ReleaseObjectReference(env, aniAsyncCallback_);
+        aniAsyncCallback_ = nullptr;
+    }
     AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
 }
 

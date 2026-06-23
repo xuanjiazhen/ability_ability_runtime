@@ -16,8 +16,9 @@
 #ifndef OHOS_AGENT_RUNTIME_FRAMEWORK_AGENT_MANAGER_SERVICE_H
 #define OHOS_AGENT_RUNTIME_FRAMEWORK_AGENT_MANAGER_SERVICE_H
 
-#include <memory>
+#include <chrono>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <set>
 #include <string>
@@ -71,7 +72,7 @@ public:
 
     int32_t DisconnectAgentExtensionAbility(const sptr<AAFwk::IAbilityConnection> &connection) override;
 
-    int32_t GetAgentCardTypeForConnect(const AAFwk::Want &want, int32_t &cardType) override;
+    int32_t GetAgentCardTypeForConnect(AAFwk::Want &want, int32_t &cardType) override;
 
     int32_t ConnectServiceExtensionAbility(const sptr<IRemoteObject> &callerToken, const AAFwk::Want &want,
         const sptr<AAFwk::IAbilityConnection> &connection) override;
@@ -103,10 +104,16 @@ private:
     int32_t ValidateConnectAgentCaller(int32_t &callerUid) const;
     int32_t ValidateConnectAgentPermission(int32_t &callerUid) const;
     int32_t ValidateConnectCallerForeground() const;
-    void RegisterConnectPreflight(const AAFwk::Want &connectWant, const std::string &agentId,
+    long RegisterConnectPreflight(AAFwk::Want &connectWant, const std::string &agentId,
         const AgentCard &card, int32_t callerUid);
     bool TryConsumeConnectPreflight(const AAFwk::Want &want, int32_t callerUid, AAFwk::Want &connectWant,
         std::string &agentId, AgentCard &card);
+    void ScheduleConnectPreflightCleanupLocked(AgentPreflightTimePoint expiresAt);
+    void CleanupExpiredConnectPreflights(AgentPreflightTimePoint scheduledAt);
+    void PruneExpiredConnectPreflightsLocked(AgentPreflightTimePoint now);
+    AgentPreflightTimePoint GetEarliestConnectPreflightExpiryLocked() const;
+    int64_t GetConnectPreflightCleanupDelayMillis(AgentPreflightTimePoint expiresAt) const;
+    void EraseOldestConnectPreflightLocked();
     /**
      * @brief Resolves the target AgentCard and builds the connect Want consumed by later connect paths.
      */
@@ -294,6 +301,8 @@ private:
     std::mutex connectionLock_;
     TrackedConnectionMap trackedConnections_;
     std::map<long, AgentConnectPreflightRecord> connectPreflights_;
+    bool connectPreflightCleanupScheduled_ = false;
+    AgentPreflightTimePoint connectPreflightCleanupAt_;
     std::mutex agentHostMutex_;
     std::map<AgentHostKey, std::shared_ptr<AgentHostSession>> agentHostSessions_;
     std::map<AgentOwnerKey, std::shared_ptr<AgentHostSession>> agentOwners_;

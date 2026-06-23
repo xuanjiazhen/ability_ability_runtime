@@ -50,11 +50,13 @@ public:
         const sptr<IRemoteObject> &remoteObject,
         int resultCode) override
     {
+        MyFlag::onAbilityConnectDoneCount++;
         MyFlag::isOnAbilityConnectDoneCalled = true;
     }
 
     void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) override
     {
+        MyFlag::onAbilityDisconnectDoneCount++;
         MyFlag::isOnAbilityDisconnectDoneCalled = true;
     }
 };
@@ -69,14 +71,26 @@ public:
         const sptr<IRemoteObject> &remoteObject,
         int resultCode) override
     {
+        MyFlag::onAbilityConnectDoneCount++;
         MyFlag::isOnAbilityConnectDoneCalled = true;
     }
 
     void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) override
     {
+        MyFlag::onAbilityDisconnectDoneCount++;
         MyFlag::isOnAbilityDisconnectDoneCalled = true;
     }
 };
+
+Want BuildAgentConnectionWant(const std::string &agentId, const sptr<IRemoteObject> &hostProxy,
+    const std::string &moduleName = "test.module")
+{
+    Want want;
+    want.SetParam(AGENTID_KEY, agentId);
+    want.SetParam(AGENTEXTENSIONHOSTPROXY_KEY, hostProxy);
+    want.SetElementName("", "test.bundle", "test.ability", moduleName);
+    return want;
+}
 }
 
 namespace OHOS {
@@ -102,6 +116,8 @@ void AgentConnectionManagerTest::SetUp(void)
     MyFlag::retDisconnectAgentExtensionAbility = ERR_OK;
     MyFlag::retConnectServiceExtensionAbility = ERR_OK;
     MyFlag::retDisconnectServiceExtensionAbility = ERR_OK;
+    MyFlag::onAbilityConnectDoneCount = 0;
+    MyFlag::onAbilityDisconnectDoneCount = 0;
     MyFlag::isOnAbilityConnectDoneCalled = false;
     MyFlag::isOnAbilityDisconnectDoneCalled = false;
 }
@@ -1053,6 +1069,132 @@ HWTEST_F(AgentConnectionManagerTest, MatchConnection_006, TestSize.Level1)
     auto &connectionEntry = *AgentConnectionManager::GetInstance().agentConnections_.begin();
     auto result = AgentConnectionManager::GetInstance().MatchConnection("testAgent", want, connectionEntry);
     EXPECT_TRUE(result);
+}
+
+/**
+* @tc.name  : MatchLowCodeReuseConnection_ShouldIgnoreAgentId_WhenHostAndTargetMatch
+* @tc.number: MatchLowCodeReuseConnection_001
+* @tc.desc  : Test low-code reuse matches by host proxy and target instead of agentId
+*/
+HWTEST_F(AgentConnectionManagerTest, MatchLowCodeReuseConnection_001, TestSize.Level1)
+{
+    sptr<IRemoteObject> hostProxy = sptr<MockIRemoteObject>::MakeSptr();
+    Want storedWant = BuildAgentConnectionWant("agentA", hostProxy);
+    Want reuseWant = BuildAgentConnectionWant("agentB", hostProxy);
+
+    MyFlag::retConnectAgentExtensionAbility = ERR_OK;
+    sptr<MockAbilityConnectCallback> callback = new MockAbilityConnectCallback();
+    EXPECT_EQ(AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(storedWant, callback), ERR_OK);
+
+    auto &connectionEntry = *AgentConnectionManager::GetInstance().agentConnections_.begin();
+    EXPECT_FALSE(AgentConnectionManager::GetInstance().MatchConnection("agentB", reuseWant, connectionEntry));
+    EXPECT_TRUE(AgentConnectionManager::GetInstance().MatchLowCodeReuseConnection(reuseWant, connectionEntry));
+}
+
+/**
+* @tc.name  : MatchLowCodeReuseConnection_ShouldReturnFalse_WhenHostProxyMissing
+* @tc.number: MatchLowCodeReuseConnection_002
+* @tc.desc  : Test low-code reuse requires the framework host proxy
+*/
+HWTEST_F(AgentConnectionManagerTest, MatchLowCodeReuseConnection_002, TestSize.Level1)
+{
+    sptr<IRemoteObject> hostProxy = sptr<MockIRemoteObject>::MakeSptr();
+    Want storedWant = BuildAgentConnectionWant("agentA", hostProxy);
+    Want reuseWant = BuildAgentConnectionWant("agentB", nullptr);
+
+    MyFlag::retConnectAgentExtensionAbility = ERR_OK;
+    sptr<MockAbilityConnectCallback> callback = new MockAbilityConnectCallback();
+    EXPECT_EQ(AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(storedWant, callback), ERR_OK);
+
+    auto &connectionEntry = *AgentConnectionManager::GetInstance().agentConnections_.begin();
+    EXPECT_FALSE(AgentConnectionManager::GetInstance().MatchLowCodeReuseConnection(reuseWant, connectionEntry));
+}
+
+/**
+* @tc.name  : ReuseLowCodeAgentExtensionAbility_ShouldReturnNotExist_WhenCallbackDiffers
+* @tc.number: ReuseLowCodeAgentExtensionAbility_001
+* @tc.desc  : Test low-code reuse is scoped to the existing framework connection callback
+*/
+HWTEST_F(AgentConnectionManagerTest, ReuseLowCodeAgentExtensionAbility_001, TestSize.Level1)
+{
+    sptr<IRemoteObject> hostProxy = sptr<MockIRemoteObject>::MakeSptr();
+    Want storedWant = BuildAgentConnectionWant("agentA", hostProxy);
+    Want reuseWant = BuildAgentConnectionWant("agentB", hostProxy);
+
+    MyFlag::retConnectAgentExtensionAbility = ERR_OK;
+    sptr<MockAbilityConnectCallback> callback = new MockAbilityConnectCallback();
+    sptr<MockAbilityConnectCallback> differentCallback = new MockAbilityConnectCallback();
+    EXPECT_EQ(AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(storedWant, callback), ERR_OK);
+
+    auto ret = AgentConnectionManager::GetInstance().ReuseLowCodeAgentExtensionAbility(reuseWant, differentCallback);
+    EXPECT_EQ(ret, AAFwk::CONNECTION_NOT_EXIST);
+}
+
+/**
+* @tc.name  : ReuseLowCodeAgentExtensionAbility_ShouldReuse_WhenCallbackHostAndTargetMatch
+* @tc.number: ReuseLowCodeAgentExtensionAbility_002
+* @tc.desc  : Test low-code reuse forwards through the stored common AgentConnection
+*/
+HWTEST_F(AgentConnectionManagerTest, ReuseLowCodeAgentExtensionAbility_002, TestSize.Level1)
+{
+    sptr<IRemoteObject> hostProxy = sptr<MockIRemoteObject>::MakeSptr();
+    Want storedWant = BuildAgentConnectionWant("agentA", hostProxy);
+    Want reuseWant = BuildAgentConnectionWant("agentB", hostProxy);
+
+    MyFlag::retConnectAgentExtensionAbility = ERR_OK;
+    sptr<MockAbilityConnectCallback> callback = new MockAbilityConnectCallback();
+    EXPECT_EQ(AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(storedWant, callback), ERR_OK);
+
+    auto ret = AgentConnectionManager::GetInstance().ReuseLowCodeAgentExtensionAbility(reuseWant, callback);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(AgentConnectionManager::GetInstance().agentConnections_.size(), static_cast<size_t>(1));
+}
+
+/**
+* @tc.name  : ReplayLowCodeConnectDoneIfReady_ShouldNotNotify_WhenConnectionIsConnecting
+* @tc.number: ReplayLowCodeConnectDoneIfReady_001
+* @tc.desc  : Test replay waits until the shared host connection is connected
+*/
+HWTEST_F(AgentConnectionManagerTest, ReplayLowCodeConnectDoneIfReady_001, TestSize.Level1)
+{
+    sptr<IRemoteObject> hostProxy = sptr<MockIRemoteObject>::MakeSptr();
+    Want storedWant = BuildAgentConnectionWant("agentA", hostProxy);
+    Want reuseWant = BuildAgentConnectionWant("agentB", hostProxy);
+
+    MyFlag::retConnectAgentExtensionAbility = ERR_OK;
+    sptr<MockAbilityConnectCallback> callback = new MockAbilityConnectCallback();
+    EXPECT_EQ(AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(storedWant, callback), ERR_OK);
+
+    MyFlag::onAbilityConnectDoneCount = 0;
+    AgentConnectionManager::GetInstance().ReplayLowCodeConnectDoneIfReady(reuseWant, callback);
+    EXPECT_EQ(MyFlag::onAbilityConnectDoneCount, 0);
+}
+
+/**
+* @tc.name  : ReplayLowCodeConnectDoneIfReady_ShouldNotify_WhenConnectionIsConnected
+* @tc.number: ReplayLowCodeConnectDoneIfReady_002
+* @tc.desc  : Test replay delivers the cached connected state for a reused low-code connection
+*/
+HWTEST_F(AgentConnectionManagerTest, ReplayLowCodeConnectDoneIfReady_002, TestSize.Level1)
+{
+    sptr<IRemoteObject> hostProxy = sptr<MockIRemoteObject>::MakeSptr();
+    sptr<IRemoteObject> remoteObj = sptr<MockIRemoteObject>::MakeSptr();
+    Want storedWant = BuildAgentConnectionWant("agentA", hostProxy);
+    Want reuseWant = BuildAgentConnectionWant("agentB", hostProxy);
+
+    MyFlag::retConnectAgentExtensionAbility = ERR_OK;
+    sptr<MockAbilityConnectCallback> callback = new MockAbilityConnectCallback();
+    EXPECT_EQ(AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(storedWant, callback), ERR_OK);
+
+    auto &connectionEntry = *AgentConnectionManager::GetInstance().agentConnections_.begin();
+    connectionEntry.first.agentConnection->SetConnectionState(CONNECTION_STATE_CONNECTED);
+    connectionEntry.first.agentConnection->SetRemoteObject(remoteObj);
+    connectionEntry.first.agentConnection->SetResultCode(ERR_OK);
+
+    MyFlag::onAbilityConnectDoneCount = 0;
+    AgentConnectionManager::GetInstance().ReplayLowCodeConnectDoneIfReady(reuseWant, callback);
+    EXPECT_EQ(MyFlag::onAbilityConnectDoneCount, 1);
+    EXPECT_TRUE(MyFlag::isOnAbilityConnectDoneCalled);
 }
 
 /**

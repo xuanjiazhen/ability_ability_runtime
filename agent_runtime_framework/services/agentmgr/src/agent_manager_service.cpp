@@ -43,6 +43,8 @@
 
 namespace OHOS {
 namespace AgentRuntime {
+using namespace std::chrono;
+
 namespace {
 bool IsLowCodeTargetMatched(const AAFwk::Want &want, const AgentCard &card)
 {
@@ -69,6 +71,8 @@ constexpr int32_t BASE_USER_RANGE = 200000;
 constexpr size_t MAX_AGENT_CONNECTIONS_PER_CALLER = 5;
 constexpr size_t MAX_LOW_CODE_AGENTS_PER_HOST = 100;
 constexpr size_t MAX_AGENT_CONNECT_PREFLIGHTS = 1024;
+constexpr auto AGENT_CONNECT_PREFLIGHT_TIMEOUT = minutes(1);
+constexpr const char *AGENT_CONNECT_PREFLIGHT_CLEANUP_TASK = "AgentConnectPreflightCleanup";
 constexpr const char *FOUNDATION_PROCESS_NAME = "foundation";
 
 namespace {
@@ -141,6 +145,7 @@ void AgentManagerService::OnStop() noexcept
         std::lock_guard<std::mutex> lock(connectionLock_);
         trackedConnections_.clear();
         connectPreflights_.clear();
+        connectPreflightCleanupScheduled_ = false;
         callerQuotas_.clear();
     }
     std::lock_guard<std::mutex> hostLock(agentHostMutex_);
@@ -334,15 +339,22 @@ int32_t AgentManagerService::ConnectAgentExtensionAbility(const AAFwk::Want &wan
         return ret;
     }
 
-    // Step 2: reuse a same-caller preflight result when the framework performed type classification first.
+    // Step 2: consume the optional preflight nonce, but do not trust it as current target metadata.
+    AAFwk::Want preflightWant;
+    std::string preflightAgentId;
+    AgentCard preflightCard;
+    bool hasPreflight = TryConsumeConnectPreflight(want, callerUid, preflightWant, preflightAgentId, preflightCard);
+
     AAFwk::Want connectWant;
     std::string agentId;
     AgentCard card;
-    if (!TryConsumeConnectPreflight(want, callerUid, connectWant, agentId, card)) {
-        ret = ResolveConnectAgentTarget(want, connectWant, agentId, card, callerUid);
-        if (ret != ERR_OK) {
-            return ret;
-        }
+    ret = ResolveConnectAgentTarget(want, connectWant, agentId, card, callerUid);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    if (hasPreflight && preflightCard.type != card.type) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "connect preflight type is stale");
+        return AAFwk::ERR_WRONG_INTERFACE_CALL;
     }
     connectWant.SetParam(AGENT_CARD_TYPE_KEY, static_cast<int32_t>(card.type));
 
@@ -359,7 +371,7 @@ int32_t AgentManagerService::ConnectAgentExtensionAbility(const AAFwk::Want &wan
     return ConnectStandardAgentExtensionAbility(connectWant, agentId, card, connection, callerUid);
 }
 
-int32_t AgentManagerService::GetAgentCardTypeForConnect(const AAFwk::Want &want, int32_t &cardType)
+int32_t AgentManagerService::GetAgentCardTypeForConnect(AAFwk::Want &want, int32_t &cardType)
 {
     int32_t callerUid = 0;
     auto ret = ValidateConnectAgentCaller(callerUid);
@@ -374,7 +386,8 @@ int32_t AgentManagerService::GetAgentCardTypeForConnect(const AAFwk::Want &want,
     if (ret != ERR_OK) {
         return ret;
     }
-    RegisterConnectPreflight(connectWant, agentId, card, callerUid);
+    long verificationNonce = RegisterConnectPreflight(connectWant, agentId, card, callerUid);
+    want.SetParam(AGENT_VERIFICATION_NONCE_KEY, verificationNonce);
     cardType = static_cast<int32_t>(card.type);
     return ERR_OK;
 }
@@ -499,23 +512,29 @@ int32_t AgentManagerService::ValidateConnectAgentCaller(int32_t &callerUid) cons
     return ValidateConnectCallerForeground();
 }
 
-void AgentManagerService::RegisterConnectPreflight(const AAFwk::Want &connectWant, const std::string &agentId,
+long AgentManagerService::RegisterConnectPreflight(AAFwk::Want &connectWant, const std::string &agentId,
     const AgentCard &card, int32_t callerUid)
 {
-    long nonce = connectWant.GetLongParam(AGENT_VERIFICATION_NONCE_KEY, 0);
-    if (nonce <= 0) {
-        return;
+    long nonce = GenerateAgentVerificationNonce();
+    auto now = AgentPreflightClock::now();
+    std::lock_guard<std::mutex> lock(connectionLock_);
+    PruneExpiredConnectPreflightsLocked(now);
+    while (connectPreflights_.find(nonce) != connectPreflights_.end()) {
+        nonce = GenerateAgentVerificationNonce();
     }
+    connectWant.SetParam(AGENT_VERIFICATION_NONCE_KEY, nonce);
     AgentConnectPreflightRecord record;
     record.callerUid = callerUid;
     record.connectWant = connectWant;
     record.agentId = agentId;
     record.card = card;
-    std::lock_guard<std::mutex> lock(connectionLock_);
+    record.expiresAt = now + AGENT_CONNECT_PREFLIGHT_TIMEOUT;
     if (connectPreflights_.size() >= MAX_AGENT_CONNECT_PREFLIGHTS) {
-        connectPreflights_.erase(connectPreflights_.begin());
+        EraseOldestConnectPreflightLocked();
     }
     connectPreflights_[nonce] = record;
+    ScheduleConnectPreflightCleanupLocked(record.expiresAt);
+    return nonce;
 }
 
 bool AgentManagerService::TryConsumeConnectPreflight(const AAFwk::Want &want, int32_t callerUid,
@@ -526,12 +545,14 @@ bool AgentManagerService::TryConsumeConnectPreflight(const AAFwk::Want &want, in
         return false;
     }
     std::lock_guard<std::mutex> lock(connectionLock_);
+    PruneExpiredConnectPreflightsLocked(AgentPreflightClock::now());
     auto iter = connectPreflights_.find(nonce);
     if (iter == connectPreflights_.end()) {
         return false;
     }
     if (iter->second.callerUid != callerUid) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "connect preflight caller mismatch");
+        connectPreflights_.erase(iter);
         return false;
     }
     if (!IsConnectPreflightTargetMatched(want, iter->second)) {
@@ -544,6 +565,81 @@ bool AgentManagerService::TryConsumeConnectPreflight(const AAFwk::Want &want, in
     card = iter->second.card;
     connectPreflights_.erase(iter);
     return true;
+}
+
+void AgentManagerService::ScheduleConnectPreflightCleanupLocked(AgentPreflightTimePoint expiresAt)
+{
+    if (taskHandler_ == nullptr) {
+        return;
+    }
+    if (connectPreflightCleanupScheduled_ && connectPreflightCleanupAt_ <= expiresAt) {
+        return;
+    }
+    connectPreflightCleanupScheduled_ = true;
+    connectPreflightCleanupAt_ = expiresAt;
+    auto task = [expiresAt]() {
+        auto service = AgentManagerService::GetInstance();
+        if (service != nullptr) {
+            service->CleanupExpiredConnectPreflights(expiresAt);
+        }
+    };
+    taskHandler_->SubmitTaskJust(task, AGENT_CONNECT_PREFLIGHT_CLEANUP_TASK,
+        GetConnectPreflightCleanupDelayMillis(expiresAt));
+}
+
+void AgentManagerService::CleanupExpiredConnectPreflights(AgentPreflightTimePoint scheduledAt)
+{
+    std::lock_guard<std::mutex> lock(connectionLock_);
+    if (!connectPreflightCleanupScheduled_ || connectPreflightCleanupAt_ != scheduledAt) {
+        return;
+    }
+    connectPreflightCleanupScheduled_ = false;
+    PruneExpiredConnectPreflightsLocked(AgentPreflightClock::now());
+    if (!connectPreflights_.empty()) {
+        ScheduleConnectPreflightCleanupLocked(GetEarliestConnectPreflightExpiryLocked());
+    }
+}
+
+void AgentManagerService::PruneExpiredConnectPreflightsLocked(AgentPreflightTimePoint now)
+{
+    for (auto iter = connectPreflights_.begin(); iter != connectPreflights_.end();) {
+        if (iter->second.expiresAt > now) {
+            ++iter;
+            continue;
+        }
+        iter = connectPreflights_.erase(iter);
+    }
+}
+
+AgentPreflightTimePoint AgentManagerService::GetEarliestConnectPreflightExpiryLocked() const
+{
+    auto earliest = std::min_element(connectPreflights_.begin(), connectPreflights_.end(),
+        [](const auto &left, const auto &right) {
+            return left.second.expiresAt < right.second.expiresAt;
+        });
+    return earliest == connectPreflights_.end() ? AgentPreflightTimePoint::max() :
+        earliest->second.expiresAt;
+}
+
+int64_t AgentManagerService::GetConnectPreflightCleanupDelayMillis(AgentPreflightTimePoint expiresAt) const
+{
+    auto now = AgentPreflightClock::now();
+    if (expiresAt <= now) {
+        return 0;
+    }
+    return duration_cast<milliseconds>(expiresAt - now).count();
+}
+
+void AgentManagerService::EraseOldestConnectPreflightLocked()
+{
+    auto oldestExpiry = GetEarliestConnectPreflightExpiryLocked();
+    auto oldest = std::find_if(connectPreflights_.begin(), connectPreflights_.end(),
+        [oldestExpiry](const auto &item) {
+            return item.second.expiresAt == oldestExpiry;
+        });
+    if (oldest != connectPreflights_.end()) {
+        connectPreflights_.erase(oldest);
+    }
 }
 
 int32_t AgentManagerService::ValidateConnectAgentPermission(int32_t &callerUid) const
@@ -633,8 +729,8 @@ int32_t AgentManagerService::PrepareStandardAgentConnectWant(AAFwk::Want &connec
     // Atomic-service agents connect with install-on-demand metadata attached.
     if (isAtomicServiceAgent) {
         connectWant.AddFlags(AAFwk::Want::FLAG_INSTALL_ON_DEMAND);
-        std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch()).count());
+        std::string startTime = std::to_string(duration_cast<milliseconds>(
+            system_clock::now().time_since_epoch()).count());
         connectWant.SetParam(AAFwk::Want::PARAM_RESV_START_TIME, startTime);
     }
     return ERR_OK;
@@ -1243,12 +1339,11 @@ void AgentManagerService::AddCallerDeathRecipient(TrackedConnectionRecord &recor
     if (record.callerRemote == nullptr) {
         return;
     }
-    auto handler = [service = wptr<AgentManagerService>(AgentManagerService::GetInstance()),
-                       callerRemote = record.callerRemote](const wptr<IRemoteObject> &remote) {
+    auto handler = [callerRemote = record.callerRemote](const wptr<IRemoteObject> &remote) {
         (void)remote;
-        auto serviceSptr = service.promote();
-        if (serviceSptr != nullptr) {
-            serviceSptr->HandleCallerConnectionDied(callerRemote);
+        auto service = AgentManagerService::GetInstance();
+        if (service != nullptr) {
+            service->HandleCallerConnectionDied(callerRemote);
         }
     };
     record.deathRecipient = sptr<AAFwk::AbilityConnectCallbackRecipient>::MakeSptr(std::move(handler));
@@ -1273,6 +1368,7 @@ void AgentManagerService::ReleaseTrackedConnection(const sptr<AAFwk::IAbilityCon
         it->second.callerRemote->RemoveDeathRecipient(it->second.deathRecipient);
     }
     ReleaseTrackedConnectionQuotaLocked(it->second);
+    it->second.verificationNonce = 0;
     trackedConnections_.erase(it);
 }
 
@@ -1287,6 +1383,7 @@ void AgentManagerService::ReleaseTrackedConnectionByRemoteLocked(const sptr<IRem
         it->second.callerRemote->RemoveDeathRecipient(it->second.deathRecipient);
     }
     ReleaseTrackedConnectionQuotaLocked(it->second);
+    it->second.verificationNonce = 0;
     trackedConnections_.erase(it);
 }
 

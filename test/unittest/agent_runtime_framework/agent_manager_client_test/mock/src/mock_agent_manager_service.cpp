@@ -15,6 +15,7 @@
 
 #include "mock_agent_manager_service.h"
 
+#include "agent_extension_connection_constants.h"
 #include "mock_my_flag.h"
 
 namespace OHOS {
@@ -43,6 +44,7 @@ sptr<AAFwk::IAbilityConnection> MyFlag::lastVerifyAgentConnectConnection = nullp
 sptr<AAFwk::IAbilityConnection> MyFlag::lastVerifyAgentDisconnectConnection = nullptr;
 std::string MyFlag::verifyCallerIdentity;
 int MyFlag::resolvedAgentCardType = 0;
+long MyFlag::resolvedPreflightNonce = 0;
 
 MockAgentManagerService::MockAgentManagerService()
 {}
@@ -99,10 +101,13 @@ int32_t MockAgentManagerService::DisconnectAgentExtensionAbility(const sptr<AAFw
     return MyFlag::retDisconnectAgentExtensionAbility;
 }
 
-int32_t MockAgentManagerService::GetAgentCardTypeForConnect(const AAFwk::Want &want, int32_t &cardType)
+int32_t MockAgentManagerService::GetAgentCardTypeForConnect(AAFwk::Want &want, int32_t &cardType)
 {
     MyFlag::lastGetAgentCardTypeWant = want;
     cardType = MyFlag::resolvedAgentCardType;
+    if (MyFlag::retGetAgentCardTypeForConnect == ERR_OK && MyFlag::resolvedPreflightNonce > 0) {
+        want.SetParam(AGENT_VERIFICATION_NONCE_KEY, MyFlag::resolvedPreflightNonce);
+    }
     return MyFlag::retGetAgentCardTypeForConnect;
 }
 

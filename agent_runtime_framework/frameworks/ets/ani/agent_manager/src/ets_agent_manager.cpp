@@ -134,6 +134,7 @@ bool TryReuseLowCodeConnection(ani_env *env, AAFwk::Want &want, ani_object callb
         ani_ref proxy = connection->GetProxyObject();
         if (proxy == nullptr) {
             connection->AddDuplicatedPendingCallback(asyncCallback);
+            AgentConnectionManager::GetInstance().ReplayLowCodeConnectDoneIfReady(reuseWant, connection);
             return true;
         }
         AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
@@ -638,7 +639,9 @@ void EtsAgentManager::ConnectAgentExtensionAbility(ani_env *env, ani_object aniW
     want.SetParam(AGENTEXTENSIONHOSTPROXY_KEY, stub->AsObject());
 
     // Insert into registry
-    int64_t connectionId = AgentConnectionUtils::InsertAgentConnection(connection, want);
+    AAFwk::Want recordWant = want;
+    recordWant.RemoveParam(AGENT_VERIFICATION_NONCE_KEY);
+    int64_t connectionId = AgentConnectionUtils::InsertAgentConnection(connection, recordWant);
 
     // connect
     int32_t innerErrorCode = AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(want, connection);

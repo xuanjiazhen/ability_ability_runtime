@@ -172,14 +172,18 @@ void JSAgentConnection::HandleOnAbilityConnectDone(const AppExecFwk::ElementName
     const sptr<IRemoteObject> &remoteObject, int resultCode)
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "HandleOnAbilityConnectDone, resultCode: %{public}d", resultCode);
-    if (napiAsyncTask_ == nullptr) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "napiAsyncTask_ is null");
+    bool hasPrimaryTask = napiAsyncTask_ != nullptr;
+    bool hasDuplicatedPendingTask = !duplicatedPendingTaskList_.empty();
+    if (!hasPrimaryTask && !hasDuplicatedPendingTask) {
+        TAG_LOGD(AAFwkTag::SER_ROUTER, "No pending connect task");
         return;
     }
     if (resultCode != static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_OK)) {
         napi_value error = CreateJsErrorByNativeErr(env_, resultCode, "",
             AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED));
-        napiAsyncTask_->Reject(env_, error);
+        if (hasPrimaryTask) {
+            napiAsyncTask_->Reject(env_, error);
+        }
         RejectDuplicatedPendingTask(env_, error);
         napiAsyncTask_ = nullptr;
         AgentConnectionUtils::RemoveAgentConnection(connectionId_);
@@ -199,14 +203,18 @@ void JSAgentConnection::HandleOnAbilityConnectDone(const AppExecFwk::ElementName
             static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), "",
             AbilityRuntime::GetInnerErrorMsg(
                 AbilityRuntime::AbilityInnerErrorMsg::OPERATION_FAILED));
-        napiAsyncTask_->Reject(env_, error);
+        if (hasPrimaryTask) {
+            napiAsyncTask_->Reject(env_, error);
+        }
         RejectDuplicatedPendingTask(env_, error);
         napiAsyncTask_ = nullptr;
         AgentConnectionUtils::RemoveAgentConnection(connectionId_);
         return;
     }
     SetProxyObject(proxy);
-    napiAsyncTask_->ResolveWithNoError(env_, proxy);
+    if (hasPrimaryTask) {
+        napiAsyncTask_->ResolveWithNoError(env_, proxy);
+    }
     ResolveDuplicatedPendingTask(env_, proxy);
     napiAsyncTask_ = nullptr;
 }

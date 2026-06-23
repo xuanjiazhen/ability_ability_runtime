@@ -662,6 +662,7 @@ void AgentManagerService::ClearAgentHostSessionLocked(const AgentHostKey &key)
     }
     if (sessionIter->second != nullptr) {
         EraseAgentOwnersLocked(*sessionIter->second);
+        sessionIter->second->verificationNonce = 0;
     }
     agentHostSessions_.erase(sessionIter);
 }

@@ -232,6 +232,15 @@ void RemoveServiceConnection(int64_t connectionId)
     g_serviceConnections.erase(connectionId);
 }
 
+napi_value CreateResolvedConnectPromise(napi_env env, napi_value proxy)
+{
+    napi_value result = nullptr;
+    std::unique_ptr<NapiAsyncTask> asyncTask =
+        CreateAsyncTaskWithLastParam(env, nullptr, nullptr, nullptr, &result);
+    asyncTask->ResolveWithNoError(env, proxy);
+    return result;
+}
+
 // Helper function to check for duplicate connections
 bool CheckConnectAlreadyExist(napi_env env, const AAFwk::Want &want, napi_value callback, napi_value &result)
 {
@@ -257,7 +266,7 @@ bool CheckConnectAlreadyExist(napi_env env, const AAFwk::Want &want, napi_value 
 
     // Connection exists and proxy is ready, resolve immediately
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Resolving with existing proxy");
-    result = proxy;
+    result = CreateResolvedConnectPromise(env, proxy);
     return true;
 }
 
@@ -318,12 +327,13 @@ bool TryReuseLowCodeConnection(napi_env env, AAFwk::Want &want, napi_value callb
 
         napi_value proxy = connection->GetProxyObject();
         if (proxy != nullptr) {
-            result = proxy;
+            result = CreateResolvedConnectPromise(env, proxy);
             return true;
         }
         std::unique_ptr<NapiAsyncTask> asyncTask =
             CreateAsyncTaskWithLastParam(env, nullptr, nullptr, nullptr, &result);
         connection->AddDuplicatedPendingTask(asyncTask);
+        AgentConnectionManager::GetInstance().ReplayLowCodeConnectDoneIfReady(reuseWant, connection);
         return true;
     }
     return false;
@@ -333,7 +343,7 @@ bool TryReuseLowCodeConnection(napi_env env, AAFwk::Want &want, napi_value callb
 void DoConnectAgentExtensionAbility(napi_env env,
     sptr<JSAgentConnection> connection,
     std::shared_ptr<NapiAsyncTask> asyncTaskShared,
-    const AAFwk::Want &want,
+    AAFwk::Want want,
     const std::string &agentId)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "DoConnectAgentExtensionAbility called");
@@ -736,7 +746,9 @@ napi_value JsAgentManager::ScheduleAgentConnection(napi_env env, const AAFwk::Wa
     connection->SetNapiAsyncTask(asyncTaskShared);
 
     // Insert after attaching the real async task to avoid publishing partial connection state.
-    int64_t connectionId = AgentConnectionUtils::InsertAgentConnection(connection, want);
+    AAFwk::Want recordWant = want;
+    recordWant.RemoveParam(AGENT_VERIFICATION_NONCE_KEY);
+    int64_t connectionId = AgentConnectionUtils::InsertAgentConnection(connection, recordWant);
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Connection inserted, id: %{public}s", std::to_string(connectionId).c_str());
 
     // Schedule async connection

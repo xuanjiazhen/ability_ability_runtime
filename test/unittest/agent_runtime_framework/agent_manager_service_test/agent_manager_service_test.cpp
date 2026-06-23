@@ -16,6 +16,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <chrono>
 #include <map>
 
 #include "ability_connect_callback_interface.h"
@@ -136,6 +137,7 @@ void AgentManagerServiceTest::SetUp(void)
     MyFlag::lastDisconnectAbilityConnection = nullptr;
     auto service = AgentManagerService::GetInstance();
     service->trackedConnections_.clear();
+    service->connectPreflights_.clear();
     service->callerQuotas_.clear();
     MyFlag::connectAbilityWithExtensionTypeCallCount = 0;
     MyFlag::disconnectAbilityCallCount = 0;
@@ -990,6 +992,60 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_003, TestSize.Lev
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection),
         AAFwk::ERR_INVALID_AGENT_CARD_ID);
     MyFlag::retVerifyGetAgentCardPermission = true;
+}
+
+/**
+* @tc.name  : ConnectAgentExtensionAbility_033
+* @tc.number: ConnectAgentExtensionAbility_033
+* @tc.desc  : Test ConnectAgentExtensionAbility revalidates target even when preflight nonce exists
+*/
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_033, TestSize.Level1)
+{
+    auto service = AgentManagerService::GetInstance();
+    service->connectPreflights_.clear();
+
+    AAFwk::Want preflightWant;
+    preflightWant.SetParam(AGENTID_KEY, std::string("testAgent"));
+    preflightWant.SetBundle("test.bundle");
+    preflightWant.SetElementName("", "test.bundle", "TestAbility", "");
+    AgentCard preflightCard = BuildServiceTestAgentCard("testAgent");
+    long nonce = service->RegisterConnectPreflight(preflightWant, "testAgent", preflightCard,
+        IPCSkeleton::GetCallingUid());
+
+    AAFwk::Want connectWant = preflightWant;
+    connectWant.SetParam(AGENT_VERIFICATION_NONCE_KEY, nonce);
+    MyFlag::retGetAgentCardByAgentId = ERR_NAME_NOT_FOUND;
+
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(connectWant, connection), AAFwk::ERR_INVALID_AGENT_CARD_ID);
+    EXPECT_TRUE(service->connectPreflights_.empty());
+}
+
+/**
+* @tc.name  : CleanupExpiredConnectPreflights_001
+* @tc.number: CleanupExpiredConnectPreflights_001
+* @tc.desc  : Test delayed preflight cleanup removes expired records proactively
+*/
+HWTEST_F(AgentManagerServiceTest, CleanupExpiredConnectPreflights_001, TestSize.Level1)
+{
+    using namespace std::chrono;
+
+    auto service = AgentManagerService::GetInstance();
+    service->connectPreflights_.clear();
+    auto expiredAt = steady_clock::now() - milliseconds(1);
+
+    AgentConnectPreflightRecord record;
+    record.callerUid = IPCSkeleton::GetCallingUid();
+    record.agentId = "testAgent";
+    record.card = BuildServiceTestAgentCard("testAgent");
+    record.expiresAt = expiredAt;
+    service->connectPreflights_[1000000001L] = record;
+    service->connectPreflightCleanupScheduled_ = true;
+    service->connectPreflightCleanupAt_ = expiredAt;
+
+    service->CleanupExpiredConnectPreflights(expiredAt);
+    EXPECT_TRUE(service->connectPreflights_.empty());
+    EXPECT_FALSE(service->connectPreflightCleanupScheduled_);
 }
 
 /**

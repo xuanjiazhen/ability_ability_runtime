@@ -169,6 +169,8 @@ public:
         const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback);
     ErrCode ReuseLowCodeAgentExtensionAbility(const AAFwk::Want &want,
         const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback);
+    void ReplayLowCodeConnectDoneIfReady(const AAFwk::Want &want,
+        const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback);
     /**
      * @brief Disconnect from an AgentExtensionAbility.
      *

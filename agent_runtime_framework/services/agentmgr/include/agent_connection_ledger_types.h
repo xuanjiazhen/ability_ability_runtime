@@ -16,6 +16,7 @@
 #ifndef OHOS_AGENT_RUNTIME_FRAMEWORK_AGENT_CONNECTION_LEDGER_TYPES_H
 #define OHOS_AGENT_RUNTIME_FRAMEWORK_AGENT_CONNECTION_LEDGER_TYPES_H
 
+#include <chrono>
 #include <set>
 #include <string>
 
@@ -25,6 +26,9 @@
 
 namespace OHOS {
 namespace AgentRuntime {
+using AgentPreflightClock = std::chrono::steady_clock;
+using AgentPreflightTimePoint = AgentPreflightClock::time_point;
+
 struct TrackedConnectionRecord {
     int32_t callerUid = 0;
     sptr<AAFwk::IAbilityConnection> serviceConnection = nullptr;
@@ -80,6 +84,7 @@ struct AgentConnectPreflightRecord {
     AAFwk::Want connectWant;
     std::string agentId;
     AgentCard card;
+    AgentPreflightTimePoint expiresAt;
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS

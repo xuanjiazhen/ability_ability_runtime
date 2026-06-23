@@ -15,11 +15,7 @@
 
 #include "agent_manager_client.h"
 
-#include <limits>
-#include <random>
-
 #include "ability_manager_errors.h"
-#include "agent_extension_connection_constants.h"
 #include "agent_load_callback.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
@@ -33,14 +29,6 @@ namespace OHOS {
 namespace AgentRuntime {
 namespace {
 const int LOAD_SA_TIMEOUT_MS = 4 * 1000;
-
-long GenerateAgentConnectPreflightNonce()
-{
-    constexpr long minVerificationNonce = 1000000000L;
-    thread_local std::mt19937_64 engine(std::random_device{}());
-    std::uniform_int_distribution<long> dist(minVerificationNonce, std::numeric_limits<long>::max());
-    return dist(engine);
-}
 } // namespace
 AgentManagerClient &AgentManagerClient::GetInstance()
 {
@@ -167,7 +155,6 @@ int32_t AgentManagerClient::GetAgentCardTypeForConnect(AAFwk::Want &want, int32_
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentmgr");
         return ERR_NULL_AGENT_MGR_PROXY;
     }
-    want.SetParam(AGENT_VERIFICATION_NONCE_KEY, GenerateAgentConnectPreflightNonce());
     return agentMgr->GetAgentCardTypeForConnect(want, cardType);
 }
 
