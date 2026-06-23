@@ -15,7 +15,7 @@
 
 #include "js_common_utils.h"
 #include <nlohmann/json.hpp>
-#include "napi_common_util.h"
+#include "napi/native_api.h"
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {
@@ -24,18 +24,22 @@ namespace CliTool {
 namespace {
 napi_value ConvertJsonValue(napi_env env, const nlohmann::json &value)
 {
+    napi_value result = nullptr;
     if (value.is_string()) {
-        return AppExecFwk::WrapStringToJS(env, value.get<std::string>());
+        std::string strValue = value.get<std::string>();
+        napi_create_string_utf8(env, strValue.c_str(), strValue.size(), &result);
+        return result;
     }
     if (value.is_number_integer()) {
-        return AppExecFwk::WrapInt32ToJS(env, value.get<int32_t>());
+        napi_create_int32(env, value.get<int32_t>(), &result);
+        return result;
     }
     if (value.is_boolean()) {
-        return AppExecFwk::WrapBoolToJS(env, value.get<bool>());
+        napi_get_boolean(env, value.get<bool>(), &result);
+        return result;
     }
-    napi_value undefined;
-    napi_get_undefined(env, &undefined);
-    return undefined;
+    napi_get_undefined(env, &result);
+    return result;
 }
 }
 
