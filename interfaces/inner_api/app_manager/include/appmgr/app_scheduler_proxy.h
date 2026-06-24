@@ -275,6 +275,13 @@ public:
     virtual int32_t ScheduleChangeAppGcState(int32_t state, uint64_t tid = 0) override;
 
     /**
+     * @brief Notify application image build failed.
+     *
+     * @return Returns ERR_OK on success, error code on failure.
+     */
+    virtual int32_t ScheduleNotifyMakeImageFailed() override;
+
+    /**
      * @brief Attach app debug.
      */
     void AttachAppDebug(bool isDebugFromLocal) override;

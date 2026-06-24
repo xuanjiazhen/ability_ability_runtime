@@ -380,6 +380,17 @@ int32_t AppLifeCycleDeal::NotifyAppFault(const FaultData &faultData)
     return appThread->ScheduleNotifyAppFault(faultData);
 }
 
+int32_t AppLifeCycleDeal::NotifyMakeImageFailed()
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    auto appThread = GetApplicationClient();
+    if (appThread == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null appThread");
+        return ERR_INVALID_VALUE;
+    }
+    return appThread->ScheduleNotifyMakeImageFailed();
+}
+
 int32_t AppLifeCycleDeal::ChangeAppGcState(int32_t state, uint64_t tid)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");

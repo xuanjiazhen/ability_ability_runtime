@@ -157,6 +157,7 @@ constexpr int32_t UNSPECIFIED_USERID = -2;
 constexpr int32_t JS_ERROR_EXIT = -2;
 constexpr int32_t TIME_OUT = 120;
 constexpr int32_t DEFAULT_SLEEP_TIME = 100000;
+constexpr int32_t IMAGE_REPORT_FFRT_DELAY_TIME = 58000;
 
 enum class SignalType {
     SIGNAL_JSHEAP_OLD,
@@ -796,8 +797,28 @@ void MainThread::ScheduleLaunchApplication(const AppLaunchData &data, const Conf
     };
     if (!mainHandler_->PostTask(task, "MainThread:LaunchApplication")) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
+        return;
+    }
+    if (data.GetImageProcessType() == static_cast<int32_t>(ImageProcessType::TEMPLATE)) {
+        DelayedReportFFRT(IMAGE_REPORT_FFRT_DELAY_TIME);
     }
 }
+
+void MainThread::DelayedReportFFRT(int32_t delayedTimeMs)
+{
+    wptr<MainThread> weak = this;
+    std::thread([weak, delayedTimeMs]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(delayedTimeMs));
+        auto appThread = weak.promote();
+        if (appThread == nullptr) {
+            return;
+        }
+        appThread->NotifyFFRTSnapshot();
+    }).detach();
+}
+
+void MainThread::NotifyFFRTSnapshot()
+{}
 
 /**
  *
@@ -3937,6 +3958,24 @@ int32_t MainThread::ScheduleNotifyUnLoadRepairPatch(const std::string &bundleNam
     }
 
     return NO_ERROR;
+}
+
+int32_t MainThread::ScheduleNotifyMakeImageFailed()
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    if (mainHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null mainHandler");
+        return ERR_INVALID_VALUE;
+    }
+    NotifyMakeImageFailed();
+    return NO_ERROR;
+}
+ 
+void MainThread::NotifyMakeImageFailed()
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "make image failed, notify ffrt");
+    std::lock_guard<std::mutex> lock(needStopNotifyFFRTMutex_);
+    needStopNotifyFFRT_ = true;
 }
 
 int32_t MainThread::ScheduleNotifyAppFault(const FaultData &faultData)

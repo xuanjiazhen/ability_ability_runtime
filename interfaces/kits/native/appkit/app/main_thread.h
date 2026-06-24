@@ -351,6 +351,8 @@ public:
         const sptr<IQuickFixCallback> &callback, const int32_t recordId) override;
 
     int32_t ScheduleNotifyAppFault(const FaultData &faultData) override;
+
+    int32_t ScheduleNotifyMakeImageFailed() override;
 #ifdef CJ_FRONTEND
     CJUncaughtExceptionInfo CreateCjExceptionInfo(const std::string &bundleName, uint32_t versionCode,
         const std::string &hapPath, const std::string &appRunningId);
@@ -699,6 +701,8 @@ private:
 
     void NotifyAppFault(const FaultData &faultData);
 
+    void NotifyMakeImageFailed();
+
     void OnOverlayChanged(const EventFwk::CommonEventData &data,
         const std::shared_ptr<Global::Resource::ResourceManager> &resourceManager, const std::string &bundleName,
         const std::string &moduleName, const std::string &loadPath);
@@ -742,6 +746,10 @@ private:
     int32_t OnAttachLocalDebug(bool isDebugFromLocal);
 
     void HandleConfigByPlugin(Configuration &config, BundleInfo &bundleInfo);
+
+    void DelayedReportFFRT(int32_t delayedTimeMs);
+
+    void NotifyFFRTSnapshot();
 
 #if defined(NWEB) && defined(NWEB_GRAPHIC)
     void HandleNWebPreload();
@@ -789,6 +797,8 @@ private:
     bool isPluginNamespaceInherited_ = false;
     std::string pluginDefaultNamespaceLdDictionary_ = "";
     RuntimeUpdateParam runtimeUpdateParam_;
+    std::mutex needStopNotifyFFRTMutex_;
+    bool needStopNotifyFFRT_ = false;
 #if defined(NWEB) && defined(NWEB_GRAPHIC)
     Rosen::RSSurfaceNode::SharedPtr preloadSurfaceNode_ = nullptr;
     std::shared_ptr<NWeb::NWeb> preloadNWeb_ = nullptr;
