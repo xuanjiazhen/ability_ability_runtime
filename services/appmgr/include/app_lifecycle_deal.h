@@ -273,6 +273,8 @@ public:
      */
     int32_t NotifyAppFault(const FaultData &faultData);
 
+    int32_t NotifyMakeImageFailed();
+
     /**
      * @brief Notify NativeEngine GC of status change.
      *
