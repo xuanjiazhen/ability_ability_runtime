@@ -594,5 +594,12 @@ int32_t AppSchedulerHost::HandleScheduleUpdateWorkProcessInfo(MessageParcel &dat
     ScheduleUpdateWorkProcessInfo(updateInfo);
     return NO_ERROR;
 }
+
+int32_t AppSchedulerHost::HandleScheduleNotifyMakeImageFailed(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    ScheduleNotifyMakeImageFailed();
+    return NO_ERROR;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

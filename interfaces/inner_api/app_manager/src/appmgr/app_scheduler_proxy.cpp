@@ -1041,5 +1041,22 @@ void AppSchedulerProxy::OnLoadAbilityFinished(uint64_t callbackId, int32_t pid)
         TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is wrong, error code: %{public}d", ret);
     }
 }
+
+int32_t AppSchedulerProxy::ScheduleNotifyMakeImageFailed()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!WriteInterfaceToken(data)) {
+        return ERR_INVALID_DATA;
+    }
+    int32_t ret = SendTransactCmd(
+        static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_NOTIFY_MAKE_IMAGE_FAILED), data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+        return ret;
+    }
+    return ERR_OK;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -2309,6 +2309,18 @@ HWTEST_F(MainThreadTest, ScheduleNotifyAppFault_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ScheduleNotifyMakeImageFailed_0100
+ * @tc.desc: Schedule notify make image failed.
+ * @tc.type: FUNC
+ * @tc.require: issueI79RY8
+ */
+HWTEST_F(MainThreadTest, ScheduleNotifyMakeImageFailed_0100, TestSize.Level1)
+{
+    auto ret = mainThread_->ScheduleNotifyMakeImageFailed();
+    EXPECT_EQ(ret, NO_ERROR);
+}
+
+/**
  * @tc.name: GetNativeLibPath_0100
  * @tc.desc: Get native library path when lib compressed and not isolated.
  * @tc.type: FUNC
