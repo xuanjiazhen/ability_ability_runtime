@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2026 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License"),
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -25,6 +25,9 @@ sequenceable ToolInfo..OHOS.CliTool.ToolInfo;
 rawdata ToolInfo..OHOS.CliTool.ToolsRawData;
 sequenceable FunctionInfo..OHOS.CliTool.FunctionInfo;
 
+/// @brief Parameters for abc file execution
+sequenceable AbcExecuteParam..OHOS.CliTool.AbcExecuteParam;
+
 interface ICliToolManager {
     void GetAllToolSummaries([out] ToolSummary[] summaries);
     void GetToolInfoByName([in] String name, [out] ToolInfo tool);
@@ -44,4 +47,5 @@ interface ICliToolManager {
     void UnregisterFunction([in] String functionNamespace, [in] String functionName);
     void UnregisterIntentFunctionsByNamespace([in] String functionNamespace);
     void GetAllFunctions([out] FunctionInfo[] functions);
+    void ExecAbc([in] AbcExecuteParam param);
 }
