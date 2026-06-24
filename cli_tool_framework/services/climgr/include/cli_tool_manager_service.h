@@ -145,6 +145,16 @@ public:
      */
     int32_t GetAllFunctions(std::vector<FunctionInfo> &functions) override;
 
+    /**
+     * @brief Get all INTENT_FUNCTION entries for a specific namespace (bundle).
+     *        Inner API used by AMS during boot KV reconciliation.
+     * @param functionNamespace Typically the bundleName
+     * @param functions Output vector of FunctionInfo
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    int32_t GetFunctionByNamespace(const std::string &functionNamespace,
+        std::vector<FunctionInfo> &functions) override;
+
 protected:
     void OnStart() override;
     void OnStop() override;

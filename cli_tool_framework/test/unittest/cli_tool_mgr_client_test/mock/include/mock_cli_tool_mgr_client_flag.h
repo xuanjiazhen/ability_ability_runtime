@@ -28,6 +28,7 @@ public:
     static int32_t retGetFunctionInfo;
     static int32_t retUnregisterFunction;
     static int32_t retGetAllFunctions;
+    static int32_t retGetFunctionByNamespace;
     static int32_t retExecTool;
     static int32_t retExecCmd;
     static int32_t retSubscribeSession;
