@@ -43,8 +43,9 @@ public:
     std::string inputSchema;
     std::string outputSchema;
     FunctionType functionType;
+    uint32_t versionCode;
 
-    FunctionInfo() : functionType(FunctionType::INTENT_FUNCTION) {}
+    FunctionInfo() : functionType(FunctionType::INTENT_FUNCTION), versionCode(0) {}
     ~FunctionInfo() override = default;
 
     bool Marshalling(Parcel &parcel) const override;

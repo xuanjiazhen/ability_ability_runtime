@@ -102,6 +102,20 @@ bool ParseFunctionType(const nlohmann::json &json, FunctionType &output)
     return false;
 }
 
+bool ParseVersionCode(const nlohmann::json &json, uint32_t &output)
+{
+    if (!json.contains("versionCode")) {
+        return true;
+    }
+    const auto &versionCode = json["versionCode"];
+    if (!versionCode.is_number_unsigned()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Invalid versionCode type in JSON, must be unsigned integer");
+        return false;
+    }
+    output = versionCode.get<uint32_t>();
+    return true;
+}
+
 } // namespace
 
 bool FunctionInfo::Marshalling(Parcel &parcel) const
@@ -133,6 +147,10 @@ bool FunctionInfo::Marshalling(Parcel &parcel) const
     }
     if (!parcel.WriteInt32(typeValue)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Write functionType failed");
+        return false;
+    }
+    if (!parcel.WriteUint32(versionCode)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Write versionCode failed");
         return false;
     }
     return true;
@@ -179,6 +197,10 @@ FunctionInfo *FunctionInfo::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
     function->functionType = static_cast<FunctionType>(typeValue);
+    if (!parcel.ReadUint32(function->versionCode)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Read versionCode failed");
+        return nullptr;
+    }
     return function.release();
 }
 
@@ -190,7 +212,8 @@ bool FunctionInfo::ParseFromJson(const nlohmann::json &json, FunctionInfo &funct
            ParseRequiredStringField(json, "description", function.description, true) &&
            ParseInputSchema(json, function.inputSchema) &&
            ParseOutputSchema(json, function.outputSchema) &&
-           ParseFunctionType(json, function.functionType);
+           ParseFunctionType(json, function.functionType) &&
+           ParseVersionCode(json, function.versionCode);
 }
 
 nlohmann::json FunctionInfo::ParseToJson() const
@@ -211,6 +234,8 @@ nlohmann::json FunctionInfo::ParseToJson() const
     }
 
     j["functionType"] = static_cast<int32_t>(functionType);
+
+    j["versionCode"] = versionCode;
 
     return j;
 }

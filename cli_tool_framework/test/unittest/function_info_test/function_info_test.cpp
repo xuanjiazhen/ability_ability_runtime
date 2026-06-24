@@ -58,6 +58,7 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_DefaultConstructor_0100, TestSize.Level1
     EXPECT_TRUE(function.inputSchema.empty());
     EXPECT_TRUE(function.outputSchema.empty());
     EXPECT_EQ(function.functionType, FunctionType::INTENT_FUNCTION);
+    EXPECT_EQ(function.versionCode, 0u);
 
     TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_DefaultConstructor_0100 end");
 }
@@ -176,6 +177,7 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_Unmarshalling_0100, TestSize.Level1)
     original.inputSchema = R"({"type": "object"})";
     original.outputSchema = R"({"type": "string"})";
     original.functionType = FunctionType::INTENT_FUNCTION;
+    original.versionCode = 1024;
 
     Parcel parcel;
     ASSERT_TRUE(original.Marshalling(parcel));
@@ -191,6 +193,7 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_Unmarshalling_0100, TestSize.Level1)
     EXPECT_FALSE(result->inputSchema.empty());
     EXPECT_FALSE(result->outputSchema.empty());
     EXPECT_EQ(result->functionType, FunctionType::INTENT_FUNCTION);
+    EXPECT_EQ(result->versionCode, 1024u);
 
     delete result;
 
@@ -346,6 +349,7 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_Unmarshalling_0700, TestSize.Level1)
     })";
     original.outputSchema = R"({"type": "array", "items": {"type": "string"}})";
     original.functionType = FunctionType::INTENT_FUNCTION;
+    original.versionCode = 2048;
 
     Parcel parcel;
     ASSERT_TRUE(original.Marshalling(parcel));
@@ -357,6 +361,7 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_Unmarshalling_0700, TestSize.Level1)
     EXPECT_EQ(result->functionName, "complexFunction");
     EXPECT_EQ(result->functionNamespace, "com.test.complex");
     EXPECT_EQ(result->version, "2.0.0");
+    EXPECT_EQ(result->versionCode, 2048u);
 
     delete result;
 
@@ -382,6 +387,7 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_Marshalling_Unmarshalling_RoundTrip_0100
     original.inputSchema = R"({"type": "object", "properties": {"input": {"type": "string"}}})";
     original.outputSchema = R"({"type": "string"})";
     original.functionType = FunctionType::INTENT_FUNCTION;
+    original.versionCode = 4096;
 
     Parcel parcel;
     ASSERT_TRUE(original.Marshalling(parcel));
@@ -397,6 +403,7 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_Marshalling_Unmarshalling_RoundTrip_0100
     EXPECT_EQ(result->inputSchema, original.inputSchema);
     EXPECT_EQ(result->outputSchema, original.outputSchema);
     EXPECT_EQ(result->functionType, original.functionType);
+    EXPECT_EQ(result->versionCode, original.versionCode);
 
     delete result;
 
@@ -836,6 +843,7 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_ParseToJson_0100, TestSize.Level1)
     function.inputSchema = R"({"type": "object", "properties": {"arg1": {"type": "string"}}})";
     function.outputSchema = R"({"type": "string"})";
     function.functionType = FunctionType::INTENT_FUNCTION;
+    function.versionCode = 8192;
 
     nlohmann::json json = function.ParseToJson();
 
@@ -855,6 +863,7 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_ParseToJson_0100, TestSize.Level1)
     EXPECT_EQ(inputSchemaJson["type"], "object");
     EXPECT_EQ(outputSchemaJson["type"], "string");
     EXPECT_EQ(json["functionType"], 0);
+    EXPECT_EQ(json["versionCode"], 8192);
 
     TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_ParseToJson_0100 end");
 }
@@ -1003,7 +1012,8 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_ParseFromJson_ParseToJson_RoundTrip_0100
         "description": "Round trip JSON test",
         "inputSchema": "{\"type\": \"object\", \"properties\": {\"input\": {\"type\": \"string\"}}}",
         "outputSchema": "{\"type\": \"string\"}",
-        "functionType": 0
+        "functionType": 0,
+        "versionCode": 16384
     })"_json;
 
     FunctionInfo function;
@@ -1017,6 +1027,7 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_ParseFromJson_ParseToJson_RoundTrip_0100
     EXPECT_EQ(resultJson["version"], originalJson["version"]);
     EXPECT_EQ(resultJson["description"], originalJson["description"]);
     EXPECT_EQ(resultJson["functionType"], originalJson["functionType"]);
+    EXPECT_EQ(resultJson["versionCode"], originalJson["versionCode"]);
 
     TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_ParseFromJson_ParseToJson_RoundTrip_0100 end");
 }
