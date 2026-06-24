@@ -97,6 +97,7 @@ sptr<Token> AbilityManagerServiceThirteenthTest::MockToken(AbilityType abilityTy
  * Function: ConnectAbilityCommon
  * SubFunction: NA
  * FunctionPoints: Verify ConnectAbilityCommon forwards AGENT extension type to ConnectFreeInstall
+ *                 after ValidateConnectAgentRequest passes.
  */
 HWTEST_F(AbilityManagerServiceThirteenthTest, ConnectAbilityCommon_001, TestSize.Level1)
 {
@@ -106,6 +107,11 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, ConnectAbilityCommon_001, TestSize
     status.fimConnectExtensionType_ = -1;
     status.fimConnectLocalDeviceId_.clear();
     status.softbusGetLocalNodeDeviceInfo_ = ERR_OK;
+    // make ValidateConnectAgentRequest pass: system-api, permission, foreground.
+    status.perJudgeCallerIsAllowedToUseSystemAPI_ = true;
+    status.permPermission_ = 1;
+    status.amcGetProcessInfoRet_ = ERR_OK;
+    status.amcProcessState_ = AppProcessState::APP_STATE_FOREGROUND;
 
     auto abilityMs = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityMs, nullptr);
@@ -128,6 +134,210 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, ConnectAbilityCommon_001, TestSize
     EXPECT_EQ(status.fimConnectLocalDeviceId_, "0");
 }
 #endif // SUPPORT_RECORDER_DSOFTBUS
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ConnectAbilityCommon_002
+ * Function: ConnectAbilityCommon
+ * SubFunction: ValidateConnectAgentRequest
+ * FunctionPoints: Verify AGENT connect is rejected when caller is not allowed to use system-api.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ConnectAbilityCommon_002, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.fimConnectFreeInstallCalled_ = false;
+    status.perJudgeCallerIsAllowedToUseSystemAPI_ = false;
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+    abilityMs->freeInstallManager_ = std::make_shared<FreeInstallManager>();
+    ASSERT_NE(abilityMs->freeInstallManager_, nullptr);
+
+    Want want;
+    ElementName element("", "com.test.demo", "MainAbility");
+    want.SetElement(element);
+    want.AddFlags(Want::FLAG_INSTALL_ON_DEMAND);
+    auto connect = sptr<InsightIntentExecuteConnection>::MakeSptr();
+    auto callerToken = MockToken(AbilityType::PAGE);
+
+    auto ret = abilityMs->ConnectAbilityCommon(
+        want, connect, callerToken, ExtensionAbilityType::AGENT, DEFAULT_INVAL_VALUE, false);
+    EXPECT_EQ(ret, ERR_NOT_SYSTEM_APP);
+    EXPECT_FALSE(status.fimConnectFreeInstallCalled_);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ConnectAbilityCommon_003
+ * Function: ConnectAbilityCommon
+ * SubFunction: ValidateConnectAgentRequest
+ * FunctionPoints: Verify AGENT connect is rejected when caller lacks PERMISSION_CONNECT_AGENT.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ConnectAbilityCommon_003, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.fimConnectFreeInstallCalled_ = false;
+    status.perJudgeCallerIsAllowedToUseSystemAPI_ = true;
+    status.permPermission_ = 0;
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+    abilityMs->freeInstallManager_ = std::make_shared<FreeInstallManager>();
+    ASSERT_NE(abilityMs->freeInstallManager_, nullptr);
+
+    Want want;
+    ElementName element("", "com.test.demo", "MainAbility");
+    want.SetElement(element);
+    want.AddFlags(Want::FLAG_INSTALL_ON_DEMAND);
+    auto connect = sptr<InsightIntentExecuteConnection>::MakeSptr();
+    auto callerToken = MockToken(AbilityType::PAGE);
+
+    auto ret = abilityMs->ConnectAbilityCommon(
+        want, connect, callerToken, ExtensionAbilityType::AGENT, DEFAULT_INVAL_VALUE, false);
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    EXPECT_FALSE(status.fimConnectFreeInstallCalled_);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ConnectAbilityCommon_004
+ * Function: ConnectAbilityCommon
+ * SubFunction: ValidateConnectAgentRequest
+ * FunctionPoints: Verify AGENT connect is rejected when caller is not a foreground app.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ConnectAbilityCommon_004, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.fimConnectFreeInstallCalled_ = false;
+    status.perJudgeCallerIsAllowedToUseSystemAPI_ = true;
+    status.permPermission_ = 1;
+    status.amcGetProcessInfoRet_ = ERR_OK;
+    status.amcProcessState_ = AppProcessState::APP_STATE_BACKGROUND;
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+    abilityMs->freeInstallManager_ = std::make_shared<FreeInstallManager>();
+    ASSERT_NE(abilityMs->freeInstallManager_, nullptr);
+
+    Want want;
+    ElementName element("", "com.test.demo", "MainAbility");
+    want.SetElement(element);
+    want.AddFlags(Want::FLAG_INSTALL_ON_DEMAND);
+    auto connect = sptr<InsightIntentExecuteConnection>::MakeSptr();
+    auto callerToken = MockToken(AbilityType::PAGE);
+
+    auto ret = abilityMs->ConnectAbilityCommon(
+        want, connect, callerToken, ExtensionAbilityType::AGENT, DEFAULT_INVAL_VALUE, false);
+    EXPECT_EQ(ret, NOT_TOP_ABILITY);
+    EXPECT_FALSE(status.fimConnectFreeInstallCalled_);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ValidateConnectAgentRequest_001
+ * Function: ValidateConnectAgentRequest
+ * SubFunction: NA
+ * FunctionPoints: Verify ValidateConnectAgentRequest returns ERR_OK when all checks pass.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ValidateConnectAgentRequest_001, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.perJudgeCallerIsAllowedToUseSystemAPI_ = true;
+    status.permPermission_ = 1;
+    status.amcGetProcessInfoRet_ = ERR_OK;
+    status.amcProcessState_ = AppProcessState::APP_STATE_FOREGROUND;
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+
+    auto ret = abilityMs->ValidateConnectAgentRequest();
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ValidateConnectAgentRequest_002
+ * Function: ValidateConnectAgentRequest
+ * SubFunction: NA
+ * FunctionPoints: Verify ValidateConnectAgentRequest rejects non-system-api callers.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ValidateConnectAgentRequest_002, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.perJudgeCallerIsAllowedToUseSystemAPI_ = false;
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+
+    auto ret = abilityMs->ValidateConnectAgentRequest();
+    EXPECT_EQ(ret, ERR_NOT_SYSTEM_APP);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ValidateConnectAgentRequest_003
+ * Function: ValidateConnectAgentRequest
+ * SubFunction: NA
+ * FunctionPoints: Verify ValidateConnectAgentRequest rejects callers without PERMISSION_CONNECT_AGENT.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ValidateConnectAgentRequest_003, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.perJudgeCallerIsAllowedToUseSystemAPI_ = true;
+    status.permPermission_ = 0;
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+
+    auto ret = abilityMs->ValidateConnectAgentRequest();
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ValidateConnectAgentRequest_004
+ * Function: ValidateConnectAgentRequest
+ * SubFunction: NA
+ * FunctionPoints: Verify ValidateConnectAgentRequest rejects background callers.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ValidateConnectAgentRequest_004, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.perJudgeCallerIsAllowedToUseSystemAPI_ = true;
+    status.permPermission_ = 1;
+    status.amcGetProcessInfoRet_ = ERR_OK;
+    status.amcProcessState_ = AppProcessState::APP_STATE_BACKGROUND;
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+
+    auto ret = abilityMs->ValidateConnectAgentRequest();
+    EXPECT_EQ(ret, NOT_TOP_ABILITY);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ValidateConnectAgentRequest_005
+ * Function: ValidateConnectAgentRequest
+ * SubFunction: NA
+ * FunctionPoints: Verify ValidateConnectAgentRequest propagates the error when GetRunningProcessInfoByPid fails.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ValidateConnectAgentRequest_005, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.perJudgeCallerIsAllowedToUseSystemAPI_ = true;
+    status.permPermission_ = 1;
+    status.amcGetProcessInfoRet_ = ERR_INVALID_VALUE;
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+
+    auto ret = abilityMs->ValidateConnectAgentRequest();
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
 
 /*
  * Feature: AbilityManagerService
