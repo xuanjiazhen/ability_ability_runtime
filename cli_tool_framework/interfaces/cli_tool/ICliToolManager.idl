@@ -44,4 +44,5 @@ interface ICliToolManager {
     void UnregisterFunction([in] String functionNamespace, [in] String functionName);
     void UnregisterIntentFunctionsByNamespace([in] String functionNamespace);
     void GetAllFunctions([out] FunctionInfo[] functions);
+    void GetFunctionByNamespace([in] String functionNamespace, [out] FunctionInfo[] functions);
 }
