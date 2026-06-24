@@ -75,6 +75,16 @@ public:
     int32_t GetAllFunctions(std::vector<FunctionInfo> &functions);
 
     /**
+     * @brief Get all INTENT_FUNCTION entries whose namespace matches exactly.
+     *        Uses KV prefix scan on "<namespace>/" to avoid full-table iteration.
+     * @param functionNamespace Namespace to match (typically the bundleName)
+     * @param functions Output vector of FunctionInfo
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    int32_t GetFunctionByNamespace(const std::string &functionNamespace,
+        std::vector<FunctionInfo> &functions);
+
+    /**
      * @brief Ensure functions database is initialized (lazy initialization)
      * @return int32_t ERR_OK on success, error code otherwise
      */
