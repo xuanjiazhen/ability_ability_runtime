@@ -20,7 +20,7 @@
 #include "hitrace_meter.h"
 #include "local_pending_want.h"
 #include "multi_app_utils.h"
-#include "want_params_wrapper.h"
+#include "want_params_json_v3_codec.h"
 #include "pending_want.h"
 #include "permission_verification.h"
 #include "want_agent_client.h"
@@ -509,8 +509,8 @@ std::string WantAgentHelper::ToString(const std::shared_ptr<WantAgent> &agent)
 
     if ((*info.get()).allWants.size() > 0) {
         nlohmann::json paramsObj;
-        AAFwk::WantParamWrapper wWrapper((*info.get()).allWants[0].want.GetParams());
-        paramsObj["extraInfoValue"] = wWrapper.ToString();
+        paramsObj["extraInfoValue"] =
+            AAFwk::WantParamsJsonV3Codec::Serialize((*info.get()).allWants[0].want.GetParams());
         jsonObject["extraInfo"] = paramsObj;
     }
 
@@ -557,10 +557,11 @@ std::shared_ptr<WantAgent> WantAgentHelper::FromString(const std::string &jsonSt
     if (jsonObject.contains("extraInfo") && jsonObject["extraInfo"].is_object()) {
         auto extraInfoObj = jsonObject.at("extraInfo");
         if (extraInfoObj.contains("extraInfoValue") && extraInfoObj["extraInfoValue"].is_string()) {
-            auto pwWrapper = AAFwk::WantParamWrapper::Parse(extraInfoObj.at("extraInfoValue").get<std::string>());
-            AAFwk::WantParams params;
-            if (pwWrapper->GetValue(params) == ERR_OK) {
-                extraInfo = std::make_shared<AAFwk::WantParams>(params);
+            std::unique_ptr<AAFwk::WantParams> parsed;
+            AAFwk::WantParamsJsonV3Status status;
+            if (AAFwk::WantParamsJsonV3Codec::Parse(
+                extraInfoObj.at("extraInfoValue").get<std::string>(), parsed, status)) {
+                extraInfo = std::make_shared<AAFwk::WantParams>(*parsed);
             }
         }
     }
