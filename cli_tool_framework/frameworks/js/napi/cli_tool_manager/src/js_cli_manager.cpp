@@ -17,6 +17,7 @@
 
 #include <string>
 
+#include "abc_execute_param.h"
 #include "cli_error_code.h"
 #include "cli_manager_error_utils.h"
 #include "cli_session_info.h"
@@ -514,6 +515,205 @@ napi_value JSCliManager::OnQueryTools(napi_env env, size_t argc, napi_value *arg
     return handleEscape.Escape(asyncResult);
 }
 
+napi_value JSCliManager::ExecAbc(napi_env env, napi_callback_info info)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "========== [JS_LAYER] ExecAbc ENTRY ==========");
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] ExecAbc called from JavaScript layer");
+    HandleEscape handleEscape(env);
+    size_t argc = 0;
+    napi_value argv[ARGS_MAX_COUNT] = {nullptr};
+    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] Argument count: argc=%{public}zu", argc);
+
+    if (argc < INDEX_ONE) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "[JS_LAYER] Parameter validation failed: Too few parameters, got=%{public}zu, need at least 1", argc);
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    AbcExecuteParam param;
+    bool useObjectParam = false;
+
+    // Check if first argument is an object (new interface)
+    napi_valuetype firstType = napi_undefined;
+    napi_status status = napi_typeof(env, argv[INDEX_ZERO], &firstType);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] First argument type check: type=%{public}d (0=undefined, 3=object, 4=array, 6=string)",
+        firstType);
+
+    if (status == napi_ok && firstType == napi_object) {
+        // Check if it's an array (old interface with array as second arg)
+        bool isArray = false;
+        napi_is_array(env, argv[INDEX_ZERO], &isArray);
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] First argument isArray=%{public}d", isArray);
+
+        if (!isArray) {
+            // New interface: object parameter
+            TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] Using new object parameter interface");
+            useObjectParam = true;
+
+            // Get abcPath property (optional if using HSP lookup)
+            napi_value abcPathValue = nullptr;
+            napi_get_named_property(env, argv[INDEX_ZERO], "abcPath", &abcPathValue);
+            if (abcPathValue != nullptr) {
+                AppExecFwk::UnwrapStringFromJS2(env, abcPathValue, param.abcPath);
+                TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] Parsed abcPath='%{public}s'", param.abcPath.c_str());
+            } else {
+                TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] abcPath property not found (may use HSP lookup)");
+            }
+
+            // Get HSP lookup properties (optional alternative to abcPath)
+            napi_value hspBundleNameValue = nullptr;
+            napi_get_named_property(env, argv[INDEX_ZERO], "hspBundleName", &hspBundleNameValue);
+            if (hspBundleNameValue != nullptr) {
+                AppExecFwk::UnwrapStringFromJS2(env, hspBundleNameValue, param.hspBundleName);
+                TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] Parsed hspBundleName='%{public}s'", param.hspBundleName.c_str());
+            }
+
+            napi_value hspModuleNameValue = nullptr;
+            napi_get_named_property(env, argv[INDEX_ZERO], "hspModuleName", &hspModuleNameValue);
+            if (hspModuleNameValue != nullptr) {
+                AppExecFwk::UnwrapStringFromJS2(env, hspModuleNameValue, param.hspModuleName);
+                TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] Parsed hspModuleName='%{public}s'", param.hspModuleName.c_str());
+            }
+
+            // Validate: either abcPath or (hspBundleName + hspModuleName) must be provided
+            if (param.abcPath.empty() && (param.hspBundleName.empty() || param.hspModuleName.empty())) {
+                TAG_LOGE(AAFwkTag::CLI_TOOL, "[JS_LAYER] Parameter validation failed: Need abcPath OR (hspBundleName+hspModuleName)");
+                TAG_LOGE(AAFwkTag::CLI_TOOL, "[JS_LAYER]   abcPath.empty=%{public}d, hspBundleName.empty=%{public}d, hspModuleName.empty=%{public}d",
+                    param.abcPath.empty(), param.hspBundleName.empty(), param.hspModuleName.empty());
+                ThrowInvalidParamError(env, "Either 'abcPath' or both 'hspBundleName' and 'hspModuleName' must be provided");
+                return CreateJsUndefined(env);
+            }
+
+            // Get optional properties
+            napi_value funcNameValue = nullptr;
+            napi_get_named_property(env, argv[INDEX_ZERO], "functionName", &funcNameValue);
+            if (funcNameValue != nullptr) {
+                AppExecFwk::UnwrapStringFromJS2(env, funcNameValue, param.functionName);
+                TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] Parsed functionName='%{public}s'", param.functionName.c_str());
+            }
+
+            napi_value bundleNameValue = nullptr;
+            napi_get_named_property(env, argv[INDEX_ZERO], "bundleName", &bundleNameValue);
+            if (bundleNameValue != nullptr) {
+                AppExecFwk::UnwrapStringFromJS2(env, bundleNameValue, param.bundleName);
+                TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] Parsed bundleName='%{public}s'", param.bundleName.c_str());
+            }
+
+            napi_value moduleNameValue = nullptr;
+            napi_get_named_property(env, argv[INDEX_ZERO], "moduleName", &moduleNameValue);
+            if (moduleNameValue != nullptr) {
+                AppExecFwk::UnwrapStringFromJS2(env, moduleNameValue, param.moduleName);
+                TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] Parsed moduleName='%{public}s'", param.moduleName.c_str());
+            }
+
+            // Get args property (array)
+            napi_value argsValue = nullptr;
+            napi_get_named_property(env, argv[INDEX_ZERO], "args", &argsValue);
+            if (argsValue != nullptr) {
+                bool isArgsArray = false;
+                napi_is_array(env, argsValue, &isArgsArray);
+                if (isArgsArray) {
+                    uint32_t length = 0;
+                    napi_get_array_length(env, argsValue, &length);
+                    TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] Parsed args array, length=%{public}u", length);
+                    for (uint32_t i = 0; i < length; ++i) {
+                        napi_value element;
+                        napi_get_element(env, argsValue, i, &element);
+                        std::string argStr;
+                        if (AppExecFwk::UnwrapStringFromJS2(env, element, argStr)) {
+                            param.args.push_back(argStr);
+                            TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER]   arg[%{public}u]='%{public}s'", i, argStr.c_str());
+                        }
+                    }
+                }
+            }
+
+            TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] New interface summary: abcPath='%{public}s', hsp=%{public}s/%{public}s, func='%{public}s', bundle='%{public}s', args=%{public}zu",
+                     param.abcPath.c_str(), param.hspBundleName.c_str(), param.hspModuleName.c_str(),
+                     param.functionName.c_str(), param.bundleName.c_str(), param.args.size());
+        }
+    }
+
+    // Old interface: abcPath, args, bundleName
+    if (!useObjectParam) {
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] Using old positional parameter interface");
+        if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ZERO], param.abcPath) || param.abcPath.empty()) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "[JS_LAYER] Parameter validation failed: abcPath is required and empty");
+            ThrowInvalidParamError(env, "abcPath is required and must be a non-empty string");
+            return CreateJsUndefined(env);
+        }
+
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] Parsed abcPath='%{public}s'", param.abcPath.c_str());
+
+        // Parse optional args parameter (argv[1])
+        if (argc > INDEX_ONE && argv[INDEX_ONE] != nullptr) {
+            napi_valuetype valueType = napi_undefined;
+            napi_status status = napi_typeof(env, argv[INDEX_ONE], &valueType);
+            if (status == napi_ok && valueType == napi_object) {
+                bool isArray = false;
+                napi_is_array(env, argv[INDEX_ONE], &isArray);
+                if (isArray) {
+                    uint32_t length = 0;
+                    napi_get_array_length(env, argv[INDEX_ONE], &length);
+                    TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] Parsed args array (old interface), length=%{public}u", length);
+                    for (uint32_t i = 0; i < length; ++i) {
+                        napi_value element;
+                        napi_get_element(env, argv[INDEX_ONE], i, &element);
+                        std::string argStr;
+                        if (AppExecFwk::UnwrapStringFromJS2(env, element, argStr)) {
+                            param.args.push_back(argStr);
+                            TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER]   arg[%{public}u]='%{public}s'", i, argStr.c_str());
+                        }
+                    }
+                }
+            }
+        }
+
+        // Parse optional bundleName parameter (argv[2])
+        if (argc > INDEX_TWO && argv[INDEX_TWO] != nullptr) {
+            AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_TWO], param.bundleName);
+            TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] Parsed bundleName='%{public}s'", param.bundleName.c_str());
+        }
+
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] Old interface summary: abcPath='%{public}s', bundle='%{public}s', args=%{public}zu",
+                 param.abcPath.c_str(), param.bundleName.c_str(), param.args.size());
+    }
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] Creating async task for execution");
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+
+    NapiAsyncTask::ExecuteCallback execute = [innerErrCode, param]() {
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] >>> ASYNC EXECUTE START: Calling CliToolMGRClient::ExecAbc");
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] >>> Passing to client layer: abcPath='%{public}s', hsp='%{public}s/%{public}s'",
+            param.abcPath.c_str(), param.hspBundleName.c_str(), param.hspModuleName.c_str());
+        *innerErrCode = CliToolMGRClient::GetInstance().ExecAbc(param);
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] <<< ASYNC EXECUTE COMPLETE: CliToolMGRClient::ExecAbc returned=%{public}d", *innerErrCode);
+    };
+
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode](
+        napi_env env, NapiAsyncTask &task, int32_t status) {
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] >>> COMPLETE CALLBACK: result=%{public}d, status=%{public}d", *innerErrCode, status);
+        HandleScope handleScope(env);
+        if (*innerErrCode != ERR_OK) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "[JS_LAYER] Execution failed: error=%{public}d", *innerErrCode);
+            task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
+            return;
+        }
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] Execution succeeded: resolving Promise");
+        task.ResolveWithNoError(env, CreateJsUndefined(env));
+    };
+
+    napi_value asyncResult = nullptr;
+    NapiAsyncTask::Schedule("JsCliManager::OnExecAbc", env,
+        CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &asyncResult));
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[JS_LAYER] Async task scheduled, returning Promise to JavaScript");
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "========== [JS_LAYER] ExecAbc EXIT ==========");
+    return handleEscape.Escape(asyncResult);
+}
+
 napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "Init JSCliManager");
@@ -536,6 +736,7 @@ napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "getToolInfoByName", moduleName, JSCliManager::GetToolInfoByName);
     BindNativeFunction(env, exportObj, "queryToolSummaries", moduleName, JSCliManager::QueryToolSummaries);
     BindNativeFunction(env, exportObj, "queryTools", moduleName, JSCliManager::QueryTools);
+    BindNativeFunction(env, exportObj, "execAbc", moduleName, JSCliManager::ExecAbc);
 
     TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManagerInit end");
     return CreateJsUndefined(env);
