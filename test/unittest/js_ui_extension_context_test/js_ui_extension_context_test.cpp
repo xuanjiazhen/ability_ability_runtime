@@ -51,6 +51,17 @@ const int USLEEPTIME = 100000;
 napi_env env_ = nullptr;
 panda::ecmascript::EcmaVM* vm_ = nullptr;
 
+napi_value MarkCallbackInvoked(napi_env env, napi_callback_info info)
+{
+    size_t argc = 0;
+    void* data = nullptr;
+    napi_get_cb_info(env, info, &argc, nullptr, nullptr, &data);
+    if (data != nullptr) {
+        *static_cast<bool*>(data) = true;
+    }
+    return CreateJsUndefined(env);
+}
+
 class MockDeferred : public NativeDeferred {
 public:
     void Resolve(napi_value data) override
@@ -1266,6 +1277,29 @@ HWTEST_F(UIExtensionContextTest, AbilityRuntime_UIExtensionContext_HandleTermina
     GTEST_LOG_(INFO) << "HandleTerminateSelfEmbeddable_0300 end";
 }
 
+// HandleTerminateSelfInEmbeddableMode: native completion is dispatched through the N-API event loop
+HWTEST_F(UIExtensionContextTest, AbilityRuntime_UIExtensionContext_HandleTerminateSelfEmbeddable_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "HandleTerminateSelfEmbeddable_0400 start";
+    HandleScope handleScope(env_);
+
+    abilityContextImpl_->SetScreenMode(AAFwk::EMBEDDED_FULL_SCREEN_MODE);
+    bool callbackInvoked = false;
+    napi_value callbackFunc = nullptr;
+    ASSERT_EQ(napi_create_function(env_, "callback", NAPI_AUTO_LENGTH, MarkCallbackInvoked,
+        &callbackInvoked, &callbackFunc), napi_ok);
+
+    auto result = jsUIExtensionContext_->HandleTerminateSelfInEmbeddableMode(
+        env_, callbackFunc, abilityContextImpl_);
+    EXPECT_NE(result, nullptr);
+    EXPECT_FALSE(callbackInvoked);
+
+    auto engine = reinterpret_cast<ArkNativeEngine *>(env_);
+    RunNowait(engine->GetUVLoop());
+    EXPECT_TRUE(callbackInvoked);
+    GTEST_LOG_(INFO) << "HandleTerminateSelfEmbeddable_0400 end";
+}
+
 // ==================== HandleTerminateSelfWithResultInEmbeddableMode: context null path ====================
 
 HWTEST_F(UIExtensionContextTest, TerminateSelfWithResultEmbeddable_0300, TestSize.Level1)
@@ -1320,6 +1354,30 @@ HWTEST_F(UIExtensionContextTest, TerminateSelfWithResultEmbeddable_0300, TestSiz
         engine->lastException_.Empty();
     }
     GTEST_LOG_(INFO) << "TerminateSelfWithResultEmbeddable_0300 end";
+}
+
+// HandleTerminateSelfWithResultInEmbeddableMode: transfer failure is dispatched through the N-API event loop
+HWTEST_F(UIExtensionContextTest, TerminateSelfWithResultEmbeddable_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "TerminateSelfWithResultEmbeddable_0400 start";
+    HandleScope handleScope(env_);
+
+    abilityContextImpl_->SetScreenMode(AAFwk::EMBEDDED_FULL_SCREEN_MODE);
+    bool callbackInvoked = false;
+    napi_value callbackFunc = nullptr;
+    ASSERT_EQ(napi_create_function(env_, "callback", NAPI_AUTO_LENGTH, MarkCallbackInvoked,
+        &callbackInvoked, &callbackFunc), napi_ok);
+
+    AAFwk::Want want;
+    auto result = jsUIExtensionContext_->HandleTerminateSelfWithResultInEmbeddableMode(
+        env_, callbackFunc, abilityContextImpl_, 0, want);
+    EXPECT_NE(result, nullptr);
+    EXPECT_FALSE(callbackInvoked);
+
+    auto engine = reinterpret_cast<ArkNativeEngine *>(env_);
+    RunNowait(engine->GetUVLoop());
+    EXPECT_TRUE(callbackInvoked);
+    GTEST_LOG_(INFO) << "TerminateSelfWithResultEmbeddable_0400 end";
 }
 }  // namespace AAFwk
 }  // namespace OHOS
