@@ -37,7 +37,14 @@ bool ConvertFromConfigIntent(const std::vector<AbilityRuntime::InsightIntentInfo
 bool RegisterInsightIntentFunctions(
     const AbilityRuntime::ExtractInsightIntentProfileInfoVec &profileInfos,
     const std::vector<AbilityRuntime::InsightIntentInfo> &configInfos,
-    const std::string &bundleName = "");
+    const std::string &bundleName,
+    uint32_t versionCode);
+
+bool RegisterInsightIntentFunctions(
+    const std::vector<AbilityRuntime::ExtractInsightIntentInfo> &intentInfos,
+    const std::vector<AbilityRuntime::InsightIntentInfo> &configInfos,
+    const std::string &bundleName,
+    uint32_t versionCode);
 
 bool UnregisterInsightIntentFunctions(const std::string &bundleName);
 
