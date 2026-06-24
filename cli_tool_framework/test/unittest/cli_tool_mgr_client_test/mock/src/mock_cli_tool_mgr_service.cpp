@@ -19,6 +19,7 @@ int32_t CliToolMgrClientFlag::retRegisterFunction = ERR_OK;
 int32_t CliToolMgrClientFlag::retGetFunctionInfo = ERR_OK;
 int32_t CliToolMgrClientFlag::retUnregisterFunction = ERR_OK;
 int32_t CliToolMgrClientFlag::retGetAllFunctions = ERR_OK;
+int32_t CliToolMgrClientFlag::retGetFunctionByNamespace = ERR_OK;
 int32_t CliToolMgrClientFlag::retExecTool = ERR_OK;
 int32_t CliToolMgrClientFlag::retExecCmd = ERR_OK;
 int32_t CliToolMgrClientFlag::retSubscribeSession = ERR_OK;
@@ -49,6 +50,7 @@ void CliToolMgrClientFlag::Reset()
     retGetFunctionInfo = ERR_OK;
     retUnregisterFunction = ERR_OK;
     retGetAllFunctions = ERR_OK;
+    retGetFunctionByNamespace = ERR_OK;
     retExecTool = ERR_OK;
     retExecCmd = ERR_OK;
     retSubscribeSession = ERR_OK;
@@ -129,6 +131,13 @@ int32_t MockCliToolMgrService::GetAllFunctions(std::vector<FunctionInfo> &functi
 {
     functions = CliToolMgrClientFlag::functionInfos;
     return CliToolMgrClientFlag::retGetAllFunctions;
+}
+
+int32_t MockCliToolMgrService::GetFunctionByNamespace(const std::string &,
+    std::vector<FunctionInfo> &functions)
+{
+    functions = CliToolMgrClientFlag::functionInfos;
+    return CliToolMgrClientFlag::retGetFunctionByNamespace;
 }
 
 int32_t MockCliToolMgrService::ExecTool(const ExecToolParam &, const std::string &eventId,

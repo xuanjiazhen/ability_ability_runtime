@@ -19,7 +19,10 @@
 #include "common_event_data.h"
 #include "common_event_subscriber.h"
 #include "common_event_subscribe_info.h"
+#include "extract_insight_intent_profile.h"
+#include "insight_intent_profile.h"
 #include "task_handler_wrap.h"
+#include "bundle_info.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -33,8 +36,14 @@ public:
 private:
     void SaveInsightIntentInfos(const std::string &bundleName, const std::string &moduleName,
         uint32_t versionCode, int32_t userId);
+    void RegisterInsightIntentFunctionsOnly(const std::string &bundleName, const std::string &moduleName,
+        uint32_t versionCode, int32_t userId);
+    bool PrepareIntentInfosFromProfile(const std::string &bundleName, const std::string &moduleName,
+        int32_t userId, std::string &profile,
+        ExtractInsightIntentProfileInfoVec &infos, std::vector<InsightIntentInfo> &configInfos);
     void DeleteInsightIntent(const std::string &bundleName, const std::string &moduleName, int32_t userId);
     void LoadInsightIntentInfos(int32_t userId = -1);
+    void ReconcileFunctionsForBundle(const AppExecFwk::BundleInfo &bundleInfo, int32_t userId);
     void DeleteInsightIntentInfoByUserId(int32_t userId);
     void HandleBundleScanFinished();
     void HandleUserSwitched(const EventFwk::CommonEventData &data);
