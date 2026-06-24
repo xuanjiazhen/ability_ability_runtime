@@ -281,6 +281,13 @@ public:
     virtual int32_t ScheduleChangeAppGcState(int32_t state, uint64_t tid = 0) = 0;
 
     /**
+     * @brief Notify application image build failed.
+     *
+     * @return Returns ERR_OK on success, error code on failure.
+     */
+    virtual int32_t ScheduleNotifyMakeImageFailed() = 0;
+
+    /**
      * @brief Attach app debug.
      */
     virtual void AttachAppDebug(bool isDebugFromLocal) = 0;
@@ -404,6 +411,7 @@ public:
         SCHEDULE_DUMP_ARKWEB,
         SCHEDULE_UPDATE_WORK_PROCESS_INFO,
         SCHEDULE_MEM_APPLICATION_TRANSACTION,
+        SCHEDULE_NOTIFY_MAKE_IMAGE_FAILED,
     };
 };
 }  // namespace AppExecFwk

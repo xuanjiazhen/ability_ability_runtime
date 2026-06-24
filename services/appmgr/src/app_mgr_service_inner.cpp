@@ -1073,6 +1073,10 @@ void AppMgrServiceInner::HandleMakeImageFailed(const std::string& bundleName, co
     UnMarkTemplateProcess(imageInfo->templatePid);
     RemoveImageInfo(bundleName, abilityName, userId, appIndex);
     NotifyImageOperationFailed(imageInfo->errorHandler, err);
+    auto appRecord = GetAppRunningRecordByPid(imageInfo->templatePid);
+    if (appRecord != nullptr) {
+        appRecord->NotifyMakeImageFailed();
+    }
 }
 
 int32_t AppMgrServiceInner::PreAddImageInfo(const std::string& bundleName, int32_t userId, int32_t appIndex,
