@@ -356,5 +356,45 @@ int32_t CliFunctionDataManager::GetAllFunctions(std::vector<FunctionInfo> &funct
     return ERR_OK;
 }
 
+int32_t CliFunctionDataManager::GetFunctionByNamespace(const std::string &functionNamespace,
+    std::vector<FunctionInfo> &functions)
+{
+    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetFunctionByNamespace called: %{public}s", functionNamespace.c_str());
+
+    if (!CheckKvStore()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready");
+        return ERR_NO_INIT;
+    }
+
+    std::string prefix = functionNamespace + "/";
+    std::vector<DistributedKv::Entry> entries;
+    DistributedKv::Status status = kvStorePtr_->GetEntries(prefix, entries);
+    if (status != DistributedKv::Status::SUCCESS) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetEntries with prefix failed: %{public}d", static_cast<int>(status));
+        RestoreKvStore(status);
+        return ERR_KVSTORE_ERROR;
+    }
+
+    functions.clear();
+    for (const auto &entry : entries) {
+        if (!MatchesIntentFunctionNamespace(entry.value, functionNamespace)) {
+            continue;
+        }
+        nlohmann::json j = nlohmann::json::parse(entry.value.ToString(), nullptr, false);
+        if (j.is_discarded()) {
+            continue;
+        }
+        FunctionInfo function;
+        if (FunctionInfo::ParseFromJson(j, function)) {
+            functions.push_back(function);
+        }
+    }
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetFunctionByNamespace completed: %{public}s, count: %{public}zu",
+        functionNamespace.c_str(), functions.size());
+    return ERR_OK;
+}
+
 } // namespace CliTool
 } // namespace OHOS
