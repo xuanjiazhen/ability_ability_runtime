@@ -32,6 +32,7 @@ int32_t CliFunctionDataManagerMock::registerFunctionResult = ERR_OK;
 int32_t CliFunctionDataManagerMock::unregisterFunctionResult = ERR_OK;
 int32_t CliFunctionDataManagerMock::getFunctionResult = ERR_OK;
 int32_t CliFunctionDataManagerMock::getAllFunctionsResult = ERR_OK;
+int32_t CliFunctionDataManagerMock::getFunctionByNamespaceResult = ERR_OK;
 int32_t CliFunctionDataManagerMock::unregisterByNamespaceResult = ERR_OK;
 
 void CliFunctionDataManagerMock::Reset()
@@ -40,6 +41,7 @@ void CliFunctionDataManagerMock::Reset()
     unregisterFunctionResult = ERR_OK;
     getFunctionResult = ERR_OK;
     getAllFunctionsResult = ERR_OK;
+    getFunctionByNamespaceResult = ERR_OK;
     unregisterByNamespaceResult = ERR_OK;
 }
 
@@ -145,6 +147,13 @@ int32_t CliFunctionDataManager::GetAllFunctions(std::vector<FunctionInfo> &funct
 {
     functions.clear();
     return CliFunctionDataManagerMock::getAllFunctionsResult;
+}
+
+int32_t CliFunctionDataManager::GetFunctionByNamespace(const std::string &,
+    std::vector<FunctionInfo> &functions)
+{
+    functions.clear();
+    return CliFunctionDataManagerMock::getFunctionByNamespaceResult;
 }
 
 int32_t CliFunctionDataManager::EnsureFunctionsInitialized()
