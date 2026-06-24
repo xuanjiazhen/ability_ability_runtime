@@ -14268,22 +14268,31 @@ int32_t AbilityManagerService::ExecuteIntentForDistributed(const Want &want, con
 }
 
 namespace {
+constexpr const char* INSIGHT_INTENT_OPTIONS_KEY = "ohos.insightIntent.options";
+constexpr const char* INSIGHT_INTENT_OPT_EXECUTE_MODE = "executeMode";
+constexpr const char* INSIGHT_INTENT_OPT_URIS = "uris";
+constexpr const char* INSIGHT_INTENT_OPT_FLAGS = "flags";
+constexpr const char* EXECUTE_MODE_FG = "UI_ABILITY_FOREGROUND";
+constexpr const char* EXECUTE_MODE_BG = "UI_ABILITY_BACKGROUND";
+constexpr const char* EXECUTE_MODE_UI_EXT = "UI_EXTENSION_ABILITY";
+constexpr const char* EXECUTE_MODE_SVC_EXT = "SERVICE_EXTENSION_ABILITY";
+
 void ApplyInsightIntentOptionsFromWantParam(const WantParams &wantParam,
     std::shared_ptr<InsightIntentExecuteParam> &param)
 {
-    if (!wantParam.HasParam("ohos.insightIntent.options")) {
+    if (!wantParam.HasParam(INSIGHT_INTENT_OPTIONS_KEY)) {
         return;
     }
-    auto options = wantParam.GetWantParams("ohos.insightIntent.options");
-    std::string executeModeStr = options.GetStringParam("executeMode");
+    auto options = wantParam.GetWantParams(INSIGHT_INTENT_OPTIONS_KEY);
+    std::string executeModeStr = options.GetStringParam(INSIGHT_INTENT_OPT_EXECUTE_MODE);
     if (!executeModeStr.empty()) {
-        if (executeModeStr == "UI_ABILITY_FOREGROUND") {
+        if (executeModeStr == EXECUTE_MODE_FG) {
             param->executeMode_ = AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND;
-        } else if (executeModeStr == "UI_ABILITY_BACKGROUND") {
+        } else if (executeModeStr == EXECUTE_MODE_BG) {
             param->executeMode_ = AppExecFwk::ExecuteMode::UI_ABILITY_BACKGROUND;
-        } else if (executeModeStr == "UI_EXTENSION_ABILITY") {
+        } else if (executeModeStr == EXECUTE_MODE_UI_EXT) {
             param->executeMode_ = AppExecFwk::ExecuteMode::UI_EXTENSION_ABILITY;
-        } else if (executeModeStr == "SERVICE_EXTENSION_ABILITY") {
+        } else if (executeModeStr == EXECUTE_MODE_SVC_EXT) {
             param->executeMode_ = AppExecFwk::ExecuteMode::SERVICE_EXTENSION_ABILITY;
         } else {
             char *end = nullptr;
@@ -14293,7 +14302,7 @@ void ApplyInsightIntentOptionsFromWantParam(const WantParams &wantParam,
             }
         }
     }
-    auto uriValue = options.GetParam("uris");
+    auto uriValue = options.GetParam(INSIGHT_INTENT_OPT_URIS);
     IArray *ao = IArray::Query(uriValue);
     if (ao != nullptr && AAFwk::Array::IsStringArray(ao)) {
         std::vector<std::string> uris;
@@ -14309,7 +14318,7 @@ void ApplyInsightIntentOptionsFromWantParam(const WantParams &wantParam,
             param->uris_ = std::move(uris);
         }
     }
-    std::string flagsStr = options.GetStringParam("flags");
+    std::string flagsStr = options.GetStringParam(INSIGHT_INTENT_OPT_FLAGS);
     if (!flagsStr.empty()) {
         char *end = nullptr;
         long val = std::strtol(flagsStr.c_str(), &end, 0);
@@ -14318,7 +14327,41 @@ void ApplyInsightIntentOptionsFromWantParam(const WantParams &wantParam,
         }
     }
 }
+
+std::shared_ptr<InsightIntentExecuteParam> BuildInsightIntentExecuteParam(
+    const std::string &bundleName, const std::string &intentName,
+    const AbilityRuntime::ExtractInsightIntentGenericInfo &matchedInfo,
+    const std::string &abilityName, int32_t executeMode,
+    int32_t callerUserId, const WantParams &wantParam)
+{
+    auto param = std::make_shared<InsightIntentExecuteParam>();
+    param->bundleName_ = bundleName;
+    param->moduleName_ = matchedInfo.moduleName;
+    param->abilityName_ = abilityName;
+    param->insightIntentName_ = intentName;
+    param->executeMode_ = executeMode;
+    param->userId_ = callerUserId;
+    param->insightIntentParam_ = std::make_shared<WantParams>(wantParam);
+    ApplyInsightIntentOptionsFromWantParam(wantParam, param);
+    return param;
+}
 } // namespace
+
+int32_t AbilityManagerService::CheckCrossUserPermission(int32_t targetUserId)
+{
+    if (!IsCrossUserCall(targetUserId)) {
+        return ERR_OK;
+    }
+    if (VerifyAccountPermission(targetUserId) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "permission verification failed");
+        return CHECK_PERMISSION_FAILED;
+    }
+    if (!JudgeMultiUserConcurrency(targetUserId)) {
+        TAG_LOGE(AAFwkTag::INTENT, "multi-user non-concurrent unsatisfied");
+        return ERR_CROSS_USER;
+    }
+    return ERR_OK;
+}
 
 int32_t AbilityManagerService::ExecuteIntentByFunctionCall(uint64_t key,
     const sptr<IRemoteObject> &callerToken, const std::string &bundleName,
@@ -14340,8 +14383,6 @@ int32_t AbilityManagerService::ExecuteIntentByFunctionCall(uint64_t key,
         TAG_LOGE(AAFwkTag::INTENT, "GetMatchedIntentInfo failed, ret: %{public}d", ret);
         return ret;
     }
-    TAG_LOGI(AAFwkTag::INTENT, "matched intent, moduleName: %{public}s, decoratorType: %{public}s",
-        matchedInfo.moduleName.c_str(), matchedInfo.decoratorType.c_str());
 
     std::string abilityName;
     int32_t executeMode = 0;
@@ -14350,28 +14391,27 @@ int32_t AbilityManagerService::ExecuteIntentByFunctionCall(uint64_t key,
         TAG_LOGE(AAFwkTag::INTENT, "ParseIntentExecuteMode failed, ret: %{public}d", ret);
         return ret;
     }
-    TAG_LOGI(AAFwkTag::INTENT, "parsed execute mode: %{public}d, abilityName: %{public}s",
-        executeMode, abilityName.c_str());
 
-    auto param = std::make_shared<InsightIntentExecuteParam>();
-    param->bundleName_ = bundleName;
-    param->moduleName_ = matchedInfo.moduleName;
-    param->abilityName_ = abilityName;
-    param->insightIntentName_ = intentName;
-    param->executeMode_ = executeMode;
-    param->userId_ = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
-    param->insightIntentParam_ = std::make_shared<WantParams>(wantParam);
-    ApplyInsightIntentOptionsFromWantParam(wantParam, param);
-    TAG_LOGI(AAFwkTag::INTENT, "after apply options, executeMode: %{public}d, userId: %{public}d",
-        param->executeMode_, param->userId_);
+    auto param = BuildInsightIntentExecuteParam(bundleName, intentName, matchedInfo,
+        abilityName, executeMode, callerUserId, wantParam);
 
-    bool openLinkExecuteFlag =
-        matchedInfo.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_LINK;
+    bool openLinkExecuteFlag = matchedInfo.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_LINK;
     bool ignoreAbilityName = openLinkExecuteFlag ||
         (matchedInfo.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_PAGE) ||
         (matchedInfo.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_FUNCTION);
 
+    ret = CheckCrossUserPermission(param->userId_);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
     auto callerBundleName = InsightIntentGetcallerBundleName();
+    ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateParam(
+        key, callerToken, param, callerBundleName, ignoreAbilityName);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
     AbilityRuntime::ExecuteIntentCommonOptions options(ignoreAbilityName, matchedInfo, key);
     TAG_LOGI(AAFwkTag::INTENT, "dispatch to ExecuteIntentCommon, ignoreAbilityName: %{public}d, "
         "openLink: %{public}d, callerBundle: %{public}s",
@@ -14467,21 +14507,15 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     if (param.isServiceMatch_) {
         return StartAbilityWithServiceMatch(param);
     }
-    
+
     auto callerBundlename = InsightIntentGetcallerBundleName();
     if (callerBundlename.empty()) {
         TAG_LOGD(AAFwkTag::INTENT, "callerBundlename is null");
     }
 
-    if(IsCrossUserCall(param.userId_)) {
-        if (VerifyAccountPermission(param.userId_) != ERR_OK) {
-            TAG_LOGE(AAFwkTag::INTENT, "permission verification failed");
-            return CHECK_PERMISSION_FAILED;
-        }
-        if (!JudgeMultiUserConcurrency(param.userId_)) {
-            TAG_LOGE(AAFwkTag::INTENT, "multi-user non-concurrent unsatisfied");
-            return ERR_CROSS_USER;
-        }
+    int32_t ret = CheckCrossUserPermission(param.userId_);
+    if (ret != ERR_OK) {
+        return ret;
     }
 
     AbilityRuntime::ExtractInsightIntentGenericInfo infos = GetInsightIntentGenericInfo(param);
@@ -14492,8 +14526,8 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
         !param.deviceId_.empty();
 
     auto paramPtr = std::make_shared<InsightIntentExecuteParam>(param);
-    
-    int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateParam(
+
+    ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateParam(
         key, callerToken, paramPtr, callerBundlename, ignoreAbilityName);
     if (ret != ERR_OK) {
         return ret;
