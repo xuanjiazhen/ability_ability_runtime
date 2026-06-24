@@ -3632,6 +3632,7 @@ private:
     void GetCallerUidAndToken(const std::string &bundleName, int32_t userId,
         int32_t &callerUid, uint32_t &accessToken);
     bool IsDmsSameAPP(const AbilityRequest &abilityRequest);
+    int32_t ValidateConnectAgentRequest();
 
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
     std::shared_ptr<BackgroundTaskObserver> bgtaskObserver_;
