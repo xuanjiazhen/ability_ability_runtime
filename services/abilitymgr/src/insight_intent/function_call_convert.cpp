@@ -199,7 +199,8 @@ void ApplyConfigIntentOptions(std::vector<FunctionInfo> &functions,
 bool RegisterInsightIntentFunctions(
     const AbilityRuntime::ExtractInsightIntentProfileInfoVec &profileInfos,
     const std::vector<AbilityRuntime::InsightIntentInfo> &configInfos,
-    const std::string &bundleName)
+    const std::string &bundleName,
+    uint32_t versionCode)
 {
     std::vector<FunctionInfo> functions;
     ConvertFromExtractProfile(profileInfos, functions);
@@ -219,6 +220,7 @@ bool RegisterInsightIntentFunctions(
         if (func.funcNamespace.empty() && !bundleName.empty()) {
             func.funcNamespace = bundleName;
         }
+        func.version = std::to_string(versionCode);
     }
 
     auto &client = CliToolMGRClient::GetInstance();
