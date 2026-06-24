@@ -157,6 +157,7 @@ constexpr int32_t UNSPECIFIED_USERID = -2;
 constexpr int32_t JS_ERROR_EXIT = -2;
 constexpr int32_t TIME_OUT = 120;
 constexpr int32_t DEFAULT_SLEEP_TIME = 100000;
+constexpr int32_t IMAGE_REPORT_FFRT_DELAY_TIME = 58000;
 
 enum class SignalType {
     SIGNAL_JSHEAP_OLD,
