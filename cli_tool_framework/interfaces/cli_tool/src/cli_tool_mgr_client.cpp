@@ -15,6 +15,7 @@
 
 #include "cli_tool_mgr_client.h"
 
+#include "abc_execute_param.h"
 #include "cli_error_code.h"
 #include "cli_event_reply_manager.h"
 #include "cli_mgr_load_callback.h"
@@ -462,6 +463,21 @@ ErrCode CliToolMGRClient::SendMessage(const std::string &sessionId, const std::s
         CliEventReplyManager::GetInstance().ActivateEventReplyCallback(eventId);
     }
     return ret;
+}
+
+ErrCode CliToolMGRClient::ExecAbc(const AbcExecuteParam &param)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecAbc called: abcPath=%{public}s, func=%{public}s, args=%{public}zu",
+             param.abcPath.c_str(), param.functionName.c_str(), param.args.size());
+
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+
+    return proxy->ExecAbc(param);
 }
 } // namespace CliTool
 } // namespace OHOS
