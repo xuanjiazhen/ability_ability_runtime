@@ -18,6 +18,7 @@
 #include "extract_insight_intent_profile.h"
 #include "common_event_support.h"
 #include "function_call_convert.h"
+#include "cli_tool_mgr_client.h"
 #include "hilog_tag_wrapper.h"
 #include "task_handler_wrap.h"
 #include "os_account_manager_wrapper.h"
@@ -40,61 +41,84 @@ InsightIntentSysEventReceiver::InsightIntentSysEventReceiver(const EventFwk::Com
 void InsightIntentSysEventReceiver::SaveInsightIntentInfos(const std::string &bundleName, const std::string &moduleName,
     uint32_t versionCode, int32_t userId)
 {
-    std::vector<std::string> moduleNameVec;
-    std::string profile;
-    AbilityRuntime::ExtractInsightIntentProfileInfoVec infos = {};
-    std::vector<InsightIntentInfo> configIntentInfos = {};
     TAG_LOGI(AAFwkTag::INTENT, "save insight intent infos, bundle:%{public}s module:%{public}s",
         bundleName.c_str(), moduleName.c_str());
-    ErrCode ret;
-    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
-    if (bundleMgrHelper == nullptr) {
-        TAG_LOGE(AAFwkTag::INTENT, "null bundleMgrHelper");
-        return;
-    }
-
+    std::vector<std::string> moduleNameVec;
     OHOS::SplitStr(moduleName, ",", moduleNameVec);
-    for (std::string moduleNameLocal : moduleNameVec) {
-        // Get json profile firstly
-        ret = IN_PROCESS_CALL(bundleMgrHelper->GetJsonProfile(AppExecFwk::INTENT_PROFILE, bundleName,
-            moduleNameLocal, profile, userId));
-        if (ret != ERR_OK) {
-            TAG_LOGW(AAFwkTag::INTENT, "GetJsonProfile failed, code: %{public}d", ret);
+    for (const auto &moduleNameLocal : moduleNameVec) {
+        std::string profile;
+        AbilityRuntime::ExtractInsightIntentProfileInfoVec infos = {};
+        std::vector<InsightIntentInfo> configIntentInfos = {};
+        if (!PrepareIntentInfosFromProfile(bundleName, moduleNameLocal, userId, profile, infos, configIntentInfos)) {
             if (DelayedSingleton<InsightIntentDbCache>::GetInstance()->HasBundleCache(bundleName)) {
                 DeleteInsightIntent(bundleName, moduleNameLocal, userId);
             }
             continue;
         }
 
-        // Transform json string
-        bool isTransformExtractIntent = (!AbilityRuntime::ExtractInsightIntentProfile::TransformTo(profile, infos) ||
-            infos.insightIntents.size() == 0);
-        bool isTransformConfigIntent = (
-            !AbilityRuntime::InsightIntentProfile::TransformTo(profile, configIntentInfos) ||
-            configIntentInfos.size() == 0);
-        if (isTransformExtractIntent && isTransformConfigIntent) {
-            TAG_LOGW(AAFwkTag::INTENT,
-                "transform profile failed, deleting config, bundle:%{public}s module:%{public}s",
-                bundleName.c_str(), moduleNameLocal.c_str());
-            DeleteInsightIntent(bundleName, moduleNameLocal, userId);
-            continue;
-        }
-
-        // save database
-        ret = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->SaveInsightIntentTotalInfo(
+        ErrCode ret = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->SaveInsightIntentTotalInfo(
             bundleName, moduleNameLocal, userId, versionCode, infos, configIntentInfos);
         if (ret != ERR_OK) {
             TAG_LOGE(AAFwkTag::INTENT, "save intent info failed, bundleName: %{public}s, moduleName: %{public}s, "
                 "userId: %{public}d", bundleName.c_str(), moduleNameLocal.c_str(), userId);
             continue;
         }
-        CliTool::RegisterInsightIntentFunctions(infos, configIntentInfos, bundleName);
-        DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->SaveFunctionVersion(
-            bundleName, versionCode, userId);
-
+        CliTool::RegisterInsightIntentFunctions(infos, configIntentInfos, bundleName, versionCode);
         TAG_LOGI(AAFwkTag::INTENT, "save intent info success, bundleName: %{public}s, moduleName: %{public}s, "
             "userId: %{public}d", bundleName.c_str(), moduleNameLocal.c_str(), userId);
     }
+}
+
+void InsightIntentSysEventReceiver::RegisterInsightIntentFunctionsOnly(const std::string &bundleName,
+    const std::string &moduleName, uint32_t versionCode, int32_t userId)
+{
+    TAG_LOGI(AAFwkTag::INTENT, "register-only, bundle:%{public}s module:%{public}s versionCode:%{public}u",
+        bundleName.c_str(), moduleName.c_str(), versionCode);
+    std::vector<std::string> moduleNameVec;
+    OHOS::SplitStr(moduleName, ",", moduleNameVec);
+    for (const auto &moduleNameLocal : moduleNameVec) {
+        std::string profile;
+        AbilityRuntime::ExtractInsightIntentProfileInfoVec infos = {};
+        std::vector<InsightIntentInfo> configIntentInfos = {};
+        // KV rebuild path: Intent RDB already has records, only re-register FunctionCall KV.
+        // Do NOT touch Intent RDB on failure.
+        if (!PrepareIntentInfosFromProfile(bundleName, moduleNameLocal, userId, profile, infos, configIntentInfos)) {
+            TAG_LOGW(AAFwkTag::INTENT, "register-only prepare failed, bundle:%{public}s module:%{public}s",
+                bundleName.c_str(), moduleNameLocal.c_str());
+            continue;
+        }
+        CliTool::RegisterInsightIntentFunctions(infos, configIntentInfos, bundleName, versionCode);
+        TAG_LOGI(AAFwkTag::INTENT, "register-only success, bundle:%{public}s module:%{public}s",
+            bundleName.c_str(), moduleNameLocal.c_str());
+    }
+}
+
+bool InsightIntentSysEventReceiver::PrepareIntentInfosFromProfile(const std::string &bundleName,
+    const std::string &moduleName, int32_t userId, std::string &profile,
+    AbilityRuntime::ExtractInsightIntentProfileInfoVec &infos, std::vector<InsightIntentInfo> &configInfos)
+{
+    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null bundleMgrHelper");
+        return false;
+    }
+    ErrCode ret = IN_PROCESS_CALL(bundleMgrHelper->GetJsonProfile(AppExecFwk::INTENT_PROFILE, bundleName,
+        moduleName, profile, userId));
+    if (ret != ERR_OK) {
+        TAG_LOGW(AAFwkTag::INTENT, "GetJsonProfile failed, bundle:%{public}s module:%{public}s code:%{public}d",
+            bundleName.c_str(), moduleName.c_str(), ret);
+        return false;
+    }
+    bool noExtract = (!AbilityRuntime::ExtractInsightIntentProfile::TransformTo(profile, infos) ||
+        infos.insightIntents.size() == 0);
+    bool noConfig = (!AbilityRuntime::InsightIntentProfile::TransformTo(profile, configInfos) ||
+        configInfos.size() == 0);
+    if (noExtract && noConfig) {
+        TAG_LOGW(AAFwkTag::INTENT, "transform profile failed, bundle:%{public}s module:%{public}s",
+            bundleName.c_str(), moduleName.c_str());
+        return false;
+    }
+    return true;
 }
 
 void InsightIntentSysEventReceiver::DeleteInsightIntent(const std::string &bundleName,
@@ -112,8 +136,6 @@ void InsightIntentSysEventReceiver::DeleteInsightIntent(const std::string &bundl
         DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->DeleteInsightIntentTotalInfo(
             bundleName, moduleName, userId);
         CliTool::UnregisterInsightIntentFunctions(bundleName);
-        DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->DeleteFunctionVersion(
-            bundleName, userId);
     }
 }
 
@@ -148,9 +170,8 @@ void InsightIntentSysEventReceiver::LoadInsightIntentInfos(int32_t userId)
     for (auto &bundleInfo : bundleInfos) {
         bool rdbHas = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->
             HasInsightIntentByName(bundleInfo.versionCode, bundleInfo.name, userId);
-        bool funcHas = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->
-            HasFunctionByName(bundleInfo.versionCode, bundleInfo.name, userId);
-        if (rdbHas && funcHas) {
+        if (rdbHas) {
+            ReconcileFunctionsForBundle(bundleInfo, userId);
             continue;
         }
         for (const auto &hapInfo : bundleInfo.hapModuleInfos) {
@@ -161,6 +182,53 @@ void InsightIntentSysEventReceiver::LoadInsightIntentInfos(int32_t userId)
     if (hasNewIntent) {
         DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->BackupRdb();
     }
+}
+
+void InsightIntentSysEventReceiver::ReconcileFunctionsForBundle(
+    const AppExecFwk::BundleInfo &bundleInfo, int32_t userId)
+{
+    std::vector<CliTool::FunctionInfo> functions;
+    auto ret = CliTool::CliToolMGRClient::GetInstance().GetFunctionByNamespace(
+        bundleInfo.name, functions);
+    if (ret != ERR_OK) {
+        TAG_LOGW(AAFwkTag::INTENT, "GetFunctionByNamespace failed, bundle:%{public}s code:%{public}d",
+            bundleInfo.name.c_str(), ret);
+        return;
+    }
+    if (!NeedRegisterFunctions(functions, bundleInfo.versionCode)) {
+        return;
+    }
+    TAG_LOGI(AAFwkTag::INTENT, "reconcile functions, bundle:%{public}s version:%{public}u",
+        bundleInfo.name.c_str(), bundleInfo.versionCode);
+    for (const auto &hapInfo : bundleInfo.hapModuleInfos) {
+        RegisterInsightIntentFunctionsOnly(bundleInfo.name, hapInfo.moduleName,
+            bundleInfo.versionCode, userId);
+    }
+}
+
+bool InsightIntentSysEventReceiver::NeedRegisterFunctions(
+    const std::vector<CliTool::FunctionInfo> &functions, uint32_t versionCode)
+{
+    if (functions.empty()) {
+        TAG_LOGI(AAFwkTag::INTENT, "KV empty, need register, version:%{public}u", versionCode);
+        return true;
+    }
+    for (const auto &function : functions) {
+        uint32_t kvVersion = 0;
+        try {
+            kvVersion = static_cast<uint32_t>(std::stoul(function.version));
+        } catch (...) {
+            TAG_LOGW(AAFwkTag::INTENT, "parse version failed: %{public}s, need register",
+                function.version.c_str());
+            return true;
+        }
+        if (kvVersion < versionCode) {
+            TAG_LOGI(AAFwkTag::INTENT, "stale KV version %{public}u < %{public}u, need register",
+                kvVersion, versionCode);
+            return true;
+        }
+    }
+    return false;
 }
 
 void InsightIntentSysEventReceiver::DeleteInsightIntentInfoByUserId(int32_t userId)

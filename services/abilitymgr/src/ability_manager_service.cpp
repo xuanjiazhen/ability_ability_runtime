@@ -14372,6 +14372,16 @@ int32_t AbilityManagerService::ExecuteIntentByFunctionCall(uint64_t key,
         (matchedInfo.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_FUNCTION);
 
     auto callerBundleName = InsightIntentGetcallerBundleName();
+    if (IsCrossUserCall(param->userId_)) {
+        if (VerifyAccountPermission(param->userId_) != ERR_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "permission verification failed");
+            return CHECK_PERMISSION_FAILED;
+        }
+        if (!JudgeMultiUserConcurrency(param->userId_)) {
+            TAG_LOGE(AAFwkTag::INTENT, "multi-user non-concurrent unsatisfied");
+            return ERR_CROSS_USER;
+        }
+    }
     AbilityRuntime::ExecuteIntentCommonOptions options(ignoreAbilityName, matchedInfo, key);
     TAG_LOGI(AAFwkTag::INTENT, "dispatch to ExecuteIntentCommon, ignoreAbilityName: %{public}d, "
         "openLink: %{public}d, callerBundle: %{public}s",
@@ -14467,7 +14477,7 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     if (param.isServiceMatch_) {
         return StartAbilityWithServiceMatch(param);
     }
-    
+
     auto callerBundlename = InsightIntentGetcallerBundleName();
     if (callerBundlename.empty()) {
         TAG_LOGD(AAFwkTag::INTENT, "callerBundlename is null");

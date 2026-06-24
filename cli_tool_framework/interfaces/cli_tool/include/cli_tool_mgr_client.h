@@ -133,6 +133,16 @@ public:
     ErrCode GetAllFunctions(std::vector<FunctionInfo> &functions);
 
     /**
+     * @brief Get all INTENT_FUNCTION entries for a namespace (typically bundleName).
+     *        Used by AMS during boot to reconcile FunctionCall KV state.
+     * @param functionNamespace Namespace to query
+     * @param functions Output vector of FunctionInfo
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode GetFunctionByNamespace(const std::string &functionNamespace,
+        std::vector<FunctionInfo> &functions);
+
+    /**
      * @brief Execute a CLI tool with key-value pairs (convenience method).
      * @param param The CLI tool param.
      * @param callback reply callback.
