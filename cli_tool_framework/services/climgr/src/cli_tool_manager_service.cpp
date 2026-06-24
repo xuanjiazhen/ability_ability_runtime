@@ -627,6 +627,30 @@ int32_t CliToolManagerService::GetAllFunctions(std::vector<FunctionInfo> &functi
     return ERR_OK;
 }
 
+int32_t CliToolManagerService::GetFunctionByNamespace(const std::string &functionNamespace,
+    std::vector<FunctionInfo> &functions)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetFunctionByNamespace called: %{public}s", functionNamespace.c_str());
+    InterfaceCallCounter counter(interfaceCalledCount_);
+
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    if (callingUid != FOUNDATION_UID) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionByNamespace: Permission denied, callingUid=%{public}d",
+            callingUid);
+        return ERR_PERMISSION_DENIED;
+    }
+
+    int32_t ret = CliFunctionDataManager::GetInstance().GetFunctionByNamespace(functionNamespace, functions);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionByNamespace: Failed, ret=%{public}d", ret);
+        return ret;
+    }
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetFunctionByNamespace success: %{public}s, count=%{public}zu",
+        functionNamespace.c_str(), functions.size());
+    return ERR_OK;
+}
+
 int32_t CliToolManagerService::ValidateExecToolPermissions()
 {
     auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
