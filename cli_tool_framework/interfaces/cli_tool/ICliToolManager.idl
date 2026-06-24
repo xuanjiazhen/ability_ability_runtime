@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2026 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License"),
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -25,6 +25,18 @@ sequenceable ToolInfo..OHOS.CliTool.ToolInfo;
 rawdata ToolInfo..OHOS.CliTool.ToolsRawData;
 sequenceable FunctionInfo..OHOS.CliTool.FunctionInfo;
 
+/// @brief Parameters for abc file execution
+sequenceable AbcExecuteParam {
+    String abcPath;          // Mode1: Path to abc file (absolute path)
+    String hspBundleName;    // Mode2: HSP bundle name (e.g., "com.example.library")
+    String hspModuleName;    // Mode2: HSP module name (e.g., "library")
+    String functionName;     // Function name to call (empty for main)
+    List<String> args;       // Function arguments
+    unsigned int callerTokenId;  // Caller's token ID
+    String bundleName;       // Bundle name for runtime initialization
+    String moduleName;       // Module name (optional)
+}
+
 interface ICliToolManager {
     void GetAllToolSummaries([out] ToolSummary[] summaries);
     void GetToolInfoByName([in] String name, [out] ToolInfo tool);
@@ -44,4 +56,5 @@ interface ICliToolManager {
     void UnregisterFunction([in] String functionNamespace, [in] String functionName);
     void UnregisterIntentFunctionsByNamespace([in] String functionNamespace);
     void GetAllFunctions([out] FunctionInfo[] functions);
+    void ExecAbc([in] AbcExecuteParam param);
 }
