@@ -145,6 +145,13 @@ public:
      */
     int32_t GetAllFunctions(std::vector<FunctionInfo> &functions) override;
 
+    /**
+     * @brief Execute an ArkTS abc file
+     * @param param Execution parameters including abc path, function name, args, and context
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    int32_t ExecAbc(const AbcExecuteParam &param) override;
+
 protected:
     void OnStart() override;
     void OnStop() override;
