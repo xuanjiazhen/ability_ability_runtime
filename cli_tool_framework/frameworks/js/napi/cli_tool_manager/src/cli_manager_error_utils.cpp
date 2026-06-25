@@ -51,6 +51,21 @@ static const std::map<int32_t, CliManagerErrorCode> NATIVE_TO_BUSINESS_ERROR_MAP
     {ERR_FUNCTION_EXECUTE_TIMEOUT, CliManagerErrorCode::ERROR_FUNCTION_EXECUTE_TIMEOUT},
 };
 
+static const std::map<int32_t, std::string> INNER_ERROR_MSG_MAP = {
+    {GET_CLI_TOOL_MGR_SERVICE_FAILED, "Internal error. Failed to get the CLI tool manager service."},
+    {ERR_NOT_HAP, "Internal error. The caller is not a HAP application."},
+    {ERR_NO_INIT, "Internal error. Failed to initialize the CLI tool service."},
+    {ERR_INNER_PARAM_INVALID, "Internal error. Failed to create JS CliSessionInfo."},
+    {ERR_NOT_SA_CALLER, "Internal error. The caller is not a system ability."},
+    {ERR_NOT_KILL, "Internal error. Failed to kill the CLI session process."},
+    {ERR_FUNCTION_NOT_EXIST, "Internal error. The function does not exist."},
+    {ERR_FUNCTION_EXIST, "Internal error. The function already exists."},
+    {ERR_JSON_PARSE_FAILED, "Internal error. Failed to parse JSON data."},
+    {ERR_FILE_NOT_FOUND, "Internal error. The required file was not found."},
+    {ERR_KVSTORE_NOT_READY, "Internal error. KVStore is not ready."},
+    {ERR_KVSTORE_ERROR, "Internal error. KVStore operation failed."},
+};
+
 std::string GetErrorMsg(CliManagerErrorCode errCode)
 {
     auto it = ERROR_MSG_MAP.find(errCode);
@@ -58,6 +73,23 @@ std::string GetErrorMsg(CliManagerErrorCode errCode)
         return it->second;
     }
     return "Unknown error.";
+}
+
+std::string GetInnerErrorMsg(int32_t nativeErr)
+{
+    auto it = INNER_ERROR_MSG_MAP.find(nativeErr);
+    if (it != INNER_ERROR_MSG_MAP.end()) {
+        return it->second;
+    }
+    return GetErrorMsg(CliManagerErrorCode::ERROR_INNER);
+}
+
+std::string GetErrorMsg(CliManagerErrorCode errCode, int32_t nativeErr)
+{
+    if (errCode == CliManagerErrorCode::ERROR_INNER) {
+        return GetInnerErrorMsg(nativeErr);
+    }
+    return GetErrorMsg(errCode);
 }
 
 CliManagerErrorCode GetBusinessErrorCode(int32_t nativeErr)
@@ -84,7 +116,7 @@ napi_value CreateCliManagerError(napi_env env, int32_t errCode, const std::strin
 napi_value CreateCliJsErrorByNativeErr(napi_env env, int32_t nativeErr)
 {
     auto businessErrCode = GetBusinessErrorCode(nativeErr);
-    auto errMsg = GetErrorMsg(businessErrCode);
+    auto errMsg = GetErrorMsg(businessErrCode, nativeErr);
     return CreateCliManagerError(env, static_cast<int32_t>(businessErrCode), errMsg);
 }
 
