@@ -1,0 +1,34 @@
+> hvigor [32mFinished :entry:clean... after 12 ms [39m
+> hvigor [32mFinished :entry:default@PreBuild... after 643 ms [39m
+> hvigor [32mFinished :entry:default@GenerateMetadata... after 10 ms [39m
+> hvigor [32mFinished :entry:default@ConfigureCmake... after 1 ms [39m
+> hvigor [32mFinished :entry:default@MergeProfile... after 9 ms [39m
+> hvigor [32mFinished :entry:default@CreateBuildProfile... after 8 ms [39m
+> hvigor [32mFinished :entry:default@PreCheckSyscap... after 1 ms [39m
+> hvigor [32mFinished :entry:default@GeneratePkgContextInfo... after 5 ms [39m
+> hvigor [32mFinished :entry:default@ProcessIntegratedHsp... after 3 ms [39m
+> hvigor [32mFinished :entry:default@BuildNativeWithCmake... after 1 ms [39m
+> hvigor [32mFinished :entry:default@MakePackInfo... after 10 ms [39m
+> hvigor [32mFinished :entry:default@ProcessProfile... after 164 ms [39m
+> hvigor [32mFinished :entry:default@ProcessRouterMap... after 7 ms [39m
+> hvigor [32mFinished :entry:default@BuildNativeWithNinja... after 5 ms [39m
+> hvigor [32mFinished :entry:default@ProcessResource... after 6 ms [39m
+> hvigor [32mFinished :entry:default@GenerateLoaderJson... after 39 ms [39m
+> hvigor [32mFinished :entry:default@CompileResource... after 488 ms [39m
+> hvigor [32mFinished :entry:default@BuildJS... after 24 ms [39m
+> hvigor [32mFinished :entry:default@SyscapTransform... after 2 s 684 ms [39m
+> hvigor [32mFinished :entry:default@ProcessLibs... after 2 s 885 ms [39m
+> hvigor [32mFinished :entry:default@DoNativeStrip... after 270 ms [39m
+> hvigor [32mFinished :entry:default@CacheNativeLibs... after 1 s 564 ms [39m
+> hvigor [32mFinished :entry:default@CompileArkTS... after 26 s 685 ms [39m
+> hvigor [32mFinished :entry:default@GeneratePkgModuleJson... after 4 ms [39m
+> hvigor [32mFinished :entry:default@PackageHap... after 1 s 739 ms [39m
+> hvigor [32mFinished :entry:default@SignHap... after 4 ms [39m
+> hvigor [32mFinished :entry:assembleHap... after 1 ms [39m
+> hvigor [32mBUILD SUCCESSFUL in 34 s 256 ms [39m
+
+> hvigor [33mWARN: If obfuscation is needed, enable obfuscation settings in this build process; failing to do so may prevent future obfuscation. 
+               Properly configure obfuscation rules to avoid runtime issues.[39m
+> hvigor [33mWARN: Will skip sign 'hap'. No signingConfigs profile is configured in current project.
+             If needed, configure the signingConfigs in /home/deng/code/openharmony-master/foundation/ability/ability_runtime/tools/test/resource/aa/pageAbilityBundleForDump/build-profile.json5.[39m
+

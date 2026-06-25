@@ -1,0 +1,813 @@
+[2026-06-22T15:08:57.501] [DEBUG] debug-file - env: nodejsVersion=v18.20.1
+[2026-06-22T15:08:58.646] [DEBUG] debug-file - Hvigor init with startParameters:{
+  hvigorfileTypeCheck: false,
+  parallelExecution: true,
+  incrementalExecution: true,
+  printStackTrace: false,
+  daemon: false,
+  analyze: 0,
+  logLevel: Level { level: 20000, levelStr: 'INFO', colour: 'green' }
+}
+[2026-06-22T15:08:58.727] [DEBUG] debug-file - hvigorfile, resolving /home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/hvigorfile.ts
+[2026-06-22T15:09:01.623] [DEBUG] debug-file - hvigorfile, require result:  { default: { system: [Function: appTasks], plugins: [] } }
+[2026-06-22T15:09:02.290] [DEBUG] debug-file - Start initialize project's product build option map with build mode release.
+[2026-06-22T15:09:02.300] [DEBUG] debug-file - Product 'default' using build option: {
+  "debuggable": false,
+  "strictMode": {
+    "caseSensitiveCheck": true,
+    "useNormalizedOHMUrl": true
+  }
+} in this build.
+[2026-06-22T15:09:02.394] [DEBUG] debug-file - Start recording SDK configuration permission data.
+[2026-06-22T15:09:02.640] [DEBUG] debug-file - Project task initialization takes 95 ms 
+[2026-06-22T15:09:02.716] [DEBUG] debug-file - Start initialize module-target build option map, moduleName=entry, buildMode=release
+[2026-06-22T15:09:02.768] [DEBUG] debug-file - Module entry task initialization takes 31 ms 
+[2026-06-22T15:09:02.784] [DEBUG] debug-file - project has submodules:entry
+[2026-06-22T15:09:02.848] [DEBUG] debug-file - Configuration task cost before running: 5 s 669 ms 
+[2026-06-22T15:09:02.862] [DEBUG] debug-file - Executing task :entry:clean
+[2026-06-22T15:09:02.873] [DEBUG] debug-file - entry : clean cost memory 0.2390899658203125
+[2026-06-22T15:09:02.890] [DEBUG] debug-file - Since there is no instance or instance is terminated, create a new worker pool.
+[2026-06-22T15:09:02.903] [DEBUG] debug-file - Create  resident worker with id: 0.
+[2026-06-22T15:09:02.944] [DEBUG] debug-file - Executing task :entry:default@PreBuild
+[2026-06-22T15:09:03.499] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:03.501] [DEBUG] debug-file - Executing task :entry:default@GenerateMetadata
+[2026-06-22T15:09:03.514] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:03.520] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:03.532] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:03.534] [DEBUG] debug-file - Executing task :entry:default@CreateBuildProfile
+[2026-06-22T15:09:03.544] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:03.545] [DEBUG] debug-file - Executing task :entry:default@PreCheckSyscap
+[2026-06-22T15:09:03.550] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:03.563] [DEBUG] debug-file - Executing task :entry:default@GeneratePkgContextInfo
+[2026-06-22T15:09:03.575] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:03.584] [DEBUG] debug-file - Executing task :entry:default@ProcessIntegratedHsp
+[2026-06-22T15:09:03.593] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:03.598] [DEBUG] debug-file - Executing task :entry:default@BuildNativeWithCmake
+[2026-06-22T15:09:03.604] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:03.620] [DEBUG] debug-file - Executing task :entry:default@MakePackInfo
+[2026-06-22T15:09:03.640] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:03.787] [DEBUG] debug-file - 13.0.1.0
+[2026-06-22T15:09:03.794] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:03.796] [DEBUG] debug-file - Executing task :entry:default@SyscapTransform
+[2026-06-22T15:09:03.843] [DEBUG] debug-file - default@SyscapTransform work[0] is submitted.
+[2026-06-22T15:09:03.845] [DEBUG] debug-file - default@SyscapTransform work[0] is pushed to ready queue.
+[2026-06-22T15:09:03.864] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:03.871] [DEBUG] debug-file - Executing task :entry:default@ProcessRouterMap
+[2026-06-22T15:09:03.892] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:03.898] [DEBUG] debug-file - Executing task :entry:default@BuildNativeWithNinja
+[2026-06-22T15:09:03.916] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:03.983] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:03.999] [DEBUG] debug-file - Executing task :entry:default@GenerateLoaderJson
+[2026-06-22T15:09:04.056] [DEBUG] debug-file - entry : default@GenerateLoaderJson cost memory 0.8896408081054688
+[2026-06-22T15:09:04.072] [INFO] debug-file - Finished :entry:default@GenerateLoaderJson... after 58 ms 
+[2026-06-22T15:09:04.081] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:04.089] [DEBUG] debug-file - Executing task :entry:default@ProcessLibs
+[2026-06-22T15:09:04.115] [DEBUG] debug-file - default@ProcessLibs work[1] is pushed to ready queue.
+[2026-06-22T15:09:04.135] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:04.145] [DEBUG] debug-file - Executing task :entry:default@CompileResource
+[2026-06-22T15:09:04.191] [DEBUG] debug-file - Use tool [/home/deng/code/openharmony-master/prebuilts/ohos-sdk/linux/26/toolchains/restool]
+ [
+  '/home/deng/code/openharmony-master/prebuilts/ohos-sdk/linux/26/toolchains/restool',
+  '-l',
+  '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/resConfig.json'
+]
+[2026-06-22T15:08:57.504] [DEBUG] debug-file - env: hvigor-config.json5 content = {
+  modelVersion: '5.0.0',
+  dependencies: {},
+  execution: {},
+  logging: {},
+  debugging: {},
+  nodeOptions: {}
+}
+[2026-06-22T15:09:02.656] [DEBUG] debug-file - hvigorfile, resolving /home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/hvigorfile.ts
+[2026-06-22T15:09:04.319] [DEBUG] debug-file - current process  memoryUsage: {
+  rss: 268668928,
+  heapTotal: 137818112,
+  heapUsed: 107541216,
+  external: 3403658,
+  arrayBuffers: 613056
+} os memoryUsage :6.578586578369141
+[2026-06-22T15:08:58.653] [DEBUG] debug-file - Since current hvigor version 5.8.9 differs from last hvigor version 
+      undefined, delete file-cache.json and task-cache.json.
+[2026-06-22T15:09:01.624] [DEBUG] debug-file - hvigorfile, binding system plugins [Function: appTasks]
+[2026-06-22T15:09:02.290] [DEBUG] debug-file - Picking option from product 'default' with build mode 'release'.
+[2026-06-22T15:09:02.308] [DEBUG] debug-file - not found resModel json file in : /home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/ohosTest/module.json5
+[2026-06-22T15:09:02.532] [DEBUG] debug-file - Sdk init in 189 ms 
+[2026-06-22T15:09:02.641] [DEBUG] debug-file - hvigorfile, binding custom plugins []
+[2026-06-22T15:09:02.717] [DEBUG] debug-file - Target 'default' config: {}
+[2026-06-22T15:09:02.769] [DEBUG] debug-file - hvigorfile, binding custom plugins []
+[2026-06-22T15:09:02.790] [DEBUG] debug-file - start to load updatedOhPackageInfo to the disk
+[2026-06-22T15:09:02.863] [DEBUG] debug-file - clean: Worker pool is inactive.
+[2026-06-22T15:09:02.874] [DEBUG] debug-file - runTaskFromQueue task cost before running: 5 s 695 ms 
+[2026-06-22T15:09:02.890] [DEBUG] debug-file - Worker pool is initialized with config:  {
+  minPoolNum: 2,
+  maxPoolNum: undefined,
+  maxCoreSize: undefined,
+  cacheCapacity: undefined,
+  cacheTtl: undefined
+}
+[2026-06-22T15:09:02.920] [DEBUG] debug-file - Create  resident worker with id: 1.
+[2026-06-22T15:09:03.491] [DEBUG] debug-file - current product is not Atomic service.
+[2026-06-22T15:09:03.499] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:03.508] [DEBUG] debug-file - entry : default@GenerateMetadata cost memory 0.1067657470703125
+[2026-06-22T15:09:03.514] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:03.520] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:03.533] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:03.539] [DEBUG] debug-file - entry : default@CreateBuildProfile cost memory 0.09848785400390625
+[2026-06-22T15:09:03.544] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:03.546] [DEBUG] debug-file - entry : default@PreCheckSyscap cost memory 0.0158233642578125
+[2026-06-22T15:09:03.550] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:03.564] [DEBUG] debug-file - entry : default@GeneratePkgContextInfo cost memory 0.019989013671875
+[2026-06-22T15:09:03.575] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:03.586] [DEBUG] debug-file - entry : default@ProcessIntegratedHsp cost memory 0.05666351318359375
+[2026-06-22T15:09:03.593] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:03.598] [DEBUG] debug-file - entry : default@BuildNativeWithCmake cost memory 0.01206207275390625
+[2026-06-22T15:09:03.604] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:03.628] [DEBUG] debug-file - Module Pack Info:  {
+  summary: {
+    app: {
+      bundleName: 'com.ohos.uiextensionprovider',
+      bundleType: 'app',
+      version: [Object]
+    },
+    modules: [ [Object] ]
+  },
+  packages: [
+    {
+      deviceType: [Array],
+      moduleType: 'entry',
+      deliveryWithInstall: true,
+      name: 'entry-default'
+    }
+  ]
+}
+[2026-06-22T15:09:03.640] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:03.789] [DEBUG] debug-file - entry : default@ProcessProfile cost memory 0.22850799560546875
+[2026-06-22T15:09:03.794] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:03.846] [DEBUG] debug-file - A work dispatched to worker[15] failed because unable to get work from ready queue.
+[2026-06-22T15:09:03.886] [DEBUG] debug-file - entry : default@ProcessRouterMap cost memory 0.15079498291015625
+[2026-06-22T15:09:03.864] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:03.892] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:03.901] [DEBUG] debug-file - entry : default@BuildNativeWithNinja cost memory 0.03943634033203125
+[2026-06-22T15:09:03.916] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:03.983] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:04.056] [DEBUG] debug-file - runTaskFromQueue task cost before running: 6 s 877 ms 
+[2026-06-22T15:09:04.081] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:04.104] [DEBUG] debug-file - default@ProcessLibs work[1] is submitted.
+[2026-06-22T15:09:04.115] [DEBUG] debug-file - A work dispatched to worker[15] failed because unable to get work from ready queue.
+[2026-06-22T15:09:04.135] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:08:57.515] [DEBUG] debug-file - env: daemon=false
+[2026-06-22T15:09:02.671] [DEBUG] debug-file - hvigorfile, require result:  { default: { system: [Function: hapTasks], plugins: [] } }
+[2026-06-22T15:09:04.414] [DEBUG] debug-file - Info: Pack: normal pack mode
+Warning: 'extensionPath' value cannot be empty.
+at /home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/opt-compression.json
+
+[2026-06-22T15:08:58.654] [DEBUG] debug-file - Cache service initialization finished in 3 ms 
+[2026-06-22T15:09:02.291] [DEBUG] debug-file - Product 'default' build option: {
+  "debuggable": false
+}
+[2026-06-22T15:09:02.334] [DEBUG] debug-file - No signingConfig found, initRemoteHspCache failed.
+[2026-06-22T15:09:02.641] [DEBUG] debug-file - hvigorfile, no custom plugins were found in /home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/hvigorfile.ts
+[2026-06-22T15:09:02.718] [DEBUG] debug-file - Target 'ohosTest' config: {}
+[2026-06-22T15:09:02.769] [DEBUG] debug-file - hvigorfile, no custom plugins were found in /home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/hvigorfile.ts
+[2026-06-22T15:09:02.800] [DEBUG] debug-file - load to the disk finished
+[2026-06-22T15:09:02.876] [INFO] debug-file - Finished :entry:clean... after 12 ms 
+[2026-06-22T15:09:02.929] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:03.491] [DEBUG] debug-file - Use tool [linux: JAVA_HOME, CLASSPATH]
+ [ { JAVA_HOME: undefined }, { CLASSPATH: undefined } ]
+[2026-06-22T15:09:03.509] [DEBUG] debug-file - runTaskFromQueue task cost before running: 6 s 330 ms 
+[2026-06-22T15:09:03.515] [DEBUG] debug-file - Executing task :entry:default@ConfigureCmake
+[2026-06-22T15:09:03.522] [DEBUG] debug-file - Executing task :entry:default@MergeProfile
+[2026-06-22T15:09:03.539] [DEBUG] debug-file - runTaskFromQueue task cost before running: 6 s 360 ms 
+[2026-06-22T15:09:03.546] [DEBUG] debug-file - runTaskFromQueue task cost before running: 6 s 367 ms 
+[2026-06-22T15:09:03.564] [DEBUG] debug-file - runTaskFromQueue task cost before running: 6 s 385 ms 
+[2026-06-22T15:09:03.586] [DEBUG] debug-file - runTaskFromQueue task cost before running: 6 s 408 ms 
+[2026-06-22T15:09:03.600] [DEBUG] debug-file - runTaskFromQueue task cost before running: 6 s 421 ms 
+[2026-06-22T15:09:03.633] [DEBUG] debug-file - entry : default@MakePackInfo cost memory 0.1274871826171875
+[2026-06-22T15:09:03.642] [DEBUG] debug-file - Executing task :entry:default@ProcessProfile
+[2026-06-22T15:09:03.789] [DEBUG] debug-file - runTaskFromQueue task cost before running: 6 s 610 ms 
+[2026-06-22T15:09:03.846] [DEBUG] debug-file - Create  resident worker with id: 14.
+[2026-06-22T15:09:03.887] [DEBUG] debug-file - runTaskFromQueue task cost before running: 6 s 708 ms 
+[2026-06-22T15:09:03.901] [DEBUG] debug-file - runTaskFromQueue task cost before running: 6 s 722 ms 
+[2026-06-22T15:09:03.918] [DEBUG] debug-file - restool module names: entry; moduleName=entry, taskName=default@ProcessResource
+[2026-06-22T15:09:04.115] [DEBUG] debug-file - A work dispatched to worker[14] failed because of worker busy.
+[2026-06-22T15:09:04.136] [DEBUG] debug-file - restool module names: entry; moduleName=entry, taskName=default@CompileResource
+[2026-06-22T15:08:57.515] [DEBUG] debug-file - no-daemon, use the parent process.execArgv --max-old-space-size=8192,--expose-gc
+[2026-06-22T15:09:02.671] [DEBUG] debug-file - hvigorfile, binding system plugins [Function: hapTasks]
+[2026-06-22T15:09:02.292] [DEBUG] debug-file - End initialize project's product build option map with build mode 'release'.
+[2026-06-22T15:09:02.641] [DEBUG] debug-file - hvigorfile, resolve finished /home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/hvigorfile.ts
+[2026-06-22T15:09:02.719] [DEBUG] debug-file - Module 'entry' target 'default' build option: {
+  "debuggable": false,
+  "copyFrom": "default",
+  "strictMode": {
+    "caseSensitiveCheck": true,
+    "useNormalizedOHMUrl": true
+  },
+  "name": "release",
+  "arkOptions": {
+    "obfuscation": {
+      "ruleOptions": {
+        "enable": false,
+        "files": [
+          "./obfuscation-rules.txt"
+        ]
+      }
+    }
+  }
+}
+[2026-06-22T15:09:02.769] [DEBUG] debug-file - hvigorfile, resolve finished /home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/hvigorfile.ts
+[2026-06-22T15:09:02.810] [DEBUG] debug-file - Module ui_extension_provider_bundle Collected Dependency: 
+[2026-06-22T15:09:02.929] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:03.491] [DEBUG] debug-file - Use tool [linux: NODE_HOME]
+ [
+  {
+    NODE_HOME: '/home/deng/code/openharmony-master/prebuilts/build-tools/common/nodejs/node-v18.20.1-linux-x64'
+  }
+]
+[2026-06-22T15:09:03.510] [INFO] debug-file - Finished :entry:default@GenerateMetadata... after 8 ms 
+[2026-06-22T15:09:03.516] [DEBUG] debug-file - entry : default@ConfigureCmake cost memory 0.0105438232421875
+[2026-06-22T15:09:03.524] [DEBUG] debug-file - Change app api release type with 'Beta'
+[2026-06-22T15:09:03.540] [INFO] debug-file - Finished :entry:default@CreateBuildProfile... after 5 ms 
+[2026-06-22T15:09:03.546] [INFO] debug-file - Finished :entry:default@PreCheckSyscap... after 1 ms 
+[2026-06-22T15:09:03.570] [INFO] debug-file - Finished :entry:default@GeneratePkgContextInfo... after 2 ms 
+[2026-06-22T15:09:03.588] [INFO] debug-file - Finished :entry:default@ProcessIntegratedHsp... after 3 ms 
+[2026-06-22T15:09:03.600] [INFO] debug-file - Finished :entry:default@BuildNativeWithCmake... after 2 ms 
+[2026-06-22T15:09:03.634] [DEBUG] debug-file - runTaskFromQueue task cost before running: 6 s 455 ms 
+[2026-06-22T15:09:03.645] [DEBUG] debug-file - [
+  '/home/deng/code/openharmony-master/prebuilts/build-tools/common/nodejs/node-v18.20.1-linux-x64/bin/node',
+  '/home/deng/code/openharmony-master/prebuilts/ohos-sdk/linux/26/ets/build-tools/ets-loader/bin/ark/ts2abc.js',
+  '--target-api-version',
+  '20'
+]
+[2026-06-22T15:09:03.790] [INFO] debug-file - Finished :entry:default@ProcessProfile... after 148 ms 
+[2026-06-22T15:09:03.855] [DEBUG] debug-file - default@SyscapTransform work[0] has been dispatched to worker[14].
+[2026-06-22T15:09:03.888] [INFO] debug-file - Finished :entry:default@ProcessRouterMap... after 16 ms 
+[2026-06-22T15:09:03.907] [INFO] debug-file - Finished :entry:default@BuildNativeWithNinja... after 3 ms 
+[2026-06-22T15:09:03.931] [DEBUG] debug-file - Executing task :entry:default@ProcessResource
+[2026-06-22T15:09:04.115] [DEBUG] debug-file - Create  resident worker with id: 13.
+[2026-06-22T15:09:02.719] [DEBUG] debug-file - Module 'entry' target 'ohosTest' build option: {
+  "debuggable": false,
+  "strictMode": {
+    "caseSensitiveCheck": true,
+    "useNormalizedOHMUrl": true
+  },
+  "name": "default"
+}
+[2026-06-22T15:09:02.810] [DEBUG] debug-file - Module ui_extension_provider_bundle's total dependency: 0
+[2026-06-22T15:09:03.492] [DEBUG] debug-file - entry : default@PreBuild cost memory 10.116592407226562
+[2026-06-22T15:09:03.516] [DEBUG] debug-file - runTaskFromQueue task cost before running: 6 s 337 ms 
+[2026-06-22T15:09:03.524] [DEBUG] debug-file - Change app compile API version with '26.0.0.26'
+[2026-06-22T15:09:03.636] [INFO] debug-file - Finished :entry:default@MakePackInfo... after 15 ms 
+[2026-06-22T15:09:03.856] [DEBUG] debug-file - default@SyscapTransform work[0] is dispatched.
+[2026-06-22T15:09:03.939] [DEBUG] debug-file - entry : default@ProcessResource cost memory 0.1031341552734375
+[2026-06-22T15:09:04.123] [DEBUG] debug-file - default@ProcessLibs work[1] has been dispatched to worker[13].
+[2026-06-22T15:09:02.719] [DEBUG] debug-file - End initialize module-target build option map, moduleName=entry
+[2026-06-22T15:09:02.818] [DEBUG] debug-file - Module entry Collected Dependency: 
+[2026-06-22T15:09:03.493] [DEBUG] debug-file - runTaskFromQueue task cost before running: 6 s 314 ms 
+[2026-06-22T15:09:03.516] [INFO] debug-file - Finished :entry:default@ConfigureCmake... after 1 ms 
+[2026-06-22T15:09:03.524] [DEBUG] debug-file - Change app target API version with '26'
+[2026-06-22T15:09:03.856] [DEBUG] debug-file - entry : default@SyscapTransform cost memory 1.3582382202148438
+[2026-06-22T15:09:03.941] [DEBUG] debug-file - runTaskFromQueue task cost before running: 6 s 763 ms 
+[2026-06-22T15:09:04.123] [DEBUG] debug-file - default@ProcessLibs work[1] is dispatched.
+[2026-06-22T15:09:04.517] [DEBUG] debug-file - Info: hardware concurrency count is : 16
+Info: thread count is : 16
+Info: thread pool is started
+
+[2026-06-22T15:09:02.719] [DEBUG] debug-file - Module 'entry' target 'default' using build option: {
+  "debuggable": false,
+  "copyFrom": "default",
+  "strictMode": {
+    "caseSensitiveCheck": true,
+    "useNormalizedOHMUrl": true
+  },
+  "name": "release",
+  "arkOptions": {
+    "obfuscation": {
+      "ruleOptions": {
+        "enable": false,
+        "files": [
+          "./obfuscation-rules.txt"
+        ]
+      }
+    }
+  }
+} in this build.
+[2026-06-22T15:09:02.818] [DEBUG] debug-file - Module entry's total dependency: 0
+[2026-06-22T15:09:03.494] [INFO] debug-file - Finished :entry:default@PreBuild... after 549 ms 
+[2026-06-22T15:09:03.524] [DEBUG] debug-file - Change app minimum API version with '20'
+[2026-06-22T15:09:03.978] [INFO] debug-file - Finished :entry:default@ProcessResource... after 16 ms 
+[2026-06-22T15:09:04.124] [DEBUG] debug-file - entry : default@ProcessLibs cost memory 0.4609527587890625
+[2026-06-22T15:09:02.834] [DEBUG] debug-file - Configuration phase cost:5 s 545 ms 
+[2026-06-22T15:09:03.524] [DEBUG] debug-file - Use cli appEnvironment
+[2026-06-22T15:09:04.534] [DEBUG] debug-file - Info: GenericCompiler::CompileFiles
+
+[2026-06-22T15:09:03.528] [DEBUG] debug-file - entry : default@MergeProfile cost memory 0.13091278076171875
+[2026-06-22T15:09:03.528] [DEBUG] debug-file - runTaskFromQueue task cost before running: 6 s 349 ms 
+[2026-06-22T15:09:03.529] [INFO] debug-file - Finished :entry:default@MergeProfile... after 6 ms 
+[2026-06-22T15:09:04.552] [DEBUG] debug-file - Info: GenericCompiler::CompileFiles
+Info: GenericCompiler::CompileFiles
+Info: scale icon is not enable.
+Warning: The width or height of the png file referenced by the icon exceeds the limit (41 pixels)
+at /home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/AppScope/resources/base/media/app_icon.png
+Warning: The width or height of the png file referenced by the icon exceeds the limit (41 pixels)
+at /home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/resources/base/media/icon.png
+Info: restool resources compile success.
+
+[2026-06-22T15:09:04.562] [DEBUG] debug-file - Info: thread pool is stopped
+
+[2026-06-22T15:09:04.567] [DEBUG] debug-file - entry : default@CompileResource cost memory 3.324554443359375
+[2026-06-22T15:09:04.583] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:04.593] [DEBUG] debug-file - Executing task :entry:default@CompileArkTS
+[2026-06-22T15:09:04.567] [DEBUG] debug-file - runTaskFromQueue task cost before running: 7 s 388 ms 
+[2026-06-22T15:09:04.583] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:04.568] [INFO] debug-file - Finished :entry:default@CompileResource... after 423 ms 
+[2026-06-22T15:09:04.633] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:04.633] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:04.645] [DEBUG] debug-file - Clean the arkts cache due to obfuscation config changes.
+[2026-06-22T15:09:04.698] [DEBUG] debug-file - build config:
+[2026-06-22T15:09:04.698] [DEBUG] debug-file - {
+  moduleType: 'entry',
+  perf: 0,
+  targetName: '.default',
+  packageManagerType: 'ohpm',
+  localPropertiesPath: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/local.properties',
+  isPreview: false,
+  isOhosTest: false,
+  isLocalTest: false,
+  buildMode: 'Release',
+  watchMode: 'false',
+  aceProfilePath: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/resources/base/profile',
+  etsLoaderPath: '/home/deng/code/openharmony-master/prebuilts/ohos-sdk/linux/26/ets/build-tools/ets-loader',
+  modulePath: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry',
+  testFrameworkPar: {
+    testMode: undefined,
+    coveragePathFilter: undefined,
+    coverageMode: undefined
+  },
+  needCoverageInsert: false,
+  debugLine: false,
+  projectTopDir: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle',
+  compileSdkVersion: 26,
+  compatibleSdkVersion: 20,
+  compatibleSdkVersionStage: undefined,
+  bundleName: 'com.ohos.uiextensionprovider',
+  etsLoaderVersion: '26.0.0.26',
+  etsLoaderReleaseType: 'Beta',
+  aotCompileMode: 'type',
+  apPath: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/modules.ap',
+  entryModuleName: 'entry',
+  entryModuleVersion: '1.0.0',
+  entryPackageName: 'entry',
+  allModuleNameHash: 'b2a89be4135c8934eca804a64a68528e',
+  externalApiPaths: [],
+  compilerTypes: undefined,
+  isCrossplatform: false,
+  hvigorPluginFile: undefined,
+  compilePluginPath: undefined,
+  buildGeneratedProfilePath: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/generated/profile/default',
+  bundleType: 'app',
+  arkTSVersion: undefined,
+  apiVersion: 26,
+  needCompleteSourcesMap: false,
+  isFaMode: false,
+  strictMode: {
+    caseSensitiveCheck: true,
+    useNormalizedOHMUrl: true,
+    noExternalImportByPath: true
+  },
+  buildDir: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build',
+  deviceTypes: [ 'default', 'tablet' ],
+  useNormalizedOHMUrl: true,
+  pkgContextInfo: {
+    '@ohos/hypium': {
+      packageName: '@ohos/hypium',
+      bundleName: '',
+      moduleName: '',
+      version: '1.0.21',
+      entryPath: 'index.js',
+      isSO: false,
+      dependencyAlias: ''
+    },
+    entry: {
+      packageName: 'entry',
+      bundleName: '',
+      moduleName: '',
+      version: '',
+      entryPath: 'src/main/',
+      isSO: false,
+      dependencyAlias: ''
+    }
+  },
+  ohPackagePathMap: Map(2) {
+    '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/oh-package.json5' => '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/.hvigor/dependencyMap/entry/oh-package.json5',
+    '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/oh-package.json5' => '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/.hvigor/dependencyMap/oh-package.json5'
+  },
+  dependencyAliasMap: Map(0) {},
+  permission: { requestPermissions: undefined, definePermissions: undefined },
+  integratedHsp: false,
+  projectArkOption: { obfuscation: { ruleOptions: [Object], consumerRules: [] } },
+  sourceMapDir: undefined,
+  branchElimination: false,
+  transformLib: undefined,
+  caseSensitiveCheck: false,
+  tsImportSendable: false,
+  resolveConflictMode: true,
+  depName2RootPath: Map(0) {},
+  rootPathSet: [
+    '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle'
+  ],
+  useNativeResolver: true,
+  aceModuleJsonPath: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/module.json',
+  appResource: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/ResourceTable.txt',
+  rawFileResource: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/resources/rawfile',
+  resourceTableHash: '5b4c9bf8fe35667e0985cf2aaaa4d57f',
+  runtimeOS: 'OpenHarmony',
+  sdkInfo: 'true:26:26.0.0.26:Beta',
+  aceModuleRoot: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/ets',
+  compileMode: 'esmodule',
+  aceSuperVisualPath: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/supervisual',
+  aceBuildJson: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default/loader.json',
+  cachePath: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/cache/default/default@CompileArkTS/esmodule/release',
+  aceModuleBuild: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader_out/default/ets',
+  supportChunks: true,
+  declaredFilesPath: undefined,
+  pkgNameToPkgBriefInfo: {
+    entry: {
+      pkgRoot: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry',
+      originalSourceRoots: undefined,
+      sourceRoots: [Array],
+      pkgName: 'entry'
+    }
+  },
+  projectModel: {
+    '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main': {
+      moduleName: 'entry',
+      modulePkgPath: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry',
+      belongProjectPath: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle'
+    },
+    '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/src/ohosTest/ets': {
+      moduleName: 'entry',
+      modulePkgPath: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry',
+      belongProjectPath: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle'
+    },
+    '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/ohosTest': {
+      moduleName: 'entry',
+      modulePkgPath: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry',
+      belongProjectPath: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle'
+    },
+    '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry': {
+      moduleName: 'entry',
+      modulePkgPath: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry',
+      belongProjectPath: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle'
+    },
+    '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle': {
+      moduleName: 'ui_extension_provider_bundle',
+      modulePkgPath: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle',
+      belongProjectPath: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle'
+    }
+  },
+  pkgJsonFileHash: 'd2f00f85fad1a83ca67167a3c48cf089',
+  allModulePaths: [
+    '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry'
+  ],
+  routerMap: Map(0) {},
+  obfuscationOptions: {
+    selfConfig: { ruleOptions: [Object], consumerRules: [] },
+    sdkApis: [],
+    obfuscationCacheDir: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/cache/default/default@CompileArkTS/esmodule/release/obfuscation',
+    exportRulePath: '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/obfuscation/default/obfuscation.txt',
+    dependencies: { libraries: [], hars: [] }
+  },
+  compileBlockPkg: [],
+  overallProjectPaths: [
+    '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle'
+  ],
+  mockParams: {
+    decorator: '@MockSetup',
+    packageName: '@ohos/hamock',
+    etsSourceRootPath: 'src/main/ets',
+    mockConfigPath: undefined,
+    mockConfigKey2ModuleInfo: {}
+  },
+  otherPaths: {
+    'entry/*': [ '../*', '../../../build/default/generated/profile/default/*' ]
+  },
+  collectImportersConfig: undefined
+}
+[2026-06-22T15:09:04.709] [DEBUG] debug-file - default@CompileArkTS work[2] is submitted.
+[2026-06-22T15:09:04.715] [DEBUG] debug-file - default@CompileArkTS work[2] is pushed to ready queue.
+[2026-06-22T15:09:04.717] [DEBUG] debug-file - default@CompileArkTS work[3] is pushed to ready queue.
+[2026-06-22T15:09:04.728] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:04.768] [DEBUG] debug-file - Executing task :entry:default@BuildJS
+[2026-06-22T15:09:04.799] [DEBUG] debug-file - entry : default@BuildJS cost memory 0.4324798583984375
+[2026-06-22T15:09:04.715] [DEBUG] debug-file - default@CompileArkTS work[2] is not dispatched.
+[2026-06-22T15:09:04.717] [DEBUG] debug-file - default@CompileArkTS work[3] is not dispatched.
+[2026-06-22T15:09:04.729] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:04.800] [DEBUG] debug-file - runTaskFromQueue task cost before running: 7 s 621 ms 
+[2026-06-22T15:09:04.715] [DEBUG] debug-file - CopyResources startTime: 350153977182987
+[2026-06-22T15:09:04.724] [DEBUG] debug-file - entry : default@CompileArkTS cost memory 1.8353195190429688
+[2026-06-22T15:09:04.800] [INFO] debug-file - Finished :entry:default@BuildJS... after 32 ms 
+[2026-06-22T15:09:04.715] [DEBUG] debug-file - default@CompileArkTS work[3] is submitted.
+[2026-06-22T15:09:04.800] [DEBUG] debug-file - hvigor start cli arguments:{
+  prop: [
+    'product=default',
+    'module=entry',
+    'debuggable=false',
+    'buildMode=release'
+  ],
+  mode: 'module',
+  daemon: false,
+  _: [ 'assembleHap' ]
+}
+[2026-06-22T15:09:04.924] [DEBUG] debug-file - A work dispatched to worker[15] failed because unable to get work from ready queue.
+[2026-06-22T15:09:04.924] [DEBUG] debug-file - A work dispatched to worker[14] failed because of worker busy.
+[2026-06-22T15:09:04.924] [DEBUG] debug-file - A work dispatched to worker[13] failed because of worker busy.
+[2026-06-22T15:09:04.924] [DEBUG] debug-file - Create  resident worker with id: 12.
+[2026-06-22T15:09:04.925] [DEBUG] debug-file - default@CompileArkTS work[3] has been dispatched to worker[12].
+[2026-06-22T15:09:05.526] [DEBUG] debug-file - A work dispatched to worker[15] failed because unable to get work from ready queue.
+[2026-06-22T15:09:05.527] [DEBUG] debug-file - A work dispatched to worker[14] failed because of worker busy.
+[2026-06-22T15:09:05.527] [DEBUG] debug-file - A work dispatched to worker[13] failed because of worker busy.
+[2026-06-22T15:09:05.527] [DEBUG] debug-file - A work dispatched to worker[12] failed because of worker busy.
+[2026-06-22T15:09:05.527] [DEBUG] debug-file - A work dispatched to worker[11] failed because unable to get work from ready queue.
+[2026-06-22T15:09:05.527] [DEBUG] debug-file - A work dispatched to worker[10] failed because unable to get work from ready queue.
+[2026-06-22T15:09:05.527] [DEBUG] debug-file - A work dispatched to worker[9] failed because unable to get work from ready queue.
+[2026-06-22T15:09:05.527] [DEBUG] debug-file - A work dispatched to worker[8] failed because unable to get work from ready queue.
+[2026-06-22T15:09:05.527] [DEBUG] debug-file - A work dispatched to worker[7] failed because unable to get work from ready queue.
+[2026-06-22T15:09:05.527] [DEBUG] debug-file - A work dispatched to worker[6] failed because unable to get work from ready queue.
+[2026-06-22T15:09:05.527] [DEBUG] debug-file - A work dispatched to worker[5] failed because unable to get work from ready queue.
+[2026-06-22T15:09:05.527] [DEBUG] debug-file - A work dispatched to worker[4] failed because unable to get work from ready queue.
+[2026-06-22T15:09:05.527] [DEBUG] debug-file - A work dispatched to worker[3] failed because unable to get work from ready queue.
+[2026-06-22T15:09:05.527] [DEBUG] debug-file - A work dispatched to worker[2] failed because unable to get work from ready queue.
+[2026-06-22T15:09:05.527] [DEBUG] debug-file - A work dispatched to worker[1] failed because unable to get work from ready queue.
+[2026-06-22T15:09:05.527] [DEBUG] debug-file - default@CompileArkTS work[2] has been dispatched to worker[0].
+[2026-06-22T15:09:06.072] [DEBUG] debug-file - current process  memoryUsage: {
+  rss: 495947776,
+  heapTotal: 73129984,
+  heapUsed: 45502792,
+  external: 2268865,
+  arrayBuffers: 297406
+} os memoryUsage :7.6074676513671875
+[2026-06-22T15:09:06.131] [DEBUG] debug-file - worker[14] has one work done.
+[2026-06-22T15:09:06.132] [DEBUG] debug-file - default@SyscapTransform work[0] done.
+[2026-06-22T15:09:06.133] [INFO] debug-file - Finished :entry:default@SyscapTransform... after 2 s 336 ms 
+[2026-06-22T15:09:06.139] [DEBUG] debug-file - worker[13] has one work done.
+[2026-06-22T15:09:06.143] [DEBUG] debug-file - default@ProcessLibs work[1] done.
+[2026-06-22T15:09:06.155] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:06.161] [DEBUG] debug-file - Executing task :entry:default@DoNativeStrip
+[2026-06-22T15:09:06.180] [DEBUG] debug-file - default@DoNativeStrip work[4] is pushed to ready queue.
+[2026-06-22T15:09:06.144] [INFO] debug-file - Finished :entry:default@ProcessLibs... after 2 s 54 ms 
+[2026-06-22T15:09:06.156] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:06.179] [DEBUG] debug-file - default@DoNativeStrip work[4] is submitted.
+[2026-06-22T15:09:06.180] [DEBUG] debug-file - default@DoNativeStrip work[4] is not dispatched.
+[2026-06-22T15:09:06.180] [DEBUG] debug-file - entry : default@DoNativeStrip cost memory 0.1536865234375
+[2026-06-22T15:09:06.281] [DEBUG] debug-file - A work dispatched to worker[15] failed because unable to get work from ready queue.
+[2026-06-22T15:09:06.282] [DEBUG] debug-file - default@DoNativeStrip work[4] has been dispatched to worker[14].
+[2026-06-22T15:09:06.463] [DEBUG] debug-file - worker[14] has one work done.
+[2026-06-22T15:09:06.463] [DEBUG] debug-file - default@DoNativeStrip work[4] done.
+[2026-06-22T15:09:06.468] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:06.479] [DEBUG] debug-file - Executing task :entry:default@CacheNativeLibs
+[2026-06-22T15:09:06.482] [DEBUG] debug-file - default@CacheNativeLibs work[5] is pushed to ready queue.
+[2026-06-22T15:09:06.464] [INFO] debug-file - Finished :entry:default@DoNativeStrip... after 202 ms 
+[2026-06-22T15:09:06.468] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:06.480] [DEBUG] debug-file - default@CacheNativeLibs work[5] is submitted.
+[2026-06-22T15:09:06.482] [DEBUG] debug-file - A work dispatched to worker[15] failed because unable to get work from ready queue.
+[2026-06-22T15:09:06.482] [DEBUG] debug-file - default@CacheNativeLibs work[5] has been dispatched to worker[14].
+[2026-06-22T15:09:06.482] [DEBUG] debug-file - default@CacheNativeLibs work[5] is dispatched.
+[2026-06-22T15:09:06.483] [DEBUG] debug-file - entry : default@CacheNativeLibs cost memory 0.1371002197265625
+[2026-06-22T15:09:06.513] [DEBUG] debug-file - worker[12] has one work done.
+[2026-06-22T15:09:06.513] [DEBUG] debug-file - CopyResources is end, endTime: 350155775138664
+[2026-06-22T15:09:06.519] [DEBUG] debug-file - default@CompileArkTS work[3] done.
+[2026-06-22T15:09:06.635] [DEBUG] debug-file - A work dispatched to worker[14] failed because of worker busy.
+[2026-06-22T15:09:06.823] [DEBUG] debug-file - A work dispatched to worker[12] failed because unable to get work from ready queue.
+[2026-06-22T15:09:07.066] [DEBUG] debug-file - A work dispatched to worker[14] failed because of worker busy.
+[2026-06-22T15:09:07.651] [DEBUG] debug-file - A work dispatched to worker[13] failed because unable to get work from ready queue.
+[2026-06-22T15:09:08.133] [DEBUG] debug-file - worker[14] has one work done.
+[2026-06-22T15:09:08.133] [DEBUG] debug-file - default@CacheNativeLibs work[5] done.
+[2026-06-22T15:09:08.139] [INFO] debug-file - Finished :entry:default@CacheNativeLibs... after 1 s 655 ms 
+[2026-06-22T15:09:08.637] [DEBUG] debug-file - A work dispatched to worker[14] failed because unable to get work from ready queue.
+[2026-06-22T15:09:32.064] [INFO] debug-file - [33mWARN: [33mArkTS:WARN File: /home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/ets/entryability/EntryAbility.ets:22:42
+ Function may throw exceptions. Special handling is required.
+[39m
+[33mWARN: [33mArkTS:WARN File: /home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/ets/IdlServiceExt/idl_service_ext_stub.ts:31:26
+ Function may throw exceptions. Special handling is required.
+[39m
+[33mWARN: [33mArkTS:WARN File: /home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/ets/IdlServiceExt/idl_service_ext_stub.ts:41:25
+ Function may throw exceptions. Special handling is required.
+[39m
+[33mWARN: [33mArkTS:WARN File: /home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/ets/IdlServiceExt/idl_service_ext_stub.ts:42:25
+ Function may throw exceptions. Special handling is required.
+[39m
+[33mWARN: [33mArkTS:WARN File: /home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/ets/uiextensionability/UIExtensionAbility.ets:46:13
+ Function may throw exceptions. Special handling is required.
+[39m
+[33mWARN: [33mArkTS:WARN File: /home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/ets/pages/Extension.ets:18:28
+ 'getShared' has been deprecated.
+[39m
+[33mWARN: [33mArkTS:WARN File: /home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/ets/pages/Extension.ets:50:27
+ 'sendData' is system api
+[39m
+
+[2026-06-22T15:09:32.071] [DEBUG] debug-file - Ark compile task finished.finished time is 350181326936299
+[2026-06-22T15:09:32.066] [DEBUG] debug-file - worker[0] has one work done.
+[2026-06-22T15:09:32.148] [DEBUG] debug-file - default@CompileArkTS work[2] done.
+[2026-06-22T15:09:32.162] [INFO] debug-file - Finished :entry:default@CompileArkTS... after 27 s 355 ms 
+[2026-06-22T15:09:32.171] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:32.188] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:32.197] [DEBUG] debug-file - Executing task :entry:default@PackageHap
+[2026-06-22T15:09:32.212] [DEBUG] debug-file - Use tool [/home/deng/code/openharmony-master/prebuilts/ohos-sdk/linux/26/toolchains/lib/app_packing_tool.jar]
+ [
+  'java',
+  '-Dfile.encoding=utf-8',
+  '-jar',
+  '/home/deng/code/openharmony-master/prebuilts/ohos-sdk/linux/26/toolchains/lib/app_packing_tool.jar',
+  '--mode',
+  'hap',
+  '--force',
+  'true',
+  '--lib-path',
+  '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/stripped_native_libs/default',
+  '--json-path',
+  '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/package/default/module.json',
+  '--resources-path',
+  '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/resources',
+  '--index-path',
+  '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/resources.index',
+  '--pack-info-path',
+  '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/outputs/default/pack.info',
+  '--out-path',
+  '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/outputs/default/entry-default-unsigned.hap',
+  '--rpcid-path',
+  '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/syscap/default/rpcid.sc',
+  '--ets-path',
+  '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader_out/default/ets',
+  '--pkg-context-path',
+  '/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default/pkgContextInfo.json'
+]
+[2026-06-22T15:09:32.234] [DEBUG] debug-file - default@PackageHap work[6] is submitted.
+[2026-06-22T15:09:32.240] [DEBUG] debug-file - default@PackageHap work[6] is pushed to ready queue.
+[2026-06-22T15:09:32.172] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:32.188] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:32.201] [WARN] debug-file - If obfuscation is needed, enable obfuscation settings in this build process; failing to do so may prevent future obfuscation. 
+               Properly configure obfuscation rules to avoid runtime issues.
+[2026-06-22T15:09:32.240] [DEBUG] debug-file - default@PackageHap work[6] is not dispatched.
+[2026-06-22T15:09:32.173] [DEBUG] debug-file - Executing task :entry:default@GeneratePkgModuleJson
+[2026-06-22T15:09:32.241] [DEBUG] debug-file - entry : default@PackageHap cost memory -11.487602233886719
+[2026-06-22T15:09:32.181] [DEBUG] debug-file - entry : default@GeneratePkgModuleJson cost memory 0.0381011962890625
+[2026-06-22T15:09:32.181] [DEBUG] debug-file - runTaskFromQueue task cost before running: 35 s 2 ms 
+[2026-06-22T15:09:32.181] [INFO] debug-file - Finished :entry:default@GeneratePkgModuleJson... after 9 ms 
+[2026-06-22T15:09:32.441] [DEBUG] debug-file - A work dispatched to worker[15] failed because unable to get work from ready queue.
+[2026-06-22T15:09:32.442] [DEBUG] debug-file - default@PackageHap work[6] has been dispatched to worker[14].
+[2026-06-22T15:09:32.445] [DEBUG] debug-file - current process  memoryUsage: {
+  rss: 905293824,
+  heapTotal: 103768064,
+  heapUsed: 71317336,
+  external: 4691803,
+  arrayBuffers: 67632
+} os memoryUsage :9.637519836425781
+[2026-06-22T15:09:32.965] [DEBUG] debug-file - A work dispatched to worker[0] failed because unable to get work from ready queue.
+[2026-06-22T15:09:33.803] [DEBUG] debug-file - worker[14] has one work done.
+[2026-06-22T15:09:33.803] [DEBUG] debug-file - default@PackageHap work[6] done.
+[2026-06-22T15:09:33.810] [DEBUG] debug-file - jsonObjWithoutParam {} at undefined
+[2026-06-22T15:09:33.820] [DEBUG] debug-file - Executing task :entry:default@SignHap
+[2026-06-22T15:09:33.833] [DEBUG] debug-file - Executing task :entry:assembleHap
+[2026-06-22T15:09:33.849] [DEBUG] debug-file - BUILD SUCCESSFUL in 36 s 666 ms 
+[2026-06-22T15:09:33.949] [DEBUG] debug-file - Update task entry:default@CompileArkTS output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader_out/default/ets cache.
+[2026-06-22T15:09:33.963] [DEBUG] debug-file - Update task entry:default@BuildJS output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader_out/default/js cache.
+[2026-06-22T15:09:33.805] [INFO] debug-file - Finished :entry:default@PackageHap... after 1 s 406 ms 
+[2026-06-22T15:09:33.810] [DEBUG] debug-file - jsonObjWithoutParam {"name":"entry","version":"1.0.0","description":"Please describe the basic information.","main":"","author":"","license":"","dependencies":{}} at undefined
+[2026-06-22T15:09:33.821] [WARN] debug-file - Will skip sign 'hap'. No signingConfigs profile is configured in current project.
+             If needed, configure the signingConfigs in /home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/build-profile.json5.
+[2026-06-22T15:09:33.833] [DEBUG] debug-file - entry : assembleHap cost memory 0.00983428955078125
+[2026-06-22T15:09:33.851] [DEBUG] debug-file - Update task entry:default@PreBuild input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/AppScope/app.json5 cache by regenerate.
+[2026-06-22T15:09:33.950] [DEBUG] debug-file - Incremental task entry:default@CompileArkTS post-execution cost:17 ms .
+[2026-06-22T15:09:33.963] [DEBUG] debug-file - Incremental task entry:default@BuildJS post-execution cost:14 ms .
+[2026-06-22T15:09:33.822] [DEBUG] debug-file - entry : default@SignHap cost memory 0.05471038818359375
+[2026-06-22T15:09:33.833] [DEBUG] debug-file - runTaskFromQueue task cost before running: 36 s 654 ms 
+[2026-06-22T15:09:33.852] [DEBUG] debug-file - Update task entry:default@PreBuild input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/module.json5 cache by regenerate.
+[2026-06-22T15:09:33.956] [DEBUG] debug-file - Update task entry:default@BuildJS input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default cache by regenerate.
+[2026-06-22T15:09:33.964] [DEBUG] debug-file - Update task entry:default@DoNativeStrip input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/libs/default cache by regenerate.
+[2026-06-22T15:09:33.823] [DEBUG] debug-file - runTaskFromQueue task cost before running: 36 s 644 ms 
+[2026-06-22T15:09:33.834] [INFO] debug-file - Finished :entry:assembleHap... after 1 ms 
+[2026-06-22T15:09:33.853] [DEBUG] debug-file - Update task entry:default@PreBuild input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/build-profile.json5 cache by regenerate.
+[2026-06-22T15:09:33.956] [DEBUG] debug-file - Update task entry:default@BuildJS input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/ResourceTable.txt cache by regenerate.
+[2026-06-22T15:09:33.964] [DEBUG] debug-file - Update task entry:default@DoNativeStrip output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/stripped_native_libs/default cache.
+[2026-06-22T15:09:33.826] [INFO] debug-file - Finished :entry:default@SignHap... after 3 ms 
+[2026-06-22T15:09:33.853] [DEBUG] debug-file - Update task entry:default@PreBuild input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build-profile.json5 cache by regenerate.
+[2026-06-22T15:09:33.956] [DEBUG] debug-file - Update task entry:default@BuildJS input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/module.json cache by regenerate.
+[2026-06-22T15:09:33.964] [DEBUG] debug-file - Incremental task entry:default@DoNativeStrip post-execution cost:1 ms .
+[2026-06-22T15:09:33.853] [DEBUG] debug-file - Update task entry:default@PreBuild input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/resources/base/profile/main_pages.json cache by regenerate.
+[2026-06-22T15:09:33.957] [DEBUG] debug-file - Update task entry:default@BuildJS input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/resources/base/profile cache by regenerate.
+[2026-06-22T15:09:33.964] [DEBUG] debug-file - Update task entry:default@CacheNativeLibs input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/libs/default cache by regenerate.
+[2026-06-22T15:09:33.853] [DEBUG] debug-file - Update task entry:default@PreBuild input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/hvigor/hvigor-config.json5 cache by regenerate.
+[2026-06-22T15:09:33.957] [DEBUG] debug-file - Update task entry:default@BuildJS input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default/pkgContextInfo.json cache by regenerate.
+[2026-06-22T15:09:33.964] [DEBUG] debug-file - Update task entry:default@CacheNativeLibs input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/stripped_native_libs/default cache by regenerate.
+[2026-06-22T15:09:33.853] [DEBUG] debug-file - Update task entry:default@PreBuild input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/oh-package.json5 cache by regenerate.
+[2026-06-22T15:09:33.965] [DEBUG] debug-file - Update task entry:default@CacheNativeLibs output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/patch/default/base_native_libs.json cache.
+[2026-06-22T15:09:33.854] [DEBUG] debug-file - Incremental task entry:default@PreBuild post-execution cost:4 ms .
+[2026-06-22T15:09:33.965] [DEBUG] debug-file - Incremental task entry:default@CacheNativeLibs post-execution cost:1 ms .
+[2026-06-22T15:09:33.854] [DEBUG] debug-file - Update task entry:default@GenerateMetadata input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/module.json5 cache by regenerate.
+[2026-06-22T15:09:33.965] [DEBUG] debug-file - Update task entry:default@GeneratePkgModuleJson input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/module.json cache by regenerate.
+[2026-06-22T15:09:33.860] [DEBUG] debug-file - Update task entry:default@GenerateMetadata output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/hap_metadata/default/output_metadata.json cache.
+[2026-06-22T15:09:33.965] [DEBUG] debug-file - Update task entry:default@GeneratePkgModuleJson output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/package/default/module.json cache.
+[2026-06-22T15:09:33.860] [DEBUG] debug-file - Incremental task entry:default@GenerateMetadata post-execution cost:7 ms .
+[2026-06-22T15:09:33.965] [DEBUG] debug-file - Incremental task entry:default@GeneratePkgModuleJson post-execution cost:1 ms .
+[2026-06-22T15:09:33.861] [DEBUG] debug-file - Update task entry:default@MergeProfile input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/AppScope/app.json5 cache by regenerate.
+[2026-06-22T15:09:33.968] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/stripped_native_libs/default cache by regenerate.
+[2026-06-22T15:09:33.861] [DEBUG] debug-file - Update task entry:default@MergeProfile input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/build-profile.json5 cache by regenerate.
+[2026-06-22T15:09:33.969] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/module.json cache by regenerate.
+[2026-06-22T15:09:33.861] [DEBUG] debug-file - Update task entry:default@MergeProfile input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/module.json5 cache by regenerate.
+[2026-06-22T15:09:33.970] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/resources cache by regenerate.
+[2026-06-22T15:09:33.861] [DEBUG] debug-file - Update task entry:default@MergeProfile output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/merge_profile/default/module.json cache.
+[2026-06-22T15:09:33.970] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/resources.index cache by regenerate.
+[2026-06-22T15:09:33.862] [DEBUG] debug-file - Incremental task entry:default@MergeProfile post-execution cost:2 ms .
+[2026-06-22T15:09:33.976] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/outputs/default/pack.info cache by regenerate.
+[2026-06-22T15:09:33.862] [DEBUG] debug-file - Update task entry:default@CreateBuildProfile input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/AppScope/app.json5 cache by regenerate.
+[2026-06-22T15:09:33.976] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/syscap/default/rpcid.sc cache by regenerate.
+[2026-06-22T15:09:33.862] [DEBUG] debug-file - Update task entry:default@CreateBuildProfile input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/build-profile.json5 cache by regenerate.
+[2026-06-22T15:09:33.976] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader_out/default/ets cache by regenerate.
+[2026-06-22T15:09:33.867] [DEBUG] debug-file - Update task entry:default@CreateBuildProfile output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/generated/profile/default/BuildProfile.ets cache.
+[2026-06-22T15:09:33.977] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default/pkgContextInfo.json cache by regenerate.
+[2026-06-22T15:09:33.867] [DEBUG] debug-file - Incremental task entry:default@CreateBuildProfile post-execution cost:6 ms .
+[2026-06-22T15:09:33.977] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/generated/profile/default/BuildProfile.ets cache by regenerate.
+[2026-06-22T15:09:33.867] [DEBUG] debug-file - Update task entry:default@GeneratePkgContextInfo output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default/pkgContextInfo.json cache.
+[2026-06-22T15:09:33.977] [DEBUG] debug-file - Update task entry:default@PackageHap output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/outputs/default/entry-default-unsigned.hap cache.
+[2026-06-22T15:09:33.868] [DEBUG] debug-file - Incremental task entry:default@GeneratePkgContextInfo post-execution cost:1 ms .
+[2026-06-22T15:09:33.977] [DEBUG] debug-file - Incremental task entry:default@PackageHap post-execution cost:12 ms .
+[2026-06-22T15:09:33.868] [DEBUG] debug-file - Update task entry:default@ProcessIntegratedHsp output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/build/cache/default/integrated_hsp/integratedHspCache.json cache.
+[2026-06-22T15:09:33.978] [DEBUG] debug-file - Update task entry:default@SignHap input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/outputs/default/entry-default-unsigned.hap cache by regenerate.
+[2026-06-22T15:09:33.869] [DEBUG] debug-file - Incremental task entry:default@ProcessIntegratedHsp post-execution cost:2 ms .
+[2026-06-22T15:09:33.978] [DEBUG] debug-file - Update task entry:default@SignHap output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/outputs/default/entry-default-signed.hap cache.
+[2026-06-22T15:09:33.869] [DEBUG] debug-file - Update task entry:default@MakePackInfo input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/AppScope/app.json5 cache by regenerate.
+[2026-06-22T15:09:33.978] [DEBUG] debug-file - Incremental task entry:default@SignHap post-execution cost:1 ms .
+[2026-06-22T15:09:33.869] [DEBUG] debug-file - Update task entry:default@MakePackInfo input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/module.json5 cache by regenerate.
+[2026-06-22T15:09:34.010] [DEBUG] debug-file - Current worker pool is stopped or closed.
+[2026-06-22T15:09:33.869] [DEBUG] debug-file - Update task entry:default@MakePackInfo input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/build-profile.json5 cache by regenerate.
+[2026-06-22T15:09:34.011] [DEBUG] debug-file - Clear worker 1.
+[2026-06-22T15:09:33.870] [DEBUG] debug-file - Update task entry:default@MakePackInfo output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/outputs/default/pack.info cache.
+[2026-06-22T15:09:34.011] [DEBUG] debug-file - Worker 1 has been cleared.
+[2026-06-22T15:09:33.873] [DEBUG] debug-file - Incremental task entry:default@MakePackInfo post-execution cost:5 ms .
+[2026-06-22T15:09:34.011] [DEBUG] debug-file - Current idle worker size: 4.
+[2026-06-22T15:09:33.878] [DEBUG] debug-file - Update task entry:default@ProcessProfile input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/merge_profile/default/module.json cache by regenerate.
+[2026-06-22T15:09:34.011] [DEBUG] debug-file - Current busy worker size: 0.
+[2026-06-22T15:09:33.879] [DEBUG] debug-file - Update task entry:default@ProcessProfile output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/process_profile/default/module.json cache.
+[2026-06-22T15:09:34.012] [DEBUG] debug-file - Clear worker 13.
+[2026-06-22T15:09:33.879] [DEBUG] debug-file - Incremental task entry:default@ProcessProfile post-execution cost:7 ms .
+[2026-06-22T15:09:34.012] [DEBUG] debug-file - Worker 13 has been cleared.
+[2026-06-22T15:09:33.892] [DEBUG] debug-file - Update task entry:default@SyscapTransform input file:/home/deng/code/openharmony-master/prebuilts/ohos-sdk/linux/26/toolchains/syscap_tool cache by regenerate.
+[2026-06-22T15:09:34.012] [DEBUG] debug-file - Current idle worker size: 3.
+[2026-06-22T15:09:33.892] [DEBUG] debug-file - Update task entry:default@SyscapTransform input file:/home/deng/code/openharmony-master/prebuilts/ohos-sdk/linux/26/ets/api/device-define cache by regenerate.
+[2026-06-22T15:09:34.013] [DEBUG] debug-file - Current busy worker size: 0.
+[2026-06-22T15:09:33.894] [DEBUG] debug-file - Update task entry:default@SyscapTransform output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/syscap/default/rpcid.sc cache.
+[2026-06-22T15:09:34.013] [DEBUG] debug-file - Clear worker 12.
+[2026-06-22T15:09:33.894] [DEBUG] debug-file - Incremental task entry:default@SyscapTransform post-execution cost:15 ms .
+[2026-06-22T15:09:34.013] [DEBUG] debug-file - Worker 12 has been cleared.
+[2026-06-22T15:09:33.900] [DEBUG] debug-file - Update task entry:default@ProcessRouterMap input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/oh-package.json5 cache by regenerate.
+[2026-06-22T15:09:34.013] [DEBUG] debug-file - Current idle worker size: 2.
+[2026-06-22T15:09:33.900] [DEBUG] debug-file - Update task entry:default@ProcessRouterMap input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/oh-package.json5 cache by regenerate.
+[2026-06-22T15:09:34.013] [DEBUG] debug-file - Current busy worker size: 0.
+[2026-06-22T15:09:33.900] [DEBUG] debug-file - Update task entry:default@ProcessRouterMap input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/module.json5 cache by regenerate.
+[2026-06-22T15:09:34.013] [DEBUG] debug-file - Clear worker 0.
+[2026-06-22T15:09:33.900] [DEBUG] debug-file - Update task entry:default@ProcessRouterMap input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default/pkgContextInfo.json cache by regenerate.
+[2026-06-22T15:09:34.015] [DEBUG] debug-file - Worker 0 has been cleared.
+[2026-06-22T15:09:33.901] [DEBUG] debug-file - Update task entry:default@ProcessRouterMap output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/router_map/default/temp-router-map.json cache.
+[2026-06-22T15:09:34.015] [DEBUG] debug-file - Current idle worker size: 1.
+[2026-06-22T15:09:33.901] [DEBUG] debug-file - Update task entry:default@ProcessRouterMap output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/router_map/default/loader-router-map.json cache.
+[2026-06-22T15:09:34.015] [DEBUG] debug-file - Current busy worker size: 0.
+[2026-06-22T15:09:33.901] [DEBUG] debug-file - Incremental task entry:default@ProcessRouterMap post-execution cost:3 ms .
+[2026-06-22T15:09:34.015] [DEBUG] debug-file - Clear worker 14.
+[2026-06-22T15:09:33.901] [DEBUG] debug-file - Update task entry:default@ProcessResource output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/resConfig.json cache.
+[2026-06-22T15:09:34.015] [DEBUG] debug-file - Worker 14 has been cleared.
+[2026-06-22T15:09:33.902] [DEBUG] debug-file - Update task entry:default@ProcessResource output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/opt-compression.json cache.
+[2026-06-22T15:09:34.015] [DEBUG] debug-file - Current idle worker size: 0.
+[2026-06-22T15:09:33.906] [DEBUG] debug-file - Incremental task entry:default@ProcessResource post-execution cost:5 ms .
+[2026-06-22T15:09:34.015] [DEBUG] debug-file - Current busy worker size: 0.
+[2026-06-22T15:09:33.909] [DEBUG] debug-file - Update task entry:default@GenerateLoaderJson input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default/pkgContextInfo.json cache by regenerate.
+[2026-06-22T15:09:34.020] [DEBUG] debug-file - hvigor build process will be closed.
+[2026-06-22T15:09:33.910] [DEBUG] debug-file - Update task entry:default@GenerateLoaderJson input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/router_map/default/temp-router-map.json cache by regenerate.
+[2026-06-22T15:09:34.051] [DEBUG] debug-file - worker[1] exits with exit code 1.
+[2026-06-22T15:09:33.910] [DEBUG] debug-file - Update task entry:default@GenerateLoaderJson output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default/loader.json cache.
+[2026-06-22T15:09:34.053] [DEBUG] debug-file - Current worker pool is terminated.
+[2026-06-22T15:09:33.910] [DEBUG] debug-file - Incremental task entry:default@GenerateLoaderJson post-execution cost:5 ms .
+[2026-06-22T15:09:33.910] [DEBUG] debug-file - Update task entry:default@ProcessLibs input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/build-profile.json5 cache by regenerate.
+[2026-06-22T15:09:33.914] [DEBUG] debug-file - Update task entry:default@ProcessLibs input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build-profile.json5 cache by regenerate.
+[2026-06-22T15:09:33.914] [DEBUG] debug-file - Update task entry:default@ProcessLibs output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/libs/default cache.
+[2026-06-22T15:09:33.915] [DEBUG] debug-file - Incremental task entry:default@ProcessLibs post-execution cost:5 ms .
+[2026-06-22T15:09:33.915] [DEBUG] debug-file - Update task entry:default@CompileResource input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/resources cache by regenerate.
+[2026-06-22T15:09:33.917] [DEBUG] debug-file - Update task entry:default@CompileResource input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/AppScope/resources cache by regenerate.
+[2026-06-22T15:09:33.928] [DEBUG] debug-file - Update task entry:default@CompileResource input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/process_profile/default/module.json cache by regenerate.
+[2026-06-22T15:09:33.928] [DEBUG] debug-file - Update task entry:default@CompileResource input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/resConfig.json cache by regenerate.
+[2026-06-22T15:09:33.928] [DEBUG] debug-file - Update task entry:default@CompileResource output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default cache.
+[2026-06-22T15:09:33.932] [DEBUG] debug-file - Update task entry:default@CompileResource output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/generated/r/default/ResourceTable.h cache.
+[2026-06-22T15:09:33.932] [DEBUG] debug-file - Update task entry:default@CompileResource output file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/generated/r/default cache.
+[2026-06-22T15:09:33.933] [DEBUG] debug-file - Incremental task entry:default@CompileResource post-execution cost:18 ms .
+[2026-06-22T15:09:33.940] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default cache by regenerate.
+[2026-06-22T15:09:33.940] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/ResourceTable.txt cache by regenerate.
+[2026-06-22T15:09:33.940] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/module.json cache by regenerate.
+[2026-06-22T15:09:33.941] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/resources/base/profile cache by regenerate.
+[2026-06-22T15:09:33.941] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/ets cache by regenerate.
+[2026-06-22T15:09:33.942] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default/pkgContextInfo.json cache by regenerate.
+[2026-06-22T15:09:33.947] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/home/deng/code/openharmony-master/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/generated/profile/default/BuildProfile.ets cache by regenerate.
+[2026-06-22T15:09:34.102] [DEBUG] debug-file - worker[14] exits with exit code 1.
+[2026-06-22T15:09:34.108] [DEBUG] debug-file - worker[12] exits with exit code 1.
+[2026-06-22T15:09:34.116] [DEBUG] debug-file - worker[13] exits with exit code 1.
+[2026-06-22T15:09:34.173] [DEBUG] debug-file - worker[0] exits with exit code 1.

@@ -1,0 +1,1 @@
+{"basePath":"/home/deng/code/openharmony-master/foundation/ability/ability_runtime/tools/test/resource/aa/pageAbilityBundleForStart/.hvigor/dependencyMap/dependencyMap.json5","rootDependency":"./oh-package.json5","dependencyMap":{"entry":"./entry/oh-package.json5"},"modules":[{"name":"entry","srcPath":"../../../entry"}]}

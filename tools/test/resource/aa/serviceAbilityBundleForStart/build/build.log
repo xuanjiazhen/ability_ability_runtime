@@ -1,0 +1,41 @@
+> hvigor [32mFinished :entry:clean... after 10 ms [39m
+> hvigor [32mFinished :entry:default@PreBuild... after 778 ms [39m
+> hvigor [32mFinished :entry:default@GenerateMetadata... after 17 ms [39m
+> hvigor [32mFinished :entry:default@ConfigureCmake... after 1 ms [39m
+> hvigor [32mFinished :entry:default@MergeProfile... after 16 ms [39m
+> hvigor [32mFinished :entry:default@CreateBuildProfile... after 17 ms [39m
+> hvigor [32mFinished :entry:default@PreCheckSyscap... after 1 ms [39m
+> hvigor [32mFinished :entry:default@GeneratePkgContextInfo... after 3 ms [39m
+> hvigor [32mFinished :entry:default@ProcessIntegratedHsp... after 4 ms [39m
+> hvigor [32mFinished :entry:default@BuildNativeWithCmake... after 1 ms [39m
+> hvigor [32mFinished :entry:default@MakePackInfo... after 17 ms [39m
+> hvigor [32mFinished :entry:default@ProcessProfile... after 107 ms [39m
+> hvigor [32mFinished :entry:default@ProcessRouterMap... after 14 ms [39m
+> hvigor [32mFinished :entry:default@BuildNativeWithNinja... after 8 ms [39m
+> hvigor [32mFinished :entry:default@ProcessResource... after 16 ms [39m
+> hvigor [32mFinished :entry:default@GenerateLoaderJson... after 71 ms [39m
+> hvigor [32mFinished :entry:default@CompileResource... after 461 ms [39m
+> hvigor [32mFinished :entry:default@BuildJS... after 35 ms [39m
+> hvigor [32mFinished :entry:default@SyscapTransform... after 2 s 506 ms [39m
+> hvigor [32mFinished :entry:default@ProcessLibs... after 2 s 622 ms [39m
+> hvigor [32mFinished :entry:default@DoNativeStrip... after 388 ms [39m
+> hvigor [32mFinished :entry:default@CacheNativeLibs... after 1 s 794 ms [39m
+> hvigor [32m[33mWARN: [33mArkTS:WARN File: /home/deng/code/openharmony-master/foundation/ability/ability_runtime/tools/test/resource/aa/serviceAbilityBundleForStart/entry/src/main/ets/ServiceAbility/service.ets:35:25
+ Function may throw exceptions. Special handling is required.
+[39m
+[33mWARN: [33mArkTS:WARN File: /home/deng/code/openharmony-master/foundation/ability/ability_runtime/tools/test/resource/aa/serviceAbilityBundleForStart/entry/src/main/ets/ServiceAbility/service.ets:39:13
+ Function may throw exceptions. Special handling is required.
+[39m
+[39m
+> hvigor [32mFinished :entry:default@CompileArkTS... after 26 s 907 ms [39m
+> hvigor [32mFinished :entry:default@GeneratePkgModuleJson... after 9 ms [39m
+> hvigor [32mFinished :entry:default@PackageHap... after 1 s 549 ms [39m
+> hvigor [32mFinished :entry:default@SignHap... after 4 ms [39m
+> hvigor [32mFinished :entry:assembleHap... after 1 ms [39m
+> hvigor [32mBUILD SUCCESSFUL in 34 s 614 ms [39m
+
+> hvigor [33mWARN: If obfuscation is needed, enable obfuscation settings in this build process; failing to do so may prevent future obfuscation. 
+               Properly configure obfuscation rules to avoid runtime issues.[39m
+> hvigor [33mWARN: Will skip sign 'hap'. No signingConfigs profile is configured in current project.
+             If needed, configure the signingConfigs in /home/deng/code/openharmony-master/foundation/ability/ability_runtime/tools/test/resource/aa/serviceAbilityBundleForStart/build-profile.json5.[39m
+
