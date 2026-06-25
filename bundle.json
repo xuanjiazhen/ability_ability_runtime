@@ -133,6 +133,7 @@
           "//foundation/ability/ability_runtime/cli_tool_framework/frameworks:cli_tool_framework_packages",
           "//foundation/ability/ability_runtime/cli_tool_framework/interfaces/cli_tool:cli_tool_client",
           "//foundation/ability/ability_runtime/cli_tool_framework/services/climgr:climgr",
+          "//foundation/ability/ability_runtime/cli_tool_framework/services/climgr:abc_executor",
           "//foundation/ability/ability_runtime/services:ams_target",
           "//foundation/ability/ability_runtime/services/sa_profile:ams_sa_profile",
           "//foundation/ability/ability_runtime/services/quickfixmgr:quick_fix.cfg",

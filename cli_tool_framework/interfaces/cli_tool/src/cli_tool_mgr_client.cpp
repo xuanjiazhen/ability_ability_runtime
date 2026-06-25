@@ -15,6 +15,7 @@
 
 #include "cli_tool_mgr_client.h"
 
+#include "abc_execute_param.h"
 #include "cli_error_code.h"
 #include "cli_event_reply_manager.h"
 #include "cli_mgr_load_callback.h"
@@ -462,6 +463,36 @@ ErrCode CliToolMGRClient::SendMessage(const std::string &sessionId, const std::s
         CliEventReplyManager::GetInstance().ActivateEventReplyCallback(eventId);
     }
     return ret;
+}
+
+ErrCode CliToolMGRClient::ExecAbc(const AbcExecuteParam &param)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "========== [CLIENT_LAYER] CliToolMGRClient::ExecAbc ENTRY ==========");
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[CLIENT_LAYER] ExecAbc called from client layer");
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[CLIENT_LAYER] Input parameters:");
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[CLIENT_LAYER]   abcPath='%{public}s'", param.abcPath.c_str());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[CLIENT_LAYER]   hspBundleName='%{public}s'", param.hspBundleName.c_str());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[CLIENT_LAYER]   hspModuleName='%{public}s'", param.hspModuleName.c_str());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[CLIENT_LAYER]   functionName='%{public}s'", param.functionName.c_str());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[CLIENT_LAYER]   bundleName='%{public}s'", param.bundleName.c_str());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[CLIENT_LAYER]   moduleName='%{public}s}'", param.moduleName.c_str());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[CLIENT_LAYER]   callerTokenId=%{public}u", param.callerTokenId);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[CLIENT_LAYER]   args count=%{public}zu", param.args.size());
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[CLIENT_LAYER] Getting service proxy...");
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "[CLIENT_LAYER] ERROR: proxy is null - CLI tool manager service not available");
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "========== [CLIENT_LAYER] CliToolMGRClient::ExecAbc EXIT (SERVICE_NOT_AVAILABLE) ==========");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[CLIENT_LAYER] Service proxy obtained, making IPC call to service...");
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[CLIENT_LAYER] >>> Calling proxy->ExecAbc() via IPC");
+    ErrCode result = proxy->ExecAbc(param);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[CLIENT_LAYER] <<< proxy->ExecAbc() IPC call returned=%{public}d", result);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "========== [CLIENT_LAYER] CliToolMGRClient::ExecAbc EXIT (result=%{public}d) ==========", result);
+    return result;
 }
 } // namespace CliTool
 } // namespace OHOS

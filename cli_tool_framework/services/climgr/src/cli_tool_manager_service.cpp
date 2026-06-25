@@ -19,6 +19,7 @@
 
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
+#include "arkts_executor.h"
 #include "app_mgr_client.h"
 #include "ccm_util.h"
 #include "cli_error_code.h"
@@ -1423,6 +1424,38 @@ int32_t CliToolManagerService::GetCallerPidCount()
 {
     std::lock_guard<ffrt::mutex> guard(callerPidsMutex_);
     return static_cast<int32_t>(callerPids.size());
+}
+
+int32_t CliToolManagerService::ExecAbc(const AbcExecuteParam &param)
+{
+    InterfaceCallCounter counter(interfaceCalledCount_);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "========== [SERVICE_LAYER] CliToolManagerService::ExecAbc ENTRY ==========");
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[SERVICE_LAYER] ExecAbc called at service layer (via IPC)");
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[SERVICE_LAYER] Input parameters:");
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[SERVICE_LAYER]   abcPath='%{public}s'", param.abcPath.c_str());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[SERVICE_LAYER]   hspBundleName='%{public}s'", param.hspBundleName.c_str());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[SERVICE_LAYER]   hspModuleName='%{public}s'", param.hspModuleName.c_str());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[SERVICE_LAYER]   functionName='%{public}s'", param.functionName.c_str());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[SERVICE_LAYER]   bundleName='%{public}s'", param.bundleName.c_str());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[SERVICE_LAYER]   moduleName='%{public}s'", param.moduleName.c_str());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[SERVICE_LAYER]   callerTokenId=%{public}u", param.callerTokenId);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[SERVICE_LAYER]   args count=%{public}zu", param.args.size());
+
+    // Validate parameters
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[SERVICE_LAYER] Validating parameters...");
+    if (!param.IsValid()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "[SERVICE_LAYER] ERROR: Invalid parameters - need either abcPath or hspBundleName+hspModuleName");
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "========== [SERVICE_LAYER] CliToolManagerService::ExecAbc EXIT (INVALID_PARAM) ==========");
+        return ERR_INVALID_PARAM;
+    }
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[SERVICE_LAYER] Parameters validated successfully");
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[SERVICE_LAYER] Delegating execution to ArktsExecutor...");
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[SERVICE_LAYER] >>> Calling ArktsExecutor::ExecuteAbc()");
+    int32_t result = ArktsExecutor::ExecuteAbc(param);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "[SERVICE_LAYER] <<< ArktsExecutor::ExecuteAbc() returned=%{public}d", result);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "========== [SERVICE_LAYER] CliToolManagerService::ExecAbc EXIT (result=%{public}d) ==========", result);
+    return result;
 }
 } // namespace CliTool
 } // namespace OHOS
