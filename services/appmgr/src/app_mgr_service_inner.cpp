@@ -283,6 +283,9 @@ constexpr const char* EVENT_KEY_INNER_MSG = "INNER_MSG";
 constexpr const char* EVENT_KEY_PROCESS_KILL_ID = "PROCESS_KILL_ID";
 constexpr const char* EVENT_KEY_ADJ = "ADJ";
 constexpr const char* EVENT_KEY_TIMESTAMP = "TIMESTAMP";
+constexpr const char* EVENT_KEY_RSS = "RSS";
+constexpr const char* EVENT_KEY_PSS = "PSS";
+constexpr const char* EVENT_KEY_PROCESS_STATE = "PROCESS_STATE";
 constexpr const char* EVENT_KEY_QUICK_PARAM_FIRST = "EVENT_PARAM_FIRST";
 constexpr const char* EVENT_KEY_QUICK_PARAM_SECOND = "EVENT_PARAM_SECOND";
 constexpr const char* EVENT_KEY_QUICK_PARAM_THIRD = "EVENT_PARAM_THIRD";
@@ -6355,6 +6358,11 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
     bool foreground = appRecord->GetState() == ApplicationState::APP_STATE_FOREGROUND ||
         appRecord->GetState() == ApplicationState::APP_STATE_FOCUS;
     std::string appRunningUniqueId = std::to_string(appRecord->GetAppRunningUniqueId());
+    uint64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    int32_t rss = appRecord->GetRssValue();
+    int32_t pss = appRecord->GetPssValue();
+    int32_t processState = static_cast<int32_t>(appRecord->GetState());
     AAFwk::EventInfo eventInfo;
     SetKilledEventInfo(appRecord, eventInfo);
     AAFwk::EventReport::SendAppEvent(AAFwk::EventName::APP_TERMINATE, HISYSEVENT_BEHAVIOR, eventInfo);
@@ -6372,7 +6380,10 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
     hisyseventReport->InsertParam(EVENT_KEY_INNER_MSG, innerMsg);
     hisyseventReport->InsertParam(EVENT_KEY_PROCESS_KILL_ID, killInfo.killId);
     hisyseventReport->InsertParam(EVENT_KEY_ADJ, killInfo.adj);
-    hisyseventReport->InsertParam(EVENT_KEY_TIMESTAMP, killInfo.timestamp);
+    hisyseventReport->InsertParam(EVENT_KEY_TIMESTAMP, timestamp);
+    hisyseventReport->InsertParam(EVENT_KEY_RSS, rss);
+    hisyseventReport->InsertParam(EVENT_KEY_PSS, pss);
+    hisyseventReport->InsertParam(EVENT_KEY_PROCESS_STATE, processState);
     hisyseventReport->InsertParam(EVENT_KEY_QUICK_PARAM_FIRST, killInfo.eventParamFirst);
     hisyseventReport->InsertParam(EVENT_KEY_QUICK_PARAM_SECOND, killInfo.eventParamSecond);
     hisyseventReport->InsertParam(EVENT_KEY_QUICK_PARAM_THIRD, killInfo.eventParamThird);
@@ -6383,9 +6394,9 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
     int result = hisyseventReport->Report("FRAMEWORK", "PROCESS_KILL", HISYSEVENT_FAULT);
     TAG_LOGW(AAFwkTag::APPMGR, "hisysevent write result=%{public}d, send event [FRAMEWORK,PROCESS_KILL], pid="
         "%{public}d, processName=%{public}s, msg=%{public}s, reason=%{public}s, FOREGROUND=%{public}d,"
-        " appRunningUniqueId=%{public}s, killId=%{public}d", result, pid, eventInfo.processName.c_str(),
-        killInfo.killMsg.c_str(), killInfo.killReason.c_str(), foreground, appRunningUniqueId.c_str(),
-        killInfo.killId);
+        " appRunningUniqueId=%{public}s, killId=%{public}d, rss=%{public}d, pss=%{public}d, processState:%{public}d",
+        result, pid, eventInfo.processName.c_str(), killInfo.killMsg.c_str(), killInfo.killReason.c_str(), foreground,
+        appRunningUniqueId.c_str(), killInfo.killId, rss, pss, processState);
 }
 
 void AppMgrServiceInner::OnRemoteDied(const wptr<IRemoteObject> &remote, bool isRenderProcess, bool isChildProcess,
