@@ -18,6 +18,8 @@
 
 #include <functional>
 #include <map>
+#include <memory>
+#include <optional>
 #include <vector>
 #include <unordered_set>
 #include <sstream>
@@ -30,6 +32,7 @@
 #include "uri_permission_manager_stub.h"
 #include "uri_permission_raw_data.h"
 #include "access_token.h"
+#include "ffrt.h"
 
 #ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
 #include "policy_info.h"
@@ -268,6 +271,11 @@ private:
 
     inline int32_t WrapErrorCode(int32_t errorCode, int32_t &funcRet);
 
+    bool IsLedgerEmpty();
+    void RefreshUnloadTimer();
+    void DelayUnloadTask();
+    void CancelUnloadTask();
+
     void StringVecToRawData(const std::vector<std::string> &stringVec, StorageFileRawData &rawData);
 
 #ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
@@ -298,6 +306,8 @@ private:
     std::mutex ptMapMutex_;
     std::set<uint32_t> contentTokenIdSet_;
     std::mutex contentTokenIdSetMutex_;
+    std::optional<ffrt::task_handle> unloadHandle_;
+    std::mutex timerMutex_;
 };
 }  // namespace OHOS::AAFwk
 #endif  // OHOS_ABILITY_RUNTIME_URI_PERMISSION_MANAGER_STUB_IMPL_H

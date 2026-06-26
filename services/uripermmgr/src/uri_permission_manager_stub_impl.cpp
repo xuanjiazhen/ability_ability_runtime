@@ -19,6 +19,7 @@
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
 #include "app_utils.h"
+#include "ffrt_inner.h"
 #include "file_uri_distribution_utils.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
@@ -62,12 +63,81 @@ constexpr int32_t CAPABILITY_NOT_SUPPORT = 801;
 #ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
 constexpr int32_t SANDBOX_MANAGER_PERMISSION_DENIED = 1;
 #endif // ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
+const char* const UPMS_UNLOAD_TASK_NAME = "UriPermissionUnloadTask";
+const uint64_t UPMS_UNLOAD_DELAY_TIME_US = 90000000; // 90s in microseconds
 }
 
 inline int32_t UriPermissionManagerStubImpl::WrapErrorCode(int32_t errorCode, int32_t &funcRet)
 {
     funcRet = errorCode;
     return ERR_OK;
+}
+
+bool UriPermissionManagerStubImpl::IsLedgerEmpty()
+{
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (!uriMap_.empty()) {
+            return false;
+        }
+    }
+    {
+        std::lock_guard<std::mutex> lock(policyMapMutex_);
+        if (!policyMap_.empty()) {
+            return false;
+        }
+    }
+    {
+        std::lock_guard<std::mutex> lock(ptMapMutex_);
+        if (!permissionTokenMap_.empty()) {
+            return false;
+        }
+    }
+    {
+        std::lock_guard<std::mutex> lock(contentTokenIdSetMutex_);
+        if (!contentTokenIdSet_.empty()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void UriPermissionManagerStubImpl::RefreshUnloadTimer()
+{
+    if (IsLedgerEmpty()) {
+        DelayUnloadTask();
+    } else {
+        CancelUnloadTask();
+    }
+}
+
+void UriPermissionManagerStubImpl::DelayUnloadTask()
+{
+    std::lock_guard<std::mutex> lock(timerMutex_);
+    if (unloadHandle_.has_value()) {
+        ffrt::skip(*unloadHandle_);
+        unloadHandle_.reset();
+    }
+    auto unloadTask = []() {
+        auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        if (samgr == nullptr) {
+            TAG_LOGE(AAFwkTag::URIPERMMGR, "get system ability manager failed");
+            return;
+        }
+        int32_t ret = samgr->UnloadSystemAbility(URI_PERMISSION_MGR_SERVICE_ID);
+        TAG_LOGI(AAFwkTag::URIPERMMGR, "unload UPMS result: %{public}d", ret);
+    };
+    unloadHandle_ = ffrt::submit_h(std::move(unloadTask), {}, {},
+        ffrt::task_attr().delay(UPMS_UNLOAD_DELAY_TIME_US).name(UPMS_UNLOAD_TASK_NAME));
+}
+
+void UriPermissionManagerStubImpl::CancelUnloadTask()
+{
+    std::lock_guard<std::mutex> lock(timerMutex_);
+    if (unloadHandle_.has_value()) {
+        ffrt::skip(*unloadHandle_);
+        unloadHandle_.reset();
+    }
 }
 
 ErrCode UriPermissionManagerStubImpl::VerifyUriPermission(const Uri& uri, uint32_t flag, uint32_t tokenId,
@@ -304,6 +374,7 @@ ErrCode UriPermissionManagerStubImpl::GrantUriPermission(const std::vector<std::
         .alterBundleName = targetAlterableBundleName, .userId = curUserId };
     auto grantRet = GrantUriPermissionInner(batchUri, uriVec, flag, callerInfo, targetInfo);
     TAG_LOGI(AAFwkTag::URIPERMMGR, "Grant UriPermission finished.");
+    RefreshUnloadTimer();
     return WrapErrorCode(grantRet, funcResult);
 }
 
@@ -426,6 +497,7 @@ ErrCode UriPermissionManagerStubImpl::GrantUriPermission(const std::vector<std::
     }
     auto grantRet = GrantUriPermissionInner(batchUri, uriVec, flag, callerInfo, targetInfo);
     TAG_LOGI(AAFwkTag::URIPERMMGR, "Grant UriPermission finished, ret:%{public}d", grantRet);
+    RefreshUnloadTimer();
     return WrapErrorCode(grantRet, funcResult);
 }
 
@@ -861,6 +933,7 @@ ErrCode UriPermissionManagerStubImpl::GrantUriPermissionPrivileged(const std::ve
     ret = GrantUriPermissionPrivilegedInner(uriVecInner, flag, callerAppInfo, targetAppInfo,
         hideSensitiveType, permissionTypes);
     TAG_LOGI(AAFwkTag::URIPERMMGR, "GrantUriPermissionPrivileged finished.");
+    RefreshUnloadTimer();
     return WrapErrorCode(ret, funcResult);
 }
 
@@ -928,6 +1001,7 @@ ErrCode UriPermissionManagerStubImpl::GrantUriPermissionWithType(const std::vect
     ret = GrantUriPermissionPrivilegedInner(uriVec, flag, callerAppInfo, targetAppInfo, hideSensitiveType,
         permissionTypes);
     TAG_LOGI(AAFwkTag::URIPERMMGR, "GrantUriPermissionWithType finished.");
+    RefreshUnloadTimer();
     return WrapErrorCode(ret, funcResult);
 }
 
@@ -1015,6 +1089,7 @@ ErrCode UriPermissionManagerStubImpl::GrantUriPermissionByKeyAsCaller(const std:
         return WrapErrorCode(ret, funcResult);
     }
     ret = GrantUriPermissionByKeyInner(key, flag, callerTokenId, targetTokenId);
+    RefreshUnloadTimer();
     return WrapErrorCode(ret, funcResult);
 #else
     TAG_LOGE(AAFwkTag::URIPERMMGR, "do not support udmf");
@@ -1036,6 +1111,7 @@ ErrCode UriPermissionManagerStubImpl::GrantUriPermissionByKey(const std::string 
     if (ret == ERR_UPMS_INVALID_CALLER_TOKENID) {
         return WrapErrorCode(INNER_ERR, funcResult);
     }
+    RefreshUnloadTimer();
     return WrapErrorCode(ret, funcResult);
 #else
     TAG_LOGE(AAFwkTag::URIPERMMGR, "do not support udmf");
@@ -1436,6 +1512,7 @@ ErrCode UriPermissionManagerStubImpl::RevokeAllUriPermissions(uint32_t tokenId, 
     RevokeAllMapUriPermissions(tokenId);
     RevokeContentUriPermission(tokenId);
     funcResult = ERR_OK;
+    RefreshUnloadTimer();
     return ERR_OK;
 }
 
@@ -1533,6 +1610,7 @@ ErrCode UriPermissionManagerStubImpl::RevokeUriPermissionManually(const Uri& uri
         return ERR_OK;
     }
     funcResult = RevokeUriPermissionManuallyInner(uriInner, targetTokenId);
+    RefreshUnloadTimer();
     return ERR_OK;
 }
 
@@ -1724,6 +1802,7 @@ ErrCode UriPermissionManagerStubImpl::ClearPermissionTokenByMap(uint32_t tokenId
     }
     RevokeContentUriPermission(tokenId);
     RevokeFileUriPermission(tokenId, funcResult);
+    RefreshUnloadTimer();
     return WrapErrorCode(ERR_OK, funcResult);
 }
 
@@ -1844,9 +1923,12 @@ ErrCode UriPermissionManagerStubImpl::Active(const UriPermissionRawData& policyR
         funcResult = ret;
         return ERR_OK;
     }
-    std::lock_guard<std::mutex> lock(ptMapMutex_);
-    permissionTokenMap_.insert(tokenId);
+    {
+        std::lock_guard<std::mutex> lock(ptMapMutex_);
+        permissionTokenMap_.insert(tokenId);
+    }
     funcResult = ERR_OK;
+    RefreshUnloadTimer();
     return ERR_OK;
 }
 
