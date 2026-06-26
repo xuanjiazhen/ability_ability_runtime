@@ -102,7 +102,8 @@ bool InsightIntentSysEventReceiver::SaveInsightIntentInfos(const std::string &bu
 void InsightIntentSysEventReceiver::RegisterAllFunctions(
     const std::vector<std::pair<std::string, uint32_t>> &newBundles,
     const std::vector<ExtractInsightIntentInfo> &allIntentInfos,
-    const std::vector<InsightIntentInfo> &allConfigInfos)
+    const std::vector<InsightIntentInfo> &allConfigInfos,
+    const std::unordered_map<std::string, std::set<std::string>> &bundleToEntryModules)
 {
     TAG_LOGI(AAFwkTag::INTENT, "register all functions, bundles:%{public}zu intent:%{public}zu config:%{public}zu",
         newBundles.size(), allIntentInfos.size(), allConfigInfos.size());
@@ -124,8 +125,16 @@ void InsightIntentSysEventReceiver::RegisterAllFunctions(
             TAG_LOGW(AAFwkTag::INTENT, "register skip empty bundle:%{public}s", bundleName.c_str());
             continue;
         }
-        const auto &intents = noIntent ? std::vector<ExtractInsightIntentInfo>{} : intentIt->second;
-        const auto &configs = noConfig ? std::vector<InsightIntentInfo>{} : configIt->second;
+        std::vector<ExtractInsightIntentInfo> intents =
+            noIntent ? std::vector<ExtractInsightIntentInfo>{} : intentIt->second;
+        std::vector<InsightIntentInfo> configs =
+            noConfig ? std::vector<InsightIntentInfo>{} : configIt->second;
+        std::set<std::string> emptyEntry;
+        const auto &entryIt = bundleToEntryModules.find(bundleName);
+        const auto &entryModules = entryIt == bundleToEntryModules.end() ? emptyEntry : entryIt->second;
+        CliTool::IntentFilterUtil filter(entryModules);
+        filter.FilterAndDedup(intents);
+        filter.FilterAndDedup(configs);
         CliTool::RegisterInsightIntentFunctions(intents, configs, bundleName, entry.second);
     }
     TAG_LOGI(AAFwkTag::INTENT, "register all functions done");
@@ -173,7 +182,25 @@ void InsightIntentSysEventReceiver::BackupAndScheduleRegister(
         std::vector<InsightIntentInfo> allConfigInfos;
         DelayedSingleton<InsightIntentDbCache>::GetInstance()->
             GetAllInsightIntentInfo(userId, allIntentInfos, allConfigInfos);
-        self->RegisterAllFunctions(newBundles, allIntentInfos, allConfigInfos);
+        std::unordered_map<std::string, std::set<std::string>> bundleToEntryModules;
+        auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+        if (bundleMgrHelper != nullptr) {
+            std::vector<AppExecFwk::BundleInfo> bundleInfos;
+            if (IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfosV9(
+                static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE),
+                bundleInfos, userId)) == ERR_OK) {
+                for (const auto &bi : bundleInfos) {
+                    std::set<std::string> entries;
+                    for (const auto &hap : bi.hapModuleInfos) {
+                        if (hap.moduleType == AppExecFwk::ModuleType::ENTRY) {
+                            entries.insert(hap.moduleName);
+                        }
+                    }
+                    bundleToEntryModules[bi.name] = std::move(entries);
+                }
+            }
+        }
+        self->RegisterAllFunctions(newBundles, allIntentInfos, allConfigInfos, bundleToEntryModules);
     };
     ffrt::submit(task);
 }
