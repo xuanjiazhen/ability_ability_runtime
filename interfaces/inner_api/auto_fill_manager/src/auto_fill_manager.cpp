@@ -116,11 +116,6 @@ int32_t AutoFillManager::HandleRequestExecuteInner(Ace::UIContent *uiContent, co
     SetTimeOutEvent(callbackId);
     result.isPopup = autoFillWindowType == AutoFill::AutoFillWindowType::POPUP_WINDOW ? true : false;
     auto sessionId = CreateAutoFillExtension(uiContent, request, callback, autoFillWindowType, isSmartAutoFill);
-    if (sessionId == AUTO_FILL_UI_EXTENSION_SESSION_ID_INVALID) {
-        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "Create ui extension failed");
-        RemoveEvent(callbackId);
-        return AutoFill::AUTO_FILL_CREATE_MODULE_UI_EXTENSION_FAILED;
-    }
     result.autoFillSessionId = callbackId;
     extensionCallback->SetInstanceId(uiContent->GetInstanceId());
     extensionCallback->SetSessionId(sessionId);
@@ -211,6 +206,8 @@ int32_t AutoFillManager::CreateAutoFillExtension(Ace::UIContent *uiContent,
         if (!isSmartAutoFill) {
             popupConfig.isAutoCancel = false;
         }
+        popupConfig.nodeId = request.viewData.nodes[0].id;
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "testTag popupConfig.nodeId: %{public}d", popupConfig.nodeId);
         sessionId = uiContent->CreateCustomPopupUIExtension(want, callback, popupConfig);
     } else if (autoFillWindowType == AutoFill::AutoFillWindowType::MODAL_WINDOW) {
         want.SetParam(WANT_PARAMS_AUTO_FILL_POPUP_WINDOW_KEY, false);
