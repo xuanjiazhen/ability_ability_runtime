@@ -34,13 +34,25 @@ int32_t GetValidUserId(int32_t userId)
 int32_t InsightIntentMatcher::GetMatchedIntentInfo(const std::string &bundleName,
     const std::string &intentName, int32_t userId, ExtractInsightIntentGenericInfo &matchedInfo)
 {
+    std::vector<ExtractInsightIntentGenericInfo> all;
+    int32_t ret = GetMatchedIntentInfos(bundleName, intentName, userId, all);
+    if (ret != ERR_OK || all.empty()) {
+        return ERR_INVALID_VALUE;
+    }
+    matchedInfo = all.front();
+    return ERR_OK;
+}
+
+int32_t InsightIntentMatcher::GetMatchedIntentInfos(const std::string &bundleName,
+    const std::string &intentName, int32_t userId, std::vector<ExtractInsightIntentGenericInfo> &matchedInfos)
+{
+    matchedInfos.clear();
     std::vector<ExtractInsightIntentGenericInfo> allInfos;
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentGenericInfoByName(
         bundleName, GetValidUserId(userId), allInfos);
     for (const auto &info : allInfos) {
         if (info.intentName == intentName) {
-            matchedInfo = info;
-            return ERR_OK;
+            matchedInfos.push_back(info);
         }
     }
 
@@ -49,14 +61,18 @@ int32_t InsightIntentMatcher::GetMatchedIntentInfo(const std::string &bundleName
         bundleName, GetValidUserId(userId), configInfos);
     for (const auto &config : configInfos) {
         if (config.intentName == intentName) {
-            ConvertConfigToGenericInfo(config, matchedInfo);
-            return ERR_OK;
+            ExtractInsightIntentGenericInfo generic;
+            ConvertConfigToGenericInfo(config, generic);
+            matchedInfos.push_back(std::move(generic));
         }
     }
 
-    TAG_LOGD(AAFwkTag::INTENT, "intent not found: %{public}s/%{public}s",
-        bundleName.c_str(), intentName.c_str());
-    return ERR_INVALID_VALUE;
+    if (matchedInfos.empty()) {
+        TAG_LOGD(AAFwkTag::INTENT, "intent not found: %{public}s/%{public}s",
+            bundleName.c_str(), intentName.c_str());
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
 }
 
 void InsightIntentMatcher::ConvertConfigToGenericInfo(const InsightIntentInfo &config,
