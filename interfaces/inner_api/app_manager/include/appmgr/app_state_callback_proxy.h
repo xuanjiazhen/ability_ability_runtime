@@ -83,6 +83,12 @@ public:
     virtual void NotifyTerminateAbility(const sptr<IRemoteObject> &token) override;
 
     /**
+     * @brief Notify abilityms debug app state changed.
+     * @param abilityTokens abilities whose debug state needs to be synced.
+     */
+    virtual void OnDebugAppChanged(const std::vector<sptr<IRemoteObject>> &abilityTokens) override;
+
+    /**
      * @brief Notify abilityms app process pre cache
      * @param pid process pid.
      * @param userId userId Designation User ID.

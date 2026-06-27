@@ -15428,6 +15428,20 @@ void AbilityManagerService::NotifyTerminateAbility(const sptr<IRemoteObject> &to
     TerminateAbility(token);
 }
 
+void AbilityManagerService::OnDebugAppChanged(const std::vector<sptr<IRemoteObject>> &abilityTokens)
+{
+    for (auto &token : abilityTokens) {
+        auto abilityRecord = Token::GetAbilityRecordByToken(token);
+        if (abilityRecord == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "OnDebugAppChanged abilityRecord is null");
+            continue;
+        }
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "sync debug flag, ability:%{public}s, app:%{public}s",
+            abilityRecord->GetAbilityInfo().name.c_str(), abilityRecord->GetAbilityInfo().bundleName.c_str());
+        abilityRecord->SetDebugApp(true);
+    }
+}
+
 void AbilityManagerService::OnCacheExitInfo(uint32_t accessTokenId, const AppExecFwk::RunningProcessInfo &exitInfo,
     const std::string &bundleName, const std::vector<std::string> &abilityNames,
     const std::vector<std::string> &uiExtensionNames)

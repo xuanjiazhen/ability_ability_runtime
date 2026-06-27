@@ -2301,6 +2301,8 @@ private:
 
     void NotifyStartProcessFailed(sptr<IRemoteObject> token);
 
+    void NotifyDebugAppChanged(sptr<IRemoteObject> token);
+
     std::vector<BackgroundAppInfo> GetBackgroundAppInfo(const std::vector<BackgroundAppInfo>& allowAppList);
 private:
     /**

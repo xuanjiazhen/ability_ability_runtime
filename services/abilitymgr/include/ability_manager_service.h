@@ -2765,6 +2765,12 @@ protected:
     void NotifyTerminateAbility(const sptr<IRemoteObject> &token) override;
 
     /**
+     * @brief Notify abilityms debug app state changed, sync debug flag from appmgr.
+     * @param abilityTokens abilities whose debug state needs to be synced.
+     */
+    void OnDebugAppChanged(const std::vector<sptr<IRemoteObject>> &abilityTokens) override;
+
+    /**
      * @brief Notify abilityms process info when an app dies
      * @param accessTokenId app accessTokenId.
      * @param exitInfo process running info.

@@ -62,6 +62,8 @@ int AppStateCallbackHost::OnRemoteRequest(
             return HandleOnStartProcessFailed(data, reply);
         case static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_NOTIFY_TERMINATE_ABILITY):
             return HandleNotifyTerminateAbility(data, reply);
+        case static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_DEBUG_APP_CHANGED):
+            return HandleOnDebugAppChanged(data, reply);
         case static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_CACHE_EXIT_INFO):
             return HandleOnCacheExitInfo(data, reply);
         case static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_RECORD_APP_EXIT_SIGNAL_REASON):
@@ -113,6 +115,11 @@ void AppStateCallbackHost::OnStartProcessFailed(const std::vector<sptr<IRemoteOb
 }
 
 void AppStateCallbackHost::NotifyTerminateAbility(const sptr<IRemoteObject> &token)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+}
+
+void AppStateCallbackHost::OnDebugAppChanged(const std::vector<sptr<IRemoteObject>> &abilityTokens)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
 }
@@ -256,6 +263,26 @@ int32_t AppStateCallbackHost::HandleNotifyTerminateAbility(MessageParcel &data, 
         return ERR_INVALID_VALUE;
     }
     NotifyTerminateAbility(token);
+    return NO_ERROR;
+}
+
+int32_t AppStateCallbackHost::HandleOnDebugAppChanged(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<sptr<IRemoteObject>> abilityTokens;
+    int32_t infoSize = data.ReadInt32();
+    if (infoSize > CYCLE_LIMIT) {
+        TAG_LOGE(AAFwkTag::APPMGR, "infoSize is too large");
+        return ERR_INVALID_VALUE;
+    }
+    for (int32_t i = 0; i < infoSize; i++) {
+        sptr<IRemoteObject> obj = data.ReadRemoteObject();
+        if (!obj) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Read token failed.");
+            return ERR_INVALID_VALUE;
+        }
+        abilityTokens.emplace_back(obj);
+    }
+    OnDebugAppChanged(abilityTokens);
     return NO_ERROR;
 }
 

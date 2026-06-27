@@ -249,6 +249,34 @@ void AppStateCallbackProxy::NotifyTerminateAbility(const sptr<IRemoteObject> &to
     }
 }
 
+void AppStateCallbackProxy::OnDebugAppChanged(const std::vector<sptr<IRemoteObject>> &abilityTokens)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "WriteInterfaceToken failed");
+        return;
+    }
+
+    if (!data.WriteInt32(abilityTokens.size())) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write token size failed.");
+        return;
+    }
+    for (auto &token : abilityTokens) {
+        if (!data.WriteRemoteObject(token.GetRefPtr())) {
+            TAG_LOGE(AAFwkTag::APPMGR, "write token failed");
+            return;
+        }
+    }
+    auto ret = SendTransactCmd(
+        static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_DEBUG_APP_CHANGED),
+        data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+    }
+}
+
 void AppStateCallbackProxy::OnCacheExitInfo(uint32_t accessTokenId, const RunningProcessInfo &exitInfo,
     const std::string &bundleName, const std::vector<std::string> &abilityNames,
     const std::vector<std::string> &uiExtensionNames)

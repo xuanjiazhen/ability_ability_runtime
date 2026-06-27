@@ -2850,6 +2850,19 @@ void AppMgrServiceInner::NotifyLoadAbilityFailed(sptr<IRemoteObject> token)
     }
 }
 
+void AppMgrServiceInner::NotifyDebugAppChanged(sptr<IRemoteObject> token)
+{
+    CHECK_POINTER_AND_RETURN_LOG(token, "token null.");
+    std::vector<sptr<IRemoteObject>> abilityTokens;
+    abilityTokens.emplace_back(token);
+    std::lock_guard lock(appStateCallbacksLock_);
+    for (const auto &item : appStateCallbacks_) {
+        if (item.callback != nullptr) {
+            item.callback->OnDebugAppChanged(abilityTokens);
+        }
+    }
+}
+
 void AppMgrServiceInner::NotifyStartProcessFailed(std::shared_ptr<AppRunningRecord> appRecord)
 {
     CHECK_POINTER_AND_RETURN_LOG(appRecord, "AppRecord null.");
@@ -4733,6 +4746,7 @@ std::shared_ptr<AppRunningRecord> AppMgrServiceInner::CreateAppRunningRecord(
             auto mainAppRecord = appRunningManager_->FindMainProcessAppRunningRecord(appInfo->uid);
             if (mainAppRecord && mainAppRecord->IsDebug()) {
                 appRecord->SetDebugApp(true);
+                NotifyDebugAppChanged(loadParam->token);
             }
         }
     return appRecord;

@@ -142,6 +142,13 @@ public:
     virtual void NotifyTerminateAbility(const sptr<IRemoteObject> &token) {}
 
     /**
+     * @brief Notify abilityms debug app state changed, used to sync debug flag
+     *        from appmgr to abilitymgr.
+     * @param abilityTokens abilities whose debug state needs to be synced.
+     */
+    virtual void OnDebugAppChanged(const std::vector<sptr<IRemoteObject>> &abilityTokens) {}
+
+    /**
      * @brief Notify abilityms process info when an app dies
      * @param accessTokenId app accessTokenId.
      * @param exitInfo process running info.
@@ -782,6 +789,12 @@ protected:
      * @param token ability token.
      */
     virtual void NotifyTerminateAbility(const sptr<IRemoteObject> &token) override;
+
+    /**
+     * @brief Notify abilityms debug app state changed, sync debug flag from appmgr.
+     * @param abilityTokens abilities whose debug state needs to be synced.
+     */
+    virtual void OnDebugAppChanged(const std::vector<sptr<IRemoteObject>> &abilityTokens) override;
 
     /**
      * @brief Notify abilityms exit info

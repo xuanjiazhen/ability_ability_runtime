@@ -93,6 +93,13 @@ public:
     virtual void NotifyTerminateAbility(const sptr<IRemoteObject> &token) {}
 
     /**
+     * @brief Notify abilityms debug app state changed, used to sync debug flag
+     *        from appmgr to abilitymgr (e.g. AGENT extension inherits main process debug state).
+     * @param abilityTokens abilities whose debug state needs to be synced.
+     */
+    virtual void OnDebugAppChanged(const std::vector<sptr<IRemoteObject>> &abilityTokens) {}
+
+    /**
      * @brief Notify abilityms app process pre cache
      * @param pid process pid.
      * @param userId userId Designation User ID.
@@ -133,6 +140,7 @@ public:
         TRANSACT_ON_CACHE_EXIT_INFO,
         TRANSACT_ON_RECORD_APP_EXIT_SIGNAL_REASON,
         TRANSACT_ON_NOTIFY_TERMINATE_ABILITY,
+        TRANSACT_ON_DEBUG_APP_CHANGED,
     };
 };
 }  // namespace AppExecFwk
