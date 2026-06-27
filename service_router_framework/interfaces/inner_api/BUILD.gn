@@ -85,6 +85,7 @@ ohos_source_set("service_router_mgr_stub") {
 }
 
 ohos_shared_library("srms_fwk") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true
