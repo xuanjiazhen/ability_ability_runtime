@@ -75,6 +75,7 @@ config("appkit_public_config") {
 
 # build so
 ohos_shared_library("appkit_native") {
+  branch_protector_ret = "pac_ret"
   include_dirs = [
     "native",
     "${ability_runtime_path}/ets_environment/interfaces/inner_api",
@@ -351,6 +352,7 @@ ohos_shared_library("appkit_native") {
 }
 
 ohos_shared_library("ability_stage_ani") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true
     cfi_cross_dso = true

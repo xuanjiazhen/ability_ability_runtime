@@ -299,6 +299,7 @@ ohos_shared_library("mission_info") {
 }
 
 ohos_shared_library("ability_manager_c") {
+  branch_protector_ret = "pac_ret"
   include_dirs = [ "include" ]
   sources = [ "src/ability_manager_client_c.cpp" ]
   libs = []
