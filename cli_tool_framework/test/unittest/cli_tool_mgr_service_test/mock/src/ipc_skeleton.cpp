@@ -24,7 +24,7 @@ constexpr pid_t DEFAULT_CALLING_PID = 1000;
 pid_t IPCSkeleton::callingUid = FOUNDATION_UID;
 pid_t IPCSkeleton::callingPid = DEFAULT_CALLING_PID;
 uint64_t IPCSkeleton::callingFullTokenId = 0;
-uint64_t IPCSkeleton::callingTokenId = 1;
+uint64_t IPCSkeleton::callingTokenId = TOKEN_NATIVE;
 
 pid_t IPCSkeleton::GetCallingUid()
 {
@@ -51,7 +51,17 @@ void IPCSkeleton::Reset()
     callingUid = FOUNDATION_UID;
     callingPid = DEFAULT_CALLING_PID;
     callingFullTokenId = 0;
-    callingTokenId = 1;
+    callingTokenId = TOKEN_NATIVE;
+}
+
+void IPCSkeleton::SetCallingTokenID(uint64_t tokenID)
+{
+    callingTokenId = tokenID;
+}
+
+void IPCSkeleton::SetCallingUid(pid_t uid)
+{
+    callingUid = uid;
 }
 
 } // namespace OHOS
