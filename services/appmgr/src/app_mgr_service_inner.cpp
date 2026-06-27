@@ -9878,6 +9878,15 @@ int32_t AppMgrServiceInner::GetBundleNameByPid(const int32_t pid, std::string &b
     return ERR_OK;
 }
 
+bool AppMgrServiceInner::IsMainProcessDebug(int32_t uid)
+{
+    auto mainAppRecord = appRunningManager_->FindMainProcessAppRunningRecord(uid);
+    if (mainAppRecord && mainAppRecord->IsDebug()) {
+        return true;
+    }
+    return false;
+}
+
 void AppMgrServiceInner::KillRenderProcess(const std::shared_ptr<AppRunningRecord> &appRecord) {
     if (appRecord == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "appRecord null");

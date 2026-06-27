@@ -678,6 +678,13 @@ public:
      */
     virtual bool IsSharedBundleRunning(const std::string &bundleName, uint32_t versionCode) = 0;
 
+    /**
+     * @brief Query whether the main process of the app (identified by uid) is in debug mode.
+     * @param uid The application uid.
+     * @return Returns true if the main process is in debug mode, false otherwise.
+     */
+    virtual bool IsMainProcessDebug(int32_t uid) = 0;
+
    /**
      * start native process for debugger.
      *
