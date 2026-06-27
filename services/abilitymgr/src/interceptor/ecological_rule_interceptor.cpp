@@ -303,7 +303,7 @@ void EcologicalRuleInterceptor::InitErmsCallerInfo(const Want &want,
         GetEcologicalCallerInfo(want, callerInfo, userId, callerToken);
     }
 
-    TAG_LOGI(AAFwkTag::ECOLOGICAL_RULE, "ERMS's caller{%{public}s_%{public}d_%{public}d}",
+    TAG_LOGI(AAFwkTag::ECOLOGICAL_RULE, "caller:%{public}s_%{public}d_%{public}d",
         callerInfo.packageName.c_str(), callerInfo.uid, callerInfo.pid);
 }
 

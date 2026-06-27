@@ -52,7 +52,10 @@ bool StartAbilityUtils::GetAppIndex(const Want &want, sptr<IRemoteObject> caller
         appIndex = abilityRecord->GetAppIndex();
         return true;
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "appIndex:%{public}d", want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1));
+    int32_t appIndexTemp = want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1);
+    if (appIndexTemp != -1) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "appIndex:%{public}d", appIndexTemp);
+    }
     return AbilityRuntime::StartupUtil::GetAppIndex(want, appIndex);
 }
 

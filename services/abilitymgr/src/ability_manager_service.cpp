@@ -7552,7 +7552,7 @@ int AbilityManagerService::AttachAbilityThread(
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "AttachAbilityThread");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "AttAbTh");
     CHECK_POINTER_AND_RETURN(scheduler, ERR_INVALID_VALUE);
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && !VerificationAllToken(token)) {
         return ERR_INVALID_VALUE;
@@ -8163,8 +8163,7 @@ int AbilityManagerService::AbilityTransitionDone(const sptr<IRemoteObject> &toke
     auto abilityRecord = Token::GetAbilityRecordByToken(token);
     CHECK_POINTER_AND_RETURN_LOG(abilityRecord, ERR_INVALID_VALUE, "Ability record is nullptr.");
     auto callerPid = IPCSkeleton::GetCallingPid();
-    TAG_LOGI(AAFwkTag::ABILITYMGR,
-        "AbilityTransitionDone, ability:%{public}s/%{public}s, state:%{public}d, callerPid:%{public}d",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Done:%{public}s/%{public}s, s:%{public}d, c:%{public}d",
         abilityRecord->GetInfoBundleName().c_str(),
         abilityRecord->GetInfoAbilityName().c_str(), state, callerPid);
     if (!JudgeSelfCalled(abilityRecord)) {

@@ -85,7 +85,7 @@ bool CrowdTestInterceptor::CheckCrowdtest(const Want &want, int32_t userId)
     // get crowdtest status and time
     AppExecFwk::ApplicationInfo appInfo;
     if (!StartAbilityUtils::GetApplicationInfo(want.GetBundle(), userId, appInfo)) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "GetAppInfo failed");
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "GetAppInfo failed");
         return false;
     }
 

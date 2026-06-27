@@ -976,7 +976,7 @@ void AbilityRecord::SetAbilityStateInner(AbilityState state)
         if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
             auto sessionInfo = GetSessionInfo();
             if (sessionInfo == nullptr) {
-                TAG_LOGE(AAFwkTag::ABILITYMGR, "null sessionInfo");
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "nullSess");
                 return;
             }
             int32_t persistentId = sessionInfo->persistentId;
@@ -2418,7 +2418,7 @@ void AbilityRecord::UpdateSessionInfo(sptr<IRemoteObject> sessionToken)
     {
         std::lock_guard guard(sessionLock_);
         if (sessionInfo_ == nullptr) {
-            TAG_LOGW(AAFwkTag::ABILITYMGR, "null sessionInfo_");
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "nullSess_");
             return;
         }
         sessionInfo_->sessionToken = sessionToken;
@@ -2907,7 +2907,7 @@ void AbilityRecord::NotifyMissionBindPid()
     }
     auto sessionInfo = GetSessionInfo();
     if (sessionInfo == nullptr) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "null sessionInfo");
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "nullSess");
         return;
     }
     int32_t persistentId = sessionInfo->persistentId;
@@ -3006,7 +3006,7 @@ bool AbilityRecord::IsAbilityWindowReady()
 void AbilityRecord::SetAbilityWindowState(const sptr<SessionInfo> &sessionInfo, WindowCommand winCmd, bool isFinished)
 {
     if (sessionInfo == nullptr) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "null sessionInfo");
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "nullSess");
         return;
     }
     if (isFinished) {
@@ -3307,7 +3307,7 @@ void AbilityRecord::SendAppStartupTypeEvent(const AppExecFwk::AppStartType start
 void AbilityRecord::AddUIExtensionLaunchTimestamp()
 {
     if (sessionInfo_ == nullptr) {
-        TAG_LOGW(AAFwkTag::UI_EXT, "null sessionInfo_");
+        TAG_LOGW(AAFwkTag::UI_EXT, "nullSess_");
         return;
     }
     if (sessionInfo_->uiExtensionUsage != AAFwk::UIExtensionUsage::MODAL) {

@@ -229,6 +229,12 @@ static bool ConvertFileName(const std::string& fileBaseName, std::string& abbrFi
         abbrFileName = "MAINTHD";
     } else if (fileBaseName == "prload_uiext_state_observer") {
         abbrFileName = "PUSO";
+    } else if (fileBaseName == "resident_process_manager") {
+        abbrFileName = "RSPM";
+    } else if (fileBaseName == "start_ability_utils") {
+        abbrFileName = "SAU";
+    } else if (fileBaseName == "dialog_session_manager") {
+        abbrFileName = "DSM";
     } else if (fileBaseName == "service_extension_context") {
         abbrFileName = "SEC";
     } else if (fileBaseName == "ui_ability_lifecycle_manager") {
