@@ -90,6 +90,23 @@ std::string GetFunctionNameFromGeneric(const AbilityRuntime::ExtractInsightInten
     return "";
 }
 
+// 检查 Entry 装饰器的 executeMode 是否含 BG UIAbility 或 SE。通过则填 outAbility 并返回 true。
+bool IsQualifiedEntry(const AbilityRuntime::ExtractInsightIntentGenericInfo &generic, std::string &outAbility)
+{
+    if (generic.currentType != AbilityRuntime::InfoType::Entry) {
+        return false;
+    }
+    const auto &entry = generic.get<AbilityRuntime::InsightIntentEntryInfo>();
+    for (auto mode : entry.executeMode) {
+        if (mode == AppExecFwk::ExecuteMode::UI_ABILITY_BACKGROUND ||
+            mode == AppExecFwk::ExecuteMode::SERVICE_EXTENSION_ABILITY) {
+            outAbility = entry.abilityName;
+            return true;
+        }
+    }
+    return false;
+}
+
 std::string GetInputSchemaFromGeneric(const AbilityRuntime::ExtractInsightIntentInfo &info)
 {
     switch (info.genericInfo.currentType) {
@@ -290,21 +307,7 @@ void IntentFilterUtil::FilterGeneric(std::vector<AbilityRuntime::ExtractInsightI
         RegisterSortKey key { generic.moduleName, "" };
         if (generic.currentType == AbilityRuntime::InfoType::Function) {
             // Function 装饰器 = SE，通过规则 1
-        } else if (generic.currentType == AbilityRuntime::InfoType::Entry) {
-            const auto &entry = generic.get<AbilityRuntime::InsightIntentEntryInfo>();
-            bool ok = false;
-            for (auto mode : entry.executeMode) {
-                if (mode == AppExecFwk::ExecuteMode::UI_ABILITY_BACKGROUND ||
-                    mode == AppExecFwk::ExecuteMode::SERVICE_EXTENSION_ABILITY) {
-                    key.abilityName = entry.abilityName;
-                    ok = true;
-                    break;
-                }
-            }
-            if (!ok) {
-                continue;
-            }
-        } else {
+        } else if (!IsQualifiedEntry(generic, key.abilityName)) {
             continue;
         }
         qualified.emplace_back(std::move(key), std::move(info));
@@ -353,8 +356,6 @@ bool BatchRegisterInsightIntentFunctions(
         }
     }
     return true;
-}
-    return ret == ERR_OK;
 }
 
 } // namespace CliTool
