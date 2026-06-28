@@ -526,11 +526,10 @@ int32_t CliToolManagerService::RegisterFunction(const FunctionInfo &function)
     return ERR_OK;
 }
 
-int32_t CliToolManagerService::BatchRegisterFunctions(const std::vector<FunctionInfo> &functions,
+int32_t CliToolManagerService::BatchRegisterFunctions(const FunctionsRawData &functions,
     int32_t &successCount)
 {
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "BatchRegisterFunctions called: %{public}zu functions",
-        functions.size());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "BatchRegisterFunctions called: %{public}u bytes", functions.size);
 
     InterfaceCallCounter counter(interfaceCalledCount_);
 
@@ -546,15 +545,25 @@ int32_t CliToolManagerService::BatchRegisterFunctions(const std::vector<Function
         return ERR_PERMISSION_DENIED;
     }
 
-    if (functions.empty()) {
+    // Parse FunctionsRawData to vector
+    std::vector<FunctionInfo> functionList;
+    int32_t ret = FunctionsRawData::ToFunctionInfoVec(functions, functionList);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "BatchRegisterFunctions: Failed to parse raw data, ret=%{public}d", ret);
+        successCount = 0;
+        return ret;
+    }
+
+    if (functionList.empty()) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "BatchRegisterFunctions: functions vector is empty");
         successCount = 0;
         return ERR_INVALID_PARAM;
     }
 
+    // Validate and filter functions
     std::vector<FunctionInfo> validFunctions;
-    validFunctions.reserve(functions.size());
-    for (const auto &function : functions) {
+    validFunctions.reserve(functionList.size());
+    for (const auto &function : functionList) {
         if (!FunctionInfo::Validate(function)) {
             TAG_LOGW(AAFwkTag::CLI_TOOL, "Invalid function info, will skip: %{public}s/%{public}s",
                 function.functionNamespace.c_str(), function.functionName.c_str());
@@ -569,7 +578,7 @@ int32_t CliToolManagerService::BatchRegisterFunctions(const std::vector<Function
         return ERR_INVALID_PARAM;
     }
 
-    int32_t ret = CliFunctionDataManager::GetInstance().BatchRegisterFunctions(validFunctions, successCount);
+    ret = CliFunctionDataManager::GetInstance().BatchRegisterFunctions(validFunctions, successCount);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "BatchRegisterFunctions: Failed, ret=%{public}d", ret);
         return ret;
@@ -667,7 +676,7 @@ int32_t CliToolManagerService::UnregisterIntentFunctionsByNamespace(const std::s
     return ERR_OK;
 }
 
-int32_t CliToolManagerService::GetAllFunctions(std::vector<FunctionInfo> &functions)
+int32_t CliToolManagerService::GetAllFunctions(FunctionsRawData &functions)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllFunctions called");
     InterfaceCallCounter counter(interfaceCalledCount_);
@@ -688,13 +697,15 @@ int32_t CliToolManagerService::GetAllFunctions(std::vector<FunctionInfo> &functi
         return ERR_PERMISSION_DENIED;
     }
 
-    int32_t ret = CliFunctionDataManager::GetInstance().GetAllFunctions(functions);
+    std::vector<FunctionInfo> functionList;
+    int32_t ret = CliFunctionDataManager::GetInstance().GetAllFunctions(functionList);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllFunctions: Failed to get functions, ret=%{public}d", ret);
         return ret;
     }
 
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully got all functions: %{public}zu", functions.size());
+    FunctionsRawData::FromFunctionInfoVec(functionList, functions);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully got all functions (raw): %{public}zu", functionList.size());
     return ERR_OK;
 }
 
