@@ -107,15 +107,17 @@ int32_t MockCliToolMgrService::RegisterFunction(const FunctionInfo &function)
     return CliToolMgrClientFlag::retRegisterFunction;
 }
 
-int32_t MockCliToolMgrService::BatchRegisterFunctions(const std::vector<FunctionInfo> &functions,
+int32_t MockCliToolMgrService::BatchRegisterFunctions(const FunctionsRawData &functions,
     int32_t &successCount)
 {
-    for (const auto &function : functions) {
+    std::vector<FunctionInfo> functionList;
+    FunctionsRawData::ToFunctionInfoVec(functions, functionList);
+    for (const auto &function : functionList) {
         CliToolMgrClientFlag::functionInfos.push_back(function);
     }
     successCount = CliToolMgrClientFlag::batchRegisterFunctionsSuccessCount > 0 ?
         CliToolMgrClientFlag::batchRegisterFunctionsSuccessCount :
-        static_cast<int32_t>(functions.size());
+        static_cast<int32_t>(functionList.size());
     return CliToolMgrClientFlag::retBatchRegisterFunctions;
 }
 
@@ -141,9 +143,9 @@ int32_t MockCliToolMgrService::UnregisterIntentFunctionsByNamespace(const std::s
     return CliToolMgrClientFlag::retUnregisterFunction;
 }
 
-int32_t MockCliToolMgrService::GetAllFunctions(std::vector<FunctionInfo> &functions)
+int32_t MockCliToolMgrService::GetAllFunctions(FunctionsRawData &functions)
 {
-    functions = CliToolMgrClientFlag::functionInfos;
+    FunctionsRawData::FromFunctionInfoVec(CliToolMgrClientFlag::functionInfos, functions);
     return CliToolMgrClientFlag::retGetAllFunctions;
 }
 

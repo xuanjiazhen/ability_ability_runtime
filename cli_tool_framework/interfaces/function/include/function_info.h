@@ -32,6 +32,41 @@ enum class FunctionType : int32_t {
 };
 
 /**
+ * @brief Raw data type for IDL serialization (shared memory optimization)
+ */
+class FunctionsRawData {
+public:
+    std::string ownedData;
+    uint32_t size = 0;
+    const void* data = nullptr;
+    bool isMalloc = false;
+
+    /**
+     * @brief Convert vector of FunctionInfo to FunctionsRawData
+     * @param functions Input vector of FunctionInfo
+     * @param rawData Output FunctionsRawData
+     */
+    static void FromFunctionInfoVec(const std::vector<FunctionInfo> &functions, FunctionsRawData &rawData);
+
+    /**
+     * @brief Convert FunctionsRawData to vector of FunctionInfo
+     * @param rawData Input FunctionsRawData
+     * @param functions Output vector of FunctionInfo
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    static int32_t ToFunctionInfoVec(const FunctionsRawData &rawData, std::vector<FunctionInfo> &functions);
+
+    /**
+     * @brief Copy data from raw pointer
+     * @param readdata Pointer to data to copy
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    int32_t RawDataCpy(const void *readdata);
+
+    ~FunctionsRawData();
+};
+
+/**
  * @brief Function information structure
  */
 class FunctionInfo : public Parcelable {

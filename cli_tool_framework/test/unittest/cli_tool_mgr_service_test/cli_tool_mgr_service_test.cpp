@@ -2303,8 +2303,11 @@ HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctions_0100, TestSize.Level1
         functions.push_back(function);
     }
 
+    FunctionsRawData rawData;
+    FunctionsRawData::FromFunctionInfoVec(functions, rawData);
+
     int32_t successCount = 0;
-    int32_t ret = service_->BatchRegisterFunctions(functions, successCount);
+    int32_t ret = service_->BatchRegisterFunctions(rawData, successCount);
 
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(successCount, 3);
@@ -2327,8 +2330,11 @@ HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctions_0200, TestSize.Level1
     IPCSkeleton::SetCallingUid(FOUNDATION_UID);
 
     std::vector<FunctionInfo> functions;
+    FunctionsRawData rawData;
+    FunctionsRawData::FromFunctionInfoVec(functions, rawData);
+
     int32_t successCount = 0;
-    int32_t ret = service_->BatchRegisterFunctions(functions, successCount);
+    int32_t ret = service_->BatchRegisterFunctions(rawData, successCount);
 
     EXPECT_EQ(ret, ERR_INVALID_PARAM);
     EXPECT_EQ(successCount, 0);
@@ -2357,8 +2363,11 @@ HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctions_0300, TestSize.Level1
     function.functionType = FunctionType::INTENT_FUNCTION;
     functions.push_back(function);
 
+    FunctionsRawData rawData;
+    FunctionsRawData::FromFunctionInfoVec(functions, rawData);
+
     int32_t successCount = 0;
-    int32_t ret = service_->BatchRegisterFunctions(functions, successCount);
+    int32_t ret = service_->BatchRegisterFunctions(rawData, successCount);
 
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
     EXPECT_EQ(successCount, 0);
@@ -2387,8 +2396,11 @@ HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctions_0400, TestSize.Level1
     function.functionType = FunctionType::INTENT_FUNCTION;
     functions.push_back(function);
 
+    FunctionsRawData rawData;
+    FunctionsRawData::FromFunctionInfoVec(functions, rawData);
+
     int32_t successCount = 0;
-    int32_t ret = service_->BatchRegisterFunctions(functions, successCount);
+    int32_t ret = service_->BatchRegisterFunctions(rawData, successCount);
 
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
     EXPECT_EQ(successCount, 0);
@@ -2417,8 +2429,11 @@ HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctions_0500, TestSize.Level1
     function.functionType = FunctionType::INTENT_FUNCTION;
     functions.push_back(function);
 
+    FunctionsRawData rawData;
+    FunctionsRawData::FromFunctionInfoVec(functions, rawData);
+
     int32_t successCount = 0;
-    int32_t ret = service_->BatchRegisterFunctions(functions, successCount);
+    int32_t ret = service_->BatchRegisterFunctions(rawData, successCount);
 
     EXPECT_EQ(ret, ERR_INVALID_PARAM); // No valid functions to register
     EXPECT_EQ(successCount, 0);
@@ -2599,8 +2614,8 @@ HWTEST_F(CliToolManagerServiceTest, GetAllFunctions_0100, TestSize.Level1)
     service_->RegisterFunction(function2);
 
     // Then get all functions
-    std::vector<FunctionInfo> functions;
-    int32_t ret = service_->GetAllFunctions(functions);
+    FunctionsRawData rawData;
+    int32_t ret = service_->GetAllFunctions(rawData);
 
     // May succeed or return ERR_NO_INIT
     // With mocked permissions returning true, should not get permission errors
@@ -2639,8 +2654,8 @@ HWTEST_F(CliToolManagerServiceTest, FunctionInterfaces_0100, TestSize.Level1)
 
     EXPECT_EQ(service_->UnregisterIntentFunctionsByNamespace("null_kv_ns"), ERR_NO_INIT);
 
-    std::vector<FunctionInfo> functions;
-    EXPECT_EQ(service_->GetAllFunctions(functions), ERR_NO_INIT);
+    FunctionsRawData rawData;
+    EXPECT_EQ(service_->GetAllFunctions(rawData), ERR_NO_INIT);
 
     // Reset mock to default values
     CliFunctionDataManagerMock::Reset();
