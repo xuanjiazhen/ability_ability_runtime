@@ -2141,7 +2141,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         MakeProcessName(abilityInfo, appInfo, hapModuleInfo, appIndex, specifiedProcessFlag,
             processName, loadParam->isCallerSetProcess);
         isExtensionSandBox = IsIsolateExtensionSandBox(abilityInfo, hapModuleInfo);
-        TAG_LOGI(AAFwkTag::PROCESSMGR, "name:%{public}s startProcessName = %{public}s",
+        TAG_LOGI(AAFwkTag::PROCESSMGR, "name:%{public}s proc=%{public}s",
             abilityInfo->name.c_str(), processName.c_str());
         if (MakeKiaProcess(want, isKia, watermarkBusinessName, isWatermarkEnabled, isFileUri, processName) != ERR_OK) {
             TAG_LOGE(AAFwkTag::APPMGR, "MakeKiaProcess failed");
@@ -2198,7 +2198,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
     }
 
     if (!appRecord) {
-        TAG_LOGI(AAFwkTag::APPMGR, "appRecord null, appInfo->bundleName:%{public}s", appInfo->bundleName.c_str());
+        TAG_LOGI(AAFwkTag::APPMGR, "no record,bundle:%{public}s", appInfo->bundleName.c_str());
         if (KillingProcessManager::GetInstance().IsCallerKilling(callerKey)) {
             TAG_LOGE(AAFwkTag::APPMGR, "caller is killing");
             NotifyLoadAbilityFailed(loadParam->token);
@@ -2572,7 +2572,7 @@ void AppMgrServiceInner::LoadAbilityNoAppRecord(const std::shared_ptr<AppRunning
     sptr<IRemoteObject> token, const std::string &customProcessFlag, bool isStartupHide)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::PROCESSMGR, "processName:%{public}s, isPreload:%{public}d", processName.c_str(), isPreload);
+    TAG_LOGI(AAFwkTag::PROCESSMGR, "proc:%{public}s,preload:%{public}d", processName.c_str(), isPreload);
     if (!appRecord || !abilityInfo) {
         TAG_LOGE(AAFwkTag::APPMGR, "null appRecord or abilityInfo");
         return;
@@ -2586,7 +2586,7 @@ void AppMgrServiceInner::LoadAbilityNoAppRecord(const std::shared_ptr<AppRunning
     if (hapModuleInfo.isStageBasedModel && !IsMainProcess(appInfo, processName)) {
         appRecord->SetEmptyKeepAliveAppState(false);
         appRecord->SetMainProcess(false);
-        TAG_LOGI(AAFwkTag::PROCESSMGR, "%{public}s will not alive", hapModuleInfo.process.c_str());
+        TAG_LOGD(AAFwkTag::PROCESSMGR, "%{public}s will not alive", hapModuleInfo.process.c_str());
     }
     uint64_t startFlags = (want == nullptr) ? 0 : AppspawnUtil::BuildStartFlags(*want, *abilityInfo);
     int32_t bundleIndex = 0;
@@ -2711,7 +2711,8 @@ bool AppMgrServiceInner::GetBundleAndHapInfo(const AbilityInfo &abilityInfo,
             static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_EXTENSION_ABILITY) |
             static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE) |
             static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_REQUESTED_PERMISSION), bundleInfo, userId));
-    } else if (appIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+    } else if (AbilityRuntime::GlobalConstant::IsAppCloneIndex(appIndex) ||
+        AbilityRuntime::GlobalConstant::IsSandboxCloneIndex(appIndex)) {
         bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper->GetCloneBundleInfo(appInfo->bundleName,
             static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) |
             static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_REQUESTED_PERMISSION),
@@ -2726,7 +2727,8 @@ bool AppMgrServiceInner::GetBundleAndHapInfo(const AbilityInfo &abilityInfo,
         return false;
     }
     bool hapQueryResult = false;
-    if (appIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+    if (AbilityRuntime::GlobalConstant::IsAppCloneIndex(appIndex) ||
+        AbilityRuntime::GlobalConstant::IsSandboxCloneIndex(appIndex)) {
         hapQueryResult = bundleMgrHelper->GetHapModuleInfo(abilityInfo, userId, hapModuleInfo);
     } else {
         hapQueryResult = (bundleMgrHelper->GetSandboxHapModuleInfo(abilityInfo, appIndex, userId, hapModuleInfo) == 0);
@@ -3725,6 +3727,33 @@ int32_t AppMgrServiceInner::KillApplicationByUserIdLocked(
         return ERR_OK;
     }
     return WaitProcessesExitAndKill(pids, startTime, "KillApplicationByUserId");
+}
+
+int32_t AppMgrServiceInner::CheckAppProvisionType(
+    const std::string &bundleName, int32_t callerUid, int32_t appCloneIndex, int32_t userId)
+{
+    int32_t newUserId = userId;
+    if (userId == DEFAULT_INVAL_VALUE) {
+        newUserId = GetUserIdByUid(callerUid);
+        if (newUserId == U0_USER_ID || newUserId == U1_USER_ID) {
+            newUserId = UserController::GetInstance().GetForegroundUserId(DEFAULT_DISPLAY_ID);
+        }
+    }
+    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
+        return ERR_INVALID_OPERATION;
+    }
+    ApplicationInfo appInfo;
+    if (!IN_PROCESS_CALL(
+            bundleMgrHelper->GetApplicationInfoWithAppIndex(bundleName, appCloneIndex, newUserId, appInfo))) {
+        TAG_LOGE(AAFwkTag::APPMGR, "delete user data fail");
+        return AAFwk::ERR_APP_CLONE_INDEX_INVALID;
+    }
+    if (appInfo.appProvisionType != AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG) {
+        return AAFwk::CHECK_PERMISSION_FAILED;
+    }
+    return ERR_OK;
 }
 
 int32_t AppMgrServiceInner::ClearUpApplicationData(const std::string &bundleName,
@@ -5796,7 +5825,7 @@ int32_t AppMgrServiceInner::CreateStartMsg(const CreateStartMsgParam &param, App
     SetAppInfo(bundleInfo, startMsg);
     SetStartMsgCustomSandboxFlag(startMsg, bundleInfo.applicationInfo.accessTokenId);
     GetKernelPermissions(bundleInfo.applicationInfo.accessTokenId, startMsg.jitPermissionsMap);
-    TAG_LOGI(AAFwkTag::APPMGR, "apl: %{public}s, startFlags: %{public}llu, userId: %{public}d",
+    TAG_LOGI(AAFwkTag::APPMGR, "apl:%{public}s,flag:%{public}llu,u:%{public}d",
         startMsg.apl.c_str(), static_cast<unsigned long long>(param.startFlags), userId);
 
     autoSync.Sync();
@@ -6715,7 +6744,7 @@ void AppMgrServiceInner::UpdateUIExtensionPreloadState(const std::shared_ptr<App
         return;
     }
     if (!AAFwk::UIExtensionWrapper::IsUIExtension(appRecord->GetExtensionType())) {
-        TAG_LOGE(AAFwkTag::APPMGR, "not uiextension. uiextension type: %{public}d", appRecord->GetExtensionType());
+        TAG_LOGE(AAFwkTag::APPMGR, "not uiExt,type:%{public}d", appRecord->GetExtensionType());
         return;
     }
 
@@ -9624,7 +9653,7 @@ int32_t AppMgrServiceInner::IsAppRunning(const std::string &bundleName, int32_t 
         TAG_LOGE(AAFwkTag::APPMGR, "permission verification fail");
         return ERR_PERMISSION_DENIED;
     }
-    if (appCloneIndex < 0 || appCloneIndex > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+    if (appCloneIndex < 0 || AbilityRuntime::GlobalConstant::IsDlpIndex(appCloneIndex)) {
         TAG_LOGE(AAFwkTag::APPMGR, "appCloneIndex invalid");
         return AAFwk::ERR_APP_CLONE_INDEX_INVALID;
     }
@@ -9671,7 +9700,7 @@ int32_t AppMgrServiceInner::IsAppRunning(const std::string &bundleName, int32_t 
         TAG_LOGE(AAFwkTag::APPMGR, "permission verification fail");
         return ERR_PERMISSION_DENIED;
     }
-    if (appCloneIndex < 0 || appCloneIndex > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+    if (appCloneIndex < 0 || AbilityRuntime::GlobalConstant::IsDlpIndex(appCloneIndex)) {
         TAG_LOGI(AAFwkTag::APPMGR, "appCloneIndex invalid");
         appCloneIndex = -1;
     }

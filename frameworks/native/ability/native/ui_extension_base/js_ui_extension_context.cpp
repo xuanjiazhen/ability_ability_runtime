@@ -82,6 +82,24 @@ bool IsContextEmbeddable(const std::shared_ptr<AbilityRuntime::Context>& context
     return IsEmbeddableStart(screenMode);
 }
 
+TerminateSelfResultCallback CreateTerminateSelfResultCallback(
+    napi_env env, const std::shared_ptr<NapiAsyncTask> &asyncTask)
+{
+    return [env, asyncTask](ErrCode errCode) {
+        auto task = [env, asyncTask, errCode]() {
+            HandleScope handleScope(env);
+            if (errCode == ERR_OK) {
+                asyncTask->Resolve(env, CreateJsUndefined(env));
+            } else {
+                asyncTask->Reject(env, CreateJsErrorByNativeErr(env, errCode));
+            }
+        };
+        if (napi_send_event(env, std::move(task), napi_eprio_immediate) != napi_ok) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "Send terminate result to JS thread failed");
+        }
+    };
+}
+
 } // namespace
 
 static std::map<UIExtensionConnectionKey, sptr<JSUIExtensionConnection>, key_compare> g_connects;
@@ -328,7 +346,8 @@ bool JsUIExtensionContext::CreateOpenLinkTask(const napi_env &env, const napi_va
         napi_value abilityResult = AppExecFwk::WrapAbilityResult(env, resultCode, want);
         if (abilityResult == nullptr) {
             TAG_LOGW(AAFwkTag::UI_EXT, "null abilityResult");
-            asyncTask->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+            asyncTask->Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::WRAP_ABILITY_RESULT_FAILED)));
             return;
         }
         if (isInner) {
@@ -530,7 +549,8 @@ napi_value JsUIExtensionContext::OnStartAbilityForResult(napi_env env, NapiCallb
         napi_value abilityResult = AppExecFwk::WrapAbilityResult(env, resultCode, want);
         if (abilityResult == nullptr) {
             TAG_LOGW(AAFwkTag::UI_EXT, "null abilityResult");
-            asyncTask->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+            asyncTask->Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::WRAP_ABILITY_RESULT_FAILED)));
             return;
         }
         if (isInner) {
@@ -608,15 +628,7 @@ napi_value JsUIExtensionContext::HandleTerminateSelfWithResultInEmbeddableMode(n
         return result;
     }
 
-    // Create callback with shared_ptr capture to extend lifetime
-    auto callback = [env, asyncTask](ErrCode errCode) {
-        TAG_LOGI(AAFwkTag::UI_EXT, "terminateSelfWithResult callback (embeddable mode), errCode=%{public}d", errCode);
-        if (errCode == ERR_OK) {
-            asyncTask->Resolve(env, CreateJsUndefined(env));
-        } else {
-            asyncTask->Reject(env, CreateJsErrorByNativeErr(env, errCode));
-        }
-    };
+    auto callback = CreateTerminateSelfResultCallback(env, asyncTask);
 
     // Call C++ layer new method for embeddable mode
     extensionContext->SetTerminating(true);
@@ -662,14 +674,7 @@ napi_value JsUIExtensionContext::HandleTerminateSelfInEmbeddableMode(napi_env en
         return result;
     }
 
-    auto callback = [env, asyncTask](ErrCode errCode) {
-        TAG_LOGI(AAFwkTag::UI_EXT, "terminateSelf callback (embeddable mode), errCode=%{public}d", errCode);
-        if (errCode == ERR_OK) {
-            asyncTask->Resolve(env, CreateJsUndefined(env));
-        } else {
-            asyncTask->Reject(env, CreateJsErrorByNativeErr(env, errCode));
-        }
-    };
+    auto callback = CreateTerminateSelfResultCallback(env, asyncTask);
 
     extensionContext->SetTerminating(true);
     extensionContext->TerminateSelfWithAnimation(std::move(callback));
@@ -735,7 +740,8 @@ napi_value JsUIExtensionContext::OnStartAbilityForResultAsCaller(napi_env env, N
         napi_value abilityResult = AppExecFwk::WrapAbilityResult(env, resultCode, want);
         if (abilityResult == nullptr) {
             TAG_LOGW(AAFwkTag::UI_EXT, "null abilityResult");
-            asyncTask->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+            asyncTask->Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::WRAP_ABILITY_RESULT_FAILED)));
             return;
         }
         if (isInner) {
@@ -981,7 +987,6 @@ napi_value JsUIExtensionContext::OnConnectAbilityWithRootHostToken(napi_env env,
 
 napi_value JsUIExtensionContext::OnDisconnectAbility(napi_env env, NapiCallbackInfo& info)
 {
-    TAG_LOGD(AAFwkTag::UI_EXT, "start");
     if (info.argc < ARGC_ONE) {
         TAG_LOGE(AAFwkTag::UI_EXT, "invalid argc");
         ThrowTooFewParametersError(env);
@@ -1021,7 +1026,8 @@ napi_value JsUIExtensionContext::OnDisconnectAbility(napi_env env, NapiCallbackI
             } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
                 task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
             } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER)) {
-                task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                task.Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::CONNECTION_NOT_FOUND)));
             } else {
                 task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
             }
@@ -1230,7 +1236,6 @@ napi_value JsUIExtensionContext::OnDisconnectUIServiceExtension(napi_env env, Na
             TAG_LOGW(AAFwkTag::UISERVC_EXT, "null connection");
             *innerErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
         }
-        TAG_LOGI(AAFwkTag::UISERVC_EXT, "context->DisconnectAbility");
         context->DisconnectAbility(want, connection);
     };
     NapiAsyncTask::CompleteCallback complete =
@@ -1239,7 +1244,8 @@ napi_value JsUIExtensionContext::OnDisconnectUIServiceExtension(napi_env env, Na
                 task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
                 UIServiceConnection::RemoveUIServiceExtensionConnection(connectId);
             } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER)) {
-                task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                task.Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::CONNECTION_NOT_FOUND)));
                 UIServiceConnection::RemoveUIServiceExtensionConnection(connectId);
             } else {
                 task.ResolveWithNoError(env, CreateJsUndefined(env));

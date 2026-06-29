@@ -24,6 +24,7 @@ sequenceable OHOS.CliTool.ToolSummary;
 sequenceable ToolInfo..OHOS.CliTool.ToolInfo;
 rawdata ToolInfo..OHOS.CliTool.ToolsRawData;
 sequenceable FunctionInfo..OHOS.CliTool.FunctionInfo;
+rawdata FunctionInfo..OHOS.CliTool.FunctionsRawData;
 
 interface ICliToolManager {
     void GetAllToolSummaries([out] ToolSummary[] summaries);
@@ -40,8 +41,9 @@ interface ICliToolManager {
         [in] ICliToolManagerScheduler scheduler);
     void BatchQueryPermissionBySubCommand([in] List<Command> cmds, [out] List<CommandPermission> cmdPermissions);
     void RegisterFunction([in] FunctionInfo function);
+    void BatchRegisterFunctions([in] FunctionInfo[] functions, [out] int successCount);
     void GetFunctionInfo([in] String functionNamespace, [in] String functionName, [out] FunctionInfo function);
     void UnregisterFunction([in] String functionNamespace, [in] String functionName);
     void UnregisterIntentFunctionsByNamespace([in] String functionNamespace);
-    void GetAllFunctions([out] FunctionInfo[] functions);
+    void GetAllFunctions([out] FunctionsRawData functions);
 }

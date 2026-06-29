@@ -233,6 +233,20 @@ static bool ConvertFileName(const std::string& fileBaseName, std::string& abbrFi
         abbrFileName = "SEC";
     } else if (fileBaseName == "ui_ability_lifecycle_manager") {
         abbrFileName = "UALM";
+    } else if (fileBaseName == "extension_impl") {
+        abbrFileName = "EXTI";
+    } else if (fileBaseName == "ams_mgr_scheduler") {
+        abbrFileName = "AMSCHE";
+    } else if (fileBaseName == "base_extension_record") {
+        abbrFileName = "BER";
+    }  else if (fileBaseName == "napi_want_agent") {
+        abbrFileName = "NWA";
+    }  else if (fileBaseName == "pending_want_manager") {
+        abbrFileName = "PWM";
+    }  else if (fileBaseName == "want_agent_helper") {
+        abbrFileName = "WAH";
+    }  else if (fileBaseName == "connection_manager") {
+        abbrFileName = "CONM";
     } else {
         return false;
     }
