@@ -1286,7 +1286,7 @@ int32_t CliToolManagerService::ValidateSkillTypeFromParam(const ExecToolParam &p
     auto skillName = args.GetStringParam("skillName");
     if (skillName.empty()) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "skillName is required in args");
-        return ERR_INVALID_VALUE;
+        return ERR_INVALID_PARAM;
     }
     return ValidateSkillType(bundleName, moduleName, skillName, skillType);
 }
