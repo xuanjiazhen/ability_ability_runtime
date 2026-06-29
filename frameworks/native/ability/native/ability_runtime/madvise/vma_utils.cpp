@@ -110,11 +110,13 @@ static bool ParseMapsLine(const char* line, size_t lineLen, OHOS::AbilityRuntime
     region->perms[OHOS::AbilityRuntime::VmaUtil::PERMS_LEN] = '\0';
     ptr += OHOS::AbilityRuntime::VmaUtil::PERMS_LEN;
     ptr = SkipWhitespace(ptr);
-    // skip offset
-    ptr = strchr(ptr, ' ');
-    if (!ptr) {
+    // parse offset (file offset of the mapping) — needed for sub-file page release
+    const char* offsetEnd = strchr(ptr, ' ');
+    if (!offsetEnd) {
         return false;
     }
+    region->offset = HexToUintptr(ptr, offsetEnd - ptr);
+    ptr = offsetEnd + 1;
     ptr = SkipWhitespace(ptr);
     //skip device
     ptr = strchr(ptr, ' ');

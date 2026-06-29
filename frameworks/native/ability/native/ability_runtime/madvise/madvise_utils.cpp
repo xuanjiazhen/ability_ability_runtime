@@ -333,6 +333,62 @@ int32_t MadviseWithConfigFile(const char* bundleName)
     }
     return ApplyMadviseWithConfig(bundleName, config);
 }
+
+// Release file pages whose file offset falls inside any span. For a VMA
+// [start,end) mapped at file `offset`, the virtual address V corresponds to
+// file offset `offset + (V - start)`. Intersecting each span with the VMA's
+// file-offset range gives the virtual sub-range to madvise.
+int32_t MadviseFilePagesAtOffsets(const std::string& filename, const std::vector<FileOffsetSpan>& spans)
+{
+    if (filename.empty() || spans.empty()) {
+        return 0;
+    }
+    auto regions = AbilityRuntime::VmaUtil::GetFileVmas({filename});
+    if (regions.empty()) {
+        TAG_LOGD(AAFwkTag::ABILITY, "MadviseFilePagesAtOffsets: no VMA for %{public}s", filename.c_str());
+        return 0;
+    }
+    size_t pageSize = static_cast<size_t>(getpagesize());
+    int32_t released = 0;
+    for (const auto& region : regions) {
+        if (strlen(region.perms) < PERMS_LEN) {
+            continue;
+        }
+        // only read-only, non-writable mappings
+        if (region.perms[0] != 'r' || region.perms[1] == 'w') {
+            continue;
+        }
+        uint64_t vmaFileStart = region.offset;
+        uint64_t vmaFileEnd = region.offset + region.size;
+        uintptr_t vmaStart = region.start;
+        for (const auto& span : spans) {
+            uint64_t interStart = std::max<uint64_t>(span.start, vmaFileStart);
+            uint64_t interEnd = std::min<uint64_t>(span.end, vmaFileEnd);
+            if (interStart >= interEnd) {
+                continue;
+            }
+            // map file offset delta to virtual address delta
+            uintptr_t addrStart = vmaStart + static_cast<uintptr_t>(interStart - vmaFileStart);
+            uintptr_t addrEnd = vmaStart + static_cast<uintptr_t>(interEnd - vmaFileStart);
+            uintptr_t alignedStart = addrStart & ~(pageSize - 1);
+            uintptr_t alignedEnd = (addrEnd + pageSize - 1) & ~(pageSize - 1);
+            size_t alignedLen = alignedEnd - alignedStart;
+            if (alignedLen == 0) {
+                continue;
+            }
+            int32_t result = madvise(reinterpret_cast<void*>(alignedStart), alignedLen, MADV_DONTNEED);
+            if (result == 0) {
+                released++;
+                TAG_LOGD(AAFwkTag::ABILITY,
+                    "madvise offset span ok: file=%{private}s, len=%{public}zu", filename.c_str(), alignedLen);
+            } else {
+                TAG_LOGE(AAFwkTag::ABILITY,
+                    "madvise offset span failed: errno=%{public}d", errno);
+            }
+        }
+    }
+    TAG_LOGI(AAFwkTag::ABILITY, "MadviseFilePagesAtOffsets: file=%{public}s, spans=%{public}zu, released=%{public}d",
+        filename.c_str(), spans.size(), released);
+    return released;
+}
 } // namespace MadviseUtil
-} // namespace AbilityRuntime
-} // namespace OHOS
