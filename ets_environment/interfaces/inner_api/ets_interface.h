@@ -38,7 +38,7 @@ struct ETSEnvFuncs {
     void (*InitETSSysNS)(const std::string &path) = nullptr;
 
     bool (*Initialize)(const std::shared_ptr<OHOS::AppExecFwk::EventRunner> eventRunner, bool isDebug,
-        const std::string &bundleName) = nullptr;
+        const std::string &bundleName, bool preloadStaticBootAotFiles) = nullptr;
     void (*RegisterUncaughtExceptionHandler)(
         const OHOS::EtsEnv::ETSUncaughtExceptionInfo &uncaughtExceptionInfo) = nullptr;
     ani_env *(*GetAniEnv)() = nullptr;

@@ -262,7 +262,7 @@ void ETSEnvironment::InitETSSysNS(const std::string &path)
 }
 
 bool ETSEnvironment::Initialize(const std::shared_ptr<AppExecFwk::EventRunner> eventRunner, bool isStartWithDebug,
-    const std::string &bundleName)
+    const std::string &bundleName, bool preloadStaticBootAotFiles)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Initialize called, bundleName: %{public}s", bundleName.c_str());
     if (!LoadRuntimeApis()) {
@@ -281,6 +281,9 @@ bool ETSEnvironment::Initialize(const std::shared_ptr<AppExecFwk::EventRunner> e
     // Create boot-panda-files options
     std::string bootString = "--ext:--boot-panda-files=" + bootfiles;
     options.push_back(ani_option { bootString.data(), nullptr });
+    if (preloadStaticBootAotFiles) {
+        options.push_back(ani_option { "--ext:--enable-an", nullptr });
+    }
     options.push_back(ani_option { "--ext:--compiler-enable-jit=false", nullptr });
     options.push_back(ani_option { "--ext:--verification-mode=ahead-of-time", nullptr });
     options.push_back(ani_option { "--ext:--log-level=info", nullptr });
@@ -773,8 +776,8 @@ ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
             ETSEnvironment::InitETSSysNS(path);
         },
         .Initialize = [](const std::shared_ptr<AppExecFwk::EventRunner> eventRunner, bool isStartWithDebug,
-            const std::string &bundleName) {
-            return ETSEnvironment::GetInstance()->Initialize(eventRunner, isStartWithDebug, bundleName);
+            const std::string &bundleName, bool preloadStaticBootAotFiles) {
+            return ETSEnvironment::GetInstance()->Initialize(eventRunner, isStartWithDebug, bundleName, preloadStaticBootAotFiles);
         },
         .RegisterUncaughtExceptionHandler = [](const ETSUncaughtExceptionInfo &exceptionInfo) {
             ETSEnvironment::GetInstance()->RegisterUncaughtExceptionHandler(exceptionInfo);
