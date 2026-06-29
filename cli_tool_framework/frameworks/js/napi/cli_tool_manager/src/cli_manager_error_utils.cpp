@@ -35,27 +35,32 @@ static const std::map<CliManagerErrorCode, std::string> ERROR_MSG_MAP = {
 
 static const std::map<int32_t, CliManagerErrorCode> NATIVE_TO_BUSINESS_ERROR_MAP = {
     {ERR_PERMISSION_DENIED, CliManagerErrorCode::ERROR_PERMISSION_DENIED},
+    {ERR_NOT_HAP, CliManagerErrorCode::ERROR_PERMISSION_DENIED},
+    {ERR_NOT_SA_CALLER, CliManagerErrorCode::ERROR_PERMISSION_DENIED},
     {ERR_NOT_SYSTEM_APP, CliManagerErrorCode::ERROR_NOT_SYSTEM_APP},
     {ERR_INVALID_PARAM, CliManagerErrorCode::ERROR_INVALID_PARAM},
+    {ERR_FUNCTION_EXIST, CliManagerErrorCode::ERROR_INVALID_PARAM},
     {ERR_TOOL_NOT_EXIST, CliManagerErrorCode::ERROR_TOOL_NOT_FOUND},
+    {ERR_FUNCTION_NOT_EXIST, CliManagerErrorCode::ERROR_TOOL_NOT_FOUND},
     {ERR_SESSION_LIMIT_EXCEEDED, CliManagerErrorCode::ERROR_REACH_LIMIT},
     {ERR_CLI_SESSION_NOT_FOUND, CliManagerErrorCode::ERROR_SESSION_NOT_FOUND},
     {ERR_CLI_SEND_MESSAGE, CliManagerErrorCode::ERROR_SEND_MESSAGE},
+    {GET_CLI_TOOL_MGR_SERVICE_FAILED, CliManagerErrorCode::ERROR_INNER},
+    {ERR_NO_INIT, CliManagerErrorCode::ERROR_INNER},
+    {ERR_INNER_PARAM_INVALID, CliManagerErrorCode::ERROR_INNER},
+    {ERR_NOT_KILL, CliManagerErrorCode::ERROR_INNER},
+    {ERR_JSON_PARSE_FAILED, CliManagerErrorCode::ERROR_INNER},
+    {ERR_FILE_NOT_FOUND, CliManagerErrorCode::ERROR_INNER},
+    {ERR_KVSTORE_NOT_READY, CliManagerErrorCode::ERROR_INNER},
+    {ERR_KVSTORE_ERROR, CliManagerErrorCode::ERROR_INNER},
 };
 
 static const std::map<int32_t, std::string> INNER_ERROR_MSG_MAP = {
-    {GET_CLI_TOOL_MGR_SERVICE_FAILED, "Internal error. Failed to get the CLI tool manager service."},
-    {ERR_NOT_HAP, "Internal error. The caller is not a HAP application."},
-    {ERR_NO_INIT, "Internal error. Failed to initialize the CLI tool service."},
-    {ERR_INNER_PARAM_INVALID, "Internal error. Failed to create JS CliSessionInfo."},
-    {ERR_NOT_SA_CALLER, "Internal error. The caller is not a system ability."},
-    {ERR_NOT_KILL, "Internal error. Failed to kill the CLI session process."},
-    {ERR_FUNCTION_NOT_EXIST, "Internal error. The function does not exist."},
-    {ERR_FUNCTION_EXIST, "Internal error. The function already exists."},
-    {ERR_JSON_PARSE_FAILED, "Internal error. Failed to parse JSON data."},
-    {ERR_FILE_NOT_FOUND, "Internal error. The required file was not found."},
-    {ERR_KVSTORE_NOT_READY, "Internal error. KVStore is not ready."},
-    {ERR_KVSTORE_ERROR, "Internal error. KVStore operation failed."},
+    {GET_CLI_TOOL_MGR_SERVICE_FAILED, "Internal error. Service unavailable."},
+    {ERR_JSON_PARSE_FAILED, "Internal error. Configuration unavailable."},
+    {ERR_FILE_NOT_FOUND, "Internal error. Configuration unavailable."},
+    {ERR_KVSTORE_NOT_READY, "Internal error. Storage unavailable."},
+    {ERR_KVSTORE_ERROR, "Internal error. Storage unavailable."},
 };
 
 std::string GetErrorMsg(CliManagerErrorCode errCode)
