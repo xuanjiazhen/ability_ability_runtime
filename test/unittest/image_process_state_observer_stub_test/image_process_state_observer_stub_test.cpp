@@ -15,6 +15,8 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
+
 #define private public
 #define protected public
 #include "image_process_state_data.h"
@@ -96,13 +98,49 @@ HWTEST_F(ImageProcessStateObserverStubTest, HandleOnForkAllWorkProcessFailed_010
 {
     MessageParcel data;
     ImageProcessStateData imageProcessStateData;
-    data.WriteParcelable(&imageProcessStateData);
+    ASSERT_TRUE(data.WriteParcelable(&imageProcessStateData));
+    ASSERT_TRUE(data.WriteInt32(ERR_INVALID_VALUE));
     MessageParcel reply;
     auto result = observerStub_->HandleOnForkAllWorkProcessFailed(data, reply);
     EXPECT_EQ(NO_ERROR, result);
     EXPECT_EQ(observerStub_->processEvent, ProcessEvent::FORK_ALL_WORK_PROCESS_FAILED);
     observerStub_->processEvent = ProcessEvent::INVALID_STATE;
     testing::Mock::AllowLeak(observerStub_);
+}
+
+/**
+ * @tc.number: HandleOnForkAllWorkProcessFailed_0300
+ * @tc.desc: Test when processData is valid but errCode is missing.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImageProcessStateObserverStubTest, HandleOnForkAllWorkProcessFailed_0300, TestSize.Level1)
+{
+    MessageParcel data;
+    ImageProcessStateData imageProcessStateData;
+    ASSERT_TRUE(data.WriteParcelable(&imageProcessStateData));
+    MessageParcel reply;
+
+    auto result = observerStub_->HandleOnForkAllWorkProcessFailed(data, reply);
+
+    EXPECT_EQ(ERR_APPEXECFWK_PARCEL_ERROR, result);
+    EXPECT_EQ(observerStub_->processEvent, ProcessEvent::INVALID_STATE);
+    testing::Mock::AllowLeak(observerStub_);
+}
+
+/**
+ * @tc.number: ImageProcessStateData_Unmarshalling_0100
+ * @tc.desc: Test truncated parcel data is rejected.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ImageProcessStateObserverStubTest, ImageProcessStateData_Unmarshalling_0100, TestSize.Level1)
+{
+    MessageParcel data;
+    ASSERT_TRUE(data.WriteInt32(100));
+    ASSERT_TRUE(data.WriteUint64(200));
+
+    std::unique_ptr<ImageProcessStateData> processData(ImageProcessStateData::Unmarshalling(data));
+
+    EXPECT_EQ(processData, nullptr);
 }
 
 /**
@@ -151,7 +189,7 @@ HWTEST_F(ImageProcessStateObserverStubTest, OnRemoteRequest_0200, TestSize.Level
     MessageParcel data;
     data.WriteInterfaceToken(observerStub_->GetDescriptor());
     ImageProcessStateData imageProcessStateData;
-    data.WriteParcelable(&imageProcessStateData);
+    ASSERT_TRUE(data.WriteParcelable(&imageProcessStateData));
     MessageParcel reply;
     uint32_t code = static_cast<uint32_t>(IImageProcessStateObserver::Message::ON_IMAGE_PROCESS_STATE_CHANGED);
     MessageOption option;
@@ -171,7 +209,8 @@ HWTEST_F(ImageProcessStateObserverStubTest, OnRemoteRequest_0300, TestSize.Level
     MessageParcel data;
     data.WriteInterfaceToken(observerStub_->GetDescriptor());
     ImageProcessStateData imageProcessStateData;
-    data.WriteParcelable(&imageProcessStateData);
+    ASSERT_TRUE(data.WriteParcelable(&imageProcessStateData));
+    ASSERT_TRUE(data.WriteInt32(ERR_INVALID_VALUE));
     MessageParcel reply;
     uint32_t code = static_cast<uint32_t>(IImageProcessStateObserver::Message::ON_FORKALL_WORK_PROCESS_FAILED);
     MessageOption option;

@@ -15,6 +15,8 @@
 
 #include <gtest/gtest.h>
 
+#include <map>
+
 #define private public
 #define protected public
 #include "native_args_child_process.h"
@@ -241,6 +243,43 @@ HWTEST_F(NativeArgsChildProcessTest, NativeArgsChildProcess_1100, TestSize.Level
     
     bool ret = process->LoadNativeLib(info);
     EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.number: NativeArgsChildProcess_1200
+ * @tc.desc: Test ParseToNativeArgs preserves parameters and descriptor order.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeArgsChildProcessTest, NativeArgsChildProcess_1200, TestSize.Level2)
+{
+    auto process = std::make_shared<NativeArgsChildProcess>();
+    ASSERT_NE(process, nullptr);
+    const std::map<std::string, int32_t> fds = {
+        { "input", 10 },
+        { "output", 11 },
+    };
+
+    auto nativeArgs = process->ParseToNativeArgs("entryParams", fds);
+
+    ASSERT_NE(nativeArgs.entryParams, nullptr);
+    EXPECT_STREQ(nativeArgs.entryParams, "entryParams");
+    auto node = nativeArgs.fdList.head;
+    ASSERT_NE(node, nullptr);
+    EXPECT_STREQ(node->fdName, "input");
+    EXPECT_EQ(node->fd, 10);
+    node = node->next;
+    ASSERT_NE(node, nullptr);
+    EXPECT_STREQ(node->fdName, "output");
+    EXPECT_EQ(node->fd, 11);
+    EXPECT_EQ(node->next, nullptr);
+
+    while (nativeArgs.fdList.head != nullptr) {
+        auto current = nativeArgs.fdList.head;
+        nativeArgs.fdList.head = current->next;
+        delete[] current->fdName;
+        delete current;
+    }
+    delete[] nativeArgs.entryParams;
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

@@ -242,6 +242,7 @@ void AbilityProcess::RequestPermissionsFromUser(
 bool AbilityProcess::CallFunc(int requestCode, const std::vector<std::string> &permissions,
     const std::vector<int> &permissionsState, CallbackInfo &callbackInfo)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
 #ifdef SUPPORT_GRAPHICS
     // start open featureability lib
     if (g_handle == nullptr) {

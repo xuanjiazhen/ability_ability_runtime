@@ -1591,7 +1591,8 @@ void AppMgrServiceInner::MarkTemplateProcess(const std::shared_ptr<AppRunningRec
     bool isDebugApp = applicationInfo != nullptr && applicationInfo->debug &&
             (applicationInfo->appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG);
     if (system::GetBoolParameter(DEVELOPER_MODE_STATE, false) && isDebugApp) {
-        mark.type |= CHECKPOINT_DEBUG_APP_TYPE_FLAG;
+        mark.type = static_cast<int32_t>(static_cast<uint32_t>(mark.type) |
+            static_cast<uint32_t>(CHECKPOINT_DEBUG_APP_TYPE_FLAG));
     }
     int ret = ioctl(fd, CHECKPOINT_MONITOR_IOCTL_MARK_TEMPLATE, &mark);
     if (ret < 0) {

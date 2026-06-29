@@ -353,7 +353,7 @@ private:
         return;
     }
 
-    void RemoveConnection(int64_t connectId)
+    static void RemoveConnection(int64_t connectId)
     {
         TAG_LOGD(AAFwkTag::UISERVC_EXT, "enter");
         std::lock_guard guard(g_connectsMutex);
@@ -395,7 +395,7 @@ private:
         int64_t connectId = connection->GetConnectionId();
         auto innerErrorCode = std::make_shared<int32_t>(ERR_OK);
         auto execute = GetConnectAbilityExecFunc(want, connection, connectId, innerErrorCode);
-        NapiAsyncTask::CompleteCallback complete = [this, connection, connectId, innerErrorCode](napi_env env,
+        NapiAsyncTask::CompleteCallback complete = [connection, connectId, innerErrorCode](napi_env env,
             NapiAsyncTask& task, int32_t status) {
             HandleScope handleScope(env);
             if (*innerErrorCode == 0) {
@@ -408,7 +408,7 @@ private:
             int32_t errcode = static_cast<int32_t>(AbilityRuntime::GetJsErrorCodeByNativeError(*innerErrorCode));
             if (errcode) {
                 connection->CallJsFailed(errcode);
-                this->RemoveConnection(connectId);
+                RemoveConnection(connectId);
             }
         };
         napi_value result = nullptr;

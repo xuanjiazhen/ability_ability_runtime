@@ -19,6 +19,7 @@
 #include <sys/statvfs.h>
 #include <sys/stat.h>
 #include <sys/xattr.h>
+#include <mutex>
 #include "app_mgr_client.h"
 #include "faultloggerd_client.h"
 #include "hilog_tag_wrapper.h"
@@ -50,6 +51,7 @@ static bool g_developMode = (OHOS::system::GetParameter("persist.hiview.leak_det
                             (OHOS::system::GetParameter("persist.hiview.leak_detector", "unknown") == "true");
 static int g_oomDumpProcessQuota = 0;
 static uint64_t g_lastOOMDumpTime = 0;
+static std::mutex g_oomDumpQuotaMutex;
 static constexpr const char* const EVENT_XATTR_NAME = "user.appevent";
 static constexpr const char* const OOM_QUOTA_XATTR_NAME = "user.oomdump.quota";
 static constexpr const char* const RUNNING_ID_NAME = "user.runningId";
@@ -219,6 +221,7 @@ bool DumpRuntimeHelper::Check2CQuota()
 
 bool DumpRuntimeHelper::Check2DQuota(bool needDecreaseQuota)
 {
+    std::lock_guard<std::mutex> lock(g_oomDumpQuotaMutex);
     if (!Check2DOOMDumpOpt()) {
         TAG_LOGE(AAFwkTag::APPKIT, "Check2DOOMDumpOpt failed");
         return false;

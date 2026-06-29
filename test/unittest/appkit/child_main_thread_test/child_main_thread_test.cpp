@@ -683,5 +683,36 @@ HWTEST_F(ChildMainThreadTest, UpdateNativeChildLibModuleName_0300, TestSize.Leve
     SUCCEED();
 }
 
+/**
+ * @tc.number: UpdateNativeChildLibModuleName_0400
+ * @tc.desc: Test invalid native child library paths are rejected before lookup.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ChildMainThreadTest, UpdateNativeChildLibModuleName_0400, TestSize.Level1)
+{
+    sptr<ChildMainThread> thread = sptr<ChildMainThread>(new (std::nothrow) ChildMainThread());
+    ASSERT_NE(thread, nullptr);
+    thread->processInfo_ = std::make_shared<ChildProcessInfo>();
+    ASSERT_NE(thread->processInfo_, nullptr);
+
+    const std::vector<std::string> invalidEntries = {
+        "",
+        "/system/lib/libchild.so",
+        "..",
+        "../libchild.so",
+        "libs/../libchild.so",
+        "libs/..",
+        std::string("lib\0child.so", 12),
+    };
+    const AppLibPathMap appLibPaths = { { "entry", { "/data/app/el1/bundle/libs" } } };
+
+    for (const auto &entry : invalidEntries) {
+        thread->nativeLibModuleName_ = "staleModule";
+        thread->processInfo_->srcEntry = entry;
+        thread->UpdateNativeChildLibModuleName(appLibPaths, false);
+        EXPECT_TRUE(thread->nativeLibModuleName_.empty());
+    }
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS

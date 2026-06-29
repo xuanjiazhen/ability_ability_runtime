@@ -19,6 +19,7 @@
 #include "startup_manager.h"
 #include "js_startup_task.h"
 #include "js_insight_intent_executor.h"
+#include "native_startup_task.h"
 #undef private
 #undef protected
 #include "mock_config_policy_utils.h"
@@ -71,7 +72,36 @@ HWTEST_F(StartupManagerMockTest, PreloadSoStartupTask_0100, Function | MediumTes
     std::string ohmUrl = "@normalized:Y&&<bundleName>&<IMPORT_PATH>&<VERSION>";
     std::shared_ptr<PreloadSoStartupTask> startupTask = std::make_shared<PreloadSoStartupTask>(name, ohmUrl);
     auto ret = startupTask->RunTaskInit(nullptr);
-    EXPECT_EQ(ret, ERR_STARTUP_INTERNAL_ERROR);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: PreloadSoStartupTask_0200
+ * @tc.type: FUNC
+ * @tc.Function: RunTaskInit
+ * @tc.desc: A valid normalized SO name reaches native module loading.
+ */
+HWTEST_F(StartupManagerMockTest, PreloadSoStartupTask_0200, Function | MediumTest | Level1)
+{
+    std::string name = "test_name";
+    std::string ohmUrl = "@normalized:Y&&<bundleName>&libstartup.so&<VERSION>";
+    std::shared_ptr<PreloadSoStartupTask> startupTask = std::make_shared<PreloadSoStartupTask>(name, ohmUrl);
+
+    EXPECT_EQ(startupTask->RunTaskInit(nullptr), ERR_STARTUP_INTERNAL_ERROR);
+}
+
+/**
+ * @tc.name: NativeStartupTask_0100
+ * @tc.type: FUNC
+ * @tc.Function: RunTaskInit
+ * @tc.desc: A missing native initialization function is rejected without invocation.
+ */
+HWTEST_F(StartupManagerMockTest, NativeStartupTask_0100, Function | MediumTest | Level1)
+{
+    NativeStartupTask::TaskInitFunc taskInitFunc;
+    auto startupTask = std::make_shared<NativeStartupTask>("nativeTask", taskInitFunc);
+
+    EXPECT_EQ(startupTask->RunTaskInit(nullptr), ERR_STARTUP_INTERNAL_ERROR);
 }
 
 /**

@@ -714,6 +714,29 @@ HWTEST_F(MoDispatcherParamCodecTest, UnmarshalCallResult_NullResult, TestSize.Le
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
 }
 
+// Container counts must not exceed the bytes remaining in the parcel. This
+// prevents a malformed peer from triggering large allocations or long loops.
+HWTEST_F(MoDispatcherParamCodecTest, UnmarshalCallResult_OversizedContainerCount, TestSize.Level1)
+{
+    const std::vector<OH_AbilityRuntime_ModObjDispatcher_ValueType> containerTypes = {
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_ARRAY,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP,
+    };
+
+    for (const auto type : containerTypes) {
+        MoMethodMeta meta = MakeMethodMeta({}, MakeTypeInfo(type));
+        MessageParcel reply;
+        ASSERT_TRUE(reply.WriteInt32(0)); // method error code
+        ASSERT_TRUE(reply.WriteInt32(1)); // one element, but no element bytes follow
+        OH_AbilityRuntime_ModObjDispatcher_Variant result = {};
+
+        EXPECT_EQ(ModObjDispatcherParamCodec::UnmarshalCallResult(meta, reply, &result, nullptr),
+            ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
+    }
+}
+
 // Test 27: void return type -> NO_ERROR, result->vt = VT_VOID
 HWTEST_F(MoDispatcherParamCodecTest, UnmarshalCallResult_VoidReturnType, TestSize.Level1)
 {

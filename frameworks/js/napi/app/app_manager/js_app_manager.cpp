@@ -167,7 +167,7 @@ private:
         } else {
             // unwrap connectId
             napi_get_value_int64(env, argv[INDEX_ZERO], &observerId);
-            bool isExist = observer_->FindObserverByObserverId(observerId);
+            bool isExist = observer_ != nullptr && observer_->FindObserverByObserverId(observerId);
             if (isExist) {
                 // match id
                 TAG_LOGD(AAFwkTag::APPMGR, "observer exist:%{public}d", static_cast<int32_t>(observerId));

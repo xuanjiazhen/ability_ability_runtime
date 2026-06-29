@@ -381,6 +381,10 @@ int32_t DistributedClient::GetRemoteMissionSnapshotInfo(const std::string& devic
         return error;
     }
     std::unique_ptr<MissionSnapshot> missionSnapshotPtr(reply.ReadParcelable<MissionSnapshot>());
+    if (missionSnapshotPtr == nullptr) {
+        TAG_LOGE(AAFwkTag::DISTRIBUTED, "read mission snapshot failed");
+        return ERR_FLATTEN_OBJECT;
+    }
     missionSnapshot = std::move(missionSnapshotPtr);
     return ERR_NONE;
 }

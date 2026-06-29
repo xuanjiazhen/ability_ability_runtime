@@ -15,12 +15,16 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
+
 #define private public
 #define protected public
 #include "app_foreground_state_observer_stub.h"
 #include "app_mgr_stub.h"
+#include "child_process_args.h"
 #include "image_error_handler_stub.h"
 #include "image_process_state_observer_stub.h"
+#include "memory_level_info.h"
 #undef private
 #undef protected
 
@@ -1599,8 +1603,9 @@ HWTEST_F(AppMgrStubTest, HandleReportDumpMemResult_001, TestSize.Level1)
     MessageParcel reply;
     MessageOption option;
     WriteInterfaceToken(data);
-    sptr<IRemoteObject> remoteCallback = nullptr;
-    data.WriteRemoteObject(remoteCallback);
+    auto callback = sptr<MemDumpCallbackMock>(new (std::nothrow) MemDumpCallbackMock());
+    ASSERT_NE(callback, nullptr);
+    ASSERT_TRUE(data.WriteRemoteObject(callback->AsObject()));
     std::string dumpResult = "test result";
     data.WriteString(dumpResult);
 
@@ -1626,13 +1631,13 @@ HWTEST_F(AppMgrStubTest, HandleReportDumpMemResult_002, TestSize.Level1)
     MessageOption option;
     WriteInterfaceToken(data);
     sptr<IRemoteObject> remoteCallback = nullptr;
-    data.WriteRemoteObject(remoteCallback);
+    ASSERT_TRUE(data.WriteRemoteObject(remoteCallback));
     std::string dumpResult = "test result";
     data.WriteString(dumpResult);
 
     auto result = mockAppMgrService_->OnRemoteRequest(
         static_cast<uint32_t>(AppMgrInterfaceCode::REPORT_DUMP_MEM_RESULT), data, reply, option);
-    EXPECT_EQ(result, NO_ERROR);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
@@ -1723,6 +1728,85 @@ HWTEST_F(MemDumpCallbackProxyTest, MemDumpCallbackProxy_OnMemDumpDone_001, TestS
     proxy->OnMemDumpDone("test result");
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: ChildProcessArgs_Unmarshalling_RejectNegativeFdCount_001
+ * @tc.desc: ChildProcessArgs rejects a negative descriptor count.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, ChildProcessArgs_Unmarshalling_RejectNegativeFdCount_001, TestSize.Level1)
+{
+    MessageParcel data;
+    ASSERT_TRUE(data.WriteString16(u"params"));
+    ASSERT_TRUE(data.WriteInt32(-1));
+
+    std::unique_ptr<ChildProcessArgs> args(ChildProcessArgs::Unmarshalling(data));
+
+    EXPECT_EQ(args, nullptr);
+}
+
+/**
+ * @tc.name: MemoryLevelInfo_Unmarshalling_RejectInvalidPid_001
+ * @tc.desc: MemoryLevelInfo rejects non-positive process identifiers.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, MemoryLevelInfo_Unmarshalling_RejectInvalidPid_001, TestSize.Level1)
+{
+    MessageParcel data;
+    ASSERT_TRUE(data.WriteUint32(1));
+    ASSERT_TRUE(data.WriteInt32(0));
+    ASSERT_TRUE(data.WriteInt32(MEMORY_LEVEL_LOW));
+
+    std::unique_ptr<MemoryLevelInfo> info(MemoryLevelInfo::Unmarshalling(data));
+
+    EXPECT_EQ(info, nullptr);
+}
+
+/**
+ * @tc.name: MemoryLevelInfo_Unmarshalling_RejectTruncatedEntry_001
+ * @tc.desc: MemoryLevelInfo rejects a count without the corresponding entry.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, MemoryLevelInfo_Unmarshalling_RejectTruncatedEntry_001, TestSize.Level1)
+{
+    MessageParcel data;
+    ASSERT_TRUE(data.WriteUint32(1));
+
+    std::unique_ptr<MemoryLevelInfo> info(MemoryLevelInfo::Unmarshalling(data));
+
+    EXPECT_EQ(info, nullptr);
+}
+
+/**
+ * @tc.name: NativeChildNotifyStub_RejectInvalidExitData_001
+ * @tc.desc: NativeChildNotifyStub rejects missing fields and non-positive pid values.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, NativeChildNotifyStub_RejectInvalidExitData_001, TestSize.Level1)
+{
+    auto callback = sptr<NativeChildCallbackMock>(new (std::nothrow) NativeChildCallbackMock());
+    ASSERT_NE(callback, nullptr);
+    MessageParcel reply;
+    MessageOption option;
+
+    MessageParcel missingPid;
+    ASSERT_TRUE(missingPid.WriteInterfaceToken(NativeChildNotifyStub::GetDescriptor()));
+    EXPECT_EQ(callback->OnRemoteRequest(INativeChildNotify::IPC_ID_ON_NATIVE_CHILD_EXIT,
+        missingPid, reply, option), ERR_INVALID_VALUE);
+
+    MessageParcel invalidPid;
+    ASSERT_TRUE(invalidPid.WriteInterfaceToken(NativeChildNotifyStub::GetDescriptor()));
+    ASSERT_TRUE(invalidPid.WriteInt32(0));
+    ASSERT_TRUE(invalidPid.WriteInt32(0));
+    EXPECT_EQ(callback->OnRemoteRequest(INativeChildNotify::IPC_ID_ON_NATIVE_CHILD_EXIT,
+        invalidPid, reply, option), ERR_INVALID_VALUE);
+
+    MessageParcel missingSignal;
+    ASSERT_TRUE(missingSignal.WriteInterfaceToken(NativeChildNotifyStub::GetDescriptor()));
+    ASSERT_TRUE(missingSignal.WriteInt32(100));
+    EXPECT_EQ(callback->OnRemoteRequest(INativeChildNotify::IPC_ID_ON_NATIVE_CHILD_EXIT,
+        missingSignal, reply, option), ERR_INVALID_VALUE);
 }
 
 } // namespace AppExecFwk

@@ -117,5 +117,26 @@ HWTEST_F(RemoteOnListenerStubTest, RemoteOnListenerStubTest_OnCallbackInner_001,
     int res = stub_->OnCallbackInner(data, reply);
     EXPECT_EQ(res, NO_ERROR);
 }
+
+/*
+ * Feature: RemoteOnListenerStub
+ * Function: OnCallbackInner
+ * FunctionPoints: Reject an appIdentifiers count larger than the remaining parcel
+ * CaseDescription: Verify malformed parcel data is rejected without invoking callback
+ */
+HWTEST_F(RemoteOnListenerStubTest, RemoteOnListenerStubTest_OnCallbackInner_002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    ASSERT_TRUE(data.WriteUint32(0));
+    ASSERT_TRUE(data.WriteString("device"));
+    ASSERT_TRUE(data.WriteString("bundle"));
+    ASSERT_TRUE(data.WriteString("type"));
+    ASSERT_TRUE(data.WriteString("sourceBundle"));
+    ASSERT_TRUE(data.WriteUint32(1));
+
+    EXPECT_CALL(*stub_, OnCallback(_)).Times(0);
+    EXPECT_EQ(stub_->OnCallbackInner(data, reply), ERR_INVALID_VALUE);
+}
 }  // namespace AAFwk
 }  // namespace OHOS

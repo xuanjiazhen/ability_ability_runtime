@@ -36,6 +36,35 @@ constexpr const char *STARTUP_CONFIG_ENTRY_SIGNATURE_ON_REQUEST_CUSTOM_MATCH_RUL
 constexpr const char *STARTUP_LISTEN_SIGNATURE_ON_COMPLETED = "C{@ohos.base.BusinessError}:";
 constexpr int32_t DEFAULT_AWAIT_TIMEOUT_MS = 10000;
 constexpr int32_t ARGC_ONE = 1;
+
+class AniGlobalReference final {
+public:
+    AniGlobalReference(ani_vm *vm, ani_ref ref) : vm_(vm), ref_(ref) {}
+
+    ~AniGlobalReference()
+    {
+        if (vm_ == nullptr || ref_ == nullptr) {
+            return;
+        }
+        bool isAttachThread = false;
+        ani_env *env = AppExecFwk::AttachAniEnv(vm_, isAttachThread);
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::STARTUP, "attach env for reference cleanup failed");
+            return;
+        }
+        env->GlobalReference_Delete(ref_);
+        AppExecFwk::DetachAniEnv(vm_, isAttachThread);
+    }
+
+    ani_ref Get() const
+    {
+        return ref_;
+    }
+
+private:
+    ani_vm *vm_ = nullptr;
+    ani_ref ref_ = nullptr;
+};
 }
 ETSStartupConfig::ETSStartupConfig(ani_vm *etsVm) : StartupConfig(), etsVm_(etsVm)
 {}
@@ -228,16 +257,20 @@ void ETSStartupConfig::InitListener(ani_env *env, ani_object config)
         return;
     }
 
-    ani_ref gl = nullptr;
-    // todo delete gl
-    env->GlobalReference_Create(reinterpret_cast<ani_object>(listener), &gl);
     ani_vm *aniVM = nullptr;
     if (env->GetVM(&aniVM) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "get vm failed");
         return;
     }
+    ani_ref gl = nullptr;
+    if (env->GlobalReference_Create(reinterpret_cast<ani_object>(listener), &gl) != ANI_OK || gl == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "create listener global reference failed");
+        return;
+    }
+    auto listenerRef = std::make_shared<AniGlobalReference>(aniVM, gl);
     OnCompletedCallbackFunc onCompletedCallback =
-        [etsVm = aniVM, listener = gl](const std::shared_ptr<StartupTaskResult> &result) {
+        [etsVm = aniVM, listenerRef](const std::shared_ptr<StartupTaskResult> &result) {
+        ani_ref listener = listenerRef->Get();
         if (etsVm == nullptr || listener == nullptr || result == nullptr) {
             TAG_LOGE(AAFwkTag::STARTUP, "null vm or listener or result");
             return;

@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include <atomic>
 #include <thread>
 #define private public
 #define protected public
@@ -45,6 +46,20 @@ public:
 class MyObserver : public IErrorObserver {
     void OnUnhandledException(std::string errMsg) override;
     void OnExceptionObject(const AppExecFwk::ErrorObject &errorObj) override;
+};
+
+class RemovingObserver : public IErrorObserver {
+public:
+    void OnUnhandledException(std::string errMsg) override
+    {
+        notified_.store(true);
+        ApplicationDataManager::GetInstance().RemoveErrorObserver();
+    }
+
+    void OnExceptionObject(const AppExecFwk::ErrorObject &errorObj) override
+    {}
+
+    std::atomic<bool> notified_ { false };
 };
 
 bool ApplicationDataManagerTest::Flag = false;
@@ -125,6 +140,21 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_RemoveErrorObserver_
     ApplicationDataManager::GetInstance().RemoveErrorObserver();
     EXPECT_EQ(nullptr, ApplicationDataManager::GetInstance().errorObserver_);
     GTEST_LOG_(INFO) << "ApplicationDataManager_RemoveErrorObserver_002 end";
+}
+
+/**
+ * @tc.number: ApplicationDataManager_RemoveErrorObserver_003
+ * @tc.name: ApplicationDataManager reentrant RemoveErrorObserver
+ * @tc.desc: Observer may unregister itself during notification without deadlock or use-after-free.
+ */
+HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_RemoveErrorObserver_003, Function | MediumTest | Level1)
+{
+    auto observer = std::make_shared<RemovingObserver>();
+    ApplicationDataManager::GetInstance().AddErrorObserver(observer);
+
+    EXPECT_TRUE(ApplicationDataManager::GetInstance().NotifyUnhandledException("test"));
+    EXPECT_TRUE(observer->notified_.load());
+    EXPECT_EQ(nullptr, ApplicationDataManager::GetInstance().errorObserver_);
 }
 
 /**
