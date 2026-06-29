@@ -107,6 +107,9 @@
       },
       {
         "name": "ohos.permission.GET_BUNDLE_RESOURCES"
+      },
+      {
+        "name": "ohos.permission.ACCESS_BUNDLE_DIR"
       }
     ]
   }

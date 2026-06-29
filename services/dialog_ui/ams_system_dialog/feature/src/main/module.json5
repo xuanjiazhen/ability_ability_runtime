@@ -40,6 +40,9 @@
       },
       {
         "name": "ohos.permission.MANAGE_SECURE_SETTINGS"
+      },
+      {
+        "name": "ohos.permission.ACCESS_BUNDLE_DIR"
       }
     ],
     "deviceTypes": [
