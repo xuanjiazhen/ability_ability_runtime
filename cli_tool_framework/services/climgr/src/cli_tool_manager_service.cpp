@@ -667,7 +667,7 @@ int32_t CliToolManagerService::UnregisterIntentFunctionsByNamespace(const std::s
     return ERR_OK;
 }
 
-int32_t CliToolManagerService::GetAllFunctions(std::vector<FunctionInfo> &functions)
+int32_t CliToolManagerService::GetAllFunctions(FunctionsRawData &functions)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllFunctions called");
     InterfaceCallCounter counter(interfaceCalledCount_);
@@ -688,13 +688,15 @@ int32_t CliToolManagerService::GetAllFunctions(std::vector<FunctionInfo> &functi
         return ERR_PERMISSION_DENIED;
     }
 
-    int32_t ret = CliFunctionDataManager::GetInstance().GetAllFunctions(functions);
+    std::vector<FunctionInfo> functionList;
+    int32_t ret = CliFunctionDataManager::GetInstance().GetAllFunctions(functionList);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllFunctions: Failed to get functions, ret=%{public}d", ret);
         return ret;
     }
 
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully got all functions: %{public}zu", functions.size());
+    FunctionsRawData::FromFunctionInfoVec(functionList, functions);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully got all functions (raw): %{public}zu", functionList.size());
     return ERR_OK;
 }
 

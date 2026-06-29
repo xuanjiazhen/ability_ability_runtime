@@ -243,7 +243,13 @@ ErrCode CliToolMGRClient::GetAllFunctions(std::vector<FunctionInfo> &functions)
         TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
         return GET_CLI_TOOL_MGR_SERVICE_FAILED;
     }
-    return proxy->GetAllFunctions(functions);
+    FunctionsRawData rawData;
+    int32_t ret = proxy->GetAllFunctions(rawData);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllFunctions failed: %{public}d", ret);
+        return ret;
+    }
+    return FunctionsRawData::ToFunctionInfoVec(rawData, functions);
 }
 
 int32_t CliToolMGRClient::BatchQueryPermissionBySubCommand(
