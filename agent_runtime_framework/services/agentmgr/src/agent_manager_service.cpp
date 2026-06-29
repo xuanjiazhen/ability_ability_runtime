@@ -111,6 +111,7 @@ void AgentManagerService::OnStart() noexcept
     Init();
     if (!Publish(AgentManagerService::GetInstance())) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Publish failed");
+        OnStop();
         return;
     }
     bool addBundleMgr = AddSystemAbilityListener(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
@@ -122,6 +123,8 @@ void AgentManagerService::OnStart() noexcept
 void AgentManagerService::OnStop() noexcept
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "agentmgr stop");
+    taskHandler_ = nullptr;
+    eventHandler_ = nullptr;
     {
         std::lock_guard<std::mutex> lock(connectionLock_);
         trackedConnections_.clear();
