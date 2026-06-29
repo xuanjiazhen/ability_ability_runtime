@@ -27,7 +27,7 @@ bool ChildProcessArgs::ReadFromParcel(Parcel &parcel)
     entryParams = Str16ToStr8(parcel.ReadString16());
 
     int32_t fdsSize = parcel.ReadInt32();
-    if (fdsSize > CHILD_PROCESS_ARGS_FDS_MAX_COUNT) {
+    if (fdsSize < 0 || fdsSize > CHILD_PROCESS_ARGS_FDS_MAX_COUNT) {
         TAG_LOGE(AAFwkTag::PROCESSMGR, "fds count must <= %{public}d.", CHILD_PROCESS_ARGS_FDS_MAX_COUNT);
         return false;
     }
@@ -42,6 +42,10 @@ bool ChildProcessArgs::ReadFromParcel(Parcel &parcel)
             return false;
         }
         int32_t fd = messageParcel->ReadFileDescriptor();
+        if (fd < 0) {
+            TAG_LOGE(AAFwkTag::PROCESSMGR, "read invalid fd");
+            return false;
+        }
         fds.emplace(key, fd);
     }
     return true;

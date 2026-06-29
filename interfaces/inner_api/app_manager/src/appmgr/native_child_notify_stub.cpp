@@ -65,8 +65,12 @@ int32_t NativeChildNotifyStub::HandleOnNativeChildStarted(MessageParcel &data, M
 
 int32_t NativeChildNotifyStub::HandleOnNativeChildExit(MessageParcel &data, MessageParcel &reply)
 {
-    int pid = data.ReadInt32();
-    int signal = data.ReadInt32();
+    int32_t pid = 0;
+    int32_t signal = 0;
+    if (!data.ReadInt32(pid) || pid <= 0 || !data.ReadInt32(signal)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "read native child exit data failed");
+        return ERR_INVALID_VALUE;
+    }
     return OnNativeChildExit(pid, signal);
 }
 

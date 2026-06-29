@@ -522,11 +522,12 @@ ani_object CreateEtsUIServiceExtensionContext(ani_env *env, std::shared_ptr<UISe
         return nullptr;
     }
     std::unique_ptr<EtsUIServiceExtensionContext> etsContext = std::make_unique<EtsUIServiceExtensionContext>(context);
-    if ((status = env->Object_New(cls, method, &contextObj, reinterpret_cast<ani_long>(etsContext.release()))) !=
+    if ((status = env->Object_New(cls, method, &contextObj, reinterpret_cast<ani_long>(etsContext.get()))) !=
         ANI_OK) {
         TAG_LOGE(AAFwkTag::UISERVC_EXT, "status: %{public}d", status);
         return nullptr;
     }
+    etsContext.release();
     EtsUIServiceExtensionContext::BindNativeMethods(env);
     auto workContext = new (std::nothrow)std::weak_ptr<AbilityRuntime::UIServiceExtensionContext>(context);
     if (workContext == nullptr) {

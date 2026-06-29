@@ -253,8 +253,12 @@ int32_t JsStartupManager::GetDependencies(napi_env env, napi_value value, std::v
     napi_get_array_length(env, value, &arrayLength);
 
     for (size_t i = 0; i < arrayLength; i++) {
-        napi_value napiDep;
-        napi_get_element(env, value, i, &napiDep);
+        napi_value napiDep = nullptr;
+        if (napi_get_element(env, value, i, &napiDep) != napi_ok || napiDep == nullptr) {
+            TAG_LOGE(AAFwkTag::STARTUP, "get dependency element failed");
+            ThrowInvalidParamError(env, "Parameter error: Get StartupTasks element failed.");
+            return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
+        }
 
         napi_valuetype valueType = napi_undefined;
         napi_typeof(env, napiDep, &valueType);

@@ -62,15 +62,18 @@ const std::map<pid_t, MemoryLevel> &MemoryLevelInfo::GetProcLevelMap() const
 
 bool MemoryLevelInfo::ReadFromParcel(Parcel &parcel)
 {
-    uint32_t count = parcel.ReadUint32();
-    if (count < 0 || count > MAX_PARCEL_SIZE) {
-        count = 0;
+    uint32_t count = 0;
+    if (!parcel.ReadUint32(count) || count > MAX_PARCEL_SIZE) {
         return false;
     }
 
     for (uint32_t i = 0; i < count; ++i) {
-        pid_t pid = parcel.ReadInt32();
-        int32_t tempLevel = parcel.ReadInt32();
+        int32_t pid = 0;
+        int32_t tempLevel = 0;
+        if (!parcel.ReadInt32(pid) || pid <= 0 || !parcel.ReadInt32(tempLevel)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "read invalid process memory level");
+            return false;
+        }
         MemoryLevel level = MEMORY_LEVEL_MODERATE;
         switch (tempLevel) {
             case MEMORY_LEVEL_MODERATE:

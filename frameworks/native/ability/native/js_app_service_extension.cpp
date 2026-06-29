@@ -524,7 +524,12 @@ void JsAppServiceExtension::ConfigurationUpdated()
     napi_env env = jsRuntime_.GetNapiEnv();
 
     // Notify extension context
-    auto fullConfig = GetContext()->GetConfiguration();
+    auto context = GetContext();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null context");
+        return;
+    }
+    auto fullConfig = context->GetConfiguration();
     if (!fullConfig) {
         TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null configuration");
         return;

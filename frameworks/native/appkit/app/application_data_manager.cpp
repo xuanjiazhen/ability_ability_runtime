@@ -40,6 +40,7 @@ namespace {
         TASK_POOL_THREAD_TYPE = 2,
     };
     thread_local bool g_hasNotified = false;
+    std::mutex g_errorObserverMutex;
 }
 
 std::atomic<bool> ApplicationDataManager::jsErrorHasReport_{false};
@@ -56,13 +57,19 @@ ApplicationDataManager &ApplicationDataManager::GetInstance()
 
 void ApplicationDataManager::AddErrorObserver(const std::shared_ptr<IErrorObserver> &observer)
 {
+    std::lock_guard<std::mutex> lock(g_errorObserverMutex);
     errorObserver_ = observer;
 }
 
 bool ApplicationDataManager::NotifyUnhandledException(const std::string &errMsg)
 {
-    if (errorObserver_) {
-        errorObserver_->OnUnhandledException(errMsg);
+    std::shared_ptr<IErrorObserver> observer;
+    {
+        std::lock_guard<std::mutex> lock(g_errorObserverMutex);
+        observer = errorObserver_;
+    }
+    if (observer) {
+        observer->OnUnhandledException(errMsg);
         return true;
     }
 
@@ -73,8 +80,13 @@ bool ApplicationDataManager::NotifyUnhandledException(const std::string &errMsg)
 
 bool ApplicationDataManager::NotifyCJUnhandledException(const std::string &errMsg)
 {
-    if (errorObserver_) {
-        errorObserver_->OnUnhandledException(errMsg);
+    std::shared_ptr<IErrorObserver> observer;
+    {
+        std::lock_guard<std::mutex> lock(g_errorObserverMutex);
+        observer = errorObserver_;
+    }
+    if (observer) {
+        observer->OnUnhandledException(errMsg);
         return true;
     }
 
@@ -85,8 +97,13 @@ bool ApplicationDataManager::NotifyCJUnhandledException(const std::string &errMs
 
 bool ApplicationDataManager::NotifyETSUnhandledException(const std::string &errMsg)
 {
-    if (errorObserver_) {
-        errorObserver_->OnUnhandledException(errMsg);
+    std::shared_ptr<IErrorObserver> observer;
+    {
+        std::lock_guard<std::mutex> lock(g_errorObserverMutex);
+        observer = errorObserver_;
+    }
+    if (observer) {
+        observer->OnUnhandledException(errMsg);
         return true;
     }
     return AppRecovery::GetInstance().TryRecoverApp(StateReason::JS_ERROR);
@@ -94,13 +111,19 @@ bool ApplicationDataManager::NotifyETSUnhandledException(const std::string &errM
 
 void ApplicationDataManager::RemoveErrorObserver()
 {
+    std::lock_guard<std::mutex> lock(g_errorObserverMutex);
     errorObserver_ = nullptr;
 }
 
 bool ApplicationDataManager::NotifyExceptionObject(const AppExecFwk::ErrorObject &errorObj)
 {
-    if (errorObserver_) {
-        errorObserver_->OnExceptionObject(errorObj);
+    std::shared_ptr<IErrorObserver> observer;
+    {
+        std::lock_guard<std::mutex> lock(g_errorObserverMutex);
+        observer = errorObserver_;
+    }
+    if (observer) {
+        observer->OnExceptionObject(errorObj);
         return true;
     }
 
@@ -112,8 +135,13 @@ bool ApplicationDataManager::NotifyExceptionObject(const AppExecFwk::ErrorObject
 bool ApplicationDataManager::NotifyCJExceptionObject(const AppExecFwk::ErrorObject &errorObj)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "Notify Exception error observer come");
-    if (errorObserver_) {
-        errorObserver_->OnExceptionObject(errorObj);
+    std::shared_ptr<IErrorObserver> observer;
+    {
+        std::lock_guard<std::mutex> lock(g_errorObserverMutex);
+        observer = errorObserver_;
+    }
+    if (observer) {
+        observer->OnExceptionObject(errorObj);
         return true;
     }
 
@@ -125,8 +153,13 @@ bool ApplicationDataManager::NotifyCJExceptionObject(const AppExecFwk::ErrorObje
 bool ApplicationDataManager::NotifyETSExceptionObject(const AppExecFwk::ErrorObject &errorObj)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "Notify Exception error observer come");
-    if (errorObserver_) {
-        errorObserver_->OnExceptionObject(errorObj);
+    std::shared_ptr<IErrorObserver> observer;
+    {
+        std::lock_guard<std::mutex> lock(g_errorObserverMutex);
+        observer = errorObserver_;
+    }
+    if (observer) {
+        observer->OnExceptionObject(errorObj);
         return true;
     }
     return AppRecovery::GetInstance().TryRecoverApp(StateReason::JS_ERROR);

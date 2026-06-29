@@ -161,6 +161,10 @@ sptr<AppExecFwk::IAppMgr> EtsAppManager::GetAppManagerInstance()
 {
     sptr<ISystemAbilityManager> systemAbilityManager =
         SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (systemAbilityManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null systemAbilityManager");
+        return nullptr;
+    }
     sptr<IRemoteObject> appObject = systemAbilityManager->GetSystemAbility(APP_MGR_SERVICE_ID);
     return iface_cast<AppExecFwk::IAppMgr>(appObject);
 }
@@ -169,6 +173,10 @@ sptr<AAFwk::IAbilityManager> EtsAppManager::GetAbilityManagerInstance()
 {
     sptr<ISystemAbilityManager> systemAbilityManager =
         SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (systemAbilityManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null systemAbilityManager");
+        return nullptr;
+    }
     sptr<IRemoteObject> abilityObject =
         systemAbilityManager->GetSystemAbility(ABILITY_MGR_SERVICE_ID);
     return iface_cast<AAFwk::IAbilityManager>(abilityObject);

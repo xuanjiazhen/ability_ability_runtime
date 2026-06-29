@@ -58,10 +58,13 @@ void NativeArgsChildProcess::OnStart(std::shared_ptr<AppExecFwk::ChildProcessArg
     ChildProcess::OnStart(args);
 
     TAG_LOGI(AAFwkTag::PROCESSMGR, "Enter native lib entry function");
-    auto nativeArgs = ParseToNativeArgs(args->entryParams, args->fds);
-
     if (!entryFunc_) {
         TAG_LOGE(AAFwkTag::PROCESSMGR, "null entryFunc");
+        return;
+    }
+    auto nativeArgs = ParseToNativeArgs(args->entryParams, args->fds);
+    if (nativeArgs.entryParams == nullptr) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "parse native args failed");
         return;
     }
     ChildProcessArgsManager::GetInstance().SetChildProcessArgs(nativeArgs);
@@ -86,6 +89,16 @@ NativeChildProcess_Args NativeArgsChildProcess::ParseToNativeArgs(const std::str
         return args;
     }
     NativeChildProcess_Fd *tail = nullptr;
+    auto clearArgs = [&args]() {
+        while (args.fdList.head != nullptr) {
+            auto node = args.fdList.head;
+            args.fdList.head = node->next;
+            delete[] node->fdName;
+            delete node;
+        }
+        delete[] args.entryParams;
+        args.entryParams = nullptr;
+    };
     for (const auto &fd : fds) {
         auto &fdName = fd.first;
         auto fdValue = fd.second;
@@ -93,15 +106,23 @@ NativeChildProcess_Args NativeArgsChildProcess::ParseToNativeArgs(const std::str
         NativeChildProcess_Fd *node = new(std::nothrow) NativeChildProcess_Fd;
         if (!node) {
             TAG_LOGE(AAFwkTag::PROCESSMGR, "null node");
+            clearArgs();
             return args;
         }
         node->next = nullptr;
-        node->fdName = new char[fdName.size() + 1];
+        node->fdName = new (std::nothrow) char[fdName.size() + 1];
+        if (node->fdName == nullptr) {
+            delete node;
+            clearArgs();
+            TAG_LOGE(AAFwkTag::PROCESSMGR, "null fdName");
+            return args;
+        }
         if (strcpy_s(node->fdName, fdName.size() + 1, fdName.c_str()) != ERR_OK) {
             delete[] node->fdName;
             node->fdName = nullptr;
             delete node;
             node = nullptr;
+            clearArgs();
             TAG_LOGE(AAFwkTag::APPKIT, "strcpy_s failed");
             return args;
         }
