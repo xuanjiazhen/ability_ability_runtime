@@ -28,27 +28,44 @@ static const std::map<CliManagerErrorCode, std::string> ERROR_MSG_MAP = {
     {CliManagerErrorCode::ERROR_INVALID_PARAM, "Invalid input parameter."},
     {CliManagerErrorCode::ERROR_TOOL_NOT_FOUND, "The tool does not exist."},
     {CliManagerErrorCode::ERROR_REACH_LIMIT, "Maximum number of processes has been reached."},
-    {CliManagerErrorCode::ERROR_SESSION_NOT_FOUND, "The session not found."},
-    {CliManagerErrorCode::ERROR_SEND_MESSAGE, "Sending Message to failure."},
+    {CliManagerErrorCode::ERROR_SESSION_NOT_FOUND, "The session was not found."},
+    {CliManagerErrorCode::ERROR_SEND_MESSAGE, "Failed to send message to the CLI session."},
     {CliManagerErrorCode::ERROR_INNER, "Internal error."},
     {CliManagerErrorCode::ERROR_FUNCTION_NOT_EXIST, "The function does not exist."},
-    {CliManagerErrorCode::ERROR_FUNCTION_EXECUTE_FAILED, "The function execute failed."},
-    {CliManagerErrorCode::ERROR_FUNCTION_EXECUTE_TIMEOUT, "The function execute timeout."},
+    {CliManagerErrorCode::ERROR_FUNCTION_EXECUTE_FAILED, "Failed to execute the function."},
+    {CliManagerErrorCode::ERROR_FUNCTION_EXECUTE_TIMEOUT, "Function execution timed out."},
 };
 
 static const std::map<int32_t, CliManagerErrorCode> NATIVE_TO_BUSINESS_ERROR_MAP = {
-    {OHOS::ERR_PERMISSION_DENIED, CliManagerErrorCode::ERROR_PERMISSION_DENIED},
-    {AAFwk::ERR_NOT_SYSTEM_APP, CliManagerErrorCode::ERROR_NOT_SYSTEM_APP},
     {ERR_PERMISSION_DENIED, CliManagerErrorCode::ERROR_PERMISSION_DENIED},
+    {ERR_NOT_HAP, CliManagerErrorCode::ERROR_PERMISSION_DENIED},
+    {ERR_NOT_SA_CALLER, CliManagerErrorCode::ERROR_PERMISSION_DENIED},
     {ERR_NOT_SYSTEM_APP, CliManagerErrorCode::ERROR_NOT_SYSTEM_APP},
     {ERR_INVALID_PARAM, CliManagerErrorCode::ERROR_INVALID_PARAM},
+    {ERR_FUNCTION_EXIST, CliManagerErrorCode::ERROR_INVALID_PARAM},
     {ERR_TOOL_NOT_EXIST, CliManagerErrorCode::ERROR_TOOL_NOT_FOUND},
+    {ERR_FUNCTION_NOT_EXIST, CliManagerErrorCode::ERROR_FUNCTION_NOT_EXIST},
     {ERR_SESSION_LIMIT_EXCEEDED, CliManagerErrorCode::ERROR_REACH_LIMIT},
     {ERR_CLI_SESSION_NOT_FOUND, CliManagerErrorCode::ERROR_SESSION_NOT_FOUND},
     {ERR_CLI_SEND_MESSAGE, CliManagerErrorCode::ERROR_SEND_MESSAGE},
-    {ERR_FUNCTION_NOT_EXIST, CliManagerErrorCode::ERROR_FUNCTION_NOT_EXIST},
+    {GET_CLI_TOOL_MGR_SERVICE_FAILED, CliManagerErrorCode::ERROR_INNER},
+    {ERR_NO_INIT, CliManagerErrorCode::ERROR_INNER},
+    {ERR_INNER_PARAM_INVALID, CliManagerErrorCode::ERROR_INNER},
+    {ERR_NOT_KILL, CliManagerErrorCode::ERROR_INNER},
+    {ERR_JSON_PARSE_FAILED, CliManagerErrorCode::ERROR_INNER},
+    {ERR_FILE_NOT_FOUND, CliManagerErrorCode::ERROR_INNER},
+    {ERR_KVSTORE_NOT_READY, CliManagerErrorCode::ERROR_INNER},
+    {ERR_KVSTORE_ERROR, CliManagerErrorCode::ERROR_INNER},
     {ERR_FUNCTION_EXECUTE_FAILED, CliManagerErrorCode::ERROR_FUNCTION_EXECUTE_FAILED},
     {ERR_FUNCTION_EXECUTE_TIMEOUT, CliManagerErrorCode::ERROR_FUNCTION_EXECUTE_TIMEOUT},
+};
+
+static const std::map<int32_t, std::string> INNER_ERROR_MSG_MAP = {
+    {GET_CLI_TOOL_MGR_SERVICE_FAILED, "Internal error. Service unavailable."},
+    {ERR_JSON_PARSE_FAILED, "Internal error. Configuration unavailable."},
+    {ERR_FILE_NOT_FOUND, "Internal error. Configuration unavailable."},
+    {ERR_KVSTORE_NOT_READY, "Internal error. Storage unavailable."},
+    {ERR_KVSTORE_ERROR, "Internal error. Storage unavailable."},
 };
 
 std::string GetErrorMsg(CliManagerErrorCode errCode)
@@ -58,6 +75,23 @@ std::string GetErrorMsg(CliManagerErrorCode errCode)
         return it->second;
     }
     return "Unknown error.";
+}
+
+std::string GetInnerErrorMsg(int32_t nativeErr)
+{
+    auto it = INNER_ERROR_MSG_MAP.find(nativeErr);
+    if (it != INNER_ERROR_MSG_MAP.end()) {
+        return it->second;
+    }
+    return GetErrorMsg(CliManagerErrorCode::ERROR_INNER);
+}
+
+std::string GetErrorMsg(CliManagerErrorCode errCode, int32_t nativeErr)
+{
+    if (errCode == CliManagerErrorCode::ERROR_INNER) {
+        return GetInnerErrorMsg(nativeErr);
+    }
+    return GetErrorMsg(errCode);
 }
 
 CliManagerErrorCode GetBusinessErrorCode(int32_t nativeErr)
@@ -84,7 +118,7 @@ napi_value CreateCliManagerError(napi_env env, int32_t errCode, const std::strin
 napi_value CreateCliJsErrorByNativeErr(napi_env env, int32_t nativeErr)
 {
     auto businessErrCode = GetBusinessErrorCode(nativeErr);
-    auto errMsg = GetErrorMsg(businessErrCode);
+    auto errMsg = GetErrorMsg(businessErrCode, nativeErr);
     return CreateCliManagerError(env, static_cast<int32_t>(businessErrCode), errMsg);
 }
 
