@@ -256,6 +256,20 @@ HWTEST_F(EtsEnvironmentTest, Initialize_0100, TestSize.Level0)
 }
 
 /**
+ * @tc.name: RegisterFuncsInitialize_0100
+ * @tc.desc: Test RegisterFuncs Initialize callback accepts static boot AOT preload flag.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, RegisterFuncsInitialize_0100, TestSize.Level0)
+{
+    auto funcs = ETSEnvironment::RegisterFuncs();
+    ASSERT_NE(funcs, nullptr);
+    ASSERT_NE(funcs->Initialize, nullptr);
+    bool result = funcs->Initialize(nullptr, false, "", true);
+    EXPECT_FALSE(result);
+}
+
+/**
  * @tc.name: HandleUncaughtError_0100
  * @tc.desc: Test HandleUncaughtError can be called without crash.
  * @tc.type: FUNC

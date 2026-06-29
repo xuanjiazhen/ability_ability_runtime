@@ -283,6 +283,11 @@ ohos_unittest("ets_runtime_test") {
     blocklist = "../../cfi_blocklist.txt"
   }
   branch_protector_ret = "pac_ret"
+  ldflags = [
+    "-Wl,--wrap=dlopen",
+    "-Wl,--wrap=dlsym",
+    "-Wl,--wrap=dlclose",
+  ]
 
   include_dirs = [
     "${ability_runtime_innerkits_path}/runtime/include",
