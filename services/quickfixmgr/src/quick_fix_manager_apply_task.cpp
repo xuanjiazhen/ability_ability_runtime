@@ -25,6 +25,7 @@
 #include "quick_fix_error_utils.h"
 #include "quick_fix_manager_service.h"
 #include "quick_fix/quick_fix_status_callback_host.h"
+#include "common_event_publish_info.h"
 #include "want.h"
 
 namespace OHOS {
@@ -645,7 +646,11 @@ void QuickFixManagerApplyTask::NotifyApplyStatus(int32_t resultCode)
     want.SetParam(BUNDLE_NAME, bundleName_);
 
     EventFwk::CommonEventData commonData {want};
-    EventFwk::CommonEventManager::PublishCommonEvent(commonData);
+    EventFwk::CommonEventPublishInfo publishInfo;
+    publishInfo.SetBundleName(bundleName_);
+    publishInfo.SetSubscriberType(EventFwk::SubscriberType::SYSTEM_SUBSCRIBER_TYPE);
+    publishInfo.SetValidationRule(EventFwk::ValidationRule::OR);
+    EventFwk::CommonEventManager::PublishCommonEvent(commonData, publishInfo);
 }
 
 void QuickFixManagerApplyTask::PostNotifyLoadRepairPatchTask()
