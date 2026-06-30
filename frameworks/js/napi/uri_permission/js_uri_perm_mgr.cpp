@@ -24,6 +24,7 @@
 #endif
 #include "ipc_skeleton.h"
 #include "js_error_utils.h"
+#include "js_runtime_utils.h"
 #include "napi_common_util.h"
 #include "parameters.h"
 #include "tokenid_kit.h"
@@ -66,7 +67,8 @@ static void ResolveGrantUriPermissionTask(napi_env env, NapiAsyncTask &task, int
         task.Reject(env, CreateJsErrorByNativeErr(env, errCode, "ohos.permission.PROXY_AUTHORIZATION_URI"));
         return;
     }
-    task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+    task.Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+        GetInnerErrorMsg(AbilityInnerErrorMsg::GRANT_URI_PERMISSION_FAILED)));
     return;
 }
 
@@ -84,7 +86,8 @@ static void ResolveGrantUriPermissionWithAppIndexTask(napi_env env, NapiAsyncTas
         task.Reject(env, CreateJsErrorByNativeErr(env, errCode, "ohos.permission.PROXY_AUTHORIZATION_URI"));
         return;
     }
-    task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+    task.Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+        GetInnerErrorMsg(AbilityInnerErrorMsg::GRANT_URI_PERMISSION_FAILED)));
     return;
 }
 
@@ -100,7 +103,8 @@ static void ResolveRevokeUriPermissionTask(napi_env env, NapiAsyncTask &task, in
         task.Reject(env, CreateJsErrorByNativeErr(env, errCode));
         return;
     }
-    task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+    task.Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+        GetInnerErrorMsg(AbilityInnerErrorMsg::REVOKE_URI_PERMISSION_FAILED)));
     return;
 }
 
@@ -117,7 +121,8 @@ static void ResolveRevokeUriPermissionWithAppIndexTask(napi_env env, NapiAsyncTa
         task.Reject(env, CreateJsErrorByNativeErr(env, errCode));
         return;
     }
-    task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+    task.Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+        GetInnerErrorMsg(AbilityInnerErrorMsg::REVOKE_URI_PERMISSION_FAILED)));
     return;
 }
 
@@ -129,7 +134,8 @@ static void ResolveGrantUriPermissionByKeyAsCallerTask(napi_env env, NapiAsyncTa
         task.ResolveWithNoError(env, CreateJsUndefined(env));
         return;
     }
-    task.Reject(env, CreateJsErrorByNativeErr(env, errCode, "ohos.permission.GRANT_URI_PERMISSION_AS_CALLER"));
+    task.Reject(env, CreateJsErrorByNativeErr(env, errCode, "ohos.permission.GRANT_URI_PERMISSION_AS_CALLER",
+        GetInnerErrorMsg(AbilityInnerErrorMsg::GRANT_URI_PERMISSION_AS_CALLER_FAILED)));
     return;
 }
 
@@ -141,7 +147,8 @@ static void ResolveGrantUriPermissionByKeyTask(napi_env env, NapiAsyncTask &task
         task.ResolveWithNoError(env, CreateJsUndefined(env));
         return;
     }
-    task.Reject(env, CreateJsErrorByNativeErr(env, errCode, ""));
+    task.Reject(env, CreateJsErrorByNativeErr(env, errCode, "",
+        GetInnerErrorMsg(AbilityInnerErrorMsg::GRANT_URI_PERMISSION_BY_KEY_FAILED)));
     return;
 }
 
