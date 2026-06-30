@@ -41,6 +41,8 @@ constexpr int32_t ARG_INDEX_ZERO = 0;
 constexpr int32_t ARG_INDEX_ONE = 1;
 constexpr int32_t ARG_INDEX_TWO = 2;
 constexpr int32_t ARG_INDEX_THREE = 3;
+constexpr const char* PERMISSION_PROXY_AUTHORIZATION_URI = "ohos.permission.PROXY_AUTHORIZATION_URI";
+constexpr const char* PERMISSION_GRANT_URI_PERMISSION_AS_CALLER = "ohos.permission.GRANT_URI_PERMISSION_AS_CALLER";
 
 struct UriPermissionParam {
     std::string uriStr;
@@ -63,10 +65,11 @@ static void ResolveGrantUriPermissionTask(napi_env env, NapiAsyncTask &task, int
     }
     if (errCode == AAFwk::CHECK_PERMISSION_FAILED || errCode == AAFwk::ERR_CODE_INVALID_URI_FLAG ||
         errCode == AAFwk::ERR_CODE_INVALID_URI_TYPE || errCode == AAFwk::ERR_CODE_GRANT_URI_PERMISSION) {
-        task.Reject(env, CreateJsErrorByNativeErr(env, errCode, "ohos.permission.PROXY_AUTHORIZATION_URI"));
+        task.Reject(env, CreateJsErrorByNativeErr(env, errCode, PERMISSION_PROXY_AUTHORIZATION_URI));
         return;
     }
-    task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+    task.Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+        GetInnerErrorMsg(AbilityInnerErrorMsg::GRANT_URI_PERMISSION_FAILED)));
     return;
 }
 
@@ -81,10 +84,11 @@ static void ResolveGrantUriPermissionWithAppIndexTask(napi_env env, NapiAsyncTas
     if (errCode == AAFwk::CHECK_PERMISSION_FAILED || errCode == AAFwk::ERR_CODE_INVALID_URI_FLAG ||
         errCode == AAFwk::ERR_CODE_INVALID_URI_TYPE || errCode == AAFwk::ERR_CODE_GRANT_URI_PERMISSION ||
         errCode == AAFwk::ERR_GET_TARGET_BUNDLE_INFO_FAILED) {
-        task.Reject(env, CreateJsErrorByNativeErr(env, errCode, "ohos.permission.PROXY_AUTHORIZATION_URI"));
+        task.Reject(env, CreateJsErrorByNativeErr(env, errCode, PERMISSION_PROXY_AUTHORIZATION_URI));
         return;
     }
-    task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+    task.Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+        GetInnerErrorMsg(AbilityInnerErrorMsg::GRANT_URI_PERMISSION_FAILED)));
     return;
 }
 
@@ -100,7 +104,8 @@ static void ResolveRevokeUriPermissionTask(napi_env env, NapiAsyncTask &task, in
         task.Reject(env, CreateJsErrorByNativeErr(env, errCode));
         return;
     }
-    task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+    task.Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+        GetInnerErrorMsg(AbilityInnerErrorMsg::REVOKE_URI_PERMISSION_FAILED)));
     return;
 }
 
@@ -117,7 +122,8 @@ static void ResolveRevokeUriPermissionWithAppIndexTask(napi_env env, NapiAsyncTa
         task.Reject(env, CreateJsErrorByNativeErr(env, errCode));
         return;
     }
-    task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+    task.Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+        GetInnerErrorMsg(AbilityInnerErrorMsg::REVOKE_URI_PERMISSION_FAILED)));
     return;
 }
 
@@ -129,7 +135,11 @@ static void ResolveGrantUriPermissionByKeyAsCallerTask(napi_env env, NapiAsyncTa
         task.ResolveWithNoError(env, CreateJsUndefined(env));
         return;
     }
-    task.Reject(env, CreateJsErrorByNativeErr(env, errCode, "ohos.permission.GRANT_URI_PERMISSION_AS_CALLER"));
+    auto innerErrMsg = errCode == AAFwk::ERR_UPMS_GRANT_URI_PERMISSION_FAILED ?
+        AbilityInnerErrorMsg::GRANT_URI_PERMISSION_AS_CALLER_POLICY_FAILED :
+        AbilityInnerErrorMsg::GRANT_URI_PERMISSION_AS_CALLER_FAILED;
+    task.Reject(env, CreateJsErrorByNativeErr(env, errCode, PERMISSION_GRANT_URI_PERMISSION_AS_CALLER,
+        GetInnerErrorMsg(innerErrMsg)));
     return;
 }
 
@@ -141,7 +151,10 @@ static void ResolveGrantUriPermissionByKeyTask(napi_env env, NapiAsyncTask &task
         task.ResolveWithNoError(env, CreateJsUndefined(env));
         return;
     }
-    task.Reject(env, CreateJsErrorByNativeErr(env, errCode, ""));
+    auto innerErrMsg = errCode == AAFwk::ERR_UPMS_GRANT_URI_PERMISSION_FAILED ?
+        AbilityInnerErrorMsg::GRANT_URI_PERMISSION_BY_KEY_POLICY_FAILED :
+        AbilityInnerErrorMsg::GRANT_URI_PERMISSION_BY_KEY_FAILED;
+    task.Reject(env, CreateJsErrorByNativeErr(env, errCode, "", GetInnerErrorMsg(innerErrMsg)));
     return;
 }
 

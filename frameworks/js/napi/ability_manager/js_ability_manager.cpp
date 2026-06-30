@@ -384,12 +384,20 @@ private:
                 std::vector<AAFwk::AbilityRunningInfo> infos;
                 auto errcode = AbilityManagerClient::GetInstance()->GetAbilityRunningInfos(infos);
                 if (errcode == 0) {
+                    napi_value infosObj = CreateJsAbilityRunningInfoArray(env, infos);
+                    if (infosObj == nullptr) {
+                        task.Reject(env, CreateJsErrorByNativeErr(env,
+                            static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "",
+                            GetInnerErrorMsg(AbilityInnerErrorMsg::GET_ABILITY_RUNNING_INFOS_FAILED)));
+                        return;
+                    }
 #ifdef ENABLE_ERRCODE
-                    task.ResolveWithNoError(env, CreateJsAbilityRunningInfoArray(env, infos));
+                    task.ResolveWithNoError(env, infosObj);
                 } else {
-                    task.Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(errcode)));
+                    task.Reject(env, CreateJsErrorByNativeErr(env, errcode, "",
+                        GetInnerErrorMsg(AbilityInnerErrorMsg::GET_ABILITY_RUNNING_INFOS_FAILED)));
 #else
-                    task.Resolve(env, CreateJsAbilityRunningInfoArray(env, infos));
+                    task.Resolve(env, infosObj);
                 } else {
                     task.Reject(env, CreateJsError(env, errcode, "Get mission infos failed."));
 #endif
@@ -522,10 +530,17 @@ private:
             [](napi_env env, NapiAsyncTask &task, int32_t status) {
                 HandleScope handleScope(env);
                 AppExecFwk::ElementName elementName = AbilityManagerClient::GetInstance()->GetTopAbility();
+                napi_value elementNameObj = CreateJsElementName(env, elementName);
+                if (elementNameObj == nullptr) {
+                    task.Reject(env, CreateJsErrorByNativeErr(env,
+                        static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "",
+                        GetInnerErrorMsg(AbilityInnerErrorMsg::GET_TOP_ABILITY_FAILED)));
+                    return;
+                }
 #ifdef ENABLE_ERRCOE
-                task.ResolveWithNoError(env, CreateJsElementName(env, elementName));
+                task.ResolveWithNoError(env, elementNameObj);
 #else
-                task.Resolve(env, CreateJsElementName(env, elementName));
+                task.Resolve(env, elementNameObj);
 #endif
             };
 
@@ -558,12 +573,15 @@ private:
         AAFwk::ShareRuntimeTask task = [env, asyncTask](int32_t resultCode, const AAFwk::WantParams &wantParam) {
             HandleScope handleScope(env);
             if (resultCode != 0) {
-                asyncTask->Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(resultCode)));
+                asyncTask->Reject(env, CreateJsErrorByNativeErr(env, resultCode, "",
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::ACQUIRE_SHARE_DATA_FAILED)));
                 return;
             }
             napi_value abilityResult = AppExecFwk::WrapWantParams(env, wantParam);
             if (abilityResult == nullptr) {
-                asyncTask->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                asyncTask->Reject(env, CreateJsErrorByNativeErr(env,
+                    static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "",
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::ACQUIRE_SHARE_DATA_FAILED)));
             } else {
                 asyncTask->ResolveWithNoError(env, abilityResult);
             }
@@ -574,7 +592,8 @@ private:
         shareDataCallbackStub->SetShareRuntimeTask(task);
         auto err = AbilityManagerClient::GetInstance()->AcquireShareData(missionId, shareDataCallbackStub);
         if (err != 0) {
-            asyncTask->Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(err)));
+            asyncTask->Reject(env, CreateJsErrorByNativeErr(env, err, "",
+                GetInnerErrorMsg(AbilityInnerErrorMsg::ACQUIRE_SHARE_DATA_FAILED)));
         }
         return handleEscape.Escape(result);
     }

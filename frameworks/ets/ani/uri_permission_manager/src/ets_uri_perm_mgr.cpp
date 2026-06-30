@@ -37,6 +37,8 @@ namespace {
 constexpr const int32_t ERR_OK = 0;
 constexpr const int32_t ERR_FAILURE = -1;
 constexpr const char* NOT_SYSTEM_APP = "The application is not system-app, can not use system-api.";
+constexpr const char* PERMISSION_PROXY_AUTHORIZATION_URI = "ohos.permission.PROXY_AUTHORIZATION_URI";
+constexpr const char* PERMISSION_GRANT_URI_PERMISSION_AS_CALLER = "ohos.permission.GRANT_URI_PERMISSION_AS_CALLER";
 
 ani_object CreateDouble(ani_env *env, int32_t res)
 {
@@ -113,7 +115,8 @@ static void grantUriPermissionCallbackSync([[maybe_unused]]ani_env *env,
     int32_t errCode = AAFwk::UriPermissionManagerClient::GetInstance().GrantUriPermission(uriVec, flagId,
         targetBundleName, appCloneIndex);
     if (errCode != ERR_OK) {
-        etsErrCode = EtsErrorUtil::CreateErrorByNativeErr(env, errCode);
+        etsErrCode = EtsErrorUtil::CreateErrorByNativeErr(env, errCode, PERMISSION_PROXY_AUTHORIZATION_URI,
+            GetInnerErrorMsg(AbilityInnerErrorMsg::GRANT_URI_PERMISSION_FAILED));
     }
     
     AppExecFwk::AsyncCallback(env, callback, etsErrCode, nullptr);
@@ -150,7 +153,8 @@ static void revokeUriPermissionCallbackSync([[maybe_unused]]ani_env *env,
     int32_t errCode = AAFwk::UriPermissionManagerClient::GetInstance().RevokeUriPermissionManually(uriVec,
         targetBundleName, appCloneIndex);
     if (errCode != ERR_OK) {
-        etsErrCode = EtsErrorUtil::CreateErrorByNativeErr(env, errCode);
+        etsErrCode = EtsErrorUtil::CreateErrorByNativeErr(env, errCode, "",
+            GetInnerErrorMsg(AbilityInnerErrorMsg::REVOKE_URI_PERMISSION_FAILED));
     }
     AppExecFwk::AsyncCallback(env, callback, etsErrCode, nullptr);
 }
@@ -181,7 +185,10 @@ static void grantUriPermissionByKeyCallbackSync([[maybe_unused]]ani_env *env,
     if (errCode != ERR_OK) {
         result = ERR_FAILURE;
         TAG_LOGE(AAFwkTag::DELEGATOR, "GrantUriPermissionByKey failed status: %{public}d", errCode);
-        etsErrCode = EtsErrorUtil::CreateErrorByNativeErr(env, errCode);
+        auto innerErrMsg = errCode == AAFwk::ERR_UPMS_GRANT_URI_PERMISSION_FAILED ?
+            AbilityInnerErrorMsg::GRANT_URI_PERMISSION_BY_KEY_POLICY_FAILED :
+            AbilityInnerErrorMsg::GRANT_URI_PERMISSION_BY_KEY_FAILED;
+        etsErrCode = EtsErrorUtil::CreateErrorByNativeErr(env, errCode, "", GetInnerErrorMsg(innerErrMsg));
         AppExecFwk::AsyncCallback(env, callback, etsErrCode, CreateDouble(env, result));
         return;
     }
@@ -214,7 +221,11 @@ static void grantUriPermissionByKeyAsCallerCallbackSync([[maybe_unused]]ani_env 
         uriStr, flag, callerTokenId, targetTokenId);
     if (errCode != ERR_OK) {
         result = ERR_FAILURE;
-        etsErrCode = EtsErrorUtil::CreateErrorByNativeErr(env, errCode);
+        auto innerErrMsg = errCode == AAFwk::ERR_UPMS_GRANT_URI_PERMISSION_FAILED ?
+            AbilityInnerErrorMsg::GRANT_URI_PERMISSION_AS_CALLER_POLICY_FAILED :
+            AbilityInnerErrorMsg::GRANT_URI_PERMISSION_AS_CALLER_FAILED;
+        etsErrCode = EtsErrorUtil::CreateErrorByNativeErr(env, errCode, PERMISSION_GRANT_URI_PERMISSION_AS_CALLER,
+            GetInnerErrorMsg(innerErrMsg));
     }
     AppExecFwk::AsyncCallback(env, callback, etsErrCode, CreateDouble(env, result));
 }
