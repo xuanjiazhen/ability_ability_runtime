@@ -1599,8 +1599,9 @@ HWTEST_F(AppMgrStubTest, HandleReportDumpMemResult_001, TestSize.Level1)
     MessageParcel reply;
     MessageOption option;
     WriteInterfaceToken(data);
-    sptr<IRemoteObject> remoteCallback = nullptr;
-    data.WriteRemoteObject(remoteCallback);
+    auto callback = sptr<MemDumpCallbackMock>(new (std::nothrow) MemDumpCallbackMock());
+    ASSERT_NE(callback, nullptr);
+    ASSERT_TRUE(data.WriteRemoteObject(callback->AsObject()));
     std::string dumpResult = "test result";
     data.WriteString(dumpResult);
 
@@ -1626,13 +1627,13 @@ HWTEST_F(AppMgrStubTest, HandleReportDumpMemResult_002, TestSize.Level1)
     MessageOption option;
     WriteInterfaceToken(data);
     sptr<IRemoteObject> remoteCallback = nullptr;
-    data.WriteRemoteObject(remoteCallback);
+    ASSERT_TRUE(data.WriteRemoteObject(remoteCallback));
     std::string dumpResult = "test result";
     data.WriteString(dumpResult);
 
     auto result = mockAppMgrService_->OnRemoteRequest(
         static_cast<uint32_t>(AppMgrInterfaceCode::REPORT_DUMP_MEM_RESULT), data, reply, option);
-    EXPECT_EQ(result, NO_ERROR);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }

@@ -942,6 +942,10 @@ int32_t AppMgrStub::HandleReportDumpMemResult(MessageParcel &data, MessageParcel
 {
     sptr<IRemoteObject> remoteCallback = data.ReadRemoteObject();
     sptr<IMemDumpCallback> callback = iface_cast<IMemDumpCallback>(remoteCallback);
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid mem dump callback");
+        return ERR_INVALID_VALUE;
+    }
     std::string dumpResult = data.ReadString();
     auto result = ReportDumpMemResult(callback, dumpResult);
     if (!reply.WriteInt32(result)) {
