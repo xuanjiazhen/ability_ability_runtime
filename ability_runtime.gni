@@ -133,6 +133,7 @@ declare_args() {
   ability_runtime_screenlock_enable = true
   ability_runtime_udmf_enable = true
   ability_runtime_dsoftbus_enable = false
+  ability_runtime_taskmanager_low_mem_frozen_skip_detecter_enable = false
 
   if (!defined(global_parts_info) ||
       defined(global_parts_info.communication_dsoftbus)) {

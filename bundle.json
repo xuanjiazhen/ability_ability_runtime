@@ -36,7 +36,8 @@
         "ability_runtime_no_screen",
         "ability_runtime_forbid_start_enabled",
         "ability_runtime_enable_clone_for_account",
-        "ability_runtime_dsoftbus_enable"
+        "ability_runtime_dsoftbus_enable",
+        "ability_runtime_taskmanager_low_mem_frozen_skip_detecter_enable"
       ],
       "adapted_system_type": [
           "standard"
@@ -66,6 +67,7 @@
             "data_share",
             "dlp_permission_service",
             "dsoftbus",
+            "efficiency_manager",
             "eventhandler",
             "ets_frontend",
             "ets_runtime",

@@ -67,6 +67,9 @@
 #endif
 #include "xcollie/process_kill_reason.h"
 #include "parameters.h"
+#ifdef TASKMGR_LOW_MEM_FROZEN_SKIP_DETECTER_ENABLE
+#include "suspend_manager_client.h"
+#endif
 
 namespace OHOS {
 using AbilityRuntime::FreezeUtil;
@@ -2623,6 +2626,15 @@ void AbilityRecord::PostStartAbilityByCallTimeoutTask(bool isHalf)
             FreezeUtil::GetInstance().DeleteLifecycleEvent(flow.token);
             FreezeUtil::GetInstance().DeleteAppLifecycleEvent(pid);
         }
+#ifdef TASKMGR_LOW_MEM_FROZEN_SKIP_DETECTER_ENABLE
+        std::unordered_map<int32_t, std::pair<bool, uint32_t>> appSuspendState;
+        SuspendManager::SuspendManagerClient::GetInstance().GetAllAppSuspendState(appSuspendState);
+        bool isSuspended = (appSuspendState.find(uid) != appSuspendState.end() && appSuspendState[uid].first);
+        if (isSuspended) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "PostStartAbilityByCallTimeoutTask, app is frozen, will not report fault");
+            return;
+        }
+#endif
         AppExecFwk::AppfreezeManager::GetInstance()->LifecycleTimeoutHandle(info, flow);
     };
     auto timeoutMs = isHalf ? BY_CALL_HALF_TIMEOUT_MS : BY_CALL_TIMEOUT_MS;
