@@ -25,6 +25,8 @@
 #include "quick_fix_error_utils.h"
 #include "quick_fix_manager_service.h"
 #include "quick_fix/quick_fix_status_callback_host.h"
+#include "bundle_mgr_helper.h"
+#include "common_event_publish_info.h"
 #include "want.h"
 
 namespace OHOS {
@@ -645,7 +647,21 @@ void QuickFixManagerApplyTask::NotifyApplyStatus(int32_t resultCode)
     want.SetParam(BUNDLE_NAME, bundleName_);
 
     EventFwk::CommonEventData commonData {want};
-    EventFwk::CommonEventManager::PublishCommonEvent(commonData);
+    EventFwk::CommonEventPublishInfo publishInfo;
+    publishInfo.SetBundleName(bundleName_);
+    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::QUICKFIX, "null bundleMgrHelper");
+        return;
+    }
+    int32_t uid = bundleMgrHelper->GetUidByBundleName(bundleName_,
+        AppExecFwk::Constants::ANY_USERID, 0);
+    std::vector<int32_t> subscriberUids;
+    subscriberUids.emplace_back(uid);
+    publishInfo.SetSubscriberUid(subscriberUids);
+    publishInfo.SetSubscriberType(EventFwk::SubscriberType::SYSTEM_SUBSCRIBER_TYPE);
+    publishInfo.SetValidationRule(EventFwk::ValidationRule::OR);
+    EventFwk::CommonEventManager::PublishCommonEvent(commonData, publishInfo);
 }
 
 void QuickFixManagerApplyTask::PostNotifyLoadRepairPatchTask()
