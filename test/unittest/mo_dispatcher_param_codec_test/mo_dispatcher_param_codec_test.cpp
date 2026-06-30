@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "message_parcel.h"
+#include "mo_dispatcher_complex_type_manager.h"
 #include "mo_dispatcher_param_codec.h"
 #include "mo_dispatcher_types.h"
 #include "modular_object_dispatcher.h"
@@ -218,8 +219,15 @@ struct VariantGuard {
 
 class MoDispatcherParamCodecTest : public testing::Test {
 public:
-    void SetUp() override {}
-    void TearDown() override {}
+    void SetUp() override
+    {
+        ModObjDispatcherComplexTypeManager::RegisterStructMetadata({});
+    }
+
+    void TearDown() override
+    {
+        ModObjDispatcherComplexTypeManager::RegisterStructMetadata({});
+    }
 };
 
 // ============================================================
@@ -712,6 +720,251 @@ HWTEST_F(MoDispatcherParamCodecTest, UnmarshalCallResult_NullResult, TestSize.Le
     reply.WriteInt32(0); // error code
     auto ret = ModObjDispatcherParamCodec::UnmarshalCallResult(meta, reply, nullptr, nullptr);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+}
+
+// A container count must not exceed what its element encoding can fit in the
+// remaining bytes. This prevents malformed peers from causing large
+// allocations without assuming that every element has the same byte width.
+HWTEST_F(MoDispatcherParamCodecTest, UnmarshalCallResult_OversizedContainerCount, TestSize.Level1)
+{
+    const std::vector<OH_AbilityRuntime_ModObjDispatcher_ValueType> containerTypes = {
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_ARRAY,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET,
+    };
+
+    for (const auto type : containerTypes) {
+        auto containerType = MakeTypeInfo(type);
+        containerType->pElementType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32);
+        MoMethodMeta meta = MakeMethodMeta({}, containerType);
+        MessageParcel reply;
+        ASSERT_TRUE(reply.WriteInt32(0)); // method error code
+        ASSERT_TRUE(reply.WriteInt32(1)); // one element, but no element bytes follow
+        OH_AbilityRuntime_ModObjDispatcher_Variant result = {};
+
+        EXPECT_EQ(ModObjDispatcherParamCodec::UnmarshalCallResult(meta, reply, &result, nullptr),
+            ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
+    }
+
+    auto mapType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP);
+    mapType->mapKeyType = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
+    mapType->pMapValueType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VOID);
+    MoMethodMeta mapMeta = MakeMethodMeta({}, mapType);
+    MessageParcel mapReply;
+    ASSERT_TRUE(mapReply.WriteInt32(0)); // method error code
+    ASSERT_TRUE(mapReply.WriteInt32(1)); // one entry, but no key bytes follow
+    OH_AbilityRuntime_ModObjDispatcher_Variant mapResult = {};
+    EXPECT_EQ(ModObjDispatcherParamCodec::UnmarshalCallResult(mapMeta, mapReply, &mapResult, nullptr),
+        ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
+}
+
+// A well-formed container keeps the existing decoding behavior.
+HWTEST_F(MoDispatcherParamCodecTest, UnmarshalCallResult_ValidI32Container, TestSize.Level1)
+{
+    auto vectorType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR);
+    vectorType->pElementType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32);
+    MoMethodMeta meta = MakeMethodMeta({}, vectorType);
+    MessageParcel reply;
+    ASSERT_TRUE(reply.WriteInt32(0)); // method error code
+    ASSERT_TRUE(reply.WriteInt32(2)); // element count
+    ASSERT_TRUE(reply.WriteInt32(11));
+    ASSERT_TRUE(reply.WriteInt32(22));
+    OH_AbilityRuntime_ModObjDispatcher_Variant result = {};
+
+    ASSERT_EQ(ModObjDispatcherParamCodec::UnmarshalCallResult(meta, reply, &result, nullptr),
+        ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    ASSERT_NE(result.u.pvectorVal, nullptr);
+    EXPECT_EQ(result.u.pvectorVal->elements.size(), 2U);
+    OH_AbilityRuntime_ModObjDispatcher_Variant element = {};
+    ASSERT_EQ(ModObjDispatcherComplexTypeManager::VectorGet(result.u.pvectorVal, 1, &element),
+        ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    EXPECT_EQ(element.vt, OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32);
+    EXPECT_EQ(element.u.i32Val, 22);
+    ModObjDispatcherComplexTypeManager::Variant_Clear(&element);
+    ModObjDispatcherComplexTypeManager::VectorRelease(&result.u.pvectorVal);
+}
+
+// Each fixed-width group and STRING must reject a count when no element bytes
+// remain. I32 is covered by UnmarshalCallResult_OversizedContainerCount.
+HWTEST_F(MoDispatcherParamCodecTest, UnmarshalCallResult_InsufficientPrimitiveElementBytes, TestSize.Level1)
+{
+    const std::vector<OH_AbilityRuntime_ModObjDispatcher_ValueType> elementTypes = {
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I8,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I16,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I64,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING,
+    };
+
+    for (const auto elementType : elementTypes) {
+        auto vectorType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR);
+        vectorType->pElementType = MakeTypeInfo(elementType);
+        MoMethodMeta meta = MakeMethodMeta({}, vectorType);
+        MessageParcel reply;
+        ASSERT_TRUE(reply.WriteInt32(0));
+        ASSERT_TRUE(reply.WriteInt32(1));
+        OH_AbilityRuntime_ModObjDispatcher_Variant result = {};
+
+        EXPECT_EQ(ModObjDispatcherParamCodec::UnmarshalCallResult(meta, reply, &result, nullptr),
+            ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
+    }
+}
+
+HWTEST_F(MoDispatcherParamCodecTest, UnmarshalCallResult_ValidStringContainer, TestSize.Level1)
+{
+    auto vectorType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR);
+    vectorType->pElementType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING);
+    MoMethodMeta meta = MakeMethodMeta({}, vectorType);
+    MessageParcel reply;
+    ASSERT_TRUE(reply.WriteInt32(0));
+    ASSERT_TRUE(reply.WriteInt32(2));
+    ASSERT_TRUE(reply.WriteCString("OpenHarmony"));
+    ASSERT_TRUE(reply.WriteCString("Ability"));
+    OH_AbilityRuntime_ModObjDispatcher_Variant result = {};
+
+    ASSERT_EQ(ModObjDispatcherParamCodec::UnmarshalCallResult(meta, reply, &result, nullptr),
+        ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    ASSERT_NE(result.u.pvectorVal, nullptr);
+    EXPECT_EQ(result.u.pvectorVal->elements.size(), 2U);
+    OH_AbilityRuntime_ModObjDispatcher_Variant element = {};
+    ASSERT_EQ(ModObjDispatcherComplexTypeManager::VectorGet(result.u.pvectorVal, 1, &element),
+        ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    ASSERT_NE(element.u.bstrVal, nullptr);
+    EXPECT_STREQ(element.u.bstrVal, "Ability");
+    ModObjDispatcherComplexTypeManager::Variant_Clear(&element);
+    ModObjDispatcherComplexTypeManager::VectorRelease(&result.u.pvectorVal);
+}
+
+HWTEST_F(MoDispatcherParamCodecTest, UnmarshalCallResult_NestedContainer, TestSize.Level1)
+{
+    auto innerType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR);
+    innerType->pElementType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32);
+    auto outerType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR);
+    outerType->pElementType = innerType;
+    MoMethodMeta meta = MakeMethodMeta({}, outerType);
+
+    MessageParcel validReply;
+    ASSERT_TRUE(validReply.WriteInt32(0));
+    ASSERT_TRUE(validReply.WriteInt32(2));
+    ASSERT_TRUE(validReply.WriteInt32(2));
+    ASSERT_TRUE(validReply.WriteInt32(1));
+    ASSERT_TRUE(validReply.WriteInt32(2));
+    ASSERT_TRUE(validReply.WriteInt32(1));
+    ASSERT_TRUE(validReply.WriteInt32(3));
+    OH_AbilityRuntime_ModObjDispatcher_Variant validResult = {};
+    ASSERT_EQ(ModObjDispatcherParamCodec::UnmarshalCallResult(meta, validReply, &validResult, nullptr),
+        ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    ASSERT_NE(validResult.u.pvectorVal, nullptr);
+    EXPECT_EQ(validResult.u.pvectorVal->elements.size(), 2U);
+    ModObjDispatcherComplexTypeManager::VectorRelease(&validResult.u.pvectorVal);
+
+    MessageParcel truncatedReply;
+    ASSERT_TRUE(truncatedReply.WriteInt32(0));
+    ASSERT_TRUE(truncatedReply.WriteInt32(2));
+    ASSERT_TRUE(truncatedReply.WriteInt32(0));
+    OH_AbilityRuntime_ModObjDispatcher_Variant truncatedResult = {};
+    EXPECT_EQ(ModObjDispatcherParamCodec::UnmarshalCallResult(meta, truncatedReply, &truncatedResult, nullptr),
+        ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
+}
+
+HWTEST_F(MoDispatcherParamCodecTest, UnmarshalCallResult_NonEmptyStructContainer, TestSize.Level1)
+{
+    MoStructMeta structMeta;
+    structMeta.name = "RecordForCodecTest";
+    structMeta.fields = {
+        {"id", MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32), 1},
+        {"name", MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING), 2},
+    };
+    ModObjDispatcherComplexTypeManager::RegisterStructMetadata({structMeta});
+    auto structType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRUCT);
+    structType->idlType = structMeta.name;
+    auto vectorType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR);
+    vectorType->pElementType = structType;
+    MoMethodMeta meta = MakeMethodMeta({}, vectorType);
+
+    MessageParcel validReply;
+    ASSERT_TRUE(validReply.WriteInt32(0));
+    ASSERT_TRUE(validReply.WriteInt32(1));
+    ASSERT_TRUE(validReply.WriteInt32(7));
+    ASSERT_TRUE(validReply.WriteCString("record"));
+    OH_AbilityRuntime_ModObjDispatcher_Variant validResult = {};
+    ASSERT_EQ(ModObjDispatcherParamCodec::UnmarshalCallResult(meta, validReply, &validResult, nullptr),
+        ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    ASSERT_NE(validResult.u.pvectorVal, nullptr);
+    EXPECT_EQ(validResult.u.pvectorVal->elements.size(), 1U);
+    ModObjDispatcherComplexTypeManager::VectorRelease(&validResult.u.pvectorVal);
+
+    MessageParcel truncatedReply;
+    ASSERT_TRUE(truncatedReply.WriteInt32(0));
+    ASSERT_TRUE(truncatedReply.WriteInt32(1));
+    ASSERT_TRUE(truncatedReply.WriteInt32(7));
+    OH_AbilityRuntime_ModObjDispatcher_Variant truncatedResult = {};
+    EXPECT_EQ(ModObjDispatcherParamCodec::UnmarshalCallResult(meta, truncatedReply, &truncatedResult, nullptr),
+        ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
+}
+
+HWTEST_F(MoDispatcherParamCodecTest, UnmarshalCallResult_ValidMapContainer, TestSize.Level1)
+{
+    auto mapType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP);
+    mapType->mapKeyType = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
+    mapType->pMapValueType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I64);
+    MoMethodMeta meta = MakeMethodMeta({}, mapType);
+    MessageParcel reply;
+    ASSERT_TRUE(reply.WriteInt32(0));
+    ASSERT_TRUE(reply.WriteInt32(2));
+    ASSERT_TRUE(reply.WriteInt32(1));
+    ASSERT_TRUE(reply.WriteInt64(100));
+    ASSERT_TRUE(reply.WriteInt32(2));
+    ASSERT_TRUE(reply.WriteInt64(200));
+    OH_AbilityRuntime_ModObjDispatcher_Variant result = {};
+
+    ASSERT_EQ(ModObjDispatcherParamCodec::UnmarshalCallResult(meta, reply, &result, nullptr),
+        ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    ASSERT_NE(result.u.pmapVal, nullptr);
+    EXPECT_EQ(result.u.pmapVal->entries.size(), 2U);
+    ModObjDispatcherComplexTypeManager::MapRelease(&result.u.pmapVal);
+}
+
+// VOID elements consume no bytes in the existing wire format. Such parcels
+// were accepted before the malformed-count check and must remain compatible.
+HWTEST_F(MoDispatcherParamCodecTest, UnmarshalCallResult_ZeroByteVoidElements, TestSize.Level1)
+{
+    auto vectorType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR);
+    vectorType->pElementType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VOID);
+    MoMethodMeta meta = MakeMethodMeta({}, vectorType);
+    MessageParcel reply;
+    ASSERT_TRUE(reply.WriteInt32(0)); // method error code
+    ASSERT_TRUE(reply.WriteInt32(3)); // three VOID elements need no following bytes
+    OH_AbilityRuntime_ModObjDispatcher_Variant result = {};
+
+    ASSERT_EQ(ModObjDispatcherParamCodec::UnmarshalCallResult(meta, reply, &result, nullptr),
+        ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    ASSERT_NE(result.u.pvectorVal, nullptr);
+    EXPECT_EQ(result.u.pvectorVal->elements.size(), 3U);
+    ModObjDispatcherComplexTypeManager::VectorRelease(&result.u.pvectorVal);
+}
+
+// Empty structs also have a zero-byte representation and are another
+// compatibility case that a count-versus-readable-bytes check must preserve.
+HWTEST_F(MoDispatcherParamCodecTest, UnmarshalCallResult_ZeroByteEmptyStructElements, TestSize.Level1)
+{
+    MoStructMeta emptyStruct;
+    emptyStruct.name = "EmptyStructForCodecTest";
+    ModObjDispatcherComplexTypeManager::RegisterStructMetadata({emptyStruct});
+    auto structType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRUCT);
+    structType->idlType = emptyStruct.name;
+    auto vectorType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR);
+    vectorType->pElementType = structType;
+    MoMethodMeta meta = MakeMethodMeta({}, vectorType);
+    MessageParcel reply;
+    ASSERT_TRUE(reply.WriteInt32(0)); // method error code
+    ASSERT_TRUE(reply.WriteInt32(2)); // two empty structs need no following bytes
+    OH_AbilityRuntime_ModObjDispatcher_Variant result = {};
+
+    ASSERT_EQ(ModObjDispatcherParamCodec::UnmarshalCallResult(meta, reply, &result, nullptr),
+        ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    ASSERT_NE(result.u.pvectorVal, nullptr);
+    EXPECT_EQ(result.u.pvectorVal->elements.size(), 2U);
+    ModObjDispatcherComplexTypeManager::VectorRelease(&result.u.pvectorVal);
 }
 
 // Test 27: void return type -> NO_ERROR, result->vt = VT_VOID

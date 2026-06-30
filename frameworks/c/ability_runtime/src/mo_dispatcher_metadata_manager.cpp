@@ -505,7 +505,7 @@ AbilityRuntime_ErrorCode ModObjDispatcherMetadataManager::ParseMetadata(const st
                         return ABILITY_RUNTIME_ERROR_CODE_METADATA_INVALID;
                     }
                     usedIds.insert(method.memberId);
-                    method.ipcCode = methodObj.value("code", 0);
+                    method.ipcCode = methodObj.value("code", 0U);
                     method.oneway = methodObj.value("oneway", false);
                     if (methodObj.contains("return_type") && methodObj["return_type"].is_object()) {
                         std::shared_ptr<MoTypeInfo> retTypeInfo;

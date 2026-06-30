@@ -57,6 +57,10 @@ int32_t RemoteOnListenerStub::OnCallbackInner(MessageParcel &data, MessageParcel
 
     // Read appIdentifiers array: first read length, then read each element
     uint32_t arraySize = data.ReadUint32();
+    if (arraySize > data.GetReadableBytes()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Invalid appIdentifiers size: %{public}u", arraySize);
+        return ERR_INVALID_VALUE;
+    }
     for (uint32_t i = 0; i < arraySize; ++i) {
         std::string appIdentifier = data.ReadString();
         info.appIdentifiers.push_back(appIdentifier);

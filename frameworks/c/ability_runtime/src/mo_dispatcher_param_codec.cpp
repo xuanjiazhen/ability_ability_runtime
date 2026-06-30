@@ -8,6 +8,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 #include <unordered_set>
 
 #include "hilog_tag_wrapper.h"
@@ -20,6 +21,89 @@ namespace {
 AbilityRuntime_ErrorCode CheckWrite(bool success)
 {
     return success ? ABILITY_RUNTIME_ERROR_CODE_NO_ERROR : ABILITY_RUNTIME_ERROR_CODE_SEND_REQUEST_FAILED;
+}
+
+size_t GetMinimumEncodedSize(const std::shared_ptr<MoTypeInfo>& typeInfo,
+    std::unordered_set<std::string>& visitingStructs)
+{
+    if (typeInfo == nullptr) {
+        return 0;
+    }
+    switch (typeInfo->vt) {
+        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_BOOL:
+        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32:
+        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_U32:
+        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_F32:
+        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_ENUM:
+            return sizeof(int32_t);
+        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I8:
+        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_U8:
+            return sizeof(int8_t);
+        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I16:
+        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_U16:
+            return sizeof(int16_t);
+        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I64:
+        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_U64:
+        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_F64:
+            return sizeof(int64_t);
+        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING:
+            // Even an empty C string has a terminating null byte in the parcel.
+            return 1;
+        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_ARRAY:
+        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR:
+        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET:
+        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP:
+            // Every nested container starts with its int32 element count.
+            return sizeof(int32_t);
+        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRUCT:
+            break;
+        default:
+            // EMPTY/VOID encode no bytes. Keep unknown and IPC object types
+            // unconstrained because no portable lower bound is available here.
+            return 0;
+    }
+
+    if (!visitingStructs.insert(typeInfo->idlType).second) {
+        return 0;
+    }
+    std::vector<std::string> fieldNames;
+    if (!ModObjDispatcherComplexTypeManager::GetStructFieldNames(typeInfo->idlType, &fieldNames)) {
+        visitingStructs.erase(typeInfo->idlType);
+        return 0;
+    }
+    size_t minimumSize = 0;
+    for (const auto& fieldName : fieldNames) {
+        std::shared_ptr<MoTypeInfo> fieldType;
+        if (!ModObjDispatcherComplexTypeManager::GetStructFieldType(typeInfo->idlType, fieldName, &fieldType)) {
+            minimumSize = 0;
+            break;
+        }
+        const size_t fieldSize = GetMinimumEncodedSize(fieldType, visitingStructs);
+        if (fieldSize > std::numeric_limits<size_t>::max() - minimumSize) {
+            minimumSize = std::numeric_limits<size_t>::max();
+            break;
+        }
+        minimumSize += fieldSize;
+    }
+    visitingStructs.erase(typeInfo->idlType);
+    return minimumSize;
+}
+
+size_t GetMinimumEncodedSize(const std::shared_ptr<MoTypeInfo>& typeInfo)
+{
+    std::unordered_set<std::string> visitingStructs;
+    return GetMinimumEncodedSize(typeInfo, visitingStructs);
+}
+
+bool IsInvalidContainerSize(MessageParcel& parcel, int32_t size, size_t minimumElementSize)
+{
+    if (size < 0) {
+        return true;
+    }
+    // A zero lower bound is valid for VOID/EMPTY and empty structs. Applying
+    // a count-versus-byte check to those types would reject valid old parcels.
+    return minimumElementSize > 0 &&
+        static_cast<size_t>(size) > parcel.GetReadableBytes() / minimumElementSize;
 }
 
 struct ScopedVisited {
@@ -421,8 +505,8 @@ AbilityRuntime_ErrorCode ModObjDispatcherParamCodec::ReadRawValue(MessageParcel&
     }
     if (typeInfo->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_ARRAY) {
         int32_t size = parcel.ReadInt32();
-        if (size < 0) {
-            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: array size is negative, size=%{public}d", size);
+        if (IsInvalidContainerSize(parcel, size, GetMinimumEncodedSize(typeInfo->pElementType))) {
+            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: invalid array size=%{public}d", size);
             return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
         }
         TAG_LOGI(AAFwkTag::EXT, "arraySize=%{public}d", size);
@@ -454,8 +538,8 @@ AbilityRuntime_ErrorCode ModObjDispatcherParamCodec::ReadRawValue(MessageParcel&
     }
     if (typeInfo->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR) {
         int32_t size = parcel.ReadInt32();
-        if (size < 0) {
-            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: vector size is negative, size=%{public}d", size);
+        if (IsInvalidContainerSize(parcel, size, GetMinimumEncodedSize(typeInfo->pElementType))) {
+            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: invalid vector size=%{public}d", size);
             return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
         }
         TAG_LOGI(AAFwkTag::EXT, "vectorSize=%{public}d", size);
@@ -486,8 +570,8 @@ AbilityRuntime_ErrorCode ModObjDispatcherParamCodec::ReadRawValue(MessageParcel&
     }
     if (typeInfo->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET) {
         int32_t size = parcel.ReadInt32();
-        if (size < 0) {
-            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: set size is negative, size=%{public}d", size);
+        if (IsInvalidContainerSize(parcel, size, GetMinimumEncodedSize(typeInfo->pElementType))) {
+            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: invalid set size=%{public}d", size);
             return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
         }
         TAG_LOGI(AAFwkTag::EXT, "setSize=%{public}d", size);
@@ -518,8 +602,14 @@ AbilityRuntime_ErrorCode ModObjDispatcherParamCodec::ReadRawValue(MessageParcel&
     }
     if (typeInfo->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP) {
         int32_t size = parcel.ReadInt32();
-        if (size < 0) {
-            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: map size is negative, size=%{public}d", size);
+        auto keyTypeInfo = std::make_shared<MoTypeInfo>();
+        keyTypeInfo->vt = typeInfo->mapKeyType;
+        const size_t minimumKeySize = GetMinimumEncodedSize(keyTypeInfo);
+        const size_t minimumValueSize = GetMinimumEncodedSize(typeInfo->pMapValueType);
+        const size_t minimumEntrySize = minimumValueSize > std::numeric_limits<size_t>::max() - minimumKeySize ?
+            std::numeric_limits<size_t>::max() : minimumKeySize + minimumValueSize;
+        if (IsInvalidContainerSize(parcel, size, minimumEntrySize)) {
+            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: invalid map size=%{public}d", size);
             return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
         }
         TAG_LOGI(AAFwkTag::EXT, "mapSize=%{public}d", size);
@@ -533,8 +623,6 @@ AbilityRuntime_ErrorCode ModObjDispatcherParamCodec::ReadRawValue(MessageParcel&
         if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
             return ret;
         }
-        auto keyTypeInfo = std::make_shared<MoTypeInfo>();
-        keyTypeInfo->vt = typeInfo->mapKeyType;
         for (uint32_t i = 0; i < static_cast<uint32_t>(size); i++) {
             OH_AbilityRuntime_ModObjDispatcher_Variant k;
             OH_AbilityRuntime_ModObjDispatcher_Variant v;

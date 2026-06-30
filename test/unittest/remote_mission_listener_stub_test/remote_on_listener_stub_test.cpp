@@ -117,5 +117,58 @@ HWTEST_F(RemoteOnListenerStubTest, RemoteOnListenerStubTest_OnCallbackInner_001,
     int res = stub_->OnCallbackInner(data, reply);
     EXPECT_EQ(res, NO_ERROR);
 }
+
+/*
+ * Feature: RemoteOnListenerStub
+ * Function: OnCallbackInner
+ * FunctionPoints: Reject an appIdentifiers count larger than the remaining parcel
+ * CaseDescription: Verify malformed parcel data is rejected without invoking callback
+ */
+HWTEST_F(RemoteOnListenerStubTest, RemoteOnListenerStubTest_OnCallbackInner_002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    ASSERT_TRUE(data.WriteUint32(0));
+    ASSERT_TRUE(data.WriteString("device"));
+    ASSERT_TRUE(data.WriteString("bundle"));
+    ASSERT_TRUE(data.WriteString("type"));
+    ASSERT_TRUE(data.WriteString("sourceBundle"));
+    ASSERT_TRUE(data.WriteUint32(1));
+
+    EXPECT_CALL(*stub_, OnCallback(_)).Times(0);
+    EXPECT_EQ(stub_->OnCallbackInner(data, reply), ERR_INVALID_VALUE);
+}
+
+/*
+ * Feature: RemoteOnListenerStub
+ * Function: OnCallbackInner
+ * FunctionPoints: Decode a valid non-empty appIdentifiers array
+ * CaseDescription: Verify valid identifiers are delivered to the callback unchanged
+ */
+HWTEST_F(RemoteOnListenerStubTest, RemoteOnListenerStubTest_OnCallbackInner_003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    ASSERT_TRUE(data.WriteUint32(1));
+    ASSERT_TRUE(data.WriteString("device"));
+    ASSERT_TRUE(data.WriteString("bundle"));
+    ASSERT_TRUE(data.WriteString("type"));
+    ASSERT_TRUE(data.WriteString("sourceBundle"));
+    ASSERT_TRUE(data.WriteUint32(2));
+    ASSERT_TRUE(data.WriteString("appIdentifier1"));
+    ASSERT_TRUE(data.WriteString("appIdentifier2"));
+    OnCallbackInfo callbackInfo;
+
+    EXPECT_CALL(*stub_, OnCallback(_)).WillOnce(SaveArg<0>(&callbackInfo));
+    EXPECT_EQ(stub_->OnCallbackInner(data, reply), NO_ERROR);
+    EXPECT_EQ(callbackInfo.continueState, 1U);
+    EXPECT_EQ(callbackInfo.srcDeviceId, "device");
+    EXPECT_EQ(callbackInfo.bundleName, "bundle");
+    EXPECT_EQ(callbackInfo.continueType, "type");
+    EXPECT_EQ(callbackInfo.srcBundleName, "sourceBundle");
+    ASSERT_EQ(callbackInfo.appIdentifiers.size(), 2U);
+    EXPECT_EQ(callbackInfo.appIdentifiers[0], "appIdentifier1");
+    EXPECT_EQ(callbackInfo.appIdentifiers[1], "appIdentifier2");
+}
 }  // namespace AAFwk
 }  // namespace OHOS
