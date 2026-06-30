@@ -390,7 +390,7 @@ private:
                     task.Reject(env, CreateJsErrorByNativeErr(env, errcode, "",
                         GetInnerErrorMsg(AbilityInnerErrorMsg::GET_ABILITY_RUNNING_INFOS_FAILED)));
 #else
-                    task.Resolve(env, infosObj);
+                    task.Resolve(env, CreateJsAbilityRunningInfoArray(env, infos));
                 } else {
                     task.Reject(env, CreateJsError(env, errcode, "Get mission infos failed."));
 #endif
