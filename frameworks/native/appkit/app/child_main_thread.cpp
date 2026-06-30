@@ -426,6 +426,14 @@ void ChildMainThread::HandleRunNativeProc(const sptr<IRemoteObject> &mainProcess
 void ChildMainThread::UpdateNativeChildLibModuleName(const AppLibPathMap &appLibPaths, bool isSystemApp)
 {
     nativeLibModuleName_.clear();
+    const auto &srcEntry = processInfo_->srcEntry;
+    bool hasParentPath = srcEntry == ".." || srcEntry.rfind("../", 0) == 0 ||
+        srcEntry.find("/../") != std::string::npos ||
+        (srcEntry.size() >= 3 && srcEntry.compare(srcEntry.size() - 3, 3, "/..") == 0);
+    if (srcEntry.empty() || srcEntry.front() == '/' || srcEntry.find('\0') != std::string::npos || hasParentPath) {
+        TAG_LOGE(AAFwkTag::APPKIT, "invalid native child srcEntry");
+        return;
+    }
     NativeModuleManager *nativeModuleMgr = NativeModuleManager::GetInstance();
     if (nativeModuleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null nativeModuleMgr");
@@ -440,7 +448,7 @@ void ChildMainThread::UpdateNativeChildLibModuleName(const AppLibPathMap &appLib
             if (!nativeLibPath.empty() && nativeLibPath.back() != '/') {
                 nativeLibPath += '/';
             }
-            nativeLibPath += processInfo_->srcEntry;
+            nativeLibPath += srcEntry;
             auto ret = access(nativeLibPath.c_str(), F_OK);
             if (ret == 0) {
                 nativeLibModuleName_ = libPathPair.first;
@@ -454,7 +462,7 @@ void ChildMainThread::UpdateNativeChildLibModuleName(const AppLibPathMap &appLib
         }
     }
 
-    TAG_LOGE(AAFwkTag::APPKIT, "not find native lib(%{public}s)", processInfo_->srcEntry.c_str());
+    TAG_LOGE(AAFwkTag::APPKIT, "not find native lib(%{public}s)", srcEntry.c_str());
     for (const auto &path : tmpPath) {
         TAG_LOGE(AAFwkTag::APPKIT, "path: %{public}s, ret: %{public}d", path.first.c_str(), path.second);
     }

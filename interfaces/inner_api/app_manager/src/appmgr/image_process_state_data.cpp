@@ -29,14 +29,9 @@ bool ImageProcessStateData::Marshalling(Parcel &parcel) const
 
 bool ImageProcessStateData::ReadFromParcel(Parcel &parcel)
 {
-    imagePid = parcel.ReadInt32();
-    checkpointId = parcel.ReadUint64();
-    originalPid = parcel.ReadInt32();
-    uid = parcel.ReadInt32();
-    state = parcel.ReadInt32();
-    bundleName = parcel.ReadString();
-    abilityName = parcel.ReadString();
-    return true;
+    return parcel.ReadInt32(imagePid) && parcel.ReadUint64(checkpointId) && parcel.ReadInt32(originalPid) &&
+        parcel.ReadInt32(uid) && parcel.ReadInt32(state) && parcel.ReadString(bundleName) &&
+        parcel.ReadString(abilityName);
 }
 
 ImageProcessStateData *ImageProcessStateData::Unmarshalling(Parcel &parcel)

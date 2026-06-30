@@ -37,6 +37,7 @@ int32_t NativeStartupTask::RunTaskInit(std::unique_ptr<StartupTaskResultCallback
 {
     if (taskInitFunc_ == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "task: %{public}s, taskInitFunc_ is null", name_.c_str());
+        return ERR_STARTUP_INTERNAL_ERROR;
     }
     return taskInitFunc_(std::move(callback));
 }

@@ -60,11 +60,12 @@ ani_object EtsUIServiceProxy::CreateEtsUIServiceProxy(
     std::unique_ptr<EtsUIServiceProxy> proxy = std::make_unique<EtsUIServiceProxy>(impl, hostProxy);
     proxy->SetConnectionId(connectionId);
 
-    ani_long nativeServiceProxyLong = reinterpret_cast<ani_long>(proxy.release());
+    ani_long nativeServiceProxyLong = reinterpret_cast<ani_long>(proxy.get());
     if ((status = env->Object_SetField_Long(object, field, nativeServiceProxyLong)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return nullptr;
     }
+    proxy.release();
 
     std::array functions = {
         ani_native_function {"nativeSendData", nullptr,

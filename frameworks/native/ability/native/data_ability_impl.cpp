@@ -462,6 +462,10 @@ bool DataAbilityImpl::CheckReadAndWritePermission(const std::string &permissionT
     int checkReadPermission = AccessTokenKit::VerifyAccessToken(tokenId, permission);
     if (checkReadPermission != ERR_OK) {
         std::shared_ptr<AbilityInfo> abilityInfo = ability_->GetAbilityInfo();
+        if (abilityInfo == nullptr) {
+            TAG_LOGE(AAFwkTag::DATA_ABILITY, "null abilityInfo");
+            return false;
+        }
         TAG_LOGD(AAFwkTag::DATA_ABILITY, "no permission, bundleName: %{public}s", abilityInfo->bundleName.c_str());
         return false;
     }

@@ -15,6 +15,7 @@
 #include "napi_data_ability_helper.h"
 
 #include <cstring>
+#include <mutex>
 #include <vector>
 #include <string>
 
@@ -43,6 +44,7 @@ namespace OHOS {
 namespace AppExecFwk {
 std::list<std::shared_ptr<DataAbilityHelper>> g_dataAbilityHelperList;
 std::vector<DAHelperOnOffCB *> g_registerInstances;
+std::recursive_mutex g_dataAbilityHelperMutex;
 
 /**
  * @brief DataAbilityHelper NAPI module registration.
@@ -138,7 +140,10 @@ napi_value DataAbilityHelperConstructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
     dataAbilityHelper->SetCallFromJs();
-    g_dataAbilityHelperList.emplace_back(dataAbilityHelper);
+    {
+        std::lock_guard<std::recursive_mutex> lock(g_dataAbilityHelperMutex);
+        g_dataAbilityHelperList.emplace_back(dataAbilityHelper);
+    }
     auto wrapper = new NAPIDataAbilityHelperWrapper(dataAbilityHelper);
 
     status = napi_wrap(
@@ -151,6 +156,7 @@ napi_value DataAbilityHelperConstructor(napi_env env, napi_callback_info info)
                 TAG_LOGW(AAFwkTag::FA, "null objectInfo");
                 return;
             }
+            std::lock_guard<std::recursive_mutex> lock(g_dataAbilityHelperMutex);
             TAG_LOGD(AAFwkTag::FA, "DAHelper finalize_cb dataAbilityHelperList.size = %{public}zu, "
                 "regInstances_.size = %{public}zu",
                 g_dataAbilityHelperList.size(), g_registerInstances.size());
@@ -536,6 +542,7 @@ napi_value RegisterAsync(
     onCB->observer = observer;
 
     if (onCB->result == NO_ERROR) {
+        std::lock_guard<std::recursive_mutex> lock(g_dataAbilityHelperMutex);
         g_registerInstances.emplace_back(onCB);
     }
 
@@ -558,6 +565,7 @@ void RegisterExecuteCB(napi_env env, void *data)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
     DAHelperOnOffCB *onCB = static_cast<DAHelperOnOffCB *>(data);
+    std::lock_guard<std::recursive_mutex> lock(g_dataAbilityHelperMutex);
     auto onCBIter = std::find(g_registerInstances.begin(), g_registerInstances.end(), onCB);
     if (onCBIter == g_registerInstances.end()) {
         // onCB is invalid or onCB has been delete
@@ -585,6 +593,7 @@ void RegisterCompleteCB(napi_env env, napi_status status, void *data)
         return;
     }
 
+    std::lock_guard<std::recursive_mutex> lock(g_dataAbilityHelperMutex);
     auto onCBIter = std::find(g_registerInstances.begin(), g_registerInstances.end(), onCB);
     if (onCBIter == g_registerInstances.end()) {
         // onCB is invalid or onCB has been delete
@@ -759,6 +768,7 @@ void FindRegisterObs(napi_env env, DAHelperOnOffCB *data)
         return;
     }
 
+    std::lock_guard<std::recursive_mutex> lock(g_dataAbilityHelperMutex);
     TAG_LOGI(AAFwkTag::FA, "uri=%{public}s", data->uri.c_str());
     if (!data->uri.empty()) {
         // if match uri, unregister all observers corresponding the uri
@@ -1636,6 +1646,10 @@ bool UnwrapArrayOperationFromJS(
         }
         std::shared_ptr<DataAbilityOperation> operation = nullptr;
         UnwrapDataAbilityOperation(operation, env, jsValue);
+        if (operation == nullptr) {
+            TAG_LOGE(AAFwkTag::FA, "UnwrapDataAbilityOperation index:%{public}u failed", i);
+            return false;
+        }
         TAG_LOGI(AAFwkTag::FA, "UnwrapDataAbilityOperation index:%{public}d", i);
         result.push_back(operation);
     }
@@ -1700,6 +1714,7 @@ void EraseMemberProperties(DAHelperOnOffCB* onCB)
 bool NeedErase(std::vector<DAHelperOnOffCB*>::iterator& iter,
     const std::shared_ptr<DataAbilityHelper>&& dataAbilityHelper)
 {
+    std::lock_guard<std::recursive_mutex> lock(g_dataAbilityHelperMutex);
     if ((*iter) == nullptr) {
         return false;
     }
@@ -1720,6 +1735,7 @@ void DeleteDAHelperOnOffCB(DAHelperOnOffCB *onCB)
         TAG_LOGI(AAFwkTag::FA, "null onCB");
         return;
     }
+    std::lock_guard<std::recursive_mutex> lock(g_dataAbilityHelperMutex);
     EraseMemberProperties(onCB);
 
     auto end = remove(g_registerInstances.begin(), g_registerInstances.end(), onCB);

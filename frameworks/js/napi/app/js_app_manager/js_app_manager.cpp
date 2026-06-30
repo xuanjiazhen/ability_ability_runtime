@@ -234,7 +234,11 @@ public:
             return false;
         }
         napi_ref ref = nullptr;
-        napi_create_reference(env, para, 1, &ref);
+        napi_status status = napi_create_reference(env, para, 1, &ref);
+        if (status != napi_ok || ref == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "napi_create_reference failed: %{public}d", status);
+            return false;
+        }
         NativeReference* nativeReference = reinterpret_cast<NativeReference *>(ref);
         auto object = nativeReference->GetNapiValue();
         napi_value method = nullptr;
@@ -1761,6 +1765,10 @@ OHOS::sptr<OHOS::AppExecFwk::IAppMgr> GetAppManagerInstance()
 {
     OHOS::sptr<OHOS::ISystemAbilityManager> systemAbilityManager =
         OHOS::SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (systemAbilityManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null systemAbilityManager");
+        return nullptr;
+    }
     OHOS::sptr<OHOS::IRemoteObject> appObject = systemAbilityManager->GetSystemAbility(OHOS::APP_MGR_SERVICE_ID);
     return OHOS::iface_cast<OHOS::AppExecFwk::IAppMgr>(appObject);
 }
@@ -1769,6 +1777,10 @@ OHOS::sptr<OHOS::AAFwk::IAbilityManager> GetAbilityManagerInstance()
 {
     OHOS::sptr<OHOS::ISystemAbilityManager> systemAbilityManager =
         OHOS::SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (systemAbilityManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null systemAbilityManager");
+        return nullptr;
+    }
     OHOS::sptr<OHOS::IRemoteObject> abilityObject =
         systemAbilityManager->GetSystemAbility(OHOS::ABILITY_MGR_SERVICE_ID);
     return OHOS::iface_cast<OHOS::AAFwk::IAbilityManager>(abilityObject);

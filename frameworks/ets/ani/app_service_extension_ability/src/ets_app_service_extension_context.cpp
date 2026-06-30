@@ -40,7 +40,6 @@ namespace {
 constexpr const char *CONTEXT_CLASS_NAME = "application.AppServiceExtensionContext.AppServiceExtensionContext";
 constexpr const char *APP_SERVICE_EXTENSION_CONTEXT_CLASS_NAME =
 "application.AppServiceExtensionContext.AppServiceExtensionContext";
-static std::mutex g_connectsMutex;
 static std::recursive_mutex g_connectsLock;
 static std::map<EtsConnectionKey, sptr<ETSAppServiceExtensionConnection>, EtsKeyCompare> g_connects;
 static int64_t g_serialNumber = 0;
@@ -99,6 +98,15 @@ int64_t InsertConnection(sptr<ETSAppServiceExtensionConnection> connection,
         TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "null connection");
         return -1;
     }
+    const int64_t startId = g_serialNumber;
+    while (std::any_of(g_connects.begin(), g_connects.end(),
+        [](const auto &item) { return item.first.id == g_serialNumber; })) {
+        g_serialNumber = (g_serialNumber < INT64_MAX) ? g_serialNumber + 1 : 0;
+        if (g_serialNumber == startId) {
+            TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "no available connection id");
+            return -1;
+        }
+    }
     int64_t connectId = g_serialNumber;
     EtsConnectionKey key;
     key.id = g_serialNumber;
@@ -106,7 +114,7 @@ int64_t InsertConnection(sptr<ETSAppServiceExtensionConnection> connection,
     key.accountId = accountId;
     connection->SetConnectionId(key.id);
     g_connects.emplace(key, connection);
-    g_serialNumber++;
+    g_serialNumber = (g_serialNumber < INT64_MAX) ? g_serialNumber + 1 : 0;
     return connectId;
 }
 void RemoveConnection(int32_t connectId)
@@ -389,7 +397,7 @@ void EtsAppServiceExtensionContext::OnDisconnectAppServiceExtensionAbility(ani_e
     AAFwk::Want want;
     int32_t accountId = -1;
     {
-        std::lock_guard<std::mutex> lock(g_connectsMutex);
+        std::lock_guard<std::recursive_mutex> lock(g_connectsLock);
         auto iter = std::find_if(
             g_connects.begin(), g_connects.end(), [&connectId](const auto &obj) { return connectId == obj.first.id; });
         if (iter != g_connects.end()) {

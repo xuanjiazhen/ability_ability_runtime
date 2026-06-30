@@ -58,6 +58,10 @@ std::shared_ptr<DataAbilityOperationBuilder> DataAbilityOperationBuilder::WithVa
             " type:%{public}d", type_);
         return nullptr;
     }
+    if (values == nullptr) {
+        TAG_LOGE(AAFwkTag::DATA_ABILITY, "null values");
+        return nullptr;
+    }
 
     valuesBucket_ = std::make_shared<NativeRdb::ValuesBucket>(*values);
     TAG_LOGD(AAFwkTag::DATA_ABILITY, "end");

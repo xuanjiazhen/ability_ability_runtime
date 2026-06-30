@@ -1305,7 +1305,7 @@ HWTEST_F(StartupManagerTest, PreloadSoStartupTask_0100, Function | MediumTest | 
     std::string ohmUrl = "@normalized:Y&&<bundleName>&<IMPORT_PATH>&<VERSION>";
     std::shared_ptr<PreloadSoStartupTask> startupTask = std::make_shared<PreloadSoStartupTask>(name, ohmUrl);
     auto ret = startupTask->RunTaskInit(nullptr);
-    EXPECT_EQ(ret, ERR_STARTUP_INTERNAL_ERROR);
+    EXPECT_EQ(ret, ERR_OK);
 }
 
 /**

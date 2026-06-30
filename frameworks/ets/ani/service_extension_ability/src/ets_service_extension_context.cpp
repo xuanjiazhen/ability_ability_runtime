@@ -33,7 +33,6 @@ namespace {
 
 std::recursive_mutex g_connectsLock;
 int64_t g_serialNumber = 0;
-static std::mutex g_connectsMutex;
 static std::map<EtsConnectionKey, sptr<ETSServiceExtensionConnection>, EtsKeyCompare> g_connects;
 const std::string APP_LINKING_ONLY = "appLinkingOnly";
 const std::string KEY_REQUEST_ID = "com.ohos.param.requestId";
@@ -164,6 +163,15 @@ int32_t InsertConnection(sptr<ETSServiceExtensionConnection> connection,
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null connection");
         return -1;
     }
+    const int64_t startId = g_serialNumber;
+    while (std::any_of(g_connects.begin(), g_connects.end(),
+        [](const auto &item) { return item.first.id == g_serialNumber; })) {
+        g_serialNumber = (g_serialNumber < INT32_MAX) ? g_serialNumber + 1 : 0;
+        if (g_serialNumber == startId) {
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "no available connection id");
+            return -1;
+        }
+    }
     int32_t connectId = static_cast<int32_t>(g_serialNumber);
     EtsConnectionKey key;
     key.id = g_serialNumber;
@@ -171,7 +179,7 @@ int32_t InsertConnection(sptr<ETSServiceExtensionConnection> connection,
     key.accountId = accountId;
     connection->SetConnectionId(key.id);
     g_connects.emplace(key, connection);
-    g_serialNumber++;
+    g_serialNumber = (g_serialNumber < INT32_MAX) ? g_serialNumber + 1 : 0;
     return connectId;
 }
 
@@ -1001,7 +1009,7 @@ void EtsServiceExtensionContext::OnDisconnectServiceExtensionAbility(ani_env *en
     AAFwk::Want want;
     int32_t accountId = -1;
     {
-        std::lock_guard<std::mutex> lock(g_connectsMutex);
+        std::lock_guard<std::recursive_mutex> lock(g_connectsLock);
         auto iter = std::find_if(
             g_connects.begin(), g_connects.end(), [&connectId](const auto &obj) { return connectId == obj.first.id; });
         if (iter != g_connects.end()) {

@@ -59,6 +59,11 @@ int32_t ParseNormalizedOhmUrl(const std::string& ohmUrl, std::string& soName)
     }
 
     soName = res[OHM_URL_NORMALIZED_IMPORT_PATH_INDEX];
+    if (soName.size() <= SO_PREFIX_LEN + SO_SUFFIX_LEN || !StringStartWith(soName, "lib") ||
+        soName.compare(soName.size() - SO_SUFFIX_LEN, SO_SUFFIX_LEN, ".so") != 0) {
+        TAG_LOGE(AAFwkTag::STARTUP, "invalid normalized so name");
+        return ERR_STARTUP_INVALID_VALUE;
+    }
     // Delete the prefix "lib" and suffix ".so".
     soName = soName.substr(SO_PREFIX_LEN, soName.size() - SO_PREFIX_LEN - SO_SUFFIX_LEN);
     return ERR_OK;

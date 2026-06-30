@@ -19,6 +19,7 @@
 #include <sys/statvfs.h>
 #include <sys/stat.h>
 #include <sys/xattr.h>
+#include <mutex>
 #include "app_mgr_client.h"
 #include "faultloggerd_client.h"
 #include "hilog_tag_wrapper.h"
@@ -50,6 +51,7 @@ static bool g_developMode = (OHOS::system::GetParameter("persist.hiview.leak_det
                             (OHOS::system::GetParameter("persist.hiview.leak_detector", "unknown") == "true");
 static int g_oomDumpProcessQuota = 0;
 static uint64_t g_lastOOMDumpTime = 0;
+static std::mutex g_oomDumpQuotaMutex;
 static constexpr const char* const EVENT_XATTR_NAME = "user.appevent";
 static constexpr const char* const OOM_QUOTA_XATTR_NAME = "user.oomdump.quota";
 static constexpr const char* const RUNNING_ID_NAME = "user.runningId";
@@ -65,7 +67,7 @@ static constexpr const char* const SO_NAME = "";
 #endif
 static constexpr const char* const GET_MEM_LEAK_STRING_SYMBOL = "OHOS_GetMemLeakString";
 static constexpr uint64_t OOM_DUMP_INTERVAL = 7 * 24 * 60 * 60;
-static constexpr uint64_t OOM_DUMP_SPACE_LIMIT = 30ull * 1024 * 1024 * 1024;
+static constexpr uint64_t OOM_DUMP_SPACE_LIMIT = 30uLL * 1024 * 1024 * 1024;
 static constexpr uint32_t EVENT_RESOURCE_OVERLIMIT_MASK = 6;
 static constexpr uint64_t BIT_MASK = 1;
 static constexpr uint32_t BUF_SIZE_256 = 256;
@@ -219,6 +221,7 @@ bool DumpRuntimeHelper::Check2CQuota()
 
 bool DumpRuntimeHelper::Check2DQuota(bool needDecreaseQuota)
 {
+    std::lock_guard<std::mutex> lock(g_oomDumpQuotaMutex);
     if (!Check2DOOMDumpOpt()) {
         TAG_LOGE(AAFwkTag::APPKIT, "Check2DOOMDumpOpt failed");
         return false;

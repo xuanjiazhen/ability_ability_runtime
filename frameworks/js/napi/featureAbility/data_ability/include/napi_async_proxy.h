@@ -129,6 +129,7 @@ public:
         napi_create_string_utf8(asyncContext->env, resourceName.c_str(), NAPI_AUTO_LENGTH, &resource);
         asyncContext->execFunc = execFunc;
         asyncContext->completeFunc = completeFunc;
+        T *context = asyncContext;
         NAPI_CALL_BASE(asyncContext->env, napi_create_async_work(asyncContext->env, nullptr, resource,
             [](napi_env env, void *data) {
                 T *context = (T *)data;
@@ -164,8 +165,10 @@ public:
                 }
                 delete context;
             },
-            (void *)asyncContext, &asyncContext->work), ret);
-        NAPI_CALL_BASE(asyncContext->env, napi_queue_async_work(asyncContext->env, asyncContext->work), ret);
+            static_cast<void *>(context), &context->work), ret);
+        NAPI_CALL_BASE(asyncContext->env, napi_queue_async_work(asyncContext->env, context->work), ret);
+        // The completion callback owns and releases the context after the work is queued.
+        asyncContext = nullptr;
         return ret;
     }
 
