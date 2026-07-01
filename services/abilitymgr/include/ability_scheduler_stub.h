@@ -71,6 +71,7 @@ private:
     int ContinueAbilityInner(MessageParcel &data, MessageParcel &reply);
     int ShareDataInner(MessageParcel &data, MessageParcel &reply);
     int CreateModalUIExtensionInner(MessageParcel &data, MessageParcel &reply);
+    int CreateEmbeddablePrivacyUIExtensionInner(MessageParcel &data, MessageParcel &reply);
     int UpdateSessionTokenInner(MessageParcel &data, MessageParcel &reply);
     int OnRemoteRequestInner(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);

@@ -42,6 +42,7 @@ struct ModalUIExtensionCallbacks;
 
 namespace AbilityRuntime {
 class UIExtensionModalCallback;
+class EmbeddablePrivacyModalCallback;
 using RuntimeTask = std::function<void(int, const AAFwk::Want &, bool)>;
 using AbilityConfigUpdateCallback = std::function<void(AppExecFwk::Configuration &config)>;
 using TerminateSelfWithAnimationCallback = std::function<void(int32_t)>;
@@ -267,6 +268,13 @@ public:
     ErrCode CreateModalUIExtensionWithApp(const AAFwk::Want &want);
 
     /**
+     * @brief Create embeddable privacy modal UIExtension with app (new independent path).
+     * @param want The want of the embeddable privacy modal UIExtension to create.
+     * @return Returns ERR_OK on success, error code on failure.
+     */
+    ErrCode CreateEmbeddablePrivacyUIExtensionWithApp(const AAFwk::Want &want);
+
+    /**
      * @brief Check if a modal UIExtension with the same component already exists.
      * @param want The want of the modal UIExtension to check.
      * @return Returns true if exists, false otherwise.
@@ -358,6 +366,9 @@ private:
     std::mutex uiExtensionMutex_;
 
     Ace::ModalUIExtensionCallbacks SetupModalCallbacks(std::shared_ptr<UIExtensionModalCallback> modalCallbackWeak);
+
+    Ace::ModalUIExtensionCallbacks SetupEmbeddablePrivacyModalCallbacks(
+        std::shared_ptr<EmbeddablePrivacyModalCallback> modalCallback);
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

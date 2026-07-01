@@ -445,5 +445,42 @@ int UIExtension::CreateModalUIExtension(const AAFwk::Want &want)
 
     return ERR_OK;
 }
+
+int UIExtension::CreateEmbeddablePrivacyUIExtension(const AAFwk::Want &want)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "UIExtension::CreateEmbeddablePrivacyUIExtension call");
+    auto context = GetContext();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "context is null");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (handler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null handler_");
+        return ERR_INVALID_VALUE;
+    }
+
+    auto uiExtensionContext = Context::ConvertTo<UIExtensionContext>(context);
+    if (uiExtensionContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "uiExtensionContext is null");
+        return ERR_INVALID_VALUE;
+    }
+
+    std::weak_ptr<UIExtensionContext> uiExtensionContextWptr = uiExtensionContext;
+    auto task = [uiExtensionContextWptr, want]() {
+        std::shared_ptr<UIExtensionContext> uiExtensionContextSptr = uiExtensionContextWptr.lock();
+        if (uiExtensionContextSptr == nullptr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "null uiExtensionContext in task");
+            return;
+        }
+        (void)uiExtensionContextSptr->CreateEmbeddablePrivacyUIExtensionWithApp(want);
+    };
+    if (!handler_->PostTask(task, "UIExtension:CreateEmbeddablePrivacyUIExtensionWithApp")) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "PostTask failed");
+        return ERR_INVALID_VALUE;
+    }
+
+    return ERR_OK;
+}
 }
 }

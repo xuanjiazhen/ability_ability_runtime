@@ -404,6 +404,7 @@ group("unittest") {
       "file_path_utils_test:unittest",
       "frameworks_kits_ability_ability_runtime_test:unittest",
       "ui_extension_modal_callback_test:unittest",
+      "embeddable_privacy_modal_callback_test:unittest",
       "frameworks_kits_ability_native_test:unittest",
       "frameworks_kits_appkit_native_test:unittest",
       "free_install_manager_fourth_test:unittest",

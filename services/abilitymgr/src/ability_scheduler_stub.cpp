@@ -164,6 +164,8 @@ int AbilitySchedulerStub::OnRemoteRequestInnerThird(
             return ScheduleAbilityRequestSuccessInner(data);
         case SCHEDULE_ABILITIES_REQUEST_DONE:
             return ScheduleAbilitiesRequestDoneInner(data);
+        case CREATE_EMBEDDABLE_PRIVACY_UI_EXTENSION:
+            return CreateEmbeddablePrivacyUIExtensionInner(data, reply);
     }
     return ERR_CODE_NOT_EXIST;
 }
@@ -746,6 +748,21 @@ int AbilitySchedulerStub::CreateModalUIExtensionInner(MessageParcel &data, Messa
         return ERR_INVALID_VALUE;
     }
     int ret = CreateModalUIExtension(*want);
+    if (!reply.WriteInt32(ret)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "fail to WriteInt32 ret");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int AbilitySchedulerStub::CreateEmbeddablePrivacyUIExtensionInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
+        return ERR_INVALID_VALUE;
+    }
+    int ret = CreateEmbeddablePrivacyUIExtension(*want);
     if (!reply.WriteInt32(ret)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "fail to WriteInt32 ret");
         return ERR_INVALID_VALUE;

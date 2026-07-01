@@ -46,6 +46,8 @@ private:
     void OnPageShow(const AppExecFwk::PageStateData &pageStateData) override;
 
     ErrCode ExecuteUIExtension(const AppExecFwk::PageStateData &pageStateData);
+
+    ErrCode ExecuteEmbeddablePrivacyUIExtension();
 private:
     std::shared_ptr<DisposedRuleInterceptor> interceptor_ = nullptr;
     AppExecFwk::DisposedRule disposedRule_;

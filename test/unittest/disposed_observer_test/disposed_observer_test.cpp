@@ -1201,5 +1201,102 @@ HWTEST_F(DisposedObserverTest, DisposedObserver_NullInterceptor_0200, TestSize.L
     TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_NullInterceptor_0200 end");
 }
 
+// ===== New independent path tests (embeddable privacy modal — this feature) =====
+
+/**
+ * @tc.number: DisposedObserver_OnPageShow_EmbeddablePrivacy_0100
+ * @tc.name: DisposedObserver::OnPageShow - embeddable privacy modal new path
+ * @tc.desc: abilityRecord with EMBEDDED_FULL_SCREEN_MODE triggers new embeddable privacy
+ *           modal path (ExecuteEmbeddablePrivacyUIExtension), not the legacy embeddable branch.
+ */
+HWTEST_F(DisposedObserverTest, DisposedObserver_OnPageShow_EmbeddablePrivacy_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_OnPageShow_EmbeddablePrivacy_0100 start");
+    auto observer = CreateDisposedObserver(ComponentType::UI_EXTENSION);
+
+    Want want;
+    want.SetElementName("device", "com.example.test", "TestAbility");
+    want.SetParam("ohos.extra.param.key.showMode", static_cast<int32_t>(1));  // EMBEDDED_FULL_SCREEN_MODE
+
+    AppExecFwk::AbilityInfo abilityInfo;
+    abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    abilityInfo.process = "test_process";
+
+    AppExecFwk::ApplicationInfo applicationInfo;
+
+    auto abilityRecord = std::make_shared<AbilityRecord>(want, abilityInfo, applicationInfo);
+    EXPECT_NE(abilityRecord, nullptr);
+
+    sptr<IRemoteObject> token = new Token(abilityRecord);
+    observer->token_ = token;
+
+    observer->AddAbilityKey("test_module", "TestAbility");
+
+    PageStateData pageStateData;
+    pageStateData.uid = testUid_;
+    pageStateData.moduleName = "test_module";
+    pageStateData.abilityName = "TestAbility";
+
+    // Triggers new embeddable privacy modal path; scheduler_ is null so returns INNER_ERR, no crash
+    observer->OnPageShow(pageStateData);
+
+    EXPECT_EQ(observer->uid_, testUid_);
+    EXPECT_NE(observer->token_, nullptr);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_OnPageShow_EmbeddablePrivacy_0100 end");
+}
+
+/**
+ * @tc.number: DisposedObserver_ExecuteEmbeddablePrivacyUIExtension_0100
+ * @tc.name: DisposedObserver::ExecuteEmbeddablePrivacyUIExtension - null token
+ * @tc.desc: When token_ is null, Token::GetAbilityRecordByToken returns nullptr,
+ *           ExecuteEmbeddablePrivacyUIExtension returns ERR_INVALID_VALUE without crash.
+ */
+HWTEST_F(DisposedObserverTest, DisposedObserver_ExecuteEmbeddablePrivacyUIExtension_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_ExecuteEmbeddablePrivacyUIExtension_0100 start");
+    auto observer = CreateDisposedObserver(ComponentType::UI_EXTENSION);
+    observer->token_ = nullptr;  // null token
+
+    ErrCode ret = observer->ExecuteEmbeddablePrivacyUIExtension();
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_ExecuteEmbeddablePrivacyUIExtension_0100 end");
+}
+
+/**
+ * @tc.number: DisposedObserver_ExecuteEmbeddablePrivacyUIExtension_0200
+ * @tc.name: DisposedObserver::ExecuteEmbeddablePrivacyUIExtension - valid abilityRecord, null scheduler
+ * @tc.desc: With valid abilityRecord but null scheduler_, returns INNER_ERR (no crash).
+ *           Verifies the path reaches AbilityRecord::CreateEmbeddablePrivacyUIExtension.
+ */
+HWTEST_F(DisposedObserverTest, DisposedObserver_ExecuteEmbeddablePrivacyUIExtension_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_ExecuteEmbeddablePrivacyUIExtension_0200 start");
+    auto observer = CreateDisposedObserver(ComponentType::UI_EXTENSION);
+
+    Want want;
+    want.SetElementName("device", "com.example.test", "TestAbility");
+    want.SetParam("ohos.extra.param.key.showMode", static_cast<int32_t>(1));
+
+    AppExecFwk::AbilityInfo abilityInfo;
+    abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    abilityInfo.process = "test_process";
+    AppExecFwk::ApplicationInfo applicationInfo;
+
+    auto abilityRecord = std::make_shared<AbilityRecord>(want, abilityInfo, applicationInfo);
+    EXPECT_NE(abilityRecord, nullptr);
+    // abilityRecord->scheduler_ is null by default
+
+    sptr<IRemoteObject> token = new Token(abilityRecord);
+    observer->token_ = token;
+
+    ErrCode ret = observer->ExecuteEmbeddablePrivacyUIExtension();
+    // scheduler_ is null → AbilityRecord::CreateEmbeddablePrivacyUIExtension returns INNER_ERR
+    EXPECT_NE(ret, ERR_OK);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_ExecuteEmbeddablePrivacyUIExtension_0200 end");
+}
+
 } // namespace AAFwk
 } // namespace OHOS

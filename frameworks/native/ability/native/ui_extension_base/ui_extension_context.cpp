@@ -27,6 +27,7 @@
 #include "string_wrapper.h"
 #include "ui_content.h"
 #include "ui_extension_modal_callback.h"
+#include "embeddable_privacy_modal_callback.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -1038,6 +1039,56 @@ ErrCode UIExtensionContext::CreateModalUIExtensionWithApp(const AAFwk::Want &wan
     return ERR_OK;
 }
 
+ErrCode UIExtensionContext::CreateEmbeddablePrivacyUIExtensionWithApp(const AAFwk::Want &want)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "UIExtensionContext::CreateEmbeddablePrivacyUIExtensionWithApp call");
+    auto uiContent = GetUIContent();
+    if (uiContent == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null uiContent");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (IsUIExtensionExist(want) && !want.GetBoolParam(USE_GLOBAL_UICONTENT, false)) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "UIExtension already exists");
+        return ERR_OK;
+    }
+
+    auto modalCallback = std::make_shared<EmbeddablePrivacyModalCallback>();
+
+    Ace::ModalUIExtensionCallbacks callback = SetupEmbeddablePrivacyModalCallbacks(modalCallback);
+
+    Ace::ModalUIExtensionConfig config;
+    config.prohibitedRemoveByRouter = true;
+
+    if (want.GetBoolParam(DISPOSED_PROHIBIT_BACK, false)) {
+        config.isProhibitBack = true;
+    }
+    if (want.HasParameter(IS_WINDOWMODE_FOLLOWHOST)) {
+        config.isWindowModeFollowHost = want.GetBoolParam(IS_WINDOWMODE_FOLLOWHOST, false);
+    }
+
+    int32_t sessionId = uiContent->CreateModalUIExtension(want, callback, config);
+    if (sessionId == 0) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "CreateEmbeddablePrivacyModalUIExtension failed");
+        return ERR_INVALID_VALUE;
+    }
+
+    modalCallback->SetSessionId(sessionId);
+    modalCallback->SetUIContent(uiContent);
+
+    auto contextWeak = std::static_pointer_cast<UIExtensionContext>(shared_from_this());
+    modalCallback->SetUIExtensionContext(contextWeak);
+
+    {
+        std::lock_guard<std::mutex> lock(uiExtensionMutex_);
+        uiExtensionMap_.emplace(sessionId, want);
+    }
+
+    TAG_LOGI(AAFwkTag::UI_EXT,
+        "Created embeddable privacy modal UIExtension, sessionId: %{public}d", sessionId);
+    return ERR_OK;
+}
+
 Ace::ModalUIExtensionCallbacks UIExtensionContext::SetupModalCallbacks(
     std::shared_ptr<UIExtensionModalCallback> modalCallback)
 {
@@ -1060,6 +1111,33 @@ Ace::ModalUIExtensionCallbacks UIExtensionContext::SetupModalCallbacks(
     };
     callback.onReceive = [modalCallback](const AAFwk::WantParams& data) {
         TAG_LOGD(AAFwkTag::UI_EXT, "Modal UIExtension onReceive");
+        modalCallback->OnReceive(data);
+    };
+    return callback;
+}
+
+Ace::ModalUIExtensionCallbacks UIExtensionContext::SetupEmbeddablePrivacyModalCallbacks(
+    std::shared_ptr<EmbeddablePrivacyModalCallback> modalCallback)
+{
+    Ace::ModalUIExtensionCallbacks callback;
+    callback.onError = [modalCallback](int32_t code, const std::string &str1, const std::string &str2) {
+        TAG_LOGE(AAFwkTag::UI_EXT,
+            "Embeddable privacy modal error: %{public}d, msg: %{public}s", code, str2.c_str());
+        modalCallback->OnError();
+    };
+    callback.onRelease = [modalCallback](int32_t code) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "Embeddable privacy modal release: %{public}d", code);
+        modalCallback->OnRelease();
+    };
+    callback.onResult = [modalCallback](int32_t code, const AAFwk::Want &resultWant) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "Embeddable privacy modal result: %{public}d", code);
+    };
+    callback.onDestroy = [modalCallback]() {
+        TAG_LOGD(AAFwkTag::UI_EXT, "Embeddable privacy modal destroy");
+        modalCallback->OnDestroy();
+    };
+    callback.onReceive = [modalCallback](const AAFwk::WantParams& data) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "Embeddable privacy modal onReceive");
         modalCallback->OnReceive(data);
     };
     return callback;

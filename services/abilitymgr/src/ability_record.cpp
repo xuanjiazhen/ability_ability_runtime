@@ -3066,6 +3066,13 @@ int32_t AbilityRecord::CreateModalUIExtension(const Want &want)
     return scheduler_->CreateModalUIExtension(want);
 }
 
+int32_t AbilityRecord::CreateEmbeddablePrivacyUIExtension(const Want &want)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "CreateEmbeddablePrivacyUIExtension call");
+    CHECK_POINTER_AND_RETURN(scheduler_, INNER_ERR);
+    return scheduler_->CreateEmbeddablePrivacyUIExtension(want);
+}
+
 void AbilityRecord::SetURI(const std::string &uri)
 {
     uri_ = uri;

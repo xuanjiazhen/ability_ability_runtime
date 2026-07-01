@@ -27,6 +27,7 @@ namespace {
 constexpr const char* UIEXTENSION_MODAL_TYPE = "ability.want.params.modalType";
 constexpr const char* INTERCEPT_MISSION_ID = "intercept_missionId";
 constexpr const char* IS_EMBEDDABLE_SERVICE = "ohos.param.isCallerEmbeddableUIExtension";
+constexpr const char* EMBEDDABLE_PRIVACY_MODAL_FLAG = "ohos.want.param.embeddablePrivacyModal";
 
 bool IsEmbeddableStart(int32_t screenMode)
 {
@@ -161,6 +162,23 @@ ErrCode DisposedObserver::ExecuteUIExtension(const AppExecFwk::PageStateData &pa
     auto abilityRecord = Token::GetAbilityRecordByToken(token_);
     Want want = *disposedRule_.want;
 
+    // ===== New independent path: embeddable privacy modal (this feature) =====
+    if (abilityRecord != nullptr) {
+        const auto& abilityWant = abilityRecord->GetWant();
+        if (abilityWant.HasParameter(AAFwk::SCREEN_MODE_KEY)) {
+            int32_t screenMode = abilityWant.GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
+            if (IsEmbeddableStart(screenMode)) {
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "Handle embeddable privacy modal (new independent path)");
+                ErrCode ret = ExecuteEmbeddablePrivacyUIExtension();
+                if (ret != ERR_OK) {
+                    TAG_LOGE(AAFwkTag::ABILITYMGR, "ExecuteEmbeddablePrivacyUIExtension failed");
+                }
+                return ret;
+            }
+        }
+    }
+    // ===== New independent path end =====
+
     bool isEmbeddable = false;
     if (abilityRecord != nullptr) {
         const auto& abilityWant = abilityRecord->GetWant();
@@ -206,6 +224,20 @@ ErrCode DisposedObserver::ExecuteUIExtension(const AppExecFwk::PageStateData &pa
         return ret;
     }
     return ERR_OK;
+}
+
+ErrCode DisposedObserver::ExecuteEmbeddablePrivacyUIExtension()
+{
+    auto abilityRecord = Token::GetAbilityRecordByToken(token_);
+    if (abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityRecord");
+        return ERR_INVALID_VALUE;
+    }
+    Want want = *disposedRule_.want;
+    want.SetParam(IS_EMBEDDABLE_SERVICE, true);
+    want.SetParam(EMBEDDABLE_PRIVACY_MODAL_FLAG, true);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Trigger embeddable privacy modal (new independent path)");
+    return abilityRecord->CreateEmbeddablePrivacyUIExtension(want);
 }
 } // namespace AAFwk
 } // namespace OHOS

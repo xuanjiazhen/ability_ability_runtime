@@ -323,6 +323,8 @@ public:
     void CallRequest() override;
     int32_t CreateModalUIExtension(const Want &want) override;
 
+    int32_t CreateEmbeddablePrivacyUIExtension(const Want &want) override;
+
     void OnExecuteIntent(const Want &want) override;
 
     void ExecuteSkill(const Want &want) override;

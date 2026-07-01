@@ -99,6 +99,13 @@ public:
      */
     virtual int CreateModalUIExtension(const AAFwk::Want &want);
 
+    /**
+     * @brief Create embeddable privacy modal UIExtension (new independent path).
+     * @param want The want of the embeddable privacy modal UIExtension to create.
+     * @return Returns ERR_OK on success, error code on failure.
+     */
+    virtual int CreateEmbeddablePrivacyUIExtension(const AAFwk::Want &want);
+
 protected:
     virtual void ForegroundWindow(const AAFwk::Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo);
     virtual void BackgroundWindow(const sptr<AAFwk::SessionInfo> &sessionInfo);

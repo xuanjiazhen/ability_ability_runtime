@@ -1192,6 +1192,30 @@ int32_t AbilitySchedulerProxy::CreateModalUIExtension(const Want &want)
     return reply.ReadInt32();
 }
 
+int32_t AbilitySchedulerProxy::CreateEmbeddablePrivacyUIExtension(const Want &want)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilitySchedulerProxy::CreateEmbeddablePrivacyUIExtension start");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    AAFwk::ExtendMaxIpcCapacityForInnerWant(data);
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write interface fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteParcelable(&want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write wants fail");
+        return INNER_ERR;
+    }
+    int32_t err = SendTransactCmd(IAbilityScheduler::CREATE_EMBEDDABLE_PRIVACY_UI_EXTENSION, data, reply, option);
+    if (err != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "fail, err: %{public}d", err);
+        return err;
+    }
+    return reply.ReadInt32();
+}
+
 void AbilitySchedulerProxy::UpdateSessionToken(sptr<IRemoteObject> sessionToken)
 {
     MessageParcel data;

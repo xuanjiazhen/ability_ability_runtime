@@ -294,6 +294,13 @@ public:
     virtual void DumpAbilityInfo(const std::vector<std::string> &params, std::vector<std::string> &info) = 0;
     virtual int CreateModalUIExtension(const Want &want) = 0;
 
+    /**
+     * @brief Create embeddable privacy modal UIExtension (new independent path).
+     * @param want The want of the embeddable privacy modal UIExtension to create.
+     * @return Returns ERR_OK on success, error code on failure.
+     */
+    virtual int CreateEmbeddablePrivacyUIExtension(const Want &want) = 0;
+
     virtual void OnExecuteIntent(const Want &want) = 0;
 
     /**
@@ -430,6 +437,8 @@ public:
         SCHEDULE_ABILITY_REQUEST_SUCCESS,
 
         SCHEDULE_ABILITIES_REQUEST_DONE,
+
+        CREATE_EMBEDDABLE_PRIVACY_UI_EXTENSION,
     };
 };
 }  // namespace AAFwk

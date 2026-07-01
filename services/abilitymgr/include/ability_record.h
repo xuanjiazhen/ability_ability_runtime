@@ -655,6 +655,7 @@ public:
     void SetAssertDebug(bool isAssertDebug);
     void SetDebugApp(bool isDebugApp);
     int32_t CreateModalUIExtension(const Want &want);
+    int32_t CreateEmbeddablePrivacyUIExtension(const Want &want);
 
     AppExecFwk::ElementName GetElementName() const;
     bool IsDebugApp() const;
