@@ -58,6 +58,31 @@ ExtractInsightIntentGenericInfo MakeFgUiAbilityCandidate(const std::string &bund
     entry.executeMode = {AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND};
     return info;
 }
+
+ExtractInsightIntentGenericInfo MakeFunctionCandidate(const std::string &bundle,
+    const std::string &module, const std::string &intent)
+{
+    ExtractInsightIntentGenericInfo info;
+    info.bundleName = bundle;
+    info.moduleName = module;
+    info.intentName = intent;
+    info.decoratorType = INSIGHT_INTENTS_DECORATOR_TYPE_FUNCTION;
+    info.set<InsightIntentFunctionInfo>();
+    return info;
+}
+
+ExtractInsightIntentGenericInfo MakePageCandidate(const std::string &bundle,
+    const std::string &module, const std::string &intent, const std::string &ability)
+{
+    ExtractInsightIntentGenericInfo info;
+    info.bundleName = bundle;
+    info.moduleName = module;
+    info.intentName = intent;
+    info.decoratorType = INSIGHT_INTENTS_DECORATOR_TYPE_PAGE;
+    info.set<InsightIntentPageInfo>();
+    info.get<InsightIntentPageInfo>().uiAbility = ability;
+    return info;
+}
 } // namespace
 
 class InsightIntentParamParserTest : public Test {};
@@ -118,4 +143,34 @@ HWTEST_F(InsightIntentParamParserTest, Build_SingleBgUiAbilityCandidate_ReturnsP
     EXPECT_EQ(out.param->abilityName_, expectedAbility);
     EXPECT_FALSE(out.ignoreAbilityName);
     EXPECT_FALSE(out.openLinkExecuteFlag);
+}
+
+HWTEST_F(InsightIntentParamParserTest, Build_FunctionCandidate_ReturnsBgMode, TestSize.Level1)
+{
+    std::vector<ExtractInsightIntentGenericInfo> candidates = {
+        MakeFunctionCandidate("bundle", "entry", "intent"),
+    };
+    InsightIntentParamParser parser;
+    WantParams wantParam;
+    InsightIntentParamParser::ParseResult out;
+    auto ret = parser.Build("bundle", "intent", wantParam, candidates, 0, out);
+    EXPECT_EQ(ret, 0);
+    ASSERT_NE(out.param, nullptr);
+    EXPECT_EQ(out.param->executeMode_, static_cast<int32_t>(AppExecFwk::ExecuteMode::UI_ABILITY_BACKGROUND));
+    EXPECT_TRUE(out.ignoreAbilityName);
+}
+
+HWTEST_F(InsightIntentParamParserTest, Build_PageCandidate_ReturnsFgMode, TestSize.Level1)
+{
+    std::vector<ExtractInsightIntentGenericInfo> candidates = {
+        MakePageCandidate("bundle", "entry", "intent", "PageAbility"),
+    };
+    InsightIntentParamParser parser;
+    WantParams wantParam;
+    InsightIntentParamParser::ParseResult out;
+    auto ret = parser.Build("bundle", "intent", wantParam, candidates, 0, out);
+    EXPECT_EQ(ret, 0);
+    ASSERT_NE(out.param, nullptr);
+    EXPECT_EQ(out.param->executeMode_, static_cast<int32_t>(AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND));
+    EXPECT_TRUE(out.ignoreAbilityName);
 }

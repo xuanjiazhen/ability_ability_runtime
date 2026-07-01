@@ -79,6 +79,32 @@ InsightIntentInfo MakeConfigFormOnly(const std::string &bundle, const std::strin
     info.formIntentInfo.formName = "form";
     return info;
 }
+
+ExtractInsightIntentInfo MakeFunctionIntent(const std::string &bundle, const std::string &module,
+    const std::string &intent)
+{
+    ExtractInsightIntentInfo info;
+    info.genericInfo.bundleName = bundle;
+    info.genericInfo.moduleName = module;
+    info.genericInfo.intentName = intent;
+    info.genericInfo.decoratorType = INSIGHT_INTENTS_DECORATOR_TYPE_FUNCTION;
+    info.genericInfo.set<InsightIntentFunctionInfo>();
+    return info;
+}
+
+ExtractInsightIntentInfo MakePageIntent(const std::string &bundle, const std::string &module,
+    const std::string &intent, const std::string &ability)
+{
+    ExtractInsightIntentInfo info;
+    info.genericInfo.bundleName = bundle;
+    info.genericInfo.moduleName = module;
+    info.genericInfo.intentName = intent;
+    info.genericInfo.decoratorType = INSIGHT_INTENTS_DECORATOR_TYPE_PAGE;
+    info.genericInfo.set<InsightIntentPageInfo>();
+    auto &page = info.genericInfo.get<InsightIntentPageInfo>();
+    page.uiAbility = ability;
+    return info;
+}
 } // namespace
 
 class InsightIntentFilterUtilTest : public Test {};
@@ -139,4 +165,49 @@ HWTEST_F(InsightIntentFilterUtilTest, FilterConfig_FormOnlyDropped, TestSize.Lev
     IntentFilterUtil filter;
     filter.FilterConfig(items);
     EXPECT_TRUE(items.empty());
+}
+
+HWTEST_F(InsightIntentFilterUtilTest, FilterGeneric_FunctionTypeKept, TestSize.Level1)
+{
+    std::vector<ExtractInsightIntentInfo> items = {
+        MakeFunctionIntent("bundle", "entry", "intent"),
+    };
+    IntentFilterUtil filter;
+    filter.FilterGeneric(items);
+    EXPECT_EQ(items.size(), 1u);
+}
+
+HWTEST_F(InsightIntentFilterUtilTest, FilterGeneric_PageTypeKept, TestSize.Level1)
+{
+    std::vector<ExtractInsightIntentInfo> items = {
+        MakePageIntent("bundle", "entry", "intent", "PageAbility"),
+    };
+    IntentFilterUtil filter;
+    filter.FilterGeneric(items);
+    EXPECT_EQ(items.size(), 1u);
+}
+
+HWTEST_F(InsightIntentFilterUtilTest, ConvertFromExtractIntentInfo_BgUiAbilityProducesFunctionInfo, TestSize.Level1)
+{
+    std::vector<ExtractInsightIntentInfo> items = {
+        MakeBgUiAbilityIntent("bundle", "entry", "intent", "BgAbility"),
+    };
+    std::vector<FunctionInfo> functions;
+    ConvertFromExtractIntentInfo(items, functions);
+    ASSERT_EQ(functions.size(), 1u);
+    EXPECT_EQ(functions[0].functionName, "intent");
+    EXPECT_EQ(functions[0].functionNamespace, "bundle");
+    EXPECT_FALSE(functions[0].inputSchema.empty());
+}
+
+HWTEST_F(InsightIntentFilterUtilTest, ConvertFromConfigIntent_ServiceExtensionProducesFunctionInfo, TestSize.Level1)
+{
+    std::vector<InsightIntentInfo> items = {
+        MakeConfigServiceExtension("bundle", "entry", "intent", "ServiceAbility"),
+    };
+    std::vector<FunctionInfo> functions;
+    ConvertFromConfigIntent(items, functions);
+    ASSERT_EQ(functions.size(), 1u);
+    EXPECT_EQ(functions[0].functionName, "intent");
+    EXPECT_EQ(functions[0].functionNamespace, "bundle");
 }
