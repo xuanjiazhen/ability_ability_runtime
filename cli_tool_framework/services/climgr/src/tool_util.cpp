@@ -203,6 +203,9 @@ bool ToolUtil::GenerateSandboxConfig(const ExecToolParam &param, AccessToken::Ac
     envConfig["ohos_cli_callerUid"] = std::to_string(IPCSkeleton::GetCallingUid());
     envConfig["ohos_cli_callerTokenId"] = std::to_string(IPCSkeleton::GetCallingTokenID());
     config["env"] = envConfig;
+    std::vector<std::string> nsFlags;
+    nsFlags.push_back("pid");
+    config["nsFlags"] = nsFlags;
 
     sandboxConfig = config.dump();
     bundleName = bundleInfo.name;
