@@ -869,12 +869,6 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
         ReportCliExecuteFailed(bundleName, param.toolName, GetFailureReason(ret));
         return ret;
     }
-    int32_t callerPid = IPCSkeleton::GetCallingPid();
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
-    if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
-        ReportCliExecuteFailed(bundleName, param.toolName, GetFailureReason(ERR_NO_INIT));
-        return ERR_NO_INIT;
-    }
 
     ToolInfo toolInfo;
     bool dispatched = false;
@@ -890,6 +884,13 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
     if (auto ret = ValidateSessionLimit(); ret != ERR_OK) {
         ReportCliExecuteFailed(bundleName, param.toolName, GetFailureReason(ret));
         return ret;
+    }
+
+    int32_t callerPid = IPCSkeleton::GetCallingPid();
+    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
+        ReportCliExecuteFailed(bundleName, param.toolName, GetFailureReason(ERR_NO_INIT));
+        return ERR_NO_INIT;
     }
 
     std::string sandboxConfig;
@@ -914,13 +915,13 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
     if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
         return ret;
     }
+    if (auto ret = ValidateSessionLimit(); ret != ERR_OK) {
+        return ret;
+    }
     int32_t callerPid = IPCSkeleton::GetCallingPid();
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
         return ERR_NO_INIT;
-    }
-    if (auto ret = ValidateSessionLimit(); ret != ERR_OK) {
-        return ret;
     }
     auto tokenId = IPCSkeleton::GetCallingTokenID();
     std::string sandboxConfig;
