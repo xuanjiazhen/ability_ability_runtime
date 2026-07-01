@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,6 +24,12 @@ namespace system {
 void SetBoolParameter(const std::string &key, bool def);
 
 bool GetBoolParameter(const std::string &key, bool def);
+
+void SetParameter(const std::string &key, const std::string &value);
+
+std::string GetParameter(const std::string &key, const std::string &def);
+
+std::string GetParameters(const std::string &key, const std::string &def);
 
 } // namespace system
 } // namespace OHOS

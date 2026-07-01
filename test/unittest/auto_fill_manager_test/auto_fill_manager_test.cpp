@@ -326,6 +326,82 @@ HWTEST_F(AutoFillManagerTest, ConvertAutoFillWindowType_0200, TestSize.Level1)
 
 /*
  * Feature: AutoFillManager
+ * Function: ConvertAutoFillWindowType
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify PC mode password auto fill uses popup window.
+ */
+HWTEST_F(AutoFillManagerTest, ConvertAutoFillWindowType_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AutoFillManagerTest, ConvertAutoFillWindowType_0300, TestSize.Level1";
+    const std::string IS_SUPPORT_PC_MODE = "const.window.support_window_pcmode_switch";
+    const std::string IS_PC_MODE = "persist.sceneboard.ispcmode";
+    auto &manager = AbilityRuntime::AutoFillManager::GetInstance();
+
+    // Ensure AUTO_FILL_START_POPUP_WINDOW is false to test PC mode independently
+    system::SetBoolParameter(AUTO_FILL_START_POPUP_WINDOW, false);
+
+    // Test PASSWORD type with PC mode enabled
+    system::SetParameter(IS_SUPPORT_PC_MODE, "true");
+    system::SetParameter(IS_PC_MODE, "true");
+    AbilityRuntime::AutoFill::AutoFillRequest autoFillRequest;
+    autoFillRequest.autoFillTriggerType = AbilityRuntime::AutoFill::AutoFillTriggerType::AUTO_REQUEST;
+    autoFillRequest.autoFillType = AbilityBase::AutoFillType::PASSWORD;
+    bool isSmartAutoFill = false;
+    AbilityRuntime::AutoFill::AutoFillWindowType autoFillWindowType
+        = AbilityRuntime::AutoFill::AutoFillWindowType::MODAL_WINDOW;
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_FALSE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::POPUP_WINDOW);
+
+    // Test PASSWORD type with PC mode disabled (IS_SUPPORT_PC_MODE is false)
+    system::SetParameter(IS_SUPPORT_PC_MODE, "false");
+    system::SetParameter(IS_PC_MODE, "true");
+    autoFillWindowType = AbilityRuntime::AutoFill::AutoFillWindowType::MODAL_WINDOW;
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_FALSE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::MODAL_WINDOW);
+
+    // Test PASSWORD type with PC mode disabled (IS_PC_MODE is false)
+    system::SetParameter(IS_SUPPORT_PC_MODE, "true");
+    system::SetParameter(IS_PC_MODE, "false");
+    autoFillWindowType = AbilityRuntime::AutoFill::AutoFillWindowType::MODAL_WINDOW;
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_FALSE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::MODAL_WINDOW);
+
+    // Test USER_NAME type with PC mode enabled
+    system::SetParameter(IS_SUPPORT_PC_MODE, "true");
+    system::SetParameter(IS_PC_MODE, "true");
+    autoFillRequest.autoFillType = AbilityBase::AutoFillType::USER_NAME;
+    autoFillWindowType = AbilityRuntime::AutoFill::AutoFillWindowType::MODAL_WINDOW;
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_FALSE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::POPUP_WINDOW);
+
+    // Test NEW_PASSWORD type with PC mode enabled
+    autoFillRequest.autoFillType = AbilityBase::AutoFillType::NEW_PASSWORD;
+    autoFillWindowType = AbilityRuntime::AutoFill::AutoFillWindowType::MODAL_WINDOW;
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_FALSE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::POPUP_WINDOW);
+
+    // Test non-password type (should not be affected by PC mode)
+    autoFillRequest.autoFillType = AbilityBase::AutoFillType::PERSON_FULL_NAME;
+    autoFillWindowType = AbilityRuntime::AutoFill::AutoFillWindowType::MODAL_WINDOW;
+    isSmartAutoFill = false;
+    manager.ConvertAutoFillWindowType(autoFillRequest, isSmartAutoFill, autoFillWindowType);
+    EXPECT_TRUE(isSmartAutoFill);
+    EXPECT_EQ(autoFillWindowType, AbilityRuntime::AutoFill::AutoFillWindowType::MODAL_WINDOW);
+
+    // Clean up - reset PC mode parameters
+    system::SetParameter(IS_SUPPORT_PC_MODE, "false");
+    system::SetParameter(IS_PC_MODE, "false");
+}
+
+/*
+ * Feature: AutoFillManager
  * Function: IsNeedToCreatePopupWindow
  * SubFunction: NA
  * FunctionPoints: NA
@@ -340,6 +416,54 @@ HWTEST_F(AutoFillManagerTest, IsNeedToCreatePopupWindow_0100, TestSize.Level1)
 
     isPopupAutoFill = manager.IsNeedToCreatePopupWindow(AbilityBase::AutoFillType::PERSON_FULL_NAME);
     EXPECT_EQ(isPopupAutoFill, true);
+}
+
+/*
+ * Feature: AutoFillManager
+ * Function: IsNeedToCreatePopupWindow
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Test PC mode password auto fill popup window.
+ */
+HWTEST_F(AutoFillManagerTest, IsNeedToCreatePopupWindow_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AutoFillManagerTest, IsNeedToCreatePopupWindow_0200, TestSize.Level1";
+    auto &manager = AbilityRuntime::AutoFillManager::GetInstance();
+    const std::string IS_SUPPORT_PC_MODE = "const.window.support_window_pcmode_switch";
+    const std::string IS_PC_MODE = "persist.sceneboard.ispcmode";
+
+    // Test PASSWORD type with PC mode enabled
+    system::SetParameter(IS_SUPPORT_PC_MODE, "true");
+    system::SetParameter(IS_PC_MODE, "true");
+    bool isPopupAutoFill = manager.IsNeedToCreatePopupWindow(AbilityBase::AutoFillType::PASSWORD);
+    EXPECT_TRUE(isPopupAutoFill);
+
+    // Test PASSWORD type with PC mode disabled (IS_SUPPORT_PC_MODE is false)
+    system::SetParameter(IS_SUPPORT_PC_MODE, "false");
+    system::SetParameter(IS_PC_MODE, "true");
+    isPopupAutoFill = manager.IsNeedToCreatePopupWindow(AbilityBase::AutoFillType::PASSWORD);
+    EXPECT_FALSE(isPopupAutoFill);
+
+    // Test PASSWORD type with PC mode disabled (IS_PC_MODE is false)
+    system::SetParameter(IS_SUPPORT_PC_MODE, "true");
+    system::SetParameter(IS_PC_MODE, "false");
+    isPopupAutoFill = manager.IsNeedToCreatePopupWindow(AbilityBase::AutoFillType::PASSWORD);
+    EXPECT_FALSE(isPopupAutoFill);
+
+    // Test USER_NAME type with PC mode enabled
+    system::SetParameter(IS_SUPPORT_PC_MODE, "true");
+    system::SetParameter(IS_PC_MODE, "true");
+    isPopupAutoFill = manager.IsNeedToCreatePopupWindow(AbilityBase::AutoFillType::USER_NAME);
+    EXPECT_TRUE(isPopupAutoFill);
+
+    // Test NEW_PASSWORD type with PC mode enabled
+    isPopupAutoFill = manager.IsNeedToCreatePopupWindow(AbilityBase::AutoFillType::NEW_PASSWORD);
+    EXPECT_TRUE(isPopupAutoFill);
+
+    // Test non-password type with PC mode enabled (should return true for other types)
+    isPopupAutoFill = manager.IsNeedToCreatePopupWindow(AbilityBase::AutoFillType::PERSON_FULL_NAME);
+    EXPECT_TRUE(isPopupAutoFill);
 }
 
 /*
