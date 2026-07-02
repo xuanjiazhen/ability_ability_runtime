@@ -20,6 +20,8 @@
 #include <memory>
 #include <mutex>
 #include <set>
+#include <utility>
+#include <vector>
 #include "event_handler.h"
 #include "shell_command_result.h"
 
@@ -50,6 +52,10 @@ public:
 private:
     bool DoWork();
     bool CheckCommand();
+    bool HasDangerousMetaChars(const std::string& cmd);
+    std::vector<std::string> SplitCommandByOperators(const std::string& cmd);
+    std::pair<size_t, size_t> FindEarliestSeparator(const std::string& str);
+    size_t FindSeparatorAt(const std::string& str, size_t pos);
 private:
     bool isDone_ = false;
     int64_t timeoutSec_ = 0;
