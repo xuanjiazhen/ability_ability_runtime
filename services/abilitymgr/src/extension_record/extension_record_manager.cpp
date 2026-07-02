@@ -16,7 +16,9 @@
 #include "extension_record_manager.h"
 
 #include "ability_util.h"
+#include "app_scheduler.h"
 #include "app_utils.h"
+#include "in_process_call_wrapper.h"
 #include "extension_running_timeout_monitor.h"
 #include "preload_ui_extension_execute_callback_proxy.h"
 #include "preload_ui_extension_host_client.h"
@@ -607,6 +609,16 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecordInner(const AAFwk::Abi
     extensionRecord->hostBundleName_ = hostBundleName;
     abilityRecord->SetOwnerMissionUserId(userId_);
     abilityRecord->SetUIExtensionAbilityId(extensionRecordId);
+    // Sync debug flag from attach debug for AgentUIExtension.
+    bool isAgentUI =
+        AAFwk::UIExtensionWrapper::IsAgentUIExtension(abilityRequest.abilityInfo.extensionAbilityType);
+    if (isAgentUI && IsAttachDebug(abilityRequest.abilityInfo.bundleName)) {
+        abilityRecord->SetAttachDebug(true);
+        abilityRecord->SetDebugApp(true);
+        TAG_LOGD(AAFwkTag::EXT,
+            "AgentUIExtension inherits attach debug, ability:%{public}s",
+            abilityRequest.abilityInfo.name.c_str());
+    }
     result = SetAbilityProcessName(abilityRequest, abilityRecord, extensionRecord);
     if (result != ERR_OK) {
         return result;
@@ -632,6 +644,11 @@ int32_t ExtensionRecordManager::SetAbilityProcessName(const AAFwk::AbilityReques
     } else {
         return UpdateProcessName(abilityRequest, extensionRecord);
     }
+}
+
+bool ExtensionRecordManager::IsAttachDebug(const std::string &bundleName)
+{
+    return IN_PROCESS_CALL(DelayedSingleton<AAFwk::AppScheduler>::GetInstance()->IsAttachDebug(bundleName));
 }
 
 int32_t ExtensionRecordManager::StartAbility(const AAFwk::AbilityRequest &abilityRequest)
