@@ -14,7 +14,7 @@
  */
 
 #include <gtest/gtest.h>
-//
+
 #define private public
 #include "ability_recovery.h"
 #undef private
