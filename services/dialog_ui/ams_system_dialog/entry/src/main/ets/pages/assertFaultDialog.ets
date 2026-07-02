@@ -16,6 +16,7 @@
 import abilityManager from '@ohos.app.ability.abilityManager';
 import type { BusinessError } from '@ohos.base';
 import type UIExtensionContentSession from '@ohos.app.ability.UIExtensionContentSession';
+import { display } from '@kit.ArkUI';
 
 let storage = LocalStorage.GetShared();
 const TAG: string = 'AssertFaultDialog_Page';
@@ -25,10 +26,123 @@ const DEBUG_ASSERT_RESULT: string = 'assertResult';
 @Component
 struct AssertFaultDialog {
   @State private textDetail: string = '';
+  @State private foldable: boolean = display.isFoldable();
+  @State @Watch('onFoldStatusChanged') private isFullyExpanded: boolean = false;
+  private previousExpandedState: boolean = false;
+
+  private foldStatusCallback: (data: display.FoldStatus) => void = (data: display.FoldStatus) => {
+    this.isFullyExpanded = (data === display.FoldStatus.FOLD_STATUS_EXPANDED_WITH_SECOND_EXPANDED);
+    console.info(TAG, `Fold status changed: ${data}, isFullyExpanded: ${this.isFullyExpanded}`);
+  }
+
+  onFoldStatusChanged() {
+    console.info(TAG, `onFoldStatusChanged called: ${this.previousExpandedState} -> ${this.isFullyExpanded}`);
+    // 可折叠设备从展开态切换到非展开态，自动关闭对话框（调用 onContinueCall）
+    if (this.foldable && this.previousExpandedState && !this.isFullyExpanded) {
+      console.info(TAG, 'Foldable device changed from expanded to non-expanded, closing dialog via onContinueCall');
+      this.onContinueCall();
+    }
+    this.previousExpandedState = this.isFullyExpanded;
+  }
+
+  private showDialog(): void {
+    if (!this.foldable) {
+      // 不可折叠设备：正常显示对话框（原有规则和样式不变）
+      AlertDialog.show({
+        title: 'Assert Fault Dialog',
+        message: this.textDetail,
+        autoCancel: false,
+        alignment: DialogAlignment.Center,
+        gridCount: 4,
+        buttonDirection: DialogButtonDirection.HORIZONTAL,
+        cancel: this.existApp,
+        buttons: [
+          {
+            enabled: true,
+            defaultFocus: false,
+            style: DialogButtonStyle.HIGHLIGHT,
+            value: $r('app.string.button_continue'),
+            fontColor: $r('sys.color.ohos_id_color_foreground_contrary'),
+            backgroundColor: $r('app.color.button_color'),
+            action: this.onContinueCall
+          },
+          {
+            enabled: true,
+            defaultFocus: false,
+            style: DialogButtonStyle.HIGHLIGHT,
+            value: $r('app.string.button_retry'),
+            fontColor: $r('sys.color.ohos_id_color_foreground_contrary'),
+            backgroundColor: $r('app.color.button_color'),
+            action: this.onRetryCall
+          },
+          {
+            enabled: true,
+            defaultFocus: true,
+            style: DialogButtonStyle.HIGHLIGHT,
+            value: $r('app.string.button_termination'),
+            fontColor: $r('sys.color.ohos_id_color_foreground_contrary'),
+            backgroundColor: $r('app.color.button_color'),
+            action: this.onTerminationCall
+          }
+        ]
+      })
+    } else if (this.isFullyExpanded) {
+      // 可折叠设备且为展开态：显示对话框
+      AlertDialog.show({
+        title: 'Assert Fault Dialog',
+        message: this.textDetail,
+        autoCancel: false,
+        alignment: DialogAlignment.Center,
+        gridCount: 4,
+        buttonDirection: DialogButtonDirection.VERTICAL,
+        cancel: this.existApp,
+        buttons: [
+          {
+            enabled: true,
+            defaultFocus: false,
+            style: DialogButtonStyle.DEFAULT,
+            value: $r('app.string.button_continue'),
+            fontColor: $r('sys.color.ohos_id_color_foreground_contrary'),
+            backgroundColor: $r('app.color.button_color'),
+            action: this.onContinueCall
+          },
+          {
+            enabled: true,
+            defaultFocus: false,
+            style: DialogButtonStyle.HIGHLIGHT,
+            value: $r('app.string.button_retry'),
+            fontColor: $r('sys.color.ohos_id_color_foreground_contrary'),
+            backgroundColor: $r('app.color.button_color'),
+            action: this.onRetryCall
+          },
+          {
+            enabled: true,
+            defaultFocus: true,
+            style: DialogButtonStyle.DEFAULT,
+            value: $r('app.string.button_termination'),
+            fontColor: $r('sys.color.ohos_id_color_foreground_contrary'),
+            backgroundColor: $r('app.color.button_color'),
+            action: this.onTerminationCall
+          }
+        ]
+      })
+    } else {
+      console.info(TAG, 'Foldable device not in fully expanded state, dialog not shown');
+    }
+  }
 
   aboutToAppear() {
     console.info(TAG, 'dialog page appears');
     this.textDetail = storage.get<string>('textDetail');
+    display.on('foldStatusChange', this.foldStatusCallback);
+    // 初始化 previousExpandedState
+    this.previousExpandedState = this.isFullyExpanded;
+    // 显示对话框
+    this.showDialog();
+  }
+
+  aboutToDisappear() {
+    display.off('foldStatusChange', this.foldStatusCallback);
   }
 
   existApp() {
@@ -88,47 +202,7 @@ struct AssertFaultDialog {
   }
 
   build() {
-    Column(
-      AlertDialog.show(
-        {
-          title: 'Assert Fault Dialog',
-          message: this.textDetail,
-          autoCancel: false,
-          alignment: DialogAlignment.Center,
-          gridCount: 4,
-          buttonDirection: DialogButtonDirection.HORIZONTAL,
-          cancel: this.existApp,
-          buttons: [
-            {
-              enabled: true,
-              defaultFocus: false,
-              style: DialogButtonStyle.HIGHLIGHT,
-              value: $r('app.string.button_continue'),
-              fontColor: $r('sys.color.ohos_id_color_foreground_contrary'),
-              backgroundColor: $r('app.color.button_color'),
-              action: this.onContinueCall
-            },
-            {
-              enabled: true,
-              defaultFocus: false,
-              style: DialogButtonStyle.HIGHLIGHT,
-              value: $r('app.string.button_retry'),
-              fontColor: $r('sys.color.ohos_id_color_foreground_contrary'),
-              backgroundColor: $r('app.color.button_color'),
-              action: this.onRetryCall
-            },
-            {
-              enabled: true,
-              defaultFocus: true,
-              style: DialogButtonStyle.HIGHLIGHT,
-              value: $r('app.string.button_termination'),
-              fontColor: $r('sys.color.ohos_id_color_foreground_contrary'),
-              backgroundColor: $r('app.color.button_color'),
-              action: this.onTerminationCall
-            }
-          ]
-        }
-      )
-    ) {}
+    Column() {
+    }
   }
 }
