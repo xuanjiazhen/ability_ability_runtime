@@ -16,7 +16,9 @@
 #include "extension_record_manager.h"
 
 #include "ability_util.h"
+#include "app_scheduler.h"
 #include "app_utils.h"
+#include "in_process_call_wrapper.h"
 #include "extension_running_timeout_monitor.h"
 #include "preload_ui_extension_execute_callback_proxy.h"
 #include "preload_ui_extension_host_client.h"
@@ -253,6 +255,19 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecord(const AAFwk::AbilityR
         if (isAgentUI && extensionRecord != nullptr && !isLoaded) {
             AddAgentUILaunchRecord(callerUid, abilityRequest.abilityInfo.bundleName,
                 extensionRecord->extensionRecordId_);
+            // Sync debug flag from main process for AgentUI extension
+            if (abilityRequest.appInfo.appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG &&
+                extensionRecord->abilityRecord_ != nullptr) {
+                bool isMainProcessDebug = IN_PROCESS_CALL(
+                    DelayedSingleton<AAFwk::AppScheduler>::GetInstance()->IsMainProcessDebug(
+                    abilityRequest.appInfo.uid));
+                if (isMainProcessDebug) {
+                    extensionRecord->abilityRecord_->SetDebugApp(true);
+                    TAG_LOGD(AAFwkTag::ABILITYMGR,
+                        "AgentUI extension inherit debug from main process, ability:%{public}s",
+                        abilityRequest.abilityInfo.name.c_str());
+                }
+            }
         }
     }
     if (extensionRecord != nullptr) {
