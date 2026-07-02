@@ -41,7 +41,7 @@ namespace AppExecFwk {
 namespace {
 constexpr size_t DEFAULT_RECOVERY_MAX_RESTORE_SIZE = 400 * 1024;
 constexpr int32_t CALL_BACK_ERROR = -1;
-//
+
 static std::string GetSaveAppCachePath(int32_t savedStateId)
 {
     auto context = AbilityRuntime::Context::GetApplicationContext();
