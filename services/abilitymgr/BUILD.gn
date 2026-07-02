@@ -255,11 +255,6 @@ ohos_shared_library("abilityms") {
     defines += [ "SUPPORT_RECORDER_DSOFTBUS" ]
   }
 
-  if (ability_runtime_taskmanager_low_mem_frozen_skip_detecter_enable) {
-    defines += [ "TASKMGR_LOW_MEM_FROZEN_SKIP_DETECTER_ENABLE" ]
-    external_deps += ["efficiency_manager:suspend_manager_client"]
-  }
-
   if (ability_runtime_auto_fill) {
     defines += [ "SUPPORT_AUTO_FILL" ]
   }

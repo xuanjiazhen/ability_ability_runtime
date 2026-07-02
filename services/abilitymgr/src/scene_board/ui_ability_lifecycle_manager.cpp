@@ -2702,7 +2702,7 @@ void UIAbilityLifecycleManager::OnTimeOut(uint32_t msgId, int64_t abilityRecordI
         std::unordered_map<int32_t, std::pair<bool, uint32_t>> appSuspendState;
         SuspendManager::SuspendManagerClient::GetInstance().GetAllAppSuspendState(appSuspendState);
         bool isSuspended = (appSuspendState.find(uid) != appSuspendState.end() && appSuspendState[uid].first);
-        if (isSuspended) {
+        if (isSuspended && OHOS::system::GetBoolParameter("const.taskmanager.low_memory_frozen_enable", false)) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "app uid %{public}d is suspended, skip timeout", uid);
             return;
         }

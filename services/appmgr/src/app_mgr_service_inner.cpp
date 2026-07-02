@@ -7545,6 +7545,7 @@ void AppMgrServiceInner::HandleStartSpecifiedAbilityTimeOut(std::shared_ptr<AppR
     std::unordered_map<int32_t, std::pair<bool, uint32_t>> appSuspendState;
     SuspendManager::SuspendManagerClient::GetInstance().GetAllAppSuspendState(appSuspendState);
     bool isSuspended = (appSuspendState.find(uid) != appSuspendState.end() && appSuspendState[uid].first);
+    isSuspended = isSuspended && OHOS::system::GetBoolParameter("const.taskmanager.low_memory_frozen_enable", false);
     if (isSuspended) {
         TAG_LOGI(AAFwkTag::APPMGR, "HandleStartSpecifiedAbilityTimeOut, app is frozen, will not kill app");
         appRecord->ResetSpecifiedRequest();
@@ -9310,10 +9311,10 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
     std::unordered_map<int32_t, std::pair<bool, uint32_t>> appSuspendState;
     SuspendManager::SuspendManagerClient::GetInstance().GetAllAppSuspendState(appSuspendState);
     bool isSuspended = (appSuspendState.find(uid) != appSuspendState.end() && appSuspendState[uid].first);
-    TAG_LOGI(AAFwkTag::APPMGR, "zyt, NotifyAppFault, isSuspended = %{public}s",isSuspended ? "true" : "false");
+    isSuspended = isSuspended && OHOS::system::GetBoolParameter("const.taskmanager.low_memory_frozen_enable", false);
     if (AppExecFwk::AppfreezeManager::GetInstance()->IsSkipDetect(pid, uid, bundleName, eventName) ||
         AppExecFwk::AppfreezeManager::GetInstance()->IsFreezeExcludedPid(pid) || isSuspended) {
-        TAG_LOGI(AAFwkTag::APPMGR, "NotifyAppFault, app is forzen, will not report fault");
+        TAG_LOGI(AAFwkTag::APPMGR, "NotifyAppFault, app is frozen, will not report fault");
         return ERR_OK;
     }
 #else
@@ -9478,10 +9479,10 @@ int32_t AppMgrServiceInner::TransformedNotifyAppFault(const AppFaultDataBySA &fa
     std::unordered_map<int32_t, std::pair<bool, uint32_t>> appSuspendState;
     SuspendManager::SuspendManagerClient::GetInstance().GetAllAppSuspendState(appSuspendState);
     bool isSuspended = (appSuspendState.find(uid) != appSuspendState.end() && appSuspendState[uid].first);
-    TAG_LOGI(AAFwkTag::APPMGR, "zyt, NotifyAppFault, isSuspended = %{public}s",isSuspended ? "true" : "false");
+    isSuspended = isSuspended && OHOS::system::GetBoolParameter("const.taskmanager.low_memory_frozen_enable", false);
     if (AppExecFwk::AppfreezeManager::GetInstance()->IsSkipDetect(pid, uid, bundleName, eventName) ||
         AppExecFwk::AppfreezeManager::GetInstance()->IsFreezeExcludedPid(pid) || isSuspended) {
-        TAG_LOGI(AAFwkTag::APPMGR, "NotifyAppFault, app is forzen, will not report fault");
+        TAG_LOGI(AAFwkTag::APPMGR, "NotifyAppFault, app is frozen, will not report fault");
         return ERR_OK;
     }
 #else

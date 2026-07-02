@@ -42,9 +42,6 @@
 #include "request_id_util.h"
 #include "res_sched_util.h"
 #include "session/host/include/zidl/session_interface.h"
-#ifdef TASKMGR_LOW_MEM_FROZEN_SKIP_DETECTER_ENABLE
-#include "suspend_manager_client.h"
-#endif
 #include "startup_util.h"
 #include "string_wrapper.h"
 #include "timeout_state_utils.h"
@@ -2120,16 +2117,6 @@ void AbilityConnectManager::OnTimeOut(uint32_t msgId, int64_t abilityRecordId, b
     if (isHalf) {
         return;
     }
-#ifdef TASKMGR_LOW_MEM_FROZEN_SKIP_DETECTER_ENABLE
-    int32_t uid = abilityRecord->GetAbilityInfo().applicationInfo.uid;
-    std::unordered_map<int32_t, std::pair<bool, uint32_t>> appSuspendState;
-    SuspendManager::SuspendManagerClient::GetInstance().GetAllAppSuspendState(appSuspendState);
-    bool isSuspended = (appSuspendState.find(uid) != appSuspendState.end() && appSuspendState[uid].first);
-    if (isSuspended) {
-        TAG_LOGI(AAFwkTag::EXT, "app uid %{public}d is suspended, skip timeout", uid);
-        return;
-    }
-#endif
     switch (msgId) {
         case AbilityManagerService::LOAD_TIMEOUT_MSG:
             HandleStartTimeoutTask(abilityRecord);
