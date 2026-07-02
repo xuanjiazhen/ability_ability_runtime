@@ -54,6 +54,7 @@ void UriPermissionManagerStubImplTest::SetUp()
 {
     MyFlag::Init();
     IAbilityManagerCollaborator::verifyResult = 0;
+    StorageManager::StorageManagerServiceMock::isZero = true; // default: CreateShareFile succeeds
     static MockStorageShareFeature g_mockStorage;
     auto &reg = DynamicFeatureManager::GetInstance().registry_;
     auto &se = reg[FeatureId::STORAGE];
@@ -260,6 +261,7 @@ HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_GrantUriPermission_004, TestSiz
 HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_GrantBatchUriPermissionImpl_001, TestSize.Level1)
 {
     auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+    StorageManager::StorageManagerServiceMock::isZero = false; // CreateShareFile returns failures
     std::vector<std::string> uriVec;
     uriVec.push_back("file://test");
     uint32_t flag = 1;

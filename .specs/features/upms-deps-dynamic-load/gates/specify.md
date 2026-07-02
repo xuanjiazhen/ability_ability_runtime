@@ -27,8 +27,8 @@
 
 ## 二、带入 Stage 3 的移交事项
 
-1. execution-plan.md + task.md 按 design §5 + spec §4 分阶段拆任务（需求方调整：media→P1、broker→P2）：
-   - **Phase 1**：共享接口头 + `DynamicFeatureManager`(h+cpp) + RAII 守卫 + 延时任务(ffrt) + **media 插件 .so（首个用例：C++ SDK 单例 + wrapper .so + C 工厂）** + 死依赖清理(~11，逐个 build 验证)；media 独占性(AC-10)作 P1 早期实测。
+1. execution-plan.md + task.md 按 design §5 + spec §4 分阶段拆任务（需求方调整：media→P1）：
+   - **Phase 1**：共享接口头 + `DynamicFeatureManager`(h+cpp) + RAII 守卫 + 延时任务(ffrt) + **media 插件 .so** + 死依赖清理(~11，逐个 build 验证)；media 独占性(AC-10)作 P1 早期实测。
    - **Phase 2（过 AC-10 门槛）**：broker retrofit + storage/fileuri 插件 .so。
    - **Phase 3（模块化）**：identity/sandbox/udmf 插件 .so。
 2. OQ-1 `target_release` 在 Stage 3 向 owner 确认。

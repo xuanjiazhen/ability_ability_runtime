@@ -1,8 +1,7 @@
-# Task 02 — media 插件 .so + 调用点改造（Phase 1，框架首个用例）
+# Task 02 — media 插件 .so + 调用点改造（Phase 1）
 
 > item: `upms-deps-dynamic-load` | depends on: task-01 | mode: 直接实现
 > 规则来源：[design.md](../design.md) ADR-1/2/3/4/9/10、§5；[spec.md](../spec.md) AC-1/2/3/4。
-> ⚠️ 取舍（design §8）：media 作为框架首个用例，比 broker 难（C++ SDK 静态单例 + wrapper .so + C 工厂）。media 独占性（AC-10）为本任务后置实测项（task-07）。
 
 ## 目标
 把 UPMS 对 `media_library:media_permission_helper` 的使用封装进独立插件 .so `libupms_media_ext.z.so`：插件实现 `IMediaPermFeature`、链接 media_library、导出 C 工厂；UPMS 主库移除 media_library 链接 + media 调用改为经 `Acquire`+接口。media 路径功能与改造前一致。

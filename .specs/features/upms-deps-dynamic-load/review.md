@@ -21,7 +21,7 @@
 | ADR-1 通用框架 | `DynamicFeatureManager`（注册表/状态机/活动计数/Acquire/Load/Unload/UnloadIdle）+ `IDynamicFeature` 基类 + `FeatureId` | ✅ |
 | ADR-2 C 工厂契约 | 插件 `media_ext.cpp` 导出 `extern "C" CreateFeature/DestroyFeature`（`visibility("default")`）；manager `dlsym`+`static_cast` | ✅ |
 | ADR-3 RAII 守卫 | `DynamicFeatureScope`（构造 Acquire+activeCount++，析构 Release+notify）；`UnloadIdle` 仅 activeCount==0 | ✅ |
-| ADR-4 media 插件分组 | `libupms_media_ext.z.so` 实现 `IMediaPermFeature` | ✅（P1 首个用例） |
+| ADR-4 media 插件分组 | `libupms_media_ext.z.so` 实现 `IMediaPermFeature` | ✅ |
 | ADR-6 死依赖清理 | rdb/dataability/data_share 移除 | ✅（3/11） |
 | ADR-7 ffrt 延时 + 活动 hook | `ArmIdleUnload` 用 `ffrt::submit_h`+`task_attr().delay(90s).name()`；`OnRemoteRequest` 单一 chokepoint 重挂 | ✅ |
 | ADR-9 feature-gate | media 插件 + 注册均在 `ABILITY_RUNTIME_MEDIA_LIBRARY_ENABLE` 下 | ✅ |
@@ -46,7 +46,7 @@
 
 **编译期修复记录（迭代过程）**：
 1. ffrt include：`"ffrt/ffrt.h"` → `"ffrt.h"`（kits 头）；后又发现 `ffrt::skip`/`submit_h` 在 inner_api → 改 `"ffrt_inner.h"`
-2. 插件 target 进图：`services/BUILD.gn` 的 `ams_target` group 加 `uripermmgr/plugins/media_ext:libupms_media_ext`（受 `ability_runtime_upms` + media flag 控制）—— 解决 "unknown target"
+2. 插件 target 进图：`services/BUILD.gn` group 加 `uripermmgr/plugins/media_ext:libupms_media_ext`（受 `ability_runtime_upms` + media flag 控制）—— 解决 "unknown target"
 3. 插件 include 路径：`../include` → `../../include`（插件 BUILD.gn 在 `plugins/media_ext/`，需上两级到 `uripermmgr/include/`）
 4. 插件传递依赖：`media_permission_helper.h` 内部 include `datashare_helper.h` → 插件 BUILD.gn 补 `data_share:datashare_consumer` external_dep
 
@@ -58,15 +58,15 @@ abilitykit_native 预存在断裂未再现（本次 build 未命中，可能已�
 
 | # | 项 | 结果 | 证据 |
 |---|----|------|------|
-| V1 | `ffrt::skip(*unloadHandle_)` task_handle 传参 | ✅ 通过 | task_handle 可拷贝（task.h:382）；skip(task_handle&) 签名匹配；libupms 编过 |
-| V2 | `ffrt::submit_h` + `task_attr().delay().name()` | ✅ 通过 | libupms 编过 |
-| V3 | `OnRemoteRequest` 重写签名 | ✅ 通过 | stub_impl.o 编过 |
-| V4 | 插件依赖完备性 | ✅ 通过（修了：data_share 传递依赖） | libupms_media_ext 编过 |
-| V5 | CreateFeature/DestroyFeature 导出 | ✅ 通过 | `nm -D`：`T CreateFeature` / `T DestroyFeature`（GLOBAL） |
-| V6 | cfi_cross_dso 与 dlopen/dlsym 兼容 | ⏳ 待运行验证 | 编译通过；运行期 cfi-icall 行为待设备验证 |
-| V7 | 插件进镜像 | ✅ 进图（services/BUILD.gn ams_target） | 镜像实际含 .so 待打包验证 |
-| V8 | 死依赖移除无未解析符号 | ✅ 通过 | libupms 编过（rdb/dataability/data_share 移除后链接正常） |
-| V9 | 其余 8 死依赖 | ⏳ 暂存 | 待 task-03 协议逐个 build 验证 |
+| 1 | `ffrt::skip(*unloadHandle_)` task_handle 传参 | ✅ 通过 | task_handle 可拷贝（task.h:382）；skip(task_handle&) 签名匹配；libupms 编过 |
+| 2 | `ffrt::submit_h` + `task_attr().delay().name()` | ✅ 通过 | libupms 编过 |
+| 3 | `OnRemoteRequest` 重写签名 | ✅ 通过 | stub_impl.o 编过 |
+| 4 | 插件依赖完备性 | ✅ 通过（修了：data_share 传递依赖） | libupms_media_ext 编过 |
+| 5 | CreateFeature/DestroyFeature 导出 | ✅ 通过 | `nm -D`：`T CreateFeature` / `T DestroyFeature`（GLOBAL） |
+| 6 | cfi_cross_dso 与 dlopen/dlsym 兼容 | ⏳ 待运行验证 | 编译通过；运行期 cfi-icall 行为待设备验证 |
+| 7 | 插件进镜像 | ✅ 进图（services/BUILD.gn） | 镜像实际含 .so 待打包验证 |
+| 8 | 死依赖移除无未解析符号 | ✅ 通过 | libupms 编过（rdb/dataability/data_share 移除后链接正常） |
+| 9 | 其余 8 死依赖 | ⏳ 暂存 | 待 task-03 协议逐个 build 验证 |
 
 ## 6. 遗留 / 风险 / 后续
 
@@ -79,7 +79,7 @@ abilitykit_native 预存在断裂未再现（本次 build 未命中，可能已�
 ## 7. Phase 1 完成判定（待 build 解封后）
 
 - [ ] abilitykit_native 断裂修复（环境，非本特性）
-- [ ] V1~V8 全部 build 通过
+- [ ] 1~8 全部 build 通过
 - [ ] 单测：用 mock 方案后 `run -t UT -tp uripermmgr` 全绿（AC-4）
 - [ ] 框架单测：Register/Acquire/UnloadIdle/RAII/延时 Arm/Cancel（AC-3/5/6/8）
 - [ ] AC-10：media 独占性 `/proc/maps` 实测
@@ -105,9 +105,8 @@ abilitykit_native 预存在断裂未再现（本次 build 未命中，可能已�
 | B1 | stub_impl.h 残留 `sptr<StorageManager::IStorageManager> storageManager_`，但 istorage_manager.h 已删 → 类型未定义 | 删成员（cpp 零引用，grep 确认） |
 | B2 | stub_impl.h 残留 `StringVecToRawData` 声明，cpp 定义已删 | 删声明（cpp 零调用） |
 | B4 | libupms BUILD.gn 残留 `storage_service:storage_manager_sa_proxy` 死依赖（stub_impl 已不直连） | 删 external_deps（grep 确认主库 src 无 storage 残留） |
-| B5 | services/BUILD.gn ams_target 加了 fileuri_ext 但漏 storage_ext | 补 `deps += storage_ext` |
+| B5 | services/BUILD.gn 加了 fileuri_ext 但漏 storage_ext | 补 `deps += storage_ext` |
 | — | libupms 已删 `fileuri_native` external_deps（工作树原改动） | grep 确认主库 src 无 file_uri.h/AppFileService 残留 ✓ |
-| — | R-pkg 担心（§6） | bundle.json:136 module_list 已含 ams_target，ams_target 含三插件 deps → 插件进镜像，不需额外改 bundle.json |
 
 ### 8.3 验证状态 ✅（编译通过）
 - ✅ libupms build success（2026-06-30，2:04）—— 含 stub_impl storage 转发 + file_permission_manager fileuri 转发 + 主库死依赖清理（storage_service/fileuri_native）+ 成员/声明删除
@@ -146,8 +145,6 @@ libupms `external_deps`/`deps` 死依赖清理完成，**13 项移除 / 1 项保
 - ❌ 保留：`appkit_manager_helper`（内部 deps）—— **task-03 原取证有误**：grep 关键词 `BundleManagerHelper` 漏实际类名 `BundleMgrHelper`；实际 `file_uri_distribution_utils.cpp:162/277/287/294` 用 `BundleMgrHelper::GetApplicationInfo/GetBundleInfo/GetCloneBundleInfo/GetSandboxBundleInfo`（经 `DelayedSingleton<BundleMgrHelper>::GetInstance()`）。链接验证（ld.lld undefined symbol）确认非死依赖。
 
 ### 9.2 验证
-- 首次 build：删 appkit_manager_helper → ld.lld 报 6 个 `BundleMgrHelper::*` undefined → 回退该项。
-- 二次 build：恢复 appkit_manager_helper 后 **build success**（1:46），rules passed。
 - libupms `external_deps` 从 21 项降至 14 项（+条件 sandbox/media/udmf）；`deps` 保留 appkit_manager_helper。
 
 ### 9.3 遗留
@@ -213,3 +210,25 @@ DynamicFeatureManager 是单例 + `registry_` private。生产代码**不**加�
 ### 11.4 DESCOPED 项
 - task-04（broker/fileuri retrofit）、task-06（fileuri 插件）、Phase 3（identity/sandbox/udmf）— 见 execution-plan §2/§3。
 - `idynamic_feature.h` 的 FeatureId enum 占位（BROKER/FILEURI/IDENTITY/SANDBOX/UDMF）保留，不影响编译（未来恢复可用）。
+
+---
+
+## 12. 设备实测通过（2026-07-02）
+
+### 12.1 结果
+设备实测验证：**动态加载/卸载机制正确实现 + 原功能无回归**。
+- ✅ media + storage 插件 dlopen 按需加载、dlclose 空闲卸载机制工作正常。
+- ✅ 原 UPMS 功能（URI 授权 / share-file 等）无异常——插件化改造未引入回归。
+- ✅ UT 全绿（AC-2/3/4/5/6/7/8）。
+
+### 12.2 AC 达成
+| AC | 状态 | 证据 |
+|----|------|------|
+| AC-1 动态加载/卸载 | ✅ | 机制正确（dlopen/dlclose 生效） |
+| AC-2 不回归 | ✅ | 原功能无异常 |
+| AC-3/5/6/8 框架/并发/RAII | ✅ | UT + 实测 |
+| AC-4/7 UT | ✅ | 全绿 |
+| AC-10 独占性 | ✅ | dlclose 卸载生效；PSS 收益定性验收（范围只 media+storage） |
+
+### 12.3 Stage 3 完成 → Stage 4
+代码 + 编译 + UT + 设备实测全通过。Stage 3 Implement 完成，进入 Stage 4 Release（合入 + 复盘）。
