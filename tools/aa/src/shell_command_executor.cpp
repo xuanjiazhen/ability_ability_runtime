@@ -127,13 +127,84 @@ bool ShellCommandExecutor::DoWork()
 
 bool ShellCommandExecutor::CheckCommand()
 {
-    std::istringstream iss(cmd_);
-    std::string firstCommand = "";
-    iss >> firstCommand;
-    if (ShellCommandConfigLoader::commands_.find(firstCommand) != ShellCommandConfigLoader::commands_.end()) {
-        return true;
+    if (HasDangerousMetaChars(cmd_)) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "Command contains dangerous meta chars");
+        return false;
+    }
+    auto subCommands = SplitCommandByOperators(cmd_);
+    for (const auto& subCmd : subCommands) {
+        std::istringstream iss(subCmd);
+        std::string firstWord;
+        iss >> firstWord;
+        if (firstWord.empty()) {
+            continue;
+        }
+        if (ShellCommandConfigLoader::commands_.find(firstWord) ==
+            ShellCommandConfigLoader::commands_.end()) {
+            TAG_LOGE(AAFwkTag::AA_TOOL, "Invalid sub-command: %{public}s", firstWord.c_str());
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ShellCommandExecutor::HasDangerousMetaChars(const std::string& cmd)
+{
+    bool inSingleQuote = false;
+    bool inDoubleQuote = false;
+    for (size_t i = 0; i < cmd.size(); ++i) {
+        char c = cmd[i];
+        if (c == '\'' && !inDoubleQuote) {
+            inSingleQuote = !inSingleQuote;
+        } else if (c == '"' && !inSingleQuote) {
+            inDoubleQuote = !inDoubleQuote;
+        } else if (!inSingleQuote) {
+            if (c == '`') {
+                return true;
+            }
+            if (c == '$' && i + 1 < cmd.size() && cmd[i + 1] == '(') {
+                return true;
+            }
+        }
     }
     return false;
+}
+
+std::vector<std::string> ShellCommandExecutor::SplitCommandByOperators(const std::string& cmd)
+{
+    std::vector<std::string> subCommands;
+    std::string remaining = cmd;
+    static const std::vector<std::pair<std::string, size_t>> seps = {
+        {"||", 2}, {"&&", 2}, {"|", 1}, {";", 1}, {"\n", 1}, {"&", 1}
+    };
+    while (!remaining.empty()) {
+        size_t minPos = remaining.size();
+        size_t sepLen = 1;
+        bool inSingleQuote = false;
+        bool inDoubleQuote = false;
+        for (size_t i = 0; i < remaining.size(); ++i) {
+            char c = remaining[i];
+            if (c == '\'' && !inDoubleQuote) {
+                inSingleQuote = !inSingleQuote;
+            } else if (c == '"' && !inSingleQuote) {
+                inDoubleQuote = !inDoubleQuote;
+            } else if (!inSingleQuote && !inDoubleQuote && i < minPos) {
+                for (const auto& [sep, len] : seps) {
+                    if (remaining.compare(i, len, sep) == 0) {
+                        minPos = i;
+                        sepLen = len;
+                        break;
+                    }
+                }
+            }
+        }
+        std::string part = remaining.substr(0, minPos);
+        if (!part.empty()) {
+            subCommands.push_back(part);
+        }
+        remaining = (minPos < remaining.size()) ? remaining.substr(minPos + sepLen) : "";
+    }
+    return subCommands;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
