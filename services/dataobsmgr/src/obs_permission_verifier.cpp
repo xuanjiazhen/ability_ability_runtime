@@ -81,7 +81,7 @@ std::pair<bool, std::string> ObsPermissionVerifier::GetCallingInfo(uint32_t call
 std::vector<std::string> ObsPermissionVerifier::GetGroupInfosFromCache(const std::string &bundleName,
     int32_t userId, const std::string &uri)
 {
-    std::string key = uri;
+    std::string key = bundleName + ":" + std::to_string(userId) + ":" + uri;
     {
         std::shared_lock<std::shared_mutex> readLock(groupsIdMutex_);
         auto it = std::find_if(groupsIdCache_.begin(), groupsIdCache_.end(),
