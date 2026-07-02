@@ -127,13 +127,97 @@ bool ShellCommandExecutor::DoWork()
 
 bool ShellCommandExecutor::CheckCommand()
 {
-    std::istringstream iss(cmd_);
-    std::string firstCommand = "";
-    iss >> firstCommand;
-    if (ShellCommandConfigLoader::commands_.find(firstCommand) != ShellCommandConfigLoader::commands_.end()) {
-        return true;
+    if (HasDangerousMetaChars(cmd_)) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "Command contains dangerous meta chars");
+        return false;
+    }
+    auto subCommands = SplitCommandByOperators(cmd_);
+    for (const auto& subCmd : subCommands) {
+        std::istringstream iss(subCmd);
+        std::string firstWord;
+        iss >> firstWord;
+        if (firstWord.empty()) {
+            continue;
+        }
+        if (ShellCommandConfigLoader::commands_.find(firstWord) ==
+            ShellCommandConfigLoader::commands_.end()) {
+            TAG_LOGE(AAFwkTag::AA_TOOL, "Invalid sub-command: %{public}s", firstWord.c_str());
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ShellCommandExecutor::HasDangerousMetaChars(const std::string& cmd)
+{
+    bool inSingleQuote = false;
+    bool inDoubleQuote = false;
+    for (size_t i = 0; i < cmd.size(); ++i) {
+        char c = cmd[i];
+        if (c == '\'' && !inDoubleQuote) {
+            inSingleQuote = !inSingleQuote;
+        } else if (c == '"' && !inSingleQuote) {
+            inDoubleQuote = !inDoubleQuote;
+        } else if (!inSingleQuote) {
+            if (c == '`') {
+                return true;
+            }
+            if (c == '$' && i + 1 < cmd.size() && cmd[i + 1] == '(') {
+                return true;
+            }
+        }
     }
     return false;
+}
+
+std::vector<std::string> ShellCommandExecutor::SplitCommandByOperators(const std::string& cmd)
+{
+    std::vector<std::string> subCommands;
+    std::string remaining = cmd;
+    while (!remaining.empty()) {
+        auto [minPos, sepLen] = FindEarliestSeparator(remaining);
+        std::string part = remaining.substr(0, minPos);
+        if (!part.empty()) {
+            subCommands.push_back(part);
+        }
+        remaining = (minPos < remaining.size()) ? remaining.substr(minPos + sepLen) : "";
+    }
+    return subCommands;
+}
+
+std::pair<size_t, size_t> ShellCommandExecutor::FindEarliestSeparator(const std::string& str)
+{
+    std::pair<size_t, size_t> result = {str.size(), 1};
+    bool inSingleQuote = false;
+    bool inDoubleQuote = false;
+    for (size_t i = 0; i < str.size(); ++i) {
+        char c = str[i];
+        if (c == '\'' && !inDoubleQuote) {
+            inSingleQuote = !inSingleQuote;
+        } else if (c == '"' && !inSingleQuote) {
+            inDoubleQuote = !inDoubleQuote;
+        } else if (!inSingleQuote && !inDoubleQuote && i < result.first) {
+            size_t matchedLen = FindSeparatorAt(str, i);
+            if (matchedLen > 0) {
+                result.first = i;
+                result.second = matchedLen;
+            }
+        }
+    }
+    return result;
+}
+
+size_t ShellCommandExecutor::FindSeparatorAt(const std::string& str, size_t pos)
+{
+    static const std::vector<std::pair<std::string, size_t>> seps = {
+        {"||", 2}, {"&&", 2}, {"|", 1}, {";", 1}, {"\n", 1}, {"&", 1}
+    };
+    for (const auto& [sep, len] : seps) {
+        if (str.compare(pos, len, sep) == 0) {
+            return len;
+        }
+    }
+    return 0;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
