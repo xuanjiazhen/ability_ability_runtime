@@ -212,6 +212,7 @@ private:
         std::shared_ptr<ExtensionRecord> &record, const std::string &process);
     sptr<AAFwk::IPreloadUIExtensionExecuteCallback> GetRemoteCallback(
         std::shared_ptr<ExtensionRecord> uiExtensionRecord);
+    virtual bool IsAttachDebug(const std::string &bundleName);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
