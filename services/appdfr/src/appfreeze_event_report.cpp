@@ -100,7 +100,7 @@ int AppfreezeEventReport::LogAppInputBlockEvent(const std::string &name, HiSysEv
     ret = hisyseventReport->Report("AAFWK", name.c_str(), type);
     return ret;
 }
-
+//
 int AppfreezeEventReport::LogThreadBlockEvent(const std::string &name, HiSysEventEventType type,
     const AppfreezeEventInfo &eventInfo)
 {
@@ -124,7 +124,7 @@ int AppfreezeEventReport::LogThreadBlockEvent(const std::string &name, HiSysEven
     hisyseventReport->InsertParam(EVENT_APPLICATION_HEAP_INFO, eventInfo.applicationHeapInfo);
     hisyseventReport->InsertParam(EVENT_APPLICATION_GC_INFO, eventInfo.applicationGCInfo);
     hisyseventReport->InsertParam(EVENT_APPLICATION_IO_INFO, eventInfo.applicationIOInfo);
-    hisyseventReport->InsertParam(EVENT_IS_BLOCK_IN_GC, eventInfo.isBlockInGc);
+    hisyseventReport->InsertParam(EVENT_IS_BLOCK_IN_GC, eventInfo.isBlockInGc);//
     hisyseventReport->InsertParam(EVENT_PROCESS_LIFECYCLE_INFO, eventInfo.processLifeTime);
     hisyseventReport->InsertParam(EVENT_EXTERNAL_LOG, eventInfo.externalLog);
     if (name == AppFreezeType::THREAD_BLOCK_6S) {

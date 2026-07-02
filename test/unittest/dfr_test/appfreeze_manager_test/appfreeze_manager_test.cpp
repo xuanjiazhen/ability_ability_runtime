@@ -18,7 +18,7 @@
 #define private public
 #include "appfreeze_manager.h"
 #undef private
-
+//
 #include "cpp/mutex.h"
 #include "cpp/condition_variable.h"
 #include "fault_data.h"

@@ -36,3 +36,4 @@ export default namespace errorManager {
     export native function offUnhandledRejection(observer?: UnhandledRejectionObserver): void;
     export native function setDefaultFreezeObserver(defaultObserver?: FreezeObserver) : FreezeObserver;
 }
+//
