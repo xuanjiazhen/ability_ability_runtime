@@ -555,4 +555,4 @@ std::string AppfreezeCpuFreqManager::GetCpuInfoPath(const std::string &type,
     return logFile;
 }
 }  // namespace AppExecFwk
-}  // namespace OHOS
+}  // namespace OHOS//

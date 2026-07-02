@@ -16,7 +16,7 @@
 
 #include <sys/time.h>
 #include <sstream>
-
+//
 #include "ability_manager_client.h"
 #include "ability_state.h"
 #include "appfreeze_manager.h"
