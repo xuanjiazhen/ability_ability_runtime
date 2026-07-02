@@ -52,6 +52,8 @@ constexpr char SKILL_EXECUTE_PARAM_HAP_PATH[] = "ohos.skill.executeParam.hapPath
 constexpr char SKILL_EXECUTE_PARAM_REQUEST_CODE[] = "ohos.skill.executeParam.requestCode";
 constexpr char SKILL_EXECUTE_PARAM_CALLER_TOKEN_ID[] = "ohos.skill.executeParam.callerTokenId";
 
+constexpr char SKILL_ERROR_MSG_KEY[] = "ohos.skill.error.message";
+
 class SkillExecuteParam : public Parcelable {
 public:
     SkillExecuteParam() = default;

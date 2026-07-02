@@ -35,7 +35,9 @@
 #include "ipc_skeleton.h"
 #include "permission_util.h"
 #include "session_record.h"
+#include "skill_execute_param.h"
 #include "skill_execute_result.h"
+#include "string_wrapper.h"
 #include "tool_info.h"
 #include "want_params.h"
 #include "want_params_wrapper.h"
@@ -660,6 +662,18 @@ std::shared_ptr<AAFwk::WantParams> ToolUtil::FilterSkillArgs(const AAFwk::WantPa
     return skillArgs;
 }
 
+namespace {
+std::string ExtractSkillErrorMsg(const AAFwk::WantParams &params)
+{
+    const auto &all = params.GetParams();
+    auto it = all.find(SKILL_ERROR_MSG_KEY);
+    if (it == all.end() || it->second == nullptr) {
+        return "";
+    }
+    return AAFwk::String::Unbox(it->second);
+}
+} // namespace
+
 CliSessionInfo ToolUtil::BuildSkillSessionInfo(const std::string &sessionId,
     int32_t resultCode, const AppExecFwk::SkillExecuteResult &skillResult)
 {
@@ -671,6 +685,11 @@ CliSessionInfo ToolUtil::BuildSkillSessionInfo(const std::string &sessionId,
     session.result->exitCode = skillResult.code;
     if (skillResult.result != nullptr) {
         session.result->outputText = skillResult.result->ToString();
+        if (resultCode != ERR_OK) {
+            session.result->errorText = ExtractSkillErrorMsg(*(skillResult.result));
+        }
+    } else if (resultCode != ERR_OK) {
+        session.result->errorText = "skill execute failed, code=" + std::to_string(resultCode);
     }
     return session;
 }
