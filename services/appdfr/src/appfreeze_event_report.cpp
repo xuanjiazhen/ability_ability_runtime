@@ -100,7 +100,7 @@ int AppfreezeEventReport::LogAppInputBlockEvent(const std::string &name, HiSysEv
     ret = hisyseventReport->Report("AAFWK", name.c_str(), type);
     return ret;
 }
-//
+
 int AppfreezeEventReport::LogThreadBlockEvent(const std::string &name, HiSysEventEventType type,
     const AppfreezeEventInfo &eventInfo)
 {
