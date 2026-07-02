@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 module_output_path = "ability_runtime/ability_runtime/app"
-//
+
 ohos_unittest("AppRecoveryUnitTest") {
   module_out_path = "ability_runtime/ability_runtime/app"
   cflags_cc = [ "-DUNITTEST" ]
@@ -53,7 +53,7 @@ ohos_unittest("AppRecoveryUnitTest") {
     "${ability_runtime_services_path}/common:app_util",
   ]
 
-  external_deps = [
+external_deps = [
     "ability_base:base",
     "ability_base:configuration",
     "ability_base:want",
@@ -67,9 +67,9 @@ ohos_unittest("AppRecoveryUnitTest") {
     "eventhandler:libeventhandler",
     "faultloggerd:libdfx_dumpcatcher",
     "form_fwk:fmskit_native",
-    "form_fwk:form_common_info",
-    "form_fwk:form_manager",
+    "hichecker:libhichecker",
     "form_fwk:form_render_info",
+    "form_fwk:form_common_info",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
@@ -81,9 +81,6 @@ ohos_unittest("AppRecoveryUnitTest") {
     "window_manager:libwm",
     "window_manager:windowstage_kit",
   ]
-  if (hichecker_enabled) {
-    external_deps += [ "hichecker:libhichecker" ]
-  }
 }
 
 ohos_unittest("AbilityRecoveryUnitTest") {
@@ -133,9 +130,9 @@ ohos_unittest("AbilityRecoveryUnitTest") {
     "eventhandler:libeventhandler",
     "faultloggerd:libdfx_dumpcatcher",
     "form_fwk:fmskit_native",
-    "form_fwk:form_common_info",
-    "form_fwk:form_manager",
+    "hichecker:libhichecker",
     "form_fwk:form_render_info",
+    "form_fwk:form_common_info",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
@@ -147,9 +144,6 @@ ohos_unittest("AbilityRecoveryUnitTest") {
     "window_manager:libwm",
     "window_manager:windowstage_kit",
   ]
-  if (hichecker_enabled) {
-    external_deps += [ "hichecker:libhichecker" ]
-  }
 }
 
 group("unittest") {
