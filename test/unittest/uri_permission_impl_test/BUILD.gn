@@ -170,7 +170,6 @@ ohos_unittest("uri_permission_manager_stub_impl_test") {
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "storage_service:storage_manager_sa_proxy",
   ]
   if (ability_runtime_feature_sandboxmanager) {
     defines = [ "ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER" ]
