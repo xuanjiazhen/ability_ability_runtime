@@ -760,6 +760,35 @@ HWTEST_F(ExtensionRecordManagerSecondTest, GetOrCreateExtensionRecordInner_0200,
 }
 
 /**
+ * @tc.name: GetOrCreateExtensionRecordInner_Debug_0100
+ * @tc.desc: Test GetOrCreateExtensionRecordInner with debug provision type does not crash.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerSecondTest, GetOrCreateExtensionRecordInner_Debug_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    std::string bundleName = "com.example.unittest";
+    std::string name = "MainAbility";
+    AAFwk::AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = bundleName;
+    abilityRequest.appInfo.appProvisionType = AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG;
+    abilityRequest.appInfo.uid = 20010001;
+    abilityRequest.abilityInfo.name = name;
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    abilityRequest.extensionType = AppExecFwk::ExtensionAbilityType::STATUS_BAR_VIEW;
+    abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::STATUS_BAR_VIEW;
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    std::shared_ptr<ExtensionRecord> extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
+
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    bool boolResult;
+    EXPECT_EQ(extRecordMgr->GetOrCreateExtensionRecordInner(abilityRequest, bundleName, extRecord, boolResult),
+        ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
  * @tc.name: GetHostBundleNameForExtensionId_0200
  * @tc.desc: Test GetHostBundleNameForExtensionId.
  * @tc.type: FUNC
