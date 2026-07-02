@@ -5,7 +5,7 @@
 
 | id | type | complexity | stage | title |
 |----|------|-----------|-------|-------|
-| features/upms-deps-dynamic-load | feature | 标准 | Stage 3 (media+storage 两插件+task-03+UT mock编译通过；fileuri/broker/Phase3 DESCOPED；待设备跑UT+AC-10) | UPMS (SA 183) 依赖插件框架动态加载/卸载降内存 |
+| features/upms-deps-dynamic-load | feature | 标准 | Stage 4 (Stage 3 完成：media+storage 两插件+task-03+UT+设备实测通过；fileuri/broker/Phase3 DESCOPED；待合入+复盘) | UPMS (SA 183) 依赖插件框架动态加载/卸载降内存 |
 
 ## Stage 图例
 - **Stage 1 Define** — proposal.md 基线

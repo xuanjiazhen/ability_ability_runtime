@@ -52,7 +52,7 @@ public:
 - 全程 hilog/hisysevent 记 Load/Unload 事件（AC-6）。
 
 ### D. stub_impl 活动 hook（ADR-7）
-- 每个 public IPC 入口（Grant*/Check*/Revoke*/Verify*/Clear*）起始处调 `DynamicFeatureManager::GetInstance().ArmUnload()`（重挂延时：先 CancelUnload 再 Arm）。统一用宏 `UPMS_ACTIVITY_HOOK()` 避免遗漏。
+- 每个 public IPC 入口（Grant*/Check*/Revoke*/Verify*/Clear*）起始处调 `DynamicFeatureManager::GetInstance().ArmUnload()`（重挂延时：先 CancelUnload 再 Arm）。
 - 实现期逐一核对 public 方法清单（参照 stub_impl.h 声明），确保穷尽（R5）。
 
 ### E. BUILD.gn

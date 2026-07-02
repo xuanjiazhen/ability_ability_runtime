@@ -13,11 +13,11 @@
 
 ## 2. 用户故事
 
-- **US-1（系统/内存）**：作为内存预算紧张的设备，我希望 UPMS 在空闲窗口把独占依赖（media/storage/fileuri/broker）的内存还给 foundation。
-- **US-2（安全/稳定）**：作为系统安全维护者，我希望任何插件的卸载/重载绝不破坏 URI 授权状态、绝不在卸载窗口丢失或错处理在途 IPC。
-- **US-3（功能正确性）**：作为使用跨应用 URI 授权（media URI、UDMF Key、docs/沙箱 URI、分布式文件）的应用，我希望这些功能在插件化后行为完全一致。
-- **US-4（可维护/演进）**：作为系统维护者，我希望有一套通用框架，后续新增可卸载依赖可零成本接入；且 UPMS 不再背负死依赖。
-- **US-5（模块化）**：作为架构维护者，我希望 UPMS 与重依赖解耦（即使部分库当前因 foundation 共享而无近期内存收益），为未来各 SA 协同动态加载铺路。
+- **US-1（系统/内存）**：作为内存预算紧张的设备，希望 UPMS 在空闲窗口把独占依赖（media/storage/fileuri/broker）的内存还给 foundation。
+- **US-2（安全/稳定）**：作为系统安全维护者，希望任何插件的卸载/重载绝不破坏 URI 授权状态、绝不在卸载窗口丢失或错处理在途 IPC。
+- **US-3（功能正确性）**：作为使用跨应用 URI 授权（media URI、UDMF Key、docs/沙箱 URI、分布式文件）的应用，希望这些功能在插件化后行为完全一致。
+- **US-4（可维护/演进）**：作为系统维护者，希望有一套通用框架，后续新增可卸载依赖可零成本接入；且 UPMS 不再背负死依赖。
+- **US-5（模块化）**：作为架构维护者，希望 UPMS 与重依赖解耦（即使部分库当前因 foundation 共享而无近期内存收益），为未来各 SA 协同动态加载铺路。
 
 ## 3. 验收标准 (AC，WHEN/THEN，可测)
 
@@ -63,10 +63,10 @@
 - **AC-8 框架通用性** [（复杂 tier 新增）/ ADR-1,2]
   - **WHEN** 新增一个可卸载依赖
   - **THEN** 仅需：定义 interface + 实现插件 .so（导出 `CreateFeature`/`DestroyFeature`）+ 注册到 manager，无需改框架核心。
-  - **验证**：以 broker retrofit 为首个范例（AC-9）证明接入成本。
+  - **验证**：以 broker retrofit 为例（AC-9）证明接入成本。
 
 - **AC-9 broker retrofit** [（复杂 tier 新增）/ ADR-5]
-  - **WHEN** 现有 `libams_broker_ext.z.so` 经 `IBrokerCheckFeature` 接入框架
+  - **WHEN** 现有 `broker_ext` 经 `IBrokerCheckFeature` 接入框架
   - **THEN** broker 调用经框架 `Acquire`+接口，空闲时随 `UnloadIdle` dlclose，URI check 功能不变。
   - **验证**：broker 路径单测 + 空闲后 maps 确认 broker .so 移除（独占）。
 
@@ -77,7 +77,7 @@
 
 ## 4. 阶段划分（design §8，需求方调整：media→P1、broker→P2）
 
-- **Phase 1（框架 + media + 死依赖）**：共享接口头 + `DynamicFeatureManager` + RAII 守卫 + 延时任务 + **media 插件（首个用例，真实独占回收）** + 死依赖清理。media 独占性（AC-10）作 P1 早期实测。验证 AC-1(media)/AC-2/AC-3/AC-4/AC-5/AC-6/AC-7/AC-8。
+- **Phase 1（框架 + media + 死依赖）**：共享接口头 + `DynamicFeatureManager` + RAII 守卫 + 延时任务 + **media 插件** + 死依赖清理。media 独占性（AC-10）作 P1 早期实测。验证 AC-1(media)/AC-2/AC-3/AC-4/AC-5/AC-6/AC-7/AC-8。
 - **Phase 2（broker retrofit + 独占候选，过门槛后）**：broker retrofit（AC-9）+ storage/fileuri 插件化——过 AC-10 独占门槛；扩展 AC-1(broker/storage/fileuri)。
 - **Phase 3（共享库插件，模块化）**：identity/sandbox/udmf 插件化——零近期内存收益，按模块化优先级排。
 

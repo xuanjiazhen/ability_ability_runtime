@@ -20,8 +20,8 @@
 ## Stage 状态
 - [x] **Stage 1 Define** — Approved 2026-06-28
 - [x] **Stage 2 Specify** — Approved 2026-06-28（复杂层 design+spec+gates/specify 13/13；阶段：media→P1、broker→P2）
-- [~] **Stage 3 Implement** — Phase 1(media) + Phase 2(storage) + task-03 + UT mock 代码完成 + **编译验证通过**（libupms✓ + media/storage 两插件✓ + 死依赖清理 13 项✓ + 两 UT target 编译通过✓，见 review.md §4/§5/§8/§9/§10/§11）；**fileuri/broker/Phase 3 DESCOPED**（2026-07-01 范围调整）；待设备跑 UT + AC-10 实测
-- [ ] Stage 4 Release
+- [x] **Stage 3 Implement** — Phase 1(media) + Phase 2(storage) + task-03 + UT mock + 框架单测 代码完成 + **编译验证通过** + **设备实测通过**（动态加载/卸载机制正确 + 原功能无回归，2026-07-02，见 review.md §12）；fileuri/broker/Phase 3 DESCOPED
+- [~] **Stage 4 Release** — Stage 3 完成（实测通过），待合入 + 复盘
 
 ## 基线关键约束（一句话）
 UPMS 本体常驻，建通用依赖插件框架（interface 基类 + 子类在独立 .so + 管理器 dlopen 调 C 工厂 + 加载状态 + 空闲 dlclose），**范围：只把 media + storage 两个独占候选依赖抽进插件 .so**（media→libupms_media_ext、storage→libupms_storage_ext），fileuri/broker/identity/sandbox/udmf DESCOPED（暂不插件化，libupms 直链）+ 清理 13 死依赖；授权状态强一致，定性验收（证 PSS 释放即可），单仓。
