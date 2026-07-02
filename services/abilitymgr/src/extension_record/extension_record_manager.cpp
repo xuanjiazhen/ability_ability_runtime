@@ -16,7 +16,9 @@
 #include "extension_record_manager.h"
 
 #include "ability_util.h"
+#include "app_scheduler.h"
 #include "app_utils.h"
+#include "in_process_call_wrapper.h"
 #include "extension_running_timeout_monitor.h"
 #include "preload_ui_extension_execute_callback_proxy.h"
 #include "preload_ui_extension_host_client.h"
@@ -34,6 +36,25 @@ constexpr const char* UIEXTENSION_TYPE_KEY = "ability.want.params.uiExtensionTyp
 constexpr size_t HOST_PID_INDEX = 3;
 constexpr const char* AGENT_EXTENSION_TYPE = "agent";
 constexpr int32_t AGENT_UI_MAX_COUNT = 5;
+
+void SyncDebugFlagFromMainProcess(const AAFwk::AbilityRequest &abilityRequest,
+    const std::shared_ptr<ExtensionRecord> &extensionRecord)
+{
+    // Sync debug flag from main process for AgentUI extension
+    if (abilityRequest.appInfo.appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG &&
+        extensionRecord->abilityRecord_ != nullptr) {
+        bool isMainProcessDebug = IN_PROCESS_CALL(
+            DelayedSingleton<AAFwk::AppScheduler>::GetInstance()->IsMainProcessDebug(
+                abilityRequest.appInfo.uid));
+        if (isMainProcessDebug) {
+            extensionRecord->abilityRecord_->SetDebugApp(true);
+            TAG_LOGD(AAFwkTag::ABILITYMGR,
+                "AgentUI extension inherit debug from main process, ability:%{public}s",
+                abilityRequest.abilityInfo.name.c_str());
+        }
+    }
+}
+
 int32_t GetAppIndexByRecord(std::shared_ptr<AAFwk::AbilityRecord> abilityRecord,
     std::shared_ptr<AAFwk::AbilityRecord> callerRecord, const AAFwk::AbilityRequest &abilityRequest)
 {
@@ -607,6 +628,7 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecordInner(const AAFwk::Abi
     extensionRecord->hostBundleName_ = hostBundleName;
     abilityRecord->SetOwnerMissionUserId(userId_);
     abilityRecord->SetUIExtensionAbilityId(extensionRecordId);
+    SyncDebugFlagFromMainProcess(abilityRequest, extensionRecord);
     result = SetAbilityProcessName(abilityRequest, abilityRecord, extensionRecord);
     if (result != ERR_OK) {
         return result;
