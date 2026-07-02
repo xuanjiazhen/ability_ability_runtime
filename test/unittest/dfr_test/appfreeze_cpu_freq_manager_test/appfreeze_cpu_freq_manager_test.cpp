@@ -15,7 +15,7 @@
 
 #include <gtest/gtest.h>
 #include <cstdlib>
-//
+
 #define private public
 #include "appfreeze_cpu_freq_manager.h"
 #undef private
