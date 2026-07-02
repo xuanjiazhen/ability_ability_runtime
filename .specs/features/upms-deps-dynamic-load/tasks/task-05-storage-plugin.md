@@ -22,7 +22,7 @@
   - 移除 `sptr<StorageManager::IStorageManager> storageManager_` 成员（cpp 零引用，安全删）。
   - 移除 `void StringVecToRawData(...)` 声明（cpp 零调用，安全删）。
 - `services/uripermmgr/BUILD.gn`：libupms external_deps 移除 `storage_service:storage_manager_sa_proxy`（死依赖清理，grep 确认主库 src 无 storage 残留引用）。
-- `services/BUILD.gn`：ams_target 加 `uripermmgr/plugins/storage_ext:libupms_storage_ext`。
+- `services/BUILD.gn` 加 `uripermmgr/plugins/storage_ext:libupms_storage_ext`。
 - `services/uripermmgr/src/uri_permission_manager_service.cpp`：`Init` 注册 `Register(FeatureId::STORAGE, "libupms_storage_ext.z.so")`。
 
 ## 完成标准
@@ -41,7 +41,6 @@
 ## 验证
 - libupms build success（2026-06-30，含 stub_impl 转发 + storage_service 移除 + 成员/声明删除）。
 - libupms_storage_ext build success；`nm -D libupms_storage_ext.z.so`：`T CreateFeature` / `T DestroyFeature`。
-- R-pkg：`bundle.json:136` module_list 含 `services:ams_target`，ams_target 含 storage_ext deps → 插件进镜像（不需额外改 bundle.json）。
 
 ## 遗留 / 风险
 - **death recipient 与 dlclose 时序**：插件析构先 `RemoveDeathRecipient` 再 dlclose（已实现）；ASAN 需验证 storage SA 死亡时不回调已卸载插件内存（AC-3）。

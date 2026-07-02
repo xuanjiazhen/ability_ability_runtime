@@ -8,17 +8,17 @@
 
 | # | 检查项 | 结果 | 证据 / 理由 |
 |---|--------|------|------------|
-| D1 | proposal.md 原始需求已记录 | ✅ 通过 | proposal.md §一，记录 SA 卸载被否决、转向依赖库粒度的动机与降内存目标 |
-| D2 | 澄清记录完整（逐轮问答 + 选项 + 决策 + 理由） | ✅ 通过 | proposal.md §二，8 轮澄清（清理/驱动力/维度/目标库/触发/仓范围/验收线/状态一致）均闭环 |
-| D3 | 范围 (In scope) 已明确 | ✅ 通过 | proposal.md §3.2，5 项（加载管理器/调用收拢/空闲触发/同步保护/单测） |
-| D4 | 排除项 (Out of scope) 已明确 | ✅ 通过 | proposal.md §3.3，5 项排除 + §3.7 不涉及项确认表 |
-| D5 | 涉及子系统 / 仓已识别 | ✅ 通过 | proposal.md §3.4，单仓 `ability_runtime`（services/uripermmgr + BUILD.gn） |
-| D6 | 复杂度级别已判断 | ✅ 通过 | standard（单仓单特性，依赖库粒度动态加载，无跨 SIG 协调） |
-| D7 | 每个 P0/P1 AC 以 WHEN/THEN 写出且可测 | ✅ 通过 | proposal.md §3.5，3 个 P0 + 3 个 P1，每条含验证手段 |
-| D8 | 不涉及项确认表已完成（YAGNI） | ✅ 通过 | proposal.md §3.7，7 行 N/A 已填，无留空 |
-| D9 | Profile 判定完成 | ✅ 通过 | 无 `.claude/ohos-sdd/profiles/` 目录，无匹配子系统 profile，manifest.profile = none |
-| D10 | 待解决问题已登记并指派 owner | ✅ 通过 | proposal.md §3.8，OQ-1~OQ-6，均 Stage 2 处理 |
-| D11 | 基线理解已被需求方确认 | ✅ 通过 | 见下方「审批证据」——需求方对理解草稿回复 "Y" |
+| 1 | proposal.md 原始需求已记录 | ✅ 通过 | proposal.md §一，记录 SA 卸载被否决、转向依赖库粒度的动机与降内存目标 |
+| 2 | 澄清记录完整（逐轮问答 + 选项 + 决策 + 理由） | ✅ 通过 | proposal.md §二，8 轮澄清（清理/驱动力/维度/目标库/触发/仓范围/验收线/状态一致）均闭环 |
+| 3 | 范围 (In scope) 已明确 | ✅ 通过 | proposal.md §3.2，5 项（加载管理器/调用收拢/空闲触发/同步保护/单测） |
+| 4 | 排除项 (Out of scope) 已明确 | ✅ 通过 | proposal.md §3.3，5 项排除 + §3.7 不涉及项确认表 |
+| 5 | 涉及子系统 / 仓已识别 | ✅ 通过 | proposal.md §3.4，单仓 `ability_runtime`（services/uripermmgr + BUILD.gn） |
+| 6 | 复杂度级别已判断 | ✅ 通过 | standard（单仓单特性，依赖库粒度动态加载，无跨 SIG 协调） |
+| 7 | 每个 P0/P1 AC 以 WHEN/THEN 写出且可测 | ✅ 通过 | proposal.md §3.5，3 个 P0 + 3 个 P1，每条含验证手段 |
+| 8 | 不涉及项确认表已完成（YAGNI） | ✅ 通过 | proposal.md §3.7，7 行 N/A 已填，无留空 |
+| 9 | Profile 判定完成 | ✅ 通过 | 无 `.claude/ohos-sdd/profiles/` 目录，无匹配子系统 profile，manifest.profile = none |
+| 10 | 待解决问题已登记并指派 owner | ✅ 通过 | proposal.md §3.8，OQ-1~OQ-6，均 Stage 2 处理 |
+| 11 | 基线理解已被需求方确认 | ✅ 通过 | 见下方「审批证据」——需求方对理解草稿回复 "Y" |
 
 **结论：Stage 1 门禁全部通过（11/11）。基线草案已写入 proposal.md。**
 

@@ -5,7 +5,7 @@
 > 取证依据（本轮已读）：
 > - 全量依赖审计：4 路 Explore（数据/可选/身份/核心四聚类），逐依赖 文件:行号 取证
 > - 独占性取证：`services/*/BUILD.gn` external_deps 命中 + `services/sa_profile/*.json` 进程归属（foundation 内驻留 SA 180/182/183/185/501）
-> - 现有 dlopen 先例：[file_permission_manager.cpp:34-92](../../../services/uripermmgr/src/file_permission_manager.cpp#L34-L92)（`DllWrapper`，已 dlopen `libams_broker_ext.z.so`）
+> - 现有 dlopen 先例：[file_permission_manager.cpp:34-92](../../../services/uripermmgr/src/file_permission_manager.cpp#L34-L92)（`DllWrapper`）
 > - 延时先例：[service_router_mgr_service.cpp:44,86-111](../../../service_router_framework/services/srms/src/service_router_mgr_service.cpp#L44)（SRMS `DelayUnloadTask`）
 > - deps_wrapper：[interfaces/inner_api/deps_wrapper/](../../../interfaces/inner_api/deps_wrapper/)（编译时条件编译，非运行时动态加载，不可复用）
 
@@ -34,12 +34,12 @@
 | `media_library` | ✅ 独占候选 | 可能回收 | 插件 .so（feature-gate） |
 | `storage_service` | ✅ 独占候选 | 可能回收 | 插件 .so |
 | `app_file_service`(fileuri) | ✅ 独占候选 | 可能回收 | 插件 .so |
-| `libams_broker_ext`(broker) | ✅ 独占（已 dlopen） | 可回收 | retrofit 进框架 |
+| `broker_ext`(broker) | ✅ 独占（已 dlopen） | 可回收 | retrofit 进框架 |
 | `bundle_framework` | ❌ 与 abilitymgr/appmgr 共享 | 零近期收益 | 插件 .so（模块化） |
 | `access_token` | ❌ 共享 | 零近期收益 | 插件 .so（模块化） |
-| `sandbox_manager` | ❌ 与 appmgr 共享 | 零近期收益 | 插件 .so（模块化） |
+| `sandbox_manager` | ❌ 共享 | 零近期收益 | 插件 .so（模块化） |
 | `udmf` | ❌ 与 abilitymgr 共享 | 零近期收益 | 插件 .so（feature-gate） |
-| `ability_manager` | ❌ AMS 同进程 | 零近期收益 | 插件 .so（模块化） |
+| `ability_manager` | ❌ 同进程 | 零近期收益 | 插件 .so（模块化） |
 
 **独占性目前仅 ability_runtime 内确认；media/storage/fileuri 是否被 foundation 内其它子系统 SA 共用，需 Stage 3/4 用 `/proc/<pid>/maps` 实测确认（ADR-10 硬门槛）。**
 
@@ -51,7 +51,7 @@
 - **管理器 `DynamicFeatureManager`**：注册表 `categoryId → { soName, handle, state(NotLoaded/Loaded), instance }`；`Load()`=dlopen+dlsym 工厂+create；`Unload()`=destroy+dlclose；`UnloadIdle()`=卸载全部 Loaded。
 - **对外用法**：`auto scope = manager.Acquire(cat); auto* f = scope.Get<IXxxFeature>(); f->Method(...);` —— 基类指针供外部调用。
 - **加载状态内部维护**：每 category 一个状态机；`Acquire` 触发 `Load`（若 NotLoaded），`UnloadIdle` 仅在活动计数归零时执行（ADR-3）。
-- **取舍**：通用框架一次性投入，后续新增可卸载依赖零成本接入；代价是首次设计/实现成本高（复杂度升级的理由）。
+- **取舍**：通用框架一次性投入，后续新增可卸载依赖零成本接入；代价是设计/实现成本高（复杂度升级的理由）。
 
 ### ADR-2：插件 .so 契约（共享接口 + C 工厂）
 - 共享接口头：`IDynamicFeature`（空基类）+ 各 `IXxxFeature`（纯虚方法）。
@@ -86,7 +86,6 @@
 
 ### ADR-5：broker retrofit 进统一框架
 - 现有 [`DllWrapper`](../../../services/uripermmgr/src/file_permission_manager.cpp#L46-L92) 单 so 单函数、static 单例从不卸载。改造为：定义 `IBrokerCheckFeature`，broker .so 实现 + 导出 `CreateFeature`，纳入 `DynamicFeatureManager` 管理。
-- 收益：broker 成为框架首个落地用例（验证框架），且获得空闲 dlclose（独占，确定回收）。
 
 ### ADR-6：死依赖清理（~11 个）
 - 从 `ohos_shared_library("libupms")` 的 `external_deps` 移除零调用依赖：`relational_store:native_rdb`、`native_dataability`、`data_share:datashare_consumer`、`init:libbeget_proxy`、`init:libbegetutil`、`common_event_service:cesfwk_core`/`cesfwk_innerkits`、`background_task_mgr:bgtaskmgr_innerkits`、`i18n:intl_util`、`ability_base:configuration`；内部 `appkit_manager_helper`。
@@ -192,7 +191,7 @@
 - **独占性实测（AC-1/ADR-10 硬门槛）**：`/proc/<pid>/maps` 对比插件 dlclose 前后 .so 是否真移除，逐插件判定独占。
 - **回归（AC-4）**：`run -t UT -tp uripermmgr` 全绿。
 - **分阶段交付（需求方调整：media 提前至 P1，broker 调整至 P2）**：
-  - **Phase 1（框架 + media + 死依赖）**：共享接口头 + `DynamicFeatureManager` + RAII 守卫 + 延时任务(ffrt) + **media 插件（首个落地用例，真实独占回收）** + 死依赖清理。⚠️ 取舍：media 作为首个用例比 broker 更难（C++ SDK 静态单例 + wrapper .so + C 工厂），框架首次集成落在较难目标；但更早兑现内存收益，且框架迟早须支持 SDK 单例类插件。media 独占性（ADR-10）作为 P1 早期实测项。
+  - **Phase 1（框架 + media + 死依赖）**：共享接口头 + `DynamicFeatureManager` + RAII 守卫 + 延时任务(ffrt) + **media 插件（落地用例，真实独占回收）** + 死依赖清理。
   - **Phase 2（broker retrofit + 独占候选）**：broker retrofit（接入框架、获空闲 dlclose）+ storage/fileuri 插件化——过 ADR-10 独占门槛。
   - **Phase 3（共享库插件，模块化）**：identity/sandbox/udmf 插件化——零近期内存收益，按模块化优先级排。
 
