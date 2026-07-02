@@ -63,3 +63,4 @@ ohos_shared_library("apprecovery_napi") {
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }
+//
