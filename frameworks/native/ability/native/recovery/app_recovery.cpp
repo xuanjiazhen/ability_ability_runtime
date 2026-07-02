@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//
+
 #include "app_recovery.h"
 
 #include <csignal>
@@ -242,6 +242,7 @@ bool AppRecovery::ExecuteFreezeCallbackWithVMSafety(const std::shared_ptr<OHOS::
     if (!abilityPtr) {
         return false;
     }
+
     if (IsEtsAPP() && this->freezeCallback) {
         this->freezeCallback();
         TAG_LOGW(AAFwkTag::RECOVERY, "Freeze callback execution completed");
