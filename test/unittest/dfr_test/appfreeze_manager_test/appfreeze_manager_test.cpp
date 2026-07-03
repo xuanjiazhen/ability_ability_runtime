@@ -1037,6 +1037,38 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CheckProcessExit_Test001, Te
 }
 
 /**
+ * @tc.number: AppfreezeManagerTest CalculateFaultForeground Test
+ * @tc.desc: verify foreground state for appfreeze reporting.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CalculateFaultForeground_Test001, TestSize.Level1)
+{
+    AppfreezeManager::ForegroundState state = {
+        .isTransitioningToForeground = true,
+    };
+    bool result = appfreezeManager->CalculateFaultForeground(AppFreezeType::LIFECYCLE_TIMEOUT, state);
+    EXPECT_TRUE(result);
+
+    state.abilityPendingBackground = true;
+    result = appfreezeManager->CalculateFaultForeground(AppFreezeType::LIFECYCLE_TIMEOUT, state);
+    EXPECT_FALSE(result);
+
+    state.isStateForeground = true;
+    state.isTransitioningToForeground = false;
+    result = appfreezeManager->CalculateFaultForeground(AppFreezeType::LIFECYCLE_TIMEOUT, state);
+    EXPECT_TRUE(result);
+
+    state.isTransitioningToBackground = true;
+    state.abilityPendingBackground = false;
+    result = appfreezeManager->CalculateFaultForeground(AppFreezeType::LIFECYCLE_TIMEOUT, state);
+    EXPECT_FALSE(result);
+
+    state.abilityPendingBackground = true;
+    result = appfreezeManager->CalculateFaultForeground(AppFreezeType::THREAD_BLOCK_6S, state);
+    EXPECT_TRUE(result);
+}
+
+/**
  * @tc.number: AppfreezeManagerTest CheckAppfreezeHappend Test
  * @tc.desc: add testcase
  * @tc.type: FUNC
