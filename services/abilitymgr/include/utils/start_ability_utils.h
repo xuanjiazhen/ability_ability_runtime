@@ -56,7 +56,7 @@ struct StartAbilityInfo {
 struct StartAbilityUtils {
     static bool GetAppIndex(const Want &want, sptr<IRemoteObject> callerToken, int32_t &appIndex);
     static bool GetApplicationInfo(const std::string &bundleName, int32_t userId,
-        AppExecFwk::ApplicationInfo &appInfo);
+        AppExecFwk::ApplicationInfo &appInfo, int32_t appIndex = 0);
     static bool GetCallerAbilityInfo(const sptr<IRemoteObject> &callerToken,
         AppExecFwk::AbilityInfo &abilityInfo);
     static int32_t CheckAppProvisionMode(const Want& want, int32_t userId, sptr<IRemoteObject> callerToken);
