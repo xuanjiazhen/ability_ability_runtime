@@ -11182,9 +11182,9 @@ int AbilityManagerService::StartUserTest(const Want &want, const sptr<IRemoteObj
         return checkResult;
     }
     int32_t appIndex = 0;
-    if (!StartAbilityUtils::GetAppIndex(want, nullptr, appIndex) || appIndex != 0) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Not support app clone");
-        return ERR_NOT_SUPPORT_APP_CLONE;
+    if (!StartAbilityUtils::GetAppIndex(want, nullptr, appIndex)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Invalid app clone index");
+        return ERR_APP_CLONE_INDEX_INVALID;
     }
 
     int32_t userId;
@@ -11196,14 +11196,23 @@ int AbilityManagerService::StartUserTest(const Want &want, const sptr<IRemoteObj
     auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bms, START_USER_TEST_FAIL);
     AppExecFwk::BundleInfo bundleInfo;
-    if (!IN_PROCESS_CALL(
-        bms->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, U0_USER_ID))) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get bundleInfo by U0_USER_ID %{public}d", U0_USER_ID);
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "bundleName: %{public}s, userId: %{public}d", bundleName.c_str(), userId);
-        if (!IN_PROCESS_CALL(
-            bms->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId))) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get bundleInfo by userId %{public}d", userId);
+    if (appIndex > 0) {
+        if (IN_PROCESS_CALL(bms->GetCloneBundleInfo(bundleName,
+            static_cast<int32_t>(AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT), appIndex, bundleInfo,
+            userId)) != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get clone bundleInfo, appIndex: %{public}d", appIndex);
             return GET_BUNDLE_INFO_FAILED;
+        }
+    } else {
+        if (!IN_PROCESS_CALL(
+            bms->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, U0_USER_ID))) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get bundleInfo by U0_USER_ID %{public}d", U0_USER_ID);
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "bundleName: %{public}s, userId: %{public}d", bundleName.c_str(), userId);
+            if (!IN_PROCESS_CALL(
+                bms->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId))) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get bundleInfo by userId %{public}d", userId);
+                return GET_BUNDLE_INFO_FAILED;
+            }
         }
     }
 
