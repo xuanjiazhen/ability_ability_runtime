@@ -39,6 +39,9 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#ifndef __cplusplus
+#include <stdbool.h>
+#endif
 #include "ability_runtime_common.h"
 #include "context_constant.h"
 
@@ -95,8 +98,10 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsWindowMode(AbilityRunt
  *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions is invalid.
  * @since 17
  */
+#ifdef __cplusplus
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWindowMode(AbilityRuntime_StartOptions *startOptions,
     AbilityRuntime_WindowMode &windowMode);
+#endif
 
 /**
  * @brief Set display id for start options.
@@ -121,8 +126,10 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsDisplayId(AbilityRunti
  *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions is invalid.
  * @since 17
  */
+#ifdef __cplusplus
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsDisplayId(AbilityRuntime_StartOptions *startOptions,
     int32_t &displayId);
+#endif
 
 /**
  * @brief Set with animation flag for start options.
@@ -147,8 +154,10 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsWithAnimation(AbilityR
  *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions is invalid.
  * @since 17
  */
+#ifdef __cplusplus
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWithAnimation(AbilityRuntime_StartOptions *startOptions,
     bool &withAnimation);
+#endif
 
 /**
  * @brief Set window left for start options.
@@ -173,8 +182,10 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsWindowLeft(AbilityRunt
  *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions is invalid.
  * @since 17
  */
+#ifdef __cplusplus
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWindowLeft(AbilityRuntime_StartOptions *startOptions,
     int32_t &windowLeft);
+#endif
 
 /**
  * @brief Set window top for start options.
@@ -199,8 +210,10 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsWindowTop(AbilityRunti
  *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions is invalid.
  * @since 17
  */
+#ifdef __cplusplus
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWindowTop(AbilityRuntime_StartOptions *startOptions,
     int32_t &windowTop);
+#endif
 
 /**
  * @brief Set window height for start options.
@@ -225,8 +238,10 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsWindowHeight(AbilityRu
  *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions is invalid.
  * @since 17
  */
+#ifdef __cplusplus
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWindowHeight(AbilityRuntime_StartOptions *startOptions,
     int32_t &windowHeight);
+#endif
 
 /**
  * @brief Set window width for start options.
@@ -251,8 +266,10 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsWindowWidth(AbilityRun
  *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions is invalid.
  * @since 17
  */
+#ifdef __cplusplus
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWindowWidth(AbilityRuntime_StartOptions *startOptions,
     int32_t &windowWidth);
+#endif
 
 /**
  * @brief Set start visibility for start options.
@@ -278,8 +295,10 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsStartVisibility(Abilit
  *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions is invalid.
  * @since 18
  */
+#ifdef __cplusplus
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsStartVisibility(AbilityRuntime_StartOptions *startOptions,
     AbilityRuntime_StartVisibility &startVisibility);
+#endif
 
 /**
  * @brief Set start window icon for start options.
@@ -336,8 +355,10 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsStartWindowBackgroundC
  *         {@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if error occurred in malloc.
  * @since 17
  */
+#ifdef __cplusplus
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsStartWindowBackgroundColor(
     AbilityRuntime_StartOptions *startOptions, char **startWindowBackgroundColor, size_t &size);
+#endif
 
 /**
  * @brief Set start window modes for start options.
@@ -368,9 +389,11 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsSupportedWindowModes(
  *         {@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if error occurred in malloc.
  * @since 17
  */
+#ifdef __cplusplus
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsSupportedWindowModes(
     AbilityRuntime_StartOptions *startOptions, AbilityRuntime_SupportedWindowMode **supportedWindowModes,
     size_t &size);
+#endif
 
 /**
  * @brief Set min window width for start options.
@@ -395,8 +418,10 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsMinWindowWidth(
  *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions is invalid.
  * @since 17
  */
+#ifdef __cplusplus
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsMinWindowWidth(
     AbilityRuntime_StartOptions *startOptions, int32_t &minWindowWidth);
+#endif
 
 /**
  * @brief Set max window width for start options.
@@ -421,8 +446,10 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsMaxWindowWidth(
  *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions is invalid.
  * @since 17
  */
+#ifdef __cplusplus
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsMaxWindowWidth(
     AbilityRuntime_StartOptions *startOptions, int32_t &maxWindowWidth);
+#endif
 
 /**
  * @brief Set min window height for start options.
@@ -447,8 +474,10 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsMinWindowHeight(
  *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions is invalid.
  * @since 17
  */
+#ifdef __cplusplus
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsMinWindowHeight(
     AbilityRuntime_StartOptions *startOptions, int32_t &minWindowHeight);
+#endif
 
 /**
  * @brief Set max window height for start options.
@@ -473,8 +502,197 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsMaxWindowHeight(
  *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions is invalid.
  * @since 17
  */
+#ifdef __cplusplus
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsMaxWindowHeight(
     AbilityRuntime_StartOptions *startOptions, int32_t &maxWindowHeight);
+#endif
+
+/**
+ * @brief Get window mode from start options.
+ *
+ * @param startOptions The options to get window mode from.
+ * @param windowMode The obtained window mode.
+ * @return The error code.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions or windowMode is invalid.
+ * @since 26.1.0
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWindowModeValue(AbilityRuntime_StartOptions *startOptions,
+    AbilityRuntime_WindowMode *windowMode);
+
+/**
+ * @brief Get display id from start options.
+ *
+ * @param startOptions The options to get display id from.
+ * @param displayId The obtained display id.
+ * @return The error code.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions or displayId is invalid.
+ * @since 26.1.0
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsDisplayIdValue(AbilityRuntime_StartOptions *startOptions,
+    int32_t *displayId);
+
+/**
+ * @brief Get with animation from start options.
+ *
+ * @param startOptions The options to get with animation from.
+ * @param withAnimation The obtained with animation.
+ * @return The error code.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions or withAnimation is invalid.
+ * @since 26.1.0
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWithAnimationValue(AbilityRuntime_StartOptions *startOptions,
+    bool *withAnimation);
+
+/**
+ * @brief Get window left from start options.
+ *
+ * @param startOptions The options to get window left from.
+ * @param windowLeft The obtained window left.
+ * @return The error code.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions or windowLeft is invalid.
+ * @since 26.1.0
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWindowLeftValue(AbilityRuntime_StartOptions *startOptions,
+    int32_t *windowLeft);
+
+/**
+ * @brief Get window top from start options.
+ *
+ * @param startOptions The options to get window top from.
+ * @param windowTop The obtained window top.
+ * @return The error code.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions or windowTop is invalid.
+ * @since 26.1.0
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWindowTopValue(AbilityRuntime_StartOptions *startOptions,
+    int32_t *windowTop);
+
+/**
+ * @brief Get window height from start options.
+ *
+ * @param startOptions The options to get window height from.
+ * @param windowHeight The obtained window height.
+ * @return The error code.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions or windowHeight is invalid.
+ * @since 26.1.0
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWindowHeightValue(AbilityRuntime_StartOptions *startOptions,
+    int32_t *windowHeight);
+
+/**
+ * @brief Get window width from start options.
+ *
+ * @param startOptions The options to get window width from.
+ * @param windowWidth The obtained window width.
+ * @return The error code.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions or windowWidth is invalid.
+ * @since 26.1.0
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWindowWidthValue(AbilityRuntime_StartOptions *startOptions,
+    int32_t *windowWidth);
+
+/**
+ * @brief Get start visibility from start options.
+ *
+ * @param startOptions The options to get start visibility from.
+ * @param startVisibility The obtained start visibility.
+ * @return The error code.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions or startVisibility is invalid.
+ * @since 26.1.0
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsStartVisibilityValue(
+    AbilityRuntime_StartOptions *startOptions, AbilityRuntime_StartVisibility *startVisibility);
+
+/**
+ * @brief Get start window background color from start options.
+ *
+ * @param startOptions The options to get start window background color from.
+ * @param startWindowBackgroundColor The obtained start window background color.
+ * @param size The size of start window background color.
+ * @return The error code.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if any parameter is invalid.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if error occurred in malloc.
+ * @since 26.1.0
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsStartWindowBackgroundColorValue(
+    AbilityRuntime_StartOptions *startOptions, char **startWindowBackgroundColor, size_t *size);
+
+/**
+ * @brief Get start window modes from start options.
+ *
+ * @param startOptions The options to get start window modes from.
+ * @param supportedWindowModes The obtained start window modes.
+ * @param size The size of the returned start window modes.
+ * @return The error code.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if any parameter is invalid.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if error occurred in malloc.
+ * @since 26.1.0
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsSupportedWindowModesValue(
+    AbilityRuntime_StartOptions *startOptions, AbilityRuntime_SupportedWindowMode **supportedWindowModes,
+    size_t *size);
+
+/**
+ * @brief Get min window width from start options.
+ *
+ * @param startOptions The options to get min window width from.
+ * @param minWindowWidth The obtained min window width.
+ * @return The error code.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions or minWindowWidth is invalid.
+ * @since 26.1.0
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsMinWindowWidthValue(
+    AbilityRuntime_StartOptions *startOptions, int32_t *minWindowWidth);
+
+/**
+ * @brief Get max window width from start options.
+ *
+ * @param startOptions The options to get max window width from.
+ * @param maxWindowWidth The obtained max window width.
+ * @return The error code.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions or maxWindowWidth is invalid.
+ * @since 26.1.0
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsMaxWindowWidthValue(
+    AbilityRuntime_StartOptions *startOptions, int32_t *maxWindowWidth);
+
+/**
+ * @brief Get min window height from start options.
+ *
+ * @param startOptions The options to get min window height from.
+ * @param minWindowHeight The obtained min window height.
+ * @return The error code.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions or minWindowHeight is invalid.
+ * @since 26.1.0
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsMinWindowHeightValue(
+    AbilityRuntime_StartOptions *startOptions, int32_t *minWindowHeight);
+
+/**
+ * @brief Get max window height from start options.
+ *
+ * @param startOptions The options to get max window height from.
+ * @param maxWindowHeight The obtained max window height.
+ * @return The error code.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the startOptions or maxWindowHeight is invalid.
+ * @since 26.1.0
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsMaxWindowHeightValue(
+    AbilityRuntime_StartOptions *startOptions, int32_t *maxWindowHeight);
 
 #ifdef __cplusplus
 } // extern "C"
