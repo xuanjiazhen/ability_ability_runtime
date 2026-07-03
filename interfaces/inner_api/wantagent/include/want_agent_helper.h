@@ -205,6 +205,22 @@ public:
      */
     static std::shared_ptr<WantAgent> FromString(const std::string &jsonString, int32_t uid = -1);
 
+    /**
+     * Convert WantAgentInfo object to json string with WantParamWrapperJson for extraInfo.
+     *
+     * @param agent WantAgent object.
+     * @return WantAgentInfo object's json string.
+     */
+    static std::string ToJsonString(const std::shared_ptr<WantAgent> &agent);
+
+    /**
+     * Convert json string with WantParamWrapperJson extraInfo to WantAgentInfo object.
+     *
+     * @param jsonString Json string.
+     * @return WantAgentInfo object.
+     */
+    static std::shared_ptr<WantAgent> FromJsonString(const std::string &jsonString, int32_t uid = -1);
+
 private:
     WantAgentHelper();
     virtual ~WantAgentHelper() = default;

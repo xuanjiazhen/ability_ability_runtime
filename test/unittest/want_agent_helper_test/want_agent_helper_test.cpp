@@ -1083,6 +1083,73 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_5300, Function | MediumTest | Leve
 }
 
 /*
+ * @tc.number    : WantAgentHelper_5310
+ * @tc.name      : WantAgentHelper ToJsonString
+ * @tc.desc      : Test ToJsonString uses WantParamWrapperJson without changing ToString format.
+ */
+HWTEST_F(WantAgentHelperTest, WantAgentHelper_5310, Function | MediumTest | Level1)
+{
+    std::shared_ptr<Want> want = std::make_shared<Want>();
+    ElementName element("device", "bundleName", "abilityName");
+    want->SetElement(element);
+    WantAgentInfo wantAgentInfo;
+    wantAgentInfo.wants_.emplace_back(want);
+    wantAgentInfo.operationType_ = WantAgentConstant::OperationType::START_ABILITY;
+    wantAgentInfo.requestCode_ = 10;
+    std::shared_ptr<WantParams> wParams = std::make_shared<WantParams>();
+    wParams->SetParam("key", Boolean::Box(true));
+    wantAgentInfo.extraInfo_ = wParams;
+    auto wantAgent = WantAgentHelper::GetWantAgent(wantAgentInfo);
+    ASSERT_NE(wantAgent, nullptr);
+
+    auto legacyString = WantAgentHelper::ToString(wantAgent);
+    auto jsonString = WantAgentHelper::ToJsonString(wantAgent);
+    ASSERT_FALSE(legacyString.empty());
+    ASSERT_FALSE(jsonString.empty());
+
+    auto legacyObject = nlohmann::json::parse(legacyString, nullptr, false);
+    auto jsonObject = nlohmann::json::parse(jsonString, nullptr, false);
+    ASSERT_FALSE(legacyObject.is_discarded());
+    ASSERT_FALSE(jsonObject.is_discarded());
+    auto legacyExtraInfo = legacyObject.at("extraInfo").at("extraInfoValue").get<std::string>();
+    auto jsonExtraInfo = jsonObject.at("extraInfo").at("extraInfoValue").get<std::string>();
+    EXPECT_EQ(legacyExtraInfo.find("ohos.want.params.json"), std::string::npos);
+    EXPECT_NE(jsonExtraInfo.find("ohos.want.params.json"), std::string::npos);
+}
+
+/*
+ * @tc.number    : WantAgentHelper_5320
+ * @tc.name      : WantAgentHelper FromJsonString
+ * @tc.desc      : Test FromJsonString restores WantAgent from WantParamWrapperJson extraInfo.
+ */
+HWTEST_F(WantAgentHelperTest, WantAgentHelper_5320, Function | MediumTest | Level1)
+{
+    std::shared_ptr<Want> want = std::make_shared<Want>();
+    ElementName element("device", "bundleName", "abilityName");
+    want->SetElement(element);
+    WantAgentInfo wantAgentInfo;
+    wantAgentInfo.wants_.emplace_back(want);
+    wantAgentInfo.operationType_ = WantAgentConstant::OperationType::START_ABILITY;
+    wantAgentInfo.requestCode_ = 10;
+    std::shared_ptr<WantParams> wParams = std::make_shared<WantParams>();
+    wParams->SetParam("key", Boolean::Box(true));
+    wantAgentInfo.extraInfo_ = wParams;
+    auto wantAgent = WantAgentHelper::GetWantAgent(wantAgentInfo);
+    ASSERT_NE(wantAgent, nullptr);
+
+    auto jsonString = WantAgentHelper::ToJsonString(wantAgent);
+    auto restoredWantAgent = WantAgentHelper::FromJsonString(jsonString);
+    ASSERT_NE(restoredWantAgent, nullptr);
+
+    auto restoredWant = WantAgentHelper::GetWant(restoredWantAgent);
+    ASSERT_NE(restoredWant, nullptr);
+    auto value = restoredWant->GetParams().GetParam("key");
+    auto boolValue = IBoolean::Query(value);
+    ASSERT_NE(boolValue, nullptr);
+    EXPECT_TRUE(Boolean::Unbox(boolValue));
+}
+
+/*
  * @tc.number    : WantAgentHelper_5400
  * @tc.name      : WantAgentHelper Cancel by flags FLAG_ONE_SHOT
  * @tc.desc      : 1.wantAgentInfo.wants_ not empty
