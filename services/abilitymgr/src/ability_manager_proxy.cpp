@@ -89,7 +89,7 @@ int AbilityManagerProxy::StartAbility(const Want &want, int32_t userId, int requ
     }
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
 
     if (!data.WriteInt32(userId)) {
@@ -188,7 +188,7 @@ int AbilityManagerProxy::StartAbility(const Want &want, const AbilityStartSettin
     }
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     if (!data.WriteParcelable(&abilityStartSetting)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityStartSetting write fail");
@@ -240,7 +240,7 @@ int AbilityManagerProxy::StartAbility(
     }
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     if (callerToken) {
         if (!data.WriteBool(true) || !data.WriteRemoteObject(callerToken)) {
@@ -290,7 +290,7 @@ int AbilityManagerProxy::StartAbilityWithSpecifyTokenId(
     }
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     if (callerToken) {
         if (!data.WriteBool(true) || !data.WriteRemoteObject(callerToken)) {
@@ -343,7 +343,7 @@ int32_t AbilityManagerProxy::StartAbilityByInsightIntent(const Want &want, const
 
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
 
     if (!data.WriteBool(true) || !data.WriteRemoteObject(callerToken)) {
@@ -387,7 +387,7 @@ int32_t AbilityManagerProxy::StartAbilityByOEExt(const Want &want,
 
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
 
     if (!data.WriteBool(true) || !data.WriteRemoteObject(callerToken)) {
@@ -460,7 +460,7 @@ int AbilityManagerProxy::StartAbility(const Want &want, const StartOptions &star
     }
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     if (!data.WriteParcelable(&startOptions)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "writeParcelable fail");
@@ -803,7 +803,7 @@ int AbilityManagerProxy::StartAbilityByUIContentSession(const Want &want,
     }
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     if (CheckUISessionParams(data, callerToken, sessionInfo, userId, requestCode) == INNER_ERR) {
         return INNER_ERR;
@@ -833,7 +833,7 @@ int AbilityManagerProxy::StartAbilityByUIContentSession(const Want &want, const 
     }
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     if (!data.WriteParcelable(&startOptions)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "writeParcelable fail");
@@ -870,7 +870,7 @@ int AbilityManagerProxy::StartAbilityOnlyUIAbility(const Want &want, const sptr<
 
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
 
     if (!data.WriteBool(true) || !data.WriteRemoteObject(callerToken)) {
@@ -951,7 +951,7 @@ int AbilityManagerProxy::RequestModalUIExtension(const Want &want)
     }
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
 
     int error;
@@ -977,7 +977,7 @@ int AbilityManagerProxy::RequestModalUIExtensionWithAccount(const Want &want, in
     }
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     if (!data.WriteInt32(accountId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "accountId write fail");
@@ -2106,7 +2106,7 @@ int AbilityManagerProxy::StopServiceAbility(const Want &want, int32_t userId, co
     }
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     if (!data.WriteInt32(userId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "userId write fail");
@@ -2939,7 +2939,7 @@ int AbilityManagerProxy::StartContinuation(const Want &want, const sptr<IRemoteO
     }
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     if (!data.WriteRemoteObject(abilityToken)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityToken write fail");
@@ -4316,7 +4316,7 @@ int AbilityManagerProxy::StartUserTest(const Want &want, const sptr<IRemoteObjec
     }
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     if (!data.WriteRemoteObject(observer)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "observer write fail");
@@ -4567,7 +4567,7 @@ int AbilityManagerProxy::FreeInstallAbilityFromRemote(const Want &want, const sp
 
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
 
     if (!data.WriteRemoteObject(callback)) {
@@ -4767,7 +4767,7 @@ int32_t AbilityManagerProxy::RequestDialogService(const Want &want, const sptr<I
 
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
 
     if (!data.WriteRemoteObject(callerToken)) {
@@ -6397,7 +6397,7 @@ int32_t AbilityManagerProxy::StartShortcut(const Want &want, const StartOptions 
     }
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     if (!data.WriteParcelable(&startOptions)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startOptions write fail");
@@ -6453,7 +6453,7 @@ int32_t AbilityManagerProxy::TransferAbilityResultForExtension(const sptr<IRemot
     }
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     auto error = SendRequest(AbilityManagerInterfaceCode::TRANSFER_ABILITY_RESULT, data, reply, option);
     if (error != NO_ERROR) {
@@ -6584,7 +6584,7 @@ ErrCode AbilityManagerProxy::OpenLink(const Want &want, sptr<IRemoteObject> call
     }
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     if (!data.WriteRemoteObject(callerToken)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "callerToken write fail");
@@ -7967,7 +7967,7 @@ int32_t AbilityManagerProxy::StartSelfUIAbilityInCurrentProcess(const Want &want
     }
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     if (!data.WriteString(specifiedFlag)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "specifiedFlag write fail");
@@ -8090,7 +8090,7 @@ int32_t AbilityManagerProxy::StartSelfUIAbilityInChildProcess(
     }
     if (!data.WriteParcelable(&want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
-        return INNER_ERR;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     if (!data.WriteString(specifiedFlag)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "specifiedFlag write fail");
