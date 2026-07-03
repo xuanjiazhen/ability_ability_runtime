@@ -624,7 +624,7 @@ std::shared_ptr<WantAgent> WantAgentHelper::FromJsonString(const std::string &js
     if (jsonString.empty()) {
         return nullptr;
     }
-    nlohmann::json jsonObject = nlohmann::json::parse(jsonString);
+    nlohmann::json jsonObject = nlohmann::json::parse(jsonString, nullptr, false);
     if (jsonObject.is_discarded()) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Failed to parse json string");
         return nullptr;
@@ -660,9 +660,10 @@ std::shared_ptr<WantAgent> WantAgentHelper::FromJsonString(const std::string &js
         auto extraInfoObj = jsonObject.at("extraInfo");
         if (extraInfoObj.contains("extraInfoValue") && extraInfoObj["extraInfoValue"].is_string()) {
             AAFwk::WantParams params;
-            if (AAFwk::WantParamWrapperJson::Parse(extraInfoObj.at("extraInfoValue").get<std::string>(), params)) {
-                extraInfo = std::make_shared<AAFwk::WantParams>(params);
+            if (!AAFwk::WantParamWrapperJson::Parse(extraInfoObj.at("extraInfoValue").get<std::string>(), params)) {
+                TAG_LOGE(AAFwkTag::WANTAGENT, "parse want params json failed");
             }
+            extraInfo = std::make_shared<AAFwk::WantParams>(params);
         }
     }
 
