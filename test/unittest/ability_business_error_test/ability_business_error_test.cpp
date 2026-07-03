@@ -135,6 +135,16 @@ HWTEST_F(AbilityBusinessErrorTest, GetErrorMsgByNativeError_0100, TestSize.Level
         "Internal error. Operation timed out. Try again later.");
     EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_NATIVE_IPC_PARCEL_FAILED),
         "Internal error. IPC failed. Try again later.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_REACH_UPPER_LIMIT),
+        "Internal error. Ability instance limit exceeded. Release unused instances and try again.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_FREQ_START_ABILITY),
+        "Internal error. Ability start frequency limit exceeded. Try again later.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_CALLER_IS_KILLING),
+        "Internal error. The caller ability is being terminated. Try again later.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_NOT_GAME_PRELOAD_STATE),
+        "Internal error. The application is not in the game prelaunch state.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_SANDBOX_CLONE_INDEX_INVALID),
+        "Internal error. The sandbox clone index is invalid.");
     EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::CONNECTION_NOT_EXIST, innerErrMsg),
         "Internal error. The service connection does not exist. Use a connection ID returned by "
         "connectServiceExtensionAbility.");

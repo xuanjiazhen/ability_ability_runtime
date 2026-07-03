@@ -217,7 +217,7 @@ constexpr const char* ERROR_MSG_INVALID_USERID_VALUE =
 constexpr const char* ERROR_MSG_ERR_AAFWK_PARCEL_FAIL =
     "Internal error. Failed to parcel the request. Check the input parameters and try again.";
 constexpr const char* ERROR_MSG_ERR_REACH_UPPER_LIMIT =
-    "Internal error. The number of instances has reached the upper limit. Release unused instances and try again.";
+    "Internal error. Ability instance limit exceeded. Release unused instances and try again.";
 constexpr const char* ERROR_MSG_ERR_AAFWK_INVALID_WINDOW_MODE =
     "Internal error. The window mode is invalid. Use a supported window mode and try again.";
 constexpr const char* ERROR_MSG_ERR_NATIVE_ABILITY_NOT_FOUND =
@@ -226,6 +226,14 @@ constexpr const char* ERROR_MSG_ERR_NATIVE_ABILITY_STATE_CHECK_FAILED =
     "Internal error. The ability state is invalid. Ensure the ability is active and try again.";
 constexpr const char* ERROR_MSG_ERR_URI_LIST_OUT_OF_RANGE =
     "Internal error. The URI list exceeds the supported size. Reduce the number of URIs and try again.";
+constexpr const char* ERROR_MSG_ERR_FREQ_START_ABILITY =
+    "Internal error. Ability start frequency limit exceeded. Try again later.";
+constexpr const char* ERROR_MSG_CALLER_IS_KILLING =
+    "Internal error. The caller ability is being terminated. Try again later.";
+constexpr const char* ERROR_MSG_NOT_GAME_PRELOAD_STATE =
+    "Internal error. The application is not in the game prelaunch state.";
+constexpr const char* ERROR_MSG_SANDBOX_CLONE_INDEX_INVALID =
+    "Internal error. The sandbox clone index is invalid.";
 constexpr const char* ERROR_MSG_RESTORE_WINDOW_STAGE_FAILED =
     "Internal error. Failed to restore the window stage. Check the local storage object and try again.";
 constexpr const char* ERROR_MSG_WRAP_ABILITY_RESULT_FAILED =
@@ -587,6 +595,10 @@ static std::unordered_map<int32_t, const char*> INNER_ERROR_MSG_BY_NATIVE_CODE {
     {ERR_AAFWK_PARCEL_FAIL, ERROR_MSG_ERR_AAFWK_PARCEL_FAIL},
     {ERR_REACH_UPPER_LIMIT, ERROR_MSG_ERR_REACH_UPPER_LIMIT},
     {ERR_AAFWK_INVALID_WINDOW_MODE, ERROR_MSG_ERR_AAFWK_INVALID_WINDOW_MODE},
+    {ERR_FREQ_START_ABILITY, ERROR_MSG_ERR_FREQ_START_ABILITY},
+    {ERR_CALLER_IS_KILLING, ERROR_MSG_CALLER_IS_KILLING},
+    {ERR_NOT_GAME_PRELOAD_STATE, ERROR_MSG_NOT_GAME_PRELOAD_STATE},
+    {ERR_SANDBOX_CLONE_INDEX_INVALID, ERROR_MSG_SANDBOX_CLONE_INDEX_INVALID},
     {ERR_CONNECT_ERMS_FAILED, ERROR_MSG_SERVICE_UNAVAILABLE},
     {ERR_NATIVE_IPC_PARCEL_FAILED, ERROR_MSG_IPC_FAILED},
     {ERR_NATIVE_ABILITY_NOT_FOUND, ERROR_MSG_ERR_NATIVE_ABILITY_NOT_FOUND},
