@@ -39,6 +39,9 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#ifndef __cplusplus
+#include <stdbool.h>
+#endif
 #include "ability_runtime_common.h"
 #include "context_constant.h"
 
@@ -96,7 +99,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsWindowMode(AbilityRunt
  * @since 17
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWindowMode(AbilityRuntime_StartOptions *startOptions,
-    AbilityRuntime_WindowMode &windowMode);
+    AbilityRuntime_WindowMode *windowMode);
 
 /**
  * @brief Set display id for start options.
@@ -122,7 +125,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsDisplayId(AbilityRunti
  * @since 17
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsDisplayId(AbilityRuntime_StartOptions *startOptions,
-    int32_t &displayId);
+    int32_t *displayId);
 
 /**
  * @brief Set with animation flag for start options.
@@ -148,7 +151,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsWithAnimation(AbilityR
  * @since 17
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWithAnimation(AbilityRuntime_StartOptions *startOptions,
-    bool &withAnimation);
+    bool *withAnimation);
 
 /**
  * @brief Set window left for start options.
@@ -174,7 +177,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsWindowLeft(AbilityRunt
  * @since 17
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWindowLeft(AbilityRuntime_StartOptions *startOptions,
-    int32_t &windowLeft);
+    int32_t *windowLeft);
 
 /**
  * @brief Set window top for start options.
@@ -200,7 +203,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsWindowTop(AbilityRunti
  * @since 17
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWindowTop(AbilityRuntime_StartOptions *startOptions,
-    int32_t &windowTop);
+    int32_t *windowTop);
 
 /**
  * @brief Set window height for start options.
@@ -226,7 +229,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsWindowHeight(AbilityRu
  * @since 17
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWindowHeight(AbilityRuntime_StartOptions *startOptions,
-    int32_t &windowHeight);
+    int32_t *windowHeight);
 
 /**
  * @brief Set window width for start options.
@@ -252,7 +255,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsWindowWidth(AbilityRun
  * @since 17
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWindowWidth(AbilityRuntime_StartOptions *startOptions,
-    int32_t &windowWidth);
+    int32_t *windowWidth);
 
 /**
  * @brief Set start visibility for start options.
@@ -279,7 +282,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsStartVisibility(Abilit
  * @since 18
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsStartVisibility(AbilityRuntime_StartOptions *startOptions,
-    AbilityRuntime_StartVisibility &startVisibility);
+    AbilityRuntime_StartVisibility *startVisibility);
 
 /**
  * @brief Set start window icon for start options.
@@ -337,7 +340,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsStartWindowBackgroundC
  * @since 17
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsStartWindowBackgroundColor(
-    AbilityRuntime_StartOptions *startOptions, char **startWindowBackgroundColor, size_t &size);
+    AbilityRuntime_StartOptions *startOptions, char **startWindowBackgroundColor, size_t *size);
 
 /**
  * @brief Set start window modes for start options.
@@ -370,7 +373,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsSupportedWindowModes(
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsSupportedWindowModes(
     AbilityRuntime_StartOptions *startOptions, AbilityRuntime_SupportedWindowMode **supportedWindowModes,
-    size_t &size);
+    size_t *size);
 
 /**
  * @brief Set min window width for start options.
@@ -396,7 +399,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsMinWindowWidth(
  * @since 17
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsMinWindowWidth(
-    AbilityRuntime_StartOptions *startOptions, int32_t &minWindowWidth);
+    AbilityRuntime_StartOptions *startOptions, int32_t *minWindowWidth);
 
 /**
  * @brief Set max window width for start options.
@@ -422,7 +425,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsMaxWindowWidth(
  * @since 17
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsMaxWindowWidth(
-    AbilityRuntime_StartOptions *startOptions, int32_t &maxWindowWidth);
+    AbilityRuntime_StartOptions *startOptions, int32_t *maxWindowWidth);
 
 /**
  * @brief Set min window height for start options.
@@ -448,7 +451,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsMinWindowHeight(
  * @since 17
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsMinWindowHeight(
-    AbilityRuntime_StartOptions *startOptions, int32_t &minWindowHeight);
+    AbilityRuntime_StartOptions *startOptions, int32_t *minWindowHeight);
 
 /**
  * @brief Set max window height for start options.
@@ -474,10 +477,98 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_SetStartOptionsMaxWindowHeight(
  * @since 17
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsMaxWindowHeight(
-    AbilityRuntime_StartOptions *startOptions, int32_t &maxWindowHeight);
+    AbilityRuntime_StartOptions *startOptions, int32_t *maxWindowHeight);
 
 #ifdef __cplusplus
 } // extern "C"
+#endif
+
+#ifdef __cplusplus
+static inline AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWindowMode(
+    AbilityRuntime_StartOptions *startOptions, AbilityRuntime_WindowMode &windowMode)
+{
+    return OH_AbilityRuntime_GetStartOptionsWindowMode(startOptions, &windowMode);
+}
+
+static inline AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsDisplayId(
+    AbilityRuntime_StartOptions *startOptions, int32_t &displayId)
+{
+    return OH_AbilityRuntime_GetStartOptionsDisplayId(startOptions, &displayId);
+}
+
+static inline AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWithAnimation(
+    AbilityRuntime_StartOptions *startOptions, bool &withAnimation)
+{
+    return OH_AbilityRuntime_GetStartOptionsWithAnimation(startOptions, &withAnimation);
+}
+
+static inline AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWindowLeft(
+    AbilityRuntime_StartOptions *startOptions, int32_t &windowLeft)
+{
+    return OH_AbilityRuntime_GetStartOptionsWindowLeft(startOptions, &windowLeft);
+}
+
+static inline AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWindowTop(
+    AbilityRuntime_StartOptions *startOptions, int32_t &windowTop)
+{
+    return OH_AbilityRuntime_GetStartOptionsWindowTop(startOptions, &windowTop);
+}
+
+static inline AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWindowHeight(
+    AbilityRuntime_StartOptions *startOptions, int32_t &windowHeight)
+{
+    return OH_AbilityRuntime_GetStartOptionsWindowHeight(startOptions, &windowHeight);
+}
+
+static inline AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsWindowWidth(
+    AbilityRuntime_StartOptions *startOptions, int32_t &windowWidth)
+{
+    return OH_AbilityRuntime_GetStartOptionsWindowWidth(startOptions, &windowWidth);
+}
+
+static inline AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsStartVisibility(
+    AbilityRuntime_StartOptions *startOptions, AbilityRuntime_StartVisibility &startVisibility)
+{
+    return OH_AbilityRuntime_GetStartOptionsStartVisibility(startOptions, &startVisibility);
+}
+
+static inline AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsStartWindowBackgroundColor(
+    AbilityRuntime_StartOptions *startOptions, char **startWindowBackgroundColor, size_t &size)
+{
+    return OH_AbilityRuntime_GetStartOptionsStartWindowBackgroundColor(
+        startOptions, startWindowBackgroundColor, &size);
+}
+
+static inline AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsSupportedWindowModes(
+    AbilityRuntime_StartOptions *startOptions, AbilityRuntime_SupportedWindowMode **supportedWindowModes,
+    size_t &size)
+{
+    return OH_AbilityRuntime_GetStartOptionsSupportedWindowModes(startOptions, supportedWindowModes, &size);
+}
+
+static inline AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsMinWindowWidth(
+    AbilityRuntime_StartOptions *startOptions, int32_t &minWindowWidth)
+{
+    return OH_AbilityRuntime_GetStartOptionsMinWindowWidth(startOptions, &minWindowWidth);
+}
+
+static inline AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsMaxWindowWidth(
+    AbilityRuntime_StartOptions *startOptions, int32_t &maxWindowWidth)
+{
+    return OH_AbilityRuntime_GetStartOptionsMaxWindowWidth(startOptions, &maxWindowWidth);
+}
+
+static inline AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsMinWindowHeight(
+    AbilityRuntime_StartOptions *startOptions, int32_t &minWindowHeight)
+{
+    return OH_AbilityRuntime_GetStartOptionsMinWindowHeight(startOptions, &minWindowHeight);
+}
+
+static inline AbilityRuntime_ErrorCode OH_AbilityRuntime_GetStartOptionsMaxWindowHeight(
+    AbilityRuntime_StartOptions *startOptions, int32_t &maxWindowHeight)
+{
+    return OH_AbilityRuntime_GetStartOptionsMaxWindowHeight(startOptions, &maxWindowHeight);
+}
 #endif
 
 /** @} */
