@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "file_mapper.h"
 #include "native_engine/native_engine.h"
 #include "runtime.h"
 
@@ -208,6 +209,7 @@ private:
 
     static std::atomic<bool> hasInstance;
     DebugOption debugOption_;
+    std::map<std::string, std::shared_ptr<AbilityBase::FileMapper>> safeDataMap_;
 
 private:
     bool CreateJsEnv(const Options& options);
@@ -223,6 +225,8 @@ private:
     void PostPreload(const Options& options);
     void LoadAotFile(const Options& options);
     void SetRequestAotCallback();
+    std::shared_ptr<AbilityBase::FileMapper> GetOrCreateSafeData(std::shared_ptr<AbilityBase::Extractor> extractor,
+        const std::string &modulePath);
 
     std::string GetSystemKitPath();
     std::vector<panda::HmsMap> GetSystemKitsMap(uint32_t version);
