@@ -217,7 +217,7 @@ constexpr const char* ERROR_MSG_INVALID_USERID_VALUE =
 constexpr const char* ERROR_MSG_ERR_AAFWK_PARCEL_FAIL =
     "Internal error. Failed to parcel the request. Check the input parameters and try again.";
 constexpr const char* ERROR_MSG_ERR_REACH_UPPER_LIMIT =
-    "Internal error. The number of instances has reached the upper limit. Release unused instances and try again.";
+    "Internal error. Ability instance limit exceeded. Release unused instances and try again.";
 constexpr const char* ERROR_MSG_ERR_AAFWK_INVALID_WINDOW_MODE =
     "Internal error. The window mode is invalid. Use a supported window mode and try again.";
 constexpr const char* ERROR_MSG_ERR_NATIVE_ABILITY_NOT_FOUND =
@@ -226,6 +226,40 @@ constexpr const char* ERROR_MSG_ERR_NATIVE_ABILITY_STATE_CHECK_FAILED =
     "Internal error. The ability state is invalid. Ensure the ability is active and try again.";
 constexpr const char* ERROR_MSG_ERR_URI_LIST_OUT_OF_RANGE =
     "Internal error. The URI list exceeds the supported size. Reduce the number of URIs and try again.";
+constexpr const char* ERROR_MSG_ERR_FREQ_START_ABILITY =
+    "Internal error. Ability start frequency limit exceeded. Try again later.";
+constexpr const char* ERROR_MSG_CONNECT_MANAGER_NULL_ABILITY_RECORD =
+    "Internal error. The ability record is unavailable in the connection manager. Try again later.";
+constexpr const char* ERROR_MSG_UI_ABILITY_MANAGER_NULL_ABILITY_RECORD =
+    "Internal error. The UIAbility record is unavailable. Try again later.";
+constexpr const char* ERROR_MSG_NULL_APP_MGR_CLIENT =
+    "Internal error. AppMgr client is unavailable. Try again later.";
+constexpr const char* ERROR_MSG_ADD_START_CONTROL_PARAM_FAILED =
+    "Internal error. Failed to add the start control parameter. Try again later.";
+constexpr const char* ERROR_MSG_NULL_FREE_INSTALL_MANAGER =
+    "Internal error. The free install manager is unavailable. Try again later.";
+constexpr const char* ERROR_MSG_GET_MISSION_ID_BY_ABILITY_TOKEN_FAILED =
+    "Internal error. Failed to get the mission ID by ability token. Ensure the ability token is valid and try again.";
+constexpr const char* ERROR_MSG_INVALID_MISSION_ID =
+    "Internal error. The mission ID is invalid. Ensure the mission exists and try again.";
+constexpr const char* ERROR_MSG_NULL_SYS_DIALOG_SCHEDULER =
+    "Internal error. The system dialog scheduler is unavailable. Try again later.";
+constexpr const char* ERROR_MSG_CHECK_CALL_FROM_BACKGROUND_FAILED =
+    "Internal error. Failed to check whether the call is from background. Try again later.";
+constexpr const char* ERROR_MSG_TOO_LARGE_APPINDEXES =
+    "Internal error. The clone app index list exceeds the supported size.";
+constexpr const char* ERROR_MSG_CALLER_IS_KILLING =
+    "Internal error. The caller ability is being terminated. Try again later.";
+constexpr const char* ERROR_MSG_NOTIFY_SCB_PENDING_ACTIVATION_FAILED =
+    "Internal error. Failed to notify SCB of pending activation. Try again later.";
+constexpr const char* ERROR_MSG_APP_MGR_TERMINATTE_ABILITY_FAILED =
+    "Internal error. Failed to terminate the ability through AppMgr. Try again later.";
+constexpr const char* ERROR_MSG_CREATE_INSTANCE_KEY_FAILED =
+    "Internal error. Failed to create the instance key. Try again later.";
+constexpr const char* ERROR_MSG_NOT_GAME_PRELOAD_STATE =
+    "Internal error. The application is not in the game prelaunch state.";
+constexpr const char* ERROR_MSG_SANDBOX_CLONE_INDEX_INVALID =
+    "Internal error. The sandbox clone index is invalid.";
 constexpr const char* ERROR_MSG_RESTORE_WINDOW_STAGE_FAILED =
     "Internal error. Failed to restore the window stage. Check the local storage object and try again.";
 constexpr const char* ERROR_MSG_WRAP_ABILITY_RESULT_FAILED =
@@ -587,6 +621,23 @@ static std::unordered_map<int32_t, const char*> INNER_ERROR_MSG_BY_NATIVE_CODE {
     {ERR_AAFWK_PARCEL_FAIL, ERROR_MSG_ERR_AAFWK_PARCEL_FAIL},
     {ERR_REACH_UPPER_LIMIT, ERROR_MSG_ERR_REACH_UPPER_LIMIT},
     {ERR_AAFWK_INVALID_WINDOW_MODE, ERROR_MSG_ERR_AAFWK_INVALID_WINDOW_MODE},
+    {ERR_FREQ_START_ABILITY, ERROR_MSG_ERR_FREQ_START_ABILITY},
+    {ERR_CONNECT_MANAGER_NULL_ABILITY_RECORD, ERROR_MSG_CONNECT_MANAGER_NULL_ABILITY_RECORD},
+    {ERR_UI_ABILITY_MANAGER_NULL_ABILITY_RECORD, ERROR_MSG_UI_ABILITY_MANAGER_NULL_ABILITY_RECORD},
+    {ERR_NULL_APP_MGR_CLIENT, ERROR_MSG_NULL_APP_MGR_CLIENT},
+    {ERR_ADD_START_CONTROL_PARAM_FAILED, ERROR_MSG_ADD_START_CONTROL_PARAM_FAILED},
+    {ERR_NULL_FREE_INSTALL_MANAGER, ERROR_MSG_NULL_FREE_INSTALL_MANAGER},
+    {ERR_GET_MISSION_ID_BY_ABILITY_TOKEN_FAILED, ERROR_MSG_GET_MISSION_ID_BY_ABILITY_TOKEN_FAILED},
+    {ERR_INVALID_MISSION_ID, ERROR_MSG_INVALID_MISSION_ID},
+    {ERR_NULL_SYS_DIALOG_SCHEDULER, ERROR_MSG_NULL_SYS_DIALOG_SCHEDULER},
+    {ERR_CHECK_CALL_FROM_BACKGROUND_FAILED, ERROR_MSG_CHECK_CALL_FROM_BACKGROUND_FAILED},
+    {ERR_TOO_LARGE_APPINDEXES, ERROR_MSG_TOO_LARGE_APPINDEXES},
+    {ERR_CALLER_IS_KILLING, ERROR_MSG_CALLER_IS_KILLING},
+    {ERR_NOTIFY_SCB_PENDING_ACTIVATION_FAILED, ERROR_MSG_NOTIFY_SCB_PENDING_ACTIVATION_FAILED},
+    {ERR_APP_MGR_TERMINATTE_ABILITY_FAILED, ERROR_MSG_APP_MGR_TERMINATTE_ABILITY_FAILED},
+    {ERR_CREATE_INSTANCE_KEY_FAILED, ERROR_MSG_CREATE_INSTANCE_KEY_FAILED},
+    {ERR_NOT_GAME_PRELOAD_STATE, ERROR_MSG_NOT_GAME_PRELOAD_STATE},
+    {ERR_SANDBOX_CLONE_INDEX_INVALID, ERROR_MSG_SANDBOX_CLONE_INDEX_INVALID},
     {ERR_CONNECT_ERMS_FAILED, ERROR_MSG_SERVICE_UNAVAILABLE},
     {ERR_NATIVE_IPC_PARCEL_FAILED, ERROR_MSG_IPC_FAILED},
     {ERR_NATIVE_ABILITY_NOT_FOUND, ERROR_MSG_ERR_NATIVE_ABILITY_NOT_FOUND},
