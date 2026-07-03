@@ -27,9 +27,11 @@ namespace AbilityRuntime {
  * defines who sets the keep-alive flag for apps.
  */
 enum class KeepAliveSetter : int32_t {
+    MIN = -2,
     UNSPECIFIED = -1,
     SYSTEM = 0,
     USER = 1,
+    MAX
 };
 
 /**
@@ -37,9 +39,11 @@ enum class KeepAliveSetter : int32_t {
  * defines the app type.
  */
 enum class KeepAliveAppType : int32_t {
+    MIN = -1,
     UNSPECIFIED = 0,
     THIRD_PARTY = 1,
     SYSTEM = 2,
+    MAX
 };
 
 /**
@@ -47,9 +51,11 @@ enum class KeepAliveAppType : int32_t {
  * defines the keep-alive policy.
  */
 enum class KeepAlivePolicy : int32_t {
+    MIN = -1,
     UNSPECIFIED = 0,
     NOT_ALLOW_CANCEL = 1,
     ALLOW_CANCEL = 2,
+    MAX
 };
 
 /**
@@ -71,9 +77,9 @@ public:
 };
 
 struct KeepAliveStatus {
-    int32_t code;
-    int32_t setterId;
-    KeepAliveSetter setter;
+    int32_t code = -1;
+    int32_t setterId = -1;
+    KeepAliveSetter setter = KeepAliveSetter::UNSPECIFIED;
     KeepAlivePolicy policy = KeepAlivePolicy::UNSPECIFIED;
 };
 } // namespace AbilityRuntime

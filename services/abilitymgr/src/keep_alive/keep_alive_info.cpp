@@ -23,10 +23,36 @@ bool KeepAliveInfo::ReadFromParcel(Parcel &parcel)
 {
     bundleName = Str16ToStr8(parcel.ReadString16());
     userId = parcel.ReadInt32();
-    appType = KeepAliveAppType(parcel.ReadInt32());
-    setter = KeepAliveSetter(parcel.ReadInt32());
+
+    int32_t appTypeValue = parcel.ReadInt32();
+    if (appTypeValue <= static_cast<int32_t>(KeepAliveAppType::MIN) ||
+        appTypeValue >= static_cast<int32_t>(KeepAliveAppType::MAX)) {
+        TAG_LOGE(AAFwkTag::KEEP_ALIVE, "Invalid appType: %{public}d", appTypeValue);
+        appType = KeepAliveAppType::UNSPECIFIED;
+    } else {
+        appType = KeepAliveAppType(appTypeValue);
+    }
+
+    int32_t setterValue = parcel.ReadInt32();
+    if (setterValue <= static_cast<int32_t>(KeepAliveSetter::MIN) ||
+        setterValue >= static_cast<int32_t>(KeepAliveSetter::MAX)) {
+        TAG_LOGE(AAFwkTag::KEEP_ALIVE, "Invalid setter: %{public}d", setterValue);
+        setter = KeepAliveSetter::UNSPECIFIED;
+    } else {
+        setter = KeepAliveSetter(setterValue);
+    }
+
     setterId = parcel.ReadInt32();
-    policy = KeepAlivePolicy(parcel.ReadInt32());
+
+    int32_t policyValue = parcel.ReadInt32();
+    if (policyValue <= static_cast<int32_t>(KeepAlivePolicy::MIN) ||
+        policyValue >= static_cast<int32_t>(KeepAlivePolicy::MAX)) {
+        TAG_LOGE(AAFwkTag::KEEP_ALIVE, "Invalid policy: %{public}d", policyValue);
+        policy = KeepAlivePolicy::UNSPECIFIED;
+    } else {
+        policy = KeepAlivePolicy(policyValue);
+    }
+
     return true;
 }
 

@@ -50,6 +50,7 @@ AbilityKeepAliveDataManager::~AbilityKeepAliveDataManager()
     std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
     if (kvStorePtr_ != nullptr) {
         dataManager_.CloseKvStore(APP_ID, kvStorePtr_);
+        kvStorePtr_ = nullptr;
     }
 }
 
@@ -369,13 +370,27 @@ void AbilityKeepAliveDataManager::ConvertKeepAliveStatusFromValue(const Distribu
         return;
     }
     if (jsonObject.contains(JSON_KEY_SETTER) && jsonObject[JSON_KEY_SETTER].is_number()) {
-        status.setter = KeepAliveSetter(jsonObject.at(JSON_KEY_SETTER).get<int32_t>());
+        int32_t setterValue = jsonObject.at(JSON_KEY_SETTER).get<int32_t>();
+        if (setterValue <= static_cast<int32_t>(KeepAliveSetter::MIN) ||
+            setterValue >= static_cast<int32_t>(KeepAliveSetter::MAX)) {
+            TAG_LOGE(AAFwkTag::KEEP_ALIVE, "Invalid setter: %{public}d", setterValue);
+            status.setter = KeepAliveSetter::UNSPECIFIED;
+        } else {
+            status.setter = KeepAliveSetter(setterValue);
+        }
     }
     if (jsonObject.contains(JSON_KEY_SETTERID) && jsonObject[JSON_KEY_SETTERID].is_number()) {
         status.setterId = jsonObject.at(JSON_KEY_SETTERID).get<int32_t>();
     }
     if (jsonObject.contains(JSON_KEY_POLICY) && jsonObject[JSON_KEY_POLICY].is_number()) {
-        status.policy = KeepAlivePolicy(jsonObject.at(JSON_KEY_POLICY).get<int32_t>());
+        int32_t policyValue = jsonObject.at(JSON_KEY_POLICY).get<int32_t>();
+        if (policyValue <= static_cast<int32_t>(KeepAlivePolicy::MIN) ||
+            policyValue >= static_cast<int32_t>(KeepAlivePolicy::MAX)) {
+            TAG_LOGE(AAFwkTag::KEEP_ALIVE, "Invalid policy: %{public}d", policyValue);
+            status.policy = KeepAlivePolicy::UNSPECIFIED;
+        } else {
+            status.policy = KeepAlivePolicy(policyValue);
+        }
     }
 }
 
@@ -412,11 +427,25 @@ KeepAliveInfo AbilityKeepAliveDataManager::ConvertKeepAliveInfoFromKey(const Dis
     }
 
     if (jsonObject.contains(JSON_KEY_APP_TYPE) && jsonObject[JSON_KEY_APP_TYPE].is_number()) {
-        info.appType = KeepAliveAppType(jsonObject.at(JSON_KEY_APP_TYPE).get<int32_t>());
+        int32_t appTypeValue = jsonObject.at(JSON_KEY_APP_TYPE).get<int32_t>();
+        if (appTypeValue <= static_cast<int32_t>(KeepAliveAppType::MIN) ||
+            appTypeValue >= static_cast<int32_t>(KeepAliveAppType::MAX)) {
+            TAG_LOGE(AAFwkTag::KEEP_ALIVE, "Invalid appType: %{public}d", appTypeValue);
+            info.appType = KeepAliveAppType::UNSPECIFIED;
+        } else {
+            info.appType = KeepAliveAppType(appTypeValue);
+        }
     }
 
     if (jsonObject.contains(JSON_KEY_SETTER) && jsonObject[JSON_KEY_SETTER].is_number()) {
-        info.setter = KeepAliveSetter(jsonObject.at(JSON_KEY_SETTER).get<int32_t>());
+        int32_t setterValue = jsonObject.at(JSON_KEY_SETTER).get<int32_t>();
+        if (setterValue <= static_cast<int32_t>(KeepAliveSetter::MIN) ||
+            setterValue >= static_cast<int32_t>(KeepAliveSetter::MAX)) {
+            TAG_LOGE(AAFwkTag::KEEP_ALIVE, "Invalid setter: %{public}d", setterValue);
+            info.setter = KeepAliveSetter::UNSPECIFIED;
+        } else {
+            info.setter = KeepAliveSetter(setterValue);
+        }
     }
 
     if (jsonObject.contains(JSON_KEY_SETTERID) && jsonObject[JSON_KEY_SETTERID].is_number()) {
@@ -424,7 +453,14 @@ KeepAliveInfo AbilityKeepAliveDataManager::ConvertKeepAliveInfoFromKey(const Dis
     }
 
     if (jsonObject.contains(JSON_KEY_POLICY) && jsonObject[JSON_KEY_POLICY].is_number()) {
-        info.policy = KeepAlivePolicy(jsonObject.at(JSON_KEY_POLICY).get<int32_t>());
+        int32_t policyValue = jsonObject.at(JSON_KEY_POLICY).get<int32_t>();
+        if (policyValue <= static_cast<int32_t>(KeepAlivePolicy::MIN) ||
+            policyValue >= static_cast<int32_t>(KeepAlivePolicy::MAX)) {
+            TAG_LOGE(AAFwkTag::KEEP_ALIVE, "Invalid policy: %{public}d", policyValue);
+            info.policy = KeepAlivePolicy::UNSPECIFIED;
+        } else {
+            info.policy = KeepAlivePolicy(policyValue);
+        }
     }
 
     return info;

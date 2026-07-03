@@ -27,9 +27,11 @@ namespace AbilityRuntime {
  * defines who sets the auto-startup flag for apps.
  */
 enum class AutoStartupSetterType : int32_t {
+    MIN = -2,
     UNSPECIFIED = -1,
     SYSTEM = 0,
     USER = 1,
+    MAX
 };
 
 /**
