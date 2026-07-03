@@ -135,6 +135,42 @@ HWTEST_F(AbilityBusinessErrorTest, GetErrorMsgByNativeError_0100, TestSize.Level
         "Internal error. Operation timed out. Try again later.");
     EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_NATIVE_IPC_PARCEL_FAILED),
         "Internal error. IPC failed. Try again later.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_REACH_UPPER_LIMIT),
+        "Internal error. Ability instance limit exceeded. Release unused instances and try again.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_FREQ_START_ABILITY),
+        "Internal error. Ability start frequency limit exceeded. Try again later.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_CONNECT_MANAGER_NULL_ABILITY_RECORD),
+        "Internal error. The ability record is unavailable in the connection manager. Try again later.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_UI_ABILITY_MANAGER_NULL_ABILITY_RECORD),
+        "Internal error. The UIAbility record is unavailable. Try again later.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_NULL_APP_MGR_CLIENT),
+        "Internal error. AppMgr client is unavailable. Try again later.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_ADD_START_CONTROL_PARAM_FAILED),
+        "Internal error. Failed to add the start control parameter. Try again later.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_NULL_FREE_INSTALL_MANAGER),
+        "Internal error. The free install manager is unavailable. Try again later.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_GET_MISSION_ID_BY_ABILITY_TOKEN_FAILED),
+        "Internal error. Failed to get the mission ID by ability token. Ensure the ability token is valid and try again.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_INVALID_MISSION_ID),
+        "Internal error. The mission ID is invalid. Ensure the mission exists and try again.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_NULL_SYS_DIALOG_SCHEDULER),
+        "Internal error. The system dialog scheduler is unavailable. Try again later.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_CHECK_CALL_FROM_BACKGROUND_FAILED),
+        "Internal error. Failed to check whether the call is from background. Try again later.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_TOO_LARGE_APPINDEXES),
+        "Internal error. The clone app index list exceeds the supported size.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_CALLER_IS_KILLING),
+        "Internal error. The caller ability is being terminated. Try again later.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_NOTIFY_SCB_PENDING_ACTIVATION_FAILED),
+        "Internal error. Failed to notify SCB of pending activation. Try again later.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_APP_MGR_TERMINATTE_ABILITY_FAILED),
+        "Internal error. Failed to terminate the ability through AppMgr. Try again later.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_CREATE_INSTANCE_KEY_FAILED),
+        "Internal error. Failed to create the instance key. Try again later.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_NOT_GAME_PRELOAD_STATE),
+        "Internal error. The application is not in the game prelaunch state.");
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_SANDBOX_CLONE_INDEX_INVALID),
+        "Internal error. The sandbox clone index is invalid.");
     EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::CONNECTION_NOT_EXIST, innerErrMsg),
         "Internal error. The service connection does not exist. Use a connection ID returned by "
         "connectServiceExtensionAbility.");
