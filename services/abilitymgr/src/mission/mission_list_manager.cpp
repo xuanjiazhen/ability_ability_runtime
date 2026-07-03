@@ -2274,6 +2274,7 @@ void MissionListManager::PrintTimeOutLog(const std::shared_ptr<AbilityRecord> &a
         .pid = processInfo.pid_,
         .eventName = eventName,
         .bundleName = ability->GetAbilityInfo().bundleName,
+        .abilityPendingBackground = ability->GetPendingState() == AbilityState::BACKGROUND,
     };
     FreezeUtil::LifecycleFlow flow;
     if (state != FreezeUtil::TimeoutState::UNKNOWN) {
