@@ -2899,6 +2899,9 @@ private:
      */
     int ParseAndValidateUserId(const Want &want, int32_t &userId);
 
+    int GetUserTestBundleInfo(const std::string &bundleName, int32_t appIndex, int32_t userId,
+        AppExecFwk::BundleInfo &bundleInfo);
+
     /**
      * @brief Checks and submits hidden auto-startup status bar check task.
      * @param abilityRecord The ability record to check.

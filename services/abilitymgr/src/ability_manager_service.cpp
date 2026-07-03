@@ -11182,9 +11182,9 @@ int AbilityManagerService::StartUserTest(const Want &want, const sptr<IRemoteObj
         return checkResult;
     }
     int32_t appIndex = 0;
-    if (!StartAbilityUtils::GetAppIndex(want, nullptr, appIndex) || appIndex != 0) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Not support app clone");
-        return ERR_NOT_SUPPORT_APP_CLONE;
+    if (!StartAbilityUtils::GetAppIndex(want, nullptr, appIndex)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Invalid app clone index");
+        return ERR_APP_CLONE_INDEX_INVALID;
     }
 
     int32_t userId;
@@ -11193,9 +11193,35 @@ int AbilityManagerService::StartUserTest(const Want &want, const sptr<IRemoteObj
         return ret;
     }
 
+    AppExecFwk::BundleInfo bundleInfo;
+    auto bundleRet = GetUserTestBundleInfo(bundleName, appIndex, userId, bundleInfo);
+    if (bundleRet != ERR_OK) {
+        return bundleRet;
+    }
+
+    bool isDebugApp = want.GetBoolParam(AbilityConfig::DEBUG_APP, false);
+    if (isDebugApp && bundleInfo.applicationInfo.appProvisionType != AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "release app not support debug");
+        return ERR_NOT_IN_APP_PROVISION_MODE;
+    }
+
+    return DelayedSingleton<AppScheduler>::GetInstance()->StartUserTest(want, observer, bundleInfo, userId);
+}
+
+int AbilityManagerService::GetUserTestBundleInfo(const std::string &bundleName, int32_t appIndex, int32_t userId,
+    AppExecFwk::BundleInfo &bundleInfo)
+{
     auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bms, START_USER_TEST_FAIL);
-    AppExecFwk::BundleInfo bundleInfo;
+    if (appIndex > 0) {
+        if (IN_PROCESS_CALL(bms->GetCloneBundleInfo(bundleName,
+            static_cast<int32_t>(AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT), appIndex, bundleInfo,
+            userId)) != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get clone bundleInfo, appIndex: %{public}d", appIndex);
+            return GET_BUNDLE_INFO_FAILED;
+        }
+        return ERR_OK;
+    }
     if (!IN_PROCESS_CALL(
         bms->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, U0_USER_ID))) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get bundleInfo by U0_USER_ID %{public}d", U0_USER_ID);
@@ -11206,14 +11232,7 @@ int AbilityManagerService::StartUserTest(const Want &want, const sptr<IRemoteObj
             return GET_BUNDLE_INFO_FAILED;
         }
     }
-
-    bool isDebugApp = want.GetBoolParam(AbilityConfig::DEBUG_APP, false);
-    if (isDebugApp && bundleInfo.applicationInfo.appProvisionType != AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "release app not support debug");
-        return ERR_NOT_IN_APP_PROVISION_MODE;
-    }
-
-    return DelayedSingleton<AppScheduler>::GetInstance()->StartUserTest(want, observer, bundleInfo, userId);
+    return ERR_OK;
 }
 
 int AbilityManagerService::ParseAndValidateUserId(const Want &want, int32_t &userId)
