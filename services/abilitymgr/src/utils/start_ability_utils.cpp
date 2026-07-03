@@ -57,7 +57,7 @@ bool StartAbilityUtils::GetAppIndex(const Want &want, sptr<IRemoteObject> caller
 }
 
 bool StartAbilityUtils::GetApplicationInfo(const std::string &bundleName, int32_t userId,
-    AppExecFwk::ApplicationInfo &appInfo)
+    AppExecFwk::ApplicationInfo &appInfo, int32_t appIndex)
 {
     if (StartAbilityUtils::startAbilityInfo &&
         StartAbilityUtils::startAbilityInfo->GetAppBundleName() == bundleName) {
@@ -69,12 +69,17 @@ bool StartAbilityUtils::GetApplicationInfo(const std::string &bundleName, int32_
     }
     auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bms, false);
-    bool result = IN_PROCESS_CALL(
-        bms->GetApplicationInfo(bundleName, AppExecFwk::ApplicationFlag::GET_BASIC_APPLICATION_INFO,
-            userId, appInfo)
-    );
+    bool result = false;
+    if (appIndex > 0) {
+        result = IN_PROCESS_CALL(
+            bms->GetApplicationInfoWithAppIndex(bundleName, appIndex, userId, appInfo));
+    } else {
+        result = IN_PROCESS_CALL(
+            bms->GetApplicationInfo(bundleName, AppExecFwk::ApplicationFlag::GET_BASIC_APPLICATION_INFO,
+                userId, appInfo));
+    }
     if (!result) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "failed: %{public}s", bundleName.c_str());
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "failed: %{public}s, appIndex: %{public}d", bundleName.c_str(), appIndex);
         return false;
     }
     return true;

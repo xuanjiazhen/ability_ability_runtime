@@ -139,7 +139,7 @@ int32_t AbilityPermissionUtil::CheckMultiInstanceAndAppClone(Want &want, int32_t
     AppExecFwk::ApplicationInfo appInfo;
     auto isSupportMultiInstance = AppUtils::GetInstance().IsSupportMultiInstance();
     if (isSupportMultiInstance) {
-        if (!StartAbilityUtils::GetApplicationInfo(want.GetBundle(), userId, appInfo)) {
+        if (!StartAbilityUtils::GetApplicationInfo(want.GetBundle(), userId, appInfo, appIndex)) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "implicit start");
             return ERR_OK;
         }

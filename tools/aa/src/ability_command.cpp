@@ -2651,6 +2651,16 @@ ErrCode AbilityManagerShellCommand::ParseTestCommandOption(const std::string &op
         std::string argKey = argv_[++i];
         std::string argValue = argv_[++i];
         params[opt + " " + argKey] = argValue;
+    } else if (opt == "--pi") {
+        if (i >= argc_ - USER_TEST_COMMAND_PARAMS_NUM) {
+            return TestCommandError("error: option [--pi] is incorrect.\n");
+        }
+        std::string argKey = argv_[++i];
+        std::string argValue = argv_[++i];
+        if (!std::regex_match(argValue, std::regex(STRING_TEST_REGEX_INTEGER_NUMBERS))) {
+            return TestCommandError("error: option [--pi] only supports integer numbers.\n");
+        }
+        params[opt + " " + argKey] = argValue;
     } else if (opt == "-D") {
         params[opt] = DEBUG_VALUE;
     } else if (opt.at(0) == '-') {
@@ -2694,6 +2704,11 @@ ErrCode AbilityManagerShellCommand::StartUserTest(const std::map<std::string, st
     if (dPos != params.end() && dPos->second.compare(DEBUG_VALUE) == 0) {
         TAG_LOGI(AAFwkTag::AA_TOOL, "Set Debug to want");
         want.SetParam("debugApp", true);
+    }
+
+    auto appIndexIt = params.find("--pi ohos.extra.param.key.appCloneIndex");
+    if (appIndexIt != params.end()) {
+        want.SetParam("ohos.extra.param.key.appCloneIndex", appIndexIt->second);
     }
 
     sptr<TestObserver> observer = new (std::nothrow) TestObserver();
