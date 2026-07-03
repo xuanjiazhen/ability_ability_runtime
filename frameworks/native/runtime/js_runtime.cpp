@@ -1265,7 +1265,23 @@ std::unique_ptr<AbilityBase::FileMapper> JsRuntime::ExecuteSecureWithOhmUrl(cons
     }
     return safeData;
 }
+std::shared_ptr<AbilityBase::FileMapper> JsRuntime::GetOrCreateSafeData(std::shared_ptr<Extractor> extractor,
+    const std::string &modulePath)
+{
+    auto it = safeDataMap_.find(modulePath);
+    if(it != safeDataMap_.end()) {
+        return it->second;
+    }
 
+    auto safeData = extractor->GetSafeData(modulePath);
+    if (!safeData) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null safeData");
+        return nullptr ;
+    }
+    safeDataMap_.emplace(modulePath, safeData);
+    return safeData;
+
+}
 bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath, bool useCommonChunk,
     const std::string& srcEntrance)
 {
@@ -1302,7 +1318,7 @@ bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath
     auto func = [&](std::string modulePath, const std::string abcPath) {
         bool useSafeMempry = apiTargetVersion_ == 0 || apiTargetVersion_ > API8;
         if (!extractor->IsHapCompress(modulePath) && useSafeMempry) {
-            auto safeData = extractor->GetSafeData(modulePath);
+            auto safeData = isBundle_ ? extractor->GetSafeData(modulePath) : GetOrCreateSafeData(extractor, modulePath);
             if (!safeData) {
                 TAG_LOGE(AAFwkTag::JSRUNTIME, "null safeData");
                 return false;
