@@ -713,6 +713,7 @@ int AppfreezeInner::AcquireStack(const FaultData& info, bool onlyMainThread)
         faultData.pid = it->pid;
         faultData.applicationHeapInfo = it->applicationHeapInfo;
         faultData.processLifeTime = it->processLifeTime;
+        faultData.abilityPendingBackground = it->abilityPendingBackground;
         ChangeFaultDateInfo(faultData, msgContent);
     }
     return 0;

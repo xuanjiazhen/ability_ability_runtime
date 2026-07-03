@@ -95,6 +95,7 @@ bool FaultData::ReadContent(Parcel &parcel)
     isInForeground = parcel.ReadBool();
     isEnableMainThreadSample = parcel.ReadBool();
     reportLifecycleToFreeze = parcel.ReadBool();
+    abilityPendingBackground = parcel.ReadBool();
 
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ApplicationHeapInfo read string failed.");
     applicationHeapInfo = strValue;
@@ -283,6 +284,10 @@ bool FaultData::WriteContent(Parcel &parcel) const
         "reportLifecycleToFreeze [%{public}d] write bool failed.", reportLifecycleToFreeze
     );
 
+    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteBool(abilityPendingBackground),
+        "abilityPendingBackground [%{public}d] write bool failed.", abilityPendingBackground
+    );
+
     if (!WriteApplicationContent(parcel)) {
         return false;
     }
@@ -440,6 +445,7 @@ bool AppFaultDataBySA::ReadContent(Parcel &parcel)
     isInForeground = parcel.ReadBool();
     isEnableMainThreadSample = parcel.ReadBool();
     reportLifecycleToFreeze = parcel.ReadBool();
+    abilityPendingBackground = parcel.ReadBool();
 
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ApplicationHeapInfo read string failed.");
     applicationHeapInfo = strValue;
@@ -485,7 +491,7 @@ bool AppFaultDataBySA::ReadLeakContent(Parcel &parcel)
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadUint64(sizeValue), "LeakDetailInfo otherSize read uint64 failed.");
     leakObject.detailInfo.otherSize = sizeValue;
 
-    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadUint64(sizeValue), "LeakDetailInfo otherSize read uint64 failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadUint64(sizeValue), "atLeakType read uint64 failed.");
     atLeakType = static_cast<AppTelemetryLeakType>(sizeValue);
 
     return true;
@@ -583,6 +589,10 @@ bool AppFaultDataBySA::WriteContent(Parcel &parcel) const
 
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteBool(reportLifecycleToFreeze),
         "reportLifecycleToFreeze [%{public}d] write bool failed.", reportLifecycleToFreeze
+    );
+
+    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteBool(abilityPendingBackground),
+        "abilityPendingBackground [%{public}d] write bool failed.", abilityPendingBackground
     );
 
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteString(applicationHeapInfo),

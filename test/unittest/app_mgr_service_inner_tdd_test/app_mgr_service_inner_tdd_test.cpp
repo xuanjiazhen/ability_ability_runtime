@@ -1700,6 +1700,8 @@ HWTEST_F(AppMgrServiceInnerTest, UpdateForeground_004, TestSize.Level1)
     std::string eventName = AppFreezeType::LIFECYCLE_TIMEOUT;
     bool ret = appMgrServiceInner->UpdateForeground(appRecord, eventName);
     EXPECT_TRUE(ret);
+    ret = appMgrServiceInner->UpdateForeground(appRecord, eventName, true);
+    EXPECT_TRUE(!ret);
     appRecord->SetApplicationPendingState(ApplicationPendingState::BACKGROUNDING);
     ret = appMgrServiceInner->UpdateForeground(appRecord, eventName);
     EXPECT_TRUE(!ret);
