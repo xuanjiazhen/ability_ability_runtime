@@ -11182,9 +11182,9 @@ int AbilityManagerService::StartUserTest(const Want &want, const sptr<IRemoteObj
         return checkResult;
     }
     int32_t appIndex = 0;
-    if (!StartAbilityUtils::GetAppIndex(want, nullptr, appIndex) || appIndex != 0) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Not support app clone");
-        return ERR_NOT_SUPPORT_APP_CLONE;
+    if (!StartAbilityUtils::GetAppIndex(want, nullptr, appIndex)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Invalid app clone index");
+        return ERR_APP_CLONE_INDEX_INVALID;
     }
 
     int32_t userId;
