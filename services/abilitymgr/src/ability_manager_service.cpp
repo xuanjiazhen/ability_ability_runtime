@@ -11539,27 +11539,19 @@ int AbilityManagerService::StartUserTest(const Want &want, const sptr<IRemoteObj
         GetValidUserId(DEFAULT_INVAL_VALUE)), RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
 #endif
     int32_t appIndex = 0;
-    if (!StartAbilityUtils::GetAppIndex(want, nullptr, appIndex) || appIndex != 0) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Not support app clone");
-        return ERR_NOT_SUPPORT_APP_CLONE;
+    if (!StartAbilityUtils::GetAppIndex(want, nullptr, appIndex)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Invalid app clone index");
+        return ERR_APP_CLONE_INDEX_INVALID;
     }
 
     if (ret != ERR_OK) {
         return ret;
     }
 
-    auto bms = AbilityUtil::GetBundleManagerHelper();
-    CHECK_POINTER_AND_RETURN(bms, START_USER_TEST_FAIL);
     AppExecFwk::BundleInfo bundleInfo;
-    if (!IN_PROCESS_CALL(
-        bms->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, U0_USER_ID))) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get bundleInfo by U0_USER_ID %{public}d", U0_USER_ID);
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "bundleName: %{public}s, userId: %{public}d", bundleName.c_str(), userId);
-        if (!IN_PROCESS_CALL(
-            bms->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId))) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get bundleInfo by userId %{public}d", userId);
-            return GET_BUNDLE_INFO_FAILED;
-        }
+    auto bundleRet = GetUserTestBundleInfo(bundleName, appIndex, userId, bundleInfo);
+    if (bundleRet != ERR_OK) {
+        return bundleRet;
     }
 
     bool isDebugApp = want.GetBoolParam(AbilityConfig::DEBUG_APP, false);
@@ -11569,6 +11561,43 @@ int AbilityManagerService::StartUserTest(const Want &want, const sptr<IRemoteObj
     }
 
     return DelayedSingleton<AppScheduler>::GetInstance()->StartUserTest(want, observer, bundleInfo, userId);
+}
+
+int AbilityManagerService::GetUserTestBundleInfo(const std::string &bundleName, int32_t appIndex, int32_t userId,
+    AppExecFwk::BundleInfo &bundleInfo)
+{
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bms, START_USER_TEST_FAIL);
+    if (appIndex > 0) {
+        if (IN_PROCESS_CALL(bms->GetCloneBundleInfo(bundleName,
+            static_cast<int32_t>(AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT), appIndex, bundleInfo,
+            userId)) == ERR_OK) {
+            return ERR_OK;
+        }
+    } else if (IN_PROCESS_CALL(
+        bms->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, U0_USER_ID)) ||
+        IN_PROCESS_CALL(
+        bms->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId))) {
+        return ERR_OK;
+    }
+    // Fallback: specified appIndex or main body disabled, find any enabled extension
+    Want queryWant;
+    queryWant.SetBundle(bundleName);
+    std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
+    if (IN_PROCESS_CALL(bms->QueryExtensionAbilityInfosV9(queryWant, userId,
+        extensionInfos)) == ERR_OK) {
+        for (const auto &info : extensionInfos) {
+            if (info.applicationInfo.enabled && IN_PROCESS_CALL(bms->GetCloneBundleInfo(bundleName,
+                static_cast<int32_t>(AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT), info.appIndex,
+                bundleInfo, userId)) == ERR_OK) {
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "resolved clone via extension, appIndex: %{public}d",
+                    info.appIndex);
+                return ERR_OK;
+            }
+        }
+    }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get bundleInfo for %{public}s", bundleName.c_str());
+    return GET_BUNDLE_INFO_FAILED;
 }
 
 int AbilityManagerService::ParseAndValidateUserId(const Want &want, int32_t &userId)
