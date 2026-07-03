@@ -19,6 +19,7 @@
 #include <string>
 #include <vector>
 
+#include "nlohmann/json.hpp"
 #include "parcel.h"
 #include "insight_intent_constant.h"
 #include "insight_intent_execute_param.h"
@@ -117,6 +118,10 @@ struct InsightIntentInfoForQuery : public Parcelable {
     static bool MarshallingVector(Parcel &parcel, const std::vector<InsightIntentInfoForQuery> &infos);
     static bool UnmarshallingVector(Parcel &parcel, std::vector<InsightIntentInfoForQuery> &infos);
 };
+void from_json(const nlohmann::json &jsonObject, EntryInfoForQuery &entryInfo);
+void to_json(nlohmann::json &jsonObject, const EntryInfoForQuery &info);
+void from_json(const nlohmann::json &jsonObject, UIAbilityIntentInfoForQuery &info);
+void to_json(nlohmann::json &jsonObject, const UIAbilityIntentInfoForQuery &info);
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_INSIGHT_INTENT_INFO_FOR_QUERY_H
