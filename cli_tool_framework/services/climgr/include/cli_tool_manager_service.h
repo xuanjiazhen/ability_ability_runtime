@@ -175,7 +175,20 @@ private:
 
     enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 
+    /**
+     * @brief Initialize service-side signal handling and I/O callbacks.
+     *
+     * SIGCHLD handling is deferred to an ffrt task. I/O callbacks look up the singleton and return when it is
+     * unavailable.
+     */
     void Init();
+
+    /**
+     * @brief Schedule delayed unloading of the CLI manager system ability.
+     *
+     * The service is unloaded only when no IPC call is active, no session remains, and no observed caller process
+     * is still tracked. Otherwise a new delayed check is scheduled.
+     */
     void DelayUnloadTask();
 
     std::shared_ptr<SessionRecord> CreateSessionRecord(const ExecToolParam &param, const std::string &eventId);
@@ -202,7 +215,7 @@ private:
         const std::string &eventId, const ToolInfo &toolInfo, bool &dispatched);
     int32_t SetupAndStartSkillSession(const ExecToolParam &param,
         const std::string &eventId, const ToolInfo &toolInfo);
-    int32_t ValidateSkillTypeFromParam(const ExecToolParam &param, int32_t &skillType);
+    int32_t ValidateSkillTypeFromParam(ExecToolParam &param, int32_t &skillType);
     int32_t ValidateSkillType(const std::string &bundleName,
         const std::string &moduleName, const std::string &skillName, int32_t &skillType);
     void HandleSkillSessionComplete(const std::string &sessionId, int32_t callerPid, int32_t callerUid,
@@ -256,7 +269,6 @@ private:
     int32_t callerUid_;
     std::string eventId_;
 };
-
 } // namespace CliTool
 } // namespace OHOS
 
