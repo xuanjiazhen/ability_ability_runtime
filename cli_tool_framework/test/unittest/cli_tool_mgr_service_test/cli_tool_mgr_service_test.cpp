@@ -22,6 +22,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <sys/wait.h>
 #include <thread>
 #include <unistd.h>
 #include <vector>
@@ -1832,6 +1833,10 @@ HWTEST_F(CliToolManagerServiceTest, OnProcessDied_0100, TestSize.Level1)
     EXPECT_EQ(service_->sessionRecords_.find("leak_died_session"), service_->sessionRecords_.end());
     EXPECT_EQ(service_->GetSessionRecord(matchingRecord->sessionId), nullptr);
     EXPECT_EQ(service_->GetSessionRecord(otherRecord->sessionId), otherRecord);
+    EXPECT_EQ(matchingRecord->GetState(), SessionState::CANCELLING);
+    EXPECT_TRUE(matchingRecord->HasProcessExited());
+    EXPECT_NE(matchingRecord->GetTerminalStatus(), 0);
+    EXPECT_FALSE(matchingRecord->TryClaimCleanup());
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_OnProcessDied_0100 end");
 }
