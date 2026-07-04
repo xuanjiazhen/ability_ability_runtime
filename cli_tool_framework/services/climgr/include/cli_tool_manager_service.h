@@ -19,7 +19,9 @@
 #include <atomic>
 #include <map>
 #include <memory>
+#include <signal.h>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -175,7 +177,7 @@ private:
 
     enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 
-    void Init();
+    bool Init();
     void DelayUnloadTask();
 
     std::shared_ptr<SessionRecord> CreateSessionRecord(const ExecToolParam &param, const std::string &eventId);
@@ -202,7 +204,7 @@ private:
         const std::string &eventId, const ToolInfo &toolInfo, bool &dispatched);
     int32_t SetupAndStartSkillSession(const ExecToolParam &param,
         const std::string &eventId, const ToolInfo &toolInfo);
-    int32_t ValidateSkillTypeFromParam(const ExecToolParam &param, int32_t &skillType);
+    int32_t ValidateSkillTypeFromParam(ExecToolParam &param, int32_t &skillType);
     int32_t ValidateSkillType(const std::string &bundleName,
         const std::string &moduleName, const std::string &skillName, int32_t &skillType);
     void HandleSkillSessionComplete(const std::string &sessionId, int32_t callerPid, int32_t callerUid,
@@ -215,13 +217,24 @@ private:
     void HandleOutputClosed(const std::string &sessionId, bool isStdout);
     void HandleOutputDrained(const std::string &sessionId);
     void FinalizeBackgroundSession(const std::shared_ptr<SessionRecord> &record);
+    void CleanupSessionAfterCallerDied(const std::shared_ptr<SessionRecord> &record);
+    bool StartChildExitMonitor();
+    void StopChildExitMonitor();
+    bool InstallSigChldHandler();
+    void RestoreSigChldHandler();
+    bool SetChildExitNotifyFdFlags(int32_t fd);
+    void ProcessChildExitNotifications();
+    void ProcessExitedChildren(int32_t sig);
+    std::vector<pid_t> GetActiveChildPids();
+    bool TryReapChild(pid_t pid, int32_t sig);
+    void ReapActiveChildren(const std::vector<pid_t> &pids, int32_t sig);
 
     DISALLOW_COPY_AND_MOVE(CliToolManagerService);
 
 private:
     static sptr<CliToolManagerService> instance_;
 
-    static void sigchld_handler(int32_t sig);
+    static void sigchld_handler(int32_t sig, siginfo_t *info, void *context);
 
     void PostExecToolTask(int64_t time, const std::string &sessionId, bool isTimeout);
     void WaitPid(pid_t pid, int32_t status, int32_t sig);
@@ -231,8 +244,14 @@ private:
     void RemoveCallerPid(int64_t pid);
     int32_t GetCallerPidCount();
 
-    bool initialized_ = false;
+    std::atomic<bool> initialized_ = false;
     std::shared_ptr<IOMonitor> ioMonitor_ = nullptr;
+    int32_t childExitNotifyReadFd_ = -1;
+    int32_t childExitNotifyWriteFd_ = -1;
+    std::atomic<bool> childExitMonitorRunning_ = false;
+    std::thread childExitMonitorThread_;
+    struct sigaction oldSigChldAction_ {};
+    bool sigChldActionInstalled_ = false;
 
     std::atomic<int32_t> interfaceCalledCount_ = 0;
     ffrt::mutex sessionsMutex_;
@@ -246,7 +265,8 @@ private:
 class SkillCallbackAdapter : public AAFwk::SkillExecuteCallbackStub {
 public:
     SkillCallbackAdapter(const std::string &sessionId,
-        int32_t callerPid, int32_t callerUid, const std::string &eventId);
+        int32_t callerPid, int32_t callerUid, const std::string &eventId,
+        wptr<CliToolManagerService> service);
     void OnExecuteDone(const std::string &requestCode, int32_t resultCode,
         const AppExecFwk::SkillExecuteResult &result) override;
 
@@ -255,6 +275,7 @@ private:
     int32_t callerPid_;
     int32_t callerUid_;
     std::string eventId_;
+    wptr<CliToolManagerService> service_;
 };
 
 } // namespace CliTool
