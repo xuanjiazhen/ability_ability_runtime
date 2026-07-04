@@ -38,6 +38,10 @@ using namespace testing::ext;
 namespace OHOS {
 namespace AppExecFwk {
 constexpr uint32_t CHECK_MAIN_THREAD_IS_ALIVE = 1;
+
+// Forward declarations for free functions in main_thread.cpp
+bool IsNeedLoadLibrary(const std::vector<OHOS::AppExecFwk::Metadata> &metaData, const bool isSystemApp);
+bool IsFormRenderService(const std::string &bundleName);
 class QuickFixCallbackImpl : public AppExecFwk::QuickFixCallbackStub {
 public:
     QuickFixCallbackImpl() = default;
@@ -3170,6 +3174,277 @@ HWTEST_F(MainThreadTest, PreloadModule_WithEmptyPreloadAbilityName_0200, TestSiz
         EXPECT_EQ(launchElement.GetBundleName(), "com.example.test");
         EXPECT_EQ(launchElement.GetModuleName(), "entry");
     }
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: IsNeedLoadLibrary_0100
+ * @tc.desc: Test IsNeedLoadLibrary returns true when metadata has flag set to "true" and is system app
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, IsNeedLoadLibrary_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    // Arrange
+    std::vector<OHOS::AppExecFwk::Metadata> metadata;
+    OHOS::AppExecFwk::Metadata meta;
+    meta.name = "ohos.ability.loadNativeLibraryForApplication";
+    meta.value = "true";
+    metadata.push_back(meta);
+
+    // Act
+    auto result = IsNeedLoadLibrary(metadata, true);
+
+    // Assert
+    EXPECT_TRUE(result);
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: IsNeedLoadLibrary_0200
+ * @tc.desc: Test IsNeedLoadLibrary returns false when metadata has flag but is NOT system app
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, IsNeedLoadLibrary_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    // Arrange
+    std::vector<OHOS::AppExecFwk::Metadata> metadata;
+    OHOS::AppExecFwk::Metadata meta;
+    meta.name = "ohos.ability.loadNativeLibraryForApplication";
+    meta.value = "true";
+    metadata.push_back(meta);
+
+    // Act
+    auto result = IsNeedLoadLibrary(metadata, false);
+
+    // Assert
+    EXPECT_FALSE(result);
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: IsNeedLoadLibrary_0300
+ * @tc.desc: Test IsNeedLoadLibrary returns false when metadata is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, IsNeedLoadLibrary_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    // Arrange
+    std::vector<OHOS::AppExecFwk::Metadata> metadata;
+
+    // Act
+    auto result = IsNeedLoadLibrary(metadata, true);
+
+    // Assert
+    EXPECT_FALSE(result);
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: IsNeedLoadLibrary_0400
+ * @tc.desc: Test IsNeedLoadLibrary returns false when metadata does not have the required flag
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, IsNeedLoadLibrary_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    // Arrange
+    std::vector<OHOS::AppExecFwk::Metadata> metadata;
+    OHOS::AppExecFwk::Metadata meta;
+    meta.name = "some.other.metadata";
+    meta.value = "true";
+    metadata.push_back(meta);
+
+    // Act
+    auto result = IsNeedLoadLibrary(metadata, true);
+
+    // Assert
+    EXPECT_FALSE(result);
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: IsNeedLoadLibrary_0500
+ * @tc.desc: Test IsNeedLoadLibrary returns false when flag value is not "true"
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, IsNeedLoadLibrary_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    // Arrange
+    std::vector<OHOS::AppExecFwk::Metadata> metadata;
+    OHOS::AppExecFwk::Metadata meta;
+    meta.name = "ohos.ability.loadNativeLibraryForApplication";
+    meta.value = "false";
+    metadata.push_back(meta);
+
+    // Act
+    auto result = IsNeedLoadLibrary(metadata, true);
+
+    // Assert
+    EXPECT_FALSE(result);
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: IsNeedLoadLibrary_0600
+ * @tc.desc: Test IsNeedLoadLibrary returns false when flag name matches but value is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, IsNeedLoadLibrary_0600, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    // Arrange
+    std::vector<OHOS::AppExecFwk::Metadata> metadata;
+    OHOS::AppExecFwk::Metadata meta;
+    meta.name = "ohos.ability.loadNativeLibraryForApplication";
+    meta.value = "";
+    metadata.push_back(meta);
+
+    // Act
+    auto result = IsNeedLoadLibrary(metadata, true);
+
+    // Assert
+    EXPECT_FALSE(result);
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: IsNeedLoadLibrary_0700
+ * @tc.desc: Test IsNeedLoadLibrary with multiple metadata entries — only one has the flag
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, IsNeedLoadLibrary_0700, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    // Arrange
+    std::vector<OHOS::AppExecFwk::Metadata> metadata;
+    OHOS::AppExecFwk::Metadata meta1;
+    meta1.name = "other.metadata.1";
+    meta1.value = "someValue";
+    metadata.push_back(meta1);
+
+    OHOS::AppExecFwk::Metadata meta2;
+    meta2.name = "ohos.ability.loadNativeLibraryForApplication";
+    meta2.value = "true";
+    metadata.push_back(meta2);
+
+    OHOS::AppExecFwk::Metadata meta3;
+    meta3.name = "other.metadata.2";
+    meta3.value = "otherValue";
+    metadata.push_back(meta3);
+
+    // Act
+    auto result = IsNeedLoadLibrary(metadata, true);
+
+    // Assert
+    EXPECT_TRUE(result);
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: IsFormRenderService_0100
+ * @tc.desc: Test IsFormRenderService returns true for com.ohos.formrenderservice
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, IsFormRenderService_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    // Arrange & Act
+    auto result = IsFormRenderService("com.ohos.formrenderservice");
+
+    // Assert
+    EXPECT_TRUE(result);
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: IsFormRenderService_0200
+ * @tc.desc: Test IsFormRenderService returns false for a different bundle name
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, IsFormRenderService_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    // Arrange & Act
+    auto result = IsFormRenderService("com.ohos.contactsdataability");
+
+    // Assert
+    EXPECT_FALSE(result);
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: IsFormRenderService_0300
+ * @tc.desc: Test IsFormRenderService returns false for an empty bundle name
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, IsFormRenderService_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    // Arrange & Act
+    auto result = IsFormRenderService("");
+
+    // Assert
+    EXPECT_FALSE(result);
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: IsFormRenderService_0400
+ * @tc.desc: Test IsFormRenderService returns false for a name with different casing
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, IsFormRenderService_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    // Arrange & Act
+    auto result = IsFormRenderService("Com.Ohos.FormRenderService");
+
+    // Assert - case sensitive comparison
+    EXPECT_FALSE(result);
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: IsFormRenderService_0500
+ * @tc.desc: Test IsFormRenderService returns false for a partially matching name
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, IsFormRenderService_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    // Arrange & Act
+    auto result = IsFormRenderService("com.ohos.formrenderservice.extra");
+
+    // Assert - exact match required
+    EXPECT_FALSE(result);
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
