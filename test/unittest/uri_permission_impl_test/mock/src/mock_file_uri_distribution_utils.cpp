@@ -109,7 +109,7 @@ bool FUDUtils::IsDocsCloudUri(Uri &uri)
     return MyFlag::isDocsCloudUri_;
 }
 
-bool FUDUtils::GenerateFUDAppInfo(FUDAppInfo &info)
+bool FUDUtils::GenerateFUDAppInfo(FUDAppInfo &info, bool supportSA)
 {
     if (!MyFlag::generateFUDAppInfoResults_.empty()) {
         auto result = MyFlag::generateFUDAppInfoResults_.front();
@@ -120,12 +120,14 @@ bool FUDUtils::GenerateFUDAppInfo(FUDAppInfo &info)
         info.bundleName = result.bundleName.empty() ?
             MyFlag::upmsUtilsBundleName_ : result.bundleName;
         info.userId = result.userId;
+        info.isSA = result.isSA;
         return result.success;
     }
 
     info.alterBundleName = MyFlag::upmsUtilsAlterBundleName_;
     info.bundleName = MyFlag::upmsUtilsBundleName_;
     info.userId = MyFlag::fudAppInfoUserId_;
+    info.isSA = false;
     return MyFlag::fudUtilsGenerateFUDAppInfoRet_;
 }
 
