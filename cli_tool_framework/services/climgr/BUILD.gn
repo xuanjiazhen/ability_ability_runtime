@@ -40,6 +40,7 @@ ohos_shared_library("climgr") {
   configs = [ ":clisa_config" ]
   include_dirs = [ "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper" ]
   sources = [
+    "src/child_exit_monitor.cpp",
     "src/cli_tool_app_state_observer.cpp",
     "src/cli_tool_data_manager.cpp",
     "src/cli_tool_manager_service.cpp",
