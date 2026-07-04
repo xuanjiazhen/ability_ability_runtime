@@ -108,19 +108,21 @@ int32_t KioskManager::EnterKioskMode(sptr<IRemoteObject> callerToken)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "The application is not in the foreground !");
         return ERR_APP_NOT_IN_FOCUS;
     }
-    std::lock_guard<std::mutex> lock(kioskManagermutex_);
-    if (!IsInWhiteListInner(bundleName)) {
-        return ERR_KIOSK_MODE_NOT_IN_WHITELIST;
-    }
+    {
+        std::lock_guard<std::mutex> lock(kioskManagermutex_);
+        if (!IsInWhiteListInner(bundleName)) {
+            return ERR_KIOSK_MODE_NOT_IN_WHITELIST;
+        }
 
-    if (IsInKioskModeInner()) {
-        return ERR_ALREADY_IN_KIOSK_MODE;
-    }
+        if (IsInKioskModeInner()) {
+            return ERR_ALREADY_IN_KIOSK_MODE;
+        }
 
-    kioskStatus_.isKioskMode_ = true;
-    kioskStatus_.kioskBundleName_ = bundleName;
-    kioskStatus_.kioskBundleUid_ = IPCSkeleton::GetCallingUid();
-    kioskStatus_.kioskToken_ = callerToken;
+        kioskStatus_.isKioskMode_ = true;
+        kioskStatus_.kioskBundleName_ = bundleName;
+        kioskStatus_.kioskBundleUid_ = IPCSkeleton::GetCallingUid();
+        kioskStatus_.kioskToken_ = callerToken;
+    }
     GetEnterKioskModeCallback()();
     NotifyKioskModeChanged(true);
     auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
@@ -189,6 +191,7 @@ int32_t KioskManager::GetKioskStatus(KioskStatus &kioskStatus)
 
 void KioskManager::FilterDialogAppInfos(std::vector<DialogAppInfo> &dialogAppInfos)
 {
+    std::lock_guard<std::mutex> lock(kioskManagermutex_);
     if (!IsInKioskModeInner()) {
         return;
     }
@@ -202,6 +205,7 @@ void KioskManager::FilterDialogAppInfos(std::vector<DialogAppInfo> &dialogAppInf
 
 void KioskManager::FilterAbilityInfos(std::vector<AppExecFwk::AbilityInfo> &abilityInfos)
 {
+    std::lock_guard<std::mutex> lock(kioskManagermutex_);
     if (!IsInKioskModeInner()) {
         return;
     }
