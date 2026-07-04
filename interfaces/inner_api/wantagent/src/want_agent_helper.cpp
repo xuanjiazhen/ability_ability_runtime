@@ -575,7 +575,7 @@ std::shared_ptr<WantAgent> WantAgentHelper::FromString(const std::string &jsonSt
     return GetWantAgent(info, userId, uid);
 }
 
-std::string WantAgentHelper::ToJsonString(const std::shared_ptr<WantAgent> &agent)
+std::string WantAgentHelper::ToStringWithEnvelope(const std::shared_ptr<WantAgent> &agent)
 {
     if (agent == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "invalid param");
@@ -619,7 +619,8 @@ std::string WantAgentHelper::ToJsonString(const std::shared_ptr<WantAgent> &agen
     return jsonObject.dump();
 }
 
-std::shared_ptr<WantAgent> WantAgentHelper::FromJsonString(const std::string &jsonString, int32_t uid)
+std::shared_ptr<WantAgent> WantAgentHelper::FromStringWithEnvelope(
+    const std::string &jsonString, int32_t uid)
 {
     if (jsonString.empty()) {
         return nullptr;
@@ -676,7 +677,7 @@ std::shared_ptr<WantAgent> WantAgentHelper::FromJsonString(const std::string &js
     return GetWantAgent(info, userId, uid);
 }
 
-bool WantAgentHelper::HasWantParamsJsonEnvelope(const std::string &jsonString)
+bool WantAgentHelper::HasWantParamsEnvelope(const std::string &jsonString)
 {
     if (jsonString.empty()) {
         return false;

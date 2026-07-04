@@ -1524,8 +1524,8 @@ HWTEST_F(WantAgentHelperTest, CreateLocalWantAgent_0500, TestSize.Level1)
 
 /*
  * @tc.number    : WantAgentHelper_6700
- * @tc.name      : WantAgentHelper ToJsonString
- * @tc.desc      : Test ToJsonString uses WantParamWrapperJson without changing ToString format.
+ * @tc.name      : WantAgentHelper ToStringWithEnvelope
+ * @tc.desc      : Test ToStringWithEnvelope uses WantParamWrapperJson without changing ToString format.
  */
 HWTEST_F(WantAgentHelperTest, WantAgentHelper_6700, Function | MediumTest | Level1)
 {
@@ -1543,7 +1543,7 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_6700, Function | MediumTest | Leve
     ASSERT_NE(wantAgent, nullptr);
 
     auto legacyString = WantAgentHelper::ToString(wantAgent);
-    auto jsonString = WantAgentHelper::ToJsonString(wantAgent);
+    auto jsonString = WantAgentHelper::ToStringWithEnvelope(wantAgent);
     ASSERT_FALSE(legacyString.empty());
     ASSERT_FALSE(jsonString.empty());
 
@@ -1553,16 +1553,16 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_6700, Function | MediumTest | Leve
     ASSERT_FALSE(jsonObject.is_discarded());
     auto legacyExtraInfo = legacyObject.at("extraInfo").at("extraInfoValue").get<std::string>();
     auto jsonExtraInfo = jsonObject.at("extraInfo").at("extraInfoValue").get<std::string>();
-    EXPECT_EQ(legacyExtraInfo.find("ohos.want.params.json"), std::string::npos);
-    EXPECT_NE(jsonExtraInfo.find("ohos.want.params.json"), std::string::npos);
-    EXPECT_FALSE(WantAgentHelper::HasWantParamsJsonEnvelope(legacyString));
-    EXPECT_TRUE(WantAgentHelper::HasWantParamsJsonEnvelope(jsonString));
+    EXPECT_EQ(legacyExtraInfo.find("ohos.want.paramsStringEnvelope"), std::string::npos);
+    EXPECT_NE(jsonExtraInfo.find("ohos.want.paramsStringEnvelope"), std::string::npos);
+    EXPECT_FALSE(WantAgentHelper::HasWantParamsEnvelope(legacyString));
+    EXPECT_TRUE(WantAgentHelper::HasWantParamsEnvelope(jsonString));
 }
 
 /*
  * @tc.number    : WantAgentHelper_6710
- * @tc.name      : WantAgentHelper FromJsonString
- * @tc.desc      : Test FromJsonString restores WantAgent from WantParamWrapperJson extraInfo.
+ * @tc.name      : WantAgentHelper FromStringWithEnvelope
+ * @tc.desc      : Test FromStringWithEnvelope restores WantAgent from WantParamWrapperJson extraInfo.
  */
 HWTEST_F(WantAgentHelperTest, WantAgentHelper_6710, Function | MediumTest | Level1)
 {
@@ -1579,8 +1579,8 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_6710, Function | MediumTest | Leve
     auto wantAgent = WantAgentHelper::GetWantAgent(wantAgentInfo);
     ASSERT_NE(wantAgent, nullptr);
 
-    auto jsonString = WantAgentHelper::ToJsonString(wantAgent);
-    auto restoredWantAgent = WantAgentHelper::FromJsonString(jsonString);
+    auto jsonString = WantAgentHelper::ToStringWithEnvelope(wantAgent);
+    auto restoredWantAgent = WantAgentHelper::FromStringWithEnvelope(jsonString);
     ASSERT_NE(restoredWantAgent, nullptr);
 
     auto restoredWant = WantAgentHelper::GetWant(restoredWantAgent);
@@ -1593,32 +1593,33 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_6710, Function | MediumTest | Leve
 
 /*
  * @tc.number    : WantAgentHelper_6720
- * @tc.name      : WantAgentHelper ToJsonString invalid input
- * @tc.desc      : Test ToJsonString invalid agent branches.
+ * @tc.name      : WantAgentHelper ToStringWithEnvelope invalid input
+ * @tc.desc      : Test ToStringWithEnvelope invalid agent branches.
  */
 HWTEST_F(WantAgentHelperTest, WantAgentHelper_6720, Function | MediumTest | Level1)
 {
-    EXPECT_TRUE(WantAgentHelper::ToJsonString(nullptr).empty());
+    EXPECT_TRUE(WantAgentHelper::ToStringWithEnvelope(nullptr).empty());
 
     auto wantAgentWithoutPendingWant = std::make_shared<WantAgent>(std::shared_ptr<PendingWant>(nullptr));
-    EXPECT_TRUE(WantAgentHelper::ToJsonString(wantAgentWithoutPendingWant).empty());
+    EXPECT_TRUE(WantAgentHelper::ToStringWithEnvelope(wantAgentWithoutPendingWant).empty());
 
     auto pendingWantWithoutTarget = std::make_shared<PendingWant>(sptr<IWantSender>(nullptr));
     auto wantAgentWithoutInfo = std::make_shared<WantAgent>(pendingWantWithoutTarget);
-    EXPECT_TRUE(WantAgentHelper::ToJsonString(wantAgentWithoutInfo).empty());
+    EXPECT_TRUE(WantAgentHelper::ToStringWithEnvelope(wantAgentWithoutInfo).empty());
 }
 
 /*
  * @tc.number    : WantAgentHelper_6730
- * @tc.name      : WantAgentHelper FromJsonString invalid input
- * @tc.desc      : Test FromJsonString invalid json and malformed field branches.
+ * @tc.name      : WantAgentHelper FromStringWithEnvelope invalid input
+ * @tc.desc      : Test FromStringWithEnvelope invalid string and malformed field branches.
  */
 HWTEST_F(WantAgentHelperTest, WantAgentHelper_6730, Function | MediumTest | Level1)
 {
-    EXPECT_EQ(WantAgentHelper::FromJsonString(""), nullptr);
-    EXPECT_EQ(WantAgentHelper::FromJsonString("{"), nullptr);
-    EXPECT_EQ(WantAgentHelper::FromJsonString(R"({"requestCode":"bad","wants":[]})"), nullptr);
-    EXPECT_EQ(WantAgentHelper::FromJsonString(R"({"wants":[100]})"), nullptr);
+    EXPECT_EQ(WantAgentHelper::FromStringWithEnvelope(""), nullptr);
+    EXPECT_EQ(WantAgentHelper::FromStringWithEnvelope("{"), nullptr);
+    EXPECT_EQ(WantAgentHelper::FromStringWithEnvelope(R"({"requestCode":"bad","wants":[]})"),
+        nullptr);
+    EXPECT_EQ(WantAgentHelper::FromStringWithEnvelope(R"({"wants":[100]})"), nullptr);
 
     Want want;
     ElementName element("device", "bundleName", "abilityNameFromJsonInvalid");
@@ -1633,7 +1634,7 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_6730, Function | MediumTest | Leve
     jsonObject["wants"] = nlohmann::json::array({ want.ToString() });
     jsonObject["extraInfo"] = { { "extraInfoValue", "invalid want params json" } };
 
-    auto wantAgent = WantAgentHelper::FromJsonString(jsonObject.dump());
+    auto wantAgent = WantAgentHelper::FromStringWithEnvelope(jsonObject.dump());
     ASSERT_NE(wantAgent, nullptr);
     auto restoredWant = WantAgentHelper::GetWant(wantAgent);
     ASSERT_NE(restoredWant, nullptr);
@@ -1641,31 +1642,31 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_6730, Function | MediumTest | Leve
 
     jsonObject["requestCode"] = 6731;
     jsonObject["extraInfo"] = "bad";
-    EXPECT_NE(WantAgentHelper::FromJsonString(jsonObject.dump()), nullptr);
+    EXPECT_NE(WantAgentHelper::FromStringWithEnvelope(jsonObject.dump()), nullptr);
 
     jsonObject["requestCode"] = 6732;
     jsonObject["extraInfo"] = { { "extraInfoValue", 100 } };
-    EXPECT_NE(WantAgentHelper::FromJsonString(jsonObject.dump()), nullptr);
+    EXPECT_NE(WantAgentHelper::FromStringWithEnvelope(jsonObject.dump()), nullptr);
 }
 
 /*
  * @tc.number    : WantAgentHelper_6740
- * @tc.name      : WantAgentHelper HasWantParamsJsonEnvelope
- * @tc.desc      : Test HasWantParamsJsonEnvelope dispatches only when extraInfoValue uses WantParamWrapperJson envelope.
+ * @tc.name      : WantAgentHelper HasWantParamsEnvelope
+ * @tc.desc      : Test HasWantParamsEnvelope dispatches only when extraInfoValue uses WantParamWrapperJson envelope.
  */
 HWTEST_F(WantAgentHelperTest, WantAgentHelper_6740, Function | MediumTest | Level1)
 {
     nlohmann::json jsonObject;
-    jsonObject["extraInfo"] = { { "extraInfoValue", R"( {"ohos.want.params.json":{}} )" } };
-    EXPECT_TRUE(WantAgentHelper::HasWantParamsJsonEnvelope(jsonObject.dump()));
+    jsonObject["extraInfo"] = { { "extraInfoValue", R"( {"ohos.want.paramsStringEnvelope":{}} )" } };
+    EXPECT_TRUE(WantAgentHelper::HasWantParamsEnvelope(jsonObject.dump()));
 
     jsonObject["extraInfo"] = { { "extraInfoValue", "legacy want params" } };
-    EXPECT_FALSE(WantAgentHelper::HasWantParamsJsonEnvelope(jsonObject.dump()));
+    EXPECT_FALSE(WantAgentHelper::HasWantParamsEnvelope(jsonObject.dump()));
 
-    EXPECT_FALSE(WantAgentHelper::HasWantParamsJsonEnvelope(""));
-    EXPECT_FALSE(WantAgentHelper::HasWantParamsJsonEnvelope("{"));
-    EXPECT_FALSE(WantAgentHelper::HasWantParamsJsonEnvelope(R"({"extraInfo":"bad"})"));
-    EXPECT_FALSE(WantAgentHelper::HasWantParamsJsonEnvelope(R"({"extraInfo":{"extraInfoValue":100}})"));
-    EXPECT_FALSE(WantAgentHelper::HasWantParamsJsonEnvelope(R"({"wants":[]})"));
+    EXPECT_FALSE(WantAgentHelper::HasWantParamsEnvelope(""));
+    EXPECT_FALSE(WantAgentHelper::HasWantParamsEnvelope("{"));
+    EXPECT_FALSE(WantAgentHelper::HasWantParamsEnvelope(R"({"extraInfo":"bad"})"));
+    EXPECT_FALSE(WantAgentHelper::HasWantParamsEnvelope(R"({"extraInfo":{"extraInfoValue":100}})"));
+    EXPECT_FALSE(WantAgentHelper::HasWantParamsEnvelope(R"({"wants":[]})"));
 }
 }  // namespace OHOS::AbilityRuntime::WantAgent
