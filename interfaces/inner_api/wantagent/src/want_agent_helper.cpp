@@ -676,6 +676,27 @@ std::shared_ptr<WantAgent> WantAgentHelper::FromJsonString(const std::string &js
     return GetWantAgent(info, userId, uid);
 }
 
+bool WantAgentHelper::HasWantParamsJsonEnvelope(const std::string &jsonString)
+{
+    if (jsonString.empty()) {
+        return false;
+    }
+
+    nlohmann::json jsonObject = nlohmann::json::parse(jsonString, nullptr, false);
+    if (jsonObject.is_discarded() || !jsonObject.is_object()) {
+        return false;
+    }
+    if (!jsonObject.contains("extraInfo") || !jsonObject["extraInfo"].is_object()) {
+        return false;
+    }
+
+    const auto &extraInfoObj = jsonObject["extraInfo"];
+    if (!extraInfoObj.contains("extraInfoValue") || !extraInfoObj["extraInfoValue"].is_string()) {
+        return false;
+    }
+    return AAFwk::WantParamWrapperJson::HasEnvelope(extraInfoObj["extraInfoValue"].get<std::string>());
+}
+
 std::vector<WantAgentConstant::Flags> WantAgentHelper::ParseFlags(nlohmann::json jsonObject)
 {
     int flags = -1;

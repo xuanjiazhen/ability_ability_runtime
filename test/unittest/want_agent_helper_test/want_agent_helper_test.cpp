@@ -1555,6 +1555,8 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_6700, Function | MediumTest | Leve
     auto jsonExtraInfo = jsonObject.at("extraInfo").at("extraInfoValue").get<std::string>();
     EXPECT_EQ(legacyExtraInfo.find("ohos.want.params.json"), std::string::npos);
     EXPECT_NE(jsonExtraInfo.find("ohos.want.params.json"), std::string::npos);
+    EXPECT_FALSE(WantAgentHelper::HasWantParamsJsonEnvelope(legacyString));
+    EXPECT_TRUE(WantAgentHelper::HasWantParamsJsonEnvelope(jsonString));
 }
 
 /*
@@ -1644,5 +1646,26 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_6730, Function | MediumTest | Leve
     jsonObject["requestCode"] = 6732;
     jsonObject["extraInfo"] = { { "extraInfoValue", 100 } };
     EXPECT_NE(WantAgentHelper::FromJsonString(jsonObject.dump()), nullptr);
+}
+
+/*
+ * @tc.number    : WantAgentHelper_6740
+ * @tc.name      : WantAgentHelper HasWantParamsJsonEnvelope
+ * @tc.desc      : Test HasWantParamsJsonEnvelope dispatches only when extraInfoValue uses WantParamWrapperJson envelope.
+ */
+HWTEST_F(WantAgentHelperTest, WantAgentHelper_6740, Function | MediumTest | Level1)
+{
+    nlohmann::json jsonObject;
+    jsonObject["extraInfo"] = { { "extraInfoValue", R"( {"ohos.want.params.json":{}} )" } };
+    EXPECT_TRUE(WantAgentHelper::HasWantParamsJsonEnvelope(jsonObject.dump()));
+
+    jsonObject["extraInfo"] = { { "extraInfoValue", "legacy want params" } };
+    EXPECT_FALSE(WantAgentHelper::HasWantParamsJsonEnvelope(jsonObject.dump()));
+
+    EXPECT_FALSE(WantAgentHelper::HasWantParamsJsonEnvelope(""));
+    EXPECT_FALSE(WantAgentHelper::HasWantParamsJsonEnvelope("{"));
+    EXPECT_FALSE(WantAgentHelper::HasWantParamsJsonEnvelope(R"({"extraInfo":"bad"})"));
+    EXPECT_FALSE(WantAgentHelper::HasWantParamsJsonEnvelope(R"({"extraInfo":{"extraInfoValue":100}})"));
+    EXPECT_FALSE(WantAgentHelper::HasWantParamsJsonEnvelope(R"({"wants":[]})"));
 }
 }  // namespace OHOS::AbilityRuntime::WantAgent
