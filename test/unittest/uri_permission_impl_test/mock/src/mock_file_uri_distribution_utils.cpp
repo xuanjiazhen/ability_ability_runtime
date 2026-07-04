@@ -109,8 +109,19 @@ bool FUDUtils::IsDocsCloudUri(Uri &uri)
     return MyFlag::isDocsCloudUri_;
 }
 
-bool FUDUtils::GenerateFUDAppInfo(FUDAppInfo &info)
+bool FUDUtils::GenerateFUDAppInfo(FUDAppInfo &info, bool supportSA)
 {
+    auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(info.tokenId);
+    // Mirror production: TOKEN_NATIVE + supportSA → SA path
+    if (supportSA && tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE) {
+        info.isSA = true;
+        info.userId = 0;
+        return true;
+    }
+    // Mirror production: TOKEN_NATIVE without supportSA is not allowed (no HAP branch match)
+    if (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE) {
+        return false;
+    }
     if (!MyFlag::generateFUDAppInfoResults_.empty()) {
         auto result = MyFlag::generateFUDAppInfoResults_.front();
         MyFlag::generateFUDAppInfoResults_.erase(MyFlag::generateFUDAppInfoResults_.begin());
@@ -120,12 +131,14 @@ bool FUDUtils::GenerateFUDAppInfo(FUDAppInfo &info)
         info.bundleName = result.bundleName.empty() ?
             MyFlag::upmsUtilsBundleName_ : result.bundleName;
         info.userId = result.userId;
+        info.isSA = false;
         return result.success;
     }
 
     info.alterBundleName = MyFlag::upmsUtilsAlterBundleName_;
     info.bundleName = MyFlag::upmsUtilsBundleName_;
     info.userId = MyFlag::fudAppInfoUserId_;
+    info.isSA = false;
     return MyFlag::fudUtilsGenerateFUDAppInfoRet_;
 }
 
