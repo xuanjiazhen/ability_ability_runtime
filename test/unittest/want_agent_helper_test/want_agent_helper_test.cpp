@@ -1526,8 +1526,6 @@ HWTEST_F(WantAgentHelperTest, CreateLocalWantAgent_0500, TestSize.Level1)
  * @tc.number    : WantAgentHelper_6700
  * @tc.name      : WantAgentHelper ToJsonString
  * @tc.desc      : Test ToJsonString uses WantParamWrapperJson without changing ToString format.
- *                 Uses a distinct abilityName so it does not share the AMS PendingWantRecord
- *                 relied on by the cancel-by-flags cases.
  */
 HWTEST_F(WantAgentHelperTest, WantAgentHelper_6700, Function | MediumTest | Level1)
 {
