@@ -1563,8 +1563,6 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_6700, Function | MediumTest | Leve
  * @tc.number    : WantAgentHelper_6710
  * @tc.name      : WantAgentHelper FromJsonString
  * @tc.desc      : Test FromJsonString restores WantAgent from WantParamWrapperJson extraInfo.
- *                 Uses a distinct abilityName so it does not share the AMS PendingWantRecord
- *                 relied on by the cancel-by-flags cases.
  */
 HWTEST_F(WantAgentHelperTest, WantAgentHelper_6710, Function | MediumTest | Level1)
 {
