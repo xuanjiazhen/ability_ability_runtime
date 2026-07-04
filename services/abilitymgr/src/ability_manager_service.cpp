@@ -3537,19 +3537,13 @@ bool AbilityManagerService::IsDmsAlive() const
 
 void AbilityManagerService::AppUpgradeCompleted(int32_t uid, int32_t installType)
 {
-    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "not sa call");
+    auto userId = uid / BASE_USER_RANGE;
+    if (!VerifyPermissionAndUserForUpgrade(uid, userId)) {
         return;
     }
 
     auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER(bms);
-    auto userId = uid / BASE_USER_RANGE;
-    if (userId != U0_USER_ID && userId != U1_USER_ID &&
-        !AbilityRuntime::UserController::GetInstance().IsForegroundUser(userId)) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "not current user");
-        return;
-    }
 
     AppExecFwk::BundleInfo bundleInfo;
     std::string bundleName;
@@ -3571,11 +3565,13 @@ void AbilityManagerService::AppUpgradeCompleted(int32_t uid, int32_t installType
 
     KeepAliveType type = KeepAliveType::UNSPECIFIED;
     if (!KeepAliveUtils::IsKeepAliveBundle(bundleInfo, userId, type)) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "not keep-alive application");
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "not keep-alive application. uid: %{public}d", uid);
         return;
     }
 
     std::vector<AppExecFwk::BundleInfo> bundleInfos = { bundleInfo };
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "keep-alive upgrade completed uid: %{public}d, keepAliveType: %{public}d, "
+            "installType: %{public}d", uid, type, installType);
     if (type == KeepAliveType::THIRD_PARTY && installType == INSTALL_TYPE_UPGRADE) {
         KeepAliveProcessManager::GetInstance().StartKeepAliveAfterAppUpgrade(bundleInfos, uid);
         if (IN_PROCESS_CALL(KeepAliveProcessManager::GetInstance().CheckNeedRestartAfterUpgrade(uid))) {
@@ -3590,6 +3586,23 @@ void AbilityManagerService::AppUpgradeCompleted(int32_t uid, int32_t installType
             residentProcessManager->StartResidentProcess(bundleInfos);
         }
     }
+}
+    
+bool AbilityManagerService::VerifyPermissionAndUserForUpgrade(int32_t uid, int32_t userId) const
+{
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Permission denied: not SA call, uid=%{public}d", uid);
+        return false;
+    }
+
+    if (userId != U0_USER_ID && userId != U1_USER_ID &&
+        !AbilityRuntime::UserController::GetInstance().IsForegroundUser(userId)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Invalid user for upgrade: userId=%{public}d, uid=%{public}d",
+            userId, uid);
+        return false;
+    }
+
+    return true;
 }
 
 int32_t AbilityManagerService::RecordAppExitReason(const ExitReason &exitReason)
@@ -3702,6 +3715,8 @@ int32_t AbilityManagerService::KillAppWithReason(const int32_t pid, const ExitRe
         return ERR_PERMISSION_DENIED;
     }
     ExitReason reason(exitReason.reason, exitReason.subReason, exitReason.exitMsg);
+    reason.shouldKillForeground = exitReason.shouldKillForeground;
+    reason.shouldSkipKillInStartup = exitReason.shouldSkipKillInStartup;
     bool isKillPrecedeStart = (exitReason.reason == Reason::REASON_RESOURCE_CONTROL &&
         exitReason.exitMsg == GlobalConstant::LOW_MEMORY_KILL) || exitReason.shouldSkipKillInStartup;
     auto innerRet = KillAppWithReasonInner(pid, reason, isKillPrecedeStart, exitReason.shouldKillForeground);
@@ -9232,7 +9247,7 @@ void AbilityManagerService::HandleAppUpgradeProcess(const std::string &bundleNam
     IN_PROCESS_CALL_WITHOUT_RET(
         KeepAliveProcessManager::GetInstance().SaveKeepAliveAppRestartAfterUpgrade(bundleName, uid));
     IN_PROCESS_CALL_WITHOUT_RET(
-        KeepAliveProcessManager::GetInstance().SaveAppSeriviceRestartAfterUpgrade(bundleName, uid));
+        KeepAliveProcessManager::GetInstance().SaveAppServiceRestartAfterUpgrade(bundleName, uid));
 }
 
 int AbilityManagerService::PreLoadAppDataAbilities(const std::string &bundleName, const int32_t userId)
@@ -14092,7 +14107,7 @@ int32_t AbilityManagerService::KillProcessWithReason(int32_t pid, const ExitReas
     }
 #endif
     auto ret = KillProcessWithReasonInner(pid, reason, isKillPrecedeStart);
-    TAG_LOGE(AAFwkTag::ABILITYMGR, "KillProcessWithReason pid:%{public}d,ret:%{public}d,reason:%{public}s", pid, ret,
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "KillProcessWithReason pid:%{public}d,ret:%{public}d,reason:%{public}s", pid, ret,
         reason.exitMsg.c_str());
     if (isKillPrecedeStart) {
         AbilityEventUtil::SendKillProcessWithReasonEvent(ret, "KillProcessWithReason", eventInfo);
@@ -15979,6 +15994,9 @@ void AbilityManagerService::RecordAppRestartExitReason(bool isAppRecovery, int32
     int32_t killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_RESTART;
     AAFwk::ExitReasonCompability exitReason(killId);
     auto result = IN_PROCESS_CALL(RecordAppWithReason(callerPid, callerUid, exitReason));
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "RecordAppRestartExitReason failed, result: %{public}d", result);
+    }
 }
 
 int32_t AbilityManagerService::RestartApp(const AAFwk::Want &want, bool isAppRecovery)
