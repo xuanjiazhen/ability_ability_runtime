@@ -1,0 +1,4 @@
+interface:
+  display_name: "High Impact Bug Audit"
+  short_description: "Find crash, hang, OOM, data loss, and other high-impact bugs."
+  default_prompt: "Use $high-impact-bug-audit to audit this module for P0/P1 high-impact bugs."
