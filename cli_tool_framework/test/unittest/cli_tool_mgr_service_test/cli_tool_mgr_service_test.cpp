@@ -142,6 +142,7 @@ void CliToolManagerServiceTest::SetUp()
 
 void CliToolManagerServiceTest::TearDown()
 {
+    service_->StopChildExitMonitor();
     service_->interfaceCalledCount_.store(0);
     CliToolDataManagerMock::Reset();
     CliFunctionDataManagerMock::Reset();
@@ -194,6 +195,7 @@ HWTEST_F(CliToolManagerServiceTest, Init_0100, TestSize.Level1)
     if (initializedMonitor != nullptr) {
         initializedMonitor->Stop();
     }
+    service_->StopChildExitMonitor();
     service_->ioMonitor_ = oldMonitor;
     service_->initialized_ = oldInitialized;
 
@@ -1312,8 +1314,11 @@ HWTEST_F(CliToolManagerServiceTest, SkillCallbackAdapter_0100, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_SkillCallbackAdapter_0100 start");
 
     AppExecFwk::SkillExecuteResult result;
+    wptr<CliToolManagerService> weakService = service_;
+    bool oldInitialized = service_->initialized_;
+    service_->initialized_ = true;
     SkillCallbackAdapter missingAdapter("missing_callback_session",
-        IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid(), "missing_event");
+        IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid(), "missing_event", weakService);
     missingAdapter.OnExecuteDone("request", ERR_OK, result);
 
     auto record = std::make_shared<SessionRecord>();
@@ -1325,11 +1330,12 @@ HWTEST_F(CliToolManagerServiceTest, SkillCallbackAdapter_0100, TestSize.Level1)
     service_->AddSessionRecord(record);
 
     record->callerUid = IPCSkeleton::GetCallingUid();
-    SkillCallbackAdapter adapter(record->sessionId, record->callerPid, record->callerUid, record->eventId);
+    SkillCallbackAdapter adapter(record->sessionId, record->callerPid, record->callerUid, record->eventId, weakService);
     adapter.OnExecuteDone("request", ERR_OK, result);
 
     EXPECT_EQ(record->GetState(), SessionState::COMPLETED);
     EXPECT_EQ(service_->GetSessionRecord(record->sessionId), nullptr);
+    service_->initialized_ = oldInitialized;
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_SkillCallbackAdapter_0100 end");
 }
@@ -1832,6 +1838,8 @@ HWTEST_F(CliToolManagerServiceTest, OnProcessDied_0100, TestSize.Level1)
     EXPECT_EQ(service_->sessionRecords_.find("leak_died_session"), service_->sessionRecords_.end());
     EXPECT_EQ(service_->GetSessionRecord(matchingRecord->sessionId), nullptr);
     EXPECT_EQ(service_->GetSessionRecord(otherRecord->sessionId), otherRecord);
+    EXPECT_EQ(matchingRecord->GetState(), SessionState::CANCELLING);
+    EXPECT_FALSE(matchingRecord->BeginCleanup());
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_OnProcessDied_0100 end");
 }

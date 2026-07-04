@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -202,7 +203,7 @@ private:
         const std::string &eventId, const ToolInfo &toolInfo, bool &dispatched);
     int32_t SetupAndStartSkillSession(const ExecToolParam &param,
         const std::string &eventId, const ToolInfo &toolInfo);
-    int32_t ValidateSkillTypeFromParam(const ExecToolParam &param, int32_t &skillType);
+    int32_t ValidateSkillTypeFromParam(ExecToolParam &param, int32_t &skillType);
     int32_t ValidateSkillType(const std::string &bundleName,
         const std::string &moduleName, const std::string &skillName, int32_t &skillType);
     void HandleSkillSessionComplete(const std::string &sessionId, int32_t callerPid, int32_t callerUid,
@@ -215,6 +216,11 @@ private:
     void HandleOutputClosed(const std::string &sessionId, bool isStdout);
     void HandleOutputDrained(const std::string &sessionId);
     void FinalizeBackgroundSession(const std::shared_ptr<SessionRecord> &record);
+    void CleanupSessionAfterCallerDied(const std::shared_ptr<SessionRecord> &record);
+    bool StartChildExitMonitor();
+    void StopChildExitMonitor();
+    void ProcessChildExitNotifications();
+    void ProcessExitedChildren(int32_t sig);
 
     DISALLOW_COPY_AND_MOVE(CliToolManagerService);
 
@@ -233,6 +239,10 @@ private:
 
     bool initialized_ = false;
     std::shared_ptr<IOMonitor> ioMonitor_ = nullptr;
+    int32_t childExitNotifyReadFd_ = -1;
+    int32_t childExitNotifyWriteFd_ = -1;
+    std::atomic<bool> childExitMonitorRunning_ = false;
+    std::thread childExitMonitorThread_;
 
     std::atomic<int32_t> interfaceCalledCount_ = 0;
     ffrt::mutex sessionsMutex_;
@@ -246,7 +256,8 @@ private:
 class SkillCallbackAdapter : public AAFwk::SkillExecuteCallbackStub {
 public:
     SkillCallbackAdapter(const std::string &sessionId,
-        int32_t callerPid, int32_t callerUid, const std::string &eventId);
+        int32_t callerPid, int32_t callerUid, const std::string &eventId,
+        wptr<CliToolManagerService> service);
     void OnExecuteDone(const std::string &requestCode, int32_t resultCode,
         const AppExecFwk::SkillExecuteResult &result) override;
 
@@ -255,6 +266,7 @@ private:
     int32_t callerPid_;
     int32_t callerUid_;
     std::string eventId_;
+    wptr<CliToolManagerService> service_;
 };
 
 } // namespace CliTool
