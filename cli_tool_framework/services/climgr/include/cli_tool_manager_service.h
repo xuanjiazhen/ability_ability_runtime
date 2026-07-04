@@ -19,11 +19,13 @@
 #include <atomic>
 #include <map>
 #include <memory>
+#include <signal.h>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
+#include "child_exit_monitor.h"
 #include "cli_tool_manager_stub.h"
 #include "cli_tool_data_manager.h"
 #include "exec_cmd_param.h"
@@ -52,6 +54,7 @@ class CliToolManagerService : public SystemAbility,
                               public CliToolManagerStub {
     DECLARE_SYSTEM_ABILITY(CliToolManagerService);
 
+    friend class ChildExitMonitor;
     friend class SkillCallbackAdapter;
 
 public:
@@ -175,7 +178,22 @@ private:
 
     enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 
-    void Init();
+    /**
+     * @brief Initialize service-side monitors and callbacks.
+     *
+     * Sets up child process exit monitoring, installs the SIGCHLD handler, creates the I/O monitor, and binds
+     * callbacks back to this service instance.
+     *
+     * @return true if all monitors are ready, false otherwise.
+     */
+    bool Init();
+
+    /**
+     * @brief Schedule delayed unloading of the CLI manager system ability.
+     *
+     * The service is unloaded only when no IPC call is active, no session remains, and no observed caller process
+     * is still tracked. Otherwise a new delayed check is scheduled.
+     */
     void DelayUnloadTask();
 
     std::shared_ptr<SessionRecord> CreateSessionRecord(const ExecToolParam &param, const std::string &eventId);
@@ -202,7 +220,7 @@ private:
         const std::string &eventId, const ToolInfo &toolInfo, bool &dispatched);
     int32_t SetupAndStartSkillSession(const ExecToolParam &param,
         const std::string &eventId, const ToolInfo &toolInfo);
-    int32_t ValidateSkillTypeFromParam(const ExecToolParam &param, int32_t &skillType);
+    int32_t ValidateSkillTypeFromParam(ExecToolParam &param, int32_t &skillType);
     int32_t ValidateSkillType(const std::string &bundleName,
         const std::string &moduleName, const std::string &skillName, int32_t &skillType);
     void HandleSkillSessionComplete(const std::string &sessionId, int32_t callerPid, int32_t callerUid,
@@ -216,12 +234,28 @@ private:
     void HandleOutputDrained(const std::string &sessionId);
     void FinalizeBackgroundSession(const std::shared_ptr<SessionRecord> &record);
 
+    /**
+     * @brief Cancel and clean a session whose caller process has died.
+     *
+     * The caller is expected to remove the record from sessionRecords_ before invoking this function. This helper
+     * kills the CLI child process group when one exists, unregisters monitor state, and dispatches the session exit
+     * event to remaining subscribers.
+     *
+     * @param record Session record owned by the dead caller process.
+     */
+    void CleanupSessionAfterCallerDied(const std::shared_ptr<SessionRecord> &record);
+
+    /**
+     * @brief Snapshot active CLI child process IDs from current session records.
+     *
+     * @return Process IDs that still have a live session record.
+     */
+    std::vector<pid_t> GetActiveChildPids();
+
     DISALLOW_COPY_AND_MOVE(CliToolManagerService);
 
 private:
     static sptr<CliToolManagerService> instance_;
-
-    static void sigchld_handler(int32_t sig);
 
     void PostExecToolTask(int64_t time, const std::string &sessionId, bool isTimeout);
     void WaitPid(pid_t pid, int32_t status, int32_t sig);
@@ -231,8 +265,9 @@ private:
     void RemoveCallerPid(int64_t pid);
     int32_t GetCallerPidCount();
 
-    bool initialized_ = false;
+    std::atomic<bool> initialized_ = false;
     std::shared_ptr<IOMonitor> ioMonitor_ = nullptr;
+    ChildExitMonitor childExitMonitor_;
 
     std::atomic<int32_t> interfaceCalledCount_ = 0;
     ffrt::mutex sessionsMutex_;
@@ -246,7 +281,8 @@ private:
 class SkillCallbackAdapter : public AAFwk::SkillExecuteCallbackStub {
 public:
     SkillCallbackAdapter(const std::string &sessionId,
-        int32_t callerPid, int32_t callerUid, const std::string &eventId);
+        int32_t callerPid, int32_t callerUid, const std::string &eventId,
+        wptr<CliToolManagerService> service);
     void OnExecuteDone(const std::string &requestCode, int32_t resultCode,
         const AppExecFwk::SkillExecuteResult &result) override;
 
@@ -255,8 +291,8 @@ private:
     int32_t callerPid_;
     int32_t callerUid_;
     std::string eventId_;
+    wptr<CliToolManagerService> service_;
 };
-
 } // namespace CliTool
 } // namespace OHOS
 
