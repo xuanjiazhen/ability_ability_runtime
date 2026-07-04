@@ -1947,7 +1947,7 @@ HWTEST_F(CliToolManagerServiceTest, OnStop_0100, TestSize.Level1)
 
 /**
  * @tc.name: CliToolManagerService_ExecTool_0600
- * @tc.desc: Test ExecTool rejects missing scheduler after permission gate
+ * @tc.desc: Test ExecTool rejects null scheduler after all validations pass under new SetScheduler ordering
  * @tc.type: FUNC
  */
 HWTEST_F(CliToolManagerServiceTest, ExecTool_0600, TestSize.Level1)
@@ -1955,7 +1955,7 @@ HWTEST_F(CliToolManagerServiceTest, ExecTool_0600, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_0600 start");
 
     ExecToolParam param;
-    param.toolName = "ohos-nonexistent_tool";
+    param.toolName = "ohos-test_tool";
     param.options.timeout = 30;
     CliSessionInfo session;
     int32_t result = service_->ExecTool(param, "event_exec_0600", nullptr);
@@ -2163,7 +2163,7 @@ HWTEST_F(CliToolManagerServiceTest, ExecCmd_0100, TestSize.Level1)
 
 /**
  * @tc.name: CliToolManagerService_ExecCmd_0200
- * @tc.desc: Test ExecCmd with null scheduler returns ERR_NO_INIT after permission gate
+ * @tc.desc: Test ExecCmd rejects null scheduler after all validations pass under new SetScheduler ordering
  * @tc.type: FUNC
  */
 HWTEST_F(CliToolManagerServiceTest, ExecCmd_0200, TestSize.Level1)
@@ -2172,6 +2172,7 @@ HWTEST_F(CliToolManagerServiceTest, ExecCmd_0200, TestSize.Level1)
 
     ExecCmdParam param;
     param.cmd = "echo test";
+    param.options.timeout = 30;
     int32_t result = service_->ExecCmd(param, "event_exec_cmd_null_scheduler", nullptr, "subscription_1");
 
     EXPECT_TRUE(result == ERR_NO_INIT || IsPermissionGateResult(result));
