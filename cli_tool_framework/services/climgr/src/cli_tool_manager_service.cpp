@@ -946,12 +946,6 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
         ReportCliExecuteFailed(bundleName, param.toolName, GetFailureReason(ret));
         return ret;
     }
-    int32_t callerPid = IPCSkeleton::GetCallingPid();
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
-    if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
-        ReportCliExecuteFailed(bundleName, param.toolName, GetFailureReason(ERR_NO_INIT));
-        return ERR_NO_INIT;
-    }
 
     ToolInfo toolInfo;
     bool dispatched = false;
@@ -976,6 +970,13 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
         return ret;
     }
 
+    int32_t callerPid = IPCSkeleton::GetCallingPid();
+    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
+        ReportCliExecuteFailed(bundleName, param.toolName, GetFailureReason(ERR_NO_INIT));
+        return ERR_NO_INIT;
+    }
+
     auto ret = SetupAndStartSession(param, eventId, toolInfo, sandboxConfig, bundleName);
     if (ret != ERR_OK) {
         ReportCliExecuteFailed(bundleName, param.toolName, GetFailureReason(ret));
@@ -991,11 +992,6 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
     if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
         return ret;
     }
-    int32_t callerPid = IPCSkeleton::GetCallingPid();
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
-    if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
-        return ERR_NO_INIT;
-    }
     if (auto ret = ValidateSessionLimit(); ret != ERR_OK) {
         return ret;
     }
@@ -1004,6 +1000,11 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
     std::string bundleName;
     if (auto ret = ValidateAndPrepareCmd(param, tokenId, sandboxConfig, bundleName); ret != ERR_OK) {
         return ret;
+    }
+    int32_t callerPid = IPCSkeleton::GetCallingPid();
+    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
+        return ERR_NO_INIT;
     }
     // Create session record for shell command
     auto record = std::make_shared<SessionRecord>();

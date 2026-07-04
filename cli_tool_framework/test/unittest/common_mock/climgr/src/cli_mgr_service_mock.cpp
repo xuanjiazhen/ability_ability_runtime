@@ -208,9 +208,9 @@ EventDispatcher &EventDispatcher::GetInstance()
     return instance;
 }
 
-bool EventDispatcher::SetScheduler(int32_t, int32_t, const sptr<ICliToolManagerScheduler> &)
+bool EventDispatcher::SetScheduler(int32_t, int32_t, const sptr<ICliToolManagerScheduler> &scheduler)
 {
-    return true;
+    return scheduler != nullptr;
 }
 
 void EventDispatcher::ClearScheduler(int32_t, int32_t) {}
