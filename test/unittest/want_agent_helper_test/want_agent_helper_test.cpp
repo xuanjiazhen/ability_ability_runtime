@@ -1625,6 +1625,7 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_6730, Function | MediumTest | Leve
     Want want;
     ElementName element("device", "bundleName", "abilityNameFromJsonInvalid");
     want.SetElement(element);
+    const auto originParamSize = want.GetParams().Size();
     nlohmann::json jsonObject;
     jsonObject["requestCode"] = 6730;
     jsonObject["operationType"] = static_cast<int32_t>(WantAgentConstant::OperationType::START_ABILITY);
@@ -1638,7 +1639,7 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_6730, Function | MediumTest | Leve
     ASSERT_NE(wantAgent, nullptr);
     auto restoredWant = WantAgentHelper::GetWant(wantAgent);
     ASSERT_NE(restoredWant, nullptr);
-    EXPECT_TRUE(restoredWant->GetParams().IsEmpty());
+    EXPECT_EQ(restoredWant->GetParams().Size(), originParamSize);
 
     jsonObject["requestCode"] = 6731;
     jsonObject["extraInfo"] = "bad";
