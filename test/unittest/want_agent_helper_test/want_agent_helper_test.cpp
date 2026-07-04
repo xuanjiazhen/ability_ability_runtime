@@ -1410,6 +1410,62 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_6600, Function | MediumTest | Leve
 }
 
 /**
+ * @tc.name: GetWantFromProxy_0100
+ * @tc.desc: Test GetWantFromProxy with null WantAgent
+ * @tc.type: FUNC
+ */
+HWTEST_F(WantAgentHelperTest, GetWantFromProxy_0100, TestSize.Level1)
+{
+    std::shared_ptr<WantAgent> wantAgent(nullptr);
+    auto want = WantAgentHelper::GetWantFromProxy(wantAgent);
+    EXPECT_EQ(want, nullptr);
+}
+
+/**
+ * @tc.name: GetWantFromProxy_0200
+ * @tc.desc: Test GetWantFromProxy with local WantAgent and null localPendingWant
+ * @tc.type: FUNC
+ */
+HWTEST_F(WantAgentHelperTest, GetWantFromProxy_0200, TestSize.Level1)
+{
+    std::shared_ptr<LocalPendingWant> localPendingWant = nullptr;
+    std::shared_ptr<WantAgent> wantAgent = std::make_shared<WantAgent>(localPendingWant);
+    auto want = WantAgentHelper::GetWantFromProxy(wantAgent);
+    EXPECT_EQ(want, nullptr);
+}
+
+/**
+ * @tc.name: GetWantFromProxy_0300
+ * @tc.desc: Test GetWantFromProxy with local WantAgent and valid localPendingWant
+ * @tc.type: FUNC
+ */
+HWTEST_F(WantAgentHelperTest, GetWantFromProxy_0300, TestSize.Level1)
+{
+    std::shared_ptr<AAFwk::Want> expectedWant = std::make_shared<AAFwk::Want>();
+    expectedWant->SetElement(ElementName("deviceId", "bundleName", "abilityName"));
+    std::shared_ptr<LocalPendingWant> localPendingWant = std::make_shared<LocalPendingWant>(
+        "TestBundleName", expectedWant, 0);
+    std::shared_ptr<WantAgent> wantAgent = std::make_shared<WantAgent>(localPendingWant);
+    auto actualWant = WantAgentHelper::GetWantFromProxy(wantAgent);
+    ASSERT_NE(actualWant, nullptr);
+    EXPECT_EQ(actualWant->GetElement().GetBundleName(),
+        expectedWant->GetElement().GetBundleName());
+}
+
+/**
+ * @tc.name: GetWantFromProxy_0400
+ * @tc.desc: Test GetWantFromProxy with non-local WantAgent and null PendingWant
+ * @tc.type: FUNC
+ */
+HWTEST_F(WantAgentHelperTest, GetWantFromProxy_0400, TestSize.Level1)
+{
+    std::shared_ptr<PendingWant> pendingWant(nullptr);
+    std::shared_ptr<WantAgent> wantAgent = std::make_shared<WantAgent>(pendingWant);
+    auto want = WantAgentHelper::GetWantFromProxy(wantAgent);
+    EXPECT_EQ(want, nullptr);
+}
+
+/**
  * @tc.name: CreateLocalWantAgent_0100
  * @tc.desc: Test CreateLocalWantAgent with null context
  * @tc.type: FUNC
