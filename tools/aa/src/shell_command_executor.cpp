@@ -26,6 +26,9 @@
 using namespace std::chrono_literals;
 namespace OHOS {
 namespace AAFwk {
+namespace {
+constexpr size_t MAX_COMMAND_OUTPUT_SIZE = 1024 * 1024;
+}
 ShellCommandExecutor::ShellCommandExecutor(const std::string& cmd, const int64_t timeoutSec)
     : timeoutSec_(timeoutSec), cmd_(cmd)
 {
@@ -106,6 +109,10 @@ bool ShellCommandExecutor::DoWork()
         while ((fgets(commandResult, sizeof(commandResult), file)) != nullptr) {
             {
                 std::lock_guard<std::mutex> copyLock(mtxCopy_);
+                if (cmdResult_.stdResult.size() >= MAX_COMMAND_OUTPUT_SIZE) {
+                    TAG_LOGW(AAFwkTag::AA_TOOL, "Command output exceeds max size, truncating");
+                    break;
+                }
                 cmdResult_.stdResult.append(commandResult);
             }
             std::cout << commandResult;

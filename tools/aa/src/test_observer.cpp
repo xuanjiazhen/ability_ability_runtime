@@ -50,7 +50,11 @@ void TestObserver::TestFinished(const std::string& msg, const int64_t& resultCod
     TAG_LOGI(AAFwkTag::AA_TOOL, "enter, msg : %{public}s, code : %{public}" PRId64, msg.data(), resultCode);
     std::cout << "TestFinished-ResultCode: " + std::to_string(resultCode) << std::endl;
     std::cout << "TestFinished-ResultMsg: " + msg << std::endl;
-    isFinished_ = true;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        isFinished_ = true;
+    }
+    cv_.notify_one();
 }
 
 ShellCommandResult TestObserver::ExecuteShellCommand(const std::string& cmd, const int64_t timeoutSec)
@@ -75,14 +79,14 @@ bool TestObserver::WaitForFinish(const int64_t& timeoutMs)
 {
     TAG_LOGD(AAFwkTag::AA_TOOL, "enter");
 
-    auto realTime = timeoutMs > 0 ? timeoutMs : 0;
-    int64_t startTime = SystemTime::GetNowSysTime();
-    while (!isFinished_) {
-        int64_t nowSysTime = SystemTime::GetNowSysTime();
-        if (realTime && (nowSysTime - startTime > realTime)) {
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (timeoutMs > 0) {
+        if (!cv_.wait_for(lock, std::chrono::milliseconds(timeoutMs), [this]() { return isFinished_; })) {
+            TAG_LOGW(AAFwkTag::AA_TOOL, "WaitForFinish timed out");
             return false;
         }
-        sleep(1);
+    } else {
+        cv_.wait(lock, [this]() { return isFinished_; });
     }
 
     TAG_LOGI(AAFwkTag::AA_TOOL, "User test finished");

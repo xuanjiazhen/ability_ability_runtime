@@ -16,6 +16,9 @@
 #ifndef OHOS_ABILITY_RUNTIME_TEST_OBSERVER_H
 #define OHOS_ABILITY_RUNTIME_TEST_OBSERVER_H
 
+#include <condition_variable>
+#include <mutex>
+
 #include "test_observer_stub.h"
 
 namespace OHOS {
@@ -67,6 +70,8 @@ public:
 
 private:
     bool isFinished_ = false;
+    std::mutex mutex_;
+    std::condition_variable cv_;
     static constexpr int64_t SHELL_COMMAND_TIMEOUT_MAX = 5;
 };
 }  // namespace AAFwk
