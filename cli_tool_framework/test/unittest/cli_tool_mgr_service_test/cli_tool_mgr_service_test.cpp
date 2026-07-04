@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cerrno>
 #include <chrono>
 #include <condition_variable>
 #include <gmock/gmock.h>
@@ -22,6 +23,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <sys/wait.h>
 #include <thread>
 #include <unistd.h>
 #include <vector>
@@ -76,6 +78,25 @@ const char *CLI_TOOL_PERMS[] = {
 bool IsPermissionGateResult(int32_t result)
 {
     return result == ERR_NOT_SYSTEM_APP || result == ERR_PERMISSION_DENIED;
+}
+
+bool WaitChildExitedNoReap(pid_t pid)
+{
+    for (int32_t retry = 0; retry < 50; ++retry) {
+        siginfo_t info {};
+        if (waitid(P_PID, static_cast<id_t>(pid), &info, WEXITED | WNOWAIT | WNOHANG) == 0 &&
+            info.si_pid == pid) {
+            return true;
+        }
+        usleep(10 * 1000);
+    }
+    return false;
+}
+
+void ReapChildIfNeeded(pid_t pid)
+{
+    int32_t status = 0;
+    while (waitpid(pid, &status, 0) < 0 && errno == EINTR) {}
 }
 } // namespace {
 
@@ -142,6 +163,7 @@ void CliToolManagerServiceTest::SetUp()
 
 void CliToolManagerServiceTest::TearDown()
 {
+    service_->StopChildExitMonitor();
     service_->interfaceCalledCount_.store(0);
     CliToolDataManagerMock::Reset();
     CliFunctionDataManagerMock::Reset();
@@ -178,24 +200,25 @@ HWTEST_F(CliToolManagerServiceTest, Init_0100, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_Init_0100 start");
 
     auto oldMonitor = service_->ioMonitor_;
-    bool oldInitialized = service_->initialized_;
-    service_->initialized_ = false;
+    bool oldInitialized = service_->initialized_.load(std::memory_order_acquire);
+    service_->initialized_.store(false, std::memory_order_release);
     service_->ioMonitor_ = nullptr;
 
-    service_->Init();
+    EXPECT_TRUE(service_->Init());
     auto initializedMonitor = service_->ioMonitor_;
 
-    EXPECT_TRUE(service_->initialized_);
+    EXPECT_TRUE(service_->initialized_.load(std::memory_order_acquire));
     EXPECT_NE(initializedMonitor, nullptr);
 
-    service_->Init();
+    EXPECT_TRUE(service_->Init());
     EXPECT_EQ(service_->ioMonitor_, initializedMonitor);
 
     if (initializedMonitor != nullptr) {
         initializedMonitor->Stop();
     }
+    service_->StopChildExitMonitor();
     service_->ioMonitor_ = oldMonitor;
-    service_->initialized_ = oldInitialized;
+    service_->initialized_.store(oldInitialized, std::memory_order_release);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_Init_0100 end");
 }
@@ -1312,8 +1335,11 @@ HWTEST_F(CliToolManagerServiceTest, SkillCallbackAdapter_0100, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_SkillCallbackAdapter_0100 start");
 
     AppExecFwk::SkillExecuteResult result;
+    wptr<CliToolManagerService> weakService = service_;
+    bool oldInitialized = service_->initialized_.load(std::memory_order_acquire);
+    service_->initialized_.store(true, std::memory_order_release);
     SkillCallbackAdapter missingAdapter("missing_callback_session",
-        IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid(), "missing_event");
+        IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid(), "missing_event", weakService);
     missingAdapter.OnExecuteDone("request", ERR_OK, result);
 
     auto record = std::make_shared<SessionRecord>();
@@ -1325,11 +1351,12 @@ HWTEST_F(CliToolManagerServiceTest, SkillCallbackAdapter_0100, TestSize.Level1)
     service_->AddSessionRecord(record);
 
     record->callerUid = IPCSkeleton::GetCallingUid();
-    SkillCallbackAdapter adapter(record->sessionId, record->callerPid, record->callerUid, record->eventId);
+    SkillCallbackAdapter adapter(record->sessionId, record->callerPid, record->callerUid, record->eventId, weakService);
     adapter.OnExecuteDone("request", ERR_OK, result);
 
     EXPECT_EQ(record->GetState(), SessionState::COMPLETED);
     EXPECT_EQ(service_->GetSessionRecord(record->sessionId), nullptr);
+    service_->initialized_.store(oldInitialized, std::memory_order_release);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_SkillCallbackAdapter_0100 end");
 }
@@ -1358,6 +1385,107 @@ HWTEST_F(CliToolManagerServiceTest, WaitPid_0100, TestSize.Level1)
     EXPECT_EQ(service_->GetSessionRecord(record->sessionId), nullptr);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_WaitPid_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ProcessExitedChildren_0100
+ * @tc.desc: Test ProcessExitedChildren reaps only CliMgr-owned child pids
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ProcessExitedChildren_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ProcessExitedChildren_0100 start");
+
+    pid_t ownedPid = fork();
+    ASSERT_GE(ownedPid, 0);
+    if (ownedPid == 0) {
+        _exit(3);
+    }
+
+    pid_t unownedPid = fork();
+    if (unownedPid < 0) {
+        ReapChildIfNeeded(ownedPid);
+        FAIL() << "fork unowned child failed";
+    }
+    if (unownedPid == 0) {
+        _exit(4);
+    }
+
+    bool ownedExited = WaitChildExitedNoReap(ownedPid);
+    bool unownedExited = WaitChildExitedNoReap(unownedPid);
+    EXPECT_TRUE(ownedExited);
+    EXPECT_TRUE(unownedExited);
+    if (!ownedExited || !unownedExited) {
+        ReapChildIfNeeded(ownedPid);
+        ReapChildIfNeeded(unownedPid);
+        return;
+    }
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "owned_child_session";
+    record->processId = ownedPid;
+    record->MarkStdoutClosed();
+    record->MarkStderrClosed();
+    service_->AddSessionRecord(record);
+
+    service_->ProcessExitedChildren(SIGCHLD);
+
+    EXPECT_TRUE(record->HasProcessExited());
+    EXPECT_EQ(service_->GetSessionRecord(record->sessionId), nullptr);
+
+    int32_t status = 0;
+    pid_t waitRet = waitpid(unownedPid, &status, WNOHANG);
+    EXPECT_EQ(waitRet, unownedPid);
+    if (waitRet == unownedPid) {
+        EXPECT_TRUE(WIFEXITED(status));
+        EXPECT_EQ(WEXITSTATUS(status), 4);
+    } else if (waitRet == 0) {
+        ReapChildIfNeeded(unownedPid);
+    }
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ProcessExitedChildren_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ReapPendingChildExit_0100
+ * @tc.desc: Test fast child exit missed before session visibility is reaped after registration
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ReapPendingChildExit_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ReapPendingChildExit_0100 start");
+
+    pid_t pid = fork();
+    ASSERT_GE(pid, 0);
+    if (pid == 0) {
+        _exit(5);
+    }
+
+    bool exited = WaitChildExitedNoReap(pid);
+    if (!exited) {
+        ReapChildIfNeeded(pid);
+        FAIL() << "child did not exit before pending reap test";
+    }
+
+    service_->ProcessExitedChildren(SIGCHLD);
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "pending_child_session";
+    record->processId = pid;
+    record->MarkStdoutClosed();
+    record->MarkStderrClosed();
+    service_->AddSessionRecord(record);
+
+    service_->ReapPendingChildExit(record);
+
+    EXPECT_TRUE(record->HasProcessExited());
+    EXPECT_EQ(service_->GetSessionRecord(record->sessionId), nullptr);
+
+    if (!record->HasProcessExited()) {
+        ReapChildIfNeeded(pid);
+    }
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ReapPendingChildExit_0100 end");
 }
 
 /**
@@ -1832,6 +1960,10 @@ HWTEST_F(CliToolManagerServiceTest, OnProcessDied_0100, TestSize.Level1)
     EXPECT_EQ(service_->sessionRecords_.find("leak_died_session"), service_->sessionRecords_.end());
     EXPECT_EQ(service_->GetSessionRecord(matchingRecord->sessionId), nullptr);
     EXPECT_EQ(service_->GetSessionRecord(otherRecord->sessionId), otherRecord);
+    EXPECT_EQ(matchingRecord->GetState(), SessionState::CANCELLING);
+    EXPECT_TRUE(matchingRecord->HasProcessExited());
+    EXPECT_NE(matchingRecord->GetTerminalStatus(), 0);
+    EXPECT_FALSE(matchingRecord->BeginCleanup());
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_OnProcessDied_0100 end");
 }
@@ -1935,11 +2067,11 @@ HWTEST_F(CliToolManagerServiceTest, OnStop_0100, TestSize.Level1)
     record->sessionId = "stop_session";
     record->processId = -1;
     service_->AddSessionRecord(record);
-    service_->initialized_ = true;
+    service_->initialized_.store(true, std::memory_order_release);
 
     service_->OnStop();
 
-    EXPECT_FALSE(service_->initialized_);
+    EXPECT_FALSE(service_->initialized_.load(std::memory_order_acquire));
     EXPECT_TRUE(service_->sessionRecords_.empty());
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_OnStop_0100 end");

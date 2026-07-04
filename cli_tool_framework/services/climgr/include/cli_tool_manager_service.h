@@ -19,7 +19,9 @@
 #include <atomic>
 #include <map>
 #include <memory>
+#include <signal.h>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -175,7 +177,22 @@ private:
 
     enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 
-    void Init();
+    /**
+     * @brief Initialize service-side monitors and callbacks.
+     *
+     * Sets up child process exit monitoring, installs the SIGCHLD handler, creates the I/O monitor, and binds
+     * callbacks back to this service instance.
+     *
+     * @return true if all monitors are ready, false otherwise.
+     */
+    bool Init();
+
+    /**
+     * @brief Schedule delayed unloading of the CLI manager system ability.
+     *
+     * The service is unloaded only when no IPC call is active, no session remains, and no observed caller process
+     * is still tracked. Otherwise a new delayed check is scheduled.
+     */
     void DelayUnloadTask();
 
     std::shared_ptr<SessionRecord> CreateSessionRecord(const ExecToolParam &param, const std::string &eventId);
@@ -202,7 +219,7 @@ private:
         const std::string &eventId, const ToolInfo &toolInfo, bool &dispatched);
     int32_t SetupAndStartSkillSession(const ExecToolParam &param,
         const std::string &eventId, const ToolInfo &toolInfo);
-    int32_t ValidateSkillTypeFromParam(const ExecToolParam &param, int32_t &skillType);
+    int32_t ValidateSkillTypeFromParam(ExecToolParam &param, int32_t &skillType);
     int32_t ValidateSkillType(const std::string &bundleName,
         const std::string &moduleName, const std::string &skillName, int32_t &skillType);
     void HandleSkillSessionComplete(const std::string &sessionId, int32_t callerPid, int32_t callerUid,
@@ -216,12 +233,113 @@ private:
     void HandleOutputDrained(const std::string &sessionId);
     void FinalizeBackgroundSession(const std::shared_ptr<SessionRecord> &record);
 
+    /**
+     * @brief Cancel and clean a session whose caller process has died.
+     *
+     * The caller is expected to remove the record from sessionRecords_ before invoking this function. This helper
+     * kills the CLI child process group when one exists, unregisters monitor state, and dispatches the session exit
+     * event to remaining subscribers.
+     *
+     * @param record Session record owned by the dead caller process.
+     */
+    void CleanupSessionAfterCallerDied(const std::shared_ptr<SessionRecord> &record);
+
+    /**
+     * @brief Start the child-exit notification thread.
+     *
+     * Creates a nonblocking, close-on-exec pipe used by the SIGCHLD handler and starts a thread that polls the read
+     * side. The actual waitpid work is done on that thread instead of inside the signal handler.
+     *
+     * @return true if the monitor is already running or starts successfully, false otherwise.
+     */
+    bool StartChildExitMonitor();
+
+    /**
+     * @brief Stop child-exit monitoring and close notification pipe descriptors.
+     */
+    void StopChildExitMonitor();
+
+    /**
+     * @brief Install the service SIGCHLD handler.
+     *
+     * The handler only writes a notification byte to the monitor pipe and then chains to the previously installed
+     * handler, keeping signal-context work minimal.
+     *
+     * @return true if the handler is already installed or installs successfully, false otherwise.
+     */
+    bool InstallSigChldHandler();
+
+    /**
+     * @brief Restore the SIGCHLD handler that was active before this service installed its handler.
+     */
+    void RestoreSigChldHandler();
+
+    /**
+     * @brief Make a child-exit notification pipe descriptor nonblocking and close-on-exec.
+     *
+     * @param fd Pipe descriptor to update.
+     * @return true if both descriptor flags are set successfully, false otherwise.
+     */
+    bool SetChildExitNotifyFdFlags(int32_t fd);
+
+    /**
+     * @brief Poll the child-exit notification pipe and reap exited CLI child processes.
+     *
+     * This is the entry point for childExitMonitorThread_. It drains pending SIGCHLD notifications and delegates the
+     * nonblocking waitpid work to ProcessExitedChildren().
+     */
+    void ProcessChildExitNotifications();
+
+    /**
+     * @brief Try to reap all active CLI child processes for a received child-exit signal.
+     *
+     * @param sig Signal associated with the exit notification.
+     */
+    void ProcessExitedChildren(int32_t sig);
+
+    /**
+     * @brief Snapshot active CLI child process IDs from current session records.
+     *
+     * @return Process IDs that still have a live session record.
+     */
+    std::vector<pid_t> GetActiveChildPids();
+
+    /**
+     * @brief Reap a single CLI child process without blocking.
+     *
+     * @param pid Child process ID to wait for.
+     * @param sig Signal associated with the wait attempt.
+     * @return true when no further wait is needed; false when the child is still running.
+     */
+    bool TryReapChild(pid_t pid, int32_t sig);
+
+    /**
+     * @brief Retry reaping active child processes during service shutdown.
+     *
+     * @param pids Snapshot of child process IDs to reap.
+     * @param sig Signal associated with the shutdown wait attempts.
+     */
+    void ReapActiveChildren(const std::vector<pid_t> &pids, int32_t sig);
+
+    /**
+     * @brief Check whether a newly created child process exited before monitor registration completed.
+     *
+     * @param record Session record that owns the child process.
+     */
+    void ReapPendingChildExit(const std::shared_ptr<SessionRecord> &record);
+
     DISALLOW_COPY_AND_MOVE(CliToolManagerService);
 
 private:
     static sptr<CliToolManagerService> instance_;
 
-    static void sigchld_handler(int32_t sig);
+    /**
+     * @brief SIGCHLD handler that wakes the child-exit monitor thread.
+     *
+     * The handler is intentionally limited to signal-safe work and chains to the previous SIGCHLD handler when one
+     * existed.
+     */
+    static void sigchld_handler(int32_t sig, siginfo_t *info, void *context);
 
     void PostExecToolTask(int64_t time, const std::string &sessionId, bool isTimeout);
     void WaitPid(pid_t pid, int32_t status, int32_t sig);
@@ -231,8 +349,14 @@ private:
     void RemoveCallerPid(int64_t pid);
     int32_t GetCallerPidCount();
 
-    bool initialized_ = false;
+    std::atomic<bool> initialized_ = false;
     std::shared_ptr<IOMonitor> ioMonitor_ = nullptr;
+    int32_t childExitNotifyReadFd_ = -1;  // Read end polled by childExitMonitorThread_.
+    int32_t childExitNotifyWriteFd_ = -1; // Write end used by the SIGCHLD handler.
+    std::atomic<bool> childExitMonitorRunning_ = false;
+    std::thread childExitMonitorThread_;
+    struct sigaction oldSigChldAction_ {}; // Handler restored when the service stops.
+    bool sigChldActionInstalled_ = false;
 
     std::atomic<int32_t> interfaceCalledCount_ = 0;
     ffrt::mutex sessionsMutex_;
@@ -246,7 +370,8 @@ private:
 class SkillCallbackAdapter : public AAFwk::SkillExecuteCallbackStub {
 public:
     SkillCallbackAdapter(const std::string &sessionId,
-        int32_t callerPid, int32_t callerUid, const std::string &eventId);
+        int32_t callerPid, int32_t callerUid, const std::string &eventId,
+        wptr<CliToolManagerService> service);
     void OnExecuteDone(const std::string &requestCode, int32_t resultCode,
         const AppExecFwk::SkillExecuteResult &result) override;
 
@@ -255,8 +380,8 @@ private:
     int32_t callerPid_;
     int32_t callerUid_;
     std::string eventId_;
+    wptr<CliToolManagerService> service_;
 };
-
 } // namespace CliTool
 } // namespace OHOS
 
