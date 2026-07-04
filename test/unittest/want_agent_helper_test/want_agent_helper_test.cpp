@@ -1095,7 +1095,7 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_5310, Function | MediumTest | Leve
     WantAgentInfo wantAgentInfo;
     wantAgentInfo.wants_.emplace_back(want);
     wantAgentInfo.operationType_ = WantAgentConstant::OperationType::START_ABILITY;
-    wantAgentInfo.requestCode_ = 10;
+    wantAgentInfo.requestCode_ = 5310;
     std::shared_ptr<WantParams> wParams = std::make_shared<WantParams>();
     wParams->SetParam("key", Boolean::Box(true));
     wantAgentInfo.extraInfo_ = wParams;
@@ -1130,7 +1130,7 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_5320, Function | MediumTest | Leve
     WantAgentInfo wantAgentInfo;
     wantAgentInfo.wants_.emplace_back(want);
     wantAgentInfo.operationType_ = WantAgentConstant::OperationType::START_ABILITY;
-    wantAgentInfo.requestCode_ = 10;
+    wantAgentInfo.requestCode_ = 5320;
     std::shared_ptr<WantParams> wParams = std::make_shared<WantParams>();
     wParams->SetParam("key", Boolean::Box(true));
     wantAgentInfo.extraInfo_ = wParams;
@@ -1147,6 +1147,62 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_5320, Function | MediumTest | Leve
     auto boolValue = IBoolean::Query(value);
     ASSERT_NE(boolValue, nullptr);
     EXPECT_TRUE(Boolean::Unbox(boolValue));
+}
+
+/*
+ * @tc.number    : WantAgentHelper_5330
+ * @tc.name      : WantAgentHelper ToJsonString invalid input
+ * @tc.desc      : Test ToJsonString invalid agent branches.
+ */
+HWTEST_F(WantAgentHelperTest, WantAgentHelper_5330, Function | MediumTest | Level1)
+{
+    EXPECT_TRUE(WantAgentHelper::ToJsonString(nullptr).empty());
+
+    auto wantAgentWithoutPendingWant = std::make_shared<WantAgent>(std::shared_ptr<PendingWant>(nullptr));
+    EXPECT_TRUE(WantAgentHelper::ToJsonString(wantAgentWithoutPendingWant).empty());
+
+    auto pendingWantWithoutTarget = std::make_shared<PendingWant>(sptr<IWantSender>(nullptr));
+    auto wantAgentWithoutInfo = std::make_shared<WantAgent>(pendingWantWithoutTarget);
+    EXPECT_TRUE(WantAgentHelper::ToJsonString(wantAgentWithoutInfo).empty());
+}
+
+/*
+ * @tc.number    : WantAgentHelper_5340
+ * @tc.name      : WantAgentHelper FromJsonString invalid input
+ * @tc.desc      : Test FromJsonString invalid json and malformed field branches.
+ */
+HWTEST_F(WantAgentHelperTest, WantAgentHelper_5340, Function | MediumTest | Level1)
+{
+    EXPECT_EQ(WantAgentHelper::FromJsonString(""), nullptr);
+    EXPECT_EQ(WantAgentHelper::FromJsonString("{"), nullptr);
+    EXPECT_EQ(WantAgentHelper::FromJsonString(R"({"requestCode":"bad","wants":[]})"), nullptr);
+    EXPECT_EQ(WantAgentHelper::FromJsonString(R"({"wants":[100]})"), nullptr);
+
+    Want want;
+    ElementName element("device", "bundleName", "abilityName5340");
+    want.SetElement(element);
+    nlohmann::json jsonObject;
+    jsonObject["requestCode"] = 5340;
+    jsonObject["operationType"] = static_cast<int32_t>(WantAgentConstant::OperationType::START_ABILITY);
+    jsonObject["flags"] = static_cast<int32_t>(FLAG_UPDATE_CURRENT);
+    jsonObject["userId"] = -1;
+    jsonObject["appIndex"] = "bad";
+    jsonObject["wants"] = nlohmann::json::array({ want.ToString() });
+    jsonObject["extraInfo"] = { { "extraInfoValue", "invalid want params json" } };
+
+    auto wantAgent = WantAgentHelper::FromJsonString(jsonObject.dump());
+    ASSERT_NE(wantAgent, nullptr);
+    auto restoredWant = WantAgentHelper::GetWant(wantAgent);
+    ASSERT_NE(restoredWant, nullptr);
+    EXPECT_TRUE(restoredWant->GetParams().IsEmpty());
+
+    jsonObject["requestCode"] = 5341;
+    jsonObject["extraInfo"] = "bad";
+    EXPECT_NE(WantAgentHelper::FromJsonString(jsonObject.dump()), nullptr);
+
+    jsonObject["requestCode"] = 5342;
+    jsonObject["extraInfo"] = { { "extraInfoValue", 100 } };
+    EXPECT_NE(WantAgentHelper::FromJsonString(jsonObject.dump()), nullptr);
 }
 
 /*
@@ -1167,7 +1223,7 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_5400, Function | MediumTest | Leve
     wantAgentInfo.wants_.emplace_back(want);
     wantAgentInfo.flags_.emplace_back(WantAgentConstant::Flags::ONE_TIME_FLAG);
     wantAgentInfo.operationType_ = WantAgentConstant::OperationType::START_ABILITY;
-    wantAgentInfo.requestCode_ = 10;
+    wantAgentInfo.requestCode_ = 5400;
     bool value = true;
     std::string key = "key";
     std::shared_ptr<WantParams> wParams = std::make_shared<WantParams>();
@@ -1205,7 +1261,7 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_5500, Function | MediumTest | Leve
     wantAgentInfo.wants_.emplace_back(want);
     wantAgentInfo.flags_.emplace_back(WantAgentConstant::Flags::ONE_TIME_FLAG);
     wantAgentInfo.operationType_ = WantAgentConstant::OperationType::START_ABILITY;
-    wantAgentInfo.requestCode_ = 10;
+    wantAgentInfo.requestCode_ = 5500;
     bool value = true;
     std::string key = "key";
     std::shared_ptr<WantParams> wParams = std::make_shared<WantParams>();
@@ -1246,7 +1302,7 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_5600, Function | MediumTest | Leve
     WantAgentInfo wantAgentInfo;
     wantAgentInfo.wants_.emplace_back(want);
     wantAgentInfo.operationType_ = WantAgentConstant::OperationType::START_ABILITY;
-    wantAgentInfo.requestCode_ = 10;
+    wantAgentInfo.requestCode_ = 5600;
     bool value = true;
     std::string key = "key";
     std::shared_ptr<WantParams> wParams = std::make_shared<WantParams>();
@@ -1284,7 +1340,7 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_5700, Function | MediumTest | Leve
     wantAgentInfo.wants_.emplace_back(want);
     wantAgentInfo.flags_.emplace_back(WantAgentConstant::Flags::ALLOW_CANCEL_FLAG);
     wantAgentInfo.operationType_ = WantAgentConstant::OperationType::START_ABILITY;
-    wantAgentInfo.requestCode_ = 20;
+    wantAgentInfo.requestCode_ = 5700;
     bool value = true;
     std::string key = "key";
     std::shared_ptr<WantParams> wParams = std::make_shared<WantParams>();
@@ -1322,7 +1378,7 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_5800, Function | MediumTest | Leve
     WantAgentInfo wantAgentInfo;
     wantAgentInfo.wants_.emplace_back(want);
     wantAgentInfo.operationType_ = WantAgentConstant::OperationType::START_ABILITY;
-    wantAgentInfo.requestCode_ = 10;
+    wantAgentInfo.requestCode_ = 5800;
     bool value = true;
     std::string key = "key";
     std::shared_ptr<WantParams> wParams = std::make_shared<WantParams>();
