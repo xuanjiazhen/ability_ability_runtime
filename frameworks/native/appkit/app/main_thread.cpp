@@ -2914,6 +2914,11 @@ void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &
     std::shared_ptr<AbilityRuntime::Context> stageContext = application_->AddAbilityStage(
         abilityRecord, callback, isAsyncCallback);
     if (isAsyncCallback) {
+        TAG_LOGI(AAFwkTag::APPKIT, "XTDBG handleLaunchAbility isAsyncCallback value = true");
+    } else {
+        TAG_LOGI(AAFwkTag::APPKIT, "XTDBG handleLaunchAbility isAsyncCallback value = false");
+    }
+    if (isAsyncCallback) {
         return;
     }
     auto &runtime = application_->GetRuntime();
@@ -4321,7 +4326,9 @@ int32_t MainThread::ScheduleDumpFfrt(std::string& result)
 
 int32_t MainThread::ScheduleDumpArkWeb(const std::string &customArgs, std::string &result)
 {
-    TAG_LOGI(AAFwkTag::APPKIT, "ScheduleDumpArkWeb");
+    TAG_LOGI(AAFwkTag::APPKIT, "XTDBG, ScheduleDumpArkWeb");
+    TAG_LOGI(AAFwkTag::APPKIT, "XTDBG, ScheduleDumpArkWeb, customArgs: %{public}s, result: %{public}s",
+        customArgs.c_str(), result.c_str());
     return DumpArkWebHelper::DumpArkWeb(customArgs, result);
 }
 
