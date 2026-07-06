@@ -39,6 +39,11 @@ constexpr const char* ERR_CODE = "errCode";
 constexpr const char* VIEW_DATA = "viewData";
 constexpr const char* TYPE = "type";
 constexpr const char* TRIGGER_TYPE = "triggerType";
+constexpr const char* DELTA_X = "deltaX";
+constexpr const char* DELTA_Y = "deltaY";
+constexpr const char* FRAME_NODE_ID = "frameNodeId";
+constexpr const char* POPUP_OFFSET = "PopupOffset";
+constexpr const char* CUSTOM_CONFIG = "CustomConfig";
 }
 using namespace AppExecFwk;
 
@@ -240,7 +245,7 @@ bool UnwrapPageNodeInfo(napi_env env, napi_value jsValue, AbilityBase::PageNodeI
 
     napi_value jsRect = GetPropertyValueByPropertyName(env, jsValue, RECT, napi_object);
     if (jsRect != nullptr && !UnwrapAutoFillRect(env, jsRect, pageNodeInfo.rect, errorMsg)) {
-        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "UnwrapAutoFillRect error");
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "UnwrapAutoFillRect failed");
         return false;
     }
 
@@ -317,6 +322,53 @@ bool UnwrapSaveRequest(napi_env env, napi_value jsValue, AutoFill::AutoFillReque
     return true;
 }
 
+bool UnwrapPopupOffset(napi_env env, napi_value jsValue, AutoFill::PopupOffset &popupOffset, std::string &errorMsg)
+{
+    if (!IsTypeForNapiValue(env, jsValue, napi_object)) {
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "parameter error");
+        errorMsg = "Parameter error. The type of jsValue must be AutoFillRect";
+        return false;
+    }
+
+    if (!UnwrapDoubleByPropertyName(env, jsValue, DELTA_X, popupOffset.deltaX)) {
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "parameter error");
+        errorMsg = "Parameter error. The type of popupOffset.deltaX must be number";
+        return false;
+    }
+
+    if (!UnwrapDoubleByPropertyName(env, jsValue, DELTA_Y, popupOffset.deltaY)) {
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "parameter error");
+        errorMsg = "Parameter error. The type of popupOffset.deltaY must be number";
+        return false;
+    }
+    return true;
+}
+
+bool UnwrapAutoFillCustomConfig(napi_env env,
+    napi_value jsValue, AutoFill::AutoFillCustomConfig &customConfig, std::string &errorMsg)
+{
+    if (!IsTypeForNapiValue(env, jsValue, napi_object)) {
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "parameter error");
+        errorMsg = "Parameter error. The type of jsValue must be PageNodeInfo";
+        return false;
+    }
+
+    if (!UnwrapInt32ByPropertyName(env, jsValue, FRAME_NODE_ID, customConfig.nodeId)) {
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "parameter error");
+        errorMsg = "Parameter error. The type of customConfig.nodeId must be number";
+        return false;
+    }
+
+    napi_value jsPopupOffset = GetPropertyValueByPropertyName(env, jsValue, POPUP_OFFSET, napi_object);
+    AbilityRuntime::AutoFill::PopupOffset popupOffset;
+    if (jsPopupOffset != nullptr && !UnwrapPopupOffset(env, jsPopupOffset, popupOffset, errorMsg)) {
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "UnwrapPopupOffset failed");
+        return false;
+    }
+    customConfig.targetOffset = popupOffset;
+    return true;
+}
+
 bool UnwrapFillRequest(napi_env env, napi_value jsValue, AutoFill::AutoFillRequest &request, std::string &errorMsg)
 {
     if (!IsTypeForNapiValue(env, jsValue, napi_object)) {
@@ -346,6 +398,15 @@ bool UnwrapFillRequest(napi_env env, napi_value jsValue, AutoFill::AutoFillReque
             return false;
         }
         request.autoFillTriggerType = static_cast<AutoFill::AutoFillTriggerType>(int32Value);
+    }
+
+    if (IsExistsByPropertyName(env, jsValue, CUSTOM_CONFIG)) {
+        napi_value jsCustomConfig = GetPropertyValueByPropertyName(env, jsValue, CUSTOM_CONFIG, napi_object);
+        if (jsCustomConfig != nullptr &&
+            !UnwrapAutoFillCustomConfig(env, jsCustomConfig, request.config, errorMsg)) {
+            TAG_LOGE(AAFwkTag::AUTOFILLMGR, "UnwrapAutoFillCustomConfig failed");
+            return false;
+        }
     }
     return true;
 }

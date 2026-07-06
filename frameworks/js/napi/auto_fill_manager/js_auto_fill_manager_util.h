@@ -32,6 +32,9 @@ bool UnwrapPageNodeInfo(napi_env env, napi_value jsValue, AbilityBase::PageNodeI
     std::string &errorMsg);
 bool UnwrapViewData(napi_env env, napi_value jsValue, AbilityBase::ViewData &viewData, std::string &errorMsg);
 bool UnwrapSaveRequest(napi_env env, napi_value jsValue, AutoFill::AutoFillRequest &request, std::string &errorMsg);
+bool UnwrapPopupOffset(napi_env env, napi_value jsValue, AutoFill::PopupOffset &popupOffset, std::string &errorMsg);
+bool UnwrapAutoFillCustomConfig(napi_env env,
+    napi_value jsValue, AutoFill::AutoFillCustomConfig &customConfig, std::string &errorMsg);
 bool UnwrapFillRequest(napi_env env, napi_value jsValue, AutoFill::AutoFillRequest &request, std::string &errorMsg);
 }  // namespace AbilityRuntime
 }  // namespace OHOS
