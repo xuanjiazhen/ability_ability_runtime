@@ -491,7 +491,7 @@ HWTEST_F(UriPermissionImplTest, Upms_GrantUriPermission_017, TestSize.Level1)
     auto upms = std::make_shared<UriPermissionManagerStubImpl>();
     ASSERT_NE(upms, nullptr);
     auto& upmc = AAFwk::UriPermissionManagerClient::GetInstance();
-    MyFlag::flag_ &= (~MyFlag::IS_SA_CALL);
+    MyFlag::flag_ |= MyFlag::IS_SA_CALL;
     auto uriStr = "file://com.example.test/data/storage/el2/base/haps/entry/files/test_A.txt";
     std::vector<std::string> uriStrVec(200000 + 1, uriStr);
 
@@ -519,7 +519,7 @@ HWTEST_F(UriPermissionImplTest, Upms_GrantUriPermission_018, TestSize.Level1)
     auto upms = std::make_shared<UriPermissionManagerStubImpl>();
     ASSERT_NE(upms, nullptr);
     auto& upmc = AAFwk::UriPermissionManagerClient::GetInstance();
-    MyFlag::flag_ &= (~MyFlag::IS_SA_CALL);
+    MyFlag::flag_ |= MyFlag::IS_SA_CALL;
     std::vector<std::string> uriStrVec;
 
     UriPermissionRawData rawData;
