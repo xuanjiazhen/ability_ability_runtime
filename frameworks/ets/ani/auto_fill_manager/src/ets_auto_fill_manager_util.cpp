@@ -45,6 +45,11 @@ constexpr const char* ERR_CODE = "errCode";
 constexpr const char* VIEW_DATA = "viewData";
 constexpr const char* TYPE = "type";
 constexpr const char* TRIGGER_TYPE = "triggerType";
+constexpr const char* DELTA_X = "deltaX";
+constexpr const char* DELTA_Y = "deltaY";
+constexpr const char* FRAME_NODE_ID = "frameNodeId";
+constexpr const char* POPUP_OFFSET = "popupOffset";
+constexpr const char* CUSTOM_CONFIG = "customConfig";
 }
 using namespace AppExecFwk;
 
@@ -367,6 +372,53 @@ bool UnwrapSaveRequest(ani_env *env,
     return true;
 }
 
+bool UnwrapPopupOffset(ani_env *env,
+    ani_object object, AbilityRuntime::AutoFill::PopupOffset &popupOffset, std::string &errorMsg)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "env null");
+        return false;
+    }
+
+    if (!GetDoublePropertyValue(env, object, DELTA_X, popupOffset.deltaX)) {
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "parameter error");
+        errorMsg = "Parameter error. The type of popupOffset.deltaX must be double";
+        return false;
+    }
+
+    if (!GetDoublePropertyValue(env, object, DELTA_Y, popupOffset.deltaY)) {
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "parameter error");
+        errorMsg = "Parameter error. The type of popupOffset.deltaY must be double";
+        return false;
+    }
+    return true;
+}
+
+bool UnwrapAutoFillCustomConfig(ani_env *env,
+    ani_object object, AbilityRuntime::AutoFill::AutoFillCustomConfig &customConfig, std::string &errorMsg)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "env null");
+        return false;
+    }
+
+    if (!GetIntPropertyValue(env, object, FRAME_NODE_ID, customConfig.nodeId)) {
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "parameter error");
+        errorMsg = "Parameter error. The type of customConfig.nodeId must be int";
+        return false;
+    }
+
+    ani_ref aniPopupOffset = nullptr;
+    AbilityRuntime::AutoFill::PopupOffset popupOffset;
+    if (!GetRefProperty(env, object, POPUP_OFFSET, aniPopupOffset) || aniPopupOffset == nullptr ||
+        !UnwrapPopupOffset(env, reinterpret_cast<ani_object>(aniPopupOffset), popupOffset, errorMsg)) {
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "UnwrapPopupOffset failed");
+        return false;
+    }
+    customConfig.targetOffset = popupOffset;
+    return true;
+}
+
 bool UnwrapFillRequest(ani_env *env,
     ani_object object, AbilityRuntime::AutoFill::AutoFillRequest &request, std::string &errorMsg)
 {
@@ -398,6 +450,14 @@ bool UnwrapFillRequest(ani_env *env,
             reinterpret_cast<ani_enum_item>(aniAutoFillTriggerType), request.autoFillTriggerType))) {
         TAG_LOGE(AAFwkTag::AUTOFILLMGR, "parameter error");
         errorMsg = "Parameter error. The type of request.autoFillTriggerType must be AutoFillTriggerType";
+        return false;
+    }
+
+    ani_ref aniCustomConfig = nullptr;
+    if (IsExistsProperty(env, object, CUSTOM_CONFIG) &&
+        (!GetRefProperty(env, object, CUSTOM_CONFIG, aniCustomConfig) || aniCustomConfig == nullptr ||
+        !UnwrapAutoFillCustomConfig(env, reinterpret_cast<ani_object>(aniCustomConfig), request.config, errorMsg))) {
+        TAG_LOGE(AAFwkTag::AUTOFILLMGR, "UnwrapAutoFillCustomConfig failed");
         return false;
     }
     return true;

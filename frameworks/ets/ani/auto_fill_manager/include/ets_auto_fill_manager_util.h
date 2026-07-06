@@ -33,6 +33,10 @@ bool UnwrapPageNodeInfo(ani_env *env,
 bool UnwrapViewData(ani_env *env, ani_object object, AbilityBase::ViewData &viewData, std::string &errorMsg);
 bool UnwrapSaveRequest(ani_env *env,
     ani_object object, AbilityRuntime::AutoFill::AutoFillRequest &request, std::string &errorMsg);
+bool UnwrapPopupOffset(ani_env *env,
+    ani_object object, AbilityRuntime::AutoFill::PopupOffset &popupOffset, std::string &errorMsg);
+bool UnwrapAutoFillCustomConfig(ani_env *env,
+    ani_object object, AbilityRuntime::AutoFill::AutoFillCustomConfig &customConfig, std::string &errorMsg);
 bool UnwrapFillRequest(ani_env *env,
     ani_object object, AbilityRuntime::AutoFill::AutoFillRequest &request, std::string &errorMsg);
 }  // namespace AutoFillManagerEts
