@@ -111,12 +111,11 @@ public:
     int LifecycleTimeoutHandle(const ParamInfo& info, FreezeUtil::LifecycleFlow flow = FreezeUtil::LifecycleFlow());
     std::string WriteToFile(const std::string& fileName, const std::string& content);
     bool IsHandleAppfreeze(const std::string& bundleName);
-    bool IsProcessDebug(int32_t pid, std::string bundleName);
+    bool IsProcessDebug(int32_t pid, int32_t uid, std::string bundleName);
     void DeleteStack(int pid);
-    bool CancelAppFreezeDetect(int32_t pid, const std::string& bundleName);
-    void RemoveDeathProcess(std::string bundleName);
-    void ResetAppfreezeState(int32_t pid, const std::string& bundleName);
-    bool IsValidFreezeFilter(int32_t pid, const std::string& bundleName);
+    bool CancelAppFreezeDetect(int32_t pid, int32_t uid, const std::string& bundleName, int32_t waitTime);
+    void RemoveDeathProcess(int32_t pid, int32_t uid, std::string bundleName);
+    bool IsValidFreezeFilter(int32_t pid, int32_t uid, const std::string& bundleName);
     void ReportAppFreezeSysEvents(int32_t pid, const std::string& bundleName);
     void RegisterAppKillTime(int32_t pid, uint64_t killTime);
     void InitWarningCpuInfo(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo);
@@ -159,9 +158,12 @@ private:
     struct AppFreezeInfo {
         int64_t occurTime = 0;
         int pid = 0;
+        int uid = 0;
         int reportTimes = DEFAULT_APPFREEZE_REPORT_TIMES;
         int state = 0;
         bool isRepeatKilledThread = false;
+        int64_t timestamp = 0;
+        int32_t waitTime = 0;
     };
 
     struct FreezeExcludedPidInfo {
@@ -220,6 +222,7 @@ private:
     bool IsNativeDaemonProcess(int32_t profilerPid) const;
     AppfreezeEventInfo UpdateEventInfo(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo,
         const std::string& binderInfo, const std::string& memoryContent);
+    std::string GenerateFreezeFilterKey(int32_t pid, int32_t uid, const std::string& bundleName);
 
     static constexpr size_t FREEZE_EXCLUDED_PID_MAX_SIZE = 100;
     static constexpr size_t FREEZE_EXCLUDED_PID_CLEAN_COUNT = 30;
