@@ -49,7 +49,7 @@ private:
     int32_t ExitKioskModeInner(const std::string &bundleName, sptr<IRemoteObject> callerToken,
         bool isFoundation);
     bool IsInKioskModeInner();
-    void NotifyKioskModeChanged(bool isInKioskMode);
+    void NotifyKioskModeChanged(bool isInKioskMode, const std::string &bundleName, int32_t kioskBundleUid);
     bool IsInWhiteListInner(const std::string &bundleName);
     std::function<void()> GetEnterKioskModeCallback();
     std::function<void()> GetExitKioskModeCallback();
