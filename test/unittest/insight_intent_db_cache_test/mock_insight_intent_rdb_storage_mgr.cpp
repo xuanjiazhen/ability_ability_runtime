@@ -22,6 +22,7 @@ namespace AbilityRuntime {
 bool g_mockDeleteStorageInsightIntentDataRet = true;
 bool g_mockDeleteStorageInsightIntentByUserIdRet = true;
 bool g_mockSaveStorageInsightIntentDataRet = true;
+bool g_mockSaveBundleStorageDataRet = true;
 bool g_mockLoadInsightIntentInfoRet = true;
 bool g_mockLoadInsightIntentInfoByNameRet = true;
 bool g_mockLoadInsightIntentInfosRet = true;
@@ -43,6 +44,11 @@ void MockDeleteDataByUserId(bool mockRet)
 void MockSaveData(bool mockRet)
 {
     g_mockSaveStorageInsightIntentDataRet = mockRet;
+}
+
+void MockSaveBundleStorageData(bool mockRet)
+{
+    g_mockSaveBundleStorageDataRet = mockRet;
 }
 
 void MockLoadInsightIntentInfo(bool mockRet)
@@ -152,6 +158,15 @@ int32_t  InsightRdbStorageMgr::SaveStorageInsightIntentData(const std::string &b
     ExtractInsightIntentProfileInfoVec &profileInfos, std::vector<InsightIntentInfo> &configInfos)
 {
     if (g_mockSaveStorageInsightIntentDataRet) {
+        return ERR_OK;
+    }
+    return ERR_INVALID_VALUE;
+}
+
+int32_t InsightRdbStorageMgr::SaveBundleStorageData(const std::string &bundleName,
+    const int32_t userId, uint32_t versionCode, const std::vector<IntentModuleStorageData> &modules)
+{
+    if (g_mockSaveBundleStorageDataRet) {
         return ERR_OK;
     }
     return ERR_INVALID_VALUE;

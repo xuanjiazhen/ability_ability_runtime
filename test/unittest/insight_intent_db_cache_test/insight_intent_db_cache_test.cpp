@@ -24,6 +24,7 @@ namespace AbilityRuntime {
 void MockDeleteData(bool mockRet);
 void MockDeleteDataByUserId(bool mockRet);
 void MockSaveData(bool mockRet);
+void MockSaveBundleStorageData(bool mockRet);
 void MockLoadInsightIntentInfo(bool mockRet);
 void MockLoadInsightIntentInfoByName(bool mockRet);
 void MockLoadInsightIntentInfos(bool mockRet);
@@ -300,6 +301,57 @@ HWTEST_F(InsightIntentDbCacheTest, InsightIntentDbCacheTest_006, TestSize.Level0
 
     initialized = DelayedSingleton<InsightIntentDbCache>::GetInstance()->IsCacheInitialized(999);
     EXPECT_EQ(initialized, false);
+}
+
+/**
+ * @tc.name: InsightIntentDbCacheTest_SaveBundle_001
+ * @tc.desc: Test SaveBundleInsightIntentTotalInfo with mismatched userId
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentDbCacheTest, InsightIntentDbCacheTest_SaveBundle_001, TestSize.Level0)
+{
+    int32_t userId = 100;
+    std::string bundleName = "com.test.bundle";
+    std::vector<IntentModuleStorageData> modules;
+    auto result = DelayedSingleton<InsightIntentDbCache>::GetInstance()->SaveBundleInsightIntentTotalInfo(
+        bundleName, 999, 1, modules);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: InsightIntentDbCacheTest_SaveBundle_002
+ * @tc.desc: Test SaveBundleInsightIntentTotalInfo happy path
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentDbCacheTest, InsightIntentDbCacheTest_SaveBundle_002, TestSize.Level0)
+{
+    int32_t userId = 100;
+    std::string bundleName = "com.test.bundle.happy";
+    MockLoadInsightIntentInfos(true);
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->InitInsightIntentCache(userId);
+
+    IntentModuleStorageData m;
+    m.moduleName = "moduleA";
+    ExtractInsightIntentProfileInfo profileInfo;
+    profileInfo.intentName = "intentA";
+    m.profileInfos.insightIntents.push_back(profileInfo);
+    InsightIntentInfo cfg;
+    cfg.intentName = "configIntentA";
+    m.configInfos.push_back(cfg);
+
+    std::vector<IntentModuleStorageData> modules;
+    modules.push_back(m);
+
+    MockDeleteData(true);
+    MockSaveBundleStorageData(true);
+    auto result = DelayedSingleton<InsightIntentDbCache>::GetInstance()->SaveBundleInsightIntentTotalInfo(
+        bundleName, userId, 1, modules);
+    EXPECT_EQ(result, ERR_OK);
+
+    MockSaveBundleStorageData(false);
+    result = DelayedSingleton<InsightIntentDbCache>::GetInstance()->SaveBundleInsightIntentTotalInfo(
+        bundleName, userId, 1, modules);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
 }
 }
 }

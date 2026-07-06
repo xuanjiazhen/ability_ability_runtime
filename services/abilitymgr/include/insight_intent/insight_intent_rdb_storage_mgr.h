@@ -18,6 +18,7 @@
 
 #include <singleton.h>
 #include <string>
+#include <vector>
 #include "insight_intent_rdb_data_mgr.h"
 #include "hilog_tag_wrapper.h"
 #include "extract_insight_intent_profile.h"
@@ -25,6 +26,12 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+struct IntentModuleStorageData {
+    std::string moduleName;
+    ExtractInsightIntentProfileInfoVec profileInfos;
+    std::vector<InsightIntentInfo> configInfos;
+};
+
 class InsightRdbStorageMgr : public std::enable_shared_from_this<InsightRdbStorageMgr> {
     DECLARE_DELAYED_SINGLETON(InsightRdbStorageMgr)
 public:
@@ -43,6 +50,8 @@ public:
     int32_t SaveStorageInsightIntentData(const std::string &bundleName, const std::string &moduleName,
         const int32_t userId, uint32_t versionCode, ExtractInsightIntentProfileInfoVec &profileInfos,
         std::vector<InsightIntentInfo> &configInfos);
+    int32_t SaveBundleStorageData(const std::string &bundleName, const int32_t userId,
+        uint32_t versionCode, const std::vector<IntentModuleStorageData> &modules);
     int32_t DeleteStorageInsightIntentData(const std::string &bundleName,
         const std::string &moduleName, const int32_t userId);
     int32_t DeleteStorageInsightIntentByUserId(const int32_t userId);

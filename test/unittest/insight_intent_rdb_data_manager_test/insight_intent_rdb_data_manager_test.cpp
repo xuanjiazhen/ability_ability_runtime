@@ -199,4 +199,45 @@ HWTEST_F(InsightIntentRdbDataManagerTest, InsightIntentRdbDataManager_0600, Func
     rdbMgr->BackupRdb();
     rdbMgr->intentRdbConfig_.tableName = originalTable;
 }
+
+/**
+ * @tc.number: InsightIntentRdbDataManager_0700
+ * @tc.desc: InsertDataBatch returns true on empty input (early exit).
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentRdbDataManagerTest, InsightIntentRdbDataManager_0700, Function | SmallTest | Level1)
+{
+    std::vector<std::pair<std::string, std::string>> empty;
+    auto res = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->InsertDataBatch(empty);
+    EXPECT_TRUE(res);
+}
+
+/**
+ * @tc.number: InsightIntentRdbDataManager_0800
+ * @tc.desc: InsertDataBatch writes multiple kv pairs and conflict-replaces existing keys.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentRdbDataManagerTest, InsightIntentRdbDataManager_0800, Function | SmallTest | Level1)
+{
+    std::vector<std::pair<std::string, std::string>> datas = {
+        {KEY_ONE, VALUE_ONE},
+        {KEY_TWO, VALUE_TWO},
+        {KEY_THREE, VALUE_THREE},
+    };
+    auto res = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->InsertDataBatch(datas);
+    EXPECT_TRUE(res);
+
+    std::string value;
+    EXPECT_TRUE(DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->QueryData(KEY_TWO, value));
+    EXPECT_EQ(value, VALUE_TWO);
+
+    std::vector<std::pair<std::string, std::string>> conflict = {{KEY_TWO, VALUE_THREE}};
+    EXPECT_TRUE(DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->InsertDataBatch(conflict));
+    EXPECT_TRUE(DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->QueryData(KEY_TWO, value));
+    EXPECT_EQ(value, VALUE_THREE);
+
+    EXPECT_TRUE(DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->DeleteDataBeginWithKey(KEY_ONE));
+    EXPECT_TRUE(DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->DeleteData(KEY_TWO));
+    EXPECT_TRUE(DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->DeleteData(KEY_THREE));
+}
 }  // namespace

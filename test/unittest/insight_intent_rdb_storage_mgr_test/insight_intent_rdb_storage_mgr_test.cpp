@@ -25,6 +25,7 @@ namespace AbilityRuntime {
 void MockQueryData(bool mockRet);
 void MockQueryDataBeginWithKey(bool mockRet);
 void MockInsertData(bool mockRet);
+void MockInsertDataBatch(bool mockRet);
 void MockDeleteData(bool mockRet);
 void MockDeleteDataBeginWithKey(bool mockRet);
 
@@ -405,6 +406,48 @@ HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_019, Tes
     auto result = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveStorageInsightIntentData(
         bundleName, moduleName, userId, 0, profileInfos, configInfos);
     EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: InsightIntentRdbStorageMgrTest_SaveBundle_001
+ * @tc.desc: Test SaveBundleStorageData with empty modules
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_SaveBundle_001, TestSize.Level0)
+{
+    std::string bundleName = "testBundle.empty";
+    std::vector<IntentModuleStorageData> emptyModules;
+    auto result = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveBundleStorageData(
+        bundleName, 100, 1, emptyModules);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: InsightIntentRdbStorageMgrTest_SaveBundle_002
+ * @tc.desc: Test SaveBundleStorageData happy path and batch failure path
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_SaveBundle_002, TestSize.Level0)
+{
+    std::string bundleName = "testBundle.happy";
+    IntentModuleStorageData m;
+    m.moduleName = "testModule";
+    InsightIntentInfo cfg;
+    cfg.intentName = "intentCfg";
+    m.configInfos.push_back(cfg);
+
+    std::vector<IntentModuleStorageData> modules;
+    modules.push_back(m);
+
+    MockInsertDataBatch(true);
+    auto result = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveBundleStorageData(
+        bundleName, 100, 1, modules);
+    EXPECT_EQ(result, ERR_OK);
+
+    MockInsertDataBatch(false);
+    result = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveBundleStorageData(
+        bundleName, 100, 1, modules);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
 }
 }
 }
