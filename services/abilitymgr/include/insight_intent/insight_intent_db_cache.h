@@ -53,6 +53,8 @@ public:
     int32_t SaveInsightIntentTotalInfo(const std::string &bundleName, const std::string &moduleName,
         const int32_t userId, uint32_t versionCode, ExtractInsightIntentProfileInfoVec profileInfos,
         std::vector<InsightIntentInfo> configInfos);
+    int32_t SaveBundleInsightIntentTotalInfo(const std::string &bundleName, const int32_t userId,
+        uint32_t versionCode, const std::vector<IntentModuleStorageData> &modules);
     int32_t DeleteInsightIntentTotalInfo(const std::string &bundleName,
         const std::string &moduleName, const int32_t userId);
     int32_t DeleteInsightIntentByUserId(const int32_t userId);

@@ -249,6 +249,55 @@ int32_t InsightRdbStorageMgr::SaveStorageInsightIntentData(const std::string &bu
     return ERR_OK;
 }
 
+void BuildModuleKvPairs(const std::string &bundleName, const std::string &moduleName,
+    const std::string &userIdStr, const std::string &versionStr,
+    const IntentModuleStorageData &moduleData,
+    std::vector<std::pair<std::string, std::string>> &out)
+{
+    for (const auto &profileInfo : moduleData.profileInfos.insightIntents) {
+        nlohmann::json jsonObject;
+        if (!ExtractInsightIntentProfile::ToJson(profileInfo, jsonObject)) {
+            TAG_LOGE(AAFwkTag::INTENT, "ToJson failed, bundle:%{public}s module:%{public}s",
+                bundleName.c_str(), moduleName.c_str());
+            continue;
+        }
+        std::string key = userIdStr + "/" + bundleName + "/" + moduleName + "/" +
+            profileInfo.intentName + "/" + versionStr;
+        out.emplace_back(std::move(key), jsonObject.dump());
+    }
+    for (auto configInfo : moduleData.configInfos) {
+        nlohmann::json jsonObject;
+        configInfo.moduleName = moduleName;
+        configInfo.bundleName = bundleName;
+        if (!InsightIntentProfile::ToJson(configInfo, jsonObject)) {
+            TAG_LOGE(AAFwkTag::INTENT, "ToJson config failed, bundle:%{public}s module:%{public}s",
+                bundleName.c_str(), moduleName.c_str());
+            continue;
+        }
+        std::string key = userIdStr + "/" + bundleName + "/" + moduleName + "/" +
+            configInfo.intentName + "/" + versionStr;
+        out.emplace_back(std::move(key), jsonObject.dump());
+    }
+}
+
+int32_t InsightRdbStorageMgr::SaveBundleStorageData(const std::string &bundleName, const int32_t userId,
+    uint32_t versionCode, const std::vector<IntentModuleStorageData> &modules)
+{
+    std::vector<std::pair<std::string, std::string>> kvPairs;
+    std::string userIdStr = std::to_string(userId);
+    std::string versionStr = std::to_string(versionCode);
+    for (const auto &m : modules) {
+        BuildModuleKvPairs(bundleName, m.moduleName, userIdStr, versionStr, m, kvPairs);
+    }
+    if (kvPairs.empty()) {
+        TAG_LOGW(AAFwkTag::INTENT, "no kv pairs built, bundle:%{public}s", bundleName.c_str());
+        return ERR_INVALID_VALUE;
+    }
+    std::lock_guard<std::mutex> lock(rdbStorePtrMutex_);
+    return DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->InsertDataBatch(kvPairs)
+        ? ERR_OK : ERR_INVALID_VALUE;
+}
+
 int32_t InsightRdbStorageMgr::DeleteStorageInsightIntentByUserId(const int32_t userId)
 {
     bool result;

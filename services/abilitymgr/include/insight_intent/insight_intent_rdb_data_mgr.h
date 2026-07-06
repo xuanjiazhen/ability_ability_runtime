@@ -19,6 +19,7 @@
 #include <vector>
 #include <mutex>
 #include <string>
+#include <utility>
 #include <singleton.h>
 #include <unordered_map>
 #include "rdb_errno.h"
@@ -65,6 +66,7 @@ class InsightIntentRdbDataMgr : public std::enable_shared_from_this<InsightInten
     DECLARE_DELAYED_SINGLETON(InsightIntentRdbDataMgr)
 public:
     bool InsertData(const std::string &key, const std::string &value);
+    bool InsertDataBatch(const std::vector<std::pair<std::string, std::string>> &datas);
 
     bool UpdateData(const std::string &key, const std::string &value);
 

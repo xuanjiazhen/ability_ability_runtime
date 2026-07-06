@@ -388,5 +388,72 @@ HWTEST_F(InsightIntentSysEventReceiverTest, HandleUserSwitched_CacheInitialized_
     sysEventReceiver->OnReceiveEvent(data);
     EXPECT_EQ(sysEventReceiver->lastUserId_, OTHER_USER_ID);
 }
+
+/**
+ * @tc.name: InsightIntentSysEventReceiverTest_CollectNewBundles_0001
+ * @tc.desc: Test CollectNewBundles with empty input
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentSysEventReceiverTest, CollectNewBundles_0001, TestSize.Level1)
+{
+    EventFwk::CommonEventSubscribeInfo subscribeInfo;
+    auto receiver = std::make_shared<InsightIntentSysEventReceiver>(subscribeInfo);
+    std::vector<AppExecFwk::BundleInfo> empty;
+    std::vector<std::pair<std::string, uint32_t>> newBundles;
+    receiver->CollectNewBundles(empty, MAIN_USER_ID, newBundles);
+    EXPECT_TRUE(newBundles.empty());
+}
+
+/**
+ * @tc.name: InsightIntentSysEventReceiverTest_ParseInsightIntentInfos_0001
+ * @tc.desc: Test ParseInsightIntentInfos with invalid bundle name
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentSysEventReceiverTest, ParseInsightIntentInfos_0001, TestSize.Level1)
+{
+    EventFwk::CommonEventSubscribeInfo subscribeInfo;
+    auto receiver = std::make_shared<InsightIntentSysEventReceiver>(subscribeInfo);
+    IntentModuleStorageData out;
+    bool ok = receiver->ParseInsightIntentInfos(INVALID_BUNDLE_NAME, TEST_MODULE_NAME, 1, MAIN_USER_ID, out);
+    EXPECT_FALSE(ok);
+    EXPECT_TRUE(out.profileInfos.insightIntents.empty());
+}
+
+/**
+ * @tc.name: InsightIntentSysEventReceiverTest_ParseBundleModulesParallel_0001
+ * @tc.desc: Test ParseBundleModulesParallel with empty hapModuleInfos
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentSysEventReceiverTest, ParseBundleModulesParallel_0001, TestSize.Level1)
+{
+    EventFwk::CommonEventSubscribeInfo subscribeInfo;
+    auto receiver = std::make_shared<InsightIntentSysEventReceiver>(subscribeInfo);
+    AppExecFwk::BundleInfo bundleInfo;
+    bundleInfo.name = INVALID_BUNDLE_NAME;
+    bundleInfo.versionCode = 1;
+    std::vector<IntentModuleStorageData> outModules;
+    receiver->ParseBundleModulesParallel(bundleInfo, MAIN_USER_ID, outModules);
+    EXPECT_TRUE(outModules.empty());
+}
+
+/**
+ * @tc.name: InsightIntentSysEventReceiverTest_ParseBundleModulesParallel_0002
+ * @tc.desc: Test ParseBundleModulesParallel with invalid bundle returns empty modules
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentSysEventReceiverTest, ParseBundleModulesParallel_0002, TestSize.Level1)
+{
+    EventFwk::CommonEventSubscribeInfo subscribeInfo;
+    auto receiver = std::make_shared<InsightIntentSysEventReceiver>(subscribeInfo);
+    AppExecFwk::BundleInfo bundleInfo;
+    bundleInfo.name = INVALID_BUNDLE_NAME;
+    bundleInfo.versionCode = 1;
+    AppExecFwk::HapModuleInfo hapInfo;
+    hapInfo.moduleName = TEST_MODULE_NAME;
+    bundleInfo.hapModuleInfos.push_back(hapInfo);
+    std::vector<IntentModuleStorageData> outModules;
+    receiver->ParseBundleModulesParallel(bundleInfo, MAIN_USER_ID, outModules);
+    EXPECT_TRUE(outModules.empty());
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

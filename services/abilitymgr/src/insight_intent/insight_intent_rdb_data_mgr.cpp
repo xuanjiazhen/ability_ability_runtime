@@ -114,6 +114,53 @@ bool InsightIntentRdbDataMgr::InsertData(const std::string &key, const std::stri
     return true;
 }
 
+bool InsightIntentRdbDataMgr::InsertDataBatch(
+    const std::vector<std::pair<std::string, std::string>> &datas)
+{
+    if (datas.empty()) {
+        return true;
+    }
+    std::lock_guard<std::mutex> lock(rdbStoreMutex_);
+    TAG_LOGI(AAFwkTag::INTENT, "[CRRR] InsertDataBatch start, count: %{public}zu", datas.size());
+    if (!IsIntentRdbLoaded()) {
+        TAG_LOGE(AAFwkTag::INTENT, "null IntentRdbStore");
+        return false;
+    }
+
+    std::vector<NativeRdb::ValuesBucket> buckets;
+    buckets.reserve(datas.size());
+    for (const auto &kv : datas) {
+        NativeRdb::ValuesBucket bucket;
+        bucket.PutString(INTENT_KEY, kv.first);
+        bucket.PutString(INTENT_VALUE, kv.second);
+        buckets.push_back(std::move(bucket));
+    }
+
+    int32_t ret = NativeRdb::E_OK;
+    int32_t retryCnt = 0;
+    do {
+        int64_t insertNum = 0;
+        ret = rdbStore_->BatchInsert(insertNum, intentRdbConfig_.tableName, buckets);
+        if (ret == NativeRdb::E_SQLITE_CORRUPT) {
+            std::string rdbFilePath = intentRdbConfig_.dbPath + std::string("/") + std::string(INTENT_BACK_UP_RDB_NAME);
+            int32_t restoreRet = rdbStore_->Restore(rdbFilePath);
+            if (restoreRet != NativeRdb::E_OK) {
+                TAG_LOGE(AAFwkTag::INTENT, "rdb restore failed ret:%{public}d", restoreRet);
+                break;
+            }
+            ret = rdbStore_->BatchInsert(insertNum, intentRdbConfig_.tableName, buckets);
+        }
+        if (ret == NativeRdb::E_OK || !IsRetryErrCode(ret)) {
+            break;
+        }
+        if (++retryCnt < RETRY_TIMES) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(RETRY_INTERVAL));
+        }
+        TAG_LOGW(AAFwkTag::INTENT, "rdb batch insert retry count: %{public}d, ret: %{public}d", retryCnt, ret);
+    } while (retryCnt < RETRY_TIMES);
+    return ret == NativeRdb::E_OK;
+}
+
 bool InsightIntentRdbDataMgr::UpdateData(const std::string &key, const std::string &value)
 {
     TAG_LOGD(AAFwkTag::INTENT, "UpdateData start");

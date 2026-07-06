@@ -33,6 +33,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 constexpr const char* INSIGHT_INTENT_SYS_EVENT_RECERVER = "InsightIntentSysEventReceiver";
 const int32_t MAIN_USER_ID = 100;
+const int32_t INTENT_PARSE_CONCURRENCY = 4;
 
 InsightIntentSysEventReceiver::InsightIntentSysEventReceiver(const EventFwk::CommonEventSubscribeInfo &subscribeInfo)
     : EventFwk::CommonEventSubscriber(subscribeInfo)
@@ -99,6 +100,114 @@ bool InsightIntentSysEventReceiver::SaveInsightIntentInfos(const std::string &bu
     return anySaved;
 }
 
+bool InsightIntentSysEventReceiver::ParseInsightIntentInfos(const std::string &bundleName,
+    const std::string &moduleName, uint32_t versionCode, int32_t userId, IntentModuleStorageData &out)
+{
+    std::string profile;
+    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null bundleMgrHelper");
+        return false;
+    }
+    ErrCode ret = IN_PROCESS_CALL(bundleMgrHelper->GetJsonProfile(AppExecFwk::INTENT_PROFILE,
+        bundleName, moduleName, profile, userId));
+    if (ret != ERR_OK) {
+        TAG_LOGW(AAFwkTag::INTENT, "GetJsonProfile failed, code: %{public}d", ret);
+        if (DelayedSingleton<InsightIntentDbCache>::GetInstance()->HasBundleCache(bundleName)) {
+            DeleteInsightIntent(bundleName, moduleName, userId);
+        }
+        return false;
+    }
+    bool extractFailed = (!AbilityRuntime::ExtractInsightIntentProfile::TransformTo(
+        profile, out.profileInfos) || out.profileInfos.insightIntents.size() == 0);
+    bool configFailed = (!AbilityRuntime::InsightIntentProfile::TransformTo(
+        profile, out.configInfos) || out.configInfos.size() == 0);
+    if (extractFailed && configFailed) {
+        TAG_LOGW(AAFwkTag::INTENT, "transform profile failed, bundle:%{public}s module:%{public}s",
+            bundleName.c_str(), moduleName.c_str());
+        DeleteInsightIntent(bundleName, moduleName, userId);
+        return false;
+    }
+    out.moduleName = moduleName;
+    return true;
+}
+
+void InsightIntentSysEventReceiver::ParseBundleModulesParallel(
+    const AppExecFwk::BundleInfo &bundleInfo, int32_t userId,
+    std::vector<IntentModuleStorageData> &outModules)
+{
+    const auto &haps = bundleInfo.hapModuleInfos;
+    if (haps.empty()) {
+        return;
+    }
+    auto parseStart = std::chrono::steady_clock::now();
+    std::vector<IntentModuleStorageData> results(haps.size());
+    std::vector<bool> ok(haps.size(), false);
+    std::vector<AAFwk::TaskHandle> handles(haps.size());
+    for (size_t i = 0; i < haps.size(); ++i) {
+        handles[i] = parsePool_->SubmitTask([&, i]() {
+            ok[i] = ParseInsightIntentInfos(bundleInfo.name, haps[i].moduleName,
+                bundleInfo.versionCode, userId, results[i]);
+        }, "Parse-" + bundleInfo.name + "-" + std::to_string(i));
+    }
+    for (auto &h : handles) {
+        h.Sync();
+    }
+    for (size_t i = 0; i < results.size(); ++i) {
+        if (ok[i]) {
+            outModules.push_back(std::move(results[i]));
+        }
+    }
+    auto parseMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - parseStart).count();
+    TAG_LOGI(AAFwkTag::INTENT, "[CRRR] parallel parse done, bundle:%{public}s haps:%{public}zu "
+        "ok:%{public}zu elapsed: %{public}lld ms", bundleInfo.name.c_str(), haps.size(),
+        outModules.size(), static_cast<long long>(parseMs));
+}
+
+void InsightIntentSysEventReceiver::CollectNewBundles(
+    const std::vector<AppExecFwk::BundleInfo> &bundleInfos, int32_t userId,
+    std::vector<std::pair<std::string, uint32_t>> &newBundles)
+{
+    auto scanStart = std::chrono::steady_clock::now();
+    int32_t hitCacheCount = 0;
+    int32_t reparseCount = 0;
+    for (auto &bundleInfo : bundleInfos) {
+        bool rdbHas = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->
+            HasInsightIntentByName(bundleInfo.versionCode, bundleInfo.name, userId);
+        if (rdbHas) {
+            newBundles.emplace_back(bundleInfo.name, bundleInfo.versionCode);
+            ++hitCacheCount;
+            continue;
+        }
+        std::vector<IntentModuleStorageData> modules;
+        ParseBundleModulesParallel(bundleInfo, userId, modules);
+        if (modules.empty()) {
+            continue;
+        }
+        auto saveStart = std::chrono::steady_clock::now();
+        int32_t ret = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->
+            SaveBundleInsightIntentTotalInfo(bundleInfo.name, userId, bundleInfo.versionCode, modules);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "SaveBundleInsightIntentTotalInfo failed, bundle:%{public}s",
+                bundleInfo.name.c_str());
+            continue;
+        }
+        newBundles.emplace_back(bundleInfo.name, bundleInfo.versionCode);
+        ++reparseCount;
+        auto saveMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now() - saveStart).count();
+        TAG_LOGI(AAFwkTag::INTENT, "[CRRR] bundle batch save done, bundle:%{public}s modules:%{public}zu "
+            "elapsed: %{public}lld ms", bundleInfo.name.c_str(), modules.size(),
+            static_cast<long long>(saveMs));
+    }
+    auto scanMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - scanStart).count();
+    TAG_LOGI(AAFwkTag::INTENT, "[CRRR] scan bundles done, total:%{public}zu cache-hit:%{public}d "
+        "reparse:%{public}d elapsed: %{public}lld ms", bundleInfos.size(), hitCacheCount, reparseCount,
+        static_cast<long long>(scanMs));
+}
+
 void InsightIntentSysEventReceiver::RegisterAllFunctions(
     const std::vector<std::pair<std::string, uint32_t>> &newBundles,
     const std::vector<ExtractInsightIntentInfo> &allIntentInfos,
@@ -155,24 +264,44 @@ int32_t InsightIntentSysEventReceiver::ResolveLoadUserId(int32_t userId)
 void InsightIntentSysEventReceiver::BackupAndScheduleRegister(
     std::vector<std::pair<std::string, uint32_t>> &&newBundles, int32_t userId)
 {
+    auto backupStart = std::chrono::steady_clock::now();
     DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->BackupRdb();
+    auto backupMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - backupStart).count();
+    TAG_LOGI(AAFwkTag::INTENT, "[CRRR] BackupRdb done, elapsed: %{public}lld ms",
+        static_cast<long long>(backupMs));
     auto self = shared_from_this();
     auto task = [self, newBundles = std::move(newBundles), userId]() {
+        auto registerStart = std::chrono::steady_clock::now();
         std::vector<ExtractInsightIntentInfo> allIntentInfos;
         std::vector<InsightIntentInfo> allConfigInfos;
         DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetAllInsightIntentInfoForRegister(
             userId, allIntentInfos, allConfigInfos);
-        TAG_LOGI(AAFwkTag::INTENT, "GetAllForRegister done, intent:%{public}zu config:%{public}zu bundles:%{public}zu",
-            allIntentInfos.size(), allConfigInfos.size(), newBundles.size());
+        TAG_LOGI(AAFwkTag::INTENT, "[CRRR] GetAllForRegister done, intent:%{public}zu config:%{public}zu "
+            "bundles:%{public}zu", allIntentInfos.size(), allConfigInfos.size(), newBundles.size());
         self->RegisterAllFunctions(newBundles, allIntentInfos, allConfigInfos);
+        auto now = std::chrono::steady_clock::now();
+        auto totalMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+            now - self->bootReceiveTime_).count();
+        auto registerMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+            now - registerStart).count();
+        TAG_LOGI(AAFwkTag::INTENT, "[CRRR] register done, elapsed: %{public}lld ms, "
+            "BUNDLE_SCAN_FINISHED total elapsed: %{public}lld ms",
+            static_cast<long long>(registerMs), static_cast<long long>(totalMs));
     };
     ffrt::submit(task);
 }
 
 void InsightIntentSysEventReceiver::LoadInsightIntentInfos(int32_t userId)
 {
+    auto loadStart = std::chrono::steady_clock::now();
     userId = ResolveLoadUserId(userId);
+    auto initStart = std::chrono::steady_clock::now();
     DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->InitInsightIntentCache(userId);
+    auto initMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - initStart).count();
+    TAG_LOGI(AAFwkTag::INTENT, "[CRRR] InitInsightIntentCache done, userId:%{public}d elapsed: %{public}lld ms",
+        userId, static_cast<long long>(initMs));
 
     auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
     if (bundleMgrHelper == nullptr) {
@@ -180,6 +309,7 @@ void InsightIntentSysEventReceiver::LoadInsightIntentInfos(int32_t userId)
         return;
     }
 
+    auto queryStart = std::chrono::steady_clock::now();
     std::vector<AppExecFwk::BundleInfo> bundleInfos {};
     if (IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfosV9(
         static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE),
@@ -187,27 +317,20 @@ void InsightIntentSysEventReceiver::LoadInsightIntentInfos(int32_t userId)
         TAG_LOGE(AAFwkTag::INTENT, "get bundle info failed");
         return;
     }
+    auto queryMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - queryStart).count();
+    TAG_LOGI(AAFwkTag::INTENT, "[CRRR] GetBundleInfosV9 done, count:%{public}zu elapsed: %{public}lld ms",
+        bundleInfos.size(), static_cast<long long>(queryMs));
 
     std::vector<std::pair<std::string, uint32_t>> newBundles;
-    for (auto &bundleInfo : bundleInfos) {
-        bool rdbHas = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->
-            HasInsightIntentByName(bundleInfo.versionCode, bundleInfo.name, userId);
-        if (rdbHas) {
-            newBundles.emplace_back(bundleInfo.name, bundleInfo.versionCode);
-            continue;
-        }
-        bool anySaved = false;
-        for (const auto &hapInfo : bundleInfo.hapModuleInfos) {
-            anySaved = SaveInsightIntentInfos(bundleInfo.name, hapInfo.moduleName,
-                bundleInfo.versionCode, userId) || anySaved;
-        }
-        if (anySaved) {
-            newBundles.emplace_back(bundleInfo.name, bundleInfo.versionCode);
-        }
-    }
+    CollectNewBundles(bundleInfos, userId, newBundles);
     if (!newBundles.empty()) {
         BackupAndScheduleRegister(std::move(newBundles), userId);
     }
+    auto loadMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - loadStart).count();
+    TAG_LOGI(AAFwkTag::INTENT, "[CRRR] LoadInsightIntentInfos done, elapsed: %{public}lld ms",
+        static_cast<long long>(loadMs));
 }
 
 void InsightIntentSysEventReceiver::DeleteInsightIntentInfoByUserId(int32_t userId)
@@ -225,7 +348,17 @@ void InsightIntentSysEventReceiver::DeleteInsightIntentInfoByUserId(int32_t user
 void InsightIntentSysEventReceiver::HandleBundleScanFinished()
 {
     auto task = [self = shared_from_this()]() {
+        auto taskStart = std::chrono::steady_clock::now();
+        auto delayMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+            taskStart - self->bootReceiveTime_).count();
+        TAG_LOGI(AAFwkTag::INTENT, "[CRRR] HandleBundleScanFinished task start, "
+            "ffrt delay from receive: %{public}lld ms", static_cast<long long>(delayMs));
         self->LoadInsightIntentInfos();
+        auto loadDoneMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now() - self->bootReceiveTime_).count();
+        TAG_LOGI(AAFwkTag::INTENT,
+            "[CRRR] HandleBundleScanFinished load done, total elapsed: %{public}lld ms",
+            static_cast<long long>(loadDoneMs));
     };
     ffrt::submit(task);
 }
@@ -282,6 +415,8 @@ void InsightIntentSysEventReceiver::OnReceiveEvent(const EventFwk::CommonEventDa
     TAG_LOGI(AAFwkTag::INTENT, "the action: %{public}s", action.c_str());
 
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_BUNDLE_SCAN_FINISHED) {
+        bootReceiveTime_ = std::chrono::steady_clock::now();
+        TAG_LOGI(AAFwkTag::INTENT, "[CRRR] BUNDLE_SCAN_FINISHED received, boot timing start");
         HandleBundleScanFinished();
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED) {
         HandleUserSwitched(data);
