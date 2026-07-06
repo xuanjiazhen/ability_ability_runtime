@@ -37,6 +37,7 @@ std::map<int64_t, std::shared_ptr<CJAbilityMonitor>> g_monitorRecord;
 std::map<int64_t, std::shared_ptr<CJAbilityStageMonitor>> g_stageMonitorRecord;
 std::map<int64_t, sptr<OHOS::IRemoteObject>> g_abilityRecord;
 std::mutex g_mutexAbilityRecord;
+std::mutex g_mtxMonitorRecord;
 std::mutex g_mtxStageMonitorRecord;
 
 CJAbilityDelegator::CJAbilityDelegator(const std::shared_ptr<AppExecFwk::CJAbilityDelegatorImpl>& abilityDelegator)
@@ -216,11 +217,14 @@ void CJAbilityDelegator::FinishTest(const char* msg, int64_t code)
 std::shared_ptr<CJAbilityMonitor> ParseMonitorPara(
     int64_t monitorId, const std::string& abilityName, const std::string& moduleName, bool& isExisted)
 {
-    for (auto iter = g_monitorRecord.begin(); iter != g_monitorRecord.end(); ++iter) {
-        if (iter->first == monitorId) {
-            TAG_LOGE(AAFwkTag::DELEGATOR, "monitor existed");
-            isExisted = true;
-            return iter->second;
+    {
+        std::unique_lock<std::mutex> lck(g_mtxMonitorRecord);
+        for (auto iter = g_monitorRecord.begin(); iter != g_monitorRecord.end(); ++iter) {
+            if (iter->first == monitorId) {
+                TAG_LOGE(AAFwkTag::DELEGATOR, "monitor existed");
+                isExisted = true;
+                return iter->second;
+            }
         }
     }
 
@@ -406,6 +410,7 @@ int32_t FFIAbilityDelegatorAddAbilityMonitor(
     }
 
     if (!isExisted) {
+        std::unique_lock<std::mutex> lck(g_mtxMonitorRecord);
         g_monitorRecord.emplace(monitorId, cjMonitor);
     }
     cjDelegator->AddAbilityMonitor(cjMonitor);
@@ -428,6 +433,7 @@ int32_t FFIAbilityDelegatorRemoveAbilityMonitor(
     }
 
     if (isExisted) {
+        std::unique_lock<std::mutex> lck(g_mtxMonitorRecord);
         for (auto iter = g_monitorRecord.begin(); iter != g_monitorRecord.end(); ++iter) {
             if (iter->first == monitorId) {
                 g_monitorRecord.erase(iter);
@@ -464,6 +470,7 @@ int32_t FFIAbilityDelegatorWaitAbilityMonitor(
     }
 
     if (!isExisted) {
+        std::unique_lock<std::mutex> lck(g_mtxMonitorRecord);
         g_monitorRecord.emplace(monitorId, cjMonitor);
     }
 
@@ -507,6 +514,7 @@ int32_t FFIAbilityDelegatorWaitAbilityMonitorWithTimeout(
     }
 
     if (!isExisted) {
+        std::unique_lock<std::mutex> lck(g_mtxMonitorRecord);
         g_monitorRecord.emplace(monitorId, cjMonitor);
     }
 
