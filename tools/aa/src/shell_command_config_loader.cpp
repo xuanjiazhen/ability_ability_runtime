@@ -56,17 +56,10 @@ bool ShellCommandConfigLoader::ReadConfig(const std::string &filePath)
         return false;
     }
 
-    json aaJson;
-    try {
-        inFile >> aaJson;
-    } catch (const json::exception& e) {
-        TAG_LOGE(AAFwkTag::AA_TOOL, "JSON parse error: %{public}s", e.what());
-        inFile.close();
-        return false;
-    }
+    json aaJson = json::parse(inFile, nullptr, false);
     inFile.close();
     if (aaJson.is_discarded()) {
-        TAG_LOGI(AAFwkTag::AA_TOOL, "json discarded error");
+        TAG_LOGE(AAFwkTag::AA_TOOL, "JSON parse error");
         return false;
     }
 

@@ -88,8 +88,7 @@ bool ShellCommandExecutor::DoWork()
         return false;
     }
 
-    auto self(shared_from_this());
-    handler_->PostTask([this, self]() {
+    handler_->PostTask([this, self = shared_from_this()]() {
         TAG_LOGI(AAFwkTag::AA_TOOL, "DoWork task begin, cmd: \"%{public}s\"", cmd_.data());
 
         FILE* file = popen(cmd_.c_str(), "r");

@@ -32,15 +32,15 @@ extern "C" {
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetAbilityInstanceId(
     const AbilityRuntime_NativeAbilityWrapper* nativeAbilityWrapper, char* buffer, const int32_t bufferSize)
 {
-    constexpr int32_t MIN_BUFFER_SIZE = 37; // UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx + '\0'
+    constexpr int32_t minBufferSize = 37; // UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx + '\0'
     if (nativeAbilityWrapper == nullptr || buffer == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "Invalid parameter: nativeAbilityWrapper or buffer is null");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
 
-    if (bufferSize < MIN_BUFFER_SIZE) {
+    if (bufferSize < minBufferSize) {
         TAG_LOGE(AAFwkTag::APPKIT, "Invalid parameter: bufferSize %{public}d is less than %{public}d",
-            bufferSize, MIN_BUFFER_SIZE);
+            bufferSize, minBufferSize);
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
 
