@@ -177,6 +177,8 @@ private:
     int32_t InnerApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool isSet, bool flag);
     int32_t GetAbilityInfo(const AutoStartupInfo &info, AutoStartupAbilityData &abilityData);
     int32_t CheckHiddenStartConditions(bool isHiddenStart, const AutoStartupAbilityData &abilityData);
+    int32_t CheckPermissionForSystem(int32_t userId = -1);
+    int32_t CheckPermissionForEDM(int32_t userId = -1);
     void GetCallbackVector(std::vector<sptr<IRemoteObject>>& callbackVector);
 
     mutable std::mutex autoStartUpMutex_;
