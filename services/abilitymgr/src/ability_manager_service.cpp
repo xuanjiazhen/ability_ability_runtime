@@ -11538,6 +11538,11 @@ int AbilityManagerService::StartUserTest(const Want &want, const sptr<IRemoteObj
     CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want),
         GetValidUserId(DEFAULT_INVAL_VALUE)), RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
 #endif
+    std::string testAppCloneKey = "-s " + Want::PARAM_APP_CLONE_INDEX_KEY;
+    if (want.HasParameter(testAppCloneKey)) {
+        const_cast<Want &>(want).SetParam(Want::PARAM_APP_CLONE_INDEX_KEY,
+            atoi(want.GetStringParam(testAppCloneKey).c_str()));
+    }
     int32_t appIndex = 0;
     if (!StartAbilityUtils::GetAppIndex(want, nullptr, appIndex) || appIndex != 0) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Not support app clone");
