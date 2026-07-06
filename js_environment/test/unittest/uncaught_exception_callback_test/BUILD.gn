@@ -31,6 +31,7 @@ ohos_unittest("uncaught_exception_callback_test") {
     "eventhandler:libeventhandler",
     "faultloggerd:libasync_stack",
     "faultloggerd:libunwinder",
+    "faultloggerd:libdfx_util",
     "ffrt:libffrt",
     "googletest:gmock_main",
     "googletest:gtest_main",
