@@ -6442,7 +6442,8 @@ void AppMgrServiceInner::OnRemoteDied(const wptr<IRemoteObject> &remote, bool is
     SendProcessKillEvent(appRecord);
     AppExecFwk::AppfreezeManager::GetInstance()->ReportAppFreezeSysEvents(appRecord->GetPid(),
         appRecord->GetBundleName());
-    AppExecFwk::AppfreezeManager::GetInstance()->RemoveDeathProcess(appRecord->GetBundleName());
+    AppExecFwk::AppfreezeManager::GetInstance()->RemoveDeathProcess(
+        appRecord->GetPid(), appRecord->GetUid(), appRecord->GetBundleName());
     std::vector<sptr<IRemoteObject>> abilityTokens;
     for (const auto &token : appRecord->GetAbilities()) {
         abilityTokens.emplace_back(token.first);
@@ -9513,28 +9514,28 @@ int32_t AppMgrServiceInner::NotifyAppFaultBySA(const AppFaultDataBySA &faultData
 bool AppMgrServiceInner::SetAppFreezeFilter(int32_t pid)
 {
     int32_t callingPid = IPCSkeleton::GetCallingPid();
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
     auto callerRecord = GetAppRunningRecordByPid(pid);
     if (callerRecord == nullptr) {
         TAG_LOGW(AAFwkTag::APPMGR, "callerRecord null");
         return false;
     }
+    int32_t recordUid = callerRecord->GetUid();
     std::string bundleName = callerRecord->GetBundleName();
-    if (callingPid == pid && AppExecFwk::AppfreezeManager::GetInstance()->IsValidFreezeFilter(pid, bundleName)) {
-        bool result = AppExecFwk::AppfreezeManager::GetInstance()->CancelAppFreezeDetect(pid, bundleName);
-        if (result) {
-            auto resetAppfreezeTask = [pid, bundleName]() {
-                AppExecFwk::AppfreezeManager::GetInstance()->ResetAppfreezeState(pid, bundleName);
-            };
-            constexpr int32_t waitTime = 120000; // wait 2min
-            CHECK_POINTER_AND_RETURN_VALUE(dfxTaskHandler_, false);
-            dfxTaskHandler_->SubmitTaskJust(resetAppfreezeTask, "resetAppfreezeTask", waitTime);
-        }
-        TAG_LOGW(AAFwkTag::APPDFR, "SetAppFreezeFilter: %{public}d, bundleName=%{public}s, pid:%{public}d, ",
-            result, bundleName.c_str(), pid);
+    constexpr int32_t waitTime = 120000; // wait 2min
+    if (callingPid == pid && callingUid == recordUid &&
+        AppExecFwk::AppfreezeManager::GetInstance()->IsValidFreezeFilter(pid, callingUid, bundleName)) {
+        bool result = AppExecFwk::AppfreezeManager::GetInstance()->CancelAppFreezeDetect(pid, callingUid,
+            bundleName, waitTime);
+        TAG_LOGW(AAFwkTag::APPDFR,
+            "SetAppFreezeFilter: %{public}d, bundleName=%{public}s, pid:%{public}d, callingUid:%{public}d"
+            ", recordUid:%{public}d",
+            result, bundleName.c_str(), pid, callingUid, recordUid);
         return result;
     }
     TAG_LOGE(AAFwkTag::APPDFR, "SetAppFreezeFilter: failed, pid %{public}d calling pid %{public}d "
-        "bundleName %{public}s", pid, callingPid, bundleName.c_str());
+        "bundleName %{public}s, callingUid:%{public}d, recordUid:%{public}d",
+        pid, callingPid, bundleName.c_str(), callingUid, recordUid);
     return false;
 }
 
