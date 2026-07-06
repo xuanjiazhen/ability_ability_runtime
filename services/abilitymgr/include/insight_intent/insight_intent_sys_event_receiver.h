@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_INSIGHT_INTENT_SYS_EVENT_RECEIVER_H
 #define OHOS_ABILITY_RUNTIME_INSIGHT_INTENT_SYS_EVENT_RECEIVER_H
 
+#include <chrono>
 #include <utility>
 #include <vector>
 
@@ -25,6 +26,7 @@
 #include "extract_insight_intent_profile.h"
 #include "insight_intent_profile.h"
 #include "task_handler_wrap.h"
+#include "bundle_info.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -38,6 +40,8 @@ public:
 private:
     bool SaveInsightIntentInfos(const std::string &bundleName, const std::string &moduleName,
         uint32_t versionCode, int32_t userId);
+    void CollectNewBundles(const std::vector<AppExecFwk::BundleInfo> &bundleInfos, int32_t userId,
+        std::vector<std::pair<std::string, uint32_t>> &newBundles);
     void RegisterAllFunctions(const std::vector<std::pair<std::string, uint32_t>> &newBundles,
         const std::vector<ExtractInsightIntentInfo> &allIntentInfos,
         const std::vector<InsightIntentInfo> &allConfigInfos);
@@ -52,6 +56,7 @@ private:
 
     int32_t lastUserId_ = 0;
     std::mutex userIdMutex_;
+    std::chrono::steady_clock::time_point bootReceiveTime_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
