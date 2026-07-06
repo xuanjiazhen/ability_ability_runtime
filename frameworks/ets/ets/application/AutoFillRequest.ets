@@ -25,6 +25,7 @@ export interface FillRequest {
   customData: CustomData;
   isPopup: boolean;
   triggerType?: AutoFillTriggerType;
+  customConfig?: AutoFillCustomConfig;
 }
 export interface SaveRequest {
   viewData: ViewData;
@@ -49,12 +50,23 @@ export interface FillFailureResult {
   errCode: int;
 }
 
+export interface AutoFillCustomConfig {
+  frameNodeId: int;
+  popupOffset: PopupOffset;
+}
+
+export interface PopupOffset {
+  deltaX: double;
+  deltaY: double;
+}
+
 class FillRequestInner implements FillRequest {
   public type: AutoFillType = AutoFillType.UNSPECIFIED;
   public viewData!: ViewData;
   public customData: CustomData = {data: {}};
   public isPopup: boolean;
   public triggerType?: AutoFillTriggerType;
+  public customConfig?: AutoFillCustomConfig;
 }
 class SaveRequestInner implements SaveRequest {
   public viewData!: ViewData;
@@ -67,6 +79,16 @@ class FillResponseInner implements FillResponse {
 }
 class FillFailureResultInner implements FillFailureResult {
   public errCode: int;
+}
+
+class AutoFillCustomConfigInner implements AutoFillCustomConfig {
+  frameNodeId: int;
+  popupOffset!: PopupOffset;
+}
+
+class PopupOffsetInner implements PopupOffset {
+  deltaX: double;
+  deltaY: double;
 }
 
 export class Cleaner {
