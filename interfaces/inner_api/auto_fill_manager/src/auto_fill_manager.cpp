@@ -36,7 +36,7 @@ constexpr static char WANT_PARAMS_EXTENSION_TYPE_KEY[] = "ability.want.params.ui
 constexpr static char WANT_PARAMS_AUTO_FILL_TYPE_KEY[] = "ability.want.params.AutoFillType";
 constexpr static char AUTO_FILL_MANAGER_THREAD[] = "AutoFillManager";
 constexpr static uint32_t AUTO_FILL_REQUEST_TIME_OUT_VALUE = 1000;
-constexpr static uint32_t AUTO_FILL_UI_EXTENSION_SESSION_ID_INVALID = 0;
+constexpr static uint32_t AUTO_FILL_UI_EXTENSION_SESSION_ID_INVALID = -1;
 constexpr static uint32_t MILL_TO_MICRO = 1000;
 constexpr static char WANT_PARAMS_AUTO_FILL_TRIGGER_TYPE_KEY[] = "ability.want.params.AutoFillTriggerType";
 #endif //SUPPORT_GRAPHICS
@@ -188,6 +188,11 @@ int32_t AutoFillManager::CreateAutoFillExtension(Ace::UIContent *uiContent,
     const AutoFill::AutoFillWindowType &autoFillWindowType,
     bool isSmartAutoFill)
 {
+    TAG_LOGI(AAFwkTag::AUTOFILLMGR, "testTag request.config.nodeId: %{public}d", request.config.nodeId);
+    TAG_LOGI(AAFwkTag::AUTOFILLMGR, "testTag request.config.targetOffset.deltaX: %{public}f", 
+        request.config.targetOffset.deltaX);
+    TAG_LOGI(AAFwkTag::AUTOFILLMGR, "testTag request.config.targetOffset.deltaY: %{public}f", 
+        request.config.targetOffset.deltaY);
     int32_t sessionId = AUTO_FILL_UI_EXTENSION_SESSION_ID_INVALID;
     if (uiContent == nullptr) {
         TAG_LOGE(AAFwkTag::AUTOFILLMGR, "null uiContent");
