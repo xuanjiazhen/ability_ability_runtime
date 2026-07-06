@@ -9519,13 +9519,13 @@ bool AppMgrServiceInner::SetAppFreezeFilter(int32_t pid)
         return false;
     }
     std::string bundleName = callerRecord->GetBundleName();
+    constexpr int32_t waitTime = 120000; // wait 2min
     if (callingPid == pid && AppExecFwk::AppfreezeManager::GetInstance()->IsValidFreezeFilter(pid, bundleName)) {
         bool result = AppExecFwk::AppfreezeManager::GetInstance()->CancelAppFreezeDetect(pid, bundleName);
         if (result) {
             auto resetAppfreezeTask = [pid, bundleName]() {
                 AppExecFwk::AppfreezeManager::GetInstance()->ResetAppfreezeState(pid, bundleName);
             };
-            constexpr int32_t waitTime = 120000; // wait 2min
             CHECK_POINTER_AND_RETURN_VALUE(dfxTaskHandler_, false);
             dfxTaskHandler_->SubmitTaskJust(resetAppfreezeTask, "resetAppfreezeTask", waitTime);
         }
