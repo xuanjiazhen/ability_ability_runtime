@@ -80,6 +80,17 @@ int32_t KioskManager::UpdateKioskApplicationList(const std::vector<std::string> 
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not MANAGE_EDM_POLICY permission");
         return CHECK_PERMISSION_FAILED;
     }
+
+    // 先调用系统服务更新白名单（可能失败）
+    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+    CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, INNER_ERR, "sceneSessionManager is nullptr");
+    auto ret = sceneSessionManager->UpdateKioskAppList(appList);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "UpdateKioskAppList failed: %{public}d", ret);
+        return ret;
+    }
+
+    // 系统服务更新成功后，再更新本地白名单
     bool needExit = false;
     std::string exitBundleName;
     sptr<IRemoteObject> exitToken;
@@ -93,23 +104,16 @@ int32_t KioskManager::UpdateKioskApplicationList(const std::vector<std::string> 
                 exitToken = kioskStatus_.kioskToken_;
             }
         }
-    }
-    if (needExit) {
-        auto ret = ExitKioskModeInner(exitBundleName, exitToken, true);
-        if (ret != ERR_OK) {
-            return ret;
-        }
-    }
-    {
-        std::lock_guard<std::mutex> lock(kioskManagerMutex_);
+        // IPC 成功后才更新本地白名单
         whitelist_.clear();
         for (const auto &app : appList) {
             whitelist_.insert(app);
         }
     }
-    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
-    CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, INNER_ERR, "sceneSessionManager is nullptr");
-    sceneSessionManager->UpdateKioskAppList(appList);
+
+    if (needExit) {
+        return ExitKioskModeInner(exitBundleName, exitToken, true);
+    }
     return ERR_OK;
 }
 
@@ -172,6 +176,8 @@ int32_t KioskManager::ExitKioskModeInner(const std::string &bundleName, sptr<IRe
 {
     std::string outBundleName;
     int32_t outUid = 0;
+
+    // 第一次加锁：验证并保存状态，不 Clear
     {
         std::lock_guard<std::mutex> lock(kioskManagerMutex_);
         if (!IsInWhiteListInner(bundleName)) {
@@ -183,19 +189,41 @@ int32_t KioskManager::ExitKioskModeInner(const std::string &bundleName, sptr<IRe
         }
 
         if (!isFoundation && kioskStatus_.kioskBundleUid_ != IPCSkeleton::GetCallingUid()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleName %{public}s is not the currently kiosk app", bundleName.c_str());
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleName %{public}s is not the currently kiosk app", bundleName.c_str());
             return ERR_NOT_IN_KIOSK_MODE;
         }
 
         outBundleName = kioskStatus_.kioskBundleName_;
         outUid = kioskStatus_.kioskBundleUid_;
-        kioskStatus_.Clear();
+        // 不在这里 Clear()，等 IPC 成功后再清空
     }
+
+    // 锁外执行耗时操作（回调、通知、IPC）
     GetExitKioskModeCallback()();
     NotifyKioskModeChanged(false, outBundleName, outUid);
     auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
     CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, INNER_ERR, "sceneSessionManager is nullptr");
-    sceneSessionManager->ExitKioskMode(callerToken);
+
+    auto ret = sceneSessionManager->ExitKioskMode(callerToken);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ExitKioskMode IPC failed: %{public}d", ret);
+        // IPC 失败，状态保持不变，允许重试
+        return ret;
+    }
+
+    // IPC 成功，第二次加锁清空状态
+    {
+        std::lock_guard<std::mutex> lock(kioskManagerMutex_);
+        // 验证状态未被其他线程修改（正常情况下不应该发生）
+        if (kioskStatus_.isKioskMode_ && kioskStatus_.kioskBundleName_ == outBundleName) {
+            kioskStatus_.Clear();
+        } else {
+            // 状态已被其他线程修改，记录日志但不报错
+            // 可能情况：其他线程已经重新进入 Kiosk 模式，或已经退出
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "Kiosk status changed during exit, bundleName: %{public}s",
+                outBundleName.c_str());
+        }
+    }
     return ERR_OK;
 }
 

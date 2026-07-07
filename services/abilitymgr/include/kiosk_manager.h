@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_KIOSK_MANAGER_H
 
 #include <mutex>
+#include <shared_mutex>
 #include <string>
 #include <unordered_set>
 #include <vector>
