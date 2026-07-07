@@ -616,14 +616,6 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_AppTelemetryObject_0
     GTEST_LOG_(INFO) << "ApplicationDataManager_AppTelemetryObject_001 end";
 }
 
-1、增加主线程栈； done
-2、allocator名字修改、
-3、合并一些heap_impl
-4、用不到的拷贝构造删掉
-
-@allocatior/heap_impl.cpp 有heap_impl类，这个类起到什么作用了吗？评估一下是否可以将其移除？
-
-
 /**
 * @tc.number: ApplicationDataManager_ParseGpuHookSize_001
 * @tc.name: ApplicationDataManager ParseGpuHookSize EmptyString
