@@ -49,7 +49,7 @@ void KioskManager::OnAppStop(const AppInfo &info)
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "App stop, bundleName: %{public}s, state: %{public}d",
         info.bundleName.c_str(), static_cast<int32_t>(info.state));
-    std::lock_guard<std::mutex> lock(kioskManagermutex_);
+    std::lock_guard<std::mutex> lock(kioskManagerMutex_);
     if (IsInKioskModeInner() && (info.bundleName == kioskStatus_.kioskBundleName_)) {
         ExitKioskModeInner(info.bundleName, kioskStatus_.kioskToken_, true);
     }
@@ -108,7 +108,7 @@ int32_t KioskManager::EnterKioskMode(sptr<IRemoteObject> callerToken)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "The application is not in the foreground !");
         return ERR_APP_NOT_IN_FOCUS;
     }
-    std::lock_guard<std::mutex> lock(kioskManagermutex_);
+    std::lock_guard<std::mutex> lock(kioskManagerMutex_);
     if (!IsInWhiteListInner(bundleName)) {
         return ERR_KIOSK_MODE_NOT_IN_WHITELIST;
     }
@@ -140,7 +140,7 @@ int32_t KioskManager::ExitKioskMode(sptr<IRemoteObject> callerToken, bool isFoun
         TAG_LOGE(AAFwkTag::ABILITYMGR, "record null");
         return INVALID_PARAMETERS_ERR;
     }
-    std::lock_guard<std::mutex> lock(kioskManagermutex_);
+    std::lock_guard<std::mutex> lock(kioskManagerMutex_);
     return ExitKioskModeInner(record->GetAbilityInfo().bundleName, callerToken, isFoundation);
 }
 
@@ -182,7 +182,7 @@ int32_t KioskManager::GetKioskStatus(KioskStatus &kioskStatus)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "permission deny");
         return ERR_NOT_SYSTEM_APP;
     }
-    std::lock_guard<std::mutex> lock(kioskManagermutex_);
+    std::lock_guard<std::mutex> lock(kioskManagerMutex_);
     kioskStatus = kioskStatus_;
     return ERR_OK;
 }
@@ -215,13 +215,13 @@ void KioskManager::FilterAbilityInfos(std::vector<AppExecFwk::AbilityInfo> &abil
 
 bool KioskManager::IsInKioskMode()
 {
-    std::lock_guard<std::mutex> lock(kioskManagermutex_);
+    std::lock_guard<std::mutex> lock(kioskManagerMutex_);
     return IsInKioskModeInner();
 }
 
 bool KioskManager::IsInWhiteList(const std::string &bundleName)
 {
-    std::lock_guard<std::mutex> lock(kioskManagermutex_);
+    std::lock_guard<std::mutex> lock(kioskManagerMutex_);
     return IsInWhiteListInner(bundleName);
 }
 

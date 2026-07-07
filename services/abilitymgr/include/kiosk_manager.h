@@ -59,7 +59,7 @@ private:
 
     std::unordered_set<std::string> whitelist_;
     KioskStatus kioskStatus_;
-    std::mutex kioskManagermutex_;
+    std::mutex kioskManagerMutex_;
 };
 } // namespace AAFwk
 } // namespace OHOS
