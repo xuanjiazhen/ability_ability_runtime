@@ -24,8 +24,9 @@
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
-    constexpr size_t STACK_MAX_SZIE = 1024;
-    constexpr size_t AT_SKIP_SZIE = 3;
+    
+    constexpr size_t STACK_MAX_SIZE = 1024;
+    constexpr size_t AT_SKIP_SIZE = 3;
     constexpr const char* TASK_POOL_THREAD = "Taskpool Thread";
     constexpr const char *RSRC_OBSV_PATH = "/data/storage/el2/base/cache/rawheap";
     constexpr const char *RSRC_OBSV_XATTR = "user.resource_observer";
@@ -165,14 +166,14 @@ std::string ApplicationDataManager::GetFuncNameFromError(napi_env env, napi_valu
     }
 
     napi_value stack;
-    if (napi_get_named_property(env, error, "stack", &stack) != napi_ok ||stack == nullptr) {
+    if (napi_get_named_property(env, error, "stack", &stack) != napi_ok || stack == nullptr) {
         return TASK_POOL_THREAD;
     }
 
     std::string rawStack;
     size_t rawStackSize = 0;
     napi_get_value_string_utf8(env, stack, nullptr, 0, &rawStackSize);
-    rawStackSize = std::min(rawStackSize, STACK_MAX_SZIE);
+    rawStackSize = std::min(rawStackSize, STACK_MAX_SIZE);
     rawStack.reserve(rawStackSize + 1);
     rawStack.resize(rawStackSize);
     napi_get_value_string_utf8(env, stack, rawStack.data(), rawStack.size() + 1, &rawStackSize);
@@ -185,7 +186,7 @@ std::string ApplicationDataManager::GetFuncNameFromError(napi_env env, napi_valu
     if (endPos == std::string::npos) {
         return TASK_POOL_THREAD;
     }
-    size_t startPos = pos + AT_SKIP_SZIE;
+    size_t startPos = pos + AT_SKIP_SIZE;
     if (endPos <= startPos + 1) {
         return TASK_POOL_THREAD;
     }
@@ -230,7 +231,7 @@ bool ApplicationDataManager::NotifyUncaughtException(const ExceptionParams &para
             }
             napi_valuetype valueType = napi_undefined;
             napi_typeof(napiEnv, valueStr, &valueType);
- 
+
             if (valueType == napi_string) {
                 size_t nameSize = 0;
                 napi_get_value_string_utf8(napiEnv, valueStr, nullptr, 0, &nameSize);
@@ -270,7 +271,6 @@ void ApplicationDataManager::RegisterHasOnErrorCallback(HasOnErrorCallback hasOn
     std::lock_guard<std::mutex> lock(hasOnErrorCallbackMutex_);
     hasOnErrorCallback_ = hasOnErrorCallback;
 }
-
 
 bool ApplicationDataManager::GetHasOnErrorCallback()
 {
@@ -322,7 +322,9 @@ bool ApplicationDataManager::WriteSandBoxXattr(RegisterResourceParams params)
     }
     return ret;
 }
- 
+
+GpuHookSize
+
 void ApplicationDataManager::NotifyAppTelemetry(AppTelemetryLeakType atLeakType)
 {
     std::lock_guard<std::mutex> lock(resourceMutex_);
@@ -330,10 +332,14 @@ void ApplicationDataManager::NotifyAppTelemetry(AppTelemetryLeakType atLeakType)
         TAG_LOGE(AAFwkTag::APPKIT, "resourceOverlimitCB_ is nullptr");
         return;
     }
-    AppTelemetryObject atObj {
+    AppTelemetryObject atObj{
         .atLeakType = atLeakType,
         .runningId = DFX_GetAppRunningUniqueId(),
+        .gpuHookSize = 
     };
+
+    LogGpuHookSize(atObj.gpuHookSize);
+
     TAG_LOGI(AAFwkTag::APPKIT, "start callback resource overlimit");
     resourceOverlimitCB_(atObj);
 }
@@ -353,7 +359,7 @@ void ApplicationDataManager::NotifyAppFault(const FaultData &faultData)
             .leakSize = faultData.leakObject.leakSize,
             .detailInfo = faultData.leakObject.detailInfo,
         };
-        NotifyLeakObject(leakObj);
+        NotifyLeakObject(leakObj, faultData.gpuHookSize);
         return;
     }
     ErrorObject faultErrorObj = {

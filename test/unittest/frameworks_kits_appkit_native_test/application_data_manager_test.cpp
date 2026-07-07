@@ -380,7 +380,7 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyAppTelemetry_0
 
     ApplicationDataManager::GetInstance().resourceOverlimitCB_ = nullptr;
 
-    ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_PSS);
+    ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_PSS, "");
 
     GTEST_LOG_(INFO) << "ApplicationDataManager_NotifyAppTelemetry_001 end";
 }
@@ -409,7 +409,7 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyAppTelemetry_0
     ApplicationDataManager::GetInstance().RegisterResourceObserver(
         params, callback);
 
-    ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_PSS);
+    ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_PSS, "");
 
     EXPECT_TRUE(gCallbackInvoked);
     EXPECT_EQ(gReceivedLeakType, ATLT_PSS);
@@ -441,7 +441,7 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyAppTelemetry_0
     ApplicationDataManager::GetInstance().RegisterResourceObserver(
         params, callback);
 
-    ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_GPU);
+    ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_GPU, "");
 
     EXPECT_TRUE(gCallbackInvoked);
     EXPECT_EQ(gReceivedLeakType, ATLT_GPU);
@@ -473,7 +473,7 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyAppTelemetry_0
     ApplicationDataManager::GetInstance().RegisterResourceObserver(
         params, callback);
 
-    ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_FD);
+    ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_FD, "");
 
     EXPECT_TRUE(gCallbackInvoked);
     EXPECT_EQ(gReceivedLeakType, ATLT_FD);
@@ -505,7 +505,7 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyAppTelemetry_0
     ApplicationDataManager::GetInstance().RegisterResourceObserver(
         params, callback);
 
-    ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_RSS_ARK_TS);
+    ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_RSS_ARK_TS, "");
 
     EXPECT_TRUE(gCallbackInvoked);
     EXPECT_EQ(gReceivedLeakType, ATLT_RSS_ARK_TS);
@@ -536,9 +536,9 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyAppTelemetry_0
     ApplicationDataManager::GetInstance().RegisterResourceObserver(
         params, callback);
 
-    ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_PSS);
-    ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_GPU);
-    ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_FD);
+    ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_PSS, "");
+    ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_GPU, "");
+    ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_FD, "");
 
     EXPECT_EQ(gCallbackCount, 3);
 
@@ -565,9 +565,9 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyAppTelemetry_0
     ApplicationDataManager::GetInstance().RegisterResourceObserver(
         params, callback);
 
-    std::thread t1([]() { ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_PSS); });
-    std::thread t2([]() { ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_PSS); });
-    std::thread t3([]() { ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_PSS); });
+    std::thread t1([]() { ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_PSS, ""); });
+    std::thread t2([]() { ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_PSS, ""); });
+    std::thread t3([]() { ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_PSS, ""); });
 
     t1.join();
     t2.join();
@@ -615,5 +615,7 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_AppTelemetryObject_0
 
     GTEST_LOG_(INFO) << "ApplicationDataManager_AppTelemetryObject_001 end";
 }
+
+new
 }  // namespace AppExecFwk
 }  // namespace OHOS
