@@ -25,21 +25,21 @@
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
-    constexpr size_t STACK_MAX_SZIE = 1024;	 
-    constexpr size_t AT_SKIP_SZIE = 3;	 
-    constexpr const char* TASK_POOL_THREAD = "Taskpool Thread";	 
-    constexpr const char *RSRC_OBSV_PATH = "/data/storage/el2/base/cache/rawheap";	 
-    constexpr const char *RSRC_OBSV_XATTR = "user.resource_observer";	 
-    constexpr const char *RSRC_OBSV_TRSHD_XATTR_PSS = "user.resource_observer_threshold.pss";	 
-    constexpr const char *RSRC_OBSV_TRSHD_XATTR_GPU = "user.resource_observer_threshold.gpu";	 
-    constexpr const char *RSRC_OBSV_TRSHD_XATTR_FD = "user.resource_observer_threshold.fd";	 
-    constexpr const char *RSRC_OBSV_TRSHD_XATTR_RAT = "user.resource_observer_threshold.rss_ark_ts";	 
-    constexpr const char *RSRC_OBSV_TRSHD_XATTR_RNH = "user.resource_observer_threshold.rss_native_heap";	 
-    enum class InstanceType {	 
-        DEFAULT_TYPE = -1,	 
-        WORKER_THREAD_TYPE = 1,	 
-        TASK_POOL_THREAD_TYPE = 2,	 
-    };	 
+    constexpr size_t STACK_MAX_SZIE = 1024;
+    constexpr size_t AT_SKIP_SZIE = 3;
+    constexpr const char* TASK_POOL_THREAD = "Taskpool Thread";
+    constexpr const char *RSRC_OBSV_PATH = "/data/storage/el2/base/cache/rawheap";
+    constexpr const char *RSRC_OBSV_XATTR = "user.resource_observer";
+    constexpr const char *RSRC_OBSV_TRSHD_XATTR_PSS = "user.resource_observer_threshold.pss";
+    constexpr const char *RSRC_OBSV_TRSHD_XATTR_GPU = "user.resource_observer_threshold.gpu";
+    constexpr const char *RSRC_OBSV_TRSHD_XATTR_FD = "user.resource_observer_threshold.fd";
+    constexpr const char *RSRC_OBSV_TRSHD_XATTR_RAT = "user.resource_observer_threshold.rss_ark_ts";
+    constexpr const char *RSRC_OBSV_TRSHD_XATTR_RNH = "user.resource_observer_threshold.rss_native_heap";
+    enum class InstanceType {
+        DEFAULT_TYPE = -1,
+        WORKER_THREAD_TYPE = 1,
+        TASK_POOL_THREAD_TYPE = 2,
+    };
     thread_local bool g_hasNotified = false;
 }
 
