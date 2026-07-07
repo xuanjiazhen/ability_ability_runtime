@@ -27,6 +27,7 @@ namespace AppExecFwk {
 namespace {
 constexpr size_t STACK_MAX_SIZE = 1024;
 constexpr size_t AT_SKIP_SIZE = 3;
+constexpr size_t PAIR_SIZE = 2;
 constexpr const char *TASK_POOL_THREAD = "Taskpool Thread";
 constexpr const char *RSRC_OBSV_PATH = "/data/storage/el2/base/cache/rawheap";
 constexpr const char *RSRC_OBSV_XATTR = "user.resource_observer";
@@ -351,7 +352,7 @@ GpuHookSize ApplicationDataManager::ParseGpuHookSize(const std::string &gpuHookS
             continue;
         }
 
-        if (typeObj["first"].size() != 2 || typeObj["second"].size() != 2) {
+        if (typeObj["first"].size() != PAIR_SIZE || typeObj["second"].size() != PAIR_SIZE) {
             continue;
         }
 
