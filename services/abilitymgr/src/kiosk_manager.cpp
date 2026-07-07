@@ -93,6 +93,10 @@ int32_t KioskManager::UpdateKioskApplicationList(const std::vector<std::string> 
                 exitToken = kioskStatus_.kioskToken_;
             }
         }
+        whitelist_.clear();
+        for (const auto &app : appList) {
+            whitelist_.insert(app);
+        }
     }
     if (needExit) {
         auto ret = ExitKioskModeInner(exitBundleName, exitToken, true);
@@ -107,6 +111,7 @@ int32_t KioskManager::UpdateKioskApplicationList(const std::vector<std::string> 
             whitelist_.insert(app);
         }
     }
+
     auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
     CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, INNER_ERR, "sceneSessionManager is nullptr");
     sceneSessionManager->UpdateKioskAppList(appList);
