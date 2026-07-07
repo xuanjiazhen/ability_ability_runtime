@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_KIOSK_MANAGER_H
 
 #include <mutex>
+#include <shared_mutex>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -49,7 +50,7 @@ private:
     int32_t ExitKioskModeInner(const std::string &bundleName, sptr<IRemoteObject> callerToken,
         bool isFoundation);
     bool IsInKioskModeInner();
-    void NotifyKioskModeChanged(bool isInKioskMode);
+    void NotifyKioskModeChanged(bool isInKioskMode, const std::string &bundleName, int32_t uid);
     bool IsInWhiteListInner(const std::string &bundleName);
     std::function<void()> GetEnterKioskModeCallback();
     std::function<void()> GetExitKioskModeCallback();
@@ -59,7 +60,7 @@ private:
 
     std::unordered_set<std::string> whitelist_;
     KioskStatus kioskStatus_;
-    std::mutex kioskManagermutex_;
+    std::shared_mutex kioskManagerMutex_;
 };
 } // namespace AAFwk
 } // namespace OHOS
