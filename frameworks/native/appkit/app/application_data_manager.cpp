@@ -17,6 +17,7 @@
 
 #include <dfx_signal_handler.h>
 #include <sys/xattr.h>
+#include <nlohmann/json.hpp>
 #include "app_recovery.h"
 #include "hilog_tag_wrapper.h"
 #include "native_engine.h"
@@ -24,23 +25,23 @@
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
-    
-    constexpr size_t STACK_MAX_SIZE = 1024;
-    constexpr size_t AT_SKIP_SIZE = 3;
-    constexpr const char* TASK_POOL_THREAD = "Taskpool Thread";
-    constexpr const char *RSRC_OBSV_PATH = "/data/storage/el2/base/cache/rawheap";
-    constexpr const char *RSRC_OBSV_XATTR = "user.resource_observer";
-    constexpr const char *RSRC_OBSV_TRSHD_XATTR_PSS = "user.resource_observer_threshold.pss";
-    constexpr const char *RSRC_OBSV_TRSHD_XATTR_GPU = "user.resource_observer_threshold.gpu";
-    constexpr const char *RSRC_OBSV_TRSHD_XATTR_FD = "user.resource_observer_threshold.fd";
-    constexpr const char *RSRC_OBSV_TRSHD_XATTR_RAT = "user.resource_observer_threshold.rss_ark_ts";
-    constexpr const char *RSRC_OBSV_TRSHD_XATTR_RNH = "user.resource_observer_threshold.rss_native_heap";
-    enum class InstanceType {
-        DEFAULT_TYPE = -1,
-        WORKER_THREAD_TYPE = 1,
-        TASK_POOL_THREAD_TYPE = 2,
-    };
-    thread_local bool g_hasNotified = false;
+constexpr size_t STACK_MAX_SIZE = 1024;
+constexpr size_t AT_SKIP_SIZE = 3;
+constexpr const char *TASK_POOL_THREAD = "Taskpool Thread";
+constexpr const char *RSRC_OBSV_PATH = "/data/storage/el2/base/cache/rawheap";
+constexpr const char *RSRC_OBSV_XATTR = "user.resource_observer";
+constexpr const char *RSRC_OBSV_TRSHD_XATTR_PSS = "user.resource_observer_threshold.pss";
+constexpr const char *RSRC_OBSV_TRSHD_XATTR_GPU = "user.resource_observer_threshold.gpu";
+constexpr const char *RSRC_OBSV_TRSHD_XATTR_FD = "user.resource_observer_threshold.fd";
+constexpr const char *RSRC_OBSV_TRSHD_XATTR_RAT = "user.resource_observer_threshold.rss_ark_ts";
+constexpr const char *RSRC_OBSV_TRSHD_XATTR_RNH = "user.resource_observer_threshold.rss_native_heap";
+constexpr const char *RSRC_OBSV_TRSHD_XATTR_KH = "user.resource_observer_threshold.kmp_heap";
+enum class InstanceType {
+    DEFAULT_TYPE = -1,
+    WORKER_THREAD_TYPE = 1,
+    TASK_POOL_THREAD_TYPE = 2,
+};
+thread_local bool g_hasNotified = false;
 }
 
 std::atomic<bool> ApplicationDataManager::jsErrorHasReport_{false};
@@ -317,15 +318,78 @@ bool ApplicationDataManager::WriteSandBoxXattr(RegisterResourceParams params)
     threshold = std::to_string(params.thresholdRNH);
     ret = ret && (setxattr(RSRC_OBSV_PATH, RSRC_OBSV_TRSHD_XATTR_RNH, threshold.c_str(), threshold.length(), 0) == 0);
     if (!ret) {
-        TAG_LOGE(AAFwkTag::APPKIT, "failed write threshold, path: %{public}s, err: %{public}s",
-                 RSRC_OBSV_PATH, strerror(errno));
+        TAG_LOGE(AAFwkTag::APPKIT, "failed write threshold, path: %{public}s, err: %{public}s", RSRC_OBSV_PATH,
+                 strerror(errno));
     }
     return ret;
 }
 
-GpuHookSize
+GpuHookSize ApplicationDataManager::ParseGpuHookSize(const std::string &gpuHookSizeStr)
+{
+    GpuHookSize gpuHookSize;
 
-void ApplicationDataManager::NotifyAppTelemetry(AppTelemetryLeakType atLeakType)
+    if (gpuHookSizeStr.empty()) {
+        return gpuHookSize;
+    }
+
+    nlohmann::json jsonObj;
+    try {
+        jsonObj = nlohmann::json::parse(gpuHookSizeStr);
+    } catch (const nlohmann::json::exception &e) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to parse gpuHookSize json: %{public}s", e.what());
+        return gpuHookSize;
+    }
+
+    for (auto it = jsonObj.begin(); it != jsonObj.end(); ++it) {
+        const std::string &type = it.key();
+        const auto &typeObj = it.value();
+
+        if (!typeObj.contains("first") || !typeObj.contains("second")) {
+            continue;
+        }
+
+        if (!typeObj["first"].is_array() || !typeObj["second"].is_array()) {
+            continue;
+        }
+
+        if (typeObj["first"].size() != 2 || typeObj["second"].size() != 2) {
+            continue;
+        }
+
+        Range firstRange = {typeObj["first"][0].get<uint64_t>(), typeObj["first"][1].get<uint64_t>()};
+        Range secondRange = {typeObj["second"][0].get<uint64_t>(), typeObj["second"][1].get<uint64_t>()};
+        gpuHookSize[type] = HookSize{firstRange, secondRange};
+    }
+
+    return gpuHookSize;
+}
+
+void ApplicationDataManager::LogGpuHookSize(const GpuHookSize &gpuHookSize)
+{
+    if (!HiLogIsLoggable(static_cast<uint32_t>(AAFwkTag::APPKIT), GetTagInfoFromDomainId(AAFwkTag::APPKIT),
+                         LOG_DEBUG)) {
+        return;
+    }
+    if (gpuHookSize.empty()) {
+        TAG_LOGD(AAFwkTag::APPKIT, "gpuHookSize is empty");
+        return;
+    }
+
+    for (const auto &entry : gpuHookSize) {
+        const std::string &type = entry.first;
+        const HookSize &hookSize = entry.second;
+        const Range &firstRange = hookSize.first;
+        const Range &secondRange = hookSize.second;
+        TAG_LOGD(
+            AAFwkTag::APPKIT,
+            "gpuHookSize type: %{public}s, first: [%{public}llu, %{public}llu], second: [%{public}llu, %{public}llu]",
+            type.c_str(), static_cast<unsigned long long>(firstRange.first),
+            static_cast<unsigned long long>(firstRange.second), static_cast<unsigned long long>(secondRange.first),
+            static_cast<unsigned long long>(secondRange.second));
+    }
+}
+
+void ApplicationDataManager::NotifyAppTelemetry(AppTelemetryLeakType atLeakType, const std::string &gpuHookSizeStr)
 {
     std::lock_guard<std::mutex> lock(resourceMutex_);
     if (resourceOverlimitCB_ == nullptr) {
@@ -335,7 +399,7 @@ void ApplicationDataManager::NotifyAppTelemetry(AppTelemetryLeakType atLeakType)
     AppTelemetryObject atObj{
         .atLeakType = atLeakType,
         .runningId = DFX_GetAppRunningUniqueId(),
-        .gpuHookSize = 
+        .gpuHookSize = ParseGpuHookSize(gpuHookSizeStr),
     };
 
     LogGpuHookSize(atObj.gpuHookSize);
