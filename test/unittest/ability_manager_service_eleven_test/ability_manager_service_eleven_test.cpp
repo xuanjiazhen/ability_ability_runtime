@@ -1509,5 +1509,51 @@ HWTEST_F(AbilityManagerServiceElevenTest, GetUidByCloneBundleInfo_001, TestSize.
 
     GTEST_LOG_(INFO) << "GetUidByCloneBundleInfo_001 end";
 }
+
+/*
+ * Feature: AbilityManagerService
+ * Function: NotifySkillFunctionInvoked
+ * SubFunction: NA
+ * FunctionPoints: null token rejection
+ * EnvConditions: token is nullptr
+ * CaseDescription: Verify NotifySkillFunctionInvoked rejects null token before any further work
+ */
+HWTEST_F(AbilityManagerServiceElevenTest, NotifySkillFunctionInvoked_0001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "NotifySkillFunctionInvoked_0001 start";
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    auto result = abilityMs->NotifySkillFunctionInvoked(nullptr, "requestCode_0001");
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+
+    GTEST_LOG_(INFO) << "NotifySkillFunctionInvoked_0001 end";
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: NotifySkillFunctionInvoked
+ * SubFunction: NA
+ * FunctionPoints: self-call verification
+ * EnvConditions: token exists but caller is not the ability itself
+ * CaseDescription: Verify NotifySkillFunctionInvoked rejects cross-caller invocation
+ */
+HWTEST_F(AbilityManagerServiceElevenTest, NotifySkillFunctionInvoked_0002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "NotifySkillFunctionInvoked_0002 start";
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    auto token = MockToken(AbilityType::PAGE);
+    EXPECT_NE(token, nullptr);
+    std::shared_ptr<AbilityRecord> abilityRecord = MockAbilityRecord(AbilityType::PAGE);
+    EXPECT_NE(abilityRecord, nullptr);
+    token->abilityRecord_ = abilityRecord;
+    // Deliberately leave accessTokenId unset so JudgeSelfCalled returns false
+    auto result = abilityMs->NotifySkillFunctionInvoked(token, "requestCode_0002");
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+
+    GTEST_LOG_(INFO) << "NotifySkillFunctionInvoked_0002 end";
+}
 } // namespace AAFwk
 } // namespace OHOS
