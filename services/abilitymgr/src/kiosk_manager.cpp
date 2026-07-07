@@ -80,9 +80,12 @@ int32_t KioskManager::UpdateKioskApplicationList(const std::vector<std::string> 
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not MANAGE_EDM_POLICY permission");
         return CHECK_PERMISSION_FAILED;
     }
+
     bool needExit = false;
     std::string exitBundleName;
     sptr<IRemoteObject> exitToken;
+
+    // 第一步：检查是否需要退出 Kiosk 模式
     {
         std::lock_guard<std::mutex> lock(kioskManagerMutex_);
         if (IsInKioskModeInner()) {
@@ -94,12 +97,17 @@ int32_t KioskManager::UpdateKioskApplicationList(const std::vector<std::string> 
             }
         }
     }
-    if (needExit) {
-        auto ret = ExitKioskModeInner(exitBundleName, exitToken, true);
-        if (ret != ERR_OK) {
-            return ret;
-        }
+
+    // 第二步：先调用系统服务更新白名单（失败则直接返回）
+    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+    CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, INNER_ERR, "sceneSessionManager is nullptr");
+    auto ret = sceneSessionManager->UpdateKioskAppList(appList);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "UpdateKioskAppList failed: %{public}d", ret);
+        return ret;
     }
+
+    // 第三步：系统服务更新成功后，更新本地白名单
     {
         std::lock_guard<std::mutex> lock(kioskManagerMutex_);
         whitelist_.clear();
@@ -107,9 +115,20 @@ int32_t KioskManager::UpdateKioskApplicationList(const std::vector<std::string> 
             whitelist_.insert(app);
         }
     }
-    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
-    CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, INNER_ERR, "sceneSessionManager is nullptr");
-    sceneSessionManager->UpdateKioskAppList(appList);
+
+    // 第四步：如果需要退出 Kiosk，调用 ExitKioskModeInner
+    // 此时白名单已更新，即使退出失败，新白名单也生效了
+    if (needExit) {
+        auto ret = ExitKioskModeInner(exitBundleName, exitToken, true);
+        if (ret != ERR_OK) {
+            // 退出失败，但白名单已更新
+            // 当前 Kiosk 应用不在新白名单中，但仍处于 Kiosk 模式
+            // 下次应用停止时会自动退出
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "ExitKioskModeInner failed after whitelist update: %{public}d", ret);
+            // 不返回错误，因为白名单更新成功是主要目标
+        }
+    }
+
     return ERR_OK;
 }
 
@@ -172,6 +191,8 @@ int32_t KioskManager::ExitKioskModeInner(const std::string &bundleName, sptr<IRe
 {
     std::string outBundleName;
     int32_t outUid = 0;
+
+    // 第一次加锁：验证并保存状态，不 Clear
     {
         std::lock_guard<std::mutex> lock(kioskManagerMutex_);
         if (!IsInWhiteListInner(bundleName)) {
@@ -183,19 +204,41 @@ int32_t KioskManager::ExitKioskModeInner(const std::string &bundleName, sptr<IRe
         }
 
         if (!isFoundation && kioskStatus_.kioskBundleUid_ != IPCSkeleton::GetCallingUid()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleName %{public}s is not the currently kiosk app", bundleName.c_str());
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleName %{public}s is not the currently kiosk app", bundleName.c_str());
             return ERR_NOT_IN_KIOSK_MODE;
         }
 
         outBundleName = kioskStatus_.kioskBundleName_;
         outUid = kioskStatus_.kioskBundleUid_;
-        kioskStatus_.Clear();
+        // 不在这里 Clear()，等 IPC 成功后再清空
     }
+
+    // 锁外执行耗时操作（回调、通知、IPC）
     GetExitKioskModeCallback()();
     NotifyKioskModeChanged(false, outBundleName, outUid);
     auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
     CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, INNER_ERR, "sceneSessionManager is nullptr");
-    sceneSessionManager->ExitKioskMode(callerToken);
+
+    auto ret = sceneSessionManager->ExitKioskMode(callerToken);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ExitKioskMode IPC failed: %{public}d", ret);
+        // IPC 失败，状态保持不变，允许重试
+        return ret;
+    }
+
+    // IPC 成功，第二次加锁清空状态
+    {
+        std::lock_guard<std::mutex> lock(kioskManagerMutex_);
+        // 验证状态未被其他线程修改（正常情况下不应该发生）
+        if (kioskStatus_.isKioskMode_ && kioskStatus_.kioskBundleName_ == outBundleName) {
+            kioskStatus_.Clear();
+        } else {
+            // 状态已被其他线程修改，记录日志但不报错
+            // 可能情况：其他线程已经重新进入 Kiosk 模式，或已经退出
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "Kiosk status changed during exit, bundleName: %{public}s",
+                outBundleName.c_str());
+        }
+    }
     return ERR_OK;
 }
 
