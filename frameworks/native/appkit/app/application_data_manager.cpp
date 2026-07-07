@@ -35,7 +35,6 @@ constexpr const char *RSRC_OBSV_TRSHD_XATTR_GPU = "user.resource_observer_thresh
 constexpr const char *RSRC_OBSV_TRSHD_XATTR_FD = "user.resource_observer_threshold.fd";
 constexpr const char *RSRC_OBSV_TRSHD_XATTR_RAT = "user.resource_observer_threshold.rss_ark_ts";
 constexpr const char *RSRC_OBSV_TRSHD_XATTR_RNH = "user.resource_observer_threshold.rss_native_heap";
-constexpr const char *RSRC_OBSV_TRSHD_XATTR_KH = "user.resource_observer_threshold.kmp_heap";
 enum class InstanceType {
     DEFAULT_TYPE = -1,
     WORKER_THREAD_TYPE = 1,
