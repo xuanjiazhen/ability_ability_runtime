@@ -577,8 +577,7 @@ void AppfreezeManager::InitWarningCpuInfo(const FaultData& faultData,
         eventName != AppFreezeType::LIFECYCLE_HALF_TIMEOUT) {
         return;
     }
-    std::string type = std::to_string(appInfo.pid) + "-" + std::to_string(appInfo.uid) + "-" +
-        appInfo.bundleName;
+    std::string type = GenerateFreezeFilterKey(appInfo.pid, appInfo.uid, appInfo.bundleName);
     bool ret = AppExecFwk::AppfreezeCpuFreqManager::GetInstance().InsertCpuDetailInfo(type, appInfo.pid);
     TAG_LOGI(AAFwkTag::APPDFR, "Insert cpuInfo ret:%{public}d, pid:%{public}d, name:%{public}s, "
         "appfreezeInfo:%{public}s, type:%{public}s", ret, appInfo.pid,
@@ -592,8 +591,7 @@ std::string AppfreezeManager::GetAppfreezeInfoPath(const FaultData& faultData,
     std::string cpuInfoFile = faultData.appfreezeInfo;
     if (eventName == AppFreezeType::THREAD_BLOCK_6S || eventName == AppFreezeType::LIFECYCLE_TIMEOUT ||
         eventName == AppFreezeType::APP_INPUT_BLOCK) {
-        std::string type = std::to_string(appInfo.pid) + "-" + std::to_string(appInfo.uid) + "-" +
-            appInfo.bundleName;
+        std::string type = GenerateFreezeFilterKey(appInfo.pid, appInfo.uid, appInfo.bundleName);
         cpuInfoFile += "," + AppExecFwk::AppfreezeCpuFreqManager::GetInstance().GetCpuInfoPath(
             type, appInfo.bundleName, appInfo.uid, appInfo.pid);
         TAG_LOGI(AAFwkTag::APPDFR, "name:%{public}s, cpuInfoFile:%{public}s, type:%{public}s",
@@ -893,16 +891,22 @@ std::string AppfreezeManager::CatcherStacktrace(int pid) const
     return msg;
 }
 
-bool AppfreezeManager::IsProcessDebug(int32_t pid, std::string bundleName)
+std::string AppfreezeManager::GenerateFreezeFilterKey(int32_t pid, int32_t uid, const std::string& bundleName)
 {
+    return bundleName.empty() ? "" : (std::to_string(pid) + "-" + std::to_string(uid) + "-" + bundleName);
+}
+
+bool AppfreezeManager::IsProcessDebug(int32_t pid, int32_t uid, std::string bundleName)
+{
+    std::string key = GenerateFreezeFilterKey(pid, uid, bundleName);
     std::lock_guard<ffrt::mutex> lock(freezeFilterMutex_);
-    auto it = appfreezeFilterMap_.find(bundleName);
+    auto it = appfreezeFilterMap_.find(key);
     if (it != appfreezeFilterMap_.end() && it->second.pid == pid) {
         bool result = (it->second.state == AppFreezeState::APPFREEZE_STATE_CANCELING);
         TAG_LOGW(AAFwkTag::APPDFR, "AppfreezeFilter: %{public}d, "
-            "bundleName=%{public}s, pid:%{public}d, state:%{public}d, g_betaVersion:%{public}d,"
+            "key=%{public}s, pid:%{public}d, state:%{public}d, g_betaVersion:%{public}d,"
             " g_developMode:%{public}d",
-            result, bundleName.c_str(), pid, it->second.state, g_betaVersion, g_developMode);
+            result, key.c_str(), pid, it->second.state, g_betaVersion, g_developMode);
         return result;
     }
 
@@ -1051,59 +1055,55 @@ bool AppfreezeManager::IsNeedIgnoreInputBlockEvent(const std::string& key)
     return false;
 }
 
-bool AppfreezeManager::CancelAppFreezeDetect(int32_t pid, const std::string& bundleName)
+bool AppfreezeManager::CancelAppFreezeDetect(const std::string& key)
 {
-    if (bundleName.empty()) {
-        TAG_LOGE(AAFwkTag::APPDFR, "SetAppFreezeFilter: failed, bundleName is empty.");
+    if (key.empty()) {
+        TAG_LOGE(AAFwkTag::APPDFR, "CancelAppFreezeDetect failed, key is empty.");
         return false;
     }
+
+    bool mode = (g_betaVersion || g_developMode);
     std::lock_guard<ffrt::mutex> lock(freezeFilterMutex_);
+    if (!mode && appfreezeFilterMap_.find(key) != appfreezeFilterMap_.end()) {
+        TAG_LOGI(AAFwkTag::APPDFR, "CancelAppFreezeDetect: already exists, key=%{public}s, mode=%{public}d",
+            key.c_str(), mode);
+        return false;
+    }
+
     AppFreezeInfo info;
-    info.pid = pid;
     info.state = AppFreezeState::APPFREEZE_STATE_CANCELING;
-    appfreezeFilterMap_[bundleName] = info;
-    TAG_LOGI(AAFwkTag::APPDFR, "SetAppFreezeFilter: success, bundleName=%{public}s, "
-        "pid:%{public}d, state:%{public}d", bundleName.c_str(), info.pid, info.state);
+    appfreezeFilterMap_[key] = info;
+    TAG_LOGI(AAFwkTag::APPDFR, "CancelAppFreezeDetect: success, key=%{public}s, state=%{public}d, mode=%{public}d",
+        key.c_str(), info.state, mode);
     return true;
 }
 
-void AppfreezeManager::RemoveDeathProcess(std::string bundleName)
+void AppfreezeManager::RemoveDeathProcess(int32_t pid, int32_t uid, std::string bundleName)
 {
+    std::string key = GenerateFreezeFilterKey(pid, uid, bundleName);
     std::lock_guard<ffrt::mutex> lock(freezeFilterMutex_);
-    auto it = appfreezeFilterMap_.find(bundleName);
+    auto it = appfreezeFilterMap_.find(key);
     if (it != appfreezeFilterMap_.end()) {
-        TAG_LOGI(AAFwkTag::APPDFR, "RemoveAppFreezeFilter:success, bundleName: %{public}s",
-            bundleName.c_str());
+        TAG_LOGI(AAFwkTag::APPDFR, "RemoveAppFreezeFilter:success, key: %{public}s",
+            key.c_str());
         appfreezeFilterMap_.erase(it);
     } else {
-        TAG_LOGD(AAFwkTag::APPDFR, "RemoveAppFreezeFilter:failed, not found bundleName: "
-            "%{public}s", bundleName.c_str());
+        TAG_LOGD(AAFwkTag::APPDFR, "RemoveAppFreezeFilter:failed, not found key: "
+            "%{public}s", key.c_str());
     }
 }
 
-void AppfreezeManager::ResetAppfreezeState(int32_t pid, const std::string& bundleName)
+void AppfreezeManager::ResetAppfreezeState(const std::string& key)
 {
-    std::lock_guard<ffrt::mutex> lock(freezeFilterMutex_);
-    if (appfreezeFilterMap_.find(bundleName) != appfreezeFilterMap_.end()) {
-        appfreezeFilterMap_[bundleName].state = AppFreezeState::APPFREEZE_STATE_CANCELED;
+    int state = 0;
+    {
+        std::lock_guard<ffrt::mutex> lock(freezeFilterMutex_);
+        if (appfreezeFilterMap_.find(key) != appfreezeFilterMap_.end()) {
+            appfreezeFilterMap_[key].state = AppFreezeState::APPFREEZE_STATE_CANCELED;
+            state = appfreezeFilterMap_[key].state;
+        }
     }
-    TAG_LOGI(AAFwkTag::APPDFR, "SetAppFreezeFilter: reset state, "
-        "bundleName=%{public}s, pid:%{public}d, state:%{public}d",
-        bundleName.c_str(), pid, appfreezeFilterMap_[bundleName].state);
-}
-
-bool AppfreezeManager::IsValidFreezeFilter(int32_t pid, const std::string& bundleName)
-{
-    if (g_betaVersion || g_developMode) {
-        TAG_LOGI(AAFwkTag::APPDFR, "SetAppFreezeFilter: "
-            "current device is beta or development");
-        return true;
-    }
-    std::lock_guard<ffrt::mutex> lock(freezeFilterMutex_);
-    bool ret = appfreezeFilterMap_.find(bundleName) == appfreezeFilterMap_.end();
-    TAG_LOGI(AAFwkTag::APPDFR, "SetAppFreezeFilter: %{public}d, bundleName=%{public}s, "
-        "pid:%{public}d", ret, bundleName.c_str(), pid);
-    return ret;
+    TAG_LOGI(AAFwkTag::APPDFR, "ResetAppfreezeState: key=%{public}s, state=%{public}d", key.c_str(), state);
 }
 
 void AppfreezeManager::ReportAppFreezeSysEvents(int32_t pid, const std::string& bundleName)
@@ -1294,8 +1294,7 @@ bool AppfreezeManager::IsBetaVersion()
 
 void AppfreezeManager::InsertKillThread(int32_t state, int32_t pid, int32_t uid, const std::string& bundleName)
 {
-    std::string key = bundleName + AppfreezeUtil::KEY_SEPARATOR + std::to_string(pid) +
-        AppfreezeUtil::KEY_SEPARATOR + std::to_string(uid);
+    std::string key = GenerateFreezeFilterKey(pid, uid, bundleName);
     std::lock_guard<std::mutex> mapLock(freezeKillThreadMutex_);
     if (!ClearOldInfo(freezeKillThreadMap_, FREEZEMAP_SIZE_MAX, FREEZE_TIME_LIMIT)) {
         return;
@@ -1314,8 +1313,7 @@ void AppfreezeManager::InsertKillThread(int32_t state, int32_t pid, int32_t uid,
 
 bool AppfreezeManager::CheckThreadKilled(int32_t pid, int32_t uid, const std::string& bundleName)
 {
-    std::string key = bundleName + AppfreezeUtil::KEY_SEPARATOR + std::to_string(pid) +
-        AppfreezeUtil::KEY_SEPARATOR + std::to_string(uid);
+    std::string key = GenerateFreezeFilterKey(pid, uid, bundleName);
     bool result = false;
     bool isRepeatKilledThread = false;
     {
@@ -1353,7 +1351,7 @@ bool AppfreezeManager::IsSkipDetect(int32_t pid, int32_t uid, const std::string&
             bundleName.c_str(), pid);
         return true;
     }
-    if (IsProcessDebug(pid, bundleName)) {
+    if (IsProcessDebug(pid, uid, bundleName)) {
         TAG_LOGW(AAFwkTag::APPDFR, "don't report event and kill:%{public}s, pid:%{public}d, bundleName:%{public}s",
             eventName.c_str(), pid, bundleName.c_str());
         return true;
