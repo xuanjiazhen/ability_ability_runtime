@@ -229,10 +229,10 @@ void FuzzBasicQueryMethods(FuzzedDataProvider &fdp,
 {
     std::string bundleName = fdp.ConsumeRandomLengthString(STRING_MAX_LEN);
     int32_t pid = fdp.ConsumeIntegral<int32_t>();
+    int32_t uid = fdp.ConsumeIntegral<int32_t>();
     mgr->IsHandleAppfreeze(bundleName);
-    mgr->IsProcessDebug(pid, bundleName);
+    mgr->IsProcessDebug(pid, uid, bundleName);
     mgr->DeleteStack(pid);
-    mgr->IsValidFreezeFilter(pid, bundleName);
 }
 
 void FuzzFreezeFilterOperations(FuzzedDataProvider &fdp,
@@ -240,9 +240,11 @@ void FuzzFreezeFilterOperations(FuzzedDataProvider &fdp,
 {
     std::string bundleName = fdp.ConsumeRandomLengthString(STRING_MAX_LEN);
     int32_t pid = fdp.ConsumeIntegral<int32_t>();
-    mgr->CancelAppFreezeDetect(pid, bundleName);
-    mgr->RemoveDeathProcess(bundleName);
-    mgr->ResetAppfreezeState(pid, bundleName);
+    int32_t uid = fdp.ConsumeIntegral<int32_t>();
+    std::string key = mgr->GenerateFreezeFilterKey(pid, uid, bundleName);
+    mgr->CancelAppFreezeDetect(key);
+    mgr->RemoveDeathProcess(pid, uid, bundleName);
+    mgr->ResetAppfreezeState(key);
 }
 
 void FuzzReportAndKillTime(FuzzedDataProvider &fdp,

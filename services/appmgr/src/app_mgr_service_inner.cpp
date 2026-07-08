@@ -6460,7 +6460,8 @@ void AppMgrServiceInner::OnRemoteDied(const wptr<IRemoteObject> &remote, bool is
     SendProcessKillEvent(appRecord);
     AppExecFwk::AppfreezeManager::GetInstance()->ReportAppFreezeSysEvents(appRecord->GetPid(),
         appRecord->GetBundleName());
-    AppExecFwk::AppfreezeManager::GetInstance()->RemoveDeathProcess(appRecord->GetBundleName());
+    AppExecFwk::AppfreezeManager::GetInstance()->RemoveDeathProcess(appRecord->GetPid(),
+        appRecord->GetUid(), appRecord->GetBundleName());
     std::vector<sptr<IRemoteObject>> abilityTokens;
     for (const auto &token : appRecord->GetAbilities()) {
         abilityTokens.emplace_back(token.first);
@@ -9311,8 +9312,10 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
     TAG_LOGW(AAFwkTag::APPDFR, "called, eventName:%{public}s, pid:%{public}d, bundleName:%{public}s, "
         "currentTime:%{public}s", eventName.c_str(), pid, bundleName.c_str(),
         AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str());
+    std::string key = AppExecFwk::AppfreezeManager::GetInstance()->GenerateFreezeFilterKey(pid, uid, bundleName);
     if (AppExecFwk::AppfreezeManager::GetInstance()->IsSkipDetect(pid, uid, bundleName,
-        eventName) || AppExecFwk::AppfreezeManager::GetInstance()->IsFreezeExcludedPid(pid)) {
+        eventName) || AppExecFwk::AppfreezeManager::GetInstance()->IsFreezeExcludedPid(pid) ||
+        AppExecFwk::AppfreezeManager::GetInstance()->CheckAppfreezeHappend(key, eventName)) {
         return ERR_OK;
     }
 
@@ -9328,11 +9331,6 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
         if (isExit && faultData.waitSaveState) {
             AppRecoveryNotifyApp(pid, bundleName, FaultDataType::APP_FREEZE, "recoveryTimeout", recordId);
         }
-    }
-
-    std::string key = std::to_string(pid) + "_" + std::to_string(uid) + "_" + bundleName;
-    if (AppExecFwk::AppfreezeManager::GetInstance()->CheckAppfreezeHappend(key, eventName)) {
-        return ERR_OK;
     }
 
     if (appRunningManager_ && AppExecFwk::AppfreezeManager::GetInstance()->CheckNeedRecordAppRunningUnquieId(eventName)) {
@@ -9468,8 +9466,10 @@ int32_t AppMgrServiceInner::TransformedNotifyAppFault(const AppFaultDataBySA &fa
     int32_t recordId = record->GetRecordId();
     std::string bundleName = record->GetBundleName();
     std::string processName = record->GetProcessName();
+    std::string key = AppExecFwk::AppfreezeManager::GetInstance()->GenerateFreezeFilterKey(pid, uid, bundleName);
     if (AppExecFwk::AppfreezeManager::GetInstance()->IsSkipDetect(pid, uid, bundleName, eventName) ||
-        AppExecFwk::AppfreezeManager::GetInstance()->IsFreezeExcludedPid(pid)) {
+        AppExecFwk::AppfreezeManager::GetInstance()->IsFreezeExcludedPid(pid) ||
+        AppExecFwk::AppfreezeManager::GetInstance()->CheckAppfreezeHappend(key, eventName)) {
         return ERR_OK;
     }
     if (eventName == "appRecovery") {
@@ -9487,10 +9487,9 @@ int32_t AppMgrServiceInner::TransformedNotifyAppFault(const AppFaultDataBySA &fa
             return ERR_OK;
         }
         auto timeoutNotifyApp = [this, pid, uid, bundleName, processName, transformedFaultData, recordId, eventName]() {
-            std::string key = std::to_string(pid) + "_" + std::to_string(uid) + "_" + bundleName;
             std::string message = transformedFaultData.errorObject.message;
             if (AppExecFwk::AppfreezeManager::GetInstance()->CheckPreloadUIExtension(message, bundleName, pid,
-                eventName) || AppExecFwk::AppfreezeManager::GetInstance()->CheckAppfreezeHappend(key, eventName)) {
+                eventName)) {
                 return;
             }
             this->TimeoutNotifyApp(pid, uid, bundleName, processName, transformedFaultData, recordId);
@@ -9531,29 +9530,31 @@ int32_t AppMgrServiceInner::NotifyAppFaultBySA(const AppFaultDataBySA &faultData
 bool AppMgrServiceInner::SetAppFreezeFilter(int32_t pid)
 {
     int32_t callingPid = IPCSkeleton::GetCallingPid();
+    if (callingPid != pid) {
+        TAG_LOGE(AAFwkTag::APPDFR, "SetAppFreezeFilter: failed, pid %{public}d calling pid %{public}d",
+            pid, callingPid);
+        return false;
+    }
+
     auto callerRecord = GetAppRunningRecordByPid(pid);
     if (callerRecord == nullptr) {
         TAG_LOGW(AAFwkTag::APPMGR, "callerRecord null");
         return false;
     }
     std::string bundleName = callerRecord->GetBundleName();
-    if (callingPid == pid && AppExecFwk::AppfreezeManager::GetInstance()->IsValidFreezeFilter(pid, bundleName)) {
-        bool result = AppExecFwk::AppfreezeManager::GetInstance()->CancelAppFreezeDetect(pid, bundleName);
-        if (result) {
-            auto resetAppfreezeTask = [pid, bundleName]() {
-                AppExecFwk::AppfreezeManager::GetInstance()->ResetAppfreezeState(pid, bundleName);
-            };
-            constexpr int32_t waitTime = 120000; // wait 2min
-            CHECK_POINTER_AND_RETURN_VALUE(dfxTaskHandler_, false);
-            dfxTaskHandler_->SubmitTaskJust(resetAppfreezeTask, "resetAppfreezeTask", waitTime);
-        }
-        TAG_LOGW(AAFwkTag::APPDFR, "SetAppFreezeFilter: %{public}d, bundleName=%{public}s, pid:%{public}d, ",
-            result, bundleName.c_str(), pid);
-        return result;
+    int32_t uid = callerRecord->GetUid();
+    std::string key = AppExecFwk::AppfreezeManager::GetInstance()->GenerateFreezeFilterKey(pid, uid, bundleName);
+    bool result = AppExecFwk::AppfreezeManager::GetInstance()->CancelAppFreezeDetect(key);
+    if (result) {
+        auto resetAppfreezeTask = [key]() {
+            AppExecFwk::AppfreezeManager::GetInstance()->ResetAppfreezeState(key);
+        };
+        constexpr int32_t waitTime = 120000; // wait 2min
+        dfxTaskHandler_->SubmitTask(resetAppfreezeTask, key, waitTime);
     }
-    TAG_LOGE(AAFwkTag::APPDFR, "SetAppFreezeFilter: failed, pid %{public}d calling pid %{public}d "
-        "bundleName %{public}s", pid, callingPid, bundleName.c_str());
-    return false;
+    TAG_LOGW(AAFwkTag::APPDFR, "SetAppFreezeFilter: %{public}d, bundleName=%{public}s, pid:%{public}d",
+        result, bundleName.c_str(), pid);
+    return result;
 }
 
 FaultData AppMgrServiceInner::ConvertDataTypes(const AppFaultDataBySA &faultData)
