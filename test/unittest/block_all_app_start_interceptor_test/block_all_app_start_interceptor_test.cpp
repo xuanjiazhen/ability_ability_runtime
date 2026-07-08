@@ -21,6 +21,7 @@
 #undef protected
 
 #include "hilog_tag_wrapper.h"
+#include "ability_info.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -94,7 +95,7 @@ HWTEST_F(BlockAllAppStartInterceptorTest, DoProcess_002, TestSize.Level1)
 
 /**
  * @tc.name: BlockAllAppStartInterceptorTest_DoProcess_003
- * @tc.desc: DoProcess
+ * @tc.desc: DoProcess with shouldBlockAllAppStartFunc returning false
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -112,6 +113,112 @@ HWTEST_F(BlockAllAppStartInterceptorTest, DoProcess_003, TestSize.Level1)
     AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldBlockAllAppStartFunc);
     auto ret = blockAllAppStartInterceptor.DoProcess(param);
     EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: BlockAllAppStartInterceptorTest_DoProcess_004
+ * @tc.desc: DoProcess with implicit start (empty abilityName)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BlockAllAppStartInterceptorTest, DoProcess_004, TestSize.Level1)
+{
+    BlockAllAppStartInterceptor blockAllAppStartInterceptor;
+    Want want;
+    // Set empty abilityName for implicit start
+    want.SetElementName("com.example.test", "");
+    int requestCode = 123;
+    int32_t userId = 1001;
+    bool isWithUI = true;
+    sptr<IRemoteObject> callerToken = nullptr;
+    std::function<bool(void)> shouldBlockAllAppStartFunc = []() -> bool {
+        return true;
+    };
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldBlockAllAppStartFunc);
+    // Implicit start should skip block check and return ERR_OK
+    auto ret = blockAllAppStartInterceptor.DoProcess(param);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: BlockAllAppStartInterceptorTest_DoProcess_005
+ * @tc.desc: DoProcess with non-PAGE type ability
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BlockAllAppStartInterceptorTest, DoProcess_005, TestSize.Level1)
+{
+    BlockAllAppStartInterceptor blockAllAppStartInterceptor;
+    Want want;
+    want.SetElementName("com.example.test", "ServiceAbility");
+    int requestCode = 123;
+    int32_t userId = 1001;
+    bool isWithUI = true;
+    sptr<IRemoteObject> callerToken = nullptr;
+    std::function<bool(void)> shouldBlockAllAppStartFunc = []() -> bool {
+        return true;
+    };
+    // Create abilityInfo with SERVICE type
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    abilityInfo->type = AppExecFwk::AbilityType::SERVICE;
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, abilityInfo);
+    // Non-PAGE type should skip block check and return ERR_OK
+    auto ret = blockAllAppStartInterceptor.DoProcess(param);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: BlockAllAppStartInterceptorTest_DoProcess_006
+ * @tc.desc: DoProcess with DATA type ability
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BlockAllAppStartInterceptorTest, DoProcess_006, TestSize.Level1)
+{
+    BlockAllAppStartInterceptor blockAllAppStartInterceptor;
+    Want want;
+    want.SetElementName("com.example.test", "DataAbility");
+    int requestCode = 123;
+    int32_t userId = 1001;
+    bool isWithUI = true;
+    sptr<IRemoteObject> callerToken = nullptr;
+    std::function<bool(void)> shouldBlockAllAppStartFunc = []() -> bool {
+        return true;
+    };
+    // Create abilityInfo with DATA type
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    abilityInfo->type = AppExecFwk::AbilityType::DATA;
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, abilityInfo);
+    // DATA type should skip block check and return ERR_OK
+    auto ret = blockAllAppStartInterceptor.DoProcess(param);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: BlockAllAppStartInterceptorTest_DoProcess_007
+ * @tc.desc: DoProcess with PAGE type ability and block function returning true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BlockAllAppStartInterceptorTest, DoProcess_007, TestSize.Level1)
+{
+    BlockAllAppStartInterceptor blockAllAppStartInterceptor;
+    Want want;
+    want.SetElementName("com.example.test", "MainAbility");
+    int requestCode = 123;
+    int32_t userId = 1001;
+    bool isWithUI = true;
+    sptr<IRemoteObject> callerToken = nullptr;
+    std::function<bool(void)> shouldBlockAllAppStartFunc = []() -> bool {
+        return true;
+    };
+    // Create abilityInfo with PAGE type
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    abilityInfo->type = AppExecFwk::AbilityType::PAGE;
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, abilityInfo);
+    // PAGE type with block=true should be blocked (unless already running, but AMS is nullptr in test)
+    auto ret = blockAllAppStartInterceptor.DoProcess(param);
+    EXPECT_EQ(ret, ERR_ALL_APP_START_BLOCKED);
 }
 } // namespace AAFwk
 } // namespace OHOS
