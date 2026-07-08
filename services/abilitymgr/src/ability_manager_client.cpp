@@ -2445,7 +2445,7 @@ ErrCode AbilityManagerClient::TerminateMission(int32_t missionId)
 
 ErrCode AbilityManagerClient::BlockAllAppStart(bool flag)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call BlockAllAppStart");
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_INVALID_VALUE(abms);
     return abms->BlockAllAppStart(flag);

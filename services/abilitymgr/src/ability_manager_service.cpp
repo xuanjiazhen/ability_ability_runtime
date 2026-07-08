@@ -17404,7 +17404,7 @@ int32_t AbilityManagerService::TerminateMission(int32_t missionId)
 int32_t AbilityManagerService::BlockAllAppStart(bool flag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called BlockAllAppStart %{public}d", flag);
 
     if (!AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "not supported device");
