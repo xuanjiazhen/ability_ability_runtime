@@ -1,0 +1,10 @@
+{
+  "modelVersion": "5.0.0",
+  "description": "IPC PoC: bypass AbilityManagerClient, directly hit AbilityManagerService::ExecuteIntent",
+  "dependencies": {},
+  "devDependencies": {
+    "@ohos/hypium": "1.0.21",
+    "@ohos/hvigor-ohos-plugin": "5.0.2",
+    "@ohos/hvigor": "5.0.2"
+  }
+}

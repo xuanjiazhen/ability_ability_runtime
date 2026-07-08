@@ -1,0 +1,31 @@
+{
+  "app": {
+    "signingConfigs": [],
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "default",
+        "compileSdkVersion": 12,
+        "compatibleSdkVersion": 12,
+        "targetSdkVersion": 12,
+        "runtimeOS": "OpenHarmony"
+      }
+    ],
+    "buildModeSet": [
+      { "name": "debug", "arkOptions": { "obfuscation": { "ruleConfig": { "enable": false, "files": [] } } } },
+      { "name": "release", "arkOptions": { "obfuscation": { "ruleConfig": { "enable": true, "files": ["obfuscation-rules.txt"] } } } }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": ["default"]
+        }
+      ]
+    }
+  ]
+}
