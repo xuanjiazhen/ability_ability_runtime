@@ -51,6 +51,12 @@ config("runtime_all_deps_config") {
 ohos_shared_library("runtime") {
   branch_protector_ret = "pac_ret"
 
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   include_dirs = [
     "${ability_runtime_path}/ets_environment/interfaces/inner_api",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common/include",
