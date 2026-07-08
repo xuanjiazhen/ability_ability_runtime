@@ -15,7 +15,9 @@
 
 #include "interceptor/block_all_app_start_interceptor.h"
 
+#include "ability_manager_service.h"
 #include "hilog_tag_wrapper.h"
+#include "ui_ability_lifecycle_manager.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -25,11 +27,48 @@ ErrCode BlockAllAppStartInterceptor::DoProcess(AbilityInterceptorParam param)
         TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "shouldBlockAllAppStartFunc_ is nullptr");
         return ERR_INVALID_VALUE;
     }
+
+    if (IsUIAbilityAlreadyRunning(param)) {
+        return ERR_OK;
+    }
+
     if (param.shouldBlockAllAppStartFunc_()) {
         TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "blocking app start due to low memory");
         return ERR_ALL_APP_START_BLOCKED;
     }
     return ERR_OK;
+}
+
+bool BlockAllAppStartInterceptor::IsUIAbilityAlreadyRunning(const AbilityInterceptorParam &param)
+{
+    if (param.abilityInfo != nullptr) {
+        if (param.abilityInfo->type != AppExecFwk::AbilityType::PAGE) {
+            TAG_LOGD(AAFwkTag::ECOLOGICAL_RULE,
+                "Target ability is not PAGE type, skip check");
+            return false;
+        }
+    }
+
+    auto ams = AbilityManagerService::GetPubInstance();
+    if (ams == nullptr) {
+        return false;
+    }
+
+    auto uiAbilityManager = ams->GetUIAbilityManagerByUserId(param.userId);
+    if (uiAbilityManager == nullptr) {
+        return false;
+    }
+
+    auto abilityRecords = uiAbilityManager->GetAbilityRecordsByName(
+        param.want.GetElement(), param.appIndex);
+    if (!abilityRecords.empty()) {
+        TAG_LOGI(AAFwkTag::ECOLOGICAL_RULE,
+            "Target ability %{public}s is already running, skip block check",
+            param.want.GetElement().GetURI().c_str());
+        return true;
+    }
+
+    return false;
 }
 } // namespace AAFwk
 } // namespace OHOS
