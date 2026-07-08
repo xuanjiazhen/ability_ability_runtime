@@ -29,6 +29,9 @@ public:
     {
         return;
     };
+
+private:
+    bool IsUIAbilityAlreadyRunning(const AbilityInterceptorParam &param);
 };
 } // namespace AAFwk
 } // namespace OHOS
