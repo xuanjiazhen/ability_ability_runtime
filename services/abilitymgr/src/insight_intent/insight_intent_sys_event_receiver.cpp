@@ -17,6 +17,8 @@
 
 #include <unordered_map>
 
+#include "nlohmann/json.hpp"
+
 #include "extract_insight_intent_profile.h"
 #include "common_event_support.h"
 #include "function_call_convert.h"
