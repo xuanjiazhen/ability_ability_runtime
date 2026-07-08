@@ -15,21 +15,60 @@
 
 #include "interceptor/block_all_app_start_interceptor.h"
 
+#include "ability_manager_service.h"
 #include "hilog_tag_wrapper.h"
+#include "ui_ability_lifecycle_manager.h"
 
 namespace OHOS {
 namespace AAFwk {
 ErrCode BlockAllAppStartInterceptor::DoProcess(AbilityInterceptorParam param)
 {
     if (param.shouldBlockAllAppStartFunc_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "shouldBlockAllAppStartFunc_ is nullptr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "shouldBlockAllAppStartFunc_ is nullptr");
         return ERR_INVALID_VALUE;
     }
-    if (param.shouldBlockAllAppStartFunc_()) {
-        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "blocking app start due to low memory");
+
+    if (param.shouldBlockAllAppStartFunc_() && !IsUIAbilityAlreadyRunning(param)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "blocking app start due to low memory, %{public}s/%{public}s",
+            param.want.GetElement().GetBundleName().c_str(), param.want.GetElement().GetAbilityName().c_str());
         return ERR_ALL_APP_START_BLOCKED;
     }
     return ERR_OK;
+}
+
+bool BlockAllAppStartInterceptor::IsUIAbilityAlreadyRunning(const AbilityInterceptorParam &param)
+{
+    if (param.want.GetElement().GetAbilityName().empty()) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Implicit start detected, skip check");
+        return false;
+    }
+
+    if (param.abilityInfo != nullptr && param.abilityInfo->type != AppExecFwk::AbilityType::PAGE) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Target ability is not PAGE type, skip check");
+        return false;
+    }
+
+    auto ams = AbilityManagerService::GetPubInstance();
+    if (ams == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ams is nullptr");
+        return false;
+    }
+
+    auto uiAbilityManager = ams->GetUIAbilityManagerByUserId(param.userId);
+    if (uiAbilityManager == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "uiAbilityManager is nullptr");
+        return false;
+    }
+
+    auto abilityRecords = uiAbilityManager->GetAbilityRecordsByName(
+        param.want.GetElement(), param.appIndex);
+    if (!abilityRecords.empty()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Target ability %{public}s/%{public}s is already running, skip block check",
+            param.want.GetElement().GetBundleName().c_str(), param.want.GetElement().GetAbilityName().c_str());
+        return true;
+    }
+
+    return false;
 }
 } // namespace AAFwk
 } // namespace OHOS
