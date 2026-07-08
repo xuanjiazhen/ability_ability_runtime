@@ -1,0 +1,7 @@
+{
+  "string": [
+    { "name": "module_desc", "value": "IPC PoC module" },
+    { "name": "EntryAbility_desc", "value": "IPC PoC entry" },
+    { "name": "EntryAbility_label", "value": "IPC PoC" }
+  ]
+}
