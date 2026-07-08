@@ -15,6 +15,13 @@ import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 ohos_unittest("modal_system_app_freeze_uiextension_test") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = "ability_runtime/ability_runtime/ability_call_test"
 
   defines = [

@@ -33,6 +33,12 @@ config("connection_obs_manager_public_config") {
 ohos_shared_library("connection_obs_manager") {
   branch_protector_ret = "pac_ret"
 
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   sources = [
     "src/connection_data.cpp",
     "src/connection_observer_client.cpp",
