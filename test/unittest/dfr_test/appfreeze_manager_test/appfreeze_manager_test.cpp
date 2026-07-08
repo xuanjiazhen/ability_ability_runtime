@@ -232,7 +232,8 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_006, TestSize.Level1)
     EXPECT_TRUE(!ret.empty());
     int32_t pid = static_cast<int32_t>(getprocpid());
     int state = AppfreezeManager::AppFreezeState::APPFREEZE_STATE_FREEZE;
-    bool result = appfreezeManager->IsProcessDebug(pid, "Test");
+    int32_t uid = static_cast<int32_t>(getuid());
+    bool result = appfreezeManager->IsProcessDebug(pid, uid, "Test");
     EXPECT_TRUE(!result);
 }
 
@@ -304,10 +305,11 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_IsHalfTimeout_003, TestSize.
 HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_AppFreezeFilter_001, TestSize.Level0)
 {
     int32_t pid = static_cast<int32_t>(getprocpid());
-    EXPECT_TRUE(!appfreezeManager->CancelAppFreezeDetect(pid, ""));
-    appfreezeManager->ResetAppfreezeState(pid, "");
-    appfreezeManager->IsValidFreezeFilter(pid, "");
-    appfreezeManager->RemoveDeathProcess("");
+    int32_t uid = static_cast<int32_t>(getuid());
+    EXPECT_TRUE(!appfreezeManager->CancelAppFreezeDetect(pid, uid, ""));
+    appfreezeManager->ResetAppfreezeState(pid, uid, "");
+    appfreezeManager->IsValidFreezeFilter(pid, uid, "");
+    appfreezeManager->RemoveDeathProcess(pid, uid, "");
 }
 
 /**
@@ -318,10 +320,11 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_AppFreezeFilter_001, TestSiz
 HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_AppFreezeFilter_002, TestSize.Level1)
 {
     int32_t pid = static_cast<int32_t>(getprocpid());
+    int32_t uid = static_cast<int32_t>(getuid());
     std::string bundleName = "AppfreezeManagerTest_AppFreezeFilter_002";
-    EXPECT_TRUE(appfreezeManager->CancelAppFreezeDetect(pid, bundleName));
-    appfreezeManager->IsProcessDebug(pid, bundleName);
-    appfreezeManager->RemoveDeathProcess(bundleName);
+    EXPECT_TRUE(appfreezeManager->CancelAppFreezeDetect(pid, uid, bundleName));
+    appfreezeManager->IsProcessDebug(pid, uid, bundleName);
+    appfreezeManager->RemoveDeathProcess(pid, uid, bundleName);
 }
 
 /**
@@ -614,7 +617,7 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CheckAppfreezeHappend_Test00
     int pid = getpid();
     int uid = getuid();
     std::string testValue = "AppfreezeManagerTest_CheckAppfreezeHappend_Test001";
-    std::string key = std::to_string(pid) + "_" + std::to_string(uid) + "_" + testValue;
+    std::string key = appfreezeManager->GenerateFreezeFilterKey(pid, uid, testValue);
     bool ret = appfreezeManager->CheckAppfreezeHappend(key, "CheckAppfreezeHappend_Test");
     EXPECT_EQ(ret, false);
     ret = appfreezeManager->CheckAppfreezeHappend(key, "THREAD_BLOCK_3S");
@@ -662,7 +665,7 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_IsNeedIgnoreFreezeEvent_Test
     int pid = getpid();
     int uid = getuid();
     std::string bundleName = "AppfreezeManagerTest_IsNeedIgnoreFreezeEvent_Test001";
-    std::string key = std::to_string(pid) + "_" + std::to_string(uid) + "_" + bundleName;
+    std::string key = appfreezeManager->GenerateFreezeFilterKey(pid, uid, bundleName);
     int reportTimes = 3;
     bool ret = appfreezeManager->IsNeedIgnoreFreezeEvent(key, "THREAD_BLOCK_6S", reportTimes);
     EXPECT_EQ(ret, false);
@@ -735,7 +738,7 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CheckAppfreezeHappend_Test00
     int pid = getpid();
     int uid = getuid();
     std::string testValue = "AppfreezeManagerTest_CheckAppfreezeHappend_Test002";
-    std::string key = std::to_string(pid) + "_" + std::to_string(uid) + "_" + testValue;
+    std::string key = appfreezeManager->GenerateFreezeFilterKey(pid, uid, testValue);
     bool ret = appfreezeManager->CheckAppfreezeHappend(key, "THREAD_BLOCK_3S");
     EXPECT_EQ(ret, false);
     ret = appfreezeManager->CheckAppfreezeHappend(key, "BUSSINESS_THREAD_BLOCK_3S");
@@ -1025,7 +1028,7 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CheckAppfreezeHappend_Test00
     int pid = getpid();
     int uid = getuid();
     std::string testValue = "AppfreezeManagerTest_CheckAppfreezeHappend_Test003";
-    std::string key = std::to_string(pid) + "_" + std::to_string(uid) + "_" + testValue;
+    std::string key = appfreezeManager->GenerateFreezeFilterKey(pid, uid, testValue);
     bool ret = appfreezeManager->CheckAppfreezeHappend(key, "APP_INPUT_BLOCK");
     EXPECT_EQ(ret, false);
     ret = appfreezeManager->CheckAppfreezeHappend(key, "APP_INPUT_BLOCK");
@@ -1060,7 +1063,7 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_IsNeedIgnoreInputBlockEvent_
     int pid = getpid();
     int uid = getuid();
     std::string bundleName = "AppfreezeManagerTest_IsNeedIgnoreInputBlockEvent_Test001";
-    std::string key = std::to_string(pid) + "_" + std::to_string(uid) + "_" + bundleName;
+    std::string key = appfreezeManager->GenerateFreezeFilterKey(pid, uid, bundleName);
     bool ret = appfreezeManager->IsNeedIgnoreInputBlockEvent(key);
     EXPECT_EQ(ret, false);
     ret = appfreezeManager->IsNeedIgnoreInputBlockEvent(key);
@@ -1119,6 +1122,20 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_UpdateEventInfo_Test002, Tes
     EXPECT_EQ(eventInfo.tid, 0);
     EXPECT_EQ(eventInfo.binderInfo, "");
     EXPECT_EQ(eventInfo.freezeMemory, "\n");
+}
+
+/**
+ * @tc.number: AppfreezeManagerTest_GenerateFreezeFilterKey_001
+ * @tc.desc: Test GenerateFreezeFilterKey function
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GenerateFreezeFilterKey_001, TestSize.Level1)
+{
+    int32_t pid = 1234;
+    int32_t uid = 5678;
+    std::string bundleName = "test_bundle";
+    std::string key = appfreezeManager->GenerateFreezeFilterKey(pid, uid, bundleName);
+    EXPECT_EQ(key, "1234-5678-test_bundle");
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

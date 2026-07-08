@@ -41,11 +41,13 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
         return false;
     }
     int32_t pid;
+    int32_t uid;
     std::string bundleName;
     FuzzedDataProvider fdp(data, size);
     pid = fdp.ConsumeIntegralInRange<int32_t>(0, U32_AT_SIZE);
+    uid = fdp.ConsumeIntegralInRange<int32_t>(0, U32_AT_SIZE);
     bundleName = fdp.ConsumeRandomLengthString();
-    freeze->CancelAppFreezeDetect(pid, bundleName);
+    freeze->CancelAppFreezeDetect(pid, uid, bundleName);
     return true;
 }
 }
