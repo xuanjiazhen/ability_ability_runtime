@@ -691,8 +691,8 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_NotifyAppFau
     EXPECT_EQ(ret, ERR_OK);
 
     appRecord->SetState(ApplicationState::APP_STATE_FOREGROUND);
-    // expect in appfreezeManager return OK
-    AppfreezeManager::GetInstance()->CancelAppFreezeDetect(1, TEST_BUNDLE_NAME);
+    std::string key = AppfreezeManager::GetInstance()->GenerateFreezeFilterKey(1, 1, TEST_BUNDLE_NAME);
+    AppfreezeManager::GetInstance()->CancelAppFreezeDetect(key);
     ret = appMgrServiceInner->NotifyAppFault(faultData);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_NotifyAppFault_0100 end");
