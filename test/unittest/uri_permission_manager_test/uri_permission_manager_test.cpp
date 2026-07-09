@@ -64,8 +64,8 @@ HWTEST_F(UriPermissionManagerTest, ConnectUriPermService_001, TestSize.Level1)
         new (std::nothrow) AppExecFwk::MockSystemAbilityManager();
     ASSERT_NE(mockSystemAbilityManager, nullptr);
     SystemAbilityManagerClient::GetInstance().systemAbilityManager_ = mockSystemAbilityManager;
-    EXPECT_CALL(*mockSystemAbilityManager, GetSystemAbility(::testing::An<int32_t>()))
-        .WillOnce(::testing::Return(nullptr));
+    EXPECT_CALL(*mockSystemAbilityManager, CheckSystemAbility(::testing::An<int32_t>(), ::testing::Ref<bool>()))
+        .WillRepeatedly(::testing::Return(nullptr));
     auto& upmc = AAFwk::UriPermissionManagerClient::GetInstance();
     auto ret = upmc.ConnectUriPermService();
     EXPECT_EQ(ret, nullptr);
@@ -84,8 +84,8 @@ HWTEST_F(UriPermissionManagerTest, ConnectUriPermService_002, TestSize.Level1)
         new (std::nothrow) AppExecFwk::MockSystemAbilityManager();
     ASSERT_NE(mockSystemAbilityManager, nullptr);
     SystemAbilityManagerClient::GetInstance().systemAbilityManager_ = mockSystemAbilityManager;
-    EXPECT_CALL(*mockSystemAbilityManager, GetSystemAbility(::testing::An<int32_t>()))
-        .WillOnce(::testing::Return(nullptr));
+    EXPECT_CALL(*mockSystemAbilityManager, CheckSystemAbility(::testing::An<int32_t>(), ::testing::Ref<bool>()))
+        .WillRepeatedly(::testing::Return(nullptr));
     auto& upmc = AAFwk::UriPermissionManagerClient::GetInstance();
     auto ret = upmc.ConnectUriPermService();
     EXPECT_EQ(ret, nullptr);
@@ -104,8 +104,8 @@ HWTEST_F(UriPermissionManagerTest, LoadUriPermService_001, TestSize.Level1)
         new (std::nothrow) AppExecFwk::MockSystemAbilityManager();
     ASSERT_NE(mockSystemAbilityManager, nullptr);
     SystemAbilityManagerClient::GetInstance().systemAbilityManager_ = mockSystemAbilityManager;
-    EXPECT_CALL(*mockSystemAbilityManager, GetSystemAbility(::testing::An<int32_t>()))
-        .WillOnce(::testing::Return(nullptr));
+    EXPECT_CALL(*mockSystemAbilityManager, CheckSystemAbility(::testing::An<int32_t>(), ::testing::Ref<bool>()))
+        .WillRepeatedly(::testing::Return(nullptr));
     auto& upmc = AAFwk::UriPermissionManagerClient::GetInstance();
     auto ret = upmc.LoadUriPermService();
     EXPECT_FALSE(ret);
