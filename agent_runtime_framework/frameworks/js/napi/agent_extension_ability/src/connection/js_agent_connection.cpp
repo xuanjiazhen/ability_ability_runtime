@@ -16,6 +16,7 @@
 #include "js_agent_connection.h"
 
 #include "ability_business_error.h"
+#include "agent_card.h"
 #include "agent_extension_connection_constants.h"
 #include "hilog_tag_wrapper.h"
 #include "js_agent_connector_stub_impl.h"
@@ -33,6 +34,49 @@ constexpr int32_t ARGC_ONE = 1;
 static std::map<ConnectionKey, sptr<JSAgentConnection>, KeyCompare> g_agentConnects;
 static std::recursive_mutex g_agentConnectsLock_;
 static int64_t g_agentSerialNumber = 0;
+
+bool IsLowCodeRecord(const AAFwk::Want &want)
+{
+    return want.GetIntParam(AGENT_CARD_TYPE_KEY, -1) == static_cast<int32_t>(AgentCardType::LOW_CODE);
+}
+
+bool IsSameAgentCard(const AAFwk::Want &recordWant, const AAFwk::Want &want)
+{
+    const std::string agentId = want.GetStringParam(AGENTID_KEY);
+    return !agentId.empty() && recordWant.GetBundle() == want.GetBundle() &&
+        recordWant.GetStringParam(AGENTID_KEY) == agentId;
+}
+
+// Exact duplicate matching runs only after AgentMgr validates and canonicalizes
+// the Want, so bundle + AgentId identifies the AgentCard. Low-code still uses the
+// per-connection AgentId set because one host connection can own multiple AgentIds.
+bool IsAgentConnectionMatch(const ConnectionKey &key, const sptr<JSAgentConnection> &connection,
+    const AAFwk::Want &want)
+{
+    if (connection == nullptr || !IsSameAgentCard(key.want, want)) {
+        return false;
+    }
+    if (!IsLowCodeRecord(key.want)) {
+        return true;
+    }
+    std::string agentId = want.GetStringParam(AGENTID_KEY);
+    return connection->HasLowCodeAgentId(agentId) || connection->IsDisconnecting();
+}
+
+// Low-code host reuse is only for a different AgentId on the same callback/proxy.
+// The same active AgentId must stay on the duplicate path or reach AgentMgr rejection.
+bool IsReusableLowCodeConnection(const ConnectionKey &key, const sptr<JSAgentConnection> &connection,
+    const AAFwk::Want &want)
+{
+    if (connection == nullptr || !IsLowCodeRecord(key.want) || !(key.want.GetElement() == want.GetElement())) {
+        return false;
+    }
+    std::string agentId = want.GetStringParam(AGENTID_KEY);
+    if (connection->HasLowCodeAgentId(agentId)) {
+        return false;
+    }
+    return connection->HasAnyLowCodeAgentId() || connection->IsDisconnecting();
+}
 } // namespace
 
 namespace AgentConnectionUtils {
@@ -114,12 +158,13 @@ void FindAgentConnection(napi_env env, const AAFwk::Want &want, napi_value callb
     std::lock_guard<std::recursive_mutex> lock(g_agentConnectsLock_);
     auto item = std::find_if(g_agentConnects.begin(), g_agentConnects.end(),
         [&want, env, callback](const auto &obj) {
-        bool wantEquals = obj.first.want.GetElement() == want.GetElement() &&
-            obj.first.want.GetStringParam(AGENTID_KEY) == want.GetStringParam(AGENTID_KEY);
+        if (!IsAgentConnectionMatch(obj.first, obj.second, want)) {
+            return false;
+        }
         std::unique_ptr<NativeReference> &tempCallbackPtr = obj.second->GetJsConnectionObject();
         bool callbackObjectEquals =
             JSAgentConnection::IsJsCallbackObjectEquals(env, tempCallbackPtr, callback);
-        return wantEquals && callbackObjectEquals;
+        return callbackObjectEquals;
     });
     if (item == g_agentConnects.end()) {
         TAG_LOGD(AAFwkTag::SER_ROUTER, "Connection not found");
@@ -145,19 +190,20 @@ void FindAgentConnectionCandidatesByTarget(napi_env env, const AAFwk::Want &want
     }
 }
 
-void FindAgentConnectionByTargetAndCardType(napi_env env, const AAFwk::Want &want, napi_value callback,
-    int32_t agentCardType, sptr<JSAgentConnection> &connection)
+void FindReusableLowCodeAgentConnection(napi_env env, const AAFwk::Want &want, napi_value callback,
+    sptr<JSAgentConnection> &connection)
 {
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "FindAgentConnectionByTargetAndCardType");
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "FindReusableLowCodeAgentConnection");
     std::lock_guard<std::recursive_mutex> lock(g_agentConnectsLock_);
     auto item = std::find_if(g_agentConnects.begin(), g_agentConnects.end(),
-        [&want, env, callback, agentCardType](const auto &obj) {
-            bool cardTypeEquals = obj.first.want.GetIntParam(AGENT_CARD_TYPE_KEY, -1) == agentCardType;
-            bool wantEquals = obj.first.want.GetElement() == want.GetElement();
+        [&want, env, callback](const auto &obj) {
+            if (!IsReusableLowCodeConnection(obj.first, obj.second, want)) {
+                return false;
+            }
             std::unique_ptr<NativeReference> &tempCallbackPtr = obj.second->GetJsConnectionObject();
             bool callbackObjectEquals =
                 JSAgentConnection::IsJsCallbackObjectEquals(env, tempCallbackPtr, callback);
-            return cardTypeEquals && wantEquals && callbackObjectEquals;
+            return callbackObjectEquals;
         });
     if (item == g_agentConnects.end()) {
         TAG_LOGD(AAFwkTag::SER_ROUTER, "Connection not found");
@@ -165,6 +211,21 @@ void FindAgentConnectionByTargetAndCardType(napi_env env, const AAFwk::Want &wan
     }
     connection = item->second;
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Found connection");
+}
+
+// Completion is local cleanup only after AgentMgr has accepted the completion.
+// If it removes the last AgentId, reconnect must wait for disconnect settlement.
+void CompleteLowCodeAgent(const std::string &agentId)
+{
+    std::lock_guard<std::recursive_mutex> lock(g_agentConnectsLock_);
+    for (const auto &obj : g_agentConnects) {
+        if (obj.second == nullptr || !obj.second->HasLowCodeAgentId(agentId)) {
+            continue;
+        }
+        if (obj.second->RemoveLowCodeAgentId(agentId)) {
+            obj.second->SetDisconnecting(true);
+        }
+    }
 }
 } // namespace AgentConnectionUtils
 
@@ -252,6 +313,18 @@ void JSAgentConnection::HandleOnAbilityConnectDone(const AppExecFwk::ElementName
         napiAsyncTask_->ResolveWithNoError(env_, proxy);
     }
     ResolveDuplicatedPendingTask(env_, proxy);
+    // host connected: register staged non-first AgentIds via Reuse and resolve them.
+    {
+        ConnectCompleteHandler handler;
+        {
+            std::lock_guard<std::mutex> lock(stateLock_);
+            handler = connectCompleteHandler_;
+        }
+        if (handler != nullptr) {
+            sptr<JSAgentConnection> self(this);
+            handler(env_, proxy, self);
+        }
+    }
     napiAsyncTask_ = nullptr;
 }
 
@@ -348,23 +421,62 @@ void JSAgentConnection::AddReconnectPendingTask(const AAFwk::Want &want,
         return;
     }
     std::lock_guard<std::mutex> lock(stateLock_);
-    if (reconnectPendingTaskList_.empty()) {
-        reconnectWant_ = want;
-    }
+    // remember every queued Want (not only the first) so drain can register each AgentId.
+    reconnectWants_.push_back(want);
     reconnectPendingTaskList_.push_back(std::move(task));
 }
 
-bool JSAgentConnection::TakeReconnectPendingTasks(AAFwk::Want &want,
+bool JSAgentConnection::TakeReconnectPendingTasks(std::vector<AAFwk::Want> &wants,
     std::vector<std::unique_ptr<AbilityRuntime::NapiAsyncTask>> &tasks)
 {
     std::lock_guard<std::mutex> lock(stateLock_);
     if (reconnectPendingTaskList_.empty()) {
         return false;
     }
-    want = reconnectWant_;
+    wants = std::move(reconnectWants_);
     tasks = std::move(reconnectPendingTaskList_);
+    reconnectWants_.clear();
     reconnectPendingTaskList_.clear();
     return true;
+}
+
+void JSAgentConnection::AddPendingLowCodeReuseTask(const AAFwk::Want &want,
+    std::unique_ptr<AbilityRuntime::NapiAsyncTask> task)
+{
+    if (task == nullptr) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(stateLock_);
+    pendingLowCodeReuseWants_.push_back(want);
+    pendingLowCodeReuseTaskList_.push_back(std::move(task));
+}
+
+bool JSAgentConnection::TakePendingLowCodeReuseTasks(std::vector<AAFwk::Want> &wants,
+    std::vector<std::unique_ptr<AbilityRuntime::NapiAsyncTask>> &tasks)
+{
+    std::lock_guard<std::mutex> lock(stateLock_);
+    if (pendingLowCodeReuseTaskList_.empty()) {
+        return false;
+    }
+    wants = std::move(pendingLowCodeReuseWants_);
+    tasks = std::move(pendingLowCodeReuseTaskList_);
+    pendingLowCodeReuseWants_.clear();
+    pendingLowCodeReuseTaskList_.clear();
+    return true;
+}
+
+void JSAgentConnection::RejectPendingLowCodeReuseTasks(napi_env env, napi_value error)
+{
+    std::vector<AAFwk::Want> wants;
+    std::vector<std::unique_ptr<AbilityRuntime::NapiAsyncTask>> tasks;
+    if (!TakePendingLowCodeReuseTasks(wants, tasks)) {
+        return;
+    }
+    for (auto &task : tasks) {
+        if (task != nullptr) {
+            task->Reject(env, error);
+        }
+    }
 }
 
 void JSAgentConnection::AdoptDuplicatedPendingTasks(
@@ -595,9 +707,39 @@ bool JSAgentConnection::IsDisconnecting()
     return disconnecting_;
 }
 
+bool JSAgentConnection::AddLowCodeAgentId(const std::string &agentId)
+{
+    std::lock_guard<std::mutex> lock(stateLock_);
+    return lowCodeAgentIds_.insert(agentId).second;
+}
+
+bool JSAgentConnection::RemoveLowCodeAgentId(const std::string &agentId)
+{
+    std::lock_guard<std::mutex> lock(stateLock_);
+    return lowCodeAgentIds_.erase(agentId) > 0 && lowCodeAgentIds_.empty();
+}
+
+bool JSAgentConnection::HasLowCodeAgentId(const std::string &agentId)
+{
+    std::lock_guard<std::mutex> lock(stateLock_);
+    return lowCodeAgentIds_.find(agentId) != lowCodeAgentIds_.end();
+}
+
+bool JSAgentConnection::HasAnyLowCodeAgentId()
+{
+    std::lock_guard<std::mutex> lock(stateLock_);
+    return !lowCodeAgentIds_.empty();
+}
+
 void JSAgentConnection::SetDisconnectCompleteHandler(DisconnectCompleteHandler handler)
 {
     disconnectCompleteHandler_ = std::move(handler);
+}
+
+void JSAgentConnection::SetConnectCompleteHandler(ConnectCompleteHandler handler)
+{
+    std::lock_guard<std::mutex> lock(stateLock_);
+    connectCompleteHandler_ = std::move(handler);
 }
 } // namespace AgentRuntime
 } // namespace OHOS
