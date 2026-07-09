@@ -293,6 +293,101 @@ HWTEST_F(JsRuntimeTest, JsRuntimeDumpJsHandleMapTest_0100, TestSize.Level2)
 }
 
 /**
+ * @tc.name: JsRuntimeDumpJsHandleMapTest_0200
+ * @tc.desc: JsRuntime test for DumpJsHandleMap when jsEnv_ is nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, JsRuntimeDumpJsHandleMapTest_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DumpJsHandleMap_0200 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    jsRuntime->jsEnv_ = nullptr;
+    jsRuntime->DumpJsHandleMap();
+    EXPECT_TRUE(jsRuntime != nullptr);
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "DumpJsHandleMap_0200 end");
+}
+
+/**
+ * @tc.name: JsRuntimeDumpJsHandleMapTest_0300
+ * @tc.desc: JsRuntime test for DumpJsHandleMap when jsEnv_ exists but vm_ is nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, JsRuntimeDumpJsHandleMapTest_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DumpJsHandleMap_0300 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    jsRuntime->jsEnv_->vm_ = nullptr;
+    jsRuntime->DumpJsHandleMap();
+    EXPECT_TRUE(jsRuntime != nullptr);
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "DumpJsHandleMap_0300 end");
+}
+
+/**
+ * @tc.name: JsRuntimeDumpJsHandleMapTest_0400
+ * @tc.desc: JsRuntime test for DumpJsHandleMap with valid VM.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, JsRuntimeDumpJsHandleMapTest_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DumpJsHandleMap_0400 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    panda::RuntimeOption pandaOption;
+    jsRuntime->jsEnv_->vm_ = panda::JSNApi::CreateJSVM(pandaOption);
+    jsRuntime->DumpJsHandleMap();
+    EXPECT_TRUE(jsRuntime != nullptr);
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "DumpJsHandleMap_0400 end");
+}
+
+/**
+ * @tc.name: JsRuntimeDumpJsHandleMapTest_0500
+ * @tc.desc: JsRuntime test for DumpJsHandleMap called through Runtime base class pointer.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, JsRuntimeDumpJsHandleMapTest_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DumpJsHandleMap_0500 start");
+    std::unique_ptr<Runtime> runtime = std::make_unique<JsRuntime>();
+    runtime->DumpJsHandleMap();
+    EXPECT_TRUE(runtime != nullptr);
+    runtime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "DumpJsHandleMap_0500 end");
+}
+
+/**
+ * @tc.name: JsRuntimeDumpJsHandleMapTest_0600
+ * @tc.desc: JsRuntime test for DumpJsHandleMap with JsRuntime created by Create().
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, JsRuntimeDumpJsHandleMapTest_0600, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DumpJsHandleMap_0600 start");
+    Runtime::Options options;
+    options.bundleName = TEST_BUNDLE_NAME;
+    options.codePath = TEST_CODE_PATH;
+    options.loadAce = false;
+    options.isBundle = true;
+    options.preload = false;
+    std::shared_ptr<AppExecFwk::EventRunner> eventRunner = AppExecFwk::EventRunner::Create(TEST_ABILITY_NAME);
+    options.eventRunner = eventRunner;
+    auto jsRuntime = JsRuntime::Create(options);
+    ASSERT_NE(jsRuntime, nullptr);
+    jsRuntime->DumpJsHandleMap();
+    EXPECT_TRUE(jsRuntime != nullptr);
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "DumpJsHandleMap_0600 end");
+}
+
+/**
  * @tc.name: JsRuntimeGetHeapTotalSizeTest_0100
  * @tc.desc: JsRuntime test for GetHeapTotalSize.
  * @tc.type: FUNC
