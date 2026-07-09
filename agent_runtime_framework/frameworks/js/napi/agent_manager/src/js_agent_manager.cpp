@@ -313,13 +313,19 @@ void ScheduleLowCodeConnectCall(napi_env env, AAFwk::Want want, const sptr<JSAge
 
 napi_value ScheduleResolvedLowCodeConnect(napi_env env, AAFwk::Want want, const sptr<JSAgentConnection> &connection)
 {
+    std::string agentId = want.GetStringParam(AGENTID_KEY);
+    bool isAdded = connection->AddLowCodeAgentId(agentId);
     napi_value result = nullptr;
     auto connectTask = CreateAsyncTaskWithLastParam(env, nullptr, nullptr, nullptr, &result);
     std::shared_ptr<NapiAsyncTask> connectTaskShared = std::move(connectTask);
     auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
     auto complete = std::make_unique<NapiAsyncTask::CompleteCallback>(
-        [connection, connectTaskShared, innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {
+        [connection, connectTaskShared, innerErrCode, agentId, isAdded](
+            napi_env env, NapiAsyncTask &task, int32_t status) {
             if (*innerErrCode != ERR_OK) {
+                if (isAdded) {
+                    connection->RemoveLowCodeAgentId(agentId);
+                }
                 connectTaskShared->Reject(env,
                     CreateJsError(env, static_cast<int32_t>(GetJsErrorCodeByNativeError(*innerErrCode)),
                         GetAgentManagerErrorMsg(*innerErrCode, AgentManagerErrorOperation::CONNECT_AGENT_EXTENSION)));
@@ -327,6 +333,9 @@ napi_value ScheduleResolvedLowCodeConnect(napi_env env, AAFwk::Want want, const 
             }
             napi_value proxy = connection->GetProxyObject();
             if (proxy == nullptr) {
+                if (isAdded) {
+                    connection->RemoveLowCodeAgentId(agentId);
+                }
                 connectTaskShared->Reject(env,
                     CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
                         AbilityRuntime::GetInnerErrorMsg(AbilityInnerErrorMsg::OPERATION_FAILED)));
@@ -340,14 +349,19 @@ napi_value ScheduleResolvedLowCodeConnect(napi_env env, AAFwk::Want want, const 
 
 napi_value SchedulePendingLowCodeConnect(napi_env env, AAFwk::Want want, const sptr<JSAgentConnection> &connection)
 {
+    std::string agentId = want.GetStringParam(AGENTID_KEY);
+    bool isAdded = connection->AddLowCodeAgentId(agentId);
     napi_value result = nullptr;
     auto connectTask = CreateAsyncTaskWithLastParam(env, nullptr, nullptr, nullptr, &result);
     connection->AddDuplicatedPendingTask(connectTask);
     auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
     auto complete = std::make_unique<NapiAsyncTask::CompleteCallback>(
-        [connection, innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {
+        [connection, innerErrCode, agentId, isAdded](napi_env env, NapiAsyncTask &task, int32_t status) {
             if (*innerErrCode == ERR_OK) {
                 return;
+            }
+            if (isAdded) {
+                connection->RemoveLowCodeAgentId(agentId);
             }
             napi_value error = CreateJsError(env, static_cast<int32_t>(GetJsErrorCodeByNativeError(*innerErrCode)),
                 GetAgentManagerErrorMsg(*innerErrCode, AgentManagerErrorOperation::CONNECT_AGENT_EXTENSION));
@@ -373,10 +387,16 @@ bool TryReuseLowCodeAgentConnection(napi_env env, const AAFwk::Want &want, napi_
     napi_value &result)
 {
     sptr<JSAgentConnection> connection = nullptr;
-    AgentConnectionUtils::FindAgentConnectionByTargetAndCardType(env, want, callbackObject,
-        static_cast<int32_t>(AgentCardType::LOW_CODE), connection);
+    AgentConnectionUtils::FindReusableLowCodeAgentConnection(env, want, callbackObject, connection);
     if (connection == nullptr || connection->IsDisconnecting()) {
-        return false;
+        if (connection == nullptr) {
+            return false;
+        }
+        TAG_LOGI(AAFwkTag::SER_ROUTER, "Low-code connection is disconnecting, queue reconnect");
+        std::unique_ptr<NapiAsyncTask> asyncTask =
+            CreateAsyncTaskWithLastParam(env, nullptr, nullptr, nullptr, &result);
+        connection->AddReconnectPendingTask(want, asyncTask);
+        return true;
     }
     TAG_LOGI(AAFwkTag::SER_ROUTER, "Reuse low-code connection for new agentId");
     result = ScheduleExistingLowCodeAgentConnection(env, want, connection);
@@ -391,6 +411,47 @@ void ConfigureDisconnectCompleteHandler(const sptr<JSAgentConnection> &connectio
         return;
     }
     connection->SetDisconnectCompleteHandler(ReconnectPendingAgentExtensionAbility);
+}
+
+// F01: after the fresh host connects (HandleOnAbilityConnectDone), register each staged non-first
+// low-code AgentId via Reuse and resolve its task with the proxy. Without this only the first
+// queued AgentId was registered and the rest silently failed NotifyLowCodeAgentComplete.
+void ConfigureConnectCompleteHandler(const sptr<JSAgentConnection> &connection)
+{
+    if (connection == nullptr) {
+        return;
+    }
+    connection->SetConnectCompleteHandler(
+        [](napi_env env, napi_value proxy, const sptr<JSAgentConnection> &conn) {
+            if (env == nullptr || proxy == nullptr || conn == nullptr) {
+                return;
+            }
+            std::vector<AAFwk::Want> wants;
+            std::vector<std::unique_ptr<AbilityRuntime::NapiAsyncTask>> tasks;
+            if (!conn->TakePendingLowCodeReuseTasks(wants, tasks)) {
+                return;
+            }
+            for (size_t i = 0; i < wants.size() && i < tasks.size(); ++i) {
+                auto &task = tasks[i];
+                if (task == nullptr) {
+                    continue;
+                }
+                std::string agentId = wants[i].GetStringParam(AGENTID_KEY);
+                bool isAdded = conn->AddLowCodeAgentId(agentId);
+                int32_t err = AgentConnectionManager::GetInstance().ReuseLowCodeAgentExtensionAbility(
+                    wants[i], conn);
+                if (err == ERR_OK) {
+                    task->ResolveWithNoError(env, proxy);
+                } else {
+                    if (isAdded) {
+                        conn->RemoveLowCodeAgentId(agentId);
+                    }
+                    napi_value error = CreateJsError(env, static_cast<int32_t>(GetJsErrorCodeByNativeError(err)),
+                        GetAgentManagerErrorMsg(err, AgentManagerErrorOperation::CONNECT_AGENT_EXTENSION));
+                    task->Reject(env, error);
+                }
+            }
+        });
 }
 
 sptr<JSAgentConnection> CreateAgentConnectionInner(napi_env env, AAFwk::Want &want, napi_value callbackObject)
@@ -408,7 +469,11 @@ sptr<JSAgentConnection> CreateAgentConnectionInner(napi_env env, AAFwk::Want &wa
     }
     want.SetParam(AGENTEXTENSIONHOSTPROXY_KEY, stub->AsObject());
     connection->SetJsConnectionObject(callbackObject);
+    if (want.GetIntParam(AGENT_CARD_TYPE_KEY, -1) == static_cast<int32_t>(AgentCardType::LOW_CODE)) {
+        connection->AddLowCodeAgentId(want.GetStringParam(AGENTID_KEY));
+    }
     ConfigureDisconnectCompleteHandler(connection);
+    ConfigureConnectCompleteHandler(connection);
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Connection created, stub set");
     return connection;
 }
@@ -455,33 +520,46 @@ void RejectReconnectPendingTasks(napi_env env,
     tasks.clear();
 }
 
-void ResolveReconnectPendingTasks(napi_env env, std::vector<std::unique_ptr<NapiAsyncTask>> &tasks, napi_value proxy)
-{
-    for (auto &task : tasks) {
-        if (task != nullptr) {
-            task->ResolveWithNoError(env, proxy);
-        }
-    }
-    tasks.clear();
-}
-
 void DrainReconnectPendingTasksToExistingConnection(napi_env env, const sptr<JSAgentConnection> &connection)
 {
     if (connection == nullptr) {
         return;
     }
-    AAFwk::Want want;
+    std::vector<AAFwk::Want> wants;
     std::vector<std::unique_ptr<NapiAsyncTask>> tasks;
-    if (!connection->TakeReconnectPendingTasks(want, tasks)) {
+    if (!connection->TakeReconnectPendingTasks(wants, tasks)) {
         return;
     }
 
     napi_value proxy = connection->GetProxyObject();
-    if (proxy != nullptr) {
-        ResolveReconnectPendingTasks(env, tasks, proxy);
+    if (proxy == nullptr) {
+        connection->AdoptDuplicatedPendingTasks(std::move(tasks));
         return;
     }
-    connection->AdoptDuplicatedPendingTasks(std::move(tasks));
+    // F01: register every queued AgentId (not only the first). The existing host is already
+    // connected here (this runs when an explicit disconnect failed), so Reuse is immediate.
+    for (size_t i = 0; i < wants.size() && i < tasks.size(); ++i) {
+        auto &task = tasks[i];
+        if (task == nullptr) {
+            continue;
+        }
+        std::string agentId = wants[i].GetStringParam(AGENTID_KEY);
+        if (!connection->HasLowCodeAgentId(agentId)) {
+            bool isAdded = connection->AddLowCodeAgentId(agentId);
+            int32_t err = AgentConnectionManager::GetInstance().ReuseLowCodeAgentExtensionAbility(
+                wants[i], connection);
+            if (err != ERR_OK) {
+                if (isAdded) {
+                    connection->RemoveLowCodeAgentId(agentId);
+                }
+                napi_value error = CreateJsError(env, static_cast<int32_t>(GetJsErrorCodeByNativeError(err)),
+                    GetAgentManagerErrorMsg(err, AgentManagerErrorOperation::CONNECT_AGENT_EXTENSION));
+                task->Reject(env, error);
+                continue;
+            }
+        }
+        task->ResolveWithNoError(env, proxy);
+    }
 }
 
 void ReconnectPendingAgentExtensionAbility(const sptr<JSAgentConnection> &oldConnection)
@@ -489,9 +567,9 @@ void ReconnectPendingAgentExtensionAbility(const sptr<JSAgentConnection> &oldCon
     if (oldConnection == nullptr) {
         return;
     }
-    AAFwk::Want want;
+    std::vector<AAFwk::Want> wants;
     std::vector<std::unique_ptr<NapiAsyncTask>> tasks;
-    if (!oldConnection->TakeReconnectPendingTasks(want, tasks)) {
+    if (!oldConnection->TakeReconnectPendingTasks(wants, tasks)) {
         return;
     }
 
@@ -506,22 +584,32 @@ void ReconnectPendingAgentExtensionAbility(const sptr<JSAgentConnection> &oldCon
         return;
     }
 
-    auto connection = CreateAgentConnectionInner(env, want, callbackObject);
+    // F01: the first queued Want drives the fresh host connection; the rest are staged and
+    // registered via Reuse after HandleOnAbilityConnectDone (see ConfigureConnectCompleteHandler),
+    // so every queued AgentId is registered instead of only the first.
+    auto connection = CreateAgentConnectionInner(env, wants.front(), callbackObject);
     if (connection == nullptr) {
         RejectReconnectPendingTasks(env, tasks, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER));
         return;
     }
-    connection->AdoptDuplicatedPendingTasks(std::move(tasks));
 
-    AAFwk::Want recordWant = want;
+    std::vector<std::unique_ptr<NapiAsyncTask>> firstTask;
+    firstTask.push_back(std::move(tasks.front()));
+    connection->AdoptDuplicatedPendingTasks(std::move(firstTask));
+    for (size_t i = 1; i < tasks.size(); ++i) {
+        connection->AddPendingLowCodeReuseTask(wants[i], std::move(tasks[i]));
+    }
+
+    AAFwk::Want recordWant = wants.front();
     recordWant.RemoveParam(AGENT_VERIFICATION_NONCE_KEY);
     int64_t connectionId = AgentConnectionUtils::InsertAgentConnection(connection, recordWant);
-    auto innerErrCode = AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(want, connection);
+    auto innerErrCode = AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(wants.front(), connection);
     if (innerErrCode != ERR_OK) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Reconnect failed: %{public}d", innerErrCode);
         napi_value error = CreateJsError(env, static_cast<int32_t>(GetJsErrorCodeByNativeError(innerErrCode)),
             GetAgentManagerErrorMsg(innerErrCode, AgentManagerErrorOperation::CONNECT_AGENT_EXTENSION));
         connection->RejectDuplicatedPendingTask(env, error);
+        connection->RejectPendingLowCodeReuseTasks(env, error);
         AgentConnectionUtils::RemoveAgentConnection(connectionId);
     }
 }
@@ -800,14 +888,8 @@ napi_value JsAgentManager::OnConnectAgentExtensionAbility(napi_env env, size_t a
         return CreateJsUndefined(env);
     }
 
-    // 2. Check for duplicate connection
     napi_value result = nullptr;
     want.SetParam(AGENTID_KEY, agentId);
-    bool duplicated = CheckConnectAlreadyExist(env, want, callbackObject, result);
-    if (duplicated) {
-        TAG_LOGI(AAFwkTag::SER_ROUTER, "Duplicated connection found");
-        return result;
-    }
 
     int32_t currentType = static_cast<int32_t>(AgentCardType::APP);
     int32_t errorCode = AgentManagerClient::GetInstance().GetAgentCardTypeForConnect(want, currentType);
@@ -815,7 +897,7 @@ napi_value JsAgentManager::OnConnectAgentExtensionAbility(napi_env env, size_t a
         TAG_LOGE(AAFwkTag::SER_ROUTER, "GetAgentCardTypeForConnect failed: %{public}d", errorCode);
         return CreateRejectedConnectResult(env, errorCode);
     }
-    duplicated = CheckConnectAlreadyExist(env, want, callbackObject, result);
+    bool duplicated = CheckConnectAlreadyExist(env, want, callbackObject, result);
     if (duplicated) {
         TAG_LOGI(AAFwkTag::SER_ROUTER, "Duplicated canonical connection found");
         return result;
@@ -1133,8 +1215,17 @@ napi_value JsAgentManager::OnNotifyLowCodeAgentComplete(napi_env env, size_t arg
     auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
     NapiAsyncTask::ExecuteCallback execute = [agentId, innerErrCode]() {
         *innerErrCode = AgentManagerClient::GetInstance().NotifyLowCodeAgentComplete(agentId);
+        // F05: align with the ETS synchronous model. The server initiates host teardown
+        // (DisconnectAbility) before the IPC returns ERR_OK, so the local disconnecting_ flag
+        // must be set in this same thread right after a successful IPC. Running it only in
+        // the later main-loop CompleteCallback left a window where disconnecting_ was still
+        // false while the server was already tearing the host down.
+        if (*innerErrCode == ERR_OK) {
+            AgentConnectionUtils::CompleteLowCodeAgent(agentId);
+        }
     };
-    NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode](
+        napi_env env, NapiAsyncTask &task, int32_t status) {
         if (*innerErrCode == ERR_OK) {
             task.ResolveWithNoError(env, CreateJsUndefined(env));
         } else {

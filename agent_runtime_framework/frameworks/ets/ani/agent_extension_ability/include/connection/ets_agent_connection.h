@@ -20,6 +20,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <set>
 #include <vector>
 
 #include "ability_connect_callback.h"
@@ -97,8 +98,28 @@ void FindAgentConnection(ani_env *env, const AAFwk::Want &want, ani_object callb
 void FindAgentConnectionCandidatesByTarget(ani_env *env, const AAFwk::Want &want, ani_object callback,
     std::vector<sptr<EtsAgentConnection>> &candidates);
 
-void FindAgentConnectionByTargetAndCardType(ani_env *env, const AAFwk::Want &want, ani_object callback,
-    int32_t agentCardType, sptr<EtsAgentConnection> &connection);
+/**
+ * Finds an existing low-code host connection that can accept a different AgentId.
+ *
+ * Same-AgentId duplicates are handled by FindAgentConnection; this helper is only
+ * for shared-host low-code reuse or reconnect queuing while the old host is disconnecting.
+ */
+void FindReusableLowCodeAgentConnection(ani_env *env, const AAFwk::Want &want, ani_object callback,
+    sptr<EtsAgentConnection> &connection);
+
+/**
+ * Mirrors a successful AgentMgr low-code completion into the local ETS connection registry.
+ */
+void CompleteLowCodeAgent(const std::string &agentId);
+
+/**
+ * F06: Atomically revalidates that candidate is still registered and still disconnecting, then
+ * enqueues the reconnect callback. Returns false if a concurrent binder-thread
+ * HandleOnAbilityDisconnectDone already erased/drained it, so the caller falls through to a
+ * fresh connect instead of orphaning the callback (which would hang the connect promise).
+ */
+bool QueueReconnectIfActive(ani_env *env, const AAFwk::Want &want, ani_object asyncCallback,
+    const sptr<EtsAgentConnection> &candidate);
 }
 
 class EtsAgentConnectorStubImpl;
@@ -111,6 +132,8 @@ class EtsAgentConnectorStubImpl;
 class EtsAgentConnection : public AbilityRuntime::AbilityConnectCallback {
 public:
     using DisconnectCompleteHandler = std::function<void(const sptr<EtsAgentConnection>&)>;
+    using ConnectCompleteHandler =
+        std::function<void(ani_env *env, ani_object proxy, const sptr<EtsAgentConnection>&)>;
 
     /**
      * Constructor.
@@ -189,7 +212,18 @@ public:
 
     void AddReconnectPendingCallback(ani_env *env, const AAFwk::Want &want, ani_object asyncCallback);
 
-    bool TakeReconnectPendingCallbacks(AAFwk::Want &want, std::vector<ani_ref> &callbacks);
+    // F06: enqueue a pre-created global ref without touching the ANI env (used by QueueReconnectIfActive).
+    void EnqueueReconnectPendingCallback(const AAFwk::Want &want, ani_ref callback);
+
+    // F01: every queued reconnect keeps its own Want; drain registers each non-first AgentId.
+    bool TakeReconnectPendingCallbacks(std::vector<AAFwk::Want> &wants, std::vector<ani_ref> &callbacks);
+
+    // F01: non-first low-code reconnects staged for server-side Reuse registration after the
+    // fresh host connection's OnAbilityConnectDone fires.
+    void AddPendingLowCodeReuseItem(const AAFwk::Want &want, ani_ref callback);
+    bool TakePendingLowCodeReuseItems(std::vector<AAFwk::Want> &wants, std::vector<ani_ref> &callbacks);
+    void RejectPendingLowCodeReuseItems(
+        ani_env *env, int32_t error, AbilityRuntime::AbilityInnerErrorMsg fallbackMessage);
 
     void AdoptDuplicatedPendingCallbacks(std::vector<ani_ref> &&callbacks);
 
@@ -294,7 +328,38 @@ public:
 
     bool IsDisconnecting();
 
+    /**
+     * Adds an active low-code AgentId to this shared host connection.
+     *
+     * Returns true only when this call inserted a new AgentId, so failed reuse
+     * paths can roll back their own provisional registration without touching
+     * sibling active AgentIds.
+     */
+    bool AddLowCodeAgentId(const std::string &agentId);
+
+    /**
+     * Removes one active low-code AgentId from this connection.
+     *
+     * Returns true when the removed AgentId was the last active low-code AgentId
+     * on this connection.
+     */
+    bool RemoveLowCodeAgentId(const std::string &agentId);
+
+    /**
+     * Checks whether this connection currently owns the given low-code AgentId.
+     */
+    bool HasLowCodeAgentId(const std::string &agentId);
+
+    /**
+     * Checks whether this connection still has any active low-code AgentId.
+     */
+    bool HasAnyLowCodeAgentId();
+
     void SetDisconnectCompleteHandler(DisconnectCompleteHandler handler);
+
+    // F01: invoked from HandleOnAbilityConnectDone after ResolveDuplicatedPendingCallbacks to
+    // register staged non-first low-code AgentIds via Reuse.
+    void SetConnectCompleteHandler(ConnectCompleteHandler handler);
 
 private:
     /**
@@ -365,9 +430,13 @@ private:
 
     std::mutex stateLock_;
     bool disconnecting_ = false;
-    AAFwk::Want reconnectWant_;
+    std::set<std::string> lowCodeAgentIds_;
+    std::vector<AAFwk::Want> reconnectWants_;
     std::vector<ani_ref> reconnectPendingCallbacks_;
+    std::vector<AAFwk::Want> pendingLowCodeReuseWants_;
+    std::vector<ani_ref> pendingLowCodeReuseCallbacks_;
     DisconnectCompleteHandler disconnectCompleteHandler_;
+    ConnectCompleteHandler connectCompleteHandler_;
 };
 } // namespace AgentRuntime
 } // namespace OHOS
