@@ -1437,6 +1437,15 @@ public:
 
     int StartAbilityInner(StartAbilityWrapParam &param);
 
+    /**
+     * @brief Start ability for app clone selector scenario with complete permission and interceptor checks.
+     * This method is called when user has selected a specific app clone from the selector dialog.
+     * It performs complete checks that were previously skipped in the app clone selector flow.
+     * @param param The start ability wrap parameters containing want, caller token, user id, etc.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int StartAbilityForAppCloneSelector(StartAbilityWrapParam &param);
+
     int32_t StartExtensionAbilityInner(
         const Want &want,
         const sptr<IRemoteObject> &callerToken,
