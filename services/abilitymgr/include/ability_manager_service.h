@@ -137,11 +137,12 @@ public:
      * StartAbilityWithServiceMatch with param, send param to ability manager service.
      *
      * @param param, the param of the ability to start.
+     * @param specifiedFullTokenId, The specified full token ID.
      * @param requestCode, Ability request code.
      * @param userId, Designation User ID.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t StartAbilityWithServiceMatch(const InsightIntentExecuteParam &param,
+    int32_t StartAbilityWithServiceMatch(const InsightIntentExecuteParam &param, uint64_t specifiedFullTokenId = 0,
         int32_t userId = DEFAULT_INVAL_VALUE, int requestCode = DEFAULT_INVAL_VALUE);
 
     /**
