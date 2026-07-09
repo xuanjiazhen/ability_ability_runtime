@@ -8475,8 +8475,18 @@ int AbilityManagerService::ScheduleConnectAbilityDone(
 int AbilityManagerService::ScheduleDisconnectAbilityDone(const sptr<IRemoteObject> &token)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::SERVICE_EXT, "call");
     if (!VerificationAllToken(token)) {
+        // physically-alive ext's disconnect-DONE silently drops when token leaves
+        // the registries; cross-ref MoveToTerminatingMap.
+        auto rec = Token::GetAbilityRecordByToken(token);
+        if (rec) {
+            TAG_LOGW(AAFwkTag::SERVICE_EXT,
+                "ScheduleDisconnectAbilityDone untracked token dropped: recordId=%{public}d "
+                "bundle=%{public}s ability=%{public}s",
+                rec->GetRecordId(), rec->GetInfoBundleName().c_str(), rec->GetInfoAbilityName().c_str());
+        } else {
+            TAG_LOGW(AAFwkTag::SERVICE_EXT, "ScheduleDisconnectAbilityDone untracked token dropped (unresolvable)");
+        }
         return ERR_INVALID_VALUE;
     }
 
