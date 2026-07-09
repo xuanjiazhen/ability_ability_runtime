@@ -20,6 +20,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <set>
 #include <vector>
 
 #include "ability_connect_callback.h"
@@ -97,8 +98,26 @@ void FindAgentConnection(ani_env *env, const AAFwk::Want &want, ani_object callb
 void FindAgentConnectionCandidatesByTarget(ani_env *env, const AAFwk::Want &want, ani_object callback,
     std::vector<sptr<EtsAgentConnection>> &candidates);
 
-void FindAgentConnectionByTargetAndCardType(ani_env *env, const AAFwk::Want &want, ani_object callback,
-    int32_t agentCardType, sptr<EtsAgentConnection> &connection);
+/**
+ * Finds an existing low-code host connection that can accept a different AgentId.
+ *
+ * Same-AgentId duplicates are handled by FindAgentConnection; this helper is only
+ * for shared-host low-code reuse or reconnect queuing while the old host is disconnecting.
+ */
+void FindReusableLowCodeAgentConnection(ani_env *env, const AAFwk::Want &want, ani_object callback,
+    sptr<EtsAgentConnection> &connection);
+
+/**
+ * Mirrors a successful AgentMgr low-code completion into the local ETS connection registry.
+ */
+void CompleteLowCodeAgent(const std::string &agentId);
+
+/**
+ * Re-enqueue the reconnect only if candidate is still registered and disconnecting; returns
+ * false if a concurrent disconnect-done already erased/drained it (caller fresh-connects).
+ */
+bool QueueReconnectIfActive(ani_env *env, const AAFwk::Want &want, ani_object asyncCallback,
+    const sptr<EtsAgentConnection> &candidate);
 }
 
 class EtsAgentConnectorStubImpl;
@@ -111,6 +130,8 @@ class EtsAgentConnectorStubImpl;
 class EtsAgentConnection : public AbilityRuntime::AbilityConnectCallback {
 public:
     using DisconnectCompleteHandler = std::function<void(const sptr<EtsAgentConnection>&)>;
+    using ConnectCompleteHandler =
+        std::function<void(ani_env *env, ani_object proxy, const sptr<EtsAgentConnection>&)>;
 
     /**
      * Constructor.
@@ -189,7 +210,17 @@ public:
 
     void AddReconnectPendingCallback(ani_env *env, const AAFwk::Want &want, ani_object asyncCallback);
 
-    bool TakeReconnectPendingCallbacks(AAFwk::Want &want, std::vector<ani_ref> &callbacks);
+    // enqueue a pre-created global ref without touching the ANI env (used by QueueReconnectIfActive).
+    void EnqueueReconnectPendingCallback(const AAFwk::Want &want, ani_ref callback);
+
+    // every queued reconnect keeps its own Want; drain registers each non-first AgentId.
+    bool TakeReconnectPendingCallbacks(std::vector<AAFwk::Want> &wants, std::vector<ani_ref> &callbacks);
+
+    // non-first low-code reconnects staged for Reuse after the fresh host connects.
+    void AddPendingLowCodeReuseItem(const AAFwk::Want &want, ani_ref callback);
+    bool TakePendingLowCodeReuseItems(std::vector<AAFwk::Want> &wants, std::vector<ani_ref> &callbacks);
+    void RejectPendingLowCodeReuseItems(
+        ani_env *env, int32_t error, AbilityRuntime::AbilityInnerErrorMsg fallbackMessage);
 
     void AdoptDuplicatedPendingCallbacks(std::vector<ani_ref> &&callbacks);
 
@@ -294,7 +325,37 @@ public:
 
     bool IsDisconnecting();
 
+    /**
+     * Adds an active low-code AgentId to this shared host connection.
+     *
+     * Returns true only when this call inserted a new AgentId, so failed reuse
+     * paths can roll back their own provisional registration without touching
+     * sibling active AgentIds.
+     */
+    bool AddLowCodeAgentId(const std::string &agentId);
+
+    /**
+     * Removes one active low-code AgentId from this connection.
+     *
+     * Returns true when the removed AgentId was the last active low-code AgentId
+     * on this connection.
+     */
+    bool RemoveLowCodeAgentId(const std::string &agentId);
+
+    /**
+     * Checks whether this connection currently owns the given low-code AgentId.
+     */
+    bool HasLowCodeAgentId(const std::string &agentId);
+
+    /**
+     * Checks whether this connection still has any active low-code AgentId.
+     */
+    bool HasAnyLowCodeAgentId();
+
     void SetDisconnectCompleteHandler(DisconnectCompleteHandler handler);
+
+    // invoked from HandleOnAbilityConnectDone to register staged non-first AgentIds via Reuse.
+    void SetConnectCompleteHandler(ConnectCompleteHandler handler);
 
 private:
     /**
@@ -327,6 +388,20 @@ private:
      * @param resultCode The result code of disconnection.
      */
     void HandleOnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode);
+
+    // Build the ETS receiver proxy for the freshly connected host; nullptr on failure.
+    ani_object BuildAgentReceiverProxy(ani_env *env, const sptr<IRemoteObject> &remoteObject);
+    // Report the connect error, reject every pending callback batch, release the primary
+    // callback, remove the connection, and detach the ANI env. Exactly one DetachAniEnv.
+    void FailConnectAndCleanup(ani_env *env, ani_ref primaryCallback, bool hasPrimaryCallback,
+        int32_t error, AbilityRuntime::AbilityInnerErrorMsg fallbackMessage, bool isAttachThread);
+    // Resolve the primary callback + duplicated pending callbacks against the connected proxy.
+    void ApplyConnectProxy(ani_env *env, ani_ref primaryCallback, bool hasPrimaryCallback, ani_object proxy);
+    // Handle the no-callback / resultCode-failure / proxy-failure cleanup paths; returns
+    // nullptr once DetachAniEnv has run; on success applies the proxy and returns it.
+    ani_object DispatchConnectResult(ani_env *env, const sptr<IRemoteObject> &remoteObject,
+        int resultCode, ani_ref primaryCallback, bool hasPrimaryCallback, bool hasDuplicatedPendingCallback,
+        bool isAttachThread);
 
 private:
     ani_vm *etsVm_ = nullptr;
@@ -365,9 +440,13 @@ private:
 
     std::mutex stateLock_;
     bool disconnecting_ = false;
-    AAFwk::Want reconnectWant_;
+    std::set<std::string> lowCodeAgentIds_;
+    std::vector<AAFwk::Want> reconnectWants_;
     std::vector<ani_ref> reconnectPendingCallbacks_;
+    std::vector<AAFwk::Want> pendingLowCodeReuseWants_;
+    std::vector<ani_ref> pendingLowCodeReuseCallbacks_;
     DisconnectCompleteHandler disconnectCompleteHandler_;
+    ConnectCompleteHandler connectCompleteHandler_;
 };
 } // namespace AgentRuntime
 } // namespace OHOS
