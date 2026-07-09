@@ -1596,8 +1596,8 @@ HWTEST_F(AgentConnectManagerTest, HandleHostDisconnectDoneReleasesAgentsAndConne
     done.hostConnectionRemote = plan.hostConnection->AsObject();
     done.resultCode = ERR_OK;
     auto result = mgr.HandleAgentHostDisconnectDone(done);
-    EXPECT_EQ(result.callback->AsObject(), conn->AsObject());
-    EXPECT_TRUE(result.releaseConnection);
+    ASSERT_EQ(result.callbacks.size(), 1u);
+    EXPECT_EQ(result.callbacks[0]->AsObject(), conn->AsObject());
     EXPECT_TRUE(mgr.agentHostSessions_.empty());
     EXPECT_TRUE(mgr.trackedConnections_.empty());
     EXPECT_TRUE(mgr.agentOwners_.empty());
@@ -2278,8 +2278,70 @@ HWTEST_F(AgentConnectManagerTest, HandleHostDisconnectDoneWithNullRemoteUsesRequ
     req.agentIds = { "agent-1" };
     req.resultCode = ERR_OK;
     auto result = mgr.HandleAgentHostDisconnectDone(req);
-    EXPECT_EQ(result.callback->AsObject(), conn->AsObject());
-    EXPECT_TRUE(result.releaseConnection);
+    ASSERT_EQ(result.callbacks.size(), 1u);
+    EXPECT_EQ(result.callbacks[0]->AsObject(), conn->AsObject());
+    EXPECT_TRUE(mgr.agentHostSessions_.empty());
+    EXPECT_TRUE(mgr.trackedConnections_.empty());
+    EXPECT_TRUE(mgr.agentOwners_.empty());
+    EXPECT_TRUE(mgr.callerQuotas_.empty());
+}
+
+/**
+ * @tc.name      HandleHostDisconnectDoneUnsolicitedTearsDownHostSession
+ * @tc.desc      When the shared host connection breaks without an explicit caller disconnect (empty pending
+ *               queue, non-null hostConnectionRemote), the whole host session is torn down: every caller
+ *               connection is surfaced for onDisconnect and the session/owners/quotas are released so a
+ *               reconnect does not return ERR_LOW_CODE_AGENT_ALREADY_ACTIVE.
+ */
+HWTEST_F(AgentConnectManagerTest, HandleHostDisconnectDoneUnsolicitedTearsDownHostSession, TestSize.Level1)
+{
+    auto &mgr = AgentConnectManager::GetInstance();
+    auto conn = MakeConnection();
+    auto host = DefaultHostKey();
+    auto hostRemote = MakeConnection()->AsObject();
+    AgentConnectPlan plan;
+    SetupConnectedLowCodeAgent(conn, host, "agent-1", NONCE_A, hostRemote, plan);
+
+    AgentHostDisconnectDoneRequest done;
+    done.hostKey = host;
+    done.callerRemote = conn->AsObject();
+    done.hostConnectionRemote = plan.hostConnection->AsObject();
+    done.resultCode = ERR_OK;
+    auto result = mgr.HandleAgentHostDisconnectDone(done);
+    ASSERT_EQ(result.callbacks.size(), 1u);
+    EXPECT_EQ(result.callbacks[0]->AsObject(), conn->AsObject());
+    EXPECT_TRUE(mgr.agentHostSessions_.empty());
+    EXPECT_TRUE(mgr.trackedConnections_.empty());
+    EXPECT_TRUE(mgr.agentOwners_.empty());
+    EXPECT_TRUE(mgr.callerQuotas_.empty());
+}
+
+/**
+ * @tc.name      HandleHostDisconnectDoneUnsolicitedReleasesQuotaForMultiAgentCaller
+ * @tc.desc      A caller owning several low-code agents on one host must have its host quota released exactly
+ *               once on unsolicited teardown; the per-agent path would leak it because siblings remain
+ *               visible until the bulk clear. Guards the ReleaseLowCodeHostQuotasLocked bulk release.
+ */
+HWTEST_F(AgentConnectManagerTest, HandleHostDisconnectDoneUnsolicitedReleasesQuotaForMultiAgentCaller, TestSize.Level1)
+{
+    auto &mgr = AgentConnectManager::GetInstance();
+    auto conn = MakeConnection();
+    auto host = DefaultHostKey();
+    auto hostRemote = MakeConnection()->AsObject();
+    AgentConnectPlan planA;
+    SetupConnectedLowCodeAgent(conn, host, "agent-1", NONCE_A, hostRemote, planA);
+    AgentConnectPlan planB;
+    SetupConnectedLowCodeAgent(conn, host, "agent-2", NONCE_B, hostRemote, planB);
+    ASSERT_EQ(mgr.agentHostSessions_.size(), 1u);
+
+    AgentHostDisconnectDoneRequest done;
+    done.hostKey = host;
+    done.callerRemote = conn->AsObject();
+    done.hostConnectionRemote = planA.hostConnection->AsObject();
+    done.resultCode = ERR_OK;
+    auto result = mgr.HandleAgentHostDisconnectDone(done);
+    ASSERT_EQ(result.callbacks.size(), 1u);
+    EXPECT_EQ(result.callbacks[0]->AsObject(), conn->AsObject());
     EXPECT_TRUE(mgr.agentHostSessions_.empty());
     EXPECT_TRUE(mgr.trackedConnections_.empty());
     EXPECT_TRUE(mgr.agentOwners_.empty());
