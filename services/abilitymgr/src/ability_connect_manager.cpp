@@ -2620,7 +2620,7 @@ std::string AbilityConnectManager::GetServiceKey(const std::shared_ptr<BaseExten
         serviceKey = serviceKey + std::to_string(service->GetIntParam(FRS_APP_INDEX, 0));
     } else if (service->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
         service->GetWant().GetIntParam(AgentRuntime::AGENT_CARD_TYPE_KEY, -1) !=
-            static_cast<int32_t>(AgentRuntime::AgentCardType::LOW_CODE)) {
+        static_cast<int32_t>(AgentRuntime::AgentCardType::LOW_CODE)) {
         serviceKey = serviceKey + service->GetStringParam(AgentRuntime::AGENTID_KEY);
     } else if (service->GetAbilityInfo().extensionAbilityType ==
                AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
@@ -3027,8 +3027,30 @@ void AbilityConnectManager::MoveToTerminatingMap(const std::shared_ptr<BaseExten
     std::lock_guard lock(serviceMapMutex_);
     terminatingExtensionList_.push_back(abilityRecord);
     std::string serviceKey = GetServiceKey(abilityRecord);
+    // Cross-ref token/recordId with ScheduleDisconnectAbilityDone to confirm low-code host's shared token teardown
+    TAG_LOGI(AAFwkTag::EXT, "MoveToTerminatingMap: recordId=%{public}d token=%{public}p serviceKey=%{public}s "
+        "bundle=%{public}s ability=%{public}s extType=%{public}d",
+        abilityRecord->GetRecordId(),
+        static_cast<const void*>(abilityRecord->GetToken().GetRefPtr()),
+        serviceKey.c_str(),
+        abilityRecord->GetInfoBundleName().c_str(),
+        abilityRecord->GetInfoAbilityName().c_str(),
+        static_cast<int32_t>(abilityRecord->GetAbilityInfo().extensionAbilityType));
     NotifyExtensionTerminated(abilityRecord);
-    if (serviceMap_.erase(serviceKey) == 0) {
+    // Identity-guarded erase: only erase slot held by THIS record. GetServiceKey(record) may differ from its
+    // AddToServiceMap key (host LOW_CODE -> bare URI vs AbilityRequest cardType); erasing the wrong key evicts an
+    // alive sibling's slot, orphaning its token so later ScheduleDisconnectAbilityDone fails VerificationAllToken
+    auto slotIt = serviceMap_.find(serviceKey);
+    if (slotIt != serviceMap_.end()) {
+        if (slotIt->second == abilityRecord) {
+            serviceMap_.erase(slotIt);
+        } else {
+            TAG_LOGW(AAFwkTag::EXT,
+                "phantom key skip: serviceKey=%{public}s held by a different record "
+                "(terminating recordId=%{public}d); erase skipped to keep the alive sibling",
+                serviceKey.c_str(), abilityRecord->GetRecordId());
+        }
+    } else {
         TAG_LOGW(AAFwkTag::EXT, "Unknown: %{public}s/%{public}s",
             abilityRecord->GetInfoBundleName().c_str(),
             abilityRecord->GetInfoAbilityName().c_str());
