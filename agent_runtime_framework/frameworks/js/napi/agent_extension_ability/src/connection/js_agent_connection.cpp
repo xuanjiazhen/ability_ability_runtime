@@ -33,6 +33,50 @@ constexpr int32_t ARGC_ONE = 1;
 static std::map<ConnectionKey, sptr<JSAgentConnection>, KeyCompare> g_agentConnects;
 static std::recursive_mutex g_agentConnectsLock_;
 static int64_t g_agentSerialNumber = 0;
+constexpr int32_t LOW_CODE_AGENT_CARD_TYPE = 2;
+
+bool IsLowCodeRecord(const AAFwk::Want &want)
+{
+    return want.GetIntParam(AGENT_CARD_TYPE_KEY, -1) == LOW_CODE_AGENT_CARD_TYPE;
+}
+
+bool IsSameAgentCard(const AAFwk::Want &recordWant, const AAFwk::Want &want)
+{
+    const std::string agentId = want.GetStringParam(AGENTID_KEY);
+    return !agentId.empty() && recordWant.GetBundle() == want.GetBundle() &&
+        recordWant.GetStringParam(AGENTID_KEY) == agentId;
+}
+
+// Exact duplicate matching runs only after AgentMgr validates and canonicalizes
+// the Want, so bundle + AgentId identifies the AgentCard. Low-code still uses the
+// per-connection AgentId set because one host connection can own multiple AgentIds.
+bool IsAgentConnectionMatch(const ConnectionKey &key, const sptr<JSAgentConnection> &connection,
+    const AAFwk::Want &want)
+{
+    if (connection == nullptr || !IsSameAgentCard(key.want, want)) {
+        return false;
+    }
+    if (!IsLowCodeRecord(key.want)) {
+        return true;
+    }
+    std::string agentId = want.GetStringParam(AGENTID_KEY);
+    return connection->HasLowCodeAgentId(agentId) || connection->IsDisconnecting();
+}
+
+// Low-code host reuse is only for a different AgentId on the same callback/proxy.
+// The same active AgentId must stay on the duplicate path or reach AgentMgr rejection.
+bool IsReusableLowCodeConnection(const ConnectionKey &key, const sptr<JSAgentConnection> &connection,
+    const AAFwk::Want &want)
+{
+    if (connection == nullptr || !IsLowCodeRecord(key.want) || !(key.want.GetElement() == want.GetElement())) {
+        return false;
+    }
+    std::string agentId = want.GetStringParam(AGENTID_KEY);
+    if (connection->HasLowCodeAgentId(agentId)) {
+        return false;
+    }
+    return connection->HasAnyLowCodeAgentId() || connection->IsDisconnecting();
+}
 } // namespace
 
 namespace AgentConnectionUtils {
@@ -114,12 +158,13 @@ void FindAgentConnection(napi_env env, const AAFwk::Want &want, napi_value callb
     std::lock_guard<std::recursive_mutex> lock(g_agentConnectsLock_);
     auto item = std::find_if(g_agentConnects.begin(), g_agentConnects.end(),
         [&want, env, callback](const auto &obj) {
-        bool wantEquals = obj.first.want.GetElement() == want.GetElement() &&
-            obj.first.want.GetStringParam(AGENTID_KEY) == want.GetStringParam(AGENTID_KEY);
+        if (!IsAgentConnectionMatch(obj.first, obj.second, want)) {
+            return false;
+        }
         std::unique_ptr<NativeReference> &tempCallbackPtr = obj.second->GetJsConnectionObject();
         bool callbackObjectEquals =
             JSAgentConnection::IsJsCallbackObjectEquals(env, tempCallbackPtr, callback);
-        return wantEquals && callbackObjectEquals;
+        return callbackObjectEquals;
     });
     if (item == g_agentConnects.end()) {
         TAG_LOGD(AAFwkTag::SER_ROUTER, "Connection not found");
@@ -145,19 +190,20 @@ void FindAgentConnectionCandidatesByTarget(napi_env env, const AAFwk::Want &want
     }
 }
 
-void FindAgentConnectionByTargetAndCardType(napi_env env, const AAFwk::Want &want, napi_value callback,
-    int32_t agentCardType, sptr<JSAgentConnection> &connection)
+void FindReusableLowCodeAgentConnection(napi_env env, const AAFwk::Want &want, napi_value callback,
+    sptr<JSAgentConnection> &connection)
 {
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "FindAgentConnectionByTargetAndCardType");
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "FindReusableLowCodeAgentConnection");
     std::lock_guard<std::recursive_mutex> lock(g_agentConnectsLock_);
     auto item = std::find_if(g_agentConnects.begin(), g_agentConnects.end(),
-        [&want, env, callback, agentCardType](const auto &obj) {
-            bool cardTypeEquals = obj.first.want.GetIntParam(AGENT_CARD_TYPE_KEY, -1) == agentCardType;
-            bool wantEquals = obj.first.want.GetElement() == want.GetElement();
+        [&want, env, callback](const auto &obj) {
+            if (!IsReusableLowCodeConnection(obj.first, obj.second, want)) {
+                return false;
+            }
             std::unique_ptr<NativeReference> &tempCallbackPtr = obj.second->GetJsConnectionObject();
             bool callbackObjectEquals =
                 JSAgentConnection::IsJsCallbackObjectEquals(env, tempCallbackPtr, callback);
-            return cardTypeEquals && wantEquals && callbackObjectEquals;
+            return callbackObjectEquals;
         });
     if (item == g_agentConnects.end()) {
         TAG_LOGD(AAFwkTag::SER_ROUTER, "Connection not found");
@@ -165,6 +211,21 @@ void FindAgentConnectionByTargetAndCardType(napi_env env, const AAFwk::Want &wan
     }
     connection = item->second;
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Found connection");
+}
+
+// Completion is local cleanup only after AgentMgr has accepted the completion.
+// If it removes the last AgentId, reconnect must wait for disconnect settlement.
+void CompleteLowCodeAgent(const std::string &agentId)
+{
+    std::lock_guard<std::recursive_mutex> lock(g_agentConnectsLock_);
+    for (const auto &obj : g_agentConnects) {
+        if (obj.second == nullptr || !obj.second->HasLowCodeAgentId(agentId)) {
+            continue;
+        }
+        if (obj.second->RemoveLowCodeAgentId(agentId)) {
+            obj.second->SetDisconnecting(true);
+        }
+    }
 }
 } // namespace AgentConnectionUtils
 
@@ -593,6 +654,30 @@ bool JSAgentConnection::IsDisconnecting()
 {
     std::lock_guard<std::mutex> lock(stateLock_);
     return disconnecting_;
+}
+
+bool JSAgentConnection::AddLowCodeAgentId(const std::string &agentId)
+{
+    std::lock_guard<std::mutex> lock(stateLock_);
+    return lowCodeAgentIds_.insert(agentId).second;
+}
+
+bool JSAgentConnection::RemoveLowCodeAgentId(const std::string &agentId)
+{
+    std::lock_guard<std::mutex> lock(stateLock_);
+    return lowCodeAgentIds_.erase(agentId) > 0 && lowCodeAgentIds_.empty();
+}
+
+bool JSAgentConnection::HasLowCodeAgentId(const std::string &agentId)
+{
+    std::lock_guard<std::mutex> lock(stateLock_);
+    return lowCodeAgentIds_.find(agentId) != lowCodeAgentIds_.end();
+}
+
+bool JSAgentConnection::HasAnyLowCodeAgentId()
+{
+    std::lock_guard<std::mutex> lock(stateLock_);
+    return !lowCodeAgentIds_.empty();
 }
 
 void JSAgentConnection::SetDisconnectCompleteHandler(DisconnectCompleteHandler handler)

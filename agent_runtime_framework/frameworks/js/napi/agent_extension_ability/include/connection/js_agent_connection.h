@@ -20,6 +20,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <set>
 #include <vector>
 
 #include "ability_connect_callback.h"
@@ -98,8 +99,19 @@ void FindAgentConnection(napi_env env, const AAFwk::Want &want, napi_value callb
 void FindAgentConnectionCandidatesByTarget(napi_env env, const AAFwk::Want &want, napi_value callback,
     std::vector<sptr<JSAgentConnection>> &candidates);
 
-void FindAgentConnectionByTargetAndCardType(napi_env env, const AAFwk::Want &want, napi_value callback,
-    int32_t agentCardType, sptr<JSAgentConnection> &connection);
+/**
+ * Finds an existing low-code host connection that can accept a different AgentId.
+ *
+ * Same-AgentId duplicates are handled by FindAgentConnection; this helper is only
+ * for shared-host low-code reuse or reconnect queuing while the old host is disconnecting.
+ */
+void FindReusableLowCodeAgentConnection(napi_env env, const AAFwk::Want &want, napi_value callback,
+    sptr<JSAgentConnection> &connection);
+
+/**
+ * Mirrors a successful AgentMgr low-code completion into the local JS connection registry.
+ */
+void CompleteLowCodeAgent(const std::string &agentId);
 }
 
 class JsAgentConnectorStubImpl;
@@ -298,6 +310,33 @@ public:
 
     bool IsDisconnecting();
 
+    /**
+     * Adds an active low-code AgentId to this shared host connection.
+     *
+     * Returns true only when this call inserted a new AgentId, so failed reuse
+     * paths can roll back their own provisional registration without touching
+     * sibling active AgentIds.
+     */
+    bool AddLowCodeAgentId(const std::string &agentId);
+
+    /**
+     * Removes one active low-code AgentId from this connection.
+     *
+     * Returns true when the removed AgentId was the last active low-code AgentId
+     * on this connection.
+     */
+    bool RemoveLowCodeAgentId(const std::string &agentId);
+
+    /**
+     * Checks whether this connection currently owns the given low-code AgentId.
+     */
+    bool HasLowCodeAgentId(const std::string &agentId);
+
+    /**
+     * Checks whether this connection still has any active low-code AgentId.
+     */
+    bool HasAnyLowCodeAgentId();
+
     void SetDisconnectCompleteHandler(DisconnectCompleteHandler handler);
 
     /**
@@ -357,6 +396,7 @@ private:
 
     std::mutex stateLock_;
     bool disconnecting_ = false;
+    std::set<std::string> lowCodeAgentIds_;
     AAFwk::Want reconnectWant_;
     std::vector<std::unique_ptr<AbilityRuntime::NapiAsyncTask>> reconnectPendingTaskList_;
     DisconnectCompleteHandler disconnectCompleteHandler_;

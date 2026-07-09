@@ -167,7 +167,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, ConnectAbilityCommon_002, TestSize
  * Name: ConnectAbilityCommon_003
  * Function: ConnectAbilityCommon
  * SubFunction: NA
- * FunctionPoints: Verify ConnectAbilityCommon rejects AGENT when AGENTID_KEY is missing even if AGENTEXTENSIONHOSTPROXY_KEY is present.
+ * FunctionPoints: Verify ConnectAbilityCommon rejects AGENT when AGENTID_KEY is missing even
+ *                  if AGENTEXTENSIONHOSTPROXY_KEY is present.
  */
 HWTEST_F(AbilityManagerServiceThirteenthTest, ConnectAbilityCommon_003, TestSize.Level1)
 {

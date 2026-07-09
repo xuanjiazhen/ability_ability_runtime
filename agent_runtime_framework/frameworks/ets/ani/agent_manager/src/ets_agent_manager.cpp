@@ -83,6 +83,9 @@ sptr<EtsAgentConnection> CreateAgentConnectionInner(ani_vm *aniVM, AAFwk::Want &
         return nullptr;
     }
     want.SetParam(AGENTEXTENSIONHOSTPROXY_KEY, stub->AsObject());
+    if (want.GetIntParam(AGENT_CARD_TYPE_KEY, -1) == static_cast<int32_t>(AgentCardType::LOW_CODE)) {
+        connection->AddLowCodeAgentId(want.GetStringParam(AGENTID_KEY));
+    }
     ConfigureDisconnectCompleteHandler(connection);
     return connection;
 }
@@ -166,22 +169,31 @@ bool TryReuseLowCodeAgentConnection(ani_env *env, AAFwk::Want want, ani_object c
     ani_object asyncCallback)
 {
     sptr<EtsAgentConnection> connection = nullptr;
-    AgentConnectionUtils::FindAgentConnectionByTargetAndCardType(env, want, callbackObj,
-        static_cast<int32_t>(AgentCardType::LOW_CODE), connection);
-    if (connection == nullptr || connection->IsDisconnecting()) {
+    AgentConnectionUtils::FindReusableLowCodeAgentConnection(env, want, callbackObj, connection);
+    if (connection == nullptr) {
         return false;
+    }
+    if (connection->IsDisconnecting()) {
+        TAG_LOGI(AAFwkTag::SER_ROUTER, "Low-code connection is disconnecting, queue reconnect");
+        connection->AddReconnectPendingCallback(env, want, asyncCallback);
+        return true;
     }
     if (!AttachLowCodeHostProxy(want, connection)) {
         ReplyConnectError(env, asyncCallback, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER));
         return true;
     }
     TAG_LOGI(AAFwkTag::SER_ROUTER, "Reuse low-code connection for new agentId");
+    std::string agentId = want.GetStringParam(AGENTID_KEY);
+    bool isAdded = connection->AddLowCodeAgentId(agentId);
     ani_ref proxy = connection->GetProxyObject(env);
     if (proxy == nullptr) {
         connection->AddDuplicatedPendingCallback(env, asyncCallback);
         int32_t innerErrorCode =
             AgentConnectionManager::GetInstance().ReuseLowCodeAgentExtensionAbility(want, connection);
         if (innerErrorCode != ERR_OK) {
+            if (isAdded) {
+                connection->RemoveLowCodeAgentId(agentId);
+            }
             connection->RejectDuplicatedPendingCallbacks(
                 env, innerErrorCode, AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED);
         }
@@ -191,6 +203,9 @@ bool TryReuseLowCodeAgentConnection(ani_env *env, AAFwk::Want want, ani_object c
     int32_t innerErrorCode =
         AgentConnectionManager::GetInstance().ReuseLowCodeAgentExtensionAbility(want, connection);
     if (innerErrorCode != ERR_OK) {
+        if (isAdded) {
+            connection->RemoveLowCodeAgentId(agentId);
+        }
         ReplyConnectError(env, asyncCallback, innerErrorCode);
         connection->ReleaseObjectReference(env, proxy);
         return true;
@@ -720,13 +735,7 @@ void EtsAgentManager::ConnectAgentExtensionAbility(ani_env *env, ani_object aniW
     TAG_LOGI(AAFwkTag::SER_ROUTER, "Connecting to: %{public}s.%{public}s",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
 
-    // Check for duplicate connection
     want.SetParam(AGENTID_KEY, agentId);
-    if (CheckConnectAlreadyExist(env, want, callbackObj, asyncCallback)) {
-        TAG_LOGI(AAFwkTag::SER_ROUTER, "Duplicate connection found");
-        return;
-    }
-
     int32_t currentType = static_cast<int32_t>(AgentCardType::APP);
     int32_t errorCode = AgentManagerClient::GetInstance().GetAgentCardTypeForConnect(want, currentType);
     if (errorCode != ERR_OK) {
@@ -956,6 +965,7 @@ void EtsAgentManager::NotifyLowCodeAgentComplete(ani_env *env, ani_string aniAge
             nullptr);
         return;
     }
+    AgentConnectionUtils::CompleteLowCodeAgent(agentId);
     AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
         EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
 }
