@@ -67,6 +67,21 @@ void ExtensionRecordManagerSecondTest::SetUp()
 void ExtensionRecordManagerSecondTest::TearDown()
 {}
 
+class AttachDebugExtensionRecordManager : public ExtensionRecordManager {
+public:
+    explicit AttachDebugExtensionRecordManager(const int32_t userId) : ExtensionRecordManager(userId) {}
+
+    bool IsAgentUIExtensionProcessDebug(const AAFwk::AbilityRequest &abilityRequest,
+        const std::string &processName) override
+    {
+        (void)abilityRequest;
+        queryProcessName_ = processName;
+        return true;
+    }
+
+    std::string queryProcessName_;
+};
+
 /**
  * @tc.name: RemovePreloadUIExtensionRecord_0100
  * @tc.desc: Test RemovePreloadUIExtensionRecord.
@@ -943,6 +958,41 @@ HWTEST_F(ExtensionRecordManagerSecondTest, GetOrCreateExtensionRecordInner_0300,
     int32_t ret = extRecordMgr->GetOrCreateExtensionRecordInner(abilityRequest, hostBundleName, outExtRecord, isLoaded);
 
     EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: GetOrCreateExtensionRecordInner_0400
+ * @tc.desc: Test AgentUIExtension inherits attach debug state when creating extension record.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerSecondTest, GetOrCreateExtensionRecordInner_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    auto extRecordMgr = std::make_shared<AttachDebugExtensionRecordManager>(0);
+    ASSERT_NE(extRecordMgr, nullptr);
+
+    std::string bundleName = "com.test.agentui.attach";
+    AAFwk::AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = bundleName;
+    abilityRequest.abilityInfo.bundleName = bundleName;
+    abilityRequest.abilityInfo.name = "AgentUIExtensionAbility";
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    abilityRequest.extensionType = AppExecFwk::ExtensionAbilityType::AGENT_UI;
+    abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::AGENT_UI;
+
+    std::shared_ptr<ExtensionRecord> extRecord;
+    bool isLoaded = false;
+    int32_t ret = extRecordMgr->GetOrCreateExtensionRecordInner(abilityRequest, bundleName, extRecord, isLoaded);
+
+    EXPECT_EQ(ret, ERR_OK);
+    ASSERT_NE(extRecord, nullptr);
+    ASSERT_NE(extRecord->abilityRecord_, nullptr);
+    EXPECT_FALSE(isLoaded);
+    EXPECT_TRUE(extRecord->abilityRecord_->IsDebugApp());
+    EXPECT_TRUE(extRecord->abilityRecord_->isAttachDebug_);
+    EXPECT_EQ(extRecordMgr->queryProcessName_, bundleName + ":agent");
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
 

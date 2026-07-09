@@ -16,7 +16,9 @@
 #include "extension_record_manager.h"
 
 #include "ability_util.h"
+#include "app_mgr_util.h"
 #include "app_utils.h"
+#include "in_process_call_wrapper.h"
 #include "extension_running_timeout_monitor.h"
 #include "preload_ui_extension_execute_callback_proxy.h"
 #include "preload_ui_extension_host_client.h"
@@ -611,12 +613,51 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecordInner(const AAFwk::Abi
     if (result != ERR_OK) {
         return result;
     }
+    bool isAgentUI =
+        AAFwk::UIExtensionWrapper::IsAgentUIExtension(abilityRequest.abilityInfo.extensionAbilityType);
+    if (isAgentUI) {
+        bool isProcessDebug = IsAgentUIExtensionProcessDebug(abilityRequest, abilityRecord->GetProcessName());
+        if (isProcessDebug) {
+            abilityRecord->SetAttachDebug(true);
+            abilityRecord->SetDebugApp(true);
+            TAG_LOGD(AAFwkTag::EXT,
+                "Agent inherits process debug, ability:%{public}s, bundle:%{public}s, "
+                "process:%{public}s, debugApp:%{public}d",
+                abilityRequest.abilityInfo.name.c_str(), abilityRequest.abilityInfo.bundleName.c_str(),
+                abilityRecord->GetProcessName().c_str(), abilityRecord->IsDebugApp());
+        }
+    }
     TAG_LOGD(AAFwkTag::ABILITYMGR,
         "extensionRecordId: %{public}d, extensionProcessMode:%{public}d, process: %{public}s",
         extensionRecordId, abilityRequest.extensionProcessMode, abilityRecord->GetAbilityInfo().process.c_str());
     std::lock_guard<std::mutex> lock(mutex_);
     extensionRecords_[extensionRecordId] = extensionRecord;
     return ERR_OK;
+}
+
+bool ExtensionRecordManager::IsAgentUIExtensionProcessDebug(const AAFwk::AbilityRequest &abilityRequest,
+    const std::string &processName)
+{
+    auto appMgr = AAFwk::AppMgrUtil::GetAppMgr();
+    if (appMgr == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "appMgr null");
+        return false;
+    }
+    bool isLoaded = false;
+    bool isDebug = false;
+    auto queryAbilityInfo = abilityRequest.abilityInfo;
+    std::string sessionInstanceKey;
+    if (abilityRequest.sessionInfo != nullptr) {
+        sessionInstanceKey = abilityRequest.sessionInfo->instanceKey;
+    }
+    auto ret = IN_PROCESS_CALL(appMgr->IsSpecifiedModuleLoaded(
+        abilityRequest.want, queryAbilityInfo, isLoaded, isDebug));
+    TAG_LOGD(AAFwkTag::ABILITYMGR,
+        "Agent debug check, bundle:%{public}s, ability:%{public}s, queryProcess:%{public}s, "
+        "ret:%{public}d, isLoaded:%{public}d, isDebug:%{public}d",
+        abilityRequest.abilityInfo.bundleName.c_str(), abilityRequest.abilityInfo.name.c_str(),
+        processName.c_str(), ret, isLoaded, isDebug);
+    return ret == ERR_OK && isLoaded && isDebug;
 }
 
 int32_t ExtensionRecordManager::SetAbilityProcessName(const AAFwk::AbilityRequest &abilityRequest,

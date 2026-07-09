@@ -6152,6 +6152,9 @@ void AppMgrServiceInner::ProcessAppDebug(const std::shared_ptr<AppRunningRecord>
     auto bundleName = appRecord->GetBundleName();
     auto isDebugFromLocal = appRecord->GetDebugFromLocal();
     if (appDebugManager_->IsAttachDebug(bundleName)) {
+        TAG_LOGD(AAFwkTag::APPMGR,
+            "Inherit attach debug, bundle:%{public}s, process:%{public}s, pid:%{public}d",
+            bundleName.c_str(), appRecord->GetProcessName().c_str(), appRecord->GetPid());
         appRecord->SetAttachDebug(true, isDebugFromLocal);
         startDebug(false);
     }
@@ -12485,8 +12488,17 @@ bool AppMgrServiceInner::IsSpecifiedModuleLoaded(const AAFwk::Want &want, const 
     auto abilityInfoPtr = std::make_shared<AbilityInfo>(abilityInfo);
     std::string processName;
     MakeProcessName(abilityInfoPtr, appInfo, hapModuleInfo, appIndex, "", processName, false);
+    bool isAgentUI = AAFwk::UIExtensionWrapper::IsAgentUIExtension(abilityInfo.extensionAbilityType);
+    if (isAgentUI) {
+        processName = appInfo->bundleName + ":" + AGENT_EXTENSION_TYPE;
+    }
+    TAG_LOGD(AAFwkTag::APPMGR,
+        "bundle:%{public}s, ability:%{public}s, manifestProcess:%{public}s, "
+        "queryProcess:%{public}s, uid:%{public}d, appIndex:%{public}d, isAgentUI:%{public}d",
+        abilityInfo.bundleName.c_str(), abilityInfo.name.c_str(), abilityInfo.process.c_str(),
+        processName.c_str(), appInfo->uid, appIndex, isAgentUI);
     auto instanceKey = want.GetStringParam(Want::APP_INSTANCE_KEY);
-    auto customProcessFlag = abilityInfo.process;
+    auto customProcessFlag = isAgentUI ? "": abilityInfo.process;
     auto appRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name,
         processName, appInfo->uid, bundleInfo, "", nullptr, instanceKey, customProcessFlag);
     if (appRecord == nullptr) {

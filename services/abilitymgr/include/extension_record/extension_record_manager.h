@@ -206,6 +206,8 @@ private:
     int32_t SetAbilityProcessName(const AAFwk::AbilityRequest &abilityRequest,
         const std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord,
         std::shared_ptr<ExtensionRecord> &extensionRecord);
+    virtual bool IsAgentUIExtensionProcessDebug(const AAFwk::AbilityRequest &abilityRequest,
+        const std::string &processName);
     void ConvertToUnloadExtensionRecords(std::vector<std::shared_ptr<ExtensionRecord>> &records,
         std::vector<std::shared_ptr<ExtensionRecord>> &recordsToUnload);
     bool IsHostSpecifiedProcessValid(const AAFwk::AbilityRequest &abilityRequest,
