@@ -1240,6 +1240,10 @@ int AbilityManagerService::StartAbilityWrap(const StartAbilityWrapParam &startAb
         return result;
     }
 
+    if (startAbilityWrapParam.isAppCloneSelector) {
+        return StartAbilityForAppCloneSelector(const_cast<StartAbilityWrapParam &>(startAbilityWrapParam));
+    }
+
     return StartAbilityInner(const_cast<StartAbilityWrapParam &>(startAbilityWrapParam));
 }
 
@@ -1829,6 +1833,141 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     ReportAbilityStartInfoToRSS(abilityInfo);
     ReportEventToRSS(abilityInfo, param.callerToken);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "start ability, name is %{public}s", abilityInfo.name.c_str());
+    result = missionListManager->StartAbility(abilityRequest);
+    AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "missionListManager StartAbility failed");
+    return result;
+}
+
+int AbilityManagerService::StartAbilityForAppCloneSelector(StartAbilityWrapParam &param)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+
+    int32_t appCloneIndexFromWant = param.want.GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY,
+        DEFAULT_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbilityForAppCloneSelector: bundle=%{public}s, ability=%{public}s, "
+        "appCloneIndex=%{public}d", param.want.GetBundle().c_str(), param.want.GetElement().GetAbilityName().c_str(),
+        appCloneIndexFromWant);
+
+    if (appCloneIndexFromWant == DEFAULT_INVALID_VALUE) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "appCloneIndex not found in want, invalid request");
+        EventInfo eventInfo = BuildEventInfo(param.want, param.userId);
+        AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_APP_CLONE_INDEX_INVALID, "appCloneIndex missing");
+        return ERR_APP_CLONE_INDEX_INVALID;
+    }
+
+    int32_t oriValidUserId = GetValidUserId(param.userId);
+    int32_t appIndex = appCloneIndexFromWant;
+    EventInfo eventInfo = BuildEventInfo(param.want, param.userId);
+    int result = ERR_OK;
+
+    // Use StartAbilityInfoWrap for RAII protection
+    StartAbilityInfoWrap threadLocalInfo(param.want, oriValidUserId, appIndex, param.callerToken);
+
+    // Generate AbilityRequest with user-selected appCloneIndex
+    AbilityRequest abilityRequest;
+    result = GenerateAbilityRequest(param.want, param.requestCode, abilityRequest, param.callerToken, oriValidUserId);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GenerateAbilityRequest failed: %{public}d", result);
+        AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "GenerateAbilityRequest failed");
+        return result;
+    }
+
+    AppExecFwk::AbilityInfo abilityInfo = abilityRequest.abilityInfo;
+
+    // Only allow UIAbility type
+    if (abilityInfo.type != AppExecFwk::AbilityType::PAGE) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilityForAppCloneSelector only supports UIAbility, type=%{public}d",
+            abilityInfo.type);
+        AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_VALUE, "Only UIAbility supported");
+        return ERR_INVALID_VALUE;
+    }
+
+    abilityRequest.userId = oriValidUserId;
+    abilityRequest.specifiedFullTokenId = param.specifiedFullTokenId;
+    abilityRequest.requestCallback = param.requestCallback;
+
+    // Check multi-instance and app clone permission (based on user-selected appCloneIndex)
+    if (!param.isForegroundToRestartApp) {
+        auto checkRet = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(param.want,
+            oriValidUserId, appIndex, param.callerToken, param.isBySCB);
+        if (checkRet != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "CheckMultiInstanceAndAppClone failed: %{public}d", checkRet);
+            AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, checkRet, "CheckMultiInstanceAndAppClone failed");
+            return checkRet;
+        }
+    }
+
+    // Remove unauthorized launch reason message
+    auto callerTokenId = IPCSkeleton::GetCallingTokenID();
+    RemoveUnauthorizedLaunchReasonMessage(param.want, abilityRequest, callerTokenId);
+
+    // Check ability controller
+    if (!IsAbilityControllerStart(param.want, abilityInfo.bundleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "IsAbilityControllerStart failed: %{public}s", abilityInfo.bundleName.c_str());
+        AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_WOULD_BLOCK, "IsAbilityControllerStart failed");
+        return ERR_WOULD_BLOCK;
+    }
+
+    // After-check interceptors using user-selected appIndex
+    Want newWant = abilityRequest.want;
+    AbilityInterceptorParam afterCheckParam = AbilityInterceptorParam(newWant, param.requestCode, oriValidUserId,
+        true, param.callerToken, std::make_shared<AppExecFwk::AbilityInfo>(abilityInfo), param.isStartAsCaller,
+        appIndex);
+    afterCheckParam.hostBundleName = param.hostBundleName;
+    result = afterCheckExecuter_ == nullptr ? ERR_NULL_AFTER_CHECK_EXECUTER :
+        afterCheckExecuter_->DoProcess(afterCheckParam);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "afterCheckExecuter_ failed: %{public}d", result);
+        AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "afterCheckExecuter_ failed");
+        return result;
+    }
+
+    auto backFlag = StartAbilityUtils::ermsSupportBackToCallerFlag;
+    UpdateCallerInfoUtil::GetInstance().UpdateBackToCallerFlag(param.callerToken, abilityRequest.want,
+        param.requestCode, backFlag);
+
+    abilityRequest.want.RemoveParam(SPECIFY_TOKEN_ID);
+    if (param.specifyTokenId > 0) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "set specifyTokenId: %{public}d", param.specifyTokenId);
+        abilityRequest.want.SetParam(SPECIFY_TOKEN_ID, static_cast<int32_t>(param.specifyTokenId));
+        abilityRequest.specifyTokenId = param.specifyTokenId;
+    }
+    abilityRequest.want.RemoveParam(PARAM_SPECIFIED_PROCESS_FLAG);
+
+    // Preload app data abilities
+    if (!AbilityUtil::IsSystemDialogAbility(abilityInfo.bundleName, abilityInfo.name)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "PreLoadAppDataAbilities:%{public}s.", abilityInfo.bundleName.c_str());
+        result = PreLoadAppDataAbilities(abilityInfo.bundleName, oriValidUserId);
+        if (result != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR,
+                "PreLoadAppDataAbilities failed: '%{public}s', %{public}d",
+                abilityInfo.bundleName.c_str(), result);
+            AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_PRELOAD_APP_DATA_ABILITIES_FAILED,
+                "PreLoadAppDataAbilities failed");
+            return result;
+        }
+    }
+
+    // SceneBoard enabled path
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        abilityRequest.want.SetParam(ServerConstant::IS_CALL_BY_SCB, false);
+        abilityRequest.want.SetParam(AbilityRuntime::GlobalConstant::GAME_PRELAUNCH, param.isGamePrelaunch);
+        auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
+        CHECK_POINTER_AND_RETURN_LOG(uiAbilityManager, ERR_INVALID_VALUE, "uiAbilityManager is null");
+        result = uiAbilityManager->NotifySCBToStartUIAbility(abilityRequest);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbilityForAppCloneSelector completed (SCB), name=%{public}s",
+            abilityInfo.name.c_str());
+        return AbilityErrorUtil::ConvertToOriginErrorCode(result);
+    }
+
+    // Mission list manager path (non-SceneBoard)
+    auto missionListManager = GetMissionListManagerByUserId(oriValidUserId);
+    CHECK_POINTER_AND_RETURN_LOG(missionListManager, ERR_INVALID_VALUE, "missionListManager is null");
+
+    ReportAbilityStartInfoToRSS(abilityInfo);
+    ReportEventToRSS(abilityInfo, param.callerToken);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbilityForAppCloneSelector completed successfully, name=%{public}s",
+        abilityInfo.name.c_str());
     result = missionListManager->StartAbility(abilityRequest);
     AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "missionListManager StartAbility failed");
     return result;
