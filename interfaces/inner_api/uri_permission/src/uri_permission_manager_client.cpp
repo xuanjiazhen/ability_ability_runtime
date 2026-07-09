@@ -15,6 +15,8 @@
 
 #include "uri_permission_manager_client.h"
 
+#include <thread>
+
 #include "ability_manager_errors.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
@@ -28,6 +30,9 @@ namespace {
 const int MAX_URI_COUNT = 200000;
 constexpr size_t MAX_IPC_RAW_DATA_SIZE = 128 * 1024 * 1024; // 128M
 constexpr int32_t BROKER_UID = 5557;
+constexpr uint32_t TOTAL_TIMEOUT_MS = 4000;        // 总超时时间4000ms
+constexpr uint32_t LOG_CHECK_INTERVAL = 5;
+constexpr uint32_t BASE_SLEEP_TIME = 20;           // 基础间隔20ms
 
 bool CheckUseRawData()
 {
@@ -385,9 +390,32 @@ bool UriPermissionManagerClient::LoadUriPermService()
         return false;
     }
 
-    auto remoteObject = systemAbilityMgr->GetSystemAbility(URI_PERMISSION_MGR_SERVICE_ID);
-    if (remoteObject == nullptr) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "GetSystemAbility %{public}d failed",
+    bool exist = false;
+    sptr<IRemoteObject> remoteObject = nullptr;
+    auto startTime = std::chrono::steady_clock::now();
+    for (uint32_t i = 0; ; i++) {
+        remoteObject = systemAbilityMgr->CheckSystemAbility(URI_PERMISSION_MGR_SERVICE_ID, exist);
+        if (remoteObject != nullptr) {
+            break;
+        }
+        if (i % LOG_CHECK_INTERVAL == 0) {
+            TAG_LOGW(AAFwkTag::URIPERMMGR, "check uriperm status %{public}d times", i);
+        }
+        // 计算已花费时间
+        auto currentTime = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count();
+        // 每五次间隔翻倍
+        uint32_t sleepTime = BASE_SLEEP_TIME * (1 << (i / LOG_CHECK_INTERVAL));
+        // 检查本次睡眠后是否会超时，若超时则不睡眠，直接进行最后一次尝试
+        if (elapsed + sleepTime >= TOTAL_TIMEOUT_MS) {
+            // 最后一次尝试获取
+            remoteObject = systemAbilityMgr->CheckSystemAbility(URI_PERMISSION_MGR_SERVICE_ID, exist);
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime));
+    }
+    if (exist == false || remoteObject == nullptr) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "CheckSystemAbility %{public}d failed",
             URI_PERMISSION_MGR_SERVICE_ID);
         return false;
     }
