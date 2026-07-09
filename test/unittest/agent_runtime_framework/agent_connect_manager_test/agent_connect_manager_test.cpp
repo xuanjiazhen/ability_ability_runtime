@@ -1596,8 +1596,8 @@ HWTEST_F(AgentConnectManagerTest, HandleHostDisconnectDoneReleasesAgentsAndConne
     done.hostConnectionRemote = plan.hostConnection->AsObject();
     done.resultCode = ERR_OK;
     auto result = mgr.HandleAgentHostDisconnectDone(done);
-    EXPECT_EQ(result.callback->AsObject(), conn->AsObject());
-    EXPECT_TRUE(result.releaseConnection);
+    ASSERT_EQ(result.callbacks.size(), 1u);
+    EXPECT_EQ(result.callbacks[0]->AsObject(), conn->AsObject());
     EXPECT_TRUE(mgr.agentHostSessions_.empty());
     EXPECT_TRUE(mgr.trackedConnections_.empty());
     EXPECT_TRUE(mgr.agentOwners_.empty());
@@ -2278,12 +2278,247 @@ HWTEST_F(AgentConnectManagerTest, HandleHostDisconnectDoneWithNullRemoteUsesRequ
     req.agentIds = { "agent-1" };
     req.resultCode = ERR_OK;
     auto result = mgr.HandleAgentHostDisconnectDone(req);
-    EXPECT_EQ(result.callback->AsObject(), conn->AsObject());
-    EXPECT_TRUE(result.releaseConnection);
+    ASSERT_EQ(result.callbacks.size(), 1u);
+    EXPECT_EQ(result.callbacks[0]->AsObject(), conn->AsObject());
     EXPECT_TRUE(mgr.agentHostSessions_.empty());
     EXPECT_TRUE(mgr.trackedConnections_.empty());
     EXPECT_TRUE(mgr.agentOwners_.empty());
     EXPECT_TRUE(mgr.callerQuotas_.empty());
+}
+
+/**
+ * @tc.name      HandleHostDisconnectDoneUnsolicitedTearsDownHostSession
+ * @tc.desc      When the shared host connection breaks without an explicit caller disconnect (empty pending
+ *               queue, non-null hostConnectionRemote), the whole host session is torn down: every caller
+ *               connection is surfaced for onDisconnect and the session/owners/quotas are released so a
+ *               reconnect does not return ERR_LOW_CODE_AGENT_ALREADY_ACTIVE.
+ */
+HWTEST_F(AgentConnectManagerTest, HandleHostDisconnectDoneUnsolicitedTearsDownHostSession, TestSize.Level1)
+{
+    auto &mgr = AgentConnectManager::GetInstance();
+    auto conn = MakeConnection();
+    auto host = DefaultHostKey();
+    auto hostRemote = MakeConnection()->AsObject();
+    AgentConnectPlan plan;
+    SetupConnectedLowCodeAgent(conn, host, "agent-1", NONCE_A, hostRemote, plan);
+
+    AgentHostDisconnectDoneRequest done;
+    done.hostKey = host;
+    done.callerRemote = conn->AsObject();
+    done.hostConnectionRemote = plan.hostConnection->AsObject();
+    done.resultCode = ERR_OK;
+    auto result = mgr.HandleAgentHostDisconnectDone(done);
+    ASSERT_EQ(result.callbacks.size(), 1u);
+    EXPECT_EQ(result.callbacks[0]->AsObject(), conn->AsObject());
+    EXPECT_TRUE(mgr.agentHostSessions_.empty());
+    EXPECT_TRUE(mgr.trackedConnections_.empty());
+    EXPECT_TRUE(mgr.agentOwners_.empty());
+    EXPECT_TRUE(mgr.callerQuotas_.empty());
+}
+
+/**
+ * @tc.name      HandleHostDisconnectDoneUnsolicitedReleasesQuotaForMultiAgentCaller
+ * @tc.desc      A caller owning several low-code agents on one host must have its host quota released exactly
+ *               once on unsolicited teardown; the per-agent path would leak it because siblings remain
+ *               visible until the bulk clear. Guards the ReleaseLowCodeHostQuotasLocked bulk release.
+ */
+HWTEST_F(AgentConnectManagerTest, HandleHostDisconnectDoneUnsolicitedReleasesQuotaForMultiAgentCaller, TestSize.Level1)
+{
+    auto &mgr = AgentConnectManager::GetInstance();
+    auto conn = MakeConnection();
+    auto host = DefaultHostKey();
+    auto hostRemote = MakeConnection()->AsObject();
+    AgentConnectPlan planA;
+    SetupConnectedLowCodeAgent(conn, host, "agent-1", NONCE_A, hostRemote, planA);
+    AgentConnectPlan planB;
+    SetupConnectedLowCodeAgent(conn, host, "agent-2", NONCE_B, hostRemote, planB);
+    ASSERT_EQ(mgr.agentHostSessions_.size(), 1u);
+
+    AgentHostDisconnectDoneRequest done;
+    done.hostKey = host;
+    done.callerRemote = conn->AsObject();
+    done.hostConnectionRemote = planA.hostConnection->AsObject();
+    done.resultCode = ERR_OK;
+    auto result = mgr.HandleAgentHostDisconnectDone(done);
+    ASSERT_EQ(result.callbacks.size(), 1u);
+    EXPECT_EQ(result.callbacks[0]->AsObject(), conn->AsObject());
+    EXPECT_TRUE(mgr.agentHostSessions_.empty());
+    EXPECT_TRUE(mgr.trackedConnections_.empty());
+    EXPECT_TRUE(mgr.agentOwners_.empty());
+    EXPECT_TRUE(mgr.callerQuotas_.empty());
+}
+
+/**
+ * @tc.name      HandleHostDisconnectDoneUnsolicitedSurfacesAllDistinctCallers
+ * @tc.desc      When a shared low-code host breaks unsolicited, EVERY distinct caller connection sharing
+ *               the host session is surfaced for onDisconnect exactly once, and each caller's host quota
+ *               is released exactly once. The existing single-caller cases only assert callbacks.size()==1;
+ *               this guards the multi-caller surfacing and the bulk per-caller quota release
+ *               (ReleaseLowCodeHostQuotasLocked dedupes by callerUid).
+ */
+HWTEST_F(AgentConnectManagerTest, HandleHostDisconnectDoneUnsolicitedSurfacesAllDistinctCallers, TestSize.Level1)
+{
+    auto &mgr = AgentConnectManager::GetInstance();
+    auto conn = MakeConnection();
+    auto conn2 = MakeConnection();
+    auto host = DefaultHostKey();
+    auto hostRemote = MakeConnection()->AsObject();
+    // Caller 1 (CALLER_UID) attaches agent-1 and creates the shared host session.
+    AgentConnectPlan plan1;
+    SetupConnectedLowCodeAgent(conn, host, "agent-1", NONCE_A, hostRemote, plan1);
+    // Caller 2 (OTHER_CALLER_UID) reuses the SAME host session with a distinct remote/uid.
+    AgentConnectPlan plan2;
+    ASSERT_EQ(mgr.PrepareLowCodeConnectPlan(
+        MakePlanRequest(conn2, OTHER_CALLER_UID, host, HOST_UID, "agent-2"), plan2), ERR_OK);
+    ASSERT_EQ(mgr.SetLowCodeConnectIdentity(host, "agent-2", "caller-identity", NONCE_B), ERR_OK);
+    AgentHostConnectDoneRequest connect2;
+    connect2.hostKey = host;
+    connect2.callerRemote = conn2->AsObject();
+    connect2.agentId = "agent-2";
+    connect2.remoteObject = hostRemote;
+    connect2.resultCode = ERR_OK;
+    ASSERT_EQ(mgr.HandleAgentHostConnectDone(connect2).callback->AsObject(), conn2->AsObject());
+    ASSERT_EQ(mgr.agentHostSessions_.size(), 1u);
+    ASSERT_EQ(mgr.agentHostSessions_[host]->callerConnections.size(), 2u);
+    ASSERT_EQ(mgr.callerQuotas_.size(), 2u);
+
+    // Unsolicited host break: non-null hostConnectionRemote and no pending-disconnect queue.
+    AgentHostDisconnectDoneRequest done;
+    done.hostKey = host;
+    done.callerRemote = conn->AsObject();
+    done.hostConnectionRemote = plan1.hostConnection->AsObject();
+    done.resultCode = ERR_OK;
+    auto result = mgr.HandleAgentHostDisconnectDone(done);
+    // Every distinct caller connection is surfaced exactly once: callerConnections is a map keyed by
+    // callerRemote, so size==N implies each appears once. Remotes are pointer-keyed so iteration order
+    // is not stable across runs; check membership rather than positional indexing.
+    ASSERT_EQ(result.callbacks.size(), 2u);
+    bool foundCaller1 = false;
+    bool foundCaller2 = false;
+    for (const auto &callback : result.callbacks) {
+        if (callback->AsObject() == conn->AsObject()) {
+            foundCaller1 = true;
+        }
+        if (callback->AsObject() == conn2->AsObject()) {
+            foundCaller2 = true;
+        }
+    }
+    EXPECT_TRUE(foundCaller1);
+    EXPECT_TRUE(foundCaller2);
+    // Each caller's host quota released exactly once and no stale owner/connection/session remains,
+    // so a later reconnect for the same agent does not see ERR_LOW_CODE_AGENT_ALREADY_ACTIVE.
+    EXPECT_TRUE(mgr.agentHostSessions_.empty());
+    EXPECT_TRUE(mgr.trackedConnections_.empty());
+    EXPECT_TRUE(mgr.agentOwners_.empty());
+    EXPECT_TRUE(mgr.callerQuotas_.empty());
+}
+
+/**
+ * @tc.name      HandleHostDisconnectDoneUnsolicitedIgnoresNullCallerRemote
+ * @tc.desc      In the unsolicited path TearDownHostSessionLocked never reads request.callerRemote (it iterates
+ *               every callerConnection), so a request with callerRemote==nullptr but a non-null
+ *               hostConnectionRemote and an empty pending queue still tears the session down and surfaces the
+ *               real caller connection.
+ */
+HWTEST_F(AgentConnectManagerTest, HandleHostDisconnectDoneUnsolicitedIgnoresNullCallerRemote, TestSize.Level1)
+{
+    auto &mgr = AgentConnectManager::GetInstance();
+    auto conn = MakeConnection();
+    auto host = DefaultHostKey();
+    auto hostRemote = MakeConnection()->AsObject();
+    AgentConnectPlan plan;
+    SetupConnectedLowCodeAgent(conn, host, "agent-1", NONCE_A, hostRemote, plan);
+
+    AgentHostDisconnectDoneRequest done;
+    done.hostKey = host;
+    done.callerRemote = nullptr;
+    done.hostConnectionRemote = plan.hostConnection->AsObject();
+    done.resultCode = ERR_OK;
+    auto result = mgr.HandleAgentHostDisconnectDone(done);
+    ASSERT_EQ(result.callbacks.size(), 1u);
+    EXPECT_EQ(result.callbacks[0]->AsObject(), conn->AsObject());
+    EXPECT_TRUE(mgr.agentHostSessions_.empty());
+    EXPECT_TRUE(mgr.trackedConnections_.empty());
+    EXPECT_TRUE(mgr.agentOwners_.empty());
+    EXPECT_TRUE(mgr.callerQuotas_.empty());
+}
+
+/**
+ * @tc.name      TearDownHostSessionLockedReturnsEmptyForUnknownHostKey
+ * @tc.desc      TearDownHostSessionLocked is defensive: for a hostKey with no session it returns an empty
+ *               callback vector and crashes nothing, leaving state untouched.
+ */
+HWTEST_F(AgentConnectManagerTest, TearDownHostSessionLockedReturnsEmptyForUnknownHostKey, TestSize.Level1)
+{
+    auto &mgr = AgentConnectManager::GetInstance();
+    auto stale = MakeHostKey(CALLER_USER_ID, "com.ghost", "ghost.module", "GhostAbility");
+    auto callbacks = mgr.TearDownHostSessionLocked(stale);
+    EXPECT_TRUE(callbacks.empty());
+    EXPECT_TRUE(mgr.agentHostSessions_.empty());
+    EXPECT_TRUE(mgr.trackedConnections_.empty());
+    EXPECT_TRUE(mgr.agentOwners_.empty());
+    EXPECT_TRUE(mgr.callerQuotas_.empty());
+}
+
+/**
+ * @tc.name      TearDownHostSessionLockedErasesNullSession
+ * @tc.desc      TearDownHostSessionLocked erases a null session entry and returns empty callbacks. This null
+ *               branch is near-unreachable from the public HandleAgentHostDisconnectDone path, which
+ *               pre-erases null sessions at the top; it is reached here by calling the private helper
+ *               directly (exposed via the test's private->public access) on an injected null session.
+ */
+HWTEST_F(AgentConnectManagerTest, TearDownHostSessionLockedErasesNullSession, TestSize.Level1)
+{
+    auto &mgr = AgentConnectManager::GetInstance();
+    auto host = DefaultHostKey();
+    // Inject a null session entry directly (private->public access); nothing else is populated.
+    mgr.agentHostSessions_[host] = nullptr;
+    ASSERT_EQ(mgr.agentHostSessions_.count(host), 1u);
+    auto callbacks = mgr.TearDownHostSessionLocked(host);
+    EXPECT_TRUE(callbacks.empty());
+    EXPECT_EQ(mgr.agentHostSessions_.count(host), 0u);
+}
+
+/**
+ * @tc.name      ReconnectAfterUnsolicitedTeardownDoesNotSeeStaleAgent
+ * @tc.desc      After an unsolicited teardown leaves agentHostSessions_/agentOwners_/callerQuotas_ empty, a
+ *               fresh low-code connect for the SAME agentId on the SAME host succeeds and the state returns
+ *               to one session / one owner, i.e. no ERR_LOW_CODE_AGENT_ALREADY_ACTIVE residue from the torn
+ *               down session.
+ */
+HWTEST_F(AgentConnectManagerTest, ReconnectAfterUnsolicitedTeardownDoesNotSeeStaleAgent, TestSize.Level1)
+{
+    auto &mgr = AgentConnectManager::GetInstance();
+    auto conn = MakeConnection();
+    auto host = DefaultHostKey();
+    auto hostRemote = MakeConnection()->AsObject();
+    AgentConnectPlan plan;
+    SetupConnectedLowCodeAgent(conn, host, "agent-1", NONCE_A, hostRemote, plan);
+    ASSERT_EQ(mgr.agentHostSessions_.size(), 1u);
+    ASSERT_EQ(mgr.agentOwners_.size(), 1u);
+
+    // Unsolicited host break tears the session down and clears all residue.
+    AgentHostDisconnectDoneRequest done;
+    done.hostKey = host;
+    done.callerRemote = conn->AsObject();
+    done.hostConnectionRemote = plan.hostConnection->AsObject();
+    done.resultCode = ERR_OK;
+    auto result = mgr.HandleAgentHostDisconnectDone(done);
+    ASSERT_EQ(result.callbacks.size(), 1u);
+    EXPECT_TRUE(mgr.agentHostSessions_.empty());
+    EXPECT_TRUE(mgr.agentOwners_.empty());
+    EXPECT_TRUE(mgr.callerQuotas_.empty());
+
+    // Reconnect the SAME agentId on the SAME host with a fresh caller connection: must succeed (the
+    // helper asserts ERR_OK at every step, so reaching the end means no stale-agent residue).
+    auto reconnect = MakeConnection();
+    AgentConnectPlan reconnectPlan;
+    SetupConnectedLowCodeAgent(reconnect, host, "agent-1", NONCE_B, hostRemote, reconnectPlan);
+    EXPECT_EQ(mgr.agentHostSessions_.size(), 1u);
+    EXPECT_EQ(mgr.agentHostSessions_[host]->agents.count("agent-1"), 1u);
+    EXPECT_EQ(mgr.agentOwners_.size(), 1u);
+    EXPECT_EQ(mgr.callerQuotas_.size(), 1u);
+    EXPECT_EQ(mgr.trackedConnections_.size(), 1u);
 }
 
 /**

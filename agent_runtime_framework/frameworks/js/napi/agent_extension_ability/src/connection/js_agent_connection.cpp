@@ -15,7 +15,10 @@
 
 #include "js_agent_connection.h"
 
+#include <algorithm>
+
 #include "ability_business_error.h"
+#include "agent_card.h"
 #include "agent_extension_connection_constants.h"
 #include "hilog_tag_wrapper.h"
 #include "js_agent_connector_stub_impl.h"
@@ -31,15 +34,62 @@ namespace {
 constexpr int32_t ARGC_ONE = 1;
 // Registry for agent connections
 static std::map<ConnectionKey, sptr<JSAgentConnection>, KeyCompare> g_agentConnects;
-static std::recursive_mutex g_agentConnectsLock_;
+// Process-global registry lock. Plain std::mutex (not recursive): no path re-enters it --
+// every lock-holding function is a leaf (members called under this lock take only the
+// per-connection stateLock_, never the registry lock). Do NOT call AgentConnectionUtils
+// functions from a member invoked under this lock; that would deadlock.
+static std::mutex g_agentConnectsLock_;
 static int64_t g_agentSerialNumber = 0;
+
+bool IsLowCodeRecord(const AAFwk::Want &want)
+{
+    return want.GetIntParam(AGENT_CARD_TYPE_KEY, -1) == static_cast<int32_t>(AgentCardType::LOW_CODE);
+}
+
+bool IsSameAgentCard(const AAFwk::Want &recordWant, const AAFwk::Want &want)
+{
+    const std::string agentId = want.GetStringParam(AGENTID_KEY);
+    return !agentId.empty() && recordWant.GetBundle() == want.GetBundle() &&
+        recordWant.GetStringParam(AGENTID_KEY) == agentId;
+}
+
+// Exact duplicate matching runs only after AgentMgr validates and canonicalizes
+// the Want, so bundle + AgentId identifies the AgentCard. Low-code still uses the
+// per-connection AgentId set because one host connection can own multiple AgentIds.
+bool IsAgentConnectionMatch(const ConnectionKey &key, const sptr<JSAgentConnection> &connection,
+    const AAFwk::Want &want)
+{
+    if (connection == nullptr || !IsSameAgentCard(key.want, want)) {
+        return false;
+    }
+    if (!IsLowCodeRecord(key.want)) {
+        return true;
+    }
+    std::string agentId = want.GetStringParam(AGENTID_KEY);
+    return connection->HasLowCodeAgentId(agentId) || connection->IsDisconnecting();
+}
+
+// Low-code host reuse is only for a different AgentId on the same callback/proxy.
+// The same active AgentId must stay on the duplicate path or reach AgentMgr rejection.
+bool IsReusableLowCodeConnection(const ConnectionKey &key, const sptr<JSAgentConnection> &connection,
+    const AAFwk::Want &want)
+{
+    if (connection == nullptr || !IsLowCodeRecord(key.want) || !(key.want.GetElement() == want.GetElement())) {
+        return false;
+    }
+    std::string agentId = want.GetStringParam(AGENTID_KEY);
+    if (connection->HasLowCodeAgentId(agentId)) {
+        return false;
+    }
+    return connection->HasAnyLowCodeAgentId() || connection->IsDisconnecting();
+}
 } // namespace
 
 namespace AgentConnectionUtils {
 void RemoveAgentConnection(int64_t connectId)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "RemoveAgentConnection, connectId: %{public}s", std::to_string(connectId).c_str());
-    std::lock_guard<std::recursive_mutex> lock(g_agentConnectsLock_);
+    std::lock_guard<std::mutex> lock(g_agentConnectsLock_);
     auto item = std::find_if(g_agentConnects.begin(), g_agentConnects.end(),
         [connectId](const auto &obj) {
             return connectId == obj.first.id;
@@ -59,7 +109,7 @@ void EraseAgentConnection(int64_t connectId)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "EraseAgentConnection, connectId: %{public}s",
         std::to_string(connectId).c_str());
-    std::lock_guard<std::recursive_mutex> lock(g_agentConnectsLock_);
+    std::lock_guard<std::mutex> lock(g_agentConnectsLock_);
     auto item = std::find_if(g_agentConnects.begin(), g_agentConnects.end(),
         [connectId](const auto &obj) {
             return connectId == obj.first.id;
@@ -73,7 +123,7 @@ int64_t InsertAgentConnection(sptr<JSAgentConnection> connection,
     const AAFwk::Want &want)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "InsertAgentConnection");
-    std::lock_guard<std::recursive_mutex> lock(g_agentConnectsLock_);
+    std::lock_guard<std::mutex> lock(g_agentConnectsLock_);
     if (connection == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null connection");
         return -1;
@@ -96,7 +146,7 @@ int64_t InsertAgentConnection(sptr<JSAgentConnection> connection,
 void FindAgentConnection(int64_t connectId, sptr<JSAgentConnection> &connection)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "FindAgentConnection by id: %{public}s", std::to_string(connectId).c_str());
-    std::lock_guard<std::recursive_mutex> lock(g_agentConnectsLock_);
+    std::lock_guard<std::mutex> lock(g_agentConnectsLock_);
     auto item = std::find_if(g_agentConnects.begin(), g_agentConnects.end(),
         [connectId](const auto &obj) {
             return connectId == obj.first.id;
@@ -111,15 +161,16 @@ void FindAgentConnection(napi_env env, const AAFwk::Want &want, napi_value callb
     sptr<JSAgentConnection> &connection)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "FindAgentConnection by want+callback");
-    std::lock_guard<std::recursive_mutex> lock(g_agentConnectsLock_);
+    std::lock_guard<std::mutex> lock(g_agentConnectsLock_);
     auto item = std::find_if(g_agentConnects.begin(), g_agentConnects.end(),
         [&want, env, callback](const auto &obj) {
-        bool wantEquals = obj.first.want.GetElement() == want.GetElement() &&
-            obj.first.want.GetStringParam(AGENTID_KEY) == want.GetStringParam(AGENTID_KEY);
+        if (!IsAgentConnectionMatch(obj.first, obj.second, want)) {
+            return false;
+        }
         std::unique_ptr<NativeReference> &tempCallbackPtr = obj.second->GetJsConnectionObject();
         bool callbackObjectEquals =
             JSAgentConnection::IsJsCallbackObjectEquals(env, tempCallbackPtr, callback);
-        return wantEquals && callbackObjectEquals;
+        return callbackObjectEquals;
     });
     if (item == g_agentConnects.end()) {
         TAG_LOGD(AAFwkTag::SER_ROUTER, "Connection not found");
@@ -133,7 +184,7 @@ void FindAgentConnectionCandidatesByTarget(napi_env env, const AAFwk::Want &want
     std::vector<sptr<JSAgentConnection>> &candidates)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "FindAgentConnectionCandidatesByTarget");
-    std::lock_guard<std::recursive_mutex> lock(g_agentConnectsLock_);
+    std::lock_guard<std::mutex> lock(g_agentConnectsLock_);
     for (const auto &obj : g_agentConnects) {
         bool wantEquals = obj.first.want.GetElement() == want.GetElement();
         std::unique_ptr<NativeReference> &tempCallbackPtr = obj.second->GetJsConnectionObject();
@@ -145,19 +196,20 @@ void FindAgentConnectionCandidatesByTarget(napi_env env, const AAFwk::Want &want
     }
 }
 
-void FindAgentConnectionByTargetAndCardType(napi_env env, const AAFwk::Want &want, napi_value callback,
-    int32_t agentCardType, sptr<JSAgentConnection> &connection)
+void FindReusableLowCodeAgentConnection(napi_env env, const AAFwk::Want &want, napi_value callback,
+    sptr<JSAgentConnection> &connection)
 {
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "FindAgentConnectionByTargetAndCardType");
-    std::lock_guard<std::recursive_mutex> lock(g_agentConnectsLock_);
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "FindReusableLowCodeAgentConnection");
+    std::lock_guard<std::mutex> lock(g_agentConnectsLock_);
     auto item = std::find_if(g_agentConnects.begin(), g_agentConnects.end(),
-        [&want, env, callback, agentCardType](const auto &obj) {
-            bool cardTypeEquals = obj.first.want.GetIntParam(AGENT_CARD_TYPE_KEY, -1) == agentCardType;
-            bool wantEquals = obj.first.want.GetElement() == want.GetElement();
+        [&want, env, callback](const auto &obj) {
+            if (!IsReusableLowCodeConnection(obj.first, obj.second, want)) {
+                return false;
+            }
             std::unique_ptr<NativeReference> &tempCallbackPtr = obj.second->GetJsConnectionObject();
             bool callbackObjectEquals =
                 JSAgentConnection::IsJsCallbackObjectEquals(env, tempCallbackPtr, callback);
-            return cardTypeEquals && wantEquals && callbackObjectEquals;
+            return callbackObjectEquals;
         });
     if (item == g_agentConnects.end()) {
         TAG_LOGD(AAFwkTag::SER_ROUTER, "Connection not found");
@@ -165,6 +217,23 @@ void FindAgentConnectionByTargetAndCardType(napi_env env, const AAFwk::Want &wan
     }
     connection = item->second;
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Found connection");
+}
+
+// Completion is local cleanup only after AgentMgr has accepted the completion.
+// If it removes the last AgentId, reconnect must wait for disconnect settlement.
+void CompleteLowCodeAgent(const std::string &agentId)
+{
+    std::lock_guard<std::mutex> lock(g_agentConnectsLock_);
+    for (const auto &obj : g_agentConnects) {
+        if (obj.second == nullptr || !obj.second->HasLowCodeAgentId(agentId)) {
+            continue;
+        }
+        if (obj.second->RemoveLowCodeAgentId(agentId)) {
+            TAG_LOGI(AAFwkTag::SER_ROUTER, "last low-code AgentId removed -> disconnecting: %{public}s",
+                agentId.c_str());
+            obj.second->SetDisconnecting(true);
+        }
+    }
 }
 } // namespace AgentConnectionUtils
 
@@ -204,47 +273,73 @@ void JSAgentConnection::OnAbilityConnectDone(const AppExecFwk::ElementName &elem
         env_, std::make_unique<NapiAsyncTask>(callback, std::move(execute), std::move(complete)));
 }
 
+// Reject the primary/duplicated/staged low-code tasks with the given error, clear the primary
+// async task and remove the connection from the registry.
+void JSAgentConnection::RejectConnectAndCleanup(napi_env env, napi_value error, bool hasPrimaryTask)
+{
+    if (hasPrimaryTask) {
+        napiAsyncTask_->Reject(env, error);
+    }
+    RejectDuplicatedPendingTask(env, error);
+    RejectLowCodeProxyReuseTasks(env, error);
+    RejectPendingLowCodeReuseTasks(env, error);
+    napiAsyncTask_ = nullptr;
+    AgentConnectionUtils::RemoveAgentConnection(connectionId_);
+}
+
+// Returns true when the connect flow must abort: when there is no pending task at all, or when
+// the result code reports failure (after rejecting/cleaning up).
+bool JSAgentConnection::AbortOnConnectError(napi_env env, int resultCode, bool hasPrimaryTask,
+    bool hasDuplicatedPendingTask)
+{
+    if (!hasPrimaryTask && !hasDuplicatedPendingTask) {
+        TAG_LOGD(AAFwkTag::SER_ROUTER, "No pending connect task");
+        return true;
+    }
+    if (resultCode == static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_OK)) {
+        return false;
+    }
+    napi_value error = CreateJsErrorByNativeErr(env, resultCode, "",
+        AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED));
+    RejectConnectAndCleanup(env, error, hasPrimaryTask);
+    return true;
+}
+
+// Build the JS receiver proxy for the just-connected host; returns nullptr (after rejecting/
+// cleaning up) when the proxy cannot be created.
+napi_value JSAgentConnection::BuildAgentReceiverProxy(napi_env env,
+    const sptr<IRemoteObject> &remoteObject, bool hasPrimaryTask)
+{
+    sptr<JsAgentConnectorStubImpl> hostStub = GetServiceHostStub();
+    sptr<IRemoteObject> hostProxy = nullptr;
+    if (hostStub != nullptr) {
+        hostProxy = hostStub->AsObject();
+    }
+    napi_value proxy = AgentRuntime::JsAgentReceiverProxy::CreateJsAgentReceiverProxy(env, remoteObject,
+        connectionId_, hostProxy);
+    if (proxy != nullptr) {
+        return proxy;
+    }
+    napi_value error = CreateJsErrorByNativeErr(env,
+        static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), "",
+        AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::OPERATION_FAILED));
+    RejectConnectAndCleanup(env, error, hasPrimaryTask);
+    return nullptr;
+}
+
 void JSAgentConnection::HandleOnAbilityConnectDone(const AppExecFwk::ElementName &element,
     const sptr<IRemoteObject> &remoteObject, int resultCode)
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "HandleOnAbilityConnectDone, resultCode: %{public}d", resultCode);
     bool hasPrimaryTask = napiAsyncTask_ != nullptr;
     bool hasDuplicatedPendingTask = !duplicatedPendingTaskList_.empty();
-    if (!hasPrimaryTask && !hasDuplicatedPendingTask) {
-        TAG_LOGD(AAFwkTag::SER_ROUTER, "No pending connect task");
-        return;
-    }
-    if (resultCode != static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_OK)) {
-        napi_value error = CreateJsErrorByNativeErr(env_, resultCode, "",
-            AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED));
-        if (hasPrimaryTask) {
-            napiAsyncTask_->Reject(env_, error);
-        }
-        RejectDuplicatedPendingTask(env_, error);
-        napiAsyncTask_ = nullptr;
-        AgentConnectionUtils::RemoveAgentConnection(connectionId_);
+    if (AbortOnConnectError(env_, resultCode, hasPrimaryTask, hasDuplicatedPendingTask)) {
         return;
     }
 
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Creating JsAgentReceiverProxy");
-    sptr<JsAgentConnectorStubImpl> hostStub = GetServiceHostStub();
-    sptr<IRemoteObject> hostProxy = nullptr;
-    if (hostStub != nullptr) {
-        hostProxy = hostStub->AsObject();
-    }
-    napi_value proxy = AgentRuntime::JsAgentReceiverProxy::CreateJsAgentReceiverProxy(env_, remoteObject,
-        connectionId_, hostProxy);
+    napi_value proxy = BuildAgentReceiverProxy(env_, remoteObject, hasPrimaryTask);
     if (proxy == nullptr) {
-        napi_value error = CreateJsErrorByNativeErr(env_,
-            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), "",
-            AbilityRuntime::GetInnerErrorMsg(
-                AbilityRuntime::AbilityInnerErrorMsg::OPERATION_FAILED));
-        if (hasPrimaryTask) {
-            napiAsyncTask_->Reject(env_, error);
-        }
-        RejectDuplicatedPendingTask(env_, error);
-        napiAsyncTask_ = nullptr;
-        AgentConnectionUtils::RemoveAgentConnection(connectionId_);
         return;
     }
     SetProxyObject(proxy);
@@ -252,6 +347,18 @@ void JSAgentConnection::HandleOnAbilityConnectDone(const AppExecFwk::ElementName
         napiAsyncTask_->ResolveWithNoError(env_, proxy);
     }
     ResolveDuplicatedPendingTask(env_, proxy);
+    ResolveLowCodeProxyReuseTasks(env_, proxy);
+    // host connected: register staged non-first AgentIds via Reuse and resolve them.
+    {
+        ConnectCompleteHandler handler;
+        {
+            std::lock_guard<std::mutex> lock(stateLock_);
+            handler = connectCompleteHandler_;
+        }
+        if (handler != nullptr) {
+            handler(env_, proxy, wptr<JSAgentConnection>(this));
+        }
+    }
     napiAsyncTask_ = nullptr;
 }
 
@@ -280,16 +387,21 @@ void JSAgentConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::ElementN
     AgentConnectionUtils::EraseAgentConnection(connectionId_);
     SetDisconnecting(false);
     if (napiAsyncTask_ != nullptr) {
+        // A disconnect-done arriving while a connect is still pending means the target never came
+        // up before the connect timed out or the target died. Reject the pending connect (and every
+        // request coalesced onto this connection) with a readable connect-failed error. The numeric
+        // code stays ERROR_CODE_INNER (16000050); only the message is made actionable, and it is
+        // kept consistent with the OnAbilityConnectDone failure path in AbortOnConnectError.
+        TAG_LOGI(AAFwkTag::SER_ROUTER, "connect ended before established, reject pending connect tasks");
         napi_value innerError = CreateJsErrorByNativeErr(env_,
             static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), "",
-            AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::AGENT_EXTENSION_CONNECTION_ENDED));
+            AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED));
         napiAsyncTask_->Reject(env_, innerError);
         RejectDuplicatedPendingTask(env_, innerError);
         napiAsyncTask_ = nullptr;
     }
-    sptr<JSAgentConnection> connection(this);
     if (disconnectCompleteHandler_ != nullptr) {
-        disconnectCompleteHandler_(connection);
+        disconnectCompleteHandler_(wptr<JSAgentConnection>(this));
     }
     if (disconnectAsyncTask_ != nullptr) {
         if (resultCode == static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_OK)) {
@@ -348,23 +460,63 @@ void JSAgentConnection::AddReconnectPendingTask(const AAFwk::Want &want,
         return;
     }
     std::lock_guard<std::mutex> lock(stateLock_);
-    if (reconnectPendingTaskList_.empty()) {
-        reconnectWant_ = want;
-    }
+    // remember every queued Want (not only the first) so drain can register each AgentId.
+    reconnectWants_.push_back(want);
     reconnectPendingTaskList_.push_back(std::move(task));
 }
 
-bool JSAgentConnection::TakeReconnectPendingTasks(AAFwk::Want &want,
+bool JSAgentConnection::TakeReconnectPendingTasks(std::vector<AAFwk::Want> &wants,
     std::vector<std::unique_ptr<AbilityRuntime::NapiAsyncTask>> &tasks)
 {
     std::lock_guard<std::mutex> lock(stateLock_);
     if (reconnectPendingTaskList_.empty()) {
         return false;
     }
-    want = reconnectWant_;
+    wants = std::move(reconnectWants_);
     tasks = std::move(reconnectPendingTaskList_);
+    reconnectWants_.clear();
     reconnectPendingTaskList_.clear();
     return true;
+}
+
+void JSAgentConnection::AddPendingLowCodeReuseTask(const AAFwk::Want &want,
+    std::unique_ptr<AbilityRuntime::NapiAsyncTask> task)
+{
+    if (task == nullptr) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(stateLock_);
+    pendingLowCodeReuseWants_.push_back(want);
+    pendingLowCodeReuseTaskList_.push_back(std::move(task));
+}
+
+bool JSAgentConnection::TakePendingLowCodeReuseTasks(std::vector<AAFwk::Want> &wants,
+    std::vector<std::unique_ptr<AbilityRuntime::NapiAsyncTask>> &tasks)
+{
+    std::lock_guard<std::mutex> lock(stateLock_);
+    if (pendingLowCodeReuseTaskList_.empty()) {
+        return false;
+    }
+    wants = std::move(pendingLowCodeReuseWants_);
+    tasks = std::move(pendingLowCodeReuseTaskList_);
+    pendingLowCodeReuseWants_.clear();
+    pendingLowCodeReuseTaskList_.clear();
+    return true;
+}
+
+void JSAgentConnection::RejectPendingLowCodeReuseTasks(napi_env env, napi_value error)
+{
+    std::vector<AAFwk::Want> wants;
+    std::vector<std::unique_ptr<AbilityRuntime::NapiAsyncTask>> tasks;
+    if (!TakePendingLowCodeReuseTasks(wants, tasks)) {
+        return;
+    }
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "RejectPendingLowCodeReuseTasks, count: %{public}zu", tasks.size());
+    for (auto &task : tasks) {
+        if (task != nullptr) {
+            task->Reject(env, error);
+        }
+    }
 }
 
 void JSAgentConnection::AdoptDuplicatedPendingTasks(
@@ -399,6 +551,55 @@ void JSAgentConnection::RejectDuplicatedPendingTask(napi_env env, napi_value err
         }
     }
     duplicatedPendingTaskList_.clear();
+}
+
+void JSAgentConnection::AddLowCodeProxyReuseTask(std::shared_ptr<AbilityRuntime::NapiAsyncTask> task)
+{
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "AddLowCodeProxyReuseTask");
+    lowCodeProxyReuseTasks_.push_back(std::move(task));
+}
+
+void JSAgentConnection::RejectLowCodeProxyReuseTask(napi_env env, napi_value error,
+    const std::shared_ptr<AbilityRuntime::NapiAsyncTask> &task)
+{
+    // Reject only this request's own task (matched by identity) and erase it; never touch
+    // sibling reuses that may still be awaiting the host proxy.
+    auto it = std::find_if(lowCodeProxyReuseTasks_.begin(), lowCodeProxyReuseTasks_.end(),
+        [&task](const std::shared_ptr<AbilityRuntime::NapiAsyncTask> &t) { return t.get() == task.get(); });
+    if (it != lowCodeProxyReuseTasks_.end()) {
+        if (*it != nullptr) {
+            (*it)->Reject(env, error);
+        }
+        lowCodeProxyReuseTasks_.erase(it);
+    } else if (task != nullptr) {
+        // Host-connect-done already drained+resolved the slot before this failure reply landed;
+        // do not double-settle an already-resolved task.
+        TAG_LOGW(AAFwkTag::SER_ROUTER, "low-code reuse task already resolved before failure reply");
+    }
+}
+
+void JSAgentConnection::ResolveLowCodeProxyReuseTasks(napi_env env, napi_value proxy)
+{
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "ResolveLowCodeProxyReuseTasks, count: %{public}zu",
+        lowCodeProxyReuseTasks_.size());
+    for (auto &task : lowCodeProxyReuseTasks_) {
+        if (task != nullptr) {
+            task->ResolveWithNoError(env, proxy);
+        }
+    }
+    lowCodeProxyReuseTasks_.clear();
+}
+
+void JSAgentConnection::RejectLowCodeProxyReuseTasks(napi_env env, napi_value error)
+{
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "RejectLowCodeProxyReuseTasks, count: %{public}zu",
+        lowCodeProxyReuseTasks_.size());
+    for (auto &task : lowCodeProxyReuseTasks_) {
+        if (task != nullptr) {
+            task->Reject(env, error);
+        }
+    }
+    lowCodeProxyReuseTasks_.clear();
 }
 
 int32_t JSAgentConnection::OnSendData(const std::string &data)
@@ -595,9 +796,39 @@ bool JSAgentConnection::IsDisconnecting()
     return disconnecting_;
 }
 
+bool JSAgentConnection::AddLowCodeAgentId(const std::string &agentId)
+{
+    std::lock_guard<std::mutex> lock(stateLock_);
+    return lowCodeAgentIds_.insert(agentId).second;
+}
+
+bool JSAgentConnection::RemoveLowCodeAgentId(const std::string &agentId)
+{
+    std::lock_guard<std::mutex> lock(stateLock_);
+    return lowCodeAgentIds_.erase(agentId) > 0 && lowCodeAgentIds_.empty();
+}
+
+bool JSAgentConnection::HasLowCodeAgentId(const std::string &agentId)
+{
+    std::lock_guard<std::mutex> lock(stateLock_);
+    return lowCodeAgentIds_.find(agentId) != lowCodeAgentIds_.end();
+}
+
+bool JSAgentConnection::HasAnyLowCodeAgentId()
+{
+    std::lock_guard<std::mutex> lock(stateLock_);
+    return !lowCodeAgentIds_.empty();
+}
+
 void JSAgentConnection::SetDisconnectCompleteHandler(DisconnectCompleteHandler handler)
 {
     disconnectCompleteHandler_ = std::move(handler);
+}
+
+void JSAgentConnection::SetConnectCompleteHandler(ConnectCompleteHandler handler)
+{
+    std::lock_guard<std::mutex> lock(stateLock_);
+    connectCompleteHandler_ = std::move(handler);
 }
 } // namespace AgentRuntime
 } // namespace OHOS
