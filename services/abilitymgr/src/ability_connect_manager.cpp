@@ -1321,7 +1321,7 @@ void AbilityConnectManager::LoadAbility(const std::shared_ptr<BaseExtensionRecor
     }
     int32_t loadTimeoutFinal =
         AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * GetLoadTimeout(loadTimeout);
-    if (!abilityRecord->IsDebugApp()) {
+    if (!abilityRecord->IsDebug()) {
         TAG_LOGD(AAFwkTag::EXT, "IsDebug is false, here is not debug app");
         PostLoadTimeoutTask(abilityRecord, loadTimeoutFinal);
     }
@@ -1885,7 +1885,9 @@ void AbilityConnectManager::ConnectAbility(const std::shared_ptr<BaseExtensionRe
         extType == AppExecFwk::ExtensionAbilityType::AGENT) {
         ResumeConnectAbility(abilityRecord);
     } else {
-        PostTimeOutTask(abilityRecord, AbilityManagerService::CONNECT_TIMEOUT_MSG);
+        if (!abilityRecord->IsDebug()) {
+            PostTimeOutTask(abilityRecord, AbilityManagerService::CONNECT_TIMEOUT_MSG);
+        }
         if (abilityRecord->GetToken()) {
             AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(abilityRecord->GetToken()->AsObject(),
                 "AbilityConnectManager::ConnectAbility");
@@ -1915,7 +1917,9 @@ void AbilityConnectManager::ResumeConnectAbility(const std::shared_ptr<BaseExten
             continue;
         }
         int connectRecordId = connectRecord->GetRecordId();
-        PostTimeOutTask(abilityRecord, connectRecordId, AbilityManagerService::CONNECT_TIMEOUT_MSG);
+        if (!abilityRecord->IsDebug()) {
+            PostTimeOutTask(abilityRecord, connectRecordId, AbilityManagerService::CONNECT_TIMEOUT_MSG);
+        }
         abilityRecord->ConnectAbilityWithWant(connectRecord->GetConnectWant());
     }
 }
