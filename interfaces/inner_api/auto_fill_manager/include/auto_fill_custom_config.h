@@ -66,11 +66,11 @@ struct PopupLength {
     PopupDimensionUnit unit = PopupDimensionUnit::PX;
     double length = 0.0;
 };
- 
+
 struct AutoFillCustomConfig {
     bool isShowInSubWindow = true;
     std::string inspectorId;
-    std::int32_t nodeId = -1;
+    std::int32_t nodeId = 0;
     std::optional<bool> isAutoCancel;
     std::optional<bool> isEnableArrow;
     std::optional<PopupSize> targetSize;
