@@ -1582,6 +1582,40 @@ HWTEST_F(AbilityManagerClientBranchThirdTest, ExecuteInAppSkillWithTokenId_0300,
 }
 
 /**
+ * @tc.name: NotifySkillFunctionInvoked_0100
+ * @tc.desc: Test NotifySkillFunctionInvoked with proxy not connected
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, NotifySkillFunctionInvoked_0100, TestSize.Level1)
+{
+    client_->proxy_ = nullptr;
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(*mockSystemAbility_, GetSystemAbility(testing::_)).WillRepeatedly(Return(nullptr));
+    SystemAbilityManagerClient::GetInstance().systemAbilityManager_ = mockSystemAbility_;
+
+    sptr<IRemoteObject> token = sptr<MockAbilityToken>::MakeSptr();
+    auto ret = client_->NotifySkillFunctionInvoked(token, "requestCode");
+    EXPECT_EQ(ret, ABILITY_SERVICE_NOT_CONNECTED);
+}
+
+/**
+ * @tc.name: NotifySkillFunctionInvoked_0200
+ * @tc.desc: Test NotifySkillFunctionInvoked with proxy connected
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, NotifySkillFunctionInvoked_0200, TestSize.Level1)
+{
+    client_->proxy_ = mock_;
+    sptr<IRemoteObject> token = sptr<MockAbilityToken>::MakeSptr();
+    EXPECT_CALL(*mock_, NotifySkillFunctionInvoked(_, _))
+        .Times(1)
+        .WillOnce(Return(ERR_OK));
+    auto ret = client_->NotifySkillFunctionInvoked(token, "requestCode");
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
  * @tc.name: ExecuteIntentWithResult_0100
  * @tc.desc: Test ExecuteIntentWithResult with proxy not connected
  * @tc.type: FUNC
