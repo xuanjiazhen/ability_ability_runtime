@@ -438,6 +438,8 @@ public:
         const std::shared_ptr<AAFwk::WantParams> &, const sptr<ISkillExecuteCallback> &));
     MOCK_METHOD4(ExecuteSkillDone, int32_t(const sptr<IRemoteObject> &, const std::string &,
         int32_t, const AppExecFwk::SkillExecuteResult &));
+    MOCK_METHOD2(NotifySkillFunctionInvoked, int32_t(const sptr<IRemoteObject> &,
+        const std::string &));
     MOCK_METHOD4(QuerySkillType, int32_t(const std::string &, const std::string &,
         const std::string &, int32_t &));
     MOCK_METHOD2(ExecuteInAppSkillWithTokenId, int32_t(const AppExecFwk::SkillExecuteRequest &,
