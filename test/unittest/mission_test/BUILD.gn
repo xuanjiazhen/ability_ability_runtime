@@ -17,13 +17,6 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 module_output_path = "ability_runtime/ability_runtime/abilitymgr"
 
 ohos_unittest("mission_test") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
   module_out_path = module_output_path
 
   include_dirs = [ "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/system_ability_mock" ]
@@ -47,9 +40,6 @@ ohos_unittest("mission_test") {
     "${ability_runtime_services_path}/abilitymgr:abilityms",
     "${ability_runtime_services_path}/abilitymgr:mission_list",
     "${ability_runtime_services_path}/common:perm_verification",
-    "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/aakit:aakit_mock",
-    "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/appexecfwk_core:appexecfwk_appmgr_mock",
-    "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/appexecfwk_core:appexecfwk_bundlemgr_mock",
   ]
 
   external_deps = [

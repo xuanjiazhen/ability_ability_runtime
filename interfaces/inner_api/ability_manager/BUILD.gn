@@ -65,10 +65,14 @@ config("ability_manager_public_config") {
 ohos_shared_library("ability_manager") {
   use_exceptions = true
   branch_protector_ret = "pac_ret"
-
   sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
     cfi = true
     cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
     debug = false
   }
 
