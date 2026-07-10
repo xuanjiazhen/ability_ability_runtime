@@ -48,7 +48,7 @@ void AppMgrProxy::AttachApplication(const sptr<IRemoteObject> &obj)
 {
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option(MessageOption::TF_SYNC);
+    MessageOption option(MessageOption::TF_SYNC | MessageOption::TF_IMAGE);
     if (!WriteInterfaceToken(data)) {
         return;
     }
@@ -85,7 +85,7 @@ void AppMgrProxy::PreloadModuleFinished(const int32_t recordId)
     TAG_LOGD(AAFwkTag::APPMGR, "PreloadModuleFinished called");
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option(MessageOption::TF_ASYNC);
+    MessageOption option(MessageOption::TF_ASYNC | MessageOption::TF_IMAGE);
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "PreloadModuleFinished write interface token failed");
         return;
@@ -476,11 +476,14 @@ int32_t AppMgrProxy::GetProcessRunningInformation(RunningProcessInfo &info)
 {
     MessageParcel data;
     MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC | MessageOption::TF_IMAGE);
 
     if (!WriteInterfaceToken(data)) {
         return ERR_FLATTEN_OBJECT;
     }
-    if (!SendTransactCmd(AppMgrInterfaceCode::APP_GET_PROCESS_RUNNING_INFORMATION, data, reply)) {
+    int32_t result = SendRequest(AppMgrInterfaceCode::APP_GET_PROCESS_RUNNING_INFORMATION, data, reply, option);
+    if (result != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "receive error transact code %{public}d in transact cmd", result);
         return ERR_NULL_OBJECT;
     }
     std::unique_ptr<RunningProcessInfo> infoReply(reply.ReadParcelable<RunningProcessInfo>());
@@ -2387,7 +2390,7 @@ int32_t AppMgrProxy::SetSupportedProcessCacheSelf(bool isSupport)
     PARCEL_UTIL_WRITE_RET_INT(data, Bool, isSupport);
 
     MessageParcel reply;
-    MessageOption option;
+    MessageOption option(MessageOption::TF_IMAGE);
 
     PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::SET_SUPPORTED_PROCESS_CACHE_SELF, data, reply, option);
     return reply.ReadInt32();
