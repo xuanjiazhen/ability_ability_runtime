@@ -474,7 +474,7 @@ bool JsUIExtension::ForegroundWindowInitInsightIntentExecutorInfo(const AAFwk::W
         executorInfo.windowMode = abilityInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE;
     }
     executorInfo.token = context->GetToken();
-    executorInfo.pageLoader = contentSessions_[sessionInfo->uiExtensionComponentId];
+    executorInfo.pageLoader = contentSessions_[GetEffectiveComponentId(sessionInfo)];
     executorInfo.executeParam = std::make_shared<InsightIntentExecuteParam>();
     InsightIntentExecuteParam::GenerateFromWant(want, *executorInfo.executeParam);
     executorInfo.executeParam->executeMode_ = UI_EXTENSION_ABILITY;
@@ -634,7 +634,7 @@ bool JsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFw
         sessionInfo->uiExtensionComponentId, want.GetElement().GetBundleName().c_str(),
         want.GetElement().GetAbilityName().c_str());
     std::shared_ptr<AAFwk::Want> sharedWant = std::make_shared<AAFwk::Want>(want);
-    auto compId = sessionInfo->uiExtensionComponentId;
+    auto compId = GetEffectiveComponentId(sessionInfo);
     if (uiWindowMap_.find(compId) == uiWindowMap_.end()) {
         auto context = GetContext();
         auto uiWindow = CreateUIWindow(context, sessionInfo, want);
@@ -680,6 +680,24 @@ bool JsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAFw
             return false;
         }
         uiWindow->UpdateExtensionConfig(sharedWant);
+        // moveTo 迁移（originalCallerInfo 标识）：已存在 session 走 else 分支天然不触发 onSessionCreate，
+        // 此处增量更新窗口 parent 绑定（uiWindow_ + 已缓存 proxy），不短路 ForegroundWindow 的 Show()。
+        if (sessionInfo->originalCallerInfo.callerToken != nullptr) {
+            TAG_LOGI(AAFwkTag::UI_EXT, "moveTo migration, update parent, persistentId: %{private}d",
+                sessionInfo->persistentId);
+            auto sessionIt = contentSessions_.find(compId);
+            if (sessionIt != contentSessions_.end() && sessionIt->second != nullptr) {
+                HandleScope handleScope(jsRuntime_);
+                napi_env env = jsRuntime_.GetNapiEnv();
+                napi_value contentSession = sessionIt->second->GetNapiValue();
+                void* nativeObject = nullptr;
+                napi_unwrap(env, contentSession, &nativeObject);
+                auto* contentSessionPtr = static_cast<JsUIExtensionContentSession*>(nativeObject);
+                if (contentSessionPtr != nullptr) {
+                    contentSessionPtr->DoUpdateExtensionParent(sessionInfo);
+                }
+            }
+        }
     }
     return true;
 }
@@ -747,7 +765,7 @@ void JsUIExtension::DestroyWindow(const sptr<AAFwk::SessionInfo> &sessionInfo)
         return;
     }
     std::lock_guard<std::mutex> lock(uiWindowMutex_);
-    auto componentId = sessionInfo->uiExtensionComponentId;
+    auto componentId = GetEffectiveComponentId(sessionInfo);
     if (uiWindowMap_.find(componentId) == uiWindowMap_.end()) {
         TAG_LOGE(AAFwkTag::UI_EXT, "find uiWindow wrong");
         return;

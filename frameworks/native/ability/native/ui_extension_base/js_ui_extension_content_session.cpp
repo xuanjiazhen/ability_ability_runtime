@@ -36,9 +36,9 @@
 #include "tokenid_kit.h"
 #ifdef SUPPORT_SCREEN
 #include "ui_content.h"
-#endif // SUPPORT_SCREEN
 #include "want.h"
 #include "window.h"
+#include "window_option.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -144,7 +144,7 @@ JsUIExtensionContentSession::JsUIExtensionContentSession(
     if (abilityResultListeners == nullptr || sessionInfo == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null params");
     } else {
-        abilityResultListeners->AddListener(sessionInfo->uiExtensionComponentId, listener_);
+        abilityResultListeners->AddListener(GetEffectiveComponentId(sessionInfo), listener_);
     }
 }
 
@@ -308,7 +308,13 @@ napi_value JsUIExtensionContentSession::OnGetUIExtensionHostWindowProxy(napi_env
         ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return CreateJsUndefined(env);
     }
-    return handleEscape.Escape(value->GetNapiValue());
+    napi_value proxyValue = value->GetNapiValue();
+    if (proxyValue != nullptr) {
+        napi_ref ref = nullptr;
+        napi_create_reference(env, proxyValue, 1, &ref);
+        jsExtensionWindowRefs_.push_back(ref);
+    }
+    return handleEscape.Escape(proxyValue);
 }
 
 napi_value JsUIExtensionContentSession::OnGetUIExtensionWindowProxy(napi_env env, NapiCallbackInfo& info)
@@ -334,7 +340,13 @@ napi_value JsUIExtensionContentSession::OnGetUIExtensionWindowProxy(napi_env env
         ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return CreateJsUndefined(env);
     }
-    return handleEscape.Escape(value->GetNapiValue());
+    napi_value proxyValue = value->GetNapiValue();
+    if (proxyValue != nullptr) {
+        napi_ref ref = nullptr;
+        napi_create_reference(env, proxyValue, 1, &ref);
+        jsExtensionWindowRefs_.push_back(ref);
+    }
+    return handleEscape.Escape(proxyValue);
 }
 
 napi_value JsUIExtensionContentSession::OnStartAbilityAsCaller(napi_env env, NapiCallbackInfo& info)
@@ -1036,6 +1048,7 @@ napi_value JsUIExtensionContentSession::CreateJsUIExtensionContentSession(napi_e
 
     std::unique_ptr<JsUIExtensionContentSession> jsSession =
         std::make_unique<JsUIExtensionContentSession>(sessionInfo, uiWindow, context, abilityResultListeners);
+    jsSession->env_ = env;
     napi_wrap(env, object, jsSession.release(), Finalizer, nullptr, nullptr);
 
     const char *moduleName = "JsUIExtensionContentSession";
@@ -1071,6 +1084,7 @@ napi_value JsUIExtensionContentSession::CreateJsUIExtensionContentSession(napi_e
 
     std::unique_ptr<JsUIExtensionContentSession> jsSession =
         std::make_unique<JsUIExtensionContentSession>(sessionInfo, uiWindow);
+    jsSession->env_ = env;
     napi_wrap(env, object, jsSession.release(), Finalizer, nullptr, nullptr);
 
     const char *moduleName = "JsUIExtensionContentSession";
@@ -1271,5 +1285,62 @@ void JsUIExtensionContentSession::InitDisplayId(AAFwk::Want &want, AAFwk::StartO
     startOptions.SetDisplayID(window->GetDisplayId());
 }
 #endif
+
+void JsUIExtensionContentSession::DoUpdateExtensionParent(const sptr<AAFwk::SessionInfo> &sessionInfo)
+{
+    if (sessionInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null sessionInfo");
+        return;
+    }
+    // uiWindow_ 对象复用不变（ADR-8）；sessionInfo_ 整体指针替换后，通过 C++ UpdateExtensionParent
+    // 更新 uiWindow_ 与应用已缓存的老 JsExtensionWindow proxy 的 parent 绑定。
+    sessionInfo_ = sessionInfo;
+    TAG_LOGI(AAFwkTag::UI_EXT, "DoUpdateExtensionParent, persistentId: %{private}d, hostWindowId: %{public}u",
+        sessionInfo->persistentId, sessionInfo->hostWindowId);
+
+    sptr<Rosen::WindowOption> option = sptr<Rosen::WindowOption>::MakeSptr();
+    if (option == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null WindowOption");
+        return;
+    }
+    option->SetParentId(sessionInfo->hostWindowId);
+    option->SetRealParentId(sessionInfo->realHostWindowId);
+    option->SetParentWindowType(static_cast<Rosen::WindowType>(sessionInfo->parentWindowType));
+    option->SetDisplayId(sessionInfo->displayId);
+
+    // uiWindow_ 直接调 C++ 接口（window_manager PR #19373 提供，无需 napi 暴露）
+    if (uiWindow_ != nullptr) {
+        Rosen::WMError ret = uiWindow_->UpdateExtensionParent(option);
+        if (ret != Rosen::WMError::WM_OK) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "uiWindow UpdateExtensionParent failed, ret: %{public}d",
+                static_cast<int32_t>(ret));
+        }
+    }
+
+    // 遍历应用侧已缓存的老 proxy，经 napi_unwrap 取 JsExtensionWindow C++ 指针直接调 C++ 接口
+    if (env_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null env_");
+        return;
+    }
+    for (auto &ref : jsExtensionWindowRefs_) {
+        napi_value proxy = nullptr;
+        napi_get_reference_value(env_, ref, &proxy);
+        if (proxy == nullptr) {
+            continue;
+        }
+        Rosen::JsExtensionWindow* jsExtWin = nullptr;
+        napi_unwrap(env_, proxy, reinterpret_cast<void**>(&jsExtWin));
+        if (jsExtWin == nullptr) {
+            TAG_LOGW(AAFwkTag::UI_EXT, "unwrap JsExtensionWindow failed");
+            continue;
+        }
+        Rosen::WMError ret = jsExtWin->UpdateExtensionParent(option);
+        if (ret != Rosen::WMError::WM_OK) {
+            TAG_LOGW(AAFwkTag::UI_EXT, "proxy UpdateExtensionParent failed, ret: %{public}d",
+                static_cast<int32_t>(ret));
+        }
+    }
+    TAG_LOGD(AAFwkTag::UI_EXT, "updated %{public}zu proxies", jsExtensionWindowRefs_.size());
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS

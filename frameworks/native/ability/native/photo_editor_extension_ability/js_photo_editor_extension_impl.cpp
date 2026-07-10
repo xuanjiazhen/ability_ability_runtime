@@ -144,7 +144,7 @@ void JsPhotoEditorExtensionImpl::BindContext()
 void JsPhotoEditorExtensionImpl::OnForeground(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
 {
     JsUIExtensionBase::OnForeground(want, sessionInfo);
-    auto componentId = sessionInfo->uiExtensionComponentId;
+    auto componentId = GetEffectiveComponentId(sessionInfo);
     if (uiExtensionComponentIdSet_.find(componentId) == uiExtensionComponentIdSet_.end()) {
         OnStartContentEditing(want, sessionInfo);
         uiExtensionComponentIdSet_.emplace(componentId);
@@ -182,7 +182,7 @@ void JsPhotoEditorExtensionImpl::OnStartContentEditing(const AAFwk::Want &want,
     }
     napi_value jsImageUri;
     napi_create_string_utf8(env, imageUri.c_str(), imageUri.size(), &jsImageUri);
-    napi_value argv[] = {jsImageUri, jsWant, contentSessions_[sessionInfo->uiExtensionComponentId]->GetNapiValue()};
+    napi_value argv[] = {jsImageUri, jsWant, contentSessions_[GetEffectiveComponentId(sessionInfo)]->GetNapiValue()};
 
     CallObjectMethod("onStartContentEditing", argv, ARGC_THREE);
 }

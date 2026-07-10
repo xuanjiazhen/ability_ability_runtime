@@ -214,6 +214,30 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecord(const AAFwk::AbilityR
     const std::string &hostBundleName, std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord, bool &isLoaded)
 {
     CHECK_POINTER_AND_RETURN(abilityRequest.sessionInfo, ERR_INVALID_VALUE);
+
+    // Migration update: find original record by persistentId (persistentId does not change during migration)
+    if (IsMigrationUpdateRequest(abilityRequest.sessionInfo)) {
+        abilityRecord = GetAbilityRecordByPersistentId(abilityRequest.sessionInfo->persistentId);
+        if (abilityRecord != nullptr) {
+            isLoaded = true;
+            // Backfill stable uiExtensionComponentId (the original X locked by AMS) into the
+            // migration request's sessionInfo before SetSessionInfo, so downstream providers
+            // always see a stable id regardless of how many times the window migrates.
+            auto recordSessionInfo = abilityRecord->GetSessionInfo();
+            uint64_t stableId = (recordSessionInfo &&
+                recordSessionInfo->originalCallerInfo.uiExtensionComponentId != 0)
+                ? recordSessionInfo->originalCallerInfo.uiExtensionComponentId
+                : (recordSessionInfo ? recordSessionInfo->uiExtensionComponentId : 0);
+            abilityRequest.sessionInfo->originalCallerInfo.uiExtensionComponentId = stableId;
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "migration update: found record by persistentId: %{public}d, stableId: "
+                "%{public}" PRIu64, abilityRequest.sessionInfo->persistentId, stableId);
+            return ERR_OK;
+        }
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "migration update: record not found for persistentId: %{public}d, fallback",
+            abilityRequest.sessionInfo->persistentId);
+        // Fallback to existing logic if original record not found
+    }
+
     abilityRecord = GetAbilityRecordBySessionInfo(abilityRequest.sessionInfo);
     if (abilityRecord != nullptr) {
         isLoaded = true;
@@ -286,6 +310,40 @@ std::shared_ptr<AAFwk::BaseExtensionRecord> ExtensionRecordManager::GetAbilityRe
         if (recordSessionInfo->uiExtensionComponentId == sessionInfo->uiExtensionComponentId) {
             TAG_LOGD(AAFwkTag::ABILITYMGR,
                 "found record, uiExtensionComponentId: %{public}" PRIu64, sessionInfo->uiExtensionComponentId);
+            return abilityRecord;
+        }
+    }
+    return nullptr;
+}
+
+bool ExtensionRecordManager::IsMigrationUpdateRequest(const sptr<AAFwk::SessionInfo> &sessionInfo) const
+{
+    return sessionInfo != nullptr &&
+           sessionInfo->originalCallerInfo.callerToken != nullptr &&
+           sessionInfo->originalCallerInfo.persistentId != 0;
+}
+
+std::shared_ptr<AAFwk::BaseExtensionRecord>
+ExtensionRecordManager::GetAbilityRecordByPersistentId(int32_t persistentId)
+{
+    if (persistentId == 0) {
+        return nullptr;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (const auto &it : extensionRecords_) {
+        if (it.second == nullptr) {
+            continue;
+        }
+        auto abilityRecord = it.second->abilityRecord_;
+        if (abilityRecord == nullptr) {
+            continue;
+        }
+        auto recordSessionInfo = abilityRecord->GetSessionInfo();
+        if (recordSessionInfo == nullptr) {
+            continue;
+        }
+        if (recordSessionInfo->persistentId == persistentId) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "found by persistentId: %{public}d", persistentId);
             return abilityRecord;
         }
     }

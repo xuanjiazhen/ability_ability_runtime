@@ -26,7 +26,7 @@ CJPhotoEditorExtensionImpl::CJPhotoEditorExtensionImpl(const std::unique_ptr<Run
 void CJPhotoEditorExtensionImpl::OnForeground(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
 {
     CJUIExtensionBase::OnForeground(want, sessionInfo);
-    auto componentId = sessionInfo->uiExtensionComponentId;
+    auto componentId = GetEffectiveComponentId(sessionInfo);
     if (uiExtensionComponentIdSet_.find(componentId) == uiExtensionComponentIdSet_.end()) {
         OnStartContentEditing(want, sessionInfo);
         uiExtensionComponentIdSet_.emplace(componentId);
@@ -55,7 +55,7 @@ void CJPhotoEditorExtensionImpl::OnStartContentEditing(const AAFwk::Want &want,
         cjContext_->SetWant(newWant);
     }
 
-    cjObj.OnStartContentEditing(imageUri, want, contentSessions_[sessionInfo->uiExtensionComponentId]->GetID());
+    cjObj.OnStartContentEditing(imageUri, want, contentSessions_[GetEffectiveComponentId(sessionInfo)]->GetID());
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

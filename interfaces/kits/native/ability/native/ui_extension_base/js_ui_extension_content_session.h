@@ -24,6 +24,14 @@
 #include "start_options.h"
 #include "window.h"
 
+inline uint64_t GetEffectiveComponentId(const sptr<AAFwk::SessionInfo> &sessionInfo)
+{
+    if (sessionInfo && sessionInfo->originalCallerInfo.uiExtensionComponentId != 0) {
+        return sessionInfo->originalCallerInfo.uiExtensionComponentId;
+    }
+    return sessionInfo ? sessionInfo->uiExtensionComponentId : 0;
+}
+
 namespace OHOS {
 namespace AbilityRuntime {
 using RuntimeTask = std::function<void(int, const AAFwk::Want&, bool)>;
@@ -89,6 +97,8 @@ public:
         return context_.lock();
     }
 
+    void DoUpdateExtensionParent(const sptr<AAFwk::SessionInfo> &sessionInfo);
+
 protected:
     napi_value OnStartAbility(napi_env env, NapiCallbackInfo& info);
     napi_value OnStartAbilityAsCaller(napi_env env, NapiCallbackInfo& info);
@@ -132,6 +142,8 @@ private:
     std::shared_ptr<UISessionAbilityResultListener> listener_;
     sptr<JsFreeInstallObserver> freeInstallObserver_ = nullptr;
     bool isFirstTriggerBindModal_ = true;
+    std::vector<napi_ref> jsExtensionWindowRefs_;
+    napi_env env_ = nullptr;
 #ifdef SUPPORT_SCREEN
     void InitDisplayId(AAFwk::Want &want);
     void InitDisplayId(AAFwk::Want &want, AAFwk::StartOptions &startOptions, napi_env &env, NapiCallbackInfo& info);

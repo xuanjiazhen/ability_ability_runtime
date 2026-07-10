@@ -32,6 +32,7 @@
 #include "ipc_skeleton.h"
 #include "remote_object_wrapper.h"
 #include "tokenid_kit.h"
+#include "ui_extension.h"
 #include "want.h"
 #include "want_params_wrapper.h"
 #include "window.h"
@@ -326,7 +327,7 @@ EtsUIExtensionContentSession::EtsUIExtensionContentSession(
     if (abilityResultListeners == nullptr || sessionInfo == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null params");
     } else {
-        abilityResultListeners->AddListener(sessionInfo->uiExtensionComponentId, listener_);
+        abilityResultListeners->AddListener(GetEffectiveComponentId(sessionInfo), listener_);
     }
 }
 

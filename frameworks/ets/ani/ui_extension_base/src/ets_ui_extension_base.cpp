@@ -442,7 +442,7 @@ void EtsUIExtensionBase::ForegroundWindowInitInsightIntentExecutorInfo(const AAF
         executorInfo.windowMode = abilityInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE;
     }
     executorInfo.token = context_->GetToken();
-    executorInfo.etsPageLoader = reinterpret_cast<void *>(contentSessions_[sessionInfo->uiExtensionComponentId]);
+    executorInfo.etsPageLoader = reinterpret_cast<void *>(contentSessions_[GetEffectiveComponentId(sessionInfo)]);
     executorInfo.executeParam = std::make_shared<InsightIntentExecuteParam>();
     InsightIntentExecuteParam::GenerateFromWant(want, *executorInfo.executeParam);
     executorInfo.executeParam->executeMode_ = UI_EXTENSION_ABILITY;
@@ -565,7 +565,7 @@ void EtsUIExtensionBase::OnInsightIntentExecuteDone(const sptr<AAFwk::SessionInf
     }
 
     TAG_LOGD(AAFwkTag::UI_EXT, "UIExtension component id: %{public}" PRId64, sessionInfo->uiExtensionComponentId);
-    auto componentId = sessionInfo->uiExtensionComponentId;
+    auto componentId = GetEffectiveComponentId(sessionInfo);
 
     sptr<Rosen::Window> window;
     {
@@ -730,7 +730,7 @@ bool EtsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr
         return false;
     }
     std::shared_ptr<AAFwk::Want> sharedWant = std::make_shared<AAFwk::Want>(want);
-    auto componentId = sessionInfo->uiExtensionComponentId;
+    auto componentId = GetEffectiveComponentId(sessionInfo);
     std::unique_lock<std::mutex> lck(g_mtxWindowMapRecord);
     if (uiWindowMap_.find(componentId) == uiWindowMap_.end()) {
         if (context_ == nullptr || context_->GetAbilityInfo() == nullptr) {
@@ -780,7 +780,7 @@ void EtsUIExtensionBase::ForegroundWindow(const AAFwk::Want &want, const sptr<AA
         return;
     }
     TAG_LOGD(AAFwkTag::UI_EXT, "UIExtension component id: %{public}" PRId64, sessionInfo->uiExtensionComponentId);
-    auto componentId = sessionInfo->uiExtensionComponentId;
+    auto componentId = GetEffectiveComponentId(sessionInfo);
 
     sptr<Rosen::Window> window;
     bool windowExists = false;
@@ -813,7 +813,7 @@ void EtsUIExtensionBase::BackgroundWindow(const sptr<AAFwk::SessionInfo> &sessio
     }
 
     TAG_LOGD(AAFwkTag::UI_EXT, "UIExtension component id: %{public}" PRId64, sessionInfo->uiExtensionComponentId);
-    auto componentId = sessionInfo->uiExtensionComponentId;
+    auto componentId = GetEffectiveComponentId(sessionInfo);
     sptr<Rosen::Window> window;
     bool windowExists = false;
     {
@@ -824,7 +824,7 @@ void EtsUIExtensionBase::BackgroundWindow(const sptr<AAFwk::SessionInfo> &sessio
             windowExists = true;
         }
     }
-    
+
     if (!windowExists) {
         TAG_LOGE(AAFwkTag::UI_EXT, "not find uiWindow");
         return;
@@ -845,7 +845,7 @@ void EtsUIExtensionBase::DestroyWindow(const sptr<AAFwk::SessionInfo> &sessionIn
     }
 
     TAG_LOGD(AAFwkTag::UI_EXT, "UIExtension component id: %{public}" PRId64, sessionInfo->uiExtensionComponentId);
-    auto componentId = sessionInfo->uiExtensionComponentId;
+    auto componentId = GetEffectiveComponentId(sessionInfo);
 
     std::unique_lock<std::mutex> windowLock(g_mtxWindowMapRecord);
     if (uiWindowMap_.find(componentId) == uiWindowMap_.end()) {
