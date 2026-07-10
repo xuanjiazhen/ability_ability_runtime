@@ -130,7 +130,7 @@ napi_value JsMemoryOptimizer::OnEvictModuleFilePages(napi_env env, NapiCallbackI
     }
 
     std::vector<std::string> moduleNames;
-    if (!AppExecFwk::UnwrapArrayStringFromJS(env, info.argv[INDEX_ZERO], moduleNames)) {
+    if (!AppExecFwk::UnwrapArrayStringFromJSFix(env, info.argv[INDEX_ZERO], moduleNames)) {
         TAG_LOGE(AAFwkTag::ABILITY, "parse moduleNames failed");
         ThrowInvalidParamError(env, "Parameter error. Parse moduleNames failed.");
         return CreateJsUndefined(env);
