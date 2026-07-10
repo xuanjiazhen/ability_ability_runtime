@@ -300,7 +300,7 @@ HWTEST_F(OHOSApplicationTest, AppExecFwk_OHOSApplicationTest_SetApplicationConte
 /*
  * @tc.number: AppExecFwk_OHOSApplicationTest_SetApplicationContext_0300
  * @tc.name: SetApplicationContext
- * @tc.desc: Verify function SetApplicationContext RegisterAppGetSpecifiedRuntime
+ * @tc.desc: Verify function SetApplicationContext RegisterGetMainNapiEnvCallback
  */
 HWTEST_F(OHOSApplicationTest, AppExecFwk_OHOSApplicationTest_SetApplicationContext_0300, TestSize.Level1)
 {
@@ -310,18 +310,17 @@ HWTEST_F(OHOSApplicationTest, AppExecFwk_OHOSApplicationTest_SetApplicationConte
     EXPECT_TRUE(abilityRuntimeContext != nullptr);
     ohosApplication_->SetApplicationContext(abilityRuntimeContext);
     EXPECT_TRUE(ohosApplication_->abilityRuntimeContext_ != nullptr);
-    ASSERT_NE(abilityRuntimeContext->appGetSpecifiedRuntimeCallback_, nullptr);
+    ASSERT_NE(abilityRuntimeContext->getMainNapiEnvCallback_, nullptr);
 
     ohosApplication_->runtime_ = std::make_unique<AbilityRuntime::MockRuntime>();
-    const auto &runtime = abilityRuntimeContext->appGetSpecifiedRuntimeCallback_("");
-    EXPECT_EQ(ohosApplication_->runtime_.get(), runtime.get());
+    EXPECT_EQ(abilityRuntimeContext->getMainNapiEnvCallback_(), nullptr);
     GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_SetApplicationContext_0300 end.";
 }
 
 /*
  * @tc.number: AppExecFwk_OHOSApplicationTest_SetApplicationContext_0400
  * @tc.name: SetApplicationContext
- * @tc.desc: Verify function SetApplicationContext RegisterAppGetSpecifiedRuntime null applicationSptr
+ * @tc.desc: Verify function SetApplicationContext RegisterGetMainNapiEnvCallback null applicationSptr
  */
 HWTEST_F(OHOSApplicationTest, AppExecFwk_OHOSApplicationTest_SetApplicationContext_0400, TestSize.Level1)
 {
@@ -331,11 +330,10 @@ HWTEST_F(OHOSApplicationTest, AppExecFwk_OHOSApplicationTest_SetApplicationConte
     EXPECT_TRUE(abilityRuntimeContext != nullptr);
     ohosApplication_->SetApplicationContext(abilityRuntimeContext);
     EXPECT_TRUE(ohosApplication_->abilityRuntimeContext_ != nullptr);
-    ASSERT_NE(abilityRuntimeContext->appGetSpecifiedRuntimeCallback_, nullptr);
+    ASSERT_NE(abilityRuntimeContext->getMainNapiEnvCallback_, nullptr);
 
     ohosApplication_ = nullptr;
-    const auto &runtime = abilityRuntimeContext->appGetSpecifiedRuntimeCallback_("");
-    EXPECT_EQ(runtime, nullptr);
+    EXPECT_EQ(abilityRuntimeContext->getMainNapiEnvCallback_(), nullptr);
     GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_SetApplicationContext_0400 end.";
 }
 
