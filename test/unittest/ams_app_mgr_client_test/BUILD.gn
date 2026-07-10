@@ -38,7 +38,6 @@ ohos_unittest("AmsAppMgrClientTest") {
   include_dirs = [
     "${ability_runtime_test_path}/mock/common/include",
     "${ability_runtime_test_path}/mock/services_appmgr_test/include",
-    "${ability_runtime_services_path}/appdfr/include",
   ]
 
   configs = [
@@ -52,9 +51,6 @@ ohos_unittest("AmsAppMgrClientTest") {
   deps = [
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_path}/utils/server/startup:startup_util",
-    "${ability_runtime_path}/utils/global/freeze:freeze_util",
-    "${ability_runtime_services_path}/common:app_util",
-    "${ability_runtime_services_path}/common:perm_verification",
   ]
 
   external_deps = [
@@ -66,25 +62,16 @@ ohos_unittest("AmsAppMgrClientTest") {
     "appspawn:appspawn_client",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
-    "cJSON:cjson",
     "c_utils:utils",
-    "common_event_service:cesfwk_core",
-    "common_event_service:cesfwk_innerkits",
     "ffrt:libffrt",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
-    "hitrace:libhitracechain",
-    "i18n:intl_util",
     "ipc:ipc_core",
     "json:nlohmann_json_static",
-    "kv_store:distributeddata_inner",
-    "kv_store:distributeddata_mgr",
-    "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "selinux_adapter:librestorecon",
   ]
 
   defines = [ "AMS_LOG_TAG=\"AppMgrService\"" ]
