@@ -414,6 +414,44 @@ void ConfigureDisconnectCompleteHandler(const sptr<JSAgentConnection> &connectio
 }
 
 // after the fresh host connects, register each staged non-first AgentId via Reuse.
+// Schedule (on a worker) the Reuse registration of one staged low-code AgentId on the now-connected
+// host, resolving/rejecting the staged task on the main thread. Extracted so the reconnect/drain
+// loops stay shallow (nesting <= 4).
+void ScheduleStagedLowCodeReuse(napi_env env, AAFwk::Want want, const sptr<JSAgentConnection> &conn,
+    std::unique_ptr<AbilityRuntime::NapiAsyncTask> task)
+{
+    if (conn == nullptr || task == nullptr) {
+        return;
+    }
+    std::string agentId = want.GetStringParam(AGENTID_KEY);
+    bool isAdded = conn->AddLowCodeAgentId(agentId);
+    AttachLowCodeHostProxy(want, conn);
+    std::shared_ptr<NapiAsyncTask> taskShared = std::move(task);
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    auto complete = std::make_unique<NapiAsyncTask::CompleteCallback>(
+        [taskShared, innerErrCode, conn, agentId, isAdded](napi_env env, NapiAsyncTask &task, int32_t status) {
+            if (*innerErrCode == ERR_OK) {
+                napi_value proxy = conn->GetProxyObject();
+                if (proxy != nullptr) {
+                    taskShared->ResolveWithNoError(env, proxy);
+                    return;
+                }
+                TAG_LOGE(AAFwkTag::SER_ROUTER, "staged reuse proxy null, agentId: %{public}s", agentId.c_str());
+            } else {
+                TAG_LOGE(AAFwkTag::SER_ROUTER,
+                    "ReuseLowCodeAgentExtensionAbility failed: %{public}d, agentId: %{public}s",
+                    *innerErrCode, agentId.c_str());
+            }
+            if (isAdded) {
+                conn->RemoveLowCodeAgentId(agentId);
+            }
+            napi_value error = CreateJsError(env, static_cast<int32_t>(GetJsErrorCodeByNativeError(*innerErrCode)),
+                GetAgentManagerErrorMsg(*innerErrCode, AgentManagerErrorOperation::CONNECT_AGENT_EXTENSION));
+            taskShared->Reject(env, error);
+        });
+    ScheduleLowCodeConnectCall(env, want, conn, innerErrCode, std::move(complete));
+}
+
 void ConfigureConnectCompleteHandler(const sptr<JSAgentConnection> &connection)
 {
     if (connection == nullptr) {
@@ -430,24 +468,7 @@ void ConfigureConnectCompleteHandler(const sptr<JSAgentConnection> &connection)
                 return;
             }
             for (size_t i = 0; i < wants.size() && i < tasks.size(); ++i) {
-                auto &task = tasks[i];
-                if (task == nullptr) {
-                    continue;
-                }
-                std::string agentId = wants[i].GetStringParam(AGENTID_KEY);
-                bool isAdded = conn->AddLowCodeAgentId(agentId);
-                int32_t err = AgentConnectionManager::GetInstance().ReuseLowCodeAgentExtensionAbility(
-                    wants[i], conn);
-                if (err == ERR_OK) {
-                    task->ResolveWithNoError(env, proxy);
-                } else {
-                    if (isAdded) {
-                        conn->RemoveLowCodeAgentId(agentId);
-                    }
-                    napi_value error = CreateJsError(env, static_cast<int32_t>(GetJsErrorCodeByNativeError(err)),
-                        GetAgentManagerErrorMsg(err, AgentManagerErrorOperation::CONNECT_AGENT_EXTENSION));
-                    task->Reject(env, error);
-                }
+                ScheduleStagedLowCodeReuse(env, std::move(wants[i]), conn, std::move(tasks[i]));
             }
         });
 }
@@ -541,21 +562,11 @@ void DrainReconnectPendingTasksToExistingConnection(napi_env env, const sptr<JSA
             continue;
         }
         std::string agentId = wants[i].GetStringParam(AGENTID_KEY);
-        if (!connection->HasLowCodeAgentId(agentId)) {
-            bool isAdded = connection->AddLowCodeAgentId(agentId);
-            int32_t err = AgentConnectionManager::GetInstance().ReuseLowCodeAgentExtensionAbility(
-                wants[i], connection);
-            if (err != ERR_OK) {
-                if (isAdded) {
-                    connection->RemoveLowCodeAgentId(agentId);
-                }
-                napi_value error = CreateJsError(env, static_cast<int32_t>(GetJsErrorCodeByNativeError(err)),
-                    GetAgentManagerErrorMsg(err, AgentManagerErrorOperation::CONNECT_AGENT_EXTENSION));
-                task->Reject(env, error);
-                continue;
-            }
+        if (connection->HasLowCodeAgentId(agentId)) {
+            task->ResolveWithNoError(env, proxy);
+            continue;
         }
-        task->ResolveWithNoError(env, proxy);
+        ScheduleStagedLowCodeReuse(env, std::move(wants[i]), connection, std::move(task));
     }
 }
 

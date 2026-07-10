@@ -223,6 +223,8 @@ void CompleteLowCodeAgent(const std::string &agentId)
             continue;
         }
         if (obj.second->RemoveLowCodeAgentId(agentId)) {
+            TAG_LOGI(AAFwkTag::SER_ROUTER, "last low-code AgentId removed -> disconnecting: %{public}s",
+                agentId.c_str());
             obj.second->SetDisconnecting(true);
         }
     }
@@ -282,6 +284,7 @@ void JSAgentConnection::HandleOnAbilityConnectDone(const AppExecFwk::ElementName
             napiAsyncTask_->Reject(env_, error);
         }
         RejectDuplicatedPendingTask(env_, error);
+        RejectPendingLowCodeReuseTasks(env_, error);
         napiAsyncTask_ = nullptr;
         AgentConnectionUtils::RemoveAgentConnection(connectionId_);
         return;
@@ -304,6 +307,7 @@ void JSAgentConnection::HandleOnAbilityConnectDone(const AppExecFwk::ElementName
             napiAsyncTask_->Reject(env_, error);
         }
         RejectDuplicatedPendingTask(env_, error);
+        RejectPendingLowCodeReuseTasks(env_, error);
         napiAsyncTask_ = nullptr;
         AgentConnectionUtils::RemoveAgentConnection(connectionId_);
         return;
@@ -472,6 +476,7 @@ void JSAgentConnection::RejectPendingLowCodeReuseTasks(napi_env env, napi_value 
     if (!TakePendingLowCodeReuseTasks(wants, tasks)) {
         return;
     }
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "RejectPendingLowCodeReuseTasks, count: %{public}zu", tasks.size());
     for (auto &task : tasks) {
         if (task != nullptr) {
             task->Reject(env, error);

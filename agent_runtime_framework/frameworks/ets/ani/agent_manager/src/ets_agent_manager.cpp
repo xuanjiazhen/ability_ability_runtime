@@ -59,6 +59,7 @@ std::map<int64_t, sptr<EtsAgentServiceConnection>> g_serviceConnections;
 int64_t g_serviceConnectionSerialNumber = 0;
 
 void ReconnectPendingAgentExtensionAbility(const sptr<EtsAgentConnection> &oldConnection);
+bool AttachLowCodeHostProxy(AAFwk::Want &want, const sptr<EtsAgentConnection> &connection);
 
 void ConfigureDisconnectCompleteHandler(const sptr<EtsAgentConnection> &connection)
 {
@@ -91,6 +92,7 @@ void ConfigureConnectCompleteHandler(const sptr<EtsAgentConnection> &connection)
                 }
                 std::string agentId = wants[i].GetStringParam(AGENTID_KEY);
                 bool isAdded = conn->AddLowCodeAgentId(agentId);
+                AttachLowCodeHostProxy(wants[i], conn);
                 int32_t err = AgentConnectionManager::GetInstance().ReuseLowCodeAgentExtensionAbility(
                     wants[i], conn);
                 if (err == ERR_OK) {
@@ -100,6 +102,9 @@ void ConfigureConnectCompleteHandler(const sptr<EtsAgentConnection> &connection)
                             static_cast<AbilityErrorCode>(AbilityErrorCode::ERROR_OK)),
                         proxy);
                 } else {
+                    TAG_LOGE(AAFwkTag::SER_ROUTER,
+                        "ReuseLowCodeAgentExtensionAbility failed: %{public}d, agentId: %{public}s",
+                        err, agentId.c_str());
                     if (isAdded) {
                         conn->RemoveLowCodeAgentId(agentId);
                     }
@@ -213,9 +218,13 @@ void DrainReconnectPendingCallbacksToExistingConnection(
         std::string agentId = wants[i].GetStringParam(AGENTID_KEY);
         if (!connection->HasLowCodeAgentId(agentId)) {
             bool isAdded = connection->AddLowCodeAgentId(agentId);
+            AttachLowCodeHostProxy(wants[i], connection);
             int32_t err = AgentConnectionManager::GetInstance().ReuseLowCodeAgentExtensionAbility(
                 wants[i], connection);
             if (err != ERR_OK) {
+                TAG_LOGE(AAFwkTag::SER_ROUTER,
+                    "ReuseLowCodeAgentExtensionAbility failed: %{public}d, agentId: %{public}s",
+                    err, agentId.c_str());
                 if (isAdded) {
                     connection->RemoveLowCodeAgentId(agentId);
                 }

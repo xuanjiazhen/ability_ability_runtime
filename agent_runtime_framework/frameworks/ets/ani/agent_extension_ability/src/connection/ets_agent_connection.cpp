@@ -242,6 +242,8 @@ void CompleteLowCodeAgent(const std::string &agentId)
             continue;
         }
         if (obj.second->RemoveLowCodeAgentId(agentId)) {
+            TAG_LOGI(AAFwkTag::SER_ROUTER, "last low-code AgentId removed -> disconnecting: %{public}s",
+                agentId.c_str());
             obj.second->SetDisconnecting(true);
         }
     }
@@ -301,6 +303,7 @@ EtsAgentConnection::~EtsAgentConnection()
     ani_ref etsConnectionObject = nullptr;
     std::vector<ani_ref> duplicatedPendingCallbacks;
     std::vector<ani_ref> reconnectPendingCallbacks;
+    std::vector<ani_ref> pendingLowCodeReuseCallbacks;
     {
         std::lock_guard<std::mutex> lock(stateLock_);
         serviceProxyObject = serviceProxyObject_;
@@ -313,7 +316,10 @@ EtsAgentConnection::~EtsAgentConnection()
         etsConnectionObject_ = nullptr;
         duplicatedPendingCallbacks = std::move(duplicatedPendingCallbacks_);
         reconnectPendingCallbacks = std::move(reconnectPendingCallbacks_);
+        pendingLowCodeReuseCallbacks = std::move(pendingLowCodeReuseCallbacks_);
+        pendingLowCodeReuseWants_.clear();
         disconnectCompleteHandler_ = nullptr;
+        connectCompleteHandler_ = nullptr;
     }
     ReleaseObjectReference(serviceProxyObject);
     ReleaseObjectReference(aniAsyncCallback);
@@ -323,6 +329,9 @@ EtsAgentConnection::~EtsAgentConnection()
         ReleaseObjectReference(callback);
     }
     for (auto &callback : reconnectPendingCallbacks) {
+        ReleaseObjectReference(callback);
+    }
+    for (auto &callback : pendingLowCodeReuseCallbacks) {
         ReleaseObjectReference(callback);
     }
 }
@@ -369,6 +378,8 @@ void EtsAgentConnection::HandleOnAbilityConnectDone(
         }
         RejectDuplicatedPendingCallbacks(
             env, resultCode, AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED);
+        RejectPendingLowCodeReuseItems(
+            env, resultCode, AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED);
         if (hasPrimaryCallback) {
             ReleaseObjectReference(env, primaryCallback);
         }
@@ -397,6 +408,8 @@ void EtsAgentConnection::HandleOnAbilityConnectDone(
                 nullptr);
         }
         RejectDuplicatedPendingCallbacks(
+            env, errorCode, AbilityRuntime::AbilityInnerErrorMsg::OPERATION_FAILED);
+        RejectPendingLowCodeReuseItems(
             env, errorCode, AbilityRuntime::AbilityInnerErrorMsg::OPERATION_FAILED);
         if (hasPrimaryCallback) {
             ReleaseObjectReference(env, primaryCallback);
@@ -765,6 +778,7 @@ void EtsAgentConnection::RejectPendingLowCodeReuseItems(
     if (!TakePendingLowCodeReuseItems(wants, callbacks)) {
         return;
     }
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "RejectPendingLowCodeReuseItems, count: %{public}zu", callbacks.size());
     for (auto &callback : callbacks) {
         if (callback == nullptr) {
             continue;
