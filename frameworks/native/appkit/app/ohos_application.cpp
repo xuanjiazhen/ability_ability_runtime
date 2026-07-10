@@ -229,21 +229,6 @@ void OHOSApplication::SetApplicationContext(
         return applicationSptr->GetDisplayConfig(displayId, density, directionStr);
     });
 #endif
-    abilityRuntimeContext_->RegisterGetMainNapiEnvCallback(
-        [applicationWptr]() -> napi_env {
-            std::shared_ptr<OHOSApplication> applicationSptr = applicationWptr.lock();
-            if (applicationSptr == nullptr) {
-                TAG_LOGE(AAFwkTag::APPKIT, "null applicationSptr");
-                return nullptr;
-            }
-            const std::unique_ptr<AbilityRuntime::Runtime> &runtime =
-                applicationSptr->GetSpecifiedRuntime(AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0);
-            if (runtime == nullptr || runtime->GetLanguage() != AbilityRuntime::Runtime::Language::JS) {
-                TAG_LOGD(AAFwkTag::APPKIT, "not js runtime");
-                return nullptr;
-            }
-            return static_cast<AbilityRuntime::JsRuntime &>(*runtime).GetNapiEnv();
-        });
 #ifdef SUPPORT_SCREEN
     RegisterGetAllUIAbilitiesCallback(abilityRuntimeContext_, applicationWptr);
 #endif

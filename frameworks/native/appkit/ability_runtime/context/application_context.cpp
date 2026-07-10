@@ -1469,11 +1469,6 @@ void ApplicationContext::RegisterProcessSecurityExit(AppProcessExitCallback appP
     appProcessExitCallback_ = appProcessExitCallback;
 }
 
-void ApplicationContext::RegisterGetMainNapiEnvCallback(AppGetMainNapiEnvCallback getMainNapiEnvCallback)
-{
-    getMainNapiEnvCallback_ = getMainNapiEnvCallback;
-}
-
 #ifdef SUPPORT_GRAPHICS
 void ApplicationContext::RegisterGetDisplayConfig(GetDisplayConfigCallback getDisplayConfigCallback)
 {
@@ -1551,15 +1546,6 @@ void ApplicationContext::ProcessSecurityExit(const AAFwk::ExitReason &exitReason
 
     TAG_LOGI(AAFwkTag::APPKIT, "Proc exit, reason: %{public}s", exitReason.exitMsg.c_str());
     appProcessExitCallback_(exitReason);
-}
-
-napi_env ApplicationContext::GetMainNapiEnv() const
-{
-    if (getMainNapiEnvCallback_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null callback");
-        return nullptr;
-    }
-    return getMainNapiEnvCallback_();
 }
 
 int32_t ApplicationContext::GetImageProcessType() const

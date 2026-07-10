@@ -1651,23 +1651,6 @@ HWTEST_F(ApplicationContextTest, RegisterProcessSecurityExit_0100, TestSize.Leve
 }
 
 /**
- * @tc.number:RegisterGetMainNapiEnvCallback_0100
- * @tc.name: RegisterGetMainNapiEnvCallback
- * @tc.desc: RegisterGetMainNapiEnvCallback
- */
-HWTEST_F(ApplicationContextTest, RegisterGetMainNapiEnvCallback_0100, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RegisterGetMainNapiEnvCallback_0100 start";
-    AppGetMainNapiEnvCallback getMainNapiEnvCallback = []() -> napi_env {
-        return nullptr;
-    };
-    context_->getMainNapiEnvCallback_ = nullptr;
-    context_->RegisterGetMainNapiEnvCallback(getMainNapiEnvCallback);
-    EXPECT_TRUE(context_->getMainNapiEnvCallback_ != nullptr);
-    GTEST_LOG_(INFO) << "RegisterGetMainNapiEnvCallback_0100 end";
-}
-
-/**
  * @tc.number:SetCurrentInstanceKey_0100
  * @tc.name: SetCurrentInstanceKey
  * @tc.desc: SetCurrentInstanceKey fail with no permission
@@ -1709,69 +1692,6 @@ HWTEST_F(ApplicationContextTest, ProcessSecurityExit_0100, TestSize.Level1)
     context_->ProcessSecurityExit(exitReason);
     EXPECT_TRUE(context_->appProcessExitCallback_ == nullptr);
     GTEST_LOG_(INFO) << "ProcessSecurityExit_0100 end";
-}
-
-/**
- * @tc.number:GetMainNapiEnv_0100
- * @tc.name: GetMainNapiEnv
- * @tc.desc: GetMainNapiEnv fail with null callback
- */
-HWTEST_F(ApplicationContextTest, GetMainNapiEnv_0100, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "GetMainNapiEnv_0100 start";
-    context_->getMainNapiEnvCallback_ = nullptr;
-    EXPECT_EQ(context_->GetMainNapiEnv(), nullptr);
-    GTEST_LOG_(INFO) << "GetMainNapiEnv_0100 end";
-}
-
-/**
- * @tc.number:GetMainNapiEnv_0200
- * @tc.name: GetMainNapiEnv
- * @tc.desc: GetMainNapiEnv fail with null env
- */
-HWTEST_F(ApplicationContextTest, GetMainNapiEnv_0200, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "GetMainNapiEnv_0200 start";
-    AppGetMainNapiEnvCallback getMainNapiEnvCallback = []() -> napi_env {
-        return nullptr;
-    };
-    context_->RegisterGetMainNapiEnvCallback(getMainNapiEnvCallback);
-    EXPECT_EQ(context_->GetMainNapiEnv(), nullptr);
-    GTEST_LOG_(INFO) << "GetMainNapiEnv_0200 end";
-}
-
-/**
- * @tc.number:GetMainNapiEnv_0300
- * @tc.name: GetMainNapiEnv
- * @tc.desc: GetMainNapiEnv returns env from callback
- */
-HWTEST_F(ApplicationContextTest, GetMainNapiEnv_0300, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "GetMainNapiEnv_0300 start";
-    napi_env env = reinterpret_cast<napi_env>(0x1234);
-    AppGetMainNapiEnvCallback getMainNapiEnvCallback = [&env]() -> napi_env {
-        return env;
-    };
-    context_->RegisterGetMainNapiEnvCallback(getMainNapiEnvCallback);
-    EXPECT_EQ(context_->GetMainNapiEnv(), env);
-    GTEST_LOG_(INFO) << "GetMainNapiEnv_0300 end";
-}
-
-/**
- * @tc.number:GetMainNapiEnv_0400
- * @tc.name: GetMainNapiEnv
- * @tc.desc: GetMainNapiEnv returns env from callback
- */
-HWTEST_F(ApplicationContextTest, GetMainNapiEnv_0400, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "GetMainNapiEnv_0400 start";
-    napi_env env = reinterpret_cast<napi_env>(0x5678);
-    AppGetMainNapiEnvCallback getMainNapiEnvCallback = [&env]() -> napi_env {
-        return env;
-    };
-    context_->RegisterGetMainNapiEnvCallback(getMainNapiEnvCallback);
-    EXPECT_EQ(context_->GetMainNapiEnv(), env);
-    GTEST_LOG_(INFO) << "GetMainNapiEnv_0400 end";
 }
 
 /**
