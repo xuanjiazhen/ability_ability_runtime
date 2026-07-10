@@ -15321,7 +15321,7 @@ int32_t AbilityManagerService::NotifySkillFunctionInvoked(const sptr<IRemoteObje
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not self called");
         return CHECK_PERMISSION_FAILED;
     }
-    DelayedSingleton<SkillExecuteManager>::GetInstance()->OnLaunchCompleted(requestCode);
+    DelayedSingleton<SkillExecuteManager>::GetInstance()->OnLaunchCompleted(requestCode, abilityRecord->GetPid());
     return ERR_OK;
 }
 

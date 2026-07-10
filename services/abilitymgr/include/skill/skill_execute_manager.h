@@ -59,9 +59,9 @@ public:
 
     void OnTimeout(int64_t requestCodeSeq);
 
-    void OnLaunchCompleted(const std::string &requestCode);
+    void OnLaunchCompleted(const std::string &requestCode, pid_t pid);
     void OnLaunchFailed(const std::string &requestCode, int32_t errCode);
-    void OnTargetProcessDied(const std::string &bundleName);
+    void OnTargetProcessDied(const std::string &bundleName, int32_t pid);
 
 private:
     class CallerDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -81,7 +81,7 @@ private:
 
     class SkillAppStateObserver : public AppExecFwk::ApplicationStateObserverStub {
     public:
-        using ProcessDiedHandler = std::function<void(const std::string &)>;
+        using ProcessDiedHandler = std::function<void(const std::string &, int32_t)>;
         explicit SkillAppStateObserver(ProcessDiedHandler handler) : handler_(std::move(handler)) {}
         ~SkillAppStateObserver() = default;
         void OnForegroundApplicationChanged(const AppExecFwk::AppStateData &) override {}
@@ -93,7 +93,7 @@ private:
         void OnProcessDied(const AppExecFwk::ProcessData &processData) override
         {
             if (handler_ != nullptr) {
-                handler_(processData.bundleName);
+                handler_(processData.bundleName, processData.pid);
             }
         }
     private:
