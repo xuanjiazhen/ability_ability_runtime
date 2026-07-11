@@ -51,6 +51,8 @@ using ::testing::DoAll;
 
 namespace {
     const int32_t SLEEP_TIME = 10000;
+    // same as AbilityManagerService::CONNECT_TIMEOUT_MSG
+    constexpr uint32_t CONNECT_TIMEOUT_MSG = 10;
 }
 
 namespace OHOS {
@@ -2036,15 +2038,120 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_LoadAbility_002, TestSize.Le
  * SubFunction: PostTimeOutTask
  * FunctionPoints: NA
  * EnvConditions: NA
- * CaseDescription: Verify AbilityConnectManager PostTimeOutTask
+ * CaseDescription: Verify PostTimeOutTask with nullptr abilityRecord, should return early.
  */
 HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_PostTimeOutTask_001, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_001 start");
     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
     ASSERT_NE(connectManager, nullptr);
+    connectManager->SetTaskHandler(TaskHandler());
+    connectManager->PostTimeOutTask(nullptr, CONNECT_TIMEOUT_MSG);
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_001 end");
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: PostTimeOutTask
+ * SubFunction: PostTimeOutTask
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify PostTimeOutTask when taskHandler_ is nullptr, should return early.
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_PostTimeOutTask_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_002 start");
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    ASSERT_NE(connectManager, nullptr);
+    // taskHandler_ is nullptr by default
     std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
-    uint32_t messageId = 2;
-    connectManager->PostTimeOutTask(abilityRecord, messageId);
+    connectManager->PostTimeOutTask(abilityRecord, CONNECT_TIMEOUT_MSG);
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_002 end");
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: PostTimeOutTask
+ * SubFunction: PostTimeOutTask
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify PostTimeOutTask when abilityRecord is debug app, should skip timeout task.
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_PostTimeOutTask_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_003 start");
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    ASSERT_NE(connectManager, nullptr);
+    connectManager->SetTaskHandler(TaskHandler());
+    std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
+    abilityRecord->SetDebugApp(true);
+    EXPECT_TRUE(abilityRecord->IsDebug());
+    connectManager->PostTimeOutTask(abilityRecord, CONNECT_TIMEOUT_MSG);
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_003 end");
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: PostTimeOutTask
+ * SubFunction: PostTimeOutTask
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify PostTimeOutTask when abilityRecord is attach debug, should skip timeout task.
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_PostTimeOutTask_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_004 start");
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    ASSERT_NE(connectManager, nullptr);
+    connectManager->SetTaskHandler(TaskHandler());
+    std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
+    abilityRecord->SetAttachDebug(true);
+    EXPECT_TRUE(abilityRecord->IsDebug());
+    connectManager->PostTimeOutTask(abilityRecord, CONNECT_TIMEOUT_MSG);
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_004 end");
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: PostTimeOutTask
+ * SubFunction: PostTimeOutTask
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify PostTimeOutTask with CONNECT_TIMEOUT_MSG when not debug, should process normally.
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_PostTimeOutTask_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_005 start");
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    ASSERT_NE(connectManager, nullptr);
+    connectManager->SetTaskHandler(TaskHandler());
+    std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
+    EXPECT_FALSE(abilityRecord->IsDebug());
+    int connectRecordId = 0;
+    // call overload with explicit connectRecordId to avoid needing a connecting record
+    connectManager->PostTimeOutTask(abilityRecord, connectRecordId, CONNECT_TIMEOUT_MSG);
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_005 end");
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: PostTimeOutTask
+ * SubFunction: PostTimeOutTask
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify PostTimeOutTask with invalid messageId when not debug, should return early.
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_PostTimeOutTask_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_006 start");
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    ASSERT_NE(connectManager, nullptr);
+    connectManager->SetTaskHandler(TaskHandler());
+    std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
+    EXPECT_FALSE(abilityRecord->IsDebug());
+    uint32_t invalidMsgId = 2; // not CONNECT_TIMEOUT_MSG
+    connectManager->PostTimeOutTask(abilityRecord, invalidMsgId);
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_006 end");
 }
 
 /*
