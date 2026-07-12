@@ -91,15 +91,8 @@ void CliToolManagerService::HandleProcessTimeout(const std::string &sessionId)
     // Set end time for timeout reporting
     record->SetTerminalResult(0, 0);
 
-    // Report timeout event
     int64_t durationMs = record->GetEndTimeMs() - record->startTime;
-    std::string bundleName;
-    auto tokenId = static_cast<AccessToken::AccessTokenID>(IPCSkeleton::GetCallingTokenID());
-    AppExecFwk::BundleInfo bundleInfo;
-    if (ToolUtil::GetBundleInfoByTokenId(tokenId, bundleInfo)) {
-        bundleName = bundleInfo.name;
-    }
-    ReportCliTimeout(bundleName, record->toolName, std::to_string(durationMs));
+    ReportCliTimeout(record->callerBundleName, record->toolName, std::to_string(durationMs));
 
     auto oldBackground = record->SetBackground(true);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "HandleProcessTimeout: sessionId=%{public}s, background=%{public}d",
@@ -203,6 +196,19 @@ void CliToolManagerService::Init()
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART;
     sigaction(SIGCHLD, &sa, nullptr);
+
+    struct sigaction saExit = {};
+    saExit.sa_handler = CliToolManagerService::ExitSignalHandler;
+    sigemptyset(&saExit.sa_mask);
+    saExit.sa_flags = SA_RESTART;
+    sigaction(SIGTERM, &saExit, nullptr);
+    sigaction(SIGHUP, &saExit, nullptr);
+    sigaction(SIGINT, &saExit, nullptr);
+    sigaction(SIGQUIT, &saExit, nullptr);
+    sigaction(SIGABRT, &saExit, nullptr);
+    sigaction(SIGBUS, &saExit, nullptr);
+    sigaction(SIGFPE, &saExit, nullptr);
+    sigaction(SIGSEGV, &saExit, nullptr);
 
     ioMonitor_ = IOMonitor::Create();
     if (ioMonitor_ != nullptr) {
@@ -932,6 +938,8 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
     auto record = std::make_shared<SessionRecord>();
     record->callerPid = callerPid;
     record->callerUid = callerUid;
+    // Capture caller bundle name in the IPC context for later non-IPC paths.
+    record->callerBundleName = bundleName;
     record->sessionId = ToolUtil::GenerateCliSessionId("shell", record);
     record->toolName = "shell";
     record->timeoutMs = param.options.timeout * COEFFICIENT;
@@ -1003,14 +1011,6 @@ void CliToolManagerService::WaitPid(pid_t pid, int32_t status, int32_t sig)
     TAG_LOGI(AAFwkTag::CLI_TOOL, "WaitPid delete tool pid:%{public}d", pid);
 
     if (record) {
-        // Get bundle name for event reporting
-        std::string bundleName;
-        auto tokenId = static_cast<AccessToken::AccessTokenID>(IPCSkeleton::GetCallingTokenID());
-        AppExecFwk::BundleInfo bundleInfo;
-        if (ToolUtil::GetBundleInfoByTokenId(tokenId, bundleInfo)) {
-            bundleName = bundleInfo.name;
-        }
-
         TAG_LOGI(AAFwkTag::CLI_TOOL, "WaitPid: found record for pid=%{public}d, toolName=%{public}s",
             pid, record->toolName.c_str());
 
@@ -1043,6 +1043,30 @@ void CliToolManagerService::sigchld_handler(int32_t sig)
             ProcessManager::GetInstance().Killpg(pid);
         }
     }
+}
+
+void CliToolManagerService::ExitSignalHandler(int32_t sig)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL,
+        "CliToolManagerService killed by signal=%{public}d", sig);
+
+    if (sig != 0 && sig != SIGTERM && sig != SIGHUP && sig != SIGCHLD) {
+        auto instance = CliToolManagerService::GetInstance();
+        if (instance != nullptr) {
+            std::lock_guard<ffrt::mutex> guard(instance->sessionsMutex_);
+            for (const auto &entry : instance->sessionRecords_) {
+                const auto &record = entry.second;
+                if (record == nullptr || record->toolName.empty()) {
+                    continue;
+                }
+                ReportCliSignal(record->toolName, std::to_string(sig));
+            }
+        }
+    }
+
+    // Restore default disposition and re-raise so the process actually terminates.
+    signal(sig, SIG_DFL);
+    raise(sig);
 }
 
 void CliToolManagerService::OnProcessDied(const std::string &bundleName, pid_t diedPid)
@@ -1134,6 +1158,11 @@ std::shared_ptr<SessionRecord> CliToolManagerService::CreateSessionRecord(const 
     auto record = std::make_shared<SessionRecord>();
     record->callerPid = IPCSkeleton::GetCallingPid();
     record->callerUid = IPCSkeleton::GetCallingUid();
+    auto tokenId = static_cast<AccessToken::AccessTokenID>(IPCSkeleton::GetCallingTokenID());
+    AppExecFwk::BundleInfo bundleInfo;
+    if (ToolUtil::GetBundleInfoByTokenId(tokenId, bundleInfo)) {
+        record->callerBundleName = bundleInfo.name;
+    }
     record->sessionId = ToolUtil::GenerateCliSessionId(param.toolName, record);
     record->toolName = param.toolName;
     record->timeoutMs = param.options.timeout * COEFFICIENT;
