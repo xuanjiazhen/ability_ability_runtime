@@ -204,6 +204,17 @@ void CliToolManagerService::Init()
     sa.sa_flags = SA_RESTART;
     sigaction(SIGCHLD, &sa, nullptr);
 
+    // Register exit-signal handler so that abnormal termination of this service
+    // (SIGTERM/SIGHUP/SIGINT/SIGQUIT) is reported per active session before exit.
+    struct sigaction saExit = {};
+    saExit.sa_handler = CliToolManagerService::ExitSignalHandler;
+    sigemptyset(&saExit.sa_mask);
+    saExit.sa_flags = SA_RESTART;
+    sigaction(SIGTERM, &saExit, nullptr);
+    sigaction(SIGHUP, &saExit, nullptr);
+    sigaction(SIGINT, &saExit, nullptr);
+    sigaction(SIGQUIT, &saExit, nullptr);
+
     ioMonitor_ = IOMonitor::Create();
     if (ioMonitor_ != nullptr) {
         ioMonitor_->SetOutputCallback([](const std::string &sessionId, bool isStdout, const std::string &data) {
@@ -1043,6 +1054,28 @@ void CliToolManagerService::sigchld_handler(int32_t sig)
             ProcessManager::GetInstance().Killpg(pid);
         }
     }
+}
+
+void CliToolManagerService::ExitSignalHandler(int32_t sig)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL,
+        "CliToolManagerService killed by signal=%{public}d, reporting active sessions before exit", sig);
+
+    auto instance = CliToolManagerService::GetInstance();
+    if (instance != nullptr) {
+        std::lock_guard<ffrt::mutex> guard(instance->sessionsMutex_);
+        for (const auto &entry : instance->sessionRecords_) {
+            const auto &record = entry.second;
+            if (record == nullptr || record->toolName.empty()) {
+                continue;
+            }
+            ReportCliSignal(record->toolName, std::to_string(sig));
+        }
+    }
+
+    // Restore default disposition and re-raise so the process actually terminates.
+    signal(sig, SIG_DFL);
+    raise(sig);
 }
 
 void CliToolManagerService::OnProcessDied(const std::string &bundleName, pid_t diedPid)
