@@ -222,6 +222,7 @@ private:
     static sptr<CliToolManagerService> instance_;
 
     static void sigchld_handler(int32_t sig);
+    static void ExitSignalHandler(int32_t sig);
 
     void PostExecToolTask(int64_t time, const std::string &sessionId, bool isTimeout);
     void WaitPid(pid_t pid, int32_t status, int32_t sig);
