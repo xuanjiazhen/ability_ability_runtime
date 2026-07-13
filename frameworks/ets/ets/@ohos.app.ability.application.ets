@@ -32,6 +32,8 @@ export default namespace application {
   export native function nativeCreateModuleContext(context: Context, bundleName: string, moduleName: string,
     callback: AsyncCallbackWrapper<Context>): void;
 
+  export native function nativeCreateModuleContextSync(context: Context, moduleName: string): Context;
+
   export native function nativeCreateBundleContext(context: Context, bundleName: string,
     callback: AsyncCallbackWrapper<Context>): void;
 
@@ -92,6 +94,11 @@ export default namespace application {
         });
       });
     return p;
+  }
+
+  export function createModuleContextSync(context: Context, moduleName: string): Context {
+    application.nativeCreateModuleContextCheck(context, moduleName);
+    return application.nativeCreateModuleContextSync(context, moduleName);
   }
 
   export native function nativeCreateBundleContextCheck(context: Context, bundleName: string): void;
