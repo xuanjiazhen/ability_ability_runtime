@@ -58,6 +58,22 @@ ExtractInsightIntentGenericInfo MakeFgUiAbilityCandidate(const std::string &bund
     entry.executeMode = {AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND};
     return info;
 }
+
+ExtractInsightIntentGenericInfo MakeMultiModeEntryCandidate(const std::string &bundle,
+    const std::string &module, const std::string &intent, const std::string &ability,
+    const std::vector<AppExecFwk::ExecuteMode> &modes)
+{
+    ExtractInsightIntentGenericInfo info;
+    info.bundleName = bundle;
+    info.moduleName = module;
+    info.intentName = intent;
+    info.decoratorType = INSIGHT_INTENTS_DECORATOR_TYPE_ENTRY;
+    info.set<InsightIntentEntryInfo>();
+    auto &entry = info.get<InsightIntentEntryInfo>();
+    entry.abilityName = ability;
+    entry.executeMode = modes;
+    return info;
+}
 } // namespace
 
 class InsightIntentParamParserTest : public Test {};
@@ -116,6 +132,37 @@ HWTEST_F(InsightIntentParamParserTest, Build_SingleBgUiAbilityCandidate_ReturnsP
     ASSERT_NE(out.param, nullptr);
     EXPECT_EQ(out.param->moduleName_, expectedModule);
     EXPECT_EQ(out.param->abilityName_, expectedAbility);
+    EXPECT_EQ(out.param->executeMode_, AppExecFwk::ExecuteMode::UI_ABILITY_BACKGROUND);
     EXPECT_FALSE(out.ignoreAbilityName);
     EXPECT_FALSE(out.openLinkExecuteFlag);
+}
+
+HWTEST_F(InsightIntentParamParserTest, Build_MultiModeEntryWithBg_PrefersBg, TestSize.Level1)
+{
+    std::vector<ExtractInsightIntentGenericInfo> candidates = {
+        MakeMultiModeEntryCandidate("bundle", "entry", "intent", "MainAbility",
+            {AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND, AppExecFwk::ExecuteMode::UI_ABILITY_BACKGROUND}),
+    };
+    InsightIntentParamParser parser;
+    WantParams wantParam;
+    InsightIntentParamParser::ParseResult out;
+    auto ret = parser.Build("bundle", "intent", wantParam, candidates, 0, out);
+    EXPECT_EQ(ret, 0);
+    ASSERT_NE(out.param, nullptr);
+    EXPECT_EQ(out.param->executeMode_, AppExecFwk::ExecuteMode::UI_ABILITY_BACKGROUND);
+}
+
+HWTEST_F(InsightIntentParamParserTest, Build_MultiModeEntryWithoutBg_FallsBackToFront, TestSize.Level1)
+{
+    std::vector<ExtractInsightIntentGenericInfo> candidates = {
+        MakeMultiModeEntryCandidate("bundle", "entry", "intent", "MainAbility",
+            {AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND, AppExecFwk::ExecuteMode::SERVICE_EXTENSION_ABILITY}),
+    };
+    InsightIntentParamParser parser;
+    WantParams wantParam;
+    InsightIntentParamParser::ParseResult out;
+    auto ret = parser.Build("bundle", "intent", wantParam, candidates, 0, out);
+    EXPECT_EQ(ret, 0);
+    ASSERT_NE(out.param, nullptr);
+    EXPECT_EQ(out.param->executeMode_, AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND);
 }
