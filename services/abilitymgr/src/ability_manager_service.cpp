@@ -15338,6 +15338,9 @@ int32_t AbilityManagerService::StartAbilityByCallWithSkill(const Want &want,
     } else {
         result = StartAbilityByCall(want, connect, callerToken, oriValidUserId);
     }
+    ResSchedUtil::GetInstance().ReportAbilityIntentExemptionInfoToRSS(abilityRequest.uid, 0);
+    DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->SetIntentExemptionInfo(
+        abilityRequest.uid);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "StartAbilityByCallWithSkill result:%{public}d", result);
     return result;
 }
