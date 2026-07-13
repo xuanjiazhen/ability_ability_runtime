@@ -199,8 +199,6 @@ private:
     int32_t GetOrCreateExtensionRecordInner(const AAFwk::AbilityRequest &abilityRequest,
         const std::string &hostBundleName, std::shared_ptr<ExtensionRecord> &extensionRecord, bool &isLoaded);
 
-    bool IsMigrationUpdateRequest(const sptr<AAFwk::SessionInfo> &sessionInfo) const;
-
     std::shared_ptr<AAFwk::BaseExtensionRecord> GetAbilityRecordByPersistentId(int32_t persistentId);
 
     int32_t GetExtensionRecord(const int32_t extensionRecordId, const std::string &hostBundleName,

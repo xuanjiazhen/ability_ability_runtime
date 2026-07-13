@@ -138,13 +138,13 @@ persistentId 迁移时不变，AMS 侧始终按 persistentId 匹配 record，天
 
 ### P0 — 核心路径
 
-#### AC1: originalCallerInfo 非默认值标识迁移更新请求
-**WHEN** `StartUIExtensionAbility` 收到的 sessionInfo 中 `originalCallerInfo.callerToken` 不为空且 `originalCallerInfo.persistentId` 不为 0
-**THEN** `GetOrCreateExtensionRecord` 进入迁移更新分支，调用 `IsMigrationUpdateRequest` 返回 true，调用 `GetAbilityRecordByOriginalCallerInfo` 进行匹配
+#### AC1: AMS 自主检测迁移更新请求（2026-07-09 ADR-12 修订）
+**WHEN** `StartUIExtensionAbility` 收到的 sessionInfo 中 `uiExtensionComponentId` 在 `extensionRecords_` 中无匹配（caller 变化导致 componentId 变），但 `persistentId` 匹配到已存在的 record
+**THEN** `GetOrCreateExtensionRecord` 按"uiExtensionComponentId-first → persistentId-fallback"顺序命中迁移分支（**无需窗口侧塞 originalCallerInfo 做门禁**，`IsMigrationUpdateRequest` 已移除）
 
 #### AC2: 按 persistentId 定位原 extension record
 **WHEN** 迁移更新分支执行 `GetAbilityRecordByPersistentId`
-**THEN** 函数遍历 `extensionRecords_`，按 `sessionInfo.persistentId`（迁移时不变）匹配到迁移前的原 record 并返回（而非创建新 record）；`originalCallerInfo.callerToken` 仅作为迁移标识，不参与匹配
+**THEN** 函数遍历 `extensionRecords_`，按 `sessionInfo.persistentId`（迁移时不变）匹配到迁移前的原 record 并返回（而非创建新 record）；**originalCallerInfo 由 AMS 在此分支自主赋值**（callerToken 取自 record 旧 sessionInfo、persistentId、稳定 X），不再依赖窗口侧
 
 #### AC3: 原 record 的 sessionInfo 中 callerToken 被更新（persistentId 不变）
 **WHEN** 通过 persistentId 成功定位到原 record，`GetOrCreateExtensionRecord` 返回后
@@ -172,13 +172,13 @@ persistentId 迁移时不变，AMS 侧始终按 persistentId 匹配 record，天
 
 ### P1 — 边界路径
 
-#### AC8: 无 originalCallerInfo 时走原有逻辑
-**WHEN** sessionInfo 中 `originalCallerInfo` 为默认值（callerToken 为空、persistentId 为 0）或字段不存在
-**THEN** `GetOrCreateExtensionRecord` 跳过迁移更新分支，走原有逻辑（按 `uiExtensionComponentId` 匹配 → preload → create-new），行为与本次变更前完全一致
+#### AC8: 非迁移场景走原有逻辑（2026-07-09 ADR-12 修订）
+**WHEN** sessionInfo 的 `uiExtensionComponentId` 在 `extensionRecords_` 命中（同 caller 再前台），或 `uiExtensionComponentId` miss 且 `persistentId` 也 miss（首次创建 / removeChild+add 旧 record 已 destroy）
+**THEN** `GetOrCreateExtensionRecord` 不进入迁移分支，走原有逻辑（同 caller 再前台 isLoaded=true / preload / create-new），行为与本次变更前完全一致。**不依赖 originalCallerInfo 是否为默认值**——窗口侧无需塞 originalCallerInfo
 
-#### AC9: originalCallerInfo 无法匹配到原 record 时的容错
-**WHEN** 迁移更新分支被触发（originalCallerInfo 非默认值），但 `GetAbilityRecordByOriginalCallerInfo` 在 `extensionRecords_` 中无法匹配到任何已存在的 record
-**THEN** 记 `TAG_LOGW(AAFwkTag::ABILITYMGR, ...)` 日志（含 originalPersistentId），继续走现有逻辑，不返回错误码，不发生 crash
+#### AC9: persistentId 无法匹配到原 record 时的容错（2026-07-09 ADR-12 修订）
+**WHEN** `uiExtensionComponentId` miss 且 `GetAbilityRecordByPersistentId` 在 `extensionRecords_` 中也无法匹配（旧 record 已 destroy / 真正新建）
+**THEN** 不进入迁移分支，继续走 preload / create-new（不返回错误码，不 crash）；即 removeChild+addChild（旧 record 已销毁）天然走新建路径
 
 #### AC10: 并发安全性
 **WHEN** 迁移更新执行期间，其他线程并发访问同一 extension record 的 sessionInfo 或 uiExtensionMap_

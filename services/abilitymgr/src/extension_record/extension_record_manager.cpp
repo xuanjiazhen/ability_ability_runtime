@@ -215,34 +215,36 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecord(const AAFwk::AbilityR
 {
     CHECK_POINTER_AND_RETURN(abilityRequest.sessionInfo, ERR_INVALID_VALUE);
 
-    // Migration update: find original record by persistentId (persistentId does not change during migration)
-    if (IsMigrationUpdateRequest(abilityRequest.sessionInfo)) {
-        abilityRecord = GetAbilityRecordByPersistentId(abilityRequest.sessionInfo->persistentId);
-        if (abilityRecord != nullptr) {
-            isLoaded = true;
-            // Backfill stable uiExtensionComponentId (the original X locked by AMS) into the
-            // migration request's sessionInfo before SetSessionInfo, so downstream providers
-            // always see a stable id regardless of how many times the window migrates.
-            auto recordSessionInfo = abilityRecord->GetSessionInfo();
-            uint64_t stableId = (recordSessionInfo &&
-                recordSessionInfo->originalCallerInfo.uiExtensionComponentId != 0)
-                ? recordSessionInfo->originalCallerInfo.uiExtensionComponentId
-                : (recordSessionInfo ? recordSessionInfo->uiExtensionComponentId : 0);
-            abilityRequest.sessionInfo->originalCallerInfo.uiExtensionComponentId = stableId;
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "migration update: found record by persistentId: %{public}d, stableId: "
-                "%{public}" PRIu64, abilityRequest.sessionInfo->persistentId, stableId);
-            return ERR_OK;
-        }
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "migration update: record not found for persistentId: %{public}d, fallback",
-            abilityRequest.sessionInfo->persistentId);
-        // Fallback to existing logic if original record not found
-    }
-
+    // 1. Normal match by uiExtensionComponentId (same caller re-foreground — not a migration)
     abilityRecord = GetAbilityRecordBySessionInfo(abilityRequest.sessionInfo);
     if (abilityRecord != nullptr) {
         isLoaded = true;
         return ERR_OK;
     }
+
+    // 2. Migration detection: uiExtensionComponentId changed (caller changed) but persistentId unchanged.
+    //    AMS self-detects from its own state — originalCallerInfo is SET here by AMS (single source of
+    //    truth), not relied upon from window_manager. persistentId matching an active record = migration;
+    //    a destroyed record (removeChild+addChild) won't match → falls through to preload/create.
+    abilityRecord = GetAbilityRecordByPersistentId(abilityRequest.sessionInfo->persistentId);
+    if (abilityRecord != nullptr) {
+        isLoaded = true;
+        auto recordSessionInfo = abilityRecord->GetSessionInfo();
+        if (recordSessionInfo != nullptr) {
+            abilityRequest.sessionInfo->originalCallerInfo.callerToken = recordSessionInfo->callerToken;
+            abilityRequest.sessionInfo->originalCallerInfo.persistentId =
+                abilityRequest.sessionInfo->persistentId;
+            uint64_t stableId = recordSessionInfo->originalCallerInfo.uiExtensionComponentId != 0
+                ? recordSessionInfo->originalCallerInfo.uiExtensionComponentId
+                : recordSessionInfo->uiExtensionComponentId;
+            abilityRequest.sessionInfo->originalCallerInfo.uiExtensionComponentId = stableId;
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "migration detected by persistentId: %{public}d, stableId: "
+                "%{public}" PRIu64, abilityRequest.sessionInfo->persistentId, stableId);
+        }
+        return ERR_OK;
+    }
+
+    // persistentId not found (record destroyed / genuinely new) → fall through to preload/create
 
     // Check AGENT_UI launch limit before creating new record
     bool isAgentUI = AAFwk::UIExtensionWrapper::IsAgentUIExtension(abilityRequest.abilityInfo.extensionAbilityType);
@@ -314,13 +316,6 @@ std::shared_ptr<AAFwk::BaseExtensionRecord> ExtensionRecordManager::GetAbilityRe
         }
     }
     return nullptr;
-}
-
-bool ExtensionRecordManager::IsMigrationUpdateRequest(const sptr<AAFwk::SessionInfo> &sessionInfo) const
-{
-    return sessionInfo != nullptr &&
-           sessionInfo->originalCallerInfo.callerToken != nullptr &&
-           sessionInfo->originalCallerInfo.persistentId != 0;
 }
 
 std::shared_ptr<AAFwk::BaseExtensionRecord>

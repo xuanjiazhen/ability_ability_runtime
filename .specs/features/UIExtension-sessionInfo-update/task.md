@@ -39,9 +39,10 @@
 
 ---
 
-## T1: ExtensionRecordManager 迁移匹配 ✅ 已实现
+## T1: ExtensionRecordManager 迁移匹配 ✅ 已实现 → ⚠ ADR-12 修订（2026-07-09，AMS 自主检测）
 
-> **代码检视**：本任务全部步骤已在代码中落地。下方步骤保留为"对照说明"，**勿重复注入**（会引发重复定义编译错误）。实际位置：迁移分支 `extension_record_manager.cpp:218-239`、`IsMigrationUpdateRequest` :319-324、`GetAbilityRecordByPersistentId` :326-351、声明 `.h:202,204`；并已含 Revision 2 的 stableId 回填（:223-231）。注：原 spec 引用的旧行号（~217/237/247/264-293）因迁移分支先在而整体 +24 偏移，实际为 241/261/271/288-317。
+> **⚠ 2026-07-09 ADR-12 修订（取代原 IsMigrationUpdateRequest 门禁）**：迁移检测改为 AMS 自主——`GetOrCreateExtensionRecord` 匹配顺序改为"uiExtensionComponentId-first → persistentId-fallback"：① `GetAbilityRecordBySessionInfo`（by componentId）hit → 正常再前台；② miss → `GetAbilityRecordByPersistentId`（by persistentId）hit → **迁移**，AMS **自主赋值** originalCallerInfo（callerToken 取自 record 旧 sessionInfo、persistentId、稳定 X）；③ miss → preload/create。`IsMigrationUpdateRequest`（原 ADR-6）已从 .h/.cpp **彻底移除**——不再依赖窗口侧塞 originalCallerInfo 做门禁。详见 design.md ADR-12。
+> **原代码检视（已部分废弃）**：~~迁移分支 :218-239、`IsMigrationUpdateRequest` :319-324~~ 已重写/移除。`GetAbilityRecordByPersistentId` 保留（:320+），声明 `.h:202`。
 
 **依赖**：T0a
 **文件**：
