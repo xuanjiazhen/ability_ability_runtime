@@ -19,6 +19,7 @@
 #include "ability_auto_startup_service.h"
 #include "ability_manager_errors.h"
 #include "distributed_kv_data_manager.h"
+#include "hilog_tag_wrapper.h"
 #include "mock_my_flag.h"
 #include "mock_permission_verification.h"
 #include "mock_sa_call.h"
@@ -1216,6 +1217,94 @@ HWTEST_F(AbilityAutoStartupServiceTest, FindHandledAutoStartupUsers_001, TestSiz
     isHandled = abilityAutoStartupService->FindHandledAutoStartupUsers(userId);
     EXPECT_FALSE(isHandled);
     GTEST_LOG_(INFO) << "AbilityAutoStartupServiceTest FindHandledAutoStartupUsers_001 end";
+}
+
+/*
+ * Feature: AbilityAutoStartupService
+ * Function: CheckPermissionForSystem
+ * SubFunction: NA
+ * FunctionPoints: AbilityAutoStartupService CheckPermissionForSystem with userId
+ * Description: Test CheckPermissionForSystem with userId parameter for cross-user scenario
+ */
+HWTEST_F(AbilityAutoStartupServiceTest, CheckPermissionForSystem_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityAutoStartupServiceTest CheckPermissionForSystem_003 start");
+    AAFwk::IsMockSaCall::IsMockSaCallWithPermission();
+    MyFlag::flag_ = 0; // No VerifyAccountPermission permission
+    auto abilityAutoStartupService = std::make_shared<AbilityAutoStartupService>();
+    EXPECT_NE(abilityAutoStartupService, nullptr);
+    int32_t userId = 100; // Different user
+    auto result = abilityAutoStartupService->CheckPermissionForSystem(userId);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    AAFwk::IsMockSaCall::IsMockResetPermission();
+    MyFlag::flag_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityAutoStartupServiceTest CheckPermissionForSystem_003 end");
+}
+
+/*
+ * Feature: AbilityAutoStartupService
+ * Function: CheckPermissionForSystem
+ * SubFunction: NA
+ * FunctionPoints: AbilityAutoStartupService CheckPermissionForSystem with userId
+ * Description: Test CheckPermissionForSystem with userId parameter when VerifyAccountPermission granted
+ */
+HWTEST_F(AbilityAutoStartupServiceTest, CheckPermissionForSystem_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityAutoStartupServiceTest CheckPermissionForSystem_004 start");
+    AAFwk::IsMockSaCall::IsMockSaCallWithPermission();
+    MyFlag::flag_ = 1; // Has VerifyAccountPermission permission
+    auto abilityAutoStartupService = std::make_shared<AbilityAutoStartupService>();
+    EXPECT_NE(abilityAutoStartupService, nullptr);
+    int32_t userId = 100; // Different user
+    auto result = abilityAutoStartupService->CheckPermissionForSystem(userId);
+    EXPECT_EQ(result, ERR_OK);
+    AAFwk::IsMockSaCall::IsMockResetPermission();
+    MyFlag::flag_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityAutoStartupServiceTest CheckPermissionForSystem_004 end");
+}
+
+/*
+ * Feature: AbilityAutoStartupService
+ * Function: CheckPermissionForEDM
+ * SubFunction: NA
+ * FunctionPoints: AbilityAutoStartupService CheckPermissionForEDM with userId
+ * Description: Test CheckPermissionForEDM with userId parameter for cross-user scenario
+ */
+HWTEST_F(AbilityAutoStartupServiceTest, CheckPermissionForEDM_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityAutoStartupServiceTest CheckPermissionForEDM_003 start");
+    AAFwk::IsMockSaCall::IsMockSaCallWithPermission();
+    MyFlag::flag_ = 0; // No VerifyAccountPermission permission
+    auto abilityAutoStartupService = std::make_shared<AbilityAutoStartupService>();
+    EXPECT_NE(abilityAutoStartupService, nullptr);
+    int32_t userId = 100; // Different user
+    auto result = abilityAutoStartupService->CheckPermissionForEDM(userId);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    AAFwk::IsMockSaCall::IsMockResetPermission();
+    MyFlag::flag_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityAutoStartupServiceTest CheckPermissionForEDM_003 end");
+}
+
+/*
+ * Feature: AbilityAutoStartupService
+ * Function: CheckPermissionForEDM
+ * SubFunction: NA
+ * FunctionPoints: AbilityAutoStartupService CheckPermissionForEDM with userId
+ * Description: Test CheckPermissionForEDM with userId parameter when VerifyAccountPermission granted
+ */
+HWTEST_F(AbilityAutoStartupServiceTest, CheckPermissionForEDM_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityAutoStartupServiceTest CheckPermissionForEDM_004 start");
+    AAFwk::IsMockSaCall::IsMockSaCallWithPermission();
+    MyFlag::flag_ = 1; // Has VerifyAccountPermission permission
+    auto abilityAutoStartupService = std::make_shared<AbilityAutoStartupService>();
+    EXPECT_NE(abilityAutoStartupService, nullptr);
+    int32_t userId = 100; // Different user
+    auto result = abilityAutoStartupService->CheckPermissionForEDM(userId);
+    EXPECT_EQ(result, ERR_OK);
+    AAFwk::IsMockSaCall::IsMockResetPermission();
+    MyFlag::flag_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityAutoStartupServiceTest CheckPermissionForEDM_004 end");
 }
 } // namespace AAFwk
 } // namespace OHOS
