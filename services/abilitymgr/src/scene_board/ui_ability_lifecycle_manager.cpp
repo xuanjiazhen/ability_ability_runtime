@@ -386,6 +386,16 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::HandleAbilityRecordReused(
         TAG_LOGE(AAFwkTag::ABILITYMGR, "uiAbilityRecord invalid");
         return nullptr;
     }
+    // When the AbilityRecord is reused (e.g. main app already running and SCB routes the sandbox
+    // clone launch as a newWant on the existing session), AbilityRecord::Init is not called, so the
+    // sandbox clone appIndex and caller params are missing. Apply them here to mirror Init so the
+    // ability is loaded into the sandbox clone process instead of the main app process.
+    if (abilityRequest.isWebSandBoxClone) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Web sandbox clone reuse record, set appIndex: %{public}d",
+            abilityRequest.abilityInfo.applicationInfo.appIndex);
+        uiAbilityRecord->SetAppIndex(abilityRequest.abilityInfo.applicationInfo.appIndex);
+        uiAbilityRecord->InitSandboxCloneParams(abilityRequest);
+    }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "NewWant:%{public}d", sessionInfo.isNewWant);
     if (sessionInfo.sessionToken != uiAbilityRecord->GetSessionInfo()->sessionToken) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionToken invalid");
