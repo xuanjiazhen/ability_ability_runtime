@@ -81,9 +81,6 @@
 #endif // OHOS_ACCOUNT_ENABLED
 #include "parameter.h"
 #include "parameters.h"
-#ifdef TASKMGR_LOW_MEM_FROZEN_SKIP_DETECTER_ENABLE
-#include "suspend_manager_client.h"
-#endif
 #include "perf_profile.h"
 #include "permission_constants.h"
 #include "permission_verification.h"
@@ -7540,18 +7537,6 @@ void AppMgrServiceInner::HandleStartSpecifiedAbilityTimeOut(std::shared_ptr<AppR
         TAG_LOGE(AAFwkTag::APPMGR, "appRecord null");
         return;
     }
-#ifdef TASKMGR_LOW_MEM_FROZEN_SKIP_DETECTER_ENABLE
-    int32_t uid = appRecord->GetUid();
-    std::unordered_map<int32_t, std::pair<bool, uint32_t>> appSuspendState;
-    SuspendManager::SuspendManagerClient::GetInstance().GetAllAppSuspendState(appSuspendState);
-    bool isSuspended = (appSuspendState.find(uid) != appSuspendState.end() && appSuspendState[uid].first);
-    isSuspended = isSuspended && OHOS::system::GetBoolParameter("const.taskmanager.low_memory_frozen_enable", false);
-    if (isSuspended) {
-        TAG_LOGI(AAFwkTag::APPMGR, "HandleStartSpecifiedAbilityTimeOut, app is frozen, will not kill app");
-        appRecord->ResetSpecifiedRequest();
-        return;
-    }
-#endif
     if (appRecord->IsStartSpecifiedAbility() && startSpecifiedAbilityResponse_) {
         startSpecifiedAbilityResponse_->OnTimeoutResponse(appRecord->GetSpecifiedRequestId(), appRecord->GetUserId());
     }
@@ -9307,22 +9292,10 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
     TAG_LOGW(AAFwkTag::APPDFR, "called, eventName:%{public}s, pid:%{public}d, bundleName:%{public}s, "
         "currentTime:%{public}s", eventName.c_str(), pid, bundleName.c_str(),
         AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str());
-#ifdef TASKMGR_LOW_MEM_FROZEN_SKIP_DETECTER_ENABLE
-    std::unordered_map<int32_t, std::pair<bool, uint32_t>> appSuspendState;
-    SuspendManager::SuspendManagerClient::GetInstance().GetAllAppSuspendState(appSuspendState);
-    bool isSuspended = (appSuspendState.find(uid) != appSuspendState.end() && appSuspendState[uid].first);
-    isSuspended = isSuspended && OHOS::system::GetBoolParameter("const.taskmanager.low_memory_frozen_enable", false);
-    if (AppExecFwk::AppfreezeManager::GetInstance()->IsSkipDetect(pid, uid, bundleName, eventName) ||
-        AppExecFwk::AppfreezeManager::GetInstance()->IsFreezeExcludedPid(pid) || isSuspended) {
-        TAG_LOGI(AAFwkTag::APPMGR, "NotifyAppFault, app is frozen, will not report fault");
-        return ERR_OK;
-    }
-#else
     if (AppExecFwk::AppfreezeManager::GetInstance()->IsSkipDetect(pid, uid, bundleName, eventName) ||
         AppExecFwk::AppfreezeManager::GetInstance()->IsFreezeExcludedPid(pid)) {
         return ERR_OK;
     }
-#endif
     FaultData& nonConstFaultData = const_cast<FaultData&>(faultData);
     nonConstFaultData.isInForeground = UpdateForeground(appRecord, eventName);
     bool isExit = AppExecFwk::AppfreezeManager::GetInstance()->CheckProcessExit(eventName,
@@ -9475,22 +9448,10 @@ int32_t AppMgrServiceInner::TransformedNotifyAppFault(const AppFaultDataBySA &fa
     int32_t recordId = record->GetRecordId();
     std::string bundleName = record->GetBundleName();
     std::string processName = record->GetProcessName();
-#ifdef TASKMGR_LOW_MEM_FROZEN_SKIP_DETECTER_ENABLE
-    std::unordered_map<int32_t, std::pair<bool, uint32_t>> appSuspendState;
-    SuspendManager::SuspendManagerClient::GetInstance().GetAllAppSuspendState(appSuspendState);
-    bool isSuspended = (appSuspendState.find(uid) != appSuspendState.end() && appSuspendState[uid].first);
-    isSuspended = isSuspended && OHOS::system::GetBoolParameter("const.taskmanager.low_memory_frozen_enable", false);
-    if (AppExecFwk::AppfreezeManager::GetInstance()->IsSkipDetect(pid, uid, bundleName, eventName) ||
-        AppExecFwk::AppfreezeManager::GetInstance()->IsFreezeExcludedPid(pid) || isSuspended) {
-        TAG_LOGI(AAFwkTag::APPMGR, "NotifyAppFault, app is frozen, will not report fault");
-        return ERR_OK;
-    }
-#else
     if (AppExecFwk::AppfreezeManager::GetInstance()->IsSkipDetect(pid, uid, bundleName, eventName) ||
         AppExecFwk::AppfreezeManager::GetInstance()->IsFreezeExcludedPid(pid)) {
         return ERR_OK;
     }
-#endif
     if (eventName == "appRecovery") {
         AppRecoveryNotifyApp(pid, bundleName, faultData.faultType, "appRecovery", recordId);
         return ERR_OK;

@@ -39,9 +39,6 @@
 #include "res_sched_util.h"
 #include "restart_app_manager.h"
 #include "session_info.h"
-#ifdef TASKMGR_LOW_MEM_FROZEN_SKIP_DETECTER_ENABLE
-#include "suspend_manager_client.h"
-#endif
 #include "start_ability_utils.h"
 #include "scene_board/status_bar_delegate_manager.h"
 #include "server_constant.h"
@@ -2697,16 +2694,6 @@ void UIAbilityLifecycleManager::OnTimeOut(uint32_t msgId, int64_t abilityRecordI
             GetActiveAbilityListLocked(abilityInfo.applicationInfo.uid, processInfo.pid_, abilityList);
         }
         TAG_LOGD(AAFwkTag::ABILITYMGR, "abilityList.size:%{public}zu", abilityList.size());
-#ifdef TASKMGR_LOW_MEM_FROZEN_SKIP_DETECTER_ENABLE
-        int32_t uid = abilityInfo.applicationInfo.uid;
-        std::unordered_map<int32_t, std::pair<bool, uint32_t>> appSuspendState;
-        SuspendManager::SuspendManagerClient::GetInstance().GetAllAppSuspendState(appSuspendState);
-        bool isSuspended = (appSuspendState.find(uid) != appSuspendState.end() && appSuspendState[uid].first);
-        if (isSuspended && OHOS::system::GetBoolParameter("const.taskmanager.low_memory_frozen_enable", false)) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "app uid %{public}d is suspended, skip timeout", uid);
-            return;
-        }
-#endif
         switch (msgId) {
             case AbilityManagerService::LOAD_TIMEOUT_MSG:
                 abilityRecord->SetLoading(false);

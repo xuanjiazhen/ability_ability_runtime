@@ -212,6 +212,7 @@ constexpr int32_t APP_ALIVE_TIME_MS = 1000;  // Allow background startup within 
 constexpr int32_t REGISTER_FOCUS_DELAY = 5000;
 constexpr size_t OFFSET = 32;
 constexpr int32_t PENG_LAI_UID = 7655;
+constexpr int32_t TASKMGR_UID = 7005;
 constexpr int32_t RSS_UID = 1096;
 constexpr const char* IS_DELEGATOR_CALL = "isDelegatorCall";
 
@@ -3332,6 +3333,9 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
     sessionInfo->want.RemoveParam(AbilityRuntime::GlobalConstant::SANDBOX_CLONE_INDEX);
     sessionInfo->want.RemoveParam(AbilityRuntime::GlobalConstant::CLI_CALLER_BUNDLE_NAME);
     sessionInfo->want.RemoveParam(AbilityRuntime::GlobalConstant::CLI_CALLER_TOKEN_ID);
+    if (!HandleExecuteSAInterceptor(sessionInfo->want, sessionInfo->callerToken, abilityRequest, result)) {
+        return result;
+    }
     if (sessionInfo->want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, true)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "interceptorExecuter_ called");
         (sessionInfo->want).RemoveParam(IS_CALLING_FROM_DMS);
@@ -3347,9 +3351,6 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
         }
         abilityRequest.userId = currentUserId;
         abilityRequest.sessionInfo = sessionInfo;
-        if (!HandleExecuteSAInterceptor(sessionInfo->want, sessionInfo->callerToken, abilityRequest, result)) {
-            return result;
-        }
     }
     if (sessionInfo->want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, true)) {
         if (sessionInfo->startSetting != nullptr) {
@@ -18368,6 +18369,22 @@ int32_t AbilityManagerService::RegisterSAInterceptor(sptr<AbilityRuntime::ISAInt
     return SAInterceptorManager::GetInstance().AddSAInterceptor(interceptor);
 }
 
+int32_t AbilityManagerService::UnregisterSAInterceptor(sptr<IRemoteObject> interceptor)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call UnregisterSaInterceptor");
+    if (IPCSkeleton::GetCallingUid() != PENG_LAI_UID) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "no permission call");
+        return CHECK_PERMISSION_FAILED;
+    }
+ 
+    auto ISAInterceptor = iface_cast<AbilityRuntime::ISAInterceptor>(interceptor);
+    if (ISAInterceptor == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ISAInterceptor cast failed");
+        return ERR_NULL_SA_INTERCEPTOR_EXECUTER;
+    }
+    return SAInterceptorManager::GetInstance().RemoveSAInterceptor(ISAInterceptor);
+}
+
 bool AbilityManagerService::HandleExecuteSAInterceptor(const Want &want, sptr<IRemoteObject> callerToken,
     AbilityRequest &abilityRequest, int32_t &result)
 {
@@ -18385,7 +18402,11 @@ bool AbilityManagerService::HandleExecuteSAInterceptor(const Want &want, sptr<IR
         result = static_cast<int32_t>(ERROR_SA_INTERCEPTOR_START_FAILED);
         return false;
     }
-
+    if (ret != ERR_OK || rule.type == RuleType::NOT_ALLOW_FROZEN) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "sa lowmem forzen interceptor OnCheckStarting failed");
+        result = static_cast<int32_t>(ERR_LOW_MEM_SAINTERCEPTOR_START_BLOCK);
+        return false;
+    }
     if (rule.type == RuleType::USER_SELECTION) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "sa interceptor OnCheckStarting failed, set dialog caller info");
         DialogSessionManager::GetInstance().OnlySetDialogCallerInfo(abilityRequest, abilityRequest.userId,
