@@ -107,7 +107,7 @@ int32_t AbilityAutoStartupService::SetApplicationAutoStartup(const AutoStartupIn
         " accessTokenId: %{public}s, setterUserId: %{public}d",
         info.bundleName.c_str(), info.moduleName.c_str(),
         info.abilityName.c_str(), info.accessTokenId.c_str(), info.setterUserId);
-    int32_t code = CheckPermissionForSystem();
+    int32_t code = CheckPermissionForSystem(info.userId);
     if (code != ERR_OK) {
         return code;
     }
@@ -173,7 +173,7 @@ int32_t AbilityAutoStartupService::CancelApplicationAutoStartup(const AutoStartu
         " accessTokenId: %{public}s, setterUserId: %{public}d",
         info.bundleName.c_str(), info.moduleName.c_str(),
         info.abilityName.c_str(), info.accessTokenId.c_str(), info.setterUserId);
-    int32_t code = CheckPermissionForSystem();
+    int32_t code = CheckPermissionForSystem(info.userId);
     if (code != ERR_OK) {
         return code;
     }
@@ -231,10 +231,10 @@ int32_t AbilityAutoStartupService::InnerCancelApplicationAutoStartup(const AutoS
 int32_t AbilityAutoStartupService::QueryAllAutoStartupApplications(std::vector<AutoStartupInfo> &infoList,
     int32_t userId)
 {
-    int32_t code = CheckPermissionForEDM();
+    int32_t code = CheckPermissionForEDM(userId);
     bool isCalledByEDM = (code == ERR_OK);
     if (!isCalledByEDM) {
-        code = CheckPermissionForSystem();
+        code = CheckPermissionForSystem(userId);
     }
     if (code != ERR_OK) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "permission verification fail");
@@ -569,7 +569,7 @@ std::shared_ptr<AppExecFwk::BundleMgrClient> AbilityAutoStartupService::GetBundl
     return bundleMgrClient_;
 }
 
-int32_t AbilityAutoStartupService::CheckPermissionForSystem()
+int32_t AbilityAutoStartupService::CheckPermissionForSystem(int32_t userId)
 {
     if (!AAFwk::AppUtils::GetInstance().IsAutoStartupSupported()) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Disabled config");
@@ -587,7 +587,7 @@ int32_t AbilityAutoStartupService::CheckPermissionForSystem()
         return CHECK_PERMISSION_FAILED;
     }
 
-    return ERR_OK;
+    return VerifyCrossUserAccountPermission(userId);
 }
 
 int32_t AbilityAutoStartupService::GetAbilityInfo(
@@ -632,7 +632,7 @@ int32_t AbilityAutoStartupService::HiddenStartAutoStartupApp(AAFwk::Want &want, 
 int32_t AbilityAutoStartupService::SetApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag,
     bool isHiddenStart)
 {
-    int32_t errorCode = CheckPermissionForEDM();
+    int32_t errorCode = CheckPermissionForEDM(info.userId);
     if (errorCode != ERR_OK) {
         return errorCode;
     }
@@ -658,7 +658,7 @@ int32_t AbilityAutoStartupService::SetApplicationAutoStartupByEDM(const AutoStar
 
 int32_t AbilityAutoStartupService::CancelApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag)
 {
-    int32_t errorCode = CheckPermissionForEDM();
+    int32_t errorCode = CheckPermissionForEDM(info.userId);
     if (errorCode != ERR_OK) {
         return errorCode;
     }
@@ -711,13 +711,31 @@ int32_t AbilityAutoStartupService::InnerApplicationAutoStartupByEDM(const AutoSt
     return result;
 }
 
-int32_t AbilityAutoStartupService::CheckPermissionForEDM()
+int32_t AbilityAutoStartupService::CheckPermissionForEDM(int32_t userId)
 {
     if (!PermissionVerification::GetInstance()->VerifyCallingPermission(
         PermissionConstants::PERMISSION_MANAGE_APP_BOOT_INTERNAL)) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "verify PERMISSION_MANAGE_APP_BOOT_INTERNAL fail");
         return CHECK_PERMISSION_FAILED;
     }
+
+    return VerifyCrossUserAccountPermission(userId);
+}
+
+int32_t AbilityAutoStartupService::VerifyCrossUserAccountPermission(int32_t userId)
+{
+    if (userId >= 0) {
+        int32_t callerUser = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+        if (!((callerUser == U0_USER_ID || callerUser == U1_USER_ID) &&
+            UserController::GetInstance().IsForegroundUser(userId)) && callerUser != userId) {
+            int32_t code = AAFwk::PermissionVerification::GetInstance()->VerifyAccountPermission();
+            if (code != ERR_OK) {
+                TAG_LOGE(AAFwkTag::AUTO_STARTUP, "VerifyAccountPermission failed");
+                return code;
+            }
+        }
+    }
+
     return ERR_OK;
 }
 

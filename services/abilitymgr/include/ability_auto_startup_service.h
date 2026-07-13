@@ -172,8 +172,9 @@ private:
     std::string GetAbilityTypeName(const AppExecFwk::AbilityInfo &abilityInfo);
     std::string GetExtensionTypeName(const AppExecFwk::ExtensionAbilityInfo &extensionInfo);
     std::shared_ptr<AppExecFwk::BundleMgrClient> GetBundleMgrClient();
-    int32_t CheckPermissionForSystem();
-    int32_t CheckPermissionForEDM();
+    int32_t CheckPermissionForSystem(int32_t userId = -1);
+    int32_t CheckPermissionForEDM(int32_t userId = -1);
+    int32_t VerifyCrossUserAccountPermission(int32_t userId);
     int32_t InnerApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool isSet, bool flag);
     int32_t GetAbilityInfo(const AutoStartupInfo &info, AutoStartupAbilityData &abilityData);
     int32_t CheckHiddenStartConditions(bool isHiddenStart, const AutoStartupAbilityData &abilityData);
