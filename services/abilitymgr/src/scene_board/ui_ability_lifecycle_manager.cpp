@@ -386,6 +386,16 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::HandleAbilityRecordReused(
         TAG_LOGE(AAFwkTag::ABILITYMGR, "uiAbilityRecord invalid");
         return nullptr;
     }
+    // When the AbilityRecord is reused (e.g. main app already running and SCB routes the sandbox
+    // clone launch as a newWant on the existing session), AbilityRecord::Init is not called, so the
+    // sandbox clone appIndex and caller params are missing. Apply them here to mirror Init so the
+    // ability is loaded into the sandbox clone process instead of the main app process.
+    if (abilityRequest.isWebSandBoxClone) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Web sandbox clone reuse record, set appIndex: %{public}d",
+            abilityRequest.abilityInfo.applicationInfo.appIndex);
+        uiAbilityRecord->SetAppIndex(abilityRequest.abilityInfo.applicationInfo.appIndex);
+        uiAbilityRecord->InitSandboxCloneParams(abilityRequest);
+    }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "NewWant:%{public}d", sessionInfo.isNewWant);
     if (sessionInfo.sessionToken != uiAbilityRecord->GetSessionInfo()->sessionToken) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionToken invalid");
@@ -2648,7 +2658,14 @@ bool UIAbilityLifecycleManager::CheckProperties(const UIAbilityRecordPtr &abilit
     CHECK_POINTER_RETURN_BOOL(abilityRecord);
     const auto& abilityInfo = abilityRecord->GetAbilityInfo();
     int32_t appIndex = 0;
-    (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);
+    // Sandbox clone uses SANDBOX_CLONE_INDEX (and removes PARAM_APP_CLONE_INDEX_KEY), which GetAppIndex
+    // does not read, so it would resolve to appIndex 0 and collide with the main app's singleton session.
+    // Use the queried clone appIndex instead, mirroring AbilityRecord::Init.
+    if (abilityRequest.isWebSandBoxClone) {
+        appIndex = abilityRequest.abilityInfo.applicationInfo.appIndex;
+    } else {
+        (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);
+    }
     auto instanceKey = abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY);
     return abilityInfo.launchMode == launchMode && abilityRequest.abilityInfo.name == abilityInfo.name &&
         abilityRequest.abilityInfo.bundleName == abilityInfo.bundleName &&
