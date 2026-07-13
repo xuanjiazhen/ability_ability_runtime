@@ -9388,8 +9388,8 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
 
     FaultData& nonConstFaultData = const_cast<FaultData&>(faultData);
     nonConstFaultData.isInForeground = UpdateForeground(appRecord, eventName);
-    bool isExit = AppExecFwk::AppfreezeManager::GetInstance()->CheckProcessExit(eventName,
-        nonConstFaultData.isInForeground);
+    bool isExit = AppExecFwk::AppfreezeManager::GetInstance()->CheckProcessExit(appRecord->GetProcessName(),
+        eventName, nonConstFaultData.isInForeground);
     if (faultData.faultType == FaultDataType::APP_FREEZE) {
         if (CheckAppFault(appRecord, faultData)) {
             return ERR_OK;
@@ -9430,8 +9430,8 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
     if (isExit) {
         KillFaultApp(pid, bundleName, faultData, false, recordId);
     } else {
-        TAG_LOGW(AAFwkTag::APPMGR, "Process does not exit, pid:%{public}d, isExit:%{public}d, eventName:%{public}s",
-            pid, isExit, eventName.c_str());
+        TAG_LOGW(AAFwkTag::APPMGR, "Process does not exit, pid:%{public}d, isExit:%{public}d, "
+            "eventName:%{public}s, bundleName:%{public}s", pid, isExit, eventName.c_str(), bundleName.c_str());
     }
 #endif
 
