@@ -36,6 +36,7 @@
 #include "tokenid_kit.h"
 #ifdef SUPPORT_SCREEN
 #include "ui_content.h"
+ #endif // SUPPORT_SCREEN
 #include "want.h"
 #include "window.h"
 #include "window_option.h"
