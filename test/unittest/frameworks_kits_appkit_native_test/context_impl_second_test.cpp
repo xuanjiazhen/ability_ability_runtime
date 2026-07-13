@@ -652,5 +652,48 @@ HWTEST_F(ContextImplSecondTest, AppExecFwk_AppContext_CreateModuleOrPluginContex
     EXPECT_EQ(context, nullptr);
     GTEST_LOG_(INFO) << "AppExecFwk_AppContext_CreateModuleOrPluginContext_004 end";
 }
+
+/**
+ * @tc.number: CreateModuleContextSync_001
+ * @tc.name: CreateModuleContextSync
+ * @tc.desc: Test CreateModuleContext sync with module name and parent context
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplSecondTest, CreateModuleContextSync_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "CreateModuleContextSync_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_EQ(contextImpl->CreateModuleContext("module_name", contextImpl), nullptr);
+    GTEST_LOG_(INFO) << "CreateModuleContextSync_001 end";
+}
+
+/**
+ * @tc.number: CreateModuleContextSync_002
+ * @tc.name: CreateModuleContextSync
+ * @tc.desc: Test CreateModuleContext sync with empty module name and parent context
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplSecondTest, CreateModuleContextSync_002, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "CreateModuleContextSync_002 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_EQ(contextImpl->CreateModuleContext("", contextImpl), nullptr);
+    GTEST_LOG_(INFO) << "CreateModuleContextSync_002 end";
+}
+
+/**
+ * @tc.number: CreateModuleContextSync_003
+ * @tc.name: CreateModuleContextSync
+ * @tc.desc: Test CreateModuleContext sync with long module name and parent context
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplSecondTest, CreateModuleContextSync_003, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "CreateModuleContextSync_003 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    std::string longName(256, 'a');
+    EXPECT_EQ(contextImpl->CreateModuleContext(longName, contextImpl), nullptr);
+    GTEST_LOG_(INFO) << "CreateModuleContextSync_003 end";
+}
 }  // namespace AppExecFwk
 }
