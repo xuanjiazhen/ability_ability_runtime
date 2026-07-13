@@ -999,19 +999,26 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CheckPreloadUIExtension_Test
 HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CheckProcessExit_Test001, TestSize.Level1)
 {
     std::string eventName = AppFreezeType::THREAD_BLOCK_6S;
-    bool result = appfreezeManager->CheckProcessExit(eventName, false);
+    std::string bundleName = "AppfreezeManagerTest";
+    bool result = appfreezeManager->CheckProcessExit(bundleName, eventName, false);
     EXPECT_EQ(result, false);
 
+    bundleName = "com.ohos.sceneboard";
     eventName = AppFreezeType::THREAD_BLOCK_6S;
-    result = appfreezeManager->CheckProcessExit(eventName, true);
+    result = appfreezeManager->CheckProcessExit(bundleName, eventName, false);
+    EXPECT_EQ(result, true);
+
+    bundleName = "AppfreezeManagerTest";
+    eventName = AppFreezeType::THREAD_BLOCK_6S;
+    result = appfreezeManager->CheckProcessExit(bundleName, eventName, true);
     EXPECT_EQ(result, true);
 
     eventName = AppFreezeType::THREAD_BLOCK_3S;
-    result = appfreezeManager->CheckProcessExit(eventName, false);
+    result = appfreezeManager->CheckProcessExit(bundleName, eventName, false);
     EXPECT_EQ(result, true);
 
     eventName = AppFreezeType::THREAD_BLOCK_3S;
-    result = appfreezeManager->CheckProcessExit(eventName, true);
+    result = appfreezeManager->CheckProcessExit(bundleName, eventName, true);
     EXPECT_EQ(result, true);
 }
 
