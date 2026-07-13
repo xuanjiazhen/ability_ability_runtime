@@ -1942,7 +1942,7 @@ HWTEST_F(JsRuntimeTest, Deinitialize_0200, TestSize.Level1)
     std::string moduleName = "PreloadSystemModuleTest";
     napi_value object = nullptr;
     std::unique_ptr<NativeReference> nativeRef = jsRuntime->LoadSystemModule(moduleName, &object, 0);
-    jsRuntime->modules_.emplace("moduleName", nativeRef.get());
+    jsRuntime->modules_.emplace("moduleName", std::move(nativeRef));
     jsRuntime->jsEnv_ = nullptr;
 
     jsRuntime->Deinitialize();
