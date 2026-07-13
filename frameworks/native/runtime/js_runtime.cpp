@@ -1036,10 +1036,7 @@ void JsRuntime::InitSourceMap(const std::string hqfFilePath)
 void JsRuntime::Deinitialize()
 {
     TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
-    for (auto it = modules_.begin(); it != modules_.end(); it = modules_.erase(it)) {
-        delete it->second;
-        it->second = nullptr;
-    }
+    modules_.clear();
 
     methodRequireNapiRef_.reset();
 
@@ -1134,7 +1131,7 @@ std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& module
     napi_value classValue = nullptr;
 
     auto it = modules_.find(modulePath);
-    if (it != modules_.end()) {
+    if (it != modules_.end() && it->second != nullptr) {
         classValue = it->second->GetNapiValue();
     } else {
         std::string fileName;
@@ -1155,8 +1152,13 @@ std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& module
         }
 
         napi_ref tmpRef = nullptr;
-        napi_create_reference(env, classValue, 1, &tmpRef);
-        modules_.emplace(modulePath, reinterpret_cast<NativeReference*>(tmpRef));
+        napi_status status = napi_create_reference(env, classValue, 1, &tmpRef);
+        if (status != napi_ok || tmpRef == nullptr) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "create reference failed");
+            return std::unique_ptr<NativeReference>();
+        }
+        modules_.emplace(modulePath,
+            std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(tmpRef)));
     }
 
     napi_value instanceValue = nullptr;
@@ -1179,6 +1181,11 @@ std::unique_ptr<NativeReference> JsRuntime::LoadSystemModule(
     CHECK_POINTER_AND_RETURN(env, std::unique_ptr<NativeReference>());
 
     HandleScope handleScope(*this);
+
+    if (methodRequireNapiRef_ == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null methodRequireNapiRef_");
+        return std::unique_ptr<NativeReference>();
+    }
 
     napi_value className = nullptr;
     napi_create_string_utf8(env, moduleName.c_str(), moduleName.length(), &className);

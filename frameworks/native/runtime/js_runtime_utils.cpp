@@ -15,6 +15,8 @@
 
 #include "js_runtime_utils.h"
 
+#include <atomic>
+
 #include "hilog_tag_wrapper.h"
 #include "js_runtime.h"
 #include "napi/native_api.h"
@@ -501,51 +503,54 @@ std::unique_ptr<NapiAsyncTask> CreateEmptyAsyncTask(napi_env env, napi_value las
     }
 }
 
+struct ReleaseNativeReferenceWork {
+    NativeReference* ref = nullptr;
+    std::atomic<bool> released{false};
+};
+
 void ReleaseNativeReference(napi_env env, NativeReference* ref)
 {
     if (ref == nullptr) {
         TAG_LOGD(AAFwkTag::JSRUNTIME, "null ref");
         return;
     }
-    uv_work_t *work = new (std::nothrow) uv_work_t;
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null env");
+        delete ref;
+        return;
+    }
+
+    auto work = new (std::nothrow) ReleaseNativeReferenceWork;
     if (work == nullptr) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "null work");
         delete ref;
         return;
     }
-    work->data = reinterpret_cast<void *>(ref);
+    work->ref = ref;
+
     if (napi_send_event(env,
         [work]() {
             if (work == nullptr) {
                 TAG_LOGE(AAFwkTag::JSRUNTIME, "null uv work");
                 return;
             }
-            auto tempWork = const_cast<uv_work_t*>(work);
-            if (tempWork == nullptr) {
-                TAG_LOGE(AAFwkTag::JSRUNTIME, "null uv tempWork");
-                return;
+            NativeReference* refPtr = work->ref;
+            bool expected = false;
+            if (work->released.compare_exchange_strong(expected, true)) {
+                delete refPtr;
             }
-            if (tempWork->data == nullptr) {
-                TAG_LOGE(AAFwkTag::JSRUNTIME, "null data");
-                delete tempWork;
-                tempWork = nullptr;
-                return;
-            }
-            NativeReference *refPtr = reinterpret_cast<NativeReference *>(work->data);
-            delete refPtr;
-            refPtr = nullptr;
-            delete tempWork;
-            tempWork = nullptr;
+            delete work;
         },
         napi_eprio_low) == napi_ok) {
         return;
     }
+
     TAG_LOGE(AAFwkTag::JSRUNTIME, "napi_send_event failed");
-    delete ref;
-    if (work != nullptr) {
-        delete work;
-        work = nullptr;
+    bool expected = false;
+    if (work->released.compare_exchange_strong(expected, true)) {
+        delete ref;
     }
+    delete work;
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS
