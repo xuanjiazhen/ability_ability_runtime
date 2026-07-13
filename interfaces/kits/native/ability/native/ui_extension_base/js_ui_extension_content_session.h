@@ -24,6 +24,10 @@
 #include "start_options.h"
 #include "window.h"
 
+namespace OHOS {
+namespace AbilityRuntime {
+using RuntimeTask = std::function<void(int, const AAFwk::Want&, bool)>;
+
 inline uint64_t GetEffectiveComponentId(const sptr<AAFwk::SessionInfo> &sessionInfo)
 {
     if (sessionInfo && sessionInfo->originalCallerInfo.uiExtensionComponentId != 0) {
@@ -31,10 +35,6 @@ inline uint64_t GetEffectiveComponentId(const sptr<AAFwk::SessionInfo> &sessionI
     }
     return sessionInfo ? sessionInfo->uiExtensionComponentId : 0;
 }
-
-namespace OHOS {
-namespace AbilityRuntime {
-using RuntimeTask = std::function<void(int, const AAFwk::Want&, bool)>;
 
 class UISessionAbilityResultListener : public AbilityResultListener {
 public:

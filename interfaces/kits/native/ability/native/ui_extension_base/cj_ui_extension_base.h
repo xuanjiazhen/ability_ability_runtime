@@ -34,6 +34,10 @@
 #include "window_manager.h"
 #endif // SUPPORT_GRAPHICS
 
+namespace OHOS {
+namespace AbilityRuntime {
+using Want = OHOS::AAFwk::Want;
+
 inline uint64_t GetEffectiveComponentId(const sptr<AAFwk::SessionInfo> &sessionInfo)
 {
     if (sessionInfo && sessionInfo->originalCallerInfo.uiExtensionComponentId != 0) {
@@ -41,10 +45,6 @@ inline uint64_t GetEffectiveComponentId(const sptr<AAFwk::SessionInfo> &sessionI
     }
     return sessionInfo ? sessionInfo->uiExtensionComponentId : 0;
 }
-
-namespace OHOS {
-namespace AbilityRuntime {
-using Want = OHOS::AAFwk::Want;
 class CJRuntime;
 /**
  * @brief cj ui extension base.
