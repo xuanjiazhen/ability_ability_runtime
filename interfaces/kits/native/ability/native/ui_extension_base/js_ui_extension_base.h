@@ -40,14 +40,6 @@ class NativeReference;
 namespace OHOS {
 namespace AbilityRuntime {
 using Want = OHOS::AAFwk::Want;
-
-inline uint64_t GetEffectiveComponentId(const sptr<AAFwk::SessionInfo> &sessionInfo)
-{
-    if (sessionInfo && sessionInfo->originalCallerInfo.uiExtensionComponentId != 0) {
-        return sessionInfo->originalCallerInfo.uiExtensionComponentId;
-    }
-    return sessionInfo ? sessionInfo->uiExtensionComponentId : 0;
-}
 class JsRuntime;
 /**
  * @brief Js ui extension base.

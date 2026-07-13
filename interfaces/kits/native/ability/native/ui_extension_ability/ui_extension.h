@@ -27,19 +27,6 @@ class UIExtensionContext;
 class Runtime;
 
 /**
- * @brief Resolve the stable/effective uiExtensionComponentId from sessionInfo.
- * After window migration, originalCallerInfo.uiExtensionComponentId carries the
- * original X locked by AMS (never changes). On first creation it is 0, so the
- * plain uiExtensionComponentId (also X) is used. Both paths yield the same X.
- */
-inline uint64_t GetEffectiveComponentId(const sptr<AAFwk::SessionInfo> &sessionInfo)
-{
-    if (sessionInfo && sessionInfo->originalCallerInfo.uiExtensionComponentId != 0) {
-        return sessionInfo->originalCallerInfo.uiExtensionComponentId;
-    }
-    return sessionInfo ? sessionInfo->uiExtensionComponentId : 0;
-}
-/**
  * @brief Basic ui extension components.
  */
 class UIExtension : public ExtensionBase<UIExtensionContext> {

@@ -28,13 +28,6 @@ namespace OHOS {
 namespace AbilityRuntime {
 using RuntimeTask = std::function<void(int, const AAFwk::Want&, bool)>;
 
-inline uint64_t GetEffectiveComponentId(const sptr<AAFwk::SessionInfo> &sessionInfo)
-{
-    if (sessionInfo && sessionInfo->originalCallerInfo.uiExtensionComponentId != 0) {
-        return sessionInfo->originalCallerInfo.uiExtensionComponentId;
-    }
-    return sessionInfo ? sessionInfo->uiExtensionComponentId : 0;
-}
 
 class UISessionAbilityResultListener : public AbilityResultListener {
 public:
