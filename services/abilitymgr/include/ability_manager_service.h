@@ -1437,6 +1437,15 @@ public:
 
     int StartAbilityInner(StartAbilityWrapParam &param);
 
+    /**
+     * @brief Start ability for app clone selector scenario with complete permission and interceptor checks.
+     * This method is called when user has selected a specific app clone from the selector dialog.
+     * It performs complete checks that were previously skipped in the app clone selector flow.
+     * @param param The start ability wrap parameters containing want, caller token, user id, etc.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int StartAbilityForAppCloneSelector(StartAbilityWrapParam &param);
+
     int32_t StartExtensionAbilityInner(
         const Want &want,
         const sptr<IRemoteObject> &callerToken,
@@ -2997,6 +3006,26 @@ private:
     int DisconnectRemoteAbility(const sptr<IRemoteObject> &connect);
     int PreLoadAppDataAbilities(const std::string &bundleName, const int32_t userId);
     void PreLoadAppDataAbilitiesTask(const std::string &bundleName, const int32_t userId);
+
+    // Helper methods for StartAbilityForAppCloneSelector refactoring
+    int ValidateAppCloneIndex(const Want &want, int32_t &appCloneIndex, EventInfo &eventInfo);
+    int InitializeAppCloneRequest(const StartAbilityWrapParam &param, int32_t appCloneIndex,
+        AbilityRequest &abilityRequest, AppExecFwk::AbilityInfo &abilityInfo);
+    int CheckAbilityTypeAndPermission(const StartAbilityWrapParam &param, int32_t appCloneIndex,
+        const AppExecFwk::AbilityInfo &abilityInfo, AbilityRequest &abilityRequest, EventInfo &eventInfo);
+    int ProcessLaunchReasonAndController(const StartAbilityWrapParam &param,
+        AbilityRequest &abilityRequest, const AppExecFwk::AbilityInfo &abilityInfo,
+        EventInfo &eventInfo);
+    int ExecuteAfterCheckInterceptors(const StartAbilityWrapParam &param,
+        AbilityRequest &abilityRequest, const AppExecFwk::AbilityInfo &abilityInfo,
+        int32_t appCloneIndex, EventInfo &eventInfo);
+    void PreprocessRequestParams(const StartAbilityWrapParam &param, AbilityRequest &abilityRequest);
+    int PreLoadAppDataAbilitiesIfNeed(const AppExecFwk::AbilityInfo &abilityInfo, int32_t validUserId,
+        EventInfo &eventInfo);
+    int ExecuteAbilityStart(const AbilityRequest &abilityRequest,
+        const AppExecFwk::AbilityInfo &abilityInfo, int32_t validUserId,
+        bool isGamePrelaunch, EventInfo &eventInfo);
+
     int StartAbilityPublicPrechainCheck(StartAbilityParams &params);
     int StartAbilityPrechainInterceptor(StartAbilityParams &params);
     bool StartAbilityInChain(StartAbilityParams &params, int &result);
