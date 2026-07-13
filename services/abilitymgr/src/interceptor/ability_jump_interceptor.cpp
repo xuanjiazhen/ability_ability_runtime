@@ -31,7 +31,7 @@ constexpr const char* JUMP_DIALOG_CALLER_LABEL_ID = "interceptor_callerLabelId";
 constexpr const char* JUMP_DIALOG_TARGET_MODULE_NAME = "interceptor_targetModuleName";
 constexpr const char* JUMP_DIALOG_TARGET_LABEL_ID = "interceptor_targetLabelId";
 }
-ErrCode AbilityJumpInterceptor::DoProcess(AbilityInterceptorParam param)
+ErrCode AbilityJumpInterceptor::DoProcess(const AbilityInterceptorParam &param)
 {
     if (!param.isWithUI) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "startup not foreground");

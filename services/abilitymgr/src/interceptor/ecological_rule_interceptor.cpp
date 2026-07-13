@@ -31,7 +31,7 @@ constexpr const char* BUNDLE_NAME_SCENEBOARD = "com.ohos.sceneboard";
 constexpr int32_t ERMS_ISALLOW_RESULTCODE = 10;
 constexpr int32_t ERMS_ISALLOW_EMBED_RESULTCODE = 1;
 }
-ErrCode EcologicalRuleInterceptor::DoProcess(AbilityInterceptorParam param)
+ErrCode EcologicalRuleInterceptor::DoProcess(const AbilityInterceptorParam &param)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (NoNeedErms(param)) {

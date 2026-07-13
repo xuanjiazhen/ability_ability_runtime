@@ -53,7 +53,7 @@ std::string ScreenUnlockInterceptor::GetAppIdentifier(const std::string &bundleN
     return signatureInfo.appIdentifier;
 }
 
-ErrCode ScreenUnlockInterceptor::DoProcess(AbilityInterceptorParam param)
+ErrCode ScreenUnlockInterceptor::DoProcess(const AbilityInterceptorParam &param)
 {
     AppExecFwk::AbilityInfo targetAbilityInfo;
     if (!GetTargetAbilityInfo(param, targetAbilityInfo)) {

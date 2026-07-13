@@ -49,7 +49,7 @@ std::string DisposedRuleInterceptor::GenerateEventTaskName(int32_t uid)
     return UNREGISTER_EVENT_TASK + std::to_string(uid);
 }
 
-ErrCode DisposedRuleInterceptor::DoProcess(AbilityInterceptorParam param)
+ErrCode DisposedRuleInterceptor::DoProcess(const AbilityInterceptorParam &param)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call");
     AppExecFwk::DisposedRule disposedRule;

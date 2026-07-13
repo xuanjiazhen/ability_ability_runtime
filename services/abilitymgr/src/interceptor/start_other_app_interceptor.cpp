@@ -32,7 +32,7 @@ constexpr const char* IS_DELEGATOR_CALL = "isDelegatorCall";
 constexpr const char* OPEN_LINK_SCENE_IDENTIFICATION = "appLinkingOnly";
 }
 
-ErrCode StartOtherAppInterceptor::DoProcess(AbilityInterceptorParam param)
+ErrCode StartOtherAppInterceptor::DoProcess(const AbilityInterceptorParam &param)
 {
     if (StartAbilityUtils::skipStartOther) {
         StartAbilityUtils::skipStartOther = false;
