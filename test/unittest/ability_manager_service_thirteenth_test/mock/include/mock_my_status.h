@@ -70,6 +70,8 @@ public:
     std::string oeuValidateCallerHostBundleName_;
     int32_t amcGetProcessInfoRet_ = ERR_OK;
     AppExecFwk::AppProcessState amcProcessState_ = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
+    AppExecFwk::AbilityInfo bmsQueryAbilityInfo_ = {};
+    bool bmsQueryAbilityInfoResult_ = true;
 };
 } // namespace AAFwk
 } // namespace OHOS
