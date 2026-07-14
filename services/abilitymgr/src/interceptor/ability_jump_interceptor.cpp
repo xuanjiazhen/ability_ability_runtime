@@ -91,7 +91,7 @@ bool AbilityJumpInterceptor::CheckControl(std::shared_ptr<AppExecFwk::BundleMgrH
     int callerUid = IPCSkeleton::GetCallingUid();
     std::string callerBundleName;
     auto result = IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callerUid, callerBundleName));
-    std::string targetBundleName = want.GetBundleNameRef();
+    const auto &targetBundleName = want.GetBundleNameRef();
     controlRule.callerPkg = callerBundleName;
     controlRule.targetPkg = targetBundleName;
     if (result != ERR_OK) {

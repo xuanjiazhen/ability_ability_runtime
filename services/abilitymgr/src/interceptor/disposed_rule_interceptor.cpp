@@ -111,7 +111,7 @@ bool DisposedRuleInterceptor::CheckControl(const Want &want, int32_t userId,
     }
 
     // get disposed status
-    std::string bundleName = want.GetBundleNameRef();
+    const auto &bundleName = want.GetBundleNameRef();
     auto appControlMgr = bundleMgrHelper->GetAppControlProxy();
     if (appControlMgr == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null appControlMgr");
@@ -156,8 +156,8 @@ bool DisposedRuleInterceptor::FindBlockDisposedRule(const Want &want,
             }
             continue;
         }
-        std::string moduleName = want.GetModuleNameRef();
-        std::string abilityName = want.GetAbilityNameRef();
+        const auto &moduleName = want.GetModuleNameRef();
+        const auto &abilityName = want.GetAbilityNameRef();
         auto iter = std::find_if(rule.elementList.begin(), rule.elementList.end(),
             [moduleName, abilityName](const AppExecFwk::ElementName &elementName) {
                 return moduleName == elementName.GetModuleNameRef() && abilityName == elementName.GetAbilityName();

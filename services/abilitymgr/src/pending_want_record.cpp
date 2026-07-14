@@ -222,7 +222,7 @@ void PendingWantRecord::BuildSendWant(SenderInfo &senderInfo, Want &want)
         want.AddFlags(key_->GetFlags());
     }
     WantParams wantParams = want.GetParams();
-    auto sendInfoWantParams = senderInfo.want.GetParams().GetParams();
+    const auto &sendInfoWantParams = senderInfo.want.GetParams().GetParams();
     for (auto mapIter = sendInfoWantParams.begin(); mapIter != sendInfoWantParams.end(); mapIter++) {
         std::string sendInfoWantParamKey = mapIter->first;
         if (want.GetParams().GetParam(sendInfoWantParamKey) == nullptr) {

@@ -267,9 +267,9 @@ void FreeInstallManager::NotifyDmsCallback(const Want &want, int resultCode)
         return;
     }
 
-    auto srcAbilityName = want.GetAbilityNameRef();
+    const auto &srcAbilityName = want.GetAbilityNameRef();
     for (auto it = dmsFreeInstallCbs_.begin(); it != dmsFreeInstallCbs_.end();) {
-        std::string abilityName = (*it).want.GetAbilityNameRef();
+        const auto &abilityName = (*it).want.GetAbilityNameRef();
         if (srcAbilityName == abilityName) {
             HandleDMSCallback(resultCode, *it);
             it = dmsFreeInstallCbs_.erase(it);
@@ -292,8 +292,8 @@ void FreeInstallManager::NotifyFreeInstallResult(int32_t recordId, const Want &w
         }
 
         bool isFromRemote = want.GetBoolParam(FROM_REMOTE_KEY, false);
-        auto srcBundleName = want.GetBundleNameRef();
-        auto srcAbilityName = want.GetAbilityNameRef();
+        const auto &srcBundleName = want.GetBundleNameRef();
+        const auto &srcAbilityName = want.GetAbilityNameRef();
         auto srcStartTime = want.GetStringParam(Want::PARAM_RESV_START_TIME);
         auto srcUri = want.GetUriString();
         for (auto it = freeInstallList_.begin(); it != freeInstallList_.end();) {
@@ -332,8 +332,8 @@ void FreeInstallManager::HandleOnFreeInstallSuccess(int32_t recordId, FreeInstal
 
     if (isAsync) {
         std::string startTime = freeInstallInfo.want.GetStringParam(Want::PARAM_RESV_START_TIME);
-        std::string bundleName = freeInstallInfo.want.GetBundleNameRef();
-        std::string abilityName = freeInstallInfo.want.GetAbilityNameRef();
+        const auto &bundleName = freeInstallInfo.want.GetBundleNameRef();
+        const auto &abilityName = freeInstallInfo.want.GetAbilityNameRef();
         if (freeInstallInfo.isPreStartMissionCalled) {
             StartAbilityByPreInstall(recordId, freeInstallInfo, bundleName, abilityName, startTime);
             return;
@@ -380,8 +380,8 @@ void FreeInstallManager::HandleOnFreeInstallFail(int32_t recordId, FreeInstallIn
             return;
         }
 
-        std::string bundleName = freeInstallInfo.want.GetBundleNameRef();
-        std::string abilityName = freeInstallInfo.want.GetAbilityNameRef();
+        const auto &bundleName = freeInstallInfo.want.GetBundleNameRef();
+        const auto &abilityName = freeInstallInfo.want.GetAbilityNameRef();
         DelayedSingleton<FreeInstallObserverManager>::GetInstance()->OnInstallFinished(
             recordId, bundleName, abilityName, startTime, resultCode);
         return;
@@ -399,8 +399,8 @@ void FreeInstallManager::HandleFreeInstallResult(int32_t recordId, FreeInstallIn
     HandleOnFreeInstallFail(recordId, freeInstallInfo, resultCode, isAsync);
 }
 
-void FreeInstallManager::StartAbilityByFreeInstall(FreeInstallInfo &info, std::string &bundleName,
-    std::string &abilityName, std::string &startTime)
+void FreeInstallManager::StartAbilityByFreeInstall(FreeInstallInfo &info, const std::string &bundleName,
+    const std::string &abilityName, const std::string &startTime)
 {
     info.want.SetFlags(info.want.GetFlags() ^ Want::FLAG_INSTALL_ON_DEMAND);
     auto identity = IPCSkeleton::ResetCallingIdentity();
@@ -433,8 +433,8 @@ void FreeInstallManager::StartAbilityByFreeInstall(FreeInstallInfo &info, std::s
         recordId, bundleName, abilityName, startTime, result);
 }
 
-void FreeInstallManager::StartAbilityByPreInstall(int32_t recordId, FreeInstallInfo &info, std::string &bundleName,
-    std::string &abilityName, std::string &startTime)
+void FreeInstallManager::StartAbilityByPreInstall(int32_t recordId, FreeInstallInfo &info,
+    const std::string &bundleName, const std::string &abilityName, const std::string &startTime)
 {
     info.want.SetFlags(info.want.GetFlags() ^ Want::FLAG_INSTALL_ON_DEMAND);
     auto identity = IPCSkeleton::ResetCallingIdentity();
@@ -566,7 +566,7 @@ int FreeInstallManager::ConnectFreeInstall(const Want &want, int32_t userId,
 {
     auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bundleMgrHelper, GET_ABILITY_SERVICE_FAILED);
-    std::string wantDeviceId = want.GetDeviceIdRef();
+    const auto &wantDeviceId = want.GetDeviceIdRef();
     if (!(localDeviceId == wantDeviceId || wantDeviceId.empty())) {
         TAG_LOGE(AAFwkTag::FREE_INSTALL, "deviceID empty");
         return INVALID_PARAMETERS_ERR;
@@ -870,8 +870,8 @@ void FreeInstallManager::NotifyInsightIntentFreeInstallResult(const Want &want, 
     }
 
     for (auto it = freeInstallList_.begin(); it != freeInstallList_.end();) {
-        std::string bundleName = (*it).want.GetBundleNameRef();
-        std::string abilityName = (*it).want.GetAbilityNameRef();
+        const std::string& bundleName = (*it).want.GetBundleNameRef();
+        const std::string& abilityName = (*it).want.GetAbilityNameRef();
         std::string startTime = (*it).want.GetStringParam(Want::PARAM_RESV_START_TIME);
         if (want.GetBundleNameRef() != bundleName ||
             want.GetAbilityNameRef() != abilityName ||
@@ -880,7 +880,7 @@ void FreeInstallManager::NotifyInsightIntentFreeInstallResult(const Want &want, 
             continue;
         }
 
-        auto moduleName = (*it).want.GetModuleNameRef();
+        const auto& moduleName = (*it).want.GetModuleNameRef();
         auto insightIntentName = (*it).want.GetStringParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME);
         auto executeMode = static_cast<AppExecFwk::ExecuteMode>(
             it->want.GetIntParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_MODE, 0));

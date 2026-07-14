@@ -922,7 +922,7 @@ int32_t AbilityManagerService::StartAbilityByInsightIntent(const Want &want, con
     }
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     XCOLLIE_TIMER_LESS_IGNORE(__PRETTY_FUNCTION__, !want.GetDeviceIdRef().empty());
-    std::string bundleNameFromWant = want.GetBundleNameRef();
+    const auto &bundleNameFromWant = want.GetBundleNameRef();
     std::string bundleNameFromIntentMgr = "";
     if (DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->
         GetBundleName(intentId, bundleNameFromIntentMgr) != ERR_OK) {
@@ -3211,7 +3211,7 @@ int AbilityManagerService::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, Ab
     sessionInfo->want.SetParam(AbilityRuntime::GlobalConstant::PAGE_CONFIG, params.pageConfig);
     auto eventInfo = BuildEventInfo(sessionInfo->want, -1);
 #ifdef MEMMGR_OVERRIDE_ENABLE
-    auto bundleName = (sessionInfo->want).GetBundleNameRef();
+    const auto& bundleName = (sessionInfo->want).GetBundleNameRef();
     int windowMode = sessionInfo->want.GetIntParam(EXPECT_WINDOW_MODE, 0);
     if (AppUtils::GetInstance().IsRequireBigMemoryProcess(bundleName) &&
         sessionInfo->want.HasParameter(EXPECT_WINDOW_MODE) &&
@@ -3234,7 +3234,7 @@ int AbilityManagerService::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, Ab
             "not sceneboard", true);
         return ERR_WRONG_INTERFACE_CALL;
     }
-    std::string targetBundleName = sessionInfo->want.GetBundleNameRef();
+    const auto &targetBundleName = sessionInfo->want.GetBundleNameRef();
     if (!AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(targetBundleName)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "scb call, user lock");
         return ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK;
@@ -4692,7 +4692,7 @@ int32_t AbilityManagerService::StartExtensionAbilityInner(const Want &want, cons
 
 bool AbilityManagerService::JudgeSystemParamsForPicker(const WantParams &parameters)
 {
-    auto systemParamsForPickerMap = parameters.GetParams();
+    const auto &systemParamsForPickerMap = parameters.GetParams();
     if (systemParamsForPickerMap.find(SCREENCONFIG_SCREENMODE) == systemParamsForPickerMap.end()) {
         return true;
     }
@@ -5694,7 +5694,7 @@ bool AbilityManagerService::CheckIsRemote(const std::string& deviceId)
 
 bool AbilityManagerService::CheckIfOperateRemote(const Want &want)
 {
-    std::string deviceId = want.GetDeviceIdRef();
+    const auto &deviceId = want.GetDeviceIdRef();
     if (deviceId.empty() || want.GetBundleNameRef().empty() ||
         want.GetAbilityNameRef().empty()) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "CheckIfOperateRemote: DeviceId or BundleName or GetAbilityName empty");
@@ -6899,9 +6899,9 @@ int32_t AbilityManagerService::ProcessSandboxCloneLaunch(Want &want,
         TAG_LOGE(AAFwkTag::ABILITYMGR, "GetCreatorBundleNameForSandboxClone failed: %{public}d", errCode);
         return errCode;
     }
-    std::string targetBundleName = want.GetBundleNameRef();
-    std::string targetAbilityName = want.GetAbilityNameRef();
-    std::string targetModuleName = want.GetModuleNameRef();
+    const auto &targetBundleName = want.GetBundleNameRef();
+    const auto &targetAbilityName = want.GetAbilityNameRef();
+    const auto &targetModuleName = want.GetModuleNameRef();
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Creator bundle name: %{public}s, Target sandbox clone: bundle=%{public}s, "
         "ability = %{public}s, module = %{public}s, sandBoxCloneIndex = %{public}d", creatorBundleName.c_str(),
         targetBundleName.c_str(), targetAbilityName.c_str(), targetModuleName.c_str(), sandBoxCloneIndex);
@@ -13594,7 +13594,7 @@ int AbilityManagerService::CheckDlpForExtension(
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     // check if form frs
     auto callingUid = IPCSkeleton::GetCallingUid();
-    std::string bundleName = want.GetBundleNameRef();
+    const auto &bundleName = want.GetBundleNameRef();
     if (callingUid == FOUNDATION_UID && FRS_BUNDLE_NAME == bundleName) {
         return ERR_OK;
     }
@@ -13921,7 +13921,7 @@ int32_t AbilityManagerService::StartSpecifiedAbilityBySCB(const Want &want, cons
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no sceneboard called, no allowed");
         return ERR_PERMISSION_DENIED;
     }
-    std::string targetBundleName = want.GetBundleNameRef();
+    const auto &targetBundleName = want.GetBundleNameRef();
     if (!AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(targetBundleName)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "scb call, user lock");
         return ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK;
@@ -16885,8 +16885,8 @@ int32_t AbilityManagerService::StartUIAbilityByPreInstall(const FreeInstallInfo 
         TAG_LOGE(AAFwkTag::ABILITYMGR, "session id empty");
         return ERR_INVALID_VALUE;
     }
-    auto bundleName = want.GetBundleNameRef();
-    auto abilityName = want.GetAbilityNameRef();
+    const auto &bundleName = want.GetBundleNameRef();
+    const auto &abilityName = want.GetAbilityNameRef();
     auto startTime = want.GetStringParam(Want::PARAM_RESV_START_TIME);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call"
         "sessionId=%{public}s,bundleName=%{public}s,abilityName=%{public}s,startTime=%{public}s",
@@ -17609,7 +17609,7 @@ int AbilityManagerService::StartSelfUIAbilityInner(StartSelfUIAbilityParam param
 {
     CHECK_TRUE_RETURN_RET(!AppUtils::GetInstance().IsStartOptionsWithAnimation(),
         ERR_CAPABILITY_NOT_SUPPORT, "not supported");
-    auto targetBundleName = param.want.GetBundleNameRef();
+    const auto &targetBundleName = param.want.GetBundleNameRef();
     CHECK_TRUE_RETURN_RET(targetBundleName.empty(), ERR_NOT_ALLOW_IMPLICIT_START, "implicit start not allowed");
 
     auto callingPid = IPCSkeleton::GetCallingPid();
@@ -17733,7 +17733,7 @@ int AbilityManagerService::CheckDelayedStartBelongToCaller(const Want &want,
         TAG_LOGD(AAFwkTag::ABILITYMGR, "multi instance scene");
         return ERROR_UIABILITY_NOT_BELONG_TO_CALLER;
     }
-    std::string targetBundleName = want.GetBundleNameRef();
+    const auto &targetBundleName = want.GetBundleNameRef();
     auto iter = std::find(processInfo.bundleNames.begin(), processInfo.bundleNames.end(), targetBundleName);
     CHECK_TRUE_RETURN_RET(iter == processInfo.bundleNames.end(), ERROR_UIABILITY_NOT_BELONG_TO_CALLER,
         "The UIAbility not belog to caller");
@@ -18630,8 +18630,8 @@ ErrCode AbilityManagerService::StartSelfUIAbilityInCurrentProcess(const Want &wa
         return ERR_INVALID_VALUE;
     }
 
-    std::string targetBundleName = want.GetBundleNameRef();
-    std::string targetAbilityName = want.GetAbilityNameRef();
+    const auto &targetBundleName = want.GetBundleNameRef();
+    const auto &targetAbilityName = want.GetAbilityNameRef();
     if (targetBundleName.empty() || targetAbilityName.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "implicit start not allowed");
         return START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START;
@@ -18714,8 +18714,8 @@ ErrCode AbilityManagerService::CheckStartSelfUIAbilityInChildProcess(const Want 
     const std::shared_ptr<AbilityRecord> &callerRecord, AppExecFwk::AbilityInfo &abilityInfo)
 {
     CHECK_POINTER_AND_RETURN(callerRecord, INNER_ERR);
-    std::string targetBundleName = want.GetBundleNameRef();
-    std::string targetAbilityName = want.GetAbilityNameRef();
+    const auto &targetBundleName = want.GetBundleNameRef();
+    const auto &targetAbilityName = want.GetAbilityNameRef();
     CHECK_TRUE_RETURN_RET(targetBundleName.empty() || targetAbilityName.empty(),
         START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START, "implicit start not allowed");
     CHECK_TRUE_RETURN_RET(targetBundleName != callerRecord->GetApplicationInfo().bundleName,

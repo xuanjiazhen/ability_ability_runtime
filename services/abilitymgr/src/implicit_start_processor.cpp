@@ -904,7 +904,7 @@ void ImplicitStartProcessor::GetEcologicalCallerInfo(const Want &want, ErmsCalle
         return;
     }
 
-    std::string targetBundleName = want.GetBundleNameRef();
+    const auto &targetBundleName = want.GetBundleNameRef();
     AppExecFwk::ApplicationInfo targetAppInfo;
     TAG_LOGD(AAFwkTag::ABILITYMGR,
         "targetBundleName: %{public}s, userId: %{public}d", targetBundleName.c_str(), userId);

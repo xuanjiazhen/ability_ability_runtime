@@ -91,8 +91,8 @@ bool AbilityPermissionUtil::IsDominateScreen(const Want &want, bool isPendingWan
             return false;
         }
         // add temporarily
-        std::string bundleName = want.GetBundleNameRef();
-        std::string abilityName = want.GetAbilityNameRef();
+        const auto &bundleName = want.GetBundleNameRef();
+        const auto &abilityName = want.GetAbilityNameRef();
         bool withoutSettings = bundleName.find(SETTINGS) == std::string::npos &&
             abilityName.find(SETTINGS) == std::string::npos;
         if (withoutSettings && AppUtils::GetInstance().IsAllowStartAbilityWithoutCallerToken(bundleName, abilityName)) {

@@ -135,8 +135,8 @@ void ModularObjectEventReceiver::HandleBundleScanFinished(const EventFwk::Common
 
 void ModularObjectEventReceiver::HandleBundleInstall(const EventFwk::CommonEventData &data)
 {
-    const AAFwk::Want& want = data.GetWant();
-    std::string bundleName = want.GetBundleNameRef();
+    const auto &want = data.GetWant();
+    const auto &bundleName = want.GetBundleNameRef();
     TAG_LOGI(AAFwkTag::EXT, "handle common event package add, bundleName: %{public}s", bundleName.c_str());
     if (bundleName.empty()) {
         TAG_LOGE(AAFwkTag::EXT, "bundle name is empty");
@@ -156,8 +156,8 @@ void ModularObjectEventReceiver::HandleBundleInstall(const EventFwk::CommonEvent
 
 void ModularObjectEventReceiver::HandleBundleRemoved(const EventFwk::CommonEventData &data)
 {
-    const AAFwk::Want& want = data.GetWant();
-    std::string bundleName = want.GetBundleNameRef();
+    const auto &want = data.GetWant();
+    const auto &bundleName = want.GetBundleNameRef();
     TAG_LOGI(AAFwkTag::EXT, "handle common event package remove, bundleName: %{public}s", bundleName.c_str());
     if (bundleName.empty()) {
         TAG_LOGE(AAFwkTag::EXT, "bundle name is empty");
@@ -177,8 +177,8 @@ void ModularObjectEventReceiver::HandleBundleRemoved(const EventFwk::CommonEvent
 
 void ModularObjectEventReceiver::HandleBundleChanged(const EventFwk::CommonEventData &data)
 {
-    const AAFwk::Want& want = data.GetWant();
-    std::string bundleName = want.GetBundleNameRef();
+    const auto &want = data.GetWant();
+    const auto &bundleName = want.GetBundleNameRef();
     TAG_LOGI(AAFwkTag::EXT, "handle common event package changed, bundleName: %{public}s", bundleName.c_str());
     if (bundleName.empty()) {
         TAG_LOGE(AAFwkTag::EXT, "bundle name is empty");

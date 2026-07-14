@@ -60,7 +60,7 @@ uint32_t InsightIntentUtils::GetSrcEntry(const AppExecFwk::ElementName &elementN
     TAG_LOGD(AAFwkTag::INTENT, "get srcEntry, elementName: %{public}s, intentName: %{public}s, mode: %{public}d",
         elementName.GetURI().c_str(), intentName.c_str(), executeMode);
     auto bundleName = elementName.GetBundleName();
-    auto moduleName = elementName.GetModuleNameRef();
+    auto moduleName = elementName.GetModuleName();
     auto abilityName = elementName.GetAbilityName();
     if (bundleName.empty() || moduleName.empty() || abilityName.empty() || intentName.empty()) {
         TAG_LOGE(AAFwkTag::INTENT, "input param empty");

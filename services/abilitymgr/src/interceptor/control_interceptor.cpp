@@ -78,7 +78,7 @@ bool ControlInterceptor::CheckControl(const Want &want, int32_t userId,
     }
 
     // get disposed status
-    std::string bundleName = want.GetBundleNameRef();
+    const auto &bundleName = want.GetBundleNameRef();
     auto appControlMgr = bundleMgrHelper->GetAppControlProxy();
     if (appControlMgr == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null appControlMgr");

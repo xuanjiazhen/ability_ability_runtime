@@ -2391,7 +2391,7 @@ int32_t UIAbilityLifecycleManager::BackToCallerAbilityWithResultLocked(sptr<Sess
     newSessionInfo->persistentId = callerSessionInfo->persistentId;
     newSessionInfo->identityToken = callerSessionInfo->identityToken;
 
-    std::string callerBundleName = currentSessionInfo->want.GetBundleNameRef();
+    const auto &callerBundleName = currentSessionInfo->want.GetBundleNameRef();
     std::string currentName = callerAbilityRecord->GetApplicationInfo().bundleName;
     EventInfo eventInfo = { .bundleName = currentName, .callerBundleName = callerBundleName, .uri = "backToCaller"};
     EventReport::SendGrantUriPermissionEvent(EventName::GRANT_URI_PERMISSION, eventInfo);
@@ -4886,9 +4886,9 @@ ErrCode UIAbilityLifecycleManager::IsUIAbilityAlreadyExist(const Want &want,
         std::lock_guard<ffrt::mutex> guard(sessionLock_);
         tempSessionAbilityMap = sessionAbilityMap_;
     }
-    std::string moduleName = want.GetModuleNameRef();
-    std::string abilityName = want.GetAbilityNameRef();
-    std::string bundleName = want.GetBundleNameRef();
+    const auto &moduleName = want.GetModuleNameRef();
+    const auto &abilityName = want.GetAbilityNameRef();
+    const auto &bundleName = want.GetBundleNameRef();
 
     for (auto it = tempSessionAbilityMap.begin(); it != tempSessionAbilityMap.end(); it++) {
         if (it->second == nullptr) {
