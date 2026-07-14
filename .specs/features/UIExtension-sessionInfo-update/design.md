@@ -651,18 +651,19 @@ OnCommandWindow(WIN_CMD_FOREGROUND, originalCallerInfo 非空)
 
 > **⚠ 2026-07-09 修订（取代 ADR-1/ADR-6 的 IsMigrationUpdateRequest 门禁）**：原设计依赖 window_manager 在 moveTo 时向 sessionInfo 塞 `originalCallerInfo.callerToken`（非空）作为迁移标识，AMS 用 `IsMigrationUpdateRequest` 读取此标识做门禁。经分析，AMS 完全可从**自身状态**推断迁移，无需窗口侧塞 originalCallerInfo。
 
-**关键洞察**：迁移的充要判据是 AMS 自身状态可判定的——`GetAbilityRecordBySessionInfo`（按 uiExtensionComponentId）miss + `GetAbilityRecordByPersistentId`（按 persistentId）hit = 迁移。因为迁移时 caller 变 → uiExtensionComponentId 高 32 位变 → 按 componentId 匹配 miss；而 persistentId 不变 → 按 persistentId 匹配 hit。**不需要 originalCallerInfo 作为窗口侧信号**。
+**关键洞察**：同进程迁移支持**同 Ability**（caller 不变、仅 hostWindowId 变）和**多 Ability**（caller 变、uiExtensionComponentId 变）两种，AMS 均可从自身状态判定，不需要 originalCallerInfo 作为窗口侧信号：
 
-| 场景 | by uiExtensionComponentId | by persistentId | 结论 |
-|------|--------------------------|----------------|------|
-| 首次创建 | miss | miss | 新建 |
-| 同 session 再前台（同 caller） | hit | hit | 正常再前台（不迁移） |
-| moveTo 迁移（caller 变） | miss（componentId 变） | hit（persistentId 不变） | **迁移** |
-| removeChild+addChild | miss（旧 record 已 destroy 移除） | miss | 新建（走正常 destroy+create） |
+| 场景 | by uiExtensionComponentId | by persistentId | hostWindowId 变更 | 结论 |
+|------|--------------------------|----------------|----------------|------|
+| 首次创建 | miss | miss | — | 新建 |
+| 同 session 再前台（同 caller、同窗口） | hit | hit | 不变 | 正常再前台（不迁移） |
+| **同 Ability moveTo**（caller 不变、窗口换） | hit（componentId 不变） | hit | **变** | **迁移**（step1 hostWindowId 子检查） |
+| **多 Ability moveTo**（caller 变） | miss（componentId 变） | hit（persistentId 不变） | 变 | **迁移**（step2 persistentId fallback） |
+| removeChild+addChild | miss（旧 record 已 destroy 移除） | miss | — | 新建（走正常 destroy+create） |
 
-**决策**：`GetOrCreateExtensionRecord` 匹配顺序改为"uiExtensionComponentId-first → persistentId-fallback"：
-1. `GetAbilityRecordBySessionInfo`（by uiExtensionComponentId）hit → 正常再前台，return
-2. miss → `GetAbilityRecordByPersistentId`（by persistentId）hit → **迁移**：AMS **自主赋值** originalCallerInfo（callerToken 取自 record 旧 sessionInfo、persistentId = 当前、uiExtensionComponentId = 稳定 X），return
+**决策**：`GetOrCreateExtensionRecord` 匹配顺序改为"uiExtensionComponentId-first → persistentId-fallback"，覆盖同 Ability + 多 Ability 两类同进程迁移：
+1. `GetAbilityRecordBySessionInfo`（by uiExtensionComponentId）hit → **同 Ability moveTo 子检查**：若 record 旧 sessionInfo 的 hostWindowId ≠ 当前 sessionInfo 的 hostWindowId（窗口换了、caller 没变）→ 同 Ability moveTo → AMS 自主赋值 originalCallerInfo，return；若 hostWindowId 不变 → 正常再前台，return
+2. miss → `GetAbilityRecordByPersistentId`（by persistentId）hit → **多 Ability moveTo**：caller 变 → componentId 变 → step1 miss、persistentId 不变 → step2 hit。AMS 自主赋值 originalCallerInfo（callerToken 取自 record 旧 sessionInfo、persistentId = 当前、uiExtensionComponentId = 稳定 X），return
 3. miss → preload / create-new
 
 **originalCallerInfo 的来源转移**：从"窗口侧塞"变为"AMS 从 record 旧 sessionInfo 自主赋值"。provider 侧 `HandleSessionCreate` else 分支检查 `originalCallerInfo.callerToken != nullptr` 的逻辑**不变**——只是 originalCallerInfo 的填充责任从 window_manager 转移到 AMS（provider 不关心谁塞的）。

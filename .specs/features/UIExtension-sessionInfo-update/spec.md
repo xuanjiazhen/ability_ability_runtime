@@ -139,8 +139,10 @@ persistentId 迁移时不变，AMS 侧始终按 persistentId 匹配 record，天
 ### P0 — 核心路径
 
 #### AC1: AMS 自主检测迁移更新请求（2026-07-09 ADR-12 修订）
-**WHEN** `StartUIExtensionAbility` 收到的 sessionInfo 中 `uiExtensionComponentId` 在 `extensionRecords_` 中无匹配（caller 变化导致 componentId 变），但 `persistentId` 匹配到已存在的 record
-**THEN** `GetOrCreateExtensionRecord` 按"uiExtensionComponentId-first → persistentId-fallback"顺序命中迁移分支（**无需窗口侧塞 originalCallerInfo 做门禁**，`IsMigrationUpdateRequest` 已移除）
+**WHEN** 同进程 UEC 窗口迁移（moveTo）触发 `StartUIExtensionAbility`：
+- **同 Ability moveTo**（caller 不变、仅 hostWindowId 变）：`GetAbilityRecordBySessionInfo`（by uiExtensionComponentId）hit + hostWindowId 变更 → step1 命中同 Ability 迁移分支
+- **多 Ability moveTo**（caller 变）：uiExtensionComponentId 在 `extensionRecords_` 无匹配（caller 变致 componentId 变）但 persistentId 命中 → step2 persistentId fallback
+**THEN** `GetOrCreateExtensionRecord` 双场景均检测为迁移，AMS 自主赋值 originalCallerInfo（**无需窗口侧塞 originalCallerInfo 做门禁**，`IsMigrationUpdateRequest` 已移除）
 
 #### AC2: 按 persistentId 定位原 extension record
 **WHEN** 迁移更新分支执行 `GetAbilityRecordByPersistentId`

@@ -215,14 +215,32 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecord(const AAFwk::AbilityR
 {
     CHECK_POINTER_AND_RETURN(abilityRequest.sessionInfo, ERR_INVALID_VALUE);
 
-    // 1. Normal match by uiExtensionComponentId (same caller re-foreground — not a migration)
+    // 1. Match by uiExtensionComponentId (same caller — re-foreground OR same-ability moveTo).
+    //    Same-process migration supports single-ability (caller unchanged, only hostWindowId changes)
+    //    and multi-ability (caller changes → componentId miss → step 2). Detect single-ability here:
+    //    componentId matches but hostWindowId changed → window moved to a different parent.
     abilityRecord = GetAbilityRecordBySessionInfo(abilityRequest.sessionInfo);
     if (abilityRecord != nullptr) {
         isLoaded = true;
+        auto recordSessionInfo = abilityRecord->GetSessionInfo();
+        if (recordSessionInfo != nullptr &&
+            recordSessionInfo->hostWindowId != abilityRequest.sessionInfo->hostWindowId) {
+            abilityRequest.sessionInfo->originalCallerInfo.callerToken = recordSessionInfo->callerToken;
+            abilityRequest.sessionInfo->originalCallerInfo.persistentId =
+                abilityRequest.sessionInfo->persistentId;
+            uint64_t stableId = recordSessionInfo->originalCallerInfo.uiExtensionComponentId != 0
+                ? recordSessionInfo->originalCallerInfo.uiExtensionComponentId
+                : recordSessionInfo->uiExtensionComponentId;
+            abilityRequest.sessionInfo->originalCallerInfo.uiExtensionComponentId = stableId;
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "same-ability moveTo detected, persistentId: %{public}d, "
+                "hostWindowId: %{public}u -> %{public}u, stableId: %{public}" PRIu64,
+                abilityRequest.sessionInfo->persistentId,
+                recordSessionInfo->hostWindowId, abilityRequest.sessionInfo->hostWindowId, stableId);
+        }
         return ERR_OK;
     }
 
-    // 2. Migration detection: uiExtensionComponentId changed (caller changed) but persistentId unchanged.
+    // 2. Multi-ability migration: uiExtensionComponentId changed (caller changed) but persistentId unchanged.
     //    AMS self-detects from its own state — originalCallerInfo is SET here by AMS (single source of
     //    truth), not relied upon from window_manager. persistentId matching an active record = migration;
     //    a destroyed record (removeChild+addChild) won't match → falls through to preload/create.
@@ -238,8 +256,8 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecord(const AAFwk::AbilityR
                 ? recordSessionInfo->originalCallerInfo.uiExtensionComponentId
                 : recordSessionInfo->uiExtensionComponentId;
             abilityRequest.sessionInfo->originalCallerInfo.uiExtensionComponentId = stableId;
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "migration detected by persistentId: %{public}d, stableId: "
-                "%{public}" PRIu64, abilityRequest.sessionInfo->persistentId, stableId);
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "cross-ability moveTo detected by persistentId: %{public}d, "
+                "stableId: %{public}" PRIu64, abilityRequest.sessionInfo->persistentId, stableId);
         }
         return ERR_OK;
     }
