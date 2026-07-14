@@ -386,6 +386,12 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::HandleAbilityRecordReused(
         TAG_LOGE(AAFwkTag::ABILITYMGR, "uiAbilityRecord invalid");
         return nullptr;
     }
+    if (abilityRequest.isWebSandBoxClone) { //桌面点击主应用（单实例） 不会走到此分支内，当主应用已打开时，并拉起cli分身时 会走到，但是进程还是主应用的。而打开多实例时，会创建一个新的cli分身进程
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Web sandbox clone reuse record, set appIndex: %{public}d",
+            abilityRequest.abilityInfo.applicationInfo.appIndex);
+        uiAbilityRecord->SetAppIndex(abilityRequest.abilityInfo.applicationInfo.appIndex);
+        uiAbilityRecord->InitSandboxCloneParams(abilityRequest);
+    }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "NewWant:%{public}d", sessionInfo.isNewWant);
     if (sessionInfo.sessionToken != uiAbilityRecord->GetSessionInfo()->sessionToken) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionToken invalid");
@@ -441,10 +447,10 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::HandleAbilityRecordReused(
 UIAbilityRecordPtr UIAbilityLifecycleManager::GenerateAbilityRecord(AbilityRequest &abilityRequest,
     sptr<SessionInfo> sessionInfo, bool &isColdStart)
 {
-    auto iter = sessionAbilityMap_.find(sessionInfo->persistentId);
+    auto iter = sessionAbilityMap_.find(sessionInfo->persistentId); //
     bool isLowMemKill = (iter != sessionAbilityMap_.end()) &&
         (iter->second != nullptr) && (iter->second->IsKillPrecedeStart());
-    if (iter == sessionAbilityMap_.end() || isLowMemKill) {
+    if (iter == sessionAbilityMap_.end() || isLowMemKill) { // 已拉起cli分身，桌面再点击主应用，未走此逻辑，走下面的HandleAbilityRecordReused
         auto uiAbilityRecord = FindRecordFromTmpMap(abilityRequest);
         auto abilityInfo = abilityRequest.abilityInfo;
         if (uiAbilityRecord == nullptr) {
@@ -484,7 +490,7 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::GenerateAbilityRecord(AbilityReque
         }
         return uiAbilityRecord;
     }
-    return HandleAbilityRecordReused(iter->second, *sessionInfo, abilityRequest);
+    return HandleAbilityRecordReused(iter->second, *sessionInfo, abilityRequest); //走此逻辑 是否正常？
 }
 
 UIAbilityRecordPtr UIAbilityLifecycleManager::FindRecordFromTmpMap(
@@ -2570,6 +2576,9 @@ int32_t UIAbilityLifecycleManager::GetPersistentIdByAbilityRequest(const Ability
         }
     }
 
+    if (abilityRequest.isWebSandBoxClone) {
+        reuse = false;
+    }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Not find existed ui ability.");
     return 0;
 }
@@ -2591,6 +2600,10 @@ int32_t UIAbilityLifecycleManager::GetReusedSpecifiedPersistentId(const AbilityR
             TAG_LOGD(AAFwkTag::ABILITYMGR, "SPECIFIED: find.");
             return first;
         }
+    }
+    // See GetPersistentIdByAbilityRequest: a sandbox clone must not reuse another instance's window.
+    if (abilityRequest.isWebSandBoxClone) {
+        reuse = false;
     }
     return 0;
 }
@@ -2618,6 +2631,10 @@ int32_t UIAbilityLifecycleManager::GetReusedStandardPersistentId(const AbilityRe
             persistentId = first;
             sessionTime = second->GetRestartTime();
         }
+    }
+    // See GetPersistentIdByAbilityRequest: a sandbox clone must not reuse another instance's window.
+    if (persistentId == 0 && abilityRequest.isWebSandBoxClone) {
+        reuse = false;
     }
     return persistentId;
 }
@@ -2648,7 +2665,14 @@ bool UIAbilityLifecycleManager::CheckProperties(const UIAbilityRecordPtr &abilit
     CHECK_POINTER_RETURN_BOOL(abilityRecord);
     const auto& abilityInfo = abilityRecord->GetAbilityInfo();
     int32_t appIndex = 0;
-    (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);
+    // Sandbox clone uses SANDBOX_CLONE_INDEX (and removes PARAM_APP_CLONE_INDEX_KEY), which GetAppIndex
+    // does not read, so it would resolve to appIndex 0 and collide with the main app's singleton session.
+    // Use the queried clone appIndex instead, mirroring AbilityRecord::Init.
+    if (abilityRequest.isWebSandBoxClone) {
+        appIndex = abilityRequest.abilityInfo.applicationInfo.appIndex;
+    } else {
+        (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);
+    }
     auto instanceKey = abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY);
     return abilityInfo.launchMode == launchMode && abilityRequest.abilityInfo.name == abilityInfo.name &&
         abilityRequest.abilityInfo.bundleName == abilityInfo.bundleName &&
