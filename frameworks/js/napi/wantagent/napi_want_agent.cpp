@@ -762,9 +762,13 @@ napi_value JsWantAgent::OnTrigger(napi_env env, napi_callback_info info)
         sptr<CompletedDispatcher> completedData;
         WantAgentHelper::TriggerWantAgent(wantAgent, triggerObj, triggerInfo, completedData, nullptr);
     };
+    auto complete = [](napi_env env, NapiAsyncTask &task, int32_t status) {
+        task.Resolve(env, CreateJsNull(env));
+    };
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsWantAgent::OnTrigger",
-        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), nullptr, &result));
+        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute),
+            std::move(complete), &result));
 
     return CreateJsNull(env);
 }
@@ -1228,9 +1232,13 @@ napi_value JsWantAgent::OnNapiTrigger(napi_env env, napi_callback_info info)
         sptr<CompletedDispatcher> completedData;
         WantAgentHelper::TriggerWantAgent(wantAgent, triggerObj, triggerInfo, completedData, nullptr);
     };
+    auto complete = [](napi_env env, NapiAsyncTask &task, int32_t status) {
+        task.Resolve(env, CreateJsNull(env));
+    };
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsWantAgent::OnNapiTrigger",
-        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), nullptr, &result));
+        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute),
+            std::move(complete), &result));
 
     return CreateJsNull(env);
 }
@@ -1323,6 +1331,10 @@ napi_value JsWantAgent::CreateJsCompletedData(napi_env env, const CompletedDispa
     }
 
     napi_value jsWantAgent = OHOS::AppExecFwk::WrapWantAgent(env, pWantAgent, nullptr);
+    if (jsWantAgent == nullptr) {
+        delete pWantAgent;
+        pWantAgent = nullptr;
+    }
     napi_set_named_property(env, objValue, "info", jsWantAgent);
     napi_set_named_property(env, objValue, "want", CreateJsWant(env, data.GetWant()));
     napi_set_named_property(env, objValue, "finalCode", CreateJsValue(env, data.GetResultCode()));
