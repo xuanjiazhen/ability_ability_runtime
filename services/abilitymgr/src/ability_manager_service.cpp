@@ -1240,6 +1240,10 @@ int AbilityManagerService::StartAbilityWrap(const StartAbilityWrapParam &startAb
         return result;
     }
 
+    if (startAbilityWrapParam.isAppCloneSelector) {
+        return StartAbilityForAppCloneSelector(const_cast<StartAbilityWrapParam &>(startAbilityWrapParam));
+    }
+
     return StartAbilityInner(const_cast<StartAbilityWrapParam &>(startAbilityWrapParam));
 }
 
@@ -1830,6 +1834,222 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     ReportEventToRSS(abilityInfo, param.callerToken);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "start ability, name is %{public}s", abilityInfo.name.c_str());
     result = missionListManager->StartAbility(abilityRequest);
+    AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "missionListManager StartAbility failed");
+    return result;
+}
+
+int AbilityManagerService::StartAbilityForAppCloneSelector(StartAbilityWrapParam &param)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+
+    EventInfo eventInfo = BuildEventInfo(param.want, param.userId);
+    int32_t appCloneIndex = DEFAULT_INVALID_VALUE;
+
+    // Step 1: Validate appCloneIndex parameter
+    int ret = ValidateAppCloneIndex(param.want, appCloneIndex, eventInfo);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    int32_t validUserId = GetValidUserId(param.userId);
+
+    // Step 2: Initialize AbilityRequest with user-selected appCloneIndex
+    AbilityRequest abilityRequest;
+    AppExecFwk::AbilityInfo abilityInfo;
+    ret = InitializeAppCloneRequest(param, appCloneIndex, abilityRequest, abilityInfo, validUserId);
+    if (ret != ERR_OK) {
+        AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ret, "InitializeAppCloneRequest failed");
+        return ret;
+    }
+
+    // Step 3: Check ability type and permissions
+    ret = CheckAbilityTypeAndPermission(param, appCloneIndex, abilityInfo, abilityRequest, eventInfo);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    // Step 4: Process launch reason message and ability controller check
+    ret = ProcessLaunchReasonAndController(param, abilityRequest, abilityInfo, eventInfo);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    // Step 5: Execute after-check interceptors
+    ret = ExecuteAfterCheckInterceptors(param, abilityRequest, abilityInfo, appCloneIndex, eventInfo);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    // Step 6: Preprocess request parameters (BackToCallerFlag, specifyTokenId)
+    PreprocessRequestParams(param, abilityRequest);
+
+    // Step 7: Execute ability start (SceneBoard or MissionList path)
+    return ExecuteAbilityStart(abilityRequest, abilityInfo, abilityRequest.userId, param.isGamePrelaunch, eventInfo);
+}
+
+// Helper methods for StartAbilityForAppCloneSelector refactoring
+int32_t AbilityManagerService::ValidateAppCloneIndex(Want &want, int32_t &appCloneIndex, EventInfo &eventInfo)
+{
+    int32_t appCloneIndexFromWant = want.GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, DEFAULT_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ValidateAppCloneIndex: bundle=%{public}s, ability=%{public}s, appCloneIndex=%{public}d",
+        want.GetBundle().c_str(), want.GetElement().GetAbilityName().c_str(), appCloneIndexFromWant);
+
+    if (appCloneIndexFromWant == DEFAULT_INVALID_VALUE) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "appCloneIndex not found in want, invalid request");
+        AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_APP_CLONE_INDEX_INVALID, "appCloneIndex missing");
+        return ERR_APP_CLONE_INDEX_INVALID;
+    }
+
+    appCloneIndex = appCloneIndexFromWant;
+    return ERR_OK;
+}
+
+int32_t AbilityManagerService::InitializeAppCloneRequest(StartAbilityWrapParam &param, int32_t appCloneIndex,
+    AbilityRequest &abilityRequest, AppExecFwk::AbilityInfo &abilityInfo, int32_t validUserId)
+{
+    // Use StartAbilityInfoWrap for RAII protection
+    StartAbilityInfoWrap threadLocalInfo(param.want, validUserId, appCloneIndex, param.callerToken);
+
+    // Generate AbilityRequest with user-selected appCloneIndex
+    int result = GenerateAbilityRequest(param.want, param.requestCode, abilityRequest, param.callerToken, validUserId);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GenerateAbilityRequest failed: %{public}d", result);
+        return result;
+    }
+
+    abilityInfo = abilityRequest.abilityInfo;
+    abilityRequest.userId = validUserId;
+    abilityRequest.specifiedFullTokenId = param.specifiedFullTokenId;
+    abilityRequest.requestCallback = param.requestCallback;
+
+    return ERR_OK;
+}
+
+int32_t AbilityManagerService::CheckAbilityTypeAndPermission(StartAbilityWrapParam &param, int32_t appCloneIndex,
+    AppExecFwk::AbilityInfo &abilityInfo, AbilityRequest &abilityRequest, EventInfo &eventInfo)
+{
+    // Only allow UIAbility type
+    if (abilityInfo.type != AppExecFwk::AbilityType::PAGE) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilityForAppCloneSelector only supports UIAbility, type=%{public}d",
+            abilityInfo.type);
+        AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_VALUE, "Only UIAbility supported");
+        return ERR_INVALID_VALUE;
+    }
+
+    // Check multi-instance and app clone permission (based on user-selected appCloneIndex)
+    if (!param.isForegroundToRestartApp) {
+        auto checkRet = AbilityPermissionUtil::GetInstance().CheckMultiInstanceAndAppClone(param.want,
+            abilityRequest.userId, appCloneIndex, param.callerToken, param.isBySCB);
+        if (checkRet != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "CheckMultiInstanceAndAppClone failed: %{public}d", checkRet);
+            AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, checkRet, "CheckMultiInstanceAndAppClone failed");
+            return checkRet;
+        }
+    }
+
+    return ERR_OK;
+}
+
+int32_t AbilityManagerService::ProcessLaunchReasonAndController(StartAbilityWrapParam &param,
+    AbilityRequest &abilityRequest, AppExecFwk::AbilityInfo &abilityInfo, EventInfo &eventInfo)
+{
+    // Use callerTokenId from param.callerToken instead of IPCSkeleton to get correct caller info
+    // after app clone selector forwarding
+    if (param.callerToken == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callerToken is nullptr");
+        AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_VALUE, "callerToken is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+
+    auto callerRecord = Token::GetAbilityRecordByToken(param.callerToken);
+    if (callerRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get callerRecord from callerToken");
+        AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_VALUE, "Get callerRecord failed");
+        return ERR_INVALID_VALUE;
+    }
+
+    uint32_t callerTokenId = callerRecord->GetApplicationInfo().accessTokenId;
+
+    // Remove unauthorized launch reason message
+    RemoveUnauthorizedLaunchReasonMessage(param.want, abilityRequest, callerTokenId);
+
+    // Check ability controller
+    if (!IsAbilityControllerStart(param.want, abilityInfo.bundleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "IsAbilityControllerStart failed: %{public}s", abilityInfo.bundleName.c_str());
+        AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_WOULD_BLOCK, "IsAbilityControllerStart failed");
+        return ERR_WOULD_BLOCK;
+    }
+
+    return ERR_OK;
+}
+
+int32_t AbilityManagerService::ExecuteAfterCheckInterceptors(StartAbilityWrapParam &param,
+    AbilityRequest &abilityRequest, AppExecFwk::AbilityInfo &abilityInfo, int32_t appCloneIndex,
+    EventInfo &eventInfo)
+{
+    // After-check interceptors using user-selected appIndex
+    Want newWant = abilityRequest.want;
+    AbilityInterceptorParam afterCheckParam = AbilityInterceptorParam(newWant, param.requestCode, 
+        abilityRequest.userId, true, param.callerToken, std::make_shared<AppExecFwk::AbilityInfo>(abilityInfo),
+        param.isStartAsCaller, appCloneIndex);
+    afterCheckParam.hostBundleName = param.hostBundleName;
+
+    int result = afterCheckExecuter_ == nullptr ? ERR_NULL_AFTER_CHECK_EXECUTER :
+        afterCheckExecuter_->DoProcess(afterCheckParam);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "afterCheckExecuter_ failed: %{public}d", result);
+        AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "afterCheckExecuter_ failed");
+        return result;
+    }
+
+    return ERR_OK;
+}
+
+void AbilityManagerService::PreprocessRequestParams(StartAbilityWrapParam &param,
+    AbilityRequest &abilityRequest)
+{
+    // Update BackToCallerFlag
+    auto backFlag = StartAbilityUtils::ermsSupportBackToCallerFlag;
+    UpdateCallerInfoUtil::GetInstance().UpdateBackToCallerFlag(param.callerToken, abilityRequest.want,
+        param.requestCode, backFlag);
+
+    // Handle specifyTokenId
+    abilityRequest.want.RemoveParam(SPECIFY_TOKEN_ID);
+    if (param.specifyTokenId > 0) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "set specifyTokenId: %{public}d", param.specifyTokenId);
+        abilityRequest.want.SetParam(SPECIFY_TOKEN_ID, static_cast<int32_t>(param.specifyTokenId));
+        abilityRequest.specifyTokenId = param.specifyTokenId;
+    }
+    abilityRequest.want.RemoveParam(PARAM_SPECIFIED_PROCESS_FLAG);
+}
+
+int32_t AbilityManagerService::ExecuteAbilityStart(AbilityRequest &abilityRequest,
+    AppExecFwk::AbilityInfo &abilityInfo, int32_t validUserId, bool isGamePrelaunch, EventInfo &eventInfo)
+{
+    int result = ERR_OK;
+
+    // SceneBoard enabled path
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        AbilityRequest mutableRequest = abilityRequest;
+        mutableRequest.want.SetParam(ServerConstant::IS_CALL_BY_SCB, false);
+        mutableRequest.want.SetParam(AbilityRuntime::GlobalConstant::GAME_PRELAUNCH, isGamePrelaunch);
+        auto uiAbilityManager = GetUIAbilityManagerByUserId(validUserId);
+        CHECK_POINTER_AND_RETURN_LOG(uiAbilityManager, ERR_INVALID_VALUE, "uiAbilityManager is null");
+        result = uiAbilityManager->NotifySCBToStartUIAbility(mutableRequest);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "ExecuteAbilityStart completed (SCB), name=%{public}s",
+            abilityInfo.name.c_str());
+        return AbilityErrorUtil::ConvertToOriginErrorCode(result);
+    }
+
+    // Mission list manager path (non-SceneBoard)
+    auto missionListManager = GetMissionListManagerByUserId(validUserId);
+    CHECK_POINTER_AND_RETURN_LOG(missionListManager, ERR_INVALID_VALUE, "missionListManager is null");
+
+    ReportAbilityStartInfoToRSS(abilityInfo);
+    ReportEventToRSS(abilityInfo, abilityRequest.callerToken);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ExecuteAbilityStart completed successfully, name=%{public}s",
+        abilityInfo.name.c_str());
+    result = missionListManager->StartAbility(const_cast<AbilityRequest&>(abilityRequest));
     AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "missionListManager StartAbility failed");
     return result;
 }
