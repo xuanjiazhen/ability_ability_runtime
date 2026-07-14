@@ -91,7 +91,7 @@ napi_status CreateNapiEnv(napi_env *env)
         return errCode;
     }
     *env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
-    if (env == nullptr) {
+    if (*env == nullptr) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "null env");
         return napi_status::napi_generic_failure;
     }
@@ -265,6 +265,7 @@ napi_status JsRuntimeLite::AddEnv(napi_env env, std::shared_ptr<JsEnv::JsEnviron
         envMap_[env] = jsEnv;
         return napi_status::napi_ok;
     }
+    threadIds_.erase(threadId);
     return napi_status::napi_generic_failure;
 }
 
@@ -273,9 +274,9 @@ napi_status JsRuntimeLite::RemoveJsEnv(napi_env env)
     std::lock_guard<std::mutex> lock(envMutex_);
     pid_t threadId = gettid();
     TAG_LOGD(AAFwkTag::JSRUNTIME, "remove threadId %{public}d", threadId);
-    threadIds_.erase(threadId);
     auto it = envMap_.find(env);
     if (it != envMap_.end()) {
+        threadIds_.erase(threadId);
         it->second.reset();
         it->second = nullptr;
         envMap_.erase(env);

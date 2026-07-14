@@ -1036,10 +1036,7 @@ void JsRuntime::InitSourceMap(const std::string hqfFilePath)
 void JsRuntime::Deinitialize()
 {
     TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
-    for (auto it = modules_.begin(); it != modules_.end(); it = modules_.erase(it)) {
-        delete it->second;
-        it->second = nullptr;
-    }
+    modules_.clear();
 
     methodRequireNapiRef_.reset();
 
@@ -1108,6 +1105,22 @@ napi_value JsRuntime::LoadJsModule(const std::string& path, const std::string& h
     return ArkNativeEngine::ArkValueToNapiValue(env, exportObj);
 }
 
+static bool MakeModuleFilePath(const std::string& codePath, const std::string& modulePath,
+    const std::string& hapPath, std::string& fileName)
+{
+    if (!hapPath.empty()) {
+        fileName.append(codePath).append(Constants::FILE_SEPARATOR).append(modulePath);
+        std::regex pattern(std::string(Constants::FILE_DOT) + std::string(Constants::FILE_SEPARATOR));
+        fileName = std::regex_replace(fileName, pattern, "");
+        return true;
+    }
+    if (!MakeFilePath(codePath, modulePath, fileName)) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "make module file path: %{private}s failed", modulePath.c_str());
+        return false;
+    }
+    return true;
+}
+
 std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& moduleName, const std::string& modulePath,
     const std::string& hapPath, bool esmodule, bool useCommonChunk, const std::string& srcEntrance)
 {
@@ -1124,29 +1137,20 @@ std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& module
 
     HandleScope handleScope(*this);
 
-    std::string path = moduleName;
-    auto pos = path.find("::");
+    auto pos = moduleName.find("::");
     if (pos != std::string::npos) {
-        path.erase(pos, path.size() - pos);
-        moduleName_ = path;
+        moduleName_ = moduleName.substr(0, pos);
     }
 
     napi_value classValue = nullptr;
 
     auto it = modules_.find(modulePath);
-    if (it != modules_.end()) {
+    if (it != modules_.end() && it->second != nullptr) {
         classValue = it->second->GetNapiValue();
     } else {
         std::string fileName;
-        if (!hapPath.empty()) {
-            fileName.append(codePath_).append(Constants::FILE_SEPARATOR).append(modulePath);
-            std::regex pattern(std::string(Constants::FILE_DOT) + std::string(Constants::FILE_SEPARATOR));
-            fileName = std::regex_replace(fileName, pattern, "");
-        } else {
-            if (!MakeFilePath(codePath_, modulePath, fileName)) {
-                TAG_LOGE(AAFwkTag::JSRUNTIME, "make module file path: %{private}s failed", modulePath.c_str());
-                return std::unique_ptr<NativeReference>();
-            }
+        if (!MakeModuleFilePath(codePath_, modulePath, hapPath, fileName)) {
+            return std::unique_ptr<NativeReference>();
         }
         classValue = esmodule ? LoadJsModule(fileName, hapPath, srcEntrance)
             : LoadJsBundle(fileName, hapPath, useCommonChunk);
@@ -1155,8 +1159,13 @@ std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& module
         }
 
         napi_ref tmpRef = nullptr;
-        napi_create_reference(env, classValue, 1, &tmpRef);
-        modules_.emplace(modulePath, reinterpret_cast<NativeReference*>(tmpRef));
+        napi_status status = napi_create_reference(env, classValue, 1, &tmpRef);
+        if (status != napi_ok || tmpRef == nullptr) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "create reference failed");
+            return std::unique_ptr<NativeReference>();
+        }
+        modules_.insert_or_assign(modulePath,
+            std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(tmpRef)));
     }
 
     napi_value instanceValue = nullptr;
@@ -1179,6 +1188,11 @@ std::unique_ptr<NativeReference> JsRuntime::LoadSystemModule(
     CHECK_POINTER_AND_RETURN(env, std::unique_ptr<NativeReference>());
 
     HandleScope handleScope(*this);
+
+    if (methodRequireNapiRef_ == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null methodRequireNapiRef_");
+        return std::unique_ptr<NativeReference>();
+    }
 
     napi_value className = nullptr;
     napi_create_string_utf8(env, moduleName.c_str(), moduleName.length(), &className);
@@ -1554,6 +1568,10 @@ void JsRuntime::PreloadSystemModule(const std::string& moduleName)
     HandleScope handleScope(*this);
     auto env = GetNapiEnv();
     CHECK_POINTER(env);
+    if (methodRequireNapiRef_ == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null methodRequireNapiRef_");
+        return;
+    }
     napi_value className = nullptr;
     napi_create_string_utf8(env, moduleName.c_str(), moduleName.length(), &className);
     napi_value globalObj = nullptr;
