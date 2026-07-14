@@ -112,6 +112,13 @@ std::string GetFailureReason(int32_t errorCode);
  */
 std::string FormatWantParamsToString(const AAFwk::WantParams& args);
 
+/**
+ * @brief Format WantParams to JSON string (supports Object/Array)
+ * @param args WantParams to format
+ * @return JSON formatted string
+ */
+std::string FormatWantParamsToJson(const AAFwk::WantParams& args);
+
 } // namespace CliTool
 } // namespace OHOS
 

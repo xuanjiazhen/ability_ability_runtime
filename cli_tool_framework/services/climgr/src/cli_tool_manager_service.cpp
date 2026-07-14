@@ -853,8 +853,9 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
     const sptr<ICliToolManagerScheduler> &scheduler)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecTool called: toolName=%{public}s, subcommand=%{public}s",
-        param.toolName.c_str(), param.subcommand.c_str());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecTool called: toolName=%{public}s, subcommand=%{public}s, args=%{public}s",
+        param.toolName.c_str(), param.subcommand.c_str(),
+        FormatWantParamsToJson(param.args).c_str());
 
     std::string bundleName;
     auto tokenId = IPCSkeleton::GetCallingTokenID();

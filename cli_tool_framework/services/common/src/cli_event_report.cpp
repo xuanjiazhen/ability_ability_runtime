@@ -17,9 +17,11 @@
 
 #include "bool_wrapper.h"
 #include "cli_error_code.h"
+#include "float_wrapper.h"
 #include "hilog_tag_wrapper.h"
 #include "hisysevent_report.h"
 #include "int_wrapper.h"
+#include "long_wrapper.h"
 #include "string_wrapper.h"
 #include "want_params.h"
 
@@ -167,6 +169,134 @@ std::string FormatWantParamsToString(const AAFwk::WantParams& args)
         result += " ";
     }
     return result;
+}
+
+namespace {
+// Helper functions for JSON serialization
+static std::string FormatValueToJson(const sptr<AAFwk::IInterface> &value);
+static std::string FormatWantParamsToJsonImpl(const AAFwk::WantParams& args);
+
+static std::string FormatValueToJson(const sptr<AAFwk::IInterface> &value)
+{
+    if (value == nullptr) {
+        return "null";
+    }
+
+    // String
+    if (auto strObj = AAFwk::IString::Query(value)) {
+        std::string strValue;
+        if (strObj->GetString(strValue) == ERR_OK) {
+            return "\"" + strValue + "\"";
+        }
+        return "\"\"";
+    }
+
+    // Boolean
+    if (auto boolObj = AAFwk::IBoolean::Query(value)) {
+        bool boolValue = false;
+        if (boolObj->GetValue(boolValue) == ERR_OK) {
+            return boolValue ? "true" : "false";
+        }
+        return "false";
+    }
+
+    // Integer
+    if (auto intObj = AAFwk::IInteger::Query(value)) {
+        int intValue = 0;
+        if (intObj->GetValue(intValue) == ERR_OK) {
+            return std::to_string(intValue);
+        }
+        return "0";
+    }
+
+    // Long
+    if (auto longObj = AAFwk::ILong::Query(value)) {
+        long longValue = 0;
+        if (longObj->GetValue(longValue) == ERR_OK) {
+            return std::to_string(longValue);
+        }
+        return "0";
+    }
+
+    // Float
+    if (auto floatObj = AAFwk::IFloat::Query(value)) {
+        float floatValue = 0.0f;
+        if (floatObj->GetValue(floatValue) == ERR_OK) {
+            return std::to_string(floatValue);
+        }
+        return "0.0";
+    }
+
+    // Double
+    if (auto doubleObj = AAFwk::IDouble::Query(value)) {
+        double doubleValue = 0.0;
+        if (doubleObj->GetValue(doubleValue) == ERR_OK) {
+            return std::to_string(doubleValue);
+        }
+        return "0.0";
+    }
+
+    // Array
+    if (auto arrayObj = AAFwk::IArray::Query(value)) {
+        long arrayLength = 0;
+        if (arrayObj->GetLength(arrayLength) != ERR_OK) {
+            return "[]";
+        }
+
+        std::string result = "[";
+        for (long i = 0; i < arrayLength; ++i) {
+            sptr<AAFwk::IInterface> elementValue;
+            if (arrayObj->Get(i, elementValue) != ERR_OK) {
+                continue;
+            }
+            if (i > 0) result += ", ";
+            result += FormatValueToJson(elementValue);
+        }
+        result += "]";
+        return result;
+    }
+
+    // Object (nested WantParams)
+    if (auto wantParams = AAFwk::IWantParams::Query(value)) {
+        AAFwk::WantParams nestedParams;
+        if (wantParams->GetValue(nestedParams) != ERR_OK) {
+            return "{}";
+        }
+        return FormatWantParamsToJsonImpl(nestedParams);
+    }
+
+    return "\"<unknown>\"";
+}
+
+static std::string FormatWantParamsToJsonImpl(const AAFwk::WantParams& args)
+{
+    std::string result = "{";
+
+    auto &params = args.GetParams();
+    bool first = true;
+
+    for (const auto &[key, value] : params) {
+        if (value == nullptr) {
+            continue;
+        }
+
+        if (!first) {
+            result += ", ";
+        }
+        first = false;
+
+        result += "\"" + key + "\": ";
+        result += FormatValueToJson(value);
+    }
+
+    result += "}";
+    return result;
+}
+} // anonymous namespace
+
+std::string FormatWantParamsToJson(const AAFwk::WantParams& args)
+{
+    return FormatWantParamsToJsonImpl(args);
 }
 
 } // namespace CliTool
