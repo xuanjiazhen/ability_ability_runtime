@@ -17,6 +17,13 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 module_output_path = "ability_runtime/ability_runtime/clitool"
 
 ohos_unittest("cli_event_report_test") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   sources = [
@@ -54,4 +61,4 @@ ohos_unittest("cli_event_report_test") {
 group("unittest") {
   testonly = true
   deps = [ ":cli_event_report_test" ]
-}
+}

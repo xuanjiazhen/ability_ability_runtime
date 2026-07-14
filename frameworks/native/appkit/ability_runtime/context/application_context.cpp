@@ -1469,9 +1469,9 @@ void ApplicationContext::RegisterProcessSecurityExit(AppProcessExitCallback appP
     appProcessExitCallback_ = appProcessExitCallback;
 }
 
-void ApplicationContext::RegisterAppGetSpecifiedRuntime(AppGetSpecifiedRuntimeCallback appGetSpecifiedRuntimeCallback)
+void ApplicationContext::RegisterGetMainNapiEnvCallback(AppGetMainNapiEnvCallback getMainNapiEnvCallback)
 {
-    appGetSpecifiedRuntimeCallback_ = appGetSpecifiedRuntimeCallback;
+    getMainNapiEnvCallback_ = getMainNapiEnvCallback;
 }
 
 #ifdef SUPPORT_GRAPHICS
@@ -1555,23 +1555,11 @@ void ApplicationContext::ProcessSecurityExit(const AAFwk::ExitReason &exitReason
 
 napi_env ApplicationContext::GetMainNapiEnv() const
 {
-    if (appGetSpecifiedRuntimeCallback_ == nullptr) {
+    if (getMainNapiEnvCallback_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null callback");
         return nullptr;
     }
-    const std::unique_ptr<Runtime> &runtime = appGetSpecifiedRuntimeCallback_(
-        AppExecFwk::Constants::ARKTS_MODE_DYNAMIC);
-    if (runtime == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
-        return nullptr;
-    }
-
-    if (runtime->GetLanguage() != Runtime::Language::JS) {
-        TAG_LOGD(AAFwkTag::APPKIT, "not js runtime");
-        return nullptr;
-    }
-    napi_env env = static_cast<JsRuntime&>(*runtime).GetNapiEnv();
-    return env;
+    return getMainNapiEnvCallback_();
 }
 
 int32_t ApplicationContext::GetImageProcessType() const
