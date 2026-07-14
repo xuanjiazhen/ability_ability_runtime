@@ -84,7 +84,7 @@ bool ScreenUnlockInterceptor::GetTargetAbilityInfo(const AbilityInterceptorParam
     }
 
     if (param.fromConnect) {
-        std::string uri = param.want.GetUri().ToString();
+        std::string uri = param.want.GetUriRef().ToString();
         bool isFileUri = (param.want.GetUri().GetScheme() == "file");
         if (!uri.empty() && !isFileUri) {
             return QueryTargetAbilityInfoByUri(param, targetAbilityInfo);
@@ -95,7 +95,7 @@ bool ScreenUnlockInterceptor::GetTargetAbilityInfo(const AbilityInterceptorParam
     if (targetAbilityInfo.applicationInfo.name.empty() ||
         targetAbilityInfo.applicationInfo.bundleName.empty()) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Cannot find targetAbilityInfo, element uri: %{public}s/%{public}s",
-            param.want.GetElement().GetBundleName().c_str(), param.want.GetElement().GetAbilityName().c_str());
+            param.want.GetBundleNameRef().c_str(), param.want.GetAbilityNameRef().c_str());
         return false;
     }
     return true;
@@ -110,7 +110,7 @@ bool ScreenUnlockInterceptor::QueryTargetAbilityInfoByUri(const AbilityIntercept
         return false;
     }
 
-    std::string uri = param.want.GetUri().ToString();
+    std::string uri = param.want.GetUriRef().ToString();
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Query by uri: %{private}s, userId: %{public}d", uri.c_str(), param.userId);
     AppExecFwk::ExtensionAbilityInfo extensionInfo;
     bool queryResult = IN_PROCESS_CALL(bundleMgrHelper->QueryExtensionAbilityInfoByUriOptimal(

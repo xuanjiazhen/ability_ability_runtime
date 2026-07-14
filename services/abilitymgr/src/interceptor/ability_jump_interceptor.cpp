@@ -47,12 +47,12 @@ ErrCode AbilityJumpInterceptor::DoProcess(const AbilityInterceptorParam &param)
     CHECK_POINTER_AND_RETURN(bundleMgrHelper, ERR_OK);
     AppExecFwk::AbilityInfo targetAbilityInfo;
     if (StartAbilityUtils::startAbilityInfo != nullptr &&
-        StartAbilityUtils::startAbilityInfo->abilityInfo.bundleName == param.want.GetBundle() &&
-        StartAbilityUtils::startAbilityInfo->abilityInfo.name == param.want.GetElement().GetAbilityName()) {
+        StartAbilityUtils::startAbilityInfo->abilityInfo.bundleName == param.want.GetBundleNameRef() &&
+        StartAbilityUtils::startAbilityInfo->abilityInfo.name == param.want.GetAbilityNameRef()) {
         targetAbilityInfo = StartAbilityUtils::startAbilityInfo->abilityInfo;
     } else {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "abilityName: %{public}s, userId: %{public}d",
-            param.want.GetElement().GetAbilityName().c_str(), param.userId);
+            param.want.GetAbilityNameRef().c_str(), param.userId);
         IN_PROCESS_CALL_WITHOUT_RET(bundleMgrHelper->QueryAbilityInfo(param.want,
             AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, param.userId, targetAbilityInfo));
     }
@@ -91,7 +91,7 @@ bool AbilityJumpInterceptor::CheckControl(std::shared_ptr<AppExecFwk::BundleMgrH
     int callerUid = IPCSkeleton::GetCallingUid();
     std::string callerBundleName;
     auto result = IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callerUid, callerBundleName));
-    std::string targetBundleName = want.GetBundle();
+    std::string targetBundleName = want.GetBundleNameRef();
     controlRule.callerPkg = callerBundleName;
     controlRule.targetPkg = targetBundleName;
     if (result != ERR_OK) {
