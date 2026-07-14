@@ -214,6 +214,11 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecord(const AAFwk::AbilityR
     const std::string &hostBundleName, std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord, bool &isLoaded)
 {
     CHECK_POINTER_AND_RETURN(abilityRequest.sessionInfo, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "GetOrCreateExtensionRecord: persistentId=%{public}d, "
+        "uiExtensionComponentId=%{public}" PRIu64 ", hostWindowId=%{public}u",
+        abilityRequest.sessionInfo->persistentId,
+        abilityRequest.sessionInfo->uiExtensionComponentId,
+        abilityRequest.sessionInfo->hostWindowId);
 
     // 1. Match by uiExtensionComponentId (same caller — re-foreground OR same-ability moveTo).
     //    Same-process migration supports single-ability (caller unchanged, only hostWindowId changes)
@@ -223,6 +228,11 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecord(const AAFwk::AbilityR
     if (abilityRecord != nullptr) {
         isLoaded = true;
         auto recordSessionInfo = abilityRecord->GetSessionInfo();
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "step1 hit by componentId, record hostWindowId=%{public}u, "
+            "incoming=%{public}u, recordSessionInfo null=%{public}d",
+            (recordSessionInfo ? recordSessionInfo->hostWindowId : 0),
+            abilityRequest.sessionInfo->hostWindowId,
+            (recordSessionInfo == nullptr));
         if (recordSessionInfo != nullptr &&
             recordSessionInfo->hostWindowId != abilityRequest.sessionInfo->hostWindowId) {
             abilityRequest.sessionInfo->originalCallerInfo.callerToken = recordSessionInfo->callerToken;
@@ -263,6 +273,7 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecord(const AAFwk::AbilityR
     }
 
     // persistentId not found (record destroyed / genuinely new) → fall through to preload/create
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "no migration match (step1 miss + step2 miss), will preload/create");
 
     // Check AGENT_UI launch limit before creating new record
     bool isAgentUI = AAFwk::UIExtensionWrapper::IsAgentUIExtension(abilityRequest.abilityInfo.extensionAbilityType);
