@@ -386,6 +386,12 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::HandleAbilityRecordReused(
         TAG_LOGE(AAFwkTag::ABILITYMGR, "uiAbilityRecord invalid");
         return nullptr;
     }
+    if (abilityRequest.isWebSandBoxClone) { //桌面点击主应用（单实例） 不会走到此分支内，当主应用已打开时，并拉起cli分身时 会走到，但是进程还是主应用的。而打开多实例时，会创建一个新的cli分身进程
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Web sandbox clone reuse record, set appIndex: %{public}d",
+            abilityRequest.abilityInfo.applicationInfo.appIndex);
+        uiAbilityRecord->SetAppIndex(abilityRequest.abilityInfo.applicationInfo.appIndex);
+        uiAbilityRecord->InitSandboxCloneParams(abilityRequest);
+    }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "NewWant:%{public}d", sessionInfo.isNewWant);
     if (sessionInfo.sessionToken != uiAbilityRecord->GetSessionInfo()->sessionToken) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionToken invalid");
@@ -441,10 +447,10 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::HandleAbilityRecordReused(
 UIAbilityRecordPtr UIAbilityLifecycleManager::GenerateAbilityRecord(AbilityRequest &abilityRequest,
     sptr<SessionInfo> sessionInfo, bool &isColdStart)
 {
-    auto iter = sessionAbilityMap_.find(sessionInfo->persistentId);
+    auto iter = sessionAbilityMap_.find(sessionInfo->persistentId); //
     bool isLowMemKill = (iter != sessionAbilityMap_.end()) &&
         (iter->second != nullptr) && (iter->second->IsKillPrecedeStart());
-    if (iter == sessionAbilityMap_.end() || isLowMemKill) {
+    if (iter == sessionAbilityMap_.end() || isLowMemKill) { // 已拉起cli分身，桌面再点击主应用，未走此逻辑，走下面的HandleAbilityRecordReused
         auto uiAbilityRecord = FindRecordFromTmpMap(abilityRequest);
         auto abilityInfo = abilityRequest.abilityInfo;
         if (uiAbilityRecord == nullptr) {
@@ -484,7 +490,7 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::GenerateAbilityRecord(AbilityReque
         }
         return uiAbilityRecord;
     }
-    return HandleAbilityRecordReused(iter->second, *sessionInfo, abilityRequest);
+    return HandleAbilityRecordReused(iter->second, *sessionInfo, abilityRequest); //走此逻辑 是否正常？
 }
 
 UIAbilityRecordPtr UIAbilityLifecycleManager::FindRecordFromTmpMap(
@@ -2545,6 +2551,12 @@ void UIAbilityLifecycleManager::CompleteTerminate(const UIAbilityRecordPtr &abil
 int32_t UIAbilityLifecycleManager::GetPersistentIdByAbilityRequest(const AbilityRequest &abilityRequest,
     bool &reuse) const
 {
+    // reuse must be true only when a reusable session is actually found. A sandbox clone
+    // (appIndex 2000) and the main app (appIndex 0) are different instances, so CheckProperties
+    // never matches one against the other. Previously reuse was set true before the search, which
+    // told SCB it could reuse the other instance's window (persistentId 0 + reuse true) and kept
+    // the launch in the wrong process. Default false here so SCB creates a fresh session on no-match.
+    reuse = false;
     if (abilityRequest.collaboratorType != CollaboratorType::DEFAULT_TYPE) {
         return GetReusedCollaboratorPersistentId(abilityRequest, reuse);
     }
@@ -2562,10 +2574,10 @@ int32_t UIAbilityLifecycleManager::GetPersistentIdByAbilityRequest(const Ability
         return 0;
     }
 
-    reuse = true;
     for (const auto& [first, second] : sessionAbilityMap_) {
         if (CheckProperties(second, abilityRequest, AppExecFwk::LaunchMode::SINGLETON)) {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "SINGLETON: find.");
+            reuse = true;
             return first;
         }
     }
@@ -2583,12 +2595,12 @@ int32_t UIAbilityLifecycleManager::GetReusedSpecifiedPersistentId(const AbilityR
         return 0;
     }
 
-    reuse = true;
     // specified ability name and bundle name and module name and appIndex format is same as singleton.
     for (const auto& [first, second] : sessionAbilityMap_) {
         if (second->GetSpecifiedFlag() == abilityRequest.specifiedFlag &&
             CheckProperties(second, abilityRequest, AppExecFwk::LaunchMode::SPECIFIED)) {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "SPECIFIED: find.");
+            reuse = true;
             return first;
         }
     }
@@ -2609,7 +2621,6 @@ int32_t UIAbilityLifecycleManager::GetReusedStandardPersistentId(const AbilityRe
         return 0;
     }
 
-    reuse = true;
     int64_t sessionTime = 0;
     int32_t persistentId = 0;
     for (const auto& [first, second] : sessionAbilityMap_) {
@@ -2618,6 +2629,9 @@ int32_t UIAbilityLifecycleManager::GetReusedStandardPersistentId(const AbilityRe
             persistentId = first;
             sessionTime = second->GetRestartTime();
         }
+    }
+    if (persistentId != 0) {
+        reuse = true;
     }
     return persistentId;
 }
@@ -2648,7 +2662,14 @@ bool UIAbilityLifecycleManager::CheckProperties(const UIAbilityRecordPtr &abilit
     CHECK_POINTER_RETURN_BOOL(abilityRecord);
     const auto& abilityInfo = abilityRecord->GetAbilityInfo();
     int32_t appIndex = 0;
-    (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);
+    // Sandbox clone uses SANDBOX_CLONE_INDEX (and removes PARAM_APP_CLONE_INDEX_KEY), which GetAppIndex
+    // does not read, so it would resolve to appIndex 0 and collide with the main app's singleton session.
+    // Use the queried clone appIndex instead, mirroring AbilityRecord::Init.
+    if (abilityRequest.isWebSandBoxClone) {
+        appIndex = abilityRequest.abilityInfo.applicationInfo.appIndex;
+    } else {
+        (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);
+    }
     auto instanceKey = abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY);
     return abilityInfo.launchMode == launchMode && abilityRequest.abilityInfo.name == abilityInfo.name &&
         abilityRequest.abilityInfo.bundleName == abilityInfo.bundleName &&
