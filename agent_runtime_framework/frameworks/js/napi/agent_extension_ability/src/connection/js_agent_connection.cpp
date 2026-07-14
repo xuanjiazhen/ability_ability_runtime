@@ -387,9 +387,15 @@ void JSAgentConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::ElementN
     AgentConnectionUtils::EraseAgentConnection(connectionId_);
     SetDisconnecting(false);
     if (napiAsyncTask_ != nullptr) {
+        // A disconnect-done arriving while a connect is still pending means the target never came
+        // up before the connect timed out or the target died. Reject the pending connect (and every
+        // request coalesced onto this connection) with a readable connect-failed error. The numeric
+        // code stays ERROR_CODE_INNER (16000050); only the message is made actionable, and it is
+        // kept consistent with the OnAbilityConnectDone failure path in AbortOnConnectError.
+        TAG_LOGI(AAFwkTag::SER_ROUTER, "connect ended before established, reject pending connect tasks");
         napi_value innerError = CreateJsErrorByNativeErr(env_,
             static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), "",
-            AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::AGENT_EXTENSION_CONNECTION_ENDED));
+            AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED));
         napiAsyncTask_->Reject(env_, innerError);
         RejectDuplicatedPendingTask(env_, innerError);
         napiAsyncTask_ = nullptr;

@@ -509,6 +509,30 @@ void EtsAgentConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::Element
         return;
     }
 
+    // A disconnect-done arriving while a connect is still pending means the target never came up
+    // before the connect timed out or the target died. Reject the pending connect (and every
+    // request coalesced onto this connection) with a readable connect-failed error, mirroring the
+    // JS counterpart. The numeric code stays ERROR_CODE_INNER (16000050); the message is consistent
+    // with DispatchConnectResult's failure path. Without this the pending connect promise hangs.
+    ani_ref connectAsyncCallback = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(stateLock_);
+        connectAsyncCallback = aniAsyncCallback_;
+        aniAsyncCallback_ = nullptr;
+    }
+    if (connectAsyncCallback != nullptr) {
+        TAG_LOGI(AAFwkTag::SER_ROUTER, "connect ended before established, reject pending connect callbacks");
+        ani_object error = AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env,
+            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), "",
+            AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED));
+        AppExecFwk::AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER,
+            reinterpret_cast<ani_object>(connectAsyncCallback), error, nullptr);
+        RejectDuplicatedPendingCallbacks(env,
+            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER),
+            AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED);
+        ReleaseObjectReference(env, connectAsyncCallback);
+    }
+
     DisconnectCompleteHandler disconnectCompleteHandler;
     {
         std::lock_guard<std::mutex> lock(stateLock_);
