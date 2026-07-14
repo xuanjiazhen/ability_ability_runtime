@@ -69,7 +69,7 @@ public:
      * @param appInfo The app info to be queried.
      * @return Whether the app is the default multi-instance app.
      */
-    static bool IsMultiInstanceApp(AppExecFwk::ApplicationInfo appInfo);
+    static bool IsMultiInstanceApp(const AppExecFwk::ApplicationInfo& appInfo);
 
     /**
      * IsSupportedExtensionType, check if the type supports extension type.

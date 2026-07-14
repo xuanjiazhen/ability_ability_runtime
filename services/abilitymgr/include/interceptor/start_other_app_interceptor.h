@@ -38,10 +38,10 @@ private:
     bool GetApplicationInfo(const sptr<IRemoteObject> &callerToken,
         AppExecFwk::ApplicationInfo &applicationInfo);
     bool CheckAncoShellCall(const AppExecFwk::ApplicationInfo &applicationInfo,
-        const Want want);
-    bool CheckStartOtherApp(const Want want);
+        const Want& want);
+    bool CheckStartOtherApp(const Want& want);
     bool CheckCallerApiBelow12(const AppExecFwk::ApplicationInfo &applicationInfo);
-    bool IsDelegatorCall(const Want want);
+    bool IsDelegatorCall(const Want& want);
 };
 } // namespace AAFwk
 } // namespace OHOS

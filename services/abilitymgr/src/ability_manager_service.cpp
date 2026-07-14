@@ -2713,9 +2713,6 @@ int32_t AbilityManagerService::StartUIAbilitiesInSplitWindowModeHandleWant(const
     if (result != ERR_OK) {
         return result;
     }
-    Want newWant = abilityRequest.want;
-    bool isReplaceWantExist = newWant.GetBoolParam("queryWantFromErms", false);
-    newWant.RemoveParam("queryWantFromErms");
     auto callerTokenId = IPCSkeleton::GetCallingTokenID();
     const auto &abilityInfo = abilityRequest.abilityInfo;
     RemoveUnauthorizedLaunchReasonMessage(secondaryWant, abilityRequest, callerTokenId);
@@ -2949,10 +2946,6 @@ int32_t AbilityManagerService::StartUIAbilitiesHandleWant(const Want &want, sptr
     if (result != ERR_OK) {
         return result;
     }
-
-    Want newWant = abilityRequest.want;
-    bool isReplaceWantExist = newWant.GetBoolParam("queryWantFromErms", false);
-    newWant.RemoveParam("queryWantFromErms");
 
     auto callerTokenId = IPCSkeleton::GetCallingTokenID();
     RemoveUnauthorizedLaunchReasonMessage(want, abilityRequest, callerTokenId);

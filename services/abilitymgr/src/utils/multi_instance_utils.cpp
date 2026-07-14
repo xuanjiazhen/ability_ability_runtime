@@ -61,7 +61,7 @@ bool MultiInstanceUtils::IsDefaultInstanceKey(const std::string& key)
     return key == APP_INSTANCE_KEY_0;
 }
 
-bool MultiInstanceUtils::IsMultiInstanceApp(AppExecFwk::ApplicationInfo appInfo)
+bool MultiInstanceUtils::IsMultiInstanceApp(const AppExecFwk::ApplicationInfo& appInfo)
 {
     if (appInfo.multiAppMode.multiAppModeType != AppExecFwk::MultiAppModeType::MULTI_INSTANCE) {
         return false;

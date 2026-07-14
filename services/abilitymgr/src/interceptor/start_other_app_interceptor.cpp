@@ -126,13 +126,13 @@ bool StartOtherAppInterceptor::GetApplicationInfo(const sptr<IRemoteObject> &cal
 }
 
 bool StartOtherAppInterceptor::CheckAncoShellCall(const AppExecFwk::ApplicationInfo &applicationInfo,
-    const Want want)
+    const Want& want)
 {
     return (applicationInfo.codePath == std::to_string(CollaboratorType::RESERVE_TYPE) ||
         applicationInfo.codePath == std::to_string(CollaboratorType::OTHERS_TYPE));
 }
 
-bool StartOtherAppInterceptor::CheckStartOtherApp(const Want want)
+bool StartOtherAppInterceptor::CheckStartOtherApp(const Want& want)
 {
     return want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME) != want.GetBundleNameRef();
 }
@@ -142,7 +142,7 @@ bool StartOtherAppInterceptor::CheckCallerApiBelow12(const AppExecFwk::Applicati
     return (applicationInfo.apiTargetVersion % API_VERSION_MOD < API_SINCE_VISION);
 }
 
-bool StartOtherAppInterceptor::IsDelegatorCall(const Want want)
+bool StartOtherAppInterceptor::IsDelegatorCall(const Want& want)
 {
     AppExecFwk::RunningProcessInfo processInfo;
     DelayedSingleton<AppScheduler>::GetInstance()->

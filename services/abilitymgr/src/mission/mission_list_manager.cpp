@@ -603,7 +603,7 @@ bool MissionListManager::CreateOrReusedMissionInfo(const AbilityRequest &ability
         TAG_LOGD(AAFwkTag::ABILITYMGR, "GetAbilityNumber:%{public}d.", getAbilityNumber);
 
         if (getAbilityNumber >= 1) {
-            auto abilityInfo = abilityRequest.abilityInfo;
+            const auto &abilityInfo = abilityRequest.abilityInfo;
             EventInfo eventInfo;
             eventInfo.userId = abilityRequest.userId;
             eventInfo.abilityName = abilityInfo.name;
@@ -4357,7 +4357,7 @@ void MissionListManager::CallRequestDone(const std::shared_ptr<AbilityRecord> &a
 
 void MissionListManager::SendKeyEvent(const AbilityRequest &abilityRequest)
 {
-    auto abilityInfo = abilityRequest.abilityInfo;
+    const auto &abilityInfo = abilityRequest.abilityInfo;
     EventInfo eventInfo;
     eventInfo.abilityName = abilityInfo.name;
     eventInfo.bundleName = abilityInfo.bundleName;

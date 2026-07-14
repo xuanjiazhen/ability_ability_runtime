@@ -141,7 +141,7 @@ bool ConnectionManager::MatchConnection(
         // ImplicitConnect
         return connectCaller == connection.first.connectCaller &&
             receiverEle.GetBundleName() == connection.first.connectReceiver.GetBundleName() &&
-            connectReceiver.GetOperation() == connection.first.connectReceiver;
+            connectReceiver.GetOperationRef() == connection.first.connectReceiver;
     }
 }
 
