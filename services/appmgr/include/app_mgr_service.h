@@ -608,6 +608,7 @@ public:
      * @param want param to start a process.
      */
     virtual int32_t StartNativeProcessForDebugger(const AAFwk::Want &want) override;
+    virtual int32_t NotifyNativeProcessExit(pid_t pid) override;
 
     /**
      * Get bundleName by pid.

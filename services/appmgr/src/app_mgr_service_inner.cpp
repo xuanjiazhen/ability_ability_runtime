@@ -3543,6 +3543,7 @@ int32_t AppMgrServiceInner::NotifyUninstallOrUpgradeApp(const std::string &bundl
     InsertUninstallOrUpgradeUidSet(uid);
     auto ret = KillApplicationByUid(bundleName, uid, killReason);
     DestroyImageForUninstallOrUpgrade(uid);
+    KillNativeProcessesByUid(uid);
     return ret;
 }
 
@@ -4807,7 +4808,7 @@ void AppMgrServiceInner::TerminateAbility(const sptr<IRemoteObject> &token, bool
         appRunningManager_->TerminateAbility(token, clearMissionFlag, appMgrServiceInner);
         if (appRecord->IsTerminating() && appRunningManager_->CheckAppRunningRecordIsLast(appRecord)) {
             TAG_LOGD(AAFwkTag::APPMGR, "clear uri permission");
-            appRecord->UnSetPolicy();
+            AppExit(appRecord);
         }
     }
 }
@@ -5510,6 +5511,7 @@ int32_t AppMgrServiceInner::StartPerfProcessByStartMsg(AppSpawnStartMsg &startMs
         TAG_LOGE(AAFwkTag::APPMGR, "new native process fail, errCode %{public}08x", errCode);
         return errCode;
     }
+    AddNativeProcessPid(startMsg.uid, pid);
     return ERR_OK;
 }
 
@@ -6546,7 +6548,7 @@ void AppMgrServiceInner::ClearAppRunningData(const std::shared_ptr<AppRunningRec
 
     auto appInfo = appRecord->GetApplicationInfo();
     if (appInfo != nullptr && !appRunningManager_->IsAppExist(appInfo->accessTokenId)) {
-        appRecord->UnSetPolicy();
+        AppExit(appRecord);
         TAG_LOGD(AAFwkTag::APPMGR, "before OnAppStopped");
         OnAppStopped(appRecord);
     }
@@ -9998,6 +10000,55 @@ void AppMgrServiceInner::KillRenderProcess(const std::shared_ptr<AppRunningRecor
             }
         }
     }
+}
+
+void AppMgrServiceInner::AddNativeProcessPid(int32_t uid, pid_t pid)
+{
+    std::lock_guard lock(nativeProcessUidPidMapLock_);
+    nativeProcessUidPidMap_[uid].insert(pid);
+    TAG_LOGI(AAFwkTag::APPMGR, "uid:%{public}d, pid:%{public}d", uid, pid);
+}
+ 
+void AppMgrServiceInner::KillNativeProcessesByUid(int32_t uid)
+{
+    std::unordered_set<pid_t> tempPid;
+    {
+        std::lock_guard lock(nativeProcessUidPidMapLock_);
+        auto it = nativeProcessUidPidMap_.find(uid);
+        if (it == nativeProcessUidPidMap_.end()) {
+            return;
+        }
+        tempPid = it->second;
+        nativeProcessUidPidMap_.erase(it);
+    }
+    for (auto pid : tempPid) {
+        TAG_LOGI(AAFwkTag::APPMGR, "kill native process, uid:%{public}d, pid:%{public}d", uid, pid);
+        std::string killReason = KILL_PROCESS_REASON_PREFIX + "KillNativeProcessByUid,uid=" + std::to_string(uid);
+        KillProcessByPidInner(pid, "KillNativeProcessByUid", killReason, nullptr, false);
+    }
+
+}
+ 
+void AppMgrServiceInner::RemoveNativeProcessByPid(pid_t pid)
+{
+    std::lock_guard lock(nativeProcessUidPidMapLock_);
+    for (auto it = nativeProcessUidPidMap_.begin(); it != nativeProcessUidPidMap_.end();) {
+        it->second.erase(pid);
+        if (it->second.empty()) {
+            it = nativeProcessUidPidMap_.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+ 
+void AppMgrServiceInner::AppExit(std::shared_ptr<AppRunningRecord> appRecord)
+{
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid appRecord");
+    }
+    appRecord->UnSetPolicy();
+    KillNativeProcessesByUid(appRecord->GetUid());
 }
 
 int32_t AppMgrServiceInner::GetProcessMemoryByPid(const int32_t pid, int32_t &memorySize)

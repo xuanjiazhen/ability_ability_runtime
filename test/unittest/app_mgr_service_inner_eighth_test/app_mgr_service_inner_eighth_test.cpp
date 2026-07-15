@@ -4030,5 +4030,176 @@ HWTEST_F(AppMgrServiceInnerEighthTest, TryToUseImageInfo_NotifyAppRunningStatusE
     
     TAG_LOGI(AAFwkTag::TEST, "TryToUseImageInfo_NotifyAppRunningStatusEvent_001 end");
 }
+
+/**
+ * @tc.name: AddNativeProcessPid_001
+ * @tc.desc: test AddNativeProcessPid adds pid to map correctly
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, AddNativeProcessPid_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AddNativeProcessPid_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    int32_t uid = 20000000;
+    pid_t pid1 = 10001;
+    pid_t pid2 = 10002;
+ 
+    appMgrServiceInner->AddNativeProcessPid(uid, pid1);
+    EXPECT_EQ(appMgrServiceInner->nativeProcessUidPidMap_[uid].size(), 1u);
+    EXPECT_NE(appMgrServiceInner->nativeProcessUidPidMap_[uid].find(pid1),
+        appMgrServiceInner->nativeProcessUidPidMap_[uid].end());
+ 
+    appMgrServiceInner->AddNativeProcessPid(uid, pid2);
+    EXPECT_EQ(appMgrServiceInner->nativeProcessUidPidMap_[uid].size(), 2u);
+ 
+    // duplicate pid should not increase size
+    appMgrServiceInner->AddNativeProcessPid(uid, pid1);
+    EXPECT_EQ(appMgrServiceInner->nativeProcessUidPidMap_[uid].size(), 2u);
+    TAG_LOGI(AAFwkTag::TEST, "AddNativeProcessPid_001 end");
+}
+ 
+/**
+ * @tc.name: RemoveNativeProcessByPid_003
+ * @tc.desc: test RemoveNativeProcessByPid removes pid and cleans empty uid entries
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, RemoveNativeProcessByPid_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RemoveNativeProcessByPid_003 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    int32_t uid = 20000000;
+    pid_t pid1 = 10001;
+    pid_t pid2 = 10002;
+ 
+    appMgrServiceInner->AddNativeProcessPid(uid, pid1);
+    appMgrServiceInner->AddNativeProcessPid(uid, pid2);
+    EXPECT_EQ(appMgrServiceInner->nativeProcessUidPidMap_[uid].size(), 2u);
+ 
+    // remove one pid
+    appMgrServiceInner->RemoveNativeProcessByPid(pid1);
+    EXPECT_EQ(appMgrServiceInner->nativeProcessUidPidMap_[uid].size(), 1u);
+    EXPECT_EQ(appMgrServiceInner->nativeProcessUidPidMap_[uid].find(pid1),
+        appMgrServiceInner->nativeProcessUidPidMap_[uid].end());
+ 
+    // remove last pid, uid entry should be erased
+    appMgrServiceInner->RemoveNativeProcessByPid(pid2);
+    EXPECT_EQ(appMgrServiceInner->nativeProcessUidPidMap_.find(uid),
+        appMgrServiceInner->nativeProcessUidPidMap_.end());
+ 
+    // remove non-existent pid should not crash
+    appMgrServiceInner->RemoveNativeProcessByPid(12345);
+    TAG_LOGI(AAFwkTag::TEST, "RemoveNativeProcessByPid_003 end");
+}
+ 
+/**
+ * @tc.name: KillNativeProcessesByUid_001
+ * @tc.desc: test KillNativeProcessesByUid when uid not in map
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, KillNativeProcessesByUid_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "KillNativeProcessesByUid_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    // uid not in map, should return safely
+    int32_t uid = 99999999;
+    appMgrServiceInner->KillNativeProcessesByUid(uid);
+    EXPECT_EQ(appMgrServiceInner->nativeProcessUidPidMap_.size(), 0u);
+    TAG_LOGI(AAFwkTag::TEST, "KillNativeProcessesByUid_001 end");
+}
+ 
+/**
+ * @tc.name: KillNativeProcessesByUid_002
+ * @tc.desc: test KillNativeProcessesByUid removes uid entry from map
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, KillNativeProcessesByUid_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "KillNativeProcessesByUid_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    int32_t uid1 = 20000000;
+    int32_t uid2 = 20000001;
+    pid_t pid1 = 10001;
+    pid_t pid2 = 10002;
+    pid_t pid3 = 10003;
+ 
+    appMgrServiceInner->AddNativeProcessPid(uid1, pid1);
+    appMgrServiceInner->AddNativeProcessPid(uid1, pid2);
+    appMgrServiceInner->AddNativeProcessPid(uid2, pid3);
+    EXPECT_EQ(appMgrServiceInner->nativeProcessUidPidMap_.size(), 2u);
+ 
+    // KillNativeProcessesByUid should erase uid1 entry (kill will fail for non-existent pids)
+    appMgrServiceInner->KillNativeProcessesByUid(uid1);
+    EXPECT_EQ(appMgrServiceInner->nativeProcessUidPidMap_.find(uid1),
+        appMgrServiceInner->nativeProcessUidPidMap_.end());
+    // uid2 should still exist
+    EXPECT_NE(appMgrServiceInner->nativeProcessUidPidMap_.find(uid2),
+        appMgrServiceInner->nativeProcessUidPidMap_.end());
+    TAG_LOGI(AAFwkTag::TEST, "KillNativeProcessesByUid_002 end");
+}
+ 
+/**
+ * @tc.name: RemoveNativeProcessByPid_001
+ * @tc.desc: test RemoveNativeProcessByPid removes pid across all uids
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, RemoveNativeProcessByPid_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RemoveNativeProcessByPid_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    int32_t uid1 = 20000000;
+    pid_t pid1 = 10001;
+    pid_t pid2 = 10002;
+ 
+    appMgrServiceInner->AddNativeProcessPid(uid1, pid1);
+    appMgrServiceInner->AddNativeProcessPid(uid1, pid2);
+    EXPECT_EQ(appMgrServiceInner->nativeProcessUidPidMap_[uid1].size(), 2u);
+ 
+    // remove pid1 by pid only
+    appMgrServiceInner->RemoveNativeProcessByPid(pid1);
+    EXPECT_EQ(appMgrServiceInner->nativeProcessUidPidMap_[uid1].size(), 1u);
+    EXPECT_EQ(appMgrServiceInner->nativeProcessUidPidMap_[uid1].find(pid1),
+        appMgrServiceInner->nativeProcessUidPidMap_[uid1].end());
+ 
+    // remove non-existent pid should not crash
+    appMgrServiceInner->RemoveNativeProcessByPid(99999);
+ 
+    // remove last pid, uid entry should be erased
+    appMgrServiceInner->RemoveNativeProcessByPid(pid2);
+    EXPECT_EQ(appMgrServiceInner->nativeProcessUidPidMap_.find(uid1),
+        appMgrServiceInner->nativeProcessUidPidMap_.end());
+ 
+    // empty map remove should not crash
+    appMgrServiceInner->RemoveNativeProcessByPid(10001);
+    TAG_LOGI(AAFwkTag::TEST, "RemoveNativeProcessByPid_001 end");
+}
+ 
+/**
+ * @tc.name: RemoveNativeProcessByPid_002
+ * @tc.desc: test RemoveNativeProcessByPid with multiple uids
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, RemoveNativeProcessByPid_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RemoveNativeProcessByPid_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    int32_t uid1 = 20000000;
+    int32_t uid2 = 20000001;
+    pid_t pid1 = 10001;
+    pid_t pid2 = 10002;
+    pid_t pid3 = 10003;
+ 
+    appMgrServiceInner->AddNativeProcessPid(uid1, pid1);
+    appMgrServiceInner->AddNativeProcessPid(uid1, pid2);
+    appMgrServiceInner->AddNativeProcessPid(uid2, pid3);
+    EXPECT_EQ(appMgrServiceInner->nativeProcessUidPidMap_.size(), 2u);
+ 
+    // remove pid3, uid2 entry should be erased
+    appMgrServiceInner->RemoveNativeProcessByPid(pid3);
+    EXPECT_EQ(appMgrServiceInner->nativeProcessUidPidMap_.find(uid2),
+        appMgrServiceInner->nativeProcessUidPidMap_.end());
+    // uid1 still has 2 pids
+    EXPECT_EQ(appMgrServiceInner->nativeProcessUidPidMap_[uid1].size(), 2u);
+    TAG_LOGI(AAFwkTag::TEST, "RemoveNativeProcessByPid_002 end");
+}
 } // namespace AppExecFwk
 } // namespace OHOS
