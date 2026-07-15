@@ -315,6 +315,11 @@ public:
         return 0;
     }
 
+    virtual int32_t NotifyNativeProcessExit(pid_t pid)
+    {
+        return 0;
+    }
+
     virtual int32_t GetBundleNameByPid(const int pid, std::string& bundleName, int32_t& uid)
     {
         return 0;

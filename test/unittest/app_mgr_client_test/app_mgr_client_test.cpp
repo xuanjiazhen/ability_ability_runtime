@@ -2004,5 +2004,22 @@ HWTEST_F(AppMgrClientTest, CancelDelayedExitTask_002, TestSize.Level2)
     int32_t pid = 1234;
     appMgrClient->CancelDelayedExitTask(pid);
 }
+
+/**
+ * @tc.name: AppMgrClient_NotifyNativeProcessExit_001
+ * @tc.desc: NotifyNativeProcessExit.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, AppMgrClient_NotifyNativeProcessExit_001, TestSize.Level2)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    EXPECT_NE(appMgrClient, nullptr);
+ 
+    auto result = appMgrClient->ConnectAppMgrService();
+    EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
+ 
+    pid_t pid = 10001;
+    appMgrClient->NotifyNativeProcessExit(pid);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

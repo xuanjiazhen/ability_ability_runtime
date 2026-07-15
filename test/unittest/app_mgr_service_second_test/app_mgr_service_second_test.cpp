@@ -662,5 +662,36 @@ HWTEST_F(AppMgrServiceSecondTest, IsChildProcessSupported_0400, TestSize.Level1)
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_TRUE(isSupported);
 }
+
+/**
+ * @tc.name: NotifyNativeProcessExit_0100
+ * @tc.desc: test NotifyNativeProcessExit with service not ready
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceSecondTest, NotifyNativeProcessExit_0100, TestSize.Level2)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    EXPECT_NE(appMgrService, nullptr);
+    // service not ready
+    pid_t pid = 10001;
+    auto ret = appMgrService->NotifyNativeProcessExit(pid);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+}
+ 
+/**
+ * @tc.name: NotifyNativeProcessExit_0200
+ * @tc.desc: test NotifyNativeProcessExit with service ready
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceSecondTest, NotifyNativeProcessExit_0200, TestSize.Level2)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    EXPECT_NE(appMgrService, nullptr);
+    ReadyToRun(appMgrService);
+ 
+    pid_t pid = 10001; 
+    auto ret = appMgrService->NotifyNativeProcessExit(pid);
+    EXPECT_EQ(ret, ERR_OK);
+}
 } // namespace AppExecFwk
 } // namespace OHOS
