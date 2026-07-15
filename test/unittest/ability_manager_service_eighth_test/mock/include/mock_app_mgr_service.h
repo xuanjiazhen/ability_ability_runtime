@@ -161,6 +161,7 @@ public:
     }
 
     MOCK_METHOD1(StartNativeProcessForDebugger, int32_t(const AAFwk::Want &));
+    MOCK_METHOD1(NotifyNativeProcessExit, int32_t(pid_t));
     MOCK_METHOD3(FinishUserTest, int32_t(const std::string &, const int64_t &, const std::string &));
     MOCK_METHOD1(GetProcessRunningInformation, int32_t(RunningProcessInfo &));
     MOCK_METHOD4(SendRequest, int(uint32_t, MessageParcel&, MessageParcel&, MessageOption&));

@@ -163,6 +163,7 @@ enum class AppMgrInterfaceCode {
     REPORT_DUMP_MEM_RESULT = 138,
     IS_MAIN_PROCESS_DEBUG = 139,
     DUMP_JSHANDLE_MAP_PROCESS = 140,
+    NOTIFY_NATIVE_PROCESS_EXIT = 141,
 };
 } // AppExecFwk
 } // OHOS
