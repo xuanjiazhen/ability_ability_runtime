@@ -1731,6 +1731,34 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, NotifyCancelGamePreLaunch_001, Tes
 }
 
 /**
+ * @tc.name: NotifyCancelGamePreLaunch_002
+ * @tc.desc: Test NotifyCancelGamePreLaunch when caller uid does not match the ability record uid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, NotifyCancelGamePreLaunch_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest NotifyCancelGamePreLaunch_002 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs_, nullptr);
+    // Keep the ability record alive so the token still resolves to it.
+    auto abilityRecord = MockAbilityRecord(AbilityType::PAGE);
+    ASSERT_NE(abilityRecord, nullptr);
+    auto callerToken = abilityRecord->GetToken();
+    ASSERT_NE(callerToken, nullptr);
+    // Force a uid mismatch: the caller does not own this ability record.
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    abilityRecord->SetUid(callingUid == 0 ? 1 : 0);
+
+    auto result = abilityMs_->NotifyCancelGamePreLaunch(callerToken);
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        EXPECT_EQ(result, ERR_CAPABILITY_NOT_SUPPORT);
+    } else {
+        EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    }
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest NotifyCancelGamePreLaunch_002 end");
+}
+
+/**
  * @tc.name: NotifyCompleteGamePreLaunch_001
  * @tc.desc: Test NotifyCompleteGamePreLaunch when scene board is not enabled.
  * @tc.type: FUNC
@@ -1748,6 +1776,34 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, NotifyCompleteGamePreLaunch_001, T
         EXPECT_EQ(result, ERR_INVALID_VALUE);
     }
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest NotifyCompleteGamePreLaunch_001 end");
+}
+
+/**
+ * @tc.name: NotifyCompleteGamePreLaunch_002
+ * @tc.desc: Test NotifyCompleteGamePreLaunch when caller uid does not match the ability record uid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, NotifyCompleteGamePreLaunch_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest NotifyCompleteGamePreLaunch_002 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs_, nullptr);
+    // Keep the ability record alive so the token still resolves to it.
+    auto abilityRecord = MockAbilityRecord(AbilityType::PAGE);
+    ASSERT_NE(abilityRecord, nullptr);
+    auto callerToken = abilityRecord->GetToken();
+    ASSERT_NE(callerToken, nullptr);
+    // Force a uid mismatch: the caller does not own this ability record.
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    abilityRecord->SetUid(callingUid == 0 ? 1 : 0);
+
+    auto result = abilityMs_->NotifyCompleteGamePreLaunch(callerToken);
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        EXPECT_EQ(result, ERR_CAPABILITY_NOT_SUPPORT);
+    } else {
+        EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    }
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest NotifyCompleteGamePreLaunch_002 end");
 }
 
 /**
