@@ -215,10 +215,11 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecord(const AAFwk::AbilityR
 {
     CHECK_POINTER_AND_RETURN(abilityRequest.sessionInfo, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "GetOrCreateExtensionRecord: persistentId=%{public}d, "
-        "uiExtensionComponentId=%{public}" PRIu64 ", hostWindowId=%{public}u",
+        "uiExtensionComponentId=%{public}" PRIu64 ", hostWindowId=%{public}u, realHostWindowId=%{public}d",
         abilityRequest.sessionInfo->persistentId,
         abilityRequest.sessionInfo->uiExtensionComponentId,
-        abilityRequest.sessionInfo->hostWindowId);
+        abilityRequest.sessionInfo->hostWindowId,
+        abilityRequest.sessionInfo->realHostWindowId);
 
     // 1. Match by uiExtensionComponentId (same caller — re-foreground OR same-ability moveTo).
     //    Same-process migration supports single-ability (caller unchanged, only hostWindowId changes)
@@ -228,10 +229,13 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecord(const AAFwk::AbilityR
     if (abilityRecord != nullptr) {
         isLoaded = true;
         auto recordSessionInfo = abilityRecord->GetSessionInfo();
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "step1 hit by componentId, record hostWindowId=%{public}u, "
-            "incoming=%{public}u, recordSessionInfo null=%{public}d",
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "step1 hit by componentId, record hostWindowId=%{public}u "
+            "realHostWindowId=%{public}d, incoming hostWindowId=%{public}u realHostWindowId=%{public}d, "
+            "recordSessionInfo null=%{public}d",
             (recordSessionInfo ? recordSessionInfo->hostWindowId : 0),
+            (recordSessionInfo ? recordSessionInfo->realHostWindowId : 0),
             abilityRequest.sessionInfo->hostWindowId,
+            abilityRequest.sessionInfo->realHostWindowId,
             (recordSessionInfo == nullptr));
         if (recordSessionInfo != nullptr &&
             recordSessionInfo->hostWindowId != abilityRequest.sessionInfo->hostWindowId) {
