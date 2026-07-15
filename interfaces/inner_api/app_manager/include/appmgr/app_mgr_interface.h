@@ -709,6 +709,17 @@ public:
     virtual int32_t StartNativeProcessForDebugger(const AAFwk::Want &want) = 0;
 
     /**
+     * Notify native process exit for cleanup.
+     *
+     * @param pid the pid of exited native process.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t NotifyNativeProcessExit(pid_t pid)
+    {
+        return 0;
+    }
+
+    /**
      * Get bundleName by pid.
      *
      * @param pid process id.

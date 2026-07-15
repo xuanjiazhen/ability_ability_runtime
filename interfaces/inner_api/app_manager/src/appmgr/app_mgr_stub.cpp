@@ -225,6 +225,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerThird(uint32_t code, MessageParcel &data
             return HandleIsSharedBundleRunning(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::START_NATIVE_PROCESS_FOR_DEBUGGER):
             return HandleStartNativeProcessForDebugger(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::NOTIFY_NATIVE_PROCESS_EXIT):
+            return HandleNotifyNativeProcessExit(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::NOTIFY_APP_FAULT):
             return HandleNotifyFault(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_All_RUNNING_INSTANCE_KEYS_BY_BUNDLENAME):
@@ -1513,6 +1515,23 @@ int32_t AppMgrStub::HandleStartNativeProcessForDebugger(MessageParcel &data, Mes
         return ERR_INVALID_VALUE;
     }
     auto result = StartNativeProcessForDebugger(*want);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "fail to write result.");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleNotifyNativeProcessExit(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    pid_t pid = static_cast<pid_t>(data.ReadInt32());
+    if (pid <= 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "pid:%{public}d <= 0.", static_cast<int32_t>(pid));
+        return ERR_INVALID_VALUE;
+    }
+    auto result = NotifyNativeProcessExit(pid);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "fail to write result.");
         return ERR_INVALID_VALUE;

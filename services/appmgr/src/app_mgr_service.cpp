@@ -1494,6 +1494,22 @@ int32_t AppMgrService::StartNativeProcessForDebugger(const AAFwk::Want &want)
     return ret;
 }
 
+int32_t AppMgrService::NotifyNativeProcessExit(pid_t pid)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    bool isCallingPermission =
+        AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS);
+    if (!isCallingPermission) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not foundation");
+        return AAFwk::ERR_NO_ALLOW_OUTSIDE_CALL;
+    }
+    appMgrServiceInner_->RemoveNativeProcessByPid(pid);
+    return ERR_OK;
+}
+
 int32_t AppMgrService::GetBundleNameByPid(const int32_t pid, std::string &bundleName, int32_t &uid)
 {
     if (!IsReady()) {
