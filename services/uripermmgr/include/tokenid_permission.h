@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_TOKENID_PERMISSION_H
 #define OHOS_ABILITY_RUNTIME_TOKENID_PERMISSION_H
 
+#include <string>
 #include <sys/types.h>
 
 namespace OHOS {
@@ -53,7 +54,11 @@ public:
 
     bool VerifySandboxAccessPermission();
 
+    bool CheckIsPermissionRequestedByTokenId(uint32_t tokenId, const std::string &permissionName,
+        bool isSystemGrant);
+
 private:
+
     uint32_t tokenId_ = 0;
 
     bool haveFileAccessManagerPermission_ = false;
