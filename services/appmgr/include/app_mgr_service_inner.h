@@ -1830,6 +1830,8 @@ public:
     int32_t CheckAppProvisionType(
         const std::string &bundleName, int32_t callerUid, int32_t appCloneIndex, int32_t userId);
 
+    void RemoveNativeProcessByPid(pid_t pid);
+
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
@@ -2195,6 +2197,9 @@ private:
      * @param appRecord the main process
      */
     void KillRenderProcess(const std::shared_ptr<AppRunningRecord> &appRecord);
+    void AddNativeProcessPid(int32_t uid, pid_t pid);
+    void KillNativeProcessesByUid(int32_t uid);
+    void AppExit(std::shared_ptr<AppRunningRecord> appRecord);
 
     void SetOverlayInfo(const std::string& bundleName, const int32_t userId, AppSpawnStartMsg& startMsg);
     void SetAppEnvInfo(const BundleInfo &bundleInfo, AppSpawnStartMsg& startMsg);
@@ -2545,6 +2550,8 @@ private:
     std::map<std::string, std::pair<int32_t, int32_t>> imageStartReportMap_;
     std::chrono::steady_clock::time_point lastReportTime_ = std::chrono::steady_clock::now();
     int32_t imageStartCount_ {0};
+    std::unordered_map<int32_t, std::unordered_set<pid_t>> nativeProcessUidPidMap_;
+    ffrt::mutex nativeProcessUidPidMapLock_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

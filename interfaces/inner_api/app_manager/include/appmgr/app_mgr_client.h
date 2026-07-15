@@ -663,6 +663,7 @@ public:
      * @param want param to start a process.
      */
     int32_t StartNativeProcessForDebugger(const AAFwk::Want &want);
+    int32_t NotifyNativeProcessExit(pid_t pid);
 
     /**
      * Set enable start process flag by userId

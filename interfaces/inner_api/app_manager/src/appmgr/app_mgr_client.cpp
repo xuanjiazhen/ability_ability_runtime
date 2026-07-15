@@ -1133,6 +1133,16 @@ int32_t AppMgrClient::StartNativeProcessForDebugger(const AAFwk::Want &want)
     return service->StartNativeProcessForDebugger(want);
 }
 
+int32_t AppMgrClient::NotifyNativeProcessExit(pid_t pid)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "service is nullptr");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return service->NotifyNativeProcessExit(pid);
+}
+
 int AppMgrClient::PreStartNWebSpawnProcess()
 {
     TAG_LOGI(AAFwkTag::APPMGR, "PreStartNWebSpawnProcess");
