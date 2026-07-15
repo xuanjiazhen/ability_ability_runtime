@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -38,6 +38,7 @@ public:
     int32_t GetKioskStatus(KioskStatus &kioskStatus);
     bool IsInKioskMode();
     bool IsInWhiteList(const std::string &bundleName);
+    bool IsKioskStartAllowed(const std::string &bundleName);
     void OnAppStop(const AppInfo &info);
     void FilterDialogAppInfos(std::vector<DialogAppInfo> &dialogAppInfos);
     void FilterAbilityInfos(std::vector<AppExecFwk::AbilityInfo> &abilityInfos);

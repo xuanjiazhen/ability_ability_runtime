@@ -203,6 +203,8 @@ ErrCode DisposedRuleInterceptor::StartNonBlockRule(const Want &want, AppExecFwk:
     CHECK_POINTER_AND_RETURN(appManager, ERR_INVALID_VALUE);
     CHECK_POINTER_AND_RETURN(taskHandler_, ERR_INVALID_VALUE);
 
+    std::string timeoutTaskName = GenerateTimeoutTaskName(uid);
+
     {
         std::lock_guard<ffrt::mutex> guard(observerLock_);
         auto iter = disposedObserverMap_.find(uid);
@@ -211,7 +213,7 @@ ErrCode DisposedRuleInterceptor::StartNonBlockRule(const Want &want, AppExecFwk:
                 moduleName.c_str(), abilityName.c_str());
             CHECK_POINTER_AND_RETURN(iter->second, ERR_INVALID_VALUE);
             iter->second->AddAbilityKey(moduleName, abilityName);
-            std::string timeoutTaskName = GenerateTimeoutTaskName(uid);
+            // Cancel old task and submit new task inside lock to prevent race condition
             taskHandler_->CancelTask(timeoutTaskName);
         } else {
             auto disposedObserver = sptr<DisposedObserver>::MakeSptr(disposedRule, shared_from_this(), uid);
@@ -228,19 +230,19 @@ ErrCode DisposedRuleInterceptor::StartNonBlockRule(const Want &want, AppExecFwk:
             }
             disposedObserverMap_.emplace(uid, disposedObserver);
         }
-    }
 
-    std::string timeoutTaskName = GenerateTimeoutTaskName(uid);
-    auto unregisterTask = [appManager, uid, interceptor = shared_from_this()] () {
-        std::lock_guard<ffrt::mutex> guard{interceptor->observerLock_};
-        auto iter = interceptor->disposedObserverMap_.find(uid);
-        if (iter != interceptor->disposedObserverMap_.end()) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "timeout, unregister observer for uid:%{public}d", uid);
-            IN_PROCESS_CALL(appManager->UnregisterApplicationStateObserver(iter->second));
-            interceptor->disposedObserverMap_.erase(iter);
-        }
-    };
-    taskHandler_->SubmitTask(unregisterTask, timeoutTaskName, UNREGISTER_OBSERVER_MICRO_SECONDS);
+        // Submit timeout task inside lock to ensure atomicity with map operations
+        auto unregisterTask = [appManager, uid, interceptor = shared_from_this()] () {
+            std::lock_guard<ffrt::mutex> guard{interceptor->observerLock_};
+            auto iter = interceptor->disposedObserverMap_.find(uid);
+            if (iter != interceptor->disposedObserverMap_.end()) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "timeout, unregister observer for uid:%{public}d", uid);
+                IN_PROCESS_CALL(appManager->UnregisterApplicationStateObserver(iter->second));
+                interceptor->disposedObserverMap_.erase(iter);
+            }
+        };
+        taskHandler_->SubmitTask(unregisterTask, timeoutTaskName, UNREGISTER_OBSERVER_MICRO_SECONDS);
+    }
     return ERR_OK;
 }
 

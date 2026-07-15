@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -94,12 +94,9 @@ int32_t KioskManager::UpdateKioskApplicationList(const std::vector<std::string> 
             }
         }
     }
-    if (needExit) {
-        auto ret = ExitKioskModeInner(exitBundleName, exitToken, true);
-        if (ret != ERR_OK) {
-            return ret;
-        }
-    }
+    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();	 
+    CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, INNER_ERR, "sceneSessionManager is nullptr");	 
+    sceneSessionManager->UpdateKioskAppList(appList);
     {
         std::lock_guard<std::mutex> lock(kioskManagerMutex_);
         whitelist_.clear();
@@ -107,9 +104,12 @@ int32_t KioskManager::UpdateKioskApplicationList(const std::vector<std::string> 
             whitelist_.insert(app);
         }
     }
-    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
-    CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, INNER_ERR, "sceneSessionManager is nullptr");
-    sceneSessionManager->UpdateKioskAppList(appList);
+    if (needExit) {
+        auto ret = ExitKioskModeInner(exitBundleName, exitToken, true);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "ExitKioskModeInner failed: %{public}d", ret);
+        }
+    }
     return ERR_OK;
 }
 
@@ -125,13 +125,13 @@ int32_t KioskManager::EnterKioskMode(sptr<IRemoteObject> callerToken)
         return INVALID_PARAMETERS_ERR;
     }
     std::string bundleName = record->GetAbilityInfo().bundleName;
-    if (!CheckCallerIsForeground(callerToken)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "The application is not in the foreground !");
-        return ERR_APP_NOT_IN_FOCUS;
-    }
     int32_t kioskBundleUid = IPCSkeleton::GetCallingUid();
     {
         std::lock_guard<std::mutex> lock(kioskManagerMutex_);
+        if (!CheckCallerIsForeground(callerToken)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "The application is not in the foreground !");
+            return ERR_APP_NOT_IN_FOCUS;
+        }
         if (!IsInWhiteListInner(bundleName)) {
             return ERR_KIOSK_MODE_NOT_IN_WHITELIST;
         }
@@ -183,7 +183,7 @@ int32_t KioskManager::ExitKioskModeInner(const std::string &bundleName, sptr<IRe
         }
 
         if (!isFoundation && kioskStatus_.kioskBundleUid_ != IPCSkeleton::GetCallingUid()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleName %{public}s is not the currently kiosk app", bundleName.c_str());
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleName %{public}s is not the currently kiosk app", bundleName.c_str());
             return ERR_NOT_IN_KIOSK_MODE;
         }
 
@@ -255,6 +255,12 @@ bool KioskManager::IsInWhiteList(const std::string &bundleName)
 {
     std::lock_guard<std::mutex> lock(kioskManagerMutex_);
     return IsInWhiteListInner(bundleName);
+}
+
+bool KioskManager::IsKioskStartAllowed(const std::string &bundleName)
+{
+    std::lock_guard<std::mutex> lock(kioskManagerMutex_);
+    return !kioskStatus_.isKioskMode_ || whitelist_.count(bundleName) != 0;
 }
 
 bool KioskManager::IsInKioskModeInner()
