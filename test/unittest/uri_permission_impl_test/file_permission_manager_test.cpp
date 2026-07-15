@@ -280,6 +280,74 @@ HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_007, TestSize.Level1)
 }
 
 /*
+ * Feature: CheckDocsUriPermission
+ * Function: CheckDocsUriPermission
+ * SubFunction: NA
+ * FunctionPoints: CUSTOM_SCREEN_CAPTURE(B) not declared, A denied -> denied (old A flow)
+ */
+HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_CustomScreenCapture_001, TestSize.Level1)
+{
+    TokenIdPermission caller(0);
+    MyFlag::permissionFileAccessManager_ = false;
+    MyFlag::permissionCustomScreenCapture_ = false;
+    MyFlag::permissionCustomScreenCaptureDeclared_ = false;
+    std::string path = "/storage/Users/currentUser/files/test.txt";
+    bool ret = FilePermissionManager::CheckDocsUriPermission(caller, path);
+    ASSERT_FALSE(ret);
+}
+
+/*
+ * Feature: CheckDocsUriPermission
+ * Function: CheckDocsUriPermission
+ * SubFunction: NA
+ * FunctionPoints: CUSTOM_SCREEN_CAPTURE(B) not declared, A granted -> granted (old A flow)
+ */
+HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_CustomScreenCapture_002, TestSize.Level1)
+{
+    TokenIdPermission caller(0);
+    MyFlag::permissionFileAccessManager_ = true;
+    MyFlag::permissionCustomScreenCapture_ = false;
+    MyFlag::permissionCustomScreenCaptureDeclared_ = false;
+    std::string path = "/storage/Users/currentUser/files/test.txt";
+    bool ret = FilePermissionManager::CheckDocsUriPermission(caller, path);
+    ASSERT_TRUE(ret);
+}
+
+/*
+ * Feature: CheckDocsUriPermission
+ * Function: CheckDocsUriPermission
+ * SubFunction: NA
+ * FunctionPoints: CUSTOM_SCREEN_CAPTURE(B) declared and granted -> granted (B governs, even if A denied)
+ */
+HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_CustomScreenCapture_003, TestSize.Level1)
+{
+    TokenIdPermission caller(0);
+    MyFlag::permissionFileAccessManager_ = false;
+    MyFlag::permissionCustomScreenCapture_ = true;
+    MyFlag::permissionCustomScreenCaptureDeclared_ = true;
+    std::string path = "/storage/Users/currentUser/files/test.txt";
+    bool ret = FilePermissionManager::CheckDocsUriPermission(caller, path);
+    ASSERT_TRUE(ret);
+}
+
+/*
+ * Feature: CheckDocsUriPermission
+ * Function: CheckDocsUriPermission
+ * SubFunction: NA
+ * FunctionPoints: CUSTOM_SCREEN_CAPTURE(B) declared but denied -> denied (B governs, even if A granted)
+ */
+HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_CustomScreenCapture_004, TestSize.Level1)
+{
+    TokenIdPermission caller(0);
+    MyFlag::permissionFileAccessManager_ = true;
+    MyFlag::permissionCustomScreenCapture_ = false;
+    MyFlag::permissionCustomScreenCaptureDeclared_ = true;
+    std::string path = "/storage/Users/currentUser/files/test.txt";
+    bool ret = FilePermissionManager::CheckDocsUriPermission(caller, path);
+    ASSERT_FALSE(ret);
+}
+
+/*
  * Feature: InitDlSymbol
  * Function: InitDlSymbol
  * SubFunction: NA

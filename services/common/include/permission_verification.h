@@ -43,6 +43,8 @@ struct VerificationInfo {
 
     bool VerifyPermissionByTokenId(const int &tokenId, const std::string &permissionName) const;
 
+    bool IsPermissionRequestedByTokenId(uint32_t tokenId, const std::string &permissionName, bool isSystemGrant) const;
+
     bool VerifyCallingPermission(const std::string &permissionName, const uint32_t specifyTokenId = 0) const;
 
     bool IsSACall() const;

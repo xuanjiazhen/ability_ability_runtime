@@ -52,6 +52,23 @@ bool PermissionVerification::VerifyPermissionByTokenId(const int &tokenId, const
     return true;
 }
 
+bool PermissionVerification::IsPermissionRequestedByTokenId(uint32_t tokenId, const std::string &permissionName,
+    bool isSystemGrant) const
+{
+    std::vector<Security::AccessToken::PermissionStateFull> reqPermList;
+    int32_t ret = Security::AccessToken::AccessTokenKit::GetReqPermissions(tokenId, reqPermList, isSystemGrant);
+    if (ret != Security::AccessToken::AccessTokenKitRet::RET_SUCCESS) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "GetReqPermissions failed, ret: %{public}d", ret);
+        return false;
+    }
+    for (const auto &perm : reqPermList) {
+        if (perm.permissionName == permissionName) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool PermissionVerification::VerifyCallingPermission(
     const std::string &permissionName, const uint32_t specifyTokenId) const
 {

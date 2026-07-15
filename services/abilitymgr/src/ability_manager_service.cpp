@@ -13009,7 +13009,7 @@ int AbilityManagerService::CheckFileAccessExtensionPermission(const AbilityReque
 {
     uint32_t specifyTokenId = static_cast<uint32_t>(abilityRequest.specifiedFullTokenId);
     auto ret = AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
-        PermissionConstants::PERMISSION_FILE_ACCESS_MANAGER, specifyTokenId);
+        PermissionConstants::PERMISSION_FILE_ACCESS_MANAGER, specifyTokenId); // 是否需要适配修改
     if (!ret) {
         return CHECK_PERMISSION_FAILED;
     }

@@ -35,8 +35,15 @@ bool TokenIdPermission::VerifyFileAccessManagerPermission()
 {
     if (!initFileAccessManagerPermission_) {
         initFileAccessManagerPermission_ = true;
-        haveFileAccessManagerPermission_ = PermissionVerification::GetInstance()->VerifyPermissionByTokenId(
-            tokenId_, PermissionConstants::PERMISSION_FILE_ACCESS_MANAGER);
+        bool declaredCustomScreenCapture = PermissionVerification::GetInstance()->IsPermissionRequestedByTokenId(
+            tokenId_, PermissionConstants::PERMISSION_CUSTOM_SCREEN_CAPTURE, true);
+        if (declaredCustomScreenCapture) {
+            haveFileAccessManagerPermission_ = PermissionVerification::GetInstance()->VerifyPermissionByTokenId(
+                tokenId_, PermissionConstants::PERMISSION_CUSTOM_SCREEN_CAPTURE);
+        } else {
+            haveFileAccessManagerPermission_ = PermissionVerification::GetInstance()->VerifyPermissionByTokenId(
+                tokenId_, PermissionConstants::PERMISSION_FILE_ACCESS_MANAGER);
+        }
     }
     return haveFileAccessManagerPermission_;
 }

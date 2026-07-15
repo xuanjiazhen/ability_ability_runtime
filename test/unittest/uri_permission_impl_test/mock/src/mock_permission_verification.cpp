@@ -19,6 +19,7 @@ namespace OHOS {
 namespace AAFwk {
 namespace {
 constexpr const char* PERMISSION_FILE_ACCESS_MANAGER = "ohos.permission.FILE_ACCESS_MANAGER";
+constexpr const char* PERMISSION_CUSTOM_SCREEN_CAPTURE = "ohos.permission.CUSTOM_SCREEN_CAPTURE";
 constexpr const char* PERMISSION_WRITE_IMAGEVIDEO = "ohos.permission.WRITE_IMAGEVIDEO";
 constexpr const char* PERMISSION_READ_IMAGEVIDEO = "ohos.permission.READ_IMAGEVIDEO";
 constexpr const char* PERMISSION_WRITE_AUDIO = "ohos.permission.WRITE_AUDIO";
@@ -40,6 +41,9 @@ bool PermissionVerification::VerifyPermissionByTokenId(const int &tokenId, const
     }
     if (permissionName == PERMISSION_FILE_ACCESS_MANAGER) {
         return MyFlag::permissionFileAccessManager_;
+    }
+    if (permissionName == PERMISSION_CUSTOM_SCREEN_CAPTURE) {
+        return MyFlag::permissionCustomScreenCapture_;
     }
     if (permissionName == PERMISSION_WRITE_IMAGEVIDEO) {
         return MyFlag::permissionWriteImageVideo_ || MyFlag::permissionAllMedia_;
@@ -76,6 +80,14 @@ bool PermissionVerification::VerifyPermissionByTokenId(const int &tokenId, const
     }
     if (permissionName == PERMISSION_SANDBOX_ACCESS_MANAGER) {
         return MyFlag::permissionSandboxAccessManager_;
+    }
+    return false;
+}
+bool PermissionVerification::IsPermissionRequestedByTokenId(uint32_t tokenId,
+    const std::string &permissionName, bool isSystemGrant) const
+{
+    if (permissionName == PERMISSION_CUSTOM_SCREEN_CAPTURE) {
+        return MyFlag::permissionCustomScreenCaptureDeclared_;
     }
     return false;
 }
