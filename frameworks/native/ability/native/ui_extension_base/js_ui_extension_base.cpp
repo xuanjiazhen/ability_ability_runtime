@@ -847,6 +847,22 @@ bool JsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr<
             return false;
         }
         uiWindow->UpdateExtensionConfig(sharedWant);
+        // moveTo 迁移（originalCallerInfo 由 AMS 自主赋值）：与 JsUIExtension 一致，经 contentSessions_
+        // napi_unwrap 取 JsUIExtensionContentSession 调 DoUpdateExtensionParent（更新 sessionInfo_ + uiWindow_ parent）。
+        if (sessionInfo->originalCallerInfo.callerToken != nullptr) {
+            auto sessionIt = contentSessions_.find(componentId);
+            if (sessionIt != contentSessions_.end() && sessionIt->second != nullptr) {
+                HandleScope handleScope(jsRuntime_);
+                napi_env env = jsRuntime_.GetNapiEnv();
+                napi_value contentSession = sessionIt->second->GetNapiValue();
+                void* nativeObject = nullptr;
+                napi_unwrap(env, contentSession, &nativeObject);
+                auto* contentSessionPtr = static_cast<JsUIExtensionContentSession*>(nativeObject);
+                if (contentSessionPtr != nullptr) {
+                    contentSessionPtr->DoUpdateExtensionParent(sessionInfo);
+                }
+            }
+        }
     }
     return true;
 }

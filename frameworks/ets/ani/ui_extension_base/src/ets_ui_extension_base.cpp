@@ -768,6 +768,21 @@ bool EtsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr
             return false;
         }
         uiWindow->UpdateExtensionConfig(sharedWant);
+        // moveTo 迁移（originalCallerInfo 由 AMS 自主赋值）：更新 uiWindow 的 parent 绑定。
+        if (sessionInfo->originalCallerInfo.callerToken != nullptr) {
+            auto option = sptr<Rosen::WindowOption>::MakeSptr();
+            if (option != nullptr) {
+                option->SetParentId(sessionInfo->hostWindowId);
+                option->SetRealParentId(sessionInfo->realHostWindowId);
+                option->SetParentWindowType(static_cast<Rosen::WindowType>(sessionInfo->parentWindowType));
+                option->SetDisplayId(sessionInfo->displayId);
+                Rosen::WMError ret = uiWindow->UpdateExtensionParent(option);
+                if (ret != Rosen::WMError::WM_OK) {
+                    TAG_LOGE(AAFwkTag::UI_EXT, "moveTo UpdateExtensionParent failed, ret: %{public}d",
+                        static_cast<int32_t>(ret));
+                }
+            }
+        }
     }
     return true;
 }
