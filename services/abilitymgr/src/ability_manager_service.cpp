@@ -3952,17 +3952,15 @@ void AbilityManagerService::ReportAbilityStartInfoToRSS(const AppExecFwk::Abilit
     if (abilityInfo.type == AppExecFwk::AbilityType::PAGE &&
         abilityInfo.launchMode != AppExecFwk::LaunchMode::SPECIFIED) {
         std::vector<AppExecFwk::RunningProcessInfo> runningProcessInfos;
-        if (IN_PROCESS_CALL(GetProcessRunningInfos(runningProcessInfos)) != ERR_OK) {
+        if (IN_PROCESS_CALL(GetProcessRunningInfosByAccessTokenId(
+            abilityInfo.applicationInfo.accessTokenId, runningProcessInfos)) != ERR_OK) {
             return;
         }
         bool isColdStart = true;
         int32_t pid = 0;
         bool supportWarmSmartGC = false;
-        int32_t preloadMode = -1;
+        int32_t preloadMode = gamePrelaunchFlag ? static_cast<int32_t>(AppExecFwk::PreloadMode::GAME_PRELAUNCH) : -1;
         bool isSuggestCache = false;
-        if (gamePrelaunchFlag) {
-            preloadMode = static_cast<int32_t>(AppExecFwk::PreloadMode::GAME_PRELAUNCH);
-        }
         for (auto const &info : runningProcessInfos) {
             if (info.uid_ == abilityInfo.applicationInfo.uid &&
                 info.processType_ == AppExecFwk::ProcessType::NORMAL &&
