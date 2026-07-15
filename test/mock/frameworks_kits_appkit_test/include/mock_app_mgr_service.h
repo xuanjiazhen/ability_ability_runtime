@@ -209,6 +209,11 @@ public:
         return 0;
     }
 
+    virtual int32_t NotifyNativeProcessExit(pid_t pid) override
+    {
+        return 0;
+    }
+
     virtual void RegisterAppStateCallback(const sptr<IAppStateCallback>& callback)
     {
         callback_ = callback;

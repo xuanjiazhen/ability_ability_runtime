@@ -67,6 +67,10 @@ void ExitReasonUtil::ProcessSignalData(void *token, uint32_t event)
             pid, uid, signal, bundleName) != 0) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "RecordSignalReason failed");
         }
+        auto appMgr = AppMgrUtil::GetAppMgr();
+        if (appMgr != nullptr) {
+            appMgr->NotifyNativeProcessExit(pid);
+        }
     }
 }
 

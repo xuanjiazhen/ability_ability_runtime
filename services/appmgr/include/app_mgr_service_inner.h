@@ -1830,6 +1830,8 @@ public:
     int32_t CheckAppProvisionType(
         const std::string &bundleName, int32_t callerUid, int32_t appCloneIndex, int32_t userId);
 
+    void RemoveNativeProcessByPid(pid_t pid);
+
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
@@ -2195,6 +2197,9 @@ private:
      * @param appRecord the main process
      */
     void KillRenderProcess(const std::shared_ptr<AppRunningRecord> &appRecord);
+    void AddNativeProcessPid(int32_t uid, pid_t pid);
+    void KillNativeProcessesByUid(int32_t uid);
+    void AppExit(std::shared_ptr<AppRunningRecord> appRecord);
 
     void SetOverlayInfo(const std::string& bundleName, const int32_t userId, AppSpawnStartMsg& startMsg);
     void SetAppEnvInfo(const BundleInfo &bundleInfo, AppSpawnStartMsg& startMsg);
@@ -2501,6 +2506,8 @@ private:
     std::unordered_set<int32_t> childProcessIsolationUidSet_;
     std::unordered_set<int32_t> uninstallOrUpgradeUidSet_ {};
     std::unordered_set<std::string> nwebPreloadSet_ {};
+    std::unordered_map<int32_t, std::unordered_set<pid_t>> nativeProcessUidPidMap_;
+    ffrt::mutex nativeProcessUidPidMapLock_;
 
     std::vector<AppStateCallbackWithUserId> appStateCallbacks_;
     std::vector<ConfigurationObserverWithUserId> configurationObservers_;

@@ -1623,6 +1623,25 @@ int32_t AppMgrProxy::StartNativeProcessForDebugger(const AAFwk::Want &want)
     return reply.ReadInt32();
 }
 
+int32_t AppMgrProxy::NotifyNativeProcessExit(pid_t pid)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return ERR_FLATTEN_OBJECT;
+    }
+    if (!data.WriteInt32(pid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "pid write failed.");
+        return ERR_FLATTEN_OBJECT;
+    }
+ 
+    MessageParcel reply;
+    MessageOption option;
+ 
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::NOTIFY_NATIVE_PROCESS_EXIT, data, reply, option);
+    return reply.ReadInt32();
+}
+
 int32_t AppMgrProxy::GetBundleNameByPid(const int pid, std::string &bundleName, int32_t &uid)
 {
     MessageParcel data;

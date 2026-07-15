@@ -662,5 +662,43 @@ HWTEST_F(AppMgrServiceSecondTest, IsChildProcessSupported_0400, TestSize.Level1)
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_TRUE(isSupported);
 }
+
+/**
+ * @tc.name: NotifyNativeProcessExit_0100
+ * @tc.desc: test NotifyNativeProcessExit with service not ready
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceSecondTest, NotifyNativeProcessExit_0100, TestSize.Level2)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    EXPECT_NE(appMgrService, nullptr);
+    // service not ready
+    auto ret = appMgrService->NotifyNativeProcessExit(10001);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+}
+ 
+/**
+ * @tc.name: NotifyNativeProcessExit_0200
+ * @tc.desc: test NotifyNativeProcessExit with service ready
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceSecondTest, NotifyNativeProcessExit_0200, TestSize.Level2)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    EXPECT_NE(appMgrService, nullptr);
+    ReadyToRun(appMgrService);
+ 
+    // add a mapping entry first
+    int32_t uid = 20000000;
+    pid_t pid = 10001;
+    appMgrService->appMgrServiceInner_->AddNativeProcessPid(uid, pid);
+    EXPECT_EQ(appMgrService->appMgrServiceInner_->nativeProcessUidPidMap_[uid].size(), 1u);
+ 
+    // NotifyNativeProcessExit should remove the pid from map
+    auto ret = appMgrService->NotifyNativeProcessExit(pid);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(appMgrService->appMgrServiceInner_->nativeProcessUidPidMap_.find(uid),
+        appMgrService->appMgrServiceInner_->nativeProcessUidPidMap_.end());
+}
 } // namespace AppExecFwk
 } // namespace OHOS
