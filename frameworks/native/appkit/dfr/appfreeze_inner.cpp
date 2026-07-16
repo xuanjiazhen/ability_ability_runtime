@@ -574,6 +574,10 @@ void AppfreezeInner::AppfreezeHandleOverReportCount(bool isSixSecondEvent)
         faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_3S;
     }
     std::string bundleName = GetBundleNameByApplication();
+    if (record->GetApplicationInfo()->asanEnabled || record->GetApplicationInfo()->hwasanEnabled) {
+        TAG_LOGI(AAFwkTag::APPMGR, "asan enable, bundleName:%{public}s, pid:%{public}d", bundleName.c_str(), pid);
+        return ERR_OK;
+    }
     if (!IsHandleAppfreeze() || IsProcessDebug(pid, bundleName)) {
         TAG_LOGW(AAFwkTag::APPDFR, "don't report event and kill, pid:%{public}d, bundleName:%{public}s",
             pid, bundleName.c_str());
@@ -634,6 +638,10 @@ int AppfreezeInner::AppfreezeHandle(const FaultData& faultData, bool onlyMainThr
 {
     int32_t pid = static_cast<int32_t>(getpid());
     std::string bundleName = GetBundleNameByApplication();
+    if (record->GetApplicationInfo()->asanEnabled || record->GetApplicationInfo()->hwasanEnabled) {
+        TAG_LOGI(AAFwkTag::APPMGR, "asan enable, bundleName:%{public}s, pid:%{public}d", bundleName.c_str(), pid);
+        return ERR_OK;
+    }
     if (!IsHandleAppfreeze() || IsProcessDebug(pid, bundleName)) {
         TAG_LOGW(AAFwkTag::APPDFR, "don't report event and kill, pid:%{public}d, bundleName:%{public}s",
             pid, bundleName.c_str());

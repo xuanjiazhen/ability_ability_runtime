@@ -9376,6 +9376,12 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
     TAG_LOGW(AAFwkTag::APPDFR, "called, eventName:%{public}s, pid:%{public}d, bundleName:%{public}s, "
         "currentTime:%{public}s", eventName.c_str(), pid, bundleName.c_str(),
         AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str());
+
+    if (appRecord->GetApplicationInfo()->asanEnabled || appRecord->GetApplicationInfo()->hwasanEnabled) {
+        TAG_LOGI(AAFwkTag::APPMGR, "asan enable, bundleName:%{public}s, pid:%{public}d", bundleName.c_str(), pid);
+        return ERR_OK;
+    }
+
     if (AppExecFwk::AppfreezeManager::GetInstance()->IsSkipDetect(pid, uid, bundleName,
         eventName) || AppExecFwk::AppfreezeManager::GetInstance()->IsFreezeExcludedPid(pid)) {
         return ERR_OK;
@@ -9410,11 +9416,6 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
 
     if (SubmitDfxFaultTask(nonConstFaultData, bundleName, appRecord, pid) != ERR_OK) {
         return ERR_INVALID_VALUE;
-    }
-
-    if (appRecord->GetApplicationInfo()->asanEnabled) {
-        TAG_LOGI(AAFwkTag::APPMGR, "asan enable, bundleName:%{public}s, pid:%{public}d", bundleName.c_str(), pid);
-        return ERR_OK;
     }
 
 #ifdef APP_NO_RESPONSE_DIALOG
@@ -9534,6 +9535,11 @@ int32_t AppMgrServiceInner::TransformedNotifyAppFault(const AppFaultDataBySA &fa
     int32_t recordId = record->GetRecordId();
     std::string bundleName = record->GetBundleName();
     std::string processName = record->GetProcessName();
+    if (record->GetApplicationInfo()->asanEnabled || record->GetApplicationInfo()->hwasanEnabled) {
+        TAG_LOGI(AAFwkTag::APPMGR, "asan enable, bundleName:%{public}s, pid:%{public}d", bundleName.c_str(), pid);
+        return ERR_OK;
+    }
+
     if (AppExecFwk::AppfreezeManager::GetInstance()->IsSkipDetect(pid, uid, bundleName, eventName) ||
         AppExecFwk::AppfreezeManager::GetInstance()->IsFreezeExcludedPid(pid)) {
         return ERR_OK;
