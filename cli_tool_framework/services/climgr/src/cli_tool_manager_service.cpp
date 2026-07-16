@@ -15,7 +15,9 @@
 
 #include "cli_tool_manager_service.h"
 
+#include <fcntl.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
@@ -45,6 +47,7 @@ constexpr const char* PERMISSION_EXEC_CLI_TOOL = "ohos.permission.EXEC_CLI_TOOL"
 constexpr const char* PERMISSION_QUERY_CLI_TOOL = "ohos.permission.QUERY_CLI_TOOL";
 constexpr const char* PERMISSION_REGISTER_CLI_TOOL = "ohos.permission.REGISTER_CLI_TOOL";
 constexpr const char* PERMISSION_ACCESS_FUNCTION = "ohos.permission.ACCESS_FUNCTION";
+constexpr const char* FD_LIST_KEY = "fd-list";
 
 constexpr int32_t FOUNDATION_UID = 5523;
 constexpr int32_t COEFFICIENT = 1000;
@@ -849,12 +852,70 @@ int32_t CliToolManagerService::TryDispatchSkillSession(const ExecToolParam &para
     return ret;
 }
 
+void CliToolManagerService::ReplaceObjectParam(AAFwk::WantParams& args)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Replacing object param in wantParams");
+    if (args.GetParams().count(FD_LIST_KEY) == 0) {
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "No fd-list param found, skip replacement");
+        return;
+    }
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Found fd-list param, replacing with int32 array");
+    auto fdParamList = args.GetParam<std::vector<AAFwk::WantParams>>(FD_LIST_KEY);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "fdParamList size: %{public}zu", fdParamList.size());
+    if (fdParamList.empty()) {
+        return;
+    }
+
+    std::vector<int32_t> fdListInt;
+    fdListInt.reserve(fdParamList.size());
+    for (size_t i = 0; i < fdParamList.size(); ++i) {
+        auto tmp = static_cast<int32_t>(fdParamList[i].GetParamValue<int64_t>("fd"));
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "fdParamList[%{public}zu]: %{public}d", i, tmp);
+
+        // Validate fd accessibility before adding to list
+        if (tmp < 0) {
+            TAG_LOGW(AAFwkTag::CLI_TOOL, "Invalid fd value: %{public}d, skipping", tmp);
+            continue;
+        }
+
+        // Check if fd is accessible using fcntl
+        int flags = fcntl(tmp, F_GETFD);
+        if (flags == -1) {
+            TAG_LOGW(AAFwkTag::CLI_TOOL, "fd %{public}d is not accessible (errno=%{public}d), skipping",
+                tmp, errno);
+            continue;
+        }
+
+        // Check if fd is open (try to get flags)
+        int fdFlags = fcntl(tmp, F_GETFL);
+        if (fdFlags == -1) {
+            TAG_LOGW(AAFwkTag::CLI_TOOL, "fd %{public}d is not open (errno=%{public}d), skipping",
+                tmp, errno);
+            continue;
+        }
+
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "fd %{public}d is valid and accessible", tmp);
+        fdListInt.push_back(tmp);
+    }
+
+    if (fdListInt.empty()) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "No valid fds in fd-list after validation, keep original param");
+        return;
+    }
+
+    args.SetParam(FD_LIST_KEY, std::move(fdListInt));
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Replaced fd-list param with %{public}zu valid fds", fdListInt.size());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Replaced fd-list param end");
+}
+
+
 int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::string &eventId,
     const sptr<ICliToolManagerScheduler> &scheduler)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecTool called: toolName=%{public}s, subcommand=%{public}s",
-        param.toolName.c_str(), param.subcommand.c_str());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecTool called: toolName=%{public}s, subcommand=%{public}s, wantParams=%{public}s",
+        param.toolName.c_str(), param.subcommand.c_str(), param.args.ToString().c_str());
 
     std::string bundleName;
     auto tokenId = IPCSkeleton::GetCallingTokenID();
@@ -875,6 +936,11 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
         ReportCliExecuteFailed(bundleName, param.toolName, GetFailureReason(ERR_NO_INIT));
         return ERR_NO_INIT;
     }
+
+    ReplaceObjectParam(param.args);
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "after replace wantParams=%{public}s", param.args.ToString().c_str());
+
 
     ToolInfo toolInfo;
     bool dispatched = false;
