@@ -21,6 +21,8 @@
 #include "ability_connect_manager.h"
 #include "common_extension_manager.h"
 #include "ui_extension_ability_manager.h"
+#include "ability_manager_service.h"
+#include "ability_event_handler.h"
 #undef private
 #undef protected
 
@@ -51,6 +53,8 @@ using ::testing::DoAll;
 
 namespace {
     const int32_t SLEEP_TIME = 10000;
+    // same as AbilityManagerService::CONNECT_TIMEOUT_MSG
+    constexpr uint32_t CONNECT_TIMEOUT_MSG = 10;
 }
 
 namespace OHOS {
@@ -2036,15 +2040,188 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_LoadAbility_002, TestSize.Le
  * SubFunction: PostTimeOutTask
  * FunctionPoints: NA
  * EnvConditions: NA
- * CaseDescription: Verify AbilityConnectManager PostTimeOutTask
+ * CaseDescription: Verify PostTimeOutTask with nullptr abilityRecord, should return early
+ *                 and no events are posted to the handler.
  */
 HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_PostTimeOutTask_001, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_001 start");
+    auto ams = DelayedSingleton<AbilityManagerService>::GetInstance();
+    ASSERT_NE(ams, nullptr);
+    auto amsHandler = std::make_shared<AbilityEventHandler>(taskHandler_, ams);
+    ams->eventHandler_ = amsHandler;
+
     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
     ASSERT_NE(connectManager, nullptr);
+    connectManager->SetTaskHandler(TaskHandler());
+    // nullptr abilityRecord should not post any events
+    EXPECT_CALL(*taskHandler_, SubmitTaskInner(_, _)).Times(0);
+    connectManager->PostTimeOutTask(nullptr, CONNECT_TIMEOUT_MSG);
+    testing::Mock::VerifyAndClearExpectations(taskHandler_.get());
+
+    ams->eventHandler_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_001 end");
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: PostTimeOutTask
+ * SubFunction: PostTimeOutTask
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify PostTimeOutTask when taskHandler_ is nullptr, should return early
+ *                 and no events are posted to the handler.
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_PostTimeOutTask_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_002 start");
+    auto ams = DelayedSingleton<AbilityManagerService>::GetInstance();
+    ASSERT_NE(ams, nullptr);
+    auto amsHandler = std::make_shared<AbilityEventHandler>(taskHandler_, ams);
+    ams->eventHandler_ = amsHandler;
+
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    ASSERT_NE(connectManager, nullptr);
+    // taskHandler_ is nullptr by default, CHECK_POINTER should return early
     std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
-    uint32_t messageId = 2;
-    connectManager->PostTimeOutTask(abilityRecord, messageId);
+    EXPECT_CALL(*taskHandler_, SubmitTaskInner(_, _)).Times(0);
+    connectManager->PostTimeOutTask(abilityRecord, CONNECT_TIMEOUT_MSG);
+    testing::Mock::VerifyAndClearExpectations(taskHandler_.get());
+
+    ams->eventHandler_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_002 end");
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: PostTimeOutTask
+ * SubFunction: PostTimeOutTask
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify PostTimeOutTask when abilityRecord is debug app, should skip timeout task
+ *                 and no events are posted to the handler.
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_PostTimeOutTask_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_003 start");
+    auto ams = DelayedSingleton<AbilityManagerService>::GetInstance();
+    ASSERT_NE(ams, nullptr);
+    auto amsHandler = std::make_shared<AbilityEventHandler>(taskHandler_, ams);
+    ams->eventHandler_ = amsHandler;
+
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    ASSERT_NE(connectManager, nullptr);
+    connectManager->SetTaskHandler(TaskHandler());
+    std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
+    abilityRecord->SetDebugApp(true);
+    EXPECT_TRUE(abilityRecord->IsDebug());
+    // Debug mode should not post any timeout events
+    EXPECT_CALL(*taskHandler_, SubmitTaskInner(_, _)).Times(0);
+    connectManager->PostTimeOutTask(abilityRecord, CONNECT_TIMEOUT_MSG);
+    testing::Mock::VerifyAndClearExpectations(taskHandler_.get());
+
+    ams->eventHandler_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_003 end");
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: PostTimeOutTask
+ * SubFunction: PostTimeOutTask
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify PostTimeOutTask when abilityRecord is attach debug, should skip timeout task
+ *                 and no events are posted to the handler.
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_PostTimeOutTask_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_004 start");
+    auto ams = DelayedSingleton<AbilityManagerService>::GetInstance();
+    ASSERT_NE(ams, nullptr);
+    auto amsHandler = std::make_shared<AbilityEventHandler>(taskHandler_, ams);
+    ams->eventHandler_ = amsHandler;
+
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    ASSERT_NE(connectManager, nullptr);
+    connectManager->SetTaskHandler(TaskHandler());
+    std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
+    abilityRecord->SetAttachDebug(true);
+    EXPECT_TRUE(abilityRecord->IsDebug());
+    // Attach debug mode should not post any timeout events
+    EXPECT_CALL(*taskHandler_, SubmitTaskInner(_, _)).Times(0);
+    connectManager->PostTimeOutTask(abilityRecord, CONNECT_TIMEOUT_MSG);
+    testing::Mock::VerifyAndClearExpectations(taskHandler_.get());
+
+    ams->eventHandler_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_004 end");
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: PostTimeOutTask
+ * SubFunction: PostTimeOutTask
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify PostTimeOutTask with CONNECT_TIMEOUT_MSG when not debug, should post
+ *                 CONNECT_HALF_TIMEOUT_MSG and CONNECT_TIMEOUT_MSG events to the handler.
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_PostTimeOutTask_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_005 start");
+    auto ams = DelayedSingleton<AbilityManagerService>::GetInstance();
+    ASSERT_NE(ams, nullptr);
+    auto amsHandler = std::make_shared<AbilityEventHandler>(taskHandler_, ams);
+    ams->eventHandler_ = amsHandler;
+
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    ASSERT_NE(connectManager, nullptr);
+    connectManager->SetTaskHandler(TaskHandler());
+    std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
+    EXPECT_FALSE(abilityRecord->IsDebug());
+    int connectRecordId = 0;
+    // Non-debug mode with CONNECT_TIMEOUT_MSG should post at least 2 events
+    // (CONNECT_HALF_TIMEOUT_MSG and CONNECT_TIMEOUT_MSG)
+    EXPECT_CALL(*taskHandler_, SubmitTaskInner(_, _))
+        .Times(testing::AtLeast(2))
+        .WillRepeatedly(testing::Return(nullptr));
+    // call overload with explicit connectRecordId to avoid needing a connecting record
+    connectManager->PostTimeOutTask(abilityRecord, connectRecordId, CONNECT_TIMEOUT_MSG);
+    testing::Mock::VerifyAndClearExpectations(taskHandler_.get());
+
+    ams->eventHandler_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_005 end");
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: PostTimeOutTask
+ * SubFunction: PostTimeOutTask
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify PostTimeOutTask with invalid messageId when not debug, should return early
+ *                 and no events are posted to the handler.
+ */
+HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_PostTimeOutTask_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_006 start");
+    auto ams = DelayedSingleton<AbilityManagerService>::GetInstance();
+    ASSERT_NE(ams, nullptr);
+    auto amsHandler = std::make_shared<AbilityEventHandler>(taskHandler_, ams);
+    ams->eventHandler_ = amsHandler;
+
+    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+    ASSERT_NE(connectManager, nullptr);
+    connectManager->SetTaskHandler(TaskHandler());
+    std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
+    EXPECT_FALSE(abilityRecord->IsDebug());
+    // Invalid messageId should not post any events
+    EXPECT_CALL(*taskHandler_, SubmitTaskInner(_, _)).Times(0);
+    uint32_t invalidMsgId = 2; // not CONNECT_TIMEOUT_MSG
+    connectManager->PostTimeOutTask(abilityRecord, invalidMsgId);
+    testing::Mock::VerifyAndClearExpectations(taskHandler_.get());
+
+    ams->eventHandler_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "AAFwk_AbilityMS_PostTimeOutTask_006 end");
 }
 
 /*
