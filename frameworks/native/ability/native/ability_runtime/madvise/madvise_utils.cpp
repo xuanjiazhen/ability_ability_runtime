@@ -35,6 +35,7 @@
 #include "errors.h"
 #include "extractor.h"
 #include "hilog_tag_wrapper.h"
+#include "hitrace_meter.h"
 #include "json_utils.h"
 #include "nlohmann/json.hpp"
 #include "singleton.h"
@@ -150,6 +151,7 @@ MadviseConfig LoadConfigFromFile()
 
 int32_t ApplyMadviseWithConfig(const char* bundleName, const MadviseConfig& config)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!bundleName || strlen(bundleName) == 0) {
         TAG_LOGE(AAFwkTag::ABILITY, "Invalid bundle name: null or empty");
         return 0;
@@ -409,6 +411,7 @@ bool ReadEvictFilesFromHap(const std::string &hapPath, std::vector<std::string> 
 
 int32_t EvictFilePages(const std::vector<std::string>& fileNames)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (fileNames.empty()) {
         TAG_LOGD(AAFwkTag::ABILITY, "EvictFilePages: empty file list");
         return ERR_INVALID_VALUE;
@@ -445,6 +448,7 @@ bool IsValidEvictFileName(const std::string& name)
 
 ErrCode EvictModuleFilePages(const std::vector<std::string>& moduleNames)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (moduleNames.empty()) {
         return ERR_INVALID_VALUE;
     }
