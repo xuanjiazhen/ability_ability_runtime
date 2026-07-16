@@ -200,6 +200,7 @@ private:
 
     int32_t TryDispatchSkillSession(const ExecToolParam &param,
         const std::string &eventId, const ToolInfo &toolInfo, bool &dispatched);
+    void ReplaceObjectParam(AAFwk::WantParams& args);
     int32_t SetupAndStartSkillSession(const ExecToolParam &param,
         const std::string &eventId, const ToolInfo &toolInfo);
     int32_t ValidateSkillTypeFromParam(const ExecToolParam &param, int32_t &skillType);
