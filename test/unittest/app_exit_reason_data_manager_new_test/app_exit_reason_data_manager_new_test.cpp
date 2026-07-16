@@ -557,7 +557,7 @@ HWTEST_F(AppExitReasonDataManagerTest, AppExitReasonDataManager_ConvertAppExitRe
     auto result = DelayedSingleton<AppExitReasonDataManager>::GetInstance()
         ->ConvertAppExitReasonInfoToValueOfExtensionName(extensionListName, exitReason, processInfo, withKillMsg);
     std::string jsonString = result.ToString();
-    jsonObject = nlohmann::json::parse(jsonString);
+    jsonObject = nlohmann::json::parse(jsonString, nullptr, false);
     ASSERT_TRUE(jsonObject.contains(JSON_KEY_EXIT_MSG));
     ASSERT_TRUE(jsonObject[JSON_KEY_EXIT_MSG].is_string());
     auto exitMsg = jsonObject.at(JSON_KEY_EXIT_MSG).get<std::string>();

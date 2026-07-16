@@ -1414,7 +1414,7 @@ HWTEST_F(StartupManagerTest, ParseJsonStringArray_001, Function | MediumTest | L
         "nonArray" : "nonArray",
         "nonString": [1]
     })";
-    nlohmann::json json = nlohmann::json::parse(jsonStr);
+    nlohmann::json json = nlohmann::json::parse(jsonStr, nullptr, false);
 
     std::vector<std::string> arr;
     StartupManager::ParseJsonStringArray(json, "nonExist", arr);

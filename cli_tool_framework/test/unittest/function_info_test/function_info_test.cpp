@@ -849,8 +849,8 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_ParseToJson_0100, TestSize.Level1)
     ASSERT_TRUE(json["outputSchema"].is_string());
 
     // Parse and validate the schema strings
-    nlohmann::json inputSchemaJson = nlohmann::json::parse(json["inputSchema"].get<std::string>());
-    nlohmann::json outputSchemaJson = nlohmann::json::parse(json["outputSchema"].get<std::string>());
+    nlohmann::json inputSchemaJson = nlohmann::json::parse(json["inputSchema"].get<std::string>(), nullptr, false);
+    nlohmann::json outputSchemaJson = nlohmann::json::parse(json["outputSchema"].get<std::string>(), nullptr, false);
 
     EXPECT_EQ(inputSchemaJson["type"], "object");
     EXPECT_EQ(outputSchemaJson["type"], "string");
@@ -909,7 +909,7 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_ParseToJson_0300, TestSize.Level1)
 
     // outputSchema is stored as string, parse it to validate
     ASSERT_TRUE(json["outputSchema"].is_string());
-    nlohmann::json outputSchemaJson = nlohmann::json::parse(json["outputSchema"].get<std::string>());
+    nlohmann::json outputSchemaJson = nlohmann::json::parse(json["outputSchema"].get<std::string>(), nullptr, false);
     EXPECT_EQ(outputSchemaJson["type"], "string");
 
     TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_ParseToJson_0300 end");
@@ -937,7 +937,7 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_ParseToJson_0400, TestSize.Level1)
 
     // inputSchema is stored as string, parse it to validate
     ASSERT_TRUE(json["inputSchema"].is_string());
-    nlohmann::json inputSchemaJson = nlohmann::json::parse(json["inputSchema"].get<std::string>());
+    nlohmann::json inputSchemaJson = nlohmann::json::parse(json["inputSchema"].get<std::string>(), nullptr, false);
     EXPECT_EQ(inputSchemaJson["type"], "object");
 
     EXPECT_TRUE(json.contains("outputSchema"));
@@ -975,8 +975,8 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_ParseToJson_0500, TestSize.Level1)
     ASSERT_TRUE(json["inputSchema"].is_string());
     ASSERT_TRUE(json["outputSchema"].is_string());
 
-    nlohmann::json inputSchemaJson = nlohmann::json::parse(json["inputSchema"].get<std::string>());
-    nlohmann::json outputSchemaJson = nlohmann::json::parse(json["outputSchema"].get<std::string>());
+    nlohmann::json inputSchemaJson = nlohmann::json::parse(json["inputSchema"].get<std::string>(), nullptr, false);
+    nlohmann::json outputSchemaJson = nlohmann::json::parse(json["outputSchema"].get<std::string>(), nullptr, false);
 
     EXPECT_TRUE(inputSchemaJson["properties"].is_object());
     EXPECT_EQ(inputSchemaJson["properties"]["name"]["type"], "string");

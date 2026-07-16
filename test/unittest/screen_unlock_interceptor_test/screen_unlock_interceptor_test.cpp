@@ -74,7 +74,7 @@ void ScreenUnlockInterceptorTest::TearDown()
 
 void ScreenUnlockInterceptorTest::LoadTestConfig(const std::string &configStr)
 {
-    nlohmann::json jsonConfig = nlohmann::json::parse(configStr);
+    nlohmann::json jsonConfig = nlohmann::json::parse(configStr, nullptr, false);
     extensionConfig_->LoadExtensionConfig(jsonConfig);
 }
 

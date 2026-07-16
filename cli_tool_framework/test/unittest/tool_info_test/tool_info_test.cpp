@@ -243,12 +243,13 @@ HWTEST_F(ToolInfoTest, ToolInfo_Unmarshalling_0400, TestSize.Level1)
     EXPECT_EQ(resultSubCmd.description, "Full subcommand");
     EXPECT_EQ(resultSubCmd.requirePermissions.size(), 1u);
     EXPECT_EQ(resultSubCmd.requirePermissions[0], "ohos.permission.INTERNET");
-    EXPECT_EQ(nlohmann::json::parse(resultSubCmd.inputSchema),
-        nlohmann::json::parse(R"({"type": "object", "properties": {"arg": {"type": "string"}}})"));
-    EXPECT_EQ(nlohmann::json::parse(resultSubCmd.outputSchema), nlohmann::json::parse(R"({"type": "string"})"));
+    EXPECT_EQ(nlohmann::json::parse(resultSubCmd.inputSchema, nullptr, false),
+        nlohmann::json::parse(R"({"type": "object", "properties": {"arg": {"type": "string"}}})", nullptr, false));
+    EXPECT_EQ(nlohmann::json::parse(resultSubCmd.outputSchema, nullptr, false),
+        nlohmann::json::parse(R"({"type": "string"})", nullptr, false));
     EXPECT_EQ(resultSubCmd.eventTypes.size(), 2u);
-    EXPECT_EQ(nlohmann::json::parse(resultSubCmd.eventSchemas),
-        nlohmann::json::parse(R"({"stdout": {"type": "string"}})"));
+    EXPECT_EQ(nlohmann::json::parse(resultSubCmd.eventSchemas, nullptr, false),
+        nlohmann::json::parse(R"({"stdout": {"type": "string"}})", nullptr, false));
 
     delete result;
 

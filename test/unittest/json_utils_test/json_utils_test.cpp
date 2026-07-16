@@ -54,7 +54,7 @@ HWTEST_F(JsonUtilsTest, JsonToBool_0100, TestSize.Level2)
     const std::string jsonStr = R"({
         "key1": true
     })";
-    nlohmann::json jsonObj = nlohmann::json::parse(jsonStr);
+    nlohmann::json jsonObj = nlohmann::json::parse(jsonStr, nullptr, false);
     bool result = JsonUtils::GetInstance().JsonToBool(jsonObj, "key1", false);
     EXPECT_EQ(result, true);
 
@@ -73,7 +73,7 @@ HWTEST_F(JsonUtilsTest, JsonToBool_0200, TestSize.Level2)
     const std::string jsonStr = R"({
         "key1": true
     })";
-    nlohmann::json jsonObj = nlohmann::json::parse(jsonStr);
+    nlohmann::json jsonObj = nlohmann::json::parse(jsonStr, nullptr, false);
     bool result = JsonUtils::GetInstance().JsonToBool(jsonObj, "key2", false);
     EXPECT_EQ(result, false);
 
@@ -92,7 +92,7 @@ HWTEST_F(JsonUtilsTest, JsonToBool_0300, TestSize.Level2)
     const std::string jsonStr = R"({
         "key1": "invalid_value"
     })";
-    nlohmann::json jsonObj = nlohmann::json::parse(jsonStr);
+    nlohmann::json jsonObj = nlohmann::json::parse(jsonStr, nullptr, false);
     bool result = JsonUtils::GetInstance().JsonToBool(jsonObj, "key1", true);
     EXPECT_EQ(result, true);
 
@@ -111,7 +111,7 @@ HWTEST_F(JsonUtilsTest, JsonToUnorderedStrSet_0100, TestSize.Level2)
     const std::string jsonStr = R"({
         "key1": ["value1", "value2"]
     })";
-    nlohmann::json jsonObj = nlohmann::json::parse(jsonStr);
+    nlohmann::json jsonObj = nlohmann::json::parse(jsonStr, nullptr, false);
     std::unordered_set<std::string> set;
     JsonUtils::GetInstance().JsonToUnorderedStrSet(jsonObj, "key2", set);
     EXPECT_EQ(set.size(), 0);
@@ -131,7 +131,7 @@ HWTEST_F(JsonUtilsTest, JsonToUnorderedStrSet_0200, TestSize.Level2)
     const std::string jsonStr = R"({
         "key1": "invalid_array"
     })";
-    nlohmann::json jsonObj = nlohmann::json::parse(jsonStr);
+    nlohmann::json jsonObj = nlohmann::json::parse(jsonStr, nullptr, false);
     std::unordered_set<std::string> set;
     JsonUtils::GetInstance().JsonToUnorderedStrSet(jsonObj, "key1", set);
     EXPECT_EQ(set.size(), 0);
@@ -151,7 +151,7 @@ HWTEST_F(JsonUtilsTest, JsonToUnorderedStrSet_0300, TestSize.Level2)
     const std::string jsonStr = R"({
         "key1": ["value1", "value2", "value3"]
     })";
-    nlohmann::json jsonObj = nlohmann::json::parse(jsonStr);
+    nlohmann::json jsonObj = nlohmann::json::parse(jsonStr, nullptr, false);
     std::unordered_set<std::string> set;
     JsonUtils::GetInstance().JsonToUnorderedStrSet(jsonObj, "key1", set);
     EXPECT_EQ(set.size(), 3);
@@ -171,7 +171,7 @@ HWTEST_F(JsonUtilsTest, JsonToUnorderedStrSet_0400, TestSize.Level2)
     const std::string jsonStr = R"({
         "key1": ["value1", 2, "value3"]
     })";
-    nlohmann::json jsonObj = nlohmann::json::parse(jsonStr);
+    nlohmann::json jsonObj = nlohmann::json::parse(jsonStr, nullptr, false);
     std::unordered_set<std::string> set;
     JsonUtils::GetInstance().JsonToUnorderedStrSet(jsonObj, "key1", set);
     EXPECT_EQ(set.size(), 2);

@@ -153,7 +153,7 @@ HWTEST_F(AbilityMgrServiceDialogTest, AbilityMgrServiceDialog_0500, TestSize.Lev
     };
     std::vector<DialogAppInfo> dialogAppInfos = { dialogAppInfo };
     auto params = systemDialogScheduler_->GetSelectorParams(dialogAppInfos);
-    nlohmann::json jsonObj = nlohmann::json::parse(params);
+    nlohmann::json jsonObj = nlohmann::json::parse(params, nullptr, false);
     EXPECT_EQ(jsonObj["hapList"].size(), 1);
     TAG_LOGI(AAFwkTag::TEST, "AbilityMgrServiceDialog_0500 end");
 }
