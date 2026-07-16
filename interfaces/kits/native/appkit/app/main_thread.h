@@ -753,6 +753,7 @@ private:
     int32_t OnAttachLocalDebug(bool isDebugFromLocal);
 
     void HandleConfigByPlugin(Configuration &config, BundleInfo &bundleInfo);
+    void SetAbilityName(const std::unique_ptr<AbilityRuntime::Runtime> &runtime, const std::string& abilityName);
 
 #if defined(NWEB) && defined(NWEB_GRAPHIC)
     void HandleNWebPreload();
