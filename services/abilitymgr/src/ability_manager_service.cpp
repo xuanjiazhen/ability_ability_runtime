@@ -13425,24 +13425,87 @@ int AbilityManagerService::IsCallFromBackground(const AbilityRequest &abilityReq
         DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(callerPid, processInfo);
         if (processInfo.processName_.empty()) {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "Can not find caller application by callerPid: %{private}d.", callerPid);
-            bool isPermisson = false;
             if (isSelector) {
-                isPermisson = AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+                bool isPermisson = AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
                     PermissionConstants::PERMISSION_START_ABILITIES_FROM_BACKGROUND, specifyTokenId);
-            } else {
-                isPermisson = AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
-                    PermissionConstants::PERMISSION_START_ABILITIES_FROM_BACKGROUND);
+                if (isPermisson) {
+                    TAG_LOGD(AAFwkTag::ABILITYMGR, "Caller has PERMISSION_START_ABILITIES_FROM_BACKGROUND, PASS.");
+                    isBackgroundCall = false;
+                    return ERR_OK;
+                }
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "without PERMISSION_START_ABILITIES_FROM_BACKGROUND, REJECT");
+                return ERR_INVALID_VALUE;
             }
-            if (isPermisson) {
-                TAG_LOGD(AAFwkTag::ABILITYMGR, "Caller has PERMISSION_START_ABILITIES_FROM_BACKGROUND, PASS.");
-                isBackgroundCall = false;
-                return ERR_OK;
-            }
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "without PERMISSION_START_ABILITIES_FROM_BACKGROUND, REJECT");
-            return ERR_INVALID_VALUE;
+            return ResolveUnknownCallerBackgroundCall(callerPid, isBackgroundCall);
         }
     }
     return SetBackgroundCall(processInfo, abilityRequest, isBackgroundCall);
+}
+
+int32_t AbilityManagerService::ResolveUnknownCallerBackgroundCall(pid_t callerPid,
+    bool &isBackgroundCall) const
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    // Fast path: the calling token itself holds the background-start permission.
+    if (AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+        PermissionConstants::PERMISSION_START_ABILITIES_FROM_BACKGROUND)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Caller has PERMISSION_START_ABILITIES_FROM_BACKGROUND, PASS.");
+        isBackgroundCall = false;
+        return ERR_OK;
+    }
+
+    // Resolve the parent (main) application process that owns the caller pid via AppMs.
+    AppExecFwk::RunningProcessInfo parentInfo;
+    DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByChildProcessPid(callerPid, parentInfo);
+    if (!parentInfo.bundleNames.empty()) {
+        if (parentInfo.state_ == AppExecFwk::AppProcessState::APP_STATE_FOREGROUND) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "Caller parent process is foreground, PASS.");
+            isBackgroundCall = false;
+            return ERR_OK;
+        }
+        if (AAFwk::PermissionVerification::GetInstance()->VerifyPermissionByTokenId(
+            parentInfo.accessTokenId_, PermissionConstants::PERMISSION_START_ABILITIES_FROM_BACKGROUND)) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "Caller parent process has background-start permission, PASS.");
+            isBackgroundCall = false;
+            return ERR_OK;
+        }
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Caller parent process is background and without permission, REJECT.");
+        return ERR_INVALID_VALUE;
+    }
+
+    // The caller pid is not tracked by AppMs (e.g. a tool process forked by a host application such as
+    // an assistant). Resolve the host application token from the caller's tool token, then query AppMs
+    // for the host process(es) by that accessTokenId.
+    unsigned int callerTokenId = IPCSkeleton::GetCallingTokenID();
+    unsigned int hostTokenId = 0;
+    int32_t ret = AccessTokenKit::GetHostTokenId(callerTokenId, hostTokenId);
+    if (ret == Security::AccessToken::AccessTokenKitRet::RET_SUCCESS && hostTokenId != 0) {
+        std::vector<AppExecFwk::RunningProcessInfo> hostProcessInfos;
+        int32_t hostRet = DelayedSingleton<AppScheduler>::GetInstance()->GetProcessRunningInfosByAccessTokenId(
+            hostTokenId, hostProcessInfos);
+        if (hostRet != ERR_OK) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "GetProcessRunningInfosByAccessTokenId failed: %{public}d", hostRet);
+        }
+        for (const auto &hostInfo : hostProcessInfos) {
+            if (hostInfo.state_ == AppExecFwk::AppProcessState::APP_STATE_FOREGROUND) {
+                TAG_LOGD(AAFwkTag::ABILITYMGR, "Caller host process is foreground, PASS.");
+                isBackgroundCall = false;
+                return ERR_OK;
+            }
+        }
+        if (AAFwk::PermissionVerification::GetInstance()->VerifyPermissionByTokenId(
+            hostTokenId, PermissionConstants::PERMISSION_START_ABILITIES_FROM_BACKGROUND)) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "Caller host process has background-start permission, PASS.");
+            isBackgroundCall = false;
+            return ERR_OK;
+        }
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Caller host process is background and without permission, REJECT.");
+        return ERR_INVALID_VALUE;
+    }
+
+    TAG_LOGE(AAFwkTag::ABILITYMGR,
+        "Caller has no resolvable parent/host and lacks background-start permission, REJECT.");
+    return ERR_INVALID_VALUE;
 }
 
 int32_t AbilityManagerService::SetBackgroundCall(const AppExecFwk::RunningProcessInfo &processInfo,

@@ -24,6 +24,9 @@ namespace AAFwk {
 bool PermissionVerification::VerifyPermissionByTokenId(const int &tokenId, const std::string &permissionName) const
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s enter", __func__);
+    if (MyFlag::overrideTokenPerm_) {
+        return MyFlag::tokenPermResult_;
+    }
     return !!(MyFlag::flag_);
 }
 

@@ -3398,5 +3398,180 @@ HWTEST_F(AbilityManagerServiceFirstTest, IsWebSandBoxClone_0200, TestSize.Level1
     EXPECT_FALSE(abilityRequest.isWebSandBoxClone);
 }
 
+namespace {
+// In-process mock for AppMgrClient, injected via AppScheduler::appMgrClient_ (reachable because the
+// test TU uses `#define private public`). Overrides only the two AppMs calls the helper makes.
+class MockAppMgrClient : public AppMgrClient {
+public:
+    int32_t GetRunningProcessInfoByChildProcessPid(const pid_t childPid,
+        RunningProcessInfo &info) const override
+    {
+        if (MyFlag::mockParentHas_) {
+            info.bundleNames.emplace_back("parent");
+            info.state_ = static_cast<AppProcessState>(MyFlag::mockParentState_);
+            info.accessTokenId_ = MyFlag::mockParentAccessTokenId_;
+        }
+        return 0;
+    }
+    AppMgrResultCode GetProcessRunningInfosByAccessTokenId(uint32_t accessTokenId,
+        std::vector<RunningProcessInfo> &info) override
+    {
+        if (MyFlag::mockHostForeground_) {
+            RunningProcessInfo hostInfo;
+            hostInfo.state_ = AppProcessState::APP_STATE_FOREGROUND;
+            info.push_back(hostInfo);
+        }
+        return AppMgrResultCode::RESULT_OK;
+    }
+};
+} // namespace
+
+static void ResetUnknownCallerBgMock()
+{
+    MyFlag::flag_ = 0;
+    MyFlag::overrideTokenPerm_ = false;
+    MyFlag::tokenPermResult_ = false;
+    MyFlag::mockHostTokenId_ = 0;
+    MyFlag::mockGetHostTokenIdRet_ = -1; // nonzero => host not resolved by default
+    MyFlag::mockParentHas_ = false;
+    MyFlag::mockParentState_ = 0;
+    MyFlag::mockParentAccessTokenId_ = 0;
+    MyFlag::mockHostForeground_ = false;
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: ResolveUnknownCallerBackgroundCall
+ * SubFunction: NA
+ * FunctionPoints: resolve background-start permission for an unknown caller process
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, ResolveUnknownCallerBackgroundCall_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest ResolveUnknownCallerBackgroundCall_001 start");
+    // Calling token itself holds the permission -> allow early.
+    ResetUnknownCallerBgMock();
+    MyFlag::flag_ = 1; // VerifyCallingPermission returns true
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    bool isBackgroundCall = true;
+    EXPECT_EQ(abilityMs_->ResolveUnknownCallerBackgroundCall(1234, isBackgroundCall), ERR_OK);
+    EXPECT_FALSE(isBackgroundCall);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest ResolveUnknownCallerBackgroundCall_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: ResolveUnknownCallerBackgroundCall
+ * SubFunction: NA
+ * FunctionPoints: reject when caller has no permission and no resolvable parent/host
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, ResolveUnknownCallerBackgroundCall_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest ResolveUnknownCallerBackgroundCall_002 start");
+    // No permission, no parent (AppMs unavailable), no host (GetHostTokenId fails) -> reject.
+    ResetUnknownCallerBgMock();
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    bool isBackgroundCall = true;
+    EXPECT_EQ(abilityMs_->ResolveUnknownCallerBackgroundCall(1234, isBackgroundCall), ERR_INVALID_VALUE);
+    EXPECT_TRUE(isBackgroundCall); // untouched on reject
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest ResolveUnknownCallerBackgroundCall_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: ResolveUnknownCallerBackgroundCall
+ * SubFunction: NA
+ * FunctionPoints: host resolved and host token holds the permission -> allow
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, ResolveUnknownCallerBackgroundCall_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest ResolveUnknownCallerBackgroundCall_003 start");
+    // Host resolved, no host process foreground (AppMs unavailable -> empty list), host token has
+    // the permission -> allow.
+    ResetUnknownCallerBgMock();
+    MyFlag::mockGetHostTokenIdRet_ = 0; // RET_SUCCESS
+    MyFlag::mockHostTokenId_ = 4321;
+    MyFlag::overrideTokenPerm_ = true;
+    MyFlag::tokenPermResult_ = true; // host token has the permission
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    bool isBackgroundCall = true;
+    EXPECT_EQ(abilityMs_->ResolveUnknownCallerBackgroundCall(1234, isBackgroundCall), ERR_OK);
+    EXPECT_FALSE(isBackgroundCall);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest ResolveUnknownCallerBackgroundCall_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: ResolveUnknownCallerBackgroundCall
+ * SubFunction: NA
+ * FunctionPoints: host resolved but host token lacks the permission -> reject
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, ResolveUnknownCallerBackgroundCall_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest ResolveUnknownCallerBackgroundCall_004 start");
+    // Host resolved, no host process foreground, host token lacks the permission -> reject.
+    ResetUnknownCallerBgMock();
+    MyFlag::mockGetHostTokenIdRet_ = 0; // RET_SUCCESS
+    MyFlag::mockHostTokenId_ = 4321;
+    MyFlag::overrideTokenPerm_ = true;
+    MyFlag::tokenPermResult_ = false; // host token lacks the permission
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    bool isBackgroundCall = true;
+    EXPECT_EQ(abilityMs_->ResolveUnknownCallerBackgroundCall(1234, isBackgroundCall), ERR_INVALID_VALUE);
+    EXPECT_TRUE(isBackgroundCall);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest ResolveUnknownCallerBackgroundCall_004 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: ResolveUnknownCallerBackgroundCall
+ * SubFunction: NA
+ * FunctionPoints: parent process resolved and is foreground -> allow
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, ResolveUnknownCallerBackgroundCall_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest ResolveUnknownCallerBackgroundCall_005 start");
+    // Calling token lacks the permission, but the parent (main) app process resolved via AppMs is
+    // foreground -> allow.
+    ResetUnknownCallerBgMock();
+    MyFlag::mockParentHas_ = true;
+    MyFlag::mockParentState_ = static_cast<int>(AppProcessState::APP_STATE_FOREGROUND);
+    MyFlag::mockParentAccessTokenId_ = 9999;
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    auto appScheduler = DelayedSingleton<AppScheduler>::GetInstance();
+    ASSERT_NE(appScheduler, nullptr);
+    appScheduler->appMgrClient_ = std::make_unique<MockAppMgrClient>();
+    bool isBackgroundCall = true;
+    EXPECT_EQ(abilityMs_->ResolveUnknownCallerBackgroundCall(1234, isBackgroundCall), ERR_OK);
+    EXPECT_FALSE(isBackgroundCall);
+    appScheduler->appMgrClient_ = std::make_unique<AppMgrClient>(); // restore real client
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest ResolveUnknownCallerBackgroundCall_005 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: ResolveUnknownCallerBackgroundCall
+ * SubFunction: NA
+ * FunctionPoints: host resolved and host process is foreground -> allow
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, ResolveUnknownCallerBackgroundCall_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest ResolveUnknownCallerBackgroundCall_006 start");
+    // No permission, no parent, host resolved (GetHostTokenId success) and host process foreground
+    // (AppMs returns a foreground entry) -> allow.
+    ResetUnknownCallerBgMock();
+    MyFlag::mockGetHostTokenIdRet_ = 0; // RET_SUCCESS
+    MyFlag::mockHostTokenId_ = 4321;
+    MyFlag::mockHostForeground_ = true;
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    auto appScheduler = DelayedSingleton<AppScheduler>::GetInstance();
+    ASSERT_NE(appScheduler, nullptr);
+    appScheduler->appMgrClient_ = std::make_unique<MockAppMgrClient>();
+    bool isBackgroundCall = true;
+    EXPECT_EQ(abilityMs_->ResolveUnknownCallerBackgroundCall(1234, isBackgroundCall), ERR_OK);
+    EXPECT_FALSE(isBackgroundCall);
+    appScheduler->appMgrClient_ = std::make_unique<AppMgrClient>(); // restore real client
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest ResolveUnknownCallerBackgroundCall_006 end");
+}
+
 } // namespace AAFwk
 } // namespace OHOS

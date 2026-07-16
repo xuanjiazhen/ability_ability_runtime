@@ -21,6 +21,14 @@ namespace OHOS {
 namespace AAFwk {
 int MyFlag::flag_ = 0;
 bool MyFlag::isWithNative_ = false;
+unsigned int MyFlag::mockHostTokenId_ = 0;
+int MyFlag::mockGetHostTokenIdRet_ = -1; // nonzero => GetHostTokenId fails (host not resolved) by default
+bool MyFlag::overrideTokenPerm_ = false;
+bool MyFlag::tokenPermResult_ = false;
+bool MyFlag::mockParentHas_ = false;
+int MyFlag::mockParentState_ = 0;
+unsigned int MyFlag::mockParentAccessTokenId_ = 0;
+bool MyFlag::mockHostForeground_ = false;
 
 bool NativeAbilityMetaData::IsWithNative(const AppExecFwk::AbilityInfo& abilityInfo)
 {

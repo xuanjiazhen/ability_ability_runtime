@@ -26,6 +26,17 @@ public:
     };
     static int flag_;
     static bool isWithNative_;
+    // Mock controls for ResolveUnknownCallerBackgroundCall (defaults mimic IPC failure so
+    // existing tests that do not arm them keep prior behavior).
+    static unsigned int mockHostTokenId_;
+    static int mockGetHostTokenIdRet_;
+    static bool overrideTokenPerm_;
+    static bool tokenPermResult_;
+    // Mock controls for AppMgrClient (injected via AppScheduler::appMgrClient_ swap).
+    static bool mockParentHas_;
+    static int mockParentState_;
+    static unsigned int mockParentAccessTokenId_;
+    static bool mockHostForeground_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
