@@ -2031,13 +2031,13 @@ HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_LoadAbility_002, TestSize.Le
 }
 
 /*
- * Feature: AbilityConnectManager
- * Function: PostTimeOutTask
+ * Feature: AbilityConnectManager 
+ * Function: PostTimeOutTask 
  * SubFunction: PostTimeOutTask
  * FunctionPoints: NA
  * EnvConditions: NA
  * CaseDescription: Verify AbilityConnectManager PostTimeOutTask
- */
+*/
 HWTEST_F(AbilityConnectManagerTest, AAFwk_AbilityMS_PostTimeOutTask_001, TestSize.Level1)
 {
     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
