@@ -64,8 +64,7 @@ HWTEST_F(BlockAllAppStartInterceptorTest, DoProcess_001, TestSize.Level1)
     int32_t userId = 1001;
     bool isWithUI = true;
     sptr<IRemoteObject> callerToken = nullptr;
-    std::function<bool(void)> shouldBlockAllAppStartFunc = nullptr;
-    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldBlockAllAppStartFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken);
     auto ret = blockAllAppStartInterceptor.DoProcess(param);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
@@ -87,7 +86,8 @@ HWTEST_F(BlockAllAppStartInterceptorTest, DoProcess_002, TestSize.Level1)
     std::function<bool(void)> shouldBlockAllAppStartFunc = []() -> bool {
         return true;
     };
-    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldBlockAllAppStartFunc);
+    blockAllAppStartInterceptor.SetShouldBlockFunc(shouldBlockAllAppStartFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken);
     auto ret = blockAllAppStartInterceptor.DoProcess(param);
     EXPECT_EQ(ret, ERR_ALL_APP_START_BLOCKED);
 }
@@ -109,7 +109,8 @@ HWTEST_F(BlockAllAppStartInterceptorTest, DoProcess_003, TestSize.Level1)
     std::function<bool(void)> shouldBlockAllAppStartFunc = []() -> bool {
         return false;
     };
-    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldBlockAllAppStartFunc);
+    blockAllAppStartInterceptor.SetShouldBlockFunc(shouldBlockAllAppStartFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken);
     auto ret = blockAllAppStartInterceptor.DoProcess(param);
     EXPECT_EQ(ret, ERR_OK);
 }
