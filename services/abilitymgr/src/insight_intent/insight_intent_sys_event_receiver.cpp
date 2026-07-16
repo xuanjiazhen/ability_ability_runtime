@@ -27,6 +27,7 @@
 #include "ability_util.h"
 #include "bundle_mgr_helper.h"
 #include "insight_intent_db_cache.h"
+#include "bopd_mode_util.h"
 #include "ffrt.h"
 
 namespace OHOS {
@@ -286,6 +287,11 @@ void InsightIntentSysEventReceiver::HandleUserRemove(const EventFwk::CommonEvent
 
 void InsightIntentSysEventReceiver::OnReceiveEvent(const EventFwk::CommonEventData &data)
 {
+    if (IsBopdMode()) {
+        TAG_LOGI(AAFwkTag::INTENT, "BOPD mode, skip sys event: %{public}s",
+            data.GetWant().GetAction().c_str());
+        return;
+    }
     const AAFwk::Want &want = data.GetWant();
     std::string action = want.GetAction();
     TAG_LOGI(AAFwkTag::INTENT, "the action: %{public}s", action.c_str());

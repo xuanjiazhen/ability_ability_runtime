@@ -26,6 +26,7 @@
 #include "os_account_manager_wrapper.h"
 #include "common_event_manager.h"
 #include "common_event_support.h"
+#include "bopd_mode_util.h"
 #include "ffrt.h"
 
 namespace OHOS {
@@ -60,6 +61,11 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
     }
     if (userId < 0) {
         TAG_LOGW(AAFwkTag::INTENT, "invalid userId: %{public}d", userId);
+        return;
+    }
+
+    if (IsBopdMode()) {
+        TAG_LOGI(AAFwkTag::INTENT, "BOPD mode, skip package update: %{public}s", bundleName.c_str());
         return;
     }
 
@@ -132,6 +138,11 @@ void InsightIntentEventMgr::DeleteInsightIntentEvent(const AppExecFwk::ElementNa
 
     if (userId < 0) {
         TAG_LOGI(AAFwkTag::INTENT, "invalid userId: %{public}d", userId);
+        return;
+    }
+
+    if (IsBopdMode()) {
+        TAG_LOGI(AAFwkTag::INTENT, "BOPD mode, skip package delete: %{public}s", bundleName.c_str());
         return;
     }
 
