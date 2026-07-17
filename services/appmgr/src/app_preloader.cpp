@@ -27,6 +27,7 @@
 
 namespace OHOS {
 namespace AppExecFwk {
+namespace {
 AppPreloader::AppPreloader(std::shared_ptr<RemoteClientManager> remoteClientManager)
 {
     remoteClientManager_ = remoteClientManager;
@@ -211,9 +212,8 @@ bool AppPreloader::GetBundleAndHapInfo(const std::string &bundleName, int32_t us
     }
 
     TAG_LOGD(AAFwkTag::APPMGR, "userId: %{public}d, bundleName: %{public}s", userId, bundleName.c_str());
-    auto flags = BundleFlag::GET_BUNDLE_DEFAULT | BundleFlag::GET_BUNDLE_WITH_REQUESTED_PERMISSION;
     if (!IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfo(bundleName,
-        static_cast<BundleFlag>(flags),
+        BundleFlag::GET_BUNDLE_WITH_REQUESTED_PERMISSION,
         bundleInfo, userId))) {
         TAG_LOGE(AAFwkTag::APPMGR, "GetBundleInfo failed");
         return false;
