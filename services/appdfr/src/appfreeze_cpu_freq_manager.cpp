@@ -84,8 +84,8 @@ bool AppfreezeCpuFreqManager::RemoveOldInfo()
     int removeCount = 0;
     uint64_t curTime = AppfreezeUtil::GetMilliseconds();
     for (auto it = cpuInfoMap_.begin(); it != cpuInfoMap_.end();) {
-        auto interval = curTime - it->second.GetCpuConsumeTime().cpuFaultTime;
-        if (interval > AppfreezeUtil::TIME_LIMIT || interval < 0) {
+        uint64_t cpuFaultTime = it->second.GetCpuConsumeTime().cpuFaultTime;
+        if (curTime < cpuFaultTime || (curTime - cpuFaultTime) > AppfreezeUtil::TIME_LIMIT) {
             it = cpuInfoMap_.erase(it);
             removeCount++;
         } else {
