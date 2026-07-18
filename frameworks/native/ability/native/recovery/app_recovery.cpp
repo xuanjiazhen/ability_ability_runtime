@@ -39,6 +39,7 @@
 #include "napi/native_common.h"
 #include "ohos_application.h"
 #include "parcel.h"
+#include "recovery_log_utils.h"
 #include "recovery_param.h"
 #include "string_ex.h"
 #include "string_wrapper.h"
@@ -55,6 +56,13 @@ AppRecovery::AppRecovery() : isEnable_(false), restartFlag_(RestartFlag::ALWAYS_
     saveOccasion_(SaveOccasionFlag::SAVE_WHEN_ERROR), saveMode_(SaveModeFlag::SAVE_WITH_FILE),
     crashFlag_(RestartFlag::NO_RESTART)
 {
+    isEnable_ = true;
+    restartFlag_ = RestartFlag::ALWAYS_RESTART;
+    saveOccasion_ = SaveOccasionFlag::SAVE_ALL;
+    saveMode_ = SaveModeFlag::SAVE_WITH_FILE;
+    crashFlag_ = RestartFlag::ALWAYS_RESTART;
+    useAppSettedValue_.store(true);
+    TAG_LOGI(AAFwkTag::RECOVERY, "force recovery enabled in constructor");
 }
 
 AppRecovery::~AppRecovery()
@@ -190,7 +198,8 @@ bool AppRecovery::IsNeedSaveAppState(StateReason reason)
 
 bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
 {
-    TAG_LOGI(AAFwkTag::RECOVERY, "begin");
+    TAG_LOGI(AAFwkTag::RECOVERY, "ScheduleSaveAppState begin, reason:%{public}d, hasTargetAbility:%{public}d",
+        static_cast<int32_t>(reason), ability != 0 ? 1 : 0);
     bool ret = IsNeedSaveAppState(reason);
     if (reason == StateReason::APP_FREEZE) {
         panda::JSNApi::NotifyOnANR();
@@ -216,6 +225,7 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
         if (!ret) {
             return false;
         }
+        TAG_LOGI(AAFwkTag::RECOVERY, "DoSaveAppState on APP_FREEZE");
         AppRecovery::GetInstance().DoSaveAppState(reason, ability);
         return true;
     }
@@ -274,7 +284,8 @@ void AppRecovery::SetRestartWant(std::shared_ptr<AAFwk::Want> want)
 
 bool AppRecovery::ScheduleRecoverApp(StateReason reason)
 {
-    TAG_LOGI(AAFwkTag::RECOVERY, "scheduleRecoverApp  begin");
+    TAG_LOGI(AAFwkTag::RECOVERY, "ScheduleRecoverApp begin, reason:%{public}d, enabled:%{public}d",
+        static_cast<int32_t>(reason), static_cast<int32_t>(isEnable_));
     if (!ShouldRecoverApp(reason)) {
         TAG_LOGE(AAFwkTag::RECOVERY, "not recover app");
         return false;
@@ -324,6 +335,8 @@ bool AppRecovery::ScheduleRecoverApp(StateReason reason)
 
 bool AppRecovery::TryRecoverApp(StateReason reason)
 {
+    TAG_LOGI(AAFwkTag::RECOVERY, "TryRecoverApp reason:%{public}d, enabled:%{public}d",
+        static_cast<int32_t>(reason), static_cast<int32_t>(isEnable_));
     if (isEnable_) {
         ScheduleSaveAppState(reason);
         DisallowCrossThreadExecutionInRecovery();
@@ -334,7 +347,8 @@ bool AppRecovery::TryRecoverApp(StateReason reason)
 
 void AppRecovery::DoRecoverApp(StateReason reason)
 {
-    TAG_LOGD(AAFwkTag::RECOVERY, "begin");
+    TAG_LOGI(AAFwkTag::RECOVERY, "DoRecoverApp begin, reason:%{public}d, abilityCount:%{public}zu",
+        static_cast<int32_t>(reason), abilityRecoverys_.size());
     if (abilityRecoverys_.empty()) {
         TAG_LOGE(AAFwkTag::RECOVERY, "no ability exist");
         return;
@@ -342,10 +356,12 @@ void AppRecovery::DoRecoverApp(StateReason reason)
     AAFwk::Want *want = nullptr;
     if (want_ != nullptr) {
         want = want_.get();
+        LogRecoveryContent(AAFwkTag::RECOVERY, "DoRecoverApp restart want", want->ToString());
     }
 
     if (abilityRecoverys_.size() == 1) {
         if (abilityRecoverys_.front()->IsOnForeground()) {
+            TAG_LOGI(AAFwkTag::RECOVERY, "DoRecoverApp single foreground ability");
             abilityRecoverys_.front()->ScheduleRecoverAbility(reason, want);
             return;
         }
@@ -353,6 +369,7 @@ void AppRecovery::DoRecoverApp(StateReason reason)
 
     for (auto itr = abilityRecoverys_.rbegin(); itr != abilityRecoverys_.rend(); itr++) {
         if ((*itr)->IsOnForeground()) {
+            TAG_LOGI(AAFwkTag::RECOVERY, "DoRecoverApp found foreground ability");
             (*itr)->ScheduleRecoverAbility(reason, want);
             break;
         }
@@ -361,9 +378,11 @@ void AppRecovery::DoRecoverApp(StateReason reason)
 
 void AppRecovery::DoRecoverMainApp(StateReason reason)
 {
-    TAG_LOGD(AAFwkTag::RECOVERY, "DoReciverMainApp begin");
+    TAG_LOGI(AAFwkTag::RECOVERY, "DoRecoverMainApp begin, reason:%{public}d",
+        static_cast<int32_t>(reason));
     AAFwk::Want *want = &mainWant_;
     want->SetParam(AAFwk::Want::PARAM_ABILITY_RECOVERY_RESTART, false);
+    LogRecoveryContent(AAFwkTag::RECOVERY, "DoRecoverMainApp main want", want->ToString());
     auto token = token_.promote();
     if (token == nullptr) {
         return;
@@ -378,7 +397,8 @@ void AppRecovery::DoRecoverMainApp(StateReason reason)
  
 void AppRecovery::DoSaveAppState(StateReason reason, uintptr_t ability)
 {
-    TAG_LOGD(AAFwkTag::RECOVERY, "begin");
+    TAG_LOGI(AAFwkTag::RECOVERY, "DoSaveAppState begin, reason:%{public}d, onlyTarget:%{public}d",
+        static_cast<int32_t>(reason), ability != 0 ? 1 : 0);
     auto appInfo = applicationInfo_.lock();
     if (appInfo == nullptr || abilityRecoverys_.empty()) {
         TAG_LOGE(AAFwkTag::RECOVERY, "not exist application or ability info");
@@ -403,10 +423,18 @@ void AppRecovery::DoSaveAppState(StateReason reason, uintptr_t ability)
 void AppRecovery::EnableAppRecovery(uint16_t restartFlag, uint16_t saveFlag, uint16_t saveMode)
 {
     isEnable_ = true;
+#ifdef FORCE_RECOVERY_ENABLE
+    TAG_LOGI(AAFwkTag::RECOVERY, "force recovery enabled, ignore app setted value");
+    restartFlag_ = RestartFlag::ALWAYS_RESTART;
+    crashFlag_ = RestartFlag::ALWAYS_RESTART;
+    saveOccasion_ = SaveOccasionFlag::SAVE_ALL;
+    saveMode_ = SaveModeFlag::SAVE_WITH_FILE;
+#else
     restartFlag_ = restartFlag;
     crashFlag_ = restartFlag;
     saveOccasion_ = saveFlag;
     saveMode_ = saveMode;
+#endif
     useAppSettedValue_.store(true);
 }
 
@@ -573,6 +601,8 @@ bool AppRecovery::GetMissionIds(std::string path, std::vector<int32_t> &missionI
 
 bool AppRecovery::PersistAppState()
 {
+    TAG_LOGI(AAFwkTag::RECOVERY, "PersistAppState begin, saveMode:%{public}d, abilityCount:%{public}zu",
+        static_cast<int32_t>(saveMode_), abilityRecoverys_.size());
     if (saveMode_ == SaveModeFlag::SAVE_WITH_FILE) {
         return true;
     }
@@ -581,6 +611,7 @@ bool AppRecovery::PersistAppState()
     for (auto& abilityRecovery : abilityRecoverys_) {
         ret = ret && abilityRecovery->PersistState();
     }
+    TAG_LOGI(AAFwkTag::RECOVERY, "PersistAppState end, ret:%{public}d", static_cast<int32_t>(ret));
     return ret;
 }
 

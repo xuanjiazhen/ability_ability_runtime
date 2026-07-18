@@ -439,7 +439,7 @@ private:
     wptr<IRemoteObject> sessionToken_;
     std::mutex uiExtensionMutex_;
     std::map<int32_t, Want> uiExtensionMap_;
-    std::atomic<bool> restoreEnabled_ = false;
+    std::atomic<bool> restoreEnabled_ = true;
     std::shared_ptr<Global::Resource::ResourceManager> abilityResourceMgr_ = nullptr;
     AbilityConfigUpdateCallback abilityConfigUpdateCallback_ = nullptr;
     BindingObjectConfigUpdateCallback bindingObjectConfigUpdateCallback_ = nullptr;

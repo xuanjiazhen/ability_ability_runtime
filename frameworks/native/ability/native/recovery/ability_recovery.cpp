@@ -31,6 +31,7 @@
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "parcel.h"
+#include "recovery_log_utils.h"
 #include "recovery_param.h"
 #include "string_ex.h"
 #include "string_wrapper.h"
@@ -106,17 +107,15 @@ void AbilityRecovery::SetJsAbility(uintptr_t ability)
 
 void AbilityRecovery::SaveStateCallback(AppExecFwk::OnSaveStateResult result)
 {
-    if (result.status != AppExecFwk::OnSaveResult::ALL_AGREE &&
-        result.status != AppExecFwk::OnSaveResult::RECOVERY_AGREE) {
-        TAG_LOGE(AAFwkTag::RECOVERY, "save params failed");
-        return;
-    }
+    TAG_LOGI(AAFwkTag::RECOVERY, "force recovery enabled, treat save result as ALL_AGREE");
+    result.status = AppExecFwk::OnSaveResult::ALL_AGREE;
     auto ability = ability_.lock();
     if (ability == nullptr) {
         return;
     }
+    std::string pageStack;
 #ifdef SUPPORT_SCREEN
-    std::string pageStack = DefaultRecovery() ? ability->GetContentInfoForDefaultRecovery() :
+    pageStack = DefaultRecovery() ? ability->GetContentInfoForDefaultRecovery() :
         ability->GetContentInfoForRecovery();
     if (!pageStack.empty()) {
         result.wantParams.SetParam("pageStack", AAFwk::String::Box(pageStack));
@@ -125,6 +124,8 @@ void AbilityRecovery::SaveStateCallback(AppExecFwk::OnSaveStateResult result)
     }
     TAG_LOGD(AAFwkTag::RECOVERY, "pageStack size: %{public}zu", pageStack.size());
 #endif
+    LogRecoveryContent(AAFwkTag::RECOVERY, "SaveStateCallback pageStack", pageStack);
+    LogRecoveryContent(AAFwkTag::RECOVERY, "SaveStateCallback wantParams", result.wantParams.ToString());
     if (saveMode_ == SaveModeFlag::SAVE_WITH_FILE) {
         SerializeDataToFile(missionId_, result.wantParams);
     } else if (saveMode_ == SaveModeFlag::SAVE_WITH_SHARED_MEMORY) {
@@ -175,6 +176,9 @@ bool AbilityRecovery::SaveAbilityState(StateReason reason)
     bool isAsync = false;
     int32_t status = ability->OnSaveState(AppExecFwk::StateType::APP_RECOVERY,
         wantParams, callbackInfo, isAsync, reason);
+    TAG_LOGI(AAFwkTag::RECOVERY, "SaveAbilityState reason:%{public}d, status:%{public}d, isAsync:%{public}d",
+        static_cast<int32_t>(reason), status, static_cast<int32_t>(isAsync));
+    LogRecoveryContent(AAFwkTag::RECOVERY, "SaveAbilityState initial wantParams", wantParams.ToString());
     if (status == CALL_BACK_ERROR) {
         AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult>::Destroy(callbackInfo);
     }
@@ -219,7 +223,9 @@ bool AbilityRecovery::SerializeDataToFile(int32_t savedStateId, WantParams& para
         TAG_LOGE(AAFwkTag::RECOVERY, "persist parcel data failed %{public}d, wrote %{public}zu bytes "
             "instead of %{public}zu", errno, nwrite, sz);
     }
-    TAG_LOGD(AAFwkTag::RECOVERY, "file size: %{public}zu", sz);
+    TAG_LOGI(AAFwkTag::RECOVERY, "SerializeDataToFile missionId:%{public}d, file:%{public}s, size:%{public}zu",
+        savedStateId, file.c_str(), sz);
+    LogRecoveryContent(AAFwkTag::RECOVERY, "SerializeDataToFile wantParams", params.ToString());
     fclose(fileF);
     return true;
 }
@@ -280,6 +286,10 @@ bool AbilityRecovery::ReadSerializeDataFromFile(int32_t savedStateId, WantParams
         return false;
     }
 
+    TAG_LOGI(AAFwkTag::RECOVERY, "ReadSerializeDataFromFile missionId:%{public}d, file:%{public}s, "
+        "fileSize:%{public}lld", savedStateId, path, static_cast<long long>(statbuf.st_size));
+    LogRecoveryContent(AAFwkTag::RECOVERY, "ReadSerializeDataFromFile restored wantParams", params.ToString());
+
     munmap(mapFile, statbuf.st_size);
     fclose(fileF);
     remove(path);
@@ -304,6 +314,8 @@ bool AbilityRecovery::ScheduleSaveAbilityState(StateReason reason)
         return false;
     }
 
+    TAG_LOGI(AAFwkTag::RECOVERY, "ScheduleSaveAbilityState missionId:%{public}d, reason:%{public}d",
+        missionId_, static_cast<int32_t>(reason));
     return SaveAbilityState(reason);
 }
 
@@ -325,6 +337,11 @@ bool AbilityRecovery::ScheduleRecoverAbility(StateReason reason, const Want *wan
     if (token == nullptr) {
         return false;
     }
+    TAG_LOGI(AAFwkTag::RECOVERY, "ScheduleRecoverAbility missionId:%{public}d, reason:%{public}d, "
+        "hasWant:%{public}d", missionId_, static_cast<int32_t>(reason), want != nullptr ? 1 : 0);
+    if (want != nullptr) {
+        LogRecoveryContent(AAFwkTag::RECOVERY, "ScheduleRecoverAbility want", want->ToString());
+    }
     abilityMgr->ScheduleRecoverAbility(token, reason, want);
     return true;
 }
@@ -341,7 +358,10 @@ bool AbilityRecovery::PersistState()
         return false;
     }
     if (!params_.IsEmpty()) {
+        LogRecoveryContent(AAFwkTag::RECOVERY, "PersistState params", params_.ToString());
         SerializeDataToFile(missionId_, params_);
+    } else {
+        TAG_LOGI(AAFwkTag::RECOVERY, "PersistState empty params, missionId:%{public}d", missionId_);
     }
     return true;
 }
@@ -390,6 +410,7 @@ bool AbilityRecovery::LoadSavedState(StateReason reason)
         pageStack_ = AAFwk::String::Unbox(stringObj);
     }
     hasLoaded_ = true;
+    LogRecoveryContent(AAFwkTag::RECOVERY, "LoadSavedState restored pageStack", pageStack_);
     return hasLoaded_;
 }
 
@@ -416,6 +437,10 @@ bool AbilityRecovery::ScheduleRestoreAbilityState(StateReason reason, const Want
     for (auto& i : params_.GetParams()) {
         wantCurrent.SetParam(i.first, i.second.GetRefPtr());
     }
+    TAG_LOGI(AAFwkTag::RECOVERY, "ScheduleRestoreAbilityState missionId:%{public}d, reason:%{public}d",
+        missionId_, static_cast<int32_t>(reason));
+    LogRecoveryContent(AAFwkTag::RECOVERY, "ScheduleRestoreAbilityState merged want", want.ToString());
+    LogRecoveryContent(AAFwkTag::RECOVERY, "ScheduleRestoreAbilityState saved params", params_.ToString());
     return true;
 }
 
@@ -430,6 +455,7 @@ std::string AbilityRecovery::GetSavedPageStack(StateReason reason)
     if (pageStack_.empty()) {
         TAG_LOGE(AAFwkTag::RECOVERY, "empty pageStack_");
     }
+    LogRecoveryContent(AAFwkTag::RECOVERY, "GetSavedPageStack pageStack", pageStack_);
     return pageStack_;
 }
 

@@ -1352,12 +1352,16 @@ void AbilityContextImpl::SetRestoreEnabled(bool enabled)
         TAG_LOGD(AAFwkTag::CONTEXT, "SetRestoreEnabled is hook module");
         return;
     }
-    restoreEnabled_.store(enabled);
+    TAG_LOGI(AAFwkTag::CONTEXT, "force recovery enabled, ignore setted value, requested:%{public}d",
+        static_cast<int32_t>(enabled));
+    restoreEnabled_.store(true);
 }
 
 bool AbilityContextImpl::GetRestoreEnabled()
 {
-    return restoreEnabled_.load();
+    bool ret = restoreEnabled_.load();
+    TAG_LOGI(AAFwkTag::CONTEXT, "GetRestoreEnabled:%{public}d", static_cast<int32_t>(ret));
+    return ret;
 }
 
 ErrCode AbilityContextImpl::OpenLink(const AAFwk::Want &want, int requestCode, bool hideFailureTipDialog)
