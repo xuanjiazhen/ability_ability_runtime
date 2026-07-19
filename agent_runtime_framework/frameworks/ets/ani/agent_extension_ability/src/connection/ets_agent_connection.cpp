@@ -530,6 +530,16 @@ void EtsAgentConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::Element
         RejectDuplicatedPendingCallbacks(env,
             static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER),
             AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED);
+        // Also reject staged low-code reuse items (Mechanism A) queued on this connection while
+        // the host was still CONNECTING: the host never came up, so the drain path never runs and
+        // these callbacks would hang. Mechanism B (lowCodeProxyReuseCallbacks_) is rejected too
+        // for completeness (a no-op once H1 stops feeding it).
+        RejectLowCodeProxyReuseCallbacks(env,
+            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER),
+            AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED);
+        RejectPendingLowCodeReuseItems(env,
+            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER),
+            AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED);
         ReleaseObjectReference(env, connectAsyncCallback);
     }
 

@@ -294,37 +294,30 @@ bool QueueReconnectForDisconnecting(ani_env *env, const AAFwk::Want &want, ani_o
 bool ReuseLowCodeWithoutProxy(ani_env *env, AAFwk::Want &want, ani_object asyncCallback,
     const sptr<EtsAgentConnection> &connection, const std::string &agentId, bool isAdded)
 {
-    // Register this callback in an ISOLATED slot (not the shared duplicatedPendingCallbacks_)
-    // BEFORE the synchronous Reuse IPC: ETS host-connect-done runs on a binder thread and drains
-    // lowCodeProxyReuseCallbacks_ concurrently, so the callback must already be in the container
-    // when that drain runs, or it would be orphaned (host-connect-done fires only once).
-    connection->AddLowCodeProxyReuseCallback(env, asyncCallback, agentId);
-    int32_t innerErrorCode =
-        AgentConnectionManager::GetInstance().ReuseLowCodeAgentExtensionAbility(want, connection);
-    if (innerErrorCode == ERR_OK) {
-        // The host may have connected during the synchronous Reuse IPC (host-connect-done runs on
-        // a binder thread). Re-check the proxy: if set, settle B now if it is still pending; if
-        // host-connect-done already drained+resolved it, Settle is a no-op. This closes the
-        // GetProxyObject->Add TOCTOU orphan (a drain in the gap before Add).
-        ani_ref proxy = connection->GetProxyObject(env);
-        if (proxy != nullptr) {
-            connection->SettleLowCodeProxyReuseCallbackIfPending(env, agentId, reinterpret_cast<ani_object>(proxy));
-            connection->ReleaseObjectReference(env, proxy);
-        }
-        return true; // if proxy still null, resolved later by ResolveLowCodeProxyReuseCallbacks
-    }
+    // Host not connected yet. Do NOT fire a synchronous Reuse now: the host's native ledger
+    // record (AgentConnectionManager::agentConnections_) is emplaced in CreateConnection on a
+    // separate worker and may not exist yet, so a synchronous FindLowCodeReuseConnectionLocked
+    // would race to nullptr and hard-fail CONNECTION_NOT_EXIST, and RemoveLowCodeProxyReuseCallback
+    // would erase this callback, bypassing the deferred path. Stage want+callback for a DEFERRED
+    // Reuse: once the host's OnAbilityConnectDone fires, connectCompleteHandler drains these via
+    // DrainPendingLowCodeReuseItems -> ReuseOneLowCodeAgentItem (host now CONNECTED, record
+    // present) which runs ReuseLowCodeAgentExtensionAbility and resolves/rejects the callback.
+    // AddLowCodeAgentId + rollback are owned by ReuseOneLowCodeAgentItem, so undo the caller's
+    // provisional add to avoid an orphan agentId (ReuseOneLowCodeAgentItem's AddLowCodeAgentId
+    // would otherwise return false and skip rollback on drain failure). On host-connect sync
+    // failure, RejectPendingLowCodeReuseItems rejects staged items (H1-GAP1); on host
+    // timeout/death, HandleOnAbilityDisconnectDone rejects them (H1-GAP2).
     if (isAdded) {
-        connection->RemoveLowCodeAgentId(agentId);
+        connection->RemoveLowCodeAgentId(agentId);  // undo provisional add; ReuseOneLowCodeAgentItem re-adds
     }
-    // Reject ONLY this request's own callback (the local ani_object ref is still valid here).
-    // If host-connect-done already drained+resolved it during the Reuse IPC, Remove returns
-    // false and we skip to avoid double-settling an already-resolved callback.
-    if (connection->RemoveLowCodeProxyReuseCallback(env, agentId)) {
-        ReplyConnectError(env, asyncCallback, innerErrorCode);
-    } else {
-        TAG_LOGW(AAFwkTag::SER_ROUTER,
-            "low-code reuse callback already resolved before failure reply, agentId: %{public}s", agentId.c_str());
+    ani_ref callbackRef = nullptr;
+    ani_status status = env->GlobalReference_Create(asyncCallback, &callbackRef);
+    if (status != ANI_OK || callbackRef == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "GlobalReference_Create failed status: %{public}d", status);
+        ReplyConnectError(env, asyncCallback, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER));
+        return true;
     }
+    connection->AddPendingLowCodeReuseItem(want, callbackRef);
     return true;
 }
 
@@ -975,6 +968,15 @@ void EtsAgentManager::ConnectAgentExtensionAbility(ani_env *env, ani_object aniW
                 GetAgentManagerErrorMsg(
                     static_cast<int32_t>(innerErrorCode), AgentManagerErrorOperation::CONNECT_AGENT_EXTENSION)),
             nullptr);
+        // Reject staged low-code reuse items coalesced onto this connection: a synchronous SA-185
+        // connect failure means the host never connects, so the drain path never runs and these
+        // callbacks would hang.
+        connection->RejectDuplicatedPendingCallbacks(env, innerErrorCode,
+            AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED);
+        connection->RejectLowCodeProxyReuseCallbacks(env, innerErrorCode,
+            AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED);
+        connection->RejectPendingLowCodeReuseItems(env, innerErrorCode,
+            AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED);
         AgentConnectionUtils::RemoveAgentConnection(connectionId);
     }
 }

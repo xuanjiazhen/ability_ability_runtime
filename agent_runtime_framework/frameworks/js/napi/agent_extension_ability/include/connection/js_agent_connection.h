@@ -211,6 +211,12 @@ public:
         std::vector<std::unique_ptr<AbilityRuntime::NapiAsyncTask>> &tasks);
     void RejectPendingLowCodeReuseTasks(napi_env env, napi_value error);
 
+    // Reject the primary/duplicated/staged low-code tasks with the given error, clear the
+    // primary async task and remove the connection from the registry. Public so the host-owner
+    // connect path (DoConnectAgentExtensionAbility, a free function in js_agent_manager.cpp) can
+    // reject staged low-code reuse tasks on synchronous SA-185 connect failure (H1-GAP1).
+    void RejectConnectAndCleanup(napi_env env, napi_value error, bool hasPrimaryTask);
+
     void AdoptDuplicatedPendingTasks(std::vector<std::unique_ptr<AbilityRuntime::NapiAsyncTask>> &&tasks);
 
     /**
@@ -387,9 +393,6 @@ private:
 
     void HandleOnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode);
 
-    // Reject the primary/duplicated/staged low-code tasks with the given error, clear the
-    // primary async task and remove the connection from the registry.
-    void RejectConnectAndCleanup(napi_env env, napi_value error, bool hasPrimaryTask);
     // Returns true when the connect flow must abort (no pending task, or result failure).
     bool AbortOnConnectError(napi_env env, int resultCode, bool hasPrimaryTask, bool hasDuplicatedPendingTask);
     // Build the JS receiver proxy for the just-connected host; nullptr (after cleanup) on failure.
