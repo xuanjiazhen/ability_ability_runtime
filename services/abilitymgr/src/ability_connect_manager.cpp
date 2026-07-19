@@ -3023,6 +3023,17 @@ void AbilityConnectManager::MoveToTerminatingMap(const std::shared_ptr<BaseExten
     std::lock_guard lock(serviceMapMutex_);
     terminatingExtensionList_.push_back(abilityRecord);
     std::string serviceKey = GetServiceKey(abilityRecord);
+    // [bugfix/low-code-destroy] confirmation log: which record/token is being purged from serviceMap_.
+    // Cross-ref its token/recordId with ScheduleDisconnectAbilityDone's to confirm whether the
+    // standard agent's teardown purges the low-code host's shared token (Problem 2 root cause).
+    TAG_LOGI(AAFwkTag::EXT, "MoveToTerminatingMap: recordId=%{public}d token=%{public}p serviceKey=%{public}s "
+        "bundle=%{public}s ability=%{public}s extType=%{public}d",
+        abilityRecord->GetRecordId(),
+        static_cast<const void*>(abilityRecord->GetToken().GetRefPtr()),
+        serviceKey.c_str(),
+        abilityRecord->GetInfoBundleName().c_str(),
+        abilityRecord->GetInfoAbilityName().c_str(),
+        static_cast<int32_t>(abilityRecord->GetAbilityInfo().extensionAbilityType));
     NotifyExtensionTerminated(abilityRecord);
     if (serviceMap_.erase(serviceKey) == 0) {
         TAG_LOGW(AAFwkTag::EXT, "Unknown: %{public}s/%{public}s",
