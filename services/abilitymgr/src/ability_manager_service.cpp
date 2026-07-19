@@ -8510,6 +8510,26 @@ int AbilityManagerService::ScheduleDisconnectAbilityDone(const sptr<IRemoteObjec
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "call");
     if (!VerificationAllToken(token)) {
+        // [bugfix/low-code-destroy] confirmation/observability: a physically-alive extension's
+        // disconnect-DONE was dropped because its token left the registries. Resolve via the Token
+        // map and log token/recordId/bundle/ability so this silent drop is observable and can be
+        // cross-referenced with MoveToTerminatingMap (Problem 2 root cause). Gate unchanged.
+        auto rec = Token::GetAbilityRecordByToken(token);
+        if (rec) {
+            TAG_LOGW(AAFwkTag::SERVICE_EXT,
+                "ScheduleDisconnectAbilityDone token untracked, drop: token=%{public}p recordId=%{public}d "
+                "bundle=%{public}s ability=%{public}s type=%{public}d extType=%{public}d",
+                static_cast<const void*>(token.GetRefPtr()),
+                rec->GetRecordId(),
+                rec->GetInfoBundleName().c_str(),
+                rec->GetInfoAbilityName().c_str(),
+                static_cast<int32_t>(rec->GetAbilityInfo().type),
+                static_cast<int32_t>(rec->GetAbilityInfo().extensionAbilityType));
+        } else {
+            TAG_LOGW(AAFwkTag::SERVICE_EXT,
+                "ScheduleDisconnectAbilityDone token untracked & unresolvable: token=%{public}p",
+                static_cast<const void*>(token.GetRefPtr()));
+        }
         return ERR_INVALID_VALUE;
     }
 

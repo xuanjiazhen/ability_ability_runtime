@@ -3023,8 +3023,37 @@ void AbilityConnectManager::MoveToTerminatingMap(const std::shared_ptr<BaseExten
     std::lock_guard lock(serviceMapMutex_);
     terminatingExtensionList_.push_back(abilityRecord);
     std::string serviceKey = GetServiceKey(abilityRecord);
+    // [bugfix/low-code-destroy] confirmation log: which record/token is being purged from serviceMap_.
+    // Cross-ref its token/recordId with ScheduleDisconnectAbilityDone's to confirm whether the
+    // standard agent's teardown purges the low-code host's shared token (Problem 2 root cause).
+    TAG_LOGI(AAFwkTag::EXT, "MoveToTerminatingMap: recordId=%{public}d token=%{public}p serviceKey=%{public}s "
+        "bundle=%{public}s ability=%{public}s extType=%{public}d",
+        abilityRecord->GetRecordId(),
+        static_cast<const void*>(abilityRecord->GetToken().GetRefPtr()),
+        serviceKey.c_str(),
+        abilityRecord->GetInfoBundleName().c_str(),
+        abilityRecord->GetInfoAbilityName().c_str(),
+        static_cast<int32_t>(abilityRecord->GetAbilityInfo().extensionAbilityType));
     NotifyExtensionTerminated(abilityRecord);
-    if (serviceMap_.erase(serviceKey) == 0) {
+    // Identity-guarded erase: only erase the slot if it is actually held by THIS record.
+    // GetServiceKey(record) can differ from the request-based key the record was AddToServiceMap'd
+    // under (for AgentExtensionAbility host abilities the record want's AGENT_CARD_TYPE_KEY is
+    // LOW_CODE -> bare URI, while the connect AbilityRequest carries the connection's cardType).
+    // Erasing by the record-based key when it differs would evict a different (still-alive)
+    // record's slot, orphaning that record's token so its later ScheduleDisconnectAbilityDone
+    // fails VerificationAllToken (Problem 2 root cause, confirmed by 4.log: record 294 added
+    // under URI+agentId but terminated under bare URI, evicting record 296's slot).
+    auto slotIt = serviceMap_.find(serviceKey);
+    if (slotIt != serviceMap_.end()) {
+        if (slotIt->second == abilityRecord) {
+            serviceMap_.erase(slotIt);
+        } else {
+            TAG_LOGW(AAFwkTag::EXT,
+                "phantom key skip: serviceKey=%{public}s held by a different record "
+                "(terminating recordId=%{public}d); erase skipped to keep the alive sibling",
+                serviceKey.c_str(), abilityRecord->GetRecordId());
+        }
+    } else {
         TAG_LOGW(AAFwkTag::EXT, "Unknown: %{public}s/%{public}s",
             abilityRecord->GetInfoBundleName().c_str(),
             abilityRecord->GetInfoAbilityName().c_str());
