@@ -93,6 +93,8 @@ private:
     friend class AgentHostConnection;
 
     AgentManagerService();
+    bool IsBopdOrRescueMode() const;
+    bool IsBopdMode() const;
     void Init();
     void RegisterBundleEventCallback();
     /**

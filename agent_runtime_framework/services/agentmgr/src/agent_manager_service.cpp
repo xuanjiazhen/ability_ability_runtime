@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <unordered_set>
 #include <utility>
 
 #include "ability_manager_client.h"
@@ -41,6 +42,8 @@
 #include "permission_constants.h"
 #include "permission_verification.h"
 #include "system_ability_definition.h"
+#include "parameter.h"
+#include "parameters.h"
 
 namespace OHOS {
 namespace AgentRuntime {
@@ -97,6 +100,10 @@ AgentManagerService::~AgentManagerService()
 void AgentManagerService::OnStart() noexcept
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "agentmgr start");
+    if (IsBopdOrRescueMode()) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER, "Skip init agentmgr in bopd or rescue mode");
+        return;
+    }
     Init();
     if (!Publish(AgentManagerService::GetInstance())) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Publish failed");
@@ -1059,6 +1066,28 @@ void AgentManagerService::HandleConnectionDone(
     if (isDisconnect || resultCode != ERR_OK) {
         AgentConnectManager::GetInstance().HandleConnectionDone(connection, resultCode, isDisconnect);
     }
+}
+
+bool AgentManagerService::IsBopdMode() const
+{
+    const std::unordered_set<std::string> bopdModeSet = {
+        "0x2",
+        "0x3",
+        "0x6",
+        "0x7",
+        "0xa",
+        "0xe",
+        "0xf",
+    };
+    auto mode = system::GetParameter("ohos.boot.bopd.mode", "NA");
+    return bopdModeSet.find(mode) != bopdModeSet.end();
+}
+
+bool AgentManagerService::IsBopdOrRescueMode() const
+{
+    bool isBopdOrRescue = (IsBopdMode() || system::GetParameter("soc.boot.mode", "") == "rescue");
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "IsBopdOrRescueMode: %{public}d", isBopdOrRescue);
+    return isBopdOrRescue;
 }
 
 }  // namespace AgentRuntime
