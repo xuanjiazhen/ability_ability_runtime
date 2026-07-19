@@ -1136,5 +1136,63 @@ HWTEST_F(AppUtilsTest, IsSupportDelayedProcessExit_0300, TestSize.Level2)
     appUtils.isSupportDelayedProcessExit_.value = false;
     EXPECT_FALSE(appUtils.IsSupportDelayedProcessExit());
 }
+
+/**
+ * @tc.number: IsBopdOrRescueMode_0100
+ * @tc.desc: Test IsBopdOrRescueMode when not loaded
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppUtilsTest, IsBopdOrRescueMode_0100, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsBopdOrRescueMode_0100 called.");
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isBopdOrRescueMode_.isLoaded = false;
+    bool result = appUtils.IsBopdOrRescueMode();
+    EXPECT_TRUE(appUtils.isBopdOrRescueMode_.isLoaded);
+}
+
+/**
+ * @tc.number: IsBopdOrRescueMode_0200
+ * @tc.desc: Test IsBopdOrRescueMode when already loaded with true
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppUtilsTest, IsBopdOrRescueMode_0200, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsBopdOrRescueMode_0200 called.");
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isBopdOrRescueMode_.isLoaded = true;
+    appUtils.isBopdOrRescueMode_.value = true;
+    EXPECT_TRUE(appUtils.IsBopdOrRescueMode());
+}
+
+/**
+ * @tc.number: IsBopdOrRescueMode_0300
+ * @tc.desc: Test IsBopdOrRescueMode when already loaded with false
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppUtilsTest, IsBopdOrRescueMode_0300, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsBopdOrRescueMode_0300 called.");
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isBopdOrRescueMode_.isLoaded = true;
+    appUtils.isBopdOrRescueMode_.value = false;
+    EXPECT_FALSE(appUtils.IsBopdOrRescueMode());
+}
+
+/**
+ * @tc.number: IsBopdMode_0100
+ * @tc.desc: Test IsBopdMode returns expected value based on system parameter
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppUtilsTest, IsBopdMode_0100, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsBopdMode_0100 called.");
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    bool result = appUtils.IsBopdMode();
+    // IsBopdMode reads system parameter, result depends on actual system state
+    // This test just verifies the method can be called without crash
+    TAG_LOGI(AAFwkTag::TEST, "IsBopdMode returned: %{public}d", result);
+}
+
 }  // namespace AbilityRuntime
 }  // namespace OHOS
