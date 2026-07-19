@@ -398,6 +398,12 @@ void JSAgentConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::ElementN
             AbilityRuntime::GetInnerErrorMsg(AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED));
         napiAsyncTask_->Reject(env_, innerError);
         RejectDuplicatedPendingTask(env_, innerError);
+        // Also reject staged low-code reuse tasks (Mechanism A) queued on this connection while the
+        // host was still CONNECTING: the host never came up, so the drain path will never run and
+        // these promises would hang. Mechanism B (lowCodeProxyReuseTasks_) is rejected too for
+        // completeness (a no-op once H1 stops feeding it).
+        RejectLowCodeProxyReuseTasks(env_, innerError);
+        RejectPendingLowCodeReuseTasks(env_, innerError);
         napiAsyncTask_ = nullptr;
     }
     if (disconnectCompleteHandler_ != nullptr) {
