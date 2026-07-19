@@ -350,31 +350,23 @@ napi_value ScheduleResolvedLowCodeConnect(napi_env env, AAFwk::Want want, const 
 
 napi_value SchedulePendingLowCodeConnect(napi_env env, AAFwk::Want want, const sptr<JSAgentConnection> &connection)
 {
-    std::string agentId = want.GetStringParam(AGENTID_KEY);
-    bool isAdded = connection->AddLowCodeAgentId(agentId);
     napi_value result = nullptr;
     auto connectTask = CreateAsyncTaskWithLastParam(env, nullptr, nullptr, nullptr, &result);
-    // Stage this reuse's own task in an ISOLATED slot (not the shared duplicatedPendingTaskList_):
-    // a failed reuse must reject only its own task, never a concurrently-succeeded sibling's.
-    // shared_ptr so the Reuse complete callback and the container co-own the task; the
-    // host-connect path resolves it with the proxy once the host is up.
-    std::shared_ptr<NapiAsyncTask> connectTaskShared = std::move(connectTask);
-    connection->AddLowCodeProxyReuseTask(connectTaskShared);
-    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
-    auto complete = std::make_unique<NapiAsyncTask::CompleteCallback>(
-        [connection, innerErrCode, agentId, isAdded, connectTaskShared](
-            napi_env env, NapiAsyncTask &task, int32_t status) {
-            if (*innerErrCode == ERR_OK) {
-                return; // resolved later by ResolveLowCodeProxyReuseTasks on host-connect-done.
-            }
-            if (isAdded) {
-                connection->RemoveLowCodeAgentId(agentId);
-            }
-            napi_value error = CreateJsError(env, static_cast<int32_t>(GetJsErrorCodeByNativeError(*innerErrCode)),
-                GetAgentManagerErrorMsg(*innerErrCode, AgentManagerErrorOperation::CONNECT_AGENT_EXTENSION));
-            connection->RejectLowCodeProxyReuseTask(env, error, connectTaskShared);
-        });
-    ScheduleLowCodeConnectCall(env, want, connection, innerErrCode, std::move(complete));
+    // Host not connected yet. Do NOT fire a synchronous Reuse now: the host's native ledger
+    // record (AgentConnectionManager::agentConnections_) is emplaced in CreateConnection on a
+    // separate worker and may not exist yet, so a synchronous FindLowCodeReuseConnectionLocked
+    // would race to nullptr and hard-fail CONNECTION_NOT_EXIST, RejectLowCodeProxyReuseTask-erasing
+    // this task and bypassing the deferred path (ResolveLowCodeProxyReuseTasks would later see
+    // count:0). Stage want+task for a DEFERRED Reuse: once the host's OnAbilityConnectDone fires,
+    // connectCompleteHandler drains these via DrainPendingLowCodeReuseTasks ->
+    // ScheduleStagedLowCodeReuse, which runs ReuseLowCodeAgentExtensionAbility (host now CONNECTED,
+    // record present) -- performing the SA-185 tenant registration and resolving/rejecting the
+    // task, the same path ScheduleResolvedLowCodeConnect takes for an already-connected host.
+    // AddLowCodeAgentId + failure rollback are owned by ScheduleStagedLowCodeReuse (mirroring
+    // ScheduleResolvedLowCodeConnect). On host-connect sync failure, RejectConnectAndCleanup
+    // rejects staged tasks (H1-GAP1); on host timeout/death, HandleOnAbilityDisconnectDone rejects
+    // them via RejectPendingLowCodeReuseTasks (H1-GAP2).
+    connection->AddPendingLowCodeReuseTask(want, std::move(connectTask));
     return result;
 }
 
@@ -547,8 +539,6 @@ void DoConnectAgentExtensionAbility(napi_env env,
         return;
     }
 
-    int64_t connectionId = connection->GetConnectionId();
-
     // Connect using AgentManagerClient
     // This will trigger HandleOnAbilityConnectDone when connection succeeds
     auto innerErrCode = AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(want, connection);
@@ -557,8 +547,11 @@ void DoConnectAgentExtensionAbility(napi_env env,
         TAG_LOGE(AAFwkTag::SER_ROUTER, "ConnectAgentExtensionAbility failed: %{public}d", errcode);
         napi_value error = CreateJsError(env, static_cast<int32_t>(GetJsErrorCodeByNativeError(innerErrCode)),
             GetAgentManagerErrorMsg(innerErrCode, AgentManagerErrorOperation::CONNECT_AGENT_EXTENSION));
-        asyncTaskShared->Reject(env, error);
-        AgentConnectionUtils::RemoveAgentConnection(connectionId);
+        // Reject the primary task AND every staged low-code reuse task coalesced onto this
+        // connection (pendingLowCodeReuseTasks_), then remove the connection. Without this, a
+        // synchronous SA-185 connect failure would leave staged Mechanism-A tasks hanging
+        // (their host never connects, so the drain path never runs).
+        connection->RejectConnectAndCleanup(env, error, /*hasPrimaryTask=*/true);
     }
 }
 
