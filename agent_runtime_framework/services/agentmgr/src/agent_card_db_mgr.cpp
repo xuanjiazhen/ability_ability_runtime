@@ -18,6 +18,7 @@
 #include <unistd.h>
 
 #include "ability_manager_errors.h"
+#include "app_utils.h"
 #include "hilog_tag_wrapper.h"
 #include "json_utils.h"
 
@@ -176,6 +177,10 @@ DistributedKv::Status AgentCardDbMgr::GetKvStore()
 
 bool AgentCardDbMgr::CheckKvStore()
 {
+    if (AAFwk::AppUtils::GetInstance().IsBopdOrRescueMode()) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER, "Skip KvStore operation in bopd or rescue mode");
+        return false;
+    }
     if (kvStorePtr_ != nullptr) {
         return true;
     }
