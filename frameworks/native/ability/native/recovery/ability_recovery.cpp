@@ -118,6 +118,8 @@ void AbilityRecovery::SaveStateCallback(AppExecFwk::OnSaveStateResult result)
 #ifdef SUPPORT_SCREEN
     std::string pageStack = DefaultRecovery() ? ability->GetContentInfoForDefaultRecovery() :
         ability->GetContentInfoForRecovery();
+    TAG_LOGI(AAFwkTag::RECOVERY, "restore_test SaveStateCallback get pageStack, defaultRecovery=%{public}d, "
+        "size=%{public}zu, content=%{public}s", DefaultRecovery() ? 1 : 0, pageStack.size(), pageStack.c_str());
     if (!pageStack.empty()) {
         result.wantParams.SetParam("pageStack", AAFwk::String::Box(pageStack));
     } else {
@@ -180,7 +182,6 @@ bool AbilityRecovery::SaveAbilityState(StateReason reason)
     }
     return true;
 }
-
 bool AbilityRecovery::SerializeDataToFile(int32_t savedStateId, WantParams& params)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -189,6 +190,9 @@ bool AbilityRecovery::SerializeDataToFile(int32_t savedStateId, WantParams& para
         TAG_LOGE(AAFwkTag::RECOVERY, "persisted file path failed");
         return false;
     }
+    TAG_LOGI(AAFwkTag::RECOVERY, "restore_test SerializeDataToFile begin, savedStateId=%{public}d, "
+        "file=%{public}s", savedStateId, file.c_str());
+
     Parcel parcel;
     if (!params.Marshalling(parcel)) {
         TAG_LOGE(AAFwkTag::RECOVERY, "Marshalling want param failed");
@@ -220,6 +224,8 @@ bool AbilityRecovery::SerializeDataToFile(int32_t savedStateId, WantParams& para
             "instead of %{public}zu", errno, nwrite, sz);
     }
     TAG_LOGD(AAFwkTag::RECOVERY, "file size: %{public}zu", sz);
+    TAG_LOGI(AAFwkTag::RECOVERY, "restore_test SerializeDataToFile end, file=%{public}s, "
+        "parcelSize=%{public}zu, written=%{public}zu", file.c_str(), sz, nwrite);
     fclose(fileF);
     return true;
 }
@@ -234,6 +240,8 @@ bool AbilityRecovery::ReadSerializeDataFromFile(int32_t savedStateId, WantParams
     }
 
     TAG_LOGD(AAFwkTag::RECOVERY, "file path %{public}s", file.c_str());
+    TAG_LOGI(AAFwkTag::RECOVERY, "restore_test ReadSerializeDataFromFile begin, savedStateId=%{public}d, "
+        "file=%{public}s", savedStateId, file.c_str());
     char path[PATH_MAX] = {0};
     if (realpath(file.c_str(), path) == nullptr) {
         TAG_LOGE(AAFwkTag::RECOVERY, "errno is %{public}d", errno);
@@ -253,6 +261,8 @@ bool AbilityRecovery::ReadSerializeDataFromFile(int32_t savedStateId, WantParams
         remove(path);
         return false;
     }
+    TAG_LOGI(AAFwkTag::RECOVERY, "restore_test ReadSerializeDataFromFile opened, realPath=%{public}s, "
+        "fileSize=%{public}ld", path, static_cast<long>(statbuf.st_size));
 
     auto mapFile = static_cast<uint8_t*>(mmap(NULL, statbuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0));
     if (mapFile == MAP_FAILED) {
@@ -389,6 +399,8 @@ bool AbilityRecovery::LoadSavedState(StateReason reason)
     if (stringObj != nullptr) {
         pageStack_ = AAFwk::String::Unbox(stringObj);
     }
+    TAG_LOGI(AAFwkTag::RECOVERY, "restore_test LoadSavedState extract pageStack, missionId=%{public}d, "
+        "size=%{public}zu, content=%{public}s", missionId_, pageStack_.size(), pageStack_.c_str());
     hasLoaded_ = true;
     return hasLoaded_;
 }
@@ -430,6 +442,8 @@ std::string AbilityRecovery::GetSavedPageStack(StateReason reason)
     if (pageStack_.empty()) {
         TAG_LOGE(AAFwkTag::RECOVERY, "empty pageStack_");
     }
+    TAG_LOGI(AAFwkTag::RECOVERY, "restore_test GetSavedPageStack return, size=%{public}zu, "
+        "content=%{public}s", pageStack_.size(), pageStack_.c_str());
     return pageStack_;
 }
 

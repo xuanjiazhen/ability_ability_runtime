@@ -1265,12 +1265,18 @@ void JsUIAbility::AbilityContinuationOrRecover(const Want &want)
     // multi-instance ability continuation
     TAG_LOGD(AAFwkTag::UIABILITY, "launch reason: %{public}d, last exit reasion: %{public}d",
         launchParam_.launchReason, launchParam_.lastExitReason);
+    TAG_LOGI(AAFwkTag::UIABILITY, "restore_test AbilityContinuationOrRecover enter, "
+        "isContinuation=%{public}d, shouldRecover=%{public}d, shouldDefaultRecover=%{public}d",
+        IsRestoredInContinuation() ? 1 : 0, ShouldRecoverState(want) ? 1 : 0,
+        ShouldDefaultRecoverState(want) ? 1 : 0);
     if (IsRestoredInContinuation()) {
         RestorePageStack(want);
         OnSceneRestored();
         NotifyContinuationResult(want, true);
     } else if (ShouldRecoverState(want)) {
         std::string pageStack = abilityRecovery_->GetSavedPageStack(AppExecFwk::StateReason::DEVELOPER_REQUEST);
+        TAG_LOGI(AAFwkTag::UIABILITY, "restore_test APP_RECOVERY got pageStack, size=%{public}zu, "
+            "content=%{public}s", pageStack.size(), pageStack.c_str());
         HandleScope handleScope(jsRuntime_);
         auto env = jsRuntime_.GetNapiEnv();
         auto mainWindow = scene_->GetMainWindow();
@@ -1285,6 +1291,8 @@ void JsUIAbility::AbilityContinuationOrRecover(const Want &want)
         if (ShouldDefaultRecoverState(want) && abilityRecovery_ != nullptr && scene_ != nullptr) {
             TAG_LOGD(AAFwkTag::UIABILITY, "need restore");
             std::string pageStack = abilityRecovery_->GetSavedPageStack(AppExecFwk::StateReason::DEVELOPER_REQUEST);
+            TAG_LOGI(AAFwkTag::UIABILITY, "restore_test RESOURCESCHEDULE_RECOVERY got pageStack, size=%{public}zu, "
+                "content=%{public}s", pageStack.size(), pageStack.c_str());
             auto mainWindow = scene_->GetMainWindow();
             if (!pageStack.empty() && mainWindow != nullptr) {
                 mainWindow->SetRestoredRouterStack(pageStack);
@@ -1375,6 +1383,8 @@ void JsUIAbility::DoOnForegroundForSceneIsNull(const Want &want)
         std::string navDestinationInfo = want.GetStringParam(Want::ATOMIC_SERVICE_SHARE_ROUTER);
         if (!navDestinationInfo.empty()) {
             TAG_LOGD(AAFwkTag::UIABILITY, "SetNavDestinationInfo :%{public}s", navDestinationInfo.c_str());
+            TAG_LOGI(AAFwkTag::UIABILITY, "restore_test DoOnForegroundForSceneIsNull got navDestinationInfo, "
+                "size=%{public}zu, content=%{public}s", navDestinationInfo.size(), navDestinationInfo.c_str());
             scene_->SetNavDestinationInfo(navDestinationInfo);
         }
         if (abilityContext_->IsHook()) {

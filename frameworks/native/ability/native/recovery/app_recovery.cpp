@@ -324,6 +324,8 @@ bool AppRecovery::ScheduleRecoverApp(StateReason reason)
 
 bool AppRecovery::TryRecoverApp(StateReason reason)
 {
+    TAG_LOGI(AAFwkTag::RECOVERY, "restore_test TryRecoverApp enter, reason=%{public}d, isEnable=%{public}d",
+        static_cast<int32_t>(reason), isEnable_ ? 1 : 0);
     if (isEnable_) {
         ScheduleSaveAppState(reason);
         DisallowCrossThreadExecutionInRecovery();
@@ -379,6 +381,8 @@ void AppRecovery::DoRecoverMainApp(StateReason reason)
 void AppRecovery::DoSaveAppState(StateReason reason, uintptr_t ability)
 {
     TAG_LOGD(AAFwkTag::RECOVERY, "begin");
+    TAG_LOGI(AAFwkTag::RECOVERY, "restore_test DoSaveAppState enter, reason=%{public}d, "
+        "abilityRecoverysCount=%{public}zu", static_cast<int32_t>(reason), abilityRecoverys_.size());
     auto appInfo = applicationInfo_.lock();
     if (appInfo == nullptr || abilityRecoverys_.empty()) {
         TAG_LOGE(AAFwkTag::RECOVERY, "not exist application or ability info");
@@ -573,6 +577,8 @@ bool AppRecovery::GetMissionIds(std::string path, std::vector<int32_t> &missionI
 
 bool AppRecovery::PersistAppState()
 {
+    TAG_LOGI(AAFwkTag::RECOVERY, "restore_test PersistAppState enter, saveMode=%{public}d",
+        static_cast<int32_t>(saveMode_));
     if (saveMode_ == SaveModeFlag::SAVE_WITH_FILE) {
         return true;
     }

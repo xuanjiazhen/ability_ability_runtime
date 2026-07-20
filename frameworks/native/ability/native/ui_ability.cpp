@@ -712,6 +712,7 @@ void UIAbility::HandleCreateAsRecovery(const AAFwk::Want &want)
         TAG_LOGD(AAFwkTag::UIABILITY, "appRecovery not recovery restart");
         return;
     }
+    TAG_LOGI(AAFwkTag::UIABILITY, "restore_test HandleCreateAsRecovery enter, recoveryRestart=true");
 
     if (abilityRecovery_ != nullptr) {
         abilityRecovery_->ScheduleRestoreAbilityState(AppExecFwk::StateReason::DEVELOPER_REQUEST, want);
@@ -1053,7 +1054,10 @@ std::string UIAbility::GetContentInfo()
         TAG_LOGE(AAFwkTag::UIABILITY, "null scene");
         return "";
     }
-    return scene_->GetContentInfo(Rosen::BackupAndRestoreType::CONTINUATION);
+    std::string contentInfo = scene_->GetContentInfo(Rosen::BackupAndRestoreType::CONTINUATION);
+    TAG_LOGI(AAFwkTag::UIABILITY, "restore_test GetContentInfo(CONTINUATION) size=%{public}zu, "
+        "content=%{public}s", contentInfo.size(), contentInfo.c_str());
+    return contentInfo;
 }
 
 std::string UIAbility::GetContentInfoForRecovery()
@@ -1063,7 +1067,10 @@ std::string UIAbility::GetContentInfoForRecovery()
         TAG_LOGE(AAFwkTag::UIABILITY, "null scene");
         return "";
     }
-    return scene_->GetContentInfo(Rosen::BackupAndRestoreType::APP_RECOVERY);
+    std::string contentInfo = scene_->GetContentInfo(Rosen::BackupAndRestoreType::APP_RECOVERY);
+    TAG_LOGI(AAFwkTag::UIABILITY, "restore_test GetContentInfoForRecovery(APP_RECOVERY) size=%{public}zu, "
+        "content=%{public}s", contentInfo.size(), contentInfo.c_str());
+    return contentInfo;
 }
 
 std::string UIAbility::GetContentInfoForDefaultRecovery()
@@ -1073,7 +1080,10 @@ std::string UIAbility::GetContentInfoForDefaultRecovery()
         TAG_LOGE(AAFwkTag::UIABILITY, "null scene");
         return "";
     }
-    return scene_->GetContentInfo(Rosen::BackupAndRestoreType::RESOURCESCHEDULE_RECOVERY);
+    std::string contentInfo = scene_->GetContentInfo(Rosen::BackupAndRestoreType::RESOURCESCHEDULE_RECOVERY);
+    TAG_LOGI(AAFwkTag::UIABILITY, "restore_test GetContentInfoForDefaultRecovery(RESOURCESCHEDULE_RECOVERY) "
+        "size=%{public}zu, content=%{public}s", contentInfo.size(), contentInfo.c_str());
+    return contentInfo;
 }
 
 void UIAbility::SetSceneListener(const sptr<Rosen::IWindowLifeCycle> &listener)
