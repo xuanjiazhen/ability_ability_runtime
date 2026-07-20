@@ -18801,6 +18801,9 @@ void AbilityManagerService::HandleRecoveryRecipient(
 void AbilityManagerService::SetAppDeathRecipient(const sptr<IRemoteObject> &token)
 {
     auto abilityRecord = Token::GetAbilityRecordByToken(token);
+    if (!JudgeSelfCalled(abilityRecord)) {
+        return;
+    }
     const auto &abilityInfo = abilityRecord->GetAbilityInfo();
     int32_t pid = abilityRecord->GetPid();
     int32_t uid = abilityRecord->GetUid();
