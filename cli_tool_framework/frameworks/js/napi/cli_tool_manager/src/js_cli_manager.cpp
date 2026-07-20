@@ -42,7 +42,7 @@ constexpr int32_t INDEX_TWO = 2;
 constexpr int32_t INDEX_THREE = 3;
 constexpr int32_t INDEX_FOUR = 4;
 
-int32_t DispatchCliTool(const ExecToolParam &param, napi_env env,
+int32_t DispatchCliTool(ExecToolParam &param, napi_env env,
     std::shared_ptr<NapiAsyncTask> asyncTask)
 {
     CliToolMGRClient::ExecToolReplyCallback replyCallback =
