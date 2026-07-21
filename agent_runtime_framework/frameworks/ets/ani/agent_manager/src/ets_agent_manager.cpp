@@ -110,6 +110,14 @@ void DrainPendingLowCodeReuseItems(ani_env *env, ani_object proxy, const sptr<Et
     }
 }
 
+// TODO(S-P2-b): this drain runs synchronously inside SA 185's connect-done binder callback and issues a
+// synchronous Reuse IPC back into the same SA 185 (ReuseOneLowCodeAgentItem -> AgentConnectionManager::
+// ReuseLowCodeAgentExtensionAbility -> AgentManagerClient::ConnectAgentExtensionAbility). No lock is held
+// across it today, so no deadlock, but each staged AgentId consumes >=2 SA 185 binder threads and the path
+// is fragile w.r.t. future lock-holding across OnAbilityConnectDone or binder-pool saturation. The JS path
+// avoids this by running Reuse on a worker (NapiAsyncTask::ScheduleHighQos); the ETS/ANI binding layer has
+// no equivalent async-work primitive, so moving this drain off the binder thread is deferred until such a
+// primitive is introduced and concurrency-tested.
 void HandleConnectCompleteLowCodeReuse(ani_env *env, ani_object proxy, const sptr<EtsAgentConnection> &conn)
 {
     if (env == nullptr || proxy == nullptr || conn == nullptr) {
@@ -961,8 +969,6 @@ void EtsAgentManager::ConnectAgentExtensionAbility(ani_env *env, ani_object aniW
             nullptr);
         // Sync connect failed: host never connects, drain never runs -> reject staged (no hang).
         connection->RejectDuplicatedPendingCallbacks(env, innerErrorCode,
-            AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED);
-        connection->RejectLowCodeProxyReuseCallbacks(env, innerErrorCode,
             AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED);
         connection->RejectPendingLowCodeReuseItems(env, innerErrorCode,
             AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED);
