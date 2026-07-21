@@ -89,23 +89,37 @@ void InitWorkerFunc(NativeEngine* nativeEngine)
         return;
     }
 
-    OHOS::Global::I18n::ReplaceIntlModule(reinterpret_cast<napi_env>(nativeEngine));
-    InitSyscapModule(reinterpret_cast<napi_env>(nativeEngine));
-    OHOS::JsSysModule::Console::InitConsoleModule(reinterpret_cast<napi_env>(nativeEngine));
-#ifdef SUPPORT_SCREEN
-    OHOS::Ace::DeclarativeModulePreloader::PreloadWorker(*nativeEngine);
-#endif
-    auto arkNativeEngine = static_cast<ArkNativeEngine*>(nativeEngine);
-    // load jsfwk
-    if (g_jsFramework && !arkNativeEngine->ExecuteJsBin("/system/etc/strip.native.min.abc")) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "load jsFramework failed");
-    }
+    uint32_t mask = nativeEngine->GetWorkerInitMask();
+    bool initAll = (mask == 0); // 0 = init all (backward compatible)
 
-    if (JsRuntimeCommon::GetInstance().IsDebugMode()) {
-        const std::string threadName = "workerThread";
-        napi_status errCode = JsRuntimeCommon::GetInstance().StartDebugMode(nativeEngine, threadName);
-        if (errCode != napi_status::napi_ok) {
-            TAG_LOGE(AAFwkTag::JSRUNTIME, "start debug mode failed");
+    if (initAll || (mask & WORKER_INIT_MODULE_INTL)) {
+        OHOS::Global::I18n::ReplaceIntlModule(reinterpret_cast<napi_env>(nativeEngine));
+    }
+    if (initAll || (mask & WORKER_INIT_MODULE_SYSCAP)) {
+        InitSyscapModule(reinterpret_cast<napi_env>(nativeEngine));
+    }
+    if (initAll || (mask & WORKER_INIT_MODULE_CONSOLE)) {
+        OHOS::JsSysModule::Console::InitConsoleModule(reinterpret_cast<napi_env>(nativeEngine));
+    }
+#ifdef SUPPORT_SCREEN
+    if (initAll || (mask & WORKER_INIT_MODULE_UI_PRELOAD)) {
+        OHOS::Ace::DeclarativeModulePreloader::PreloadWorker(*nativeEngine);
+    }
+#endif
+    if (initAll || (mask & WORKER_INIT_MODULE_JS_FRAMEWORK)) {
+        auto arkNativeEngine = static_cast<ArkNativeEngine*>(nativeEngine);
+        // load jsfwk
+        if (g_jsFramework && !arkNativeEngine->ExecuteJsBin("/system/etc/strip.native.min.abc")) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "load jsFramework failed");
+        }
+    }
+    if (initAll || (mask & WORKER_INIT_MODULE_DEBUGGER)) {
+        if (JsRuntimeCommon::GetInstance().IsDebugMode()) {
+            const std::string threadName = "workerThread";
+            napi_status errCode = JsRuntimeCommon::GetInstance().StartDebugMode(nativeEngine, threadName);
+            if (errCode != napi_status::napi_ok) {
+                TAG_LOGE(AAFwkTag::JSRUNTIME, "start debug mode failed");
+            }
         }
     }
 }
