@@ -198,7 +198,11 @@ std::string JsAbility::GenerateSrcPath(std::shared_ptr<AbilityInfo> abilityInfo)
         }
         srcPath.append("/");
         srcPath.append(abilityInfo->srcEntrance);
-        srcPath.erase(srcPath.rfind("."));
+        auto lastDot = srcPath.rfind('.');
+        auto lastSep = srcPath.rfind('/');
+        if (lastDot != std::string::npos && (lastSep == std::string::npos || lastDot > lastSep)) {
+            srcPath.erase(lastDot);
+        }
         srcPath.append(".abc");
         TAG_LOGI(AAFwkTag::ABILITY, "%{public}s", srcPath.c_str());
     }

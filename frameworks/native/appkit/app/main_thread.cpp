@@ -2378,7 +2378,11 @@ void MainThread::ProcessMainAbility(const AbilityInfo &info, const std::unique_p
         }
         srcPath.append("/");
         srcPath.append(info.srcEntrance);
-        srcPath.erase(srcPath.rfind("."));
+        auto lastDot = srcPath.rfind('.');
+        auto lastSep = srcPath.rfind('/');
+        if (lastDot != std::string::npos && (lastSep == std::string::npos || lastDot > lastSep)) {
+            srcPath.erase(lastDot);
+        }
         srcPath.append(".abc");
         TAG_LOGD(AAFwkTag::UIABILITY, "jsAbility srcPath: %{public}s", srcPath.c_str());
     }

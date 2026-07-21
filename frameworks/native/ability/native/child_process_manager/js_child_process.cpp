@@ -52,8 +52,10 @@ bool JsChildProcess::Init(const std::shared_ptr<ChildProcessStartInfo> &info)
         return false;
     }
     std::string srcPath = info->srcEntry;
-    if (srcPath.rfind(".") != std::string::npos) {
-        srcPath.erase(srcPath.rfind("."));
+    auto lastDot = srcPath.rfind('.');
+    auto lastSep = srcPath.rfind('/');
+    if (lastDot != std::string::npos && (lastSep == std::string::npos || lastDot > lastSep)) {
+        srcPath.erase(lastDot);
     }
     srcPath.append(".abc");
     std::string moduleName(info->moduleName);

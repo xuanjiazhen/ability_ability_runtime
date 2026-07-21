@@ -157,7 +157,11 @@ void JsUIExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
     }
     std::string srcPath(Extension::abilityInfo_->moduleName + "/");
     srcPath.append(Extension::abilityInfo_->srcEntrance);
-    srcPath.erase(srcPath.rfind('.'));
+    auto lastDot = srcPath.rfind('.');
+    auto lastSep = srcPath.rfind('/');
+    if (lastDot != std::string::npos && (lastSep == std::string::npos || lastDot > lastSep)) {
+        srcPath.erase(lastDot);
+    }
     srcPath.append(".abc");
 
     std::string moduleName(Extension::abilityInfo_->moduleName);

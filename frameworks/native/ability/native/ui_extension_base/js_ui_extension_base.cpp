@@ -152,7 +152,11 @@ std::shared_ptr<ExtensionCommon> JsUIExtensionBase::Init(const std::shared_ptr<A
     }
     std::string srcPath(abilityInfo_->moduleName + "/");
     srcPath.append(abilityInfo_->srcEntrance);
-    srcPath.erase(srcPath.rfind('.'));
+    auto lastDot = srcPath.rfind('.');
+    auto lastSep = srcPath.rfind('/');
+    if (lastDot != std::string::npos && (lastSep == std::string::npos || lastDot > lastSep)) {
+        srcPath.erase(lastDot);
+    }
     srcPath.append(".abc");
 
     std::string moduleName(abilityInfo_->moduleName);

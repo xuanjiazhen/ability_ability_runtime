@@ -236,7 +236,11 @@ void JsAbilityStage::LoadModule(const AppExecFwk::HapModuleInfo &hapModuleInfo)
     } else if (!hapModuleInfo.srcEntrance.empty()) {
         srcPath.append("/");
         srcPath.append(hapModuleInfo.srcEntrance);
-        srcPath.erase(srcPath.rfind("."));
+        auto lastDot = srcPath.rfind('.');
+        auto lastSep = srcPath.rfind('/');
+        if (lastDot != std::string::npos && (lastSep == std::string::npos || lastDot > lastSep)) {
+            srcPath.erase(lastDot);
+        }
         srcPath.append(".abc");
         std::unique_ptr<NativeReference> moduleObj = jsRuntime_.LoadModule(moduleName, srcPath, hapModuleInfo.hapPath,
             hapModuleInfo.compileMode == AppExecFwk::CompileMode::ES_MODULE, commonChunkFlag);
