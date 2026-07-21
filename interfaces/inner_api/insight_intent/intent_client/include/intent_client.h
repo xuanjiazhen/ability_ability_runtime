@@ -35,7 +35,7 @@ struct ExecuteIntentParam {
     std::shared_ptr<AbilityRuntime::InsightIntentExecuteCallbackInterface> callback;
 };
 
-class IntentClient {
+class __attribute__((visibility("default"))) IntentClient {
 public:
     static IntentClient &GetInstance();
 
