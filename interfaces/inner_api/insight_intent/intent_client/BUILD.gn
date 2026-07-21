@@ -38,6 +38,8 @@ ohos_shared_library("intent_client") {
 
   public_configs = [ ":intent_client_config" ]
 
+  cflags_cc = [ "-fvisibility=hidden" ]
+
   sanitize = {
     integer_overflow = true
     ubsan = true
