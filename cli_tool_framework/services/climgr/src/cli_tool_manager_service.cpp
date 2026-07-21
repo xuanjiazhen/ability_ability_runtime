@@ -15,7 +15,16 @@
 
 #include "cli_tool_manager_service.h"
 
+#include <fcntl.h>
 #include <sys/wait.h>
+#include <unistd.h>
+
+#include "want_params.h"
+#include "want_params_wrapper.h"
+#include "array_wrapper.h"
+#include "int_wrapper.h"
+#include "long_wrapper.h"
+#include "string_wrapper.h"
 
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
@@ -45,6 +54,7 @@ constexpr const char* PERMISSION_EXEC_CLI_TOOL = "ohos.permission.EXEC_CLI_TOOL"
 constexpr const char* PERMISSION_QUERY_CLI_TOOL = "ohos.permission.QUERY_CLI_TOOL";
 constexpr const char* PERMISSION_REGISTER_CLI_TOOL = "ohos.permission.REGISTER_CLI_TOOL";
 constexpr const char* PERMISSION_ACCESS_FUNCTION = "ohos.permission.ACCESS_FUNCTION";
+constexpr const char* FD_LIST_KEY = "fd-list";
 
 constexpr int32_t FOUNDATION_UID = 5523;
 constexpr int32_t COEFFICIENT = 1000;
@@ -849,12 +859,139 @@ int32_t CliToolManagerService::TryDispatchSkillSession(const ExecToolParam &para
     return ret;
 }
 
-int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::string &eventId,
+void CliToolManagerService::ReplaceObjectParam(AAFwk::WantParams& args)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Replacing object param in wantParams");
+
+    // Check if fd-list exists
+    auto it = args.GetParams().find(FD_LIST_KEY);
+    if (it == args.GetParams().end()) {
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "No fd-list param found, skip replacement");
+        return;
+    }
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Found fd-list param");
+
+    // fd-list is a single WantParams object: {type: "FD", value: N}
+    // Query as WantParams object
+    AAFwk::IWantParams *wantParamsObj = AAFwk::IWantParams::Query(it->second);
+    if (wantParamsObj == nullptr) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "fd-list is not a WantParams object");
+        return;
+    }
+
+    // Get WantParams from the object
+    AAFwk::WantParams fdParams;
+    if (wantParamsObj->GetValue(fdParams) != ERR_OK) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "Failed to get WantParams value from fd-list");
+        return;
+    }
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "fd-list WantParams: %{public}s", fdParams.ToString().c_str());
+
+    // Get fd value from typed format: {"type": "FD", "value": N}
+    int64_t fdLong = 0;
+    bool fdFound = false;
+
+    auto typeValue = fdParams.GetParam("type");
+    auto valueValue = fdParams.GetParam("value");
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "typeValue=%{public}p, valueValue=%{public}p",
+        typeValue.get(), valueValue.get());
+
+    if (typeValue == nullptr || valueValue == nullptr) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "Missing 'type' or 'value' field in fd-list");
+        return;
+    }
+
+    // Check if type is "FD" (uppercase for proper IPC fd transfer)
+    sptr<AAFwk::IString> typeStr = AAFwk::IString::Query(typeValue);
+    if (typeStr == nullptr) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "Type field is not a string");
+        return;
+    }
+
+    std::string typeStrValue;
+    if (typeStr->GetString(typeStrValue) != ERR_OK) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "Failed to get type string value");
+        return;
+    }
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "fd-list type='%{public}s' (expecting 'FD')", typeStrValue.c_str());
+
+    if (typeStrValue != "FD") {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "Type is not 'FD' (uppercase), got '%{public}s'. "
+            "Note: fd type must be uppercase 'FD' for proper IPC transfer", typeStrValue.c_str());
+        return;
+    }
+
+    // Extract fd value from "value" field
+    sptr<AAFwk::ILong> longObj = AAFwk::ILong::Query(valueValue);
+    if (longObj != nullptr && longObj->GetValue(fdLong) == ERR_OK) {
+        fdFound = true;
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "Got fd from fd-list (type=FD, value=%{public}ld)", fdLong);
+    } else {
+        // Try as Integer (int32)
+        sptr<AAFwk::IInteger> intObj = AAFwk::IInteger::Query(valueValue);
+        if (intObj != nullptr) {
+            int32_t fdInt = 0;
+            if (intObj->GetValue(fdInt) == ERR_OK) {
+                fdLong = static_cast<int64_t>(fdInt);
+                fdFound = true;
+                TAG_LOGI(AAFwkTag::CLI_TOOL, "Got fd from fd-list (type=FD, value=%{public}d)", fdInt);
+            }
+        }
+    }
+
+    if (!fdFound) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "Value field is not a valid number");
+        return;
+    }
+
+    int32_t tmp = static_cast<int32_t>(fdLong);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Extracted fd: %{public}d", tmp);
+
+    // Validate fd accessibility before using
+    if (tmp < 0) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "Invalid fd value: %{public}d", tmp);
+        return;
+    }
+
+    // Check if fd is accessible using fcntl
+    int flags = fcntl(tmp, F_GETFD);
+    if (flags == -1) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "fd %{public}d is not accessible (errno=%{public}d)",
+            tmp, errno);
+        return;
+    }
+
+    // Check if fd is open (try to get flags)
+    int fdFlags = fcntl(tmp, F_GETFL);
+    if (fdFlags == -1) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "fd %{public}d is not open (errno=%{public}d)",
+            tmp, errno);
+        return;
+    }
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "fd %{public}d is valid and accessible", tmp);
+
+    // Create new array with single int32 element
+    sptr<AAFwk::IArray> intArray = new (std::nothrow) AAFwk::Array(1, AAFwk::g_IID_IInteger);
+    if (intArray == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to create int array");
+        return;
+    }
+
+    intArray->Set(0, AAFwk::Integer::Box(tmp).GetRefPtr());
+    args.SetParam(FD_LIST_KEY, intArray);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Replaced fd-list with valid fd=%{public}d", tmp);
+}
+
+
+int32_t CliToolManagerService::ExecTool(ExecToolParam &param, const std::string &eventId,
     const sptr<ICliToolManagerScheduler> &scheduler)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecTool called: toolName=%{public}s, subcommand=%{public}s",
-        param.toolName.c_str(), param.subcommand.c_str());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecTool called: toolName=%{public}s, subcommand=%{public}s, wantParams=%{public}s",
+        param.toolName.c_str(), param.subcommand.c_str(), param.args.ToString().c_str());
 
     std::string bundleName;
     auto tokenId = IPCSkeleton::GetCallingTokenID();
@@ -875,6 +1012,11 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
         ReportCliExecuteFailed(bundleName, param.toolName, GetFailureReason(ERR_NO_INIT));
         return ERR_NO_INIT;
     }
+
+    ReplaceObjectParam(param.args);
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "after replace wantParams=%{public}s", param.args.ToString().c_str());
+
 
     ToolInfo toolInfo;
     bool dispatched = false;

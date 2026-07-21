@@ -39,7 +39,7 @@ CliToolMGRClient& CliToolMGRClient::GetInstance()
     return instance;
 }
 
-ErrCode CliToolMGRClient::ExecTool(const ExecToolParam &param, const ExecToolReplyCallback &callback)
+ErrCode CliToolMGRClient::ExecTool(ExecToolParam &param, const ExecToolReplyCallback &callback)
 {
     ErrCode ret = EnsureSchedulerStubCreated();
     if (ret != ERR_OK) {
