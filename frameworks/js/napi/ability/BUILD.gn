@@ -37,6 +37,8 @@ template("ohos_ability_napi") {
   ohos_shared_library(target_name) {
     forward_variables_from(invoker, [ "relative_install_dir" ])
 
+    branch_protector_ret = "pac_ret"
+
     if (defined(invoker.defines)) {
       defines = invoker.defines
     }

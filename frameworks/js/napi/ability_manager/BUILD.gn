@@ -25,6 +25,8 @@ template("abilitymanager") {
       defines += invoker.defines
     }
 
+    branch_protector_ret = "pac_ret"
+
     sources = [
       "ability_manager_module.cpp",
       "js_ability_foreground_state_observer.cpp",
