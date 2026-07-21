@@ -324,7 +324,6 @@ void EtsAgentConnection::FailConnectAndCleanup(ani_env *env, ani_ref primaryCall
                 AbilityRuntime::GetInnerErrorMsg(fallbackMessage)), nullptr);
     }
     RejectDuplicatedPendingCallbacks(env, error, fallbackMessage);
-    RejectLowCodeProxyReuseCallbacks(env, error, fallbackMessage);
     RejectPendingLowCodeReuseItems(env, error, fallbackMessage);
     if (hasPrimaryCallback) {
         ReleaseObjectReference(env, primaryCallback);
@@ -346,7 +345,6 @@ void EtsAgentConnection::ApplyConnectProxy(ani_env *env, ani_ref primaryCallback
             proxy);
     }
     ResolveDuplicatedPendingCallbacks(env, proxy);
-    ResolveLowCodeProxyReuseCallbacks(env, proxy);
 }
 
 // No-callback/failure cleanup (returns nullptr after DetachAniEnv); on success applies proxy and returns it.
@@ -393,7 +391,6 @@ EtsAgentConnection::~EtsAgentConnection()
     std::vector<ani_ref> duplicatedPendingCallbacks;
     std::vector<ani_ref> reconnectPendingCallbacks;
     std::vector<ani_ref> pendingLowCodeReuseCallbacks;
-    std::vector<ani_ref> lowCodeProxyReuseCallbacks;
     {
         std::lock_guard<std::mutex> lock(stateLock_);
         serviceProxyObject = serviceProxyObject_;
@@ -407,8 +404,6 @@ EtsAgentConnection::~EtsAgentConnection()
         duplicatedPendingCallbacks = std::move(duplicatedPendingCallbacks_);
         reconnectPendingCallbacks = std::move(reconnectPendingCallbacks_);
         pendingLowCodeReuseCallbacks = std::move(pendingLowCodeReuseCallbacks_);
-        lowCodeProxyReuseCallbacks = std::move(lowCodeProxyReuseCallbacks_);
-        lowCodeProxyReuseAgentIds_.clear();
         pendingLowCodeReuseWants_.clear();
         disconnectCompleteHandler_ = nullptr;
         connectCompleteHandler_ = nullptr;
@@ -424,9 +419,6 @@ EtsAgentConnection::~EtsAgentConnection()
         ReleaseObjectReference(callback);
     }
     for (auto &callback : pendingLowCodeReuseCallbacks) {
-        ReleaseObjectReference(callback);
-    }
-    for (auto &callback : lowCodeProxyReuseCallbacks) {
         ReleaseObjectReference(callback);
     }
 }
@@ -517,11 +509,7 @@ void EtsAgentConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::Element
         RejectDuplicatedPendingCallbacks(env,
             static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER),
             AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED);
-        // Reject staged low-code reuse (Mechanism A) queued while CONNECTING -- host never came up, drain never runs
-        // (would hang). Mechanism B (lowCodeProxyReuseCallbacks_) rejected too (no-op once H1 stops feeding it).
-        RejectLowCodeProxyReuseCallbacks(env,
-            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER),
-            AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED);
+        // Reject staged low-code reuse queued while CONNECTING -- host never came up, drain never runs (would hang).
         RejectPendingLowCodeReuseItems(env,
             static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER),
             AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED);
@@ -895,119 +883,6 @@ void EtsAgentConnection::RejectDuplicatedPendingCallbacks(
     }
     TAG_LOGD(AAFwkTag::SER_ROUTER, "RejectDuplicatedPendingCallbacks, size: %{public}zu",
         callbacks.size());
-    for (auto &callback : callbacks) {
-        if (callback == nullptr) {
-            continue;
-        }
-        AppExecFwk::AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER,
-            reinterpret_cast<ani_object>(callback),
-            AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(
-                env, error, "", AbilityRuntime::GetInnerErrorMsg(fallbackMessage)), nullptr);
-        ReleaseObjectReference(env, callback);
-    }
-}
-
-void EtsAgentConnection::AddLowCodeProxyReuseCallback(ani_env *env, ani_object asyncCallback,
-    const std::string &agentId)
-{
-    if (env == nullptr || asyncCallback == nullptr) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "env or asyncCallback is null");
-        return;
-    }
-    ani_ref globalRef = nullptr;
-    ani_status status = env->GlobalReference_Create(asyncCallback, &globalRef);
-    if (status != ANI_OK || globalRef == nullptr) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "GlobalReference_Create failed status: %{public}d", status);
-        return;
-    }
-    std::lock_guard<std::mutex> lock(stateLock_);
-    lowCodeProxyReuseAgentIds_.push_back(agentId);
-    lowCodeProxyReuseCallbacks_.push_back(globalRef);
-}
-
-bool EtsAgentConnection::RemoveLowCodeProxyReuseCallback(ani_env *env, const std::string &agentId)
-{
-    // Remove+release ONLY this AgentId's callback (Reuse failed). Returns false when host-connect-done
-    // already drained+resolved it, so caller skips rejecting (avoid double-settle).
-    ani_ref callback = nullptr;
-    {
-        std::lock_guard<std::mutex> lock(stateLock_);
-        for (size_t i = 0; i < lowCodeProxyReuseAgentIds_.size(); ++i) {
-            if (lowCodeProxyReuseAgentIds_[i] == agentId) {
-                callback = lowCodeProxyReuseCallbacks_[i];
-                lowCodeProxyReuseCallbacks_.erase(lowCodeProxyReuseCallbacks_.begin() + i);
-                lowCodeProxyReuseAgentIds_.erase(lowCodeProxyReuseAgentIds_.begin() + i);
-                break;
-            }
-        }
-    }
-    if (callback == nullptr) {
-        return false;
-    }
-    ReleaseObjectReference(env, callback);
-    return true;
-}
-
-void EtsAgentConnection::SettleLowCodeProxyReuseCallbackIfPending(ani_env *env,
-    const std::string &agentId, ani_object proxy)
-{
-    // Atomically remove this AgentId's awaiting-proxy callback: resolve+release if found, else no-op
-    // (no double-settle; host-connect-done drained it). Post-Reuse re-check when host up during sync Reuse IPC.
-    ani_ref callback = nullptr;
-    {
-        std::lock_guard<std::mutex> lock(stateLock_);
-        for (size_t i = 0; i < lowCodeProxyReuseAgentIds_.size(); ++i) {
-            if (lowCodeProxyReuseAgentIds_[i] == agentId) {
-                callback = lowCodeProxyReuseCallbacks_[i];
-                lowCodeProxyReuseCallbacks_.erase(lowCodeProxyReuseCallbacks_.begin() + i);
-                lowCodeProxyReuseAgentIds_.erase(lowCodeProxyReuseAgentIds_.begin() + i);
-                break;
-            }
-        }
-    }
-    if (callback == nullptr) {
-        return;
-    }
-    AppExecFwk::AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER,
-        reinterpret_cast<ani_object>(callback),
-        AbilityRuntime::EtsErrorUtil::CreateError(env,
-            static_cast<AbilityRuntime::AbilityErrorCode>(AbilityRuntime::AbilityErrorCode::ERROR_OK)),
-        proxy);
-    ReleaseObjectReference(env, callback);
-}
-
-void EtsAgentConnection::ResolveLowCodeProxyReuseCallbacks(ani_env *env, ani_object proxyObj)
-{
-    std::vector<ani_ref> callbacks;
-    {
-        std::lock_guard<std::mutex> lock(stateLock_);
-        callbacks = std::move(lowCodeProxyReuseCallbacks_);
-        lowCodeProxyReuseCallbacks_.clear();
-        lowCodeProxyReuseAgentIds_.clear();
-    }
-    for (auto &callback : callbacks) {
-        if (callback == nullptr) {
-            continue;
-        }
-        AppExecFwk::AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER,
-            reinterpret_cast<ani_object>(callback),
-            AbilityRuntime::EtsErrorUtil::CreateError(env,
-                static_cast<AbilityRuntime::AbilityErrorCode>(AbilityRuntime::AbilityErrorCode::ERROR_OK)),
-            proxyObj);
-        ReleaseObjectReference(env, callback);
-    }
-}
-
-void EtsAgentConnection::RejectLowCodeProxyReuseCallbacks(
-    ani_env *env, int32_t error, AbilityRuntime::AbilityInnerErrorMsg fallbackMessage)
-{
-    std::vector<ani_ref> callbacks;
-    {
-        std::lock_guard<std::mutex> lock(stateLock_);
-        callbacks = std::move(lowCodeProxyReuseCallbacks_);
-        lowCodeProxyReuseCallbacks_.clear();
-        lowCodeProxyReuseAgentIds_.clear();
-    }
     for (auto &callback : callbacks) {
         if (callback == nullptr) {
             continue;
