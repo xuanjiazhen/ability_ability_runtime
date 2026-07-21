@@ -139,7 +139,7 @@ public:
      * @param callback reply callback.
      * @return Returns ERR_OK on success, error code otherwise.
      */
-    ErrCode ExecTool(const ExecToolParam &param, const ExecToolReplyCallback &callback);
+    ErrCode ExecTool(ExecToolParam &param, const ExecToolReplyCallback &callback);
 
     ErrCode ExecCmd(const ExecCmdParam &param,
         const ExecToolReplyCallback &callback, const std::shared_ptr<SessionEventCallback> &sessionEventCallback);

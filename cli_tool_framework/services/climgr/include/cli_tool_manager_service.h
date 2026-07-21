@@ -79,7 +79,7 @@ public:
      * @param objectCallback The callback RemoteObject.
      * @return Returns ERR_OK on success, error code otherwise.
      */
-    int32_t ExecTool(const ExecToolParam &param, const std::string &eventId,
+    int32_t ExecTool(ExecToolParam &param, const std::string &eventId,
         const sptr<ICliToolManagerScheduler> &scheduler) override;
 
     int32_t ExecCmd(const ExecCmdParam &param, const std::string &eventId,
@@ -200,6 +200,7 @@ private:
 
     int32_t TryDispatchSkillSession(const ExecToolParam &param,
         const std::string &eventId, const ToolInfo &toolInfo, bool &dispatched);
+    void ReplaceObjectParam(AAFwk::WantParams& args);
     int32_t SetupAndStartSkillSession(const ExecToolParam &param,
         const std::string &eventId, const ToolInfo &toolInfo);
     int32_t ValidateSkillTypeFromParam(const ExecToolParam &param, int32_t &skillType);
