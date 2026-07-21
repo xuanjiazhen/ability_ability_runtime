@@ -2416,8 +2416,9 @@ int AbilityManagerStub::ContinueAbilityInner(MessageParcel &data, MessageParcel 
     std::string deviceId = data.ReadString();
     int32_t missionId = data.ReadInt32();
     uint32_t versionCode = data.ReadUint32();
+    int32_t userId = data.ReadInt32();
     AAFWK::ContinueRadar::GetInstance().SaveDataContinue("ContinueAbility");
-    int32_t result = ContinueAbility(deviceId, missionId, versionCode);
+    int32_t result = ContinueAbility(deviceId, missionId, versionCode, userId);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "result=%{public}d", result);
     return result;
 }
