@@ -518,13 +518,6 @@ bool AbilityManagerService::Init()
     return true;
 }
 
-void AbilityManagerService::InitDeepLinkReserve()
-{
-    if (!DeepLinkReserveConfig::GetInstance().LoadConfiguration()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "initDeepLinkReserve failed");
-    }
-}
-
 void AbilityManagerService::InitInterceptor()
 {
     interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
@@ -547,6 +540,13 @@ void AbilityManagerService::InitInterceptor()
         TAG_LOGI(AAFwkTag::ABILITYMGR, "create BlockAllAppStartInterceptor");
         blockAllAppStartInterceptor_ = std::make_shared<BlockAllAppStartInterceptor>();
         InitBlockAllAppStartInterceptorCallbacks();
+    }
+}
+
+void AbilityManagerService::InitDeepLinkReserve()
+{
+    if (!DeepLinkReserveConfig::GetInstance().LoadConfiguration()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "initDeepLinkReserve failed");
     }
 }
 
