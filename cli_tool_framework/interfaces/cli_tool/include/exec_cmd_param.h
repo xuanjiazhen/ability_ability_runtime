@@ -26,7 +26,7 @@ namespace CliTool {
 /**
  * @brief Parameters for executing a raw shell command.
  */
-class ExecCmdParam : public Parcelable {
+class __attribute__((visibility("default"))) ExecCmdParam : public Parcelable {
 public:
     std::string cmd;
     std::string workDir;

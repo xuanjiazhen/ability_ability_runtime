@@ -32,7 +32,7 @@ struct WorkerEntry {
     uint32_t refCount = 0;
 };
 
-class ModularObjectWorkerManager {
+class __attribute__((visibility("default"))) ModularObjectWorkerManager {
 public:
     ModularObjectWorkerManager() = default;
     ~ModularObjectWorkerManager() = default;

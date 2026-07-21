@@ -27,7 +27,7 @@ namespace CliTool {
 /**
  * @brief Tool execution result
  */
-class ExecToolParam : public Parcelable {
+class __attribute__((visibility("default"))) ExecToolParam : public Parcelable {
 public:
     std::string toolName;
     std::string subcommand;

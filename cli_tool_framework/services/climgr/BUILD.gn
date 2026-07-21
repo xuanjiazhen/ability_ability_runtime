@@ -39,6 +39,7 @@ ohos_shared_library("climgr") {
   branch_protector_ret = "pac_ret"
   shlib_type = "sa"
   configs = [ ":clisa_config" ]
+  cflags_cc = [ "-fvisibility=hidden" ]
   include_dirs = [ "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper" ]
   sources = [
     "src/cli_tool_app_state_observer.cpp",

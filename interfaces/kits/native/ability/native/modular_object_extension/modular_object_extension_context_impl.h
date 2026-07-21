@@ -25,7 +25,7 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-class ModularObjectExtensionContext : public ExtensionContext {
+class __attribute__((visibility("default"))) ModularObjectExtensionContext : public ExtensionContext {
 public:
     ModularObjectExtensionContext() = default;
     ~ModularObjectExtensionContext() override = default;

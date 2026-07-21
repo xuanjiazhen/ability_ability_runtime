@@ -21,6 +21,7 @@ ohos_shared_library("functionmanager_napi") {
     debug = false
   }
   branch_protector_ret = "pac_ret"
+  cflags_cc = [ "-fvisibility=hidden" ]
 
   include_dirs = [
     "include",

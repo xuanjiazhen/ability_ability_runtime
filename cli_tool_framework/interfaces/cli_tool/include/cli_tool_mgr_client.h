@@ -32,7 +32,7 @@ namespace CliTool {
 
 using ClearProxyCallback = std::function<void(const wptr<IRemoteObject>&)>;
 
-class SessionEventCallback {
+class __attribute__((visibility("default"))) SessionEventCallback {
 public:
     SessionEventCallback() = default;
     virtual ~SessionEventCallback() = default;
@@ -47,7 +47,7 @@ public:
  * CliToolMGRClient provides client access to the CliSaService.
  * This is a singleton class that manages connection to the service.
  */
-class CliToolMGRClient {
+class __attribute__((visibility("default"))) CliToolMGRClient {
 public:
     using ExecToolReplyCallback = std::function<void(int32_t, const CliSessionInfo &)>;
 

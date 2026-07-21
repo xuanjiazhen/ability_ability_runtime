@@ -25,7 +25,7 @@ namespace CliTool {
 /**
  * @brief Tool execution result
  */
-class ExecResult : public Parcelable {
+class __attribute__((visibility("default"))) ExecResult : public Parcelable {
 public:
     int32_t exitCode = 1;
     std::string outputText = "";

@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace CliTool {
 
-class CliToolManagerSchedulerRecipient : public CliToolManagerSchedulerStub {
+class __attribute__((visibility("default"))) CliToolManagerSchedulerRecipient : public CliToolManagerSchedulerStub {
 public:
     explicit CliToolManagerSchedulerRecipient() {}
 

@@ -30,7 +30,7 @@ constexpr char INSIGHT_INTENT_EXECUTE_RESULT[] = "ohos.insightIntent.executeResu
  * @struct InsightIntentExecuteResult
  * InsightIntentExecuteResult is used to save information about execute result.
  */
-struct InsightIntentExecuteResult : public Parcelable {
+struct __attribute__((visibility("default"))) InsightIntentExecuteResult : public Parcelable {
 public:
     int32_t innerErr = AbilityRuntime::InsightIntentInnerErr::INSIGHT_INTENT_ERR_OK;
     int32_t code = 0;

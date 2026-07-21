@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace CliTool {
-class CliMgrLoadCallback : public SystemAbilityLoadCallbackStub {
+class __attribute__((visibility("default"))) CliMgrLoadCallback : public SystemAbilityLoadCallbackStub {
 public:
     CliMgrLoadCallback() = default;
     virtual ~CliMgrLoadCallback() = default;

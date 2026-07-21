@@ -38,7 +38,8 @@ typedef struct AbilityBase_Element AbilityBase_Element;
 
 namespace OHOS {
 namespace AbilityRuntime {
-class ModularObjectExtension : public ExtensionBase<ModularObjectExtensionContext> {
+class __attribute__((visibility("default"))) ModularObjectExtension
+    : public ExtensionBase<ModularObjectExtensionContext> {
 public:
     ModularObjectExtension() = default;
     ~ModularObjectExtension() override = default;

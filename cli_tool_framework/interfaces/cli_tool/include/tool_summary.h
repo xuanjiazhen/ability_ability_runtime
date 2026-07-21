@@ -25,7 +25,7 @@ namespace CliTool {
 /**
  * @brief Tool summary information (lightweight for listing)
  */
-class ToolSummary : public Parcelable {
+class __attribute__((visibility("default"))) ToolSummary : public Parcelable {
 public:
     std::string name;
     std::string version;

@@ -27,7 +27,7 @@ namespace CliTool {
  * @struct CliSessionInfo
  * @brief Information about a CLI tool execution session.
  */
-class CliSessionInfo : public Parcelable {
+class __attribute__((visibility("default"))) CliSessionInfo : public Parcelable {
 public:
     std::string sessionId;
     std::string toolName;

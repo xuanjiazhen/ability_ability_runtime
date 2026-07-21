@@ -28,7 +28,7 @@ namespace CliTool {
 /**
  * @brief Subcommand information structure
  */
-class SubCommandInfo : public Parcelable {
+class __attribute__((visibility("default"))) SubCommandInfo : public Parcelable {
 public:
     std::string description;
     std::vector<std::string> requirePermissions;

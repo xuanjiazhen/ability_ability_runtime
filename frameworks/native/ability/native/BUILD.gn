@@ -4154,10 +4154,11 @@ ohos_shared_library("modular_object_extension") {
   }
   branch_protector_ret = "pac_ret"
 
-  configs = [ 
+  configs = [
     ":modular_object_extension_config",
     "${ability_runtime_services_path}/common:optimize_config",
   ]
+  cflags_cc = [ "-fvisibility=hidden" ]
 
   defines = [ "AMS_LOG_TAG = \"Ability\"" ]
   defines += [ "AMS_LOG_DOMAIN = 0xD001300" ]

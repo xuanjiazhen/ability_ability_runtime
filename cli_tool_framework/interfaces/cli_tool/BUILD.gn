@@ -50,6 +50,7 @@ ohos_shared_library("cli_tool_client") {
   branch_protector_ret = "pac_ret"
 
   public_configs = [ ":cli_tool_client_config" ]
+  cflags_cc = [ "-fvisibility=hidden" ]
 
   sources = [
     "src/cli_mgr_load_callback.cpp",

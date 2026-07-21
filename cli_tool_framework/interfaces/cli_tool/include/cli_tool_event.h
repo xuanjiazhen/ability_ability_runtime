@@ -26,7 +26,7 @@ namespace CliTool {
 /**
  * @brief Tool event (for async mode)
  */
-class CliToolEvent : public Parcelable {
+class __attribute__((visibility("default"))) CliToolEvent : public Parcelable {
 public:
     std::string type;              // "stdout", "stderr", "exit", "error"
     std::string eventData;

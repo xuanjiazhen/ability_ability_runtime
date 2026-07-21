@@ -29,12 +29,12 @@
 namespace OHOS {
 namespace CliTool {
 
-struct CliEventReplyResult {
+struct __attribute__((visibility("default"))) CliEventReplyResult {
     int32_t code = 0;
     std::optional<CliSessionInfo> sessionInfo = std::nullopt;
 };
 
-class CliEventReplyManager final {
+class __attribute__((visibility("default"))) CliEventReplyManager final {
 public:
     using EventReplyCallback = std::function<void(const CliEventReplyResult &)>;
 

@@ -27,7 +27,7 @@ namespace CliTool {
  * @struct ExecOptions
  * @brief Options for executing CLI tools.
  */
-class ExecOptions : public Parcelable {
+class __attribute__((visibility("default"))) ExecOptions : public Parcelable {
 public:
     bool background = false;
     int64_t yieldMs = 0;

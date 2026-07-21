@@ -30,7 +30,7 @@ namespace CliTool {
 
 using SessionToolEventCallback = std::function<void(const std::string &, const std::string &, const CliToolEvent &)>;
 
-class CliSessionSubscriptionManager final {
+class __attribute__((visibility("default"))) CliSessionSubscriptionManager final {
 public:
     static CliSessionSubscriptionManager &GetInstance();
 

@@ -36,7 +36,7 @@ class ToolInfo;
 /**
  * @brief Raw data type for IDL serialization (shared memory optimization)
  */
-class ToolsRawData {
+class __attribute__((visibility("default"))) ToolsRawData {
 public:
     std::string ownedData;
     uint32_t size = 0;
@@ -52,7 +52,7 @@ public:
 /**
  * @brief Tool information structure (full version)
  */
-class ToolInfo : public Parcelable {
+class __attribute__((visibility("default"))) ToolInfo : public Parcelable {
 public:
     std::string name;
     std::string version;
