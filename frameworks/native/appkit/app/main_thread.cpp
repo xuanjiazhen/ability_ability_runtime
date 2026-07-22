@@ -34,6 +34,7 @@
 #include "ability_util.h"
 #include "app_image_observer_manager.h"
 #include "app_loader.h"
+#include "app_mem_info.h"
 #include "app_recovery.h"
 #include "appfreeze_inner.h"
 #include "appfreeze_state.h"
@@ -171,6 +172,23 @@ enum class SignalType {
     SIGNAL_NO_TRIGGERID_PRIV,
     SIGNAL_FORCE_FULLGC,
 };
+
+static AbilityRuntime::Runtime::MemoryPressureLevel ConvertMemoryPressureLevel(int32_t level)
+{
+    switch (level) {
+        case MemoryLevel::MEMORY_LEVEL_MODERATE:
+        case MemoryLevel::MEMORY_LEVEL_BACKGROUND_MODERATE:
+            return AbilityRuntime::Runtime::MemoryPressureLevel::MODERATE;
+        case MemoryLevel::MEMORY_LEVEL_LOW:
+        case MemoryLevel::MEMORY_LEVEL_BACKGROUND_LOW:
+            return AbilityRuntime::Runtime::MemoryPressureLevel::LOW;
+        case MemoryLevel::MEMORY_LEVEL_CRITICAL:
+        case MemoryLevel::MEMORY_LEVEL_BACKGROUND_CRITICAL:
+            return AbilityRuntime::Runtime::MemoryPressureLevel::CRITICAL;
+        default:
+            return AbilityRuntime::Runtime::MemoryPressureLevel::NONE;
+    }
+}
 
 constexpr char EVENT_KEY_PACKAGE_NAME[] = "PACKAGE_NAME";
 constexpr char EVENT_KEY_VERSION[] = "VERSION";
@@ -3210,6 +3228,13 @@ void MainThread::HandleMemoryLevel(int level)
         return;
     }
 
+    const auto memPressureLevel = ConvertMemoryPressureLevel(level);
+    if (memPressureLevel != AbilityRuntime::Runtime::MemoryPressureLevel::NONE) {
+        auto &runtime = application_->GetRuntime();
+        if (runtime != nullptr) {
+            runtime->NotifyMemoryPressure(memPressureLevel);
+        }
+    }
     application_->OnMemoryLevel(level);
 }
 
