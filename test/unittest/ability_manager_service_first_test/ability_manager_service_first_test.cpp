@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "mock_ipc_skeleton.h"
 #include "mock_my_flag.h"
 
 #define private public
@@ -62,6 +63,7 @@ namespace AAFwk {
 namespace {
 const int32_t USER_ID_U100 = 100;
 const int32_t APP_MEMORY_SIZE = 512;
+const int32_t FOUNDATION_UID = 5523;
 const std::string COMPONENT_STARTUP_NEW_RULES = "component.startup.newRules";
 }  // namespace
 class AbilityManagerServiceFirstTest : public testing::Test {
@@ -1923,7 +1925,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, UninstallApp_0100, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest UninstallApp_0100 start");
     auto abilityMs = std::make_shared<AbilityManagerService>();
     auto result = abilityMs->UninstallApp("test", USER_ID_U100);
-    EXPECT_EQ(result, ERR_NULL_OBJECT);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest UninstallApp_0100 end");
 }
 
@@ -1938,7 +1940,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, UninstallApp_0200, TestSize.Level1)
     auto abilityMs = std::make_shared<AbilityManagerService>();
     const int32_t index = 0;
     auto result = abilityMs->UninstallApp("test", USER_ID_U100, index);
-    EXPECT_EQ(result, ERR_NULL_OBJECT);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest UninstallApp_0200 end");
 }
 
@@ -1956,7 +1958,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, UninstallAppInner_0100, TestSize.Level1
     std::string exitMsg = "App upgrade.";
     int32_t appIndex = 0;
     auto result = abilityMs->UninstallAppInner(bundleName, uid, appIndex, true, exitMsg);
-    EXPECT_EQ(result, ERR_NULL_OBJECT);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest UninstallAppInner_0100 end");
 }
 
@@ -1974,7 +1976,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, UninstallAppInner_0200, TestSize.Level1
     std::string exitMsg = "App upgrade.";
     int32_t appIndex = 0;
     auto result = abilityMs->UninstallAppInner(bundleName, uid, appIndex, false, exitMsg);
-    EXPECT_EQ(result, ERR_NULL_OBJECT);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest UninstallAppInner_0200 end");
 }
 
@@ -1993,7 +1995,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, UninstallAppInner_0300, TestSize.Level1
     std::string exitMsg = "App upgrade.";
     int32_t appIndex = 0;
     auto result = abilityMs->UninstallAppInner(bundleName, uid, appIndex, false, exitMsg);
-    EXPECT_EQ(result, AAFwk::UNINSTALL_APP_FAILED);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest UninstallAppInner_0300 end");
 }
 
@@ -2012,8 +2014,102 @@ HWTEST_F(AbilityManagerServiceFirstTest, UninstallAppInner_0400, TestSize.Level1
     std::string exitMsg = "App upgrade.";
     int32_t appIndex = 0;
     auto result = abilityMs->UninstallAppInner(bundleName, uid, appIndex, false, exitMsg);
-    EXPECT_EQ(result, AAFwk::UNINSTALL_APP_FAILED);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest UninstallAppInner_0400 end");
+}
+
+/**
+ * @tc.name: AbilityManagerServiceFirstTest_UninstallApp_0300
+ * @tc.desc: Test UninstallApp when UID check passes but subManagersHelper_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, UninstallApp_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest UninstallApp_0300 start");
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    auto result = abilityMs->UninstallApp("test", USER_ID_U100);
+    EXPECT_EQ(result, ERR_NULL_OBJECT);
+    IPCSkeleton::SetCallingUid(0);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest UninstallApp_0300 end");
+}
+
+/**
+ * @tc.name: AbilityManagerServiceFirstTest_UninstallApp_0400
+ * @tc.desc: Test UninstallApp 3-arg overload when UID check passes but subManagersHelper_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, UninstallApp_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest UninstallApp_0400 start");
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    const int32_t index = 0;
+    auto result = abilityMs->UninstallApp("test", USER_ID_U100, index);
+    EXPECT_EQ(result, ERR_NULL_OBJECT);
+    IPCSkeleton::SetCallingUid(0);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest UninstallApp_0400 end");
+}
+
+/**
+ * @tc.name: AbilityManagerServiceFirstTest_UninstallAppInner_0500
+ * @tc.desc: Test UninstallAppInner isUpgrade=true when UID check passes but appExitReasonHelper_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, UninstallAppInner_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest UninstallAppInner_0500 start");
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    std::string bundleName = "";
+    int32_t uid = 1;
+    std::string exitMsg = "App upgrade.";
+    int32_t appIndex = 0;
+    auto result = abilityMs->UninstallAppInner(bundleName, uid, appIndex, true, exitMsg);
+    EXPECT_EQ(result, ERR_NULL_OBJECT);
+    IPCSkeleton::SetCallingUid(0);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest UninstallAppInner_0500 end");
+}
+
+/**
+ * @tc.name: AbilityManagerServiceFirstTest_UninstallAppInner_0600
+ * @tc.desc: Test UninstallAppInner isUpgrade=false when UID check passes but subManagersHelper_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, UninstallAppInner_0600, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest UninstallAppInner_0600 start");
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    std::string bundleName = "";
+    int32_t uid = 1;
+    std::string exitMsg = "";
+    int32_t appIndex = 0;
+    auto result = abilityMs->UninstallAppInner(bundleName, uid, appIndex, false, exitMsg);
+    EXPECT_EQ(result, ERR_NULL_OBJECT);
+    IPCSkeleton::SetCallingUid(0);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest UninstallAppInner_0600 end");
+}
+
+/**
+ * @tc.name: AbilityManagerServiceFirstTest_UninstallAppInner_0700
+ * @tc.desc: Test UninstallAppInner isUpgrade=false when UID check passes and subManagersHelper_ is non-null
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, UninstallAppInner_0700, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest UninstallAppInner_0700 start");
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    std::string bundleName = "";
+    int32_t uid = 1;
+    std::string exitMsg = "";
+    int32_t appIndex = 0;
+    auto result = abilityMs->UninstallAppInner(bundleName, uid, appIndex, false, exitMsg);
+    EXPECT_EQ(result, UNINSTALL_APP_FAILED);
+    IPCSkeleton::SetCallingUid(0);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest UninstallAppInner_0700 end");
 }
 
 /**
