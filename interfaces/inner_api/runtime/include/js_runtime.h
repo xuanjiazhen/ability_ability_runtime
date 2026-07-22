@@ -106,6 +106,7 @@ public:
     void AllowCrossThreadExecution() override;
     void GetHeapPrepare() override;
     void NotifyApplicationState(bool isBackground) override;
+    void NotifyMemoryPressure(MemoryPressureLevel level) override;
     bool SuspendVM(uint32_t tid) override;
     void ResumeVM(uint32_t tid) override;
 
@@ -188,6 +189,7 @@ private:
     bool Initialize(const Options& options);
     void Deinitialize();
     int32_t JsperfProfilerCommandParse(const std::string &command, int32_t defaultValue);
+    void HandleMemoryPressure();
 
     napi_value LoadJsBundle(const std::string& path, const std::string& hapPath, bool useCommonChunk = false);
     napi_value LoadJsModule(const std::string& path, const std::string& hapPath, const std::string& srcEntrance = "");
@@ -206,6 +208,10 @@ private:
     std::map<std::string, std::string> pkgContextInfoJsonStringMap_;
     std::map<std::string, std::string> packageNameList_;
     std::map<std::string, std::unique_ptr<NativeReference>> preloadList_;
+    MemoryPressureLevel pendingMemoryPressureLevel_ {MemoryPressureLevel::NONE};
+    MemoryPressureLevel lastGcMemoryPressureLevel_ {MemoryPressureLevel::NONE};
+    bool memoryPressureTaskPending_ {false};
+    int64_t lastMemoryPressureGcTimeMs_ {0};
 
     static std::atomic<bool> hasInstance;
     DebugOption debugOption_;
