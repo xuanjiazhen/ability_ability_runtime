@@ -4289,8 +4289,9 @@ int32_t AppMgrServiceInner::NotifyMemoryLevel(int32_t level)
         TAG_LOGE(AAFwkTag::APPMGR, "callerToken not %{public}s", MEMMGR_PROC_NAME);
         return ERR_INVALID_VALUE;
     }
-    if (!(level >= OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_MODERATE &&
-        level <= OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_BACKGROUND_CRITICAL)) {
+    bool isPressureLevel = level >= OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_MODERATE &&
+        level <= OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_BACKGROUND_CRITICAL;
+    if (!isPressureLevel && level != OHOS::AppExecFwk::MemoryLevel::MEMORY_LEVEL_NORMAL) {
         TAG_LOGE(AAFwkTag::APPMGR, "level value error");
         return ERR_INVALID_VALUE;
     }

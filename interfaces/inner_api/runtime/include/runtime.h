@@ -50,6 +50,13 @@ public:
         UNKNOWN,
     };
 
+    enum class MemoryPressureLevel : uint8_t {
+        NONE = 0,
+        MODERATE,
+        LOW,
+        CRITICAL,
+    };
+
     struct Options {
         Language lang = Language::JS;
         std::string bundleName;
@@ -159,6 +166,7 @@ public:
     virtual void SetModuleLoadChecker(const std::shared_ptr<ModuleCheckerDelegate> moduleCheckerDelegate) const {}
     virtual void SetDeviceDisconnectCallback(const std::function<bool()> &cb) = 0;
     virtual bool PreloadSystemClass(const char *className) { return false; }
+    virtual void NotifyMemoryPressure(MemoryPressureLevel) {}
     Runtime(const Runtime&) = delete;
     Runtime(Runtime&&) = delete;
     Runtime& operator=(const Runtime&) = delete;
