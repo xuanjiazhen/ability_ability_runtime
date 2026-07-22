@@ -21,6 +21,7 @@
 #include "app_mgr_stub.h"
 #include "file_path_utils.h"
 #include "main_thread.h"
+#include "mock_runtime.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
@@ -67,6 +68,30 @@ public:
     void TearDown() override;
 
     sptr<MainThread> mainThread_ = nullptr;
+};
+
+class MemoryPressureMockRuntime : public AbilityRuntime::MockRuntime {
+public:
+    void NotifyMemoryPressure(MemoryPressureLevel level) override
+    {
+        lastLevel_ = level;
+        ++notifyCount_;
+    }
+
+    MemoryPressureLevel lastLevel_ {MemoryPressureLevel::NONE};
+    uint32_t notifyCount_ {0};
+};
+
+class MemoryLevelTestApplication : public OHOSApplication {
+public:
+    void OnMemoryLevel(int32_t level) override
+    {
+        lastLevel_ = level;
+        ++notifyCount_;
+    }
+
+    int32_t lastLevel_ {-1};
+    uint32_t notifyCount_ {0};
 };
 
 void MainThreadTest::SetUpTestCase()
@@ -1301,6 +1326,26 @@ HWTEST_F(MainThreadTest, HandleMemoryLevel_0200, TestSize.Level1)
     mainThread_->application_ = nullptr;
     mainThread_->HandleMemoryLevel(1);
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: HandleMemoryLevel_0300
+ * @tc.desc: Forward pressure to Runtime before the application callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, HandleMemoryLevel_0300, TestSize.Level1)
+{
+    auto application = std::make_shared<MemoryLevelTestApplication>();
+    auto runtime = std::make_unique<MemoryPressureMockRuntime>();
+    auto *runtimePtr = runtime.get();
+    application->SetRuntime(std::move(runtime));
+    mainThread_->application_ = application;
+
+    mainThread_->HandleMemoryLevel(MemoryLevel::MEMORY_LEVEL_LOW);
+    EXPECT_EQ(runtimePtr->lastLevel_, AbilityRuntime::Runtime::MemoryPressureLevel::LOW);
+    EXPECT_EQ(runtimePtr->notifyCount_, 1U);
+    EXPECT_EQ(application->lastLevel_, MemoryLevel::MEMORY_LEVEL_LOW);
+    EXPECT_EQ(application->notifyCount_, 1U);
 }
 
 /**
