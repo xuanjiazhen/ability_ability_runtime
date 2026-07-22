@@ -310,9 +310,11 @@ napi_value JsUIExtensionContentSession::OnGetUIExtensionHostWindowProxy(napi_env
         return CreateJsUndefined(env);
     }
     napi_value proxyValue = value->GetNapiValue();
-    if (proxyValue != nullptr) {
+    // 存原始 jsExtensionWindow（带 JsExtensionWindow* napi_wrap），非模块导出 proxyValue——
+    // 迁移时 napi_unwrap 才能取到 JsExtensionWindow* 指针更新老 proxy。
+    if (jsExtensionWindow != nullptr) {
         napi_ref ref = nullptr;
-        napi_create_reference(env, proxyValue, 1, &ref);
+        napi_create_reference(env, jsExtensionWindow, 1, &ref);
         jsExtensionWindowRefs_.push_back(ref);
     }
     return handleEscape.Escape(proxyValue);
@@ -342,9 +344,11 @@ napi_value JsUIExtensionContentSession::OnGetUIExtensionWindowProxy(napi_env env
         return CreateJsUndefined(env);
     }
     napi_value proxyValue = value->GetNapiValue();
-    if (proxyValue != nullptr) {
+    // 存原始 jsExtensionWindow（带 JsExtensionWindow* napi_wrap），非模块导出 proxyValue——
+    // 迁移时 napi_unwrap 才能取到 JsExtensionWindow* 指针更新老 proxy。
+    if (jsExtensionWindow != nullptr) {
         napi_ref ref = nullptr;
-        napi_create_reference(env, proxyValue, 1, &ref);
+        napi_create_reference(env, jsExtensionWindow, 1, &ref);
         jsExtensionWindowRefs_.push_back(ref);
     }
     return handleEscape.Escape(proxyValue);
