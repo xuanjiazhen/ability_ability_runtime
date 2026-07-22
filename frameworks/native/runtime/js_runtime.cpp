@@ -16,10 +16,12 @@
 #include "js_runtime.h"
 
 #include <cerrno>
+#include <chrono>
 #include <climits>
 #include <cstdlib>
 #include <fstream>
 #include <mutex>
+#include <random>
 #include <regex>
 #include <string>
 #include <vector>
@@ -84,6 +86,7 @@ constexpr uint8_t SYSCAP_MAX_SIZE = 100;
 constexpr int64_t DEFAULT_GC_POOL_SIZE = 0x10000000; // 256MB
 constexpr int32_t DEFAULT_INTER_VAL = 500;
 constexpr int32_t API8 = 8;
+constexpr char MEMORY_PRESSURE_GC_TASK[] = "JsRuntime:MemoryPressureGC";
 const std::string SANDBOX_ARK_CACHE_PATH = "/data/storage/ark-cache/";
 const std::string SANDBOX_ARK_PROIFILE_PATH = "/data/storage/ark-profile";
 
@@ -115,6 +118,22 @@ static auto PermissionCheckFunc = []() {
         return false;
     }
 };
+
+NativeMemoryPressureLevel ConvertMemoryPressureLevelToNative(Runtime::MemoryPressureLevel level)
+{
+    switch (level) {
+        case Runtime::MemoryPressureLevel::NONE:
+            return NativeMemoryPressureLevel::NONE;
+        case Runtime::MemoryPressureLevel::MODERATE:
+            return NativeMemoryPressureLevel::MODERATE;
+        case Runtime::MemoryPressureLevel::LOW:
+            return NativeMemoryPressureLevel::LOW;
+        case Runtime::MemoryPressureLevel::CRITICAL:
+            return NativeMemoryPressureLevel::CRITICAL;
+        default:
+            return NativeMemoryPressureLevel::NONE;
+    }
+}
 
 int32_t PrintVmLog(int32_t, int32_t, const char*, const char*, const char* message)
 {
@@ -1067,6 +1086,7 @@ void JsRuntime::Deinitialize()
     methodRequireNapiRef_.reset();
 
     CHECK_POINTER(jsEnv_);
+    jsEnv_->RemoveTask(MEMORY_PRESSURE_GC_TASK);
     jsEnv_->DeInitLoop();
 }
 
@@ -1566,6 +1586,82 @@ void JsRuntime::NotifyApplicationState(bool isBackground)
     CHECK_POINTER(nativeEngine);
     nativeEngine->NotifyApplicationState(isBackground);
     TAG_LOGD(AAFwkTag::JSRUNTIME, "isBackground %{public}d", isBackground);
+}
+
+void JsRuntime::NotifyMemoryPressure(MemoryPressureLevel level)
+{
+    // Bound how long LOW GC may be staggered across processes.
+    constexpr int64_t MEMORY_PRESSURE_GC_MIN_JITTER_MS = 0;
+    constexpr int64_t MEMORY_PRESSURE_GC_MAX_JITTER_MS = 30;
+
+    // MODERATE is advisory only and cancels a delayed GC after de-escalation
+    if (level == MemoryPressureLevel::NONE) {
+        RemoveTask(MEMORY_PRESSURE_GC_TASK);
+        pendingMemoryPressureLevel_ = MemoryPressureLevel::NONE;
+        memoryPressureTaskPending_ = false;
+        return;
+    }
+    if (level == MemoryPressureLevel::MODERATE) {
+        if (memoryPressureTaskPending_) {
+            RemoveTask(MEMORY_PRESSURE_GC_TASK);
+            pendingMemoryPressureLevel_ = MemoryPressureLevel::NONE;
+            memoryPressureTaskPending_ = false;
+        }
+        return;
+    }
+
+    // Coalesce repeated PSI notifications and retain the strongest pending level
+    bool escalated = level > pendingMemoryPressureLevel_;
+    if (escalated) {
+        pendingMemoryPressureLevel_ = level;
+    }
+    if (memoryPressureTaskPending_ && !(escalated && level == MemoryPressureLevel::CRITICAL)) {
+        return;
+    }
+    if (memoryPressureTaskPending_) {
+        RemoveTask(MEMORY_PRESSURE_GC_TASK);
+    }
+
+    memoryPressureTaskPending_ = true;
+    int64_t delayTime = 0;
+    if (level != MemoryPressureLevel::CRITICAL) {
+        // Full jitter prevents correlated CPU bursts in different OS processes.
+        static std::mt19937 jitterGenerator(std::random_device{}());
+        std::uniform_int_distribution<int64_t> jitterDistribution(MEMORY_PRESSURE_GC_MIN_JITTER_MS, MEMORY_PRESSURE_GC_MAX_JITTER_MS);
+        delayTime = jitterDistribution(jitterGenerator);
+    }
+    PostTask([this]() { HandleMemoryPressure(); }, MEMORY_PRESSURE_GC_TASK, delayTime);
+}
+
+void JsRuntime::HandleMemoryPressure()
+{
+    // Rate-limit repeated memory pressure GC requests within one process.
+    constexpr int64_t MEMORY_PRESSURE_GC_COOLDOWN_MS = 1 * 1000;
+
+    memoryPressureTaskPending_ = false;
+    MemoryPressureLevel level = pendingMemoryPressureLevel_;
+    pendingMemoryPressureLevel_ = MemoryPressureLevel::NONE;
+    if (level == MemoryPressureLevel::NONE || level == MemoryPressureLevel::MODERATE) {
+        return;
+    }
+
+    auto *nativeEngine = GetNativeEnginePointer();
+    CHECK_POINTER(nativeEngine);
+    int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    // Escalation bypasses cooldown so CRITICAL is never hidden by an earlier LOW
+    bool pressureEscalated = level > lastGcMemoryPressureLevel_;
+    bool cooldownExpired = lastMemoryPressureGcTimeMs_ == 0 ||
+        now - lastMemoryPressureGcTimeMs_ >= MEMORY_PRESSURE_GC_COOLDOWN_MS;
+    if (!pressureEscalated && !cooldownExpired) {
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "memory pressure suppressed by cooldown");
+        return;
+    }
+
+    nativeEngine->NotifyMemoryPressure(ConvertMemoryPressureLevelToNative(level));
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "memory pressure requested, level=%{public}u", static_cast<uint32_t>(level));
+    lastGcMemoryPressureLevel_ = level;
+    lastMemoryPressureGcTimeMs_ = now;
 }
 
 bool JsRuntime::SuspendVM(uint32_t tid)
