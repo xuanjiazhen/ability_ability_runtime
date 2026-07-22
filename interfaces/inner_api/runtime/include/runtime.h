@@ -50,6 +50,14 @@ public:
         UNKNOWN,
     };
 
+    enum class MemoryPressureLevel : uint8_t {
+        // NONE is reserved for Runtime bookkeeping; memmgr sends pressure levels only.
+        NONE = 0,
+        MODERATE,
+        LOW,
+        CRITICAL,
+    };
+
     struct Options {
         Language lang = Language::JS;
         std::string bundleName;
@@ -160,6 +168,14 @@ public:
     virtual void SetModuleLoadChecker(const std::shared_ptr<ModuleCheckerDelegate> moduleCheckerDelegate) const {}
     virtual void SetDeviceDisconnectCallback(const std::function<bool()> &cb) = 0;
     virtual bool PreloadSystemClass(const char *className) { return false; }
+    /**
+     * @brief Notifies the runtime that the system memory pressure level has changed.
+     *
+     * The default no-op implementation keeps non-JS runtimes compatible.
+     *
+     * @param level Current system memory pressure level.
+     */
+    virtual void NotifyMemoryPressure([[maybe_unused]] MemoryPressureLevel level) {}
     Runtime(const Runtime&) = delete;
     Runtime(Runtime&&) = delete;
     Runtime& operator=(const Runtime&) = delete;
