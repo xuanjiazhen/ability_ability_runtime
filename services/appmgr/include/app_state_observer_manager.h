@@ -107,23 +107,23 @@ public:
     void OnPreForkAllWorkProcess(std::shared_ptr<ForkImageInfo> imageInfo);
 
 private:
-    void HandleOnWindowShow(const std::shared_ptr<AppRunningRecord> &appRecord);
-    void HandleOnWindowHidden(const std::shared_ptr<AppRunningRecord> &appRecord);
+    void HandleOnWindowShow(const ProcessData &data, BundleType bundleType);
+    void HandleOnWindowHidden(const ProcessData &data, BundleType bundleType);
     void HandleAppStateChanged(const std::shared_ptr<AppRunningRecord> &appRecord, const ApplicationState state,
         bool needNotifyApp, bool isFromWindowFocusChanged, bool isByCall);
     void HandleOnAppStarted(const std::shared_ptr<AppRunningRecord> &appRecord);
     void HandleOnAppStopped(const std::shared_ptr<AppRunningRecord> &appRecord);
     void HandleStateChangedNotifyObserver(const AbilityStateData abilityStateData, bool isAbility,
         bool isFromWindowFocusChanged, BundleType bundleType = BundleType::APP);
-    void HandleOnAppProcessCreated(const std::shared_ptr<AppRunningRecord> &appRecord, bool isPreload);
-    void HandleOnRenderProcessCreated(const std::shared_ptr<RenderRecord> &renderRecord, const bool isPreload);
+    void HandleOnAppProcessCreated(const ProcessData &data, BundleType bundleType);
+    void HandleOnRenderProcessCreated(const ProcessData &data, BundleType bundleType);
 #ifdef SUPPORT_CHILD_PROCESS
-    void HandleOnChildProcessCreated(std::shared_ptr<ChildProcessRecord> childRecord);
+    void HandleOnChildProcessCreated(const ProcessData &data, BundleType bundleType);
 #endif // SUPPORT_CHILD_PROCESS
-    void HandleOnAppProcessDied(const std::shared_ptr<AppRunningRecord> &appRecord);
-    void HandleOnRenderProcessDied(const std::shared_ptr<RenderRecord> &RenderRecord);
+    void HandleOnAppProcessDied(const ProcessData &data, BundleType bundleType);
+    void HandleOnRenderProcessDied(const ProcessData &data, BundleType bundleType);
 #ifdef SUPPORT_CHILD_PROCESS
-    void HandleOnChildProcessDied(std::shared_ptr<ChildProcessRecord> childRecord);
+    void HandleOnChildProcessDied(const ProcessData &data, BundleType bundleType);
 #endif // SUPPORT_CHILD_PROCESS
     bool ObserverExist(const sptr<IRemoteBroker> &observer);
     bool IsAppForegroundObserverExist(const sptr<IRemoteBroker> &observer);
@@ -149,10 +149,10 @@ private:
     AppStateData WrapAppStateData(const std::shared_ptr<AppRunningRecord> &appRecord,
         const ApplicationState state, bool isFromWindowFocusChanged = false);
     void HandleOnProcessCreated(const ProcessData &data, BundleType bundleType = BundleType::APP);
-    void HandleOnProcessStateChanged(const std::shared_ptr<AppRunningRecord> &appRecord,
-        bool isFromWindowFocusChanged = false, bool isByCall = false, bool isFromScreenOffBackground = false);
+    void HandleOnProcessStateChanged(const ProcessData &data, BundleType bundleType,
+        ApplicationState state, bool isByCall);
     void HandleOnProcessDied(const ProcessData &data, BundleType bundleType = BundleType::APP);
-    void HandleOnProcessResued(const std::shared_ptr<AppRunningRecord> &appRecord);
+    void HandleOnProcessResued(const ProcessData &data, BundleType bundleType);
     void HandleOnPageShow(const PageStateData pageStateData);
     void HandleOnPageHide(const PageStateData pageStateData);
     void HandleOnAppCacheStateChanged(const std::shared_ptr<AppRunningRecord> &appRecord, ApplicationState state);
@@ -160,9 +160,9 @@ private:
     void DecreaseObserverCount(int32_t uid);
     void HandleOnProcessBindingRelationChanged(const std::shared_ptr<AppRunningRecord> &appRecord,
         const UIExtensionProcessBindInfo &bindInfo, int32_t bindingRelation);
-    void HandleOnKeepAliveStateChanged(const std::shared_ptr<AppRunningRecord> &appRecord);
+    void HandleOnKeepAliveStateChanged(const ProcessData &data, BundleType bundleType);
     void HandleOnProcessPreForegroundChanged(std::shared_ptr<AppRunningRecord> appRecord);
-    void HandleOnProcessTypeChanged(const std::shared_ptr<AppRunningRecord> &appRecord);
+    void HandleOnProcessTypeChanged(const ProcessData &data, BundleType bundleType);
     bool PreventNotify(ApplicationState state, int32_t observerUid, bool isByCall);
     void HandleOnImageProcessStateChanged(std::shared_ptr<ImageProcessStateData> data);
     void HandleOnForkAllWorkProcessFailed(std::shared_ptr<ImageProcessStateData> data, int32_t errCode);
