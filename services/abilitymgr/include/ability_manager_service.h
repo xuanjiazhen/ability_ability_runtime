@@ -3436,6 +3436,14 @@ private:
     void HandleAppUpgradeProcess(const std::string &bundleName, const int32_t uid, int32_t appIndex,
         const std::string &exitMsg);
 
+    /**
+     * @brief Verify permission and user for app upgrade.
+     * @param uid The uid of the app.
+     * @param userId The user id.
+     * @return Returns true if verification passed, false otherwise.
+     */
+    bool VerifyPermissionAndUserForUpgrade(int32_t uid, int32_t userId) const;
+
     int32_t GetMissionIdByAbilityTokenInner(const sptr<IRemoteObject> &token);
     bool CheckCallerIsDmsProcess();
 

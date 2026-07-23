@@ -43,7 +43,22 @@ constexpr const char* HIDDEN_START_AUTOSTARTUP = "hiddenStartAutoStartup";
 
 AbilityAutoStartupService::AbilityAutoStartupService() {}
 
-AbilityAutoStartupService::~AbilityAutoStartupService() {}
+AbilityAutoStartupService::~AbilityAutoStartupService()
+{
+    {
+        std::lock_guard<std::mutex> deathLock(deathRecipientsMutex_);
+        for (auto &entry : deathRecipients_) {
+            if (entry.first != nullptr && entry.second != nullptr) {
+                entry.first->RemoveDeathRecipient(entry.second);
+            }
+        }
+        deathRecipients_.clear();
+    }
+    {
+        std::lock_guard<std::mutex> lock(autoStartUpMutex_);
+        callbackVector_.clear();
+    }
+}
 
 int32_t AbilityAutoStartupService::RegisterAutoStartupSystemCallback(const sptr<IRemoteObject> &callback)
 {
@@ -443,7 +458,7 @@ std::string AbilityAutoStartupService::GetSelfApplicationBundleName()
 bool AbilityAutoStartupService::CheckSelfApplication(const std::string &bundleName)
 {
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "Called, bundleName: %{public}s", bundleName.c_str());
-    return GetSelfApplicationBundleName() == bundleName ? true : false;
+    return GetSelfApplicationBundleName() == bundleName;
 }
 
 int32_t AbilityAutoStartupService::GetValidUserId(int32_t userId)
