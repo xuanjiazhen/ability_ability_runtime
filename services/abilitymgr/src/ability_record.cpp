@@ -2446,6 +2446,14 @@ void AbilityRecord::SetMissionId(int32_t missionId)
 void AbilityRecord::SetSessionInfo(sptr<SessionInfo> sessionInfo)
 {
     std::lock_guard guard(sessionLock_);
+    // 迁移信号保留：pendingState 合并 + 多次相近拉起下，调用1(命中迁移)设的 originalCallerInfo
+    // 不应被调用2(未命中)的 SetSessionInfo 覆盖。仅保留 originalCallerInfo 一个结构体(非整对象深拷贝,
+    // 零内存压力)。ForegroundUIExtensionAbility 透传给 provider 后清除 callerToken(保留稳定 X)。
+    if (sessionInfo != nullptr && sessionInfo_ != nullptr &&
+        sessionInfo_->originalCallerInfo.callerToken != nullptr &&
+        sessionInfo->originalCallerInfo.callerToken == nullptr) {
+        sessionInfo->originalCallerInfo = sessionInfo_->originalCallerInfo;
+    }
     sessionInfo_ = sessionInfo;
 }
 

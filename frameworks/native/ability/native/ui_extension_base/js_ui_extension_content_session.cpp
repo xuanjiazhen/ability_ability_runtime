@@ -1297,6 +1297,14 @@ void JsUIExtensionContentSession::DoUpdateExtensionParent(const sptr<AAFwk::Sess
         TAG_LOGE(AAFwkTag::UI_EXT, "null sessionInfo");
         return;
     }
+    // 幂等守卫：incoming hostWindowId == 已应用的(sessionInfo_->hostWindowId)则无需更新。
+    // 正常再前台(hostWindowId 未变)不重复 UpdateExtensionParent;迁移(hostWindowId 变了)才更新。
+    // callerToken 不再作触发判据,保留作审计/追溯,永不清除。
+    if (sessionInfo_ != nullptr && sessionInfo->hostWindowId == sessionInfo_->hostWindowId) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "DoUpdateExtensionParent idempotent skip, hostWindowId unchanged: %{public}u",
+            sessionInfo->hostWindowId);
+        return;
+    }
     // uiWindow_ 对象复用不变（ADR-8）；sessionInfo_ 整体指针替换后，通过 C++ UpdateExtensionParent
     // 更新 uiWindow_ 与应用已缓存的老 JsExtensionWindow proxy 的 parent 绑定。
     sessionInfo_ = sessionInfo;
