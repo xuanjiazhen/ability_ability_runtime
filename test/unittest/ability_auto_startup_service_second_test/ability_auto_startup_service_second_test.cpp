@@ -172,6 +172,9 @@ HWTEST_F(AbilityAutoStartupServiceSecondTest, CheckAutoStartupData_002, TestSize
     result = abilityAutoStartupService->CheckAutoStartupData(bundleName, BASE_USER_RANGE);
     EXPECT_EQ(result, 0);
 
+    // Clear kvStorePtr_ to avoid calling CloseKvStore in destructor
+    DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->kvStorePtr_ = nullptr;
+
     GTEST_LOG_(INFO) << "CheckAutoStartupData_002 end";
 }
 
@@ -274,6 +277,9 @@ HWTEST_F(AbilityAutoStartupServiceSecondTest, InnerApplicationAutoStartupByEDM_0
 
     result = abilityAutoStartupService->InnerApplicationAutoStartupByEDM(autoStartupInfo, false, false);
     EXPECT_EQ(result, 0);
+
+    // Clear kvStorePtr_ to avoid calling CloseKvStore in destructor
+    DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->kvStorePtr_ = nullptr;
 
     GTEST_LOG_(INFO) << "InnerApplicationAutoStartupByEDM_004 end";
 }
