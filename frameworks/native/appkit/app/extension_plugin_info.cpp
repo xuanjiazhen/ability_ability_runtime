@@ -49,10 +49,16 @@ ExtensionPluginInfo& ExtensionPluginInfo::GetInstance()
 
 void ExtensionPluginInfo::Preload()
 {
+    TAG_LOGW(AAFwkTag::APPKIT, "Preload start");
     // scan all extensions in path
     std::vector<std::string> extensionFiles;
+    TAG_LOGW(AAFwkTag::APPKIT, "Preload ScanExtensions begin");
     ScanExtensions(extensionFiles);
+    TAG_LOGW(AAFwkTag::APPKIT, "Preload ScanExtensions end");
+    TAG_LOGW(AAFwkTag::APPKIT, "Preload ParseExtensions begin");
     ParseExtensions(extensionFiles);
+    TAG_LOGW(AAFwkTag::APPKIT, "Preload ParseExtensions end");
+    TAG_LOGW(AAFwkTag::APPKIT, "Preload end");
 }
 
 std::vector<ExtensionPluginItem> ExtensionPluginInfo::GetExtensionPlugins()
@@ -62,15 +68,21 @@ std::vector<ExtensionPluginItem> ExtensionPluginInfo::GetExtensionPlugins()
 
 void ExtensionPluginInfo::ParseExtensions(const std::vector<std::string>& extensionFiles)
 {
+    TAG_LOGW(AAFwkTag::APPKIT, "ParseExtensions start");
     if (extensionFiles.empty()) {
         TAG_LOGE(AAFwkTag::APPKIT, "no extension files");
+        TAG_LOGW(AAFwkTag::APPKIT, "ParseExtensions end (empty)");
         return;
     }
 
     for (auto& file : extensionFiles) {
         TAG_LOGD(AAFwkTag::APPKIT, "Begin load extension file:%{public}s", file.c_str());
+        TAG_LOGW(AAFwkTag::APPKIT, "ParseExtensions ExtensionModuleLoader::GetLoader begin, file:%{public}s",
+            file.c_str());
         std::map<std::string, std::string> params =
             AbilityRuntime::ExtensionModuleLoader::GetLoader(file.c_str()).GetParams();
+        TAG_LOGW(AAFwkTag::APPKIT, "ParseExtensions ExtensionModuleLoader::GetLoader end, file:%{public}s",
+            file.c_str());
         if (params.empty()) {
             TAG_LOGE(AAFwkTag::APPKIT, "no extension params");
             continue;
@@ -110,20 +122,27 @@ void ExtensionPluginInfo::ParseExtensions(const std::vector<std::string>& extens
         TAG_LOGD(
             AAFwkTag::APPKIT, "Success load extension type: %{public}d, name:%{public}s", type, extensionName.c_str());
     }
+    TAG_LOGW(AAFwkTag::APPKIT, "ParseExtensions end");
 }
 
 bool ExtensionPluginInfo::ScanExtensions(std::vector<std::string>& files)
 {
+    TAG_LOGW(AAFwkTag::APPKIT, "ScanExtensions start");
     std::string dirPath = EXTENSION_LIB;
+    TAG_LOGW(AAFwkTag::APPKIT, "ScanExtensions opendir begin, dir:%{public}s", dirPath.c_str());
     DIR *dirp = opendir(dirPath.c_str());
+    TAG_LOGW(AAFwkTag::APPKIT, "ScanExtensions opendir end, dir:%{public}s", dirPath.c_str());
     if (dirp == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "ScanDir open dir:%{public}s fail", dirPath.c_str());
+        TAG_LOGW(AAFwkTag::APPKIT, "ScanExtensions end (opendir fail)");
         return false;
     }
 
     struct dirent *dirf = nullptr;
     for (;;) {
+        TAG_LOGW(AAFwkTag::APPKIT, "ScanExtensions readdir begin");
         dirf = readdir(dirp);
+        TAG_LOGW(AAFwkTag::APPKIT, "ScanExtensions readdir end");
         if (dirf == nullptr) {
             break;
         }
@@ -138,9 +157,12 @@ bool ExtensionPluginInfo::ScanExtensions(std::vector<std::string>& files)
         }
     }
 
+    TAG_LOGW(AAFwkTag::APPKIT, "ScanExtensions closedir begin");
     if (closedir(dirp) == -1) {
         TAG_LOGW(AAFwkTag::APPKIT, "close dir fail");
     }
+    TAG_LOGW(AAFwkTag::APPKIT, "ScanExtensions closedir end");
+    TAG_LOGW(AAFwkTag::APPKIT, "ScanExtensions end");
     return true;
 }
 
