@@ -125,7 +125,7 @@ HWTEST_F(AgentReceiverStubTest, AgentReceiverStub_OnRemoteRequest_003, TestSize.
     MessageOption option;
 
     WriteInterfaceToken(data);
-    sptr<IRemoteObject> connectorProxy = new MockRemoteObject();
+    sptr<IRemoteObject> connectorProxy = new AgentReceiverStubTestMock();
     data.WriteRemoteObject(connectorProxy);
     data.WriteString("test data");
 
@@ -149,7 +149,7 @@ HWTEST_F(AgentReceiverStubTest, AgentReceiverStub_OnRemoteRequest_004, TestSize.
     MessageOption option;
 
     WriteInterfaceToken(data);
-    sptr<IRemoteObject> connectorProxy = new MockRemoteObject();
+    sptr<IRemoteObject> connectorProxy = new AgentReceiverStubTestMock();
     data.WriteRemoteObject(connectorProxy);
     data.WriteString("auth data");
 
@@ -172,7 +172,7 @@ HWTEST_F(AgentReceiverStubTest, AgentReceiverStub_OnSendData_001, TestSize.Level
     MessageParcel reply;
 
     WriteInterfaceToken(data);
-    sptr<IRemoteObject> connectorProxy = new MockRemoteObject();
+    sptr<IRemoteObject> connectorProxy = new AgentReceiverStubTestMock();
     data.WriteRemoteObject(connectorProxy);
     data.WriteString("test data");
 
@@ -195,7 +195,7 @@ HWTEST_F(AgentReceiverStubTest, AgentReceiverStub_OnSendData_003, TestSize.Level
     MessageParcel reply;
 
     WriteInterfaceToken(data);
-    sptr<IRemoteObject> connectorProxy = new MockRemoteObject();
+    sptr<IRemoteObject> connectorProxy = new AgentReceiverStubTestMock();
     data.WriteRemoteObject(connectorProxy);
     data.WriteString("");
 
@@ -218,7 +218,7 @@ HWTEST_F(AgentReceiverStubTest, AgentReceiverStub_OnSendData_004, TestSize.Level
     MessageParcel reply;
 
     WriteInterfaceToken(data);
-    sptr<IRemoteObject> connectorProxy = new MockRemoteObject();
+    sptr<IRemoteObject> connectorProxy = new AgentReceiverStubTestMock();
     data.WriteRemoteObject(connectorProxy);
     std::string longData(10000, 'x');
     data.WriteString(longData);
@@ -234,7 +234,7 @@ HWTEST_F(AgentReceiverStubTest, AgentReceiverStub_OnSendData_004, TestSize.Level
  * SubFunction: NA
  * FunctionPoints: OnSendData with null connector proxy
  * EnvConditions: Valid data parcel with null connector proxy
- * CaseDescription: Verify that OnSendData works with null connector proxy
+ * CaseDescription: Verify that OnSendData returns IPC_STUB_ERR with null connector proxy
  */
 HWTEST_F(AgentReceiverStubTest, AgentReceiverStub_OnSendData_005, TestSize.Level1)
 {
@@ -247,7 +247,7 @@ HWTEST_F(AgentReceiverStubTest, AgentReceiverStub_OnSendData_005, TestSize.Level
 
     int result = stub_->OnSendData(data, reply);
 
-    EXPECT_EQ(result, NO_ERROR);
+    EXPECT_EQ(result, IPC_STUB_ERR);
 }
 
 /*
@@ -264,7 +264,7 @@ HWTEST_F(AgentReceiverStubTest, AgentReceiverStub_OnAuthorize_001, TestSize.Leve
     MessageParcel reply;
 
     WriteInterfaceToken(data);
-    sptr<IRemoteObject> connectorProxy = new MockRemoteObject();
+    sptr<IRemoteObject> connectorProxy = new AgentReceiverStubTestMock();
     data.WriteRemoteObject(connectorProxy);
     data.WriteString("auth data");
 
@@ -287,7 +287,7 @@ HWTEST_F(AgentReceiverStubTest, AgentReceiverStub_OnAuthorize_003, TestSize.Leve
     MessageParcel reply;
 
     WriteInterfaceToken(data);
-    sptr<IRemoteObject> connectorProxy = new MockRemoteObject();
+    sptr<IRemoteObject> connectorProxy = new AgentReceiverStubTestMock();
     data.WriteRemoteObject(connectorProxy);
     data.WriteString("");
 
@@ -310,7 +310,7 @@ HWTEST_F(AgentReceiverStubTest, AgentReceiverStub_OnAuthorize_004, TestSize.Leve
     MessageParcel reply;
 
     WriteInterfaceToken(data);
-    sptr<IRemoteObject> connectorProxy = new MockRemoteObject();
+    sptr<IRemoteObject> connectorProxy = new AgentReceiverStubTestMock();
     data.WriteRemoteObject(connectorProxy);
     std::string longData(10000, 'y');
     data.WriteString(longData);
@@ -326,7 +326,7 @@ HWTEST_F(AgentReceiverStubTest, AgentReceiverStub_OnAuthorize_004, TestSize.Leve
  * SubFunction: NA
  * FunctionPoints: OnAuthorize with null connector proxy
  * EnvConditions: Valid data parcel with null connector proxy
- * CaseDescription: Verify that OnAuthorize works with null connector proxy
+ * CaseDescription: Verify that OnAuthorize returns IPC_STUB_ERR with null connector proxy
  */
 HWTEST_F(AgentReceiverStubTest, AgentReceiverStub_OnAuthorize_005, TestSize.Level1)
 {
@@ -339,7 +339,7 @@ HWTEST_F(AgentReceiverStubTest, AgentReceiverStub_OnAuthorize_005, TestSize.Leve
 
     int result = stub_->OnAuthorize(data, reply);
 
-    EXPECT_EQ(result, NO_ERROR);
+    EXPECT_EQ(result, IPC_STUB_ERR);
 }
 
 /*
@@ -420,7 +420,7 @@ HWTEST_F(AgentReceiverStubTest, AgentReceiverStub_OnAgentInvoked_002, TestSize.L
  */
 HWTEST_F(AgentReceiverStubTest, AgentReceiverStub_SendData_001, TestSize.Level1)
 {
-    sptr<IRemoteObject> connectorProxy = new MockRemoteObject();
+    sptr<IRemoteObject> connectorProxy = new AgentReceiverStubTestMock();
     std::string testData = "test data";
     int result = stub_->SendData(connectorProxy, testData);
 
@@ -454,7 +454,7 @@ HWTEST_F(AgentReceiverStubTest, AgentReceiverStub_SendData_002, TestSize.Level1)
  */
 HWTEST_F(AgentReceiverStubTest, AgentReceiverStub_Authorize_001, TestSize.Level1)
 {
-    sptr<IRemoteObject> connectorProxy = new MockRemoteObject();
+    sptr<IRemoteObject> connectorProxy = new AgentReceiverStubTestMock();
     std::string authData = "auth data";
     int result = stub_->Authorize(connectorProxy, authData);
 
