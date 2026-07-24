@@ -33,7 +33,6 @@ namespace {
 
 std::recursive_mutex g_connectsLock;
 int64_t g_serialNumber = 0;
-static std::mutex g_connectsMutex;
 static std::map<EtsConnectionKey, sptr<ETSServiceExtensionConnection>, EtsKeyCompare> g_connects;
 const std::string APP_LINKING_ONLY = "appLinkingOnly";
 const std::string KEY_REQUEST_ID = "com.ohos.param.requestId";
@@ -156,7 +155,7 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
     return true;
 }
 
-int32_t InsertConnection(sptr<ETSServiceExtensionConnection> connection,
+int64_t InsertConnection(sptr<ETSServiceExtensionConnection> connection,
     const AAFwk::Want &want, int32_t accountId = -1)
 {
     std::lock_guard<std::recursive_mutex> lock(g_connectsLock);
@@ -164,7 +163,7 @@ int32_t InsertConnection(sptr<ETSServiceExtensionConnection> connection,
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null connection");
         return -1;
     }
-    int32_t connectId = static_cast<int32_t>(g_serialNumber);
+    int64_t connectId = g_serialNumber;
     EtsConnectionKey key;
     key.id = g_serialNumber;
     key.want = want;
@@ -175,7 +174,7 @@ int32_t InsertConnection(sptr<ETSServiceExtensionConnection> connection,
     return connectId;
 }
 
-void RemoveConnection(int32_t connectId)
+void RemoveConnection(int64_t connectId)
 {
     std::lock_guard<std::recursive_mutex> lock(g_connectsLock);
     auto item = std::find_if(g_connects.begin(), g_connects.end(),
@@ -925,12 +924,13 @@ ani_long EtsServiceExtensionContext::OnConnectServiceExtensionAbility(ani_env *e
     }
     sptr<ETSServiceExtensionConnection> connection = sptr<ETSServiceExtensionConnection>::MakeSptr(etsVm);
     connection->SetConnectionRef(connectOptionsObj);
-    int32_t connectId = InsertConnection(connection, want);
+    int64_t connectId = InsertConnection(connection, want);
     auto context = context_.lock();
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null context");
         RemoveConnection(connectId);
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return FAILED_CODE;
     }
     auto innerErrCode = context->ConnectAbility(want, connection);
     int32_t errcode = static_cast<int32_t>(GetJsErrorCodeByNativeError(innerErrCode));
@@ -964,12 +964,13 @@ ani_long EtsServiceExtensionContext::OnConnectServiceExtensionAbilityWithAccount
     }
     sptr<ETSServiceExtensionConnection> connection = sptr<ETSServiceExtensionConnection>::MakeSptr(etsVm);
     connection->SetConnectionRef(connectOptionsObj);
-    int32_t connectId = InsertConnection(connection, want, accountId);
+    int64_t connectId = InsertConnection(connection, want, accountId);
     auto context = context_.lock();
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null context");
         RemoveConnection(connectId);
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return FAILED_CODE;
     }
     auto innerErrCode = context->ConnectAbilityWithAccount(want, accountId, connection);
     int32_t errcode = static_cast<int32_t>(GetJsErrorCodeByNativeError(innerErrCode));
@@ -977,7 +978,7 @@ ani_long EtsServiceExtensionContext::OnConnectServiceExtensionAbilityWithAccount
         connection->CallEtsFailed(errcode);
         RemoveConnection(connectId);
     }
-    return static_cast<ani_long>(connectId);
+    return connectId;
 }
 
 void EtsServiceExtensionContext::OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj,
@@ -1001,7 +1002,7 @@ void EtsServiceExtensionContext::OnDisconnectServiceExtensionAbility(ani_env *en
     AAFwk::Want want;
     int32_t accountId = -1;
     {
-        std::lock_guard<std::mutex> lock(g_connectsMutex);
+        std::lock_guard<std::recursive_mutex> lock(g_connectsLock);
         auto iter = std::find_if(
             g_connects.begin(), g_connects.end(), [&connectId](const auto &obj) { return connectId == obj.first.id; });
         if (iter != g_connects.end()) {
@@ -1217,7 +1218,7 @@ ETSServiceExtensionConnection::~ETSServiceExtensionConnection()
     RemoveConnectionObject();
 }
 
-void ETSServiceExtensionConnection::SetConnectionId(int32_t id)
+void ETSServiceExtensionConnection::SetConnectionId(int64_t id)
 {
     connectionId_ = id;
 }
