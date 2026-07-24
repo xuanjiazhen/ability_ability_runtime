@@ -58,6 +58,10 @@ int32_t AgentReceiverStub::OnSendData(MessageParcel &data, MessageParcel &reply)
     TAG_LOGD(AAFwkTag::SER_ROUTER, "OnSendData called");
 
     sptr<IRemoteObject> connectorProxy = data.ReadRemoteObject();
+    if (connectorProxy == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "Failed to read connectorProxy");
+        return IPC_STUB_ERR;
+    }
     std::string dataStr = data.ReadString();
 
     TAG_LOGD(AAFwkTag::SER_ROUTER, "OnSendData, data length: %{public}zu", dataStr.length());
@@ -76,6 +80,10 @@ int32_t AgentReceiverStub::OnAuthorize(MessageParcel &data, MessageParcel &reply
     TAG_LOGD(AAFwkTag::SER_ROUTER, "OnAuthorize called");
 
     sptr<IRemoteObject> connectorProxy = data.ReadRemoteObject();
+    if (connectorProxy == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "Failed to read connectorProxy");
+        return IPC_STUB_ERR;
+    }
     std::string authStr = data.ReadString();
 
     TAG_LOGD(AAFwkTag::SER_ROUTER, "OnAuthorize, auth length: %{public}zu", authStr.length());
