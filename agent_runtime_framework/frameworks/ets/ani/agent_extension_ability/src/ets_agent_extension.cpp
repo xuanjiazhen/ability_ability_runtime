@@ -193,9 +193,12 @@ sptr<IRemoteObject> EtsAgentExtension::OnConnect(const AAFwk::Want &want,
     }
 
     auto hostProxyKey = BuildAgentRemoteObjectKey(hostProxy);
-    if (hostProxyMap_.find(hostProxyKey) != hostProxyMap_.end()) {
-        TAG_LOGI(AAFwkTag::SER_ROUTER, "hostProxy exist");
-        return stubObject;
+    {
+        std::lock_guard<std::mutex> lock(hostProxyMapMutex_);
+        if (hostProxyMap_.find(hostProxyKey) != hostProxyMap_.end()) {
+            TAG_LOGI(AAFwkTag::SER_ROUTER, "hostProxy exist");
+            return stubObject;
+        }
     }
 
     // Create ETS connector proxy object using the created proxy class
@@ -214,7 +217,10 @@ sptr<IRemoteObject> EtsAgentExtension::OnConnect(const AAFwk::Want &want,
         TAG_LOGE(AAFwkTag::SER_ROUTER, "GlobalReference_Create failed status: %{public}d", status);
         return nullptr;
     }
-    hostProxyMap_[hostProxyKey] = connectorProxyRef;
+    {
+        std::lock_guard<std::mutex> lock(hostProxyMapMutex_);
+        hostProxyMap_[hostProxyKey] = connectorProxyRef;
+    }
     TAG_LOGD(AAFwkTag::SER_ROUTER, "end");
     return stubObject;
 }
@@ -241,10 +247,14 @@ void EtsAgentExtension::OnDisconnect(const AAFwk::Want &want,
         return;
     }
     ani_ref etsHostProxy = nullptr;
-    auto iter = hostProxyMap_.find(BuildAgentRemoteObjectKey(hostProxy));
-    if (iter != hostProxyMap_.end()) {
-        if (iter->second != nullptr) {
-            etsHostProxy = iter->second;
+    auto hostProxyKey = BuildAgentRemoteObjectKey(hostProxy);
+    {
+        std::lock_guard<std::mutex> lock(hostProxyMapMutex_);
+        auto iter = hostProxyMap_.find(hostProxyKey);
+        if (iter != hostProxyMap_.end()) {
+            if (iter->second != nullptr) {
+                etsHostProxy = iter->second;
+            }
         }
     }
     if (etsHostProxy == nullptr) {
@@ -252,7 +262,10 @@ void EtsAgentExtension::OnDisconnect(const AAFwk::Want &want,
         return;
     }
     CallObjectMethod("onDisconnect", ON_DISCONNECT_SIGNATURE, aniWant, etsHostProxy);
-    hostProxyMap_.erase(iter);
+    {
+        std::lock_guard<std::mutex> lock(hostProxyMapMutex_);
+        hostProxyMap_.erase(hostProxyKey);
+    }
     TAG_LOGD(AAFwkTag::SER_ROUTER, "end");
 }
 
@@ -285,10 +298,13 @@ void EtsAgentExtension::HandleSendData(sptr<IRemoteObject> hostProxy, const std:
         return;
     }
     ani_ref etsHostProxy = nullptr;
-    auto iter = hostProxyMap_.find(BuildAgentRemoteObjectKey(hostProxy));
-    if (iter != hostProxyMap_.end()) {
-        if (iter->second != nullptr) {
-            etsHostProxy = iter->second;
+    {
+        std::lock_guard<std::mutex> lock(hostProxyMapMutex_);
+        auto iter = hostProxyMap_.find(BuildAgentRemoteObjectKey(hostProxy));
+        if (iter != hostProxyMap_.end()) {
+            if (iter->second != nullptr) {
+                etsHostProxy = iter->second;
+            }
         }
     }
     if (etsHostProxy == nullptr) {
@@ -324,10 +340,13 @@ void EtsAgentExtension::HandleAuthorize(sptr<IRemoteObject> hostProxy, const std
         return;
     }
     ani_ref etsHostProxy = nullptr;
-    auto iter = hostProxyMap_.find(BuildAgentRemoteObjectKey(hostProxy));
-    if (iter != hostProxyMap_.end()) {
-        if (iter->second != nullptr) {
-            etsHostProxy = iter->second;
+    {
+        std::lock_guard<std::mutex> lock(hostProxyMapMutex_);
+        auto iter = hostProxyMap_.find(BuildAgentRemoteObjectKey(hostProxy));
+        if (iter != hostProxyMap_.end()) {
+            if (iter->second != nullptr) {
+                etsHostProxy = iter->second;
+            }
         }
     }
     if (etsHostProxy == nullptr) {
