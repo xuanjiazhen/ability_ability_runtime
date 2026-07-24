@@ -51,16 +51,24 @@ export default class SelectorServiceExtensionAbility extends extension {
     let showHapList = [];
     let phoneShowHapList = [];
     let jsonIconMap: Map<string, image.PixelMap> = new Map();
-    for (let i = 1; i <= globalThis.params.hapList.length; i++) {
-      console.info(TAG, 'hapList[' + (i - 1).toString() + ']: ' + JSON.stringify(globalThis.params.hapList[i - 1]));
-      await this.getHapResource(globalThis.params.hapList[i - 1], showHapList, jsonIconMap);
-      if (i % lineNums === 0) {
-        phoneShowHapList.push(showHapList);
-        showHapList = [];
+    try {
+      for (let i = 1; i <= globalThis.params.hapList.length; i++) {
+        try {
+          console.info(TAG, 'hapList[' + (i - 1).toString() + ']: ' + JSON.stringify(globalThis.params.hapList[i - 1]));
+          await this.getHapResource(globalThis.params.hapList[i - 1], showHapList, jsonIconMap);
+        } catch (error) {
+          console.error(TAG, 'getHapResource failed for hapList[' + (i - 1) + ']: ' + JSON.stringify(error));
+        }
+        if (i % lineNums === 0) {
+          phoneShowHapList.push(showHapList);
+          showHapList = [];
+        }
+        if (i >= globalThis.params.hapList.length && showHapList.length > 0) {
+          phoneShowHapList.push(showHapList);
+        }
       }
-      if (i >= globalThis.params.hapList.length && showHapList.length > 0) {
-        phoneShowHapList.push(showHapList);
-      }
+    } catch (error) {
+      console.error(TAG, 'getPhoneShowHapList first loop failed: ' + JSON.stringify(error));
     }
     globalThis.phoneShowHapList = phoneShowHapList;
     console.debug(TAG, 'phoneShowHapList: ' + JSON.stringify(phoneShowHapList));
@@ -68,16 +76,24 @@ export default class SelectorServiceExtensionAbility extends extension {
     const signalRowlineNums = 4;
     let signalRowShowHapList = [];
     let signalRowPhoneShowHapList = [];
-    for (let i = 1; i <= globalThis.params.hapList.length; i++) {
-      console.info(TAG, 'hapList[' + (i - 1).toString() + ']: ' + JSON.stringify(globalThis.params.hapList[i - 1]));
-      await this.getHapResource(globalThis.params.hapList[i - 1], signalRowShowHapList, jsonIconMap);
-      if (i % signalRowlineNums === 0) {
-        signalRowPhoneShowHapList.push(signalRowShowHapList);
-        signalRowShowHapList = [];
+    try {
+      for (let i = 1; i <= globalThis.params.hapList.length; i++) {
+        try {
+          console.info(TAG, 'hapList[' + (i - 1).toString() + ']: ' + JSON.stringify(globalThis.params.hapList[i - 1]));
+          await this.getHapResource(globalThis.params.hapList[i - 1], signalRowShowHapList, jsonIconMap);
+        } catch (error) {
+          console.error(TAG, 'getHapResource failed for signalRow hapList[' + (i - 1) + ']: ' + JSON.stringify(error));
+        }
+        if (i % signalRowlineNums === 0) {
+          signalRowPhoneShowHapList.push(signalRowShowHapList);
+          signalRowShowHapList = [];
+        }
+        if (i >= globalThis.params.hapList.length && signalRowShowHapList.length > 0) {
+          signalRowPhoneShowHapList.push(signalRowShowHapList);
+        }
       }
-      if (i >= globalThis.params.hapList.length && signalRowShowHapList.length > 0) {
-        signalRowPhoneShowHapList.push(signalRowShowHapList);
-      }
+    } catch (error) {
+      console.error(TAG, 'getPhoneShowHapList signalRow loop failed: ' + JSON.stringify(error));
     }
     globalThis.signalRowPhoneShowHapList = signalRowPhoneShowHapList;
     globalThis.jsonIconMap = jsonIconMap;
@@ -87,8 +103,16 @@ export default class SelectorServiceExtensionAbility extends extension {
   async getPcShowHapList() {
     let pcShowHapList = [];
     let jsonIconMap: Map<string, image.PixelMap> = new Map();
-    for (let i = 0; i < globalThis.params.hapList.length; i++) {
-      await this.getHapResource(globalThis.params.hapList[i], pcShowHapList, jsonIconMap);
+    try {
+      for (let i = 0; i < globalThis.params.hapList.length; i++) {
+        try {
+          await this.getHapResource(globalThis.params.hapList[i], pcShowHapList, jsonIconMap);
+        } catch (error) {
+          console.error(TAG, 'getHapResource failed for pc hapList[' + i + ']: ' + JSON.stringify(error));
+        }
+      }
+    } catch (error) {
+      console.error(TAG, 'getPcShowHapList loop failed: ' + JSON.stringify(error));
     }
     globalThis.pcShowHapList = pcShowHapList;
     globalThis.jsonIconMap = jsonIconMap;
@@ -169,18 +193,22 @@ export default class SelectorServiceExtensionAbility extends extension {
       globalThis.position = PositionUtils.getSelectorDialogPosition(lineNums);
 
       display.on('change', (data: number) => {
-        if (!globalThis.position) {
-          console.error(TAG, 'globalThis.position is invalid in display change callback, skip');
-          return;
+        try {
+          if (!globalThis.position) {
+            console.error(TAG, 'globalThis.position is invalid in display change callback, skip');
+            return;
+          }
+          let position = PositionUtils.getSelectorDialogPosition(lineNums);
+          if (position.offsetX !== globalThis.position.offsetX || position.offsetY !== globalThis.position.offsetY) {
+            win.moveTo(position.offsetX, position.offsetY);
+          }
+          if (position.width !== globalThis.position.width || position.height !== globalThis.position.height) {
+            win.resetSize(position.width, position.height);
+          }
+          globalThis.position = position;
+        } catch (error) {
+          console.error(TAG, 'display change callback failed: ' + JSON.stringify(error));
         }
-        let position = PositionUtils.getSelectorDialogPosition(lineNums);
-        if (position.offsetX !== globalThis.position.offsetX || position.offsetY !== globalThis.position.offsetY) {
-          win.moveTo(position.offsetX, position.offsetY);
-        }
-        if (position.width !== globalThis.position.width || position.height !== globalThis.position.height) {
-          win.resetSize(position.width, position.height);
-        }
-        globalThis.position = position;
       });
     } catch (exception) {
       console.error(TAG, 'Failed to register display change callback. Code: ' + JSON.stringify(exception));
@@ -206,27 +234,37 @@ export default class SelectorServiceExtensionAbility extends extension {
 
     AppStorage.SetOrCreate('oversizeHeight', globalThis.position.oversizeHeight ? 'true' : 'false');
     display.getDefaultDisplay().then(dis => {
-      let navigationBarRect = {
-        left: globalThis.position.offsetX,
-        top: globalThis.position.offsetY,
-        width: globalThis.position.width,
-        height: globalThis.position.height
-      };
-      if (winNum > 1) {
-        win.destroy();
-        winNum--;
+      try {
+        let navigationBarRect = {
+          left: globalThis.position.offsetX,
+          top: globalThis.position.offsetY,
+          width: globalThis.position.width,
+          height: globalThis.position.height
+        };
+        if (winNum > 1) {
+          win.destroy();
+          winNum--;
+        }
+        let windowType = (typeof(globalThis.callerToken) === 'object' && globalThis.callerToken !== null) ?
+          window.WindowType.TYPE_DIALOG : window.WindowType.TYPE_SYSTEM_ALERT;
+        this.createWindow('SelectorDialog' + startId, windowType, navigationBarRect);
+        winNum++;
+      } catch (error) {
+        console.error(TAG, 'display getDefaultDisplay callback failed: ' + JSON.stringify(error));
       }
-      let windowType = (typeof(globalThis.callerToken) === 'object' && globalThis.callerToken !== null) ?
-        window.WindowType.TYPE_DIALOG : window.WindowType.TYPE_SYSTEM_ALERT;
-      this.createWindow('SelectorDialog' + startId, windowType, navigationBarRect);
-      winNum++;
+    }).catch(error => {
+      console.error(TAG, 'getDefaultDisplay failed: ' + JSON.stringify(error));
     });
   }
 
   onDestroy() {
     console.info(TAG, 'SelectorServiceExtensionAbility onDestroy.');
-    if (win !== undefined) {
-      win.destroy();
+    try {
+      if (win !== undefined) {
+        win.destroy();
+      }
+    } catch (error) {
+      console.error(TAG, 'onDestroy win.destroy failed: ' + JSON.stringify(error));
     }
   }
 
@@ -306,14 +344,18 @@ export default class SelectorServiceExtensionAbility extends extension {
       console.error(TAG, 'globalThis.position is invalid, skip moveWindow');
       return;
     }
-    let navigationBarRect = {
-      left: globalThis.position.offsetX,
-      top: globalThis.position.offsetY,
-      width: globalThis.position.width,
-      height: globalThis.position.height
-    };
-    AppStorage.SetOrCreate('oversizeHeight', globalThis.position.oversizeHeight ? 'true' : 'false');
-    console.debug(TAG, 'onConfigurationUpdate navigationBarRect is' + JSON.stringify(navigationBarRect));
-    this.moveWindow(navigationBarRect);
+    try {
+      let navigationBarRect = {
+        left: globalThis.position.offsetX,
+        top: globalThis.position.offsetY,
+        width: globalThis.position.width,
+        height: globalThis.position.height
+      };
+      AppStorage.SetOrCreate('oversizeHeight', globalThis.position.oversizeHeight ? 'true' : 'false');
+      console.debug(TAG, 'onConfigurationUpdate navigationBarRect is' + JSON.stringify(navigationBarRect));
+      this.moveWindow(navigationBarRect);
+    } catch (error) {
+      console.error(TAG, 'onConfigurationUpdate moveWindow failed: ' + JSON.stringify(error));
+    }
   }
 };
