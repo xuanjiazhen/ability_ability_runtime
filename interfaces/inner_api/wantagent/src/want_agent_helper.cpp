@@ -547,10 +547,16 @@ std::shared_ptr<WantAgent> WantAgentHelper::FromString(const std::string &jsonSt
     std::vector<std::shared_ptr<AAFwk::Want>> wants = {};
     if (jsonObject.contains("wants") && jsonObject["wants"].is_array()) {
         for (auto &wantObj : jsonObject.at("wants")) {
-            if (wantObj.is_string()) {
-                auto wantString = wantObj.get<std::string>();
-                wants.emplace_back(std::make_shared<AAFwk::Want>(*Want::FromString(wantString)));
+            if (!wantObj.is_string()) {
+                continue;
             }
+            auto wantString = wantObj.get<std::string>();
+            std::shared_ptr<AAFwk::Want> want(Want::FromString(wantString));
+            if (want == nullptr) {
+                TAG_LOGE(AAFwkTag::WANTAGENT, "Failed to parse want from string");
+                continue;
+            }
+            wants.emplace_back(std::make_shared<AAFwk::Want>(*want));
         }
     }
 
@@ -559,9 +565,13 @@ std::shared_ptr<WantAgent> WantAgentHelper::FromString(const std::string &jsonSt
         auto extraInfoObj = jsonObject.at("extraInfo");
         if (extraInfoObj.contains("extraInfoValue") && extraInfoObj["extraInfoValue"].is_string()) {
             auto pwWrapper = AAFwk::WantParamWrapper::Parse(extraInfoObj.at("extraInfoValue").get<std::string>());
-            AAFwk::WantParams params;
-            if (pwWrapper->GetValue(params) == ERR_OK) {
-                extraInfo = std::make_shared<AAFwk::WantParams>(params);
+            if (pwWrapper == nullptr) {
+                TAG_LOGE(AAFwkTag::WANTAGENT, "Failed to parse extra info value");
+            } else {
+                AAFwk::WantParams params;
+                if (pwWrapper->GetValue(params) == ERR_OK) {
+                    extraInfo = std::make_shared<AAFwk::WantParams>(params);
+                }
             }
         }
     }
@@ -649,10 +659,16 @@ std::shared_ptr<WantAgent> WantAgentHelper::FromStringWithEnvelope(
     std::vector<std::shared_ptr<AAFwk::Want>> wants = {};
     if (jsonObject.contains("wants") && jsonObject["wants"].is_array()) {
         for (auto &wantObj : jsonObject.at("wants")) {
-            if (wantObj.is_string()) {
-                auto wantString = wantObj.get<std::string>();
-                wants.emplace_back(std::make_shared<AAFwk::Want>(*Want::FromString(wantString)));
+            if (!wantObj.is_string()) {
+                continue;
             }
+            auto wantString = wantObj.get<std::string>();
+            std::shared_ptr<AAFwk::Want> want(Want::FromString(wantString));
+            if (want == nullptr) {
+                TAG_LOGE(AAFwkTag::WANTAGENT, "Failed to parse want from string");
+                continue;
+            }
+            wants.emplace_back(std::make_shared<AAFwk::Want>(*want));
         }
     }
 
