@@ -388,7 +388,7 @@ bool AppRunningManager::IsChildProcessReachLimit(uint32_t accessTokenId, bool mu
     return AAFwk::MyStatus::GetInstance().isChildProcessReachLimit_;
 }
 
-std::shared_ptr<ChildProcessRecord> AppRunningManager::OnChildProcessRemoteDied(const wptr<IRemoteObject> &remote)
+std::shared_ptr<ChildProcessRecord> AppRunningManager::OnChildProcessExitedByPid(pid_t pid)
 {
     return nullptr;
 }

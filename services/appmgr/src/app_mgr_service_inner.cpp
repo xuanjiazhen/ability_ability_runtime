@@ -71,6 +71,7 @@
 #include "last_exit_detail_info.h"
 #include "os_account_manager.h"
 #include "app_native_spawn_manager.h"
+#include "app_pidfd_manager.h"
 #ifdef SUPPORT_SCREEN
 #include "locale_config.h"
 #endif
@@ -513,6 +514,9 @@ void AppMgrServiceInner::Init()
         .timeout(AbilityRuntime::GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));
     AppNativeSpawnManager::GetInstance().InitNativeSpawnMsgPipe(appRunningManager_);
     AppHybridSpawnManager::GetInstance().InitHybridSpawnMsgPipe(weak_from_this());
+#ifdef SUPPORT_CHILD_PROCESS
+    AppPidFdManager::GetInstance().Init(weak_from_this(), taskHandler_);
+#endif // SUPPORT_CHILD_PROCESS
 }
 
 AppMgrServiceInner::~AppMgrServiceInner()
@@ -6465,12 +6469,6 @@ void AppMgrServiceInner::OnRemoteDied(const wptr<IRemoteObject> &remote, bool is
         OnRenderRemoteDied(remote);
         return;
     }
-#ifdef SUPPORT_CHILD_PROCESS
-    if (isChildProcess) {
-        OnChildProcessRemoteDied(remote);
-        return;
-    }
-#endif // SUPPORT_CHILD_PROCESS
 
     if (isImageProcess) {
         OnImageProcessRemoteDied(remote);
@@ -10899,6 +10897,7 @@ int32_t AppMgrServiceInner::StartChildProcessImpl(const std::shared_ptr<ChildPro
         childProcessRecord->SetUid(startMsg.uid);
         appRecord->AddChildProcessRecord(pid, childProcessRecord);
     }
+    AppPidFdManager::GetInstance().AddWatcher(pid);
     TAG_LOGI(AAFwkTag::APPMGR, "start childProcess success,pid:%{public}d,hostPid:%{public}d,uid:%{public}d,"
         "processName:%{public}s", pid, childProcessRecord->GetHostPid(), startMsg.uid,
         childProcessRecord->GetProcessName().c_str());
@@ -11080,13 +11079,10 @@ void AppMgrServiceInner::AttachChildProcess(const pid_t pid, const sptr<IChildSc
     }
     CheckChildProcessAttachTimeout(childRecord);
 
-    sptr<AppDeathRecipient> appDeathRecipient = new AppDeathRecipient();
-    appDeathRecipient->SetTaskHandler(taskHandler_);
-    appDeathRecipient->SetAppMgrServiceInner(shared_from_this());
-    appDeathRecipient->SetIsChildProcess(true);
+    // Process death is now monitored by AppPidFdManager (pidfd), so the binder
+    // AppDeathRecipient is no longer registered here. SetScheduler is still
+    // needed to send commands (ScheduleLoadChild / ScheduleRunNativeProc).
     childRecord->SetScheduler(childScheduler);
-    childRecord->SetDeathRecipient(appDeathRecipient);
-    childRecord->RegisterDeathRecipient();
 
     if (childRecord->GetChildProcessType() != CHILD_PROCESS_TYPE_NATIVE) {
         childScheduler->ScheduleLoadChild();
@@ -11149,12 +11145,14 @@ void AppMgrServiceInner::OnChildProcessDied(std::shared_ptr<ChildProcessRecord> 
     }
 }
 
-void AppMgrServiceInner::OnChildProcessRemoteDied(const wptr<IRemoteObject> &remote)
+void AppMgrServiceInner::OnChildProcessExited(pid_t pid)
 {
-    if (appRunningManager_) {
-        auto childRecord = appRunningManager_->OnChildProcessRemoteDied(remote);
-        OnChildProcessDied(childRecord);
+    if (!appRunningManager_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ is null");
+        return;
     }
+    auto childRecord = appRunningManager_->OnChildProcessExitedByPid(pid);
+    OnChildProcessDied(childRecord);
 }
 
 void AppMgrServiceInner::KillChildProcess(const std::shared_ptr<AppRunningRecord> &appRecord) {

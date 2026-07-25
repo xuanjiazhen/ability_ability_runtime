@@ -133,9 +133,8 @@ void DoSomethingInterestingWithMyAPIaddb(const char* data, size_t size)
 #ifdef SUPPORT_CHILD_PROCESS
     manager->GetAppRunningRecordByChildProcessPid(pidApps);
 #endif // SUPPORT_CHILD_PROCESS
-    wptr<IRemoteObject> remote;
 #ifdef SUPPORT_CHILD_PROCESS
-    manager->OnChildProcessRemoteDied(remote);
+    manager->OnChildProcessExitedByPid(pidApps);
 #endif // SUPPORT_CHILD_PROCESS
     manager->GetAllAppRunningRecordCountByBundleName(jsonStr);
     auto uid = static_cast<int32_t>(GetU32Data(data));

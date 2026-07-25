@@ -1930,48 +1930,35 @@ void AppRunningManager::HandleChildRelation(
         DEAD_CHILD_RELATION_CLEAR_TIME);
 }
 
-std::shared_ptr<ChildProcessRecord> AppRunningManager::OnChildProcessRemoteDied(const wptr<IRemoteObject> &remote)
+std::shared_ptr<ChildProcessRecord> AppRunningManager::OnChildProcessExitedByPid(pid_t pid)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "On child process remote died");
-    if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null remote");
-        return nullptr;
-    }
-    sptr<IRemoteObject> object = remote.promote();
-    if (!object) {
-        TAG_LOGE(AAFwkTag::APPMGR, "promote failed");
+    TAG_LOGD(AAFwkTag::APPMGR, "On child process exited by pid");
+    if (pid <= 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid pid");
         return nullptr;
     }
 
     std::lock_guard guard(runningRecordMapMutex_);
     std::shared_ptr<ChildProcessRecord> childRecord;
     const auto &it = std::find_if(appRunningRecordMap_.begin(), appRunningRecordMap_.end(),
-        [&object, &childRecord](const auto &pair) {
+        [&pid, &childRecord](const auto &pair) {
             auto appRecord = pair.second;
             if (!appRecord) {
                 return false;
             }
             auto childRecordMap = appRecord->GetChildProcessRecordMap();
-            if (childRecordMap.empty()) {
+            auto iter = childRecordMap.find(pid);
+            if (iter == childRecordMap.end()) {
                 return false;
             }
-            for (auto iter : childRecordMap) {
-                if (iter.second == nullptr) {
-                    continue;
-                }
-                auto scheduler = iter.second->GetScheduler();
-                if (scheduler && scheduler->AsObject() == object) {
-                    childRecord = iter.second;
-                    return true;
-                }
-            }
-            return false;
+            childRecord = iter->second;
+            return true;
         });
     if (it != appRunningRecordMap_.end()) {
         auto appRecord = it->second;
         HandleChildRelation(childRecord, appRecord);
         appRecord->RemoveChildProcessRecord(childRecord);
-        TAG_LOGI(AAFwkTag::APPMGR, "RemoveChildProcessRecord pid:%{public}d, uid:%{public}d", childRecord->GetPid(),
+        TAG_LOGI(AAFwkTag::APPMGR, "RemoveChildProcessRecord by pid:%{public}d, uid:%{public}d", childRecord->GetPid(),
             childRecord->GetUid());
         return childRecord;
     }

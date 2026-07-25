@@ -870,6 +870,16 @@ public:
     void OnRemoteDied(const wptr<IRemoteObject> &remote, bool isRenderProcess = false, bool isChildProcess = false,
         bool isImageProcess = false);
 
+#ifdef SUPPORT_CHILD_PROCESS
+    /**
+     * @brief Called (via pidfd, dispatched on the appmgr task queue) when a
+     * spawned child process exits. Replaces the binder OnRemoteDied path for
+     * child processes; the cleanup logic is unchanged.
+     * @param pid child process pid.
+     */
+    void OnChildProcessExited(pid_t pid);
+#endif // SUPPORT_CHILD_PROCESS
+
     /**
      * @brief Call the callbacks to notify one process should go dying due fatal error.
      * @param appRecord indicates the process is going to die.
@@ -2108,8 +2118,6 @@ private:
     void RemoveChildProcessIsolationUid(int32_t uid);
     
     void OnChildProcessDied(std::shared_ptr<ChildProcessRecord> childProcessRecord);
-
-    void OnChildProcessRemoteDied(const wptr<IRemoteObject> &remote);
 
     /**
      * kill all child processed of a main process
