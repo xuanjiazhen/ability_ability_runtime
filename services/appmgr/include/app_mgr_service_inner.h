@@ -870,6 +870,24 @@ public:
     void OnRemoteDied(const wptr<IRemoteObject> &remote, bool isRenderProcess = false, bool isChildProcess = false,
         bool isImageProcess = false);
 
+#ifdef SUPPORT_CHILD_PROCESS
+    /**
+     * @brief Called (via pidfd, dispatched on the appmgr task queue) when a
+     * spawned child process exits. Replaces the binder OnRemoteDied path for
+     * child processes; the cleanup logic is unchanged.
+     * @param pid child process pid.
+     */
+    void OnChildProcessExited(pid_t pid);
+#endif // SUPPORT_CHILD_PROCESS
+
+    /**
+     * @brief Called (via pidfd, dispatched on the appmgr task queue) when a
+     * spawned render process exits. Replaces the binder OnRemoteDied path for
+     * render processes; the cleanup logic is unchanged.
+     * @param pid render process pid.
+     */
+    void OnRenderProcessExited(pid_t pid);
+
     /**
      * @brief Call the callbacks to notify one process should go dying due fatal error.
      * @param appRecord indicates the process is going to die.
@@ -2054,8 +2072,6 @@ private:
     void SetRenderStartMsg(AppSpawnStartMsg &startMsg, std::shared_ptr<RenderRecord> renderRecord,
         const int32_t renderUid, const bool isGPU);
 
-    void OnRenderRemoteDied(const wptr<IRemoteObject> &remote);
-
     void OnImageProcessRemoteDied(const wptr<IRemoteObject> &remote);
 
     void AddWatchParameter();
@@ -2101,15 +2117,9 @@ private:
     int32_t GetChildProcessInfoEx(const std::shared_ptr<ChildProcessRecord> childProcessRecord,
         const std::shared_ptr<AppRunningRecord> appRecord, ChildProcessInfo &info);
 
-    void RemoveRenderProcessIsolationUid(int32_t uid);
-
-    void OnRenderProcessDied(std::shared_ptr<RenderRecord> renderProcessRecord);
-
     void RemoveChildProcessIsolationUid(int32_t uid);
-    
-    void OnChildProcessDied(std::shared_ptr<ChildProcessRecord> childProcessRecord);
 
-    void OnChildProcessRemoteDied(const wptr<IRemoteObject> &remote);
+    void OnChildProcessDied(std::shared_ptr<ChildProcessRecord> childProcessRecord);
 
     /**
      * kill all child processed of a main process
@@ -2122,6 +2132,10 @@ private:
     void PresetMaxChildProcess(std::shared_ptr<AppRunningRecord> appRecord,
         int32_t &maxChildProcess);
 #endif // SUPPORT_CHILD_PROCESS
+
+    void RemoveRenderProcessIsolationUid(int32_t uid);
+
+    void OnRenderProcessDied(std::shared_ptr<RenderRecord> renderProcessRecord);
 
     void AfterLoadAbility(std::shared_ptr<AppRunningRecord> appRecord, std::shared_ptr<AbilityInfo> abilityInfo,
         std::shared_ptr<AbilityRuntime::LoadParam> loadParam, bool isProcessReuse = false);
