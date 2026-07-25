@@ -52,8 +52,8 @@ export default class SelectorServiceExtensionAbility extends extension {
     let phoneShowHapList = [];
     let jsonIconMap: Map<string, image.PixelMap> = new Map();
     for (let i = 1; i <= globalThis.params.hapList.length; i++) {
-      console.info(TAG, 'hapList[' + (i - 1).toString() + ']: ' + JSON.stringify(globalThis.params.hapList[i - 1]));
-      await this.getHapResource(globalThis.params.hapList[i - 1], showHapList, jsonIconMap);
+        console.info(TAG, 'hapList[' + (i - 1).toString() + ']: ' + JSON.stringify(globalThis.params.hapList[i - 1]));
+        await this.getHapResource(globalThis.params.hapList[i - 1], showHapList, jsonIconMap);
       if (i % lineNums === 0) {
         phoneShowHapList.push(showHapList);
         showHapList = [];
@@ -69,8 +69,8 @@ export default class SelectorServiceExtensionAbility extends extension {
     let signalRowShowHapList = [];
     let signalRowPhoneShowHapList = [];
     for (let i = 1; i <= globalThis.params.hapList.length; i++) {
-      console.info(TAG, 'hapList[' + (i - 1).toString() + ']: ' + JSON.stringify(globalThis.params.hapList[i - 1]));
-      await this.getHapResource(globalThis.params.hapList[i - 1], signalRowShowHapList, jsonIconMap);
+        console.info(TAG, 'hapList[' + (i - 1).toString() + ']: ' + JSON.stringify(globalThis.params.hapList[i - 1]));
+        await this.getHapResource(globalThis.params.hapList[i - 1], signalRowShowHapList, jsonIconMap);
       if (i % signalRowlineNums === 0) {
         signalRowPhoneShowHapList.push(signalRowShowHapList);
         signalRowShowHapList = [];
@@ -169,18 +169,26 @@ export default class SelectorServiceExtensionAbility extends extension {
       globalThis.position = PositionUtils.getSelectorDialogPosition(lineNums);
 
       display.on('change', (data: number) => {
-        if (!globalThis.position) {
-          console.error(TAG, 'globalThis.position is invalid in display change callback, skip');
-          return;
+        try {
+          if (!globalThis.position) {
+            console.error(TAG, 'globalThis.position is invalid in display change callback, skip');
+            return;
+          }
+          let position = PositionUtils.getSelectorDialogPosition(lineNums);
+          if (!position) {
+            console.error(TAG, 'position is invalid in display change callback, skip');
+            return;
+          }
+          if (position.offsetX !== globalThis.position.offsetX || position.offsetY !== globalThis.position.offsetY) {
+            win.moveTo(position.offsetX, position.offsetY);
+          }
+          if (position.width !== globalThis.position.width || position.height !== globalThis.position.height) {
+            win.resetSize(position.width, position.height);
+          }
+          globalThis.position = position;
+        } catch (error) {
+          console.error(TAG, 'display change callback failed: ' + JSON.stringify(error));
         }
-        let position = PositionUtils.getSelectorDialogPosition(lineNums);
-        if (position.offsetX !== globalThis.position.offsetX || position.offsetY !== globalThis.position.offsetY) {
-          win.moveTo(position.offsetX, position.offsetY);
-        }
-        if (position.width !== globalThis.position.width || position.height !== globalThis.position.height) {
-          win.resetSize(position.width, position.height);
-        }
-        globalThis.position = position;
       });
     } catch (exception) {
       console.error(TAG, 'Failed to register display change callback. Code: ' + JSON.stringify(exception));
@@ -189,7 +197,7 @@ export default class SelectorServiceExtensionAbility extends extension {
       let displayClass = display.getDefaultDisplaySync();
       console.debug(TAG, 'onRequest display is' + JSON.stringify(displayClass));
     } catch (error) {
-      console.error(TAG, 'Failed to getDefaultDisplaySync callback. Code: ' + JSON.stringify(error));
+      console.error(TAG, 'Failed to getDefaultDisplaySync: ' + JSON.stringify(error));
     }
     console.debug(TAG, 'onRequest, want: ' + JSON.stringify(want));
     console.debug(TAG, 'onRequest, params: ' + JSON.stringify(globalThis.params));
@@ -198,28 +206,43 @@ export default class SelectorServiceExtensionAbility extends extension {
       globalThis.modelFlag = Boolean(globalThis.params.modelFlag);
       globalThis.action = Boolean(globalThis.params.action);
     }
-    if (globalThis.params.isDefaultSelector) {
-      await this.getPhoneShowHapList();
-    } else {
-      await this.getPcShowHapList();
-    }
-
-    AppStorage.SetOrCreate('oversizeHeight', globalThis.position.oversizeHeight ? 'true' : 'false');
-    display.getDefaultDisplay().then(dis => {
-      let navigationBarRect = {
-        left: globalThis.position.offsetX,
-        top: globalThis.position.offsetY,
-        width: globalThis.position.width,
-        height: globalThis.position.height
-      };
-      if (winNum > 1) {
-        win.destroy();
-        winNum--;
+    try {
+      if (globalThis.params.isDefaultSelector) {
+        await this.getPhoneShowHapList();
+      } else {
+        await this.getPcShowHapList();
       }
-      let windowType = (typeof(globalThis.callerToken) === 'object' && globalThis.callerToken !== null) ?
-        window.WindowType.TYPE_DIALOG : window.WindowType.TYPE_SYSTEM_ALERT;
-      this.createWindow('SelectorDialog' + startId, windowType, navigationBarRect);
-      winNum++;
+    } catch (error) {
+      console.error(TAG, 'Failed to get hap list: ' + JSON.stringify(error));
+    }
+    try {
+      AppStorage.SetOrCreate('oversizeHeight', globalThis.position.oversizeHeight ? 'true' : 'false');
+    } catch (error) {
+      console.error(TAG, 'Failed to set oversizeHeight: ' + JSON.stringify(error));
+    }
+    display.getDefaultDisplay().then(dis => {
+      try {
+        if (!globalThis.position) {
+          console.error(TAG, 'globalThis.position is invalid in getDefaultDisplay callback, skip');
+          return;
+        }
+        let navigationBarRect = {
+          left: globalThis.position.offsetX,
+          top: globalThis.position.offsetY,
+          width: globalThis.position.width,
+          height: globalThis.position.height
+        };
+        if (winNum > 1 && win) {
+          win.destroy();
+          winNum--;
+        }
+        let windowType = (typeof(globalThis.callerToken) === 'object' && globalThis.callerToken !== null) ?
+          window.WindowType.TYPE_DIALOG : window.WindowType.TYPE_SYSTEM_ALERT;
+        this.createWindow('SelectorDialog' + startId, windowType, navigationBarRect);
+        winNum++;
+      } catch (error) {
+        console.error(TAG, 'display getDefaultDisplay callback failed: ' + JSON.stringify(error));
+      }
     });
   }
 
@@ -299,21 +322,21 @@ export default class SelectorServiceExtensionAbility extends extension {
       let displayClass = display.getDefaultDisplaySync();
       console.debug(TAG, 'display is' + JSON.stringify(displayClass));
       globalThis.position = PositionUtils.getSelectorDialogPosition(globalThis.lineNums);
+      if (!globalThis.position) {
+        console.error(TAG, 'globalThis.position is invalid, skip moveWindow');
+        return;
+      }
+      let navigationBarRect = {
+        left: globalThis.position.offsetX,
+        top: globalThis.position.offsetY,
+        width: globalThis.position.width,
+        height: globalThis.position.height
+      };
+      AppStorage.SetOrCreate('oversizeHeight', globalThis.position.oversizeHeight ? 'true' : 'false');
+      console.debug(TAG, 'onConfigurationUpdate navigationBarRect is' + JSON.stringify(navigationBarRect));
+      this.moveWindow(navigationBarRect);
     } catch (error) {
-      console.error(TAG, 'Failed to getDefaultDisplaySync callback. Code: ' + JSON.stringify(error));
+      console.error(TAG, 'onConfigurationUpdate moveWindow failed: ' + JSON.stringify(error));
     }
-    if (!globalThis.position) {
-      console.error(TAG, 'globalThis.position is invalid, skip moveWindow');
-      return;
-    }
-    let navigationBarRect = {
-      left: globalThis.position.offsetX,
-      top: globalThis.position.offsetY,
-      width: globalThis.position.width,
-      height: globalThis.position.height
-    };
-    AppStorage.SetOrCreate('oversizeHeight', globalThis.position.oversizeHeight ? 'true' : 'false');
-    console.debug(TAG, 'onConfigurationUpdate navigationBarRect is' + JSON.stringify(navigationBarRect));
-    this.moveWindow(navigationBarRect);
   }
 };
