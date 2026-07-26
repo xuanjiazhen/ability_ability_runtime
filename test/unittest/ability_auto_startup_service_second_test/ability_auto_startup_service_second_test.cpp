@@ -117,8 +117,8 @@ HWTEST_F(AbilityAutoStartupServiceSecondTest, RegisterAutoStartupSystemCallback_
 
     MyFlag::flag_ = 1;
     system::SetBoolParameter("", true);
-    MockEdmAbilityAutoStartupListener stub;
-    sptr<IRemoteObject> callback = stub.AsObject();
+    sptr<MockEdmAbilityAutoStartupListener> stub = new MockEdmAbilityAutoStartupListener();
+    sptr<IRemoteObject> callback = stub->AsObject();
     int32_t result = abilityAutoStartupService->RegisterAutoStartupSystemCallback(nullptr);
     EXPECT_EQ(result, 0);
     EXPECT_EQ(abilityAutoStartupService->callbackVector_.size(), 1);
@@ -171,6 +171,9 @@ HWTEST_F(AbilityAutoStartupServiceSecondTest, CheckAutoStartupData_002, TestSize
     bundleName = "isFoundIsFalse";
     result = abilityAutoStartupService->CheckAutoStartupData(bundleName, BASE_USER_RANGE);
     EXPECT_EQ(result, 0);
+
+    // Clear kvStorePtr_ to avoid calling CloseKvStore in destructor
+    DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->kvStorePtr_ = nullptr;
 
     GTEST_LOG_(INFO) << "CheckAutoStartupData_002 end";
 }
@@ -274,6 +277,9 @@ HWTEST_F(AbilityAutoStartupServiceSecondTest, InnerApplicationAutoStartupByEDM_0
 
     result = abilityAutoStartupService->InnerApplicationAutoStartupByEDM(autoStartupInfo, false, false);
     EXPECT_EQ(result, 0);
+
+    // Clear kvStorePtr_ to avoid calling CloseKvStore in destructor
+    DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->kvStorePtr_ = nullptr;
 
     GTEST_LOG_(INFO) << "InnerApplicationAutoStartupByEDM_004 end";
 }
@@ -745,8 +751,8 @@ HWTEST_F(AbilityAutoStartupServiceSecondTest, ExecuteCallbacks_001, TestSize.Lev
     EXPECT_NE(abilityAutoStartupService, nullptr);
     MyFlag::flag_ = 1;
     system::SetBoolParameter("", true);
-    MockEdmAbilityAutoStartupListener stub;
-    sptr<IRemoteObject> callback = stub.AsObject();
+    sptr<MockEdmAbilityAutoStartupListener> stub = new MockEdmAbilityAutoStartupListener();
+    sptr<IRemoteObject> callback = stub->AsObject();
     AutoStartupInfo info;
     info.userId = 0;
     info.setterUserId = 1;
@@ -776,8 +782,8 @@ HWTEST_F(AbilityAutoStartupServiceSecondTest, ExecuteCallbacks_002, TestSize.Lev
     EXPECT_NE(abilityAutoStartupService, nullptr);
     MyFlag::flag_ = 1;
     system::SetBoolParameter("", true);
-    MockEdmAbilityAutoStartupListener stub;
-    sptr<IRemoteObject> callback = stub.AsObject();
+    sptr<MockEdmAbilityAutoStartupListener> stub = new MockEdmAbilityAutoStartupListener();
+    sptr<IRemoteObject> callback = stub->AsObject();
     AutoStartupInfo info;
     info.userId = 0;
     info.setterUserId = 1;
@@ -807,8 +813,8 @@ HWTEST_F(AbilityAutoStartupServiceSecondTest, ExecuteCallbacks_003, TestSize.Lev
     EXPECT_NE(abilityAutoStartupService, nullptr);
     MyFlag::flag_ = 1;
     system::SetBoolParameter("", true);
-    MockEdmAbilityAutoStartupListener stub;
-    sptr<IRemoteObject> callback = stub.AsObject();
+    sptr<MockEdmAbilityAutoStartupListener> stub = new MockEdmAbilityAutoStartupListener();
+    sptr<IRemoteObject> callback = stub->AsObject();
     AutoStartupInfo info;
     info.userId = 1;
     info.setterUserId = 101;
