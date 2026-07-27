@@ -131,8 +131,8 @@ private:
     std::atomic_int backgroundReportCount_ = 0;
     std::atomic_int watchdogReportCount_ = 0;
     std::atomic_int halfBckGroundCount_ = 0;
-    std::mutex cvMutex_;
-    std::condition_variable cvWatchdog_;
+    // mutex_ 仅保护下列非原子成员；atomic_* 字段无需持锁。
+    std::mutex mutex_;
     static std::shared_ptr<EventHandler> appMainHandler_;
     int64_t lastWatchTime_ = 0;
     int64_t lastBackGroundWatchTime_ = 0;
