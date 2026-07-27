@@ -2298,6 +2298,10 @@ int AbilityManagerStub::GetPendingRequestWantInner(MessageParcel &data, MessageP
     }
 
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    if (!want) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read wanr parcel failed");
+        return ERR_INVALID_VALUE;
+    }
     int32_t result = GetPendingRequestWant(wantSender, want);
     if (result != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "getPendingRequestWant fail");
@@ -2317,6 +2321,10 @@ int AbilityManagerStub::GetPendingRequestWantFromProxyInner(MessageParcel &data,
     }
 
     std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    if (!want) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read wanr parcel failed");
+        return ERR_INVALID_VALUE;
+    }
     int32_t result = GetPendingRequestWantFromProxy(wantSender, want);
     if (result != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "getPendingRequestWant fail");
