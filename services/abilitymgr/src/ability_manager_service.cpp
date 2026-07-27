@@ -15207,6 +15207,7 @@ int32_t AbilityManagerService::OnExecuteIntent(AbilityRequest &abilityRequest,
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null scheduler");
         return ERR_INVALID_VALUE;
     }
+
     targetRecord->GetScheduler()->OnExecuteIntent(abilityRequest.want);
 
     return ERR_OK;
