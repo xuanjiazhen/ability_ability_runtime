@@ -105,16 +105,20 @@ bool Watchdog::IsNumeric(const std::string &str)
 
 void Watchdog::Init(const std::shared_ptr<EventHandler> mainHandler)
 {
-    std::unique_lock<std::mutex> lock(cvMutex_);
-    Watchdog::appMainHandler_ = mainHandler;
-    if (appMainHandler_ != nullptr) {
-        TAG_LOGD(AAFwkTag::APPDFR, "Watchdog init send event");
-        appMainHandler_->SendEvent(CHECK_MAIN_THREAD_IS_ALIVE, 0, EventQueue::Priority::VIP);
+    std::shared_ptr<EventHandler> handlerSnap;
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        Watchdog::appMainHandler_ = mainHandler;
+        lastWatchTime_ = 0;
+        handlerSnap = appMainHandler_;
     }
-    lastWatchTime_ = 0;
 #ifdef ABILITY_RUNTIME_HITRACE_ENABLE
     hitraceId_ = OHOS::HiviewDFX::HiTraceChain::GetIdAddress();
 #endif
+    if (handlerSnap != nullptr) {
+        TAG_LOGD(AAFwkTag::APPDFR, "Watchdog init send event");
+        handlerSnap->SendEvent(CHECK_MAIN_THREAD_IS_ALIVE, 0, EventQueue::Priority::VIP);
+    }
     auto watchdogTask = [this] { this->Timer(); };
 #ifdef APP_NO_RESPONSE_DIALOG_WEARABLE
     OHOS::HiviewDFX::Watchdog::GetInstance().RunPeriodicalTask("AppkitWatchdog", watchdogTask,
@@ -152,24 +156,23 @@ void Watchdog::SetMainThreadSample()
 void Watchdog::Stop()
 {
     TAG_LOGD(AAFwkTag::APPDFR, "called");
-    std::unique_lock<std::mutex> lock(cvMutex_);
-    if (stopWatchdog_) {
-        TAG_LOGD(AAFwkTag::APPDFR, "stoped");
-        return;
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (stopWatchdog_.load()) {
+            TAG_LOGD(AAFwkTag::APPDFR, "stoped");
+            return;
+        }
+        stopWatchdog_.store(true);
+        if (appMainHandler_) {
+            appMainHandler_.reset();
+            appMainHandler_ = nullptr;
+        }
     }
-    stopWatchdog_.store(true);
-    cvWatchdog_.notify_all();
     OHOS::HiviewDFX::Watchdog::GetInstance().StopWatchdog();
-
-    if (appMainHandler_) {
-        appMainHandler_.reset();
-        appMainHandler_ = nullptr;
-    }
 }
 
 void Watchdog::SetAppMainThreadState(const bool appMainThreadState)
 {
-    std::unique_lock<std::mutex> lock(cvMutex_);
     appMainThreadIsAlive_.store(appMainThreadState);
 }
 
@@ -223,14 +226,13 @@ void Watchdog::SetBundleInfo(const std::string& bundleName, const std::string& b
     }
 #endif
     {
-        std::unique_lock<std::mutex> lock(cvMutex_);
+        std::unique_lock<std::mutex> lock(mutex_);
         bundleName_ = bundleName;
     }
 }
 
 void Watchdog::SetBackgroundStatus(const bool isInBackground)
 {
-    std::unique_lock<std::mutex> lock(cvMutex_);
     isInBackground_.store(isInBackground);
     OHOS::HiviewDFX::Watchdog::GetInstance().SetForeground(!isInBackground);
     AppExecFwk::AppfreezeInner::GetInstance()->SetAppInForeground(!isInBackground);
@@ -238,7 +240,6 @@ void Watchdog::SetBackgroundStatus(const bool isInBackground)
 
 void Watchdog::AllowReportEvent()
 {
-    std::unique_lock<std::mutex> lock(cvMutex_);
     needReport_.store(true);
     isSixSecondEvent_.store(false);
     backgroundReportCount_.store(0);
@@ -247,8 +248,7 @@ void Watchdog::AllowReportEvent()
 
 bool Watchdog::IsReportEvent()
 {
-    if (appMainThreadIsAlive_) {
-        appMainThreadIsAlive_.store(false);
+    if (appMainThreadIsAlive_.exchange(false)) {
         return false;
     }
     TAG_LOGD(AAFwkTag::APPDFR, "AppMainThread not alive");
@@ -257,27 +257,22 @@ bool Watchdog::IsReportEvent()
 
 bool Watchdog::IsStopWatchdog()
 {
-    std::unique_lock<std::mutex> lock(cvMutex_);
-    return stopWatchdog_;
+    return stopWatchdog_.load();
 }
 
 void Watchdog::SetBgWorkingThreadStatus(const bool isBgWorkingThread)
 {
-    std::unique_lock<std::mutex> lock(cvMutex_);
     isBgWorkingThread_.store(isBgWorkingThread);
 }
 
-void Watchdog::Timer()
+void Watchdog::CheckAndPrepareReport(bool& needReport, bool& shouldReport,
+    std::shared_ptr<EventHandler>& handlerSnap)
 {
-    std::unique_lock<std::mutex> lock(cvMutex_);
-    if (stopWatchdog_) {
-        TAG_LOGD(AAFwkTag::APPDFR, "stoped");
-        return;
-    }
-    if (!needReport_) {
-        watchdogReportCount_++;
-        TAG_LOGE(AAFwkTag::APPDFR, "wait count: %{public}d", watchdogReportCount_.load());
-        if (watchdogReportCount_.load() >= WATCHDOG_REPORT_COUNT_MAX) {
+    needReport = needReport_.load();
+    if (!needReport) {
+        int count = watchdogReportCount_.fetch_add(1) + 1;
+        TAG_LOGE(AAFwkTag::APPDFR, "wait count: %{public}d", count);
+        if (count >= WATCHDOG_REPORT_COUNT_MAX) {
 #ifdef ABILITY_RUNTIME_HITRACE_ENABLE
             SetHiTraceChainId();
 #endif
@@ -285,15 +280,33 @@ void Watchdog::Timer()
             AppExecFwk::AppfreezeInner::GetInstance()->AppfreezeHandleOverReportCount(true);
 #endif
             watchdogReportCount_.store(0);
-        } else if (watchdogReportCount_.load() >= (WATCHDOG_REPORT_COUNT_MAX - 1)) {
+        } else if (count >= (WATCHDOG_REPORT_COUNT_MAX - 1)) {
 #ifndef APP_NO_RESPONSE_DIALOG
             AppExecFwk::AppfreezeInner::GetInstance()->AppfreezeHandleOverReportCount(false);
 #endif
         }
+    } else {
+        shouldReport = !appMainThreadIsAlive_.exchange(false);
+        {
+            std::unique_lock<std::mutex> lock(mutex_);
+            handlerSnap = appMainHandler_;
+        }
+    }
+}
+
+void Watchdog::Timer()
+{
+    if (stopWatchdog_.load()) {
+        TAG_LOGD(AAFwkTag::APPDFR, "stoped");
         return;
     }
 
-    if (IsReportEvent()) {
+    std::shared_ptr<EventHandler> handlerSnap;
+    bool shouldReport = false;
+    bool needReport = false;
+    CheckAndPrepareReport(needReport, shouldReport, handlerSnap);
+
+    if (needReport && shouldReport) {
         const int bufferLen = 128;
         char paramOutBuf[bufferLen] = {0};
         const char *hook_mode = "startup:";
@@ -302,61 +315,83 @@ void Watchdog::Timer()
             ReportEvent();
         }
     }
-    if (appMainHandler_ != nullptr) {
-        appMainHandler_->SendEvent(CHECK_MAIN_THREAD_IS_ALIVE, 0, EventQueue::Priority::VIP);
+    if (handlerSnap != nullptr) {
+        handlerSnap->SendEvent(CHECK_MAIN_THREAD_IS_ALIVE, 0, EventQueue::Priority::VIP);
     }
+
     int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
         system_clock::now().time_since_epoch()).count();
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (stopWatchdog_.load()) {
+            return;
+        }
 #ifdef APP_NO_RESPONSE_DIALOG_WEARABLE
-    if ((now - lastWatchTime_) < 0 || (now - lastWatchTime_) >= (WEARABLE_CHECK_INTERVAL_TIME / RESET_RATIO)) {
+        if ((now - lastWatchTime_) < 0 || (now - lastWatchTime_) >= (WEARABLE_CHECK_INTERVAL_TIME / RESET_RATIO)) {
 #else
-    if ((now - lastWatchTime_) < 0 || (now - lastWatchTime_) >= (checkIntervalTime_ / RESET_RATIO)) {
+        if ((now - lastWatchTime_) < 0 || (now - lastWatchTime_) >= (checkIntervalTime_ / RESET_RATIO)) {
 #endif
-        lastWatchTime_ = now;
+            lastWatchTime_ = now;
+        }
     }
 }
 
 bool Watchdog::CheckReportEvent(int64_t now)
 {
-    if (isInBackground_ && backgroundReportCount_.load() < BACKGROUND_REPORT_COUNT_MAX) {
+    std::string bundleName;
+    int64_t lastBackGroundWatchTime = 0;
+    int64_t lastWatchTime = 0;
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        bundleName = bundleName_;
+        lastBackGroundWatchTime = lastBackGroundWatchTime_;
+        lastWatchTime = lastWatchTime_;
+    }
+    if (isInBackground_.load() && backgroundReportCount_.load() < BACKGROUND_REPORT_COUNT_MAX) {
         bool enableCheck = std::find(std::begin(CHECK_BACKGROUND_THREAD), std::end(CHECK_BACKGROUND_THREAD),
-            bundleName_) != std::end(CHECK_BACKGROUND_THREAD);
-        if ((now - lastBackGroundWatchTime_) < 0 || (now - lastBackGroundWatchTime_) >= (BACKGROUND_INTERVAL_TIME)) {
+            bundleName) != std::end(CHECK_BACKGROUND_THREAD);
+        if ((now - lastBackGroundWatchTime) < 0 || (now - lastBackGroundWatchTime) >= (BACKGROUND_INTERVAL_TIME)) {
             TAG_LOGW(AAFwkTag::APPDFR, "In Background, thread may be blocked in, not report time"
                 "currTime: %{public}" PRIu64 ", lastTime: %{public}" PRIu64 ", enableCheck: %{public}d",
-                static_cast<uint64_t>(now), static_cast<uint64_t>(lastWatchTime_), enableCheck);
+                static_cast<uint64_t>(now), static_cast<uint64_t>(lastWatchTime), enableCheck);
+            std::unique_lock<std::mutex> lock(mutex_);
             lastBackGroundWatchTime_ = now;
         }
         if (enableCheck) {
             backgroundReportCount_++;
             return false;
         }
-        if (halfBckGroundCount_ > 0) {
+        if (halfBackGroundCount_.load() > 0) {
             return false;
         }
-        halfBckGroundCount_++;
+        halfBackGroundCount_++;
     }
     return true;
 }
 
 void Watchdog::ReportEvent()
 {
-    if (isBgWorkingThread_) {
+    if (isBgWorkingThread_.load()) {
         TAG_LOGD(AAFwkTag::APPDFR, "Thread is working in the background, do not report this time");
         return;
     }
     int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
         system_clock::now().time_since_epoch()).count();
+    int64_t lastWatchTime = 0;
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        lastWatchTime = lastWatchTime_;
+    }
 #ifdef APP_NO_RESPONSE_DIALOG_WEARABLE
-    if ((now - lastWatchTime_) > (RESET_RATIO * WEARABLE_CHECK_INTERVAL_TIME) ||
-        (now - lastWatchTime_) < (WEARABLE_CHECK_INTERVAL_TIME / RESET_RATIO)) {
+    if ((now - lastWatchTime) > (RESET_RATIO * WEARABLE_CHECK_INTERVAL_TIME) ||
+        (now - lastWatchTime) < (WEARABLE_CHECK_INTERVAL_TIME / RESET_RATIO)) {
 #else
-    if ((now - lastWatchTime_) > (RESET_RATIO * checkIntervalTime_) ||
-        (now - lastWatchTime_) < (checkIntervalTime_ / RESET_RATIO)) {
+    if ((now - lastWatchTime) > (RESET_RATIO * checkIntervalTime_) ||
+        (now - lastWatchTime) < (checkIntervalTime_ / RESET_RATIO)) {
 #endif
         TAG_LOGI(AAFwkTag::APPDFR,
             "Thread may be blocked, not report time. currTime: %{public}llu, lastTime: %{public}llu",
-            static_cast<unsigned long long>(now), static_cast<unsigned long long>(lastWatchTime_));
+            static_cast<unsigned long long>(now), static_cast<unsigned long long>(lastWatchTime));
         return;
     }
     if (!CheckReportEvent(now)) {
@@ -365,22 +400,24 @@ void Watchdog::ReportEvent()
 
     backgroundReportCount_++;
 
-    if (!needReport_) {
+    if (!needReport_.load()) {
         return;
     }
 
+    std::atomic_bool& isSixSecondEvent = isSixSecondEvent_;
+    bool isInBackground = isInBackground_.load();
 #ifndef APP_NO_RESPONSE_DIALOG
-    if (isSixSecondEvent_) {
+    if (isSixSecondEvent) {
         needReport_.store(false);
     }
 #endif
 
 #ifdef ABILITY_RUNTIME_HITRACE_ENABLE
-    if (isSixSecondEvent_) {
+    if (isSixSecondEvent) {
         SetHiTraceChainId();
     }
 #endif
-    AppExecFwk::AppfreezeInner::GetInstance()->ThreadBlock(isSixSecondEvent_, 0, now, isInBackground_);
+    AppExecFwk::AppfreezeInner::GetInstance()->ThreadBlock(isSixSecondEvent, 0, now, isInBackground);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

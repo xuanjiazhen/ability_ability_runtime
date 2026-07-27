@@ -422,6 +422,50 @@ HWTEST_F(WatchdogTest, WatchdogTest_Timer_004, TestSize.Level1)
 }
 
 /**
+ * @tc.number: WatchdogTest_CheckAndPrepareReport_001
+ * @tc.name: CheckAndPrepareReport
+ * @tc.desc: Verify CheckAndPrepareReport when needReport is false.
+ */
+HWTEST_F(WatchdogTest, WatchdogTest_CheckAndPrepareReport_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "WatchdogTest_CheckAndPrepareReport_001 start";
+    watchdog_->needReport_ = false;
+    watchdog_->watchdogReportCount_.store(0);
+    bool needReport = true;
+    bool shouldReport = false;
+    std::shared_ptr<EventHandler> handlerSnap = nullptr;
+    watchdog_->CheckAndPrepareReport(needReport, shouldReport, handlerSnap);
+    EXPECT_FALSE(needReport);
+    EXPECT_FALSE(shouldReport);
+    EXPECT_EQ(handlerSnap, nullptr);
+    EXPECT_EQ(watchdog_->watchdogReportCount_.load(), 1);
+    GTEST_LOG_(INFO) << "WatchdogTest_CheckAndPrepareReport_001 end";
+}
+
+/**
+ * @tc.number: WatchdogTest_CheckAndPrepareReport_002
+ * @tc.name: CheckAndPrepareReport
+ * @tc.desc: Verify CheckAndPrepareReport when needReport is true.
+ */
+HWTEST_F(WatchdogTest, WatchdogTest_CheckAndPrepareReport_002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "WatchdogTest_CheckAndPrepareReport_002 start";
+    watchdog_->needReport_ = true;
+    watchdog_->appMainThreadIsAlive_.store(true);
+    auto handler = std::make_shared<EventHandler>();
+    watchdog_->appMainHandler_ = handler;
+    bool needReport = false;
+    bool shouldReport = false;
+    std::shared_ptr<EventHandler> handlerSnap = nullptr;
+    watchdog_->CheckAndPrepareReport(needReport, shouldReport, handlerSnap);
+    EXPECT_TRUE(needReport);
+    EXPECT_TRUE(shouldReport);
+    EXPECT_EQ(handlerSnap, handler);
+    EXPECT_FALSE(watchdog_->appMainThreadIsAlive_.load());
+    GTEST_LOG_(INFO) << "WatchdogTest_CheckAndPrepareReport_002 end";
+}
+
+/**
  * @tc.number: WatchdogTest_ReportEvent_003
  * @tc.name: ReportEvent
  * @tc.desc: Verify that function ReportEvent.
@@ -728,6 +772,132 @@ HWTEST_F(WatchdogTest, WatchdogTest_Timer_LastBackGroundWatchTime_002, TestSize.
     int64_t before = watchdog_->lastBackGroundWatchTime_;
     watchdog_->Timer();
     EXPECT_EQ(watchdog_->lastBackGroundWatchTime_, before);
+}
+
+/**
+ * @tc.number: WatchdogTest_CheckReportEvent_001
+ * @tc.name: CheckReportEvent
+ * @tc.desc: Verify CheckReportEvent returns true when not in background.
+ */
+HWTEST_F(WatchdogTest, WatchdogTest_CheckReportEvent_001, TestSize.Level1)
+{
+    watchdog_->isInBackground_.store(false);
+    watchdog_->backgroundReportCount_.store(0);
+    watchdog_->bundleName_ = "test.bundle";
+    int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    bool result = watchdog_->CheckReportEvent(now);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.number: WatchdogTest_CheckReportEvent_002
+ * @tc.name: CheckReportEvent
+ * @tc.desc: Verify CheckReportEvent returns false when in background with enableCheck true.
+ */
+HWTEST_F(WatchdogTest, WatchdogTest_CheckReportEvent_002, TestSize.Level1)
+{
+    watchdog_->isInBackground_.store(true);
+    watchdog_->backgroundReportCount_.store(0);
+    watchdog_->bundleName_ = "com.ohos.sceneboard";
+    watchdog_->halfBackGroundCount_.store(0);
+    int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    watchdog_->lastBackGroundWatchTime_ = now - 25000;
+    bool result = watchdog_->CheckReportEvent(now);
+    EXPECT_FALSE(result);
+    EXPECT_EQ(watchdog_->backgroundReportCount_.load(), 1);
+}
+
+/**
+ * @tc.number: WatchdogTest_CheckReportEvent_003
+ * @tc.name: CheckReportEvent
+ * @tc.desc: Verify CheckReportEvent returns false when halfBackGroundCount > 0.
+ */
+HWTEST_F(WatchdogTest, WatchdogTest_CheckReportEvent_003, TestSize.Level1)
+{
+    watchdog_->isInBackground_.store(true);
+    watchdog_->backgroundReportCount_.store(0);
+    watchdog_->bundleName_ = "test.bundle";
+    watchdog_->halfBackGroundCount_.store(1);
+    int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    watchdog_->lastBackGroundWatchTime_ = now - 5000;
+    bool result = watchdog_->CheckReportEvent(now);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.number: WatchdogTest_CheckReportEvent_004
+ * @tc.name: CheckReportEvent
+ * @tc.desc: Verify CheckReportEvent increments halfBackGroundCount when conditions met.
+ */
+HWTEST_F(WatchdogTest, WatchdogTest_CheckReportEvent_004, TestSize.Level1)
+{
+    watchdog_->isInBackground_.store(true);
+    watchdog_->backgroundReportCount_.store(0);
+    watchdog_->bundleName_ = "test.bundle";
+    watchdog_->halfBackGroundCount_.store(0);
+    int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    watchdog_->lastBackGroundWatchTime_ = now - 5000;
+    bool result = watchdog_->CheckReportEvent(now);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(watchdog_->halfBackGroundCount_.load(), 1);
+}
+
+/**
+ * @tc.number: WatchdogTest_CheckReportEvent_005
+ * @tc.name: CheckReportEvent
+ * @tc.desc: Verify CheckReportEvent updates lastBackGroundWatchTime when interval exceeds limit.
+ */
+HWTEST_F(WatchdogTest, WatchdogTest_CheckReportEvent_005, TestSize.Level1)
+{
+    watchdog_->isInBackground_.store(true);
+    watchdog_->backgroundReportCount_.store(0);
+    watchdog_->bundleName_ = "test.bundle";
+    watchdog_->halfBackGroundCount_.store(0);
+    int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    watchdog_->lastBackGroundWatchTime_ = now - 25000;
+    int64_t before = watchdog_->lastBackGroundWatchTime_;
+    watchdog_->CheckReportEvent(now);
+    EXPECT_NE(watchdog_->lastBackGroundWatchTime_, before);
+}
+
+/**
+ * @tc.number: WatchdogTest_CheckReportEvent_006
+ * @tc.name: CheckReportEvent
+ * @tc.desc: Verify CheckReportEvent returns true when backgroundReportCount >= max.
+ */
+HWTEST_F(WatchdogTest, WatchdogTest_CheckReportEvent_006, TestSize.Level1)
+{
+    watchdog_->isInBackground_.store(true);
+    watchdog_->backgroundReportCount_.store(5);
+    watchdog_->bundleName_ = "test.bundle";
+    int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    bool result = watchdog_->CheckReportEvent(now);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.number: WatchdogTest_CheckReportEvent_007
+ * @tc.name: CheckReportEvent
+ * @tc.desc: Verify CheckReportEvent updates lastBackGroundWatchTime when negative difference.
+ */
+HWTEST_F(WatchdogTest, WatchdogTest_CheckReportEvent_007, TestSize.Level1)
+{
+    watchdog_->isInBackground_.store(true);
+    watchdog_->backgroundReportCount_.store(0);
+    watchdog_->bundleName_ = "test.bundle";
+    watchdog_->halfBackGroundCount_.store(0);
+    int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    watchdog_->lastBackGroundWatchTime_ = now + 5000;
+    int64_t before = watchdog_->lastBackGroundWatchTime_;
+    watchdog_->CheckReportEvent(now);
+    EXPECT_NE(watchdog_->lastBackGroundWatchTime_, before);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
