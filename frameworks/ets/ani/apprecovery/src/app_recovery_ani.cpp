@@ -38,15 +38,31 @@ using namespace OHOS::AppExecFwk;
 
 bool IsRefUndefined(ani_env *env, ani_ref ref)
 {
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "null env");
+        return true;
+    }
+    ani_status status = ANI_ERROR;
     ani_boolean isUndefined = ANI_FALSE;
-    env->Reference_IsUndefined(ref, &isUndefined);
+    if ((status = env->Reference_IsUndefined(ref, &isUndefined)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "status: %{public}d", status);
+        return true;
+    }
     return isUndefined;
 }
 
 bool IsNull(ani_env *env, ani_ref ref)
 {
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "null env");
+        return true;
+    }
+    ani_status status = ANI_ERROR;
     ani_boolean isNull = ANI_FALSE;
-    env->Reference_IsNull(ref, &isNull);
+    if ((status = env->Reference_IsNull(ref, &isNull)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "Reference_IsNull status: %{public}d.", status);
+        return true;
+    }
     return isNull;
 }
 
