@@ -3211,5 +3211,246 @@ HWTEST_F(MainThreadTest, PreloadModule_WithEmptyPreloadAbilityName_0200, TestSiz
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
+
+/*
+* Feature: MainThread
+* Function: PreloadModule
+* SubFunction: NA
+* FunctionPoints: PreloadModule with STATIC arkTSMode (hyperSnap for STATIC/HYBRID)
+* EnvConditions: NA
+* CaseDescription: Verify PreloadModule creates the ability stage for a STATIC (ARKTS_1_2) module,
+*                 exercising the GetSpecifiedRuntime routing added for STATIC/HYBRID hyperSnap.
+*/
+HWTEST_F(MainThreadTest, PreloadModule_WithStaticArkTsMode_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    // Setup application
+    mainThread_->application_ = std::make_shared<OHOSApplication>();
+    mainThread_->application_->SetRuntime(std::make_unique<AbilityRuntime::MockRuntime>());
+
+    // Prepare BundleInfo
+    BundleInfo bundleInfo;
+    bundleInfo.name = "com.example.test";
+    bundleInfo.bundleName = "com.example.test";
+
+    // Prepare a STATIC (ARKTS_1_2) module for preload
+    HapModuleInfo preloadModuleInfo;
+    preloadModuleInfo.bundleName = "com.example.test";
+    preloadModuleInfo.moduleName = "entry";
+    preloadModuleInfo.mainAbility = "MainAbility";
+    preloadModuleInfo.arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2;
+    bundleInfo.hapModuleInfos.emplace_back(preloadModuleInfo);
+
+    // Prepare AppLaunchData
+    AppLaunchData appLaunchData;
+    appLaunchData.SetPreloadModuleName("entry");
+    appLaunchData.SetPreloadAbilityName("MainAbility");
+
+    // Call PreloadModule — must succeed for STATIC modules (hyperSnap STATIC support)
+    mainThread_->PreloadModule(bundleInfo, appLaunchData, preloadModuleInfo,
+        mainThread_->application_->GetRuntime());
+
+    auto& abilityStages = mainThread_->application_->abilityStages_;
+    EXPECT_GT(abilityStages.size(), 0u);
+
+    auto it = abilityStages.find("entry");
+    if (it != abilityStages.end()) {
+        auto abilityStage = it->second;
+        auto stageContext = std::static_pointer_cast<AbilityRuntime::AbilityStageContext>(abilityStage->GetContext());
+        ASSERT_NE(stageContext, nullptr);
+        auto launchElement = stageContext->GetLaunchElement();
+        EXPECT_EQ(launchElement.GetAbilityName(), "MainAbility");
+        EXPECT_EQ(launchElement.GetModuleName(), "entry");
+    }
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+// Recording runtime captures PreloadMainAbility invocations to verify the G3 routing block in
+// ProcessMainAbility actually dispatches to the runtime selected by GetSpecifiedRuntime.
+class RecordingMockRuntime : public OHOS::AbilityRuntime::MockRuntime {
+public:
+    uint32_t preloadCallCount = 0;
+    std::string lastModuleName;
+    std::string lastSrcPath;
+    std::string lastSrcEntrance;
+
+    void PreloadMainAbility(const std::string &moduleName, const std::string &srcPath,
+        const std::string &hapPath, bool isEsMode, const std::string &srcEntrance) override
+    {
+        preloadCallCount++;
+        lastModuleName = moduleName;
+        lastSrcPath = srcPath;
+        lastSrcEntrance = srcEntrance;
+    }
+};
+
+/*
+* Feature: MainThread
+* Function: ProcessMainAbility
+* SubFunction: NA
+* FunctionPoints: ProcessMainAbility routes preload via GetSpecifiedRuntime for STATIC arkTSMode
+* EnvConditions: NA
+* CaseDescription: Verify ProcessMainAbility invokes PreloadMainAbility on the runtime returned by
+*                 GetSpecifiedRuntime(info.arkTSMode) for a STATIC (ARKTS_1_2) module.
+*/
+HWTEST_F(MainThreadTest, ProcessMainAbility_RoutesByGetSpecifiedRuntime_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    mainThread_->application_ = std::make_shared<OHOSApplication>();
+    auto recordingRuntime = std::make_unique<RecordingMockRuntime>();
+    auto *recordingPtr = recordingRuntime.get();
+    mainThread_->application_->SetRuntime(std::move(recordingRuntime));
+
+    AbilityInfo info;
+    info.package = "com.example.test";
+    info.isModuleJson = true;
+    info.srcEntrance = "ets/pages/Index.ets";
+    info.moduleName = "entry";
+    info.name = "MainAbility";
+    info.compileMode = CompileMode::ES_MODULE;
+    info.arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2;
+    info.hapPath = "/system/app/test/test.hap";
+
+    mainThread_->ProcessMainAbility(info, mainThread_->application_->GetRuntime());
+
+    EXPECT_EQ(recordingPtr->preloadCallCount, 1u);
+    EXPECT_EQ(recordingPtr->lastModuleName, "entry::MainAbility");
+    EXPECT_EQ(recordingPtr->lastSrcEntrance, "ets/pages/Index.ets");
+    EXPECT_EQ(recordingPtr->lastSrcPath, "com.example.test/ets/pages/Index.abc");
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/*
+* Feature: MainThread
+* Function: ProcessMainAbility
+* SubFunction: NA
+* FunctionPoints: ProcessMainAbility null fallback when GetSpecifiedRuntime returns nullptr
+* EnvConditions: NA
+* CaseDescription: Verify ProcessMainAbility falls back to the passed-in runtime parameter when
+*                 GetSpecifiedRuntime returns nullptr (application runtime not initialized).
+*/
+HWTEST_F(MainThreadTest, ProcessMainAbility_FallbackWhenSpecifiedRuntimeNull_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    mainThread_->application_ = std::make_shared<OHOSApplication>();
+    // application_->runtime_ intentionally NOT set: GetSpecifiedRuntime returns nullptr, exercising fallback.
+
+    auto paramRuntime = std::make_unique<RecordingMockRuntime>();
+    auto *paramPtr = paramRuntime.get();
+
+    AbilityInfo info;
+    info.package = "com.example.test";
+    info.isModuleJson = true;
+    info.srcEntrance = "ets/pages/Index.ets";
+    info.moduleName = "entry";
+    info.name = "MainAbility";
+    info.compileMode = CompileMode::ES_MODULE;
+    info.arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2;
+    info.hapPath = "/system/app/test/test.hap";
+
+    mainThread_->ProcessMainAbility(info, paramRuntime);
+
+    EXPECT_EQ(paramPtr->preloadCallCount, 1u);
+    EXPECT_EQ(paramPtr->lastModuleName, "entry::MainAbility");
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/*
+* Feature: MainThread
+* Function: ProcessMainAbility
+* SubFunction: NA
+* FunctionPoints: ProcessMainAbility with STATIC srcEntrance that has no file extension
+* EnvConditions: NA
+* CaseDescription: STATIC (ARKTS_1_2) srcEntrance uses OHM addressing without a ".ets" extension.
+*                 Verify the rfind(".") guard does not crash (erase(npos) would throw std::out_of_range)
+*                 and the produced srcPath matches the ETS consumer's guarded construction.
+*/
+HWTEST_F(MainThreadTest, ProcessMainAbility_StaticSrcEntranceWithoutExtension_0600, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    mainThread_->application_ = std::make_shared<OHOSApplication>();
+    auto recordingRuntime = std::make_unique<RecordingMockRuntime>();
+    auto *recordingPtr = recordingRuntime.get();
+    mainThread_->application_->SetRuntime(std::move(recordingRuntime));
+
+    AbilityInfo info;
+    info.package = "entry"; // STATIC stage-model: package == moduleName
+    info.isModuleJson = true;
+    info.srcEntrance = "ets/pages/Index"; // STATIC OHM addressing — NO ".ets" extension
+    info.moduleName = "entry";
+    info.name = "MainAbility";
+    info.compileMode = CompileMode::ES_MODULE;
+    info.arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2;
+    info.hapPath = "/system/app/test/test.hap";
+
+    // Must not throw std::out_of_range from erase(npos).
+    mainThread_->ProcessMainAbility(info, mainThread_->application_->GetRuntime());
+
+    EXPECT_EQ(recordingPtr->preloadCallCount, 1u);
+    EXPECT_EQ(recordingPtr->lastModuleName, "entry::MainAbility");
+    // No "." in srcEntrance → guard skips erase/append → srcPath has no ".abc" suffix.
+    // This must equal what EtsUIAbility::Init builds so the preloadList_ key matches.
+    EXPECT_EQ(recordingPtr->lastSrcPath, "entry/ets/pages/Index");
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/*
+* Feature: MainThread
+* Function: PreloadModule
+* SubFunction: NA
+* FunctionPoints: hyperSnap preload path applies app environments (CreateAndInitStageContext parity)
+* EnvConditions: NA
+* CaseDescription: The hyperSnap AddAbilityStage path previously skipped PreloadHybridModule /
+*                 SetPkgContextInfoJson / SetAppEnv that the normal AddAbilityStage performs.
+*                 Verify SetAppEnv now runs in the preload path. SetAppEnv is the last call of the
+*                 restored block, so reaching it also proves PreloadHybridModule and the
+*                 SetPkgContextInfoJson guard earlier in the block executed.
+*/
+HWTEST_F(MainThreadTest, PreloadModule_AppliesAppEnvironments_0700, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    mainThread_->application_ = std::make_shared<OHOSApplication>();
+    mainThread_->application_->SetRuntime(std::make_unique<AbilityRuntime::MockRuntime>());
+
+    BundleInfo bundleInfo;
+    bundleInfo.name = "com.example.test";
+    bundleInfo.bundleName = "com.example.test";
+
+    HapModuleInfo preloadModuleInfo;
+    preloadModuleInfo.bundleName = "com.example.test";
+    preloadModuleInfo.moduleName = "entry";
+    preloadModuleInfo.mainAbility = "MainAbility";
+    preloadModuleInfo.arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2;
+    AppEnvironment env;
+    env.name = "HYPERSNAP_PRELOAD_TEST_ENV";
+    env.value = "applied";
+    preloadModuleInfo.appEnvironments.emplace_back(env);
+    bundleInfo.hapModuleInfos.emplace_back(preloadModuleInfo);
+
+    AppLaunchData appLaunchData;
+    appLaunchData.SetPreloadModuleName("entry");
+    appLaunchData.SetPreloadAbilityName("MainAbility");
+
+    unsetenv("HYPERSNAP_PRELOAD_TEST_ENV");
+    ASSERT_EQ(getenv("HYPERSNAP_PRELOAD_TEST_ENV"), nullptr);
+
+    mainThread_->PreloadModule(bundleInfo, appLaunchData, preloadModuleInfo,
+        mainThread_->application_->GetRuntime());
+
+    ASSERT_NE(getenv("HYPERSNAP_PRELOAD_TEST_ENV"), nullptr);
+    EXPECT_STREQ(getenv("HYPERSNAP_PRELOAD_TEST_ENV"), "applied");
+
+    unsetenv("HYPERSNAP_PRELOAD_TEST_ENV");
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
 } // namespace AppExecFwk
 } // namespace OHOS

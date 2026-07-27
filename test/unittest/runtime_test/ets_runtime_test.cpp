@@ -1012,5 +1012,94 @@ HWTEST_F(EtsRuntimeTest, DumpHeapSnapshot_0200, TestSize.Level1)
     etsRuntime->DumpHeapSnapshot(1, param);
     ASSERT_NE(etsRuntime, nullptr);
 }
+
+/**
+ * @tc.name: PreloadMainAbility_0100
+ * @tc.desc: EtsRuntime test for PreloadMainAbility stores entry under moduleName::srcPath key.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, PreloadMainAbility_0100, TestSize.Level1)
+{
+    auto etsRuntime = std::make_unique<ETSRuntime>();
+    ASSERT_NE(etsRuntime, nullptr);
+    std::string moduleName = "entry::MainAbility";
+    std::string srcPath = "ets/modules/MainAbility.abc";
+    std::string hapPath = "/system/app/test/test.hap";
+    // LoadModule returns nullptr in the test environment (g_etsEnvFuncs not initialized),
+    // so the stored entry is null but the key must be present.
+    etsRuntime->PreloadMainAbility(moduleName, srcPath, hapPath, true, "ets/modules/MainAbility");
+    std::string expectedKey = moduleName + "::" + srcPath;
+    EXPECT_EQ(etsRuntime->preloadList_.count(expectedKey), 1u);
+}
+
+/**
+ * @tc.name: PopPreloadObj_0100
+ * @tc.desc: EtsRuntime test for PopPreloadObj when key is absent.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, PopPreloadObj_0100, TestSize.Level1)
+{
+    auto etsRuntime = std::make_unique<ETSRuntime>();
+    ASSERT_NE(etsRuntime, nullptr);
+    std::unique_ptr<AppExecFwk::ETSNativeReference> obj = nullptr;
+    bool ret = etsRuntime->PopPreloadObj("absent_key", obj);
+    EXPECT_EQ(ret, false);
+    EXPECT_EQ(obj, nullptr);
+    EXPECT_EQ(etsRuntime->preloadList_.size(), 0u);
+}
+
+/**
+ * @tc.name: PopPreloadObj_0200
+ * @tc.desc: EtsRuntime test for PopPreloadObj when stored entry is null (erased, returns false).
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, PopPreloadObj_0200, TestSize.Level1)
+{
+    auto etsRuntime = std::make_unique<ETSRuntime>();
+    ASSERT_NE(etsRuntime, nullptr);
+    // PreloadMainAbility stores a null entry because LoadModule fails in the test environment.
+    std::string moduleName = "m";
+    std::string srcPath = "s.abc";
+    etsRuntime->PreloadMainAbility(moduleName, srcPath, "/hap", true, "s");
+    std::string key = moduleName + "::" + srcPath;
+    EXPECT_EQ(etsRuntime->preloadList_.count(key), 1u);
+    std::unique_ptr<AppExecFwk::ETSNativeReference> obj = nullptr;
+    bool ret = etsRuntime->PopPreloadObj(key, obj);
+    EXPECT_EQ(ret, false);
+    EXPECT_EQ(obj, nullptr);
+    // Null entry must be erased.
+    EXPECT_EQ(etsRuntime->preloadList_.count(key), 0u);
+}
+
+/**
+ * @tc.name: PopPreloadObj_0300
+ * @tc.desc: EtsRuntime test for PopPreloadObj HIT branch (key present, obj non-null): returns true,
+ *           transfers ownership and erases the entry so a second pop misses.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, PopPreloadObj_0300, TestSize.Level1)
+{
+    auto etsRuntime = std::make_unique<ETSRuntime>();
+    ASSERT_NE(etsRuntime, nullptr);
+    std::string key = "entry::MainAbility";
+    auto injected = std::make_unique<AppExecFwk::ETSNativeReference>();
+    ASSERT_NE(injected, nullptr);
+    auto *rawPtr = injected.get();
+    etsRuntime->preloadList_[key] = std::move(injected);
+    ASSERT_EQ(etsRuntime->preloadList_.count(key), 1u);
+
+    std::unique_ptr<AppExecFwk::ETSNativeReference> obj = nullptr;
+    bool ret = etsRuntime->PopPreloadObj(key, obj);
+    EXPECT_EQ(ret, true);
+    ASSERT_NE(obj, nullptr);
+    EXPECT_EQ(obj.get(), rawPtr); // ownership transferred from preloadList_ to out param
+    EXPECT_EQ(etsRuntime->preloadList_.count(key), 0u); // erased after hit
+
+    // Second pop must miss — verifies the entry is not double-popped across fork-restore siblings.
+    std::unique_ptr<AppExecFwk::ETSNativeReference> obj2 = nullptr;
+    bool ret2 = etsRuntime->PopPreloadObj(key, obj2);
+    EXPECT_EQ(ret2, false);
+    EXPECT_EQ(obj2, nullptr);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
