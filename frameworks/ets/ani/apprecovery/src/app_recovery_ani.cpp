@@ -46,7 +46,10 @@ bool IsRefUndefined(ani_env *env, ani_ref ref)
 bool IsNull(ani_env *env, ani_ref ref)
 {
     ani_boolean isNull = ANI_FALSE;
-    env->Reference_IsNull(ref, &isNull);
+    if ((status = env->Reference_IsNull(aniValue, &isNull)) != ANI_OK || !isNull) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "Reference_IsNull status: %{public}d isNull: %{public}d",
+            status, isNull);
+    }
     return isNull;
 }
 
