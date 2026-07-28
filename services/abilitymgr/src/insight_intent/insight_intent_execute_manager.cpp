@@ -320,7 +320,9 @@ int32_t InsightIntentExecuteManager::ExecuteIntentDone(uint64_t intentId, int32_
     record->state = InsightIntentExecuteState::EXECUTE_DONE;
     
     if (record->isDistributed) {
-        std::string msg = result.ToJsonString();
+        AppExecFwk::InsightIntentExecuteResult distributedResult = result;
+        distributedResult.interactionIntent = nullptr;
+        std::string msg = distributedResult.ToJsonString();
         Want want;
         want.SetElementName(record->deviceId, record->bundleName, "", "");
         IntentCallerInfo callerInfo;

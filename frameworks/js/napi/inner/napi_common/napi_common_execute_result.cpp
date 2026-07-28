@@ -75,6 +75,36 @@ bool UnwrapResultOfDecoratorExecuteResult(napi_env env, napi_value param, Insigh
     return true;
 }
 
+bool UnwrapInteractionIntentOfExecuteResult(
+    napi_env env, napi_value param, InsightIntentExecuteResult &executeResult)
+{
+    napi_value intent = nullptr;
+    napi_get_named_property(env, param, "interactionIntent", &intent);
+    if (intent == nullptr) {
+        return true;
+    }
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, intent, &valueType);
+    if (valueType == napi_undefined || valueType == napi_null) {
+        return true;
+    }
+    if (valueType != napi_object) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "interactionIntent not object");
+        return false;
+    }
+    auto wp = std::make_shared<AAFwk::WantParams>();
+    if (!AppExecFwk::UnwrapWantParams(env, intent, *wp)) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "unwrap interactionIntent failed");
+        return false;
+    }
+    if (!InsightIntentExecuteResult::CheckInteractionIntent(wp)) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "Check interactionIntent fail");
+        return false;
+    }
+    executeResult.interactionIntent = wp;
+    return true;
+}
+
 bool UnwrapExecuteResult(
     napi_env env, napi_value param, InsightIntentExecuteResult &executeResult, bool isDecorator)
 {
@@ -123,6 +153,13 @@ bool UnwrapExecuteResult(
             return false;
         }
         executeResult.flags = flags;
+    }
+
+    if (IsExistsByPropertyName(env, param, "interactionIntent")) {
+        if (!UnwrapInteractionIntentOfExecuteResult(env, param, executeResult)) {
+            TAG_LOGE(AAFwkTag::JSNAPI, "unwrap interactionIntent fail");
+            return false;
+        }
     }
 
     return true;
