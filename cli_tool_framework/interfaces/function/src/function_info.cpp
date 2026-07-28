@@ -317,6 +317,10 @@ int32_t FunctionsRawData::ToFunctionInfoVec(const FunctionsRawData &rawData, std
     uint32_t ssLength = static_cast<uint32_t>(ss.str().length());
     uint32_t count = 0;
     ss.read(reinterpret_cast<char *>(&count), sizeof(count));
+    if (!ss) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "read count failed");
+        return ERR_INVALID_VALUE;
+    }
     if (count > MAX_FUNCTION_INFO_COUNT) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "functions exceed maxSize %{public}d, count: %{public}d",
             MAX_FUNCTION_INFO_COUNT, count);
@@ -326,7 +330,13 @@ int32_t FunctionsRawData::ToFunctionInfoVec(const FunctionsRawData &rawData, std
     for (uint32_t i = 0; i < count; ++i) {
         uint32_t functionSize = 0;
         ss.read(reinterpret_cast<char *>(&functionSize), sizeof(functionSize));
-        if (functionSize > ssLength - static_cast<uint32_t>(ss.tellg())) {
+        if (!ss) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "read functionSize failed, index: %{public}u", i);
+            return ERR_INVALID_VALUE;
+        }
+        std::streampos pos = ss.tellg();
+        if (pos < 0 || static_cast<uint32_t>(pos) > ssLength ||
+            functionSize > ssLength - static_cast<uint32_t>(pos)) {
             TAG_LOGE(AAFwkTag::CLI_TOOL, "functionSize:%{public}u is invalid", functionSize);
             return ERR_INVALID_VALUE;
         }
