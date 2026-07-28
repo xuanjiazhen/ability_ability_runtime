@@ -16,7 +16,6 @@
 #include "insight_intent_sys_event_receiver.h"
 
 #include <unordered_map>
-
 #include "extract_insight_intent_profile.h"
 #include "common_event_support.h"
 #include "function_call_convert.h"
