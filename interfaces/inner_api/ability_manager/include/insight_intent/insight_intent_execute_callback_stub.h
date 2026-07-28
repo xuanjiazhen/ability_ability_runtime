@@ -29,6 +29,12 @@ public:
     int32_t OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 
+protected:
+    // Returns true only when the calling process is the foundation system process
+    // (UID == FOUNDATION_UID). Declared virtual so unit tests can override to
+    // simulate legitimate / illegitimate callers without changing production logic.
+    virtual bool IsCallingFromFoundation() const;
+
 private:
     int32_t OnExecuteDoneInner(MessageParcel &data, MessageParcel &reply);
 

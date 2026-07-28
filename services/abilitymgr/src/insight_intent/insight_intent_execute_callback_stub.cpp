@@ -15,14 +15,25 @@
 
 #include "insight_intent_execute_callback_stub.h"
 #include "insight_intent_host_client.h"
+#include "ability_manager_errors.h"
 #include "hilog_tag_wrapper.h"
+#include "ipc_skeleton.h"
 
 namespace OHOS {
 namespace AAFwk {
 
+namespace {
+constexpr int32_t FOUNDATION_UID = 5523;
+}  // namespace
+
 InsightIntentExecuteCallbackStub::InsightIntentExecuteCallbackStub() {}
 
 InsightIntentExecuteCallbackStub::~InsightIntentExecuteCallbackStub() {}
+
+bool InsightIntentExecuteCallbackStub::IsCallingFromFoundation() const
+{
+    return IPCSkeleton::GetCallingUid() == FOUNDATION_UID;
+}
 
 int32_t InsightIntentExecuteCallbackStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
@@ -30,6 +41,16 @@ int32_t InsightIntentExecuteCallbackStub::OnRemoteRequest(
     if (data.ReadInterfaceToken() != IInsightIntentExecuteCallback::GetDescriptor()) {
         TAG_LOGE(AAFwkTag::INTENT, "InterfaceToken not equal");
         return ERR_INVALID_STATE;
+    }
+
+    // Defense-in-depth: only the foundation system process (AMS) is permitted to
+    // invoke OnExecuteDone on this stub. 
+    // InterfaceToken alone is not a security boundary since its
+    // descriptor string is publicly known via the SDK header.
+    if (!IsCallingFromFoundation()) {
+        TAG_LOGE(AAFwkTag::INTENT, "reject: callingUid=%{public}d, expected foundation uid",
+            IPCSkeleton::GetCallingUid());
+        return CHECK_PERMISSION_FAILED;
     }
 
     if (code == ON_INSIGHT_INTENT_EXECUTE_DONE) {

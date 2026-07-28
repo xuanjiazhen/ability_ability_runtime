@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "ability_manager_errors.h"
 #include "hilog_tag_wrapper.h"
 #include "want.h"
 #include "insight_intent_execute_callback_stub.h"
@@ -25,6 +26,8 @@ using namespace testing::ext;
 namespace OHOS {
 namespace AAFwk {
 const std::u16string APPMGR_INTERFACE_TOKEN = u"ohos.AAFwk.IntentExecuteCallback";
+
+// exercise OnRemoteRequest / OnExecuteDoneInner semantics still pass.
 class InsightIntentExecuteCallbackStubTests : public InsightIntentExecuteCallbackStub {
 public:
     InsightIntentExecuteCallbackStubTests() = default;
@@ -32,7 +35,23 @@ public:
     {}
     void OnExecuteDone(uint64_t key, int32_t resultCode,
         const AppExecFwk::InsightIntentExecuteResult &executeResult) override {}
+protected:
+    bool IsCallingFromFoundation() const override { return true; }
 };
+
+// Simulates an illegitimate caller (non-foundation process) to exercise the
+// new UID-check rejection path.
+class InsightIntentExecuteCallbackStubUntrustedTests : public InsightIntentExecuteCallbackStub {
+public:
+    InsightIntentExecuteCallbackStubUntrustedTests() = default;
+    virtual ~InsightIntentExecuteCallbackStubUntrustedTests()
+    {}
+    void OnExecuteDone(uint64_t key, int32_t resultCode,
+        const AppExecFwk::InsightIntentExecuteResult &executeResult) override {}
+protected:
+    bool IsCallingFromFoundation() const override { return false; }
+};
+
 class InsightIntentExecuteCallbackStubTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -75,6 +94,25 @@ HWTEST_F(InsightIntentExecuteCallbackStubTest, OnRemoteRequest_0100, TestSize.Le
     result = backStub->OnRemoteRequest(code, data1, reply, option);
     EXPECT_EQ(result, ERR_INVALID_STATE);
     TAG_LOGE(AAFwkTag::TEST, "OnRemoteRequest_0100 end.");
+}
+
+/**
+ * @tc.name: OnRemoteRequest_0200
+ * @tc.desc: Reject OnRemoteRequest when caller is not the foundation process.
+ */
+HWTEST_F(InsightIntentExecuteCallbackStubTest, OnRemoteRequest_0200, TestSize.Level1)
+{
+    TAG_LOGE(AAFwkTag::TEST, "OnRemoteRequest_0200 begin.");
+    std::shared_ptr<InsightIntentExecuteCallbackStub> untrustedStub
+        = std::make_shared<InsightIntentExecuteCallbackStubUntrustedTests>();
+    uint32_t code = ON_INSIGHT_INTENT_EXECUTE_DONE;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(APPMGR_INTERFACE_TOKEN);
+    int32_t result = untrustedStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    TAG_LOGE(AAFwkTag::TEST, "OnRemoteRequest_0200 end.");
 }
 
 /**
