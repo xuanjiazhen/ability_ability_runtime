@@ -1154,7 +1154,19 @@ napi_value JsUIExtensionContext::OnConnectUIServiceExtension(napi_env env, NapiC
     }
 
     sptr<JSUIServiceUIExtConnection> connection = sptr<JSUIServiceUIExtConnection>::MakeSptr(env);
+    if (connection == nullptr) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "null connection");
+        ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+            GetInnerErrorMsg(AbilityInnerErrorMsg::MEMORY_ALLOC_FAILED));
+        return CreateJsUndefined(env);
+    }
     sptr<UIExtensionServiceHostStubImpl> stub = connection->GetServiceHostStub();
+    if (stub == nullptr) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "null service host stub");
+        ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+            GetInnerErrorMsg(AbilityInnerErrorMsg::MEMORY_ALLOC_FAILED));
+        return CreateJsUndefined(env);
+    }
     want.SetParam(UISERVICEHOSTPROXY_KEY, stub->AsObject());
 
     result = nullptr;
@@ -1235,6 +1247,7 @@ napi_value JsUIExtensionContext::OnDisconnectUIServiceExtension(napi_env env, Na
         if (!connection) {
             TAG_LOGW(AAFwkTag::UISERVC_EXT, "null connection");
             *innerErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
+            return;
         }
         context->DisconnectAbility(want, connection);
     };
@@ -1259,6 +1272,11 @@ napi_value JsUIExtensionContext::OnDisconnectUIServiceExtension(napi_env env, Na
 
 napi_value JsUIExtensionContext::OnReportDrawnCompleted(napi_env env, NapiCallbackInfo& info)
 {
+    if (info.argc < ARGC_ONE) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "invalid argc");
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
     TAG_LOGD(AAFwkTag::UI_EXT, "called");
     auto innerErrorCode = std::make_shared<int32_t>(ERR_OK);
     NapiAsyncTask::ExecuteCallback execute = [weak = context_, innerErrorCode]() {
