@@ -17,10 +17,14 @@
 #define OHOS_AGENT_RUNTIME_ETS_AGENT_EXTENSION_H
 
 #include "agent_extension.h"
+#include "agent_remote_object_key.h"
 #include "ani.h"
 #include "configuration.h"
 #include "ets_agent_extension_stub_impl.h"
 #include "ets_native_reference.h"
+
+#include <mutex>
+#include <map>
 
 
 namespace OHOS {
@@ -122,6 +126,8 @@ private:
 
     ani_object CreateETSContext(ani_env *env, std::shared_ptr<AgentExtensionContext> context);
 
+    ani_object WrapWant(ani_env *env, const AAFwk::Want &want);
+
     void HandleSendData(sptr<IRemoteObject> hostProxy, const std::string &data);
 
     void HandleAuthorize(sptr<IRemoteObject> hostProxy, const std::string &data);
@@ -136,7 +142,8 @@ private:
     std::shared_ptr<ETSNativeReference> shellContextRef_ = nullptr;
     std::shared_ptr<AbilityHandler> handler_ = nullptr;
     sptr<EtsAgentExtensionStubImpl> extensionStub_;
-    std::map<sptr<IRemoteObject>, ani_ref> hostProxyMap_;
+    std::map<AgentRemoteObjectKey, ani_ref> hostProxyMap_;
+    std::mutex hostProxyMapMutex_;
     ani_vm *etsVm_ = nullptr;
 };
 }  // namespace AgentRuntime

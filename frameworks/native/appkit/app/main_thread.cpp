@@ -675,6 +675,29 @@ void MainThread::ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
 
 /**
  *
+ * @brief the application dump jshandle map.
+ *
+ * @param info, pid, tid.
+ */
+void MainThread::ScheduleJsHandleMap(OHOS::AppExecFwk::JsHandleMapInfo &info)
+{
+    TAG_LOGI(AAFwkTag::APPKIT, "pid: %{public}u, tid: %{public}u", info.pid, info.tid);
+    wptr<MainThread> weak = this;
+    auto task = [weak, info]() {
+        auto appThread = weak.promote();
+        if (appThread == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
+            return;
+        }
+        appThread->HandleJsHandleMap(info);
+    };
+    if (!mainHandler_->PostTask(task, "MainThread:HandleJsHandleMap")) {
+        TAG_LOGE(AAFwkTag::APPKIT, "PostTask HandleJsHandleMap failed");
+    }
+}
+
+/**
+ *
  * @brief the application triggerGC and dump cjheap memory.
  *
  * @param info, pid, tid, needGC, needSnapshot.
@@ -1042,6 +1065,22 @@ void MainThread::HandleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info
     }
     auto helper = std::make_shared<DumpRuntimeHelper>(app, applicationInfo_);
     helper->DumpJsHeap(info);
+}
+
+void MainThread::HandleJsHandleMap(const OHOS::AppExecFwk::JsHandleMapInfo &info)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    if (mainHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null mainHandler");
+        return;
+    }
+    auto app = applicationForDump_.lock();
+    if (app == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null app");
+        return;
+    }
+    auto helper = std::make_shared<DumpRuntimeHelper>(app, applicationInfo_);
+    helper->DumpJsHandleMap(info);
 }
 
 void MainThread::HandleCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info)
@@ -1515,7 +1554,7 @@ CJEventReportInfo MainThread::CreateCjEventReportInfo(const std::string &bundleN
                 OHOS::AppExecFwk::CjHeapDumpInfo cjHeapInfo;
                 cjHeapInfo.needSnapshot = true;
                 cjHeapInfo.needGc = false;
-                cjHeapInfo.pid = getpid();
+                cjHeapInfo.pid = static_cast<uint32_t>(getpid());
                 shared_this->HandleCjHeapMemory(cjHeapInfo);
             }
         };
@@ -1969,6 +2008,15 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         auto bundleName = appInfo.bundleName;
         auto versionCode = appInfo.versionCode;
 #ifdef CJ_FRONTEND
+        void* mainEnv = nullptr;
+        if (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::ETS) {
+            auto& etsRuntime = static_cast<AbilityRuntime::ETSRuntime&>(*runtime);
+            auto& jsRuntime = static_cast<AbilityRuntime::JsRuntime&>(*etsRuntime.GetJsRuntime());
+            mainEnv = jsRuntime.GetNapiEnv();
+        } else if (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::JS) {
+            mainEnv = (static_cast<AbilityRuntime::JsRuntime&>(*runtime)).GetNapiEnv();
+        }
+        AbilityRuntime::CJRuntime::SetMainNAPIEnv(mainEnv);
         if (!isCJApp) {
 #endif
             if (IsEtsAPP(appInfo)) {
@@ -2330,7 +2378,7 @@ void MainThread::ProcessMainAbility(const AbilityInfo &info, const std::unique_p
         }
         srcPath.append("/");
         srcPath.append(info.srcEntrance);
-        srcPath.erase(srcPath.rfind("."));
+        AbilityRuntime::RemoveFileExtension(srcPath);
         srcPath.append(".abc");
         TAG_LOGD(AAFwkTag::UIABILITY, "jsAbility srcPath: %{public}s", srcPath.c_str());
     }
@@ -2761,7 +2809,6 @@ bool MainThread::PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &
                 application_->GetAppContext(), std::move(interopTestRunner), record->observer);
             AbilityDelegatorRegistry::RegisterInstance(interopDelegator, args, targetLanguage);
             interopDelegator->SetApiTargetVersion(targetVersion);
-            interopDelegator->Prepare();
         }
     } else { // FA model
         TAG_LOGD(AAFwkTag::APPKIT, "FA model");
@@ -4321,7 +4368,6 @@ int32_t MainThread::ScheduleDumpFfrt(std::string& result)
 
 int32_t MainThread::ScheduleDumpArkWeb(const std::string &customArgs, std::string &result)
 {
-    TAG_LOGI(AAFwkTag::APPKIT, "ScheduleDumpArkWeb");
     return DumpArkWebHelper::DumpArkWeb(customArgs, result);
 }
 
