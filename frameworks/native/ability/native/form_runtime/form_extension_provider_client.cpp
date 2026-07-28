@@ -610,7 +610,17 @@ int FormExtensionProviderClient::NotifyFormLocationUpdate(const int64_t formId, 
     const sptr<IRemoteObject> &callerToken)
 {
     TAG_LOGD(AAFwkTag::FORM_EXT, "called");
+    std::pair<int, int> errorCode = CheckParam(want, callerToken);
+    if (errorCode.first != ERR_OK) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "CheckParam failed: %{public}d", errorCode.first);
+        return errorCode.second;
+    }
+
     std::shared_ptr<EventHandler> mainHandler = std::make_shared<EventHandler>(EventRunner::GetMainEventRunner());
+    if (mainHandler == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "GetMainEventRunner failed.");
+        return ERR_APPEXECFWK_SERVICE_INTERNAL_ERROR;
+    }
     std::function<void()> notifyFormLocationExtensionUpdateFunc = [client = sptr<FormExtensionProviderClient>(this),
         formId, want, callerToken]() {
         client->NotifyFormExtensionUpdateLocation(formId, want, callerToken);
