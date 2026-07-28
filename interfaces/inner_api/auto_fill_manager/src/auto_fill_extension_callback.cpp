@@ -98,7 +98,7 @@ void AutoFillExtensionCallback::HandleReloadInModal(const AAFwk::WantParams &wan
     TAG_LOGD(AAFwkTag::AUTOFILLMGR, "called");
     SetModalUIExtensionProxy(nullptr);
 
-    auto oldWindowType = autoFillWindowType_;
+    auto oldWindowType = autoFillWindowType_.load();
     auto oldSessionId = sessionId_;
     int32_t resultCode = ReloadInModal(wantParams);
     if (resultCode != AutoFill::AUTO_FILL_SUCCESS) {
@@ -253,7 +253,7 @@ void AutoFillExtensionCallback::SetSaveRequestCallback(const std::shared_ptr<ISa
 
 void AutoFillExtensionCallback::SetSessionId(int32_t sessionId)
 {
-    sessionId_= sessionId;
+    sessionId_ = sessionId;
 }
 
 void AutoFillExtensionCallback::SetInstanceId(int32_t instanceId)
@@ -273,12 +273,12 @@ Ace::UIContent* AutoFillExtensionCallback::GetUIContent()
 
 void AutoFillExtensionCallback::SetWindowType(const AutoFill::AutoFillWindowType &autoFillWindowType)
 {
-    autoFillWindowType_ = autoFillWindowType;
+    autoFillWindowType_.store(autoFillWindowType);
 }
 
 AutoFill::AutoFillWindowType AutoFillExtensionCallback::GetWindowType() const
 {
-    return autoFillWindowType_;
+    return autoFillWindowType_.load();
 }
 
 void AutoFillExtensionCallback::SetAutoFillRequest(const AutoFill::AutoFillRequest &request)

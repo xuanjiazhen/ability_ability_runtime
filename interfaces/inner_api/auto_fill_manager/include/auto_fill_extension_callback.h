@@ -79,7 +79,7 @@ private:
     int32_t sessionId_ = -1;
     std::atomic<int32_t> instanceId_ {-1};
     uint32_t callbackId_ = 0;
-    AutoFill::AutoFillWindowType autoFillWindowType_ = AutoFill::AutoFillWindowType::MODAL_WINDOW;
+    std::atomic<AutoFill::AutoFillWindowType> autoFillWindowType_{AutoFill::AutoFillWindowType::MODAL_WINDOW};
     AutoFill::AutoFillRequest request_;
     bool isReloadInModal_ = false;
     bool isSmartAutoFill_ = false;
