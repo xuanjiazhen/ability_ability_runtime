@@ -53,7 +53,7 @@
 
   <rect x="88" y="704" width="130" height="34" rx="17" fill="#E0F5EE"/>
   <text x="153" y="727" font-size="18" font-weight="bold" fill="#00966E" text-anchor="middle">异步落盘</text>
-  <text x="236" y="727" font-size="17" fill="#5A6A85">写盘投递非主线程，不阻塞启动主路径（&lt;1ms）</text>
+  <text x="236" y="727" font-size="17" fill="#5A6A85">每轮启动仅 1 次写盘，投递非主线程（&lt;1ms）</text>
 
   <rect x="88" y="764" width="130" height="34" rx="17" fill="#E0F5EE"/>
   <text x="153" y="787" font-size="18" font-weight="bold" fill="#00966E" text-anchor="middle">原子写入</text>
@@ -69,7 +69,7 @@
 
   <!-- 中右：总体方案流程图 -->
   <rect x="660" y="148" width="1200" height="640" rx="16" fill="#FFFFFF" stroke="#DAE1E9" stroke-width="2"/>
-  <text x="692" y="200" font-size="28" font-weight="bold" fill="#182B4D">总体方案：检查点快照 + 异步落盘</text>
+  <text x="692" y="200" font-size="28" font-weight="bold" fill="#182B4D">总体方案：双检查点采样 + EWMA 评分预测 + 异步落盘</text>
   <text x="692" y="236" font-size="18" fill="#5A6A85">应用进程内闭环，无 IPC，自写自身沙箱</text>
 
   <!-- 上排节点：加载路径 -->
@@ -98,8 +98,8 @@
 
   <!-- 启动检查点 -->
   <rect x="692" y="426" width="1136" height="84" rx="14" fill="#FFF0E0" stroke="#E68214" stroke-width="3"/>
-  <text x="1260" y="462" font-size="22" font-weight="bold" fill="#E68214" text-anchor="middle">启动检查点触发</text>
-  <text x="1260" y="494" font-size="16" fill="#5A6A85" text-anchor="middle">PerformAppReady（必选） / 首个 UIAbility 前台（可选）· 开关判定</text>
+  <text x="1260" y="462" font-size="22" font-weight="bold" fill="#E68214" text-anchor="middle">启动双检查点采样</text>
+  <text x="1260" y="494" font-size="16" fill="#5A6A85" text-anchor="middle">① PerformAppReady 采样关键模块  ② 首 Ability 前台+5s 补采懒加载 · 每轮启动仅 1 次写盘</text>
 
   <!-- 到采集排的箭头 -->
   <line x1="1260" y1="516" x2="1260" y2="568" stroke="#E68214" stroke-width="4" marker-end="url(#arrOrange)"/>
@@ -110,8 +110,8 @@
   <text x="862" y="658" font-size="15" fill="#5A6A85" text-anchor="middle">新增采集器（appkit）</text>
 
   <rect x="1090" y="576" width="340" height="110" rx="14" fill="#E0F5EE" stroke="#00966E" stroke-width="3"/>
-  <text x="1260" y="626" font-size="21" font-weight="bold" fill="#00966E" text-anchor="middle">序列化 JSON</text>
-  <text x="1260" y="658" font-size="15" fill="#5A6A85" text-anchor="middle">bundle/pid/stage/modules</text>
+  <text x="1260" y="626" font-size="21" font-weight="bold" fill="#00966E" text-anchor="middle">EWMA 评分合并</text>
+  <text x="1260" y="658" font-size="15" fill="#5A6A85" text-anchor="middle">跨启动累计 · 预测下轮模块集</text>
 
   <rect x="1488" y="576" width="340" height="110" rx="14" fill="#E0F5EE" stroke="#00966E" stroke-width="3"/>
   <text x="1658" y="626" font-size="21" font-weight="bold" fill="#00966E" text-anchor="middle">异步写入沙箱</text>
@@ -124,16 +124,17 @@
   <rect x="692" y="708" width="738" height="40" rx="10" fill="#FFF0E0"/>
   <text x="1061" y="734" font-size="15" fill="#E68214" text-anchor="middle">依赖：napi 仓新增 GetLoadedModuleInfos() 枚举接口</text>
 
-  <rect x="1488" y="708" width="340" height="40" rx="10" fill="#FAFAFC" stroke="#DAE1E9" stroke-width="2"/>
-  <text x="1658" y="734" font-size="15" fill="#182B4D" text-anchor="middle">/data/storage/el2/base/files/native_modules.json</text>
+  <rect x="1488" y="702" width="340" height="52" rx="10" fill="#FAFAFC" stroke="#DAE1E9" stroke-width="2"/>
+  <text x="1658" y="724" font-size="14" fill="#182B4D" text-anchor="middle">cache/.ohos.ability_runtime/</text>
+  <text x="1658" y="744" font-size="14" fill="#182B4D" text-anchor="middle">native_modules_&lt;hash8&gt;.v2.json</text>
 
   <!-- 底部：输出示例 -->
   <rect x="660" y="830" width="660" height="190" rx="16" fill="#FFFFFF" stroke="#DAE1E9" stroke-width="2"/>
-  <text x="688" y="878" font-size="22" font-weight="bold" fill="#182B4D">输出文件示例（应用沙箱内）</text>
-  <text x="688" y="908" font-size="16" fill="#3C5A8C" font-family="Noto Sans Mono, monospace">{ "bundleName": "com.example.app", "stage": "app_ready",</text>
-  <text x="688" y="936" font-size="16" fill="#3C5A8C" font-family="Noto Sans Mono, monospace">  "modules": [ { "moduleName": "ohos.hilog",</text>
-  <text x="688" y="964" font-size="16" fill="#3C5A8C" font-family="Noto Sans Mono, monospace">    "fileName": "/system/lib64/module/libhilog.z.so",</text>
-  <text x="688" y="992" font-size="16" fill="#3C5A8C" font-family="Noto Sans Mono, monospace">    "isAppModule": false, "moduleLoaded": true } ] }</text>
+  <text x="688" y="878" font-size="22" font-weight="bold" fill="#182B4D">输出文件示例（应用沙箱 cacheDir 内）</text>
+  <text x="688" y="908" font-size="16" fill="#3C5A8C" font-family="Noto Sans Mono, monospace">{ "version": 2, "bundleName": "com.example.app",</text>
+  <text x="688" y="936" font-size="16" fill="#3C5A8C" font-family="Noto Sans Mono, monospace">  "predicted": ["ohos.hilog", "ohos.window", "entry"],</text>
+  <text x="688" y="964" font-size="16" fill="#3C5A8C" font-family="Noto Sans Mono, monospace">  "modules": [ { "moduleName": "ohos.hilog",</text>
+  <text x="688" y="992" font-size="16" fill="#3C5A8C" font-family="Noto Sans Mono, monospace">    "score": 0.98, "hits": 41, "firstStage": "app_ready" } ] }</text>
 
   <!-- 底部：方案收益 -->
   <rect x="1360" y="830" width="500" height="190" rx="16" fill="#FFFFFF" stroke="#DAE1E9" stroke-width="2"/>
