@@ -1,0 +1,154 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" font-family="Noto Sans CJK SC, PingFang SC, Microsoft YaHei, sans-serif">
+  <defs>
+    <marker id="arrBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0066FF"/>
+    </marker>
+    <marker id="arrPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6E46C8"/>
+    </marker>
+    <marker id="arrOrange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#E68214"/>
+    </marker>
+    <marker id="arrGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#00966E"/>
+    </marker>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="1920" height="1080" fill="#F5F7FA"/>
+
+  <!-- 顶部标题栏 -->
+  <rect x="0" y="0" width="1920" height="108" fill="#182B4D"/>
+  <text x="60" y="70" font-size="40" font-weight="bold" fill="#FFFFFF">启动阶段采集应用 import 的 Native 模块并保存至应用沙箱</text>
+  <text x="60" y="102" font-size="20" fill="#AABEDC">需求背景与总体方案  ·  ability_runtime / arkui-napi  ·  SDD</text>
+  <rect x="1660" y="30" width="200" height="48" rx="24" fill="#0066FF"/>
+  <text x="1760" y="62" font-size="22" font-weight="bold" fill="#FFFFFF" text-anchor="middle">方案设计</text>
+
+  <!-- 左列：背景与现状 -->
+  <rect x="60" y="148" width="560" height="380" rx="16" fill="#FFFFFF" stroke="#DAE1E9" stroke-width="2"/>
+  <rect x="60" y="148" width="8" height="380" rx="4" fill="#0066FF"/>
+  <text x="92" y="200" font-size="28" font-weight="bold" fill="#0A3C96">背景与现状</text>
+
+  <rect x="88" y="226" width="14" height="14" rx="7" fill="#0066FF"/>
+  <text x="116" y="243" font-size="22" font-weight="bold" fill="#182B4D">数据源已存在</text>
+  <text x="116" y="275" font-size="17" fill="#5A6A85">NativeModuleManager（进程内单例）以链表记录所有 import 的</text>
+  <text x="116" y="303" font-size="17" fill="#5A6A85">Native 模块：模块名 / so 路径 / 版本 / 是否应用模块</text>
+
+  <rect x="88" y="324" width="14" height="14" rx="7" fill="#0066FF"/>
+  <text x="116" y="341" font-size="22" font-weight="bold" fill="#182B4D">无对外采集能力</text>
+  <text x="116" y="373" font-size="17" fill="#5A6A85">链表为私有实现，无枚举接口，外部无法获取已加载模块清单</text>
+
+  <rect x="88" y="422" width="14" height="14" rx="7" fill="#0066FF"/>
+  <text x="116" y="439" font-size="22" font-weight="bold" fill="#182B4D">缺少落盘机制</text>
+  <text x="116" y="471" font-size="17" fill="#5A6A85">运行时无将模块信息保存至应用沙箱的既有通路</text>
+
+  <!-- 左列：关键设计点 -->
+  <rect x="60" y="568" width="560" height="400" rx="16" fill="#FFFFFF" stroke="#DAE1E9" stroke-width="2"/>
+  <rect x="60" y="568" width="8" height="400" rx="4" fill="#00966E"/>
+  <text x="92" y="620" font-size="28" font-weight="bold" fill="#00966E">关键设计点</text>
+
+  <rect x="88" y="644" width="130" height="34" rx="17" fill="#E0F5EE"/>
+  <text x="153" y="667" font-size="18" font-weight="bold" fill="#00966E" text-anchor="middle">零侵入采集</text>
+  <text x="236" y="667" font-size="17" fill="#5A6A85">不改模块加载路径，检查点一次性拉取链表快照</text>
+
+  <rect x="88" y="704" width="130" height="34" rx="17" fill="#E0F5EE"/>
+  <text x="153" y="727" font-size="18" font-weight="bold" fill="#00966E" text-anchor="middle">异步落盘</text>
+  <text x="236" y="727" font-size="17" fill="#5A6A85">写盘投递非主线程，不阻塞启动主路径（&lt;1ms）</text>
+
+  <rect x="88" y="764" width="130" height="34" rx="17" fill="#E0F5EE"/>
+  <text x="153" y="787" font-size="18" font-weight="bold" fill="#00966E" text-anchor="middle">原子写入</text>
+  <text x="236" y="787" font-size="17" fill="#5A6A85">tmp 文件 + rename，杜绝残缺 JSON</text>
+
+  <rect x="88" y="824" width="130" height="34" rx="17" fill="#E0F5EE"/>
+  <text x="153" y="847" font-size="18" font-weight="bold" fill="#00966E" text-anchor="middle">开关门控</text>
+  <text x="236" y="847" font-size="17" fill="#5A6A85">参数开关默认关闭，量产版本零影响</text>
+
+  <rect x="88" y="884" width="130" height="34" rx="17" fill="#E0F5EE"/>
+  <text x="153" y="907" font-size="18" font-weight="bold" fill="#00966E" text-anchor="middle">安全合规</text>
+  <text x="236" y="907" font-size="17" fill="#5A6A85">仅写自身沙箱，文件 0600，无用户隐私数据</text>
+
+  <!-- 中右：总体方案流程图 -->
+  <rect x="660" y="148" width="1200" height="640" rx="16" fill="#FFFFFF" stroke="#DAE1E9" stroke-width="2"/>
+  <text x="692" y="200" font-size="28" font-weight="bold" fill="#182B4D">总体方案：检查点快照 + 异步落盘</text>
+  <text x="692" y="236" font-size="18" fill="#5A6A85">应用进程内闭环，无 IPC，自写自身沙箱</text>
+
+  <!-- 上排节点：加载路径 -->
+  <rect x="692" y="268" width="250" height="92" rx="14" fill="#E6F0FF" stroke="#0066FF" stroke-width="3"/>
+  <text x="817" y="310" font-size="21" font-weight="bold" fill="#0066FF" text-anchor="middle">应用代码</text>
+  <text x="817" y="342" font-size="15" fill="#5A6A85" text-anchor="middle">import / requireNapi</text>
+
+  <rect x="987" y="268" width="250" height="92" rx="14" fill="#E6F0FF" stroke="#0066FF" stroke-width="3"/>
+  <text x="1112" y="310" font-size="21" font-weight="bold" fill="#0066FF" text-anchor="middle">ArkNativeEngine</text>
+  <text x="1112" y="342" font-size="15" fill="#5A6A85" text-anchor="middle">LoadNativeModule</text>
+
+  <rect x="1283" y="268" width="250" height="92" rx="14" fill="#E6F0FF" stroke="#0066FF" stroke-width="3"/>
+  <text x="1408" y="310" font-size="21" font-weight="bold" fill="#0066FF" text-anchor="middle">NativeModuleMgr</text>
+  <text x="1408" y="342" font-size="15" fill="#5A6A85" text-anchor="middle">单例 · 模块链表</text>
+
+  <rect x="1578" y="268" width="250" height="92" rx="14" fill="#F0EAFC" stroke="#6E46C8" stroke-width="3"/>
+  <text x="1703" y="310" font-size="21" font-weight="bold" fill="#6E46C8" text-anchor="middle">模块链表</text>
+  <text x="1703" y="342" font-size="15" fill="#5A6A85" text-anchor="middle">name/path/version…</text>
+
+  <line x1="948" y1="314" x2="979" y2="314" stroke="#0066FF" stroke-width="4" marker-end="url(#arrBlue)"/>
+  <line x1="1243" y1="314" x2="1275" y2="314" stroke="#0066FF" stroke-width="4" marker-end="url(#arrBlue)"/>
+  <line x1="1539" y1="314" x2="1570" y2="314" stroke="#0066FF" stroke-width="4" marker-end="url(#arrBlue)"/>
+
+  <!-- 到检查点的箭头 -->
+  <line x1="1703" y1="366" x2="1703" y2="418" stroke="#6E46C8" stroke-width="4" marker-end="url(#arrPurple)"/>
+
+  <!-- 启动检查点 -->
+  <rect x="692" y="426" width="1136" height="84" rx="14" fill="#FFF0E0" stroke="#E68214" stroke-width="3"/>
+  <text x="1260" y="462" font-size="22" font-weight="bold" fill="#E68214" text-anchor="middle">启动检查点触发</text>
+  <text x="1260" y="494" font-size="16" fill="#5A6A85" text-anchor="middle">PerformAppReady（必选） / 首个 UIAbility 前台（可选）· 开关判定</text>
+
+  <!-- 到采集排的箭头 -->
+  <line x1="1260" y1="516" x2="1260" y2="568" stroke="#E68214" stroke-width="4" marker-end="url(#arrOrange)"/>
+
+  <!-- 下排节点：采集与落盘 -->
+  <rect x="692" y="576" width="340" height="110" rx="14" fill="#E0F5EE" stroke="#00966E" stroke-width="3"/>
+  <text x="862" y="626" font-size="21" font-weight="bold" fill="#00966E" text-anchor="middle">NativeModuleCollector</text>
+  <text x="862" y="658" font-size="15" fill="#5A6A85" text-anchor="middle">新增采集器（appkit）</text>
+
+  <rect x="1090" y="576" width="340" height="110" rx="14" fill="#E0F5EE" stroke="#00966E" stroke-width="3"/>
+  <text x="1260" y="626" font-size="21" font-weight="bold" fill="#00966E" text-anchor="middle">序列化 JSON</text>
+  <text x="1260" y="658" font-size="15" fill="#5A6A85" text-anchor="middle">bundle/pid/stage/modules</text>
+
+  <rect x="1488" y="576" width="340" height="110" rx="14" fill="#E0F5EE" stroke="#00966E" stroke-width="3"/>
+  <text x="1658" y="626" font-size="21" font-weight="bold" fill="#00966E" text-anchor="middle">异步写入沙箱</text>
+  <text x="1658" y="658" font-size="15" fill="#5A6A85" text-anchor="middle">tmp + rename · 0600</text>
+
+  <line x1="1038" y1="631" x2="1082" y2="631" stroke="#00966E" stroke-width="4" marker-end="url(#arrGreen)"/>
+  <line x1="1436" y1="631" x2="1480" y2="631" stroke="#00966E" stroke-width="4" marker-end="url(#arrGreen)"/>
+
+  <!-- 标注条 -->
+  <rect x="692" y="708" width="738" height="40" rx="10" fill="#FFF0E0"/>
+  <text x="1061" y="734" font-size="15" fill="#E68214" text-anchor="middle">依赖：napi 仓新增 GetLoadedModuleInfos() 枚举接口</text>
+
+  <rect x="1488" y="708" width="340" height="40" rx="10" fill="#FAFAFC" stroke="#DAE1E9" stroke-width="2"/>
+  <text x="1658" y="734" font-size="15" fill="#182B4D" text-anchor="middle">/data/storage/el2/base/files/native_modules.json</text>
+
+  <!-- 底部：输出示例 -->
+  <rect x="660" y="830" width="660" height="190" rx="16" fill="#FFFFFF" stroke="#DAE1E9" stroke-width="2"/>
+  <text x="688" y="878" font-size="22" font-weight="bold" fill="#182B4D">输出文件示例（应用沙箱内）</text>
+  <text x="688" y="908" font-size="16" fill="#3C5A8C" font-family="Noto Sans Mono, monospace">{ "bundleName": "com.example.app", "stage": "app_ready",</text>
+  <text x="688" y="936" font-size="16" fill="#3C5A8C" font-family="Noto Sans Mono, monospace">  "modules": [ { "moduleName": "ohos.hilog",</text>
+  <text x="688" y="964" font-size="16" fill="#3C5A8C" font-family="Noto Sans Mono, monospace">    "fileName": "/system/lib64/module/libhilog.z.so",</text>
+  <text x="688" y="992" font-size="16" fill="#3C5A8C" font-family="Noto Sans Mono, monospace">    "isAppModule": false, "moduleLoaded": true } ] }</text>
+
+  <!-- 底部：方案收益 -->
+  <rect x="1360" y="830" width="500" height="190" rx="16" fill="#FFFFFF" stroke="#DAE1E9" stroke-width="2"/>
+  <text x="1388" y="878" font-size="22" font-weight="bold" fill="#182B4D">方案收益</text>
+
+  <rect x="1388" y="896" width="12" height="12" rx="6" fill="#00966E"/>
+  <text x="1412" y="908" font-size="18" fill="#5A6A85">模块依赖全量可视：支撑依赖分析与问题定位</text>
+
+  <rect x="1388" y="938" width="12" height="12" rx="6" fill="#00966E"/>
+  <text x="1412" y="950" font-size="18" fill="#5A6A85">性能零侵扰：快照采集 + 异步写盘 + 默认关闭</text>
+
+  <rect x="1388" y="980" width="12" height="12" rx="6" fill="#00966E"/>
+  <text x="1412" y="992" font-size="18" fill="#5A6A85">安全可控：进程内闭环，无权限与隐私风险</text>
+
+  <!-- 页脚 -->
+  <text x="60" y="1062" font-size="15" fill="#5A6A85">SDD 文档：docs/sdd/collect_imported_native_modules/sdd.md</text>
+  <text x="1860" y="1062" font-size="15" fill="#5A6A85" text-anchor="end">ability_runtime</text>
+</svg>
