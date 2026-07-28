@@ -22,11 +22,45 @@ export default namespace insightIntentProvider {
 
   loadLibraryWithPermissionCheck("insight_intent_provider_ani_kit.z", "@ohos.app.ability.insightIntentProvider")
 
-  export native function nativeSendExecuteResult(instanceId: int, result: insightIntent.ExecuteResult, callback: AsyncCallbackWrapper<void>): void;
-  export native function nativeSendIntentResult(instanceId: int, result: Record<string, RecordData>, callback: AsyncCallbackWrapper<void>): void;
+  export native function nativeSendExecuteResult(
+    instanceId: int, result: insightIntent.ExecuteResult,
+    callback: AsyncCallbackWrapper<void>): void;
+  export native function nativeSendIntentResult(
+    instanceId: int, result: Record<string, RecordData>,
+    callback: AsyncCallbackWrapper<void>): void;
+
+  function createParamError(message: string): BusinessError {
+    let err = new BusinessError();
+    err.code = 401;
+    err.name = 'InvalidInputParameter';
+    err.message = message;
+    return err;
+  }
+
+  function validateInteractionUI(ui: insightIntent.InteractionUI): BusinessError | null {
+    if (ui.interactionUIType === 'MODAL_UIEXTENSION') {
+      let modal = ui as insightIntent.InteractionModalUIExtension;
+      if (!modal.bundleName || !modal.moduleName || !modal.abilityName || !modal.uiExtensionType) {
+        return createParamError('InteractionModalUIExtension missing required field');
+      }
+    }
+    return null;
+  }
+
+  function validateInteractionIntent(result: insightIntent.ExecuteResult): BusinessError | null {
+    if (!result.interactionIntent || !result.interactionIntent.interactionUI) {
+      return null;
+    }
+    return validateInteractionUI(result.interactionIntent.interactionUI);
+  }
 
   export function sendExecuteResult(instanceId: int, result: insightIntent.ExecuteResult): Promise<void> {
     return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let validateErr = validateInteractionIntent(result);
+      if (validateErr) {
+        reject(validateErr);
+        return;
+      }
       let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
         if (err == null || err.code == 0) {
           resolve(undefined);
