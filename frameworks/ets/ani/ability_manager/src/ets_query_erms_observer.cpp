@@ -37,6 +37,7 @@ EtsQueryERMSObserver::~EtsQueryERMSObserver()
         TAG_LOGE(AAFwkTag::QUERY_ERMS, "null env");
         return;
     }
+    std::unique_lock<std::mutex> lock(etsObserverObjectListLock_);
     for (auto it = etsObserverObjectList_.begin(); it != etsObserverObjectList_.end();) {
         env->GlobalReference_Delete(it->callback);
         it++;
