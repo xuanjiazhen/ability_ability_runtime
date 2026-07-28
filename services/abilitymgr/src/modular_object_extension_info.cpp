@@ -34,9 +34,29 @@ bool ModularObjectExtensionInfo::ReadFromParcel(Parcel &parcel)
     moduleName = parcel.ReadString();
     abilityName = parcel.ReadString();
     appIndex = parcel.ReadInt32();
-    launchMode = static_cast<MoeLaunchMode>(parcel.ReadInt32());
-    processMode = static_cast<MoeProcessMode>(parcel.ReadInt32());
-    threadMode = static_cast<MoeThreadMode>(parcel.ReadInt32());
+    int32_t launchModeVal = parcel.ReadInt32();
+    if (launchModeVal < static_cast<int32_t>(MoeLaunchMode::IN_PROCESS) ||
+        launchModeVal > static_cast<int32_t>(MoeLaunchMode::CROSS_PROCESS)) {
+        TAG_LOGE(AAFwkTag::EXT, "invalid launchMode: %{public}d", launchModeVal);
+        return false;
+    }
+    launchMode = static_cast<MoeLaunchMode>(launchModeVal);
+
+    int32_t processModeVal = parcel.ReadInt32();
+    if (processModeVal < static_cast<int32_t>(MoeProcessMode::BUNDLE) ||
+        processModeVal > static_cast<int32_t>(MoeProcessMode::INSTANCE)) {
+        TAG_LOGE(AAFwkTag::EXT, "invalid processMode: %{public}d", processModeVal);
+        return false;
+    }
+    processMode = static_cast<MoeProcessMode>(processModeVal);
+
+    int32_t threadModeVal = parcel.ReadInt32();
+    if (threadModeVal < static_cast<int32_t>(MoeThreadMode::BUNDLE) ||
+        threadModeVal > static_cast<int32_t>(MoeThreadMode::INSTANCE)) {
+        TAG_LOGE(AAFwkTag::EXT, "invalid threadMode: %{public}d", threadModeVal);
+        return false;
+    }
+    threadMode = static_cast<MoeThreadMode>(threadModeVal);
     isDisabled = parcel.ReadBool();
     return true;
 }
