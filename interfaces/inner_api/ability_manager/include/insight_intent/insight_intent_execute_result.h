@@ -41,15 +41,15 @@ public:
     bool isNeedDelayResult = false;
     bool isQueryEntity = false;
     std::vector<std::shared_ptr<WantParams>> queryResults;
+    std::shared_ptr<WantParams> interactionIntent = nullptr;
 
     bool ReadFromParcel(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
     static InsightIntentExecuteResult *Unmarshalling(Parcel &parcel);
     void FromJsonString(const std::string &jsonStr);
     std::string ToJsonString() const;
-    // Check result returned by intent executor
     static bool CheckResult(std::shared_ptr<const WantParams> result);
-
+    static bool CheckInteractionIntent(std::shared_ptr<const WantParams> intent);
     std::shared_ptr<WantParams> BuildFunctionResult() const;
 };
 } // namespace AppExecFwk

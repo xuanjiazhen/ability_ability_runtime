@@ -35,6 +35,14 @@ constexpr const char *KEY_IS_DECORATOR = "isDecorator";
 constexpr const char *KEY_IS_NEED_DELAY_RESULT = "isNeedDelayResult";
 constexpr const char *KEY_IS_QUERY_ENTITY = "isQueryEntity";
 constexpr const char *KEY_QUERY_RESULTS = "queryResults";
+constexpr const char *KEY_INTERACTION_INTENT = "interactionIntent";
+constexpr const char *KEY_INTERACTION_UI = "interactionUI";
+constexpr const char *KEY_INTERACTION_UI_TYPE = "interactionUIType";
+constexpr const char *KEY_BUNDLE_NAME = "bundleName";
+constexpr const char *KEY_MODULE_NAME = "moduleName";
+constexpr const char *KEY_ABILITY_NAME = "abilityName";
+constexpr const char *KEY_UI_EXTENSION_TYPE = "uiExtensionType";
+constexpr const char *UI_TYPE_MODAL_UIEXTENSION = "MODAL_UIEXTENSION";
 constexpr int32_t CYCLE_LIMIT = 1000;
 } // namespace
 
@@ -61,6 +69,7 @@ bool InsightIntentExecuteResult::ReadFromParcel(Parcel &parcel)
         }
         queryResults.push_back(temp);
     }
+    interactionIntent = std::shared_ptr<WantParams>(parcel.ReadParcelable<WantParams>());
     return true;
 }
 
@@ -94,6 +103,9 @@ bool InsightIntentExecuteResult::Marshalling(Parcel &parcel) const
         if (!parcel.WriteParcelable(item.get())) {
             return false;
         }
+    }
+    if (!parcel.WriteParcelable(interactionIntent.get())) {
+        return false;
     }
     return true;
 }
@@ -168,6 +180,16 @@ void InsightIntentExecuteResult::FromJsonString(const std::string &jsonStr)
             queryResults.emplace_back(queryResult);
         }
     }
+
+    if (jsonObject.contains(KEY_INTERACTION_INTENT)) {
+        const auto &intentJson = jsonObject.at(KEY_INTERACTION_INTENT);
+        if (intentJson.is_object()) {
+            interactionIntent = std::make_shared<WantParams>();
+            OHOS::AAFwk::from_json(intentJson, *interactionIntent);
+        } else if (intentJson.is_null()) {
+            interactionIntent = nullptr;
+        }
+    }
 }
 
 std::string InsightIntentExecuteResult::ToJsonString() const
@@ -199,11 +221,45 @@ std::string InsightIntentExecuteResult::ToJsonString() const
         queryResultsJson.emplace_back(itemJson);
     }
     jsonObject[KEY_QUERY_RESULTS] = queryResultsJson;
+    if (interactionIntent != nullptr) {
+        nlohmann::json intentJson;
+        OHOS::AAFwk::to_json(intentJson, *interactionIntent);
+        jsonObject[KEY_INTERACTION_INTENT] = intentJson;
+    } else {
+        jsonObject[KEY_INTERACTION_INTENT] = nullptr;
+    }
     return jsonObject.dump();
 }
 
 bool InsightIntentExecuteResult::CheckResult(std::shared_ptr<const WantParams> result)
 {
+    return true;
+}
+
+static bool CheckInteractionUI(const WantParams &interactionUI)
+{
+    if (!interactionUI.HasParam(KEY_INTERACTION_UI_TYPE)) {
+        return false;
+    }
+    std::string type = interactionUI.GetStringParam(KEY_INTERACTION_UI_TYPE);
+    if (type == UI_TYPE_MODAL_UIEXTENSION) {
+        return interactionUI.HasParam(KEY_BUNDLE_NAME) && interactionUI.HasParam(KEY_MODULE_NAME) &&
+            interactionUI.HasParam(KEY_ABILITY_NAME) && interactionUI.HasParam(KEY_UI_EXTENSION_TYPE);
+    }
+    return true;
+}
+
+bool InsightIntentExecuteResult::CheckInteractionIntent(std::shared_ptr<const WantParams> intent)
+{
+    if (intent == nullptr) {
+        return true;
+    }
+    if (intent->HasParam(KEY_INTERACTION_UI)) {
+        WantParams interactionUI = intent->GetWantParams(KEY_INTERACTION_UI);
+        if (!CheckInteractionUI(interactionUI)) {
+            return false;
+        }
+    }
     return true;
 }
 
@@ -223,6 +279,10 @@ std::shared_ptr<WantParams> InsightIntentExecuteResult::BuildFunctionResult() co
     }
     if (result != nullptr) {
         resultParams->SetParam(KEY_RESULT, OHOS::AAFwk::WantParamWrapper::Box(*result));
+    }
+    if (interactionIntent != nullptr) {
+        resultParams->SetParam(KEY_INTERACTION_INTENT,
+            OHOS::AAFwk::WantParamWrapper::Box(*interactionIntent));
     }
     return resultParams;
 }
