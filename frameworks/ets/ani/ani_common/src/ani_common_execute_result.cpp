@@ -83,6 +83,64 @@ bool UnwrapResultOfDecoratorExecuteResult(ani_env *env, ani_object &param, Insig
     return true;
 }
 
+bool UnwrapInteractionIntentOfExecuteResult(
+    ani_env *env, ani_object &param, InsightIntentExecuteResult &executeResult)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null env");
+        return false;
+    }
+    ani_ref intentRef = nullptr;
+    if (!GetRefProperty(env, param, "interactionIntent", intentRef)) {
+        TAG_LOGE(AAFwkTag::INTENT, "get interactionIntent property fail");
+        return false;
+    }
+    if (intentRef == nullptr) {
+        return true;
+    }
+    auto wantParams = std::make_shared<AAFwk::WantParams>();
+    if (!UnwrapWantParams(env, intentRef, *wantParams)) {
+        TAG_LOGE(AAFwkTag::INTENT, "failed to unwrap interactionIntent");
+        return false;
+    }
+    if (!InsightIntentExecuteResult::CheckInteractionIntent(wantParams)) {
+        TAG_LOGE(AAFwkTag::INTENT, "Check interactionIntent fail");
+        return false;
+    }
+    executeResult.interactionIntent = wantParams;
+    return true;
+}
+
+bool UnwrapOptionalFields(
+    ani_env *env, ani_object &param, InsightIntentExecuteResult &executeResult)
+{
+    if (IsExistsProperty(env, param, "uris")) {
+        std::vector<std::string> uris;
+        if (!GetStringArrayProperty(env, param, "uris", uris)) {
+            TAG_LOGE(AAFwkTag::INTENT, "unwrap uris is null");
+            return false;
+        }
+        executeResult.uris = uris;
+    }
+
+    if (IsExistsProperty(env, param, "flags")) {
+        int32_t flags = 0;
+        if (!GetIntPropertyObject(env, param, "flags", flags)) {
+            TAG_LOGE(AAFwkTag::INTENT, "unwrap flags is null");
+            return false;
+        }
+        executeResult.flags = flags;
+    }
+
+    if (IsExistsProperty(env, param, "interactionIntent")) {
+        if (!UnwrapInteractionIntentOfExecuteResult(env, param, executeResult)) {
+            TAG_LOGE(AAFwkTag::INTENT, "unwrap interactionIntent fail");
+            return false;
+        }
+    }
+    return true;
+}
+
 bool UnwrapExecuteResult(ani_env *env, ani_object &param, InsightIntentExecuteResult &executeResult, bool isDecorator)
 {
     if (env == nullptr) {
@@ -118,25 +176,7 @@ bool UnwrapExecuteResult(ani_env *env, ani_object &param, InsightIntentExecuteRe
         }
     }
 
-    if (IsExistsProperty(env, param, "uris")) {
-        std::vector<std::string> uris;
-        if (!GetStringArrayProperty(env, param, "uris", uris)) {
-            TAG_LOGE(AAFwkTag::INTENT, "unwrap uris is null");
-            return false;
-        }
-        executeResult.uris = uris;
-    }
-
-    if (IsExistsProperty(env, param, "flags")) {
-        int32_t flags = 0;
-        if (!GetIntPropertyObject(env, param, "flags", flags)) {
-            TAG_LOGE(AAFwkTag::INTENT, "unwrap flags is null");
-            return false;
-        }
-        executeResult.flags = flags;
-    }
-
-    return true;
+    return UnwrapOptionalFields(env, param, executeResult);
 }
 
 ani_object WrapExecuteResult(ani_env *env, const AppExecFwk::InsightIntentExecuteResult &executeResult)
@@ -182,6 +222,10 @@ ani_object WrapExecuteResult(ani_env *env, const AppExecFwk::InsightIntentExecut
         SetStringArrayProperty(env, objValue, "uris", executeResult.uris);
     }
     SetIntPropertyObject(env, objValue, "flags", executeResult.flags);
+    if (executeResult.interactionIntent != nullptr) {
+        SetRefProperty(env, objValue, "interactionIntent",
+            WrapWantParams(env, *executeResult.interactionIntent));
+    }
 
     return objValue;
 }

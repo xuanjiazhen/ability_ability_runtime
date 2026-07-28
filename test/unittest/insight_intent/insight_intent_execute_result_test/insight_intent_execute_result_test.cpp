@@ -18,6 +18,7 @@
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_execute_result.h"
 #include "string_wrapper.h"
+#include "want_params_wrapper.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -31,6 +32,13 @@ namespace {
 constexpr const char *KEY_FLAGS = "flags";
 constexpr const char *KEY_URIS = "uris";
 constexpr const char *KEY_RESULT = "result";
+constexpr const char *KEY_INTERACTION_INTENT = "interactionIntent";
+constexpr const char *KEY_INTERACTION_UI = "interactionUI";
+constexpr const char *KEY_INTERACTION_UI_TYPE = "interactionUIType";
+constexpr const char *KEY_BUNDLE_NAME = "bundleName";
+constexpr const char *KEY_MODULE_NAME = "moduleName";
+constexpr const char *KEY_ABILITY_NAME = "abilityName";
+constexpr const char *KEY_UI_EXTENSION_TYPE = "uiExtensionType";
 
 /**
  * @brief Read back the "uris" key and assert it holds exactly @p expected, in order.
@@ -306,6 +314,174 @@ HWTEST_F(InsightIntentExecuteResultTest, BuildFunctionResult_EmptyResult_0800, T
     EXPECT_TRUE(out->HasParam(KEY_FLAGS));
     EXPECT_FALSE(out->HasParam(KEY_URIS));
     TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: CheckInteractionIntent_NullInput_0100
+ * @tc.desc: WHEN interactionIntent is nullptr THEN returns true.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteResultTest, CheckInteractionIntent_NullInput_0100, TestSize.Level1)
+{
+    std::shared_ptr<const WantParams> nullIntent;
+    EXPECT_TRUE(InsightIntentExecuteResult::CheckInteractionIntent(nullIntent));
+}
+
+/**
+ * @tc.name: CheckInteractionIntent_EmptyInput_0200
+ * @tc.desc: WHEN interactionIntent has no interactionUI THEN returns true.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteResultTest, CheckInteractionIntent_EmptyInput_0200, TestSize.Level1)
+{
+    auto intent = std::make_shared<WantParams>();
+    EXPECT_TRUE(InsightIntentExecuteResult::CheckInteractionIntent(intent));
+}
+
+/**
+ * @tc.name: CheckInteractionIntent_ValidModalUIExtension_0300
+ * @tc.desc: WHEN interactionUI is a valid InteractionModalUIExtension THEN returns true.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteResultTest, CheckInteractionIntent_ValidModalUIExtension_0300, TestSize.Level1)
+{
+    auto ui = std::make_shared<WantParams>();
+    ui->SetParam(KEY_INTERACTION_UI_TYPE, String::Box("MODAL_UIEXTENSION"));
+    ui->SetParam(KEY_BUNDLE_NAME, String::Box("com.test"));
+    ui->SetParam(KEY_MODULE_NAME, String::Box("entry"));
+    ui->SetParam(KEY_ABILITY_NAME, String::Box("EntryAbility"));
+    ui->SetParam(KEY_UI_EXTENSION_TYPE, String::Box("testUIExt"));
+    auto intent = std::make_shared<WantParams>();
+    intent->SetParam(KEY_INTERACTION_UI, WantParamWrapper::Box(*ui));
+    EXPECT_TRUE(InsightIntentExecuteResult::CheckInteractionIntent(intent));
+}
+
+/**
+ * @tc.name: CheckInteractionIntent_MissingBundleName_0400
+ * @tc.desc: WHEN InteractionModalUIExtension is missing bundleName THEN returns false.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteResultTest, CheckInteractionIntent_MissingBundleName_0400, TestSize.Level1)
+{
+    auto ui = std::make_shared<WantParams>();
+    ui->SetParam(KEY_INTERACTION_UI_TYPE, String::Box("MODAL_UIEXTENSION"));
+    ui->SetParam(KEY_MODULE_NAME, String::Box("entry"));
+    ui->SetParam(KEY_ABILITY_NAME, String::Box("EntryAbility"));
+    ui->SetParam(KEY_UI_EXTENSION_TYPE, String::Box("testUIExt"));
+    auto intent = std::make_shared<WantParams>();
+    intent->SetParam(KEY_INTERACTION_UI, WantParamWrapper::Box(*ui));
+    EXPECT_FALSE(InsightIntentExecuteResult::CheckInteractionIntent(intent));
+}
+
+/**
+ * @tc.name: CheckInteractionIntent_MissingUIType_0500
+ * @tc.desc: WHEN interactionUI is missing interactionUIType THEN returns false.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteResultTest, CheckInteractionIntent_MissingUIType_0500, TestSize.Level1)
+{
+    auto ui = std::make_shared<WantParams>();
+    ui->SetParam(KEY_BUNDLE_NAME, String::Box("com.test"));
+    auto intent = std::make_shared<WantParams>();
+    intent->SetParam(KEY_INTERACTION_UI, WantParamWrapper::Box(*ui));
+    EXPECT_FALSE(InsightIntentExecuteResult::CheckInteractionIntent(intent));
+}
+
+/**
+ * @tc.name: CheckInteractionIntent_UnknownUIType_0600
+ * @tc.desc: WHEN interactionUIType is unknown THEN returns true (base type allows any string).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteResultTest, CheckInteractionIntent_UnknownUIType_0600, TestSize.Level1)
+{
+    auto ui = std::make_shared<WantParams>();
+    ui->SetParam(KEY_INTERACTION_UI_TYPE, String::Box("UNKNOWN_TYPE"));
+    auto intent = std::make_shared<WantParams>();
+    intent->SetParam(KEY_INTERACTION_UI, WantParamWrapper::Box(*ui));
+    EXPECT_TRUE(InsightIntentExecuteResult::CheckInteractionIntent(intent));
+}
+
+/**
+ * @tc.name: BuildFunctionResult_WithInteractionIntent_0700
+ * @tc.desc: WHEN interactionIntent is set THEN BuildFunctionResult emits the key.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteResultTest, BuildFunctionResult_WithInteractionIntent_0700, TestSize.Level1)
+{
+    auto ui = std::make_shared<WantParams>();
+    ui->SetParam(KEY_INTERACTION_UI_TYPE, String::Box("MODAL_UIEXTENSION"));
+    ui->SetParam(KEY_BUNDLE_NAME, String::Box("com.test"));
+    ui->SetParam(KEY_MODULE_NAME, String::Box("entry"));
+    ui->SetParam(KEY_ABILITY_NAME, String::Box("EntryAbility"));
+    ui->SetParam(KEY_UI_EXTENSION_TYPE, String::Box("testUIExt"));
+    InsightIntentExecuteResult entity;
+    entity.interactionIntent = std::make_shared<WantParams>();
+    entity.interactionIntent->SetParam(KEY_INTERACTION_UI, WantParamWrapper::Box(*ui));
+    auto out = entity.BuildFunctionResult();
+    ASSERT_NE(out, nullptr);
+    EXPECT_TRUE(out->HasParam(KEY_INTERACTION_INTENT));
+    EXPECT_TRUE(out->HasParam(KEY_FLAGS));
+}
+
+/**
+ * @tc.name: BuildFunctionResult_NullInteractionIntent_0800
+ * @tc.desc: WHEN interactionIntent is null THEN BuildFunctionResult omits the key.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteResultTest, BuildFunctionResult_NullInteractionIntent_0800, TestSize.Level1)
+{
+    InsightIntentExecuteResult entity;
+    entity.interactionIntent = nullptr;
+    auto out = entity.BuildFunctionResult();
+    ASSERT_NE(out, nullptr);
+    EXPECT_FALSE(out->HasParam(KEY_INTERACTION_INTENT));
+}
+
+/**
+ * @tc.name: FromJsonString_WithInteractionIntent_0900
+ * @tc.desc: WHEN JSON contains interactionIntent THEN FromJsonString parses it.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteResultTest, FromJsonString_WithInteractionIntent_0900, TestSize.Level1)
+{
+    std::string json = R"({"code":0,"interactionIntent":{"interactionUI":)"
+        R"({"interactionUIType":"MODAL_UIEXTENSION","bundleName":"com.test",)"
+        R"("moduleName":"entry","abilityName":"EntryAbility","uiExtensionType":"ext"}}})";
+    InsightIntentExecuteResult entity;
+    entity.FromJsonString(json);
+    EXPECT_EQ(entity.code, 0);
+    EXPECT_NE(entity.interactionIntent, nullptr);
+}
+
+/**
+ * @tc.name: ToJsonString_WithInteractionIntent_1000
+ * @tc.desc: WHEN interactionIntent is set THEN ToJsonString includes it.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteResultTest, ToJsonString_WithInteractionIntent_1000, TestSize.Level1)
+{
+    auto ui = std::make_shared<WantParams>();
+    ui->SetParam(KEY_INTERACTION_UI_TYPE, String::Box("MODAL_UIEXTENSION"));
+    ui->SetParam(KEY_BUNDLE_NAME, String::Box("com.test"));
+    ui->SetParam(KEY_MODULE_NAME, String::Box("entry"));
+    ui->SetParam(KEY_ABILITY_NAME, String::Box("EntryAbility"));
+    ui->SetParam(KEY_UI_EXTENSION_TYPE, String::Box("ext"));
+    InsightIntentExecuteResult entity;
+    entity.interactionIntent = std::make_shared<WantParams>();
+    entity.interactionIntent->SetParam(KEY_INTERACTION_UI, WantParamWrapper::Box(*ui));
+    auto json = entity.ToJsonString();
+    EXPECT_NE(json.find("interactionIntent"), std::string::npos);
+    EXPECT_NE(json.find("interactionUI"), std::string::npos);
 }
 
 } // namespace AAFwk
