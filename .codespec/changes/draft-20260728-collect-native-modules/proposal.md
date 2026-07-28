@@ -1,7 +1,7 @@
 ---
 target_release:
   id: OpenHarmony-7.1-Release
-  status: proposed
+  status: committed
 ---
 
 # 需求文档
@@ -21,7 +21,7 @@ target_release:
 | 目标发行版本 | OpenHarmony-7.1-Release（需求方 2026-07-28 确认） |
 | 候选 Profile | none（ability_runtime 未命中 arkweb/arkui/arkgraphic/arkdata 任一 repos 声明） |
 | 优先级 | P1（需求方 2026-07-28 确认） |
-| 状态 | Clarifying → 澄清完成，待基线 |
+| 状态 | Baselined |
 
 ### 原始描述
 
@@ -218,26 +218,26 @@ target_release:
 - [x] AC 完整可测试
 - [x] 标准及以上复杂度已完成方案探索（A-1/A-2/A-3 + 取舍理由）
 
-**结论:** 通过（Q-1 ~ Q-6 已全部关闭；待需求方总结确认后由 `/ohos-baseline` 冻结基线）
+**结论:** 通过（Q-1 ~ Q-6 已全部关闭；需求方 2026-07-28 总结确认，基线 v1.0 已冻结，见第三章）
 
 ---
 
 ## 三、需求基线
 
-> 澄清完成后固化。**当前状态：未基线**，待 Q-1 ~ Q-6 关闭并经需求方/Owner 确认后，通过 `/ohos-baseline` 冻结。
+> 澄清完成后固化。manifest.md 是事实源，此处为审批结论。**状态：已基线（v1.0，2026-07-28 需求方确认冻结）**。
 
 ### 基线信息
 
 | 字段 | 内容 |
 |------|------|
-| 基线版本 | v1.0（未冻结） |
-| 基线日期 | 待定 |
+| 基线版本 | v1.0 |
+| 基线日期 | 2026-07-28 |
 | Owner | yangzk |
-| 确认人 | 待需求方总结确认 + /ohos-baseline |
+| 确认人 | yangzk（需求方，总结确认后经 /ohos-baseline 冻结） |
 | 复杂度 | 标准 |
 | Profile | none |
 | 目标发行版本 | OpenHarmony-7.1-Release |
-| 版本状态 | proposed |
+| 版本状态 | committed |
 
 ### 问题陈述
 
@@ -252,7 +252,7 @@ target_release:
 | 对启动性能零侵扰 | 主线程采样 <1ms；写盘异步且每轮 ≤1 次 | 启动耗时对比测试 |
 | 不与开发者文件冲突 | 隐藏点目录 + 系统命名空间 + 进程哈希 + 版本后缀 | TDD 用例 FileName_NoCollision |
 
-### 用户故事与 AC（草案，待基线确认）
+### 用户故事与 AC
 
 | Story ID | 用户故事 | 优先级 |
 |----------|----------|--------|
@@ -333,4 +333,4 @@ target_release:
 - [x] 上下文与知识源检索日志已填写；未查询关键来源的原因已记录（K-5）
 - [x] 目标仓 Agent 指南已检查并记录关键约束（CLAUDE.md，见 K-4）
 
-**基线结论:** 待定（澄清已闭环；待需求方总结确认后由 /ohos-baseline 冻结）
+**基线结论:** 通过（Q-1 ~ Q-6 全部关闭，需求方 2026-07-28 总结确认，/ohos-baseline 冻结 v1.0）
