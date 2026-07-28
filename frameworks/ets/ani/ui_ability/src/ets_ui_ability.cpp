@@ -562,6 +562,16 @@ void EtsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInf
         return;
     }
     OnStartInner(env, want, sessionInfo);
+#ifdef SUPPORT_SCREEN
+    if (scene_ == nullptr && sessionInfo != nullptr && sessionInfo->isPrelaunch) {
+        TAG_LOGI(AAFwkTag::UIABILITY, "OnStart: prelaunch, create scene for onWindowStageCreate");
+        if (abilityContext_ == nullptr || sceneListener_ == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext or sceneListener_");
+            return;
+        }
+        DoOnForegroundForSceneIsNull(want);
+    }
+#endif
     TAG_LOGD(AAFwkTag::UIABILITY, "OnStart end");
 }
 
