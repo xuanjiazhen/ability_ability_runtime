@@ -44,6 +44,7 @@
 #include "system_memory_attr.h"
 #include "want.h"
 #include "app_jsheap_mem_info.h"
+#include "app_jshandle_map_info.h"
 #include "app_cjheap_mem_info.h"
 
 namespace OHOS {
@@ -391,6 +392,15 @@ public:
      * @return ERR_OK ,return back success, others fail.
      */
     virtual AppMgrResultCode DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info);
+
+    /**
+     * DumpJsHandleMap, call DumpJsHandleMap() through proxy project.
+     * dump the application's jshandle map info.
+     *
+     * @param info, pid tid
+     * @return ERR_OK ,return back success, others fail.
+     */
+    virtual AppMgrResultCode DumpJsHandleMap(OHOS::AppExecFwk::JsHandleMapInfo &info);
 
     /**
      * DumpCjHeapMemory, call DumpCjHeapMemory() through proxy project.
@@ -801,6 +811,13 @@ public:
      * @return Returns true if the main process is in debug mode, false otherwise.
      */
     bool IsMainProcessDebug(int32_t uid);
+
+    /**
+     * @brief Query whether the corresponding process of the app (identified by abilityInfo) is in attach debug mode.
+     * @param abilityInfo The ability info used to locate the corresponding process.
+     * @return Returns true if the corresponding process is in attach debug mode, false otherwise.
+     */
+    bool IsCorrespondingProcessAttachDebug(const AbilityInfo &abilityInfo);
 
     /**
      * @brief Set resident process enable status.
