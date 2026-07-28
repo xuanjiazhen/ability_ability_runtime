@@ -502,6 +502,10 @@ int32_t ToolsRawData::ToToolInfoVec(const ToolsRawData &rawData, std::vector<Too
     uint32_t ssLength = static_cast<uint32_t>(ss.str().length());
     uint32_t count = 0;
     ss.read(reinterpret_cast<char *>(&count), sizeof(count));
+    if (!ss) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "read count failed");
+        return ERR_INVALID_VALUE;
+    }
     if (count > MAX_TOOL_INFO_COUNT) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "tools exceed maxSize %{public}d, count: %{public}d",
             MAX_TOOL_INFO_COUNT, count);
@@ -511,7 +515,13 @@ int32_t ToolsRawData::ToToolInfoVec(const ToolsRawData &rawData, std::vector<Too
     for (uint32_t i = 0; i < count; ++i) {
         uint32_t toolSize = 0;
         ss.read(reinterpret_cast<char *>(&toolSize), sizeof(toolSize));
-        if (toolSize > ssLength - static_cast<uint32_t>(ss.tellg())) {
+        if (!ss) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "read toolSize failed, index: %{public}u", i);
+            return ERR_INVALID_VALUE;
+        }
+        std::streampos pos = ss.tellg();
+        if (pos < 0 || static_cast<uint32_t>(pos) > ssLength ||
+            toolSize > ssLength - static_cast<uint32_t>(pos)) {
             TAG_LOGE(AAFwkTag::CLI_TOOL, "toolSize:%{public}u is invalid", toolSize);
             return ERR_INVALID_VALUE;
         }
