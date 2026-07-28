@@ -32,6 +32,13 @@ public:
 private:
     int32_t OnExecuteDoneInner(MessageParcel &data, MessageParcel &reply);
 
+    // Returns true only when the calling process is the foundation system process
+    // (UID == FOUNDATION_UID). Intentionally non-virtual: this is a security
+    // boundary and must not be overridable by subclasses. Tests exercise both
+    // sides of the check by mocking IPCSkeleton::GetCallingUid via the standard
+    // test/unittest/.../mock/include/ipc_skeleton.h pattern.
+    bool IsCallingFromFoundation() const;
+
     std::shared_ptr<AppExecFwk::EventHandler> handler_;
 };
 } // namespace AAFwk
