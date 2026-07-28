@@ -150,6 +150,6 @@
   <text x="1412" y="992" font-size="18" fill="#5A6A85">安全可控：进程内闭环，无权限与隐私风险</text>
 
   <!-- 页脚 -->
-  <text x="60" y="1062" font-size="15" fill="#5A6A85">SDD 文档：docs/sdd/collect_imported_native_modules/sdd.md</text>
+  <text x="60" y="1062" font-size="15" fill="#5A6A85">交付件：proposal.md / sdd.md（.codespec/changes/draft-20260728-collect-native-modules/）</text>
   <text x="1860" y="1062" font-size="15" fill="#5A6A85" text-anchor="end">ability_runtime</text>
 </svg>

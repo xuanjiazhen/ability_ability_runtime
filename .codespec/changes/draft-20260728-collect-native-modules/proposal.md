@@ -47,7 +47,7 @@ target_release:
 | 源码事实 | `foundation/arkui/napi/module_manager/native_module_manager.h` | NativeModuleManager 单例维护模块链表（head/tailNativeModule_ 私有），NativeModule 节点含 name/moduleName/fileName/version/isAppModule/moduleLoaded |
 | 源码事实 | `ability_runtime/frameworks/native/runtime/js_runtime.cpp:603,739` | requireNapi 绑定全局对象，import 汇聚至 ArkNativeEngine::LoadNativeModule |
 | 源码事实 | `ability_runtime/frameworks/native/appkit/ability_runtime/context/context_impl.cpp:167` | GetCacheDir() 现成接口 |
-| 前期分析 | `docs/sdd/collect_imported_native_modules/sdd.md`（v2） | 本流程之前的初步分析文档，作为方案探索输入 |
+| 前期分析 | `sdd.md`（本目录，v2） | 本流程之前的初步分析文档，作为方案探索输入 |
 
 ### 初始范围
 
