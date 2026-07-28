@@ -117,7 +117,7 @@ int32_t AutoFillManager::HandleRequestExecuteInner(Ace::UIContent *uiContent, co
 
     auto callbackId = extensionCallback->GetCallbackId();
     SetTimeOutEvent(callbackId);
-    result.isPopup = autoFillWindowType == AutoFill::AutoFillWindowType::POPUP_WINDOW ? true : false;
+    result.isPopup = (autoFillWindowType == AutoFill::AutoFillWindowType::POPUP_WINDOW);
     auto sessionId = CreateAutoFillExtension(uiContent, request, callback, autoFillWindowType, isSmartAutoFill);
     if (sessionId == AUTO_FILL_UI_EXTENSION_SESSION_ID_INVALID) {
         TAG_LOGE(AAFwkTag::AUTOFILLMGR, "Create ui extension failed");
@@ -226,7 +226,7 @@ int32_t AutoFillManager::CreateAutoFillExtension(Ace::UIContent *uiContent,
         want.SetParam(WANT_PARAMS_AUTO_FILL_POPUP_WINDOW_KEY, false);
         Ace::ModalUIExtensionConfig config;
         config.isAsyncModalBinding = true;
-        config.doAfterAsyncModalBinding = std::move(request.doAfterAsyncModalBinding);
+        config.doAfterAsyncModalBinding = request.doAfterAsyncModalBinding;
         sessionId = uiContent->CreateModalUIExtension(want, callback, config);
     }
     return sessionId;
@@ -350,14 +350,9 @@ bool AutoFillManager::IsNeedToCreatePopupWindow(const AbilityBase::AutoFillType 
     if (autoFillType == AbilityBase::AutoFillType::PASSWORD ||
         autoFillType == AbilityBase::AutoFillType::USER_NAME ||
         autoFillType == AbilityBase::AutoFillType::NEW_PASSWORD) {
-        if (system::GetBoolParameter(AUTO_FILL_START_POPUP_WINDOW, false)) {
-            return true;
-        } else if (system::GetParameter(IS_SUPPORT_PC_MODE, "false") == "true"
-            && system::GetParameter(IS_PC_MODE, "false") == "true") {
-            return true;
-        } else {
-            return false;
-        }
+        return system::GetBoolParameter(AUTO_FILL_START_POPUP_WINDOW, false) ||
+            (system::GetParameter(IS_SUPPORT_PC_MODE, "false") == "true" &&
+            system::GetParameter(IS_PC_MODE, "false") == "true");
     }
     return true;
 }
