@@ -214,9 +214,11 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
             return false;
         }
         if (!ret) {
+            DisallowCrossThreadExecutionInRecovery();
             return false;
         }
         AppRecovery::GetInstance().DoSaveAppState(reason, ability);
+        DisallowCrossThreadExecutionInRecovery();
         return true;
     }
 
@@ -260,12 +262,6 @@ bool AppRecovery::ExecuteFreezeCallbackWithVMSafety(const std::shared_ptr<OHOS::
         this->freezeCallback();
         TAG_LOGW(AAFwkTag::RECOVERY, "Freeze callback execution completed");
     }
-#ifdef SUPPORT_SCREEN
-    if (vm != nullptr) {
-        TAG_LOGI(AAFwkTag::RECOVERY, "Disallow cross Thread execution enter");
-        panda::JSNApi::DisallowCrossThreadExecution(vm);
-    }
-#endif
     return true;
 }
 
@@ -636,6 +632,10 @@ panda::ecmascript::EcmaVM* AppRecovery::GetVMFromAbility(const std::shared_ptr<A
 void AppRecovery::DisallowCrossThreadExecutionInRecovery()
 {
 #ifdef SUPPORT_SCREEN
+    if (IsEtsAPP()) {
+        TAG_LOGW(AAFwkTag::RECOVERY, "ETS application skip disallow cross-thread execution.");
+        return;
+    }
     auto abilityPtr = ability_.lock();
     if (!abilityPtr || !abilityPtr->GetAbilityContext()) {
         TAG_LOGE(AAFwkTag::RECOVERY, "null ability or context");
@@ -645,6 +645,7 @@ void AppRecovery::DisallowCrossThreadExecutionInRecovery()
     if (vm != nullptr) {
         TAG_LOGI(AAFwkTag::RECOVERY, "Disallow cross Thread execution enter");
         panda::JSNApi::DisallowCrossThreadExecution(vm);
+        TAG_LOGW(AAFwkTag::RECOVERY, "Disallow cross Thread execution completed");
     }
 #endif
 }
