@@ -22,6 +22,7 @@
 #include <regex>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "ability_debug_response_interface.h"
@@ -82,6 +83,7 @@
 #include "task_handler_wrap.h"
 #include "want.h"
 #include "app_jsheap_mem_info.h"
+#include "app_jshandle_map_info.h"
 #include "app_cjheap_mem_info.h"
 #include "running_multi_info.h"
 #include "multi_user_config_mgr.h"
@@ -107,6 +109,11 @@ class WindowVisibilityChangedListener;
 class WindowPidVisibilityChangedListener;
 using LoadAbilityTaskFunc = std::function<void()>;
 constexpr int32_t BASE_USER_RANGE = 200000;
+
+inline int32_t GetUserIdByUid(int32_t uid)
+{
+    return uid / BASE_USER_RANGE;
+}
 
 // for child process isolation
 constexpr int32_t START_ID_FOR_CHILD_PROCESS_ISOLATION = 110000;
@@ -648,6 +655,15 @@ public:
     virtual int32_t DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info);
 
     /**
+     * DumpJsHandleMap, call DumpJsHandleMap() through proxy project.
+     * dump the application's jshandle map info.
+     *
+     * @param info, pid tid
+     * @return ERR_OK ,return back success, others fail.
+     */
+    virtual int32_t DumpJsHandleMap(OHOS::AppExecFwk::JsHandleMapInfo &info);
+
+    /**
      * DumpCjHeapMemory, call DumpCjHeapMemory() through proxy project.
      * triggerGC and dump the application's cjheap memory info.
      *
@@ -1102,6 +1118,9 @@ public:
 
     void SubmitDestroyImageTask(const std::shared_ptr<AppRunningRecord>,
         const int32_t reason, const std::string &exitMsg);
+    std::string GetImageReportAppVersionName(const std::string &bundleName, int32_t userId);
+    void SendDestroyImageEvent(const std::shared_ptr<AppRunningRecord> &appRecord, const std::string &bundleName,
+        const std::string &appVersionName, int32_t reason, const std::string &exitMsg);
 
     /**
      * Record process exit reason to appRunningRecord
@@ -1211,6 +1230,8 @@ public:
     int32_t GetBundleNameByPid(const int32_t pid, std::string &bundleName, int32_t &uid);
 
     bool IsMainProcessDebug(int32_t uid);
+
+    bool IsCorrespondingProcessAttachDebug(const AbilityInfo &abilityInfo);
 
     /**
      * Notify Fault Data
@@ -2445,8 +2466,11 @@ private:
         const std::string& specifiedProcessFlag, const std::string& customProcessFlag,
         std::shared_ptr<AppRunningRecord>& appRecord);
 
-    void SnapshotStartReport(int32_t uid, const std::string &bundleName, int32_t result, const std::string &reason);
-    void SnapshotErrorReport(int32_t uid, const std::string &bundleName, int32_t result, const std::string &reason);
+    void SnapshotStartReport(int32_t uid, const std::string &bundleName, const std::string &appVersionName,
+        int32_t result, const std::string &reason);
+
+    void SnapshotErrorReport(int32_t uid, const std::string &bundleName, const std::string &appVersionName,
+        int32_t result, const std::string &reason);
 
     void MarkTemplateProcess(const std::shared_ptr<AppRunningRecord> &appRecord, std::string bundleName);
     void UnMarkTemplateProcess(int32_t templatePid);
@@ -2525,7 +2549,7 @@ private:
     std::mutex imageSerialLock_;
 
     std::mutex imageReportLock_;
-    std::map<std::string, int32_t> imageStartReportMap_;
+    std::map<std::string, std::pair<int32_t, int32_t>> imageStartReportMap_;
     std::chrono::steady_clock::time_point lastReportTime_ = std::chrono::steady_clock::now();
     int32_t imageStartCount_ {0};
 };

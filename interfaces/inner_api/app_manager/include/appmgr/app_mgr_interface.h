@@ -53,6 +53,7 @@
 #include "system_memory_attr.h"
 #include "want.h"
 #include "app_jsheap_mem_info.h"
+#include "app_jshandle_map_info.h"
 #include "app_cjheap_mem_info.h"
 #include "running_multi_info.h"
 #include "native_child_notify_interface.h"
@@ -344,6 +345,18 @@ public:
      * @return ERR_OK ,return back success, others fail.
      */
     virtual int DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info) = 0;
+
+    /**
+     * DumpJsHandleMap, call DumpJsHandleMap() through proxy project.
+     * dump the application's jshandle map info.
+     *
+     * @param info, pid tid
+     * @return ERR_OK ,return back success, others fail.
+     */
+    virtual int DumpJsHandleMap(OHOS::AppExecFwk::JsHandleMapInfo &info)
+    {
+        return 0;
+    }
 
     /**
      * DumpCjHeapMemory, call DumpCjHeapMemory() through proxy project.
@@ -684,6 +697,16 @@ public:
      * @return Returns true if the main process is in debug mode, false otherwise.
      */
     virtual bool IsMainProcessDebug(int32_t uid)
+    {
+        return false;
+    }
+
+    /**
+     * @brief Query whether the corresponding process of the app (identified by abilityInfo) is in attach debug mode.
+     * @param abilityInfo The ability info used to locate the corresponding process.
+     * @return Returns true if the corresponding process is in attach debug mode, false otherwise.
+     */
+    virtual bool IsCorrespondingProcessAttachDebug(const AbilityInfo &abilityInfo)
     {
         return false;
     }

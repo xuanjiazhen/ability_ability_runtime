@@ -519,7 +519,7 @@ bool AppRunningManager::GetPidsByUserId(int32_t userId, std::list<pid_t> &pids)
         const auto &appRecord = item.second;
         if (appRecord) {
             int32_t id = -1;
-            if ((DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->
+            if ((OsAccountManagerWrapper::
                 GetOsAccountLocalIdFromUid(appRecord->GetUid(), id) == 0) && (id == userId)) {
                 TAG_LOGD(AAFwkTag::APPMGR, "GetOsAccountLocalIdFromUid id: %{public}d", id);
                 pid_t pid = appRecord->GetPid();
@@ -543,7 +543,7 @@ bool AppRunningManager::GetProcessInfosByUserId(int32_t userId, std::list<Simple
             continue;
         }
         int32_t id = -1;
-        if ((DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->
+        if ((OsAccountManagerWrapper::
             GetOsAccountLocalIdFromUid(appRecord->GetUid(), id) == 0) && (id == userId)) {
             TAG_LOGD(AAFwkTag::APPMGR, "GetOsAccountLocalIdFromUid id: %{public}d", id);
             pid_t pid = appRecord->GetPid();
@@ -1462,6 +1462,18 @@ int32_t AppRunningManager::DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &in
         return ERR_INVALID_VALUE;
     }
     appRecord->ScheduleJsHeapMemory(info);
+    return ERR_OK;
+}
+
+int32_t AppRunningManager::DumpJsHandleMap(OHOS::AppExecFwk::JsHandleMapInfo &info)
+{
+    int32_t pid = static_cast<int32_t>(info.pid);
+    auto appRecord = GetAppRunningRecordByPid(pid);
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null appRecord");
+        return ERR_INVALID_VALUE;
+    }
+    appRecord->ScheduleJsHandleMap(info);
     return ERR_OK;
 }
 

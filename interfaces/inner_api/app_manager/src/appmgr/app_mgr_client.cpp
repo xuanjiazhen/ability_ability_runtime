@@ -540,6 +540,15 @@ bool AppMgrClient::IsMainProcessDebug(int32_t uid)
     return service->IsMainProcessDebug(uid);
 }
 
+bool AppMgrClient::IsCorrespondingProcessAttachDebug(const AbilityInfo &abilityInfo)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        return false;
+    }
+    return service->IsCorrespondingProcessAttachDebug(abilityInfo);
+}
+
 AppMgrResultCode AppMgrClient::GetProcessRunningInfosByAccessTokenId(uint32_t accessTokenId,
     std::vector<RunningProcessInfo> &info)
 {
@@ -668,6 +677,16 @@ AppMgrResultCode AppMgrClient::DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
     return AppMgrResultCode(service->DumpJsHeapMemory(info));
+}
+
+AppMgrResultCode AppMgrClient::DumpJsHandleMap(OHOS::AppExecFwk::JsHandleMapInfo &info)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "DumpJsHandleMap: service is nullptr");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return AppMgrResultCode(service->DumpJsHandleMap(info));
 }
 
 AppMgrResultCode AppMgrClient::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
