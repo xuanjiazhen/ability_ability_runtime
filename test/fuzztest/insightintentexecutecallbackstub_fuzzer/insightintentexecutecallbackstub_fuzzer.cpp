@@ -49,6 +49,11 @@ public:
     {}
     void OnExecuteDone(uint64_t key, int32_t resultCode,
         const AppExecFwk::InsightIntentExecuteResult &executeResult) override {}
+protected:
+    // Fuzzer runs in a non-foundation process; bypass the UID gate so that
+    // OnRemoteRequest still reaches OnExecuteDoneInner and exercises the
+    // parcel parsing surface we want to fuzz.
+    bool IsCallingFromFoundation() const override { return true; }
 };
 
 uint32_t GetU32Data(const char* ptr)
