@@ -54,8 +54,8 @@ target_release:
 **可能包含：**
 - napi 仓新增 NativeModuleManager 已加载模块枚举接口（InnerAPI）
 - ability_runtime 新增 NativeModuleCollector：双检查点采样、跨启动 EWMA 评分合并、原子写盘
-- **启动早期读取消费路径**：读取 predicted 预测集用于模块预加载（Q-1 确认，本期范围）
-- preload/fork 区分机制：仅统计 fork 后应用显式 import 的模块（Q-4 确认）
+- **启动早期读取消费路径**：启动框架预加载系统 so（app_startup 预加载任务）读取 predicted 中系统模块并预加载（Q-1 确认，本期范围）
+- preload/fork 区分机制：仅统计 fork 后应用显式 import 的模块（Q-4 确认）；同时需区分消费方预加载 vs 应用真实 import（防自反馈回路，见风险表）
 - 防冲突文件命名（隐藏点目录 + 进程哈希 + 格式版本）
 - 系统 CCM 参数开关门控，缺省关闭（Q-2 确认）
 - TDD 单元测试
@@ -76,6 +76,8 @@ target_release:
 | 模块为按需懒加载，单检查点（PerformAppReady）会漏采 UI 相关模块 | 技术 | 启动流程源码分析 | 已验证（结论：需双检查点） |
 | 每轮启动加载集合存在抖动，单快照不足以预测下轮 | 业务 | 需求方原话"每次启动不一定一致" | 已验证（需求方确认） |
 | preload/fork 预加载模块不计入采集，需 PreFork 快照区分 | 技术 | 需求方 2026-07-28 确认（Q-4） | 已验证（需求方确认） |
+| 消费方为启动框架预加载系统 so（app_startup PreloadSystemSoStartupTask 体系，非主线程执行，LoadNativeModule 加载系统模块） | 技术 | 源码（preload_system_so_startup_task.cpp:77-115）+ 需求方 2026-07-28 确认 | 已验证 |
+| NativeModule.refCount 可区分"消费方预加载"与"应用真实 import"（cache 命中递增语义） | 技术 | napi 仓确认 refCount 语义（native_module_manager.h:68 存在该字段） | 待验证 |
 | napi 仓 owner 接受新增 GetLoadedModuleInfos 枚举接口 | 外部依赖 | Owner 确认 | 待验证 |
 
 ### 初始分级判断
@@ -106,7 +108,7 @@ target_release:
 
 | 编号 | 问题 | 为什么需要澄清 | 状态 |
 |------|------|----------------|------|
-| Q-1 | 预测结果是否有本期消费方（如启动预加载），还是仅采集落盘？ | 决定是否需要设计读取接口与文件格式稳定性承诺 | 已澄清：**本期同时提供读取消费**（启动早期读取 predicted 集用于模块预加载），属范围新增，已重评复杂度（仍为标准） |
+| Q-1 | 预测结果是否有本期消费方（如启动预加载），还是仅采集落盘？ | 决定是否需要设计读取接口与文件格式稳定性承诺 | 已澄清：**本期同时提供读取消费，消费方为启动框架预加载系统 so**——启动早期由 app_startup 预加载任务体系（现有 `PreloadSystemSoStartupTask`）读取 predicted 中系统模块（isAppModule=false）并执行 `LoadNativeModule` 预加载；属范围新增，已重评复杂度（仍为标准） |
 | Q-2 | 开关默认策略？ | 影响量产版本风险评估与发布形态 | 已澄清：**走系统 CCM 参数控制；参数未下发/缺失时缺省关闭**（两轮回答合并） |
 | Q-3 | EWMA 评分策略是否认可为推荐方向？ | 更新策略是需求核心，参数需需求方确认可调优 | 已澄清：**认可 EWMA 方案**（α=0.4、阈值 0.5、16 轮淘汰、升级重建，参数支持调优） |
 | Q-4 | preload/fork 预加载的系统模块是否计入采集？ | 语义影响预测集内容与文件体积 | 已澄清：**不计入 preload 模块**，仅统计 fork 后应用显式 import 的模块；设计需 PreFork 快照区分 |
@@ -122,12 +124,13 @@ target_release:
 | 2026-07-28 | AI 分析 | 现状源码勘察 | NativeModuleManager 无枚举接口；import 单点汇聚；cacheDir 接口现成 | 见 K-1~K-4 |
 | 2026-07-28 | 需求方(yangzk) | 澄清第 1 轮（Q-1~Q-4） | Q-1 本期含读取消费（范围新增，触发变更控制重评）；Q-2 系统 CCM 参数；Q-3 认可 EWMA；Q-4 不计入 preload 模块 | 回写 proposal；设计需含读取路径与 PreFork 快照区分 |
 | 2026-07-28 | 需求方(yangzk) | 澄清第 2 轮（Q-5/Q-6 + Q-2 缺省跟进） | Q-5 OpenHarmony-7.1-Release；Q-6 P1、暂无 issue 保持 draft；CCM 参数缺失时缺省关闭 | 回写 proposal，待 /ohos-baseline 冻结 |
+| 2026-07-28 | 需求方(yangzk) | Q-1 消费方具体化 | 读取消费方 = **启动框架预加载系统 so**（app_startup 现有 PreloadSystemSoStartupTask 体系）；预加载对象限定 predicted 中系统模块（isAppModule=false） | 回写 proposal；新增"自反馈回路"风险与 refCount 区分假设，入 design |
 
 ### 功能范围确认
 
 | 问题 | 回答 | 确认人 | 状态 |
 |------|------|--------|------|
-| 核心功能包含哪些？ | 模块枚举接口（napi 仓）；采集器：双检查点采样、EWMA 评分合并、原子写盘；**启动早期读取消费路径（predicted 用于模块预加载）**；preload 模块排除（PreFork 快照区分）；防冲突命名；CCM 参数开关（缺省关闭）；TDD | yangzk（2026-07-28） | 已确认 |
+| 核心功能包含哪些？ | 模块枚举接口（napi 仓）；采集器：双检查点采样、EWMA 评分合并、原子写盘；**读取消费：启动框架预加载系统 so（app_startup 预加载任务读 predicted 中系统模块并预加载）**；preload 模块排除（PreFork 快照区分）；防冲突命名；CCM 参数开关（缺省关闭）；TDD | yangzk（2026-07-28） | 已确认 |
 | 明确不包含哪些？ | 场景分桶多 profile；系统侧汇总（无 IPC）；Public/System API；改动加载路径 | yangzk（2026-07-28） | 已确认 |
 | 是否有分期策略？ | 一期（本期）：采集 + 预测 + 读取消费；演进：场景分桶多 profile | yangzk（2026-07-28） | 已确认 |
 
@@ -194,6 +197,7 @@ target_release:
 |------|------|------|----------|------|
 | napi 仓 owner 不接受接口形态或排期不匹配 | 外部 | 高（阻塞） | 尽早对齐接口形态；备选：ability_runtime 侧先以弱符号/动态查询解耦（不推荐，仅兜底） | 待确认 |
 | EWMA 对强场景分化应用预测准确度有限 | 技术 | 中 | beta 期命中率上报标定参数；演进方向：场景分桶 | 已识别 |
+| **消费方预加载自反馈回路**：启动框架预加载的模块下一轮会出现在链表中，若计为"应用真实 import 命中"则预测自我强化、误判永不淘汰 | 技术 | 中 | design 候选方案：NativeModuleInfo 携带 refCount，以"refCount > 消费方预加载次数"判定真实 import 才计命中；消费方预加载集合本轮内存记录 | 已识别，入 design |
 | 缓存清理导致预测冷启动 | 技术 | 低 | 1~2 轮内快速收敛；属 cache 语义可接受行为 | 已识别 |
 | 多进程应用文件互相覆盖 | 技术 | 低 | 文件名含进程名哈希，各进程独立文件 | 已规避 |
 
@@ -254,7 +258,7 @@ target_release:
 |----------|----------|--------|
 | US-1 | 作为系统开发者，我想要应用启动时自动采集 import 的 Native 模块落盘，以便获得模块依赖事实数据 | P0 |
 | US-2 | 作为系统开发者，我想要文件按跨启动策略更新并给出下轮预测集，以便数据可直接用于启动优化 | P0 |
-| US-3 | 作为系统开发者，我想要启动早期读取 predicted 预测集并预加载对应模块，以便缩短 import 耗时 | P0 |
+| US-3 | 作为系统开发者，我想要启动框架在启动早期读取 predicted 并预加载其中的系统 so，以便缩短应用真实 import 时的加载耗时 | P0 |
 | US-4 | 作为应用开发者，我想要采集文件不与我的沙箱文件混淆、不侵犯隐私，以便无感共存 | P1 |
 
 | AC编号 | 验收标准 | 类型 | 关联Story |
@@ -267,13 +271,13 @@ target_release:
 | AC-6 | WHEN 应用升级（appVersionCode 变化） THEN 清空历史评分按冷启动重建 | 异常 | US-2 |
 | AC-7 | WHEN 应用存在多个进程 THEN 各进程写各自 <processHash8> 文件，互不覆盖 | 边界 | US-1 |
 | AC-8 | WHEN 写盘中途失败 THEN 正式文件不出现残缺内容（tmp+rename 原子性） | 异常 | US-1 |
-| AC-9 | WHEN 启动早期且文件存在 THEN 读取 predicted 模块集并对命中模块触发预加载；文件缺失/损坏时跳过预加载且不影响启动 | 正常 | US-3 |
+| AC-9 | WHEN 启动早期且文件存在且 CCM 参数开启 THEN 启动框架预加载任务读取 predicted 中系统模块（isAppModule=false）并执行 LoadNativeModule 预加载；文件缺失/损坏/格式不符时跳过预加载且不影响启动 | 正常 | US-3 |
 | AC-10 | WHEN preload/fork 阶段预加载的系统模块存在于进程链表中 THEN 采集与预测均不包含这些模块（仅统计 fork 后应用显式 import 的模块） | 边界 | US-1 |
 
 ### 范围边界
 
-**包含：** napi 仓枚举接口；ability_runtime 采集器（双检查点采样、EWMA 合并、原子写）；启动早期读取消费路径（predicted → 模块预加载）；preload 模块排除机制；防冲突命名；CCM 参数开关（缺省关闭）；TDD。
-**不包含：** 场景分桶多 profile（演进方向）；系统侧集中汇总（无 IPC）；Public/System API；模块加载路径改动。
+**包含：** napi 仓枚举接口；ability_runtime 采集器（双检查点采样、EWMA 合并、原子写）；读取消费：启动框架预加载系统 so（app_startup 预加载任务，限 predicted 中系统模块）；preload 模块排除机制；防冲突命名；CCM 参数开关（缺省关闭）；TDD。
+**不包含：** 应用模块（isAppModule=true）的预加载（so 路径涉及 hap 内库，机制不同，如有需要单列演进）；场景分桶多 profile（演进方向）；系统侧集中汇总（无 IPC）；Public/System API；模块加载路径改动。
 
 ### 影响范围
 
@@ -281,7 +285,7 @@ target_release:
 |--------|------|-----------|----------|----------|-------|
 | ArkUI/NAPI | arkui/napi | module_manager/native_module_manager.h/.cpp | Native 模块注册与加载管理 | 新增（枚举接口） | 待确认 |
 | 元能力 | ability_runtime | frameworks/native/appkit/app/（新增 native_module_collector） | 应用主线程与启动流程 | 新增 | yangzk |
-| 元能力 | ability_runtime | frameworks/native/appkit/app_startup/（读取消费路径接入，具体模块待 design） | 启动任务编排 | 修改 | yangzk |
+| 元能力 | ability_runtime | frameworks/native/appkit/app_startup/（读取消费：新增预测预加载任务或扩展 PreloadSystemSoStartupTask，具体形态待 design） | 启动任务编排、系统 so 预加载 | 修改 | yangzk |
 | 元能力 | ability_runtime | frameworks/native/appkit/app/application_impl.cpp 等 | 启动检查点接入 | 修改 | yangzk |
 | 元能力 | ability_runtime | test/unittest/native_module_collector_test/ | TDD | 新增 | yangzk |
 
