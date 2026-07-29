@@ -39,45 +39,6 @@ const int32_t MAIN_USER_ID = 100;
 namespace {
 constexpr size_t PROFILE_STRING_WARN_THRESHOLD = 4000;
 constexpr size_t PROFILE_ARRAY_WARN_THRESHOLD = 1000;
-
-void LogProfileSizeDiagnostic(const std::string &bundleName, const std::string &moduleName,
-    const std::string &profile)
-{
-    auto j = nlohmann::json::parse(profile, nullptr, false);
-    if (j.is_discarded() || !j.contains("extractInsightIntents") || !j["extractInsightIntents"].is_array()) {
-        return;
-    }
-    const auto &arr = j["extractInsightIntents"];
-    TAG_LOGD(AAFwkTag::INTENT,
-        "diagnostic: extractInsightIntents count=%{public}zu, profileSize=%{public}zu, "
-        "bundle:%{public}s module:%{public}s",
-        arr.size(), profile.size(), bundleName.c_str(), moduleName.c_str());
-
-    size_t idx = 0;
-    for (const auto &intent : arr) {
-        std::string name = intent.contains("intentName") ? intent["intentName"].get<std::string>() : "?";
-        for (auto it = intent.begin(); it != intent.end(); ++it) {
-            if (it->is_string()) {
-                size_t len = it->get<std::string>().size();
-                if (len > PROFILE_STRING_WARN_THRESHOLD) {
-                    TAG_LOGW(AAFwkTag::INTENT,
-                        "diagnostic: OVERSIZE_STRING intent[%{public}zu] name=%{public}s "
-                        "field=%{public}s len=%{public}zu",
-                        idx, name.c_str(), it.key().c_str(), len);
-                }
-            } else if (it->is_array()) {
-                size_t cnt = it->size();
-                if (cnt > PROFILE_ARRAY_WARN_THRESHOLD) {
-                    TAG_LOGW(AAFwkTag::INTENT,
-                        "diagnostic: OVERSIZE_ARRAY intent[%{public}zu] name=%{public}s "
-                        "field=%{public}s count=%{public}zu",
-                        idx, name.c_str(), it.key().c_str(), cnt);
-                }
-            }
-        }
-        ++idx;
-    }
-}
 } // namespace
 
 InsightIntentSysEventReceiver::InsightIntentSysEventReceiver(const EventFwk::CommonEventSubscribeInfo &subscribeInfo)
@@ -114,8 +75,6 @@ bool InsightIntentSysEventReceiver::SaveInsightIntentInfos(const std::string &bu
             }
             continue;
         }
-
-        LogProfileSizeDiagnostic(bundleName, moduleNameLocal, profile);
 
         // Transform json string
         bool isTransformExtractIntent = (!AbilityRuntime::ExtractInsightIntentProfile::TransformTo(profile, infos) ||

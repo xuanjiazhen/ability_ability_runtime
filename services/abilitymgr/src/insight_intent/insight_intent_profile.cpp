@@ -414,7 +414,6 @@ bool InsightIntentProfile::TransformTo(const std::string &profileStr, std::vecto
         TAG_LOGE(AAFwkTag::INTENT, "discarded jsonObject");
         return false;
     }
-    TAG_LOGD(AAFwkTag::INTENT, "jsonObject : %{public}s", SafeDump(jsonObject, DUMP_LOG_MAX_LEN).c_str());
 
     InsightIntentProfileInfoVec profileInfos;
     {
@@ -529,7 +528,6 @@ bool InsightIntentProfile::ToJson(const InsightIntentInfo &info, nlohmann::json 
     }
 
     jsonObject[INSIGHT_INTENTS] = nlohmann::json::array({ subJsonObject });
-    TAG_LOGD(AAFwkTag::INTENT, "to json string: %{public}s", SafeDump(jsonObject, DUMP_LOG_MAX_LEN).c_str());
     return true;
 }
 } // namespace AbilityRuntime
