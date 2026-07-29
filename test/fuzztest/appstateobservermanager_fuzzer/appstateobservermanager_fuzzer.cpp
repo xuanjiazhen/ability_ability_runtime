@@ -64,7 +64,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     appStateObserverManager->HandleOnRenderProcessCreated(renderRecord, false);
     appStateObserverManager->HandleOnRenderProcessDied(renderRecord);
     appStateObserverManager->HandleOnProcessCreated(processData);
-    appStateObserverManager->HandleOnProcessStateChanged(processData, bundleType, state, false);
+    appStateObserverManager->HandleOnProcessStateChanged(processData, bundleType, false);
     appStateObserverManager->HandleOnProcessDied(processData);
     AbilityStateData abilityStateData;
     bool isAbility = *data % ENABLE;

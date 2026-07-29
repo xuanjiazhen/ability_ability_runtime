@@ -428,16 +428,15 @@ void AppStateObserverManager::OnProcessStateChanged(
     }
     auto applicationInfo = appRecord->GetApplicationInfo();
     BundleType bundleType = applicationInfo != nullptr ? applicationInfo->bundleType : BundleType::APP;
-    auto state = appRecord->GetState();
 
-    auto task = [weak = weak_from_this(), data, bundleType, state, isByCall]() {
+    auto task = [weak = weak_from_this(), data, bundleType, isByCall]() {
         auto self = weak.lock();
         if (self == nullptr) {
             TAG_LOGE(AAFwkTag::APPMGR, "null self");
             return;
         }
         TAG_LOGD(AAFwkTag::APPMGR, "OnProcessStateChanged come.");
-        self->HandleOnProcessStateChanged(data, bundleType, state, isByCall);
+        self->HandleOnProcessStateChanged(data, bundleType, isByCall);
     };
     handler_->SubmitTask(task);
 }
@@ -805,14 +804,14 @@ void AppStateObserverManager::HandleOnAppProcessCreated(const ProcessData &data,
 void AppStateObserverManager::HandleOnProcessResued(const ProcessData &data, BundleType bundleType)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    AppStateFilter appStateFilter {FilterCallback::ON_PROCESS_REUSED,
+        GetFilterTypeFromBundleType(bundleType), FilterAppStateType::NONE,
+        GetFilterTypeFromAppProcessState(static_cast<AppProcessState>(data.state)),
+        FilterAbilityStateType::NONE};
     auto appStateObserverMapCopy = GetAppStateObserverMapCopy();
     for (auto it = appStateObserverMapCopy.begin(); it != appStateObserverMapCopy.end(); ++it) {
         const auto &bundleNames = it->second.bundleNames;
         auto iter = std::find(bundleNames.begin(), bundleNames.end(), data.bundleName);
-        AppStateFilter appStateFilter {FilterCallback::ON_PROCESS_REUSED,
-            GetFilterTypeFromBundleType(bundleType), FilterAppStateType::NONE,
-            GetFilterTypeFromAppProcessState(static_cast<AppProcessState>(data.state)),
-            FilterAbilityStateType::NONE};
         if ((bundleNames.empty() || iter != bundleNames.end()) && it->first != nullptr &&
             it->second.appStateFilter.Match(appStateFilter)) {
             it->first->OnProcessReused(data);
@@ -888,7 +887,7 @@ void AppStateObserverManager::HandleOnProcessCreated(const ProcessData &data, Bu
 }
 
 void AppStateObserverManager::HandleOnProcessStateChanged(
-    const ProcessData &data, BundleType bundleType, ApplicationState state, bool isByCall)
+    const ProcessData &data, BundleType bundleType, bool isByCall)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR,
@@ -901,6 +900,7 @@ void AppStateObserverManager::HandleOnProcessStateChanged(
         GetFilterTypeFromAppProcessState(static_cast<AppProcessState>(data.state)),
         FilterAbilityStateType::NONE};
     auto appStateObserverMapCopy = GetAppStateObserverMapCopy();
+    ApplicationState state = static_cast<ApplicationState>(data.state);
     for (auto it = appStateObserverMapCopy.begin(); it != appStateObserverMapCopy.end(); ++it) {
         const auto &bundleNames = it->second.bundleNames;
         auto iter = std::find(bundleNames.begin(), bundleNames.end(), data.bundleName);
