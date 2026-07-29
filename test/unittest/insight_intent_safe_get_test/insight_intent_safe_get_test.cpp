@@ -31,7 +31,6 @@ using namespace testing::ext;
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr size_t DUMP_MAX_LEN = 200;
 constexpr int32_t DEEP_NEST_DEPTH = 1500;
 
 struct SimpleItem {
@@ -148,34 +147,6 @@ HWTEST_F(IntentJsonSafeGetTest, SafeDump_0200, TestSize.Level0)
         cur = &(*cur)["c"];
     }
     EXPECT_NO_THROW(SafeDump(deep));
-}
-
-/**
- * @tc.number: SafeDump_0300
- * @tc.name: SafeDump
- * @tc.desc: Dump with maxLen truncates long strings.
- */
-HWTEST_F(IntentJsonSafeGetTest, SafeDump_0300, TestSize.Level0)
-{
-    nlohmann::json j;
-    j["long"] = std::string(500, 'x');
-    auto s = SafeDump(j, DUMP_MAX_LEN);
-    EXPECT_LE(s.size(), DUMP_MAX_LEN + std::string("...").size() + 32);
-}
-
-/**
- * @tc.number: SafeDump_0400
- * @tc.name: SafeDump
- * @tc.desc: Dump on small json with maxLen returns full content (no truncation).
- */
-HWTEST_F(IntentJsonSafeGetTest, SafeDump_0400, TestSize.Level0)
-{
-    auto j = nlohmann::json::parse(R"({"k": "v"})", nullptr, false);
-    ASSERT_FALSE(j.is_discarded());
-    auto s = SafeDump(j, DUMP_MAX_LEN);
-    EXPECT_NE(s.find("\"k\""), std::string::npos);
-    EXPECT_EQ(s.find("..."), std::string::npos)
-        << "small dump should not be truncated";
 }
 
 // ---------------- SafeDumpTo tests ----------------
