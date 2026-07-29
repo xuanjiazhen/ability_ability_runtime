@@ -1133,6 +1133,26 @@ bool JsUIExtensionContext::CheckConnectAlreadyExist(napi_env env, AAFwk::Want& w
     return true;
 }
 
+static sptr<JSUIServiceUIExtConnection> CreateUIServiceExtConnection(napi_env env, AAFwk::Want& want)
+{
+    sptr<JSUIServiceUIExtConnection> connection = sptr<JSUIServiceUIExtConnection>::MakeSptr(env);
+    if (connection == nullptr) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "null connection");
+        ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+            GetInnerErrorMsg(AbilityInnerErrorMsg::MEMORY_ALLOC_FAILED));
+        return nullptr;
+    }
+    sptr<UIExtensionServiceHostStubImpl> stub = connection->GetServiceHostStub();
+    if (stub == nullptr) {
+        TAG_LOGE(AAFwkTag::UISERVC_EXT, "null service host stub");
+        ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+            GetInnerErrorMsg(AbilityInnerErrorMsg::MEMORY_ALLOC_FAILED));
+        return nullptr;
+    }
+    want.SetParam(UISERVICEHOSTPROXY_KEY, stub->AsObject());
+    return connection;
+}
+
 napi_value JsUIExtensionContext::OnConnectUIServiceExtension(napi_env env, NapiCallbackInfo& info)
 {
     TAG_LOGI(AAFwkTag::UISERVC_EXT, "called");
@@ -1153,21 +1173,10 @@ napi_value JsUIExtensionContext::OnConnectUIServiceExtension(napi_env env, NapiC
         return result;
     }
 
-    sptr<JSUIServiceUIExtConnection> connection = sptr<JSUIServiceUIExtConnection>::MakeSptr(env);
+    sptr<JSUIServiceUIExtConnection> connection = CreateUIServiceExtConnection(env, want);
     if (connection == nullptr) {
-        TAG_LOGE(AAFwkTag::UISERVC_EXT, "null connection");
-        ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
-            GetInnerErrorMsg(AbilityInnerErrorMsg::MEMORY_ALLOC_FAILED));
         return CreateJsUndefined(env);
     }
-    sptr<UIExtensionServiceHostStubImpl> stub = connection->GetServiceHostStub();
-    if (stub == nullptr) {
-        TAG_LOGE(AAFwkTag::UISERVC_EXT, "null service host stub");
-        ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
-            GetInnerErrorMsg(AbilityInnerErrorMsg::MEMORY_ALLOC_FAILED));
-        return CreateJsUndefined(env);
-    }
-    want.SetParam(UISERVICEHOSTPROXY_KEY, stub->AsObject());
 
     result = nullptr;
     std::unique_ptr<NapiAsyncTask> uasyncTask = CreateAsyncTaskWithLastParam(env, nullptr, nullptr, nullptr, &result);
@@ -1215,6 +1224,21 @@ void JsUIExtensionContext::DoConnectUIServiceExtension(napi_env env,
     }
 }
 
+static void DoDisconnectUIServiceExtensionComplete(napi_env env, NapiAsyncTask& task,
+    int64_t connectId, std::shared_ptr<ErrCode> innerErrCode)
+{
+    if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
+        task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+        UIServiceConnection::RemoveUIServiceExtensionConnection(connectId);
+    } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER)) {
+        task.Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+            GetInnerErrorMsg(AbilityInnerErrorMsg::CONNECTION_NOT_FOUND)));
+        UIServiceConnection::RemoveUIServiceExtensionConnection(connectId);
+    } else {
+        task.ResolveWithNoError(env, CreateJsUndefined(env));
+    }
+}
+
 napi_value JsUIExtensionContext::OnDisconnectUIServiceExtension(napi_env env, NapiCallbackInfo& info)
 {
     if (info.argc < ARGC_ONE) {
@@ -1253,16 +1277,7 @@ napi_value JsUIExtensionContext::OnDisconnectUIServiceExtension(napi_env env, Na
     };
     NapiAsyncTask::CompleteCallback complete =
         [connectId, innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
-            if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
-                task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
-                UIServiceConnection::RemoveUIServiceExtensionConnection(connectId);
-            } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER)) {
-                task.Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
-                    GetInnerErrorMsg(AbilityInnerErrorMsg::CONNECTION_NOT_FOUND)));
-                UIServiceConnection::RemoveUIServiceExtensionConnection(connectId);
-            } else {
-                task.ResolveWithNoError(env, CreateJsUndefined(env));
-            }
+            DoDisconnectUIServiceExtensionComplete(env, task, connectId, innerErrCode);
         };
     napi_value result = nullptr;
     NapiAsyncTask::Schedule("JsUIExtensionContext::OnDisconnectUIServiceExtension",
