@@ -805,14 +805,14 @@ void AppStateObserverManager::HandleOnAppProcessCreated(const ProcessData &data,
 void AppStateObserverManager::HandleOnProcessResued(const ProcessData &data, BundleType bundleType)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    AppStateFilter appStateFilter {FilterCallback::ON_PROCESS_REUSED,
+        GetFilterTypeFromBundleType(bundleType), FilterAppStateType::NONE,
+        GetFilterTypeFromAppProcessState(static_cast<AppProcessState>(data.state)),
+        FilterAbilityStateType::NONE};
     auto appStateObserverMapCopy = GetAppStateObserverMapCopy();
     for (auto it = appStateObserverMapCopy.begin(); it != appStateObserverMapCopy.end(); ++it) {
         const auto &bundleNames = it->second.bundleNames;
         auto iter = std::find(bundleNames.begin(), bundleNames.end(), data.bundleName);
-        AppStateFilter appStateFilter {FilterCallback::ON_PROCESS_REUSED,
-            GetFilterTypeFromBundleType(bundleType), FilterAppStateType::NONE,
-            GetFilterTypeFromAppProcessState(static_cast<AppProcessState>(data.state)),
-            FilterAbilityStateType::NONE};
         if ((bundleNames.empty() || iter != bundleNames.end()) && it->first != nullptr &&
             it->second.appStateFilter.Match(appStateFilter)) {
             it->first->OnProcessReused(data);
