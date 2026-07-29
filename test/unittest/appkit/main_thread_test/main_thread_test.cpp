@@ -20,6 +20,7 @@
 #include "app_mgr_proxy.h"
 #include "app_mgr_stub.h"
 #include "file_path_utils.h"
+#include "js_runtime.h"
 #include "main_thread.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
@@ -31,6 +32,7 @@
 #include "sys_mgr_client.h"
 #include "ohos_application.h"
 #undef private
+#include "mock_runtime.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -3208,6 +3210,176 @@ HWTEST_F(MainThreadTest, PreloadModule_WithEmptyPreloadAbilityName_0200, TestSiz
         EXPECT_EQ(launchElement.GetBundleName(), "com.example.test");
         EXPECT_EQ(launchElement.GetModuleName(), "entry");
     }
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+class RecordingMockRuntime : public AbilityRuntime::MockRuntime {
+public:
+    uint32_t preloadCallCount = 0;
+    std::string lastModuleName;
+    std::string lastSrcPath;
+    std::string lastSrcEntrance;
+
+    void PreloadMainAbility(const std::string &moduleName, const std::string &srcPath,
+        const std::string &hapPath, bool isEsMode, const std::string &srcEntrance) override
+    {
+        preloadCallCount++;
+        lastModuleName = moduleName;
+        lastSrcPath = srcPath;
+        lastSrcEntrance = srcEntrance;
+    }
+};
+
+HWTEST_F(MainThreadTest, ProcessMainAbility_RoutesBySpecifiedRuntime_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    mainThread_->application_ = std::make_shared<OHOSApplication>();
+    std::unique_ptr<AbilityRuntime::Runtime> recordingRuntime = std::make_unique<RecordingMockRuntime>();
+    auto *recordingPtr = static_cast<RecordingMockRuntime *>(recordingRuntime.get());
+    mainThread_->application_->SetRuntime(std::move(recordingRuntime));
+
+    AbilityInfo info;
+    info.package = "com.example.test";
+    info.isModuleJson = true;
+    info.srcEntrance = "ets/pages/Index.ets";
+    info.moduleName = "entry";
+    info.name = "MainAbility";
+    info.compileMode = CompileMode::ES_MODULE;
+    info.arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2;
+    info.hapPath = "/system/app/test/test.hap";
+
+    mainThread_->ProcessMainAbility(info, mainThread_->application_->GetRuntime());
+
+    EXPECT_EQ(recordingPtr->preloadCallCount, 1u);
+    EXPECT_EQ(recordingPtr->lastModuleName, "entry::MainAbility");
+    EXPECT_EQ(recordingPtr->lastSrcEntrance, "ets/pages/Index.ets");
+    EXPECT_EQ(recordingPtr->lastSrcPath, "com.example.test/ets/pages/Index.abc");
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+HWTEST_F(MainThreadTest, ProcessMainAbility_FallbackWhenSpecifiedRuntimeNull_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    mainThread_->application_ = std::make_shared<OHOSApplication>();
+
+    std::unique_ptr<AbilityRuntime::Runtime> paramRuntime = std::make_unique<RecordingMockRuntime>();
+    auto *paramPtr = static_cast<RecordingMockRuntime *>(paramRuntime.get());
+
+    AbilityInfo info;
+    info.package = "com.example.test";
+    info.isModuleJson = true;
+    info.srcEntrance = "ets/pages/Index.ets";
+    info.moduleName = "entry";
+    info.name = "MainAbility";
+    info.compileMode = CompileMode::ES_MODULE;
+    info.arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2;
+    info.hapPath = "/system/app/test/test.hap";
+
+    mainThread_->ProcessMainAbility(info, paramRuntime);
+
+    EXPECT_EQ(paramPtr->preloadCallCount, 1u);
+    EXPECT_EQ(paramPtr->lastModuleName, "entry::MainAbility");
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+HWTEST_F(MainThreadTest, ProcessMainAbility_StaticSrcEntranceWithoutExtension_0600, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    mainThread_->application_ = std::make_shared<OHOSApplication>();
+    std::unique_ptr<AbilityRuntime::Runtime> recordingRuntime = std::make_unique<RecordingMockRuntime>();
+    auto *recordingPtr = static_cast<RecordingMockRuntime *>(recordingRuntime.get());
+    mainThread_->application_->SetRuntime(std::move(recordingRuntime));
+
+    AbilityInfo info;
+    info.package = "entry";
+    info.isModuleJson = true;
+    info.srcEntrance = "ets/pages/Index";
+    info.moduleName = "entry";
+    info.name = "MainAbility";
+    info.compileMode = CompileMode::ES_MODULE;
+    info.arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2;
+    info.hapPath = "/system/app/test/test.hap";
+
+    mainThread_->ProcessMainAbility(info, mainThread_->application_->GetRuntime());
+
+    EXPECT_EQ(recordingPtr->preloadCallCount, 1u);
+    EXPECT_EQ(recordingPtr->lastModuleName, "entry::MainAbility");
+    EXPECT_EQ(recordingPtr->lastSrcPath, "entry/ets/pages/Index");
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+HWTEST_F(MainThreadTest, PreloadModule_AppliesAppEnvironments_0700, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    mainThread_->application_ = std::make_shared<OHOSApplication>();
+    mainThread_->application_->SetRuntime(std::make_unique<AbilityRuntime::MockRuntime>());
+
+    BundleInfo bundleInfo;
+    bundleInfo.name = "com.example.test";
+    bundleInfo.bundleName = "com.example.test";
+
+    HapModuleInfo preloadModuleInfo;
+    preloadModuleInfo.bundleName = "com.example.test";
+    preloadModuleInfo.moduleName = "entry";
+    preloadModuleInfo.mainAbility = "MainAbility";
+    preloadModuleInfo.arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2;
+    AppEnvironment env;
+    env.name = "HYPERSNAP_PRELOAD_TEST_ENV";
+    env.value = "applied";
+    preloadModuleInfo.appEnvironments.emplace_back(env);
+    bundleInfo.hapModuleInfos.emplace_back(preloadModuleInfo);
+
+    AppLaunchData appLaunchData;
+    appLaunchData.SetPreloadModuleName("entry");
+    appLaunchData.SetPreloadAbilityName("MainAbility");
+
+    unsetenv("HYPERSNAP_PRELOAD_TEST_ENV");
+    ASSERT_EQ(getenv("HYPERSNAP_PRELOAD_TEST_ENV"), nullptr);
+
+    mainThread_->PreloadModule(bundleInfo, appLaunchData, preloadModuleInfo,
+        mainThread_->application_->GetRuntime());
+
+    ASSERT_NE(getenv("HYPERSNAP_PRELOAD_TEST_ENV"), nullptr);
+    EXPECT_STREQ(getenv("HYPERSNAP_PRELOAD_TEST_ENV"), "applied");
+
+    unsetenv("HYPERSNAP_PRELOAD_TEST_ENV");
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+HWTEST_F(MainThreadTest, CreateAndInitStageContext_WithJsRuntime_0800, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    mainThread_->application_ = std::make_shared<OHOSApplication>();
+    AbilityRuntime::Runtime::Options options;
+    options.lang = AbilityRuntime::Runtime::Language::ETS;
+    options.arkNativeFilePath = "test_app/";
+    options.moduleName = "TestModule";
+    auto jsRuntime = AbilityRuntime::JsRuntime::Create(options);
+    ASSERT_NE(jsRuntime, nullptr);
+    mainThread_->application_->SetRuntime(std::move(jsRuntime));
+
+    HapModuleInfo hapModuleInfo;
+    hapModuleInfo.bundleName = "com.example.test";
+    hapModuleInfo.moduleName = "entry";
+    hapModuleInfo.hapPath = "/test.hap";
+    hapModuleInfo.packageName = "com.example.test";
+
+    auto stageContext = mainThread_->application_->CreateAndInitStageContext(hapModuleInfo);
+    ASSERT_NE(stageContext, nullptr);
+
+    auto &runtime = mainThread_->application_->GetRuntime();
+    ASSERT_NE(runtime, nullptr);
+    auto &jsRuntimeRef = static_cast<AbilityRuntime::JsRuntime &>(*runtime);
+    EXPECT_EQ(jsRuntimeRef.pkgContextInfoJsonStringMap_.count("entry"), 1u);
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
