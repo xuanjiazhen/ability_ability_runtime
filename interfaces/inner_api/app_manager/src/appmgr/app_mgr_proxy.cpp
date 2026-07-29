@@ -179,7 +179,7 @@ int32_t AppMgrProxy::NotifyTemplateProcessReadyDone()
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option(MessageOption::TF_ASYNC);
+    MessageOption option(MessageOption::TF_ASYNC | MessageOption::TF_IMAGE);
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
         return IPC_PROXY_ERR;
