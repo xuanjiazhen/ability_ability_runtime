@@ -158,6 +158,7 @@ public:
 
     void ReloadFormComponent(); // Reload ArkTS-Card component
     void SetModuleLoadChecker(const std::shared_ptr<ModuleCheckerDelegate> moduleCheckerDelegate) const override;
+    void SetAbilityName(const std::string& abilityName);
 
     static std::unique_ptr<NativeReference> LoadSystemModuleByEngine(napi_env env,
         const std::string& moduleName, const napi_value* argv, size_t argc);

@@ -2965,6 +2965,7 @@ void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &
     }
     auto &runtime = application_->GetRuntime();
     UpdateRuntimeModuleChecker(runtime);
+    SetAbilityName(runtime, abilityRecord->GetAbilityInfo()->name);
 #ifdef APP_ABILITY_USE_TWO_RUNNER
     AbilityThread::AbilityThreadMain(application_, abilityRecord, stageContext);
 #else
@@ -4760,6 +4761,18 @@ void MainThread::TransferEnvToEventHandler(std::unique_ptr<Runtime> &runtime)
         return;
     }
     eventRunner->EventSetEnvToHandler(env);
+}
+
+void MainThread::SetAbilityName(const std::unique_ptr<AbilityRuntime::Runtime> &runtime,
+    const std::string& abilityName)
+{
+    if (runtime == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
+        return;
+    }
+    if (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::JS) {
+        static_cast<AbilityRuntime::JsRuntime&>(*runtime).SetAbilityName(abilityName);
+    }
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

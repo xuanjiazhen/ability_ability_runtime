@@ -1972,5 +1972,10 @@ void JsRuntime::StartLocalDebugMode(bool isDebugFromLocal)
     debugOption_.isDebugFromLocal = isDebugFromLocal;
     StartDebugMode(debugOption_);
 }
+
+void JsRuntime::SetAbilityName(const std::string& abilityName)
+{
+    panda::JSNApi::SetAbilityName(abilityName);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
