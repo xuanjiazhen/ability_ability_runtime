@@ -504,6 +504,17 @@ std::shared_ptr<AbilityRuntime::AbilityStageContext> OHOSApplication::CreateAndI
         return nullptr;
     }
 
+    // Align with the normal AddAbilityStage path (see line 592-597): the hyperSnap preload path
+    // must also warm up the HYBRID common chunk, register the JS package context, and apply app
+    // environments. Otherwise these are permanently skipped — the normal AddAbilityStage short-
+    // circuits once the stage already exists in abilityStages_, so nothing re-runs them later.
+    PreloadHybridModule(*moduleInfo);
+    if (runtime_ && (runtime_->GetLanguage() == AbilityRuntime::Runtime::Language::JS)) {
+        static_cast<AbilityRuntime::JsRuntime&>(*runtime_).SetPkgContextInfoJson(
+            moduleInfo->moduleName, moduleInfo->hapPath, moduleInfo->packageName);
+    }
+    SetAppEnv(moduleInfo->appEnvironments);
+
     if (abilityRuntimeContext_->GetApplicationInfo() &&
         abilityRuntimeContext_->GetApplicationInfo()->multiProjects) {
         auto rm = stageContext->CreateModuleContext(hapModuleInfo.moduleName)->GetResourceManager();
