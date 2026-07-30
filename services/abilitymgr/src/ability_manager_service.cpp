@@ -11047,6 +11047,10 @@ int AbilityManagerService::GetProcessRunningInfos(std::vector<AppExecFwk::Runnin
 
 int32_t AbilityManagerService::GetAllIntentExemptionInfo(std::vector<AppExecFwk::IntentExemptionInfo> &info)
 {
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetAllIntentExemptionInfo permission denied: not SA call");
+        return CHECK_PERMISSION_FAILED;
+    }
     const auto exemptionData =
         DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->GetAllIntentExemptionInfo();
     for (auto& data : exemptionData) {

@@ -3488,6 +3488,41 @@ HWTEST_F(AbilityManagerServiceFirstTest, ResolveUnknownCallerBackgroundCall_005,
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest ResolveUnknownCallerBackgroundCall_005 end");
 }
 
+/*
+ * Feature: AbilityManagerService
+ * Function: GetAllIntentExemptionInfo
+ * SubFunction: NA
+ * FunctionPoints: reject non-SA caller with CHECK_PERMISSION_FAILED and leave info untouched
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, GetAllIntentExemptionInfo_NotSACall_0001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest GetAllIntentExemptionInfo_NotSACall_0001 start");
+    MyFlag::flag_ = 0; // IsSACall() returns false
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    std::vector<IntentExemptionInfo> info;
+    EXPECT_EQ(abilityMs_->GetAllIntentExemptionInfo(info), CHECK_PERMISSION_FAILED);
+    EXPECT_TRUE(info.empty());
+    MyFlag::flag_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest GetAllIntentExemptionInfo_NotSACall_0001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetAllIntentExemptionInfo
+ * SubFunction: NA
+ * FunctionPoints: allow SA caller to reach the data-fetch path without crash
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, GetAllIntentExemptionInfo_IsSACall_0002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest GetAllIntentExemptionInfo_IsSACall_0002 start");
+    MyFlag::flag_ = MyFlag::IS_SA_CALL;
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    std::vector<IntentExemptionInfo> info;
+    EXPECT_EQ(abilityMs_->GetAllIntentExemptionInfo(info), ERR_OK);
+    MyFlag::flag_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest GetAllIntentExemptionInfo_IsSACall_0002 end");
+}
+
 
 } // namespace AAFwk
 } // namespace OHOS
