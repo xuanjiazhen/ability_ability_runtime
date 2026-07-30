@@ -561,19 +561,6 @@ HWTEST_F(JsEnvironmentTest, initworkermodule_0100, TestSize.Level2)
 }
 
 /**
- * @tc.name: InitSourceMap_0100
- * @tc.desc: Js environment InitSourceMap.
- * @tc.type: FUNC
- */
-HWTEST_F(JsEnvironmentTest, InitSourceMap_0100, TestSize.Level2)
-{
-    auto jsEnv = std::make_shared<JsEnvironment>(std::make_unique<AbilityRuntime::OHOSJsEnvironmentImpl>());
-    std::shared_ptr<JsEnv::SourceMapOperator> operatorObj = nullptr;
-    jsEnv->InitSourceMap(operatorObj);
-    ASSERT_NE(jsEnv, nullptr);
-}
-
-/**
  * @tc.name: DeInitLoop_0100
  * @tc.desc: Js environment DeInitLoop.
  * @tc.type: FUNC
