@@ -14,7 +14,7 @@
 | 复杂度 | 标准 |
 | 目标版本 | 引用 proposal.target_release（OpenHarmony-7.1-Release） |
 | Owner | yangzk |
-| 状态 | Reviewing |
+| 状态 | Approved |
 
 ## 需求基线
 

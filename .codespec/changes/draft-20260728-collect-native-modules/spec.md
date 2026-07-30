@@ -12,7 +12,7 @@
 | 优先级 | P1 |
 | 目标版本 | 引用 proposal.target_release（OpenHarmony-7.1-Release） |
 | SIG 归属 | 元能力子系统（主导），arkui/napi 仓协同 |
-| 状态 | Review |
+| 状态 | Approved |
 | 复杂度 | 标准 |
 
 ## 本次变更范围（Delta）
@@ -93,22 +93,22 @@
 
 | AC | 关联规则 | 关联 Task | 验证方式 | 证据 |
 |----|----------|-----------|----------|------|
-| AC-1.1 | R-1 | 见 execution-plan.md（下游产出） | 单测 + 设备实测 | evidence/（验证阶段产出） |
-| AC-1.2 | R-2 | 见 execution-plan.md | 单测 | evidence/ |
-| AC-1.3 | R-11 | 见 execution-plan.md | 单测 | evidence/ |
-| AC-1.4 | R-13 | 见 execution-plan.md | 单测 | evidence/ |
-| AC-1.5 | R-12 | 见 execution-plan.md | 单测 + 实测 | evidence/ |
-| AC-2.1 | R-3, R-4 | 见 execution-plan.md | 单测 | evidence/ |
-| AC-2.2 | R-5, R-6 | 见 execution-plan.md | 单测 | evidence/ |
-| AC-2.3 | R-7 | 见 execution-plan.md | 单测 | evidence/ |
-| AC-2.4 | R-8 | 见 execution-plan.md | 单测 | evidence/ |
-| AC-2.5 | R-9 | 见 execution-plan.md | 单测 | evidence/ |
-| AC-3.1 | R-10 | 见 execution-plan.md | 单测 + 实测 | evidence/ |
-| AC-3.2 | R-7, R-10 | 见 execution-plan.md | 单测 | evidence/ |
-| AC-3.3 | R-14 | 见 execution-plan.md | 单测 | evidence/ |
-| AC-3.4 | R-10 | 见 execution-plan.md | 单测 | evidence/ |
-| AC-4.1 | R-11 | 见 execution-plan.md | 单测 | evidence/ |
-| AC-4.2 | R-11 | 见 execution-plan.md | 单测 + 权限检查 | evidence/ |
+| AC-1.1 | R-1 | TASK-3, TASK-4 | 单测 + 设备实测 | evidence/（验证阶段产出） |
+| AC-1.2 | R-2 | TASK-2, TASK-8 | 单测 | evidence/ |
+| AC-1.3 | R-11 | TASK-2 | 单测 | evidence/ |
+| AC-1.4 | R-13 | TASK-3 | 单测 | evidence/ |
+| AC-1.5 | R-12 | TASK-5 | 单测 + 实测 | evidence/ |
+| AC-2.1 | R-3, R-4 | TASK-3 | 单测 | evidence/ |
+| AC-2.2 | R-5, R-6 | TASK-3 | 单测 | evidence/ |
+| AC-2.3 | R-7 | TASK-3 | 单测 | evidence/ |
+| AC-2.4 | R-8 | TASK-3 | 单测 | evidence/ |
+| AC-2.5 | R-9 | TASK-7 | 单测 | evidence/ |
+| AC-3.1 | R-10 | TASK-6 | 单测 + 实测 | evidence/ |
+| AC-3.2 | R-7, R-10 | TASK-6 | 单测 | evidence/ |
+| AC-3.3 | R-14 | TASK-6 | 单测 | evidence/ |
+| AC-3.4 | R-10 | TASK-6 | 单测 | evidence/ |
+| AC-4.1 | R-11 | TASK-2 | 单测 | evidence/ |
+| AC-4.2 | R-11 | TASK-2 | 单测 + 权限检查 | evidence/ |
 
 ## 规则定义
 
