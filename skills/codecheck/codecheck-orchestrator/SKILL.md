@@ -24,7 +24,7 @@ description: |
 | `deep-scan` | 默认：通用检视必调（一次拿 bug+logic+security 三维度） |
 | `external-input-audit` | 目标路径在服务侧（`services/`）或 IPC/DB/文件/配置密集区时调 |
 | `api-audit` | 目标涉及对外 API（`interfaces/kits/`、`frameworks/*/napi|ani|c/`、或用户指定 Kit）时调 |
-| `high-impact-bug-audit` / `logic_analyzer` / `security_review` | **不单独调**——已被 `deep-scan` 包含，避免重复 |
+| `high-impact-bug-audit` / `logic_analyzer` / `security-review` | **不单独调**——已被 `deep-scan` 包含，避免重复 |
 
 原则：**不与 deep-scan 重复调度其已含的三个维度**。本 skill 只在 deep-scan 之上**补** external-input-audit 和 api-audit，并做合并。
 
@@ -76,7 +76,7 @@ description: |
 ## 3. 分维度明细
 ### 3.1 high-impact-bug-audit（经 deep-scan）
 ### 3.2 logic_analyzer（经 deep-scan）
-### 3.3 security_review（经 deep-scan）
+### 3.3 security-review（经 deep-scan）
 ### 3.4 external-input-audit
 ### 3.5 api-audit
 
