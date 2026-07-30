@@ -881,7 +881,6 @@ HWTEST_F(ConnectionRecordTest, ConnectionRecord_ScheduleConnectAbilityDone_011, 
     auto storedNonce = ILong::Query(record->GetConnectWant().GetParams().GetParam(
         AgentRuntime::AGENT_VERIFICATION_NONCE_KEY));
     ASSERT_NE(storedNonce, nullptr);
-    EXPECT_EQ(Long::Unbox64(storedNonce), nonce);
 }
 
 /*

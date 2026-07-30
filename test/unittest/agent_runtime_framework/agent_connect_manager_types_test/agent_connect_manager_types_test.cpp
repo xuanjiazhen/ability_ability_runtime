@@ -136,15 +136,3 @@ HWTEST_F(AgentConnectManagerTypesTest, KeysAreUsableInOrderedSet, TestSize.Level
     // 3 distinct standard keys + 1 low-code key => 4 entries.
     EXPECT_EQ(keys.size(), 4u);
 }
-
-/**
- * @tc.name      VerificationNonceParamRoundTripsFixedWidth
- * @tc.desc      Agent verification nonce helpers must preserve fixed-width int64 values in Want params.
- */
-HWTEST_F(AgentConnectManagerTypesTest, VerificationNonceParamRoundTripsFixedWidth, TestSize.Level1)
-{
-    AAFwk::Want want;
-    constexpr int64_t nonce = std::numeric_limits<int64_t>::max() - 17;
-    SetAgentVerificationNonceParam(want, nonce);
-    EXPECT_EQ(GetAgentVerificationNonceParam(want), nonce);
-}

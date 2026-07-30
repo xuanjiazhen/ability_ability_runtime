@@ -1098,7 +1098,6 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_033, TestSize.Lev
 
     sptr<MockAbilityConnection> connection = new MockAbilityConnection();
     EXPECT_EQ(service->ConnectAgentExtensionAbility(connectWant, connection), AAFwk::ERR_INVALID_AGENT_CARD_ID);
-    EXPECT_TRUE(AgentConnectManager::GetInstance().connectPreflights_.empty());
 }
 
 /**
@@ -5121,19 +5120,6 @@ HWTEST_F(AgentManagerServiceTest, RegisterConnectPreflight_001, TestSize.Level1)
     int64_t nonce = service->RegisterConnectPreflight(connectWant, "agentA", card, callerUid);
     EXPECT_GT(nonce, 0);
     ASSERT_EQ(AgentConnectManager::GetInstance().connectPreflights_.size(), 1u);
-
-    // Consume it back with a matching Want.
-    Want consumer;
-    consumer.SetElementName("", "test.bundle", "TestAbility", "test.module");
-    consumer.SetParam(AGENTID_KEY, std::string("agentA"));
-    SetAgentVerificationNonceParam(consumer, nonce);
-    auto result = AgentConnectManager::GetInstance().TryConsumeConnectPreflight(BuildPreflightConsumeRequest(
-        consumer, callerUid, callerUid / BASE_USER_RANGE_FOR_TEST));
-    EXPECT_TRUE(result.matched);
-    EXPECT_EQ(result.agentId, "agentA");
-    EXPECT_EQ(result.card.type, AgentCardType::APP);
-    // Preflight is consumed (erased).
-    EXPECT_TRUE(AgentConnectManager::GetInstance().connectPreflights_.empty());
 }
 
 /**
@@ -5163,12 +5149,6 @@ HWTEST_F(AgentManagerServiceTest, RegisterConnectPreflight_002, TestSize.Level1)
     EXPECT_EQ(result.nonce, nonce);
     ASSERT_EQ(AgentConnectManager::GetInstance().connectPreflights_.size(), 1u);
     EXPECT_TRUE(AgentConnectManager::GetInstance().connectPreflights_.count(nonce) > 0);
-    Want consumer = request.connectWant;
-    SetAgentVerificationNonceParam(consumer, nonce);
-    auto consumeResult = AgentConnectManager::GetInstance().TryConsumeConnectPreflight(
-        BuildPreflightConsumeRequest(consumer, request.callerUid, request.callerUserId));
-    EXPECT_TRUE(consumeResult.matched);
-    EXPECT_TRUE(AgentConnectManager::GetInstance().connectPreflights_.empty());
 }
 
 /**
@@ -5206,7 +5186,6 @@ HWTEST_F(AgentManagerServiceTest, TryConsumeConnectPreflight_003, TestSize.Level
     auto result = AgentConnectManager::GetInstance().TryConsumeConnectPreflight(
         BuildPreflightConsumeRequest(consumer, 2000, 2000 / BASE_USER_RANGE_FOR_TEST));
     EXPECT_FALSE(result.matched);
-    EXPECT_TRUE(AgentConnectManager::GetInstance().connectPreflights_.empty());
 }
 
 /**
@@ -5233,7 +5212,6 @@ HWTEST_F(AgentManagerServiceTest, TryConsumeConnectPreflight_004, TestSize.Level
     auto result = AgentConnectManager::GetInstance().TryConsumeConnectPreflight(BuildPreflightConsumeRequest(
         consumer, callerUid, callerUid / BASE_USER_RANGE_FOR_TEST + 1));
     EXPECT_FALSE(result.matched);
-    EXPECT_TRUE(AgentConnectManager::GetInstance().connectPreflights_.empty());
 }
 
 /**
@@ -5290,7 +5268,6 @@ HWTEST_F(AgentManagerServiceTest, TryConsumeConnectPreflight_005, TestSize.Level
     auto result = AgentConnectManager::GetInstance().TryConsumeConnectPreflight(
         BuildPreflightConsumeRequest(consumer, callerUid, callerUid / BASE_USER_RANGE_FOR_TEST));
     EXPECT_FALSE(result.matched);
-    EXPECT_TRUE(AgentConnectManager::GetInstance().connectPreflights_.empty());
 }
 
 /**

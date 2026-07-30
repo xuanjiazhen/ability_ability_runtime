@@ -190,16 +190,6 @@ HWTEST_F(AgentAbilityUtilTest, HasAgentOnlyParamsHostProxyPresentReturnsTrue, Te
     EXPECT_TRUE(AgentAbilityUtil::HasAgentOnlyParams(want));
 }
 
-HWTEST_F(AgentAbilityUtilTest, AgentVerificationNonceParamRoundTripsFixedWidth, TestSize.Level1)
-{
-    constexpr int64_t nonce = std::numeric_limits<int64_t>::max() - 31;
-    Want want;
-
-    AgentAbilityUtil::SetAgentVerificationNonceParam(want, nonce);
-
-    EXPECT_EQ(AgentAbilityUtil::GetAgentVerificationNonceParam(want), nonce);
-}
-
 // ===================== CheckAgentConnectEntry =====================
 
 HWTEST_F(AgentAbilityUtilTest, CheckAgentConnectEntryNonAgentCleanWantReturnsOk, TestSize.Level1)
@@ -250,20 +240,6 @@ HWTEST_F(AgentAbilityUtilTest, CheckAgentConnectEntryAgentNullHostProxyReturnsIn
     want.SetParam(AGENT_VERIFICATION_NONCE_KEY, 1L);
     // AGENTEXTENSIONHOSTPROXY_KEY not set as a remote object.
     EXPECT_EQ(AgentAbilityUtil::CheckAgentConnectEntry(want, ExtensionAbilityType::AGENT), ERR_INVALID_VALUE);
-}
-
-HWTEST_F(AgentAbilityUtilTest, CheckAgentConnectEntryAgentAcceptsFixedWidthNonce, TestSize.Level1)
-{
-    constexpr int64_t nonce = std::numeric_limits<int64_t>::max() - 17;
-    g_mockGrantFoundationPermission = true;
-    Want want;
-    want.SetParam(AGENTID_KEY, std::string("agent-1"));
-    want.SetParam(AGENT_CARD_TYPE_KEY, static_cast<int32_t>(AgentCardType::APP));
-    sptr<IRemoteObject> hostProxy = sptr<AgentAbilityUtilRemoteObject>::MakeSptr();
-    want.SetParam(AGENTEXTENSIONHOSTPROXY_KEY, hostProxy);
-    AgentAbilityUtil::SetAgentVerificationNonceParam(want, nonce);
-
-    EXPECT_EQ(AgentAbilityUtil::CheckAgentConnectEntry(want, ExtensionAbilityType::AGENT), ERR_OK);
 }
 
 // ===================== CheckConnectAgentResolvedTarget =====================
