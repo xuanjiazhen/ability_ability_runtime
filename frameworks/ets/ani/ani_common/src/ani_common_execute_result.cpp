@@ -83,6 +83,89 @@ bool UnwrapResultOfDecoratorExecuteResult(ani_env *env, ani_object &param, Insig
     return true;
 }
 
+bool UnwrapInteractionInfoOfExecuteResult(
+    ani_env *env, ani_object &param, InsightIntentExecuteResult &executeResult)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null env");
+        return false;
+    }
+    if (!IsExistsProperty(env, param, "interactionInfo")) {
+        return true;
+    }
+    ani_boolean isUndefined = false;
+    ani_ref intentRef = nullptr;
+    if (!GetPropertyRef(env, param, "interactionInfo", intentRef, isUndefined) ||
+        isUndefined || intentRef == nullptr) {
+        return true;
+    }
+    ani_object intentObj = static_cast<ani_object>(intentRef);
+    ani_ref interactionUIRef = nullptr;
+    if (!GetPropertyRef(env, intentObj, "interactionUI", interactionUIRef, isUndefined) ||
+        isUndefined || interactionUIRef == nullptr) {
+        return true;
+    }
+    ani_object interactionUIObj = static_cast<ani_object>(interactionUIRef);
+    std::string uiType;
+    if (!GetStringProperty(env, interactionUIObj, "interactionUIType", uiType)) {
+        TAG_LOGE(AAFwkTag::INTENT, "get interactionUIType fail");
+        return false;
+    }
+    if (uiType == "MODAL_UIEXTENSION") {
+        auto modalUI = std::make_shared<AppExecFwk::InteractionModalUIExtension>();
+        modalUI->interactionUIType = uiType;
+        if (!GetStringProperty(env, interactionUIObj, "bundleName", modalUI->bundleName) ||
+            !GetStringProperty(env, interactionUIObj, "abilityName", modalUI->abilityName) ||
+            !GetStringProperty(env, interactionUIObj, "moduleName", modalUI->moduleName) ||
+            !GetStringProperty(env, interactionUIObj, "uiExtensionType", modalUI->uiExtensionType)) {
+            TAG_LOGE(AAFwkTag::INTENT, "get modal UI extension field fail");
+            return false;
+        }
+        executeResult.interactionInfo = std::make_shared<AppExecFwk::InteractionInfo>();
+        executeResult.interactionInfo->interactionUI = modalUI;
+    } else {
+        auto ui = std::make_shared<AppExecFwk::InteractionUI>();
+        ui->interactionUIType = uiType;
+        executeResult.interactionInfo = std::make_shared<AppExecFwk::InteractionInfo>();
+        executeResult.interactionInfo->interactionUI = ui;
+    }
+    if (!InsightIntentExecuteResult::CheckInteractionInfo(*executeResult.interactionInfo)) {
+        TAG_LOGE(AAFwkTag::INTENT, "Check interactionInfo fail");
+        return false;
+    }
+    return true;
+}
+
+bool UnwrapOptionalFields(
+    ani_env *env, ani_object &param, InsightIntentExecuteResult &executeResult)
+{
+    if (IsExistsProperty(env, param, "uris")) {
+        std::vector<std::string> uris;
+        if (!GetStringArrayProperty(env, param, "uris", uris)) {
+            TAG_LOGE(AAFwkTag::INTENT, "unwrap uris is null");
+            return false;
+        }
+        executeResult.uris = uris;
+    }
+
+    if (IsExistsProperty(env, param, "flags")) {
+        int32_t flags = 0;
+        if (!GetIntPropertyObject(env, param, "flags", flags)) {
+            TAG_LOGE(AAFwkTag::INTENT, "unwrap flags is null");
+            return false;
+        }
+        executeResult.flags = flags;
+    }
+
+    if (IsExistsProperty(env, param, "interactionInfo")) {
+        if (!UnwrapInteractionInfoOfExecuteResult(env, param, executeResult)) {
+            TAG_LOGE(AAFwkTag::INTENT, "unwrap interactionInfo fail");
+            return false;
+        }
+    }
+    return true;
+}
+
 bool UnwrapExecuteResult(ani_env *env, ani_object &param, InsightIntentExecuteResult &executeResult, bool isDecorator)
 {
     if (env == nullptr) {
@@ -118,25 +201,59 @@ bool UnwrapExecuteResult(ani_env *env, ani_object &param, InsightIntentExecuteRe
         }
     }
 
-    if (IsExistsProperty(env, param, "uris")) {
-        std::vector<std::string> uris;
-        if (!GetStringArrayProperty(env, param, "uris", uris)) {
-            TAG_LOGE(AAFwkTag::INTENT, "unwrap uris is null");
-            return false;
-        }
-        executeResult.uris = uris;
-    }
+    return UnwrapOptionalFields(env, param, executeResult);
+}
 
-    if (IsExistsProperty(env, param, "flags")) {
-        int32_t flags = 0;
-        if (!GetIntPropertyObject(env, param, "flags", flags)) {
-            TAG_LOGE(AAFwkTag::INTENT, "unwrap flags is null");
-            return false;
-        }
-        executeResult.flags = flags;
+ani_object WrapInteractionInfo(ani_env *env, const AppExecFwk::InteractionInfo &interactionInfo)
+{
+    if (env == nullptr || interactionInfo.interactionUI == nullptr) {
+        return nullptr;
     }
-
-    return true;
+    ani_class infoCls = nullptr;
+    ani_method infoCtor = nullptr;
+    if (env->FindClass("@ohos.app.ability.insightIntent.insightIntent.InteractionInfoInner",
+        &infoCls) != ANI_OK ||
+        env->Class_FindMethod(infoCls, "<ctor>", nullptr, &infoCtor) != ANI_OK) {
+        return nullptr;
+    }
+    ani_object infoObj = nullptr;
+    if (env->Object_New(infoCls, infoCtor, &infoObj) != ANI_OK || infoObj == nullptr) {
+        return nullptr;
+    }
+    std::string uiClassName = interactionInfo.interactionUI->interactionUIType ==
+        "MODAL_UIEXTENSION"
+        ? "@ohos.app.ability.insightIntent.insightIntent.InteractionModalUIExtensionInner"
+        : "@ohos.app.ability.insightIntent.insightIntent.InteractionUIInner";
+    ani_class uiCls = nullptr;
+    ani_method uiCtor = nullptr;
+    if (env->FindClass(uiClassName.c_str(), &uiCls) != ANI_OK ||
+        env->Class_FindMethod(uiCls, "<ctor>", nullptr, &uiCtor) != ANI_OK) {
+        return infoObj;
+    }
+    ani_object uiObj = nullptr;
+    if (env->Object_New(uiCls, uiCtor, &uiObj) != ANI_OK || uiObj == nullptr) {
+        return infoObj;
+    }
+    ani_string typeStr = nullptr;
+    env->String_NewUTF8(interactionInfo.interactionUI->interactionUIType.c_str(),
+        interactionInfo.interactionUI->interactionUIType.size(), &typeStr);
+    env->Object_SetPropertyByName_Ref(uiObj, "interactionUIType", typeStr);
+    auto modalUI = std::dynamic_pointer_cast<AppExecFwk::InteractionModalUIExtension>(
+        interactionInfo.interactionUI);
+    if (modalUI != nullptr) {
+        ani_string tmpStr = nullptr;
+        env->String_NewUTF8(modalUI->bundleName.c_str(), modalUI->bundleName.size(), &tmpStr);
+        env->Object_SetPropertyByName_Ref(uiObj, "bundleName", tmpStr);
+        env->String_NewUTF8(modalUI->abilityName.c_str(), modalUI->abilityName.size(), &tmpStr);
+        env->Object_SetPropertyByName_Ref(uiObj, "abilityName", tmpStr);
+        env->String_NewUTF8(modalUI->moduleName.c_str(), modalUI->moduleName.size(), &tmpStr);
+        env->Object_SetPropertyByName_Ref(uiObj, "moduleName", tmpStr);
+        env->String_NewUTF8(modalUI->uiExtensionType.c_str(),
+            modalUI->uiExtensionType.size(), &tmpStr);
+        env->Object_SetPropertyByName_Ref(uiObj, "uiExtensionType", tmpStr);
+    }
+    SetRefProperty(env, infoObj, "interactionUI", uiObj);
+    return infoObj;
 }
 
 ani_object WrapExecuteResult(ani_env *env, const AppExecFwk::InsightIntentExecuteResult &executeResult)
@@ -182,6 +299,10 @@ ani_object WrapExecuteResult(ani_env *env, const AppExecFwk::InsightIntentExecut
         SetStringArrayProperty(env, objValue, "uris", executeResult.uris);
     }
     SetIntPropertyObject(env, objValue, "flags", executeResult.flags);
+    if (executeResult.interactionInfo != nullptr) {
+        SetRefProperty(env, objValue, "interactionInfo",
+            WrapInteractionInfo(env, *executeResult.interactionInfo));
+    }
 
     return objValue;
 }

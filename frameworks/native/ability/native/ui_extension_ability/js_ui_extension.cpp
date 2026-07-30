@@ -49,6 +49,8 @@
 #include "ui_extension_window_command.h"
 #include "want_params_wrapper.h"
 #include "ohos_application.h"
+#include "ipc_skeleton.h"
+#include "accesstoken_kit.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -561,7 +563,12 @@ void JsUIExtension::PostInsightIntentExecuted(const sptr<AAFwk::SessionInfo> &se
         CallObjectMethod("onForeground");
     }
 
-    OnInsightIntentExecuteDone(sessionInfo, result);
+    auto selfToken = IPCSkeleton::GetSelfTokenID();
+    if (Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
+        OnInsightIntentExecuteDone(sessionInfo, result);
+    } else {
+        TAG_LOGW(AAFwkTag::UI_EXT, "not system app, skip TransferExtensionData");
+    }
 
     if (needForeground) {
         // If need foreground, that means triggered by onForeground.

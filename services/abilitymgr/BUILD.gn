@@ -139,7 +139,7 @@ ohos_shared_library("abilityms") {
   branch_protector_ret = "pac_ret"
   shlib_type = "sa"
   sources = abilityms_files
-  cflags_cc = []
+  cflags_cc = [ "-frtti" ]
   configs = [
     ":abilityms_config",
     ":abilityms_exception_config",

@@ -18,7 +18,7 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 ohos_unittest("insight_intent_execute_result_test") {
   module_out_path = "ability_runtime/ability_runtime/insight_intent"
 
-  cflags_cc = []
+  cflags_cc = [ "-frtti" ]
 
   include_dirs = []
 
