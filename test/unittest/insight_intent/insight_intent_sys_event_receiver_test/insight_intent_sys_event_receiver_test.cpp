@@ -17,6 +17,7 @@
 
 #include "insight_intent_sys_event_receiver.h"
 #include "insight_intent_event_mgr.h"
+#include "app_utils.h"
 #include "common_event_support.h"
 #include "hilog_tag_wrapper.h"
 
@@ -420,6 +421,73 @@ HWTEST_F(InsightIntentSysEventReceiverTest, UpdateInsightIntentEvent_0012, TestS
     // valid-looking input: exercises full path until BundleMgrHelper IPC fails in host env
     AppExecFwk::ElementName elementValid("", TEST_BUNDLE_NAME, "MainAbility", TEST_MODULE_NAME);
     InsightIntentEventMgr::UpdateInsightIntentEvent(elementValid, MAIN_USER_ID);
+}
+
+/**
+ * @tc.name: InsightIntentSysEventReceiverTest_OnReceiveEvent_BopdMode_0013
+ * @tc.desc: In BOPD/rescue mode OnReceiveEvent short-circuits before any handler runs,
+ *           leaving lastUserId_ untouched regardless of the incoming action/code.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentSysEventReceiverTest, OnReceiveEvent_BopdMode_0013, TestSize.Level1)
+{
+    auto& appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isBopdOrRescueMode_.isLoaded = true;
+    appUtils.isBopdOrRescueMode_.value = true;
+
+    EventFwk::CommonEventSubscribeInfo subscribeInfo;
+    auto sysEventReceiver = std::make_shared<AbilityRuntime::InsightIntentSysEventReceiver>(subscribeInfo);
+    sysEventReceiver->lastUserId_ = MAIN_USER_ID;
+    EventFwk::CommonEventData data;
+
+    data.want_.operation_.action_ = EventFwk::CommonEventSupport::COMMON_EVENT_BUNDLE_SCAN_FINISHED;
+    sysEventReceiver->OnReceiveEvent(data);
+
+    data.want_.operation_.action_ = EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED;
+    data.SetCode(OTHER_USER_ID);
+    sysEventReceiver->OnReceiveEvent(data);
+
+    data.want_.operation_.action_ = EventFwk::CommonEventSupport::COMMON_EVENT_USER_REMOVED;
+    sysEventReceiver->OnReceiveEvent(data);
+
+    EXPECT_EQ(sysEventReceiver->lastUserId_, MAIN_USER_ID);
+    appUtils.isBopdOrRescueMode_.value = false;
+}
+
+/**
+ * @tc.name: InsightIntentSysEventReceiverTest_UpdateInsightIntentEvent_BopdMode_0014
+ * @tc.desc: In BOPD/rescue mode UpdateInsightIntentEvent short-circuits before submitting
+ *           the ffrt task, so valid inputs must not crash or trigger DB operations.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentSysEventReceiverTest, UpdateInsightIntentEvent_BopdMode_0014, TestSize.Level1)
+{
+    auto& appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isBopdOrRescueMode_.isLoaded = true;
+    appUtils.isBopdOrRescueMode_.value = true;
+
+    AppExecFwk::ElementName element("", TEST_BUNDLE_NAME, "MainAbility", TEST_MODULE_NAME);
+    InsightIntentEventMgr::UpdateInsightIntentEvent(element, MAIN_USER_ID);
+
+    appUtils.isBopdOrRescueMode_.value = false;
+}
+
+/**
+ * @tc.name: InsightIntentSysEventReceiverTest_DeleteInsightIntentEvent_BopdMode_0015
+ * @tc.desc: In BOPD/rescue mode DeleteInsightIntentEvent short-circuits before touching
+ *           InsightIntentDbCache, so valid inputs must not crash or trigger DB deletion.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentSysEventReceiverTest, DeleteInsightIntentEvent_BopdMode_0015, TestSize.Level1)
+{
+    auto& appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isBopdOrRescueMode_.isLoaded = true;
+    appUtils.isBopdOrRescueMode_.value = true;
+
+    AppExecFwk::ElementName element("", TEST_BUNDLE_NAME, "MainAbility", TEST_MODULE_NAME);
+    InsightIntentEventMgr::DeleteInsightIntentEvent(element, MAIN_USER_ID, 0);
+
+    appUtils.isBopdOrRescueMode_.value = false;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
