@@ -23,6 +23,7 @@
 #include "main_thread.h"
 #include "mock_bundle_installer_service.h"
 #include "mock_bundle_manager.h"
+#include "mock_bundle_manager_service.h"
 #include "mock_overlay_manager.h"
 #include "mock_system_ability_manager.h"
 #include "ohos_application.h"
@@ -45,8 +46,6 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-    void MockBundleInstaller();
-    void MockBundleManagerForLaunch(const BundleInfo &bundleInfo);
     sptr<MainThread> mainThread_ = nullptr;
     sptr<ISystemAbilityManager> iSystemAbilityMgr_ = nullptr;
     sptr<AppExecFwk::MockSystemAbilityManager> mockSystemAbility_ = nullptr;
@@ -76,42 +75,43 @@ void MainThreadByMockBmsTest::TearDown()
     mockBundleMgrService_ = nullptr;
 }
 
-void MainThreadByMockBmsTest::MockBundleInstaller()
+void MainThreadByMockBmsTest::MockBundleInstallerSetup(sptr<BundleMgrService> mockBms,
+    sptr<AppExecFwk::MockSystemAbilityManager> mockSaMgr,
+    sptr<ISystemAbilityManager> iSaMgr)
 {
-    auto mockGetBundleInstaller = []() { return mockBundleInstaller; };
-    auto mockGetSystemAbility = [bms = mockBundleMgr, saMgr = iSystemAbilityMgr_](int32_t systemAbilityId) {
+    auto mockGetBundleInstaller = [mockBms]() { return mockBundleInstaller; };
+    auto mockGetSystemAbility = [mockBms, iSaMgr](int32_t systemAbilityId) {
         GTEST_LOG_(INFO) << "MockBundleInstaller systemAbilityId: " << systemAbilityId << " )";
         if (systemAbilityId == BUNDLE_MGR_SERVICE_SYS_ABILITY_ID || systemAbilityId == APP_MGR_SERVICE_ID) {
-            return bms->AsObject();
+            return mockBms->AsObject();
         } else {
-            return saMgr->GetSystemAbility(systemAbilityId);
+            return iSaMgr->GetSystemAbility(systemAbilityId);
         }
     };
-    EXPECT_CALL(*mockBundleMgr, GetBundleInstaller()).WillOnce(testing::Invoke(mockGetBundleInstaller));
-    EXPECT_CALL(*mockSystemAbility_, GetSystemAbility(testing::_))
+    EXPECT_CALL(*mockSaMgr, GetSystemAbility(testing::_))
         .WillRepeatedly(testing::Invoke(mockGetSystemAbility));
 }
 
-void MainThreadByMockBmsTest::MockBundleManagerForLaunch(const BundleInfo &bundleInfo)
+void MainThreadByMockBmsTest::MockBundleManagerForLaunchSetup(sptr<OHOS::MockBundleManagerService> mockBmsService,
+    sptr<AppExecFwk::MockSystemAbilityManager> mockSaMgr,
+    sptr<ISystemAbilityManager> iSaMgr,
+    const BundleInfo &bundleInfo)
 {
-    mockBundleMgrService_ = new (std::nothrow) OHOS::MockBundleManagerService();
-    ASSERT_NE(mockBundleMgrService_, nullptr);
-
-    EXPECT_CALL(*mockBundleMgrService_, GetBundleInfoForSelf(testing::_, testing::_))
+    EXPECT_CALL(*mockBmsService, GetBundleInfoForSelf(testing::_, testing::_))
         .WillOnce(testing::Invoke([bundleInfo](int32_t, BundleInfo &outInfo) {
             outInfo = bundleInfo;
             return ERR_OK;
         }));
-    EXPECT_CALL(*mockBundleMgrService_, GetBaseSharedBundleInfos(testing::_, testing::_, testing::_))
+    EXPECT_CALL(*mockBmsService, GetBaseSharedBundleInfos(testing::_, testing::_, testing::_))
         .WillRepeatedly(testing::Return(ERR_OK));
 
-    auto mockGetSystemAbility = [bms = mockBundleMgrService_, saMgr = iSystemAbilityMgr_](int32_t systemAbilityId) {
+    auto mockGetSystemAbility = [mockBmsService, iSaMgr](int32_t systemAbilityId) {
         if (systemAbilityId == BUNDLE_MGR_SERVICE_SYS_ABILITY_ID || systemAbilityId == APP_MGR_SERVICE_ID) {
-            return bms->AsObject();
+            return mockBmsService->AsObject();
         }
-        return saMgr->GetSystemAbility(systemAbilityId);
+        return iSaMgr->GetSystemAbility(systemAbilityId);
     };
-    EXPECT_CALL(*mockSystemAbility_, GetSystemAbility(testing::_))
+    EXPECT_CALL(*mockSaMgr, GetSystemAbility(testing::_))
         .WillRepeatedly(testing::Invoke(mockGetSystemAbility));
 }
 
@@ -132,7 +132,7 @@ HWTEST_F(MainThreadByMockBmsTest, SetNativeLibPath_0100, TestSize.Level1)
     appInfo.bundleName = "com.ohos.quickfix";
     launchData.SetApplicationInfo(appInfo);
     launchData.SetProcessInfo(processInfo);
-    MockBundleInstaller();
+    MockBundleInstallerSetup(mockBundleMgr, mockSystemAbility_, iSystemAbilityMgr_);
     // SetNativeLibPath is implemented in anonymous space, called by HandleLaunchApplication
     mainThread_->HandleLaunchApplication(launchData, config);
     ASSERT_NE(mainThread_->application_, nullptr);
@@ -167,7 +167,9 @@ HWTEST_F(MainThreadByMockBmsTest, AppInnerHspPathList_0100, TestSize.Level1)
     hapModuleInfo.moduleType = ModuleType::SHARED;
     bundleInfo.hapModuleInfos.emplace_back(hapModuleInfo);
 
-    MockBundleManagerForLaunch(bundleInfo);
+    mockBundleMgrService_ = new (std::nothrow) OHOS::MockBundleManagerService();
+    ASSERT_NE(mockBundleMgrService_, nullptr);
+    MockBundleManagerForLaunchSetup(mockBundleMgrService, mockSystemAbility_, iSystemAbilityMgr_, bundleInfo);
     mainThread_->HandleLaunchApplication(launchData, config);
     ASSERT_NE(mainThread_->application_, nullptr);
     const auto &innerHsp = mainThread_->runtimeUpdateParam_.option.appInnerHspPathList;
@@ -203,7 +205,9 @@ HWTEST_F(MainThreadByMockBmsTest, StaticHapModule_0100, TestSize.Level1)
     hapModuleInfo.moduleType = ModuleType::ENTRY;
     bundleInfo.hapModuleInfos.emplace_back(hapModuleInfo);
 
-    MockBundleManagerForLaunch(bundleInfo);
+    mockBundleMgrService_ = new (std::nothrow) OHOS::MockBundleManagerService();
+    ASSERT_NE(mockBundleMgrService_, nullptr);
+    MockBundleManagerForLaunchSetup(mockBundleMgrService, mockSystemAbility_, iSystemAbilityMgr_, bundleInfo);
     mainThread_->HandleLaunchApplication(launchData, config);
     ASSERT_NE(mainThread_->application_, nullptr);
     const auto &modules = mainThread_->runtimeUpdateParam_.option.staticHapModuleNameList;
@@ -217,7 +221,6 @@ HWTEST_F(MainThreadByMockBmsTest, StaticHapModule_0100, TestSize.Level1)
 /**
  * @tc.name: GetOverlayModuleInfos_0100
  * @tc.desc: Get overlay paths form mock bms.
- * @tc.type: FUNC
  * @tc.require: issueI6SAQC
  */
 HWTEST_F(MainThreadByMockBmsTest, GetOverlayModuleInfos_0100, TestSize.Level1)
@@ -243,7 +246,6 @@ HWTEST_F(MainThreadByMockBmsTest, GetOverlayModuleInfos_0100, TestSize.Level1)
 /**
  * @tc.name: DoUpdatePluginInfoInstalled_0100
  * @tc.desc: test DoUpdatePluginInfoInstalled with null applicationInfo_.
- * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(MainThreadByMockBmsTest, DoUpdatePluginInfoInstalled_0100, TestSize.Level1)
@@ -256,7 +258,7 @@ HWTEST_F(MainThreadByMockBmsTest, DoUpdatePluginInfoInstalled_0100, TestSize.Lev
 
     // Set applicationInfo_ to null
     mainThread_->applicationInfo_ = nullptr;
-    mainThread_->application_ = std::make_shared<OhosApplication>();
+    mainThread_->application_ = std::make_shared<OHOSApplication>();
 
     // Call DoUpdatePluginInfoInstalled (should return early)
     mainThread_->DoUpdatePluginInfoInstalled(pluginBundleInfos, pluginModuleNames);
@@ -268,7 +270,6 @@ HWTEST_F(MainThreadByMockBmsTest, DoUpdatePluginInfoInstalled_0100, TestSize.Lev
 /**
  * @tc.name: DoUpdatePluginInfoInstalled_0200
  * @tc.desc: test DoUpdatePluginInfoInstalled with null application_.
- * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(MainThreadByMockBmsTest, DoUpdatePluginInfoInstalled_0200, TestSize.Level1)

@@ -20,6 +20,7 @@ ohos_unittest("main_thread_test") {
 
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/appkit/dfr",
+    "${ability_runtime_test_path}/mock/frameworks_kits_runtime_test",
     "${ability_runtime_test_path}/mock/services_appmgr_test/include",
   ]
 
@@ -39,23 +40,22 @@ ohos_unittest("main_thread_test") {
   }
 
   deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:appkit_native",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
+    "${ability_runtime_native_path}/appkit:appkit_context",
   ]
 
-  public_deps =
-      [ "${global_path}/resource_management/frameworks/resmgr:global_resmgr" ]
 
   external_deps = [
     "ability_base:configuration",
+    "ability_base:string_utils",
+    "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_deps_wrapper",
-    "ability_runtime:ability_manager",
-    "ability_runtime:abilitykit_native",
-    "ability_runtime:app_manager",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -63,12 +63,15 @@ ohos_unittest("main_thread_test") {
     "eventhandler:libeventhandler",
     "faultloggerd:libbacktrace_local",
     "faultloggerd:libfaultloggerd",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
     "napi:ace_napi",
+    "resource_management:global_resmgr",
     "samgr:samgr_proxy",
   ]
 }
@@ -97,23 +100,22 @@ ohos_unittest("main_thread_by_mock_bms_test") {
   }
 
   deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:appkit_native",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
+    "${ability_runtime_native_path}/appkit:appkit_context",
   ]
 
-  public_deps =
-      [ "${global_path}/resource_management/frameworks/resmgr:global_resmgr" ]
 
   external_deps = [
     "ability_base:configuration",
+    "ability_base:extractortool",
+    "ability_base:string_utils",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_deps_wrapper",
-    "ability_runtime:ability_manager",
-    "ability_runtime:abilitykit_native",
-    "ability_runtime:app_manager",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -121,12 +123,15 @@ ohos_unittest("main_thread_by_mock_bms_test") {
     "eventhandler:libeventhandler",
     "faultloggerd:libbacktrace_local",
     "faultloggerd:libfaultloggerd",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
     "napi:ace_napi",
+    "resource_management:global_resmgr",
     "samgr:samgr_proxy",
   ]
 }
@@ -134,7 +139,6 @@ ohos_unittest("main_thread_by_mock_bms_test") {
 group("unittest") {
   testonly = true
   deps = [
-    ":main_thread_by_mock_bms_test",
     ":main_thread_test",
   ]
 }
