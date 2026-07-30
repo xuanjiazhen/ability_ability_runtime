@@ -596,13 +596,15 @@ void AppfreezeInner::EnableFreezeSample(FaultData& newFaultData)
         return;
     }
     if (IsAppFreeze(eventName)) {
-        newFaultData.appfreezeInfo = OHOS::HiviewDFX::Watchdog::GetInstance().StopSample(HALF_DURATION / HALF_INTERVAL);
+        OHOS::HiviewDFX::Watchdog::GetInstance().StopSample(HALF_DURATION / HALF_INTERVAL,
+            newFaultData.appfreezeInfo, newFaultData.stackCount);
         newFaultData.isEnableMainThreadSample = GetMainThreadSample();
         OHOS::HiviewDFX::Watchdog::GetInstance().GetSamplerResult(newFaultData.samplerStartTime,
             newFaultData.samplerFinishTime, newFaultData.samplerCount);
         TAG_LOGI(AAFwkTag::APPDFR, "stop to sample freeze stack, eventName:%{public}s freezeFile:%{public}s "
-            "enbleMainThreadSample:%{public}d.", eventName.c_str(), newFaultData.appfreezeInfo.c_str(),
-            newFaultData.isEnableMainThreadSample);
+            "enbleMainThreadSample:%{public}d, stackCount:%{public}d.",
+            eventName.c_str(), newFaultData.appfreezeInfo.c_str(),
+            newFaultData.isEnableMainThreadSample, newFaultData.stackCount);
     }
 }
 
