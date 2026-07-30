@@ -313,6 +313,7 @@ int AppfreezeManager::AppfreezeHandleWithStack(const FaultData& faultData, const
     faultNotifyData.samplerStartTime = faultData.samplerStartTime;
     faultNotifyData.samplerFinishTime = faultData.samplerFinishTime;
     faultNotifyData.samplerCount = faultData.samplerCount;
+    faultNotifyData.stackCount = faultData.stackCount;
     faultNotifyData.pid = faultData.pid;
     faultNotifyData.tid = faultData.tid;
     faultNotifyData.appfreezeInfo = faultData.appfreezeInfo;
@@ -447,6 +448,10 @@ FaultData AppfreezeManager::GetFaultNotifyData(const FaultData& faultData, int p
         faultNotifyData.tid = faultData.tid;
     }
     faultNotifyData.appfreezeInfo = faultData.appfreezeInfo;
+    faultNotifyData.samplerStartTime = faultData.samplerStartTime;
+    faultNotifyData.samplerFinishTime = faultData.samplerFinishTime;
+    faultNotifyData.samplerCount = faultData.samplerCount;
+    faultNotifyData.stackCount = faultData.stackCount;
     faultNotifyData.appRunningUniqueId = faultData.appRunningUniqueId;
     faultNotifyData.procStatm = faultData.procStatm;
     faultNotifyData.isInForeground = faultData.isInForeground;
@@ -636,6 +641,7 @@ AppfreezeEventInfo AppfreezeManager::UpdateEventInfo(
     eventInfo.processedId = faultData.processedId;
     eventInfo.dispatchedEventId = faultData.dispatchedEventId;
     eventInfo.externalLog = faultData.callbackLog;
+    eventInfo.stackCount = faultData.stackCount;
     return eventInfo;
 }
 
@@ -651,14 +657,14 @@ int AppfreezeManager::NotifyANR(const FaultData& faultData, const AppfreezeManag
     TAG_LOGW(AAFwkTag::APPDFR, "reportEvent:%{public}s, pid:%{public}d, tid:%{public}d, bundleName:%{public}s, "
         "appRunningUniqueId:%{public}s, endTime:%{public}s, interval:%{public}" PRId64 " ms, "
         "eventId:%{public}d freezeInfoFile:%{public}s foreground:%{public}d enableFreeze:%{public}d,"
-        " reportFreeze:%{public}d, applicationHeapInfo:%{public}s processLifeTime:%{public}s "
+        " reportFreeze:%{public}d, applicationHeapInfo:%{public}s processLifeTime:%{public}s stackCount:%{public}d "
         "hisysevent write ret: %{public}d",
         faultData.errorObject.name.c_str(), appInfo.pid, faultData.tid, appInfo.bundleName.c_str(),
         faultData.appRunningUniqueId.c_str(), AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str(),
         AbilityRuntime::TimeUtil::CurrentTimeMillis() - startTime, faultData.eventId,
         eventInfo.freezeInfoFile.c_str(), eventInfo.foregroundState, eventInfo.enableFreeze,
         eventInfo.reportLifecycleToFreeze, eventInfo.applicationHeapInfo.c_str(),
-        eventInfo.processLifeTime.c_str(), ret);
+        eventInfo.processLifeTime.c_str(), eventInfo.stackCount, ret);
     OHOS::HiviewDFX::HiTraceChain::ClearId();
     return 0;
 }

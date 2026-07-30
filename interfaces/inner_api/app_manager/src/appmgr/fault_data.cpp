@@ -113,6 +113,7 @@ bool FaultData::ReadContent(Parcel &parcel)
     markedId = parcel.ReadInt32();
     processedId = parcel.ReadInt32();
     dispatchedEventId = parcel.ReadInt32();
+    stackCount = parcel.ReadUint32();
     return ReadLeakContent(parcel);
 }
 
@@ -305,6 +306,10 @@ bool FaultData::WriteContent(Parcel &parcel) const
 
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteInt32(dispatchedEventId),
         "DispatchedEventId [%{public}d] write int32 failed.", dispatchedEventId
+    );
+
+    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteUint32(stackCount),
+        "StackCount [%{public}u] write uint32 failed.", stackCount
     );
 
     return WriteLeakContent(parcel);

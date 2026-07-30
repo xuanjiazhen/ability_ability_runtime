@@ -596,7 +596,10 @@ void AppfreezeInner::EnableFreezeSample(FaultData& newFaultData)
         return;
     }
     if (IsAppFreeze(eventName)) {
-        newFaultData.appfreezeInfo = OHOS::HiviewDFX::Watchdog::GetInstance().StopSample(HALF_DURATION / HALF_INTERVAL);
+        size_t stackCount = 0;
+        OHOS::HiviewDFX::Watchdog::GetInstance().StopSample(HALF_DURATION / HALF_INTERVAL,
+            newFaultData.appfreezeInfo, stackCount);
+        newFaultData.stackCount = static_cast<uint32_t>(stackCount);
         newFaultData.isEnableMainThreadSample = GetMainThreadSample();
         OHOS::HiviewDFX::Watchdog::GetInstance().GetSamplerResult(newFaultData.samplerStartTime,
             newFaultData.samplerFinishTime, newFaultData.samplerCount);

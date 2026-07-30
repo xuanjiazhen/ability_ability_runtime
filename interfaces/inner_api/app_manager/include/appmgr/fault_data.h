@@ -110,6 +110,7 @@ struct FaultData : public Parcelable {
     int32_t markedId = 0;
     int32_t processedId = 0;
     int32_t dispatchedEventId = 0;
+    uint32_t stackCount = 0;
     LeakObject leakObject;
     std::string callbackLog;
     AppTelemetryLeakType atLeakType;

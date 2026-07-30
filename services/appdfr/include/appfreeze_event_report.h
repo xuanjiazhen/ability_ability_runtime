@@ -47,6 +47,7 @@ struct AppfreezeEventInfo {
     int pid = 0;
     int uid = 0;
     int eventId = -1;
+    uint32_t stackCount = 0;
     bool foregroundState;
     bool enableFreeze;
     bool reportLifecycleToFreeze = false;

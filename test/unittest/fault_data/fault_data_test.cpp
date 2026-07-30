@@ -67,6 +67,7 @@ void TestFaultDataUnmarshalling(MessageParcel& message)
     message.WriteInt32(testValue1);
     message.WriteInt32(testValue1);
     message.WriteInt32(testValue1);
+    message.WriteUint32(testValue1);
     message.WriteInt32(testValue2);
     message.WriteUint64(testValue3);
     message.WriteUint64(testValue3);
