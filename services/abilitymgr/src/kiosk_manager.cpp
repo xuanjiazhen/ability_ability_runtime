@@ -35,6 +35,8 @@
 namespace OHOS {
 namespace AAFwk {
 constexpr char KIOSK_MODE_ENABLED[] = "const.product.kioskmode.enabled";
+constexpr int32_t API_VERSION_MOD = 100;
+constexpr int32_t KIOSK_FOREGROUND_CHECK_API_VERSION = 20;
 
 KioskManager &KioskManager::GetInstance()
 {
@@ -139,7 +141,8 @@ int32_t KioskManager::EnterKioskMode(sptr<IRemoteObject> callerToken)
         return INVALID_PARAMETERS_ERR;
     }
     std::string bundleName = record->GetAbilityInfo().bundleName;
-    if (!CheckCallerIsForeground(callerToken)) {
+    if (record->GetApplicationInfo().apiTargetVersion % API_VERSION_MOD < KIOSK_FOREGROUND_CHECK_API_VERSION &&
+        !CheckCallerIsForeground(callerToken)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "The application is not in the foreground !");
         return ERR_APP_NOT_IN_FOCUS;
     }

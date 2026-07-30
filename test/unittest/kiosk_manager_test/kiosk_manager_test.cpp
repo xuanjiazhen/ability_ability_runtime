@@ -457,6 +457,52 @@ HWTEST_F(KioskManagerTest, EnterKioskMode_002, TestSize.Level1) {
 
 /*
  * Feature: KioskManager
+ * Function: EnterKioskMode
+ * SubFunction: NA
+ */
+HWTEST_F(KioskManagerTest, EnterKioskMode_003, TestSize.Level1)
+{
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    KioskManager &kiosk = KioskManager::GetInstance();
+    kiosk.kioskStatus_.isKioskMode_ = false;
+    kiosk.whitelist_.clear();
+
+    AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = "com.test.kiosk.api0";
+    abilityRequest.appInfo.apiTargetVersion = 0;
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.type = AbilityType::PAGE;
+    abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    EXPECT_NE(abilityRecord, nullptr);
+    auto callerToken = abilityRecord->GetToken();
+    EXPECT_EQ(kiosk.EnterKioskMode(callerToken), ERR_APP_NOT_IN_FOCUS);
+}
+
+/*
+ * Feature: KioskManager
+ * Function: EnterKioskMode
+ * SubFunction: NA
+ */
+HWTEST_F(KioskManagerTest, EnterKioskMode_004, TestSize.Level1)
+{
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    KioskManager &kiosk = KioskManager::GetInstance();
+    kiosk.kioskStatus_.isKioskMode_ = false;
+    kiosk.whitelist_.clear();
+
+    AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = "com.test.kiosk.api20";
+    abilityRequest.appInfo.apiTargetVersion = 20;
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.type = AbilityType::PAGE;
+    abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    EXPECT_NE(abilityRecord, nullptr);
+    auto callerToken = abilityRecord->GetToken();
+    EXPECT_EQ(kiosk.EnterKioskMode(callerToken), ERR_KIOSK_MODE_NOT_IN_WHITELIST);
+}
+
+/*
+ * Feature: KioskManager
  * Function: UpdateKioskApplicationList
  * SubFunction: NA
  * FunctionPoints: KioskManager UpdateKioskApplicationList
