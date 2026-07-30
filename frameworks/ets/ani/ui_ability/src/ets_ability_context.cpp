@@ -58,7 +58,6 @@ constexpr uint64_t MAX_REQUEST_CODE = (1ULL << 49) - 1;
 constexpr size_t MAX_REQUEST_CODE_LENGTH = 15;
 constexpr int32_t BASE_REQUEST_CODE_NUM = 10;\
 constexpr const int FAILED_CODE = -1;
-static std::mutex g_connectsMutex;
 static std::map<EtsConnectionKey, sptr<ETSAbilityConnection>, EtsKeyCompare> g_connects;
 constexpr const char* UI_ABILITY_CONTEXT_CLASS_NAME = "application.UIAbilityContext.UIAbilityContext";
 constexpr const char* CLEANER_CLASS = "application.UIAbilityContext.Cleaner";
@@ -1612,7 +1611,7 @@ void EtsAbilityContext::OnDisconnectServiceExtensionAbility(ani_env *env, ani_ob
     AAFwk::Want want;
     int32_t accountId = -1;
     {
-        std::lock_guard<std::mutex> lock(g_connectsMutex);
+        std::lock_guard<std::recursive_mutex> lock(g_connectsLock);
         auto iter = std::find_if(
             g_connects.begin(), g_connects.end(), [&connectId](const auto &obj) { return connectId == obj.first.id; });
         if (iter != g_connects.end()) {
