@@ -846,6 +846,48 @@ DataObsMgrService::FocusedAppInfo DataObsMgrService::GetFocusedWindowInfo() cons
     return appInfo;
 }
 
+bool DataObsMgrService::IsFocusedApp(uint32_t tokenId) const
+{
+    if (AccessTokenKit::GetTokenTypeFlag(tokenId) != ATokenTypeEnum::TOKEN_HAP) {
+        TAG_LOGD(AAFwkTag::DBOBSMGR, "caller is not application");
+        return true;
+    }
+    int32_t userId = GetCallingUserId(tokenId);
+    if (userId < 0) {
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "userId invalid");
+        return false;
+    }
+    Rosen::FocusChangeInfo info;
+#ifdef SCENE_BOARD_ENABLE
+    Rosen::WindowManagerLite::GetInstance(userId).GetFocusWindowInfo(info);
+#else
+    Rosen::WindowManager::GetInstance(userId).GetFocusWindowInfo(info);
+#endif
+    auto callPid = IPCSkeleton::GetCallingPid();
+    if (callPid == info.pid_) {
+        TAG_LOGD(AAFwkTag::DBOBSMGR, "pid is same, it is focused app");
+        return true;
+    }
+    uint64_t displayId = 0;
+    auto displayRet = AccountSA::OsAccountManager::GetForegroundOsAccountDisplayId(userId, displayId);
+    if (displayRet != ERR_OK) {
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "get foreground display id failed, ret=%{public}d", displayRet);
+    }
+    auto remote = GetAbilityManagerService();
+    if (remote == nullptr) {
+        return false;
+    }
+    auto abilityManager = iface_cast<IAbilityManager>(remote);
+    if (abilityManager == nullptr) {
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "Get ability manager proxy failed");
+        return false;
+    }
+    bool isFocused = false;
+    int32_t ret = abilityManager->CheckUIExtensionIsFocused(tokenId, isFocused, displayId);
+    TAG_LOGD(AAFwkTag::DBOBSMGR, "check result:%{public}d, isFocused:%{public}d", ret, isFocused);
+    return ret == NO_ERROR && isFocused;
+}
+
 sptr<IRemoteObject> DataObsMgrService::GetAbilityManagerService() const
 {
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
@@ -861,11 +903,12 @@ sptr<IRemoteObject> DataObsMgrService::GetAbilityManagerService() const
     return remoteObject;
 }
 
-Status DataObsMgrService::NotifyProcessObserver(const std::string &key, const sptr<IRemoteObject> &observer,
-    DataObsOption opt)
+Status DataObsMgrService::NotifyProcessObserver(const std::string &key, const sptr<IRemoteObject> observer)
 {
-    if (!IsCallingPermissionValid(opt)) {
-        return DATAOBS_NOT_SYSTEM_APP;
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!IsFocusedApp(tokenId)) {
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "caller is not focused, token:%{public}u", tokenId);
+        return DATAOBS_PERMISSION_DENY;
     }
     auto remote = GetAbilityManagerService();
     if (remote == nullptr) {
