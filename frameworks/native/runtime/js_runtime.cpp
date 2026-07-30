@@ -1455,6 +1455,7 @@ void JsRuntime::DumpJsHandleMap()
     auto vm = GetEcmaVm();
     CHECK_POINTER(vm);
     DFXJSNApi::GetHandleNodeIdMap(vm);
+    DFXJSNApi::DestroyHeapProfiler(vm);
 }
 
 size_t JsRuntime::GetHeapTotalSize()
