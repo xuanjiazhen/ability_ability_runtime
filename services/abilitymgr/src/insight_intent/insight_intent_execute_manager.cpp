@@ -956,6 +956,20 @@ std::shared_ptr<AbilityRuntime::InsightIntentEntityInfo> InsightIntentExecuteMan
     return nullptr;
 }
 
+std::string GetAbilityNameFromMatched(const ExtractInsightIntentGenericInfo &info)
+{
+    if (info.currentType == InfoType::Entry) {
+        return info.get<InsightIntentEntryInfo>().abilityName;
+    }
+    if (info.currentType == InfoType::Page) {
+        return info.get<InsightIntentPageInfo>().uiAbility;
+    }
+    if (info.currentType == InfoType::Form) {
+        return info.get<InsightIntentFormInfo>().abilityName;
+    }
+    return "";
+}
+
 int32_t InsightIntentExecuteManager::GenerateQueryEntityWant(
     const std::shared_ptr<AppExecFwk::InsightIntentQueryParam> &param, Want &want)
 {
@@ -976,7 +990,10 @@ int32_t InsightIntentExecuteManager::GenerateQueryEntityWant(
         return INTENT_NOT_EXIST;
     }
 
-    auto abilityName = InsightIntentExecuteManager::GetMainElementName(param->bundleName_, param->moduleName_);
+    auto abilityName = GetAbilityNameFromMatched(intentInfo.genericInfo);
+    if (abilityName.empty()) {
+        abilityName = InsightIntentExecuteManager::GetMainElementName(param->bundleName_, param->moduleName_);
+    }
     if (abilityName.empty()) {
         TAG_LOGE(AAFwkTag::INTENT, "ability name empty");
         return ERR_INVALID_VALUE;
