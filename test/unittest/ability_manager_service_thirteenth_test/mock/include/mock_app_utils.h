@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_APP_UTILS_H
 #define OHOS_ABILITY_RUNTIME_APP_UTILS_H
 
+#include <atomic>
 #include <mutex>
 #include <string>
 
@@ -30,7 +31,10 @@ constexpr const int32_t DEFAULT_MAX_CHILD_PROCESS = 0;
 template<typename T>
 class DeviceConfiguration {
 public:
-    bool isLoaded = false;
+    DeviceConfiguration() : isLoaded(false), value() {}
+    DeviceConfiguration(bool loaded, T val) : isLoaded(loaded), value(val) {}
+
+    std::atomic<bool> isLoaded{false};
     T value;
 };
 

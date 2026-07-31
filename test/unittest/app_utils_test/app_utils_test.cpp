@@ -1164,5 +1164,50 @@ HWTEST_F(AppUtilsTest, IsBopdOrRescueMode_0200, TestSize.Level2)
     appUtils.isBopdOrRescueMode_.value = false;
     EXPECT_FALSE(appUtils.IsBopdOrRescueMode());
 }
+/**
+ * @tc.number: GetBrokerDelegateBundleName_0100
+ * @tc.desc: Test GetBrokerDelegateBundleName loads from system parameter on first call
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppUtilsTest, GetBrokerDelegateBundleName_0100, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetBrokerDelegateBundleName_0100 called.");
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.brokerDelegateBundleName_.isLoaded = false;
+    auto value = system::GetParameter("const.sys.abilityms.broker_delegate_bundle_name", "");
+    auto result = appUtils.GetBrokerDelegateBundleName();
+    EXPECT_EQ(value, result);
+}
+
+/**
+ * @tc.number: GetBrokerDelegateBundleName_0200
+ * @tc.desc: Test GetBrokerDelegateBundleName returns cached value on second call
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppUtilsTest, GetBrokerDelegateBundleName_0200, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetBrokerDelegateBundleName_0200 called.");
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.brokerDelegateBundleName_.isLoaded = true;
+    appUtils.brokerDelegateBundleName_.value = "com.test.broker";
+    auto result = appUtils.GetBrokerDelegateBundleName();
+    EXPECT_EQ("com.test.broker", result);
+}
+
+/**
+ * @tc.number: GetBrokerDelegateBundleName_0300
+ * @tc.desc: Test GetBrokerDelegateBundleName reloads after reset
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppUtilsTest, GetBrokerDelegateBundleName_0300, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetBrokerDelegateBundleName_0300 called.");
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.brokerDelegateBundleName_.isLoaded = false;
+    appUtils.brokerDelegateBundleName_.value = "stale_value";
+    auto value = system::GetParameter("const.sys.abilityms.broker_delegate_bundle_name", "");
+    auto result = appUtils.GetBrokerDelegateBundleName();
+    EXPECT_EQ(value, result);
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS

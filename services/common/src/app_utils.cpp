@@ -120,7 +120,7 @@ AppUtils::AppUtils()
 #ifdef ABILITY_RUNTIME_FORBID_START_ENABLED
     if (WatchParameter(FORBID_START, AppUtils::ForbidStartCallback, nullptr) != 0) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "want param failed: %{public}s", FORBID_START);
-        isForbidStart_.isLoaded = false;
+        isForbidStart_.isLoaded.store(false, std::memory_order_release);
     }
 #endif
 }
@@ -160,9 +160,9 @@ bool AppUtils::IsLauncherAbility(const std::string &abilityName) const
 
 bool AppUtils::IsInheritWindowSplitScreenMode()
 {
-    if (!isInheritWindowSplitScreenMode_.isLoaded) {
+    if (!isInheritWindowSplitScreenMode_.isLoaded.load(std::memory_order_acquire)) {
         isInheritWindowSplitScreenMode_.value = system::GetBoolParameter(INHERIT_WINDOW_SPLIT_SCREEN_MODE, true);
-        isInheritWindowSplitScreenMode_.isLoaded = true;
+        isInheritWindowSplitScreenMode_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isInheritWindowSplitScreenMode_.value);
     return isInheritWindowSplitScreenMode_.value;
@@ -170,9 +170,9 @@ bool AppUtils::IsInheritWindowSplitScreenMode()
 
 bool AppUtils::IsSupportAncoApp()
 {
-    if (!isSupportAncoApp_.isLoaded) {
+    if (!isSupportAncoApp_.isLoaded.load(std::memory_order_acquire)) {
         isSupportAncoApp_.value = system::GetBoolParameter(SUPPORT_ANCO_APP, false);
-        isSupportAncoApp_.isLoaded = true;
+        isSupportAncoApp_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportAncoApp_.value);
     return isSupportAncoApp_.value;
@@ -180,10 +180,10 @@ bool AppUtils::IsSupportAncoApp()
 
 bool AppUtils::IsRescueMode()
 {
-    if (!isRescueMode_.isLoaded) {
+    if (!isRescueMode_.isLoaded.load(std::memory_order_acquire)) {
         isRescueMode_.value = (system::GetParameter("soc.boot.mode", "") == "rescue");
         TAG_LOGI(AAFwkTag::DEFAULT, "rescue mode: %{public}s", isRescueMode_.value ? "true" : "false");
-        isRescueMode_.isLoaded = true;
+        isRescueMode_.isLoaded.store(true, std::memory_order_release);
     }
 
     return isRescueMode_.value;
@@ -191,7 +191,7 @@ bool AppUtils::IsRescueMode()
 
 int32_t AppUtils::GetTimeoutUnitTimeRatio()
 {
-    if (!timeoutUnitTimeRatio_.isLoaded) {
+    if (!timeoutUnitTimeRatio_.isLoaded.load(std::memory_order_acquire)) {
         timeoutUnitTimeRatio_.value = system::GetIntParameter<int32_t>(TIMEOUT_UNIT_TIME_RATIO, 1);
         if (IsRescueMode()) {
             TAG_LOGI(AAFwkTag::DEFAULT, "rescue mode: increase timeout ratio");
@@ -202,7 +202,7 @@ int32_t AppUtils::GetTimeoutUnitTimeRatio()
                 timeoutUnitTimeRatio_.value = INT32_MAX;
             }
         }
-        timeoutUnitTimeRatio_.isLoaded = true;
+        timeoutUnitTimeRatio_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", timeoutUnitTimeRatio_.value);
     return timeoutUnitTimeRatio_.value;
@@ -210,9 +210,9 @@ int32_t AppUtils::GetTimeoutUnitTimeRatio()
 
 bool AppUtils::IsSelectorDialogDefaultPossion()
 {
-    if (!isSelectorDialogDefaultPossion_.isLoaded) {
+    if (!isSelectorDialogDefaultPossion_.isLoaded.load(std::memory_order_acquire)) {
         isSelectorDialogDefaultPossion_.value = system::GetBoolParameter(SELECTOR_DIALOG_POSSION, true);
-        isSelectorDialogDefaultPossion_.isLoaded = true;
+        isSelectorDialogDefaultPossion_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSelectorDialogDefaultPossion_.value);
     return isSelectorDialogDefaultPossion_.value;
@@ -220,9 +220,9 @@ bool AppUtils::IsSelectorDialogDefaultPossion()
 
 bool AppUtils::IsStartSpecifiedProcess()
 {
-    if (!isStartSpecifiedProcess_.isLoaded) {
+    if (!isStartSpecifiedProcess_.isLoaded.load(std::memory_order_acquire)) {
         isStartSpecifiedProcess_.value = system::GetBoolParameter(START_SPECIFIED_PROCESS, false);
-        isStartSpecifiedProcess_.isLoaded = true;
+        isStartSpecifiedProcess_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isStartSpecifiedProcess_.value);
     return isStartSpecifiedProcess_.value;
@@ -230,9 +230,9 @@ bool AppUtils::IsStartSpecifiedProcess()
 
 bool AppUtils::IsUseMultiRenderProcess()
 {
-    if (!isUseMultiRenderProcess_.isLoaded) {
+    if (!isUseMultiRenderProcess_.isLoaded.load(std::memory_order_acquire)) {
         isUseMultiRenderProcess_.value = system::GetBoolParameter(USE_MULTI_RENDER_PROCESS, true);
-        isUseMultiRenderProcess_.isLoaded = true;
+        isUseMultiRenderProcess_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isUseMultiRenderProcess_.value);
     return isUseMultiRenderProcess_.value;
@@ -240,9 +240,9 @@ bool AppUtils::IsUseMultiRenderProcess()
 
 bool AppUtils::IsLimitMaximumOfRenderProcess()
 {
-    if (!isLimitMaximumOfRenderProcess_.isLoaded) {
+    if (!isLimitMaximumOfRenderProcess_.isLoaded.load(std::memory_order_acquire)) {
         isLimitMaximumOfRenderProcess_.value = system::GetBoolParameter(LIMIT_MAXIMUM_OF_RENDER_PROCESS, true);
-        isLimitMaximumOfRenderProcess_.isLoaded = true;
+        isLimitMaximumOfRenderProcess_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isLimitMaximumOfRenderProcess_.value);
     return isLimitMaximumOfRenderProcess_.value;
@@ -250,9 +250,9 @@ bool AppUtils::IsLimitMaximumOfRenderProcess()
 
 bool AppUtils::IsGrantPersistUriPermission()
 {
-    if (!isGrantPersistUriPermission_.isLoaded) {
+    if (!isGrantPersistUriPermission_.isLoaded.load(std::memory_order_acquire)) {
         isGrantPersistUriPermission_.value = system::GetBoolParameter(GRANT_PERSIST_URI_PERMISSION, false);
-        isGrantPersistUriPermission_.isLoaded = true;
+        isGrantPersistUriPermission_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isGrantPersistUriPermission_.value);
     return isGrantPersistUriPermission_.value;
@@ -260,9 +260,9 @@ bool AppUtils::IsGrantPersistUriPermission()
 
 bool AppUtils::IsSupportGrantUriPermission()
 {
-    if (!isGrantTempUriPermission_.isLoaded) {
+    if (!isGrantTempUriPermission_.isLoaded.load(std::memory_order_acquire)) {
         isGrantTempUriPermission_.value = system::GetBoolParameter(GRANT_TEMPORARY_URI_PERMISSION, true);
-        isGrantTempUriPermission_.isLoaded = true;
+        isGrantTempUriPermission_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isGrantTempUriPermission_.value);
     return isGrantTempUriPermission_.value;
@@ -270,9 +270,9 @@ bool AppUtils::IsSupportGrantUriPermission()
 
 bool AppUtils::IsStartOptionsWithAnimation()
 {
-    if (!isStartOptionsWithAnimation_.isLoaded) {
+    if (!isStartOptionsWithAnimation_.isLoaded.load(std::memory_order_acquire)) {
         isStartOptionsWithAnimation_.value = system::GetBoolParameter(START_OPTIONS_WITH_ANIMATION, false);
-        isStartOptionsWithAnimation_.isLoaded = true;
+        isStartOptionsWithAnimation_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isStartOptionsWithAnimation_.value);
     return isStartOptionsWithAnimation_.value;
@@ -280,9 +280,9 @@ bool AppUtils::IsStartOptionsWithAnimation()
 
 bool AppUtils::IsSupportStartAbilities()
 {
-    if (!isSupportStartAbilities_.isLoaded) {
+    if (!isSupportStartAbilities_.isLoaded.load(std::memory_order_acquire)) {
         isSupportStartAbilities_.value = system::GetBoolParameter(SUPPORT_START_ABILITIES, false);
-        isSupportStartAbilities_.isLoaded = true;
+        isSupportStartAbilities_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportStartAbilities_.value);
     return isSupportStartAbilities_.value;
@@ -290,9 +290,9 @@ bool AppUtils::IsSupportStartAbilities()
 
 bool AppUtils::IsMultiProcessModel()
 {
-    if (!isMultiProcessModel_.isLoaded) {
+    if (!isMultiProcessModel_.isLoaded.load(std::memory_order_acquire)) {
         isMultiProcessModel_.value = system::GetBoolParameter(MULTI_PROCESS_MODEL, false);
-        isMultiProcessModel_.isLoaded = true;
+        isMultiProcessModel_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isMultiProcessModel_.value);
     return isMultiProcessModel_.value;
@@ -300,10 +300,10 @@ bool AppUtils::IsMultiProcessModel()
 
 bool AppUtils::AllowChildProcessInMultiProcessFeatureApp()
 {
-    if (!allowChildProcessInMultiProcessFeatureApp_.isLoaded) {
+    if (!allowChildProcessInMultiProcessFeatureApp_.isLoaded.load(std::memory_order_acquire)) {
         allowChildProcessInMultiProcessFeatureApp_.value =
             system::GetBoolParameter(ALLOW_CHILD_PROCESS_IN_MULTI_PROCESS_FEATURE_APP, false);
-            allowChildProcessInMultiProcessFeatureApp_.isLoaded = true;
+        allowChildProcessInMultiProcessFeatureApp_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "AllowChildProcessInMultiProcessFeatureApp:%{public}d",
         allowChildProcessInMultiProcessFeatureApp_.value);
@@ -312,9 +312,9 @@ bool AppUtils::AllowChildProcessInMultiProcessFeatureApp()
 
 bool AppUtils::IsStartOptionsWithProcessOptions()
 {
-    if (!isStartOptionsWithProcessOptions_.isLoaded) {
+    if (!isStartOptionsWithProcessOptions_.isLoaded.load(std::memory_order_acquire)) {
         isStartOptionsWithProcessOptions_.value = system::GetBoolParameter(START_OPTIONS_WITH_PROCESS_OPTION, false);
-        isStartOptionsWithProcessOptions_.isLoaded = true;
+        isStartOptionsWithProcessOptions_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isStartOptionsWithProcessOptions_.value);
     return isStartOptionsWithProcessOptions_.value;
@@ -322,10 +322,10 @@ bool AppUtils::IsStartOptionsWithProcessOptions()
 
 bool AppUtils::EnableMoveUIAbilityToBackgroundApi()
 {
-    if (!enableMoveUIAbilityToBackgroundApi_.isLoaded) {
+    if (!enableMoveUIAbilityToBackgroundApi_.isLoaded.load(std::memory_order_acquire)) {
         enableMoveUIAbilityToBackgroundApi_.value =
             system::GetBoolParameter(MOVE_UI_ABILITY_TO_BACKGROUND_API_ENABLE, true);
-        enableMoveUIAbilityToBackgroundApi_.isLoaded = true;
+        enableMoveUIAbilityToBackgroundApi_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", enableMoveUIAbilityToBackgroundApi_.value);
     return enableMoveUIAbilityToBackgroundApi_.value;
@@ -333,9 +333,9 @@ bool AppUtils::EnableMoveUIAbilityToBackgroundApi()
 
 bool AppUtils::IsLaunchEmbededUIAbility()
 {
-    if (!isLaunchEmbededUIAbility_.isLoaded) {
+    if (!isLaunchEmbededUIAbility_.isLoaded.load(std::memory_order_acquire)) {
         isLaunchEmbededUIAbility_.value = system::GetBoolParameter(LAUNCH_EMBEDED_UI_ABILITY, false);
-        isLaunchEmbededUIAbility_.isLoaded = true;
+        isLaunchEmbededUIAbility_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isLaunchEmbededUIAbility_.value);
     return isLaunchEmbededUIAbility_.value;
@@ -343,9 +343,9 @@ bool AppUtils::IsLaunchEmbededUIAbility()
 
 bool AppUtils::IsSupportNativeChildProcess()
 {
-    if (!isSupportNativeChildProcess_.isLoaded) {
+    if (!isSupportNativeChildProcess_.isLoaded.load(std::memory_order_acquire)) {
         isSupportNativeChildProcess_.value = system::GetBoolParameter(SUPPROT_NATIVE_CHILD_PROCESS, false);
-        isSupportNativeChildProcess_.isLoaded = true;
+        isSupportNativeChildProcess_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportNativeChildProcess_.value);
     return isSupportNativeChildProcess_.value;
@@ -518,10 +518,10 @@ void AppUtils::LoadAllowNativeChildProcessApps()
 
 int32_t AppUtils::GetLimitMaximumExtensionsPerProc()
 {
-    if (!limitMaximumExtensionsPerProc_.isLoaded) {
+    if (!limitMaximumExtensionsPerProc_.isLoaded.load(std::memory_order_acquire)) {
         limitMaximumExtensionsPerProc_.value =
             system::GetIntParameter<int32_t>(LIMIT_MAXIMUM_EXTENSIONS_OF_PER_PROCESS, DEFAULT_MAX_EXT_PER_PROC);
-        limitMaximumExtensionsPerProc_.isLoaded = true;
+        limitMaximumExtensionsPerProc_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "limitMaximumExtensionsPerProc: %{public}d", limitMaximumExtensionsPerProc_.value);
     return limitMaximumExtensionsPerProc_.value;
@@ -529,10 +529,10 @@ int32_t AppUtils::GetLimitMaximumExtensionsPerProc()
 
 int32_t AppUtils::GetLimitMaximumExtensionsPerDevice()
 {
-    if (!limitMaximumExtensionsPerDevice_.isLoaded) {
+    if (!limitMaximumExtensionsPerDevice_.isLoaded.load(std::memory_order_acquire)) {
         limitMaximumExtensionsPerDevice_.value =
             system::GetIntParameter<int32_t>(LIMIT_MAXIMUM_EXTENSIONS_OF_PER_DEVICE, DEFAULT_MAX_EXT_PER_DEV);
-        limitMaximumExtensionsPerDevice_.isLoaded = true;
+        limitMaximumExtensionsPerDevice_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "limitMaximumExtensionsPerDevice: %{public}d", limitMaximumExtensionsPerDevice_.value);
     return limitMaximumExtensionsPerDevice_.value;
@@ -600,9 +600,12 @@ void AppUtils::LoadStartAbilityWithoutCallerToken()
 
 std::string AppUtils::GetBrokerDelegateBundleName()
 {
-    if (!brokerDelegateBundleName_.isLoaded) {
-        brokerDelegateBundleName_.value = system::GetParameter(BROKER_DELEGATE_BUNDLE_NAME, "");
-        brokerDelegateBundleName_.isLoaded = true;
+    if (!brokerDelegateBundleName_.isLoaded.load(std::memory_order_acquire)) {
+        std::lock_guard guard(brokerDelegateBundleNameMutex_);
+        if (!brokerDelegateBundleName_.isLoaded.load(std::memory_order_relaxed)) {
+            brokerDelegateBundleName_.value = system::GetParameter(BROKER_DELEGATE_BUNDLE_NAME, "");
+            brokerDelegateBundleName_.isLoaded.store(true, std::memory_order_release);
+        }
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "shellAssistantBundleName_ is %{public}s", brokerDelegateBundleName_.value.c_str());
     return brokerDelegateBundleName_.value;
@@ -610,9 +613,9 @@ std::string AppUtils::GetBrokerDelegateBundleName()
 
 int32_t AppUtils::GetCollaboratorBrokerUID()
 {
-    if (!collaboratorBrokerUid_.isLoaded) {
+    if (!collaboratorBrokerUid_.isLoaded.load(std::memory_order_acquire)) {
         collaboratorBrokerUid_.value = system::GetIntParameter(COLLABORATOR_BROKER_UID, DEFAULT_INVALID_VALUE);
-        collaboratorBrokerUid_.isLoaded = true;
+        collaboratorBrokerUid_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "collaboratorBrokerUid_ is %{public}d", collaboratorBrokerUid_.value);
     return collaboratorBrokerUid_.value;
@@ -620,10 +623,10 @@ int32_t AppUtils::GetCollaboratorBrokerUID()
 
 int32_t AppUtils::GetCollaboratorBrokerReserveUID()
 {
-    if (!collaboratorBrokerReserveUid_.isLoaded) {
+    if (!collaboratorBrokerReserveUid_.isLoaded.load(std::memory_order_acquire)) {
         collaboratorBrokerReserveUid_.value = system::GetIntParameter(COLLABORATOR_BROKER_RESERVE_UID,
             DEFAULT_INVALID_VALUE);
-        collaboratorBrokerReserveUid_.isLoaded = true;
+        collaboratorBrokerReserveUid_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "collaboratorBrokerReserveUid_ is %{public}d", collaboratorBrokerReserveUid_.value);
     return collaboratorBrokerReserveUid_.value;
@@ -631,10 +634,10 @@ int32_t AppUtils::GetCollaboratorBrokerReserveUID()
 
 int32_t AppUtils::MaxChildProcess()
 {
-    if (!maxChildProcess_.isLoaded) {
+    if (!maxChildProcess_.isLoaded.load(std::memory_order_acquire)) {
         maxChildProcess_.value =
             system::GetIntParameter<int32_t>(MAX_CHILD_PROCESS, DEFAULT_MAX_CHILD_PROCESS);
-        maxChildProcess_.isLoaded = true;
+        maxChildProcess_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "MaxChildProcess: %{public}d", maxChildProcess_.value);
     return maxChildProcess_.value;
@@ -642,10 +645,10 @@ int32_t AppUtils::MaxChildProcess()
 
 int32_t AppUtils::MaxMultiProcessFeatureChildProcess()
 {
-    if (!maxMultiProcessFeatureChildProcess_.isLoaded) {
+    if (!maxMultiProcessFeatureChildProcess_.isLoaded.load(std::memory_order_acquire)) {
         maxMultiProcessFeatureChildProcess_.value =
             system::GetIntParameter<int32_t>(MAX_MULTI_PROCESS_FEATURE_CHILD_PROCESS, DEFAULT_MAX_CHILD_PROCESS);
-            maxMultiProcessFeatureChildProcess_.isLoaded = true;
+        maxMultiProcessFeatureChildProcess_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "maxMultiProcessFeatureChildProcess: %{public}d",
         maxMultiProcessFeatureChildProcess_.value);
@@ -654,9 +657,9 @@ int32_t AppUtils::MaxMultiProcessFeatureChildProcess()
 
 bool AppUtils::IsSupportMultiInstance()
 {
-    if (!isSupportMultiInstance_.isLoaded) {
+    if (!isSupportMultiInstance_.isLoaded.load(std::memory_order_acquire)) {
         isSupportMultiInstance_.value = system::GetBoolParameter(SUPPORT_MULTI_INSTANCE, false);
-        isSupportMultiInstance_.isLoaded = true;
+        isSupportMultiInstance_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportMultiInstance_.value);
     return isSupportMultiInstance_.value;
@@ -664,9 +667,9 @@ bool AppUtils::IsSupportMultiInstance()
 
 std::string AppUtils::GetMigrateClientBundleName()
 {
-    if (!migrateClientBundleName_.isLoaded) {
+    if (!migrateClientBundleName_.isLoaded.load(std::memory_order_acquire)) {
         migrateClientBundleName_.value = system::GetParameter(MIGRATE_CLIENT_BUNDLE_NAME, "");
-        migrateClientBundleName_.isLoaded = true;
+        migrateClientBundleName_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "migrateClientBundleName_ is %{public}s", migrateClientBundleName_.value.c_str());
     return migrateClientBundleName_.value;
@@ -851,9 +854,9 @@ bool AppUtils::InOnNewProcessEnableList(const std::string &bundleName)
 
 bool AppUtils::IsSupportAppServiceExtension()
 {
-    if (!isSupportAppServiceExtension_.isLoaded) {
+    if (!isSupportAppServiceExtension_.isLoaded.load(std::memory_order_acquire)) {
         isSupportAppServiceExtension_.value = system::GetBoolParameter(SUPPORT_APP_SERVICE_EXTENSION, false);
-        isSupportAppServiceExtension_.isLoaded = true;
+        isSupportAppServiceExtension_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportAppServiceExtension_.value);
     return isSupportAppServiceExtension_.value;
@@ -861,10 +864,10 @@ bool AppUtils::IsSupportAppServiceExtension()
 
 bool AppUtils::IsPreloadApplicationEnabled()
 {
-    if (!isPreloadApplicationEnabled_.isLoaded) {
+    if (!isPreloadApplicationEnabled_.isLoaded.load(std::memory_order_acquire)) {
         isPreloadApplicationEnabled_.value = system::GetBoolParameter(
             PRODUCT_PRELOAD_APPLICATION_SETTING_ENABLED, false);
-        isPreloadApplicationEnabled_.isLoaded = true;
+        isPreloadApplicationEnabled_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isPreloadApplicationEnabled_.value);
     return isPreloadApplicationEnabled_.value;
@@ -875,7 +878,7 @@ bool AppUtils::IsForbidStart()
 #ifndef ABILITY_RUNTIME_FORBID_START_ENABLED
     return false;
 #else
-    if (!isForbidStart_.isLoaded) {
+    if (!isForbidStart_.isLoaded.load(std::memory_order_acquire)) {
         isForbidStart_.value = system::GetBoolParameter(FORBID_START, false);
     }
     return isForbidStart_.value;
@@ -884,9 +887,9 @@ bool AppUtils::IsForbidStart()
 
 bool AppUtils::IsSupportRestartAppWithWindow()
 {
-    if (!isSupportRestartAppWithWindow_.isLoaded) {
+    if (!isSupportRestartAppWithWindow_.isLoaded.load(std::memory_order_acquire)) {
         isSupportRestartAppWithWindow_.value = system::GetBoolParameter(RESTART_APP_WITH_WINDOW, false);
-        isSupportRestartAppWithWindow_.isLoaded = true;
+        isSupportRestartAppWithWindow_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "restartApp: %{public}d", isSupportRestartAppWithWindow_.value);
     return isSupportRestartAppWithWindow_.value;
@@ -894,9 +897,9 @@ bool AppUtils::IsSupportRestartAppWithWindow()
 
 bool AppUtils::IsSupportAllowDebugPermission()
 {
-    if (!isSupportAllowDebugPermission_.isLoaded) {
+    if (!isSupportAllowDebugPermission_.isLoaded.load(std::memory_order_acquire)) {
         isSupportAllowDebugPermission_.value = system::GetBoolParameter(ALLOW_DEBUG_PERMISSION, false);
-        isSupportAllowDebugPermission_.isLoaded = true;
+        isSupportAllowDebugPermission_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "restartApp: %{public}d", isSupportAllowDebugPermission_.value);
     return isSupportAllowDebugPermission_.value;
@@ -904,9 +907,9 @@ bool AppUtils::IsSupportAllowDebugPermission()
 
 bool AppUtils::IsStartUIAbilityInCurrentProcess()
 {
-    if (!isStartUIAbilityInCurrentProcess_.isLoaded) {
+    if (!isStartUIAbilityInCurrentProcess_.isLoaded.load(std::memory_order_acquire)) {
         isStartUIAbilityInCurrentProcess_.value = system::GetBoolParameter(START_ABILITY_IN_CURRENT_PROCESS, false);
-        isStartUIAbilityInCurrentProcess_.isLoaded = true;
+        isStartUIAbilityInCurrentProcess_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "startAbilityInCurrentProcess: %{public}d", isStartUIAbilityInCurrentProcess_.value);
     return isStartUIAbilityInCurrentProcess_.value;
@@ -914,9 +917,9 @@ bool AppUtils::IsStartUIAbilityInCurrentProcess()
 
 bool AppUtils::IsSupportModularObjectExtension()
 {
-    if (!isSupportModularObjectExtension_.isLoaded) {
+    if (!isSupportModularObjectExtension_.isLoaded.load(std::memory_order_acquire)) {
         isSupportModularObjectExtension_.value = system::GetBoolParameter(SUPPORT_MODULAR_OBJECT_EXTENSION, false);
-        isSupportModularObjectExtension_.isLoaded = true;
+        isSupportModularObjectExtension_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "supportModularObjectExtension: %{public}d", isSupportModularObjectExtension_.value);
     return isSupportModularObjectExtension_.value;
@@ -924,9 +927,9 @@ bool AppUtils::IsSupportModularObjectExtension()
 
 bool AppUtils::IsSupportDelayedProcessExit()
 {
-    if (!isSupportDelayedProcessExit_.isLoaded) {
+    if (!isSupportDelayedProcessExit_.isLoaded.load(std::memory_order_acquire)) {
         isSupportDelayedProcessExit_.value = system::GetBoolParameter(SUPPORT_DELAYED_PROCESS_EXIT, false);
-        isSupportDelayedProcessExit_.isLoaded = true;
+        isSupportDelayedProcessExit_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "supportDelayedProcessExit: %{public}d", isSupportDelayedProcessExit_.value);
     return isSupportDelayedProcessExit_.value;
@@ -934,12 +937,12 @@ bool AppUtils::IsSupportDelayedProcessExit()
 
 bool AppUtils::IsAutoStartupSupported()
 {
-    if (!isAutoStartupSupported_.isLoaded) {
+    if (!isAutoStartupSupported_.isLoaded.load(std::memory_order_acquire)) {
         isAutoStartupSupported_.value =
             system::GetBoolParameter(IS_ENTERPRISE_DEVICE_TYPE, false) ||
             (system::GetBoolParameter(IS_EDM_ENABLE, false) && system::GetBoolParameter(IS_DEVELOPER_MODE, false)) ||
             system::GetBoolParameter(SUPPORT_AUTO_STARTUP, false);
-        isAutoStartupSupported_.isLoaded = true;
+        isAutoStartupSupported_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "IsAutoStartupSupported: %{public}d", isAutoStartupSupported_.value);
     return isAutoStartupSupported_.value;
@@ -947,9 +950,9 @@ bool AppUtils::IsAutoStartupSupported()
 
 bool AppUtils::IsProductAppbootSettingEnabled()
 {
-    if (!isProductAppbootSettingEnabled_.isLoaded) {
+    if (!isProductAppbootSettingEnabled_.isLoaded.load(std::memory_order_acquire)) {
         isProductAppbootSettingEnabled_.value = system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false);
-        isProductAppbootSettingEnabled_.isLoaded = true;
+        isProductAppbootSettingEnabled_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "ProductAppbootSettingEnabled: %{public}d", isProductAppbootSettingEnabled_.value);
     return isProductAppbootSettingEnabled_.value;
@@ -994,9 +997,9 @@ bool AppUtils::InAppTransferList(const std::string &bundleName)
 
 bool AppUtils::IsHybridSpawnUnified()
 {
-    if (!isHybridSpawnUnified_.isLoaded) {
+    if (!isHybridSpawnUnified_.isLoaded.load(std::memory_order_acquire)) {
         isHybridSpawnUnified_.value = system::GetBoolParameter(HYBRIDSPAWN_UNIFIED, false);
-        isHybridSpawnUnified_.isLoaded = true;
+        isHybridSpawnUnified_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "IsHybridSpawnUnified: %{public}d", isHybridSpawnUnified_.value);
     return isHybridSpawnUnified_.value;
@@ -1004,9 +1007,9 @@ bool AppUtils::IsHybridSpawnUnified()
 
 bool AppUtils::IsSupportNativeUIAbility()
 {
-    if (!isSupportNativeUIAbility_.isLoaded) {
+    if (!isSupportNativeUIAbility_.isLoaded.load(std::memory_order_acquire)) {
         isSupportNativeUIAbility_.value = system::GetBoolParameter(SUPPORT_NATIVE_UI_ABILITY, false);
-        isSupportNativeUIAbility_.isLoaded = true;
+        isSupportNativeUIAbility_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "IsSupportNativeUIAbility: %{public}d", isSupportNativeUIAbility_.value);
     return isSupportNativeUIAbility_.value;
@@ -1029,9 +1032,9 @@ bool AppUtils::IsBopdMode()
 
 bool AppUtils::IsBopdOrRescueMode()
 {
-    if (!isBopdOrRescueMode_.isLoaded) {
+    if (!isBopdOrRescueMode_.isLoaded.load(std::memory_order_acquire)) {
         isBopdOrRescueMode_.value = (IsBopdMode() || system::GetParameter("soc.boot.mode", "") == "rescue");
-        isBopdOrRescueMode_.isLoaded = true;
+        isBopdOrRescueMode_.isLoaded.store(true, std::memory_order_release);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "IsBopdOrRescueMode: %{public}d", isBopdOrRescueMode_.value);
     return isBopdOrRescueMode_.value;
