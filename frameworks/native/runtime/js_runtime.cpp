@@ -16,6 +16,7 @@
 #include "js_runtime.h"
 
 #include <cerrno>
+#include <charconv>
 #include <climits>
 #include <cstdlib>
 #include <fstream>
@@ -344,7 +345,13 @@ int32_t JsRuntime::JsperfProfilerCommandParse(const std::string &command, int32_
         return defaultValue;
     }
 
-    return std::stoi(interval);
+    int32_t result = 0;
+    auto [ptr, ec] = std::from_chars(interval.data(), interval.data() + interval.size(), result);
+    if (ec != std::errc()) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "parse interval failed: %{public}s", interval.c_str());
+        return defaultValue;
+    }
+    return result;
 }
 
 void JsRuntime::StartProfiler(const DebugOption dOption)

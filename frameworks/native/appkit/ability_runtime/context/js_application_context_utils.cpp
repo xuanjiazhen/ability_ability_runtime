@@ -109,7 +109,13 @@ napi_value JsApplicationContextUtils::OnCreateBundleContext(napi_env env, NapiCa
         return CreateJsUndefined(env);
     }
     auto workContext = new (std::nothrow) std::weak_ptr<Context>(bundleContext);
-    napi_coerce_to_native_binding_object(env, contextObj, DetachCallbackFunc, AttachBaseContext, workContext, nullptr);
+    auto status = napi_coerce_to_native_binding_object(
+        env, contextObj, DetachCallbackFunc, AttachBaseContext, workContext, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::APPKIT, "coerce context failed: %{public}d", status);
+        delete workContext;
+        return CreateJsUndefined(env);
+    }
     auto res = napi_wrap(env, contextObj, workContext,
         [](napi_env, void *data, void *) {
             TAG_LOGD(AAFwkTag::APPKIT, "Finalizer for weak_ptr bundle context is called");
@@ -235,7 +241,13 @@ napi_value JsApplicationContextUtils::CreateJsModuleContext(napi_env env, const 
         return CreateJsUndefined(env);
     }
     auto workContext = new (std::nothrow) std::weak_ptr<Context>(moduleContext);
-    napi_coerce_to_native_binding_object(env, contextObj, DetachCallbackFunc, AttachBaseContext, workContext, nullptr);
+    auto status = napi_coerce_to_native_binding_object(
+        env, contextObj, DetachCallbackFunc, AttachBaseContext, workContext, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::APPKIT, "coerce context failed: %{public}d", status);
+        delete workContext;
+        return CreateJsUndefined(env);
+    }
     auto res = napi_wrap(env, contextObj, workContext,
         [](napi_env, void *data, void *) {
             TAG_LOGD(AAFwkTag::APPKIT, "Finalizer for weak_ptr module context is called");
@@ -2054,21 +2066,24 @@ napi_value JsApplicationContextUtils::OnGetApplicationContext(napi_env env, Napi
         return CreateJsUndefined(env);
     }
     auto workContext = new (std::nothrow) std::weak_ptr<ApplicationContext>(applicationContext);
-    napi_coerce_to_native_binding_object(
+    auto status = napi_coerce_to_native_binding_object(
         env, contextObj, DetachCallbackFunc, AttachApplicationContext, workContext, nullptr);
-    if (workContext != nullptr) {
-        auto res = napi_wrap(env, contextObj, workContext,
-            [](napi_env, void *data, void *) {
-              TAG_LOGD(AAFwkTag::APPKIT, "Finalizer for weak_ptr application context is called");
-              delete static_cast<std::weak_ptr<ApplicationContext> *>(data);
-              data = nullptr;
-            },
-            nullptr, nullptr);
-        if (res != napi_ok && workContext != nullptr) {
-            TAG_LOGE(AAFwkTag::APPKIT, "napi_wrap failed:%{public}d", res);
-            delete workContext;
-            return CreateJsUndefined(env);
-        }
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::APPKIT, "coerce application context failed: %{public}d", status);
+        delete workContext;
+        return CreateJsUndefined(env);
+    }
+    auto res = napi_wrap(env, contextObj, workContext,
+        [](napi_env, void *data, void *) {
+          TAG_LOGD(AAFwkTag::APPKIT, "Finalizer for weak_ptr application context is called");
+          delete static_cast<std::weak_ptr<ApplicationContext> *>(data);
+          data = nullptr;
+        },
+        nullptr, nullptr);
+    if (res != napi_ok && workContext != nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "napi_wrap failed:%{public}d", res);
+        delete workContext;
+        return CreateJsUndefined(env);
     }
     return contextObj;
 }
