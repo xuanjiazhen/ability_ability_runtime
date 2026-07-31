@@ -12387,6 +12387,10 @@ AppExecFwk::ElementName AbilityManagerService::GetElementNameByToken(sptr<IRemot
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s abilityRecord null", __func__);
         return elementName;
     }
+    if (!JudgeSelfCalled(abilityRecord) && !AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller not token owner");
+        return elementName;
+    }
     elementName = abilityRecord->GetElementName();
     bool isDeviceEmpty = elementName.GetDeviceID().empty();
     std::string localDeviceId;
