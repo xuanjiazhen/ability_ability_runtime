@@ -74,7 +74,7 @@ HWTEST_F(DumpArkWebHelperTest, DumpArkWebHelperTest_002, Function | MediumTest |
     GTEST_LOG_(INFO) << "DumpArkWebHelperTest_002 start";
     int32_t appPid = 1001;
     int32_t renderPid = 2002;
-    EXPECT_NO_FATAL_FAILURE(DumpArkWebHelper::DumpArkWebJSHeap(appPid, renderPid, false, false, false));
+    DumpArkWebHelper::DumpArkWebJSHeap(appPid, renderPid, false, false, false);
     GTEST_LOG_(INFO) << "DumpArkWebHelperTest_002 end";
 }
 
@@ -89,7 +89,7 @@ HWTEST_F(DumpArkWebHelperTest, DumpArkWebHelperTest_003, Function | MediumTest |
     GTEST_LOG_(INFO) << "DumpArkWebHelperTest_003 start";
     int32_t appPid = -1;
     int32_t renderPid = -1;
-    EXPECT_NO_FATAL_FAILURE(DumpArkWebHelper::DumpArkWebJSHeap(appPid, renderPid, true, false, false));
+    DumpArkWebHelper::DumpArkWebJSHeap(appPid, renderPid, true, false, false);
     GTEST_LOG_(INFO) << "DumpArkWebHelperTest_003 end";
 }
 
@@ -104,7 +104,7 @@ HWTEST_F(DumpArkWebHelperTest, DumpArkWebHelperTest_004, Function | MediumTest |
     GTEST_LOG_(INFO) << "DumpArkWebHelperTest_004 start";
     int32_t appPid = -1;
     int32_t renderPid = -1;
-    EXPECT_NO_FATAL_FAILURE(DumpArkWebHelper::DumpArkWebJSHeap(appPid, renderPid, true, false, true));
+    DumpArkWebHelper::DumpArkWebJSHeap(appPid, renderPid, true, false, true);
     GTEST_LOG_(INFO) << "DumpArkWebHelperTest_004 end";
 }
 }
