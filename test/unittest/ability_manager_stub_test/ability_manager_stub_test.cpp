@@ -972,12 +972,31 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_GetTopAbilityInner_001, Test
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService GetElementNameByTokenInner
  * EnvConditions: NA
- * CaseDescription: Verify the function GetElementNameByTokenInner is normal flow.
+ * CaseDescription: Verify GetElementNameByTokenInner returns ERR_NULL_OBJECT when token is null.
  */
 HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_GetElementNameByTokenInner_001, TestSize.Level1)
 {
     MessageParcel data;
     MessageParcel reply;
+    auto res = stub_->GetElementNameByTokenInner(data, reply);
+    EXPECT_EQ(res, ERR_NULL_OBJECT);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetElementNameByTokenInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetElementNameByTokenInner
+ * EnvConditions: NA
+ * CaseDescription: Verify GetElementNameByTokenInner returns NO_ERROR when token is valid.
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_GetElementNameByTokenInner_002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    sptr<AppExecFwk::MockAbilityToken> token = new (std::nothrow) AppExecFwk::MockAbilityToken();
+    data.WriteRemoteObject(token);
+    data.WriteBool(false);
     auto res = stub_->GetElementNameByTokenInner(data, reply);
     EXPECT_EQ(res, NO_ERROR);
 }

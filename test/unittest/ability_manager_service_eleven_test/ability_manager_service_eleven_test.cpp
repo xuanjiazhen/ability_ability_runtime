@@ -1529,5 +1529,111 @@ HWTEST_F(AbilityManagerServiceElevenTest, NotifySkillFunctionInvoked_0001, TestS
 
     GTEST_LOG_(INFO) << "NotifySkillFunctionInvoked_0001 end";
 }
+
+/*
+ * Feature: GetElementNameByToken_0001
+ * Function: GetElementNameByToken
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetElementNameByToken permission check
+ * EnvConditions: caller is not token owner and not SA
+ * CaseDescription: Verify GetElementNameByToken returns empty ElementName when permission denied.
+ */
+HWTEST_F(AbilityManagerServiceElevenTest, GetElementNameByToken_0001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetElementNameByToken_0001 start";
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+
+    auto token = MockToken(AbilityType::PAGE);
+    EXPECT_NE(token, nullptr);
+    AbilityRequest abilityRequest;
+    abilityRequest.want.SetElementName("device1", "com.test.demo", "MainAbility", "entry");
+    abilityRequest.appInfo.bundleName = "com.test.demo";
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.type = AbilityType::PAGE;
+    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    EXPECT_NE(abilityRecord, nullptr);
+    token->abilityRecord_ = abilityRecord;
+
+    MyFlag::flag_ = 0;
+    auto result = abilityMs->GetElementNameByToken(token, false);
+    EXPECT_TRUE(result.GetBundleName().empty());
+
+    MyFlag::flag_ = 0;
+    GTEST_LOG_(INFO) << "GetElementNameByToken_0001 end";
+}
+
+/*
+ * Feature: GetElementNameByToken_0002
+ * Function: GetElementNameByToken
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetElementNameByToken permission check
+ * EnvConditions: caller is not token owner but IsSACall returns true
+ * CaseDescription: Verify GetElementNameByToken returns ElementName when caller is SA.
+ */
+HWTEST_F(AbilityManagerServiceElevenTest, GetElementNameByToken_0002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetElementNameByToken_0002 start";
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+
+    auto token = MockToken(AbilityType::PAGE);
+    EXPECT_NE(token, nullptr);
+    AbilityRequest abilityRequest;
+    abilityRequest.want.SetElementName("device1", "com.test.demo", "MainAbility", "entry");
+    abilityRequest.appInfo.bundleName = "com.test.demo";
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.type = AbilityType::PAGE;
+    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    EXPECT_NE(abilityRecord, nullptr);
+    token->abilityRecord_ = abilityRecord;
+
+    MyFlag::flag_ = MyFlag::IS_SA_CALL;
+    auto result = abilityMs->GetElementNameByToken(token, false);
+    EXPECT_EQ(result.GetBundleName(), "com.test.demo");
+
+    MyFlag::flag_ = 0;
+    GTEST_LOG_(INFO) << "GetElementNameByToken_0002 end";
+}
+
+/*
+ * Feature: GetElementNameByToken_0003
+ * Function: GetElementNameByToken
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetElementNameByToken permission check
+ * EnvConditions: caller is token owner (accessTokenId matches calling token)
+ * CaseDescription: Verify GetElementNameByToken returns ElementName when caller is self-called.
+ */
+HWTEST_F(AbilityManagerServiceElevenTest, GetElementNameByToken_0003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetElementNameByToken_0003 start";
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+
+    auto token = MockToken(AbilityType::PAGE);
+    EXPECT_NE(token, nullptr);
+    AbilityRequest abilityRequest;
+    abilityRequest.want.SetElementName("device1", "com.test.demo", "MainAbility", "entry");
+    abilityRequest.appInfo.bundleName = "com.test.demo";
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.type = AbilityType::PAGE;
+    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    EXPECT_NE(abilityRecord, nullptr);
+    token->abilityRecord_ = abilityRecord;
+
+    auto abilityRecordTest = Token::GetAbilityRecordByToken(token);
+    EXPECT_NE(abilityRecordTest, nullptr);
+    abilityRecordTest->abilityInfo_.applicationInfo.accessTokenId = IPCSkeleton::GetCallingTokenID();
+
+    MyFlag::flag_ = 0;
+    auto result = abilityMs->GetElementNameByToken(token, false);
+    EXPECT_EQ(result.GetBundleName(), "com.test.demo");
+
+    MyFlag::flag_ = 0;
+    GTEST_LOG_(INFO) << "GetElementNameByToken_0003 end";
+}
 } // namespace AAFwk
 } // namespace OHOS

@@ -1655,6 +1655,37 @@ HWTEST_F(AbilityManagerServiceSixthTest, GetElementNameByToken_001, TestSize.Lev
 
 /*
  * Feature: AbilityManagerService
+ * Function: GetElementNameByToken
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetElementNameByToken permission check
+ * EnvConditions: same-process call (JudgeSelfCalled returns true)
+ * CaseDescription: Verify GetElementNameByToken returns ElementName when permission check passes.
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, GetElementNameByToken_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetElementNameByToken_002 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+
+    Want want;
+    want.SetElementName("device1", TEST_BUNDLE_NAME, "ability1", "entry");
+    AppExecFwk::AbilityInfo abilityInfo;
+    AppExecFwk::ApplicationInfo applicationInfo;
+    auto abilityRecord = std::make_shared<AbilityRecord>(want, abilityInfo, applicationInfo);
+    abilityRecord->Init(AbilityRequest());
+    auto token = abilityRecord->token_;
+    EXPECT_NE(token, nullptr);
+
+    MyFlag::flag_ = 0;
+    auto ret = abilityMs->GetElementNameByToken(token, false);
+    EXPECT_EQ(ret.GetBundleName(), TEST_BUNDLE_NAME);
+    EXPECT_EQ(ret.GetAbilityName(), "ability1");
+
+    MyFlag::flag_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetElementNameByToken_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
  * Function: ShouldPreventStartAbility
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService ShouldPreventStartAbility
