@@ -979,7 +979,7 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_GetElementNameByTokenInner_0
     MessageParcel data;
     MessageParcel reply;
     auto res = stub_->GetElementNameByTokenInner(data, reply);
-    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_EQ(res, ERR_NULL_OBJECT);
 }
 
 /*
