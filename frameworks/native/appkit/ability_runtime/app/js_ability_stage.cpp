@@ -162,7 +162,7 @@ bool JsAbilityStage::UseCommonChunk(const AppExecFwk::HapModuleInfo& hapModuleIn
     for (auto &md: hapModuleInfo.metadata) {
         if (md.name == "USE_COMMON_CHUNK") {
             if (md.value != "true") {
-                TAG_LOGW(AAFwkTag::APPKIT, "USE_COMMON_CHUNK = %s{public}s", md.value.c_str());
+                TAG_LOGW(AAFwkTag::APPKIT, "USE_COMMON_CHUNK = %{public}s", md.value.c_str());
                 return false;
             }
             return true;
