@@ -155,7 +155,6 @@ constexpr char FORM_RENDER_LIB_PATH[] = "/system/lib64/libformrender.z.so";
 
 constexpr int32_t DELIVERY_TIME = 200;
 constexpr int32_t DISTRIBUTE_TIME = 100;
-constexpr int64_t NATIVE_MODULE_COLLECT_DELAY_MS = 5000; // checkpoint-2 delay after first foreground
 constexpr int32_t START_HIGH_SENSITIVE = 1;
 constexpr int32_t EXIT_HIGH_SENSITIVE = 2;
 constexpr int32_t UNSPECIFIED_USERID = -2;
@@ -3100,8 +3099,9 @@ void MainThread::TriggerNativeModuleCollect(bool immediate)
         }
         appThread->RunNativeModuleCollect();
     };
-    // delay to also cover lazily imported modules after the first frame
-    mainHandler_->PostTask(task, "MainThread:NativeModuleCollect", NATIVE_MODULE_COLLECT_DELAY_MS);
+    // delay to also cover lazily imported modules after the first frame (param-tunable)
+    mainHandler_->PostTask(task, "MainThread:NativeModuleCollect",
+        NativeModuleCollector::GetParams().checkpoint2DelayMs);
 }
 
 void MainThread::RunNativeModuleCollect()

@@ -22,6 +22,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <fcntl.h>
 #include <fstream>
 #include <mutex>
@@ -33,6 +34,8 @@
 #include <nlohmann/json.hpp>
 
 #include "hilog_tag_wrapper.h"
+#include "hisysevent_report.h"
+#include "parameters.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -53,7 +56,64 @@ constexpr size_t MAX_FILE_NAME_LEN = 4096;
 constexpr size_t MAX_BUNDLE_NAME_LEN = 256;
 constexpr float SCORE_PRECISION = 1000.0f;     /* serialize score with 3 decimals */
 
-const CollectorParams g_params;
+// system parameter keys; the CCM channel maps its switches to these sysparam
+// keys (exact naming to be confirmed with the CCM owner, RSK-3)
+constexpr char PARAM_ENABLE[] = "ccm.ability.native_module_collect.enable";
+constexpr char PARAM_ALPHA[] = "ccm.ability.native_module_collect.alpha";
+constexpr char PARAM_PREDICT_THRESHOLD[] = "ccm.ability.native_module_collect.predict_threshold";
+constexpr char PARAM_EVICT_SCORE[] = "ccm.ability.native_module_collect.evict_score";
+constexpr char PARAM_EVICT_ROUNDS[] = "ccm.ability.native_module_collect.evict_rounds";
+constexpr char PARAM_CHECKPOINT2_DELAY_MS[] = "ccm.ability.native_module_collect.checkpoint2_delay_ms";
+constexpr char PARAM_REPORT_HITRATE[] = "ccm.ability.native_module_collect.report_hitrate";
+
+struct ParamCache {
+    std::mutex mutex;
+    bool loaded = false;
+    bool enabled = false;
+    CollectorParams params;
+};
+ParamCache g_paramCache;
+
+float GetFloatParameter(const std::string& key, float def, float minValue, float maxValue)
+{
+    std::string value = OHOS::system::GetParameter(key, "");
+    if (value.empty()) {
+        return def;
+    }
+    char* end = nullptr;
+    float parsed = std::strtof(value.c_str(), &end);
+    if (end == value.c_str() || *end != '\0' || std::isnan(parsed)) {
+        TAG_LOGW(AAFwkTag::APPKIT, "invalid param %{public}s=%{public}s, use default",
+            key.c_str(), value.c_str());
+        return def;
+    }
+    return std::min(std::max(parsed, minValue), maxValue);
+}
+
+CollectorParams LoadParamsFromSystem()
+{
+    CollectorParams params;
+    params.alpha = GetFloatParameter(PARAM_ALPHA, params.alpha, 0.05f, 0.95f);
+    params.predictThreshold = GetFloatParameter(PARAM_PREDICT_THRESHOLD, params.predictThreshold, 0.05f, 0.95f);
+    params.evictScore = GetFloatParameter(PARAM_EVICT_SCORE, params.evictScore, 0.001f, 0.5f);
+    params.evictRounds = OHOS::system::GetIntParameter<uint32_t>(PARAM_EVICT_ROUNDS, params.evictRounds, 1u, 1000u);
+    params.checkpoint2DelayMs =
+        OHOS::system::GetIntParameter<uint32_t>(PARAM_CHECKPOINT2_DELAY_MS, params.checkpoint2DelayMs, 0u, 60000u);
+    params.reportHitRate = OHOS::system::GetBoolParameter(PARAM_REPORT_HITRATE, false);
+    return params;
+}
+
+// read the switch and tunables at most once per process (spec R-2: cached per launch)
+void EnsureParamsLoaded()
+{
+    std::lock_guard<std::mutex> lock(g_paramCache.mutex);
+    if (g_paramCache.loaded) {
+        return;
+    }
+    g_paramCache.enabled = OHOS::system::GetBoolParameter(PARAM_ENABLE, false);
+    g_paramCache.params = LoadParamsFromSystem();
+    g_paramCache.loaded = true;
+}
 
 struct CollectorState {
     std::mutex mutex;
@@ -120,9 +180,14 @@ bool ParseStatEntry(const nlohmann::json& item, std::string& moduleName, ModuleS
 
 bool NativeModuleCollector::IsEnabled()
 {
-    // Placeholder: returns the test override only. The system parameter channel
-    // (wired separately, default off) will be OR-ed in here.
-    return g_enabledForTest.load();
+    // test override wins; otherwise the cached system parameter decides
+    // (absent/invalid parameter => disabled, spec R-2)
+    if (g_enabledForTest.load()) {
+        return true;
+    }
+    EnsureParamsLoaded();
+    std::lock_guard<std::mutex> lock(g_paramCache.mutex);
+    return g_paramCache.enabled;
 }
 
 std::string NativeModuleCollector::GetStoreDir(const std::string& baseDir)
@@ -314,7 +379,14 @@ bool NativeModuleCollector::GetSampledModuleForTest(const std::string& moduleNam
 
 const CollectorParams& NativeModuleCollector::GetParams()
 {
-    return g_params;
+    EnsureParamsLoaded();
+    return g_paramCache.params;
+}
+
+void NativeModuleCollector::ResetParamCacheForTest()
+{
+    std::lock_guard<std::mutex> lock(g_paramCache.mutex);
+    g_paramCache.loaded = false;
 }
 
 bool NativeModuleCollector::LoadStats(const std::string& path, std::map<std::string, ModuleStat>& stats,
@@ -532,6 +604,11 @@ bool NativeModuleCollector::MergeAndSave(const std::string& storePath, const std
         meta = StoreMeta {};
     }
     bool coldStart = !hasHistory;
+    // snapshot of the previous prediction, for beta hit-rate metrics
+    std::vector<std::string> predictedPrev;
+    if (hasHistory && GetParams().reportHitRate) {
+        predictedPrev = ComputePredicted(stats);
+    }
     meta.bundleName = bundleName;
     meta.processName = processName;
     meta.appVersionCode = appVersionCode;
@@ -551,7 +628,46 @@ bool NativeModuleCollector::MergeAndSave(const std::string& storePath, const std
         TAG_LOGE(AAFwkTag::APPKIT, "ensure dir failed: %{public}s", dir.c_str());
         return false;
     }
-    return WriteAtomic(storePath, SerializeStats(meta, stats));
+    bool written = WriteAtomic(storePath, SerializeStats(meta, stats));
+    if (written && hasHistory && GetParams().reportHitRate) {
+        HitRateMetrics metrics = ComputeHitRateMetrics(predictedPrev, round);
+        TAG_LOGI(AAFwkTag::APPKIT,
+            "hitRate %{public}.3f falseRate %{public}.3f predicted %{public}zu actual %{public}zu",
+            metrics.hitRate, metrics.falseRate, metrics.predictedCount, metrics.actualCount);
+        // beta only: report prediction quality for parameter calibration (gated by
+        // ccm.ability.native_module_collect.report_hitrate, off in production)
+        AAFwk::HisyseventReport report(5);
+        report.InsertParam("HIT_RATE", metrics.hitRate);
+        report.InsertParam("FALSE_RATE", metrics.falseRate);
+        report.InsertParam("PREDICTED_COUNT", static_cast<uint64_t>(metrics.predictedCount));
+        report.InsertParam("ACTUAL_COUNT", static_cast<uint64_t>(metrics.actualCount));
+        report.InsertParam("HIT_COUNT", static_cast<uint64_t>(metrics.hitCount));
+        (void)report.Report("AAFWK", "NATIVE_MODULE_COLLECT_HITRATE", HISYSEVENT_STATISTIC);
+    }
+    return written;
+}
+
+NativeModuleCollector::HitRateMetrics NativeModuleCollector::ComputeHitRateMetrics(
+    const std::vector<std::string>& predictedPrev, const std::vector<CollectedModule>& round)
+{
+    HitRateMetrics metrics;
+    metrics.predictedCount = predictedPrev.size();
+    metrics.actualCount = round.size();
+    std::set<std::string> actual;
+    for (const auto& module : round) {
+        actual.insert(module.moduleName);
+    }
+    for (const auto& name : predictedPrev) {
+        if (actual.count(name) != 0) {
+            metrics.hitCount++;
+        }
+    }
+    metrics.hitRate = metrics.actualCount == 0
+        ? 1.0f : static_cast<float>(metrics.hitCount) / static_cast<float>(metrics.actualCount);
+    size_t falseCount = metrics.predictedCount - metrics.hitCount;
+    metrics.falseRate = metrics.predictedCount == 0
+        ? 0.0f : static_cast<float>(falseCount) / static_cast<float>(metrics.predictedCount);
+    return metrics;
 }
 
 std::vector<std::string> NativeModuleCollector::LoadPredictedSystemModules(const std::string& storePath)

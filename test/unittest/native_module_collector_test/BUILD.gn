@@ -30,9 +30,15 @@ ohos_unittest("native_module_collector_test") {
     "native_module_collector_test.cpp",
   ]
 
+  deps = [
+    "${ability_runtime_services_path}/common:hisysevent_report",
+  ]
+
   external_deps = [
     "googletest:gtest_main",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "init:libbegetutil",
     "json:nlohmann_json_static",
   ]
 }

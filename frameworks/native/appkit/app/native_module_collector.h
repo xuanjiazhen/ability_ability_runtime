@@ -62,6 +62,8 @@ struct CollectorParams {
     float evictScore = 0.05f;      /* score < evictScore evicts the entry */
     uint32_t evictRounds = 16;     /* unseen for this many rounds evicts */
     size_t maxEntries = 1024;      /* hard cap of persisted entries */
+    uint32_t checkpoint2DelayMs = 5000; /* checkpoint-2 delay after first foreground */
+    bool reportHitRate = false;    /* beta: report hit-rate metrics via HiSysEvent */
 };
 
 /**
@@ -168,13 +170,34 @@ public:
     static void SetEnabledForTest(bool enabled);
     static void SetAsyncSaveForTest(bool async);
     static void ResetStateForTest();
+    static void ResetParamCacheForTest();
     static size_t GetSampledCountForTest();
     static bool GetSampledModuleForTest(const std::string& moduleName, CollectedModule& out);
 
     /**
-     * @brief Current tunable parameters (defaults until the param channel lands).
+     * @brief Current tunable parameters.
+     *
+     * Defaults come from the baselined spec; system parameters (CCM channel)
+     * may override them. Loaded once per process and cached.
      */
     static const CollectorParams& GetParams();
+
+    /**
+     * @brief Hit/miss metrics of the previous prediction against the actual round.
+     */
+    struct HitRateMetrics {
+        float hitRate = 0.0f;    /* |predicted ∩ actual| / |actual|; 1.0 when actual is empty */
+        float falseRate = 0.0f;  /* |predicted - actual| / |predicted|; 0.0 when predicted is empty */
+        size_t predictedCount = 0;
+        size_t actualCount = 0;
+        size_t hitCount = 0;
+    };
+
+    /**
+     * @brief Compute prediction quality of the previous predicted set.
+     */
+    static HitRateMetrics ComputeHitRateMetrics(const std::vector<std::string>& predictedPrev,
+        const std::vector<CollectedModule>& round);
 
     /**
      * @brief Load persisted stats from the store file.

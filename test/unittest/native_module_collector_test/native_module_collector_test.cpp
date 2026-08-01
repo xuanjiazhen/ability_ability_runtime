@@ -24,6 +24,8 @@
 
 #include <nlohmann/json.hpp>
 
+#include "parameters.h"
+
 #include "native_module_collector.h"
 
 using namespace testing;
@@ -714,4 +716,96 @@ HWTEST_F(NativeModuleCollectorTest, SaveNow_ConsumerPreloadNotPredicted_019, Tes
     NativeModuleCollector::SetEnabledForTest(false);
     NativeModuleCollector::ResetStateForTest();
     RemoveDirRecursively(base);
+}
+
+// ---------------- TASK-8: system parameter (CCM) channel ----------------
+
+namespace {
+// keep in sync with native_module_collector.cpp (anonymous namespace keys)
+constexpr char PARAM_ENABLE[] = "ccm.ability.native_module_collect.enable";
+constexpr char PARAM_ALPHA[] = "ccm.ability.native_module_collect.alpha";
+constexpr char PARAM_THRESHOLD[] = "ccm.ability.native_module_collect.predict_threshold";
+} // namespace
+
+/**
+ * @tc.name: Params_DefaultsWhenAbsent_020
+ * @tc.desc: absent parameters yield disabled switch and spec-default tunables
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeModuleCollectorTest, Params_DefaultsWhenAbsent_020, TestSize.Level1)
+{
+    NativeModuleCollector::ResetParamCacheForTest();
+    NativeModuleCollector::SetEnabledForTest(false);
+
+    EXPECT_FALSE(NativeModuleCollector::IsEnabled());
+
+    const auto& params = NativeModuleCollector::GetParams();
+    EXPECT_FLOAT_EQ(params.alpha, 0.4f);
+    EXPECT_FLOAT_EQ(params.predictThreshold, 0.5f);
+    EXPECT_FLOAT_EQ(params.evictScore, 0.05f);
+    EXPECT_EQ(params.evictRounds, 16u);
+    EXPECT_EQ(params.maxEntries, 1024u);
+    EXPECT_EQ(params.checkpoint2DelayMs, 5000u);
+    EXPECT_FALSE(params.reportHitRate);
+}
+
+/**
+ * @tc.name: Params_OverrideAndInvalid_021
+ * @tc.desc: system parameter overrides tunables; invalid value falls back to default
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeModuleCollectorTest, Params_OverrideAndInvalid_021, TestSize.Level1)
+{
+    NativeModuleCollector::SetEnabledForTest(false);
+    if (!OHOS::system::SetParameter(PARAM_ENABLE, "") ||
+        !OHOS::system::SetParameter(PARAM_ALPHA, "") ||
+        !OHOS::system::SetParameter(PARAM_THRESHOLD, "")) {
+        GTEST_SKIP() << "SetParameter not permitted in this environment";
+    }
+
+    ASSERT_TRUE(OHOS::system::SetParameter(PARAM_ENABLE, "true"));
+    ASSERT_TRUE(OHOS::system::SetParameter(PARAM_ALPHA, "0.7"));
+    ASSERT_TRUE(OHOS::system::SetParameter(PARAM_THRESHOLD, "abc")); // invalid
+    NativeModuleCollector::ResetParamCacheForTest();
+
+    EXPECT_TRUE(NativeModuleCollector::IsEnabled());
+    const auto& params = NativeModuleCollector::GetParams();
+    EXPECT_FLOAT_EQ(params.alpha, 0.7f);
+    EXPECT_FLOAT_EQ(params.predictThreshold, 0.5f); // invalid -> spec default
+
+    // restore environment: disable and clear overrides
+    ASSERT_TRUE(OHOS::system::SetParameter(PARAM_ENABLE, "false"));
+    ASSERT_TRUE(OHOS::system::SetParameter(PARAM_ALPHA, ""));
+    ASSERT_TRUE(OHOS::system::SetParameter(PARAM_THRESHOLD, ""));
+    NativeModuleCollector::ResetParamCacheForTest();
+    EXPECT_FALSE(NativeModuleCollector::IsEnabled());
+}
+
+// ---------------- TASK-9: hit-rate metrics ----------------
+
+/**
+ * @tc.name: ComputeHitRateMetrics_022
+ * @tc.desc: hitRate = |P ∩ A| / |A|, falseRate = |P - A| / |P|, with empty-set edges
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeModuleCollectorTest, ComputeHitRateMetrics_022, TestSize.Level1)
+{
+    std::vector<std::string> predicted = { "a", "b", "c" };
+    std::vector<CollectedModule> round = { MakeModule("b"), MakeModule("c"), MakeModule("d") };
+
+    auto metrics = NativeModuleCollector::ComputeHitRateMetrics(predicted, round);
+    EXPECT_EQ(metrics.predictedCount, 3u);
+    EXPECT_EQ(metrics.actualCount, 3u);
+    EXPECT_EQ(metrics.hitCount, 2u);
+    EXPECT_FLOAT_EQ(metrics.hitRate, 2.0f / 3.0f);
+    EXPECT_FLOAT_EQ(metrics.falseRate, 1.0f / 3.0f);
+
+    // empty actual: perfect score by definition
+    auto emptyActual = NativeModuleCollector::ComputeHitRateMetrics(predicted, {});
+    EXPECT_FLOAT_EQ(emptyActual.hitRate, 1.0f);
+
+    // empty predicted: no false positives possible
+    auto emptyPredicted = NativeModuleCollector::ComputeHitRateMetrics({}, round);
+    EXPECT_FLOAT_EQ(emptyPredicted.falseRate, 0.0f);
+    EXPECT_FLOAT_EQ(emptyPredicted.hitRate, 0.0f);
 }
