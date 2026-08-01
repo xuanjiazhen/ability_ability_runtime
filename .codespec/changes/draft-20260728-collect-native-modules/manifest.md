@@ -23,4 +23,6 @@ commits:
   - "ability_runtime/93d2964db7 TASK-2 NativeModuleCollector skeleton"
   - "ability_runtime/ee5e5a513d TASK-2 fix group(unittest) alias target"
   - "arkui/napi/33cffc11 TASK-SKELETON-1+TASK-1 GetLoadedModuleInfos"
+  - "ability_runtime/107a19470f TASK-3 EWMA merge engine"
+  - "ability_runtime/1a6221c47f TASK-4+5 checkpoints wiring and preload exclusion"
 ---

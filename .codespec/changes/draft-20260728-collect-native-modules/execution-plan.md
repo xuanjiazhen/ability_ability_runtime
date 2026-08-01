@@ -335,7 +335,9 @@
 
 | 证据类型 | 命令/路径 | 结果 |
 |----------|-----------|------|
-| 测试 | `run -t UT -ts native_module_collector_test` | PASS |
+| 测试 | `run -t UT -ts native_module_collector_test` | 用例已交付 10 组（TDD 执行暂缓，待统一回补） |
+| 代码提交 | ability_runtime 仓 `107a19470f` | 已提交（编译通过：前序提交已验证构建链，本提交待下一轮编译确认） |
+| 检视 | 人工检视记录 | 通过：修复 firstStage 序列化往返破坏、value()/get() 类型混淆未捕获两处 bug；补重复输入去重与路径守卫 |
 
 **Handoff Summary**
 
@@ -394,8 +396,10 @@
 
 | 证据类型 | 命令/路径 | 结果 |
 |----------|-----------|------|
-| 测试 | `run -t UT -ts native_module_collector_test` | PASS |
-| 实测 | demo 应用两轮启动，检查文件与写盘次数 | PASS |
+| 测试 | `run -t UT -ts native_module_collector_test` | 用例已交付 3 组（TDD 执行暂缓，待统一回补） |
+| 实测 | demo 应用两轮启动，检查文件与写盘次数 | 暂缓（待编译上机） |
+| 代码提交 | ability_runtime 仓 `1a6221c47f` | 已提交 |
+| 检视 | 人工检视记录 | 通过：桥接点时序核实（Runtime::Create 早于 PerformAppReady）；实现形态微调为 AccumulateModules+SaveNow+NativeModuleSampler（collector 保持 napi 无关，UT 无需链接 napi） |
 
 **Handoff Summary**
 
@@ -454,8 +458,10 @@
 
 | 证据类型 | 命令/路径 | 结果 |
 |----------|-----------|------|
-| 测试 | `run -t UT -ts native_module_collector_test` | PASS |
-| 实测 | 检查 JSON 不含 preload 系统模块 | PASS |
+| 测试 | `run -t UT -ts native_module_collector_test` | 过滤用例含于 011（TDD 执行暂缓） |
+| 实测 | 检查 JSON 不含 preload 系统模块 | 暂缓（待编译上机） |
+| 代码提交 | ability_runtime 仓 `1a6221c47f` | 已提交 |
+| 检视 | 设计微调 | 快照存储由 ETSRuntime 直接调 collector 改为 runtime 层持有 + MainThread 桥接（避免 runtime→appkit 循环依赖），语义不变 |
 
 **Handoff Summary**
 
