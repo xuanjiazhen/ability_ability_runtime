@@ -59,6 +59,7 @@ struct CollectorState {
     std::mutex mutex;
     std::map<std::string, CollectedModule> sampled;
     std::set<std::string> preloadKeys;
+    std::map<std::string, uint32_t> consumerPreloads; // this round, by the startup consumer
     bool saveDispatched = false;
     bool asyncSave = true;
 };
@@ -233,6 +234,7 @@ bool NativeModuleCollector::SaveNow(const std::string& cacheDir, const std::stri
         return false;
     }
     std::vector<CollectedModule> round;
+    std::map<std::string, uint32_t> consumerPreloads;
     bool asyncSave;
     {
         std::lock_guard<std::mutex> lock(g_state.mutex);
@@ -244,16 +246,20 @@ bool NativeModuleCollector::SaveNow(const std::string& cacheDir, const std::stri
         for (const auto& [name, module] : g_state.sampled) {
             round.push_back(module);
         }
+        consumerPreloads = g_state.consumerPreloads;
         asyncSave = g_state.asyncSave;
     }
     std::string storePath = GetStorePath(cacheDir, processName);
     if (asyncSave) {
-        std::thread([storePath, bundleName, processName, appVersionCode, scenario, round]() {
-            (void)MergeAndSave(storePath, bundleName, processName, appVersionCode, scenario, round);
+        std::thread([storePath, bundleName, processName, appVersionCode, scenario, round,
+            consumerPreloads]() {
+            (void)MergeAndSave(storePath, bundleName, processName, appVersionCode, scenario, round,
+                consumerPreloads);
         }).detach();
         return true;
     }
-    return MergeAndSave(storePath, bundleName, processName, appVersionCode, scenario, round);
+    return MergeAndSave(storePath, bundleName, processName, appVersionCode, scenario, round,
+        consumerPreloads);
 }
 
 void NativeModuleCollector::SetPreloadModuleKeys(std::set<std::string> keys)
@@ -284,6 +290,7 @@ void NativeModuleCollector::ResetStateForTest()
     std::lock_guard<std::mutex> lock(g_state.mutex);
     g_state.sampled.clear();
     g_state.preloadKeys.clear();
+    g_state.consumerPreloads.clear();
     g_state.saveDispatched = false;
     g_state.asyncSave = true;
 }
@@ -378,7 +385,8 @@ bool NativeModuleCollector::LoadStats(const std::string& path, std::map<std::str
 }
 
 void NativeModuleCollector::MergeRound(const std::vector<CollectedModule>& round,
-    std::map<std::string, ModuleStat>& stats, uint32_t launchIndex, bool coldStart)
+    std::map<std::string, ModuleStat>& stats, uint32_t launchIndex, bool coldStart,
+    const std::map<std::string, uint32_t>& consumerPreloads)
 {
     const CollectorParams& params = GetParams();
     for (const auto& module : round) {
@@ -388,6 +396,14 @@ void NativeModuleCollector::MergeRound(const std::vector<CollectedModule>& round
         ModuleStat& stat = stats[module.moduleName];
         if (stat.lastSeenLaunch == launchIndex) {
             continue; // duplicate entry in the same round: reward at most once
+        }
+        auto preloadIt = consumerPreloads.find(module.moduleName);
+        if (preloadIt != consumerPreloads.end() && module.loadCount >= stat.loadCount &&
+            (module.loadCount - stat.loadCount) <= preloadIt->second) {
+            // only consumer-preloaded this round, no evidence of a real app import
+            // (spec R-9): refresh the observed counter, leave score/hits untouched
+            stat.loadCount = module.loadCount;
+            continue;
         }
         if (coldStart && stat.hits == 0 && stat.lastSeenLaunch == 0) {
             stat.score = 1.0f; // first round is fully trusted (spec R-7)
@@ -499,7 +515,7 @@ bool NativeModuleCollector::WriteAtomic(const std::string& path, const std::stri
 
 bool NativeModuleCollector::MergeAndSave(const std::string& storePath, const std::string& bundleName,
     const std::string& processName, int64_t appVersionCode, const std::string& scenario,
-    const std::vector<CollectedModule>& round)
+    const std::vector<CollectedModule>& round, const std::map<std::string, uint32_t>& consumerPreloads)
 {
     std::map<std::string, ModuleStat> stats;
     StoreMeta meta;
@@ -522,7 +538,7 @@ bool NativeModuleCollector::MergeAndSave(const std::string& storePath, const std
     meta.scenario = scenario.empty() ? "unknown" : scenario;
     meta.launchIndex++;
 
-    MergeRound(round, stats, meta.launchIndex, coldStart);
+    MergeRound(round, stats, meta.launchIndex, coldStart, consumerPreloads);
     EvictStats(stats, meta.launchIndex);
 
     size_t slashPos = storePath.find_last_of('/');
@@ -536,6 +552,34 @@ bool NativeModuleCollector::MergeAndSave(const std::string& storePath, const std
         return false;
     }
     return WriteAtomic(storePath, SerializeStats(meta, stats));
+}
+
+std::vector<std::string> NativeModuleCollector::LoadPredictedSystemModules(const std::string& storePath)
+{
+    std::vector<std::string> result;
+    std::map<std::string, ModuleStat> stats;
+    StoreMeta meta;
+    std::string errInfo;
+    if (!LoadStats(storePath, stats, meta, errInfo)) {
+        TAG_LOGI(AAFwkTag::APPKIT, "no usable store file: %{public}s", errInfo.c_str());
+        return result;
+    }
+    const CollectorParams& params = GetParams();
+    for (const auto& [name, stat] : stats) {
+        if (!stat.isAppModule && stat.score >= params.predictThreshold) {
+            result.push_back(name);
+        }
+    }
+    return result;
+}
+
+void NativeModuleCollector::RecordConsumerPreload(const std::string& moduleName)
+{
+    if (moduleName.empty()) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(g_state.mutex);
+    g_state.consumerPreloads[moduleName]++;
 }
 } // namespace AppExecFwk
 } // namespace OHOS

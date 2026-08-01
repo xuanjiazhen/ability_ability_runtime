@@ -553,3 +553,165 @@ HWTEST_F(NativeModuleCollectorTest, SaveNow_AsyncDispatched_013, TestSize.Level1
     NativeModuleCollector::ResetStateForTest();
     RemoveDirRecursively(base);
 }
+
+// ---------------- TASK-6: consumer-side predicted system modules ----------------
+
+/**
+ * @tc.name: LoadPredictedSystemModules_Filter_014
+ * @tc.desc: returns only system modules above the threshold; app modules and low scores excluded
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeModuleCollectorTest, LoadPredictedSystemModules_Filter_014, TestSize.Level1)
+{
+    std::string base = TempBaseDir("consumer");
+    RemoveDirRecursively(base);
+    std::string store = NativeModuleCollector::GetStorePath(base, "com.example.app");
+
+    // cold start: every hit scores 1.0
+    ASSERT_TRUE(NativeModuleCollector::MergeAndSave(store, "com.example.app", "com.example.app",
+        100, "launcher", { MakeModule("ohos.hilog"), MakeModule("ohos.window"), MakeModule("entry", true) }));
+
+    auto predicted = NativeModuleCollector::LoadPredictedSystemModules(store);
+    ASSERT_EQ(predicted.size(), 2u);
+    for (const auto& name : predicted) {
+        EXPECT_NE(name, "entry"); // app module must be excluded
+    }
+
+    // second round: only ohos.hilog hits; others decay to 0.6 (still >= 0.5)
+    ASSERT_TRUE(NativeModuleCollector::MergeAndSave(store, "com.example.app", "com.example.app",
+        100, "launcher", { MakeModule("ohos.hilog") }));
+    predicted = NativeModuleCollector::LoadPredictedSystemModules(store);
+    EXPECT_EQ(predicted.size(), 2u);
+
+    // keep missing ohos.window until it drops below 0.5: 0.6 -> 0.36
+    ASSERT_TRUE(NativeModuleCollector::MergeAndSave(store, "com.example.app", "com.example.app",
+        100, "launcher", { MakeModule("ohos.hilog") }));
+    predicted = NativeModuleCollector::LoadPredictedSystemModules(store);
+    ASSERT_EQ(predicted.size(), 1u);
+    EXPECT_EQ(predicted[0], "ohos.hilog");
+
+    RemoveDirRecursively(base);
+}
+
+/**
+ * @tc.name: LoadPredictedSystemModules_MissingOrCorrupted_015
+ * @tc.desc: missing or corrupted store file yields an empty list, no crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeModuleCollectorTest, LoadPredictedSystemModules_MissingOrCorrupted_015, TestSize.Level1)
+{
+    std::string base = TempBaseDir("consumerbad");
+    RemoveDirRecursively(base);
+    ASSERT_TRUE(NativeModuleCollector::EnsureDir(base));
+
+    EXPECT_TRUE(NativeModuleCollector::LoadPredictedSystemModules(base + "/missing.json").empty());
+
+    std::string corrupted = base + "/corrupted.json";
+    ASSERT_TRUE(NativeModuleCollector::WriteFileWithPermission(corrupted, "{broken"));
+    EXPECT_TRUE(NativeModuleCollector::LoadPredictedSystemModules(corrupted).empty());
+
+    RemoveDirRecursively(base);
+}
+
+// ---------------- TASK-7: loadCount hit determination (anti self-feedback) ----------------
+
+/**
+ * @tc.name: MergeRound_ConsumerPreloadOnly_016
+ * @tc.desc: consumer-preloaded module without import evidence is not a hit; loadCount refreshes
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeModuleCollectorTest, MergeRound_ConsumerPreloadOnly_016, TestSize.Level1)
+{
+    std::map<std::string, ModuleStat> stats;
+    stats["ohos.hilog"] = MakeStat(0.5f, 2u, 1u);
+    stats["ohos.hilog"].loadCount = 5;
+
+    CollectedModule m = MakeModule("ohos.hilog");
+    m.loadCount = 6; // +1, exactly the consumer preload count
+    std::map<std::string, uint32_t> preloads = { { "ohos.hilog", 1u } };
+
+    NativeModuleCollector::MergeRound({ m }, stats, 2, false, preloads);
+
+    EXPECT_FLOAT_EQ(stats["ohos.hilog"].score, 0.5f);   // no reward
+    EXPECT_EQ(stats["ohos.hilog"].hits, 2u);            // no hit
+    EXPECT_EQ(stats["ohos.hilog"].lastSeenLaunch, 1u);  // untouched
+    EXPECT_EQ(stats["ohos.hilog"].loadCount, 6u);       // observed counter refreshed
+}
+
+/**
+ * @tc.name: MergeRound_ConsumerPreloadPlusImport_017
+ * @tc.desc: loadCount growth beyond the consumer preload count proves a real import: hit
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeModuleCollectorTest, MergeRound_ConsumerPreloadPlusImport_017, TestSize.Level1)
+{
+    std::map<std::string, ModuleStat> stats;
+    stats["ohos.hilog"] = MakeStat(0.5f, 2u, 1u);
+    stats["ohos.hilog"].loadCount = 5;
+
+    CollectedModule m = MakeModule("ohos.hilog");
+    m.loadCount = 7; // +2 while consumer preloaded once: one real import
+    std::map<std::string, uint32_t> preloads = { { "ohos.hilog", 1u } };
+
+    NativeModuleCollector::MergeRound({ m }, stats, 2, false, preloads);
+
+    EXPECT_FLOAT_EQ(stats["ohos.hilog"].score, 0.4f + 0.6f * 0.5f); // rewarded
+    EXPECT_EQ(stats["ohos.hilog"].hits, 3u);
+    EXPECT_EQ(stats["ohos.hilog"].lastSeenLaunch, 2u);
+    EXPECT_EQ(stats["ohos.hilog"].loadCount, 7u);
+}
+
+/**
+ * @tc.name: MergeRound_NotConsumerPreloaded_018
+ * @tc.desc: module absent from the consumer set merges as a normal hit even with preloads map
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeModuleCollectorTest, MergeRound_NotConsumerPreloaded_018, TestSize.Level1)
+{
+    std::map<std::string, ModuleStat> stats;
+
+    CollectedModule m = MakeModule("ohos.window");
+    m.loadCount = 1; // diff from 0 is 1, but module is not in the consumer set
+    std::map<std::string, uint32_t> preloads = { { "ohos.hilog", 1u } };
+
+    NativeModuleCollector::MergeRound({ m }, stats, 1, false, preloads);
+
+    EXPECT_FLOAT_EQ(stats["ohos.window"].score, 0.4f); // normal new-module reward
+    EXPECT_EQ(stats["ohos.window"].hits, 1u);
+}
+
+/**
+ * @tc.name: SaveNow_ConsumerPreloadNotPredicted_019
+ * @tc.desc: end to end: consumer-preloaded module is discounted and never enters the store
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeModuleCollectorTest, SaveNow_ConsumerPreloadNotPredicted_019, TestSize.Level1)
+{
+    NativeModuleCollector::ResetStateForTest();
+    NativeModuleCollector::SetEnabledForTest(true);
+    NativeModuleCollector::SetAsyncSaveForTest(false);
+
+    std::string base = TempBaseDir("selffeedback");
+    RemoveDirRecursively(base);
+    std::string store = NativeModuleCollector::GetStorePath(base, "com.example.app");
+
+    // consumer preloads ohos.hilog; app never imports it (loadCount == preload count)
+    NativeModuleCollector::RecordConsumerPreload("ohos.hilog");
+    CollectedModule m = MakeModule("ohos.hilog");
+    m.loadCount = 1;
+    NativeModuleCollector::AccumulateModules({ m }, 0);
+
+    EXPECT_TRUE(NativeModuleCollector::SaveNow(base, "com.example.app", "com.example.app", 100, "launcher"));
+    EXPECT_TRUE(NativeModuleCollector::LoadPredictedSystemModules(store).empty());
+
+    // module was skipped and its zero-score entry evicted in the same round
+    std::map<std::string, ModuleStat> stats;
+    StoreMeta meta;
+    std::string err;
+    ASSERT_TRUE(NativeModuleCollector::LoadStats(store, stats, meta, err));
+    EXPECT_EQ(stats.count("ohos.hilog"), 0u);
+
+    NativeModuleCollector::SetEnabledForTest(false);
+    NativeModuleCollector::ResetStateForTest();
+    RemoveDirRecursively(base);
+}

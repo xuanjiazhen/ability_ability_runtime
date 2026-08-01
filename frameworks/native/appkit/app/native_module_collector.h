@@ -200,13 +200,21 @@ public:
      * On a cold start (no prior history) every hit starts at score 1 so the
      * first round is fully trusted (spec R-7).
      *
+     * A module in consumerPreloads (preloaded by the startup consumer this
+     * round) only counts as a hit when its loadCount grew by more than the
+     * consumer preload count, i.e. there is evidence of a real app import
+     * (spec R-9); otherwise its score/hits stay untouched and only the
+     * observed loadCount is refreshed.
+     *
      * @param round modules confirmed imported in this launch
      * @param stats stats map to update in place
      * @param launchIndex index of the current launch round
      * @param coldStart whether this is a rebuild-from-scratch round
+     * @param consumerPreloads moduleName -> preload count by the consumer this round
      */
     static void MergeRound(const std::vector<CollectedModule>& round,
-        std::map<std::string, ModuleStat>& stats, uint32_t launchIndex, bool coldStart);
+        std::map<std::string, ModuleStat>& stats, uint32_t launchIndex, bool coldStart,
+        const std::map<std::string, uint32_t>& consumerPreloads = {});
 
     /**
      * @brief Evict decayed/stale entries and enforce the entry cap.
@@ -241,7 +249,24 @@ public:
      */
     static bool MergeAndSave(const std::string& storePath, const std::string& bundleName,
         const std::string& processName, int64_t appVersionCode, const std::string& scenario,
-        const std::vector<CollectedModule>& round);
+        const std::vector<CollectedModule>& round,
+        const std::map<std::string, uint32_t>& consumerPreloads = {});
+
+    /**
+     * @brief Read the store file and return predicted system modules
+     * (score >= threshold and isAppModule == false) for the startup consumer.
+     *
+     * @return module name list; empty when the file is missing/invalid or
+     *         nothing qualifies
+     */
+    static std::vector<std::string> LoadPredictedSystemModules(const std::string& storePath);
+
+    /**
+     * @brief Record one consumer preload of a module in this launch round.
+     * Used by the startup consumer so the merge engine can discount
+     * consumer-triggered loads from real app imports (spec R-9).
+     */
+    static void RecordConsumerPreload(const std::string& moduleName);
 };
 } // namespace AppExecFwk
 } // namespace OHOS

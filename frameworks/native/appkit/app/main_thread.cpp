@@ -91,6 +91,7 @@
 #include "native_lib_util.h"
 #include "native_module_collector.h"
 #include "native_module_sampler.h"
+#include "predict_preload_so_startup_task.h"
 #include "ets_native_lib_util.h"
 #include "native_startup_task.h"
 #include "nlohmann/json.hpp"
@@ -213,6 +214,7 @@ const std::string SYSTEM_DEFAULT_FONTSIZE_SCALE = "1.0";
 const char* PC_LIBRARY_PATH = "/system/lib64/liblayered_parameters_manager.z.so";
 const char* PC_FUNC_INFO = "DetermineResourceType";
 const char* PRELOAD_APP_STARTUP = "PreloadAppStartup";
+const char* PREDICT_PRELOAD_SO_STARTUP = "PredictPreloadSoStartup";
 const int32_t TYPE_RESERVE = 1;
 const int32_t TYPE_OTHERS = 2;
 constexpr int32_t FOUNDATION_UID = 5523;
@@ -4664,6 +4666,23 @@ void MainThread::RunNativeStartupTask(const BundleInfo &bundleInfo, const AppLau
     };
     auto preloadAppStartup = std::make_shared<AbilityRuntime::NativeStartupTask>(PRELOAD_APP_STARTUP, task);
     nativeStartupTask.emplace(preloadAppStartup->GetName(), preloadAppStartup);
+    // consumer side: preload predicted system modules from the store file of the
+    // previous launch; runs off the main thread inside the startup framework
+    if (NativeModuleCollector::IsEnabled()) {
+        std::string cacheDir;
+        auto context = AbilityRuntime::Context::GetApplicationContext();
+        if (context != nullptr) {
+            cacheDir = context->GetCacheDir();
+        }
+        std::string processName = processInfo_ != nullptr ? processInfo_->GetProcessName() : "";
+        if (!cacheDir.empty() && !processName.empty()) {
+            auto predictTask = std::make_shared<AbilityRuntime::PredictPreloadSoStartupTask>(
+                PREDICT_PRELOAD_SO_STARTUP, NativeModuleCollector::GetStorePath(cacheDir, processName));
+            nativeStartupTask.emplace(predictTask->GetName(), predictTask);
+        } else {
+            TAG_LOGW(AAFwkTag::APPKIT, "predict preload meta incomplete, skip task registration");
+        }
+    }
     AbilityRuntime::ExtNativeStartupManager::RunNativeStartupTask(nativeStartupTask);
 }
 
