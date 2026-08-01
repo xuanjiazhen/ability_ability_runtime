@@ -153,7 +153,8 @@
 
 | 证据类型 | 命令/路径 | 结果 |
 |----------|-----------|------|
-| 构建 | `./build.sh --product-name <product> --build-target napi`（以 napi 仓实际 target 为准） | PASS |
+| 构建 | `./build.sh --product-name <product> --build-target napi`（以 napi 仓实际 target 为准） | 暂缓（需求方指示先完成编码与检视，编译验证待补） |
+| 代码提交 | arkui/napi 仓 `33cffc11`（feature/collect-imported-native-modules-sdd） | 已提交（骨架与实现一并落地，见 TASK-1 证据） |
 
 **Handoff Summary**
 
@@ -212,7 +213,9 @@
 
 | 证据类型 | 命令/路径 | 结果 |
 |----------|-----------|------|
-| 测试 | `run -t UT -ts native_module_manager_test` | PASS |
+| 测试 | `run -t UT -ts native_module_manager_test` | 暂缓（编译验证待补，用例已交付：空链表/字段一致/深拷贝/并发 4 例） |
+| 代码提交 | arkui/napi 仓 `33cffc11` | 已提交 |
+| 检视 | 人工检视记录 | 通过：锁契约核实（Register/Unload 持 nativeModuleListMutex_）；refCount 语义未发现反证，RSK-2 保持开放待设备验证 |
 
 **Handoff Summary**
 
@@ -272,7 +275,9 @@
 
 | 证据类型 | 命令/路径 | 结果 |
 |----------|-----------|------|
-| 测试 | `run -t UT -ts native_module_collector_test` | PASS |
+| 测试 | `run -t UT -ts native_module_collector_test` | 暂缓（编译验证待补，用例已交付：命名/哈希/建目录/0600/开关零 I/O 5 例） |
+| 代码提交 | ability_runtime 仓 `93d2964db7` | 已提交 |
+| 检视 | 人工检视记录 | 通过：AAFwkTag::APPKIT 存在；common_config 对 test 路径可见；EnsureDir/WriteFileWithPermission 边界走查通过 |
 
 **Handoff Summary**
 

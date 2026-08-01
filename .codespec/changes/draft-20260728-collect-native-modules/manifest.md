@@ -19,5 +19,7 @@ profile_source: inferred
 code_refs:
   - "openharmony_master/code/foundation/ability/ability_runtime"
   - "openharmony_master/code/foundation/arkui/napi"
-commits: []
+commits:
+  - "ability_runtime/93d2964db7 TASK-2 NativeModuleCollector skeleton"
+  - "arkui/napi/33cffc11 TASK-SKELETON-1+TASK-1 GetLoadedModuleInfos"
 ---
