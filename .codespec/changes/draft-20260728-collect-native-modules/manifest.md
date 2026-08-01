@@ -21,5 +21,6 @@ code_refs:
   - "openharmony_master/code/foundation/arkui/napi"
 commits:
   - "ability_runtime/93d2964db7 TASK-2 NativeModuleCollector skeleton"
+  - "ability_runtime/ee5e5a513d TASK-2 fix group(unittest) alias target"
   - "arkui/napi/33cffc11 TASK-SKELETON-1+TASK-1 GetLoadedModuleInfos"
 ---
