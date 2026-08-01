@@ -16,10 +16,63 @@
 #ifndef OHOS_ABILITY_RUNTIME_NATIVE_MODULE_COLLECTOR_H
 #define OHOS_ABILITY_RUNTIME_NATIVE_MODULE_COLLECTOR_H
 
+#include <cstdint>
+#include <map>
 #include <string>
+#include <vector>
 
 namespace OHOS {
 namespace AppExecFwk {
+
+/**
+ * @brief One sampled module of the current launch round.
+ *
+ * Decoupled from the napi NativeModuleInfo so the merge engine stays
+ * independently testable; the checkpoint wiring converts between them.
+ */
+struct CollectedModule {
+    std::string moduleName;   /* name used in import/require */
+    std::string fileName;     /* file path the module was loaded from */
+    bool isAppModule = false;
+    uint32_t loadCount = 0;   /* reserved for consumer-preload disambiguation */
+    uint8_t firstStage = 0;   /* 0 = app_ready, 1 = late */
+};
+
+/**
+ * @brief Persisted per-module statistics, updated across launches via EWMA.
+ */
+struct ModuleStat {
+    std::string fileName;
+    bool isAppModule = false;
+    float score = 0.0f;          /* EWMA hit score in [0, 1] */
+    uint32_t hits = 0;           /* rounds with a confirmed hit */
+    uint32_t lastSeenLaunch = 0; /* launch index of the last hit */
+    uint8_t firstStage = 0;      /* stage of the first ever hit */
+    uint32_t loadCount = 0;      /* loadCount observed at the last hit */
+};
+
+/**
+ * @brief Tunable parameters. Defaults match the baselined spec; the system
+ * parameter channel may override them (wired separately).
+ */
+struct CollectorParams {
+    float alpha = 0.4f;            /* EWMA coefficient */
+    float predictThreshold = 0.5f; /* score >= threshold enters predicted */
+    float evictScore = 0.05f;      /* score < evictScore evicts the entry */
+    uint32_t evictRounds = 16;     /* unseen for this many rounds evicts */
+    size_t maxEntries = 1024;      /* hard cap of persisted entries */
+};
+
+/**
+ * @brief Persisted file-level metadata (JSON v2).
+ */
+struct StoreMeta {
+    std::string bundleName;
+    std::string processName;
+    int64_t appVersionCode = 0;
+    uint32_t launchIndex = 0;   /* rounds persisted so far */
+    std::string scenario = "unknown";
+};
 /**
  * @brief Collects native modules imported by the application during startup and
  * persists them into the application sandbox cache directory.
@@ -95,6 +148,78 @@ public:
      * Stub: no-op until the merge engine lands.
      */
     static void CollectMergeAndSave();
+
+    /**
+     * @brief Current tunable parameters (defaults until the param channel lands).
+     */
+    static const CollectorParams& GetParams();
+
+    /**
+     * @brief Load persisted stats from the store file.
+     *
+     * Strict validation: JSON structure, file version (must be 2), entry count
+     * and field length caps. Any violation discards the whole file content.
+     *
+     * @param path store file path
+     * @param stats output stats, cleared first; untouched semantics on failure
+     *        is NOT guaranteed, treat failure as "rebuild from scratch"
+     * @param meta output file-level metadata
+     * @param errInfo failure reason for logging
+     * @return true only when a fully valid history was loaded
+     */
+    static bool LoadStats(const std::string& path, std::map<std::string, ModuleStat>& stats,
+        StoreMeta& meta, std::string& errInfo);
+
+    /**
+     * @brief Merge one launch round into the stats via EWMA.
+     *
+     * Hit:  score <- alpha + (1 - alpha) * score
+     * Miss: score <- (1 - alpha) * score
+     * On a cold start (no prior history) every hit starts at score 1 so the
+     * first round is fully trusted (spec R-7).
+     *
+     * @param round modules confirmed imported in this launch
+     * @param stats stats map to update in place
+     * @param launchIndex index of the current launch round
+     * @param coldStart whether this is a rebuild-from-scratch round
+     */
+    static void MergeRound(const std::vector<CollectedModule>& round,
+        std::map<std::string, ModuleStat>& stats, uint32_t launchIndex, bool coldStart);
+
+    /**
+     * @brief Evict decayed/stale entries and enforce the entry cap.
+     *
+     * Removes entries with score < evictScore or unseen for evictRounds
+     * launches; then evicts lowest-score entries down to maxEntries.
+     */
+    static void EvictStats(std::map<std::string, ModuleStat>& stats, uint32_t launchIndex);
+
+    /**
+     * @brief Compute the predicted set: modules with score >= threshold.
+     */
+    static std::vector<std::string> ComputePredicted(const std::map<std::string, ModuleStat>& stats);
+
+    /**
+     * @brief Serialize meta + stats into the store JSON (v2).
+     */
+    static std::string SerializeStats(const StoreMeta& meta, const std::map<std::string, ModuleStat>& stats);
+
+    /**
+     * @brief Atomically replace the store file (write tmp + rename), mode 0600.
+     * @return true on success; on failure the formal file is untouched or absent
+     */
+    static bool WriteAtomic(const std::string& path, const std::string& content);
+
+    /**
+     * @brief Full round pipeline: load history (with cold-start fallbacks for
+     * missing/corrupted/version-mismatched/app-upgraded files), merge, evict,
+     * serialize and atomically write back.
+     *
+     * @return true if the file was written
+     */
+    static bool MergeAndSave(const std::string& storePath, const std::string& bundleName,
+        const std::string& processName, int64_t appVersionCode, const std::string& scenario,
+        const std::vector<CollectedModule>& round);
 };
 } // namespace AppExecFwk
 } // namespace OHOS

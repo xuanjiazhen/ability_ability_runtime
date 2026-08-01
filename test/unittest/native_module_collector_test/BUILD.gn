@@ -33,6 +33,7 @@ ohos_unittest("native_module_collector_test") {
   external_deps = [
     "googletest:gtest_main",
     "hilog:libhilog",
+    "json:nlohmann_json_static",
   ]
 }
 

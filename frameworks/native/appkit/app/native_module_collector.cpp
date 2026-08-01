@@ -15,13 +15,19 @@
 
 #include "native_module_collector.h"
 
+#include <algorithm>
 #include <cerrno>
+#include <chrono>
+#include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <fcntl.h>
+#include <fstream>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#include <nlohmann/json.hpp>
 
 #include "hilog_tag_wrapper.h"
 
@@ -31,11 +37,71 @@ namespace {
 constexpr const char* STORE_DIR_NAME = ".ohos.ability_runtime";
 constexpr const char* STORE_FILE_PREFIX = "native_modules_";
 constexpr const char* STORE_FILE_SUFFIX = ".v2.json";
+constexpr const char* STORE_TMP_SUFFIX = ".tmp";
 constexpr mode_t STORE_DIR_MODE = 0700;
 constexpr mode_t STORE_FILE_MODE = 0600;
 constexpr uint32_t FNV1A_OFFSET_BASIS = 2166136261u;
 constexpr uint32_t FNV1A_PRIME = 16777619u;
 constexpr size_t HEX_HASH_LEN = 8;
+constexpr int32_t STORE_FILE_VERSION = 2;
+constexpr size_t MAX_PARSE_ENTRIES = 4096;     /* reject abnormally large files */
+constexpr size_t MAX_MODULE_NAME_LEN = 256;
+constexpr size_t MAX_FILE_NAME_LEN = 4096;
+constexpr size_t MAX_BUNDLE_NAME_LEN = 256;
+constexpr float SCORE_PRECISION = 1000.0f;     /* serialize score with 3 decimals */
+
+const CollectorParams g_params;
+
+float ClampScore(double score)
+{
+    if (std::isnan(score) || score < 0.0) {
+        return 0.0f;
+    }
+    if (score > 1.0) {
+        return 1.0f;
+    }
+    return static_cast<float>(score);
+}
+
+int64_t NowMillis()
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
+bool ParseStatEntry(const nlohmann::json& item, std::string& moduleName, ModuleStat& stat)
+{
+    if (!item.is_object()) {
+        return false;
+    }
+    const auto& name = item.value("moduleName", nlohmann::json());
+    if (!name.is_string() || name.get<std::string>().empty() ||
+        name.get<std::string>().size() > MAX_MODULE_NAME_LEN) {
+        return false;
+    }
+    const auto& fileName = item.value("fileName", nlohmann::json());
+    if (!fileName.is_string() || fileName.get<std::string>().size() > MAX_FILE_NAME_LEN) {
+        return false;
+    }
+    const auto& score = item.value("score", nlohmann::json());
+    const auto& hits = item.value("hits", nlohmann::json());
+    const auto& lastSeen = item.value("lastSeenLaunch", nlohmann::json());
+    const auto& firstStage = item.value("firstStage", nlohmann::json());
+    const auto& isApp = item.value("isAppModule", nlohmann::json());
+    if (!score.is_number() || !hits.is_number_unsigned() || !lastSeen.is_number_unsigned() ||
+        !firstStage.is_number_unsigned() || !isApp.is_boolean()) {
+        return false;
+    }
+    moduleName = name.get<std::string>();
+    stat.fileName = fileName.get<std::string>();
+    stat.isAppModule = isApp.get<bool>();
+    stat.score = ClampScore(score.get<double>());
+    stat.hits = hits.get<uint32_t>();
+    stat.lastSeenLaunch = lastSeen.get<uint32_t>();
+    stat.firstStage = firstStage.get<uint8_t>() > 1 ? 1 : firstStage.get<uint8_t>();
+    stat.loadCount = item.value("loadCount", 0u);
+    return true;
+}
 } // namespace
 
 bool NativeModuleCollector::IsEnabled()
@@ -140,7 +206,240 @@ void NativeModuleCollector::CollectMergeAndSave()
     if (!IsEnabled()) {
         return;
     }
-    // Stub: merge and atomic write land together with the merge engine.
+    // Stub: checkpoint wiring lands separately.
+}
+
+const CollectorParams& NativeModuleCollector::GetParams()
+{
+    return g_params;
+}
+
+bool NativeModuleCollector::LoadStats(const std::string& path, std::map<std::string, ModuleStat>& stats,
+    StoreMeta& meta, std::string& errInfo)
+{
+    stats.clear();
+    std::ifstream in(path);
+    if (!in.good()) {
+        errInfo = "file missing or unreadable";
+        return false;
+    }
+    nlohmann::json root;
+    try {
+        in >> root;
+    } catch (const nlohmann::json::exception& e) {
+        errInfo = std::string("json parse failed: ") + e.what();
+        return false;
+    }
+    try {
+        if (!root.is_object()) {
+            errInfo = "root is not an object";
+            return false;
+        }
+        const auto& version = root.value("version", nlohmann::json());
+        if (!version.is_number_integer() || version.get<int32_t>() != STORE_FILE_VERSION) {
+            errInfo = "version mismatch";
+            return false;
+        }
+        const auto& appVersion = root.value("appVersionCode", nlohmann::json());
+        const auto& launchIndex = root.value("launchIndex", nlohmann::json());
+        const auto& modules = root.value("modules", nlohmann::json());
+        if (!appVersion.is_number_integer() || !launchIndex.is_number_unsigned() || !modules.is_array()) {
+            errInfo = "meta fields invalid";
+            return false;
+        }
+        if (modules.size() > MAX_PARSE_ENTRIES) {
+            errInfo = "entries over parse cap";
+            return false;
+        }
+        std::string bundleName = root.value("bundleName", "");
+        std::string processName = root.value("processName", "");
+        if (bundleName.size() > MAX_BUNDLE_NAME_LEN || processName.size() > MAX_MODULE_NAME_LEN) {
+            errInfo = "meta fields over length cap";
+            return false;
+        }
+        std::map<std::string, ModuleStat> loaded;
+        for (const auto& item : modules) {
+            std::string moduleName;
+            ModuleStat stat;
+            if (!ParseStatEntry(item, moduleName, stat)) {
+                errInfo = "module entry invalid";
+                return false;
+            }
+            loaded[moduleName] = stat;
+        }
+        meta.bundleName = bundleName;
+        meta.processName = processName;
+        meta.appVersionCode = appVersion.get<int64_t>();
+        meta.launchIndex = launchIndex.get<uint32_t>();
+        meta.scenario = root.value("scenario", "unknown");
+        stats = std::move(loaded);
+        return true;
+    } catch (const nlohmann::json::exception& e) {
+        // value()/get() type mismatches land here: treat as corrupted input
+        errInfo = std::string("json type mismatch: ") + e.what();
+        return false;
+    }
+}
+
+void NativeModuleCollector::MergeRound(const std::vector<CollectedModule>& round,
+    std::map<std::string, ModuleStat>& stats, uint32_t launchIndex, bool coldStart)
+{
+    const CollectorParams& params = GetParams();
+    for (const auto& module : round) {
+        if (module.moduleName.empty()) {
+            continue;
+        }
+        ModuleStat& stat = stats[module.moduleName];
+        if (stat.lastSeenLaunch == launchIndex) {
+            continue; // duplicate entry in the same round: reward at most once
+        }
+        if (coldStart && stat.hits == 0 && stat.lastSeenLaunch == 0) {
+            stat.score = 1.0f; // first round is fully trusted (spec R-7)
+        } else {
+            stat.score = params.alpha + (1.0f - params.alpha) * stat.score;
+        }
+        stat.fileName = module.fileName;
+        stat.isAppModule = module.isAppModule;
+        stat.loadCount = module.loadCount;
+        if (stat.hits == 0 && stat.lastSeenLaunch == 0) {
+            stat.firstStage = module.firstStage;
+        }
+        stat.hits++;
+        stat.lastSeenLaunch = launchIndex;
+    }
+    for (auto& [name, stat] : stats) {
+        bool hitThisRound = (stat.lastSeenLaunch == launchIndex);
+        if (!hitThisRound) {
+            stat.score = (1.0f - params.alpha) * stat.score;
+        }
+    }
+}
+
+void NativeModuleCollector::EvictStats(std::map<std::string, ModuleStat>& stats, uint32_t launchIndex)
+{
+    const CollectorParams& params = GetParams();
+    for (auto it = stats.begin(); it != stats.end();) {
+        bool decayedOut = it->second.score < params.evictScore;
+        bool longUnseen = (launchIndex >= it->second.lastSeenLaunch) &&
+            (launchIndex - it->second.lastSeenLaunch >= params.evictRounds);
+        if (decayedOut || longUnseen) {
+            it = stats.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    if (stats.size() <= params.maxEntries) {
+        return;
+    }
+    std::vector<std::pair<float, std::string>> byScore;
+    byScore.reserve(stats.size());
+    for (const auto& [name, stat] : stats) {
+        byScore.emplace_back(stat.score, name);
+    }
+    // ascending: lowest score first, name as tie-breaker for determinism
+    std::sort(byScore.begin(), byScore.end());
+    size_t toRemove = stats.size() - params.maxEntries;
+    for (size_t i = 0; i < toRemove; ++i) {
+        stats.erase(byScore[i].second);
+    }
+}
+
+std::vector<std::string> NativeModuleCollector::ComputePredicted(
+    const std::map<std::string, ModuleStat>& stats)
+{
+    const CollectorParams& params = GetParams();
+    std::vector<std::string> predicted;
+    for (const auto& [name, stat] : stats) {
+        if (stat.score >= params.predictThreshold) {
+            predicted.push_back(name);
+        }
+    }
+    return predicted;
+}
+
+std::string NativeModuleCollector::SerializeStats(const StoreMeta& meta,
+    const std::map<std::string, ModuleStat>& stats)
+{
+    nlohmann::json root;
+    root["version"] = STORE_FILE_VERSION;
+    root["bundleName"] = meta.bundleName;
+    root["processName"] = meta.processName;
+    root["appVersionCode"] = meta.appVersionCode;
+    root["launchIndex"] = meta.launchIndex;
+    root["updatedAt"] = NowMillis();
+    root["scenario"] = meta.scenario;
+    root["predicted"] = ComputePredicted(stats);
+    nlohmann::json modules = nlohmann::json::array();
+    for (const auto& [name, stat] : stats) {
+        nlohmann::json item;
+        item["moduleName"] = name;
+        item["fileName"] = stat.fileName;
+        item["isAppModule"] = stat.isAppModule;
+        item["score"] = std::round(static_cast<double>(stat.score) * SCORE_PRECISION) / SCORE_PRECISION;
+        item["hits"] = stat.hits;
+        item["lastSeenLaunch"] = stat.lastSeenLaunch;
+        item["firstStage"] = stat.firstStage; // numeric 0/1, must round-trip with ParseStatEntry
+        item["loadCount"] = stat.loadCount;
+        modules.push_back(std::move(item));
+    }
+    root["modules"] = std::move(modules);
+    return root.dump();
+}
+
+bool NativeModuleCollector::WriteAtomic(const std::string& path, const std::string& content)
+{
+    std::string tmpPath = path + STORE_TMP_SUFFIX;
+    if (!WriteFileWithPermission(tmpPath, content)) {
+        return false;
+    }
+    if (rename(tmpPath.c_str(), path.c_str()) != 0) {
+        TAG_LOGE(AAFwkTag::APPKIT, "rename to %{public}s failed, errno %{public}d", path.c_str(), errno);
+        (void)remove(tmpPath.c_str());
+        return false;
+    }
+    // rename() replaces the destination atomically; the mode of tmp (0600) is kept
+    return true;
+}
+
+bool NativeModuleCollector::MergeAndSave(const std::string& storePath, const std::string& bundleName,
+    const std::string& processName, int64_t appVersionCode, const std::string& scenario,
+    const std::vector<CollectedModule>& round)
+{
+    std::map<std::string, ModuleStat> stats;
+    StoreMeta meta;
+    std::string errInfo;
+    bool hasHistory = LoadStats(storePath, stats, meta, errInfo);
+    if (!hasHistory) {
+        TAG_LOGI(AAFwkTag::APPKIT, "rebuild stats: %{public}s", errInfo.c_str());
+        stats.clear();
+        meta = StoreMeta {};
+    } else if (meta.appVersionCode != appVersionCode) {
+        TAG_LOGI(AAFwkTag::APPKIT, "rebuild stats: app upgraded");
+        hasHistory = false;
+        stats.clear();
+        meta = StoreMeta {};
+    }
+    bool coldStart = !hasHistory;
+    meta.bundleName = bundleName;
+    meta.processName = processName;
+    meta.appVersionCode = appVersionCode;
+    meta.scenario = scenario.empty() ? "unknown" : scenario;
+    meta.launchIndex++;
+
+    MergeRound(round, stats, meta.launchIndex, coldStart);
+    EvictStats(stats, meta.launchIndex);
+
+    size_t slashPos = storePath.find_last_of('/');
+    if (slashPos == std::string::npos || slashPos == 0) {
+        TAG_LOGE(AAFwkTag::APPKIT, "invalid store path: %{public}s", storePath.c_str());
+        return false;
+    }
+    std::string dir = storePath.substr(0, slashPos);
+    if (!EnsureDir(dir)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "ensure dir failed: %{public}s", dir.c_str());
+        return false;
+    }
+    return WriteAtomic(storePath, SerializeStats(meta, stats));
 }
 } // namespace AppExecFwk
 } // namespace OHOS
