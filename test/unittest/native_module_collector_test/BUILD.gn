@@ -35,3 +35,9 @@ ohos_unittest("native_module_collector_test") {
     "hilog:libhilog",
   ]
 }
+
+group("unittest") {
+  testonly = true
+
+  deps = [ ":native_module_collector_test" ]
+}
