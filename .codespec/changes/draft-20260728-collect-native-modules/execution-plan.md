@@ -647,7 +647,9 @@
 
 | 证据类型 | 命令/路径 | 结果 |
 |----------|-----------|------|
-| 测试 | `run -t UT -ts native_module_collector_test` | PASS |
+| 测试 | `run -t UT -ts native_module_collector_test` | 用例已交付 2 组（TDD 执行暂缓） |
+| 代码提交 | ability_runtime 仓 `a4a7cdac01` | 已提交 |
+| 检视 | 人工检视记录 | 通过：参数经 parameters.h（sysparam）读取、进程内缓存；参数名沿 ccm.ability.native_module_collect.* 命名空间，CCM 映射待 owner 确认（RSK-3 保持开放） |
 
 **Handoff Summary**
 
@@ -706,8 +708,10 @@
 
 | 证据类型 | 命令/路径 | 结果 |
 |----------|-----------|------|
-| 测试 | `run -t UT -tp ability_runtime` | PASS |
-| 实测 | beta 构建命中率事件观测 | PASS |
+| 测试 | `run -t UT -tp ability_runtime` | 用例已交付（共 22 组），全量执行暂缓 |
+| 实测 | beta 构建命中率事件观测 | 暂缓（待上机 + report_hitrate 参数） |
+| 代码提交 | ability_runtime 仓 `a4a7cdac01` | 已提交 |
+| 检视 | VM 覆盖核对 | VM-1~6/9/10/11 有用例；VM-7/8 任务执行侧待设备验证 |
 
 **Handoff Summary**
 
