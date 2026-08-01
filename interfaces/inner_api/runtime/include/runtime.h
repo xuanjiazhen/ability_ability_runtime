@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_RUNTIME_H
 
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -118,6 +119,24 @@ public:
     static std::unique_ptr<Runtime> Create(Options &options);
     static void SavePreloaded(std::unique_ptr<Runtime> &&instance);
     static std::unique_ptr<Runtime> GetPreloaded(Language key);
+
+    /**
+     * @brief Capture currently loaded native modules as the preload (pre-fork) snapshot.
+     *
+     * Called by the runtime implementation at preload time. When the process is
+     * later forked for an application, the child inherits the captured set, so
+     * modules loaded before application code runs can be told apart from modules
+     * the application itself imports.
+     */
+    static void CapturePreloadModules();
+
+    /**
+     * @brief Keys of modules loaded before application code runs (preload/fork base set).
+     *
+     * Key is NativeModuleInfo.moduleName, falling back to the register name when
+     * moduleName is empty. Empty when no preload snapshot was captured in this process.
+     */
+    static std::set<std::string> GetPreloadModuleKeys();
 
     Runtime() = default;
     virtual ~Runtime() = default;

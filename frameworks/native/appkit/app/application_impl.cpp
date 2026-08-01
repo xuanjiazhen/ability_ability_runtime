@@ -17,6 +17,8 @@
 
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "native_module_collector.h"
+#include "native_module_sampler.h"
 #include "ohos_application.h"
 #ifdef SUPPORT_UPMS
 #include "uri_permission_manager_client.h"
@@ -59,6 +61,10 @@ bool ApplicationImpl::PerformAppReady()
     if (curState_ == APP_STATE_CREATE) {
         application_->OnStart();
         curState_ = APP_STATE_READY;
+        // checkpoint 1: sample startup-critical native modules (memory only, no disk I/O)
+        if (NativeModuleCollector::IsEnabled()) {
+            NativeModuleCollector::AccumulateModules(NativeModuleSampler::Sample(), 0);
+        }
         return true;
     }
     TAG_LOGW(AAFwkTag::APPKIT, "curState: %{public}d", curState_);

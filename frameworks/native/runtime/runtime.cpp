@@ -15,6 +15,8 @@
 
 #include "runtime.h"
 
+#include "native_module_manager.h"
+
 #ifdef CJ_FRONTEND
 #include "cj_runtime.h"
 #endif
@@ -25,6 +27,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 std::unique_ptr<Runtime> g_preloadedInstance;
+std::set<std::string> g_preloadModuleKeys;
 }
 
 std::unique_ptr<Runtime> Runtime::Create(Runtime::Options &options)
@@ -66,6 +69,31 @@ std::unique_ptr<Runtime> Runtime::GetPreloaded(Language key)
         return static_cast<ETSRuntime *>(g_preloadedInstance.get())->MoveJsRuntime();
     }
     return std::move(g_preloadedInstance);
+}
+
+void Runtime::CapturePreloadModules()
+{
+    // Captured once at preload time (single-threaded phase); forked children
+    // inherit the set, readers afterwards only iterate it.
+    std::vector<NativeModuleInfo> infos;
+    NativeModuleManager* moduleManager = NativeModuleManager::GetInstance();
+    if (moduleManager == nullptr) {
+        return;
+    }
+    moduleManager->GetLoadedModuleInfos(infos);
+    std::set<std::string> keys;
+    for (const auto& info : infos) {
+        const std::string& key = !info.moduleName.empty() ? info.moduleName : info.name;
+        if (!key.empty()) {
+            keys.insert(key);
+        }
+    }
+    g_preloadModuleKeys = std::move(keys);
+}
+
+std::set<std::string> Runtime::GetPreloadModuleKeys()
+{
+    return g_preloadModuleKeys;
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

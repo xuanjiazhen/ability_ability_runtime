@@ -175,6 +175,9 @@ std::unique_ptr<ETSRuntime> ETSRuntime::PreFork(const Options &options,
         return std::unique_ptr<ETSRuntime>();
     }
     PreloadLibrary();
+    // snapshot everything loaded so far as the preload (pre-fork) base set, so
+    // the collector can tell preload-phase modules apart from app imports (AC-1.5)
+    Runtime::CapturePreloadModules();
     return instance;
 }
 

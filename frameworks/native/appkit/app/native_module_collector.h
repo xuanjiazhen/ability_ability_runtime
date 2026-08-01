@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -135,19 +136,40 @@ public:
     static bool WriteFileWithPermission(const std::string& path, const std::string& content);
 
     /**
-     * @brief Startup checkpoint 1: sample loaded modules in memory (no disk write).
+     * @brief Accumulate sampled modules for the current launch round.
      *
-     * Stub: no-op until the merge engine lands.
+     * Modules whose key is in the preload key set are dropped (AC-1.5).
+     * Duplicate keys refresh fileName/loadCount but keep the first-sighting stage.
+     *
+     * @param modules sampled modules (firstStage field is overwritten per entry)
+     * @param firstStage stage of this sample: 0 = app_ready, 1 = late
      */
-    static void SampleAtAppReady();
+    static void AccumulateModules(const std::vector<CollectedModule>& modules, uint8_t firstStage);
 
     /**
-     * @brief Startup checkpoint 2: sample remaining modules, merge scores and
-     * write the store file at most once per launch.
+     * @brief Merge accumulated samples into history and write the store file.
      *
-     * Stub: no-op until the merge engine lands.
+     * At most once per launch; gated by IsEnabled(); the actual write runs on a
+     * detached thread unless SetAsyncSaveForTest(false) was called.
+     *
+     * @return true if the save was dispatched (or performed synchronously)
      */
-    static void CollectMergeAndSave();
+    static bool SaveNow(const std::string& cacheDir, const std::string& bundleName,
+        const std::string& processName, int64_t appVersionCode, const std::string& scenario);
+
+    /**
+     * @brief Preload (pre-fork) module keys bridged from the runtime layer by
+     * MainThread after runtime creation. Sampling filters these out.
+     */
+    static void SetPreloadModuleKeys(std::set<std::string> keys);
+    static std::set<std::string> GetPreloadModuleKeys();
+
+    // ----- test hooks -----
+    static void SetEnabledForTest(bool enabled);
+    static void SetAsyncSaveForTest(bool async);
+    static void ResetStateForTest();
+    static size_t GetSampledCountForTest();
+    static bool GetSampledModuleForTest(const std::string& moduleName, CollectedModule& out);
 
     /**
      * @brief Current tunable parameters (defaults until the param channel lands).

@@ -762,6 +762,22 @@ private:
     void PreLoadWebLib();
 #endif
 
+    /**
+     * @brief Schedule the native module collection checkpoint-2.
+     *
+     * Delayed on the first foreground, immediate on the first background
+     * (fallback). Runs at most once per process lifetime and is a no-op when
+     * the collector switch is disabled.
+     *
+     * @param immediate true to run inline now, false to post a delayed task
+     */
+    void TriggerNativeModuleCollect(bool immediate);
+
+    /**
+     * @brief Sample loaded native modules, resolve sandbox meta and persist them.
+     */
+    void RunNativeModuleCollect();
+
     class MainHandler : public EventHandler {
     public:
         MainHandler(const std::shared_ptr<EventRunner> &runner, const sptr<MainThread> &thread);
@@ -781,6 +797,7 @@ private:
     };
 
     bool isRunnerStarted_ = false;
+    bool nativeModuleCollectScheduled_ = false;
     int newThreadId_ = -1;
     std::shared_ptr<ApplicationInfo> applicationInfo_ = nullptr;
     std::shared_ptr<ProcessInfo> processInfo_ = nullptr;

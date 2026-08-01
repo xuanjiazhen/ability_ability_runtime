@@ -20,6 +20,7 @@
 #include <sstream>
 #include <string>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include <nlohmann/json.hpp>
 
@@ -162,20 +163,23 @@ HWTEST_F(NativeModuleCollectorTest, WriteFileWithPermission_ContentAndMode_004, 
 
 /**
  * @tc.name: IsEnabled_DefaultDisabledNoFileIO_005
- * @tc.desc: switch placeholder is disabled; checkpoint stubs perform no file I/O
+ * @tc.desc: switch placeholder is disabled; SaveNow refuses and performs no file I/O
  * @tc.type: FUNC
  */
 HWTEST_F(NativeModuleCollectorTest, IsEnabled_DefaultDisabledNoFileIO_005, TestSize.Level1)
 {
+    NativeModuleCollector::ResetStateForTest();
+    NativeModuleCollector::SetEnabledForTest(false);
     EXPECT_FALSE(NativeModuleCollector::IsEnabled());
 
     std::string base = TempBaseDir("disabled");
     RemoveDirRecursively(base);
     ASSERT_TRUE(NativeModuleCollector::EnsureDir(base));
 
-    NativeModuleCollector::SampleAtAppReady();
-    NativeModuleCollector::CollectMergeAndSave();
-
+    OHOS::AppExecFwk::CollectedModule module;
+    module.moduleName = "ohos.hilog";
+    NativeModuleCollector::AccumulateModules({ module }, 0);
+    EXPECT_FALSE(NativeModuleCollector::SaveNow(base, "com.example.app", "com.example.app", 100, "launcher"));
     EXPECT_TRUE(std::filesystem::is_empty(base));
 
     RemoveDirRecursively(base);
@@ -461,5 +465,91 @@ HWTEST_F(NativeModuleCollectorTest, WriteAtomic_SuccessAndFailure_010, TestSize.
     EXPECT_FALSE(std::filesystem::exists(bad));
     EXPECT_FALSE(std::filesystem::exists(bad + ".tmp"));
 
+    RemoveDirRecursively(base);
+}
+
+// ---------------- TASK-4/5: checkpoint accumulation & preload filter ----------------
+
+/**
+ * @tc.name: AccumulateModules_DedupAndPreloadFilter_011
+ * @tc.desc: preload keys are dropped; duplicates refresh fields but keep first-sighting stage
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeModuleCollectorTest, AccumulateModules_DedupAndPreloadFilter_011, TestSize.Level1)
+{
+    NativeModuleCollector::ResetStateForTest();
+    NativeModuleCollector::SetPreloadModuleKeys({ "ohos.preload" });
+
+    NativeModuleCollector::AccumulateModules(
+        { MakeModule("ohos.preload"), MakeModule("ohos.hilog") }, 0);
+    EXPECT_EQ(NativeModuleCollector::GetSampledCountForTest(), 1u); // preload filtered
+
+    CollectedModule refreshed = MakeModule("ohos.hilog");
+    refreshed.fileName = "/system/lib64/module/libhilog_v2.z.so";
+    refreshed.loadCount = 9;
+    NativeModuleCollector::AccumulateModules({ refreshed }, 1);
+    EXPECT_EQ(NativeModuleCollector::GetSampledCountForTest(), 1u); // deduped
+
+    CollectedModule out;
+    ASSERT_TRUE(NativeModuleCollector::GetSampledModuleForTest("ohos.hilog", out));
+    EXPECT_EQ(out.fileName, "/system/lib64/module/libhilog_v2.z.so"); // refreshed
+    EXPECT_EQ(out.loadCount, 9u);
+    EXPECT_EQ(out.firstStage, 0u); // first-sighting stage kept
+
+    NativeModuleCollector::ResetStateForTest();
+}
+
+/**
+ * @tc.name: SaveNow_AtMostOnce_012
+ * @tc.desc: enabled sync save writes the file once; a second SaveNow is refused
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeModuleCollectorTest, SaveNow_AtMostOnce_012, TestSize.Level1)
+{
+    NativeModuleCollector::ResetStateForTest();
+    NativeModuleCollector::SetEnabledForTest(true);
+    NativeModuleCollector::SetAsyncSaveForTest(false);
+
+    std::string base = TempBaseDir("saveonce");
+    RemoveDirRecursively(base);
+
+    NativeModuleCollector::AccumulateModules({ MakeModule("ohos.hilog") }, 0);
+    EXPECT_TRUE(NativeModuleCollector::SaveNow(base, "com.example.app", "com.example.app", 100, "launcher"));
+
+    std::string store = NativeModuleCollector::GetStorePath(base, "com.example.app");
+    EXPECT_TRUE(std::filesystem::exists(store));
+
+    EXPECT_FALSE(NativeModuleCollector::SaveNow(base, "com.example.app", "com.example.app", 100, "launcher"));
+
+    NativeModuleCollector::SetEnabledForTest(false);
+    NativeModuleCollector::ResetStateForTest();
+    RemoveDirRecursively(base);
+}
+
+/**
+ * @tc.name: SaveNow_AsyncDispatched_013
+ * @tc.desc: async mode dispatches the write and reports success without blocking
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeModuleCollectorTest, SaveNow_AsyncDispatched_013, TestSize.Level1)
+{
+    NativeModuleCollector::ResetStateForTest();
+    NativeModuleCollector::SetEnabledForTest(true);
+    NativeModuleCollector::SetAsyncSaveForTest(true);
+
+    std::string base = TempBaseDir("saveasync");
+    RemoveDirRecursively(base);
+    NativeModuleCollector::AccumulateModules({ MakeModule("ohos.hilog") }, 0);
+
+    EXPECT_TRUE(NativeModuleCollector::SaveNow(base, "com.example.app", "com.example.app", 100, "launcher"));
+    // dispatched write runs on a detached thread; wait briefly for it to land
+    std::string store = NativeModuleCollector::GetStorePath(base, "com.example.app");
+    for (int i = 0; i < 100 && !std::filesystem::exists(store); ++i) {
+        usleep(10 * 1000); // 10ms
+    }
+    EXPECT_TRUE(std::filesystem::exists(store));
+
+    NativeModuleCollector::SetEnabledForTest(false);
+    NativeModuleCollector::ResetStateForTest();
     RemoveDirRecursively(base);
 }

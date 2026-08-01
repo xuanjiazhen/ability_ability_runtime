@@ -16,6 +16,7 @@
 #include "native_module_collector.h"
 
 #include <algorithm>
+#include <atomic>
 #include <cerrno>
 #include <chrono>
 #include <cmath>
@@ -23,8 +24,10 @@
 #include <cstdio>
 #include <fcntl.h>
 #include <fstream>
+#include <mutex>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <thread>
 #include <unistd.h>
 
 #include <nlohmann/json.hpp>
@@ -51,6 +54,16 @@ constexpr size_t MAX_BUNDLE_NAME_LEN = 256;
 constexpr float SCORE_PRECISION = 1000.0f;     /* serialize score with 3 decimals */
 
 const CollectorParams g_params;
+
+struct CollectorState {
+    std::mutex mutex;
+    std::map<std::string, CollectedModule> sampled;
+    std::set<std::string> preloadKeys;
+    bool saveDispatched = false;
+    bool asyncSave = true;
+};
+CollectorState g_state;
+std::atomic<bool> g_enabledForTest { false };
 
 float ClampScore(double score)
 {
@@ -106,8 +119,9 @@ bool ParseStatEntry(const nlohmann::json& item, std::string& moduleName, ModuleS
 
 bool NativeModuleCollector::IsEnabled()
 {
-    // Placeholder: the system parameter is wired later; disabled by default.
-    return false;
+    // Placeholder: returns the test override only. The system parameter channel
+    // (wired separately, default off) will be OR-ed in here.
+    return g_enabledForTest.load();
 }
 
 std::string NativeModuleCollector::GetStoreDir(const std::string& baseDir)
@@ -193,20 +207,102 @@ bool NativeModuleCollector::WriteFileWithPermission(const std::string& path, con
     return true;
 }
 
-void NativeModuleCollector::SampleAtAppReady()
+void NativeModuleCollector::AccumulateModules(const std::vector<CollectedModule>& modules, uint8_t firstStage)
 {
-    if (!IsEnabled()) {
-        return;
+    std::lock_guard<std::mutex> lock(g_state.mutex);
+    for (const auto& module : modules) {
+        if (module.moduleName.empty() || g_state.preloadKeys.count(module.moduleName) != 0) {
+            continue;
+        }
+        auto [it, inserted] = g_state.sampled.emplace(module.moduleName, module);
+        if (inserted) {
+            it->second.firstStage = firstStage;
+        } else {
+            // duplicate sighting: refresh identity fields, keep the first-sighting stage
+            it->second.fileName = module.fileName;
+            it->second.isAppModule = module.isAppModule;
+            it->second.loadCount = module.loadCount;
+        }
     }
-    // Stub: sampling lands together with the merge engine.
 }
 
-void NativeModuleCollector::CollectMergeAndSave()
+bool NativeModuleCollector::SaveNow(const std::string& cacheDir, const std::string& bundleName,
+    const std::string& processName, int64_t appVersionCode, const std::string& scenario)
 {
     if (!IsEnabled()) {
-        return;
+        return false;
     }
-    // Stub: checkpoint wiring lands separately.
+    std::vector<CollectedModule> round;
+    bool asyncSave;
+    {
+        std::lock_guard<std::mutex> lock(g_state.mutex);
+        if (g_state.saveDispatched) {
+            return false; // at most once per launch
+        }
+        g_state.saveDispatched = true;
+        round.reserve(g_state.sampled.size());
+        for (const auto& [name, module] : g_state.sampled) {
+            round.push_back(module);
+        }
+        asyncSave = g_state.asyncSave;
+    }
+    std::string storePath = GetStorePath(cacheDir, processName);
+    if (asyncSave) {
+        std::thread([storePath, bundleName, processName, appVersionCode, scenario, round]() {
+            (void)MergeAndSave(storePath, bundleName, processName, appVersionCode, scenario, round);
+        }).detach();
+        return true;
+    }
+    return MergeAndSave(storePath, bundleName, processName, appVersionCode, scenario, round);
+}
+
+void NativeModuleCollector::SetPreloadModuleKeys(std::set<std::string> keys)
+{
+    std::lock_guard<std::mutex> lock(g_state.mutex);
+    g_state.preloadKeys = std::move(keys);
+}
+
+std::set<std::string> NativeModuleCollector::GetPreloadModuleKeys()
+{
+    std::lock_guard<std::mutex> lock(g_state.mutex);
+    return g_state.preloadKeys;
+}
+
+void NativeModuleCollector::SetEnabledForTest(bool enabled)
+{
+    g_enabledForTest.store(enabled);
+}
+
+void NativeModuleCollector::SetAsyncSaveForTest(bool async)
+{
+    std::lock_guard<std::mutex> lock(g_state.mutex);
+    g_state.asyncSave = async;
+}
+
+void NativeModuleCollector::ResetStateForTest()
+{
+    std::lock_guard<std::mutex> lock(g_state.mutex);
+    g_state.sampled.clear();
+    g_state.preloadKeys.clear();
+    g_state.saveDispatched = false;
+    g_state.asyncSave = true;
+}
+
+size_t NativeModuleCollector::GetSampledCountForTest()
+{
+    std::lock_guard<std::mutex> lock(g_state.mutex);
+    return g_state.sampled.size();
+}
+
+bool NativeModuleCollector::GetSampledModuleForTest(const std::string& moduleName, CollectedModule& out)
+{
+    std::lock_guard<std::mutex> lock(g_state.mutex);
+    auto it = g_state.sampled.find(moduleName);
+    if (it == g_state.sampled.end()) {
+        return false;
+    }
+    out = it->second;
+    return true;
 }
 
 const CollectorParams& NativeModuleCollector::GetParams()

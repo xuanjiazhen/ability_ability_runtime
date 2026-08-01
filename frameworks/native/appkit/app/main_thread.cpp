@@ -89,6 +89,8 @@
 #include "cj_runtime.h"
 #endif
 #include "native_lib_util.h"
+#include "native_module_collector.h"
+#include "native_module_sampler.h"
 #include "ets_native_lib_util.h"
 #include "native_startup_task.h"
 #include "nlohmann/json.hpp"
@@ -152,6 +154,7 @@ constexpr char FORM_RENDER_LIB_PATH[] = "/system/lib64/libformrender.z.so";
 
 constexpr int32_t DELIVERY_TIME = 200;
 constexpr int32_t DISTRIBUTE_TIME = 100;
+constexpr int64_t NATIVE_MODULE_COLLECT_DELAY_MS = 5000; // checkpoint-2 delay after first foreground
 constexpr int32_t START_HIGH_SENSITIVE = 1;
 constexpr int32_t EXIT_HIGH_SENSITIVE = 2;
 constexpr int32_t UNSPECIFIED_USERID = -2;
@@ -1953,6 +1956,9 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
             TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
             return;
         }
+        // bridge the preload (pre-fork) module snapshot to the collector, so
+        // sampling can exclude modules not explicitly imported by the app
+        NativeModuleCollector::SetPreloadModuleKeys(AbilityRuntime::Runtime::GetPreloadModuleKeys());
         runtimeUpdateParam_.option = options;
         if (appInfo.debug && appLaunchData.GetDebugApp()) {
             wptr<MainThread> weak = this;
@@ -3069,6 +3075,58 @@ void MainThread::HandleCleanAbility(const sptr<IRemoteObject> &token, bool isCac
  * @brief Foreground the application.
  *
  */
+void MainThread::TriggerNativeModuleCollect(bool immediate)
+{
+    if (!NativeModuleCollector::IsEnabled() || nativeModuleCollectScheduled_) {
+        return;
+    }
+    nativeModuleCollectScheduled_ = true;
+    if (immediate) {
+        RunNativeModuleCollect();
+        return;
+    }
+    if (mainHandler_ == nullptr) {
+        TAG_LOGW(AAFwkTag::APPKIT, "null mainHandler_, collect inline");
+        RunNativeModuleCollect();
+        return;
+    }
+    wptr<MainThread> weak = this;
+    auto task = [weak]() {
+        auto appThread = weak.promote();
+        if (appThread == nullptr) {
+            return;
+        }
+        appThread->RunNativeModuleCollect();
+    };
+    // delay to also cover lazily imported modules after the first frame
+    mainHandler_->PostTask(task, "MainThread:NativeModuleCollect", NATIVE_MODULE_COLLECT_DELAY_MS);
+}
+
+void MainThread::RunNativeModuleCollect()
+{
+    // late sample on top of the app_ready sample from PerformAppReady
+    NativeModuleCollector::AccumulateModules(NativeModuleSampler::Sample(), 1);
+
+    std::string cacheDir;
+    std::string bundleName;
+    int64_t versionCode = 0;
+    auto context = AbilityRuntime::Context::GetApplicationContext();
+    if (context != nullptr) {
+        cacheDir = context->GetCacheDir();
+        bundleName = context->GetBundleName();
+        auto appInfo = context->GetApplicationInfo();
+        if (appInfo != nullptr) {
+            versionCode = appInfo->versionCode;
+        }
+    }
+    std::string processName = processInfo_ != nullptr ? processInfo_->GetProcessName() : "";
+    if (cacheDir.empty() || bundleName.empty() || processName.empty()) {
+        TAG_LOGW(AAFwkTag::APPKIT, "collect meta incomplete, skip");
+        return;
+    }
+    NativeModuleCollector::SaveNow(cacheDir, bundleName, processName, versionCode, "unknown");
+}
+
 void MainThread::HandleForegroundApplication()
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -3091,6 +3149,8 @@ void MainThread::HandleForegroundApplication()
 
     TAG_LOGD(AAFwkTag::APPKIT, "to foreground success, recordId is %{public}d", applicationImpl_->GetRecordId());
     appMgr_->ApplicationForegrounded(applicationImpl_->GetRecordId());
+    // checkpoint 2 (delayed): merge and persist collected native modules
+    TriggerNativeModuleCollect(false);
 }
 
 /**
@@ -3118,6 +3178,8 @@ void MainThread::HandleBackgroundApplication()
 #endif
 
     appMgr_->ApplicationBackgrounded(applicationImpl_->GetRecordId());
+    // checkpoint 2 fallback (immediate): first background before the delayed task fired
+    TriggerNativeModuleCollect(true);
 }
 
 /**
