@@ -523,8 +523,10 @@
 
 | 证据类型 | 命令/路径 | 结果 |
 |----------|-----------|------|
-| 测试 | `run -t UT -ts native_module_collector_test` | PASS |
-| 实测 | 启动早期 /proc/self/maps 含 predicted 系统模块 | PASS |
+| 测试 | `run -t UT -ts native_module_collector_test` | 用例已交付 2 组（TDD 执行暂缓） |
+| 实测 | 启动早期 /proc/self/maps 含 predicted 系统模块 | 暂缓（待上机） |
+| 代码提交 | ability_runtime 仓 `1f34e46476` | 已提交 |
+| 检视 | 设计微调 | 执行路径由 startup_manager 配置流注册改为 MainThread::RunNativeStartupTask 原生任务表（覆盖无 startup 配置应用）；头文件按仓惯例置于 interfaces/kits |
 
 **Handoff Summary**
 
@@ -583,7 +585,9 @@
 
 | 证据类型 | 命令/路径 | 结果 |
 |----------|-----------|------|
-| 测试 | `run -t UT -ts native_module_collector_test` | PASS |
+| 测试 | `run -t UT -ts native_module_collector_test` | 用例已交付 4 组（TDD 执行暂缓） |
+| 代码提交 | ability_runtime 仓 `1f34e46476` | 已提交 |
+| 检视 | 人工检视记录 | 通过：P 分支先于冷启动赋值（消费方预加载不得 score=1）；跳过条目 score=0 当轮淘汰，自我强化链断开 |
 
 **Handoff Summary**
 
