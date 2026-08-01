@@ -26,4 +26,5 @@ commits:
   - "ability_runtime/107a19470f TASK-3 EWMA merge engine"
   - "ability_runtime/1a6221c47f TASK-4+5 checkpoints wiring and preload exclusion"
   - "ability_runtime/1f34e46476 TASK-6+7 predict-preload consumer and anti-self-feedback"
+  - "ability_runtime/a4a7cdac01 TASK-8+9 CCM params and hit-rate reporting"
 ---
