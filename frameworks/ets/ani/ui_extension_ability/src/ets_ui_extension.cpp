@@ -44,6 +44,9 @@
 #include "napi/native_api.h"
 #include "ui_extension_window_command.h"
 #include "want_params_wrapper.h"
+#include "ipc_skeleton.h"
+#include "accesstoken_kit.h"
+#include "tokenid_kit.h"
 
 #ifdef WINDOWS_PLATFORM
 #define ETS_EXPORT __declspec(dllexport)
@@ -516,7 +519,12 @@ void EtsUIExtension::PostInsightIntentExecuted(const sptr<AAFwk::SessionInfo> &s
         CallObjectMethod(false, "onForeground", nullptr);
     }
 
-    OnInsightIntentExecuteDone(sessionInfo, result);
+    auto selfToken = IPCSkeleton::GetSelfTokenID();
+    if (Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
+        OnInsightIntentExecuteDone(sessionInfo, result);
+    } else {
+        TAG_LOGW(AAFwkTag::UI_EXT, "not system app, skip TransferExtensionData");
+    }
 
     if (needForeground) {
         // If need foreground, that means triggered by onForeground.

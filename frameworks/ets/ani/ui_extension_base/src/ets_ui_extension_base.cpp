@@ -46,6 +46,9 @@
 #include "string_wrapper.h"
 #include "ui_extension_window_command.h"
 #include "want_params_wrapper.h"
+#include "ipc_skeleton.h"
+#include "accesstoken_kit.h"
+#include "tokenid_kit.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -516,7 +519,12 @@ void EtsUIExtensionBase::PostInsightIntentExecuted(const sptr<AAFwk::SessionInfo
         CallObjectMethod(false, "onForeground", nullptr);
     }
 
-    OnInsightIntentExecuteDone(sessionInfo, result);
+    auto selfToken = IPCSkeleton::GetSelfTokenID();
+    if (Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
+        OnInsightIntentExecuteDone(sessionInfo, result);
+    } else {
+        TAG_LOGW(AAFwkTag::UI_EXT, "not system app, skip TransferExtensionData");
+    }
 
     if (needForeground) {
         // If need foreground, that means triggered by onForeground.
@@ -580,26 +588,9 @@ void EtsUIExtensionBase::OnInsightIntentExecuteDone(const sptr<AAFwk::SessionInf
 
     WantParams params;
     params.SetParam(INSIGHT_INTENT_EXECUTE_RESULT_CODE, Integer::Box(result.innerErr));
-    WantParams resultParams;
-    resultParams.SetParam("code", Integer::Box(result.code));
-    if (result.result != nullptr) {
-        sptr<AAFwk::IWantParams> pWantParams = WantParamWrapper::Box(*result.result);
-        if (pWantParams != nullptr) {
-            resultParams.SetParam("result", pWantParams);
-        }
-    }
-    auto size = result.uris.size();
-    sptr<IArray> uriArray = new (std::nothrow) Array(size, g_IID_IString);
-    if (uriArray == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "new uriArray failed");
-        return;
-    }
-    for (std::size_t i = 0; i < size; i++) {
-        uriArray->Set(i, String::Box(result.uris[i]));
-    }
-    resultParams.SetParam("uris", uriArray);
-    resultParams.SetParam("flags", Integer::Box(result.flags));
-    sptr<AAFwk::IWantParams> pWantParams = WantParamWrapper::Box(resultParams);
+    auto resultParams = result.BuildFunctionResult();
+    resultParams->SetParam("code", Integer::Box(result.code));
+    sptr<AAFwk::IWantParams> pWantParams = WantParamWrapper::Box(*resultParams);
     if (pWantParams != nullptr) {
         params.SetParam(INSIGHT_INTENT_EXECUTE_RESULT, pWantParams);
     }
