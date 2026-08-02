@@ -29,6 +29,7 @@
 #include <csignal>
 #include <vector>
 
+
 #define protected public
 #define private public
 #include "cli_tool_manager_service.h"
