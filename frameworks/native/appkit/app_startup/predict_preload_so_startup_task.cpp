@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "event_report.h"
+#include "ffrt.h"
 #include "hilog_tag_wrapper.h"
 #include "native_module_collector.h"
 #include "native_module_manager.h"
@@ -55,8 +56,6 @@ int32_t PredictPreloadSoStartupTask::RunTaskInit(std::unique_ptr<StartupTaskResu
         OnCompletedCallback::OnCallback(std::move(callback), ERR_OK);
         return ERR_OK;
     }
-    TAG_LOGI(AAFwkTag::STARTUP, "predict preload begin, count=%{public}zu", modules.size());
-
     NativeModuleManager* moduleManager = NativeModuleManager::GetInstance();
     if (moduleManager == nullptr) {
         TAG_LOGE(AAFwkTag::STARTUP, "moduleManager is null");
@@ -69,27 +68,35 @@ int32_t PredictPreloadSoStartupTask::RunTaskInit(std::unique_ptr<StartupTaskResu
         return ERR_OK;
     }
 
-    for (const auto& pred : modules) {
-        std::string errInfo;
-        // replay the original import: same moduleName + relativePath, system module
-        NativeModule* module = moduleManager->LoadNativeModule(
-            pred.moduleName.c_str(), nullptr, false, errInfo, false, pred.relativePath.c_str());
-        if (module == nullptr) {
-            // a single failure is recorded and skipped, never blocking others or startup
-            TAG_LOGW(AAFwkTag::STARTUP, "predict preload %{public}s failed: %{public}s",
-                pred.moduleName.c_str(), errInfo.c_str());
-            AAFwk::EventInfo eventInfo;
-            eventInfo.errCode = ERR_LOAD_NATIVE_MODULE;
-            eventInfo.errReason = errInfo;
-            AAFwk::EventReport::SendLaunchFrameworkEvent(
-                AAFwk::EventName::STARTUP_TASK_ERROR, HISYSEVENT_FAULT, eventInfo);
-            continue;
+    // ExtNativeStartupManager::RunNativeStartupTask runs the task graph on the
+    // caller (main) thread, so SetWaitOnMainThread(false) alone does not move us
+    // off it. Offload the LoadNativeModule loop to an ffrt worker; this task has
+    // no downstream dependents, so report completion now instead of blocking the
+    // startup graph on best-effort preloads.
+    ffrt::submit([modules = std::move(modules), moduleManager]() {
+        TAG_LOGI(AAFwkTag::STARTUP, "predict preload begin (ffrt), count=%{public}zu", modules.size());
+        for (const auto& pred : modules) {
+            std::string errInfo;
+            // replay the original import: same moduleName + relativePath, system module
+            NativeModule* module = moduleManager->LoadNativeModule(
+                pred.moduleName.c_str(), nullptr, false, errInfo, false, pred.relativePath.c_str());
+            if (module == nullptr) {
+                // a single failure is recorded and skipped, never blocking others or startup
+                TAG_LOGW(AAFwkTag::STARTUP, "predict preload %{public}s failed: %{public}s",
+                    pred.moduleName.c_str(), errInfo.c_str());
+                AAFwk::EventInfo eventInfo;
+                eventInfo.errCode = ERR_LOAD_NATIVE_MODULE;
+                eventInfo.errReason = errInfo;
+                AAFwk::EventReport::SendLaunchFrameworkEvent(
+                    AAFwk::EventName::STARTUP_TASK_ERROR, HISYSEVENT_FAULT, eventInfo);
+                continue;
+            }
+            TAG_LOGD(AAFwkTag::STARTUP, "predict preload %{public}s ok", pred.moduleName.c_str());
+            // let the collector discount consumer-triggered loads from real app imports
+            AppExecFwk::NativeModuleCollector::RecordConsumerPreload(pred.moduleName);
         }
-        TAG_LOGD(AAFwkTag::STARTUP, "predict preload %{public}s ok", pred.moduleName.c_str());
-        // let the collector discount consumer-triggered loads from real app imports
-        AppExecFwk::NativeModuleCollector::RecordConsumerPreload(pred.moduleName);
-    }
-    TAG_LOGI(AAFwkTag::STARTUP, "predict preload end, count=%{public}zu", modules.size());
+        TAG_LOGI(AAFwkTag::STARTUP, "predict preload end (ffrt)");
+    });
     OnCompletedCallback::OnCallback(std::move(callback), ERR_OK);
     return ERR_OK;
 }
