@@ -28,6 +28,7 @@
 #undef protected
 #include "cli_error_code.h"
 #include "hilog_tag_wrapper.h"
+#include "mock_single_kv_store.h"
 
 using namespace testing::ext;
 
@@ -45,9 +46,6 @@ public:
     static constexpr const char* TEST_TOOL1_FILE = "/data/test_cli_tool_configs/tool1.json";
     static constexpr const char* TEST_TOOL2_FILE = "/data/test_cli_tool_configs/tool2.json";
     static constexpr const char* TEST_TOOL3_FILE = "/data/test_cli_tool_configs/tool3.json";
-    static constexpr int32_t ERR_FILE_NOT_FOUND = -2;
-    static constexpr int32_t ERR_JSON_PARSE_FAILED = -3;
-    static constexpr int32_t ERR_KVSTORE_NOT_READY = -4;
 };
 
 void CliToolDataManagerTest::SetUpTestCase()
@@ -122,7 +120,32 @@ void CliToolDataManagerTest::TearDown()
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManagerTest::TearDown");
     std::remove(TEST_TOOL3_FILE);
+    CliToolDataManager::GetInstance().kvStorePtr_ = nullptr;
+    CliToolDataManager::GetInstance().toolsLoaded_ = false;
 }
+
+namespace {
+std::string BuildToolJson(const std::string &name, const std::string &description = "Mock tool")
+{
+    nlohmann::json json = {
+        {"name", name},
+        {"version", "1.0.0"},
+        {"description", description},
+        {"executablePath", "/bin/mock"},
+        {"requirePermissions", nlohmann::json::array({"ohos.permission.TEST"})},
+        {"inputSchema", nlohmann::json::object()},
+        {"outputSchema", nlohmann::json::object()},
+        {"hasSubCommand", false},
+    };
+    return json.dump();
+}
+
+void WriteFile(const std::string &path, const std::string &content)
+{
+    std::ofstream file(path);
+    file << content;
+}
+} // namespace
 
 /**
  * @tc.name: CliToolDataManager_JsonArrayToTools_001
@@ -544,6 +567,26 @@ HWTEST_F(CliToolDataManagerTest, CliToolDataManager_GetAllTools_001, TestSize.Le
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_GetAllTools_001 end");
 }
 
+/**
+ * @tc.name: CliToolDataManager_GetAllTools_002
+ * @tc.desc: Test GetAllTools parses valid KV entries and skips invalid entries
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_GetAllTools_002, TestSize.Level1)
+{
+    auto mockStore = std::make_shared<MockSingleKvStore>();
+    mockStore->SetMockData("ohos-mock_tool", BuildToolJson("ohos-mock_tool"));
+    mockStore->SetMockData("broken_tool", "{invalid json");
+    CliToolDataManager::GetInstance().kvStorePtr_ = mockStore;
+
+    std::vector<ToolInfo> tools;
+    int32_t ret = CliToolDataManager::GetInstance().GetAllTools(tools);
+
+    EXPECT_EQ(ret, ERR_OK);
+    ASSERT_EQ(tools.size(), 1u);
+    EXPECT_EQ(tools[0].name, "ohos-mock_tool");
+}
+
 // ==================== GetAllToolsRawData Tests ====================
 
 /**
@@ -563,6 +606,25 @@ HWTEST_F(CliToolDataManagerTest, CliToolDataManager_GetAllToolsRawData_001, Test
     EXPECT_TRUE(ret == 0 || ret == ERR_NO_INIT);
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_GetAllToolsRawData_001 end");
+}
+
+/**
+ * @tc.name: CliToolDataManager_GetAllToolsRawData_002
+ * @tc.desc: Test GetAllToolsRawData converts mocked KV entries into raw data
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_GetAllToolsRawData_002, TestSize.Level1)
+{
+    auto mockStore = std::make_shared<MockSingleKvStore>();
+    mockStore->SetMockData("ohos-raw_tool", BuildToolJson("ohos-raw_tool"));
+    CliToolDataManager::GetInstance().kvStorePtr_ = mockStore;
+
+    ToolsRawData rawData;
+    int32_t ret = CliToolDataManager::GetInstance().GetAllToolsRawData(rawData);
+
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_NE(rawData.data, nullptr);
+    EXPECT_GT(rawData.size, 0u);
 }
 
 // ==================== GetToolByName Tests ====================
@@ -605,6 +667,25 @@ HWTEST_F(CliToolDataManagerTest, CliToolDataManager_GetToolByName_002, TestSize.
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_GetToolByName_002 end");
 }
 
+/**
+ * @tc.name: CliToolDataManager_GetToolByName_003
+ * @tc.desc: Test GetToolByName success and invalid-json branches using mocked KVStore
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_GetToolByName_003, TestSize.Level1)
+{
+    auto mockStore = std::make_shared<MockSingleKvStore>();
+    mockStore->SetMockData("ohos-found_tool", BuildToolJson("ohos-found_tool"));
+    mockStore->SetMockData("ohos-broken_tool", "{invalid json");
+    CliToolDataManager::GetInstance().kvStorePtr_ = mockStore;
+
+    ToolInfo tool;
+    EXPECT_EQ(CliToolDataManager::GetInstance().GetToolByName("ohos-found_tool", tool), ERR_OK);
+    EXPECT_EQ(tool.name, "ohos-found_tool");
+    EXPECT_EQ(CliToolDataManager::GetInstance().GetToolByName("ohos-broken_tool", tool), ERR_JSON_PARSE_FAILED);
+    EXPECT_EQ(CliToolDataManager::GetInstance().GetToolByName("ohos-missing_tool", tool), ERR_TOOL_NOT_EXIST);
+}
+
 // ==================== QueryToolSummaries Tests ====================
 
 /**
@@ -626,32 +707,25 @@ HWTEST_F(CliToolDataManagerTest, CliToolDataManager_QueryToolSummaries_001, Test
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_QueryToolSummaries_001 end");
 }
 
-// ==================== RegisterTool Tests ====================
-
 /**
- * @tc.name: CliToolDataManager_RegisterTool_001
- * @tc.desc: Test RegisterTool with valid tool
+ * @tc.name: CliToolDataManager_QueryToolSummaries_002
+ * @tc.desc: Test QueryToolSummaries reads valid mocked KV entries
  * @tc.type: FUNC
  */
-HWTEST_F(CliToolDataManagerTest, CliToolDataManager_RegisterTool_001, TestSize.Level1)
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_QueryToolSummaries_002, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_RegisterTool_001 start");
+    auto mockStore = std::make_shared<MockSingleKvStore>();
+    mockStore->SetMockData("ohos-summary_tool", BuildToolJson("ohos-summary_tool", "Summary desc"));
+    mockStore->SetMockData("broken_summary", "not json");
+    CliToolDataManager::GetInstance().kvStorePtr_ = mockStore;
 
-    auto& dataManager = CliToolDataManager::GetInstance();
-    ToolInfo tool;
-    tool.name = "ohos-register_test";
-    tool.version = "1.0.0";
-    tool.description = "Register test tool";
-    tool.executablePath = "/bin/register_test";
-    tool.inputSchema = "{}";
-    tool.outputSchema = "{}";
+    std::vector<ToolSummary> summaries;
+    int32_t ret = CliToolDataManager::GetInstance().QueryToolSummaries(summaries);
 
-    int32_t ret = dataManager.RegisterTool(tool);
-
-    // May succeed or return error if KVStore not ready
-    EXPECT_TRUE(ret == 0 || ret == ERR_KVSTORE_NOT_READY);
-
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_RegisterTool_001 end");
+    EXPECT_EQ(ret, ERR_OK);
+    ASSERT_EQ(summaries.size(), 1u);
+    EXPECT_EQ(summaries[0].name, "ohos-summary_tool");
+    EXPECT_EQ(summaries[0].description, "Summary desc");
 }
 
 // ==================== EnsureToolsLoaded Tests ====================
@@ -692,6 +766,33 @@ HWTEST_F(CliToolDataManagerTest, CliToolDataManager_LoadToolsFromDir_001, TestSi
     EXPECT_EQ(ret, ERR_FILE_NOT_FOUND);
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_LoadToolsFromDir_001 end");
+}
+
+/**
+ * @tc.name: CliToolDataManager_LoadToolsFromDir_002
+ * @tc.desc: Test LoadToolsFromDir skips invalid and non-json entries while storing valid tools
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_LoadToolsFromDir_002, TestSize.Level1)
+{
+    const std::string dir = "/data/cli_tool_data_manager_load";
+    std::system(("rm -rf " + dir).c_str());
+    std::system(("mkdir -p " + dir).c_str());
+    WriteFile(dir + "/valid.json", BuildToolJson("ohos-load_valid"));
+    WriteFile(dir + "/invalid.json", "{invalid json");
+    WriteFile(dir + "/ignored.txt", BuildToolJson("ohos-ignored"));
+    WriteFile(dir + "/bad", BuildToolJson("ohos-too_short"));
+
+    auto mockStore = std::make_shared<MockSingleKvStore>();
+    CliToolDataManager::GetInstance().kvStorePtr_ = mockStore;
+
+    EXPECT_EQ(CliToolDataManager::GetInstance().LoadToolsFromDir(dir), ERR_OK);
+    EXPECT_TRUE(mockStore->HasMockData("ohos-load_valid"));
+    EXPECT_FALSE(mockStore->HasMockData("ohos-ignored"));
+    EXPECT_FALSE(mockStore->HasMockData("ohos-too_short"));
+    EXPECT_TRUE(mockStore->HasMockData("AllCliToolNames"));
+
+    std::system(("rm -rf " + dir).c_str());
 }
 
 // ==================== ParseToolFromJsonFile Tests ====================
@@ -769,6 +870,40 @@ HWTEST_F(CliToolDataManagerTest, CliToolDataManager_ParseToolFromJsonFile_003, T
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_ParseToolFromJsonFile_003 end");
 }
 
+/**
+ * @tc.name: CliToolDataManager_ParseToolFromJsonFile_004
+ * @tc.desc: Test ParseToolFromJsonFile covers missing, invalid root, invalid body, BOM and valid branches
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_ParseToolFromJsonFile_004, TestSize.Level1)
+{
+    auto& dataManager = CliToolDataManager::GetInstance();
+    ToolInfo tool;
+    EXPECT_EQ(dataManager.ParseToolFromJsonFile("/data/cli_tool_missing.json", tool), ERR_FILE_NOT_FOUND);
+
+    const std::string invalidRootFile = "/data/cli_tool_invalid_root.json";
+    WriteFile(invalidRootFile, R"(["not", "object"])");
+    EXPECT_EQ(dataManager.ParseToolFromJsonFile(invalidRootFile, tool), ERR_JSON_PARSE_FAILED);
+    std::remove(invalidRootFile.c_str());
+
+    const std::string invalidToolFile = "/data/cli_tool_invalid_body.json";
+    WriteFile(invalidToolFile, R"({"name":"ohos-missing_required"})");
+    EXPECT_EQ(dataManager.ParseToolFromJsonFile(invalidToolFile, tool), ERR_JSON_PARSE_FAILED);
+    std::remove(invalidToolFile.c_str());
+
+    const std::string bomFile = "/data/cli_tool_bom.json";
+    WriteFile(bomFile, std::string("\xEF\xBB\xBF") + BuildToolJson("ohos-bom_tool"));
+    EXPECT_EQ(dataManager.ParseToolFromJsonFile(bomFile, tool), ERR_OK);
+    EXPECT_EQ(tool.name, "ohos-bom_tool");
+    std::remove(bomFile.c_str());
+
+    const std::string validFile = "/data/cli_tool_valid_direct.json";
+    WriteFile(validFile, BuildToolJson("hms-valid_direct"));
+    EXPECT_EQ(dataManager.ParseToolFromJsonFile(validFile, tool), ERR_OK);
+    EXPECT_EQ(tool.name, "hms-valid_direct");
+    std::remove(validFile.c_str());
+}
+
 // ==================== GetInstance Tests ====================
 
 /**
@@ -786,35 +921,6 @@ HWTEST_F(CliToolDataManagerTest, CliToolDataManager_GetInstance_001, TestSize.Le
     EXPECT_EQ(&instance1, &instance2);
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_GetInstance_001 end");
-}
-
-// ==================== StoreTool Tests ====================
-
-/**
- * @tc.name: CliToolDataManager_StoreTool_001
- * @tc.desc: Test StoreTool with valid tool
- * @tc.type: FUNC
- */
-HWTEST_F(CliToolDataManagerTest, CliToolDataManager_StoreTool_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_StoreTool_001 start");
-
-    auto& dataManager = CliToolDataManager::GetInstance();
-    ToolInfo tool;
-    tool.name = "ohos-store_test";
-    tool.version = "1.0.0";
-    tool.description = "Store test";
-    tool.executablePath = "/bin/store_test";
-    tool.inputSchema = "{}";
-    tool.outputSchema = "{}";
-
-    // RegisterTool internally calls StoreTool
-    int32_t ret = dataManager.RegisterTool(tool);
-
-    // May succeed or return error if KVStore not ready
-    EXPECT_TRUE(ret == 0 || ret == ERR_KVSTORE_NOT_READY);
-
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_StoreTool_001 end");
 }
 
 // ==================== CheckKvStore Tests ====================
@@ -860,6 +966,158 @@ HWTEST_F(CliToolDataManagerTest, CliToolDataManager_SyncToolNames_004, TestSize.
     EXPECT_TRUE(ret == 0 || ret == ERR_FILE_NOT_FOUND || ret == ERR_KVSTORE_NOT_READY);
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_SyncToolNames_004 end");
+}
+
+/**
+ * @tc.name: CliToolDataManager_SyncToolNames_005
+ * @tc.desc: Test SyncToolNames deletes removed tools and tolerates delete failure
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_SyncToolNames_005, TestSize.Level1)
+{
+    auto mockStore = std::make_shared<MockSingleKvStore>();
+    mockStore->SetMockData("AllCliToolNames", R"(["ohos-old_tool","ohos-keep_tool",7])");
+    mockStore->SetMockData("ohos-old_tool", BuildToolJson("ohos-old_tool"));
+    mockStore->SetMockData("ohos-keep_tool", BuildToolJson("ohos-keep_tool"));
+    CliToolDataManager::GetInstance().kvStorePtr_ = mockStore;
+
+    EXPECT_EQ(CliToolDataManager::GetInstance().SyncToolNames({"ohos-keep_tool"}), ERR_OK);
+    EXPECT_FALSE(mockStore->HasMockData("ohos-old_tool"));
+    EXPECT_TRUE(mockStore->HasMockData("ohos-keep_tool"));
+
+    mockStore->SetMockData("AllCliToolNames", R"(["ohos-delete_failure"])");
+    mockStore->SetMockData("ohos-delete_failure", BuildToolJson("ohos-delete_failure"));
+    mockStore->Delete_ = DistributedKv::Status::ERROR;
+
+    EXPECT_EQ(CliToolDataManager::GetInstance().SyncToolNames({}), ERR_OK);
+    EXPECT_TRUE(mockStore->HasMockData("ohos-delete_failure"));
+}
+
+// ==================== JsonArrayToTools Tests ====================
+
+/**
+ * @tc.name: CliToolDataManager_JsonArrayToTools_0100
+ * @tc.desc: Test JsonArrayToTools with invalid JSON, non-array, mixed entries, and empty array
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_JsonArrayToTools_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_JsonArrayToTools_0100 start");
+
+    std::vector<ToolInfo> tools;
+
+    // invalid JSON
+    EXPECT_EQ(CliToolDataManager::GetInstance().JsonArrayToTools("{invalid}", tools), ERR_JSON_PARSE_FAILED);
+
+    // non-array root
+    EXPECT_EQ(CliToolDataManager::GetInstance().JsonArrayToTools(R"({"key":"val"})", tools), ERR_JSON_PARSE_FAILED);
+
+    // empty array
+    EXPECT_EQ(CliToolDataManager::GetInstance().JsonArrayToTools("[]", tools), ERR_OK);
+    EXPECT_TRUE(tools.empty());
+
+    // array with valid and invalid entries
+    std::string mixedJson = R"([
+        {"name":"no-prefix","version":"1.0","description":"bad",)"
+        R"("executablePath":"rel","requirePermissions":[],"inputSchema":{},"outputSchema":{}},
+        )" + BuildToolJson("ohos-json_array_valid") + R"(
+    ])";
+    EXPECT_EQ(CliToolDataManager::GetInstance().JsonArrayToTools(mixedJson, tools), ERR_OK);
+    ASSERT_EQ(tools.size(), 1u);
+    EXPECT_EQ(tools[0].name, "ohos-json_array_valid");
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_JsonArrayToTools_0100 end");
+}
+
+// ==================== GetToolByName Tests ====================
+
+/**
+ * @tc.name: CliToolDataManager_GetToolByName_0100
+ * @tc.desc: Test GetToolByName with null KV, not-found, invalid JSON, and valid tool
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_GetToolByName_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_GetToolByName_0100 start");
+
+    auto& dataManager = CliToolDataManager::GetInstance();
+
+    // null KV store
+    dataManager.kvStorePtr_ = nullptr;
+    ToolInfo tool;
+    EXPECT_NE(dataManager.GetToolByName("anything", tool), ERR_OK);
+
+    // not found
+    auto mockStore = std::make_shared<MockSingleKvStore>();
+    dataManager.kvStorePtr_ = mockStore;
+    EXPECT_NE(dataManager.GetToolByName("ohos-nonexistent", tool), ERR_OK);
+
+    // invalid JSON stored
+    mockStore->SetMockData("ohos-bad_json", "{not valid json}");
+    EXPECT_NE(dataManager.GetToolByName("ohos-bad_json", tool), ERR_OK);
+
+    // valid tool
+    mockStore->SetMockData("ohos-found_tool", BuildToolJson("ohos-found_tool"));
+    EXPECT_EQ(dataManager.GetToolByName("ohos-found_tool", tool), ERR_OK);
+    EXPECT_EQ(tool.name, "ohos-found_tool");
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_GetToolByName_0100 end");
+}
+
+// ==================== GetAllTools Tests ====================
+
+/**
+ * @tc.name: CliToolDataManager_GetAllTools_0100
+ * @tc.desc: Test GetAllTools with null KV and with valid stored tools
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_GetAllTools_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_GetAllTools_0100 start");
+
+    auto& dataManager = CliToolDataManager::GetInstance();
+
+    // Null KV store may be initialized lazily by CheckKvStore.
+    dataManager.kvStorePtr_ = nullptr;
+    std::vector<ToolInfo> tools;
+    int32_t ret = dataManager.GetAllTools(tools);
+    EXPECT_TRUE(ret == ERR_OK || ret == ERR_NO_INIT);
+
+    // with valid tool stored
+    auto mockStore = std::make_shared<MockSingleKvStore>();
+    mockStore->SetMockData("ohos-all_tool", BuildToolJson("ohos-all_tool"));
+    dataManager.kvStorePtr_ = mockStore;
+    EXPECT_EQ(dataManager.GetAllTools(tools), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_GetAllTools_0100 end");
+}
+
+// ==================== QueryToolSummaries Tests ====================
+
+/**
+ * @tc.name: CliToolDataManager_QueryToolSummaries_0100
+ * @tc.desc: Test QueryToolSummaries with null KV and with valid stored tools
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_QueryToolSummaries_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_QueryToolSummaries_0100 start");
+
+    auto& dataManager = CliToolDataManager::GetInstance();
+
+    // Null KV store may be initialized lazily by CheckKvStore.
+    dataManager.kvStorePtr_ = nullptr;
+    std::vector<ToolSummary> summaries;
+    int32_t ret = dataManager.QueryToolSummaries(summaries);
+    EXPECT_TRUE(ret == ERR_OK || ret == ERR_NO_INIT);
+
+    // with valid tool stored
+    auto mockStore = std::make_shared<MockSingleKvStore>();
+    mockStore->SetMockData("ohos-summary_tool", BuildToolJson("ohos-summary_tool"));
+    dataManager.kvStorePtr_ = mockStore;
+    EXPECT_EQ(dataManager.QueryToolSummaries(summaries), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_QueryToolSummaries_0100 end");
 }
 
 } // namespace CliTool

@@ -16,9 +16,9 @@
 #ifndef OHOS_AGENT_RUNTIME_AGENT_MANAGER_CLIENT_H
 #define OHOS_AGENT_RUNTIME_AGENT_MANAGER_CLIENT_H
 
-#include <condition_variable>
 #include <functional>
 #include <memory>
+#include <vector>
 
 #include "iagent_manager.h"
 
@@ -71,6 +71,14 @@ public:
      */
     int32_t NotifyLowCodeAgentComplete(const std::string &agentId);
 
+    int32_t GetAgentCardTypeForConnect(AAFwk::Want &want, int32_t &cardType);
+
+    int32_t VerifyAgentConnectRequest(const AAFwk::Want &want,
+        const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity);
+
+    int32_t VerifyAgentDisconnectRequests(const std::vector<AAFwk::Want> &wants,
+        const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity);
+
 private:
     sptr<IAgentManager> GetAgentMgrProxy();
     void ClearProxy();
@@ -89,9 +97,6 @@ private:
     };
 
 private:
-    std::condition_variable loadSaCondition_;
-    std::mutex loadSaMutex_;
-    bool loadSaFinished_;
     std::mutex mutex_;
     sptr<IAgentManager> agentMgr_ = nullptr;
 };

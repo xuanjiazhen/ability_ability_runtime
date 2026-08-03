@@ -15,18 +15,21 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <vector>
 
 #include "ability_connect_callback_interface.h"
 #include "agent_card.h"
 
 #define private public
 #include "ability_manager_errors.h"
+#include "agent_extension_connection_constants.h"
 #include "agent_manager_client.h"
 #include "agent_load_callback.h"
 #undef private
 #include "hilog_tag_wrapper.h"
 #include "ipc_object_stub.h"
 #include "iremote_object.h"
+#include "long_wrapper.h"
 #include "mock_agent_manager_service.h"
 #include "mock_my_flag.h"
 #include "want.h"
@@ -61,15 +64,26 @@ void AgentManagerClientTest::SetUp(void)
     MyFlag::retGetCallerAgentCardByAgentId = ERR_OK;
     MyFlag::retConnectAgentExtensionAbility = ERR_OK;
     MyFlag::retDisconnectAgentExtensionAbility = ERR_OK;
+    MyFlag::retGetAgentCardTypeForConnect = ERR_OK;
     MyFlag::retConnectServiceExtensionAbility = ERR_OK;
     MyFlag::retDisconnectServiceExtensionAbility = ERR_OK;
     MyFlag::retNotifyLowCodeAgentComplete = ERR_OK;
+    MyFlag::retVerifyAgentConnectRequest = ERR_OK;
+    MyFlag::retVerifyAgentDisconnectRequests = ERR_OK;
     MyFlag::nullSystemAbility = false;
     MyFlag::retRegisterAgentCard = ERR_OK;
     MyFlag::retUpdateAgentCard = ERR_OK;
     MyFlag::retDeleteAgentCard = ERR_OK;
     MyFlag::retToAgentCardVec = ERR_OK;
     MyFlag::convertedCards.clear();
+    MyFlag::lastVerifyAgentConnectWant = AAFwk::Want();
+    MyFlag::lastVerifyAgentDisconnectWants.clear();
+    MyFlag::lastGetAgentCardTypeWant = AAFwk::Want();
+    MyFlag::lastVerifyAgentConnectConnection = nullptr;
+    MyFlag::lastVerifyAgentDisconnectConnection = nullptr;
+    MyFlag::verifyCallerIdentity.clear();
+    MyFlag::resolvedAgentCardType = static_cast<int32_t>(AgentCardType::APP);
+    MyFlag::resolvedPreflightNonce = 1000000001L;
 }
 
 void AgentManagerClientTest::TearDown(void)
@@ -301,7 +315,7 @@ HWTEST_F(AgentManagerClientTest, GetCallerAgentCardByAgentId_001, TestSize.Level
 /**
 * @tc.name  : GetCallerAgentCardByAgentId_ShouldReturnError_WhenRetrievalFails
 * @tc.number: GetCallerAgentCardByAgentId_002
-* @tc.desc  : Test that GetCallerAgentCardByAgentId returns the error code when agent card retrieval fails.
+* @tc.desc  : Test that GetCallerAgentCardByAgentId returns the error code when AgentCard retrieval fails.
 */
 HWTEST_F(AgentManagerClientTest, GetCallerAgentCardByAgentId_002, TestSize.Level1)
 {
@@ -541,9 +555,7 @@ HWTEST_F(AgentManagerClientTest, GetAgentMgrProxy_002, TestSize.Level1)
 HWTEST_F(AgentManagerClientTest, GetAgentMgrProxy_003, TestSize.Level1)
 {
     MyFlag::nullSystemAbility = false;
-    MyFlag::retLoadSystemAbility = 0;
     MyFlag::agentMgr = nullptr;
-    MyFlag::shouldCallback = true;
 
     auto result = AgentManagerClient::GetInstance().GetAgentMgrProxy();
     EXPECT_EQ(result, nullptr);
@@ -557,10 +569,8 @@ HWTEST_F(AgentManagerClientTest, GetAgentMgrProxy_003, TestSize.Level1)
 HWTEST_F(AgentManagerClientTest, GetAgentMgrProxy_004, TestSize.Level1)
 {
     MyFlag::nullSystemAbility = false;
-    MyFlag::retLoadSystemAbility = 0;
     auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
     MyFlag::agentMgr = mockAgentMgr;
-    MyFlag::shouldCallback = true;
 
     auto result = AgentManagerClient::GetInstance().GetAgentMgrProxy();
     EXPECT_EQ(result->AsObject(), mockAgentMgr->AsObject());
@@ -595,42 +605,28 @@ HWTEST_F(AgentManagerClientTest, LoadAgentMgrService_001, TestSize.Level1)
 }
 
 /**
-* @tc.name  : LoadAgentMgrService_ShouldReturnFalse_WhenLoadSystemAbilityFails
+* @tc.name  : LoadAgentMgrService_ShouldReturnFalse_WhenGetSystemAbilityReturnsNull
 * @tc.number: LoadAgentMgrService_002
-* @tc.desc  : Test that LoadAgentMgrService returns false when LoadSystemAbility fails
+* @tc.desc  : Test that LoadAgentMgrService returns false when GetSystemAbility returns nullptr
 */
 HWTEST_F(AgentManagerClientTest, LoadAgentMgrService_002, TestSize.Level1)
 {
     MyFlag::nullSystemAbility = false;
-    MyFlag::retLoadSystemAbility = -1;
-
-    EXPECT_FALSE(AgentManagerClient::GetInstance().LoadAgentMgrService());
-}
-
-/**
-* @tc.name  : LoadAgentMgrService_ShouldReturnFalse_WhenLoadSaTimeout
-* @tc.number: LoadAgentMgrService_003
-* @tc.desc  : Test that LoadAgentMgrService returns false when waiting for system ability loading times out
-*/
-HWTEST_F(AgentManagerClientTest, LoadAgentMgrService_003, TestSize.Level1)
-{
-    MyFlag::nullSystemAbility = false;
-    MyFlag::retLoadSystemAbility = 0;
-    MyFlag::shouldCallback = false;
+    MyFlag::agentMgr = nullptr;
 
     EXPECT_FALSE(AgentManagerClient::GetInstance().LoadAgentMgrService());
 }
 
 /**
 * @tc.name  : LoadAgentMgrService_ShouldReturnTrue_WhenAllStepsSucceed
-* @tc.number: LoadAgentMgrService_004
+* @tc.number: LoadAgentMgrService_003
 * @tc.desc  : Test that LoadAgentMgrService returns true when all steps succeed
 */
-HWTEST_F(AgentManagerClientTest, LoadAgentMgrService_004, TestSize.Level1)
+HWTEST_F(AgentManagerClientTest, LoadAgentMgrService_003, TestSize.Level1)
 {
     MyFlag::nullSystemAbility = false;
-    MyFlag::retLoadSystemAbility = 0;
-    MyFlag::shouldCallback = true;
+    auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    MyFlag::agentMgr = mockAgentMgr;
 
     EXPECT_TRUE(AgentManagerClient::GetInstance().LoadAgentMgrService());
 }
@@ -713,7 +709,6 @@ HWTEST_F(AgentManagerClientTest, OnLoadSystemAbilitySuccess_001, TestSize.Level1
     client.OnLoadSystemAbilitySuccess(mockAgentMgr);
 
     EXPECT_EQ(client.agentMgr_->AsObject(), mockAgentMgr->AsObject());
-    EXPECT_TRUE(client.loadSaFinished_);
 }
 
 /**
@@ -729,7 +724,6 @@ HWTEST_F(AgentManagerClientTest, OnLoadSystemAbilityFail_001, TestSize.Level1)
     client.OnLoadSystemAbilityFail();
 
     EXPECT_EQ(client.agentMgr_, nullptr);
-    EXPECT_TRUE(client.loadSaFinished_);
 }
 
 /**
@@ -906,6 +900,182 @@ HWTEST_F(AgentManagerClientTest, DisconnectAgentExtensionAbility_003, TestSize.L
     sptr<MockAbilityConnection> connection = new MockAbilityConnection();
     int32_t result = client.DisconnectAgentExtensionAbility(connection);
     EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+* @tc.name  : GetAgentCardTypeForConnect_001
+* @tc.number: GetAgentCardTypeForConnect_001
+* @tc.desc  : Test GetAgentCardTypeForConnect returns ERR_NULL_AGENT_MGR_PROXY when proxy is null
+*/
+HWTEST_F(AgentManagerClientTest, GetAgentCardTypeForConnect_001, TestSize.Level1)
+{
+    AgentManagerClient client;
+    MyFlag::nullSystemAbility = true;
+
+    AAFwk::Want want;
+    int32_t cardType = static_cast<int32_t>(AgentCardType::APP);
+    int32_t result = client.GetAgentCardTypeForConnect(want, cardType);
+    EXPECT_EQ(result, ERR_NULL_AGENT_MGR_PROXY);
+    EXPECT_EQ(cardType, static_cast<int32_t>(AgentCardType::APP));
+}
+
+/**
+* @tc.name  : GetAgentCardTypeForConnect_002
+* @tc.number: GetAgentCardTypeForConnect_002
+* @tc.desc  : Test GetAgentCardTypeForConnect returns error when agent mgr call fails
+*/
+HWTEST_F(AgentManagerClientTest, GetAgentCardTypeForConnect_002, TestSize.Level1)
+{
+    AgentManagerClient client;
+    auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    client.agentMgr_ = mockAgentMgr;
+    MyFlag::retGetAgentCardTypeForConnect = ERR_INVALID_VALUE;
+
+    AAFwk::Want want;
+    int32_t cardType = static_cast<int32_t>(AgentCardType::APP);
+    int32_t result = client.GetAgentCardTypeForConnect(want, cardType);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    EXPECT_FALSE(MyFlag::lastGetAgentCardTypeWant.HasParameter(AGENT_VERIFICATION_NONCE_KEY));
+    EXPECT_FALSE(want.HasParameter(AGENT_VERIFICATION_NONCE_KEY));
+}
+
+/**
+* @tc.name  : GetAgentCardTypeForConnect_003
+* @tc.number: GetAgentCardTypeForConnect_003
+* @tc.desc  : Test GetAgentCardTypeForConnect forwards want and returns resolved card type
+*/
+HWTEST_F(AgentManagerClientTest, GetAgentCardTypeForConnect_003, TestSize.Level1)
+{
+    AgentManagerClient client;
+    auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    client.agentMgr_ = mockAgentMgr;
+    MyFlag::retGetAgentCardTypeForConnect = ERR_OK;
+    MyFlag::resolvedAgentCardType = static_cast<int32_t>(AgentCardType::LOW_CODE);
+
+    AAFwk::Want want;
+    want.SetParam("card.type.test", std::string("lowCode"));
+    int32_t cardType = static_cast<int32_t>(AgentCardType::APP);
+    int32_t result = client.GetAgentCardTypeForConnect(want, cardType);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(cardType, static_cast<int32_t>(AgentCardType::LOW_CODE));
+    EXPECT_EQ(MyFlag::lastGetAgentCardTypeWant.GetStringParam("card.type.test"), "lowCode");
+    EXPECT_FALSE(MyFlag::lastGetAgentCardTypeWant.HasParameter(AGENT_VERIFICATION_NONCE_KEY));
+    auto nonceParam = want.GetParams().GetParam(AGENT_VERIFICATION_NONCE_KEY);
+    auto nonceValue = AAFwk::ILong::Query(nonceParam);
+    ASSERT_NE(nonceValue, nullptr);
+    EXPECT_EQ(AAFwk::Long::Unbox64(nonceValue), MyFlag::resolvedPreflightNonce);
+}
+
+/**
+* @tc.name  : VerifyAgentConnectRequest_001
+* @tc.number: VerifyAgentConnectRequest_001
+* @tc.desc  : Test VerifyAgentConnectRequest returns ERR_NULL_AGENT_MGR_PROXY when proxy is null
+*/
+HWTEST_F(AgentManagerClientTest, VerifyAgentConnectRequest_001, TestSize.Level1)
+{
+    AgentManagerClient client;
+    MyFlag::nullSystemAbility = true;
+
+    AAFwk::Want want;
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+    std::string callerIdentity = "origin";
+    int32_t result = client.VerifyAgentConnectRequest(want, connection, callerIdentity);
+    EXPECT_EQ(result, ERR_NULL_AGENT_MGR_PROXY);
+    EXPECT_EQ(callerIdentity, "origin");
+}
+
+/**
+* @tc.name  : VerifyAgentConnectRequest_002
+* @tc.number: VerifyAgentConnectRequest_002
+* @tc.desc  : Test VerifyAgentConnectRequest forwards want and connection and returns caller identity
+*/
+HWTEST_F(AgentManagerClientTest, VerifyAgentConnectRequest_002, TestSize.Level1)
+{
+    AgentManagerClient client;
+    MyFlag::nullSystemAbility = false;
+    auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    client.agentMgr_ = mockAgentMgr;
+    MyFlag::retVerifyAgentConnectRequest = ERR_OK;
+    MyFlag::verifyCallerIdentity = "caller.identity";
+
+    AAFwk::Want want;
+    want.SetParam("verify.test.key", std::string("connect"));
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+    std::string callerIdentity;
+    int32_t result = client.VerifyAgentConnectRequest(want, connection, callerIdentity);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(callerIdentity, "caller.identity");
+    EXPECT_EQ(MyFlag::lastVerifyAgentConnectWant.GetStringParam("verify.test.key"), "connect");
+    EXPECT_EQ(MyFlag::lastVerifyAgentConnectConnection.GetRefPtr(), connection.GetRefPtr());
+}
+
+/**
+* @tc.name  : VerifyAgentConnectRequest_003
+* @tc.number: VerifyAgentConnectRequest_003
+* @tc.desc  : Test VerifyAgentConnectRequest returns error when agent mgr call fails
+*/
+HWTEST_F(AgentManagerClientTest, VerifyAgentConnectRequest_003, TestSize.Level1)
+{
+    AgentManagerClient client;
+    MyFlag::nullSystemAbility = false;
+    auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    client.agentMgr_ = mockAgentMgr;
+    MyFlag::retVerifyAgentConnectRequest = ERR_INVALID_VALUE;
+
+    AAFwk::Want want;
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+    std::string callerIdentity;
+    int32_t result = client.VerifyAgentConnectRequest(want, connection, callerIdentity);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+}
+
+/**
+* @tc.name  : VerifyAgentDisconnectRequests_001
+* @tc.number: VerifyAgentDisconnectRequests_001
+* @tc.desc  : Test VerifyAgentDisconnectRequests returns ERR_NULL_AGENT_MGR_PROXY when proxy is null
+*/
+HWTEST_F(AgentManagerClientTest, VerifyAgentDisconnectRequests_001, TestSize.Level1)
+{
+    AgentManagerClient client;
+    MyFlag::nullSystemAbility = true;
+
+    std::vector<AAFwk::Want> wants;
+    wants.emplace_back();
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+    std::string callerIdentity = "origin";
+    int32_t result = client.VerifyAgentDisconnectRequests(wants, connection, callerIdentity);
+    EXPECT_EQ(result, ERR_NULL_AGENT_MGR_PROXY);
+    EXPECT_EQ(callerIdentity, "origin");
+}
+
+/**
+* @tc.name  : VerifyAgentDisconnectRequests_002
+* @tc.number: VerifyAgentDisconnectRequests_002
+* @tc.desc  : Test VerifyAgentDisconnectRequests forwards all wants and returns caller identity
+*/
+HWTEST_F(AgentManagerClientTest, VerifyAgentDisconnectRequests_002, TestSize.Level1)
+{
+    AgentManagerClient client;
+    MyFlag::nullSystemAbility = false;
+    auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    client.agentMgr_ = mockAgentMgr;
+    MyFlag::retVerifyAgentDisconnectRequests = ERR_OK;
+    MyFlag::verifyCallerIdentity = "caller.identity";
+
+    AAFwk::Want firstWant;
+    firstWant.SetParam("verify.test.key", std::string("first"));
+    AAFwk::Want secondWant;
+    secondWant.SetParam("verify.test.key", std::string("second"));
+    std::vector<AAFwk::Want> wants = { firstWant, secondWant };
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+    std::string callerIdentity;
+    int32_t result = client.VerifyAgentDisconnectRequests(wants, connection, callerIdentity);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(callerIdentity, "caller.identity");
+    ASSERT_EQ(MyFlag::lastVerifyAgentDisconnectWants.size(), 2);
+    EXPECT_EQ(MyFlag::lastVerifyAgentDisconnectWants[0].GetStringParam("verify.test.key"), "first");
+    EXPECT_EQ(MyFlag::lastVerifyAgentDisconnectWants[1].GetStringParam("verify.test.key"), "second");
+    EXPECT_EQ(MyFlag::lastVerifyAgentDisconnectConnection.GetRefPtr(), connection.GetRefPtr());
 }
 
 /**

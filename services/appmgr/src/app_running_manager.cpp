@@ -459,6 +459,15 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::GetAppRunningRecordByPid(co
     return ((iter == appRunningRecordMap_.end()) ? nullptr : iter->second);
 }
 
+std::shared_ptr<AppRunningRecord> AppRunningManager::GetValidAppRunningRecordByPid(const pid_t pid)
+{
+    auto appRecord = GetAppRunningRecordByPid(pid);
+    if (!IsAppRunningRecordValid(appRecord)) {
+        return nullptr;
+    }
+    return appRecord;
+}
+
 std::shared_ptr<AppRunningRecord> AppRunningManager::GetAppRunningRecordByAbilityToken(
     const sptr<IRemoteObject> &abilityToken)
 {
@@ -510,7 +519,7 @@ bool AppRunningManager::GetPidsByUserId(int32_t userId, std::list<pid_t> &pids)
         const auto &appRecord = item.second;
         if (appRecord) {
             int32_t id = -1;
-            if ((DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->
+            if ((OsAccountManagerWrapper::
                 GetOsAccountLocalIdFromUid(appRecord->GetUid(), id) == 0) && (id == userId)) {
                 TAG_LOGD(AAFwkTag::APPMGR, "GetOsAccountLocalIdFromUid id: %{public}d", id);
                 pid_t pid = appRecord->GetPid();
@@ -534,7 +543,7 @@ bool AppRunningManager::GetProcessInfosByUserId(int32_t userId, std::list<Simple
             continue;
         }
         int32_t id = -1;
-        if ((DelayedSingleton<OsAccountManagerWrapper>::GetInstance()->
+        if ((OsAccountManagerWrapper::
             GetOsAccountLocalIdFromUid(appRecord->GetUid(), id) == 0) && (id == userId)) {
             TAG_LOGD(AAFwkTag::APPMGR, "GetOsAccountLocalIdFromUid id: %{public}d", id);
             pid_t pid = appRecord->GetPid();
@@ -1008,7 +1017,7 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
 #endif //SUPPORT_SCREEN
     auto isLauncherApp = appRecord->GetApplicationInfo()->isLauncherApp;
     auto isKeepAliveApp = appRecord->IsKeepAliveApp();
-    TAG_LOGI(AAFwkTag::PROCESSMGR, "terminate isLast:%{public}d,isLastAgentAbility:%{public}d,keepAlive:%{public}d",
+    TAG_LOGI(AAFwkTag::PROCESSMGR, "term isLast:%{public}d,%{public}d alive:%{public}d",
         isLastAbility, isLastAgentAbility, isKeepAliveApp);
     if ((isLastAbility || isLastAgentAbility) && !isKeepAliveApp && !isLauncherApp) {
         auto cacheProcMgr = DelayedSingleton<CacheProcessManager>::GetInstance();
@@ -1412,9 +1421,7 @@ int32_t AppRunningManager::NotifyProcMemoryLevel(const std::map<pid_t, MemoryLev
         }
         auto pid = priorityObject->GetPid();
         auto it = procLevelMap.find(pid);
-        if (it == procLevelMap.end()) {
-            TAG_LOGW(AAFwkTag::APPMGR, "pid%{public}d not found", pid);
-        } else {
+        if (it != procLevelMap.end()) {
             TAG_LOGD(AAFwkTag::APPMGR, "pid%{public}d memory level = %{public}d", pid, it->second);
             appRecord->ScheduleMemoryLevel(it->second, isShellCall);
         }
@@ -1458,6 +1465,18 @@ int32_t AppRunningManager::DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &in
     return ERR_OK;
 }
 
+int32_t AppRunningManager::DumpJsHandleMap(OHOS::AppExecFwk::JsHandleMapInfo &info)
+{
+    int32_t pid = static_cast<int32_t>(info.pid);
+    auto appRecord = GetAppRunningRecordByPid(pid);
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null appRecord");
+        return ERR_INVALID_VALUE;
+    }
+    appRecord->ScheduleJsHandleMap(info);
+    return ERR_OK;
+}
+
 int32_t AppRunningManager::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
 {
     auto appRecord = GetAppRunningRecordByPid(info.pid);
@@ -1469,14 +1488,14 @@ int32_t AppRunningManager::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &in
     return ERR_OK;
 }
 
-int32_t AppRunningManager::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+int32_t AppRunningManager::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
 {
     auto appRecord = GetAppRunningRecordByPid(info.pid);
     if (appRecord == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null appRecord");
         return ERR_INVALID_VALUE;
     }
-    appRecord->ScheduleMem(info, dumpResult);
+    appRecord->ScheduleMem(info, callback);
     return ERR_OK;
 }
 
@@ -1497,53 +1516,6 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::GetAppRunningRecordByRender
         return false;
     });
     return ((iter == appRunningRecordMap_.end()) ? nullptr : iter->second);
-}
-
-std::shared_ptr<RenderRecord> AppRunningManager::OnRemoteRenderDied(const wptr<IRemoteObject> &remote)
-{
-    if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null remote");
-        return nullptr;
-    }
-    sptr<IRemoteObject> object = remote.promote();
-    if (!object) {
-        TAG_LOGE(AAFwkTag::APPMGR, "promote failed");
-        return nullptr;
-    }
-
-    std::lock_guard guard(runningRecordMapMutex_);
-    std::shared_ptr<RenderRecord> renderRecord;
-    const auto &it =
-        std::find_if(appRunningRecordMap_.begin(), appRunningRecordMap_.end(),
-            [&object, &renderRecord](const auto &pair) {
-            if (!pair.second) {
-                return false;
-            }
-
-            auto renderRecordMap = pair.second->GetRenderRecordMap();
-            if (renderRecordMap.empty()) {
-                return false;
-            }
-            for (auto iter : renderRecordMap) {
-                if (iter.second == nullptr) {
-                    continue;
-                }
-                auto scheduler = iter.second->GetScheduler();
-                if (scheduler && scheduler->AsObject() == object) {
-                    renderRecord = iter.second;
-                    return true;
-                }
-            }
-            return false;
-        });
-    if (it != appRunningRecordMap_.end()) {
-        auto appRecord = it->second;
-        appRecord->RemoveRenderRecord(renderRecord);
-        TAG_LOGI(AAFwkTag::APPMGR, "RemoveRenderRecord pid:%{public}d, uid:%{public}d", renderRecord->GetPid(),
-            renderRecord->GetUid());
-        return renderRecord;
-    }
-    return nullptr;
 }
 
 bool AppRunningManager::GetAppRunningStateByBundleName(const std::string &bundleName)
@@ -1593,7 +1565,7 @@ int32_t AppRunningManager::NotifyLoadRepairPatch(const std::string &bundleName, 
             }
         }
     }
-    return loadSucceed == true ? ERR_OK : result;
+    return loadSucceed ? ERR_OK : result;
 }
 
 int32_t AppRunningManager::NotifyHotReloadPage(const std::string &bundleName, const sptr<IQuickFixCallback> &callback)
@@ -1624,7 +1596,7 @@ int32_t AppRunningManager::NotifyHotReloadPage(const std::string &bundleName, co
             }
         }
     }
-    return reloadPageSucceed == true ? ERR_OK : result;
+    return reloadPageSucceed ? ERR_OK : result;
 }
 
 int32_t AppRunningManager::NotifyUnLoadRepairPatch(const std::string &bundleName,
@@ -1656,7 +1628,7 @@ int32_t AppRunningManager::NotifyUnLoadRepairPatch(const std::string &bundleName
             }
         }
     }
-    return unLoadSucceed == true ? ERR_OK : result;
+    return unLoadSucceed ? ERR_OK : result;
 }
 
 bool AppRunningManager::IsApplicationFirstForeground(const AppRunningRecord &foregroundingRecord)
@@ -1911,54 +1883,76 @@ void AppRunningManager::HandleChildRelation(
         DEAD_CHILD_RELATION_CLEAR_TIME);
 }
 
-std::shared_ptr<ChildProcessRecord> AppRunningManager::OnChildProcessRemoteDied(const wptr<IRemoteObject> &remote)
+std::shared_ptr<ChildProcessRecord> AppRunningManager::OnChildProcessExitedByPid(pid_t pid)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "On child process remote died");
-    if (remote == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "null remote");
-        return nullptr;
-    }
-    sptr<IRemoteObject> object = remote.promote();
-    if (!object) {
-        TAG_LOGE(AAFwkTag::APPMGR, "promote failed");
+    TAG_LOGD(AAFwkTag::APPMGR, "On child process exited by pid");
+    if (pid <= 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid pid");
         return nullptr;
     }
 
     std::lock_guard guard(runningRecordMapMutex_);
     std::shared_ptr<ChildProcessRecord> childRecord;
     const auto &it = std::find_if(appRunningRecordMap_.begin(), appRunningRecordMap_.end(),
-        [&object, &childRecord](const auto &pair) {
+        [&pid, &childRecord](const auto &pair) {
             auto appRecord = pair.second;
             if (!appRecord) {
                 return false;
             }
             auto childRecordMap = appRecord->GetChildProcessRecordMap();
-            if (childRecordMap.empty()) {
+            auto iter = childRecordMap.find(pid);
+            if (iter == childRecordMap.end()) {
                 return false;
             }
-            for (auto iter : childRecordMap) {
-                if (iter.second == nullptr) {
-                    continue;
-                }
-                auto scheduler = iter.second->GetScheduler();
-                if (scheduler && scheduler->AsObject() == object) {
-                    childRecord = iter.second;
-                    return true;
-                }
-            }
-            return false;
+            childRecord = iter->second;
+            return true;
         });
     if (it != appRunningRecordMap_.end()) {
         auto appRecord = it->second;
         HandleChildRelation(childRecord, appRecord);
         appRecord->RemoveChildProcessRecord(childRecord);
-        TAG_LOGI(AAFwkTag::APPMGR, "RemoveChildProcessRecord pid:%{public}d, uid:%{public}d", childRecord->GetPid(),
+        TAG_LOGI(AAFwkTag::APPMGR, "RemoveChildProcessRecord by pid:%{public}d, uid:%{public}d", childRecord->GetPid(),
             childRecord->GetUid());
         return childRecord;
     }
     return nullptr;
 }
 #endif //SUPPORT_CHILD_PROCESS
+
+std::shared_ptr<RenderRecord> AppRunningManager::OnRenderProcessExitedByPid(pid_t pid)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "On render process exited by pid");
+    if (pid <= 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid pid");
+        return nullptr;
+    }
+
+    std::lock_guard guard(runningRecordMapMutex_);
+    std::shared_ptr<RenderRecord> renderRecord;
+    const auto &it = std::find_if(appRunningRecordMap_.begin(), appRunningRecordMap_.end(),
+        [&pid, &renderRecord](const auto &pair) {
+            if (!pair.second) {
+                return false;
+            }
+            auto renderRecordMap = pair.second->GetRenderRecordMap();
+            auto iter = renderRecordMap.find(pid);
+            if (iter == renderRecordMap.end()) {
+                return false;
+            }
+            renderRecord = iter->second;
+            return true;
+        });
+    if (it != appRunningRecordMap_.end()) {
+        auto appRecord = it->second;
+        appRecord->RemoveRenderRecord(renderRecord);
+        if (renderRecord) {
+            TAG_LOGI(AAFwkTag::APPMGR, "RemoveRenderRecord by pid:%{public}d, uid:%{public}d",
+                renderRecord->GetPid(), renderRecord->GetUid());
+        }
+        return renderRecord;
+    }
+    return nullptr;
+}
 
 std::shared_ptr<AppRunningRecord> AppRunningManager::GetAppRunningRecordByChildRecordPid(const pid_t pid)
 {

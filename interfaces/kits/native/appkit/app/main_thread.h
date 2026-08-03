@@ -22,6 +22,7 @@
 
 #include "ability_record_mgr.h"
 #include "app_jsheap_mem_info.h"
+#include "app_jshandle_map_info.h"
 #include "app_cjheap_mem_info.h"
 #include "app_malloc_info.h"
 #include "app_mgr_interface.h"
@@ -35,6 +36,7 @@
 #include "inner_event.h"
 #include "ipc_singleton.h"
 #include "js_runtime.h"
+#include "mem_dump_callback_interface.h"
 #include "native_engine/native_engine.h"
 #include "overlay_event_subscriber.h"
 #include "resource_manager.h"
@@ -224,6 +226,14 @@ public:
 
     /**
      *
+     * @brief dump the application's jshandle map info.
+     *
+     * @param info, pid, tid, needGc, needSnapshot.
+     */
+    void ScheduleJsHandleMap(OHOS::AppExecFwk::JsHandleMapInfo &info) override;
+
+    /**
+     *
      * @brief triggerGC and dump the application's cjheap memory info.
      *
      * @param info, pid, needGc, needSnapshot.
@@ -235,9 +245,9 @@ public:
      * @brief triggerGC and dump application's memory info.
      *
      * @param info, pid, tid, needGc, needSnapshot.
-     * @param dumpResult The dump result string
+     * @param callback The callback to receive dump result
      */
-    void ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult) override;
+    void ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback) override;
 
     /**
      *
@@ -352,7 +362,7 @@ public:
     int32_t ScheduleNotifyAppFault(const FaultData &faultData) override;
 #ifdef CJ_FRONTEND
     CJUncaughtExceptionInfo CreateCjExceptionInfo(const std::string &bundleName, uint32_t versionCode,
-        const std::string &hapPath);
+        const std::string &hapPath, const std::string &appRunningId);
     CJEventReportInfo CreateCjEventReportInfo(const std::string &bundleName, uint32_t versionCode,
         const std::string &hapPath, std::string &appRunningId);
 #endif
@@ -440,9 +450,11 @@ private:
 
     void HandleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info);
 
+    void HandleJsHandleMap(const OHOS::AppExecFwk::JsHandleMapInfo &info);
+
     void HandleCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info);
 
-    void HandleMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult);
+    void HandleMem(const OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback);
 
     void HandleSchedulePrepareTerminate(const std::string &moduleName);
 
@@ -789,8 +801,7 @@ private:
     std::string pluginDefaultNamespaceLdDictionary_ = "";
     RuntimeUpdateParam runtimeUpdateParam_;
 #if defined(NWEB) && defined(NWEB_GRAPHIC)
-    sptr<OHOS::IConsumerSurface> cSurface_ = nullptr;
-    sptr<OHOS::Surface> pSurface_ = nullptr;
+    Rosen::RSSurfaceNode::SharedPtr preloadSurfaceNode_ = nullptr;
     std::shared_ptr<NWeb::NWeb> preloadNWeb_ = nullptr;
 #endif
 

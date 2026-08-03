@@ -17,6 +17,8 @@
 
 #include <cerrno>
 #include <chrono>
+#include <fcntl.h>
+#include <sys/ioctl.h>
 #include <sys/prctl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -24,14 +26,23 @@
 #include <unistd.h>
 #include <utility>
 
+#include "bundle_info.h"
+#include "bundle_mgr_helper.h"
 #include "cli_error_code.h"
+#include "cli_event_report.h"
+#include "exec_cmd_param.h"
 #include "exec_tool_param.h"
 #include "hilog_tag_wrapper.h"
+#include "ipc_skeleton.h"
+#include "tokenid_kit.h"
 #include "tool_info.h"
 #include "tool_util.h"
 
 namespace OHOS {
 namespace CliTool {
+namespace {
+#define ACCESS_TOKENID_SET_HAP_PTOKENID _IOW('A', 0x1A, uint64_t)
+}
 
 ProcessManager &ProcessManager::GetInstance()
 {
@@ -85,17 +96,31 @@ void ProcessManager::CloseAllPipes(SessionRecord &record) const
     record.stderrPipe[1] = -1;
 }
 
-int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std::string &sandboxConfig,
-    const ToolInfo &toolInfo, std::shared_ptr<SessionRecord> record) const
+void ProcessManager::CloseFatherSessionPipes(
+    const std::vector<std::shared_ptr<SessionRecord>> &fatherSessionRecords) const
 {
-    if (CreatePipes(*record) == false) {
+    for (const auto &fatherRecord : fatherSessionRecords) {
+        if (fatherRecord == nullptr) {
+            continue;
+        }
+        CloseAllPipes(*fatherRecord);
+    }
+}
+
+int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std::string &sandboxConfig,
+    const ToolInfo &toolInfo, std::shared_ptr<SessionRecord> record,
+    const std::vector<std::shared_ptr<SessionRecord>> &fatherSessionRecords) const
+{
+    if (!CreatePipes(*record)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to create pipes");
+        ReportCliExecuteFailed(record->callerBundleName, param.toolName, REASON_PROCESS_CREATE_FAILED);
         return ERR_NO_INIT;
     }
     pid_t pid = fork();
     if (pid < 0) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to fork: %{public}d", errno);
         CloseAllPipes(*record);
+        ReportCliExecuteFailed(record->callerBundleName, param.toolName, REASON_PROCESS_CREATE_FAILED);
         return ERR_NO_INIT;
     }
 
@@ -109,6 +134,7 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std
         close(record->stdinPipe[0]);
         close(record->stdoutPipe[1]);
         close(record->stderrPipe[1]);
+        CloseFatherSessionPipes(fatherSessionRecords);
 
         std::string clawSandbox = "/system/bin/claw_sandbox";
         std::string configPrompt = "--config";
@@ -118,13 +144,17 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std
         execArgs.push_back(const_cast<char *>(configPrompt.c_str()));
         execArgs.push_back(const_cast<char *>(sandboxConfig.c_str()));
         execArgs.push_back(const_cast<char *>(cmdPrompt.c_str()));
-        std::string cmdLine = toolInfo.executablePath;
+        execArgs.push_back(const_cast<char *>(toolInfo.executablePath.c_str()));
         if (!param.subcommand.empty()) {
-            cmdLine += " " + param.subcommand;
+            execArgs.push_back(const_cast<char *>(param.subcommand.c_str()));
         }
-        ToolUtil::TransferToCmdParam(toolInfo, param.args, cmdLine);
-        execArgs.push_back(const_cast<char *>(cmdLine.c_str()));
-        TAG_LOGI(AAFwkTag::CLI_TOOL, "cmd: %{public}s", cmdLine.c_str());
+        std::vector<std::string> tmpExecArgs;
+        ToolUtil::TransferToCmdParam(param.args, tmpExecArgs);
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "args:");
+        for (auto &element : tmpExecArgs) {
+            TAG_LOGI(AAFwkTag::CLI_TOOL, "%{public}s", element.c_str());
+            execArgs.push_back(const_cast<char *>(element.c_str()));
+        }
         execArgs.push_back(nullptr);
         TAG_LOGI(AAFwkTag::CLI_TOOL, "Before execvp");
         execvp(execArgs[0], execArgs.data());
@@ -142,13 +172,87 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std
     return ERR_OK;
 }
 
+int32_t ProcessManager::CreateShellProcess(const ExecCmdParam &param, const std::string &sandboxConfig,
+    std::shared_ptr<SessionRecord> record,
+    const std::vector<std::shared_ptr<SessionRecord>> &fatherSessionRecords) const
+{
+    if (!CreatePipes(*record)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to create pipes");
+        return ERR_NO_INIT;
+    }
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    pid_t pid = fork();
+    if (pid < 0) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to fork: %{public}d", errno);
+        CloseAllPipes(*record);
+        return ERR_NO_INIT;
+    }
+    if (pid == 0) {
+        SetParentHapTokenId(tokenId);
+
+        close(record->stdinPipe[1]);
+        close(record->stdoutPipe[0]);
+        close(record->stderrPipe[0]);
+        dup2(record->stdinPipe[0], STDIN_FILENO);
+        dup2(record->stdoutPipe[1], STDOUT_FILENO);
+        dup2(record->stderrPipe[1], STDERR_FILENO);
+        close(record->stdinPipe[0]);
+        close(record->stdoutPipe[1]);
+        close(record->stderrPipe[1]);
+        CloseFatherSessionPipes(fatherSessionRecords);
+        std::string clawSandbox = "/system/bin/claw_sandbox";
+        std::string configPrompt = "--config";
+        std::string cmdPrompt = "--cmd";
+        std::string cmdShell = "/bin/sh";
+        std::string cmdShellOption = "-c";
+        std::vector<char*> execArgs;
+        execArgs.push_back(const_cast<char *>(clawSandbox.c_str()));
+        execArgs.push_back(const_cast<char *>(configPrompt.c_str()));
+        execArgs.push_back(const_cast<char *>(sandboxConfig.c_str()));
+        execArgs.push_back(const_cast<char *>(cmdPrompt.c_str()));
+        execArgs.push_back(const_cast<char *>(cmdShell.c_str()));
+        execArgs.push_back(const_cast<char *>(cmdShellOption.c_str()));
+        execArgs.push_back(const_cast<char *>(param.cmd.c_str()));
+        execArgs.push_back(nullptr);
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "Before execvp");
+        TAG_LOGD(AAFwkTag::CLI_TOOL, "sandboxConfig: %{public}s", sandboxConfig.c_str());
+        execvp(execArgs[0], execArgs.data());
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "execvp failed:%{public}d", errno);
+        _exit(EXIT_FAILURE);
+    }
+    // Parent process: close write ends of pipes
+    close(record->stdoutPipe[1]);
+    close(record->stderrPipe[1]);
+    // close read end of stdin
+    close(record->stdinPipe[0]);
+    record->processId = pid;
+    return ERR_OK;
+}
+
 bool ProcessManager::Killpg(pid_t pid) const
 {
-    int32_t killRet = kill(0 - pid, SIGTERM);
+    int32_t killRet = kill(0 - pid, SIGKILL);
     if (killRet != 0) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "killpg result:%{public}d", killRet);
         return false;
     }
+    return true;
+}
+
+bool ProcessManager::SetParentHapTokenId(uint32_t tokenId) const
+{
+    auto atmTokenId = AccessToken::TokenIdKit::AddCliBinaryInvokerTokenFlag(tokenId);
+    std::string path = "/dev/access_token_id";
+    int32_t fd = open(path.c_str(), O_RDWR);
+    if (fd < 0) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "open error, %{public}s", strerror(errno));
+        return false;
+    }
+    int32_t err = ioctl(fd, ACCESS_TOKENID_SET_HAP_PTOKENID, &atmTokenId);
+    if (err < 0) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "ioctl error, %{public}s", strerror(errno));
+    }
+    close(fd);
     return true;
 }
 

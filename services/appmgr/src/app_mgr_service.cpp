@@ -35,6 +35,7 @@
 #include "hitrace_meter.h"
 #include "in_process_call_wrapper.h"
 #include "ipc_skeleton.h"
+#include "parameters.h"
 #include "perf_profile.h"
 #include "permission_constants.h"
 #include "permission_verification.h"
@@ -93,6 +94,7 @@ constexpr const char* BS_PROCESS_NAME = "resource_schedule_service";
 constexpr int32_t USER_UID = 2000;
 constexpr const char* HIVIEW_PROCESS_NAME = "hiview";
 constexpr const char* DEBUG_FROM = "ohos.param.debugFrom";
+constexpr const char* DEVELOPER_MODE_STATE = "const.security.developermode.state";
 }  // namespace
 
 REGISTER_SYSTEM_ABILITY_BY_ID(AppMgrService, APP_MGR_SERVICE_ID, true);
@@ -190,14 +192,14 @@ ErrCode AppMgrService::Init()
     if (FAILED(openErr)) {
         TAG_LOGW(AAFwkTag::APPMGR, "fail, errCode: %{public}08x", openErr);
     }
-    if (!Publish(this)) {
-        TAG_LOGE(AAFwkTag::APPMGR, " publish fail");
-        return ERR_APPEXECFWK_SERVICE_NOT_CONNECTED;
-    }
     amsMgrScheduler_ = new (std::nothrow) AmsMgrScheduler(appMgrServiceInner_, taskHandler_);
     if (!amsMgrScheduler_) {
         TAG_LOGE(AAFwkTag::APPMGR, "init failed");
         return ERR_INVALID_OPERATION;
+    }
+    if (!Publish(this)) {
+        TAG_LOGE(AAFwkTag::APPMGR, " publish fail");
+        return ERR_APPEXECFWK_SERVICE_NOT_CONNECTED;
     }
     TAG_LOGI(AAFwkTag::APPMGR, "init success");
     return ERR_OK;
@@ -453,7 +455,10 @@ sptr<IAmsMgr> AppMgrService::GetAmsMgr()
 
 int32_t AppMgrService::ClearUpApplicationData(const std::string &bundleName, int32_t appCloneIndex, int32_t userId)
 {
-    if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
+    bool isDeveloperMode = OHOS::system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
+    bool isSACaller = AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI();
+    if (!isSACaller && (!isDeveloperMode || !AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+        AAFwk::PermissionConstants::PERMISSION_ALLOW_USE_BM))) {
         TAG_LOGE(AAFwkTag::APPMGR, "caller is not SA");
         return AAFwk::ERR_NOT_SYSTEM_APP;
     }
@@ -471,17 +476,29 @@ int32_t AppMgrService::ClearUpApplicationData(const std::string &bundleName, int
         return ERR_INVALID_OPERATION;
     }
     int32_t callingUid = IPCSkeleton::GetCallingUid();
+    bool isCheckDebugApp = false;
     if ((callingUid != 0 && callingUid != USER_UID) || userId < 0) {
         auto isCallingPerm = AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
             AAFwk::PermissionConstants::PERMISSION_CLEAN_APPLICATION_DATA);
-        if (!isCallingPerm) {
-            TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
-            return AAFwk::CHECK_PERMISSION_FAILED;
+        if (!isSACaller || !isCallingPerm) {
+            if (!isDeveloperMode ||
+                !AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+                    AAFwk::PermissionConstants::PERMISSION_ALLOW_USE_BM)) {
+                TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+                return AAFwk::CHECK_PERMISSION_FAILED;
+            }
+            isCheckDebugApp = true;
         }
     }
-    if (appCloneIndex < 0 || appCloneIndex > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+    if (appCloneIndex < 0 || AbilityRuntime::GlobalConstant::IsDlpIndex(appCloneIndex)) {
         TAG_LOGE(AAFwkTag::APPMGR, "appCloneIndex invalid");
         return AAFwk::ERR_APP_CLONE_INDEX_INVALID;
+    }
+    if (isCheckDebugApp) {
+        auto ret = appMgrServiceInner_->CheckAppProvisionType(bundleName, callingUid, appCloneIndex, userId);
+        if (ret != ERR_OK) {
+            return ret;
+        }
     }
     pid_t pid = IPCSkeleton::GetCallingPid();
     return appMgrServiceInner_->ClearUpApplicationData(bundleName, callingUid, pid, appCloneIndex, userId);
@@ -669,6 +686,14 @@ int32_t AppMgrService::DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
     return appMgrServiceInner_->DumpJsHeapMemory(info);
 }
 
+int32_t AppMgrService::DumpJsHandleMap(OHOS::AppExecFwk::JsHandleMapInfo &info)
+{
+    if (!IsReady() || !HasDumpPermission()) {
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->DumpJsHandleMap(info);
+}
+
 int32_t AppMgrService::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
 {
     if (!IsReady() || !HasDumpPermission()) {
@@ -679,12 +704,22 @@ int32_t AppMgrService::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
     return appMgrServiceInner_->DumpCjHeapMemory(info);
 }
 
-int32_t AppMgrService::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+int32_t AppMgrService::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
 {
     if (!IsReady() || !HasDumpPermission()) {
         return ERR_INVALID_OPERATION;
     }
-    return appMgrServiceInner_->DumpMem(info, dumpResult);
+    return appMgrServiceInner_->DumpMem(info, callback);
+}
+
+int32_t AppMgrService::ReportDumpMemResult(sptr<IMemDumpCallback> callback,
+    const std::string &dumpResult)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AppMgrService not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->ReportDumpMemResult(callback, dumpResult);
 }
 
 void AppMgrService::AddAbilityStageDone(const int32_t recordId)
@@ -1468,6 +1503,24 @@ int32_t AppMgrService::GetBundleNameByPid(const int32_t pid, std::string &bundle
     return appMgrServiceInner_->GetBundleNameByPid(pid, bundleName, uid);
 }
 
+bool AppMgrService::IsMainProcessDebug(int32_t uid)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return false;
+    }
+    return appMgrServiceInner_->IsMainProcessDebug(uid);
+}
+
+bool AppMgrService::IsCorrespondingProcessAttachDebug(const AbilityInfo &abilityInfo)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return false;
+    }
+    return appMgrServiceInner_->IsCorrespondingProcessAttachDebug(abilityInfo);
+}
+
 int32_t AppMgrService::GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExecFwk::RunningProcessInfo &info)
 {
     if (!IsReady()) {
@@ -1940,6 +1993,16 @@ int32_t AppMgrService::IsProcessCacheSupported(int32_t pid, bool &isSupported)
         return AAFwk::ERR_NO_PERMISSION_CALLER;
     }
     return appMgrServiceInner_->IsProcessCacheSupported(pid, isSupported);
+}
+
+int32_t AppMgrService::IsChildProcessSupported(bool isNative, bool &isSupported)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "IsChildProcessSupported called");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->IsChildProcessSupported(isNative, isSupported);
 }
 
 int32_t AppMgrService::SetProcessCacheEnable(int32_t pid, bool enable)

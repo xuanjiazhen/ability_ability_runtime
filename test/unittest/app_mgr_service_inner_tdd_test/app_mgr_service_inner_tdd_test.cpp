@@ -1002,6 +1002,8 @@ HWTEST_F(AppMgrServiceInnerTest, SubmitDfxFaultTask_001, TestSize.Level1)
     appMgrServiceInner->Init();
     EXPECT_NE(appMgrServiceInner, nullptr);
     appMgrServiceInner->SubmitDfxFaultTask(faultData, bundleName, appRecord, pid);
+    faultData.errorObject.message = "PreloadUIExtension test";
+    appMgrServiceInner->SubmitDfxFaultTask(faultData, bundleName, appRecord, pid);
     TAG_LOGI(AAFwkTag::TEST, "SubmitDfxFaultTask end");
 }
 
@@ -1581,5 +1583,289 @@ HWTEST_F(AppMgrServiceInnerTest, GetLoadTimeout_002, TestSize.Level1)
     EXPECT_EQ(timeout, timeoutDefault);
     TAG_LOGI(AAFwkTag::TEST, "GetLoadTimeout_002 end");
 }
+
+/**
+ * @tc.name: UpdateForeground
+ * @tc.desc: UpdateForeground
+ * @tc.type: FUNC
+ * @tc.Function: UpdateForeground
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, UpdateForeground_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UpdateForeground_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    int32_t recordId = 1;
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName = "UpdateForeground_001";
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    EXPECT_NE(appRecord, nullptr);
+    appRecord->SetState(ApplicationState::APP_STATE_FOREGROUND);
+    std::string eventName = AppFreezeType::THREAD_BLOCK_3S;
+    bool ret = appMgrServiceInner->UpdateForeground(appRecord, eventName);
+    EXPECT_TRUE(ret);
+    appRecord->SetState(ApplicationState::APP_STATE_FOCUS);
+    ret = appMgrServiceInner->UpdateForeground(appRecord, eventName);
+    EXPECT_TRUE(ret);
+    appRecord->SetState(ApplicationState::APP_STATE_BACKGROUND);
+    ret = appMgrServiceInner->UpdateForeground(appRecord, eventName);
+    EXPECT_TRUE(!ret);
+    TAG_LOGI(AAFwkTag::TEST, "UpdateForeground_001 end");
+}
+
+/**
+ * @tc.name: UpdateForeground
+ * @tc.desc: UpdateForeground
+ * @tc.type: FUNC
+ * @tc.Function: UpdateForeground
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, UpdateForeground_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UpdateForeground_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    int32_t recordId = 1;
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName = "UpdateForeground_002";
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    EXPECT_NE(appRecord, nullptr);
+    appRecord->SetState(ApplicationState::APP_STATE_FOREGROUND);
+    std::string eventName = AppFreezeType::BUSSINESS_THREAD_BLOCK_3S;
+    bool ret = appMgrServiceInner->UpdateForeground(appRecord, eventName);
+    EXPECT_TRUE(ret);
+    appRecord->SetState(ApplicationState::APP_STATE_FOCUS);
+    eventName = AppFreezeType::BUSSINESS_THREAD_BLOCK_6S;
+    ret = appMgrServiceInner->UpdateForeground(appRecord, eventName);
+    EXPECT_TRUE(ret);
+    eventName = AppFreezeType::THREAD_BLOCK_6S;
+    appRecord->SetState(ApplicationState::APP_STATE_BACKGROUND);
+    ret = appMgrServiceInner->UpdateForeground(appRecord, eventName);
+    EXPECT_TRUE(!ret);
+    TAG_LOGI(AAFwkTag::TEST, "UpdateForeground_002 end");
+}
+
+/**
+ * @tc.name: UpdateForeground
+ * @tc.desc: UpdateForeground
+ * @tc.type: FUNC
+ * @tc.Function: UpdateForeground
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, UpdateForeground_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UpdateForeground_003 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    int32_t recordId = 1;
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName = "UpdateForeground_003";
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    EXPECT_NE(appRecord, nullptr);
+    appRecord->SetState(ApplicationState::APP_STATE_FOREGROUND);
+    std::string eventName = AppFreezeType::LIFECYCLE_TIMEOUT;
+    bool ret = appMgrServiceInner->UpdateForeground(appRecord, eventName);
+    EXPECT_TRUE(ret);
+    TAG_LOGI(AAFwkTag::TEST, "UpdateForeground_003 end");
+}
+
+/**
+ * @tc.name: UpdateForeground
+ * @tc.desc: UpdateForeground
+ * @tc.type: FUNC
+ * @tc.Function: UpdateForeground
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, UpdateForeground_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UpdateForeground_004 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    int32_t recordId = 1;
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName = "UpdateForeground_004";
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    EXPECT_NE(appRecord, nullptr);
+    appRecord->SetState(ApplicationState::APP_STATE_BACKGROUND);
+    appRecord->SetApplicationPendingState(ApplicationPendingState::FOREGROUNDING);
+    std::string eventName = AppFreezeType::LIFECYCLE_TIMEOUT;
+    bool ret = appMgrServiceInner->UpdateForeground(appRecord, eventName);
+    EXPECT_TRUE(ret);
+    appRecord->SetApplicationPendingState(ApplicationPendingState::BACKGROUNDING);
+    ret = appMgrServiceInner->UpdateForeground(appRecord, eventName);
+    EXPECT_TRUE(!ret);
+    TAG_LOGI(AAFwkTag::TEST, "UpdateForeground_004 end");
+}
+
+/**
+ * @tc.name: SendProcessKillEvent_004
+ * @tc.desc: Verify SendProcessKillEvent reports RSS/PSS/PROCESS_STATE correctly when appRecord has valid values
+ * @tc.type: FUNC
+ * @tc.Function: SendProcessKillEvent
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_004 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->Init();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.test.sendprocesskillevent";
+    appInfo->name = "SendProcessKillEventTestApp";
+    int32_t recordId = 100;
+    std::string processName = "SendProcessKillEvent_004";
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    EXPECT_NE(appRecord, nullptr);
+
+    appRecord->SetRssValue(1024);
+    appRecord->SetPssValue(512);
+    appRecord->SetState(ApplicationState::APP_STATE_FOREGROUND);
+
+    appMgrServiceInner->SendProcessKillEvent(appRecord);
+    TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_004 end");
+}
+
+/**
+ * @tc.name: SendProcessKillEvent_005
+ * @tc.desc: Verify SendProcessKillEvent with BACKGROUND state reports PROCESS_STATE correctly
+ * @tc.type: FUNC
+ * @tc.Function: SendProcessKillEvent
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_005 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->Init();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.test.sendprocesskillevent.bg";
+    appInfo->name = "SendProcessKillEventBgApp";
+    int32_t recordId = 101;
+    std::string processName = "SendProcessKillEvent_005";
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    EXPECT_NE(appRecord, nullptr);
+
+    appRecord->SetRssValue(2048);
+    appRecord->SetPssValue(1024);
+    appRecord->SetState(ApplicationState::APP_STATE_BACKGROUND);
+
+    appMgrServiceInner->SendProcessKillEvent(appRecord);
+    TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_005 end");
+}
+
+/**
+ * @tc.name: SendProcessKillEvent_006
+ * @tc.desc: Verify SendProcessKillEvent with FOCUS state reports PROCESS_STATE correctly
+ * @tc.type: FUNC
+ * @tc.Function: SendProcessKillEvent
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_006 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->Init();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.test.sendprocesskillevent.focus";
+    appInfo->name = "SendProcessKillEventFocusApp";
+    int32_t recordId = 102;
+    std::string processName = "SendProcessKillEvent_006";
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    EXPECT_NE(appRecord, nullptr);
+
+    appRecord->SetRssValue(4096);
+    appRecord->SetPssValue(2048);
+    appRecord->SetState(ApplicationState::APP_STATE_FOCUS);
+
+    appMgrServiceInner->SendProcessKillEvent(appRecord);
+    TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_006 end");
+}
+
+/**
+ * @tc.name: SendProcessKillEvent_007
+ * @tc.desc: Verify SendProcessKillEvent with default RSS/PSS values (0)
+ * @tc.type: FUNC
+ * @tc.Function: SendProcessKillEvent
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_007, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_007 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->Init();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.test.sendprocesskillevent.default";
+    appInfo->name = "SendProcessKillEventDefaultApp";
+    int32_t recordId = 103;
+    std::string processName = "SendProcessKillEvent_007";
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    EXPECT_NE(appRecord, nullptr);
+
+    EXPECT_EQ(appRecord->GetRssValue(), 0);
+    EXPECT_EQ(appRecord->GetPssValue(), 0);
+    appMgrServiceInner->SendProcessKillEvent(appRecord);
+    TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_007 end");
+}
+
+/**
+ * @tc.name: SendProcessKillEvent_008
+ * @tc.desc: Verify SendProcessKillEvent with killId and timestamp reporting
+ * @tc.type: FUNC
+ * @tc.Function: SendProcessKillEvent
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_008, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_008 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->Init();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.test.sendprocesskillevent.timestamp";
+    appInfo->name = "SendProcessKillEventTimestampApp";
+    int32_t recordId = 104;
+    std::string processName = "SendProcessKillEvent_008";
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    EXPECT_NE(appRecord, nullptr);
+
+    appRecord->SetRssValue(8192);
+    appRecord->SetPssValue(4096);
+    appRecord->SetState(ApplicationState::APP_STATE_FOREGROUND);
+
+    std::string reason = "test_timestamp_reason";
+    int pid = getpid();
+    int killId = 2;
+    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason);
+    appMgrServiceInner->SendProcessKillEvent(appRecord);
+
+    killId = 5;
+    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason);
+    appMgrServiceInner->SendProcessKillEvent(appRecord);
+    TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_008 end");
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS

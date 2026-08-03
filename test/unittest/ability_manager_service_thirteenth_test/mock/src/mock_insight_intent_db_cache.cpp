@@ -112,6 +112,18 @@ bool InsightIntentDbCache::HasInsightIntentByName(uint32_t versionCode,
     return false;
 }
 
+bool InsightIntentDbCache::HasBundleCache(const std::string &bundleName)
+{
+    std::lock_guard<std::mutex> lock(genericInfosMutex_);
+    return bundleVersionMap_.find(bundleName) != bundleVersionMap_.end();
+}
+
+bool InsightIntentDbCache::IsCacheInitialized(int32_t userId)
+{
+    std::lock_guard<std::mutex> lock(genericInfosMutex_);
+    return userId_ == userId;
+}
+
 int32_t InsightIntentDbCache::DeleteInsightIntentTotalInfo(const std::string &bundleName,
     const std::string &moduleName, const int32_t userId)
 {
@@ -186,6 +198,12 @@ void InsightIntentDbCache::GetAllInsightIntentInfo(const int32_t userId, std::ve
     info.decoratorFile = "decoratorFile";
     infos.emplace_back(info);
     configInfos.emplace_back(cfg);
+}
+
+void InsightIntentDbCache::GetAllInsightIntentInfoForRegister(const int32_t userId,
+    std::vector<ExtractInsightIntentInfo> &infos, std::vector<InsightIntentInfo> &configInfos)
+{
+    GetAllInsightIntentInfo(userId, infos, configInfos);
 }
 
 void InsightIntentDbCache::GetAllConfigInsightIntentInfo(

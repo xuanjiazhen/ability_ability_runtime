@@ -110,7 +110,7 @@ bool FUDUtils::CheckAndCreateEventInfo(uint32_t callerTokenId, uint32_t targetTo
 int32_t FUDUtils::GetCurrentAccountId()
 {
     std::vector<int32_t> osActiveAccountIds;
-    auto ret = DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->QueryActiveOsAccountIds(
+    auto ret = AppExecFwk::OsAccountManagerWrapper::QueryActiveOsAccountIds(
         osActiveAccountIds);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "QueryActiveOsAccountIds error. ret: %{public}d", ret);
@@ -261,16 +261,17 @@ int32_t FUDUtils::GetAppIdByBundleName(const std::string &bundleName, std::strin
     return ERR_OK;
 }
 
-int32_t FUDUtils::GetTokenIdByBundleName(const std::string &bundleName, int32_t appIndex, uint32_t &tokenId)
+int32_t FUDUtils::GetTokenIdByBundleName(const std::string &bundleName, int32_t appIndex, int32_t userId,
+                                         uint32_t &tokenId)
 {
-    TAG_LOGD(AAFwkTag::URIPERMMGR, "BundleName:%{public}s, appIndex:%{public}d", bundleName.c_str(), appIndex);
+    TAG_LOGD(AAFwkTag::URIPERMMGR, "BundleName:%{public}s, appIndex:%{public}d, userId:%{public}d",
+             bundleName.c_str(), appIndex, userId);
     auto bms = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
     if (bms == nullptr) {
         TAG_LOGW(AAFwkTag::URIPERMMGR, "null bms");
         return GET_BUNDLE_MANAGER_SERVICE_FAILED;
     }
     AppExecFwk::BundleInfo bundleInfo;
-    auto userId = GetCurrentAccountId();
     if (appIndex == 0) {
         auto bundleFlag = AppExecFwk::BundleFlag::GET_BUNDLE_WITH_EXTENSION_INFO;
         if (!IN_PROCESS_CALL(bms->GetBundleInfo(bundleName, bundleFlag, bundleInfo, userId))) {
@@ -280,7 +281,8 @@ int32_t FUDUtils::GetTokenIdByBundleName(const std::string &bundleName, int32_t 
         tokenId = bundleInfo.applicationInfo.accessTokenId;
         return ERR_OK;
     }
-    if (appIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+    if (AbilityRuntime::GlobalConstant::IsAppCloneIndex(appIndex) ||
+        AbilityRuntime::GlobalConstant::IsSandboxCloneIndex(appIndex)) {
         auto bundleFlag = static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION);
         if (IN_PROCESS_CALL(bms->GetCloneBundleInfo(bundleName, bundleFlag, appIndex, bundleInfo, userId)) != ERR_OK) {
             TAG_LOGW(AAFwkTag::URIPERMMGR, "Failed GetCloneBundleInfo");
@@ -297,7 +299,7 @@ int32_t FUDUtils::GetTokenIdByBundleName(const std::string &bundleName, int32_t 
     return ERR_OK;
 }
 
-bool FUDUtils::GenerateFUDAppInfo(FUDAppInfo &info)
+bool FUDUtils::GenerateFUDAppInfo(FUDAppInfo &info, bool supportSA)
 {
     auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(info.tokenId);
     if (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_HAP) {
@@ -310,6 +312,11 @@ bool FUDUtils::GenerateFUDAppInfo(FUDAppInfo &info)
         info.userId = hapInfo.userID;
         info.bundleName = hapInfo.bundleName;
         return GetDirByBundleNameAndAppIndex(hapInfo.bundleName, hapInfo.instIndex, info.alterBundleName);
+    }
+    if (supportSA && tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE) {
+        info.isSA = true;
+        info.userId = DEFAULT_USER_ID;
+        return true;
     }
     return false;
 }
@@ -324,7 +331,7 @@ bool FUDUtils::IsSandboxApp(uint32_t tokenId)
             TAG_LOGE(AAFwkTag::URIPERMMGR, "GetHapTokenInfo failed, ret:%{public}d", ret);
             return false;
         }
-        return hapInfo.instIndex > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX;
+        return AbilityRuntime::GlobalConstant::IsDlpIndex(hapInfo.instIndex);
     }
     return false;
 }

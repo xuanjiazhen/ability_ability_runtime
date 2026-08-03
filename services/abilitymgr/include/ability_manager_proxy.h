@@ -1546,6 +1546,18 @@ public:
         uint64_t requestCode, uint64_t specifiedFullTokenId = 0) override;
 
     /**
+     * @brief Execute intent by function call with simplified parameters.
+     * @param key The callback key for result notification.
+     * @param callerToken Caller ability token.
+     * @param bundleName The target bundle name.
+     * @param intentName The insight intent name.
+     * @param wantParam The execution arguments.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t ExecuteIntentByFunctionCall(uint64_t key, const sptr<IRemoteObject> &callerToken,
+        const std::string &bundleName, const std::string &intentName, const WantParams &wantParam) override;
+
+    /**
      * @brief Query entity.
      * @param key The key of intent executing client.
      * @param callerToken Caller ability token.
@@ -1801,6 +1813,9 @@ public:
     virtual int32_t ExecuteSkillDone(const sptr<IRemoteObject> &token, const std::string &requestCode,
         int32_t resultCode, const AppExecFwk::SkillExecuteResult &result) override;
 
+    virtual int32_t NotifySkillFunctionInvoked(const sptr<IRemoteObject> &token,
+        const std::string &requestCode) override;
+
     /**
      * Set keep-alive flag for application under a specific user.
      * @param bundleName Bundle name.
@@ -2032,6 +2047,8 @@ public:
      */
     virtual ErrCode RegisterSAInterceptor(sptr<AbilityRuntime::ISAInterceptor> interceptor) override;
 
+    virtual ErrCode UnregisterSAInterceptor(sptr<IRemoteObject> interceptor) override;
+
     /**
      * SuspendExtensionAbility, suspend session with service ability.
      *
@@ -2094,6 +2111,15 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t SetGamePreLaunchCompleteTime(int32_t userId, int64_t completeTime) override;
+
+    /**
+     * Start Self UIAbility In Child Process.
+     * @param want Ability want.
+     * @param specifiedFlag specified flag.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode StartSelfUIAbilityInChildProcess(const Want &want, const std::string &specifiedFlag,
+        sptr<IRemoteObject> callerToken) override;
 
     /**
      * Check if the app is restart-limited.
@@ -2164,6 +2190,15 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int StartSelfUIAbilityByAppContext(const Want &want) override;
+
+    /**
+     * StartSandboxCloneAbility - Start sandbox clone ability.
+     * @param want The want of the ability to start.
+     * @param params Parameters containing caller information.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t StartSandboxCloneAbility(const Want &want, const SandboxCloneParams &params) override;
+
 private:
     template <typename T>
     int GetParcelableInfos(MessageParcel &reply, std::vector<T> &parcelableInfos);

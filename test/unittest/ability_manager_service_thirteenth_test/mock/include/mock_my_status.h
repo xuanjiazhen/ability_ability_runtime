@@ -18,6 +18,7 @@
 
 #include <string>
 
+#include "appmgr/running_process_info.h"
 #include "scene_board/ui_ability_record.h"
 #include "base_extension_record.h"
 
@@ -64,6 +65,11 @@ public:
     std::string fimConnectLocalDeviceId_;
     int32_t softbusGetLocalNodeDeviceInfo_ = ERR_OK;
     bool auIsSupportDelayedProcessExit_ = false;
+    int32_t oeuValidateCallerResult_ = ERR_OK;
+    int32_t oeuValidateCallerUserId_ = 0;
+    std::string oeuValidateCallerHostBundleName_;
+    int32_t amcGetProcessInfoRet_ = ERR_OK;
+    AppExecFwk::AppProcessState amcProcessState_ = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
 };
 } // namespace AAFwk
 } // namespace OHOS

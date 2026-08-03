@@ -46,6 +46,7 @@ struct AbilityInterceptorParam {
     bool isTargetPlugin = false; //Is it pulling up a plugin
     std::string hostBundleName;
     const StartOptions* startOptions = nullptr;
+    bool fromConnect = false;
 };
 
 /**
@@ -59,7 +60,7 @@ public:
     /**
      * Excute interception processing.
      */
-    virtual ErrCode DoProcess(AbilityInterceptorParam param) = 0;
+    virtual ErrCode DoProcess(const AbilityInterceptorParam &param) = 0;
 
     /**
      * Set handler for async task executing.

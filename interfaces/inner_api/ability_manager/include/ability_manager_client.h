@@ -1131,6 +1131,15 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode StartAbilityForPrelaunch(const Want &want, const int32_t frameNum = 0);
+
+    /**
+     * StartSandboxCloneAbility - Start sandbox clone ability.
+     * @param want The want of the ability to start.
+     * @param params Parameters containing caller information.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode StartSandboxCloneAbility(const Want &want, const SandboxCloneParams &params);
+
     /**
      * CallRequestDone, after invoke callRequest, ability will call this interface to return callee.
      *
@@ -2152,6 +2161,8 @@ public:
      */
     ErrCode RegisterSAInterceptor(sptr<AbilityRuntime::ISAInterceptor> interceptor);
 
+    ErrCode UnregisterSAInterceptor(sptr<IRemoteObject> interceptor);
+
     /**
      * SuspendExtensionAbility, suspend session with service ability.
      *
@@ -2205,6 +2216,15 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode NotifyCompleteGamePreLaunch(const sptr<IRemoteObject> callerToken);
+
+    /**
+     * Start self UIAbility in child process.
+     * @param want Ability want.
+     * @param specifiedFlag specified flag.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode StartSelfUIAbilityInChildProcess(
+        const Want &want, const std::string &specifiedFlag, sptr<IRemoteObject> callerToken);
 
     /**
      * Check if the app is restart-limited.
@@ -2279,6 +2299,8 @@ public:
 
     ErrCode ExecuteSkillDone(sptr<IRemoteObject> token, const std::string &requestCode,
         int32_t resultCode, const AppExecFwk::SkillExecuteResult &result);
+
+    ErrCode NotifySkillFunctionInvoked(sptr<IRemoteObject> token, const std::string &requestCode);
 
     ErrCode QuerySkillType(const std::string &bundleName, const std::string &moduleName,
         const std::string &skillName, int32_t &skillType);

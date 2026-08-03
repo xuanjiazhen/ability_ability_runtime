@@ -18,6 +18,7 @@
 #include "ability_util.h"
 #include "common_event_support.h"
 #include "hilog_tag_wrapper.h"
+#include "user_controller/user_controller.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -87,7 +88,7 @@ AbilityScreenUnlockEventSubscriber::AbilityScreenUnlockEventSubscriber(
 void AbilityScreenUnlockEventSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &data)
 {
     const AAFwk::Want &want = data.GetWant();
-    std::string action = want.GetAction();
+    const auto &action = want.GetActionRef();
     TAG_LOGD(AAFwkTag::ABILITYMGR, "The action: %{public}s.", action.c_str());
     if (action != EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED) {
         return;
@@ -118,7 +119,7 @@ AbilityUserUnlockEventSubscriber::AbilityUserUnlockEventSubscriber(
 void AbilityUserUnlockEventSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &data)
 {
     const AAFwk::Want &want = data.GetWant();
-    std::string action = want.GetAction();
+    const auto &action = want.GetActionRef();
     TAG_LOGD(AAFwkTag::ABILITYMGR, "The action: %{public}s.", action.c_str());
     if (action != EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED) {
         return;
@@ -129,6 +130,7 @@ void AbilityUserUnlockEventSubscriber::OnReceiveEvent(const EventFwk::CommonEven
     }
     int32_t userId = data.GetCode();
     AbilityEventMapManager::GetInstance().AddEvent(userId, action);
+    UserController::GetInstance().SetUserLockStatus(userId, UserController::UserLockStatus::USER_UNLOCKED);
     if (AbilityEventMapManager::GetInstance().CheckAllUnlocked(userId)) {
         screenUnlockCallback_(userId);
         AbilityEventMapManager::GetInstance().RemoveUser(userId);

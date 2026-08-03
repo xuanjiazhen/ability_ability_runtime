@@ -28,10 +28,6 @@
 namespace OHOS {
 namespace CliTool {
 namespace {
-constexpr int32_t ERR_OK = 0;
-constexpr int32_t ERR_FILE_NOT_FOUND = -2;
-constexpr int32_t ERR_JSON_PARSE_FAILED = -3;
-constexpr int32_t ERR_KVSTORE_NOT_READY = -4;
 constexpr int32_t CHECK_INTERVAL = 100000; // 100ms
 constexpr int32_t MAX_TIMES = 5;           // 5 * 100ms = 500ms
 
@@ -413,26 +409,6 @@ int32_t CliToolDataManager::QueryToolSummaries(std::vector<ToolSummary> &summari
     }
 
     TAG_LOGI(AAFwkTag::CLI_TOOL, "Retrieved %{public}zu tool summaries", summaries.size());
-    return ERR_OK;
-}
-
-int32_t CliToolDataManager::RegisterTool(const ToolInfo &tool)
-{
-    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "RegisterTool called: %{public}s", tool.name.c_str());
-
-    if (!CheckKvStore()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready");
-        return ERR_KVSTORE_NOT_READY;
-    }
-
-    int32_t ret = StoreTool(tool);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to store tool: %{public}d", ret);
-        return ret;
-    }
-
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully registered tool: %{public}s", tool.name.c_str());
     return ERR_OK;
 }
 

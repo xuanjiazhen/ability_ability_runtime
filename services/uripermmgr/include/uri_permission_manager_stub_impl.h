@@ -24,12 +24,12 @@
 #include "app_mgr_interface.h"
 #include "batch_uri.h"
 #include "file_uri_distribution_utils.h"
-#include "istorage_manager.h"
 #include "tokenid_permission.h"
 #include "uri.h"
 #include "uri_permission_manager_stub.h"
 #include "uri_permission_raw_data.h"
 #include "access_token.h"
+#include "dynamic_feature_manager.h"
 
 #ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
 #include "policy_info.h"
@@ -111,6 +111,12 @@ public:
         const std::string& targetBundleName, int32_t appIndex, uint32_t initiatorTokenId,
         int32_t hideSensitiveType, int32_t& funcResult) override;
 
+    ErrCode GrantUriPermission(const std::vector<std::string>& uriVec, uint32_t flag,
+        uint32_t targetTokenId, uint32_t oriCallerTokenId, int32_t& funcResult) override;
+
+    ErrCode GrantUriPermission(const UriPermissionRawData& rawData, uint32_t flag,
+        uint32_t targetTokenId, uint32_t oriCallerTokenId, int32_t& funcResult) override;
+
     ErrCode GrantUriPermissionByKeyAsCaller(const std::string &key, uint32_t flag, uint32_t callerTokenId,
         uint32_t targetTokenId, int32_t &funcResult) override;
 
@@ -191,7 +197,8 @@ private:
 
 #ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
     int32_t SandboxManagerSetPolicy(const std::vector<PolicyInfo> &policyInfoVec, uint32_t flag,
-        const FUDAppInfo &callerInfo, const FUDAppInfo &targetInfo, std::vector<uint32_t> &result);
+        const FUDAppInfo &callerInfo, const FUDAppInfo &targetInfo,
+        int32_t userId, std::vector<uint32_t> &result);
 #endif
 
     int32_t GrantBatchUriPermissionImpl(const std::vector<std::string> &uriVec,
@@ -217,6 +224,10 @@ private:
     int32_t RevokeMapUriPermissionManually(uint32_t callerTokenId, uint32_t targetTokenId, Uri &uri);
 
     int32_t DeleteShareFile(uint32_t targetTokenId, const std::vector<std::string> &uriVec);
+
+    // Helper functions for new GrantUriPermission interface
+    int32_t CheckGrantUriPermissionParamsWithTokenId(const std::vector<std::string>& uriVec,
+        uint32_t flag, uint32_t oriCallerTokenId, uint32_t targetTokenId);
 
     int32_t RevokePolicyUriPermissionManually(uint32_t callerTokenId, uint32_t targetTokenId, Uri &uri);
 
@@ -256,8 +267,6 @@ private:
 
     inline int32_t WrapErrorCode(int32_t errorCode, int32_t &funcRet);
 
-    void StringVecToRawData(const std::vector<std::string> &stringVec, StorageFileRawData &rawData);
-
 #ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
     ErrCode Active(const UriPermissionRawData& policyRawData, std::vector<uint32_t>& res, int32_t& funcResult)
         override;
@@ -281,7 +290,6 @@ private:
     std::mutex mgrMutex_;
     std::mutex policyMapMutex_;
     sptr<AppExecFwk::IAppMgr> appMgr_ = nullptr;
-    sptr<StorageManager::IStorageManager> storageManager_ = nullptr;
     std::set<uint32_t> permissionTokenMap_;
     std::mutex ptMapMutex_;
     std::set<uint32_t> contentTokenIdSet_;

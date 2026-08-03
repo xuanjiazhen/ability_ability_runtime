@@ -41,6 +41,7 @@
 #include "ipc_skeleton.h"
 #include "lifecycle_deal.h"
 #include "lifecycle_state_info.h"
+#include "sandbox_clone_params.h"
 #include "session_info.h"
 #include "ui_extension_window_command.h"
 #include "uri.h"
@@ -104,7 +105,7 @@ public:
      * foreground the ability.
      *
      */
-    void ForegroundAbility(uint32_t sceneFlag = 0, bool hasLastWant = false);
+    void ForegroundAbility(uint32_t sceneFlag = 0);
     void ForegroundUIExtensionAbility(uint32_t sceneFlag = 0);
 
     /**
@@ -360,6 +361,28 @@ public:
      *
      */
     Want GetWant() const;
+    std::string GetAbilityName() const;
+    std::string GetBundleName() const;
+    std::string GetModuleName() const;
+    std::string GetStringParam(const std::string &key) const;
+    int GetIntParam(const std::string &key, int defaultValue) const;
+    bool GetBoolParam(const std::string &key, bool defaultValue) const;
+    bool HasParameter(const std::string &key) const;
+
+    inline const std::string &GetInfoAbilityName() const
+    {
+        return abilityInfo_.name;
+    }
+
+    inline const std::string &GetInfoBundleName() const
+    {
+        return abilityInfo_.bundleName;
+    }
+
+    inline const std::string &GetInfoModuleName() const
+    {
+        return abilityInfo_.moduleName;
+    }
 
     /**
      * remove signature info of want.
@@ -519,6 +542,10 @@ public:
     void SetStartSetting(const std::shared_ptr<AbilityStartSetting> &setting);
     std::shared_ptr<AbilityStartSetting> GetStartSetting() const;
 
+    void SetSandboxCloneParams(const std::shared_ptr<SandboxCloneParams> &params);
+    std::shared_ptr<SandboxCloneParams> GetSandboxCloneParams() const;
+    void InitSandboxCloneParams(const AbilityRequest &abilityRequest);
+
     void SetRestarting(const bool isRestart);
     void SetRestarting(const bool isRestart, int32_t canReStartCount);
     int32_t GetRestartCount() const;
@@ -626,6 +653,7 @@ public:
 
     void SetAttachDebug(const bool isAttachDebug);
     void SetAssertDebug(bool isAssertDebug);
+    void SetDebugApp(bool isDebugApp);
     int32_t CreateModalUIExtension(const Want &want);
 
     AppExecFwk::ElementName GetElementName() const;
@@ -746,41 +774,6 @@ public:
 
     void NotifyAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element);
     void NotifyAbilitiesRequestDone(const std::string &requestKey, int32_t resultCode);
-
-    inline void SetLaunchWant(std::shared_ptr<Want> launchWant)
-    {
-        launchWant_ = launchWant;
-    }
-
-    inline std::shared_ptr<Want> GetLaunchWant() const
-    {
-        return launchWant_;
-    }
-
-    inline void SetLastWant(std::shared_ptr<Want> lastWant)
-    {
-        lastWant_ = lastWant;
-    }
-
-    inline bool HasLastWant() const
-    {
-        return lastWant_ != nullptr;
-    }
-
-    inline void SetBackgroundDrivenFlag(bool isLastWantBackgroundDriven)
-    {
-        isLastWantBackgroundDriven_.store(isLastWantBackgroundDriven);
-    }
-
-    inline void SetOnNewWantSkipScenarios(int32_t scenarios)
-    {
-        scenarios_.store(scenarios);
-    }
-
-    inline int32_t GetOnNewWantSkipScenarios() const
-    {
-        return scenarios_.load();
-    }
 
     inline void SetPreloadStart(bool isPreloadStart)
     {
@@ -967,6 +960,7 @@ protected:
     bool isPluginAbility_ = false;
     bool isPrelaunch_ = false;
     std::atomic<bool> isGameSAPreLaunch_ = false;
+    std::shared_ptr<SandboxCloneParams> sandboxCloneParams_ = nullptr;
 
     int32_t uiExtensionAbilityId_ = 0;                // uiextension ability id
     int32_t uid_ = 0;
@@ -1005,8 +999,6 @@ protected:
     std::shared_ptr<CallContainer> callContainer_ = nullptr;       // new version
     std::shared_ptr<Want> connectWant_ = nullptr;
     std::shared_ptr<CallerAbilityInfo> saCallerInfo_ = nullptr;
-    std::shared_ptr<Want> launchWant_ = nullptr;
-    std::shared_ptr<Want> lastWant_ = nullptr;
     std::shared_ptr<UIAbilityProperty> uiAbilityProperty_ = nullptr;
 
     LaunchDebugInfo launchDebugInfo_;
@@ -1018,8 +1010,6 @@ protected:
     std::atomic<AbilityVisibilityState> abilityVisibilityState_ = AbilityVisibilityState::INITIAL;
     std::atomic_bool isPrepareTerminateAbilityCalled_ = false;
     std::atomic_bool isPrepareTerminateAbilityDone_ = false;
-    std::atomic_bool isLastWantBackgroundDriven_ = false;
-    std::atomic<int32_t> scenarios_ = 0;
     std::atomic<bool> isPreloaded_ = false;
     std::atomic<bool> isFrozenByPreload_ = false;
     std::atomic<bool> isAbilityConnectionReported_ = false;

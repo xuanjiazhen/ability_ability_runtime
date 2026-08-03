@@ -80,6 +80,46 @@ enum {
      * Result (35700012): fail to kill.
      */
     ERR_NOT_KILL = 35700012,
+
+    /*
+     * Result (35700013): Function not exist.
+     */
+    ERR_FUNCTION_NOT_EXIST = 35700013,
+
+    /*
+     * Result (35700017): Function already exist.
+     */
+    ERR_FUNCTION_EXIST = 35700017,
+
+    /*
+     * Result (35700014): JSON parse failed.
+     */
+    ERR_JSON_PARSE_FAILED = 35700014,
+
+    /*
+     * Result (35700015): File not found.
+     */
+    ERR_FILE_NOT_FOUND = 35700015,
+
+    /*
+     * Result (35700016): KVStore not ready.
+     */
+    ERR_KVSTORE_NOT_READY = 35700016,
+
+    /*
+     * Result (35700018): KVStore operation error.
+     */
+    ERR_KVSTORE_ERROR = 35700018,
+
+    /*
+     * Result (35700019): Function execute failed.
+     */
+    ERR_FUNCTION_EXECUTE_FAILED = 35700019,
+
+    /*
+     * Result (35700020): Function execute timeout.
+     */
+    ERR_FUNCTION_EXECUTE_TIMEOUT = 35700020,
 };
 
 } // namespace CliTool

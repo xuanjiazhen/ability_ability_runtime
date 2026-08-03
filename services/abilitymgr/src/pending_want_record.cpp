@@ -22,6 +22,7 @@
 #include "event_report.h"
 #include "permission_verification.h"
 #include "ability_util.h"
+#include "os_account_constants.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -32,9 +33,9 @@ void SendTriggerFailedEvent(const Want &want, int32_t appIndex, int32_t userId,
     int32_t errCode, const std::string errMsg)
 {
     EventInfo eventInfo;
-    eventInfo.bundleName = want.GetElement().GetBundleName();
-    eventInfo.moduleName = want.GetElement().GetModuleName();
-    eventInfo.abilityName = want.GetElement().GetAbilityName();
+    eventInfo.bundleName = want.GetBundleNameRef();
+    eventInfo.moduleName = want.GetModuleNameRef();
+    eventInfo.abilityName = want.GetAbilityNameRef();
     eventInfo.appIndex = appIndex;
     eventInfo.errCode = errCode;
     eventInfo.errMsg = errMsg;
@@ -125,48 +126,22 @@ int32_t PendingWantRecord::SenderInner(SenderInfo &senderInfo)
     return res;
 }
 
-bool PendingWantRecord::IsBundleNotExistForUser0(const Want &want)
-{
-    if (key_ == nullptr || key_->GetUserId() != 0) {
-        return false;
-    }
-    auto bundleName = want.GetElement().GetBundleName();
-    if (bundleName.empty()) {
-        bundleName = want.GetBundle();
-    }
-    if (bundleName.empty()) {
-        return false;
-    }
-    auto bms = AbilityUtil::GetBundleManagerHelper();
-    if (bms == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "bms is nullptr");
-        return false;
-    }
-    AppExecFwk::BundleInfo bundleInfo;
-    bool exist = IN_PROCESS_CALL(bms->GetBundleInfo(
-        bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, 0));
-    if (!exist) {
-        TAG_LOGI(AAFwkTag::WANTAGENT,
-            "bundle %{public}s not installed under user 0, will retry with userId -1",
-            bundleName.c_str());
-    }
-    return !exist;
-}
-
 int32_t PendingWantRecord::ExecuteOperation(
     std::shared_ptr<PendingWantManager> pendingWantManager, SenderInfo &senderInfo, Want &want)
 {
-    TAG_LOGI(AAFwkTag::WANTAGENT, "start ability type:%{public}d, bundleName: %{public}s, ability: %{public}s",
-        key_->GetType(), want.GetBundle().c_str(), want.GetElement().GetAbilityName().c_str());
+    TAG_LOGI(AAFwkTag::WANTAGENT,
+        "start ability type:%{public}d, bundleName: %{public}s, ability: %{public}s, userId: %{public}d",
+        key_->GetType(), want.GetBundleNameRef().c_str(), want.GetAbilityNameRef().c_str(), key_->GetUserId());
     int32_t res = NO_ERROR;
+    int32_t userId = key_->GetUserId();
+    if (userId <= 0 || userId > AccountSA::Constants::MAX_USER_ID) {
+        // Normalize invalid userId value to unspecified (-1).
+        userId = -1;
+    }
     switch (key_->GetType()) {
         case static_cast<int32_t>(OperationType::START_ABILITY):
             res = pendingWantManager->PendingWantStartAbility(want, senderInfo.startOptions,
-                senderInfo.callerToken, -1, callerUid_, callerTokenId_, key_->GetUserId());
-            if (res != NO_ERROR && IsBundleNotExistForUser0(want)) {
-                res = pendingWantManager->PendingWantStartAbility(want, senderInfo.startOptions,
-                    senderInfo.callerToken, -1, callerUid_, callerTokenId_, -1);
-            }
+                senderInfo.callerToken, -1, callerUid_, callerTokenId_, userId);
             if (res != NO_ERROR) {
                 SendTriggerFailedEvent(want, key_->GetAppIndex(), callerUid_, res, "Trigger Failed");
             }
@@ -181,7 +156,7 @@ int32_t PendingWantRecord::ExecuteOperation(
             } else {
                 allWantsInfos.back().want = want;
                 res = pendingWantManager->PendingWantStartAbilitys(allWantsInfos, senderInfo.startOptions,
-                    senderInfo.callerToken, -1, callerUid_, callerTokenId_, key_->GetUserId());
+                    senderInfo.callerToken, -1, callerUid_, callerTokenId_, userId);
                 if (res != NO_ERROR) {
                     SendTriggerFailedEvent(want, key_->GetAppIndex(), callerUid_, res, "Trigger Failed");
                 }
@@ -191,18 +166,16 @@ int32_t PendingWantRecord::ExecuteOperation(
         case static_cast<int32_t>(OperationType::START_SERVICE):
         case static_cast<int32_t>(OperationType::START_FOREGROUND_SERVICE):
             res = pendingWantManager->PendingWantStartAbility(want, nullptr, senderInfo.callerToken,
-                -1, callerUid_, callerTokenId_, key_->GetUserId());
-            if (res != NO_ERROR && IsBundleNotExistForUser0(want)) {
-                res = pendingWantManager->PendingWantStartAbility(want, nullptr, senderInfo.callerToken,
-                    -1, callerUid_, callerTokenId_, -1);
-            }
+                -1, callerUid_, callerTokenId_, userId);
             if (res != NO_ERROR) {
                 SendTriggerFailedEvent(want, key_->GetAppIndex(), callerUid_, res, "Trigger Failed");
             }
             break;
-        case static_cast<int32_t>(OperationType::SEND_COMMON_EVENT):
-            res = pendingWantManager->PendingWantPublishCommonEvent(want, senderInfo, callerUid_, callerTokenId_);
+        case static_cast<int32_t>(OperationType::SEND_COMMON_EVENT): {
+            res = pendingWantManager->PendingWantPublishCommonEvent(want, senderInfo, publisherUid_,
+                callerTokenId_);
             break;
+        }
         case static_cast<int32_t>(OperationType::START_SERVICE_EXTENSION):
             res = pendingWantManager->PendingWantStartServiceExtension(want, senderInfo.callerToken);
             break;
@@ -249,7 +222,7 @@ void PendingWantRecord::BuildSendWant(SenderInfo &senderInfo, Want &want)
         want.AddFlags(key_->GetFlags());
     }
     WantParams wantParams = want.GetParams();
-    auto sendInfoWantParams = senderInfo.want.GetParams().GetParams();
+    const auto &sendInfoWantParams = senderInfo.want.GetParams().GetParams();
     for (auto mapIter = sendInfoWantParams.begin(); mapIter != sendInfoWantParams.end(); mapIter++) {
         std::string sendInfoWantParamKey = mapIter->first;
         if (want.GetParams().GetParam(sendInfoWantParamKey) == nullptr) {
@@ -259,15 +232,15 @@ void PendingWantRecord::BuildSendWant(SenderInfo &senderInfo, Want &want)
 
     if (!wantParams.HasParam(Want::PARAM_APP_CLONE_INDEX_KEY)) {
         int32_t appIndex = key_->GetAppIndex();
-        if (GetUid() != INVALID_UID && !want.GetBundle().empty()) {
-            if (GetAppIndexbyUid(GetUid(), want.GetBundle(), appIndex) != ERR_OK) {
+        if (GetUid() != INVALID_UID && !want.GetBundleNameRef().empty()) {
+            if (GetAppIndexbyUid(GetUid(), want.GetBundleNameRef(), appIndex) != ERR_OK) {
                 TAG_LOGE(AAFwkTag::WANTAGENT, "getAppIndex failed, srcBundleName: %{public}s, uid: %{public}d",
-                    want.GetBundle().c_str(), GetUid());
+                    want.GetBundleNameRef().c_str(), GetUid());
             }
         }
         wantParams.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, Integer::Box(appIndex));
     }
-    CheckAppInstanceKey(want.GetBundle(), wantParams);
+    CheckAppInstanceKey(want.GetBundleNameRef(), wantParams);
     want.SetParams(wantParams);
 }
 
@@ -293,6 +266,16 @@ bool PendingWantRecord::GetCanceled()
 void PendingWantRecord::SetCallerUid(const int32_t callerUid)
 {
     callerUid_ = callerUid;
+}
+
+void PendingWantRecord::SetPublisherUid(int32_t publisherUid)
+{
+    publisherUid_ = publisherUid;
+}
+
+int32_t PendingWantRecord::GetPublisherUid() const
+{
+    return publisherUid_;
 }
 
 std::list<sptr<IWantReceiver>> PendingWantRecord::GetCancelCallbacks()

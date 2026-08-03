@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -355,6 +355,8 @@ public:
 
     bool IsForbidStart();
 
+    bool IsRescueMode();
+
     bool IsSupportRestartAppWithWindow();
 
     bool IsSupportAllowDebugPermission();
@@ -362,6 +364,8 @@ public:
     bool IsStartUIAbilityInCurrentProcess();
 
     bool IsSupportModularObjectExtension();
+
+    bool IsAutoStartupSupported();
 
     bool IsProductAppbootSettingEnabled();
 
@@ -379,6 +383,13 @@ public:
     bool IsSupportNativeUIAbility();
 
     bool IsSupportDelayedProcessExit();
+
+    /**
+     * IsBopdOrRescueMode, check if system is in bopd or rescue mode.
+     *
+     * @return Whether system is in bopd or rescue mode.
+     */
+    bool IsBopdOrRescueMode();
 private:
     /**
      * LoadResidentProcessInExtremeMemory, load resident process in extreme low memory.
@@ -435,6 +446,12 @@ private:
     void LoadOnNewProcessEnableList();
 
     /**
+     * IsBopdMode, check bopd mode.
+     *
+     */
+    bool IsBopdMode();
+
+    /**
      * AppUtils, private constructor.
      *
      */
@@ -464,14 +481,17 @@ private:
     volatile DeviceConfiguration<bool> isSupportStartAbilities_ = {false, false};
     volatile DeviceConfiguration<bool> isPreloadApplicationEnabled_ = {false, false};
     volatile DeviceConfiguration<bool> isForbidStart_ = {true, false};
+    volatile DeviceConfiguration<bool> isRescueMode_ = {false, false};
     volatile DeviceConfiguration<bool> isSupportRestartAppWithWindow_ = {false, false};
     volatile DeviceConfiguration<bool> isSupportAllowDebugPermission_ = {false, false};
     volatile DeviceConfiguration<bool> isStartUIAbilityInCurrentProcess_ = {false, false};
     volatile DeviceConfiguration<bool> isSupportModularObjectExtension_ = {false, false};
+    volatile DeviceConfiguration<bool> isAutoStartupSupported_ = {false, false};
     volatile DeviceConfiguration<bool> isProductAppbootSettingEnabled_ = {false, false};
     volatile DeviceConfiguration<bool> isHybridSpawnUnified_ = {false, false};
     volatile DeviceConfiguration<bool> isSupportNativeUIAbility_ = {false, false};
     volatile DeviceConfiguration<bool> isSupportDelayedProcessExit_ = {false, false};
+    volatile DeviceConfiguration<bool> isBopdOrRescueMode_ = {false, false};
     DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>
         residentProcessInExtremeMemory_ = {false, {}};
     std::mutex residentProcessInExtremeMemoryMutex_;

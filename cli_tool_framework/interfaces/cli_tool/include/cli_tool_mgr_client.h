@@ -22,6 +22,7 @@
 
 #include "cli_session_info.h"
 #include "cli_tool_event.h"
+#include "exec_cmd_param.h"
 #include "exec_options.h"
 #include "icli_tool_manager.h"
 #include "iremote_object.h"
@@ -52,8 +53,6 @@ public:
 
     using EventReplyCallback = std::function<void(int32_t)>;
 
-    using ServiceDeathHandler = std::function<void()>;
-
     /**
      * @brief Get the singleton instance of CliToolMGRClient.
      * @return Reference to the CliToolMGRClient instance.
@@ -64,8 +63,6 @@ public:
      * @brief Destructor.
      */
     ~CliToolMGRClient() = default;
-
-    void SetServiceDeathHandler(const ServiceDeathHandler &handler);
 
     /**
      * @brief Get all tool summaries (lightweight for listing)
@@ -90,11 +87,51 @@ public:
     ErrCode GetAllToolInfos(std::vector<ToolInfo> &tools);
 
     /**
-     * @brief Register a CLI tool
-     * @param tool ToolInfo to register
+     * @brief Register a function
+     * @param function FunctionInfo to register
      * @return ErrCode ERR_OK on success
      */
-    ErrCode RegisterTool(const ToolInfo &tool);
+    ErrCode RegisterFunction(const FunctionInfo &function);
+
+    /**
+     * @brief Batch register functions
+     * @param functions Vector of FunctionInfo to register
+     * @param successCount Output count of successfully registered functions
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode BatchRegisterFunctions(const std::vector<FunctionInfo> &functions, int32_t &successCount);
+
+    /**
+     * @brief Get function information by bundleName and functionName
+     * @param bundleName Bundle name
+     * @param functionName Function name
+     * @param function Output FunctionInfo
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode GetFunctionInfo(const std::string &functionNamespace, const std::string &functionName,
+        FunctionInfo &function);
+
+    /**
+     * @brief Unregister a function
+     * @param functionNamespace Namespace
+     * @param functionName Function name
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode UnregisterFunction(const std::string &functionNamespace, const std::string &functionName);
+
+    /**
+     * @brief Batch unregister intentFunctions by namespace
+     * @param functionNamespace Namespace to delete all functions from
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode UnregisterIntentFunctionsByNamespace(const std::string &functionNamespace);
+
+    /**
+     * @brief Get all functions
+     * @param functions Output vector of FunctionInfo
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode GetAllFunctions(std::vector<FunctionInfo> &functions);
 
     /**
      * @brief Execute a CLI tool with key-value pairs (convenience method).
@@ -103,6 +140,9 @@ public:
      * @return Returns ERR_OK on success, error code otherwise.
      */
     ErrCode ExecTool(const ExecToolParam &param, const ExecToolReplyCallback &callback);
+
+    ErrCode ExecCmd(const ExecCmdParam &param,
+        const ExecToolReplyCallback &callback, const std::shared_ptr<SessionEventCallback> &sessionEventCallback);
 
     ErrCode SubscribeSession(const std::string &sessionId,
                              const std::shared_ptr<SessionEventCallback> &callback,
@@ -159,7 +199,7 @@ private:
     void ClearProxy();
     void SetCliToolMgr(const sptr<IRemoteObject> &remoteObject);
     sptr<ICliToolManager> GetCliToolMgr();
-    ErrCode EnsureSchedulerRegistered();
+    ErrCode EnsureSchedulerStubCreated();
 
     std::condition_variable loadSaCondation_;
     std::mutex loadSaMutex_;
@@ -167,9 +207,7 @@ private:
     std::mutex proxyMutex_;
     sptr<ICliToolManager> cliToolMgr_ = nullptr;
     std::mutex schedulerMutex_;
-    bool schedulerRegistered_ = false;
     sptr<ICliToolManagerScheduler> schedulerStub_ = nullptr;
-    std::vector<ServiceDeathHandler> serviceDeathHandlers_;
 };
 
 } // namespace CliTool

@@ -34,6 +34,7 @@
 #include "ipc_skeleton.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
+#include "mem_dump_callback_interface.h"
 #include "memory_level_info.h"
 #include "running_process_info.h"
 #include "want.h"
@@ -194,8 +195,12 @@ int32_t AppMgrStub::OnRemoteRequestInnerSecond(uint32_t code, MessageParcel &dat
             return HandleDumpCjHeapMemory(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::DUMP_MEM_PROCESS):
             return HandleDumpMem(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::REPORT_DUMP_MEM_RESULT):
+            return HandleReportDumpMemResult(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_RUNNING_MULTIAPP_INFO_BY_BUNDLENAME):
             return HandleGetRunningMultiAppInfoByBundleName(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::IS_MAIN_PROCESS_DEBUG):
+            return HandleIsMainProcessDebug(data, reply);
     }
     return INVALID_FD;
 }
@@ -230,6 +235,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerThird(uint32_t code, MessageParcel &data
             return HandleUpdateConfigurationMultiUser(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_CONFIGURATION_BY_USERID):
             return HandleGetConfigurationByUserId(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::DUMP_JSHANDLE_MAP_PROCESS):
+            return HandleDumpJsHandleMap(data, reply);
     }
     return INVALID_FD;
 }
@@ -450,6 +457,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &dat
             return HandleNotifyTemplateProcessDeepFrozen(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::REGISTER_IMAGE_PROCESS_STATE_OBSERVER):
             return HandleRegisterImageProcessStateObserver(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::IS_CHILD_PROCESS_SUPPORTED):
+            return HandleIsChildProcessSupported(data, reply);
     }
     return INVALID_FD;
 }
@@ -466,6 +475,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerNinth(uint32_t code, MessageParcel &data
             return HandleEnableDelayedProcessExit(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::CANCEL_DELAYED_EXIT_TASK):
             return HandleCancelDelayedExitTask(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::IS_CORRESPONDING_PROCESS_ATTACH_DEBUG):
+            return HandleIsCorrespondingProcessAttachDebug(data, reply);
     }
     return INVALID_FD;
 }
@@ -893,6 +904,23 @@ int32_t AppMgrStub::HandleDumpJsHeapMemory(MessageParcel &data, MessageParcel &r
     return NO_ERROR;
 }
 
+int32_t AppMgrStub::HandleDumpJsHandleMap(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "AppMgrStub::HandleDumpJsHandleMap.");
+    HITRACE_METER(HITRACE_TAG_APP);
+    std::unique_ptr<JsHandleMapInfo> info(data.ReadParcelable<JsHandleMapInfo>());
+    if (info == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AppMgrStub read JsHandleMapInfo error");
+        return ERR_INVALID_VALUE;
+    }
+    auto result = DumpJsHandleMap(*info);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write result error");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
 int32_t AppMgrStub::HandleDumpCjHeapMemory(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "AppMgrStub::HandleDumpCjHeapMemory.");
@@ -919,12 +947,26 @@ int32_t AppMgrStub::HandleDumpMem(MessageParcel &data, MessageParcel &reply)
         TAG_LOGE(AAFwkTag::APPMGR, "AppMgrStub read configuration error");
         return ERR_INVALID_VALUE;
     }
-    std::string dumpResult;
-    auto result = DumpMem(*info, dumpResult);
-    if (!reply.WriteString(dumpResult)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write dumpResult error");
+    bool hasCallback = data.ReadBool();
+    sptr<IMemDumpCallback> callback = nullptr;
+    if (hasCallback) {
+        sptr<IRemoteObject> remoteCallback = data.ReadRemoteObject();
+        callback = iface_cast<IMemDumpCallback>(remoteCallback);
+    }
+    auto result = DumpMem(*info, callback);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write result error");
         return ERR_INVALID_VALUE;
     }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleReportDumpMemResult(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> remoteCallback = data.ReadRemoteObject();
+    sptr<IMemDumpCallback> callback = iface_cast<IMemDumpCallback>(remoteCallback);
+    std::string dumpResult = data.ReadString();
+    auto result = ReportDumpMemResult(callback, dumpResult);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "write result error");
         return ERR_INVALID_VALUE;
@@ -1446,6 +1488,32 @@ int32_t AppMgrStub::HandleIsSharedBundleRunning(MessageParcel &data, MessageParc
     std::string bundleName = data.ReadString();
     uint32_t versionCode = data.ReadUint32();
     bool result = IsSharedBundleRunning(bundleName, versionCode);
+    if (!reply.WriteBool(result)) {
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleIsMainProcessDebug(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    int32_t uid = data.ReadInt32();
+    bool result = IsMainProcessDebug(uid);
+    if (!reply.WriteBool(result)) {
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleIsCorrespondingProcessAttachDebug(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    std::unique_ptr<AbilityInfo> abilityInfo(data.ReadParcelable<AbilityInfo>());
+    if (abilityInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "abilityInfo is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    bool result = IsCorrespondingProcessAttachDebug(*abilityInfo);
     if (!reply.WriteBool(result)) {
         return ERR_INVALID_VALUE;
     }
@@ -2038,6 +2106,23 @@ int32_t AppMgrStub::HandleIsProcessCacheSupported(MessageParcel &data, MessagePa
     int32_t pid = data.ReadInt32();
     bool isSupported = false;
     auto ret = IsProcessCacheSupported(pid, isSupported);
+    if (!reply.WriteBool(isSupported)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write isSupported error.");
+        return AAFwk::ERR_WRITE_BOOL_FAILED;
+    }
+    if (!reply.WriteInt32(ret)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write ret error.");
+        return AAFwk::ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleIsChildProcessSupported(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "HandleIsChildProcessSupported called");
+    bool isNative = data.ReadBool();
+    bool isSupported = false;
+    auto ret = IsChildProcessSupported(isNative, isSupported);
     if (!reply.WriteBool(isSupported)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write isSupported error.");
         return AAFwk::ERR_WRITE_BOOL_FAILED;

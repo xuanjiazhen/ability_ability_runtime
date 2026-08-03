@@ -231,7 +231,7 @@ std::vector<Uri> UriUtils::GetPermissionedUriList(const std::vector<std::string>
 bool UriUtils::GetUriListFromWant(Want &want, std::vector<std::string> &uriVec)
 {
     // remove uris out of 500
-    auto uriStr = want.GetUri().ToString();
+    auto uriStr = want.GetUriRef().ToString();
     uriVec = want.GetStringArrayParam(AbilityConfig::PARAMS_STREAM);
     if (uriVec.empty() && uriStr.empty()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "uriVec empty.");
@@ -294,7 +294,7 @@ bool UriUtils::GrantDmsUriPermission(Want &want, uint32_t callerTokenId,
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto validUriVec = GetUriListFromWantDms(want);
-    auto hideSensitiveType = want.GetIntParam(HIDE_SENSITIVE_TYPE, 0);
+    auto hideSensitiveType = want.GetIntParam(HIDE_SENSITIVE_TYPE, DEFAULT_HIDE_SENSITIVE_TYPE);
     auto ret = IN_PROCESS_CALL(UriPermissionManagerClient::GetInstance().GrantUriPermissionPrivileged(validUriVec,
         want.GetFlags(), targetBundleName, appIndex, callerTokenId, hideSensitiveType));
     if (ret != ERR_OK) {
@@ -381,7 +381,7 @@ bool UriUtils::IsSandboxApp(uint32_t tokenId)
             TAG_LOGE(AAFwkTag::URIPERMMGR, "GetHapTokenInfo failed, ret:%{public}d", ret);
             return false;
         }
-        return hapInfo.instIndex > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX;
+        return AbilityRuntime::GlobalConstant::IsDlpIndex(hapInfo.instIndex);
     }
     return false;
 }
@@ -485,7 +485,7 @@ bool UriUtils::GrantUriPermissionInner(const std::vector<std::string> &uriVec,
             permissionTypes.emplace_back(checkResults[i].permissionType);
         }
     }
-    auto hideSensitiveType = want.GetIntParam(HIDE_SENSITIVE_TYPE, 0);
+    auto hideSensitiveType = want.GetIntParam(HIDE_SENSITIVE_TYPE, DEFAULT_HIDE_SENSITIVE_TYPE);
     auto ret = IN_PROCESS_CALL(UriPermissionManagerClient::GetInstance().GrantUriPermissionWithType(
         permissionUris, grantInfo.flag, grantInfo.targetBundleName, grantInfo.appIndex, grantInfo.callerTokenId,
         hideSensitiveType, permissionTypes));

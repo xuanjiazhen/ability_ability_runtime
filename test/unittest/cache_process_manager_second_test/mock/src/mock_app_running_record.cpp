@@ -300,7 +300,7 @@ void AppRunningRecord::ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &in
 {
 }
 
-void AppRunningRecord::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpresult)
+void AppRunningRecord::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
 {
 }
 
@@ -1484,6 +1484,10 @@ bool AppRunningRecord::IsLastAgentExtensionAbility(const sptr<IRemoteObject> &to
 }
 
 void AppRunningRecord::GetAllAbilityInfos(std::vector<AppExecFwk::AbilityStateData> &infos)
+{
+}
+
+void AppRunningRecord::ScheduleJsHandleMap(OHOS::AppExecFwk::JsHandleMapInfo &info)
 {
 }
 }  // namespace AppExecFwk

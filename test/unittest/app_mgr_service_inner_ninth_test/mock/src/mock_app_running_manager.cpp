@@ -123,6 +123,11 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::GetAppRunningRecordByPid(co
     return AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_;
 }
 
+std::shared_ptr<AppRunningRecord> AppRunningManager::GetValidAppRunningRecordByPid(const pid_t pid)
+{
+    return nullptr;
+}
+
 std::shared_ptr<AppRunningRecord> AppRunningManager::GetAppRunningRecordByAbilityToken(
     const sptr<IRemoteObject> &abilityToken)
 {
@@ -307,7 +312,7 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::GetAppRunningRecordByRender
     return AAFwk::MyStatus::GetInstance().getAppRunningRecordByRenderPid_;
 }
 
-std::shared_ptr<RenderRecord> AppRunningManager::OnRemoteRenderDied(const wptr<IRemoteObject> &remote)
+std::shared_ptr<RenderRecord> AppRunningManager::OnRenderProcessExitedByPid(pid_t pid)
 {
     return nullptr;
 }
@@ -392,7 +397,7 @@ bool AppRunningManager::IsChildProcessReachLimit(uint32_t accessTokenId, bool mu
     return AAFwk::MyStatus::GetInstance().isChildProcessReachLimit_;
 }
 
-std::shared_ptr<ChildProcessRecord> AppRunningManager::OnChildProcessRemoteDied(const wptr<IRemoteObject> &remote)
+std::shared_ptr<ChildProcessRecord> AppRunningManager::OnChildProcessExitedByPid(pid_t pid)
 {
     AAFwk::MyStatus::GetInstance().getChildProcessRecordByPidCall_++;
     return nullptr;
@@ -549,7 +554,7 @@ int32_t AppRunningManager::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &in
     return ERR_OK;
 }
 
-int32_t AppRunningManager::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+int32_t AppRunningManager::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
 {
     return ERR_OK;
 }
@@ -587,6 +592,11 @@ int32_t AppRunningManager::SignRestartProcess(int32_t)
 }
 
 int32_t AppRunningManager::GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos)
+{
+    return ERR_OK;
+}
+
+int32_t AppRunningManager::DumpJsHandleMap(OHOS::AppExecFwk::JsHandleMapInfo &info)
 {
     return ERR_OK;
 }

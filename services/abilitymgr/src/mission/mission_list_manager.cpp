@@ -178,13 +178,13 @@ int MissionListManager::StartAbility(AbilityRequest &abilityRequest)
     if (currentTopAbility && !currentTopAbility->GetRestartAppFlag()) {
         auto state = currentTopAbility->GetAbilityState();
         TAG_LOGD(AAFwkTag::ABILITYMGR, "current top: %{public}s/%{public}s, state: %{public}s",
-            currentTopAbility->GetElementName().GetBundleName().c_str(),
-            currentTopAbility->GetElementName().GetAbilityName().c_str(),
+            currentTopAbility->GetBundleName().c_str(),
+            currentTopAbility->GetAbilityName().c_str(),
             AbilityRecord::ConvertAbilityState(state).c_str());
         if (state == FOREGROUNDING) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "top ability:%{public}s/%{public}s foregrounding",
-                currentTopAbility->GetElementName().GetBundleName().c_str(),
-                currentTopAbility->GetElementName().GetAbilityName().c_str());
+                currentTopAbility->GetBundleName().c_str(),
+                currentTopAbility->GetAbilityName().c_str());
             EnqueueWaitingAbility(abilityRequest);
             return START_ABILITY_WAITING;
         }
@@ -194,8 +194,8 @@ int MissionListManager::StartAbility(AbilityRequest &abilityRequest)
     if (callerAbility) {
         auto state = callerAbility->GetAbilityState();
         TAG_LOGD(AAFwkTag::ABILITYMGR, "callerAbility is: %{public}s/%{public}s, state: %{public}s",
-            callerAbility->GetElementName().GetBundleName().c_str(),
-            callerAbility->GetElementName().GetAbilityName().c_str(),
+            callerAbility->GetBundleName().c_str(),
+            callerAbility->GetAbilityName().c_str(),
             AbilityRecord::ConvertAbilityState(state).c_str());
     }
 
@@ -597,7 +597,7 @@ bool MissionListManager::CreateOrReusedMissionInfo(const AbilityRequest &ability
 
     BuildInnerMissionInfo(info, missionName, abilityRequest);
     auto abilityRecord = GetAbilityRecordByNameFromCurrentMissionLists(abilityRequest.want.GetElement());
-    if (reUsedMissionInfo == false && abilityRecord != nullptr) {
+    if (!reUsedMissionInfo && abilityRecord != nullptr) {
         int32_t getAbilityNumber = 0;
         getAbilityNumber = GetAbilityNumber(abilityRequest.want.GetElement());
         TAG_LOGD(AAFwkTag::ABILITYMGR, "GetAbilityNumber:%{public}d.", getAbilityNumber);
@@ -709,7 +709,7 @@ void MissionListManager::BuildInnerMissionInfo(InnerMissionInfo &info, const std
     info.missionInfo.unclearable = abilityRequest.abilityInfo.unclearableMission;
     info.isTemporary = abilityRequest.abilityInfo.removeMissionAfterTerminate;
     auto dlpIndex = abilityRequest.want.GetIntParam(AbilityRuntime::ServerConstant::DLP_INDEX, 0);
-    if (dlpIndex > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+    if (AbilityRuntime::GlobalConstant::IsDlpIndex(dlpIndex)) {
         info.isTemporary = true;
     }
     info.specifiedFlag = abilityRequest.specifiedFlag;
@@ -1039,7 +1039,7 @@ int MissionListManager::AttachAbilityThread(const sptr<IAbilityScheduler> &sched
 
     if (abilityRecord->IsStartedByCall()) {
         (void)abilityRecord->PromotePriority();
-        if (abilityRecord->GetWant().GetBoolParam(Want::PARAM_RESV_CALL_TO_FOREGROUND, false)) {
+        if (abilityRecord->GetBoolParam(Want::PARAM_RESV_CALL_TO_FOREGROUND, false)) {
             abilityRecord->SetStartToForeground(true);
             abilityRecord->PostForegroundTimeoutTask();
             DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(token);
@@ -1077,8 +1077,8 @@ void MissionListManager::OnAbilityRequestDone(const sptr<IRemoteObject> &token, 
         auto abilityRecord = GetAliveAbilityRecordByToken(token);
         CHECK_POINTER(abilityRecord);
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Ability is %{public}s/%{public}s, start to foreground.",
-            abilityRecord->GetElementName().GetBundleName().c_str(),
-            abilityRecord->GetElementName().GetAbilityName().c_str());
+            abilityRecord->GetBundleName().c_str(),
+            abilityRecord->GetAbilityName().c_str());
         abilityRecord->ForegroundAbility(abilityRecord->lifeCycleStateInfo_.sceneFlagBak);
     }
 }
@@ -1225,8 +1225,8 @@ int MissionListManager::AbilityTransactionDone(const sptr<IRemoteObject> &token,
     }
     abilityRecord->RemoveSignatureInfo();
     TAG_LOGD(AAFwkTag::ABILITYMGR, "ability: %{public}s/%{public}s, state: %{public}s",
-        abilityRecord->GetElementName().GetBundleName().c_str(),
-        abilityRecord->GetElementName().GetAbilityName().c_str(), abilityState.c_str());
+        abilityRecord->GetBundleName().c_str(),
+        abilityRecord->GetAbilityName().c_str(), abilityState.c_str());
 
     if (targetState == AbilityState::BACKGROUND) {
         abilityRecord->SaveAbilityState(saveData);
@@ -1320,8 +1320,8 @@ void MissionListManager::CompleteForegroundSuccess(MissionAbilityRecordPtr abili
     // ability do not save window mode
     abilityRecord->RemoveWindowMode();
     TAG_LOGD(AAFwkTag::ABILITYMGR, "ability: %{public}s/%{public}s",
-        abilityRecord->GetElementName().GetBundleName().c_str(),
-        abilityRecord->GetElementName().GetAbilityName().c_str());
+        abilityRecord->GetBundleName().c_str(),
+        abilityRecord->GetAbilityName().c_str());
 
     abilityRecord->SetAbilityState(AbilityState::FOREGROUND);
     AbilityStartWithWaitObserverManager::GetInstance().NotifyAATerminateWait(abilityRecord);
@@ -1657,8 +1657,8 @@ int MissionListManager::TerminateAbilityInner(const std::shared_ptr<AbilityRecor
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Terminate ability, ability is %{public}s/%{public}s.",
-        abilityRecord->GetElementName().GetBundleName().c_str(),
-        abilityRecord->GetElementName().GetAbilityName().c_str());
+        abilityRecord->GetBundleName().c_str(),
+        abilityRecord->GetAbilityName().c_str());
     if (abilityRecord->IsTerminating() && !abilityRecord->IsForeground()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "ability terminating");
         return ERR_OK;
@@ -1693,8 +1693,8 @@ int MissionListManager::TerminateAbilityLocked(MissionAbilityRecordPtr abilityRe
 {
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "terminate ability locked, ability is %{public}s/%{public}s.",
-        abilityRecord->GetElementName().GetBundleName().c_str(),
-        abilityRecord->GetElementName().GetAbilityName().c_str());
+        abilityRecord->GetBundleName().c_str(),
+        abilityRecord->GetAbilityName().c_str());
     // remove AbilityRecord out of list
     RemoveTerminatingAbility(abilityRecord, flag);
     abilityRecord->SendResultToCallers();
@@ -1760,8 +1760,8 @@ void MissionListManager::RemoveTerminatingAbility(MissionAbilityRecordPtr abilit
 {
     CHECK_POINTER(abilityRecord);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Remove terminating ability, ability is %{public}s/%{public}s.",
-        abilityRecord->GetElementName().GetBundleName().c_str(),
-        abilityRecord->GetElementName().GetAbilityName().c_str());
+        abilityRecord->GetBundleName().c_str(),
+        abilityRecord->GetAbilityName().c_str());
     if (GetAbilityFromTerminateListInner(abilityRecord->GetToken())) {
         abilityRecord->SetNextAbilityRecord(nullptr);
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Find ability in terminating list, return.");
@@ -1922,8 +1922,8 @@ void MissionListManager::CompleteTerminateAndUpdateMission(const std::shared_ptr
             terminateAbilityList_.remove(it);
             // update inner mission info time
             bool excludeFromMissions = abilityRecord->GetAbilityInfo().excludeFromMissions;
-            if ((abilityRecord->GetAppIndex() > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) ||
-                abilityRecord->GetAbilityInfo().removeMissionAfterTerminate || excludeFromMissions) {
+            bool isDlp = AbilityRuntime::GlobalConstant::IsDlpIndex(abilityRecord->GetAppIndex());
+            if (isDlp || abilityRecord->GetAbilityInfo().removeMissionAfterTerminate || excludeFromMissions) {
                 RemoveMissionLocked(abilityRecord->GetMissionId(), excludeFromMissions);
                 return;
             }
@@ -2144,7 +2144,7 @@ void MissionListManager::UpdateSnapShot(const sptr<IRemoteObject> &token,
         return;
     }
     int32_t missionId = abilityRecord->GetMissionId();
-    auto isPrivate = abilityRecord->GetAppIndex() > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX;
+    auto isPrivate = AbilityRuntime::GlobalConstant::IsDlpIndex(abilityRecord->GetAppIndex());
     DelayedSingleton<MissionInfoMgr>::GetInstance()->UpdateMissionSnapshot(missionId, pixelMap, isPrivate);
     if (listenerController_) {
         listenerController_->NotifyMissionSnapshotChanged(missionId);
@@ -2332,7 +2332,7 @@ void MissionListManager::UpdateMissionSnapshot(const std::shared_ptr<AbilityReco
     }
     int32_t missionId = abilityRecord->GetMissionId();
     MissionSnapshot snapshot;
-    snapshot.isPrivate = (abilityRecord->GetAppIndex() > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX);
+    snapshot.isPrivate = AbilityRuntime::GlobalConstant::IsDlpIndex(abilityRecord->GetAppIndex());
     DelayedSingleton<MissionInfoMgr>::GetInstance()->UpdateMissionSnapshot(missionId, abilityRecord->GetToken(),
         snapshot);
     if (listenerController_) {
@@ -2627,8 +2627,8 @@ void MissionListManager::OnAbilityDied(std::shared_ptr<AbilityRecord> abilityRec
         return;
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "OnAbilityDied come, ability is %{public}s/%{public}s",
-        abilityRecord->GetElementName().GetBundleName().c_str(),
-        abilityRecord->GetElementName().GetAbilityName().c_str());
+        abilityRecord->GetBundleName().c_str(),
+        abilityRecord->GetAbilityName().c_str());
     if (abilityRecord->GetAbilityInfo().type != AbilityType::PAGE) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "ability type not page");
         return;
@@ -2870,8 +2870,9 @@ void MissionListManager::HandleAbilityDiedByDefault(std::shared_ptr<AbilityRecor
     // update running state.
     auto missionId = mission->GetMissionId();
     if (!ability->IsUninstallAbility()) {
-        if ((ability->GetAppIndex() > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) ||
-            ability->GetAbilityInfo().removeMissionAfterTerminate || ability->GetAbilityInfo().excludeFromMissions) {
+        bool isDlp = AbilityRuntime::GlobalConstant::IsDlpIndex(ability->GetAppIndex());
+        if (isDlp || ability->GetAbilityInfo().removeMissionAfterTerminate ||
+            ability->GetAbilityInfo().excludeFromMissions) {
             RemoveMissionLocked(missionId, ability->GetAbilityInfo().excludeFromMissions);
         } else {
             InnerMissionInfo info;
@@ -3327,8 +3328,8 @@ void MissionListManager::DumpMission(int missionId, std::vector<std::string> &in
 int MissionListManager::ResolveLocked(const AbilityRequest &abilityRequest)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "ability_name:%{public}s/%{public}s",
-        abilityRequest.want.GetElement().GetBundleName().c_str(),
-        abilityRequest.want.GetElement().GetAbilityName().c_str());
+        abilityRequest.want.GetBundleNameRef().c_str(),
+        abilityRequest.want.GetAbilityNameRef().c_str());
 
     if (!abilityRequest.IsCallType(AbilityCallType::CALL_REQUEST_TYPE)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s, resolve ability_name:", __func__);
@@ -3403,7 +3404,7 @@ int MissionListManager::CallAbilityLocked(const AbilityRequest &abilityRequest)
 
     // new version started by call type
     auto ret = ResolveAbility(targetAbilityRecord, abilityRequest);
-    bool isStartToForeground = targetAbilityRecord->GetWant().GetBoolParam(Want::PARAM_RESV_CALL_TO_FOREGROUND, false);
+    bool isStartToForeground = targetAbilityRecord->GetBoolParam(Want::PARAM_RESV_CALL_TO_FOREGROUND, false);
     if (ret == ResolveResultType::OK_HAS_REMOTE_OBJ || (ret == ResolveResultType::OK_NO_REMOTE_OBJ &&
         targetAbilityRecord->GetStartTime() > 0)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "target ability has been resolved.");
@@ -3432,8 +3433,8 @@ int MissionListManager::CallAbilityLocked(const AbilityRequest &abilityRequest)
 
     // schedule target ability
     TAG_LOGD(AAFwkTag::ABILITYMGR, "load ability record: %{public}s/%{public}s",
-        targetAbilityRecord->GetElementName().GetBundleName().c_str(),
-        targetAbilityRecord->GetElementName().GetAbilityName().c_str());
+        targetAbilityRecord->GetBundleName().c_str(),
+        targetAbilityRecord->GetAbilityName().c_str());
 
     // flag the first ability.
     auto currentTopAbility = GetCurrentTopAbilityLocked();
@@ -3819,8 +3820,7 @@ bool MissionListManager::GetMissionSnapshot(int32_t missionId, MissionSnapshot& 
         auto abilityRecord = GetAbilityRecordByTokenInner(abilityToken);
         if (abilityRecord && abilityRecord->IsAbilityState(FOREGROUND)) {
             forceSnapshot = true;
-            missionSnapshot.isPrivate =
-                (abilityRecord->GetAppIndex() > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX);
+            missionSnapshot.isPrivate = AbilityRuntime::GlobalConstant::IsDlpIndex(abilityRecord->GetAppIndex());
         }
     }
     return DelayedSingleton<MissionInfoMgr>::GetInstance()->GetMissionSnapshot(

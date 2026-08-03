@@ -39,6 +39,8 @@ public:
         const std::string &intentName, const int32_t userId, ExtractInsightIntentGenericInfo &genericInfos);
     void GetAllInsightIntentInfo(const int32_t userId, std::vector<ExtractInsightIntentInfo> &infos,
         std::vector<InsightIntentInfo> &configInfos);
+    void GetAllInsightIntentInfoForRegister(const int32_t userId,
+        std::vector<ExtractInsightIntentInfo> &infos, std::vector<InsightIntentInfo> &configInfos);
     void GetAllConfigInsightIntentInfo(
         const int32_t userId, std::vector<InsightIntentInfo> &configInfos);
     void GetInsightIntentInfoByName(const std::string &bundleName, const int32_t userId,
@@ -56,6 +58,8 @@ public:
         const std::string &moduleName, const int32_t userId);
     int32_t DeleteInsightIntentByUserId(const int32_t userId);
     bool HasInsightIntentByName(uint32_t versionCode, const std::string &bundleName, const int32_t userId);
+    bool HasBundleCache(const std::string &bundleName);
+    bool IsCacheInitialized(int32_t userId);
     void BackupRdb();
 private:
     int32_t userId_ = -1;

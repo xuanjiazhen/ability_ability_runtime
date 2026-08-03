@@ -694,9 +694,69 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_NotifyAppFau
     // expect in appfreezeManager return OK
     AppfreezeManager::GetInstance()->CancelAppFreezeDetect(1, TEST_BUNDLE_NAME);
     ret = appMgrServiceInner->NotifyAppFault(faultData);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_NotifyAppFault_0100 end");
 }
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_NotifyAppFault_0200
+ * @tc.desc: Test NotifyAppFault
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_NotifyAppFault_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_NotifyAppFault_0200 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->Init();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    loadParam->token = token_;
+    loadParam->preToken = preToken_;
+    auto appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
+        TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
+    appRecord->GetPriorityObject()->SetPid(1);
+    appRecord->SetState(ApplicationState::APP_STATE_BACKGROUND);
+
+    FaultData faultData;
+    faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
+    auto ret = appMgrServiceInner->NotifyAppFault(faultData);
+    EXPECT_EQ(ret, ERR_OK);
+    sleep(3);
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_NotifyAppFault_0200 end");
+}
+
+/**
+ * @tc.name: AppMgrServiceInnerSecondTest_NotifyAppFault_0300
+ * @tc.desc: Test NotifyAppFault
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_NotifyAppFault_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_NotifyAppFault_0300 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->Init();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    loadParam->token = token_;
+    loadParam->preToken = preToken_;
+    auto appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
+        TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
+    appRecord->GetPriorityObject()->SetPid(1);
+    appRecord->SetState(ApplicationState::APP_STATE_BACKGROUND);
+
+    FaultData faultData;
+    faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
+    faultData.faultType = FaultDataType::APP_FREEZE;
+    auto ret = appMgrServiceInner->NotifyAppFault(faultData);
+    EXPECT_EQ(ret, ERR_OK);
+    sleep(3);
+    TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_NotifyAppFault_0300 end");
+}
+
 
 /**
  * @tc.name: AppMgrServiceInnerSecondTest_BuildEventInfo_0100
@@ -1506,6 +1566,8 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_TransformedN
     appRecord->isDebugApp_ = true;
     ret = appMgrServiceInner->TransformedNotifyAppFault(faultData);
     EXPECT_EQ(ret, ERR_OK);
+    faultData.errorObject.message = "PreloadUIExtension test";
+    appMgrServiceInner->TransformedNotifyAppFault(faultData);
     EXPECT_NE(appMgrServiceInner, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerSecondTest_TransformedNotifyAppFault_0200 end");
 }
@@ -2733,6 +2795,280 @@ HWTEST_F(AppMgrServiceInnerSecondTest, NotifyUninstallOrUpgradeApp_001, TestSize
     ret = appMgrServiceInner->NotifyUninstallOrUpgradeApp(bundleName, uid, isUpgrade);
     EXPECT_EQ(ret, ERR_OK); //unstart
     TAG_LOGI(AAFwkTag::TEST, "NotifyUninstallOrUpgradeApp_001 end");
+}
+
+/**
+ * @tc.name: IsMainProcessDebug_001
+ * @tc.desc: Test IsMainProcessDebug when caller is not foundation process, should return false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, IsMainProcessDebug_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsMainProcessDebug_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
+    IPCSkeleton::SetCallingUid(0); // not foundation uid
+    int32_t uid = USER_SCALE * 101;
+    EXPECT_FALSE(appMgrServiceInner->IsMainProcessDebug(uid));
+    TAG_LOGI(AAFwkTag::TEST, "IsMainProcessDebug_001 end");
+}
+
+/**
+ * @tc.name: IsMainProcessDebug_002
+ * @tc.desc: Test IsMainProcessDebug when appRunningManager_ is nullptr, should return false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, IsMainProcessDebug_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsMainProcessDebug_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->appRunningManager_ = nullptr;
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID); // foundation call
+    int32_t uid = USER_SCALE * 101;
+    EXPECT_FALSE(appMgrServiceInner->IsMainProcessDebug(uid));
+    TAG_LOGI(AAFwkTag::TEST, "IsMainProcessDebug_002 end");
+}
+
+/**
+ * @tc.name: IsMainProcessDebug_003
+ * @tc.desc: Test IsMainProcessDebug when main process record not found, should return false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, IsMainProcessDebug_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsMainProcessDebug_003 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID); // foundation call
+    int32_t uid = USER_SCALE * 102; // no record matches this uid
+    EXPECT_FALSE(appMgrServiceInner->IsMainProcessDebug(uid));
+    TAG_LOGI(AAFwkTag::TEST, "IsMainProcessDebug_003 end");
+}
+
+/**
+ * @tc.name: IsMainProcessDebug_004
+ * @tc.desc: Test IsMainProcessDebug when main process is debug, should return true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, IsMainProcessDebug_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsMainProcessDebug_004 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID); // foundation call
+
+    ApplicationInfo appInfo;
+    appInfo.name = "testApp";
+    appInfo.bundleName = "com.test.maindebug";
+    auto appInfoPtr = std::make_shared<ApplicationInfo>(appInfo);
+    BundleInfo bundleInfo;
+    std::string processName = "test_main_process";
+    auto appRecord = appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(
+        appInfoPtr, processName, bundleInfo, "");
+    ASSERT_NE(appRecord, nullptr);
+    int32_t uid = USER_SCALE * 103;
+    appRecord->SetUid(uid);
+    appRecord->SetMainProcess(true);
+    appRecord->SetDebugApp(true);
+    g_recordId += 1;
+    appMgrServiceInner->appRunningManager_->appRunningRecordMap_.emplace(g_recordId, appRecord);
+
+    EXPECT_TRUE(appMgrServiceInner->IsMainProcessDebug(uid));
+    TAG_LOGI(AAFwkTag::TEST, "IsMainProcessDebug_004 end");
+}
+
+/**
+ * @tc.name: IsMainProcessDebug_005
+ * @tc.desc: Test IsMainProcessDebug when main process is not debug, should return false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, IsMainProcessDebug_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsMainProcessDebug_005 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID); // foundation call
+
+    ApplicationInfo appInfo;
+    appInfo.name = "testApp";
+    appInfo.bundleName = "com.test.mainnodebug";
+    auto appInfoPtr = std::make_shared<ApplicationInfo>(appInfo);
+    BundleInfo bundleInfo;
+    std::string processName = "test_main_process_not_debug";
+    auto appRecord = appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(
+        appInfoPtr, processName, bundleInfo, "");
+    ASSERT_NE(appRecord, nullptr);
+    int32_t uid = USER_SCALE * 104;
+    appRecord->SetUid(uid);
+    appRecord->SetMainProcess(true);
+    appRecord->SetDebugApp(false); // explicitly not debug
+    g_recordId += 1;
+    appMgrServiceInner->appRunningManager_->appRunningRecordMap_.emplace(g_recordId, appRecord);
+
+    EXPECT_FALSE(appMgrServiceInner->IsMainProcessDebug(uid));
+    TAG_LOGI(AAFwkTag::TEST, "IsMainProcessDebug_005 end");
+}
+
+/**
+ * @tc.name: IsMainProcessDebug_006
+ * @tc.desc: Test IsMainProcessDebug when matching uid record exists but is not main process.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, IsMainProcessDebug_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsMainProcessDebug_006 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID); // foundation call
+
+    ApplicationInfo appInfo;
+    appInfo.name = "testApp";
+    appInfo.bundleName = "com.test.notmain";
+    auto appInfoPtr = std::make_shared<ApplicationInfo>(appInfo);
+    BundleInfo bundleInfo;
+    std::string processName = "test_extension_process";
+    auto appRecord = appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(
+        appInfoPtr, processName, bundleInfo, "");
+    ASSERT_NE(appRecord, nullptr);
+    int32_t uid = USER_SCALE * 105;
+    appRecord->SetUid(uid);
+    appRecord->SetMainProcess(false); // extension process, not main
+    appRecord->SetDebugApp(true);
+    g_recordId += 1;
+    appMgrServiceInner->appRunningManager_->appRunningRecordMap_.emplace(g_recordId, appRecord);
+
+    EXPECT_FALSE(appMgrServiceInner->IsMainProcessDebug(uid));
+    TAG_LOGI(AAFwkTag::TEST, "IsMainProcessDebug_006 end");
+}
+
+/**
+ * @tc.name: IsCorrespondingProcessAttachDebug_001
+ * @tc.desc: Test IsCorrespondingProcessAttachDebug when caller is not foundation process, should return false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, IsCorrespondingProcessAttachDebug_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsCorrespondingProcessAttachDebug_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
+    IPCSkeleton::SetCallingUid(0); // not foundation uid
+    AbilityInfo abilityInfo;
+    abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::AGENT;
+    EXPECT_FALSE(appMgrServiceInner->IsCorrespondingProcessAttachDebug(abilityInfo));
+    TAG_LOGI(AAFwkTag::TEST, "IsCorrespondingProcessAttachDebug_001 end");
+}
+
+/**
+ * @tc.name: IsCorrespondingProcessAttachDebug_002
+ * @tc.desc: Test IsCorrespondingProcessAttachDebug when extension type is not agent, should return false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, IsCorrespondingProcessAttachDebug_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsCorrespondingProcessAttachDebug_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID); // foundation call
+    AbilityInfo abilityInfo;
+    // default extensionAbilityType is not AGENT or AgentUI
+    EXPECT_FALSE(appMgrServiceInner->IsCorrespondingProcessAttachDebug(abilityInfo));
+    TAG_LOGI(AAFwkTag::TEST, "IsCorrespondingProcessAttachDebug_002 end");
+}
+
+/**
+ * @tc.name: IsCorrespondingProcessAttachDebug_003
+ * @tc.desc: Test IsCorrespondingProcessAttachDebug when remoteClientManager_ is nullptr, should return false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, IsCorrespondingProcessAttachDebug_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsCorrespondingProcessAttachDebug_003 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->remoteClientManager_ = nullptr;
+    appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID); // foundation call
+    AbilityInfo abilityInfo;
+    abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::AGENT;
+    EXPECT_FALSE(appMgrServiceInner->IsCorrespondingProcessAttachDebug(abilityInfo));
+    TAG_LOGI(AAFwkTag::TEST, "IsCorrespondingProcessAttachDebug_003 end");
+}
+
+/**
+ * @tc.name: IsCorrespondingProcessAttachDebug_004
+ * @tc.desc: Test IsCorrespondingProcessAttachDebug when spawn client is nullptr, should return false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, IsCorrespondingProcessAttachDebug_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsCorrespondingProcessAttachDebug_004 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->remoteClientManager_ = std::make_shared<RemoteClientManager>();
+    appMgrServiceInner->remoteClientManager_->SetSpawnClient(nullptr);
+    appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID); // foundation call
+    AbilityInfo abilityInfo;
+    abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::AGENT;
+    EXPECT_FALSE(appMgrServiceInner->IsCorrespondingProcessAttachDebug(abilityInfo));
+    TAG_LOGI(AAFwkTag::TEST, "IsCorrespondingProcessAttachDebug_004 end");
+}
+
+/**
+ * @tc.name: IsCorrespondingProcessAttachDebug_005
+ * @tc.desc: Test IsCorrespondingProcessAttachDebug when bundle manager helper is nullptr, should return false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, IsCorrespondingProcessAttachDebug_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsCorrespondingProcessAttachDebug_005 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->remoteClientManager_ = std::make_shared<RemoteClientManager>();
+    // spawn client is created by RemoteClientManager constructor, but bundle manager helper is not set
+    appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID); // foundation call
+    AbilityInfo abilityInfo;
+    abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::AGENT;
+    EXPECT_FALSE(appMgrServiceInner->IsCorrespondingProcessAttachDebug(abilityInfo));
+    TAG_LOGI(AAFwkTag::TEST, "IsCorrespondingProcessAttachDebug_005 end");
+}
+
+/**
+ * @tc.name: IsCorrespondingProcessAttachDebug_006
+ * @tc.desc: Test IsCorrespondingProcessAttachDebug when appRunningManager_ is nullptr, should return false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, IsCorrespondingProcessAttachDebug_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsCorrespondingProcessAttachDebug_006 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->remoteClientManager_ = std::make_shared<RemoteClientManager>();
+    appMgrServiceInner->remoteClientManager_->SetBundleManagerHelper(bundleMgrHelper_);
+    appMgrServiceInner->appRunningManager_ = nullptr;
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID); // foundation call
+    AbilityInfo abilityInfo;
+    abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::AGENT;
+    EXPECT_FALSE(appMgrServiceInner->IsCorrespondingProcessAttachDebug(abilityInfo));
+    TAG_LOGI(AAFwkTag::TEST, "IsCorrespondingProcessAttachDebug_006 end");
+}
+
+/**
+ * @tc.name: IsCorrespondingProcessAttachDebug_007
+ * @tc.desc: Test IsCorrespondingProcessAttachDebug when GetBundleAndHapInfo fails, should return false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, IsCorrespondingProcessAttachDebug_007, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsCorrespondingProcessAttachDebug_007 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->remoteClientManager_ = std::make_shared<RemoteClientManager>();
+    appMgrServiceInner->remoteClientManager_->SetBundleManagerHelper(bundleMgrHelper_);
+    appMgrServiceInner->appRunningManager_ = std::make_shared<AppRunningManager>();
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID); // foundation call
+    AbilityInfo abilityInfo;
+    abilityInfo.bundleName = "com.test.attachdebug";
+    abilityInfo.applicationInfo.bundleName = "com.test.attachdebug";
+    abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::AGENT;
+    EXPECT_FALSE(appMgrServiceInner->IsCorrespondingProcessAttachDebug(abilityInfo));
+    TAG_LOGI(AAFwkTag::TEST, "IsCorrespondingProcessAttachDebug_007 end");
 }
 
 } // namespace AppExecFwk
