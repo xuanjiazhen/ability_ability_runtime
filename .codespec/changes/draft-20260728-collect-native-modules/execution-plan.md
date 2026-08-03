@@ -57,6 +57,7 @@
 | AC-1.3 | spec.md | TASK-2 | 单测 | 是 |
 | AC-1.4 | spec.md | TASK-3 | 单测 | 是 |
 | AC-1.5 | spec.md | TASK-5 | 单测 + 实测 | 是 |
+| AC-1.6 | spec.md | TASK-2 | 单测 | 是 |
 | AC-2.1 | spec.md | TASK-3 | 单测 | 是 |
 | AC-2.2 | spec.md | TASK-3 | 单测 | 是 |
 | AC-2.3 | spec.md | TASK-3 | 单测 | 是 |
@@ -103,7 +104,7 @@
 |---------|------|----------|---------|----------|----------|----------|
 | TASK-SKELETON-1 | napi 枚举接口骨架 | `arkui/napi module_manager/native_module_manager.{h,cpp}` | 接口场景#2 | 无 | 编译通过，空实现返回空列表 | napi 仓对应 UT 构建通过 |
 | TASK-1 | 枚举接口实现 + UT | 同 TASK-SKELETON-1 + napi UT 文件 | AC-1.1（数据源） | TASK-SKELETON-1 | 快照一致/深拷贝/空链表 UT 通过 | `run -t UT -ts native_module_manager_test` |
-| TASK-2 | collector 骨架：开关/路径/命名/权限 | `native_module_collector.{h,cpp}` + app/BUILD.gn | AC-1.2, AC-1.3, AC-4.1, AC-4.2 | 无 | 命名/哈希/权限/开关 UT 通过 | `run -t UT -ts native_module_collector_test` |
+| TASK-2 | collector 骨架：开关/路径/命名/权限 | `native_module_collector.{h,cpp}` + app/BUILD.gn | AC-1.2, AC-1.3, AC-1.6, AC-4.1, AC-4.2 | 无 | 命名/哈希/权限/开关/应用模块过滤 UT 通过 | `run -t UT -ts native_module_collector_test` |
 | TASK-3 | EWMA 合并引擎 + 原子写 + 淘汰/重建 | `native_module_collector.cpp` | AC-1.4, AC-2.1~AC-2.4 | TASK-1, TASK-2 | 合并/淘汰/重建/原子写 UT 全过 | 同上 |
 | TASK-4 | 双检查点接入 | `application_impl.cpp`, `main_thread.cpp` | AC-1.1 | TASK-3 | 检查点触发 UT + 实测每轮 ≤1 次写盘 | UT + 设备实测 |
 | TASK-5 | PreFork 快照排除 | `ets_runtime.cpp` | AC-1.5 | TASK-3 | preload 模块不出现在采集结果 | UT + 实测 |
@@ -238,7 +239,7 @@
 | 字段 | 内容 |
 |------|------|
 | 任务目标 | 建立 NativeModuleCollector 骨架：开关判定入口（缺省关闭）、cacheDir 路径与防冲突文件名生成、进程名 FNV-1a 8 字符哈希、0600 权限与隐藏目录创建 |
-| AC 映射 | AC-1.2, AC-1.3, AC-4.1, AC-4.2 |
+| AC 映射 | AC-1.2, AC-1.3, AC-1.6, AC-4.1, AC-4.2 |
 | 前置依赖 | 无（与 TASK-1 并行） |
 | 非目标 | 不实现 EWMA 合并、写盘内容序列化、检查点接入、CCM 真实读参（开关先以占位函数 IsEnabled() 返回 false，TASK-8 接入真实参数） |
 | 完成判据 | UT 覆盖：GetStorePath 路径形态、同进程名哈希稳定/不同进程名哈希不同、目录创建、0600 权限、IsEnabled=false 时零文件 I/O |
