@@ -74,7 +74,7 @@ config("optimize_config") {
   ]
   ldflags = [
     "-flto=full",
-    "-Wl",
+    "-Wl,--gc-sections",
   ]
 }
 
@@ -98,9 +98,9 @@ config("tdd_config") {
     "-Oz",
   ]
   # NOTE: No Bsymbolic flag here to allow symbol mocking
+  # NOTE: No --gc-sections either: it would strip mocked symbols and break TDD
   ldflags = [
     "-flto=full",
-    "-Wl",
   ]
 }
 
