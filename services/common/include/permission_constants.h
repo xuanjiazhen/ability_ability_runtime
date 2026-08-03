@@ -33,6 +33,7 @@ constexpr const char* PERMISSION_UPDATE_APP_CONFIGURATION = "ohos.permission.UPD
 constexpr const char* PERMISSION_INSTALL_BUNDLE = "ohos.permission.INSTALL_BUNDLE";
 constexpr const char* PERMISSION_LISTEN_BUNDLE_CHANGE = "ohos.permission.LISTEN_BUNDLE_CHANGE";
 constexpr const char* PERMISSION_GET_BUNDLE_INFO_PRIVILEGED = "ohos.permission.GET_BUNDLE_INFO_PRIVILEGED";
+constexpr const char* PERMISSION_SUPPORT_CROSS_APP_EMBED_FOR_OA = "ohos.permission.SUPPORT_CROSS_APP_EMBED_FOR_OA";
 constexpr const char* PERMISSION_START_INVISIBLE_ABILITY = "ohos.permission.START_INVISIBLE_ABILITY";
 constexpr const char* PERMISSION_START_ABILITIES_FROM_BACKGROUND = "ohos.permission.START_ABILITIES_FROM_BACKGROUND";
 constexpr const char* PERMISSION_START_ABILIIES_FROM_BACKGROUND = "ohos.permission.START_ABILIIES_FROM_BACKGROUND";
@@ -40,6 +41,7 @@ constexpr const char* PERMISSION_ABILITY_BACKGROUND_COMMUNICATION = "ohos.permis
 constexpr const char* PERMISSION_MANAGER_ABILITY_FROM_GATEWAY = "ohos.permission.MANAGER_ABILITY_FROM_GATEWAY";
 constexpr const char* PERMISSION_PROXY_AUTHORIZATION_URI = "ohos.permission.PROXY_AUTHORIZATION_URI";
 constexpr const char* PERMISSION_FILE_ACCESS_MANAGER = "ohos.permission.FILE_ACCESS_MANAGER";
+constexpr const char* PERMISSION_AGENT_FILE_ACCESS = "ohos.permission.AGENT_FILE_ACCESS";
 constexpr const char* PERMISSION_SANDBOX_ACCESS_MANAGER = "ohos.permission.SANDBOX_ACCESS_MANAGER";
 constexpr const char* PERMISSION_WRITE_IMAGEVIDEO = "ohos.permission.WRITE_IMAGEVIDEO";
 constexpr const char* PERMISSION_READ_IMAGEVIDEO = "ohos.permission.READ_IMAGEVIDEO";
@@ -89,6 +91,7 @@ constexpr const char* PERMISSION_MODIFY_AGENT_CARD = "ohos.permission.MODIFY_AGE
 constexpr const char* PERMISSION_START_ABILITY_TO_PAGE = "ohos.permission.START_ABILITY_TO_PAGE";
 constexpr const char* PERMISSION_CONTINUATION_NOTIFY = "ohos.permission.CONTINUATION_NOTIFY";
 constexpr const char* PERMISSION_EXECUTE_DISTRIBUTED_INTENT = "ohos.permission.EXECUTE_DISTRIBUTED_INTENT";
+constexpr const char* PERMISSION_ALLOW_USE_BM = "ohos.permission.ALLOW_USE_BM";
 } // namespace PermissionConstants
 } // namespace AAFwk
 } // namespace OHOS

@@ -22,6 +22,7 @@
 #include "mock_ability_connect_callback.h"
 #include "mock_ability_token.h"
 #include "mock_sa_interceptor_stub.h"
+#include "sandbox_clone_params.h"
 
 using namespace testing::ext;
 using namespace testing;
@@ -641,6 +642,37 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_RegisterSAInterceptor_OnRemo
     EXPECT_TRUE(data2.WriteRemoteObject(interceptor->AsObject()));
     res = stub_->OnRemoteRequest(
         static_cast<uint32_t>(AbilityManagerInterfaceCode::REGISTER_SA_INTERCEPTOR),
+        data2, reply2, option);
+    EXPECT_EQ(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: OnRemoteRequest
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService OnRemoteRequest
+ * EnvConditions: code is UNREGISTER_SA_INTERCEPTOR
+ * CaseDescription: Verify that unregistering an SA interceptor handles null and valid interceptors
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_UnregisterSAInterceptor_OnRemote_0100, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    int res = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::UNREGISTER_SA_INTERCEPTOR),
+        data, reply, option);
+    EXPECT_EQ(res, ERR_NULL_SA_INTERCEPTOR_EXECUTER);
+
+    MessageParcel data2;
+    MessageParcel reply2;
+    WriteInterfaceToken(data2);
+    sptr<AbilityRuntime::ISAInterceptor> interceptor = new AbilityRuntime::MockSAInterceptorStub(0);
+    EXPECT_TRUE(data2.WriteRemoteObject(interceptor->AsObject()));
+    res = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::UNREGISTER_SA_INTERCEPTOR),
         data2, reply2, option);
     EXPECT_EQ(res, NO_ERROR);
 }
@@ -4689,6 +4721,25 @@ HWTEST_F(AbilityManagerStubTest, RegisterSAInterceptorInner_0100, TestSize.Level
     TAG_LOGI(AAFwkTag::TEST, "end");
 }
 
+ /**
+ * @tc.name: UnregisterSAInterceptorInner_0100
+ * @tc.desc: UnregisterSAInterceptorInner
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, UnregisterSAInterceptorInner_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin");
+    MessageParcel data;
+    MessageParcel reply;
+    auto ret = stub_->UnregisterSAInterceptorInner(data, reply);
+    EXPECT_EQ(ret, ERR_NULL_SA_INTERCEPTOR_EXECUTER);
+    sptr<AbilityRuntime::ISAInterceptor> interceptor = new AbilityRuntime::MockSAInterceptorStub(0);
+    EXPECT_EQ(data.WriteRemoteObject(interceptor->AsObject()), true);
+    ret = stub_->UnregisterSAInterceptorInner(data, reply);
+    EXPECT_EQ(ret, NO_ERROR);
+    TAG_LOGI(AAFwkTag::TEST, "end");
+}
+
 /**
  * @tc.name: SetAppServiceExtensionKeepAlive_0100
  * @tc.desc: SetAppServiceExtensionKeepAlive
@@ -5226,6 +5277,98 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_SetGamePreLaunchCompleteTime
 }
 
 /*
+ * Feature: AbilityManagerStub
+ * Function: OnRemoteRequest
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub StartSandboxCloneAbilityInner via OnRemoteRequest
+ * EnvConditions: code is START_SANDBOX_CLONE_ABILITY
+ * CaseDescription: Verify dispatching START_SANDBOX_CLONE_ABILITY through OnRemoteRequest
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartSandboxCloneAbility_OnRemote_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_StartSandboxCloneAbility_OnRemote_0100 start");
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    ASSERT_TRUE(data.WriteParcelable(&want));
+
+    SandboxCloneParams params;
+    params.callerBundleName = "com.caller.bundle";
+    params.callerUid = 10001;
+    params.callerTokenId = 123456;
+    ASSERT_TRUE(data.WriteParcelable(&params));
+
+    EXPECT_CALL(*stub_, StartSandboxCloneAbility(_, _)).WillOnce(Return(ERR_OK));
+    int res = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SANDBOX_CLONE_ABILITY), data, reply, option);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_StartSandboxCloneAbility_OnRemote_0100 end");
+}
+
+/*
+ * Feature: AbilityManagerStub
+ * Function: StartSandboxCloneAbilityInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub StartSandboxCloneAbilityInner
+ * EnvConditions: NA
+ * CaseDescription: Verify StartSandboxCloneAbilityInner with null want
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartSandboxCloneAbilityInner_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_StartSandboxCloneAbilityInner_0100 start");
+
+    MessageParcel data;
+    MessageParcel reply;
+    WriteInterfaceToken(data);
+
+    // Write empty want (nullptr)
+    ASSERT_TRUE(data.WriteParcelable(static_cast<Want*>(nullptr)));
+
+    auto result = stub_->StartSandboxCloneAbilityInner(data, reply);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_StartSandboxCloneAbilityInner_0100 end");
+}
+
+/*
+ * Feature: AbilityManagerStub
+ * Function: StartSandboxCloneAbilityInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub StartSandboxCloneAbilityInner
+ * EnvConditions: NA
+ * CaseDescription: Verify StartSandboxCloneAbilityInner with null params
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartSandboxCloneAbilityInner_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_StartSandboxCloneAbilityInner_0200 start");
+
+    MessageParcel data;
+    MessageParcel reply;
+    WriteInterfaceToken(data);
+
+    // Write valid want
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    ASSERT_TRUE(data.WriteParcelable(&want));
+
+    // Write empty params (nullptr)
+    ASSERT_TRUE(data.WriteParcelable(static_cast<SandboxCloneParams*>(nullptr)));
+
+    auto result = stub_->StartSandboxCloneAbilityInner(data, reply);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_StartSandboxCloneAbilityInner_0200 end");
+}
+
+/*
  * Feature: AbilityManagerService
  * Function: OnRemoteRequest
  * SubFunction: NA
@@ -5436,6 +5579,124 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartSelfUIAbilityByAppConte
         static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_BY_APP_CONTEXT),
         data, reply, option);
     EXPECT_EQ(result, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartSelfInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub StartSelfInner
+ * EnvConditions: NA
+ * CaseDescription: Verify StartSelfInner with valid token returns NO_ERROR and reply contains result
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartSelfInner_0100, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    data.WriteInterfaceToken(AbilityManagerStub::GetDescriptor());
+    auto token = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    data.WriteRemoteObject(token);
+
+    EXPECT_CALL(*stub_, StartSelf(_)).WillOnce(Return(ERR_OK));
+    auto result = stub_->StartSelfInner(data, reply);
+    EXPECT_EQ(result, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartSelfInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub StartSelfInner
+ * EnvConditions: NA
+ * CaseDescription: Verify StartSelfInner with null token
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartSelfInner_0200, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    data.WriteInterfaceToken(AbilityManagerStub::GetDescriptor());
+    data.WriteRemoteObject(nullptr);
+
+    EXPECT_CALL(*stub_, StartSelf(_)).WillOnce(Return(ERR_INVALID_VALUE));
+    auto result = stub_->StartSelfInner(data, reply);
+    EXPECT_EQ(result, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_INVALID_VALUE);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: OnRemoteRequest
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub StartSelfInner via OnRemoteRequest
+ * EnvConditions: code is START_SELF
+ * CaseDescription: Verify dispatching START_SELF through OnRemoteRequest
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartSelf_OnRemote_0100, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    auto token = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    data.WriteRemoteObject(token);
+
+    EXPECT_CALL(*stub_, StartSelf(_)).WillOnce(Return(ERR_OK));
+    int res = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SELF), data, reply, option);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: OnRemoteRequest
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub NotifySkillFunctionInvokedInner
+ * EnvConditions: code is NOTIFY_SKILL_FUNCTION_INVOKED
+ * CaseDescription: Verify dispatching NOTIFY_SKILL_FUNCTION_INVOKED with valid token and requestCode
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_NotifySkillFunctionInvoked_0100, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    auto token = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
+    data.WriteRemoteObject(token);
+    data.WriteString("requestCode_0100");
+
+    EXPECT_CALL(*stub_, NotifySkillFunctionInvoked(_, _)).WillOnce(Return(ERR_OK));
+    int res = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::NOTIFY_SKILL_FUNCTION_INVOKED), data, reply, option);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: OnRemoteRequest
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub NotifySkillFunctionInvokedInner
+ * EnvConditions: code is NOTIFY_SKILL_FUNCTION_INVOKED with null token
+ * CaseDescription: Verify null token is rejected before reaching the service
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_NotifySkillFunctionInvoked_0200, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    data.WriteRemoteObject(nullptr);
+    data.WriteString("requestCode_0200");
+
+    EXPECT_CALL(*stub_, NotifySkillFunctionInvoked(_, _)).Times(0);
+    int res = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::NOTIFY_SKILL_FUNCTION_INVOKED), data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
 }
 } // namespace AAFwk
 } // namespace OHOS

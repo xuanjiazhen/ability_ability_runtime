@@ -45,6 +45,7 @@
 #include "appfreeze_manager.h"
 #include "application_state_filter.h"
 #include "application_state_observer_stub.h"
+#include "hisysevent.h"
 #include "appspawn_util.h"
 #include "bundle_constants.h"
 #include "bundle_mgr_helper.h"
@@ -70,6 +71,7 @@
 #include "last_exit_detail_info.h"
 #include "os_account_manager.h"
 #include "app_native_spawn_manager.h"
+#include "app_pidfd_manager.h"
 #ifdef SUPPORT_SCREEN
 #include "locale_config.h"
 #endif
@@ -283,6 +285,9 @@ constexpr const char* EVENT_KEY_INNER_MSG = "INNER_MSG";
 constexpr const char* EVENT_KEY_PROCESS_KILL_ID = "PROCESS_KILL_ID";
 constexpr const char* EVENT_KEY_ADJ = "ADJ";
 constexpr const char* EVENT_KEY_TIMESTAMP = "TIMESTAMP";
+constexpr const char* EVENT_KEY_RSS = "RSS";
+constexpr const char* EVENT_KEY_PSS = "PSS";
+constexpr const char* EVENT_KEY_PROCESS_STATE = "PROCESS_STATE";
 constexpr const char* EVENT_KEY_QUICK_PARAM_FIRST = "EVENT_PARAM_FIRST";
 constexpr const char* EVENT_KEY_QUICK_PARAM_SECOND = "EVENT_PARAM_SECOND";
 constexpr const char* EVENT_KEY_QUICK_PARAM_THIRD = "EVENT_PARAM_THIRD";
@@ -307,7 +312,6 @@ constexpr const char* EVENT_MESSAGE_DEFAULT = "AppMgrServiceInner HandleTimeOut!
 
 constexpr const char* SYSTEM_BASIC = "system_basic";
 constexpr const char* SYSTEM_CORE = "system_core";
-constexpr const char* ABILITY_OWNER_USERID = "AbilityMS_Owner_UserId";
 constexpr const char* PROCESS_EXIT_EVENT_TASK = "Send Process Exit Event Task";
 constexpr const char* KILL_PROCESS_REASON_PREFIX = "Kill Reason:";
 constexpr const char* PRELOAD_APPLIATION_TASK = "PreloadApplicactionTask";
@@ -382,10 +386,24 @@ constexpr int32_t FORK_ALL_LIVING_END = 1;
 
 constexpr const char* TEMPLATE_MONITOR_PATH = "/proc/checkpoint/monitor";
 
-int32_t GetUserIdByUid(int32_t uid)
-{
-    return uid / BASE_USER_RANGE;
-}
+// Precomputed bundle info flag combinations to avoid repeated runtime OR operations.
+constexpr int32_t BUNDLE_INFO_FLAG_WITH_APP_EXT_HAP_PERM =
+    static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) |
+    static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_EXTENSION_ABILITY) |
+    static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE) |
+    static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_REQUESTED_PERMISSION);
+constexpr int32_t BUNDLE_INFO_FLAG_CLONE_WITH_APP_HAP_ABILITY_EXT =
+    static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) |
+    static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE) |
+    static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_ABILITY) |
+    static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_EXTENSION_ABILITY);
+constexpr int32_t BUNDLE_INFO_FLAG_CLONE_WITH_APP_PERM =
+    static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) |
+    static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_REQUESTED_PERMISSION);
+constexpr int32_t BUNDLE_INFO_FLAG_WITH_HAP_APP_METADATA =
+    static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE) |
+    static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) |
+    static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_METADATA);
 
 bool IsCjAbility(const std::string& info)
 {
@@ -510,6 +528,7 @@ void AppMgrServiceInner::Init()
         .timeout(AbilityRuntime::GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));
     AppNativeSpawnManager::GetInstance().InitNativeSpawnMsgPipe(appRunningManager_);
     AppHybridSpawnManager::GetInstance().InitHybridSpawnMsgPipe(weak_from_this());
+    AppPidFdManager::GetInstance().Init(weak_from_this(), taskHandler_);
 }
 
 AppMgrServiceInner::~AppMgrServiceInner()
@@ -788,7 +807,10 @@ ImageError AppMgrServiceInner::MakeImageInner(const AAFwk::Want &want, int32_t u
         TAG_LOGE(AAFwkTag::APPMGR, "only support preloadModule");
         return ImageError::ERR_INVALID_PRELOAD_TYPE;
     }
-
+    if (appIndex != 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not support appIndex yet");
+        return ImageError::ERR_INNER;
+    }
     userId = GetValidUserId(userId);
     // Check image existence: if abilityName is empty, it's a general image
     if (IsImageInfoExist(bundleName, abilityName, userId, appIndex)) {
@@ -901,6 +923,7 @@ ImageError AppMgrServiceInner::DestroyImageForFault(const std::shared_ptr<AppRun
 
 #define CHECKPOINT_NAME_LEN 256
 constexpr int32_t CHECKPOINT_MONITOR_APP_TYPE = 1;
+constexpr int32_t CHECKPOINT_DEBUG_APP_TYPE_FLAG = 0x100;
 
 struct HMCheckpointMarkS {
     int32_t pid = -1;
@@ -1056,7 +1079,8 @@ void AppMgrServiceInner::HandleMakeImageFailed(const std::string& bundleName, co
     int32_t userId, int32_t appIndex, ImageError err)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::APPMGR, "HandleMakeImageFailed, bundleName:%{public}s", bundleName.c_str());
+    TAG_LOGI(AAFwkTag::APPMGR, "HandleMakeImageFailed, bundleName:%{public}s, abilityName:%{public}s, err:%{public}d",
+        bundleName.c_str(), abilityName.c_str(), static_cast<int32_t>(err));
     auto imageInfo = GetImageInfo(bundleName, abilityName, userId, appIndex);
     if (imageInfo == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null imageInfo");
@@ -1459,9 +1483,15 @@ int32_t AppMgrServiceInner::TryToUseImageInfo(std::shared_ptr<AbilityInfo> abili
         NotifyStartProcessFailed(token);
         return ret;
     }
+    bool appExistFlag = appRunningManager_->IsAppExist(appInfo->accessTokenId);
+    bool appMultiUserExistFlag = appRunningManager_->CheckAppRunningRecordIsExistByUid(appInfo->uid);
+    if (!appMultiUserExistFlag) {
+        NotifyAppRunningStatusEvent(
+            appInfo->bundleName, appInfo->uid, AbilityRuntime::RunningStatus::APP_RUNNING_START);
+    }
     appRecord = CreateAppRunningRecordFromImageInfo(imageInfo);
     if (appRecord == nullptr) {
-        SnapshotErrorReport(appInfo->uid, appInfo->bundleName, -1, "appRecord not exist");
+        SnapshotErrorReport(appInfo->uid, appInfo->bundleName, appInfo->versionName, -1, "appRecord not exist");
         return ERR_OK;
     }
     int32_t workPid = -1;
@@ -1487,7 +1517,7 @@ int32_t AppMgrServiceInner::TryToUseImageInfo(std::shared_ptr<AbilityInfo> abili
         DelayedSingleton<AppStateObserverManager>::GetInstance()->OnForkAllWorkProcessFailed(imageInfo, errCode);
         appRunningManager_->RemoveAppRunningRecordById(appRecord->GetRecordId());
         appRecord = nullptr;
-        SnapshotErrorReport(-1, appInfo->bundleName, errCode, "forkall failed");
+        SnapshotErrorReport(-1, appInfo->bundleName, appInfo->versionName, errCode, "forkall failed");
         return ERR_OK;
     }
     TAG_LOGI(AAFwkTag::APPMGR, "fork from image success, imagePid:%{public}d, workpid:%{public}d", imageInfo->imagePid,
@@ -1496,7 +1526,6 @@ int32_t AppMgrServiceInner::TryToUseImageInfo(std::shared_ptr<AbilityInfo> abili
     KillingProcessManager::GetInstance().RemoveKillingCallerKey(key);
     OnAppStateChanged(appRecord, ApplicationState::APP_STATE_CREATE, false, false, false);
     DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessCreated(appRecord, false);
-    bool appExistFlag = appRunningManager_->IsAppExist(appInfo->accessTokenId);
     if (!appExistFlag) {
         OnAppStarted(appRecord);
     }
@@ -1507,63 +1536,91 @@ int32_t AppMgrServiceInner::TryToUseImageInfo(std::shared_ptr<AbilityInfo> abili
         innerService->OnAppStateChanged(appRecord, ApplicationState::APP_STATE_SET_COLD_START, false, false, false);
     }, ffrt::task_attr().name("AppStateChangedNotify")
     .timeout(AbilityRuntime::GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));
-    SnapshotStartReport(appRecord->GetUid(), appInfo->bundleName, 0, "");
+    SnapshotStartReport(appRecord->GetUid(), appInfo->bundleName, appInfo->versionName, 0, "");
     return ERR_OK;
 }
 
-void AppMgrServiceInner::SnapshotStartReport(int32_t uid, const std:: string &bundleName, int32_t result,
-    const std::string &reason)
+void AppMgrServiceInner::SnapshotStartReport(int32_t uid, const std::string &bundleName,
+    const std::string &appVersionName, int32_t result, const std::string &reason)
 {
     if (result != 0) {
         return;
     }
-    std::lock_guard guard(imageReportLock_);
-    auto iter = imageStartReportMap_.find(bundleName);
-    if (iter == imageStartReportMap_.end()) {
-        imageStartReportMap_.emplace(bundleName, 0);
-    }
-    imageStartReportMap_[bundleName]++;
-    imageStartCount_++;
-
+    std::string bundleVersionName = bundleName + "_" + std::to_string(uid) + "@" + appVersionName;
+    std::map<std::string, std::pair<int32_t, int32_t>> reportMap;
     auto now = std::chrono::steady_clock::now();
-    if (now - lastReportTime_ < REPORT_INTERVAL && imageStartCount_ < REPORT_THRESHOLD) {
-        return;
+    {
+        std::lock_guard<std::mutex> guard(imageReportLock_);
+        auto iter = imageStartReportMap_.find(bundleVersionName);
+        if (iter == imageStartReportMap_.end()) {
+            imageStartReportMap_.emplace(bundleVersionName, std::make_pair(0, 0));
+        }
+        imageStartReportMap_[bundleVersionName].first++;
+        imageStartCount_++;
+
+        if (now - lastReportTime_ < REPORT_INTERVAL && imageStartCount_ < REPORT_THRESHOLD) {
+            return;
+        }
+        reportMap.swap(imageStartReportMap_);
+        lastReportTime_ = now;
+        imageStartCount_ = 0;
     }
 
     AAFwk::SnapshotInfo snapshotInfo;
     snapshotInfo.snapshotEvent = "ImageStart";
-    for (auto& item: imageStartReportMap_) {
-        if (item.second != 0) {
-            snapshotInfo.snapshotReason += item.first + ":" + std::to_string(item.second) + ";";
+    for (const auto &item : reportMap) {
+        if (item.second.first > 0 || item.second.second > 0) {
+            snapshotInfo.snapshotReason += item.first + ":" + std::to_string(item.second.first) + "|" +
+                std::to_string(item.second.second) + ";";
         }
     }
-    snapshotInfo.snapshotReason += "=" + std::to_string(imageStartCount_);
+    TAG_LOGD(AAFwkTag::APPMGR,
+        "SnapshotStartReport: event=%{public}s, reason=%{public}s",
+        snapshotInfo.snapshotEvent.c_str(), snapshotInfo.snapshotReason.c_str());
     AAFwk::EventReport::SendSnapshotEvent(AAFwk::EventName::SNAPSHOT_REPORT, snapshotInfo);
-    lastReportTime_ = now;
-    imageStartReportMap_.clear();
-    imageStartCount_ = 0;
 }
 
-void AppMgrServiceInner::SnapshotErrorReport(int32_t uid, const std::string &bundleName, int32_t result,
-    const std::string &reason)
+void AppMgrServiceInner::SnapshotErrorReport(int32_t uid, const std::string &bundleName,
+    const std::string &appVersionName, int32_t result, const std::string &reason)
 {
+    std::string bundleVersionName = bundleName + "_" + std::to_string(uid) + "@" + appVersionName;
+    {
+        std::lock_guard<std::mutex> guard(imageReportLock_);
+        auto iter = imageStartReportMap_.find(bundleVersionName);
+        if (iter == imageStartReportMap_.end()) {
+            imageStartReportMap_.emplace(bundleVersionName, std::make_pair(0, 0));
+        }
+        imageStartReportMap_[bundleVersionName].second++;
+    }
+
     AAFwk::SnapshotInfo snapshotInfo;
     snapshotInfo.uid = uid;
     snapshotInfo.bundleName = bundleName;
+    snapshotInfo.appVersionName = appVersionName;
     snapshotInfo.snapshotCond = "";
     snapshotInfo.snapshotEvent = "ImageStartError";
     snapshotInfo.snapshotResult = result;
     snapshotInfo.snapshotReason = reason;
+    TAG_LOGI(AAFwkTag::APPMGR,
+        "SnapshotErrorReport: uid=%{public}d, bundleName=%{public}s, appVersionName=%{public}s, "
+        "result=%{public}d, reason=%{public}s",
+        snapshotInfo.uid, snapshotInfo.bundleName.c_str(), snapshotInfo.appVersionName.c_str(),
+        snapshotInfo.snapshotResult, snapshotInfo.snapshotReason.c_str());
     AAFwk::EventReport::SendSnapshotEvent(AAFwk::EventName::SNAPSHOT_REPORT, snapshotInfo);
 }
 
-void AppMgrServiceInner::MarkTemplateProcess(int32_t templatePid, std::string imageName)
+void AppMgrServiceInner::MarkTemplateProcess(const std::shared_ptr<AppRunningRecord> &appRecord, std::string imageName)
 {
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "MarkTemplateProcess null appRecord");
+        return;
+    }
     int fd = open(TEMPLATE_MONITOR_PATH, O_RDWR, 0);
     if (fd < 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "MarkTemplateProcess template openfile fail: %{public}s", strerror(errno));
         return;
     }
+    int32_t templatePid = appRecord->GetPid();
     struct HMCheckpointMarkS mark {
         .pid = templatePid,
         .type = CHECKPOINT_MONITOR_APP_TYPE
@@ -1572,6 +1629,13 @@ void AppMgrServiceInner::MarkTemplateProcess(int32_t templatePid, std::string im
     beginIndex = beginIndex > 0 ? beginIndex : 0;
     std::size_t length = imageName.copy(mark.name, CHECKPOINT_NAME_LEN - 1, beginIndex);
     mark.name[length] = '\0';
+    /* In developer mode, set a specific flag for debug app */
+    std::shared_ptr<ApplicationInfo> applicationInfo = appRecord->GetApplicationInfo();
+    bool isDebugApp = applicationInfo != nullptr && applicationInfo->debug &&
+            (applicationInfo->appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG);
+    if (system::GetBoolParameter(DEVELOPER_MODE_STATE, false) && isDebugApp) {
+        mark.type |= CHECKPOINT_DEBUG_APP_TYPE_FLAG;
+    }
     int ret = ioctl(fd, CHECKPOINT_MONITOR_IOCTL_MARK_TEMPLATE, &mark);
     if (ret < 0) {
         close(fd);
@@ -1705,8 +1769,10 @@ void AppMgrServiceInner::HandlePreloadApplication(const PreloadRequest &request)
     std::string specifiedProcessFlag;
     if (CheckAppRecordExistByPreloadRequest(request, processName, specifiedProcessFlag)) {
         TAG_LOGW(AAFwkTag::APPMGR, "appRecord already exists when preload application");
-        HandleMakeImageFailed(request.appInfo->bundleName, request.abilityName,
-            request.appInfo->uid / BASE_USER_RANGE, request.appIndex, ImageError::ERR_APP_RECORD_EXIST);
+        if (request.needMakeImage) {
+            HandleMakeImageFailed(request.appInfo->bundleName, request.abilityName,
+                request.appInfo->uid / BASE_USER_RANGE, request.appIndex, ImageError::ERR_APP_RECORD_EXIST);
+        }
         return;
     }
 
@@ -1758,7 +1824,7 @@ void AppMgrServiceInner::HandlePreloadApplication(const PreloadRequest &request)
             hapModuleInfo, want, appExistFlag, true, request.preloadMode);
         if (request.needMakeImage && appRecord->GetPid() > 0) {
             SetTemplatePid(appRecord);
-            MarkTemplateProcess(appRecord->GetPid(), request.imageName);
+            MarkTemplateProcess(appRecord, request.imageName);
         }
         appRecord->SetNeedLimitPrio(false);
         if (request.preloadMode == AppExecFwk::PreloadMode::PRELOAD_MODULE) {
@@ -2041,7 +2107,16 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         want->RemoveParam(Want::PARAMS_REAL_CALLER_KEY);
     }
     std::shared_ptr<AppRunningRecord> appRecord;
-    if (want && (want->GetBoolParam(AAFwk::Want::DESTINATION_PLUGIN_ABILITY, false))) {
+    if (loadParam->reusePid > 0) {
+        appRecord = appRunningManager_->GetValidAppRunningRecordByPid(loadParam->reusePid);
+        if (!appRecord) {
+            TAG_LOGE(AAFwkTag::APPMGR,
+                "reusePid %{public}d process not found, load failed", loadParam->reusePid);
+            NotifyStartProcessFailed(loadParam->token);
+            return;
+        }
+        isProcCache = DelayedSingleton<CacheProcessManager>::GetInstance()->ReuseCachedProcess(appRecord);
+    } else if (want && (want->GetBoolParam(AAFwk::Want::DESTINATION_PLUGIN_ABILITY, false))) {
         TAG_LOGI(AAFwkTag::APPMGR, "load plugin ability");
         if (abilityInfo->extensionAbilityType != ExtensionAbilityType::EMBEDDED_UI) {
             appRecord = GetAppRunningRecordByAbilityToken(loadParam->preToken);
@@ -2109,7 +2184,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         MakeProcessName(abilityInfo, appInfo, hapModuleInfo, appIndex, specifiedProcessFlag,
             processName, loadParam->isCallerSetProcess);
         isExtensionSandBox = IsIsolateExtensionSandBox(abilityInfo, hapModuleInfo);
-        TAG_LOGI(AAFwkTag::PROCESSMGR, "name:%{public}s startProcessName = %{public}s",
+        TAG_LOGI(AAFwkTag::PROCESSMGR, "name:%{public}s proc=%{public}s",
             abilityInfo->name.c_str(), processName.c_str());
         if (MakeKiaProcess(want, isKia, watermarkBusinessName, isWatermarkEnabled, isFileUri, processName) != ERR_OK) {
             TAG_LOGE(AAFwkTag::APPMGR, "MakeKiaProcess failed");
@@ -2150,6 +2225,12 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         return;
     }
 
+    if ((loadParam->reusePid > 0) && !appRecord) {
+        TAG_LOGE(AAFwkTag::APPMGR, "reusePid %{public}d process invalid, load failed", loadParam->reusePid);
+        NotifyStartProcessFailed(loadParam->token);
+        return;
+    }
+
     bool isProcessReuse = false;
     if (!appRecord) {
         auto ret = TryToUseImageInfo(abilityInfo, appInfo, loadParam->token, callerKey, appIndex, processName,
@@ -2160,7 +2241,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
     }
 
     if (!appRecord) {
-        TAG_LOGI(AAFwkTag::APPMGR, "appRecord null, appInfo->bundleName:%{public}s", appInfo->bundleName.c_str());
+        TAG_LOGI(AAFwkTag::APPMGR, "no record,bundle:%{public}s", appInfo->bundleName.c_str());
         if (KillingProcessManager::GetInstance().IsCallerKilling(callerKey)) {
             TAG_LOGE(AAFwkTag::APPMGR, "caller is killing");
             NotifyLoadAbilityFailed(loadParam->token);
@@ -2269,7 +2350,7 @@ void AppMgrServiceInner::AfterLoadAbility(std::shared_ptr<AppRunningRecord> appR
 
     auto reportLoadTask = [appRecord, abilityRecordId = loadParam->abilityRecordId,
         loadTimeout = loadParam->loadTimeout, extensionType = abilityInfo->extensionAbilityType,
-        isProcessReuse]() {
+        isProcessReuse, isStartupHide = loadParam->isStartupHide, isStartedByCall = (loadParam->byCallStatus != 0)]() {
         auto priorityObj = appRecord->GetPriorityObject();
         if (priorityObj) {
             auto timeOut = AppMgrServiceInner::GetLoadTimeout(loadTimeout);
@@ -2281,6 +2362,9 @@ void AppMgrServiceInner::AfterLoadAbility(std::shared_ptr<AppRunningRecord> appR
             std::unordered_map<std::string, std::string> eventParams;
             eventParams["extensionType"] = std::to_string(static_cast<int32_t>(extensionType));
             eventParams["isProcessReuse"] = std::to_string(isProcessReuse);
+            bool isStartVisibleUIAbility = isProcessReuse && !isStartupHide && !isStartedByCall &&
+                (extensionType == ExtensionAbilityType::UNSPECIFIED || static_cast<int32_t>(extensionType) < 0);
+            eventParams["isStartVisibleUIAbility"] = std::to_string(isStartVisibleUIAbility);
             AAFwk::ResSchedUtil::GetInstance().ReportLoadingEventToRss(AAFwk::LoadingStage::LOAD_BEGIN,
                 priorityObj->GetPid(), appRecord->GetUid(), timeOut, static_cast<int64_t>(abilityRecordId),
                 eventParams);
@@ -2531,7 +2615,7 @@ void AppMgrServiceInner::LoadAbilityNoAppRecord(const std::shared_ptr<AppRunning
     sptr<IRemoteObject> token, const std::string &customProcessFlag, bool isStartupHide)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::PROCESSMGR, "processName:%{public}s, isPreload:%{public}d", processName.c_str(), isPreload);
+    TAG_LOGI(AAFwkTag::PROCESSMGR, "proc:%{public}s,preload:%{public}d", processName.c_str(), isPreload);
     if (!appRecord || !abilityInfo) {
         TAG_LOGE(AAFwkTag::APPMGR, "null appRecord or abilityInfo");
         return;
@@ -2545,7 +2629,7 @@ void AppMgrServiceInner::LoadAbilityNoAppRecord(const std::shared_ptr<AppRunning
     if (hapModuleInfo.isStageBasedModel && !IsMainProcess(appInfo, processName)) {
         appRecord->SetEmptyKeepAliveAppState(false);
         appRecord->SetMainProcess(false);
-        TAG_LOGI(AAFwkTag::PROCESSMGR, "%{public}s will not alive", hapModuleInfo.process.c_str());
+        TAG_LOGD(AAFwkTag::PROCESSMGR, "%{public}s will not alive", hapModuleInfo.process.c_str());
     }
     uint64_t startFlags = (want == nullptr) ? 0 : AppspawnUtil::BuildStartFlags(*want, *abilityInfo);
     int32_t bundleIndex = 0;
@@ -2654,6 +2738,10 @@ bool AppMgrServiceInner::GetBundleAndHapInfo(const AbilityInfo &abilityInfo,
     int32_t appIndex) const
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (appInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appInfo null");
+        return false;
+    }
     auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
@@ -2666,14 +2754,11 @@ bool AppMgrServiceInner::GetBundleAndHapInfo(const AbilityInfo &abilityInfo,
     int32_t bundleMgrResult;
     if (appIndex == 0) {
         bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfoV9(appInfo->bundleName,
-            static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) |
-            static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_EXTENSION_ABILITY) |
-            static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE) |
-            static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_REQUESTED_PERMISSION), bundleInfo, userId));
-    } else if (appIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+            BUNDLE_INFO_FLAG_WITH_APP_EXT_HAP_PERM, bundleInfo, userId));
+    } else if (AbilityRuntime::GlobalConstant::IsAppCloneIndex(appIndex) ||
+        AbilityRuntime::GlobalConstant::IsSandboxCloneIndex(appIndex)) {
         bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper->GetCloneBundleInfo(appInfo->bundleName,
-            static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) |
-            static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_REQUESTED_PERMISSION),
+            BUNDLE_INFO_FLAG_CLONE_WITH_APP_PERM,
             appIndex, bundleInfo, userId));
     } else {
         bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper->GetSandboxBundleInfo(appInfo->bundleName,
@@ -2685,7 +2770,8 @@ bool AppMgrServiceInner::GetBundleAndHapInfo(const AbilityInfo &abilityInfo,
         return false;
     }
     bool hapQueryResult = false;
-    if (appIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+    if (AbilityRuntime::GlobalConstant::IsAppCloneIndex(appIndex) ||
+        AbilityRuntime::GlobalConstant::IsSandboxCloneIndex(appIndex)) {
         hapQueryResult = bundleMgrHelper->GetHapModuleInfo(abilityInfo, userId, hapModuleInfo);
     } else {
         hapQueryResult = (bundleMgrHelper->GetSandboxHapModuleInfo(abilityInfo, appIndex, userId, hapModuleInfo) == 0);
@@ -2759,13 +2845,6 @@ void AppMgrServiceInner::LaunchApplicationExt(const std::shared_ptr<AppRunningRe
 {
     auto isPreload = IsAllowedNWebPreload(appRecord->GetProcessName());
     appRecord->SetNWebPreload(isPreload);
-    bool isMultiProcessModel = AAFwk::AppUtils::GetInstance().IsMultiProcessModel();
-    bool isArkSupported = isMultiProcessModel || AllowChildProcessInMultiProcessFeatureApp(appRecord);
-    bool isNativeSupported = isMultiProcessModel ||
-        AllowNativeChildProcess(CHILD_PROCESS_TYPE_NATIVE, appRecord->GetAppIdentifier()) ||
-        AllowChildProcessInMultiProcessFeatureApp(appRecord);
-    appRecord->SetArkChildProcessSupported(isArkSupported);
-    appRecord->SetNativeChildProcessSupported(isNativeSupported);
     LaunchApplication(appRecord);
 }
 
@@ -3693,6 +3772,33 @@ int32_t AppMgrServiceInner::KillApplicationByUserIdLocked(
     return WaitProcessesExitAndKill(pids, startTime, "KillApplicationByUserId");
 }
 
+int32_t AppMgrServiceInner::CheckAppProvisionType(
+    const std::string &bundleName, int32_t callerUid, int32_t appCloneIndex, int32_t userId)
+{
+    int32_t newUserId = userId;
+    if (userId == DEFAULT_INVAL_VALUE) {
+        newUserId = GetUserIdByUid(callerUid);
+        if (newUserId == U0_USER_ID || newUserId == U1_USER_ID) {
+            newUserId = UserController::GetInstance().GetForegroundUserId(DEFAULT_DISPLAY_ID);
+        }
+    }
+    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
+        return ERR_INVALID_OPERATION;
+    }
+    ApplicationInfo appInfo;
+    if (!IN_PROCESS_CALL(
+            bundleMgrHelper->GetApplicationInfoWithAppIndex(bundleName, appCloneIndex, newUserId, appInfo))) {
+        TAG_LOGE(AAFwkTag::APPMGR, "delete user data fail");
+        return AAFwk::ERR_APP_CLONE_INDEX_INVALID;
+    }
+    if (appInfo.appProvisionType != AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG) {
+        return AAFwk::CHECK_PERMISSION_FAILED;
+    }
+    return ERR_OK;
+}
+
 int32_t AppMgrServiceInner::ClearUpApplicationData(const std::string &bundleName,
     int32_t callerUid, pid_t callerPid, int32_t appCloneIndex, int32_t userId)
 {
@@ -4272,6 +4378,24 @@ int32_t AppMgrServiceInner::DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &i
     return appRunningManager_->DumpJsHeapMemory(info);
 }
 
+int32_t AppMgrServiceInner::DumpJsHandleMap(OHOS::AppExecFwk::JsHandleMapInfo &info)
+{
+    auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
+    if (!isSaCall) {
+        TAG_LOGE(AAFwkTag::APPMGR, "callerToken not SA");
+        return ERR_INVALID_VALUE;
+    }
+    if (info.pid == 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "pid illegal");
+        return ERR_INVALID_VALUE;
+    }
+    if (!appRunningManager_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager null");
+        return ERR_INVALID_VALUE;
+    }
+    return appRunningManager_->DumpJsHandleMap(info);
+}
+
 int32_t AppMgrServiceInner::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
 {
     auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
@@ -4292,7 +4416,7 @@ int32_t AppMgrServiceInner::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &i
     return appRunningManager_->DumpCjHeapMemory(info);
 }
 
-int32_t AppMgrServiceInner::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+int32_t AppMgrServiceInner::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
 {
     auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
     if (!isSaCall) {
@@ -4307,7 +4431,18 @@ int32_t AppMgrServiceInner::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::st
         TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager null");
         return ERR_INVALID_VALUE;
     }
-    return appRunningManager_->DumpMem(info, dumpResult);
+    return appRunningManager_->DumpMem(info, callback);
+}
+
+int32_t AppMgrServiceInner::ReportDumpMemResult(sptr<IMemDumpCallback> callback,
+    const std::string &dumpResult)
+{
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "callback is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    callback->OnMemDumpDone(dumpResult);
+    return ERR_OK;
 }
 
 void AppMgrServiceInner::GetRunningProcesses(const std::shared_ptr<AppRunningRecord> &appRecord,
@@ -4642,7 +4777,7 @@ std::shared_ptr<AppRunningRecord> AppMgrServiceInner::CreateAppRunningRecord(
             appIndex = abilityInfo->appIndex;
         }
         appRecord->SetAppIndex(appIndex);
-        if (want->GetBoolParam(AbilityRuntime::GlobalConstant::GAME_PRELAUNCH, false)) {
+        if (loadParam->isGamePrelaunch) {
             appRecord->SetPreloadMode(AppExecFwk::PreloadMode::GAME_PRELAUNCH);
         }
 #ifdef WITH_DLP
@@ -4656,13 +4791,6 @@ std::shared_ptr<AppRunningRecord> AppMgrServiceInner::CreateAppRunningRecord(
         appRecord->SetNativeStart(want->GetBoolParam("native", false));
         appRecord->SetDebugFromLocal(want->GetBoolParam(DEBUG_FROM, false));
     }
-    if (abilityInfo != nullptr && abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
-        appInfo != nullptr && appInfo->appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG) {
-            auto mainAppRecord = appRunningManager_->FindMainProcessAppRunningRecord(appInfo->uid);
-            if (mainAppRecord && mainAppRecord->IsDebug()) {
-                appRecord->SetDebugApp(true);
-            }
-        }
     return appRecord;
 }
 
@@ -5098,7 +5226,7 @@ int32_t AppMgrServiceInner::KillProcessesByPids(const std::vector<int32_t> &pids
             }
             continue;
         }
-        if (subProcess == false) {
+        if (!subProcess) {
             continue;
         }
         ret = KillSubProcessBypid(pid, reason);
@@ -5751,7 +5879,7 @@ int32_t AppMgrServiceInner::CreateStartMsg(const CreateStartMsgParam &param, App
     SetAppInfo(bundleInfo, startMsg);
     SetStartMsgCustomSandboxFlag(startMsg, bundleInfo.applicationInfo.accessTokenId);
     GetKernelPermissions(bundleInfo.applicationInfo.accessTokenId, startMsg.jitPermissionsMap);
-    TAG_LOGI(AAFwkTag::APPMGR, "apl: %{public}s, startFlags: %{public}llu, userId: %{public}d",
+    TAG_LOGI(AAFwkTag::APPMGR, "apl:%{public}s,flag:%{public}llu,u:%{public}d",
         startMsg.apl.c_str(), static_cast<unsigned long long>(param.startFlags), userId);
 
     autoSync.Sync();
@@ -6301,15 +6429,14 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
         TAG_LOGE(AAFwkTag::APPMGR, "no appInfo");
         return;
     }
-    int32_t killId = appRecord->GetKillId();
-    std::string killMsg = appRecord->GetKillMsg();
-    std::string innerMsg = appRecord->GetInnerMsg();
     int32_t pid = appRecord->GetPid();
-    AppfreezeManager::ProcessKillInfo killInfo =
-        AppExecFwk::AppfreezeManager::GetInstance()->GetProcessKillReason(killId, pid, killMsg);
+    AppfreezeManager::ProcessKillInfo killInfo = AppExecFwk::AppfreezeManager::GetInstance()->GetProcessKillReason(
+        appRecord->GetKillId(), pid, appRecord->GetKillMsg());
     bool foreground = appRecord->GetState() == ApplicationState::APP_STATE_FOREGROUND ||
         appRecord->GetState() == ApplicationState::APP_STATE_FOCUS;
     std::string appRunningUniqueId = std::to_string(appRecord->GetAppRunningUniqueId());
+    uint64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
     AAFwk::EventInfo eventInfo;
     SetKilledEventInfo(appRecord, eventInfo);
     AAFwk::EventReport::SendAppEvent(AAFwk::EventName::APP_TERMINATE, HISYSEVENT_BEHAVIOR, eventInfo);
@@ -6324,10 +6451,13 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
     hisyseventReport->InsertParam(EVENT_KEY_APP_RUNNING_UNIQUE_ID, appRunningUniqueId);
     hisyseventReport->InsertParam(EVENT_KEY_VERSIONCODE, std::to_string(appInfo->versionCode));
     hisyseventReport->InsertParam(EVENT_KEY_VERSIONNAME, appInfo->versionName);
-    hisyseventReport->InsertParam(EVENT_KEY_INNER_MSG, innerMsg);
+    hisyseventReport->InsertParam(EVENT_KEY_INNER_MSG, appRecord->GetInnerMsg());
     hisyseventReport->InsertParam(EVENT_KEY_PROCESS_KILL_ID, killInfo.killId);
     hisyseventReport->InsertParam(EVENT_KEY_ADJ, killInfo.adj);
-    hisyseventReport->InsertParam(EVENT_KEY_TIMESTAMP, killInfo.timestamp);
+    hisyseventReport->InsertParam(EVENT_KEY_TIMESTAMP, timestamp);
+    hisyseventReport->InsertParam(EVENT_KEY_RSS, appRecord->GetRssValue());
+    hisyseventReport->InsertParam(EVENT_KEY_PSS, appRecord->GetPssValue());
+    hisyseventReport->InsertParam(EVENT_KEY_PROCESS_STATE, static_cast<int32_t>(appRecord->GetState()));
     hisyseventReport->InsertParam(EVENT_KEY_QUICK_PARAM_FIRST, killInfo.eventParamFirst);
     hisyseventReport->InsertParam(EVENT_KEY_QUICK_PARAM_SECOND, killInfo.eventParamSecond);
     hisyseventReport->InsertParam(EVENT_KEY_QUICK_PARAM_THIRD, killInfo.eventParamThird);
@@ -6347,16 +6477,6 @@ void AppMgrServiceInner::OnRemoteDied(const wptr<IRemoteObject> &remote, bool is
     bool isImageProcess)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "On remote died.");
-    if (isRenderProcess) {
-        OnRenderRemoteDied(remote);
-        return;
-    }
-#ifdef SUPPORT_CHILD_PROCESS
-    if (isChildProcess) {
-        OnChildProcessRemoteDied(remote);
-        return;
-    }
-#endif // SUPPORT_CHILD_PROCESS
 
     if (isImageProcess) {
         OnImageProcessRemoteDied(remote);
@@ -6670,7 +6790,7 @@ void AppMgrServiceInner::UpdateUIExtensionPreloadState(const std::shared_ptr<App
         return;
     }
     if (!AAFwk::UIExtensionWrapper::IsUIExtension(appRecord->GetExtensionType())) {
-        TAG_LOGE(AAFwkTag::APPMGR, "not uiextension. uiextension type: %{public}d", appRecord->GetExtensionType());
+        TAG_LOGE(AAFwkTag::APPMGR, "not uiExt,type:%{public}d", appRecord->GetExtensionType());
         return;
     }
 
@@ -6869,11 +6989,8 @@ void AppMgrServiceInner::RestartKeepAliveProcess(std::shared_ptr<AppRunningRecor
     auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
     BundleInfo bundleInfo;
     auto userId = GetUserIdByUid(appRecord->GetUid());
-    auto flags = static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION)
-        | static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE)
-        | static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_ABILITY)
-        | static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_EXTENSION_ABILITY);
-    if (IN_PROCESS_CALL(bundleMgrHelper->GetCloneBundleInfo(appRecord->GetBundleName(), flags,
+    if (IN_PROCESS_CALL(bundleMgrHelper->GetCloneBundleInfo(appRecord->GetBundleName(),
+        BUNDLE_INFO_FLAG_CLONE_WITH_APP_HAP_ABILITY_EXT,
         appRecord->GetAppIndex(), bundleInfo, userId)) != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "getCloneBundleInfo fail");
         return;
@@ -6918,10 +7035,9 @@ void AppMgrServiceInner::RestartResidentProcess(std::shared_ptr<AppRunningRecord
     auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
     BundleInfo bundleInfo;
     auto userId = GetUserIdByUid(appRecord->GetUid());
-    auto flags = BundleFlag::GET_BUNDLE_DEFAULT | BundleFlag::GET_BUNDLE_WITH_REQUESTED_PERMISSION;
     if (!IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfo(
         appRecord->GetBundleName(),
-        static_cast<BundleFlag>(flags),
+        BundleFlag::GET_BUNDLE_WITH_REQUESTED_PERMISSION,
         bundleInfo, userId))) {
         TAG_LOGE(AAFwkTag::APPMGR, "getBundleInfo fail");
         return;
@@ -7999,7 +8115,51 @@ int AppMgrServiceInner::GetApplicationInfoByProcessID(const int pid, AppExecFwk:
     return ERR_OK;
 }
 
-void AppMgrServiceInner::SubmitDestroyImageTask(const std::shared_ptr<AppRunningRecord> appRecord,
+std::string AppMgrServiceInner::GetImageReportAppVersionName(const std::string &bundleName, int32_t userId)
+{
+    if (remoteClientManager_ == nullptr) {
+        TAG_LOGW(AAFwkTag::APPMGR, "remote client manager null");
+        return "";
+    }
+    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGW(AAFwkTag::APPMGR, "get bundle manager helper fail");
+        return "";
+    }
+
+    BundleInfo bundleInfo;
+    int32_t flags =
+        static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) |
+        static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_EXTENSION_ABILITY) |
+        static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE) |
+        static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_REQUESTED_PERMISSION);
+    int32_t bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfoV9(bundleName, flags, bundleInfo, userId));
+    return bundleMgrResult == ERR_OK ? bundleInfo.versionName : "";
+}
+
+void AppMgrServiceInner::SendDestroyImageEvent(const std::shared_ptr<AppRunningRecord> &appRecord,
+    const std::string &bundleName, const std::string &appVersionName, int32_t reason, const std::string &exitMsg)
+{
+    if (appRecord == nullptr) {
+        TAG_LOGW(AAFwkTag::APPMGR, "appRecord null");
+        return;
+    }
+    auto imageInfo = GetImageInfo(appRecord);
+    if (imageInfo == nullptr || imageInfo->imagePid <= 0 || reason == 0) {
+        return;
+    }
+    std::string imageName = imageInfo->imageName.empty() ? bundleName : imageInfo->imageName;
+    HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::HM_KERNEL, "SNAPSHOT_REPORT",
+        HiviewDFX::HiSysEvent::EventType::STATISTIC, "BUNDLE_NAME", imageName, "UID", appRecord->GetUid(),
+        "COND", "AppExit", "EVENT", "DestroyImage", "RESULT", reason, "REASON", exitMsg, "VERSION_NAME",
+        appVersionName);
+    TAG_LOGD(AAFwkTag::APPMGR, "HiSysEventWrite for image app exit: %{public}s, reason=%{public}d, "
+        "exitMsg=%{public}s, appVersionName=%{public}s", imageName.c_str(), reason, exitMsg.c_str(),
+        appVersionName.c_str());
+}
+
+void AppMgrServiceInner::SubmitDestroyImageTask(
+    const std::shared_ptr<AppRunningRecord> appRecord,
     const int32_t reason, const std::string &exitMsg)
 {
     if (taskHandler_ == nullptr || appRecord == nullptr) {
@@ -8015,6 +8175,8 @@ void AppMgrServiceInner::SubmitDestroyImageTask(const std::shared_ptr<AppRunning
     }
     TAG_LOGI(AAFwkTag::APPMGR, "submit DestroyImageTask, %{public}s_%{public}d_%{public}d, reason=%{public}d "
             "exitMsg=%{public}s", bundleName.c_str(), userId, appIndex, reason, exitMsg.c_str());
+    SendDestroyImageEvent(appRecord, bundleName, GetImageReportAppVersionName(bundleName, userId), reason, exitMsg);
+
     auto task = [appRecord, innerService = shared_from_this()]() {
         innerService->DestroyImageForFault(appRecord);
     };
@@ -8285,7 +8447,7 @@ int AppMgrServiceInner::StartRenderProcess(const pid_t hostPid, const std::strin
                 auto scheduler = iter.second->GetScheduler();
                 if (scheduler) {
                     TAG_LOGW(AAFwkTag::APPMGR, "null render, renderPid:%{public}d", renderPid);
-                    OnRenderRemoteDied(scheduler->AsObject());
+                    OnRenderProcessExited(renderPid);
                 }
             }
         }
@@ -8344,13 +8506,10 @@ void AppMgrServiceInner::AttachRenderProcess(const pid_t pid, const sptr<IRender
     }
     CheckRenderAttachTimeout(renderRecord);
 
-    sptr<AppDeathRecipient> appDeathRecipient = new AppDeathRecipient();
-    appDeathRecipient->SetTaskHandler(taskHandler_);
-    appDeathRecipient->SetAppMgrServiceInner(shared_from_this());
-    appDeathRecipient->SetIsRenderProcess(true);
+    // Process death is now monitored by AppPidFdManager (pidfd), so the binder
+    // AppDeathRecipient is no longer registered here. SetScheduler is still
+    // needed to send NotifyBrowserFd to the render process.
     renderRecord->SetScheduler(scheduler);
-    renderRecord->SetDeathRecipient(appDeathRecipient);
-    renderRecord->RegisterDeathRecipient();
 
     TAG_LOGI(AAFwkTag::APPMGR, "attachRenderProcess_%{public}d, notify fd", pid);
     // notify fd to render process
@@ -8432,12 +8591,7 @@ int AppMgrServiceInner::StartRenderProcessImpl(const std::shared_ptr<RenderRecor
     }
 
     int32_t userId = -1;
-    auto osAccountMgr = DelayedSingleton<OsAccountManagerWrapper>::GetInstance();
-    if (osAccountMgr == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "osAccountMgr is nullptr");
-        return ERR_INVALID_VALUE;
-    }
-    int32_t errCode = osAccountMgr->GetOsAccountLocalIdFromUid(appRecord->GetUid(), userId);
+    int32_t errCode = OsAccountManagerWrapper::GetOsAccountLocalIdFromUid(appRecord->GetUid(), userId);
     if (errCode != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "GetOsAccountLocalIdFromUid failed,errcode=%{public}d", errCode);
         return errCode;
@@ -8476,6 +8630,7 @@ int AppMgrServiceInner::StartRenderProcessImpl(const std::shared_ptr<RenderRecor
     renderRecord->SetPid(pid);
     renderRecord->SetUid(renderUid);
     renderRecord->SetProcessName(startMsg.procName);
+    AppPidFdManager::GetInstance().AddWatcher(pid, PidFdType::RENDER);
     if (isGPU) {
         renderRecord->SetProcessType(ProcessType::GPU);
         appRecord->SetGPUPid(pid);
@@ -8596,14 +8751,30 @@ void AppMgrServiceInner::RemoveRenderRecordNoAttach(const std::shared_ptr<AppRun
     }
 }
 
-void AppMgrServiceInner::OnRenderRemoteDied(const wptr<IRemoteObject> &remote)
+void AppMgrServiceInner::RemoveRenderProcessIsolationUid(int32_t uid)
 {
-    TAG_LOGW(AAFwkTag::APPMGR, "on render remote died");
-    if (appRunningManager_) {
-        auto renderRecord = appRunningManager_->OnRemoteRenderDied(remote);
-        if (renderRecord) {
-            OnRenderProcessDied(renderRecord);
-        }
+    std::lock_guard<ffrt::mutex> lock(renderProcessIsolationUidSetLock_);
+    TAG_LOGD(AAFwkTag::APPMGR, "erase %{public}d", uid);
+    renderProcessIsolationUidSet_.erase(uid);
+}
+
+void AppMgrServiceInner::OnRenderProcessDied(std::shared_ptr<RenderRecord> renderProcessRecord)
+{
+    if (renderProcessRecord) {
+        RemoveRenderProcessIsolationUid(renderProcessRecord->GetUid());
+        DelayedSingleton<AppStateObserverManager>::GetInstance()->OnRenderProcessDied(renderProcessRecord);
+    }
+}
+
+void AppMgrServiceInner::OnRenderProcessExited(pid_t pid)
+{
+    if (!appRunningManager_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ is null");
+        return;
+    }
+    auto renderRecord = appRunningManager_->OnRenderProcessExitedByPid(pid);
+    if (renderRecord) {
+        OnRenderProcessDied(renderRecord);
     }
 }
 
@@ -9078,8 +9249,10 @@ void AppMgrServiceInner::ParseInfoToAppfreeze(const FaultData &faultData, int32_
     const std::string &bundleName, const std::string &processName, const bool isOccurException)
 {
     if (faultData.faultType == FaultDataType::APP_FREEZE) {
+        bool isFrozen = AbilityRuntime::FreezeUtil::GetInstance().IsFrozen(pid);
         AppfreezeManager::AppInfo info = {
             .isOccurException = isOccurException,
+            .isFrozen = isFrozen,
             .pid = pid,
             .uid = uid,
             .bundleName = bundleName,
@@ -9136,23 +9309,39 @@ int AppMgrServiceInner::GetExceptionTimerId(const FaultData &faultData, const st
     return exceptionId;
 }
 
+bool AppMgrServiceInner::UpdateForeground(const std::shared_ptr<AppRunningRecord> &appRecord,
+    const std::string &eventName)
+{
+    bool isStateForeground = appRecord->GetState() == ApplicationState::APP_STATE_FOREGROUND ||
+        appRecord->GetState() == ApplicationState::APP_STATE_FOCUS;
+    if (eventName == AppFreezeType::THREAD_BLOCK_3S || eventName == AppFreezeType::THREAD_BLOCK_6S ||
+        eventName == AppFreezeType::BUSSINESS_THREAD_BLOCK_3S ||
+        eventName == AppFreezeType::BUSSINESS_THREAD_BLOCK_6S) {
+        return isStateForeground;
+    }
+    bool isTransitioningToForeground = appRecord->GetApplicationPendingState() ==
+        ApplicationPendingState::FOREGROUNDING;
+    return (isStateForeground || isTransitioningToForeground);
+}
+
 int32_t AppMgrServiceInner::SubmitDfxFaultTask(const FaultData &faultData, const std::string &bundleName,
     const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid)
 {
+    if (AppExecFwk::AppfreezeManager::GetInstance()->CheckPreloadUIExtension(faultData.errorObject.message,
+        bundleName, pid, faultData.errorObject.name)) {
+        return ERR_OK;
+    }
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     std::string processName = appRecord->GetProcessName();
     int exceptionId = GetExceptionTimerId(faultData, bundleName, appRecord, pid, callerUid);
-    FaultData& newFaultDta = const_cast<FaultData&>(faultData);
-    newFaultDta.isInForeground = appRecord->GetState() == ApplicationState::APP_STATE_FOREGROUND ||
-        appRecord->GetState() == ApplicationState::APP_STATE_FOCUS;
-    auto notifyAppTask = [appRecord, pid, callerUid, bundleName, processName, newFaultDta, exceptionId,
+    auto notifyAppTask = [appRecord, pid, callerUid, bundleName, processName, faultData, exceptionId,
         innerServiceWeak = weak_from_this()]() {
 #ifdef APP_MGR_SERVICE_HICOLLIE_ENABLE
         HiviewDFX::XCollie::GetInstance().CancelTimer(exceptionId);
 #endif
         auto innerService = innerServiceWeak.lock();
         CHECK_POINTER_AND_RETURN_LOG(innerService, "get appMgrServiceInner fail");
-        innerService->ParseInfoToAppfreeze(newFaultDta, pid, callerUid, bundleName, processName);
+        innerService->ParseInfoToAppfreeze(faultData, pid, callerUid, bundleName, processName);
     };
 
     if (!dfxTaskHandler_) {
@@ -9162,7 +9351,9 @@ int32_t AppMgrServiceInner::SubmitDfxFaultTask(const FaultData &faultData, const
     int64_t startTime = AbilityRuntime::TimeUtil::CurrentTimeMillis();
     TAG_LOGI(AAFwkTag::APPDFR, "init cpuInfo, eventName:%{public}s, bundleName:%{public}s, "
         "pid:%{public}d", faultData.errorObject.name.c_str(), bundleName.c_str(), pid);
+    bool isFrozen = AbilityRuntime::FreezeUtil::GetInstance().IsFrozen(pid);
     AppfreezeManager::AppInfo info = {
+        .isFrozen = isFrozen,
         .pid = pid,
         .uid = callerUid,
         .bundleName = bundleName,
@@ -9211,12 +9402,17 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
         return ERR_OK;
     }
 
+    FaultData& nonConstFaultData = const_cast<FaultData&>(faultData);
+    nonConstFaultData.isInForeground = UpdateForeground(appRecord, eventName);
+    std::string processName = appRecord->GetProcessName();
+    bool isExit = AppExecFwk::AppfreezeManager::GetInstance()->CheckProcessExit(processName,
+        eventName, nonConstFaultData.isInForeground);
     if (faultData.faultType == FaultDataType::APP_FREEZE) {
         if (CheckAppFault(appRecord, faultData)) {
             return ERR_OK;
         }
 
-        if (faultData.waitSaveState) {
+        if (isExit && faultData.waitSaveState) {
             AppRecoveryNotifyApp(pid, bundleName, FaultDataType::APP_FREEZE, "recoveryTimeout", recordId);
         }
     }
@@ -9230,11 +9426,10 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
         std::string appRunningUniqueId;
         int32_t ret = appRunningManager_->GetAppRunningUniqueIdByPid(pid, appRunningUniqueId);
         TAG_LOGI(AAFwkTag::APPDFR, "ret=%{public}d, appRunningUniqueId=%{public}s", ret, appRunningUniqueId.c_str());
-        FaultData& nonConstFaultData = const_cast<FaultData&>(faultData);
         nonConstFaultData.appRunningUniqueId = appRunningUniqueId;
     }
 
-    if (SubmitDfxFaultTask(faultData, bundleName, appRecord, pid) != ERR_OK) {
+    if (SubmitDfxFaultTask(nonConstFaultData, bundleName, appRecord, pid) != ERR_OK) {
         return ERR_INVALID_VALUE;
     }
 
@@ -9249,7 +9444,12 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
     ModalSystemAppFreezeUIExtension::GetInstance().ProcessAppFreeze(appRecord->GetFocusFlag(), faultData,
         std::to_string(pid), bundleName, killFaultApp);
 #else
-    KillFaultApp(pid, bundleName, faultData, false, recordId);
+    if (isExit) {
+        KillFaultApp(pid, bundleName, faultData, false, recordId);
+    } else {
+        TAG_LOGW(AAFwkTag::APPMGR, "Process does not exit, pid:%{public}d, isExit:%{public}d, "
+            "eventName:%{public}s, processName:%{public}s", pid, isExit, eventName.c_str(), processName.c_str());
+    }
 #endif
 
     return ERR_OK;
@@ -9327,7 +9527,9 @@ void AppMgrServiceInner::TimeoutNotifyApp(int32_t pid, int32_t uid,
     KillFaultApp(pid, bundleName, faultData, isNeedExit, recordId);
 #endif
     if (faultData.faultType == FaultDataType::APP_FREEZE) {
+        bool isFrozen = AbilityRuntime::FreezeUtil::GetInstance().IsFrozen(pid);    
         AppfreezeManager::AppInfo info = {
+            .isFrozen = isFrozen,
             .pid = pid,
             .uid = uid,
             .bundleName = bundleName,
@@ -9347,23 +9549,23 @@ int32_t AppMgrServiceInner::TransformedNotifyAppFault(const AppFaultDataBySA &fa
     }
 
     FaultData transformedFaultData = ConvertDataTypes(faultData);
-    transformedFaultData.isInForeground = record->GetState() == ApplicationState::APP_STATE_FOREGROUND ||
-        record->GetState() == ApplicationState::APP_STATE_FOCUS;
+    std::string eventName = transformedFaultData.errorObject.name;
+    transformedFaultData.isInForeground = UpdateForeground(record, eventName);
     int32_t uid = record->GetUid();
     int32_t recordId = record->GetRecordId();
     std::string bundleName = record->GetBundleName();
     std::string processName = record->GetProcessName();
-    if (AppExecFwk::AppfreezeManager::GetInstance()->IsSkipDetect(pid, uid, bundleName,
-        faultData.errorObject.name) || AppExecFwk::AppfreezeManager::GetInstance()->IsFreezeExcludedPid(pid)) {
+    if (AppExecFwk::AppfreezeManager::GetInstance()->IsSkipDetect(pid, uid, bundleName, eventName) ||
+        AppExecFwk::AppfreezeManager::GetInstance()->IsFreezeExcludedPid(pid)) {
         return ERR_OK;
     }
-    if (faultData.errorObject.name == "appRecovery") {
+    if (eventName == "appRecovery") {
         AppRecoveryNotifyApp(pid, bundleName, faultData.faultType, "appRecovery", recordId);
         return ERR_OK;
     }
 
     if (transformedFaultData.timeoutMarkers.empty()) {
-        transformedFaultData.timeoutMarkers = "notifyFault:" + transformedFaultData.errorObject.name +
+        transformedFaultData.timeoutMarkers = "notifyFault:" + eventName +
             std::to_string(pid) + "-" + std::to_string(SystemTimeMillisecond());
     }
     const int64_t timeout = 3000; // ipc timeout 3000ms
@@ -9371,10 +9573,11 @@ int32_t AppMgrServiceInner::TransformedNotifyAppFault(const AppFaultDataBySA &fa
         if (!AppExecFwk::AppfreezeManager::GetInstance()->IsHandleAppfreeze(bundleName) || record->IsDebugging()) {
             return ERR_OK;
         }
-        auto timeoutNotifyApp = [this, pid, uid, bundleName, processName, transformedFaultData, recordId]() {
+        auto timeoutNotifyApp = [this, pid, uid, bundleName, processName, transformedFaultData, recordId, eventName]() {
             std::string key = std::to_string(pid) + "_" + std::to_string(uid) + "_" + bundleName;
-            if (AppExecFwk::AppfreezeManager::GetInstance()->CheckAppfreezeHappend(key,
-                transformedFaultData.errorObject.name)) {
+            std::string message = transformedFaultData.errorObject.message;
+            if (AppExecFwk::AppfreezeManager::GetInstance()->CheckPreloadUIExtension(message, bundleName, pid,
+                eventName) || AppExecFwk::AppfreezeManager::GetInstance()->CheckAppfreezeHappend(key, eventName)) {
                 return;
             }
             this->TimeoutNotifyApp(pid, uid, bundleName, processName, transformedFaultData, recordId);
@@ -9384,7 +9587,7 @@ int32_t AppMgrServiceInner::TransformedNotifyAppFault(const AppFaultDataBySA &fa
     record->NotifyAppFault(transformedFaultData);
     TAG_LOGW(AAFwkTag::APPMGR, "FaultDataBySA is: name: %{public}s, faultType: %{public}s, uid: %{public}d,"
         "pid: %{public}d, bundleName: %{public}s, eventId: %{public}d, foreground: %{public}d",
-        faultData.errorObject.name.c_str(), FaultTypeToString(faultData.faultType).c_str(), uid, pid,
+        eventName.c_str(), FaultTypeToString(faultData.faultType).c_str(), uid, pid,
         bundleName.c_str(), faultData.eventId, transformedFaultData.isInForeground);
     return ERR_OK;
 }
@@ -9464,6 +9667,9 @@ FaultData AppMgrServiceInner::ConvertDataTypes(const AppFaultDataBySA &faultData
     newfaultData.isEnableMainThreadSample = faultData.isEnableMainThreadSample;
     newfaultData.reportLifecycleToFreeze = faultData.reportLifecycleToFreeze;
     newfaultData.applicationHeapInfo = faultData.applicationHeapInfo;
+    newfaultData.applicationGCInfo = faultData.applicationGCInfo;
+    newfaultData.applicationIOInfo = faultData.applicationIOInfo;
+    newfaultData.isBlockInGc = faultData.isBlockInGc;
     newfaultData.processLifeTime = faultData.processLifeTime;
     newfaultData.leakObject.leakType = faultData.leakObject.leakType;
     newfaultData.leakObject.leakSize = faultData.leakObject.leakSize;
@@ -9474,6 +9680,7 @@ FaultData AppMgrServiceInner::ConvertDataTypes(const AppFaultDataBySA &faultData
     newfaultData.leakObject.detailInfo.ashmemSize = faultData.leakObject.detailInfo.ashmemSize;
     newfaultData.leakObject.detailInfo.otherSize = faultData.leakObject.detailInfo.otherSize;
     newfaultData.atLeakType = faultData.atLeakType;
+    newfaultData.gpuHookSize = faultData.gpuHookSize;
     if (appRunningManager_) {
         std::string appRunningUniqueId;
         int32_t ret = appRunningManager_->GetAppRunningUniqueIdByPid(faultData.pid, appRunningUniqueId);
@@ -9563,10 +9770,7 @@ int32_t AppMgrServiceInner::IsAppRunning(const std::string &bundleName, int32_t 
     int32_t bundleMgrResult;
     if (appCloneIndex == 0) {
         bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfoV9(bundleName,
-            static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) |
-            static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_EXTENSION_ABILITY) |
-            static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE) |
-            static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_REQUESTED_PERMISSION), bundleInfo, userId));
+            BUNDLE_INFO_FLAG_WITH_APP_EXT_HAP_PERM, bundleInfo, userId));
     } else {
         bundleMgrResult = IN_PROCESS_CALL(bundleMgrHelper->GetCloneBundleInfo(bundleName,
             static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
@@ -9770,6 +9974,60 @@ int32_t AppMgrServiceInner::GetBundleNameByPid(const int32_t pid, std::string &b
     bundleName = callerRecord->GetBundleName();
     uid = callerRecord->GetUid();
     return ERR_OK;
+}
+
+bool AppMgrServiceInner::IsMainProcessDebug(int32_t uid)
+{
+    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+        TAG_LOGW(AAFwkTag::APPMGR, "not foundation call");
+        return false;
+    }
+    if (appRunningManager_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
+        return false;
+    }
+    auto mainAppRecord = appRunningManager_->FindMainProcessAppRunningRecord(uid);
+    if (mainAppRecord && mainAppRecord->IsDebug()) {
+        return true;
+    }
+    return false;
+}
+
+bool AppMgrServiceInner::IsCorrespondingProcessAttachDebug(const AbilityInfo &abilityInfo)
+{
+    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+        TAG_LOGW(AAFwkTag::APPMGR, "not foundation call");
+        return false;
+    }
+    bool isAgentUI = AAFwk::UIExtensionWrapper::IsAgentUIExtension(abilityInfo.extensionAbilityType);
+    if (!isAgentUI && abilityInfo.extensionAbilityType != AppExecFwk::ExtensionAbilityType::AGENT) {
+        TAG_LOGD(AAFwkTag::APPMGR, "Not agentUI or agent extension");
+        return false;
+    }
+    if (!CheckRemoteClient() || !appRunningManager_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "nullptr");
+        return false;
+    }
+    auto appInfo = std::make_shared<ApplicationInfo>(abilityInfo.applicationInfo);
+    int32_t appIndex = abilityInfo.appIndex;
+    BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    if (!GetBundleAndHapInfo(abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "GetBundleAndHapInfo failed");
+        return false;
+    }
+    auto abilityInfoPtr = std::make_shared<AbilityInfo>(abilityInfo);
+    std::string processName = appInfo->bundleName + ":" + AGENT_EXTENSION_TYPE;;
+    std::string customProcessFlag = "";
+    TAG_LOGD(AAFwkTag::APPMGR, "processName: %{public}s, customProcessFlag: %{public}s",
+        processName.c_str(), customProcessFlag.c_str());
+    auto appRecord = appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name,
+        processName, appInfo->uid, bundleInfo, "", nullptr, "", customProcessFlag);
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRecord nullptr");
+        return false;
+    }
+    return appRecord->IsAttachDebug();
 }
 
 void AppMgrServiceInner::KillRenderProcess(const std::shared_ptr<AppRunningRecord> &appRecord) {
@@ -10618,12 +10876,7 @@ int32_t AppMgrServiceInner::StartChildProcessImpl(const std::shared_ptr<ChildPro
     int32_t uid = Constants::INVALID_UID;
     if (options.isolationMode && options.isolationUid) {
         int32_t userId = -1;
-        auto osAccountMgr = DelayedSingleton<OsAccountManagerWrapper>::GetInstance();
-        if (osAccountMgr == nullptr) {
-            TAG_LOGE(AAFwkTag::APPMGR, "osAccountMgr is nullptr");
-            return ERR_INVALID_VALUE;
-        }
-        int32_t errCode = osAccountMgr->GetOsAccountLocalIdFromUid(appRecord->GetUid(), userId);
+        int32_t errCode = OsAccountManagerWrapper::GetOsAccountLocalIdFromUid(appRecord->GetUid(), userId);
         if (errCode != ERR_OK) {
             TAG_LOGE(AAFwkTag::APPMGR, "GetOsAccountLocalIdFromUid failed,errcode=%{public}d", errCode);
             return errCode;
@@ -10659,6 +10912,7 @@ int32_t AppMgrServiceInner::StartChildProcessImpl(const std::shared_ptr<ChildPro
         childProcessRecord->SetUid(startMsg.uid);
         appRecord->AddChildProcessRecord(pid, childProcessRecord);
     }
+    AppPidFdManager::GetInstance().AddWatcher(pid, PidFdType::CHILD);
     TAG_LOGI(AAFwkTag::APPMGR, "start childProcess success,pid:%{public}d,hostPid:%{public}d,uid:%{public}d,"
         "processName:%{public}s", pid, childProcessRecord->GetHostPid(), startMsg.uid,
         childProcessRecord->GetProcessName().c_str());
@@ -10741,23 +10995,15 @@ int32_t AppMgrServiceInner::GetChildProcessInfoEx(const std::shared_ptr<ChildPro
         TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
         return ERR_NO_INIT;
     }
-    auto osAccountMgr = DelayedSingleton<OsAccountManagerWrapper>::GetInstance();
-    if (osAccountMgr == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "osAccountMgr is nullptr");
-        return ERR_INVALID_VALUE;
-    }
     int32_t userId = -1;
-    errCode = osAccountMgr->GetOsAccountLocalIdFromUid(appRecord->GetUid(), userId);
+    errCode = OsAccountManagerWrapper::GetOsAccountLocalIdFromUid(appRecord->GetUid(), userId);
     if (errCode != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "GetOsAccountLocalIdFromUid failed,errcode=%{public}d", errCode);
         return errCode;
     }
-    auto bundleFlag = static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE) |
-        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION) |
-        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_METADATA);
     BundleInfo bundleInfo;
     if (IN_PROCESS_CALL(bundleMgrHelper->GetCloneBundleInfo(appRecord->GetBundleName(),
-        bundleFlag, appRecord->GetAppIndex(), bundleInfo, userId) != ERR_OK)) {
+        BUNDLE_INFO_FLAG_WITH_HAP_APP_METADATA, appRecord->GetAppIndex(), bundleInfo, userId) != ERR_OK)) {
         TAG_LOGE(AAFwkTag::APPMGR, "GetCloneBundleInfo fail");
         return ERR_INVALID_VALUE;
     }
@@ -10798,13 +11044,8 @@ int32_t AppMgrServiceInner::GetChildProcessInfo(const std::shared_ptr<ChildProce
         TAG_LOGE(AAFwkTag::APPMGR, "no appRecord");
         return ERR_NAME_NOT_FOUND;
     }
-    auto osAccountMgr = DelayedSingleton<OsAccountManagerWrapper>::GetInstance();
-    if (osAccountMgr == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "osAccountMgr is nullptr");
-        return ERR_INVALID_VALUE;
-    }
     int32_t userId = -1;
-    int errCode = osAccountMgr->GetOsAccountLocalIdFromUid(appRecord->GetUid(), userId);
+    int errCode = OsAccountManagerWrapper::GetOsAccountLocalIdFromUid(appRecord->GetUid(), userId);
     if (errCode != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "GetOsAccountLocalIdFromUid failed,errcode=%{public}d", errCode);
         return errCode;
@@ -10850,13 +11091,10 @@ void AppMgrServiceInner::AttachChildProcess(const pid_t pid, const sptr<IChildSc
     }
     CheckChildProcessAttachTimeout(childRecord);
 
-    sptr<AppDeathRecipient> appDeathRecipient = new AppDeathRecipient();
-    appDeathRecipient->SetTaskHandler(taskHandler_);
-    appDeathRecipient->SetAppMgrServiceInner(shared_from_this());
-    appDeathRecipient->SetIsChildProcess(true);
+    // Process death is now monitored by AppPidFdManager (pidfd), so the binder
+    // AppDeathRecipient is no longer registered here. SetScheduler is still
+    // needed to send commands (ScheduleLoadChild / ScheduleRunNativeProc).
     childRecord->SetScheduler(childScheduler);
-    childRecord->SetDeathRecipient(appDeathRecipient);
-    childRecord->RegisterDeathRecipient();
 
     if (childRecord->GetChildProcessType() != CHILD_PROCESS_TYPE_NATIVE) {
         childScheduler->ScheduleLoadChild();
@@ -10889,21 +11127,6 @@ void AppMgrServiceInner::CheckChildProcessAttachTimeout(std::shared_ptr<ChildPro
         ProcessStartFailedReason::ATTACH_TIMEOUT, elapsedMs);
 }
 
-void AppMgrServiceInner::RemoveRenderProcessIsolationUid(int32_t uid)
-{
-    std::lock_guard<ffrt::mutex> lock(renderProcessIsolationUidSetLock_);
-    TAG_LOGD(AAFwkTag::APPMGR, "erase %{public}d", uid);
-    renderProcessIsolationUidSet_.erase(uid);
-}
-
-void AppMgrServiceInner::OnRenderProcessDied(std::shared_ptr<RenderRecord> renderProcessRecord)
-{
-    if (renderProcessRecord) {
-        RemoveRenderProcessIsolationUid(renderProcessRecord->GetUid());
-        DelayedSingleton<AppStateObserverManager>::GetInstance()->OnRenderProcessDied(renderProcessRecord);
-    }
-}
-
 void AppMgrServiceInner::RemoveChildProcessIsolationUid(int32_t uid)
 {
     std::lock_guard<ffrt::mutex> lock(childProcessIsolationUidSetLock_);
@@ -10919,12 +11142,14 @@ void AppMgrServiceInner::OnChildProcessDied(std::shared_ptr<ChildProcessRecord> 
     }
 }
 
-void AppMgrServiceInner::OnChildProcessRemoteDied(const wptr<IRemoteObject> &remote)
+void AppMgrServiceInner::OnChildProcessExited(pid_t pid)
 {
-    if (appRunningManager_) {
-        auto childRecord = appRunningManager_->OnChildProcessRemoteDied(remote);
-        OnChildProcessDied(childRecord);
+    if (!appRunningManager_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ is null");
+        return;
     }
+    auto childRecord = appRunningManager_->OnChildProcessExitedByPid(pid);
+    OnChildProcessDied(childRecord);
 }
 
 void AppMgrServiceInner::KillChildProcess(const std::shared_ptr<AppRunningRecord> &appRecord) {
@@ -10968,7 +11193,6 @@ void AppMgrServiceInner::ExitChildProcessSafelyByChildPid(const pid_t pid)
         return;
     }
     childRecord->ScheduleExitProcessSafely();
-    childRecord->RemoveDeathRecipient();
     int64_t startTime = SystemTimeMillisecond();
     std::list<pid_t> pids;
     pids.push_back(pid);
@@ -10979,7 +11203,6 @@ void AppMgrServiceInner::ExitChildProcessSafelyByChildPid(const pid_t pid)
         OnChildProcessDied(childRecord);
         return;
     }
-    childRecord->RegisterDeathRecipient();
     TAG_LOGI(AAFwkTag::APPMGR, "kill child process, childPid:%{public}d, childUid:%{public}d",
         pid, childRecord->GetUid());
     int32_t result = KillProcessByPid(pid, "ExitChildProcessSafelyByChildPid");
@@ -11695,6 +11918,26 @@ int32_t AppMgrServiceInner::IsProcessCacheSupported(int32_t pid, bool &isSupport
     return ERR_OK;
 }
 
+int32_t AppMgrServiceInner::IsChildProcessSupported(bool isNative, bool &isSupported)
+{
+    pid_t pid = IPCSkeleton::GetCallingPid();
+    TAG_LOGD(AAFwkTag::APPMGR, "IsChildProcessSupported called, pid:%{public}d, isNative:%{public}d", pid, isNative);
+    auto appRecord = GetAppRunningRecordByPid(pid);
+    if (!appRecord) {
+        TAG_LOGE(AAFwkTag::APPMGR, "no such appRecord, pid:%{public}d", pid);
+        return AAFwk::ERR_NO_APP_RECORD;
+    }
+    bool isMultiProcessModel = AAFwk::AppUtils::GetInstance().IsMultiProcessModel();
+    if (isNative) {
+        isSupported = isMultiProcessModel ||
+            AAFwk::AppUtils::GetInstance().IsAllowNativeChildProcess(appRecord->GetAppIdentifier()) ||
+            AllowChildProcessInMultiProcessFeatureApp(appRecord);
+    } else {
+        isSupported = isMultiProcessModel || AllowChildProcessInMultiProcessFeatureApp(appRecord);
+    }
+    return ERR_OK;
+}
+
 int32_t AppMgrServiceInner::SetProcessCacheEnable(int32_t pid, bool enable)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "set enable process cache, pid:%{public}d, enable:%{public}d", pid, enable);
@@ -12226,14 +12469,13 @@ int32_t AppMgrServiceInner::GetSupportedProcessCachePids(const std::string &bund
     std::vector<int32_t> &pidList)
 {
     auto cachePrcoMgr = DelayedSingleton<CacheProcessManager>::GetInstance();
-    auto osAccountMgr = DelayedSingleton<OsAccountManagerWrapper>::GetInstance();
-    if (cachePrcoMgr == nullptr || osAccountMgr == nullptr || appRunningManager_ == nullptr) {
+    if (cachePrcoMgr == nullptr || appRunningManager_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "inner manager null");
         return AAFwk::INNER_ERR;
     }
     pidList.clear();
     int32_t callderUserId = -1;
-    int32_t getOsAccountRet = osAccountMgr->GetOsAccountLocalIdFromUid(IPCSkeleton::GetCallingUid(), callderUserId);
+    int32_t getOsAccountRet = OsAccountManagerWrapper::GetOsAccountLocalIdFromUid(IPCSkeleton::GetCallingUid(), callderUserId);
     if (getOsAccountRet != 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "get caller local id fail. ret: %{public}d", getOsAccountRet);
         return AAFwk::INNER_ERR;
@@ -12245,7 +12487,7 @@ int32_t AppMgrServiceInner::GetSupportedProcessCachePids(const std::string &bund
             continue;
         }
         int32_t procUserId = -1;
-        int32_t procGetOsAccountRet = osAccountMgr->GetOsAccountLocalIdFromUid(appRecord->GetUid(), procUserId);
+        int32_t procGetOsAccountRet = OsAccountManagerWrapper::GetOsAccountLocalIdFromUid(appRecord->GetUid(), procUserId);
         if (appRecord->GetBundleName() == bundleName && procGetOsAccountRet == 0 &&
             procUserId == callderUserId && cachePrcoMgr->IsAppSupportProcessCache(appRecord) &&
             appRecord->GetPriorityObject() != nullptr) {

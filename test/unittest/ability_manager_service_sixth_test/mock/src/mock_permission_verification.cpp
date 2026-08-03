@@ -187,7 +187,8 @@ bool PermissionVerification::JudgeStartInvisibleAbility(const uint32_t accessTok
     return !!(MyFlag::flag_);
 }
 
-bool PermissionVerification::JudgeStartAbilityFromBackground(const bool isBackgroundCall) const
+bool PermissionVerification::JudgeStartAbilityFromBackground(const bool isBackgroundCall,
+    const uint32_t specifyTokenId) const
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s enter", __func__);
     return !!(MyFlag::flag_);
@@ -311,6 +312,11 @@ int PermissionVerification::CheckCallModularObjectExtensionPermission(
     const VerificationInfo &verificationInfo) const
 {
     return ERR_OK;
+}
+
+bool PermissionVerification::VerifySupportCrossAppEmbedForOaPermission() const
+{
+    return true;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

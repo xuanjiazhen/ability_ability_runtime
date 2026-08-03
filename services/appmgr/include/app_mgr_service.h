@@ -40,7 +40,9 @@
 #include "system_ability.h"
 #include "task_handler_wrap.h"
 #include "app_jsheap_mem_info.h"
+#include "app_jshandle_map_info.h"
 #include "app_cjheap_mem_info.h"
+#include "mem_dump_callback_interface.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -306,6 +308,15 @@ public:
     virtual int32_t DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info) override;
 
     /**
+     * DumpJsHandleMap, call DumpJsHandleMap() through proxy project.
+     * dump the application's jshandle map info.
+     *
+     * @param info, pid tid
+     * @return ERR_OK ,return back success, others fail.
+     */
+    virtual int32_t DumpJsHandleMap(OHOS::AppExecFwk::JsHandleMapInfo &info) override;
+
+    /**
      * DumpCjHeapMemory, call DumpCJHeapMemory() through proxy project.
      * triggerGC and dump the application's cjheap memory info.
      *
@@ -318,10 +329,22 @@ public:
      * triggerGC and dump application's memory info.
      *
      * @param info The information to be dumped
+     * @param callback The callback to receive dump result
+     * @return ERR_OK ,return back success, others fail.
+     */
+    virtual int32_t DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback) override;
+
+    /**
+     * ReportDumpMemResult, called by app process to report dump result.
+     * AppMgrService will forward the result to hidumper via callback.
+     *
+     * @param callback The callback received from app process
+     * @param resultCode The result code of dump operation
      * @param dumpResult The dump result string
      * @return ERR_OK ,return back success, others fail.
      */
-    virtual int32_t DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult) override;
+    virtual int32_t ReportDumpMemResult(sptr<IMemDumpCallback> callback,
+        const std::string &dumpResult) override;
 
     // the function about service running info
     /**
@@ -571,6 +594,20 @@ public:
      * @return Returns the shared bundle running result. The result is true if running, false otherwise.
      */
     virtual bool IsSharedBundleRunning(const std::string &bundleName, uint32_t versionCode) override;
+
+    /**
+     * @brief Query whether the main process of the app (identified by uid) is in debug mode.
+     * @param uid The application uid.
+     * @return Returns true if the main process is in debug mode, false otherwise.
+     */
+    virtual bool IsMainProcessDebug(int32_t uid) override;
+
+    /**
+     * @brief Query whether the corresponding process of the app (identified by abilityInfo) is in attach debug mode.
+     * @param abilityInfo The ability info used to locate the corresponding process.
+     * @return Returns true if the corresponding process is in attach debug mode, false otherwise.
+     */
+    virtual bool IsCorrespondingProcessAttachDebug(const AbilityInfo &abilityInfo) override;
 
     /**
      * start native process for debugger.
@@ -834,6 +871,8 @@ public:
     int32_t SetSupportedProcessCache(int32_t pid, bool isSupport) override;
 
     int32_t IsProcessCacheSupported(int32_t pid, bool &isSupported) override;
+
+    int32_t IsChildProcessSupported(bool isNative, bool &isSupported) override;
 
     int32_t SetProcessCacheEnable(int32_t pid, bool enable) override;
 

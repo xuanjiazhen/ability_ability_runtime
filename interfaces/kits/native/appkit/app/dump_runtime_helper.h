@@ -17,8 +17,10 @@
 #define OHOS_ABILITY_RUNTIME_DUMP_RUNTIME_HELPER_H
 
 #include "app_jsheap_mem_info.h"
+#include "app_jshandle_map_info.h"
 #include "app_cjheap_mem_info.h"
 #include "app_mem_dump_info.h"
+#include "mem_dump_callback_interface.h"
 #include "napi_common_want.h"
 #include "ohos_application.h"
 #include "runtime.h"
@@ -27,7 +29,7 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-using GetMemLeakStringFunc = bool (*)(int, char **, size_t);
+using GetMemLeakStringFunc = bool (*)(int, char **, size_t, int *);
 
 class DumpRuntimeHelper : public std::enable_shared_from_this<DumpRuntimeHelper> {
 public:
@@ -37,8 +39,9 @@ public:
     ~DumpRuntimeHelper() = default;
     void SetAppFreezeFilterCallback();
     void DumpJsHeap(const OHOS::AppExecFwk::JsHeapDumpInfo &info);
+    void DumpJsHandleMap(const OHOS::AppExecFwk::JsHandleMapInfo &info);
     void DumpCjHeap(const OHOS::AppExecFwk::CjHeapDumpInfo &info);
-    void DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult);
+    void DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback);
 private:
     std::shared_ptr<OHOSApplication> application_ = nullptr;
     std::shared_ptr<ApplicationInfo> appInfo_ = nullptr;
@@ -61,15 +64,13 @@ private:
     static bool CheckAppListenedEvents(const std::string &path);
     static bool SetDirXattr(const std::string &path, const std::string &name, const std::string &value);
     static bool GetDirXattr(const std::string &path, const std::string &name, std::string &value);
-    static bool IsFileExists(const std::string &file);
-    static bool CreateDir(const std::string &path);
-    static void CreateDirDelay(const std::string &path);
+    static void WriteRunningIdDelay();
     static void WriteRunningId();
     static bool CheckOomdumpSwitch();
     static bool Check2CQuota();
     static bool Check2DQuota(bool needDecreaseQuota);
     static bool SafeStoll(const std::string &str, long long &value);
-    static GetMemLeakStringFunc LoadMemLeakFunc();
+    static GetMemLeakStringFunc LoadMemLeakFunc(void **handle);
     static bool GetDumpResult(std::string &dumpResult);
     static bool GetSnapshot(int fd);
     static int GetCompressQuota (const std::vector<int64_t> &quotas);

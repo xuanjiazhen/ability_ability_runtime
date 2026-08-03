@@ -151,9 +151,10 @@ Want SystemDialogScheduler::GetJumpInterceptorDialogWant(Want &targetWant)
 
     nlohmann::json jsonObj;
     jsonObj[IS_DEFAULT_SELECTOR] = AppUtils::GetInstance().IsSelectorDialogDefaultPossion();
-    jsonObj["bundleName"] = targetWant.GetElement().GetBundleName();
-    jsonObj["abilityName"] = targetWant.GetElement().GetAbilityName();
-    jsonObj["moduleName"] = targetWant.GetElement().GetModuleName();
+    auto wantEle = targetWant.GetElement();
+    jsonObj["bundleName"] = wantEle.GetBundleName();
+    jsonObj["abilityName"] = wantEle.GetAbilityName();
+    jsonObj["moduleName"] = wantEle.GetModuleNameRef();
     const std::string params = jsonObj.dump();
 
     targetWant.SetElementName(BUNDLE_NAME_DIALOG, ABILITY_NAME_JUMP_INTERCEPTOR_DIALOG);
@@ -357,7 +358,7 @@ int SystemDialogScheduler::GetPcSelectorDialogWant(const std::vector<DialogAppIn
     DialogPosition position;
     GetDialogPositionAndSize(DialogType::DIALOG_SELECTOR, position, static_cast<int>(dialogAppInfos.size()));
 
-    std::string params = GetPcSelectorParams(dialogAppInfos, type, userId, requestWant.GetAction());
+    std::string params = GetPcSelectorParams(dialogAppInfos, type, userId, requestWant.GetActionRef());
     requestWant.SetElementName(BUNDLE_NAME_DIALOG, ABILITY_NAME_SELECTOR_DIALOG);
     requestWant.SetParam(DIALOG_POSITION, GetDialogPositionParams(position));
     requestWant.SetParam(DIALOG_PARAMS, params);
@@ -421,7 +422,8 @@ int SystemDialogScheduler::GetSelectorDialogWantCommon(const std::vector<DialogA
             requestWant.SetParam(CALLER_TOKEN, callerToken);
         }
     }
-    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && isCallerStageBasedModel) {
+    if (ApplicationUtil::IsEnableAppGallerySelector() && Rosen::SceneBoardJudgement::IsSceneBoardEnabled() &&
+        isCallerStageBasedModel) {
         auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
         if (bundleMgrHelper == nullptr) {
             TAG_LOGE(AAFwkTag::DIALOG, "bundleMgrHelper null");

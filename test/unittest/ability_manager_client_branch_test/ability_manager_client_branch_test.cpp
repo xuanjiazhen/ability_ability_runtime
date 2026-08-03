@@ -33,6 +33,7 @@
 #include "mission_snapshot.h"
 #include "snapshot.h"
 #include "start_params_by_SCB.h"
+#include "sandbox_clone_params.h"
 
 using namespace testing::ext;
 using namespace testing;
@@ -2070,6 +2071,55 @@ HWTEST_F(AbilityManagerClientBranchTest, ExecuteIntent_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AbilityManagerClient_ExecuteIntentForDistributed_0100
+ * @tc.desc: ExecuteIntentForDistributed
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, ExecuteIntentForDistributed_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ExecuteIntentForDistributed_0100 start";
+    Want want;
+    std::string deviceId;
+    uint64_t requestCode = 1;
+    uint64_t specifiedFullTokenId = 1;
+    auto result = client_->ExecuteIntentForDistributed(want, deviceId, requestCode, specifiedFullTokenId);
+    EXPECT_EQ(ERR_OK, result);
+    GTEST_LOG_(INFO) << "ExecuteIntentForDistributed_0100 end";
+}
+
+/**
+ * @tc.name: AbilityManagerClient_QueryEntityInfo_0100
+ * @tc.desc: QueryEntityInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, QueryEntityInfo_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "QueryEntityInfo_0100 start";
+    uint64_t key = 1;
+    sptr<IRemoteObject> callerToken = nullptr;
+    const InsightIntentQueryParam param;
+    auto result = client_->QueryEntityInfo(key, callerToken, param);
+    EXPECT_EQ(ERR_OK, result);
+    GTEST_LOG_(INFO) << "QueryEntityInfo_0100 end";
+}
+
+/**
+ * @tc.name: AbilityManagerClient_QueryEntityInfo_0200
+ * @tc.desc: QueryEntityInfo default implementation return
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, QueryEntityInfo_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "QueryEntityInfo_0200 start";
+    uint64_t key = 1;
+    sptr<IRemoteObject> callerToken = nullptr;
+    const InsightIntentQueryParam param;
+    auto result = client_->QueryEntityInfo(key, callerToken, param);
+    EXPECT_EQ(ERR_OK, result);
+    GTEST_LOG_(INFO) << "QueryEntityInfo_0200 end";
+}
+
+/**
  * @tc.name: AbilityManagerClient_ExecuteInsightIntentDone_0100
  * @tc.desc: ExecuteInsightIntentDone
  * @tc.type: FUNC
@@ -2160,6 +2210,57 @@ HWTEST_F(AbilityManagerClientBranchTest, RequestModalUIExtension_0100, TestSize.
     auto result = client_->RequestModalUIExtension(want);
     EXPECT_EQ(result, ERR_OK);
     GTEST_LOG_(INFO) << "RequestModalUIExtension_0100 end";
+}
+
+/**
+ * @tc.name: AbilityManagerClient_RequestModalUIExtensionWithAccount_0100
+ * @tc.desc: RequestModalUIExtensionWithAccount with valid proxy
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, RequestModalUIExtensionWithAccount_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RequestModalUIExtensionWithAccount_0100 start";
+    EXPECT_TRUE(client_ != nullptr);
+    Want want;
+    int32_t accountId = 100;
+    auto result = client_->RequestModalUIExtensionWithAccount(want, accountId);
+    EXPECT_EQ(result, ERR_OK);
+    GTEST_LOG_(INFO) << "RequestModalUIExtensionWithAccount_0100 end";
+}
+
+/**
+ * @tc.name: AbilityManagerClient_RequestModalUIExtensionWithAccount_0300
+ * @tc.desc: RequestModalUIExtensionWithAccount with various accountIds
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, RequestModalUIExtensionWithAccount_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RequestModalUIExtensionWithAccount_0300 start";
+    EXPECT_TRUE(client_ != nullptr);
+    Want want;
+    ElementName element("device", "com.test.modal", "ModalUIExtension");
+    want.SetElement(element);
+
+    int32_t accountId = -1;
+    auto result = client_->RequestModalUIExtensionWithAccount(want, accountId);
+    EXPECT_EQ(result, ERR_OK);
+    GTEST_LOG_(INFO) << "RequestModalUIExtensionWithAccount_0300 end";
+}
+
+/**
+ * @tc.name: AbilityManagerClient_RequestModalUIExtensionWithAccount_0400
+ * @tc.desc: RequestModalUIExtensionWithAccount with default accountId
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, RequestModalUIExtensionWithAccount_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RequestModalUIExtensionWithAccount_0400 start";
+    EXPECT_TRUE(client_ != nullptr);
+    Want want;
+    int32_t accountId = 0;
+    auto result = client_->RequestModalUIExtensionWithAccount(want, accountId);
+    EXPECT_EQ(result, ERR_OK);
+    GTEST_LOG_(INFO) << "RequestModalUIExtensionWithAccount_0400 end";
 }
 
 /**
@@ -2774,6 +2875,16 @@ HWTEST_F(AbilityManagerClientBranchTest, RegisterSAInterceptor, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UnregisterSAInterceptor
+ * @tc.desc: UnregisterSAInterceptor
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, UnregisterSAInterceptor, TestSize.Level1)
+{
+    EXPECT_EQ(client_->UnregisterSAInterceptor(nullptr), ERR_OK);
+}
+
+/**
  * @tc.name: SuspendExtensionAbility
  * @tc.desc: SuspendExtensionAbility
  * @tc.type: FUNC
@@ -2804,6 +2915,159 @@ HWTEST_F(AbilityManagerClientBranchTest, RegisterSAInterceptor_0100, TestSize.Le
 }
 
 /**
+ * @tc.name: UnregisterSAInterceptor_0100
+ * @tc.desc: UnregisterSAInterceptor
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, UnregisterSAInterceptor_0100, TestSize.Level1)
+{
+    EXPECT_EQ(client_->UnregisterSAInterceptor(nullptr), ERR_OK);
+}
+
+/*
+ * Feature: AbilityManagerClient
+ * Function: StartSandboxCloneAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerClient StartSandboxCloneAbility
+ * EnvConditions: NA
+ * CaseDescription: Verify the StartSandboxCloneAbility call with valid parameters
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartSandboxCloneAbility_001, TestSize.Level1)
+{
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    SandboxCloneParams params;
+    params.callerBundleName = "com.caller.bundle";
+    params.callerUid = 1314;
+    params.callerTokenId = 123456;
+
+    EXPECT_CALL(*mock_, StartSandboxCloneAbility(_, _))
+        .Times(1)
+        .WillOnce(Return(ERR_OK));
+    auto result = client_->StartSandboxCloneAbility(want, params);
+    EXPECT_EQ(ERR_OK, result);
+}
+
+/*
+ * Feature: AbilityManagerClient
+ * Function: StartSandboxCloneAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerClient StartSandboxCloneAbility
+ * EnvConditions: NA
+ * CaseDescription: Verify the StartSandboxCloneAbility call with error return
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartSandboxCloneAbility_002, TestSize.Level1)
+{
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    SandboxCloneParams params;
+    params.callerBundleName = "com.caller.bundle";
+    params.callerUid = 10001;
+    params.callerTokenId = 123456;
+
+    EXPECT_CALL(*mock_, StartSandboxCloneAbility(_, _))
+        .Times(1)
+        .WillOnce(Return(ERR_PERMISSION_DENIED));
+    auto result = client_->StartSandboxCloneAbility(want, params);
+    EXPECT_EQ(ERR_PERMISSION_DENIED, result);
+}
+
+/*
+ * Feature: AbilityManagerClient
+ * Function: StartSandboxCloneAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerClient StartSandboxCloneAbility
+ * EnvConditions: NA
+ * CaseDescription: Verify the StartSandboxCloneAbility call with empty bundle name
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartSandboxCloneAbility_003, TestSize.Level1)
+{
+    Want want;
+    SandboxCloneParams params;
+    params.callerBundleName = "";
+    params.callerUid = 10001;
+    params.callerTokenId = 123456;
+
+    EXPECT_CALL(*mock_, StartSandboxCloneAbility(_, _))
+        .Times(1)
+        .WillOnce(Return(ERR_INVALID_VALUE));
+    auto result = client_->StartSandboxCloneAbility(want, params);
+    EXPECT_EQ(ERR_INVALID_VALUE, result);
+}
+
+/*
+ * Feature: AbilityManagerClient
+ * Function: StartSandboxCloneAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerClient StartSandboxCloneAbility
+ * EnvConditions: NA
+ * CaseDescription: Verify the StartSandboxCloneAbility call with negative UID
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartSandboxCloneAbility_004, TestSize.Level1)
+{
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    SandboxCloneParams params;
+    params.callerBundleName = "com.caller.bundle";
+    params.callerUid = -1;
+    params.callerTokenId = 123456;
+
+    EXPECT_CALL(*mock_, StartSandboxCloneAbility(_, _))
+        .Times(1)
+        .WillOnce(Return(ERR_OK));
+    auto result = client_->StartSandboxCloneAbility(want, params);
+    EXPECT_EQ(ERR_OK, result);
+}
+
+/*
+ * Feature: AbilityManagerClient
+ * Function: StartSandboxCloneAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerClient StartSandboxCloneAbility
+ * EnvConditions: NA
+ * CaseDescription: Verify the StartSandboxCloneAbility call with zero token ID
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartSandboxCloneAbility_005, TestSize.Level1)
+{
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    SandboxCloneParams params;
+    params.callerBundleName = "com.caller.bundle";
+    params.callerUid = 10001;
+    params.callerTokenId = 0;
+
+    EXPECT_CALL(*mock_, StartSandboxCloneAbility(_, _))
+        .Times(1)
+        .WillOnce(Return(ERR_OK));
+    auto result = client_->StartSandboxCloneAbility(want, params);
+    EXPECT_EQ(ERR_OK, result);
+}
+
+/*
+ * Feature: AbilityManagerClient
+ * Function: StartSandboxCloneAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerClient StartSandboxCloneAbility
+ * EnvConditions: NA
+ * CaseDescription: Verify the StartSandboxCloneAbility call with maximum values
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartSandboxCloneAbility_006, TestSize.Level1)
+{
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    SandboxCloneParams params;
+    params.callerBundleName = "com.caller.bundle";
+    params.callerUid = INT32_MAX;
+    params.callerTokenId = UINT32_MAX;
+
+    EXPECT_CALL(*mock_, StartSandboxCloneAbility(_, _))
+        .Times(1)
+        .WillOnce(Return(ERR_OK));
+    auto result = client_->StartSandboxCloneAbility(want, params);
+    EXPECT_EQ(ERR_OK, result);
+}
+
+/**
  * @tc.name: StartSelfUIAbilityInCurrentProcess_0100
  * @tc.desc: StartSelfUIAbilityInCurrentProcess
  * @tc.type: FUNC
@@ -2814,6 +3078,54 @@ HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInCurrentProcess_0100
     std::string specifiedFlag;
     StartOptions startOptions;
     EXPECT_EQ(client_->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag, startOptions, false, nullptr), ERR_OK);
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityInChildProcess_0100
+ * @tc.desc: Test StartSelfUIAbilityInChildProcess with normal parameters
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInChildProcess_0100, TestSize.Level1)
+{
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    std::string specifiedFlag = "testFlag";
+    sptr<IRemoteObject> callerToken = nullptr;
+    EXPECT_CALL(*mock_, StartSelfUIAbilityInChildProcess(_, specifiedFlag, callerToken)).WillOnce(Return(ERR_OK));
+    EXPECT_EQ(client_->StartSelfUIAbilityInChildProcess(want, specifiedFlag, callerToken), ERR_OK);
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityInChildProcess_0200
+ * @tc.desc: Test StartSelfUIAbilityInChildProcess with service return error
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInChildProcess_0200, TestSize.Level1)
+{
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    std::string specifiedFlag = "testFlag";
+    sptr<IRemoteObject> callerToken = nullptr;
+    EXPECT_CALL(*mock_, StartSelfUIAbilityInChildProcess(_, specifiedFlag, callerToken))
+        .WillOnce(Return(ERR_CAPABILITY_NOT_SUPPORT));
+    EXPECT_EQ(client_->StartSelfUIAbilityInChildProcess(want, specifiedFlag, callerToken),
+        ERR_CAPABILITY_NOT_SUPPORT);
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityInChildProcess_0300
+ * @tc.desc: Test StartSelfUIAbilityInChildProcess with empty want
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInChildProcess_0300, TestSize.Level1)
+{
+    Want want;
+    std::string specifiedFlag = "";
+    sptr<IRemoteObject> callerToken = nullptr;
+    EXPECT_CALL(*mock_, StartSelfUIAbilityInChildProcess(_, specifiedFlag, callerToken))
+        .WillOnce(Return(START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START));
+    EXPECT_EQ(client_->StartSelfUIAbilityInChildProcess(want, specifiedFlag, callerToken),
+        START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START);
 }
 
 /**
@@ -2853,5 +3165,17 @@ HWTEST_F(AbilityManagerClientBranchTest, StartAbilityForPrelaunch_001, TestSize.
     EXPECT_EQ(client_->StartAbilityForPrelaunch(want, 0), 0);
 }
 
+/**
+ * @tc.name: AbilityManagerClient_StartSelf_0100
+ * @tc.desc: StartSelf
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_StartSelf_0100, TestSize.Level1)
+{
+    sptr<IRemoteObject> token = nullptr;
+    EXPECT_CALL(*mock_, StartSelf(_)).WillOnce(Return(ERR_OK));
+    auto result = client_->StartSelf(token);
+    EXPECT_EQ(ERR_OK, result);
+}
 }  // namespace AAFwk
 }  // namespace OHOS

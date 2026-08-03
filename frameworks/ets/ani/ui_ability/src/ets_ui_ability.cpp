@@ -581,6 +581,14 @@ void EtsUIAbility::OnStartInner(ani_env *env, const Want &want, sptr<AAFwk::Sess
         TAG_LOGE(AAFwkTag::UIABILITY, "lastRequestWant status: %{public}d", status);
         return;
     }
+
+    ani_boolean isDestroyed = false;
+    status = env->Object_SetFieldByName_Boolean(etsAbilityObj_->aniObj, "isDestroyed", isDestroyed);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "isDestroyed Object_SetFieldByName_Boolean status: %{public}d", status);
+    } else {
+        TAG_LOGI(AAFwkTag::UIABILITY, "Initialize isDestroyed to false successfully");
+    }
     SetSelfSpecifiedId(env, sessionInfo);
 
     // Handle NativeModule: Create NativeAbilityWrapper and call PostAbility
@@ -599,6 +607,7 @@ void EtsUIAbility::OnStartInner(ani_env *env, const Want &want, sptr<AAFwk::Sess
     if (applicationContext != nullptr) {
         EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
         applicationContext->DispatchOnAbilityWillCreate(ability);
+        DISPATCH_ABILITY_INTEROP(OnAbilityWillCreate, applicationContext, etsRuntime_, ability);
     }
     WriteLifecycleSwitchLog("onCreate");
     CallObjectMethod(false, "onCreate", nullptr, wantObj, launchParamObj);
@@ -646,11 +655,11 @@ void EtsUIAbility::SetSelfSpecifiedId(ani_env *env, sptr<AAFwk::SessionInfo> ses
         return;
     }
     ani_status status = ANI_ERROR;
-    if (sessionInfo != nullptr && abilityInfo_->launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
+    if (abilityInfo_->launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
         if ((status = env->Object_SetFieldByName_Ref(etsAbilityObj_->aniObj,
-            "specifiedId", AppExecFwk::GetAniString(env, sessionInfo->specifiedFlag))) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::UIABILITY, "specifiedId Object_SetFieldByName_Ref status: %{public}d", status);
-            return;
+            "specifiedId", AppExecFwk::GetAniString(env, GetLaunchParam().specifiedId))) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::UIABILITY,
+                "specifiedId Object_SetFieldByName_Ref failed, status: %{public}d", status);
         }
     }
 }
@@ -696,6 +705,7 @@ void EtsUIAbility::OnStop()
     if (applicationContext != nullptr) {
         EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
         applicationContext->DispatchOnAbilityWillDestroy(ability);
+        DISPATCH_ABILITY_INTEROP(OnAbilityWillDestroy, applicationContext, etsRuntime_, ability);
     }
     WriteLifecycleSwitchLog("onDestroy");
     CallObjectMethod(false, "onDestroy", nullptr);
@@ -721,6 +731,7 @@ void EtsUIAbility::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callback
     if (applicationContext != nullptr) {
         EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
         applicationContext->DispatchOnAbilityWillDestroy(ability);
+        DISPATCH_ABILITY_INTEROP(OnAbilityWillDestroy, applicationContext, etsRuntime_, ability);
     }
     std::weak_ptr<UIAbility> weakPtr = shared_from_this();
     auto asyncCallback = [abilityWeakPtr = weakPtr]() {
@@ -741,8 +752,8 @@ void EtsUIAbility::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callback
     }
 
     ani_long destroyCallbackPoint = reinterpret_cast<ani_long>(callbackInfo);
-    ani_status status =
-        env->Object_SetFieldByName_Long(etsAbilityObj_->aniObj, "destroyCallbackPoint", destroyCallbackPoint);
+    ani_status status = env->Object_SetFieldByName_Long(etsAbilityObj_->aniObj,
+        "destroyCallbackPoint", destroyCallbackPoint);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "Object_SetFieldByName_Long status: %{public}d", status);
         return;
@@ -754,11 +765,20 @@ void EtsUIAbility::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callback
         OnStopCallback();
         return;
     }
-    TAG_LOGD(AAFwkTag::UIABILITY, "OnStop end");
 }
 
 void EtsUIAbility::OnStopCallback()
 {
+    // Set isDestroyed to true after onDestroy callback completes
+    auto env = etsRuntime_.GetAniEnv();
+    if (env != nullptr && etsAbilityObj_ != nullptr) {
+        ani_boolean isDestroyed = true;
+        ani_status status = env->Object_SetFieldByName_Boolean(etsAbilityObj_->aniObj, "isDestroyed", isDestroyed);
+        if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "Failed to set isDestroyed, status: %{public}d", status);
+        }
+    }
+
     auto property = std::make_shared<AppExecFwk::EtsDelegatorAbilityProperty>();
     property->language_ = AbilityRuntime::Runtime::Language::ETS;
     if (CreateProperty(abilityContext_, property)) {
@@ -821,6 +841,7 @@ void EtsUIAbility::OnSceneCreated()
         EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
         EtsAbilityLifecycleCallbackArgs stage(etsWindowStageObj_);
         applicationContext->DispatchOnWindowStageWillCreate(ability, stage);
+        DISPATCH_WINDOW_INTEROP(OnWindowStageWillCreate, applicationContext, etsRuntime_, ability, stage);
     }
     WriteLifecycleSwitchLog("onWindowStageCreate");
     CallObjectMethod(false, "onWindowStageCreate", nullptr, etsAppWindowStage);
@@ -905,11 +926,13 @@ void EtsUIAbility::OnSceneRestored()
     auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
         applicationContext->DispatchOnWindowStageWillRestore(ability, stage);
+        DISPATCH_WINDOW_INTEROP(OnWindowStageWillRestore, applicationContext, etsRuntime_, ability, stage);
     }
     CallObjectMethod(false, "onWindowStageRestore", nullptr, etsAppWindowStage);
     applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
         applicationContext->DispatchOnWindowStageRestore(ability, stage);
+        DISPATCH_WINDOW_INTEROP(OnWindowStageRestore, applicationContext, etsRuntime_, ability, stage);
     }
 }
 
@@ -932,6 +955,7 @@ void EtsUIAbility::onSceneDestroyed()
         EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
         EtsAbilityLifecycleCallbackArgs stage(etsWindowStageObj_);
         applicationContext->DispatchOnWindowStageWillDestroy(ability, stage);
+        DISPATCH_WINDOW_INTEROP(OnWindowStageWillDestroy, applicationContext, etsRuntime_, ability, stage);
     }
     UpdateEtsWindowStage(nullptr);
     WriteLifecycleSwitchLog("onWindowStageDestroy");
@@ -1007,6 +1031,7 @@ void EtsUIAbility::CallOnForegroundFunc(const Want &want)
     if (applicationContext != nullptr) {
         EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
         applicationContext->DispatchOnAbilityWillForeground(ability);
+        DISPATCH_ABILITY_INTEROP(OnAbilityWillForeground, applicationContext, etsRuntime_, ability);
     }
     WriteLifecycleSwitchLog("onForeground");
     CallObjectMethod(false, "onForeground", nullptr, wantRef);
@@ -1030,6 +1055,7 @@ void EtsUIAbility::OnBackground()
     if (applicationContext != nullptr) {
         EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
         applicationContext->DispatchOnAbilityWillBackground(ability);
+        DISPATCH_ABILITY_INTEROP(OnAbilityWillBackground, applicationContext, etsRuntime_, ability);
     }
     WriteLifecycleSwitchLog("onBackground");
     CallObjectMethod(false, "onBackground", nullptr);
@@ -1326,7 +1352,7 @@ void EtsUIAbility::DoOnForegroundForSceneIsNull(const Want &want)
             scene_->SetNavDestinationInfo(navDestinationInfo);
         }
         ret = scene_->Init(
-            displayId, abilityContext_, sceneListener_, option, sessionToken, identityToken, false, renderSession_);
+            displayId, abilityContext_, sceneListener_, option, sessionToken, identityToken);
     } else {
         ret = scene_->Init(displayId, abilityContext_, sceneListener_, option);
     }
@@ -1542,7 +1568,9 @@ void EtsUIAbility::ExecuteInsightIntentMoveToForeground(const Want &want,
         }
         ability->CallOnForegroundFunc(want);
     };
-    callback->Push(asyncCallback);
+    if (!CheckIsSilentForeground()) {
+        callback->Push(asyncCallback);
+    }
     const WantParams &wantParams = want.GetParams();
     std::string arkTSMode = wantParams.GetStringParam(AppExecFwk::INSIGHT_INTENT_ARKTS_MODE);
     InsightIntentExecutorInfo executeInfo;
@@ -1896,6 +1924,7 @@ int32_t EtsUIAbility::OnContinue(AAFwk::WantParams &wantParams, bool &isAsyncOnC
     auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
         applicationContext->DispatchOnAbilityWillContinue(ability);
+        DISPATCH_ABILITY_INTEROP(OnAbilityWillContinue, applicationContext, etsRuntime_, ability);
     }
     int32_t continueResult = ContinuationManagerStage::ON_CONTINUE_ERR;
     bool isPromise = false;
@@ -1918,6 +1947,7 @@ int32_t EtsUIAbility::OnContinue(AAFwk::WantParams &wantParams, bool &isAsyncOnC
     }
     if (applicationContext != nullptr) {
         applicationContext->DispatchOnAbilityContinue(ability);
+        DISPATCH_ABILITY_INTEROP(OnAbilityContinue, applicationContext, etsRuntime_, ability);
     }
     return (continueResult == ContinuationManagerStage::AGREE) ?
         ContinuationManagerStage::AGREE : ContinuationManagerStage::REJECT;
@@ -1988,6 +2018,7 @@ int32_t EtsUIAbility::OnContinueAsyncCB(ani_ref aniWantParamsRef, int32_t status
     auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
         applicationContext->DispatchOnAbilityContinue(ability);
+        DISPATCH_ABILITY_INTEROP(OnAbilityContinue, applicationContext, etsRuntime_, ability);
     }
 
     Want want;
@@ -2085,7 +2116,6 @@ void EtsUIAbility::UpdateContextConfiguration()
 
 void EtsUIAbility::OnNewWant(const Want &want)
 {
-    TAG_LOGD(AAFwkTag::UIABILITY, "OnNewWant called");
     UIAbility::OnNewWant(want);
 
 #ifdef SUPPORT_SCREEN
@@ -2112,6 +2142,7 @@ void EtsUIAbility::OnNewWant(const Want &want)
     auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
         applicationContext->DispatchOnWillNewWant(ability);
+        DISPATCH_ABILITY_INTEROP(OnWillNewWant, applicationContext, etsRuntime_, ability);
     }
     ani_status status = env->Object_SetFieldByName_Ref(etsAbilityObj_->aniObj, "lastRequestWant", wantObj);
     if (status != ANI_OK) {
@@ -2132,8 +2163,8 @@ void EtsUIAbility::OnNewWant(const Want &want)
     applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
         applicationContext->DispatchOnNewWant(ability);
+        DISPATCH_ABILITY_INTEROP(OnNewWant, applicationContext, etsRuntime_, ability);
     }
-    TAG_LOGD(AAFwkTag::UIABILITY, "OnNewWant end");
 }
 
 void EtsUIAbility::OnAbilityResult(int requestCode, int resultCode, const Want &resultData)
@@ -2236,16 +2267,18 @@ void EtsUIAbility::OnAfterFocusedCommon(bool isFocused)
         return;
     }
     auto applicationContext = abilityContext->GetApplicationContext();
-    if (applicationContext == nullptr || applicationContext->IsAbilityLifecycleCallbackEmpty()) {
-        TAG_LOGD(AAFwkTag::UIABILITY, "null applicationContext or lifecycleCallback");
+    if (applicationContext == nullptr) {
+        TAG_LOGD(AAFwkTag::UIABILITY, "null applicationContext");
         return;
     }
     EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
     EtsAbilityLifecycleCallbackArgs stage(etsWindowStageObj_);
     if (isFocused) {
         applicationContext->DispatchWindowStageFocus(ability, stage);
+        DISPATCH_WINDOW_INTEROP(WindowStageFocus, applicationContext, etsRuntime_, ability, stage);
     } else {
         applicationContext->DispatchWindowStageUnfocus(ability, stage);
+        DISPATCH_WINDOW_INTEROP(WindowStageUnfocus, applicationContext, etsRuntime_, ability, stage);
     }
 }
 

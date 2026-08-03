@@ -20,6 +20,7 @@ ohos_source_set("cli_manager_error_utils_src") {
     cfi_cross_dso = true
     debug = false
   }
+  branch_protector_ret = "pac_ret"
 
   include_dirs = [
     "include",
@@ -51,6 +52,7 @@ ohos_source_set("js_cli_event_handler_manager_src") {
     cfi_cross_dso = true
     debug = false
   }
+  branch_protector_ret = "pac_ret"
 
   include_dirs = [
     "include",
@@ -75,11 +77,13 @@ ohos_shared_library("climanager_napi") {
     cfi_cross_dso = true
     debug = false
   }
+  branch_protector_ret = "pac_ret"
 
   include_dirs = [
     "include",
     "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime",
     "${cli_tool_framework_path}/interfaces/cli_tool/include",
+    "${cli_tool_framework_path}/interfaces/function/include",
   ]
 
   sources = [

@@ -35,6 +35,7 @@ namespace AAFwk {
 namespace {
 constexpr int32_t EXTENSION_MAX_LIMIT = 50;
 constexpr int32_t GAME_SA_UID = 7800;
+constexpr const char* DMS_CALLER_APP_ID = "ohos.dms.param.sourceCallerAppId";
 }
 class AbilityManagerServiceFourteenthTest : public testing::Test {
 public:
@@ -1835,6 +1836,70 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, StartAbilityDelayed_002, TestSize.
     auto result = abilityMs->StartAbilityDelayed(param);
     EXPECT_NE(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityDelayed_002 end");
+}
+/**
+ * @tc.number: StartAbilityByOEExt_001
+ * @tc.name: StartAbilityByOEExt
+ * @tc.desc: Test StartAbilityByOEExt when ValidateCaller returns CHECK_PERMISSION_FAILED
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, StartAbilityByOEExt_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest StartAbilityByOEExt_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    MyStatus::GetInstance().oeuValidateCallerResult_ = CHECK_PERMISSION_FAILED;
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    int32_t result = abilityMs->StartAbilityByOEExt(want, nullptr, 0, "");
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    MyStatus::GetInstance().oeuValidateCallerResult_ = ERR_OK;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest StartAbilityByOEExt_001 end");
+}
+
+/**
+ * @tc.number: StartAbilityByOEExt_005
+ * @tc.name: StartAbilityByOEExt
+ * @tc.desc: Test StartAbilityByOEExt when ValidateCaller returns ERR_OK
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, StartAbilityByOEExt_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest StartAbilityByOEExt_005 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    MyStatus::GetInstance().oeuValidateCallerResult_ = ERR_OK;
+    MyStatus::GetInstance().oeuValidateCallerUserId_ = 100;
+    MyStatus::GetInstance().oeuValidateCallerHostBundleName_ = "com.test.host";
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    int32_t result = abilityMs->StartAbilityByOEExt(want, nullptr, 1000, "testFlag");
+    EXPECT_NE(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest StartAbilityByOEExt_005 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: IsDmsSameAPP
+ * FunctionPoints: AbilityManagerService IsDmsSameAPP
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, IsDmsSameAPP_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest IsDmsSameAPP_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    const std::string deviceName = "";
+    const std::string abilityName = "EntryAbility";
+    const std::string appName = "amstest";
+    const std::string bundleName = "";
+    const std::string moduleName = "entry";
+    AbilityRequest abilityRequest = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName, moduleName);
+    EXPECT_FALSE(abilityMs->IsDmsSameAPP(abilityRequest));
+    MyStatus::GetInstance().ipcGetCallingTokenID_ = 5522;
+    EXPECT_FALSE(abilityMs->IsDmsSameAPP(abilityRequest));
+    abilityRequest.abilityInfo.bundleName = "testBundleName";
+    EXPECT_FALSE(abilityMs->IsDmsSameAPP(abilityRequest));
+    std::string AppId = "testAppId";
+    abilityRequest.want.SetParam(DMS_CALLER_APP_ID, AppId);
+    EXPECT_FALSE(abilityMs->IsDmsSameAPP(abilityRequest));
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest IsDmsSameAPP_001 end");
 }
 } // namespace AAFwk
 } // namespace OHOS

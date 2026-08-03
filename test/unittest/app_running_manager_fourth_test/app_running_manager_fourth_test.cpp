@@ -345,6 +345,227 @@ HWTEST_F(AppRunningManagerFourthTest, AppRunningManager_CheckAppRunningRecordIsE
 }
 
 /**
+ * @tc.name: CheckAppRunningRecordIsExist_ShouldReturnRecordWhenOriginalPathMatches
+ * @tc.desc: Test normal path matching
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerFourthTest,
+    CheckAppRunningRecordIsExist_ShouldReturnRecordWhenOriginalPathMatches, TestSize.Level1)
+{
+    int uid = TEST_UID;
+    BundleInfo bundleInfo;
+    std::string specifiedProcessFlag;
+    bool *isProCache = nullptr;
+    std::string instanceKey;
+    std::string customProcessFlag;
+
+    appInfo_->name = APP_NAME;
+    std::shared_ptr<AppRunningRecord> record =
+        appRunningManager_->CreateAppRunningRecord(appInfo_, PROCESS_NAME, bundleInfo, "");
+    ASSERT_NE(record, nullptr);
+    record->appInfos_.insert(std::make_pair("test", appInfo_));
+    record->priorityObject_->SetPid(TEST_PID);
+    record->SetUid(uid);
+    appRunningManager_->appRunningRecordMap_.clear();
+    appRunningManager_->appRunningRecordMap_.insert(std::make_pair(ONE, record));
+
+    auto ret = appRunningManager_->CheckAppRunningRecordIsExist(APP_NAME, PROCESS_NAME,
+        uid, bundleInfo, specifiedProcessFlag, isProCache, instanceKey, customProcessFlag);
+    EXPECT_NE(ret, nullptr);
+}
+
+/**
+ * @tc.name: CheckAppRunningRecordIsExist_ShouldReturnNullptrWhenFieldMismatch
+ * @tc.desc: Test customProcessFlag/instanceKey mismatch
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerFourthTest,
+    CheckAppRunningRecordIsExist_ShouldReturnNullptrWhenFieldMismatch, TestSize.Level1)
+{
+    int uid = TEST_UID;
+    BundleInfo bundleInfo;
+    std::string specifiedProcessFlag;
+    bool *isProCache = nullptr;
+    std::string instanceKey = "differentInstanceKey";
+    std::string customProcessFlag = "differentCustomFlag";
+
+    appInfo_->name = APP_NAME;
+    std::shared_ptr<AppRunningRecord> record =
+        appRunningManager_->CreateAppRunningRecord(appInfo_, PROCESS_NAME, bundleInfo, "");
+    ASSERT_NE(record, nullptr);
+    record->appInfos_.insert(std::make_pair("test", appInfo_));
+    record->priorityObject_->SetPid(TEST_PID);
+    appRunningManager_->appRunningRecordMap_.clear();
+    appRunningManager_->appRunningRecordMap_.insert(std::make_pair(ONE, record));
+
+    auto ret = appRunningManager_->CheckAppRunningRecordIsExist(APP_NAME, PROCESS_NAME,
+        uid, bundleInfo, specifiedProcessFlag, isProCache, instanceKey, customProcessFlag);
+    EXPECT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: GetValidAppRunningRecordByPid_ShouldReturnRecordWhenPidMatchesAndValid
+ * @tc.desc: Test valid record found by PID
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerFourthTest,
+    GetValidAppRunningRecordByPid_ShouldReturnRecordWhenPidMatchesAndValid, TestSize.Level1)
+{
+    BundleInfo bundleInfo;
+    appInfo_->name = APP_NAME;
+    auto record = appRunningManager_->CreateAppRunningRecord(appInfo_, PROCESS_NAME, bundleInfo, "");
+    ASSERT_NE(record, nullptr);
+    record->GetPriorityObject()->SetPid(TEST_PID);
+    appRunningManager_->appRunningRecordMap_.clear();
+    appRunningManager_->appRunningRecordMap_.insert(std::make_pair(ONE, record));
+
+    auto ret = appRunningManager_->GetValidAppRunningRecordByPid(TEST_PID);
+    EXPECT_NE(ret, nullptr);
+    EXPECT_EQ(ret, record);
+}
+
+/**
+ * @tc.name: GetValidAppRunningRecordByPid_ShouldReturnNullptrWhenPidNotFound
+ * @tc.desc: Test no record with given PID
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerFourthTest,
+    GetValidAppRunningRecordByPid_ShouldReturnNullptrWhenPidNotFound, TestSize.Level1)
+{
+    appRunningManager_->appRunningRecordMap_.clear();
+
+    auto ret = appRunningManager_->GetValidAppRunningRecordByPid(9999);
+    EXPECT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: GetValidAppRunningRecordByPid_ShouldReturnNullptrWhenTerminating
+ * @tc.desc: Test record is terminating
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerFourthTest,
+    GetValidAppRunningRecordByPid_ShouldReturnNullptrWhenTerminating, TestSize.Level1)
+{
+    BundleInfo bundleInfo;
+    appInfo_->name = APP_NAME;
+    auto record = appRunningManager_->CreateAppRunningRecord(appInfo_, PROCESS_NAME, bundleInfo, "");
+    ASSERT_NE(record, nullptr);
+    record->GetPriorityObject()->SetPid(TEST_PID);
+    record->SetTerminating();
+    appRunningManager_->appRunningRecordMap_.clear();
+    appRunningManager_->appRunningRecordMap_.insert(std::make_pair(ONE, record));
+
+    auto ret = appRunningManager_->GetValidAppRunningRecordByPid(TEST_PID);
+    EXPECT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: GetValidAppRunningRecordByPid_ShouldReturnNullptrWhenKilling
+ * @tc.desc: Test record is killing
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerFourthTest,
+    GetValidAppRunningRecordByPid_ShouldReturnNullptrWhenKilling, TestSize.Level1)
+{
+    BundleInfo bundleInfo;
+    appInfo_->name = APP_NAME;
+    auto record = appRunningManager_->CreateAppRunningRecord(appInfo_, PROCESS_NAME, bundleInfo, "");
+    ASSERT_NE(record, nullptr);
+    record->GetPriorityObject()->SetPid(TEST_PID);
+    record->SetKilling();
+    appRunningManager_->appRunningRecordMap_.clear();
+    appRunningManager_->appRunningRecordMap_.insert(std::make_pair(ONE, record));
+
+    auto ret = appRunningManager_->GetValidAppRunningRecordByPid(TEST_PID);
+    EXPECT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: GetValidAppRunningRecordByPid_ShouldReturnNullptrWhenRestartFlagSet
+ * @tc.desc: Test record has restart flag
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerFourthTest,
+    GetValidAppRunningRecordByPid_ShouldReturnNullptrWhenRestartFlagSet, TestSize.Level1)
+{
+    BundleInfo bundleInfo;
+    appInfo_->name = APP_NAME;
+    auto record = appRunningManager_->CreateAppRunningRecord(appInfo_, PROCESS_NAME, bundleInfo, "");
+    ASSERT_NE(record, nullptr);
+    record->GetPriorityObject()->SetPid(TEST_PID);
+    record->SetRestartAppFlag(true);
+    appRunningManager_->appRunningRecordMap_.clear();
+    appRunningManager_->appRunningRecordMap_.insert(std::make_pair(ONE, record));
+
+    auto ret = appRunningManager_->GetValidAppRunningRecordByPid(TEST_PID);
+    EXPECT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: GetValidAppRunningRecordByPid_ShouldReturnNullptrWhenUserRequestCleaning
+ * @tc.desc: Test record has user request cleaning flag
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerFourthTest,
+    GetValidAppRunningRecordByPid_ShouldReturnNullptrWhenUserRequestCleaning, TestSize.Level1)
+{
+    BundleInfo bundleInfo;
+    appInfo_->name = APP_NAME;
+    auto record = appRunningManager_->CreateAppRunningRecord(appInfo_, PROCESS_NAME, bundleInfo, "");
+    ASSERT_NE(record, nullptr);
+    record->GetPriorityObject()->SetPid(TEST_PID);
+    record->SetUserRequestCleaning();
+    appRunningManager_->appRunningRecordMap_.clear();
+    appRunningManager_->appRunningRecordMap_.insert(std::make_pair(ONE, record));
+
+    auto ret = appRunningManager_->GetValidAppRunningRecordByPid(TEST_PID);
+    EXPECT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: GetValidAppRunningRecordByPid_ShouldReturnNullptrWhenCachingAndBlocked
+ * @tc.desc: Test record is caching with process cache blocked
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerFourthTest,
+    GetValidAppRunningRecordByPid_ShouldReturnNullptrWhenCachingAndBlocked, TestSize.Level1)
+{
+    BundleInfo bundleInfo;
+    appInfo_->name = APP_NAME;
+    auto record = appRunningManager_->CreateAppRunningRecord(appInfo_, PROCESS_NAME, bundleInfo, "");
+    ASSERT_NE(record, nullptr);
+    record->GetPriorityObject()->SetPid(TEST_PID);
+    record->SetProcessCaching(true);
+    record->SetProcessCacheBlocked(true);
+    appRunningManager_->appRunningRecordMap_.clear();
+    appRunningManager_->appRunningRecordMap_.insert(std::make_pair(ONE, record));
+
+    auto ret = appRunningManager_->GetValidAppRunningRecordByPid(TEST_PID);
+    EXPECT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: GetValidAppRunningRecordByPid_ShouldReturnNullptrWhenKillPrecedeStart
+ * @tc.desc: Test record has kill precede start flag
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerFourthTest,
+    GetValidAppRunningRecordByPid_ShouldReturnNullptrWhenKillPrecedeStart, TestSize.Level1)
+{
+    BundleInfo bundleInfo;
+    appInfo_->name = APP_NAME;
+    auto record = appRunningManager_->CreateAppRunningRecord(appInfo_, PROCESS_NAME, bundleInfo, "");
+    ASSERT_NE(record, nullptr);
+    record->GetPriorityObject()->SetPid(TEST_PID);
+    record->SetIsKillPrecedeStart(true);
+    appRunningManager_->appRunningRecordMap_.clear();
+    appRunningManager_->appRunningRecordMap_.insert(std::make_pair(ONE, record));
+
+    auto ret = appRunningManager_->GetValidAppRunningRecordByPid(TEST_PID);
+    EXPECT_EQ(ret, nullptr);
+}
+
+/**
  * @tc.name: AppRunningManager_GetProcessInfosByUserId_0100
  * @tc.desc: NA
  * @tc.type: FUNC
@@ -991,29 +1212,34 @@ HWTEST_F(AppRunningManagerFourthTest, AppRunningManager_DumpArkWeb_0300, TestSiz
 }
 
 /**
- * @tc.name: AppRunningManager_OnRemoteRenderDied_0100
- * @tc.desc: Test the state of OnRemoteRenderDied
+ * @tc.name: AppRunningManager_OnRenderProcessExitedByPid_0100
+ * @tc.desc: Test the state of OnRenderProcessExitedByPid
  * @tc.type: FUNC
  */
-HWTEST_F(AppRunningManagerFourthTest, AppRunningManager_OnRemoteRenderDied_0100, TestSize.Level1)
+HWTEST_F(AppRunningManagerFourthTest, AppRunningManager_OnRenderProcessExitedByPid_0100, TestSize.Level1)
 {
     auto appRunningManager = std::make_shared<AppRunningManager>();
     EXPECT_NE(appRunningManager, nullptr);
 
-    auto ret = appRunningManager->OnRemoteRenderDied(nullptr);
+    // invalid pid
+    auto ret = appRunningManager->OnRenderProcessExitedByPid(0);
+    EXPECT_EQ(ret, nullptr);
+    ret = appRunningManager->OnRenderProcessExitedByPid(-1);
     EXPECT_EQ(ret, nullptr);
 
-    OHOS::sptr<IRemoteObject> remote = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    // no app record for the pid
+    int32_t pid = 1;
     appRunningManager->appRunningRecordMap_.clear();
-    int32_t recordId = 0;
-    ret  = appRunningManager->OnRemoteRenderDied(remote);
+    ret = appRunningManager->OnRenderProcessExitedByPid(pid);
     EXPECT_EQ(ret, nullptr);
 
+    // app record exists, but no render record for the pid
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
     auto appRunningRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, PROCESS_NAME);
     appRunningRecord->appLifeCycleDeal_ = std::make_shared<AppLifeCycleDeal>();
-    appRunningManager->appRunningRecordMap_.insert(make_pair(recordId, appRunningRecord));
-    ret = appRunningManager->OnRemoteRenderDied(remote);
+    appRunningManager->appRunningRecordMap_.clear();
+    appRunningManager->appRunningRecordMap_.insert(std::make_pair(0, appRunningRecord));
+    ret = appRunningManager->OnRenderProcessExitedByPid(pid);
     EXPECT_EQ(ret, nullptr);
 }
 

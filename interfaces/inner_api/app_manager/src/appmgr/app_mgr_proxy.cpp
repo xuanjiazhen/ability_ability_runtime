@@ -48,7 +48,7 @@ void AppMgrProxy::AttachApplication(const sptr<IRemoteObject> &obj)
 {
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option(MessageOption::TF_SYNC);
+    MessageOption option(MessageOption::TF_SYNC | MessageOption::TF_IMAGE);
     if (!WriteInterfaceToken(data)) {
         return;
     }
@@ -85,7 +85,7 @@ void AppMgrProxy::PreloadModuleFinished(const int32_t recordId)
     TAG_LOGD(AAFwkTag::APPMGR, "PreloadModuleFinished called");
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option(MessageOption::TF_ASYNC);
+    MessageOption option(MessageOption::TF_ASYNC | MessageOption::TF_IMAGE);
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "PreloadModuleFinished write interface token failed");
         return;
@@ -270,11 +270,13 @@ int32_t AppMgrProxy::GetAllRunningProcesses(std::vector<RunningProcessInfo> &inf
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option(MessageOption::TF_SYNC);
+    MessageOption option(MessageOption::TF_SYNC | MessageOption::TF_IMAGE);
     if (!WriteInterfaceToken(data)) {
         return ERR_FLATTEN_OBJECT;
     }
-    if (!SendTransactCmd(AppMgrInterfaceCode::APP_GET_ALL_RUNNING_PROCESSES, data, reply)) {
+    int32_t result = SendRequest(AppMgrInterfaceCode::APP_GET_ALL_RUNNING_PROCESSES, data, reply, option);
+    if (result != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "receive error transact code %{public}d in transact cmd", result);
         return ERR_NULL_OBJECT;
     }
     auto error = GetParcelableInfos<RunningProcessInfo>(reply, info);
@@ -282,7 +284,7 @@ int32_t AppMgrProxy::GetAllRunningProcesses(std::vector<RunningProcessInfo> &inf
         TAG_LOGE(AAFwkTag::APPMGR, "GetParcelableInfos fail, error: %{public}d", error);
         return error;
     }
-    int result = reply.ReadInt32();
+    result = reply.ReadInt32();
     return result;
 }
 
@@ -476,11 +478,14 @@ int32_t AppMgrProxy::GetProcessRunningInformation(RunningProcessInfo &info)
 {
     MessageParcel data;
     MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC | MessageOption::TF_IMAGE);
 
     if (!WriteInterfaceToken(data)) {
         return ERR_FLATTEN_OBJECT;
     }
-    if (!SendTransactCmd(AppMgrInterfaceCode::APP_GET_PROCESS_RUNNING_INFORMATION, data, reply)) {
+    int32_t result = SendRequest(AppMgrInterfaceCode::APP_GET_PROCESS_RUNNING_INFORMATION, data, reply, option);
+    if (result != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "receive error transact code %{public}d in transact cmd", result);
         return ERR_NULL_OBJECT;
     }
     std::unique_ptr<RunningProcessInfo> infoReply(reply.ReadParcelable<RunningProcessInfo>());
@@ -568,6 +573,21 @@ int32_t AppMgrProxy::DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
     return reply.ReadInt32();
 }
 
+int32_t AppMgrProxy::DumpJsHandleMap(OHOS::AppExecFwk::JsHandleMapInfo &info)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "AppMgrProxy::DumpJsHandleMap.");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        return ERR_FLATTEN_OBJECT;
+    }
+    PARCEL_UTIL_WRITE_RET_INT(data, Parcelable, &info);
+
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::DUMP_JSHANDLE_MAP_PROCESS, data, reply, option);
+    return reply.ReadInt32();
+}
+
 int32_t AppMgrProxy::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "AppMgrProxy::DumpCjHeapMemory.");
@@ -583,7 +603,7 @@ int32_t AppMgrProxy::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
     return reply.ReadInt32();
 }
 
-int32_t AppMgrProxy::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+int32_t AppMgrProxy::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "AppMgrProxy::DumpMem.");
     MessageParcel data;
@@ -593,9 +613,54 @@ int32_t AppMgrProxy::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &d
         return ERR_FLATTEN_OBJECT;
     }
     PARCEL_UTIL_WRITE_RET_INT(data, Parcelable, &info);
+    if (callback != nullptr) {
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(callback->AsObject())) {
+            TAG_LOGE(AAFwkTag::APPMGR, "write callback failed");
+            return ERR_INVALID_VALUE;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "write callback flag failed");
+            return ERR_INVALID_VALUE;
+        }
+    }
+    int32_t ret = SendRequest(AppMgrInterfaceCode::DUMP_MEM_PROCESS, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest failed: %{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
 
-    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::DUMP_MEM_PROCESS, data, reply, option);
-    dumpResult = reply.ReadString();
+int32_t AppMgrProxy::ReportDumpMemResult(sptr<IMemDumpCallback> callback,
+    const std::string &dumpResult)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        return ERR_FLATTEN_OBJECT;
+    }
+    if (callback != nullptr) {
+        if (!data.WriteRemoteObject(callback->AsObject())) {
+            TAG_LOGE(AAFwkTag::APPMGR, "write callback failed");
+            return ERR_INVALID_VALUE;
+        }
+    } else {
+        if (!data.WriteRemoteObject(nullptr)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "write null callback failed");
+            return ERR_INVALID_VALUE;
+        }
+    }
+    if (!data.WriteString(dumpResult)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write dumpResult failed");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t ret = SendRequest(AppMgrInterfaceCode::REPORT_DUMP_MEM_RESULT, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest failed: %{public}d", ret);
+        return ret;
+    }
     return reply.ReadInt32();
 }
 
@@ -1523,6 +1588,48 @@ bool AppMgrProxy::IsSharedBundleRunning(const std::string &bundleName, uint32_t 
     return reply.ReadBool();
 }
 
+bool AppMgrProxy::IsMainProcessDebug(int32_t uid)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return false;
+    }
+    if (!data.WriteInt32(uid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "uid write failed.");
+        return false;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AppMgrInterfaceCode::IS_MAIN_PROCESS_DEBUG, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest failed, error code: %{public}d", ret);
+        return false;
+    }
+    return reply.ReadBool();
+}
+
+bool AppMgrProxy::IsCorrespondingProcessAttachDebug(const AbilityInfo &abilityInfo)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return false;
+    }
+    if (!data.WriteParcelable(&abilityInfo)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "abilityInfo write failed.");
+        return false;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AppMgrInterfaceCode::IS_CORRESPONDING_PROCESS_ATTACH_DEBUG, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest failed, error code: %{public}d", ret);
+        return false;
+    }
+    return reply.ReadBool();
+}
+
 int32_t AppMgrProxy::StartNativeProcessForDebugger(const AAFwk::Want &want)
 {
     MessageParcel data;
@@ -2321,7 +2428,7 @@ int32_t AppMgrProxy::SetSupportedProcessCacheSelf(bool isSupport)
     PARCEL_UTIL_WRITE_RET_INT(data, Bool, isSupport);
 
     MessageParcel reply;
-    MessageOption option;
+    MessageOption option(MessageOption::TF_IMAGE);
 
     PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::SET_SUPPORTED_PROCESS_CACHE_SELF, data, reply, option);
     return reply.ReadInt32();
@@ -2359,6 +2466,24 @@ int32_t AppMgrProxy::IsProcessCacheSupported(int32_t pid, bool &isSupported)
     MessageOption option;
 
     PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::IS_PROCESS_CACHE_SUPPORTED, data, reply, option);
+    isSupported = reply.ReadBool();
+    return reply.ReadInt32();
+}
+
+int32_t AppMgrProxy::IsChildProcessSupported(bool isNative, bool &isSupported)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "IsChildProcessSupported called");
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return AAFwk::ERR_WRITE_INTERFACE_TOKEN_FAILED;
+    }
+    PARCEL_UTIL_WRITE_RET_INT(data, Bool, isNative);
+
+    MessageParcel reply;
+    MessageOption option;
+
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::IS_CHILD_PROCESS_SUPPORTED, data, reply, option);
     isSupported = reply.ReadBool();
     return reply.ReadInt32();
 }

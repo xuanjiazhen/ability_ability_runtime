@@ -118,8 +118,10 @@ private:
     int32_t HandleUnregisterConfigurationObserver(MessageParcel &data, MessageParcel &reply);
     int32_t HandleDumpHeapMemory(MessageParcel &data, MessageParcel &reply);
     int32_t HandleDumpJsHeapMemory(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleDumpJsHandleMap(MessageParcel &data, MessageParcel &reply);
     int32_t HandleDumpCjHeapMemory(MessageParcel &data, MessageParcel &reply);
     int32_t HandleDumpMem(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleReportDumpMemResult(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetRunningMultiAppInfoByBundleName(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetAllRunningInstanceKeysBySelf(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetAllRunningInstanceKeysByBundleName(MessageParcel &data, MessageParcel &reply);
@@ -134,6 +136,8 @@ private:
     int32_t HandleSetContinuousTaskProcess(MessageParcel &data, MessageParcel &reply);
 #endif
     int32_t HandleIsSharedBundleRunning(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleIsMainProcessDebug(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleIsCorrespondingProcessAttachDebug(MessageParcel &data, MessageParcel &reply);
     int32_t HandleStartNativeProcessForDebugger(MessageParcel &data, MessageParcel &reply);
     int32_t HandleNotifyFault(MessageParcel &data, MessageParcel &reply);
     int32_t HandleNotifyFaultBySA(MessageParcel &data, MessageParcel &reply);
@@ -176,6 +180,7 @@ private:
     int32_t HandleSetSupportedProcessCacheSelf(MessageParcel &data, MessageParcel &reply);
     int32_t HandleSetSupportedProcessCache(MessageParcel &data, MessageParcel &reply);
     int32_t HandleIsProcessCacheSupported(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleIsChildProcessSupported(MessageParcel &data, MessageParcel &reply);
     int32_t HandleSetProcessCacheEnable(MessageParcel &data, MessageParcel &reply);
     int32_t HandleLockProcessCache(MessageParcel &data, MessageParcel &reply);
     int32_t HandleSaveBrowserChannel(MessageParcel &data, MessageParcel &reply);

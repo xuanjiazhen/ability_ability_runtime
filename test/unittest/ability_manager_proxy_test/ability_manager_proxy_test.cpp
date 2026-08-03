@@ -34,6 +34,7 @@
 #include "mission_listener_interface.h"
 #include "mission_snapshot.h"
 #include "snapshot.h"
+#include "sandbox_clone_params.h"
 
 using namespace testing::ext;
 using namespace testing;
@@ -1984,7 +1985,7 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartUserTest_001, TestSiz
     Want want;
     sptr<IRemoteObject> observer = nullptr;
     auto res = proxy_->StartUserTest(want, observer);
-    EXPECT_EQ(res, INNER_ERR);
+    EXPECT_EQ(res, ERR_NATIVE_IPC_PARCEL_FAILED);
 }
 
 /*
@@ -2148,7 +2149,7 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_FreeInstallAbilityFromRemo
     int32_t userId = 0;
     int requestCode = 0;
     auto res = proxy_->FreeInstallAbilityFromRemote(want, callback, userId, requestCode);
-    EXPECT_EQ(res, INNER_ERR);
+    EXPECT_EQ(res, ERR_NATIVE_IPC_PARCEL_FAILED);
 }
 
 /*
@@ -3319,6 +3320,26 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_RegisterSAInterceptor_001,
 
 /*
  * Feature: AbilityManagerService
+ * Function: UnregisterSAInterceptor
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService UnregisterSAInterceptor
+ * EnvConditions: NA
+ * CaseDescription: UnregisterSAInterceptor
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_UnregisterSAInterceptor_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    auto res = proxy_->UnregisterSAInterceptor(nullptr);
+    EXPECT_EQ(res, ERR_NULL_SA_INTERCEPTOR_EXECUTER);
+    sptr<AbilityRuntime::ISAInterceptor> interceptor = new AbilityRuntime::MockSAInterceptorStub(0);
+    res = proxy_->UnregisterSAInterceptor(interceptor->AsObject());
+    EXPECT_EQ(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
  * Function: StartSelfUIAbilityInCurrentProcess
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService StartSelfUIAbilityInCurrentProcess
@@ -3908,6 +3929,89 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_RequestModalUIExtensionWit
 
 /*
  * Feature: AbilityManagerService
+ * Function: RequestModalUIExtensionWithAccount
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerProxy RequestModalUIExtensionWithAccount
+ * EnvConditions: NA
+ * CaseDescription: Verify RequestModalUIExtensionWithAccount with SendRequest error
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_RequestModalUIExtensionWithAccount_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_RequestModalUIExtensionWithAccount_002 start");
+
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeErrorSendRequest));
+
+    Want want;
+    int32_t accountId = 100;
+    auto res = proxy_->RequestModalUIExtensionWithAccount(want, accountId);
+    EXPECT_NE(res, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_RequestModalUIExtensionWithAccount_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RequestModalUIExtensionWithAccount
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerProxy RequestModalUIExtensionWithAccount
+ * EnvConditions: NA
+ * CaseDescription: Verify RequestModalUIExtensionWithAccount with Want parameters
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_RequestModalUIExtensionWithAccount_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_RequestModalUIExtensionWithAccount_003 start");
+
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+
+    Want want;
+    ElementName element("device", "com.test.modal", "ModalUIExtensionAbility");
+    want.SetElement(element);
+    want.SetParam("key_test", 123);
+    int32_t accountId = 200;
+
+    auto res = proxy_->RequestModalUIExtensionWithAccount(want, accountId);
+
+    EXPECT_EQ(static_cast<uint32_t>(
+        AbilityManagerInterfaceCode::REQUEST_MODAL_UI_EXTENSION_WITH_ACCOUNT), mock_->code_);
+    EXPECT_EQ(res, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_RequestModalUIExtensionWithAccount_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RequestModalUIExtensionWithAccount
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerProxy RequestModalUIExtensionWithAccount
+ * EnvConditions: NA
+ * CaseDescription: Verify RequestModalUIExtensionWithAccount with negative accountId
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_RequestModalUIExtensionWithAccount_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_RequestModalUIExtensionWithAccount_004 start");
+
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+
+    Want want;
+    int32_t accountId = -1;
+
+    auto res = proxy_->RequestModalUIExtensionWithAccount(want, accountId);
+
+    EXPECT_EQ(static_cast<uint32_t>(
+        AbilityManagerInterfaceCode::REQUEST_MODAL_UI_EXTENSION_WITH_ACCOUNT), mock_->code_);
+    EXPECT_EQ(res, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_RequestModalUIExtensionWithAccount_004 end");
+}
+
+/*
+ * Feature: AbilityManagerService
  * Function: StartSelfUIAbilityByAppContext
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService StartSelfUIAbilityByAppContext
@@ -3944,6 +4048,234 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartSelfUIAbilityByAppCon
     EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_BY_APP_CONTEXT),
         mock_->code_);
     EXPECT_NE(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartSelf
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService StartSelf
+ * EnvConditions: NA
+ * CaseDescription: Verify the normal process of StartSelf
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartSelf_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    auto token = sptr<MockAbilityToken>::MakeSptr();
+    auto res = proxy_->StartSelf(token);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SELF), mock_->code_);
+    EXPECT_EQ(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartSelf
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService StartSelf
+ * EnvConditions: NA
+ * CaseDescription: Verify StartSelf with null token returns ERR_INVALID_VALUE
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartSelf_002, TestSize.Level1)
+{
+    OHOS::sptr<IRemoteObject> token = nullptr;
+    auto res = proxy_->StartSelf(token);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartSelf
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService StartSelf
+ * EnvConditions: NA
+ * CaseDescription: Verify the abnormal process of StartSelf (SendRequest failure)
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartSelf_003, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeErrorSendRequest));
+    auto token = sptr<MockAbilityToken>::MakeSptr();
+    auto res = proxy_->StartSelf(token);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SELF), mock_->code_);
+    EXPECT_NE(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartSandboxCloneAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerProxy StartSandboxCloneAbility
+ * EnvConditions: NA
+ * CaseDescription: Verify the normal process of StartSandboxCloneAbility
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartSandboxCloneAbility_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_StartSandboxCloneAbility_001 start");
+
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    SandboxCloneParams params;
+    params.callerBundleName = "com.caller.bundle";
+    params.callerUid = 10001;
+    params.callerTokenId = 123456;
+
+    auto res = proxy_->StartSandboxCloneAbility(want, params);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SANDBOX_CLONE_ABILITY), mock_->code_);
+    EXPECT_EQ(res, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_StartSandboxCloneAbility_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartSandboxCloneAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerProxy StartSandboxCloneAbility
+ * EnvConditions: NA
+ * CaseDescription: Verify StartSandboxCloneAbility with SendRequest failure
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartSandboxCloneAbility_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_StartSandboxCloneAbility_002 start");
+
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeErrorSendRequest));
+
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    SandboxCloneParams params;
+    params.callerBundleName = "com.caller.bundle";
+    params.callerUid = 10001;
+    params.callerTokenId = 123456;
+
+    auto res = proxy_->StartSandboxCloneAbility(want, params);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SANDBOX_CLONE_ABILITY), mock_->code_);
+    EXPECT_NE(res, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_StartSandboxCloneAbility_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartSandboxCloneAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerProxy StartSandboxCloneAbility
+ * EnvConditions: NA
+ * CaseDescription: Verify StartSandboxCloneAbility with empty Want
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartSandboxCloneAbility_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_StartSandboxCloneAbility_003 start");
+
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+
+    Want want;
+    SandboxCloneParams params;
+    params.callerBundleName = "com.caller.bundle";
+    params.callerUid = 10001;
+    params.callerTokenId = 123456;
+
+    auto res = proxy_->StartSandboxCloneAbility(want, params);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SANDBOX_CLONE_ABILITY), mock_->code_);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_StartSandboxCloneAbility_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartSandboxCloneAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerProxy StartSandboxCloneAbility
+ * EnvConditions: NA
+ * CaseDescription: Verify StartSandboxCloneAbility with empty params
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartSandboxCloneAbility_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_StartSandboxCloneAbility_004 start");
+
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    SandboxCloneParams params;
+    params.callerBundleName = "";
+    params.callerUid = -1;
+    params.callerTokenId = 0;
+
+    auto res = proxy_->StartSandboxCloneAbility(want, params);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SANDBOX_CLONE_ABILITY), mock_->code_);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_StartSandboxCloneAbility_004 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartSandboxCloneAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerProxy StartSandboxCloneAbility
+ * EnvConditions: NA
+ * CaseDescription: Verify StartSandboxCloneAbility with maximum values
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartSandboxCloneAbility_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_StartSandboxCloneAbility_005 start");
+
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    SandboxCloneParams params;
+    params.callerBundleName = "com.caller.bundle";
+    params.callerUid = INT32_MAX;
+    params.callerTokenId = UINT32_MAX;
+
+    auto res = proxy_->StartSandboxCloneAbility(want, params);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SANDBOX_CLONE_ABILITY), mock_->code_);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_StartSandboxCloneAbility_005 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartSandboxCloneAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerProxy StartSandboxCloneAbility
+ * EnvConditions: NA
+ * CaseDescription: Verify StartSandboxCloneAbility with long bundle name
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartSandboxCloneAbility_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_StartSandboxCloneAbility_006 start");
+
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    SandboxCloneParams params;
+    params.callerBundleName = "com.very.long.caller.bundle.name.that.exceeds.normal.length";
+    params.callerUid = 10001;
+    params.callerTokenId = 123456;
+
+    auto res = proxy_->StartSandboxCloneAbility(want, params);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SANDBOX_CLONE_ABILITY), mock_->code_);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_StartSandboxCloneAbility_006 end");
 }
 } // namespace AAFwk
 } // namespace OHOS

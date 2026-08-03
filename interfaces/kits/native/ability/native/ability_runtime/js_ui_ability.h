@@ -389,8 +389,12 @@ public:
         const std::shared_ptr<AppExecFwk::SkillExecuteParam> &param) override;
     napi_value LoadSkillFunction(const std::shared_ptr<AppExecFwk::SkillExecuteParam> &param,
         napi_value &outJsObj);
+    bool TryLoadSkillEntry(const std::string &srcEntry,
+        const std::shared_ptr<AppExecFwk::SkillExecuteParam> &param,
+        napi_env env, napi_value &outJsObj, napi_value &method);
     std::vector<napi_value> BuildSkillCallArgs(napi_env env,
         const std::shared_ptr<AppExecFwk::SkillExecuteParam> &param);
+    void ReportSkillError(const std::string &requestCode, int32_t errCode, const std::string &errMsg);
 
     /**
      * @brief Called when startAbility request failed.
@@ -462,6 +466,7 @@ private:
     JsRuntime &jsRuntime_;
     std::shared_ptr<NativeReference> shellContextRef_;
     std::shared_ptr<NativeReference> jsAbilityObj_;
+    std::unique_ptr<NativeReference> skillModuleRef_;
     sptr<IRemoteObject> remoteCallee_;
     bool reusingWindow_ = false;
     bool isGamePreLaunch_  = false;

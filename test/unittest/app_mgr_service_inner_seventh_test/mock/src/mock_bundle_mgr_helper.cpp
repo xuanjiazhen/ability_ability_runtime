@@ -219,7 +219,8 @@ bool BundleMgrHelper::GetApplicationInfo(const std::string& appName,
 bool BundleMgrHelper::GetApplicationInfoWithAppIndex(
     const std::string& appName, int32_t appIndex, int32_t userId, ApplicationInfo& appInfo)
 {
-    return false;
+    appInfo = AAFwk::MyStatus::GetInstance().applicationInfo_;
+    return AAFwk::MyStatus::GetInstance().getApplicationInfoWithAppIndexRet_;
 }
 
 ErrCode BundleMgrHelper::GetJsonProfile(ProfileType profileType, const std::string& bundleName,
@@ -234,6 +235,12 @@ bool BundleMgrHelper::UnregisterBundleEventCallback(const sptr<IBundleEventCallb
 }
 
 bool BundleMgrHelper::QueryExtensionAbilityInfoByUri(
+    const std::string& uri, int32_t userId, ExtensionAbilityInfo& extensionAbilityInfo)
+{
+    return false;
+}
+
+bool BundleMgrHelper::QueryExtensionAbilityInfoByUriOptimal(
     const std::string& uri, int32_t userId, ExtensionAbilityInfo& extensionAbilityInfo)
 {
     return false;

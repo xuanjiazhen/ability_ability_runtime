@@ -366,7 +366,7 @@ bool AbilityRecord::CanRestartResident()
 }
 
 // only for UIAbility
-void AbilityRecord::ForegroundAbility(uint32_t sceneFlag, bool hasLastWant)
+void AbilityRecord::ForegroundAbility(uint32_t sceneFlag)
 {
 }
 
@@ -1191,6 +1191,15 @@ std::shared_ptr<AbilityStartSetting> AbilityRecord::GetStartSetting() const
     return lifeCycleStateInfo_.setting;
 }
 
+void AbilityRecord::SetSandboxCloneParams(const std::shared_ptr<SandboxCloneParams> &params) {}
+
+std::shared_ptr<SandboxCloneParams> AbilityRecord::GetSandboxCloneParams() const
+{
+    return nullptr;
+}
+
+void AbilityRecord::InitSandboxCloneParams(const AbilityRequest &abilityRequest) {}
+
 void AbilityRecord::SetRestarting(const bool isRestart)
 {
 }
@@ -1672,6 +1681,48 @@ bool AbilityRecord::GetKillForPermissionUpdateFlag() const
     return isKillForPermissionUpdate_;
 }
 
+std::string AbilityRecord::GetAbilityName() const
+{
+    std::lock_guard guard(wantLock_);
+    return want_.GetElement().GetAbilityName();
+}
+
+std::string AbilityRecord::GetBundleName() const
+{
+    std::lock_guard guard(wantLock_);
+    return want_.GetBundle();
+}
+
+std::string AbilityRecord::GetModuleName() const
+{
+    std::lock_guard guard(wantLock_);
+    return want_.GetModuleName();
+}
+
+std::string AbilityRecord::GetStringParam(const std::string &key) const
+{
+    std::lock_guard guard(wantLock_);
+    return want_.GetStringParam(key);
+}
+
+int AbilityRecord::GetIntParam(const std::string &key, int defaultValue) const
+{
+    std::lock_guard guard(wantLock_);
+    return want_.GetIntParam(key, defaultValue);
+}
+
+bool AbilityRecord::GetBoolParam(const std::string &key, bool defaultValue) const
+{
+    std::lock_guard guard(wantLock_);
+    return want_.GetBoolParam(key, defaultValue);
+}
+
+bool AbilityRecord::HasParameter(const std::string &key) const
+{
+    std::lock_guard guard(wantLock_);
+    return want_.HasParameter(key);
+}
+
 void AbilityRecord::UpdateUIExtensionInfo(const WantParams &wantParams)
 {
 }
@@ -1691,6 +1742,10 @@ void AbilityRecord::SaveConnectWant(const Want &want)
 }
 
 void AbilityRecord::UpdateConnectWant()
+{
+}
+
+void AbilityRecord::SetDebugApp(bool isDebugApp)
 {
 }
 

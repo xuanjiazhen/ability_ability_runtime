@@ -198,7 +198,7 @@ std::string JsAbility::GenerateSrcPath(std::shared_ptr<AbilityInfo> abilityInfo)
         }
         srcPath.append("/");
         srcPath.append(abilityInfo->srcEntrance);
-        srcPath.erase(srcPath.rfind("."));
+        RemoveFileExtension(srcPath);
         srcPath.append(".abc");
         TAG_LOGI(AAFwkTag::ABILITY, "%{public}s", srcPath.c_str());
     }
@@ -743,7 +743,7 @@ bool JsAbility::InitWindowScene(const Want &want)
             return false;
         }
         abilityContext_->SetWeakSessionToken(sessionToken);
-        ret = scene_->Init(displayId, abilityContext_, sceneListener_, option, sessionToken, "", false, renderSession_);
+        ret = scene_->Init(displayId, abilityContext_, sceneListener_, option, sessionToken);
     } else {
         ret = scene_->Init(displayId, abilityContext_, sceneListener_, option);
     }

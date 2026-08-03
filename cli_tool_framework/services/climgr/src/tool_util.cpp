@@ -28,12 +28,16 @@
 #include "bundle_info.h"
 #include "bundle_mgr_helper.h"
 #include "cli_error_code.h"
+#include "cli_event_report.h"
+#include "exec_cmd_param.h"
 #include "exec_tool_param.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_skeleton.h"
 #include "permission_util.h"
 #include "session_record.h"
+#include "skill_execute_param.h"
 #include "skill_execute_result.h"
+#include "string_wrapper.h"
 #include "tool_info.h"
 #include "want_params.h"
 #include "want_params_wrapper.h"
@@ -48,8 +52,8 @@ constexpr int32_t MILLISECOND_COEFFICIENT = 1000;
 constexpr int64_t MAX_TIMEOUT = 30 * 60; // 30 m
 constexpr size_t PREFIX_DOUBLE_DASH_LEN = 2;
 }
-int32_t ToolUtil::ValidateProperties(const ToolInfo &toolInfo, ExecToolParam &param,
-    AccessToken::AccessTokenID tokenId)
+int32_t ToolUtil::ValidateProperties(const ToolInfo &toolInfo, const ExecToolParam &param,
+    AccessToken::AccessTokenID tokenId, std::string& detail)
 {
     if (!param.subcommand.empty()) {
         if (!toolInfo.hasSubCommand) {
@@ -59,49 +63,54 @@ int32_t ToolUtil::ValidateProperties(const ToolInfo &toolInfo, ExecToolParam &pa
 
         auto search = toolInfo.subcommands.find(param.subcommand);
         if (search == toolInfo.subcommands.end()) {
-            TAG_LOGE(AAFwkTag::CLI_TOOL, "not have subcommand");
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "not have subcommand, %{public}s", param.subcommand.c_str());
+            detail = DETAIL_SUBCOMMAND_NOT_FOUND;
             return ERR_TOOL_NOT_EXIST;
         }
-        if (!PermissionUtil::VerifyAccessToken(tokenId, search->second.requirePermissions)) {
-            return ERR_PERMISSION_DENIED;
-        }
-    } else {
-        if (!PermissionUtil::VerifyAccessToken(tokenId, toolInfo.requirePermissions)) {
-            return ERR_PERMISSION_DENIED;
-        }
     }
 
-    if (param.options.timeout < 0 || param.options.yieldMs < 0) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "yieldMs or timeout < 0");
-        return ERR_INVALID_PARAM;
-    }
-
-    if (param.options.timeout == 0) {
-        param.options.timeout = MAX_TIMEOUT;
-        TAG_LOGI(AAFwkTag::CLI_TOOL, "use max timeout");
-    } else if (param.options.timeout > MAX_TIMEOUT) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Excessively large timeout");
-        return ERR_INVALID_PARAM;
-    }
-
-    if (!param.options.background && param.options.yieldMs > param.options.timeout * MILLISECOND_COEFFICIENT) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "yieldTime exceeds timeout.");
-        return ERR_INVALID_PARAM;
+    auto res = ValidateExecOptionsProperties(param.options, detail);
+    if (res != ERR_OK) {
+        return res;
     }
 
     if (param.subcommand.empty()) {
-        return ValidateInputSchemaProperties(toolInfo.inputSchema, param.args);
+        return ValidateInputSchemaProperties(toolInfo.inputSchema, param.args, detail);
     }
 
     auto it = toolInfo.subcommands.find(param.subcommand);
     if (it == toolInfo.subcommands.end()) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "GetSubCommandInfo failed: subcommand=%{public}s", param.subcommand.c_str());
+        return ERR_INVALID_PARAM;
     }
-    return ValidateInputSchemaProperties(it->second.inputSchema, param.args);
+    return ValidateInputSchemaProperties(it->second.inputSchema, param.args, detail);
+}
+
+int32_t ToolUtil::ValidateExecOptionsProperties(const ExecOptions &options, std::string& detail)
+{
+    if (options.timeout < 0 || options.yieldMs < 0) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "yieldMs or timeout < 0");
+        detail = (options.timeout < 0) ? DETAIL_TIMEOUT_NEGATIVE : DETAIL_YIELD_MS_NEGATIVE;
+        return ERR_INVALID_PARAM;
+    }
+
+    if (options.timeout > MAX_TIMEOUT) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Excessively large timeout");
+        detail = DETAIL_TIMEOUT_EXCEEDS_LIMIT;
+        return ERR_INVALID_PARAM;
+    }
+
+    if (!options.background && options.yieldMs > options.timeout * MILLISECOND_COEFFICIENT) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "yieldTime exceeds timeout.");
+        detail = DETAIL_YIELD_EXCEEDS_TIMEOUT;
+        return ERR_INVALID_PARAM;
+    }
+
+    return ERR_OK;
 }
 
 int32_t ToolUtil::ValidateInputSchemaProperties(const std::string &inputSchema,
-    const AAFwk::WantParams &args)
+    const AAFwk::WantParams &args, std::string& detail)
 {
     if (args.IsEmpty()) {
         TAG_LOGI(AAFwkTag::CLI_TOOL, "args is empty");
@@ -110,6 +119,7 @@ int32_t ToolUtil::ValidateInputSchemaProperties(const std::string &inputSchema,
 
     if (inputSchema.empty()) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "inputSchema is empty");
+        detail = DETAIL_INPUT_SCHEMA_EMPTY;
         return ERR_INVALID_PARAM;
     }
 
@@ -133,16 +143,22 @@ int32_t ToolUtil::ValidateInputSchemaProperties(const std::string &inputSchema,
         }
         if (!properties.contains(key)) {
             TAG_LOGE(AAFwkTag::CLI_TOOL, "args key '%{public}s' not found in properties", key.c_str());
+            detail = DETAIL_PARAM_NOT_FOUND;
             return ERR_INVALID_PARAM;
         }
 
         // Validate type if specified in schema
         auto &propertySchema = properties[key];
         if (propertySchema.contains("type")) {
+            if (!propertySchema["type"].is_string()) {
+                TAG_LOGE(AAFwkTag::CLI_TOOL, "args key '%{public}s' has invalid schema type", key.c_str());
+                return ERR_INVALID_PARAM;
+            }
             std::string expectedType = propertySchema["type"].get<std::string>();
             if (!ValidateParamType(value, expectedType, propertySchema, key)) {
                 TAG_LOGE(AAFwkTag::CLI_TOOL, "args key '%{public}s' type mismatch, expected: %{public}s",
                     key.c_str(), expectedType.c_str());
+                detail = DETAIL_PARAM_TYPE_MISMATCH;
                 return ERR_INVALID_PARAM;
             }
         }
@@ -179,12 +195,50 @@ bool ToolUtil::GenerateSandboxConfig(const ExecToolParam &param, AccessToken::Ac
     config["callerPid"] = IPCSkeleton::GetCallingPid();
     config["gid"] = bundleInfo.gid;
     config["appId"] = bundleInfo.appId;
+    config["appIdentifier"] = bundleInfo.signatureInfo.appIdentifier;
     config["bundleName"] = bundleInfo.name;
     config["cliName"] = param.toolName;
     config["subCliName"] = param.subcommand;
+    config["type"] = "cli";
+    nlohmann::json envConfig;
+    envConfig["ohos_cli_callerBundleName"] = bundleInfo.name;
+    envConfig["ohos_cli_callerUid"] = std::to_string(IPCSkeleton::GetCallingUid());
+    envConfig["ohos_cli_callerTokenId"] = std::to_string(IPCSkeleton::GetCallingTokenID());
+    config["env"] = envConfig;
+    config["nsFlags"] = {"pid"};
+
     sandboxConfig = config.dump();
     bundleName = bundleInfo.name;
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "sandboxConfig: %{public}s", sandboxConfig.c_str());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "bundleName:%{public}s, gid:%{public}d, cliName:%{public}s, subCliName:%{public}s",
+        bundleInfo.name.c_str(), bundleInfo.gid, param.toolName.c_str(), param.subcommand.c_str());
+    return true;
+}
+
+bool ToolUtil::GenerateCmdSandboxConfig(const ExecCmdParam &param, AccessToken::AccessTokenID tokenId,
+    std::string &sandboxConfig, std::string &bundleName)
+{
+    AppExecFwk::BundleInfo bundleInfo;
+    if (!ToolUtil::GetBundleInfoByTokenId(tokenId, bundleInfo)) {
+        return false;
+    }
+
+    nlohmann::json config;
+    config["callerTokenId"] = IPCSkeleton::GetCallingFullTokenID();
+    config["uid"] = IPCSkeleton::GetCallingUid();
+    config["callerPid"] = IPCSkeleton::GetCallingPid();
+    config["gid"] = bundleInfo.gid;
+    config["appIdentifier"] = bundleInfo.signatureInfo.appIdentifier;
+    config["bundleName"] = bundleInfo.name;
+    config["type"] = "shell";
+    config["policy"] = param.policy;
+    if (param.workDir != "") {
+        config["workdir"] = param.workDir;
+    }
+    config["env"] = param.env;
+    config["nsFlags"] = {"pid"};
+    sandboxConfig = config.dump();
+    bundleName = bundleInfo.name;
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "bundleName:%{public}s, gid:%{public}d", bundleInfo.name.c_str(), bundleInfo.gid);
     return true;
 }
 
@@ -223,7 +277,7 @@ bool ToolUtil::GetBundleInfoByTokenId(AccessToken::AccessTokenID tokenId, AppExe
     return true;
 }
 
-void ToolUtil::TransferToCmdParam(const ToolInfo &toolInfo, const AAFwk::WantParams &args, std::string &cmdLine)
+void ToolUtil::TransferToCmdParam(const AAFwk::WantParams &args, std::vector<std::string> &execArgs)
 {
     if (args.IsEmpty()) {
         TAG_LOGI(AAFwkTag::CLI_TOOL, "Not has arg");
@@ -235,28 +289,30 @@ void ToolUtil::TransferToCmdParam(const ToolInfo &toolInfo, const AAFwk::WantPar
         }
 
         if (key == "help") {
-            ProcessBooleanParam(key, value, cmdLine);
+            ProcessBooleanParam(key, value, execArgs);
             continue;
         }
 
         if (IsBooleanType(value)) {
-            ProcessBooleanParam(key, value, cmdLine);
+            ProcessBooleanParam(key, value, execArgs);
             continue;
         }
 
         if (IsArrayType(value)) {
-            ProcessArrayExpansion(key, value, cmdLine);
+            ProcessArrayExpansion(key, value, execArgs);
             continue;
         }
 
         std::string strValue = GetParamStringValue(value);
         if (!strValue.empty()) {
-            cmdLine += " --" + key + " " + strValue;
+            execArgs.push_back("--" + key);
+            execArgs.push_back(strValue);
         }
     }
 }
 
-void ToolUtil::ProcessBooleanParam(const std::string &key, const sptr<AAFwk::IInterface> &value, std::string &cmdLine)
+void ToolUtil::ProcessBooleanParam(const std::string &key, const sptr<AAFwk::IInterface> &value,
+    std::vector<std::string> &execArgs)
 {
     if (!IsBooleanType(value)) {
         return;
@@ -264,7 +320,7 @@ void ToolUtil::ProcessBooleanParam(const std::string &key, const sptr<AAFwk::IIn
 
     bool boolValue = false;
     if (GetParamBoolValue(value, boolValue) && boolValue) {
-        cmdLine += " --" + key;
+        execArgs.push_back("--" + key);
     }
 }
 
@@ -350,7 +406,7 @@ bool ToolUtil::GetParamBoolValue(const sptr<AAFwk::IInterface> &value, bool &res
 }
 
 void ToolUtil::ProcessArrayExpansion(const std::string &key, const sptr<AAFwk::IInterface> &value,
-    std::string &cmdLine)
+    std::vector<std::string> &execArgs)
 {
     auto arrayValue = AAFwk::IArray::Query(value);
     if (arrayValue == nullptr) {
@@ -363,6 +419,7 @@ void ToolUtil::ProcessArrayExpansion(const std::string &key, const sptr<AAFwk::I
     }
 
     // Iterate through array elements and expand to command line
+    std::string tmpKey = "--" + key;
     for (long i = 0; i < arrayLength; ++i) {
         sptr<AAFwk::IInterface> elementValue;
         if (arrayValue->Get(i, elementValue) != ERR_OK || elementValue == nullptr) {
@@ -376,7 +433,8 @@ void ToolUtil::ProcessArrayExpansion(const std::string &key, const sptr<AAFwk::I
 
         std::string elementStr = GetParamStringValue(elementValue);
         if (!elementStr.empty()) {
-            cmdLine += " --" + key + " " + elementStr;
+            execArgs.push_back(tmpKey);
+            execArgs.push_back(elementStr);
         }
     }
 }
@@ -439,7 +497,14 @@ bool ToolUtil::ValidateArrayItems(sptr<AAFwk::IArray> arrayObj,
     if (arrayObj->GetLength(arrayLength) != ERR_OK || arrayLength == 0) {
         return true;
     }
-    std::string itemType = itemsSchema.value("type", "");
+    if (!itemsSchema.contains("type")) {
+        return true;
+    }
+    if (!itemsSchema["type"].is_string()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Array '%{public}s' has invalid item schema type", key.c_str());
+        return false;
+    }
+    std::string itemType = itemsSchema["type"].get<std::string>();
     if (itemType.empty()) {
         return true;
     }
@@ -599,6 +664,22 @@ std::shared_ptr<AAFwk::WantParams> ToolUtil::FilterSkillArgs(const AAFwk::WantPa
     return skillArgs;
 }
 
+namespace {
+std::string ExtractSkillErrorMsg(const AAFwk::WantParams &params)
+{
+    const auto &all = params.GetParams();
+    auto it = all.find(AppExecFwk::SKILL_ERROR_MSG_KEY);
+    if (it == all.end() || it->second == nullptr) {
+        return "";
+    }
+    auto *iStr = AAFwk::IString::Query(it->second);
+    if (iStr == nullptr) {
+        return "";
+    }
+    return AAFwk::String::Unbox(iStr);
+}
+} // namespace
+
 CliSessionInfo ToolUtil::BuildSkillSessionInfo(const std::string &sessionId,
     int32_t resultCode, const AppExecFwk::SkillExecuteResult &skillResult)
 {
@@ -607,9 +688,18 @@ CliSessionInfo ToolUtil::BuildSkillSessionInfo(const std::string &sessionId,
     session.toolName = "ohos-arkTSScript";
     session.status = (resultCode == ERR_OK) ? "completed" : "failed";
     session.result = std::make_shared<ExecResult>();
-    session.result->exitCode = skillResult.code;
+    int32_t exitCode = skillResult.code;
+    if (exitCode == 0 && resultCode != ERR_OK) {
+        exitCode = resultCode;
+    }
+    session.result->exitCode = exitCode;
     if (skillResult.result != nullptr) {
         session.result->outputText = skillResult.result->ToString();
+        if (resultCode != ERR_OK) {
+            session.result->errorText = ExtractSkillErrorMsg(*(skillResult.result));
+        }
+    } else if (resultCode != ERR_OK) {
+        session.result->errorText = "skill execute failed, code=" + std::to_string(resultCode);
     }
     return session;
 }

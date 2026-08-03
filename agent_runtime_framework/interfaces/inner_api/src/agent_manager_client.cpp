@@ -27,9 +27,6 @@ using namespace OHOS::AAFwk;
 
 namespace OHOS {
 namespace AgentRuntime {
-namespace {
-const int LOAD_SA_TIMEOUT_MS = 4 * 1000;
-} // namespace
 AgentManagerClient &AgentManagerClient::GetInstance()
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "GetInstance called");
@@ -181,6 +178,38 @@ int32_t AgentManagerClient::NotifyLowCodeAgentComplete(const std::string &agentI
     return agentMgr->NotifyLowCodeAgentComplete(agentId);
 }
 
+int32_t AgentManagerClient::GetAgentCardTypeForConnect(AAFwk::Want &want, int32_t &cardType)
+{
+    auto agentMgr = GetAgentMgrProxy();
+    if (agentMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentmgr");
+        return ERR_NULL_AGENT_MGR_PROXY;
+    }
+    return agentMgr->GetAgentCardTypeForConnect(want, cardType);
+}
+
+int32_t AgentManagerClient::VerifyAgentConnectRequest(const AAFwk::Want &want,
+    const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity)
+{
+    auto agentMgr = GetAgentMgrProxy();
+    if (agentMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentmgr");
+        return ERR_NULL_AGENT_MGR_PROXY;
+    }
+    return agentMgr->VerifyAgentConnectRequest(want, connection, callerIdentity);
+}
+
+int32_t AgentManagerClient::VerifyAgentDisconnectRequests(const std::vector<AAFwk::Want> &wants,
+    const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity)
+{
+    auto agentMgr = GetAgentMgrProxy();
+    if (agentMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentmgr");
+        return ERR_NULL_AGENT_MGR_PROXY;
+    }
+    return agentMgr->VerifyAgentDisconnectRequests(wants, connection, callerIdentity);
+}
+
 sptr<IAgentManager> AgentManagerClient::GetAgentMgrProxy()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -233,10 +262,6 @@ void AgentManagerClient::AgentManagerServiceDeathRecipient::OnRemoteDied(const w
 bool AgentManagerClient::LoadAgentMgrService()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    {
-        std::unique_lock<std::mutex> lock(loadSaMutex_);
-        loadSaFinished_ = false;
-    }
 
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "GetSystemAbilityManager");
     auto systemAbilityMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
@@ -245,31 +270,14 @@ bool AgentManagerClient::LoadAgentMgrService()
         return false;
     }
 
-    sptr<AgentLoadCallback> loadCallback = new (std::nothrow) AgentLoadCallback();
-    if (loadCallback == nullptr) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "Create load callback failed");
+    auto remoteObject = systemAbilityMgr->GetSystemAbility(AGENT_MGR_SERVICE_ID);
+    if (remoteObject == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "GetSystemAbility %{public}d failed", AGENT_MGR_SERVICE_ID);
         return false;
     }
 
-    auto ret = systemAbilityMgr->LoadSystemAbility(AGENT_MGR_SERVICE_ID, loadCallback);
-    if (ret != 0) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "Load system ability %{public}d failed with %{public}d",
-            AGENT_MGR_SERVICE_ID, ret);
-        return false;
-    }
-
-    {
-        std::unique_lock<std::mutex> lock(loadSaMutex_);
-        auto waitStatus = loadSaCondition_.wait_for(lock, std::chrono::milliseconds(LOAD_SA_TIMEOUT_MS),
-            [this]() {
-                return loadSaFinished_;
-            });
-        if (!waitStatus) {
-            TAG_LOGE(AAFwkTag::SER_ROUTER, "Wait for load sa timeout");
-            return false;
-        }
-    }
-
+    SetAgentMgr(remoteObject);
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "GetSystemAbility success");
     return true;
 }
 
@@ -288,17 +296,11 @@ sptr<IAgentManager> AgentManagerClient::GetAgentMgr()
 void AgentManagerClient::OnLoadSystemAbilitySuccess(const sptr<IRemoteObject> &remoteObject)
 {
     SetAgentMgr(remoteObject);
-    std::unique_lock<std::mutex> lock(loadSaMutex_);
-    loadSaFinished_ = true;
-    loadSaCondition_.notify_one();
 }
 
 void AgentManagerClient::OnLoadSystemAbilityFail()
 {
     SetAgentMgr(nullptr);
-    std::unique_lock<std::mutex> lock(loadSaMutex_);
-    loadSaFinished_ = true;
-    loadSaCondition_.notify_one();
 }
 }  // namespace AgentRuntime
 }  // namespace OHOS

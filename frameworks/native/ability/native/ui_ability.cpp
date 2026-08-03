@@ -286,11 +286,15 @@ void UIAbility::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessio
     securityFlag_ = want.GetBoolParam(DLP_PARAMS_SECURITY_FLAG, false);
     (const_cast<AAFwk::Want &>(want)).RemoveParam(DLP_PARAMS_SECURITY_FLAG);
 #endif // WITH_DLP
-    SetWant(want);
+
+    AAFwk::Want wantWithoutRequestId = want;
+    wantWithoutRequestId.RemoveParam(AAFwk::Want::PARAM_RESV_APP_REQUEST_ID);
+    wantWithoutRequestId.RemoveParam(AAFwk::Want::PARAM_RESV_SCB_REQUEST_ID);
+    SetWant(wantWithoutRequestId);
     TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", abilityInfo_->name.c_str());
 #ifdef SUPPORT_SCREEN
     if (sessionInfo != nullptr) {
-        SetSessionToken(sessionInfo->sessionToken, sessionInfo->renderSession);
+        SetSessionToken(sessionInfo->sessionToken);
         SetIdentityToken(sessionInfo->identityToken);
     }
     OnStartForSupportGraphics(want);
@@ -344,6 +348,9 @@ void UIAbility::OnStop()
 #ifdef SUPPORT_SCREEN
     Rosen::DisplayManager::GetInstance().RemoveDisplayIdFromAms(token_);
 #endif
+
+    // Set isDestroyed to true after onDestroy callback
+    isDestroyed_ = true;
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 
@@ -1534,11 +1541,10 @@ int UIAbility::CreateModalUIExtension(const AAFwk::Want &want)
     return ERR_OK;
 }
 
-void UIAbility::SetSessionToken(sptr<IRemoteObject> sessionToken, sptr<IRemoteObject> renderSession)
+void UIAbility::SetSessionToken(sptr<IRemoteObject> sessionToken)
 {
     std::lock_guard lock(sessionTokenMutex_);
     sessionToken_ = sessionToken;
-    renderSession_ = renderSession;
     auto abilityContextImpl = GetAbilityContext();
     if (abilityContextImpl == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext");
@@ -1549,7 +1555,7 @@ void UIAbility::SetSessionToken(sptr<IRemoteObject> sessionToken, sptr<IRemoteOb
 
 void UIAbility::UpdateSessionToken(sptr<IRemoteObject> sessionToken)
 {
-    SetSessionToken(sessionToken, nullptr);
+    SetSessionToken(sessionToken);
 }
 
 void UIAbility::EraseUIExtension(int32_t sessionId)

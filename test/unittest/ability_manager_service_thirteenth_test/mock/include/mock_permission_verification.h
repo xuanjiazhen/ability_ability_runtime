@@ -50,7 +50,7 @@ public:
 
     bool IsShellCallByTokenId(uint32_t callerTokenId) const;
 
-    bool CheckSpecificSystemAbilityAccessPermission() const;
+    bool CheckSpecificSystemAbilityAccessPermission(const std::string &processName) const;
 
     bool VerifyRunningInfoPerm() const;
 
@@ -84,7 +84,7 @@ public:
 
     bool JudgeStartInvisibleAbility(const uint32_t accessTokenId, const bool visible) const;
 
-    bool JudgeStartAbilityFromBackground(const bool isBackgroundCall) const;
+    bool JudgeStartAbilityFromBackground(const bool isBackgroundCall, const uint32_t specifyTokenId = 0) const;
 
     bool JudgeAssociatedWakeUp(const uint32_t accessTokenId, const bool associatedWakeUp) const;
 

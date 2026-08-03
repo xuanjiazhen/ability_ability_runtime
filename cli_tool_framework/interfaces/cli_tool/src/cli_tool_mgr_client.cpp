@@ -16,16 +16,15 @@
 #include "cli_tool_mgr_client.h"
 
 #include "cli_error_code.h"
+#include "cli_event_reply_manager.h"
+#include "cli_mgr_load_callback.h"
+#include "cli_session_subscription_manager.h"
+#include "cli_tool_mgr_scheduler_recipient.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
-#include "cli_mgr_load_callback.h"
-
-#include "cli_event_reply_manager.h"
-#include "cli_session_subscription_manager.h"
-#include "cli_tool_mgr_scheduler_recipient.h"
 
 namespace OHOS {
 namespace CliTool {
@@ -42,7 +41,7 @@ CliToolMGRClient& CliToolMGRClient::GetInstance()
 
 ErrCode CliToolMGRClient::ExecTool(const ExecToolParam &param, const ExecToolReplyCallback &callback)
 {
-    ErrCode ret = EnsureSchedulerRegistered();
+    ErrCode ret = EnsureSchedulerStubCreated();
     if (ret != ERR_OK) {
         return ret;
     }
@@ -63,7 +62,7 @@ ErrCode CliToolMGRClient::ExecTool(const ExecToolParam &param, const ExecToolRep
                 cb(result.code, sessionInfo);
             }
         });
-    ret = proxy->ExecTool(param, eventId);
+    ret = proxy->ExecTool(param, eventId, schedulerStub_);
     if (ret != ERR_OK) {
         CliEventReplyManager::GetInstance().RemoveEventReplyCallback(eventId);
     } else {
@@ -72,18 +71,12 @@ ErrCode CliToolMGRClient::ExecTool(const ExecToolParam &param, const ExecToolRep
     return ret;
 }
 
-ErrCode CliToolMGRClient::EnsureSchedulerRegistered()
+ErrCode CliToolMGRClient::ExecCmd(const ExecCmdParam &param,
+    const ExecToolReplyCallback &callback, const std::shared_ptr<SessionEventCallback> &sessionEventCallback)
 {
-    std::lock_guard<std::mutex> lock(schedulerMutex_);
-    if (schedulerRegistered_) {
-        return ERR_OK;
-    }
-    if (schedulerStub_ == nullptr) {
-        schedulerStub_ = sptr<CliToolManagerSchedulerRecipient>::MakeSptr();
-        if (schedulerStub_ == nullptr) {
-            TAG_LOGE(AAFwkTag::CLI_TOOL, "EnsureSchedulerRegistered prerequisites are missing");
-            return ERR_NO_INIT;
-        }
+    ErrCode ret = EnsureSchedulerStubCreated();
+    if (ret != ERR_OK) {
+        return ret;
     }
 
     auto proxy = GetCliToolMgrProxy();
@@ -91,13 +84,48 @@ ErrCode CliToolMGRClient::EnsureSchedulerRegistered()
         TAG_LOGE(AAFwkTag::CLI_TOOL, "connect failed");
         return GET_CLI_TOOL_MGR_SERVICE_FAILED;
     }
-    ErrCode ret = proxy->RegisterScheduler(schedulerStub_);
+
+    std::string eventId = CliEventReplyManager::GetInstance().AddEventReplyCallback("shell",
+        [cb = std::move(callback)](const CliEventReplyResult &result) {
+            if (cb) {
+                CliSessionInfo sessionInfo;
+                if (result.sessionInfo.has_value()) {
+                    sessionInfo = result.sessionInfo.value();
+                }
+                cb(result.code, sessionInfo);
+            }
+        });
+    
+    std::string subscriptionId = CliSessionSubscriptionManager::GetInstance().AddProvisionalSubscription("shell",
+        [sessionEventCallback](const std::string &sessionId,
+            const std::string &subscriptionId, const CliToolEvent &event) {
+            if (sessionEventCallback) {
+                sessionEventCallback->OnToolEvent(sessionId, subscriptionId, event);
+            }
+        });
+    ret = proxy->ExecCmd(param, eventId, schedulerStub_, subscriptionId);
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "RegisterScheduler failed: %{public}d", ret);
-        return ret;
+        CliEventReplyManager::GetInstance().RemoveEventReplyCallback(eventId);
+        CliSessionSubscriptionManager::GetInstance().RemoveSubscription(subscriptionId);
+    } else {
+        CliEventReplyManager::GetInstance().ActivateEventReplyCallback(eventId);
+        CliSessionSubscriptionManager::GetInstance().ActivateSubscription(subscriptionId);
     }
-    schedulerRegistered_ = true;
     return ret;
+}
+
+ErrCode CliToolMGRClient::EnsureSchedulerStubCreated()
+{
+    std::lock_guard<std::mutex> lock(schedulerMutex_);
+    if (schedulerStub_ != nullptr) {
+        return ERR_OK;
+    }
+    schedulerStub_ = sptr<CliToolManagerSchedulerRecipient>::MakeSptr();
+    if (schedulerStub_ == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "EnsureSchedulerStubCreated failed");
+        return ERR_NO_INIT;
+    }
+    return ERR_OK;
 }
 
 ErrCode CliToolMGRClient::GetAllToolSummaries(std::vector<ToolSummary> &summaries)
@@ -139,15 +167,89 @@ ErrCode CliToolMGRClient::GetAllToolInfos(std::vector<ToolInfo> &tools)
     return ToolsRawData::ToToolInfoVec(rawData, tools);
 }
 
-ErrCode CliToolMGRClient::RegisterTool(const ToolInfo &tool)
+ErrCode CliToolMGRClient::RegisterFunction(const FunctionInfo &function)
 {
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "RegisterFunction: %{public}s/%{public}s",
+        function.functionNamespace.c_str(), function.functionName.c_str());
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto proxy = GetCliToolMgrProxy();
     if (proxy == nullptr) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
         return GET_CLI_TOOL_MGR_SERVICE_FAILED;
     }
-    return proxy->RegisterTool(tool);
+    return proxy->RegisterFunction(function);
+}
+
+ErrCode CliToolMGRClient::BatchRegisterFunctions(const std::vector<FunctionInfo> &functions,
+    int32_t &successCount)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "BatchRegisterFunctions: %{public}zu functions", functions.size());
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    FunctionsRawData rawData;
+    FunctionsRawData::FromFunctionInfoVec(functions, rawData);
+    return proxy->BatchRegisterFunctions(rawData, successCount);
+}
+
+ErrCode CliToolMGRClient::GetFunctionInfo(const std::string &functionNamespace, const std::string &functionName,
+    FunctionInfo &function)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetFunctionInfo: %{public}s/%{public}s",
+        functionNamespace.c_str(), functionName.c_str());
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    return proxy->GetFunctionInfo(functionNamespace, functionName, function);
+}
+
+ErrCode CliToolMGRClient::UnregisterFunction(const std::string &functionNamespace, const std::string &functionName)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "UnregisterFunction: %{public}s/%{public}s",
+        functionNamespace.c_str(), functionName.c_str());
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    return proxy->UnregisterFunction(functionNamespace, functionName);
+}
+
+ErrCode CliToolMGRClient::UnregisterIntentFunctionsByNamespace(const std::string &functionNamespace)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "UnregisterIntentFunctionsByNamespace: %{public}s", functionNamespace.c_str());
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    return proxy->UnregisterIntentFunctionsByNamespace(functionNamespace);
+}
+
+ErrCode CliToolMGRClient::GetAllFunctions(std::vector<FunctionInfo> &functions)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllFunctions called");
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    FunctionsRawData rawData;
+    int32_t ret = proxy->GetAllFunctions(rawData);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllFunctions failed: %{public}d", ret);
+        return ret;
+    }
+    return FunctionsRawData::ToFunctionInfoVec(rawData, functions);
 }
 
 int32_t CliToolMGRClient::BatchQueryPermissionBySubCommand(
@@ -202,7 +304,8 @@ sptr<ICliToolManager> CliToolMGRClient::GetCliToolMgrProxy()
 
     const auto &onClearProxyCallback = [](const wptr<IRemoteObject> &remote) {
         auto &instance = GetInstance();
-        if (instance.cliToolMgr_->AsObject() == remote) {
+        auto cliToolMgr = instance.GetCliToolMgr();
+        if (cliToolMgr != nullptr && cliToolMgr->AsObject() == remote) {
             instance.ClearProxy();
         }
     };
@@ -229,7 +332,7 @@ bool CliToolMGRClient::LoadCliToolMgrService()
         return false;
     }
 
-    sptr<CliMgrLoadCallback> loadCallback = new (std::nothrow) CliMgrLoadCallback();
+    sptr<CliMgrLoadCallback> loadCallback = sptr<CliMgrLoadCallback>::MakeSptr();
     if (loadCallback == nullptr) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Create load callback failed");
         return false;
@@ -274,12 +377,6 @@ void CliToolMGRClient::ClearProxy()
     TAG_LOGD(AAFwkTag::CLI_TOOL, "called");
     std::lock_guard<std::mutex> lock(proxyMutex_);
     cliToolMgr_ = nullptr;
-    schedulerRegistered_ = false;
-    for (auto &handler : serviceDeathHandlers_) {
-        if (handler) {
-            handler();
-        }
-    }
     CliEventReplyManager::GetInstance().ClearAllEvent();
     CliSessionSubscriptionManager::GetInstance().ClearAllSubscriptions();
 }
@@ -296,7 +393,7 @@ ErrCode CliToolMGRClient::SubscribeSession(const std::string &sessionId,
                                            const std::shared_ptr<SessionEventCallback> &callback,
                                            std::string &subscriptionId)
 {
-    ErrCode ret = EnsureSchedulerRegistered();
+    ErrCode ret = EnsureSchedulerStubCreated();
     if (ret != ERR_OK) {
         return ret;
     }
@@ -314,7 +411,7 @@ ErrCode CliToolMGRClient::SubscribeSession(const std::string &sessionId,
                 callback->OnToolEvent(sessionId, subscriptionId, event);
             }
         });
-    ret = proxy->SubscribeSession(sessionId, subscriptionId);
+    ret = proxy->SubscribeSession(sessionId, subscriptionId, schedulerStub_);
     if (ret != ERR_OK) {
         CliSessionSubscriptionManager::GetInstance().RemoveSubscription(subscriptionId);
         subscriptionId = "";
@@ -359,7 +456,7 @@ ErrCode CliToolMGRClient::QuerySession(const std::string &sessionId, CliSessionI
 ErrCode CliToolMGRClient::SendMessage(const std::string &sessionId, const std::string &inputText,
     const EventReplyCallback &callback)
 {
-    ErrCode ret = EnsureSchedulerRegistered();
+    ErrCode ret = EnsureSchedulerStubCreated();
     if (ret != ERR_OK) {
         return ret;
     }
@@ -376,7 +473,7 @@ ErrCode CliToolMGRClient::SendMessage(const std::string &sessionId, const std::s
                 cb(result.code);
             }
         });
-    ret = proxy->SendMessage(sessionId, inputText, eventId);
+    ret = proxy->SendMessage(sessionId, inputText, eventId, schedulerStub_);
     if (ret != ERR_OK) {
         CliEventReplyManager::GetInstance().RemoveEventReplyCallback(eventId);
     } else {

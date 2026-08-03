@@ -14,6 +14,7 @@
  */
 #ifndef OHOS_ABILITY_ABILITY_APPFREEZE_LOG_CLIENT_H
 #define OHOS_ABILITY_ABILITY_APPFREEZE_LOG_CLIENT_H
+#include <atomic>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -31,6 +32,7 @@
 #include "application_impl.h"
 #include "fault_data.h"
 #include "task_handler_wrap.h"
+#include "ffrt.h"
 
 #define OHOS_TEMP_FAILURE_RETRY(exp)               \
     ({                                             \
@@ -41,6 +43,9 @@
         _rc;                                       \
     })
 
+namespace panda {
+struct GCStatistic;
+}
 namespace OHOS {
 namespace AppExecFwk {
 class AppfreezeInner {
@@ -80,28 +85,41 @@ private:
     bool GetReportLifeCycleAsAppfreeze();
     void EnableFreezeSample(FaultData& newFaultData);
     void ReportAppfreezeTask(const FaultData& faultData, bool onlyMainThread);
-    std::string LogFormat(size_t totalSize, size_t objectSize);
+    std::string LogFormatHeapSize(size_t totalSize, size_t objectSize, size_t sharedSize);
     void GetApplicationInfo(FaultData& faultData);
     bool GetProcessStartTime(pid_t tid, unsigned long long &startTime);
     bool ReadFdToString(int fd, std::string& content);
     int TransformHicollieFaultNumber(const std::string& faultName);
     std::string GetMainStackDump(int32_t pid);
+    std::string LogFormatGC(const panda::GCStatistic& gCStatistic);
+    std::string ParseIOValue(std::string ioStr);
+    std::string GetProcessIOStr();
+    int64_t GetFreezeCurrentTime();
+    bool IsFreezeTimeInGCPeriod(uint64_t halfTime, uint64_t blockTime,
+        uint64_t lastStartTime, uint64_t lastEndTime);
+    bool CheckBlockInGC(const std::string& faultName, uint64_t lastStartTime, uint64_t lastEndTime);
+    bool CheckGCType(std::string lastType);
+    bool IsProcessDebug(int32_t pid, std::string bundleName);
+    std::string GetBundleNameByApplication();
 
     static std::mutex singletonMutex_;
     static std::shared_ptr<AppfreezeInner> instance_;
-    bool isAppDebug_ = false;
-    bool isInForeground_ = true;
-    bool isEnableMainThreadSample_ = false;
-    bool reportLifecycleToFreeze_ = false;
+    std::atomic<bool> isAppDebug_{false};
+    std::atomic<bool> isInForeground_{true};
+    std::atomic<bool> isEnableMainThreadSample_{false};
+    std::atomic<bool> reportLifecycleToFreeze_{false};
     std::mutex handlingMutex_;
     std::list<FaultData> handlinglist_;
     std::shared_ptr<AAFwk::TaskHandlerWrap> appfreezeInnerTaskHandler_;
+    std::mutex applicationMutex_;
     std::shared_ptr<OHOSApplication> application_ = nullptr;
 
-    std::mutex mainStackMutex_;
-    std::condition_variable mainStackCv_;
+    ffrt::mutex mainStackMutex_;
+    ffrt::condition_variable mainStackCv_;
     std::string lastMainStack_ = "";
     std::atomic<int64_t> lastMainStackTime_ = 0;
+    std::atomic<uint64_t> threadBlock3STime_ = 0;
+    std::atomic<uint64_t> lifeCycleHalfTime_ = 0;
 };
 
 class MainHandlerDumper : public Dumper {

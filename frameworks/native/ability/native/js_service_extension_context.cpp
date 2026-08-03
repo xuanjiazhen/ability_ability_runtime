@@ -18,6 +18,7 @@
 #include <chrono>
 #include <cstdint>
 
+#include "ability_business_error.h"
 #include "ability_manager_client.h"
 #include "ability_runtime/js_caller_complex.h"
 #include "hilog_tag_wrapper.h"
@@ -38,6 +39,9 @@
 #include "open_link/napi_common_open_link_options.h"
 #include "start_options.h"
 #include "hitrace_meter.h"
+#ifdef HIVIEWDFX_RUNTIME_API_METRICS
+#include "histogram_plugin_macros.h"
+#endif
 #include "uri.h"
 
 namespace OHOS {
@@ -682,7 +686,13 @@ private:
         if (!CheckStartAbilityByCallInputParam(env, info, want, accountId)) {
             return CreateJsUndefined(env);
         }
-
+#ifdef HIVIEWDFX_RUNTIME_API_METRICS
+        if (accountId == DEFAULT_INVAL_VALUE) {
+            HISTOGRAM_BOOLEAN("AbilityKit.ServiceExtensionContext.startAbilityByCall", 1);
+        } else {
+            HISTOGRAM_BOOLEAN("AbilityKit.ServiceExtensionContext.startAbilityByCallWithAccount", 1);
+        }
+#endif
         auto calls = std::make_shared<StartAbilityByCallParameters>();
         napi_value result = nullptr;
         calls->callerCallBack = std::make_shared<CallerCallBack>();
@@ -1029,6 +1039,9 @@ private:
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
         TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
+#ifdef HIVIEWDFX_RUNTIME_API_METRICS
+    HISTOGRAM_BOOLEAN("AbilityKit.ServiceExtensionContext.connectServiceExtensionAbility", 1);
+#endif
         // Check params count
         if (info.argc < ARGC_TWO) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "invalid argc");
@@ -1052,12 +1065,12 @@ private:
         NapiAsyncTask::CompleteCallback complete = [connection, connectId, innerErrorCode](napi_env env,
             NapiAsyncTask& task, int32_t status) {
             if (*innerErrorCode == 0) {
-                TAG_LOGI(AAFwkTag::SERVICE_EXT, "Connect ability success");
+                TAG_LOGI(AAFwkTag::SERVICE_EXT, "Connect succ");
                 task.ResolveWithNoError(env, CreateJsUndefined(env));
                 return;
             }
 
-            TAG_LOGE(AAFwkTag::SERVICE_EXT, "Connect ability failed");
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "Connect fail");
             int32_t errcode = static_cast<int32_t>(AbilityRuntime::GetJsErrorCodeByNativeError(*innerErrorCode));
             if (errcode) {
                 connection->CallJsFailed(errcode);
@@ -1074,6 +1087,10 @@ private:
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
         TAG_LOGI(AAFwkTag::SERVICE_EXT, "ConnectAbilityWithAccount");
+#ifdef HIVIEWDFX_RUNTIME_API_METRICS
+    HISTOGRAM_BOOLEAN(
+        "AbilityKit.ServiceExtensionContext.connectServiceExtensionAbilityWithAccount", 1);
+#endif
         // Unwrap want, accountId and connection
         AAFwk::Want want;
         int32_t accountId = 0;
@@ -1184,7 +1201,7 @@ private:
                 } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
                     task.Reject(env, CreateJsError(env, *innerErrCode, "Context is released"));
                 } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER)) {
-                    task.Reject(env, CreateJsError(env, *innerErrCode, "not found connection"));
+                    task.Reject(env, CreateJsError(env, *innerErrCode, "null connection"));
                 } else {
                     task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
                 }
@@ -1199,7 +1216,7 @@ private:
     void FindConnection(AAFwk::Want& want, sptr<JSServiceExtensionConnection>& connection, int64_t& connectId,
         int32_t &accountId) const
     {
-        TAG_LOGI(AAFwkTag::SERVICE_EXT, "Disconnect ability:%{public}d",
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "Disconnect:%{public}d",
             static_cast<int32_t>(connectId));
         std::lock_guard guard(g_connectsMutex);
         auto item = std::find_if(g_connects.begin(),
@@ -1221,6 +1238,9 @@ private:
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
         TAG_LOGI(AAFwkTag::SERVICE_EXT, "called");
+#ifdef HIVIEWDFX_RUNTIME_API_METRICS
+    HISTOGRAM_BOOLEAN("AbilityKit.ServiceExtensionContext.startServiceExtensionAbility", 1);
+#endif
         if (info.argc < ARGC_ONE) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "invalid argc");
             ThrowTooFewParametersError(env);
@@ -1630,7 +1650,8 @@ private:
             HandleScope handleScope(env);
             if (!retCode) {
                 TAG_LOGE(AAFwkTag::SERVICE_EXT, "StartAbility failed");
-                task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                task.Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::INVALID_RET_CODE)));
                 return;
             }
             if (*retCode == 0) {

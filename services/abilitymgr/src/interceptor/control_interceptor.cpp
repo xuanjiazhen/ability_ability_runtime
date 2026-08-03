@@ -29,7 +29,7 @@ constexpr const char* INTERCEPT_MODULE_NAME = "intercept_moduleName";
 constexpr const char* IS_FROM_PARENTCONTROL = "ohos.ability.isFromParentControl";
 }
 
-ErrCode ControlInterceptor::DoProcess(AbilityInterceptorParam param)
+ErrCode ControlInterceptor::DoProcess(const AbilityInterceptorParam &param)
 {
     AppExecFwk::AppRunningControlRuleResult controlRule;
     if (CheckControl(param.want, param.userId, controlRule)) {
@@ -48,9 +48,10 @@ ErrCode ControlInterceptor::DoProcess(AbilityInterceptorParam param)
                 controlParam.SetParam(INTERCEPT_PARAMETERS, interceptParam);
             }
             controlWant->SetParams(controlParam);
-            controlWant->SetParam(INTERCEPT_BUNDLE_NAME, param.want.GetElement().GetBundleName());
-            controlWant->SetParam(INTERCEPT_ABILITY_NAME, param.want.GetElement().GetAbilityName());
-            controlWant->SetParam(INTERCEPT_MODULE_NAME, param.want.GetElement().GetModuleName());
+            auto wantEle = param.want.GetElement();
+            controlWant->SetParam(INTERCEPT_BUNDLE_NAME, wantEle.GetBundleName());
+            controlWant->SetParam(INTERCEPT_ABILITY_NAME, wantEle.GetAbilityName());
+            controlWant->SetParam(INTERCEPT_MODULE_NAME, wantEle.GetModuleNameRef());
             controlRule.controlWant = controlWant;
         }
         int ret = IN_PROCESS_CALL(AbilityManagerClient::GetInstance()->StartAbility(*controlRule.controlWant,
@@ -77,7 +78,7 @@ bool ControlInterceptor::CheckControl(const Want &want, int32_t userId,
     }
 
     // get disposed status
-    std::string bundleName = want.GetBundle();
+    const auto &bundleName = want.GetBundleNameRef();
     auto appControlMgr = bundleMgrHelper->GetAppControlProxy();
     if (appControlMgr == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null appControlMgr");

@@ -38,7 +38,8 @@ public:
         QUICK_FIX_REVOKE,
     };
 
-    void Run(const std::vector<std::string> &quickFixFiles, bool isDebug = false, bool isReplace = false);
+    void Run(const std::vector<std::string> &quickFixFiles, bool isDebug = false, bool isReplace = false,
+        bool isCheckDebugApp = false);
     void HandlePatchDeployed();
     void HandlePatchSwitched();
     void HandlePatchDeleted();
@@ -66,7 +67,7 @@ public:
     void PostRevokeQuickFixProcessDiedTask();
 private:
     void PostDeployQuickFixTask(const std::vector<std::string> &quickFixFiles, bool isDebug = false,
-        bool isReplace = false);
+        bool isReplace = false, bool isCheckDebugApp = false);
     void PostTimeOutTask();
     void PostNotifyLoadRepairPatchTask();
     void PostNotifyUnloadRepairPatchTask();
@@ -90,6 +91,7 @@ private:
     int patchVersionCode_ = 0;
     bool isRunning_ = false;
     bool isSoContained_ = false;
+    int32_t callerUid_ = 0;
 };
 } // namespace AAFwk
 } // namespace OHOS

@@ -354,6 +354,16 @@ bool AppScheduler::IsAttachDebug(const std::string &bundleName)
     return 0;
 }
 
+bool AppScheduler::IsMainProcessDebug(int32_t uid)
+{
+    return false;
+}
+
+bool AppScheduler::IsCorrespondingProcessAttachDebug(const AppExecFwk::AbilityInfo &abilityInfo)
+{
+    return false;
+}
+
 void AppScheduler::OnCacheExitInfo(uint32_t accessTokenId, const AppExecFwk::RunningProcessInfo &exitInfo,
     const std::string &bundleName, const std::vector<std::string> &abilityNames,
     const std::vector<std::string> &uiExtensionNames) {}
@@ -378,6 +388,15 @@ int32_t AppScheduler::PreloadApplicationByPhase(const std::string &bundleName, i
 int32_t AppScheduler::VerifyKillProcessPermission(const std::string &bundleName) const
 {
     return 0;
+}
+
+void AppScheduler::ClearProcessByToken(sptr<IRemoteObject> token) const
+{
+}
+
+bool AppScheduler::IsKilledForUpgradeWeb(const std::string &bundleName)
+{
+    return true;
 }
 } // namespace AAFwk
 } // namespace OHOS

@@ -142,9 +142,8 @@ HWTEST_F(DumpRuntimeHelperTest, DumpMem_0100, Function | MediumTest | Level1)
     info.pid = 1;
     info.needLeakobj = false;
     info.dumpType = MemDumpType::KMP_KOTLIN;
-    std::string dumpResult;
     auto helper = std::make_shared<DumpRuntimeHelper>(application);
-    helper->DumpMem(info, dumpResult);
+    helper->DumpMem(info, nullptr);
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpMem_0100 end";
 }
 
@@ -162,9 +161,8 @@ HWTEST_F(DumpRuntimeHelperTest, DumpMem_0200, Function | MediumTest | Level1)
     info.pid = 1;
     info.needLeakobj = false;
     info.dumpType = MemDumpType::NATIVE;
-    std::string dumpResult;
     auto helper = std::make_shared<DumpRuntimeHelper>(application);
-    helper->DumpMem(info, dumpResult);
+    helper->DumpMem(info, nullptr);
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpMem_0200 end";
 }
 
@@ -182,9 +180,8 @@ HWTEST_F(DumpRuntimeHelperTest, DumpMem_0300, Function | MediumTest | Level1)
     info.pid = 1;
     info.needLeakobj = false;
     info.dumpType = MemDumpType::JSVM;
-    std::string dumpResult;
     auto helper = std::make_shared<DumpRuntimeHelper>(application);
-    helper->DumpMem(info, dumpResult);
+    helper->DumpMem(info, nullptr);
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpMem_0300 end";
 }
 
@@ -203,9 +200,8 @@ HWTEST_F(DumpRuntimeHelperTest, DumpMem_0400, Function | MediumTest | Level1)
     info.needLeakobj = false;
     info.dumpType = MemDumpType::ARKWEB_JS;
     info.renderPid = 1234;
-    std::string dumpResult;
     auto helper = std::make_shared<DumpRuntimeHelper>(application);
-    helper->DumpMem(info, dumpResult);
+    helper->DumpMem(info, nullptr);
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest DumpMem_0400 end";
 }
 
@@ -223,84 +219,6 @@ HWTEST_F(DumpRuntimeHelperTest, CheckOomdumpSwitch_0100, Function | MediumTest |
     OHOS::system::SetParameter("hiview.oomdump.switch", "unknown");
     EXPECT_TRUE(DumpRuntimeHelper::CheckOomdumpSwitch());
     GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CheckOomdumpSwitch_0100 end";
-}
-
-class CreateDirTest : public ::testing::Test {
-protected:
-    CreateDirTest()
-    {
-    }
-
-    ~CreateDirTest()
-    {
-    }
-
-    void SetUp() override
-    {
-        std::string testDir = "/data/local/tmp/dump_runtime_helper_test";
-        RemoveTestDir(testDir);
-    }
-
-    void TearDown() override
-    {
-        std::string testDir = "/data/local/tmp/dump_runtime_helper_test";
-        RemoveTestDir(testDir);
-    }
-
-    void CreateTestDir(const std::string& path)
-    {
-        if (DumpRuntimeHelper::IsFileExists(path)) {
-            return;
-        }
-        constexpr mode_t defaultLogDirMode = 0770;
-        if (mkdir(path.c_str(), defaultLogDirMode) != 0) {
-            perror("mkdir failed");
-        }
-    }
-
-    void RemoveTestDir(const std::string& path)
-    {
-        if (DumpRuntimeHelper::IsFileExists(path)) {
-            if (rmdir(path.c_str()) != 0) {
-                perror("rmdir failed");
-            }
-        }
-    }
-};
-
-/**
- * @tc.number: CreateDir_0100
- * @tc.name: CreateDir_FileExists
- * @tc.desc: Test CreateDir when directory already exists.
- */
-HWTEST_F(CreateDirTest, CreateDir_0100, Function | MediumTest | Level1)
-{
-    GTEST_LOG_(INFO) << "CreateDirTest CreateDir_0100 start";
-
-    std::string testDir = "/data/local/tmp/dump_runtime_helper_test";
-    CreateTestDir(testDir);
-    EXPECT_TRUE(DumpRuntimeHelper::IsFileExists(testDir));
-    EXPECT_TRUE(DumpRuntimeHelper::CreateDir(testDir));
-
-    GTEST_LOG_(INFO) << "CreateDirTest CreateDir_0100 end";
-}
-
-/**
- * @tc.number: CreateDir_0200
- * @tc.name: CreateDir_CreateSuccess
- * @tc.desc: Test CreateDir when directory is created successfully.
- */
-HWTEST_F(CreateDirTest, CreateDir_0200, Function | MediumTest | Level1)
-{
-    GTEST_LOG_(INFO) << "CreateDirTest CreateDir_0200 start";
-
-    std::string testDir = "/data/local/tmp/dump_runtime_helper_test";
-    RemoveTestDir(testDir);
-    EXPECT_FALSE(DumpRuntimeHelper::IsFileExists(testDir));
-    EXPECT_TRUE(DumpRuntimeHelper::CreateDir(testDir));
-    EXPECT_TRUE(DumpRuntimeHelper::IsFileExists(testDir));
-    RemoveTestDir(testDir);
-    GTEST_LOG_(INFO) << "DumpRuntimeHelperTest CreateDir_0200 end";
 }
 }
 }

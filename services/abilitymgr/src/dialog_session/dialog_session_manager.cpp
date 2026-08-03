@@ -424,7 +424,7 @@ int DialogSessionManager::CreateImplicitSelectorModalDialog(AbilityRequest &abil
 
     sessionWant.SetParam("deviceType", OHOS::system::GetDeviceType());
     sessionWant.SetParam("userId", userId);
-    sessionWant.SetParam("action", abilityRequest.want.GetAction());
+    sessionWant.SetParam("action", abilityRequest.want.GetActionRef());
     sessionWant.SetParam("wantType", abilityRequest.want.GetType());
     sessionWant.SetParam("uri", abilityRequest.want.GetUriString());
     sessionWant.SetParam("entities", abilityRequest.want.GetEntities());
@@ -574,7 +574,11 @@ int32_t DialogSessionManager::HandleErmsResultBySCB(AbilityRequest &abilityReque
 
 bool DialogSessionManager::IsCreateCloneSelectorDialog(const std::string &bundleName, int32_t userId)
 {
-    if (StartAbilityUtils::isWantWithAppCloneIndex) {
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    StartAbilityUtils::isWantWithAppCloneIndex = false;
+    return false;
+#else
+    if (StartAbilityUtils::isWantWithAppCloneIndex || StartAbilityUtils::isSandBoxClone) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "no clone index");
         StartAbilityUtils::isWantWithAppCloneIndex = false;
         return false;
@@ -585,6 +589,7 @@ bool DialogSessionManager::IsCreateCloneSelectorDialog(const std::string &bundle
         return false;
     }
     return true;
+#endif
 }
 
 bool DialogSessionManager::UpdateExtensionWantWithDialogCallerInfo(AbilityRequest &abilityRequest,

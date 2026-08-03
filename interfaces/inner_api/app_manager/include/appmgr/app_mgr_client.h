@@ -37,12 +37,14 @@
 #include "irender_scheduler.h"
 #include "irender_state_observer.h"
 #include "istart_specified_ability_response.h"
+#include "mem_dump_callback_interface.h"
 #include "refbase.h"
 #include "render_process_info.h"
 #include "running_process_info.h"
 #include "system_memory_attr.h"
 #include "want.h"
 #include "app_jsheap_mem_info.h"
+#include "app_jshandle_map_info.h"
 #include "app_cjheap_mem_info.h"
 
 namespace OHOS {
@@ -392,6 +394,15 @@ public:
     virtual AppMgrResultCode DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info);
 
     /**
+     * DumpJsHandleMap, call DumpJsHandleMap() through proxy project.
+     * dump the application's jshandle map info.
+     *
+     * @param info, pid tid
+     * @return ERR_OK ,return back success, others fail.
+     */
+    virtual AppMgrResultCode DumpJsHandleMap(OHOS::AppExecFwk::JsHandleMapInfo &info);
+
+    /**
      * DumpCjHeapMemory, call DumpCjHeapMemory() through proxy project.
      * triggerGC and dump the application's cjheap memory info.
      *
@@ -400,15 +411,27 @@ public:
      */
     virtual AppMgrResultCode DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info);
 
-    /**
+/**
      * DumpMem, call DumpMem() through proxy project.
      * triggerGC and dump application's memory info.
      *
      * @param info, pid tid needGc needSnapshot
-     * @param dumpResult, the dump result string
+     * @param callback The callback to receive dump result
      * @return ERR_OK ,return back success, others fail.
      */
-    virtual AppMgrResultCode DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult);
+    virtual AppMgrResultCode DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback);
+
+    /**
+     * ReportDumpMemResult, called by app process to report dump result to appmgr.
+     * appmgr will forward the result to hidumper via callback.
+     *
+     * @param callback The callback received from ScheduleMem
+     * @param resultCode The result code of dump operation
+     * @param dumpResult The dump result string
+     * @return ERR_OK ,return back success, others fail.
+     */
+    virtual AppMgrResultCode ReportDumpMemResult(sptr<IMemDumpCallback> callback,
+        const std::string &dumpResult);
 
     /**
      * GetConfiguration
@@ -783,6 +806,20 @@ public:
     bool IsAttachDebug(const std::string &bundleName);
 
     /**
+     * @brief Query whether the main process of the app (identified by uid) is in debug mode.
+     * @param uid The application uid.
+     * @return Returns true if the main process is in debug mode, false otherwise.
+     */
+    bool IsMainProcessDebug(int32_t uid);
+
+    /**
+     * @brief Query whether the corresponding process of the app (identified by abilityInfo) is in attach debug mode.
+     * @param abilityInfo The ability info used to locate the corresponding process.
+     * @return Returns true if the corresponding process is in attach debug mode, false otherwise.
+     */
+    bool IsCorrespondingProcessAttachDebug(const AbilityInfo &abilityInfo);
+
+    /**
      * @brief Set resident process enable status.
      * @param bundleName The application bundle name.
      * @param enable The current updated enable status.
@@ -1000,6 +1037,8 @@ public:
     int32_t SetSupportedProcessCache(int32_t pid, bool isSupport);
 
     int32_t IsProcessCacheSupported(int32_t pid, bool &isSupported);
+
+    int32_t IsChildProcessSupported(bool isNative, bool &isSupported);
 
     int32_t SetProcessCacheEnable(int32_t pid, bool enable);
 

@@ -99,6 +99,14 @@ bool FaultData::ReadContent(Parcel &parcel)
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ApplicationHeapInfo read string failed.");
     applicationHeapInfo = strValue;
 
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ApplicationGCInfo read string failed.");
+    applicationGCInfo = strValue;
+
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ApplicationIOInfo read string failed.");
+    applicationIOInfo = strValue;
+
+    isBlockInGc = parcel.ReadBool();
+
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ProcessLifeTime read string failed.");
     processLifeTime = strValue;
 
@@ -146,6 +154,9 @@ bool FaultData::ReadLeakContent(Parcel &parcel)
     uint64_t atltValue = 0;
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadUint64(atltValue), "atLeakType read uint64 failed.");
     atLeakType = static_cast<AppTelemetryLeakType>(atltValue);
+
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "GpuHookSize read string failed.");
+    gpuHookSize = strValue;
 
     return true;
 }
@@ -207,7 +218,36 @@ bool FaultData::WriteLeakContent(Parcel &parcel) const
 
     uint64_t atltValue = static_cast<uint64_t>(atLeakType);
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteUint64(atltValue),
-        "LeakDetailInfo atltValue [%{public}" PRIu64 "] write uint64 failed.", atltValue
+        "atltValue [%{public}" PRIu64 "] write uint64 failed.", atltValue
+    );
+
+    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteString(gpuHookSize),
+        "gpuHookSize [%{public}s] write string failed.", gpuHookSize.c_str()
+    );
+
+    return true;
+}
+
+bool FaultData::WriteApplicationContent(Parcel &parcel) const
+{
+    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteString(applicationHeapInfo),
+        "applicationHeapInfo [%{public}s] write string failed.", applicationHeapInfo.c_str()
+    );
+
+    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteString(applicationGCInfo),
+        "applicationGCInfo [%{public}s] write string failed.", applicationGCInfo.c_str()
+    );
+
+    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteString(applicationIOInfo),
+        "applicationIOInfo [%{public}s] write string failed.", applicationIOInfo.c_str()
+    );
+
+    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteBool(isBlockInGc),
+        "isBlockInGc [%{public}d] write bool failed.", isBlockInGc
+    );
+
+    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteString(processLifeTime),
+        "processLifeTime [%{public}s] write string failed.", processLifeTime.c_str()
     );
     return true;
 }
@@ -251,13 +291,9 @@ bool FaultData::WriteContent(Parcel &parcel) const
         "reportLifecycleToFreeze [%{public}d] write bool failed.", reportLifecycleToFreeze
     );
 
-    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteString(applicationHeapInfo),
-        "applicationHeapInfo [%{public}s] write string failed.", applicationHeapInfo.c_str()
-    );
-
-    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteString(processLifeTime),
-        "processLifeTime [%{public}s] write string failed.", processLifeTime.c_str()
-    );
+    if (!WriteApplicationContent(parcel)) {
+        return false;
+    }
 
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteInt32(markedId),
         "MarkedId [%{public}d] write int32 failed.", markedId
@@ -416,6 +452,14 @@ bool AppFaultDataBySA::ReadContent(Parcel &parcel)
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ApplicationHeapInfo read string failed.");
     applicationHeapInfo = strValue;
 
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ApplicationGCInfo read string failed.");
+    applicationGCInfo = strValue;
+
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ApplicationIOInfo read string failed.");
+    applicationIOInfo = strValue;
+
+    isBlockInGc = parcel.ReadBool();
+
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ProcessLifeTime read string failed.");
     processLifeTime = strValue;
     return ReadLeakContent(parcel);
@@ -451,6 +495,10 @@ bool AppFaultDataBySA::ReadLeakContent(Parcel &parcel)
 
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadUint64(sizeValue), "LeakDetailInfo otherSize read uint64 failed.");
     atLeakType = static_cast<AppTelemetryLeakType>(sizeValue);
+
+    std::string strValue;
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "GpuHookSize read string failed.");
+    gpuHookSize = strValue;
 
     return true;
 }
@@ -511,6 +559,9 @@ bool AppFaultDataBySA::WriteLeakContent(Parcel &parcel) const
         "atltValue [%{public}" PRIu64 "] write uint64 failed.", atltValue
     );
 
+    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteString(gpuHookSize),
+        "gpuHookSize [%{public}s] write string failed.", gpuHookSize.c_str()
+    );
     return true;
 }
 
@@ -551,6 +602,18 @@ bool AppFaultDataBySA::WriteContent(Parcel &parcel) const
 
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteString(applicationHeapInfo),
         "applicationHeapInfo [%{public}s] write string failed.", applicationHeapInfo.c_str()
+    );
+
+    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteString(applicationGCInfo),
+        "applicationGCInfo [%{public}s] write string failed.", applicationGCInfo.c_str()
+    );
+
+    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteString(applicationIOInfo),
+        "applicationIOInfo [%{public}s] write string failed.", applicationIOInfo.c_str()
+    );
+
+    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteBool(isBlockInGc),
+        "isBlockInGc [%{public}d] write bool failed.", isBlockInGc
     );
 
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteString(processLifeTime),

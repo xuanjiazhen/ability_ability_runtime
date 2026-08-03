@@ -59,6 +59,11 @@ ohos_shared_library("ability_runtime") {
     "src/connect_options.cpp",
     "src/context.cpp",
     "src/load_ability_callback_impl.cpp",
+    "src/mo_dispatcher_complex_type_manager.cpp",
+    "src/mo_dispatcher_metadata_manager.cpp",
+    "src/mo_dispatcher_type.cpp",
+    "src/mo_dispatcher_param_codec.cpp",
+    "src/modular_object_dispatcher.cpp",
     "src/modular_object_extension_ability.cpp",
     "src/modular_object_extension_context.cpp",
     "src/c_modular_object_connection_callback.cpp",
@@ -98,12 +103,13 @@ ohos_shared_library("ability_runtime") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "napi:ace_napi",
+    "libuv:uv",
+    "node:node_header_notice",
     "samgr:samgr_proxy",
   ]
 
   if (ability_runtime_graphics) {
     external_deps += [
-      "graphic_2d:color_manager",
       "image_framework:image",
       "window_manager:libwm",
       "window_manager:window_animation_utils",

@@ -36,6 +36,7 @@ config("cli_tool_client_config") {
     "include",
     "${ability_runtime_innerkits_path}/ability_manager/include",
     "${ability_runtime_services_path}/common/include",
+    "${cli_tool_framework_path}/interfaces/function/include",
     "${target_gen_dir}",
   ]
 }
@@ -46,6 +47,7 @@ ohos_shared_library("cli_tool_client") {
     cfi_cross_dso = true
     debug = false
   }
+  branch_protector_ret = "pac_ret"
 
   public_configs = [ ":cli_tool_client_config" ]
 
@@ -57,6 +59,7 @@ ohos_shared_library("cli_tool_client") {
     "src/cli_tool_event.cpp",
     "src/cli_tool_mgr_client.cpp",
     "src/cli_tool_mgr_scheduler_recipient.cpp",
+    "src/exec_cmd_param.cpp",
     "src/exec_options.cpp",
     "src/exec_result.cpp",
     "src/exec_tool_param.cpp",
@@ -70,6 +73,7 @@ ohos_shared_library("cli_tool_client") {
 
   deps = [
     ":cli_tool_manager_interface",
+    "${cli_tool_framework_path}/interfaces/function:function_info",
   ]
 
   external_deps = [
