@@ -60,8 +60,18 @@ class NativeModuleCollectorTest : public testing::Test {
 public:
     static void SetUpTestCase() {}
     static void TearDownTestCase() {}
-    void SetUp() override {}
-    void TearDown() override {}
+    void SetUp() override
+    {
+        // every case starts from a clean collector state: switch off, params uncached
+        NativeModuleCollector::ResetStateForTest();
+        NativeModuleCollector::SetEnabledForTest(false);
+        NativeModuleCollector::ResetParamCacheForTest();
+    }
+    void TearDown() override
+    {
+        NativeModuleCollector::SetEnabledForTest(false);
+        NativeModuleCollector::ResetStateForTest();
+    }
 };
 
 /**
