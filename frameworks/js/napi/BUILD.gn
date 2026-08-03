@@ -124,7 +124,4 @@ group("napi_packages") {
       "${ability_runtime_napi_path}/uri_permission:uripermissionmanager_napi",
     ]
   }
-  if (cj_frontend) {
-    deps += [ "${ability_runtime_napi_path}/app/ui_ability_context_interop:uiabilitycontextinterop_napi" ]
-  }
 }
