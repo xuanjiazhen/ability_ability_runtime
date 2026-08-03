@@ -308,7 +308,7 @@ bool PrepareMergeHistory(const std::string& storePath, int64_t appVersionCode,
 }
 
 void ReportHitRateIfNeeded(bool written, bool coldStart, const std::vector<std::string>& predictedPrev,
-    const std::vector<NativeModuleCollector::CollectedModule>& round)
+    const std::vector<CollectedModule>& round)
 {
     if (!written || coldStart || !NativeModuleCollector::GetParams().reportHitRate) {
         return;
