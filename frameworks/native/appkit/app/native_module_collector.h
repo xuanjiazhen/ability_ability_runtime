@@ -94,8 +94,9 @@ public:
     /**
      * @brief Whether collection is enabled.
      *
-     * Placeholder: always returns false until the system parameter is wired
-     * (tracked separately). The result is cached per process once wired.
+     * Gated by the system parameter `ccm.ability.native_module_collect.enable`
+     * (default off, spec R-2); a test override (SetEnabledForTest) takes
+     * precedence. The parameter is read at most once per process and cached.
      */
     static bool IsEnabled();
 
@@ -175,12 +176,13 @@ public:
     static bool GetSampledModuleForTest(const std::string& moduleName, CollectedModule& out);
 
     /**
-     * @brief Current tunable parameters.
+     * @brief Current tunable parameters (by value: tiny POD, avoids exposing a
+     * reference to the process-global cache across lock boundaries).
      *
      * Defaults come from the baselined spec; system parameters (CCM channel)
      * may override them. Loaded once per process and cached.
      */
-    static const CollectorParams& GetParams();
+    static CollectorParams GetParams();
 
     /**
      * @brief Hit/miss metrics of the previous prediction against the actual round.

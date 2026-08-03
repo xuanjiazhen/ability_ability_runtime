@@ -196,7 +196,11 @@ bool ParseStatEntry(const nlohmann::json& item, std::string& moduleName, ModuleS
     stat.score = ClampScore(score->get<double>());
     stat.hits = hits->get<uint32_t>();
     stat.lastSeenLaunch = lastSeen->get<uint32_t>();
-    stat.firstStage = firstStage->get<uint8_t>() > 1 ? 1 : firstStage->get<uint8_t>();
+    // firstStage is stored as 0/1 but the source is an untrusted on-disk file;
+    // read as uint64 (matches is_number_unsigned, never overflows) then clamp,
+    // avoiding get<uint8_t>() terminating on OOR values (e.g. 300) under -fno-exceptions.
+    uint64_t stageRaw = firstStage->get<uint64_t>();
+    stat.firstStage = (stageRaw > 1) ? 1 : 0;
     const auto loadCount = item.find("loadCount");
     stat.loadCount = (loadCount != item.end() && loadCount->is_number_unsigned())
         ? loadCount->get<uint32_t>() : 0u;
@@ -419,9 +423,10 @@ bool NativeModuleCollector::GetSampledModuleForTest(const std::string& moduleNam
     return true;
 }
 
-const CollectorParams& NativeModuleCollector::GetParams()
+CollectorParams NativeModuleCollector::GetParams()
 {
     EnsureParamsLoaded();
+    std::lock_guard<std::mutex> lock(g_paramCache.mutex);
     return g_paramCache.params;
 }
 
@@ -429,6 +434,7 @@ void NativeModuleCollector::ResetParamCacheForTest()
 {
     std::lock_guard<std::mutex> lock(g_paramCache.mutex);
     g_paramCache.loaded = false;
+    g_paramCache.params = CollectorParams{}; // drop any override from a prior test
 }
 
 bool NativeModuleCollector::LoadStats(const std::string& path, std::map<std::string, ModuleStat>& stats,
@@ -518,12 +524,19 @@ void NativeModuleCollector::MergeRound(const std::vector<CollectedModule>& round
             continue; // duplicate entry in the same round: reward at most once
         }
         auto preloadIt = consumerPreloads.find(module.moduleName);
-        if (preloadIt != consumerPreloads.end() && module.loadCount >= stat.loadCount &&
-            (module.loadCount - stat.loadCount) <= preloadIt->second) {
-            // only consumer-preloaded this round, no evidence of a real app import
-            // (spec R-9): refresh the observed counter, leave score/hits untouched
-            stat.loadCount = module.loadCount;
-            continue;
+        if (preloadIt != consumerPreloads.end()) {
+            // consumer preloaded this module. Only count it as a real app import
+            // when loadCount grew by more than the consumer's preload count.
+            // On cold start the loadCount baseline is unreliable (fork inherits
+            // refCount), so be conservative and never count a consumer-preloaded
+            // module as a hit (spec R-9, breaks the self-feedback loop).
+            bool hasImportEvidence = !coldStart && module.loadCount >= stat.loadCount &&
+                (module.loadCount - stat.loadCount) > preloadIt->second;
+            if (!hasImportEvidence) {
+                stat.loadCount = module.loadCount; // refresh observed counter only
+                continue;
+            }
+            // fall through: real import proven, reward as a hit
         }
         if (coldStart && stat.hits == 0 && stat.lastSeenLaunch == 0) {
             stat.score = 1.0f; // first round is fully trusted (spec R-7)

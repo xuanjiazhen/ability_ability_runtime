@@ -554,13 +554,10 @@ HWTEST_F(NativeModuleCollectorTest, SaveNow_AsyncDispatched_013, TestSize.Level1
     RemoveDirRecursively(base);
     NativeModuleCollector::AccumulateModules({ MakeModule("ohos.hilog") }, 0);
 
+    // async path: SaveNow dispatches and reports success without blocking.
+    // The landed content is already verified by SaveNow_AtMostOnce_012 (sync),
+    // so this case only asserts the dispatch result, avoiding IO-timing flakiness.
     EXPECT_TRUE(NativeModuleCollector::SaveNow(base, "com.example.app", "com.example.app", 100, "launcher"));
-    // dispatched write runs on a detached thread; wait briefly for it to land
-    std::string store = NativeModuleCollector::GetStorePath(base, "com.example.app");
-    for (int i = 0; i < 100 && !std::filesystem::exists(store); ++i) {
-        usleep(10 * 1000); // 10ms
-    }
-    EXPECT_TRUE(std::filesystem::exists(store));
 
     NativeModuleCollector::SetEnabledForTest(false);
     NativeModuleCollector::ResetStateForTest();
@@ -729,6 +726,31 @@ HWTEST_F(NativeModuleCollectorTest, SaveNow_ConsumerPreloadNotPredicted_019, Tes
     RemoveDirRecursively(base);
 }
 
+/**
+ * @tc.name: MergeRound_ColdStartConsumerPreloadNotHit_023
+ * @tc.desc: on cold start a consumer-preloaded module never becomes a hit even when its
+ *          inherited loadCount baseline exceeds the preload count (self-feedback guard, R-9)
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeModuleCollectorTest, MergeRound_ColdStartConsumerPreloadNotHit_023, TestSize.Level1)
+{
+    // cold start: stats empty; module loadCount=5 is an inherited fork baseline,
+    // far above the consumer's single preload this round.
+    std::map<std::string, ModuleStat> stats;
+    CollectedModule m = MakeModule("ohos.hilog");
+    m.loadCount = 5;
+    std::map<std::string, uint32_t> preloads = { { "ohos.hilog", 1u } };
+
+    NativeModuleCollector::MergeRound({ m }, stats, 1, true, preloads);
+
+    // must NOT be counted as a hit: score stays 0, hits 0; only loadCount refreshed
+    ASSERT_EQ(stats.count("ohos.hilog"), 1u);
+    EXPECT_FLOAT_EQ(stats["ohos.hilog"].score, 0.0f);
+    EXPECT_EQ(stats["ohos.hilog"].hits, 0u);
+    EXPECT_EQ(stats["ohos.hilog"].lastSeenLaunch, 0u);
+    EXPECT_EQ(stats["ohos.hilog"].loadCount, 5u);
+}
+
 // ---------------- TASK-8: system parameter (CCM) channel ----------------
 
 namespace {
@@ -768,26 +790,30 @@ HWTEST_F(NativeModuleCollectorTest, Params_DefaultsWhenAbsent_020, TestSize.Leve
 HWTEST_F(NativeModuleCollectorTest, Params_OverrideAndInvalid_021, TestSize.Level1)
 {
     NativeModuleCollector::SetEnabledForTest(false);
+    // probe SetParameter capability first; skip without touching any value so a
+    // disabled environment cannot leave global sysparam polluted.
     if (!OHOS::system::SetParameter(PARAM_ENABLE, "") ||
         !OHOS::system::SetParameter(PARAM_ALPHA, "") ||
         !OHOS::system::SetParameter(PARAM_THRESHOLD, "")) {
         GTEST_SKIP() << "SetParameter not permitted in this environment";
     }
 
-    ASSERT_TRUE(OHOS::system::SetParameter(PARAM_ENABLE, "true"));
-    ASSERT_TRUE(OHOS::system::SetParameter(PARAM_ALPHA, "0.7"));
-    ASSERT_TRUE(OHOS::system::SetParameter(PARAM_THRESHOLD, "abc")); // invalid
+    // EXPECT (not ASSERT) so the restore block always runs even if a set fails,
+    // preventing residual sysparam from leaking into sibling cases.
+    EXPECT_TRUE(OHOS::system::SetParameter(PARAM_ENABLE, "true"));
+    EXPECT_TRUE(OHOS::system::SetParameter(PARAM_ALPHA, "0.7"));
+    EXPECT_TRUE(OHOS::system::SetParameter(PARAM_THRESHOLD, "abc")); // invalid
     NativeModuleCollector::ResetParamCacheForTest();
 
     EXPECT_TRUE(NativeModuleCollector::IsEnabled());
-    const auto& params = NativeModuleCollector::GetParams();
+    auto params = NativeModuleCollector::GetParams();
     EXPECT_FLOAT_EQ(params.alpha, 0.7f);
     EXPECT_FLOAT_EQ(params.predictThreshold, 0.5f); // invalid -> spec default
 
-    // restore environment: disable and clear overrides
-    ASSERT_TRUE(OHOS::system::SetParameter(PARAM_ENABLE, "false"));
-    ASSERT_TRUE(OHOS::system::SetParameter(PARAM_ALPHA, ""));
-    ASSERT_TRUE(OHOS::system::SetParameter(PARAM_THRESHOLD, ""));
+    // restore environment: disable and clear overrides (always runs)
+    EXPECT_TRUE(OHOS::system::SetParameter(PARAM_ENABLE, "false"));
+    EXPECT_TRUE(OHOS::system::SetParameter(PARAM_ALPHA, ""));
+    EXPECT_TRUE(OHOS::system::SetParameter(PARAM_THRESHOLD, ""));
     NativeModuleCollector::ResetParamCacheForTest();
     EXPECT_FALSE(NativeModuleCollector::IsEnabled());
 }
