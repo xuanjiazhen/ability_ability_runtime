@@ -21,10 +21,11 @@
 #include <mutex>
 #include "insight_intent_callback_interface.h"
 #include "insight_intent_execute_callback_stub.h"
+#include "intent_client_export.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-class InsightIntentHostClient : public AAFwk::InsightIntentExecuteCallbackStub {
+class INTENT_CLIENT_API InsightIntentHostClient : public AAFwk::InsightIntentExecuteCallbackStub {
 public:
     InsightIntentHostClient() = default;
     virtual ~InsightIntentHostClient() = default;

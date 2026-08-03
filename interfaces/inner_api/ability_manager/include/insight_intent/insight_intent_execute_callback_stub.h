@@ -18,11 +18,12 @@
 
 #include "event_handler.h"
 #include "insight_intent_execute_callback_interface.h"
+#include "intent_client_export.h"
 #include <iremote_stub.h>
 
 namespace OHOS {
 namespace AAFwk {
-class InsightIntentExecuteCallbackStub : public IRemoteStub<IInsightIntentExecuteCallback> {
+class INTENT_CLIENT_API InsightIntentExecuteCallbackStub : public IRemoteStub<IInsightIntentExecuteCallback> {
 public:
     InsightIntentExecuteCallbackStub();
     ~InsightIntentExecuteCallbackStub();

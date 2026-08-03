@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_INSIGHT_INTENT_EXECUTE_RESULT_H
 
 #include "insight_intent_constant.h"
+#include "intent_client_export.h"
 #include "parcel.h"
 #include "want_params.h"
 
@@ -30,7 +31,7 @@ constexpr char INSIGHT_INTENT_EXECUTE_RESULT[] = "ohos.insightIntent.executeResu
  * @struct InsightIntentExecuteResult
  * InsightIntentExecuteResult is used to save information about execute result.
  */
-struct InsightIntentExecuteResult : public Parcelable {
+struct INTENT_CLIENT_API InsightIntentExecuteResult : public Parcelable {
 public:
     int32_t innerErr = AbilityRuntime::InsightIntentInnerErr::INSIGHT_INTENT_ERR_OK;
     int32_t code = 0;

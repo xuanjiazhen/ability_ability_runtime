@@ -21,6 +21,7 @@
 #include <string>
 
 #include "insight_intent_callback_interface.h"
+#include "intent_client_export.h"
 #include "iremote_object.h"
 #include "refbase.h"
 #include "want_params.h"
@@ -28,14 +29,14 @@
 namespace OHOS {
 namespace AAFwk {
 
-struct ExecuteIntentParam {
+struct INTENT_CLIENT_API ExecuteIntentParam {
     std::string bundleName;
     std::string intentName;
     WantParams wantParam;
     std::shared_ptr<AbilityRuntime::InsightIntentExecuteCallbackInterface> callback;
 };
 
-class IntentClient {
+class INTENT_CLIENT_API IntentClient {
 public:
     static IntentClient &GetInstance();
 
