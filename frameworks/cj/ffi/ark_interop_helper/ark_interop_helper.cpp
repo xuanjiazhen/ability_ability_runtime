@@ -15,8 +15,10 @@
 
 #include "ark_interop_helper.h"
 #include "ark_native_engine.h"
+#include "../../../../../../arkui/napi/interfaces/inner_api/cjffi/ark_interop/ark_interop_macro.h"
 #include "inner_api/cjffi/ark_interop/ark_interop_internal.h"
 #include "inner_api/cjffi/ark_interop/ark_interop_log.h"
+#include "inner_api/cjffi/ark_interop/ark_interop_scope.h"
 #ifndef PREVIEW
 #include "core/common/container_scope.h"
 #include "custom_scope.h"
@@ -34,7 +36,10 @@ napi_value ArkTsValuetoNapiValue(napi_env env, ARKTS_Value arkValue)
         LOGE("FfiOHOSArkTsValuetoNapiValue Error: env is null!");
         return nullptr;
     }
-    Local<JSValueRef> js_value_ref = ARKTS_ToHandle<JSValueRef>(arkValue);
+    auto engine = reinterpret_cast<ArkNativeEngine*>(env);
+    auto vm = const_cast<EcmaVM*>(engine->GetEcmaVm());
+
+    Local<JSValueRef> js_value_ref = ARKTS_Scope_::GetLocal(reinterpret_cast<ARKTS_Env>(vm), arkValue);
     auto ark_native_obj = ArkNativeEngine::ArkValueToNapiValue(env, js_value_ref);
     return ark_native_obj;
 };
@@ -42,7 +47,7 @@ napi_value ArkTsValuetoNapiValue(napi_env env, ARKTS_Value arkValue)
 ARKTS_Value NapiValueToArkTsValue(napi_value value)
 {
     auto ref = BIT_CAST(value, Local<JSValueRef>);
-    return ARKTS_FromHandle(ref);
+    return ARKTS_Scope_::NewValue(nullptr, ref);
 }
 
 bool IsStageMode(napi_env env, napi_value context)
