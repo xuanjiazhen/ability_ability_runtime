@@ -37,6 +37,8 @@ ohos_shared_library("intent_client") {
   ]
 
   public_configs = [ ":intent_client_config" ]
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
+  version_script = "libintent_client.map"
 
   sanitize = {
     integer_overflow = true

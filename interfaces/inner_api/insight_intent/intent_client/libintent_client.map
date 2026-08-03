@@ -1,0 +1,45 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Exported symbols for libintent_client.so
+#
+# 设计原则:
+# 1. IntentClient 是 inner_api, 被 cli_tool 等下游调用, 公共 API 必须导出.
+# 2. InsightIntentExecuteCallbackStub 是 IPC Stub 基类, service 端通过 IPC 反向调用
+#    OnRemoteRequest, 其 vtable/typeinfo 必须导出.
+# 3. InsightIntentHostClient 继承自上述 Stub, 实例化在 client 端, vtable 必须导出.
+# 4. InsightIntentExecuteResult 是 Parcelable, 通过 IPC 序列化, Marshalling/Unmarshalling
+#    以及 typeinfo 必须导出.
+# 5. 其他符号(std:: 模板实例化、内部 helper、STL 内部符号)全部隐藏, 让 --gc-sections 生效.
+
+1.0 {
+  global:
+    extern "C++" {
+      # IntentClient - 公共 API + vtable + typeinfo + 嵌套 DeathRecipient
+      *IntentClient*;
+
+      # ExecuteIntentParam - 公共 struct (隐式构造析构)
+      *ExecuteIntentParam*;
+
+      # InsightIntentHostClient - IPC Stub 派生类, service 反向调用
+      *InsightIntentHostClient*;
+
+      # InsightIntentExecuteCallbackStub - IPC Stub 基类, vtable 必须导出
+      *InsightIntentExecuteCallbackStub*;
+
+      # InsightIntentExecuteResult - Parcelable, IPC 序列化
+      *InsightIntentExecuteResult*;
+    };
+  local:
+    *;
+};
