@@ -3113,23 +3113,21 @@ void MainThread::RunNativeModuleCollect()
     NativeModuleCollector::AccumulateModules(NativeModuleSampler::Sample(), 1);
 
     std::string cacheDir;
-    std::string bundleName;
     int64_t versionCode = 0;
     auto context = AbilityRuntime::Context::GetApplicationContext();
     if (context != nullptr) {
         cacheDir = context->GetCacheDir();
-        bundleName = context->GetBundleName();
         auto appInfo = context->GetApplicationInfo();
         if (appInfo != nullptr) {
             versionCode = appInfo->versionCode;
         }
     }
     std::string processName = processInfo_ != nullptr ? processInfo_->GetProcessName() : "";
-    if (cacheDir.empty() || bundleName.empty() || processName.empty()) {
+    if (cacheDir.empty() || processName.empty()) {
         TAG_LOGW(AAFwkTag::APPKIT, "collect meta incomplete, skip");
         return;
     }
-    bool saved = NativeModuleCollector::SaveNow(cacheDir, bundleName, processName, versionCode, "unknown");
+    bool saved = NativeModuleCollector::SaveNow(cacheDir, processName, versionCode);
     TAG_LOGI(AAFwkTag::APPKIT, "checkpoint2 save result=%{public}d", saved ? 1 : 0);
 }
 

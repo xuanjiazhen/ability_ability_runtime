@@ -48,7 +48,8 @@ int32_t PredictPreloadSoStartupTask::RunTaskInit(std::unique_ptr<StartupTaskResu
     }
 
     // missing/corrupted/version-mismatched file yields an empty list: skip silently
-    std::vector<std::string> modules = AppExecFwk::NativeModuleCollector::LoadPredictedSystemModules(storePath_);
+    std::vector<AppExecFwk::PredictedModule> modules =
+        AppExecFwk::NativeModuleCollector::LoadPredictedSystemModules(storePath_);
     if (modules.empty()) {
         TAG_LOGD(AAFwkTag::STARTUP, "no predicted system module to preload");
         OnCompletedCallback::OnCallback(std::move(callback), ERR_OK);
@@ -68,15 +69,15 @@ int32_t PredictPreloadSoStartupTask::RunTaskInit(std::unique_ptr<StartupTaskResu
         return ERR_OK;
     }
 
-    for (const auto& moduleName : modules) {
+    for (const auto& pred : modules) {
         std::string errInfo;
-        // system module: path = nullptr, isAppModule = false; cache-hit is cheap when already loaded
+        // replay the original import: same moduleName + relativePath, system module
         NativeModule* module = moduleManager->LoadNativeModule(
-            moduleName.c_str(), nullptr, false, errInfo, false, "");
+            pred.moduleName.c_str(), nullptr, false, errInfo, false, pred.relativePath.c_str());
         if (module == nullptr) {
             // a single failure is recorded and skipped, never blocking others or startup
             TAG_LOGW(AAFwkTag::STARTUP, "predict preload %{public}s failed: %{public}s",
-                moduleName.c_str(), errInfo.c_str());
+                pred.moduleName.c_str(), errInfo.c_str());
             AAFwk::EventInfo eventInfo;
             eventInfo.errCode = ERR_LOAD_NATIVE_MODULE;
             eventInfo.errReason = errInfo;
@@ -84,9 +85,9 @@ int32_t PredictPreloadSoStartupTask::RunTaskInit(std::unique_ptr<StartupTaskResu
                 AAFwk::EventName::STARTUP_TASK_ERROR, HISYSEVENT_FAULT, eventInfo);
             continue;
         }
-        TAG_LOGD(AAFwkTag::STARTUP, "predict preload %{public}s ok", moduleName.c_str());
+        TAG_LOGD(AAFwkTag::STARTUP, "predict preload %{public}s ok", pred.moduleName.c_str());
         // let the collector discount consumer-triggered loads from real app imports
-        AppExecFwk::NativeModuleCollector::RecordConsumerPreload(moduleName);
+        AppExecFwk::NativeModuleCollector::RecordConsumerPreload(pred.moduleName);
     }
     TAG_LOGI(AAFwkTag::STARTUP, "predict preload end, count=%{public}zu", modules.size());
     OnCompletedCallback::OnCallback(std::move(callback), ERR_OK);

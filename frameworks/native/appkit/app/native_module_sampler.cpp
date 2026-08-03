@@ -39,6 +39,7 @@ std::vector<CollectedModule> NativeModuleSampler::Sample()
         CollectedModule module;
         module.moduleName = std::move(key);
         module.fileName = info.fileName;
+        module.relativePath = info.relativePath;
         module.isAppModule = info.isAppModule;
         module.loadCount = info.loadCount;
         modules.push_back(std::move(module));

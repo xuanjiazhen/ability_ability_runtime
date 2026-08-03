@@ -18,7 +18,6 @@
 #include <algorithm>
 #include <atomic>
 #include <cerrno>
-#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
@@ -52,7 +51,6 @@ constexpr int32_t STORE_FILE_VERSION = 2;
 constexpr size_t MAX_PARSE_ENTRIES = 4096;     /* reject abnormally large files */
 constexpr size_t MAX_MODULE_NAME_LEN = 256;
 constexpr size_t MAX_FILE_NAME_LEN = 4096;
-constexpr size_t MAX_BUNDLE_NAME_LEN = 256;
 constexpr float SCORE_PRECISION = 1000.0f;     /* serialize score with 3 decimals */
 
 // system parameter keys; the CCM channel maps its switches to these sysparam
@@ -132,7 +130,7 @@ struct CollectorState {
     std::mutex mutex;
     std::map<std::string, CollectedModule> sampled;
     std::set<std::string> preloadKeys;
-    std::map<std::string, uint32_t> consumerPreloads; // this round, by the startup consumer
+    std::set<std::string> consumerPreloads; // moduleNames preloaded by the consumer this round
     bool saveDispatched = false;
     bool asyncSave = true;
 };
@@ -150,40 +148,18 @@ float ClampScore(double score)
     return static_cast<float>(score);
 }
 
-int64_t NowMillis()
-{
-    return std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::system_clock::now().time_since_epoch()).count();
-}
-
 // OpenHarmony is built with -fno-exceptions: read json fields with find()+type
 // guards only, never throwing accessors.
 bool ReadStatNumericFields(const nlohmann::json& item, ModuleStat& stat)
 {
     const auto score = item.find("score");
-    const auto hits = item.find("hits");
     const auto lastSeen = item.find("lastSeenLaunch");
-    const auto firstStage = item.find("firstStage");
-    const auto isApp = item.find("isAppModule");
     if (score == item.end() || !score->is_number() ||
-        hits == item.end() || !hits->is_number_unsigned() ||
-        lastSeen == item.end() || !lastSeen->is_number_unsigned() ||
-        firstStage == item.end() || !firstStage->is_number_unsigned() ||
-        isApp == item.end() || !isApp->is_boolean()) {
+        lastSeen == item.end() || !lastSeen->is_number_unsigned()) {
         return false;
     }
-    stat.isAppModule = isApp->get<bool>();
     stat.score = ClampScore(score->get<double>());
-    stat.hits = hits->get<uint32_t>();
     stat.lastSeenLaunch = lastSeen->get<uint32_t>();
-    // firstStage is stored as 0/1 but the source is an untrusted on-disk file;
-    // read as uint64 (matches is_number_unsigned, never overflows) then clamp,
-    // avoiding get<uint8_t>() terminating on OOR values (e.g. 300) under -fno-exceptions.
-    uint64_t stageRaw = firstStage->get<uint64_t>();
-    stat.firstStage = (stageRaw > 1) ? 1 : 0;
-    const auto loadCount = item.find("loadCount");
-    stat.loadCount = (loadCount != item.end() && loadCount->is_number_unsigned())
-        ? loadCount->get<uint32_t>() : 0u;
     return true;
 }
 
@@ -204,10 +180,12 @@ bool ParseStatEntry(const nlohmann::json& item, std::string& moduleName, ModuleS
         moduleName.size() > MAX_MODULE_NAME_LEN) {
         return false;
     }
-    const auto fileName = item.find("fileName");
-    if (fileName == item.end() || !readStr(*fileName, stat.fileName) ||
-        stat.fileName.size() > MAX_FILE_NAME_LEN) {
-        return false;
+    const auto relPath = item.find("relativePath");
+    if (relPath != item.end() && relPath->is_string()) {
+        stat.relativePath = relPath->get_ref<const std::string&>();
+        if (stat.relativePath.size() > MAX_FILE_NAME_LEN) {
+            return false;
+        }
     }
     return ReadStatNumericFields(item, stat);
 }
@@ -240,26 +218,8 @@ bool ReadStoreMeta(const nlohmann::json& root, StoreMeta& meta, std::string& err
         errInfo = "entries over parse cap";
         return false;
     }
-    auto readStr = [&root](const char* key, std::string& out) {
-        const auto it = root.find(key);
-        if (it == root.end() || !it->is_string()) {
-            return false;
-        }
-        out = it->get_ref<const std::string&>();
-        return true;
-    };
-    if (!readStr("bundleName", meta.bundleName) ||
-        meta.bundleName.size() > MAX_BUNDLE_NAME_LEN ||
-        !readStr("processName", meta.processName) ||
-        meta.processName.size() > MAX_MODULE_NAME_LEN) {
-        errInfo = "meta fields over length cap";
-        return false;
-    }
     meta.appVersionCode = appVersion->get<int64_t>();
     meta.launchIndex = launchIndex->get<uint32_t>();
-    const auto scenario = root.find("scenario");
-    meta.scenario = (scenario != root.end() && scenario->is_string())
-        ? scenario->get_ref<const std::string&>() : "unknown";
     return true;
 }
 
@@ -460,13 +420,10 @@ void NativeModuleCollector::AccumulateModules(const std::vector<CollectedModule>
         }
         auto [it, inserted] = g_state.sampled.emplace(module.moduleName, module);
         if (inserted) {
-            it->second.firstStage = firstStage;
             added++;
         } else {
-            // duplicate sighting: refresh identity fields, keep the first-sighting stage
-            it->second.fileName = module.fileName;
-            it->second.isAppModule = module.isAppModule;
-            it->second.loadCount = module.loadCount;
+            // duplicate sighting: refresh the replay path only
+            it->second.relativePath = module.relativePath;
             refreshed++;
         }
     }
@@ -476,14 +433,14 @@ void NativeModuleCollector::AccumulateModules(const std::vector<CollectedModule>
         firstStage, modules.size(), added, refreshed, filteredPreload, filteredApp, g_state.sampled.size());
 }
 
-bool NativeModuleCollector::SaveNow(const std::string& cacheDir, const std::string& bundleName,
-    const std::string& processName, int64_t appVersionCode, const std::string& scenario)
+bool NativeModuleCollector::SaveNow(const std::string& cacheDir, const std::string& processName,
+    int64_t appVersionCode)
 {
     if (!IsEnabled()) {
         return false;
     }
     std::vector<CollectedModule> round;
-    std::map<std::string, uint32_t> consumerPreloads;
+    std::set<std::string> consumerPreloads;
     bool asyncSave;
     {
         std::lock_guard<std::mutex> lock(g_state.mutex);
@@ -503,15 +460,12 @@ bool NativeModuleCollector::SaveNow(const std::string& cacheDir, const std::stri
         "save: sampled=%{public}zu consumerPreloads=%{public}zu async=%{public}d path=%{public}s",
         round.size(), consumerPreloads.size(), asyncSave ? 1 : 0, storePath.c_str());
     if (asyncSave) {
-        std::thread([storePath, bundleName, processName, appVersionCode, scenario, round,
-            consumerPreloads]() {
-            (void)MergeAndSave(storePath, bundleName, processName, appVersionCode, scenario, round,
-                consumerPreloads);
+        std::thread([storePath, appVersionCode, round, consumerPreloads]() {
+            (void)MergeAndSave(storePath, appVersionCode, round, consumerPreloads);
         }).detach();
         return true;
     }
-    return MergeAndSave(storePath, bundleName, processName, appVersionCode, scenario, round,
-        consumerPreloads);
+    return MergeAndSave(storePath, appVersionCode, round, consumerPreloads);
 }
 
 void NativeModuleCollector::SetPreloadModuleKeys(std::set<std::string> keys)
@@ -613,7 +567,7 @@ bool NativeModuleCollector::LoadStats(const std::string& path, std::map<std::str
 
 void NativeModuleCollector::MergeRound(const std::vector<CollectedModule>& round,
     std::map<std::string, ModuleStat>& stats, uint32_t launchIndex, bool coldStart,
-    const std::map<std::string, uint32_t>& consumerPreloads)
+    const std::set<std::string>& consumerPreloads)
 {
     const CollectorParams& params = GetParams();
     for (const auto& module : round) {
@@ -624,39 +578,24 @@ void NativeModuleCollector::MergeRound(const std::vector<CollectedModule>& round
         if (stat.lastSeenLaunch == launchIndex) {
             continue; // duplicate entry in the same round: reward at most once
         }
-        auto preloadIt = consumerPreloads.find(module.moduleName);
-        if (preloadIt != consumerPreloads.end()) {
-            // consumer preloaded this module. Only count it as a real app import
-            // when loadCount grew by more than the consumer's preload count.
-            // On cold start the loadCount baseline is unreliable (fork inherits
-            // refCount), so be conservative and never count a consumer-preloaded
-            // module as a hit (spec R-9, breaks the self-feedback loop).
-            bool hasImportEvidence = !coldStart && module.loadCount >= stat.loadCount &&
-                (module.loadCount - stat.loadCount) > preloadIt->second;
-            if (!hasImportEvidence) {
-                stat.loadCount = module.loadCount; // refresh observed counter only
-                continue;
-            }
-            // fall through: real import proven, reward as a hit
+        // a module preloaded by the consumer this round is never rewarded as a hit
+        // (lastSeenLaunch left untouched -> decayed below); refresh its replay path.
+        // This breaks the self-feedback loop without needing loadCount accounting.
+        if (consumerPreloads.count(module.moduleName) != 0) {
+            stat.relativePath = module.relativePath;
+            continue;
         }
-        if (coldStart && stat.hits == 0 && stat.lastSeenLaunch == 0) {
+        if (coldStart && stat.lastSeenLaunch == 0) {
             stat.score = 1.0f; // first round is fully trusted (spec R-7)
         } else {
             stat.score = params.alpha + (1.0f - params.alpha) * stat.score;
         }
-        stat.fileName = module.fileName;
-        stat.isAppModule = module.isAppModule;
-        stat.loadCount = module.loadCount;
-        if (stat.hits == 0 && stat.lastSeenLaunch == 0) {
-            stat.firstStage = module.firstStage;
-        }
-        stat.hits++;
+        stat.relativePath = module.relativePath;
         stat.lastSeenLaunch = launchIndex;
     }
     for (auto& [name, stat] : stats) {
-        bool hitThisRound = (stat.lastSeenLaunch == launchIndex);
-        if (!hitThisRound) {
-            stat.score = (1.0f - params.alpha) * stat.score;
+        if (stat.lastSeenLaunch != launchIndex) {
+            stat.score = (1.0f - params.alpha) * stat.score; // decay misses
         }
     }
 }
@@ -706,26 +645,21 @@ std::vector<std::string> NativeModuleCollector::ComputePredicted(
 std::string NativeModuleCollector::SerializeStats(const StoreMeta& meta,
     const std::map<std::string, ModuleStat>& stats)
 {
+    // Minimal payload: only version + version-tracking meta + per-module fields
+    // needed for preload (moduleName, relativePath) and prediction (score,
+    // lastSeenLaunch). No predicted array (computed on demand), no identity or
+    // debug fields, to keep the store file small.
     nlohmann::json root;
     root["version"] = STORE_FILE_VERSION;
-    root["bundleName"] = meta.bundleName;
-    root["processName"] = meta.processName;
     root["appVersionCode"] = meta.appVersionCode;
     root["launchIndex"] = meta.launchIndex;
-    root["updatedAt"] = NowMillis();
-    root["scenario"] = meta.scenario;
-    root["predicted"] = ComputePredicted(stats);
     nlohmann::json modules = nlohmann::json::array();
     for (const auto& [name, stat] : stats) {
         nlohmann::json item;
         item["moduleName"] = name;
-        item["fileName"] = stat.fileName;
-        item["isAppModule"] = stat.isAppModule;
+        item["relativePath"] = stat.relativePath;
         item["score"] = std::round(static_cast<double>(stat.score) * SCORE_PRECISION) / SCORE_PRECISION;
-        item["hits"] = stat.hits;
         item["lastSeenLaunch"] = stat.lastSeenLaunch;
-        item["firstStage"] = stat.firstStage; // numeric 0/1, must round-trip with ParseStatEntry
-        item["loadCount"] = stat.loadCount;
         modules.push_back(std::move(item));
     }
     root["modules"] = std::move(modules);
@@ -747,19 +681,15 @@ bool NativeModuleCollector::WriteAtomic(const std::string& path, const std::stri
     return true;
 }
 
-bool NativeModuleCollector::MergeAndSave(const std::string& storePath, const std::string& bundleName,
-    const std::string& processName, int64_t appVersionCode, const std::string& scenario,
-    const std::vector<CollectedModule>& round, const std::map<std::string, uint32_t>& consumerPreloads)
+bool NativeModuleCollector::MergeAndSave(const std::string& storePath, int64_t appVersionCode,
+    const std::vector<CollectedModule>& round, const std::set<std::string>& consumerPreloads)
 {
     std::map<std::string, ModuleStat> stats;
     StoreMeta meta;
     std::vector<std::string> predictedPrev;
     bool coldStart = PrepareMergeHistory(storePath, appVersionCode, stats, meta, predictedPrev);
 
-    meta.bundleName = bundleName;
-    meta.processName = processName;
     meta.appVersionCode = appVersionCode;
-    meta.scenario = scenario.empty() ? "unknown" : scenario;
     meta.launchIndex++;
 
     MergeRound(round, stats, meta.launchIndex, coldStart, consumerPreloads);
@@ -809,9 +739,9 @@ NativeModuleCollector::HitRateMetrics NativeModuleCollector::ComputeHitRateMetri
     return metrics;
 }
 
-std::vector<std::string> NativeModuleCollector::LoadPredictedSystemModules(const std::string& storePath)
+std::vector<PredictedModule> NativeModuleCollector::LoadPredictedSystemModules(const std::string& storePath)
 {
-    std::vector<std::string> result;
+    std::vector<PredictedModule> result;
     std::map<std::string, ModuleStat> stats;
     StoreMeta meta;
     std::string errInfo;
@@ -821,8 +751,8 @@ std::vector<std::string> NativeModuleCollector::LoadPredictedSystemModules(const
     }
     const CollectorParams& params = GetParams();
     for (const auto& [name, stat] : stats) {
-        if (!stat.isAppModule && stat.score >= params.predictThreshold) {
-            result.push_back(name);
+        if (stat.score >= params.predictThreshold) {
+            result.push_back({ name, stat.relativePath });
         }
     }
     TAG_LOGD(AAFwkTag::APPKIT, "predicted system modules: %{public}zu", result.size());
@@ -835,7 +765,7 @@ void NativeModuleCollector::RecordConsumerPreload(const std::string& moduleName)
         return;
     }
     std::lock_guard<std::mutex> lock(g_state.mutex);
-    g_state.consumerPreloads[moduleName]++;
+    g_state.consumerPreloads.insert(moduleName);
 }
 } // namespace AppExecFwk
 } // namespace OHOS

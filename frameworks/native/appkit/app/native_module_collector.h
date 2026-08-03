@@ -31,25 +31,32 @@ namespace AppExecFwk {
  * Decoupled from the napi NativeModuleInfo so the merge engine stays
  * independently testable; the checkpoint wiring converts between them.
  */
+// Minimal sampled module: only what preload needs (moduleName + relativePath)
+// plus isAppModule used solely to drop app modules at the collection entry.
 struct CollectedModule {
-    std::string moduleName;   /* name used in import/require */
-    std::string fileName;     /* file path the module was loaded from */
+    std::string moduleName;
+    std::string relativePath;
     bool isAppModule = false;
-    uint32_t loadCount = 0;   /* reserved for consumer-preload disambiguation */
-    uint8_t firstStage = 0;   /* 0 = app_ready, 1 = late */
 };
 
 /**
  * @brief Persisted per-module statistics, updated across launches via EWMA.
+ * Kept minimal to shrink the store file: score drives prediction, lastSeenLaunch
+ * drives eviction, relativePath is replayed at preload time.
  */
 struct ModuleStat {
-    std::string fileName;
-    bool isAppModule = false;
-    float score = 0.0f;          /* EWMA hit score in [0, 1] */
-    uint32_t hits = 0;           /* rounds with a confirmed hit */
-    uint32_t lastSeenLaunch = 0; /* launch index of the last hit */
-    uint8_t firstStage = 0;      /* stage of the first ever hit */
-    uint32_t loadCount = 0;      /* loadCount observed at the last hit */
+    std::string relativePath;
+    float score = 0.0f;
+    uint32_t lastSeenLaunch = 0;
+};
+
+/**
+ * @brief A predicted system module ready for preload: name + the relativePath
+ * to replay LoadNativeModule with.
+ */
+struct PredictedModule {
+    std::string moduleName;
+    std::string relativePath;
 };
 
 /**
@@ -70,11 +77,8 @@ struct CollectorParams {
  * @brief Persisted file-level metadata (JSON v2).
  */
 struct StoreMeta {
-    std::string bundleName;
-    std::string processName;
     int64_t appVersionCode = 0;
     uint32_t launchIndex = 0;   /* rounds persisted so far */
-    std::string scenario = "unknown";
 };
 /**
  * @brief Collects native modules imported by the application during startup and
@@ -157,8 +161,8 @@ public:
      *
      * @return true if the save was dispatched (or performed synchronously)
      */
-    static bool SaveNow(const std::string& cacheDir, const std::string& bundleName,
-        const std::string& processName, int64_t appVersionCode, const std::string& scenario);
+    static bool SaveNow(const std::string& cacheDir, const std::string& processName,
+        int64_t appVersionCode);
 
     /**
      * @brief Preload (pre-fork) module keys bridged from the runtime layer by
@@ -239,7 +243,7 @@ public:
      */
     static void MergeRound(const std::vector<CollectedModule>& round,
         std::map<std::string, ModuleStat>& stats, uint32_t launchIndex, bool coldStart,
-        const std::map<std::string, uint32_t>& consumerPreloads = {});
+        const std::set<std::string>& consumerPreloads = {});
 
     /**
      * @brief Evict decayed/stale entries and enforce the entry cap.
@@ -272,10 +276,9 @@ public:
      *
      * @return true if the file was written
      */
-    static bool MergeAndSave(const std::string& storePath, const std::string& bundleName,
-        const std::string& processName, int64_t appVersionCode, const std::string& scenario,
+    static bool MergeAndSave(const std::string& storePath, int64_t appVersionCode,
         const std::vector<CollectedModule>& round,
-        const std::map<std::string, uint32_t>& consumerPreloads = {});
+        const std::set<std::string>& consumerPreloads = {});
 
     /**
      * @brief Read the store file and return predicted system modules
@@ -284,7 +287,7 @@ public:
      * @return module name list; empty when the file is missing/invalid or
      *         nothing qualifies
      */
-    static std::vector<std::string> LoadPredictedSystemModules(const std::string& storePath);
+    static std::vector<PredictedModule> LoadPredictedSystemModules(const std::string& storePath);
 
     /**
      * @brief Record one consumer preload of a module in this launch round.
