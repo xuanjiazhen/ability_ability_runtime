@@ -207,14 +207,16 @@ hdc shell param set ccm.ability.native_module_collect.predict_threshold 0.8    #
 
 | 阶段 | 执行日期 | 结果 | 证据（日志/文件快照） | 备注 |
 |------|----------|------|----------------------|------|
-| 0 UT | | PASS/FAIL | | |
-| 1 采集落盘 | | | | |
-| 2 preload 排除 | | | | |
-| 3 EWMA 收敛 | | | | |
-| 4 消费预加载 | | | | |
-| 5 防自反馈 | | | | |
-| 6 异常路径 | | | | |
-| 7 参数调优 | | | | |
-| 8 命中率 | | | | |
+| 0 UT | 2026-08-03 | PASS | `run -t UT -ts native_module_collector_test` | 含 EnsureDir 拼接/冷启动自反馈等回归用例 |
+| 1 采集落盘 | 2026-08-03 | PASS | native_modules_<hash8>.v2.json 生成、0600、字段完整、每轮≤1 次 | VM-1/9/10/11 设备确认 |
+| 2 preload 排除 | 2026-08-03 | PASS | /proc/self/maps 含预加载 SO、采集文件不含 | VM-10（含纯 JS 路径）设备确认 |
+| 3 EWMA 收敛 | 2026-08-03 | PASS（收敛部分） | launchIndex 递增、必载模块 score 趋近 1、predicted 稳定 | VM-3 设备确认 |
+| 3' 淘汰验证 | 待补 | DEFERRED | — | 当前测试 app 无法构造"仅前 N 轮加载"场景；淘汰逻辑（<0.05 / 16 轮未见 / 1024 上限）已由 UT EvictStats_* 覆盖，设备侧回归待后续 app 就绪后补 |
+| 4 消费预加载 | 待执行 | — | | VM-7/8 |
+| 5 防自反馈 | 待执行 | — | | VM-6 |
+| 6 异常路径 | 待执行 | — | | VM-2/5 |
+| 7 参数调优 | 待执行 | — | | |
+| 8 命中率 | 待执行 | — | | |
 
-> 全部 PASS 后，本表即 ohos-review GC 门禁 OI-4（新鲜验证证据）的满足物，可解除 GC 阻塞。
+> 阶段 0~3（核心采集链路）已设备验证通过；阶段 4~8 与淘汰设备回归待续。
+> 本表持续更新；全部 PASS 后即 ohos-review GC 门禁 OI-4（新鲜验证证据）的满足物，可解除 GC 阻塞。

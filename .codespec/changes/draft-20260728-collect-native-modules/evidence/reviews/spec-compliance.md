@@ -6,13 +6,13 @@
 
 | AC | 实现位置（证据） | 用例 | 结论 | 验证状态 |
 |----|------------------|------|------|----------|
-| AC-1.1 启动阶段合并写盘，每轮 ≤1 次 | application_impl.cpp PerformAppReady（检查点①）；main_thread.cpp TriggerNativeModuleCollect/RunNativeModuleCollect（检查点②，延迟 5s/后台兜底）；collector SaveNow saveDispatched 至多一次 | SaveNow_AtMostOnce_012、SaveNow_AsyncDispatched_013 | PASS（实现精确对应） | 用例已交付未执行；写盘次数实测待补 |
-| AC-1.2 开关缺失缺省关闭零行为 | collector IsEnabled：测试钩子或 GetBoolParameter 缺省 false；检查点两处先判 IsEnabled | IsEnabled_DefaultDisabledNoFileIO_005、Params_DefaultsWhenAbsent_020 | PASS | 用例已交付未执行 |
-| AC-1.3 多进程独立文件 | GetStorePath 含 ProcessNameHash（FNV-1a 8 hex） | ProcessNameHash_StableAndDistinct_002 | PASS | 用例已交付未执行 |
-| AC-1.4 写盘失败无残缺文件 | WriteAtomic：tmp + rename，失败清理 tmp | WriteAtomic_SuccessAndFailure_010 | PASS | 用例已交付未执行 |
-| AC-1.5 fork 前 preload 模块不采集 | Runtime::CapturePreloadModules（ETSRuntime::PreFork 末尾 **及** JsRuntime::FinishPreload 末尾）；MainThread 桥接 SetPreloadModuleKeys；AccumulateModules 过滤 | AccumulateModules_DedupAndPreloadFilter_011 | **PASS（ETS + 纯 JS 双路径）** | 过滤逻辑用例已交付；preload-fork 场景实测待补 |
-| AC-2.1 连续命中 score 收敛入预测集 | MergeRound 命中奖励 α+(1−α)·score | MergeRound_HitReward_002、MergeAndSave_RoundTrip_008 | PASS | 用例已交付未执行 |
-| AC-2.2 16 轮未见或 score<0.05 淘汰 | EvictStats 双条件 + 1024 上限低分淘汰 | EvictStats_LowScoreAndLongUnseen_005、EvictStats_CapLimit_006 | PASS | 用例已交付未执行 |
+| AC-1.1 启动阶段合并写盘，每轮 ≤1 次 | application_impl.cpp PerformAppReady（检查点①）；main_thread.cpp TriggerNativeModuleCollect/RunNativeModuleCollect（检查点②，延迟 5s/后台兜底）；collector SaveNow saveDispatched 至多一次 | SaveNow_AtMostOnce_012、SaveNow_AsyncDispatched_013 | PASS（实现精确对应） | **UT + 设备实测均通过**（阶段 1，文件生成/字段/每轮≤1次确认） |
+| AC-1.2 开关缺失缺省关闭零行为 | collector IsEnabled：测试钩子或 GetBoolParameter 缺省 false；检查点两处先判 IsEnabled | IsEnabled_DefaultDisabledNoFileIO_005、Params_DefaultsWhenAbsent_020 | PASS | UT 通过；设备侧阶段 6 待补 |
+| AC-1.3 多进程独立文件 | GetStorePath 含 ProcessNameHash（FNV-1a 8 hex） | ProcessNameHash_StableAndDistinct_002 | PASS | **UT + 设备实测通过**（阶段 1，多进程文件名隔离） |
+| AC-1.4 写盘失败无残缺文件 | WriteAtomic：tmp + rename，失败清理 tmp | WriteAtomic_SuccessAndFailure_010 | PASS | UT 通过；设备侧写盘失败注入待补 |
+| AC-1.5 fork 前 preload 模块不采集 | Runtime::CapturePreloadModules（ETSRuntime::PreFork 末尾 **及** JsRuntime::FinishPreload 末尾）；MainThread 桥接 SetPreloadModuleKeys；AccumulateModules 过滤 | AccumulateModules_DedupAndPreloadFilter_011 | **PASS（ETS + 纯 JS 双路径）** | **UT + 设备实测通过**（阶段 2，/proc/self/maps 比对） |
+| AC-2.1 连续命中 score 收敛入预测集 | MergeRound 命中奖励 α+(1−α)·score | MergeRound_HitReward_002、MergeAndSave_RoundTrip_008 | PASS | **UT + 设备实测通过**（阶段 3，score 趋近 1、predicted 稳定） |
+| AC-2.2 16 轮未见或 score<0.05 淘汰 | EvictStats 双条件 + 1024 上限低分淘汰 | EvictStats_LowScoreAndLongUnseen_005、EvictStats_CapLimit_006 | PASS（UT）；设备 DEFERRED | UT 通过；设备侧淘汰场景待 app 就绪后补（见 OI-5） |
 | AC-2.3 损坏/version 不符/缓存清理重建 | LoadStats 严格校验 + 类型混淆兜底；MergeAndSave 冷启动路径 | LoadStats_RejectInvalid_007、MergeAndSave_RoundTrip_008 | PASS | 用例已交付未执行 |
 | AC-2.4 应用升级清空重建 | MergeAndSave appVersionCode 比对重建 | MergeAndSave_AppUpgradeRebuild_009 | PASS | 用例已交付未执行 |
 | AC-2.5 消费方预加载不计命中 | MergeRound consumerPreloads 分支：loadCount 增量 ≤ 预加载次数则仅刷新观测计数、不奖励；冷启动下一律不计命中（阻断自反馈） | MergeRound_ConsumerPreloadOnly_016、_PlusImport_017、_NotConsumerPreloaded_018、_ColdStartConsumerPreloadNotHit_023、SaveNow_ConsumerPreloadNotPredicted_019 | PASS；见 D-2（R-9"不衰减"措辞收紧）与 OI-2（refCount 语义待设备确认） | 用例已交付，UT 执行中修正 016 期望 |
@@ -41,7 +41,8 @@
 | OI-1 | risk | ~~纯 JS 运行时路径（不经 ETSRuntime::PreFork）preload 快照不生效~~ | **已修复**（5dd3d49fb1）：JsRuntime::FinishPreload 补 CapturePreloadModules，ETS+JS 双路径覆盖 |
 | OI-2 | risk | refCount cache 命中递增语义未在设备确认（RSK-2），若不符则 AC-2.5 精度降级（降级方案：P 集合模块本轮一律不更新） | follow-up：上机验证时确认 |
 | OI-3 | risk | CCM 参数命名未与 owner 确认（RSK-3），当前按 ccm.ability.native_module_collect.* 实现 | follow-up：评审时定名 |
-| OI-4 | blocker | Phase-3/4 代码未编译验证、22 组 UT 未执行、上机实测未做 | 必须回补：编译 + UT + 实测后更新 GC 结论 |
+| OI-4 | blocker | Phase-3/4 代码未编译验证、22 组 UT 未执行、上机实测未做 | **部分解除**：编译通过 + UT 执行通过 + 阶段 0~3 设备实测通过；阶段 4~8 与淘汰设备回归待续 |
+| OI-5 | follow-up | 淘汰验证（AC-2.2 设备侧）当前测试 app 无法构造"仅前 N 轮加载"场景 | UT 已覆盖淘汰逻辑（EvictStats_* 三例）；设备侧回归待后续测试 app 就绪后补 |
 
 ## 纠正循环
 
