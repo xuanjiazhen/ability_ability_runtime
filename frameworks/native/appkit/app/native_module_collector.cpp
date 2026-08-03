@@ -90,15 +90,23 @@ float GetFloatParameter(const std::string& key, float def, float minValue, float
     return std::min(std::max(parsed, minValue), maxValue);
 }
 
+// libbegetutil only instantiates GetIntParameter for {u,}int{8,16,32,64}_t, but some
+// toolchains link only the signed small-width variants; int32_t is always available.
+uint32_t GetUint32Parameter(const std::string& key, uint32_t def, uint32_t minVal, uint32_t maxVal)
+{
+    int64_t raw = OHOS::system::GetIntParameter<int64_t>(
+        key, static_cast<int64_t>(def), static_cast<int64_t>(minVal), static_cast<int64_t>(maxVal));
+    return static_cast<uint32_t>(raw);
+}
+
 CollectorParams LoadParamsFromSystem()
 {
     CollectorParams params;
     params.alpha = GetFloatParameter(PARAM_ALPHA, params.alpha, 0.05f, 0.95f);
     params.predictThreshold = GetFloatParameter(PARAM_PREDICT_THRESHOLD, params.predictThreshold, 0.05f, 0.95f);
     params.evictScore = GetFloatParameter(PARAM_EVICT_SCORE, params.evictScore, 0.001f, 0.5f);
-    params.evictRounds = OHOS::system::GetIntParameter<uint32_t>(PARAM_EVICT_ROUNDS, params.evictRounds, 1u, 1000u);
-    params.checkpoint2DelayMs =
-        OHOS::system::GetIntParameter<uint32_t>(PARAM_CHECKPOINT2_DELAY_MS, params.checkpoint2DelayMs, 0u, 60000u);
+    params.evictRounds = GetUint32Parameter(PARAM_EVICT_ROUNDS, params.evictRounds, 1u, 1000u);
+    params.checkpoint2DelayMs = GetUint32Parameter(PARAM_CHECKPOINT2_DELAY_MS, params.checkpoint2DelayMs, 0u, 60000u);
     params.reportHitRate = OHOS::system::GetBoolParameter(PARAM_REPORT_HITRATE, false);
     return params;
 }
