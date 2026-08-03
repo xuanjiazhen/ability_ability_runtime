@@ -32,6 +32,8 @@
 #include "ohos_application.h"
 #undef private
 
+#include "mock_runtime.h"
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -209,7 +211,8 @@ class MockAppMgrStub : public AppMgrStub {
         return 0;
     }
 
-    int32_t RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer) override
+    int32_t RegisterConfigurationObserver(const sptr<IConfigurationObserver> &observer,
+        const int32_t userId = -1) override
     {
         return 0;
     }
@@ -970,7 +973,7 @@ HWTEST_F(MainThreadTest, PrepareAbilityDelegator_0100, TestSize.Level1)
     std::shared_ptr<UserTestRecord> usertestInfo = std::make_shared<UserTestRecord>();
     bool isStageBased = true;
     HapModuleInfo hapModuleInfo;
-    EXPECT_TRUE(mainThread_->PrepareAbilityDelegator(usertestInfo, isStageBased, hapModuleInfo));
+    EXPECT_TRUE(mainThread_->PrepareAbilityDelegator(usertestInfo, isStageBased, hapModuleInfo, 0));
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
 
@@ -985,7 +988,7 @@ HWTEST_F(MainThreadTest, PrepareAbilityDelegator_0200, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
     bool isStageBased = true;
     HapModuleInfo hapModuleInfo;
-    EXPECT_FALSE(mainThread_->PrepareAbilityDelegator(nullptr, isStageBased, hapModuleInfo));
+    EXPECT_FALSE(mainThread_->PrepareAbilityDelegator(nullptr, isStageBased, hapModuleInfo, 0));
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
 
@@ -1004,7 +1007,7 @@ HWTEST_F(MainThreadTest, PrepareAbilityDelegator_0300, TestSize.Level1)
     AbilityInfo abilityInfo;
     HapModuleInfo hapModuleInfo;
     hapModuleInfo.abilityInfos.emplace_back(abilityInfo);
-    EXPECT_FALSE(mainThread_->PrepareAbilityDelegator(usertestInfo, isStageBased, hapModuleInfo));
+    EXPECT_FALSE(mainThread_->PrepareAbilityDelegator(usertestInfo, isStageBased, hapModuleInfo, 0));
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
 
@@ -1021,7 +1024,7 @@ HWTEST_F(MainThreadTest, PrepareAbilityDelegator_0400, TestSize.Level1)
     std::shared_ptr<UserTestRecord> usertestInfo = std::make_shared<UserTestRecord>();
     bool isStageBased = false;
     HapModuleInfo hapModuleInfo;
-    EXPECT_FALSE(mainThread_->PrepareAbilityDelegator(usertestInfo, isStageBased, hapModuleInfo));
+    EXPECT_FALSE(mainThread_->PrepareAbilityDelegator(usertestInfo, isStageBased, hapModuleInfo, 0));
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
 
@@ -2798,11 +2801,11 @@ HWTEST_F(MainThreadTest, SplitString_0600, TestSize.Level1)
  */
 HWTEST_F(MainThreadTest, CheckAndUpdateRuntime_0100, TestSize.Level1)
 {
-    std::shared_ptr<AbilityLocalRecord> abilityRecord = std::make_shared<AbilityLocalRecord>();
+    std::shared_ptr<AbilityLocalRecord> abilityRecord =
+        std::make_shared<AbilityLocalRecord>(std::make_shared<AbilityInfo>(), nullptr, nullptr, 0);
     abilityRecord->abilityInfo_->arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0;
-    MainThread_->application_->arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2;
     AbilityRuntime::Runtime::Options options;
-    option.lang = AbilityRuntime::Runtime::Language::JS;
+    options.lang = AbilityRuntime::Runtime::Language::JS;
     auto runtime = AbilityRuntime::Runtime::Create(options);
     mainThread_->application_->SetRuntime(std::move(runtime));
     ApplicationInfo appInfo;
@@ -2818,11 +2821,11 @@ HWTEST_F(MainThreadTest, CheckAndUpdateRuntime_0100, TestSize.Level1)
  */
 HWTEST_F(MainThreadTest, CheckAndUpdateRuntime_0200, TestSize.Level1)
 {
-    std::shared_ptr<AbilityLocalRecord> abilityRecord = std::make_shared<AbilityLocalRecord>();
+    std::shared_ptr<AbilityLocalRecord> abilityRecord =
+        std::make_shared<AbilityLocalRecord>(std::make_shared<AbilityInfo>(), nullptr, nullptr, 0);
     abilityRecord->abilityInfo_->arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0;
-    MainThread_->application_->arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2;
     AbilityRuntime::Runtime::Options options;
-    option.lang = AbilityRuntime::Runtime::Language::ETS;
+    options.lang = AbilityRuntime::Runtime::Language::ETS;
     auto runtime = AbilityRuntime::Runtime::Create(options);
     mainThread_->application_->SetRuntime(std::move(runtime));
     ApplicationInfo appInfo;
@@ -2838,11 +2841,11 @@ HWTEST_F(MainThreadTest, CheckAndUpdateRuntime_0200, TestSize.Level1)
  */
 HWTEST_F(MainThreadTest, CheckAndUpdateRuntime_0300, TestSize.Level1)
 {
-    std::shared_ptr<AbilityLocalRecord> abilityRecord = std::make_shared<AbilityLocalRecord>();
+    std::shared_ptr<AbilityLocalRecord> abilityRecord =
+        std::make_shared<AbilityLocalRecord>(std::make_shared<AbilityInfo>(), nullptr, nullptr, 0);
     abilityRecord->abilityInfo_->arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2;
-    MainThread_->application_->arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2;
     AbilityRuntime::Runtime::Options options;
-    option.lang = AbilityRuntime::Runtime::Language::ETS;
+    options.lang = AbilityRuntime::Runtime::Language::ETS;
     auto runtime = AbilityRuntime::Runtime::Create(options);
     mainThread_->application_->SetRuntime(std::move(runtime));
     ApplicationInfo appInfo;
@@ -2856,13 +2859,13 @@ HWTEST_F(MainThreadTest, CheckAndUpdateRuntime_0300, TestSize.Level1)
  * @tc.desc: CheckAndUpdateRuntime Ability 1.0, Application 1.0, Runtime Js.
  * @tc.type: FUNC
  */
-HWTEST_F(MainThreadTest, CheckAndUpdateRuntime_0300, TestSize.Level1)
+HWTEST_F(MainThreadTest, CheckAndUpdateRuntime_0400, TestSize.Level1)
 {
-    std::shared_ptr<AbilityLocalRecord> abilityRecord = std::make_shared<AbilityLocalRecord>();
+    std::shared_ptr<AbilityLocalRecord> abilityRecord =
+        std::make_shared<AbilityLocalRecord>(std::make_shared<AbilityInfo>(), nullptr, nullptr, 0);
     abilityRecord->abilityInfo_->arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0;
-    MainThread_->application_->arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0;
     AbilityRuntime::Runtime::Options options;
-    option.lang = AbilityRuntime::Runtime::Language::ETS;
+    options.lang = AbilityRuntime::Runtime::Language::ETS;
     auto runtime = AbilityRuntime::Runtime::Create(options);
     mainThread_->application_->SetRuntime(std::move(runtime));
     ApplicationInfo appInfo;
@@ -2884,7 +2887,7 @@ HWTEST_F(MainThreadTest, GetBundleAndHspListForUpdateRuntime_0100, TestSize.Leve
     auto bundleMgrHelper = contextDeal->GetBundleManager();
     BundleInfo bundleInfo;
     HspList hsplist;
-    EXPECT_TRUE(mainThread_->GetHspListForUpdateRuntime(bundleInfo, "com.ohos.myapplication", hsplist));
+    EXPECT_TRUE(mainThread_->GetBundleAndHspListForUpdateRuntime(bundleInfo, "com.ohos.myapplication", hsplist));
 }
 
 /**
@@ -3117,7 +3120,6 @@ HWTEST_F(MainThreadTest, PreloadModule_WithPreloadAbilityName_0100, TestSize.Lev
     // Prepare BundleInfo
     BundleInfo bundleInfo;
     bundleInfo.name = "com.example.test";
-    bundleInfo.bundleName = "com.example.test";
 
     // Prepare HapModuleInfo for preload
     HapModuleInfo preloadModuleInfo;
@@ -3174,7 +3176,6 @@ HWTEST_F(MainThreadTest, PreloadModule_WithEmptyPreloadAbilityName_0200, TestSiz
     // Prepare BundleInfo
     BundleInfo bundleInfo;
     bundleInfo.name = "com.example.test";
-    bundleInfo.bundleName = "com.example.test";
 
     // Prepare HapModuleInfo for preload
     HapModuleInfo preloadModuleInfo;

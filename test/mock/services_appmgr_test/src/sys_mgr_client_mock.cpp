@@ -22,6 +22,8 @@
 
 namespace OHOS {
 namespace AppExecFwk {
+SysMrgClient::SysMrgClient() {}
+SysMrgClient::~SysMrgClient() {}
 sptr<IRemoteObject> SysMrgClient::GetSystemAbility(const int32_t systemAbilityId)
 {
     if (servicesMap_[systemAbilityId] == nullptr) {
