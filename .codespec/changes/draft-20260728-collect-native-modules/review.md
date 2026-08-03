@@ -154,7 +154,7 @@
 | 类型 | 问题 | 处理方式 | Owner |
 |------|------|----------|-------|
 | blocker | OI-4 Phase-3/4 编译/UT/实测缺失 | 必须回补后重审 GC | yangzk |
-| risk | OI-1 纯 JS 运行时路径 preload 排除未覆盖 | follow-up 确认场景 | yangzk |
+| ~~risk~~ | ~~OI-1 纯 JS 运行时路径 preload 排除未覆盖~~ | **已修复**（5dd3d49fb1，JsRuntime::FinishPreload 补 CapturePreloadModules） | yangzk |
 | risk | OI-2 refCount 语义待设备确认（降级方案在案） | follow-up 上机确认 | yangzk + napi owner |
 | risk | OI-3 CCM 参数命名未与 owner 确认 | follow-up 评审定名 | yangzk |
 | follow-up | D-1 spec API 清单补录 Runtime 两个静态 InnerAPI | spec 下一版本补录 | yangzk |

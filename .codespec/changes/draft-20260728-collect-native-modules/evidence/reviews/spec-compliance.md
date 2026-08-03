@@ -10,7 +10,7 @@
 | AC-1.2 开关缺失缺省关闭零行为 | collector IsEnabled：测试钩子或 GetBoolParameter 缺省 false；检查点两处先判 IsEnabled | IsEnabled_DefaultDisabledNoFileIO_005、Params_DefaultsWhenAbsent_020 | PASS | 用例已交付未执行 |
 | AC-1.3 多进程独立文件 | GetStorePath 含 ProcessNameHash（FNV-1a 8 hex） | ProcessNameHash_StableAndDistinct_002 | PASS | 用例已交付未执行 |
 | AC-1.4 写盘失败无残缺文件 | WriteAtomic：tmp + rename，失败清理 tmp | WriteAtomic_SuccessAndFailure_010 | PASS | 用例已交付未执行 |
-| AC-1.5 fork 前 preload 模块不采集 | Runtime::CapturePreloadModules（ETSRuntime::PreFork 末尾）；MainThread 桥接 SetPreloadModuleKeys；AccumulateModules 过滤 | AccumulateModules_DedupAndPreloadFilter_011 | PASS（ETS 路径）；见 OI-1（纯 JS 运行时路径未覆盖） | 过滤逻辑用例已交付；preload-fork 场景实测待补 |
+| AC-1.5 fork 前 preload 模块不采集 | Runtime::CapturePreloadModules（ETSRuntime::PreFork 末尾 **及** JsRuntime::FinishPreload 末尾）；MainThread 桥接 SetPreloadModuleKeys；AccumulateModules 过滤 | AccumulateModules_DedupAndPreloadFilter_011 | **PASS（ETS + 纯 JS 双路径）** | 过滤逻辑用例已交付；preload-fork 场景实测待补 |
 | AC-2.1 连续命中 score 收敛入预测集 | MergeRound 命中奖励 α+(1−α)·score | MergeRound_HitReward_002、MergeAndSave_RoundTrip_008 | PASS | 用例已交付未执行 |
 | AC-2.2 16 轮未见或 score<0.05 淘汰 | EvictStats 双条件 + 1024 上限低分淘汰 | EvictStats_LowScoreAndLongUnseen_005、EvictStats_CapLimit_006 | PASS | 用例已交付未执行 |
 | AC-2.3 损坏/version 不符/缓存清理重建 | LoadStats 严格校验 + 类型混淆兜底；MergeAndSave 冷启动路径 | LoadStats_RejectInvalid_007、MergeAndSave_RoundTrip_008 | PASS | 用例已交付未执行 |
@@ -37,7 +37,7 @@
 | 编号 | 类型 | 内容 | 处理 |
 |------|------|------|------|
 | D-1 | spec 偏差 | Runtime 新增两个静态 InnerAPI 未列入 spec API 变更清单（spec 仅列 napi 侧两个） | 接受：同为 InnerAPI 同语义层级，建议 spec 下一版本补录 |
-| OI-1 | risk | 纯 JS 运行时路径（不经 ETSRuntime::PreFork）preload 快照不生效，AC-1.5 对该路径未覆盖 | follow-up：确认 JS-only 应用是否存在 preload 场景，必要时在 JsRuntime 侧补挂 |
+| OI-1 | risk | ~~纯 JS 运行时路径（不经 ETSRuntime::PreFork）preload 快照不生效~~ | **已修复**（5dd3d49fb1）：JsRuntime::FinishPreload 补 CapturePreloadModules，ETS+JS 双路径覆盖 |
 | OI-2 | risk | refCount cache 命中递增语义未在设备确认（RSK-2），若不符则 AC-2.5 精度降级（降级方案：P 集合模块本轮一律不更新） | follow-up：上机验证时确认 |
 | OI-3 | risk | CCM 参数命名未与 owner 确认（RSK-3），当前按 ccm.ability.native_module_collect.* 实现 | follow-up：评审时定名 |
 | OI-4 | blocker | Phase-3/4 代码未编译验证、22 组 UT 未执行、上机实测未做 | 必须回补：编译 + UT + 实测后更新 GC 结论 |
