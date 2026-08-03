@@ -634,6 +634,10 @@ void JsRuntime::FinishPreload()
     auto vm = GetEcmaVm();
     CHECK_POINTER(vm);
     panda::JSNApi::PreFork(vm);
+    // mirror ETSRuntime::PreFork: snapshot everything loaded so far as the
+    // preload (pre-fork) base set, so the collector can drop preload-phase
+    // modules from app imports (AC-1.5 covers the pure-JS path too)
+    Runtime::CapturePreloadModules();
 }
 
 void JsRuntime::PostPreload(const Options& options)
