@@ -21,7 +21,6 @@
 #include <chrono>
 #include <cmath>
 #include <cstdint>
-#include <cstdio>
 #include <cstdlib>
 #include <fcntl.h>
 #include <fstream>
@@ -157,29 +156,10 @@ int64_t NowMillis()
         std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
-bool ParseStatEntry(const nlohmann::json& item, std::string& moduleName, ModuleStat& stat)
+// OpenHarmony is built with -fno-exceptions: read json fields with find()+type
+// guards only, never throwing accessors.
+bool ReadStatNumericFields(const nlohmann::json& item, ModuleStat& stat)
 {
-    if (!item.is_object()) {
-        return false;
-    }
-    // OpenHarmony is built with -fno-exceptions; use non-throwing access only.
-    auto readStr = [](const nlohmann::json& node, std::string& out) {
-        if (!node.is_string()) {
-            return false;
-        }
-        out = node.get_ref<const std::string&>();
-        return true;
-    };
-    const auto name = item.find("moduleName");
-    if (name == item.end() || !readStr(*name, moduleName) || moduleName.empty() ||
-        moduleName.size() > MAX_MODULE_NAME_LEN) {
-        return false;
-    }
-    const auto fileName = item.find("fileName");
-    if (fileName == item.end() || !readStr(*fileName, stat.fileName) ||
-        stat.fileName.size() > MAX_FILE_NAME_LEN) {
-        return false;
-    }
     const auto score = item.find("score");
     const auto hits = item.find("hits");
     const auto lastSeen = item.find("lastSeenLaunch");
@@ -205,6 +185,147 @@ bool ParseStatEntry(const nlohmann::json& item, std::string& moduleName, ModuleS
     stat.loadCount = (loadCount != item.end() && loadCount->is_number_unsigned())
         ? loadCount->get<uint32_t>() : 0u;
     return true;
+}
+
+bool ParseStatEntry(const nlohmann::json& item, std::string& moduleName, ModuleStat& stat)
+{
+    if (!item.is_object()) {
+        return false;
+    }
+    auto readStr = [](const nlohmann::json& node, std::string& out) {
+        if (!node.is_string()) {
+            return false;
+        }
+        out = node.get_ref<const std::string&>();
+        return true;
+    };
+    const auto name = item.find("moduleName");
+    if (name == item.end() || !readStr(*name, moduleName) || moduleName.empty() ||
+        moduleName.size() > MAX_MODULE_NAME_LEN) {
+        return false;
+    }
+    const auto fileName = item.find("fileName");
+    if (fileName == item.end() || !readStr(*fileName, stat.fileName) ||
+        stat.fileName.size() > MAX_FILE_NAME_LEN) {
+        return false;
+    }
+    return ReadStatNumericFields(item, stat);
+}
+
+// ---- store-file loaders (split out to keep LoadStats under complexity/size limits) ----
+
+bool ValidateStoreVersion(const nlohmann::json& root, std::string& errInfo)
+{
+    const auto version = root.find("version");
+    if (version == root.end() || !version->is_number_integer() ||
+        version->get<int32_t>() != STORE_FILE_VERSION) {
+        errInfo = "version mismatch";
+        return false;
+    }
+    return true;
+}
+
+bool ReadStoreMeta(const nlohmann::json& root, StoreMeta& meta, std::string& errInfo)
+{
+    const auto appVersion = root.find("appVersionCode");
+    const auto launchIndex = root.find("launchIndex");
+    const auto modules = root.find("modules");
+    if (appVersion == root.end() || !appVersion->is_number_integer() ||
+        launchIndex == root.end() || !launchIndex->is_number_unsigned() ||
+        modules == root.end() || !modules->is_array()) {
+        errInfo = "meta fields invalid";
+        return false;
+    }
+    if (modules->size() > MAX_PARSE_ENTRIES) {
+        errInfo = "entries over parse cap";
+        return false;
+    }
+    auto readStr = [&root](const char* key, std::string& out) {
+        const auto it = root.find(key);
+        if (it == root.end() || !it->is_string()) {
+            return false;
+        }
+        out = it->get_ref<const std::string&>();
+        return true;
+    };
+    if (!readStr("bundleName", meta.bundleName) ||
+        meta.bundleName.size() > MAX_BUNDLE_NAME_LEN ||
+        !readStr("processName", meta.processName) ||
+        meta.processName.size() > MAX_MODULE_NAME_LEN) {
+        errInfo = "meta fields over length cap";
+        return false;
+    }
+    meta.appVersionCode = appVersion->get<int64_t>();
+    meta.launchIndex = launchIndex->get<uint32_t>();
+    const auto scenario = root.find("scenario");
+    meta.scenario = (scenario != root.end() && scenario->is_string())
+        ? scenario->get_ref<const std::string&>() : "unknown";
+    return true;
+}
+
+bool ReadStoreModules(const nlohmann::json& modules, std::map<std::string, ModuleStat>& loaded,
+    std::string& errInfo)
+{
+    for (const auto& item : modules) {
+        std::string moduleName;
+        ModuleStat stat;
+        if (!ParseStatEntry(item, moduleName, stat)) {
+            errInfo = "module entry invalid";
+            return false;
+        }
+        loaded[moduleName] = stat;
+    }
+    return true;
+}
+
+// ---- merge helpers (split out to keep MergeAndSave under size limits) ----
+
+// Load history and decide cold-start; rebuilds (discard + reset) on missing /
+// corrupted / app-upgrade. Fills predictedPrev only when reporting is on and
+// history is usable. Returns true on cold start.
+bool PrepareMergeHistory(const std::string& storePath, int64_t appVersionCode,
+    std::map<std::string, ModuleStat>& stats, StoreMeta& meta,
+    std::vector<std::string>& predictedPrev)
+{
+    std::string errInfo;
+    bool hasHistory = NativeModuleCollector::LoadStats(storePath, stats, meta, errInfo);
+    if (!hasHistory) {
+        TAG_LOGI(AAFwkTag::APPKIT, "rebuild stats: %{public}s", errInfo.c_str());
+        stats.clear();
+        meta = StoreMeta {};
+        return true;
+    }
+    if (meta.appVersionCode != appVersionCode) {
+        TAG_LOGI(AAFwkTag::APPKIT, "rebuild stats: app upgraded");
+        stats.clear();
+        meta = StoreMeta {};
+        return true;
+    }
+    if (NativeModuleCollector::GetParams().reportHitRate) {
+        predictedPrev = NativeModuleCollector::ComputePredicted(stats);
+    }
+    return false;
+}
+
+void ReportHitRateIfNeeded(bool written, bool coldStart, const std::vector<std::string>& predictedPrev,
+    const std::vector<NativeModuleCollector::CollectedModule>& round)
+{
+    if (!written || coldStart || !NativeModuleCollector::GetParams().reportHitRate) {
+        return;
+    }
+    auto metrics = NativeModuleCollector::ComputeHitRateMetrics(predictedPrev, round);
+    TAG_LOGI(AAFwkTag::APPKIT,
+        "hitRate %{public}.3f falseRate %{public}.3f predicted %{public}zu actual %{public}zu",
+        metrics.hitRate, metrics.falseRate, metrics.predictedCount, metrics.actualCount);
+    // beta only: report prediction quality for parameter calibration (gated by
+    // ccm.ability.native_module_collect.report_hitrate, off in production)
+    AAFwk::HisyseventReport report(5);
+    report.InsertParam("HIT_RATE", metrics.hitRate);
+    report.InsertParam("FALSE_RATE", metrics.falseRate);
+    report.InsertParam("PREDICTED_COUNT", static_cast<uint64_t>(metrics.predictedCount));
+    report.InsertParam("ACTUAL_COUNT", static_cast<uint64_t>(metrics.actualCount));
+    report.InsertParam("HIT_COUNT", static_cast<uint64_t>(metrics.hitCount));
+    (void)report.Report("AAFWK", "NATIVE_MODULE_COLLECT_HITRATE", HISYSEVENT_STATISTIC);
 }
 } // namespace
 
@@ -237,9 +358,14 @@ std::string NativeModuleCollector::ProcessNameHash(const std::string& processNam
         hash ^= static_cast<uint8_t>(c);
         hash *= FNV1A_PRIME;
     }
-    char buf[HEX_HASH_LEN + 1] = {0};
-    (void)snprintf(buf, sizeof(buf), "%08x", hash);
-    return std::string(buf);
+    // format as fixed-width lowercase hex without sprintf (avoids the banned
+    // snprintf; output is exactly HEX_HASH_LEN chars)
+    static constexpr char HEX[] = "0123456789abcdef";
+    std::string result(HEX_HASH_LEN, '0');
+    for (size_t i = 0; i < HEX_HASH_LEN; ++i) {
+        result[HEX_HASH_LEN - 1 - i] = HEX[(hash >> (i * 4)) & 0xF];
+    }
+    return result;
 }
 
 bool NativeModuleCollector::EnsureDir(const std::string& dir)
@@ -461,59 +587,19 @@ bool NativeModuleCollector::LoadStats(const std::string& path, std::map<std::str
         errInfo = root.is_null() ? "json parse failed" : "root is not an object";
         return false;
     }
-    const auto version = root.find("version");
-    if (version == root.end() || !version->is_number_integer() ||
-        version->get<int32_t>() != STORE_FILE_VERSION) {
-        errInfo = "version mismatch";
+    if (!ValidateStoreVersion(root, errInfo)) {
         return false;
     }
-    const auto appVersion = root.find("appVersionCode");
-    const auto launchIndex = root.find("launchIndex");
+    StoreMeta parsed;
+    if (!ReadStoreMeta(root, parsed, errInfo)) {
+        return false;
+    }
     const auto modules = root.find("modules");
-    if (appVersion == root.end() || !appVersion->is_number_integer() ||
-        launchIndex == root.end() || !launchIndex->is_number_unsigned() ||
-        modules == root.end() || !modules->is_array()) {
-        errInfo = "meta fields invalid";
-        return false;
-    }
-    if (modules->size() > MAX_PARSE_ENTRIES) {
-        errInfo = "entries over parse cap";
-        return false;
-    }
-    auto readMetaStr = [&root](const char* key, std::string& out) {
-        const auto it = root.find(key);
-        if (it == root.end() || !it->is_string()) {
-            return false;
-        }
-        out = it->get_ref<const std::string&>();
-        return true;
-    };
-    std::string bundleName;
-    std::string processName;
-    if (!readMetaStr("bundleName", bundleName) ||
-        bundleName.size() > MAX_BUNDLE_NAME_LEN ||
-        !readMetaStr("processName", processName) ||
-        processName.size() > MAX_MODULE_NAME_LEN) {
-        errInfo = "meta fields over length cap";
-        return false;
-    }
     std::map<std::string, ModuleStat> loaded;
-    for (const auto& item : *modules) {
-        std::string moduleName;
-        ModuleStat stat;
-        if (!ParseStatEntry(item, moduleName, stat)) {
-            errInfo = "module entry invalid";
-            return false;
-        }
-        loaded[moduleName] = stat;
+    if (!ReadStoreModules(*modules, loaded, errInfo)) {
+        return false;
     }
-    meta.bundleName = bundleName;
-    meta.processName = processName;
-    meta.appVersionCode = appVersion->get<int64_t>();
-    meta.launchIndex = launchIndex->get<uint32_t>();
-    const auto scenario = root.find("scenario");
-    meta.scenario = (scenario != root.end() && scenario->is_string())
-        ? scenario->get_ref<const std::string&>() : "unknown";
+    meta = std::move(parsed);
     stats = std::move(loaded);
     return true;
 }
@@ -660,24 +746,9 @@ bool NativeModuleCollector::MergeAndSave(const std::string& storePath, const std
 {
     std::map<std::string, ModuleStat> stats;
     StoreMeta meta;
-    std::string errInfo;
-    bool hasHistory = LoadStats(storePath, stats, meta, errInfo);
-    if (!hasHistory) {
-        TAG_LOGI(AAFwkTag::APPKIT, "rebuild stats: %{public}s", errInfo.c_str());
-        stats.clear();
-        meta = StoreMeta {};
-    } else if (meta.appVersionCode != appVersionCode) {
-        TAG_LOGI(AAFwkTag::APPKIT, "rebuild stats: app upgraded");
-        hasHistory = false;
-        stats.clear();
-        meta = StoreMeta {};
-    }
-    bool coldStart = !hasHistory;
-    // snapshot of the previous prediction, for beta hit-rate metrics
     std::vector<std::string> predictedPrev;
-    if (hasHistory && GetParams().reportHitRate) {
-        predictedPrev = ComputePredicted(stats);
-    }
+    bool coldStart = PrepareMergeHistory(storePath, appVersionCode, stats, meta, predictedPrev);
+
     meta.bundleName = bundleName;
     meta.processName = processName;
     meta.appVersionCode = appVersionCode;
@@ -704,21 +775,7 @@ bool NativeModuleCollector::MergeAndSave(const std::string& storePath, const std
         "(preEvict=%{public}zu) predicted=%{public}zu written=%{public}d",
         meta.launchIndex, coldStart ? 1 : 0, round.size(), stats.size(), beforeEvict,
         ComputePredicted(stats).size(), written ? 1 : 0);
-    if (written && hasHistory && GetParams().reportHitRate) {
-        HitRateMetrics metrics = ComputeHitRateMetrics(predictedPrev, round);
-        TAG_LOGI(AAFwkTag::APPKIT,
-            "hitRate %{public}.3f falseRate %{public}.3f predicted %{public}zu actual %{public}zu",
-            metrics.hitRate, metrics.falseRate, metrics.predictedCount, metrics.actualCount);
-        // beta only: report prediction quality for parameter calibration (gated by
-        // ccm.ability.native_module_collect.report_hitrate, off in production)
-        AAFwk::HisyseventReport report(5);
-        report.InsertParam("HIT_RATE", metrics.hitRate);
-        report.InsertParam("FALSE_RATE", metrics.falseRate);
-        report.InsertParam("PREDICTED_COUNT", static_cast<uint64_t>(metrics.predictedCount));
-        report.InsertParam("ACTUAL_COUNT", static_cast<uint64_t>(metrics.actualCount));
-        report.InsertParam("HIT_COUNT", static_cast<uint64_t>(metrics.hitCount));
-        (void)report.Report("AAFWK", "NATIVE_MODULE_COLLECT_HITRATE", HISYSEVENT_STATISTIC);
-    }
+    ReportHitRateIfNeeded(written, coldStart, predictedPrev, round);
     return written;
 }
 
