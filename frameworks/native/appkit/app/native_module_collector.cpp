@@ -257,11 +257,19 @@ bool NativeModuleCollector::EnsureDir(const std::string& dir)
         if (current == "/") {
             continue;
         }
-        if (!current.empty() && current.back() == '/') {
-            current.pop_back();
+        // mkdir the segment without a trailing slash, but keep `current` intact
+        // (with its slash) so the next characters append after the separator.
+        // Mutating current here used to drop the separator and concatenate
+        // adjacent segments (e.g. /data + storage -> /datastorage).
+        std::string segment = current;
+        if (!segment.empty() && segment.back() == '/') {
+            segment.pop_back();
         }
-        if (mkdir(current.c_str(), STORE_DIR_MODE) != 0 && errno != EEXIST) {
-            TAG_LOGE(AAFwkTag::APPKIT, "mkdir %{public}s failed, errno %{public}d", current.c_str(), errno);
+        if (segment.empty()) {
+            continue;
+        }
+        if (mkdir(segment.c_str(), STORE_DIR_MODE) != 0 && errno != EEXIST) {
+            TAG_LOGE(AAFwkTag::APPKIT, "mkdir %{public}s failed, errno %{public}d", segment.c_str(), errno);
             return false;
         }
     }
