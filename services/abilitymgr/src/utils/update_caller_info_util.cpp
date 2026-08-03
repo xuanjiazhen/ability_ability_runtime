@@ -123,6 +123,43 @@ void UpdateCallerInfoUtil::UpdateCallerInfo(Want& want, const sptr<IRemoteObject
     UpdateSignatureInfo(callerBundleName, want);
 }
 
+void UpdateCallerInfoUtil::UpdateCallerInfoByHapTokenId(Want& want, uint32_t callerTokenId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (callerTokenId == 0) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "UpdateCallerInfoByHapTokenId: invalid tokenId 0");
+        return;
+    }
+    Security::AccessToken::HapTokenInfo hapInfo;
+    auto ret = Security::AccessToken::AccessTokenKit::GetHapTokenInfo(callerTokenId, hapInfo);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "UpdateCallerInfoByHapTokenId: GetHapTokenInfo failed, tokenId=%{public}u", callerTokenId);
+        return;
+    }
+
+    ClearProtectedWantParam(want);
+    want.RemoveParam(PARAM_RESV_ANCO_CALLER_UID);
+    want.RemoveParam(PARAM_RESV_ANCO_CALLER_BUNDLENAME);
+    want.RemoveParam(Want::PARAM_RESV_CALLER_TOKEN);
+    want.SetParam(Want::PARAM_RESV_CALLER_TOKEN, static_cast<int32_t>(callerTokenId));
+    want.RemoveParam(Want::PARAM_RESV_CALLER_UID);
+    // HapTokenInfo 没有 uid 字段,只能派生 user 维度 uid(user 内的具体 uid 拿不到).
+    // TODO: 若 SDK 提供 AccessTokenKit::GetUidByTokenId, 改用其精确值.
+    int32_t callerUid = hapInfo.userID * BASE_USER_RANGE;
+    want.SetParam(Want::PARAM_RESV_CALLER_UID, callerUid);
+    want.RemoveParam(Want::PARAM_RESV_CALLER_PID);
+    want.SetParam(Want::PARAM_RESV_CALLER_PID, 0);
+    want.RemoveParam(WANT_PARAMS_APP_RESTART_FLAG);
+    want.RemoveParam(IS_SHELL_CALL);
+    want.RemoveParam(Want::PARAMS_REAL_CALLER_KEY);
+
+    UpdateCallerBundleName(want, hapInfo.bundleName);
+    UpdateCallerAbilityName(want, "");
+    UpdateCallerAppCloneIndex(want, hapInfo.instIndex);
+    UpdateSignatureInfo(hapInfo.bundleName, want);
+}
+
 void UpdateCallerInfoUtil::UpdateSignatureInfo(std::string bundleName, Want& want, bool isRemote)
 {
     auto bundleMgr = AbilityUtil::GetBundleManagerHelper();
