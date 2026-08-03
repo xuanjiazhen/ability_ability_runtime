@@ -148,32 +148,44 @@ bool ParseStatEntry(const nlohmann::json& item, std::string& moduleName, ModuleS
     if (!item.is_object()) {
         return false;
     }
-    const auto& name = item.value("moduleName", nlohmann::json());
-    if (!name.is_string() || name.get<std::string>().empty() ||
-        name.get<std::string>().size() > MAX_MODULE_NAME_LEN) {
+    // OpenHarmony is built with -fno-exceptions; use non-throwing access only.
+    auto readStr = [](const nlohmann::json& node, std::string& out) {
+        if (!node.is_string()) {
+            return false;
+        }
+        out = node.get_ref<const std::string&>();
+        return true;
+    };
+    const auto name = item.find("moduleName");
+    if (name == item.end() || !readStr(*name, moduleName) || moduleName.empty() ||
+        moduleName.size() > MAX_MODULE_NAME_LEN) {
         return false;
     }
-    const auto& fileName = item.value("fileName", nlohmann::json());
-    if (!fileName.is_string() || fileName.get<std::string>().size() > MAX_FILE_NAME_LEN) {
+    const auto fileName = item.find("fileName");
+    if (fileName == item.end() || !readStr(*fileName, stat.fileName) ||
+        stat.fileName.size() > MAX_FILE_NAME_LEN) {
         return false;
     }
-    const auto& score = item.value("score", nlohmann::json());
-    const auto& hits = item.value("hits", nlohmann::json());
-    const auto& lastSeen = item.value("lastSeenLaunch", nlohmann::json());
-    const auto& firstStage = item.value("firstStage", nlohmann::json());
-    const auto& isApp = item.value("isAppModule", nlohmann::json());
-    if (!score.is_number() || !hits.is_number_unsigned() || !lastSeen.is_number_unsigned() ||
-        !firstStage.is_number_unsigned() || !isApp.is_boolean()) {
+    const auto score = item.find("score");
+    const auto hits = item.find("hits");
+    const auto lastSeen = item.find("lastSeenLaunch");
+    const auto firstStage = item.find("firstStage");
+    const auto isApp = item.find("isAppModule");
+    if (score == item.end() || !score->is_number() ||
+        hits == item.end() || !hits->is_number_unsigned() ||
+        lastSeen == item.end() || !lastSeen->is_number_unsigned() ||
+        firstStage == item.end() || !firstStage->is_number_unsigned() ||
+        isApp == item.end() || !isApp->is_boolean()) {
         return false;
     }
-    moduleName = name.get<std::string>();
-    stat.fileName = fileName.get<std::string>();
-    stat.isAppModule = isApp.get<bool>();
-    stat.score = ClampScore(score.get<double>());
-    stat.hits = hits.get<uint32_t>();
-    stat.lastSeenLaunch = lastSeen.get<uint32_t>();
-    stat.firstStage = firstStage.get<uint8_t>() > 1 ? 1 : firstStage.get<uint8_t>();
-    stat.loadCount = item.value("loadCount", 0u);
+    stat.isAppModule = isApp->get<bool>();
+    stat.score = ClampScore(score->get<double>());
+    stat.hits = hits->get<uint32_t>();
+    stat.lastSeenLaunch = lastSeen->get<uint32_t>();
+    stat.firstStage = firstStage->get<uint8_t>() > 1 ? 1 : firstStage->get<uint8_t>();
+    const auto loadCount = item.find("loadCount");
+    stat.loadCount = (loadCount != item.end() && loadCount->is_number_unsigned())
+        ? loadCount->get<uint32_t>() : 0u;
     return true;
 }
 } // namespace
@@ -398,62 +410,68 @@ bool NativeModuleCollector::LoadStats(const std::string& path, std::map<std::str
         errInfo = "file missing or unreadable";
         return false;
     }
-    nlohmann::json root;
-    try {
-        in >> root;
-    } catch (const nlohmann::json::exception& e) {
-        errInfo = std::string("json parse failed: ") + e.what();
+    // OpenHarmony is built with -fno-exceptions: parse without throwing.
+    // The third arg `false` disables exceptions; a malformed file yields a null json.
+    nlohmann::json root = nlohmann::json::parse(in, nullptr, false, true);
+    if (!root.is_object()) {
+        errInfo = root.is_null() ? "json parse failed" : "root is not an object";
         return false;
     }
-    try {
-        if (!root.is_object()) {
-            errInfo = "root is not an object";
+    const auto version = root.find("version");
+    if (version == root.end() || !version->is_number_integer() ||
+        version->get<int32_t>() != STORE_FILE_VERSION) {
+        errInfo = "version mismatch";
+        return false;
+    }
+    const auto appVersion = root.find("appVersionCode");
+    const auto launchIndex = root.find("launchIndex");
+    const auto modules = root.find("modules");
+    if (appVersion == root.end() || !appVersion->is_number_integer() ||
+        launchIndex == root.end() || !launchIndex->is_number_unsigned() ||
+        modules == root.end() || !modules->is_array()) {
+        errInfo = "meta fields invalid";
+        return false;
+    }
+    if (modules->size() > MAX_PARSE_ENTRIES) {
+        errInfo = "entries over parse cap";
+        return false;
+    }
+    auto readMetaStr = [&root](const char* key, std::string& out) {
+        const auto it = root.find(key);
+        if (it == root.end() || !it->is_string()) {
             return false;
         }
-        const auto& version = root.value("version", nlohmann::json());
-        if (!version.is_number_integer() || version.get<int32_t>() != STORE_FILE_VERSION) {
-            errInfo = "version mismatch";
-            return false;
-        }
-        const auto& appVersion = root.value("appVersionCode", nlohmann::json());
-        const auto& launchIndex = root.value("launchIndex", nlohmann::json());
-        const auto& modules = root.value("modules", nlohmann::json());
-        if (!appVersion.is_number_integer() || !launchIndex.is_number_unsigned() || !modules.is_array()) {
-            errInfo = "meta fields invalid";
-            return false;
-        }
-        if (modules.size() > MAX_PARSE_ENTRIES) {
-            errInfo = "entries over parse cap";
-            return false;
-        }
-        std::string bundleName = root.value("bundleName", "");
-        std::string processName = root.value("processName", "");
-        if (bundleName.size() > MAX_BUNDLE_NAME_LEN || processName.size() > MAX_MODULE_NAME_LEN) {
-            errInfo = "meta fields over length cap";
-            return false;
-        }
-        std::map<std::string, ModuleStat> loaded;
-        for (const auto& item : modules) {
-            std::string moduleName;
-            ModuleStat stat;
-            if (!ParseStatEntry(item, moduleName, stat)) {
-                errInfo = "module entry invalid";
-                return false;
-            }
-            loaded[moduleName] = stat;
-        }
-        meta.bundleName = bundleName;
-        meta.processName = processName;
-        meta.appVersionCode = appVersion.get<int64_t>();
-        meta.launchIndex = launchIndex.get<uint32_t>();
-        meta.scenario = root.value("scenario", "unknown");
-        stats = std::move(loaded);
+        out = it->get_ref<const std::string&>();
         return true;
-    } catch (const nlohmann::json::exception& e) {
-        // value()/get() type mismatches land here: treat as corrupted input
-        errInfo = std::string("json type mismatch: ") + e.what();
+    };
+    std::string bundleName;
+    std::string processName;
+    if (!readMetaStr("bundleName", bundleName) ||
+        bundleName.size() > MAX_BUNDLE_NAME_LEN ||
+        !readMetaStr("processName", processName) ||
+        processName.size() > MAX_MODULE_NAME_LEN) {
+        errInfo = "meta fields over length cap";
         return false;
     }
+    std::map<std::string, ModuleStat> loaded;
+    for (const auto& item : *modules) {
+        std::string moduleName;
+        ModuleStat stat;
+        if (!ParseStatEntry(item, moduleName, stat)) {
+            errInfo = "module entry invalid";
+            return false;
+        }
+        loaded[moduleName] = stat;
+    }
+    meta.bundleName = bundleName;
+    meta.processName = processName;
+    meta.appVersionCode = appVersion->get<int64_t>();
+    meta.launchIndex = launchIndex->get<uint32_t>();
+    const auto scenario = root.find("scenario");
+    meta.scenario = (scenario != root.end() && scenario->is_string())
+        ? scenario->get_ref<const std::string&>() : "unknown";
+    stats = std::move(loaded);
+    return true;
 }
 
 void NativeModuleCollector::MergeRound(const std::vector<CollectedModule>& round,

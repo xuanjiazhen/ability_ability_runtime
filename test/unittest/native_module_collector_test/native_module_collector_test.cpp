@@ -408,7 +408,8 @@ HWTEST_F(NativeModuleCollectorTest, MergeAndSave_RoundTrip_008, TestSize.Level1)
 
     // predicted survives a full serialize/parse round trip
     std::ifstream in(store);
-    nlohmann::json root = nlohmann::json::parse(in);
+    nlohmann::json root = nlohmann::json::parse(in, nullptr, false, true);
+    ASSERT_TRUE(root.is_object());
     ASSERT_TRUE(root.contains("predicted"));
     EXPECT_EQ(root["predicted"].size(), 3u); // all >= 0.5
 
