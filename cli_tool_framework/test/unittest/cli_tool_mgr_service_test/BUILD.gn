@@ -17,9 +17,19 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 module_output_path = "ability_runtime/ability_runtime/clitool"
 
 ohos_unittest("cli_tool_mgr_service_test") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
 
   include_dirs = [
+    # Mock headers must come first to override system headers
+    "${cli_tool_framework_path}/test/unittest/cli_tool_mgr_service_test/mock/include",
+    "${cli_tool_framework_path}/test/unittest/common_mock/climgr_data/include",
     "${ability_runtime_innerkits_path}/app_manager/include/appmgr",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
     "${ability_runtime_path}/test/unittest/cli_tool_mgr/cli_tool_mgr_service_test",
@@ -27,8 +37,6 @@ ohos_unittest("cli_tool_mgr_service_test") {
     "${cli_tool_framework_path}/interfaces/function/include",
     "${cli_tool_framework_path}/services/climgr/include",
     "${cli_tool_framework_path}/services/common/include",
-    "${cli_tool_framework_path}/test/unittest/cli_tool_mgr_service_test/mock/include",
-    "${cli_tool_framework_path}/test/unittest/common_mock/climgr_data/include",
   ]
 
   sources = [
@@ -41,7 +49,7 @@ ohos_unittest("cli_tool_mgr_service_test") {
     "${cli_tool_framework_path}/services/climgr/src/process_manager.cpp",
     "${cli_tool_framework_path}/services/climgr/src/session_record.cpp",
     "${cli_tool_framework_path}/services/climgr/src/tool_util.cpp",
-    "${cli_tool_framework_path}/services/common/src/ccm_util.cpp",
+    "${cli_tool_framework_path}/test/unittest/common_mock/climgr/src/cli_mgr_service_mock.cpp",
     "mock/src/accesstoken_kit.cpp",
     "mock/src/ipc_skeleton.cpp",
     "permission_util_mock.cpp",
@@ -79,6 +87,7 @@ ohos_unittest("cli_tool_mgr_service_test") {
     "ipc:ipc_core",
     "json:nlohmann_json_static",
     "kv_store:distributeddata_inner",
+    "selinux_adapter:librestorecon",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
