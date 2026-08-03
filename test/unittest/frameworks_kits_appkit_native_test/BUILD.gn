@@ -599,6 +599,8 @@ ohos_unittest("application_impl_test") {
     "${ability_runtime_native_path}/appkit/app/application_env.cpp",
     "${ability_runtime_native_path}/appkit/app/application_env_impl.cpp",
     "${ability_runtime_native_path}/appkit/app/application_impl.cpp",
+    "${ability_runtime_native_path}/appkit/app/native_module_collector.cpp",
+    "${ability_runtime_native_path}/appkit/app/native_module_sampler.cpp",
     "${ability_runtime_native_path}/appkit/app/ohos_application.cpp",
     "app_context_test.cpp",
     "app_loader_test.cpp",
@@ -622,6 +624,7 @@ ohos_unittest("application_impl_test") {
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
     "${ability_runtime_native_path}/appkit:application_image_observer_manager",
+    "${ability_runtime_services_path}/common:hisysevent_report",
   ]
 
   external_deps = [
@@ -637,9 +640,11 @@ ohos_unittest("application_impl_test") {
     "googletest:gtest_main",
     "hichecker:libhichecker",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "json:nlohmann_json_static",
     "napi:ace_napi",
     "runtime_core:ani",
     "samgr:samgr_proxy",
