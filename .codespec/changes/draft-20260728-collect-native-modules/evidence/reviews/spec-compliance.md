@@ -16,7 +16,7 @@
 | AC-2.3 损坏/version 不符/缓存清理重建 | LoadStats 严格校验 + 类型混淆兜底；MergeAndSave 冷启动路径 | LoadStats_RejectInvalid_007、MergeAndSave_RoundTrip_008 | PASS | 用例已交付未执行 |
 | AC-2.4 应用升级清空重建 | MergeAndSave appVersionCode 比对重建 | MergeAndSave_AppUpgradeRebuild_009 | PASS | 用例已交付未执行 |
 | AC-2.5 消费方预加载不计命中 | MergeRound consumerPreloads 分支：loadCount 增量 ≤ 预加载次数则仅刷新观测计数、不奖励；冷启动下一律不计命中（阻断自反馈） | MergeRound_ConsumerPreloadOnly_016、_PlusImport_017、_NotConsumerPreloaded_018、_ColdStartConsumerPreloadNotHit_023、SaveNow_ConsumerPreloadNotPredicted_019 | PASS；见 D-2（R-9"不衰减"措辞收紧）与 OI-2（refCount 语义待设备确认） | 用例已交付，UT 执行中修正 016 期望 |
-| AC-3.1 启动框架预加载 predicted 系统模块 | PredictPreloadSoStartupTask（LoadPredictedSystemModules 过滤 + 逐模块 LoadNativeModule）；MainThread::RunNativeStartupTask 注册 | LoadPredictedSystemModules_Filter_014 | PASS（实现对应） | 任务执行实测待补 |
+| AC-3.1 启动框架预加载 predicted 系统模块 | PredictPreloadSoStartupTask（LoadPredictedSystemModules 过滤 + 逐模块 LoadNativeModule）；MainThread::RunNativeStartupTask 注册；RunTaskInit 将循环 ffrt::submit 到 worker（见 design ADR-5b，修正主线程执行偏差） | LoadPredictedSystemModules_Filter_014 | PASS（实现对应） | 任务执行实测待补；阶段 4 判定含 ffrt tid 核查 |
 | AC-3.2 文件缺失/损坏跳过且不影响启动 | LoadPredictedSystemModules 返回空；任务早退 ERR_OK | LoadPredictedSystemModules_MissingOrCorrupted_015 | PASS | 用例已交付未执行 |
 | AC-3.3 单模块失败记事件继续 | 任务循环内失败记 STARTUP_TASK_ERROR 事件 continue | （任务执行侧，待设备） | PASS（实现对应） | 实测待补 |
 | AC-3.4 空预测集不动作 | 任务 modules.empty() 早退 | LoadPredictedSystemModules_Filter_014（空集路径含于 015） | PASS | 用例已交付未执行 |

@@ -130,13 +130,14 @@ hdc shell aa start -a EntryAbility -b com.example.app
 **预期日志**（启动早期，非主线程）：
 ```
 predict preload task registered: .../<hash8>.v2.json
-predict preload begin, count=<N>
+predict preload begin (ffrt), count=<N>   # (ffrt) 标记 = worker 线程
 predict preload <moduleName> ok        # 逐个系统模块
-predict preload end, count=<N>
+predict preload end (ffrt)
 ```
 
 **判定**：
 - [ ] 日志 count > 0，且每个模块名都在上轮 predicted 列表
+- [ ] **`predict preload begin (ffrt)` 的 tid 与主线程 tid 不同**（确认 LoadNativeModule 在 ffrt worker，非主线程；见 design ADR-5b）
 - [ ] 故意删一个 so 制造失败：`predict preload <m> failed` + `STARTUP_TASK_ERROR` 故障事件，**其余模块继续、启动不阻断**（AC-3.3）
 - [ ] 清空采集文件后启动：`no predicted system module to preload`，无任何预加载动作（AC-3.4）
 - [ ] 启动早期 `cat /proc/$PID/maps` 见 predicted 系统 SO 已映射（早于应用业务 import）
