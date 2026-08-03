@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,7 +33,7 @@ struct TokenInfo {
     std::string processName = "";
     std::string bundleName = "";
     MyATokenTypeEnum tokenType = MyATokenTypeEnum::TOKEN_INVALID;
-    
+
     TokenInfo() {}
 
     TokenInfo(uint32_t tokenId, MyATokenTypeEnum tokenType, std::string processName = "", std::string bundleName = "")
@@ -43,6 +43,20 @@ struct TokenInfo {
         this->processName = processName;
         this->bundleName = bundleName;
     }
+};
+
+struct FUDAppInfoMockResult {
+    bool success;
+    int32_t userId;
+    std::string alterBundleName;
+    std::string bundleName;
+    bool isSA = false;
+
+    FUDAppInfoMockResult() : success(false), userId(-1), alterBundleName(""), bundleName(""), isSA(false) {}
+
+    FUDAppInfoMockResult(bool s, int32_t uid, const std::string& alterName = "", const std::string& bName = "",
+                         bool sa = false)
+        : success(s), userId(uid), alterBundleName(alterName), bundleName(bName), isSA(sa) {}
 };
 
 class MyFlag {
@@ -57,6 +71,8 @@ public:
     {
         flag_ = 0;
         permissionFileAccessManager_ = false;
+        permissionAgentFileAccess_ = false;
+        permissionAgentFileAccessDeclared_ = false;
         permissionWriteImageVideo_ = false;
         permissionReadImageVideo_ = false;
         permissionAllMedia_ = false;
@@ -91,14 +107,31 @@ public:
         upmsUtilsTokenId_ = 0;
         upmsUtilsIsFoundationCallRet_ = false;
         fudUtilsGenerateFUDAppInfoRet_ = true;
+        fudAppInfoUserId_ = -1;
+        generateFUDAppInfoResults_.clear();
         tokenInfos = {};
         isUdmfOrPasteboardCallRet_ = false;
         isDFSCallRet_ = false;
         isSandboxAppRet_ = false;
+        isSACall_ = false;
+    }
+
+    static void PushGenerateFUDAppInfoResult(bool success, int32_t userId,
+                                               const std::string& alterBundleName = "",
+                                               const std::string& bundleName = "")
+    {
+        FUDAppInfoMockResult result;
+        result.success = success;
+        result.userId = userId;
+        result.alterBundleName = alterBundleName;
+        result.bundleName = bundleName;
+        generateFUDAppInfoResults_.push_back(result);
     }
 
     static int flag_;
     static bool permissionFileAccessManager_;
+    static bool permissionAgentFileAccess_;
+    static bool permissionAgentFileAccessDeclared_;
     static bool permissionWriteImageVideo_;
     static bool permissionReadImageVideo_;
     static bool permissionWriteAudio_;
@@ -134,11 +167,14 @@ public:
     static uint32_t upmsUtilsTokenId_;
     static bool upmsUtilsIsFoundationCallRet_;
     static bool fudUtilsGenerateFUDAppInfoRet_;
+    static int32_t fudAppInfoUserId_;
     static std::string bundleName_;
+    static std::vector<FUDAppInfoMockResult> generateFUDAppInfoResults_;
     static TokenInfoMap tokenInfos;
     static bool isUdmfOrPasteboardCallRet_;
     static bool isDFSCallRet_;
     static bool isSandboxAppRet_;
+    static bool isSACall_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

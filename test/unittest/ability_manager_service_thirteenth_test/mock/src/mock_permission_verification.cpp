@@ -45,7 +45,7 @@ bool PermissionVerification::IsShellCallByTokenId(uint32_t callerTokenId) const
 {
     return (MyStatus::GetInstance().permPermission_ & FLAG::IS_SHELL_CALL);
 }
-bool PermissionVerification::CheckSpecificSystemAbilityAccessPermission() const
+bool PermissionVerification::CheckSpecificSystemAbilityAccessPermission(const std::string &processName) const
 {
     return !!(MyStatus::GetInstance().permPermission_);
 }
@@ -115,7 +115,8 @@ bool PermissionVerification::JudgeStartInvisibleAbility(const uint32_t accessTok
 {
     return !!(MyStatus::GetInstance().permPermission_);
 }
-bool PermissionVerification::JudgeStartAbilityFromBackground(const bool isBackgroundCall) const
+bool PermissionVerification::JudgeStartAbilityFromBackground(const bool isBackgroundCall,
+    const uint32_t specifyTokenId) const
 {
     return !!(MyStatus::GetInstance().permPermission_);
 }

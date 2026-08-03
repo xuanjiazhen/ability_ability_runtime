@@ -81,6 +81,7 @@
 #endif
 #include "ihidden_start_observer.h"
 #include "kiosk_status.h"
+#include "sandbox_clone_params.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -2034,6 +2035,22 @@ public:
         const InsightIntentExecuteParam &param) = 0;
 
     /**
+      * @brief Execute intent by function call with simplified parameters.
+      *
+      * @param key The callback key for result notification.
+      * @param callerToken The caller ability token.
+      * @param bundleName The target bundle name.
+      * @param intentName The insight intent name.
+      * @param wantParam The execution arguments.
+      * @return Returns ERR_OK on success, others on failure.
+      */
+    virtual int32_t ExecuteIntentByFunctionCall(uint64_t key, const sptr<IRemoteObject> &callerToken,
+        const std::string &bundleName, const std::string &intentName, const WantParams &wantParam)
+    {
+        return 0;
+    }
+
+    /**
       * @brief Execute intent for distributed scenario.
       *
       * @param want The want containing intent execution information.
@@ -2614,6 +2631,17 @@ public:
         return 0;
     }
 
+    /**
+     * StartSandboxCloneAbility - Start sandbox clone ability.
+     * @param want The want of the ability to start.
+     * @param params Parameters containing caller information.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t StartSandboxCloneAbility(const Want &want, const SandboxCloneParams &params)
+    {
+        return 0;
+    }
+
     virtual int32_t UpdateKioskApplicationList(const std::vector<std::string> &appList)
     {
         return 0;
@@ -2650,6 +2678,11 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t RegisterSAInterceptor(sptr<AbilityRuntime::ISAInterceptor> interceptor)
+    {
+        return 0;
+    }
+
+    virtual int32_t UnregisterSAInterceptor(sptr<IRemoteObject> interceptor)
     {
         return 0;
     }
@@ -2713,6 +2746,19 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t NotifyCompleteGamePreLaunch(const sptr<IRemoteObject> callerToken)
+    {
+        return ERR_OK;
+    }
+
+    /**
+     * Start self UIAbility in child process.
+     * @param want Ability want.
+     * @param specifiedFlag specified flag.
+     * @param callerToken The caller ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode StartSelfUIAbilityInChildProcess(
+        const Want &want, const std::string &specifiedFlag, sptr<IRemoteObject> callerToken)
     {
         return ERR_OK;
     }
@@ -2854,6 +2900,12 @@ public:
 
     virtual int32_t ExecuteSkillDone(const sptr<IRemoteObject> &token, const std::string &requestCode,
         int32_t resultCode, const AppExecFwk::SkillExecuteResult &result)
+    {
+        return ERR_OK;
+    }
+
+    virtual int32_t NotifySkillFunctionInvoked(const sptr<IRemoteObject> &token,
+        const std::string &requestCode)
     {
         return ERR_OK;
     }

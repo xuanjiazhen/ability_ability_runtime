@@ -16,12 +16,19 @@
 #ifndef OHOS_ABILITY_RUNTIME_CLI_TOOL_MGR_SERVICE_H
 #define OHOS_ABILITY_RUNTIME_CLI_TOOL_MGR_SERVICE_H
 
+#include <atomic>
 #include <map>
+#include <memory>
 #include <string>
+#include <thread>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "cli_tool_manager_stub.h"
 #include "cli_tool_data_manager.h"
+#include "exec_cmd_param.h"
+#include "exec_options.h"
 #include "ffrt.h"
 #include "iremote_object.h"
 #include "system_ability.h"
@@ -68,35 +75,79 @@ public:
     int32_t GetToolInfoByName(const std::string &name, ToolInfo &tool) override;
 
     /**
-     * @brief Register a CLI tool
-     */
-    int32_t RegisterTool(const ToolInfo &tool) override;
-
-    int32_t RegisterScheduler(const sptr<ICliToolManagerScheduler> &scheduler) override;
-
-    int32_t UnregisterScheduler() override;
-
-    /**
      * @brief Execute a CLI tool with key-value pairs (convenience method).
      * @param param The CLI tool param.
      * @param objectCallback The callback RemoteObject.
      * @return Returns ERR_OK on success, error code otherwise.
      */
-    int32_t ExecTool(const ExecToolParam &param, const std::string &eventId) override;
+    int32_t ExecTool(const ExecToolParam &param, const std::string &eventId,
+        const sptr<ICliToolManagerScheduler> &scheduler) override;
+
+    int32_t ExecCmd(const ExecCmdParam &param, const std::string &eventId,
+        const sptr<ICliToolManagerScheduler> &scheduler, const std::string &subscriptionId) override;
 
     int32_t ClearSession(const std::string &sessionId) override;
-    int32_t SubscribeSession(const std::string &sessionId, const std::string &subscriptionId) override;
+    int32_t SubscribeSession(const std::string &sessionId, const std::string &subscriptionId,
+        const sptr<ICliToolManagerScheduler> &scheduler) override;
     int32_t UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId) override;
     
     int32_t QuerySession(const std::string &sessionId, CliSessionInfo &session) override;
     int32_t SendMessage(const std::string &sessionId,
-        const std::string &inputText, const std::string &eventId) override;
+        const std::string &inputText, const std::string &eventId,
+        const sptr<ICliToolManagerScheduler> &scheduler) override;
 
     /**
      * @brief Batch query command permissions (Inner API, for SA only).
      */
     int32_t BatchQueryPermissionBySubCommand(const std::vector<Command> &cmds,
         std::vector<CommandPermission> &cmdPermissions) override;
+
+    /**
+     * @brief Register a function
+     * @param function FunctionInfo to register
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    int32_t RegisterFunction(const FunctionInfo &function) override;
+
+    /**
+     * @brief Batch register functions
+     * @param functions Vector of FunctionInfo to register
+     * @param successCount Output count of successfully registered functions
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    int32_t BatchRegisterFunctions(const FunctionsRawData &functions, int32_t &successCount) override;
+
+    /**
+     * @brief Get function information by bundleName and functionName
+     * @param bundleName Bundle name
+     * @param functionName Function name
+     * @param function Output FunctionInfo
+     * @return int32_t ERR_OK if found, error code otherwise
+     */
+    int32_t GetFunctionInfo(const std::string &functionNamespace, const std::string &functionName,
+        FunctionInfo &function) override;
+
+    /**
+     * @brief Unregister a function
+     * @param functionNamespace Namespace
+     * @param functionName Function name
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    int32_t UnregisterFunction(const std::string &functionNamespace, const std::string &functionName) override;
+
+    /**
+     * @brief Batch unregister intentFunctions by namespace
+     * @param functionNamespace Namespace to delete all functions from
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    int32_t UnregisterIntentFunctionsByNamespace(const std::string &functionNamespace) override;
+
+    /**
+     * @brief Get all functions via raw data (for large data transfer)
+     * @param functions Output FunctionsRawData
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    int32_t GetAllFunctions(FunctionsRawData &functions) override;
 
 protected:
     void OnStart() override;
@@ -125,30 +176,51 @@ private:
 
     enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 
+    /**
+     * @brief Initialize service-side signal handling and I/O callbacks.
+     *
+     * Installs a minimal async-signal-safe SIGCHLD handler that only writes one wake byte to a non-blocking
+     * pipe, then spawns a dedicated reaper thread (ReaperLoop) that owns all waitpid()/WaitPid()/Killpg() work
+     * in normal (non-signal) context. I/O callbacks look up the singleton and return when it is unavailable.
+     */
     void Init();
+
+    /**
+     * @brief Schedule delayed unloading of the CLI manager system ability.
+     *
+     * The service is unloaded only when no IPC call is active, no session remains, and no observed caller process
+     * is still tracked. Otherwise a new delayed check is scheduled.
+     */
     void DelayUnloadTask();
 
     std::shared_ptr<SessionRecord> CreateSessionRecord(const ExecToolParam &param, const std::string &eventId);
     void AddSessionRecord(const std::shared_ptr<SessionRecord> &record);
     std::shared_ptr<SessionRecord> GetSessionRecord(const std::string &sessionId);
+    std::vector<std::shared_ptr<SessionRecord>> GetSessionRecords();
     void RemoveSessionRecord(const std::string &sessionId);
+    bool IsSessionOwner(const std::shared_ptr<SessionRecord> &record, const char *action) const;
 
-    bool RegisterSessionWithMonitors(const std::shared_ptr<SessionRecord> &record, const ExecToolParam &param);
+    bool RegisterSessionWithMonitors(const std::shared_ptr<SessionRecord> &record, const ExecOptions &options);
     void UnregisterSessionWithMonitors(const std::string &sessionId);
 
     int32_t ValidateExecToolPermissions();
     int32_t ValidateSessionLimit();
     int32_t ValidateAndPrepareTool(const ExecToolParam &param, uint32_t tokenId,
-        ToolInfo &toolInfo, std::string &sandboxConfig, std::string &bundleName);
+        ToolInfo &toolInfo, std::string &sandboxConfig, std::string &bundleName, std::string& detail);
+
+    int32_t ValidateAndPrepareCmd(const ExecCmdParam &param, uint32_t tokenId,
+        std::string &sandboxConfig, std::string &bundleName);
     int32_t SetupAndStartSession(const ExecToolParam &param, const std::string &eventId,
         const ToolInfo &toolInfo, const std::string &sandboxConfig, const std::string &bundleName);
 
+    int32_t TryDispatchSkillSession(const ExecToolParam &param,
+        const std::string &eventId, const ToolInfo &toolInfo, bool &dispatched);
     int32_t SetupAndStartSkillSession(const ExecToolParam &param,
         const std::string &eventId, const ToolInfo &toolInfo);
-    int32_t ValidateSkillTypeFromParam(const ExecToolParam &param, int32_t &skillType);
+    int32_t ValidateSkillTypeFromParam(ExecToolParam &param, int32_t &skillType);
     int32_t ValidateSkillType(const std::string &bundleName,
         const std::string &moduleName, const std::string &skillName, int32_t &skillType);
-    void HandleSkillSessionComplete(const std::string &sessionId, int32_t callerPid,
+    void HandleSkillSessionComplete(const std::string &sessionId, int32_t callerPid, int32_t callerUid,
         const std::string &eventId, int32_t resultCode, const CliSessionInfo &session);
     void HandleSkillSessionTimeout(const std::string &sessionId);
 
@@ -166,33 +238,57 @@ private:
 
     static void sigchld_handler(int32_t sig);
 
+    // Dedicated thread that owns all SIGCHLD reaping and post-exit cleanup. The signal handler only writes one
+    // wake byte to reapPipeWriteFd_; all waitpid()/WaitPid()/Killpg() work runs here in normal (non-signal)
+    // context, so locks, IPC, and HiSysEvent are safe.
+    void ReaperLoop();
+    // Bounded teardown of the reaper subsystem: installs SIG_IGN, stops the loop, wakes + joins the reaper, and
+    // closes the pipe. Idempotent (no-op if the reaper was never started).
+    void StopReaper();
+
     void PostExecToolTask(int64_t time, const std::string &sessionId, bool isTimeout);
     void WaitPid(pid_t pid, int32_t status, int32_t sig);
     void RegisterAppStateObserver(const std::string &bundleName, pid_t callerPid);
     void OnProcessDied(const std::string &bundleName, pid_t diedPid);
+    void AddCallerPid(int64_t pid);
+    void RemoveCallerPid(int64_t pid);
+    int32_t GetCallerPidCount();
 
     bool initialized_ = false;
     std::shared_ptr<IOMonitor> ioMonitor_ = nullptr;
 
+    // ---- SIGCHLD self-pipe + dedicated reaper thread ----
+    // reapPipeWriteFd_ is static+atomic so the static signal handler can reach it directly WITHOUT calling
+    // GetInstance() (which locks the non-recursive g_mutex and would re-enter/deadlock from signal context).
+    static std::atomic<int> reapPipeWriteFd_;
+    int reapPipeReadFd_ = -1;                 // touched only by the reaper thread + Init/StopReaper
+    std::thread reaperThread_;
+    std::atomic<bool> reaperRunning_{false};
+    std::atomic<bool> reaperStarted_{false};  // start-guard, mirrors IOMonitor::Start running_.exchange(true)
+    static constexpr int32_t REAP_POLL_TIMEOUT_MS = 100;  // bounds lost-wake recovery, NOT reaping latency
+
     std::atomic<int32_t> interfaceCalledCount_ = 0;
     ffrt::mutex sessionsMutex_;
     std::unordered_map<std::string, std::shared_ptr<SessionRecord>> sessionRecords_;
+    ffrt::mutex observerMutex_;
     std::unordered_map<std::string, sptr<AppExecFwk::IApplicationStateObserver>> bundleObservers_;
+    ffrt::mutex callerPidsMutex_;
+    std::unordered_set<int64_t> callerPids;
 };
 
 class SkillCallbackAdapter : public AAFwk::SkillExecuteCallbackStub {
 public:
     SkillCallbackAdapter(const std::string &sessionId,
-        int32_t callerPid, const std::string &eventId);
+        int32_t callerPid, int32_t callerUid, const std::string &eventId);
     void OnExecuteDone(const std::string &requestCode, int32_t resultCode,
         const AppExecFwk::SkillExecuteResult &result) override;
 
 private:
     std::string sessionId_;
     int32_t callerPid_;
+    int32_t callerUid_;
     std::string eventId_;
 };
-
 } // namespace CliTool
 } // namespace OHOS
 

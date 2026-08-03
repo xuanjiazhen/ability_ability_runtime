@@ -37,6 +37,8 @@ struct BundleInfo;
 struct SkillExecuteResult;
 }
 namespace CliTool {
+class ExecCmdParam;
+class ExecOptions;
 class ExecToolParam;
 class SessionRecord;
 class ToolInfo;
@@ -45,15 +47,20 @@ using namespace OHOS::Security;
 
 class ToolUtil {
 public:
-    static int32_t ValidateProperties(const ToolInfo &toolInfo, ExecToolParam &param,
-        AccessToken::AccessTokenID tokenId);
+    static int32_t ValidateProperties(const ToolInfo &toolInfo, const ExecToolParam &param,
+        AccessToken::AccessTokenID tokenId, std::string& detail);
+
+    static int32_t ValidateExecOptionsProperties(const ExecOptions &options, std::string& detail);
 
     static std::string GenerateCliSessionId(const std::string &name, std::shared_ptr<SessionRecord> record);
 
     static bool GenerateSandboxConfig(const ExecToolParam &param, AccessToken::AccessTokenID tokenId,
         std::string &sandboxConfig, std::string &bundleName);
 
-    static void TransferToCmdParam(const ToolInfo &toolInfo, const AAFwk::WantParams &args, std::string &cmdLine);
+    static bool GenerateCmdSandboxConfig(const ExecCmdParam &param, AccessToken::AccessTokenID tokenId,
+        std::string &sandboxConfig, std::string &bundleName);
+
+    static void TransferToCmdParam(const AAFwk::WantParams &args, std::vector<std::string> &execArgs);
 
     static bool IsSkillTool(const std::string &toolName);
     static void NormalizeSkillParamKeys(AAFwk::WantParams &args);
@@ -62,10 +69,12 @@ public:
     static CliSessionInfo BuildSkillSessionInfo(const std::string &sessionId,
         int32_t resultCode, const AppExecFwk::SkillExecuteResult &skillResult);
 
-private:
     static bool GetBundleInfoByTokenId(AccessToken::AccessTokenID tokenId,
         AppExecFwk::BundleInfo &bundleInfo);
-    static int32_t ValidateInputSchemaProperties(const std::string &inputSchema, const AAFwk::WantParams &args);
+
+private:
+    static int32_t ValidateInputSchemaProperties(const std::string &inputSchema,
+        const AAFwk::WantParams &args, std::string& detail);
 
     // Helper methods for type validation
     static bool ValidateParamType(const sptr<AAFwk::IInterface> &value, const std::string &expectedType,
@@ -87,9 +96,9 @@ private:
 
     // Helper methods for mode processing (extracted to reduce nesting depth)
     static void ProcessBooleanParam(const std::string &key, const sptr<AAFwk::IInterface> &value,
-        std::string &cmdLine);
+        std::vector<std::string> &execArgs);
     static void ProcessArrayExpansion(const std::string &key, const sptr<AAFwk::IInterface> &value,
-        std::string &cmdLine);
+        std::vector<std::string> &execArgs);
 
     // Type conversion helpers
     // GetParamStringValue: only supports basic types (bool, int, long, float, double, string)

@@ -90,6 +90,9 @@ enum class AbilityErrorCode {
     // the context is not ability context.
     ERR_ABILITY_RUNTIME_EXTERNAL_NOT_ABILITY_CONTEXT = 16000020,
 
+    // the module name does not exist.
+    ERROR_CODE_INVALID_MODULENAME = 16000021,
+
     // free install network abnormal.
     ERROR_CODE_NETWORK_ABNORMAL = 16000051,
 
@@ -218,20 +221,20 @@ enum class AbilityErrorCode {
     // The specified agentId does not exist.
     ERROR_CODE_AGENT_ID_NOT_EXIST = 35600001,
 
-    // The number of agent cards under one bundle exceeds the upper limit.
+    // The number of AgentCards in the bundle reaches the limit.
     ERROR_CODE_AGENT_CARD_LIST_OUT_OF_RANGE = 35600008,
 
     // Maximum connections from the same caller have been reached. Please disconnect at least one agent extension
     // beforehand.
     ERROR_CODE_MAX_CONNECTIONS_REACHED = 35600003,
 
-    // The specified agent card version is older than the current version.
+    // The specified AgentCard version is older than the current version.
     ERROR_CODE_AGENT_CARD_VERSION_TOO_OLD = 35600004,
 
-    // The specified agent card version is invalid.
+    // The specified AgentCard version is invalid.
     ERROR_CODE_AGENT_CARD_VERSION_INVALID = 35600005,
 
-    // The specified agent card has already been registered. Use updateAgentCard instead.
+    // The specified AgentCard has already been registered. Use updateAgentCard instead.
     ERROR_CODE_AGENT_CARD_DUPLICATE_REGISTER = 35600006,
 
     // The specified LOW_CODE agent is already active and is not yet completed.
@@ -331,15 +334,85 @@ enum class AbilityErrorCode {
 
     ERROR_CODE_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY = 16000162,
 
+    // File type error. File name does not end with .so, .hap, or .hsp.
+    ERROR_CODE_FILE_TYPE_ERROR = 16000163,
+
+    // Failed to parse configuration file.
+    ERROR_CODE_EVICT_CONFIG_PARSE_ERROR = 16000164,
+
     // target bundle is not in u1
     ERROR_CODE_NO_U1 = 16000204,
 
     ERROR_CODE_BUNDLE_NAME_INVALID = 18500001,
 };
 
+enum class AbilityInnerErrorMsg {
+    SERVICE_UNAVAILABLE,
+    OPERATION_FAILED,
+    MEMORY_ALLOC_FAILED,
+    RESTORE_WINDOW_STAGE_FAILED,
+    WRAP_ABILITY_RESULT_FAILED,
+    INVALID_RET_CODE,
+    CREATE_CALLBACK_FAILED,
+    CALLBACK_NOT_REGISTERED,
+    START_CHILD_PROCESS_FAILED,
+    QUERY_ATOMIC_SERVICE_STARTUP_RULE_FAILED,
+    RESTART_SELF_ATOMIC_SERVICE_FAILED,
+    CONNECT_AGENT_EXTENSION_FAILED,
+    AGENT_EXTENSION_CONNECTION_ENDED,
+    TRANSFER_EXTENSION_DATA_FAILED,
+    UI_WINDOW_NULL,
+    RELOAD_IN_MODAL_RESULT_NULL,
+    OBSERVER_CREATE_FAILED,
+    OBSERVER_NOT_EXIST,
+    REGISTER_OBSERVER_FAILED,
+    UNREGISTER_OBSERVER_FAILED,
+    RESTART_APP_FAILED,
+    CREATE_PROCESS_INFO_ARRAY_FAILED,
+    GET_PROCESS_INFO_FAILED,
+    SET_PROCESS_CACHE_FAILED,
+    UI_ABILITY_OBJ_NULL,
+    CONNECTION_NOT_FOUND,
+    SEND_DATA_FAILED,
+    LOAD_CONTENT_FAILED,
+    SET_WINDOW_BACKGROUND_COLOR_FAILED,
+    SET_WINDOW_PRIVACY_MODE_FAILED,
+    CREATE_MODAL_UI_EXTENSION_FAILED,
+    TRANSFER_ABILITY_RESULT_FAILED,
+    INVALID_SESSION,
+    UI_SERVICE_PROXY_NOT_FOUND,
+    QUERY_KEEP_ALIVE_BUNDLES_FAILED,
+    TERMINATE_MISSION_FAILED,
+    SET_KEEP_ALIVE_FAILED,
+    GRANT_URI_PERMISSION_FAILED,
+    GRANT_URI_PERMISSION_BY_KEY_FAILED,
+    GRANT_URI_PERMISSION_AS_CALLER_FAILED,
+    REVOKE_URI_PERMISSION_FAILED,
+    GET_ABILITY_RUNNING_INFOS_FAILED,
+    GET_TOP_ABILITY_FAILED,
+    ACQUIRE_SHARE_DATA_FAILED,
+    GET_DIALOG_SESSION_INFO_FAILED,
+    SEND_DIALOG_RESULT_FAILED,
+};
+
+enum class AgentManagerErrorOperation {
+    READ_AGENT_CARDS,
+    REGISTER_AGENT_CARD,
+    UPDATE_AGENT_CARD,
+    DELETE_AGENT_CARD,
+    CONNECT_AGENT_EXTENSION,
+    DISCONNECT_AGENT_EXTENSION,
+    DISCONNECT_SERVICE_EXTENSION,
+    COMPLETE_LOW_CODE_AGENT,
+};
+
 std::string GetErrorMsg(const AbilityErrorCode& errCode);
 std::string GetNoPermissionErrorMsg(const std::string& permission);
 AbilityErrorCode GetJsErrorCodeByNativeError(int32_t errCode);
+std::string GetInnerErrorMsg(AbilityInnerErrorMsg innerErrMsg);
+std::string GetErrorMsgByNativeError(int32_t errCode, const std::string& innerErrMsg = "",
+    const std::string& permission = "");
+std::string GetAgentManagerErrorMsg(int32_t errCode, AgentManagerErrorOperation operation);
 }  // namespace AbilityRuntime
 }  // namespace OHOS
 #endif

@@ -25,6 +25,8 @@
 #include "quick_fix_error_utils.h"
 #include "quick_fix_manager_service.h"
 #include "quick_fix/quick_fix_status_callback_host.h"
+#include "common_event_publish_info.h"
+#include "ipc_skeleton.h"
 #include "want.h"
 
 namespace OHOS {
@@ -307,12 +309,14 @@ QuickFixManagerApplyTask::~QuickFixManagerApplyTask()
     TAG_LOGD(AAFwkTag::QUICKFIX, "destroyed");
 }
 
-void QuickFixManagerApplyTask::Run(const std::vector<std::string> &quickFixFiles, bool isDebug, bool isReplace)
+void QuickFixManagerApplyTask::Run(const std::vector<std::string> &quickFixFiles, bool isDebug, bool isReplace,
+    bool isCheckDebugApp)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::QUICKFIX, "Run apply task");
     taskType_ = TaskType::QUICK_FIX_APPLY;
-    PostDeployQuickFixTask(quickFixFiles, isDebug, isReplace);
+    callerUid_ = IPCSkeleton::GetCallingUid();
+    PostDeployQuickFixTask(quickFixFiles, isDebug, isReplace, isCheckDebugApp);
 }
 
 void QuickFixManagerApplyTask::RunRevoke()
@@ -320,6 +324,7 @@ void QuickFixManagerApplyTask::RunRevoke()
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::QUICKFIX, "Run apply revoke task");
     taskType_ = TaskType::QUICK_FIX_REVOKE;
+    callerUid_ = IPCSkeleton::GetCallingUid();
     PostRevokeQuickFixTask();
 }
 
@@ -386,7 +391,7 @@ void QuickFixManagerApplyTask::HandlePatchDeleted()
 }
 
 void QuickFixManagerApplyTask::PostDeployQuickFixTask(const std::vector<std::string> &quickFixFiles, bool isDebug,
-    bool isReplace)
+    bool isReplace, bool isCheckDebugApp)
 {
     auto callback = sptr<QuickFixManagerStatusCallback>::MakeSptr(shared_from_this());
     if (callback == nullptr) {
@@ -397,7 +402,7 @@ void QuickFixManagerApplyTask::PostDeployQuickFixTask(const std::vector<std::str
     }
 
     std::weak_ptr<QuickFixManagerApplyTask> thisWeakPtr(weak_from_this());
-    auto deployTask = [thisWeakPtr, quickFixFiles, callback, isDebug, isReplace]() {
+    auto deployTask = [thisWeakPtr, quickFixFiles, callback, isDebug, isReplace, isCheckDebugApp]() {
         auto applyTask = thisWeakPtr.lock();
         if (applyTask == nullptr) {
             TAG_LOGE(AAFwkTag::QUICKFIX, "null apply task");
@@ -411,8 +416,10 @@ void QuickFixManagerApplyTask::PostDeployQuickFixTask(const std::vector<std::str
             return;
         }
 
-        TAG_LOGD(AAFwkTag::QUICKFIX, "isDebug is %{public}d isReplace is %{public}d", isDebug, isReplace);
-        auto ret = applyTask->bundleQfMgr_->DeployQuickFix(quickFixFiles, callback, isDebug, "", isReplace);
+        TAG_LOGD(AAFwkTag::QUICKFIX, "isDebug is %{public}d isReplace is %{public}d isCheckDebugApp is %{public}d",
+            isDebug, isReplace, isCheckDebugApp);
+        auto ret =
+            applyTask->bundleQfMgr_->DeployQuickFix(quickFixFiles, callback, isDebug, "", isReplace, isCheckDebugApp);
         if (ret != 0) {
             TAG_LOGE(AAFwkTag::QUICKFIX, "failed: %{public}d", ret);
             applyTask->NotifyApplyStatus(QUICK_FIX_DEPLOY_FAILED);
@@ -642,7 +649,14 @@ void QuickFixManagerApplyTask::NotifyApplyStatus(int32_t resultCode)
     want.SetParam(BUNDLE_NAME, bundleName_);
 
     EventFwk::CommonEventData commonData {want};
-    EventFwk::CommonEventManager::PublishCommonEvent(commonData);
+    EventFwk::CommonEventPublishInfo publishInfo;
+    publishInfo.SetBundleName(bundleName_);
+    std::vector<int32_t> subscriberUids;
+    subscriberUids.emplace_back(callerUid_);
+    publishInfo.SetSubscriberUid(subscriberUids);
+    publishInfo.SetSubscriberType(EventFwk::SubscriberType::SYSTEM_SUBSCRIBER_TYPE);
+    publishInfo.SetValidationRule(EventFwk::ValidationRule::OR);
+    EventFwk::CommonEventManager::PublishCommonEvent(commonData, publishInfo);
 }
 
 void QuickFixManagerApplyTask::PostNotifyLoadRepairPatchTask()

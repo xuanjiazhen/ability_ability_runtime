@@ -242,9 +242,10 @@ bool AppRecovery::ExecuteFreezeCallbackWithVMSafety(const std::shared_ptr<OHOS::
     if (!abilityPtr) {
         return false;
     }
+
     if (IsEtsAPP() && this->freezeCallback) {
         this->freezeCallback();
-        TAG_LOGW(AAFwkTag::RECOVERY, "Freeze callback execution completed");
+        TAG_LOGW(AAFwkTag::RECOVERY, "Ets Freeze callback execution completed");
         return true;
     }
 #ifdef SUPPORT_SCREEN
@@ -255,9 +256,16 @@ bool AppRecovery::ExecuteFreezeCallbackWithVMSafety(const std::shared_ptr<OHOS::
     }
 #endif
     if (this->freezeCallback) {
+        TAG_LOGI(AAFwkTag::RECOVERY, "Freeze callback execution enter");
         this->freezeCallback();
         TAG_LOGW(AAFwkTag::RECOVERY, "Freeze callback execution completed");
     }
+#ifdef SUPPORT_SCREEN
+    if (vm != nullptr) {
+        TAG_LOGI(AAFwkTag::RECOVERY, "Disallow cross Thread execution enter");
+        panda::JSNApi::DisallowCrossThreadExecution(vm);
+    }
+#endif
     return true;
 }
 
@@ -553,11 +561,6 @@ bool AppRecovery::GetMissionIds(std::string path, std::vector<int32_t> &missionI
     }
     struct dirent *ptr;
     while ((ptr = readdir(dir)) != nullptr) {
-        if (ptr == nullptr) {
-            TAG_LOGE(AAFwkTag::RECOVERY, "null ptr");
-            closedir(dir);
-            return false;
-        }
         if (strcmp(ptr->d_name, ".") == 0 || strcmp(ptr->d_name, "..") == 0) {
             continue;
         } else if (ptr->d_type == DT_REG) {
@@ -640,6 +643,7 @@ void AppRecovery::DisallowCrossThreadExecutionInRecovery()
     }
     panda::ecmascript::EcmaVM* vm = GetVMFromAbility(abilityPtr);
     if (vm != nullptr) {
+        TAG_LOGI(AAFwkTag::RECOVERY, "Disallow cross Thread execution enter");
         panda::JSNApi::DisallowCrossThreadExecution(vm);
     }
 #endif

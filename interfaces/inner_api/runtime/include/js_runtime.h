@@ -31,6 +31,7 @@ class EcmaVM;
 } // namespace panda::ecmascript
 namespace panda {
 struct HmsMap;
+struct GCStatistic;
 }
 namespace OHOS {
 namespace AppExecFwk {
@@ -101,6 +102,7 @@ public:
     void ForceFullGC(uint32_t tid) override;
     void DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary = false) override;
     void DumpHeapSnapshot(uint32_t tid, const OHOS::AbilityRuntime::Runtime::JsHeapDumpParam &param) override;
+    void DumpJsHandleMap() override;
     void AllowCrossThreadExecution() override;
     void GetHeapPrepare() override;
     void NotifyApplicationState(bool isBackground) override;
@@ -178,6 +180,8 @@ public:
 
     size_t GetHeapTotalSize();
     size_t GetHeapObjectSize();
+    size_t GetSharedHeapSize();
+    panda::GCStatistic GetGCStatistic();
 
 private:
     void FinishPreload() override;
@@ -194,6 +198,7 @@ private:
     std::string codePath_;
     std::string moduleName_;
     std::unique_ptr<NativeReference> methodRequireNapiRef_;
+    // Keep the reference
     std::unordered_map<std::string, NativeReference*> modules_;
     std::shared_ptr<JsEnv::JsEnvironment> jsEnv_ = nullptr;
     uint32_t instanceId_ = 0;
@@ -205,6 +210,7 @@ private:
 
     static std::atomic<bool> hasInstance;
     DebugOption debugOption_;
+    std::map<std::string, std::shared_ptr<AbilityBase::FileMapper>> safeDataMap_;
 
 private:
     bool CreateJsEnv(const Options& options);
@@ -220,6 +226,8 @@ private:
     void PostPreload(const Options& options);
     void LoadAotFile(const Options& options);
     void SetRequestAotCallback();
+    std::shared_ptr<AbilityBase::FileMapper> GetOrCreateSafeData(std::shared_ptr<AbilityBase::Extractor> extractor,
+        const std::string &modulePath);
 
     std::string GetSystemKitPath();
     std::vector<panda::HmsMap> GetSystemKitsMap(uint32_t version);

@@ -15,6 +15,7 @@
 
 #include "ability_record.h"
 
+#include <charconv>
 #include <singleton.h>
 
 #include "ability_manager_service.h"
@@ -191,7 +192,13 @@ void AbilityRecord::Init(const AbilityRequest &abilityRequest)
 {
     SetUid(abilityRequest.uid);
     int32_t appIndex = 0;
-    (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);
+    if (abilityRequest.isWebSandBoxClone) {
+        appIndex = abilityRequest.abilityInfo.applicationInfo.appIndex;
+        InitSandboxCloneParams(abilityRequest);
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Web sandbox clone, using appIndex from abilityInfo: %{public}d", appIndex);
+    } else {
+        (void)AbilityRuntime::StartupUtil::GetAppIndex(abilityRequest.want, appIndex);
+    }
     SetAppIndex(appIndex);
     SetSecurityFlag(abilityRequest.want.GetBoolParam(DLP_PARAMS_SECURITY_FLAG, false));
     SetCallerAccessTokenId(abilityRequest.callerAccessTokenId);
@@ -233,11 +240,20 @@ void AbilityRecord::Init(const AbilityRequest &abilityRequest)
             abilityRequest.abilityInfo.bundleName, abilityRequest.abilityInfo.name, userId)) {
         keepAliveBundle_ = true;
     }
+}
 
-    if (abilityRequest.want.GetBoolParam(AbilityRuntime::GlobalConstant::GAME_PRELAUNCH, false)) {
-        TAG_LOGD(AAFwkTag::UIABILITY, "abilityRecord: Set game prelaunch flag from want");
-        SetGameSAPreLaunch(true);
+void AbilityRecord::InitSandboxCloneParams(const AbilityRequest &abilityRequest)
+{
+    if (abilityRequest.sandboxCloneParams == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "abilityRequest.sandboxCloneParams is nullptr");
+        return;
     }
+    auto sandboxCloneParams = std::make_shared<SandboxCloneParams>();
+    sandboxCloneParams->callerBundleName = abilityRequest.sandboxCloneParams->callerBundleName;
+    sandboxCloneParams->callerTokenId = abilityRequest.sandboxCloneParams->callerTokenId;
+    SetSandboxCloneParams(sandboxCloneParams);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "InitSandboxCloneParams, callerBundleName = %{public}s, callerTokenId = %{public}d",
+ 	    sandboxCloneParams->callerBundleName.c_str(), sandboxCloneParams->callerTokenId);
 }
 
 AbilityRecordType AbilityRecord::GetAbilityRecordType()
@@ -337,6 +353,7 @@ int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide, pid_t calli
     loadParam.isPreloadStart = isPreloadStart_;
     loadParam.selfPid = selfPid;
     loadParam.byCallStatus = GetByCallStatus();
+    loadParam.isGamePrelaunch = IsGameSAPreLaunch();
     auto userId = abilityInfo_.uid / BASE_USER_RANGE;
     bool isMainUIAbility =
         MainElementUtils::IsMainUIAbility(abilityInfo_.bundleName, abilityInfo_.name, userId);
@@ -399,7 +416,7 @@ bool AbilityRecord::CanRestartResident()
 }
 
 // only for UIAbility
-void AbilityRecord::ForegroundAbility(uint32_t sceneFlag, bool hasLastWant)
+void AbilityRecord::ForegroundAbility(uint32_t sceneFlag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     isWindowStarted_ = true;
@@ -412,16 +429,7 @@ void AbilityRecord::ForegroundAbility(uint32_t sceneFlag, bool hasLastWant)
     SetAbilityStateInner(AbilityState::FOREGROUNDING);
 #endif // SUPPORT_SCREEN
     lifeCycleStateInfo_.sceneFlag = sceneFlag;
-    Want want;
-    if (hasLastWant) {
-        if (HasLastWant()) {
-            SetWant(*lastWant_);
-            lifeCycleStateInfo_.isNewWant = true;
-            lastWant_ = nullptr;
-        }
-        SetBackgroundDrivenFlag(false);
-    }
-    want = GetWant();
+    auto want = GetWant();
     UpdateDmsCallerInfo(want);
     AbilityRuntime::ErrorMsgGuard errorMsgGuard(token_ ? token_->AsObject() : nullptr,
         reinterpret_cast<uintptr_t>(GetScheduler().GetRefPtr()), "ScheduleAbilityTransaction");
@@ -430,7 +438,7 @@ void AbilityRecord::ForegroundAbility(uint32_t sceneFlag, bool hasLastWant)
         want.SetParam(SPECIFIED_ABILITY_FLAG, GetSpecifiedFlag());
     }
     lifecycleDeal_->ForegroundNew(want, lifeCycleStateInfo_, GetSessionInfo());
-    want.RemoveParam(AbilityRuntime::GlobalConstant::GAME_PRELAUNCH);
+    RemoveSpecifiedWantParam(AbilityRuntime::GlobalConstant::GAME_PRELAUNCH);
     SetIsNewWant(false);
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         lifeCycleStateInfo_.sceneFlag = 0;
@@ -447,7 +455,7 @@ void AbilityRecord::ForegroundUIExtensionAbility(uint32_t sceneFlag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "ForegroundUIExtensionAbility:%{public}s/%{public}s",
-        GetElementName().GetBundleName().c_str(), GetElementName().GetAbilityName().c_str());
+        GetInfoBundleName().c_str(), GetInfoAbilityName().c_str());
     CHECK_POINTER(lifecycleDeal_);
 
     if (IsAbilityState(AbilityState::BACKGROUND)) {
@@ -472,10 +480,10 @@ void AbilityRecord::ForegroundUIExtensionAbility(uint32_t sceneFlag)
 void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundOptions &options)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "ability record: %{public}s/%{public}s", GetElementName().GetBundleName().c_str(),
-        GetElementName().GetAbilityName().c_str());
-    needCheckAutoStartupStatusBar_ = GetWant().GetBoolParam(HIDDEN_START_AUTOSTARTUP, false);
-    GetWant().RemoveParam(HIDDEN_START_AUTOSTARTUP);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "ability record: %{public}s/%{public}s", GetInfoBundleName().c_str(),
+        GetInfoAbilityName().c_str());
+    needCheckAutoStartupStatusBar_ = GetBoolParam(HIDDEN_START_AUTOSTARTUP, false);
+    RemoveSpecifiedWantParam(HIDDEN_START_AUTOSTARTUP);
 #ifdef SUPPORT_UPMS
     {
         std::lock_guard guard(wantLock_);
@@ -506,8 +514,8 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundO
 
     PostForegroundTimeoutTask();
     if (IsAbilityState(AbilityState::FOREGROUND)) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "Activate %{public}s/%{public}s", GetElementName().GetBundleName().c_str(),
-            GetElementName().GetAbilityName().c_str());
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Activate %{public}s/%{public}s", GetInfoBundleName().c_str(),
+            GetInfoAbilityName().c_str());
         if (IsFrozenByPreload()) {
             SetFrozenByPreload(false);
             auto ret =
@@ -518,8 +526,8 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundO
         return;
     }
     // background to active state
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "MoveToForeground, %{public}s/%{public}s", GetElementName().GetBundleName().c_str(),
-        GetElementName().GetAbilityName().c_str());
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "MoveToForeground, %{public}s/%{public}s", GetInfoBundleName().c_str(),
+        GetInfoAbilityName().c_str());
     lifeCycleStateInfo_.sceneFlagBak = options.sceneFlag;
     ResSchedUtil::GetInstance().ReportEventToRSS(GetUid(), GetAbilityInfo().bundleName,
         "THAW_BY_FOREGROUND_ABILITY", GetPid(), GetCallerRecord() ? GetCallerRecord()->GetPid() : -1);
@@ -757,7 +765,7 @@ void AbilityRecord::BackgroundAbility(const Closure &task)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "BackgroundLifecycle %{public}s/%{public}s",
-        GetElementName().GetBundleName().c_str(), GetElementName().GetAbilityName().c_str());
+        GetInfoBundleName().c_str(), GetInfoAbilityName().c_str());
     if (lifecycleDeal_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null lifecycleDeal_");
         return;
@@ -995,7 +1003,8 @@ void AbilityRecord::SetAbilityStateInner(AbilityState state)
             int32_t persistentId = sessionInfo->persistentId;
             switch (state) {
                 case AbilityState::BACKGROUNDING: {
-                    ret = collaborator->NotifyMoveMissionToBackground(persistentId, GetOwnerMissionUserId());
+                    ret = collaborator->NotifyMoveMissionToBackground(persistentId, GetOwnerMissionUserId(),
+                        isFromScreenOffBackground_);
                     break;
                 }
                 case AbilityState::TERMINATING: {
@@ -1016,7 +1025,8 @@ void AbilityRecord::SetAbilityStateInner(AbilityState state)
                 break;
             }
             case AbilityState::BACKGROUNDING: {
-                ret = collaborator->NotifyMoveMissionToBackground(missionId_, GetOwnerMissionUserId());
+                ret = collaborator->NotifyMoveMissionToBackground(missionId_, GetOwnerMissionUserId(),
+                    isFromScreenOffBackground_);
                 break;
             }
             case AbilityState::TERMINATING: {
@@ -1406,7 +1416,7 @@ void AbilityRecord::SendResultToCallers(bool schedulerdied)
         }
         std::shared_ptr<AbilityRecord> callerAbilityRecord = caller->GetCaller();
         if (callerAbilityRecord != nullptr && callerAbilityRecord->GetResult() != nullptr) {
-            bool isSandboxApp = appIndex_ > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX ? true : false;
+            bool isSandboxApp = AbilityRuntime::GlobalConstant::IsDlpIndex(appIndex_);
             callerAbilityRecord->SendResult(isSandboxApp, abilityInfo_.applicationInfo.accessTokenId, schedulerdied);
         } else {
             std::shared_ptr<SystemAbilityCallerRecord> callerSystemAbilityRecord = caller->GetSaCaller();
@@ -1569,9 +1579,7 @@ void SystemAbilityCallerRecord::SendResultToSystemAbility(int requestCode,
 void AbilityRecord::RemoveSpecifiedWantParam(const std::string &key)
 {
     std::lock_guard guard(wantLock_);
-    if (want_.HasParameter(key)) {
-        want_.RemoveParam(key);
-    }
+    want_.RemoveParam(key);
 }
 
 void AbilityRecord::RemoveCallerRequestCode(std::shared_ptr<AbilityRecord> callerAbilityRecord, int32_t requestCode)
@@ -2130,12 +2138,63 @@ void AbilityRecord::SetWant(const Want &want)
     if (want_.HasParameter(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY)) {
         want_.RemoveParam(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY);
     }
+    if (want_.HasParameter(AgentRuntime::AGENTID_KEY)) {
+        want_.RemoveParam(AgentRuntime::AGENTID_KEY);
+    }
+    if (want_.HasParameter(AgentRuntime::AGENT_CARD_TYPE_KEY)) {
+        want_.RemoveParam(AgentRuntime::AGENT_CARD_TYPE_KEY);
+    }
+    if (want_.HasParameter(AgentRuntime::AGENT_VERIFICATION_NONCE_KEY)) {
+        want_.RemoveParam(AgentRuntime::AGENT_VERIFICATION_NONCE_KEY);
+    }
 }
 
 Want AbilityRecord::GetWant() const
 {
     std::lock_guard guard(wantLock_);
     return want_;
+}
+
+std::string AbilityRecord::GetAbilityName() const
+{
+    std::lock_guard guard(wantLock_);
+    return want_.GetAbilityNameRef();
+}
+
+std::string AbilityRecord::GetBundleName() const
+{
+    std::lock_guard guard(wantLock_);
+    return want_.GetBundleNameRef();
+}
+
+std::string AbilityRecord::GetModuleName() const
+{
+    std::lock_guard guard(wantLock_);
+    return want_.GetModuleNameRef();
+}
+
+std::string AbilityRecord::GetStringParam(const std::string &key) const
+{
+    std::lock_guard guard(wantLock_);
+    return want_.GetStringParam(key);
+}
+
+int AbilityRecord::GetIntParam(const std::string &key, int defaultValue) const
+{
+    std::lock_guard guard(wantLock_);
+    return want_.GetIntParam(key, defaultValue);
+}
+
+bool AbilityRecord::GetBoolParam(const std::string &key, bool defaultValue) const
+{
+    std::lock_guard guard(wantLock_);
+    return want_.GetBoolParam(key, defaultValue);
+}
+
+bool AbilityRecord::HasParameter(const std::string &key) const
+{
+    std::lock_guard guard(wantLock_);
+    return want_.HasParameter(key);
 }
 
 void AbilityRecord::RemoveSignatureInfo()
@@ -2203,6 +2262,16 @@ void AbilityRecord::SetStartSetting(const std::shared_ptr<AbilityStartSetting> &
 std::shared_ptr<AbilityStartSetting> AbilityRecord::GetStartSetting() const
 {
     return lifeCycleStateInfo_.setting;
+}
+
+void AbilityRecord::SetSandboxCloneParams(const std::shared_ptr<SandboxCloneParams> &params)
+{
+    sandboxCloneParams_ = params;
+}
+
+std::shared_ptr<SandboxCloneParams> AbilityRecord::GetSandboxCloneParams() const
+{
+    return sandboxCloneParams_;
 }
 
 void AbilityRecord::SetRestarting(const bool isRestart)
@@ -2465,6 +2534,8 @@ int32_t AbilityRecord::GetMissionId() const
 void AbilityRecord::SetSpecifiedFlag(const std::string &flag)
 {
     specifiedFlag_ = flag;
+
+    lifeCycleStateInfo_.launchParam.specifiedId = flag;
 }
 
 std::string AbilityRecord::GetSpecifiedFlag() const
@@ -2787,8 +2858,8 @@ void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName,
     }
     // reject sandbox to grant uri permission by start ability
     auto caller = GetCallerRecord();
-    if (caller && caller->appIndex_ > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "sandbox can not grant UriPermission");
+    if (caller && AbilityRuntime::GlobalConstant::IsDlpIndex(caller->appIndex_)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "DLP sandbox can not grant UriPermission");
         return;
     }
     auto callerTokenId = tokenId > 0 ? tokenId :
@@ -2837,7 +2908,7 @@ void AbilityRecord::HandleDlpAttached()
         DelayedSingleton<ConnectionStateManager>::GetInstance()->AddDlpManager(shared_from_this());
     }
 
-    if (appIndex_ > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+    if (AbilityRuntime::GlobalConstant::IsDlpIndex(appIndex_)) {
         DelayedSingleton<ConnectionStateManager>::GetInstance()->AddDlpAbility(shared_from_this());
     }
 }
@@ -2848,7 +2919,7 @@ void AbilityRecord::HandleDlpClosed()
         DelayedSingleton<ConnectionStateManager>::GetInstance()->RemoveDlpManager(shared_from_this());
     }
 
-    if (appIndex_ > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+    if (AbilityRuntime::GlobalConstant::IsDlpIndex(appIndex_)) {
         DelayedSingleton<ConnectionStateManager>::GetInstance()->RemoveDlpAbility(shared_from_this());
     }
 }
@@ -2896,7 +2967,7 @@ void AbilityRecord::NotifyMissionBindPid()
 int32_t AbilityRecord::GetCurrentAccountId() const
 {
     std::vector<int32_t> osActiveAccountIds;
-    ErrCode ret = DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->
+    ErrCode ret = AppExecFwk::OsAccountManagerWrapper::
             QueryActiveOsAccountIds(osActiveAccountIds);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "queryActiveOsAccountIds failed");
@@ -3203,6 +3274,14 @@ void AbilityRecord::SetDebugUIExtension()
     launchDebugInfo_.debugApp = true;
 }
 
+void AbilityRecord::SetDebugApp(bool isDebugApp)
+{
+    std::lock_guard guard(wantLock_);
+    want_.SetParam(AbilityConfig::DEBUG_APP, isDebugApp);
+    launchDebugInfo_.isDebugAppSet = true;
+    launchDebugInfo_.debugApp = isDebugApp;
+}
+
 void AbilityRecord::NotifyAbilitiesRequestDone(const std::string &requestKey, int32_t resultCode)
 {
     CHECK_POINTER(lifecycleDeal_);
@@ -3317,7 +3396,7 @@ bool AbilityRecord::ReportAbilityConnectionRelations()
     auto callerPid = recordCallerInfo->callerPid;
     auto callerUid = recordCallerInfo->callerUid;
     auto callerBundleName = recordCallerInfo->callerBundleName;
-    auto targetBundleName = GetElementName().GetBundleName();
+    auto targetBundleName = GetBundleName();
     if (targetPid <= 0 || targetUid <= 0 || callerPid <= 0 || callerUid <= 0) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Invalid target process: targetPid=%{public}d, targetUid=%{public}d, "
             "callerPid=%{public}d, callerUid=%{public}d", targetPid, targetUid, callerPid, callerUid);

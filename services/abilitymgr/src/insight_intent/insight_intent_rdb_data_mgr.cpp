@@ -84,8 +84,7 @@ bool InsightIntentRdbDataMgr::IsIntentRdbLoaded()
     }
     std::string createTableSql = "CREATE TABLE IF NOT EXISTS " + intentRdbConfig_.tableName
         + " (INTENT_KEY TEXT NOT NULL PRIMARY KEY, INTENT_VALUE TEXT NOT NULL);";
-    int32_t ret = NativeRdb::E_OK;
-    ret = rdbStore->ExecuteSql(createTableSql);
+    int32_t ret = rdbStore->ExecuteSql(createTableSql);
     if (ret != NativeRdb::E_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "Create rdb table failed, ret:%{public}d", ret);
         return false;
@@ -316,6 +315,7 @@ bool InsightIntentRdbDataMgr::QueryAllData(std::unordered_map<std::string, std::
 void InsightIntentRdbDataMgr::BackupRdb()
 {
     TAG_LOGI(AAFwkTag::INTENT, "%{public}s backup start", intentRdbConfig_.dbName.c_str());
+    std::lock_guard<std::mutex> lock(rdbStoreMutex_);
     if (!IsIntentRdbLoaded()) {
         TAG_LOGE(AAFwkTag::INTENT, "null IntentRdbStore");
         return;

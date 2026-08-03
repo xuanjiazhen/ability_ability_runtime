@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,22 +31,26 @@ class DisposedRuleInterceptor : public IAbilityInterceptor,
 public:
     DisposedRuleInterceptor() = default;
     ~DisposedRuleInterceptor() = default;
-    ErrCode DoProcess(AbilityInterceptorParam param) override;
+    static std::string GenerateTimeoutTaskName(int32_t uid);
+    static std::string GenerateEventTaskName(int32_t uid);
+    ErrCode DoProcess(const AbilityInterceptorParam &param) override;
     void SetTaskHandler(std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler) override
     {
         taskHandler_ = taskHandler;
     };
     void UnregisterObserver(int32_t uid);
 private:
+    bool ValidateNonBlockRule(const Want &want, const AppExecFwk::DisposedRule &disposedRule);
     bool CheckControl(const Want &want, int32_t userId, AppExecFwk::DisposedRule &disposedRule, int32_t appIndex);
     bool FindBlockDisposedRule(const Want &want, const std::vector<AppExecFwk::DisposedRule> &disposedRuleList,
         AppExecFwk::DisposedRule &disposedRule);
     void FindNonBlockDisposedRule(const std::vector<AppExecFwk::DisposedRule> &disposedRuleList,
         AppExecFwk::DisposedRule &disposedRule);
-    ErrCode StartNonBlockRule(const Want &want, AppExecFwk::DisposedRule &disposedRule, int32_t uid);
+    ErrCode StartNonBlockRule(const Want &want, AppExecFwk::DisposedRule &disposedRule,
+        const std::shared_ptr<AppExecFwk::AbilityInfo> &abilityInfo);
     ErrCode CreateModalUIExtension(const Want &want, const sptr<IRemoteObject> &callerToken);
     void SetInterceptInfo(const Want &want, AppExecFwk::DisposedRule &disposedRule);
-    bool IsSkipDisposeRule(const std::string &callerName, const AbilityInterceptorParam &param);
+    bool IsSkipDisposeRule(AppExecFwk::PageJumpMode mode, const AbilityInterceptorParam &param);
 private:
     std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
     std::map<int32_t, sptr<DisposedObserver>> disposedObserverMap_;

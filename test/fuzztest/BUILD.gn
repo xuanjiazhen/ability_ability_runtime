@@ -487,7 +487,6 @@ group("fuzztest") {
     "multiinstanceutils_fuzzer:fuzztest",
     "multiuserconfigmgr_fuzzer:fuzztest",
     "multiuserconfigmgrfirst_fuzzer:fuzztest",
-    "napicommonwant_fuzzer:fuzztest",
     "notifycompletecontinuation_fuzzer:fuzztest",
     "notifycontinuationresult_fuzzer:fuzztest",
     "notifymemorylevel_fuzzer:fuzztest",

@@ -147,7 +147,7 @@ void JsAutoFillExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record
     }
     std::string srcPath(abilityInfo_->moduleName + "/");
     srcPath.append(abilityInfo_->srcEntrance);
-    srcPath.erase(srcPath.rfind('.'));
+    RemoveFileExtension(srcPath);
     srcPath.append(".abc");
 
     std::string moduleName(abilityInfo_->moduleName);
@@ -535,13 +535,7 @@ bool JsAutoFillExtension::HandleAutoFillCreate(const AAFwk::Want &want, const sp
         sptr<Rosen::Window> uiWindow;
         {
             HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::Create");
-            uiWindow = Rosen::Window::Create(option,
-                GetContext(),
-                sessionInfo->sessionToken,
-                Rosen::DefaultCreateErrCode,
-                "",
-                false,
-                sessionInfo->renderSession);
+            uiWindow = Rosen::Window::Create(option, GetContext(), sessionInfo->sessionToken);
         }
         if (uiWindow == nullptr) {
             TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null uiWindow");

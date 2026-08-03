@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <mutex>
 
+#include "ability_business_error.h"
 #include "ability_manager_client.h"
 #include "ability_manager_interface.h"
 #include "ability_runtime_error_util.h"
@@ -60,7 +61,6 @@ constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_THREE = 3;
 constexpr size_t ARGC_FOUR = 4;
 constexpr const char* ON_OFF_TYPE = "applicationState";
-constexpr const char* ON_OFF_TYPE_SYNC = "applicationStateEvent";
 constexpr const char* ON_OFF_TYPE_APP_FOREGROUND_STATE = "appForegroundState";
 constexpr const char* ON_OFF_TYPE_ABILITY_FIRST_FRAME_STATE = "abilityFirstFrameState";
 
@@ -271,9 +271,7 @@ private:
     {
         TAG_LOGD(AAFwkTag::APPMGR, "called");
         std::string type = ParseParamType(env, argc, argv);
-        if (type == ON_OFF_TYPE_SYNC) {
-            return OnOnNew(env, argc, argv);
-        } else if (type == ON_OFF_TYPE_APP_FOREGROUND_STATE) {
+        if (type == ON_OFF_TYPE_APP_FOREGROUND_STATE) {
             return OnOnForeground(env, argc, argv);
         } else if (type == ON_OFF_TYPE_ABILITY_FIRST_FRAME_STATE) {
 #ifdef SUPPORT_SCREEN
@@ -304,7 +302,8 @@ private:
 
         if (appManager_ == nullptr) {
             TAG_LOGE(AAFwkTag::APPMGR, "null appMgr_");
-            ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+            ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE));
             return CreateJsUndefined(env);
         }
         std::vector<std::string> bundleNameList;
@@ -318,7 +317,8 @@ private:
             bool isArray = true;
             if (napi_is_array(env, argv[INDEX_TWO], &isArray) != napi_ok) {
                 TAG_LOGE(AAFwkTag::APPMGR, "judge array failed");
-                ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+                ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::OPERATION_FAILED));
                 return CreateJsUndefined(env);
             }
             if (isArray) {
@@ -343,57 +343,13 @@ private:
                 TAG_LOGD(AAFwkTag::APPMGR, "success");
             } else {
                 TAG_LOGE(AAFwkTag::APPMGR, "err:%{public}d", ret);
-                ThrowErrorByNativeErr(env, ret);
+                napi_throw(env, CreateJsErrorByNativeErr(env, ret, "",
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::REGISTER_OBSERVER_FAILED)));
                 return CreateJsUndefined(env);
             }
         }
         int64_t observerId = serialNumber_;
         observer_->AddJsObserverObject(observerId, argv[INDEX_ONE]);
-        if (serialNumber_ < INT32_MAX) {
-            serialNumber_++;
-        } else {
-            serialNumber_ = 0;
-        }
-        return CreateJsValue(env, observerId);
-    }
-
-    napi_value OnOnNew(napi_env env, size_t argc, napi_value* argv)
-    {
-        TAG_LOGD(AAFwkTag::APPMGR, "called");
-        if (argc < ARGC_TWO) { // support 2 or 3 params, if > 3 params, ignore other params
-            TAG_LOGE(AAFwkTag::APPMGR, "invalid argc");
-            ThrowTooFewParametersError(env);
-            return CreateJsUndefined(env);
-        }
-        if (!AppExecFwk::IsTypeForNapiValue(env, argv[INDEX_ONE], napi_object)) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Invalid param");
-            ThrowInvalidParamError(env, "Parse param observer failed, must be a ApplicationStateObserver.");
-            return CreateJsUndefined(env);
-        }
-        std::vector<std::string> bundleNameList;
-        if (argc > ARGC_TWO) {
-            AppExecFwk::UnwrapArrayStringFromJS(env, argv[INDEX_TWO], bundleNameList);
-        }
-        if (observerSync_ == nullptr) {
-            observerSync_ = new JSAppStateObserver(env);
-        }
-        if (appManager_ == nullptr || observerSync_ == nullptr) {
-            TAG_LOGE(AAFwkTag::APPMGR, "null appMgr or observer");
-            ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
-            return CreateJsUndefined(env);
-        }
-        if (observerSync_->GetJsObserverMapSize() == 0) {
-            int32_t ret = appManager_->RegisterApplicationStateObserver(observerSync_, bundleNameList);
-            if (ret == 0) {
-                TAG_LOGD(AAFwkTag::APPMGR, "success");
-            } else {
-                TAG_LOGE(AAFwkTag::APPMGR, "err:%{public}d", ret);
-                ThrowErrorByNativeErr(env, ret);
-                return CreateJsUndefined(env);
-            }
-        }
-        int32_t observerId = serialNumber_;
-        observerSync_->AddJsObserverObject(observerId, argv[INDEX_ONE]);
         if (serialNumber_ < INT32_MAX) {
             serialNumber_++;
         } else {
@@ -421,7 +377,8 @@ private:
 
         if (appManager_ == nullptr || observerForeground_ == nullptr) {
             TAG_LOGE(AAFwkTag::APPMGR, "null appMgr or observer");
-            ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+            ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::MEMORY_ALLOC_FAILED));
             return CreateJsUndefined(env);
         }
 
@@ -429,7 +386,8 @@ private:
             int32_t ret = appManager_->RegisterAppForegroundStateObserver(observerForeground_);
             if (ret != NO_ERROR) {
                 TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", ret);
-                ThrowErrorByNativeErr(env, ret);
+                napi_throw(env, CreateJsErrorByNativeErr(env, ret, "",
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::REGISTER_OBSERVER_FAILED)));
                 return CreateJsUndefined(env);
             }
         }
@@ -441,9 +399,7 @@ private:
     {
         TAG_LOGD(AAFwkTag::APPMGR, "called");
         std::string type = ParseParamType(env, argc, argv);
-        if (type == ON_OFF_TYPE_SYNC) {
-            return OnOffNew(env, argc, argv);
-        } else if (type == ON_OFF_TYPE_APP_FOREGROUND_STATE) {
+        if (type == ON_OFF_TYPE_APP_FOREGROUND_STATE) {
             return OnOffForeground(env, argc, argv);
         } else if (type == ON_OFF_TYPE_ABILITY_FIRST_FRAME_STATE) {
 #ifdef SUPPORT_SCREEN
@@ -491,7 +447,8 @@ private:
         sptr<JSAbilityFirstFrameStateObserver> observer = new (std::nothrow) JSAbilityFirstFrameStateObserver(env);
         if (abilityManager_ == nullptr || observer == nullptr) {
             TAG_LOGE(AAFwkTag::APPMGR, "null abilityMgr_ or observer");
-            ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+            ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::MEMORY_ALLOC_FAILED));
             return CreateJsUndefined(env);
         }
 
@@ -502,7 +459,8 @@ private:
         int32_t ret = abilityManager_->RegisterAbilityFirstFrameStateObserver(observer, bundleName);
         if (ret != NO_ERROR) {
             TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", ret);
-            ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+            napi_throw(env, CreateJsErrorByNativeErr(env, ret, "",
+                GetInnerErrorMsg(AbilityInnerErrorMsg::REGISTER_OBSERVER_FAILED)));
             return CreateJsUndefined(env);
         }
         observer->SetJsObserverObject(argv[INDEX_ONE]);
@@ -549,7 +507,9 @@ private:
         HandleScope handleScope(env);
         if (observer == nullptr || appManager == nullptr) {
             TAG_LOGE(AAFwkTag::APPMGR, "null observer or appMgr");
-            task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+            task->Reject(env, CreateJsErrorByNativeErr(env,
+                static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "",
+                GetInnerErrorMsg(AbilityInnerErrorMsg::OPERATION_FAILED)));
             return;
         }
         observer->RemoveJsObserverObject(observerId);
@@ -557,7 +517,8 @@ private:
             int32_t ret = appManager->UnregisterApplicationStateObserver(observer);
             if (ret != 0) {
                 TAG_LOGE(AAFwkTag::APPMGR, "err:%{public}d", ret);
-                task->Reject(env, CreateJsErrorByNativeErr(env, ret));
+                task->Reject(env, CreateJsErrorByNativeErr(env, ret, "",
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::UNREGISTER_OBSERVER_FAILED)));
                 return;
             }
         }
@@ -602,49 +563,12 @@ private:
         };
         if (napi_status::napi_ok != napi_send_event(env, asyncTask, napi_eprio_high)) {
             napiAsyncTask->Reject(env, CreateJsErrorByNativeErr(env,
-                static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "send event failed!"));
+                static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "",
+                GetInnerErrorMsg(AbilityInnerErrorMsg::OPERATION_FAILED)));
         } else {
             napiAsyncTask.release();
         }
         return result;
-    }
-
-    napi_value OnOffNew(napi_env env, size_t argc, napi_value* argv)
-    {
-        TAG_LOGD(AAFwkTag::APPMGR, "called");
-        if (argc < ARGC_TWO) {
-            TAG_LOGE(AAFwkTag::APPMGR, "invalid argc");
-            ThrowTooFewParametersError(env);
-            return CreateJsUndefined(env);
-        }
-        int32_t observerId = -1;
-        if (!ConvertFromJsValue(env, argv[INDEX_ONE], observerId)) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Parse observerId failed");
-            ThrowInvalidParamError(env, "Parse param observerId failed, must be a number.");
-            return CreateJsUndefined(env);
-        }
-
-        if (observerSync_ == nullptr || appManager_ == nullptr) {
-            TAG_LOGE(AAFwkTag::APPMGR, "null observer or appMgr");
-            ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
-            return CreateJsUndefined(env);
-        }
-        if (!observerSync_->FindObserverByObserverId(observerId)) {
-            TAG_LOGE(AAFwkTag::APPMGR, "not find observer:%{public}d", static_cast<int32_t>(observerId));
-            ThrowInvalidParamError(env, "not find observerId.");
-            return CreateJsUndefined(env);
-        }
-        observerSync_->RemoveJsObserverObject(observerId);
-        if (observerSync_->GetJsObserverMapSize() == 0) {
-            int32_t ret = appManager_->UnregisterApplicationStateObserver(observerSync_);
-            if (ret != 0) {
-                TAG_LOGE(AAFwkTag::APPMGR, "err:%{public}d", ret);
-                ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
-                return CreateJsUndefined(env);
-            }
-        }
-        TAG_LOGI(AAFwkTag::APPMGR, "unregister success size:%{public}zu", observerSync_->GetJsObserverMapSize());
-        return CreateJsUndefined(env);
     }
 
     napi_value OnOffForeground(napi_env env, size_t argc, napi_value *argv)
@@ -652,7 +576,8 @@ private:
         TAG_LOGD(AAFwkTag::APPMGR, "called");
         if (observerForeground_ == nullptr || appManager_ == nullptr) {
             TAG_LOGE(AAFwkTag::APPMGR, "null observer or appMgr");
-            ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+            ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::OPERATION_FAILED));
             return CreateJsUndefined(env);
         }
         if (argc < ARGC_ONE) {
@@ -674,7 +599,8 @@ private:
             int32_t ret = appManager_->UnregisterAppForegroundStateObserver(observerForeground_);
             if (ret != NO_ERROR) {
                 TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d.", ret);
-                ThrowErrorByNativeErr(env, ret);
+                napi_throw(env, CreateJsErrorByNativeErr(env, ret, "",
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::UNREGISTER_OBSERVER_FAILED)));
                 return CreateJsUndefined(env);
             }
         }
@@ -692,7 +618,8 @@ private:
             HandleScope handleScope(env);
             if (appManager == nullptr) {
                 TAG_LOGE(AAFwkTag::APPMGR, "null appMgr");
-                task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                task->Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
                 delete task;
                 return;
             }
@@ -727,7 +654,8 @@ private:
             HandleScope handleScope(env);
             if (appManager == nullptr) {
                 TAG_LOGW(AAFwkTag::APPMGR, "null appMgr");
-                task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                task->Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
                 delete task;
                 return;
             }
@@ -824,7 +752,8 @@ private:
             HandleScope handleScope(env);
             if (appManager == nullptr) {
                 TAG_LOGW(AAFwkTag::APPMGR, "null appMgr");
-                task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                task->Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
                 delete task;
                 return;
             }
@@ -857,7 +786,8 @@ private:
             HandleScope handleScope(env);
             if (abilityManager == nullptr) {
                 TAG_LOGW(AAFwkTag::APPMGR, "null abilityMgr");
-                task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                task->Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
                 delete task;
                 return;
             }
@@ -881,7 +811,8 @@ private:
         HandleScope handleScope(env);
         if (abilityManager == nullptr) {
             TAG_LOGW(AAFwkTag::APPMGR, "null abilityMgr");
-            task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+            task->Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
             return;
         }
         auto ret = abilityManager->KillProcess(bundleName, clearPageStack, appIndex);
@@ -960,7 +891,8 @@ private:
             HandleScope handleScope(env);
             if (appManager == nullptr) {
                 TAG_LOGW(AAFwkTag::APPMGR, "null appMgr");
-                task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                task->Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
                 delete task;
                 return;
             }
@@ -1012,7 +944,8 @@ private:
             HandleScope handleScope(env);
             if (appManager == nullptr) {
                 TAG_LOGW(AAFwkTag::APPMGR, "null appMgr");
-                task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                task->Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
                 delete task;
                 return;
             }
@@ -1056,18 +989,22 @@ private:
             auto amsClient = AAFwk::AbilityManagerClient::GetInstance();
             if (amsClient == nullptr) {
                 TAG_LOGW(AAFwkTag::APPMGR, "null amsClient");
-                task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                task->Reject(env, CreateJsErrorByNativeErr(env,
+                    static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "",
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
                 delete task;
                 return;
             }
             auto ret = amsClient->TerminateMission(missionId);
             (ret == ERR_OK) ? task->ResolveWithNoError(env, CreateJsUndefined(env)) :
-                task->Reject(env, CreateJsErrorByNativeErr(env, ret, "Terminate mission failed."));
+                task->Reject(env, CreateJsErrorByNativeErr(env, ret, "",
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::TERMINATE_MISSION_FAILED)));
             delete task;
         };
         if (napi_status::napi_ok != napi_send_event(env, asyncTask, napi_eprio_high)) {
             napiAsyncTask->Reject(env, CreateJsErrorByNativeErr(env,
-                static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "Terminate mission failed."));
+                static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "",
+                GetInnerErrorMsg(AbilityInnerErrorMsg::OPERATION_FAILED)));
         } else {
             napiAsyncTask.release();
         }
@@ -1104,7 +1041,8 @@ private:
             HandleScope handleScope(env);
             if (appManager == nullptr) {
                 TAG_LOGW(AAFwkTag::APPMGR, "null appMgr");
-                task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                task->Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
                 delete task;
                 return;
             }
@@ -1163,7 +1101,8 @@ private:
             HandleScope handleScope(env);
             if (appManager == nullptr || appManager->GetAmsMgr() == nullptr) {
                 TAG_LOGW(AAFwkTag::APPMGR, "null appMgr or amsMgr");
-                task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                task->Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
                 delete task;
                 return;
             }
@@ -1232,7 +1171,8 @@ private:
             HandleScope handleScope(env);
             if (abilityManager == nullptr) {
                 TAG_LOGW(AAFwkTag::APPMGR, "null abilityMgr");
-                task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                task->Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
                 delete task;
                 return;
             }
@@ -1259,7 +1199,8 @@ private:
             HandleScope handleScope(env);
             if (abilityManager == nullptr) {
                 TAG_LOGW(AAFwkTag::APPMGR, "null abilityMgr");
-                task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                task->Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
                 delete task;
                 return;
             }
@@ -1300,7 +1241,8 @@ private:
             HandleScope handleScope(env);
             if (appManager == nullptr) {
                 TAG_LOGW(AAFwkTag::APPMGR, "null appMgr");
-                task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                task->Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
                 delete task;
                 return;
             }
@@ -1327,7 +1269,8 @@ private:
     {
         HandleScope handleScope(env);
         if (appManager == nullptr) {
-            task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+            task->Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
             return;
         }
         std::vector<AppExecFwk::RunningProcessInfo> infos;
@@ -1547,7 +1490,8 @@ private:
             HandleScope handleScope(env);
             if (appManager == nullptr) {
                 TAG_LOGE(AAFwkTag::APPMGR, "null appMgr");
-                task->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                task->Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
                 delete task;
                 return;
             }
@@ -1576,7 +1520,7 @@ private:
     {
         auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
         NapiAsyncTask::ExecuteCallback execute = [bundleName, userId, flag,
-            abilityManager = abilityManager_, innerErrCode]() {
+            abilityManager = abilityManager_, innerErrCode, innerErrorMsg = std::make_shared<std::string>()]() {
             if (innerErrCode == nullptr) {
                 TAG_LOGE(AAFwkTag::APPMGR, "inner code null");
                 return;
@@ -1584,6 +1528,7 @@ private:
             if (abilityManager == nullptr) {
                 TAG_LOGE(AAFwkTag::APPMGR, "abilityManager nullptr");
                 *innerErrCode = static_cast<int>(AbilityErrorCode::ERROR_CODE_INNER);
+                *innerErrorMsg = GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE);
                 return;
             }
             *innerErrCode = abilityManager->SetApplicationKeepAlive(bundleName, userId, flag);
@@ -1593,7 +1538,8 @@ private:
             if (innerErrCode == nullptr) {
                 TAG_LOGE(AAFwkTag::APPMGR, "inner code null");
                 task.Reject(env, CreateJsErrorByNativeErr(env,
-                    static_cast<int>(AbilityErrorCode::ERROR_CODE_INNER)));
+                    static_cast<int>(AbilityErrorCode::ERROR_CODE_INNER), "",
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::MEMORY_ALLOC_FAILED)));
                 return;
             }
             if (*innerErrCode == ERR_OK) {
@@ -1602,7 +1548,8 @@ private:
                 return;
             }
             TAG_LOGE(AAFwkTag::APPMGR, "SetApplicationKeepAlive failed:%{public}d", *innerErrCode);
-            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode, "",
+                GetInnerErrorMsg(AbilityInnerErrorMsg::SET_KEEP_ALIVE_FAILED)));
         };
 
         napi_value result = nullptr;
@@ -1644,7 +1591,7 @@ private:
         auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
         auto infoList = std::make_shared<std::vector<KeepAliveInfo>>();
         NapiAsyncTask::ExecuteCallback execute = [appType, userId, abilityManager = abilityManager_,
-            infoList, innerErrCode]() {
+            infoList, innerErrCode, innerErrorMsg = std::make_shared<std::string>()]() {
             if (infoList == nullptr || innerErrCode == nullptr) {
                 TAG_LOGE(AAFwkTag::APPMGR, "infoList or inner code null");
                 return;
@@ -1652,6 +1599,7 @@ private:
             if (abilityManager == nullptr) {
                 TAG_LOGE(AAFwkTag::APPMGR, "abilityManager nullptr");
                 *innerErrCode = static_cast<int>(AbilityErrorCode::ERROR_CODE_INNER);
+                *innerErrorMsg = GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE);
                 return;
             }
             *innerErrCode = abilityManager->QueryKeepAliveApplications(appType, userId, *infoList);
@@ -1662,7 +1610,8 @@ private:
             if (infoList == nullptr || innerErrCode == nullptr) {
                 TAG_LOGE(AAFwkTag::APPMGR, "infoList or inner code null");
                 task.Reject(env, CreateJsErrorByNativeErr(env,
-                    static_cast<int>(AbilityErrorCode::ERROR_CODE_INNER)));
+                    static_cast<int>(AbilityErrorCode::ERROR_CODE_INNER), "",
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::MEMORY_ALLOC_FAILED)));
                 return;
             }
             if (*innerErrCode == ERR_OK) {
@@ -1671,7 +1620,8 @@ private:
                 return;
             }
             TAG_LOGE(AAFwkTag::APPMGR, "QueryKeepAliveApplications failed:%{public}d", *innerErrCode);
-            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode, "",
+                GetInnerErrorMsg(AbilityInnerErrorMsg::QUERY_KEEP_ALIVE_BUNDLES_FAILED)));
         };
 
         napi_value result = nullptr;
@@ -1707,7 +1657,7 @@ private:
     {
         auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
         NapiAsyncTask::ExecuteCallback execute = [bundleName, flag, abilityManager = abilityManager_,
-            innerErrCode]() {
+            innerErrCode, innerErrorMsg = std::make_shared<std::string>()]() {
             if (innerErrCode == nullptr) {
                 TAG_LOGE(AAFwkTag::APPMGR, "inner code null");
                 return;
@@ -1715,6 +1665,7 @@ private:
             if (abilityManager == nullptr) {
                 TAG_LOGE(AAFwkTag::APPMGR, "abilityManager nullptr");
                 *innerErrCode = static_cast<int>(AbilityErrorCode::ERROR_CODE_INNER);
+                *innerErrorMsg = GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE);
                 return;
             }
             *innerErrCode = abilityManager->SetAppServiceExtensionKeepAlive(bundleName, flag);
@@ -1768,7 +1719,8 @@ private:
     {
         auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
         auto infoList = std::make_shared<std::vector<KeepAliveInfo>>();
-        NapiAsyncTask::ExecuteCallback execute = [abilityManager = abilityManager_, infoList, innerErrCode]() {
+        NapiAsyncTask::ExecuteCallback execute = [abilityManager = abilityManager_, infoList, innerErrCode,
+            innerErrorMsg = std::make_shared<std::string>()]() {
             if (infoList == nullptr || innerErrCode == nullptr) {
                 TAG_LOGE(AAFwkTag::APPMGR, "infoList or inner code null");
                 return;
@@ -1776,6 +1728,7 @@ private:
             if (abilityManager == nullptr) {
                 TAG_LOGE(AAFwkTag::APPMGR, "abilityManager nullptr");
                 *innerErrCode = static_cast<int>(AbilityErrorCode::ERROR_CODE_INNER);
+                *innerErrorMsg = GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE);
                 return;
             }
             *innerErrCode = abilityManager->QueryKeepAliveAppServiceExtensions(*infoList);
@@ -1786,7 +1739,8 @@ private:
             if (infoList == nullptr || innerErrCode == nullptr) {
                 TAG_LOGE(AAFwkTag::APPMGR, "infoList or inner code null");
                 task.Reject(env, CreateJsErrorByNativeErr(env,
-                    static_cast<int>(AbilityErrorCode::ERROR_CODE_INNER)));
+                    static_cast<int>(AbilityErrorCode::ERROR_CODE_INNER), "",
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::MEMORY_ALLOC_FAILED)));
                 return;
             }
             if (*innerErrCode == ERR_OK) {

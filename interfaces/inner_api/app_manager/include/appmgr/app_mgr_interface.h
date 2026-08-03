@@ -44,6 +44,7 @@
 #include "iremote_broker.h"
 #include "iremote_object.h"
 #include "irender_state_observer.h"
+#include "mem_dump_callback_interface.h"
 #include "memory_level_info.h"
 #include "page_state_data.h"
 #include "process_memory_state.h"
@@ -52,6 +53,7 @@
 #include "system_memory_attr.h"
 #include "want.h"
 #include "app_jsheap_mem_info.h"
+#include "app_jshandle_map_info.h"
 #include "app_cjheap_mem_info.h"
 #include "running_multi_info.h"
 #include "native_child_notify_interface.h"
@@ -345,6 +347,18 @@ public:
     virtual int DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info) = 0;
 
     /**
+     * DumpJsHandleMap, call DumpJsHandleMap() through proxy project.
+     * dump the application's jshandle map info.
+     *
+     * @param info, pid tid
+     * @return ERR_OK ,return back success, others fail.
+     */
+    virtual int DumpJsHandleMap(OHOS::AppExecFwk::JsHandleMapInfo &info)
+    {
+        return 0;
+    }
+
+    /**
      * DumpCjHeapMemory, call DumpCjHeapMemory() through proxy project.
      * triggerGC and dump the application's cjheap memory info.
      *
@@ -358,10 +372,21 @@ public:
      * triggerGC and dump application's memory info.
      *
      * @param info The information to be dumped
+     * @param callback The callback to receive dump result
+     * @return ERR_OK ,return back success, others fail.
+     */
+    virtual int DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback) = 0;
+
+    /**
+     * ReportDumpMemResult, called by app process to report dump result to appmgr.
+     * appmgr will forward the result to hidumper via callback.
+     *
+     * @param callback The callback received from ScheduleMem
      * @param dumpResult The dump result string
      * @return ERR_OK ,return back success, others fail.
      */
-    virtual int DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult) = 0;
+    virtual int ReportDumpMemResult(sptr<IMemDumpCallback> callback,
+        const std::string &dumpResult) = 0;
 
     /**
      * Start a resident process
@@ -665,6 +690,26 @@ public:
      * @return Returns the shared bundle running result. The result is true if running, false otherwise.
      */
     virtual bool IsSharedBundleRunning(const std::string &bundleName, uint32_t versionCode) = 0;
+
+    /**
+     * @brief Query whether the main process of the app (identified by uid) is in debug mode.
+     * @param uid The application uid.
+     * @return Returns true if the main process is in debug mode, false otherwise.
+     */
+    virtual bool IsMainProcessDebug(int32_t uid)
+    {
+        return false;
+    }
+
+    /**
+     * @brief Query whether the corresponding process of the app (identified by abilityInfo) is in attach debug mode.
+     * @param abilityInfo The ability info used to locate the corresponding process.
+     * @return Returns true if the corresponding process is in attach debug mode, false otherwise.
+     */
+    virtual bool IsCorrespondingProcessAttachDebug(const AbilityInfo &abilityInfo)
+    {
+        return false;
+    }
 
    /**
      * start native process for debugger.
@@ -976,6 +1021,12 @@ public:
     virtual int32_t SetSupportedProcessCache(int32_t pid, bool isSupport) = 0;
 
     virtual int32_t IsProcessCacheSupported(int32_t pid, bool &isSupported) = 0;
+
+    virtual int32_t IsChildProcessSupported(bool isNative, bool &isSupported)
+    {
+        isSupported = false;
+        return 0;
+    }
 
     virtual int32_t SetProcessCacheEnable(int32_t pid, bool enable) = 0;
 

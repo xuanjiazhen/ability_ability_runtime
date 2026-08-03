@@ -16,6 +16,8 @@
 #include "ui_ability_record.h"
 
 #include "ability_util.h"
+#include "global_constant.h"
+#include "hilog_tag_wrapper.h"
 #include "native_ability_util.h"
 
 namespace OHOS {
@@ -29,6 +31,7 @@ std::shared_ptr<UIAbilityRecord> UIAbilityRecord::CreateAbilityRecord(const Abil
     auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->Init(abilityRequest);
+    abilityRecord->SetByOeExt(abilityRequest.isStartByOEExt);
     NativeAbilityMetaData metaData;
     NativeAbilityMetaData::InitData(abilityRecord->abilityInfo_, metaData);
     if (metaData.withNativeModule) {
@@ -38,6 +41,10 @@ std::shared_ptr<UIAbilityRecord> UIAbilityRecord::CreateAbilityRecord(const Abil
         } else {
             abilityRecord->abilityNativeState_ = AbilityNativeState::NORMAL;
         }
+    }
+    if (abilityRecord->want_.GetBoolParam(AbilityRuntime::GlobalConstant::GAME_PRELAUNCH, false)) {
+        TAG_LOGI(AAFwkTag::UIABILITY, "abilityRecord: Set game prelaunch flag from want");
+        abilityRecord->SetGameSAPreLaunch(true);
     }
     return abilityRecord;
 }
@@ -59,6 +66,29 @@ void UIAbilityRecord::AttachNative()
     if (GetNativeState() == AbilityNativeState::INIT) {
         SetNativeState(AbilityNativeState::ATTACHED);
     }
+}
+
+bool UIAbilityRecord::UpdateWantByLastWant()
+{
+    if (!ShouldUpdateWant()) {
+        return false;
+    }
+    SetShouldUpdateWant(false);
+    std::shared_ptr<Want> lastWant;
+    {
+        std::lock_guard lock(wantLock_);
+        if (lastWant_ == nullptr) {
+            return false;
+        }
+        lastWant = lastWant_;
+        lastWant_ = nullptr;
+    }
+    SetWant(*lastWant);
+#ifdef SUPPORT_UPMS
+    GrantUriPermission();
+#endif // SUPPORT_UPMS
+    SetIsNewWant(true);
+    return true;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

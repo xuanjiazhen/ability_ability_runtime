@@ -49,7 +49,9 @@
     "subcommands": {
         "start": {
             "description": "ohos-aa start - Start an ability on the system",
-            "requirePermissions": [],
+            "requirePermissions": [
+                "ohos.permission.cli.START_ABILITY"
+            ],
             "inputSchema": {
                 "type": "object",
                 "description": "Sub-options of the ohos-aa start command.",
@@ -73,6 +75,14 @@
                     "modulename": {
                         "type": "string",
                         "description": "moduleName"
+                    },
+                    "sandboxCloneIndex": {
+                        "type": "integer",
+                        "description": "Sandbox clone index for launching sandbox clone application (range: 2000-3000)"
+                    },
+                    "creatorBundle": {
+                        "type": "string",
+                        "description": "Creator bundle name for sandbox clone application"
                     },
                     "uri": {
                         "type": "string",
@@ -147,7 +157,9 @@
         },
         "force-stop": {
             "description": "ohos-aa force-stop - Stop an application on the system.",
-            "requirePermissions": [],
+            "requirePermissions": [
+                "ohos.permission.cli.KILL_APP_PROCESSES"
+            ],
             "inputSchema": {
                 "type": "object",
                 "description": "Sub-options of the ohos-aa force-stop command.",

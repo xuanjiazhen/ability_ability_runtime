@@ -272,7 +272,7 @@ void BaseExtensionRecord::DumpUIExtensionRootHostInfo(std::vector<std::string> &
 
     std::string dumpInfo = "      root host bundle name [" + hostInfo.elementName_.GetBundleName() + "]";
     info.emplace_back(dumpInfo);
-    dumpInfo = "      root host module name [" + hostInfo.elementName_.GetModuleName() + "]";
+    dumpInfo = "      root host module name [" + hostInfo.elementName_.GetModuleNameRef() + "]";
     info.emplace_back(dumpInfo);
     dumpInfo = "      root host ability name [" + hostInfo.elementName_.GetAbilityName() + "]";
     info.emplace_back(dumpInfo);
@@ -308,7 +308,7 @@ void BaseExtensionRecord::ConnectAbilityWithWant(const Want &want)
 
 void BaseExtensionRecord::ConnectAbility()
 {
-    TAG_LOGI(AAFwkTag::SERVICE_EXT, "%{public}s called.", __func__);
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "ConnectAbility");
     Want want = GetWant();
     UpdateDmsCallerInfo(want);
     ConnectAbilityWithWant(want);
@@ -332,6 +332,16 @@ void BaseExtensionRecord::SetClientPid(pid_t clientPid)
 pid_t BaseExtensionRecord::GetClientPid() const
 {
     return clientPid_;
+}
+
+void BaseExtensionRecord::SetIsInProcess(bool isInProcess)
+{
+    isInProcess_ = isInProcess;
+}
+
+bool BaseExtensionRecord::IsInProcess() const
+{
+    return isInProcess_;
 }
 
 void BaseExtensionRecord::SetRequestId(const std::string &requestId)

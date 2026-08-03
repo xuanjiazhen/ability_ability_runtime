@@ -29,7 +29,6 @@ class EventRunner;
 namespace AbilityRuntime {
 struct CommonHspBundleInfo {
     uint32_t versionCode;
-    int32_t aotCompileStatus;
     std::string bundleName;
     std::string moduleName;
     std::string hapPath;
@@ -91,6 +90,8 @@ public:
         uint32_t versionCode = 0;
         bool enableWarmStartupSmartGC = false;
         std::string arkTSMode;
+        bool isMainProcess = true;
+        std::vector<std::string> staticPluginHspPathList;
     };
 
     struct DebugOption {
@@ -111,6 +112,7 @@ public:
         bool isBinary = false;
         bool isClearNodeIdCache = false;
         bool isProcDump = false;
+        std::string languageEnv = CODE_LANGUAGE_ARKTS_1_0;
     };
 
     static std::unique_ptr<Runtime> Create(Options &options);
@@ -132,6 +134,7 @@ public:
     virtual void ForceFullGC(uint32_t tid) = 0;
     virtual void DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary = false) = 0;
     virtual void DumpHeapSnapshot(uint32_t tid, const JsHeapDumpParam &param) {};
+    virtual void DumpJsHandleMap() {};
     virtual void AllowCrossThreadExecution() = 0;
     virtual void GetHeapPrepare() = 0;
     virtual void NotifyApplicationState(bool isBackground) = 0;

@@ -208,6 +208,17 @@ void AppLifeCycleDeal::ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &in
     appThread->ScheduleJsHeapMemory(info);
 }
 
+void AppLifeCycleDeal::ScheduleJsHandleMap(OHOS::AppExecFwk::JsHandleMapInfo &info)
+{
+    auto appThread = GetApplicationClient();
+    if (!appThread) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null appThread");
+        return;
+    }
+
+    appThread->ScheduleJsHandleMap(info);
+}
+
 void AppLifeCycleDeal::ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
 {
     auto appThread = GetApplicationClient();
@@ -219,7 +230,7 @@ void AppLifeCycleDeal::ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &in
     appThread->ScheduleCjHeapMemory(info);
 }
 
-void AppLifeCycleDeal::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+void AppLifeCycleDeal::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
 {
     auto appThread = GetApplicationClient();
     if (!appThread) {
@@ -227,7 +238,7 @@ void AppLifeCycleDeal::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, std::str
         return;
     }
 
-    appThread->ScheduleMem(info, dumpResult);
+    appThread->ScheduleMem(info, callback);
 }
 
 void AppLifeCycleDeal::LowMemoryWarning()

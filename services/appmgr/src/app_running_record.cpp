@@ -419,10 +419,9 @@ void AppRunningRecord::LaunchApplication(const Configuration &config)
     launchData.SetPreloadModuleName(preloadModuleName_);
     launchData.SetPreloadAbilityName(preloadAbilityName_);
     launchData.SetDebugFromLocal(isDebugFromLocal_);
-    launchData.SetArkChildProcessSupported(isArkChildProcessSupported_);
-    launchData.SetNativeChildProcessSupported(isNativeChildProcessSupported_);
     launchData.SetStartupTaskData(startupTaskData_);
     launchData.SetImageProcessType(static_cast<int32_t>(imageProcessType_));
+    launchData.SetMainProcess(isMainProcess_);
 
     TAG_LOGD(AAFwkTag::APPMGR, "%{public}s called,app is %{public}s.", __func__, GetName().c_str());
     AddAppLifecycleEvent("AppRunningRecord::LaunchApplication");
@@ -695,6 +694,13 @@ void AppRunningRecord::ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &in
     }
 }
 
+void AppRunningRecord::ScheduleJsHandleMap(OHOS::AppExecFwk::JsHandleMapInfo &info)
+{
+    if (appLifeCycleDeal_) {
+        appLifeCycleDeal_->ScheduleJsHandleMap(info);
+    }
+}
+
 void AppRunningRecord::ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
 {
     if (appLifeCycleDeal_) {
@@ -702,10 +708,10 @@ void AppRunningRecord::ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &in
     }
 }
 
-void AppRunningRecord::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+void AppRunningRecord::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
 {
     if (appLifeCycleDeal_) {
-        appLifeCycleDeal_->ScheduleMem(info, dumpResult);
+        appLifeCycleDeal_->ScheduleMem(info, callback);
     }
 }
 

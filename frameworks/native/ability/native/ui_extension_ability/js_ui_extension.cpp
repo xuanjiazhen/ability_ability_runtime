@@ -157,7 +157,7 @@ void JsUIExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
     }
     std::string srcPath(Extension::abilityInfo_->moduleName + "/");
     srcPath.append(Extension::abilityInfo_->srcEntrance);
-    srcPath.erase(srcPath.rfind('.'));
+    RemoveFileExtension(srcPath);
     srcPath.append(".abc");
 
     std::string moduleName(Extension::abilityInfo_->moduleName);
@@ -722,8 +722,7 @@ sptr<Rosen::Window> JsUIExtension::CreateUIWindow(const std::shared_ptr<UIExtens
     }
     option->SetStartModalExtensionTimeStamp(launchTimestamp);
     HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::Create");
-    return Rosen::Window::Create(option, GetContext(), sessionInfo->sessionToken,
-        Rosen::DefaultCreateErrCode, "", false, sessionInfo->renderSession);
+    return Rosen::Window::Create(option, GetContext(), sessionInfo->sessionToken);
 }
 
 std::unique_ptr<NativeReference> JsUIExtension::CreateAppWindowStage(sptr<Rosen::Window> uiWindow,

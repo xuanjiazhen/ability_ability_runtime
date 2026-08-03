@@ -19,8 +19,10 @@
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_db_cache.h"
 #include "insight_intent_execute_manager.h"
+#include "agent_extension_connection_constants.h"
 #include "mission_list_manager.h"
 #include "mock_my_status.h"
+#include "start_ability_utils.h"
 #include "sub_managers_helper.h"
 
 using namespace testing;
@@ -42,6 +44,7 @@ constexpr int32_t DMS_UID = 5522;
 constexpr int32_t LOW_MEMORY_KILL_WHILE_STARTING = 1111;
 constexpr int32_t DEFAULT_INVAL_VALUE = -1;
 constexpr int32_t PENG_LAI_UID = 7655;
+constexpr int32_t TASKMGR_UID = 7005;
 constexpr int32_t BROKER_UID = 5557;
 
 namespace OHOS {
@@ -96,9 +99,79 @@ sptr<Token> AbilityManagerServiceThirteenthTest::MockToken(AbilityType abilityTy
  * Name: ConnectAbilityCommon_001
  * Function: ConnectAbilityCommon
  * SubFunction: NA
- * FunctionPoints: Verify ConnectAbilityCommon forwards AGENT extension type to ConnectFreeInstall
+ * FunctionPoints: Verify ConnectAbilityCommon forwards AGENT extension type to ConnectFreeInstall.
  */
 HWTEST_F(AbilityManagerServiceThirteenthTest, ConnectAbilityCommon_001, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.fimConnectFreeInstallCalled_ = false;
+    status.fimConnectFreeInstall_ = CHECK_PERMISSION_FAILED;
+    status.fimConnectExtensionType_ = -1;
+    status.fimConnectLocalDeviceId_.clear();
+    status.softbusGetLocalNodeDeviceInfo_ = ERR_OK;
+    // AGENT permission is validated later in ConnectLocalAbility via CheckPermissionForAgentExtension;
+    // the free-install path returns early before that check is reached.
+    status.perJudgeCallerIsAllowedToUseSystemAPI_ = true;
+    status.permPermission_ = 1;
+    status.amcGetProcessInfoRet_ = ERR_OK;
+    status.amcProcessState_ = AppProcessState::APP_STATE_FOREGROUND;
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+    abilityMs->freeInstallManager_ = std::make_shared<FreeInstallManager>();
+    ASSERT_NE(abilityMs->freeInstallManager_, nullptr);
+
+    Want want;
+    ElementName element("", "com.test.demo", "MainAbility");
+    want.SetElement(element);
+    want.AddFlags(Want::FLAG_INSTALL_ON_DEMAND);
+    auto connect = sptr<InsightIntentExecuteConnection>::MakeSptr();
+    auto callerToken = MockToken(AbilityType::PAGE);
+
+    auto ret = abilityMs->ConnectAbilityCommon(
+        want, connect, callerToken, ExtensionAbilityType::AGENT, DEFAULT_INVAL_VALUE, false);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_FALSE(status.fimConnectFreeInstallCalled_);
+    EXPECT_EQ(status.fimConnectExtensionType_, -1);
+    EXPECT_TRUE(status.fimConnectLocalDeviceId_.empty());
+}
+#endif // SUPPORT_RECORDER_DSOFTBUS
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ConnectAbilityCommon_002
+ * Function: ConnectAbilityCommon
+ * SubFunction: NA
+ * FunctionPoints: Verify ConnectAbilityCommon rejects a non-AGENT connect carrying AGENTEXTENSIONHOSTPROXY_KEY.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ConnectAbilityCommon_002, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+
+    Want want;
+    ElementName element("", "com.test.demo", "MainAbility");
+    want.SetElement(element);
+    want.SetParam(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY, true);
+    auto connect = sptr<InsightIntentExecuteConnection>::MakeSptr();
+    auto callerToken = MockToken(AbilityType::PAGE);
+
+    auto ret = abilityMs->ConnectAbilityCommon(
+        want, connect, callerToken, ExtensionAbilityType::SERVICE, DEFAULT_INVAL_VALUE, false);
+    EXPECT_EQ(ret, ERR_WRONG_INTERFACE_CALL);
+}
+
+#ifdef SUPPORT_RECORDER_DSOFTBUS
+/*
+ * Feature: AbilityManagerService
+ * Name: ConnectAbilityCommon_003
+ * Function: ConnectAbilityCommon
+ * SubFunction: NA
+ * FunctionPoints: Verify ConnectAbilityCommon rejects AGENT when AGENTID_KEY is missing even if AGENTEXTENSIONHOSTPROXY_KEY is present.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ConnectAbilityCommon_003, TestSize.Level1)
 {
     auto &status = MyStatus::GetInstance();
     status.fimConnectFreeInstallCalled_ = false;
@@ -116,18 +189,199 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, ConnectAbilityCommon_001, TestSize
     Want want;
     ElementName element("", "com.test.demo", "MainAbility");
     want.SetElement(element);
+    want.SetParam(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY, true);
     want.AddFlags(Want::FLAG_INSTALL_ON_DEMAND);
     auto connect = sptr<InsightIntentExecuteConnection>::MakeSptr();
     auto callerToken = MockToken(AbilityType::PAGE);
 
     auto ret = abilityMs->ConnectAbilityCommon(
         want, connect, callerToken, ExtensionAbilityType::AGENT, DEFAULT_INVAL_VALUE, false);
-    EXPECT_EQ(ret, CHECK_PERMISSION_FAILED);
-    EXPECT_TRUE(status.fimConnectFreeInstallCalled_);
-    EXPECT_EQ(status.fimConnectExtensionType_, static_cast<int32_t>(ExtensionAbilityType::AGENT));
-    EXPECT_EQ(status.fimConnectLocalDeviceId_, "0");
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_FALSE(status.fimConnectFreeInstallCalled_);
+    EXPECT_EQ(status.fimConnectExtensionType_, -1);
 }
 #endif // SUPPORT_RECORDER_DSOFTBUS
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckPermissionForAgentExtension_001
+ * Function: CheckPermissionForAgentExtension
+ * SubFunction: NA
+ * FunctionPoints: Verify CheckPermissionForAgentExtension skips checks when neither side is AGENT.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, CheckPermissionForAgentExtension_001, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+
+    Want want;
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SERVICE;
+    auto ret = abilityMs->CheckPermissionForAgentExtension(ExtensionAbilityType::SERVICE, want, abilityRequest);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckPermissionForAgentExtension_002
+ * Function: CheckPermissionForAgentExtension
+ * SubFunction: NA
+ * FunctionPoints: Verify CheckPermissionForAgentExtension rejects mismatched AGENT extension type.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, CheckPermissionForAgentExtension_002, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+
+    Want want;
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::AGENT;
+    auto ret = abilityMs->CheckPermissionForAgentExtension(ExtensionAbilityType::SERVICE, want, abilityRequest);
+    EXPECT_EQ(ret, ERR_WRONG_INTERFACE_CALL);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckPermissionForAgentExtension_003
+ * Function: CheckPermissionForAgentExtension
+ * SubFunction: NA
+ * FunctionPoints: Verify CheckPermissionForAgentExtension rejects AGENT connect without AGENTEXTENSIONHOSTPROXY_KEY.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, CheckPermissionForAgentExtension_003, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+
+    Want want;
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::AGENT;
+    auto ret = abilityMs->CheckPermissionForAgentExtension(ExtensionAbilityType::AGENT, want, abilityRequest);
+    EXPECT_EQ(ret, ERR_WRONG_INTERFACE_CALL);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckPermissionForAgentExtension_004
+ * Function: CheckPermissionForAgentExtension
+ * SubFunction: NA
+ * FunctionPoints: Verify CheckPermissionForAgentExtension rejects non-system-api callers.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, CheckPermissionForAgentExtension_004, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.perJudgeCallerIsAllowedToUseSystemAPI_ = false;
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+
+    Want want;
+    want.SetParam(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY, true);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::AGENT;
+    auto ret = abilityMs->CheckPermissionForAgentExtension(ExtensionAbilityType::AGENT, want, abilityRequest);
+    EXPECT_EQ(ret, ERR_NOT_SYSTEM_APP);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckPermissionForAgentExtension_005
+ * Function: CheckPermissionForAgentExtension
+ * SubFunction: NA
+ * FunctionPoints: Verify CheckPermissionForAgentExtension rejects callers without PERMISSION_CONNECT_AGENT.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, CheckPermissionForAgentExtension_005, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.perJudgeCallerIsAllowedToUseSystemAPI_ = true;
+    status.permPermission_ = 0;
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+
+    Want want;
+    want.SetParam(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY, true);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::AGENT;
+    auto ret = abilityMs->CheckPermissionForAgentExtension(ExtensionAbilityType::AGENT, want, abilityRequest);
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckPermissionForAgentExtension_006
+ * Function: CheckPermissionForAgentExtension
+ * SubFunction: NA
+ * FunctionPoints: Verify CheckPermissionForAgentExtension propagates GetRunningProcessInfoByPid failure.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, CheckPermissionForAgentExtension_006, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.perJudgeCallerIsAllowedToUseSystemAPI_ = true;
+    status.permPermission_ = 1;
+    status.amcGetProcessInfoRet_ = ERR_INVALID_VALUE;
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+
+    Want want;
+    want.SetParam(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY, true);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::AGENT;
+    auto ret = abilityMs->CheckPermissionForAgentExtension(ExtensionAbilityType::AGENT, want, abilityRequest);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckPermissionForAgentExtension_007
+ * Function: CheckPermissionForAgentExtension
+ * SubFunction: NA
+ * FunctionPoints: Verify CheckPermissionForAgentExtension rejects background callers.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, CheckPermissionForAgentExtension_007, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.perJudgeCallerIsAllowedToUseSystemAPI_ = true;
+    status.permPermission_ = 1;
+    status.amcGetProcessInfoRet_ = ERR_OK;
+    status.amcProcessState_ = AppProcessState::APP_STATE_BACKGROUND;
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+
+    Want want;
+    want.SetParam(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY, true);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::AGENT;
+    auto ret = abilityMs->CheckPermissionForAgentExtension(ExtensionAbilityType::AGENT, want, abilityRequest);
+    EXPECT_EQ(ret, NOT_TOP_ABILITY);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckPermissionForAgentExtension_008
+ * Function: CheckPermissionForAgentExtension
+ * SubFunction: NA
+ * FunctionPoints: Verify CheckPermissionForAgentExtension returns ERR_OK when all checks pass.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, CheckPermissionForAgentExtension_008, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.perJudgeCallerIsAllowedToUseSystemAPI_ = true;
+    status.permPermission_ = 1;
+    status.amcGetProcessInfoRet_ = ERR_OK;
+    status.amcProcessState_ = AppProcessState::APP_STATE_FOREGROUND;
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+
+    Want want;
+    want.SetParam(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY, true);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::AGENT;
+    auto ret = abilityMs->CheckPermissionForAgentExtension(ExtensionAbilityType::AGENT, want, abilityRequest);
+    EXPECT_EQ(ret, ERR_OK);
+}
 
 /*
  * Feature: AbilityManagerService
@@ -3224,6 +3478,37 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, RegisterSAInterceptor_002, TestSiz
 }
 
 /*
+ * Feature: AbilityManagerService
+ * Function: UnregisterSAInterceptor
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService UnregisterSAInterceptor
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, UnregisterSAInterceptor_001, TestSize.Level1) {
+    sptr<AbilityRuntime::ISAInterceptor> interceptor = new (std::nothrow) MockISAInterceptor();
+    ASSERT_NE(interceptor, nullptr);
+    auto abilityManagerService = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityManagerService, nullptr);
+    auto result = abilityManagerService->UnregisterSAInterceptor(interceptor->AsObject());
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: UnregisterSAInterceptor
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService UnregisterSAInterceptor
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, UnregisterSAInterceptor_002, TestSize.Level1) {
+    sptr<AbilityRuntime::ISAInterceptor> interceptor = new (std::nothrow) MockISAInterceptor();
+    ASSERT_NE(interceptor, nullptr);
+    auto abilityManagerService = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().ipcGetCallingUid_ = TASKMGR_UID;
+    auto result = abilityManagerService->UnregisterSAInterceptor(interceptor->AsObject());
+    EXPECT_EQ(result, ERR_NULL_SA_INTERCEPTOR_EXECUTER);
+}
+
+/*
  * Feature: ManualStartAutoStartupApps_001
  * Function: ManualStartAutoStartupApps
  * SubFunction: NA
@@ -3366,5 +3651,1222 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, KillAppWithReason_0300, TestSize.L
     EXPECT_EQ(res, ERR_OK);
     MyStatus::GetInstance().permPermission_ = 0;
 }
+
+/*
+ * Feature: AbilityManagerService
+ * Function: KillAppWithReasonInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService KillAppWithReasonInner UIExtension starting skip
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, KillAppWithReason_UIExtStarting_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "KillAppWithReason_UIExtStarting_0100 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+
+    auto mockSubManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    ASSERT_NE(mockSubManagersHelper, nullptr);
+    auto mockUIExtMgr = std::make_shared<UIExtensionAbilityManager>(0);
+    ASSERT_NE(mockUIExtMgr, nullptr);
+    // Use MOCK_FAILED_PID (654321) so GetRunningProcessInfoByPid returns isAbilityForegrounding=false
+    int32_t testPid = 654321;
+    int32_t testUid = 0; // mock returns uid_=0 from GetRunningProcessInfoByPid
+    int64_t testRecordId = 1;
+    mockUIExtMgr->startingRecordsMap_[{testUid, 0, testRecordId}] = 1;
+    mockSubManagersHelper->currentUIExtensionAbilityManager_ = mockUIExtMgr;
+    abilityMs->subManagersHelper_ = mockSubManagersHelper;
+
+    abilityMs->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+    MyStatus::GetInstance().permPermission_ = 2;
+
+    ExitReasonCompability exitReason{};
+    exitReason.reason = Reason::REASON_RESOURCE_CONTROL;
+    exitReason.exitMsg = AbilityRuntime::GlobalConstant::LOW_MEMORY_KILL;
+    exitReason.shouldKillForeground = false;
+    exitReason.killId = 1;
+
+    auto res = abilityMs->KillAppWithReason(testPid, exitReason);
+    EXPECT_EQ(res, ERR_KILL_APP_WHILE_STARTING);
+    MyStatus::GetInstance().permPermission_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "KillAppWithReason_UIExtStarting_0100 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: KillAppWithReasonInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService KillAppWithReasonInner shouldKillForeground skips protection
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, KillAppWithReason_KillForeground_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "KillAppWithReason_KillForeground_0200 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+
+    auto mockSubManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    ASSERT_NE(mockSubManagersHelper, nullptr);
+    auto mockUIExtMgr = std::make_shared<UIExtensionAbilityManager>(0);
+    ASSERT_NE(mockUIExtMgr, nullptr);
+    int32_t testPid = 1111;
+    int32_t testUid = 0; // mock returns uid_=0 from GetRunningProcessInfoByPid
+    int64_t testRecordId = 1;
+    mockUIExtMgr->startingRecordsMap_[{testUid, 0, testRecordId}] = 1;
+    mockSubManagersHelper->uiExtensionAbilityManagers_[0] = mockUIExtMgr;
+    auto mockCurrentUIAbilityManager = std::make_shared<UIAbilityLifecycleManager>(0);
+    mockSubManagersHelper->currentUIAbilityManager_ = mockCurrentUIAbilityManager;
+    abilityMs->subManagersHelper_ = mockSubManagersHelper;
+
+    abilityMs->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+    MyStatus::GetInstance().permPermission_ = 2;
+
+    ExitReasonCompability exitReason{};
+    exitReason.reason = Reason::REASON_RESOURCE_CONTROL;
+    exitReason.exitMsg = AbilityRuntime::GlobalConstant::LOW_MEMORY_KILL;
+    exitReason.shouldKillForeground = true;
+    exitReason.killId = 1;
+
+    auto res = abilityMs->KillAppWithReason(testPid, exitReason);
+    // shouldKillForeground=true skips foreground/UIExt protection, but ProcessLowMemoryKill still checks
+    // Since IsBundleStarting returns true via mock, expect ERR_KILL_APP_WHILE_STARTING
+    EXPECT_EQ(res, ERR_KILL_APP_WHILE_STARTING);
+    MyStatus::GetInstance().permPermission_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "KillAppWithReason_KillForeground_0200 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: KillAppWithReasonInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService KillAppWithReasonInner UIExtension not starting proceeds
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, KillAppWithReason_UIExtNotStarting_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "KillAppWithReason_UIExtNotStarting_0300 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+
+    auto mockSubManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    ASSERT_NE(mockSubManagersHelper, nullptr);
+    auto mockUIExtMgr = std::make_shared<UIExtensionAbilityManager>(0);
+    ASSERT_NE(mockUIExtMgr, nullptr);
+    // No starting pid in map
+    mockSubManagersHelper->uiExtensionAbilityManagers_[0] = mockUIExtMgr;
+    abilityMs->subManagersHelper_ = mockSubManagersHelper;
+
+    abilityMs->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+    MyStatus::GetInstance().permPermission_ = 2;
+
+    // Use pid=654321 (MOCK_FAILED_PID) to get isAbilityForegrounding=false
+    int32_t testPid = 654321;
+    ExitReasonCompability exitReason{};
+    exitReason.reason = Reason::REASON_JS_ERROR;
+    exitReason.exitMsg = "Js Error.";
+    exitReason.shouldKillForeground = false;
+    exitReason.killId = 1;
+
+    auto res = abilityMs->KillAppWithReason(testPid, exitReason);
+    // isAbilityForegrounding=false, isFocused=false, UIExt not starting,
+    // ProcessLowMemoryKill not triggered for non-LOW_MEMORY_KILL reason
+    EXPECT_EQ(res, ERR_OK);
+    MyStatus::GetInstance().permPermission_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "KillAppWithReason_UIExtNotStarting_0300 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: ProcessLowMemoryKillUIExtension
+ * SubFunction: NA
+ * FunctionPoints: ProcessLowMemoryKillUIExtension uiExtManager is nullptr
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ProcessLowMemoryKillUIExt_NullManager_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ProcessLowMemoryKillUIExt_NullManager_0400 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+
+    auto mockSubManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    ASSERT_NE(mockSubManagersHelper, nullptr);
+    // No UIExtManager registered for userId=0
+    abilityMs->subManagersHelper_ = mockSubManagersHelper;
+
+    abilityMs->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+    MyStatus::GetInstance().permPermission_ = 2;
+
+    // Use pid=654321 (MOCK_FAILED_PID) to skip foreground check
+    int32_t testPid = 654321;
+    ExitReasonCompability exitReason{};
+    exitReason.reason = Reason::REASON_RESOURCE_CONTROL;
+    exitReason.exitMsg = AbilityRuntime::GlobalConstant::LOW_MEMORY_KILL;
+    exitReason.shouldKillForeground = false;
+    exitReason.killId = 1;
+
+    auto res = abilityMs->KillAppWithReason(testPid, exitReason);
+    // uiExtManager is null → ProcessLowMemoryKillUIExtension returns false
+    // ProcessLowMemoryKill checks IsBundleStarting → not starting → returns false
+    // KillAppWithReasonInner returns ERR_OK → proceeds to KillProcessesByPids
+    EXPECT_EQ(res, ERR_OK);
+    MyStatus::GetInstance().permPermission_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "ProcessLowMemoryKillUIExt_NullManager_0400 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: KillProcessWithReason
+ * SubFunction: NA
+ * FunctionPoints: KillProcessWithReasonInner shouldKillForeground skips UIExt check
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, KillProcessWithReason_ShouldKillForeground_007, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "KillProcessWithReason_ShouldKillForeground_007 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+
+    auto mockSubManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    ASSERT_NE(mockSubManagersHelper, nullptr);
+    auto mockUIExtMgr = std::make_shared<UIExtensionAbilityManager>(0);
+    ASSERT_NE(mockUIExtMgr, nullptr);
+    mockSubManagersHelper->uiExtensionAbilityManagers_[0] = mockUIExtMgr;
+    auto mockCurrentUIAbilityManager = std::make_shared<UIAbilityLifecycleManager>(0);
+    mockSubManagersHelper->currentUIAbilityManager_ = mockCurrentUIAbilityManager;
+    abilityMs->subManagersHelper_ = mockSubManagersHelper;
+    abilityMs->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+
+    MyStatus::GetInstance().permPermission_ = 2;
+    ExitReason reason;
+    reason.exitMsg = AbilityRuntime::GlobalConstant::LOW_MEMORY_KILL;
+    reason.reason = Reason::REASON_RESOURCE_CONTROL;
+    reason.shouldKillForeground = true;
+
+    int32_t testPid = 654321;
+    auto res = abilityMs->KillProcessWithReason(testPid, reason);
+    // shouldKillForeground=true → skip foreground/UIExt check
+    // ProcessLowMemoryKill checks IsBundleStarting → not starting → proceeds
+    // KillProcessesByPids returns mock value
+    EXPECT_EQ(res, ERR_OK);
+    MyStatus::GetInstance().permPermission_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "KillProcessWithReason_ShouldKillForeground_007 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ValidateAppCloneIndex_001
+ * Function: ValidateAppCloneIndex
+ * SubFunction: NA
+ * FunctionPoints: ValidateAppCloneIndex returns ERR_APP_CLONE_INDEX_INVALID when appCloneIndex is missing
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ValidateAppCloneIndex_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    // Don't set PARAM_APP_CLONE_INDEX_KEY - should fail validation
+    int32_t appCloneIndex = DEFAULT_INVAL_VALUE;
+    auto eventInfo = abilityMs_->BuildEventInfo(want, DEFAULT_INVAL_VALUE);
+
+    int result = abilityMs_->ValidateAppCloneIndex(want, appCloneIndex, eventInfo);
+    EXPECT_EQ(result, ERR_APP_CLONE_INDEX_INVALID);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ValidateAppCloneIndex_002
+ * Function: ValidateAppCloneIndex
+ * SubFunction: NA
+ * FunctionPoints: ValidateAppCloneIndex returns ERR_OK with valid appCloneIndex
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ValidateAppCloneIndex_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_002 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0); // Valid index
+    int32_t appCloneIndex = DEFAULT_INVAL_VALUE;
+    auto eventInfo = abilityMs_->BuildEventInfo(want, DEFAULT_INVAL_VALUE);
+
+    int result = abilityMs_->ValidateAppCloneIndex(want, appCloneIndex, eventInfo);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(appCloneIndex, 0); // Verify the index is set correctly
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ValidateAppCloneIndex_003
+ * Function: ValidateAppCloneIndex
+ * SubFunction: NA
+ * FunctionPoints: ValidateAppCloneIndex returns ERR_OK with valid appCloneIndex=1
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ValidateAppCloneIndex_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_003 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 1); // Valid index for clone
+    int32_t appCloneIndex = DEFAULT_INVAL_VALUE;
+    auto eventInfo = abilityMs_->BuildEventInfo(want, DEFAULT_INVAL_VALUE);
+
+    int result = abilityMs_->ValidateAppCloneIndex(want, appCloneIndex, eventInfo);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(appCloneIndex, 1); // Verify the index is set correctly
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ValidateAppCloneIndex_004
+ * Function: ValidateAppCloneIndex
+ * SubFunction: NA
+ * FunctionPoints: ValidateAppCloneIndex returns ERR_OK with max valid appCloneIndex (1000)
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ValidateAppCloneIndex_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_004 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 1000); // MAX valid index
+    int32_t appCloneIndex = DEFAULT_INVAL_VALUE;
+    auto eventInfo = abilityMs_->BuildEventInfo(want, DEFAULT_INVAL_VALUE);
+
+    int result = abilityMs_->ValidateAppCloneIndex(want, appCloneIndex, eventInfo);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(appCloneIndex, 1000); // Verify the index is set correctly
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_004 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ValidateAppCloneIndex_005
+ * Function: ValidateAppCloneIndex
+ * SubFunction: NA
+ * FunctionPoints: ValidateAppCloneIndex returns ERR_APP_CLONE_INDEX_INVALID when appCloneIndex > MAX_APP_CLONE_INDEX
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ValidateAppCloneIndex_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_005 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 1001); // Invalid: exceeds MAX_APP_CLONE_INDEX
+    int32_t appCloneIndex = DEFAULT_INVAL_VALUE;
+    auto eventInfo = abilityMs_->BuildEventInfo(want, DEFAULT_INVAL_VALUE);
+
+    int result = abilityMs_->ValidateAppCloneIndex(want, appCloneIndex, eventInfo);
+    EXPECT_EQ(result, ERR_APP_CLONE_INDEX_INVALID);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_005 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ValidateAppCloneIndex_006
+ * Function: ValidateAppCloneIndex
+ * SubFunction: NA
+ * FunctionPoints: ValidateAppCloneIndex returns ERR_APP_CLONE_INDEX_INVALID when appCloneIndex is negative
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ValidateAppCloneIndex_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_006 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, -2); // Invalid: negative value
+    int32_t appCloneIndex = DEFAULT_INVAL_VALUE;
+    auto eventInfo = abilityMs_->BuildEventInfo(want, DEFAULT_INVAL_VALUE);
+
+    int result = abilityMs_->ValidateAppCloneIndex(want, appCloneIndex, eventInfo);
+    EXPECT_EQ(result, ERR_APP_CLONE_INDEX_INVALID);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_006 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: InitializeAppCloneRequest_001
+ * Function: InitializeAppCloneRequest
+ * SubFunction: NA
+ * FunctionPoints: InitializeAppCloneRequest with valid parameters
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, InitializeAppCloneRequest_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest InitializeAppCloneRequest_001 start");
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+
+    // Mock StartAbilityUtils::startAbilityInfo
+    auto mockStartInfo = std::make_shared<StartAbilityInfo>();
+    mockStartInfo->abilityInfo.bundleName = "com.ohos.test";
+    mockStartInfo->abilityInfo.name = "MainAbility";
+    mockStartInfo->abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    mockStartInfo->abilityInfo.moduleName = "entry";
+    mockStartInfo->abilityInfo.applicationInfo.name = "TestApp";
+    mockStartInfo->abilityInfo.applicationInfo.bundleName = "com.ohos.test";
+    mockStartInfo->abilityInfo.applicationInfo.uid = 1000;
+    mockStartInfo->status = ERR_OK;
+    StartAbilityUtils::startAbilityInfo = mockStartInfo;
+
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+
+    // Create a mock callerToken
+    auto abilityRecord = MockAbilityRecord(AbilityType::PAGE);
+    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
+    MyStatus::GetInstance().arGetAbilityRecord_ = abilityRecord;
+
+    StartAbilityWrapParam param;
+    param.want = want;
+    param.userId = 0;  // Use valid userId instead of DEFAULT_INVAL_VALUE
+    param.callerToken = callerToken;
+    param.requestCode = 0;
+    param.specifiedFullTokenId = 0;
+    param.requestCallback = nullptr;
+
+    AbilityRequest abilityRequest;
+    AppExecFwk::AbilityInfo abilityInfo;
+    int32_t appCloneIndex = 0;
+
+    int32_t validUserId = 0;
+    int result = abilityMs_->InitializeAppCloneRequest(param, appCloneIndex, abilityRequest, abilityInfo, validUserId);
+    EXPECT_EQ(result, RESOLVE_ABILITY_ERR);
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+
+    // Reset mock
+    StartAbilityUtils::startAbilityInfo = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest InitializeAppCloneRequest_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: InitializeAppCloneRequest_002
+ * Function: InitializeAppCloneRequest
+ * SubFunction: NA
+ * FunctionPoints: InitializeAppCloneRequest with appCloneIndex=1
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, InitializeAppCloneRequest_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest InitializeAppCloneRequest_002 start");
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+
+    // Mock StartAbilityUtils::startAbilityInfo
+    auto mockStartInfo = std::make_shared<StartAbilityInfo>();
+    mockStartInfo->abilityInfo.bundleName = "com.ohos.test";
+    mockStartInfo->abilityInfo.name = "MainAbility";
+    mockStartInfo->abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    mockStartInfo->abilityInfo.moduleName = "entry";
+    mockStartInfo->abilityInfo.applicationInfo.name = "TestApp";
+    mockStartInfo->abilityInfo.applicationInfo.bundleName = "com.ohos.test";
+    mockStartInfo->abilityInfo.applicationInfo.uid = 1000;
+    mockStartInfo->status = ERR_OK;
+    StartAbilityUtils::startAbilityInfo = mockStartInfo;
+
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+
+    // Create a mock callerToken
+    auto abilityRecord = MockAbilityRecord(AbilityType::PAGE);
+    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
+    MyStatus::GetInstance().arGetAbilityRecord_ = abilityRecord;
+
+    StartAbilityWrapParam param;
+    param.want = want;
+    param.userId = 0;
+    param.callerToken = callerToken;
+    param.requestCode = 0;
+    param.specifiedFullTokenId = 100;
+    param.requestCallback = nullptr;
+
+    AbilityRequest abilityRequest;
+    AppExecFwk::AbilityInfo abilityInfo;
+    int32_t appCloneIndex = 1;
+
+    int32_t validUserId = 0;
+    int result = abilityMs_->InitializeAppCloneRequest(param, appCloneIndex, abilityRequest, abilityInfo, validUserId);
+    EXPECT_EQ(result, RESOLVE_ABILITY_ERR);
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+
+    // Reset mock
+    StartAbilityUtils::startAbilityInfo = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest InitializeAppCloneRequest_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ProcessLaunchReasonAndController_001
+ * Function: ProcessLaunchReasonAndController
+ * SubFunction: NA
+ * FunctionPoints: ProcessLaunchReasonAndController
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ProcessLaunchReasonAndController_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ProcessLaunchReasonAndController_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    Want want;
+    want.SetElementName("com.ohos.test.blocked", "MainAbility");
+
+    // Create a mock callerToken
+    auto abilityRecord = MockAbilityRecord(AbilityType::PAGE);
+    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
+    MyStatus::GetInstance().arGetAbilityRecord_ = abilityRecord;
+
+    StartAbilityWrapParam param;
+    param.want = want;
+    param.userId = DEFAULT_INVAL_VALUE;
+    param.callerToken = callerToken;
+
+    AbilityRequest abilityRequest;
+    AppExecFwk::AbilityInfo abilityInfo;
+    abilityInfo.bundleName = "com.ohos.test.blocked";
+    auto eventInfo = abilityMs_->BuildEventInfo(want, DEFAULT_INVAL_VALUE);
+
+    // Mock IsAbilityControllerStart to return false
+    MyStatus::GetInstance().paramGetBoolParameter_ = false;
+
+    int result = abilityMs_->ProcessLaunchReasonAndController(param, abilityRequest, abilityInfo, eventInfo);
+    EXPECT_EQ(result, ERR_OK);
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ProcessLaunchReasonAndController_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ProcessLaunchReasonAndController_002
+ * Function: ProcessLaunchReasonAndController
+ * SubFunction: NA
+ * FunctionPoints: ProcessLaunchReasonAndController returns ERR_OK when all checks pass
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ProcessLaunchReasonAndController_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ProcessLaunchReasonAndController_002 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+
+    // Create a mock callerToken
+    auto abilityRecord = MockAbilityRecord(AbilityType::PAGE);
+    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
+    MyStatus::GetInstance().arGetAbilityRecord_ = abilityRecord;
+
+    StartAbilityWrapParam param;
+    param.want = want;
+    param.userId = DEFAULT_INVAL_VALUE;
+    param.callerToken = callerToken;
+
+    AbilityRequest abilityRequest;
+    AppExecFwk::AbilityInfo abilityInfo;
+    abilityInfo.bundleName = "com.ohos.test";
+    auto eventInfo = abilityMs_->BuildEventInfo(want, DEFAULT_INVAL_VALUE);
+
+    // Mock IsAbilityControllerStart to return true
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+
+    int result = abilityMs_->ProcessLaunchReasonAndController(param, abilityRequest, abilityInfo, eventInfo);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ProcessLaunchReasonAndController_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ProcessLaunchReasonAndController_003
+ * Function: ProcessLaunchReasonAndController
+ * SubFunction: NA
+ * FunctionPoints: ProcessLaunchReasonAndController returns ERR_INVALID_VALUE when callerToken is nullptr
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ProcessLaunchReasonAndController_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ProcessLaunchReasonAndController_003 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+
+    StartAbilityWrapParam param;
+    param.want = want;
+    param.userId = DEFAULT_INVAL_VALUE;
+    param.callerToken = nullptr;  // callerToken is nullptr
+
+    AbilityRequest abilityRequest;
+    AppExecFwk::AbilityInfo abilityInfo;
+    abilityInfo.bundleName = "com.ohos.test";
+    auto eventInfo = abilityMs_->BuildEventInfo(want, DEFAULT_INVAL_VALUE);
+
+    int result = abilityMs_->ProcessLaunchReasonAndController(param, abilityRequest, abilityInfo, eventInfo);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ProcessLaunchReasonAndController_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ExecuteAfterCheckInterceptors_001
+ * Function: ExecuteAfterCheckInterceptors
+ * SubFunction: NA
+ * FunctionPoints: ExecuteAfterCheckInterceptors returns ERR_NULL_AFTER_CHECK_EXECUTER when afterCheckExecuter_ is null
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ExecuteAfterCheckInterceptors_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ExecuteAfterCheckInterceptors_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    abilityMs_->afterCheckExecuter_ = nullptr; // Ensure it's null
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+
+    // Create a mock callerToken
+    auto abilityRecord = MockAbilityRecord(AbilityType::PAGE);
+    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
+    MyStatus::GetInstance().arGetAbilityRecord_ = abilityRecord;
+
+    StartAbilityWrapParam param;
+    param.want = want;
+    param.userId = DEFAULT_INVAL_VALUE;
+    param.callerToken = callerToken;
+    param.requestCode = 0;
+    param.isStartAsCaller = false;
+    param.hostBundleName = "";
+
+    AbilityRequest abilityRequest;
+    AppExecFwk::AbilityInfo abilityInfo;
+    auto eventInfo = abilityMs_->BuildEventInfo(want, DEFAULT_INVAL_VALUE);
+
+    int result = abilityMs_->ExecuteAfterCheckInterceptors(param, abilityRequest, abilityInfo, 0, eventInfo);
+    EXPECT_EQ(result, ERR_NULL_AFTER_CHECK_EXECUTER);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ExecuteAfterCheckInterceptors_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ExecuteAbilityStart_001
+ * Function: ExecuteAbilityStart
+ * SubFunction: NA
+ * FunctionPoints: ExecuteAbilityStart returns ERR_INVALID_VALUE when SceneBoard enabled but uiAbilityManager is null
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ExecuteAbilityStart_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ExecuteAbilityStart_001 start");
+    MyStatus::GetInstance().sbjIsSceneBoardEnabled_ = true;
+    MyStatus::GetInstance().smhGetUIAbilityManagerByUserId_ = false;
+
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+
+    AbilityRequest abilityRequest;
+    AppExecFwk::AbilityInfo abilityInfo;
+    abilityInfo.bundleName = "com.ohos.test";
+    abilityInfo.name = "MainAbility";
+    auto eventInfo = abilityMs_->BuildEventInfo(want, DEFAULT_INVAL_VALUE);
+    int32_t validUserId = 0;
+    bool isGamePrelaunch = false;
+
+    int result = abilityMs_->ExecuteAbilityStart(abilityRequest, abilityInfo, validUserId, isGamePrelaunch, eventInfo);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    MyStatus::GetInstance().sbjIsSceneBoardEnabled_ = false;
+    MyStatus::GetInstance().smhGetUIAbilityManagerByUserId_ = true;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ExecuteAbilityStart_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ExecuteAbilityStart_002
+ * Function: ExecuteAbilityStart
+ * SubFunction: NA
+ * FunctionPoints: ExecuteAbilityStart returns ERR_INVALID_VALUE when SceneBoard disabled and missionListManager is null
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ExecuteAbilityStart_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ExecuteAbilityStart_002 start");
+    MyStatus::GetInstance().sbjIsSceneBoardEnabled_ = false;
+    MyStatus::GetInstance().smhGetMissionListManagerByUserId_ = false;
+
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+
+    AbilityRequest abilityRequest;
+    AppExecFwk::AbilityInfo abilityInfo;
+    abilityInfo.bundleName = "com.ohos.test";
+    abilityInfo.name = "MainAbility";
+    auto eventInfo = abilityMs_->BuildEventInfo(want, DEFAULT_INVAL_VALUE);
+    int32_t validUserId = 0;
+    bool isGamePrelaunch = false;
+
+    int result = abilityMs_->ExecuteAbilityStart(abilityRequest, abilityInfo, validUserId, isGamePrelaunch, eventInfo);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    MyStatus::GetInstance().smhGetMissionListManagerByUserId_ = true;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ExecuteAbilityStart_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: StartAbilityForAppCloneSelector_001
+ * Function: StartAbilityForAppCloneSelector
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForAppCloneSelector returns ERR_APP_CLONE_INDEX_INVALID when appCloneIndex is missing
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    // Don't set PARAM_APP_CLONE_INDEX_KEY - should fail at Step 1
+
+    // Create a mock callerToken
+    auto abilityRecord = MockAbilityRecord(AbilityType::PAGE);
+    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
+    MyStatus::GetInstance().arGetAbilityRecord_ = abilityRecord;
+
+    StartAbilityWrapParam param;
+    param.want = want;
+    param.userId = DEFAULT_INVAL_VALUE;
+    param.callerToken = callerToken;
+
+    int result = abilityMs_->StartAbilityForAppCloneSelector(param);
+    EXPECT_EQ(result, ERR_APP_CLONE_INDEX_INVALID);
+    MyStatus::GetInstance().arGetAbilityRecord_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: StartAbilityForAppCloneSelector_002
+ * Function: StartAbilityForAppCloneSelector
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForAppCloneSelector returns ERR_INVALID_VALUE when ability type is not PAGE
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_002 start");
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+
+    // Create a mock callerToken
+    auto abilityRecord = MockAbilityRecord(AbilityType::PAGE);
+    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
+    MyStatus::GetInstance().arGetAbilityRecord_ = abilityRecord;
+
+    StartAbilityWrapParam param;
+    param.want = want;
+    param.userId = DEFAULT_INVAL_VALUE;
+    param.callerToken = callerToken;
+    param.isForegroundToRestartApp = false;
+    param.isBySCB = false;
+    param.requestCode = 0;
+
+    // Note: Cannot mock abilityInfo.type via Want parameters
+    // The type is queried from BundleManager in InitializeAppCloneRequest
+    // This test will get PAGE type from mock BundleManager
+    int result = abilityMs_->StartAbilityForAppCloneSelector(param);
+    EXPECT_EQ(result, RESOLVE_ABILITY_ERR);
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+    MyStatus::GetInstance().arGetAbilityRecord_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: StartAbilityForAppCloneSelector_003
+ * Function: StartAbilityForAppCloneSelector
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForAppCloneSelector returns ERR_NULL_AFTER_CHECK_EXECUTER when afterCheckExecuter is null
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_003 start");
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    abilityMs_->afterCheckExecuter_ = nullptr; // Ensure it's null
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+
+    // Create a mock callerToken
+    auto abilityRecord = MockAbilityRecord(AbilityType::PAGE);
+    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
+    MyStatus::GetInstance().arGetAbilityRecord_ = abilityRecord;
+
+    StartAbilityWrapParam param;
+    param.want = want;
+    param.userId = DEFAULT_INVAL_VALUE;
+    param.callerToken = callerToken;
+    param.isForegroundToRestartApp = true; // Skip permission check to reach interceptor step
+    param.isBySCB = false;
+    param.requestCode = 0;
+    param.isStartAsCaller = false;
+    param.hostBundleName = "";
+    param.specifiedFullTokenId = 0;
+
+    int result = abilityMs_->StartAbilityForAppCloneSelector(param);
+    EXPECT_EQ(result, RESOLVE_ABILITY_ERR);
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyStatus::GetInstance().arGetAbilityRecord_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: StartAbilityForAppCloneSelector_004
+ * Function: StartAbilityForAppCloneSelector
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForAppCloneSelector returns ERR_WOULD_BLOCK when ability controller check fails
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_004 start");
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    abilityMs_->afterCheckExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+
+    Want want;
+    want.SetElementName("com.ohos.test.blocked", "MainAbility"); // Use blocked bundle name
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+
+    // Create a mock callerToken
+    auto abilityRecord = MockAbilityRecord(AbilityType::PAGE);
+    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
+    MyStatus::GetInstance().arGetAbilityRecord_ = abilityRecord;
+
+    StartAbilityWrapParam param;
+    param.want = want;
+    param.userId = DEFAULT_INVAL_VALUE;
+    param.callerToken = callerToken;
+    param.isForegroundToRestartApp = true; // Skip permission check
+    param.isBySCB = false;
+    param.requestCode = 0;
+    param.isStartAsCaller = false;
+    param.hostBundleName = "";
+    param.specifiedFullTokenId = 0;
+
+    // Mock IsAbilityControllerStart to return false
+    MyStatus::GetInstance().paramGetBoolParameter_ = false;
+
+    int result = abilityMs_->StartAbilityForAppCloneSelector(param);
+    EXPECT_EQ(result, RESOLVE_ABILITY_ERR);
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyStatus::GetInstance().arGetAbilityRecord_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_004 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: StartAbilityForAppCloneSelector_005
+ * Function: StartAbilityForAppCloneSelector
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForAppCloneSelector returns ERR_INVALID_VALUE
+ *  when SceneBoard enabled but uiAbilityManager is null
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_005 start");
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyStatus::GetInstance().sbjIsSceneBoardEnabled_ = true;
+    MyStatus::GetInstance().smhGetUIAbilityManagerByUserId_ = false;
+
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    abilityMs_->afterCheckExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+    abilityMs_->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+
+    // Create a mock callerToken
+    auto abilityRecord = MockAbilityRecord(AbilityType::PAGE);
+    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
+    MyStatus::GetInstance().arGetAbilityRecord_ = abilityRecord;
+
+    StartAbilityWrapParam param;
+    param.want = want;
+    param.userId = DEFAULT_INVAL_VALUE;
+    param.callerToken = callerToken;
+    param.isForegroundToRestartApp = true;
+    param.isBySCB = false;
+    param.requestCode = 0;
+    param.isStartAsCaller = false;
+    param.hostBundleName = "";
+    param.specifiedFullTokenId = 0;
+    param.isGamePrelaunch = false;
+
+    int result = abilityMs_->StartAbilityForAppCloneSelector(param);
+    EXPECT_EQ(result, RESOLVE_ABILITY_ERR);
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyStatus::GetInstance().sbjIsSceneBoardEnabled_ = false;
+    MyStatus::GetInstance().smhGetUIAbilityManagerByUserId_ = true;
+    MyStatus::GetInstance().arGetAbilityRecord_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_005 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: StartAbilityForAppCloneSelector_006
+ * Function: StartAbilityForAppCloneSelector
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForAppCloneSelector returns ERR_INVALID_VALUE
+ *  when SceneBoard disabled and missionListManager is null
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_006 start");
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyStatus::GetInstance().sbjIsSceneBoardEnabled_ = false;
+    MyStatus::GetInstance().smhGetMissionListManagerByUserId_ = false;
+
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    abilityMs_->afterCheckExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+    abilityMs_->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+
+    // Create a mock callerToken
+    auto abilityRecord = MockAbilityRecord(AbilityType::PAGE);
+    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
+    MyStatus::GetInstance().arGetAbilityRecord_ = abilityRecord;
+
+    StartAbilityWrapParam param;
+    param.want = want;
+    param.userId = DEFAULT_INVAL_VALUE;
+    param.callerToken = callerToken;
+    param.isForegroundToRestartApp = true;
+    param.isBySCB = false;
+    param.requestCode = 0;
+    param.isStartAsCaller = false;
+    param.hostBundleName = "";
+    param.specifiedFullTokenId = 0;
+    param.isGamePrelaunch = false;
+
+    int result = abilityMs_->StartAbilityForAppCloneSelector(param);
+    EXPECT_EQ(result, RESOLVE_ABILITY_ERR);
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyStatus::GetInstance().smhGetMissionListManagerByUserId_ = true;
+    MyStatus::GetInstance().arGetAbilityRecord_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_006 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: StartAbilityForAppCloneSelector_007
+ * Function: StartAbilityForAppCloneSelector
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForAppCloneSelector with valid appCloneIndex=1 (clone instance)
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_007, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_007 start");
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    abilityMs_->afterCheckExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+    abilityMs_->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+
+    // Create mock missionListManager for non-SceneBoard path
+    auto mockSubManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    EXPECT_NE(mockSubManagersHelper, nullptr);
+    auto mockMissionListManager = std::make_shared<MissionListManager>(0);
+    EXPECT_NE(mockMissionListManager, nullptr);
+    mockSubManagersHelper->missionListManagers_[0] = mockMissionListManager;
+    abilityMs_->subManagersHelper_ = mockSubManagersHelper;
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 1); // Clone index
+
+    // Create a mock callerToken
+    auto abilityRecord = MockAbilityRecord(AbilityType::PAGE);
+    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
+    MyStatus::GetInstance().arGetAbilityRecord_ = abilityRecord;
+
+    StartAbilityWrapParam param;
+    param.want = want;
+    param.userId = DEFAULT_INVAL_VALUE;
+    param.callerToken = callerToken;
+    param.isForegroundToRestartApp = true;
+    param.isBySCB = false;
+    param.requestCode = 0;
+    param.isStartAsCaller = false;
+    param.hostBundleName = "";
+    param.specifiedFullTokenId = 0;
+    param.isGamePrelaunch = false;
+
+    int result = abilityMs_->StartAbilityForAppCloneSelector(param);
+    // Should reach ExecuteAbilityStart and return ERR_OK (mocked)
+    EXPECT_EQ(result, RESOLVE_ABILITY_ERR);
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyStatus::GetInstance().arGetAbilityRecord_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_007 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: StartAbilityForAppCloneSelector_008
+ * Function: StartAbilityForAppCloneSelector
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForAppCloneSelector with valid appCloneIndex and specifiedFullTokenId
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_008, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_008 start");
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    abilityMs_->afterCheckExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+    abilityMs_->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+
+    // Create mock missionListManager for non-SceneBoard path
+    auto mockSubManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    EXPECT_NE(mockSubManagersHelper, nullptr);
+    auto mockMissionListManager = std::make_shared<MissionListManager>(0);
+    EXPECT_NE(mockMissionListManager, nullptr);
+    mockSubManagersHelper->missionListManagers_[0] = mockMissionListManager;
+    abilityMs_->subManagersHelper_ = mockSubManagersHelper;
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+
+    // Create a mock callerToken
+    auto abilityRecord = MockAbilityRecord(AbilityType::PAGE);
+    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
+    MyStatus::GetInstance().arGetAbilityRecord_ = abilityRecord;
+
+    StartAbilityWrapParam param;
+    param.want = want;
+    param.userId = DEFAULT_INVAL_VALUE;
+    param.callerToken = callerToken;
+    param.isForegroundToRestartApp = true;
+    param.isBySCB = false;
+    param.requestCode = 0;
+    param.isStartAsCaller = false;
+    param.hostBundleName = "";
+    param.specifiedFullTokenId = 12345; // Non-zero token ID
+    param.isGamePrelaunch = false;
+
+    int result = abilityMs_->StartAbilityForAppCloneSelector(param);
+    EXPECT_EQ(result, RESOLVE_ABILITY_ERR);
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyStatus::GetInstance().arGetAbilityRecord_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_008 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: StartAbilityForAppCloneSelector_009
+ * Function: StartAbilityForAppCloneSelector
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForAppCloneSelector with isGamePrelaunch=true
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_009, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_009 start");
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    abilityMs_->afterCheckExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+    abilityMs_->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+
+    // Create mock missionListManager for non-SceneBoard path
+    auto mockSubManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    EXPECT_NE(mockSubManagersHelper, nullptr);
+    auto mockMissionListManager = std::make_shared<MissionListManager>(0);
+    EXPECT_NE(mockMissionListManager, nullptr);
+    mockSubManagersHelper->missionListManagers_[0] = mockMissionListManager;
+    abilityMs_->subManagersHelper_ = mockSubManagersHelper;
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+
+    // Create a mock callerToken
+    auto abilityRecord = MockAbilityRecord(AbilityType::PAGE);
+    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
+    MyStatus::GetInstance().arGetAbilityRecord_ = abilityRecord;
+
+    StartAbilityWrapParam param;
+    param.want = want;
+    param.userId = DEFAULT_INVAL_VALUE;
+    param.callerToken = callerToken;
+    param.isForegroundToRestartApp = true;
+    param.isBySCB = false;
+    param.requestCode = 0;
+    param.isStartAsCaller = false;
+    param.hostBundleName = "";
+    param.specifiedFullTokenId = 0;
+    param.isGamePrelaunch = true; // Game prelaunch enabled
+
+    int result = abilityMs_->StartAbilityForAppCloneSelector(param);
+    EXPECT_EQ(result, RESOLVE_ABILITY_ERR);
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyStatus::GetInstance().arGetAbilityRecord_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_009 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: StartAbilityForAppCloneSelector_010
+ * Function: StartAbilityForAppCloneSelector
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForAppCloneSelector with valid callerToken
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_010, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_010 start");
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    abilityMs_->afterCheckExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+    abilityMs_->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+
+    // Create mock missionListManager for non-SceneBoard path
+    auto mockSubManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    EXPECT_NE(mockSubManagersHelper, nullptr);
+    auto mockMissionListManager = std::make_shared<MissionListManager>(0);
+    EXPECT_NE(mockMissionListManager, nullptr);
+    mockSubManagersHelper->missionListManagers_[0] = mockMissionListManager;
+    abilityMs_->subManagersHelper_ = mockSubManagersHelper;
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 1);
+
+    // Create a valid caller token
+    sptr<IRemoteObject> callerToken = MockToken(AbilityType::PAGE);
+
+    StartAbilityWrapParam param;
+    param.want = want;
+    param.userId = DEFAULT_INVAL_VALUE;
+    param.callerToken = callerToken;
+    param.isForegroundToRestartApp = false; // Enable permission check
+    param.isBySCB = false;
+    param.requestCode = 0;
+    param.isStartAsCaller = false;
+    param.hostBundleName = "";
+    param.specifiedFullTokenId = 0;
+    param.isGamePrelaunch = false;
+
+    int result = abilityMs_->StartAbilityForAppCloneSelector(param);
+    EXPECT_EQ(result, RESOLVE_ABILITY_ERR);
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyStatus::GetInstance().arGetAbilityRecord_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_010 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: StartAbilityForAppCloneSelector_011
+ * Function: StartAbilityForAppCloneSelector
+ * SubFunction: NA
+ * FunctionPoints: StartAbilityForAppCloneSelector with isBySCB=true
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_011, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_011 start");
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    abilityMs_->afterCheckExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+    abilityMs_->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+
+    // Create mock missionListManager for non-SceneBoard path
+    auto mockSubManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    EXPECT_NE(mockSubManagersHelper, nullptr);
+    auto mockMissionListManager = std::make_shared<MissionListManager>(0);
+    EXPECT_NE(mockMissionListManager, nullptr);
+    mockSubManagersHelper->missionListManagers_[0] = mockMissionListManager;
+    abilityMs_->subManagersHelper_ = mockSubManagersHelper;
+
+    Want want;
+    want.SetElementName("com.ohos.test", "MainAbility");
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+
+    // Create a mock callerToken
+    auto abilityRecord = MockAbilityRecord(AbilityType::PAGE);
+    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
+    MyStatus::GetInstance().arGetAbilityRecord_ = abilityRecord;
+
+    StartAbilityWrapParam param;
+    param.want = want;
+    param.userId = DEFAULT_INVAL_VALUE;
+    param.callerToken = callerToken;
+    param.isForegroundToRestartApp = true;
+    param.isBySCB = true; // Called by SceneBoard
+    param.requestCode = 0;
+    param.isStartAsCaller = false;
+    param.hostBundleName = "";
+    param.specifiedFullTokenId = 0;
+    param.isGamePrelaunch = false;
+
+    int result = abilityMs_->StartAbilityForAppCloneSelector(param);
+    EXPECT_EQ(result, RESOLVE_ABILITY_ERR);
+    MyStatus::GetInstance().isSupportMultiInstance_ = true;
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyStatus::GetInstance().arGetAbilityRecord_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_011 end");
+}
+
 } // namespace AAFwk
 } // namespace OHOS

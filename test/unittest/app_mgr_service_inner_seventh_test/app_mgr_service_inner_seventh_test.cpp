@@ -36,6 +36,8 @@ using namespace OHOS::Rosen;
 using OHOS::AppExecFwk::ExtensionAbilityType;
 constexpr int32_t FOUNDATION_UID = 5523;
 constexpr int32_t SHADER_CACHE_GROUPID = 3099;
+constexpr int32_t DEFAULT_INVAL_VALUE = -1;
+constexpr int32_t BASE_USER_RANGE = 200000;
 namespace OHOS {
 namespace AppExecFwk {
 class AppMgrServiceInnerSeventhTest : public testing::Test {
@@ -145,6 +147,26 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetBundleAndHapInfo_002, TestSize.Level1
     bool ret = appMgrServiceInner->GetBundleAndHapInfo(abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex);
     EXPECT_EQ(ret, true);
     TAG_LOGI(AAFwkTag::TEST, "GetBundleAndHapInfo_002 end");
+}
+
+/**
+ * @tc.name: GetBundleAndHapInfo_003
+ * @tc.desc: test GetBundleAndHapInfo when appInfo is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, GetBundleAndHapInfo_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetBundleAndHapInfo_003 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    AbilityInfo abilityInfo;
+    std::shared_ptr<ApplicationInfo> appInfo = nullptr;
+    BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    int32_t appIndex = 0;
+    bool ret = appMgrServiceInner->GetBundleAndHapInfo(abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex);
+    EXPECT_EQ(ret, false);
+    TAG_LOGI(AAFwkTag::TEST, "GetBundleAndHapInfo_003 end");
 }
 
 /**
@@ -947,6 +969,50 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, DumpJsHeapMemory_002, TestSize.Level1)
     int32_t ret = appMgrServiceInner->DumpJsHeapMemory(info);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "DumpJsHeapMemory_002 end");
+}
+
+/**
+* @tc.name: DumpJsHandleMap_001
+* @tc.desc: test DumpJsHandleMap_001
+* @tc.type: FUNC
+*/
+HWTEST_F(AppMgrServiceInnerSeventhTest, DumpJsHandleMap_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DumpJsHandleMap_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().isSACall_ = true;
+    appMgrServiceInner->appRunningManager_ = nullptr;
+
+    OHOS::AppExecFwk::JsHandleMapInfo info;
+    info.pid = 0;
+    int32_t ret = appMgrServiceInner->DumpJsHandleMap(info);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    info.pid = 1;
+    ret = appMgrServiceInner->DumpJsHandleMap(info);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "DumpJsHandleMap_001 end");
+}
+
+/**
+* @tc.name: DumpJsHandleMap_002
+* @tc.desc: test DumpJsHandleMap when caller is not SA
+* @tc.type: FUNC
+*/
+HWTEST_F(AppMgrServiceInnerSeventhTest, DumpJsHandleMap_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DumpJsHandleMap_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    bool originalIsSACall = AAFwk::MyStatus::GetInstance().isSACall_;
+    AAFwk::MyStatus::GetInstance().isSACall_ = false;
+
+    OHOS::AppExecFwk::JsHandleMapInfo info;
+    info.pid = 1;
+    int32_t ret = appMgrServiceInner->DumpJsHandleMap(info);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    AAFwk::MyStatus::GetInstance().isSACall_ = originalIsSACall;
+    TAG_LOGI(AAFwkTag::TEST, "DumpJsHandleMap_002 end");
 }
 
 /**
@@ -3146,6 +3212,81 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, GetBackgroundAppInfo_012, TestSize.Level
     auto res = appMgrServiceInner->GetBackgroundAppInfo({});
     EXPECT_EQ(res.size(), 0);
     TAG_LOGI(AAFwkTag::TEST, "GetBackgroundAppInfo_012 end");
+}
+
+/**
+ * @tc.name: CheckAppProvisionType_0100
+ * @tc.desc: test CheckAppProvisionType
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, CheckAppProvisionType_0100, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = nullptr;
+
+    std::string bundleName = "testBundleName";
+    int32_t callerUid = 0;
+    int32_t appCloneIndex = 0;
+    int32_t userId = DEFAULT_INVAL_VALUE;
+    auto ret = appMgrServiceInner->CheckAppProvisionType(bundleName, callerUid, appCloneIndex, userId);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+
+    callerUid = BASE_USER_RANGE;
+    ret = appMgrServiceInner->CheckAppProvisionType(bundleName, callerUid, appCloneIndex, userId);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+
+    userId = 100;
+    ret = appMgrServiceInner->CheckAppProvisionType(bundleName, callerUid, appCloneIndex, userId);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+
+    callerUid = 100;
+    ret = appMgrServiceInner->CheckAppProvisionType(bundleName, callerUid, appCloneIndex, userId);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+}
+
+/**
+ * @tc.name: CheckAppProvisionType_0200
+ * @tc.desc: test CheckAppProvisionType
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, CheckAppProvisionType_0200, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+
+    const std::string bundleName = "";
+    int32_t callerUid = BASE_USER_RANGE;
+    int32_t appCloneIndex = 1;
+    int32_t userId = DEFAULT_INVAL_VALUE;
+    auto ret = appMgrServiceInner->CheckAppProvisionType(bundleName, callerUid, appCloneIndex, userId);
+    EXPECT_EQ(ret, AAFwk::ERR_APP_CLONE_INDEX_INVALID);
+}
+
+/**
+ * @tc.name: CheckAppProvisionType_0300
+ * @tc.desc: test CheckAppProvisionType
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, CheckAppProvisionType_0300, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    AAFwk::MyStatus::GetInstance().getApplicationInfoWithAppIndexRet_ = true;
+    AAFwk::MyStatus::GetInstance().applicationInfo_ = {};
+
+    const std::string bundleName = "";
+    int32_t callerUid = BASE_USER_RANGE;
+    int32_t appCloneIndex = 1;
+    int32_t userId = DEFAULT_INVAL_VALUE;
+    auto ret = appMgrServiceInner->CheckAppProvisionType(bundleName, callerUid, appCloneIndex, userId);
+    EXPECT_EQ(ret, AAFwk::CHECK_PERMISSION_FAILED);
+
+    AAFwk::MyStatus::GetInstance().applicationInfo_.appProvisionType = "debug";
+    ret = appMgrServiceInner->CheckAppProvisionType(bundleName, callerUid, appCloneIndex, userId);
+    EXPECT_EQ(ret, ERR_OK);
 }
 } // namespace AppExecFwk
 } // namespace OHOS

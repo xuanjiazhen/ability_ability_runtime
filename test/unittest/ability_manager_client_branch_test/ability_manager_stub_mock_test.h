@@ -19,6 +19,7 @@
 #include <iremote_object.h>
 #include <iremote_stub.h>
 #include "ability_manager_interface.h"
+#include "sandbox_clone_params.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -462,6 +463,9 @@ public:
         const InsightIntentExecuteResult &result));
     MOCK_METHOD5(StartAbilityWithSpecifyTokenId, int(const Want& want, const sptr<IRemoteObject>& callerToken,
         uint32_t specifyTokenId, int32_t userId, int requestCode));
+    MOCK_METHOD1(StartSelf, int(sptr<IRemoteObject> token));
+    MOCK_METHOD3(StartSelfUIAbilityInChildProcess, ErrCode(const Want &, const std::string &, sptr<IRemoteObject>));
+    MOCK_METHOD2(StartSandboxCloneAbility, int32_t(const Want&, const SandboxCloneParams&));
 };
 }  // namespace AAFwk
 }  // namespace OHOS

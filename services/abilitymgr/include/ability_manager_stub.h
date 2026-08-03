@@ -74,6 +74,12 @@ public:
 
     virtual void CancelWantSenderByFlags(const sptr<IWantSender> &sender, uint32_t flags);
 
+protected:
+    // Strip InsightIntent and Skill params from Want at IPC boundary.
+    // Use for ALL Want reads EXCEPT legal InsightIntent execution channels
+    // (ExecuteIntentForDistributedInner, StartAbilityByInsightIntentInner).
+    void SanitizeWantParams(Want &want);
+
 private:
     int TerminateAbilityInner(MessageParcel &data, MessageParcel &reply);
     int BackToCallerInner(MessageParcel &data, MessageParcel &reply);
@@ -310,6 +316,7 @@ private:
     int32_t DetachAppDebugInner(MessageParcel &data, MessageParcel &reply);
     int32_t ExecuteIntentInner(MessageParcel &data, MessageParcel &reply);
     int32_t ExecuteIntentForDistributedInner(MessageParcel &data, MessageParcel &reply);
+    int32_t ExecuteIntentByFunctionCallInner(MessageParcel &data, MessageParcel &reply);
 
     int32_t QueryEntityInner(MessageParcel &data, MessageParcel &reply);
 
@@ -370,6 +377,7 @@ private:
     int32_t StartUIAbilityWithCallbackInner(MessageParcel &data, MessageParcel &reply);
     int32_t RestartSelfAtomicServiceInner(MessageParcel &data, MessageParcel &reply);
     int32_t RegisterSAInterceptorInner(MessageParcel &data, MessageParcel &reply);
+    int32_t UnregisterSAInterceptorInner(MessageParcel &data, MessageParcel &reply);
     int32_t SuspendExtensionAbilityInner(MessageParcel &data, MessageParcel &reply);
     int32_t ResumeExtensionAbilityInner(MessageParcel &data, MessageParcel &reply);
     int32_t SetOnNewWantSkipScenariosInner(MessageParcel &data, MessageParcel &reply);
@@ -442,14 +450,17 @@ private:
     int32_t ExitKioskModeInner(MessageParcel &data, MessageParcel &reply);
     int32_t GetKioskStatusInner(MessageParcel &data, MessageParcel &reply);
     int32_t StartSelfUIAbilityInCurrentProcessInner(MessageParcel &data, MessageParcel &reply);
+    int32_t StartSelfUIAbilityInChildProcessInner(MessageParcel &data, MessageParcel &reply);
     int32_t IsRestartAppLimitInner(MessageParcel &data, MessageParcel &reply);
     int32_t QuerySelfModularObjectExtensionInfosInner(MessageParcel &data, MessageParcel &reply);
     int32_t GetUserLockedBundleListInner(MessageParcel &data, MessageParcel &reply);
     int32_t ExecuteInAppSkillInner(MessageParcel &data, MessageParcel &reply);
     int32_t ExecuteInAppSkillWithTokenIdInner(MessageParcel &data, MessageParcel &reply);
     int32_t ExecuteSkillDoneWithTokenInner(MessageParcel &data, MessageParcel &reply);
+    int32_t NotifySkillFunctionInvokedInner(MessageParcel &data, MessageParcel &reply);
     int32_t QuerySkillTypeInner(MessageParcel &data, MessageParcel &reply);
     int32_t StartSelfUIAbilityByAppContextInner(MessageParcel &data, MessageParcel &reply);
+    int32_t StartSandboxCloneAbilityInner(MessageParcel &data, MessageParcel &reply);
 };
 }  // namespace AAFwk
 }  // namespace OHOS
