@@ -63,6 +63,7 @@ bool ApplicationImpl::PerformAppReady()
         curState_ = APP_STATE_READY;
         // checkpoint 1: sample startup-critical native modules (memory only, no disk I/O)
         if (NativeModuleCollector::IsEnabled()) {
+            TAG_LOGD(AAFwkTag::APPKIT, "checkpoint1 appReady: sampling");
             NativeModuleCollector::AccumulateModules(NativeModuleSampler::Sample(), 0);
         }
         return true;

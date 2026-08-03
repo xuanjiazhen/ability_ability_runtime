@@ -1959,7 +1959,9 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         }
         // bridge the preload (pre-fork) module snapshot to the collector, so
         // sampling can exclude modules not explicitly imported by the app
-        NativeModuleCollector::SetPreloadModuleKeys(AbilityRuntime::Runtime::GetPreloadModuleKeys());
+        auto preloadKeys = AbilityRuntime::Runtime::GetPreloadModuleKeys();
+        NativeModuleCollector::SetPreloadModuleKeys(preloadKeys);
+        TAG_LOGD(AAFwkTag::APPKIT, "preload module keys bridged: %{public}zu", preloadKeys.size());
         runtimeUpdateParam_.option = options;
         if (appInfo.debug && appLaunchData.GetDebugApp()) {
             wptr<MainThread> weak = this;
@@ -3082,6 +3084,7 @@ void MainThread::TriggerNativeModuleCollect(bool immediate)
         return;
     }
     nativeModuleCollectScheduled_ = true;
+    TAG_LOGI(AAFwkTag::APPKIT, "checkpoint2 scheduled, immediate=%{public}d", immediate ? 1 : 0);
     if (immediate) {
         RunNativeModuleCollect();
         return;
@@ -3126,7 +3129,8 @@ void MainThread::RunNativeModuleCollect()
         TAG_LOGW(AAFwkTag::APPKIT, "collect meta incomplete, skip");
         return;
     }
-    NativeModuleCollector::SaveNow(cacheDir, bundleName, processName, versionCode, "unknown");
+    bool saved = NativeModuleCollector::SaveNow(cacheDir, bundleName, processName, versionCode, "unknown");
+    TAG_LOGI(AAFwkTag::APPKIT, "checkpoint2 save result=%{public}d", saved ? 1 : 0);
 }
 
 void MainThread::HandleForegroundApplication()
@@ -4679,6 +4683,8 @@ void MainThread::RunNativeStartupTask(const BundleInfo &bundleInfo, const AppLau
             auto predictTask = std::make_shared<AbilityRuntime::PredictPreloadSoStartupTask>(
                 PREDICT_PRELOAD_SO_STARTUP, NativeModuleCollector::GetStorePath(cacheDir, processName));
             nativeStartupTask.emplace(predictTask->GetName(), predictTask);
+            TAG_LOGI(AAFwkTag::APPKIT, "predict preload task registered: %{public}s",
+                NativeModuleCollector::GetStorePath(cacheDir, processName).c_str());
         } else {
             TAG_LOGW(AAFwkTag::APPKIT, "predict preload meta incomplete, skip task registration");
         }

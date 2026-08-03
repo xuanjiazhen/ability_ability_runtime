@@ -15,6 +15,7 @@
 
 #include "native_module_sampler.h"
 
+#include "hilog_tag_wrapper.h"
 #include "native_module_manager.h"
 
 namespace OHOS {
@@ -28,6 +29,7 @@ std::vector<CollectedModule> NativeModuleSampler::Sample()
     }
     std::vector<NativeModuleInfo> infos;
     moduleManager->GetLoadedModuleInfos(infos);
+    TAG_LOGD(AAFwkTag::APPKIT, "sample: loaded=%{public}zu", infos.size());
     modules.reserve(infos.size());
     for (const auto& info : infos) {
         std::string key = !info.moduleName.empty() ? info.moduleName : info.name;

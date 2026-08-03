@@ -121,6 +121,12 @@ void EnsureParamsLoaded()
     g_paramCache.enabled = OHOS::system::GetBoolParameter(PARAM_ENABLE, false);
     g_paramCache.params = LoadParamsFromSystem();
     g_paramCache.loaded = true;
+    TAG_LOGI(AAFwkTag::APPKIT,
+        "params loaded: enable=%{public}d, alpha=%{public}.3f, threshold=%{public}.3f, "
+        "evictScore=%{public}.3f, evictRounds=%{public}u, cp2DelayMs=%{public}u, reportHitRate=%{public}d",
+        g_paramCache.enabled, g_paramCache.params.alpha, g_paramCache.params.predictThreshold,
+        g_paramCache.params.evictScore, g_paramCache.params.evictRounds,
+        g_paramCache.params.checkpoint2DelayMs, g_paramCache.params.reportHitRate);
 }
 
 struct CollectorState {
@@ -296,20 +302,33 @@ bool NativeModuleCollector::WriteFileWithPermission(const std::string& path, con
 void NativeModuleCollector::AccumulateModules(const std::vector<CollectedModule>& modules, uint8_t firstStage)
 {
     std::lock_guard<std::mutex> lock(g_state.mutex);
+    size_t added = 0;
+    size_t refreshed = 0;
+    size_t filtered = 0;
     for (const auto& module : modules) {
-        if (module.moduleName.empty() || g_state.preloadKeys.count(module.moduleName) != 0) {
+        if (module.moduleName.empty()) {
+            continue;
+        }
+        if (g_state.preloadKeys.count(module.moduleName) != 0) {
+            filtered++;
             continue;
         }
         auto [it, inserted] = g_state.sampled.emplace(module.moduleName, module);
         if (inserted) {
             it->second.firstStage = firstStage;
+            added++;
         } else {
             // duplicate sighting: refresh identity fields, keep the first-sighting stage
             it->second.fileName = module.fileName;
             it->second.isAppModule = module.isAppModule;
             it->second.loadCount = module.loadCount;
+            refreshed++;
         }
     }
+    TAG_LOGD(AAFwkTag::APPKIT,
+        "accumulate stage=%{public}d in=%{public}zu added=%{public}zu refreshed=%{public}zu "
+        "filteredPreload=%{public}zu total=%{public}zu",
+        firstStage, modules.size(), added, refreshed, filtered, g_state.sampled.size());
 }
 
 bool NativeModuleCollector::SaveNow(const std::string& cacheDir, const std::string& bundleName,
@@ -335,6 +354,9 @@ bool NativeModuleCollector::SaveNow(const std::string& cacheDir, const std::stri
         asyncSave = g_state.asyncSave;
     }
     std::string storePath = GetStorePath(cacheDir, processName);
+    TAG_LOGI(AAFwkTag::APPKIT,
+        "save: sampled=%{public}zu consumerPreloads=%{public}zu async=%{public}d path=%{public}s",
+        round.size(), consumerPreloads.size(), asyncSave ? 1 : 0, storePath.c_str());
     if (asyncSave) {
         std::thread([storePath, bundleName, processName, appVersionCode, scenario, round,
             consumerPreloads]() {
@@ -642,6 +664,7 @@ bool NativeModuleCollector::MergeAndSave(const std::string& storePath, const std
     meta.launchIndex++;
 
     MergeRound(round, stats, meta.launchIndex, coldStart, consumerPreloads);
+    size_t beforeEvict = stats.size();
     EvictStats(stats, meta.launchIndex);
 
     size_t slashPos = storePath.find_last_of('/');
@@ -655,6 +678,11 @@ bool NativeModuleCollector::MergeAndSave(const std::string& storePath, const std
         return false;
     }
     bool written = WriteAtomic(storePath, SerializeStats(meta, stats));
+    TAG_LOGI(AAFwkTag::APPKIT,
+        "merge: launchIndex=%{public}u coldStart=%{public}d round=%{public}zu stats=%{public}zu "
+        "(preEvict=%{public}zu) predicted=%{public}zu written=%{public}d",
+        meta.launchIndex, coldStart ? 1 : 0, round.size(), stats.size(), beforeEvict,
+        ComputePredicted(stats).size(), written ? 1 : 0);
     if (written && hasHistory && GetParams().reportHitRate) {
         HitRateMetrics metrics = ComputeHitRateMetrics(predictedPrev, round);
         TAG_LOGI(AAFwkTag::APPKIT,
@@ -712,6 +740,7 @@ std::vector<std::string> NativeModuleCollector::LoadPredictedSystemModules(const
             result.push_back(name);
         }
     }
+    TAG_LOGD(AAFwkTag::APPKIT, "predicted system modules: %{public}zu", result.size());
     return result;
 }
 

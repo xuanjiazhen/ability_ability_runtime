@@ -54,6 +54,7 @@ int32_t PredictPreloadSoStartupTask::RunTaskInit(std::unique_ptr<StartupTaskResu
         OnCompletedCallback::OnCallback(std::move(callback), ERR_OK);
         return ERR_OK;
     }
+    TAG_LOGI(AAFwkTag::STARTUP, "predict preload begin, count=%{public}zu", modules.size());
 
     NativeModuleManager* moduleManager = NativeModuleManager::GetInstance();
     if (moduleManager == nullptr) {
@@ -87,6 +88,7 @@ int32_t PredictPreloadSoStartupTask::RunTaskInit(std::unique_ptr<StartupTaskResu
         // let the collector discount consumer-triggered loads from real app imports
         AppExecFwk::NativeModuleCollector::RecordConsumerPreload(moduleName);
     }
+    TAG_LOGI(AAFwkTag::STARTUP, "predict preload end, count=%{public}zu", modules.size());
     OnCompletedCallback::OnCallback(std::move(callback), ERR_OK);
     return ERR_OK;
 }
