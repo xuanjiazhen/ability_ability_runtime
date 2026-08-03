@@ -511,6 +511,28 @@ HWTEST_F(NativeModuleCollectorTest, AccumulateModules_DedupAndPreloadFilter_011,
 }
 
 /**
+ * @tc.name: AccumulateModules_DropsAppModules_024
+ * @tc.desc: only system modules are collected; app modules (isAppModule=true) are dropped at entry
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeModuleCollectorTest, AccumulateModules_DropsAppModules_024, TestSize.Level1)
+{
+    NativeModuleCollector::ResetStateForTest();
+
+    NativeModuleCollector::AccumulateModules(
+        { MakeModule("ohos.hilog"), MakeModule("entry", true), MakeModule("ohso.app.lib", true) }, 0);
+    EXPECT_EQ(NativeModuleCollector::GetSampledCountForTest(), 1u); // only the system module kept
+
+    CollectedModule out;
+    ASSERT_TRUE(NativeModuleCollector::GetSampledModuleForTest("ohos.hilog", out));
+    EXPECT_FALSE(out.isAppModule);
+    EXPECT_FALSE(NativeModuleCollector::GetSampledModuleForTest("entry", out));
+    EXPECT_FALSE(NativeModuleCollector::GetSampledModuleForTest("ohso.app.lib", out));
+
+    NativeModuleCollector::ResetStateForTest();
+}
+
+/**
  * @tc.name: SaveNow_AtMostOnce_012
  * @tc.desc: enabled sync save writes the file once; a second SaveNow is refused
  * @tc.type: FUNC

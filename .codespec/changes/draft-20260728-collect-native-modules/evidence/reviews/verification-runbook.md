@@ -67,6 +67,8 @@ checkpoint2 save result=1
 - [ ] JSON 含 `version:2 / bundleName / appVersionCode / launchIndex:1 / predicted / modules[]`
 - [ ] `predicted` 与 `modules` 中 score≥0.5 一致
 - [ ] 写盘日志每轮只出现 1 次
+- [ ] **`modules` 中所有条目 `isAppModule=false`**（仅采集系统模块，AC-1.6）；日志 `filteredApp` > 0（若该应用有自有 so）
+- [ ] **无 `mkdir ...failed` / `ensure dir failed` 日志**（EnsureDir 修复后应一路 EEXIST 到末级新建）
 - [ ] **无 `mkdir ...failed` / `ensure dir failed` 日志**（EnsureDir 修复后应一路 EEXIST 到末级新建）
 
 ---

@@ -442,13 +442,20 @@ void NativeModuleCollector::AccumulateModules(const std::vector<CollectedModule>
     std::lock_guard<std::mutex> lock(g_state.mutex);
     size_t added = 0;
     size_t refreshed = 0;
-    size_t filtered = 0;
+    size_t filteredPreload = 0;
+    size_t filteredApp = 0;
     for (const auto& module : modules) {
         if (module.moduleName.empty()) {
             continue;
         }
+        // scope: only system modules are collected; app modules (isAppModule=true,
+        // e.g. the app's own .so under the hap) are dropped at the collection entry
+        if (module.isAppModule) {
+            filteredApp++;
+            continue;
+        }
         if (g_state.preloadKeys.count(module.moduleName) != 0) {
-            filtered++;
+            filteredPreload++;
             continue;
         }
         auto [it, inserted] = g_state.sampled.emplace(module.moduleName, module);
@@ -465,8 +472,8 @@ void NativeModuleCollector::AccumulateModules(const std::vector<CollectedModule>
     }
     TAG_LOGD(AAFwkTag::APPKIT,
         "accumulate stage=%{public}d in=%{public}zu added=%{public}zu refreshed=%{public}zu "
-        "filteredPreload=%{public}zu total=%{public}zu",
-        firstStage, modules.size(), added, refreshed, filtered, g_state.sampled.size());
+        "filteredPreload=%{public}zu filteredApp=%{public}zu total=%{public}zu",
+        firstStage, modules.size(), added, refreshed, filteredPreload, filteredApp, g_state.sampled.size());
 }
 
 bool NativeModuleCollector::SaveNow(const std::string& cacheDir, const std::string& bundleName,
