@@ -23,6 +23,7 @@
 #include "main_thread.h"
 #include "mock_bundle_installer_service.h"
 #include "mock_bundle_manager.h"
+#include "mock_bundle_manager_service.h"
 #include "mock_overlay_manager.h"
 #include "mock_system_ability_manager.h"
 #include "ohos_application.h"
@@ -256,7 +257,7 @@ HWTEST_F(MainThreadByMockBmsTest, DoUpdatePluginInfoInstalled_0100, TestSize.Lev
 
     // Set applicationInfo_ to null
     mainThread_->applicationInfo_ = nullptr;
-    mainThread_->application_ = std::make_shared<OhosApplication>();
+    mainThread_->application_ = std::make_shared<OHOSApplication>();
 
     // Call DoUpdatePluginInfoInstalled (should return early)
     mainThread_->DoUpdatePluginInfoInstalled(pluginBundleInfos, pluginModuleNames);
