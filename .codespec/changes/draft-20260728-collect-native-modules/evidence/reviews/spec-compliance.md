@@ -15,7 +15,7 @@
 | AC-2.2 16 轮未见或 score<0.05 淘汰 | EvictStats 双条件 + 1024 上限低分淘汰 | EvictStats_LowScoreAndLongUnseen_005、EvictStats_CapLimit_006 | PASS | 用例已交付未执行 |
 | AC-2.3 损坏/version 不符/缓存清理重建 | LoadStats 严格校验 + 类型混淆兜底；MergeAndSave 冷启动路径 | LoadStats_RejectInvalid_007、MergeAndSave_RoundTrip_008 | PASS | 用例已交付未执行 |
 | AC-2.4 应用升级清空重建 | MergeAndSave appVersionCode 比对重建 | MergeAndSave_AppUpgradeRebuild_009 | PASS | 用例已交付未执行 |
-| AC-2.5 消费方预加载不计命中 | MergeRound consumerPreloads 分支：loadCount 增量 ≤ 预加载次数则仅刷新观测计数 | MergeRound_ConsumerPreloadOnly_016、_PlusImport_017、_NotConsumerPreloaded_018、SaveNow_ConsumerPreloadNotPredicted_019 | PASS；见 OI-2（refCount 语义待设备确认，降级方案在案） | 用例已交付未执行 |
+| AC-2.5 消费方预加载不计命中 | MergeRound consumerPreloads 分支：loadCount 增量 ≤ 预加载次数则仅刷新观测计数、不奖励；冷启动下一律不计命中（阻断自反馈） | MergeRound_ConsumerPreloadOnly_016、_PlusImport_017、_NotConsumerPreloaded_018、_ColdStartConsumerPreloadNotHit_023、SaveNow_ConsumerPreloadNotPredicted_019 | PASS；见 D-2（R-9"不衰减"措辞收紧）与 OI-2（refCount 语义待设备确认） | 用例已交付，UT 执行中修正 016 期望 |
 | AC-3.1 启动框架预加载 predicted 系统模块 | PredictPreloadSoStartupTask（LoadPredictedSystemModules 过滤 + 逐模块 LoadNativeModule）；MainThread::RunNativeStartupTask 注册 | LoadPredictedSystemModules_Filter_014 | PASS（实现对应） | 任务执行实测待补 |
 | AC-3.2 文件缺失/损坏跳过且不影响启动 | LoadPredictedSystemModules 返回空；任务早退 ERR_OK | LoadPredictedSystemModules_MissingOrCorrupted_015 | PASS | 用例已交付未执行 |
 | AC-3.3 单模块失败记事件继续 | 任务循环内失败记 STARTUP_TASK_ERROR 事件 continue | （任务执行侧，待设备） | PASS（实现对应） | 实测待补 |
@@ -37,6 +37,7 @@
 | 编号 | 类型 | 内容 | 处理 |
 |------|------|------|------|
 | D-1 | spec 偏差 | Runtime 新增两个静态 InnerAPI 未列入 spec API 变更清单（spec 仅列 napi 侧两个） | 接受：同为 InnerAPI 同语义层级，建议 spec 下一版本补录 |
+| D-2 | spec 措辞收紧 | R-9 写"消费预加载模块不按遗漏衰减"，但实现让其参与遗漏衰减。原因：若不衰减，被消费方持续预加载、应用不再 import 的模块会永久停留在预测集（score 不变且 >0.05 不被淘汰），自反馈无法终止。AC-2.5（更高优先级）仅要求"评分不得上升"，实现满足。建议 spec 下一版本将 R-9 改为"不计命中、按未真实使用衰减直至淘汰"。 | 接受：以 AC-2.5 与防自反馈目标为准，UT 016 已据此修正 |
 | OI-1 | risk | ~~纯 JS 运行时路径（不经 ETSRuntime::PreFork）preload 快照不生效~~ | **已修复**（5dd3d49fb1）：JsRuntime::FinishPreload 补 CapturePreloadModules，ETS+JS 双路径覆盖 |
 | OI-2 | risk | refCount cache 命中递增语义未在设备确认（RSK-2），若不符则 AC-2.5 精度降级（降级方案：P 集合模块本轮一律不更新） | follow-up：上机验证时确认 |
 | OI-3 | risk | CCM 参数命名未与 owner 确认（RSK-3），当前按 ccm.ability.native_module_collect.* 实现 | follow-up：评审时定名 |

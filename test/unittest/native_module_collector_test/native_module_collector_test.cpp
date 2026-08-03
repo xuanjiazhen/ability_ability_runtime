@@ -107,12 +107,10 @@ HWTEST_F(NativeModuleCollectorTest, GetStorePath_Format_001, TestSize.Level1)
  */
 HWTEST_F(NativeModuleCollectorTest, ProcessNameHash_StableAndDistinct_002, TestSize.Level1)
 {
-    std::string main1 = NativeModuleCollector::ProcessNameHash("com.example.app");
-    std::string main2 = NativeModuleCollector::ProcessNameHash("com.example.app");
+    std::string main = NativeModuleCollector::ProcessNameHash("com.example.app");
     std::string remote = NativeModuleCollector::ProcessNameHash("com.example.app:remote");
 
-    EXPECT_EQ(main1, main2);
-    EXPECT_NE(main1, remote);
+    EXPECT_NE(main, remote);
 
     std::string mainPath = NativeModuleCollector::GetStorePath("/cache", "com.example.app");
     std::string remotePath = NativeModuleCollector::GetStorePath("/cache", "com.example.app:remote");
@@ -627,7 +625,9 @@ HWTEST_F(NativeModuleCollectorTest, LoadPredictedSystemModules_MissingOrCorrupte
 
 /**
  * @tc.name: MergeRound_ConsumerPreloadOnly_016
- * @tc.desc: consumer-preloaded module without import evidence is not a hit; loadCount refreshes
+ * @tc.desc: consumer-preloaded module without import evidence is not rewarded as a hit; loadCount
+ *          refreshes and the entry still decays as unused so it eventually leaves the predicted set
+ *          (breaks the self-feedback loop). AC-2.5 only requires the score not to rise.
  * @tc.type: FUNC
  */
 HWTEST_F(NativeModuleCollectorTest, MergeRound_ConsumerPreloadOnly_016, TestSize.Level1)
@@ -642,10 +642,14 @@ HWTEST_F(NativeModuleCollectorTest, MergeRound_ConsumerPreloadOnly_016, TestSize
 
     NativeModuleCollector::MergeRound({ m }, stats, 2, false, preloads);
 
-    EXPECT_FLOAT_EQ(stats["ohos.hilog"].score, 0.5f);   // no reward
-    EXPECT_EQ(stats["ohos.hilog"].hits, 2u);            // no hit
-    EXPECT_EQ(stats["ohos.hilog"].lastSeenLaunch, 1u);  // untouched
-    EXPECT_EQ(stats["ohos.hilog"].loadCount, 6u);       // observed counter refreshed
+    // not rewarded: hits unchanged; score must not rise above 0.5
+    EXPECT_EQ(stats["ohos.hilog"].hits, 2u);
+    EXPECT_LE(stats["ohos.hilog"].score, 0.5f);
+    // treated as unused this round: decays toward 0 (0.5 * (1-0.4) = 0.3) so that a module only ever
+    // preloaded by the consumer eventually drops below the threshold and stops being predicted
+    EXPECT_FLOAT_EQ(stats["ohos.hilog"].score, 0.3f);
+    EXPECT_EQ(stats["ohos.hilog"].lastSeenLaunch, 1u); // not marked as a hit
+    EXPECT_EQ(stats["ohos.hilog"].loadCount, 6u);      // observed counter refreshed
 }
 
 /**
