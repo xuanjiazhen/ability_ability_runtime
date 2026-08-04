@@ -16,6 +16,10 @@
 #include <cstdlib>
 #include <gtest/gtest.h>
 
+#include "mock_bundle_manager.h"
+#include "mock_bundle_manager_service.h"
+#include "mock_system_ability_manager.h"
+
 #define private public
 #include "app_mgr_proxy.h"
 #include "app_mgr_stub.h"
@@ -24,7 +28,6 @@
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
-#include "mock_bundle_manager.h"
 #include "process_info.h"
 #include "quick_fix_callback_stub.h"
 #include "system_ability_definition.h"
@@ -40,6 +43,7 @@ using namespace testing::ext;
 namespace OHOS {
 namespace AppExecFwk {
 constexpr uint32_t CHECK_MAIN_THREAD_IS_ALIVE = 1;
+
 class QuickFixCallbackImpl : public AppExecFwk::QuickFixCallbackStub {
 public:
     QuickFixCallbackImpl() = default;
@@ -61,6 +65,8 @@ public:
     }
 };
 
+class MockAppMgrStub;
+
 class MainThreadTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -69,22 +75,20 @@ public:
     void TearDown() override;
 
     sptr<MainThread> mainThread_ = nullptr;
+    static sptr<BundleMgrService> mockBundleMgr_;
+    static sptr<IRemoteObject> mockAppMgrObject_;
+    sptr<ISystemAbilityManager> iSystemAbilityMgr_ = nullptr;
+    sptr<AppExecFwk::MockSystemAbilityManager> mockSystemAbility_ = nullptr;
 };
 
-void MainThreadTest::SetUpTestCase()
-{
-    sptr<IRemoteObject> bundleObject = new (std::nothrow) BundleMgrService();
-    auto sysMgr = DelayedSingleton<SysMrgClient>::GetInstance();
-    if (sysMgr == nullptr) {
-        GTEST_LOG_(ERROR) << "Failed to get ISystemAbilityManager.";
-        return;
-    }
-
-    sysMgr->RegisterSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID, bundleObject);
-}
+sptr<BundleMgrService> MainThreadTest::mockBundleMgr_ = nullptr;
+sptr<IRemoteObject> MainThreadTest::mockAppMgrObject_ = nullptr;
 
 void MainThreadTest::TearDownTestCase()
-{}
+{
+    mockBundleMgr_ = nullptr;
+    mockAppMgrObject_ = nullptr;
+}
 
 void MainThreadTest::SetUp()
 {
@@ -95,14 +99,35 @@ void MainThreadTest::SetUp()
     ASSERT_NE(mainThread_, nullptr);
 
     mainThread_->Init(runner);
+
+    mockSystemAbility_ = new (std::nothrow) AppExecFwk::MockSystemAbilityManager();
+    iSystemAbilityMgr_ = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    SystemAbilityManagerClient::GetInstance().systemAbilityManager_ = mockSystemAbility_;
+    auto mockGetSystemAbility = [
+        mockBundleMgr = mockBundleMgr_,
+        mockAppMgrObject = mockAppMgrObject_,
+        saMgr = iSystemAbilityMgr_
+    ](int32_t systemAbilityId) {
+        if (systemAbilityId == BUNDLE_MGR_SERVICE_SYS_ABILITY_ID) {
+            return mockBundleMgr->AsObject();
+        } else if (systemAbilityId == APP_MGR_SERVICE_ID) {
+            return mockAppMgrObject;
+        }
+        return saMgr->GetSystemAbility(systemAbilityId);
+    };
+    EXPECT_CALL(*mockSystemAbility_, GetSystemAbility(testing::_))
+        .WillRepeatedly(testing::Invoke(mockGetSystemAbility));
 }
 
 void MainThreadTest::TearDown()
 {
     mainThread_->applicationForDump_.reset();
+    SystemAbilityManagerClient::GetInstance().systemAbilityManager_ = iSystemAbilityMgr_;
+    mockSystemAbility_ = nullptr;
 }
 
 class MockAppMgrStub : public AppMgrStub {
+public:
     MockAppMgrStub() = default;
     virtual ~MockAppMgrStub() = default;
 
@@ -271,7 +296,268 @@ class MockAppMgrStub : public AppMgrStub {
     {
         return 0;
     }
+
+    int32_t ClearUpApplicationData(const std::string &bundleName, int32_t appCloneIndex, int32_t userId = -1) override
+    {
+        return 0;
+    }
+
+    int32_t ClearUpApplicationDataBySelf(int32_t userId = -1) override
+    {
+        return 0;
+    }
+
+    int32_t GetRunningMultiAppInfoByBundleName(const std::string &bundleName, RunningMultiAppInfo &info) override
+    {
+        return 0;
+    }
+
+    int32_t GetAllRunningInstanceKeysBySelf(std::vector<std::string> &instanceKeys) override
+    {
+        return 0;
+    }
+
+    int32_t GetAllRunningInstanceKeysByBundleName(const std::string &bundleName,
+        std::vector<std::string> &instanceKeys, int32_t userId = -1) override
+    {
+        return 0;
+    }
+
+    int GetRunningProcessesByBundleType(const BundleType bundleType,
+        std::vector<RunningProcessInfo> &info) override
+    {
+        return 0;
+    }
+
+    int GetAllRenderProcesses(std::vector<RenderProcessInfo> &info) override
+    {
+        return 0;
+    }
+
+    int GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info) override
+    {
+        return 0;
+    }
+
+    int32_t GetProcessRunningInfosByAccessTokenId(uint32_t accessTokenId,
+        std::vector<RunningProcessInfo> &info) override
+    {
+        return 0;
+    }
+
+    int32_t GetProcessRunningInformation(RunningProcessInfo &info) override
+    {
+        return 0;
+    }
+
+    int32_t NotifyProcMemoryLevel(const std::map<pid_t, MemoryLevel> &procLevelMap) override
+    {
+        return 0;
+    }
+
+    int DumpHeapMemory(const int32_t pid, OHOS::AppExecFwk::MallocInfo &mallocInfo) override
+    {
+        return 0;
+    }
+
+    int DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info) override
+    {
+        return 0;
+    }
+
+    int DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info) override
+    {
+        return 0;
+    }
+
+    int DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback) override
+    {
+        return 0;
+    }
+
+    int ReportDumpMemResult(sptr<IMemDumpCallback> callback, const std::string &dumpResult) override
+    {
+        return 0;
+    }
+
+    int32_t RegisterAbilityForegroundStateObserver(
+        const sptr<IAbilityForegroundStateObserver> &observer) override
+    {
+        return 0;
+    }
+
+    int32_t UnregisterAbilityForegroundStateObserver(
+        const sptr<IAbilityForegroundStateObserver> &observer) override
+    {
+        return 0;
+    }
+
+    void ScheduleNewProcessRequestDone(const int32_t recordId, const AAFwk::Want &want,
+        const std::string &flag) override
+    {}
+
+    int32_t GetConfiguration(Configuration& config, int32_t userid) override
+    {
+        return 0;
+    }
+
+    int32_t UpdateConfigurationByUserIds(const Configuration &config,
+        const std::vector<int32_t> userIds) override
+    {
+        return 0;
+    }
+
+    int32_t UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,
+        int32_t appIndex = 0) override
+    {
+        return 0;
+    }
+
+    bool SetAppFreezeFilter(int32_t pid) override
+    {
+        return true;
+    }
+
+    void UpdateFreezeExcludedPid(bool isAdd, int32_t targetPid, int32_t profilerPid) override
+    {}
+
+    bool IsSharedBundleRunning(const std::string &bundleName, uint32_t versionCode) override
+    {
+        return false;
+    }
+
+    int32_t StartNativeProcessForDebugger(const AAFwk::Want &want) override
+    {
+        return 0;
+    }
+
+    int32_t GetBundleNameByPid(const int pid, std::string &bundleName, int32_t &uid) override
+    {
+        return 0;
+    }
+
+    int32_t GetProcessMemoryByPid(const int32_t pid, int32_t &memorySize) override
+    {
+        return 0;
+    }
+
+    int32_t GetRunningProcessInformation(const std::string &bundleName, int32_t userId,
+        std::vector<RunningProcessInfo> &info) override
+    {
+        return 0;
+    }
+
+    int32_t RegisterAppRunningStatusListener(const sptr<IRemoteObject> &listener) override
+    {
+        return 0;
+    }
+
+    int32_t UnregisterAppRunningStatusListener(const sptr<IRemoteObject> &listener) override
+    {
+        return 0;
+    }
+
+    int32_t RegisterAppForegroundStateObserver(const sptr<IAppForegroundStateObserver> &observer) override
+    {
+        return 0;
+    }
+
+    int32_t UnregisterAppForegroundStateObserver(const sptr<IAppForegroundStateObserver> &observer) override
+    {
+        return 0;
+    }
+
+    int32_t IsApplicationRunning(const std::string &bundleName, bool &isRunning) override
+    {
+        return 0;
+    }
+
+    int32_t IsAppRunning(const std::string &bundleName, int32_t appCloneIndex,
+        bool &isRunning) override
+    {
+        return 0;
+    }
+
+    int32_t IsAppRunningByBundleNameAndUserId(const std::string &bundleName, int32_t userId,
+        bool &isRunning) override
+    {
+        return 0;
+    }
+
+    int32_t StartChildProcess(pid_t &childPid, const ChildProcessRequest &request) override
+    {
+        return 0;
+    }
+
+    int32_t GetChildProcessInfoForSelf(ChildProcessInfo &info) override
+    {
+        return 0;
+    }
+
+    void AttachChildProcess(const sptr<IRemoteObject> &childScheduler) override
+    {}
+
+    void ExitChildProcessSafely() override
+    {}
+
+    int32_t RegisterRenderStateObserver(const sptr<IRenderStateObserver> &observer) override
+    {
+        return 0;
+    }
+
+    int32_t UnregisterRenderStateObserver(const sptr<IRenderStateObserver> &observer) override
+    {
+        return 0;
+    }
+
+    int32_t UpdateRenderState(pid_t renderPid, int32_t state) override
+    {
+        return 0;
+    }
+
+    int32_t SetSupportedProcessCacheSelf(bool isSupport) override
+    {
+        return 0;
+    }
+
+    int32_t SetSupportedProcessCache(int32_t pid, bool isSupport) override
+    {
+        return 0;
+    }
+
+    int32_t IsProcessCacheSupported(int32_t pid, bool &isSupported) override
+    {
+        return 0;
+    }
+
+    int32_t SetProcessCacheEnable(int32_t pid, bool enable) override
+    {
+        return 0;
+    }
+
+    void SaveBrowserChannel(sptr<IRemoteObject> browser) override
+    {}
+
+    int32_t GetSupportedProcessCachePids(const std::string &bundleName,
+        std::vector<int32_t> &pidList) override
+    {
+        return 0;
+    }
 };
+
+void MainThreadTest::SetUpTestCase()
+{
+    mockBundleMgr_ = new (std::nothrow) BundleMgrService();
+    mockAppMgrObject_ = new (std::nothrow) MockAppMgrStub();
+    auto sysMgr = DelayedSingleton<SysMrgClient>::GetInstance();
+    if (sysMgr == nullptr) {
+        GTEST_LOG_(ERROR) << "Failed to get ISystemAbilityManager.";
+        return;
+    }
+
+    sysMgr->RegisterSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID, mockBundleMgr_);
+    sysMgr->RegisterSystemAbility(APP_MGR_SERVICE_ID, mockAppMgrObject_);
+}
 
 /*
  * Feature: MainThread
@@ -2801,6 +3087,7 @@ HWTEST_F(MainThreadTest, SplitString_0600, TestSize.Level1)
  */
 HWTEST_F(MainThreadTest, CheckAndUpdateRuntime_0100, TestSize.Level1)
 {
+    mainThread_->application_ = std::make_shared<OHOSApplication>();
     std::shared_ptr<AbilityLocalRecord> abilityRecord =
         std::make_shared<AbilityLocalRecord>(std::make_shared<AbilityInfo>(), nullptr, nullptr, 0);
     abilityRecord->abilityInfo_->arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0;
@@ -2821,6 +3108,7 @@ HWTEST_F(MainThreadTest, CheckAndUpdateRuntime_0100, TestSize.Level1)
  */
 HWTEST_F(MainThreadTest, CheckAndUpdateRuntime_0200, TestSize.Level1)
 {
+    mainThread_->application_ = std::make_shared<OHOSApplication>();
     std::shared_ptr<AbilityLocalRecord> abilityRecord =
         std::make_shared<AbilityLocalRecord>(std::make_shared<AbilityInfo>(), nullptr, nullptr, 0);
     abilityRecord->abilityInfo_->arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0;
@@ -2841,6 +3129,7 @@ HWTEST_F(MainThreadTest, CheckAndUpdateRuntime_0200, TestSize.Level1)
  */
 HWTEST_F(MainThreadTest, CheckAndUpdateRuntime_0300, TestSize.Level1)
 {
+    mainThread_->application_ = std::make_shared<OHOSApplication>();
     std::shared_ptr<AbilityLocalRecord> abilityRecord =
         std::make_shared<AbilityLocalRecord>(std::make_shared<AbilityInfo>(), nullptr, nullptr, 0);
     abilityRecord->abilityInfo_->arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2;
@@ -2861,6 +3150,7 @@ HWTEST_F(MainThreadTest, CheckAndUpdateRuntime_0300, TestSize.Level1)
  */
 HWTEST_F(MainThreadTest, CheckAndUpdateRuntime_0400, TestSize.Level1)
 {
+    mainThread_->application_ = std::make_shared<OHOSApplication>();
     std::shared_ptr<AbilityLocalRecord> abilityRecord =
         std::make_shared<AbilityLocalRecord>(std::make_shared<AbilityInfo>(), nullptr, nullptr, 0);
     abilityRecord->abilityInfo_->arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0;
@@ -2881,6 +3171,7 @@ HWTEST_F(MainThreadTest, CheckAndUpdateRuntime_0400, TestSize.Level1)
  */
 HWTEST_F(MainThreadTest, GetBundleAndHspListForUpdateRuntime_0100, TestSize.Level1)
 {
+    mainThread_->applicationInfo_ = std::make_shared<ApplicationInfo>();
     std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     contextDeal->SetApplicationInfo(mainThread_->applicationInfo_);
     contextDeal->SetBundleCodePath(mainThread_->applicationInfo_->codePath);

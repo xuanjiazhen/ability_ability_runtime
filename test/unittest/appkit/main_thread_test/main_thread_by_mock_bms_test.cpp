@@ -16,16 +16,18 @@
 #include <cstdlib>
 #include <gtest/gtest.h>
 
-#define private public
-#include "hilog_tag_wrapper.h"
-#include "if_system_ability_manager.h"
-#include "iservice_registry.h"
-#include "main_thread.h"
 #include "mock_bundle_installer_service.h"
 #include "mock_bundle_manager.h"
 #include "mock_bundle_manager_service.h"
 #include "mock_overlay_manager.h"
 #include "mock_system_ability_manager.h"
+
+#define private public
+#include "bundle_mgr_helper.h"
+#include "hilog_tag_wrapper.h"
+#include "if_system_ability_manager.h"
+#include "iservice_registry.h"
+#include "main_thread.h"
 #include "ohos_application.h"
 #include "process_info.h"
 #include "sys_mgr_client.h"
@@ -73,6 +75,11 @@ void MainThreadByMockBmsTest::SetUp()
 void MainThreadByMockBmsTest::TearDown()
 {
     mainThread_->applicationForDump_.reset();
+    auto helper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (helper != nullptr) {
+        helper->bundleMgr_ = nullptr;
+        helper->bundleInstaller_ = nullptr;
+    }
     SystemAbilityManagerClient::GetInstance().systemAbilityManager_ = iSystemAbilityMgr_;
     mockBundleMgrService_ = nullptr;
 }
@@ -88,7 +95,7 @@ void MainThreadByMockBmsTest::MockBundleInstaller()
             return saMgr->GetSystemAbility(systemAbilityId);
         }
     };
-    EXPECT_CALL(*mockBundleMgr, GetBundleInstaller()).WillOnce(testing::Invoke(mockGetBundleInstaller));
+    EXPECT_CALL(*mockBundleMgr, GetBundleInstaller()).WillRepeatedly(testing::Invoke(mockGetBundleInstaller));
     EXPECT_CALL(*mockSystemAbility_, GetSystemAbility(testing::_))
         .WillRepeatedly(testing::Invoke(mockGetSystemAbility));
 }
@@ -99,7 +106,7 @@ void MainThreadByMockBmsTest::MockBundleManagerForLaunch(const BundleInfo &bundl
     ASSERT_NE(mockBundleMgrService_, nullptr);
 
     EXPECT_CALL(*mockBundleMgrService_, GetBundleInfoForSelf(testing::_, testing::_))
-        .WillOnce(testing::Invoke([bundleInfo](int32_t, BundleInfo &outInfo) {
+        .WillRepeatedly(testing::Invoke([bundleInfo](int32_t, BundleInfo &outInfo) {
             outInfo = bundleInfo;
             return ERR_OK;
         }));
