@@ -48,8 +48,8 @@ const char *REQUIRE_NAPI = "requireNapi";
 static bool g_betaVersion = OHOS::system::GetParameter("const.logsystem.versiontype", "unknown") == "beta";
 static bool g_developMode = (OHOS::system::GetParameter("persist.hiview.leak_detector", "unknown") == "enable") ||
                             (OHOS::system::GetParameter("persist.hiview.leak_detector", "unknown") == "true");
-static int g_oomDumpProcessQuota = 0;
-static uint64_t g_lastOOMDumpTime = 0;
+static std::atomic_int g_oomDumpProcessQuota(0);
+static std::atomic<uint64_t> g_lastOOMDumpTime(0);
 static constexpr const char* const EVENT_XATTR_NAME = "user.appevent";
 static constexpr const char* const OOM_QUOTA_XATTR_NAME = "user.oomdump.quota";
 static constexpr const char* const RUNNING_ID_NAME = "user.runningId";
@@ -248,7 +248,7 @@ bool DumpRuntimeHelper::Check2DQuota(bool needDecreaseQuota)
         TAG_LOGE(AAFwkTag::APPKIT, "Check2DOOMDumpQuota failed");
         return false;
     }
-    Set2DQuota(OOM_QUOTA_PATH, GetCurrentTimestamp(), g_oomDumpProcessQuota - 1);
+    Set2DQuota(OOM_QUOTA_PATH, GetCurrentTimestamp(), g_oomDumpProcessQuota.load() - 1);
 
     TAG_LOGI(AAFwkTag::APPKIT, "succeed to Check2DQuota");
     return true;
@@ -721,26 +721,30 @@ bool DumpRuntimeHelper::Check2DOOMDumpQuota(uint32_t oomDumpMaxQuota, uint32_t o
         TAG_LOGI(AAFwkTag::APPKIT, "Device space is not enough.");
         return false;
     }
-    if (!Get2DQuota(OOM_QUOTA_PATH, OOM_QUOTA_XATTR_NAME, g_lastOOMDumpTime, g_oomDumpProcessQuota)) {
+    uint64_t lastDumpTime = 0;
+    int oomQuota = 0;
+    if (!Get2DQuota(OOM_QUOTA_PATH, OOM_QUOTA_XATTR_NAME, lastDumpTime, oomQuota)) {
         TAG_LOGE(AAFwkTag::APPKIT, "Check2DOOMDumpQuota failed to get quota.");
         return false;
     }
+    g_lastOOMDumpTime.store(lastDumpTime);
+    g_oomDumpProcessQuota.store(oomQuota);
     uint64_t currentTime = GetCurrentTimestamp();
-    if (currentTime - g_lastOOMDumpTime <= OOM_DUMP_INTERVAL) {
-        if (g_oomDumpProcessQuota <= 0) {
-            TAG_LOGI(AAFwkTag::APPKIT, "Weekly quota has been exhausted, quota=%{public}d", g_oomDumpProcessQuota);
+    if (currentTime - g_lastOOMDumpTime.load() <= OOM_DUMP_INTERVAL) {
+        if (g_oomDumpProcessQuota.load() <= 0) {
+            TAG_LOGI(AAFwkTag::APPKIT, "Weekly quota has been exhausted, quota=%{public}d", g_oomDumpProcessQuota.load());
             return false;
         }
     } else {
         TAG_LOGI(AAFwkTag::APPKIT, "Over one week, reset process quota=%{public}u", oomDumpProcessMaxQuota);
-        g_oomDumpProcessQuota = static_cast<int>(oomDumpProcessMaxQuota);
+        g_oomDumpProcessQuota.store(static_cast<int>(oomDumpProcessMaxQuota));
         if (!Set2DQuota(OOM_QUOTA_PATH, currentTime, oomDumpProcessMaxQuota)) {
             TAG_LOGE(AAFwkTag::APPKIT, "Failed to reset quota.");
             return false;
         }
     }
     TAG_LOGI(AAFwkTag::APPKIT, "Last oom time=%{public}" PRIu64 ", currentTime=%{public}" PRIu64 ", quota=%{public}d",
-        g_lastOOMDumpTime, currentTime, g_oomDumpProcessQuota);
+        g_lastOOMDumpTime.load(), currentTime, g_oomDumpProcessQuota.load());
     return true;
 }
 

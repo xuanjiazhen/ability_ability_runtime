@@ -84,10 +84,16 @@ void ETSStartupManager::NativeRun(ani_env *env, ani_int startupTaskManagerId, an
         return;
     }
     ani_ref gl = nullptr;
-    env->GlobalReference_Create(callback, &gl);
+    if (env->GlobalReference_Create(callback, &gl) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STARTUP, "GlobalReference_Create failed");
+        EtsErrorUtil::ThrowError(env, ERR_STARTUP_INTERNAL_ERROR,
+            StartupUtils::GetErrorMessage(ERR_STARTUP_INTERNAL_ERROR));
+        return;
+    }
     ani_vm *aniVM = nullptr;
     if (env->GetVM(&aniVM) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "GetVM failed");
+        env->GlobalReference_Delete(gl);
         EtsErrorUtil::ThrowError(env, ERR_STARTUP_INTERNAL_ERROR,
             StartupUtils::GetErrorMessage(ERR_STARTUP_INTERNAL_ERROR));
         return;

@@ -41,6 +41,7 @@ public:
 
 private:
     ani_vm *etsVm_ = nullptr;
+    ani_ref listenerGlobalRef_ = nullptr;
 
     std::unique_ptr<AppExecFwk::ETSNativeReference> LoadSrcEntry(ETSRuntime &etsRuntime,
         std::shared_ptr<Context> context, const std::string &srcEntry);

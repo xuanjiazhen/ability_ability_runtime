@@ -68,7 +68,8 @@ int32_t AppCapturePerf::CapturePerf(const FaultData &faultData)
         int32_t tid = -1;
         auto res = std::from_chars(threads[i].c_str(), threads[i].c_str() + threads[i].size(), tid);
         if (res.ec != std::errc()) {
-            TAG_LOGE(AAFwkTag::APPDFR, "tid conversion failed");
+            TAG_LOGE(AAFwkTag::APPDFR, "tid conversion failed, skip");
+            continue;
         }
         tids.push_back(tid);
     }

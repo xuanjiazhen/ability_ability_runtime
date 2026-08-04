@@ -29,13 +29,17 @@ bool ImageProcessStateData::Marshalling(Parcel &parcel) const
 
 bool ImageProcessStateData::ReadFromParcel(Parcel &parcel)
 {
-    imagePid = parcel.ReadInt32();
-    checkpointId = parcel.ReadUint64();
-    originalPid = parcel.ReadInt32();
-    uid = parcel.ReadInt32();
-    state = parcel.ReadInt32();
-    bundleName = parcel.ReadString();
-    abilityName = parcel.ReadString();
+    bool ret = parcel.ReadInt32(imagePid);
+    ret = ret && parcel.ReadUint64(checkpointId);
+    ret = ret && parcel.ReadInt32(originalPid);
+    ret = ret && parcel.ReadInt32(uid);
+    ret = ret && parcel.ReadInt32(state);
+    ret = ret && parcel.ReadString(bundleName);
+    ret = ret && parcel.ReadString(abilityName);
+    if (!ret) {
+        TAG_LOGW(AAFwkTag::APPMGR, "ReadFromParcel failed");
+        return false;
+    }
     return true;
 }
 

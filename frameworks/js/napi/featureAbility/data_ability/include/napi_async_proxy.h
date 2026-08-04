@@ -162,7 +162,10 @@ public:
                     napi_value callbackResult = nullptr;
                     napi_call_function(env, nullptr, callback, RESULT_COUNT, result, &callbackResult);
                 }
-                delete context;
+                if (context->work != nullptr) {
+                    napi_delete_async_work(env, context->work);
+                    context->work = nullptr;
+                }
             },
             (void *)asyncContext, &asyncContext->work), ret);
         NAPI_CALL_BASE(asyncContext->env, napi_queue_async_work(asyncContext->env, asyncContext->work), ret);

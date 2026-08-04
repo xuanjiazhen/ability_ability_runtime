@@ -39,7 +39,11 @@ int LoadAbilityCallbackStub::OnRemoteRequest(
 
 int32_t LoadAbilityCallbackStub::HandleOnFinish(MessageParcel &data, MessageParcel &reply)
 {
-    int32_t pid = data.ReadInt32();
+    int32_t pid = 0;
+    if (!data.ReadInt32(pid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "ReadInt32 pid failed");
+        return ERR_INVALID_DATA;
+    }
     OnFinish(pid);
     return NO_ERROR;
 }

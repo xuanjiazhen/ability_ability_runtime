@@ -17,6 +17,7 @@
 
 namespace OHOS::AbilityRuntime {
 namespace {
+constexpr int32_t MAX_PARCEL_COLLECTION_SIZE = 100000;
 AbilityRuntime_ErrorCode CheckWrite(bool success)
 {
     return success ? ABILITY_RUNTIME_ERROR_CODE_NO_ERROR : ABILITY_RUNTIME_ERROR_CODE_SEND_REQUEST_FAILED;
@@ -421,8 +422,8 @@ AbilityRuntime_ErrorCode ModObjDispatcherParamCodec::ReadRawValue(MessageParcel&
     }
     if (typeInfo->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_ARRAY) {
         int32_t size = parcel.ReadInt32();
-        if (size < 0) {
-            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: array size is negative, size=%{public}d", size);
+        if (size < 0 || size > MAX_PARCEL_COLLECTION_SIZE) {
+            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: array size is invalid, size=%{public}d", size);
             return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
         }
         TAG_LOGI(AAFwkTag::EXT, "arraySize=%{public}d", size);
@@ -454,8 +455,8 @@ AbilityRuntime_ErrorCode ModObjDispatcherParamCodec::ReadRawValue(MessageParcel&
     }
     if (typeInfo->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR) {
         int32_t size = parcel.ReadInt32();
-        if (size < 0) {
-            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: vector size is negative, size=%{public}d", size);
+        if (size < 0 || size > MAX_PARCEL_COLLECTION_SIZE) {
+            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: vector size is invalid, size=%{public}d", size);
             return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
         }
         TAG_LOGI(AAFwkTag::EXT, "vectorSize=%{public}d", size);
@@ -486,8 +487,8 @@ AbilityRuntime_ErrorCode ModObjDispatcherParamCodec::ReadRawValue(MessageParcel&
     }
     if (typeInfo->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET) {
         int32_t size = parcel.ReadInt32();
-        if (size < 0) {
-            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: set size is negative, size=%{public}d", size);
+        if (size < 0 || size > MAX_PARCEL_COLLECTION_SIZE) {
+            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: set size is invalid, size=%{public}d", size);
             return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
         }
         TAG_LOGI(AAFwkTag::EXT, "setSize=%{public}d", size);
@@ -518,8 +519,8 @@ AbilityRuntime_ErrorCode ModObjDispatcherParamCodec::ReadRawValue(MessageParcel&
     }
     if (typeInfo->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP) {
         int32_t size = parcel.ReadInt32();
-        if (size < 0) {
-            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: map size is negative, size=%{public}d", size);
+        if (size < 0 || size > MAX_PARCEL_COLLECTION_SIZE) {
+            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: map size is invalid, size=%{public}d", size);
             return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
         }
         TAG_LOGI(AAFwkTag::EXT, "mapSize=%{public}d", size);

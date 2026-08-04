@@ -243,6 +243,7 @@ bool AbilityProcess::CallFunc(int requestCode, const std::vector<std::string> &p
     const std::vector<int> &permissionsState, CallbackInfo &callbackInfo)
 {
 #ifdef SUPPORT_GRAPHICS
+    std::lock_guard<std::mutex> lock_l(mutex_);
     // start open featureability lib
     if (g_handle == nullptr) {
         g_handle = dlopen(SHARED_LIBRARY_FEATURE_ABILITY, RTLD_LAZY);

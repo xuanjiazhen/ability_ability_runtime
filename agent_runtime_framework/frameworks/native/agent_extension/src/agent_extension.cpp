@@ -88,11 +88,9 @@ AgentExtension* AgentExtension::Create(const std::unique_ptr<Runtime> &runtime)
 AgentExtension* AgentExtension::CreateEtsAgentExtension(const std::unique_ptr<Runtime> &runtime)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "CreateEtsAgentExtension");
-    {
-        std::lock_guard<std::mutex> lock(g_etsAgentExtensionCreateFuncMutex);
-        if (g_etsAgentExtensionCreateFunc != nullptr) {
-            return g_etsAgentExtensionCreateFunc(runtime);
-        }
+    std::lock_guard<std::mutex> lock(g_etsAgentExtensionCreateFuncMutex);
+    if (g_etsAgentExtensionCreateFunc != nullptr) {
+        return g_etsAgentExtensionCreateFunc(runtime);
     }
 
     auto symbol = GetDlSymbol(ETS_AGENT_EXTENSION_LIBNAME, CREATE_ETS_AGENT_EXTENSION_FUNC, &g_etsHandle);
@@ -100,7 +98,6 @@ AgentExtension* AgentExtension::CreateEtsAgentExtension(const std::unique_ptr<Ru
         return nullptr;
     }
 
-    std::lock_guard<std::mutex> lock(g_etsAgentExtensionCreateFuncMutex);
     g_etsAgentExtensionCreateFunc = reinterpret_cast<CreateAgentExtensionFunc>(symbol);
     return g_etsAgentExtensionCreateFunc(runtime);
 }
@@ -108,11 +105,9 @@ AgentExtension* AgentExtension::CreateEtsAgentExtension(const std::unique_ptr<Ru
 AgentExtension* AgentExtension::CreateJsAgentExtension(const std::unique_ptr<Runtime> &runtime)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "CreateJsAgentExtension");
-    {
-        std::lock_guard<std::mutex> lock(g_jsAgentExtensionCreateFuncMutex);
-        if (g_jsAgentExtensionCreateFunc != nullptr) {
-            return g_jsAgentExtensionCreateFunc(runtime);
-        }
+    std::lock_guard<std::mutex> lock(g_jsAgentExtensionCreateFuncMutex);
+    if (g_jsAgentExtensionCreateFunc != nullptr) {
+        return g_jsAgentExtensionCreateFunc(runtime);
     }
 
     auto symbol = GetDlSymbol(JS_AGENT_EXTENSION_LIBNAME, CREATE_JS_AGENT_EXTENSION_FUNC, &g_jsHandle);
@@ -120,7 +115,6 @@ AgentExtension* AgentExtension::CreateJsAgentExtension(const std::unique_ptr<Run
         return nullptr;
     }
 
-    std::lock_guard<std::mutex> lock(g_jsAgentExtensionCreateFuncMutex);
     g_jsAgentExtensionCreateFunc = reinterpret_cast<CreateAgentExtensionFunc>(symbol);
     return g_jsAgentExtensionCreateFunc(runtime);
 }

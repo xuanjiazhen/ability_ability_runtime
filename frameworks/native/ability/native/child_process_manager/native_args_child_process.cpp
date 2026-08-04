@@ -93,6 +93,16 @@ NativeChildProcess_Args NativeArgsChildProcess::ParseToNativeArgs(const std::str
         NativeChildProcess_Fd *node = new(std::nothrow) NativeChildProcess_Fd;
         if (!node) {
             TAG_LOGE(AAFwkTag::PROCESSMGR, "null node");
+            NativeChildProcess_Fd *curr = args.fdList.head;
+            while (curr != nullptr) {
+                NativeChildProcess_Fd *next = curr->next;
+                delete[] curr->fdName;
+                delete curr;
+                curr = next;
+            }
+            args.fdList.head = nullptr;
+            delete[] args.entryParams;
+            args.entryParams = nullptr;
             return args;
         }
         node->next = nullptr;

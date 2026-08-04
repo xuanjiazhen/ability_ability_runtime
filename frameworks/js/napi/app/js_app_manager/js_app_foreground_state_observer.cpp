@@ -91,7 +91,11 @@ void JSAppForegroundStateObserver::AddJsObserverObject(const napi_value &jsObser
     if (GetObserverObject(jsObserverObject) == nullptr) {
         std::lock_guard<std::mutex> lock(jsObserverObjectSetLock_);
         napi_ref ref = nullptr;
-        napi_create_reference(env_, jsObserverObject, 1, &ref);
+        napi_status status = napi_create_reference(env_, jsObserverObject, 1, &ref);
+        if (status != napi_ok || ref == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "napi_create_reference failed");
+            return;
+        }
         jsObserverObjectSet_.emplace(std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference *>(ref)));
     } else {
         TAG_LOGD(AAFwkTag::APPMGR, "observer exist");

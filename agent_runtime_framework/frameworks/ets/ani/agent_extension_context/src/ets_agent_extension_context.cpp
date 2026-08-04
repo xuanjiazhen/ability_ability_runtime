@@ -106,6 +106,8 @@ ani_object CreateEtsAgentExtensionContext(ani_env *env, std::shared_ptr<AgentExt
 
     if ((status = env->GlobalReference_Create(contextObj, contextGlobalRef)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "GlobalReference_Create failed status: %{public}d", status);
+        ContextUtil::SetNativeContextLong(env, contextObj, 0);
+        delete workContext;
         delete contextGlobalRef;
         return nullptr;
     }

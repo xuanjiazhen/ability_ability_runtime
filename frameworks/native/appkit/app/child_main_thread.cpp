@@ -426,7 +426,12 @@ void ChildMainThread::UpdateNativeChildLibModuleName(const AppLibPathMap &appLib
             if (!nativeLibPath.empty() && nativeLibPath.back() != '/') {
                 nativeLibPath += '/';
             }
-            nativeLibPath += processInfo_->srcEntry;
+            std::string srcEntry = processInfo_->srcEntry;
+            if (srcEntry.find("../") != std::string::npos || srcEntry.find("..\\") != std::string::npos) {
+                TAG_LOGE(AAFwkTag::APPKIT, "invalid srcEntry with path traversal: %{public}s", srcEntry.c_str());
+                continue;
+            }
+            nativeLibPath += srcEntry;
             auto ret = access(nativeLibPath.c_str(), F_OK);
             if (ret == 0) {
                 nativeLibModuleName_ = libPathPair.first;

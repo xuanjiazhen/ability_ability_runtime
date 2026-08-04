@@ -66,7 +66,11 @@ int32_t ImageProcessStateObserverStub::HandleOnForkAllWorkProcessFailed(MessageP
         TAG_LOGE(AAFwkTag::APPMGR, "null processData");
         return ERR_APPEXECFWK_PARCEL_ERROR;
     }
-    int32_t errCode = data.ReadInt32();
+    int32_t errCode = 0;
+    if (!data.ReadInt32(errCode)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "ReadInt32 errCode failed");
+        return ERR_APPEXECFWK_PARCEL_ERROR;
+    }
 
     OnForkAllWorkProcessFailed(*processData, errCode);
     return NO_ERROR;

@@ -128,6 +128,7 @@ void EtsAppStateObserver::HandleOnAbilityStateChanged(const AbilityStateData &ab
         if (abilityStateDataObj == nullptr) {
             TAG_LOGE(AAFwkTag::APPMGR, "null abilityStateDataObj");
             AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
+            return;
         }
         CallEtsFunction(env, item.second, "onAbilityStateChanged", SIGNATURE_ABILITY_STATE_DATA, abilityStateDataObj);
     }
@@ -170,6 +171,7 @@ void EtsAppStateObserver::HandleOnExtensionStateChanged(const AbilityStateData &
         if (abilityStateDataObj == nullptr) {
             TAG_LOGE(AAFwkTag::APPMGR, "null abilityStateDataObj");
             AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
+            return;
         }
         CallEtsFunction(env, item.second, "onAbilityStateChanged", SIGNATURE_ABILITY_STATE_DATA, abilityStateDataObj);
     }

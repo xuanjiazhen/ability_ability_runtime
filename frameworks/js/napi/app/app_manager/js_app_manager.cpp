@@ -168,13 +168,18 @@ private:
         } else {
             // unwrap connectId
             napi_get_value_int64(env, argv[INDEX_ZERO], &observerId);
-            bool isExist = observer_->FindObserverByObserverId(observerId);
-            if (isExist) {
-                // match id
-                TAG_LOGD(AAFwkTag::APPMGR, "observer exist:%{public}d", static_cast<int32_t>(observerId));
-            } else {
-                TAG_LOGD(AAFwkTag::APPMGR, "observer not exist:%{public}d", static_cast<int32_t>(observerId));
+            if (observer_ == nullptr) {
+                TAG_LOGE(AAFwkTag::APPMGR, "null observer");
                 errCode = ERR_NOT_OK;
+            } else {
+                bool isExist = observer_->FindObserverByObserverId(observerId);
+                if (isExist) {
+                    // match id
+                    TAG_LOGD(AAFwkTag::APPMGR, "observer exist:%{public}d", static_cast<int32_t>(observerId));
+                } else {
+                    TAG_LOGD(AAFwkTag::APPMGR, "observer not exist:%{public}d", static_cast<int32_t>(observerId));
+                    errCode = ERR_NOT_OK;
+                }
             }
         }
 

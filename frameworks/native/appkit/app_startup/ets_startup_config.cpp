@@ -40,7 +40,18 @@ constexpr int32_t ARGC_ONE = 1;
 ETSStartupConfig::ETSStartupConfig(ani_vm *etsVm) : StartupConfig(), etsVm_(etsVm)
 {}
 
-ETSStartupConfig::~ETSStartupConfig() = default;
+ETSStartupConfig::~ETSStartupConfig()
+{
+    if (etsVm_ != nullptr && listenerGlobalRef_ != nullptr) {
+        bool isAttachThread = false;
+        ani_env *env = AppExecFwk::AttachAniEnv(etsVm_, isAttachThread);
+        if (env != nullptr) {
+            env->GlobalReference_Delete(listenerGlobalRef_);
+            listenerGlobalRef_ = nullptr;
+            AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
+        }
+    }
+}
 
 int32_t ETSStartupConfig::Init(Runtime &runtime, std::shared_ptr<Context> context, const std::string &srcEntry,
     std::shared_ptr<AAFwk::Want> want)
@@ -229,8 +240,11 @@ void ETSStartupConfig::InitListener(ani_env *env, ani_object config)
     }
 
     ani_ref gl = nullptr;
-    // todo delete gl
-    env->GlobalReference_Create(reinterpret_cast<ani_object>(listener), &gl);
+    if (env->GlobalReference_Create(reinterpret_cast<ani_object>(listener), &gl) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::STARTUP, "GlobalReference_Create failed");
+        return;
+    }
+    listenerGlobalRef_ = gl;
     ani_vm *aniVM = nullptr;
     if (env->GetVM(&aniVM) != ANI_OK) {
         TAG_LOGE(AAFwkTag::STARTUP, "get vm failed");

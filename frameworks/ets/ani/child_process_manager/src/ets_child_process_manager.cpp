@@ -214,6 +214,7 @@ private:
         };
         if (AbilityRuntime::AniTask::AniSendEvent(task) != ANI_OK) {
             TAG_LOGE(AAFwkTag::PROCESSMGR, "Failed to aniSendEvent");
+            env->GlobalReference_Delete(callbackRef);
         }
     }
 

@@ -225,7 +225,11 @@ void JSAppStateObserver::AddJsObserverObject(const int32_t observerId, napi_valu
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     napi_ref ref = nullptr;
-    napi_create_reference(env_, jsObserverObject, 1, &ref);
+    napi_status status = napi_create_reference(env_, jsObserverObject, 1, &ref);
+    if (status != napi_ok || ref == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "napi_create_reference failed");
+        return;
+    }
     jsObserverObjectMap_.emplace(observerId, std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference*>(ref)));
 }
 

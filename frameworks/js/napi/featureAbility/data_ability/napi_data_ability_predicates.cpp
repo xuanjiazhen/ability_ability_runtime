@@ -735,7 +735,7 @@ napi_value DataAbilityPredicatesProxy::SetOrder(napi_env env, napi_callback_info
     NAPI_ASSERT(env, argc > 0, "DataAbilityPredicatesProxy::SetOrder Invalid argvs!");
 
     std::string order;
-    RDB_CHECK_RETURN_NULLPTR(JSUtils::Convert2Value(env, args[0], order) != napi_ok, "the order is invalid");
+    RDB_CHECK_RETURN_NULLPTR(JSUtils::Convert2Value(env, args[0], order) == napi_ok, "the order is invalid");
 
     auto nativePredicates = GetNativePredicates(env, info);
     RDB_CHECK_RETURN_NULLPTR(nativePredicates != nullptr, "GetNativePredicates return nullptr");

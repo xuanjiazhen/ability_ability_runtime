@@ -54,15 +54,18 @@ public:
         std::shared_ptr<StartupTaskResult> callbackResult = std::make_shared<JsStartupTaskResult>(result);
 
         std::shared_ptr<JsStartupTask> jsStartupTask;
-        for (const auto& iter : jsStartupTaskObjects_) {
-            if (iter.first == startupName) {
-                jsStartupTask = iter.second.lock();
+        {
+            std::lock_guard<std::mutex> lock(jsStartupTaskObjectsMutex_);
+            for (const auto& iter : jsStartupTaskObjects_) {
+                if (iter.first == startupName) {
+                    jsStartupTask = iter.second.lock();
+                }
             }
-        }
 
-        if (jsStartupTask != nullptr) {
-            jsStartupTask->OnAsyncTaskCompleted(callbackResult);
-            jsStartupTaskObjects_.erase(startupName);
+            if (jsStartupTask != nullptr) {
+                jsStartupTask->OnAsyncTaskCompleted(callbackResult);
+                jsStartupTaskObjects_.erase(startupName);
+            }
         }
 
         return CreateJsUndefined(env);
@@ -75,8 +78,10 @@ public:
     }
 
     static std::map<std::string, std::weak_ptr<JsStartupTask>> jsStartupTaskObjects_;
+    static std::mutex jsStartupTaskObjectsMutex_;
 };
 std::map<std::string, std::weak_ptr<JsStartupTask>> AsyncTaskCallBack::jsStartupTaskObjects_;
+std::mutex AsyncTaskCallBack::jsStartupTaskObjectsMutex_;
 }
 
 JsStartupTask::JsStartupTask(JsRuntime &jsRuntime, const StartupTaskInfo &info, bool lazyLoad)
@@ -125,6 +130,7 @@ int32_t JsStartupTask::RunTaskInit(std::unique_ptr<StartupTaskResultCallback> ca
     auto result = JsStartupTaskExecutor::RunOnTaskPool(
         jsRuntime_, startupJsRef_, contextJsRef_, AsyncTaskExecutorJsRef_, AsyncTaskExecutorCallbackJsRef_, name_);
     if (result == ERR_OK) {
+        std::lock_guard<std::mutex> lock(AsyncTaskCallBack::jsStartupTaskObjectsMutex_);
         AsyncTaskCallBack::jsStartupTaskObjects_.emplace(name_,
             std::static_pointer_cast<JsStartupTask>(shared_from_this()));
     }

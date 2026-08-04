@@ -40,7 +40,6 @@ namespace {
 constexpr const char *CONTEXT_CLASS_NAME = "application.AppServiceExtensionContext.AppServiceExtensionContext";
 constexpr const char *APP_SERVICE_EXTENSION_CONTEXT_CLASS_NAME =
 "application.AppServiceExtensionContext.AppServiceExtensionContext";
-static std::mutex g_connectsMutex;
 static std::recursive_mutex g_connectsLock;
 static std::map<EtsConnectionKey, sptr<ETSAppServiceExtensionConnection>, EtsKeyCompare> g_connects;
 static int64_t g_serialNumber = 0;
@@ -389,7 +388,7 @@ void EtsAppServiceExtensionContext::OnDisconnectAppServiceExtensionAbility(ani_e
     AAFwk::Want want;
     int32_t accountId = -1;
     {
-        std::lock_guard<std::mutex> lock(g_connectsMutex);
+        std::lock_guard<std::recursive_mutex> lock(g_connectsLock);
         auto iter = std::find_if(
             g_connects.begin(), g_connects.end(), [&connectId](const auto &obj) { return connectId == obj.first.id; });
         if (iter != g_connects.end()) {
