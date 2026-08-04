@@ -700,12 +700,26 @@ void EtsAgentManager::GetAllAgentCards(ani_env *env, ani_object asyncCallback)
     }
     if (cards.empty()) {
         TAG_LOGW(AAFwkTag::SER_ROUTER, "empty cards");
+        ani_object emptyArray = CreateEmptyArray(env);
+        if (emptyArray == nullptr) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "CreateEmptyArray failed");
+            AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
+                EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER), nullptr);
+            return;
+        }
         AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
-            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), CreateEmptyArray(env));
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), emptyArray);
+        return;
+    }
+    ani_object cardArray = CreateEtsAgentCardArray(env, cards);
+    if (cardArray == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "CreateEtsAgentCardArray failed");
+        AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER), nullptr);
         return;
     }
     AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
-        EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), CreateEtsAgentCardArray(env, cards));
+        EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), cardArray);
 }
 
 void EtsAgentManager::GetAgentCardsByBundleName(ani_env *env, ani_string aniBundleName, ani_object asyncCallback)
@@ -735,12 +749,26 @@ void EtsAgentManager::GetAgentCardsByBundleName(ani_env *env, ani_string aniBund
     }
     if (cards.empty()) {
         TAG_LOGW(AAFwkTag::SER_ROUTER, "empty cards");
+        ani_object emptyArray = CreateEmptyArray(env);
+        if (emptyArray == nullptr) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "CreateEmptyArray failed");
+            AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
+                EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER), nullptr);
+            return;
+        }
         AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
-            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), CreateEmptyArray(env));
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), emptyArray);
+        return;
+    }
+    ani_object cardArray = CreateEtsAgentCardArray(env, cards);
+    if (cardArray == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "CreateEtsAgentCardArray failed");
+        AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER), nullptr);
         return;
     }
     AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
-        EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), CreateEtsAgentCardArray(env, cards));
+        EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), cardArray);
 }
 
 void EtsAgentManager::GetAgentCardByAgentId(ani_env *env, ani_string aniBundleName, ani_string aniAgentId,
