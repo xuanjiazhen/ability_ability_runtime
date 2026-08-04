@@ -391,13 +391,18 @@ void JSAgentConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::ElementN
     if (disconnectCompleteHandler_ != nullptr) {
         disconnectCompleteHandler_(wptr<JSAgentConnection>(this));
     }
-    if (disconnectAsyncTask_ != nullptr) {
-        if (resultCode == static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_OK)) {
-            disconnectAsyncTask_->ResolveWithNoError(env_, CreateJsUndefined(env_));
-        } else {
-            disconnectAsyncTask_->Reject(env_, CreateJsErrorByNativeErr(env_, resultCode));
-        }
+    std::shared_ptr<AbilityRuntime::NapiAsyncTask> disconnectTask;
+    {
+        std::lock_guard<std::mutex> lock(stateLock_);
+        disconnectTask = disconnectAsyncTask_;
         disconnectAsyncTask_ = nullptr;
+    }
+    if (disconnectTask != nullptr) {
+        if (resultCode == static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_OK)) {
+            disconnectTask->ResolveWithNoError(env_, CreateJsUndefined(env_));
+        } else {
+            disconnectTask->Reject(env_, CreateJsErrorByNativeErr(env_, resultCode));
+        }
     }
 
     // release connect
@@ -431,6 +436,7 @@ void JSAgentConnection::SetNapiAsyncTask(std::shared_ptr<AbilityRuntime::NapiAsy
 
 void JSAgentConnection::SetDisconnectAsyncTask(const std::shared_ptr<AbilityRuntime::NapiAsyncTask> &task)
 {
+    std::lock_guard<std::mutex> lock(stateLock_);
     disconnectAsyncTask_ = task;
 }
 
