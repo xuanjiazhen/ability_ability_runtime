@@ -379,7 +379,15 @@ napi_value JsWantAgent::OnEqual(napi_env env, napi_callback_info info)
     HandleEscape handleEscape(env);
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    napi_status getCbInfoStatus = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (getCbInfoStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "napi_get_cb_info failed, status=%{public}d",
+            static_cast<int>(getCbInfoStatus));
+#ifdef ENABLE_ERRCODE
+        ThrowTooFewParametersError(env);
+#endif
+        return CreateJsUndefined(env);
+    }
     WantAgent* pWantAgentFirst = nullptr;
     WantAgent* pWantAgentSecond = nullptr;
     if (argc < ARGC_TWO || argc > ARGC_THREE) {
@@ -437,7 +445,13 @@ napi_value JsWantAgent::OnGetWant(napi_env env, napi_callback_info info)
     HandleEscape handleEscape(env);
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    napi_status getCbInfoStatus = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (getCbInfoStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "napi_get_cb_info failed, status=%{public}d",
+            static_cast<int>(getCbInfoStatus));
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
     int32_t errCode = BUSINESS_ERROR_CODE_OK;
     WantAgent* pWantAgent = nullptr;
     if (argc > ARGC_TWO || argc < ARGC_ONE) {
@@ -483,7 +497,13 @@ napi_value JsWantAgent::OnGetOperationType(napi_env env, napi_callback_info info
     HandleEscape handleEscape(env);
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    napi_status getCbInfoStatus = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (getCbInfoStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "napi_get_cb_info failed, status=%{public}d",
+            static_cast<int>(getCbInfoStatus));
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
     int32_t errCode = BUSINESS_ERROR_CODE_OK;
     WantAgent* pWantAgent = nullptr;
     if (argc > ARGC_TWO || argc < ARGC_ONE) {
@@ -526,7 +546,15 @@ napi_value JsWantAgent::OnGetBundleName(napi_env env, napi_callback_info info)
     HandleEscape handleEscape(env);
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    napi_status getCbInfoStatus = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (getCbInfoStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "napi_get_cb_info failed, status=%{public}d",
+            static_cast<int>(getCbInfoStatus));
+#ifdef ENABLE_ERRCODE
+        ThrowTooFewParametersError(env);
+#endif
+        return CreateJsUndefined(env);
+    }
     WantAgent* pWantAgent = nullptr;
     if (argc > ARGC_TWO || argc < ARGC_ONE) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Not enough params");
@@ -599,7 +627,15 @@ napi_value JsWantAgent::OnGetUid(napi_env env, napi_callback_info info)
     HandleEscape handleEscape(env);
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    napi_status getCbInfoStatus = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (getCbInfoStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "napi_get_cb_info failed, status=%{public}d",
+            static_cast<int>(getCbInfoStatus));
+#ifdef ENABLE_ERRCODE
+        ThrowTooFewParametersError(env);
+#endif
+        return CreateJsUndefined(env);
+    }
     WantAgent* pWantAgent = nullptr;
     if (argc > ARGC_TWO || argc < ARGC_ONE) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Not enough params");
@@ -669,7 +705,15 @@ napi_value JsWantAgent::OnCancel(napi_env env, napi_callback_info info)
     WantAgent* pWantAgent = nullptr;
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    napi_status getCbInfoStatus = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (getCbInfoStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "napi_get_cb_info failed, status=%{public}d",
+            static_cast<int>(getCbInfoStatus));
+#ifdef ENABLE_ERRCODE
+        ThrowTooFewParametersError(env);
+#endif
+        return handleEscape.Escape(CreateJsUndefined(env));
+    }
     if (argc > ARGC_TWO || argc < ARGC_ONE) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Not enough params");
 #ifdef ENABLE_ERRCODE
@@ -735,7 +779,13 @@ napi_value JsWantAgent::OnTrigger(napi_env env, napi_callback_info info)
     HandleEscape handleEscape(env);
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    napi_status getCbInfoStatus = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (getCbInfoStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "napi_get_cb_info failed, status=%{public}d",
+            static_cast<int>(getCbInfoStatus));
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
     if (argc != ARGC_THREE) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Not enough params");
         ThrowTooFewParametersError(env);
@@ -775,7 +825,13 @@ int32_t JsWantAgent::UnWrapTriggerInfoParam(napi_env env, napi_callback_info inf
 {
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    napi_status getCbInfoStatus = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (getCbInfoStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "napi_get_cb_info failed, status=%{public}d",
+            static_cast<int>(getCbInfoStatus));
+        ThrowTooFewParametersError(env);
+        return ERR_NOT_OK;
+    }
     if (argc != ARGC_THREE) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Not enough params");
         ThrowTooFewParametersError(env);
@@ -804,7 +860,11 @@ int32_t JsWantAgent::UnWrapTriggerInfoParam(napi_env env, napi_callback_info inf
     }
 
     napi_ref ref = nullptr;
-    napi_create_reference(env, argv[ARGC_TWO], 1, &ref);
+    napi_status refStatus = napi_create_reference(env, argv[ARGC_TWO], 1, &ref);
+    if (refStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "napi_create_reference failed, status=%{public}d",
+            static_cast<int>(refStatus));
+    }
     triggerObj->SetCallbackInfo(env, reinterpret_cast<NativeReference*>(ref));
     triggerObj->SetWantAgentInstance(std::make_shared<WantAgent>(pWantAgent->GetPendingWant()));
 
@@ -930,7 +990,16 @@ int32_t JsWantAgent::GetWantAgentParam(napi_env env, napi_callback_info info, Wa
     TAG_LOGD(AAFwkTag::WANTAGENT, "called");
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    napi_status getCbInfoStatus = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (getCbInfoStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "napi_get_cb_info failed, status=%{public}d",
+            static_cast<int>(getCbInfoStatus));
+        return PARAMETER_ERROR;
+    }
+    if (argc < ARGC_ONE) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "Not enough params");
+        return PARAMETER_ERROR;
+    }
     if (!CheckTypeForNapiValue(env, argv[0], napi_object)) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "param type mismatch");
         return PARAMETER_ERROR;
@@ -1088,7 +1157,13 @@ napi_value JsWantAgent::OnGetWantAgent(napi_env env, napi_callback_info info)
     HandleEscape handleEscape(env);
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    napi_status getCbInfoStatus = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (getCbInfoStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "napi_get_cb_info failed, status=%{public}d",
+            static_cast<int>(getCbInfoStatus));
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
     if (argc > ARGC_TWO || argc < ARGC_ONE) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Not enough params");
         ThrowTooFewParametersError(env);
@@ -1143,7 +1218,13 @@ napi_value JsWantAgent::OnNapiGetWant(napi_env env, napi_callback_info info)
     HandleEscape handleEscape(env);
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    napi_status getCbInfoStatus = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (getCbInfoStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "napi_get_cb_info failed, status=%{public}d",
+            static_cast<int>(getCbInfoStatus));
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
     if (argc > ARGC_TWO || argc < ARGC_ONE) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Not enough params");
         ThrowTooFewParametersError(env);
@@ -1200,7 +1281,13 @@ napi_value JsWantAgent::OnNapiTrigger(napi_env env, napi_callback_info info)
     TAG_LOGI(AAFwkTag::WANTAGENT, "on trigger");
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    napi_status getCbInfoStatus = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (getCbInfoStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "napi_get_cb_info failed, status=%{public}d",
+            static_cast<int>(getCbInfoStatus));
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
     if (argc != ARGC_THREE) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Not enough params");
         ThrowTooFewParametersError(env);
@@ -1240,7 +1327,13 @@ napi_value JsWantAgent::OnNapiTriggerAsync(napi_env env, napi_callback_info info
     HandleEscape handleEscape(env);
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    napi_status getCbInfoStatus = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (getCbInfoStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "napi_get_cb_info failed, status=%{public}d",
+            static_cast<int>(getCbInfoStatus));
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
     if (argc < ARGC_THREE) {
         ThrowTooFewParametersError(env);
         return CreateJsUndefined(env);
@@ -1284,6 +1377,10 @@ napi_value JsWantAgent::OnNapiTriggerAsync(napi_env env, napi_callback_info info
         sptr<CompletedDispatcher> completedData;
         *retCode = WantAgentHelper::TriggerWantAgent(wantAgent, triggerObj, triggerInfo, completedData,
             inputContextPtr->GetToken());
+        if (completedData == nullptr) {
+            *retCode = ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
+            return;
+        }
         *data = *reinterpret_cast<CompletedDispatcher*>(completedData.GetRefPtr());
     };
     NapiAsyncTask::CompleteCallback complete = [retCode, data](napi_env env, NapiAsyncTask& task, int32_t status) {
@@ -1341,7 +1438,13 @@ napi_value JsWantAgent::OnNapiGetWantAgent(napi_env env, napi_callback_info info
     HandleEscape handleEscape(env);
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    napi_status getCbInfoStatus = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (getCbInfoStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "napi_get_cb_info failed, status=%{public}d",
+            static_cast<int>(getCbInfoStatus));
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
     if (argc > ARGC_TWO || argc < ARGC_ONE) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Not enough params");
         ThrowTooFewParametersError(env);
@@ -1416,7 +1519,13 @@ napi_value JsWantAgent::OnNapiCreateLocalWantAgent(napi_env env, napi_callback_i
     HandleEscape handleEscape(env);
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    napi_status getCbInfoStatus = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (getCbInfoStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "napi_get_cb_info failed, status=%{public}d",
+            static_cast<int>(getCbInfoStatus));
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
     if (argc != ARGC_ONE) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Not enough params");
         ThrowTooFewParametersError(env);
@@ -1467,7 +1576,13 @@ napi_value JsWantAgent::OnNapiIsLocalWantAgent(napi_env env, napi_callback_info 
     TAG_LOGI(AAFwkTag::WANTAGENT, "on is localWantAgent");
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    napi_status getCbInfoStatus = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (getCbInfoStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "napi_get_cb_info failed, status=%{public}d",
+            static_cast<int>(getCbInfoStatus));
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
     if (argc != ARGC_ONE) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Not enough params");
         ThrowTooFewParametersError(env);
@@ -1507,7 +1622,13 @@ napi_value JsWantAgent::OnNapiGetOperationType(napi_env env, napi_callback_info 
     HandleEscape handleEscape(env);
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    napi_status getCbInfoStatus = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (getCbInfoStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "napi_get_cb_info failed, status=%{public}d",
+            static_cast<int>(getCbInfoStatus));
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
     WantAgent* pWantAgent = nullptr;
     if (argc > ARGC_TWO || argc < ARGC_ONE) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Not enough params");
@@ -1559,7 +1680,13 @@ napi_value JsWantAgent::OnNapiSetWantAgentMultithreading(napi_env env, napi_call
     bool isMultithreadingSupported = false;
     size_t argc = ARGS_MAX_COUNT;
     napi_value argv[ARGS_MAX_COUNT] = {nullptr};
-    napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    napi_status getCbInfoStatus = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (getCbInfoStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "napi_get_cb_info failed, status=%{public}d",
+            static_cast<int>(getCbInfoStatus));
+        ThrowInvalidNumParametersError(env);
+        return CreateJsUndefined(env);
+    }
     if (argc != ARGC_ONE) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "invalid argc");
         ThrowInvalidNumParametersError(env);
