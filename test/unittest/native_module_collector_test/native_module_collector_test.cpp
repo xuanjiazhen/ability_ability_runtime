@@ -255,10 +255,12 @@ HWTEST_F(NativeModuleCollectorTest, MergeAndSave_RoundTripAndRelativePath_013, T
     RemoveDirRecursively(base);
     std::string store = NativeModuleCollector::GetStorePath(base, "com.example.app");
     // only system modules are persisted; relativePath is captured and replayed
+    // MergeAndSave trusts its input; app-module filtering happens at the
+    // AccumulateModules entry (covered by AccumulateModules_DropsAppModules_017),
+    // so here only system modules are fed in.
     ASSERT_TRUE(NativeModuleCollector::MergeAndSave(store, 100,
         { MakeModule("ohos.hilog", false, "@app/feature"),
-          MakeModule("ohos.window"),
-          MakeModule("entry", true) })); // app module dropped
+          MakeModule("ohos.window") }));
     EXPECT_EQ(FilePermission(store), STORE_FILE_MODE);
 
     std::map<std::string, ModuleStat> stats;
@@ -267,8 +269,7 @@ HWTEST_F(NativeModuleCollectorTest, MergeAndSave_RoundTripAndRelativePath_013, T
     ASSERT_TRUE(NativeModuleCollector::LoadStats(store, stats, meta, err));
     EXPECT_EQ(meta.launchIndex, 1u);
     EXPECT_EQ(meta.appVersionCode, 100);
-    EXPECT_EQ(stats.size(), 2u); // entry (app) excluded
-    EXPECT_EQ(stats.count("entry"), 0u);
+    EXPECT_EQ(stats.size(), 2u);
     EXPECT_EQ(stats["ohos.hilog"].relativePath, "@app/feature"); // relativePath round-trips
     EXPECT_FLOAT_EQ(stats["ohos.hilog"].score, 1.0f);
 
@@ -392,7 +393,11 @@ HWTEST_F(NativeModuleCollectorTest, LoadPredictedSystemModules_Filter_020, TestS
         }
     }
     EXPECT_TRUE(foundHilog);
-    // decay ohos.window below threshold: only ohos.hilog stays predicted
+    // ohos.window misses: 1.0 -> 0.6 (still >= 0.5, stays predicted)
+    ASSERT_TRUE(NativeModuleCollector::MergeAndSave(store, 100, { MakeModule("ohos.hilog", false, "@app/a") }));
+    predicted = NativeModuleCollector::LoadPredictedSystemModules(store);
+    EXPECT_EQ(predicted.size(), 2u);
+    // another miss: 0.6 -> 0.36 (< 0.5, drops out); only ohos.hilog stays predicted
     ASSERT_TRUE(NativeModuleCollector::MergeAndSave(store, 100, { MakeModule("ohos.hilog", false, "@app/a") }));
     predicted = NativeModuleCollector::LoadPredictedSystemModules(store);
     EXPECT_EQ(predicted.size(), 1u);
