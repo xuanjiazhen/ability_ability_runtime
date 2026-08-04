@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_UPDATE_CALLER_INFO_UTIL_H
 #define OHOS_ABILITY_RUNTIME_UPDATE_CALLER_INFO_UTIL_H
 
+#include <cstdint>
 #include <string>
 #include "caller_info.h"
 #include "want.h"
@@ -32,6 +33,10 @@ public:
         int32_t &callerUid, int32_t &callerPid);
     void UpdateCallerInfo(Want& want, const sptr<IRemoteObject> &callerToken,
         std::shared_ptr<IndirectCallerInfo> indirectCallerInfo = nullptr);
+    // SA 代调场景下,只有 callerTokenId(uint32_t, HAP access token),没有 callerToken(IRemoteObject).
+    // 直接基于 HapTokenInfo 填 Want 的 caller 字段,跳过 IPCSkeleton 读 caller 的 nullptr 退化路径.
+    // 局限:callerPid 拿不到(SA 不知道真实 HAP pid),留 0;callerAbilityName 留空.
+    void UpdateCallerInfoByHapTokenId(Want& want, uint32_t callerTokenId);
     void UpdateBackToCallerFlag(const sptr<IRemoteObject> &callerToken, Want &want, int32_t requestCode, bool backFlag);
     void UpdateCallerInfoFromToken(Want& want, const sptr<IRemoteObject> &token);
     void UpdateDmsCallerInfo(Want& want, const sptr<IRemoteObject> &callerToken);
