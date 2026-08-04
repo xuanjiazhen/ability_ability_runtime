@@ -17,6 +17,7 @@
 
 #include <dlfcn.h>
 
+#include "c/ffrt_ipc.h"
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {
@@ -119,11 +120,14 @@ void DynamicFeatureManager::CancelUnloadLocked(Entry &entry)
 void DynamicFeatureManager::ArmUnloadLocked(Entry &entry, FeatureId id)
 {
     CancelUnloadLocked(entry);
-    // Per-feature delayed unload. Captures `this` (singleton, lives till process exit)
-    // and `id`; fires UnloadFeatureIfIdle after the idle delay, unloading ONLY this feature.
+    // Per-feature delayed unload. Does not capture `this`; re-enters via the singleton
+    // (lives till process exit) and `id`. Fires UnloadFeatureIfIdle after the idle delay,
+    // unloading ONLY this feature.
     entry.unloadHandle = ffrt::submit_h(
-        [this, id]() { UnloadFeatureIfIdle(id); },
-        {}, {},
+        [id]() {
+            ffrt_this_task_set_legacy_mode(true);
+            DynamicFeatureManager::GetInstance().UnloadFeatureIfIdle(id);
+        }, {}, {},
         ffrt::task_attr().delay(UNLOAD_DELAY_TIME_US).name(UNLOAD_TASK_PREFIX));
 }
 
