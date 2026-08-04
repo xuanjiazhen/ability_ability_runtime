@@ -146,10 +146,11 @@ public:
      * @brief Accumulate sampled modules for the current launch round.
      *
      * Modules whose key is in the preload key set are dropped (AC-1.5).
-     * Duplicate keys refresh fileName/loadCount but keep the first-sighting stage.
+     * Duplicate keys refresh relativePath only.
      *
-     * @param modules sampled modules (firstStage field is overwritten per entry)
-     * @param firstStage stage of this sample: 0 = app_ready, 1 = late
+     * @param modules sampled modules
+     * @param firstStage stage of this sample (0 = app_ready, 1 = late); diagnostic
+     *        only, does not affect sampling or persistence
      */
     static void AccumulateModules(const std::vector<CollectedModule>& modules, uint8_t firstStage);
 
@@ -230,16 +231,17 @@ public:
      * first round is fully trusted (spec R-7).
      *
      * A module in consumerPreloads (preloaded by the startup consumer this
-     * round) only counts as a hit when its loadCount grew by more than the
-     * consumer preload count, i.e. there is evidence of a real app import
-     * (spec R-9); otherwise its score/hits stay untouched and only the
-     * observed loadCount is refreshed.
+     * round) is never rewarded: it is skipped with only relativePath refreshed,
+     * leaving lastSeenLaunch untouched so the trailing decay loop treats it as
+     * a miss. This breaks the self-feedback loop without loadCount accounting
+     * (spec R-9): a module only ever preloaded by the consumer decays until it
+     * drops out of the predicted set.
      *
      * @param round modules confirmed imported in this launch
      * @param stats stats map to update in place
      * @param launchIndex index of the current launch round
      * @param coldStart whether this is a rebuild-from-scratch round
-     * @param consumerPreloads moduleName -> preload count by the consumer this round
+     * @param consumerPreloads moduleNames preloaded by the consumer this round
      */
     static void MergeRound(const std::vector<CollectedModule>& round,
         std::map<std::string, ModuleStat>& stats, uint32_t launchIndex, bool coldStart,

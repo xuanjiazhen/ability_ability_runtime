@@ -3080,15 +3080,24 @@ void MainThread::HandleCleanAbility(const sptr<IRemoteObject> &token, bool isCac
  */
 void MainThread::TriggerNativeModuleCollect(bool immediate)
 {
-    if (!NativeModuleCollector::IsEnabled() || nativeModuleCollectScheduled_) {
+    if (!NativeModuleCollector::IsEnabled()) {
         return;
     }
-    nativeModuleCollectScheduled_ = true;
-    TAG_LOGI(AAFwkTag::APPKIT, "checkpoint2 scheduled, immediate=%{public}d", immediate ? 1 : 0);
+    // The background fallback (immediate=true) must run even if a delayed task
+    // is already pending: the process may be reclaimed before the 5s timer
+    // fires, and losing the whole round of samples defeats the feature. Re-entry
+    // safety is guaranteed downstream by NativeModuleCollector::SaveNow, which
+    // persists at most once per launch.
     if (immediate) {
+        TAG_LOGI(AAFwkTag::APPKIT, "checkpoint2 immediate (background fallback)");
         RunNativeModuleCollect();
         return;
     }
+    if (nativeModuleCollectScheduled_) {
+        return; // delayed task already scheduled
+    }
+    nativeModuleCollectScheduled_ = true;
+    TAG_LOGI(AAFwkTag::APPKIT, "checkpoint2 scheduled (delayed)");
     if (mainHandler_ == nullptr) {
         TAG_LOGW(AAFwkTag::APPKIT, "null mainHandler_, collect inline");
         RunNativeModuleCollect();
