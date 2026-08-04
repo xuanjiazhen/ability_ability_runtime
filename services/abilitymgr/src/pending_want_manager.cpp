@@ -802,6 +802,7 @@ void PendingWantManager::ClearPendingWantRecordTask(const std::string &bundleNam
                 }
             }
             if (hasBundle) {
+                MakeWantSenderCanceledLocked(*pendingRecord);
                 ReduceWantAgentNumber(iter->first);
                 iter = wantRecords_.erase(iter);
                 TAG_LOGI(AAFwkTag::WANTAGENT, "wantRecords_ size %{public}zu", wantRecords_.size());
