@@ -127,8 +127,7 @@ napi_value CreateUIAbilityContextHolder(napi_env targetEnv, napi_callback_info i
         return ThrowTargetError(targetEnv, "Failed to initialize the target UIAbilityContext holder.");
     }
 
-    std::shared_ptr<Context> context = abilityContext;
-    auto* weakContext = new (std::nothrow) std::weak_ptr<Context>(context);
+    auto* weakContext = new (std::nothrow) std::weak_ptr<Context>(abilityContext);
     if (weakContext == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "allocate target weak context failed");
         return ThrowTargetError(targetEnv, "Failed to allocate the target UIAbilityContext holder.");
