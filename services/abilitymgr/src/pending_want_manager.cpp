@@ -291,7 +291,7 @@ bool PendingWantManager::CheckPendingWantRecordByKey(
         return false;
     }
 
-    if (!inputKey->IsEqualsRequestWant(key->GetRequestWantRef())) {
+    if (!inputKey->IsEqualsRequestWant(key->GetRequestWant())) {
         return false;
     }
 
@@ -644,9 +644,8 @@ void PendingWantManager::RegisterCancelListener(const sptr<IWantSender> &sender,
             targetRecord->GetKey()->GetCode());
         return;
     }
-    bool cancel = record->GetCanceled();
     std::lock_guard<ffrt::mutex> locker(mutex_);
-    if (!cancel) {
+    if (!record->GetCanceled()) {
         record->RegisterCancelListener(recevier);
     }
 }
@@ -802,6 +801,7 @@ void PendingWantManager::ClearPendingWantRecordTask(const std::string &bundleNam
                 }
             }
             if (hasBundle) {
+                MakeWantSenderCanceledLocked(*pendingRecord);
                 ReduceWantAgentNumber(iter->first);
                 iter = wantRecords_.erase(iter);
                 TAG_LOGI(AAFwkTag::WANTAGENT, "wantRecords_ size %{public}zu", wantRecords_.size());

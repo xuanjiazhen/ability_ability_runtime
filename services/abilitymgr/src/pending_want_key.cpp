@@ -100,12 +100,6 @@ Want PendingWantKey::GetRequestWant()
     return requestWant_;
 }
 
-Want& PendingWantKey::GetRequestWantRef()
-{
-    std::lock_guard<std::mutex> lock(requestWantMutex_);
-    return requestWant_;
-}
-
 std::string PendingWantKey::GetRequestResolvedType()
 {
     return requestResolvedType_;

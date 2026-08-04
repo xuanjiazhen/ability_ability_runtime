@@ -48,7 +48,6 @@ public:
     std::string GetRequestWho();
     int32_t GetRequestCode();
     Want GetRequestWant();
-    Want& GetRequestWantRef();
     std::string GetRequestResolvedType();
     std::vector<WantsInfo> GetAllWantsInfos();
     int32_t GetFlags();
