@@ -119,7 +119,18 @@ void AgentConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &ele
     for (auto &callback : callbacks) {
         callback->OnAbilityDisconnectDone(element, resultCode);
     }
-    SetRemoteObject(nullptr);
+    // Null remoteObject under agentMutex_ so concurrent readers (HandleExistingConnectionLocked via
+    // GetRemoteObjectLocked) are serialized and never observe a half-cleared sptr control block.
+    {
+        std::lock_guard<std::mutex> lock(agentMutex_);
+        SetRemoteObject(nullptr);
+    }
+}
+
+sptr<IRemoteObject> AgentConnection::GetRemoteObjectLocked()
+{
+    std::lock_guard<std::mutex> lock(agentMutex_);
+    return GetRemoteObject();
 }
 
 AgentConnectionManager &AgentConnectionManager::GetInstance()
@@ -145,11 +156,17 @@ ErrCode AgentConnectionManager::ReuseLowCodeAgentExtensionAbility(const AAFwk::W
 
     sptr<AgentConnection> agentConnection;
     {
-        std::lock_guard<std::mutex> lock(connectionsLock_);
+        std::lock_guard<std::recursive_mutex> lock(connectionsLock_);
         agentConnection = FindLowCodeReuseConnectionLocked(want, connectCallback);
     }
     if (agentConnection == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "low-code reuse connection not found");
+        return AAFwk::CONNECTION_NOT_EXIST;
+    }
+    // Re-check state after releasing the lock: a concurrent disconnect may have torn the connection
+    // down between Find and the reuse IPC; avoid handing a disconnecting connection to AMS.
+    if (agentConnection->GetConnectionState() == CONNECTION_STATE_DISCONNECTED) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "low-code reuse connection already disconnected");
         return AAFwk::CONNECTION_NOT_EXIST;
     }
     return AgentManagerClient::GetInstance().ConnectAgentExtensionAbility(want, agentConnection);
@@ -163,7 +180,7 @@ ErrCode AgentConnectionManager::DisconnectAgentExtensionAbility(const sptr<Abili
     }
 
     TAG_LOGD(AAFwkTag::SER_ROUTER, "DisconnectAgentExtensionAbility called");
-    std::lock_guard<std::mutex> lock(connectionsLock_);
+    std::lock_guard<std::recursive_mutex> lock(connectionsLock_);
     auto item = agentConnections_.begin();
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Connection size:%{public}zu", agentConnections_.size());
     while (item != agentConnections_.end()) {
@@ -229,7 +246,7 @@ ErrCode AgentConnectionManager::DisconnectServiceExtensionAbility(const sptr<IRe
 
 bool AgentConnectionManager::RemoveConnection(const sptr<AgentConnection> &connection)
 {
-    std::lock_guard<std::mutex> lock(connectionsLock_);
+    std::lock_guard<std::recursive_mutex> lock(connectionsLock_);
     TAG_LOGD(AAFwkTag::SER_ROUTER, "agentConnectionsSize: %{public}zu", agentConnections_.size());
     bool isDisconnect = false;
     for (auto iter = agentConnections_.begin(); iter != agentConnections_.end();) {
@@ -248,7 +265,7 @@ bool AgentConnectionManager::DisconnectNonexistentService(const AppExecFwk::Elem
     const sptr<AgentConnection> &connection)
 {
     bool exist = false;
-    std::lock_guard<std::mutex> lock(connectionsLock_);
+    std::lock_guard<std::recursive_mutex> lock(connectionsLock_);
     TAG_LOGD(AAFwkTag::SER_ROUTER, "agentConnectionsSize: %{public}zu", agentConnections_.size());
     for (const auto &agentConnection : agentConnections_) {
         if (agentConnection.first.agentConnection == connection &&
@@ -323,9 +340,12 @@ AgentConnectionList::iterator AgentConnectionManager::FindConnectionLocked(
 }
 
 ErrCode AgentConnectionManager::HandleExistingConnectionLocked(AgentConnectionList::iterator connectionIter,
-    const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback, bool &handled)
+    const AAFwk::Want &want, const sptr<AbilityConnectCallback> &connectCallback, bool &handled,
+    bool &replayConnect, sptr<IRemoteObject> &replayRemote, int &replayCode,
+    AppExecFwk::ElementName &replayElement)
 {
     handled = true;
+    replayConnect = false;
     std::vector<sptr<AbilityConnectCallback>> &callbacks = connectionIter->second;
     sptr<AgentConnection> agentConnection = connectionIter->first.agentConnection;
     if (agentConnection == nullptr) {
@@ -340,9 +360,14 @@ ErrCode AgentConnectionManager::HandleExistingConnectionLocked(AgentConnectionLi
         agentConnections_.size(), agentConnection->GetConnectionState());
     TAG_LOGD(AAFwkTag::SER_ROUTER, "agentConnection exist, callbackSize:%{public}zu", callbacks.size());
     if (agentConnection->GetConnectionState() == CONNECTION_STATE_CONNECTED) {
-        AppExecFwk::ElementName element = want.GetElement();
-        connectCallback->OnAbilityConnectDone(element, agentConnection->GetRemoteObject(),
-            agentConnection->GetResultCode());
+        // Snapshot under the caller's connectionsLock_ + agentMutex_ (GetRemoteObjectLocked); the connect
+        // callback is fired by ConnectAbilityInner OUTSIDE connectionsLock_ to avoid deadlock if it
+        // re-enters AgentConnectionManager. The snapshot holds its own sptr ref so a concurrent
+        // SetRemoteObject(nullptr) cannot free the remote mid-callback.
+        replayConnect = true;
+        replayRemote = agentConnection->GetRemoteObjectLocked();
+        replayCode = agentConnection->GetResultCode();
+        replayElement = want.GetElement();
         return ERR_OK;
     }
     if (agentConnection->GetConnectionState() == CONNECTION_STATE_CONNECTING) {
@@ -381,7 +406,7 @@ void AgentConnectionManager::ReplayLowCodeConnectDoneIfReady(const AAFwk::Want &
     }
     sptr<AgentConnection> agentConnection;
     {
-        std::lock_guard<std::mutex> lock(connectionsLock_);
+        std::lock_guard<std::recursive_mutex> lock(connectionsLock_);
         agentConnection = FindLowCodeReuseConnectionLocked(want, connectCallback);
     }
     if (agentConnection == nullptr || agentConnection->GetConnectionState() != CONNECTION_STATE_CONNECTED) {
@@ -411,14 +436,14 @@ ErrCode AgentConnectionManager::CreateConnection(const AAFwk::Want &want,
     connectionInfo.RecordConnectingTime();
 
     {
-        std::lock_guard<std::mutex> lock(connectionsLock_);
+        std::lock_guard<std::recursive_mutex> lock(connectionsLock_);
         agentConnections_.emplace_back(connectionInfo, std::vector<sptr<AbilityConnectCallback>> { connectCallback });
     }
 
     ErrCode ret = AgentManagerClient::GetInstance().ConnectAgentExtensionAbility(want, agentConnection);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "error:%{public}d", ret);
-        std::lock_guard<std::mutex> lock(connectionsLock_);
+        std::lock_guard<std::recursive_mutex> lock(connectionsLock_);
         auto iter = std::find_if(agentConnections_.begin(), agentConnections_.end(),
             [&agentConnection](const AgentConnectionRecord &record) {
                 return record.first.agentConnection == agentConnection;
@@ -483,18 +508,35 @@ ErrCode AgentConnectionManager::ConnectAbilityInner(const AAFwk::Want &want,
         agentId.c_str(), want.GetElement().GetBundleName().c_str(),
         want.GetElement().GetModuleName().c_str(), want.GetElement().GetAbilityName().c_str());
 
+    bool replayConnect = false;
+    sptr<IRemoteObject> replayRemote;
+    int replayCode = 0;
+    AppExecFwk::ElementName replayElement;
     {
-        std::lock_guard<std::mutex> lock(connectionsLock_);
+        // Hold the lock across find+create to close the TOCTOU where two threads both miss
+        // FindConnectionLocked and each CreateConnection. CreateConnection re-locks (emplace/erase);
+        // recursive_mutex permits that on the same thread.
+        std::lock_guard<std::recursive_mutex> lock(connectionsLock_);
         auto connectionIter = FindConnectionLocked(agentId, want);
         if (connectionIter != agentConnections_.end()) {
             bool handled = false;
-            ret = HandleExistingConnectionLocked(connectionIter, want, connectCallback, handled);
-            if (ret != ERR_OK || handled) {
-                return ret;
+            ret = HandleExistingConnectionLocked(connectionIter, want, connectCallback, handled,
+                replayConnect, replayRemote, replayCode, replayElement);
+            if (ret == ERR_OK && !handled) {
+                // Existing entry was DISCONNECTED and erased above: fall through to create.
+                ret = CreateConnection(want, connectCallback);
             }
+        } else {
+            ret = CreateConnection(want, connectCallback);
         }
     }
-    return CreateConnection(want, connectCallback);
+    // Fire the replay connect callback OUTSIDE connectionsLock_ so a re-entrant connect/disconnect
+    // from onConnect does not hold the lock across arbitrary user code or serialize unrelated
+    // connections behind a user callback.
+    if (ret == ERR_OK && replayConnect) {
+        connectCallback->OnAbilityConnectDone(replayElement, replayRemote, replayCode);
+    }
+    return ret;
 }
 } // namespace AgentRuntime
 } // namespace OHOS

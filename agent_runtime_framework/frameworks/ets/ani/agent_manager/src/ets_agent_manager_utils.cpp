@@ -480,12 +480,12 @@ ani_object CreateEtsAgentCardArray(ani_env *env, const std::vector<AgentCard> &c
         ani_object aniCard = CreateEtsAgentCard(env, card);
         if (aniCard == nullptr) {
             TAG_LOGW(AAFwkTag::SER_ROUTER, "null aniCard");
-            break;
+            return nullptr;
         }
         status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", index, aniCard);
         if (status != ANI_OK) {
             TAG_LOGW(AAFwkTag::SER_ROUTER, "Object_CallMethodByName_Void failed: %{public}d", status);
-            break;
+            return nullptr;
         }
         index++;
     }

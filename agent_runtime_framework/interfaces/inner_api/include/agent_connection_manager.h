@@ -124,6 +124,10 @@ public:
      */
     void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) override;
 
+    // Thread-safe accessor: readers on a different lock than agentMutex_ must take it to avoid a
+    // data race with SetRemoteObject(nullptr) in OnAbilityDisconnectDone.
+    sptr<IRemoteObject> GetRemoteObjectLocked();
+
 private:
     std::mutex agentMutex_;
 };
@@ -236,7 +240,8 @@ private:
     AgentConnectionList::iterator FindConnectionLocked(const std::string &agentId, const AAFwk::Want &want);
     ErrCode HandleExistingConnectionLocked(AgentConnectionList::iterator connectionIter,
         const AAFwk::Want &want, const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback,
-        bool &handled);
+        bool &handled, bool &replayConnect, sptr<IRemoteObject> &replayRemote, int &replayCode,
+        AppExecFwk::ElementName &replayElement);
     sptr<AgentConnection> FindLowCodeReuseConnectionLocked(const AAFwk::Want &want,
         const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback);
     ErrCode ValidateAgentConnectRequest(const AAFwk::Want &want,
@@ -268,7 +273,9 @@ private:
         const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback);
 
 private:
-    std::mutex connectionsLock_;
+    // recursive_mutex: ConnectAbilityInner holds it across CreateConnection (whose internal
+    // emplace/erase re-lock it) to close the find-then-create TOCTOU window.
+    std::recursive_mutex connectionsLock_;
     AgentConnectionList agentConnections_;
 };
 } // namespace AgentRuntime
