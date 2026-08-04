@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-#include "native_engine/native_engine.h"
+#include "napi/native_api.h"
 #include "want.h"
 #include "want_params.h"
 
