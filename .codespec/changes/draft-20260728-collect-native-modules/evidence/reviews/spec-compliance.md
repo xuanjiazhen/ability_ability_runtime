@@ -43,6 +43,9 @@
 | OI-3 | risk | CCM 参数命名未与 owner 确认（RSK-3），当前按 ccm.ability.native_module_collect.* 实现 | follow-up：评审时定名 |
 | OI-4 | blocker | Phase-3/4 代码未编译验证、22 组 UT 未执行、上机实测未做 | **部分解除**：编译通过 + UT 执行通过 + 阶段 0~3 设备实测通过；阶段 4~8 与淘汰设备回归待续 |
 | OI-5 | follow-up | 淘汰验证（AC-2.2 设备侧）当前测试 app 无法构造"仅前 N 轮加载"场景 | UT 已覆盖淘汰逻辑（EvictStats_* 三例）；设备侧回归待后续测试 app 就绪后补 |
+| OI-6 | follow-up | PredictPreloadSoStartupTask（consumer 侧）零 UT（M-2） | 核心数据逻辑（LoadPredictedSystemModules/RecordConsumerPreload）已有 UT；RunTaskInit 胶水层（IsEnabled/空集早退/ffrt submit）依赖 app_startup+ffrt+napi 链，单测搭建成本高；端到端待设备验证 + 后续补胶水层 UT |
+| OI-7 | follow-up | ffrt 预加载循环异常静默丢失（m-3） | -fno-exceptions 下无 try；建议每模块 LoadNativeModule 前后计数兜底，未达 modules.size() 时聚合 EventReport |
+| OI-8 | follow-up | napi moduleRelativePath_ map 只写不删 + relativePath 无长度上限（m-4，跨仓） | 键维度有界（模块名）风险低；建议写入点移到加载成功后、Unload 时 erase、relativePath 加长度上限，与 napi owner 对齐 |
 
 ## 纠正循环
 
