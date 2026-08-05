@@ -567,6 +567,7 @@ int32_t AppSchedulerHost::HandleScheduleDumpFfrt(MessageParcel &data, MessagePar
     HITRACE_METER(HITRACE_TAG_APP);
     std::string result;
     ScheduleDumpFfrt(result);
+    reply.SetMaxCapacity(MAX_CAPACITY);
     if (!reply.WriteString(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Fail to write string of ScheduleDumpFfrt result");
         return ERR_INVALID_VALUE;
@@ -580,6 +581,7 @@ int32_t AppSchedulerHost::HandleScheduleDumpArkWeb(MessageParcel &data, MessageP
     auto customArgs = data.ReadString();
     std::string result;
     ScheduleDumpArkWeb(customArgs, result);
+    reply.SetMaxCapacity(MAX_CAPACITY);
     if (!reply.WriteString(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write ScheduleDumpArkWeb result fail");
         return ERR_INVALID_VALUE;
