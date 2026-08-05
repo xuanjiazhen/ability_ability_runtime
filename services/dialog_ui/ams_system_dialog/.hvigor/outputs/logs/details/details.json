@@ -1,0 +1,134 @@
+{
+  "HVIGOR_OHOS_PLUGIN": {
+    "MODULES": [
+      {
+        "MODULE_NAME": "1043bfc77febe75fafec0c4309faccf1",
+        "API_TYPE": "stageMode",
+        "INCREMENTAL_TASKS": {
+          "COMPILE_ARKTS": false
+        }
+      },
+      {
+        "MODULE_NAME": "c21f969b5f03d33d43e04f8f136e7682",
+        "API_TYPE": "stageMode",
+        "INCREMENTAL_TASKS": {
+          "COMPILE_ARKTS": false
+        }
+      }
+    ],
+    "NATIVE_COMPILER": "Default",
+    "BUILD_MODE": "release"
+  },
+  "HVIGOR": {
+    "IS_INCREMENTAL": true,
+    "IS_DAEMON": false,
+    "IS_PARALLEL": true,
+    "IS_HVIGORFILE_TYPE_CHECK": false,
+    "TASK_TIME": {
+      "APP": {
+        "clean": 1997264,
+        "PreBuildApp": 1127137,
+        "DuplicateDependencyCheck": 755842,
+        "MakeProjectPackInfo": 7795146,
+        "ProcessProjectPrivacyProfile": 5949533,
+        "GeneratePackRes": 1340271,
+        "PackageApp": 1849977472,
+        "SignApp": 2020767,
+        "assembleApp": 447161
+      },
+      "1043bfc77febe75fafec0c4309faccf1": {
+        "clean": 2732152,
+        "PreBuild": 559916966,
+        "CreateModuleInfo": 1286935,
+        "GenerateMetadata": 4556641,
+        "ConfigureCmake": 734191,
+        "MergeProfile": 17481287,
+        "PreCheckSyscap": 913635,
+        "GeneratePkgContextInfo": 20800770,
+        "ProcessIntegratedHsp": 1577725,
+        "BuildNativeWithCmake": 788768,
+        "MakePackInfo": 10211454,
+        "ProcessProfile": 126780160,
+        "ProcessRouterMap": 5074335,
+        "ProcessShareConfig": 3137148,
+        "ProcessStartupConfig": 2992807,
+        "BuildNativeWithNinja": 1557445,
+        "ProcessResource": 6053188,
+        "GenerateLoaderJson": 14141789,
+        "ProcessLibs": 12430913,
+        "CompileResource": 476722749,
+        "DoNativeStrip": 4079332,
+        "BuildJS": 7238500,
+        "SyscapTransform": 1908975682,
+        "CacheNativeLibs": 1952633740,
+        "CompileArkTS": 29363100348,
+        "GeneratePkgModuleJson": 3207220,
+        "ProcessCompiledResources": 1440718,
+        "PackageHap": 2219572043,
+        "PackingCheck": 28703744,
+        "SignHap": 2966787,
+        "CollectDebugSymbol": 5542557,
+        "assembleHap": 526051
+      },
+      "c21f969b5f03d33d43e04f8f136e7682": {
+        "clean": 816782,
+        "PreBuild": 17608210,
+        "CreateModuleInfo": 786119,
+        "GenerateMetadata": 9822490,
+        "ConfigureCmake": 23479330,
+        "MergeProfile": 4284039,
+        "PreCheckSyscap": 910311,
+        "GeneratePkgContextInfo": 5648951,
+        "ProcessIntegratedHsp": 902078,
+        "BuildNativeWithCmake": 414971,
+        "MakePackInfo": 2645904,
+        "ProcessProfile": 5188234,
+        "ProcessRouterMap": 3559212,
+        "ProcessShareConfig": 2110404,
+        "ProcessStartupConfig": 1225764,
+        "BuildNativeWithNinja": 1268686,
+        "ProcessResource": 3250558,
+        "GenerateLoaderJson": 10844359,
+        "ProcessLibs": 6301967,
+        "CompileResource": 367685042,
+        "DoNativeStrip": 2802755,
+        "BuildJS": 3677159,
+        "SyscapTransform": 1941385828,
+        "CacheNativeLibs": 2065998301,
+        "CompileArkTS": 34283892007,
+        "GeneratePkgModuleJson": 2557870,
+        "ProcessCompiledResources": 1027603,
+        "PackageHap": 1725570375,
+        "PackingCheck": 6946548,
+        "SignHap": 1605664,
+        "CollectDebugSymbol": 3236283,
+        "assembleHap": 410849
+      }
+    },
+    "APIS": [
+      "getHvigorConfig",
+      "getRootNodeDescriptor",
+      "getChildNode",
+      "getNodeByName",
+      "getAllNodes",
+      "getRootNode",
+      "getNodeName",
+      "getStartParams",
+      "buildFinished",
+      "getNodePath",
+      "subNodes",
+      "getExtraOption",
+      "getExtParam",
+      "getExtParams",
+      "getProperty",
+      "getProperties",
+      "getProductName",
+      "nodesEvaluated",
+      "getParameter",
+      "getCommandEntryTask"
+    ],
+    "CONFIG_PROPERTIES": {},
+    "BUILD_ID": "202608031641098680",
+    "TOTAL_TIME": 43484102328
+  }
+}

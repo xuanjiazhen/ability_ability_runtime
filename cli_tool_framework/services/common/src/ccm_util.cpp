@@ -33,13 +33,8 @@ CcmUtil &CcmUtil::GetInstance()
 int32_t CcmUtil::GetCliConcurrencyLimit()
 {
     if (!maxCliQuantity_.isLoaded) {
-        int32_t value = system::GetIntParameter<int32_t>(MAX_CLI_QUANTITY, DEFAULT_MAX_CLI_QUANTITY);
-        if (value <= 0) {
-            TAG_LOGW(AAFwkTag::CLI_TOOL,
-                "Invalid cli concurrency limit: %{public}d, fallback to default", value);
-            value = DEFAULT_MAX_CLI_QUANTITY;
-        }
-        maxCliQuantity_.value = value;
+        maxCliQuantity_.value =
+            system::GetIntParameter<int32_t>(MAX_CLI_QUANTITY, DEFAULT_MAX_CLI_QUANTITY);
         maxCliQuantity_.isLoaded = true;
     }
     TAG_LOGD(AAFwkTag::CLI_TOOL, "MaxCLiQuantity: %{public}d", maxCliQuantity_.value);

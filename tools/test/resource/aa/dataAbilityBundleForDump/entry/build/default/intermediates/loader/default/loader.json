@@ -1,0 +1,22 @@
+{
+  "modulePathMap": {
+    "entry": "/home/openharmony/zhl/foundation/ability/ability_runtime/tools/test/resource/aa/dataAbilityBundleForDump/entry"
+  },
+  "compileMode": "esmodule",
+  "projectRootPath": "/home/openharmony/zhl/foundation/ability/ability_runtime/tools/test/resource/aa/dataAbilityBundleForDump",
+  "nodeModulesPath": "/home/openharmony/zhl/foundation/ability/ability_runtime/tools/test/resource/aa/dataAbilityBundleForDump/entry/build/default/intermediates/loader_out/default/node_modules",
+  "byteCodeHarInfo": {},
+  "declarationEntry": [],
+  "moduleName": "entry",
+  "hspNameOhmMap": {},
+  "harNameOhmMap": {},
+  "packageManagerType": "ohpm",
+  "compileEntry": [],
+  "otherCompileFiles": [],
+  "dynamicImportLibInfo": {},
+  "routerMap": [],
+  "hspResourcesMap": {},
+  "updateVersionInfo": {},
+  "anBuildOutPut": "/home/openharmony/zhl/foundation/ability/ability_runtime/tools/test/resource/aa/dataAbilityBundleForDump/entry/build/default/intermediates/loader_out/default/an/arm64-v8a",
+  "anBuildMode": "type"
+}

@@ -28,6 +28,7 @@ namespace OHOS {
 namespace JsEnv {
 namespace {
 static const std::string DEBUGGER = "@Debugger";
+static const std::string NOT_INIT = "SourceMap is not initialized yet \n";
 }
 
 static panda::DFXJSNApi::ProfilerType ConvertProfilerType(JsEnvironment::PROFILERTYPE type)
@@ -122,6 +123,36 @@ void JsEnvironment::RemoveTask(const std::string& name)
     }
 }
 
+void JsEnvironment::InitSourceMap(const std::shared_ptr<JsEnv::SourceMapOperator> operatorObj)
+{
+    sourceMapOperator_ = operatorObj;
+    if (engine_ == nullptr) {
+        TAG_LOGE(AAFwkTag::JSENV, "Invalid Native Engine");
+        return;
+    }
+
+    if (sourceMapOperator_ != nullptr) {
+        sourceMapOperator_->InitSourceMap();
+    }
+
+    auto translateBySourceMapFunc = [&](const std::string& rawStack) -> std::string {
+        if (sourceMapOperator_ != nullptr && sourceMapOperator_->GetInitStatus()) {
+            return sourceMapOperator_->TranslateBySourceMap(rawStack);
+        } else {
+            return NOT_INIT + rawStack;
+        }
+    };
+    engine_->RegisterTranslateBySourceMap(translateBySourceMapFunc);
+
+    auto translateUrlBySourceMapFunc = [&](std::string& url, int& line, int& column, std::string& packageName) -> bool {
+        if (sourceMapOperator_ != nullptr && sourceMapOperator_->GetInitStatus()) {
+            return sourceMapOperator_->TranslateUrlPositionBySourceMap(url, line, column, packageName);
+        }
+        return false;
+    };
+    engine_->RegisterSourceMapTranslateCallback(translateUrlBySourceMapFunc);
+}
+
 void JsEnvironment::RegisterUncaughtExceptionHandler(const JsEnv::UncaughtExceptionInfo& uncaughtExceptionInfo,
                                                      bool isStatic)
 {
@@ -131,7 +162,7 @@ void JsEnvironment::RegisterUncaughtExceptionHandler(const JsEnv::UncaughtExcept
     }
 
     engine_->RegisterNapiUncaughtExceptionHandler(NapiUncaughtExceptionCallback(uncaughtExceptionInfo.uncaughtTask,
-        reinterpret_cast<napi_env>(engine_), isStatic));
+        sourceMapOperator_, reinterpret_cast<napi_env>(engine_), isStatic));
 }
 
 void JsEnvironment::RegisterUncatchableExceptionHandler(const JsEnv::UncatchableTask& uncatchableTask, bool isStatic)
@@ -147,7 +178,7 @@ void JsEnvironment::RegisterUncatchableExceptionHandler(const JsEnv::Uncatchable
             if (sharedThis) {
                 void* env = trycatch.GetEnv();
                 NapiUncaughtExceptionCallback napiUncaughtExceptionCallback(uncatchableTask,
-                    reinterpret_cast<napi_env>(env), isStatic);
+                    sharedThis->sourceMapOperator_, reinterpret_cast<napi_env>(env), isStatic);
                 napiUncaughtExceptionCallback(trycatch);
             } else {
                 TAG_LOGE(AAFwkTag::JSENV, "JsEnvironment has been destructed.");

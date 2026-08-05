@@ -1262,9 +1262,8 @@ int32_t UIAbilityLifecycleManager::NotifyCompleteGamePreLaunch(const sptr<IRemot
         return ERR_INVALID_VALUE;
     }
 
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    if (callingUid != abilityRecord->GetUid() && callingUid != AbilityRuntime::GlobalConstant::FOUNDATION_UID) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller uid not match ability record uid and not foundation uid, not allowed");
+    if (IPCSkeleton::GetCallingUid() != abilityRecord->GetUid()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller uid not match ability record uid, not allowed");
         return CHECK_PERMISSION_FAILED;
     }
 

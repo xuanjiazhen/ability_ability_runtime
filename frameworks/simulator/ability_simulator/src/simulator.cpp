@@ -46,7 +46,7 @@
 #include "resource_manager.h"
 #include "window_scene.h"
 #include "sys_timer.h"
-#include "dfx_jsnapi.h"
+#include "source_map.h"
 
 
 namespace OHOS {
@@ -155,7 +155,7 @@ private:
     std::shared_ptr<AppExecFwk::ApplicationInfo> appInfo_;
     std::shared_ptr<AppExecFwk::HapModuleInfo> moduleInfo_;
     std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo_;
-    // SourceMap now uses singleton — access via DFXJSNApi
+    std::shared_ptr<JsEnv::SourceMap> sourceMapPtr_;
     CallbackTypePostTask postTask_ = nullptr;
     void GetPkgContextInfoListMap(const std::map<std::string, std::string> &contextInfoMap,
         std::map<std::string, std::vector<std::vector<std::string>>> &pkgContextInfoMap,
@@ -220,8 +220,9 @@ bool SimulatorImpl::Initialize(const Options &options)
     }
 
     options_ = options;
+    sourceMapPtr_ = std::make_shared<JsEnv::SourceMap>();
     auto content = ReadSourceMap();
-    DFXJSNApi::SourceMapSplitSourceMap(content);
+    sourceMapPtr_->SplitSourceMap(content);
 
     postTask_ = options.postTask;
     if (!OnInit()) {
@@ -1089,7 +1090,7 @@ void SimulatorImpl::ReportJsError(napi_value obj)
         TAG_LOGE(AAFwkTag::ABILITY_SIM, "errorStack empty");
         return;
     }
-    auto newErrorStack = DFXJSNApi::SourceMapTranslateBySourceMap(errorStack);
+    auto newErrorStack = sourceMapPtr_->TranslateBySourceMap(errorStack);
     summary += "Stacktrace:\n" + newErrorStack;
 
     std::stringstream summaryBody(summary);

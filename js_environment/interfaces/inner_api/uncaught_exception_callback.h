@@ -20,6 +20,8 @@
 
 #include "native_engine/impl/ark/ark_native_engine.h"
 #include "native_engine/native_engine.h"
+#include "source_map.h"
+#include "source_map_operator.h"
 
 namespace OHOS {
 namespace JsEnv {
@@ -40,8 +42,8 @@ public:
     NapiUncaughtExceptionCallback(
         std::function<void(const std::string summary, const JsEnv::ErrorObject errorObj, napi_env env,
             napi_value exception)> uncaughtTask,
-        napi_env env, bool isStatic = false)
-        : uncaughtTask_(uncaughtTask), env_(env), isStatic_(isStatic)
+        std::shared_ptr<SourceMapOperator> sourceMapOperator, napi_env env, bool isStatic = false)
+        : uncaughtTask_(uncaughtTask), sourceMapOperator_(sourceMapOperator), env_(env), isStatic_(isStatic)
     {}
 
     ~NapiUncaughtExceptionCallback() = default;
@@ -67,6 +69,7 @@ public:
 private:
     std::function<void(std::string summary, const JsEnv::ErrorObject errorObj, napi_env napi,
         napi_value exception)> uncaughtTask_;
+    std::shared_ptr<SourceMapOperator> sourceMapOperator_ = nullptr;
     napi_env env_ = nullptr;
     bool isStatic_;
 

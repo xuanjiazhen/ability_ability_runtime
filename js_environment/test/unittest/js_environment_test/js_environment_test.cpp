@@ -536,6 +536,18 @@ HWTEST_F(JsEnvironmentTest, GetHeapPrepare_0200, TestSize.Level2)
 }
 
 /**
+ * @tc.name: GetSourceMapOperator_0100
+ * @tc.desc: Js environment GetSourceMapOperator.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsEnvironmentTest, GetSourceMapOperator_0100, TestSize.Level2)
+{
+    auto jsEnv = std::make_shared<JsEnvironment>(std::make_unique<AbilityRuntime::OHOSJsEnvironmentImpl>());
+    jsEnv->GetSourceMapOperator();
+    ASSERT_NE(jsEnv, nullptr);
+}
+
+/**
  * @tc.name: initworkermodule_0100
  * @tc.desc: Js environment initworkermodule.
  * @tc.type: FUNC
@@ -545,6 +557,19 @@ HWTEST_F(JsEnvironmentTest, initworkermodule_0100, TestSize.Level2)
     auto jsEnv = std::make_shared<JsEnvironment>(std::make_unique<AbilityRuntime::OHOSJsEnvironmentImpl>());
     std::shared_ptr<WorkerInfo> workerInfo = std::make_shared<WorkerInfo>();
     jsEnv->InitWorkerModule(workerInfo);
+    ASSERT_NE(jsEnv, nullptr);
+}
+
+/**
+ * @tc.name: InitSourceMap_0100
+ * @tc.desc: Js environment InitSourceMap.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsEnvironmentTest, InitSourceMap_0100, TestSize.Level2)
+{
+    auto jsEnv = std::make_shared<JsEnvironment>(std::make_unique<AbilityRuntime::OHOSJsEnvironmentImpl>());
+    std::shared_ptr<JsEnv::SourceMapOperator> operatorObj = nullptr;
+    jsEnv->InitSourceMap(operatorObj);
     ASSERT_NE(jsEnv, nullptr);
 }
 
@@ -648,7 +673,7 @@ HWTEST_F(JsEnvironmentTest, AppendSoLoadFailure_0100, TestSize.Level2)
     std::string capturedSummary;
     auto task = [&capturedSummary](std::string summary, const JsEnv::ErrorObject errorObj,
         napi_env env, napi_value exception) { capturedSummary = summary; };
-    NapiUncaughtExceptionCallback callback(task, env);
+    NapiUncaughtExceptionCallback callback(task, nullptr, env);
     callback(object);
 
     // The callback ran and produced a summary, but no NativeModuleErrorInfo section is appended.
@@ -686,7 +711,7 @@ HWTEST_F(JsEnvironmentTest, AppendSoLoadFailure_0200, TestSize.Level2)
     std::string capturedSummary;
     auto task = [&capturedSummary](std::string summary, const JsEnv::ErrorObject errorObj,
         napi_env env, napi_value exception) { capturedSummary = summary; };
-    NapiUncaughtExceptionCallback callback(task, env);
+    NapiUncaughtExceptionCallback callback(task, nullptr, env);
     callback(object);
 
     // Only one line: printed as-is with no numbering.
@@ -728,7 +753,7 @@ HWTEST_F(JsEnvironmentTest, AppendSoLoadFailure_0300, TestSize.Level2)
     std::string capturedSummary;
     auto task = [&capturedSummary](std::string summary, const JsEnv::ErrorObject errorObj,
         napi_env env, napi_value exception) { capturedSummary = summary; };
-    NapiUncaughtExceptionCallback callback(task, env);
+    NapiUncaughtExceptionCallback callback(task, nullptr, env);
     callback(object);
 
     EXPECT_NE(capturedSummary.find("NativeModuleErrorInfo:\n" + firstLine + "\n"), std::string::npos);
@@ -769,7 +794,7 @@ HWTEST_F(JsEnvironmentTest, AppendSoLoadFailure_0400, TestSize.Level2)
     std::string capturedSummary;
     auto task = [&capturedSummary](std::string summary, const JsEnv::ErrorObject errorObj,
         napi_env env, napi_value exception) { capturedSummary = summary; };
-    NapiUncaughtExceptionCallback callback(task, env);
+    NapiUncaughtExceptionCallback callback(task, nullptr, env);
     callback(object);
 
     // The empty line is dropped and the detail line becomes the first numbered entry (#1).

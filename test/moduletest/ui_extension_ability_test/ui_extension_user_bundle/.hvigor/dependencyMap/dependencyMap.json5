@@ -1,0 +1,1 @@
+{"basePath":"/home/openharmony/zhl/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_user_bundle/.hvigor/dependencyMap/dependencyMap.json5","rootDependency":"./oh-package.json5","dependencyMap":{"entry":"./entry/oh-package.json5"},"modules":[{"name":"entry","srcPath":"../../../entry"}]}
