@@ -48,6 +48,9 @@
 #include "want_params_wrapper.h"
 #include "application_configuration_manager.h"
 #include "ohos_application.h"
+#include "ipc_skeleton.h"
+#include "accesstoken_kit.h"
+#include "tokenid_kit.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -585,7 +588,15 @@ void JsUIExtensionBase::PostInsightIntentExecuted(const sptr<AAFwk::SessionInfo>
         CallObjectMethod("onForeground");
     }
 
-    OnInsightIntentExecuteDone(sessionInfo, result);
+    auto selfToken = IPCSkeleton::GetSelfTokenID();
+    if (Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
+        OnInsightIntentExecuteDone(sessionInfo, result);
+    } else {
+        auto filtered = result;
+        filtered.interactionInfo = nullptr;
+        TAG_LOGW(AAFwkTag::UI_EXT, "not system app, filter interactionInfo");
+        OnInsightIntentExecuteDone(sessionInfo, filtered);
+    }
 
     if (needForeground) {
         // If need foreground, that means triggered by onForeground.
@@ -642,24 +653,9 @@ void JsUIExtensionBase::OnInsightIntentExecuteDone(const sptr<AAFwk::SessionInfo
             params.SetParam(INSIGHT_INTENT_EXECUTE_RESULT, pWantParams);
             ret = res->second->TransferExtensionData(params);
         } else {
-            WantParams resultParams;
-            resultParams.SetParam("code", Integer::Box(result.code));
-            if (result.result != nullptr) {
-                sptr<AAFwk::IWantParams> pWantParams = WantParamWrapper::Box(*result.result);
-                resultParams.SetParam("result", pWantParams);
-            }
-            auto size = result.uris.size();
-            sptr<IArray> uriArray = new (std::nothrow) Array(size, g_IID_IString);
-            if (uriArray == nullptr) {
-                TAG_LOGE(AAFwkTag::UI_EXT, "new uriArray failed");
-                return;
-            }
-            for (std::size_t i = 0; i < size; i++) {
-                uriArray->Set(i, String::Box(result.uris[i]));
-            }
-            resultParams.SetParam("uris", uriArray);
-            resultParams.SetParam("flags", Integer::Box(result.flags));
-            sptr<AAFwk::IWantParams> pWantParams = WantParamWrapper::Box(resultParams);
+            auto resultParams = result.BuildFunctionResult();
+            resultParams->SetParam("code", Integer::Box(result.code));
+            sptr<AAFwk::IWantParams> pWantParams = WantParamWrapper::Box(*resultParams);
             params.SetParam(INSIGHT_INTENT_EXECUTE_RESULT, pWantParams);
 
             ret = res->second->TransferExtensionData(params);
