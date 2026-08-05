@@ -36,6 +36,7 @@ ohos_shared_library("intent_client") {
     "${ability_runtime_services_path}/abilitymgr/src/insight_intent/insight_intent_execute_result.cpp",
   ]
 
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
   public_configs = [ ":intent_client_config" ]
 
   sanitize = {
