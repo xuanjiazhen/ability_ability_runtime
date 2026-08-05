@@ -1824,12 +1824,6 @@ int32_t AbilityManagerService::StartAbilityForAppCloneSelector(StartAbilityWrapP
     if (ret != ERR_OK) {
         return ret;
     }
-    if (param.callerToken == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "callerToken is nullptr");
-        AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_INVALID_VALUE, "callerToken is nullptr");
-        return ERR_INVALID_VALUE;
-    }
-
     AbilityRequest abilityRequest;
     AppExecFwk::AbilityInfo abilityInfo;
     ret = InitializeAppCloneRequest(param, appCloneIndex, abilityRequest, abilityInfo, validUserId);
@@ -1912,20 +1906,16 @@ int32_t AbilityManagerService::ProcessLaunchReasonAndController(StartAbilityWrap
     AbilityRequest &abilityRequest, AppExecFwk::AbilityInfo &abilityInfo, std::shared_ptr<EventInfo> eventInfo)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call ProcessLaunchReasonAndController");
-    if (param.callerToken == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "callerToken is nullptr");
-        AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_INVALID_VALUE, "callerToken is nullptr");
-        return ERR_INVALID_VALUE;
-    }
-
     auto callerRecord = Token::GetAbilityRecordByToken(param.callerToken);
-    if (callerRecord == nullptr) {
+    if (callerRecord == nullptr && param.callerToken != nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get callerRecord from callerToken");
         AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_INVALID_VALUE, "Get callerRecord failed");
         return ERR_INVALID_VALUE;
     }
 
-    uint32_t callerTokenId = callerRecord->GetApplicationInfo().accessTokenId;
+    uint32_t callerTokenId = callerRecord == nullptr ?
+        (param.specifyTokenId != 0 ? param.specifyTokenId : IPCSkeleton::GetCallingTokenID()) :
+        callerRecord->GetApplicationInfo().accessTokenId;
     RemoveUnauthorizedLaunchReasonMessage(param.want, abilityRequest, callerTokenId);
 
     if (!IsAbilityControllerStart(param.want, abilityInfo.bundleName)) {
