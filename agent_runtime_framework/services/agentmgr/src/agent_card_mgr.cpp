@@ -23,10 +23,12 @@
 #include "agent_card.h"
 #include "agent_card_db_mgr.h"
 #include "agent_card_utils.h"
+#include "ffrt.h"
 #include "hilog_tag_wrapper.h"
 #include "in_process_call_wrapper.h"
 #include "ipc_skeleton.h"
 #include "json_utils.h"
+#include "os_account_manager_wrapper.h"
 #include "sem_ver.h"
 
 namespace OHOS {
@@ -55,7 +57,7 @@ std::vector<AgentCard> ExtractCards(const std::vector<StoredAgentCardEntry> &ent
 
 bool ShouldKeepStoredBundleEntry(const AgentCard &incomingCard, const StoredAgentCardEntry &storedEntry)
 {
-    if (storedEntry.source == AgentCardUpdateSource::API && IsValidSemVer(incomingCard.version) &&
+    if (storedEntry.updateSource == AgentCardUpdateSource::API && IsValidSemVer(incomingCard.version) &&
         IsValidSemVer(storedEntry.card.version) &&
         CompareSemVer(incomingCard.version, storedEntry.card.version) == SemVerCompareResult::EQUAL) {
         return true;
@@ -88,20 +90,26 @@ int32_t AgentCardMgr::HandleBundleInstall(const std::string &bundleName, int32_t
 {
     if (bundleName.empty()) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "invalid bundleName");
-        return -1;
+        return AAFwk::INVALID_PARAMETERS_ERR;
     }
     auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "bundleMgrHelper is null");
-        return -1;
+        return AAFwk::INNER_ERR;
     }
     BundleInfo bundleInfo;
     ErrCode result = bundleMgrHelper->GetBundleInfoV9(bundleName, GET_AGENT_EXTENSION_BUNDLE_INFO_FLAGS,
         bundleInfo, userId);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Get Bundle Info fail");
-        return -1;
+        return result;
     }
+    return HandleBundleInstall(bundleName, bundleInfo, userId);
+}
+
+int32_t AgentCardMgr::HandleBundleInstall(const std::string &bundleName, const BundleInfo &bundleInfo,
+    int32_t userId)
+{
     std::unordered_map<std::string, AgentCard> incomingCardMap;
     for (auto const &extensionInfo : CollectExtensionInfos(bundleInfo)) {
         if (static_cast<int32_t>(incomingCardMap.size()) >= MAX_AGENT_CARD_SIZE) {
@@ -123,12 +131,12 @@ int32_t AgentCardMgr::HandleBundleInstall(const std::string &bundleName, int32_t
             }
             if (!json::accept(profileInfo, true)) {
                 TAG_LOGE(AAFwkTag::SER_ROUTER, "profileInfo is not json format");
-                return -1;
+                return AAFwk::INNER_ERR;
             }
             json j = json::parse(profileInfo, nullptr, false, true);
             if (!j.contains("agentCards")) {
                 TAG_LOGE(AAFwkTag::SER_ROUTER, "profileInfo is not contains agentCards");
-                return -1;
+                return AAFwk::INNER_ERR;
             }
             for (auto cardStr : j["agentCards"]) {
                 if (static_cast<int32_t>(incomingCardMap.size()) >= MAX_AGENT_CARD_SIZE) {
@@ -174,7 +182,7 @@ int32_t AgentCardMgr::HandleBundleInstall(const std::string &bundleName, int32_t
     for (const auto &entry : incomingCardMap) {
         auto storedIt = storedIndexMap.find(entry.first);
         if (storedIt == storedIndexMap.end()) {
-            finalEntries.push_back({entry.second, AgentCardUpdateSource::BUNDLE});
+            finalEntries.push_back({entry.second, AgentCardUpdateSource::BUNDLE, AgentCardSource::BUNDLE});
             continue;
         }
         auto &storedEntry = finalEntries[storedIt->second];
@@ -183,7 +191,7 @@ int32_t AgentCardMgr::HandleBundleInstall(const std::string &bundleName, int32_t
             continue;
         }
         storedEntry.card = entry.second;
-        storedEntry.source = AgentCardUpdateSource::BUNDLE;
+        storedEntry.updateSource = AgentCardUpdateSource::BUNDLE;
     }
     return AgentCardDbMgr::GetInstance().InsertData(bundleName, userId, finalEntries);
 }
@@ -197,10 +205,57 @@ int32_t AgentCardMgr::HandleBundleRemove(const std::string &bundleName, int32_t 
 {
     if (bundleName.empty()) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "invalid bundleName");
-        return -1;
+        return AAFwk::INVALID_PARAMETERS_ERR;
     }
     std::lock_guard<std::mutex> lock(cardDataMutex_);
     return AgentCardDbMgr::GetInstance().DeleteData(bundleName, userId);
+}
+
+void AgentCardMgr::BackfillPreInstallCards()
+{
+    ffrt::submit([] {
+        std::vector<int32_t> activeUserIds;
+        if (OsAccountManagerWrapper::QueryActiveOsAccountIds(activeUserIds) != ERR_OK) {
+            TAG_LOGW(AAFwkTag::SER_ROUTER, "QueryActiveOsAccountIds failed, skip pre-install backfill");
+            return;
+        }
+        for (int32_t activeUserId : activeUserIds) {
+            AgentCardMgr::GetInstance().HandlePreInstallBackfill(activeUserId);
+        }
+    });
+}
+
+int32_t AgentCardMgr::HandlePreInstallBackfill(int32_t userId)
+{
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "bundleMgrHelper is null");
+        return AAFwk::INNER_ERR;
+    }
+    int32_t flags = GET_AGENT_EXTENSION_BUNDLE_INFO_FLAGS |
+        static_cast<int32_t>(GetBundleInfoFlag::GET_BUNDLE_INFO_EXCLUDE_CLONE);
+    std::vector<BundleInfo> bundleInfos;
+    ErrCode result = IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfosV9(flags, bundleInfos, userId));
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "GetBundleInfosV9 failed: %{public}d", result);
+        return result;
+    }
+    int32_t installedCount = 0;
+    for (const auto &bundleInfo : bundleInfos) {
+        if (!bundleInfo.isPreInstallApp) {
+            continue;
+        }
+        int32_t ret = HandleBundleInstall(bundleInfo.name, bundleInfo, userId);
+        if (ret != ERR_OK) {
+            TAG_LOGW(AAFwkTag::SER_ROUTER, "install pre-install bundle %{public}s failed: %{public}d",
+                bundleInfo.name.c_str(), ret);
+            continue;
+        }
+        ++installedCount;
+    }
+    TAG_LOGI(AAFwkTag::SER_ROUTER, "pre-install backfill done, userId=%{public}d, installed=%{public}d",
+        userId, installedCount);
+    return ERR_OK;
 }
 
 int32_t AgentCardMgr::GetAllAgentCards(AgentCardsRawData &cards)
@@ -297,7 +352,7 @@ int32_t AgentCardMgr::RegisterAgentCard(const AgentCard &card)
         return AAFwk::ERR_AGENT_CARD_LIST_OUT_OF_RANGE;
     }
 
-    entries.push_back({registerCard, AgentCardUpdateSource::API});
+    entries.push_back({registerCard, AgentCardUpdateSource::API, AgentCardSource::API});
     return AgentCardDbMgr::GetInstance().InsertData(registerCard.appInfo->bundleName, userId, entries);
 }
 
@@ -365,7 +420,7 @@ int32_t AgentCardMgr::UpdateAgentCard(const AgentCard &card)
     }
 
     it->card = card;
-    it->source = AgentCardUpdateSource::API;
+    it->updateSource = AgentCardUpdateSource::API;
     return AgentCardDbMgr::GetInstance().InsertData(card.appInfo->bundleName, userId, entries);
 }
 
@@ -389,12 +444,18 @@ int32_t AgentCardMgr::DeleteAgentCard(const std::string &bundleName, const std::
         return ret;
     }
 
-    auto bundleIt = std::remove_if(bundleCards.begin(), bundleCards.end(),
+    auto matchIt = std::find_if(bundleCards.begin(), bundleCards.end(),
         [&agentId](const StoredAgentCardEntry &item) { return item.card.agentId == agentId; });
-    if (bundleIt == bundleCards.end()) {
+    if (matchIt == bundleCards.end()) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "AgentCard not found in bundle");
         return AAFwk::ERR_INVALID_AGENT_CARD_ID;
     }
+    if (matchIt->cardSource == AgentCardSource::BUNDLE) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "AgentCard is bundle-installed, cannot be deleted");
+        return AAFwk::ERR_INVALID_AGENT_CARD_ID;
+    }
+    auto bundleIt = std::remove_if(bundleCards.begin(), bundleCards.end(),
+        [&agentId](const StoredAgentCardEntry &item) { return item.card.agentId == agentId; });
     bundleCards.erase(bundleIt, bundleCards.end());
 
     if (bundleCards.empty()) {
