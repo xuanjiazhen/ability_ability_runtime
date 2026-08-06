@@ -31,9 +31,20 @@ enum class AgentCardUpdateSource : int32_t {
     API = 1,
 };
 
+// Immutable since creation: records how the card first entered the database. Unlike
+// AgentCardUpdateSource (which tracks the last writer), this value is set once and never altered.
+// BUNDLE = entered the database via bundle install (not deletable via deleteAgentCard);
+// API = registered via the public API (deletable via deleteAgentCard).
+enum class AgentCardSource : int32_t {
+    BUNDLE = 0,
+    API = 1,
+};
+
 struct StoredAgentCardEntry {
     AgentCard card;
-    AgentCardUpdateSource source = AgentCardUpdateSource::BUNDLE;
+    // Mutable: source of the last update/write to this card (BUNDLE via bundle install, API via API).
+    AgentCardUpdateSource updateSource = AgentCardUpdateSource::BUNDLE;
+    AgentCardSource cardSource = AgentCardSource::BUNDLE;
 };
 
 class AgentCardDbMgr {
