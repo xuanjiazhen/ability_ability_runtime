@@ -160,7 +160,6 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
 void InsightIntentEventMgr::DeleteInsightIntentEvent(const AppExecFwk::ElementName &elementName, int32_t userId,
     int32_t appIndex)
 {
-    ErrCode ret;
     auto bundleName = elementName.GetBundleName();
     auto moduleName = elementName.GetModuleNameRef();
     if (bundleName.empty()) {
@@ -180,17 +179,19 @@ void InsightIntentEventMgr::DeleteInsightIntentEvent(const AppExecFwk::ElementNa
         return;
     }
 
-    ret = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->DeleteInsightIntentTotalInfo(
-        bundleName, moduleName, userId);
-    if (ret != ERR_OK) {
-        TAG_LOGW(AAFwkTag::INTENT, "delete intent info failed, bundleName: %{public}s, "
+    ffrt::submit([bundleName, moduleName, userId]() {
+        ErrCode ret = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->
+            DeleteInsightIntentTotalInfo(bundleName, moduleName, userId);
+        if (ret != ERR_OK) {
+            TAG_LOGW(AAFwkTag::INTENT, "delete intent info failed, bundleName: %{public}s, "
+                "moduleName: %{public}s, userId: %{public}d", bundleName.c_str(), moduleName.c_str(), userId);
+            return;
+        }
+        DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->BackupRdb();
+        CliTool::UnregisterInsightIntentFunctions(bundleName);
+        TAG_LOGI(AAFwkTag::INTENT, "delete intent info success, bundleName: %{public}s, "
             "moduleName: %{public}s, userId: %{public}d", bundleName.c_str(), moduleName.c_str(), userId);
-        return;
-    }
-    DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->BackupRdb();
-    CliTool::UnregisterInsightIntentFunctions(bundleName);
-    TAG_LOGI(AAFwkTag::INTENT, "delete intent info success, bundleName: %{public}s, "
-        "moduleName: %{public}s, userId: %{public}d", bundleName.c_str(), moduleName.c_str(), userId);
+    });
 }
 
 void InsightIntentEventMgr::SubscribeSysEventReceiver()
