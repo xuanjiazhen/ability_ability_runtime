@@ -35,6 +35,7 @@
 
 namespace OHOS {
 namespace AgentRuntime {
+
 /**
  * @class AgentManagerService
  * AgentManagerService provides a facility for managing agent life cycle.
