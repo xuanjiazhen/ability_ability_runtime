@@ -1826,9 +1826,7 @@ int32_t AbilityManagerService::StartAbilityForAppCloneSelector(StartAbilityWrapP
         return ret;
     }
     if (param.callerToken == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "callerToken is nullptr");
-        AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_INVALID_VALUE, "callerToken is nullptr");
-        return ERR_INVALID_VALUE;
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilityForAppCloneSelector: callerToken is nullptr");
     }
 
     AbilityRequest abilityRequest;
@@ -1913,20 +1911,24 @@ int32_t AbilityManagerService::ProcessLaunchReasonAndController(StartAbilityWrap
     AbilityRequest &abilityRequest, AppExecFwk::AbilityInfo &abilityInfo, std::shared_ptr<EventInfo> eventInfo)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call ProcessLaunchReasonAndController");
-    if (param.callerToken == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "callerToken is nullptr");
-        AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_INVALID_VALUE, "callerToken is nullptr");
-        return ERR_INVALID_VALUE;
-    }
 
+    // aa/shell callers have no ability token, so use the identity passed via specifyTokenId
+    // instead of looking up the AbilityRecord by token.
+    uint32_t callerTokenId = 0;
     auto callerRecord = Token::GetAbilityRecordByToken(param.callerToken);
-    if (callerRecord == nullptr) {
+    if (callerRecord != nullptr) {
+        callerTokenId = callerRecord->GetApplicationInfo().accessTokenId;
+    } else if (param.callerToken != nullptr || param.specifyTokenId == 0) {
+        // Reject: token exists but no record found, or caller has no valid identity.
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get callerRecord from callerToken");
         AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_INVALID_VALUE, "Get callerRecord failed");
         return ERR_INVALID_VALUE;
+    } else {
+        // No token caller, use the identity passed by the clone selector dialog.
+        callerTokenId = param.specifyTokenId;
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "use specifyTokenId as callerTokenId: %{public}d", callerTokenId);
     }
 
-    uint32_t callerTokenId = callerRecord->GetApplicationInfo().accessTokenId;
     RemoveUnauthorizedLaunchReasonMessage(param.want, abilityRequest, callerTokenId);
 
     if (!IsAbilityControllerStart(param.want, abilityInfo.bundleName)) {
