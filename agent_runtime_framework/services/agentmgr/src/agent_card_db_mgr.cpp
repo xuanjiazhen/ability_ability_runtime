@@ -31,6 +31,7 @@ const std::string JSON_KEY_BUNDLE_NAME = "bundleName";
 const std::string JSON_KEY_CARD = "card";
 const std::string JSON_KEY_CARDS = "cards";
 const std::string JSON_KEY_LAST_UPDATE_SOURCE = "lastUpdateSource";
+const std::string JSON_KEY_CARD_SOURCE = "cardSource";
 const std::string JSON_KEY_USER_ID = "userId";
 
 std::string UpdateSourceToString(AgentCardUpdateSource source)
@@ -46,6 +47,19 @@ AgentCardUpdateSource ParseUpdateSource(const nlohmann::json &jsonValue)
     return jsonValue.get<std::string>() == "api" ? AgentCardUpdateSource::API : AgentCardUpdateSource::BUNDLE;
 }
 
+std::string CardSourceToString(AgentCardSource source)
+{
+    return source == AgentCardSource::API ? "api" : "bundle";
+}
+
+AgentCardSource ParseCardSource(const nlohmann::json &jsonValue)
+{
+    if (!jsonValue.is_string()) {
+        return AgentCardSource::BUNDLE;
+    }
+    return jsonValue.get<std::string>() == "api" ? AgentCardSource::API : AgentCardSource::BUNDLE;
+}
+
 bool ParseStoredEntry(const nlohmann::json &item, StoredAgentCardEntry &entry)
 {
     if (item.is_object() && item.contains(JSON_KEY_CARD)) {
@@ -54,7 +68,17 @@ bool ParseStoredEntry(const nlohmann::json &item, StoredAgentCardEntry &entry)
             return false;
         }
         if (item.contains(JSON_KEY_LAST_UPDATE_SOURCE)) {
-            entry.source = ParseUpdateSource(item.at(JSON_KEY_LAST_UPDATE_SOURCE));
+            entry.updateSource = ParseUpdateSource(item.at(JSON_KEY_LAST_UPDATE_SOURCE));
+        }
+        if (item.contains(JSON_KEY_CARD_SOURCE)) {
+            entry.cardSource = ParseCardSource(item.at(JSON_KEY_CARD_SOURCE));
+        } else {
+            // Legacy entries written before the cardSource schema (e.g. 7.0-Release
+            // API-registered cards) carry only lastUpdateSource and no cardSource key. Infer the
+            // origin from the last writer so they keep their original (API) deletability instead of
+            // silently defaulting to BUNDLE and becoming permanently non-deletable after upgrade.
+            entry.cardSource = (entry.updateSource == AgentCardUpdateSource::API)
+                ? AgentCardSource::API : AgentCardSource::BUNDLE;
         }
         return true;
     }
@@ -63,7 +87,8 @@ bool ParseStoredEntry(const nlohmann::json &item, StoredAgentCardEntry &entry)
         TAG_LOGE(AAFwkTag::SER_ROUTER, "FromJson failed");
         return false;
     }
-    entry.source = AgentCardUpdateSource::BUNDLE;
+    entry.updateSource = AgentCardUpdateSource::BUNDLE;
+    entry.cardSource = AgentCardSource::BUNDLE;
     return true;
 }
 
@@ -283,7 +308,8 @@ DistributedKv::Value AgentCardDbMgr::ConvertValue(const std::vector<StoredAgentC
     for (const auto &item : cards) {
         jsonArray.push_back({
             { JSON_KEY_CARD, item.card.ToJson() },
-            { JSON_KEY_LAST_UPDATE_SOURCE, UpdateSourceToString(item.source) },
+            { JSON_KEY_LAST_UPDATE_SOURCE, UpdateSourceToString(item.updateSource) },
+            { JSON_KEY_CARD_SOURCE, CardSourceToString(item.cardSource) },
         });
     }
     nlohmann::json root = {
