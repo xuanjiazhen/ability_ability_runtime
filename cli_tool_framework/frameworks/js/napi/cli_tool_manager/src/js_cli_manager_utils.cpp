@@ -65,7 +65,12 @@ napi_value ParseJsonStringToJsObject(napi_env env, const std::string &jsonStr)
             napi_set_named_property(env, jsValue, it.key().c_str(), jsItem);
         }
     } else if (jsonObj.is_array()) {
-        napi_create_array(env, &jsValue);
+        napi_status status = napi_create_array(env, &jsValue);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "napi_create_array failed, %{public}d", status);
+            napi_create_object(env, &jsValue);
+            return jsValue;
+        }
         size_t index = 0;
         for (auto &item : jsonObj) {
             napi_value jsItem = nullptr;
