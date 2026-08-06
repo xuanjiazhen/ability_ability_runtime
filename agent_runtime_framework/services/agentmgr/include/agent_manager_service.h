@@ -35,6 +35,8 @@
 
 namespace OHOS {
 namespace AgentRuntime {
+class AgentPreInstallEventReceiver;
+
 /**
  * @class AgentManagerService
  * AgentManagerService provides a facility for managing agent life cycle.
@@ -95,6 +97,7 @@ private:
     AgentManagerService();
     void Init();
     void RegisterBundleEventCallback();
+    void SubscribeBundleScanFinished();
     /**
      * @brief Validates caller permission and foreground state before classifying the agent connect request.
      */
@@ -179,6 +182,7 @@ private:
     std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
     std::shared_ptr<AgentEventHandler> eventHandler_;
     sptr<AgentBundleEventCallback> bundleEventCallback_;
+    std::shared_ptr<AgentPreInstallEventReceiver> preInstallReceiver_;
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS

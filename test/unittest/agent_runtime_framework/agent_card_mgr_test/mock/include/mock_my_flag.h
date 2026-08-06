@@ -20,6 +20,7 @@
 #include "agent_card.h"
 #include "extension_ability_info.h"
 #include "hap_module_info.h"
+#include "bundle_info.h"
 #include <mutex>
 #include <string>
 #include <vector>
@@ -48,6 +49,11 @@ public:
     // Mock data for GetBundleInfo
     static std::vector<AppExecFwk::ExtensionAbilityInfo> mockExtensionInfos;
     static std::vector<AppExecFwk::HapModuleInfo> mockHapModuleInfos;
+
+    // Mock data for GetBundleInfosV9 (pre-install backfill)
+    static bool retGetBundleInfos;
+    static std::vector<AppExecFwk::BundleInfo> mockBundleInfos;
+    static std::vector<std::string> getBundleInfoV9CallNames;
 
     // Mock data for GetResConfigFile
     static std::vector<std::string> mockProfileInfos;
