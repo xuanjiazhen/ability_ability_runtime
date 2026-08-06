@@ -1926,8 +1926,8 @@ int32_t AbilityManagerService::ProcessLaunchReasonAndController(StartAbilityWrap
     auto callerRecord = Token::GetAbilityRecordByToken(param.callerToken);
     if (callerRecord != nullptr) {
         callerTokenId = callerRecord->GetApplicationInfo().accessTokenId;
-    } else if (param.callerToken != nullptr) {
-        // Reject: callerToken exists but no matching AbilityRecord found.
+    } else if (param.callerToken != nullptr && param.specifyTokenId == 0) {
+        // Reject: callerToken exists but no matching AbilityRecord found, and no fallback identity.
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get callerRecord from callerToken");
         AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_INVALID_VALUE, "Get callerRecord failed");
         return ERR_INVALID_VALUE;
@@ -1937,7 +1937,8 @@ int32_t AbilityManagerService::ProcessLaunchReasonAndController(StartAbilityWrap
         AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_INVALID_VALUE, "No valid caller identity");
         return ERR_INVALID_VALUE;
     } else {
-        // No token caller, use the identity passed by the clone selector dialog.
+        // callerToken is absent or stale (e.g. the caller app exited); fall back to the
+        // identity captured server-side for the clone selector dialog.
         callerTokenId = param.specifyTokenId;
         TAG_LOGI(AAFwkTag::ABILITYMGR, "use specifyTokenId as callerTokenId: %{public}d", callerTokenId);
     }
