@@ -201,3 +201,112 @@ sequenceDiagram
 | 安全链路 | 内核/ATM 侧验证 | parentHapTokenId 被正确设置 |
 
 > 兼容性验证详见 spec.md 兼容性声明章节。
+
+## DFX 可观测性设计
+
+> 参考约束：`services/common/include/hilog_tag_wrapper.h`（HiLog 标签定义）、`hisysevent.yaml`（HiSysEvent 事件定义，domain=AAFWK，硬性合约）。
+
+### HiLog 日志设计
+
+新增 HiLog 标签 `CLITOOLMGR` 到 `hilog_tag_wrapper.h` 的 `AAFwkLogTag` 枚举（紧随 `URIPERMMGR` 之后）：
+
+```cpp
+// hilog_tag_wrapper.h
+enum class AAFwkLogTag : uint32_t {
+    // ...
+    URIPERMMGR,
+    CLITOOLMGR,          // 新增：cli SA 沙箱 shell 执行与会话管理
+    BUNDLEMGRHELPER,
+    // ...
+};
+```
+
+| 日志场景 | 级别 | 日志内容 | 关联 AC |
+|---------|------|---------|---------|
+| ExecCmd 入口 | INFO | `ExecCmd start: background=%{public}d, cmdLen=%{public}d` | AC-1.1/AC-2.1 |
+| sessionId 生成 | INFO | `SessionId generated: %{public}s` | AC-2.1 |
+| 进程孵化成功 | INFO | `ShellProcess spawned: pid=%{public}d, sessionId=%{public}s` | AC-1.1/AC-2.2 |
+| tokenId 设置 | DEBUG | `SetParentHapTokenId: callerTokenId=%{public}d` (脱敏) | AC-1.1/AC-2.2 |
+| tokenId 设置失败 | ERROR | `SetParentHapTokenId failed: ret=%{public}d` (不打印 tokenId 明文) | AC-1.1/AC-2.2 |
+| 权限校验失败 | WARN | `VerifyAccessToken failed: callerPid=%{public}d` | AC-1.1/AC-2.1 |
+| 输出截断 | WARN | `Output trimmed: sessionId=%{public}s, exceed=%{public}d bytes` | EX-2 |
+| 超时终止 | WARN | `Session timeout: sessionId=%{public}s, timeout=%{public}d ms` | EX-1 |
+| 并发清理认领 | DEBUG | `TryClaimCleanup: sessionId=%{public}s, claimed=%{public}d` | AC-2.3 |
+| 进程退出 | INFO | `ShellProcess exit: pid=%{public}d, exitCode=%{public}d` | AC-1.2 |
+| Session 清理完成 | INFO | `Session cleared: sessionId=%{public}s` | AC-2.3 |
+
+> 日志约束：不打印 tokenId 明文（安全脱敏）；不打印 cmd/policy 全文（防注入/防泄漏）；sessionId 可打印（非敏感标识）。
+
+### HiSysEvent 事件设计
+
+在 `hisysevent.yaml`（domain: AAFWK）中新增以下事件：
+
+```yaml
+# cli SA shell 执行失败
+EXEC_CMD_FAILED:
+  __BASE: {type: FAULT, level: CRITICAL, tag: DFR, desc: cli SA shell command execution failed}
+  BUNDLE_NAME: {type: STRING, desc: caller bundle name}
+  SESSION_ID: {type: STRING, desc: session id}
+  ERROR_CODE: {type: INT32, desc: error code}
+  FAILURE_REASON: {type: STRING, desc: failure reason}
+
+# tokenId 安全链路设置失败
+SET_PARENT_HAP_TOKEN_FAILED:
+  __BASE: {type: FAULT, level: CRITICAL, tag: SECURITY, desc: SetParentHapTokenId failed after fork}
+  BUNDLE_NAME: {type: STRING, desc: caller bundle name}
+  SESSION_ID: {type: STRING, desc: session id}
+  ERROR_CODE: {type: INT32, desc: error code}
+
+# session 并发清理异常
+SESSION_CLEANUP_ANOMALY:
+  __BASE: {type: FAULT, level: MINOR, tag: DFR, desc: session cleanup anomaly detected}
+  SESSION_ID: {type: STRING, desc: session id}
+  ANOMALY_TYPE: {type: STRING, desc: anomaly type (double_cleanup/process_leak)}
+  PID: {type: INT32, desc: shell process id}
+```
+
+| 事件名 | 类型 | 级别 | 触发条件 | 关联 AC |
+|--------|------|------|---------|---------|
+| `EXEC_CMD_FAILED` | FAULT | CRITICAL | ExecCmd 执行链路任一步骤失败（权限/孵化/tokenId） | AC-1.1/AC-2.2 |
+| `SET_PARENT_HAP_TOKEN_FAILED` | FAULT | CRITICAL | fork 后 SetParentHapTokenId 返回失败 | AC-1.1/AC-2.2 |
+| `SESSION_CLEANUP_ANOMALY` | FAULT | MINOR | 并发清理检测到异常（重复清理/进程泄漏） | AC-2.3 |
+
+### HiTrace 链路追踪
+
+session 生命周期关键节点打 trace，便于跨进程/跨阶段问题定位：
+
+```cpp
+// ProcessManager::CreateShellProcess
+HiTraceMeter::StartTrace("CliTool:CreateShellProcess");
+// ... fork + SetParentHapTokenId ...
+HiTraceMeter::FinishTrace();
+
+// SessionRecord::TryClaimCleanup
+HiTraceMeter::StartTrace("CliTool:TryClaimCleanup");
+// ... CAS + kill ...
+HiTraceMeter::FinishTrace();
+```
+
+| Trace 点 | 场景 | 追踪内容 |
+|---------|------|---------|
+| `CliTool:CreateShellProcess` | 进程孵化 | fork + 管道创建 + tokenId 设置耗时 |
+| `CliTool:TryClaimCleanup` | 并发清理 | CAS 认领 + kill 耗时 |
+| `CliTool:ExecCmd` | IPC 执行 | 从 IPC 入口到返回 sessionId 耗时 |
+
+### 性能可观测性
+
+| 指标 | 采集方式 | 告警阈值 | 关联 AC |
+|------|---------|---------|---------|
+| ExecCmd IPC 延迟 | HiTrace `CliTool:ExecCmd` | > 500ms 需排查 | AC-2.1 |
+| 进程孵化耗时 | HiTrace `CliTool:CreateShellProcess` | > 2s 需排查 | AC-1.1 |
+| 输出缓冲使用率 | 日志 `Output trimmed` 频次统计 | 频繁截断需评估缓冲上限 | EX-2 |
+| 活跃 session 数 | `SessionRecord` 表计数 | 达并发上限需告警 | — |
+
+### DFX 测试覆盖
+
+| DFX 项 | 验证方式 | 关联 AC |
+|--------|---------|---------|
+| HiLog 日志输出 | 触发各场景后 `hilog -T CliToolMgr` 查验 | 全部 |
+| HiSysEvent 上报 | 触发失败路径后 `hisysevent -l` 查验事件 | AC-1.1/AC-2.2/AC-2.3 |
+| HiTrace 链路 | `hitrace -t CliTool:` 查验 trace 点 | AC-1.1/AC-2.3 |
+| 日志脱敏 | 验证日志不含 tokenId 明文 | 安全约束 |

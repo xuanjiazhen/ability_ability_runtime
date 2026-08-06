@@ -341,3 +341,99 @@ sequenceDiagram
 - [x] 风险和开放问题有 Owner（部分待确认）
 
 **结论:** 条件通过（待 Owner 复核后转「通过」）
+
+## DFX 可观测性设计
+
+> 参考约束：`services/common/include/hilog_tag_wrapper.h`（HiLog 标签定义）、`hisysevent.yaml`（HiSysEvent 事件定义，domain=AAFWK，硬性合约）。
+> spec.md 非功能需求已声明"失败路径经 HiSysEvent 上报（bundleName、toolName、failureReason/duration）"，本节为该需求的设计落地。
+
+### HiLog 日志设计
+
+复用 issue-15382 新增的 `CLITOOLMGR` 标签（或按 `cli_tool_framework` 独立标签需求，由 Owner 确认）：
+
+| 日志场景 | 级别 | 日志内容 | 关联 AC |
+|---------|------|---------|---------|
+| execTool 入口 | INFO | `execTool start: toolName=%{public}s, subcommand=%{public}s` | AC-1.1 |
+| 权限校验 | DEBUG | `ValidateExecToolPermissions: callerToken=***, isSystemApp=%{public}d, hasPermission=%{public}d` | AC-1.5/AC-1.6 |
+| 工具查找 | DEBUG | `GetToolByName: toolName=%{public}s, found=%{public}d` | AC-1.7 |
+| 参数/schema 校验 | DEBUG | `ValidateProperties: subcommand=%{public}s, valid=%{public}d` | AC-1.8/AC-1.9 |
+| 沙箱配置生成 | DEBUG | `GenerateSandboxConfig: tokenId=***, success=%{public}d` | AC-1.14 |
+| 子进程创建 | INFO | `CreateChildProcess: pid=%{public}d, toolName=%{public}s` | AC-1.1 |
+| 会话状态切换 | DEBUG | `SessionState: %s → %s, sessionId=%{public}s` | AC-1.2/AC-1.3/AC-1.4 |
+| 超时触发 | WARN | `Session timeout: sessionId=%{public}s, timeout=%{public}d s` | AC-1.4 |
+| yield 让出 | DEBUG | `Session yield: sessionId=%{public}s, yieldMs=%{public}d` | AC-1.2 |
+| 会话上限 | WARN | `Session limit exceeded: activeCount=%{public}d, limit=%{public}d` | AC-1.13 |
+| 回复派发 | INFO | `DispatchReply: sessionId=%{public}s, status=%{public}s, exitCode=%{public}d` | AC-1.1 |
+| 错误回复 | WARN | `DispatchReply error: sessionId=%{public}s, errorCode=%{public}d` | AC-1.5~1.15 |
+
+> 日志约束：不打印 args 明文（args 仅 Key 校验，值可能含业务数据）；不打印 tokenId 明文；toolName/subcommand 非敏感可打印。
+
+### HiSysEvent 事件设计
+
+在 `hisysevent.yaml`（domain: AAFWK）中新增以下事件：
+
+```yaml
+# execTool 执行失败（权限/沙箱/工具不存在/参数非法等）
+EXEC_TOOL_FAILED:
+  __BASE: {type: FAULT, level: CRITICAL, tag: DFR, desc: execTool execution failed}
+  BUNDLE_NAME: {type: STRING, desc: caller bundle name}
+  TOOL_NAME: {type: STRING, desc: tool name}
+  SESSION_ID: {type: STRING, desc: session id}
+  ERROR_CODE: {type: INT32, desc: error code (357000xx)}
+  FAILURE_REASON: {type: STRING, desc: failure reason}
+
+# execTool 超时终止
+EXEC_TOOL_TIMEOUT:
+  __BASE: {type: FAULT, level: MINOR, tag: DFR, desc: execTool session timed out}
+  BUNDLE_NAME: {type: STRING, desc: caller bundle name}
+  TOOL_NAME: {type: STRING, desc: tool name}
+  SESSION_ID: {type: STRING, desc: session id}
+  TIMEOUT_SEC: {type: INT32, desc: configured timeout in seconds}
+
+# execTool 会话上限拒绝
+EXEC_TOOL_SESSION_LIMIT:
+  __BASE: {type: BEHAVIOR, level: MINOR, desc: execTool session limit exceeded}
+  BUNDLE_NAME: {type: STRING, desc: caller bundle name}
+  ACTIVE_COUNT: {type: INT32, desc: current active session count}
+  LIMIT: {type: INT32, desc: concurrency limit}
+```
+
+| 事件名 | 类型 | 级别 | 触发条件 | 关联 AC |
+|--------|------|------|---------|---------|
+| `EXEC_TOOL_FAILED` | FAULT | CRITICAL | execTool 链路任一步骤失败（权限/查找/校验/沙箱/孵化） | AC-1.5~1.15 |
+| `EXEC_TOOL_TIMEOUT` | FAULT | MINOR | 进程运行至 timeout 秒被终止 | AC-1.4 |
+| `EXEC_TOOL_SESSION_LIMIT` | BEHAVIOR | MINOR | 会话数达上限被拒绝 | AC-1.13 |
+
+> 事件参数约束遵循 AGENTS.md：事件名、参数类型、级别不可随意修改；新增事件需在 `hisysevent.yaml` 中声明。
+
+### HiTrace 链路追踪
+
+execTool 从 NAPI 入口到 SA 回复的完整链路打 trace：
+
+| Trace 点 | 场景 | 追踪内容 |
+|---------|------|---------|
+| `CliTool:ExecTool` | NAPI→IPC→SA | 从 NAPI 入口到 SA ExecTool 回复的完整链路 |
+| `CliTool:CreateChildProcess` | 子进程创建 | fork + 管道 + 沙箱配置耗时 |
+| `CliTool:ValidatePermissions` | 权限校验 | 系统应用判定 + EXEC_CLI_TOOL 校验耗时 |
+| `CliTool:GenerateSandboxConfig` | 沙箱配置 | 按 Token 生成沙箱配置耗时 |
+| `CliTool:HandleTimeout` | 超时处理 | 超时检测 + kill + 事件派发耗时 |
+
+### 性能可观测性
+
+| 指标 | 采集方式 | 告警阈值 | 关联 AC |
+|------|---------|---------|---------|
+| 执行耗时 | `ExecResult.executionTime`（已设计） | > 1800s 需排查（=超时上限） | AC-1.1 |
+| SA 拉起延迟 | HiTrace `CliTool:ExecTool` start 段 | > 1s 需排查（ondemand 冷启动） | AC-1.15 |
+| 权限校验耗时 | HiTrace `CliTool:ValidatePermissions` | > 50ms 需排查 | AC-1.5/1.6 |
+| 沙箱配置生成耗时 | HiTrace `CliTool:GenerateSandboxConfig` | > 100ms 需排查 | AC-1.14 |
+| 并发会话数 | `sessions_` 表计数 + 日志统计 | 达系统上限需告警 | AC-1.13 |
+
+### DFX 测试覆盖
+
+| DFX 项 | 验证方式 | 关联 AC |
+|--------|---------|---------|
+| HiLog 日志输出 | 触发各场景后 `hilog -T CliToolMgr` 查验 | 全部 |
+| HiSysEvent 上报 | 触发失败路径后 `hisysevent -l` 查验事件名和参数 | AC-1.4/1.5~1.15/1.13 |
+| HiTrace 链路 | `hitrace -t CliTool:` 查验 trace 点 | AC-1.1 |
+| 日志脱敏 | 验证日志不含 args 明文和 tokenId 明文 | 安全约束 |
+| executionTime 准确性 | 对比实际耗时与 `ExecResult.executionTime` 值 | AC-1.1 |

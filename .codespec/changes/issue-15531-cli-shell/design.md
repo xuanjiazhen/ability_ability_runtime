@@ -200,3 +200,118 @@
 - **阶段划分是否采纳**（Phase 1/2/3）：影响 execution-plan 拆分与验证顺序，需需求方 Stage 2 审批时确认。
 - **插件分组是否调整**（7 个是否合并）：Stage 3 实现时定。
 - **共享接口头落点**：`interfaces/inner_api/uri_permission/feature/` vs `services/uripermmgr/include/feature/`——前者更规范（inner_api），Stage 3 定。
+
+## 10. DFX 可观测性设计
+
+> 参考约束：`services/common/include/hilog_tag_wrapper.h`（`AAFwkLogTag::URIPERMMGR` 已存在）、`hisysevent.yaml`（domain: AAFWK，已有 `GRANT_URI_PERMISSION` 事件，硬性合约）。
+> spec.md AC-6 已要求"插件 Load/Unload/延时重挂事件经 hilog/hisysevent 记录插件名+结果"，本节为该 AC 的设计落地。
+
+### HiLog 日志设计
+
+复用现有 `AAFwkLogTag::URIPERMMGR` 标签，无需新增：
+
+| 日志场景 | 级别 | 日志内容 | 关联 AC |
+|---------|------|---------|---------|
+| 插件 Load（dlopen） | INFO | `Plugin Load: name=%{public}s, result=%{public}d` | AC-6 |
+| 插件 Unload（dlclose） | INFO | `Plugin Unload: name=%{public}s, result=%{public}d` | AC-6 |
+| 延时任务挂载 | DEBUG | `DelayUnload scheduled: feature=%{public}s, delayMs=%{public}d` | AC-6 |
+| 延时任务取消 | DEBUG | `DelayUnload cancelled: feature=%{public}s, reason=%{public}s` | AC-6 |
+| 延时任务到期触发 | DEBUG | `DelayUnload triggered: feature=%{public}s, activeCount=%{public}d` | AC-6 |
+| dlopen 失败 | ERROR | `dlopen failed: soName=%{public}s, dlerror=%{public}s` | AC-3 |
+| dlclose 失败 | WARN | `dlclose failed: soName=%{public}s, dlerror=%{public}s` | AC-6 |
+| 在途 IPC 等待加载 | DEBUG | `IPC waiting for Load: feature=%{public}s, activeCount=%{public}d` | AC-3 |
+| 活动计数变化 | VERBOSE | `ActiveCount: feature=%{public}s, count=%{public}d, op=%{public}s` | AC-5 |
+| 独占性实测结果 | INFO | `Exclusivity check: feature=%{public}s, exclusive=%{public}d, inMaps=%{public}d` | AC-10 |
+| 死依赖移除 | INFO | `DeadDep removed: dep=%{public}s, buildOk=%{public}d` | AC-7 |
+
+> 日志约束：不打印授权 URI 明文（安全脱敏）；插件 .so 路径和名称可打印（非敏感）；不打印 tokenId 明文。
+
+### HiSysEvent 事件设计
+
+在 `hisysevent.yaml`（domain: AAFWK）中新增以下事件：
+
+```yaml
+# 插件动态加载失败
+PLUGIN_LOAD_FAILED:
+  __BASE: {type: FAULT, level: CRITICAL, tag: DFR, desc: UPMS dynamic feature plugin load (dlopen) failed}
+  FEATURE_NAME: {type: STRING, desc: feature/plugin name}
+  SO_NAME: {type: STRING, desc: shared library name}
+  ERROR_CODE: {type: INT32, desc: error code}
+  DLERROR: {type: STRING, desc: dlerror message}
+
+# 插件动态卸载失败
+PLUGIN_UNLOAD_FAILED:
+  __BASE: {type: FAULT, level: MINOR, tag: DFR, desc: UPMS dynamic feature plugin unload (dlclose) failed}
+  FEATURE_NAME: {type: STRING, desc: feature/plugin name}
+  SO_NAME: {type: STRING, desc: shared library name}
+  DLERROR: {type: STRING, desc: dlerror message}
+
+# 插件内存释放行为事件
+PLUGIN_MEMORY_RELEASE:
+  __BASE: {type: BEHAVIOR, level: MINOR, tag: PowerStats, desc: UPMS plugin dlclose memory released}
+  FEATURE_NAME: {type: STRING, desc: feature/plugin name}
+  SO_NAME: {type: STRING, desc: shared library name}
+  PSS_BEFORE: {type: INT32, desc: PSS before dlclose (KB)}
+  PSS_AFTER: {type: INT32, desc: PSS after dlclose (KB)}
+  PSS_DELTA: {type: INT32, desc: PSS delta (KB), negative=released}
+  EXCLUSIVE: {type: INT32, desc: 1=exclusive (real release), 0=shared (no release)}
+
+# 在途 IPC 安全事件（卸载窗口 IPC 到达）
+PLUGIN_INFLIGHT_IPC:
+  __BASE: {type: BEHAVIOR, level: MINOR, desc: IPC arrived during plugin unloaded, triggered reload}
+  FEATURE_NAME: {type: STRING, desc: feature/plugin name}
+  ACTIVE_COUNT: {type: INT32, desc: active count at IPC arrival}
+  RELOAD_RESULT: {type: INT32, desc: reload result (0=success)}
+```
+
+| 事件名 | 类型 | 级别 | 触发条件 | 关联 AC |
+|--------|------|------|---------|---------|
+| `PLUGIN_LOAD_FAILED` | FAULT | CRITICAL | dlopen 返回 nullptr 或 dlsym 失败 | AC-3 |
+| `PLUGIN_UNLOAD_FAILED` | FAULT | MINOR | dlclose 返回非零 | AC-6 |
+| `PLUGIN_MEMORY_RELEASE` | BEHAVIOR | MINOR | 插件 dlclose 后 PSS 对比（独占性观测） | AC-1/AC-10 |
+| `PLUGIN_INFLIGHT_IPC` | BEHAVIOR | MINOR | 卸载期间 IPC 到达触发 dlopen 恢复 | AC-3 |
+
+### HiTrace 链路追踪
+
+插件生命周期关键节点打 trace，便于 dlclose/dlopen 链路问题定位：
+
+| Trace 点 | 场景 | 追踪内容 |
+|---------|------|---------|
+| `UPMS:Acquire` | 插件获取 | Acquire → activeCount++ → Load(若需) 耗时 |
+| `UPMS:Load` | dlopen 加载 | dlopen + dlsym + CreateFeature 耗时 |
+| `UPMS:UnloadIdle` | 空闲卸载 | activeCount==0 检查 + dlclose 耗时 |
+| `UPMS:DelayUnload` | 延时任务 | 挂载/取消/到期触发 |
+| `UPMS:ExclusivityCheck` | 独占性实测 | /proc/maps 读取 + 对比耗时 |
+
+### 性能可观测性
+
+| 指标 | 采集方式 | 告警阈值 | 关联 AC |
+|------|---------|---------|---------|
+| dlopen 耗时 | HiTrace `UPMS:Load` | > 100ms 需排查 | AC-3 |
+| dlclose 耗时 | HiTrace `UPMS:UnloadIdle` | > 50ms 需排查 | AC-6 |
+| Acquire 守卫开销 | HiTrace `UPMS:Acquire` | > 1ms（不含 Load）需排查 | AC-4 |
+| PSS 释放量 | `PLUGIN_MEMORY_RELEASE` 事件 PSS_DELTA | 独占候选 delta=0 需排查（非独占） | AC-1/AC-10 |
+| 延时卸载触发频率 | 日志统计 `DelayUnload triggered` 频次 | 过于频繁需评估 N 值 | — |
+| 高频路径（Check）经守卫延迟 | 对比 Check 调用前后的 HiTrace | 延迟增量 > 1ms 需评估 | R7 |
+
+### 内存观测专项设计
+
+> 本需求核心目标之一是降低空闲内存（PSS），DFX 须可观测内存收益。
+
+| 观测项 | 方法 | 时机 | 关联 AC |
+|--------|------|------|---------|
+| PSS 前后对比 | `hidumper -s 183` 或 `/proc/<pid>/maps` | dlclose 前后各取一次 | AC-1 |
+| .so 映射移除验证 | `/proc/<foundation_pid>/maps | grep <so_name>` | dlclose 后查验 | AC-10 |
+| 独占性判定 | maps 中 .so 是否仍存在（被其它 SA 共享则不移除） | 每个插件首次 dlclose 后 | AC-10 |
+| 死依赖移除后占用 | `maps` 对比移除前后（条件性，仅 libupms 独占时） | 死依赖清理后 | AC-7 |
+
+### DFX 测试覆盖
+
+| DFX 项 | 验证方式 | 关联 AC |
+|--------|---------|---------|
+| HiLog 日志输出 | 触发 Load/Unload/延时后 `hilog -T 0xd002f00`（URIPERMMGR domain）查验 | AC-6 |
+| HiSysEvent 上报 | 触发失败路径后 `hisysevent -l` 查验事件名和参数 | AC-3/AC-6 |
+| HiTrace 链路 | `hitrace -t UPMS:` 查验 trace 点 | AC-1/AC-3 |
+| 日志脱敏 | 验证日志不含授权 URI 明文 | 安全约束 |
+| PSS 释放验证 | `hidumper` 前后对比，独立插件 PSS 下降可复测 | AC-1 |
+| 独占性实测 | `/proc/maps` 确认 .so 真正移除 | AC-10 |
