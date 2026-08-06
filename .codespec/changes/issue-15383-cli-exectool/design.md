@@ -288,6 +288,18 @@ sequenceDiagram
 | 超时与正常退出竞争 | SessionRecord 状态 | 原子状态 + BeginCleanup 单次进入 | 仅一方完成终态派发 |
 | 回调与代理死亡竞争 | Scheduler 代理 | DeathRecipient + mutex | 代理死亡不清会话，仅清代理 |
 
+## DFX 设计
+
+### DFX 故障模式分析
+
+> 知识来源：`ability_ability_runtime/docs/dfx/fmea.yaml`（代码交付仓，READ，单仓变更）。命中 1 条。
+
+| 分析对象 | 故障模式 | 故障影响 | 故障原因 | 严酷度 | 恢复措施 | 关键日志 | 大数据打点事件 |
+|---------|----------|----------|-------------|---------|---------|---------|---------|
+| ProcessManager::CreateChildProcess（fork 沙箱子进程） | 子进程启动失败 | 创建不了子进程（CLI 子进程无法孵化，execTool 会话无法建立） | 1. AppSpawnClient为空; 2. 参数不合法，fd超限; 3. 系统uid资源耗尽; 4. 调用AppSpawn接口孵化进程失败 | 严重 | 重启设备；应用需要保证传入fd参数合法；重启设备；重试 | spawnClient null/generate renderUid fail/spawn new app fail, errCode | PROCESS_START_FAILED |
+
+> 说明：execTool 子进程经 fork（非 AppSpawn）孵化，FMEA 中 AppSpawn 专属原因（#1/#4）部分不适用；fd 超限/uid 耗尽原因与 fork+pipe 链路相关。故障路径经 `SchedulerExecToolReplyEvent` 回复错误码（357000xx），TASK-CLI-008 的 HiSysEvent 失败上报与本打点事件对齐。
+
 ### 安全基础检查
 
 > proposal「安全与权限」= 是，本节必填。

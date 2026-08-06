@@ -170,6 +170,20 @@
 | 新增对外 API | N/A | 确认 N/A（对应用透明） |
 | 授权账本持久化 | N/A | 确认 N/A（账本跨卸载周期保留） |
 
+## DFX 设计
+
+### DFX 故障模式分析
+
+> 知识来源：`ability_ability_runtime/docs/dfx/fmea.yaml`（代码交付仓，READ，单仓变更）。本变更的 dlopen/dlclose 插件机制直接作用于 UPMS（SA 183）的 URI 授权链路，命中 3 条 URI 授权故障模式。授权账本仍在 libupms 内存（ADR 强一致），插件卸载/重载周期内若 RAII 守卫或活动计数失效（R2 UAF）将触发下列故障。
+
+| 分析对象 | 故障模式 | 故障影响 | 故障原因 | 严酷度 | 恢复措施 | 关键日志 | 大数据打点事件 |
+|---------|----------|----------|-------------|---------|---------|---------|---------|
+| URI 授权流程（经插件动态加载的 media/storage/fileuri/broker 权限校验） | 通过StartAbility等方法分享文件，目标应用无法访问 | 目标应用获取的want中uri为空 | 1. want中写了URI授权flag，但是uri字段或paramStream字段是非文件URI; 2. want中写了URI授权flag，但是URI字段或paramStream字段传入了没有权限的媒体库URI; 3. want中写了URI授权flag，但是URI字段或paramStream字段传入了没有权限的沙箱URI; 4. want中写了URI授权flag，但是URI字段或paramStream字段传入了没有权限的Docs URI | 一般 | 确保在有授权Flag的情况下，传入的URI是有权限的；确保传入的URI是有权限的媒体URI；确保传入的URI是应用自身的URI；确保有分享docs类型URI的权限 | eraseUri、eraseParamStream/uri is invalid:/Check photo uri permission failed, ret is/Check uri permission failed. | SHARE_UNPRIVILEGED_FILE_URI |
+| GrantUriPermissionByKey/GrantUriPermissionByKeyAsCaller 授权（经 identity/media 插件） | GrantUriPermissionByKey/GrantUriPermissionByKeyAsCaller授权失败 | 目标应用无法获取大批量URI并访问 | 1. 传入的Key中URI是无权限的; 2. 调用授权接口失败 | 一般 | 确保传入的URI为自身有权限的URI；重试 | Not all uri is valid/grant batch uri permission failed/grant media uri permission failed | SHARE_UNPRIVILEGED_FILE_URI |
+| GrantUriPermission 授权（经 media/sandbox/storage 插件） | GrantUriPermission授权失败 | 目标应用获取URI后无法访问 | 1. 传入的URI没有权限; 2. 调用媒体库URI授权失败; 3. 沙箱和公共目录URI授权失败 | 一般 | 确保传入的URI为自身有权限的URI；重试；重试 | All uri is invalid./Check uri permission failed./Grant photo uri permission failed, ret is/Failed to set policy/Grant uri policy failed | SHARE_UNPRIVILEGED_FILE_URI |
+
+> 与本设计风险矩阵的关联：上述故障模式在插件 dlclose 后悬空（R2 UAF）或活动计数失效（R5）时被触发；ADR-3 的 RAII 守卫 + 活动计数是预防触发上述故障模式的强一致命门（AC-2/AC-3/AC-5）。
+
 ## 7. 约束 / 风险 / 取舍
 
 | 风险 | 等级 | 缓解 |

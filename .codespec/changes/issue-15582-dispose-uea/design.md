@@ -368,6 +368,18 @@ EmbeddableUIAbility      AMS              EmbeddableUIAbility进程        隐�
 
 ---
 
+## DFX 设计
+
+### DFX 故障模式分析
+
+> 知识来源：`ability_ability_runtime/docs/dfx/fmea.yaml`（代码交付仓，READ，单仓变更）。本变更在 `DisposedObserver::ExecuteUIExtension` 新增前置分支拉起隐私弹框模应用 UIExtension，命中 1 条 Extension 启动故障模式。
+
+| 分析对象 | 故障模式 | 故障影响 | 故障原因 | 严酷度 | 恢复措施 | 关键日志 | 大数据打点事件 |
+|---------|----------|----------|-------------|---------|---------|---------|---------|
+| 嵌入式元服务隐私弹框模应用 UIExtension 创建（CreateEmbeddablePrivacyUIExtension） | 启动Extension失败 | 目标Extension无法拉起（隐私弹框无法呈现，嵌入式元服务无法进入模应用体验） | 1. 发起方UIAbility处于后台，需要申请长时任务; 2. 目标应用不存在; 3. 拦截器拦截; 4. 没有权限、传入参数不合法; 5. 应用处置 | 提示 | 确保UIAbility在前台，或者申请长时任务；确保传入的应用存在；根据错误码信息修改入参 | without start serviceExtension/generate ability request local error/doProcess failed/ability_manager_service/app is intercepted | START_EXTENSION_ERROR |
+
+> 说明：本变更新链路经 `ExecuteEmbeddablePrivacyUIExtension` → IPC `CREATE_EMBEDDABLE_PRIVACY_UI_EXTENSION` → `UIExtensionContext::CreateEmbeddablePrivacyUIExtensionWithApp` → ArkUI `CreateModalUIExtension` 呈现隐私弹框；其中"应用处置"原因与本设计接入点 DisposedObserver（DisposedRule 处置链）直接对应。新增 IPC code 失败、Scheduler 不可达等场景需在实现期补齐对应错误码与 HiSysEvent 上报。
+
 ## 7. 关键风险与缓解
 
 | 风险 | 缓解措施 |

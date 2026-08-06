@@ -121,6 +121,18 @@ classDiagram
 - **Concurrency**：TryClaimCleanup 用 atomic<bool> cleanupStarted_ CAS；stdin/stdout/stderr 管道关闭用 atomic 标记；不变量：管道关闭与进程退出顺序不破坏输出回收。
 - **Capacity**：stdoutText_/stderrText_ 各限 MAX_BUFFERED_OUTPUT_BYTES=64KB，TrimBufferedOutput 截断。
 
+## DFX 设计
+
+### DFX 故障模式分析
+
+> 知识来源：`ability_ability_runtime/docs/dfx/fmea.yaml`（代码交付仓，READ）。依赖仓 `security_access_token`、`kernel` 为远程仓，未确认 FMEA 知识（仓不可达），不贡献命中记录。命中 1 条。
+
+| 分析对象 | 故障模式 | 故障影响 | 故障原因 | 严酷度 | 恢复措施 | 关键日志 | 大数据打点事件 |
+|---------|----------|----------|-------------|---------|---------|---------|---------|
+| ProcessManager::CreateShellProcess（fork 沙箱 shell 子进程） | 子进程启动失败 | 创建不了子进程 | 1. AppSpawnClient为空; 2. 参数不合法，fd超限; 3. 系统uid资源耗尽; 4. 调用AppSpawn接口孵化进程失败 | 严重 | 重启设备；应用需要保证传入fd参数合法；重启设备；重试 | spawnClient null/generate renderUid fail/spawn new app fail, errCode | PROCESS_START_FAILED |
+
+> 说明：CLI shell 经 fork（非 AppSpawn）孵化进程，FMEA 中 AppSpawn 专属原因（#1/#4）部分不适用，fd 超限/uid 耗尽原因与 fork+pipe 链路相关；故障模式、严酷度与打点事件作为 DFX 基线沿用，实现期按实际 fork 失败码细化。
+
 ## 安全基础检查
 
 ### 信任边界交叉分析
