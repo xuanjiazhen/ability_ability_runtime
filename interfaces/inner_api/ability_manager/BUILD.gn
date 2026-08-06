@@ -246,6 +246,8 @@ ohos_shared_library("ability_start_options") {
   }
   branch_protector_ret = "pac_ret"
 
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
+
   include_dirs = [
     "include/",
     "${ability_runtime_services_path}/common/include",

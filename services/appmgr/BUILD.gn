@@ -105,7 +105,10 @@ ohos_shared_library("libappms") {
     defines += [ "ABILITY_PLATFORM_CHECK_PERMISSION" ]
   }
 
-  configs = [ ":appmgr_config" ]
+  configs = [
+    ":appmgr_config",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
