@@ -1942,6 +1942,13 @@ int32_t AbilityManagerService::ProcessLaunchReasonAndController(StartAbilityWrap
         TAG_LOGI(AAFwkTag::ABILITYMGR, "use specifyTokenId as callerTokenId: %{public}d", callerTokenId);
     }
 
+    // Defensive check: an identity of 0 must never reach permission verification.
+    if (callerTokenId == 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get callerTokenId");
+        AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_INVALID_VALUE, "Get callerTokenId failed");
+        return ERR_INVALID_VALUE;
+    }
+
     RemoveUnauthorizedLaunchReasonMessage(param.want, abilityRequest, callerTokenId);
 
     if (!IsAbilityControllerStart(param.want, abilityInfo.bundleName)) {
