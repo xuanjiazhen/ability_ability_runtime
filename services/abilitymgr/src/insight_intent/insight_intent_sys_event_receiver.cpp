@@ -124,19 +124,21 @@ void InsightIntentSysEventReceiver::RegisterAllFunctions(
 void InsightIntentSysEventReceiver::DeleteInsightIntent(const std::string &bundleName,
     const std::string &moduleName, int32_t userId)
 {
-    std::vector<ExtractInsightIntentInfo> intentInfos;
-    std::vector<InsightIntentInfo> configIntentInfos;
-    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentInfoByName(
-        bundleName, userId, intentInfos);
-    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetConfigInsightIntentInfoByName(
-        bundleName, userId, configIntentInfos);
-    if (!intentInfos.empty() || !configIntentInfos.empty()) {
-        TAG_LOGI(AAFwkTag::INTENT, "update bundleName: %{public}s to no insight intent",
-            bundleName.c_str());
-        DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->DeleteInsightIntentTotalInfo(
-            bundleName, moduleName, userId);
-        CliTool::UnregisterInsightIntentFunctions(bundleName);
-    }
+    ffrt::submit([bundleName, moduleName, userId]() {
+        std::vector<ExtractInsightIntentInfo> intentInfos;
+        std::vector<InsightIntentInfo> configIntentInfos;
+        DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentInfoByName(
+            bundleName, userId, intentInfos);
+        DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetConfigInsightIntentInfoByName(
+            bundleName, userId, configIntentInfos);
+        if (!intentInfos.empty() || !configIntentInfos.empty()) {
+            TAG_LOGI(AAFwkTag::INTENT, "update bundleName: %{public}s to no insight intent",
+                bundleName.c_str());
+            DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->DeleteInsightIntentTotalInfo(
+                bundleName, moduleName, userId);
+            CliTool::UnregisterInsightIntentFunctions(bundleName);
+        }
+    });
 }
 
 int32_t InsightIntentSysEventReceiver::ResolveLoadUserId(int32_t userId)
