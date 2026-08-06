@@ -1907,14 +1907,14 @@ int32_t AbilityManagerService::ProcessLaunchReasonAndController(StartAbilityWrap
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call ProcessLaunchReasonAndController");
     auto callerRecord = Token::GetAbilityRecordByToken(param.callerToken);
-    if (callerRecord == nullptr && param.callerToken != nullptr) {
+    if (callerRecord == nullptr &&
+        (param.callerToken != nullptr || param.specifyTokenId == 0)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get callerRecord from callerToken");
         AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_INVALID_VALUE, "Get callerRecord failed");
         return ERR_INVALID_VALUE;
     }
 
-    uint32_t callerTokenId = callerRecord == nullptr ?
-        (param.specifyTokenId != 0 ? param.specifyTokenId : IPCSkeleton::GetCallingTokenID()) :
+    uint32_t callerTokenId = callerRecord == nullptr ? param.specifyTokenId :
         callerRecord->GetApplicationInfo().accessTokenId;
     RemoveUnauthorizedLaunchReasonMessage(param.want, abilityRequest, callerTokenId);
 
