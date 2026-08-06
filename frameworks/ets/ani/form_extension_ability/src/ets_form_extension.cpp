@@ -49,6 +49,7 @@ constexpr const char* FORM_RECT_NAME = "@ohos.app.form.formInfo.formInfo.RectInn
 #ifdef HIVIEWDFX_RUNTIME_API_METRICS
 constexpr bool HISTOGRAM_BOOLEAN_SAMPLE = true;
 #endif
+constexpr int32_t MAX_FORM_DATA_PROXY_SIZE = 1024;
 }
 
 extern "C" __attribute__((visibility("default"))) FormExtension *OHOS_ABILITY_ETSFormExtension(
@@ -190,11 +191,13 @@ void ETSFormExtension::BindContext(std::shared_ptr<AbilityInfo> &abilityInfo, st
     }
     if ((status = env->Class_FindField(etsAbilityObj_->aniCls, "context", &field)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindField failed, status : %{public}d", status);
+        env->GlobalReference_Delete(contextGlobalRef);
         return;
     }
 
     if ((status = env->Object_SetField_Ref(etsAbilityObj_->aniObj, field, contextGlobalRef)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Object_SetField_Ref failed, status : %{public}d", status);
+        env->GlobalReference_Delete(contextGlobalRef);
         return;
     }
 
@@ -248,6 +251,14 @@ bool ETSFormExtension::ConvertFromDataProxies(
     }
 
     int proxyLength = static_cast<int>(std::round(length));
+    if (proxyLength < 0 || proxyLength > MAX_FORM_DATA_PROXY_SIZE) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "invalid proxyLength: %{public}d", proxyLength);
+        return false;
+    }
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null etsAbilityObj_");
+        return false;
+    }
     for (int i = 0; i < proxyLength; i++) {
         FormDataProxy formDataProxy("", "");
         ani_ref stringEntryRef;
@@ -343,6 +354,10 @@ OHOS::AppExecFwk::FormProviderInfo ETSFormExtension::OnCreate(const OHOS::AAFwk:
 
 bool ETSFormExtension::CallNativeFormMethod(ani_env *env, ani_object aniWant, ani_ref &nativeResult)
 {
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null etsAbilityObj_");
+        return false;
+    }
     ani_status status = ANI_OK;
 
     ani_method function;
@@ -446,6 +461,10 @@ void ETSFormExtension::OnDestroy(const int64_t formId)
         return;
     }
 
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null etsAbilityObj_");
+        return;
+    }
     ani_method function;
     if ((status = env->Class_FindMethod(etsAbilityObj_->aniCls, "onRemoveForm", "C{std.core.String}:", &function))) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod status : %{public}d", status);
@@ -478,6 +497,11 @@ void ETSFormExtension::OnEvent(const int64_t formId, const std::string &message)
     ani_string aniMessage;
     if ((status = env->String_NewUTF8(message.c_str(), message.size(), &aniMessage))) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "String_NewUTF8 status : %{public}d", status);
+        return;
+    }
+
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null etsAbilityObj_");
         return;
     }
     ani_method function;
@@ -513,6 +537,10 @@ void ETSFormExtension::OnUpdate(const int64_t formId, const AAFwk::WantParams &w
 
     ani_ref aniWantParams = OHOS::AppExecFwk::WrapWantParams(env, wantParams);
 
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null etsAbilityObj_");
+        return;
+    }
     ani_method function;
     if ((status = env->Class_FindMethod(
         etsAbilityObj_->aniCls, "onUpdateForm", "C{std.core.String}C{std.core.Record}:", &function))) {
@@ -544,6 +572,10 @@ void ETSFormExtension::OnCastToNormal(const int64_t formId)
         return;
     }
 
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null etsAbilityObj_");
+        return;
+    }
     ani_method function;
     if ((status = env->Class_FindMethod(
         etsAbilityObj_->aniCls, "onCastToNormalForm", "C{std.core.String}:", &function))) {
@@ -570,6 +602,10 @@ void ETSFormExtension::OnVisibilityChange(const std::map<int64_t, int32_t> &form
     }
 
     ani_method function;
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null etsAbilityObj_");
+        return;
+    }
     ani_status status =
         env->Class_FindMethod(etsAbilityObj_->aniCls, "onChangeFormVisibility", "C{std.core.Record}:", &function);
     if (status != ANI_OK) {
@@ -654,6 +690,10 @@ void ETSFormExtension::OnStop()
         return;
     }
 
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null etsAbilityObj_");
+        return;
+    }
     ani_ref nameRef;
     ani_status status = env->Object_GetFieldByName_Ref(
         static_cast<ani_object>(etsAbilityObj_->aniRef), "onStop", &nameRef);
@@ -688,6 +728,10 @@ bool ETSFormExtension::OnShare(int64_t formId, AAFwk::WantParams &wantParams)
         return false;
     }
     ani_string formIdStr = AppExecFwk::GetAniString(env, std::to_string(formId));
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null etsAbilityObj_");
+        return false;
+    }
     ani_ref nameRef;
     ani_status status = env->Object_GetFieldByName_Ref(
         static_cast<ani_object>(etsAbilityObj_->aniRef), "onShareForm", &nameRef);
@@ -718,6 +762,10 @@ bool ETSFormExtension::OnAcquireData(int64_t formId, AAFwk::WantParams &wantPara
         return false;
     }
     ani_string formIdStr = AppExecFwk::GetAniString(env, std::to_string(formId));
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null etsAbilityObj_");
+        return false;
+    }
     ani_ref nameRef;
     ani_status status = env->Object_GetFieldByName_Ref(
         static_cast<ani_object>(etsAbilityObj_->aniRef), "onAcquireFormData", &nameRef);
@@ -756,6 +804,10 @@ void ETSFormExtension::OnFormLocationChanged(const int64_t formId, const int32_t
     OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(
         env, FORM_LOCATION_STATE_ENUM_NAME, formLocation, formLocationStateItem);
 
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null etsAbilityObj_");
+        return;
+    }
     ani_method function;
     ani_status status = ANI_ERROR;
     if ((status = env->Class_FindMethod(
@@ -792,6 +844,10 @@ void ETSFormExtension::OnConfigurationUpdated(const AppExecFwk::Configuration &c
     }
 
     ani_object aniConfiguration = OHOS::AppExecFwk::WrapConfiguration(env, *fullConfig);
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null etsAbilityObj_");
+        return;
+    }
     ani_method method = nullptr;
     ani_status status = env->Class_FindMethod(etsAbilityObj_->aniCls,
         "onConfigurationUpdate", "C{@ohos.app.ability.Configuration.Configuration}:", &method);
@@ -821,6 +877,10 @@ FormState ETSFormExtension::OnAcquireFormState(const Want &want)
         return AppExecFwk::FormState::DEFAULT;
     }
 
+    if (etsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null etsAbilityObj_");
+        return AppExecFwk::FormState::DEFAULT;
+    }
     ani_ref nameRef;
     ani_status status = env->Object_GetFieldByName_Ref(
         static_cast<ani_object>(etsAbilityObj_->aniRef), "onAcquireFormState", &nameRef);
