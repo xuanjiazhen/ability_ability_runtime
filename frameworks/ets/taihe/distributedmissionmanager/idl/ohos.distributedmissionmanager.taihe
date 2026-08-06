@@ -64,20 +64,20 @@ struct ContinueCallbackInfo {
 function OnContinueStateChange(f: (info: ContinueCallbackInfo) => void) : void;
 function OffContinueStateChange(callbackOpt: Optional<(info: ContinueCallbackInfo) => void>) : void;
 
-@gen_async("startSyncRemoteMissions")
-@gen_promise("startSyncRemoteMissions")
+@async("startSyncRemoteMissions")
+@promise("startSyncRemoteMissions")
 function StartSyncRemoteMissionsSync(parameter: appMissionParameter.MissionParameter): void;
 
-@gen_async("stopSyncRemoteMissions")
-@gen_promise("stopSyncRemoteMissions")
+@async("stopSyncRemoteMissions")
+@promise("stopSyncRemoteMissions")
 function StopSyncRemoteMissionsSync(parameter: appMissionDeviceInfo.MissionDeviceInfo): void;
 
-@gen_async("registerMissionListener")
-@gen_promise("registerMissionListener")
+@async("registerMissionListener")
+@promise("registerMissionListener")
 function RegisterMissionListenerSync(parameter: appMissionDeviceInfo.MissionDeviceInfo, options: appMissionCallback.MissionCallback): void;
 
-@gen_async("unRegisterMissionListener")
-@gen_promise("unRegisterMissionListener")
+@async("unRegisterMissionListener")
+@promise("unRegisterMissionListener")
 function UnRegisterMissionListenerSync(parameter: appMissionDeviceInfo.MissionDeviceInfo): void;
 
 @rename("continueMission")
@@ -86,6 +86,6 @@ function ContinueMissionWithMissionInfoCallback(parameter: appContinueMissionInf
 @rename("continueMission")
 function ContinueMissionWithMissionInfoPromise(parameter: appContinueMissionInfo.ContinueMissionInfo): @sts_type("Promise<void>") Opaque;
 
-@gen_async("continueMission")
-@gen_promise("continueMission")
+@async("continueMission")
+@promise("continueMission")
 function ContinueMissionWithDeviceInfoSync(parameter: appContinueDeviceInfo.ContinueDeviceInfo, options: appContinueCallback.ContinueCallback) : void;
