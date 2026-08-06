@@ -1920,25 +1920,25 @@ int32_t AbilityManagerService::ProcessLaunchReasonAndController(StartAbilityWrap
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call ProcessLaunchReasonAndController");
 
-    // aa/shell callers have no ability token, so use the identity passed via specifyTokenId
-    // instead of looking up the AbilityRecord by token.
     uint32_t callerTokenId = 0;
     auto callerRecord = Token::GetAbilityRecordByToken(param.callerToken);
     if (callerRecord != nullptr) {
         callerTokenId = callerRecord->GetApplicationInfo().accessTokenId;
-    } else if (param.callerToken != nullptr && param.specifyTokenId == 0) {
-        // Reject: callerToken exists but no matching AbilityRecord found, and no fallback identity.
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get callerRecord from callerToken");
-        AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_INVALID_VALUE, "Get callerRecord failed");
-        return ERR_INVALID_VALUE;
-    } else if (param.specifyTokenId == 0) {
-        // Reject: no callerToken and no valid passed identity.
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get caller identity, specifyTokenId is 0");
-        AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_INVALID_VALUE, "No valid caller identity");
-        return ERR_INVALID_VALUE;
     } else {
-        // callerToken is absent or stale (e.g. the caller app exited); fall back to the
-        // identity captured server-side for the clone selector dialog.
+        // Stale or absent caller token: fall back to the identity captured
+        // server-side for the clone selector dialog (specifyTokenId).
+        if (param.callerToken != nullptr && param.specifyTokenId == 0) {
+            // Stale token without fallback identity.
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get callerRecord from callerToken");
+            AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_INVALID_VALUE, "Get callerRecord failed");
+            return ERR_INVALID_VALUE;
+        }
+        if (param.specifyTokenId == 0) {
+            // Anonymous caller; also rejected by the entry guard StartAbilityForAppCloneSelector.
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get caller identity, specifyTokenId is 0");
+            AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_INVALID_VALUE, "No valid caller identity");
+            return ERR_INVALID_VALUE;
+        }
         callerTokenId = param.specifyTokenId;
         TAG_LOGI(AAFwkTag::ABILITYMGR, "use specifyTokenId as callerTokenId: %{public}d", callerTokenId);
     }
