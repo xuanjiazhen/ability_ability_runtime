@@ -343,11 +343,12 @@ std::string AppfreezeManager::WriteToFile(const std::string& fileName, const std
         OHOS::ForceCreateDirectory(path);
         OHOS::ChangeModeDirectory(path, defaultLogDirMode);
     }
+    path = path + "/" + fileName;
     std::string realPath = AppfreezeUtil::FreezePathToRealPath(path);
     if (realPath.empty()) {
-        realPath = path;
+        return "";
     }
-    std::string stackPath = realPath + "/" + fileName;
+    std::string stackPath = realPath;
     constexpr mode_t defaultLogFileMode = 0644;
     FILE* fp = fopen(stackPath.c_str(), "w+");
     chmod(stackPath.c_str(), defaultLogFileMode);

@@ -1124,5 +1124,18 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_UpdateEventInfo_Test002, Tes
     EXPECT_EQ(eventInfo.binderInfo, "");
     EXPECT_EQ(eventInfo.freezeMemory, "\n");
 }
+
+/**
+ * @tc.number: AppfreezeManagerTest_WriteToFile_001
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_WriteToFile_001, TestSize.Level1)
+{
+    std::string fileName = "../data/log/test";
+    std::string content = "test";
+    std::string ret = appfreezeManager->WriteToFile(fileName, content);
+    EXPECT_EQ(ret, "");
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
