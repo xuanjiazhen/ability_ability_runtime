@@ -23,6 +23,7 @@
 #include "ability_manager_client.h"
 #include "ability_manager_errors.h"
 #include "agent_bundle_event_callback.h"
+#include "agent_pre_install_event_receiver.h"
 #include "agent_connect_manager.h"
 #include "agent_utils.h"
 #include "agent_manager_caller_identity.h"
@@ -33,6 +34,8 @@
 #include "agent_service_connection.h"
 #include "app_mgr_client.h"
 #include "bundle_mgr_helper.h"
+#include "common_event_manager.h"
+#include "common_event_support.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
 #include "in_process_call_wrapper.h"
@@ -123,6 +126,7 @@ void AgentManagerService::OnAddSystemAbility(int32_t systemAbilityId, const std:
     TAG_LOGI(AAFwkTag::SER_ROUTER, "add sysAbilityId %{public}d", systemAbilityId);
     if (systemAbilityId == BUNDLE_MGR_SERVICE_SYS_ABILITY_ID) {
         std::string identity = IPCSkeleton::ResetCallingIdentity();
+        SubscribeBundleScanFinished();
         RegisterBundleEventCallback();
         IPCSkeleton::SetCallingIdentity(identity);
     }
@@ -145,6 +149,25 @@ void AgentManagerService::RegisterBundleEventCallback()
         bundleEventCallback_ = nullptr;
         TAG_LOGE(AAFwkTag::SER_ROUTER, "register bundle event error");
     }
+}
+
+void AgentManagerService::SubscribeBundleScanFinished()
+{
+    if (preInstallReceiver_ != nullptr) {
+        return;
+    }
+    EventFwk::MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_BUNDLE_SCAN_FINISHED);
+    EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
+    subscribeInfo.SetThreadMode(EventFwk::CommonEventSubscribeInfo::COMMON);
+    preInstallReceiver_ = std::make_shared<AgentPreInstallEventReceiver>(subscribeInfo);
+    bool subResult = EventFwk::CommonEventManager::SubscribeCommonEvent(preInstallReceiver_);
+    if (!subResult) {
+        preInstallReceiver_ = nullptr;
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "subscribe bundle scan finished failed");
+        return;
+    }
+    TAG_LOGI(AAFwkTag::SER_ROUTER, "subscribe bundle scan finished success");
 }
 
 int32_t AgentManagerService::GetAllAgentCards(AgentCardsRawData &cards)

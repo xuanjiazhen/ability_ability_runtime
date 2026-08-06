@@ -50,10 +50,20 @@ BundleMgrHelper::~BundleMgrHelper() {}
 ErrCode BundleMgrHelper::GetBundleInfoV9(const std::string &bundleName, int32_t flags, BundleInfo &bundleInfo,
     int32_t userId)
 {
+    AgentRuntime::MyFlag::getBundleInfoV9CallNames.push_back(bundleName);
     if (!AgentRuntime::MyFlag::retGetBundleInfo) {
         return ERR_INVALID_VALUE;
     }
     PopulateBundleInfo(bundleInfo);
+    return ERR_OK;
+}
+
+ErrCode BundleMgrHelper::GetBundleInfosV9(int32_t flags, std::vector<BundleInfo> &bundleInfos, int32_t userId)
+{
+    if (!AgentRuntime::MyFlag::retGetBundleInfos) {
+        return ERR_INVALID_VALUE;
+    }
+    bundleInfos = AgentRuntime::MyFlag::mockBundleInfos;
     return ERR_OK;
 }
 }  // namespace AppExecFwk

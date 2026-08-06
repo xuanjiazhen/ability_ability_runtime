@@ -35,6 +35,10 @@ public:
 
     int32_t HandleBundleRemove(const std::string &bundleName, int32_t userId);
 
+    // Backfills AgentCards for pre-installed apps (isPreInstallApp == true) that were installed
+    // before AgentManagerService started. Triggered on COMMON_EVENT_BUNDLE_SCAN_FINISHED.
+    int32_t HandlePreInstallBackfill(int32_t userId);
+
     int32_t GetAllAgentCards(AgentCardsRawData &cards);
 
     int32_t GetAgentCardsByBundleName(const std::string &bundleName, std::vector<AgentCard> &cards);
