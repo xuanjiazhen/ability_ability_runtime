@@ -64,20 +64,36 @@ struct ContinueCallbackInfo {
 function OnContinueStateChange(f: (info: ContinueCallbackInfo) => void) : void;
 function OffContinueStateChange(callbackOpt: Optional<(info: ContinueCallbackInfo) => void>) : void;
 
-@gen_async("startSyncRemoteMissions")
-@gen_promise("startSyncRemoteMissions")
+@rename("startSyncRemoteMissions")
+@async function StartSyncRemoteMissionsWithCallback(parameter: appMissionParameter.MissionParameter): void;
+
+@rename("startSyncRemoteMissions")
+@promise function StartSyncRemoteMissionsReturnsPromise(parameter: appMissionParameter.MissionParameter): void;
+
 function StartSyncRemoteMissionsSync(parameter: appMissionParameter.MissionParameter): void;
 
-@gen_async("stopSyncRemoteMissions")
-@gen_promise("stopSyncRemoteMissions")
+@rename("stopSyncRemoteMissions")
+@async function StopSyncRemoteMissionsWithCallback(parameter: appMissionDeviceInfo.MissionDeviceInfo): void;
+
+@rename("stopSyncRemoteMissions")
+@promise function StopSyncRemoteMissionsReturnsPromise(parameter: appMissionDeviceInfo.MissionDeviceInfo): void;
+
 function StopSyncRemoteMissionsSync(parameter: appMissionDeviceInfo.MissionDeviceInfo): void;
 
-@gen_async("registerMissionListener")
-@gen_promise("registerMissionListener")
+@rename("registerMissionListener")
+@async function RegisterMissionListenerWithCallback(parameter: appMissionDeviceInfo.MissionDeviceInfo, options: appMissionCallback.MissionCallback): void;
+
+@rename("registerMissionListener")
+@promise function RegisterMissionListenerReturnsPromise(parameter: appMissionDeviceInfo.MissionDeviceInfo, options: appMissionCallback.MissionCallback): void;
+
 function RegisterMissionListenerSync(parameter: appMissionDeviceInfo.MissionDeviceInfo, options: appMissionCallback.MissionCallback): void;
 
-@gen_async("unRegisterMissionListener")
-@gen_promise("unRegisterMissionListener")
+@rename("unRegisterMissionListener")
+@async function UnRegisterMissionListenerWithCallback(parameter: appMissionDeviceInfo.MissionDeviceInfo): void;
+
+@rename("unRegisterMissionListener")
+@promise function UnRegisterMissionListenerReturnsPromise(parameter: appMissionDeviceInfo.MissionDeviceInfo): void;
+
 function UnRegisterMissionListenerSync(parameter: appMissionDeviceInfo.MissionDeviceInfo): void;
 
 @rename("continueMission")
@@ -86,6 +102,10 @@ function ContinueMissionWithMissionInfoCallback(parameter: appContinueMissionInf
 @rename("continueMission")
 function ContinueMissionWithMissionInfoPromise(parameter: appContinueMissionInfo.ContinueMissionInfo): @sts_type("Promise<void>") Opaque;
 
-@gen_async("continueMission")
-@gen_promise("continueMission")
-function ContinueMissionWithDeviceInfoSync(parameter: appContinueDeviceInfo.ContinueDeviceInfo, options: appContinueCallback.ContinueCallback) : void;
+@rename("continueMission")
+@async function ContinueMissionWithDeviceInfoCallback(parameter: appContinueDeviceInfo.ContinueDeviceInfo, options: appContinueCallback.ContinueCallback): void;
+
+@rename("continueMission")
+@promise function ContinueMissionWithDeviceInfoPromise(parameter: appContinueDeviceInfo.ContinueDeviceInfo, options: appContinueCallback.ContinueCallback): void;
+
+function ContinueMissionWithDeviceInfoSync(parameter: appContinueDeviceInfo.ContinueDeviceInfo, options: appContinueCallback.ContinueCallback): void;
