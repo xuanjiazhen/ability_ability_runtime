@@ -1825,8 +1825,16 @@ int32_t AbilityManagerService::StartAbilityForAppCloneSelector(StartAbilityWrapP
     if (ret != ERR_OK) {
         return ret;
     }
+    // aa/shell callers have no ability token. A non-zero specifyTokenId (captured
+    // server-side when the clone selector dialog was created) is required to
+    // identify the caller; otherwise the request is anonymous and must be rejected.
+    if (param.callerToken == nullptr && param.specifyTokenId == 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilityForAppCloneSelector: no valid caller identity");
+        AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_INVALID_VALUE, "No valid caller identity");
+        return ERR_INVALID_VALUE;
+    }
     if (param.callerToken == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilityForAppCloneSelector: callerToken is nullptr");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbilityForAppCloneSelector: callerToken is nullptr, use specifyTokenId");
     }
 
     AbilityRequest abilityRequest;
@@ -1918,10 +1926,15 @@ int32_t AbilityManagerService::ProcessLaunchReasonAndController(StartAbilityWrap
     auto callerRecord = Token::GetAbilityRecordByToken(param.callerToken);
     if (callerRecord != nullptr) {
         callerTokenId = callerRecord->GetApplicationInfo().accessTokenId;
-    } else if (param.callerToken != nullptr || param.specifyTokenId == 0) {
-        // Reject: token exists but no record found, or caller has no valid identity.
+    } else if (param.callerToken != nullptr) {
+        // Reject: callerToken exists but no matching AbilityRecord found.
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get callerRecord from callerToken");
         AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_INVALID_VALUE, "Get callerRecord failed");
+        return ERR_INVALID_VALUE;
+    } else if (param.specifyTokenId == 0) {
+        // Reject: no callerToken and no valid passed identity.
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get caller identity, specifyTokenId is 0");
+        AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_INVALID_VALUE, "No valid caller identity");
         return ERR_INVALID_VALUE;
     } else {
         // No token caller, use the identity passed by the clone selector dialog.
