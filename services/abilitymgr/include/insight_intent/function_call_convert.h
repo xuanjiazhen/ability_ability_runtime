@@ -50,6 +50,17 @@ bool BatchRegisterInsightIntentFunctions(
     const std::unordered_map<std::string, uint32_t> &bundleVersionMap,
     int32_t &successCount);
 
+// 重置（单 bundle 更新场景）：服务端原子完成"清空该 bundle namespace 下所有 function + 写入新一批"。
+// 替代旧的 Unregister + BatchRegister 两步走，避免两步之间的 race。
+// bundleName 作为 functionNamespace，bundleVersion 提供版本号。
+// successCount 返回服务端实际写入条数。依赖 CliToolMGRClient::ResetNamespaceFunctions。
+bool ResetInsightIntentFunctions(
+    const std::vector<AbilityRuntime::ExtractInsightIntentInfo> &intentInfos,
+    const std::vector<AbilityRuntime::InsightIntentInfo> &configInfos,
+    const std::string &bundleName,
+    uint32_t versionCode,
+    int32_t &successCount);
+
 // 工具类：调用方在调 RegisterInsightIntentFunctions 之前预处理意图列表。
 // 规则 1：丢弃非"后台 UIAbility / ServiceExtension"的意图。
 // 规则 2：同 intentName 跨多个 moduleName 时，按 moduleName 字典序首。
