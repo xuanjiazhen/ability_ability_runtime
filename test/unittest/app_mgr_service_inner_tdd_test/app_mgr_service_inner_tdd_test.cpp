@@ -888,13 +888,14 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_003, TestSize.Level1)
     std::string reason = "test";
     int pid = getpid();
     int killId = 0;
-    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason);
+    int32_t exitreason = 0;
+    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason);
     appMgrServiceInner->SendProcessKillEvent(appRecord);
     killId = -1;
-    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason);
+    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason);
     appMgrServiceInner->SendProcessKillEvent(appRecord);
     killId = -2;
-    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason);
+    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason);
     appMgrServiceInner->SendProcessKillEvent(appRecord);
     killId = 1;
     appMgrServiceInner->SendProcessKillEvent(appRecord);
