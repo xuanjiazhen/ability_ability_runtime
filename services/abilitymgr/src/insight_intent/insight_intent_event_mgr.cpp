@@ -28,6 +28,7 @@
 #include "os_account_manager_wrapper.h"
 #include "common_event_manager.h"
 #include "common_event_support.h"
+#include "app_utils.h"
 #include "ffrt.h"
 
 namespace OHOS {
@@ -64,6 +65,11 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
     }
     if (userId < 0) {
         TAG_LOGW(AAFwkTag::INTENT, "invalid userId: %{public}d", userId);
+        return;
+    }
+
+    if (AAFwk::AppUtils::GetInstance().IsBopdOrRescueMode()) {
+        TAG_LOGI(AAFwkTag::INTENT, "BOPD or rescue mode, skip package update: %{public}s", bundleName.c_str());
         return;
     }
 
@@ -178,17 +184,15 @@ void InsightIntentEventMgr::DeleteInsightIntentEvent(const AppExecFwk::ElementNa
         return;
     }
 
-    ffrt::submit([bundleName, moduleName, userId]() {
-        ErrCode ret = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->
-            DeleteInsightIntentTotalInfo(bundleName, moduleName, userId);
-        if (ret != ERR_OK) {
-            TAG_LOGW(AAFwkTag::INTENT, "delete intent info failed, bundleName: %{public}s, "
-                "moduleName: %{public}s, userId: %{public}d", bundleName.c_str(), moduleName.c_str(), userId);
-            return;
-        }
-        DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->BackupRdb();
-        CliTool::UnregisterInsightIntentFunctions(bundleName);
-        TAG_LOGI(AAFwkTag::INTENT, "delete intent info success, bundleName: %{public}s, "
+    if (AAFwk::AppUtils::GetInstance().IsBopdOrRescueMode()) {
+        TAG_LOGI(AAFwkTag::INTENT, "BOPD or rescue mode, skip package delete: %{public}s", bundleName.c_str());
+        return;
+    }
+
+    ret = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->DeleteInsightIntentTotalInfo(
+        bundleName, moduleName, userId);
+    if (ret != ERR_OK) {
+        TAG_LOGW(AAFwkTag::INTENT, "delete intent info failed, bundleName: %{public}s, "
             "moduleName: %{public}s, userId: %{public}d", bundleName.c_str(), moduleName.c_str(), userId);
     });
 }

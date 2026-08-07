@@ -1359,34 +1359,6 @@ HWTEST_F(JsRuntimeTest, InitLoop_0100, TestSize.Level1)
 }
 
 /**
- * @tc.name: InitSourceMap_0100
- * @tc.desc: JsRuntime test for InitSourceMap.
- * @tc.type: FUNC
- */
-HWTEST_F(JsRuntimeTest, InitSourceMap_0100, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0100 start");
-
-    auto jsRuntime = std::make_unique<AbilityRuntime::JsRuntime>();
-    auto operatorObj = std::make_shared<JsEnv::SourceMapOperator>("");
-    jsRuntime->InitSourceMap(operatorObj);
-    ASSERT_NE(jsRuntime, nullptr);
-    jsRuntime.reset();
-    TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0100 end");
-}
-
-HWTEST_F(JsRuntimeTest, InitSourceMap_0200, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0200 start");
-
-    auto mapObj = std::make_shared<JsEnv::SourceMap>();
-    bool hasFile = false;
-    mapObj->Init(hasFile, TEST_HAP_PATH);
-    EXPECT_FALSE(hasFile);
-    TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0200 end");
-}
-
-/**
  * @tc.name: Deinitialize_0100
  * @tc.desc: JsRuntime test for Deinitialize.
  * @tc.type: FUNC
@@ -2414,6 +2386,105 @@ HWTEST_F(JsRuntimeTest, LoadSystemModule_0200, TestSize.Level1)
     jsRuntimePtr->methodRequireNapiRef_ = std::move(savedRef);
 
     TAG_LOGI(AAFwkTag::TEST, "LoadSystemModule_0200 end");
+}
+
+/**
+ * @tc.name: InitSourceMap_0100
+ * @tc.desc: JsRuntime test for InitSourceMap with jsEnv_ nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, InitSourceMap_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0100 start");
+
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    ASSERT_NE(jsRuntime, nullptr);
+    jsRuntime->jsEnv_ = nullptr;
+    std::string bundleName = TEST_BUNDLE_NAME;
+    jsRuntime->InitSourceMap(bundleName);
+    // jsEnv_ is nullptr, CHECK_POINTER returns early, no crash
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0100 end");
+}
+
+/**
+ * @tc.name: InitSourceMap_0200
+ * @tc.desc: JsRuntime test for InitSourceMap with empty bundleName.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, InitSourceMap_0200, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0200 start");
+
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    ASSERT_NE(jsRuntime, nullptr);
+    jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    std::string bundleName = "";
+    jsRuntime->InitSourceMap(bundleName);
+    // empty bundleName, GetHapPathList returns empty, no crash
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0200 end");
+}
+
+/**
+ * @tc.name: InitSourceMap_0300
+ * @tc.desc: JsRuntime test for InitSourceMap with valid bundleName.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, InitSourceMap_0300, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0300 start");
+
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    ASSERT_NE(jsRuntime, nullptr);
+    jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    std::string bundleName = TEST_BUNDLE_NAME;
+    jsRuntime->InitSourceMap(bundleName);
+    // valid bundleName but no real hap files in test env, ffrt task runs safely
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0300 end");
+}
+
+/**
+ * @tc.name: HqfInitSourceMap_0100
+ * @tc.desc: JsRuntime test for HqfInitSourceMap with invalid hqfFilePath.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, HqfInitSourceMap_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "HqfInitSourceMap_0100 start");
+
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    ASSERT_NE(jsRuntime, nullptr);
+    std::string hqfFilePath = "/invalid/path/test.hqf";
+    jsRuntime->HqfInitSourceMap(hqfFilePath);
+    // GetFileBuffer fails with invalid path, returns early, no crash
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "HqfInitSourceMap_0100 end");
+}
+
+/**
+ * @tc.name: HqfInitSourceMap_0200
+ * @tc.desc: JsRuntime test for HqfInitSourceMap with empty hqfFilePath.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, HqfInitSourceMap_0200, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "HqfInitSourceMap_0200 start");
+
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    ASSERT_NE(jsRuntime, nullptr);
+    std::string hqfFilePath = "";
+    jsRuntime->HqfInitSourceMap(hqfFilePath);
+    // empty path, GetFileBuffer fails, returns early, no crash
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "HqfInitSourceMap_0200 end");
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

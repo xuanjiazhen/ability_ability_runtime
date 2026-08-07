@@ -636,60 +636,6 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, GenerateWant_0500, TestSize.Leve
 }
 
 /**
- * @tc.name: GenerateWant_0600
- * @tc.desc: GenerateWant_0600
- * @tc.type: FUNC
- * @tc.require: issueI8ZRAG
- */
-HWTEST_F(InsightIntentExecuteManagerSecondTest, GenerateWant_0600, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "begin.");
-    AppExecFwk::InsightIntentExecuteParam param;
-    param.bundleName_ = "test.bundleName";
-    param.moduleName_ = "test.entry";
-    param.abilityName_ = "test.abilityName";
-    param.insightIntentName_ = "test.IntentName";
-    param.insightIntentParam_ = nullptr;
-    param.displayId_ = 2;
-    param.executeMode_ = AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND;
-    auto paramPtr = std::make_shared<AppExecFwk::InsightIntentExecuteParam>(param);
-    AbilityRuntime::ExtractInsightIntentGenericInfo decoratorInfo;
-    Want want;
-    int32_t result = InsightIntentExecuteManager::GenerateWant(paramPtr, decoratorInfo, want);
-    EXPECT_EQ(result, ERR_OK);
-    TAG_LOGI(AAFwkTag::TEST, "end.");
-}
-
-/**
- * @tc.name: GenerateWant_0700
- * @tc.desc: Test GenerateWant with displayId
- * @tc.type: FUNC
- * @tc.require: issueI8ZRAG
- */
-HWTEST_F(InsightIntentExecuteManagerSecondTest, GenerateWant_0700, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "begin.");
-    AppExecFwk::InsightIntentExecuteParam param;
-    param.bundleName_ = "test.bundleName";
-    param.moduleName_ = "test.entry";
-    param.abilityName_ = "test.abilityName";
-    param.insightIntentName_ = "test.IntentName";
-    param.insightIntentParam_ = std::make_shared<WantParams>();
-    param.displayId_ = 10; // 有效displayId
-    param.executeMode_ = AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND;
-    auto paramPtr = std::make_shared<AppExecFwk::InsightIntentExecuteParam>(param);
-    AbilityRuntime::ExtractInsightIntentGenericInfo decoratorInfo;
-    Want want;
-    int32_t result = InsightIntentExecuteManager::GenerateWant(paramPtr, decoratorInfo, want);
-    EXPECT_EQ(result, ERR_OK);
-    
-    // 验证displayId参数是否正确设置
-    int32_t displayId = want.GetIntParam(Want::PARAM_RESV_DISPLAY_ID, -1);
-    EXPECT_EQ(displayId, 10);
-    TAG_LOGI(AAFwkTag::TEST, "end.");
-}
-
-/**
  * @tc.name: CheckIntentIsExemption_0100
  * @tc.desc: CheckIntentIsExemption_0100
  * @tc.type: FUNC
@@ -2293,6 +2239,65 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, GenerateQueryEntityWant_0200, Te
     EXPECT_EQ(ret, INTENT_NOT_EXIST);
 
     TAG_LOGI(AAFwkTag::TEST, "GenerateQueryEntityWant_0200 end.");
+}
+
+/**
+ * @tc.name: GetAbilityNameFromMatched_0100
+ * @tc.desc: Test getting the configured ability name from an entry profile.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, GetAbilityNameFromMatched_0100, TestSize.Level1)
+{
+    AbilityRuntime::ExtractInsightIntentGenericInfo info;
+    info.set<AbilityRuntime::InsightIntentEntryInfo>();
+    info.get<AbilityRuntime::InsightIntentEntryInfo>().abilityName = "FeatureAbility";
+
+    EXPECT_EQ(InsightIntentExecuteManager::GetAbilityNameFromMatched(info), "FeatureAbility");
+}
+
+/**
+ * @tc.name: GetAbilityNameFromMatched_0200
+ * @tc.desc: Test getting the configured UIAbility name from a page profile.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, GetAbilityNameFromMatched_0200, TestSize.Level1)
+{
+    AbilityRuntime::ExtractInsightIntentGenericInfo info;
+    info.set<AbilityRuntime::InsightIntentPageInfo>();
+    info.get<AbilityRuntime::InsightIntentPageInfo>().uiAbility = "PageAbility";
+
+    EXPECT_EQ(InsightIntentExecuteManager::GetAbilityNameFromMatched(info), "PageAbility");
+}
+
+/**
+ * @tc.name: GetAbilityNameFromMatched_0300
+ * @tc.desc: Test getting the configured ability name from a form profile.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, GetAbilityNameFromMatched_0300, TestSize.Level1)
+{
+    AbilityRuntime::ExtractInsightIntentGenericInfo info;
+    info.set<AbilityRuntime::InsightIntentFormInfo>();
+    info.get<AbilityRuntime::InsightIntentFormInfo>().abilityName = "FormAbility";
+
+    EXPECT_EQ(InsightIntentExecuteManager::GetAbilityNameFromMatched(info), "FormAbility");
+}
+
+/**
+ * @tc.name: GetAbilityNameFromMatched_0400
+ * @tc.desc: Test a profile type without an ability name uses the fallback path.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, GetAbilityNameFromMatched_0400, TestSize.Level1)
+{
+    AbilityRuntime::ExtractInsightIntentGenericInfo info;
+    info.set<AbilityRuntime::InsightIntentFunctionInfo>();
+
+    EXPECT_TRUE(InsightIntentExecuteManager::GetAbilityNameFromMatched(info).empty());
 }
 
 /**

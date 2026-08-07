@@ -294,6 +294,7 @@ ohos_shared_library("configuration_helper") {
 ohos_shared_library("abilitykit_native") {
   use_exceptions = true
   branch_protector_ret = "pac_ret"
+  branch_protector_ret = "bti"
 
   include_dirs = [
     "${ability_runtime_path}/utils/global/time/include",
@@ -798,6 +799,7 @@ config("insight_intent_executor_public_config") {
 
 ohos_shared_library("insight_intent_executor") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
 
   sources = [
     "${ability_runtime_native_path}/ability/native/insight_intent_executor/ets_insight_intent_executor_instance.cpp",
@@ -856,6 +858,7 @@ ohos_shared_library("insight_intent_executor") {
 
 ohos_shared_library("insight_intent_executor_ani") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
 
   sanitize = {
     cfi = true
@@ -1008,6 +1011,7 @@ config("uiability_config") {
 
 ohos_shared_library("ui_ability_ani") {
   branch_protector_ret = "pac_ret"
+  branch_protector_ret = "bti"
 
   sanitize = {
     cfi = true
@@ -1098,6 +1102,7 @@ ohos_shared_library("ui_ability_ani") {
     "ipc:ipc_napi",
     "ipc:rpc_taihe",
     "resource_management:global_resmgr",
+    "resource_management:resourceManager_ani",
     "runtime_core:ani",
     "runtime_core:ani_helpers",
     "samgr:samgr_proxy",
@@ -1206,6 +1211,7 @@ ohos_shared_library("uiabilitykit_native") {
     "ipc:ipc_core",
     "ipc:ipc_napi",
     "json:nlohmann_json_static",
+    "node:node_header_notice",
     "resource_management:global_resmgr",
     "samgr:samgr_proxy",
   ]
@@ -1276,6 +1282,7 @@ ohos_shared_library("uiabilitykit_native") {
 
 ohos_shared_library("ability_thread") {
   branch_protector_ret = "pac_ret"
+  branch_protector_ret = "bti"
 
   configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
 
@@ -1430,6 +1437,7 @@ ohos_shared_library("ets_form_extension") {
 
 ohos_shared_library("form_extension") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
 
   defines = [ "AMS_LOG_TAG = \"Ability\"" ]
   defines += [ "AMS_LOG_DOMAIN = 0xD001300" ]
@@ -1875,6 +1883,7 @@ ohos_shared_library("ui_service_extension_connection") {
     debug = false
   }
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
 
   configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
   defines = [ "AMS_LOG_TAG = \"Ability\"" ]
@@ -1924,6 +1933,7 @@ ohos_shared_library("ui_service_extension_connection_ani") {
     debug = false
   }
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
 
   configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
   defines = [ "AMS_LOG_TAG = \"Ability\"" ]
@@ -1984,6 +1994,7 @@ ohos_shared_library("ui_service_extension") {
     debug = false
   }
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
 
   configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
   defines = [ "AMS_LOG_TAG = \"Ability\"" ]
@@ -2192,6 +2203,7 @@ ohos_shared_library("ui_service_extension_module") {
     debug = false
   }
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
 
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_service_extension_ability",
@@ -2270,6 +2282,7 @@ ohos_shared_library("ui_service_extension_module") {
 
 ohos_shared_library("continuation_ipc") {
   branch_protector_ret = "pac_ret"
+  branch_protector_ret = "bti"
 
   include_dirs = []
 
@@ -2456,6 +2469,7 @@ config("ability_business_error_public_config") {
 
 ohos_shared_library("ability_business_error") {
   branch_protector_ret = "pac_ret"
+  branch_protector_ret = "bti"
 
   sanitize = {
     cfi = true
@@ -2572,6 +2586,7 @@ config("ui_extension_public_config") {
 
 ohos_shared_library("ui_extension") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
 
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_service_extension_ability/connection",
@@ -2935,6 +2950,7 @@ ohos_shared_library("cj_ui_extension") {
 
 ohos_shared_library("ui_extension_module") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
 
   include_dirs = [ "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_ability" ]
 
@@ -2991,6 +3007,7 @@ config("share_extension_config") {
 
 ohos_shared_library("share_extension") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
 
   configs = [
     ":share_extension_config",
@@ -3109,6 +3126,7 @@ config("action_extension_config") {
 
 ohos_shared_library("action_extension") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
 
   configs = [
     ":action_extension_config",
@@ -3214,6 +3232,7 @@ ohos_shared_library("cj_action_extension") {
 
 ohos_shared_library("share_extension_module") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
 
   sources = [ "${ability_runtime_native_path}/ability/native/share_extension_ability/share_extension_module_loader.cpp" ]
 
@@ -3259,6 +3278,7 @@ ohos_shared_library("share_extension_module") {
 
 ohos_shared_library("auto_startup_callback") {
   branch_protector_ret = "pac_ret"
+  branch_protector_ret = "bti"
 
   sanitize = {
     cfi = true
@@ -3292,6 +3312,7 @@ ohos_shared_library("auto_startup_callback") {
 
 ohos_shared_library("action_extension_module") {
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
 
   sources = [ "${ability_runtime_native_path}/ability/native/action_extension_ability/action_extension_module_loader.cpp" ]
 
@@ -3415,6 +3436,7 @@ ohos_shared_library("embedded_ui_extension") {
     debug = false
   }
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
 
   configs = [
     ":embedded_ui_extension_config",
@@ -3533,6 +3555,7 @@ ohos_shared_library("embedded_ui_extension_module") {
     debug = false
   }
   branch_protector_ret = "pac_ret"
+  branch_protector_frt = "bti"
 
   sources = [ "${ability_runtime_native_path}/ability/native/embedded_ui_extension_ability/embedded_ui_extension_module_loader.cpp" ]
 
@@ -3585,6 +3608,7 @@ config("auto_fill_extension_config") {
 
 ohos_shared_library("auto_fill_extension") {
   branch_protector_ret = "pac_ret"
+  branch_protector_ret = "bti"
 
   public_configs = [ ":auto_fill_extension_config" ]
 
@@ -3756,6 +3780,7 @@ ohos_shared_library("auto_fill_extension_util") {
 
 ohos_shared_library("auto_fill_extension_module") {
   branch_protector_ret = "pac_ret"
+  branch_protector_ret = "bti"
 
   sources = [ "${ability_runtime_native_path}/ability/native/auto_fill_extension_ability/auto_fill_extension_module_loader.cpp" ]
 
@@ -4084,6 +4109,7 @@ ohos_shared_library("app_service_extension_module") {
     debug = false
   }
   branch_protector_ret = "pac_ret"
+  branch_protector_ret = "bti"
 
   include_dirs = [
     "${ability_runtime_path}/interfaces/inner_api/ability_manager/include",
