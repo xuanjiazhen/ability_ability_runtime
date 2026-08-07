@@ -57,7 +57,7 @@ public:
 
     void StartDebugMode(const DebugOption debugOption) override;
     void DumpHeapSnapshot(bool isPrivate) override {}
-    void NotifyApplicationState(bool isBackground) override {}
+    void NotifyApplicationState(bool isBackground) override;
     bool SuspendVM(uint32_t tid) override { return false; }
     void ResumeVM(uint32_t tid) override {}
     void PreloadSystemModule(const std::string &moduleName) override;
