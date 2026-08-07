@@ -364,7 +364,15 @@ void DumpRuntimeHelper::DumpCjHeap(const OHOS::AppExecFwk::CjHeapDumpInfo &info)
             TAG_LOGE(AAFwkTag::APPKIT, "fd:%{public}d.\n", fd);
             return;
         }
+#if defined(__EXCEPTIONS) || defined(__cpp_exceptions)
+        try {
+            cjEnv->dumpHeapSnapshot(fd);
+        } catch (...) {
+            TAG_LOGE(AAFwkTag::APPKIT, "dumpHeapSnapshot throw exception");
+        }
+#else
         cjEnv->dumpHeapSnapshot(fd);
+#endif
         close(fd);
         return;
     }
