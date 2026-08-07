@@ -46,7 +46,9 @@ void InsightIntentEventMgr::DeleteInsightIntent(const std::string &bundleName, c
         DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->DeleteInsightIntentTotalInfo(
             bundleName, moduleName, userId);
         DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->BackupRdb();
-        CliTool::UnregisterInsightIntentFunctions(bundleName);
+        // 服务端 function 清空由调用方决定：
+        // - UpdateInsightIntentEvent 路径：最终 ResetInsightIntentFunctions 原子完成 clear+write
+        // - 纯删除路径（如未来需要）：调用方自行调用 CliTool::UnregisterInsightIntentFunctions
     }
 
     return;
@@ -92,6 +94,7 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
                 bundleName, moduleNameLocal, profile, userId));
             if (ret != ERR_OK) {
                 TAG_LOGI(AAFwkTag::INTENT, "get json failed code: %{public}d", ret);
+                // 仅删 DB，服务端 function 由最终的 ResetInsightIntentFunctions 原子清空
                 DeleteInsightIntent(bundleName, moduleNameLocal, userId);
                 continue;
             }
@@ -123,14 +126,11 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
                 allConfigInfos.push_back(item);
             }
         }
-        // bundle 更新可能删除部分意图,先清空 KVStore 中该 bundle 的全部 function,
-        // 避免 BatchRegisterInsightIntentFunctions 增量写入后旧 function 残留
         if (allInfos.insightIntents.empty() && allConfigInfos.empty()) {
-            TAG_LOGI(AAFwkTag::INTENT, "no intent in new version, cleared stale functions, bundle:%{public}s",
+            TAG_LOGI(AAFwkTag::INTENT, "no intent in new version, will clear stale functions, bundle:%{public}s",
                 bundleName.c_str());
-            return;
         }
-        TAG_LOGI(AAFwkTag::INTENT, "collected intents for register, profile:%{public}zu config:%{public}zu, "
+        TAG_LOGI(AAFwkTag::INTENT, "collected intents for reset, profile:%{public}zu config:%{public}zu, "
             "bundle:%{public}s", allInfos.insightIntents.size(), allConfigInfos.size(), bundleName.c_str());
         std::vector<AbilityRuntime::ExtractInsightIntentInfo> genericInfos;
         for (const auto &profileInfo : allInfos.insightIntents) {
@@ -146,12 +146,11 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
         intentFilter.FilterConfig(allConfigInfos);
         TAG_LOGI(AAFwkTag::INTENT, "after filter, generic:%{public}zu config:%{public}zu, bundle:%{public}s",
             genericInfos.size(), allConfigInfos.size(), bundleName.c_str());
-        std::unordered_map<std::string, uint32_t> bundleVersionMap;
-        bundleVersionMap[bundleName] = bundleInfo.versionCode;
+        // ResetNamespaceFunctions 服务端原子完成 "clear namespace + write new"，无需提前 Unregister
         int32_t successCount = 0;
-        CliTool::BatchRegisterInsightIntentFunctions(
-            genericInfos, allConfigInfos, bundleVersionMap, successCount);
-        TAG_LOGI(AAFwkTag::INTENT, "batch register done, success: %{public}d, bundle:%{public}s",
+        CliTool::ResetInsightIntentFunctions(
+            genericInfos, allConfigInfos, bundleName, bundleInfo.versionCode, successCount);
+        TAG_LOGI(AAFwkTag::INTENT, "reset done, success: %{public}d, bundle:%{public}s",
             successCount, bundleName.c_str());
         DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->BackupRdb();
     });
