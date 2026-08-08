@@ -27,6 +27,11 @@ void MockQueryDataBeginWithKey(bool mockRet);
 void MockInsertData(bool mockRet);
 void MockDeleteData(bool mockRet);
 void MockDeleteDataBeginWithKey(bool mockRet);
+void MockQueryDataBeginWithKeyData(const std::string &key, const std::string &value);
+void MockQueryDataBeginWithKeyDataClear();
+std::string GetMockQueryDataKey();
+void MockDeleteDataBeginWithKeyCalledReset();
+bool GetMockDeleteDataBeginWithKeyCalled();
 
 class InsightIntentRdbStorageMgrTest : public testing::Test {
 public:
@@ -42,10 +47,15 @@ void InsightIntentRdbStorageMgrTest::TearDownTestCase()
 {}
 
 void InsightIntentRdbStorageMgrTest::SetUp()
-{}
+{
+    MockQueryDataBeginWithKeyDataClear();
+    MockDeleteDataBeginWithKeyCalledReset();
+}
 
 void InsightIntentRdbStorageMgrTest::TearDown()
-{}
+{
+    MockQueryDataBeginWithKeyDataClear();
+}
 
 /**
  * @tc.name: InsightIntentRdbStorageMgrTest_001
@@ -405,6 +415,108 @@ HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_019, Tes
     auto result = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveStorageInsightIntentData(
         bundleName, moduleName, userId, 0, profileInfos, configInfos);
     EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: InsightIntentRdbStorageMgrTest_020
+ * @tc.desc: Test LoadInsightIntentInfo should not load data of another intent whose name
+ *           takes the queried intent name as prefix (prefix matching regression)
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_020, TestSize.Level0)
+{
+    int32_t userId = 0;
+    std::string bundleName = "testBundle";
+    std::string moduleName = "testModule";
+    ExtractInsightIntentInfo totalInfo;
+
+    MockQueryDataBeginWithKey(true);
+    MockQueryDataBeginWithKeyData("0/testBundle/testModule/testIntentFoo/1",
+        "{\"extractInsightIntents\":[{"
+        "\"decoratorFile\":\"testFile\",\"decoratorClass\":\"testClass\",\"decoratorType\":\"function\","
+        "\"bundleName\":\"testBundle\",\"moduleName\":\"testModule\",\"intentName\":\"testIntentFoo\","
+        "\"domain\":\"testDomain\",\"intentVersion\":\"1\",\"displayName\":\"testDisplay\","
+        "\"functionName\":\"testFunction\"}]}");
+    auto result = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->LoadInsightIntentInfo(bundleName,
+        moduleName, "testIntent", userId, totalInfo);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_TRUE(totalInfo.genericInfo.intentName.empty());
+}
+
+/**
+ * @tc.name: InsightIntentRdbStorageMgrTest_021
+ * @tc.desc: Test LoadInsightIntentInfo query key should be terminated by intentName and slash
+ *           so that prefix matching stays within the same intent
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_021, TestSize.Level0)
+{
+    int32_t userId = 0;
+    std::string bundleName = "testBundle";
+    std::string moduleName = "testModule";
+    std::string intentName = "testIntent";
+    ExtractInsightIntentInfo totalInfo;
+
+    MockQueryDataBeginWithKey(true);
+    auto result = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->LoadInsightIntentInfo(bundleName,
+        moduleName, intentName, userId, totalInfo);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(GetMockQueryDataKey(), "0/testBundle/testModule/testIntent/");
+}
+
+/**
+ * @tc.name: InsightIntentRdbStorageMgrTest_022
+ * @tc.desc: Test LoadInsightIntentInfo loads exactly the queried intent even when a sibling
+ *           intent whose name has the queried intent as prefix also exists in db
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_022, TestSize.Level0)
+{
+    int32_t userId = 0;
+    std::string bundleName = "testBundle";
+    std::string moduleName = "testModule";
+    ExtractInsightIntentInfo totalInfo;
+
+    MockQueryDataBeginWithKey(true);
+    MockQueryDataBeginWithKeyData("0/testBundle/testModule/testIntent/1",
+        "{\"extractInsightIntents\":[{"
+        "\"decoratorFile\":\"testFile\",\"decoratorClass\":\"testClass\",\"decoratorType\":\"function\","
+        "\"bundleName\":\"testBundle\",\"moduleName\":\"testModule\",\"intentName\":\"testIntent\","
+        "\"domain\":\"testDomain\",\"intentVersion\":\"1\",\"displayName\":\"testDisplay\","
+        "\"functionName\":\"testFunction\"}]}");
+    MockQueryDataBeginWithKeyData("0/testBundle/testModule/testIntentFoo/1",
+        "{\"extractInsightIntents\":[{"
+        "\"decoratorFile\":\"testFile\",\"decoratorClass\":\"testClass\",\"decoratorType\":\"function\","
+        "\"bundleName\":\"testBundle\",\"moduleName\":\"testModule\",\"intentName\":\"testIntentFoo\","
+        "\"domain\":\"testDomain\",\"intentVersion\":\"1\",\"displayName\":\"testDisplay\","
+        "\"functionName\":\"testFunction\"}]}");
+    auto result = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->LoadInsightIntentInfo(bundleName,
+        moduleName, "testIntent", userId, totalInfo);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(totalInfo.genericInfo.intentName, "testIntent");
+}
+
+/**
+ * @tc.name: InsightIntentRdbStorageMgrTest_023
+ * @tc.desc: Test LoadInsightIntentInfo removes the malformed record via DeleteDataBeginWithKey
+ *           when the stored value fails to parse
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_023, TestSize.Level0)
+{
+    int32_t userId = 0;
+    std::string bundleName = "testBundle";
+    std::string moduleName = "testModule";
+    ExtractInsightIntentInfo totalInfo;
+
+    MockQueryDataBeginWithKey(true);
+    MockDeleteDataBeginWithKey(true);
+    MockQueryDataBeginWithKeyData("0/testBundle/testModule/testIntent/1", "invalid json {{");
+    auto result = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->LoadInsightIntentInfo(bundleName,
+        moduleName, "testIntent", userId, totalInfo);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_TRUE(GetMockDeleteDataBeginWithKeyCalled());
+    EXPECT_TRUE(totalInfo.genericInfo.intentName.empty());
 }
 }
 }
