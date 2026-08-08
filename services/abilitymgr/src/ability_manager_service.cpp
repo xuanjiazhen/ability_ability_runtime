@@ -1913,7 +1913,6 @@ int32_t AbilityManagerService::ProcessLaunchReasonAndController(StartAbilityWrap
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call ProcessLaunchReasonAndController");
 
     uint32_t callerTokenId = 0;
-    // Guard null callerToken (aa/shell callers have no token) before the lookup.
     auto callerRecord = param.callerToken != nullptr
         ? Token::GetAbilityRecordByToken(param.callerToken)
         : nullptr;
