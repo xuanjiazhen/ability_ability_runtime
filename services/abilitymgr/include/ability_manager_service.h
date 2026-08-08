@@ -1503,7 +1503,8 @@ public:
         bool isImplicit = false,
         bool isAppCloneSelector = false,
         uint32_t callerAccessTokenId = 0,
-        sptr<IRequestStartAbilityCallback> callback = nullptr);
+        sptr<IRequestStartAbilityCallback> callback = nullptr,
+        std::shared_ptr<StartOptions> startOptions = nullptr);
 
     int ImplicitStartAbilityAsCaller(
         const Want &want,

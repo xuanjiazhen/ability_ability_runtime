@@ -631,6 +631,25 @@ HWTEST_F(FreeInstallTest, FreeInstall_StartAbilityByConvertedWant_001, TestSize.
 }
 
 /**
+ * @tc.number: FreeInstall_StartAbilityByConvertedWant_002
+ * @tc.name: StartAbilityByConvertedWant
+ * @tc.desc: Test StartAbilityByConvertedWant with startOptions.
+ */
+HWTEST_F(FreeInstallTest, FreeInstall_StartAbilityByConvertedWant_002, TestSize.Level1)
+{
+    freeInstallManager_ = std::make_shared<FreeInstallManager>();
+    EXPECT_NE(freeInstallManager_, nullptr);
+
+    FreeInstallInfo freeInstallInfo;
+    freeInstallInfo.startOptions = std::make_shared<StartOptions>();
+    ASSERT_NE(freeInstallInfo.startOptions, nullptr);
+    freeInstallInfo.startOptions->SetDisplayID(1);
+    freeInstallInfo.startOptions->SetWindowMode(100);
+    freeInstallManager_->StartAbilityByConvertedWant(freeInstallInfo, "2024-07-17 00:00:00");
+    EXPECT_TRUE(freeInstallManager_ != nullptr);
+}
+
+/**
  * @tc.number: IsTopAbility_001
  * @tc.name: IsTopAbility
  * @tc.desc: Test IsTopAbility.
