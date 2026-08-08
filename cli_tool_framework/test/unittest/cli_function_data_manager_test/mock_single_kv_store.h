@@ -49,11 +49,16 @@ public:
             return GetEntries_;
         }
         entries.clear();
+        std::string prefixStr = prefix.ToString();
         for (const auto &item : mockData_) {
-            DistributedKv::Entry entry;
-            entry.key = DistributedKv::Key(item.first);
-            entry.value = item.second;
-            entries.push_back(entry);
+            // If prefix is empty (nullptr case), return all entries
+            // Otherwise, filter by prefix
+            if (prefixStr.empty() || item.first.find(prefixStr) == 0) {
+                DistributedKv::Entry entry;
+                entry.key = DistributedKv::Key(item.first);
+                entry.value = item.second;
+                entries.push_back(entry);
+            }
         }
         return GetEntries_;
     };
