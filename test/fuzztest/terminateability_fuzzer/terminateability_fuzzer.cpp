@@ -33,7 +33,7 @@ constexpr size_t U32_AT_SIZE = 4;
 }
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
-    AbilityRuntime::AbilityContextImpl* context = new AbilityRuntime::AbilityContextImpl();
+    auto context = std::make_shared<AbilityRuntime::AbilityContextImpl>();
     int resultCode = 100;
     if (!context) {
         return false;
@@ -56,11 +56,15 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     AbilityInfo abilityInfo;
     ApplicationInfo applicationInfo;
     int requestCode = -1;
-    auto abilityRecord = new AbilityRecord(*want, abilityInfo, applicationInfo, requestCode);
+    auto abilityRecord = std::make_shared<AbilityRecord>(*want, abilityInfo, applicationInfo, requestCode);
 
     abilityRecord->Init(AbilityRequest());
     if (abilityRecord->TerminateAbility() != ERR_OK) {
         std::cout << "AbilityRecord TerminateAbility failed" << std::endl;
+        if (want) {
+            delete want;
+            want = nullptr;
+        }
         return false;
     }
 
@@ -68,9 +72,6 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
         delete want;
         want = nullptr;
     }
-
-    delete abilityRecord;
-    abilityRecord = nullptr;
 
     return true;
 }

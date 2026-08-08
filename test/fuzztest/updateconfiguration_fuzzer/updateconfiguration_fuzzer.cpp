@@ -31,23 +31,20 @@ constexpr size_t U32_AT_SIZE = 4;
 }
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
-    AppMgrClient* appMgrClient = new AppMgrClient();
+    std::shared_ptr<AppMgrClient> appMgrClient = std::make_shared<AppMgrClient>();
     if (!appMgrClient) {
         return false;
     }
 
     // fuzz for string, the value of colorMode is constrained
     Configuration config;
-    if (!config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE, reinterpret_cast<const char*>(data))) {
+    std::string language(data, size);
+    if (!config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE, language)) {
         return false;
     }
 
     if (appMgrClient->UpdateConfiguration(config) != 0) {
         return false;
-    }
-    if (appMgrClient) {
-        delete appMgrClient;
-        appMgrClient = nullptr;
     }
     return true;
 }
