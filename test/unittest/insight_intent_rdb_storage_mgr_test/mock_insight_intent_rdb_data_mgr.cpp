@@ -24,6 +24,8 @@ bool g_mockQueryDataBeginWithKeyRet = true;
 bool g_mockInsertDataRet = true;
 bool g_mockDeleteDataRet = true;
 bool g_mockDeleteDataBeginWithKeyRet = true;
+std::string g_mockQueryDataKey = "";
+std::unordered_map<std::string, std::string> g_mockQueryDatas;
 
 void MockQueryData(bool mockRet)
 {
@@ -34,6 +36,21 @@ void MockQueryData(bool mockRet)
 void MockQueryDataBeginWithKey(bool mockRet)
 {
     g_mockQueryDataBeginWithKeyRet = mockRet;
+}
+
+void MockQueryDataBeginWithKeyData(const std::string &key, const std::string &value)
+{
+    g_mockQueryDatas.emplace(key, value);
+}
+
+void MockQueryDataBeginWithKeyDataClear()
+{
+    g_mockQueryDatas.clear();
+}
+
+std::string GetMockQueryDataKey()
+{
+    return g_mockQueryDataKey;
 }
 
 void MockInsertData(bool mockRet)
@@ -73,10 +90,16 @@ bool InsightIntentRdbDataMgr::QueryData(const std::string &key, std::string &val
 bool InsightIntentRdbDataMgr::QueryDataBeginWithKey(const std::string &key,
     std::unordered_map<std::string, std::string> &datas)
 {
-    if (g_mockQueryDataBeginWithKeyRet) {
-        return true;
+    g_mockQueryDataKey = key;
+    if (!g_mockQueryDataBeginWithKeyRet) {
+        return false;
     }
-    return false;
+    for (const auto &item : g_mockQueryDatas) {
+        if (item.first.compare(0, key.size(), key) == 0) {
+            datas.emplace(item.first, item.second);
+        }
+    }
+    return true;
 }
 
 bool InsightIntentRdbDataMgr::InsertData(const std::string &key, const std::string &value)
