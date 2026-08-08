@@ -50,6 +50,9 @@ uint64_t GetProcRssMemInfo()
         return 0;
     }
 
+    if (rss > UINT64_MAX / JS_ERROR_RSS_MEMINFO_PAGE_SIZE_KB) {
+        return 0;
+    }
     rss = (rss * JS_ERROR_RSS_MEMINFO_PAGE_SIZE_KB) / JS_ERROR_RSS_MEMINFO_SIZE_KB;
     return rss;
 }

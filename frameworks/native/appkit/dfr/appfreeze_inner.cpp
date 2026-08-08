@@ -178,7 +178,8 @@ bool AppfreezeInner::ReadFdToString(int fd, std::string& content)
 {
     content.clear();
     struct stat sb;
-    if (fstat(fd, &sb) != -1 && sb.st_size > 0) {
+    constexpr off_t MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    if (fstat(fd, &sb) != -1 && sb.st_size > 0 && sb.st_size <= MAX_FILE_SIZE) {
         content.reserve(sb.st_size);
     }
 
@@ -620,6 +621,11 @@ void AppfreezeInner::ReportAppfreezeTask(const FaultData& faultData, bool onlyMa
 
     {
         std::lock_guard<std::mutex> lock(handlingMutex_);
+        constexpr int HANDLING_MAX_SIZE = 50;
+        if (handlinglist_.size() >= HANDLING_MAX_SIZE) {
+            TAG_LOGW(AAFwkTag::APPDFR, "handlinglist_ is full, size:%{public}zu", handlinglist_.size());
+            return;
+        }
         handlinglist_.emplace_back(newFaultData);
         constexpr int HANDLING_MIN_SIZE = 1;
         if (handlinglist_.size() <= HANDLING_MIN_SIZE) {

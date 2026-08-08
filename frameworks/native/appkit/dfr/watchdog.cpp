@@ -95,6 +95,10 @@ float Watchdog::getRatioValue()
     }
 
     float result = (ratioVal * 1.0) / TIME_CONVERT_RATIO;
+    constexpr float MAX_RATIO_VALUE = 3.0f;
+    if (result > MAX_RATIO_VALUE) {
+        return defaultRatio;
+    }
     return (result < FLOAT_EPSILON) ? defaultRatio : result;
 }
 
@@ -247,8 +251,7 @@ void Watchdog::AllowReportEvent()
 
 bool Watchdog::IsReportEvent()
 {
-    if (appMainThreadIsAlive_) {
-        appMainThreadIsAlive_.store(false);
+    if (appMainThreadIsAlive_.exchange(false)) {
         return false;
     }
     TAG_LOGD(AAFwkTag::APPDFR, "AppMainThread not alive");

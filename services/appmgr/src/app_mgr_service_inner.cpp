@@ -488,6 +488,59 @@ std::pair<int, std::string> GetEventTypeAndMsg(int32_t eventId)
     }
     return result;
 }
+
+bool IsValidAppFreezeType(const std::string &name)
+{
+    static const std::set<std::string> validTypes = {
+        AppFreezeType::THREAD_BLOCK_3S,
+        AppFreezeType::THREAD_BLOCK_6S,
+        AppFreezeType::LIFECYCLE_HALF_TIMEOUT,
+        AppFreezeType::LIFECYCLE_TIMEOUT,
+        AppFreezeType::APP_INPUT_BLOCK,
+        AppFreezeType::BUSSINESS_THREAD_BLOCK_3S,
+        AppFreezeType::BUSSINESS_THREAD_BLOCK_6S,
+        AppFreezeType::BUSINESS_INPUT_BLOCK,
+        AppFreezeType::LIFECYCLE_HALF_TIMEOUT_WARNING,
+        AppFreezeType::LIFECYCLE_TIMEOUT_WARNING,
+        AppFreezeType::APP_LIFECYCLE_TIMEOUT,
+        AppFreezeType::BG_FREEZE_WARNING,
+        "appRecovery",
+    };
+    return validTypes.find(name) != validTypes.end();
+}
+
+constexpr size_t MAX_FAULT_STRING_LEN = 1024 * 256; // 256KB
+
+bool IsValidFaultDataForIPC(const FaultData &faultData)
+{
+    if (!faultData.errorObject.name.empty() && !IsValidAppFreezeType(faultData.errorObject.name)) {
+        return false;
+    }
+    if (faultData.errorObject.name.size() > MAX_FAULT_STRING_LEN) {
+        return false;
+    }
+    if (faultData.errorObject.message.size() > MAX_FAULT_STRING_LEN) {
+        return false;
+    }
+    if (faultData.errorObject.stack.size() > MAX_FAULT_STRING_LEN) {
+        return false;
+    }
+    return true;
+}
+
+bool IsValidFaultData(const FaultData &faultData)
+{
+    if (faultData.errorObject.name.size() > MAX_FAULT_STRING_LEN) {
+        return false;
+    }
+    if (faultData.errorObject.message.size() > MAX_FAULT_STRING_LEN) {
+        return false;
+    }
+    if (faultData.errorObject.stack.size() > MAX_FAULT_STRING_LEN) {
+        return false;
+    }
+    return true;
+}
 }  // namespace
 
 using OHOS::AppExecFwk::Constants::PERMISSION_GRANTED;
@@ -4661,8 +4714,10 @@ int32_t AppMgrServiceInner::KillProcessByPidInner(const pid_t pid, const std::st
         TAG_LOGW(AAFwkTag::APPMGR, "nullptr");
         return ret;
     }
-    AppExecFwk::AppfreezeManager::GetInstance()->InsertKillThread(ret, pid, appRecord->GetUid(),
-        appRecord->GetBundleName());
+    if (ret >= 0) {
+        AppExecFwk::AppfreezeManager::GetInstance()->InsertKillThread(ret, pid, appRecord->GetUid(),
+            appRecord->GetBundleName());
+    }
     appRecord->SetKillReason(reason);
     appRecord->SetIsKillPrecedeStart(isKillPrecedeStart);
     if (ret >= 0) {
@@ -9243,7 +9298,10 @@ void AppMgrServiceInner::AppRecoveryNotifyApp(int32_t pid, const std::string& bu
             "kill appRecovery NotifyApp bundleName: %{public}s, faultType: "
             "%{public}d, pid: %{public}d", bundleName.c_str(), faultType, pid);
         RecordAppRecoveryNotifyAppReason(pid);
-        KillProcessByPid(pid, "AppRecoveryNotifyApp");
+        int32_t killRet = KillProcessByPid(pid, "AppRecoveryNotifyApp");
+        if (killRet < 0) {
+            TAG_LOGW(AAFwkTag::APPMGR, "kill failed, pid:%{public}d, ret:%{public}d", pid, killRet);
+        }
         return;
     }
 
@@ -9395,7 +9453,6 @@ int32_t AppMgrServiceInner::SubmitDfxFaultTask(const FaultData &faultData, const
     };
     AppExecFwk::AppfreezeManager::GetInstance()->InitWarningCpuInfo(faultData, info);
     dfxTaskHandler_->SubmitTask(notifyAppTask, "NotifyAppFaultTask");
-    dfxTaskHandler_->SubmitTask(notifyAppTask, "NotifyAppFaultTask");
     TAG_LOGW(AAFwkTag::APPDFR, "submit NotifyAppFaultTask, eventName:%{public}s, bundleName:%{public}s, "
         "endTime:%{public}s, interval:%{public}" PRId64 " ms", faultData.errorObject.name.c_str(),
         bundleName.c_str(), AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str(),
@@ -9413,6 +9470,10 @@ int32_t AppMgrServiceInner::SubmitDfxFaultTask(const FaultData &faultData, const
 int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "call");
+    if (!IsValidFaultDataForIPC(faultData)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid faultData, name:%{public}s", faultData.errorObject.name.c_str());
+        return ERR_INVALID_VALUE;
+    }
     int32_t pid = IPCSkeleton::GetCallingPid();
     int32_t uid = IPCSkeleton::GetCallingUid();
     auto appRecord = GetAppRunningRecordByPid(pid);
@@ -9436,11 +9497,11 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
         return ERR_OK;
     }
 
-    FaultData& nonConstFaultData = const_cast<FaultData&>(faultData);
-    nonConstFaultData.isInForeground = UpdateForeground(appRecord, eventName);
+    FaultData mutableFaultData = faultData;
+    mutableFaultData.isInForeground = UpdateForeground(appRecord, eventName);
     std::string processName = appRecord->GetProcessName();
     bool isExit = AppExecFwk::AppfreezeManager::GetInstance()->CheckProcessExit(processName,
-        eventName, nonConstFaultData.isInForeground);
+        eventName, mutableFaultData.isInForeground);
     if (faultData.faultType == FaultDataType::APP_FREEZE) {
         if (CheckAppFault(appRecord, faultData)) {
             return ERR_OK;
@@ -9460,10 +9521,10 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
         std::string appRunningUniqueId;
         int32_t ret = appRunningManager_->GetAppRunningUniqueIdByPid(pid, appRunningUniqueId);
         TAG_LOGI(AAFwkTag::APPDFR, "ret=%{public}d, appRunningUniqueId=%{public}s", ret, appRunningUniqueId.c_str());
-        nonConstFaultData.appRunningUniqueId = appRunningUniqueId;
+        mutableFaultData.appRunningUniqueId = appRunningUniqueId;
     }
 
-    if (SubmitDfxFaultTask(nonConstFaultData, bundleName, appRecord, pid) != ERR_OK) {
+    if (SubmitDfxFaultTask(mutableFaultData, bundleName, appRecord, pid) != ERR_OK) {
         return ERR_INVALID_VALUE;
     }
 
@@ -9583,6 +9644,11 @@ int32_t AppMgrServiceInner::TransformedNotifyAppFault(const AppFaultDataBySA &fa
     }
 
     FaultData transformedFaultData = ConvertDataTypes(faultData);
+    if (!IsValidFaultData(transformedFaultData)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid faultData, name:%{public}s, pid:%{public}d",
+            transformedFaultData.errorObject.name.c_str(), pid);
+        return ERR_INVALID_VALUE;
+    }
     std::string eventName = transformedFaultData.errorObject.name;
     transformedFaultData.isInForeground = UpdateForeground(record, eventName);
     int32_t uid = record->GetUid();
