@@ -1826,7 +1826,7 @@ int32_t AbilityManagerService::StartAbilityForAppCloneSelector(StartAbilityWrapP
         return ret;
     }
     if (param.callerToken == nullptr) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbilityForAppCloneSelector: callerToken is nullptr, use specifyTokenId");
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "StartAbilityForAppCloneSelector: callerToken is nullptr, use specifyTokenId");
     }
 
     AbilityRequest abilityRequest;
@@ -1913,7 +1913,10 @@ int32_t AbilityManagerService::ProcessLaunchReasonAndController(StartAbilityWrap
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call ProcessLaunchReasonAndController");
 
     uint32_t callerTokenId = 0;
-    auto callerRecord = Token::GetAbilityRecordByToken(param.callerToken);
+    // Guard null callerToken (aa/shell callers have no token) before the lookup.
+    auto callerRecord = param.callerToken != nullptr
+        ? Token::GetAbilityRecordByToken(param.callerToken)
+        : nullptr;
     if (callerRecord != nullptr) {
         callerTokenId = callerRecord->GetApplicationInfo().accessTokenId;
     } else {
