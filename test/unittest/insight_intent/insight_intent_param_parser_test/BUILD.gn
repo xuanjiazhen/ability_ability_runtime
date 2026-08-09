@@ -29,7 +29,10 @@ ohos_unittest("insight_intent_param_parser_test") {
 
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
 
-  cflags = []
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
