@@ -129,16 +129,17 @@ IntentOptionDefaults MakeDefaultsFromGeneric(const AbilityRuntime::ExtractInsigh
     return defaults;
 }
 
-void RegisterOrUpdateFunction(CliToolMGRClient &client, const FunctionInfo &func)
+bool RegisterOrUpdateFunction(CliToolMGRClient &client, const FunctionInfo &func)
 {
     auto ret = client.RegisterFunction(func);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "register function failed: %{public}s/%{public}s, ret: %{public}d",
             func.functionNamespace.c_str(), func.functionName.c_str(), ret);
-        return;
+        return false;
     }
     TAG_LOGI(AAFwkTag::CLI_TOOL, "registered function: %{public}s/%{public}s",
         func.functionNamespace.c_str(), func.functionName.c_str());
+    return true;
 }
 } // namespace
 
@@ -235,10 +236,13 @@ bool RegisterInsightIntentFunctions(
     }
 
     auto &client = CliToolMGRClient::GetInstance();
+    bool allSuccess = true;
     for (const auto &func : functions) {
-        RegisterOrUpdateFunction(client, func);
+        if (!RegisterOrUpdateFunction(client, func)) {
+            allSuccess = false;
+        }
     }
-    return true;
+    return allSuccess;
 }
 
 bool UnregisterInsightIntentFunctions(const std::string &bundleName)
@@ -249,7 +253,7 @@ bool UnregisterInsightIntentFunctions(const std::string &bundleName)
     }
     auto &client = CliToolMGRClient::GetInstance();
     auto ret = client.UnregisterIntentFunctionsByNamespace(bundleName);
-    if (ret < 0) {
+    if (ret != ERR_OK) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "unregister functions failed: %{public}s, ret: %{public}d",
             bundleName.c_str(), ret);
         return false;
