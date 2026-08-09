@@ -909,6 +909,7 @@ protected:
     sptr<AbilityTransitionInfo> CreateAbilityTransitionInfo(const std::shared_ptr<StartOptions> &startOptions,
         const std::shared_ptr<Want> &want, const AbilityRequest &abilityRequest);
     void SetAbilityStateInner(AbilityState state);
+    void SetAbilityStateSideEffects(AbilityState state);
 #endif
     void PostStartAbilityByCallTimeoutTask(bool isHalf);
     void CancelStartAbilityByCallTimeoutTask() const;

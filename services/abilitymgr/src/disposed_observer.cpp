@@ -158,7 +158,12 @@ void DisposedObserver::OnPageShow(const AppExecFwk::PageStateData &pageStateData
 
 ErrCode DisposedObserver::ExecuteUIExtension(const AppExecFwk::PageStateData &pageStateData)
 {
-    auto abilityRecord = Token::GetAbilityRecordByToken(token_);
+    sptr<IRemoteObject> token;
+    {
+        std::lock_guard<ffrt::mutex> guard(abilityKeyLock_);
+        token = token_;
+    }
+    auto abilityRecord = Token::GetAbilityRecordByToken(token);
     Want want = *disposedRule_.want;
 
     bool isEmbeddable = false;

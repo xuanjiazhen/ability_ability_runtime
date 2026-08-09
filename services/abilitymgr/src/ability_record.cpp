@@ -458,14 +458,17 @@ void AbilityRecord::ForegroundUIExtensionAbility(uint32_t sceneFlag)
         GetInfoBundleName().c_str(), GetInfoAbilityName().c_str());
     CHECK_POINTER(lifecycleDeal_);
 
+#ifdef SUPPORT_SCREEN
+    AbilityState oldState = currentState_.exchange(AbilityState::FOREGROUNDING);
+    if (oldState == AbilityState::BACKGROUND) {
+        SendAppStartupTypeEvent(AppExecFwk::AppStartType::HOT);
+    }
+    SetAbilityStateSideEffects(AbilityState::FOREGROUNDING);
+#else
     if (IsAbilityState(AbilityState::BACKGROUND)) {
         SendAppStartupTypeEvent(AppExecFwk::AppStartType::HOT);
     }
-    // schedule active after updating AbilityState and sending timeout message to avoid ability async callback
-    // earlier than above actions.
-#ifdef SUPPORT_SCREEN
-    SetAbilityStateInner(AbilityState::FOREGROUNDING);
-#endif // SUPPORT_SCREEN
+#endif
     lifeCycleStateInfo_.sceneFlag = sceneFlag;
     lifecycleDeal_->ForegroundNew(GetWant(), lifeCycleStateInfo_, GetSessionInfo());
     lifeCycleStateInfo_.sceneFlag = 0;
@@ -984,6 +987,11 @@ void AbilityRecord::UpdateAbilityVisibilityState()
 void AbilityRecord::SetAbilityStateInner(AbilityState state)
 {
     currentState_.store(state);
+    SetAbilityStateSideEffects(state);
+}
+
+void AbilityRecord::SetAbilityStateSideEffects(AbilityState state)
+{
     if (state == AbilityState::BACKGROUND) {
         isAbilityForegrounding_ = false;
     }
