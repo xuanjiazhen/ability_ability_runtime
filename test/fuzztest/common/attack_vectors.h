@@ -119,6 +119,102 @@ inline std::string BuildMaliciousBundleName(FuzzedDataProvider &fdp)
     }
     return BuildSpecialCharString(fdp);
 }
+
+// Build an integer overflow value near INT32_MAX to trigger arithmetic overflow.
+inline int32_t BuildIntegerOverflow(FuzzedDataProvider &fdp)
+{
+    int32_t val = 0x7FFFFFFF;
+    if (fdp.ConsumeBool()) {
+        val += fdp.ConsumeIntegral<int32_t>() % 100 + 1;
+    } else if (fdp.ConsumeBool()) {
+        val = static_cast<int32_t>(0x80000000) + (fdp.ConsumeIntegral<int32_t>() % 100);
+    }
+    return val;
+}
+
+// Build a Unicode attack string with multi-byte UTF-8 edge cases (BOM, overlong, surrogate, beyond max).
+inline std::string BuildUnicodeAttackString(FuzzedDataProvider &fdp)
+{
+    static const std::string unicodePayloads[] = {
+        "\xEF\xBB\xBF",
+        "\xC0\x80",
+        "\xED\xA0\x80",
+        "\xF4\x90\x80\x80",
+        "\xE2\x80\x8E\xE2\x80\x8F",
+        "\xE2\x80\xA6",
+    };
+    std::string result = fdp.ConsumeRandomLengthString(64);
+    uint8_t payloadCount = fdp.ConsumeIntegral<uint8_t>() % 4;
+    for (uint8_t i = 0; i < payloadCount; i++) {
+        result += unicodePayloads[fdp.ConsumeIntegral<uint8_t>() % 6];
+    }
+    return result;
+}
+
+// Build a vector of malicious strings mixing oversized, special-char and unicode content.
+inline std::vector<std::string> BuildMaliciousStringVector(FuzzedDataProvider &fdp)
+{
+    std::vector<std::string> vec;
+    uint8_t count = fdp.ConsumeIntegral<uint8_t>() % VEC_MAX_SIZE;
+    for (uint8_t i = 0; i < count; i++) {
+        uint8_t choice = fdp.ConsumeIntegral<uint8_t>() % 3;
+        if (choice == 0) {
+            vec.push_back(BuildOversizedString(fdp, 1024));
+        } else if (choice == 1) {
+            vec.push_back(BuildSpecialCharString(fdp));
+        } else {
+            vec.push_back(BuildUnicodeAttackString(fdp));
+        }
+    }
+    return vec;
+}
+
+// Build a vector of malicious int32_t with overflow and boundary values.
+inline std::vector<int32_t> BuildMaliciousInt32Vector(FuzzedDataProvider &fdp)
+{
+    std::vector<int32_t> vec;
+    uint8_t count = fdp.ConsumeIntegral<uint8_t>() % VEC_MAX_SIZE;
+    static const int32_t boundaryValues[] = { 0x7FFFFFFF, static_cast<int32_t>(0x80000000), 0, -1, 1, 0x7FFFFFFE, 2 };
+    for (uint8_t i = 0; i < count; i++) {
+        uint8_t choice = fdp.ConsumeIntegral<uint8_t>() % 3;
+        if (choice == 0) {
+            vec.push_back(BuildIntegerOverflow(fdp));
+        } else if (choice == 1) {
+            vec.push_back(boundaryValues[fdp.ConsumeIntegral<uint8_t>() % 7]);
+        } else {
+            vec.push_back(fdp.ConsumeIntegral<int32_t>());
+        }
+    }
+    return vec;
+}
+
+// Write a malicious AppStateData parcelable with overflow pid, invalid state, malicious bundleName.
+inline void WriteMaliciousAppStateData(MessageParcel &parcel, FuzzedDataProvider &fdp)
+{
+    parcel.WriteInt32(BuildIntegerOverflow(fdp));
+    parcel.WriteString(BuildMaliciousBundleName(fdp));
+    parcel.WriteString(BuildSpecialCharString(fdp));
+    parcel.WriteInt32(BuildInvalidEnum(fdp, 20));
+    parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
+    parcel.WriteInt32(BuildIntegerOverflow(fdp));
+    parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
+    parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
+    parcel.WriteBool(fdp.ConsumeBool());
+}
+
+// Write a malicious AbilityStateData parcelable with invalid token info and overflow values.
+inline void WriteMaliciousAbilityStateData(MessageParcel &parcel, FuzzedDataProvider &fdp)
+{
+    parcel.WriteInt32(BuildInvalidEnum(fdp, 30));
+    parcel.WriteString(BuildMaliciousBundleName(fdp));
+    parcel.WriteString(BuildSpecialCharString(fdp));
+    parcel.WriteInt32(BuildIntegerOverflow(fdp));
+    parcel.WriteInt32(BuildIntegerOverflow(fdp));
+    parcel.WriteInt32(BuildInvalidEnum(fdp, 10));
+    parcel.WriteInt32(BuildIntegerOverflow(fdp));
+    parcel.WriteBool(fdp.ConsumeBool());
+    parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
+}
 } // namespace FuzzUtil
 } // namespace OHOS
 
