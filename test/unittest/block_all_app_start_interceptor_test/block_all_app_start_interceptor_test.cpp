@@ -20,6 +20,7 @@
 #undef private
 #undef protected
 
+#include "ability_manager_service.h"
 #include "hilog_tag_wrapper.h"
 
 using namespace testing;
@@ -112,6 +113,43 @@ HWTEST_F(BlockAllAppStartInterceptorTest, DoProcess_003, TestSize.Level1)
     AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldBlockAllAppStartFunc);
     auto ret = blockAllAppStartInterceptor.DoProcess(param);
     EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: Execute_RecoveryWhitelist_001
+ * @tc.desc: An allowlisted bundle can start in strict recovery mode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BlockAllAppStartInterceptorTest, Execute_RecoveryWhitelist_001, TestSize.Level1)
+{
+    BlockAllAppStartInterceptor interceptor;
+    interceptor.SetShouldBlockFunc([]() { return true; });
+    interceptor.SetIsAbilityStartedFunc([](AbilityRequest &, int32_t) { return false; });
+    interceptor.SetAllowStartFunc([](const std::string &bundleName) {
+        return bundleName == "com.example.recovery";
+    });
+    interceptor.SetStrictBlockFunc([]() { return true; });
+    AbilityRequest request;
+    request.abilityInfo.bundleName = "com.example.recovery";
+    EXPECT_EQ(interceptor.Execute(request, 100), ERR_OK);
+}
+
+/**
+ * @tc.name: Execute_RecoveryWhitelist_002
+ * @tc.desc: A started non-allowlisted page remains blocked in strict recovery mode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BlockAllAppStartInterceptorTest, Execute_RecoveryWhitelist_002, TestSize.Level1)
+{
+    BlockAllAppStartInterceptor interceptor;
+    interceptor.SetShouldBlockFunc([]() { return true; });
+    interceptor.SetIsAbilityStartedFunc([](AbilityRequest &, int32_t) { return true; });
+    interceptor.SetAllowStartFunc([](const std::string &) { return false; });
+    interceptor.SetStrictBlockFunc([]() { return true; });
+    AbilityRequest request;
+    request.abilityInfo.bundleName = "com.example.normal";
+    request.abilityInfo.type = AbilityType::PAGE;
+    EXPECT_EQ(interceptor.Execute(request, 100), ERR_ALL_APP_START_BLOCKED);
 }
 } // namespace AAFwk
 } // namespace OHOS

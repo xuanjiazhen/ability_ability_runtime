@@ -28,8 +28,9 @@ namespace AAFwk {
 namespace {
 
 // 产品白名单缺失或格式非法时使用的最小安全白名单，避免恢复界面无法启动。
-constexpr std::array<std::string_view, 5> RECOVERY_ESSENTIAL_BUNDLES = {
+constexpr std::array<std::string_view, 6> RECOVERY_ESSENTIAL_BUNDLES = {
     "com.ohos.settings",
+    "com.ohos.settingsdata",
     "com.ohos.systemui",
     "com.ohos.sceneboard",
     "com.ohos.launcher",
@@ -83,9 +84,19 @@ SystemRecoveryModePolicy &SystemRecoveryModePolicy::GetInstance()
     return policy;
 }
 
-bool SystemRecoveryModePolicy::IsRecoveryMode() const
+SystemRecoveryModePolicy::SystemRecoveryModePolicy()
 {
-    return system::GetParameter(SYSTEM_RECOVERY_MODE_PARAMETER, "") == SYSTEM_RECOVERY_MODE_VALUE;
+    enabled_.store(system::GetParameter(SYSTEM_RECOVERY_MODE_PARAMETER, "") == SYSTEM_RECOVERY_MODE_VALUE);
+}
+
+void SystemRecoveryModePolicy::SetEnabled(bool enabled)
+{
+    enabled_.store(enabled);
+}
+
+bool SystemRecoveryModePolicy::IsEnabled() const
+{
+    return enabled_.load();
 }
 
 bool SystemRecoveryModePolicy::IsRecoveryEssentialBundle(const std::string &bundleName) const
@@ -96,7 +107,7 @@ bool SystemRecoveryModePolicy::IsRecoveryEssentialBundle(const std::string &bund
 
 bool SystemRecoveryModePolicy::ShouldBlockBundle(const std::string &bundleName) const
 {
-    if (!IsRecoveryMode()) {
+    if (!IsEnabled()) {
         return false;
     }
 
