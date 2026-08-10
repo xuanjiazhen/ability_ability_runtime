@@ -477,16 +477,21 @@ void FreeInstallManager::StartAbilityByConvertedWant(FreeInstallInfo &info, cons
         result = UpdateElementName(info.want, info.userId);
     }
     if (result == ERR_OK) {
-        StartAbilityWrapParam param = {
-            .want = info.want,
-            .callerToken = info.callerToken,
-            .requestCode = info.requestCode,
-            .userId = info.userId,
-            .hideFailureTipDialog = false,
-            .isFreeInstallFromService = info.isFreeInstallFromService,
-            .removeInsightIntentFlag = true,
-        };
-        result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbilityWithRemoveIntentFlag(param);
+        InsightIntentExecuteParam::RemoveInsightIntent(info.want);
+        if (info.startOptions == nullptr) {
+            StartAbilityWrapParam param = {
+                .want = info.want,
+                .callerToken = info.callerToken,
+                .requestCode = info.requestCode,
+                .userId = info.userId,
+                .hideFailureTipDialog = false,
+                .isFreeInstallFromService = info.isFreeInstallFromService,
+            };
+            result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbilityWithRemoveIntentFlag(param);
+        } else {
+            result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartUIAbilityForOptionWrap(info.want,
+                *info.startOptions, info.callerToken, false, info.userId, info.requestCode);
+        }
     }
     TAG_LOGD(AAFwkTag::FREE_INSTALL, "identity: %{public}s", identity.c_str());
     IPCSkeleton::SetCallingIdentity(identity);
