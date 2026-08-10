@@ -599,7 +599,7 @@ group("fuzztest") {
     deps += [
       "abilityunlockscreencallback_fuzzer:fuzztest",
       "sainterceptorstub_fuzzer:fuzztest",
-    "screenunlockinterceptor_fuzzer:fuzztest",
+      "screenunlockinterceptor_fuzzer:fuzztest",
       "screenunlockinterceptorfirst_fuzzer:fuzztest",
     ]
   }
