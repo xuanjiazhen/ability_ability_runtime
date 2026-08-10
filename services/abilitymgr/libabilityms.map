@@ -10,108 +10,40 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+# Tightened from 99 classes to 21 based on static analysis of external
+# references (mission_list, appkit_native, abilitykit_native, intent_client,
+# dataobsms, aa tool, cc tool). See analysis on feat/rom-deps-cleanup-analysis.
 
 1.0 {
   global:
     extern "C++" {
-      *AbilityConnectCallbackRecipient*;
-      *AbilityConnectionProxy*;
-      *AbilityConnectionStub*;
-      *AbilityConnectManager*;
-      *AbilityEventHandler*;
-      *AbilityEventUtil*;
-      *AbilityFirstFrameStateObserverManager*;
-      *AbilityInterceptorExecuter*;
-      *AbilityJumpInterceptor*;
-      *AbilityManagerProxy*;
+      # Core SA entry
       *AbilityManagerService*;
-      *AbilityManagerStub*;
-      *AbilityPermissionUtil*;
+      *AbilityConnectCallbackRecipient*;
+
+      # Records / Info (data classes used externally)
       *AbilityRecord*;
-      *AbilityRequest*;
       *AbilityRunningInfo*;
-      *AbilitySchedulerProxy*;
-      *AbilitySchedulerStub*;
-      *AbilityStartWithWaitObserverManager*;
-      *AmsConfigurationParameter*;
-      *AppExitReasonDataManager*;
-      *AppExitReasonHelper*;
+      *ExtensionRunningInfo*;
       *ApplicationAnrListener*;
-      *AppMgrUtil*;
-      *AppScheduler*;
-      *AtomicServiceStatusCallback*;
-      *RemoteIntentResultCallback*;
-      *BackgroundTaskObserver*;
-      *MainElementUtils*;
-      *CallContainer*;
-      *CallerInfo*;
-      *CallerRecord*;
-      *CallRecord*;
-      *CommonExtensionManager*;
-      *ConnectionObserverController*;
-      *ConnectionRecord*;
-      *ConnectionStateItem*;
-      *ConnectionStateManager*;
-      *ConnectionManagerClient*;
-      *ControlInterceptor*;
-      *CrowdTestInterceptor*;
-      *DeepLinkReserveConfig*;
-      *DisposedRuleInterceptor*;
-      *DumpUtils*;
-      *EcologicalRuleInterceptor*;
-      *ExitInfoDataManager*;
-      *ExtensionPermissionsUtil*;
-      *DataAbilityManager*;
-      *BaseExtensionRecord*;
-      *FreeInstallManager*;
-      *FreeInstallObserverManager*;
-      *ForegroundAppConnectionManager*;
-      *ImplicitStartProcessor*;
-      *InnerMissionInfo*;
-      *InsightIntentUtils*;
-      *JsonUtils*;
-      *KeepAliveAppType*;
-      *KeepAliveInfo*;
-      *KeepAliveSetter*;
-      *KeepAliveUtils*;
+      *MissionInfo*;
+      *MissionSnapshot*;
+      *Mission*;
       *LaunchParam*;
       *LifeCycleStateInfo*;
-      *Mission*;
-      *MissionDataStorage*;
-      *MissionInfo*;
-      *MissionInfoMgr*;
-      *MissionList*;
-      *MissionListenerStub*;
-      *MissionListManager*;
-      *MissionSnapshot*;
-      *ModalSystemDialogUtil*;
-      *MultiAppUtils*;
-      *MultiInstanceUtils*;
-      *PendingWantKey*;
-      *PendingWantManager*;
-      *PendingWantRecord*;
-      *ResidentProcessManager*;
-      *StartAbilityUtils*;
       *StartOptions*;
-      *StateUtils*;
-      *SystemDialogScheduler*;
-      *TaskDataPersistenceMgr*;
       *Token*;
-      *UpdateCallerInfoUtil*;
-      *UriUtils*;
-      *UserController*;
-      *UnlockScreenManager*;
-      *UIExtensionAbilityManager*;
+      *KeepAliveInfo*;
+      *KeepAliveAppType*;
       *WantSenderInfo*;
       *SenderInfo*;
-      *ExtensionRunningInfo*;
-      *UserCallbackStub*;
-      *WantReceiverStub*;
-      *WantReceiverProxy*;
-      *WantSenderProxy*;
-      *WantSenderStub*;
-      *WantUtils*;
-      *WindowOptionsUtils*;
+
+      # Utils / Helpers
+      *AppScheduler*;
+      *JsonUtils*;
+      *KeepAliveSetter*;
+      *UserController*;
     };
   local:
     *;
