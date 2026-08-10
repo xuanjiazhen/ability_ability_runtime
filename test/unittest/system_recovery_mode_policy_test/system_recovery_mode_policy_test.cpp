@@ -41,6 +41,7 @@ bool JsonUtils::LoadConfiguration(const std::string &, nlohmann::json &jsonBuf, 
     jsonBuf = {
         { SYSTEM_RECOVERY_APP_WHITELIST_KEY, {
             "com.ohos.settings",
+            "com.ohos.settingsdata",
             "com.ohos.systemui",
             "com.ohos.sceneboard",
             "com.ohos.launcher",
@@ -56,27 +57,23 @@ public:
     void SetUp() override
     {
         g_startMode.clear();
+        SystemRecoveryModePolicy::GetInstance().SetEnabled(false);
     }
 };
 
 /**
- * @tc.name: IsRecoveryMode_0100
- * @tc.desc: Recovery mode is active only for the exact system_recovery value.
+ * @tc.name: SetEnabled_0100
+ * @tc.desc: The controller can update the in-memory recovery state.
  * @tc.type: FUNC
  */
-HWTEST_F(SystemRecoveryModePolicyTest, IsRecoveryMode_0100, TestSize.Level1)
+HWTEST_F(SystemRecoveryModePolicyTest, SetEnabled_0100, TestSize.Level1)
 {
     auto &policy = SystemRecoveryModePolicy::GetInstance();
-    EXPECT_FALSE(policy.IsRecoveryMode());
-
-    g_startMode = "normal";
-    EXPECT_FALSE(policy.IsRecoveryMode());
-
-    g_startMode = "SYSTEM_RECOVERY";
-    EXPECT_FALSE(policy.IsRecoveryMode());
-
-    g_startMode = SYSTEM_RECOVERY_MODE_VALUE;
-    EXPECT_TRUE(policy.IsRecoveryMode());
+    EXPECT_FALSE(policy.IsEnabled());
+    policy.SetEnabled(true);
+    EXPECT_TRUE(policy.IsEnabled());
+    policy.SetEnabled(false);
+    EXPECT_FALSE(policy.IsEnabled());
 }
 
 /**
@@ -96,8 +93,8 @@ HWTEST_F(SystemRecoveryModePolicyTest, ShouldBlockBundle_0100, TestSize.Level1)
  */
 HWTEST_F(SystemRecoveryModePolicyTest, ShouldBlockBundle_0200, TestSize.Level1)
 {
-    g_startMode = SYSTEM_RECOVERY_MODE_VALUE;
     auto &policy = SystemRecoveryModePolicy::GetInstance();
+    policy.SetEnabled(true);
 
     EXPECT_TRUE(policy.ShouldBlockBundle("com.example.thirdparty"));
     EXPECT_TRUE(policy.ShouldBlockBundle(""));
@@ -110,8 +107,9 @@ HWTEST_F(SystemRecoveryModePolicyTest, ShouldBlockBundle_0200, TestSize.Level1)
  */
 HWTEST_F(SystemRecoveryModePolicyTest, ShouldBlockBundle_0300, TestSize.Level1)
 {
-    g_startMode = SYSTEM_RECOVERY_MODE_VALUE;
-    EXPECT_FALSE(SystemRecoveryModePolicy::GetInstance().ShouldBlockBundle("com.ohos.settings"));
+    auto &policy = SystemRecoveryModePolicy::GetInstance();
+    policy.SetEnabled(true);
+    EXPECT_FALSE(policy.ShouldBlockBundle("com.ohos.settings"));
 }
 
 /**
@@ -121,8 +119,9 @@ HWTEST_F(SystemRecoveryModePolicyTest, ShouldBlockBundle_0300, TestSize.Level1)
  */
 HWTEST_F(SystemRecoveryModePolicyTest, ShouldBlockBundle_0400, TestSize.Level1)
 {
-    g_startMode = SYSTEM_RECOVERY_MODE_VALUE;
-    EXPECT_FALSE(SystemRecoveryModePolicy::GetInstance().ShouldBlockBundle("com.example.product.recovery"));
+    auto &policy = SystemRecoveryModePolicy::GetInstance();
+    policy.SetEnabled(true);
+    EXPECT_FALSE(policy.ShouldBlockBundle("com.example.product.recovery"));
 }
 
 } // namespace AAFwk

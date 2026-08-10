@@ -34,6 +34,10 @@ public:
     using IsAbilityStartedFunc = std::function<bool(AbilityRequest&, int32_t)>;
     void SetIsAbilityStartedFunc(const IsAbilityStartedFunc& func);
 
+    using AllowStartFunc = std::function<bool(const std::string&)>;
+    void SetAllowStartFunc(const AllowStartFunc& func);
+    void SetStrictBlockFunc(const std::function<bool()>& func);
+
     ErrCode Execute();
     ErrCode Execute(AbilityRequest& abilityRequest, int32_t validUserId);
     virtual void SetTaskHandler(std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler) override
@@ -44,6 +48,8 @@ public:
 private:
     std::function<bool()> shouldBlockFunc_;
     IsAbilityStartedFunc isAbilityStartedFunc_;
+    AllowStartFunc allowStartFunc_;
+    std::function<bool()> strictBlockFunc_;
 };
 } // namespace AAFwk
 } // namespace OHOS

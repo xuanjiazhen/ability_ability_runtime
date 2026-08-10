@@ -76,7 +76,6 @@
 #include "interceptor/kiosk_interceptor.h"
 #include "interceptor/screen_unlock_interceptor.h"
 #include "interceptor/start_other_app_interceptor.h"
-#include "interceptor/system_recovery_mode_interceptor.h"
 #include "int_wrapper.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
@@ -535,18 +534,21 @@ void AbilityManagerService::InitInterceptor()
     interceptorExecuter_->AddInterceptor("CrowdTest", std::make_shared<CrowdTestInterceptor>());
     interceptorExecuter_->AddInterceptor("Control", std::make_shared<ControlInterceptor>());
     afterCheckExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
-    afterCheckExecuter_->AddInterceptor(
-        "SystemRecovery", std::make_shared<SystemRecoveryModeInterceptor>());
     afterCheckExecuter_->AddInterceptor("ExtensionControl", std::make_shared<ExtensionControlInterceptor>());
     afterCheckExecuter_->AddInterceptor("StartOtherApp", std::make_shared<StartOtherAppInterceptor>());
     afterCheckExecuter_->AddInterceptor("DisposedRule", std::make_shared<DisposedRuleInterceptor>());
     afterCheckExecuter_->AddInterceptor("EcologicalRule", std::make_shared<EcologicalRuleInterceptor>());
     afterCheckExecuter_->SetTaskHandler(taskHandler_);
-    if (AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "create BlockAllAppStartInterceptor");
-        blockAllAppStartInterceptor_ = std::make_shared<BlockAllAppStartInterceptor>();
-        InitBlockAllAppStartInterceptorCallbacks();
+    bool isAppJumpEnabled = OHOS::system::GetBoolParameter(
+        OHOS::AppExecFwk::PARAMETER_APP_JUMP_INTERCEPTOR_ENABLE, false);
+    if (isAppJumpEnabled) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "app jump enabled, add abilityJumpInterceptor");
+        interceptorExecuter_->AddInterceptor("AbilityJump", std::make_shared<AbilityJumpInterceptor>());
     }
+    // 拦截器本身常驻但默认不生效，便于运行期间进入或退出恢复模式。
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "create BlockAllAppStartInterceptor");
+    blockAllAppStartInterceptor_ = std::make_shared<BlockAllAppStartInterceptor>();
+    InitBlockAllAppStartInterceptorCallbacks();
 }
 
 void AbilityManagerService::InitBlockAllAppStartInterceptorCallbacks()
@@ -561,6 +563,13 @@ void AbilityManagerService::InitBlockAllAppStartInterceptorCallbacks()
     blockAllAppStartInterceptor_->SetIsAbilityStartedFunc([aams](AbilityRequest& req, int32_t userId) {
         std::shared_ptr<AbilityRecord> targetRecord;
         return aams->IsAbilityStarted(req, targetRecord, userId);
+    });
+    blockAllAppStartInterceptor_->SetAllowStartFunc([](const std::string &bundleName) {
+        auto &policy = SystemRecoveryModePolicy::GetInstance();
+        return policy.IsEnabled() && policy.IsRecoveryEssentialBundle(bundleName);
+    });
+    blockAllAppStartInterceptor_->SetStrictBlockFunc([]() {
+        return SystemRecoveryModePolicy::GetInstance().IsEnabled();
     });
 }
 
@@ -17724,12 +17733,16 @@ int32_t AbilityManagerService::BlockAllAppStart(bool flag)
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "BlockAllAppStart called, flag: %{public}d", flag);
 
-    if (!AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
+    if (flag && !AppUtils::GetInstance().IsStartOptionsWithAnimation() &&
+        !SystemRecoveryModePolicy::GetInstance().IsEnabled()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not supported device");
         return ERR_PERMISSION_DENIED;
     }
 
-    if (!PermissionVerification::GetInstance()->VerifyBlockAllAppStartPermission()) {
+    // 恢复模式控制器与 AMS 同属 foundation UID；其余调用方继续沿用原权限校验。
+    const bool isRecoveryController = IPCSkeleton::GetCallingUid() == FOUNDATION_UID &&
+        (SystemRecoveryModePolicy::GetInstance().IsEnabled() || !flag);
+    if (!isRecoveryController && !PermissionVerification::GetInstance()->VerifyBlockAllAppStartPermission()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Permission verification failed");
         return ERR_PERMISSION_DENIED;
     }
@@ -17743,7 +17756,8 @@ int32_t AbilityManagerService::BlockAllAppStart(bool flag)
 
 bool AbilityManagerService::ShouldBlockAllAppStart()
 {
-    if (!AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
+    if (!AppUtils::GetInstance().IsStartOptionsWithAnimation() &&
+        !SystemRecoveryModePolicy::GetInstance().IsEnabled()) {
         return false;
     }
 
