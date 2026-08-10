@@ -19,6 +19,8 @@ ohos_shared_library("ark_interop_helper_ffi") {
 
   defines = []
 
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
+
   sources = [ "ark_interop_helper.cpp" ]
 
   external_deps = [
