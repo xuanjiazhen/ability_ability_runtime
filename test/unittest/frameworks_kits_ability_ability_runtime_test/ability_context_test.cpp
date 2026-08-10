@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include "ability_context.h"
+#include "native_engine/native_reference.h"
 
 namespace OHOS {
 namespace AbilityRuntime {

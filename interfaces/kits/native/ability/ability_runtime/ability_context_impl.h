@@ -25,6 +25,7 @@
 #include "context_impl.h"
 #include "configuration.h"
 #include "local_call_container.h"
+#include "native_engine/native_reference.h"
 
 namespace OHOS {
 namespace Rosen {

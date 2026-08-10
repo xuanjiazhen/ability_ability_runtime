@@ -25,8 +25,7 @@
 #include "iability_callback.h"
 #include "ui_extension_callback.h"
 #include "mission_info.h"
-#include "native_engine/native_reference.h"
-#include "native_engine/native_value.h"
+#include "napi/native_api.h"
 #include "open_link_options.h"
 #include "start_options.h"
 #include "want.h"
@@ -37,6 +36,8 @@
 #include "pixel_map.h"
 #endif
 #endif
+
+class NativeReference;
 
 namespace OHOS {
 namespace Ace {
