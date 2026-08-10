@@ -14,6 +14,7 @@
  */
 
 #include "missionmanagerclient_fuzzer.h"
+#include "fuzz_util.h"
 
 #include <fuzzer/FuzzedDataProvider.h>
 
@@ -29,22 +30,6 @@
 using namespace OHOS::AAFwk;
 using namespace OHOS;
 
-namespace {
-constexpr size_t STRING_MAX_LENGTH = 256;
-constexpr size_t MISSION_VEC_MAX_SIZE = 8;
-
-// 通过 FuzzedDataProvider 构造 int32_t 向量，长度受控避免内存爆炸。
-std::vector<int32_t> BuildFuzzInt32Vector(FuzzedDataProvider &fdp)
-{
-    std::vector<int32_t> vec;
-    uint8_t count = fdp.ConsumeIntegral<uint8_t>() % MISSION_VEC_MAX_SIZE;
-    for (uint8_t i = 0; i < count; i++) {
-        vec.push_back(fdp.ConsumeIntegral<int32_t>());
-    }
-    return vec;
-}
-} // namespace
-
 namespace OHOS {
 bool DoSomethingInterestingWithMyAPI(const uint8_t *data, size_t size)
 {
@@ -54,21 +39,21 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t *data, size_t size)
 
     FuzzedDataProvider fdp(data, size);
 
-    // 消费所有 fuzz 输入参数，先一次性消费避免不同方法间数据相互依赖。
-    std::string srcDeviceId = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-    std::string dstDeviceId = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-    std::string deviceId = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-    std::string bundleName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-    std::string moduleName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-    std::string abilityName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-    std::string startTime = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    // Consume all fuzz input parameters first to avoid inter-method data dependency.
+    std::string srcDeviceId = fdp.ConsumeRandomLengthString(OHOS::FuzzUtil::STRING_MAX_LENGTH);
+    std::string dstDeviceId = fdp.ConsumeRandomLengthString(OHOS::FuzzUtil::STRING_MAX_LENGTH);
+    std::string deviceId = fdp.ConsumeRandomLengthString(OHOS::FuzzUtil::STRING_MAX_LENGTH);
+    std::string bundleName = fdp.ConsumeRandomLengthString(OHOS::FuzzUtil::STRING_MAX_LENGTH);
+    std::string moduleName = fdp.ConsumeRandomLengthString(OHOS::FuzzUtil::STRING_MAX_LENGTH);
+    std::string abilityName = fdp.ConsumeRandomLengthString(OHOS::FuzzUtil::STRING_MAX_LENGTH);
+    std::string startTime = fdp.ConsumeRandomLengthString(OHOS::FuzzUtil::STRING_MAX_LENGTH);
     int32_t missionId = fdp.ConsumeIntegral<int32_t>();
     int32_t numMax = fdp.ConsumeIntegral<int32_t>();
     int32_t topMissionId = fdp.ConsumeIntegral<int32_t>();
     bool fixConflict = fdp.ConsumeBool();
     int64_t tag = fdp.ConsumeIntegral<int64_t>();
     WantParams wantParams;
-    std::vector<int32_t> missionIds = BuildFuzzInt32Vector(fdp);
+    std::vector<int32_t> missionIds = OHOS::FuzzUtil::BuildInt32Vector(fdp);
 
     auto &client = MissionManagerClient::GetInstance();
 

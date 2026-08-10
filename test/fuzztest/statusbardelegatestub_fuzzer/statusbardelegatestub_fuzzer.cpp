@@ -14,6 +14,7 @@
  */
 
 #include "statusbardelegatestub_fuzzer.h"
+#include "fuzz_util.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -27,14 +28,6 @@ using namespace OHOS;
 
 namespace OHOS {
 namespace {
-constexpr int INPUT_ZERO = 0;
-constexpr int INPUT_ONE = 1;
-constexpr int INPUT_TWO = 2;
-constexpr int INPUT_THREE = 3;
-constexpr size_t U32_AT_SIZE = 4;
-constexpr size_t OFFSET_ZERO = 24;
-constexpr size_t OFFSET_ONE = 16;
-constexpr size_t OFFSET_TWO = 8;
 const std::u16string INTERFACE_TOKEN = u"ohos.ability.StatusBarDelegate";
 }
 
@@ -57,15 +50,9 @@ public:
     }
 };
 
-uint32_t GetU32Data(const char* ptr)
-{
-    return (ptr[INPUT_ZERO] << OFFSET_ZERO) | (ptr[INPUT_ONE] << OFFSET_ONE) | (ptr[INPUT_TWO] << OFFSET_TWO) |
-        ptr[INPUT_THREE];
-}
-
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
-    uint32_t code = GetU32Data(data);
+    uint32_t code = OHOS::FuzzUtil::GetU32Data(data);
 
     MessageParcel parcel;
     parcel.WriteInterfaceToken(INTERFACE_TOKEN);
@@ -89,7 +76,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return 0;
     }
 
-    if (size < OHOS::U32_AT_SIZE) {
+    if (size < OHOS::FuzzUtil::U32_AT_SIZE) {
         return 0;
     }
 

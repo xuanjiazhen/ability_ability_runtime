@@ -14,6 +14,7 @@
  */
 
 #include "uripermissionmanagerclient_fuzzer.h"
+#include "fuzz_util.h"
 
 #include <fuzzer/FuzzedDataProvider.h>
 
@@ -29,16 +30,13 @@ using namespace OHOS::AAFwk;
 using namespace OHOS;
 
 namespace {
-constexpr size_t STRING_MAX_LENGTH = 256;
-constexpr size_t URI_VEC_MAX_SIZE = 8;
-
-// 通过 FuzzedDataProvider 构造一个合法格式的 file URI 字符串，
-// 形如 "file:///path/to/resource"，避免空串或非法 URI 触发底层早期返回。
+// Build a valid file URI string via FuzzedDataProvider, e.g. "file:///path/to/resource",
+// to avoid empty or invalid URIs triggering early returns in lower layers.
 std::string BuildFuzzUriString(FuzzedDataProvider &fdp)
 {
     const std::string scheme = "file";
-    std::string host = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-    std::string path = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    std::string host = fdp.ConsumeRandomLengthString(OHOS::FuzzUtil::STRING_MAX_LENGTH);
+    std::string path = fdp.ConsumeRandomLengthString(OHOS::FuzzUtil::STRING_MAX_LENGTH);
     if (host.empty()) {
         host = "localhost";
     }
@@ -48,11 +46,11 @@ std::string BuildFuzzUriString(FuzzedDataProvider &fdp)
     return scheme + "://" + host + path;
 }
 
-// 通过 FuzzedDataProvider 构造一个 URI 向量，长度受控避免内存爆炸。
+// Build a URI vector via FuzzedDataProvider, length controlled to avoid memory explosion.
 std::vector<Uri> BuildFuzzUriVector(FuzzedDataProvider &fdp)
 {
     std::vector<Uri> uriVec;
-    uint8_t count = fdp.ConsumeIntegral<uint8_t>() % URI_VEC_MAX_SIZE;
+    uint8_t count = fdp.ConsumeIntegral<uint8_t>() % OHOS::FuzzUtil::VEC_MAX_SIZE;
     for (uint8_t i = 0; i < count; i++) {
         std::string uriStr = BuildFuzzUriString(fdp);
         uriVec.emplace_back(Uri(uriStr));
@@ -60,22 +58,11 @@ std::vector<Uri> BuildFuzzUriVector(FuzzedDataProvider &fdp)
     return uriVec;
 }
 
-// 通过 FuzzedDataProvider 构造一个 URI 字符串向量，长度受控。
-std::vector<std::string> BuildFuzzStringVector(FuzzedDataProvider &fdp)
-{
-    std::vector<std::string> uriVec;
-    uint8_t count = fdp.ConsumeIntegral<uint8_t>() % URI_VEC_MAX_SIZE;
-    for (uint8_t i = 0; i < count; i++) {
-        uriVec.push_back(BuildFuzzUriString(fdp));
-    }
-    return uriVec;
-}
-
-// 通过 FuzzedDataProvider 构造一个权限类型向量，长度受控。
+// Build a permission type vector via FuzzedDataProvider, length controlled.
 std::vector<int32_t> BuildFuzzPermissionTypes(FuzzedDataProvider &fdp)
 {
     std::vector<int32_t> permissionTypes;
-    uint8_t count = fdp.ConsumeIntegral<uint8_t>() % URI_VEC_MAX_SIZE;
+    uint8_t count = fdp.ConsumeIntegral<uint8_t>() % OHOS::FuzzUtil::VEC_MAX_SIZE;
     for (uint8_t i = 0; i < count; i++) {
         permissionTypes.push_back(fdp.ConsumeIntegral<int32_t>());
     }
@@ -92,16 +79,16 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t *data, size_t size)
 
     FuzzedDataProvider fdp(data, size);
 
-    // 消费所有 fuzz 输入参数，先一次性消费避免不同方法间数据相互依赖。
-    std::string targetBundleName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    // Consume all fuzz input parameters first to avoid inter-method data dependency.
+    std::string targetBundleName = fdp.ConsumeRandomLengthString(OHOS::FuzzUtil::STRING_MAX_LENGTH);
     if (targetBundleName.empty()) {
         targetBundleName = "com.example.fuzztarget";
     }
-    std::string bundleName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    std::string bundleName = fdp.ConsumeRandomLengthString(OHOS::FuzzUtil::STRING_MAX_LENGTH);
     if (bundleName.empty()) {
         bundleName = "com.example.fuzzbundle";
     }
-    std::string key = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    std::string key = fdp.ConsumeRandomLengthString(OHOS::FuzzUtil::STRING_MAX_LENGTH);
     if (key.empty()) {
         key = "fuzz_key";
     }
@@ -116,7 +103,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t *data, size_t size)
     std::string uriStr = BuildFuzzUriString(fdp);
     Uri uri(uriStr);
     std::vector<Uri> uriVec = BuildFuzzUriVector(fdp);
-    std::vector<std::string> uriStrVec = BuildFuzzStringVector(fdp);
+    std::vector<std::string> uriStrVec = OHOS::FuzzUtil::BuildStringVector(fdp);
     std::vector<int32_t> permissionTypes = BuildFuzzPermissionTypes(fdp);
 
     auto &client = UriPermissionManagerClient::GetInstance();

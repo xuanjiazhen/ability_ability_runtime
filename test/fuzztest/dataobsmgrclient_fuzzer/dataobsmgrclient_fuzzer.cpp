@@ -14,6 +14,7 @@
  */
 
 #include "dataobsmgrclient_fuzzer.h"
+#include "fuzz_util.h"
 
 #include <fuzzer/FuzzedDataProvider.h>
 
@@ -29,10 +30,6 @@
 using namespace OHOS::AAFwk;
 using namespace OHOS;
 
-namespace {
-constexpr size_t STRING_MAX_LENGTH = 256;
-} // namespace
-
 namespace OHOS {
 bool DoSomethingInterestingWithMyAPI(const uint8_t *data, size_t size)
 {
@@ -44,7 +41,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t *data, size_t size)
 
     int32_t userId = fdp.ConsumeIntegral<int32_t>();
     bool isDescendants = fdp.ConsumeBool();
-    std::string key = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    std::string key = fdp.ConsumeRandomLengthString(OHOS::FuzzUtil::STRING_MAX_LENGTH);
     Uri uri("test://fuzz_resource");
     DataObsOption opt;
     ChangeInfo changeInfo;

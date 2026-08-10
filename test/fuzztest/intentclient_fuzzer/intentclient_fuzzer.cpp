@@ -14,6 +14,7 @@
  */
 
 #include "intentclient_fuzzer.h"
+#include "fuzz_util.h"
 
 #include <fuzzer/FuzzedDataProvider.h>
 
@@ -26,10 +27,6 @@
 using namespace OHOS::AAFwk;
 using namespace OHOS;
 
-namespace {
-constexpr size_t STRING_MAX_LENGTH = 256;
-} // namespace
-
 namespace OHOS {
 bool DoSomethingInterestingWithMyAPI(const uint8_t *data, size_t size)
 {
@@ -40,8 +37,8 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t *data, size_t size)
     FuzzedDataProvider fdp(data, size);
 
     ExecuteIntentParam param;
-    param.bundleName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-    param.intentName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    param.bundleName = fdp.ConsumeRandomLengthString(OHOS::FuzzUtil::STRING_MAX_LENGTH);
+    param.intentName = fdp.ConsumeRandomLengthString(OHOS::FuzzUtil::STRING_MAX_LENGTH);
 
     auto &client = IntentClient::GetInstance();
     client.ExecuteIntentByFunctionCall(param);

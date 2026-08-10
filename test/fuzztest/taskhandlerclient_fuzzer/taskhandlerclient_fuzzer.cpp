@@ -14,6 +14,7 @@
  */
 
 #include "taskhandlerclient_fuzzer.h"
+#include "fuzz_util.h"
 
 #include <fuzzer/FuzzedDataProvider.h>
 
@@ -25,10 +26,6 @@
 
 using namespace OHOS::AppExecFwk;
 using namespace OHOS;
-
-namespace {
-constexpr size_t STRING_MAX_LENGTH = 256;
-}
 
 namespace OHOS {
 bool DoSomethingInterestingWithMyAPI(const uint8_t *data, size_t size)

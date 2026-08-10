@@ -14,6 +14,7 @@
  */
 
 #include "extensionmanagerclient_fuzzer.h"
+#include "fuzz_util.h"
 
 #include <fuzzer/FuzzedDataProvider.h>
 
@@ -27,10 +28,6 @@
 
 using namespace OHOS::AAFwk;
 using namespace OHOS;
-
-namespace {
-constexpr size_t STRING_MAX_LENGTH = 256;
-} // namespace
 
 namespace OHOS {
 bool DoSomethingInterestingWithMyAPI(const uint8_t *data, size_t size)

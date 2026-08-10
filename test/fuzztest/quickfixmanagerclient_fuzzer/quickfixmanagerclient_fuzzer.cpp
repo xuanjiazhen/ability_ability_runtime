@@ -14,6 +14,7 @@
  */
 
 #include "quickfixmanagerclient_fuzzer.h"
+#include "fuzz_util.h"
 
 #include <fuzzer/FuzzedDataProvider.h>
 
@@ -28,21 +29,6 @@
 using namespace OHOS::AAFwk;
 using namespace OHOS;
 
-namespace {
-constexpr size_t STRING_MAX_LENGTH = 256;
-constexpr size_t VEC_MAX_SIZE = 8;
-
-std::vector<std::string> BuildFuzzStringVector(FuzzedDataProvider &fdp)
-{
-    std::vector<std::string> quickFixFiles;
-    uint8_t count = fdp.ConsumeIntegral<uint8_t>() % VEC_MAX_SIZE;
-    for (uint8_t i = 0; i < count; i++) {
-        quickFixFiles.push_back(fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH));
-    }
-    return quickFixFiles;
-}
-} // namespace
-
 namespace OHOS {
 bool DoSomethingInterestingWithMyAPI(const uint8_t *data, size_t size)
 {
@@ -52,11 +38,11 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t *data, size_t size)
 
     FuzzedDataProvider fdp(data, size);
 
-    std::vector<std::string> quickFixFiles = BuildFuzzStringVector(fdp);
+    std::vector<std::string> quickFixFiles = OHOS::FuzzUtil::BuildStringVector(fdp);
     bool isDebug = fdp.ConsumeBool();
     bool isReplace = fdp.ConsumeBool();
-    std::string bundleName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
-    std::string revokeBundleName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    std::string bundleName = fdp.ConsumeRandomLengthString(OHOS::FuzzUtil::STRING_MAX_LENGTH);
+    std::string revokeBundleName = fdp.ConsumeRandomLengthString(OHOS::FuzzUtil::STRING_MAX_LENGTH);
     ApplicationQuickFixInfo quickFixInfo;
 
     auto client = QuickFixManagerClient::GetInstance();
