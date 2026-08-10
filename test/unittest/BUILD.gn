@@ -533,6 +533,7 @@ group("unittest") {
       "start_params_by_SCB_test:unittest",
       "startup_util_test:unittest",
       "state_utils_test:unittest",
+      "system_recovery_mode_policy_test:unittest",
       "stop_user_callback_proxy_test:unittest",
       "stop_user_callback_stub_test:unittest",
       "sys_mgr_client_test:unittest",

@@ -1,0 +1,62 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef OHOS_ABILITY_RUNTIME_SYSTEM_RECOVERY_MODE_POLICY_H
+#define OHOS_ABILITY_RUNTIME_SYSTEM_RECOVERY_MODE_POLICY_H
+
+#include <cstdint>
+#include <string>
+
+#include "nocopyable.h"
+
+namespace OHOS {
+namespace AppExecFwk {
+struct ApplicationInfo;
+}
+
+namespace AAFwk {
+
+struct RecoveryBundleKey {
+    std::string bundleName;
+    int32_t userId = -1;
+    int32_t appIndex = 0;
+};
+
+/**
+ * AMS 与 AppMgr 共用的系统恢复模式决策。
+ *
+ * 当前 demo 将模式来源集中在 IsRecoveryMode()，后续可替换为只读启动参数或
+ * SystemRecoveryModeService，而无需修改每一个应用启动调用点。
+ */
+class SystemRecoveryModePolicy final {
+public:
+    static SystemRecoveryModePolicy &GetInstance();
+
+    bool IsRecoveryMode() const;
+    bool IsRecoveryEssentialBundle(const std::string &bundleName,
+        const std::string &appIdentifier = "") const;
+    bool ShouldBlockBundle(const RecoveryBundleKey &key,
+        const AppExecFwk::ApplicationInfo *appInfo = nullptr) const;
+
+private:
+    SystemRecoveryModePolicy() = default;
+    ~SystemRecoveryModePolicy() = default;
+    DISALLOW_COPY_AND_MOVE(SystemRecoveryModePolicy);
+};
+
+} // namespace AAFwk
+} // namespace OHOS
+
+#endif // OHOS_ABILITY_RUNTIME_SYSTEM_RECOVERY_MODE_POLICY_H
