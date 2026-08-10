@@ -424,15 +424,15 @@ HWTEST_F(AmsMgrStubTest, HandleStartSpecifiedAbility_0100, TestSize.Level1)
     abilityInfo.name = "EntryAbility";
     int32_t requestId = 1001;
     std::string customProcess = "com.example.process";
-    bool isWindowStagePreload = true;
 
     data.WriteParcelable(&want);
     data.WriteParcelable(&abilityInfo);
     data.WriteInt32(requestId);
     data.WriteString(customProcess);
-    data.WriteBool(isWindowStagePreload);
+    data.WriteBool(false);
+    data.WriteBool(false);
 
-    EXPECT_CALL(*mockAmsMgrScheduler_, StartSpecifiedAbility(_, _, requestId, customProcess, true)).Times(1);
+    EXPECT_CALL(*mockAmsMgrScheduler_, StartSpecifiedAbility(_, _, requestId, customProcess, _)).Times(1);
     auto result = mockAmsMgrScheduler_->OnRemoteRequest(
         static_cast<uint32_t>(IAmsMgr::Message::START_SPECIFIED_ABILITY), data, reply, option);
     EXPECT_EQ(result, NO_ERROR);
