@@ -533,3 +533,10 @@ EXECUTE_CLI_FAILED:
   DETAIL: {type: STRING, desc: failure detail}
   DURATION_MS: {type: INT64, desc: timeout duration in milliseconds}
   SIGNAL_NUM: {type: INT32, desc: signal number}
+
+LOAD_SCRIPT_UNSAFE_MEMORY:
+  __BASE: {type: BEHAVIOR, level: MINOR, desc: load abc script with unsafe memory}
+  BUNDLE_NAME: {type: STRING, desc: app bundle name}
+  MODULE_NAME: {type: STRING, desc: module name}
+  APP_TARGET_API_VERSION: {type: INT32, desc: app target api version}
+  REASON: {type: STRING, desc: 'reason for using unsafe memory, HAP_COMPRESSED or OLD_API_VERSION'}

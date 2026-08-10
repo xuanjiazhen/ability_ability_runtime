@@ -40,6 +40,7 @@
 #include "hdc_register.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "hisysevent_report.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "js_environment.h"
@@ -1342,6 +1343,17 @@ bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath
             }
             return LoadScript(abcPath, safeData->GetDataPtr(), safeData->GetDataLen(), isBundle_, srcEntrance);
         } else {
+            std::string reason = extractor->IsHapCompress(modulePath) ? "HAP_COMPRESSED" : "OLD_API_VERSION";
+            auto hisyseventReport = std::make_shared<AAFwk::HisyseventReport>(4);
+            hisyseventReport->InsertParam("BUNDLE_NAME", bundleName_);
+            hisyseventReport->InsertParam("MODULE_NAME", moduleName_);
+            hisyseventReport->InsertParam("APP_TARGET_API_VERSION", apiTargetVersion_);
+            hisyseventReport->InsertParam("REASON", reason);
+            int32_t reportRet = hisyseventReport->Report("AAFWK", "LOAD_SCRIPT_UNSAFE_MEMORY",
+                HISYSEVENT_BEHAVIOR);
+            if (reportRet != 0) {
+                TAG_LOGW(AAFwkTag::JSRUNTIME, "report LOAD_SCRIPT_UNSAFE_MEMORY failed: %{public}d", reportRet);
+            }
             std::unique_ptr<uint8_t[]> data;
             size_t dataLen = 0;
             if (!extractor->ExtractToBufByName(modulePath, data, dataLen)) {
