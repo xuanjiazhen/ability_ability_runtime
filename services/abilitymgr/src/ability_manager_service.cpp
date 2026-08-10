@@ -1161,7 +1161,8 @@ int AbilityManagerService::ImplicitStartAbilityAsCaller(const Want &want, const 
 
 int AbilityManagerService::StartAbilityAsCallerDetails(const Want &want, const sptr<IRemoteObject> &callerToken,
     sptr<IRemoteObject> asCallerSourceToken, int32_t userId, int requestCode, bool isImplicit, bool isAppCloneSelector,
-    uint32_t callerAccessTokenId, sptr<IRequestStartAbilityCallback> callback)
+    uint32_t callerAccessTokenId, sptr<IRequestStartAbilityCallback> callback,
+    std::shared_ptr<StartOptions> startOptions)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     CHECK_CALLER_IS_SYSTEM_APP;
@@ -1189,6 +1190,18 @@ int AbilityManagerService::StartAbilityAsCallerDetails(const Want &want, const s
             "call from interceptor dialog, callerPkg:%{public}s, targetPkg:%{public}s",
             callerPkg.c_str(), targetPkg.c_str());
         AbilityUtil::AddAbilityJumpRuleToBms(callerPkg, targetPkg, GetValidUserId(userId));
+    }
+    if (startOptions != nullptr) {
+        int32_t ret = StartAbilityForOptionInner(newWant, *startOptions, callerToken, false, userId, requestCode,
+            true, callerAccessTokenId, isImplicit);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "start ability as caller with startOptions failed:%{public}d", ret);
+            if (callback != nullptr) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "ret: %{public}d, callback request ability", ret);
+                callback->OnRequestStartAbilityResult(false);
+            }
+        }
+        return ret;
     }
     StartAbilityWrapParam startAbilityWrapParam = {
         .want = newWant,
@@ -2484,8 +2497,17 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_INVALID_CONTINUATION_FLAG, "flags not allowed");
         return ERR_INVALID_CONTINUATION_FLAG;
     }
+    // 与 StartAbilityInner 保持完全一致的模式：SendDialogResult 在 Want 中设置了 dialogSessionId，此检测读取该参数，若为弹框结果回传则跳过 callerToken 校验。
+    std::string dialogSessionId = want.GetStringParam("dialogSessionId");
+    bool isSendDialogResult = false;
+#ifdef SUPPORT_SCREEN
+    auto dialogCallerInfo = DialogSessionManager::GetInstance().GetDialogCallerInfo(dialogSessionId);
+    if (!dialogSessionId.empty() && dialogCallerInfo != nullptr) {
+        isSendDialogResult = true;
+    }
+#endif // SUPPORT_SCREEN
 
-    if (callerToken != nullptr && !VerificationAllToken(callerToken)) {
+    if (callerToken != nullptr && !VerificationAllToken(callerToken) && !isSendDialogResult) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "verify callerToken failed:%{public}d", ERR_INVALID_CALLER);
         AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_INVALID_CALLER, "verify callerToken failed");
         return ERR_INVALID_CALLER;
@@ -2551,6 +2573,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
 
     AbilityRequest abilityRequest;
     abilityRequest.startOptions = startOptions;
+    abilityRequest.callType = AbilityCallType::START_OPTIONS_TYPE; // 下面的非隐式启动的分身选择框逻辑 CreateCloneSelectorDialog
 #ifdef SUPPORT_SCREEN
     if (ImplicitStartProcessor::IsImplicitStartAction(want)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "is implicit start action");
@@ -17084,6 +17107,44 @@ int32_t AbilityManagerService::PreStartInner(const FreeInstallInfo& taskInfo)
         .startSetting = nullptr,
         .want = want
     };
+
+    if (taskInfo.startOptions != nullptr) {
+        auto identity = IPCSkeleton::ResetCallingIdentity(); // 保存 AG 系统进程身份
+        IPCSkeleton::SetCallingIdentity(taskInfo.identity);// 恢复为 App A 身份
+        const auto &startOptions = *taskInfo.startOptions;
+        abilityRequest.startOptions = startOptions;
+        abilityRequest.processOptions = startOptions.processOptions;
+        if (AbilityPermissionUtil::GetInstance().IsStartSelfUIAbility()) { // 没有appInfo，无法做相关校验
+            abilityRequest.startWindowOption = startOptions.startWindowOption;
+        }
+        abilityRequest.supportWindowModes = startOptions.supportWindowModes_;
+        auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
+        std::string callerBundleName = abilityRecord ? abilityRecord->GetAbilityInfo().bundleName : "";
+        if (abilityRequest.want.GetBundleNameRef() == callerBundleName) {
+            abilityRequest.hideStartWindow = startOptions.GetHideStartWindow();
+        }
+
+        if (startOptions.GetDisplayID() == 0) {
+            abilityRequest.want.SetParam(Want::PARAM_RESV_DISPLAY_ID, DisplayUtil::GetDefaultDisplayId());
+        } else {
+            abilityRequest.want.SetParam(Want::PARAM_RESV_DISPLAY_ID, startOptions.GetDisplayID());
+        }
+        abilityRequest.want.RemoveParam(KEY_REQUEST_ID);
+        if (!startOptions.requestId_.empty()) {
+            abilityRequest.want.SetParam(KEY_REQUEST_ID, startOptions.requestId_);
+        }
+        AbilityUtil::ProcessWindowMode(abilityRequest.want, 0, startOptions.GetWindowMode()); // 没有appInfo，accessTokenId传0
+        WindowOptionsUtils::SetWindowPositionAndSize(abilityRequest.want, callerToken, startOptions);
+        if (PermissionVerification::GetInstance()->IsSystemAppCall()) { // 返回的是 App A 的真实权限（非系统应用 = false）
+            bool focused = abilityRequest.want.GetBoolParam(Want::PARAM_RESV_WINDOW_FOCUSED, true);
+            if (focused) {
+                abilityRequest.want.SetParam(Want::PARAM_RESV_WINDOW_FOCUSED, startOptions.GetWindowFocused());
+            }
+        } else {
+            abilityRequest.want.RemoveParam(Want::PARAM_RESV_WINDOW_FOCUSED);
+        }
+        IPCSkeleton::SetCallingIdentity(identity);// 恢复回 AG 系统进程身份
+    }
 
     TAG_LOGD(AAFwkTag::ABILITYMGR, "do not start as caller, UpdateCallerInfo");
     UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityRequest.want, callerToken);
