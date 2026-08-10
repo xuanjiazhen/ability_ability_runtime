@@ -248,6 +248,29 @@ HWTEST_F(AppMgrServiceInnerTest, MakeProcessName_003, TestSize.Level2)
 }
 
 /**
+ * @tc.name: GenerateNewProcessName_001
+ * @tc.desc: GenerateNewProcessName format and index increment
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, GenerateNewProcessName_001, TestSize.Level2)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AppExecFwk::AbilityInfo abilityInfo;
+    abilityInfo.bundleName = "com.test.bundle";
+    abilityInfo.moduleName = "moduleA";
+    abilityInfo.name = "AbilityA";
+
+    std::string name1 = appMgrServiceInner->GenerateNewProcessName(abilityInfo);
+    EXPECT_FALSE(name1.empty());
+    EXPECT_NE(name1.find("com.test.bundle"), std::string::npos);
+    EXPECT_NE(name1.find("moduleA"), std::string::npos);
+    EXPECT_NE(name1.find("AbilityA"), std::string::npos);
+
+    std::string name2 = appMgrServiceInner->GenerateNewProcessName(abilityInfo);
+    EXPECT_NE(name1, name2);
+}
+
+/**
  * @tc.name: IsIsolateExtensionSandBox_001
  * @tc.desc: IsIsolateExtensionSandBox
  * @tc.type: FUNC

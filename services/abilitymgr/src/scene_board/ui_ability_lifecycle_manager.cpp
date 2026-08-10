@@ -4786,10 +4786,8 @@ int32_t UIAbilityLifecycleManager::RevokeDelegator(sptr<IRemoteObject> token)
     if (isSpecified) {
         auto requestId = RequestIdUtil::GetRequestId();
         hookSpecifiedMap_.emplace(requestId, abilityRecord);
-        auto hookSessionInfo = abilityRecord->GetSessionInfo();
         DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedAbility(abilityRecord->GetWant(),
-            abilityInfo, requestId, "",
-            hookSessionInfo ? hookSessionInfo->processOptions : nullptr);
+            abilityInfo, requestId, "", nullptr);
         return ERR_OK;
     }
     auto sessionInfo = abilityRecord->GetSessionInfo();

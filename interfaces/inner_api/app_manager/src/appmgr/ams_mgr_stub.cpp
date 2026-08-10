@@ -612,6 +612,7 @@ int32_t AmsMgrStub::HandleStartSpecifiedAbility(MessageParcel &data, MessageParc
     }
     int32_t requestId = data.ReadInt32();
     std::string customProcess = data.ReadString();
+    [[maybe_unused]] bool placeholder = data.ReadBool();
     std::shared_ptr<AAFwk::ProcessOptions> processOptions = nullptr;
     if (data.ReadBool()) {
         auto *rawOpts = data.ReadParcelable<AAFwk::ProcessOptions>();

@@ -2221,6 +2221,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
             TAG_LOGI(AAFwkTag::PROCESSMGR, "use pre-generated processName: %{public}s", processName.c_str());
         } else if (AAFwk::ProcessOptions::IsNewProcessMode(processMode)) {
             processName = GenerateNewProcessName(*abilityInfo);
+            loadParam->processOptionsName = processName;
             TAG_LOGI(AAFwkTag::PROCESSMGR, "NewProcessMode processName: %{public}s", processName.c_str());
         } else {
             MakeProcessName(abilityInfo, appInfo, hapModuleInfo, appIndex, specifiedProcessFlag,
@@ -7486,7 +7487,9 @@ void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const Ap
     std::string specifiedProcessFlag = GetSpecifiedProcessFlag(abilityInfo, want);
     auto abilityInfoPtr = std::make_shared<AbilityInfo>(abilityInfo);
     std::string processName;
-    if (processOptions != nullptr && AAFwk::ProcessOptions::IsNewProcessMode(processOptions->processMode)) {
+    if (processOptions != nullptr &&
+        AAFwk::ProcessOptions::IsNewProcessMode(
+            AAFwk::ProcessOptions::ConvertInt32ToProcessMode(static_cast<int32_t>(processOptions->processMode)))) {
         processName = GenerateNewProcessName(abilityInfo);
         processOptions->processName = processName;
         TAG_LOGI(AAFwkTag::APPMGR, "NewProcessMode processName: %{public}s", processName.c_str());
