@@ -42,6 +42,7 @@
 #include "app_recovery_mgr.h"
 #include "app_state_observer_manager.h"
 #include "app_utils.h"
+#include "system_recovery_mode_policy.h"
 #include "appfreeze_manager.h"
 #include "application_state_filter.h"
 #include "application_state_observer_stub.h"
@@ -12938,6 +12939,15 @@ int32_t AppMgrServiceInner::PreCheckStartProcess(const std::string &bundleName, 
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR,
         "bundleName: %{public}s, uid: %{public}d", bundleName.c_str(), uid);
+    AAFwk::RecoveryBundleKey recoveryKey {
+        bundleName,
+        uid / BASE_USER_RANGE,
+        appIndex,
+    };
+    if (AAFwk::SystemRecoveryModePolicy::GetInstance().ShouldBlockBundle(recoveryKey)) {
+        TAG_LOGW(AAFwkTag::APPMGR, "block process in system recovery mode: %{public}s", bundleName.c_str());
+        return AAFwk::ERR_SYSTEM_RECOVERY_MODE_BLOCKED;
+    }
     if (!IsUninstallingOrUpgrading(uid)) {
         return ERR_OK;
     }
