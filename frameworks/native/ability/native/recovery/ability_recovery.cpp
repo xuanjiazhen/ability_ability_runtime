@@ -25,6 +25,7 @@
 #include "context/application_context.h"
 #include "file_ex.h"
 #include "hilog_tag_wrapper.h"
+#include "hisysevent_report.h"
 #include "hitrace_meter.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
@@ -41,6 +42,43 @@ namespace AppExecFwk {
 namespace {
 constexpr size_t DEFAULT_RECOVERY_MAX_RESTORE_SIZE = 400 * 1024;
 constexpr int32_t CALL_BACK_ERROR = -1;
+
+// Reuse APP_RECOVERY hisysevent (hisysevent.yaml:370) to report app-side restore result.
+// Field mapping (all 6 fields of APP_RECOVERY map to their semantically-matched values):
+//   APP_UID          <- applicationInfo.uid
+//   VERSION_CODE     <- applicationInfo.versionCode
+//   VERSION_NAME     <- applicationInfo.versionName
+//   BUNDLE_NAME      <- bundleName
+//   ABILITY_NAME     <- ability name
+//   RECOVERY_RESULT  <- restore result string
+constexpr const char* RECOVERY_EVENT_DOMAIN = "AAFWK";
+constexpr const char* RECOVERY_EVENT_NAME = "APP_RECOVERY";
+constexpr const char* RESTORE_RESULT_SUCCESS = "RESTORE_SUCCESS";
+constexpr const char* RESTORE_FAIL_NOT_ENABLED = "RESTORE_FAIL_NOT_ENABLED";
+constexpr const char* RESTORE_FAIL_NOT_SAVE_STATE = "RESTORE_FAIL_NOT_SAVE_STATE";
+constexpr const char* RESTORE_FAIL_LOAD_FAILED = "RESTORE_FAIL_LOAD_FAILED";
+
+static void ReportRestoreAbilityStateResult(const std::shared_ptr<AbilityInfo> &abilityInfo,
+    const std::string &result)
+{
+    if (abilityInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "null abilityInfo");
+        return;
+    }
+    auto report = std::make_shared<AAFwk::HisyseventReport>(6);
+    report->InsertParam("APP_UID", static_cast<int32_t>(abilityInfo->applicationInfo.uid));
+    report->InsertParam("VERSION_CODE",
+        static_cast<int32_t>(abilityInfo->applicationInfo.versionCode));
+    report->InsertParam("VERSION_NAME", abilityInfo->applicationInfo.versionName);
+    report->InsertParam("BUNDLE_NAME", abilityInfo->bundleName);
+    report->InsertParam("ABILITY_NAME", abilityInfo->name);
+    report->InsertParam("RECOVERY_RESULT", result);
+    int32_t ret = report->Report(RECOVERY_EVENT_DOMAIN, RECOVERY_EVENT_NAME, HISYSEVENT_BEHAVIOR);
+    if (ret != 0) {
+        TAG_LOGW(AAFwkTag::RECOVERY, "report APP_RECOVERY failed, ret=%{public}d, result=%{public}s",
+            ret, result.c_str());
+    }
+}
 
 static std::string GetSaveAppCachePath(int32_t savedStateId)
 {
@@ -396,18 +434,22 @@ bool AbilityRecovery::LoadSavedState(StateReason reason)
 bool AbilityRecovery::ScheduleRestoreAbilityState(StateReason reason, const Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto abilityInfo = abilityInfo_.lock();
     if (!isEnable_) {
         TAG_LOGE(AAFwkTag::RECOVERY, "not enable");
+        ReportRestoreAbilityStateResult(abilityInfo, RESTORE_FAIL_NOT_ENABLED);
         return false;
     }
 
     if (!IsSaveAbilityState(reason)) {
         TAG_LOGE(AAFwkTag::RECOVERY, "not save ability state");
+        ReportRestoreAbilityStateResult(abilityInfo, RESTORE_FAIL_NOT_SAVE_STATE);
         return false;
     }
 
     if (!LoadSavedState(reason)) {
         TAG_LOGE(AAFwkTag::RECOVERY, "no saved state ");
+        ReportRestoreAbilityStateResult(abilityInfo, RESTORE_FAIL_LOAD_FAILED);
         return false;
     }
 
@@ -416,6 +458,7 @@ bool AbilityRecovery::ScheduleRestoreAbilityState(StateReason reason, const Want
     for (auto& i : params_.GetParams()) {
         wantCurrent.SetParam(i.first, i.second.GetRefPtr());
     }
+    ReportRestoreAbilityStateResult(abilityInfo, RESTORE_RESULT_SUCCESS);
     return true;
 }
 
