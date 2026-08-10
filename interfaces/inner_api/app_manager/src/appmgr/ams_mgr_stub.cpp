@@ -610,7 +610,20 @@ int32_t AmsMgrStub::HandleStartSpecifiedAbility(MessageParcel &data, MessageParc
         delete want;
         return ERR_INVALID_VALUE;
     }
-    StartSpecifiedAbility(*want, *abilityInfo, data.ReadInt32(), data.ReadString(), data.ReadBool());
+    int32_t requestId = data.ReadInt32();
+    std::string customProcess = data.ReadString();
+    std::shared_ptr<AAFwk::ProcessOptions> processOptions = nullptr;
+    if (data.ReadBool()) {
+        auto *rawOpts = data.ReadParcelable<AAFwk::ProcessOptions>();
+        if (rawOpts == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "ReadParcelable processOptions failed");
+            delete want;
+            delete abilityInfo;
+            return ERR_INVALID_VALUE;
+        }
+        processOptions = std::shared_ptr<AAFwk::ProcessOptions>(rawOpts);
+    }
+    StartSpecifiedAbility(*want, *abilityInfo, requestId, customProcess, processOptions);
     delete want;
     delete abilityInfo;
     return NO_ERROR;

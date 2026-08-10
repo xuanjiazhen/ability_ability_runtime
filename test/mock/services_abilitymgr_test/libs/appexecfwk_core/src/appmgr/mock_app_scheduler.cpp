@@ -209,7 +209,7 @@ int32_t AppScheduler::VerifyKillProcessPermission(const std::string &bundleName)
 }
 
 void AppScheduler::StartSpecifiedAbility(const AAFwk::Want&, const AppExecFwk::AbilityInfo&, int32_t,
-    const std::string&, bool)
+    const std::string&, std::shared_ptr<AAFwk::ProcessOptions>)
 {}
 
 int AppScheduler::StartUserTest(

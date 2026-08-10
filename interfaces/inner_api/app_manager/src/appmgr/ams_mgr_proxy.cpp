@@ -891,7 +891,8 @@ void AmsMgrProxy::PrepareTerminateApp(const pid_t pid, const std::string &module
 }
 
 void AmsMgrProxy::StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
-    int32_t requestId, const std::string &customProcess, bool isWindowStagePreload)
+    int32_t requestId, const std::string &customProcess,
+    std::shared_ptr<AAFwk::ProcessOptions> processOptions)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -901,10 +902,20 @@ void AmsMgrProxy::StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFw
     }
 
     if (!data.WriteParcelable(&want) || !data.WriteParcelable(&abilityInfo) ||
-        !data.WriteInt32(requestId) || !data.WriteString(customProcess) ||
-        !data.WriteBool(isWindowStagePreload)) {
+        !data.WriteInt32(requestId) || !data.WriteString(customProcess)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write data failed.");
         return;
+    }
+    if (!processOptions) {
+        if (!data.WriteBool(false)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Write processOptions flag failed.");
+            return;
+        }
+    } else {
+        if (!data.WriteBool(true) || !data.WriteParcelable(processOptions.get())) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Write processOptions failed.");
+            return;
+        }
     }
 
     auto ret = SendTransactCmd(

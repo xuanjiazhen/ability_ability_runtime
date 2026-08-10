@@ -73,6 +73,7 @@
 #include "kia_interceptor_interface.h"
 #include "kill_process_config.h"
 #include "process_memory_state.h"
+#include "process_options.h"
 #include "process_util.h"
 #include "record_query_result.h"
 #include "refbase.h"
@@ -1058,7 +1059,8 @@ public:
      * @param requestId request id to callback
      */
     void StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
-        int32_t requestId = 0, const std::string &customProcess = "", bool isWindowStagePreload = false);
+        int32_t requestId = 0, const std::string &customProcess = "",
+        std::shared_ptr<AAFwk::ProcessOptions> processOptions = nullptr);
 
     /**
      * Start specified process.
@@ -1908,13 +1910,15 @@ private:
      */
     void MakeProcessName(const std::shared_ptr<AbilityInfo> &abilityInfo,
         const std::shared_ptr<ApplicationInfo> &appInfo, const HapModuleInfo &hapModuleInfo, int32_t appIndex,
-        const std::string &specifiedProcessFlag, std::string &processName, bool isCallerSetProcess) const;
+        const std::string &specifiedProcessFlag, std::string &processName) const;
 
     /**
      * Build a process's name based on the info given
      */
     void MakeProcessName(const std::shared_ptr<ApplicationInfo> &appInfo, const HapModuleInfo &hapModuleInfo,
         std::string &processName) const;
+
+    std::string GenerateNewProcessName(const AppExecFwk::AbilityInfo &abilityInfo);
 
     bool CheckIsolationMode(const HapModuleInfo &hapModuleInfo) const;
 

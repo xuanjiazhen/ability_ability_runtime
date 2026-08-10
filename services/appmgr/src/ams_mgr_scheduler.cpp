@@ -515,7 +515,8 @@ void AmsMgrScheduler::SetAbilityForegroundingFlagToAppRecord(const pid_t pid)
 }
 
 void AmsMgrScheduler::StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
-    int32_t requestId, const std::string &customProcess, bool isWindowStagePreload)
+    int32_t requestId, const std::string &customProcess,
+    std::shared_ptr<AAFwk::ProcessOptions> processOptions)
 {
     if (!IsReady()) {
         return;
@@ -526,7 +527,8 @@ void AmsMgrScheduler::StartSpecifiedAbility(const AAFwk::Want &want, const AppEx
         return;
     }
     auto task = [=]() {
-        amsMgrServiceInner_->StartSpecifiedAbility(want, abilityInfo, requestId, customProcess, isWindowStagePreload);
+        amsMgrServiceInner_->StartSpecifiedAbility(want, abilityInfo, requestId, customProcess,
+            processOptions);
     };
     amsHandler_->SubmitTask(task, {
         .taskName_ = "StartSpecifiedAbility",

@@ -221,7 +221,8 @@ int MissionListManager::StartAbility(const std::shared_ptr<AbilityRecord> &curre
             static_cast<int32_t>(abilityRequest.abilityInfo.launchMode));
         EnqueueWaitingAbilityToFront(abilityRequest);
         DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedAbility(
-            abilityRequest.want, abilityRequest.abilityInfo);
+            abilityRequest.want, abilityRequest.abilityInfo, 0, "",
+            abilityRequest.processOptions);
         return 0;
     }
 

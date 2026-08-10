@@ -95,6 +95,21 @@ bool LoadParam::MarshallingTwo(Parcel &parcel) const
     if (!parcel.WriteInt32(reusePid)) {
         return false;
     }
+    if (!parcel.WriteInt32(processMode)) {
+        return false;
+    }
+    if (!parcel.WriteInt32(startupVisibility)) {
+        return false;
+    }
+    if (!parcel.WriteString(processOptionsName)) {
+        return false;
+    }
+    if (!parcel.WriteBool(isRestartKeepAlive)) {
+        return false;
+    }
+    if (!parcel.WriteBool(isStartFromNDK)) {
+        return false;
+    }
     return true;
 }
 
@@ -132,6 +147,11 @@ bool LoadParam::ReadFromParcel(Parcel &parcel)
     loadTimeout = parcel.ReadInt32();
     byCallStatus = parcel.ReadInt32();
     reusePid = parcel.ReadInt32();
+    processMode = parcel.ReadInt32();
+    startupVisibility = parcel.ReadInt32();
+    processOptionsName = parcel.ReadString();
+    isRestartKeepAlive = parcel.ReadBool();
+    isStartFromNDK = parcel.ReadBool();
     return true;
 }
 

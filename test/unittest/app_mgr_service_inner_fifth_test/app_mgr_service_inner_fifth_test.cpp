@@ -208,15 +208,14 @@ HWTEST_F(AppMgrServiceInnerTest, MakeProcessName_003, TestSize.Level2)
     int32_t appIndex = 1;
     std::string specifiedProcessFlag {};
     std::string processName {};
-    bool isCallerSetProcess = true;
 
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->MakeProcessName(abilityInfo, appInfo,
-        hapModuleInfo, appIndex, specifiedProcessFlag, processName, isCallerSetProcess);
+        hapModuleInfo, appIndex, specifiedProcessFlag, processName);
 
     abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
     appMgrServiceInner->MakeProcessName(abilityInfo, appInfo,
-        hapModuleInfo, appIndex, specifiedProcessFlag, processName, isCallerSetProcess);
+        hapModuleInfo, appIndex, specifiedProcessFlag, processName);
     appInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
 
     abilityInfo->process = "abilityInfoProcess";
@@ -224,13 +223,13 @@ HWTEST_F(AppMgrServiceInnerTest, MakeProcessName_003, TestSize.Level2)
     abilityInfo->process = "abilityInfoProcess";
 
     appMgrServiceInner->MakeProcessName(abilityInfo, appInfo,
-        hapModuleInfo, appIndex, specifiedProcessFlag, processName, isCallerSetProcess);
+        hapModuleInfo, appIndex, specifiedProcessFlag, processName);
     EXPECT_EQ(processName, abilityInfo->process + ":" + std::to_string(appIndex));
 
     abilityInfo->type = AppExecFwk::AbilityType::PAGE;
     abilityInfo->isStageBasedModel = true;
     appMgrServiceInner->MakeProcessName(abilityInfo, appInfo,
-        hapModuleInfo, appIndex, specifiedProcessFlag, processName, isCallerSetProcess);
+        hapModuleInfo, appIndex, specifiedProcessFlag, processName);
     EXPECT_EQ(processName, appInfo->bundleName +
         abilityInfo->process + ":" + std::to_string(appIndex));
 
@@ -238,12 +237,12 @@ HWTEST_F(AppMgrServiceInnerTest, MakeProcessName_003, TestSize.Level2)
     hapModuleInfo.process = "hapModuleInfoProcess";
     hapModuleInfo.isStageBasedModel = true;
     appMgrServiceInner->MakeProcessName(abilityInfo, appInfo,
-        hapModuleInfo, appIndex, specifiedProcessFlag, processName, isCallerSetProcess);
+        hapModuleInfo, appIndex, specifiedProcessFlag, processName);
     EXPECT_EQ(processName, hapModuleInfo.process + std::to_string(appIndex));
 
     specifiedProcessFlag = "specifiedProcessFlag";
     appMgrServiceInner->MakeProcessName(abilityInfo, appInfo,
-        hapModuleInfo, appIndex, specifiedProcessFlag, processName, isCallerSetProcess);
+        hapModuleInfo, appIndex, specifiedProcessFlag, processName);
     EXPECT_EQ(processName, hapModuleInfo.process +
         std::to_string(appIndex) + ":" + specifiedProcessFlag);
 }

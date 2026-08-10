@@ -26,6 +26,7 @@
 #include "iremote_broker.h"
 #include "iremote_object.h"
 #include "istart_specified_ability_response.h"
+#include "process_options.h"
 #include "running_process_info.h"
 #include "user_callback.h"
 
@@ -286,7 +287,8 @@ public:
      * @param requestId request id to callback
      */
     virtual void StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
-        int32_t requestId = 0, const std::string &customProcess = "", bool isWindowStagePreload = false) = 0;
+        int32_t requestId = 0, const std::string &customProcess = "",
+        std::shared_ptr<AAFwk::ProcessOptions> processOptions = nullptr) = 0;
 
     /**
      * Register response of start specified ability.

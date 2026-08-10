@@ -344,7 +344,6 @@ int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide, pid_t calli
     loadParam.token = token_;
     loadParam.preToken = callerToken;
     loadParam.instanceKey = instanceKey_;
-    loadParam.isCallerSetProcess = IsCallerSetProcess();
     loadParam.customProcessFlag = customProcessFlag_;
     loadParam.isStartupHide = isStartupHide;
     loadParam.callingPid = callingPid;
@@ -354,6 +353,14 @@ int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide, pid_t calli
     loadParam.selfPid = selfPid;
     loadParam.byCallStatus = GetByCallStatus();
     loadParam.isGamePrelaunch = IsGameSAPreLaunch();
+    auto sessionInfo = GetSessionInfo();
+    if (sessionInfo != nullptr && sessionInfo->processOptions != nullptr) {
+        loadParam.processMode = static_cast<int32_t>(sessionInfo->processOptions->processMode);
+        loadParam.startupVisibility = static_cast<int32_t>(sessionInfo->processOptions->startupVisibility);
+        loadParam.processOptionsName = sessionInfo->processOptions->processName;
+        loadParam.isRestartKeepAlive = sessionInfo->processOptions->isRestartKeepAlive;
+        loadParam.isStartFromNDK = sessionInfo->processOptions->isStartFromNDK;
+    }
     auto userId = abilityInfo_.uid / BASE_USER_RANGE;
     bool isMainUIAbility =
         MainElementUtils::IsMainUIAbility(abilityInfo_.bundleName, abilityInfo_.name, userId);
@@ -2583,16 +2590,6 @@ bool AbilityRecord::IsStartToForeground() const
 void AbilityRecord::SetStartToForeground(const bool flag)
 {
     isStartToForeground_ = flag;
-}
-
-bool AbilityRecord::IsCallerSetProcess() const
-{
-    return isCallerSetProcess_.load();
-}
-
-void AbilityRecord::SetCallerSetProcess(const bool flag)
-{
-    isCallerSetProcess_.store(flag);
 }
 
 void AbilityRecord::PostStartAbilityByCallTimeoutTask(bool isHalf)
