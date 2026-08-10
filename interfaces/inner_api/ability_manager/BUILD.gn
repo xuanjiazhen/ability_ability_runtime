@@ -225,6 +225,8 @@ ohos_shared_library("ability_manager") {
     external_deps += [ "dlp_permission_service:libdlpparse" ]
   }
 
+  version_script = "libability_manager.map"
+
   innerapi_tags = [
     "platformsdk",
     "sasdk",

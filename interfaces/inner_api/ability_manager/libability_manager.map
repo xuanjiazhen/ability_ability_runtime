@@ -1,0 +1,128 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Generated as starting draft for ability_manager. Adjust based on
+# linker errors during build: missing symbols must be added to global.
+
+ABILITY_MANAGER_1.0 {
+  global:
+    extern "C++" {
+      # Core client / proxy / interface
+      *AbilityManagerClient*;
+      *AbilityManagerProxy*;
+      *AbilityManagerInterface*;
+      *AbilityManagerErrors*;
+
+      # Scheduler
+      *AbilitySchedulerProxy*;
+      *AbilitySchedulerStub*;
+      *AbilitySchedulerInterface*;
+
+      # Connection callback
+      *AbilityConnectCallback*;
+      *IAbilityConnection*;
+      *IAbilityScheduler*;
+
+      # Start settings / options / wait observer
+      *AbilityStartSetting*;
+      *AbilityStartWithWait*;
+
+      # Share / user / prepare-terminate callbacks
+      *AcquireShareDataCallback*;
+      *UserCallback*;
+      *PrepareTerminateCallback*;
+      *RequestStartAbilityCallback*;
+      *SystemAbilityTokenCallback*;
+
+      # First frame state
+      *AbilityFirstFrameState*;
+
+      # Mission
+      *MissionListener*;
+      *RemoteMissionListener*;
+      *RemoteOnListener*;
+
+      # Auto startup
+      *AbilityAutoStartupClient*;
+      *AutoStartupCallback*;
+      *AutoStartupInfo*;
+      *AutoStartupInterface*;
+
+      # Insight intent
+      *InsightIntentExecuteCallback*;
+      *InsightIntentExecuteParam*;
+      *InsightIntentExecuteResult*;
+      *InsightIntentInfoForQuery*;
+      *InsightIntentQueryParam*;
+
+      # Skill
+      *SkillExecuteCallback*;
+      *SkillExecuteParam*;
+      *SkillExecuteResult*;
+
+      # UI extension
+      *UIExtensionAbilityConnectInfo*;
+      *UIExtensionHostInfo*;
+      *UIExtensionSessionInfo*;
+      *PreloadUIExtensionExecuteCallback*;
+
+      # Free install / atomic service
+      *FreeInstallObserver*;
+      *AtomicServiceStatusCallback*;
+
+      # Assert fault
+      *AssertFaultProxy*;
+      *AssertFaultInterface*;
+
+      # Status bar delegate
+      *StatusBarDelegateProxy*;
+      *StatusBarDelegateStub*;
+
+      # Window manager service handler
+      *WindowManagerServiceHandlerProxy*;
+      *WindowManagerServiceHandlerStub*;
+
+      # SA interceptor
+      *SAInterceptorProxy*;
+      *SAInterceptorStub*;
+
+      # Hidden start observer
+      *HiddenStartObserverProxy*;
+      *HiddenStartObserverStub*;
+
+      # Data ability
+      *DataAbilityOperation*;
+      *DataAbilityOperationBuilder*;
+      *DataAbilityResult*;
+
+      # Task handler
+      *TaskHandler*;
+      *TaskHandlerClient*;
+
+      # Data classes used externally
+      *AbilityRunningInfo*;
+      *ExtensionRunningInfo*;
+      *CallerInfo*;
+      *DialogSessionInfo*;
+      *ExitReason*;
+      *LastExitDetailInfo*;
+      *IntentExemptionInfo*;
+      *KeepAliveInfo*;
+      *KioskStatus*;
+      *LaunchParam*;
+      *LifecycleStateInfo*;
+      *ModularObjectExtensionInfo*;
+      *OpenLinkOptions*;
+      *Rule*;
+      *SandboxCloneParams*;
+      *StartSpecifiedAbilityParams*;
+      *StartParamsBySCB*;
+      *WindowConfig*;
+    };
+  local:
+    *;
+};
