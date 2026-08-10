@@ -215,6 +215,43 @@ inline void WriteMaliciousAbilityStateData(MessageParcel &parcel, FuzzedDataProv
     parcel.WriteBool(fdp.ConsumeBool());
     parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
 }
+// Verify that an integer value is indeed out of valid range for precise overflow testing.
+inline bool VerifyIntegerOverflow(int32_t value, int32_t validMax)
+{
+    return value > validMax || value < 0;
+}
+
+// Write a malicious ProcessData parcelable with overflow pid and malicious bundleName.
+inline void WriteMaliciousProcessData(MessageParcel &parcel, FuzzedDataProvider &fdp)
+{
+    parcel.WriteInt32(BuildIntegerOverflow(fdp));
+    parcel.WriteString(BuildMaliciousBundleName(fdp));
+    parcel.WriteString(BuildSpecialCharString(fdp));
+    parcel.WriteInt32(BuildInvalidEnum(fdp, 20));
+    parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
+    parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
+    parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
+}
+
+// Write a malicious PageStateData parcelable with malicious bundleName and oversized url.
+inline void WriteMaliciousPageStateData(MessageParcel &parcel, FuzzedDataProvider &fdp)
+{
+    parcel.WriteString(BuildMaliciousBundleName(fdp));
+    parcel.WriteString(BuildSpecialCharString(fdp));
+    parcel.WriteString(BuildSpecialCharString(fdp));
+    parcel.WriteString(BuildOversizedString(fdp, 1024));
+    parcel.WriteInt32(BuildInvalidEnum(fdp, 10));
+}
+
+// Write a malicious ExtensionRunningInfo with malicious extensionName and overflow pid.
+inline void WriteMaliciousExtensionRunningInfo(MessageParcel &parcel, FuzzedDataProvider &fdp)
+{
+    parcel.WriteString(BuildMaliciousBundleName(fdp));
+    parcel.WriteString(BuildSpecialCharString(fdp));
+    parcel.WriteInt32(BuildIntegerOverflow(fdp));
+    parcel.WriteInt32(BuildInvalidEnum(fdp, 20));
+    parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
+}
 } // namespace FuzzUtil
 } // namespace OHOS
 
