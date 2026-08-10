@@ -16,6 +16,7 @@
 #include "ability_context.h"
 
 #include <cstdint>
+#include <cstring>
 #include <memory>
 #include <new>
 
@@ -23,8 +24,6 @@
 #include "ffi_remote_data.h"
 #include "hilog_tag_wrapper.h"
 #include "js_ability_context.h"
-#include "js_data_struct_converter.h"
-#include "native_engine/native_engine.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -38,43 +37,12 @@ constexpr char CREATE_HOLDER_FROM_FFI_FUNCTION[] = "createUIAbilityContextHolder
 constexpr char CONTEXT_IMPL_NAME[] = "__context_impl__";
 constexpr char BASE_CONTEXT_NAME[] = "__base_context_ptr__";
 
-enum class TagContextProperty {
-    CACHE_DIR,
-    TEMP_DIR,
-    RESOURCE_DIR,
-    FILES_DIR,
-    DISTRIBUTED_FILES_DIR,
-    DATABASE_DIR,
-    PREFERENCES_DIR,
-    BUNDLE_CODE_DIR,
-    CLOUD_FILE_DIR,
-    LOG_FILE_DIR,
-    PROCESS_NAME,
-    AREA,
-};
-
-struct TagContextPropertySpec {
-    const char* name;
-    TagContextProperty property;
-};
-
-constexpr TagContextPropertySpec TAG_CONTEXT_PROPERTIES[] = {
-    { "cacheDir", TagContextProperty::CACHE_DIR },
-    { "tempDir", TagContextProperty::TEMP_DIR },
-    { "resourceDir", TagContextProperty::RESOURCE_DIR },
-    { "filesDir", TagContextProperty::FILES_DIR },
-    { "distributedFilesDir", TagContextProperty::DISTRIBUTED_FILES_DIR },
-    { "databaseDir", TagContextProperty::DATABASE_DIR },
-    { "preferencesDir", TagContextProperty::PREFERENCES_DIR },
-    { "bundleCodeDir", TagContextProperty::BUNDLE_CODE_DIR },
-    { "cloudFileDir", TagContextProperty::CLOUD_FILE_DIR },
-    { "logFileDir", TagContextProperty::LOG_FILE_DIR },
-    { "processName", TagContextProperty::PROCESS_NAME },
-    { "area", TagContextProperty::AREA },
-};
-
 constexpr const char* FORWARDED_PROPERTIES[] = {
     "applicationInfo",
+    "currentHapModuleInfo",
+    "abilityInfo",
+    "config",
+    "resourceManager",
     "cacheDir",
     "tempDir",
     "resourceDir",
@@ -89,26 +57,17 @@ constexpr const char* FORWARDED_PROPERTIES[] = {
     "area",
 };
 
-class TagJsBaseContext final {
-public:
-    explicit TagJsBaseContext(const std::shared_ptr<Context>& context) : context_(context) {}
-    ~TagJsBaseContext() = default;
-
-    std::shared_ptr<Context> GetContext() const
-    {
-        return context_.lock();
-    }
-
-private:
-    std::weak_ptr<Context> context_;
-};
-
 napi_value ThrowTargetError(napi_env env, const char* message, bool typeError = false)
 {
     if (env == nullptr) {
         return nullptr;
     }
 
+    bool pending = false;
+    if (napi_is_exception_pending(env, &pending) == napi_ok && pending) {
+        napi_value ignored = nullptr;
+        (void)napi_get_and_clear_last_exception(env, &ignored);
+    }
     napi_value undefined = nullptr;
     napi_get_undefined(env, &undefined);
     if (typeError) {
@@ -146,98 +105,10 @@ bool VerifyWrappedPayload(napi_env env, napi_value object, T* expected)
     return expected != nullptr && napi_unwrap(env, object, &wrapped) == napi_ok && wrapped == expected;
 }
 
-void FinalizeBaseContext(napi_env, void* data, void*)
-{
-    TAG_LOGD(AAFwkTag::CONTEXT, "finalize TAG base context");
-    delete static_cast<TagJsBaseContext*>(data);
-}
-
 void FinalizeContextHolder(napi_env, void* data, void*)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "finalize UIAbilityContext interop holder");
     delete static_cast<std::weak_ptr<AbilityContext>*>(data);
-}
-
-TagJsBaseContext* GetBaseContextPayload(napi_env env, napi_value inner)
-{
-    napi_value baseObject = nullptr;
-    if (napi_get_named_property(env, inner, BASE_CONTEXT_NAME, &baseObject) != napi_ok || baseObject == nullptr) {
-        return nullptr;
-    }
-
-    void* wrapped = nullptr;
-    if (napi_unwrap(env, baseObject, &wrapped) != napi_ok) {
-        return nullptr;
-    }
-    return static_cast<TagJsBaseContext*>(wrapped);
-}
-
-napi_value GetTagContextProperty(napi_env env, napi_callback_info info)
-{
-    napi_value inner = nullptr;
-    void* data = nullptr;
-    if (!GetThisAndData(env, info, inner, &data) || data == nullptr) {
-        return ThrowTargetError(env, "Failed to read TAG Context property callback data.");
-    }
-
-    auto* baseContext = GetBaseContextPayload(env, inner);
-    auto context = baseContext == nullptr ? nullptr : baseContext->GetContext();
-    if (context == nullptr) {
-        return ThrowTargetError(env, "The native Context has expired.");
-    }
-
-    auto* spec = static_cast<const TagContextPropertySpec*>(data);
-    napi_value result = nullptr;
-    if (spec->property == TagContextProperty::AREA) {
-        if (napi_create_int32(env, context->GetArea(), &result) != napi_ok) {
-            return ThrowTargetError(env, "Failed to create the TAG Context area value.");
-        }
-        return result;
-    }
-
-    std::string value;
-    switch (spec->property) {
-        case TagContextProperty::CACHE_DIR:
-            value = context->GetCacheDir();
-            break;
-        case TagContextProperty::TEMP_DIR:
-            value = context->GetTempDir();
-            break;
-        case TagContextProperty::RESOURCE_DIR:
-            value = context->GetResourceDir();
-            break;
-        case TagContextProperty::FILES_DIR:
-            value = context->GetFilesDir();
-            break;
-        case TagContextProperty::DISTRIBUTED_FILES_DIR:
-            value = context->GetDistributedFilesDir();
-            break;
-        case TagContextProperty::DATABASE_DIR:
-            value = context->GetDatabaseDir();
-            break;
-        case TagContextProperty::PREFERENCES_DIR:
-            value = context->GetPreferencesDir();
-            break;
-        case TagContextProperty::BUNDLE_CODE_DIR:
-            value = context->GetBundleCodeDir();
-            break;
-        case TagContextProperty::CLOUD_FILE_DIR:
-            value = context->GetCloudFileDir();
-            break;
-        case TagContextProperty::LOG_FILE_DIR:
-            value = context->GetLogFileDir();
-            break;
-        case TagContextProperty::PROCESS_NAME:
-            value = context->GetProcessName();
-            break;
-        case TagContextProperty::AREA:
-            break;
-    }
-
-    if (napi_create_string_utf8(env, value.c_str(), NAPI_AUTO_LENGTH, &result) != napi_ok) {
-        return ThrowTargetError(env, "Failed to create a TAG Context string property.");
-    }
-    return result;
 }
 
 napi_value ForwardInnerProperty(napi_env env, napi_callback_info info)
@@ -260,23 +131,33 @@ napi_value ForwardInnerProperty(napi_env env, napi_callback_info info)
     return result;
 }
 
-bool BindInnerContextProperties(napi_env env, napi_value inner)
+napi_value ForwardAreaSetter(napi_env env, napi_callback_info info)
 {
-    napi_property_descriptor descriptors[sizeof(TAG_CONTEXT_PROPERTIES) / sizeof(TAG_CONTEXT_PROPERTIES[0])] = {};
-    for (size_t index = 0; index < sizeof(TAG_CONTEXT_PROPERTIES) / sizeof(TAG_CONTEXT_PROPERTIES[0]); ++index) {
-        descriptors[index] = {
-            TAG_CONTEXT_PROPERTIES[index].name,
-            nullptr,
-            nullptr,
-            GetTagContextProperty,
-            nullptr,
-            nullptr,
-            napi_default,
-            const_cast<TagContextPropertySpec*>(&TAG_CONTEXT_PROPERTIES[index]),
-        };
+    size_t argc = 1;
+    napi_value argv[1] = { nullptr };
+    napi_value outer = nullptr;
+    if (napi_get_cb_info(env, info, &argc, argv, &outer, nullptr) != napi_ok ||
+        argc != 1 || argv[0] == nullptr || outer == nullptr) {
+        return ThrowTargetError(env, "Failed to read the TAG UIAbilityContext area value.", true);
     }
-    return napi_define_properties(env, inner,
-        sizeof(descriptors) / sizeof(descriptors[0]), descriptors) == napi_ok;
+
+    napi_value inner = nullptr;
+    napi_value switchArea = nullptr;
+    napi_value result = nullptr;
+    if (napi_get_named_property(env, outer, CONTEXT_IMPL_NAME, &inner) != napi_ok || inner == nullptr ||
+        napi_get_named_property(env, inner, "switchArea", &switchArea) != napi_ok || switchArea == nullptr) {
+        return ThrowTargetError(env, "Failed to switch the TAG UIAbilityContext area.");
+    }
+    if (napi_call_function(env, inner, switchArea, 1, argv, &result) != napi_ok) {
+        bool pending = false;
+        if (napi_is_exception_pending(env, &pending) == napi_ok && pending) {
+            return nullptr;
+        }
+        return ThrowTargetError(env, "Failed to switch the TAG UIAbilityContext area.");
+    }
+    napi_value undefined = nullptr;
+    napi_get_undefined(env, &undefined);
+    return undefined;
 }
 
 bool BindOuterForwardedProperties(napi_env env, napi_value outer)
@@ -288,7 +169,7 @@ bool BindOuterForwardedProperties(napi_env env, napi_value outer)
             nullptr,
             nullptr,
             ForwardInnerProperty,
-            nullptr,
+            std::strcmp(FORWARDED_PROPERTIES[index], "area") == 0 ? ForwardAreaSetter : nullptr,
             nullptr,
             napi_default,
             const_cast<char*>(FORWARDED_PROPERTIES[index]),
@@ -303,49 +184,6 @@ bool SetNamedProperty(napi_env env, napi_value object, const char* name, napi_va
     return value != nullptr && napi_set_named_property(env, object, name, value) == napi_ok;
 }
 
-bool SetInnerDataProperties(napi_env env, napi_value inner, const std::shared_ptr<AbilityContext>& abilityContext)
-{
-    auto appInfo = abilityContext->GetApplicationInfo();
-    if (appInfo != nullptr &&
-        !SetNamedProperty(env, inner, "applicationInfo", CreateJsApplicationInfo(env, *appInfo))) {
-        return false;
-    }
-
-    auto hapModuleInfo = abilityContext->GetHapModuleInfo();
-    if (hapModuleInfo != nullptr &&
-        !SetNamedProperty(env, inner, "currentHapModuleInfo", CreateJsHapModuleInfo(env, *hapModuleInfo))) {
-        return false;
-    }
-
-    auto abilityInfo = abilityContext->GetAbilityInfo();
-    if (abilityInfo != nullptr &&
-        !SetNamedProperty(env, inner, "abilityInfo", CreateJsAbilityInfo(env, *abilityInfo))) {
-        return false;
-    }
-
-    napi_value contextType = nullptr;
-    if (napi_create_string_utf8(env, "UIAbilityContext", NAPI_AUTO_LENGTH, &contextType) != napi_ok ||
-        !SetNamedProperty(env, inner, "contextType", contextType)) {
-        return false;
-    }
-    return true;
-}
-
-bool CopyInnerPropertyIfPresent(napi_env env, napi_value outer, napi_value inner, const char* name)
-{
-    bool hasProperty = false;
-    if (napi_has_named_property(env, inner, name, &hasProperty) != napi_ok) {
-        return false;
-    }
-    if (!hasProperty) {
-        return true;
-    }
-
-    napi_value value = nullptr;
-    return napi_get_named_property(env, inner, name, &value) == napi_ok &&
-        SetNamedProperty(env, outer, name, value);
-}
-
 bool HasSameNamedProperty(napi_env env, napi_value first, napi_value second, const char* name)
 {
     napi_value firstValue = nullptr;
@@ -356,6 +194,74 @@ bool HasSameNamedProperty(napi_env env, napi_value first, napi_value second, con
         napi_strict_equals(env, firstValue, secondValue, &same) == napi_ok && same;
 }
 
+bool ClearPendingException(napi_env env)
+{
+    bool pending = false;
+    if (napi_is_exception_pending(env, &pending) != napi_ok) {
+        return false;
+    }
+    if (!pending) {
+        return true;
+    }
+    napi_value exception = nullptr;
+    return napi_get_and_clear_last_exception(env, &exception) == napi_ok;
+}
+
+bool ValidateAbilityContextInner(napi_env env, napi_value inner,
+    const std::shared_ptr<AbilityContext>& abilityContext)
+{
+    if (inner == nullptr || abilityContext == nullptr) {
+        return false;
+    }
+    void* wrapped = nullptr;
+    if (napi_unwrap(env, inner, &wrapped) != napi_ok || wrapped == nullptr) {
+        return false;
+    }
+    auto* jsAbilityContext = static_cast<JsAbilityContext*>(wrapped);
+    if (jsAbilityContext->GetAbilityContext() != abilityContext) {
+        return false;
+    }
+
+    napi_value baseObject = nullptr;
+    void* baseContext = nullptr;
+    return napi_get_named_property(env, inner, BASE_CONTEXT_NAME, &baseObject) == napi_ok &&
+        baseObject != nullptr && napi_unwrap(env, baseObject, &baseContext) == napi_ok &&
+        baseContext != nullptr;
+}
+
+bool HasRequiredInnerProperty(napi_env env, napi_value inner, const char* name, bool required)
+{
+    if (!required) {
+        return true;
+    }
+    bool present = false;
+    return napi_has_named_property(env, inner, name, &present) == napi_ok && present;
+}
+
+bool ValidateFactoryDataProperties(napi_env env, napi_value inner,
+    const std::shared_ptr<AbilityContext>& abilityContext)
+{
+    if (!HasRequiredInnerProperty(env, inner, "applicationInfo",
+            abilityContext->GetApplicationInfo() != nullptr) ||
+        !HasRequiredInnerProperty(env, inner, "currentHapModuleInfo",
+            abilityContext->GetHapModuleInfo() != nullptr) ||
+        !HasRequiredInnerProperty(env, inner, "abilityInfo",
+            abilityContext->GetAbilityInfo() != nullptr) ||
+        !HasRequiredInnerProperty(env, inner, "resourceManager",
+            abilityContext->GetResourceManager() != nullptr) ||
+        !HasRequiredInnerProperty(env, inner, "config",
+            abilityContext->GetConfiguration() != nullptr)) {
+        return false;
+    }
+    if (abilityContext->GetConfiguration() == nullptr) {
+        return true;
+    }
+    napi_value config = nullptr;
+    bool hasLocale = false;
+    return napi_get_named_property(env, inner, "config", &config) == napi_ok && config != nullptr &&
+        napi_has_named_property(env, config, "locale", &hasLocale) == napi_ok && hasLocale;
+}
+
 napi_value CreateTagUIAbilityContextHolder(
     napi_env targetEnv, const std::shared_ptr<AbilityContext>& abilityContext)
 {
@@ -363,43 +269,15 @@ napi_value CreateTagUIAbilityContextHolder(
         return ThrowTargetError(targetEnv, "The native UIAbilityContext is invalid.");
     }
 
-    napi_value baseObject = nullptr;
-    if (napi_create_object(targetEnv, &baseObject) != napi_ok || baseObject == nullptr) {
-        return ThrowTargetError(targetEnv, "Failed to create the TAG BaseContext object.");
-    }
-    auto* baseContext = new (std::nothrow) TagJsBaseContext(abilityContext);
-    if (baseContext == nullptr) {
-        return ThrowTargetError(targetEnv, "Failed to allocate the TAG BaseContext payload.");
-    }
-    if (napi_wrap(targetEnv, baseObject, baseContext, FinalizeBaseContext, nullptr, nullptr) != napi_ok) {
-        delete baseContext;
-        return ThrowTargetError(targetEnv, "Failed to wrap the TAG BaseContext object.");
-    }
-    if (!VerifyWrappedPayload(targetEnv, baseObject, baseContext) ||
-        baseContext->GetContext() != abilityContext) {
-        return ThrowTargetError(targetEnv, "The TAG BaseContext payload is inconsistent.");
-    }
-
-    napi_value inner = nullptr;
-    if (napi_create_object(targetEnv, &inner) != napi_ok || inner == nullptr) {
-        return ThrowTargetError(targetEnv, "Failed to create the TAG UIAbilityContext inner object.");
-    }
-    auto* jsAbilityContext = new (std::nothrow) JsAbilityContext(abilityContext);
-    if (jsAbilityContext == nullptr) {
-        return ThrowTargetError(targetEnv, "Failed to allocate the TAG JsAbilityContext payload.");
-    }
-    if (napi_wrap(targetEnv, inner, jsAbilityContext, JsAbilityContext::Finalizer, nullptr, nullptr) != napi_ok) {
-        delete jsAbilityContext;
-        return ThrowTargetError(targetEnv, "Failed to wrap the TAG UIAbilityContext inner object.");
-    }
-    if (!VerifyWrappedPayload(targetEnv, inner, jsAbilityContext) ||
-        jsAbilityContext->GetAbilityContext() != abilityContext) {
-        return ThrowTargetError(targetEnv, "The TAG JsAbilityContext payload is inconsistent.");
-    }
-    if (!SetNamedProperty(targetEnv, inner, BASE_CONTEXT_NAME, baseObject) ||
-        !BindInnerContextProperties(targetEnv, inner) ||
-        !SetInnerDataProperties(targetEnv, inner, abilityContext)) {
-        return ThrowTargetError(targetEnv, "Failed to initialize the TAG UIAbilityContext inner object.");
+    napi_value inner = CreateJsAbilityContext(targetEnv, abilityContext);
+    bool pendingException = false;
+    if (napi_is_exception_pending(targetEnv, &pendingException) != napi_ok ||
+        inner == nullptr || pendingException ||
+        !ValidateAbilityContextInner(targetEnv, inner, abilityContext) ||
+        !ValidateFactoryDataProperties(targetEnv, inner, abilityContext)) {
+        (void)ClearPendingException(targetEnv);
+        return ThrowTargetError(targetEnv,
+            "Failed to create the TAG UIAbilityContext through CreateJsAbilityContext.");
     }
 
     napi_value outer = nullptr;
@@ -410,15 +288,22 @@ napi_value CreateTagUIAbilityContextHolder(
     if (!SetNamedProperty(targetEnv, outer, CONTEXT_IMPL_NAME, inner) ||
         napi_get_boolean(targetEnv, true, &stageMode) != napi_ok ||
         !SetNamedProperty(targetEnv, outer, "stageMode", stageMode) ||
-        !BindOuterForwardedProperties(targetEnv, outer) ||
-        !CopyInnerPropertyIfPresent(targetEnv, outer, inner, "abilityInfo") ||
-        !CopyInnerPropertyIfPresent(targetEnv, outer, inner, "currentHapModuleInfo")) {
+        !BindOuterForwardedProperties(targetEnv, outer)) {
         return ThrowTargetError(targetEnv, "Failed to initialize the TAG UIAbilityContext holder.");
     }
     if (!HasSameNamedProperty(targetEnv, outer, inner, "applicationInfo") ||
         !HasSameNamedProperty(targetEnv, outer, inner, "abilityInfo") ||
-        !HasSameNamedProperty(targetEnv, outer, inner, "currentHapModuleInfo")) {
+        !HasSameNamedProperty(targetEnv, outer, inner, "currentHapModuleInfo") ||
+        !HasSameNamedProperty(targetEnv, outer, inner, "config") ||
+        !HasSameNamedProperty(targetEnv, outer, inner, "resourceManager")) {
         return ThrowTargetError(targetEnv, "The TAG UIAbilityContext data properties are inconsistent.");
+    }
+    pendingException = false;
+    if (napi_is_exception_pending(targetEnv, &pendingException) != napi_ok || pendingException) {
+        if (pendingException) {
+            (void)ClearPendingException(targetEnv);
+        }
+        return ThrowTargetError(targetEnv, "The TAG UIAbilityContext factory left a pending exception.");
     }
 
     auto* weakAbilityContext = new (std::nothrow) std::weak_ptr<AbilityContext>(abilityContext);
@@ -432,6 +317,13 @@ napi_value CreateTagUIAbilityContextHolder(
     if (!VerifyWrappedPayload(targetEnv, outer, weakAbilityContext) ||
         weakAbilityContext->lock() != abilityContext) {
         return ThrowTargetError(targetEnv, "The TAG UIAbilityContext holder payload is inconsistent.");
+    }
+    pendingException = false;
+    if (napi_is_exception_pending(targetEnv, &pendingException) != napi_ok || pendingException) {
+        if (pendingException) {
+            (void)ClearPendingException(targetEnv);
+        }
+        return ThrowTargetError(targetEnv, "The TAG UIAbilityContext holder left a pending exception.");
     }
 
     TAG_LOGI(AAFwkTag::CONTEXT, "TAG UIAbilityContext holder created");
