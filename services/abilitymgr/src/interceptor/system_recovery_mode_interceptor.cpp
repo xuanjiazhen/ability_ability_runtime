@@ -35,14 +35,10 @@ ErrCode SystemRecoveryModeInterceptor::DoProcess(const AbilityInterceptorParam &
         return ERR_SYSTEM_RECOVERY_MODE_BLOCKED;
     }
 
-    RecoveryBundleKey key {
-        param.abilityInfo->bundleName,
-        param.userId,
-        param.appIndex,
-    };
-    if (policy.ShouldBlockBundle(key, &param.abilityInfo->applicationInfo)) {
+    const auto &bundleName = param.abilityInfo->bundleName;
+    if (policy.ShouldBlockBundle(bundleName)) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "block bundle in system recovery mode: %{public}s",
-            key.bundleName.c_str());
+            bundleName.c_str());
         return ERR_SYSTEM_RECOVERY_MODE_BLOCKED;
     }
     return ERR_OK;

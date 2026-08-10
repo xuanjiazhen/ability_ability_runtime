@@ -86,8 +86,7 @@ HWTEST_F(SystemRecoveryModePolicyTest, IsRecoveryMode_0100, TestSize.Level1)
  */
 HWTEST_F(SystemRecoveryModePolicyTest, ShouldBlockBundle_0100, TestSize.Level1)
 {
-    RecoveryBundleKey key { "com.example.thirdparty", 100, 0 };
-    EXPECT_FALSE(SystemRecoveryModePolicy::GetInstance().ShouldBlockBundle(key));
+    EXPECT_FALSE(SystemRecoveryModePolicy::GetInstance().ShouldBlockBundle("com.example.thirdparty"));
 }
 
 /**
@@ -100,11 +99,8 @@ HWTEST_F(SystemRecoveryModePolicyTest, ShouldBlockBundle_0200, TestSize.Level1)
     g_startMode = SYSTEM_RECOVERY_MODE_VALUE;
     auto &policy = SystemRecoveryModePolicy::GetInstance();
 
-    RecoveryBundleKey thirdParty { "com.example.thirdparty", 100, 0 };
-    EXPECT_TRUE(policy.ShouldBlockBundle(thirdParty));
-
-    RecoveryBundleKey unresolved;
-    EXPECT_TRUE(policy.ShouldBlockBundle(unresolved));
+    EXPECT_TRUE(policy.ShouldBlockBundle("com.example.thirdparty"));
+    EXPECT_TRUE(policy.ShouldBlockBundle(""));
 }
 
 /**
@@ -115,8 +111,7 @@ HWTEST_F(SystemRecoveryModePolicyTest, ShouldBlockBundle_0200, TestSize.Level1)
 HWTEST_F(SystemRecoveryModePolicyTest, ShouldBlockBundle_0300, TestSize.Level1)
 {
     g_startMode = SYSTEM_RECOVERY_MODE_VALUE;
-    RecoveryBundleKey settings { "com.ohos.settings", 100, 0 };
-    EXPECT_FALSE(SystemRecoveryModePolicy::GetInstance().ShouldBlockBundle(settings));
+    EXPECT_FALSE(SystemRecoveryModePolicy::GetInstance().ShouldBlockBundle("com.ohos.settings"));
 }
 
 /**
@@ -127,8 +122,7 @@ HWTEST_F(SystemRecoveryModePolicyTest, ShouldBlockBundle_0300, TestSize.Level1)
 HWTEST_F(SystemRecoveryModePolicyTest, ShouldBlockBundle_0400, TestSize.Level1)
 {
     g_startMode = SYSTEM_RECOVERY_MODE_VALUE;
-    RecoveryBundleKey configuredBundle { "com.example.product.recovery", 100, 0 };
-    EXPECT_FALSE(SystemRecoveryModePolicy::GetInstance().ShouldBlockBundle(configuredBundle));
+    EXPECT_FALSE(SystemRecoveryModePolicy::GetInstance().ShouldBlockBundle("com.example.product.recovery"));
 }
 
 } // namespace AAFwk

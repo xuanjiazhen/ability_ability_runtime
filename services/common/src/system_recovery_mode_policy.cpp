@@ -88,22 +88,20 @@ bool SystemRecoveryModePolicy::IsRecoveryMode() const
     return system::GetParameter(SYSTEM_RECOVERY_MODE_PARAMETER, "") == SYSTEM_RECOVERY_MODE_VALUE;
 }
 
-bool SystemRecoveryModePolicy::IsRecoveryEssentialBundle(const std::string &bundleName,
-    const std::string &) const
+bool SystemRecoveryModePolicy::IsRecoveryEssentialBundle(const std::string &bundleName) const
 {
     const auto &essentialBundles = GetRecoveryEssentialBundles();
     return essentialBundles.find(bundleName) != essentialBundles.end();
 }
 
-bool SystemRecoveryModePolicy::ShouldBlockBundle(const RecoveryBundleKey &key,
-    const AppExecFwk::ApplicationInfo *) const
+bool SystemRecoveryModePolicy::ShouldBlockBundle(const std::string &bundleName) const
 {
     if (!IsRecoveryMode()) {
         return false;
     }
 
-    // 最终决策点对空包名或未解析目标默认拒绝，防止调用方绕过白名单。
-    return key.bundleName.empty() || !IsRecoveryEssentialBundle(key.bundleName);
+    // 已进入恢复模式但目标为空时按未命中白名单处理。
+    return bundleName.empty() || !IsRecoveryEssentialBundle(bundleName);
 }
 
 } // namespace AAFwk

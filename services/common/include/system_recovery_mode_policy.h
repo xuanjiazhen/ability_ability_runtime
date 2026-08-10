@@ -16,23 +16,12 @@
 #ifndef OHOS_ABILITY_RUNTIME_SYSTEM_RECOVERY_MODE_POLICY_H
 #define OHOS_ABILITY_RUNTIME_SYSTEM_RECOVERY_MODE_POLICY_H
 
-#include <cstdint>
 #include <string>
 
 #include "nocopyable.h"
 
 namespace OHOS {
-namespace AppExecFwk {
-struct ApplicationInfo;
-}
-
 namespace AAFwk {
-
-struct RecoveryBundleKey {
-    std::string bundleName;
-    int32_t userId = -1;
-    int32_t appIndex = 0;
-};
 
 /**
  * AMS 与 AppMgr 共用的系统恢复模式决策。
@@ -45,10 +34,8 @@ public:
     static SystemRecoveryModePolicy &GetInstance();
 
     bool IsRecoveryMode() const;
-    bool IsRecoveryEssentialBundle(const std::string &bundleName,
-        const std::string &appIdentifier = "") const;
-    bool ShouldBlockBundle(const RecoveryBundleKey &key,
-        const AppExecFwk::ApplicationInfo *appInfo = nullptr) const;
+    bool IsRecoveryEssentialBundle(const std::string &bundleName) const;
+    bool ShouldBlockBundle(const std::string &bundleName) const;
 
 private:
     SystemRecoveryModePolicy() = default;
