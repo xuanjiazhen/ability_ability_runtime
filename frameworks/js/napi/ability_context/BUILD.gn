@@ -57,7 +57,7 @@ ohos_shared_library("abilitycontext_napi") {
   ]
   ldflags = [
     "-flto=full",
-    "-Wl",
+    "-Wl,--gc-sections",
   ]
 
   deps = [

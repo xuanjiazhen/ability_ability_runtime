@@ -45,6 +45,8 @@ ohos_shared_library("cj_environment") {
     "-ffunction-sections",
   ]
 
+  ldflags = [ "-Wl,--gc-sections" ]
+
   public_configs = [ ":cj_rt_public_config" ]
 
   sanitize = {

@@ -56,7 +56,7 @@ ohos_shared_library("context_napi") {
   ]
   ldflags = [
     "-flto=full",
-    "-Wl",
+    "-Wl,--gc-sections",
   ]
 
   deps = [
