@@ -16,6 +16,8 @@
 #ifndef OHOS_ABILITY_RUNTIME_SYSTEM_RECOVERY_MODE_CONSTANTS_H
 #define OHOS_ABILITY_RUNTIME_SYSTEM_RECOVERY_MODE_CONSTANTS_H
 
+#include <cstdint>
+
 namespace OHOS {
 namespace AAFwk {
 
@@ -26,6 +28,9 @@ inline constexpr char SYSTEM_RECOVERY_APP_WHITELIST_CONFIG[] =
 inline constexpr char SYSTEM_RECOVERY_APP_WHITELIST_DEFAULT_CONFIG[] =
     "/system/etc/ability_runtime/system_recovery_app_whitelist.json";
 inline constexpr char SYSTEM_RECOVERY_APP_WHITELIST_KEY[] = "bundleNames";
+
+// 与 app_file_service 中 BConstants::BACKUP_UID 保持一致，表示 Backup SA 的 IPC UID。
+inline constexpr int32_t SYSTEM_RECOVERY_BACKUP_UID = 1089;
 
 } // namespace AAFwk
 } // namespace OHOS
