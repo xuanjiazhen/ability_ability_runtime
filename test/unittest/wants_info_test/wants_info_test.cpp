@@ -66,12 +66,52 @@ HWTEST_F(WantsInfoTest, WantsInfoTest_0100, TestSize.Level1)
     info.want = want;
     info.resolvedTypes = "nihao";
     Parcel parcel;
-    info.Marshalling(parcel);
+    ASSERT_TRUE(info.Marshalling(parcel));
     auto unInfo = WantsInfo::Unmarshalling(parcel);
+    ASSERT_NE(unInfo, nullptr);
     EXPECT_EQ(unInfo->want.GetElement().GetBundleName(), "com.ix.hiMusic");
     EXPECT_EQ(unInfo->want.GetElement().GetAbilityName(), "MusicSAbility");
     EXPECT_EQ(unInfo->resolvedTypes, "nihao");
     delete unInfo;
+}
+
+/*
+ * @tc.number    : WantsInfoTest_0200
+ * @tc.name      : Marshalling want failure
+ * @tc.desc      : Marshalling returns false when the Want cannot be written.
+ */
+HWTEST_F(WantsInfoTest, WantsInfoTest_0200, TestSize.Level1)
+{
+    constexpr size_t INSUFFICIENT_PARCEL_CAPACITY = 1;
+    WantsInfo info;
+    Parcel parcel;
+    ASSERT_TRUE(parcel.SetMaxCapacity(INSUFFICIENT_PARCEL_CAPACITY));
+
+    EXPECT_FALSE(info.Marshalling(parcel));
+}
+
+/*
+ * @tc.number    : WantsInfoTest_0300
+ * @tc.name      : Marshalling resolvedTypes failure
+ * @tc.desc      : Marshalling returns false when resolvedTypes cannot be written after the Want.
+ */
+HWTEST_F(WantsInfoTest, WantsInfoTest_0300, TestSize.Level1)
+{
+    WantsInfo info;
+    Want want;
+    ElementName element("device", "com.ix.hiMusic", "MusicSAbility");
+    want.SetElement(element);
+    info.want = want;
+    info.resolvedTypes = "nihao";
+
+    Parcel wantParcel;
+    ASSERT_TRUE(wantParcel.WriteParcelable(&info.want));
+    const size_t wantParcelSize = wantParcel.GetDataSize();
+    ASSERT_GT(wantParcelSize, 0);
+    Parcel parcel;
+    ASSERT_TRUE(parcel.SetMaxCapacity(wantParcelSize));
+
+    EXPECT_FALSE(info.Marshalling(parcel));
 }
 }  // namespace AAFwk
 }  // namespace OHOS
