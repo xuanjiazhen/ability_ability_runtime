@@ -3211,5 +3211,29 @@ HWTEST_F(MainThreadTest, PreloadModule_WithEmptyPreloadAbilityName_0200, TestSiz
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
+
+/**
+ * @tc.name: GetBundleAndHspListForUpdateRuntime_Reuse_0100
+ * @tc.desc: Verify launch-time BundleInfo/HspList reuse without re-querying BMS.
+ */
+HWTEST_F(MainThreadTest, GetBundleAndHspListForUpdateRuntime_Reuse_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    auto bundleInfo = std::make_shared<BundleInfo>();
+    bundleInfo->name = "com.example.reuse";
+    mainThread_->launchBundleInfo_ = bundleInfo;
+    BaseSharedBundleInfo hspInfo;
+    hspInfo.bundleName = "com.example.hsp";
+    mainThread_->launchHspList_.emplace_back(hspInfo);
+    mainThread_->launchHspListReady_ = true;
+
+    BundleInfo outInfo;
+    HspList outHspList;
+    EXPECT_TRUE(mainThread_->GetBundleAndHspListForUpdateRuntime(outInfo, "com.example.reuse", outHspList));
+    EXPECT_EQ(outInfo.name, "com.example.reuse");
+    EXPECT_EQ(outHspList.size(), 1u);
+    EXPECT_EQ(outHspList[0].bundleName, "com.example.hsp");
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
 } // namespace AppExecFwk
 } // namespace OHOS
