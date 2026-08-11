@@ -52,7 +52,7 @@ ohos_unittest("insight_intent_filter_util_test") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_core",
-    "nlohmann_json:nlohmann_json",
+    "json:nlohmann_json_static",
   ]
 }
 
