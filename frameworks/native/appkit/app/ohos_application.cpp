@@ -893,6 +893,8 @@ void OHOSApplication::UpdateApplicationInfoInstalled(const AppExecFwk::Applicati
         return;
     }
 
+    // drop launch-time held module infos so later stage creation re-queries BMS
+    hapModuleInfoMap_.clear();
     abilityRuntimeContext_->SetApplicationInfo(std::make_shared<AppExecFwk::ApplicationInfo>(appInfo));
 }
 

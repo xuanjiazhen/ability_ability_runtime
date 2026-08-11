@@ -272,6 +272,26 @@ public:
         return deduplicate_;
     }
 
+    /**
+     * @brief set the module-name -> HapModuleInfo map obtained at launch, so that later
+     *        AddAbilityStage(abilityRecord) can reuse it instead of re-querying BMS.
+     *
+     * @param hapModuleInfoMap module info map from the launch-time BundleInfo.
+     */
+    void SetHapModuleInfoMap(const std::map<std::string, std::shared_ptr<AppExecFwk::HapModuleInfo>> &map)
+    {
+        hapModuleInfoMap_ = map;
+    }
+
+    /**
+     * @brief get the held HapModuleInfo by module name, nullptr if absent.
+     */
+    std::shared_ptr<AppExecFwk::HapModuleInfo> GetHapModuleInfoByModule(const std::string &moduleName) const
+    {
+        auto iter = hapModuleInfoMap_.find(moduleName);
+        return (iter != hapModuleInfoMap_.end()) ? iter->second : nullptr;
+    }
+
 private:
     void UpdateAppContextResMgr(const Configuration &config);
     bool IsUpdateColorNeeded(Configuration &config, AbilityRuntime::SetLevel level);
@@ -335,26 +355,6 @@ private:
         const std::weak_ptr<OHOSApplication> &appWeakPtr);
     void GetAllUIAbilities(std::vector<std::shared_ptr<AbilityRuntime::UIAbility>> &uiAbility);
 #endif
-
-    /**
-     * @brief set the module-name -> HapModuleInfo map obtained at launch, so that later
-     *        AddAbilityStage(abilityRecord) can reuse it instead of re-querying BMS.
-     *
-     * @param hapModuleInfoMap module info map from the launch-time BundleInfo.
-     */
-    void SetHapModuleInfoMap(const std::map<std::string, std::shared_ptr<AppExecFwk::HapModuleInfo>> &map)
-    {
-        hapModuleInfoMap_ = map;
-    }
-
-    /**
-     * @brief get the held HapModuleInfo by module name, nullptr if absent.
-     */
-    std::shared_ptr<AppExecFwk::HapModuleInfo> GetHapModuleInfoByModule(const std::string &moduleName) const
-    {
-        auto iter = hapModuleInfoMap_.find(moduleName);
-        return (iter != hapModuleInfoMap_.end()) ? iter->second : nullptr;
-    }
 
 private:
     std::shared_ptr<AbilityRecordMgr> abilityRecordMgr_ = nullptr;

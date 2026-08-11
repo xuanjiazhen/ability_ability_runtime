@@ -2712,6 +2712,11 @@ void MainThread::HandleUpdateApplicationInfoInstalled(const ApplicationInfo &app
         TAG_LOGE(AAFwkTag::APPKIT, "null application_");
         return;
     }
+    // drop launch-time held data so later reuse paths fall back to fresh BMS queries
+    launchBundleInfo_.reset();
+    launchHspList_.clear();
+    launchHspListReady_ = false;
+    AbilityRuntime::JsRuntime::SetModuleHapPathList({});
     application_->UpdateApplicationInfoInstalled(appInfo);
 
     auto &runtime = application_->GetRuntime();

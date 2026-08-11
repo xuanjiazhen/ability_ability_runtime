@@ -35,6 +35,7 @@ namespace OHOS {
 namespace AAFwk {
 namespace {
 constexpr int32_t ERMS_ISALLOW_RESULTCODE = 10;
+constexpr int32_t BASE_USER_RANGE = 200000;
 constexpr const char* PARAM_RESV_ANCO_CALLER_UID = "ohos.anco.param.callerUid";
 constexpr const char* PARAM_RESV_ANCO_CALLER_BUNDLENAME = "ohos.anco.param.callerBundleName";
 
@@ -121,6 +122,7 @@ std::vector<int32_t> StartAbilityUtils::GetCloneAppIndexes(const std::string &bu
 int32_t StartAbilityUtils::CheckAppProvisionMode(const Want& want, int32_t userId, sptr<IRemoteObject> callerToken)
 {
     auto abilityInfo = StartAbilityUtils::startAbilityInfo;
+    bool newResolved = false;
     if (!abilityInfo || abilityInfo->GetAppBundleName() != want.GetBundleNameRef()) {
         int32_t appIndex = 0;
         if (!GetAppIndex(want, callerToken, appIndex)) {
@@ -128,15 +130,17 @@ int32_t StartAbilityUtils::CheckAppProvisionMode(const Want& want, int32_t userI
             return ERR_APP_CLONE_INDEX_INVALID;
         }
         abilityInfo = StartAbilityInfo::CreateStartAbilityInfo(want, userId, appIndex, nullptr);
-        // write back so the StartAbilityInfoWrap later in this start chain reuses it (avoid double query)
-        if (StartAbilityUtils::startAbilityInfo == nullptr) {
-            StartAbilityUtils::startAbilityInfo = abilityInfo;
-        }
+        newResolved = true;
     }
     CHECK_POINTER_AND_RETURN(abilityInfo, GET_ABILITY_SERVICE_FAILED);
     if (abilityInfo->status != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "unexpected abilityInfo status: %{public}d", abilityInfo->status);
         return abilityInfo->status;
+    }
+    if (newResolved && StartAbilityUtils::startAbilityInfo == nullptr) {
+        // write back only after successful resolution, so the StartAbilityInfoWrap later
+        // in this start chain reuses it (avoid double query)
+        StartAbilityUtils::startAbilityInfo = abilityInfo;
     }
     if ((abilityInfo->abilityInfo).applicationInfo.appProvisionType !=
         AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG) {
@@ -177,8 +181,11 @@ StartAbilityInfoWrap::StartAbilityInfoWrap(const Want &want, int32_t validUserId
             validUserId, appIndex);
     } else if (StartAbilityUtils::startAbilityInfo != nullptr &&
         StartAbilityUtils::startAbilityInfo->GetAppBundleName() == localWant.GetBundleNameRef() &&
-        StartAbilityUtils::startAbilityInfo->abilityInfo.name == localWant.GetAbilityNameRef()) {
-        // reuse the info resolved earlier in this start chain (e.g. CheckAppProvisionMode)
+        StartAbilityUtils::startAbilityInfo->abilityInfo.name == localWant.GetAbilityNameRef() &&
+        StartAbilityUtils::startAbilityInfo->abilityInfo.applicationInfo.appIndex == appIndex &&
+        StartAbilityUtils::startAbilityInfo->abilityInfo.applicationInfo.uid / BASE_USER_RANGE == validUserId) {
+        // reuse the info resolved earlier in this start chain (e.g. CheckAppProvisionMode);
+        // full dimension match (bundle/ability/appIndex/userId) required
         TAG_LOGD(AAFwkTag::ABILITYMGR, "reuse startAbilityInfo: %{public}s", localWant.GetBundleNameRef().c_str());
     } else {
         StartAbilityUtils::startAbilityInfo = StartAbilityInfo::CreateStartAbilityInfo(localWant,
@@ -205,6 +212,11 @@ StartAbilityInfoWrap::StartAbilityInfoWrap(const Want &want, int32_t validUserId
 }
 StartAbilityInfoWrap::StartAbilityInfoWrap()
 {
+    auto bmsHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    if (bmsHelper != nullptr) {
+        bmsHelper->SyncBmsQueryCountSwitch();
+        bmsQueryCountAtBegin_ = bmsHelper->GetBmsQueryCount();
+    }
     StartAbilityUtils::startAbilityInfo.reset();
     StartAbilityUtils::callerAbilityInfo.reset();
     StartAbilityUtils::skipCrowTest = false;
