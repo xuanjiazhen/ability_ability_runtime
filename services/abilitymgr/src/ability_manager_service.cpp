@@ -545,7 +545,7 @@ void AbilityManagerService::InitInterceptor()
         TAG_LOGI(AAFwkTag::ABILITYMGR, "app jump enabled, add abilityJumpInterceptor");
         interceptorExecuter_->AddInterceptor("AbilityJump", std::make_shared<AbilityJumpInterceptor>());
     }
-    // 拦截器本身常驻但默认不生效，便于运行期间进入或退出恢复模式。
+    // 拦截器常驻，恢复模式启动时由 AppMgr 控制器通过既有 IPC 启用。
     TAG_LOGI(AAFwkTag::ABILITYMGR, "create BlockAllAppStartInterceptor");
     blockAllAppStartInterceptor_ = std::make_shared<BlockAllAppStartInterceptor>();
     InitBlockAllAppStartInterceptorCallbacks();
