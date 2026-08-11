@@ -170,6 +170,93 @@ inline std::string BuildUnicodeAttackString(FuzzedDataProvider &fdp)
     return result;
 }
 
+inline std::string BuildUriAttackString(FuzzedDataProvider &fdp, size_t maxLen = 0)
+{
+    static const std::string uriPayloads[] = {
+        "file:///../../etc/passwd",
+        "file:///etc/shadow",
+        "file://localhost/etc/passwd",
+        "content://../../data/local/tmp",
+        "http://127.0.0.1:0/",
+        "https://localhost/admin",
+        "file:///proc/self/environ",
+        "content://com.attacker/../../data",
+        "file:///sys/class/net",
+        "file:///dev/null",
+        "data:text/html,<script>",
+        "javascript:alert(1)",
+        "file:///../../system/bin/sh",
+        "content://media/external/file/../../etc",
+    };
+    std::string result;
+    if (fdp.ConsumeBool()) {
+        result = uriPayloads[fdp.ConsumeIntegral<uint8_t>() % 14];
+    } else {
+        result = fdp.ConsumeRandomLengthString(128);
+    }
+    if (fdp.ConsumeBool()) {
+        result += BuildSpecialCharString(fdp, 32);
+    }
+    if (maxLen > 0 && result.size() > maxLen) {
+        result.resize(maxLen);
+    }
+    return result;
+}
+
+inline std::string BuildSandboxEscapePath(FuzzedDataProvider &fdp, size_t maxLen = 0)
+{
+    static const std::string escapePaths[] = {
+        "../../etc/passwd",
+        "../../../data/local/tmp",
+        "..\\..\\windows\\system32",
+        "/proc/self/environ",
+        "/sys/class/net",
+        "../../system/bin/sh",
+        "/dev/null",
+        "../../../../dbsync/sandbox",
+        "..%2f..%2fetc%2fpasswd",
+        "/data/local/tmp/../../etc",
+        "/system/lib64/../../etc",
+        "../appdata/../../data",
+    };
+    std::string result;
+    if (fdp.ConsumeBool()) {
+        result = escapePaths[fdp.ConsumeIntegral<uint8_t>() % 12];
+    } else {
+        result = fdp.ConsumeRandomLengthString(128);
+    }
+    if (fdp.ConsumeBool()) {
+        result += BuildSpecialCharString(fdp, 32);
+    }
+    if (maxLen > 0 && result.size() > maxLen) {
+        result.resize(maxLen);
+    }
+    return result;
+}
+
+// Build a SQL injection string with classic patterns.
+inline std::string BuildSqlInjectionString(FuzzedDataProvider &fdp, size_t maxLen = DEFAULT_MAX_STR_LEN)
+{
+    static const std::string sqlPayloads[] = {
+        "' OR '1'='1",
+        "'; DROP TABLE users--",
+        "UNION SELECT * FROM secrets--",
+        "' AND 1=0 UNION SELECT password FROM accounts--",
+        "'; INSERT INTO admin VALUES('hacker','pwned')--",
+        "' OR SLEEP(5)--",
+        "admin'--",
+    };
+    std::string result = fdp.ConsumeRandomLengthString(maxLen / 2);
+    uint8_t payloadCount = fdp.ConsumeIntegral<uint8_t>() % 3;
+    for (uint8_t i = 0; i < payloadCount; i++) {
+        result += sqlPayloads[fdp.ConsumeIntegral<uint8_t>() % 7];
+    }
+    if (maxLen > 0 && result.size() > maxLen) {
+        result.resize(maxLen);
+    }
+    return result;
+}
+
 // Build a vector of malicious strings mixing oversized, special-char and unicode content.
 inline std::vector<std::string> BuildMaliciousStringVector(FuzzedDataProvider &fdp)
 {

@@ -117,7 +117,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     MessageParcel parcel;
     parcel.WriteInterfaceToken(AMSMGR_INTERFACE_TOKEN);
     uint32_t actualCode = 0;
-    switch (code % 10) {
+    switch (code % 15) {
         case 0: {
             actualCode = static_cast<uint32_t>(IAmsMgr::Message::TERMINATE_ABILITY);
             parcel.WriteRemoteObject(nullptr);
@@ -198,6 +198,40 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
         case 9: {
             actualCode = static_cast<uint32_t>(IAmsMgr::Message::FORCE_KILL_APPLICATION_BY_ACCESS_TOKEN_ID);
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        }
+        case 10: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::CLEAR_PROCESS_BY_TOKEN);
+            parcel.WriteRemoteObject(nullptr);
+            break;
+        }
+        case 11: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::BLOCK_PROCESS_CACHE_BY_PIDS);
+            uint32_t pidsCount = fdp.ConsumeIntegral<uint8_t>() % KILL_PIDS_MAX_COUNT + 1;
+            parcel.WriteUint32(pidsCount);
+            std::vector<int32_t> pids = FuzzUtil::BuildMaliciousInt32Vector(fdp);
+            for (uint32_t i = 0; i < pidsCount; i++) {
+                if (i < pids.size()) {
+                    parcel.WriteInt32(pids[i]);
+                } else {
+                    parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+                }
+            }
+            break;
+        }
+        case 12: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::IS_KILLED_FOR_UPGRADE_WEB);
+            parcel.WriteString(FuzzUtil::BuildMaliciousBundleName(fdp));
+            break;
+        }
+        case 13: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::IS_CALLER_KILLING);
+            parcel.WriteString(FuzzUtil::BuildSpecialCharString(fdp));
+            break;
+        }
+        case 14: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::VERIFY_KILL_PROCESS_PERMISSION);
+            parcel.WriteString(FuzzUtil::BuildMaliciousBundleName(fdp));
             break;
         }
         default:

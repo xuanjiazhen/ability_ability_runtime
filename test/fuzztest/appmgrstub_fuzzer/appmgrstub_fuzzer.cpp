@@ -100,7 +100,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::SCHEDULE_ACCEPT_WANT_DONE);
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             FuzzUtil::WriteMaliciousWant(parcel, fdp);
-            parcel.WriteString(FuzzUtil::BuildSpecialCharString(fdp));
+            parcel.WriteString(FuzzUtil::BuildSqlInjectionString(fdp));
             break;
         case 9: {
             actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::MAKE_IMAGE);

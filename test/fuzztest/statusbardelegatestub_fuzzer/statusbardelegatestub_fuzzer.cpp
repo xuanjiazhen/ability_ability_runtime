@@ -72,13 +72,13 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
             actualCode = static_cast<uint32_t>(StatusBarDelegateCmd::ATTACH_PID_TO_STATUS_BAR_ITEM);
             parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
-            parcel.WriteString(OHOS::FuzzUtil::BuildSpecialCharString(fdp));
+            parcel.WriteString(OHOS::FuzzUtil::BuildSandboxEscapePath(fdp));
             break;
         case 2:
             actualCode = static_cast<uint32_t>(StatusBarDelegateCmd::DETACH_PID_TO_STATUS_BAR_ITEM);
             parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
-            parcel.WriteString(OHOS::FuzzUtil::BuildSpecialCharString(fdp));
+            parcel.WriteString(OHOS::FuzzUtil::BuildSandboxEscapePath(fdp));
             break;
         default:
             break;

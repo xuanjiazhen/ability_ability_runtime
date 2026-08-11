@@ -27,6 +27,7 @@
 #include "message_parcel.h"
 #include "securec.h"
 #include "session_info.h"
+#include "uri.h"
 #include "want.h"
 
 using namespace OHOS::AAFwk;
@@ -51,7 +52,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
 
     parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
 
-    switch (code % 10) {
+    switch (code % 11) {
         case 0: {
             actualCode = static_cast<uint32_t>(AbilityManagerInterfaceCode::TERMINATE_ABILITY);
             bool hasToken = fdp.ConsumeBool();
@@ -123,7 +124,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
         }
         case 8: {
             actualCode = static_cast<uint32_t>(AbilityManagerInterfaceCode::ACQUIRE_DATA_ABILITY);
-            parcel.WriteString(FuzzUtil::BuildSpecialCharString(fdp));
+            parcel.WriteString(FuzzUtil::BuildUriAttackString(fdp));
             parcel.WriteBool(fdp.ConsumeBool());
             parcel.WriteRemoteObject(nullptr);
             break;
@@ -133,6 +134,13 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             FuzzUtil::WriteMaliciousWant(parcel, fdp);
+            break;
+        }
+        case 10: {
+            actualCode = static_cast<uint32_t>(AbilityManagerInterfaceCode::OPEN_FILE);
+            Uri uri(FuzzUtil::BuildUriAttackString(fdp));
+            parcel.WriteParcelable(&uri);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             break;
         }
         default:
