@@ -41,7 +41,7 @@
 #define APP_LIB_NAME "arm64"
 #elif defined(APP_USE_ARM)
 #define APP_LIB_NAME "arm"
-#elif defined(APP_USE_X86_64)
+#elif defined(APP_USE_X86_64) || defined(NAPI_TARGET_AMD64)
 #define APP_LIB_NAME "x86_64"
 #elif defined(NAPI_TARGET_ARM64)
 #define APP_LIB_NAME "arm64"
