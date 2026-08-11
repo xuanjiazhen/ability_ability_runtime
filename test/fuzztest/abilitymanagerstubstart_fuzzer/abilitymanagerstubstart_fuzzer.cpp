@@ -55,6 +55,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
         case 0: {
             actualCode = static_cast<uint32_t>(AbilityManagerInterfaceCode::START_ABILITY);
             FuzzUtil::WriteMaliciousWant(parcel, fdp);
+            parcel.WriteString(FuzzUtil::GenStrcpyOverflowString(fdp, 128));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteUint64(fdp.ConsumeIntegral<uint64_t>());

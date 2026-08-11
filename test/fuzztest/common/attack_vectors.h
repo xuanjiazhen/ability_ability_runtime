@@ -29,30 +29,48 @@ namespace OHOS {
 namespace FuzzUtil {
 // Attack vector constants
 constexpr size_t OVERSIZED_STRING_LENGTH = 4096;
+constexpr size_t DEFAULT_MAX_STR_LEN = 256;
 constexpr int32_t INVALID_ENUM_OFFSET = 0xFFFF;
 constexpr int32_t MAX_NEST_DEPTH = 8;
 
+inline std::string WriteTruncatedString(FuzzedDataProvider &fdp, size_t maxLen)
+{
+    std::string s = fdp.ConsumeRandomLengthString(maxLen);
+    if (maxLen > 0 && s.size() > maxLen) {
+        s.resize(maxLen);
+    }
+    return s;
+}
+
 // Build an oversized string exceeding normal limits to trigger buffer overflow.
-inline std::string BuildOversizedString(FuzzedDataProvider &fdp, size_t targetLen = OVERSIZED_STRING_LENGTH)
+inline std::string BuildOversizedString(FuzzedDataProvider &fdp, size_t targetLen = OVERSIZED_STRING_LENGTH,
+    size_t maxLen = 0)
 {
     std::string s;
-    s.reserve(targetLen);
-    while (s.size() < targetLen && fdp.remaining_bytes() > 0) {
+    size_t buildLen = (maxLen > 0 && maxLen < targetLen) ? maxLen : targetLen;
+    s.reserve(buildLen);
+    while (s.size() < buildLen && fdp.remaining_bytes() > 0) {
         s += fdp.ConsumeRandomLengthString(256);
+    }
+    if (maxLen > 0 && s.size() > maxLen) {
+        s.resize(maxLen);
     }
     return s;
 }
 
 // Build a string with special characters: null bytes, path traversal, format string, escape.
-inline std::string BuildSpecialCharString(FuzzedDataProvider &fdp)
+inline std::string BuildSpecialCharString(FuzzedDataProvider &fdp, size_t maxLen = 0)
 {
     static const std::string specialChars = "\x00../\n\r\t\x1b%s%d\\;|`$(){}";
-    std::string base = fdp.ConsumeRandomLengthString(128);
+    std::string base = WriteTruncatedString(fdp, (maxLen > 0 && maxLen < 128) ? maxLen : 128);
     for (size_t i = 0; i < base.size(); i++) {
         if (fdp.ConsumeBool()) {
             uint8_t idx = fdp.ConsumeIntegral<uint8_t>() % specialChars.size();
         base[i] = specialChars[idx];
         }
+    }
+    if (maxLen > 0 && base.size() > maxLen) {
+        base.resize(maxLen);
     }
     return base;
 }
@@ -86,15 +104,16 @@ inline std::vector<int32_t> BuildInvalidPids(FuzzedDataProvider &fdp)
 }
 
 // Write a malicious Want into parcel with oversized action, invalid URI, special char entity.
-inline void WriteMaliciousWant(MessageParcel &parcel, FuzzedDataProvider &fdp)
+inline void WriteMaliciousWant(MessageParcel &parcel, FuzzedDataProvider &fdp,
+    size_t maxStrLen = DEFAULT_MAX_STR_LEN)
 {
    AAFwk::Want want;
-    want.SetAction(BuildOversizedString(fdp, 1024));
-    want.SetUri(BuildSpecialCharString(fdp));
-    want.SetEntity(BuildSpecialCharString(fdp));
-    want.SetType(BuildSpecialCharString(fdp));
-    want.AddEntity(BuildSpecialCharString(fdp));
-    want.SetBundle(BuildOversizedString(fdp, 512));
+    want.SetAction(BuildOversizedString(fdp, maxStrLen, maxStrLen));
+    want.SetUri(BuildSpecialCharString(fdp, maxStrLen));
+    want.SetEntity(BuildSpecialCharString(fdp, maxStrLen));
+    want.SetType(BuildSpecialCharString(fdp, maxStrLen));
+    want.AddEntity(BuildSpecialCharString(fdp, maxStrLen));
+    want.SetBundle(BuildOversizedString(fdp, maxStrLen, maxStrLen));
     want.SetFlags(fdp.ConsumeIntegral<uint32_t>());
     want.Marshal(parcel);
 }
@@ -112,12 +131,12 @@ inline void WriteDeepNestedParcel(MessageParcel &parcel, FuzzedDataProvider &fdp
 }
 
 // Build a malicious bundleName with path traversal, special chars, or oversized content.
-inline std::string BuildMaliciousBundleName(FuzzedDataProvider &fdp)
+inline std::string BuildMaliciousBundleName(FuzzedDataProvider &fdp, size_t maxLen = 0)
 {
     if (fdp.ConsumeBool()) {
-        return BuildOversizedString(fdp, 2048);
+        return BuildOversizedString(fdp, (maxLen > 0 && maxLen < 2048) ? maxLen : 2048, maxLen);
     }
-    return BuildSpecialCharString(fdp);
+    return BuildSpecialCharString(fdp, maxLen);
 }
 
 // Build an integer overflow value near INT32_MAX to trigger arithmetic overflow.
@@ -189,11 +208,12 @@ inline std::vector<int32_t> BuildMaliciousInt32Vector(FuzzedDataProvider &fdp)
 }
 
 // Write a malicious AppStateData parcelable with overflow pid, invalid state, malicious bundleName.
-inline void WriteMaliciousAppStateData(MessageParcel &parcel, FuzzedDataProvider &fdp)
+inline void WriteMaliciousAppStateData(MessageParcel &parcel, FuzzedDataProvider &fdp,
+    size_t maxStrLen = DEFAULT_MAX_STR_LEN)
 {
     parcel.WriteInt32(BuildIntegerOverflow(fdp));
-    parcel.WriteString(BuildMaliciousBundleName(fdp));
-    parcel.WriteString(BuildSpecialCharString(fdp));
+    parcel.WriteString(BuildMaliciousBundleName(fdp, maxStrLen));
+    parcel.WriteString(BuildSpecialCharString(fdp, maxStrLen));
     parcel.WriteInt32(BuildInvalidEnum(fdp, 20));
     parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
     parcel.WriteInt32(BuildIntegerOverflow(fdp));
@@ -203,11 +223,12 @@ inline void WriteMaliciousAppStateData(MessageParcel &parcel, FuzzedDataProvider
 }
 
 // Write a malicious AbilityStateData parcelable with invalid token info and overflow values.
-inline void WriteMaliciousAbilityStateData(MessageParcel &parcel, FuzzedDataProvider &fdp)
+inline void WriteMaliciousAbilityStateData(MessageParcel &parcel, FuzzedDataProvider &fdp,
+    size_t maxStrLen = DEFAULT_MAX_STR_LEN)
 {
     parcel.WriteInt32(BuildInvalidEnum(fdp, 30));
-    parcel.WriteString(BuildMaliciousBundleName(fdp));
-    parcel.WriteString(BuildSpecialCharString(fdp));
+    parcel.WriteString(BuildMaliciousBundleName(fdp, maxStrLen));
+    parcel.WriteString(BuildSpecialCharString(fdp, maxStrLen));
     parcel.WriteInt32(BuildIntegerOverflow(fdp));
     parcel.WriteInt32(BuildIntegerOverflow(fdp));
     parcel.WriteInt32(BuildInvalidEnum(fdp, 10));
@@ -222,11 +243,12 @@ inline bool VerifyIntegerOverflow(int32_t value, int32_t validMax)
 }
 
 // Write a malicious ProcessData parcelable with overflow pid and malicious bundleName.
-inline void WriteMaliciousProcessData(MessageParcel &parcel, FuzzedDataProvider &fdp)
+inline void WriteMaliciousProcessData(MessageParcel &parcel, FuzzedDataProvider &fdp,
+    size_t maxStrLen = DEFAULT_MAX_STR_LEN)
 {
     parcel.WriteInt32(BuildIntegerOverflow(fdp));
-    parcel.WriteString(BuildMaliciousBundleName(fdp));
-    parcel.WriteString(BuildSpecialCharString(fdp));
+    parcel.WriteString(BuildMaliciousBundleName(fdp, maxStrLen));
+    parcel.WriteString(BuildSpecialCharString(fdp, maxStrLen));
     parcel.WriteInt32(BuildInvalidEnum(fdp, 20));
     parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
     parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
@@ -234,20 +256,22 @@ inline void WriteMaliciousProcessData(MessageParcel &parcel, FuzzedDataProvider 
 }
 
 // Write a malicious PageStateData parcelable with malicious bundleName and oversized url.
-inline void WriteMaliciousPageStateData(MessageParcel &parcel, FuzzedDataProvider &fdp)
+inline void WriteMaliciousPageStateData(MessageParcel &parcel, FuzzedDataProvider &fdp,
+    size_t maxStrLen = DEFAULT_MAX_STR_LEN)
 {
-    parcel.WriteString(BuildMaliciousBundleName(fdp));
-    parcel.WriteString(BuildSpecialCharString(fdp));
-    parcel.WriteString(BuildSpecialCharString(fdp));
-    parcel.WriteString(BuildOversizedString(fdp, 1024));
+    parcel.WriteString(BuildMaliciousBundleName(fdp, maxStrLen));
+    parcel.WriteString(BuildSpecialCharString(fdp, maxStrLen));
+    parcel.WriteString(BuildSpecialCharString(fdp, maxStrLen));
+    parcel.WriteString(BuildOversizedString(fdp, maxStrLen, maxStrLen));
     parcel.WriteInt32(BuildInvalidEnum(fdp, 10));
 }
 
 // Write a malicious ExtensionRunningInfo with malicious extensionName and overflow pid.
-inline void WriteMaliciousExtensionRunningInfo(MessageParcel &parcel, FuzzedDataProvider &fdp)
+inline void WriteMaliciousExtensionRunningInfo(MessageParcel &parcel, FuzzedDataProvider &fdp,
+    size_t maxStrLen = DEFAULT_MAX_STR_LEN)
 {
-    parcel.WriteString(BuildMaliciousBundleName(fdp));
-    parcel.WriteString(BuildSpecialCharString(fdp));
+    parcel.WriteString(BuildMaliciousBundleName(fdp, maxStrLen));
+    parcel.WriteString(BuildSpecialCharString(fdp, maxStrLen));
     parcel.WriteInt32(BuildIntegerOverflow(fdp));
     parcel.WriteInt32(BuildInvalidEnum(fdp, 20));
     parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
@@ -260,20 +284,27 @@ enum ParcelablePhase {
 };
 
 // Write a phase-aware malicious AppStateData with stage-specific attack vectors.
-inline void WriteMaliciousAppStateDataPhased(MessageParcel &parcel, FuzzedDataProvider &fdp, ParcelablePhase phase)
+inline void WriteMaliciousAppStateDataPhased(MessageParcel &parcel, FuzzedDataProvider &fdp,
+    ParcelablePhase phase, size_t maxStrLen = DEFAULT_MAX_STR_LEN)
 {
     switch (phase) {
         case PHASE_BEFORE_SERIALIZE:
             parcel.WriteInt32(BuildIntegerOverflow(fdp));
-            parcel.WriteString(BuildOversizedString(fdp, 2048));
+            parcel.WriteString(BuildOversizedString(fdp, maxStrLen, maxStrLen));
             break;
         case PHASE_DURING_SERIALIZE:
-            parcel.WriteString(BuildSpecialCharString(fdp));
-            parcel.WriteString(BuildUnicodeAttackString(fdp));
+            parcel.WriteString(BuildSpecialCharString(fdp, maxStrLen));
+            {
+                std::string u = BuildUnicodeAttackString(fdp);
+                if (maxStrLen > 0 && u.size() > maxStrLen) {
+                    u.resize(maxStrLen);
+                }
+                parcel.WriteString(u);
+            }
             break;
         case PHASE_AFTER_DESERIALIZE:
             parcel.WriteInt32(BuildInvalidEnum(fdp, 20));
-            parcel.WriteString(BuildMaliciousBundleName(fdp));
+            parcel.WriteString(BuildMaliciousBundleName(fdp, maxStrLen));
             break;
     }
     parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());

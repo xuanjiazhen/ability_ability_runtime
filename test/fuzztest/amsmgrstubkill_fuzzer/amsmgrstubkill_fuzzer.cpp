@@ -175,7 +175,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
         }
         case 6: {
             actualCode = static_cast<uint32_t>(IAmsMgr::Message::KILL_APPLICATION);
-            parcel.WriteString(FuzzUtil::BuildMaliciousBundleName(fdp));
+            parcel.WriteString(FuzzUtil::GenStrcpyOverflowString(fdp, 64));
             parcel.WriteBool(fdp.ConsumeBool());
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteString(FuzzUtil::BuildSpecialCharString(fdp));

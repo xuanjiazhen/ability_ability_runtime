@@ -63,7 +63,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             break;
         case 2:
             actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::APP_CLEAR_UP_APPLICATION_DATA);
-            parcel.WriteString(FuzzUtil::BuildMaliciousBundleName(fdp));
+            parcel.WriteString(FuzzUtil::GenStrcpyOverflowString(fdp, 256));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             break;
