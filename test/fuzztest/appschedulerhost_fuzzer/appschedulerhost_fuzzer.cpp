@@ -33,7 +33,7 @@ using namespace OHOS::FuzzUtil;
 namespace OHOS {
 namespace {
 const std::u16string APP_SCHEDULER_INTERFACE_TOKEN = u"ohos.appexecfwk.AppScheduler";
-constexpr uint8_t SCHEDULER_HANDLE_COUNT = 13;
+constexpr uint8_t SCHEDULER_HANDLE_COUNT = 40;
 constexpr size_t TARGET_BUF_SIZE = 256;
 
 class AppSchedulerHostFUZZ : public AppSchedulerHost {
@@ -208,6 +208,177 @@ bool DoSomethingInterestingWithMyAPI(const char *rawData, FuzzedDataProvider &fd
             parcel.WriteRemoteObject(nullptr);
             parcel.WriteBool(fdp.ConsumeBool());
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_CLEAN_ABILITY_TRANSACTION);
+            break;
+        }
+        case 13: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            Profile profile;
+            parcel.WriteParcelable(&profile);
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_PROFILE_CHANGED_TRANSACTION);
+            break;
+        }
+        case 14: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            Configuration configuration;
+            parcel.WriteParcelable(&configuration);
+            parcel.WriteUint8(fdp.ConsumeIntegral<uint8_t>());
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_CONFIGURATION_UPDATED);
+            break;
+        }
+        case 15: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_PROCESS_SECURITY_EXIT_TRANSACTION);
+            break;
+        }
+        case 16: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            HapModuleInfo hapModuleInfo;
+            parcel.WriteParcelable(&hapModuleInfo);
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_ABILITY_STAGE_INFO);
+            break;
+        }
+        case 17: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_CLEAR_PAGE_STACK);
+            break;
+        }
+        case 18: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            WriteMaliciousWant(parcel, fdp);
+            parcel.WriteString(BuildSpecialCharString(fdp));
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_ACCEPT_WANT);
+            break;
+        }
+        case 19: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            parcel.WriteString(BuildSpecialCharString(fdp));
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_PREPARE_TERMINATE);
+            break;
+        }
+        case 20: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            WriteMaliciousWant(parcel, fdp);
+            parcel.WriteString(BuildSpecialCharString(fdp));
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_NEW_PROCESS_REQUEST);
+            break;
+        }
+        case 21: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            parcel.WriteString(BuildMaliciousBundleName(fdp));
+            parcel.WriteRemoteObject(nullptr);
+            parcel.WriteInt32(BuildIntegerOverflow(fdp));
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_NOTIFY_LOAD_REPAIR_PATCH);
+            break;
+        }
+        case 22: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            parcel.WriteRemoteObject(nullptr);
+            parcel.WriteInt32(BuildIntegerOverflow(fdp));
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_NOTIFY_HOT_RELOAD_PAGE);
+            break;
+        }
+        case 23: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            parcel.WriteString(BuildMaliciousBundleName(fdp));
+            parcel.WriteRemoteObject(nullptr);
+            parcel.WriteInt32(BuildIntegerOverflow(fdp));
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_NOTIFY_UNLOAD_REPAIR_PATCH);
+            break;
+        }
+        case 24: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            ApplicationInfo appInfo;
+            parcel.WriteParcelable(&appInfo);
+            parcel.WriteString(BuildSpecialCharString(fdp));
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_UPDATE_APPLICATION_INFO_INSTALLED);
+            break;
+        }
+        case 25: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            FaultData faultData;
+            parcel.WriteParcelable(&faultData);
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_NOTIFY_FAULT);
+            break;
+        }
+        case 26: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            parcel.WriteInt32(BuildIntegerOverflow(fdp));
+            parcel.WriteUint64(fdp.ConsumeIntegral<uint64_t>());
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::APP_GC_STATE_CHANGE);
+            break;
+        }
+        case 27: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            parcel.WriteBool(fdp.ConsumeBool());
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_ATTACH_APP_DEBUG);
+            break;
+        }
+        case 28: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_DETACH_APP_DEBUG);
+            break;
+        }
+        case 29: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            JsHandleMapInfo jsHandleMapInfo;
+            parcel.WriteParcelable(&jsHandleMapInfo);
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_JSHANDLE_MAP_APPLICATION_TRANSACTION);
+            break;
+        }
+        case 30: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_DUMP_IPC_START);
+            break;
+        }
+        case 31: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_DUMP_IPC_STOP);
+            break;
+        }
+        case 32: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_DUMP_IPC_STAT);
+            break;
+        }
+        case 33: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_DUMP_FFRT);
+            break;
+        }
+        case 34: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            parcel.WriteString(BuildSpecialCharString(fdp));
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_DUMP_ARKWEB);
+            break;
+        }
+        case 35: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_CACHE_PROCESS);
+            break;
+        }
+        case 36: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            parcel.WriteBool(fdp.ConsumeBool());
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::WATCHDOG_BACKGROUND_STATUS_TRANSACTION);
+            break;
+        }
+        case 37: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            parcel.WriteUint64(fdp.ConsumeIntegral<uint64_t>());
+            parcel.WriteInt32(BuildIntegerOverflow(fdp));
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::ON_LOAD_ABILITY_FINISHED);
+            break;
+        }
+        case 38: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            AppUpdateInfo updateInfo;
+            parcel.WriteParcelable(&updateInfo);
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_UPDATE_WORK_PROCESS_INFO);
+            break;
+        }
+        case 39: {
+            parcel.WriteInterfaceToken(APP_SCHEDULER_INTERFACE_TOKEN);
+            actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_PRE_TEMPLATE_PROCESS_DEEP_FROZEN);
             break;
         }
         default:

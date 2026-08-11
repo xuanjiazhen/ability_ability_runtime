@@ -66,6 +66,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteString(FuzzUtil::GenStrcpyOverflowString(fdp, 256));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            OHOS::FuzzUtil::WriteUntrustedCallerData(parcel, fdp);
             break;
         case 3: {
             actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::STARTUP_RESIDENT_PROCESS);

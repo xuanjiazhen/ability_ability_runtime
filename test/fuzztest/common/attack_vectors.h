@@ -489,6 +489,59 @@ inline void WriteMaliciousAttackAware(MessageParcel &parcel, FuzzedDataProvider 
     parcel.WriteString(BuildOversizedString(fdp, maxStrLen));
     parcel.WriteBool(fdp.ConsumeBool());
 }
+// Build a client-supplied UID that should be ignored by server-side (semantic privilege escalation).
+inline int32_t BuildClientSuppliedUid(FuzzedDataProvider &fdp)
+{
+    static const int32_t privilegedUids[] = { 0, 1000, 1001, 9999, 0x7FFFFFFF, -1, 1 };
+    return privilegedUids[fdp.ConsumeIntegral<uint8_t>() % 7];
+}
+
+// Write untrusted caller data simulating cross-trust-boundary attacks.
+inline void WriteUntrustedCallerData(MessageParcel &parcel, FuzzedDataProvider &fdp,
+    size_t maxStrLen = DEFAULT_MAX_STR_LEN)
+{
+    parcel.WriteInt32(BuildClientSuppliedUid(fdp));
+    parcel.WriteInt32(BuildClientSuppliedUid(fdp));
+    parcel.WriteString(BuildSpecialCharString(fdp, maxStrLen));
+    parcel.WriteUint32(fdp.ConsumeIntegral<uint32_t>());
+    parcel.WriteString(BuildSpecialCharString(fdp, maxStrLen));
+    parcel.WriteBool(fdp.ConsumeBool());
+}
+
+// Write semantic privilege escalation data testing UID/PID verification bypass.
+inline void WriteSemanticPrivilegeEscalation(MessageParcel &parcel, FuzzedDataProvider &fdp,
+    size_t maxStrLen = DEFAULT_MAX_STR_LEN)
+{
+    parcel.WriteInt32(BuildClientSuppliedUid(fdp));
+    parcel.WriteInt32(0);
+    parcel.WriteUint32(0);
+    parcel.WriteString(BuildSpecialCharString(fdp, maxStrLen));
+    parcel.WriteBool(true);
+    parcel.WriteBool(true);
+    parcel.WriteString(BuildSpecialCharString(fdp, maxStrLen));
+}
+
+// Build non-IPC memory corruption data for direct function call fuzzing.
+inline std::vector<uint8_t> BuildNonIpcMemoryCorruption(FuzzedDataProvider &fdp, size_t targetBufSize)
+{
+    std::vector<uint8_t> data;
+    uint8_t pattern = fdp.ConsumeIntegral<uint8_t>() % 4;
+    switch (pattern) {
+        case 0:
+            data.assign(targetBufSize + 64, 0x41);
+            break;
+        case 1:
+            data.assign(targetBufSize, 0x42);
+            break;
+        case 2:
+            data.assign(targetBufSize / 2, 0x43);
+            break;
+        default:
+            data.assign(targetBufSize + 1, 0x44);
+            break;
+    }
+    return data;
+}
 } // namespace FuzzUtil
 } // namespace OHOS
 

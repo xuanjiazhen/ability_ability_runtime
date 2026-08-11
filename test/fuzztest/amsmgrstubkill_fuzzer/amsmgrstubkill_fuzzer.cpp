@@ -179,6 +179,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteBool(fdp.ConsumeBool());
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteString(FuzzUtil::BuildSpecialCharString(fdp));
+            OHOS::FuzzUtil::WriteUntrustedCallerData(parcel, fdp);
             break;
         }
         case 7: {
@@ -186,6 +187,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteString(FuzzUtil::BuildMaliciousBundleName(fdp));
             parcel.WriteInt32(FuzzUtil::BuildInvalidEnum(fdp, 100));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            OHOS::FuzzUtil::WriteSemanticPrivilegeEscalation(parcel, fdp);
             break;
         }
         case 8: {
@@ -233,6 +235,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             actualCode = static_cast<uint32_t>(IAmsMgr::Message::VERIFY_KILL_PROCESS_PERMISSION);
             parcel.WriteString(FuzzUtil::BuildMaliciousBundleName(fdp));
             OHOS::FuzzUtil::WriteMaliciousAttackAware(parcel, fdp);
+            OHOS::FuzzUtil::WriteSemanticPrivilegeEscalation(parcel, fdp);
             break;
         }
         default:

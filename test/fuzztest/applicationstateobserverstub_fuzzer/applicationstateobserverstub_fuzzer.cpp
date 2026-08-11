@@ -71,7 +71,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 
     parcel.WriteInterfaceToken(APPLICATIONSTATEOBSERVER_INTERFACE_TOKEN);
 
-    switch (code % 5) {
+    switch (code % 20) {
         case 0:
             actualCode = static_cast<uint32_t>(
                 IApplicationStateObserver::Message::TRANSACT_ON_FOREGROUND_APPLICATION_CHANGED);
@@ -98,6 +98,93 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
             actualCode = static_cast<uint32_t>(
                 IApplicationStateObserver::Message::TRANSACT_ON_PAGE_SHOW);
             FuzzUtil::WriteMaliciousPageStateData(parcel, fdp);
+            break;
+        case 5:
+            actualCode = static_cast<uint32_t>(
+                IApplicationStateObserver::Message::TRANSACT_ON_WINDOW_SHOW);
+            FuzzUtil::WriteMaliciousProcessData(parcel, fdp);
+            break;
+        case 6:
+            actualCode = static_cast<uint32_t>(
+                IApplicationStateObserver::Message::TRANSACT_ON_WINDOW_HIDDEN);
+            FuzzUtil::WriteMaliciousProcessData(parcel, fdp);
+            break;
+        case 7:
+            actualCode = static_cast<uint32_t>(
+                IApplicationStateObserver::Message::TRANSACT_ON_EXTENSION_STATE_CHANGED);
+            FuzzUtil::WriteMaliciousAbilityStateData(parcel, fdp);
+            break;
+        case 8:
+            actualCode = static_cast<uint32_t>(
+                IApplicationStateObserver::Message::TRANSACT_ON_APPLICATION_STATE_CHANGED);
+            FuzzUtil::WriteMaliciousAppStateData(parcel, fdp);
+            break;
+        case 9:
+            actualCode = static_cast<uint32_t>(
+                IApplicationStateObserver::Message::TRANSACT_ON_APP_STATE_CHANGED);
+            FuzzUtil::WriteMaliciousAppStateData(parcel, fdp);
+            break;
+        case 10:
+            actualCode = static_cast<uint32_t>(
+                IApplicationStateObserver::Message::TRANSACT_ON_PROCESS_REUSED);
+            FuzzUtil::WriteMaliciousProcessData(parcel, fdp);
+            break;
+        case 11:
+            actualCode = static_cast<uint32_t>(
+                IApplicationStateObserver::Message::TRANSACT_ON_APP_STARTED);
+            FuzzUtil::WriteMaliciousAppStateData(parcel, fdp);
+            break;
+        case 12:
+            actualCode = static_cast<uint32_t>(
+                IApplicationStateObserver::Message::TRANSACT_ON_APP_STOPPED);
+            FuzzUtil::WriteMaliciousAppStateData(parcel, fdp);
+            break;
+        case 13:
+            actualCode = static_cast<uint32_t>(
+                IApplicationStateObserver::Message::TRANSACT_ON_PROCESS_STATE_CHANGED);
+            FuzzUtil::WriteMaliciousProcessData(parcel, fdp);
+            break;
+        case 14:
+            actualCode = static_cast<uint32_t>(
+                IApplicationStateObserver::Message::TRANSACT_ON_PAGE_HIDE);
+            FuzzUtil::WriteMaliciousPageStateData(parcel, fdp);
+            break;
+        case 15:
+            actualCode = static_cast<uint32_t>(
+                IApplicationStateObserver::Message::TRANSACT_ON_APP_CACHE_STATE_CHANGED);
+            FuzzUtil::WriteMaliciousAppStateData(parcel, fdp);
+            break;
+        case 16:
+            actualCode = static_cast<uint32_t>(
+                IApplicationStateObserver::Message::TRANSACT_ON_PROCESS_BINDINGRELATION_CHANGED);
+            parcel.WriteString(FuzzUtil::BuildMaliciousBundleName(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteBool(fdp.ConsumeBool());
+            parcel.WriteInt32(FuzzUtil::BuildInvalidEnum(fdp, 20));
+            parcel.WriteInt32(FuzzUtil::BuildInvalidEnum(fdp, 20));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteString(FuzzUtil::BuildSpecialCharString(fdp));
+            parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
+            break;
+        case 17:
+            actualCode = static_cast<uint32_t>(
+                IApplicationStateObserver::Message::TRANSACT_ON_PROCESS_TYPE_CHANGED);
+            FuzzUtil::WriteMaliciousProcessData(parcel, fdp);
+            break;
+        case 18:
+            actualCode = static_cast<uint32_t>(
+                IApplicationStateObserver::Message::TRANSACT_ON_KEEP_ALIVE_STATE_CHANGED);
+            FuzzUtil::WriteMaliciousProcessData(parcel, fdp);
+            break;
+        case 19:
+            actualCode = static_cast<uint32_t>(
+                IApplicationStateObserver::Message::TRANSACT_ON_PRELOAD_PROCESS_STATE_CHANGED);
+            parcel.WriteBool(fdp.ConsumeBool());
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteString(FuzzUtil::BuildMaliciousBundleName(fdp));
             break;
         default:
             break;
