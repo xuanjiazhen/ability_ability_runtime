@@ -37,6 +37,8 @@
 #include "napi_common_want.h"
 #include "js_preload_ui_extension_callback_client.h"
 #include "js_ui_service_proxy.h"
+#include "ui_extension_servicehost_stub_impl.h"
+#include "js_uiservice_uiext_connection.h"
 
 using namespace testing;
 using namespace testing::ext;
