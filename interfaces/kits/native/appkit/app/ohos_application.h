@@ -272,6 +272,28 @@ public:
         return deduplicate_;
     }
 
+    /**
+     * @brief set the module-name -> HapModuleInfo map obtained at launch, so that later
+     *        AddAbilityStage(abilityRecord) can reuse it instead of re-querying BMS.
+     *
+     * @param hapModuleInfoMap module info map from the launch-time BundleInfo.
+     */
+    void SetHapModuleInfoMap(const std::map<std::string, std::shared_ptr<AppExecFwk::HapModuleInfo>> &hapModuleInfoMap)
+    {
+        std::lock_guard<std::mutex> lock(runtimeMutex_);
+        hapModuleInfoMap_ = hapModuleInfoMap;
+    }
+
+    /**
+     * @brief get the held HapModuleInfo by module name, nullptr if absent.
+     */
+    std::shared_ptr<AppExecFwk::HapModuleInfo> GetHapModuleInfoByModule(const std::string &moduleName) const
+    {
+        std::lock_guard<std::mutex> lock(runtimeMutex_);
+        auto iter = hapModuleInfoMap_.find(moduleName);
+        return (iter != hapModuleInfoMap_.end()) ? iter->second : nullptr;
+    }
+
 private:
     void UpdateAppContextResMgr(const Configuration &config);
     bool IsUpdateColorNeeded(Configuration &config, AbilityRuntime::SetLevel level);
@@ -344,6 +366,7 @@ private:
     mutable std::mutex runtimeMutex_;
     std::shared_ptr<Configuration> configuration_ = nullptr;
     std::map<int32_t, std::string> extensionTypeMap_;
+    std::map<std::string, std::shared_ptr<AppExecFwk::HapModuleInfo>> hapModuleInfoMap_;
     std::string entryLoadPath_ = "";
     bool deduplicate_ = false;
 };

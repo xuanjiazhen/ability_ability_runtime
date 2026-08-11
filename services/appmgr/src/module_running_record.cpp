@@ -50,6 +50,15 @@ void ModuleRunningRecord::Init(const HapModuleInfo &info, int32_t appIndex,
     appMgrServiceInner_ = appMgrService;
     appLifeCycleDeal_ = appLifeCycleDeal;
     owenState_ = ModuleRecordState::INITIALIZED_STATE;
+    // hold the module info obtained at load time; subsequent GetHapModuleInfo reads reuse it
+    std::lock_guard<ffrt::mutex> lock(abilitiesMutex_);
+    hapModuleInfo_ = std::make_shared<HapModuleInfo>(info);
+}
+
+void ModuleRunningRecord::ResetHapModuleInfo()
+{
+    std::lock_guard<ffrt::mutex> lock(abilitiesMutex_);
+    hapModuleInfo_.reset();
 }
 
 const std::string &ModuleRunningRecord::GetModuleName() const
@@ -377,6 +386,14 @@ void ModuleRunningRecord::SetModuleRecordState(const ModuleRecordState &state)
 
 void ModuleRunningRecord::GetHapModuleInfo(HapModuleInfo &info)
 {
+    {
+        std::lock_guard<ffrt::mutex> lock(abilitiesMutex_);
+        if (hapModuleInfo_ != nullptr) {
+            // return the copy held since Init; avoids re-querying BMS for the same module
+            info = *hapModuleInfo_;
+            return;
+        }
+    }
     if (appInfo_ == nullptr) {
         TAG_LOGW(AAFwkTag::APPMGR, "appInfo null");
         return;
@@ -410,7 +427,11 @@ void ModuleRunningRecord::GetHapModuleInfo(HapModuleInfo &info)
         }
     }
 
-    if (!found) {
+    if (found) {
+        // cache for subsequent reads within this module record's lifetime
+        std::lock_guard<ffrt::mutex> lock(abilitiesMutex_);
+        hapModuleInfo_ = std::make_shared<HapModuleInfo>(info);
+    } else {
         TAG_LOGW(AAFwkTag::APPMGR, "not found userId: %{public}d, bundleName: %{public}s, appIndex: %{public}d, "
             "name: %{public}s", userId, appInfo_->bundleName.c_str(), appIndex_, moduleName_.c_str());
     }

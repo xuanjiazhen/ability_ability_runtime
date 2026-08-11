@@ -261,6 +261,13 @@ ErrCode ScreenUnlockInterceptor::CheckInterceptionByConfig(const std::string &ex
 void ScreenUnlockInterceptor::QueryTargetAbilityInfo(const AbilityInterceptorParam &param,
     AppExecFwk::AbilityInfo &targetAbilityInfo)
 {
+    // cache-first: reuse the abilityInfo resolved earlier in this start chain when target matches
+    if (StartAbilityUtils::startAbilityInfo != nullptr &&
+        StartAbilityUtils::startAbilityInfo->abilityInfo.bundleName == param.want.GetBundleNameRef() &&
+        StartAbilityUtils::startAbilityInfo->abilityInfo.name == param.want.GetAbilityNameRef()) {
+        targetAbilityInfo = StartAbilityUtils::startAbilityInfo->abilityInfo;
+        return;
+    }
     auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "The bundleMgrHelper is nullptr.");

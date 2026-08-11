@@ -831,6 +831,7 @@ ohos_shared_library("appkit_manager_helper") {
     "c_utils:utils",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
+    "init:libbegetutil",
     "ipc:ipc_core",
     "json:nlohmann_json_static",
     "samgr:samgr_proxy",

@@ -87,6 +87,20 @@ bool MainElementUtils::IsMainUIAbility(const std::string &bundleName,
     return false;
 }
 
+bool MainElementUtils::IsMainUIAbility(const AppExecFwk::AbilityInfo &abilityInfo, int32_t userId)
+{
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN_LOG(bms, false, "bms nullptr");
+    AppExecFwk::HapModuleInfo hapModuleInfo;
+    if (IN_PROCESS_CALL(bms->GetHapModuleInfo(abilityInfo, hapModuleInfo))) {
+        // lightweight path: single module info, equivalent to the full-scan check for this ability
+        return hapModuleInfo.moduleType == AppExecFwk::ModuleType::ENTRY &&
+            !hapModuleInfo.mainElementName.empty() && hapModuleInfo.mainElementName == abilityInfo.name;
+    }
+    TAG_LOGW(AAFwkTag::ABILITYMGR, "GetHapModuleInfo failed, fallback to full bundleInfo query");
+    return IsMainUIAbility(abilityInfo.bundleName, abilityInfo.name, userId);
+}
+
 void MainElementUtils::SetMainUIAbilityKeepAliveFlag(bool isMainUIAbility,
     const std::string &bundleName, AbilityRuntime::LoadParam &loadParam)
 {

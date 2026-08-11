@@ -37,7 +37,9 @@ ErrCode AbilityJumpInterceptor::DoProcess(const AbilityInterceptorParam &param)
         TAG_LOGI(AAFwkTag::ABILITYMGR, "startup not foreground");
         return ERR_OK;
     }
-    bool isStartIncludeAtomicService = AbilityUtil::IsStartIncludeAtomicService(param.want, param.userId);
+    std::string callerBundleName;
+    bool isStartIncludeAtomicService = AbilityUtil::IsStartIncludeAtomicService(param.want, param.userId,
+        &callerBundleName);
     if (isStartIncludeAtomicService) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "startup atomic service");
         return ERR_OK;
@@ -62,7 +64,7 @@ ErrCode AbilityJumpInterceptor::DoProcess(const AbilityInterceptorParam &param)
         return ERR_OK;
     }
     AppExecFwk::AppJumpControlRule controlRule;
-    if (CheckControl(bundleMgrHelper, param.want, param.userId, controlRule)) {
+    if (CheckControl(bundleMgrHelper, param.want, param.userId, controlRule, callerBundleName)) {
 #ifdef SUPPORT_GRAPHICS
         TAG_LOGI(AAFwkTag::ABILITYMGR, "intercept app jump,caller:%{public}s, target:%{public}s",
             controlRule.callerPkg.c_str(), controlRule.targetPkg.c_str());
@@ -85,14 +87,19 @@ ErrCode AbilityJumpInterceptor::DoProcess(const AbilityInterceptorParam &param)
 }
 
 bool AbilityJumpInterceptor::CheckControl(std::shared_ptr<AppExecFwk::BundleMgrHelper> &bundleMgrHelper,
-    const Want &want, int32_t userId, AppExecFwk::AppJumpControlRule &controlRule)
+    const Want &want, int32_t userId, AppExecFwk::AppJumpControlRule &controlRule,
+    const std::string &callerBundleName)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    int callerUid = IPCSkeleton::GetCallingUid();
-    std::string callerBundleName;
-    auto result = IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callerUid, callerBundleName));
+    std::string callerName = callerBundleName;
+    ErrCode result = ERR_OK;
+    if (callerName.empty()) {
+        // not resolved earlier in this DoProcess, query once here
+        int callerUid = IPCSkeleton::GetCallingUid();
+        result = IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callerUid, callerName));
+    }
     const auto &targetBundleName = want.GetBundleNameRef();
-    controlRule.callerPkg = callerBundleName;
+    controlRule.callerPkg = callerName;
     controlRule.targetPkg = targetBundleName;
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "getBundleName failed");
@@ -117,7 +124,7 @@ bool AbilityJumpInterceptor::CheckControl(std::shared_ptr<AppExecFwk::BundleMgrH
         return false;
     }
 
-    if (IN_PROCESS_CALL(appControlMgr->GetAppJumpControlRule(callerBundleName, targetBundleName,
+    if (IN_PROCESS_CALL(appControlMgr->GetAppJumpControlRule(callerName, targetBundleName,
         userId, controlRule)) != ERR_OK) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "no jump rule");
         return true;

@@ -15,6 +15,7 @@
 
 #include "main_thread.h"
 
+#include <cinttypes>
 #include <malloc.h>
 #include <new>
 #include <regex>
@@ -40,6 +41,7 @@
 #include "application_data_manager.h"
 #include "application_env_impl.h"
 #include "bundle_mgr_proxy.h"
+#include "bundle_mgr_helper.h"
 #include "hitrace_meter.h"
 #include "procinfo.h"
 #ifdef SUPPORT_CHILD_PROCESS
@@ -161,6 +163,33 @@ constexpr int32_t DEFAULT_SLEEP_TIME = 100000;
 constexpr int32_t REPORT_TEMPLATE_PROCESS_READY_DELAY_TIME = 2000;
 constexpr int32_t SNAPSHOT_START = 0;
 constexpr int32_t SNAPSHOT_FAILURE = 1;
+
+// Debug-only BMS query counter for one launch in the app process; enabled by
+// persist.ability_runtime.bms_query_count. No extra BMS query is made.
+class BmsQueryCountGuard {
+public:
+    explicit BmsQueryCountGuard(const std::string &bundleName) : bundleName_(bundleName)
+    {
+        auto helper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+        if (helper != nullptr) {
+            helper->SyncBmsQueryCountSwitch();
+            enabled_ = helper->GetBmsQueryCountSwitch();
+            begin_ = helper->GetBmsQueryCount();
+        }
+    }
+    ~BmsQueryCountGuard()
+    {
+        auto helper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+        if (enabled_ && helper != nullptr) {
+            TAG_LOGD(AAFwkTag::APPKIT, "bmsQueryCount in HandleLaunchApplication: %{public}" PRIu64
+                ", bundleName: %{public}s", helper->GetBmsQueryCount() - begin_, bundleName_.c_str());
+        }
+    }
+private:
+    std::string bundleName_;
+    uint64_t begin_ = 0;
+    bool enabled_ = false;
+};
 
 enum class SignalType {
     SIGNAL_JSHEAP_OLD,
@@ -1569,6 +1598,12 @@ CJEventReportInfo MainThread::CreateCjEventReportInfo(const std::string &bundleN
 
 bool MainThread::GetBundleAndHspListForUpdateRuntime(BundleInfo &bundleInfo, std::string bundleName, HspList &hspList)
 {
+    if (launchBundleInfo_ != nullptr && launchHspListReady_ && launchBundleInfo_->name == bundleName) {
+        // reuse the data queried in HandleLaunchApplication of this launch
+        bundleInfo = *launchBundleInfo_;
+        hspList = launchHspList_;
+        return true;
+    }
     std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     contextDeal->SetApplicationInfo(applicationInfo_);
     contextDeal->SetBundleCodePath(applicationInfo_->codePath);
@@ -1661,6 +1696,7 @@ EtsEnv::ETSUncaughtExceptionInfo MainThread::CreateEtsExceptionInfo(const std::s
 void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, const Configuration &config)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    BmsQueryCountGuard bmsQueryCountGuard(appLaunchData.GetApplicationInfo().bundleName);
     ForkAllHelper::HandleDebugAppLaunchDelay(appLaunchData, isDeveloperMode_);
     FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "HandleLaunchApplication begin");
     ffrt::submit([]() {}, ffrt::task_attr().qos(LAUNCH_TASK_QOS));
@@ -1695,6 +1731,8 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         TAG_LOGE(AAFwkTag::APPKIT, "get bundleInfo failed");
         return;
     }
+    // hold the launch-time BundleInfo for reuse within this launch (e.g. runtime update check)
+    launchBundleInfo_ = std::make_shared<BundleInfo>(bundleInfo);
     auto tmpWatchdog = watchdog_;
     bool isSystemApp = bundleInfo.applicationInfo.isSystemApp;
     if (tmpWatchdog != nullptr) {
@@ -1775,9 +1813,10 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     TAG_LOGD(AAFwkTag::APPKIT, "stageBased:%{public}d moduleJson:%{public}d size:%{public}zu",
         isStageBased, moduelJson, bundleInfo.hapModuleInfos.size());
 
-    // create contextImpl
+    // create contextImpl; share the single ApplicationInfo instance held by MainThread
     std::shared_ptr<AbilityRuntime::ContextImpl> contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
-    contextImpl->SetApplicationInfo(std::make_shared<ApplicationInfo>(appInfo));
+    contextImpl->SetApplicationInfo(applicationInfo_ != nullptr ? applicationInfo_
+                                                                : std::make_shared<ApplicationInfo>(appInfo));
     contextImpl->SetProcessName(processInfo.GetProcessName());
     std::shared_ptr<AbilityRuntime::ApplicationContext> applicationContext =
         AbilityRuntime::ApplicationContext::GetInstance();
@@ -1803,6 +1842,9 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         AppExecFwk::GetDependentBundleInfoFlag::GET_ALL_DEPENDENT_BUNDLE_INFO);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "Get base shared bundle infos failed: %{public}d", ret);
+    } else {
+        launchHspList_ = hspList;
+        launchHspListReady_ = true;
     }
 
     std::map<std::string, std::string> pkgContextInfoJsonStringMap;
@@ -1824,12 +1866,20 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         }
     }
 
+    std::map<std::string, std::shared_ptr<AppExecFwk::HapModuleInfo>> hapModuleInfoMap;
+    std::vector<std::pair<std::string, std::string>> moduleHapPathList;
     for (auto hapModuleInfo : bundleInfo.hapModuleInfos) {
         pkgContextInfoJsonStringMap[hapModuleInfo.moduleName] = hapModuleInfo.hapPath;
+        hapModuleInfoMap[hapModuleInfo.moduleName] = std::make_shared<AppExecFwk::HapModuleInfo>(hapModuleInfo);
+        moduleHapPathList.emplace_back(hapModuleInfo.moduleName, hapModuleInfo.hapPath);
         if (hapModuleInfo.deduplicateHar) {
             application_->SetDeduplicateHar(hapModuleInfo.deduplicateHar);
         }
     }
+    // let AddAbilityStage(abilityRecord) reuse the launch-time module info instead of re-querying BMS
+    application_->SetHapModuleInfoMap(hapModuleInfoMap);
+    // let the JS runtime resolve module paths from the launch-time list instead of re-querying BMS
+    AbilityRuntime::JsRuntime::SetModuleHapPathList(moduleHapPathList);
 
     GetNativeLibPath(bundleInfo, hspList, appLibPaths);
     TAG_LOGD(AAFwkTag::APPKIT, "the application isSystemApp: %{public}d", isSystemApp);
@@ -2662,6 +2712,11 @@ void MainThread::HandleUpdateApplicationInfoInstalled(const ApplicationInfo &app
         TAG_LOGE(AAFwkTag::APPKIT, "null application_");
         return;
     }
+    // drop launch-time held data so later reuse paths fall back to fresh BMS queries
+    launchBundleInfo_.reset();
+    launchHspList_.clear();
+    launchHspListReady_ = false;
+    AbilityRuntime::JsRuntime::SetModuleHapPathList({});
     application_->UpdateApplicationInfoInstalled(appInfo);
 
     auto &runtime = application_->GetRuntime();

@@ -33,6 +33,23 @@ namespace OHOS {
 namespace AbilityRuntime {
 using IBundleMgr = AppExecFwk::IBundleMgr;
 
+std::vector<std::pair<std::string, std::string>> JsModuleReader::hapPathList_;
+
+void JsModuleReader::SetHapPathMap(const std::vector<std::pair<std::string, std::string>> &hapPathList)
+{
+    hapPathList_ = hapPathList;
+}
+
+std::string JsModuleReader::GetHapPathFromMap(const std::string &moduleName)
+{
+    for (const auto &item : hapPathList_) {
+        if (item.first == moduleName) {
+            return item.second;
+        }
+    }
+    return "";
+}
+
 JsModuleReader::JsModuleReader(const std::string& bundleName, const std::string& hapPath, bool isFormRender)
     : JsModuleSearcher(bundleName), isFormRender_(isFormRender)
 {
@@ -257,6 +274,13 @@ std::string JsModuleReader::GetPresetAppHapPath(const std::string& inputPath, co
         return presetAppHapPath;
     }
     if (inputPath.find_first_of("/") == inputPath.find_last_of("/")) {
+        // reuse the launch-time module path map when available
+        std::string mappedPath = GetHapPathFromMap(moduleName);
+        if (!mappedPath.empty()) {
+            presetAppHapPath = mappedPath;
+            needFindPluginHsp = false;
+            return presetAppHapPath;
+        }
         AppExecFwk::AbilityInfo abilityInfo;
         abilityInfo.bundleName = bundleName;
         abilityInfo.package = moduleName;
@@ -275,6 +299,13 @@ std::string JsModuleReader::GetPresetAppHapPath(const std::string& inputPath, co
 
 void JsModuleReader::GetHapPathList(const std::string &bundleName, std::vector<std::string> &hapList)
 {
+    if (!hapPathList_.empty()) {
+        // reuse the launch-time module path list (self bundle only, order preserved)
+        for (const auto &item : hapPathList_) {
+            hapList.emplace_back(item.second);
+        }
+        return;
+    }
     auto systemAbilityManagerClient = OHOS::SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManagerClient) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "null systemAbilityManagerClient");

@@ -35,6 +35,8 @@ public:
 
     ErrCode GetBundleInfoV9(
         const std::string &bundleName, int32_t flags, BundleInfo &bundleInfo, int32_t userId);
+
+    bool GetHapModuleInfo(const AbilityInfo &abilityInfo, HapModuleInfo &hapModuleInfo);
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

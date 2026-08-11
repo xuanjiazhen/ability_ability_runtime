@@ -441,6 +441,13 @@ void AppRunningRecord::UpdateApplicationInfoInstalled(const ApplicationInfo &app
         TAG_LOGE(AAFwkTag::APPMGR, "null appLifeCycleDeal_");
         return;
     }
+    // drop held module infos so the next read re-queries BMS with updated data
+    auto moduleRecordList = GetAllModuleRecord();
+    for (const auto &item : moduleRecordList) {
+        if (item) {
+            item->ResetHapModuleInfo();
+        }
+    }
     appLifeCycleDeal_->UpdateApplicationInfoInstalled(appInfo, moduleName);
 }
 

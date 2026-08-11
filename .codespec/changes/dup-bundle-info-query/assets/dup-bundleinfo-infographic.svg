@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1260" font-family="system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'HarmonyOS Sans SC', sans-serif">
+  <title>应用启动链路包信息重复查询治理 — 背景、方案与修改点</title>
+  <desc>信息图：背景痛点（单次冷启动 BMS 同步查询 8~12 次、109 处直连查询点、ApplicationInfo 多份拷贝）、四大治理方案（点状去重、持有复用、查询降载、可观测打点）、按 AMS/AppMgr/应用进程三侧列出的修改点，以及成效指标（查询次数降至 ≤5 次，降幅 ≥40%，零 API 变更）。</desc>
+
+  <!-- page plane -->
+  <rect width="1600" height="1260" fill="#f9f9f7"/>
+
+  <!-- ============ header ============ -->
+  <rect x="64" y="72" width="8" height="64" rx="4" fill="#2a78d6"/>
+  <text x="92" y="102" font-size="34" font-weight="700" fill="#0b0b0b">应用启动链路包信息重复查询治理</text>
+  <text x="92" y="130" font-size="16" fill="#52514e">ability_runtime 启动性能优化 · SDD 全流程交付（proposal / spec / design / plan / review） · 分支 feat/dup-bundle-info-query</text>
+
+  <!-- ============ section 1: 背景 ============ -->
+  <text x="64" y="196" font-size="18" font-weight="700" fill="#0b0b0b">01 背景｜启动链路上的重复查询与重复存储</text>
+
+  <!-- tile 1 -->
+  <g>
+    <rect x="64" y="216" width="340" height="152" rx="12" fill="#fcfcfb" stroke="#e1e0d9"/>
+    <rect x="64" y="216" width="340" height="6" rx="3" fill="#2a78d6"/>
+    <text x="92" y="282" font-size="44" font-weight="700" fill="#0b0b0b">8~12 <tspan font-size="20" font-weight="400">次</tspan></text>
+    <text x="92" y="314" font-size="15" font-weight="600" fill="#0b0b0b">单次冷启动 BMS 同步查询</text>
+    <text x="92" y="338" font-size="13" fill="#52514e">AMS + AppMgr + 应用进程三侧合计</text>
+  </g>
+  <!-- tile 2 -->
+  <g>
+    <rect x="428" y="216" width="340" height="152" rx="12" fill="#fcfcfb" stroke="#e1e0d9"/>
+    <rect x="428" y="216" width="340" height="6" rx="3" fill="#eb6834"/>
+    <text x="456" y="282" font-size="44" font-weight="700" fill="#0b0b0b">109 <tspan font-size="20" font-weight="400">处</tspan></text>
+    <text x="456" y="314" font-size="15" font-weight="600" fill="#0b0b0b">BMS 查询直连调用点</text>
+    <text x="456" y="338" font-size="13" fill="#52514e">无统一缓存，仅有 thread_local 点状补丁</text>
+  </g>
+  <!-- tile 3 -->
+  <g>
+    <rect x="792" y="216" width="340" height="152" rx="12" fill="#fcfcfb" stroke="#e1e0d9"/>
+    <rect x="792" y="216" width="340" height="6" rx="3" fill="#1baf7a"/>
+    <text x="820" y="282" font-size="44" font-weight="700" fill="#0b0b0b">≥4 <tspan font-size="20" font-weight="400">份</tspan></text>
+    <text x="820" y="314" font-size="15" font-weight="600" fill="#0b0b0b">ApplicationInfo 单次启动拷贝</text>
+    <text x="820" y="338" font-size="13" fill="#52514e">另有 HapModuleInfo「丢弃后回查」</text>
+  </g>
+  <!-- tile 4 -->
+  <g>
+    <rect x="1156" y="216" width="340" height="152" rx="12" fill="#fcfcfb" stroke="#e1e0d9"/>
+    <rect x="1156" y="216" width="340" height="6" rx="3" fill="#4a3aa7"/>
+    <text x="1184" y="282" font-size="44" font-weight="700" fill="#0b0b0b">3 <tspan font-size="20" font-weight="400">次</tspan></text>
+    <text x="1184" y="314" font-size="15" font-weight="600" fill="#0b0b0b">同一 HapModuleInfo 冷启动获取</text>
+    <text x="1184" y="338" font-size="13" fill="#52514e">其中 2 次为应用进程真实跨进程 IPC</text>
+  </g>
+
+  <!-- ============ section 2: 方案 ============ -->
+  <text x="64" y="436" font-size="18" font-weight="700" fill="#0b0b0b">02 方案｜复用优先 · 不引入新缓存层 · 全部带回退</text>
+
+  <!-- strategy card 1 -->
+  <g>
+    <rect x="64" y="456" width="340" height="190" rx="12" fill="#fcfcfb" stroke="#e1e0d9"/>
+    <rect x="88" y="480" width="30" height="30" rx="15" fill="#2a78d6"/>
+    <text x="103" y="501" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+    <text x="130" y="501" font-size="17" font-weight="700" fill="#0b0b0b">点状去重</text>
+    <text x="88" y="534" font-size="13.5" fill="#52514e">同一函数/同一拦截器内只查一次，</text>
+    <text x="88" y="556" font-size="13.5" fill="#52514e">缓存优先入口复用本次启动已解析结果</text>
+    <text x="88" y="592" font-size="12.5" fill="#898781">拦截器链 · VerifyPermission · caller 信息链</text>
+    <text x="88" y="614" font-size="12.5" fill="#898781">debug 启动双查消除</text>
+  </g>
+  <!-- strategy card 2 -->
+  <g>
+    <rect x="428" y="456" width="340" height="190" rx="12" fill="#fcfcfb" stroke="#e1e0d9"/>
+    <rect x="452" y="480" width="30" height="30" rx="15" fill="#eb6834"/>
+    <text x="467" y="501" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+    <text x="494" y="501" font-size="17" font-weight="700" fill="#0b0b0b">持有复用</text>
+    <text x="452" y="534" font-size="13.5" fill="#52514e">查到即持有、沿调用链传递，消除</text>
+    <text x="452" y="556" font-size="13.5" fill="#52514e">「手里有过又扔掉再查」的结构性重复</text>
+    <text x="452" y="592" font-size="12.5" fill="#898781">ModuleRunningRecord 持有模块信息</text>
+    <text x="452" y="614" font-size="12.5" fill="#898781">应用进程启动数据映射共享</text>
+  </g>
+  <!-- strategy card 3 -->
+  <g>
+    <rect x="792" y="456" width="340" height="190" rx="12" fill="#fcfcfb" stroke="#e1e0d9"/>
+    <rect x="816" y="480" width="30" height="30" rx="15" fill="#1baf7a"/>
+    <text x="831" y="501" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+    <text x="858" y="501" font-size="17" font-weight="700" fill="#0b0b0b">查询降载</text>
+    <text x="816" y="534" font-size="13.5" fill="#52514e">全包查询降为单模块 / 轻量 flag，</text>
+    <text x="816" y="556" font-size="13.5" fill="#52514e">按需取用，大结构体深拷贝最小化</text>
+    <text x="816" y="592" font-size="12.5" fill="#898781">mainElement 判断 · 检查接口轻量化</text>
+    <text x="816" y="614" font-size="12.5" fill="#898781">uid 查询替代全量 BundleInfo</text>
+  </g>
+  <!-- strategy card 4 -->
+  <g>
+    <rect x="1156" y="456" width="340" height="190" rx="12" fill="#fcfcfb" stroke="#e1e0d9"/>
+    <rect x="1180" y="480" width="30" height="30" rx="15" fill="#4a3aa7"/>
+    <text x="1195" y="501" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
+    <text x="1222" y="501" font-size="17" font-weight="700" fill="#0b0b0b">可观测打点</text>
+    <text x="1180" y="534" font-size="13.5" fill="#52514e">三侧查询计数打点，优化前后可对比，</text>
+    <text x="1180" y="556" font-size="13.5" fill="#52514e">收益以实测数据说话</text>
+    <text x="1180" y="592" font-size="12.5" fill="#898781">persist.ability_runtime.bms_query_count</text>
+    <text x="1180" y="614" font-size="12.5" fill="#898781">开关 + hilog 三观测点</text>
+  </g>
+
+  <!-- principles strip -->
+  <rect x="64" y="668" width="1432" height="44" rx="8" fill="#cde2fb"/>
+  <text x="800" y="696" font-size="14.5" font-weight="600" fill="#104281" text-anchor="middle">设计红线：零 API 变更 · 行为语义零变化 · 每个复用点带回退 · 不新增缓存层（缓存应做在包管理侧）· 复用维度 (bundleName, appIndex, userId)</text>
+
+  <!-- ============ section 3: 修改点 ============ -->
+  <text x="64" y="776" font-size="18" font-weight="700" fill="#0b0b0b">03 修改点｜按启动链路三侧（9 个 commit）</text>
+
+  <!-- column AMS -->
+  <g>
+    <rect x="64" y="796" width="460" height="300" rx="12" fill="#fcfcfb" stroke="#e1e0d9"/>
+    <rect x="64" y="796" width="460" height="40" rx="12" fill="#2a78d6"/>
+    <rect x="64" y="824" width="460" height="12" fill="#2a78d6"/>
+    <text x="92" y="822" font-size="15.5" font-weight="700" fill="#ffffff">AMS ｜启动调度与拦截器链</text>
+    <g font-size="13.5" fill="#0b0b0b">
+      <circle cx="96" cy="868" r="3.5" fill="#2a78d6"/><text x="112" y="873">拦截器统一走缓存优先入口（jump/锁屏/管控）</text>
+      <circle cx="96" cy="908" r="3.5" fill="#2a78d6"/><text x="112" y="913">jump 拦截器内 caller 包名一次解析多处复用</text>
+      <circle cx="96" cy="948" r="3.5" fill="#2a78d6"/><text x="112" y="953">VerifyPermission 同函数去重，校验语义不变</text>
+      <circle cx="96" cy="988" r="3.5" fill="#2a78d6"/><text x="112" y="993">mainElement 判断：全包查询 → 单模块查询</text>
+      <circle cx="96" cy="1028" r="3.5" fill="#2a78d6"/><text x="112" y="1033">caller 信息链 GetNameForUid 复用 + uid 轻查</text>
+    </g>
+    <text x="92" y="1074" font-size="12" fill="#898781">ability_util.h · 各 interceptor · update_caller_info_util · main_element_utils</text>
+  </g>
+  <!-- column AppMgr -->
+  <g>
+    <rect x="570" y="796" width="460" height="300" rx="12" fill="#fcfcfb" stroke="#e1e0d9"/>
+    <rect x="570" y="796" width="460" height="40" rx="12" fill="#eb6834"/>
+    <rect x="570" y="824" width="460" height="12" fill="#eb6834"/>
+    <text x="598" y="822" font-size="15.5" font-weight="700" fill="#ffffff">AppMgr ｜进程孵化与加载</text>
+    <g font-size="13.5" fill="#0b0b0b">
+      <circle cx="602" cy="868" r="3.5" fill="#eb6834"/><text x="618" y="873">ModuleRunningRecord 持有 HapModuleInfo</text>
+      <circle cx="602" cy="908" r="3.5" fill="#eb6834"/><text x="618" y="913">attach 后 AddAbilityStage 回查清零（含更新失效）</text>
+      <circle cx="602" cy="948" r="3.5" fill="#eb6834"/><text x="618" y="953">CreatNewStartMsg 复用同函数预查结果</text>
+      <circle cx="602" cy="988" r="3.5" fill="#eb6834"/><text x="618" y="993">LoadAbility 复用进程分支仅查必需项</text>
+      <circle cx="602" cy="1028" r="3.5" fill="#eb6834"/><text x="618" y="1033">检查类接口轻量 flag 查询（分身路径不变）</text>
+    </g>
+    <text x="598" y="1074" font-size="12" fill="#898781">module_running_record · app_running_record · app_mgr_service_inner</text>
+  </g>
+  <!-- column app process -->
+  <g>
+    <rect x="1076" y="796" width="460" height="300" rx="12" fill="#fcfcfb" stroke="#e1e0d9"/>
+    <rect x="1076" y="796" width="460" height="40" rx="12" fill="#1baf7a"/>
+    <rect x="1076" y="824" width="460" height="12" fill="#1baf7a"/>
+    <text x="1104" y="822" font-size="15.5" font-weight="700" fill="#ffffff">应用进程 ｜框架与运行时（真实跨进程 IPC）</text>
+    <g font-size="13.5" fill="#0b0b0b">
+      <circle cx="1108" cy="868" r="3.5" fill="#1baf7a"/><text x="1124" y="873">AddAbilityStage 复用启动期模块映射，免 IPC</text>
+      <circle cx="1108" cy="908" r="3.5" fill="#1baf7a"/><text x="1124" y="913">ApplicationInfo 单一智能指针共享（3 份→1 份）</text>
+      <circle cx="1108" cy="948" r="3.5" fill="#1baf7a"/><text x="1124" y="953">JS 模块路径解析复用启动列表（保序）</text>
+      <circle cx="1108" cy="988" r="3.5" fill="#1baf7a"/><text x="1124" y="993">混合 arkTSMode 运行时检查不再重查</text>
+      <circle cx="1108" cy="1028" r="3.5" fill="#1baf7a"/><text x="1124" y="1033">应用更新后持有数据统一失效回退</text>
+    </g>
+    <text x="1104" y="1074" font-size="12" fill="#898781">main_thread · ohos_application · context_impl · js_module_reader</text>
+  </g>
+
+  <!-- ============ section 4: 成效 ============ -->
+  <rect x="64" y="1130" width="1432" height="96" rx="12" fill="#0b0b0b"/>
+  <text x="104" y="1172" font-size="15" font-weight="600" fill="#c3c2b7">成效（打点可实测验证）</text>
+  <text x="104" y="1206" font-size="26" font-weight="700" fill="#ffffff">8~12 次 → ≤5 次 <tspan font-size="16" font-weight="600" fill="#0ca30c">　冷启动 BMS 同步查询降幅 ≥40%</tspan></text>
+  <g font-size="14" fill="#c3c2b7">
+    <text x="880" y="1168">API 变更</text>
+    <text x="880" y="1206" font-size="24" font-weight="700" fill="#ffffff">0</text>
+    <text x="1020" y="1168">应用进程 ApplicationInfo 拷贝</text>
+    <text x="1020" y="1206" font-size="24" font-weight="700" fill="#ffffff">3 → 1</text>
+    <text x="1260" y="1168">新增单测用例</text>
+    <text x="1260" y="1206" font-size="24" font-weight="700" fill="#ffffff">7 条</text>
+  </g>
+</svg>

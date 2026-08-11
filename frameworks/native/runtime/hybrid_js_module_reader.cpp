@@ -22,6 +22,7 @@
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "iservice_registry.h"
+#include "js_module_reader.h"
 #include "js_runtime_utils.h"
 #include "singleton.h"
 
@@ -255,6 +256,13 @@ std::string HybridJsModuleReader::GetPresetAppHapPath(const std::string& inputPa
         return presetAppHapPath;
     }
     if (inputPath.find_first_of("/") == inputPath.find_last_of("/")) {
+        // reuse the launch-time module path list when available
+        std::string mappedPath = JsModuleReader::GetHapPathFromMap(moduleName);
+        if (!mappedPath.empty()) {
+            presetAppHapPath = mappedPath;
+            needFindPluginHsp = false;
+            return presetAppHapPath;
+        }
         AppExecFwk::BundleInfo bundleInfo;
         auto getInfoResult = bundleMgrHelper->GetBundleInfoForSelf(static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::
             GET_BUNDLE_INFO_WITH_HAP_MODULE), bundleInfo);

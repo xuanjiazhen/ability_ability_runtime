@@ -47,7 +47,8 @@ namespace AbilityUtil {
     return MyFlag::retParseJumpInterceptorWant_;
 }
 
-[[maybe_unused]] static bool IsStartIncludeAtomicService(const Want &want, const int32_t userId)
+[[maybe_unused]] static bool IsStartIncludeAtomicService(const Want &want, const int32_t userId,
+    std::string *callerBundleName = nullptr)
 {
     return MyFlag::isStartIncludeAtomicService_;
 }

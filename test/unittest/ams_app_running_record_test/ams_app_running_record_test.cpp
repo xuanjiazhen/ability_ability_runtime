@@ -3532,5 +3532,35 @@ HWTEST_F(AmsAppRunningRecordTest, SetIsCreateFromImage_ShouldReturnTrueWhenInput
     appRecord->SetIsCreateFromImage(inputState);
     EXPECT_EQ(appRecord->GetIsCreateFromImage(), inputState);
 }
+
+/*
+ * Feature: AMS
+ * Function: ModuleRunningRecord
+ * SubFunction: GetHapModuleInfo
+ * FunctionPoints: return the HapModuleInfo held since Init without re-querying BMS.
+ * CaseDescription: AddModule with a HapModuleInfo, then read it back via the module record.
+ */
+HWTEST_F(AmsAppRunningRecordTest, ModuleRunningRecord_GetHapModuleInfo_Reuse_001, TestSize.Level1)
+{
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->name = GetTestAppName();
+    appInfo->bundleName = GetTestAppName();
+    auto record = GetTestAppRunningRecord();
+    EXPECT_TRUE(record != nullptr);
+
+    HapModuleInfo hapModuleInfo;
+    hapModuleInfo.moduleName = "entry";
+    hapModuleInfo.hapPath = "/data/entry.hap";
+    record->AddModule(appInfo, nullptr, nullptr, hapModuleInfo, nullptr, 0);
+
+    auto moduleRecord = record->GetModuleRecordByModuleName(GetTestAppName(), "entry");
+    ASSERT_TRUE(moduleRecord != nullptr);
+
+    // served from the held copy; the BMS mock is not expected to be called here
+    HapModuleInfo out;
+    moduleRecord->GetHapModuleInfo(out);
+    EXPECT_EQ(out.moduleName, "entry");
+    EXPECT_EQ(out.hapPath, "/data/entry.hap");
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

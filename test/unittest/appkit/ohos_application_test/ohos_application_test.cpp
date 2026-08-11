@@ -2644,5 +2644,28 @@ HWTEST_F(OHOSApplicationTest, AppExecFwk_OHOSApplicationTest_AddAbilityStage_Pre
 
     GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_AddAbilityStage_PreloadScenario_0100 end.";
 }
+
+/**
+ * @tc.name: AppExecFwk_OHOSApplicationTest_HapModuleInfoMap_0100
+ * @tc.desc: Verify SetHapModuleInfoMap/GetHapModuleInfoByModule hit and miss.
+ */
+HWTEST_F(OHOSApplicationTest, AppExecFwk_OHOSApplicationTest_HapModuleInfoMap_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_HapModuleInfoMap_0100 start.";
+
+    std::map<std::string, std::shared_ptr<AppExecFwk::HapModuleInfo>> hapModuleInfoMap;
+    auto entryInfo = std::make_shared<AppExecFwk::HapModuleInfo>();
+    entryInfo->moduleName = "entry";
+    entryInfo->hapPath = "/data/entry.hap";
+    hapModuleInfoMap["entry"] = entryInfo;
+    ohosApplication_->SetHapModuleInfoMap(hapModuleInfoMap);
+
+    auto hit = ohosApplication_->GetHapModuleInfoByModule("entry");
+    ASSERT_NE(hit, nullptr);
+    EXPECT_EQ(hit->hapPath, "/data/entry.hap");
+    EXPECT_EQ(ohosApplication_->GetHapModuleInfoByModule("absent"), nullptr);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_HapModuleInfoMap_0100 end.";
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

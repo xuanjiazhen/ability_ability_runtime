@@ -287,6 +287,72 @@ HWTEST_F(MainElementUtilsTest, IsMainUIAbility_004, TestSize.Level1)
 
 /*
  * Feature: MainElementUtils
+ * Function: IsMainUIAbility (lightweight overload)
+ * SubFunction: NA
+ * FunctionPoints:MainElementUtils IsMainUIAbility
+ * EnvConditions: NA
+ * CaseDescription: GetHapModuleInfo hit, entry module main element matches
+ */
+HWTEST_F(MainElementUtilsTest, IsMainUIAbility_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsMainUIAbility_005 start");
+    AppExecFwk::AbilityInfo abilityInfo;
+    abilityInfo.bundleName = FOUND_TARGET_ABILITY;
+    abilityInfo.name = FOUND_TARGET_ABILITY;
+    abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    int32_t userId = 100;
+    MyStatus::GetInstance().bundleMgrHelper_ = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    bool res = MainElementUtils::IsMainUIAbility(abilityInfo, userId);
+    EXPECT_TRUE(res);
+    TAG_LOGI(AAFwkTag::TEST, "IsMainUIAbility_005 end");
+}
+
+/*
+ * Feature: MainElementUtils
+ * Function: IsMainUIAbility (lightweight overload)
+ * SubFunction: NA
+ * FunctionPoints:MainElementUtils IsMainUIAbility
+ * EnvConditions: NA
+ * CaseDescription: GetHapModuleInfo hit, non-entry module
+ */
+HWTEST_F(MainElementUtilsTest, IsMainUIAbility_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsMainUIAbility_006 start");
+    AppExecFwk::AbilityInfo abilityInfo;
+    abilityInfo.bundleName = NOT_ENTRY_MODULE;
+    abilityInfo.name = NOT_ENTRY_MODULE;
+    abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    int32_t userId = 100;
+    MyStatus::GetInstance().bundleMgrHelper_ = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    bool res = MainElementUtils::IsMainUIAbility(abilityInfo, userId);
+    EXPECT_FALSE(res);
+    TAG_LOGI(AAFwkTag::TEST, "IsMainUIAbility_006 end");
+}
+
+/*
+ * Feature: MainElementUtils
+ * Function: IsMainUIAbility (lightweight overload)
+ * SubFunction: NA
+ * FunctionPoints:MainElementUtils IsMainUIAbility
+ * EnvConditions: NA
+ * CaseDescription: GetHapModuleInfo failed, fallback to full bundleInfo query
+ */
+HWTEST_F(MainElementUtilsTest, IsMainUIAbility_007, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsMainUIAbility_007 start");
+    AppExecFwk::AbilityInfo abilityInfo;
+    abilityInfo.bundleName = NOT_FOUND_TARGET_BUNDLE;
+    abilityInfo.name = "abilityName";
+    abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    int32_t userId = 100;
+    MyStatus::GetInstance().bundleMgrHelper_ = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    bool res = MainElementUtils::IsMainUIAbility(abilityInfo, userId);
+    EXPECT_FALSE(res);
+    TAG_LOGI(AAFwkTag::TEST, "IsMainUIAbility_007 end");
+}
+
+/*
+ * Feature: MainElementUtils
  * Function: SetMainUIAbilityKeepAliveFlag
  * SubFunction: NA
  * FunctionPoints:MainElementUtils SetMainUIAbilityKeepAliveFlag

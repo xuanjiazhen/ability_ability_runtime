@@ -65,5 +65,24 @@ ErrCode BundleMgrHelper::GetBundleInfoV9(
     }
     return ERR_OK;
 }
+
+bool BundleMgrHelper::GetHapModuleInfo(const AbilityInfo &abilityInfo, HapModuleInfo &hapModuleInfo)
+{
+    TAG_LOGI(AAFwkTag::TEST, "mock GetHapModuleInfo");
+    if (abilityInfo.bundleName == NOT_FOUND_TARGET_BUNDLE) {
+        return false;
+    }
+    if (abilityInfo.bundleName == NOT_ENTRY_MODULE) {
+        hapModuleInfo.moduleType = AppExecFwk::ModuleType::UNKNOWN;
+        hapModuleInfo.mainElementName = NOT_ENTRY_MODULE;
+        return true;
+    }
+    if (abilityInfo.bundleName == FOUND_TARGET_ABILITY) {
+        hapModuleInfo.moduleType = AppExecFwk::ModuleType::ENTRY;
+        hapModuleInfo.mainElementName = FOUND_TARGET_ABILITY;
+        return true;
+    }
+    return true;
+}
 } // namespace AppExecFwk
 } // namespace OHOS

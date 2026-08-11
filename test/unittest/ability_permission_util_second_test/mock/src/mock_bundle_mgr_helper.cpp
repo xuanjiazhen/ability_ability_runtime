@@ -398,5 +398,8 @@ ErrCode BundleMgrHelper::UnregisterPluginEventCallback(sptr<IBundleEventCallback
 {
     return ERR_OK;
 }
+void BundleMgrHelper::SyncBmsQueryCountSwitch()
+{
+}
 } // namespace AppExecFwk
 } // namespace OHOS

@@ -794,6 +794,9 @@ private:
     int newThreadId_ = -1;
     std::shared_ptr<ApplicationInfo> applicationInfo_ = nullptr;
     std::shared_ptr<ProcessInfo> processInfo_ = nullptr;
+    std::shared_ptr<BundleInfo> launchBundleInfo_ = nullptr;  // queried at launch, reused within this launch
+    HspList launchHspList_;
+    bool launchHspListReady_ = false;
     std::shared_ptr<OHOSApplication> application_ = nullptr;
     std::shared_ptr<ApplicationImpl> applicationImpl_ = nullptr;
     static std::shared_ptr<MainHandler> mainHandler_;

@@ -903,6 +903,11 @@ bool JsRuntime::InitLoop(bool isStage)
     return jsEnv_->InitLoop(isStage);
 }
 
+void JsRuntime::SetModuleHapPathList(const std::vector<std::pair<std::string, std::string>> &hapPathList)
+{
+    JsModuleReader::SetHapPathMap(hapPathList);
+}
+
 void JsRuntime::SetAppLibPath(const AppLibPathMap& appLibPaths, const bool& isSystemApp)
 {
     TAG_LOGD(AAFwkTag::JSRUNTIME, "Set library path");

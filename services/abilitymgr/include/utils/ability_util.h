@@ -27,6 +27,7 @@
 #include "hilog_tag_wrapper.h"
 #include "in_process_call_wrapper.h"
 #include "ipc_skeleton.h"
+#include "start_ability_utils.h"
 #include "permission_verification.h"
 #include "sa_mgr_client.h"
 #include "system_ability_definition.h"
@@ -258,18 +259,13 @@ static constexpr int64_t MICROSECONDS = 1000000;    // MICROSECONDS mean 10^6 mi
     return false;
 }
 
-[[maybe_unused]] static bool IsStartIncludeAtomicService(const Want &want, const int32_t userId)
+[[maybe_unused]] static bool IsStartIncludeAtomicService(const Want &want, const int32_t userId,
+    std::string *callerBundleName = nullptr)
 {
-    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
-    if (bundleMgrHelper == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetBundleManagerHelper failed");
-        return false;
-    }
-
     std::string targetBundleName = want.GetBundle();
     AppExecFwk::ApplicationInfo targetAppInfo;
-    bool getTargetResult = IN_PROCESS_CALL(bundleMgrHelper->GetApplicationInfo(targetBundleName,
-        AppExecFwk::ApplicationFlag::GET_BASIC_APPLICATION_INFO, userId, targetAppInfo));
+    // cache-first: reuse the abilityInfo resolved earlier in this start chain when bundleName matches
+    bool getTargetResult = StartAbilityUtils::GetApplicationInfo(targetBundleName, userId, targetAppInfo);
     if (!getTargetResult) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Get targetAppInfo failed");
         return false;
@@ -279,16 +275,25 @@ static constexpr int64_t MICROSECONDS = 1000000;    // MICROSECONDS mean 10^6 mi
         return true;
     }
 
-    int callerUid = IPCSkeleton::GetCallingUid();
-    std::string callerBundleName;
-    ErrCode err = IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callerUid, callerBundleName));
-    if (err != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Get bms failed");
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetBundleManagerHelper failed");
         return false;
     }
+    std::string callerName = (callerBundleName != nullptr) ? *callerBundleName : "";
+    if (callerName.empty()) {
+        int callerUid = IPCSkeleton::GetCallingUid();
+        ErrCode err = IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callerUid, callerName));
+        if (err != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Get bms failed");
+            return false;
+        }
+        if (callerBundleName != nullptr) {
+            *callerBundleName = callerName;
+        }
+    }
     AppExecFwk::ApplicationInfo callerAppInfo;
-    bool getCallerResult = IN_PROCESS_CALL(bundleMgrHelper->GetApplicationInfo(callerBundleName,
-        AppExecFwk::ApplicationFlag::GET_BASIC_APPLICATION_INFO, userId, callerAppInfo));
+    bool getCallerResult = StartAbilityUtils::GetApplicationInfo(callerName, userId, callerAppInfo);
     if (!getCallerResult) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Get callerAppInfo failed");
         return false;

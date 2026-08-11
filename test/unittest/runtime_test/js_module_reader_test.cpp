@@ -138,5 +138,30 @@ HWTEST_F(JsModuleReaderTest, GetPresetAppHapPath_0100, TestSize.Level2)
     auto realHapPath = jsModuleReader.GetPresetAppHapPath(inputPath, bundleName, needFindPluginHsp, errorMsg);
     EXPECT_EQ(realHapPath, "inputPath/inputPath2");
 }
+
+/**
+ * @tc.name: HapPathMap_Reuse_0100
+ * @tc.desc: Verify the launch-time module path list is reused by SetHapPathMap/GetHapPathFromMap.
+ */
+HWTEST_F(JsModuleReaderTest, HapPathMap_Reuse_0100, TestSize.Level2)
+{
+    std::vector<std::pair<std::string, std::string>> hapPathList = {
+        {"entry", "/data/entry.hap"},
+        {"feature", "/data/feature.hap"},
+    };
+    JsModuleReader::SetHapPathMap(hapPathList);
+    EXPECT_EQ(JsModuleReader::GetHapPathFromMap("entry"), "/data/entry.hap");
+    EXPECT_EQ(JsModuleReader::GetHapPathFromMap("feature"), "/data/feature.hap");
+    EXPECT_EQ(JsModuleReader::GetHapPathFromMap("absent"), "");
+
+    std::vector<std::string> hapList;
+    JsModuleReader::GetHapPathList("bundleName", hapList);
+    EXPECT_EQ(hapList.size(), 2u);
+    EXPECT_EQ(hapList[0], "/data/entry.hap");
+    EXPECT_EQ(hapList[1], "/data/feature.hap");
+
+    // reset to empty so the static map does not leak into other tests
+    JsModuleReader::SetHapPathMap({});
+}
 }  // namespace AAFwk
 }  // namespace OHOS

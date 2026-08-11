@@ -48,5 +48,8 @@ ErrCode BundleMgrHelper::GetNameForUid(const int32_t uid, std::string &name)
     return AAFwk::MyStatus::GetInstance().getNameForUidFlag_;
 }
 
+void BundleMgrHelper::SyncBmsQueryCountSwitch()
+{
+}
 } // namespace AppExecFwk
 } // namespace OHOS
