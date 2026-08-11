@@ -116,6 +116,7 @@
 #include "start_ability_utils.h"
 #include "start_options_utils.h"
 #include "startup_util.h"
+#include "system_recovery_mode_policy.h"
 #ifdef ENABLE_CLONE_FOR_ACCOUNT
 #include "clone_for_account_util.h"
 #endif
@@ -564,9 +565,25 @@ void AbilityManagerService::InitBlockAllAppStartInterceptorCallbacks()
         std::shared_ptr<AbilityRecord> targetRecord;
         return aams->IsAbilityStarted(req, targetRecord, userId);
     });
-    blockAllAppStartInterceptor_->SetAllowStartFunc([](const std::string &bundleName) {
+    blockAllAppStartInterceptor_->SetAllowStartFunc([](const AbilityRequest &request) {
         auto &policy = SystemRecoveryModePolicy::GetInstance();
-        return policy.IsEnabled() && policy.IsRecoveryEssentialBundle(bundleName);
+        if (!policy.IsEnabled()) {
+            return false;
+        }
+        if (policy.IsRecoveryEssentialBundle(request.abilityInfo.bundleName)) {
+            return true;
+        }
+
+        // Backup SA 使用 ConnectAbility 启动用户选择的 BackupExtensionAbility。
+        // 这里只放行已经解析为 BACKUP 类型的目标，普通 Ability 和普通应用启动仍然拦截。
+        if (request.abilityInfo.extensionAbilityType != AppExecFwk::ExtensionAbilityType::BACKUP ||
+            !PermissionVerification::GetInstance()->IsSACall()) {
+            return false;
+        }
+
+        // 复用 BackupExtensionAbility 现有的 SA 连接权限，避免新增一套调用者判定。
+        return ExtensionPermissionsUtil::CheckSAPermission(
+            AppExecFwk::ExtensionAbilityType::BACKUP);
     });
     blockAllAppStartInterceptor_->SetStrictBlockFunc([]() {
         return SystemRecoveryModePolicy::GetInstance().IsEnabled();
@@ -6150,7 +6167,12 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
     AbilityInterceptorParam interceptorParam = AbilityInterceptorParam(checkedWant, 0, GetValidUserId(userId), false,
         nullptr, shouldBlockFunc);
     interceptorParam.fromConnect = true;
-    auto blockResult = ExecuteBlockAllAppStartInterceptor();
+    // Backup SA 通过 ConnectAbility 连接用户选择的 BackupExtension。恢复模式下原生 SA
+    // 暂缓无目标信息的早期门禁，待 ConnectLocalAbility 解析出真实 AbilityInfo 后再判断；
+    // 普通应用仍在这里直接被拒绝，避免为应用调用者扩大解析窗口。
+    const bool deferRecoveryBlock = SystemRecoveryModePolicy::GetInstance().IsEnabled() &&
+        PermissionVerification::GetInstance()->IsSACall() && !CheckIfOperateRemote(checkedWant);
+    auto blockResult = deferRecoveryBlock ? ERR_OK : ExecuteBlockAllAppStartInterceptor();
     result = interceptorExecuter_ == nullptr ? ERR_INVALID_VALUE :
         interceptorExecuter_->DoProcess(interceptorParam);
     ErrCode finalResult = (blockResult != ERR_OK) ? blockResult : result;
@@ -6562,6 +6584,11 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
     }
 
     abilityRequest.userId = validUserId;
+    result = ExecuteBlockAllAppStartInterceptor(abilityRequest, validUserId);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "blockAllAppStartInterceptor failed: %{public}d", result);
+        return result;
+    }
     if (!HandleExecuteSAInterceptor(want, callerToken, abilityRequest, result)) {
         return result;
     }

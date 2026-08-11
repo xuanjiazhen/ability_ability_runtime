@@ -71,9 +71,9 @@ ErrCode BlockAllAppStartInterceptor::Execute(AbilityRequest& abilityRequest, int
         return ERR_OK;
     }
 
-    // 恢复模式复用现有全局启动拦截器，白名单应用在拦截前直接放行。
+    // 恢复模式复用现有全局启动拦截器，白名单应用和受控备份扩展在拦截前直接放行。
     const auto &bundleName = abilityRequest.abilityInfo.bundleName;
-    if (allowStartFunc_ && allowStartFunc_(bundleName)) {
+    if (allowStartFunc_ && allowStartFunc_(abilityRequest)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "allow app in current system policy, bundle=%{public}s", bundleName.c_str());
         return ERR_OK;
     }
@@ -97,6 +97,8 @@ ErrCode BlockAllAppStartInterceptor::Execute(AbilityRequest& abilityRequest, int
 
 ErrCode BlockAllAppStartInterceptor::DoProcess(const AbilityInterceptorParam &param)
 {
+    // DoProcess 执行时目标 Ability 可能尚未解析，不能在这里根据 Want 参数放行 BackupExtension；
+    // 受控备份例外只在 Execute(AbilityRequest&) 中对已解析的真实目标进行判断。
     if (param.shouldBlockAllAppStartFunc_ == nullptr) {
         TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "shouldBlockAllAppStartFunc_ is nullptr");
         return ERR_INVALID_VALUE;
