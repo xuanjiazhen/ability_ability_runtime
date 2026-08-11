@@ -232,6 +232,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
         case 14: {
             actualCode = static_cast<uint32_t>(IAmsMgr::Message::VERIFY_KILL_PROCESS_PERMISSION);
             parcel.WriteString(FuzzUtil::BuildMaliciousBundleName(fdp));
+            OHOS::FuzzUtil::WriteMaliciousAttackAware(parcel, fdp);
             break;
         }
         default:

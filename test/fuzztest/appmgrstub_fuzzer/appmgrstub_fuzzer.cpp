@@ -79,8 +79,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
         }
         case 4: {
             actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_CONFIGURATION);
-            Configuration config;
-            parcel.WriteParcelable(&config);
+            OHOS::FuzzUtil::WriteMaliciousConfiguration(parcel, fdp);
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             break;
         }
@@ -113,6 +112,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             if (flag) {
                 parcel.WriteRemoteObject(nullptr);
             }
+            OHOS::FuzzUtil::WriteMaliciousFaultData(parcel, fdp);
             break;
         }
         default:

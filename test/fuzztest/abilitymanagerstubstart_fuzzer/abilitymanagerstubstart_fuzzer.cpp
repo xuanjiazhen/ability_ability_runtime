@@ -75,6 +75,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
         case 2: {
             actualCode = static_cast<uint32_t>(AbilityManagerInterfaceCode::START_EXTENSION_ABILITY);
             FuzzUtil::WriteMaliciousWant(parcel, fdp);
+            OHOS::FuzzUtil::WriteMaliciousExtensionRunningInfo(parcel, fdp);
             bool hasCaller = fdp.ConsumeBool();
             parcel.WriteBool(hasCaller);
             if (hasCaller) {

@@ -75,7 +75,9 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
         case 0:
             actualCode = static_cast<uint32_t>(
                 IApplicationStateObserver::Message::TRANSACT_ON_FOREGROUND_APPLICATION_CHANGED);
-            FuzzUtil::WriteMaliciousAppStateData(parcel, fdp);
+            FuzzUtil::WriteMaliciousAppStateDataPhased(parcel, fdp,
+                fdp.ConsumeBool() ? OHOS::FuzzUtil::PHASE_BEFORE_SERIALIZE
+                                   : OHOS::FuzzUtil::PHASE_AFTER_DESERIALIZE);
             break;
         case 1:
             actualCode = static_cast<uint32_t>(
