@@ -2998,5 +2998,110 @@ HWTEST_F(ModObjDispatcherComplexTypeTest, Dedup_MapStringKey_SameContent, TestSi
     ModObjDispatcherComplexTypeManager::MapRelease(&map);
 }
 
+// ==================== Review-alert regression tests ====================
+
+// Issue 11: array size beyond MAX_CONTAINER_SIZE must be rejected (DoS/OOM hardening).
+HWTEST_F(ModObjDispatcherComplexTypeTest, ArrayCreate_SizeOverLimit, TestSize.Level1)
+{
+    auto ti = MakeI32TypeInfo();
+    OH_AbilityRuntime_ModObjDispatcher_ArrayHandle handle = nullptr;
+    auto ret = ModObjDispatcherComplexTypeManager::ArrayCreate(
+        &ti, ModObjDispatcherComplexTypeManager::MAX_CONTAINER_SIZE + 1, &handle);
+    EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    EXPECT_EQ(handle, nullptr);
+}
+
+// Issue 5: arbitrarily deep C TypeInfo chain must be bounded, not stack-overflow.
+HWTEST_F(ModObjDispatcherComplexTypeTest, FromCTypeInfo_DeepNesting_ReturnsNull, TestSize.Level1)
+{
+    const int depth = 70; // exceeds MAX_TYPE_DEPTH(64)
+    std::vector<OH_AbilityRuntime_ModObjDispatcher_TypeInfo> nodes(depth);
+    for (int i = 0; i < depth - 1; ++i) {
+        nodes[i].vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
+        nodes[i].u.pElementType = &nodes[i + 1];
+    }
+    nodes[depth - 1].vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
+    EXPECT_EQ(MoTypeInfo::FromCTypeInfo(&nodes[0]), nullptr);
+}
+
+// Issue 5: nesting under the limit must still succeed (sanity check).
+HWTEST_F(ModObjDispatcherComplexTypeTest, FromCTypeInfo_NestingUnderLimit_Success, TestSize.Level1)
+{
+    const int depth = 10;
+    std::vector<OH_AbilityRuntime_ModObjDispatcher_TypeInfo> nodes(depth);
+    for (int i = 0; i < depth - 1; ++i) {
+        nodes[i].vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
+        nodes[i].u.pElementType = &nodes[i + 1];
+    }
+    nodes[depth - 1].vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
+    auto info = MoTypeInfo::FromCTypeInfo(&nodes[0]);
+    ASSERT_NE(info, nullptr);
+    EXPECT_EQ(info->vt, OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR);
+}
+
+// Issue 5: circular reference in C TypeInfo must be detected, not infinite-recurse.
+HWTEST_F(ModObjDispatcherComplexTypeTest, FromCTypeInfo_CircularReference_ReturnsNull, TestSize.Level1)
+{
+    OH_AbilityRuntime_ModObjDispatcher_TypeInfo a = {};
+    OH_AbilityRuntime_ModObjDispatcher_TypeInfo b = {};
+    a.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
+    a.u.pElementType = &b;
+    b.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
+    b.u.pElementType = &a; // cycle a -> b -> a
+    EXPECT_EQ(MoTypeInfo::FromCTypeInfo(&a), nullptr);
+}
+
+// Issue 6: Variant_Clear must release VT_IPC_REMOTE_PROXY (exercises the new cleanup branch;
+// leak itself is validated under ASan, this guards the branch compiles and runs without crashing).
+HWTEST_F(ModObjDispatcherComplexTypeTest, Variant_Clear_IPCRemoteProxy, TestSize.Level1)
+{
+    OH_AbilityRuntime_ModObjDispatcher_Variant v = {};
+    v.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_IPC_REMOTE_PROXY;
+    v.u.premoteProxyVal = new OHIPCRemoteProxy();
+    v.u.premoteProxyVal->remote = nullptr;
+    ModObjDispatcherComplexTypeManager::Variant_Clear(&v);
+    EXPECT_EQ(v.vt, OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_EMPTY);
+}
+
+// Issue 6: Variant_Clear must release VT_IPC_REMOTE_STUB.
+HWTEST_F(ModObjDispatcherComplexTypeTest, Variant_Clear_IPCRemoteStub, TestSize.Level1)
+{
+    OH_AbilityRuntime_ModObjDispatcher_Variant v = {};
+    v.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_IPC_REMOTE_STUB;
+    v.u.premoteStubVal = new OHIPCRemoteStub();
+    v.u.premoteStubVal->remote = nullptr;
+    ModObjDispatcherComplexTypeManager::Variant_Clear(&v);
+    EXPECT_EQ(v.vt, OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_EMPTY);
+}
+
+// Issue 2: a second dispatcher registering its own struct metadata must not wipe the first's.
+HWTEST_F(ModObjDispatcherComplexTypeTest, RegisterStructMetadata_MultiDispatcherCoexist, TestSize.Level1)
+{
+    auto registerNamed = [](const char* structName, const char* fieldName,
+                             OH_AbilityRuntime_ModObjDispatcher_ValueType vt) {
+        std::vector<MoStructMeta> structs;
+        MoStructMeta sm;
+        sm.name = structName;
+        MoStructFieldMeta f;
+        f.name = fieldName;
+        f.typeInfo = std::make_shared<MoTypeInfo>();
+        f.typeInfo->vt = vt;
+        sm.fields.push_back(f);
+        structs.push_back(sm);
+        ModObjDispatcherComplexTypeManager::RegisterStructMetadata(structs);
+    };
+    registerNamed("CoexistA", "aField", OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32);
+    registerNamed("CoexistB", "bField", OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING);
+
+    std::vector<std::string> aFields;
+    EXPECT_TRUE(ModObjDispatcherComplexTypeManager::GetStructFieldNames("CoexistA", &aFields));
+    EXPECT_EQ(aFields.size(), 1u);
+    EXPECT_EQ(aFields[0], "aField");
+    std::vector<std::string> bFields;
+    EXPECT_TRUE(ModObjDispatcherComplexTypeManager::GetStructFieldNames("CoexistB", &bFields));
+    EXPECT_EQ(bFields.size(), 1u);
+    EXPECT_EQ(bFields[0], "bField");
+}
+
 } // namespace AbilityRuntime
 } // namespace OHOS

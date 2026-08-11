@@ -1372,3 +1372,70 @@ HWTEST_F(MoDispatcherParamCodecTest, MarshalCallRequest_MultiParamTypeMismatch, 
     auto ret = ModObjDispatcherParamCodec::MarshalCallRequest(meta, &inputParams, parcel);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_TYPE_MISMATCH);
 }
+
+// Issue 3: container size from untrusted IPC reply beyond MAX_CONTAINER_SIZE must be rejected.
+// Exercised via the public UnmarshalCallResult entry point (ReadRawValue is private).
+HWTEST_F(MoDispatcherParamCodecTest, UnmarshalCallResult_ArraySizeOverLimit, TestSize.Level1)
+{
+    auto retType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_ARRAY);
+    retType->pElementType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32);
+    MoMethodMeta meta = MakeMethodMeta({}, retType);
+
+    MessageParcel reply;
+    reply.WriteInt32(0);     // method error code
+    reply.WriteInt32(70000); // array size > MAX_CONTAINER_SIZE(65536)
+
+    OH_AbilityRuntime_ModObjDispatcher_Variant result = {};
+    (void)memset_s(&result, sizeof(result), 0, sizeof(result));
+    EXPECT_EQ(ModObjDispatcherParamCodec::UnmarshalCallResult(meta, reply, &result, nullptr),
+        ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
+}
+
+HWTEST_F(MoDispatcherParamCodecTest, UnmarshalCallResult_VectorSizeOverLimit, TestSize.Level1)
+{
+    auto retType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR);
+    retType->pElementType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32);
+    MoMethodMeta meta = MakeMethodMeta({}, retType);
+
+    MessageParcel reply;
+    reply.WriteInt32(0);     // method error code
+    reply.WriteInt32(70000); // vector size > MAX_CONTAINER_SIZE(65536)
+
+    OH_AbilityRuntime_ModObjDispatcher_Variant result = {};
+    (void)memset_s(&result, sizeof(result), 0, sizeof(result));
+    EXPECT_EQ(ModObjDispatcherParamCodec::UnmarshalCallResult(meta, reply, &result, nullptr),
+        ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
+}
+
+HWTEST_F(MoDispatcherParamCodecTest, UnmarshalCallResult_SetSizeOverLimit, TestSize.Level1)
+{
+    auto retType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET);
+    retType->pElementType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32);
+    MoMethodMeta meta = MakeMethodMeta({}, retType);
+
+    MessageParcel reply;
+    reply.WriteInt32(0);     // method error code
+    reply.WriteInt32(70000); // set size > MAX_CONTAINER_SIZE(65536)
+
+    OH_AbilityRuntime_ModObjDispatcher_Variant result = {};
+    (void)memset_s(&result, sizeof(result), 0, sizeof(result));
+    EXPECT_EQ(ModObjDispatcherParamCodec::UnmarshalCallResult(meta, reply, &result, nullptr),
+        ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
+}
+
+HWTEST_F(MoDispatcherParamCodecTest, UnmarshalCallResult_MapSizeOverLimit, TestSize.Level1)
+{
+    auto retType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP);
+    retType->mapKeyType = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
+    retType->pMapValueType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32);
+    MoMethodMeta meta = MakeMethodMeta({}, retType);
+
+    MessageParcel reply;
+    reply.WriteInt32(0);     // method error code
+    reply.WriteInt32(70000); // map size > MAX_CONTAINER_SIZE(65536)
+
+    OH_AbilityRuntime_ModObjDispatcher_Variant result = {};
+    (void)memset_s(&result, sizeof(result), 0, sizeof(result));
+    EXPECT_EQ(ModObjDispatcherParamCodec::UnmarshalCallResult(meta, reply, &result, nullptr),
+        ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
+}

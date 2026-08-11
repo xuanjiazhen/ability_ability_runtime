@@ -15,9 +15,11 @@
 
 #include <gtest/gtest.h>
 #include <cstring>
+#include <memory>
 #include <vector>
 
 #include "modular_object_dispatcher.h"
+#include "mo_dispatcher_metadata_manager.h"
 #include "mo_dispatcher_types.h"
 #include "mo_dispatcher_complex_type_manager.h"
 
@@ -505,14 +507,32 @@ HWTEST_F(MoDispatcherCapiTest, TypeDescriptor_GetMethodParamType_NullParams_3000
     EXPECT_EQ(OH_AbilityRuntime_TypeDescriptor_GetMethodParamType(
         nullptr, "iface", "method", 0, &typeInfo),
         ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    // A descriptor with a non-null metadataManager so the downstream null-param checks
+    // (interface/method/paramType) are actually reached rather than the null-handle guard.
+    OH_AbilityRuntime_ModularObjectDispatcher_TypeDescriptor td{};
+    td.metadataManager = std::make_shared<OHOS::AbilityRuntime::ModObjDispatcherMetadataManager>();
     EXPECT_EQ(OH_AbilityRuntime_TypeDescriptor_GetMethodParamType(
-        reinterpret_cast<OH_AbilityRuntime_ModObjDispatcher_TypeDescriptorHandle>(0x1), nullptr, "method", 0, &typeInfo),
+        &td, nullptr, "method", 0, &typeInfo),
         ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
     EXPECT_EQ(OH_AbilityRuntime_TypeDescriptor_GetMethodParamType(
-        reinterpret_cast<OH_AbilityRuntime_ModObjDispatcher_TypeDescriptorHandle>(0x1), "iface", nullptr, 0, &typeInfo),
+        &td, "iface", nullptr, 0, &typeInfo),
         ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
     EXPECT_EQ(OH_AbilityRuntime_TypeDescriptor_GetMethodParamType(
-        reinterpret_cast<OH_AbilityRuntime_ModObjDispatcher_TypeDescriptorHandle>(0x1), "iface", "method", 0, nullptr),
+        &td, "iface", "method", 0, nullptr),
+        ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+}
+
+/**
+ * @tc.name: TypeDescriptor_GetMethodParamType_NullMetadataManager_3050
+ * @tc.desc: A descriptor whose metadataManager is null must return PARAM_INVALID (Issue 7,
+ *           must not dereference the null shared_ptr and crash).
+ */
+HWTEST_F(MoDispatcherCapiTest, TypeDescriptor_GetMethodParamType_NullMetadataManager_3050, TestSize.Level1)
+{
+    OH_AbilityRuntime_ModObjDispatcher_TypeInfo typeInfo = {};
+    OH_AbilityRuntime_ModularObjectDispatcher_TypeDescriptor td{}; // metadataManager defaults to null
+    EXPECT_EQ(OH_AbilityRuntime_TypeDescriptor_GetMethodParamType(
+        &td, "iface", "method", 0, &typeInfo),
         ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
 }
 
@@ -672,11 +692,26 @@ HWTEST_F(MoDispatcherCapiTest, TypeDescriptor_GetStructFieldCount_NullParams_390
     uint32_t count = 0;
     EXPECT_EQ(OH_AbilityRuntime_TypeDescriptor_GetStructFieldCount(nullptr, "MyStruct", &count),
         ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
-    EXPECT_EQ(OH_AbilityRuntime_TypeDescriptor_GetStructFieldCount(
-        reinterpret_cast<OH_AbilityRuntime_ModObjDispatcher_TypeDescriptorHandle>(0x1), nullptr, &count),
+    // A descriptor with a non-null metadataManager so the downstream null-param checks
+    // (structName/out count) are actually reached.
+    OH_AbilityRuntime_ModularObjectDispatcher_TypeDescriptor td{};
+    td.metadataManager = std::make_shared<OHOS::AbilityRuntime::ModObjDispatcherMetadataManager>();
+    EXPECT_EQ(OH_AbilityRuntime_TypeDescriptor_GetStructFieldCount(&td, nullptr, &count),
         ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
-    EXPECT_EQ(OH_AbilityRuntime_TypeDescriptor_GetStructFieldCount(
-        reinterpret_cast<OH_AbilityRuntime_ModObjDispatcher_TypeDescriptorHandle>(0x1), "MyStruct", nullptr),
+    EXPECT_EQ(OH_AbilityRuntime_TypeDescriptor_GetStructFieldCount(&td, "MyStruct", nullptr),
+        ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+}
+
+/**
+ * @tc.name: TypeDescriptor_GetStructFieldCount_NullMetadataManager_3950
+ * @tc.desc: A descriptor whose metadataManager is null must return PARAM_INVALID (Issue 10,
+ *           must not dereference the null shared_ptr and crash).
+ */
+HWTEST_F(MoDispatcherCapiTest, TypeDescriptor_GetStructFieldCount_NullMetadataManager_3950, TestSize.Level1)
+{
+    uint32_t count = 0;
+    OH_AbilityRuntime_ModularObjectDispatcher_TypeDescriptor td{}; // metadataManager defaults to null
+    EXPECT_EQ(OH_AbilityRuntime_TypeDescriptor_GetStructFieldCount(&td, "MyStruct", &count),
         ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
 }
 

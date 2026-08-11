@@ -756,5 +756,51 @@ HWTEST_F(MoDispatcherMetadataTest, ParseMetadata_InterfaceIdlType_8700, TestSize
     })"), ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 }
 
+// ---- Issue 1: array size upper-bound & recursion-depth hardening ----
+
+// size beyond MAX_CONTAINER_SIZE must be rejected (input validation against untrusted tlb.json).
+HWTEST_F(MoDispatcherMetadataTest, ParseMetadata_ArraySizeOverLimit_8800, TestSize.Level1)
+{
+    ModObjDispatcherMetadataManager m;
+    EXPECT_EQ(m.ParseMetadata(R"({
+        "interfaces":[{"name":"I","memberId":300,"interface_type":1,"methods":[
+            {"name":"M","memberId":301,"code":1,"return_type":{"type":"void"},
+             "parameters":[{"name":"p","memberId":302,
+                "type_info":{"type":"array","value_type":{"type":"i32"},
+                    "size":70000}}]}
+        ]}]
+    })"), ABILITY_RUNTIME_ERROR_CODE_METADATA_INVALID);
+}
+
+// size > UINT32_MAX would make the old get<uint32_t>() throw out_of_range (-> std::terminate);
+// it must now be rejected cleanly without throwing.
+HWTEST_F(MoDispatcherMetadataTest, ParseMetadata_ArraySizeOverUint32Max_8900, TestSize.Level1)
+{
+    ModObjDispatcherMetadataManager m;
+    EXPECT_EQ(m.ParseMetadata(R"({
+        "interfaces":[{"name":"I","memberId":300,"interface_type":1,"methods":[
+            {"name":"M","memberId":301,"code":1,"return_type":{"type":"void"},
+             "parameters":[{"name":"p","memberId":302,
+                "type_info":{"type":"array","value_type":{"type":"i32"},
+                    "size":4294967296}}]}
+        ]}]
+    })"), ABILITY_RUNTIME_ERROR_CODE_METADATA_INVALID);
+}
+
+// Arbitrarily deep type nesting from untrusted metadata must be bounded, not stack-overflow.
+HWTEST_F(MoDispatcherMetadataTest, ParseMetadata_DeeplyNestedType_9000, TestSize.Level1)
+{
+    const int depth = 70; // exceeds MAX_TYPE_DEPTH(64)
+    std::string typeInfo = R"({"type":"i32"})";
+    for (int i = 0; i < depth; ++i) {
+        typeInfo = std::string(R"({"type":"vector","value_type":)") + typeInfo + "}";
+    }
+    std::string json = std::string(R"({"interfaces":[{"name":"I","memberId":300,"interface_type":1,"methods":[)")
+        + R"({"name":"M","memberId":301,"code":1,"return_type":{"type":"void"},)"
+        + R"( "parameters":[{"name":"p","memberId":302,"type_info":)" + typeInfo + R"(}]}]}]})";
+    ModObjDispatcherMetadataManager m;
+    EXPECT_EQ(m.ParseMetadata(json), ABILITY_RUNTIME_ERROR_CODE_METADATA_INVALID);
+}
+
 } // namespace AbilityRuntime
 } // namespace OHOS
