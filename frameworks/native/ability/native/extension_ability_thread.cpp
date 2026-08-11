@@ -84,6 +84,7 @@ const std::map<AppExecFwk::ExtensionAbilityType, std::string> UI_EXTENSION_NAME_
 };
 
 std::shared_ptr<AppExecFwk::EventRunner> ExtensionAbilityThread::contentEmbedEventRunner_ = nullptr;
+std::once_flag ExtensionAbilityThread::contentEmbedOnceFlag_;
 
 ExtensionAbilityThread::ExtensionAbilityThread() : extensionImpl_(nullptr), currentExtension_(nullptr) {}
 
@@ -283,24 +284,20 @@ void ExtensionAbilityThread::HandleNativeExtensionAttach(
     const std::string &abilityName)
 {
     TAG_LOGD(AAFwkTag::EXT, "HandleNativeExtensionAttach");
-    if (contentEmbedEventRunner_ != nullptr) {
-        runner_ = contentEmbedEventRunner_;
-        abilityHandler_ = std::make_shared<AppExecFwk::AbilityHandler>(runner_);
-        TAG_LOGD(AAFwkTag::EXT, "Reusing existing Content Embed EventRunner");
-    } else {
-        runner_ = AppExecFwk::EventRunner::Create(abilityName + "_CONTENT_EMBED");
-        if (runner_ == nullptr) {
-            TAG_LOGE(AAFwkTag::EXT, "Failed to create Content Embed EventRunner");
-            return;
-        }
-        abilityHandler_ = std::make_shared<AppExecFwk::AbilityHandler>(runner_);
-        if (abilityHandler_ == nullptr) {
-            TAG_LOGE(AAFwkTag::EXT, "Failed to create Content Embed AbilityHandler");
-            return;
-        }
-        contentEmbedEventRunner_ = runner_;
-        TAG_LOGI(AAFwkTag::EXT, "Created new Content Embed EventRunner");
+    std::call_once(contentEmbedOnceFlag_, [&abilityName]() {
+        contentEmbedEventRunner_ = AppExecFwk::EventRunner::Create(abilityName + "_CONTENT_EMBED");
+    });
+    if (contentEmbedEventRunner_ == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "Failed to create Content Embed EventRunner");
+        return;
     }
+    runner_ = contentEmbedEventRunner_;
+    abilityHandler_ = std::make_shared<AppExecFwk::AbilityHandler>(runner_);
+    if (abilityHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "Failed to create Content Embed AbilityHandler");
+        return;
+    }
+    TAG_LOGI(AAFwkTag::EXT, "Content Embed EventRunner ready");
 }
  
 void ExtensionAbilityThread::HandleNormalExtensionAttach(
