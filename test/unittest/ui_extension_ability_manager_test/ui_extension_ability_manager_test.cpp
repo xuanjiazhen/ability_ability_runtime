@@ -1493,7 +1493,8 @@ HWTEST_F(UIExtensionAbilityManagerTest, RegisterPreloadUIExtensionHostClient_008
         callerPid);
     ASSERT_NE(tokenIter,
         connectManager->uiExtensionAbilityRecordMgr_->preloadUIExtensionHostClientCallerTokens_.end());
-    EXPECT_EQ(tokenIter->second, firstCallerToken);
+    sptr<IRemoteObject> expectedCallerToken = firstCallerToken;
+    EXPECT_EQ(tokenIter->second, expectedCallerToken);
 
     EXPECT_EQ(connectManager->UnRegisterPreloadUIExtensionHostClient(callerPid), ERR_OK);
 }
