@@ -47,7 +47,7 @@ private:
     void UpdateCallerBundleName(Want& want, const std::string &bundleName);
     void UpdateCallerAbilityName(Want& want, const std::string &abilityName);
     void UpdateCallerAppCloneIndex(Want& want, int32_t appIndex);
-    void ClearProtectedWantParam(Want &want);
+    void ClearProtectedWantParam(Want &want, std::string *resolvedCallerName = nullptr);
 
     DISALLOW_COPY_AND_MOVE(UpdateCallerInfoUtil);
 };

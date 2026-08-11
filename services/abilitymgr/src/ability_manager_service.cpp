@@ -14043,7 +14043,10 @@ int AbilityManagerService::VerifyPermission(const std::string &permission, int p
     }
 
     std::string bundleName;
-    if (IN_PROCESS_CALL(bms->GetNameForUid(uid, bundleName)) != ERR_OK) {
+    if (uid == callerUid) {
+        // same uid as the caller resolved above, reuse without another BMS query
+        bundleName = callerBundleName;
+    } else if (IN_PROCESS_CALL(bms->GetNameForUid(uid, bundleName)) != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "verifyPermission get bundle name failed");
         return CHECK_PERMISSION_FAILED;
     }
@@ -17465,15 +17468,18 @@ ErrCode AbilityManagerService::IntentOpenLinkInner(const std::shared_ptr<AppExec
 void AbilityManagerService::GetCallerUidAndToken(const std::string &bundleName, int32_t userId,
     int32_t &callerUid, uint32_t &accessToken)
 {
-    AppExecFwk::BundleInfo bundleInfo;
     auto bms = AbilityUtil::GetBundleManagerHelper();
-    bool ret = IN_PROCESS_CALL(
-        bms->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, bundleInfo, userId));
-    if (!ret) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "get bundleInfo preloading failed, userId:%{public}d", userId);
+    if (bms == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null bms");
         return;
     }
-    callerUid = bundleInfo.uid;
+    // lightweight query: only uid is needed, no need for the full BundleInfo with abilities
+    int32_t uid = IN_PROCESS_CALL(bms->GetUidByBundleName(bundleName, userId, 0));
+    if (uid <= 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get uid preloading failed, userId:%{public}d", userId);
+        return;
+    }
+    callerUid = uid;
     accessToken = IPCSkeleton::GetCallingTokenID();
 }
 

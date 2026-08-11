@@ -128,6 +128,10 @@ int32_t StartAbilityUtils::CheckAppProvisionMode(const Want& want, int32_t userI
             return ERR_APP_CLONE_INDEX_INVALID;
         }
         abilityInfo = StartAbilityInfo::CreateStartAbilityInfo(want, userId, appIndex, nullptr);
+        // write back so the StartAbilityInfoWrap later in this start chain reuses it (avoid double query)
+        if (StartAbilityUtils::startAbilityInfo == nullptr) {
+            StartAbilityUtils::startAbilityInfo = abilityInfo;
+        }
     }
     CHECK_POINTER_AND_RETURN(abilityInfo, GET_ABILITY_SERVICE_FAILED);
     if (abilityInfo->status != ERR_OK) {
@@ -171,6 +175,11 @@ StartAbilityInfoWrap::StartAbilityInfoWrap(const Want &want, int32_t validUserId
     if (isExtension) {
         StartAbilityUtils::startAbilityInfo = StartAbilityInfo::CreateStartExtensionInfo(localWant,
             validUserId, appIndex);
+    } else if (StartAbilityUtils::startAbilityInfo != nullptr &&
+        StartAbilityUtils::startAbilityInfo->GetAppBundleName() == localWant.GetBundleNameRef() &&
+        StartAbilityUtils::startAbilityInfo->abilityInfo.name == localWant.GetAbilityNameRef()) {
+        // reuse the info resolved earlier in this start chain (e.g. CheckAppProvisionMode)
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "reuse startAbilityInfo: %{public}s", localWant.GetBundleNameRef().c_str());
     } else {
         StartAbilityUtils::startAbilityInfo = StartAbilityInfo::CreateStartAbilityInfo(localWant,
             validUserId, appIndex, callerToken);

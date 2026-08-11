@@ -79,7 +79,8 @@ void UpdateCallerInfoUtil::UpdateCallerInfo(Want& want, const sptr<IRemoteObject
         want.RemoveParam(PARAM_RESV_ANCO_CALLER_UID);
         want.RemoveParam(PARAM_RESV_ANCO_CALLER_BUNDLENAME);
     }
-    ClearProtectedWantParam(want);
+    std::string resolvedCallerName;
+    ClearProtectedWantParam(want, &resolvedCallerName);
     int32_t tokenId = static_cast<int32_t>(IPCSkeleton::GetCallingTokenID());
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     int32_t callerPid = IPCSkeleton::GetCallingPid();
@@ -97,9 +98,14 @@ void UpdateCallerInfoUtil::UpdateCallerInfo(Want& want, const sptr<IRemoteObject
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
     if (!abilityRecord) {
         std::string bundleName;
-        auto bundleMgr = AbilityUtil::GetBundleManagerHelper();
-        if (bundleMgr != nullptr) {
-            IN_PROCESS_CALL(bundleMgr->GetNameForUid(callerUid, bundleName));
+        // reuse only when the uid still matches the one resolved in ClearProtectedWantParam
+        if (callerUid == IPCSkeleton::GetCallingUid() && !resolvedCallerName.empty()) {
+            bundleName = resolvedCallerName;
+        } else {
+            auto bundleMgr = AbilityUtil::GetBundleManagerHelper();
+            if (bundleMgr != nullptr) {
+                IN_PROCESS_CALL(bundleMgr->GetNameForUid(callerUid, bundleName));
+            }
         }
         if (bundleName == "") {
             std::string nativeName;
@@ -361,14 +367,20 @@ void UpdateCallerInfoUtil::UpdateDmsCallerInfo(Want& want, const sptr<IRemoteObj
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     int32_t tokenId = static_cast<int32_t>(IPCSkeleton::GetCallingTokenID());
     int32_t callerUid = IPCSkeleton::GetCallingUid();
-    ClearProtectedWantParam(want);
+    std::string resolvedCallerName;
+    ClearProtectedWantParam(want, &resolvedCallerName);
 
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
     if (!abilityRecord) {
         std::string bundleName;
-        auto bundleMgr = AbilityUtil::GetBundleManagerHelper();
-        if (bundleMgr != nullptr) {
-            IN_PROCESS_CALL(bundleMgr->GetNameForUid(callerUid, bundleName));
+        // reuse the name resolved in ClearProtectedWantParam for the same calling uid
+        if (!resolvedCallerName.empty()) {
+            bundleName = resolvedCallerName;
+        } else {
+            auto bundleMgr = AbilityUtil::GetBundleManagerHelper();
+            if (bundleMgr != nullptr) {
+                IN_PROCESS_CALL(bundleMgr->GetNameForUid(callerUid, bundleName));
+            }
         }
         if (bundleName == "") {
             std::string nativeName;
@@ -413,7 +425,7 @@ void UpdateCallerInfoUtil::UpdateCallerAppCloneIndex(Want& want, int32_t appInde
     want.SetParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX, appIndex);
 }
 
-void UpdateCallerInfoUtil::ClearProtectedWantParam(Want &want)
+void UpdateCallerInfoUtil::ClearProtectedWantParam(Want &want, std::string *resolvedCallerName)
 {
     if (want.HasParameter(HIDE_SENSITIVE_TYPE)) {
         EventInfo eventInfo;
@@ -426,6 +438,9 @@ void UpdateCallerInfoUtil::ClearProtectedWantParam(Want &want)
         }
         if (callerBundleName.empty()) {
             callerBundleName = std::to_string(callerUid);
+        } else if (resolvedCallerName != nullptr) {
+            // export the uid-resolved name so the caller can reuse it within the same function
+            *resolvedCallerName = callerBundleName;
         }
         auto hideSensitiveType = want.GetIntParam(HIDE_SENSITIVE_TYPE, DEFAULT_HIDE_SENSITIVE_TYPE);
         eventInfo.uri = "HideSensitiveType://" + bundleName + "/" + callerBundleName + "/" +
