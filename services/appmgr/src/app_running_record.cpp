@@ -1205,9 +1205,13 @@ void AppRunningRecord::AbilityTerminated(const sptr<IRemoteObject> &token)
     auto state = static_cast<int>(GetSupportProcessCacheState());
     auto appInfo = appRecord->GetApplicationInfo();
     auto hisyseventReport = std::make_shared<AAFwk::HisyseventReport>(4);
-    hisyseventReport->InsertParam(EVENT_KEY_VERSION_CODE, appInfo->versionCode);
-    hisyseventReport->InsertParam(EVENT_KEY_VERSION_NAME, appInfo->versionName);
-    hisyseventReport->InsertParam(EVENT_KEY_BUNDLE_NAME, appInfo->bundleName);
+    if (appInfo != nullptr) {
+        hisyseventReport->InsertParam(EVENT_KEY_VERSION_CODE, appInfo->versionCode);
+        hisyseventReport->InsertParam(EVENT_KEY_VERSION_NAME, appInfo->versionName);
+        hisyseventReport->InsertParam(EVENT_KEY_BUNDLE_NAME, appInfo->bundleName);
+    } else {
+        TAG_LOGE(AAFwkTag::APPMGR, "AbilityTerminated: appInfo is null, skip version/bundle report");
+    }
     hisyseventReport->InsertParam(EVENT_KEY_SUPPORT_STATE, state);
     hisyseventReport->Report("AAFWK", "CACHE_SUPPORT_STATE", HISYSEVENT_BEHAVIOR);
     if (moduleRecord->GetAbilities().empty() && (!IsKeepAliveApp()

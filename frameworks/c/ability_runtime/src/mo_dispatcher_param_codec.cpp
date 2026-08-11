@@ -421,8 +421,8 @@ AbilityRuntime_ErrorCode ModObjDispatcherParamCodec::ReadRawValue(MessageParcel&
     }
     if (typeInfo->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_ARRAY) {
         int32_t size = parcel.ReadInt32();
-        if (size < 0) {
-            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: array size is negative, size=%{public}d", size);
+        if (size < 0 || static_cast<uint32_t>(size) > ModObjDispatcherComplexTypeManager::MAX_CONTAINER_SIZE) {
+            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: array size out of range, size=%{public}d", size);
             return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
         }
         TAG_LOGI(AAFwkTag::EXT, "arraySize=%{public}d", size);
@@ -435,16 +435,24 @@ AbilityRuntime_ErrorCode ModObjDispatcherParamCodec::ReadRawValue(MessageParcel&
         auto ret = ModObjDispatcherComplexTypeManager::ArrayCreate(&elemTypeInfo,
             static_cast<uint32_t>(size), &array);
         if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+            MoTypeInfo::ClearCTypeInfo(&elemTypeInfo);
             return ret;
         }
         for (uint32_t i = 0; i < static_cast<uint32_t>(size); i++) {
             OH_AbilityRuntime_ModObjDispatcher_Variant elem;
             ret = ReadRawValue(parcel, typeInfo->pElementType, &elem);
             if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+                ModObjDispatcherComplexTypeManager::Variant_Clear(&elem);
+                ModObjDispatcherComplexTypeManager::ArrayRelease(&array);
+                MoTypeInfo::ClearCTypeInfo(&elemTypeInfo);
                 return ret;
             }
+            // ArraySet deep-copies elem into the container; release elem's own resources either way.
             ret = ModObjDispatcherComplexTypeManager::ArraySet(array, i, &elem);
+            ModObjDispatcherComplexTypeManager::Variant_Clear(&elem);
             if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+                ModObjDispatcherComplexTypeManager::ArrayRelease(&array);
+                MoTypeInfo::ClearCTypeInfo(&elemTypeInfo);
                 return ret;
             }
         }
@@ -454,8 +462,8 @@ AbilityRuntime_ErrorCode ModObjDispatcherParamCodec::ReadRawValue(MessageParcel&
     }
     if (typeInfo->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR) {
         int32_t size = parcel.ReadInt32();
-        if (size < 0) {
-            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: vector size is negative, size=%{public}d", size);
+        if (size < 0 || static_cast<uint32_t>(size) > ModObjDispatcherComplexTypeManager::MAX_CONTAINER_SIZE) {
+            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: vector size out of range, size=%{public}d", size);
             return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
         }
         TAG_LOGI(AAFwkTag::EXT, "vectorSize=%{public}d", size);
@@ -467,16 +475,23 @@ AbilityRuntime_ErrorCode ModObjDispatcherParamCodec::ReadRawValue(MessageParcel&
         OH_AbilityRuntime_ModObjDispatcher_VectorHandle vector = nullptr;
         auto ret = ModObjDispatcherComplexTypeManager::VectorCreate(&elemTypeInfo, &vector);
         if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+            MoTypeInfo::ClearCTypeInfo(&elemTypeInfo);
             return ret;
         }
         for (uint32_t i = 0; i < static_cast<uint32_t>(size); i++) {
             OH_AbilityRuntime_ModObjDispatcher_Variant elem;
             ret = ReadRawValue(parcel, typeInfo->pElementType, &elem);
             if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+                ModObjDispatcherComplexTypeManager::Variant_Clear(&elem);
+                ModObjDispatcherComplexTypeManager::VectorRelease(&vector);
+                MoTypeInfo::ClearCTypeInfo(&elemTypeInfo);
                 return ret;
             }
             ret = ModObjDispatcherComplexTypeManager::VectorAdd(vector, &elem);
+            ModObjDispatcherComplexTypeManager::Variant_Clear(&elem);
             if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+                ModObjDispatcherComplexTypeManager::VectorRelease(&vector);
+                MoTypeInfo::ClearCTypeInfo(&elemTypeInfo);
                 return ret;
             }
         }
@@ -486,8 +501,8 @@ AbilityRuntime_ErrorCode ModObjDispatcherParamCodec::ReadRawValue(MessageParcel&
     }
     if (typeInfo->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET) {
         int32_t size = parcel.ReadInt32();
-        if (size < 0) {
-            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: set size is negative, size=%{public}d", size);
+        if (size < 0 || static_cast<uint32_t>(size) > ModObjDispatcherComplexTypeManager::MAX_CONTAINER_SIZE) {
+            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: set size out of range, size=%{public}d", size);
             return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
         }
         TAG_LOGI(AAFwkTag::EXT, "setSize=%{public}d", size);
@@ -499,16 +514,23 @@ AbilityRuntime_ErrorCode ModObjDispatcherParamCodec::ReadRawValue(MessageParcel&
         OH_AbilityRuntime_ModObjDispatcher_SetHandle setHandle = nullptr;
         auto ret = ModObjDispatcherComplexTypeManager::SetCreate(&elemTypeInfo, &setHandle);
         if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+            MoTypeInfo::ClearCTypeInfo(&elemTypeInfo);
             return ret;
         }
         for (uint32_t i = 0; i < static_cast<uint32_t>(size); i++) {
             OH_AbilityRuntime_ModObjDispatcher_Variant elem;
             ret = ReadRawValue(parcel, typeInfo->pElementType, &elem);
             if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+                ModObjDispatcherComplexTypeManager::Variant_Clear(&elem);
+                ModObjDispatcherComplexTypeManager::SetRelease(&setHandle);
+                MoTypeInfo::ClearCTypeInfo(&elemTypeInfo);
                 return ret;
             }
             ret = ModObjDispatcherComplexTypeManager::SetAdd(setHandle, &elem);
+            ModObjDispatcherComplexTypeManager::Variant_Clear(&elem);
             if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+                ModObjDispatcherComplexTypeManager::SetRelease(&setHandle);
+                MoTypeInfo::ClearCTypeInfo(&elemTypeInfo);
                 return ret;
             }
         }
@@ -518,8 +540,8 @@ AbilityRuntime_ErrorCode ModObjDispatcherParamCodec::ReadRawValue(MessageParcel&
     }
     if (typeInfo->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP) {
         int32_t size = parcel.ReadInt32();
-        if (size < 0) {
-            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: map size is negative, size=%{public}d", size);
+        if (size < 0 || static_cast<uint32_t>(size) > ModObjDispatcherComplexTypeManager::MAX_CONTAINER_SIZE) {
+            TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: map size out of range, size=%{public}d", size);
             return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
         }
         TAG_LOGI(AAFwkTag::EXT, "mapSize=%{public}d", size);
@@ -531,6 +553,7 @@ AbilityRuntime_ErrorCode ModObjDispatcherParamCodec::ReadRawValue(MessageParcel&
         OH_AbilityRuntime_ModObjDispatcher_MapHandle map = nullptr;
         auto ret = ModObjDispatcherComplexTypeManager::MapCreate(typeInfo->mapKeyType, &valueTypeInfo, &map);
         if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+            MoTypeInfo::ClearCTypeInfo(&valueTypeInfo);
             return ret;
         }
         auto keyTypeInfo = std::make_shared<MoTypeInfo>();
@@ -540,14 +563,26 @@ AbilityRuntime_ErrorCode ModObjDispatcherParamCodec::ReadRawValue(MessageParcel&
             OH_AbilityRuntime_ModObjDispatcher_Variant v;
             ret = ReadRawValue(parcel, keyTypeInfo, &k);
             if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+                ModObjDispatcherComplexTypeManager::Variant_Clear(&k);
+                ModObjDispatcherComplexTypeManager::MapRelease(&map);
+                MoTypeInfo::ClearCTypeInfo(&valueTypeInfo);
                 return ret;
             }
             ret = ReadRawValue(parcel, typeInfo->pMapValueType, &v);
             if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+                ModObjDispatcherComplexTypeManager::Variant_Clear(&k);
+                ModObjDispatcherComplexTypeManager::Variant_Clear(&v);
+                ModObjDispatcherComplexTypeManager::MapRelease(&map);
+                MoTypeInfo::ClearCTypeInfo(&valueTypeInfo);
                 return ret;
             }
             ret = ModObjDispatcherComplexTypeManager::MapPut(map, &k, &v);
+            // MapPut deep-copies k and v into the map; release the local copies either way.
+            ModObjDispatcherComplexTypeManager::Variant_Clear(&k);
+            ModObjDispatcherComplexTypeManager::Variant_Clear(&v);
             if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+                ModObjDispatcherComplexTypeManager::MapRelease(&map);
+                MoTypeInfo::ClearCTypeInfo(&valueTypeInfo);
                 return ret;
             }
         }

@@ -84,9 +84,10 @@ public:
         OH_AbilityRuntime_ModObjDispatcher_TypeInfo* fieldType) const;
 
 private:
-    // Static entry point for descriptor-based parsing with validation
+    // Static entry point for descriptor-based parsing with validation.
+    // depth is used internally to bound recursion over untrusted (remote-supplied) metadata.
     static AbilityRuntime_ErrorCode ParseTypeInfoFromJson(const nlohmann::json& typeInfoObj,
-        std::shared_ptr<MoTypeInfo>& result);
+        std::shared_ptr<MoTypeInfo>& result, uint32_t depth = 0);
 
     // Validate that idl_type references a declared type in the tlb
     bool IsIdlTypeDeclared(const std::string& idlType) const;

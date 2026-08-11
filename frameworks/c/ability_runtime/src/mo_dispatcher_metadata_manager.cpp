@@ -130,8 +130,14 @@ bool IsSimpleVtType(OH_AbilityRuntime_ModObjDispatcher_ValueType vt)
 // -------- ParseTypeInfoFromJson: validated parsing for metadata --------
 
 AbilityRuntime_ErrorCode ModObjDispatcherMetadataManager::ParseTypeInfoFromJson(const Json& typeInfoObj,
-    std::shared_ptr<MoTypeInfo>& result)
+    std::shared_ptr<MoTypeInfo>& result, uint32_t depth)
 {
+    // Bound recursion over untrusted (remote-supplied) tlb.json metadata to block stack-overflow DoS.
+    constexpr uint32_t MAX_TYPE_DEPTH = 64;
+    if (depth >= MAX_TYPE_DEPTH) {
+        TAG_LOGE(AAFwkTag::EXT, "ParseTypeInfoFromJson: type nesting too deep, depth=%{public}u", depth);
+        return ABILITY_RUNTIME_ERROR_CODE_METADATA_INVALID;
+    }
     if (!typeInfoObj.is_object() || !typeInfoObj.contains("type") || !typeInfoObj["type"].is_string()) {
         TAG_LOGE(AAFwkTag::EXT, "ParseTypeInfoFromJson: invalid type_info object");
         return ABILITY_RUNTIME_ERROR_CODE_METADATA_INVALID;
@@ -154,7 +160,7 @@ AbilityRuntime_ErrorCode ModObjDispatcherMetadataManager::ParseTypeInfoFromJson(
             return ABILITY_RUNTIME_ERROR_CODE_METADATA_INVALID;
         }
         auto keyInfo = std::make_shared<MoTypeInfo>();
-        auto ret = ParseTypeInfoFromJson(typeInfoObj["key_type"], keyInfo);
+        auto ret = ParseTypeInfoFromJson(typeInfoObj["key_type"], keyInfo, depth + 1);
         if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
             return ret;
         }
@@ -170,7 +176,7 @@ AbilityRuntime_ErrorCode ModObjDispatcherMetadataManager::ParseTypeInfoFromJson(
             return ABILITY_RUNTIME_ERROR_CODE_METADATA_INVALID;
         }
         auto valInfo = std::make_shared<MoTypeInfo>();
-        ret = ParseTypeInfoFromJson(typeInfoObj["value_type"], valInfo);
+        ret = ParseTypeInfoFromJson(typeInfoObj["value_type"], valInfo, depth + 1);
         if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
             return ret;
         }
@@ -181,18 +187,26 @@ AbilityRuntime_ErrorCode ModObjDispatcherMetadataManager::ParseTypeInfoFromJson(
             TAG_LOGE(AAFwkTag::EXT, "ParseTypeInfoFromJson: array missing value_type");
             return ABILITY_RUNTIME_ERROR_CODE_METADATA_INVALID;
         }
-        // size is mandatory for fixed-size arrays
+        // size is mandatory for fixed-size arrays. Validate the numeric range explicitly:
+        // is_number_unsigned() accepts uint64 values larger than UINT32_MAX, which would make
+        // get<uint32_t>() throw nlohmann::json::out_of_range (uncaught along this C-API path).
         if (!typeInfoObj.contains("size") || !typeInfoObj["size"].is_number_unsigned()) {
             TAG_LOGE(AAFwkTag::EXT, "ParseTypeInfoFromJson: array missing size");
             return ABILITY_RUNTIME_ERROR_CODE_METADATA_INVALID;
         }
+        uint64_t arraySizeVal = typeInfoObj["size"].get<uint64_t>();
+        if (arraySizeVal > ModObjDispatcherComplexTypeManager::MAX_CONTAINER_SIZE) {
+            TAG_LOGE(AAFwkTag::EXT, "ParseTypeInfoFromJson: array size out of range, size=%{public}llu",
+                static_cast<unsigned long long>(arraySizeVal));
+            return ABILITY_RUNTIME_ERROR_CODE_METADATA_INVALID;
+        }
         auto elemInfo = std::make_shared<MoTypeInfo>();
-        auto ret = ParseTypeInfoFromJson(typeInfoObj["value_type"], elemInfo);
+        auto ret = ParseTypeInfoFromJson(typeInfoObj["value_type"], elemInfo, depth + 1);
         if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
             return ret;
         }
         result->pElementType = elemInfo;
-        result->arraySize = typeInfoObj["size"].get<uint32_t>();
+        result->arraySize = static_cast<uint32_t>(arraySizeVal);
     } else if (typeLower == "vector" || typeLower == "set") {
         // value_type is mandatory
         if (!typeInfoObj.contains("value_type") || !typeInfoObj["value_type"].is_object()) {
@@ -200,7 +214,7 @@ AbilityRuntime_ErrorCode ModObjDispatcherMetadataManager::ParseTypeInfoFromJson(
             return ABILITY_RUNTIME_ERROR_CODE_METADATA_INVALID;
         }
         auto elemInfo = std::make_shared<MoTypeInfo>();
-        auto ret = ParseTypeInfoFromJson(typeInfoObj["value_type"], elemInfo);
+        auto ret = ParseTypeInfoFromJson(typeInfoObj["value_type"], elemInfo, depth + 1);
         if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
             return ret;
         }
@@ -277,8 +291,10 @@ AbilityRuntime_ErrorCode ModObjDispatcherMetadataManager::EnsureLoaded(OHOS::IRe
         TAG_LOGE(AAFwkTag::EXT, "EnsureLoaded: ParseMetadata failed, ret=%{public}d", ret);
         return ret;
     }
-    loaded_ = true;
+    // Register struct metadata first and only flip loaded_ on success, so a registration failure
+    // cannot leave the manager in a permanently half-loaded (loaded_ == true but no struct metadata) state.
     ModObjDispatcherComplexTypeManager::RegisterStructMetadata(structs_);
+    loaded_ = true;
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
@@ -736,15 +752,15 @@ AbilityRuntime_ErrorCode ModObjDispatcherMetadataManager::GetInterfaceName(uint3
         TAG_LOGE(AAFwkTag::EXT, "GetInterfaceName: null param");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    if (index >= interfaces_.size()) {
-        TAG_LOGE(AAFwkTag::EXT, "GetInterfaceName: out of range, index=%{public}u, size=%{public}zu",
-            index, interfaces_.size());
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
-    }
     std::lock_guard<std::mutex> lock(mutex_);
     if (!loaded_) {
         TAG_LOGE(AAFwkTag::EXT, "GetInterfaceName: not loaded");
         return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+    if (index >= interfaces_.size()) {
+        TAG_LOGE(AAFwkTag::EXT, "GetInterfaceName: out of range, index=%{public}u, size=%{public}zu",
+            index, interfaces_.size());
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
     *name = interfaces_[index].name;
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
@@ -815,14 +831,14 @@ AbilityRuntime_ErrorCode ModObjDispatcherMetadataManager::GetEnumName(uint32_t i
         TAG_LOGE(AAFwkTag::EXT, "GetEnumName: null param");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    if (index >= enums_.size()) {
-        TAG_LOGE(AAFwkTag::EXT, "GetEnumName: out of range, index=%{public}u, size=%{public}zu", index, enums_.size());
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
-    }
     std::lock_guard<std::mutex> lock(mutex_);
     if (!loaded_) {
         TAG_LOGE(AAFwkTag::EXT, "GetEnumName: not loaded");
         return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+    if (index >= enums_.size()) {
+        TAG_LOGE(AAFwkTag::EXT, "GetEnumName: out of range, index=%{public}u, size=%{public}zu", index, enums_.size());
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
     *name = enums_[index].name;
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
@@ -927,15 +943,15 @@ AbilityRuntime_ErrorCode ModObjDispatcherMetadataManager::GetStructName(uint32_t
         TAG_LOGE(AAFwkTag::EXT, "GetStructName: null param");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    if (index >= structs_.size()) {
-        TAG_LOGE(AAFwkTag::EXT, "GetStructName: out of range, index=%{public}u, size=%{public}zu",
-            index, structs_.size());
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
-    }
     std::lock_guard<std::mutex> lock(mutex_);
     if (!loaded_) {
         TAG_LOGE(AAFwkTag::EXT, "GetStructName: not loaded");
         return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+    if (index >= structs_.size()) {
+        TAG_LOGE(AAFwkTag::EXT, "GetStructName: out of range, index=%{public}u, size=%{public}zu",
+            index, structs_.size());
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
     *name = structs_[index].name;
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;

@@ -17,11 +17,78 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <unordered_set>
 #include <utility>
 
+#include "hilog_tag_wrapper.h"
 #include "securec.h"
 
 namespace OHOS::AbilityRuntime {
+namespace {
+// Maximum allowed nesting depth when building a MoTypeInfo tree from a caller-supplied
+// (untrusted) C TypeInfo tree. Bounds stack usage and blocks stack-overflow DoS via
+// arbitrarily deep or cyclic pointer graphs.
+constexpr uint32_t MAX_TYPE_DEPTH = 64;
+
+std::shared_ptr<MoTypeInfo> FromCTypeInfoImpl(const OH_AbilityRuntime_ModObjDispatcher_TypeInfo* cType,
+    uint32_t depth, std::unordered_set<const void*>& visited)
+{
+    if (cType == nullptr) {
+        return nullptr;
+    }
+    if (depth >= MAX_TYPE_DEPTH) {
+        TAG_LOGE(AAFwkTag::EXT, "FromCTypeInfo: max recursion depth exceeded, depth=%{public}u", depth);
+        return nullptr;
+    }
+    // Cycle / shared-subtree guard: a node already on the current recursion path means a cycle.
+    if (!visited.insert(cType).second) {
+        TAG_LOGE(AAFwkTag::EXT, "FromCTypeInfo: circular reference detected");
+        return nullptr;
+    }
+    auto result = std::make_shared<MoTypeInfo>();
+    result->vt = cType->vt;
+    if (cType->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP) {
+        result->mapKeyType = cType->u.mapType.keyType;
+        if (cType->u.mapType.pValueType == nullptr) {
+            return nullptr;
+        }
+        result->pMapValueType = FromCTypeInfoImpl(cType->u.mapType.pValueType, depth + 1, visited);
+        if (result->pMapValueType == nullptr) {
+            return nullptr;
+        }
+    } else if (cType->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_ARRAY) {
+        if (cType->u.arrayType.pElementType == nullptr) {
+            return nullptr;
+        }
+        result->pElementType = FromCTypeInfoImpl(cType->u.arrayType.pElementType, depth + 1, visited);
+        if (result->pElementType == nullptr) {
+            return nullptr;
+        }
+        result->arraySize = cType->u.arrayType.size;
+    } else if (cType->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR ||
+               cType->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET) {
+        if (cType->u.pElementType == nullptr) {
+            return nullptr;
+        }
+        result->pElementType = FromCTypeInfoImpl(cType->u.pElementType, depth + 1, visited);
+        if (result->pElementType == nullptr) {
+            return nullptr;
+        }
+    } else if (cType->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRUCT) {
+        if (cType->u.idlType == nullptr) {
+            return nullptr;
+        }
+        result->idlType = cType->u.idlType;
+    } else if (cType->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_ENUM ||
+               cType->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_IPC_REMOTE_PROXY) {
+        if (cType->u.idlType != nullptr) {
+            result->idlType = cType->u.idlType;
+        }
+    }
+    visited.erase(cType); // allow the same node to appear in sibling subtrees (DAG), only cycles are rejected
+    return result;
+}
+} // namespace
 
 // ---- MoTypeInfo ----
 
@@ -106,31 +173,8 @@ void MoTypeInfo::ClearCTypeInfo(OH_AbilityRuntime_ModObjDispatcher_TypeInfo* cTy
 
 std::shared_ptr<MoTypeInfo> MoTypeInfo::FromCTypeInfo(const OH_AbilityRuntime_ModObjDispatcher_TypeInfo* cType)
 {
-    if (cType == nullptr) return nullptr;
-    auto result = std::make_shared<MoTypeInfo>();
-    result->vt = cType->vt;
-    if (cType->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP) {
-        result->mapKeyType = cType->u.mapType.keyType;
-        if (cType->u.mapType.pValueType == nullptr) return nullptr;
-        result->pMapValueType = FromCTypeInfo(cType->u.mapType.pValueType);
-    } else if (cType->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_ARRAY) {
-        if (cType->u.arrayType.pElementType == nullptr) return nullptr;
-        result->pElementType = FromCTypeInfo(cType->u.arrayType.pElementType);
-        result->arraySize = cType->u.arrayType.size;
-    } else if (cType->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR ||
-               cType->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET) {
-        if (cType->u.pElementType == nullptr) return nullptr;
-        result->pElementType = FromCTypeInfo(cType->u.pElementType);
-    } else if (cType->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRUCT) {
-        if (cType->u.idlType == nullptr) return nullptr;
-        result->idlType = cType->u.idlType;
-    } else if (cType->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_ENUM ||
-               cType->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_IPC_REMOTE_PROXY) {
-        if (cType->u.idlType != nullptr) {
-            result->idlType = cType->u.idlType;
-        }
-    }
-    return result;
+    std::unordered_set<const void*> visited;
+    return FromCTypeInfoImpl(cType, 0, visited);
 }
 
 // ---- MoVariantStorage ----
@@ -184,6 +228,14 @@ void MoVariantStorage::ReleaseNestedResources()
     } else if (value.vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRUCT && value.u.pstructVal != nullptr) {
         delete value.u.pstructVal;
         value.u.pstructVal = nullptr;
+    } else if (value.vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_IPC_REMOTE_PROXY &&
+        value.u.premoteProxyVal != nullptr) {
+        delete value.u.premoteProxyVal;
+        value.u.premoteProxyVal = nullptr;
+    } else if (value.vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_IPC_REMOTE_STUB &&
+        value.u.premoteStubVal != nullptr) {
+        delete value.u.premoteStubVal;
+        value.u.premoteStubVal = nullptr;
     }
 }
 

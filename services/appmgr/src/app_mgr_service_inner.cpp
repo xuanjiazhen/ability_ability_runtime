@@ -9467,7 +9467,8 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
         return ERR_INVALID_VALUE;
     }
 
-    if (appRecord->GetApplicationInfo()->asanEnabled) {
+    auto appInfo = appRecord->GetApplicationInfo();
+    if (appInfo != nullptr && appInfo->asanEnabled) {
         TAG_LOGI(AAFwkTag::APPMGR, "asan enable, bundleName:%{public}s, pid:%{public}d", bundleName.c_str(), pid);
         return ERR_OK;
     }
@@ -9491,7 +9492,9 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
 
 bool AppMgrServiceInner::CheckAppFault(const std::shared_ptr<AppRunningRecord> &appRecord, const FaultData &faultData)
 {
-    if (faultData.timeoutMarkers != "" && !dfxTaskHandler_->CancelTask(faultData.timeoutMarkers)) {
+    if (dfxTaskHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "CheckAppFault: dfxTaskHandler_ is null");
+    } else if (faultData.timeoutMarkers != "" && !dfxTaskHandler_->CancelTask(faultData.timeoutMarkers)) {
         return true;
     }
 

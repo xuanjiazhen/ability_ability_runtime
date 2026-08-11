@@ -409,8 +409,8 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetMethodParamType(
     const char* pbstrInterfaceName, const char* pbstrMethodName,
     uint32_t iParamIndex, OH_AbilityRuntime_ModObjDispatcher_TypeInfo* pParamType)
 {
-    if (pTypeDescriptor == nullptr || pbstrInterfaceName == nullptr || pbstrMethodName == nullptr
-        || pParamType == nullptr) {
+    if (pTypeDescriptor == nullptr || pTypeDescriptor->metadataManager == nullptr
+        || pbstrInterfaceName == nullptr || pbstrMethodName == nullptr || pParamType == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "GetMethodParamType: invalid param");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
@@ -534,7 +534,8 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetStructFieldCount(
     OH_AbilityRuntime_ModObjDispatcher_TypeDescriptorHandle pTypeDescriptor, const char* pbstrStructName,
     uint32_t* pcFields)
 {
-    if (pTypeDescriptor == nullptr || pbstrStructName == nullptr || pcFields == nullptr) {
+    if (pTypeDescriptor == nullptr || pTypeDescriptor->metadataManager == nullptr
+        || pbstrStructName == nullptr || pcFields == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "GetStructFieldCount: invalid param");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }

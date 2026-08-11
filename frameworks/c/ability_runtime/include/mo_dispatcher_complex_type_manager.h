@@ -24,6 +24,10 @@
 namespace OHOS::AbilityRuntime {
 class ModObjDispatcherComplexTypeManager {
 public:
+    // Upper bound for container/array element counts accepted from untrusted IPC replies or metadata.
+    // Prevents unbounded allocation / CPU loops (DoS) when a malicious peer reports an extreme size.
+    static constexpr uint32_t MAX_CONTAINER_SIZE = 65536;
+
     static AbilityRuntime_ErrorCode ArrayCreate(OH_AbilityRuntime_ModObjDispatcher_TypeInfo* elementType,
         uint32_t size, OH_AbilityRuntime_ModObjDispatcher_ArrayHandle* ppArray);
     static AbilityRuntime_ErrorCode ArrayGetElementType(OH_AbilityRuntime_ModObjDispatcher_ArrayHandle pArray,

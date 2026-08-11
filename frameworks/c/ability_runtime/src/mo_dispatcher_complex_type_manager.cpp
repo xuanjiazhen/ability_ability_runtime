@@ -29,6 +29,11 @@ namespace {
 std::mutex g_structMetaMutex;
 std::unordered_map<std::string, std::unordered_map<std::string, std::shared_ptr<MoTypeInfo>>> g_structFieldTypes;
 std::unordered_map<std::string, std::vector<std::string>> g_structFieldOrder;
+// Per-struct-name reference count so that several ModObjDispatcher instances in one process can
+// register their struct metadata concurrently. A struct's field layout is removed only when the
+// last dispatcher referencing it unregisters, preventing one dispatcher's EnsureLoaded/ClearCache
+// from clobbering another's struct metadata (type confusion / DoS).
+std::unordered_map<std::string, uint32_t> g_structRefCount;
 
 bool IsVariantHandleValid(const OH_AbilityRuntime_ModObjDispatcher_Variant* value)
 {
@@ -214,18 +219,23 @@ bool VariantDeepEquals(const MoVariantStorage& lhs, const OH_AbilityRuntime_ModO
             if (lhs.value.u.parrayVal == nullptr || rhs->u.parrayVal == nullptr) {
                 return lhs.value.u.parrayVal == rhs->u.parrayVal;
             }
-            if (!visited.insert(lhs.value.u.parrayVal).second) {
-                return true; // Already visiting this node, assume equal to avoid infinite recursion
+            ScopedVisited svL(visited, lhs.value.u.parrayVal);
+            ScopedVisited svR(visited, rhs->u.parrayVal);
+            if (!svL || !svR) {
+                return true; // cycle detected on lhs or rhs, treat as equal to avoid infinite recursion
             }
-            bool result = ArrayDeepEquals(*lhs.value.u.parrayVal, *rhs->u.parrayVal, visited);
-            visited.erase(lhs.value.u.parrayVal);
-            return result;
+            return ArrayDeepEquals(*lhs.value.u.parrayVal, *rhs->u.parrayVal, visited);
         }
         case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR: {
             auto* lhsVec = lhs.value.u.pvectorVal;
             auto* rhsVec = rhs->u.pvectorVal;
             if (lhsVec == nullptr || rhsVec == nullptr) {
                 return lhsVec == rhsVec;
+            }
+            ScopedVisited svL(visited, lhsVec);
+            ScopedVisited svR(visited, rhsVec);
+            if (!svL || !svR) {
+                return true; // cycle detected on lhs or rhs
             }
             if (lhsVec->elements.size() != rhsVec->elements.size()) {
                 return false;
@@ -244,8 +254,10 @@ bool VariantDeepEquals(const MoVariantStorage& lhs, const OH_AbilityRuntime_ModO
             if (lhsSet == nullptr || rhsSet == nullptr) {
                 return lhsSet == rhsSet;
             }
-            if (!visited.insert(lhsSet).second) {
-                return true; // Already visiting, avoid infinite recursion
+            ScopedVisited svL(visited, lhsSet);
+            ScopedVisited svR(visited, rhsSet);
+            if (!svL || !svR) {
+                return true; // cycle detected on lhs or rhs
             }
             bool result = false;
             if (lhsSet->elements.size() == rhsSet->elements.size()) {
@@ -268,23 +280,27 @@ bool VariantDeepEquals(const MoVariantStorage& lhs, const OH_AbilityRuntime_ModO
                     }
                 }
             }
-            visited.erase(lhsSet);
             return result;
         }
         case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP: {
             if (lhs.value.u.pmapVal == nullptr || rhs->u.pmapVal == nullptr) {
                 return lhs.value.u.pmapVal == rhs->u.pmapVal;
             }
-            if (!visited.insert(lhs.value.u.pmapVal).second) {
-                return true;
+            ScopedVisited svL(visited, lhs.value.u.pmapVal);
+            ScopedVisited svR(visited, rhs->u.pmapVal);
+            if (!svL || !svR) {
+                return true; // cycle detected on lhs or rhs
             }
-            bool result = MapDeepEquals(*lhs.value.u.pmapVal, *rhs->u.pmapVal, visited);
-            visited.erase(lhs.value.u.pmapVal);
-            return result;
+            return MapDeepEquals(*lhs.value.u.pmapVal, *rhs->u.pmapVal, visited);
         }
         case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRUCT: {
             if (lhs.value.u.pstructVal == nullptr || rhs->u.pstructVal == nullptr) {
                 return lhs.value.u.pstructVal == rhs->u.pstructVal;
+            }
+            ScopedVisited svL(visited, lhs.value.u.pstructVal);
+            ScopedVisited svR(visited, rhs->u.pstructVal);
+            if (!svL || !svR) {
+                return true; // cycle detected on lhs or rhs
             }
             if (lhs.value.u.pstructVal->fields.size() != rhs->u.pstructVal->fields.size()) {
                 return false;
@@ -301,10 +317,20 @@ bool VariantDeepEquals(const MoVariantStorage& lhs, const OH_AbilityRuntime_ModO
             }
             return true;
         }
-        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_IPC_REMOTE_PROXY:
-            return lhs.value.u.premoteProxyVal == rhs->u.premoteProxyVal;
-        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_IPC_REMOTE_STUB:
-            return lhs.value.u.premoteStubVal == rhs->u.premoteStubVal;
+        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_IPC_REMOTE_PROXY: {
+            if (lhs.value.u.premoteProxyVal == nullptr || rhs->u.premoteProxyVal == nullptr) {
+                return lhs.value.u.premoteProxyVal == rhs->u.premoteProxyVal;
+            }
+            // Each side owns its own OHIPCRemoteProxy (deep-copied on store); compare by the
+            // underlying remote object rather than the wrapper pointer.
+            return lhs.value.u.premoteProxyVal->remote == rhs->u.premoteProxyVal->remote;
+        }
+        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_IPC_REMOTE_STUB: {
+            if (lhs.value.u.premoteStubVal == nullptr || rhs->u.premoteStubVal == nullptr) {
+                return lhs.value.u.premoteStubVal == rhs->u.premoteStubVal;
+            }
+            return lhs.value.u.premoteStubVal->remote == rhs->u.premoteStubVal->remote;
+        }
         default:
             return false;
     }
@@ -647,6 +673,11 @@ AbilityRuntime_ErrorCode ModObjDispatcherComplexTypeManager::ArrayCreate(
     auto typeInfo = MoTypeInfo::FromCTypeInfo(elementType);
     if (typeInfo == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "ArrayCreate: FromCTypeInfo failed");
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    if (size > MAX_CONTAINER_SIZE) {
+        TAG_LOGE(AAFwkTag::EXT, "ArrayCreate: size out of range, size=%{public}u, max=%{public}u",
+            size, MAX_CONTAINER_SIZE);
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
     auto* array = new (std::nothrow) OH_AbilityRuntime_ModularObjectDispatcher_Array();
@@ -1317,6 +1348,18 @@ void ModObjDispatcherComplexTypeManager::Variant_Clear(OH_AbilityRuntime_ModObjD
                 StructRelease(&pVariant->u.pstructVal);
             }
             break;
+        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_IPC_REMOTE_PROXY:
+            if (pVariant->u.premoteProxyVal != nullptr) {
+                delete pVariant->u.premoteProxyVal;
+                pVariant->u.premoteProxyVal = nullptr;
+            }
+            break;
+        case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_IPC_REMOTE_STUB:
+            if (pVariant->u.premoteStubVal != nullptr) {
+                delete pVariant->u.premoteStubVal;
+                pVariant->u.premoteStubVal = nullptr;
+            }
+            break;
         default:
             break;
     }
@@ -1337,33 +1380,20 @@ AbilityRuntime_ErrorCode ModObjDispatcherComplexTypeManager::StoreVariant(
         TAG_LOGE(AAFwkTag::EXT, "StoreVariant: null param");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    // Release old nested resources before overwriting to avoid leak
-    if (dst->value.vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING) {
-        dst->stringStorage.clear();
-        dst->value.u.bstrVal = nullptr;
-    } else if (dst->value.vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_ARRAY && dst->value.u.parrayVal != nullptr) {
-        delete dst->value.u.parrayVal;
-        dst->value.u.parrayVal = nullptr;
-    } else if (dst->value.vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR && dst->value.u.pvectorVal != nullptr) {
-        delete dst->value.u.pvectorVal;
-        dst->value.u.pvectorVal = nullptr;
-    } else if (dst->value.vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET && dst->value.u.psetVal != nullptr) {
-        delete dst->value.u.psetVal;
-        dst->value.u.psetVal = nullptr;
-    } else if (dst->value.vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP && dst->value.u.pmapVal != nullptr) {
-        delete dst->value.u.pmapVal;
-        dst->value.u.pmapVal = nullptr;
-    } else if (dst->value.vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRUCT && dst->value.u.pstructVal != nullptr) {
-        delete dst->value.u.pstructVal;
-        dst->value.u.pstructVal = nullptr;
-    }
-    dst->value = *src;
-    dst->stringStorage.clear();
+    // Transactional build: construct the new value entirely in a local temp storage and only commit
+    // to dst on success. On failure, temp's destructor releases any partial deep copies while dst
+    // is left untouched (never holds src's shallow-copied internal pointers, which previously caused
+    // double-free / use-after-free when a deep copy failed midway). On success the move-assignment
+    // releases dst's previous value before taking ownership of the new one.
+    MoVariantStorage temp;
+    temp.value = *src; // copies vt and scalar union fields; complex-type pointers are replaced below
+    temp.stringStorage.clear();
     std::unordered_set<const void*> visited;
     if (src->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING) {
-        dst->stringStorage = (src->u.bstrVal != nullptr) ? src->u.bstrVal : "";
-        dst->value.u.bstrVal = const_cast<char*>(dst->stringStorage.c_str());
+        temp.stringStorage = (src->u.bstrVal != nullptr) ? src->u.bstrVal : "";
+        temp.value.u.bstrVal = const_cast<char*>(temp.stringStorage.c_str());
     } else if (src->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_ARRAY && src->u.parrayVal != nullptr) {
+        temp.value.u.parrayVal = nullptr; // temp must not alias src's pointer; it will own the deep copy
         ScopedVisited sv(visited, src->u.parrayVal);
         if (!sv) {
             TAG_LOGE(AAFwkTag::EXT, "StoreVariant: circular reference detected in array");
@@ -1386,8 +1416,9 @@ AbilityRuntime_ErrorCode ModObjDispatcherComplexTypeManager::StoreVariant(
             }
             newArray->elements.emplace_back(std::move(elemCopy));
         }
-        dst->value.u.parrayVal = newArray;
+        temp.value.u.parrayVal = newArray;
     } else if (src->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR && src->u.pvectorVal != nullptr) {
+        temp.value.u.pvectorVal = nullptr;
         ScopedVisited sv(visited, src->u.pvectorVal);
         if (!sv) {
             TAG_LOGE(AAFwkTag::EXT, "StoreVariant: circular reference detected in vector");
@@ -1410,8 +1441,9 @@ AbilityRuntime_ErrorCode ModObjDispatcherComplexTypeManager::StoreVariant(
             }
             newVector->elements.emplace_back(std::move(elemCopy));
         }
-        dst->value.u.pvectorVal = newVector;
+        temp.value.u.pvectorVal = newVector;
     } else if (src->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET && src->u.psetVal != nullptr) {
+        temp.value.u.psetVal = nullptr;
         ScopedVisited sv(visited, src->u.psetVal);
         if (!sv) {
             TAG_LOGE(AAFwkTag::EXT, "StoreVariant: circular reference detected in set");
@@ -1434,8 +1466,9 @@ AbilityRuntime_ErrorCode ModObjDispatcherComplexTypeManager::StoreVariant(
             }
             newSet->elements.emplace_back(std::move(elemCopy));
         }
-        dst->value.u.psetVal = newSet;
+        temp.value.u.psetVal = newSet;
     } else if (src->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP && src->u.pmapVal != nullptr) {
+        temp.value.u.pmapVal = nullptr;
         ScopedVisited sv(visited, src->u.pmapVal);
         if (!sv) {
             TAG_LOGE(AAFwkTag::EXT, "StoreVariant: circular reference detected in map");
@@ -1464,8 +1497,9 @@ AbilityRuntime_ErrorCode ModObjDispatcherComplexTypeManager::StoreVariant(
             }
             newMap->entries.emplace_back(std::move(entryCopy));
         }
-        dst->value.u.pmapVal = newMap;
+        temp.value.u.pmapVal = newMap;
     } else if (src->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRUCT && src->u.pstructVal != nullptr) {
+        temp.value.u.pstructVal = nullptr;
         ScopedVisited sv(visited, src->u.pstructVal);
         if (!sv) {
             TAG_LOGE(AAFwkTag::EXT, "StoreVariant: circular reference detected in struct");
@@ -1488,8 +1522,29 @@ AbilityRuntime_ErrorCode ModObjDispatcherComplexTypeManager::StoreVariant(
             }
             newStruct->fields[field.first] = std::move(fieldCopy);
         }
-        dst->value.u.pstructVal = newStruct;
+        temp.value.u.pstructVal = newStruct;
+    } else if (src->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_IPC_REMOTE_PROXY &&
+        src->u.premoteProxyVal != nullptr) {
+        temp.value.u.premoteProxyVal = nullptr;
+        auto* newProxy = new (std::nothrow) OHIPCRemoteProxy();
+        if (newProxy == nullptr) {
+            TAG_LOGE(AAFwkTag::EXT, "StoreVariant: allocate remote proxy failed");
+            return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        }
+        newProxy->remote = src->u.premoteProxyVal->remote; // sptr copy: shares the underlying object
+        temp.value.u.premoteProxyVal = newProxy;
+    } else if (src->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_IPC_REMOTE_STUB &&
+        src->u.premoteStubVal != nullptr) {
+        temp.value.u.premoteStubVal = nullptr;
+        auto* newStub = new (std::nothrow) OHIPCRemoteStub();
+        if (newStub == nullptr) {
+            TAG_LOGE(AAFwkTag::EXT, "StoreVariant: allocate remote stub failed");
+            return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        }
+        newStub->remote = src->u.premoteStubVal->remote;
+        temp.value.u.premoteStubVal = newStub;
     }
+    *dst = std::move(temp); // releases dst's previous nested resources, then takes the new value
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
@@ -1708,17 +1763,20 @@ bool ModObjDispatcherComplexTypeManager::VariantEquals(const MoVariantStorage& l
 void ModObjDispatcherComplexTypeManager::RegisterStructMetadata(const std::vector<MoStructMeta>& structs)
 {
     std::lock_guard<std::mutex> lock(g_structMetaMutex);
-    g_structFieldTypes.clear();
-    g_structFieldOrder.clear();
     for (const auto& structMeta : structs) {
-        std::unordered_map<std::string, std::shared_ptr<MoTypeInfo>> fieldTypeMap;
-        std::vector<std::string> fieldOrder;
-        for (const auto& field : structMeta.fields) {
-            fieldTypeMap[field.name] = field.typeInfo;
-            fieldOrder.emplace_back(field.name);
+        // Reference-counted merge: do NOT clear the global tables, so multiple dispatchers in the
+        // same process can each register their own struct metadata without wiping each other's
+        // entries. The first registration of a given struct name defines its field layout.
+        if (g_structRefCount[structMeta.name]++ == 0) {
+            std::unordered_map<std::string, std::shared_ptr<MoTypeInfo>> fieldTypeMap;
+            std::vector<std::string> fieldOrder;
+            for (const auto& field : structMeta.fields) {
+                fieldTypeMap[field.name] = field.typeInfo;
+                fieldOrder.emplace_back(field.name);
+            }
+            g_structFieldTypes[structMeta.name] = std::move(fieldTypeMap);
+            g_structFieldOrder[structMeta.name] = std::move(fieldOrder);
         }
-        g_structFieldTypes[structMeta.name] = std::move(fieldTypeMap);
-        g_structFieldOrder[structMeta.name] = std::move(fieldOrder);
     }
 }
 
@@ -1726,8 +1784,16 @@ void ModObjDispatcherComplexTypeManager::UnregisterStructMetadata(const std::vec
 {
     std::lock_guard<std::mutex> lock(g_structMetaMutex);
     for (const auto& structMeta : structs) {
-        g_structFieldTypes.erase(structMeta.name);
-        g_structFieldOrder.erase(structMeta.name);
+        auto it = g_structRefCount.find(structMeta.name);
+        if (it == g_structRefCount.end()) {
+            continue;
+        }
+        // Only drop the field layout once the last referencing dispatcher unregisters.
+        if (--(it->second) == 0) {
+            g_structRefCount.erase(it);
+            g_structFieldTypes.erase(structMeta.name);
+            g_structFieldOrder.erase(structMeta.name);
+        }
     }
 }
 
