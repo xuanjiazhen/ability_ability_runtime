@@ -30,6 +30,7 @@ public:
     void PreConnect();
     void ConnectTillSuccess();
     void SetBmsReady(bool bmsReady);
+    void SyncBmsQueryCountSwitch();
     ErrCode GetNameForUid(const int32_t uid, std::string& name);
     ErrCode GetNameAndIndexForUid(const int32_t uid, std::string& bundleName, int32_t& appIndex);
     bool GetBundleInfo(const std::string& bundleName, const BundleFlag flag, BundleInfo& bundleInfo, int32_t userId);

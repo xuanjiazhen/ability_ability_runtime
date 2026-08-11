@@ -151,8 +151,5 @@ ErrCode BundleMgrHelper::GetCloneBundleInfo(
     bundleInfo.applicationInfo.accessTokenId = tokenId;
     return ERR_OK;
 }
-void BundleMgrHelper::SyncBmsQueryCountSwitch()
-{
-}
 } // namespace AppExecFwk
 } // namespace OHOS

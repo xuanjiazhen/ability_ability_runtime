@@ -36,7 +36,7 @@ public:
 
 private:
     bool CheckControl(std::shared_ptr<AppExecFwk::BundleMgrHelper> &undleMgrHelper, const Want &want, int32_t userId,
-        AppExecFwk::AppJumpControlRule &controlRule);
+        AppExecFwk::AppJumpControlRule &controlRule, const std::string &callerBundleName = "");
     bool CheckIfJumpExempt(AppExecFwk::AppJumpControlRule &controlRule, int32_t userId);
     bool CheckIfExemptByBundleName(const std::string &bundleName, const std::string &permission, int32_t userId);
     bool LoadAppLabelInfo(Want &want, AppExecFwk::AppJumpControlRule &controlRule, int32_t userId);

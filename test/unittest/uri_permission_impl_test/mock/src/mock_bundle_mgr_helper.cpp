@@ -96,8 +96,5 @@ ErrCode BundleMgrHelper::GetCloneBundleInfo(const std::string &bundleName, int32
     bundleInfo.applicationInfo.accessTokenId = tokenId;
     return ERR_OK;
 }
-void BundleMgrHelper::SyncBmsQueryCountSwitch()
-{
-}
 }  // namespace AppExecFwk
 }  // namespace OHOS
