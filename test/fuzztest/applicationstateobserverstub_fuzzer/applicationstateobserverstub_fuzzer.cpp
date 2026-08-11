@@ -15,12 +15,13 @@
 
 #include "applicationstateobserverstub_fuzzer.h"
 #include "fuzz_util.h"
+#include "attack_vectors.h"
 
 #include <cstddef>
 #include <cstdint>
 
 #include "application_state_observer_stub.h"
-#include "parcel.h"
+#include "message_parcel.h"
 #include "securec.h"
 
 using namespace OHOS::AppExecFwk;
@@ -61,18 +62,48 @@ public:
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
     uint32_t code = OHOS::FuzzUtil::GetU32Data(data);
-
+    FuzzedDataProvider fdp(data + FuzzUtil::U32_AT_SIZE, size - FuzzUtil::U32_AT_SIZE);
     MessageParcel parcel;
-    parcel.WriteInterfaceToken(APPLICATIONSTATEOBSERVER_INTERFACE_TOKEN);
-    parcel.WriteBuffer(data, size);
-    parcel.RewindRead(0);
     MessageParcel reply;
     MessageOption option;
+    uint32_t actualCode = static_cast<uint32_t>(
+        IApplicationStateObserver::Message::TRANSACT_ON_FOREGROUND_APPLICATION_CHANGED);
 
+    parcel.WriteInterfaceToken(APPLICATIONSTATEOBSERVER_INTERFACE_TOKEN);
+
+    switch (code % 5) {
+        case 0:
+            actualCode = static_cast<uint32_t>(
+                IApplicationStateObserver::Message::TRANSACT_ON_FOREGROUND_APPLICATION_CHANGED);
+            FuzzUtil::WriteMaliciousAppStateData(parcel, fdp);
+            break;
+        case 1:
+            actualCode = static_cast<uint32_t>(
+                IApplicationStateObserver::Message::TRANSACT_ON_ABILITY_STATE_CHANGED);
+            FuzzUtil::WriteMaliciousAbilityStateData(parcel, fdp);
+            break;
+        case 2:
+            actualCode = static_cast<uint32_t>(
+                IApplicationStateObserver::Message::TRANSACT_ON_PROCESS_CREATED);
+            FuzzUtil::WriteMaliciousProcessData(parcel, fdp);
+            break;
+        case 3:
+            actualCode = static_cast<uint32_t>(
+                IApplicationStateObserver::Message::TRANSACT_ON_PROCESS_DIED);
+            FuzzUtil::WriteMaliciousProcessData(parcel, fdp);
+            break;
+        case 4:
+            actualCode = static_cast<uint32_t>(
+                IApplicationStateObserver::Message::TRANSACT_ON_PAGE_SHOW);
+            FuzzUtil::WriteMaliciousPageStateData(parcel, fdp);
+            break;
+        default:
+            break;
+    }
+
+    parcel.RewindRead(0);
     std::shared_ptr<ApplicationStateObserverStub> stub = std::make_shared<ApplicationStateObserverStubFuzz>();
-
-    stub->OnRemoteRequest(code, parcel, reply, option);
-
+    stub->OnRemoteRequest(actualCode, parcel, reply, option);
     return true;
 }
 }  // namespace OHOS

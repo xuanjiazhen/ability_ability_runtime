@@ -324,6 +324,7 @@ group("fuzztest") {
     "addabilitystagedone_fuzzer:fuzztest",
     "amsmanager_fuzzer:fuzztest",
     "amsmgrscheduler_fuzzer:fuzztest",
+    "appschedulerhost_fuzzer:fuzztest",
     "amsmgrstubkill_fuzzer:fuzztest",
     "appmgrstubfield_fuzzer:fuzztest",
     "appfreezeutil_fuzzer:fuzztest",

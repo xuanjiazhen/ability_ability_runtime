@@ -15,6 +15,7 @@
 
 #include "appmgrstub_fuzzer.h"
 #include "fuzz_util.h"
+#include "attack_vectors.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -22,7 +23,9 @@
 #include <memory>
 
 #include "app_mgr_stub.h"
-#include "parcel.h"
+#include "bundle_info.h"
+#include "configuration.h"
+#include "message_parcel.h"
 #include "securec.h"
 #include "want.h"
 
@@ -168,14 +171,84 @@ public:
 bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
 {
     uint32_t code = FuzzUtil::GetU32Data(data);
+    FuzzedDataProvider fdp(data + FuzzUtil::U32_AT_SIZE, size - FuzzUtil::U32_AT_SIZE);
     MessageParcel parcel;
-    parcel.WriteInterfaceToken(APPMGR_INTERFACE_TOKEN);
-    parcel.WriteBuffer(data, size);
-    parcel.RewindRead(0);
     MessageParcel reply;
     MessageOption option;
+    uint32_t actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::APP_APPLICATION_TERMINATED);
+
+    parcel.WriteInterfaceToken(APPMGR_INTERFACE_TOKEN);
+
+    switch (code % 10) {
+        case 0:
+            actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::APP_APPLICATION_TERMINATED);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        case 1:
+            actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::APP_ABILITY_CLEANED);
+            parcel.WriteRemoteObject(nullptr);
+            break;
+        case 2:
+            actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::APP_CLEAR_UP_APPLICATION_DATA);
+            parcel.WriteString(FuzzUtil::BuildMaliciousBundleName(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        case 3: {
+            actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::STARTUP_RESIDENT_PROCESS);
+            int32_t infoSize = static_cast<int32_t>(fdp.ConsumeIntegral<uint8_t>() % 4);
+            parcel.WriteInt32(infoSize);
+            for (int32_t i = 0; i < infoSize; i++) {
+                AppExecFwk::BundleInfo bundleInfo;
+                parcel.WriteParcelable(&bundleInfo);
+            }
+            break;
+        }
+        case 4: {
+            actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_CONFIGURATION);
+            Configuration config;
+            parcel.WriteParcelable(&config);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        }
+        case 5:
+            actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::APP_ATTACH_APPLICATION);
+            parcel.WriteRemoteObject(nullptr);
+            break;
+        case 6:
+            actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::APP_ADD_ABILITY_STAGE_INFO_DONE);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        case 7:
+            actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::APP_NOTIFY_MEMORY_LEVEL);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        case 8:
+            actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::SCHEDULE_ACCEPT_WANT_DONE);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            FuzzUtil::WriteMaliciousWant(parcel, fdp);
+            parcel.WriteString(FuzzUtil::BuildSpecialCharString(fdp));
+            break;
+        case 9: {
+            actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::MAKE_IMAGE);
+            FuzzUtil::WriteMaliciousWant(parcel, fdp);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            bool flag = fdp.ConsumeBool();
+            parcel.WriteBool(flag);
+            if (flag) {
+                parcel.WriteRemoteObject(nullptr);
+            }
+            break;
+        }
+        default:
+            break;
+    }
+
+    parcel.RewindRead(0);
     std::shared_ptr<AppMgrStub> appMgrStub = std::make_shared<AppMgrStubFuzz>();
-    appMgrStub->OnRemoteRequest(code, parcel, reply, option);
+    appMgrStub->OnRemoteRequest(actualCode, parcel, reply, option);
     return true;
 }
 } // namespace OHOS

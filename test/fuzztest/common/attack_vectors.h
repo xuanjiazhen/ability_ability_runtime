@@ -252,6 +252,59 @@ inline void WriteMaliciousExtensionRunningInfo(MessageParcel &parcel, FuzzedData
     parcel.WriteInt32(BuildInvalidEnum(fdp, 20));
     parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
 }
+// Parcelable serialization phase enum for stage-specific malicious construction.
+enum ParcelablePhase {
+    PHASE_BEFORE_SERIALIZE,
+    PHASE_DURING_SERIALIZE,
+    PHASE_AFTER_DESERIALIZE,
+};
+
+// Write a phase-aware malicious AppStateData with stage-specific attack vectors.
+inline void WriteMaliciousAppStateDataPhased(MessageParcel &parcel, FuzzedDataProvider &fdp, ParcelablePhase phase)
+{
+    switch (phase) {
+        case PHASE_BEFORE_SERIALIZE:
+            parcel.WriteInt32(BuildIntegerOverflow(fdp));
+            parcel.WriteString(BuildOversizedString(fdp, 2048));
+            break;
+        case PHASE_DURING_SERIALIZE:
+            parcel.WriteString(BuildSpecialCharString(fdp));
+            parcel.WriteString(BuildUnicodeAttackString(fdp));
+            break;
+        case PHASE_AFTER_DESERIALIZE:
+            parcel.WriteInt32(BuildInvalidEnum(fdp, 20));
+            parcel.WriteString(BuildMaliciousBundleName(fdp));
+            break;
+    }
+    parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
+    parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
+    parcel.WriteBool(fdp.ConsumeBool());
+}
+
+// Generate a string that precisely overflows a target buffer of given size (strcpy overflow).
+inline std::string GenStrcpyOverflowString(FuzzedDataProvider &fdp, size_t targetBufSize)
+{
+    std::string s;
+    size_t overflowSize = targetBufSize + (fdp.ConsumeIntegral<uint8_t>() % 128) + 1;
+    s.reserve(overflowSize);
+    while (s.size() < overflowSize && fdp.remaining_bytes() > 0) {
+        s += fdp.ConsumeRandomLengthString(64);
+    }
+    return s;
+}
+
+// Generate a byte vector that precisely overflows a memcpy target buffer.
+inline std::vector<uint8_t> GenMemcpyOverflowData(FuzzedDataProvider &fdp, size_t targetBufSize)
+{
+    std::vector<uint8_t> data;
+    size_t overflowSize = targetBufSize + (fdp.ConsumeIntegral<uint8_t>() % 128) + 1;
+    auto bytes = fdp.ConsumeBytes<uint8_t>(overflowSize);
+    data.assign(bytes.begin(), bytes.end());
+    while (data.size() < overflowSize) {
+        data.push_back(fdp.ConsumeIntegral<uint8_t>());
+    }
+    return data;
+}
 } // namespace FuzzUtil
 } // namespace OHOS
 
