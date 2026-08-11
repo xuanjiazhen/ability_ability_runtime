@@ -116,6 +116,7 @@
 #include "start_ability_utils.h"
 #include "start_options_utils.h"
 #include "startup_util.h"
+#include "system_recovery_mode_constants.h"
 #include "system_recovery_mode_policy.h"
 #ifdef ENABLE_CLONE_FOR_ACCOUNT
 #include "clone_for_account_util.h"
@@ -577,6 +578,7 @@ void AbilityManagerService::InitBlockAllAppStartInterceptorCallbacks()
         // Backup SA 使用 ConnectAbility 启动用户选择的 BackupExtensionAbility。
         // 这里只放行已经解析为 BACKUP 类型的目标，普通 Ability 和普通应用启动仍然拦截。
         if (request.abilityInfo.extensionAbilityType != AppExecFwk::ExtensionAbilityType::BACKUP ||
+            IPCSkeleton::GetCallingUid() != SYSTEM_RECOVERY_BACKUP_UID ||
             !PermissionVerification::GetInstance()->IsSACall()) {
             return false;
         }
