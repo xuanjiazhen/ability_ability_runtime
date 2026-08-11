@@ -23,6 +23,7 @@
 #include "parameters.h"
 #include "system_recovery_mode_constants.h"
 #include "system_recovery_mode_policy.h"
+#include "system_recovery_settings_data.h"
 #include "task_handler_wrap.h"
 
 #ifdef APP_MGR_SERVICE_APPMS
@@ -136,7 +137,8 @@ bool SystemRecoveryModeFramework::InitializeAirplaneMode()
 
     if (!system::GetBoolParameter(AIRPLANE_RESTORE_VALID_PARAMETER, false)) {
         bool previousState = false;
-        if (NetManagerStandard::NetConnClient::GetInstance().GetAirplaneMode(previousState) != ERR_OK) {
+        // 直接读取 SettingsData，与 Settings 应用展示的用户飞行模式状态保持一致。
+        if (!SystemRecoverySettingsData::GetAirplaneMode(previousState)) {
             return false;
         }
         if (!system::SetParameter(AIRPLANE_RESTORE_VALUE_PARAMETER, previousState ? "true" : "false") ||
