@@ -116,7 +116,7 @@
 #include "start_ability_utils.h"
 #include "start_options_utils.h"
 #include "startup_util.h"
-#include "system_recovery_mode_constants.h"
+#include "system_recovery_mode_framework.h"
 #include "system_recovery_mode_policy.h"
 #ifdef ENABLE_CLONE_FOR_ACCOUNT
 #include "clone_for_account_util.h"
@@ -17776,6 +17776,24 @@ int32_t AbilityManagerService::BlockAllAppStart(bool flag)
     shouldBlockAllAppStart_ = flag;
     TAG_LOGI(AAFwkTag::ABILITYMGR, "BlockAllAppStart set success, shouldBlockAllAppStart_: %{public}d",
         shouldBlockAllAppStart_);
+    return ERR_OK;
+}
+
+int32_t AbilityManagerService::IsSystemRecoveryMode(bool &isRecoveryMode)
+{
+    isRecoveryMode = AppExecFwk::SystemRecoveryModeFramework::GetInstance().IsSystemRecoveryMode();
+    return ERR_OK;
+}
+
+int32_t AbilityManagerService::IsSystemRecoveryAppAllowed(const std::string &bundleName, bool &isAllowed)
+{
+    isAllowed = AppExecFwk::SystemRecoveryModeFramework::GetInstance().IsSystemRecoveryAppAllowed(bundleName);
+    return ERR_OK;
+}
+
+int32_t AbilityManagerService::GetSystemRecoveryAppWhitelist(std::vector<std::string> &bundleNames)
+{
+    AppExecFwk::SystemRecoveryModeFramework::GetInstance().GetSystemRecoveryAppWhitelist(bundleNames);
     return ERR_OK;
 }
 

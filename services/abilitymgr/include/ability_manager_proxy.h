@@ -1788,6 +1788,12 @@ public:
      */
     virtual int32_t BlockAllAppStart(bool flag) override;
 
+    virtual int32_t IsSystemRecoveryMode(bool &isRecoveryMode) override;
+
+    virtual int32_t IsSystemRecoveryAppAllowed(const std::string &bundleName, bool &isAllowed) override;
+
+    virtual int32_t GetSystemRecoveryAppWhitelist(std::vector<std::string> &bundleNames) override;
+
     /**
      * update associate config list by rss.
      *

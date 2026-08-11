@@ -27,7 +27,7 @@ namespace OHOS {
 namespace AAFwk {
 namespace {
 
-// 产品白名单缺失或格式非法时使用的最小安全白名单，避免恢复界面无法启动。
+// 配置缺失或格式错误时只保留恢复框架的最小系统集合，采用 fail-closed 语义。
 constexpr std::array<std::string_view, 6> RECOVERY_ESSENTIAL_BUNDLES = {
     "com.ohos.settings",
     "com.ohos.settingsdata",
@@ -110,9 +110,17 @@ bool SystemRecoveryModePolicy::ShouldBlockBundle(const std::string &bundleName) 
     if (!IsEnabled()) {
         return false;
     }
-
-    // 已进入恢复模式但目标为空时按未命中白名单处理。
     return bundleName.empty() || !IsRecoveryEssentialBundle(bundleName);
+}
+
+void SystemRecoveryModePolicy::GetRecoveryEssentialBundles(std::vector<std::string> &bundleNames) const
+{
+    bundleNames.clear();
+    const auto &essentialBundles = GetRecoveryEssentialBundles();
+    bundleNames.reserve(essentialBundles.size());
+    for (const auto &bundleName : essentialBundles) {
+        bundleNames.emplace_back(bundleName);
+    }
 }
 
 } // namespace AAFwk

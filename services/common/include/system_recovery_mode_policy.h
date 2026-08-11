@@ -13,40 +13,10 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_SYSTEM_RECOVERY_MODE_POLICY_H
-#define OHOS_ABILITY_RUNTIME_SYSTEM_RECOVERY_MODE_POLICY_H
+#ifndef OHOS_ABILITY_RUNTIME_SYSTEM_RECOVERY_MODE_POLICY_COMPAT_H
+#define OHOS_ABILITY_RUNTIME_SYSTEM_RECOVERY_MODE_POLICY_COMPAT_H
 
-#include <atomic>
-#include <string>
+// 兼容旧的 common include 路径，真实定义统一放在 system_recovery 框架目录。
+#include "../../system_recovery/include/system_recovery_mode_policy.h"
 
-#include "nocopyable.h"
-
-namespace OHOS {
-namespace AAFwk {
-
-/**
- * AMS 与 AppMgr 共用的系统恢复模式决策。
- * 启动时读取一次参数，并由启动控制器在本次启动中设置固定状态，避免每次启动
- * 应用都访问参数服务。恢复模式只能通过完整重启进入或退出。
- */
-class SystemRecoveryModePolicy final {
-public:
-    static SystemRecoveryModePolicy &GetInstance();
-
-    void SetEnabled(bool enabled);
-    bool IsEnabled() const;
-    bool IsRecoveryEssentialBundle(const std::string &bundleName) const;
-    bool ShouldBlockBundle(const std::string &bundleName) const;
-
-private:
-    SystemRecoveryModePolicy();
-    ~SystemRecoveryModePolicy() = default;
-    DISALLOW_COPY_AND_MOVE(SystemRecoveryModePolicy);
-
-    std::atomic_bool enabled_ = false;
-};
-
-} // namespace AAFwk
-} // namespace OHOS
-
-#endif // OHOS_ABILITY_RUNTIME_SYSTEM_RECOVERY_MODE_POLICY_H
+#endif // OHOS_ABILITY_RUNTIME_SYSTEM_RECOVERY_MODE_POLICY_COMPAT_H

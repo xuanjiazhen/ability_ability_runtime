@@ -438,6 +438,9 @@ private:
     int32_t OpenLinkInner(MessageParcel &data, MessageParcel &reply);
     int32_t TerminateMissionInner(MessageParcel &data, MessageParcel &reply);
     int32_t BlockAllAppStartInner(MessageParcel &data, MessageParcel &reply);
+    int32_t IsSystemRecoveryModeInner(MessageParcel &data, MessageParcel &reply);
+    int32_t IsSystemRecoveryAppAllowedInner(MessageParcel &data, MessageParcel &reply);
+    int32_t GetSystemRecoveryAppWhitelistInner(MessageParcel &data, MessageParcel &reply);
     int32_t UpdateAssociateConfigListInner(MessageParcel &data, MessageParcel &reply);
     int32_t UpdateKioskApplicationListInner(MessageParcel &data, MessageParcel &reply);
     int32_t EnterKioskModeInner(MessageParcel &data, MessageParcel &reply);

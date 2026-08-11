@@ -2451,6 +2451,27 @@ ErrCode AbilityManagerClient::BlockAllAppStart(bool flag)
     return abms->BlockAllAppStart(flag);
 }
 
+ErrCode AbilityManagerClient::IsSystemRecoveryMode(bool &isRecoveryMode)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_INVALID_VALUE(abms);
+    return abms->IsSystemRecoveryMode(isRecoveryMode);
+}
+
+ErrCode AbilityManagerClient::IsSystemRecoveryAppAllowed(const std::string &bundleName, bool &isAllowed)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_INVALID_VALUE(abms);
+    return abms->IsSystemRecoveryAppAllowed(bundleName, isAllowed);
+}
+
+ErrCode AbilityManagerClient::GetSystemRecoveryAppWhitelist(std::vector<std::string> &bundleNames)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_INVALID_VALUE(abms);
+    return abms->GetSystemRecoveryAppWhitelist(bundleNames);
+}
+
 ErrCode AbilityManagerClient::UpdateAssociateConfigList(const std::map<std::string, std::list<std::string>>& configs,
     const std::list<std::string>& exportConfigs, int32_t flag)
 {

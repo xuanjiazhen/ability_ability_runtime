@@ -861,6 +861,15 @@ int AbilityManagerStub::OnRemoteRequestInnerNineteenth(uint32_t code, MessagePar
     if (interfaceCode == AbilityManagerInterfaceCode::BLOCK_ALL_APP_START) {
         return BlockAllAppStartInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::IS_SYSTEM_RECOVERY_MODE) {
+        return IsSystemRecoveryModeInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::IS_SYSTEM_RECOVERY_APP_ALLOWED) {
+        return IsSystemRecoveryAppAllowedInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::GET_SYSTEM_RECOVERY_APP_WHITELIST) {
+        return GetSystemRecoveryAppWhitelistInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::UPDATE_ASSOCIATE_CONFIG_LIST) {
         return UpdateAssociateConfigListInner(data, reply);
     }
@@ -4951,6 +4960,40 @@ int32_t AbilityManagerStub::BlockAllAppStartInner(MessageParcel &data, MessagePa
     int32_t result = BlockAllAppStart(flag);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write result failed");
+        return IPC_STUB_ERR;
+    }
+    return ERR_OK;
+}
+
+int32_t AbilityManagerStub::IsSystemRecoveryModeInner(MessageParcel &data, MessageParcel &reply)
+{
+    bool isRecoveryMode = false;
+    int32_t result = IsSystemRecoveryMode(isRecoveryMode);
+    if (!reply.WriteInt32(result) || !reply.WriteBool(isRecoveryMode)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write system recovery mode result failed");
+        return IPC_STUB_ERR;
+    }
+    return ERR_OK;
+}
+
+int32_t AbilityManagerStub::IsSystemRecoveryAppAllowedInner(MessageParcel &data, MessageParcel &reply)
+{
+    const std::string bundleName = data.ReadString();
+    bool isAllowed = false;
+    int32_t result = IsSystemRecoveryAppAllowed(bundleName, isAllowed);
+    if (!reply.WriteInt32(result) || !reply.WriteBool(isAllowed)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write system recovery app result failed");
+        return IPC_STUB_ERR;
+    }
+    return ERR_OK;
+}
+
+int32_t AbilityManagerStub::GetSystemRecoveryAppWhitelistInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<std::string> bundleNames;
+    int32_t result = GetSystemRecoveryAppWhitelist(bundleNames);
+    if (!reply.WriteInt32(result) || !reply.WriteStringVector(bundleNames)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write system recovery app whitelist failed");
         return IPC_STUB_ERR;
     }
     return ERR_OK;

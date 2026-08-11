@@ -42,8 +42,7 @@
 #include "app_recovery_mgr.h"
 #include "app_state_observer_manager.h"
 #include "app_utils.h"
-#include "system_recovery_mode_controller.h"
-#include "system_recovery_mode_policy.h"
+#include "system_recovery_mode_framework.h"
 #include "appfreeze_manager.h"
 #include "application_state_filter.h"
 #include "application_state_observer_stub.h"
@@ -515,8 +514,8 @@ void AppMgrServiceInner::Init()
         .timeout(AbilityRuntime::GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));
     AppNativeSpawnManager::GetInstance().InitNativeSpawnMsgPipe(appRunningManager_);
     AppHybridSpawnManager::GetInstance().InitHybridSpawnMsgPipe(weak_from_this());
-    // foundation 启动后由统一控制器通过现有 IPC 应用恢复模式策略。
-    SystemRecoveryModeController::GetInstance().Start(taskHandler_);
+    // foundation 启动后由系统恢复模式框架通过现有 IPC 应用恢复模式策略。
+    SystemRecoveryModeFramework::GetInstance().Start(taskHandler_);
 }
 
 AppMgrServiceInner::~AppMgrServiceInner()

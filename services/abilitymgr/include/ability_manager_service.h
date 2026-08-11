@@ -2416,6 +2416,12 @@ public:
 
     int32_t BlockAllAppStart(bool flag) override;
 
+    int32_t IsSystemRecoveryMode(bool &isRecoveryMode) override;
+
+    int32_t IsSystemRecoveryAppAllowed(const std::string &bundleName, bool &isAllowed) override;
+
+    int32_t GetSystemRecoveryAppWhitelist(std::vector<std::string> &bundleNames) override;
+
     int SetWantForSessionInfo(sptr<SessionInfo> sessionInfo);
 
     int32_t StartUIAbilityBySCBDefaultCommon(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
