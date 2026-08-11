@@ -16,8 +16,11 @@
 #ifndef OHOS_ABILITY_RUNTIME_JS_MODULE_READER_H
 #define OHOS_ABILITY_RUNTIME_JS_MODULE_READER_H
 
+#include <map>
 #include <sstream>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "js_module_searcher.h"
 #include "extractor.h"
@@ -45,6 +48,12 @@ public:
     bool operator()(const std::string& inputPath, uint8_t **buff, size_t *buffSize, std::string& errorMsg) const;
     static std::string GetPresetAppHapPath(const std::string& inputPath, const std::string& bundleName);
     static void GetHapPathList(const std::string &bundleName, std::vector<std::string> &hapList);
+    // Set the self-bundle moduleName -> hapPath list obtained at launch (order preserved);
+    // once set, module path resolution reuses it instead of querying BMS. Set once on the
+    // main thread during launch, before any module load; read-only afterwards.
+    static void SetHapPathMap(const std::vector<std::pair<std::string, std::string>> &hapPathList);
+    // Returns the hapPath for moduleName from the launch-time list, empty string when absent.
+    static std::string GetHapPathFromMap(const std::string &moduleName);
 
 private:
     std::string GetAppHspPath(const std::string& inputPath, bool& needFindPluginHsp, std::string& errorMsg) const;
@@ -60,6 +69,7 @@ private:
 
     bool isSystemPath_ = false;
     bool isFormRender_ = false;
+    static std::vector<std::pair<std::string, std::string>> hapPathList_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -21,6 +21,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "native_engine/native_engine.h"
@@ -75,6 +76,9 @@ public:
     static std::unique_ptr<JsRuntime> Create(const Options& options);
 
     static void SetAppLibPath(const AppLibPathMap& appLibPaths, const bool& isSystemApp = false);
+    // Set the self-bundle moduleName -> hapPath list (order preserved) obtained at launch,
+    // forwarded to JsModuleReader so module path resolution reuses it instead of querying BMS.
+    static void SetModuleHapPathList(const std::vector<std::pair<std::string, std::string>> &hapPathList);
     static void SetOrUpdateLibPath(const AppLibPathMap& appLibPaths, const bool& isSystemApp = false);
     static void InheritPluginNamespace(const std::vector<std::string> &moduleNames);
     static void CreatePluginDefaultNamespace(const std::string &lddictorys);

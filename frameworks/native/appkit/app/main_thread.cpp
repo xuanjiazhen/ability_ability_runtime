@@ -1598,6 +1598,12 @@ CJEventReportInfo MainThread::CreateCjEventReportInfo(const std::string &bundleN
 
 bool MainThread::GetBundleAndHspListForUpdateRuntime(BundleInfo &bundleInfo, std::string bundleName, HspList &hspList)
 {
+    if (launchBundleInfo_ != nullptr && launchHspListReady_ && launchBundleInfo_->name == bundleName) {
+        // reuse the data queried in HandleLaunchApplication of this launch
+        bundleInfo = *launchBundleInfo_;
+        hspList = launchHspList_;
+        return true;
+    }
     std::shared_ptr<ContextDeal> contextDeal = std::make_shared<ContextDeal>();
     contextDeal->SetApplicationInfo(applicationInfo_);
     contextDeal->SetBundleCodePath(applicationInfo_->codePath);
@@ -1725,6 +1731,8 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         TAG_LOGE(AAFwkTag::APPKIT, "get bundleInfo failed");
         return;
     }
+    // hold the launch-time BundleInfo for reuse within this launch (e.g. runtime update check)
+    launchBundleInfo_ = std::make_shared<BundleInfo>(bundleInfo);
     auto tmpWatchdog = watchdog_;
     bool isSystemApp = bundleInfo.applicationInfo.isSystemApp;
     if (tmpWatchdog != nullptr) {
@@ -1805,9 +1813,10 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     TAG_LOGD(AAFwkTag::APPKIT, "stageBased:%{public}d moduleJson:%{public}d size:%{public}zu",
         isStageBased, moduelJson, bundleInfo.hapModuleInfos.size());
 
-    // create contextImpl
+    // create contextImpl; share the single ApplicationInfo instance held by MainThread
     std::shared_ptr<AbilityRuntime::ContextImpl> contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
-    contextImpl->SetApplicationInfo(std::make_shared<ApplicationInfo>(appInfo));
+    contextImpl->SetApplicationInfo(applicationInfo_ != nullptr ? applicationInfo_
+                                                                : std::make_shared<ApplicationInfo>(appInfo));
     contextImpl->SetProcessName(processInfo.GetProcessName());
     std::shared_ptr<AbilityRuntime::ApplicationContext> applicationContext =
         AbilityRuntime::ApplicationContext::GetInstance();
@@ -1833,6 +1842,9 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         AppExecFwk::GetDependentBundleInfoFlag::GET_ALL_DEPENDENT_BUNDLE_INFO);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "Get base shared bundle infos failed: %{public}d", ret);
+    } else {
+        launchHspList_ = hspList;
+        launchHspListReady_ = true;
     }
 
     std::map<std::string, std::string> pkgContextInfoJsonStringMap;
@@ -1854,12 +1866,20 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         }
     }
 
+    std::map<std::string, std::shared_ptr<AppExecFwk::HapModuleInfo>> hapModuleInfoMap;
+    std::vector<std::pair<std::string, std::string>> moduleHapPathList;
     for (auto hapModuleInfo : bundleInfo.hapModuleInfos) {
         pkgContextInfoJsonStringMap[hapModuleInfo.moduleName] = hapModuleInfo.hapPath;
+        hapModuleInfoMap[hapModuleInfo.moduleName] = std::make_shared<AppExecFwk::HapModuleInfo>(hapModuleInfo);
+        moduleHapPathList.emplace_back(hapModuleInfo.moduleName, hapModuleInfo.hapPath);
         if (hapModuleInfo.deduplicateHar) {
             application_->SetDeduplicateHar(hapModuleInfo.deduplicateHar);
         }
     }
+    // let AddAbilityStage(abilityRecord) reuse the launch-time module info instead of re-querying BMS
+    application_->SetHapModuleInfoMap(hapModuleInfoMap);
+    // let the JS runtime resolve module paths from the launch-time list instead of re-querying BMS
+    AbilityRuntime::JsRuntime::SetModuleHapPathList(moduleHapPathList);
 
     GetNativeLibPath(bundleInfo, hspList, appLibPaths);
     TAG_LOGD(AAFwkTag::APPKIT, "the application isSystemApp: %{public}d", isSystemApp);

@@ -585,7 +585,13 @@ std::shared_ptr<AbilityRuntime::Context> OHOSApplication::AddAbilityStage(
             stageContext->SetResourceManager(rm);
             stageContext->SetParentContext(pluginContext);
         } else {
-            stageContext->InitHapModuleInfo(abilityInfo);
+            // reuse the module info obtained at launch; fall back to IPC query when absent
+            auto heldHapModuleInfo = GetHapModuleInfoByModule(moduleName);
+            if (heldHapModuleInfo != nullptr) {
+                stageContext->InitHapModuleInfo(*heldHapModuleInfo);
+            } else {
+                stageContext->InitHapModuleInfo(abilityInfo);
+            }
             stageContext->SetParentContext(abilityRuntimeContext_);
             LoadDeduplicatedHarResource(stageContext);
         }
