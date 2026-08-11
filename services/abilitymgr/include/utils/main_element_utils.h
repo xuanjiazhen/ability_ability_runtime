@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_MAIN_ELEMENT_UTILS_H
 #define OHOS_ABILITY_RUNTIME_MAIN_ELEMENT_UTILS_H
 
+#include "ability_info.h"
 #include "bundle_info.h"
 #include "param.h"
 
@@ -63,6 +64,16 @@ public:
      * @return Whether or not the ability is main UIAbility.
      */
     static bool IsMainUIAbility(const std::string &bundleName, const std::string &abilityName, int32_t userId);
+
+    /**
+     * IsMainUIAbility, lightweight overload: queries only the single HapModuleInfo of the given
+     * ability instead of the full BundleInfo; falls back to the full query on failure.
+     *
+     * @param abilityInfo The ability info.
+     * @param userId User id.
+     * @return Whether or not the ability is main UIAbility.
+     */
+    static bool IsMainUIAbility(const AppExecFwk::AbilityInfo &abilityInfo, int32_t userId);
 
     static void SetMainUIAbilityKeepAliveFlag(bool isMainUIAbility,
         const std::string &bundleName, AbilityRuntime::LoadParam &loadParam);
