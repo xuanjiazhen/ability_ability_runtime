@@ -37,8 +37,5 @@ sptr<IAppControlMgr> BundleMgrHelper::GetAppControlProxy()
 {
     return AAFwk::MyFlag::mockAppControlManager_;
 }
-void BundleMgrHelper::SyncBmsQueryCountSwitch()
-{
-}
 } // namespace AppExecFwk
 } // namespace OHOS

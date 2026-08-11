@@ -43,8 +43,5 @@ bool BundleMgrHelper::QueryAbilityInfo(const AAFwk::Want& want, int32_t flags, i
     abilityInfo = AAFwk::MyStatus::GetInstance().queryAbilityInfo_;
     return AAFwk::MyStatus::GetInstance().retQueryAbilityInfo_;
 }
-void BundleMgrHelper::SyncBmsQueryCountSwitch()
-{
-}
 } // namespace AppExecFwk
 } // namespace OHOS

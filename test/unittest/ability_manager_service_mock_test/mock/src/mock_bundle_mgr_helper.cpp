@@ -156,8 +156,5 @@ bool BundleMgrHelper::QueryAppGalleryBundleName(std::string &bundleName)
 {
     return true;
 }
-void BundleMgrHelper::SyncBmsQueryCountSwitch()
-{
-}
 }  // namespace AppExecFwk
 }  // namespace OHOS

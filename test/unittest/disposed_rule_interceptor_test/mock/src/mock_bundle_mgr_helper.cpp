@@ -67,8 +67,5 @@ bool BundleMgrHelper::QueryAppGalleryBundleName(std::string &appGalleryBundleNam
     appGalleryBundleName = "com.example.appstore";
     return true;
 }
-void BundleMgrHelper::SyncBmsQueryCountSwitch()
-{
-}
 } // namespace AppExecFwk
 } // namespace OHOS
