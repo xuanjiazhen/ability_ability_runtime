@@ -22,10 +22,11 @@ ohos_unittest("system_recovery_mode_policy_test") {
   include_dirs = [
     "mock",
     "${ability_runtime_services_path}/common/include",
+    "${ability_runtime_services_path}/system_recovery/include",
   ]
 
   sources = [
-    "${ability_runtime_services_path}/common/src/system_recovery_mode_policy.cpp",
+    "${ability_runtime_services_path}/system_recovery/src/system_recovery_mode_policy.cpp",
     "system_recovery_mode_policy_test.cpp",
   ]
 

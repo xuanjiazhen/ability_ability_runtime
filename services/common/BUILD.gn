@@ -322,7 +322,6 @@ ohos_shared_library("app_util") {
     "src/rate_limiter.cpp",
     "src/record_cost_time_util.cpp",
     "src/res_sched_util.cpp",
-    "src/system_recovery_mode_policy.cpp",
   ]
 
   deps = [
@@ -391,7 +390,6 @@ ohos_static_library("app_util_static") {
     "src/rate_limiter.cpp",
     "src/record_cost_time_util.cpp",
     "src/res_sched_util.cpp",
-    "src/system_recovery_mode_policy.cpp",
   ]
 
   deps = [

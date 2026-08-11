@@ -13,24 +13,10 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_SYSTEM_RECOVERY_MODE_CONSTANTS_H
-#define OHOS_ABILITY_RUNTIME_SYSTEM_RECOVERY_MODE_CONSTANTS_H
+#ifndef OHOS_ABILITY_RUNTIME_SYSTEM_RECOVERY_MODE_CONSTANTS_COMPAT_H
+#define OHOS_ABILITY_RUNTIME_SYSTEM_RECOVERY_MODE_CONSTANTS_COMPAT_H
 
-namespace OHOS {
-namespace AAFwk {
+// 兼容旧的 common include 路径，真实定义统一放在 system_recovery 框架目录。
+#include "../../system_recovery/include/system_recovery_mode_constants.h"
 
-inline constexpr char SYSTEM_RECOVERY_MODE_PARAMETER[] = "persist.start.mode";
-inline constexpr char SYSTEM_RECOVERY_MODE_VALUE[] = "system_recovery";
-inline constexpr char SYSTEM_RECOVERY_APP_WHITELIST_CONFIG[] =
-    "etc/ability_runtime/system_recovery_app_whitelist.json";
-inline constexpr char SYSTEM_RECOVERY_APP_WHITELIST_DEFAULT_CONFIG[] =
-    "/system/etc/ability_runtime/system_recovery_app_whitelist.json";
-inline constexpr char SYSTEM_RECOVERY_APP_WHITELIST_KEY[] = "bundleNames";
-
-// Backup SA 在系统服务配置中的名称，用于通过 BMS 的 UID 转换接口识别调用者。
-inline constexpr char SYSTEM_RECOVERY_BACKUP_SA_NAME[] = "backup_sa";
-
-} // namespace AAFwk
-} // namespace OHOS
-
-#endif // OHOS_ABILITY_RUNTIME_SYSTEM_RECOVERY_MODE_CONSTANTS_H
+#endif // OHOS_ABILITY_RUNTIME_SYSTEM_RECOVERY_MODE_CONSTANTS_COMPAT_H
