@@ -34,7 +34,9 @@ public:
     using IsAbilityStartedFunc = std::function<bool(AbilityRequest&, int32_t)>;
     void SetIsAbilityStartedFunc(const IsAbilityStartedFunc& func);
 
-    using AllowStartFunc = std::function<bool(const std::string&)>;
+    // 根据完整的启动请求判断是否允许恢复模式例外启动。
+    // 仅传 Bundle 名称无法区分普通 Ability 和 BackupExtensionAbility。
+    using AllowStartFunc = std::function<bool(const AbilityRequest&)>;
     void SetAllowStartFunc(const AllowStartFunc& func);
     void SetStrictBlockFunc(const std::function<bool()>& func);
 

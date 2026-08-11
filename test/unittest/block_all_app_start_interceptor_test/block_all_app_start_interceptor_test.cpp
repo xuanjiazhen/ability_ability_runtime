@@ -125,8 +125,8 @@ HWTEST_F(BlockAllAppStartInterceptorTest, Execute_RecoveryWhitelist_001, TestSiz
     BlockAllAppStartInterceptor interceptor;
     interceptor.SetShouldBlockFunc([]() { return true; });
     interceptor.SetIsAbilityStartedFunc([](AbilityRequest &, int32_t) { return false; });
-    interceptor.SetAllowStartFunc([](const std::string &bundleName) {
-        return bundleName == "com.example.recovery";
+    interceptor.SetAllowStartFunc([](const AbilityRequest &request) {
+        return request.abilityInfo.bundleName == "com.example.recovery";
     });
     interceptor.SetStrictBlockFunc([]() { return true; });
     AbilityRequest request;
@@ -144,12 +144,33 @@ HWTEST_F(BlockAllAppStartInterceptorTest, Execute_RecoveryWhitelist_002, TestSiz
     BlockAllAppStartInterceptor interceptor;
     interceptor.SetShouldBlockFunc([]() { return true; });
     interceptor.SetIsAbilityStartedFunc([](AbilityRequest &, int32_t) { return true; });
-    interceptor.SetAllowStartFunc([](const std::string &) { return false; });
+    interceptor.SetAllowStartFunc([](const AbilityRequest &) { return false; });
     interceptor.SetStrictBlockFunc([]() { return true; });
     AbilityRequest request;
     request.abilityInfo.bundleName = "com.example.normal";
     request.abilityInfo.type = AbilityType::PAGE;
     EXPECT_EQ(interceptor.Execute(request, 100), ERR_ALL_APP_START_BLOCKED);
+}
+
+/**
+ * @tc.name: Execute_RecoveryBackupExtension_001
+ * @tc.desc: 恢复模式允许受控 BackupExtensionAbility 使用专用例外。
+ * @tc.type: FUNC
+ */
+HWTEST_F(BlockAllAppStartInterceptorTest, Execute_RecoveryBackupExtension_001, TestSize.Level1)
+{
+    BlockAllAppStartInterceptor interceptor;
+    interceptor.SetShouldBlockFunc([]() { return true; });
+    interceptor.SetIsAbilityStartedFunc([](AbilityRequest &, int32_t) { return false; });
+    interceptor.SetAllowStartFunc([](const AbilityRequest &request) {
+        return request.abilityInfo.extensionAbilityType == ExtensionAbilityType::BACKUP;
+    });
+    interceptor.SetStrictBlockFunc([]() { return true; });
+    AbilityRequest request;
+    request.abilityInfo.bundleName = "com.example.selected";
+    request.abilityInfo.extensionAbilityType = ExtensionAbilityType::BACKUP;
+    request.abilityInfo.type = AbilityType::EXTENSION;
+    EXPECT_EQ(interceptor.Execute(request, 100), ERR_OK);
 }
 } // namespace AAFwk
 } // namespace OHOS
