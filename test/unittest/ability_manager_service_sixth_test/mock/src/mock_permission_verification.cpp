@@ -296,6 +296,11 @@ bool PermissionVerification::VerifyStartLocalDebug(int32_t tokenId) const
     return true;
 }
 
+bool PermissionVerification::VerifyLocalDebugOtherApps() const
+{
+    return VerifyCallingPermission(PermissionConstants::PERMISSION_LOCAL_DEBUG_OTHER_APPS);
+}
+
 bool PermissionVerification::VerifyStartSelfUIAbility(int tokenId) const
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s enter", __func__);
