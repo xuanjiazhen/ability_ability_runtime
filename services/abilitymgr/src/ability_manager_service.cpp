@@ -9186,11 +9186,8 @@ int AbilityManagerService::StopServiceAbility(const Want &want, int32_t userId, 
     auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
     auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
     if (!isSaCall && !isShellCall) {
-        auto abilityRecord = Token::GetAbilityRecordByToken(token);
-        if (abilityRecord == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "callerRecord null");
-            return ERR_INVALID_VALUE;
-        }
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "permission denied");
+        return ERR_PERMISSION_DENIED;
     }
 
     int32_t validUserId = GetValidUserId(userId);
