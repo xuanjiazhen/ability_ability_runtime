@@ -582,7 +582,7 @@ int32_t UIExtensionAbilityManager::RegisterPreloadUIExtensionHostClient(const sp
         std::lock_guard lock(preloadUIExtRecipientMapMutex_);
         auto it = preloadUIExtensionHostClientDeathRecipients_.find(callerPid);
         if (it != preloadUIExtensionHostClientDeathRecipients_.end()) {
-            TAG_LOGW(AAFwkTag::UI_EXT, "recipient added before");
+            TAG_LOGW(AAFwkTag::UI_EXT, "recipient added before, callerPid: %{public}d", callerPid);
             return ERR_OK;
         }
         if (!callerToken->AddDeathRecipient(deathRecipient)) {
