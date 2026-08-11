@@ -15,13 +15,9 @@
 
 #include "system_recovery_mode_controller.h"
 
-#include <cstring>
-
 #include "ability_manager_client.h"
-#include "bundle_mgr_client.h"
 #include "errors.h"
 #include "hilog_tag_wrapper.h"
-#include "parameter.h"
 #include "parameters.h"
 #include "system_recovery_mode_constants.h"
 #include "system_recovery_mode_policy.h"
@@ -63,47 +59,22 @@ void SystemRecoveryModeController::Start(const std::shared_ptr<AAFwk::TaskHandle
         return;
     }
 
-    if (WatchParameter(AAFwk::SYSTEM_RECOVERY_MODE_PARAMETER, OnModeParameterChanged, this) != 0) {
-        TAG_LOGE(AAFwkTag::APPMGR, "watch recovery mode parameter failed");
-    }
     const bool enabled = system::GetParameter(AAFwk::SYSTEM_RECOVERY_MODE_PARAMETER, "") ==
         AAFwk::SYSTEM_RECOVERY_MODE_VALUE;
-    HandleModeChanged(enabled);
-}
-
-void SystemRecoveryModeController::OnModeParameterChanged(const char *key, const char *value, void *context)
-{
-    if (key == nullptr || context == nullptr ||
-        std::strcmp(key, AAFwk::SYSTEM_RECOVERY_MODE_PARAMETER) != 0) {
-        return;
-    }
-    const bool enabled = value != nullptr && std::strcmp(value, AAFwk::SYSTEM_RECOVERY_MODE_VALUE) == 0;
-    static_cast<SystemRecoveryModeController *>(context)->HandleModeChanged(enabled);
-}
-
-void SystemRecoveryModeController::HandleModeChanged(bool enabled)
-{
-    // 先更新内存策略，确保进入恢复模式时 AppMgr 的进程启动校验立即生效。
+    // 恢复模式只能通过完整重启进入或退出；进程启动后不再监听参数变化。
     AAFwk::SystemRecoveryModePolicy::GetInstance().SetEnabled(enabled);
-    const uint64_t generation = generation_.fetch_add(1) + 1;
-    ScheduleApply(enabled, generation, 0, 0);
+    ScheduleApply(enabled, 0, 0);
 }
 
-void SystemRecoveryModeController::ScheduleApply(
-    bool enabled, uint64_t generation, uint32_t retry, int64_t delayMillis)
+void SystemRecoveryModeController::ScheduleApply(bool enabled, uint32_t retry, int64_t delayMillis)
 {
     if (taskHandler_ == nullptr) {
         return;
     }
-    taskHandler_->SubmitTaskJust([this, enabled, generation, retry]() {
-        std::lock_guard<std::mutex> lock(applyMutex_);
-        // 参数快速切换时，旧任务不能覆盖最新模式。
-        if (generation_.load() != generation) {
-            return;
-        }
+    taskHandler_->SubmitTaskJust([this, enabled, retry]() {
         const bool success = enabled ? ApplyRecoveryMode() : ApplyNormalMode();
-        if (!success && retry < MAX_RETRY_TIMES && generation_.load() == generation) {
-            ScheduleApply(enabled, generation, retry + 1, RETRY_DELAY_MILLISECONDS);
+        if (!success && retry < MAX_RETRY_TIMES) {
+            ScheduleApply(enabled, retry + 1, RETRY_DELAY_MILLISECONDS);
         }
     }, "ApplySystemRecoveryMode", delayMillis);
 }
@@ -111,25 +82,19 @@ void SystemRecoveryModeController::ScheduleApply(
 bool SystemRecoveryModeController::ApplyRecoveryMode()
 {
     const int32_t abilityRet = AAFwk::AbilityManagerClient::GetInstance()->BlockAllAppStart(true);
-    BundleMgrClient bundleMgrClient;
-    const int32_t bundleRet = bundleMgrClient.SetInstallOperationPaused(true);
     const bool airplaneRet = InitializeAirplaneMode();
     TAG_LOGI(AAFwkTag::APPMGR,
-        "apply recovery mode, abilityRet=%{public}d, bundleRet=%{public}d, airplaneRet=%{public}d",
-        abilityRet, bundleRet, airplaneRet);
-    return abilityRet == ERR_OK && bundleRet == ERR_OK && airplaneRet;
+        "apply recovery mode, abilityRet=%{public}d, airplaneRet=%{public}d", abilityRet, airplaneRet);
+    return abilityRet == ERR_OK && airplaneRet;
 }
 
 bool SystemRecoveryModeController::ApplyNormalMode()
 {
     const int32_t abilityRet = AAFwk::AbilityManagerClient::GetInstance()->BlockAllAppStart(false);
-    BundleMgrClient bundleMgrClient;
-    const int32_t bundleRet = bundleMgrClient.SetInstallOperationPaused(false);
     const bool airplaneRet = RestoreAirplaneMode();
     TAG_LOGI(AAFwkTag::APPMGR,
-        "restore normal mode, abilityRet=%{public}d, bundleRet=%{public}d, airplaneRet=%{public}d",
-        abilityRet, bundleRet, airplaneRet);
-    return abilityRet == ERR_OK && bundleRet == ERR_OK && airplaneRet;
+        "restore normal mode, abilityRet=%{public}d, airplaneRet=%{public}d", abilityRet, airplaneRet);
+    return abilityRet == ERR_OK && airplaneRet;
 }
 
 bool SystemRecoveryModeController::InitializeAirplaneMode()
