@@ -423,6 +423,72 @@ inline std::vector<uint8_t> GenMemcpyOverflowData(FuzzedDataProvider &fdp, size_
     }
     return data;
 }
+// Build a malicious exit reason string for process termination fuzzing.
+inline std::string BuildExitReason(FuzzedDataProvider &fdp, size_t maxLen = DEFAULT_MAX_STR_LEN)
+{
+    static const std::string reasons[] = {
+        "SIGKILL", "SIGTERM", "OOM_RECLAIM", "SCHEDULER_TIMEOUT",
+        "APP_CRASH", "ANR_TRIGGERED", "FORCE_STOP", "USER_REQUEST",
+        "SYSTEM_REBOOT", "LOW_MEMORY", "RESOURCE_EXHAUSTED", "SECURITY_VIOLATION"
+    };
+    std::string result = reasons[fdp.ConsumeIntegral<uint8_t>() % 12];
+    if (fdp.ConsumeBool()) {
+        result += ":" + BuildSpecialCharString(fdp, 64);
+    }
+    if (maxLen > 0 && result.size() > maxLen) {
+        result.resize(maxLen);
+    }
+    return result;
+}
+
+// Write malicious fault data with crash type and stack trace.
+inline void WriteMaliciousFaultData(MessageParcel &parcel, FuzzedDataProvider &fdp,
+    size_t maxStrLen = DEFAULT_MAX_STR_LEN)
+{
+    parcel.WriteInt32(BuildInvalidEnum(fdp, 20));
+    parcel.WriteString(BuildOversizedString(fdp, maxStrLen));
+    parcel.WriteInt32(BuildIntegerOverflow(fdp));
+    parcel.WriteString(BuildSpecialCharString(fdp, maxStrLen));
+    parcel.WriteInt32(BuildIntegerOverflow(fdp));
+    parcel.WriteString(BuildSpecialCharString(fdp, maxStrLen));
+}
+
+// Write malicious configuration with oversized and special char values.
+inline void WriteMaliciousConfiguration(MessageParcel &parcel, FuzzedDataProvider &fdp,
+    size_t maxStrLen = DEFAULT_MAX_STR_LEN)
+{
+    parcel.WriteString(BuildOversizedString(fdp, maxStrLen));
+    parcel.WriteInt32(BuildInvalidEnum(fdp, 10));
+    parcel.WriteString(BuildSpecialCharString(fdp, maxStrLen));
+    parcel.WriteString(BuildUnicodeAttackString(fdp));
+    parcel.WriteBool(fdp.ConsumeBool());
+    parcel.WriteInt32(BuildIntegerOverflow(fdp));
+}
+
+// Write malicious permission data with token and permission list.
+inline void WriteMaliciousPermission(MessageParcel &parcel, FuzzedDataProvider &fdp,
+    size_t maxStrLen = DEFAULT_MAX_STR_LEN)
+{
+    parcel.WriteUint32(fdp.ConsumeIntegral<uint32_t>());
+    parcel.WriteString(BuildSpecialCharString(fdp, maxStrLen));
+    parcel.WriteInt32(BuildInvalidEnum(fdp, 5));
+    parcel.WriteInt32(BuildIntegerOverflow(fdp));
+    parcel.WriteString(BuildSpecialCharString(fdp, maxStrLen));
+    parcel.WriteBool(fdp.ConsumeBool());
+}
+
+// Write malicious attack awareness data with sensor and behavior patterns.
+inline void WriteMaliciousAttackAware(MessageParcel &parcel, FuzzedDataProvider &fdp,
+    size_t maxStrLen = DEFAULT_MAX_STR_LEN)
+{
+    parcel.WriteInt32(BuildInvalidEnum(fdp, 15));
+    parcel.WriteString(BuildSpecialCharString(fdp, maxStrLen));
+    parcel.WriteString(BuildSpecialCharString(fdp, maxStrLen));
+    parcel.WriteInt32(BuildIntegerOverflow(fdp));
+    parcel.WriteInt32(BuildIntegerOverflow(fdp));
+    parcel.WriteString(BuildOversizedString(fdp, maxStrLen));
+    parcel.WriteBool(fdp.ConsumeBool());
+}
 } // namespace FuzzUtil
 } // namespace OHOS
 
