@@ -148,6 +148,33 @@ namespace {
         return AAFwk::ERR_NOT_SYSTEM_APP;                                                      \
     }
 
+// Debug-only BMS query counter for one LoadAbility call; enabled by
+// persist.ability_runtime.bms_query_count. No extra BMS query is made.
+class BmsQueryCountGuard {
+public:
+    explicit BmsQueryCountGuard(const std::string &bundleName) : bundleName_(bundleName)
+    {
+        auto helper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+        if (helper != nullptr) {
+            helper->SyncBmsQueryCountSwitch();
+            enabled_ = helper->GetBmsQueryCountSwitch();
+            begin_ = helper->GetBmsQueryCount();
+        }
+    }
+    ~BmsQueryCountGuard()
+    {
+        auto helper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+        if (enabled_ && helper != nullptr) {
+            TAG_LOGD(AAFwkTag::APPMGR, "bmsQueryCount in LoadAbility: %{public}" PRIu64 ", bundleName: %{public}s",
+                helper->GetBmsQueryCount() - begin_, bundleName_.c_str());
+        }
+    }
+private:
+    std::string bundleName_;
+    uint64_t begin_ = 0;
+    bool enabled_ = false;
+};
+
 #define CHECK_IS_SA_CALL(listener)                                                                              \
     auto instance = AAFwk::PermissionVerification::GetInstance();                                               \
     if ((listener) == nullptr || instance == nullptr || appRunningStatusModule_ == nullptr) {                     \
@@ -2075,6 +2102,7 @@ void AppMgrServiceInner::NotifyLoadAbilityFinished(pid_t callingPid, pid_t targe
 void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, std::shared_ptr<ApplicationInfo> appInfo,
     std::shared_ptr<AAFwk::Want> want, std::shared_ptr<AbilityRuntime::LoadParam> loadParam)
 {
+    BmsQueryCountGuard bmsQueryCountGuard(abilityInfo ? abilityInfo->bundleName : "");
     if (AAFwk::AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::APPMGR, "forbid start: %{public}s", abilityInfo ? abilityInfo->bundleName.c_str() : "");
         return;

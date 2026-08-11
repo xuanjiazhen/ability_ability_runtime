@@ -87,5 +87,8 @@ bool BundleMgrHelper::QueryExtensionAbilityInfos(const AAFwk::Want &want, const 
     }
     return AgentRuntime::MyFlag::retQueryExtensionAbilityInfos;
 }
+void BundleMgrHelper::SyncBmsQueryCountSwitch()
+{
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -65,5 +65,8 @@ ErrCode BundleMgrHelper::GetBundleInfoV9(
     }
     return ERR_OK;
 }
+void BundleMgrHelper::SyncBmsQueryCountSwitch()
+{
+}
 } // namespace AppExecFwk
 } // namespace OHOS

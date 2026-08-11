@@ -16,6 +16,9 @@
 #ifndef OHOS_ABILITY_RUNTIME_BUNDLE_MGR_HELPER_H
 #define OHOS_ABILITY_RUNTIME_BUNDLE_MGR_HELPER_H
 
+#include <atomic>
+#include <cstdint>
+
 #include <singleton.h>
 
 #include "bundle_mgr_interface.h"
@@ -32,6 +35,27 @@ public:
     void PreConnect();
     void ConnectTillSuccess();
     void SetBmsReady(bool bmsReady);
+    // BMS query count statistics (debug only, enabled by persist.ability_runtime.bms_query_count or UT).
+    // Counts query attempts entering BMS through this helper in the current process; no extra BMS query is made.
+    void SetBmsQueryCountSwitch(bool enable)
+    {
+        bmsQueryCountSwitch_.store(enable, std::memory_order_relaxed);
+    }
+    bool GetBmsQueryCountSwitch() const
+    {
+        return bmsQueryCountSwitch_.load(std::memory_order_relaxed);
+    }
+    uint64_t GetBmsQueryCount() const
+    {
+        return bmsQueryCount_.load(std::memory_order_relaxed);
+    }
+    void RecordBmsQuery()
+    {
+        if (bmsQueryCountSwitch_.load(std::memory_order_relaxed)) {
+            bmsQueryCount_.fetch_add(1, std::memory_order_relaxed);
+        }
+    }
+    void SyncBmsQueryCountSwitch();
     ErrCode GetNameForUid(const int32_t uid, std::string &name);
     ErrCode GetNameAndIndexForUid(const int32_t uid, std::string &bundleName, int32_t &appIndex);
     bool GetBundleInfo(const std::string &bundleName, const BundleFlag flag, BundleInfo &bundleInfo, int32_t userId);
@@ -170,6 +194,8 @@ private:
     sptr<IBundleInstaller> bundleInstaller_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
     std::mutex mutex_;
+    std::atomic<uint64_t> bmsQueryCount_{0};
+    std::atomic<bool> bmsQueryCountSwitch_{false};
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

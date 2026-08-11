@@ -15,6 +15,7 @@
 
 #include "main_thread.h"
 
+#include <cinttypes>
 #include <malloc.h>
 #include <new>
 #include <regex>
@@ -40,6 +41,7 @@
 #include "application_data_manager.h"
 #include "application_env_impl.h"
 #include "bundle_mgr_proxy.h"
+#include "bundle_mgr_helper.h"
 #include "hitrace_meter.h"
 #include "procinfo.h"
 #ifdef SUPPORT_CHILD_PROCESS
@@ -161,6 +163,33 @@ constexpr int32_t DEFAULT_SLEEP_TIME = 100000;
 constexpr int32_t REPORT_TEMPLATE_PROCESS_READY_DELAY_TIME = 2000;
 constexpr int32_t SNAPSHOT_START = 0;
 constexpr int32_t SNAPSHOT_FAILURE = 1;
+
+// Debug-only BMS query counter for one launch in the app process; enabled by
+// persist.ability_runtime.bms_query_count. No extra BMS query is made.
+class BmsQueryCountGuard {
+public:
+    explicit BmsQueryCountGuard(const std::string &bundleName) : bundleName_(bundleName)
+    {
+        auto helper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+        if (helper != nullptr) {
+            helper->SyncBmsQueryCountSwitch();
+            enabled_ = helper->GetBmsQueryCountSwitch();
+            begin_ = helper->GetBmsQueryCount();
+        }
+    }
+    ~BmsQueryCountGuard()
+    {
+        auto helper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+        if (enabled_ && helper != nullptr) {
+            TAG_LOGD(AAFwkTag::APPKIT, "bmsQueryCount in HandleLaunchApplication: %{public}" PRIu64
+                ", bundleName: %{public}s", helper->GetBmsQueryCount() - begin_, bundleName_.c_str());
+        }
+    }
+private:
+    std::string bundleName_;
+    uint64_t begin_ = 0;
+    bool enabled_ = false;
+};
 
 enum class SignalType {
     SIGNAL_JSHEAP_OLD,
@@ -1661,6 +1690,7 @@ EtsEnv::ETSUncaughtExceptionInfo MainThread::CreateEtsExceptionInfo(const std::s
 void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, const Configuration &config)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    BmsQueryCountGuard bmsQueryCountGuard(appLaunchData.GetApplicationInfo().bundleName);
     ForkAllHelper::HandleDebugAppLaunchDelay(appLaunchData, isDeveloperMode_);
     FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "HandleLaunchApplication begin");
     ffrt::submit([]() {}, ffrt::task_attr().qos(LAUNCH_TASK_QOS));

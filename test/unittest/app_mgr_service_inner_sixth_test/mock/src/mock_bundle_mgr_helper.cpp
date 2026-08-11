@@ -67,5 +67,8 @@ bool BundleMgrHelper::GetHapModuleInfo(const AbilityInfo& abilityInfo, int32_t u
 {
     return !!(AAFwk::MyFlag::getHapModuleInfoFlag_);
 }
+void BundleMgrHelper::SyncBmsQueryCountSwitch()
+{
+}
 } // namespace AppExecFwk
 } // namespace OHOS

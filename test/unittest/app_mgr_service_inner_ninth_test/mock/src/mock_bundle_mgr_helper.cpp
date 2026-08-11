@@ -401,5 +401,8 @@ ErrCode BundleMgrHelper::GetPluginExtensionInfo(const std::string &hostBundleNam
 {
     return ERR_OK;
 }
+void BundleMgrHelper::SyncBmsQueryCountSwitch()
+{
+}
 } // namespace AppExecFwk
 } // namespace OHOS

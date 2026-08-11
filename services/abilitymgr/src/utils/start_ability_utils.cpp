@@ -15,11 +15,13 @@
 
 #include "start_ability_utils.h"
 
+#include <cinttypes>
 #include <random>
 #include "ability_record.h"
 #include "ability_util.h"
 #include "app_scheduler.h"
 #include "app_utils.h"
+#include "bundle_mgr_helper.h"
 #include "global_constant.h"
 #include "hitrace_meter.h"
 #include "ipc_skeleton.h"
@@ -143,6 +145,11 @@ int32_t StartAbilityUtils::CheckAppProvisionMode(const Want& want, int32_t userI
 StartAbilityInfoWrap::StartAbilityInfoWrap(const Want &want, int32_t validUserId, int32_t appIndex,
     const sptr<IRemoteObject> &callerToken, bool isExtension)
 {
+    auto bmsHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    if (bmsHelper != nullptr) {
+        bmsHelper->SyncBmsQueryCountSwitch();
+        bmsQueryCountAtBegin_ = bmsHelper->GetBmsQueryCount();
+    }
     if (StartAbilityUtils::startAbilityInfo != nullptr) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "startAbilityInfo created");
     }
@@ -202,6 +209,12 @@ StartAbilityInfoWrap::StartAbilityInfoWrap()
 
 StartAbilityInfoWrap::~StartAbilityInfoWrap()
 {
+    auto bmsHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    if (bmsHelper != nullptr && bmsHelper->GetBmsQueryCountSwitch()) {
+        // AMS-side chain count, includes the synchronously-called AppMgr segment in the same process.
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "bmsQueryCount in this start: %{public}" PRIu64,
+            bmsHelper->GetBmsQueryCount() - bmsQueryCountAtBegin_);
+    }
     StartAbilityUtils::startAbilityInfo.reset();
     StartAbilityUtils::callerAbilityInfo.reset();
     StartAbilityUtils::skipCrowTest = false;

@@ -15,11 +15,14 @@
 
 #include "bundle_mgr_helper.h"
 
+#include <mutex>
+
 #include "bundle_mgr_service_death_recipient.h"
 #include "global_constant.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "iservice_registry.h"
+#include "parameters.h"
 #include "system_ability_definition.h"
 #include "app_utils.h"
 #include "record_cost_time_util.h"
@@ -28,6 +31,7 @@ namespace OHOS {
 using AAFwk::RecordCostTimeUtil;
 namespace AppExecFwk {
 namespace {
+constexpr const char* BMS_QUERY_COUNT_PARAM = "persist.ability_runtime.bms_query_count";
 void SetAbilityProcessEmpty(AbilityInfo &abilityInfo)
 {
     if (!AAFwk::AppUtils::GetInstance().IsMultiProcessModel() && abilityInfo.isStageBasedModel) {
@@ -36,6 +40,15 @@ void SetAbilityProcessEmpty(AbilityInfo &abilityInfo)
 }
 }
 BundleMgrHelper::BundleMgrHelper() {}
+
+void BundleMgrHelper::SyncBmsQueryCountSwitch()
+{
+    static std::once_flag syncOnce;
+    std::call_once(syncOnce, [this]() {
+        bmsQueryCountSwitch_.store(OHOS::system::GetBoolParameter(BMS_QUERY_COUNT_PARAM, false),
+            std::memory_order_relaxed);
+    });
+}
 
 BundleMgrHelper::~BundleMgrHelper()
 {
@@ -52,6 +65,7 @@ void BundleMgrHelper::PreConnect()
 ErrCode BundleMgrHelper::GetNameForUid(const int32_t uid, std::string &name)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -65,6 +79,7 @@ ErrCode BundleMgrHelper::GetNameForUid(const int32_t uid, std::string &name)
 ErrCode BundleMgrHelper::GetNameAndIndexForUid(const int32_t uid, std::string &bundleName, int32_t &appIndex)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -79,6 +94,7 @@ bool BundleMgrHelper::GetBundleInfo(const std::string &bundleName, const BundleF
     int32_t userId)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -127,6 +143,7 @@ ErrCode BundleMgrHelper::UninstallSandboxApp(const std::string &bundleName, int3
 ErrCode BundleMgrHelper::GetUninstalledBundleInfo(const std::string bundleName, BundleInfo &bundleInfo)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -141,6 +158,7 @@ ErrCode BundleMgrHelper::GetSandboxBundleInfo(
     const std::string &bundleName, int32_t appIndex, int32_t userId, BundleInfo &info)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     if (bundleName.empty() || appIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "invalid params");
         return ERR_APPEXECFWK_SANDBOX_INSTALL_PARAM_ERROR;
@@ -159,6 +177,7 @@ ErrCode BundleMgrHelper::GetSandboxAbilityInfo(const Want &want, int32_t appInde
     AbilityInfo &abilityInfo)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     if (appIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "invalid params");
         return ERR_APPEXECFWK_SANDBOX_INSTALL_PARAM_ERROR;
@@ -182,6 +201,7 @@ ErrCode BundleMgrHelper::GetSandboxExtAbilityInfos(const Want &want, int32_t app
     int32_t userId, std::vector<ExtensionAbilityInfo> &extensionInfos)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     if (appIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "invalid params");
         return ERR_APPEXECFWK_SANDBOX_INSTALL_PARAM_ERROR;
@@ -201,6 +221,7 @@ ErrCode BundleMgrHelper::GetSandboxHapModuleInfo(const AbilityInfo &abilityInfo,
     HapModuleInfo &hapModuleInfo)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     if (appIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "invalid params");
         return ERR_APPEXECFWK_SANDBOX_INSTALL_PARAM_ERROR;
@@ -336,6 +357,7 @@ bool BundleMgrHelper::GetBundleInfo(const std::string &bundleName, int32_t flags
     BundleInfo &bundleInfo, int32_t userId)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -349,6 +371,7 @@ bool BundleMgrHelper::GetBundleInfo(const std::string &bundleName, int32_t flags
 bool BundleMgrHelper::GetHapModuleInfo(const AbilityInfo &abilityInfo, HapModuleInfo &hapModuleInfo)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -375,6 +398,7 @@ ErrCode BundleMgrHelper::GetPluginHapModuleInfo(const std::string &hostBundleNam
 std::string BundleMgrHelper::GetAbilityLabel(const std::string &bundleName, const std::string &abilityName)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -388,6 +412,7 @@ std::string BundleMgrHelper::GetAbilityLabel(const std::string &bundleName, cons
 std::string BundleMgrHelper::GetAppType(const std::string &bundleName)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -403,6 +428,7 @@ ErrCode BundleMgrHelper::GetBaseSharedBundleInfos(
     GetDependentBundleInfoFlag flag)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -416,6 +442,7 @@ ErrCode BundleMgrHelper::GetBaseSharedBundleInfos(
 ErrCode BundleMgrHelper::GetBundleInfoForSelf(int32_t flags, BundleInfo &bundleInfo)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -429,6 +456,7 @@ ErrCode BundleMgrHelper::GetBundleInfoForSelf(int32_t flags, BundleInfo &bundleI
 ErrCode BundleMgrHelper::GetBundleInfoForSelfWithOutCache(int32_t flags, BundleInfo &bundleInfo)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -443,6 +471,7 @@ ErrCode BundleMgrHelper::GetDependentBundleInfo(const std::string &sharedBundleN
     GetDependentBundleInfoFlag flag)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -456,6 +485,7 @@ ErrCode BundleMgrHelper::GetDependentBundleInfo(const std::string &sharedBundleN
 bool BundleMgrHelper::GetGroupDir(const std::string &dataGroupId, std::string &dir)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -482,6 +512,7 @@ sptr<IOverlayManager> BundleMgrHelper::GetOverlayManagerProxy()
 bool BundleMgrHelper::QueryAbilityInfo(const Want &want, AbilityInfo &abilityInfo)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -500,6 +531,7 @@ bool BundleMgrHelper::QueryAbilityInfo(const Want &want, AbilityInfo &abilityInf
 bool BundleMgrHelper::QueryAbilityInfo(const Want &want, int32_t flags, int32_t userId, AbilityInfo &abilityInfo)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -518,6 +550,7 @@ bool BundleMgrHelper::QueryAbilityInfo(const Want &want, int32_t flags, int32_t 
 bool BundleMgrHelper::GetBundleInfos(int32_t flags, std::vector<BundleInfo> &bundleInfos, int32_t userId)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -531,6 +564,7 @@ bool BundleMgrHelper::GetBundleInfos(int32_t flags, std::vector<BundleInfo> &bun
 bool BundleMgrHelper::GetBundleInfos(const BundleFlag flag, std::vector<BundleInfo> &bundleInfos, int32_t userId)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -586,6 +620,7 @@ bool BundleMgrHelper::QueryExtensionAbilityInfos(const Want &want, const int32_t
     std::vector<ExtensionAbilityInfo> &extensionInfos)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -603,6 +638,7 @@ ErrCode BundleMgrHelper::GetBundleInfoV9(
     const std::string &bundleName, int32_t flags, BundleInfo &bundleInfo, int32_t userId)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -617,6 +653,7 @@ ErrCode BundleMgrHelper::GetBundleInfosV9(int32_t flags,
     std::vector<BundleInfo> &bundleInfos, int32_t userId)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -631,6 +668,7 @@ bool BundleMgrHelper::GetApplicationInfo(
     const std::string &appName, const ApplicationFlag flag, const int32_t userId, ApplicationInfo &appInfo)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -646,6 +684,7 @@ bool BundleMgrHelper::GetApplicationInfo(
     const std::string &appName, int32_t flags, int32_t userId, ApplicationInfo &appInfo)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -718,6 +757,7 @@ bool BundleMgrHelper::QueryExtensionAbilityInfoByUri(
     const std::string &uri, int32_t userId, ExtensionAbilityInfo &extensionAbilityInfo)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -732,6 +772,7 @@ bool BundleMgrHelper::QueryExtensionAbilityInfoByUriOptimal(
     const std::string &uri, int32_t userId, ExtensionAbilityInfo &extensionAbilityInfo)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -746,6 +787,7 @@ bool BundleMgrHelper::ImplicitQueryInfoByPriority(
     const Want &want, int32_t flags, int32_t userId, AbilityInfo &abilityInfo, ExtensionAbilityInfo &extensionInfo)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -762,6 +804,7 @@ bool BundleMgrHelper::ImplicitQueryInfoByPriority(
 bool BundleMgrHelper::QueryAbilityInfoByUri(const std::string &abilityUri, int32_t userId, AbilityInfo &abilityInfo)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -778,6 +821,7 @@ bool BundleMgrHelper::QueryAbilityInfo(
     const Want &want, int32_t flags, int32_t userId, AbilityInfo &abilityInfo, const sptr<IRemoteObject> &callBack)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -812,6 +856,7 @@ bool BundleMgrHelper::ImplicitQueryInfos(const Want &want, int32_t flags, int32_
     std::vector<AbilityInfo> &abilityInfos, std::vector<ExtensionAbilityInfo> &extensionInfos, bool &findDefaultApp)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -849,6 +894,7 @@ bool BundleMgrHelper::QueryDataGroupInfos(
     const std::string &bundleName, int32_t userId, std::vector<DataGroupInfo> &infos)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -880,6 +926,7 @@ bool BundleMgrHelper::RegisterBundleEventCallback(const sptr<IBundleEventCallbac
 bool BundleMgrHelper::GetHapModuleInfo(const AbilityInfo &abilityInfo, int32_t userId, HapModuleInfo &hapModuleInfo)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -893,6 +940,7 @@ bool BundleMgrHelper::GetHapModuleInfo(const AbilityInfo &abilityInfo, int32_t u
 bool BundleMgrHelper::QueryAppGalleryBundleName(std::string &bundleName)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -906,6 +954,7 @@ bool BundleMgrHelper::QueryAppGalleryBundleName(std::string &bundleName)
 ErrCode BundleMgrHelper::GetUidByBundleName(const std::string &bundleName, int32_t userId, int32_t appCloneIndex)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -920,6 +969,7 @@ ErrCode BundleMgrHelper::QueryExtensionAbilityInfosOnlyWithTypeName(const std::s
     const uint32_t flag, const int32_t userId, std::vector<ExtensionAbilityInfo> &extensionInfos)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -947,6 +997,7 @@ ErrCode BundleMgrHelper::GetJsonProfile(ProfileType profileType, const std::stri
     const std::string &moduleName, std::string &profile, int32_t userId)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -960,6 +1011,7 @@ ErrCode BundleMgrHelper::GetJsonProfile(ProfileType profileType, const std::stri
 ErrCode BundleMgrHelper::GetLaunchWantForBundle(const std::string &bundleName, Want &want, int32_t userId)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -975,6 +1027,7 @@ ErrCode BundleMgrHelper::QueryCloneAbilityInfo(const ElementName &element, int32
     AbilityInfo &abilityInfo, int32_t userId)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -993,6 +1046,7 @@ ErrCode BundleMgrHelper::QuerySandboxCloneAbilityInfo(const std::string &creator
     AbilityInfo &abilityInfo, int32_t userId)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -1011,6 +1065,7 @@ ErrCode BundleMgrHelper::GetCloneBundleInfo(const std::string &bundleName, int32
     BundleInfo &bundleInfo, int32_t userId)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -1025,6 +1080,7 @@ ErrCode BundleMgrHelper::QueryCloneExtensionAbilityInfoWithAppIndex(const Elemen
     int32_t appCloneIndex, ExtensionAbilityInfo &extensionInfo, int32_t userId)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -1079,6 +1135,7 @@ std::string BundleMgrHelper::GetStringById(
     const std::string &bundleName, const std::string &moduleName, uint32_t resId, int32_t userId)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "Failed to connect");
@@ -1092,6 +1149,7 @@ std::string BundleMgrHelper::GetStringById(
 std::string BundleMgrHelper::GetDataDir(const std::string &bundleName, const int32_t appIndex)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "Failed to connect");
@@ -1107,6 +1165,7 @@ std::string BundleMgrHelper::GetDataDir(const std::string &bundleName, const int
 ErrCode BundleMgrHelper::GetPluginInfosForSelf(std::vector<PluginBundleInfo> &pluginBundleInfos)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -1185,6 +1244,7 @@ ErrCode BundleMgrHelper::GetPluginInfoForTarget(const std::string &hostBundleNam
     const std::string &pluginBundleName, int32_t userId, PluginBundleInfo &pluginBundleInfo)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
@@ -1198,6 +1258,7 @@ ErrCode BundleMgrHelper::GetTestRunnerTypeAndPath(const std::string &bundleName,
     ModuleTestRunner &testRunner)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "called");
+    RecordBmsQuery();
     auto bundleMgr = Connect();
     if (bundleMgr == nullptr) {
         TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");

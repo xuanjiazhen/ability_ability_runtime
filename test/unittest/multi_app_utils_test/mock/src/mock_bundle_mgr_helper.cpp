@@ -48,5 +48,8 @@ ErrCode BundleMgrHelper::GetAppClonePreference(const std::string &bundleName, in
     preference = AAFwk::MockBundleMgrHelperStatus::appClonePreference_;
     return AAFwk::MockBundleMgrHelperStatus::getAppClonePreferenceRet_;
 }
+void BundleMgrHelper::SyncBmsQueryCountSwitch()
+{
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

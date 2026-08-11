@@ -19,6 +19,8 @@
 #include <memory>
 #include <string>
 
+#include <cstdint>
+
 #include "ability_info.h"
 #include "extension_ability_info.h"
 #include "irequest_start_ability_callback.h"
@@ -91,6 +93,9 @@ struct StartAbilityInfoWrap {
     StartAbilityInfoWrap();
     ~StartAbilityInfoWrap();
     void SetStartAbilityInfo(const AppExecFwk::AbilityInfo& abilityInfo);
+
+private:
+    uint64_t bmsQueryCountAtBegin_ = 0;
 };
 
 struct StartAbilityWrapParam {
