@@ -43,13 +43,12 @@ int WantSenderStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageP
 
 int WantSenderStub::SendInner(MessageParcel &data, MessageParcel &reply)
 {
-    SenderInfo *senderInfo = data.ReadParcelable<SenderInfo>();
+    std::unique_ptr<SenderInfo> senderInfo(data.ReadParcelable<SenderInfo>());
     if (senderInfo == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "null senderInfo");
         return ERR_INVALID_VALUE;
     }
     Send(*senderInfo);
-    delete senderInfo;
     return NO_ERROR;
 }
 }  // namespace AAFwk
