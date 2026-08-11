@@ -18,6 +18,7 @@ group("cj_ability_packages") {
   deps = [
     "${ability_runtime_native_path}/insight_intent/insight_intent_context:insightintentcontext",
     "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi",
+    "${ability_runtime_path}/frameworks/cj/ffi/ace_napi_hook:ace_napi_hook",
     "${ability_runtime_path}/frameworks/cj/ffi/app/app_manager:cj_app_manager_ffi",
     "${ability_runtime_path}/frameworks/cj/ffi/app/errormanager:cj_errormanager_ffi",
     "${ability_runtime_path}/frameworks/cj/ffi/app/recovery:cj_app_recovery_ffi",
