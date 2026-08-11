@@ -15,6 +15,9 @@
 
 #include "dialog_session_info.h"
 
+#include <cctype>
+#include <cerron>
+#include <cstdlib>
 #include "hilog_tag_wrapper.h"
 #include "parcel_macro.h"
 
@@ -48,19 +51,45 @@ bool DialogAbilityInfo::ParseURI(const std::string &uri)
     bundleName = uriVec[index++];
     moduleName = uriVec[index++];
     abilityName = uriVec[index++];
-    try {
-        bundleIconId = static_cast<int32_t>(std::stoi(uriVec[index++]));
-        bundleLabelId = static_cast<int32_t>(std::stoi(uriVec[index++]));
-        abilityIconId = static_cast<int32_t>(std::stoi(uriVec[index++]));
-        abilityLabelId = static_cast<int32_t>(std::stoi(uriVec[index++]));
-        visible = std::stoi(uriVec[index++]);
-        appIndex = static_cast<int32_t>(std::stoi(uriVec[index++]));
-        multiAppMode.multiAppModeType = static_cast<AppExecFwk::MultiAppModeType>(std::stoi(uriVec[index++]));
-        multiAppMode.maxCount = static_cast<int32_t>(std::stoi(uriVec[index++]));
-    } catch (...) {
-        TAG_LOGW(AAFwkTag::DIALOG, "stoi(%{public}s) failed", uriVec[index++].c_str());
+    auto safeStoi = [](const std::string &str, int32_t &out) -> bool {
+        if (str.empty()) {
+            return false;
+        }
+        size_t start = 0;
+        if (str[0] == '-') {
+            start = 1;
+            if (str.size() == 1) {
+                return false;
+            }
+        }
+        for (size_t i = start; i < str.size(); ++i) {
+            if (!isdigit(static_cast<unsigned char>((str[i]))) {
+                return false;
+            }
+        }
+        errno = 0;
+        long result = std::strtol(str.c_str(), nullptr, 10);
+        if (errno == ERANGE || result < INT32_MIN || result > INT32_MAX) {
+            return false;
+        }
+        out = static_cast<int32_t>(result);
+        return true;
+    };
+    int32_t visibleValue = 0;
+    int32_t modeValue = 0;
+    if (!safeStoi(uriVec[index++], bundleIconId) ||
+        !safeStoi(uriVec[index++], bundleLabelId) ||
+        !safeStoi(uriVec[index++], abilityIconId) ||
+        !safeStoi(uriVec[index++], abilityLabelId) ||
+        !safeStoi(uriVec[index++], visibleValue) ||
+        !safeStoi(uriVec[index++], appIndex) ||
+        !safeStoi(uriVec[index++], modeValue) ||
+        !safeStoi(uriVec[index++], multiAppMode.maxCount)) {
+        TAG_LOGE(AAFwkTag::DIALOG, "stoi failed, invalid uri: %{public}s", uri.c_str());
         return false;
     }
+    visible = (visibleValue != 0);
+    multiAppMode.multiAppModeType = static_cast<AppExecFwk::MultiAppModeType>(modeValue);
     return true;
 }
 
