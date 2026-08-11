@@ -3670,6 +3670,7 @@ private:
         const Want &want, uint32_t targetTokenId, AppExecFwk::ExtensionAbilityType extensionType);
 
     bool IsAllowAttachOrDetachAppDebug(AppExecFwk::ApplicationInfo &appInfo);
+    bool IsAllowLocalDebugOtherApps(bool isDebugFromLocal);
     bool IsExitReasonValid(const ExitReasonCompability &reason);
     void RecordAppRestartExitReason(bool isAppRecovery, int32_t callerPid, int32_t callerUid);
     void SetAppDeathRecipient(const sptr<IRemoteObject>& abilityToken);
