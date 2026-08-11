@@ -1348,7 +1348,7 @@ HWTEST_F(AbilityManagerServiceAccountTest, Account_StopServiceAbility_005, TestS
     auto result = abilityMs_->ConnectAbility(want, callback, nullptr, ERROR_USER_ID_U256);
     EXPECT_NE(OHOS::ERR_OK, result);
     result = abilityMs_->StopServiceAbility(want, ERROR_USER_ID_U256);
-    EXPECT_NE(OHOS::CHECK_PERMISSION_FAILED, result);
+    EXPECT_EQ(OHOS::CHECK_PERMISSION_FAILED, result);
     GTEST_LOG_(INFO) << "AbilityManagerServiceAccountTest Account_StopServiceAbility_005 end";
 }
 

@@ -474,7 +474,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, StopServiceAbility_001, TestSize.Level1
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StopServiceAbility_001 start");
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     Want want;
-    EXPECT_EQ(abilityMs_->StopServiceAbility(want, 100), ERR_INVALID_VALUE);
+    EXPECT_EQ(abilityMs_->StopServiceAbility(want, 100), CHECK_PERMISSION_FAILED);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StopServiceAbility_001 end");
 }
 
