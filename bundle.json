@@ -890,20 +890,6 @@
             },
             "name": "//foundation/ability/ability_runtime/cli_tool_framework/interfaces/cli_tool:cli_tool_client"
           }
-        ],
-        "test": [
-          "//foundation/ability/ability_runtime/cli_tool_framework/test/unittest:unittest",
-          "//foundation/ability/ability_runtime/test/moduletest:moduletest",
-          "//foundation/ability/ability_runtime/test/fuzztest:fuzztest",
-          "//foundation/ability/ability_runtime/test/unittest:unittest",
-          "//foundation/ability/ability_runtime/test/sample:sample",
-          "//foundation/ability/ability_runtime/tools/test:moduletest",
-          "//foundation/ability/ability_runtime/tools/test:systemtest",
-          "//foundation/ability/ability_runtime/tools/test:unittest",
-          "//foundation/ability/ability_runtime/cj_environment/test/unittest:unittest",
-          "//foundation/ability/ability_runtime/ets_environment/test/unittest:unittest",
-          "//foundation/ability/ability_runtime/js_environment/test/unittest:unittest",
-          "//foundation/ability/ability_runtime/service_router_framework:test_target"
         ]
       }
   }
