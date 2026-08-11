@@ -1699,7 +1699,7 @@ void AbilityManagerClient::ScheduleRecoverAbility(sptr<IRemoteObject> token, int
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
     auto abms = GetAbilityManager();
-    CHECK_POINTER_RETURN(abms);
+    CHECK_POINTER_RETURN(abms)
     return abms->ScheduleRecoverAbility(token, reason, want);
 }
 
