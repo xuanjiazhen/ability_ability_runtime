@@ -2215,18 +2215,8 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
             TAG_LOGE(AAFwkTag::APPMGR, "getBundleAndHapInfo fail");
             return;
         }
-        auto processMode = AAFwk::ProcessOptions::ConvertInt32ToProcessMode(loadParam->processMode);
-        if (AAFwk::ProcessOptions::IsNewProcessMode(processMode) && !loadParam->processOptionsName.empty()) {
-            processName = loadParam->processOptionsName;
-            TAG_LOGI(AAFwkTag::PROCESSMGR, "use pre-generated processName: %{public}s", processName.c_str());
-        } else if (AAFwk::ProcessOptions::IsNewProcessMode(processMode)) {
-            processName = GenerateNewProcessName(*abilityInfo);
-            loadParam->processOptionsName = processName;
-            TAG_LOGI(AAFwkTag::PROCESSMGR, "NewProcessMode processName: %{public}s", processName.c_str());
-        } else {
-            MakeProcessName(abilityInfo, appInfo, hapModuleInfo, appIndex, specifiedProcessFlag,
-                processName);
-        }
+        ResolveProcessNameForLoad(abilityInfo, appInfo, hapModuleInfo, appIndex,
+            specifiedProcessFlag, *loadParam, processName);
         isExtensionSandBox = IsIsolateExtensionSandBox(abilityInfo, hapModuleInfo);
         TAG_LOGI(AAFwkTag::PROCESSMGR, "name:%{public}s proc=%{public}s",
             abilityInfo->name.c_str(), processName.c_str());
@@ -2659,6 +2649,52 @@ std::string AppMgrServiceInner::GenerateNewProcessName(const AppExecFwk::Ability
         abilityInfo.name + ":" + std::to_string(index++);
     TAG_LOGI(AAFwkTag::APPMGR, "NewProcessMode processName: %{public}s", processName.c_str());
     return processName;
+}
+
+void AppMgrServiceInner::ResolveProcessNameForLoad(std::shared_ptr<AbilityInfo> abilityInfo,
+    std::shared_ptr<ApplicationInfo> appInfo, const HapModuleInfo &hapModuleInfo,
+    int32_t appIndex, const std::string &specifiedProcessFlag,
+    AbilityRuntime::LoadParam &loadParam, std::string &processName)
+{
+    auto processMode = AAFwk::ProcessOptions::ConvertInt32ToProcessMode(loadParam.processMode);
+    if (AAFwk::ProcessOptions::IsNewProcessMode(processMode) && !loadParam.processOptionsName.empty()) {
+        processName = loadParam.processOptionsName;
+        TAG_LOGI(AAFwkTag::PROCESSMGR, "use pre-generated processName: %{public}s", processName.c_str());
+    } else if (AAFwk::ProcessOptions::IsNewProcessMode(processMode)) {
+        if (!abilityInfo) {
+            TAG_LOGE(AAFwkTag::APPMGR, "null abilityInfo");
+            return;
+        }
+        processName = GenerateNewProcessName(*abilityInfo);
+        loadParam.processOptionsName = processName;
+        TAG_LOGI(AAFwkTag::PROCESSMGR, "NewProcessMode processName: %{public}s", processName.c_str());
+    } else {
+        MakeProcessName(abilityInfo, appInfo, hapModuleInfo, appIndex, specifiedProcessFlag, processName);
+    }
+}
+
+void AppMgrServiceInner::ResolveProcessNameForSpecifiedAbility(const AAFwk::Want &want,
+    std::shared_ptr<AbilityInfo> abilityInfo,
+    std::shared_ptr<ApplicationInfo> appInfo, const HapModuleInfo &hapModuleInfo,
+    int32_t appIndex, const std::string &specifiedProcessFlag,
+    std::shared_ptr<AAFwk::ProcessOptions> processOptions, std::string &processName)
+{
+    if (processOptions != nullptr &&
+        AAFwk::ProcessOptions::IsNewProcessMode(
+            AAFwk::ProcessOptions::ConvertInt32ToProcessMode(static_cast<int32_t>(processOptions->processMode)))) {
+        if (!abilityInfo) {
+            TAG_LOGE(AAFwkTag::APPMGR, "null abilityInfo");
+            return;
+        }
+        processName = GenerateNewProcessName(*abilityInfo);
+        processOptions->processName = processName;
+        TAG_LOGI(AAFwkTag::APPMGR, "NewProcessMode processName: %{public}s", processName.c_str());
+    } else if (specifiedProcessFlag.empty()) {
+        MakeProcessName(abilityInfo, appInfo, hapModuleInfo, appIndex, "", processName);
+    } else {
+        processName = want.GetStringParam(SPECIFED_PROCESS_CALLER_PROCESS);
+        const_cast<AAFwk::Want&>(want).RemoveParam(SPECIFED_PROCESS_CALLER_PROCESS);
+    }
 }
 
 void AppMgrServiceInner::LoadAbilityNoAppRecord(const std::shared_ptr<AppRunningRecord> appRecord, bool isShellCall,
@@ -7487,18 +7523,8 @@ void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const Ap
     std::string specifiedProcessFlag = GetSpecifiedProcessFlag(abilityInfo, want);
     auto abilityInfoPtr = std::make_shared<AbilityInfo>(abilityInfo);
     std::string processName;
-    if (processOptions != nullptr &&
-        AAFwk::ProcessOptions::IsNewProcessMode(
-            AAFwk::ProcessOptions::ConvertInt32ToProcessMode(static_cast<int32_t>(processOptions->processMode)))) {
-        processName = GenerateNewProcessName(abilityInfo);
-        processOptions->processName = processName;
-        TAG_LOGI(AAFwkTag::APPMGR, "NewProcessMode processName: %{public}s", processName.c_str());
-    } else if (specifiedProcessFlag == "") {
-        MakeProcessName(abilityInfoPtr, appInfo, hapModuleInfo, appIndex, "", processName);
-    } else {
-        processName = want.GetStringParam(SPECIFED_PROCESS_CALLER_PROCESS);
-        const_cast<AAFwk::Want&>(want).RemoveParam(SPECIFED_PROCESS_CALLER_PROCESS);
-    }
+    ResolveProcessNameForSpecifiedAbility(want, abilityInfoPtr, appInfo, hapModuleInfo, appIndex,
+        specifiedProcessFlag, processOptions, processName);
     bool isExtensionSandBox = IsIsolateExtensionSandBox(abilityInfoPtr, hapModuleInfo);
 
     std::vector<HapModuleInfo> hapModules;

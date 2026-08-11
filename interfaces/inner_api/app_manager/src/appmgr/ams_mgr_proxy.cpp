@@ -902,8 +902,7 @@ void AmsMgrProxy::StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFw
     }
 
     if (!data.WriteParcelable(&want) || !data.WriteParcelable(&abilityInfo) ||
-        !data.WriteInt32(requestId) || !data.WriteString(customProcess) ||
-        !data.WriteBool(false)) {
+        !data.WriteInt32(requestId) || !data.WriteString(customProcess)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write data failed.");
         return;
     }

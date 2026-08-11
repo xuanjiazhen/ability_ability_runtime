@@ -598,35 +598,29 @@ int32_t AmsMgrStub::HandlePrepareTerminateApp(MessageParcel &data, MessageParcel
 
 int32_t AmsMgrStub::HandleStartSpecifiedAbility(MessageParcel &data, MessageParcel &reply)
 {
-    AAFwk::Want *want = data.ReadParcelable<AAFwk::Want>();
+    std::unique_ptr<AAFwk::Want> want(data.ReadParcelable<AAFwk::Want>());
     if (want == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "want is nullptr");
         return ERR_INVALID_VALUE;
     }
 
-    AbilityInfo *abilityInfo = data.ReadParcelable<AbilityInfo>();
+    std::unique_ptr<AbilityInfo> abilityInfo(data.ReadParcelable<AbilityInfo>());
     if (abilityInfo == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "abilityInfo is nullptr.");
-        delete want;
         return ERR_INVALID_VALUE;
     }
     int32_t requestId = data.ReadInt32();
     std::string customProcess = data.ReadString();
-    [[maybe_unused]] bool placeholder = data.ReadBool();
-    std::shared_ptr<AAFwk::ProcessOptions> processOptions = nullptr;
+    std::shared_ptr<AAFwk::ProcessOptions> processOptions;
     if (data.ReadBool()) {
         auto *rawOpts = data.ReadParcelable<AAFwk::ProcessOptions>();
         if (rawOpts == nullptr) {
             TAG_LOGE(AAFwkTag::APPMGR, "ReadParcelable processOptions failed");
-            delete want;
-            delete abilityInfo;
             return ERR_INVALID_VALUE;
         }
         processOptions = std::shared_ptr<AAFwk::ProcessOptions>(rawOpts);
     }
     StartSpecifiedAbility(*want, *abilityInfo, requestId, customProcess, processOptions);
-    delete want;
-    delete abilityInfo;
     return NO_ERROR;
 }
 

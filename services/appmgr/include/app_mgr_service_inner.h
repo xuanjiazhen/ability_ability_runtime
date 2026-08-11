@@ -1912,6 +1912,17 @@ private:
         const std::shared_ptr<ApplicationInfo> &appInfo, const HapModuleInfo &hapModuleInfo, int32_t appIndex,
         const std::string &specifiedProcessFlag, std::string &processName) const;
 
+    void ResolveProcessNameForLoad(std::shared_ptr<AbilityInfo> abilityInfo,
+        std::shared_ptr<ApplicationInfo> appInfo, const HapModuleInfo &hapModuleInfo,
+        int32_t appIndex, const std::string &specifiedProcessFlag,
+        AbilityRuntime::LoadParam &loadParam, std::string &processName);
+
+    void ResolveProcessNameForSpecifiedAbility(const AAFwk::Want &want,
+        std::shared_ptr<AbilityInfo> abilityInfo,
+        std::shared_ptr<ApplicationInfo> appInfo, const HapModuleInfo &hapModuleInfo,
+        int32_t appIndex, const std::string &specifiedProcessFlag,
+        std::shared_ptr<AAFwk::ProcessOptions> processOptions, std::string &processName);
+
     /**
      * Build a process's name based on the info given
      */

@@ -271,6 +271,205 @@ HWTEST_F(AppMgrServiceInnerTest, GenerateNewProcessName_001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: ResolveProcessNameForLoad_001
+ * @tc.desc: NewProcessMode with pre-generated name, should reuse it
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, ResolveProcessNameForLoad_001, TestSize.Level2)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    auto appInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
+    AppExecFwk::HapModuleInfo hapModuleInfo;
+    abilityInfo->bundleName = "com.test.bundle";
+    abilityInfo->moduleName = "moduleA";
+    abilityInfo->name = "AbilityA";
+    std::string preGenerated = "com.test.bundle:moduleA:AbilityA:99";
+
+    AbilityRuntime::LoadParam loadParam;
+    loadParam.processMode = static_cast<int32_t>(AAFwk::ProcessMode::NEW_PROCESS_ATTACH_TO_PARENT);
+    loadParam.processOptionsName = preGenerated;
+
+    std::string processName;
+    appMgrServiceInner->ResolveProcessNameForLoad(abilityInfo, appInfo, hapModuleInfo, 0, "",
+        loadParam, processName);
+    EXPECT_EQ(processName, preGenerated);
+    EXPECT_EQ(loadParam.processOptionsName, preGenerated);
+}
+
+/**
+ * @tc.name: ResolveProcessNameForLoad_002
+ * @tc.desc: NewProcessMode without pre-generated name, should generate and writeback
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, ResolveProcessNameForLoad_002, TestSize.Level2)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    auto appInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
+    AppExecFwk::HapModuleInfo hapModuleInfo;
+    abilityInfo->bundleName = "com.test.bundle";
+    abilityInfo->moduleName = "moduleA";
+    abilityInfo->name = "AbilityB";
+
+    AbilityRuntime::LoadParam loadParam;
+    loadParam.processMode = static_cast<int32_t>(AAFwk::ProcessMode::NEW_PROCESS_ATTACH_TO_STATUS_BAR_ITEM);
+    loadParam.processOptionsName = "";
+
+    std::string processName;
+    appMgrServiceInner->ResolveProcessNameForLoad(abilityInfo, appInfo, hapModuleInfo, 0, "",
+        loadParam, processName);
+    EXPECT_FALSE(processName.empty());
+    EXPECT_EQ(loadParam.processOptionsName, processName);
+    EXPECT_NE(processName.find("com.test.bundle"), std::string::npos);
+}
+
+/**
+ * @tc.name: ResolveProcessNameForLoad_003
+ * @tc.desc: Non-NewProcessMode, should fall through to MakeProcessName
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, ResolveProcessNameForLoad_003, TestSize.Level2)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    auto appInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
+    AppExecFwk::HapModuleInfo hapModuleInfo;
+    appInfo->bundleName = "com.test.bundle";
+    abilityInfo->process = "";
+
+    AbilityRuntime::LoadParam loadParam;
+    loadParam.processMode = static_cast<int32_t>(AAFwk::ProcessMode::UNSPECIFIED);
+
+    std::string processName;
+    appMgrServiceInner->ResolveProcessNameForLoad(abilityInfo, appInfo, hapModuleInfo, 0, "",
+        loadParam, processName);
+    EXPECT_EQ(processName, "com.test.bundle");
+    EXPECT_TRUE(loadParam.processOptionsName.empty());
+}
+
+/**
+ * @tc.name: ResolveProcessNameForLoad_004
+ * @tc.desc: Null abilityInfo in NewProcessMode branch should return early without crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, ResolveProcessNameForLoad_004, TestSize.Level2)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto appInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
+    AppExecFwk::HapModuleInfo hapModuleInfo;
+
+    AbilityRuntime::LoadParam loadParam;
+    loadParam.processMode = static_cast<int32_t>(AAFwk::ProcessMode::NEW_PROCESS_ATTACH_TO_PARENT);
+    loadParam.processOptionsName = "";
+
+    std::string processName = "unchanged";
+    appMgrServiceInner->ResolveProcessNameForLoad(nullptr, appInfo, hapModuleInfo, 0, "",
+        loadParam, processName);
+    EXPECT_EQ(processName, "unchanged");
+    EXPECT_TRUE(loadParam.processOptionsName.empty());
+}
+
+/**
+ * @tc.name: ResolveProcessNameForSpecifiedAbility_001
+ * @tc.desc: NewProcessMode should generate name and write back to processOptions
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, ResolveProcessNameForSpecifiedAbility_001, TestSize.Level2)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    auto appInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
+    AppExecFwk::HapModuleInfo hapModuleInfo;
+    abilityInfo->bundleName = "com.test.bundle";
+    abilityInfo->moduleName = "moduleA";
+    abilityInfo->name = "AbilityA";
+
+    auto processOptions = std::make_shared<AAFwk::ProcessOptions>();
+    processOptions->processMode = AAFwk::ProcessMode::NEW_PROCESS_ATTACH_TO_PARENT;
+    processOptions->processName = "";
+
+    AAFwk::Want want;
+    std::string processName;
+    appMgrServiceInner->ResolveProcessNameForSpecifiedAbility(want, abilityInfo, appInfo, hapModuleInfo, 0,
+        "", processOptions, processName);
+    EXPECT_FALSE(processName.empty());
+    EXPECT_EQ(processOptions->processName, processName);
+    EXPECT_NE(processName.find("com.test.bundle"), std::string::npos);
+    EXPECT_NE(processName.find("moduleA"), std::string::npos);
+    EXPECT_NE(processName.find("AbilityA"), std::string::npos);
+}
+
+/**
+ * @tc.name: ResolveProcessNameForSpecifiedAbility_002
+ * @tc.desc: Non-NewProcessMode with empty specifiedProcessFlag should fall through to MakeProcessName
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, ResolveProcessNameForSpecifiedAbility_002, TestSize.Level2)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    auto appInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
+    AppExecFwk::HapModuleInfo hapModuleInfo;
+    appInfo->bundleName = "com.test.bundle";
+    abilityInfo->process = "";
+
+    auto processOptions = std::make_shared<AAFwk::ProcessOptions>();
+    processOptions->processMode = AAFwk::ProcessMode::UNSPECIFIED;
+
+    AAFwk::Want want;
+    std::string processName;
+    appMgrServiceInner->ResolveProcessNameForSpecifiedAbility(want, abilityInfo, appInfo, hapModuleInfo, 0,
+        "", processOptions, processName);
+    EXPECT_EQ(processName, "com.test.bundle");
+    EXPECT_TRUE(processOptions->processName.empty());
+}
+
+/**
+ * @tc.name: ResolveProcessNameForSpecifiedAbility_003
+ * @tc.desc: Non-NewProcessMode with non-empty specifiedProcessFlag should read caller process from want
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, ResolveProcessNameForSpecifiedAbility_003, TestSize.Level2)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    auto appInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
+    AppExecFwk::HapModuleInfo hapModuleInfo;
+    appInfo->bundleName = "com.test.bundle";
+
+    AAFwk::Want want;
+    want.SetParam("ohoSpecifiedProcessCallerProcess", std::string("callerProcess123"));
+
+    std::string processName;
+    appMgrServiceInner->ResolveProcessNameForSpecifiedAbility(want, abilityInfo, appInfo, hapModuleInfo, 0,
+        std::string("specifiedFlag"), nullptr, processName);
+    EXPECT_EQ(processName, "callerProcess123");
+    EXPECT_TRUE(want.GetStringParam("ohoSpecifiedProcessCallerProcess").empty());
+}
+
+/**
+ * @tc.name: ResolveProcessNameForSpecifiedAbility_004
+ * @tc.desc: Null abilityInfo in NewProcessMode branch should return early without crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, ResolveProcessNameForSpecifiedAbility_004, TestSize.Level2)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto appInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
+    AppExecFwk::HapModuleInfo hapModuleInfo;
+    auto processOptions = std::make_shared<AAFwk::ProcessOptions>();
+    processOptions->processMode = AAFwk::ProcessMode::NEW_PROCESS_ATTACH_TO_PARENT;
+
+    AAFwk::Want want;
+    std::string processName = "unchanged";
+    appMgrServiceInner->ResolveProcessNameForSpecifiedAbility(want, nullptr, appInfo, hapModuleInfo, 0,
+        "", processOptions, processName);
+    EXPECT_EQ(processName, "unchanged");
+    EXPECT_TRUE(processOptions->processName.empty());
+}
+
+/**
  * @tc.name: IsIsolateExtensionSandBox_001
  * @tc.desc: IsIsolateExtensionSandBox
  * @tc.type: FUNC
