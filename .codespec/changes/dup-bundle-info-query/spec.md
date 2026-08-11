@@ -19,10 +19,11 @@
 
 | 类型 | 内容 | 说明 |
 |------|------|------|
-| MODIFIED | 冷启动链路（AMS 拦截器链 / AppMgr 孵化加载 / 应用进程框架初始化）对包管理服务的包信息查询行为：消除重复查询，复用已查结果 | 对外行为语义不变；仅内部查询次数下降 |
-| MODIFIED | InnerAPI `IAppMgr::LoadAbility` 系列：参数扩展以携带已查包信息 | 仅 InnerAPI，保持同进程/跨进程两路径兼容，无 Public/System API 变更 |
+| MODIFIED | 冷启动链路（AMS 拦截器链 / AppMgr 孵化加载 / 应用进程框架初始化）对包管理服务的包信息查询行为：消除重复查询，复用已查结果，重查询降载 | 对外行为语义不变；仅内部查询次数与载荷下降 |
 | MODIFIED | 包信息结构体（ApplicationInfo/HapModuleInfo/BundleInfo）在启动链路上的持有方式：由"丢弃后回查/多处值拷贝"改为"共享持有/沿链传递" | 无持久化数据格式变更 |
 | ADDED | 启动链路 BMS 同步查询次数打点日志（hilog） | 可观测性增强，供优化前后对比 |
+
+> 注：设计阶段曾评估 InnerAPI 参数扩展（A-4），实现期核对数据依赖后确认无法消除目标查询，已取消（见 design.md ADR-7）；本特性最终**不涉及任何 API 变更**。
 
 ## 输入文档
 
@@ -160,34 +161,15 @@ N/A — 无新增 Public/System/InnerAPI。
 
 ### 变更/废弃 API
 
-| API 名称 | 变更类型 | 影响场景 | 迁移指引 | 关联 AC |
-|----------|----------|----------|----------|---------|
-| `IAppMgr::LoadAbility` 及 AmsMgrProxy/AmsMgrScheduler 对应转发接口 | 变更（参数扩展，InnerAPI） | AMS→AppMgr 的 ability 加载调用 | 扩展参数带默认语义：未携带时 AppMgr 回退为现有自行查询行为，新旧调用方均可工作 | AC-4 |
-
-> API 签名、参数结构、兼容分支等实现细节见 design.md。无 Public/System API 变更，无 d.ts 变更。
+N/A — 设计阶段评估的 InnerAPI 参数扩展（A-4）经实现期核对后取消（见 design.md ADR-7）；最终无 Public/System/InnerAPI 变更。
 
 ## 接口规格
 
-**IAppMgr::LoadAbility（参数扩展）**
-
-| 属性 | 值 |
-|------|-----|
-| 函数签名 | 见 design.md（InnerKit 接口定义归 design） |
-| 开放范围 | InnerApi |
-| 错误码 | 沿用现有错误码体系，无新增 |
-| 关联 AC | AC-4、AC-8 |
-
-**行为场景**
-
-| # | 触发条件 | 预期行为 | 关联 AC |
-|---|----------|----------|---------|
-| 1 | 调用方携带了有效的已查包信息 | 被调用方直接使用，不再向 BMS 重查同一 bundle 的相同信息 | AC-4 |
-| 2 | 调用方未携带/携带数据无效（空、维度不匹配） | 被调用方回退为现有自行查询 BMS 行为，结果与变更前一致 | AC-8 |
-| 3 | 分身/沙箱/插件维度调用 | 按 (bundleName, appIndex, userId) 校验携带数据维度，不匹配按场景 2 回退 | AC-9 |
+N/A — 无接口变更（原 InnerAPI 扩展方案已取消，见上）。AC-4/AC-8/AC-9 的"复用/回退/维度匹配"行为由 design.md ADR-5/6/7 的进程内轻量查询与可选参数实现承载，均为内部实现细节。
 
 ## 兼容性声明
 
-- **已有 API 行为变更:** 否（Public/System API 零变更；InnerAPI 参数扩展保持未携带时行为与现状一致）
+- **已有 API 行为变更:** 否（Public/System/InnerAPI 零变更）
 - **配置文件格式变更:** 否
 - **数据存储格式变更:** 否
 - **最低支持版本:** 与目标发行版本一致（TBD）

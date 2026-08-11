@@ -50,8 +50,8 @@
 |---------|----------|----------|----------|
 | OH-ARCH-LAYERING | 涉及服务/框架/胶水多层 | 复用数据沿既有调用方向传递（上→下），禁止下层回调上层取数 | 代码评审 |
 | OH-ARCH-SUBSYSTEM | 不跨子系统 | 仅 ability_runtime 仓内 | 依赖检查 |
-| OH-ARCH-IPC-SAF | InnerAPI 参数扩展 | 新增参数追加在 parcel 末尾；同进程/跨进程同镜像升级，无跨版本兼容问题；未携带时回退现有行为 | 集成测试 |
-| OH-ARCH-API-LEVEL | 仅 InnerAPI 变更 | 无 Public/System API、无 SysCap 变化 | API 评审 |
+| OH-ARCH-IPC-SAF | AMS↔AppMgr 调用 | **（实现期修正）不修改任何 InnerAPI**；检查类调用通过 AppMgr 侧轻量查询降载（ADR-7） | 集成测试 |
+| OH-ARCH-API-LEVEL | 无 API 变更 | **（实现期修正）** 无 Public/System/InnerAPI 变更 | API 评审 |
 | OH-ARCH-COMPONENT-BUILD | 无新增部件 | 仅新增单元测试源文件入既有 test target | 构建验证 |
 | OH-ARCH-ERROR-LOG | 回退路径日志 | 回退/失败路径 TAG_LOGW/TAG_LOGE（含 bundleName/appIndex/userId），沿用既有 ERR_* 错误码 | 单测/hilog |
 
@@ -72,9 +72,9 @@
 | ADR-2 | 同函数/同链字面重复（R6 GetNameForUid×2、R7 debug 双查、R8 VerifyPermission 三连查，AC-2/AC-6） | 同函数内去重：UpdateCallerInfo 将 callerBundleName 传给 ClearProtectedWantParam；CheckAppProvisionMode 查询结果写回 thread_local 缓存；VerifyPermission 内 GetNameForUid 去重；GetCallerUidAndToken 的 GetBundleInfo(WITH_ABILITIES) 降为 GetUidByBundleName | 备选：跨阶段复用校验输入——**禁止**（spec R-5），仅同函数内去重 | 权限语义零风险前提下的最大去重；重查询降载返回数据同源（uid） | abilitymgr utils/ability_manager_service.cpp |
 | ADR-3 | LoadAbility 判断 mainElement 全量查 GetBundleInfoV9（R1，AC-2） | 降为 `GetHapModuleInfo`（单模块），取 mainElementName 比较；查询失败回退现有全量查询 | 备选1：AbilityRecord 持有 HapModuleInfo——放弃，AMS 侧 GenerateAbilityRequest 仅在 allowMultiProcess 时才有 hapModuleInfo，持有需扩 AbilityRequest；备选2：维持现状——放弃，全包结构体拷贝是启动热点 | 载荷从全包降单模块，逻辑等价；失败回退保证语义 | ability_record.cpp/main_element_utils.cpp |
 | ADR-4 | ModuleRunningRecord 丢弃 HapModuleInfo 后每次回查全量 BundleInfo（R4/S3，AC-5） | `Init` 增加持有 `std::shared_ptr<const HapModuleInfo>`；`GetHapModuleInfo` 直接返回持有副本；`UpdateApplicationInfoInstalled`（app_mgr_service_inner.cpp:3257）时刷新 | 备选：AppRunningRecord 统一持有所有模块 HapModuleInfo——放弃，ModuleRunningRecord 是天然归属点，改动最小 | 直接消除"手里有过又扔掉再查"；每模块一份 KB 级持有 | appmgr module_running_record |
-| ADR-5 | AppMgr 查询类辅助接口（IsSpecifiedModuleLoaded/IsCorrespondingProcessAttachDebug/预加载后 LoadAbility）重复 GetBundleAndHapInfo（R4/R9，AC-4） | `AppRunningRecord` 增加持有启动时 `std::shared_ptr<const BundleInfo>`（StartProcess 已收到 const BundleInfo&，6032）；上述路径在 appRecord 存在且 (bundleName, appIndex, userId) 匹配时直接用持有值计算 processName/查表，不再查 BMS；`UpdateApplicationInfoInstalled` 时刷新 | 备选1：继续持有散标量——放弃，是 R4 根因；备选2：进程级 BundleInfo 缓存表——放弃，AppRunningRecord 即天然作用域 | 持有随 record 生命周期，无独立失效问题；内存增量每进程一份 BundleInfo（KB 级，spec 内存指标 <1MB） | appmgr app_running_record/app_mgr_service_inner |
+| ADR-5 | AppMgr 查询类辅助接口（IsSpecifiedModuleLoaded/IsCorrespondingProcessAttachDebug/预加载后 LoadAbility）重复 GetBundleAndHapInfo（R4/R9，AC-4） | **（实现期修正）** ① LoadAbility selfPid 分支下游只消费 hapModuleInfo，改为仅查 HapModuleInfo（失败回退全量），直接省掉 BundleInfo 查询；② 两个检查接口 appIndex==0 主路径改为轻量查询（GetBundleInfoV9(WITH_APPLICATION) [+ GetHapModuleInfo]），分身/沙箱路径保持全量 | 备选1：AppRunningRecord 整体持有 BundleInfo——放弃（实现期核对：各消费点或被 TASK-6 轻量化覆盖、或根本不需要 bundleInfo，持有将无消费者）；备选2：继续持有散标量——放弃 | 核对真实消费点后以"按需轻量查询"替代"持有全量"，零新增状态、零失效问题 | appmgr app_mgr_service_inner |
 | ADR-6 | StartNativeProcessForDebugger 同参数双查 GetBundleAndHapInfo（R5，AC-4） | `CreatNewStartMsg` 增加可选入参（已查到的 bundleInfo/hapModuleInfo/appIndex 指针，默认 nullptr）；调用方（9956）传入 9934 已查结果；nullptr 时走现有自查 | 备选：重构 CreatNewStartMsg 签名强制传入——放弃，其他调用方无已查结果，强制签名会扩散改动 | 可选参数保持全部既有调用点行为不变 | app_mgr_service_inner.cpp |
-| ADR-7 | AMS↔AppMgr 检查类 InnerAPI 在 AppMgr 侧为算 processName 而查包信息（A-4，AC-4/8/9） | `IAppMgr::IsSpecifiedModuleLoaded`/`IsCorrespondingProcessAttachDebug` 扩展可选参数 `processName`（调用方已按 abilityInfo.process/customProcess 规则算得时传入）；AppMgr 侧优先用传入值查表；为空或查表前需要 bundle 字段校验时回退现有 GetBundleAndHapInfo 流程 | 备选1：LoadAbility 携带 BundleInfo/HapModuleInfo——放弃，AMS 侧并不持有（只会把查询成本从 AppMgr 挪到 AMS）；备选2：processName 计算逻辑上移到 AMS——放弃，MakeProcessName 归属 AppMgr，上移导致逻辑双份 | 可选参数 + 回退语义，InnerAPI 兼容；消除的是"为查表而查询"的纯浪费 | interfaces/inner_api/app_manager + 两侧实现 |
+| ADR-7 | AMS↔AppMgr 检查类调用在 AppMgr 侧为查表而重查包信息（A-4，AC-4/8/9） | **（实现期修正）不改 InnerAPI**：核对 `CheckAppRunningRecordIsExist` 真实消费（jointUserId/appId→signCode）与 `MakeProcessName` 依赖（hapModuleInfo.process/isolation）后，这些数据 AMS 侧不可得，"调用方传 processName"无法消除查询；改为 AppMgr 侧轻量查询替代（appIndex==0 主路径：`IsCorrespondingProcessAttachDebug` 仅查 GetBundleInfoV9(WITH_APPLICATION)，`IsSpecifiedModuleLoaded` 查轻量 BundleInfo+单模块 HapModuleInfo），2 次重量级查询降为 1~2 次轻量查询 | 备选1：InnerAPI 追加 processName 可选参数（原方案）——放弃，所需数据不全在调用方，参数扩展消除不了查询，徒增五层签名与 parcel 变更；备选2：MakeProcessName 上移 AMS——放弃，逻辑双份风险 | 在不改任何接口的前提下获得大部分收益；接口零兼容风险 | services/appmgr（仅实现，不涉及 interfaces） |
 | ADR-8 | 应用进程 AddAbilityStage(abilityRecord) 路径 InitHapModuleInfo 重查（R10，AC-11） | `MainThread::HandleLaunchApplication` 已持全量 BundleInfo（main_thread.cpp:1694，Q1）：将其 `hapModuleInfos` 以 `map<moduleName, shared_ptr<const HapModuleInfo>>` 持久化到 OHOSApplication；`ContextImpl::InitHapModuleInfo` 先查该映射（经 parentContext_ 链可达），命中即用，未命中回退现有 IPC | 备选1：abilityRecord 携带 HapModuleInfo 下发——放弃，需改 ScheduleLaunchAbility InnerAPI 与序列化，面大；备选2：复用 ScheduleAbilityStage 已建 stage——已天然生效（abilityStages_ 命中即跳过），不覆盖非 entry module | 数据本进程已有，仅缺持久化与查找入口；回退保证任意时序/异常下行为不变 | appkit main_thread/ohos_application/context_impl |
 | ADR-9 | runtime 侧 InitSourceMap/GetPresetAppHapPath 重查模块路径（R11，AC-11） | `JsRuntime` 将已展开的 moduleName→hapPath 映射（options.hapModulePath/pkgContextInfoJsonStringMap_，main_thread.cpp:1925-1938）传入 `JsModuleReader`/`HybridJsModuleReader`（构造或 setter）；映射命中即用，未命中回退现有 BMS 查询 | 备选：模块加载时按需查 BMS 保持现状——放弃，ABC 加载路径上的同步 IPC 是启动热点 | 复用已展开数据，零新状态 | frameworks/native/runtime |
 | ADR-10 | 混合 arkTSMode 下 CheckAndUpdateRuntime 原样重查（R12，AC-13） | `MainThread` 将 Q1 的 BundleInfo 与 Q2 的 hspList 存为成员（仅本次启动生命周期）；`GetBundleAndHspListForUpdateRuntime` 优先用成员，为空回退现有查询 | 备选：保持重查——放弃，同函数语义数据源完全相同 | 成员级复用，无跨请求状态 | appkit main_thread |
@@ -88,8 +88,7 @@
 
 | 骨架项 | 目标 | 不包含 | 验证方式 |
 |--------|------|--------|----------|
-| InnerAPI 骨架 | IAppMgr 两接口可选参数（proxy/stub/interface/service 四层签名） | 调用方传参逻辑 | 编译通过 + 既有单测通过 |
-| 复用持有骨架 | ModuleRunningRecord.hapModuleInfo_ / AppRunningRecord.bundleInfo_ 成员与刷新点 | 全部消费点切换 | 编译通过 |
+| 复用持有骨架 | ModuleRunningRecord.hapModuleInfo_ 成员与更新失效点 | 全部消费点切换 | 编译通过 |
 | 打点骨架 | BundleMgrHelper 计数器 + 三处输出点 | 全量查询点覆盖 | 日志验证 |
 | 测试骨架 | mock BMS 计数 fixture（统计查询次数） | 全场景 | 最小用例通过 |
 
@@ -97,7 +96,7 @@
 
 | Task ID | 目标 | 受影响文件 | AC |
 |---------|------|------------|-----|
-| TASK-SKELETON-1 | InnerAPI 可选参数骨架 + 打点骨架 | interfaces/inner_api/app_manager/*、bundle_mgr_helper.* | WHEN 编译并运行既有 UT THEN 全部通过（行为不变） |
+| TASK-SKELETON-1 | 打点骨架 | bundle_mgr_helper.* | WHEN 编译并运行既有 UT THEN 全部通过（行为不变） |
 
 ## 后续 Task 拆分
 
@@ -108,8 +107,8 @@
 | TASK-3 | AMS 同函数去重（ADR-2，AC-2/AC-6） | update_caller_info_util.cpp、start_ability_utils.cpp、ability_manager_service.cpp | TASK-1 |
 | TASK-4 | mainElement 降载（ADR-3，AC-2） | ability_record.cpp、main_element_utils.cpp | TASK-1 |
 | TASK-5 | ModuleRunningRecord 持有 HapModuleInfo（ADR-4，AC-5） | module_running_record.*、app_running_record.cpp、app_mgr_service_inner.cpp | TASK-1 |
-| TASK-6 | AppRunningRecord 持有 BundleInfo + CreatNewStartMsg 参数（ADR-5/6，AC-4） | app_running_record.*、app_mgr_service_inner.cpp | TASK-1 |
-| TASK-7 | InnerAPI 检查接口参数扩展（ADR-7，AC-4/8/9） | interfaces/inner_api/app_manager/*、app_mgr_service.*、app_mgr_service_inner.cpp、ui_ability_lifecycle_manager.cpp、extension_record_manager.cpp、ability_connect_manager.cpp | TASK-6 |
+| TASK-6 | AppMgr 轻量查询化（ADR-5/6/7 修正版，AC-4/8/9） | app_mgr_service_inner.cpp（LoadAbility selfPid 分支、CreatNewStartMsg 可选参数、IsCorrespondingProcessAttachDebug/IsSpecifiedModuleLoaded 轻量查询） | TASK-1 |
+| TASK-7 | ~~InnerAPI 检查接口参数扩展~~（已取消，见 ADR-7 修正；其 AC-4/8/9 由 TASK-6 轻量查询覆盖） | — | — |
 | TASK-8 | 应用进程 HapModuleInfo 复用（ADR-8，AC-11） | main_thread.cpp、ohos_application.cpp/h、context_impl.cpp/h | TASK-1 |
 | TASK-9 | runtime 模块路径复用 + 混合模式复用（ADR-9/10，AC-11/13） | js_runtime.cpp、js_module_reader.*、hybrid_js_module_reader.cpp、main_thread.cpp | TASK-8 |
 | TASK-10 | ApplicationInfo 单一指针共享（ADR-11，AC-12） | main_thread.cpp、context_impl.*、ohos_application.cpp | TASK-8 |
@@ -123,12 +122,7 @@ N/A — 无新增 Public/System/InnerAPI。
 
 ### 变更/废弃 API
 
-| 原有 API | 变更类型 | 新 API | 迁移说明 |
-|----------|----------|--------|----------|
-| `IAppMgr::IsSpecifiedModuleLoaded(const Want&, const AbilityInfo&, bool& result, ...)` | 变更（InnerApi，追加可选参数） | 追加 `const std::string &processName = ""` 语义的可选参数（parcel 末尾追加序列化） | 未携带/为空时行为与现状完全一致；无需迁移 |
-| `IAppMgr::IsCorrespondingProcessAttachDebug(const AbilityInfo&)` | 变更（InnerApi，追加可选参数） | 追加可选 `processName` 参数（同上） | 同上 |
-
-权限要求：无新增；SysCap：无变化；d.ts：N/A（InnerAPI 无 d.ts）。
+N/A — **（实现期修正）** 经核对 `CheckAppRunningRecordIsExist`/`MakeProcessName` 的真实数据依赖后，InnerAPI 参数扩展无法消除目标查询（见 ADR-7），最终方案不涉及任何 API 变更。
 
 ## 构建系统影响
 
@@ -226,7 +220,7 @@ N/A — 无新增 Public/System/InnerAPI。
 | 项 | 类型 | 影响 | 处理方式 | Owner |
 |----|------|------|----------|-------|
 | S1（AbilityRequest::appInfo 双份存储）一期不做 | 架构 | 低 | ADR-13 记录，二期结合 AMS 结构治理评估 | 待定 |
-| ADR-7 的 processName 计算规则在 AMS 侧与 MakeProcessName 的一致性 | 技术 | 中 | 实现期提取公共计算函数或显式回退；不一致场景一律回退直查（AC-8） | 待定 |
+| ADR-7 的 processName 一致性风险 | 技术 | — | **已消除**：ADR-7 修正为轻量查询替代，不再涉及调用方计算 processName | — |
 | 量化收益依赖实测 | 测试 | 低 | TASK-1 打点先行，优化前后对比 | 待定 |
 | 应用更新与进行中启动的复用窗口 | 技术 | 低 | shared_ptr<const> 整体替换，语义与现状等价（见并发场景） | 待定 |
 

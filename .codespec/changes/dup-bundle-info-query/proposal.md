@@ -298,10 +298,7 @@ target_release:
 
 ### API 变更项清单
 
-| API 名称 | 变更类型 | 开放范围 | 概要说明 |
-|----------|----------|----------|----------|
-| `IAppMgr::LoadAbility`（AmsMgrProxy/AmsMgrScheduler） | 修改（参数扩展） | InnerAPI | 携带 AMS 已查询的包信息（或复用凭据），AppMgr 侧免重查同一 bundle；保持同进程/跨进程兼容 |
-| 具体签名与兼容策略 | 见 design.md | InnerAPI | 一期仅 InnerAPI，无 Public/System API 变更 |
+N/A — 基线时曾列入 `IAppMgr` 参数扩展（A-4），实现期核对数据依赖后取消（见 design.md ADR-7 修正记录）；最终无任何 API（Public/System/InnerAPI）变更。
 
 ### 不涉及项确认
 
@@ -310,8 +307,8 @@ target_release:
 | 性能 | 是 | 本需求即启动性能优化 | design.md / spec.md |
 | 安全与权限 | 是（受限） | 权限校验路径去重需保证语义不变（AC-6） | spec.md |
 | 兼容性 | 是 | 行为语义零变更约束 | spec.md |
-| API/SDK | 是（仅 InnerAPI） | A-4 参数复用涉及 IAppMgr InnerAPI 扩展 | design.md / spec.md |
-| IPC/跨进程 | 是 | 减少 AMS/AppMgr→BMS 查询次数；A-4 修改 AMS↔AppMgr InnerAPI 参数；应用进程侧为真实跨进程 IPC | design.md |
+| API/SDK | 否/N/A | A-4 经实现期核对后取消，最终无 API 变更 | — |
+| IPC/跨进程 | 是（仅查询次数/载荷优化） | 减少 AMS/AppMgr→BMS 查询次数与载荷；应用进程侧减少真实跨进程 IPC；不改任何 IPC 接口 | design.md |
 | 构建与部件 | 否/N/A | 不新增部件，BUILD.gn 仅可能新增测试源文件 | — |
 | 国际化/无障碍 | 否/N/A | 不涉及 UI 文案 | — |
 | 数据迁移 | 否/N/A | 无持久化数据 | — |

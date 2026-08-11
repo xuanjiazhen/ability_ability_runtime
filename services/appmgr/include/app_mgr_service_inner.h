@@ -2293,7 +2293,8 @@ private:
 
     int32_t CreatNewStartMsg(const Want &want, const AbilityInfo &abilityInfo,
         const std::shared_ptr<ApplicationInfo> &appInfo, const std::string &processName,
-        AppSpawnStartMsg &startMsg);
+        AppSpawnStartMsg &startMsg, const BundleInfo *presetBundleInfo = nullptr,
+        const HapModuleInfo *presetHapModuleInfo = nullptr);
 
     /**
      * Build message body for app spawn

@@ -31,12 +31,12 @@
 | ability_runtime | 服务（AMS） | `services/abilitymgr/src/utils/update_caller_info_util.cpp` | 修改 | UpdateCallerInfo 内 GetNameForUid 结果传递复用 |
 | ability_runtime | 服务（AMS） | `services/abilitymgr/src/ability_manager_service.cpp` | 修改 | VerifyPermission 同函数去重；GetCallerUidAndToken 重查询降载为 GetUidByBundleName |
 | ability_runtime | 服务（AMS） | `services/abilitymgr/src/ability_record.cpp`、`services/abilitymgr/src/utils/main_element_utils.cpp` | 修改 | mainElement 判断降载 GetBundleInfoV9→GetHapModuleInfo + 失败回退 |
-| ability_runtime | 胶水（InnerAPI） | `interfaces/inner_api/app_manager/include/appmgr/app_mgr_interface.h`、`app_mgr_proxy.h/.cpp`（src/）、`app_mgr_stub.h/.cpp`（src/）、`app_mgr_client.h/.cpp`（src/） | 修改 | IsSpecifiedModuleLoaded / IsCorrespondingProcessAttachDebug 追加可选 processName 参数（parcel 末尾） |
-| ability_runtime | 服务（AppMgr） | `services/appmgr/include/app_mgr_service.h`、`services/appmgr/src/app_mgr_service.cpp` | 修改 | 两接口签名透传扩展 |
-| ability_runtime | 服务（AppMgr） | `services/appmgr/include/app_mgr_service_inner.h`、`services/appmgr/src/app_mgr_service_inner.cpp` | 修改 | 两接口实现优先用传入 processName；CreatNewStartMsg 可选预查参数；UpdateApplicationInfoInstalled 刷新持有值 |
-| ability_runtime | 服务（AppMgr） | `services/appmgr/include/module_running_record.h`、`services/appmgr/src/module_running_record.cpp` | 修改 | 持有 shared_ptr<const HapModuleInfo>，GetHapModuleInfo 返回持有副本 |
-| ability_runtime | 服务（AppMgr） | `services/appmgr/include/app_running_record.h`、`services/appmgr/src/app_running_record.cpp` | 修改 | 持有 shared_ptr<const BundleInfo>（StartProcess 时设置）+ 刷新接口 |
-| ability_runtime | 服务（AMS 调用方） | `services/abilitymgr/src/scene_board/ui_ability_lifecycle_manager.cpp`、`services/abilitymgr/src/extension_record/extension_record_manager.cpp`、`services/abilitymgr/src/ability_connect_manager.cpp` | 修改 | 调用检查类接口时传入已算 processName |
+| ability_runtime | 胶水（InnerAPI） | ~~interfaces/inner_api/app_manager~~ | 不修改 | **实现期修正**：A-4 参数扩展取消（ADR-7），InnerAPI 零变更 |
+| ability_runtime | 服务（AppMgr） | ~~services/appmgr/include/app_mgr_service.h、app_mgr_service.cpp~~ | 不修改 | 同上，无需透传 |
+| ability_runtime | 服务（AppMgr） | `services/appmgr/include/app_mgr_service_inner.h`、`services/appmgr/src/app_mgr_service_inner.cpp` | 修改 | LoadAbility selfPid 分支 hap 单查+回退；CreatNewStartMsg 可选预查参数；两检查接口轻量查询化 |
+| ability_runtime | 服务（AppMgr） | `services/appmgr/include/module_running_record.h`、`services/appmgr/src/module_running_record.cpp` | 修改 | 持有 HapModuleInfo，GetHapModuleInfo 返回持有副本 + ResetHapModuleInfo |
+| ability_runtime | 服务（AppMgr） | `services/appmgr/src/app_running_record.cpp` | 修改 | UpdateApplicationInfoInstalled 时重置模块持有信息 |
+| ability_runtime | 服务（AMS 调用方） | ~~ui_ability_lifecycle_manager.cpp、extension_record_manager.cpp、ability_connect_manager.cpp~~ | 不修改 | **实现期修正**：无需传参，调用方零改动 |
 | ability_runtime | 框架（appkit） | `frameworks/native/appkit/app/main_thread.cpp`、`frameworks/native/appkit/app/ohos_application.cpp` 及对应头文件 | 修改 | 持久化 module→HapModuleInfo 映射与 hspList；ApplicationInfo 单一 shared_ptr 共享；CheckAndUpdateRuntime 复用 |
 | ability_runtime | 框架（appkit） | `frameworks/native/appkit/ability_runtime/context/context_impl.cpp` 及头文件 | 修改 | InitHapModuleInfo 先查应用级映射，未命中回退 IPC；ApplicationInfo 共享指针 |
 | ability_runtime | 框架（runtime） | `frameworks/native/runtime/js_runtime.cpp`、`frameworks/native/runtime/js_module_reader.cpp/h`、`frameworks/native/runtime/hybrid_js_module_reader.cpp` | 修改 | 模块路径映射注入 reader，命中免查 BMS |
@@ -69,7 +69,7 @@
 ## 首批实现边界
 
 **首批必须实现：** TASK-1（打点，量化基线先行）、TASK-2/3/4（AMS 侧去重）、TASK-5（AppMgr 持有复用）、TASK-7（应用进程复用）——主链 P0 AC 全部闭合
-**可后置：** TASK-6（InnerAPI 扩展，A-4）、TASK-8（runtime 路径复用）
+**可后置：** TASK-8（runtime 路径复用）
 **不建议延后：** TASK-1（无打点则所有量化 AC 无法验证）、TASK-9（回归门禁）
 
 ## 阶段计划
@@ -77,7 +77,7 @@
 | 阶段 | 目标 | 关键 Task | 结束门槛 | 最小验证 |
 |------|------|-----------|----------|----------|
 | Phase-1 | 打点 + AMS 侧去重 | TASK-1/2/3/4 | AMS 侧打点显示拦截器链重复查询消除；既有 UT 全过 | `run -t UT -ts ability_interceptor_test` 等 |
-| Phase-2 | AppMgr 持有复用 + InnerAPI 扩展 | TASK-5/6 | 冷启动 AppMgr 侧同 bundle 查询次数降为首次 1 组；InnerAPI 兼容验证 | `run -t UT -ts app_mgr_service_inner_mock_test` 等 |
+| Phase-2 | AppMgr 持有复用 + 轻量查询化 | TASK-5/6 | 冷启动 AppMgr 侧同 bundle 重量级查询降为首次 1 组；检查接口主路径轻量化 | `run -t UT -ts app_mgr_service_inner_mock_test` 等 |
 | Phase-3 | 应用进程复用 | TASK-7/8 | 应用进程启动 BMS 查询仅剩 HandleLaunchApplication 一组 | `run -t UT -tp ability_runtime -ts` appkit 相关套件 |
 | Phase-4 | 回归门禁 | TASK-9 | 全量 UT 通过；打点对比报告 | `run -t UT -tp ability_runtime` |
 
@@ -103,7 +103,7 @@
 | TASK-3 | caller/权限链同函数去重 | update_caller_info_util、start_ability_utils、ability_manager_service | AC-2、AC-6、AC-8 | TASK-1 | 校验结果逐点一致；同函数查询=1 | `run -t UT -ts ability_manager_service_first_test` |
 | TASK-4 | mainElement 降载 | ability_record、main_element_utils | AC-2、AC-8 | TASK-1 | 查询载荷降为单模块；失败回退全量 | `run -t UT -ts ability_record_test` |
 | TASK-5 | Module/App RunningRecord 持有复用 | module_running_record、app_running_record、app_mgr_service_inner | AC-4、AC-5、AC-8 | TASK-1 | attach 后回查=0；CreatNewStartMsg 复用预查 | `run -t UT -ts ams_app_running_record_test`、`run -t UT -ts app_mgr_service_inner_mock_test` |
-| TASK-6 | InnerAPI 检查接口参数扩展 | app_mgr_interface/proxy/stub/client、app_mgr_service(_inner)、3 个 AMS 调用方 | AC-4、AC-8、AC-9 | TASK-5 | 未携带参数行为不变；携带时 0 查询；维度不匹配回退 | `run -t UT -ts ui_ability_lifecycle_manager_test` |
+| TASK-6 | AppMgr 轻量查询化（实现期修正，取代原 InnerAPI 扩展） | app_mgr_service_inner | AC-4、AC-8、AC-9 | TASK-1 | selfPid 分支省 BundleInfo 查询；两检查接口主路径载荷降为轻量；分身路径保持全量 | `run -t UT -ts app_mgr_service_inner_mock_test` |
 | TASK-7 | 应用进程启动数据复用 | main_thread、ohos_application、context_impl | AC-11、AC-12、AC-13、AC-8 | TASK-1 | 非 entry module 不再 IPC 查 HapModuleInfo；ApplicationInfo 单一指针；混合模式复用 | `run -t UT -ts main_thread_test`、`run -t UT -ts ohos_application_test`、`run -t UT -ts ability_stage_context_test` |
 | TASK-8 | runtime 模块路径复用 | js_runtime、js_module_reader、hybrid_js_module_reader | AC-11、AC-8 | TASK-7 | reader 命中映射 0 查询；未命中回退 | `run -t UT -tp ability_runtime`（runtime 相关套件） |
 | TASK-9 | 全量回归 + 打点对比报告 | test/unittest（上述套件） | AC-7、AC-8、AC-9、AC-10 | TASK-2~8 | 全量 UT 通过；优化前后查询次数对比记录 | `run -t UT -tp ability_runtime` |
@@ -346,7 +346,7 @@
 
 | 字段 | 内容 |
 |------|------|
-| 任务目标 | ① ModuleRunningRecord::Init 持有 shared_ptr<const HapModuleInfo>，GetHapModuleInfo 返回持有副本（消除 module_running_record.cpp:378-400 回查）；② AppRunningRecord 持有启动时 shared_ptr<const BundleInfo>（StartProcess 6032 已收 const BundleInfo&），UpdateApplicationInfoInstalled 刷新；③ CreatNewStartMsg 增加可选预查参数，StartNativeProcessForDebugger（9956）传入 9934 已查结果 |
+| 任务目标 | ① ModuleRunningRecord::Init 持有 HapModuleInfo，GetHapModuleInfo 返回持有副本（消除 module_running_record.cpp 回查）；AppRunningRecord::UpdateApplicationInfoInstalled 时 ResetHapModuleInfo 刷新；② CreatNewStartMsg 增加可选预查参数，StartNativeProcessForDebugger 传入同函数已查结果 |
 | AC 映射 | AC-4、AC-5、AC-8 |
 | 前置依赖 | TASK-1 |
 | 非目标 | 不改 RestartKeepAliveProcess/RestartResidentProcess 的查询（重启语义需新数据）；不动 PreloadRequest 结构 |
@@ -357,9 +357,9 @@
 
 | 操作 | 文件 | 说明 |
 |------|------|------|
-| Modify | `services/appmgr/include/module_running_record.h`、`services/appmgr/src/module_running_record.cpp` | 持有 HapModuleInfo |
-| Modify | `services/appmgr/include/app_running_record.h`、`services/appmgr/src/app_running_record.cpp` | 持有 BundleInfo + setter/刷新 |
-| Modify | `services/appmgr/src/app_mgr_service_inner.cpp`、`services/appmgr/include/app_mgr_service_inner.h` | StartProcess 设置持有值；CreatNewStartMsg 可选参数；UpdateApplicationInfoInstalled 刷新 |
+| Modify | `services/appmgr/include/module_running_record.h`、`services/appmgr/src/module_running_record.cpp` | 持有 HapModuleInfo + ResetHapModuleInfo |
+| Modify | `services/appmgr/src/app_running_record.cpp` | UpdateApplicationInfoInstalled 重置模块持有信息 |
+| Modify | `services/appmgr/src/app_mgr_service_inner.cpp`、`services/appmgr/include/app_mgr_service_inner.h` | CreatNewStartMsg 可选参数 |
 | Test | `test/unittest/ams_app_running_record_test/`、`test/unittest/app_mgr_service_inner_mock_test/` | 计数与刷新用例 |
 
 **Spec Context**：AC-4（同次启动后续阶段复用已查结果）；AC-5（模块信息读取返回持有副本，0 次查询，更新后刷新）；AC-8（回退）；R-3/R-4/R-6。
@@ -400,41 +400,40 @@
 | 验证命令 | 见上 / 期望： PASS |
 | 完成规则 | 同 TASK-1 |
 
-### TASK-6: InnerAPI 检查接口参数扩展（A-4）
+### TASK-6: AppMgr 轻量查询化（实现期修正，取代原 InnerAPI 参数扩展）
 
 | 字段 | 内容 |
 |------|------|
-| 任务目标 | `IAppMgr::IsSpecifiedModuleLoaded`/`IsCorrespondingProcessAttachDebug` 追加可选 processName 参数（interface/proxy/stub/client/service 五层 + parcel 末尾追加）；AppMgr 实现优先用传入值查表，为空回退现有 GetBundleAndHapInfo 流程；AMS 三个调用点（ui_ability_lifecycle_manager.cpp:4684、extension_record_manager.cpp:619、ability_connect_manager.cpp:3443）传入按 abilityInfo.process/customProcess 规则算得的 processName |
+| 任务目标 | ① LoadAbility selfPid 分支：下游仅消费 hapModuleInfo，改为仅查 GetHapModuleInfo（失败回退 GetBundleAndHapInfo 全量）；② IsCorrespondingProcessAttachDebug（appIndex==0）：仅轻量查 GetBundleInfoV9(WITH_APPLICATION)（下游只需 appId/jointUserId，processName 为硬编码）；③ IsSpecifiedModuleLoaded（appIndex==0）：轻量 BundleInfo + GetHapModuleInfo；分身/沙箱（appIndex≠0）路径保持原全量查询 |
 | AC 映射 | AC-4、AC-8、AC-9 |
-| 前置依赖 | TASK-5 |
-| 非目标 | 不改 LoadAbility 签名；不上移 MakeProcessName 全部逻辑（AMS 仅算常见情形，不确定时传空回退） |
-| 完成判据 | 未携带参数调用行为与现状一致（兼容用例）；携带且匹配时 AppMgr 0 次包查询；分身/沙箱维度不匹配回退直查 |
-| 停止条件 | processName 计算规则无法与 MakeProcessName 对齐、或 parcel 兼容性验证失败时停止回传 |
+| 前置依赖 | TASK-1 |
+| 非目标 | 不改任何 InnerAPI 签名；不改 CheckAppRunningRecordIsExist 的匹配语义；不动分身/沙箱路径 |
+| 完成判据 | 单测：appIndex==0 路径查询为轻量 flag、查询次数不增；回退路径行为一致；分身路径走原全量查询 |
+| 停止条件 | 轻量 flag 查询返回的 base 字段（appId/jointUserId）缺失时停止回传 |
 
 **Files**
 
 | 操作 | 文件 | 说明 |
 |------|------|------|
-| Modify | `interfaces/inner_api/app_manager/include/appmgr/app_mgr_interface.h` 及 src/ 下 proxy/stub/client 对应文件 | 可选参数五层透传 |
-| Modify | `services/appmgr/include/app_mgr_service.h`、`services/appmgr/src/app_mgr_service.cpp`、`services/appmgr/src/app_mgr_service_inner.cpp` 及头文件 | 实现优先传入值 + 回退 |
-| Modify | `services/abilitymgr/src/scene_board/ui_ability_lifecycle_manager.cpp`、`services/abilitymgr/src/extension_record/extension_record_manager.cpp`、`services/abilitymgr/src/ability_connect_manager.cpp` | 调用方传参 |
-| Test | `test/unittest/ui_ability_lifecycle_manager_test/` 等 | 兼容/命中/回退/维度用例 |
+| Modify | `services/appmgr/src/app_mgr_service_inner.cpp` | 三处轻量化 |
+| Modify | `services/appmgr/include/app_mgr_service_inner.h` | CreatNewStartMsg 可选参数声明 |
+| Test | `test/unittest/app_mgr_service_inner_mock_test/` | 轻量/回退/分身用例 |
 
-**Spec Context**：AC-4/AC-8/AC-9；接口规格三行为场景（携带有效→直用；未携带/无效→回退；维度不匹配→回退）。
+**Spec Context**：AC-4（同次启动复用/降载）；AC-8（失败回退原行为）；AC-9（分身/沙箱维度不串）；R-3/R-6/R-7。
 
-**Design Context**：ADR-7。parcel 末尾追加；同镜像升级无跨版本问题；ADR 风险行：processName 一致性不确定时传空。
+**Design Context**：ADR-5/6/7（实现期修正版）。修正理由：`CheckAppRunningRecordIsExist` 需要 bundleInfo 的 jointUserId/appId（signCode 一致性校验）、`MakeProcessName` 回退路径需要 hapModuleInfo.process/isolation，这些数据 AMS 调用方不可得，"InnerAPI 传 processName"无法消除查询，故取消接口变更，改为 AppMgr 侧按需轻量查询。
 
 **Required Rules**
 
 | Rule ID | Must / Must Not |
 |---------|-----------------|
-| OH-ARCH-IPC-SAF | Must：parcel 末尾追加，未携带行为不变 |
-| spec R-7 | Must：维度不匹配回退 |
+| spec R-6 | Must：失败回退全量查询 + 日志 |
+| spec R-7 | Must：appIndex≠0 保持原路径 |
 
 **Steps**
 
-- [ ] 写失败测试（兼容/命中/回退三场景）
-- [ ] 五层签名 + 实现 + 调用方
+- [ ] 写失败测试（轻量 flag 断言/回退/分身路径）
+- [ ] 最小实现三处
 - [ ] 测试通过
 - [ ] 填写完成证据
 
@@ -442,18 +441,18 @@
 
 | 证据类型 | 命令/路径 | 结果 |
 |----------|-----------|------|
-| 测试 | `run -t UT -ts ui_ability_lifecycle_manager_test` | 待执行 |
+| 测试 | `run -t UT -ts app_mgr_service_inner_mock_test` | 待执行 |
 
 **Handoff Summary**
 
 | 项 | 内容 |
 |----|------|
 | 任务描述 | 见上 |
-| 允许修改 | Files 表清单 |
+| 允许修改 | Files 表 2+1 |
 | 允许新建 | 测试目录内新增用例 |
-| 只读参考 | design.md ADR-7；spec.md 接口规格 |
-| Spec 摘要 | AC-4/AC-8/AC-9 + 接口三场景 |
-| Design 摘要 | ADR-7：可选参数 + 回退；processName 不确定传空 |
+| 只读参考 | design.md ADR-5/6/7（修正版） |
+| Spec 摘要 | AC-4/8/9 + R-3/6/7 |
+| Design 摘要 | 轻量查询替代；无接口变更 |
 | 执行步骤 | 见 Steps |
 | 验证命令 | 见上 / 期望： PASS |
 | 完成规则 | 同 TASK-1 |

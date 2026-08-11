@@ -2117,9 +2117,20 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
     HapModuleInfo hapModuleInfo;
     int32_t appIndex = 0;
     if (loadParam->selfPid > 0) {
-        if (!GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
-            TAG_LOGE(AAFwkTag::APPMGR, "getBundleAndHapInfo fail");
-            return;
+        // only hapModuleInfo is consumed downstream in this branch;
+        // query it directly instead of the full BundleInfo + HapModuleInfo pair
+        bool hapInfoReady = false;
+        auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
+        if (bundleMgrHelper != nullptr && appInfo != nullptr) {
+            auto userId = GetUserIdByUid(appInfo->uid);
+            hapInfoReady = bundleMgrHelper->GetHapModuleInfo(*abilityInfo, userId, hapModuleInfo);
+        }
+        if (!hapInfoReady) {
+            TAG_LOGW(AAFwkTag::APPMGR, "getHapModuleInfo fail, fallback to full query");
+            if (!GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
+                TAG_LOGE(AAFwkTag::APPMGR, "getBundleAndHapInfo fail");
+                return;
+            }
         }
         std::shared_ptr<AppRunningRecord> appRecord = GetAppRunningRecordByPid(loadParam->selfPid);
         if (appRecord == nullptr) {
@@ -5789,7 +5800,8 @@ bool AppMgrServiceInner::CheckDeviceStatus(Security::AccessToken::PermissionStat
 #endif //ABILITY_PLATFORM_CHECK_PERMISSION
 
 int32_t AppMgrServiceInner::CreatNewStartMsg(const Want &want, const AbilityInfo &abilityInfo,
-    const std::shared_ptr<ApplicationInfo> &appInfo, const std::string &processName, AppSpawnStartMsg &startMsg)
+    const std::shared_ptr<ApplicationInfo> &appInfo, const std::string &processName, AppSpawnStartMsg &startMsg,
+    const BundleInfo *presetBundleInfo, const HapModuleInfo *presetHapModuleInfo)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     if (!remoteClientManager_) {
@@ -5805,7 +5817,12 @@ int32_t AppMgrServiceInner::CreatNewStartMsg(const Want &want, const AbilityInfo
     BundleInfo bundleInfo;
     HapModuleInfo hapModuleInfo;
     int32_t appIndex = want.GetIntParam(AppspawnUtil::DLP_PARAMS_INDEX, 0);
-    if (!GetBundleAndHapInfo(abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
+    if (presetBundleInfo != nullptr && presetHapModuleInfo != nullptr && appIndex == 0 &&
+        presetBundleInfo->name == abilityInfo.bundleName) {
+        // reuse the info queried by the caller in this same flow (dimension must match)
+        bundleInfo = *presetBundleInfo;
+        hapModuleInfo = *presetHapModuleInfo;
+    } else if (!GetBundleAndHapInfo(abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
         TAG_LOGE(AAFwkTag::APPMGR, "getBundleAndHapInfo fail");
         return ERR_NO_INIT;
     }
@@ -9981,7 +9998,8 @@ int32_t AppMgrServiceInner::StartNativeProcessForDebugger(const AAFwk::Want &wan
     bool isDevelopeMode = system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
     if (appRecord) {
         startMsg = appRecord->GetStartMsg();
-    } else if (!isDevelopeMode || CreatNewStartMsg(want, abilityInfo, appInfo, processName, startMsg) != ERR_OK) {
+    } else if (!isDevelopeMode ||
+        CreatNewStartMsg(want, abilityInfo, appInfo, processName, startMsg, &bundleInfo, &hapModuleInfo) != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "invalid Operation");
         return ERR_INVALID_OPERATION;
     }
@@ -10073,10 +10091,27 @@ bool AppMgrServiceInner::IsCorrespondingProcessAttachDebug(const AbilityInfo &ab
     auto appInfo = std::make_shared<ApplicationInfo>(abilityInfo.applicationInfo);
     int32_t appIndex = abilityInfo.appIndex;
     BundleInfo bundleInfo;
-    HapModuleInfo hapModuleInfo;
-    if (!GetBundleAndHapInfo(abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "GetBundleAndHapInfo failed");
-        return false;
+    if (appIndex == 0) {
+        // lightweight query: only base fields (appId/jointUserId) are used downstream,
+        // no need for the full BundleInfo+HapModuleInfo pair
+        auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
+        if (bundleMgrHelper == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
+            return false;
+        }
+        auto userId = GetUserIdByUid(appInfo->uid);
+        if (IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfoV9(appInfo->bundleName,
+            static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
+            bundleInfo, userId)) != ERR_OK) {
+            TAG_LOGE(AAFwkTag::APPMGR, "GetBundleInfoV9 failed");
+            return false;
+        }
+    } else {
+        HapModuleInfo hapModuleInfo;
+        if (!GetBundleAndHapInfo(abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "GetBundleAndHapInfo failed");
+            return false;
+        }
     }
     auto abilityInfoPtr = std::make_shared<AbilityInfo>(abilityInfo);
     std::string processName = appInfo->bundleName + ":" + AGENT_EXTENSION_TYPE;;
@@ -12625,7 +12660,25 @@ bool AppMgrServiceInner::IsSpecifiedModuleLoaded(const AAFwk::Want &want, const 
     }
     BundleInfo bundleInfo;
     HapModuleInfo hapModuleInfo;
-    if (!GetBundleAndHapInfo(abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
+    if (appIndex == 0) {
+        // lightweight path: base bundle fields + single module info instead of the full pair query
+        auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
+        if (bundleMgrHelper == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
+            return false;
+        }
+        auto userId = GetUserIdByUid(appInfo->uid);
+        if (IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfoV9(appInfo->bundleName,
+            static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
+            bundleInfo, userId)) != ERR_OK) {
+            TAG_LOGE(AAFwkTag::APPMGR, "GetBundleInfoV9 failed");
+            return false;
+        }
+        if (!bundleMgrHelper->GetHapModuleInfo(abilityInfo, userId, hapModuleInfo)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "GetHapModuleInfo failed");
+            return false;
+        }
+    } else if (!GetBundleAndHapInfo(abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex)) {
         return false;
     }
 
