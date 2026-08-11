@@ -15,6 +15,7 @@
 
 #include "prepareterminatecallbackstub_fuzzer.h"
 #include "fuzz_util.h"
+#include "attack_vectors.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -39,19 +40,18 @@ public:
 
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
-    uint32_t code = OHOS::FuzzUtil::GetU32Data(data);
-
     MessageParcel parcel;
-    parcel.WriteInterfaceToken(PREPARETERMINATECALLBACK_INTERFACE_TOKEN);
-    parcel.WriteBuffer(data, size);
-    parcel.RewindRead(0);
     MessageParcel reply;
     MessageOption option;
+    uint32_t actualCode = static_cast<uint32_t>(IPrepareTerminateCallback::ON_DO_PREPARE_TERMINATE);
+
+    parcel.WriteInterfaceToken(PREPARETERMINATECALLBACK_INTERFACE_TOKEN);
+    parcel.RewindRead(0);
 
     std::shared_ptr<PrepareTerminateCallbackStub> prepareterminatecallbackstub =
         std::make_shared<PrepareTerminateCallbackStubFuzzTest>();
 
-    prepareterminatecallbackstub->OnRemoteRequest(code, parcel, reply, option);
+    prepareterminatecallbackstub->OnRemoteRequest(actualCode, parcel, reply, option);
 
     return true;
 }

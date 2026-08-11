@@ -15,6 +15,7 @@
 
 #include "abilityfirstframestateobserverstub_fuzzer.h"
 #include "fuzz_util.h"
+#include "attack_vectors.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -42,18 +43,34 @@ public:
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
     uint32_t code = OHOS::FuzzUtil::GetU32Data(data);
-
+    FuzzedDataProvider fdp(data + OHOS::FuzzUtil::U32_AT_SIZE, size - OHOS::FuzzUtil::U32_AT_SIZE);
     MessageParcel parcel;
-    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
-    parcel.WriteBuffer(data, size);
-    parcel.RewindRead(0);
     MessageParcel reply;
     MessageOption option;
+    uint32_t actualCode =
+        static_cast<uint32_t>(IAbilityFirstFrameStateObserver::Message::ON_ABILITY_FIRST_FRAME_STATE);
 
+    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+
+    switch (code % 1) {
+        case 0:
+            actualCode =
+                static_cast<uint32_t>(IAbilityFirstFrameStateObserver::Message::ON_ABILITY_FIRST_FRAME_STATE);
+            parcel.WriteString(OHOS::FuzzUtil::BuildMaliciousBundleName(fdp));
+            parcel.WriteString(OHOS::FuzzUtil::BuildSpecialCharString(fdp));
+            parcel.WriteString(OHOS::FuzzUtil::BuildSpecialCharString(fdp));
+            parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteBool(fdp.ConsumeBool());
+            break;
+        default:
+            break;
+    }
+
+    parcel.RewindRead(0);
     std::shared_ptr<AbilityFirstFrameStateObserverStub> abilityfirstframestateobserverstub =
         std::make_shared<AbilityFirstFrameStateObserverStubFuzzTest>();
 
-    abilityfirstframestateobserverstub->OnRemoteRequest(code, parcel, reply, option);
+    abilityfirstframestateobserverstub->OnRemoteRequest(actualCode, parcel, reply, option);
 
     return true;
 }

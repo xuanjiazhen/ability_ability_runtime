@@ -15,6 +15,7 @@
 
 #include "kiainterceptorstub_fuzzer.h"
 #include "fuzz_util.h"
+#include "attack_vectors.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -44,17 +45,27 @@ public:
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
     uint32_t code = OHOS::FuzzUtil::GetU32Data(data);
-
+    FuzzedDataProvider fdp(data + OHOS::FuzzUtil::U32_AT_SIZE, size - OHOS::FuzzUtil::U32_AT_SIZE);
     MessageParcel parcel;
-    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
-    parcel.WriteBuffer(data, size);
-    parcel.RewindRead(0);
     MessageParcel reply;
     MessageOption option;
+    uint32_t actualCode = static_cast<uint32_t>(IKiaInterceptor::KIA_INTERCEPTOR_ON_INTERCEPT);
 
+    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+
+    switch (code % 1) {
+        case 0:
+            actualCode = static_cast<uint32_t>(IKiaInterceptor::KIA_INTERCEPTOR_ON_INTERCEPT);
+            OHOS::FuzzUtil::WriteMaliciousWant(parcel, fdp);
+            break;
+        default:
+            break;
+    }
+
+    parcel.RewindRead(0);
     std::shared_ptr<KiaInterceptorStub> kiainterceptorstub = std::make_shared<KiaInterceptorStubFuzzTest>();
 
-    kiainterceptorstub->OnRemoteRequest(code, parcel, reply, option);
+    kiainterceptorstub->OnRemoteRequest(actualCode, parcel, reply, option);
 
     return true;
 }

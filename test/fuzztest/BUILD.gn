@@ -128,6 +128,7 @@ group("fuzztest") {
     "abilitymemorylevelinfo_fuzzer:fuzztest",
     "abilitymgrabilitymanagerstub_fuzzer:fuzztest",
     "abilitymanagerstubstart_fuzzer:fuzztest",
+    "abilitymanagerstublifecycle_fuzzer:fuzztest",
     "abilitymgrappexitreasonhelper_fuzzer:fuzztest",
     "abilitymgrappexitreasonhelpersecond_fuzzer:fuzztest",
     "abilitymgrcontrolinterceptor_fuzzer:fuzztest",

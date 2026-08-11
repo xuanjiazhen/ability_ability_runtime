@@ -15,6 +15,7 @@
 
 #include "sainterceptorstub_fuzzer.h"
 #include "fuzz_util.h"
+#include "attack_vectors.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -44,18 +45,26 @@ public:
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
     uint32_t code = OHOS::FuzzUtil::GetU32Data(data);
-
+    FuzzedDataProvider fdp(data + OHOS::FuzzUtil::U32_AT_SIZE, size - OHOS::FuzzUtil::U32_AT_SIZE);
     MessageParcel parcel;
-    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
-    parcel.WriteBuffer(data, size);
-    parcel.RewindRead(0);
     MessageParcel reply;
     MessageOption option;
+    uint32_t actualCode = static_cast<uint32_t>(ISAInterceptor::SAInterceptorCmd::ON_DO_CHECK_STARTING);
 
+    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+
+    switch (code % 1) {
+        case 0:
+            actualCode = static_cast<uint32_t>(ISAInterceptor::SAInterceptorCmd::ON_DO_CHECK_STARTING);
+            parcel.WriteString(OHOS::FuzzUtil::BuildSpecialCharString(fdp));
+            break;
+        default:
+            break;
+    }
+
+    parcel.RewindRead(0);
     std::shared_ptr<SAInterceptorStub> sainterceptorstub = std::make_shared<SAInterceptorStubFuzzTest>();
-
-    sainterceptorstub->OnRemoteRequest(code, parcel, reply, option);
-
+    sainterceptorstub->OnRemoteRequest(actualCode, parcel, reply, option);
     return true;
 }
 }

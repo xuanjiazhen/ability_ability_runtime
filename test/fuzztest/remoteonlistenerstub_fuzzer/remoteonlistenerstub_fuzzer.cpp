@@ -15,6 +15,7 @@
 
 #include "remoteonlistenerstub_fuzzer.h"
 #include "fuzz_util.h"
+#include "attack_vectors.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -41,17 +42,37 @@ public:
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
     uint32_t code = OHOS::FuzzUtil::GetU32Data(data);
-
+    FuzzedDataProvider fdp(data + OHOS::FuzzUtil::U32_AT_SIZE, size - OHOS::FuzzUtil::U32_AT_SIZE);
     MessageParcel parcel;
-    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
-    parcel.WriteBuffer(data, size);
-    parcel.RewindRead(0);
     MessageParcel reply;
     MessageOption option;
+    uint32_t actualCode = static_cast<uint32_t>(IRemoteOnListener::ON_CALLBACK);
 
+    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+
+    switch (code % 1) {
+        case 0: {
+            actualCode = static_cast<uint32_t>(IRemoteOnListener::ON_CALLBACK);
+            parcel.WriteUint32(static_cast<uint32_t>(OHOS::FuzzUtil::BuildIntegerOverflow(fdp)));
+            parcel.WriteString(OHOS::FuzzUtil::BuildSpecialCharString(fdp));
+            parcel.WriteString(OHOS::FuzzUtil::BuildMaliciousBundleName(fdp));
+            parcel.WriteString(OHOS::FuzzUtil::BuildSpecialCharString(fdp));
+            parcel.WriteString(OHOS::FuzzUtil::BuildSpecialCharString(fdp));
+            uint32_t arraySize = static_cast<uint32_t>(fdp.ConsumeIntegral<uint8_t>() % 4);
+            parcel.WriteUint32(arraySize);
+            for (uint32_t i = 0; i < arraySize; i++) {
+                parcel.WriteString(OHOS::FuzzUtil::BuildSpecialCharString(fdp));
+            }
+            break;
+        }
+        default:
+            break;
+    }
+
+    parcel.RewindRead(0);
     std::shared_ptr<RemoteOnListenerStub> stub = std::make_shared<RemoteOnListenerStubFuzzTest>();
 
-    stub->OnRemoteRequest(code, parcel, reply, option);
+    stub->OnRemoteRequest(actualCode, parcel, reply, option);
 
     return true;
 }

@@ -15,6 +15,7 @@
 
 #include "statusbardelegatestub_fuzzer.h"
 #include "fuzz_util.h"
+#include "attack_vectors.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -53,18 +54,39 @@ public:
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
     uint32_t code = OHOS::FuzzUtil::GetU32Data(data);
-
+    FuzzedDataProvider fdp(data + OHOS::FuzzUtil::U32_AT_SIZE, size - OHOS::FuzzUtil::U32_AT_SIZE);
     MessageParcel parcel;
-    parcel.WriteInterfaceToken(INTERFACE_TOKEN);
-    parcel.WriteBuffer(data, size);
-    parcel.RewindRead(0);
     MessageParcel reply;
     MessageOption option;
+    uint32_t actualCode = static_cast<uint32_t>(StatusBarDelegateCmd::CHECK_IF_STATUS_BAR_ITEM_EXISTS);
 
+    parcel.WriteInterfaceToken(INTERFACE_TOKEN);
+
+    switch (code % 3) {
+        case 0:
+            actualCode = static_cast<uint32_t>(StatusBarDelegateCmd::CHECK_IF_STATUS_BAR_ITEM_EXISTS);
+            parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteString(OHOS::FuzzUtil::BuildSpecialCharString(fdp));
+            break;
+        case 1:
+            actualCode = static_cast<uint32_t>(StatusBarDelegateCmd::ATTACH_PID_TO_STATUS_BAR_ITEM);
+            parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteString(OHOS::FuzzUtil::BuildSpecialCharString(fdp));
+            break;
+        case 2:
+            actualCode = static_cast<uint32_t>(StatusBarDelegateCmd::DETACH_PID_TO_STATUS_BAR_ITEM);
+            parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteString(OHOS::FuzzUtil::BuildSpecialCharString(fdp));
+            break;
+        default:
+            break;
+    }
+
+    parcel.RewindRead(0);
     std::shared_ptr<StatusBarDelegateStub> stub = std::make_shared<StatusBarDelegateStubFuzzTest>();
-
-    stub->OnRemoteRequest(code, parcel, reply, option);
-
+    stub->OnRemoteRequest(actualCode, parcel, reply, option);
     return true;
 }
 }
