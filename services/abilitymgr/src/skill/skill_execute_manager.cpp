@@ -429,11 +429,16 @@ void SkillExecuteManager::EnsureAppStateObserverRegistered()
 void SkillExecuteManager::OnLaunchCompleted(const std::string &requestCode)
 {
     pid_t callerPid = IPCSkeleton::GetCallingPid();
+    auto callerTokenId = IPCSkeleton::GetCallingTokenID();
     std::lock_guard<ffrt::mutex> lock(mutex_);
     auto it = records_.find(requestCode);
     if (it == records_.end()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
             "OnLaunchCompleted: record gone, req:%{public}s", requestCode.c_str());
+        return;
+    }
+    if (it->second->callerTokenId != callerTokenId) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "OnLaunchCompleted: callerTokenId mismatch");
         return;
     }
     it->second->targetPid = callerPid;
