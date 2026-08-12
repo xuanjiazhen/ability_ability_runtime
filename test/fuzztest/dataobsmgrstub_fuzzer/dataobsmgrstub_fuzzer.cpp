@@ -105,7 +105,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
 
     parcel.WriteInterfaceToken(DATAOBS_MGR_INTERFACE_TOKEN);
 
-    switch (code % 5) {
+    switch (code % 10) {
         case 0:
             actualCode = static_cast<uint32_t>(IDataObsMgr::REGISTER_OBSERVER);
             parcel.WriteString(FuzzUtil::BuildUriAttackString(fdp));
@@ -138,6 +138,46 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteString(FuzzUtil::BuildUriAttackString(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             WriteMaliciousDataObsOption(parcel, fdp);
+            break;
+        case 5:
+            actualCode = static_cast<uint32_t>(IDataObsMgr::REGISTER_OBSERVER_EXT);
+            parcel.WriteString(FuzzUtil::BuildUriAttackString(fdp));
+            parcel.WriteRemoteObject(nullptr);
+            parcel.WriteBool(fdp.ConsumeBool());
+            WriteMaliciousDataObsOption(parcel, fdp);
+            break;
+        case 6:
+            actualCode = static_cast<uint32_t>(IDataObsMgr::UNREGISTER_OBSERVER_EXT);
+            parcel.WriteString(FuzzUtil::BuildUriAttackString(fdp));
+            parcel.WriteRemoteObject(nullptr);
+            WriteMaliciousDataObsOption(parcel, fdp);
+            break;
+        case 7:
+            actualCode = static_cast<uint32_t>(IDataObsMgr::UNREGISTER_OBSERVER_ALL_EXT);
+            parcel.WriteRemoteObject(nullptr);
+            WriteMaliciousDataObsOption(parcel, fdp);
+            break;
+        case 8: {
+            actualCode = static_cast<uint32_t>(IDataObsMgr::NOTIFY_CHANGE_EXT);
+            parcel.WriteUint32(static_cast<uint32_t>(fdp.ConsumeIntegral<uint8_t>() % 5));
+            uint8_t uriCount = fdp.ConsumeIntegral<uint8_t>() % 4;
+            parcel.WriteUint32(static_cast<uint32_t>(uriCount));
+            for (uint8_t i = 0; i < uriCount; i++) {
+                parcel.WriteString(FuzzUtil::BuildUriAttackString(fdp));
+            }
+            uint8_t bufSize = fdp.ConsumeIntegral<uint8_t>();
+            parcel.WriteUint32(static_cast<uint32_t>(bufSize));
+            if (bufSize > 0) {
+                std::vector<uint8_t> buf = fdp.ConsumeBytes<uint8_t>(bufSize);
+                buf.resize(bufSize, 0);
+                parcel.WriteBuffer(buf.data(), bufSize);
+            }
+            break;
+        }
+        case 9:
+            actualCode = static_cast<uint32_t>(IDataObsMgr::NOTIFY_PROCESS);
+            parcel.WriteString(FuzzUtil::BuildSpecialCharString(fdp));
+            parcel.WriteRemoteObject(nullptr);
             break;
         default:
             break;

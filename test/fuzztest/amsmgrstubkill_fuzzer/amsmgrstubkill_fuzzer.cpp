@@ -170,6 +170,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             for (uint32_t i = 0; i < pidsCount; i++) {
                 parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             }
+            OHOS::FuzzUtil::WriteUntrustedCallerData(parcel, fdp);
             break;
         }
         case 6: {

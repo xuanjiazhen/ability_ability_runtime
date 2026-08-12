@@ -58,6 +58,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteUint64(fdp.ConsumeIntegral<uint64_t>());
+            OHOS::FuzzUtil::WriteUntrustedCallerData(parcel, fdp);
             break;
         }
         case 1: {

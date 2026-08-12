@@ -113,6 +113,10 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
                 parcel.WriteRemoteObject(nullptr);
             }
             OHOS::FuzzUtil::WriteMaliciousFaultData(parcel, fdp);
+            std::vector<uint8_t> corruptData = OHOS::FuzzUtil::BuildNonIpcMemoryCorruption(fdp, 256);
+            parcel.WriteString(std::string(corruptData.begin(), corruptData.end()));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteString(FuzzUtil::GenStrcpyOverflowString(fdp, 128));
             break;
         }
         default:

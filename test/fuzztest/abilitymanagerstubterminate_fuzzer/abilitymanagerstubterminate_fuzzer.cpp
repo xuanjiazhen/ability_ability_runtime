@@ -156,6 +156,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             OHOS::FuzzUtil::WriteMaliciousPermission(parcel, fdp);
+            OHOS::FuzzUtil::WriteSemanticPrivilegeEscalation(parcel, fdp);
             break;
         }
         default:

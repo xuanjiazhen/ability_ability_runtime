@@ -51,7 +51,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
 
     parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
 
-    switch (code % 11) {
+    switch (code % 13) {
         case 0: {
             actualCode = static_cast<uint32_t>(AbilityManagerInterfaceCode::TERMINATE_ABILITY);
             bool hasToken = fdp.ConsumeBool();
@@ -140,6 +140,19 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             Uri uri(FuzzUtil::BuildUriAttackString(fdp));
             parcel.WriteParcelable(&uri);
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        }
+        case 11: {
+            actualCode = static_cast<uint32_t>(AbilityManagerInterfaceCode::VERIFY_PERMISSION);
+            parcel.WriteString(FuzzUtil::BuildSpecialCharString(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildClientSuppliedUid(fdp));
+            break;
+        }
+        case 12: {
+            actualCode = static_cast<uint32_t>(AbilityManagerInterfaceCode::SET_ABILITY_CONTROLLER);
+            parcel.WriteRemoteObject(nullptr);
+            parcel.WriteBool(fdp.ConsumeBool());
             break;
         }
         default:
