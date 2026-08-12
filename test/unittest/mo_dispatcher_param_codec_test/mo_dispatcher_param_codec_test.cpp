@@ -1439,3 +1439,27 @@ HWTEST_F(MoDispatcherParamCodecTest, UnmarshalCallResult_MapSizeOverLimit, TestS
     EXPECT_EQ(ModObjDispatcherParamCodec::UnmarshalCallResult(meta, reply, &result, nullptr),
         ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
 }
+
+// Regression for review follow-up R1: a nested container whose INNER read fails (here inner vector
+// size over limit) must return an error without crashing. ReadRawValue sets value->vt before the
+// failing size check without writing the union handle; without zero-init at ReadRawValue entry the
+// caller's Variant_Clear on the half-filled variant would dereference uninitialized memory.
+HWTEST_F(MoDispatcherParamCodecTest, UnmarshalCallResult_NestedInnerSizeOverLimit_NoCrash, TestSize.Level1)
+{
+    auto innerElem = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32);
+    auto vecType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR);
+    vecType->pElementType = innerElem;
+    auto arrType = MakeTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_ARRAY);
+    arrType->pElementType = vecType;
+    MoMethodMeta meta = MakeMethodMeta({}, arrType);
+
+    MessageParcel reply;
+    reply.WriteInt32(0);     // method error code
+    reply.WriteInt32(1);     // outer array size = 1 (valid)
+    reply.WriteInt32(70000); // inner vector size > MAX_CONTAINER_SIZE(65536) -> inner read fails
+
+    OH_AbilityRuntime_ModObjDispatcher_Variant result = {};
+    (void)memset_s(&result, sizeof(result), 0, sizeof(result));
+    EXPECT_EQ(ModObjDispatcherParamCodec::UnmarshalCallResult(meta, reply, &result, nullptr),
+        ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
+}

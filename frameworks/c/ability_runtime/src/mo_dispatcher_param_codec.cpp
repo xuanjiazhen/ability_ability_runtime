@@ -348,6 +348,12 @@ AbilityRuntime_ErrorCode ModObjDispatcherParamCodec::ReadRawValue(MessageParcel&
         TAG_LOGE(AAFwkTag::EXT, "ReadRawValue: invalid param");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
+    // Zero-initialize the output variant so that any early failure path (container size out of
+    // range, ReadCString/ReadRemoteObject failure, etc.) leaves handle fields null and safe for the
+    // caller to Variant_Clear. Callers declare the variant uninitialized; without this, a failure
+    // after `value->vt` is set but before the union handle is written would leave garbage in the
+    // union, and a subsequent Variant_Clear would dereference it.
+    (void)memset_s(value, sizeof(*value), 0, sizeof(*value));
     value->vt = typeInfo->vt;
     switch (typeInfo->vt) {
         case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_EMPTY:

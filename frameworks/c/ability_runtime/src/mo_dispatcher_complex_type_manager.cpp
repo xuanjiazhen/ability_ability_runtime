@@ -1776,6 +1776,11 @@ void ModObjDispatcherComplexTypeManager::RegisterStructMetadata(const std::vecto
             }
             g_structFieldTypes[structMeta.name] = std::move(fieldTypeMap);
             g_structFieldOrder[structMeta.name] = std::move(fieldOrder);
+        } else {
+            // Same-named struct already registered by another dispatcher: first-writer-wins.
+            // Logged so a same-name/different-layout collision across services is observable.
+            TAG_LOGW(AAFwkTag::EXT, "RegisterStructMetadata: struct '%{public}s' already registered, "
+                "existing layout kept", structMeta.name.c_str());
         }
     }
 }
