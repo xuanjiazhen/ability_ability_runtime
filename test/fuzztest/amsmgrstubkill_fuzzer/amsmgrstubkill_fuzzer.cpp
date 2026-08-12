@@ -112,8 +112,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     if (data == nullptr || size < sizeof(uint32_t)) {
         return false;
     }
-    uint32_t code = FuzzUtil::GetU32Data(data);
-    FuzzedDataProvider fdp(data, size);
+    FUZZ_EXTRACT_CODE(data, size);
     MessageParcel parcel;
     parcel.WriteInterfaceToken(AMSMGR_INTERFACE_TOKEN);
     uint32_t actualCode = 0;
@@ -250,33 +249,4 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
 }
 } // namespace OHOS
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
-{
-    if (data == nullptr) {
-        std::cout << "invalid data" << std::endl;
-        return 0;
-    }
-
-    if (size < OHOS::FuzzUtil::U32_AT_SIZE) {
-        return 0;
-    }
-
-    char *ch = static_cast<char *>(malloc(size + 1));
-    if (ch == nullptr) {
-        std::cout << "malloc failed." << std::endl;
-        return 0;
-    }
-
-    (void)memset_s(ch, size + 1, 0x00, size + 1);
-    if (memcpy_s(ch, size + 1, data, size) != EOK) {
-        std::cout << "copy failed." << std::endl;
-        free(ch);
-        ch = nullptr;
-        return 0;
-    }
-
-    OHOS::DoSomethingInterestingWithMyAPI(ch, size);
-    free(ch);
-    ch = nullptr;
-    return 0;
-}
+FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)

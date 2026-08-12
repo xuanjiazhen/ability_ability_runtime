@@ -97,12 +97,13 @@ void InitAppSchedulerStub()
     }
 }
 
-bool DoSomethingInterestingWithMyAPI(const char *rawData, FuzzedDataProvider &fdp)
+bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
 {
+    InitAppSchedulerStub();
     if (g_stub == nullptr) {
         return false;
     }
-    uint32_t code = OHOS::FuzzUtil::GetU32Data(rawData);
+    FUZZ_EXTRACT_CODE(data, size);
     MessageParcel parcel;
     MessageParcel reply;
     MessageOption option;
@@ -390,27 +391,4 @@ bool DoSomethingInterestingWithMyAPI(const char *rawData, FuzzedDataProvider &fd
 }
 }
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
-{
-    if (size < OHOS::FuzzUtil::U32_AT_SIZE) {
-        return 0;
-    }
-    InitAppSchedulerStub();
-    char *buf = static_cast<char *>(malloc(size));
-    if (buf == nullptr) {
-        return 0;
-    }
-    if (memset_s(buf, size, 0, size) != EOK) {
-        free(buf);
-        return 0;
-    }
-    if (memcpy_s(buf, size, data, size) != EOK) {
-        free(buf);
-        return 0;
-    }
-    FuzzedDataProvider fdp(reinterpret_cast<const uint8_t *>(buf) + OHOS::FuzzUtil::U32_AT_SIZE,
-        size - OHOS::FuzzUtil::U32_AT_SIZE);
-    OHOS::DoSomethingInterestingWithMyAPI(buf, fdp);
-    free(buf);
-    return 0;
-}
+FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)

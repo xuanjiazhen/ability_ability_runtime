@@ -73,4 +73,21 @@ inline std::vector<int32_t> BuildInt32Vector(FuzzedDataProvider &fdp, size_t max
 } // namespace FuzzUtil
 } // namespace OHOS
 
+#define FUZZ_ENTRY_IMPL(Func) \
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) \
+{ \
+    if (data == nullptr || size < OHOS::FuzzUtil::U32_AT_SIZE) { return 0; } \
+    char *ch = static_cast<char *>(malloc(size + 1)); \
+    if (ch == nullptr) { return 0; } \
+    (void)memset_s(ch, size + 1, 0x00, size + 1); \
+    if (memcpy_s(ch, size + 1, data, size) != EOK) { free(ch); return 0; } \
+    Func(ch, size); \
+    free(ch); \
+    return 0; \
+}
+
+#define FUZZ_EXTRACT_CODE(data, size) \
+    uint32_t code = OHOS::FuzzUtil::GetU32Data(data); \
+    FuzzedDataProvider fdp(data + OHOS::FuzzUtil::U32_AT_SIZE, size - OHOS::FuzzUtil::U32_AT_SIZE)
+
 #endif // FUZZTEST_OHOS_ABILITY_RUNTIME_FUZZ_UTIL_H
