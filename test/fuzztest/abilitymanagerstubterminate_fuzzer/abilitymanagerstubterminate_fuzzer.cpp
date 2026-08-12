@@ -51,7 +51,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
 
     parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
 
-    switch (code % 12) {
+    switch (code % 13) {
         case 0: {
             actualCode = static_cast<uint32_t>(AbilityManagerInterfaceCode::TERMINATE_UI_EXTENSION_ABILITY);
             bool hasSession = fdp.ConsumeBool();
@@ -148,6 +148,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteBool(fdp.ConsumeBool());
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteString(FuzzUtil::BuildExitReason(fdp));
+            parcel.WriteString(OHOS::FuzzUtil::BuildToctouPath(fdp));
             break;
         }
         case 11: {
@@ -156,6 +157,16 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             OHOS::FuzzUtil::WriteMaliciousPermission(parcel, fdp);
+            OHOS::FuzzUtil::WriteSemanticPrivilegeEscalation(parcel, fdp);
+            OHOS::FuzzUtil::WriteUntrustedCallerData(parcel, fdp);
+            break;
+        }
+        case 12: {
+            actualCode = static_cast<uint32_t>(AbilityManagerInterfaceCode::UPGRADE_APP);
+            parcel.WriteString(FuzzUtil::BuildMaliciousBundleName(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteString(FuzzUtil::BuildExitReason(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             OHOS::FuzzUtil::WriteSemanticPrivilegeEscalation(parcel, fdp);
             break;
         }

@@ -117,6 +117,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteString(std::string(corruptData.begin(), corruptData.end()));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteString(FuzzUtil::GenStrcpyOverflowString(fdp, 128));
+            OHOS::FuzzUtil::WriteFdLeakPattern(parcel, fdp);
             break;
         }
         default:

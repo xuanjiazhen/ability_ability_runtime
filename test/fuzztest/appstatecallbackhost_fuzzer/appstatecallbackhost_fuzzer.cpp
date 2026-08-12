@@ -50,7 +50,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
 
     parcel.WriteInterfaceToken(APPSTATECALLBACK_INTERFACE_TOKEN);
 
-    switch (code % 5) {
+    switch (code % 11) {
         case 0: {
             actualCode = static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_APP_STATE_CHANGED);
             AppProcessData processData;
@@ -93,6 +93,55 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
                 BundleInfo bundleInfo;
                 parcel.WriteParcelable(&bundleInfo);
             }
+            break;
+        }
+        case 5: {
+            actualCode = static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_APP_REMOTE_DIED);
+            int32_t tokenSize = static_cast<int32_t>(fdp.ConsumeIntegral<uint8_t>() % 4);
+            parcel.WriteInt32(tokenSize);
+            for (int32_t i = 0; i < tokenSize; i++) {
+                parcel.WriteRemoteObject(nullptr);
+            }
+            break;
+        }
+        case 6: {
+            actualCode = static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_START_PROCESS_FAILED);
+            int32_t tokenSize = static_cast<int32_t>(fdp.ConsumeIntegral<uint8_t>() % 4);
+            parcel.WriteInt32(tokenSize);
+            for (int32_t i = 0; i < tokenSize; i++) {
+                parcel.WriteRemoteObject(nullptr);
+            }
+            break;
+        }
+        case 7: {
+            actualCode = static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_NOTIFY_TERMINATE_ABILITY);
+            parcel.WriteRemoteObject(nullptr);
+            break;
+        }
+        case 8: {
+            actualCode = static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_CACHE_EXIT_INFO);
+            parcel.WriteUint32(fdp.ConsumeIntegral<uint32_t>());
+            RunningProcessInfo exitInfo;
+            parcel.WriteParcelable(&exitInfo);
+            parcel.WriteString(FuzzUtil::BuildMaliciousBundleName(fdp));
+            std::vector<std::string> abilityNames = FuzzUtil::BuildMaliciousStringVector(fdp);
+            parcel.WriteStringVector(abilityNames);
+            std::vector<std::string> uiExtensionNames = FuzzUtil::BuildMaliciousStringVector(fdp);
+            parcel.WriteStringVector(uiExtensionNames);
+            break;
+        }
+        case 9: {
+            actualCode = static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_APP_PRE_CACHE);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        }
+        case 10: {
+            actualCode = static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_RECORD_APP_EXIT_SIGNAL_REASON);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteString(FuzzUtil::BuildMaliciousBundleName(fdp));
             break;
         }
         default:

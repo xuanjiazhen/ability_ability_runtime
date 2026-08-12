@@ -542,6 +542,69 @@ inline std::vector<uint8_t> BuildNonIpcMemoryCorruption(FuzzedDataProvider &fdp,
     }
     return data;
 }
+
+inline std::string BuildToctouPath(FuzzedDataProvider &fdp, size_t maxLen = DEFAULT_MAX_STR_LEN)
+{
+    static const std::string toctouPayloads[] = {
+        "/tmp/symlink_race", "/proc/self/fd/0", "/dev/fd/3",
+        "/tmp/../../etc/passwd", "/var/link/../../etc/shadow",
+        "/data/local/tmp/symlink→/system", "/proc/self/cwd/../../",
+    };
+    std::string result = toctouPayloads[fdp.ConsumeIntegral<uint8_t>() % 7];
+    if (maxLen > 0 && result.size() > maxLen) result.resize(maxLen);
+    return result;
+}
+
+inline std::string BuildSymlinkAttack(FuzzedDataProvider &fdp, size_t maxLen = DEFAULT_MAX_STR_LEN)
+{
+    static const std::string symlinkTargets[] = {
+        "/system/bin/sh", "/system/lib64/../../etc", "/dev/null",
+        "/proc/self/root/etc", "/sys/class/../../",
+        "/data/system/../../proc", "/sdcard/../../system/bin",
+    };
+    std::string result = symlinkTargets[fdp.ConsumeIntegral<uint8_t>() % 7];
+    if (maxLen > 0 && result.size() > maxLen) result.resize(maxLen);
+    return result;
+}
+
+inline void WriteFdLeakPattern(MessageParcel &parcel, FuzzedDataProvider &fdp)
+{
+    parcel.WriteFileDescriptor(fdp.ConsumeIntegral<int32_t>());
+    parcel.WriteInt32(BuildIntegerOverflow(fdp));
+    parcel.WriteBool(fdp.ConsumeBool());
+}
+
+inline void WriteAppSpawnMsgOob(MessageParcel &parcel, FuzzedDataProvider &fdp, size_t maxStrLen = DEFAULT_MAX_STR_LEN)
+{
+    parcel.WriteInt32(BuildIntegerOverflow(fdp));
+    parcel.WriteString(BuildOversizedString(fdp, maxStrLen));
+    parcel.WriteInt32(BuildInvalidEnum(fdp, 10));
+    parcel.WriteUint32(fdp.ConsumeIntegral<uint32_t>());
+}
+
+inline void WriteMmapCorruption(MessageParcel &parcel, FuzzedDataProvider &fdp, size_t maxStrLen = DEFAULT_MAX_STR_LEN)
+{
+    parcel.WriteInt32(BuildIntegerOverflow(fdp));
+    parcel.WriteString(BuildSymlinkAttack(fdp, maxStrLen));
+    parcel.WriteInt32(BuildIntegerOverflow(fdp));
+    parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
+    parcel.WriteBool(fdp.ConsumeBool());
+}
+
+inline void WritePipeFdLeak(MessageParcel &parcel, FuzzedDataProvider &fdp)
+{
+    parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
+    parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
+    parcel.WriteBool(fdp.ConsumeBool());
+    parcel.WriteInt32(BuildIntegerOverflow(fdp));
+}
+
+inline void WriteUncheckedReadResult(MessageParcel &parcel, FuzzedDataProvider &fdp)
+{
+    parcel.WriteUint32(0);
+    parcel.WriteBool(false);
+    parcel.WriteInt32(BuildIntegerOverflow(fdp));
+}
 } // namespace FuzzUtil
 } // namespace OHOS
 

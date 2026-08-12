@@ -123,7 +123,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
         }
         case 8: {
             actualCode = static_cast<uint32_t>(AbilityManagerInterfaceCode::ACQUIRE_DATA_ABILITY);
-            parcel.WriteString(FuzzUtil::BuildUriAttackString(fdp));
+            parcel.WriteString(OHOS::FuzzUtil::BuildSymlinkAttack(fdp));
             parcel.WriteBool(fdp.ConsumeBool());
             parcel.WriteRemoteObject(nullptr);
             break;
@@ -147,6 +147,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteString(FuzzUtil::BuildSpecialCharString(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(FuzzUtil::BuildClientSuppliedUid(fdp));
+            OHOS::FuzzUtil::WriteSemanticPrivilegeEscalation(parcel, fdp);
             break;
         }
         case 12: {

@@ -72,11 +72,13 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             std::string flag = FuzzUtil::BuildSpecialCharString(fdp);
             parcel.WriteString16(std::u16string(flag.begin(), flag.end()));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             break;
         }
         case 1: {
             actualCode =
                 static_cast<uint32_t>(IStartSpecifiedAbilityResponse::Message::ON_TIMEOUT_RESPONSE);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             break;
         }
@@ -85,6 +87,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
                 IStartSpecifiedAbilityResponse::Message::ON_NEW_PROCESS_REQUEST_RESPONSE);
             std::string flag = FuzzUtil::BuildSpecialCharString(fdp);
             parcel.WriteString16(std::u16string(flag.begin(), flag.end()));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             std::string caller = FuzzUtil::BuildSpecialCharString(fdp);
             parcel.WriteString16(std::u16string(caller.begin(), caller.end()));
@@ -95,11 +98,13 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             actualCode = static_cast<uint32_t>(
                 IStartSpecifiedAbilityResponse::Message::ON_NEW_PROCESS_REQUEST_TIMEOUT_RESPONSE);
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             break;
         }
         case 4: {
             actualCode =
                 static_cast<uint32_t>(IStartSpecifiedAbilityResponse::Message::ON_START_SPECIFIED_FAILED);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             break;
         }

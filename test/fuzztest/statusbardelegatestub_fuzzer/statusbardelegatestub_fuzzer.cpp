@@ -64,18 +64,19 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     switch (code % 3) {
         case 0:
             actualCode = static_cast<uint32_t>(StatusBarDelegateCmd::CHECK_IF_STATUS_BAR_ITEM_EXISTS);
-            parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteUint32(static_cast<uint32_t>(OHOS::FuzzUtil::BuildIntegerOverflow(fdp)));
             parcel.WriteString(OHOS::FuzzUtil::BuildSpecialCharString(fdp));
+            OHOS::FuzzUtil::WriteUntrustedCallerData(parcel, fdp);
             break;
         case 1:
             actualCode = static_cast<uint32_t>(StatusBarDelegateCmd::ATTACH_PID_TO_STATUS_BAR_ITEM);
-            parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteUint32(static_cast<uint32_t>(OHOS::FuzzUtil::BuildIntegerOverflow(fdp)));
             parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteString(OHOS::FuzzUtil::BuildSandboxEscapePath(fdp));
             break;
         case 2:
             actualCode = static_cast<uint32_t>(StatusBarDelegateCmd::DETACH_PID_TO_STATUS_BAR_ITEM);
-            parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteUint32(static_cast<uint32_t>(OHOS::FuzzUtil::BuildIntegerOverflow(fdp)));
             parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteString(OHOS::FuzzUtil::BuildSandboxEscapePath(fdp));
             break;
