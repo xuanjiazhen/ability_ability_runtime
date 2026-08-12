@@ -95,6 +95,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             Configuration config;
             parcel.WriteParcelable(&config);
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            OHOS::FuzzUtil::WritePipeFdLeak(parcel, fdp);
             break;
         }
         case 8:

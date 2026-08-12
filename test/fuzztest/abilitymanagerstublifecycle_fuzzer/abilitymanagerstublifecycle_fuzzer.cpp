@@ -120,8 +120,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteString(FuzzUtil::BuildSpecialCharString(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteBool(fdp.ConsumeBool());
-            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
-            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            OHOS::FuzzUtil::WriteIntegerOverflowMul3(parcel, fdp);
             break;
         }
         case 8: {

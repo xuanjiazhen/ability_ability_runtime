@@ -150,6 +150,8 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteString(FuzzUtil::BuildExitReason(fdp));
             parcel.WriteString(OHOS::FuzzUtil::BuildToctouPath(fdp));
+            auto memCorrupt = OHOS::FuzzUtil::BuildNonIpcMemoryCorruption(fdp, 64);
+            parcel.WriteString(std::string(memCorrupt.begin(), memCorrupt.end()));
             break;
         }
         case 11: {

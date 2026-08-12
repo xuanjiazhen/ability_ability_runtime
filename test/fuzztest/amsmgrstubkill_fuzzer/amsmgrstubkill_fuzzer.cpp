@@ -116,7 +116,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     MessageParcel parcel;
     parcel.WriteInterfaceToken(AMSMGR_INTERFACE_TOKEN);
     uint32_t actualCode = 0;
-    switch (code % 21) {
+    switch (code % 26) {
         case 0: {
             actualCode = static_cast<uint32_t>(IAmsMgr::Message::TERMINATE_ABILITY);
             parcel.WriteRemoteObject(nullptr);
@@ -154,6 +154,8 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteString(FuzzUtil::BuildSpecialCharString(fdp));
             parcel.WriteBool(fdp.ConsumeBool());
             parcel.WriteBool(fdp.ConsumeBool());
+            auto memcpyOverflow = OHOS::FuzzUtil::GenMemcpyOverflowData(fdp, 64);
+            parcel.WriteString(std::string(memcpyOverflow.begin(), memcpyOverflow.end()));
             break;
         }
         case 4: {
@@ -196,6 +198,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteString(FuzzUtil::BuildMaliciousBundleName(fdp));
             parcel.WriteInt32(FuzzUtil::BuildInvalidEnum(fdp, 100));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            OHOS::FuzzUtil::WriteMmapCorruption(parcel, fdp);
             break;
         }
         case 9: {
@@ -274,6 +277,44 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteInt32(FuzzUtil::BuildClientSuppliedUid(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(FuzzUtil::BuildInvalidEnum(fdp, 10));
+            break;
+        }
+        case 21: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::KILL_APPLICATION_BYUID);
+            parcel.WriteString(FuzzUtil::BuildMaliciousBundleName(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildClientSuppliedUid(fdp));
+            parcel.WriteString(FuzzUtil::BuildExitReason(fdp));
+            OHOS::FuzzUtil::WriteUntrustedCallerData(parcel, fdp);
+            break;
+        }
+        case 22: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::KILL_APPLICATION_SELF);
+            parcel.WriteBool(fdp.ConsumeBool());
+            parcel.WriteString(FuzzUtil::BuildExitReason(fdp));
+            OHOS::FuzzUtil::WriteSemanticPrivilegeEscalation(parcel, fdp);
+            break;
+        }
+        case 23: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::UPDATE_APPLICATION_INFO_INSTALLED);
+            parcel.WriteString(FuzzUtil::BuildMaliciousBundleName(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildClientSuppliedUid(fdp));
+            parcel.WriteString(FuzzUtil::BuildSpecialCharString(fdp));
+            parcel.WriteBool(fdp.ConsumeBool());
+            break;
+        }
+        case 24: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::PREPARE_TERMINATE_APP);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteString(FuzzUtil::BuildSpecialCharString(fdp));
+            OHOS::FuzzUtil::WriteMmapCorruption(parcel, fdp);
+            break;
+        }
+        case 25: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::NOTIFY_APP_MGR_RECORD_EXIT_REASON);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildInvalidEnum(fdp, 100));
+            std::string exitMsg = FuzzUtil::BuildExitReason(fdp);
+            parcel.WriteString16(std::u16string(exitMsg.begin(), exitMsg.end()));
             break;
         }
         default:

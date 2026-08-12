@@ -605,6 +605,28 @@ inline void WriteUncheckedReadResult(MessageParcel &parcel, FuzzedDataProvider &
     parcel.WriteBool(false);
     parcel.WriteInt32(BuildIntegerOverflow(fdp));
 }
+
+inline void WriteIntegerOverflowMul3(MessageParcel &parcel, FuzzedDataProvider &fdp)
+{
+    static const int32_t overflowPairs[][2] = {
+        {0x7FFFFFFF, 1}, {0x10000, 0x10000}, {0x55555555, 3}, {0x7FFF, 0x10000},
+        {0x7FFFFFFF, 0x7FFFFFFF}, {1, 0x7FFFFFFF}, {0x2AAAAAAA, 3},
+    };
+    int32_t idx = fdp.ConsumeIntegral<uint8_t>() % 7;
+    parcel.WriteInt32(overflowPairs[idx][0]);
+    parcel.WriteInt32(overflowPairs[idx][1]);
+}
+
+inline std::string BuildAccessOpenRace(FuzzedDataProvider &fdp, size_t maxLen = DEFAULT_MAX_STR_LEN)
+{
+    static const std::string racePayloads[] = {
+        "/tmp/legit_then_symlink", "/proc/self/fd/0", "/dev/shm/race_condition",
+        "/tmp/../etc/passwd", "/var/tmp/symlink_race", "/system/etc/../../proc",
+    };
+    std::string result = racePayloads[fdp.ConsumeIntegral<uint8_t>() % 6];
+    if (maxLen > 0 && result.size() > maxLen) result.resize(maxLen);
+    return result;
+}
 } // namespace FuzzUtil
 } // namespace OHOS
 
