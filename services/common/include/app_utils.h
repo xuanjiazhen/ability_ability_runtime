@@ -352,6 +352,8 @@ public:
 
     bool IsSupportAllowDebugPermission();
 
+    bool IsPCOrPad();
+
     bool IsStartUIAbilityInCurrentProcess();
 
     bool IsSupportModularObjectExtension();
@@ -469,6 +471,7 @@ private:
     volatile DeviceConfiguration<bool> isRescueMode_ = {false, false};
     volatile DeviceConfiguration<bool> isSupportRestartAppWithWindow_ = {false, false};
     volatile DeviceConfiguration<bool> isSupportAllowDebugPermission_ = {false, false};
+    volatile DeviceConfiguration<bool> isPCOrPad_ = {false, false};
     volatile DeviceConfiguration<bool> isStartUIAbilityInCurrentProcess_ = {false, false};
     volatile DeviceConfiguration<bool> isSupportModularObjectExtension_ = {false, false};
     volatile DeviceConfiguration<bool> isAutoStartupSupported_ = {false, false};
