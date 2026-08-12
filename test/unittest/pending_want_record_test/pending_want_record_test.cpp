@@ -1086,6 +1086,42 @@ HWTEST_F(PendingWantRecordTest, BuildSendWant_ConstantFlag_0100, TestSize.Level1
 }
 
 /*
+ * @tc.number    : BuildSendWant_ConstantFlag_RejectSenderWantParams_0100
+ * @tc.name      : BuildSendWant
+ * @tc.desc      : CONSTANT_FLAG 时 TriggerInfo.want 参数不生效（trigger_info.h 文档承诺）
+ */
+HWTEST_F(PendingWantRecordTest, BuildSendWant_ConstantFlag_RejectSenderWantParams_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "BuildSendWant_ConstantFlag_RejectSenderWantParams_0100 start");
+
+    Want want;
+    ElementName element("device", "com.ix.hiMusic", "MusicSAbility");
+    want.SetElement(element);
+    want.SetParam("original_key", std::string("original_value"));
+
+    pendingManager_ = std::make_shared<PendingWantManager>();
+    EXPECT_NE(pendingManager_, nullptr);
+    WantSenderInfo wantSenderInfo = MakeWantSenderInfo(want, (int32_t)Flags::CONSTANT_FLAG, 0);
+    std::shared_ptr<PendingWantKey> key = MakeWantKey(wantSenderInfo);
+    std::shared_ptr<PendingWantRecord> pendingWantRecord =
+        std::make_shared<PendingWantRecord>(pendingManager_, 1, 0, nullptr, key);
+    EXPECT_NE(pendingWantRecord, nullptr);
+
+    SenderInfo info;
+    Want senderWant;
+    info.want.SetParam("sender_extra", std::string("should_not_be_merged"));
+
+    pendingWantRecord->BuildSendWant(info, senderWant);
+
+    // CONSTANT_FLAG: senderInfo.want 参数不应被合并到结果 want
+    EXPECT_TRUE(senderWant.GetParams().GetParam("sender_extra") == nullptr);
+    // 原 want 的参数保持不变
+    EXPECT_EQ(senderWant.GetParams().GetStringParam("original_key"), "original_value");
+
+    TAG_LOGI(AAFwkTag::TEST, "BuildSendWant_ConstantFlag_RejectSenderWantParams_0100 end");
+}
+
+/*
  * @tc.number    : BuildSendWant_AllowCancelFlag_0100
  * @tc.name      : BuildSendWant
  * @tc.desc      : 1.BuildSendWant, verify ALLOW_CANCEL_FLAG behavior

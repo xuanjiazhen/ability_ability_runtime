@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include "ability_manager_errors.h"
 #include "iremote_proxy.h"
 #include "want_sender_stub_impl_mock.h"
 
@@ -74,8 +75,10 @@ HWTEST_F(WantSenderStubTest, WantSenderStubTest_OnRemoteRequest_001, TestSize.Le
  * Function: OnRemoteRequest
  * SubFunction: NA
  * FunctionPoints: WantSenderStub OnRemoteRequest
- * EnvConditions: Description abnormal
- * CaseDescription: Verify that on remote request is abnormal
+ * EnvConditions: code = WANT_SENDER_SEND (deprecated IPC path)
+ * CaseDescription: IWantSender::Send IPC is deprecated (would bypass
+ *                 PendingWantManager::CheckCallerPermission). Stub rejects
+ *                 regardless of interface token / payload.
  */
 HWTEST_F(WantSenderStubTest, WantSenderStubTest_OnRemoteRequest_002, TestSize.Level1)
 {
@@ -85,7 +88,7 @@ HWTEST_F(WantSenderStubTest, WantSenderStubTest_OnRemoteRequest_002, TestSize.Le
 
     int res = stub_->OnRemoteRequest(IWantSender::WANT_SENDER_SEND, data, reply, option);
 
-    EXPECT_EQ(res, ERR_INVALID_STATE);
+    EXPECT_EQ(res, ERR_NO_PERMISSION_CALLER);
 }
 
 /*
@@ -93,8 +96,9 @@ HWTEST_F(WantSenderStubTest, WantSenderStubTest_OnRemoteRequest_002, TestSize.Le
  * Function: OnRemoteRequest
  * SubFunction: NA
  * FunctionPoints: WantSenderStub OnRemoteRequest
- * EnvConditions: Code is WANT_SENDER_SEND
- * CaseDescription: Verify that on remote request is normal
+ * EnvConditions: Code is WANT_SENDER_SEND, valid token and SenderInfo
+ * CaseDescription: Verify that the deprecated WANT_SENDER_SEND path is rejected
+ *                 even with valid payload (security: bypass CheckCallerPermission).
  */
 HWTEST_F(WantSenderStubTest, WantSenderStubTest_OnRemoteRequest_003, TestSize.Level1)
 {
@@ -108,7 +112,7 @@ HWTEST_F(WantSenderStubTest, WantSenderStubTest_OnRemoteRequest_003, TestSize.Le
 
     int res = stub_->OnRemoteRequest(IWantSender::WANT_SENDER_SEND, data, reply, option);
 
-    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_EQ(res, ERR_NO_PERMISSION_CALLER);
 }
 
 /*

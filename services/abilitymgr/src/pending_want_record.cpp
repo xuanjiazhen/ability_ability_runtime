@@ -217,16 +217,21 @@ void PendingWantRecord::BuildSendWant(SenderInfo &senderInfo, Want &want)
         ((flags & static_cast<uint32_t>(Flags::ALLOW_CANCEL_FLAG)) != 0)) {
         immutable = true;
     }
+    // CONSTANT_FLAG 表示 WantAgent 不可变，TriggerInfo.want 整体不生效
+    // （trigger_info.h 文档：CONSTANT_FLAG 时该参数 does not take effect）
+    bool constant = (flags & static_cast<uint32_t>(Flags::CONSTANT_FLAG)) != 0;
     senderInfo.resolvedType = key_->GetRequestResolvedType();
     if (!immutable) {
         want.AddFlags(key_->GetFlags());
     }
     WantParams wantParams = want.GetParams();
-    const auto &sendInfoWantParams = senderInfo.want.GetParams().GetParams();
-    for (auto mapIter = sendInfoWantParams.begin(); mapIter != sendInfoWantParams.end(); mapIter++) {
-        std::string sendInfoWantParamKey = mapIter->first;
-        if (want.GetParams().GetParam(sendInfoWantParamKey) == nullptr) {
-            wantParams.SetParam(sendInfoWantParamKey, mapIter->second);
+    if (!constant) {
+        const auto &sendInfoWantParams = senderInfo.want.GetParams().GetParams();
+        for (auto mapIter = sendInfoWantParams.begin(); mapIter != sendInfoWantParams.end(); mapIter++) {
+            std::string sendInfoWantParamKey = mapIter->first;
+            if (want.GetParams().GetParam(sendInfoWantParamKey) == nullptr) {
+                wantParams.SetParam(sendInfoWantParamKey, mapIter->second);
+            }
         }
     }
 

@@ -15,7 +15,9 @@
 
 #include "want_sender_stub.h"
 
+#include "ability_manager_errors.h"
 #include "hilog_tag_wrapper.h"
+#include "ipc_skeleton.h"
 #include "ipc_types.h"
 
 namespace OHOS {
@@ -26,18 +28,15 @@ WantSenderStub::~WantSenderStub() {}
 
 int WantSenderStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    TAG_LOGD(AAFwkTag::WANTAGENT, "cmd = %{public}d, flags= %{public}d", code, option.GetFlags());
-    std::u16string descriptor = WantSenderStub::GetDescriptor();
-    std::u16string remoteDescriptor = data.ReadInterfaceToken();
-    if (descriptor != remoteDescriptor) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "local descriptor invalid");
-        return ERR_INVALID_STATE;
+    // 直接调 IWantSender::Send 经由本 stub 入口可绕过 PendingWantManager::CheckCallerPermission
+    // （前台/系统应用/后台启动权限校验）。合法 trigger 必须走 AbilityManagerService::SendWantSender
+    // （IPC code = SEND_PENDING_WANT_SENDER），那里有完整鉴权与 IsProxyObject 拒绝逻辑。
+    if (code == IWantSender::WANT_SENDER_SEND) {
+        TAG_LOGW(AAFwkTag::WANTAGENT,
+            "IWantSender::Send IPC deprecated (would bypass CheckCallerPermission), reject. callerUid=%{public}d",
+            IPCSkeleton::GetCallingUid());
+        return ERR_NO_PERMISSION_CALLER;
     }
-
-    if (code == (WANT_SENDER_SEND)) {
-        return SendInner(data, reply);
-    }
-    TAG_LOGW(AAFwkTag::WANTAGENT, "default case, need check");
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
