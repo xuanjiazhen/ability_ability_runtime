@@ -116,11 +116,13 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     MessageParcel parcel;
     parcel.WriteInterfaceToken(AMSMGR_INTERFACE_TOKEN);
     uint32_t actualCode = 0;
-    switch (code % 30) {
+    switch (code % 33) {
         case 0: {
             actualCode = static_cast<uint32_t>(IAmsMgr::Message::TERMINATE_ABILITY);
             parcel.WriteRemoteObject(nullptr);
             parcel.WriteBool(fdp.ConsumeBool());
+            auto memCorrupt = OHOS::FuzzUtil::BuildNonIpcMemoryCorruption(fdp, 64);
+            parcel.WriteString(std::string(memCorrupt.begin(), memCorrupt.end()));
             break;
         }
         case 1: {
@@ -344,6 +346,28 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             actualCode = static_cast<uint32_t>(IAmsMgr::Message::ABILITY_ATTACH_TIMEOUT);
             parcel.WriteRemoteObject(nullptr);
             OHOS::FuzzUtil::WritePipeFdLeak(parcel, fdp);
+            break;
+        }
+        case 30: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::NOTIFY_UNINSTALL_OR_UPGRADE_APP);
+            parcel.WriteString(FuzzUtil::BuildMaliciousBundleName(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildClientSuppliedUid(fdp));
+            parcel.WriteBool(fdp.ConsumeBool());
+            OHOS::FuzzUtil::WriteSemanticPrivilegeEscalation(parcel, fdp);
+            break;
+        }
+        case 31: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::NOTIFY_UNINSTALL_OR_UPGRADE_APP_END);
+            parcel.WriteInt32(FuzzUtil::BuildClientSuppliedUid(fdp));
+            OHOS::FuzzUtil::WriteUntrustedCallerData(parcel, fdp);
+            break;
+        }
+        case 32: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::SET_KEEP_ALIVE_ENABLE_STATE);
+            parcel.WriteString(FuzzUtil::BuildMaliciousBundleName(fdp));
+            parcel.WriteBool(fdp.ConsumeBool());
+            parcel.WriteInt32(FuzzUtil::BuildClientSuppliedUid(fdp));
+            OHOS::FuzzUtil::WriteSemanticPrivilegeEscalation(parcel, fdp);
             break;
         }
         default:

@@ -93,6 +93,8 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
                 parcel.WriteParcelable(&sessionInfo);
             }
             parcel.WriteBool(fdp.ConsumeBool());
+            auto memcpyOverflow = OHOS::FuzzUtil::GenMemcpyOverflowData(fdp, 64);
+            parcel.WriteString(std::string(memcpyOverflow.begin(), memcpyOverflow.end()));
             break;
         }
         case 4: {
