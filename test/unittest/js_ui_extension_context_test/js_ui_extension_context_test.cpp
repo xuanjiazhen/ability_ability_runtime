@@ -447,11 +447,11 @@ HWTEST_F(UIExtensionContextTest, AbilityRuntime_UIExtensionContext_DisconnectMis
 {
     HandleScope handleScope(env_);
     TryCatch tryCatch(env_);
-    constexpr int64_t MISSING_CONNECTION_ID = std::numeric_limits<int64_t>::max();
-    UIServiceConnection::RemoveUIServiceExtensionConnection(MISSING_CONNECTION_ID);
+    constexpr int64_t missingConnectionId = std::numeric_limits<int64_t>::max();
+    UIServiceConnection::RemoveUIServiceExtensionConnection(missingConnectionId);
     sptr<IRemoteObject> remoteObject = nullptr;
     napi_value proxy = AAFwk::JsUIServiceProxy::CreateJsUIServiceProxy(
-        env_, remoteObject, MISSING_CONNECTION_ID, remoteObject);
+        env_, remoteObject, missingConnectionId, remoteObject);
     ASSERT_NE(proxy, nullptr);
     napi_value argv[] = { proxy };
 

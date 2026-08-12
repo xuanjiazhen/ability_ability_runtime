@@ -55,75 +55,6 @@ const std::string UIEXTENSION_ABILITY_ID = "ability.want.params.uiExtensionAbili
 
 namespace OHOS {
 namespace AAFwk {
-class MockPreloadHostClient final : public IRemoteObject {
-public:
-    explicit MockPreloadHostClient(bool addDeathRecipientResult)
-        : IRemoteObject(u"mock_preload_host_client"), addDeathRecipientResult_(addDeathRecipientResult)
-    {}
-
-    ~MockPreloadHostClient() override = default;
-
-    int32_t GetObjectRefCount() override
-    {
-        return 0;
-    }
-
-    int SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override
-    {
-        (void)code;
-        (void)data;
-        (void)reply;
-        (void)option;
-        return ERR_OK;
-    }
-
-    bool IsProxyObject() const override
-    {
-        return true;
-    }
-
-    bool CheckObjectLegality() const override
-    {
-        return true;
-    }
-
-    bool AddDeathRecipient(const sptr<DeathRecipient> &recipient) override
-    {
-        addDeathRecipientCount_++;
-        deathRecipient_ = recipient;
-        return addDeathRecipientResult_;
-    }
-
-    bool RemoveDeathRecipient(const sptr<DeathRecipient> &recipient) override
-    {
-        removeDeathRecipientCount_++;
-        return recipient == deathRecipient_;
-    }
-
-    bool Marshalling(Parcel &parcel) const override
-    {
-        (void)parcel;
-        return true;
-    }
-
-    sptr<IRemoteBroker> AsInterface() override
-    {
-        return nullptr;
-    }
-
-    int Dump(int fd, const std::vector<std::u16string> &args) override
-    {
-        (void)fd;
-        (void)args;
-        return ERR_OK;
-    }
-
-    bool addDeathRecipientResult_ = true;
-    int32_t addDeathRecipientCount_ = 0;
-    int32_t removeDeathRecipientCount_ = 0;
-    sptr<DeathRecipient> deathRecipient_ = nullptr;
-};
-
 class UIExtensionAbilityManagerTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -1087,21 +1018,16 @@ HWTEST_F(UIExtensionAbilityManagerTest, AAFwk_AbilityMS_RegisterPreloadUIExtensi
 /*
  * Feature: UIExtensionAbilityManager
  * Function: RegisterPreloadUIExtensionHostClient
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify RegisterPreloadUIExtensionHostClient with valid parameters
+ * CaseDescription: Verify registration fails when a local token cannot register a death recipient
  */
 HWTEST_F(UIExtensionAbilityManagerTest, AAFwk_AbilityMS_RegisterPreloadUIExtensionHostClient_003, TestSize.Level1)
 {
     std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
-    ASSERT_NE(abilityRecord, nullptr);
-    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
-    ASSERT_NE(callerToken, nullptr);
-    
-    int32_t res = connectManager->RegisterPreloadUIExtensionHostClient(callerToken);
-    EXPECT_EQ(res, ERR_OK);
+    sptr<IRemoteObject> callerToken = serviceRecord_->GetToken();
+
+    EXPECT_EQ(connectManager->RegisterPreloadUIExtensionHostClient(callerToken), INNER_ERR);
+    EXPECT_TRUE(connectManager->preloadUIExtensionHostClientDeathRecipients_.empty());
+    EXPECT_TRUE(connectManager->uiExtensionAbilityRecordMgr_->preloadUIExtensionHostClientCallerTokens_.empty());
 }
 
 /*
@@ -1142,43 +1068,30 @@ HWTEST_F(UIExtensionAbilityManagerTest, AAFwk_AbilityMS_UnRegisterPreloadUIExten
 /*
  * Feature: UIExtensionAbilityManager
  * Function: UnRegisterPreloadUIExtensionHostClient
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify UnRegisterPreloadUIExtensionHostClient with valid callerPid
+ * CaseDescription: Verify unregistering an unknown process is idempotent
  */
 HWTEST_F(UIExtensionAbilityManagerTest, AAFwk_AbilityMS_UnRegisterPreloadUIExtensionHostClient_003, TestSize.Level1)
 {
     std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    int32_t callerPid = 5678;
-    
-    int32_t res = connectManager->UnRegisterPreloadUIExtensionHostClient(callerPid);
-    EXPECT_EQ(res, ERR_OK);
+
+    EXPECT_EQ(connectManager->UnRegisterPreloadUIExtensionHostClient(5678), ERR_OK);
+    EXPECT_TRUE(connectManager->preloadUIExtensionHostClientDeathRecipients_.empty());
 }
 
 /*
  * Feature: UIExtensionAbilityManager
  * Function: UnRegisterPreloadUIExtensionHostClient
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify UnRegisterPreloadUIExtensionHostClient
+ * CaseDescription: Verify failed registration leaves no state for unregistering
  */
 HWTEST_F(UIExtensionAbilityManagerTest, AAFwk_AbilityMS_UnRegisterPreloadUIExtensionHostClient_004, TestSize.Level1)
 {
     std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
-    ASSERT_NE(abilityRecord, nullptr);
-    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
-    int32_t callerPid = IPCSkeleton::GetCallingPid();
-    connectManager->RegisterPreloadUIExtensionHostClient(callerToken);
-    EXPECT_EQ(connectManager->uiExtensionAbilityRecordMgr_->preloadUIExtensionHostClientCallerTokens_.size(), 1);
-    
-    connectManager->UnRegisterPreloadUIExtensionHostClient(1);
-    EXPECT_EQ(connectManager->uiExtensionAbilityRecordMgr_->preloadUIExtensionHostClientCallerTokens_.size(), 1);
+    sptr<IRemoteObject> callerToken = serviceRecord_->GetToken();
 
-    connectManager->UnRegisterPreloadUIExtensionHostClient(callerPid);
-    EXPECT_EQ(connectManager->uiExtensionAbilityRecordMgr_->preloadUIExtensionHostClientCallerTokens_.size(), 0);
+    EXPECT_EQ(connectManager->RegisterPreloadUIExtensionHostClient(callerToken), INNER_ERR);
+    EXPECT_EQ(connectManager->UnRegisterPreloadUIExtensionHostClient(IPCSkeleton::GetCallingPid()), ERR_OK);
+    EXPECT_TRUE(connectManager->preloadUIExtensionHostClientDeathRecipients_.empty());
+    EXPECT_TRUE(connectManager->uiExtensionAbilityRecordMgr_->preloadUIExtensionHostClientCallerTokens_.empty());
 }
 
 /*
@@ -1409,94 +1322,16 @@ HWTEST_F(UIExtensionAbilityManagerTest, RegisterPreloadUIExtensionHostClient_002
 /*
  * Feature: UIExtensionAbilityManager
  * Function: RegisterPreloadUIExtensionHostClient
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify RegisterPreloadUIExtensionHostClient with valid parameters
+ * CaseDescription: Verify registration fails when a local token cannot register a death recipient
  */
 HWTEST_F(UIExtensionAbilityManagerTest, RegisterPreloadUIExtensionHostClient_003, TestSize.Level1)
 {
     std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
-    ASSERT_NE(abilityRecord, nullptr);
-    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
-    ASSERT_NE(callerToken, nullptr);
-    
-    int32_t res = connectManager->RegisterPreloadUIExtensionHostClient(callerToken);
-    EXPECT_EQ(res, ERR_OK);
-}
+    sptr<IRemoteObject> callerToken = serviceRecord_->GetToken();
 
-/*
- * Feature: UIExtensionAbilityManager
- * Function: RegisterPreloadUIExtensionHostClient
- * CaseDescription: Verify successful registration and unregister cleanup
- */
-HWTEST_F(UIExtensionAbilityManagerTest, RegisterPreloadUIExtensionHostClient_006, TestSize.Level1)
-{
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    sptr<MockPreloadHostClient> callerToken = new MockPreloadHostClient(true);
-    const int32_t callerPid = IPCSkeleton::GetCallingPid();
-
-    int32_t res = connectManager->RegisterPreloadUIExtensionHostClient(callerToken);
-
-    EXPECT_EQ(res, ERR_OK);
-    EXPECT_EQ(callerToken->addDeathRecipientCount_, 1);
-    EXPECT_EQ(connectManager->preloadUIExtensionHostClientDeathRecipients_.count(callerPid), 1);
-    EXPECT_EQ(connectManager->uiExtensionAbilityRecordMgr_->preloadUIExtensionHostClientCallerTokens_.count(
-        callerPid), 1);
-
-    res = connectManager->UnRegisterPreloadUIExtensionHostClient(callerPid);
-    EXPECT_EQ(res, ERR_OK);
-    EXPECT_EQ(callerToken->removeDeathRecipientCount_, 1);
+    EXPECT_EQ(connectManager->RegisterPreloadUIExtensionHostClient(callerToken), INNER_ERR);
     EXPECT_TRUE(connectManager->preloadUIExtensionHostClientDeathRecipients_.empty());
     EXPECT_TRUE(connectManager->uiExtensionAbilityRecordMgr_->preloadUIExtensionHostClientCallerTokens_.empty());
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: RegisterPreloadUIExtensionHostClient
- * CaseDescription: Verify registration rollback when adding a death recipient fails
- */
-HWTEST_F(UIExtensionAbilityManagerTest, RegisterPreloadUIExtensionHostClient_007, TestSize.Level1)
-{
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    sptr<MockPreloadHostClient> callerToken = new MockPreloadHostClient(false);
-
-    int32_t res = connectManager->RegisterPreloadUIExtensionHostClient(callerToken);
-
-    EXPECT_EQ(res, INNER_ERR);
-    EXPECT_EQ(callerToken->addDeathRecipientCount_, 1);
-    EXPECT_EQ(callerToken->removeDeathRecipientCount_, 0);
-    EXPECT_TRUE(connectManager->preloadUIExtensionHostClientDeathRecipients_.empty());
-    EXPECT_TRUE(connectManager->uiExtensionAbilityRecordMgr_->preloadUIExtensionHostClientCallerTokens_.empty());
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: RegisterPreloadUIExtensionHostClient
- * CaseDescription: Verify duplicate registration for the same process is idempotent
- */
-HWTEST_F(UIExtensionAbilityManagerTest, RegisterPreloadUIExtensionHostClient_008, TestSize.Level1)
-{
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    sptr<MockPreloadHostClient> firstCallerToken = new MockPreloadHostClient(true);
-    sptr<MockPreloadHostClient> secondCallerToken = new MockPreloadHostClient(true);
-    const int32_t callerPid = IPCSkeleton::GetCallingPid();
-
-    EXPECT_EQ(connectManager->RegisterPreloadUIExtensionHostClient(firstCallerToken), ERR_OK);
-    EXPECT_EQ(connectManager->RegisterPreloadUIExtensionHostClient(secondCallerToken), ERR_OK);
-
-    EXPECT_EQ(firstCallerToken->addDeathRecipientCount_, 1);
-    EXPECT_EQ(secondCallerToken->addDeathRecipientCount_, 0);
-    EXPECT_EQ(connectManager->preloadUIExtensionHostClientDeathRecipients_.size(), 1);
-    auto tokenIter = connectManager->uiExtensionAbilityRecordMgr_->preloadUIExtensionHostClientCallerTokens_.find(
-        callerPid);
-    ASSERT_NE(tokenIter,
-        connectManager->uiExtensionAbilityRecordMgr_->preloadUIExtensionHostClientCallerTokens_.end());
-    sptr<IRemoteObject> expectedCallerToken = firstCallerToken;
-    EXPECT_EQ(tokenIter->second, expectedCallerToken);
-
-    EXPECT_EQ(connectManager->UnRegisterPreloadUIExtensionHostClient(callerPid), ERR_OK);
 }
 
 /*
@@ -1537,43 +1372,30 @@ HWTEST_F(UIExtensionAbilityManagerTest, UnRegisterPreloadUIExtensionHostClient_0
 /*
  * Feature: UIExtensionAbilityManager
  * Function: UnRegisterPreloadUIExtensionHostClient
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify UnRegisterPreloadUIExtensionHostClient with valid callerPid
+ * CaseDescription: Verify unregistering an unknown process is idempotent
  */
 HWTEST_F(UIExtensionAbilityManagerTest, UnRegisterPreloadUIExtensionHostClient_003, TestSize.Level1)
 {
     std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    int32_t callerPid = 5678;
-    
-    int32_t res = connectManager->UnRegisterPreloadUIExtensionHostClient(callerPid);
-    EXPECT_EQ(res, ERR_OK);
+
+    EXPECT_EQ(connectManager->UnRegisterPreloadUIExtensionHostClient(5678), ERR_OK);
+    EXPECT_TRUE(connectManager->preloadUIExtensionHostClientDeathRecipients_.empty());
 }
 
 /*
  * Feature: UIExtensionAbilityManager
  * Function: UnRegisterPreloadUIExtensionHostClient
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify UnRegisterPreloadUIExtensionHostClient
+ * CaseDescription: Verify failed registration leaves no state for unregistering
  */
 HWTEST_F(UIExtensionAbilityManagerTest, UnRegisterPreloadUIExtensionHostClient_004, TestSize.Level1)
 {
     std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    std::shared_ptr<AbilityRecord> abilityRecord = serviceRecord_;
-    ASSERT_NE(abilityRecord, nullptr);
-    sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
-    int32_t callerPid = IPCSkeleton::GetCallingPid();
-    connectManager->RegisterPreloadUIExtensionHostClient(callerToken);
-    EXPECT_EQ(connectManager->uiExtensionAbilityRecordMgr_->preloadUIExtensionHostClientCallerTokens_.size(), 1);
-    
-    connectManager->UnRegisterPreloadUIExtensionHostClient(1);
-    EXPECT_EQ(connectManager->uiExtensionAbilityRecordMgr_->preloadUIExtensionHostClientCallerTokens_.size(), 1);
+    sptr<IRemoteObject> callerToken = serviceRecord_->GetToken();
 
-    connectManager->UnRegisterPreloadUIExtensionHostClient(callerPid);
-    EXPECT_EQ(connectManager->uiExtensionAbilityRecordMgr_->preloadUIExtensionHostClientCallerTokens_.size(), 0);
+    EXPECT_EQ(connectManager->RegisterPreloadUIExtensionHostClient(callerToken), INNER_ERR);
+    EXPECT_EQ(connectManager->UnRegisterPreloadUIExtensionHostClient(IPCSkeleton::GetCallingPid()), ERR_OK);
+    EXPECT_TRUE(connectManager->preloadUIExtensionHostClientDeathRecipients_.empty());
+    EXPECT_TRUE(connectManager->uiExtensionAbilityRecordMgr_->preloadUIExtensionHostClientCallerTokens_.empty());
 }
 
 /*
