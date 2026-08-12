@@ -27,6 +27,7 @@ public:
 
     ~AppUtils();
     bool IsStartOptionsWithAnimation();
+    bool IsSupportBlockAllAppStart();
 
 private:
     AppUtils();

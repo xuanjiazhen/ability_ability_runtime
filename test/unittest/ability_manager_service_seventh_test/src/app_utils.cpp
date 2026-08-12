@@ -36,5 +36,10 @@ bool AppUtils::IsStartOptionsWithAnimation()
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isStartOptionsWithAnimation_);
     return isStartOptionsWithAnimation_;
 }
+
+bool AppUtils::IsSupportBlockAllAppStart()
+{
+    return IsStartOptionsWithAnimation();
+}
 }  // namespace AAFwk
 }  // namespace OHOS

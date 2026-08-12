@@ -274,6 +274,11 @@ bool AppUtils::IsStartOptionsWithAnimation()
     return isStartOptionsWithAnimation_.value;
 }
 
+bool AppUtils::IsSupportBlockAllAppStart()
+{
+    return IsStartOptionsWithAnimation();
+}
+
 bool AppUtils::IsSupportStartAbilities()
 {
     if (!isSupportStartAbilities_.isLoaded) {

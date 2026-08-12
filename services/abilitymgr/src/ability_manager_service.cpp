@@ -17720,9 +17720,9 @@ int32_t AbilityManagerService::BlockAllAppStart(bool flag)
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "BlockAllAppStart called, flag: %{public}d", flag);
 
-    if (!AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
+    if (!AppUtils::GetInstance().IsSupportBlockAllAppStart()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not supported device");
-        return ERR_PERMISSION_DENIED;
+        return ERR_CAPABILITY_NOT_SUPPORT;
     }
 
     if (!PermissionVerification::GetInstance()->VerifyBlockAllAppStartPermission()) {
@@ -17739,7 +17739,7 @@ int32_t AbilityManagerService::BlockAllAppStart(bool flag)
 
 bool AbilityManagerService::ShouldBlockAllAppStart()
 {
-    if (!AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
+    if (!AppUtils::GetInstance().IsSupportBlockAllAppStart()) {
         return false;
     }
 

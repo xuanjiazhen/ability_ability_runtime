@@ -142,6 +142,13 @@ public:
     bool IsStartOptionsWithAnimation();
 
     /**
+     * IsSupportBlockAllAppStart, check whether the device supports BlockAllAppStart.
+     *
+     * @return Whether the device supports BlockAllAppStart.
+     */
+    bool IsSupportBlockAllAppStart();
+
+    /**
      * IsSupportStartAbilities, check whether the StartUIAbilities API is supported.
      *
      * @return Whether the StartUIAbilities API is supported.
@@ -149,7 +156,7 @@ public:
     bool IsSupportStartAbilities();
 
     /**
-     * IsStartOptionsWithAnimation, check whether it is a multi-process model.
+     * IsMultiProcessModel, check whether it is a multi-process model.
      *
      * @return Whether it is a multi-process model.
      */

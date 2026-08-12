@@ -27,9 +27,9 @@ int32_t AbilityManagerService::BlockAllAppStart(bool flag)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
 
-    if (!AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
+    if (!AppUtils::GetInstance().IsSupportBlockAllAppStart()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not supported device");
-        return ERR_PERMISSION_DENIED;
+        return ERR_CAPABILITY_NOT_SUPPORT;
     }
 
     if (!PermissionVerification::GetInstance()->VerifyBlockAllAppStartPermission()) {
@@ -44,7 +44,7 @@ int32_t AbilityManagerService::BlockAllAppStart(bool flag)
 
 bool AbilityManagerService::ShouldBlockAllAppStart()
 {
-    if (!AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
+    if (!AppUtils::GetInstance().IsSupportBlockAllAppStart()) {
         return false;
     }
 

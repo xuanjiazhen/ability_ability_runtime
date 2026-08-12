@@ -84,7 +84,7 @@ HWTEST_F(AbilityManagerServiceSeventhTest, BlockAllAppStart_002, TestSize.Level1
     AppUtils::isStartOptionsWithAnimation_ = false;
     EXPECT_EQ(AppUtils::GetInstance().IsStartOptionsWithAnimation(), false);
     auto retCode = abilityMs_->BlockAllAppStart(true);
-    EXPECT_EQ(retCode, ERR_PERMISSION_DENIED);
+    EXPECT_EQ(retCode, ERR_CAPABILITY_NOT_SUPPORT);
     EXPECT_EQ(abilityMs_->shouldBlockAllAppStart_, false);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSeventhTest BlockAllAppStart_002 end");
 }
