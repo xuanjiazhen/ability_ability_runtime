@@ -85,6 +85,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
             parcel.WriteString(OHOS::FuzzUtil::BuildSymlinkAttack(fdp));
+            parcel.WriteString(OHOS::FuzzUtil::BuildToctouPath(fdp));
             break;
         }
         case 3: {

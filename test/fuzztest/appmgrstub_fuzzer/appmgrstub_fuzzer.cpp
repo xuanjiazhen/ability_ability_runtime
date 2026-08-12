@@ -56,10 +56,13 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::APP_APPLICATION_TERMINATED);
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             break;
-        case 1:
+        case 1: {
             actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::APP_ABILITY_CLEANED);
             parcel.WriteRemoteObject(nullptr);
+            auto overflowData = OHOS::FuzzUtil::GenMemcpyOverflowData(fdp, 128);
+            parcel.WriteString(std::string(overflowData.begin(), overflowData.end()));
             break;
+        }
         case 2:
             actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::APP_CLEAR_UP_APPLICATION_DATA);
             parcel.WriteString(FuzzUtil::GenStrcpyOverflowString(fdp, 256));

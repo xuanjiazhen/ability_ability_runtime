@@ -116,7 +116,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     MessageParcel parcel;
     parcel.WriteInterfaceToken(AMSMGR_INTERFACE_TOKEN);
     uint32_t actualCode = 0;
-    switch (code % 15) {
+    switch (code % 21) {
         case 0: {
             actualCode = static_cast<uint32_t>(IAmsMgr::Message::TERMINATE_ABILITY);
             parcel.WriteRemoteObject(nullptr);
@@ -237,6 +237,43 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteString(FuzzUtil::BuildMaliciousBundleName(fdp));
             OHOS::FuzzUtil::WriteMaliciousAttackAware(parcel, fdp);
             OHOS::FuzzUtil::WriteSemanticPrivilegeEscalation(parcel, fdp);
+            break;
+        }
+        case 15: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::GET_RUNNING_PROCESS_INFO_BY_TOKEN);
+            parcel.WriteRemoteObject(nullptr);
+            OHOS::FuzzUtil::WritePipeFdLeak(parcel, fdp);
+            break;
+        }
+        case 16: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::GET_APPLICATION_INFO_BY_PROCESS_ID);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        }
+        case 17: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::ENABLE_START_PROCESS_FLAG_BY_USER_ID);
+            parcel.WriteInt32(FuzzUtil::BuildClientSuppliedUid(fdp));
+            parcel.WriteBool(fdp.ConsumeBool());
+            OHOS::FuzzUtil::WriteSemanticPrivilegeEscalation(parcel, fdp);
+            break;
+        }
+        case 18: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::IS_PROCESS_CONTAINS_ONLY_UI_EXTENSION);
+            parcel.WriteUint32(static_cast<uint32_t>(FuzzUtil::BuildIntegerOverflow(fdp)));
+            break;
+        }
+        case 19: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::IS_PROCESS_ATTACHED);
+            parcel.WriteRemoteObject(nullptr);
+            OHOS::FuzzUtil::WriteUntrustedCallerData(parcel, fdp);
+            break;
+        }
+        case 20: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::PRELOAD_APPLICATION_BY_PHASE);
+            parcel.WriteString(FuzzUtil::BuildMaliciousBundleName(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildClientSuppliedUid(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildInvalidEnum(fdp, 10));
             break;
         }
         default:
