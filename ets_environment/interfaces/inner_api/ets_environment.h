@@ -69,6 +69,8 @@ public:
         const std::vector<std::string> &staticPluginHspPathList, const std::string &bundleName);
     bool PreloadSystemClass(const char *className);
 
+    int32_t HotReload(const std::vector<std::string> &targets, const std::vector<std::string> &patches);
+
     void RemoveInstance(uint32_t instanceId);
     void StopDebugMode(void *jsVm);
     void StartDebuggerForSocketPair(std::string &option, int32_t socketFd);
@@ -106,6 +108,8 @@ private:
     bool RegisterProfilePaths(const std::vector<std::string> &staticHapModuleNameList);
     std::vector<ProfilePathInfo> BuildProfilePathInfos(const std::vector<std::string> &staticHapModuleNameList);
     bool ConvertHspPathToAniArray(ani_env *aniEnv, const std::vector<std::string> &hapPathInfos,
+        ani_array &refArray);
+    bool ConvertStringVectorToAniArray(ani_env *aniEnv, const std::vector<std::string> &paths,
         ani_array &refArray);
     std::vector<std::string> GetHspPathList();
     bool SetHspAbcFiles(ani_env *env, ani_object abcObj);

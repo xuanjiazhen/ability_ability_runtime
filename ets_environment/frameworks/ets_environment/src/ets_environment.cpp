@@ -769,6 +769,41 @@ bool ETSEnvironment::PreloadSystemClass(const char *className)
     return true;
 }
 
+int32_t ETSEnvironment::HotReload(const std::vector<std::string> &targets,
+    const std::vector<std::string> &patches)
+{
+    ani_env *env = GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null env");
+        return -1;
+    }
+    {
+        std::lock_guard<std::mutex> lock(vmEntry_.abcCacheMutex_);
+        for (const auto &target : targets) {
+            if (vmEntry_.abcCacheMap_.find(target) == vmEntry_.abcCacheMap_.end()) {
+                TAG_LOGE(AAFwkTag::ETSRUNTIME, "target not loaded: %{public}s", target.c_str());
+                return -1;
+            }
+        }
+    }
+    ani_array targetArray = nullptr;
+    if (!ConvertStringVectorToAniArray(env, targets, targetArray)) {
+        return -1;
+    }
+    ani_array patchArray = nullptr;
+    if (!ConvertStringVectorToAniArray(env, patches, patchArray)) {
+        return -1;
+    }
+    ani_status status = env->Object_CallMethodByName_Void(
+        static_cast<ani_object>(vmEntry_.abcLinkerRef_),
+        "hotReload", "C{std.core.Array}C{std.core.Array}:", targetArray, patchArray);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "hotReload failed, status: %{public}d", status);
+        return -1;
+    }
+    return 0;
+}
+
 ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
 {
     static ETSEnvFuncs funcs {
@@ -835,6 +870,10 @@ ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
         },
         .BroadcastAndConnect = [](const std::string& bundleName, int socketFd) {
             return ETSEnvironment::GetInstance()->BroadcastAndConnect(bundleName, socketFd);
+        },
+        .HotReload = [](const std::vector<std::string> &targets,
+            const std::vector<std::string> &patches) -> int32_t {
+            return ETSEnvironment::GetInstance()->HotReload(targets, patches);
         }
     };
     return &funcs;
@@ -964,6 +1003,37 @@ bool ETSEnvironment::ConvertHspPathToAniArray(ani_env *aniEnv, const std::vector
         }
         if ((status = aniEnv->Array_Set(refArray, index, ani_str)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::ETSRUNTIME, "Array_Set_Ref Failed, status: %{public}d", status);
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ETSEnvironment::ConvertStringVectorToAniArray(ani_env *aniEnv, const std::vector<std::string> &paths,
+    ani_array &refArray)
+{
+    if (aniEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null aniEnv");
+        return false;
+    }
+    ani_status status = ANI_ERROR;
+    ani_ref undefinedRef = nullptr;
+    if ((status = aniEnv->GetUndefined(&undefinedRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetUndefined failed, status: %{public}d", status);
+        return false;
+    }
+    if ((status = aniEnv->Array_New(paths.size(), undefinedRef, &refArray)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Array_New failed, status: %{public}d", status);
+        return false;
+    }
+    for (size_t index = 0; index < paths.size(); index++) {
+        ani_string aniStr = nullptr;
+        if ((status = aniEnv->String_NewUTF8(paths[index].c_str(), paths[index].size(), &aniStr)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::ETSRUNTIME, "String_NewUTF8 failed, status: %{public}d", status);
+            return false;
+        }
+        if ((status = aniEnv->Array_Set(refArray, index, aniStr)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::ETSRUNTIME, "Array_Set failed, status: %{public}d", status);
             return false;
         }
     }
