@@ -59,6 +59,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
         case 1:
             actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::APP_APPLICATION_TERMINATED);
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            OHOS::FuzzUtil::WriteUncheckedReadResult(parcel, fdp);
             break;
         case 2:
             actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::APP_ABILITY_CLEANED);

@@ -116,7 +116,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     MessageParcel parcel;
     parcel.WriteInterfaceToken(AMSMGR_INTERFACE_TOKEN);
     uint32_t actualCode = 0;
-    switch (code % 26) {
+    switch (code % 30) {
         case 0: {
             actualCode = static_cast<uint32_t>(IAmsMgr::Message::TERMINATE_ABILITY);
             parcel.WriteRemoteObject(nullptr);
@@ -315,6 +315,35 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteInt32(FuzzUtil::BuildInvalidEnum(fdp, 100));
             std::string exitMsg = FuzzUtil::BuildExitReason(fdp);
             parcel.WriteString16(std::u16string(exitMsg.begin(), exitMsg.end()));
+            break;
+        }
+        case 26: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::TERMINATE_ABILITY);
+            parcel.WriteRemoteObject(nullptr);
+            parcel.WriteBool(fdp.ConsumeBool());
+            OHOS::FuzzUtil::WriteUntrustedCallerData(parcel, fdp);
+            break;
+        }
+        case 27: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::REGISTER_APP_STATE_CALLBACK);
+            bool hasCallback = fdp.ConsumeBool();
+            parcel.WriteBool(hasCallback);
+            if (hasCallback) {
+                parcel.WriteRemoteObject(nullptr);
+            }
+            OHOS::FuzzUtil::WriteSemanticPrivilegeEscalation(parcel, fdp);
+            break;
+        }
+        case 28: {
+            actualCode = 0xFFFFFFFF;
+            parcel.WriteInt32(FuzzUtil::BuildClientSuppliedUid(fdp));
+            OHOS::FuzzUtil::WriteMmapCorruption(parcel, fdp);
+            break;
+        }
+        case 29: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::ABILITY_ATTACH_TIMEOUT);
+            parcel.WriteRemoteObject(nullptr);
+            OHOS::FuzzUtil::WritePipeFdLeak(parcel, fdp);
             break;
         }
         default:

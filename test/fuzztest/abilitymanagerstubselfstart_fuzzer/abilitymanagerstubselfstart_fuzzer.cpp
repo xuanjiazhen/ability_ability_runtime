@@ -83,6 +83,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             if (hasCaller) {
                 parcel.WriteRemoteObject(nullptr);
             }
+            OHOS::FuzzUtil::WriteAppSpawnMsgOob(parcel, fdp);
             break;
         }
         case 4: {
