@@ -69,6 +69,8 @@ public:
         const std::vector<std::string> &staticPluginHspPathList, const std::string &bundleName);
     bool PreloadSystemClass(const char *className);
 
+    int32_t HotReload(const std::string &target, const std::string &patch);
+
     void RemoveInstance(uint32_t instanceId);
     void StopDebugMode(void *jsVm);
     void StartDebuggerForSocketPair(std::string &option, int32_t socketFd);

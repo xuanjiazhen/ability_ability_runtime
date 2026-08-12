@@ -18,6 +18,7 @@
 
 #include <unordered_map>
 #include <map>
+#include <mutex>
 #include <string>
 #include <cstdint>
 #include <functional>
@@ -69,10 +70,10 @@ public:
     void PreloadModule(
         const std::string &moduleName, const std::string &hapPath, bool isEsMode, bool useCommonTrunk) override;
     void FinishPreload() override;
-    bool LoadRepairPatch(const std::string &patchFile, const std::string &baseFile) override { return false; }
-    bool NotifyHotReloadPage() override { return false; }
+    bool LoadRepairPatch(const std::string &patchFile, const std::string &baseFile) override;
+    bool NotifyHotReloadPage() override;
     bool UnLoadRepairPatch(const std::string &patchFile) override { return false; }
-    void RegisterQuickFixQueryFunc(const std::map<std::string, std::string> &moduleAndPath) override {};
+    void RegisterQuickFixQueryFunc(const std::map<std::string, std::string> &moduleAndPath) override;
     void StartProfiler(const DebugOption debugOption) override;
     void SetExtensionApiCheckCallback(
         std::function<bool(const std::string &className, const std::string &fileName)> &cb) override;
@@ -115,12 +116,16 @@ private:
     std::string HandleOhmUrlSrcEntry(const std::string &srcEntry);
     void HandleOhmUrlFileName(std::string &fileName);
     static void PreloadLibrary();
+    void ApplyCachedQuickFix(const std::string &target);
+    bool BuildCachedQuickFix(const std::map<std::string, std::string> &moduleAndPath);
     int32_t apiTargetVersion_ = 0;
     std::string codePath_;
     std::string moduleName_;
     std::unique_ptr<AbilityRuntime::Runtime> jsRuntime_ = nullptr;
     bool debugMode_ = false;
     std::unordered_map<std::string, std::unique_ptr<AppExecFwk::ETSNativeReference>> preloadList_;
+    std::mutex quickFixMutex_;
+    std::map<std::string, std::string> cachedQuickFix_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

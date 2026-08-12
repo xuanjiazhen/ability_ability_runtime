@@ -27,6 +27,7 @@
 #include <unistd.h>
 
 #include "bundle_constants.h"
+#include "bundle_mgr_helper.h"
 #include "constants.h"
 #include "ets_interface.h"
 #include "file_path_utils.h"
@@ -697,11 +698,84 @@ std::unique_ptr<AppExecFwk::ETSNativeReference> ETSRuntime::LoadEtsModule(const 
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "LoadModule failed");
         return std::unique_ptr<AppExecFwk::ETSNativeReference>();
     }
+    ApplyCachedQuickFix(modulePath);
     auto etsNativeReference = std::make_unique<AppExecFwk::ETSNativeReference>();
     etsNativeReference->aniCls = reinterpret_cast<ani_class>(cls);
     etsNativeReference->aniObj = reinterpret_cast<ani_object>(obj);
     etsNativeReference->aniRef = reinterpret_cast<ani_ref>(ref);
     return etsNativeReference;
+}
+
+bool ETSRuntime::LoadRepairPatch(const std::string &hqfFile, const std::string &hapPath)
+{
+    std::string target = ExtractorUtil::GetLoadFilePath(hapPath);
+    if (g_etsEnvFuncs == nullptr || g_etsEnvFuncs->HotReload == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null g_etsEnvFuncs or HotReload");
+        return false;
+    }
+    return g_etsEnvFuncs->HotReload(target, hqfFile) == 0;
+}
+
+bool ETSRuntime::NotifyHotReloadPage()
+{
+#ifdef SUPPORT_SCREEN
+    Ace::HotReloader::HotReload();
+#endif
+    return true;
+}
+
+void ETSRuntime::RegisterQuickFixQueryFunc(const std::map<std::string, std::string> &moduleAndPath)
+{
+    if (!BuildCachedQuickFix(moduleAndPath)) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "BuildCachedQuickFix failed");
+    }
+}
+
+bool ETSRuntime::BuildCachedQuickFix(const std::map<std::string, std::string> &moduleAndPath)
+{
+    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        return false;
+    }
+    AppExecFwk::BundleInfo bundleInfo;
+    int32_t flags = static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE);
+    if (bundleMgrHelper->GetBundleInfoForSelfWithOutCache(flags, bundleInfo) != 0) {
+        return false;
+    }
+    std::lock_guard<std::mutex> lock(quickFixMutex_);
+    for (const auto &item : moduleAndPath) {
+        for (const auto &hapInfo : bundleInfo.hapModuleInfos) {
+            if (hapInfo.moduleName != item.first || hapInfo.hapPath.empty()) {
+                continue;
+            }
+            std::string target = ExtractorUtil::GetLoadFilePath(hapInfo.hapPath);
+            std::string patch = GetLoadPath(item.second);
+            cachedQuickFix_[target] = patch;
+        }
+    }
+    return true;
+}
+
+void ETSRuntime::ApplyCachedQuickFix(const std::string &target)
+{
+    std::string patch;
+    {
+        std::lock_guard<std::mutex> lock(quickFixMutex_);
+        auto it = cachedQuickFix_.find(target);
+        if (it == cachedQuickFix_.end()) {
+            return;
+        }
+        patch = it->second;
+    }
+    if (g_etsEnvFuncs == nullptr || g_etsEnvFuncs->HotReload == nullptr) {
+        return;
+    }
+    if (g_etsEnvFuncs->HotReload(target, patch) != 0) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "HotReload failed, target: %{public}s", target.c_str());
+        return;
+    }
+    std::lock_guard<std::mutex> lock(quickFixMutex_);
+    cachedQuickFix_.erase(target);
 }
 
 bool ETSRuntime::HandleUncaughtError()
