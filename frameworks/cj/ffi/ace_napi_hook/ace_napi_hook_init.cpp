@@ -194,6 +194,14 @@ extern "C" void ACE_NAPI_HOOK_InitOrAbort()
     }
 }
 
+extern "C" void ACE_NAPI_HOOK_RegisterCangjieResolver(
+    void* (*resolver)(const char* symbol_name))
+{
+    if (!ace_napi_hook::RegisterCangjieSymbolResolver(resolver)) {
+        std::abort();
+    }
+}
+
 extern "C" void ACE_NAPI_HOOK_RefreshOrAbort(const char* so_path)
 {
     if (!ace_napi_hook::RefreshAceNapiHook(so_path)) {

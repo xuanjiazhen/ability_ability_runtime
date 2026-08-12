@@ -80,7 +80,6 @@ __attribute__((constructor)) static void bytesig_ctor(void) {
     bytesig_status = BYTESIG_STATUS_SIG32;
   }
 
-end:
   dlclose(libc);
 }
 
@@ -265,4 +264,3 @@ void bytesig_unprotect(pid_t tid, const int signums[], size_t signums_cnt) {
     }
   }
 }
-

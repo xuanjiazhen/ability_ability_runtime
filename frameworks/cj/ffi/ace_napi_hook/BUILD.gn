@@ -14,6 +14,17 @@
 import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
+config("dynamic_c_abi_config") {
+  # Dispatch functions call C ABI entries resolved at runtime. Apply this after
+  # the sanitizer config so LTO does not restore indirect-call CFI checks.
+  cflags = [ "-fno-sanitize=cfi-icall" ]
+  ldflags = [ "-fno-sanitize=cfi-icall" ]
+}
+
+group("dynamic_c_abi_config_dep") {
+  public_configs = [ ":dynamic_c_abi_config" ]
+}
+
 ohos_shared_library("ace_napi_hook") {
   sources = [
     "ace_napi_hook_init.cpp",
@@ -32,6 +43,8 @@ ohos_shared_library("ace_napi_hook") {
   include_dirs = [ "." ]
 
   configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
+
+  deps = [ ":dynamic_c_abi_config_dep" ]
 
   external_deps = [
     "hilog:libhilog",

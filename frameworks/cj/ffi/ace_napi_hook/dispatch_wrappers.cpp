@@ -25,7 +25,6 @@
 #include <cstdio>
 #include <cstring>
 #include <cstdint>
-#include <dlfcn.h>
 #include <memory>
 #include <mutex>
 #include <new>
@@ -626,11 +625,6 @@ void DestroyDispatchEnvState(DispatchEnvState* state)
     delete state;
 }
 
-void DestroyDispatchCallEnv(DispatchCallEnv* call_env)
-{
-    delete call_env;
-}
-
 void RetireDispatchCallEnv(DispatchCallEnv* call_env)
 {
     if (call_env == nullptr || call_env->retired) {
@@ -705,22 +699,16 @@ struct PlatformAsyncWorkBridge {
     void* data;
 };
 
-using BeginNativeAsyncCallback = int32_t (*)(napi_env, uint64_t*);
-using EndNativeAsyncCallback = int32_t (*)(napi_env, uint64_t);
-
 bool BeginNativeCallbackScope(PlatformAsyncWorkBridge* bridge, uint64_t& scope_id)
 {
-    auto begin = reinterpret_cast<BeginNativeAsyncCallback>(
-        dlsym(RTLD_DEFAULT, "cangjie_napi_begin_native_async_callback"));
-    return begin != nullptr && begin(bridge->cj_env, &scope_id) == napi_ok;
+    return ace_napi_hook::cj_napi_begin_native_async_callback != nullptr &&
+        ace_napi_hook::cj_napi_begin_native_async_callback(bridge->cj_env, &scope_id) == napi_ok;
 }
 
 void EndNativeCallbackScope(PlatformAsyncWorkBridge* bridge, uint64_t scope_id)
 {
-    auto end = reinterpret_cast<EndNativeAsyncCallback>(
-        dlsym(RTLD_DEFAULT, "cangjie_napi_end_native_async_callback"));
-    if (end != nullptr) {
-        (void)end(bridge->cj_env, scope_id);
+    if (ace_napi_hook::cj_napi_end_native_async_callback != nullptr) {
+        (void)ace_napi_hook::cj_napi_end_native_async_callback(bridge->cj_env, scope_id);
     }
 }
 
@@ -798,9 +786,7 @@ extern "C" CJ_EXPORT int32_t CJNAPI_QueuePlatformAsyncWork(
 extern "C" CJ_EXPORT int32_t CJNAPI_QueuePlatformTsfnCall(
     napi_env platform_env, napi_threadsafe_function tsfn, void* data)
 {
-    using DispatchTsfnCall = int32_t (*)(napi_threadsafe_function, void*);
-    auto dispatch = reinterpret_cast<DispatchTsfnCall>(
-        dlsym(RTLD_DEFAULT, "cangjie_napi_dispatch_threadsafe_function"));
+    auto dispatch = ace_napi_hook::cj_napi_dispatch_threadsafe_function;
     if (platform_env == nullptr || tsfn == nullptr || dispatch == nullptr ||
         ace_napi_hook::orig_napi_send_event == nullptr) {
         return napi_invalid_arg;
