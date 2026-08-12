@@ -22,6 +22,7 @@
 #include "database_write_counter.h"
 #include "hilog_tag_wrapper.h"
 #include "json_utils.h"
+#include "nlohmann/json.hpp"
 #include "os_account_manager_wrapper.h"
 
 namespace OHOS {

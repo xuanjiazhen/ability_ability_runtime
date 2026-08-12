@@ -19,6 +19,7 @@
 
 #include "hilog_tag_wrapper.h"
 #include "json_utils.h"
+#include "nlohmann/json.hpp"
 
 namespace OHOS {
 namespace AbilityRuntime {

@@ -25,7 +25,6 @@
 #include "configuration.h"
 #include "js_startup_task.h"
 #include "resource_manager.h"
-#include "nlohmann/json.hpp"
 #include "native_engine/native_value.h"
 
 class NativeReference;
