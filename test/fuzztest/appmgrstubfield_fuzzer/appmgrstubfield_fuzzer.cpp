@@ -74,6 +74,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
         case 4:
             actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::APP_ADD_ABILITY_STAGE_INFO_DONE);
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            OHOS::FuzzUtil::WriteMmapCorruption(parcel, fdp);
             break;
         case 5:
             actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::APP_NOTIFY_MEMORY_LEVEL);

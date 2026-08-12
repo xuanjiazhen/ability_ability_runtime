@@ -126,6 +126,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
         case 1: {
             actualCode = static_cast<uint32_t>(IAmsMgr::Message::KILL_PEOCESS_BY_ABILITY_TOKEN);
             parcel.WriteRemoteObject(nullptr);
+            OHOS::FuzzUtil::WritePipeFdLeak(parcel, fdp);
             break;
         }
         case 2: {

@@ -138,6 +138,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteString(FuzzUtil::BuildUriAttackString(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             WriteMaliciousDataObsOption(parcel, fdp);
+            OHOS::FuzzUtil::WriteUncheckedReadResult(parcel, fdp);
             break;
         case 5:
             actualCode = static_cast<uint32_t>(IDataObsMgr::REGISTER_OBSERVER_EXT);

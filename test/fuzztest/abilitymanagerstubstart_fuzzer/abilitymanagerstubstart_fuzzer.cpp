@@ -84,6 +84,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             }
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
+            parcel.WriteString(OHOS::FuzzUtil::BuildSymlinkAttack(fdp));
             break;
         }
         case 3: {
@@ -121,6 +122,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             if (hasCaller) {
                 parcel.WriteRemoteObject(nullptr);
             }
+            parcel.WriteInt32(FuzzUtil::BuildClientSuppliedUid(fdp));
             bool hasAsCaller = fdp.ConsumeBool();
             parcel.WriteBool(hasAsCaller);
             if (hasAsCaller) {
@@ -129,6 +131,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             OHOS::FuzzUtil::WriteUntrustedCallerData(parcel, fdp);
+            OHOS::FuzzUtil::WriteSemanticPrivilegeEscalation(parcel, fdp);
             break;
         }
         default:

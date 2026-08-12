@@ -168,6 +168,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
                 parcel.WriteParcelable(&sessionInfo);
             }
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteString(OHOS::FuzzUtil::BuildSymlinkAttack(fdp));
             break;
         }
         case 9: {

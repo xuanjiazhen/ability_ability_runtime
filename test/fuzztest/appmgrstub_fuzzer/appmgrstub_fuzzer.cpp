@@ -94,6 +94,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
         case 7:
             actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::APP_NOTIFY_MEMORY_LEVEL);
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteString(OHOS::FuzzUtil::GenStrcpyOverflowString(fdp, 64));
             break;
         case 8:
             actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::SCHEDULE_ACCEPT_WANT_DONE);

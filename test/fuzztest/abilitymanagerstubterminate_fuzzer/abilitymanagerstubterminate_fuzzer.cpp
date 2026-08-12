@@ -140,6 +140,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             actualCode = static_cast<uint32_t>(AbilityManagerInterfaceCode::RELEASE_DATA_ABILITY);
             parcel.WriteRemoteObject(nullptr);
             parcel.WriteRemoteObject(nullptr);
+            OHOS::FuzzUtil::WriteFdLeakPattern(parcel, fdp);
             break;
         }
         case 10: {
@@ -159,6 +160,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             OHOS::FuzzUtil::WriteMaliciousPermission(parcel, fdp);
             OHOS::FuzzUtil::WriteSemanticPrivilegeEscalation(parcel, fdp);
             OHOS::FuzzUtil::WriteUntrustedCallerData(parcel, fdp);
+            parcel.WriteString(OHOS::FuzzUtil::BuildToctouPath(fdp));
             break;
         }
         case 12: {

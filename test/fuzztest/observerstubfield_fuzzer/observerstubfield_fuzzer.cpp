@@ -139,6 +139,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             switch (code % 3) {
                 case 0:
                     actualCode = IDataAbilityObserver::DATA_ABILITY_OBSERVER_CHANGE;
+                    parcel.WriteString(OHOS::FuzzUtil::BuildUriAttackString(fdp));
                     break;
                 case 1:
                     actualCode = IDataAbilityObserver::DATA_ABILITY_OBSERVER_CHANGE_EXT;
