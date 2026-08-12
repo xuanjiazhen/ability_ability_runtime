@@ -42,6 +42,7 @@
 #include "app_recovery_mgr.h"
 #include "app_state_observer_manager.h"
 #include "app_utils.h"
+#include "system_recovery_mode_framework.h"
 #include "appfreeze_manager.h"
 #include "application_state_filter.h"
 #include "application_state_observer_stub.h"
@@ -529,6 +530,8 @@ void AppMgrServiceInner::Init()
     AppNativeSpawnManager::GetInstance().InitNativeSpawnMsgPipe(appRunningManager_);
     AppHybridSpawnManager::GetInstance().InitHybridSpawnMsgPipe(weak_from_this());
     AppPidFdManager::GetInstance().Init(weak_from_this(), taskHandler_);
+    // foundation 启动后由系统恢复模式框架通过现有 IPC 应用恢复模式策略。
+    SystemRecoveryModeFramework::GetInstance().Start(taskHandler_);
 }
 
 AppMgrServiceInner::~AppMgrServiceInner()
@@ -12965,6 +12968,10 @@ int32_t AppMgrServiceInner::PreCheckStartProcess(const std::string &bundleName, 
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR,
         "bundleName: %{public}s, uid: %{public}d", bundleName.c_str(), uid);
+    if (AAFwk::SystemRecoveryModePolicy::GetInstance().ShouldBlockBundle(bundleName)) {
+        TAG_LOGW(AAFwkTag::APPMGR, "block process in system recovery mode: %{public}s", bundleName.c_str());
+        return AAFwk::ERR_SYSTEM_RECOVERY_MODE_BLOCKED;
+    }
     if (!IsUninstallingOrUpgrading(uid)) {
         return ERR_OK;
     }

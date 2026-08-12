@@ -616,6 +616,15 @@ enum class AbilityManagerInterfaceCode {
     // ipc for block all apps from starting
     BLOCK_ALL_APP_START = 6119,
 
+    // ipc for querying system recovery mode state
+    IS_SYSTEM_RECOVERY_MODE = 6179,
+
+    // ipc for querying whether a bundle is allowed in system recovery mode
+    IS_SYSTEM_RECOVERY_APP_ALLOWED = 6180,
+
+    // ipc for querying the system recovery application whitelist
+    GET_SYSTEM_RECOVERY_APP_WHITELIST = 6181,
+
     // update associate config list
     UPDATE_ASSOCIATE_CONFIG_LIST = 6120,
 

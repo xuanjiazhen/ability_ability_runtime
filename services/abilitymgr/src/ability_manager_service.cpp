@@ -115,6 +115,8 @@
 #include "start_ability_utils.h"
 #include "start_options_utils.h"
 #include "startup_util.h"
+#include "system_recovery_mode_framework.h"
+#include "system_recovery_mode_policy.h"
 #ifdef ENABLE_CLONE_FOR_ACCOUNT
 #include "clone_for_account_util.h"
 #endif
@@ -334,6 +336,27 @@ bool IsEmbeddableStart(int32_t screenMode)
     return screenMode == AAFwk::EMBEDDED_FULL_SCREEN_MODE ||
         screenMode == AAFwk::EMBEDDED_HALF_SCREEN_MODE;
 }
+
+// 通过 BMS 的 UID 转换接口识别 Backup SA，避免在 ability_runtime 中依赖具体的系统 UID 数值。
+bool IsBackupSaCaller()
+{
+    if (!PermissionVerification::GetInstance()->IsSACall()) {
+        return false;
+    }
+
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to get bundle manager helper for backup caller");
+        return false;
+    }
+
+    std::string callerName;
+    if (IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(IPCSkeleton::GetCallingUid(), callerName)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to resolve caller name from uid");
+        return false;
+    }
+    return callerName == SYSTEM_RECOVERY_BACKUP_SA_NAME;
+}
 } // namespace
 
 using namespace std::chrono;
@@ -539,11 +562,16 @@ void AbilityManagerService::InitInterceptor()
     afterCheckExecuter_->AddInterceptor("DisposedRule", std::make_shared<DisposedRuleInterceptor>());
     afterCheckExecuter_->AddInterceptor("EcologicalRule", std::make_shared<EcologicalRuleInterceptor>());
     afterCheckExecuter_->SetTaskHandler(taskHandler_);
-    if (AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "create BlockAllAppStartInterceptor");
-        blockAllAppStartInterceptor_ = std::make_shared<BlockAllAppStartInterceptor>();
-        InitBlockAllAppStartInterceptorCallbacks();
+    bool isAppJumpEnabled = OHOS::system::GetBoolParameter(
+        OHOS::AppExecFwk::PARAMETER_APP_JUMP_INTERCEPTOR_ENABLE, false);
+    if (isAppJumpEnabled) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "app jump enabled, add abilityJumpInterceptor");
+        interceptorExecuter_->AddInterceptor("AbilityJump", std::make_shared<AbilityJumpInterceptor>());
     }
+    // 拦截器常驻，恢复模式启动时由 AppMgr 控制器通过既有 IPC 启用。
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "create BlockAllAppStartInterceptor");
+    blockAllAppStartInterceptor_ = std::make_shared<BlockAllAppStartInterceptor>();
+    InitBlockAllAppStartInterceptorCallbacks();
 }
 
 void AbilityManagerService::InitBlockAllAppStartInterceptorCallbacks()
@@ -558,6 +586,27 @@ void AbilityManagerService::InitBlockAllAppStartInterceptorCallbacks()
     blockAllAppStartInterceptor_->SetIsAbilityStartedFunc([aams](AbilityRequest& req, int32_t userId) {
         std::shared_ptr<AbilityRecord> targetRecord;
         return aams->IsAbilityStarted(req, targetRecord, userId);
+    });
+    blockAllAppStartInterceptor_->SetAllowStartFunc([](const AbilityRequest &request) {
+        auto &policy = SystemRecoveryModePolicy::GetInstance();
+        if (!policy.IsEnabled()) {
+            return false;
+        }
+
+        // Backup SA 使用 ConnectAbility 启动用户选择的 BackupExtensionAbility。
+        // 只有已解析为 BACKUP 类型且调用者确认为 Backup SA 时才放行；不能因为目标应用在恢复白名单中，
+        // 就让普通调用者间接启动该应用的 BackupExtensionAbility。
+        if (request.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::BACKUP) {
+            // ConnectLocalAbility 后续已有 BackupExtensionAbility 的 CONNECT_BACKUP_EXTENSION 权限校验，
+            // 这里仅负责确认调用者身份和目标类型，避免重复造一套权限判断。
+            return IsBackupSaCaller();
+        }
+
+        // 普通 Ability 仍按恢复模式白名单判断。
+        return policy.IsRecoveryEssentialBundle(request.abilityInfo.bundleName);
+    });
+    blockAllAppStartInterceptor_->SetStrictBlockFunc([]() {
+        return SystemRecoveryModePolicy::GetInstance().IsEnabled();
     });
 }
 
@@ -6138,7 +6187,12 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
     AbilityInterceptorParam interceptorParam = AbilityInterceptorParam(checkedWant, 0, GetValidUserId(userId), false,
         nullptr, shouldBlockFunc);
     interceptorParam.fromConnect = true;
-    auto blockResult = ExecuteBlockAllAppStartInterceptor();
+    // Backup SA 通过 ConnectAbility 连接用户选择的 BackupExtension。恢复模式下原生 SA
+    // 暂缓无目标信息的早期门禁，待 ConnectLocalAbility 解析出真实 AbilityInfo 后再判断；
+    // 普通应用仍在这里直接被拒绝，避免为应用调用者扩大解析窗口。
+    const bool deferRecoveryBlock = SystemRecoveryModePolicy::GetInstance().IsEnabled() &&
+        IsBackupSaCaller() && !CheckIfOperateRemote(checkedWant);
+    auto blockResult = deferRecoveryBlock ? ERR_OK : ExecuteBlockAllAppStartInterceptor();
     result = interceptorExecuter_ == nullptr ? ERR_INVALID_VALUE :
         interceptorExecuter_->DoProcess(interceptorParam);
     ErrCode finalResult = (blockResult != ERR_OK) ? blockResult : result;
@@ -6550,6 +6604,11 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
     }
 
     abilityRequest.userId = validUserId;
+    result = ExecuteBlockAllAppStartInterceptor(abilityRequest, validUserId);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "blockAllAppStartInterceptor failed: %{public}d", result);
+        return result;
+    }
     if (!HandleExecuteSAInterceptor(want, callerToken, abilityRequest, result)) {
         return result;
     }
@@ -17721,12 +17780,16 @@ int32_t AbilityManagerService::BlockAllAppStart(bool flag)
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "BlockAllAppStart called, flag: %{public}d", flag);
 
-    if (!AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
+    if (flag && !AppUtils::GetInstance().IsStartOptionsWithAnimation() &&
+        !SystemRecoveryModePolicy::GetInstance().IsEnabled()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not supported device");
         return ERR_PERMISSION_DENIED;
     }
 
-    if (!PermissionVerification::GetInstance()->VerifyBlockAllAppStartPermission()) {
+    // 恢复模式控制器与 AMS 同属 foundation UID；其余调用方继续沿用原权限校验。
+    const bool isRecoveryController = IPCSkeleton::GetCallingUid() == FOUNDATION_UID &&
+        (SystemRecoveryModePolicy::GetInstance().IsEnabled() || !flag);
+    if (!isRecoveryController && !PermissionVerification::GetInstance()->VerifyBlockAllAppStartPermission()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Permission verification failed");
         return ERR_PERMISSION_DENIED;
     }
@@ -17738,9 +17801,28 @@ int32_t AbilityManagerService::BlockAllAppStart(bool flag)
     return ERR_OK;
 }
 
+int32_t AbilityManagerService::IsSystemRecoveryMode(bool &isRecoveryMode)
+{
+    isRecoveryMode = AppExecFwk::SystemRecoveryModeFramework::GetInstance().IsSystemRecoveryMode();
+    return ERR_OK;
+}
+
+int32_t AbilityManagerService::IsSystemRecoveryAppAllowed(const std::string &bundleName, bool &isAllowed)
+{
+    isAllowed = AppExecFwk::SystemRecoveryModeFramework::GetInstance().IsSystemRecoveryAppAllowed(bundleName);
+    return ERR_OK;
+}
+
+int32_t AbilityManagerService::GetSystemRecoveryAppWhitelist(std::vector<std::string> &bundleNames)
+{
+    AppExecFwk::SystemRecoveryModeFramework::GetInstance().GetSystemRecoveryAppWhitelist(bundleNames);
+    return ERR_OK;
+}
+
 bool AbilityManagerService::ShouldBlockAllAppStart()
 {
-    if (!AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
+    if (!AppUtils::GetInstance().IsStartOptionsWithAnimation() &&
+        !SystemRecoveryModePolicy::GetInstance().IsEnabled()) {
         return false;
     }
 

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 系统恢复模式全屏水印，作为系统资源由恢复框架加载。 -->
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="96" viewBox="0 0 720 96">
+  <text x="360" y="60" text-anchor="middle" font-family="sans-serif" font-size="42"
+        fill="#FFFFFF" fill-opacity="0.5">系统恢复模式</text>
+</svg>

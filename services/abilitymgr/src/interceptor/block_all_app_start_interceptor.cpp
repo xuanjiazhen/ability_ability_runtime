@@ -33,6 +33,16 @@ void BlockAllAppStartInterceptor::SetIsAbilityStartedFunc(const IsAbilityStarted
     isAbilityStartedFunc_ = func;
 }
 
+void BlockAllAppStartInterceptor::SetAllowStartFunc(const AllowStartFunc& func)
+{
+    allowStartFunc_ = func;
+}
+
+void BlockAllAppStartInterceptor::SetStrictBlockFunc(const std::function<bool()>& func)
+{
+    strictBlockFunc_ = func;
+}
+
 ErrCode BlockAllAppStartInterceptor::Execute()
 {
     if (!shouldBlockFunc_) {
@@ -43,7 +53,7 @@ ErrCode BlockAllAppStartInterceptor::Execute()
         return ERR_OK;
     }
 
-    TAG_LOGE(AAFwkTag::ABILITYMGR, "blocking app start due to low memory");
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "blocking app start by current system policy");
     return ERR_ALL_APP_START_BLOCKED;
 }
 
@@ -61,6 +71,19 @@ ErrCode BlockAllAppStartInterceptor::Execute(AbilityRequest& abilityRequest, int
         return ERR_OK;
     }
 
+    // 恢复模式复用现有全局启动拦截器，白名单应用和受控备份扩展在拦截前直接放行。
+    const auto &bundleName = abilityRequest.abilityInfo.bundleName;
+    if (allowStartFunc_ && allowStartFunc_(abilityRequest)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "allow app in current system policy, bundle=%{public}s", bundleName.c_str());
+        return ERR_OK;
+    }
+
+    // 恢复模式只允许白名单应用，不能沿用低内存场景“已启动页面可继续拉起”的例外。
+    if (strictBlockFunc_ && strictBlockFunc_()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "blocking non-essential app in system recovery mode");
+        return ERR_ALL_APP_START_BLOCKED;
+    }
+
     if (abilityRequest.abilityInfo.type == AppExecFwk::AbilityType::PAGE) {
         if (isAbilityStartedFunc_(abilityRequest, validUserId)) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "UIAbility already started, allowing start despite block mode");
@@ -68,18 +91,20 @@ ErrCode BlockAllAppStartInterceptor::Execute(AbilityRequest& abilityRequest, int
         }
     }
 
-    TAG_LOGE(AAFwkTag::ABILITYMGR, "blocking app start due to low memory");
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "blocking app start by current system policy");
     return ERR_ALL_APP_START_BLOCKED;
 }
 
 ErrCode BlockAllAppStartInterceptor::DoProcess(const AbilityInterceptorParam &param)
 {
+    // DoProcess 执行时目标 Ability 可能尚未解析，不能在这里根据 Want 参数放行 BackupExtension；
+    // 受控备份例外只在 Execute(AbilityRequest&) 中对已解析的真实目标进行判断。
     if (param.shouldBlockAllAppStartFunc_ == nullptr) {
         TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "shouldBlockAllAppStartFunc_ is nullptr");
         return ERR_INVALID_VALUE;
     }
     if (param.shouldBlockAllAppStartFunc_()) {
-        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "blocking app start due to low memory");
+        TAG_LOGE(AAFwkTag::ECOLOGICAL_RULE, "blocking app start by current system policy");
         return ERR_ALL_APP_START_BLOCKED;
     }
     return ERR_OK;
