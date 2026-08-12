@@ -15,6 +15,7 @@
 
 #include "ability_manager_service.h"
 
+#include <cJSON.h>
 #include <charconv>
 #include <sys/epoll.h>
 #include <unordered_map>
@@ -384,6 +385,17 @@ constexpr int32_t MAX_BUFFER = 2048;
 constexpr int32_t API12 = 12;
 constexpr int32_t API_VERSION_MOD = 100;
 constexpr const char* WHITE_LIST = "white_list";
+constexpr const char* EXPOSED_WHITE_LIST = "exposed_white_list";
+
+struct CJsonDeleter {
+    void operator()(cJSON *p) const
+    {
+        if (p != nullptr) {
+            cJSON_Delete(p);
+        }
+    }
+};
+using cJSONUniquePtr = std::unique_ptr<cJSON, CJsonDeleter>;
 constexpr const char* SUPPORT_COLLABORATE_INDEX = "ohos.extra.param.key.supportCollaborateIndex";
 constexpr const char* COLLABORATE_KEY = "ohos.dms.collabToken";
 constexpr const char* IS_CALLING_FROM_DMS = "supportCollaborativeCallingFromDmsInAAFwk";
@@ -16855,31 +16867,71 @@ bool AbilityManagerService::IsInWhiteList(const std::string &callerBundleName, c
 
 bool AbilityManagerService::ParseJsonFromBoot(const std::string &relativePath)
 {
-    nlohmann::json jsonObj;
     std::string absolutePath = GetConfigFileAbsolutePath(relativePath);
-    if (ParseJsonValueFromFile(jsonObj, absolutePath) != ERR_OK) {
+    if (absolutePath.empty()) {
         return false;
     }
+    std::ifstream fin;
+    std::string realPath;
+    if (!ConvertFullPath(absolutePath, realPath)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get real path failed");
+        return false;
+    }
+    fin.open(realPath, std::ios::in);
+    if (!fin.is_open()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "can't open file %{private}s", realPath.c_str());
+        return false;
+    }
+    char buffer[MAX_BUFFER];
+    std::ostringstream os;
+    while (fin.getline(buffer, MAX_BUFFER)) {
+        os << buffer;
+    }
+    const std::string data = os.str();
+
+    cJSON *rootRaw = cJSON_Parse(data.c_str());
+    if (rootRaw == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to parse json: %{private}s", realPath.c_str());
+        return false;
+    }
+    cJSONUniquePtr root(rootRaw);
+    if (!cJSON_IsObject(root.get())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "root is not object");
+        return false;
+    }
+
     std::lock_guard<std::mutex> locker(whiteListMutex_);
-    nlohmann::json whiteListJsonList = jsonObj[WHITE_LIST];
-    for (const auto& [key, value] : whiteListJsonList.items()) {
-        if (!value.is_array()) {
-            continue;
-        }
-        whiteListMap_.emplace(key, std::list<std::string>());
-        for (const auto& it : value) {
-            if (it.is_string()) {
-                whiteListMap_[key].push_back(it);
+    cJSON *whiteList = cJSON_GetObjectItem(root.get(), WHITE_LIST);
+    if (whiteList != nullptr && cJSON_IsObject(whiteList)) {
+        for (cJSON *group = whiteList->child; group != nullptr; group = group->next) {
+            if (!cJSON_IsArray(group)) {
+                continue;
             }
+            std::string key = (group->string != nullptr) ? group->string : "";
+            std::list<std::string> entries;
+            cJSON *entry = nullptr;
+            cJSON_ArrayForEach(entry, group) {
+                if (cJSON_IsString(entry)) {
+                    entries.emplace_back(entry->valuestring);
+                }
+            }
+            whiteListMap_.emplace(std::move(key), std::move(entries));
         }
     }
-    if (!jsonObj.contains("exposed_white_list")) {
+
+    cJSON *exposedList = cJSON_GetObjectItem(root.get(), EXPOSED_WHITE_LIST);
+    if (exposedList == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "exposed_white_list not found");
         return false;
     }
-    nlohmann::json exportWhiteJsonList = jsonObj["exposed_white_list"];
-    for (const auto& it : exportWhiteJsonList) {
-        if (it.is_string()) {
-            exportWhiteList_.push_back(it);
+    if (!cJSON_IsArray(exposedList)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "exposed_white_list is not array");
+        return false;
+    }
+    cJSON *entry = nullptr;
+    cJSON_ArrayForEach(entry, exposedList) {
+        if (cJSON_IsString(entry)) {
+            exportWhiteList_.emplace_back(entry->valuestring);
         }
     }
     return true;
@@ -16899,33 +16951,6 @@ std::string AbilityManagerService::GetConfigFileAbsolutePath(const std::string &
         return "";
     }
     return std::string(absolutePath);
-}
-
-int32_t AbilityManagerService::ParseJsonValueFromFile(nlohmann::json &value, const std::string &filePath)
-{
-    std::ifstream fin;
-    std::string realPath;
-    if (!ConvertFullPath(filePath, realPath)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "get real path failed");
-        return ERR_INVALID_VALUE;
-    }
-    fin.open(realPath, std::ios::in);
-    if (!fin.is_open()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "can't open file %{private}s", realPath.c_str());
-        return ERR_INVALID_VALUE;
-    }
-    char buffer[MAX_BUFFER];
-    std::ostringstream os;
-    while (fin.getline(buffer, MAX_BUFFER)) {
-        os << buffer;
-    }
-    const std::string data = os.str();
-    value = nlohmann::json::parse(data, nullptr, false);
-    if (value.is_discarded()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed due data discarded");
-        return ERR_INVALID_VALUE;
-    }
-    return ERR_OK;
 }
 
 bool AbilityManagerService::ConvertFullPath(const std::string& partialPath, std::string& fullPath)
