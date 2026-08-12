@@ -40,6 +40,8 @@ bool FindNativeModule(const char* module_name, NativeModule* result);
 }  // namespace ace_napi_hook
 
 extern "C" CJ_EXPORT void ACE_NAPI_HOOK_InitOrAbort();
+extern "C" CJ_EXPORT void ACE_NAPI_HOOK_RegisterCangjieResolver(
+    void* (*resolver)(const char* symbol_name));
 extern "C" CJ_EXPORT void ACE_NAPI_HOOK_RefreshOrAbort(const char* so_path);
 extern "C" CJ_EXPORT void ACE_NAPI_HOOK_RefreshManyOrAbort(const char* primary_path,
                                                   const char* const* additional_paths,

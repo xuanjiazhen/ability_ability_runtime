@@ -23,6 +23,8 @@
 
 namespace ace_napi_hook {
 
+using CangjieSymbolResolver = void* (*)(const char* symbol_name);
+
 #define NAPI_HOOK_API(api, cj_api, ret, sig, cj_args, orig_args, has_env) \
     using api##_fn = ret (*) sig; \
     extern api##_fn orig_##api; \
@@ -112,9 +114,19 @@ using uv_close_fn = void (*)(uv_handle_t* handle, uv_close_cb close_cb);
 extern uv_close_fn orig_uv_close;
 extern uv_close_fn cj_uv_close;
 
+using napi_begin_native_async_callback_fn = napi_status (*)(napi_env env, uint64_t* scope_id);
+extern napi_begin_native_async_callback_fn cj_napi_begin_native_async_callback;
+
+using napi_end_native_async_callback_fn = napi_status (*)(napi_env env, uint64_t scope_id);
+extern napi_end_native_async_callback_fn cj_napi_end_native_async_callback;
+
+using napi_dispatch_threadsafe_function_fn = napi_status (*)(napi_threadsafe_function func, void* data);
+extern napi_dispatch_threadsafe_function_fn cj_napi_dispatch_threadsafe_function;
+
+bool RegisterCangjieSymbolResolver(CangjieSymbolResolver resolver);
+void* ResolveCangjieSymbol(const char* symbol_name);
 bool InitNapiHookSymbols();
 
 }  // namespace ace_napi_hook
 
 #endif
-
