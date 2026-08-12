@@ -56,6 +56,7 @@ ohos_shared_library("intent_client") {
     "ability_base:base",
     "ability_base:want",
     "c_utils:utils",
+    "cJSON:cjson",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_core",

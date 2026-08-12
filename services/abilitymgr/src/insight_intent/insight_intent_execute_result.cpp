@@ -15,6 +15,8 @@
 
 #include "insight_intent_execute_result.h"
 
+#include <cJSON.h>
+
 #include "array_wrapper.h"
 #include "hilog_tag_wrapper.h"
 #include "int_wrapper.h"
@@ -51,6 +53,16 @@ constexpr const char *KEY_ABILITY_NAME = "abilityName";
 constexpr const char *KEY_UI_EXTENSION_TYPE = "uiExtensionType";
 constexpr const char *KEY_URI = "uri";
 constexpr const char *KEY_PARAMETERS = "parameters";
+
+struct CJsonDeleter {
+    void operator()(cJSON *p) const
+    {
+        if (p != nullptr) {
+            cJSON_Delete(p);
+        }
+    }
+};
+using cJSONUniquePtr = std::unique_ptr<cJSON, CJsonDeleter>;
 } // namespace
 
 bool InteractionUI::Marshalling(Parcel &parcel) const
@@ -217,35 +229,46 @@ InsightIntentExecuteResult *InsightIntentExecuteResult::Unmarshalling(Parcel &pa
     return res;
 }
 
-static void ParseWantParamsField(const nlohmann::json &jsonObject,
-    const char *key, std::shared_ptr<WantParams> &field)
+static void ParseWantParamsField(const cJSON *root, const char *key, std::shared_ptr<WantParams> &field)
 {
-    if (!jsonObject.contains(key)) {
+    cJSON *node = cJSON_GetObjectItem(root, key);
+    if (node == nullptr) {
         return;
     }
-    const auto &json = jsonObject.at(key);
-    if (json.is_object()) {
-        field = std::make_shared<WantParams>();
-        OHOS::AAFwk::from_json(json, *field);
-    } else if (json.is_null()) {
+    if (cJSON_IsNull(node)) {
         field = nullptr;
+        return;
     }
+    if (!cJSON_IsObject(node)) {
+        return;
+    }
+    char *nodeStr = cJSON_PrintUnformatted(node);
+    if (nodeStr == nullptr) {
+        return;
+    }
+    nlohmann::json j = nlohmann::json::parse(nodeStr, nullptr, false);
+    free(nodeStr);
+    if (j.is_discarded() || !j.is_object()) {
+        return;
+    }
+    field = std::make_shared<WantParams>();
+    OHOS::AAFwk::from_json(j, *field);
 }
 
-static bool ParseInteractionInfo(const nlohmann::json &jsonObject,
-    std::shared_ptr<InteractionInfo> &interactionInfo)
+static bool ParseInteractionInfo(const cJSON *root, std::shared_ptr<InteractionInfo> &interactionInfo)
 {
-    if (!jsonObject.contains(KEY_INTERACTION_INFO) || !jsonObject.at(KEY_INTERACTION_INFO).is_object()) {
+    cJSON *infoNode = cJSON_GetObjectItem(root, KEY_INTERACTION_INFO);
+    if (infoNode == nullptr || !cJSON_IsObject(infoNode)) {
         return true;
     }
-    const auto &infoJson = jsonObject.at(KEY_INTERACTION_INFO);
-    if (!infoJson.contains(KEY_INTERACTION_UI) || !infoJson.at(KEY_INTERACTION_UI).is_object()) {
+    cJSON *uiNode = cJSON_GetObjectItem(infoNode, KEY_INTERACTION_UI);
+    if (uiNode == nullptr || !cJSON_IsObject(uiNode)) {
         return true;
     }
-    const auto &uiJson = infoJson.at(KEY_INTERACTION_UI);
     std::string uiType;
-    if (uiJson.contains(KEY_INTERACTION_UI_TYPE) && uiJson.at(KEY_INTERACTION_UI_TYPE).is_string()) {
-        uiType = uiJson.at(KEY_INTERACTION_UI_TYPE).get<std::string>();
+    cJSON *typeNode = cJSON_GetObjectItem(uiNode, KEY_INTERACTION_UI_TYPE);
+    if (cJSON_IsString(typeNode) && typeNode->valuestring != nullptr) {
+        uiType = typeNode->valuestring;
     }
     auto info = std::make_shared<InteractionInfo>();
     if (uiType != INTERACTION_UI_TYPE_MODAL_UIEXTENSION) {
@@ -255,22 +278,27 @@ static bool ParseInteractionInfo(const nlohmann::json &jsonObject,
     } else {
         auto modal = std::make_shared<InteractionModalUIExtension>();
         modal->interactionUIType = uiType;
-        if (uiJson.contains(KEY_BUNDLE_NAME) && uiJson.at(KEY_BUNDLE_NAME).is_string()) {
-            modal->bundleName = uiJson.at(KEY_BUNDLE_NAME).get<std::string>();
+        cJSON *bundleNode = cJSON_GetObjectItem(uiNode, KEY_BUNDLE_NAME);
+        if (cJSON_IsString(bundleNode) && bundleNode->valuestring != nullptr) {
+            modal->bundleName = bundleNode->valuestring;
         }
-        if (uiJson.contains(KEY_ABILITY_NAME) && uiJson.at(KEY_ABILITY_NAME).is_string()) {
-            modal->abilityName = uiJson.at(KEY_ABILITY_NAME).get<std::string>();
+        cJSON *abilityNode = cJSON_GetObjectItem(uiNode, KEY_ABILITY_NAME);
+        if (cJSON_IsString(abilityNode) && abilityNode->valuestring != nullptr) {
+            modal->abilityName = abilityNode->valuestring;
         }
-        if (uiJson.contains(KEY_MODULE_NAME) && uiJson.at(KEY_MODULE_NAME).is_string()) {
-            modal->moduleName = uiJson.at(KEY_MODULE_NAME).get<std::string>();
+        cJSON *moduleNode = cJSON_GetObjectItem(uiNode, KEY_MODULE_NAME);
+        if (cJSON_IsString(moduleNode) && moduleNode->valuestring != nullptr) {
+            modal->moduleName = moduleNode->valuestring;
         }
-        if (uiJson.contains(KEY_UI_EXTENSION_TYPE) && uiJson.at(KEY_UI_EXTENSION_TYPE).is_string()) {
-            modal->uiExtensionType = uiJson.at(KEY_UI_EXTENSION_TYPE).get<std::string>();
+        cJSON *uiExtTypeNode = cJSON_GetObjectItem(uiNode, KEY_UI_EXTENSION_TYPE);
+        if (cJSON_IsString(uiExtTypeNode) && uiExtTypeNode->valuestring != nullptr) {
+            modal->uiExtensionType = uiExtTypeNode->valuestring;
         }
-        if (uiJson.contains(KEY_URI) && uiJson.at(KEY_URI).is_string()) {
-            modal->uri = uiJson.at(KEY_URI).get<std::string>();
+        cJSON *uriNode = cJSON_GetObjectItem(uiNode, KEY_URI);
+        if (cJSON_IsString(uriNode) && uriNode->valuestring != nullptr) {
+            modal->uri = uriNode->valuestring;
         }
-        ParseWantParamsField(uiJson, KEY_PARAMETERS, modal->parameters);
+        ParseWantParamsField(uiNode, KEY_PARAMETERS, modal->parameters);
         info->interactionUI = modal;
     }
     if (!InsightIntentExecuteResult::CheckInteractionInfo(*info)) {
@@ -282,91 +310,98 @@ static bool ParseInteractionInfo(const nlohmann::json &jsonObject,
 }
 
 namespace {
-class DepthLimitSax : public nlohmann::json_sax<nlohmann::json> {
-public:
-    explicit DepthLimitSax(size_t maxDepth) : maxDepth_(maxDepth) {}
-    bool null() override { return true; }
-    bool boolean(bool) override { return true; }
-    bool number_integer(nlohmann::json::number_integer_t) override { return true; }
-    bool number_unsigned(nlohmann::json::number_unsigned_t) override { return true; }
-    bool number_float(nlohmann::json::number_float_t, const nlohmann::json::string_t&) override { return true; }
-    bool string(nlohmann::json::string_t&) override { return true; }
-    bool binary(nlohmann::json::binary_t&) override { return true; }
-    bool start_object(size_t) override { return ++depth_ <= maxDepth_; }
-    bool end_object() override
-    {
-        if (depth_ > 0) {
-            --depth_;
-        }
+bool CheckCJsonDepthRecursive(const cJSON *node, size_t currentDepth, size_t maxDepth)
+{
+    if (currentDepth > maxDepth) {
+        return false;
+    }
+    if (node == nullptr) {
         return true;
     }
-    bool start_array(size_t) override { return ++depth_ <= maxDepth_; }
-    bool end_array() override
-    {
-        if (depth_ > 0) {
-            --depth_;
+    if (node->child != nullptr) {
+        if (!CheckCJsonDepthRecursive(node->child, currentDepth + 1, maxDepth)) {
+            return false;
         }
-        return true;
     }
-    bool key(nlohmann::json::string_t&) override { return true; }
-    bool parse_error(size_t, const std::string&, const nlohmann::detail::exception&) override { return false; }
-private:
-    size_t depth_ = 0;
-    size_t maxDepth_ = 0;
-};
+    return CheckCJsonDepthRecursive(node->next, currentDepth, maxDepth);
 }
 
-static bool CheckJsonDepth(const std::string &jsonStr, size_t maxDepth)
+bool CheckCJsonDepth(const cJSON *root, size_t maxDepth)
 {
-    DepthLimitSax handler(maxDepth);
-    if (!nlohmann::json::sax_parse(jsonStr, &handler)) {
-        TAG_LOGW(AAFwkTag::INTENT, "json depth exceeds limit or parse error");
+    if (root == nullptr) {
+        return false;
+    }
+    // depth 从 1 开始（root 算第 1 层）
+    if (!CheckCJsonDepthRecursive(root->child, 1, maxDepth)) {
+        TAG_LOGW(AAFwkTag::INTENT, "json depth exceeds limit");
         return false;
     }
     return true;
 }
+} // namespace
 
-static void ParseScalarFields(const nlohmann::json &jsonObject, InsightIntentExecuteResult &result)
+static void ParseScalarFields(const cJSON *root, InsightIntentExecuteResult &result)
 {
-    if (jsonObject.contains(KEY_INNER_ERR) && jsonObject.at(KEY_INNER_ERR).is_number_integer()) {
-        result.innerErr = jsonObject.at(KEY_INNER_ERR).get<int32_t>();
+    cJSON *innerErrNode = cJSON_GetObjectItem(root, KEY_INNER_ERR);
+    if (cJSON_IsNumber(innerErrNode)) {
+        result.innerErr = static_cast<int32_t>(innerErrNode->valuedouble);
     }
-    if (jsonObject.contains(KEY_CODE) && jsonObject.at(KEY_CODE).is_number_integer()) {
-        result.code = jsonObject.at(KEY_CODE).get<int32_t>();
+    cJSON *codeNode = cJSON_GetObjectItem(root, KEY_CODE);
+    if (cJSON_IsNumber(codeNode)) {
+        result.code = static_cast<int32_t>(codeNode->valuedouble);
     }
-    if (jsonObject.contains(KEY_FLAGS) && jsonObject.at(KEY_FLAGS).is_number_integer()) {
-        result.flags = jsonObject.at(KEY_FLAGS).get<int32_t>();
+    cJSON *flagsNode = cJSON_GetObjectItem(root, KEY_FLAGS);
+    if (cJSON_IsNumber(flagsNode)) {
+        result.flags = static_cast<int32_t>(flagsNode->valuedouble);
     }
-    if (jsonObject.contains(KEY_IS_DECORATOR) && jsonObject.at(KEY_IS_DECORATOR).is_boolean()) {
-        result.isDecorator = jsonObject.at(KEY_IS_DECORATOR).get<bool>();
+    cJSON *isDecoratorNode = cJSON_GetObjectItem(root, KEY_IS_DECORATOR);
+    if (cJSON_IsBool(isDecoratorNode)) {
+        result.isDecorator = cJSON_IsTrue(isDecoratorNode);
     }
-    if (jsonObject.contains(KEY_IS_NEED_DELAY_RESULT) && jsonObject.at(KEY_IS_NEED_DELAY_RESULT).is_boolean()) {
-        result.isNeedDelayResult = jsonObject.at(KEY_IS_NEED_DELAY_RESULT).get<bool>();
+    cJSON *isNeedDelayNode = cJSON_GetObjectItem(root, KEY_IS_NEED_DELAY_RESULT);
+    if (cJSON_IsBool(isNeedDelayNode)) {
+        result.isNeedDelayResult = cJSON_IsTrue(isNeedDelayNode);
     }
-    if (jsonObject.contains(KEY_IS_QUERY_ENTITY) && jsonObject.at(KEY_IS_QUERY_ENTITY).is_boolean()) {
-        result.isQueryEntity = jsonObject.at(KEY_IS_QUERY_ENTITY).get<bool>();
+    cJSON *isQueryEntityNode = cJSON_GetObjectItem(root, KEY_IS_QUERY_ENTITY);
+    if (cJSON_IsBool(isQueryEntityNode)) {
+        result.isQueryEntity = cJSON_IsTrue(isQueryEntityNode);
     }
 }
 
-static void ParseCollectionFields(const nlohmann::json &jsonObject, InsightIntentExecuteResult &result)
+static void ParseCollectionFields(const cJSON *root, InsightIntentExecuteResult &result)
 {
-    if (jsonObject.contains(KEY_URIS) && jsonObject.at(KEY_URIS).is_array()) {
+    cJSON *urisArray = cJSON_GetObjectItem(root, KEY_URIS);
+    if (cJSON_IsArray(urisArray)) {
         result.uris.clear();
-        for (const auto &item : jsonObject.at(KEY_URIS)) {
-            if (item.is_string()) {
-                result.uris.emplace_back(item.get<std::string>());
+        cJSON *uriItem = nullptr;
+        cJSON_ArrayForEach(uriItem, urisArray)
+        {
+            if (cJSON_IsString(uriItem) && uriItem->valuestring != nullptr) {
+                result.uris.emplace_back(uriItem->valuestring);
             }
         }
     }
-    ParseWantParamsField(jsonObject, KEY_RESULT, result.result);
-    if (jsonObject.contains(KEY_QUERY_RESULTS) && jsonObject.at(KEY_QUERY_RESULTS).is_array()) {
+    ParseWantParamsField(root, KEY_RESULT, result.result);
+    cJSON *queryArray = cJSON_GetObjectItem(root, KEY_QUERY_RESULTS);
+    if (cJSON_IsArray(queryArray)) {
         result.queryResults.clear();
-        for (const auto &item : jsonObject.at(KEY_QUERY_RESULTS)) {
-            if (!item.is_object()) {
+        cJSON *queryItem = nullptr;
+        cJSON_ArrayForEach(queryItem, queryArray)
+        {
+            if (!cJSON_IsObject(queryItem)) {
+                continue;
+            }
+            char *itemStr = cJSON_PrintUnformatted(queryItem);
+            if (itemStr == nullptr) {
+                continue;
+            }
+            nlohmann::json itemJson = nlohmann::json::parse(itemStr, nullptr, false);
+            free(itemStr);
+            if (itemJson.is_discarded() || !itemJson.is_object()) {
                 continue;
             }
             auto queryResult = std::make_shared<WantParams>();
-            OHOS::AAFwk::from_json(item, *queryResult);
+            OHOS::AAFwk::from_json(itemJson, *queryResult);
             result.queryResults.emplace_back(queryResult);
         }
     }
@@ -378,74 +413,117 @@ bool InsightIntentExecuteResult::FromJsonString(const std::string &jsonStr)
         TAG_LOGW(AAFwkTag::INTENT, "json size exceeds limit: %{public}zu", jsonStr.size());
         return false;
     }
-    if (!CheckJsonDepth(jsonStr, MAX_RESULT_JSON_DEPTH)) {
+    cJSON *rootRaw = cJSON_Parse(jsonStr.c_str());
+    if (rootRaw == nullptr) {
+        TAG_LOGW(AAFwkTag::INTENT, "failed to parse json");
         return false;
     }
-    nlohmann::json jsonObject = nlohmann::json::parse(jsonStr, nullptr, false);
-    if (jsonObject.is_discarded() || !jsonObject.is_object()) {
+    cJSONUniquePtr root(rootRaw);
+    if (!cJSON_IsObject(rootRaw)) {
         return false;
     }
-    ParseScalarFields(jsonObject, *this);
-    ParseCollectionFields(jsonObject, *this);
-    return ParseInteractionInfo(jsonObject, interactionInfo);
+    if (!CheckCJsonDepth(rootRaw, MAX_RESULT_JSON_DEPTH)) {
+        return false;
+    }
+    ParseScalarFields(rootRaw, *this);
+    ParseCollectionFields(rootRaw, *this);
+    return ParseInteractionInfo(rootRaw, interactionInfo);
 }
 
-static nlohmann::json BuildInteractionUIJson(const std::shared_ptr<InteractionUI> &ui)
+static cJSON *BuildInteractionUICJson(const std::shared_ptr<InteractionUI> &ui)
 {
-    nlohmann::json uiJson;
-    uiJson[KEY_INTERACTION_UI_TYPE] = ui->interactionUIType;
+    cJSON *uiJson = cJSON_CreateObject();
+    if (uiJson == nullptr) {
+        return nullptr;
+    }
+    cJSON_AddStringToObject(uiJson, KEY_INTERACTION_UI_TYPE, ui->interactionUIType.c_str());
     if (ui->interactionUIType != INTERACTION_UI_TYPE_MODAL_UIEXTENSION) {
         return uiJson;
     }
     auto modalUI = std::static_pointer_cast<InteractionModalUIExtension>(ui);
-    uiJson[KEY_BUNDLE_NAME] = modalUI->bundleName;
-    uiJson[KEY_ABILITY_NAME] = modalUI->abilityName;
-    uiJson[KEY_MODULE_NAME] = modalUI->moduleName;
-    uiJson[KEY_UI_EXTENSION_TYPE] = modalUI->uiExtensionType;
-    uiJson[KEY_URI] = modalUI->uri;
+    cJSON_AddStringToObject(uiJson, KEY_BUNDLE_NAME, modalUI->bundleName.c_str());
+    cJSON_AddStringToObject(uiJson, KEY_ABILITY_NAME, modalUI->abilityName.c_str());
+    cJSON_AddStringToObject(uiJson, KEY_MODULE_NAME, modalUI->moduleName.c_str());
+    cJSON_AddStringToObject(uiJson, KEY_UI_EXTENSION_TYPE, modalUI->uiExtensionType.c_str());
+    cJSON_AddStringToObject(uiJson, KEY_URI, modalUI->uri.c_str());
     if (modalUI->parameters != nullptr) {
         nlohmann::json paramsJson;
         OHOS::AAFwk::to_json(paramsJson, *modalUI->parameters);
-        uiJson[KEY_PARAMETERS] = paramsJson;
+        cJSON *paramsNode = cJSON_Parse(paramsJson.dump().c_str());
+        if (paramsNode != nullptr) {
+            cJSON_AddItemToObject(uiJson, KEY_PARAMETERS, paramsNode);
+        }
     }
     return uiJson;
 }
 
 std::string InsightIntentExecuteResult::ToJsonString() const
 {
-    nlohmann::json jsonObject;
-    jsonObject[KEY_INNER_ERR] = innerErr;
-    jsonObject[KEY_CODE] = code;
-    jsonObject[KEY_FLAGS] = flags;
-    jsonObject[KEY_URIS] = uris;
-    jsonObject[KEY_IS_DECORATOR] = isDecorator;
-    jsonObject[KEY_IS_NEED_DELAY_RESULT] = isNeedDelayResult;
-    jsonObject[KEY_IS_QUERY_ENTITY] = isQueryEntity;
+    cJSON *root = cJSON_CreateObject();
+    if (root == nullptr) {
+        return "";
+    }
+    cJSONUniquePtr rootPtr(root);
+
+    cJSON_AddNumberToObject(root, KEY_INNER_ERR, innerErr);
+    cJSON_AddNumberToObject(root, KEY_CODE, code);
+    cJSON_AddNumberToObject(root, KEY_FLAGS, flags);
+    cJSON_AddBoolToObject(root, KEY_IS_DECORATOR, isDecorator);
+    cJSON_AddBoolToObject(root, KEY_IS_NEED_DELAY_RESULT, isNeedDelayResult);
+    cJSON_AddBoolToObject(root, KEY_IS_QUERY_ENTITY, isQueryEntity);
+
+    cJSON *urisArray = cJSON_CreateArray();
+    if (urisArray != nullptr) {
+        for (const auto &uri : uris) {
+            cJSON_AddItemToArray(urisArray, cJSON_CreateString(uri.c_str()));
+        }
+        cJSON_AddItemToObject(root, KEY_URIS, urisArray);
+    }
 
     if (result != nullptr) {
         nlohmann::json resultJson;
         OHOS::AAFwk::to_json(resultJson, *result);
-        jsonObject[KEY_RESULT] = resultJson;
+        cJSON *resultNode = cJSON_Parse(resultJson.dump().c_str());
+        if (resultNode != nullptr) {
+            cJSON_AddItemToObject(root, KEY_RESULT, resultNode);
+        }
     } else {
-        jsonObject[KEY_RESULT] = nullptr;
+        cJSON_AddNullToObject(root, KEY_RESULT);
     }
 
-    nlohmann::json queryResultsJson = nlohmann::json::array();
-    for (const auto &item : queryResults) {
-        if (item == nullptr) {
-            continue;
+    cJSON *queryArray = cJSON_CreateArray();
+    if (queryArray != nullptr) {
+        for (const auto &item : queryResults) {
+            if (item == nullptr) {
+                continue;
+            }
+            nlohmann::json itemJson;
+            OHOS::AAFwk::to_json(itemJson, *item);
+            cJSON *itemNode = cJSON_Parse(itemJson.dump().c_str());
+            if (itemNode != nullptr) {
+                cJSON_AddItemToArray(queryArray, itemNode);
+            }
         }
-        nlohmann::json itemJson;
-        OHOS::AAFwk::to_json(itemJson, *item);
-        queryResultsJson.emplace_back(itemJson);
+        cJSON_AddItemToObject(root, KEY_QUERY_RESULTS, queryArray);
     }
-    jsonObject[KEY_QUERY_RESULTS] = queryResultsJson;
+
     if (interactionInfo != nullptr && interactionInfo->interactionUI != nullptr) {
-        nlohmann::json infoJson;
-        infoJson[KEY_INTERACTION_UI] = BuildInteractionUIJson(interactionInfo->interactionUI);
-        jsonObject[KEY_INTERACTION_INFO] = infoJson;
+        cJSON *infoJson = cJSON_CreateObject();
+        if (infoJson != nullptr) {
+            cJSON *uiJson = BuildInteractionUICJson(interactionInfo->interactionUI);
+            if (uiJson != nullptr) {
+                cJSON_AddItemToObject(infoJson, KEY_INTERACTION_UI, uiJson);
+                cJSON_AddItemToObject(root, KEY_INTERACTION_INFO, infoJson);
+            } else {
+                cJSON_Delete(infoJson);
+            }
+        }
     }
-    return jsonObject.dump();
+
+    char *str = cJSON_PrintUnformatted(root);
+    std::string out = (str != nullptr) ? str : "";
+    free(str);
+    return out;
 }
 
 bool InsightIntentExecuteResult::CheckResult(std::shared_ptr<const WantParams> result)
