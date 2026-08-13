@@ -933,16 +933,10 @@ void ExtensionRecordManager::GetCallerTokenListInner(
         return;
     }
     auto sessionInfo = abilityRecord->GetSessionInfo();
-    if (!sessionInfo) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "sessionInfo null, id: %{public}d", extensionRecordId);
-        callerList.clear();
-        return;
-    }
-
-    auto callerToken = sessionInfo->callerToken;
+    auto callerToken = sessionInfo ? sessionInfo->callerToken : nullptr;
     auto callerAbilityRecord = AAFwk::Token::GetAbilityRecordByToken(callerToken);
     if (callerAbilityRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "callerRecord null, id: %{public}d", extensionRecordId);
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "session or callerRecord null, id: %{public}d", extensionRecordId);
         callerList.clear();
         return;
     }
