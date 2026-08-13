@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_ABILITY_MANAGER_CLIENT_H
 
 #include <mutex>
+#include <vector>
 
 #include "ability_connect_callback_interface.h"
 #include "ability_manager_errors.h"
@@ -1998,6 +1999,15 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode BlockAllAppStart(bool flag);
+
+    /** 查询当前是否处于系统恢复模式。 */
+    ErrCode IsSystemRecoveryMode(bool &isRecoveryMode);
+
+    /** 查询指定应用在系统恢复模式下是否允许启动。 */
+    ErrCode IsSystemRecoveryAppAllowed(const std::string &bundleName, bool &isAllowed);
+
+    /** 获取系统恢复模式应用白名单。 */
+    ErrCode GetSystemRecoveryAppWhitelist(std::vector<std::string> &bundleNames);
 
     /**
      * update associate config list by rss.

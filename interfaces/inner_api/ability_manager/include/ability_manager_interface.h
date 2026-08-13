@@ -2345,6 +2345,34 @@ public:
     }
 
     /**
+     * 查询当前是否处于系统恢复模式。该接口只读，不改变恢复模式状态。
+     */
+    virtual int32_t IsSystemRecoveryMode(bool &isRecoveryMode)
+    {
+        isRecoveryMode = false;
+        return 0;
+    }
+
+    /**
+     * 查询指定应用在系统恢复模式下是否具备启动资格。该接口不授予启动权限，
+     * AMS 的实际启动拦截仍然使用内部策略判断。
+     */
+    virtual int32_t IsSystemRecoveryAppAllowed(const std::string &bundleName, bool &isAllowed)
+    {
+        isAllowed = false;
+        return 0;
+    }
+
+    /**
+     * 查询系统恢复模式应用白名单，供受控的系统恢复框架或后续恢复 UI 使用。
+     */
+    virtual int32_t GetSystemRecoveryAppWhitelist(std::vector<std::string> &bundleNames)
+    {
+        bundleNames.clear();
+        return 0;
+    }
+
+    /**
      * update associate config list by rss.
      *
      * @param configs The rss config info.

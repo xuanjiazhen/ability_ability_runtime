@@ -6658,6 +6658,64 @@ int32_t AbilityManagerProxy::BlockAllAppStart(bool flag)
     return reply.ReadInt32();
 }
 
+int32_t AbilityManagerProxy::IsSystemRecoveryMode(bool &isRecoveryMode)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        return IPC_PROXY_ERR;
+    }
+    auto error = SendRequest(AbilityManagerInterfaceCode::IS_SYSTEM_RECOVERY_MODE, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "query system recovery mode failed, error: %{public}d", error);
+        return error;
+    }
+    const int32_t result = reply.ReadInt32();
+    isRecoveryMode = reply.ReadBool();
+    return result;
+}
+
+int32_t AbilityManagerProxy::IsSystemRecoveryAppAllowed(const std::string &bundleName, bool &isAllowed)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data) || !data.WriteString(bundleName)) {
+        return IPC_PROXY_ERR;
+    }
+    auto error = SendRequest(AbilityManagerInterfaceCode::IS_SYSTEM_RECOVERY_APP_ALLOWED, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "query system recovery app failed, error: %{public}d", error);
+        return error;
+    }
+    const int32_t result = reply.ReadInt32();
+    isAllowed = reply.ReadBool();
+    return result;
+}
+
+int32_t AbilityManagerProxy::GetSystemRecoveryAppWhitelist(std::vector<std::string> &bundleNames)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        return IPC_PROXY_ERR;
+    }
+    auto error = SendRequest(AbilityManagerInterfaceCode::GET_SYSTEM_RECOVERY_APP_WHITELIST,
+        data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "query system recovery app whitelist failed, error: %{public}d", error);
+        return error;
+    }
+    const int32_t result = reply.ReadInt32();
+    if (!reply.ReadStringVector(&bundleNames)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read system recovery app whitelist failed");
+        return IPC_PROXY_ERR;
+    }
+    return result;
+}
+
 int32_t AbilityManagerProxy::UpdateAssociateConfigList(const std::map<std::string, std::list<std::string>>& configs,
     const std::list<std::string>& exportConfigs, int32_t flag)
 {

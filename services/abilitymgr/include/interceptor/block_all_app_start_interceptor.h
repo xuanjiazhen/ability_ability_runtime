@@ -34,6 +34,12 @@ public:
     using IsAbilityStartedFunc = std::function<bool(AbilityRequest&, int32_t)>;
     void SetIsAbilityStartedFunc(const IsAbilityStartedFunc& func);
 
+    // 根据完整的启动请求判断是否允许恢复模式例外启动。
+    // 仅传 Bundle 名称无法区分普通 Ability 和 BackupExtensionAbility。
+    using AllowStartFunc = std::function<bool(const AbilityRequest&)>;
+    void SetAllowStartFunc(const AllowStartFunc& func);
+    void SetStrictBlockFunc(const std::function<bool()>& func);
+
     ErrCode Execute();
     ErrCode Execute(AbilityRequest& abilityRequest, int32_t validUserId);
     virtual void SetTaskHandler(std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler) override
@@ -44,6 +50,8 @@ public:
 private:
     std::function<bool()> shouldBlockFunc_;
     IsAbilityStartedFunc isAbilityStartedFunc_;
+    AllowStartFunc allowStartFunc_;
+    std::function<bool()> strictBlockFunc_;
 };
 } // namespace AAFwk
 } // namespace OHOS
