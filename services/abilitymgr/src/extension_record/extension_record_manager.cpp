@@ -17,7 +17,6 @@
 
 #include "ability_util.h"
 #include "app_utils.h"
-#include "appmgr_client.h"
 #include "extension_running_timeout_monitor.h"
 #include "preload_ui_extension_execute_callback_proxy.h"
 #include "preload_ui_extension_host_client.h"
