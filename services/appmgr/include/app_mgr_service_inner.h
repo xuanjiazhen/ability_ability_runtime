@@ -1129,7 +1129,7 @@ public:
     void SubmitDestroyImageTask(const std::shared_ptr<AppRunningRecord>,
         const int32_t reason, const std::string &exitMsg);
     std::string GetImageReportAppVersionName(const std::string &bundleName, int32_t userId);
-    void SendDestroyImageEvent(const std::shared_ptr<AppRunningRecord> &appRecord, const std::string &bundleName,
+    bool SendDestroyImageEvent(const std::shared_ptr<AppRunningRecord> &appRecord, const std::string &bundleName,
         const std::string &appVersionName, int32_t reason, const std::string &exitMsg);
 
     /**

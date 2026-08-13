@@ -8202,19 +8202,19 @@ std::string AppMgrServiceInner::GetImageReportAppVersionName(const std::string &
     return bundleMgrResult == ERR_OK ? bundleInfo.versionName : "";
 }
 
-void AppMgrServiceInner::SendDestroyImageEvent(const std::shared_ptr<AppRunningRecord> &appRecord,
+bool AppMgrServiceInner::SendDestroyImageEvent(const std::shared_ptr<AppRunningRecord> &appRecord,
     const std::string &bundleName, const std::string &appVersionName, int32_t reason, const std::string &exitMsg)
 {
     if (appRecord == nullptr) {
         TAG_LOGW(AAFwkTag::APPMGR, "appRecord null");
-        return;
+        return false;
     }
     if (appRecord->IsDebug()) {
-        return;
+        return false;
     }
     auto imageInfo = GetImageInfo(appRecord);
     if (imageInfo == nullptr || imageInfo->imagePid <= 0 || reason == 0) {
-        return;
+        return false;
     }
     std::string imageName = imageInfo->imageName.empty() ? bundleName : imageInfo->imageName;
     AAFwk::SnapshotInfo snapshotInfo;
@@ -8229,6 +8229,7 @@ void AppMgrServiceInner::SendDestroyImageEvent(const std::shared_ptr<AppRunningR
     TAG_LOGD(AAFwkTag::APPMGR, "SendSnapshotEvent for image app exit: %{public}s, reason=%{public}d, "
         "exitMsg=%{public}s, appVersionName=%{public}s", imageName.c_str(), reason, exitMsg.c_str(),
         appVersionName.c_str());
+    return true;
 }
 
 void AppMgrServiceInner::SubmitDestroyImageTask(

@@ -1095,48 +1095,21 @@ HWTEST_F(AppMgrServiceInnerTest, HandleForkAllInner_StateNotReady_001, TestSize.
 }
 
 /**
- * @tc.name: HandleForkAllInner_AppSpawnErrno_001
- * @tc.desc: HandleForkAllInner maps appspawn errno values to detailed image errors
+ * @tc.name: ConvertForkAllError_AppSpawnErrno_001
+ * @tc.desc: ConvertForkAllError maps appspawn errno values to detailed image errors
  * @tc.type: FUNC
  */
-HWTEST_F(AppMgrServiceInnerTest, HandleForkAllInner_AppSpawnErrno_001, TestSize.Level2)
+HWTEST_F(AppMgrServiceInnerTest, ConvertForkAllError_AppSpawnErrno_001, TestSize.Level2)
 {
-    const std::vector<std::pair<int32_t, ImageError>> testCases = {
-        { EBUSY, ImageError::ERR_FORKALL_BUSY },
-        { EINTR, ImageError::ERR_FORKALL_FAILED_EINTR },
-        { EAGAIN, ImageError::ERR_FORKALL_FAILED_EAGAIN },
-        { ENOMEM, ImageError::ERR_FORKALL_FAILED_ENOMEM },
-        { EACCES, ImageError::ERR_FORKALL_FAILED_EACCES },
-        { EEXIST, ImageError::ERR_FORKALL_FAILED_EEXIST },
-        { EISDIR, ImageError::ERR_FORKALL_FAILED_EISDIR },
-        { EINVAL, ImageError::ERR_FORKALL_FAILED_EINVAL },
-        { 12345, ImageError::ERR_FORKALL_FAILED },
-    };
-
-    for (const auto &[appSpawnError, expectedError] : testCases) {
-        auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-        ASSERT_NE(appMgrServiceInner, nullptr);
-
-        const std::string bundleName = "com.example.forkall";
-        auto appInfo = std::make_shared<ApplicationInfo>();
-        appInfo->bundleName = bundleName;
-        auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 0, "forkall_process");
-        ASSERT_NE(appRecord, nullptr);
-        appRecord->SetUid(0);
-        appRecord->SetAppIndex(0);
-        appRecord->SetMakeImageState(MakeImageState::MAKE_PRELOAD_FINISH);
-        appRecord->SetApplicationClient(sptr<MockAppScheduler>::MakeSptr());
-
-        PreloadRequest preloadRequest;
-        appMgrServiceInner->PreAddImageInfo(bundleName, 0, 0, nullptr, preloadRequest);
-
-        auto spawnClient = std::make_shared<MockAppSpawnClient>();
-        ASSERT_NE(spawnClient, nullptr);
-        EXPECT_CALL(*spawnClient, StartImageProcess(_, _, _)).WillOnce(Return(appSpawnError));
-        appMgrServiceInner->remoteClientManager_->SetSpawnClient(spawnClient);
-
-        EXPECT_EQ(appMgrServiceInner->HandleForkAllInner(appRecord, 100), expectedError);
-    }
+    EXPECT_EQ(AppMgrServiceInner::ConvertForkAllError(EBUSY), ImageError::ERR_FORKALL_BUSY);
+    EXPECT_EQ(AppMgrServiceInner::ConvertForkAllError(EINTR), ImageError::ERR_FORKALL_FAILED_EINTR);
+    EXPECT_EQ(AppMgrServiceInner::ConvertForkAllError(EAGAIN), ImageError::ERR_FORKALL_FAILED_EAGAIN);
+    EXPECT_EQ(AppMgrServiceInner::ConvertForkAllError(ENOMEM), ImageError::ERR_FORKALL_FAILED_ENOMEM);
+    EXPECT_EQ(AppMgrServiceInner::ConvertForkAllError(EACCES), ImageError::ERR_FORKALL_FAILED_EACCES);
+    EXPECT_EQ(AppMgrServiceInner::ConvertForkAllError(EEXIST), ImageError::ERR_FORKALL_FAILED_EEXIST);
+    EXPECT_EQ(AppMgrServiceInner::ConvertForkAllError(EISDIR), ImageError::ERR_FORKALL_FAILED_EISDIR);
+    EXPECT_EQ(AppMgrServiceInner::ConvertForkAllError(EINVAL), ImageError::ERR_FORKALL_FAILED_EINVAL);
+    EXPECT_EQ(AppMgrServiceInner::ConvertForkAllError(12345), ImageError::ERR_FORKALL_FAILED);
 }
 
 /**
@@ -1386,6 +1359,115 @@ HWTEST_F(AppMgrServiceInnerTest, TryToUseImageInfo_ImageInfoNotMatched_001, Test
         sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken()),
         "callerKey", 0, "differentProcess", "instanceKey", "", "", appRecord);
     EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: TryToUseImageInfo_DebugForkFailed_001
+ * @tc.desc: A debug app fork failure is filtered before its failed running record is removed
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, TryToUseImageInfo_DebugForkFailed_001, TestSize.Level2)
+{
+    auto serviceInner = std::make_shared<AppMgrServiceInner>();
+    auto abilityInfo = std::make_shared<AbilityInfo>();
+    abilityInfo->name = "DebugAbility";
+    abilityInfo->bundleName = "com.example.debugfork";
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->name = "DebugApp";
+    appInfo->bundleName = abilityInfo->bundleName;
+    appInfo->uid = 200001;
+    appInfo->accessTokenId = 1001;
+    appInfo->versionName = "1.0.0";
+
+    auto baseAppRecord = std::make_shared<AppRunningRecord>(appInfo, -10001, abilityInfo->bundleName);
+    baseAppRecord->SetUid(appInfo->uid);
+    baseAppRecord->SetMainProcess(true);
+    baseAppRecord->SetDebugApp(true);
+    baseAppRecord->GetPriorityObject()->SetPid(100);
+    serviceInner->appRunningManager_->appRunningRecordMap_.emplace(
+        baseAppRecord->GetRecordId(), baseAppRecord);
+    auto imageInfo = std::make_shared<ForkImageInfo>();
+    imageInfo->imagePid = 101;
+    imageInfo->checkpointId = 102;
+    imageInfo->abilityInfo = abilityInfo;
+    imageInfo->baseAppRecord = baseAppRecord;
+    AppMgrServiceInner::MakeImageRequest request {
+        .bundleName = appInfo->bundleName,
+        .abilityName = abilityInfo->name,
+        .userId = appInfo->uid / BASE_USER_RANGE,
+        .appCloneIndex = 0
+    };
+    serviceInner->imageInfoMap_[request] = imageInfo;
+
+    auto spawnClient = std::make_shared<MockAppSpawnClient>();
+    EXPECT_CALL(*spawnClient, StartProcess(
+        AllOf(Field(&AppSpawnStartMsg::code, static_cast<int32_t>(MSG_SPAWN_WORKER_PROCESS)),
+            Field(&AppSpawnStartMsg::imagePid, imageInfo->imagePid),
+            Field(&AppSpawnStartMsg::checkpointId, imageInfo->checkpointId)), _))
+        .WillOnce(Return(EACCES));
+    serviceInner->remoteClientManager_->SetSpawnClient(spawnClient);
+    auto recordCount = serviceInner->appRunningManager_->appRunningRecordMap_.size();
+
+    std::shared_ptr<AppRunningRecord> appRecord;
+    EXPECT_EQ(serviceInner->TryToUseImageInfo(abilityInfo, appInfo, nullptr, "caller", 0,
+        abilityInfo->bundleName, "", "", "", appRecord), ERR_OK);
+    EXPECT_EQ(appRecord, nullptr);
+    EXPECT_TRUE(serviceInner->imageStartReportMap_.empty());
+    EXPECT_EQ(serviceInner->appRunningManager_->appRunningRecordMap_.size(), recordCount);
+    EXPECT_EQ(serviceInner->appRunningManager_->appRunningRecordMap_.count(-10001), 1u);
+}
+
+/**
+ * @tc.name: TryToUseImageInfo_ForkFailedReportedWithUid_001
+ * @tc.desc: A normal app fork failure is counted with the real application uid before record cleanup
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, TryToUseImageInfo_ForkFailedReportedWithUid_001, TestSize.Level2)
+{
+    auto serviceInner = std::make_shared<AppMgrServiceInner>();
+    auto abilityInfo = std::make_shared<AbilityInfo>();
+    abilityInfo->name = "NormalAbility";
+    abilityInfo->bundleName = "com.example.normalfork";
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->name = "NormalApp";
+    appInfo->bundleName = abilityInfo->bundleName;
+    appInfo->uid = 200002;
+    appInfo->accessTokenId = 1002;
+    appInfo->versionName = "2.0.0";
+
+    auto baseAppRecord = std::make_shared<AppRunningRecord>(appInfo, -10002, abilityInfo->bundleName);
+    baseAppRecord->SetUid(appInfo->uid);
+    baseAppRecord->SetMainProcess(true);
+    baseAppRecord->GetPriorityObject()->SetPid(200);
+    serviceInner->appRunningManager_->appRunningRecordMap_.emplace(
+        baseAppRecord->GetRecordId(), baseAppRecord);
+    auto imageInfo = std::make_shared<ForkImageInfo>();
+    imageInfo->imagePid = 201;
+    imageInfo->checkpointId = 202;
+    imageInfo->abilityInfo = abilityInfo;
+    imageInfo->baseAppRecord = baseAppRecord;
+    AppMgrServiceInner::MakeImageRequest request {
+        .bundleName = appInfo->bundleName,
+        .abilityName = abilityInfo->name,
+        .userId = appInfo->uid / BASE_USER_RANGE,
+        .appCloneIndex = 0
+    };
+    serviceInner->imageInfoMap_[request] = imageInfo;
+
+    auto spawnClient = std::make_shared<MockAppSpawnClient>();
+    EXPECT_CALL(*spawnClient, StartProcess(_, _)).WillOnce(Return(EACCES));
+    serviceInner->remoteClientManager_->SetSpawnClient(spawnClient);
+    auto recordCount = serviceInner->appRunningManager_->appRunningRecordMap_.size();
+
+    std::shared_ptr<AppRunningRecord> appRecord;
+    EXPECT_EQ(serviceInner->TryToUseImageInfo(abilityInfo, appInfo, nullptr, "caller", 0,
+        abilityInfo->bundleName, "", "", "", appRecord), ERR_OK);
+    EXPECT_EQ(appRecord, nullptr);
+    std::string reportKey = appInfo->bundleName + "_" + std::to_string(appInfo->uid) + "@" + appInfo->versionName;
+    ASSERT_EQ(serviceInner->imageStartReportMap_.count(reportKey), 1u);
+    EXPECT_EQ(serviceInner->imageStartReportMap_[reportKey].second, 1);
+    EXPECT_EQ(serviceInner->appRunningManager_->appRunningRecordMap_.size(), recordCount);
+    EXPECT_EQ(serviceInner->appRunningManager_->appRunningRecordMap_.count(-10002), 1u);
 }
 
 /**
