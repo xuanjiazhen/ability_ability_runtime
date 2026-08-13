@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <cerrno>
 #include <gtest/gtest.h>
 
 #define private public
@@ -30,6 +31,7 @@
 #include "hilog_tag_wrapper.h"
 #include "ipc_skeleton.h"
 #include "mock_ability_token.h"
+#include "mock_app_spawn_client.h"
 #include "mock_app_scheduler.h"
 #include "mock_bundle_manager.h"
 #include "mock_configuration_observer.h"
@@ -1090,6 +1092,50 @@ HWTEST_F(AppMgrServiceInnerTest, HandleForkAllInner_StateNotReady_001, TestSize.
     appRecord->SetMakeImageState(MakeImageState::NONE);
     auto ret = appMgrServiceInner->HandleForkAllInner(appRecord, 100);
     EXPECT_EQ(ret, ImageError::ERR_TEMPLATE_HAS_BEEN_USED);
+}
+
+/**
+ * @tc.name: HandleForkAllInner_AppSpawnErrno_001
+ * @tc.desc: HandleForkAllInner maps appspawn errno values to detailed image errors
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, HandleForkAllInner_AppSpawnErrno_001, TestSize.Level2)
+{
+    const std::vector<std::pair<int32_t, ImageError>> testCases = {
+        { EINTR, ImageError::ERR_FORKALL_FAILED_EINTR },
+        { EAGAIN, ImageError::ERR_FORKALL_FAILED_EAGAIN },
+        { ENOMEM, ImageError::ERR_FORKALL_FAILED_ENOMEM },
+        { EACCES, ImageError::ERR_FORKALL_FAILED_EACCES },
+        { EEXIST, ImageError::ERR_FORKALL_FAILED_EEXIST },
+        { EISDIR, ImageError::ERR_FORKALL_FAILED_EISDIR },
+        { EINVAL, ImageError::ERR_FORKALL_FAILED_EINVAL },
+        { 12345, ImageError::ERR_FORKALL_FAILED },
+    };
+
+    for (const auto &[appSpawnError, expectedError] : testCases) {
+        auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+        ASSERT_NE(appMgrServiceInner, nullptr);
+
+        const std::string bundleName = "com.example.forkall";
+        auto appInfo = std::make_shared<ApplicationInfo>();
+        appInfo->bundleName = bundleName;
+        auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 0, "forkall_process");
+        ASSERT_NE(appRecord, nullptr);
+        appRecord->SetUid(0);
+        appRecord->SetAppIndex(0);
+        appRecord->SetMakeImageState(MakeImageState::MAKE_PRELOAD_FINISH);
+        appRecord->SetApplicationClient(sptr<MockAppScheduler>::MakeSptr());
+
+        PreloadRequest preloadRequest;
+        appMgrServiceInner->PreAddImageInfo(bundleName, 0, 0, nullptr, preloadRequest);
+
+        auto spawnClient = std::make_shared<MockAppSpawnClient>();
+        ASSERT_NE(spawnClient, nullptr);
+        EXPECT_CALL(*spawnClient, StartImageProcess(_, _, _)).WillOnce(Return(appSpawnError));
+        appMgrServiceInner->remoteClientManager_->SetSpawnClient(spawnClient);
+
+        EXPECT_EQ(appMgrServiceInner->HandleForkAllInner(appRecord, 100), expectedError);
+    }
 }
 
 /**

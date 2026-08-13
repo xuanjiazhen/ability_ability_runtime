@@ -253,8 +253,7 @@ constexpr const char* RENDER_PROCESS_TYPE = "render";
 constexpr const char* GPU_PROCESS_NAME = ":gpu";
 constexpr const char* GPU_PROCESS_TYPE = "gpu";
 constexpr const char* KILL_REASON_USER_REQUEST = "User Request";
-const std::chrono::hours REPORT_INTERVAL{6};
-const int32_t REPORT_THRESHOLD = 10;
+const std::chrono::hours REPORT_INTERVAL{20};
 const std::string TOKEN_ID = "TOKEN_ID";
 const int32_t SIGNAL_KILL = 9;
 constexpr int32_t USER_SCALE = 200000;
@@ -1042,7 +1041,24 @@ ImageError AppMgrServiceInner::HandleForkAllInner(std::shared_ptr<AppRunningReco
         return ImageError::ERR_FORKALL_BUSY;
     }
     if (errCode != ERR_OK || imagePid <= 0) {
-        return ImageError::ERR_FORKALL_FAILED;
+        switch (errCode) {
+            case EINTR:
+                return ImageError::ERR_FORKALL_FAILED_EINTR;
+            case EAGAIN:
+                return ImageError::ERR_FORKALL_FAILED_EAGAIN;
+            case ENOMEM:
+                return ImageError::ERR_FORKALL_FAILED_ENOMEM;
+            case EACCES:
+                return ImageError::ERR_FORKALL_FAILED_EACCES;
+            case EEXIST:
+                return ImageError::ERR_FORKALL_FAILED_EEXIST;
+            case EISDIR:
+                return ImageError::ERR_FORKALL_FAILED_EISDIR;
+            case EINVAL:
+                return ImageError::ERR_FORKALL_FAILED_EINVAL;
+            default:
+                return ImageError::ERR_FORKALL_FAILED;
+        }
     }
     appRecord->SetMakeImageState(MakeImageState::MAKE_IMAGE_FINISH);
     UpdateImageInfo(imagePid, checkpointId, appRecord);
@@ -1590,14 +1606,12 @@ void AppMgrServiceInner::SnapshotStartReport(int32_t uid, const std::string &bun
             imageStartReportMap_.emplace(bundleVersionName, std::make_pair(0, 0));
         }
         imageStartReportMap_[bundleVersionName].first++;
-        imageStartCount_++;
 
-        if (now - lastReportTime_ < REPORT_INTERVAL && imageStartCount_ < REPORT_THRESHOLD) {
+        if (now - lastReportTime_ < REPORT_INTERVAL) {
             return;
         }
         reportMap.swap(imageStartReportMap_);
         lastReportTime_ = now;
-        imageStartCount_ = 0;
     }
 
     AAFwk::SnapshotInfo snapshotInfo;
