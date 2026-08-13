@@ -535,7 +535,7 @@ void DoConnectAgentExtensionAbility(napi_env env,
             GetAgentManagerErrorMsg(innerErrCode, AgentManagerErrorOperation::CONNECT_AGENT_EXTENSION));
         // Sync connect failure: reject primary + staged low-code tasks (pendingLowCodeReuseTasks_) + remove
         // the connection, else Mechanism-A tasks hang (host never connects -> drain never runs).
-        connection->RejectConnectAndCleanup(env, error, /*hasPrimaryTask=*/true);
+        connection->RejectConnectAndCleanup(env, error);
     }
 }
 
@@ -1138,19 +1138,27 @@ napi_value JsAgentManager::OnDisconnectAgentExtensionAbility(napi_env env, size_
             *innerErrCode = AgentConnectionManager::GetInstance().DisconnectAgentExtensionAbility(connection);
             if (*innerErrCode != ERR_OK) {
                 connection->SetDisconnecting(false);
-                connection->SetDisconnectAsyncTask(nullptr);
+                // Do NOT null disconnectAsyncTask_ here: the promise is settled exactly once via
+                // TakeDisconnectAsyncTask() by either this complete callback or HandleOnAbilityDisconnectDone;
+                // nulling without settling would leak the promise when the host is still up.
             }
         });
 
     auto complete = std::make_unique<NapiAsyncTask::CompleteCallback>(
-        [innerErrCode, disconnectTaskShared, connection](napi_env env, NapiAsyncTask &task, int32_t status) {
+        [innerErrCode, connection](napi_env env, NapiAsyncTask &task, int32_t status) {
             if (*innerErrCode == ERR_OK) {
                 return;
             }
             TAG_LOGE(AAFwkTag::SER_ROUTER, "Disconnect failed: %{public}d", *innerErrCode);
-            disconnectTaskShared->Reject(env,
-                CreateJsError(env, static_cast<int32_t>(GetJsErrorCodeByNativeError(*innerErrCode)),
-                    GetAgentManagerErrorMsg(*innerErrCode, AgentManagerErrorOperation::DISCONNECT_AGENT_EXTENSION)));
+            // Take ownership: if HandleOnAbilityDisconnectDone already settled the promise (host died,
+            // DisconnectAgentExtensionAbility returned CONNECTION_NOT_EXIST), Take returns nullptr and we
+            // skip — no double-settle (resolve+reject) that previously crashed napi_reject_deferred.
+            if (auto pending = connection->TakeDisconnectAsyncTask(); pending != nullptr) {
+                pending->Reject(env,
+                    CreateJsError(env, static_cast<int32_t>(GetJsErrorCodeByNativeError(*innerErrCode)),
+                        GetAgentManagerErrorMsg(
+                            *innerErrCode, AgentManagerErrorOperation::DISCONNECT_AGENT_EXTENSION)));
+            }
             DrainReconnectPendingTasksToExistingConnection(env, connection);
         });
 
