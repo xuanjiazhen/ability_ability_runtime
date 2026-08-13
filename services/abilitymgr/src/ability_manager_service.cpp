@@ -562,16 +562,11 @@ void AbilityManagerService::InitInterceptor()
     afterCheckExecuter_->AddInterceptor("DisposedRule", std::make_shared<DisposedRuleInterceptor>());
     afterCheckExecuter_->AddInterceptor("EcologicalRule", std::make_shared<EcologicalRuleInterceptor>());
     afterCheckExecuter_->SetTaskHandler(taskHandler_);
-    bool isAppJumpEnabled = OHOS::system::GetBoolParameter(
-        OHOS::AppExecFwk::PARAMETER_APP_JUMP_INTERCEPTOR_ENABLE, false);
-    if (isAppJumpEnabled) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "app jump enabled, add abilityJumpInterceptor");
-        interceptorExecuter_->AddInterceptor("AbilityJump", std::make_shared<AbilityJumpInterceptor>());
+    if (AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "create BlockAllAppStartInterceptor");
+        blockAllAppStartInterceptor_ = std::make_shared<BlockAllAppStartInterceptor>();
+        InitBlockAllAppStartInterceptorCallbacks();
     }
-    // 拦截器常驻，恢复模式启动时由 AppMgr 控制器通过既有 IPC 启用。
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "create BlockAllAppStartInterceptor");
-    blockAllAppStartInterceptor_ = std::make_shared<BlockAllAppStartInterceptor>();
-    InitBlockAllAppStartInterceptorCallbacks();
 }
 
 void AbilityManagerService::InitBlockAllAppStartInterceptorCallbacks()
