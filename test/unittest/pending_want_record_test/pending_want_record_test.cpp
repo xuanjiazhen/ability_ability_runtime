@@ -936,34 +936,6 @@ HWTEST_F(PendingWantRecordTest, ExecuteOperation_0600, TestSize.Level1)
 }
 
 /*
- * @tc.number    : Send_0100
- * @tc.name      : Send
- * @tc.desc      : 1.Send, normal call scenario
- */
-HWTEST_F(PendingWantRecordTest, Send_0100, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "Send_0100 start");
-
-    Want want;
-    ElementName element("device", "com.ix.hiMusic", "MusicSAbility");
-    want.SetElement(element);
-    WantSenderInfo wantSenderInfo = MakeWantSenderInfo(want, (int32_t)Flags::CONSTANT_FLAG, 0,
-        (int32_t)OperationType::START_ABILITY);
-    pendingManager_ = std::make_shared<PendingWantManager>();
-    EXPECT_NE(pendingManager_, nullptr);
-    std::shared_ptr<PendingWantKey> key = MakeWantKey(wantSenderInfo);
-    std::shared_ptr<PendingWantRecord> pendingWantRecord =
-        std::make_shared<PendingWantRecord>(pendingManager_, 1, 0, nullptr, key);
-    EXPECT_NE(pendingWantRecord, nullptr);
-
-    SenderInfo info;
-    pendingWantRecord->Send(info);
-    EXPECT_TRUE(info.resolvedType == key->GetRequestResolvedType());
-
-    TAG_LOGI(AAFwkTag::TEST, "Send_0100 end");
-}
-
-/*
  * @tc.number    : Send_0200
  * @tc.name      : Send
  * @tc.desc      : 1.Send, canceled scenario

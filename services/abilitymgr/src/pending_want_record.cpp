@@ -57,11 +57,6 @@ PendingWantRecord::PendingWantRecord(const std::shared_ptr<PendingWantManager> &
 PendingWantRecord::~PendingWantRecord()
 {}
 
-void PendingWantRecord::Send(SenderInfo &senderInfo)
-{
-    SenderInner(senderInfo);
-}
-
 void PendingWantRecord::RegisterCancelListener(const sptr<IWantReceiver> &receiver)
 {
     std::lock_guard guard(mCancelCallbacksMutex_);

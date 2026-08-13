@@ -26,8 +26,8 @@ namespace OHOS {
 namespace AAFwk {
 class WantSenderStub : public IRemoteStub<IWantSender> {
 public:
-    WantSenderStub();
-    virtual ~WantSenderStub();
+    WantSenderStub() = default;
+    virtual ~WantSenderStub() = default;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
