@@ -7129,7 +7129,7 @@ HWTEST_F(AppMgrServiceInnerTest, SnapshotStartReport_004, TestSize.Level1)
 
 /**
  * @tc.name: SnapshotStartReport_005
- * @tc.desc: Test SnapshotStartReport reaches the threshold and clears aggregated data
+ * @tc.desc: Test SnapshotStartReport retains data before the interval and reports after the interval
  * @tc.type: FUNC
  */
 HWTEST_F(AppMgrServiceInnerTest, SnapshotStartReport_005, TestSize.Level1)
@@ -7138,21 +7138,14 @@ HWTEST_F(AppMgrServiceInnerTest, SnapshotStartReport_005, TestSize.Level1)
     auto serviceInner = std::make_shared<AppMgrServiceInner>();
     ASSERT_NE(serviceInner, nullptr);
 
-    constexpr int32_t reportThreshold = 10;
-    serviceInner->imageStartReportMap_["empty_record"] = std::make_pair(0, 0);
-    serviceInner->imageStartCount_ = reportThreshold - 1;
+    serviceInner->SnapshotStartReport(1006, "com.example.interval", "1.0.0", 0, "");
+    EXPECT_EQ(serviceInner->imageStartReportMap_.size(), 1);
+
+    serviceInner->lastReportTime_ = std::chrono::steady_clock::now() - std::chrono::hours(21);
     auto lastReportTime = serviceInner->lastReportTime_;
-
-    serviceInner->SnapshotStartReport(1006, "com.example.threshold", "1.0.0", 0, "");
-
-    EXPECT_TRUE(serviceInner->imageStartReportMap_.empty());
-    EXPECT_EQ(serviceInner->imageStartCount_, 0);
-    EXPECT_GE(serviceInner->lastReportTime_, lastReportTime);
-
-    serviceInner->lastReportTime_ = std::chrono::steady_clock::now() - std::chrono::hours(7);
     serviceInner->SnapshotStartReport(1007, "com.example.interval", "2.0.0", 0, "");
     EXPECT_TRUE(serviceInner->imageStartReportMap_.empty());
-    EXPECT_EQ(serviceInner->imageStartCount_, 0);
+    EXPECT_GE(serviceInner->lastReportTime_, lastReportTime);
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
@@ -7274,6 +7267,79 @@ HWTEST_F(AppMgrServiceInnerTest, SnapshotStartReportAndErrorReport_001, TestSize
     auto iter3 = serviceInner->imageStartReportMap_.find(bundleVersionName3);
     EXPECT_NE(iter3, serviceInner->imageStartReportMap_.end());
     EXPECT_EQ(iter3->second.second, 1);
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: SnapshotStartReport_DebugAppSkipped
+ * @tc.desc: Test SnapshotStartReport skips debug applications
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, SnapshotStartReport_DebugAppSkipped, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    auto serviceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(serviceInner, nullptr);
+
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.example.debugapp";
+    auto appRecord = serviceInner->appRunningManager_->CreateAppRunningRecord(
+        appInfo, "com.example.debugapp", BundleInfo(), "");
+    ASSERT_NE(appRecord, nullptr);
+    appRecord->SetUid(4001);
+    appRecord->SetDebugApp(true);
+
+    serviceInner->SnapshotStartReport(4001, "com.example.debugapp", "1.0.0", 0, "");
+    EXPECT_TRUE(serviceInner->imageStartReportMap_.empty());
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: SnapshotErrorReport_DebugAppSkipped
+ * @tc.desc: Test SnapshotErrorReport skips debug applications
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, SnapshotErrorReport_DebugAppSkipped, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    auto serviceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(serviceInner, nullptr);
+
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.example.debugapp";
+    auto appRecord = serviceInner->appRunningManager_->CreateAppRunningRecord(
+        appInfo, "com.example.debugapp", BundleInfo(), "");
+    ASSERT_NE(appRecord, nullptr);
+    appRecord->SetUid(4002);
+    appRecord->SetDebugApp(true);
+
+    serviceInner->SnapshotErrorReport(4002, "com.example.debugapp", "1.0.0", -1, "error");
+    EXPECT_TRUE(serviceInner->imageStartReportMap_.empty());
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: SendDestroyImageEvent_DebugAppSkipped
+ * @tc.desc: Test SendDestroyImageEvent skips debug applications
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, SendDestroyImageEvent_DebugAppSkipped, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    auto serviceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(serviceInner, nullptr);
+
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.example.debugapp";
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, APP_DEBUG_INFO_UID, "debug_process");
+    ASSERT_NE(appRecord, nullptr);
+    appRecord->SetUid(4003);
+    appRecord->SetDebugApp(true);
+
+    serviceInner->SendDestroyImageEvent(appRecord, "com.example.debugapp", "1.0.0", 1, "debug exit");
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
