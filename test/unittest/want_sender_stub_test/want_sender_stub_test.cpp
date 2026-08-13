@@ -68,5 +68,59 @@ HWTEST_F(WantSenderStubTest, WantSenderStubTest_OnRemoteRequest_001, TestSize.Le
 
     EXPECT_EQ(res, IPC_STUB_UNKNOW_TRANS_ERR);
 }
+
+/*
+ * Feature: WantSenderStub
+ * Function: OnRemoteRequest
+ * SubFunction: NA
+ * FunctionPoints: WantSenderStub OnRemoteRequest
+ * EnvConditions: code = 0 (legacy WANT_SENDER_SEND, removed)
+ * CaseDescription: Regression lock-in. code 0 was the legacy WANT_SENDER_SEND
+ *                 trans code that allowed bypassing
+ *                 PendingWantManager::CheckCallerPermission via direct
+ *                 IWantSender::Send IPC. The trans code enum was deleted along
+ *                 with WantSenderStub::OnRemoteRequest override, so code 0 now
+ *                 falls through to IPCObjectStub which returns
+ *                 IPC_STUB_UNKNOW_TRANS_ERR. This test prevents reintroduction
+ *                 of WANT_SENDER_SEND handling without an explicit security
+ *                 review.
+ */
+HWTEST_F(WantSenderStubTest, WantSenderStubTest_OnRemoteRequest_Code0_Rejected_0100, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    int res = stub_->OnRemoteRequest(0, data, reply, option);
+
+    EXPECT_EQ(res, IPC_STUB_UNKNOW_TRANS_ERR);
+}
+
+/*
+ * Feature: WantSenderStub
+ * Function: OnRemoteRequest
+ * SubFunction: NA
+ * FunctionPoints: WantSenderStub OnRemoteRequest
+ * EnvConditions: code = 0, valid interface token + valid SenderInfo payload
+ * CaseDescription: Verify code 0 is rejected even when a valid-looking
+ *                 SenderInfo payload is attached. Guards against partial
+ *                 reintroduction (e.g., re-adding SendInner dispatch on code 0
+ *                 based on payload shape rather than trans code definition).
+ */
+HWTEST_F(WantSenderStubTest, WantSenderStubTest_OnRemoteRequest_Code0_WithPayload_Rejected_0100, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    SenderInfo info;
+    data.WriteParcelable(&info);
+
+    int res = stub_->OnRemoteRequest(0, data, reply, option);
+
+    EXPECT_EQ(res, IPC_STUB_UNKNOW_TRANS_ERR);
+}
 }  // namespace AAFwk
 }  // namespace OHOS
