@@ -51,13 +51,13 @@ std::string SafeDump(const nlohmann::json &jsonObject, size_t maxLen)
 {
     if (!IsJsonDepthOk(jsonObject, JSON_DUMP_MAX_DEPTH)) {
         TAG_LOGE(AAFwkTag::INTENT, "json depth exceeds limit %{public}zu", JSON_DUMP_MAX_DEPTH);
-        return "<dump_failed_too_deep>";
+        return "";
     }
     try {
         auto s = jsonObject.dump();
         return (maxLen > 0 && s.size() > maxLen) ? s.substr(0, maxLen) + "..." : s;
     } catch (...) {
-        return "<dump_failed>";
+        return "";
     }
 }
 
