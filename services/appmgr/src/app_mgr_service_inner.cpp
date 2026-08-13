@@ -1037,29 +1037,40 @@ ImageError AppMgrServiceInner::HandleForkAllInner(std::shared_ptr<AppRunningReco
     auto errCode = remoteClientManager_->GetSpawnClient()->StartImageProcess(startMsg, imagePid, checkpointId);
     TAG_LOGI(AAFwkTag::APPMGR, "forkall after preload, name:%{public}s, errCode:%{public}d,"
         " pid:%{public}d, imagePid:%{public}d", appRecord->GetProcessName().c_str(), errCode, pid, imagePid);
-    if (errCode == EBUSY) {
-        return ImageError::ERR_FORKALL_BUSY;
-    }
     if (errCode != ERR_OK || imagePid <= 0) {
-        switch (errCode) {
-            case EINTR:
-                return ImageError::ERR_FORKALL_FAILED_EINTR;
-            case EAGAIN:
-                return ImageError::ERR_FORKALL_FAILED_EAGAIN;
-            case ENOMEM:
-                return ImageError::ERR_FORKALL_FAILED_ENOMEM;
-            case EACCES:
-                return ImageError::ERR_FORKALL_FAILED_EACCES;
-            case EEXIST:
-                return ImageError::ERR_FORKALL_FAILED_EEXIST;
-            case EISDIR:
-                return ImageError::ERR_FORKALL_FAILED_EISDIR;
-            case EINVAL:
-                return ImageError::ERR_FORKALL_FAILED_EINVAL;
-            default:
-                return ImageError::ERR_FORKALL_FAILED;
-        }
+        return ConvertForkAllError(errCode);
     }
+    HandleForkAllSuccess(appRecord, imageInfo, pid, imagePid, checkpointId);
+    return ImageError::ERR_OK;
+}
+
+ImageError AppMgrServiceInner::ConvertForkAllError(int32_t errCode)
+{
+    switch (errCode) {
+        case EBUSY:
+            return ImageError::ERR_FORKALL_BUSY;
+        case EINTR:
+            return ImageError::ERR_FORKALL_FAILED_EINTR;
+        case EAGAIN:
+            return ImageError::ERR_FORKALL_FAILED_EAGAIN;
+        case ENOMEM:
+            return ImageError::ERR_FORKALL_FAILED_ENOMEM;
+        case EACCES:
+            return ImageError::ERR_FORKALL_FAILED_EACCES;
+        case EEXIST:
+            return ImageError::ERR_FORKALL_FAILED_EEXIST;
+        case EISDIR:
+            return ImageError::ERR_FORKALL_FAILED_EISDIR;
+        case EINVAL:
+            return ImageError::ERR_FORKALL_FAILED_EINVAL;
+        default:
+            return ImageError::ERR_FORKALL_FAILED;
+    }
+}
+
+void AppMgrServiceInner::HandleForkAllSuccess(const std::shared_ptr<AppRunningRecord> &appRecord,
+    const std::shared_ptr<ForkImageInfo> &imageInfo, int32_t pid, int32_t imagePid, uint64_t checkpointId)
+{
     appRecord->SetMakeImageState(MakeImageState::MAKE_IMAGE_FINISH);
     UpdateImageInfo(imagePid, checkpointId, appRecord);
     std::string taskName = std::string(MAKE_IMAGE_TIMEOUT_EVENT) + std::to_string(imageInfo->imageInfoId);
@@ -1083,8 +1094,6 @@ ImageError AppMgrServiceInner::HandleForkAllInner(std::shared_ptr<AppRunningReco
             TAG_LOGI(AAFwkTag::APPMGR, "Successfully destroyed template process");
         }
     }
-
-    return ImageError::ERR_OK;
 }
 
 void AppMgrServiceInner::HandleMakeImageTimeout(const std::string& bundleName, const std::string& abilityName,
