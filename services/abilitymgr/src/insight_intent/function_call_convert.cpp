@@ -16,6 +16,7 @@
 #include "function_call_convert.h"
 
 #include <algorithm>
+#include <functional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -32,23 +33,23 @@ constexpr size_t INTENT_JSON_MAX_DEPTH = 100;
 
 bool CheckJsonDepth(const nlohmann::json &j, size_t maxDepth)
 {
-    std::vector<std::pair<const nlohmann::json *, size_t>> stack;
-    stack.emplace_back(&j, 1);
+    std::vector<std::pair<std::reference_wrapper<const nlohmann::json>, size_t>> stack;
+    stack.emplace_back(std::cref(j), 1);
     while (!stack.empty()) {
         auto back = stack.back();
         stack.pop_back();
-        const nlohmann::json *ptr = back.first;
+        const nlohmann::json &node = back.first.get();
         size_t depth = back.second;
         if (depth > maxDepth) {
             return false;
         }
-        if (ptr->is_object()) {
-            for (auto it = ptr->begin(); it != ptr->end(); ++it) {
-                stack.emplace_back(&it.value(), depth + 1);
+        if (node.is_object()) {
+            for (auto it = node.begin(); it != node.end(); ++it) {
+                stack.emplace_back(std::cref(it.value()), depth + 1);
             }
-        } else if (ptr->is_array()) {
-            for (const auto &item : *ptr) {
-                stack.emplace_back(&item, depth + 1);
+        } else if (node.is_array()) {
+            for (const auto &item : node) {
+                stack.emplace_back(std::cref(item), depth + 1);
             }
         }
     }
