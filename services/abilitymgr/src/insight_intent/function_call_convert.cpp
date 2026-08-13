@@ -23,12 +23,52 @@
 #include "cli_tool_mgr_client.h"
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_execute_param.h"
-#include "intent_json_safe_get.h"
 
 namespace OHOS {
 namespace CliTool {
 
 namespace {
+constexpr size_t INTENT_JSON_MAX_DEPTH = 100;
+
+bool CheckJsonDepth(const nlohmann::json &j, size_t maxDepth)
+{
+    std::vector<std::pair<const nlohmann::json *, size_t>> stack;
+    stack.emplace_back(&j, 1);
+    while (!stack.empty()) {
+        auto back = stack.back();
+        stack.pop_back();
+        const nlohmann::json *ptr = back.first;
+        size_t depth = back.second;
+        if (depth > maxDepth) {
+            return false;
+        }
+        if (ptr->is_object()) {
+            for (auto it = ptr->begin(); it != ptr->end(); ++it) {
+                stack.emplace_back(&it.value(), depth + 1);
+            }
+        } else if (ptr->is_array()) {
+            for (const auto &item : *ptr) {
+                stack.emplace_back(&item, depth + 1);
+            }
+        }
+    }
+    return true;
+}
+
+bool DumpJsonSafely(const nlohmann::json &j, std::string &out)
+{
+    if (!CheckJsonDepth(j, INTENT_JSON_MAX_DEPTH)) {
+        TAG_LOGW(AAFwkTag::INTENT, "json depth exceeds limit %{public}zu", INTENT_JSON_MAX_DEPTH);
+        return false;
+    }
+    try {
+        out = j.dump();
+    } catch (...) {
+        return false;
+    }
+    return true;
+}
+
 struct IntentOptionDefaults {
     std::string moduleName;
     std::string abilityName;
@@ -59,7 +99,7 @@ void AddInsightIntentOptions(FunctionInfo &func, const IntentOptionDefaults &def
     if (!schema.is_object()) {
         schema = nlohmann::json();
     }
-    if (!AbilityRuntime::IsJsonDepthOk(schema, AbilityRuntime::JSON_DUMP_MAX_DEPTH)) {
+    if (!CheckJsonDepth(schema, INTENT_JSON_MAX_DEPTH)) {
         TAG_LOGW(AAFwkTag::INTENT, "inputSchema depth exceeds limit, reset to empty");
         schema = nlohmann::json();
     }
@@ -70,7 +110,7 @@ void AddInsightIntentOptions(FunctionInfo &func, const IntentOptionDefaults &def
         schema["properties"] = nlohmann::json();
     }
     BuildOptionsSchema(schema, defaults);
-    if (!AbilityRuntime::SafeDumpTo(schema, func.inputSchema)) {
+    if (!DumpJsonSafely(schema, func.inputSchema)) {
         func.inputSchema.clear();
     }
 }
@@ -193,7 +233,7 @@ bool ConvertFromConfigIntent(const std::vector<AbilityRuntime::InsightIntentInfo
                 properties[param] = {{"type", "string"}};
             }
             inputSchema["properties"] = properties;
-            if (!AbilityRuntime::SafeDumpTo(inputSchema, func.inputSchema)) {
+            if (!DumpJsonSafely(inputSchema, func.inputSchema)) {
                 func.inputSchema.clear();
             }
         }
@@ -206,7 +246,7 @@ bool ConvertFromConfigIntent(const std::vector<AbilityRuntime::InsightIntentInfo
                 properties[param] = {{"type", "string"}};
             }
             outputSchema["properties"] = properties;
-            if (!AbilityRuntime::SafeDumpTo(outputSchema, func.outputSchema)) {
+            if (!DumpJsonSafely(outputSchema, func.outputSchema)) {
                 func.outputSchema.clear();
             }
         }

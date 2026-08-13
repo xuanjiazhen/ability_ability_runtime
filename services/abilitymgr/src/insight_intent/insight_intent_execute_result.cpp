@@ -18,7 +18,6 @@
 #include "array_wrapper.h"
 #include "hilog_tag_wrapper.h"
 #include "int_wrapper.h"
-#include "intent_json_safe_get.h"
 #include "nlohmann/json.hpp"
 #include "string_wrapper.h"
 #include "want_params_wrapper.h"
@@ -283,6 +282,33 @@ static bool ParseInteractionInfo(const nlohmann::json &jsonObject,
 }
 
 namespace {
+constexpr size_t INTENT_JSON_MAX_DEPTH = 100;
+
+bool CheckJsonObjectDepth(const nlohmann::json &j, size_t maxDepth)
+{
+    std::vector<std::pair<const nlohmann::json *, size_t>> stack;
+    stack.emplace_back(&j, 1);
+    while (!stack.empty()) {
+        auto back = stack.back();
+        stack.pop_back();
+        const nlohmann::json *ptr = back.first;
+        size_t depth = back.second;
+        if (depth > maxDepth) {
+            return false;
+        }
+        if (ptr->is_object()) {
+            for (auto it = ptr->begin(); it != ptr->end(); ++it) {
+                stack.emplace_back(&it.value(), depth + 1);
+            }
+        } else if (ptr->is_array()) {
+            for (const auto &item : *ptr) {
+                stack.emplace_back(&item, depth + 1);
+            }
+        }
+    }
+    return true;
+}
+
 class DepthLimitSax : public nlohmann::json_sax<nlohmann::json> {
 public:
     explicit DepthLimitSax(size_t maxDepth) : maxDepth_(maxDepth) {}
@@ -447,7 +473,15 @@ std::string InsightIntentExecuteResult::ToJsonString() const
         jsonObject[KEY_INTERACTION_INFO] = infoJson;
     }
     std::string out;
-    return AbilityRuntime::SafeDumpTo(jsonObject, out) ? out : std::string();
+    if (!CheckJsonObjectDepth(jsonObject, INTENT_JSON_MAX_DEPTH)) {
+        TAG_LOGW(AAFwkTag::INTENT, "json depth exceeds limit %{public}zu", INTENT_JSON_MAX_DEPTH);
+        return std::string();
+    }
+    try {
+        return jsonObject.dump();
+    } catch (...) {
+        return std::string();
+    }
 }
 
 bool InsightIntentExecuteResult::CheckResult(std::shared_ptr<const WantParams> result)
