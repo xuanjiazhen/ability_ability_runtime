@@ -77,6 +77,11 @@ public:
     MOCK_METHOD0(ScheduleCacheProcess, void());
     MOCK_METHOD0(SchedulePreTemplateProcessDeepFrozen, int32_t());
     MOCK_METHOD2(OnLoadAbilityFinished, void(uint64_t, int32_t));
+
+    bool AddRefreshRecipient(const sptr<RefreshRecipient> &recipient) override
+    {
+        return true;
+    }
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
