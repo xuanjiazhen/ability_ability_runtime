@@ -3006,16 +3006,16 @@ private:
     void PreLoadAppDataAbilitiesTask(const std::string &bundleName, const int32_t userId);
 
     // Helper methods for StartAbilityForAppCloneSelector refactoring
-    int32_t ValidateAppCloneIndex(Want &want, int32_t &appCloneIndex, std::shared_ptr<EventInfo> eventInfo);
-    int32_t InitializeAppCloneRequest(StartAbilityWrapParam &param, int32_t appCloneIndex,
-        AbilityRequest &abilityRequest, AppExecFwk::AbilityInfo &abilityInfo, int32_t validUserId);
-    int32_t ProcessLaunchReasonAndController(StartAbilityWrapParam &param, AbilityRequest &abilityRequest,
-        AppExecFwk::AbilityInfo &abilityInfo, std::shared_ptr<EventInfo> eventInfo);
-    int32_t ExecuteAfterCheckInterceptors(StartAbilityWrapParam &param, AbilityRequest &abilityRequest,
-        AppExecFwk::AbilityInfo &abilityInfo, int32_t appCloneIndex, std::shared_ptr<EventInfo> eventInfo);
-    void PreprocessRequestParams(StartAbilityWrapParam &param, AbilityRequest &abilityRequest);
-    int32_t ExecuteAbilityStart(AbilityRequest &abilityRequest, AppExecFwk::AbilityInfo &abilityInfo,
-        int32_t validUserId, bool isGamePrelaunch, std::shared_ptr<EventInfo> eventInfo);
+    int32_t InitializeAppCloneRequest(const StartAbilityWrapParam &param, int32_t appCloneIndex,
+        int32_t validUserId, AbilityRequest &abilityRequest, AppExecFwk::AbilityInfo &abilityInfo);
+    int32_t ProcessLaunchReasonAndController(const StartAbilityWrapParam &param,
+        const std::shared_ptr<EventInfo> eventInfo, const AppExecFwk::AbilityInfo &abilityInfo,
+        AbilityRequest &abilityRequest);
+    int32_t ExecuteAfterCheckInterceptors(const StartAbilityWrapParam &param, const AbilityRequest &abilityRequest,
+       const AppExecFwk::AbilityInfo &abilityInfo, int32_t appCloneIndex, const std::shared_ptr<EventInfo> eventInfo);
+    void PreprocessRequestParams(const StartAbilityWrapParam &param, AbilityRequest &abilityRequest);
+    int32_t ExecuteAbilityStart(const AppExecFwk::AbilityInfo &abilityInfo, int32_t validUserId, bool isGamePrelaunch,
+        const std::shared_ptr<EventInfo> eventInfo, AbilityRequest &abilityRequest);
     void InitWindowVisibilityChangedListener();
     void FreeWindowVisibilityChangedListener();
     bool CheckProcessIsBackground(int32_t pid, AbilityState currentState);
