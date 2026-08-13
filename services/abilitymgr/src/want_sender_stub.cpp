@@ -28,9 +28,6 @@ WantSenderStub::~WantSenderStub() {}
 
 int WantSenderStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    // 直接调 IWantSender::Send 经由本 stub 入口可绕过 PendingWantManager::CheckCallerPermission
-    // （前台/系统应用/后台启动权限校验）。合法 trigger 必须走 AbilityManagerService::SendWantSender
-    // （IPC code = SEND_PENDING_WANT_SENDER），那里有完整鉴权与 IsProxyObject 拒绝逻辑。
     if (code == IWantSender::WANT_SENDER_SEND) {
         TAG_LOGW(AAFwkTag::WANTAGENT,
             "IWantSender::Send IPC deprecated (would bypass CheckCallerPermission), reject. callerUid=%{public}d",
