@@ -170,6 +170,7 @@ public:
     {
         {
             std::lock_guard guard(connectionsMutex_);
+            data.isSuspended = false;
             auto it = std::find_if(connections_.begin(), connections_.end(),
                 [](const std::pair<sptr<IRemoteObject>, bool
                     >& pair) {return !pair.second;});
@@ -278,6 +279,7 @@ public:
 
     void GenerateExtensionInfo(AbilityRuntime::ConnectionData &data)
     {
+        data.isSuspended = false;
         data.extensionPid = dataAbilityPid_;
         data.extensionUid = dataAbilityUid_;
         data.extensionBundleName = bundleName_;

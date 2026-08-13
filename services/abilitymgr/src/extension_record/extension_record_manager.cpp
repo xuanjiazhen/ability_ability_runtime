@@ -17,6 +17,7 @@
 
 #include "ability_util.h"
 #include "app_utils.h"
+#include "appmgr_client.h"
 #include "extension_running_timeout_monitor.h"
 #include "preload_ui_extension_execute_callback_proxy.h"
 #include "preload_ui_extension_host_client.h"
@@ -82,6 +83,7 @@ int32_t ExtensionRecordManager::GenerateExtensionRecordId(const int32_t extensio
         extensionRecordId_++;
     }
 
+    extensionRecordIdSet_.insert(extensionRecordId_);
     return extensionRecordId_;
 }
 
@@ -111,6 +113,7 @@ void ExtensionRecordManager::RemoveExtensionRecord(const int32_t extensionRecord
     std::lock_guard<std::mutex> lock(mutex_);
     extensionRecords_.erase(extensionRecordId);
     terminateRecords_.erase(extensionRecordId);
+    extensionRecordIdSet_.erase(extensionRecordId);
 
     // Notify running timeout monitor about extension termination
     auto monitor = DelayedSingleton<AAFwk::ExtensionRunningTimeoutMonitor>::GetInstance();
@@ -737,6 +740,11 @@ int32_t ExtensionRecordManager::CreateExtensionRecord(const AAFwk::AbilityReques
     result = UpdateProcessName(abilityRequest, extensionRecord);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "update processname error");
+        if (abilityRecord->GetBoolParam(IS_PRELOAD_UIEXTENSION_ABILITY, false) &&
+            extensionRecord->preLoadUIExtStateObserver_ != nullptr) {
+            DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->UnregisterApplicationStateObserver(
+                extensionRecord->preLoadUIExtStateObserver_);
+        }
         return result;
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR,
@@ -904,8 +912,26 @@ void ExtensionRecordManager::TerminateTimeout(int32_t extensionRecordId)
 void ExtensionRecordManager::GetCallerTokenList(
     const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, std::list<sptr<IRemoteObject>> &callerList)
 {
+    std::set<int32_t> visitedIds;
+    GetCallerTokenListInner(abilityRecord, callerList, visitedIds, 0);
+}
+
+void ExtensionRecordManager::GetCallerTokenListInner(
+    const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, std::list<sptr<IRemoteObject>> &callerList,
+    std::set<int32_t> &visitedIds, int32_t depth)
+{
     CHECK_POINTER(abilityRecord);
+    if (depth >= MAX_CALLER_DEPTH) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "caller depth exceed limit: %{public}d", depth);
+        callerList.clear();
+        return;
+    }
     auto extensionRecordId = abilityRecord->GetUIExtensionAbilityId();
+    if (extensionRecordId != INVALID_EXTENSION_RECORD_ID && !visitedIds.insert(extensionRecordId).second) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "cycle detected at extensionRecordId: %{public}d", extensionRecordId);
+        callerList.clear();
+        return;
+    }
     auto sessionInfo = abilityRecord->GetSessionInfo();
     if (!sessionInfo) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "sessionInfo null, id: %{public}d", extensionRecordId);
@@ -941,7 +967,7 @@ void ExtensionRecordManager::GetCallerTokenList(
     }
 
     callerList.push_front(callerToken);
-    GetCallerTokenList(callerAbilityRecord, callerList);
+    GetCallerTokenListInner(callerAbilityRecord, callerList, visitedIds, depth + 1);
 }
 
 bool ExtensionRecordManager::IsFocused(

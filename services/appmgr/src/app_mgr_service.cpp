@@ -187,7 +187,7 @@ ErrCode AppMgrService::Init()
     std::function<void()> initAppMgrServiceInnerTask = [appMgrServiceInner = appMgrServiceInner_]() {
         appMgrServiceInner->Init();
     };
-    taskHandler_->SubmitTask(initAppMgrServiceInnerTask, TASK_INIT_APPMGRSERVICEINNER);
+    initAppMgrServiceInnerTask();
 
     ErrCode openErr = appMgrServiceInner_->OpenAppSpawnConnection();
     if (FAILED(openErr)) {
@@ -2413,6 +2413,10 @@ int32_t AppMgrService::EnableDelayedProcessExit(bool enabled)
         TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
         return ERR_INVALID_OPERATION;
     }
+    if (!appMgrServiceInner_->IsFoundationCall()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Not foundation call.");
+        return ERR_INVALID_OPERATION;
+    }
     pid_t callingPid = IPCSkeleton::GetCallingPid();
     return appMgrServiceInner_->EnableDelayedProcessExit(static_cast<int32_t>(callingPid), enabled);
 }
@@ -2426,6 +2430,10 @@ void AppMgrService::CancelDelayedExitTask(int32_t pid)
     }
     if (!appMgrServiceInner_->IsFoundationCall()) {
         TAG_LOGE(AAFwkTag::APPMGR, "Not foundation call.");
+        return;
+    }
+    if (pid <= 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid pid: %{public}d", pid);
         return;
     }
     appMgrServiceInner_->CancelDelayedExitTask(pid);

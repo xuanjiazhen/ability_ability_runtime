@@ -16,6 +16,7 @@
 #include "extension_config.h"
 
 #include <fstream>
+#include <limits>
 
 #include "config_policy_utils.h"
 #include "hilog_tag_wrapper.h"
@@ -130,18 +131,23 @@ void ExtensionConfig::LoadExtensionConfig(const nlohmann::json &object)
         if (!jsonObject.contains(EXTENSION_TYPE_NAME) || !jsonObject.at(EXTENSION_TYPE_NAME).is_string()) {
             continue;
         }
-        std::lock_guard lock(configMapMutex_);
-        std::string extensionTypeName = jsonObject.at(EXTENSION_TYPE_NAME).get<std::string>();
-        LoadExtensionAutoDisconnectTime(jsonObject, extensionTypeName);
-        LoadExtensionRunningTimeoutTime(jsonObject, extensionTypeName);
-        bool hasAbilityAccess = LoadExtensionAbilityAccess(jsonObject, extensionTypeName);
-        if (!hasAbilityAccess) {
-            LoadExtensionThirdPartyAppBlockedList(jsonObject, extensionTypeName);
-            LoadExtensionServiceBlockedList(jsonObject, extensionTypeName);
+        try {
+            std::lock_guard lock(configMapMutex_);
+            std::string extensionTypeName = jsonObject.at(EXTENSION_TYPE_NAME).get<std::string>();
+            LoadExtensionAutoDisconnectTime(jsonObject, extensionTypeName);
+            LoadExtensionRunningTimeoutTime(jsonObject, extensionTypeName);
+            bool hasAbilityAccess = LoadExtensionAbilityAccess(jsonObject, extensionTypeName);
+            if (!hasAbilityAccess) {
+                LoadExtensionThirdPartyAppBlockedList(jsonObject, extensionTypeName);
+                LoadExtensionServiceBlockedList(jsonObject, extensionTypeName);
+            }
+            LoadExtensionNetworkEnable(jsonObject, extensionTypeName);
+            LoadExtensionSAEnable(jsonObject, extensionTypeName);
+            LoadScreenUnlockAccess(jsonObject, extensionTypeName);
+        } catch (const nlohmann::json::exception &e) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "skip bad config entry: %{public}s", e.what());
+            continue;
         }
-        LoadExtensionNetworkEnable(jsonObject, extensionTypeName);
-        LoadExtensionSAEnable(jsonObject, extensionTypeName);
-        LoadScreenUnlockAccess(jsonObject, extensionTypeName);
     }
     isConfigLoaded_.store(true);
 }
@@ -154,7 +160,15 @@ void ExtensionConfig::LoadExtensionAutoDisconnectTime(const nlohmann::json &obje
         TAG_LOGD(AAFwkTag::ABILITYMGR, "auto disconnect time config null");
         return;
     }
-    int32_t extensionAutoDisconnectTime = object.at(EXTENSION_AUTO_DISCONNECT_TIME).get<int32_t>();
+    int32_t extensionAutoDisconnectTime = 0;
+    auto rawValue = object.at(EXTENSION_AUTO_DISCONNECT_TIME);
+    int64_t raw = rawValue.is_number_integer() ? rawValue.get<int64_t>() :
+        static_cast<int64_t>(rawValue.get<uint64_t>());
+    if (raw < std::numeric_limits<int32_t>::min() || raw > std::numeric_limits<int32_t>::max()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "auto disconnect time out of int32 range");
+        return;
+    }
+    extensionAutoDisconnectTime = static_cast<int32_t>(raw);
     configMap_[extensionTypeName].extensionAutoDisconnectTime = extensionAutoDisconnectTime;
 }
 
@@ -167,7 +181,15 @@ void ExtensionConfig::LoadExtensionRunningTimeoutTime(const nlohmann::json &obje
             extensionTypeName.c_str());
         return;
     }
-    int32_t extensionRunningTimeoutTime = object.at(EXTENSION_RUNNING_TIMEOUT_TIME).get<int32_t>();
+    int32_t extensionRunningTimeoutTime = 0;
+    auto rawValue = object.at(EXTENSION_RUNNING_TIMEOUT_TIME);
+    int64_t raw = rawValue.is_number_integer() ? rawValue.get<int64_t>() :
+        static_cast<int64_t>(rawValue.get<uint64_t>());
+    if (raw < std::numeric_limits<int32_t>::min() || raw > std::numeric_limits<int32_t>::max()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "running timeout time out of int32 range");
+        return;
+    }
+    extensionRunningTimeoutTime = static_cast<int32_t>(raw);
     configMap_[extensionTypeName].extensionRunningTimeoutTime = extensionRunningTimeoutTime;
     TAG_LOGI(AAFwkTag::ABILITYMGR, "extension %{public}s running timeout time: %{public}d ms",
         extensionTypeName.c_str(), extensionRunningTimeoutTime);

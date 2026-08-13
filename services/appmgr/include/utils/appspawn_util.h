@@ -57,7 +57,8 @@ static uint64_t BuildStartFlags(const AAFwk::Want &want, const ApplicationInfo &
     if (applicationInfo.asanEnabled) {
         startFlags = startFlags | (START_FLAG_BASE << StartFlags::ASANENABLED);
     }
-    if (want.GetBoolParam("nativeDebug", false)) {
+    if (applicationInfo.debug && applicationInfo.appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG &&
+        want.GetBoolParam("nativeDebug", false)) {
         startFlags = startFlags | (START_FLAG_BASE << StartFlags::NATIVEDEBUG);
     }
     if (applicationInfo.gwpAsanEnabled) {

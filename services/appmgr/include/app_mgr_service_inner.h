@@ -2566,6 +2566,8 @@ private:
     std::map<std::string, std::pair<int32_t, int32_t>> imageStartReportMap_;
     std::chrono::steady_clock::time_point lastReportTime_ = std::chrono::steady_clock::now();
     int32_t imageStartCount_ {0};
+    std::chrono::steady_clock::time_point lastErrorReportTime_ = std::chrono::steady_clock::now();
+    int32_t imageErrorCount_ {0};
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

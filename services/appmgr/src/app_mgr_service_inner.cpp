@@ -1538,7 +1538,14 @@ int32_t AppMgrServiceInner::TryToUseImageInfo(std::shared_ptr<AbilityInfo> abili
     startMsg.checkpointId = imageInfo->checkpointId;
     startMsg.imageName = imageInfo->imageName;
     TAG_LOGI(AAFwkTag::APPMGR, "StartProcess");
-    auto errCode = remoteClientManager_->GetSpawnClient()->StartProcess(startMsg, workPid);
+    auto spawnClient = remoteClientManager_->GetSpawnClient();
+    if (spawnClient == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "spawnClient is null");
+        appRunningManager_->RemoveAppRunningRecordById(appRecord->GetRecordId());
+        appRecord = nullptr;
+        return ERR_INVALID_STATE;
+    }
+    auto errCode = spawnClient->StartProcess(startMsg, workPid);
     AAFwk::ResSchedUtil::GetInstance().ReportForkAllEventToRSS(imageInfo->imagePid, appRecord->GetPid(),
         imageInfo->abilityInfo, FORK_ALL_LIVING_END);
     if (errCode == ERR_OK && workPid != appRecord->GetPid()) {
@@ -1618,6 +1625,7 @@ void AppMgrServiceInner::SnapshotErrorReport(int32_t uid, const std::string &bun
     const std::string &appVersionName, int32_t result, const std::string &reason)
 {
     std::string bundleVersionName = bundleName + "_" + std::to_string(uid) + "@" + appVersionName;
+    auto now = std::chrono::steady_clock::now();
     {
         std::lock_guard<std::mutex> guard(imageReportLock_);
         auto iter = imageStartReportMap_.find(bundleVersionName);
@@ -1625,6 +1633,12 @@ void AppMgrServiceInner::SnapshotErrorReport(int32_t uid, const std::string &bun
             imageStartReportMap_.emplace(bundleVersionName, std::make_pair(0, 0));
         }
         imageStartReportMap_[bundleVersionName].second++;
+        imageErrorCount_++;
+        if (now - lastErrorReportTime_ < REPORT_INTERVAL && imageErrorCount_ < REPORT_THRESHOLD) {
+            return;
+        }
+        lastErrorReportTime_ = now;
+        imageErrorCount_ = 0;
     }
 
     AAFwk::SnapshotInfo snapshotInfo;
@@ -3809,11 +3823,26 @@ int32_t AppMgrServiceInner::KillApplicationByUserIdLocked(
 int32_t AppMgrServiceInner::CheckAppProvisionType(
     const std::string &bundleName, int32_t callerUid, int32_t appCloneIndex, int32_t userId)
 {
+    if (bundleName.empty()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "bundleName empty");
+        return ERR_INVALID_VALUE;
+    }
     int32_t newUserId = userId;
     if (userId == DEFAULT_INVAL_VALUE) {
         newUserId = GetUserIdByUid(callerUid);
         if (newUserId == U0_USER_ID || newUserId == U1_USER_ID) {
             newUserId = UserController::GetInstance().GetForegroundUserId(DEFAULT_DISPLAY_ID);
+        }
+    } else {
+        if (userId < 0) {
+            TAG_LOGE(AAFwkTag::APPMGR, "invalid userId: %{public}d", userId);
+            return ERR_INVALID_VALUE;
+        }
+        int32_t callerUserId = GetUserIdByUid(callerUid);
+        if (callerUserId >= 0 && userId != callerUserId) {
+            TAG_LOGE(AAFwkTag::APPMGR, "cross-user not allowed: userId=%{public}d, callerUserId=%{public}d",
+                userId, callerUserId);
+            return AAFwk::CHECK_PERMISSION_FAILED;
         }
     }
     auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
@@ -5542,6 +5571,23 @@ int32_t AppMgrServiceInner::StartPerfProcessByStartMsg(AppSpawnStartMsg &startMs
         return ERR_INVALID_OPERATION;
     }
 
+    constexpr size_t MAX_RENDER_PARAM_LEN = 1024;
+    auto isValidRenderParam = [](const std::string &cmd) -> bool {
+        if (cmd.size() > MAX_RENDER_PARAM_LEN) {
+            return false;
+        }
+        static const std::string forbiddenChars = ";|&`$(){}[]<>\n\r\"'\\";
+        return cmd.find_first_of(forbiddenChars) == std::string::npos;
+    };
+    if (!perfCmd.empty() && !isValidRenderParam(perfCmd)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "perfCmd invalid or too long");
+        return ERR_INVALID_VALUE;
+    }
+    if (!debugCmd.empty() && !isValidRenderParam(debugCmd)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "debugCmd invalid or too long");
+        return ERR_INVALID_VALUE;
+    }
+
     startMsg.code = static_cast<int32_t>(MSG_SPAWN_NATIVE_PROCESS);
     if (!isSandboxApp) {
         TAG_LOGD(AAFwkTag::APPMGR, "debuggablePipe sandbox: false.");
@@ -5773,6 +5819,7 @@ int32_t AppMgrServiceInner::CreatNewStartMsg(const Want &want, const AbilityInfo
         TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
         return ERR_NO_INIT;
     }
+    CHECK_POINTER_AND_RETURN_VALUE(appInfo, ERR_NO_INIT);
 
     BundleInfo bundleInfo;
     HapModuleInfo hapModuleInfo;
@@ -5783,7 +5830,6 @@ int32_t AppMgrServiceInner::CreatNewStartMsg(const Want &want, const AbilityInfo
     }
 
     uint64_t startFlags = AppspawnUtil::BuildStartFlags(want, abilityInfo);
-    CHECK_POINTER_AND_RETURN_VALUE(appInfo, ERR_NO_INIT);
     auto uid = appInfo->uid;
     auto bundleType = appInfo->bundleType;
     bundleInfo.applicationInfo.accessTokenId = appInfo->accessTokenId;
@@ -8658,6 +8704,13 @@ int AppMgrServiceInner::StartRenderProcessImpl(const std::shared_ptr<RenderRecor
         RemoveRenderProcessIsolationUid(renderUid);
         AppMgrEventUtil::SendRenderProcessStartFailedEvent(
             renderRecord, ProcessStartFailedReason::APPSPAWN_FAILED, static_cast<int32_t>(spawnErr));
+        return ERR_INVALID_VALUE;
+    }
+    if (pid <= 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "spawn returned success but invalid pid:%{public}d", pid);
+        RemoveRenderProcessIsolationUid(renderUid);
+        AppMgrEventUtil::SendRenderProcessStartFailedEvent(
+            renderRecord, ProcessStartFailedReason::APPSPAWN_FAILED, ERR_INVALID_VALUE);
         return ERR_INVALID_VALUE;
     }
     renderPid = pid;

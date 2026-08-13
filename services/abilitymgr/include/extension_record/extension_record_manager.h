@@ -168,6 +168,9 @@ public:
 
 private:
     inline std::shared_ptr<ExtensionRecord> GetExtensionRecordById(int32_t extensionRecordId);
+    void GetCallerTokenListInner(const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord,
+        std::list<sptr<IRemoteObject>> &callerList, std::set<int32_t> &visitedIds, int32_t depth);
+    static constexpr int32_t MAX_CALLER_DEPTH = 50;
 
 private:
     int32_t userId_;

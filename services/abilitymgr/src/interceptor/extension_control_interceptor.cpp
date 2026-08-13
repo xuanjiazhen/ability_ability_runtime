@@ -130,12 +130,14 @@ bool ExtensionControlInterceptor::GetCallerAbilityInfo(const AbilityInterceptorP
         }
         auto appScheduler = DelayedSingleton<AppScheduler>::GetInstance();
         AppExecFwk::RunningProcessInfo processInfo;
-        if (appScheduler != nullptr) {
-            appScheduler->GetRunningProcessInfoByToken(param.callerToken, processInfo);
+        if (appScheduler != nullptr &&
+            appScheduler->GetRunningProcessInfoByToken(param.callerToken, processInfo) == ERR_OK) {
             if (!processInfo.isStrictMode && !param.want.GetBoolParam(STRICT_MODE, false)) {
                 TAG_LOGD(AAFwkTag::ABILITYMGR, "caller and want not strict mode");
                 return true;
             }
+        } else {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "get running process info failed, apply control");
         }
     }
     return false;
@@ -155,8 +157,12 @@ bool ExtensionControlInterceptor::GetTargetAbilityInfo(const AbilityInterceptorP
             TAG_LOGE(AAFwkTag::ABILITYMGR, "null bundleMgrHelper");
             return true;
         }
-        IN_PROCESS_CALL_WITHOUT_RET(bundleMgrHelper->QueryAbilityInfo(param.want,
+        auto queryRet = IN_PROCESS_CALL(bundleMgrHelper->QueryAbilityInfo(param.want,
             AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, param.userId, targetAbilityInfo));
+        if (queryRet != ERR_OK || targetAbilityInfo.bundleName.empty() || targetAbilityInfo.name.empty()) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "QueryAbilityInfo failed or invalid info, ret=%{public}d", queryRet);
+            return true;
+        }
     }
     return false;
 }

@@ -85,6 +85,16 @@ int32_t PreloadManagerService::PreloadApplication(const std::string &bundleName,
 
 int32_t PreloadManagerService::LaunchGameCustomized(const std::string &bundleName, int32_t userId, int32_t appIndex)
 {
+    bool isGameSACall = IPCSkeleton::GetCallingUid() == AbilityRuntime::GlobalConstant::GAME_SA_UID;
+    bool isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
+    bool isDevelopMode = OHOS::system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
+    if (!(isGameSACall || (isShellCall && isDevelopMode))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Permission check failed: callingUid: %{public}d, isGameSACall = %{public}d, "
+            "isShellCall = %{public}d, isDevelopMode = %{public}d",
+            IPCSkeleton::GetCallingUid(), isGameSACall, isShellCall, isDevelopMode);
+        return CHECK_PERMISSION_FAILED;
+    }
+
     Want launchWant;
     AppExecFwk::AbilityInfo abilityInfo;
     if (auto ret = PreloadApplicationVerification(bundleName, userId, appIndex, launchWant,
@@ -93,14 +103,9 @@ int32_t PreloadManagerService::LaunchGameCustomized(const std::string &bundleNam
         return ret;
     }
 
-    bool isGameSACall = IPCSkeleton::GetCallingUid() == AbilityRuntime::GlobalConstant::GAME_SA_UID;
-    bool isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
-    bool isDevelopMode = OHOS::system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
     bool isDebugApp = abilityInfo.applicationInfo.appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG;
-    if (!(isGameSACall || (isShellCall && isDevelopMode && isDebugApp))) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Permission check failed: callingUid: %{public}d, isGameSACall = %{public}d, "
-            "isShellCall = %{public}d, isDevelopMode = %{public}d, isDebugApp = %{public}d",
-            IPCSkeleton::GetCallingUid(), isGameSACall, isShellCall, isDevelopMode, isDebugApp);
+    if (isShellCall && !isGameSACall && !isDebugApp) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "shell call but target app not debug");
         return CHECK_PERMISSION_FAILED;
     }
 
