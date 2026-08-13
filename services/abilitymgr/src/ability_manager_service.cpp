@@ -583,7 +583,7 @@ void AbilityManagerService::InitBlockAllAppStartInterceptorCallbacks()
         std::shared_ptr<AbilityRecord> targetRecord;
         return aams->IsAbilityStarted(req, targetRecord, userId);
     });
-    blockAllAppStartInterceptor_->SetAllowStartFunc([](const AbilityRequest &request) {
+    blockAllAppStartInterceptor_->SetAllowStartFunc([](AbilityRequest &request) {
         auto &policy = SystemRecoveryModePolicy::GetInstance();
         if (!policy.IsEnabled()) {
             return false;
@@ -595,7 +595,13 @@ void AbilityManagerService::InitBlockAllAppStartInterceptorCallbacks()
         if (request.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::BACKUP) {
             // ConnectLocalAbility 后续已有 BackupExtensionAbility 的 CONNECT_BACKUP_EXTENSION 权限校验，
             // 这里仅负责确认调用者身份和目标类型，避免重复造一套权限判断。
-            return IsBackupSaCaller();
+            if (!IsBackupSaCaller()) {
+                return false;
+            }
+            // 进程创建发生在 AppMgr，使用当前请求的内部 Want 传递已认证的单次启动上下文。
+            // 不把目标 Bundle 加入全局白名单，避免放开该应用的其他 Ability。
+            request.want.SetParam(SYSTEM_RECOVERY_BACKUP_EXTENSION_START_CONTEXT, true);
+            return true;
         }
 
         // 普通 Ability 仍按恢复模式白名单判断。

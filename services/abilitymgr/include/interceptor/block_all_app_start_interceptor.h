@@ -36,7 +36,8 @@ public:
 
     // 根据完整的启动请求判断是否允许恢复模式例外启动。
     // 仅传 Bundle 名称无法区分普通 Ability 和 BackupExtensionAbility。
-    using AllowStartFunc = std::function<bool(const AbilityRequest&)>;
+    // 回调可以在 AMS 完成认证后给当前请求附加一次性内部启动上下文。
+    using AllowStartFunc = std::function<bool(AbilityRequest&)>;
     void SetAllowStartFunc(const AllowStartFunc& func);
     void SetStrictBlockFunc(const std::function<bool()>& func);
 

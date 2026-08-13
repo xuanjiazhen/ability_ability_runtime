@@ -125,7 +125,7 @@ HWTEST_F(BlockAllAppStartInterceptorTest, Execute_RecoveryWhitelist_001, TestSiz
     BlockAllAppStartInterceptor interceptor;
     interceptor.SetShouldBlockFunc([]() { return true; });
     interceptor.SetIsAbilityStartedFunc([](AbilityRequest &, int32_t) { return false; });
-    interceptor.SetAllowStartFunc([](const AbilityRequest &request) {
+    interceptor.SetAllowStartFunc([](AbilityRequest &request) {
         return request.abilityInfo.bundleName == "com.example.recovery";
     });
     interceptor.SetStrictBlockFunc([]() { return true; });
@@ -144,7 +144,7 @@ HWTEST_F(BlockAllAppStartInterceptorTest, Execute_RecoveryWhitelist_002, TestSiz
     BlockAllAppStartInterceptor interceptor;
     interceptor.SetShouldBlockFunc([]() { return true; });
     interceptor.SetIsAbilityStartedFunc([](AbilityRequest &, int32_t) { return true; });
-    interceptor.SetAllowStartFunc([](const AbilityRequest &) { return false; });
+    interceptor.SetAllowStartFunc([](AbilityRequest &) { return false; });
     interceptor.SetStrictBlockFunc([]() { return true; });
     AbilityRequest request;
     request.abilityInfo.bundleName = "com.example.normal";
@@ -162,7 +162,7 @@ HWTEST_F(BlockAllAppStartInterceptorTest, Execute_RecoveryBackupExtension_001, T
     BlockAllAppStartInterceptor interceptor;
     interceptor.SetShouldBlockFunc([]() { return true; });
     interceptor.SetIsAbilityStartedFunc([](AbilityRequest &, int32_t) { return false; });
-    interceptor.SetAllowStartFunc([](const AbilityRequest &request) {
+    interceptor.SetAllowStartFunc([](AbilityRequest &request) {
         return request.abilityInfo.extensionAbilityType == ExtensionAbilityType::BACKUP;
     });
     interceptor.SetStrictBlockFunc([]() { return true; });

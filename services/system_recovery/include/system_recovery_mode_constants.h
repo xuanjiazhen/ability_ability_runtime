@@ -38,6 +38,11 @@ inline constexpr uint32_t SYSTEM_RECOVERY_WATERMARK_PRIORITY = 0;
 // Backup SA 在系统服务配置中的名称，用于通过 BMS 的 UID 转换接口识别调用者。
 inline constexpr char SYSTEM_RECOVERY_BACKUP_SA_NAME[] = "backup_sa";
 
+// AMS 认证后的单次 BackupExtension 进程启动上下文，仅在 foundation 内部的 Want 中传递。
+// 该标记不是白名单，也不授予普通 Ability 启动权限。
+inline constexpr char SYSTEM_RECOVERY_BACKUP_EXTENSION_START_CONTEXT[] =
+    "ohos.system.recovery.params.backup_extension_start";
+
 } // namespace AAFwk
 } // namespace OHOS
 
