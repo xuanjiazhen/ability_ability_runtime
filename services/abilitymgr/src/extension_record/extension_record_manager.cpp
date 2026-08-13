@@ -647,6 +647,26 @@ void ExtensionRecordManager::UnregisterPreLoadStateObserver(const std::shared_pt
     }
 }
 
+int32_t ExtensionRecordManager::ConfigureExtensionRecord(const AAFwk::AbilityRequest &abilityRequest,
+    const std::string &hostBundleName, const std::shared_ptr<ExtensionRecord> &extensionRecord,
+    const std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord, int32_t extensionRecordId, int32_t hostPid)
+{
+    extensionRecord->extensionRecordId_ = extensionRecordId;
+    extensionRecord->requestCode_ = abilityRequest.requestCode;
+    extensionRecord->hostBundleName_ = hostBundleName;
+    abilityRecord->SetOwnerMissionUserId(userId_);
+    abilityRecord->SetUIExtensionAbilityId(extensionRecordId);
+    extensionRecord->hostPid_ = (hostPid == AAFwk::DEFAULT_INVAL_VALUE) ? IPCSkeleton::GetCallingPid() : hostPid;
+    if (abilityRecord->GetBoolParam(IS_PRELOAD_UIEXTENSION_ABILITY, false)) {
+        auto ret = extensionRecord->RegisterStateObserver(hostBundleName);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "register failed, err: %{public}d", ret);
+            return ERR_INVALID_VALUE;
+        }
+    }
+    return ERR_OK;
+}
+
 int32_t ExtensionRecordManager::SetAbilityProcessName(const AAFwk::AbilityRequest &abilityRequest,
     const std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord,
     std::shared_ptr<ExtensionRecord> &extensionRecord)
@@ -736,19 +756,10 @@ int32_t ExtensionRecordManager::CreateExtensionRecord(const AAFwk::AbilityReques
     std::shared_ptr<AAFwk::BaseExtensionRecord> abilityRecord = extensionRecord->abilityRecord_;
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_NULL_OBJECT);
     extensionRecordId = GenerateExtensionRecordId(extensionRecordId);
-    extensionRecord->extensionRecordId_ = extensionRecordId;
-    extensionRecord->requestCode_ = abilityRequest.requestCode;
-    extensionRecord->hostBundleName_ = hostBundleName;
-    abilityRecord->SetOwnerMissionUserId(userId_);
-    abilityRecord->SetUIExtensionAbilityId(extensionRecordId);
-    extensionRecord->hostPid_ = (hostPid == AAFwk::DEFAULT_INVAL_VALUE) ? IPCSkeleton::GetCallingPid() : hostPid;
-    //add uiextension record register state observer object.
-    if (abilityRecord->GetBoolParam(IS_PRELOAD_UIEXTENSION_ABILITY, false)) {
-        auto ret = extensionRecord->RegisterStateObserver(hostBundleName);
-        if (ret != ERR_OK) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "register failed, err: %{public}d", ret);
-            return ERR_INVALID_VALUE;
-        }
+    result = ConfigureExtensionRecord(abilityRequest, hostBundleName, extensionRecord, abilityRecord,
+        extensionRecordId, hostPid);
+    if (result != ERR_OK) {
+        return result;
     }
     result = UpdateProcessName(abilityRequest, extensionRecord);
     if (result != ERR_OK) {
