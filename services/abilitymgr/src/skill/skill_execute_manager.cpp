@@ -187,25 +187,21 @@ std::string SkillExecuteManager::CreateExecuteRecord(const sptr<IRemoteObject> &
 int32_t SkillExecuteManager::ExecuteSkillDone(const std::string &requestCode, int32_t resultCode,
     const AppExecFwk::SkillExecuteResult &result, const std::string &callerBundleName)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR,
-        "execute skill done, requestCode:%{public}s code:%{public}d",
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "execute skill done, req:%{public}s code:%{public}d",
         requestCode.c_str(), resultCode);
-
+    auto callerTokenId = IPCSkeleton::GetCallingTokenID();
     sptr<ISkillExecuteCallback> callback;
     {
         std::lock_guard<ffrt::mutex> lock(mutex_);
         auto it = records_.find(requestCode);
         if (it == records_.end()) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "record not found, requestCode:%{public}s",
-                requestCode.c_str());
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "record not found, req:%{public}s", requestCode.c_str());
             return ERR_CODE_INVALID_ID;
         }
-
         auto record = it->second;
-        if (record->targetBundleName != callerBundleName) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR,
-                "bundleName %{public}s and %{public}s mismatch",
-                callerBundleName.c_str(), record->targetBundleName.c_str());
+        if (record->callerTokenId != callerTokenId ||
+            record->targetBundleName != callerBundleName) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "ExecuteSkillDone: caller mismatch");
             return ERR_INVALID_VALUE;
         }
         if (record->state != SkillExecuteState::EXECUTING) {
@@ -429,11 +425,21 @@ void SkillExecuteManager::EnsureAppStateObserverRegistered()
 void SkillExecuteManager::OnLaunchCompleted(const std::string &requestCode)
 {
     pid_t callerPid = IPCSkeleton::GetCallingPid();
+    Security::AccessToken::HapTokenInfo hapInfo;
+    if (Security::AccessToken::AccessTokenKit::GetHapTokenInfo(
+        IPCSkeleton::GetCallingTokenID(), hapInfo) != 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "OnLaunchCompleted: failed to get hap token info");
+        return;
+    }
     std::lock_guard<ffrt::mutex> lock(mutex_);
     auto it = records_.find(requestCode);
     if (it == records_.end()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
             "OnLaunchCompleted: record gone, req:%{public}s", requestCode.c_str());
+        return;
+    }
+    if (it->second->targetBundleName != hapInfo.bundleName) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "OnLaunchCompleted: bundleName mismatch");
         return;
     }
     it->second->targetPid = callerPid;
@@ -445,11 +451,17 @@ void SkillExecuteManager::OnLaunchCompleted(const std::string &requestCode)
 
 void SkillExecuteManager::OnLaunchFailed(const std::string &requestCode, int32_t errCode)
 {
+    auto callerTokenId = IPCSkeleton::GetCallingTokenID();
     std::lock_guard<ffrt::mutex> lock(mutex_);
     auto it = records_.find(requestCode);
     if (it == records_.end()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
             "OnLaunchFailed: record gone, req:%{public}s", requestCode.c_str());
+        return;
+    }
+    if (!PermissionVerification::GetInstance()->IsSACall() &&
+        it->second->callerTokenId != callerTokenId) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "OnLaunchFailed: callerTokenId mismatch");
         return;
     }
     auto record = it->second;
