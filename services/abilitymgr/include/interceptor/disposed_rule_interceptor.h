@@ -19,6 +19,7 @@
 #include "ability_interceptor_interface.h"
 
 #include "disposed_observer.h"
+#include "task_handler_wrap.h"
 #include "task_utils_wrap.h"
 
 namespace OHOS {
@@ -34,7 +35,7 @@ public:
     static std::string GenerateTimeoutTaskName(int32_t uid);
     static std::string GenerateEventTaskName(int32_t uid);
     ErrCode DoProcess(const AbilityInterceptorParam &param) override;
-    void SetTaskHandler(std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler) override
+    void SetTaskHandler(std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler)
     {
         taskHandler_ = taskHandler;
     };
