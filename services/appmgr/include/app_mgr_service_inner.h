@@ -2458,6 +2458,9 @@ private:
     int32_t GetValidUserId(int32_t userId);
     int32_t NotifyImageOperationFailed(sptr<IImageErrorHandler> errorHandler, ImageError errorCode);
     int32_t KillImageProcess(uint64_t checkpointId);
+    static ImageError ConvertForkAllError(int32_t errCode);
+    void HandleForkAllSuccess(const std::shared_ptr<AppRunningRecord> &appRecord,
+        const std::shared_ptr<ForkImageInfo> &imageInfo, int32_t pid, int32_t imagePid, uint64_t checkpointId);
 
     int32_t PreAddImageInfo(const std::string& bundleName, int32_t userId, int32_t appIndex,
         sptr<IImageErrorHandler> errorHandler, const PreloadRequest& preloadRequest);
@@ -2576,7 +2579,6 @@ private:
     std::mutex imageReportLock_;
     std::map<std::string, std::pair<int32_t, int32_t>> imageStartReportMap_;
     std::chrono::steady_clock::time_point lastReportTime_ = std::chrono::steady_clock::now();
-    int32_t imageStartCount_ {0};
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -46,6 +46,13 @@ public:
         ERR_INNER = 11,
         ERR_TEMPLATE_DIED = 12,
         ERR_FORKALL_BUSY = 13,
+        ERR_FORKALL_FAILED_EINTR = 14,
+        ERR_FORKALL_FAILED_EAGAIN = 15,
+        ERR_FORKALL_FAILED_ENOMEM = 16,
+        ERR_FORKALL_FAILED_EACCES = 17,
+        ERR_FORKALL_FAILED_EEXIST = 18,
+        ERR_FORKALL_FAILED_EISDIR = 19,
+        ERR_FORKALL_FAILED_EINVAL = 20,
     };
 };
 } // namespace AppExecFwk
