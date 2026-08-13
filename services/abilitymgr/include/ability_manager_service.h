@@ -57,6 +57,7 @@
 #include "iacquire_share_data_callback_interface.h"
 #include "interceptor/ability_interceptor_executer.h"
 #include "interceptor/block_all_app_start_interceptor.h"
+#include "interceptor/disposed_rule_interceptor.h"
 #include "insight_intent_event_mgr.h"
 #include "insight_intent_param_parser.h"
 #include "insight_intent_profile.h"
@@ -3714,6 +3715,7 @@ private:
     std::shared_ptr<AbilityInterceptorExecuter> interceptorExecuter_;
     std::shared_ptr<AbilityInterceptorExecuter> afterCheckExecuter_;
     std::shared_ptr<BlockAllAppStartInterceptor> blockAllAppStartInterceptor_;
+    std::shared_ptr<DisposedRuleInterceptor> disposedRuleInterceptor_;
 
     AbilityRuntime::InsightIntentParamParser paramParser_;
 
