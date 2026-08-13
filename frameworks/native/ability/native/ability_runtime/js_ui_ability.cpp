@@ -64,6 +64,10 @@
 #include "time_util.h"
 #include "skill/skill_execute_param.h"
 #include "skill/skill_execute_result.h"
+#include "extractor.h"
+
+using Extractor = OHOS::AbilityBase::Extractor;
+using ExtractorUtil = OHOS::AbilityBase::ExtractorUtil;
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -2686,6 +2690,8 @@ bool JsUIAbility::TryLoadSkillEntry(const std::string &srcEntry,
     const std::shared_ptr<AppExecFwk::SkillExecuteParam> &param,
     napi_env env, napi_value &outJsObj, napi_value &method)
 {
+    TAG_LOGI(AAFwkTag::UIABILITY,"CCC TryLoadSkillEntry enter, srcEntry:%{public}s, hapPath:%{private}s, moduleName:%{public}s",
+        srcEntry.c_str(), param->hapPath_.c_str(), param->moduleName_.c_str());
     if (IsBlockedSkillKeyName(param->functionName_)) {
         TAG_LOGW(AAFwkTag::UIABILITY, "blocked skill function name:%{public}s",
             param->functionName_.c_str());
@@ -2696,6 +2702,35 @@ bool JsUIAbility::TryLoadSkillEntry(const std::string &srcEntry,
     if (pos != std::string::npos) {
         srcPath.erase(pos);
         srcPath.append(".abc");
+    }
+    TAG_LOGI(AAFwkTag::UIABILITY,
+        "CCC TryLoadSkillEntry enter, srcPath:%{public}s", srcPath.c_str());
+    if (abilityInfo_ == nullptr || !abilityInfo_->isStageBasedModel) {
+        TAG_LOGW(AAFwkTag::UIABILITY,
+            "skill load requires stage model, srcEntry:%{public}s", srcEntry.c_str());
+        return false;
+    }
+    if (!param->hapPath_.empty()) {
+        bool newCreate = false;
+        std::string loadPath = ExtractorUtil::GetLoadFilePath(param->hapPath_);
+        std::shared_ptr<Extractor> extractor = ExtractorUtil::GetExtractor(loadPath, newCreate);
+        if (extractor == nullptr) {
+            TAG_LOGW(AAFwkTag::UIABILITY, "get extractor failed, hapPath:%{private}s", param->hapPath_.c_str());
+            return false;
+        }
+        auto slashPos = srcPath.find('/');
+        std::string abcPath = (slashPos != std::string::npos) ? srcPath.substr(slashPos + 1) : srcPath;
+        bool isHapCompressed = extractor->IsHapCompress(abcPath);
+        TAG_LOGI(AAFwkTag::UIABILITY,
+            "CCC Skill IsHapCompress, srcEntry:%{public}s, srcPath:%{public}s, abcPath:%{public}s, "
+            "hapPath:%{private}s, loadPath:%{private}s, isStageModel:%{public}d, isHapCompressed:%{public}d",
+            srcEntry.c_str(), srcPath.c_str(), abcPath.c_str(), param->hapPath_.c_str(), loadPath.c_str(),
+            abilityInfo_ ? abilityInfo_->isStageBasedModel : false, isHapCompressed);
+        if (isHapCompressed) {
+            TAG_LOGW(AAFwkTag::UIABILITY,
+                "abc is compressed, not allowed, abcPath:%{public}s", abcPath.c_str());
+            return false;
+        }
     }
     skillModuleRef_ = jsRuntime_.LoadModule(param->moduleName_, srcPath, param->hapPath_, true, false, srcEntry);
     if (skillModuleRef_ == nullptr) {

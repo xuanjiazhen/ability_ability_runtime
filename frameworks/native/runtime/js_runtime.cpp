@@ -1149,6 +1149,11 @@ std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& module
             fileName.append(codePath_).append(Constants::FILE_SEPARATOR).append(modulePath);
             std::regex pattern(std::string(Constants::FILE_DOT) + std::string(Constants::FILE_SEPARATOR));
             fileName = std::regex_replace(fileName, pattern, "");
+            TAG_LOGI(AAFwkTag::JSRUNTIME,
+                "CCC LoadModule path debug, modulePath:%{public}s, fileName:%{public}s, codePath:%{public}s, "
+                "hapPath:%{private}s, isBundle:%{public}d, srcEntrance:%{public}s",
+                modulePath.c_str(), fileName.c_str(), codePath_.c_str(), hapPath.c_str(), isBundle_,
+                srcEntrance.c_str());
         } else {
             if (!MakeFilePath(codePath_, modulePath, fileName)) {
                 TAG_LOGE(AAFwkTag::JSRUNTIME, "make module file path: %{private}s failed", modulePath.c_str());
@@ -1334,7 +1339,13 @@ bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath
 
     auto func = [&](std::string modulePath, const std::string abcPath) {
         bool useSafeMempry = apiTargetVersion_ == 0 || apiTargetVersion_ > API8;
-        if (!extractor->IsHapCompress(modulePath) && useSafeMempry) {
+        bool isHapCompressed = extractor->IsHapCompress(modulePath);
+        TAG_LOGI(AAFwkTag::JSRUNTIME,
+            "CCC RunScript IsHapCompress, modulePath:%{public}s, abcPath:%{public}s, hapPath:%{private}s, "
+            "isBundle:%{public}d, apiTargetVersion:%{public}d, isHapCompressed:%{public}d, useSafeMempry:%{public}d",
+            modulePath.c_str(), abcPath.c_str(), hapPath.c_str(), isBundle_, apiTargetVersion_,
+            isHapCompressed, useSafeMempry);
+        if (!isHapCompressed && useSafeMempry) {
             auto safeData = isBundle_ ? extractor->GetSafeData(modulePath) : GetOrCreateSafeData(extractor, modulePath);
             if (!safeData) {
                 TAG_LOGE(AAFwkTag::JSRUNTIME, "null safeData");
@@ -1370,6 +1381,9 @@ bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath
         panda::JSNApi::SetAssetPath(vm, path);
         panda::JSNApi::SetModuleName(vm, moduleName_);
     }
+    TAG_LOGI(AAFwkTag::JSRUNTIME,
+        "CCC RunScript before func, path:%{public}s, srcPath:%{public}s, isBundle:%{public}d, hapPath:%{private}s",
+        path.c_str(), srcPath.c_str(), isBundle_, hapPath.c_str());
     return func(path, srcPath);
 }
 

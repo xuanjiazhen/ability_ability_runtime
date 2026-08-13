@@ -436,7 +436,14 @@ bool AssetHelper::ReadFilePathData(const std::string& filePath, uint8_t** buff, 
         TAG_LOGD(AAFwkTag::JSRUNTIME, "realfilePath: %{private}s", realfilePath.c_str());
         int32_t apiTargetVersion = static_cast<int32_t>(workerInfo_->apiTargetVersion.GetOriginPointer());
         bool apiSatisfy = apiTargetVersion == 0 || apiTargetVersion > API8;
-        if (GetIsStageModel() && !isRestricted && apiSatisfy && !extractor->IsHapCompress(realfilePath)) {
+        bool isHapCompressed = extractor->IsHapCompress(realfilePath);
+        TAG_LOGI(AAFwkTag::JSRUNTIME,
+            "CCC Worker IsHapCompress, filePath:%{public}s, realfilePath:%{private}s, newHapPath:%{private}s, "
+            "loadPath:%{private}s, isStageModel:%{public}d, isRestricted:%{public}d, apiSatisfy:%{public}d, "
+            "isHapCompressed:%{public}d",
+            filePath.c_str(), realfilePath.c_str(), newHapPath.c_str(), loadPath.c_str(),
+            GetIsStageModel(), isRestricted, apiSatisfy, isHapCompressed);
+        if (GetIsStageModel() && !isRestricted && apiSatisfy && !isHapCompressed) {
             TAG_LOGD(AAFwkTag::JSRUNTIME, "Use secure mem.");
             auto safeData = extractor->GetSafeData(realfilePath);
             if (apiTargetVersion >= API12) {
