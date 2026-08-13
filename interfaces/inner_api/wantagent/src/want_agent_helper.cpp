@@ -15,6 +15,8 @@
 
 #include "want_agent_helper.h"
 
+#include "nlohmann/json.hpp"
+
 #include "ability_runtime_error_util.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
@@ -32,6 +34,108 @@ using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;
 using namespace OHOS::AbilityRuntime;
 namespace OHOS::AbilityRuntime::WantAgent {
+namespace {
+std::vector<std::shared_ptr<AAFwk::Want>> ParseWantsFromJson(const nlohmann::json &jsonObject)
+{
+    std::vector<std::shared_ptr<AAFwk::Want>> wants;
+    if (!jsonObject.contains("wants") || !jsonObject["wants"].is_array()) {
+        return wants;
+    }
+    for (auto &wantObj : jsonObject.at("wants")) {
+        if (!wantObj.is_string()) {
+            continue;
+        }
+        auto wantString = wantObj.get<std::string>();
+        std::shared_ptr<AAFwk::Want> want(Want::FromString(wantString));
+        if (want == nullptr) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "Failed to parse want from string");
+            continue;
+        }
+        wants.push_back(want);
+    }
+    return wants;
+}
+
+int32_t GetIntFromJson(const nlohmann::json &jsonObject, const std::string &key, int32_t defaultValue)
+{
+    if (jsonObject.contains(key) && jsonObject[key].is_number_integer()) {
+        return jsonObject.at(key).get<int32_t>();
+    }
+    return defaultValue;
+}
+
+std::shared_ptr<AAFwk::WantParams> ParseExtraInfoFromJson(const nlohmann::json &jsonObject)
+{
+    if (!jsonObject.contains("extraInfo") || !jsonObject["extraInfo"].is_object()) {
+        return nullptr;
+    }
+    auto extraInfoObj = jsonObject.at("extraInfo");
+    if (!extraInfoObj.contains("extraInfoValue") || !extraInfoObj["extraInfoValue"].is_string()) {
+        return nullptr;
+    }
+    auto pwWrapper = AAFwk::WantParamWrapper::Parse(extraInfoObj.at("extraInfoValue").get<std::string>());
+    if (pwWrapper == nullptr) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "Failed to parse extra info value");
+        return nullptr;
+    }
+    AAFwk::WantParams params;
+    if (pwWrapper->GetValue(params) != ERR_OK) {
+        return nullptr;
+    }
+    return std::make_shared<AAFwk::WantParams>(params);
+}
+
+std::shared_ptr<AAFwk::WantParams> ParseExtraInfoEnvelopeFromJson(const nlohmann::json &jsonObject)
+{
+    if (!jsonObject.contains("extraInfo") || !jsonObject["extraInfo"].is_object()) {
+        return nullptr;
+    }
+    auto extraInfoObj = jsonObject.at("extraInfo");
+    if (!extraInfoObj.contains("extraInfoValue") || !extraInfoObj["extraInfoValue"].is_string()) {
+        return nullptr;
+    }
+    AAFwk::WantParams params;
+    if (!AAFwk::WantParamWrapperJson::Parse(extraInfoObj.at("extraInfoValue").get<std::string>(), params)) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "parse want params json failed");
+    }
+    return std::make_shared<AAFwk::WantParams>(params);
+}
+
+std::vector<WantAgentConstant::Flags> ParseFlags(const nlohmann::json &jsonObject)
+{
+    int flags = -1;
+    std::vector<WantAgentConstant::Flags> flagsVec = {};
+    if (jsonObject.contains("flags") && jsonObject.at("flags").is_number_integer()) {
+        flags = jsonObject.at("flags").get<int>();
+    }
+
+    if (flags < 0) {
+        return flagsVec;
+    }
+
+    if (static_cast<uint32_t>(flags) & static_cast<uint32_t>(FLAG_ONE_SHOT)) {
+        flagsVec.emplace_back(WantAgentConstant::Flags::ONE_TIME_FLAG);
+    }
+    if (static_cast<uint32_t>(flags) & static_cast<uint32_t>(FLAG_NO_CREATE)) {
+        flagsVec.emplace_back(WantAgentConstant::Flags::NO_BUILD_FLAG);
+    }
+    if (static_cast<uint32_t>(flags) & static_cast<uint32_t>(FLAG_CANCEL_CURRENT)) {
+        flagsVec.emplace_back(WantAgentConstant::Flags::CANCEL_PRESENT_FLAG);
+    }
+    if (static_cast<uint32_t>(flags) & static_cast<uint32_t>(FLAG_UPDATE_CURRENT)) {
+        flagsVec.emplace_back(WantAgentConstant::Flags::UPDATE_PRESENT_FLAG);
+    }
+    if (static_cast<uint32_t>(flags) & static_cast<uint32_t>(FLAG_IMMUTABLE)) {
+        flagsVec.emplace_back(WantAgentConstant::Flags::CONSTANT_FLAG);
+    }
+    if (static_cast<uint32_t>(flags) & static_cast<uint32_t>(FLAG_ALLOW_CANCEL)) {
+        flagsVec.emplace_back(WantAgentConstant::Flags::ALLOW_CANCEL_FLAG);
+    }
+
+    return flagsVec;
+}
+}  // namespace
+
 WantAgentHelper::WantAgentHelper()
 {}
 
@@ -632,106 +736,6 @@ bool WantAgentHelper::HasWantParamsEnvelope(const std::string &jsonString)
         return false;
     }
     return AAFwk::WantParamWrapperJson::HasEnvelope(extraInfoObj["extraInfoValue"].get<std::string>());
-}
-
-std::vector<std::shared_ptr<AAFwk::Want>> WantAgentHelper::ParseWantsFromJson(const nlohmann::json &jsonObject)
-{
-    std::vector<std::shared_ptr<AAFwk::Want>> wants;
-    if (!jsonObject.contains("wants") || !jsonObject["wants"].is_array()) {
-        return wants;
-    }
-    for (auto &wantObj : jsonObject.at("wants")) {
-        if (!wantObj.is_string()) {
-            continue;
-        }
-        auto wantString = wantObj.get<std::string>();
-        std::shared_ptr<AAFwk::Want> want(Want::FromString(wantString));
-        if (want == nullptr) {
-            TAG_LOGE(AAFwkTag::WANTAGENT, "Failed to parse want from string");
-            continue;
-        }
-        wants.push_back(want);
-    }
-    return wants;
-}
-
-int32_t WantAgentHelper::GetIntFromJson(const nlohmann::json &jsonObject, const std::string &key, int32_t defaultValue)
-{
-    if (jsonObject.contains(key) && jsonObject[key].is_number_integer()) {
-        return jsonObject.at(key).get<int32_t>();
-    }
-    return defaultValue;
-}
-
-std::shared_ptr<AAFwk::WantParams> WantAgentHelper::ParseExtraInfoFromJson(const nlohmann::json &jsonObject)
-{
-    if (!jsonObject.contains("extraInfo") || !jsonObject["extraInfo"].is_object()) {
-        return nullptr;
-    }
-    auto extraInfoObj = jsonObject.at("extraInfo");
-    if (!extraInfoObj.contains("extraInfoValue") || !extraInfoObj["extraInfoValue"].is_string()) {
-        return nullptr;
-    }
-    auto pwWrapper = AAFwk::WantParamWrapper::Parse(extraInfoObj.at("extraInfoValue").get<std::string>());
-    if (pwWrapper == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "Failed to parse extra info value");
-        return nullptr;
-    }
-    AAFwk::WantParams params;
-    if (pwWrapper->GetValue(params) != ERR_OK) {
-        return nullptr;
-    }
-    return std::make_shared<AAFwk::WantParams>(params);
-}
-
-std::shared_ptr<AAFwk::WantParams> WantAgentHelper::ParseExtraInfoEnvelopeFromJson(const nlohmann::json &jsonObject)
-{
-    if (!jsonObject.contains("extraInfo") || !jsonObject["extraInfo"].is_object()) {
-        return nullptr;
-    }
-    auto extraInfoObj = jsonObject.at("extraInfo");
-    if (!extraInfoObj.contains("extraInfoValue") || !extraInfoObj["extraInfoValue"].is_string()) {
-        return nullptr;
-    }
-    AAFwk::WantParams params;
-    if (!AAFwk::WantParamWrapperJson::Parse(extraInfoObj.at("extraInfoValue").get<std::string>(), params)) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "parse want params json failed");
-    }
-    return std::make_shared<AAFwk::WantParams>(params);
-}
-
-std::vector<WantAgentConstant::Flags> WantAgentHelper::ParseFlags(nlohmann::json jsonObject)
-{
-    int flags = -1;
-    std::vector<WantAgentConstant::Flags> flagsVec = {};
-    if (jsonObject.contains("flags") && jsonObject.at("flags").is_number_integer()) {
-        flags = jsonObject.at("flags").get<int>();
-    }
-
-    if (flags < 0) {
-        return flagsVec;
-    }
-
-    if (static_cast<uint32_t>(flags) & static_cast<uint32_t>(FLAG_ONE_SHOT)) {
-        flagsVec.emplace_back(WantAgentConstant::Flags::ONE_TIME_FLAG);
-    }
-    if (static_cast<uint32_t>(flags) & static_cast<uint32_t>(FLAG_NO_CREATE)) {
-        flagsVec.emplace_back(WantAgentConstant::Flags::NO_BUILD_FLAG);
-    }
-    if (static_cast<uint32_t>(flags) & static_cast<uint32_t>(FLAG_CANCEL_CURRENT)) {
-        flagsVec.emplace_back(WantAgentConstant::Flags::CANCEL_PRESENT_FLAG);
-    }
-    if (static_cast<uint32_t>(flags) & static_cast<uint32_t>(FLAG_UPDATE_CURRENT)) {
-        flagsVec.emplace_back(WantAgentConstant::Flags::UPDATE_PRESENT_FLAG);
-    }
-    if (static_cast<uint32_t>(flags) & static_cast<uint32_t>(FLAG_IMMUTABLE)) {
-        flagsVec.emplace_back(WantAgentConstant::Flags::CONSTANT_FLAG);
-    }
-    if (static_cast<uint32_t>(flags) & static_cast<uint32_t>(FLAG_ALLOW_CANCEL)) {
-        flagsVec.emplace_back(WantAgentConstant::Flags::ALLOW_CANCEL_FLAG);
-    }
-
-    return flagsVec;
 }
 
 ErrCode WantAgentHelper::GetType(const std::shared_ptr<WantAgent> &agent, int32_t &operType)

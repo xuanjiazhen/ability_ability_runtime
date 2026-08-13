@@ -23,7 +23,6 @@
 #include "completed_dispatcher.h"
 #include "event_handler.h"
 #include "local_want_agent_info.h"
-#include "nlohmann/json.hpp"
 #include "trigger_info.h"
 #include "want.h"
 #include "want_agent.h"
@@ -274,16 +273,6 @@ private:
         sptr<IRemoteObject> callerToken);
 
     static unsigned int FlagsTransformer(const std::vector<WantAgentConstant::Flags> &flags);
-
-    static std::vector<WantAgentConstant::Flags> ParseFlags(nlohmann::json jsonObject);
-
-    static std::vector<std::shared_ptr<AAFwk::Want>> ParseWantsFromJson(const nlohmann::json &jsonObject);
-
-    static int32_t GetIntFromJson(const nlohmann::json &jsonObject, const std::string &key, int32_t defaultValue);
-
-    static std::shared_ptr<AAFwk::WantParams> ParseExtraInfoFromJson(const nlohmann::json &jsonObject);
-
-    static std::shared_ptr<AAFwk::WantParams> ParseExtraInfoEnvelopeFromJson(const nlohmann::json &jsonObject);
 };
 }  // namespace OHOS::AbilityRuntime::WantAgent
 #endif  // OHOS_ABILITY_RUNTIME_WANT_AGENT_HELPER_H
