@@ -16,7 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_TOOL_UTIL_H
 #define OHOS_ABILITY_RUNTIME_TOOL_UTIL_H
 
-#include <nlohmann/json.hpp>
+#include <nlohmann/json_fwd.hpp>
 #include <string>
 #include <vector>
 
