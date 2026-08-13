@@ -634,7 +634,8 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecordInner(const AAFwk::Abi
     return ERR_OK;
 }
 
-void ExtensionRecordManager::UnregisterPreLoadStateObserver(const std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord,
+void ExtensionRecordManager::UnregisterPreLoadStateObserver(
+    const std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord,
     const std::shared_ptr<ExtensionRecord> &extensionRecord)
 {
     if (abilityRecord == nullptr || extensionRecord == nullptr) {
