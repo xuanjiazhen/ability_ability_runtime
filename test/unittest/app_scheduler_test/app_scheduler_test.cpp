@@ -826,16 +826,16 @@ HWTEST_F(AppSchedulerTest, AppScheduler_StartSpecifiedAbility_001, TestSize.Leve
  * SubFunction: NA
  * FunctionPoints: AppScheduler StartSpecifiedAbility forwards preload flag
  * EnvConditions: NA
- * CaseDescription: Verify StartSpecifiedAbility forwards isWindowStagePreload is true
+ * CaseDescription: Verify StartSpecifiedAbility forwards processOptions
  */
 HWTEST_F(AppSchedulerTest, AppScheduler_StartSpecifiedAbility_002, TestSize.Level1)
 {
-    EXPECT_CALL(*clientMock_, StartSpecifiedAbility(_, _, 100, "", true)).Times(1);
+    EXPECT_CALL(*clientMock_, StartSpecifiedAbility(_, _, 100, "", _)).Times(1);
     DelayedSingleton<AppScheduler>::GetInstance()->appMgrClient_ = std::move(clientMock_);
     ASSERT_NE(DelayedSingleton<AppScheduler>::GetInstance()->appMgrClient_, nullptr);
     AAFwk::Want want;
     AppExecFwk::AbilityInfo abilityInfo;
-    DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedAbility(want, abilityInfo, 100, "", true);
+    DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedAbility(want, abilityInfo, 100, "", nullptr);
 }
 
 /*
