@@ -115,6 +115,10 @@ bool AppSpawnMsgWrapper::AssembleMsg(const AppSpawnStartMsg &startMsg)
         msg_->uid = startMsg.uid;
         msg_->gid = startMsg.gid;
         msg_->gidCount = startMsg.gids.size() + startMsg.dataGroupInfoList.size();
+        if (msg_->gidCount > AppSpawn::ClientSocket::MAX_GIDS) {
+            TAG_LOGE(AAFwkTag::APPMGR, "invalid gidCount, exceeds MAX_GIDS");
+            return false;
+        }
         msg_->bundleIndex = startMsg.bundleIndex;
         msg_->setAllowInternet = startMsg.setAllowInternet;
         msg_->allowInternet = startMsg.allowInternet;
@@ -210,7 +214,7 @@ bool AppSpawnMsgWrapper::VerifyMsg(const AppSpawnStartMsg &startMsg) const
             return false;
         }
 
-        if (startMsg.gids.size() > AppSpawn::ClientSocket::MAX_GIDS) {
+        if (startMsg.gids.size() + startMsg.dataGroupInfoList.size() > AppSpawn::ClientSocket::MAX_GIDS) {
             TAG_LOGE(AAFwkTag::APPMGR, "many app gids");
             return false;
         }
