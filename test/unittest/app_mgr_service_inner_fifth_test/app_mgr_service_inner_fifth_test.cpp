@@ -1102,6 +1102,7 @@ HWTEST_F(AppMgrServiceInnerTest, HandleForkAllInner_StateNotReady_001, TestSize.
 HWTEST_F(AppMgrServiceInnerTest, HandleForkAllInner_AppSpawnErrno_001, TestSize.Level2)
 {
     const std::vector<std::pair<int32_t, ImageError>> testCases = {
+        { EBUSY, ImageError::ERR_FORKALL_BUSY },
         { EINTR, ImageError::ERR_FORKALL_FAILED_EINTR },
         { EAGAIN, ImageError::ERR_FORKALL_FAILED_EAGAIN },
         { ENOMEM, ImageError::ERR_FORKALL_FAILED_ENOMEM },
