@@ -206,6 +206,8 @@ private:
         std::shared_ptr<ExtensionRecord> &extensionRecord, bool &isLoaded);
 
     int32_t UpdateProcessName(const AAFwk::AbilityRequest &abilityRequest, std::shared_ptr<ExtensionRecord> &record);
+    void UnregisterPreLoadStateObserver(const std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord,
+        const std::shared_ptr<ExtensionRecord> &extensionRecord);
     int32_t SetAbilityProcessName(const AAFwk::AbilityRequest &abilityRequest,
         const std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord,
         std::shared_ptr<ExtensionRecord> &extensionRecord);

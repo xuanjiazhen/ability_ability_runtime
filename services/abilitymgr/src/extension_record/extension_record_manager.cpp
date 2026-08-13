@@ -634,6 +634,19 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecordInner(const AAFwk::Abi
     return ERR_OK;
 }
 
+void ExtensionRecordManager::UnregisterPreLoadStateObserver(const std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord,
+    const std::shared_ptr<ExtensionRecord> &extensionRecord)
+{
+    if (abilityRecord == nullptr || extensionRecord == nullptr) {
+        return;
+    }
+    if (abilityRecord->GetBoolParam(IS_PRELOAD_UIEXTENSION_ABILITY, false) &&
+        extensionRecord->preLoadUIExtStateObserver_ != nullptr) {
+        DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->UnregisterApplicationStateObserver(
+            extensionRecord->preLoadUIExtStateObserver_);
+    }
+}
+
 int32_t ExtensionRecordManager::SetAbilityProcessName(const AAFwk::AbilityRequest &abilityRequest,
     const std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord,
     std::shared_ptr<ExtensionRecord> &extensionRecord)
@@ -740,11 +753,7 @@ int32_t ExtensionRecordManager::CreateExtensionRecord(const AAFwk::AbilityReques
     result = UpdateProcessName(abilityRequest, extensionRecord);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "update processname error");
-        if (abilityRecord->GetBoolParam(IS_PRELOAD_UIEXTENSION_ABILITY, false) &&
-            extensionRecord->preLoadUIExtStateObserver_ != nullptr) {
-            DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->UnregisterApplicationStateObserver(
-                extensionRecord->preLoadUIExtStateObserver_);
-        }
+        UnregisterPreLoadStateObserver(abilityRecord, extensionRecord);
         return result;
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR,
