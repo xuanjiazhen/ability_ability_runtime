@@ -371,6 +371,7 @@ private:
         if (argc == ARGC_TWO) {
             observerForeground_->RemoveJsObserverObject(argv[INDEX_ONE]);
         } else {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "SubEvent op=off_all kit=abilityKit event=abilityForegroundState");
             observerForeground_->RemoveAllJsObserverObject();
         }
 

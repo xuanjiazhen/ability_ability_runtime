@@ -585,6 +585,7 @@ void EtsAbilityManager::NativeOff(ani_env *env, ani_string aniType, ani_object a
     if (!isUndefined) {
         observerForeground_->RemoveEtsObserverObject(aniObserver);
     } else {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "SubEvent op=off_all kit=abilityKit event=abilityForegroundState");
         observerForeground_->RemoveAllEtsObserverObject();
     }
     if (observerForeground_->IsEmpty()) {
