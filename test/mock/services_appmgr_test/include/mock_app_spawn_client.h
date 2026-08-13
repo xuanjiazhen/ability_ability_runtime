@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,6 +29,7 @@ public:
     MOCK_METHOD0(OpenConnection, ErrCode());
     MOCK_METHOD0(CloseConnection, void());
     MOCK_METHOD2(StartProcess, ErrCode(const AppSpawnStartMsg& startMsg, pid_t& pid));
+    MOCK_METHOD3(StartImageProcess, int32_t(const AppSpawnStartMsg& startMsg, pid_t& pid, uint64_t& checkpointId));
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
