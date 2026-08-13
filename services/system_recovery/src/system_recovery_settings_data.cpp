@@ -73,7 +73,9 @@ bool SystemRecoverySettingsData::GetAirplaneMode(bool &enabled)
     DataShare::DataSharePredicates predicates;
     predicates.EqualTo(SETTINGS_DATA_KEY_COLUMN, AIRPLANE_MODE_KEY);
     std::vector<std::string> columns = { SETTINGS_DATA_VALUE_COLUMN };
-    auto result = helper->Query(Uri(AIRPLANE_MODE_URI), predicates, columns);
+    // DataShare Query 接收 Uri 左值引用，因此需要保留 Uri 对象直至查询返回。
+    Uri uri(AIRPLANE_MODE_URI);
+    auto result = helper->Query(uri, predicates, columns);
     if (result == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "query airplane mode from SettingsData failed");
         helper->Release();

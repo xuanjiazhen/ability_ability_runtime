@@ -42,7 +42,6 @@
 #include "app_recovery_mgr.h"
 #include "app_state_observer_manager.h"
 #include "app_utils.h"
-#include "system_recovery_mode_framework.h"
 #include "appfreeze_manager.h"
 #include "application_state_filter.h"
 #include "application_state_observer_stub.h"
@@ -93,6 +92,8 @@
 #include "res_sched_util.h"
 #include "startup_util.h"
 #include "string_ex.h"
+#include "system_recovery_mode_framework.h"
+#include "system_recovery_mode_policy.h"
 #ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
 #include "sandbox_manager_kit.h"
 #endif

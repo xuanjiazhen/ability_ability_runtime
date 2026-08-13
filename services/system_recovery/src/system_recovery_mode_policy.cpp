@@ -46,7 +46,7 @@ std::unordered_set<std::string> GetBuiltInRecoveryEssentialBundles()
     return bundles;
 }
 
-const std::unordered_set<std::string> &GetRecoveryEssentialBundles()
+const std::unordered_set<std::string> &GetRecoveryEssentialBundleSet()
 {
     static const std::unordered_set<std::string> bundles = [] {
         auto builtInBundles = GetBuiltInRecoveryEssentialBundles();
@@ -101,7 +101,7 @@ bool SystemRecoveryModePolicy::IsEnabled() const
 
 bool SystemRecoveryModePolicy::IsRecoveryEssentialBundle(const std::string &bundleName) const
 {
-    const auto &essentialBundles = GetRecoveryEssentialBundles();
+    const auto &essentialBundles = GetRecoveryEssentialBundleSet();
     return essentialBundles.find(bundleName) != essentialBundles.end();
 }
 
@@ -116,7 +116,7 @@ bool SystemRecoveryModePolicy::ShouldBlockBundle(const std::string &bundleName) 
 void SystemRecoveryModePolicy::GetRecoveryEssentialBundles(std::vector<std::string> &bundleNames) const
 {
     bundleNames.clear();
-    const auto &essentialBundles = GetRecoveryEssentialBundles();
+    const auto &essentialBundles = GetRecoveryEssentialBundleSet();
     bundleNames.reserve(essentialBundles.size());
     for (const auto &bundleName : essentialBundles) {
         bundleNames.emplace_back(bundleName);

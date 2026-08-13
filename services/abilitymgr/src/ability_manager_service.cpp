@@ -115,6 +115,7 @@
 #include "start_ability_utils.h"
 #include "start_options_utils.h"
 #include "startup_util.h"
+#include "system_recovery_mode_constants.h"
 #include "system_recovery_mode_framework.h"
 #include "system_recovery_mode_policy.h"
 #ifdef ENABLE_CLONE_FOR_ACCOUNT

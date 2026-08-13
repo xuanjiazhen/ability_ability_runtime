@@ -26,7 +26,7 @@
 #include "system_recovery_settings_data.h"
 #include "task_handler_wrap.h"
 
-#ifdef APP_MGR_SERVICE_APPMS
+#ifdef SUPPORT_SYSTEM_RECOVERY_AIRPLANE_MODE
 #include "net_conn_client.h"
 #endif
 
@@ -39,12 +39,14 @@ namespace OHOS {
 namespace AppExecFwk {
 namespace {
 
+#ifdef SUPPORT_SYSTEM_RECOVERY_AIRPLANE_MODE
 constexpr char AIRPLANE_RESTORE_VALID_PARAMETER[] =
     "persist.sys.abilityms.system_recovery.airplane_restore_valid";
 constexpr char AIRPLANE_RESTORE_VALUE_PARAMETER[] =
     "persist.sys.abilityms.system_recovery.airplane_restore_value";
 constexpr char AIRPLANE_INITIALIZED_PARAMETER[] =
     "persist.sys.abilityms.system_recovery.airplane_initialized";
+#endif
 constexpr uint32_t MAX_RETRY_TIMES = 30;
 constexpr int64_t RETRY_DELAY_MILLISECONDS = 2000;
 
@@ -129,7 +131,7 @@ bool SystemRecoveryModeFramework::ApplyNormalMode()
 
 bool SystemRecoveryModeFramework::InitializeAirplaneMode()
 {
-#ifdef APP_MGR_SERVICE_APPMS
+#ifdef SUPPORT_SYSTEM_RECOVERY_AIRPLANE_MODE
     // 只在进入恢复模式时强制设置一次，之后允许恢复界面按产品策略打开网络。
     if (system::GetBoolParameter(AIRPLANE_INITIALIZED_PARAMETER, false)) {
         return true;
@@ -158,7 +160,7 @@ bool SystemRecoveryModeFramework::InitializeAirplaneMode()
 
 bool SystemRecoveryModeFramework::RestoreAirplaneMode()
 {
-#ifdef APP_MGR_SERVICE_APPMS
+#ifdef SUPPORT_SYSTEM_RECOVERY_AIRPLANE_MODE
     if (!system::GetBoolParameter(AIRPLANE_RESTORE_VALID_PARAMETER, false)) {
         return system::SetParameter(AIRPLANE_INITIALIZED_PARAMETER, "false");
     }
