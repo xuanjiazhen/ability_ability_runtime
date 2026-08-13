@@ -15,38 +15,10 @@
 
 #include "want_sender_stub.h"
 
-#include "ability_manager_errors.h"
-#include "hilog_tag_wrapper.h"
-#include "ipc_skeleton.h"
-#include "ipc_types.h"
-
 namespace OHOS {
 namespace AAFwk {
 WantSenderStub::WantSenderStub() {}
 
 WantSenderStub::~WantSenderStub() {}
-
-int WantSenderStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
-{
-    if (code == IWantSender::WANT_SENDER_SEND) {
-        TAG_LOGW(AAFwkTag::WANTAGENT,
-            "IWantSender::Send IPC deprecated (would bypass CheckCallerPermission), reject. callerUid=%{public}d",
-            IPCSkeleton::GetCallingUid());
-        return ERR_NO_PERMISSION_CALLER;
-    }
-    return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
-}
-
-int WantSenderStub::SendInner(MessageParcel &data, MessageParcel &reply)
-{
-    SenderInfo *senderInfo = data.ReadParcelable<SenderInfo>();
-    if (senderInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "null senderInfo");
-        return ERR_INVALID_VALUE;
-    }
-    Send(*senderInfo);
-    delete senderInfo;
-    return NO_ERROR;
-}
 }  // namespace AAFwk
 }  // namespace OHOS

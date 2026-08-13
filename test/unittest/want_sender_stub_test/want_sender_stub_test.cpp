@@ -14,7 +14,6 @@
  */
 
 #include <gtest/gtest.h>
-#include "ability_manager_errors.h"
 #include "iremote_proxy.h"
 #include "want_sender_stub_impl_mock.h"
 
@@ -68,91 +67,6 @@ HWTEST_F(WantSenderStubTest, WantSenderStubTest_OnRemoteRequest_001, TestSize.Le
     int res = stub_->OnRemoteRequest(10000, data, reply, option);
 
     EXPECT_EQ(res, IPC_STUB_UNKNOW_TRANS_ERR);
-}
-
-/*
- * Feature: WantSenderStub
- * Function: OnRemoteRequest
- * SubFunction: NA
- * FunctionPoints: WantSenderStub OnRemoteRequest
- * EnvConditions: code = WANT_SENDER_SEND (deprecated IPC path)
- * CaseDescription: IWantSender::Send IPC is deprecated (would bypass
- *                 PendingWantManager::CheckCallerPermission). Stub rejects
- *                 regardless of interface token / payload.
- */
-HWTEST_F(WantSenderStubTest, WantSenderStubTest_OnRemoteRequest_002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
-    int res = stub_->OnRemoteRequest(IWantSender::WANT_SENDER_SEND, data, reply, option);
-
-    EXPECT_EQ(res, ERR_NO_PERMISSION_CALLER);
-}
-
-/*
- * Feature: WantSenderStub
- * Function: OnRemoteRequest
- * SubFunction: NA
- * FunctionPoints: WantSenderStub OnRemoteRequest
- * EnvConditions: Code is WANT_SENDER_SEND, valid token and SenderInfo
- * CaseDescription: Verify that the deprecated WANT_SENDER_SEND path is rejected
- *                 even with valid payload (security: bypass CheckCallerPermission).
- */
-HWTEST_F(WantSenderStubTest, WantSenderStubTest_OnRemoteRequest_003, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
-    SenderInfo info;
-    WriteInterfaceToken(data);
-    data.WriteParcelable(&info);
-
-    int res = stub_->OnRemoteRequest(IWantSender::WANT_SENDER_SEND, data, reply, option);
-
-    EXPECT_EQ(res, ERR_NO_PERMISSION_CALLER);
-}
-
-/*
- * Feature: WantSenderStub
- * Function: SendInner
- * SubFunction: NA
- * FunctionPoints: WantSenderStub SendInner
- * EnvConditions: Invalid parameter
- * CaseDescription: Verify the function SendInner request is abnormal.
- */
-HWTEST_F(WantSenderStubTest, WantSenderStubTest_SendInner_001, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-
-    int res = stub_->SendInner(data, reply);
-
-    EXPECT_EQ(res, ERR_INVALID_VALUE);
-}
-
-/*
- * Feature: WantSenderStub
- * Function: OnRemoteRequest
- * SubFunction: NA
- * FunctionPoints: WantSenderStub SendInner
- * EnvConditions: Valid parameter
- * CaseDescription: Verify the function SendInner request is normal.
- */
-HWTEST_F(WantSenderStubTest, WantSenderStubTest_SendInner_002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
-    SenderInfo info;
-    data.WriteParcelable(&info);
-
-    int res = stub_->SendInner(data, reply);
-
-    EXPECT_EQ(res, NO_ERROR);
 }
 }  // namespace AAFwk
 }  // namespace OHOS
