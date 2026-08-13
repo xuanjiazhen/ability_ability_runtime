@@ -116,7 +116,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     MessageParcel parcel;
     parcel.WriteInterfaceToken(AMSMGR_INTERFACE_TOKEN);
     uint32_t actualCode = 0;
-    switch (code % 33) {
+    switch (code % 35) {
         case 0: {
             actualCode = static_cast<uint32_t>(IAmsMgr::Message::TERMINATE_ABILITY);
             parcel.WriteRemoteObject(nullptr);
@@ -368,6 +368,18 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteBool(fdp.ConsumeBool());
             parcel.WriteInt32(FuzzUtil::BuildClientSuppliedUid(fdp));
             OHOS::FuzzUtil::WriteSemanticPrivilegeEscalation(parcel, fdp);
+            break;
+        }
+        case 33: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::ATTACHED_TO_STATUS_BAR);
+            parcel.WriteRemoteObject(nullptr);
+            OHOS::FuzzUtil::WriteSaAutoTrustBypass(parcel, fdp);
+            break;
+        }
+        case 34: {
+            actualCode = static_cast<uint32_t>(IAmsMgr::Message::Get_BUNDLE_NAME_BY_PID);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            OHOS::FuzzUtil::WriteUntrustedCallerData(parcel, fdp);
             break;
         }
         default:

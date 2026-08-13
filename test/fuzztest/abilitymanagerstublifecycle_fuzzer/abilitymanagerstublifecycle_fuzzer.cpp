@@ -74,6 +74,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             }
             parcel.WriteBool(fdp.ConsumeBool());
             parcel.WriteUint32(fdp.ConsumeIntegral<uint32_t>());
+            OHOS::FuzzUtil::WriteDumpStateInfoLeak(parcel, fdp);
             break;
         }
         case 2: {

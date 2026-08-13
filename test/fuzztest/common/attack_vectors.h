@@ -627,6 +627,41 @@ inline std::string BuildAccessOpenRace(FuzzedDataProvider &fdp, size_t maxLen = 
     if (maxLen > 0 && result.size() > maxLen) result.resize(maxLen);
     return result;
 }
+
+inline void WriteParcelableRawPointerLeak(MessageParcel &parcel, FuzzedDataProvider &fdp,
+    size_t maxStrLen = DEFAULT_MAX_STR_LEN)
+{
+    parcel.WriteBool(true);
+    parcel.WriteString(BuildSpecialCharString(fdp, maxStrLen));
+    parcel.WriteInt32(BuildIntegerOverflow(fdp));
+    parcel.WriteBool(false);
+}
+
+inline void WriteHugeRawDataDoS(MessageParcel &parcel, FuzzedDataProvider &fdp)
+{
+    parcel.WriteUint32(100 * 1024 * 1024);
+    parcel.WriteInt32(BuildIntegerOverflow(fdp));
+    parcel.WriteBool(true);
+}
+
+inline void WriteSaAutoTrustBypass(MessageParcel &parcel, FuzzedDataProvider &fdp,
+    size_t maxStrLen = DEFAULT_MAX_STR_LEN)
+{
+    parcel.WriteUint32(0x7FFFFFFF);
+    parcel.WriteInt32(1000);
+    parcel.WriteString(BuildSpecialCharString(fdp, maxStrLen));
+    parcel.WriteBool(true);
+    parcel.WriteBool(false);
+}
+
+inline void WriteDumpStateInfoLeak(MessageParcel &parcel, FuzzedDataProvider &fdp,
+    size_t maxStrLen = DEFAULT_MAX_STR_LEN)
+{
+    parcel.WriteString(BuildSpecialCharString(fdp, maxStrLen));
+    parcel.WriteInt32(BuildIntegerOverflow(fdp));
+    parcel.WriteBool(true);
+    parcel.WriteString(BuildUriAttackString(fdp));
+}
 } // namespace FuzzUtil
 } // namespace OHOS
 

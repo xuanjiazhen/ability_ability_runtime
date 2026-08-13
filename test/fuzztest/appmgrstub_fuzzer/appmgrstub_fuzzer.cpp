@@ -78,6 +78,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
                 AppExecFwk::BundleInfo bundleInfo;
                 parcel.WriteParcelable(&bundleInfo);
             }
+            OHOS::FuzzUtil::WriteParcelableRawPointerLeak(parcel, fdp);
             break;
         }
         case 4: {

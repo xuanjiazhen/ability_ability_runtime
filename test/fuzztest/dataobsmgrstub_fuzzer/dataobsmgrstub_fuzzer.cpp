@@ -112,6 +112,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteRemoteObject(nullptr);
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             WriteMaliciousDataObsOption(parcel, fdp);
+            OHOS::FuzzUtil::WriteHugeRawDataDoS(parcel, fdp);
             break;
         case 1:
             actualCode = static_cast<uint32_t>(IDataObsMgr::REGISTER_OBSERVER_FROM_EXTENSION);
@@ -146,6 +147,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteRemoteObject(nullptr);
             parcel.WriteBool(fdp.ConsumeBool());
             WriteMaliciousDataObsOption(parcel, fdp);
+            OHOS::FuzzUtil::WriteSaAutoTrustBypass(parcel, fdp);
             break;
         case 6:
             actualCode = static_cast<uint32_t>(IDataObsMgr::UNREGISTER_OBSERVER_EXT);
