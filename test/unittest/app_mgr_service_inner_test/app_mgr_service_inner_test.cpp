@@ -73,6 +73,7 @@ constexpr int32_t APP_DEBUG_INFO_UID = 0;
 constexpr const char* PERMISSION_PROTECT_SCREEN_LOCK_DATA_TEST = "ohos.permission.PROTECT_SCREEN_LOCK_DATA";
 constexpr int32_t FUN_TEST_PID = 0;
 }
+
 static int recordId_ = 0;
 class AppMgrServiceInnerTest : public testing::Test {
 public:
@@ -7339,7 +7340,8 @@ HWTEST_F(AppMgrServiceInnerTest, SendDestroyImageEvent_DebugAppSkipped, TestSize
     appRecord->SetUid(4003);
     appRecord->SetDebugApp(true);
 
-    serviceInner->SendDestroyImageEvent(appRecord, "com.example.debugapp", "1.0.0", 1, "debug exit");
+    serviceInner->SendDestroyImageEvent(
+        appRecord, "com.example.debugapp", "1.0.0", 1, "debug exit");
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
@@ -7517,7 +7519,8 @@ HWTEST_F(AppMgrServiceInnerTest, SendDestroyImageEvent_001, TestSize.Level1)
     appRecord->SetUid(1001);
     appRecord->SetAppIndex(0);
 
-    serviceInner->SendDestroyImageEvent(appRecord, bundleName, "1.0.0", 1, "image not found");
+    serviceInner->SendDestroyImageEvent(
+        appRecord, bundleName, "1.0.0", 1, "image not found");
 
     PreloadRequest preloadRequest;
     serviceInner->PreAddImageInfo(bundleName, appRecord->GetUserId(), appRecord->GetAppIndex(), nullptr,
@@ -7525,7 +7528,8 @@ HWTEST_F(AppMgrServiceInnerTest, SendDestroyImageEvent_001, TestSize.Level1)
     auto imageInfo = serviceInner->GetImageInfo(appRecord);
     ASSERT_NE(imageInfo, nullptr);
     EXPECT_LE(imageInfo->imagePid, 0);
-    serviceInner->SendDestroyImageEvent(appRecord, bundleName, "1.0.0", 1, "invalid image pid");
+    serviceInner->SendDestroyImageEvent(
+        appRecord, bundleName, "1.0.0", 1, "invalid image pid");
 
     serviceInner->UpdateImageInfo(101, 2, appRecord);
     imageInfo = serviceInner->GetImageInfo(appRecord);
