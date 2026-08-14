@@ -17,9 +17,29 @@ group("unittest") {
   testonly = true
 
   deps = [
+    "app_startup_task_test:unittest",
+    "application_context_manager_test:unittest",
+    "ets_startup_config_test:unittest",
+    "ets_startup_task_executor_test:unittest",
+    "ets_startup_task_result_test:unittest",
+    "forkall_helper_test:unittest",
+    "iability_delegator_test:unittest",
+    "interop_object_instance_test:unittest",
+    "js_startup_task_executor_test:unittest",
+    "js_startup_task_result_test:unittest",
     "main_thread_frist_test:unittest",
+    "native_startup_task_test:unittest",
     "ohos_application_first_test:unittest",
     "ohos_application_test:unittest",
+    "preload_so_startup_task_test:unittest",
+    "startup_config_instance_test:unittest",
+    "startup_config_test:unittest",
+    "startup_listener_test:unittest",
+    "startup_task_dispatcher_test:unittest",
+    "startup_task_instance_test:unittest",
+    "startup_task_manager_test:unittest",
+    "startup_task_test:unittest",
+    "startup_topologysort_test:unittest",
   ]
   if (ability_runtime_child_process) {
     deps += [
