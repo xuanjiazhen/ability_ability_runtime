@@ -27,9 +27,15 @@ ohos_unittest("insight_intent_param_parser_test") {
     "insight_intent_param_parser_test.cpp",
   ]
 
-  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
+  configs = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_config",
+    "//build/config/compiler:exceptions",
+  ]
 
-  cflags = []
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }

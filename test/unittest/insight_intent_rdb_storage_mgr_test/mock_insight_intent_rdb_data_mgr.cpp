@@ -24,6 +24,7 @@ bool g_mockQueryDataBeginWithKeyRet = true;
 bool g_mockInsertDataRet = true;
 bool g_mockDeleteDataRet = true;
 bool g_mockDeleteDataBeginWithKeyRet = true;
+bool g_mockBackupRdbCalled = false;
 
 void MockQueryData(bool mockRet)
 {
@@ -49,6 +50,16 @@ void MockDeleteData(bool mockRet)
 void MockDeleteDataBeginWithKey(bool mockRet)
 {
     g_mockDeleteDataBeginWithKeyRet = mockRet;
+}
+
+void MockBackupRdbReset()
+{
+    g_mockBackupRdbCalled = false;
+}
+
+bool MockBackupRdbCalled()
+{
+    return g_mockBackupRdbCalled;
 }
 
 }
@@ -115,7 +126,7 @@ bool InsightIntentRdbDataMgr::QueryAllData(std::unordered_map<std::string, std::
 
 void InsightIntentRdbDataMgr::BackupRdb()
 {
-    return;
+    g_mockBackupRdbCalled = true;
 }
 
 IntentRdbOpenCallback::IntentRdbOpenCallback(const IntentRdbConfig &intentRdbConfig)

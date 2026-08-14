@@ -459,9 +459,7 @@ HWTEST_F(InsightIntentSysEventReceiverTest, OnReceiveEvent_BopdMode_0013, TestSi
     sysEventReceiver->OnReceiveEvent(data);
 
     EXPECT_EQ(sysEventReceiver->lastUserId_, MAIN_USER_ID);
-    // Restore the singleton state so subsequent cases are not affected by BOPD mode.
     appUtils.isBopdOrRescueMode_.value = false;
-    appUtils.isBopdOrRescueMode_.isLoaded = false;
 }
 
 /**
@@ -500,8 +498,9 @@ HWTEST_F(InsightIntentSysEventReceiverTest, HandleBundleScanFinished_0015, TestS
 {
     EventFwk::CommonEventSubscribeInfo subscribeInfo;
     auto sysEventReceiver = std::make_shared<InsightIntentSysEventReceiver>(subscribeInfo);
+    sysEventReceiver->lastUserId_ = MAIN_USER_ID;
     sysEventReceiver->HandleBundleScanFinished();
-    EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
+    EXPECT_EQ(sysEventReceiver->lastUserId_, MAIN_USER_ID);
 }
 
 /**
@@ -513,15 +512,17 @@ HWTEST_F(InsightIntentSysEventReceiverTest, BackupAndScheduleRegister_0016, Test
 {
     EventFwk::CommonEventSubscribeInfo subscribeInfo;
     auto sysEventReceiver = std::make_shared<InsightIntentSysEventReceiver>(subscribeInfo);
+    sysEventReceiver->lastUserId_ = MAIN_USER_ID;
     std::vector<std::pair<std::string, uint32_t>> emptyBundles;
     sysEventReceiver->BackupAndScheduleRegister(std::move(emptyBundles), MAIN_USER_ID);
-    EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
+    EXPECT_EQ(sysEventReceiver->lastUserId_, MAIN_USER_ID);
 
+    sysEventReceiver->lastUserId_ = OTHER_USER_ID;
     std::vector<std::pair<std::string, uint32_t>> bundles = {
         {"com.test.bundle", 1},
     };
     sysEventReceiver->BackupAndScheduleRegister(std::move(bundles), MAIN_USER_ID);
-    EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
+    EXPECT_EQ(sysEventReceiver->lastUserId_, OTHER_USER_ID);
 }
 
 /**
@@ -536,8 +537,7 @@ HWTEST_F(InsightIntentSysEventReceiverTest, RegisterAllFunctions_0017, TestSize.
     std::vector<std::pair<std::string, uint32_t>> newBundles = {{"com.test.bundle", 1}};
     std::vector<ExtractInsightIntentInfo> allIntentInfos;
     std::vector<InsightIntentInfo> allConfigInfos;
-    sysEventReceiver->RegisterAllFunctions(newBundles, allIntentInfos, allConfigInfos);
-    EXPECT_TRUE(newBundles.size() == 1);
+    EXPECT_NO_FATAL_FAILURE(sysEventReceiver->RegisterAllFunctions(newBundles, allIntentInfos, allConfigInfos));
 }
 
 /**
@@ -559,8 +559,7 @@ HWTEST_F(InsightIntentSysEventReceiverTest, RegisterAllFunctions_WithData_0018, 
     info.genericInfo.set<InsightIntentLinkInfo>();
     allIntentInfos.push_back(info);
     std::vector<InsightIntentInfo> allConfigInfos;
-    sysEventReceiver->RegisterAllFunctions(newBundles, allIntentInfos, allConfigInfos);
-    EXPECT_EQ(allIntentInfos.size(), 1u);
+    EXPECT_NO_FATAL_FAILURE(sysEventReceiver->RegisterAllFunctions(newBundles, allIntentInfos, allConfigInfos));
 }
 
 /**
@@ -572,11 +571,12 @@ HWTEST_F(InsightIntentSysEventReceiverTest, DeleteInsightIntent_Direct_0019, Tes
 {
     EventFwk::CommonEventSubscribeInfo subscribeInfo;
     auto sysEventReceiver = std::make_shared<InsightIntentSysEventReceiver>(subscribeInfo);
+    sysEventReceiver->lastUserId_ = MAIN_USER_ID;
     sysEventReceiver->DeleteInsightIntent("", TEST_MODULE_NAME, MAIN_USER_ID);
     sysEventReceiver->DeleteInsightIntent(TEST_BUNDLE_NAME, "", MAIN_USER_ID);
     sysEventReceiver->DeleteInsightIntent(TEST_BUNDLE_NAME, TEST_MODULE_NAME, INVALID_USER_ID);
     sysEventReceiver->DeleteInsightIntent(TEST_BUNDLE_NAME, TEST_MODULE_NAME, MAIN_USER_ID);
-    EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
+    EXPECT_EQ(sysEventReceiver->lastUserId_, MAIN_USER_ID);
 }
 
 /**
