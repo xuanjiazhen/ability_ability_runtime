@@ -1,0 +1,14 @@
+添加并发安全保护
+
+Signed-off-by: xiatian <xiatian44@huawei.com>
+Change-Id: I58d44c51ba0467d2dde10a03f269f9f5a600758e
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# Date:      Mon Jul 6 10:43:08 2026 +0800
+#
+# HEAD detached from 7ff569fc26
+# Changes to be committed:
+#	modified:   frameworks/cj/ffi/cj_ability_delegator.cpp
+#
