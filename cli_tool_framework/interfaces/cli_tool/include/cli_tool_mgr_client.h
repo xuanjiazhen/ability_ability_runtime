@@ -143,6 +143,39 @@ public:
      */
     ErrCode GetAllFunctions(std::vector<FunctionInfo> &functions);
 
+    // Async callback types for function management operations
+    using BatchRegisterFunctionsCallback = std::function<void(int32_t result, int32_t successCount)>;
+    using ResetNamespaceFunctionsCallback = std::function<void(int32_t result, int32_t successCount)>;
+    using UnregisterIntentFunctionsByNamespaceCallback = std::function<void(int32_t result)>;
+
+    /**
+     * @brief Async batch register functions with callback
+     * @param functions Vector of FunctionInfo to register
+     * @param callback Callback with (result, successCount)
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode BatchRegisterFunctionsAsync(const std::vector<FunctionInfo> &functions,
+        const BatchRegisterFunctionsCallback &callback);
+
+    /**
+     * @brief Async reset namespace functions with callback
+     * @param functionNamespace Namespace to reset
+     * @param functions New function list
+     * @param callback Callback with (result, successCount)
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode ResetNamespaceFunctionsAsync(const std::string &functionNamespace,
+        const std::vector<FunctionInfo> &functions, const ResetNamespaceFunctionsCallback &callback);
+
+    /**
+     * @brief Async unregister intent functions by namespace with callback
+     * @param functionNamespace Namespace to delete functions from
+     * @param callback Callback with result
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode UnregisterIntentFunctionsByNamespaceAsync(const std::string &functionNamespace,
+        const UnregisterIntentFunctionsByNamespaceCallback &callback);
+
     /**
      * @brief Execute a CLI tool with key-value pairs (convenience method).
      * @param param The CLI tool param.
