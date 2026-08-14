@@ -27,6 +27,8 @@ void MockQueryDataBeginWithKey(bool mockRet);
 void MockInsertData(bool mockRet);
 void MockDeleteData(bool mockRet);
 void MockDeleteDataBeginWithKey(bool mockRet);
+void MockBackupRdbReset();
+bool MockBackupRdbCalled();
 
 class InsightIntentRdbStorageMgrTest : public testing::Test {
 public:
@@ -405,6 +407,114 @@ HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_019, Tes
     auto result = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveStorageInsightIntentData(
         bundleName, moduleName, userId, 0, profileInfos, configInfos);
     EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: InsightIntentRdbStorageMgrTest_020
+ * @tc.desc: Test Transform with empty value map (loop body not entered).
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_020, TestSize.Level0)
+{
+    std::unordered_map<std::string, std::string> value;
+    std::vector<ExtractInsightIntentInfo> totalInfos;
+    std::vector<InsightIntentInfo> configInfos;
+    MockDeleteDataBeginWithKey(true);
+    DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->Transform(value, totalInfos, configInfos);
+    EXPECT_TRUE(totalInfos.empty());
+    EXPECT_TRUE(configInfos.empty());
+}
+
+/**
+ * @tc.name: InsightIntentRdbStorageMgrTest_021
+ * @tc.desc: Test Transform with invalid json value (TransformTo fails, triggers DeleteData).
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_021, TestSize.Level0)
+{
+    std::unordered_map<std::string, std::string> value = {{"0/bundle/module/intent/1", "invalid-json"}};
+    std::vector<ExtractInsightIntentInfo> totalInfos;
+    std::vector<InsightIntentInfo> configInfos;
+    MockDeleteDataBeginWithKey(true);
+    DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->Transform(value, totalInfos, configInfos);
+    EXPECT_TRUE(totalInfos.empty());
+    EXPECT_TRUE(configInfos.empty());
+}
+
+/**
+ * @tc.name: InsightIntentRdbStorageMgrTest_022
+ * @tc.desc: Test Transform with valid extract json (TransformTo succeeds, emplaces infos).
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_022, TestSize.Level0)
+{
+    const std::string validJson = R"({"extractInsightIntents":[{"intentName":"123","decoratorType":)"
+        R"("@InsightIntentLink","bundleName":"b","moduleName":"m","displayDescription":"d",)"
+        R"("domain":"g","intentVersion":"1.0"}]})";
+    std::unordered_map<std::string, std::string> value = {{"0/b/m/intent/1", validJson}};
+    std::vector<ExtractInsightIntentInfo> totalInfos;
+    std::vector<InsightIntentInfo> configInfos;
+    MockDeleteDataBeginWithKey(true);
+    DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->Transform(value, totalInfos, configInfos);
+    EXPECT_FALSE(totalInfos.empty());
+}
+
+/**
+ * @tc.name: InsightIntentRdbStorageMgrTest_023
+ * @tc.desc: Test TransformConfigIntent with empty value map.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_023, TestSize.Level0)
+{
+    std::unordered_map<std::string, std::string> value;
+    std::vector<InsightIntentInfo> configInfos;
+    MockDeleteDataBeginWithKey(true);
+    DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->TransformConfigIntent(value, configInfos);
+    EXPECT_TRUE(configInfos.empty());
+}
+
+/**
+ * @tc.name: InsightIntentRdbStorageMgrTest_024
+ * @tc.desc: Test TransformConfigIntent with invalid json (triggers DeleteData).
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_024, TestSize.Level0)
+{
+    std::unordered_map<std::string, std::string> value = {{"0/b/m/intent/1", "not-json"}};
+    std::vector<InsightIntentInfo> configInfos;
+    MockDeleteDataBeginWithKey(true);
+    DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->TransformConfigIntent(value, configInfos);
+    EXPECT_TRUE(configInfos.empty());
+}
+
+/**
+ * @tc.name: InsightIntentRdbStorageMgrTest_025
+ * @tc.desc: Test TransformConfigIntent with valid config json (TransformTo succeeds).
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_025, TestSize.Level0)
+{
+    const std::string validJson = R"({"insightIntents":[{"intentName":"cfgIntent","bundleName":"b",)"
+        R"("moduleName":"m","srcEntry":"e","domain":"d","intentVersion":"1.0"}]})";
+    std::unordered_map<std::string, std::string> value = {{"0/b/m/intent/1", validJson}};
+    std::vector<InsightIntentInfo> configInfos;
+    MockDeleteDataBeginWithKey(true);
+    DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->TransformConfigIntent(value, configInfos);
+    EXPECT_FALSE(configInfos.empty());
+}
+
+/**
+ * @tc.name: InsightIntentRdbStorageMgrTest_026
+ * @tc.desc: Test BackupRdb directly (mocked DataMgr BackupRdb returns true).
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_026, TestSize.Level0)
+{
+    auto mgr = DelayedSingleton<InsightRdbStorageMgr>::GetInstance();
+    ASSERT_NE(mgr, nullptr);
+    MockBackupRdbReset();
+    mgr->BackupRdb();
+    EXPECT_TRUE(MockBackupRdbCalled());
 }
 }
 }

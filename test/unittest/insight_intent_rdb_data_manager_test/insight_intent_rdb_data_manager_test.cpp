@@ -199,4 +199,62 @@ HWTEST_F(InsightIntentRdbDataManagerTest, InsightIntentRdbDataManager_0600, Func
     rdbMgr->BackupRdb();
     rdbMgr->intentRdbConfig_.tableName = originalTable;
 }
+
+/**
+ * @tc.number: InsightIntentRdbDataManager_0700
+ * @tc.desc: Cover GetRdbStore direct invocation (access-check + RdbHelper::GetRdbStore path).
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentRdbDataManagerTest, InsightIntentRdbDataManager_0700, Function | SmallTest | Level1)
+{
+    auto rdbMgr = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance();
+    auto store = rdbMgr->GetRdbStore();
+    EXPECT_NE(store, nullptr);
+    EXPECT_NE(rdbMgr->rdbStore_, nullptr);
+}
+
+/**
+ * @tc.number: InsightIntentRdbDataManager_0800
+ * @tc.desc: Cover InsertWithRetry direct invocation with a normal values bucket (success path).
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentRdbDataManagerTest, InsightIntentRdbDataManager_0800, Function | SmallTest | Level1)
+{
+    auto rdbMgr = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance();
+    ASSERT_TRUE(rdbMgr->IsIntentRdbLoaded());
+    NativeRdb::ValuesBucket valuesBucket;
+    valuesBucket.PutString("INTENT_KEY", "RETRY_KEY");
+    valuesBucket.PutString("INTENT_VALUE", "RETRY_VALUE");
+    int64_t rowId = -1;
+    int32_t ret = rdbMgr->InsertWithRetry(rdbMgr->rdbStore_, rowId, valuesBucket);
+    EXPECT_EQ(ret, NativeRdb::E_OK);
+}
+
+/**
+ * @tc.number: InsightIntentRdbDataManager_0900
+ * @tc.desc: Cover UpdateData corruption-restore branch is skipped on normal update (happy path).
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentRdbDataManagerTest, InsightIntentRdbDataManager_0900, Function | SmallTest | Level1)
+{
+    auto rdbMgr = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance();
+    ASSERT_TRUE(rdbMgr->InsertData("UPDATE_KEY", "ORIG"));
+    EXPECT_TRUE(rdbMgr->UpdateData("UPDATE_KEY", "NEW"));
+    std::string value;
+    EXPECT_TRUE(rdbMgr->QueryData("UPDATE_KEY", value));
+    EXPECT_EQ(value, "NEW");
+    EXPECT_TRUE(rdbMgr->DeleteData("UPDATE_KEY"));
+}
+
+/**
+ * @tc.number: InsightIntentRdbDataManager_1000
+ * @tc.desc: Cover IsRetryErrCode returns false for a non-retry error code.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentRdbDataManagerTest, InsightIntentRdbDataManager_1000, Function | SmallTest | Level1)
+{
+    auto rdbMgr = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance();
+    EXPECT_FALSE(rdbMgr->IsRetryErrCode(NativeRdb::E_INVALID_ARGS));
+    EXPECT_FALSE(rdbMgr->IsRetryErrCode(-1));
+}
 }  // namespace
