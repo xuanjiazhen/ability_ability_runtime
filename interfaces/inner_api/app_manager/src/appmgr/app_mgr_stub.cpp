@@ -413,6 +413,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerSeventh(uint32_t code, MessageParcel &da
             return HandleCheckIsKiaProcess(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::KILL_APP_SELF_WITH_INSTANCE_KEY):
             return HandleKillAppSelfWithInstanceKey(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::GET_ALL_UIABILITY_CHILD_PROCESSES):
+            return HandleGetAllUIAbilityChildProcesses(data, reply);
     }
     return INVALID_FD;
 }
@@ -2245,6 +2247,25 @@ int32_t AppMgrStub::HandleCreateNativeChildProcess(MessageParcel &data, MessageP
     return NO_ERROR;
 }
 #endif // SUPPORT_CHILD_PROCESS
+
+int32_t AppMgrStub::HandleGetAllUIAbilityChildProcesses(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    std::vector<ChildProcessInfo> infos;
+    auto result = GetAllUIAbilityChildProcesses(infos);
+    reply.WriteInt32(infos.size());
+    for (auto &it : infos) {
+        if (!reply.WriteParcelable(&it)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "Write ChildProcessInfo failed, pid=%{public}d", it.pid);
+            return ERR_INVALID_VALUE;
+        }
+    }
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write result failed");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
 
 int32_t AppMgrStub::HandleNotifyProcessDependedOnWeb(MessageParcel &data, MessageParcel &reply)
 {

@@ -93,6 +93,7 @@ public:
     napi_value OnGetProcessName(napi_env env, NapiCallbackInfo &info);
     napi_value OnKillProcessBySelf(napi_env env, NapiCallbackInfo& info);
     napi_value OnGetRunningProcessInformation(napi_env env, NapiCallbackInfo& info);
+    napi_value OnGetUIAbilityChildProcessInfos(napi_env env, NapiCallbackInfo& info);
     napi_value OnSetColorMode(napi_env env, NapiCallbackInfo& info);
     napi_value OnSetLanguage(napi_env env, NapiCallbackInfo& info);
     napi_value OnSetFont(napi_env env, NapiCallbackInfo& info);
@@ -129,6 +130,7 @@ public:
     static napi_value SetFont(napi_env env, napi_callback_info info);
     static napi_value ClearUpApplicationData(napi_env env, napi_callback_info info);
     static napi_value GetRunningProcessInformation(napi_env env, napi_callback_info info);
+    static napi_value GetUIAbilityChildProcessInfos(napi_env env, napi_callback_info info);
     static napi_value CreateJsApplicationContext(napi_env env);
     static napi_value RestartApp(napi_env env, napi_callback_info info);
     static napi_value SetSupportedProcessCacheSelf(napi_env env, napi_callback_info info);
