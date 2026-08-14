@@ -130,14 +130,14 @@ bool ExtensionControlInterceptor::GetCallerAbilityInfo(const AbilityInterceptorP
         }
         auto appScheduler = DelayedSingleton<AppScheduler>::GetInstance();
         AppExecFwk::RunningProcessInfo processInfo;
-        if (appScheduler != nullptr &&
-            appScheduler->GetRunningProcessInfoByToken(param.callerToken, processInfo) == ERR_OK) {
-            if (!processInfo.isStrictMode && !param.want.GetBoolParam(STRICT_MODE, false)) {
-                TAG_LOGD(AAFwkTag::ABILITYMGR, "caller and want not strict mode");
-                return true;
-            }
-        } else {
+        if (appScheduler != nullptr) {
+            appScheduler->GetRunningProcessInfoByToken(param.callerToken, processInfo);
+        }
+        if (appScheduler == nullptr || processInfo.pid_ == 0) {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "get running process info failed, apply control");
+        } else if (!processInfo.isStrictMode && !param.want.GetBoolParam(STRICT_MODE, false)) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "caller and want not strict mode");
+            return true;
         }
     }
     return false;

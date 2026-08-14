@@ -640,10 +640,8 @@ void ExtensionRecordManager::UnregisterPreLoadStateObserver(
     if (abilityRecord == nullptr || extensionRecord == nullptr) {
         return;
     }
-    if (abilityRecord->GetBoolParam(IS_PRELOAD_UIEXTENSION_ABILITY, false) &&
-        extensionRecord->preLoadUIExtStateObserver_ != nullptr) {
-        DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->UnregisterApplicationStateObserver(
-            extensionRecord->preLoadUIExtStateObserver_);
+    if (abilityRecord->GetBoolParam(IS_PRELOAD_UIEXTENSION_ABILITY, false)) {
+        extensionRecord->UnregisterStateObserver();
     }
 }
 
