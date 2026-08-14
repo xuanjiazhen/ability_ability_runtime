@@ -24,4 +24,10 @@ interface ICliToolManagerScheduler {
     [oneway]void SchedulerInputReplyEvent([in] String eventId, [in] int resultCode);
 
     [oneway]void SchedulerExecToolReplyEvent([in] String eventId, [in] int resultCode, [in] CliSessionInfo session);
+
+    [oneway]void SchedulerBatchRegisterFunctionsReplyEvent([in] String eventId, [in] int resultCode, [in] int successCount);
+
+    [oneway]void SchedulerResetNamespaceFunctionsReplyEvent([in] String eventId, [in] int resultCode, [in] int successCount);
+
+    [oneway]void SchedulerUnregisterIntentFunctionsByNamespaceReplyEvent([in] String eventId, [in] int resultCode);
 }

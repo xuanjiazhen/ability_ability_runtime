@@ -98,6 +98,21 @@ public:
     {
         return ERR_OK;
     }
+
+    int32_t SchedulerBatchRegisterFunctionsReplyEvent(const std::string &, int32_t, int32_t) override
+    {
+        return ERR_OK;
+    }
+
+    int32_t SchedulerResetNamespaceFunctionsReplyEvent(const std::string &, int32_t, int32_t) override
+    {
+        return ERR_OK;
+    }
+
+    int32_t SchedulerUnregisterIntentFunctionsByNamespaceReplyEvent(const std::string &, int32_t) override
+    {
+        return ERR_OK;
+    }
 };
 
 class CliToolManagerServiceTest : public testing::Test {
@@ -3189,5 +3204,233 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0600, TestSize.Level
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctions_0600 end");
 }
+
+// ==================== Async Function Tests ====================
+
+/**
+ * @tc.name: CliToolManagerService_BatchRegisterFunctionsAsync_0100
+ * @tc.desc: Test BatchRegisterFunctionsAsync with valid functions
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctionsAsync_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctionsAsync_0100 start");
+
+    IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+
+    std::vector<FunctionInfo> functions;
+    for (int i = 0; i < 3; i++) {
+        FunctionInfo function;
+        function.functionName = "async_batch_func_" + std::to_string(i);
+        function.functionNamespace = "async_batch_ns";
+        function.functionType = FunctionType::INTENT_FUNCTION;
+        functions.push_back(function);
+    }
+    FunctionsRawData rawData;
+    FunctionsRawData::FromFunctionInfoVec(functions, rawData);
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t ret = service_->BatchRegisterFunctionsAsync(rawData, "async_event_1", scheduler);
+
+    EXPECT_EQ(ret, ERR_OK);
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctionsAsync_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_BatchRegisterFunctionsAsync_0200
+ * @tc.desc: Test BatchRegisterFunctionsAsync with null scheduler
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctionsAsync_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctionsAsync_0200 start");
+
+    std::vector<FunctionInfo> functions;
+    FunctionInfo function;
+    function.functionName = "test_func";
+    function.functionNamespace = "test_ns";
+    function.functionType = FunctionType::INTENT_FUNCTION;
+    functions.push_back(function);
+    FunctionsRawData rawData;
+    FunctionsRawData::FromFunctionInfoVec(functions, rawData);
+
+    int32_t ret = service_->BatchRegisterFunctionsAsync(rawData, "async_event_2", nullptr);
+
+    EXPECT_EQ(ret, ERR_NULL_SCHEDULER);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctionsAsync_0200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_BatchRegisterFunctionsAsync_0300
+ * @tc.desc: Test BatchRegisterFunctionsAsync with empty function list
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctionsAsync_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctionsAsync_0300 start");
+
+    IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+
+    std::vector<FunctionInfo> functions;
+    FunctionsRawData rawData;
+    FunctionsRawData::FromFunctionInfoVec(functions, rawData);
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t ret = service_->BatchRegisterFunctionsAsync(rawData, "async_event_3", scheduler);
+
+    EXPECT_EQ(ret, ERR_INVALID_PARAM);
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctionsAsync_0300 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ResetNamespaceFunctionsAsync_0100
+ * @tc.desc: Test ResetNamespaceFunctionsAsync with valid namespace and functions
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctionsAsync_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctionsAsync_0100 start");
+
+    IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+
+    std::vector<FunctionInfo> functionList;
+    FunctionInfo func1;
+    func1.functionName = "async_func1";
+    func1.functionNamespace = "async_test_ns";
+    func1.functionType = FunctionType::INTENT_FUNCTION;
+    func1.version = "1.0";
+    func1.description = "Async test function 1";
+    functionList.push_back(func1);
+
+    FunctionsRawData functions;
+    FunctionsRawData::FromFunctionInfoVec(functionList, functions);
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t ret = service_->ResetNamespaceFunctionsAsync("async_test_ns", functions, "async_event_4", scheduler);
+
+    EXPECT_EQ(ret, ERR_OK);
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctionsAsync_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ResetNamespaceFunctionsAsync_0200
+ * @tc.desc: Test ResetNamespaceFunctionsAsync with null scheduler
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctionsAsync_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctionsAsync_0200 start");
+
+    std::vector<FunctionInfo> functionList;
+    FunctionsRawData functions;
+    FunctionsRawData::FromFunctionInfoVec(functionList, functions);
+
+    int32_t ret = service_->ResetNamespaceFunctionsAsync("async_test_ns", functions, "async_event_5", nullptr);
+
+    EXPECT_EQ(ret, ERR_NULL_SCHEDULER);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctionsAsync_0200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ResetNamespaceFunctionsAsync_0300
+ * @tc.desc: Test ResetNamespaceFunctionsAsync with empty namespace
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctionsAsync_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctionsAsync_0300 start");
+
+    IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+
+    std::vector<FunctionInfo> functionList;
+    FunctionsRawData functions;
+    FunctionsRawData::FromFunctionInfoVec(functionList, functions);
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t ret = service_->ResetNamespaceFunctionsAsync("", functions, "async_event_6", scheduler);
+
+    EXPECT_EQ(ret, ERR_INVALID_PARAM);
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctionsAsync_0300 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0100
+ * @tc.desc: Test UnregisterIntentFunctionsByNamespaceAsync with valid namespace
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterIntentFunctionsByNamespaceAsync_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0100 start");
+
+    IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t ret = service_->UnregisterIntentFunctionsByNamespaceAsync("async_intent_ns", "async_event_7", scheduler);
+
+    EXPECT_EQ(ret, ERR_OK);
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0200
+ * @tc.desc: Test UnregisterIntentFunctionsByNamespaceAsync with null scheduler
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterIntentFunctionsByNamespaceAsync_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0200 start");
+
+    int32_t ret = service_->UnregisterIntentFunctionsByNamespaceAsync("async_intent_ns", "async_event_8", nullptr);
+
+    EXPECT_EQ(ret, ERR_NULL_SCHEDULER);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0300
+ * @tc.desc: Test UnregisterIntentFunctionsByNamespaceAsync with non-FOUNDATION UID (permission denied)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterIntentFunctionsByNamespaceAsync_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0300 start");
+
+    // Set callingUid to non-FOUNDATION_UID
+    IPCSkeleton::callingUid = 9999;
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t ret = service_->UnregisterIntentFunctionsByNamespaceAsync("async_intent_ns", "async_event_9", scheduler);
+
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+
+    // Reset to default FOUNDATION_UID
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0300 end");
+}
+
 } // namespace CliTool
 } // namespace OHOS

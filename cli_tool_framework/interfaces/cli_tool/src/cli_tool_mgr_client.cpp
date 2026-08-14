@@ -505,5 +505,111 @@ ErrCode CliToolMGRClient::SendMessage(const std::string &sessionId, const std::s
     }
     return ret;
 }
+
+ErrCode CliToolMGRClient::BatchRegisterFunctionsAsync(const std::vector<FunctionInfo> &functions,
+    const BatchRegisterFunctionsCallback &callback)
+{
+    ErrCode ret = EnsureSchedulerStubCreated();
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "connect failed");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+
+    FunctionsRawData rawData;
+    ret = FunctionsRawData::FromFunctionInfoVec(functions, rawData);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "FromFunctionInfoVec failed: %{public}d", ret);
+        return ret;
+    }
+
+    std::string eventId = CliEventReplyManager::GetInstance().AddEventReplyCallback("",
+        [cb = std::move(callback)](const CliEventReplyResult &result) {
+            if (cb) {
+                int32_t successCount = result.successCount.value_or(0);
+                cb(result.code, successCount);
+            }
+        });
+
+    ret = proxy->BatchRegisterFunctionsAsync(rawData, eventId, schedulerStub_);
+    if (ret != ERR_OK) {
+        CliEventReplyManager::GetInstance().RemoveEventReplyCallback(eventId);
+    } else {
+        CliEventReplyManager::GetInstance().ActivateEventReplyCallback(eventId);
+    }
+    return ret;
+}
+
+ErrCode CliToolMGRClient::ResetNamespaceFunctionsAsync(const std::string &functionNamespace,
+    const std::vector<FunctionInfo> &functions, const ResetNamespaceFunctionsCallback &callback)
+{
+    ErrCode ret = EnsureSchedulerStubCreated();
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "connect failed");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+
+    FunctionsRawData rawData;
+    ret = FunctionsRawData::FromFunctionInfoVec(functions, rawData);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "FromFunctionInfoVec failed: %{public}d", ret);
+        return ret;
+    }
+
+    std::string eventId = CliEventReplyManager::GetInstance().AddEventReplyCallback("",
+        [cb = std::move(callback)](const CliEventReplyResult &result) {
+            if (cb) {
+                int32_t successCount = result.successCount.value_or(0);
+                cb(result.code, successCount);
+            }
+        });
+
+    ret = proxy->ResetNamespaceFunctionsAsync(functionNamespace, rawData, eventId, schedulerStub_);
+    if (ret != ERR_OK) {
+        CliEventReplyManager::GetInstance().RemoveEventReplyCallback(eventId);
+    } else {
+        CliEventReplyManager::GetInstance().ActivateEventReplyCallback(eventId);
+    }
+    return ret;
+}
+
+ErrCode CliToolMGRClient::UnregisterIntentFunctionsByNamespaceAsync(const std::string &functionNamespace,
+    const UnregisterIntentFunctionsByNamespaceCallback &callback)
+{
+    ErrCode ret = EnsureSchedulerStubCreated();
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "connect failed");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+
+    std::string eventId = CliEventReplyManager::GetInstance().AddEventReplyCallback("",
+        [cb = std::move(callback)](const CliEventReplyResult &result) {
+            if (cb) {
+                cb(result.code);
+            }
+        });
+
+    ret = proxy->UnregisterIntentFunctionsByNamespaceAsync(functionNamespace, eventId, schedulerStub_);
+    if (ret != ERR_OK) {
+        CliEventReplyManager::GetInstance().RemoveEventReplyCallback(eventId);
+    } else {
+        CliEventReplyManager::GetInstance().ActivateEventReplyCallback(eventId);
+    }
+    return ret;
+}
 } // namespace CliTool
 } // namespace OHOS

@@ -176,30 +176,26 @@ private:
      * @return int32_t ERR_OK on success, error code otherwise
      * @note Caller must hold kvStorePtrMutex_ lock before calling this method
      */
-    int32_t GetExistingIntentFunctions(const std::string &functionNamespace,
+    int32_t GetExistingIntentFunctionsNoLock(const std::string &functionNamespace,
         std::unordered_set<std::string> &existingKeys);
 
     /**
-     * @brief Add new functions and track their keys (internal use)
-     * @param functions Vector of FunctionInfo to add
-     * @param newKeys Output set of added function keys
-     * @param successCount Output count of successfully added functions
-     * @return int32_t ERR_OK on success, error code otherwise
-     * @note Caller must hold kvStorePtrMutex_ lock before calling this method
+     * @brief Process new functions - filter and build entries (pure data processing, no database operation)
+     * @param functions Vector of FunctionInfo to process
+     * @param newKeys Output set of new function keys
+     * @param entries Output vector of KVStore entries ready for batch insert
      */
-    int32_t AddNewFunctions(const std::vector<FunctionInfo> &functions,
-        std::unordered_set<std::string> &newKeys, int32_t &successCount);
+    void ProcessNewFunctions(const std::vector<FunctionInfo> &functions,
+        std::unordered_set<std::string> &newKeys, std::vector<DistributedKv::Entry> &entries);
 
     /**
-     * @brief Delete obsolete functions (diff set) (internal use)
+     * @brief Calculate obsolete keys to delete (pure data processing, no database operation)
      * @param existingKeys Set of existing function keys
      * @param newKeys Set of new function keys
-     * @param deletedCount Output count of deleted functions
-     * @return int32_t ERR_OK on success, error code otherwise
-     * @note Caller must hold kvStorePtrMutex_ lock before calling this method
+     * @param keysToDelete Output vector of keys to delete
      */
-    int32_t DeleteObsoleteFunctions(const std::unordered_set<std::string> &existingKeys,
-        const std::unordered_set<std::string> &newKeys, int32_t &deletedCount);
+    void CalculateObsoleteKeys(const std::unordered_set<std::string> &existingKeys,
+        const std::unordered_set<std::string> &newKeys, std::vector<DistributedKv::Key> &keysToDelete);
 
     DistributedKv::DistributedKvDataManager dataManager_;
     std::shared_ptr<DistributedKv::SingleKvStore> kvStorePtr_;
