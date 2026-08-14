@@ -2159,6 +2159,9 @@ int AbilityManagerStub::GetWantSenderInner(MessageParcel &data, MessageParcel &r
         TAG_LOGE(AAFwkTag::WANTAGENT, "wantSenderInfo null");
         return ERR_INVALID_VALUE;
     }
+    for (auto &wantsInfo : wantSenderInfo->allWants) {
+        SanitizeWantParams(wantsInfo.want);
+    }
     sptr<IRemoteObject> callerToken = nullptr;
     if (data.ReadBool()) {
         callerToken = data.ReadRemoteObject();
