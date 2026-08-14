@@ -2203,7 +2203,6 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, VerifyKillProcessPermissionCommon_002, T
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermissionCommon_002 end");
 }
-
 /**
 * @tc.name: VerifyAPL_001
 * @tc.desc: test VerifyAPL_001

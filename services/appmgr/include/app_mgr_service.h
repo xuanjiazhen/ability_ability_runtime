@@ -932,6 +932,13 @@ public:
 #endif // SUPPORT_CHILD_PROCESS
 
     /**
+     * Get all UIAbility child processes of the calling application.
+     * @param infos Output vector of child process info.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t GetAllUIAbilityChildProcesses(std::vector<ChildProcessInfo> &infos) override;
+
+    /**
      * Register callback to notify native child exit.
      * @param notify, callback to notify
      * @return Returns ERR_OK on success, others on failure.

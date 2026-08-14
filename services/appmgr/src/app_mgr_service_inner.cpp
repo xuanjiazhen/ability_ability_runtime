@@ -4574,6 +4574,53 @@ void AppMgrServiceInner::GetChildrenProcesses(const std::shared_ptr<AppRunningRe
 }
 #endif // SUPPORT_CHILD_PROCESS
 
+int32_t AppMgrServiceInner::GetAllUIAbilityChildProcesses(std::vector<ChildProcessInfo> &infos)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    if (!appRunningManager_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
+        return ERR_NO_INIT;
+    }
+    auto isPerm = AAFwk::PermissionVerification::GetInstance()->VerifyRunningInfoPerm();
+    for (const auto &item : appRunningManager_->GetAppRunningRecordMap()) {
+        const auto &appRecord = item.second;
+        if (isPerm) {
+            GetUIAbilityChildProcesses(appRecord, infos);
+        } else {
+            auto applicationInfo = appRecord->GetApplicationInfo();
+            if (!applicationInfo) {
+                continue;
+            }
+            auto callingTokenId = IPCSkeleton::GetCallingTokenID();
+            if (callingTokenId == applicationInfo->accessTokenId) {
+                GetUIAbilityChildProcesses(appRecord, infos);
+            }
+        }
+    }
+    return ERR_OK;
+}
+
+void AppMgrServiceInner::GetUIAbilityChildProcesses(const std::shared_ptr<AppRunningRecord> &appRecord,
+    std::vector<ChildProcessInfo> &info)
+{
+    if (!appRecord) {
+        return;
+    }
+    auto childAppRecordMap = appRecord->GetChildAppRecordMap();
+    for (const auto &iter : childAppRecordMap) {
+        auto childAppRecord = iter.second.lock();
+        if (childAppRecord == nullptr) {
+            continue;
+        }
+        ChildProcessInfo childProcessInfo;
+        childProcessInfo.pid = childAppRecord->GetPid();
+        childProcessInfo.parentPid = appRecord->GetPid();
+        childProcessInfo.processName = childAppRecord->GetProcessName();
+        info.emplace_back(childProcessInfo);
+    }
+}
+
 int32_t AppMgrServiceInner::KillProcessByPid(const pid_t pid, const std::string& reason, bool isKillPrecedeStart,
     int32_t recordId)
 {
@@ -8340,7 +8387,6 @@ int32_t AppMgrServiceInner::VerifyKillProcessPermissionCommon() const
     if (isCallingPerm) {
         return ERR_OK;
     }
-
     // VerifyAPL and ohos.permission.CLEAN_BACKGROUND_PROCESSES will be removed on API18
     auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
     auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
