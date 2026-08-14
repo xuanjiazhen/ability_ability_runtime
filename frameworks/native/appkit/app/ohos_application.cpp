@@ -16,6 +16,7 @@
 #include <cstdio>
 #include <cstring>
 #include <fcntl.h>
+#include <vector>
 
 #include <sys/stat.h>
 
@@ -100,11 +101,14 @@ void OHOSApplication::OnForeground()
         abilityRuntimeContext_->NotifyApplicationForeground();
     }
 
-    if (runtime_ == nullptr) {
-        TAG_LOGD(AAFwkTag::APPKIT, "NotifyApplicationState, runtime_ is nullptr");
-        return;
+    {
+        std::lock_guard<std::mutex> lock(runtimeMutex_);
+        if (runtime_ == nullptr) {
+            TAG_LOGD(AAFwkTag::APPKIT, "NotifyApplicationState, runtime_ is nullptr");
+            return;
+        }
+        runtime_->NotifyApplicationState(false);
     }
-    runtime_->NotifyApplicationState(false);
     TAG_LOGD(AAFwkTag::APPKIT, "NotifyApplicationState::OnForeground end");
 }
 
@@ -120,11 +124,14 @@ void OHOSApplication::OnBackground()
         abilityRuntimeContext_->NotifyApplicationBackground();
     }
 
-    if (runtime_ == nullptr) {
-        TAG_LOGD(AAFwkTag::APPKIT, "runtime_ is nullptr");
-        return;
+    {
+        std::lock_guard<std::mutex> lock(runtimeMutex_);
+        if (runtime_ == nullptr) {
+            TAG_LOGD(AAFwkTag::APPKIT, "runtime_ is nullptr");
+            return;
+        }
+        runtime_->NotifyApplicationState(true);
     }
-    runtime_->NotifyApplicationState(true);
 }
 
 void OHOSApplication::DumpApplication()
@@ -183,6 +190,7 @@ void OHOSApplication::SetRuntime(std::unique_ptr<AbilityRuntime::Runtime> &&runt
         TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
         return;
     }
+    std::lock_guard<std::mutex> lock(runtimeMutex_);
     runtime_ = std::move(runtime);
 }
 
@@ -309,11 +317,17 @@ void OHOSApplication::OnConfigurationUpdated(
             abilityRecord->GetAbilityThread()->ScheduleUpdateConfiguration(config);
         }
     }
-    for (auto it = abilityStages_.begin(); it != abilityStages_.end(); it++) {
-        auto abilityStage = it->second;
-        if (abilityStage && !abilityStage->IsSkipAbilityStageLifecycle()) {
-            abilityStage->OnConfigurationUpdated(config);
+    std::vector<std::shared_ptr<AbilityRuntime::AbilityStage>> stages;
+    {
+        std::lock_guard<std::mutex> lock(abilityStagesMutex_);
+        for (const auto &item : abilityStages_) {
+            if (item.second && !item.second->IsSkipAbilityStageLifecycle()) {
+                stages.push_back(item.second);
+            }
         }
+    }
+    for (const auto &stage : stages) {
+        stage->OnConfigurationUpdated(config);
     }
     abilityRuntimeContext_->SetConfigUpdateReason(reason);
 #ifdef SUPPORT_GRAPHICS
@@ -368,11 +382,17 @@ void OHOSApplication::OnMemoryLevel(int32_t level)
     }
 
     TAG_LOGD(AAFwkTag::APPKIT, "Number of abilityStage to be notified : [%{public}zu]", abilityStages_.size());
-    for (auto it = abilityStages_.begin(); it != abilityStages_.end(); it++) {
-        auto abilityStage = it->second;
-        if (abilityStage && !abilityStage->IsSkipAbilityStageLifecycle()) {
-            abilityStage->OnMemoryLevel(level);
+    std::vector<std::shared_ptr<AbilityRuntime::AbilityStage>> stages;
+    {
+        std::lock_guard<std::mutex> lock(abilityStagesMutex_);
+        for (const auto &item : abilityStages_) {
+            if (item.second && !item.second->IsSkipAbilityStageLifecycle()) {
+                stages.push_back(item.second);
+            }
         }
+    }
+    for (const auto &stage : stages) {
+        stage->OnMemoryLevel(level);
     }
 
     TAG_LOGD(AAFwkTag::APPKIT, "called");
@@ -402,10 +422,17 @@ void OHOSApplication::OnHyperSnapUpdate()
 {
     TAG_LOGI(AAFwkTag::APPKIT, "OnHyperSnapUpdate");
     AppExecFwk::AppImageObserverManager::GetInstance().NotifyApplicationUpdate();
-    for (auto& item : abilityStages_) {
-        if (item.second && !item.second->IsSkipAbilityStageLifecycle()) {
-            item.second->OnLaunchFromHyperSnap();
+    std::vector<std::shared_ptr<AbilityRuntime::AbilityStage>> stages;
+    {
+        std::lock_guard<std::mutex> lock(abilityStagesMutex_);
+        for (const auto &item : abilityStages_) {
+            if (item.second && !item.second->IsSkipAbilityStageLifecycle()) {
+                stages.push_back(item.second);
+            }
         }
+    }
+    for (const auto &stage : stages) {
+        stage->OnLaunchFromHyperSnap();
     }
 }
 
@@ -468,7 +495,14 @@ void OHOSApplication::PreloadHybridModule(const HapModuleInfo &hapModuleInfo) co
             break;
         }
     }
-    runtime_->PreloadModule(hapModuleInfo.moduleName, hapModuleInfo.hapPath, isEsmode, useCommonTrunk);
+    {
+        std::lock_guard<std::mutex> lock(runtimeMutex_);
+        if (runtime_ == nullptr) {
+            TAG_LOGD(AAFwkTag::APPKIT, "null runtime in PreloadHybridModule");
+            return;
+        }
+        runtime_->PreloadModule(hapModuleInfo.moduleName, hapModuleInfo.hapPath, isEsmode, useCommonTrunk);
+    }
 }
 
 void OHOSApplication::SetLaunchElementForStage(
@@ -505,9 +539,12 @@ std::shared_ptr<AbilityRuntime::AbilityStageContext> OHOSApplication::CreateAndI
     }
 
     PreloadHybridModule(*moduleInfo);
-    if (runtime_ && (runtime_->GetLanguage() == AbilityRuntime::Runtime::Language::JS)) {
-        static_cast<AbilityRuntime::JsRuntime&>(*runtime_).SetPkgContextInfoJson(
-            moduleInfo->moduleName, moduleInfo->hapPath, moduleInfo->packageName);
+    {
+        std::lock_guard<std::mutex> lock(runtimeMutex_);
+        if (runtime_ && (runtime_->GetLanguage() == AbilityRuntime::Runtime::Language::JS)) {
+            static_cast<AbilityRuntime::JsRuntime&>(*runtime_).SetPkgContextInfoJson(
+                moduleInfo->moduleName, moduleInfo->hapPath, moduleInfo->packageName);
+        }
     }
     SetAppEnv(moduleInfo->appEnvironments);
 
@@ -568,8 +605,14 @@ std::shared_ptr<AbilityRuntime::Context> OHOSApplication::AddAbilityStage(
     }
     std::string moduleName = abilityInfo->moduleName;
     std::shared_ptr<AbilityRuntime::AbilityStage> abilityStage;
-    auto iterator = abilityStages_.find(moduleName);
-    if (iterator == abilityStages_.end()) {
+    {
+        std::lock_guard<std::mutex> lock(abilityStagesMutex_);
+        auto iterator = abilityStages_.find(moduleName);
+        if (iterator != abilityStages_.end()) {
+            abilityStage = iterator->second;
+        }
+    }
+    if (abilityStage == nullptr) {
         auto stageContext = std::make_shared<AbilityRuntime::AbilityStageContext>();
         bool isPlugin = abilityInfo->applicationInfo.bundleType == AppExecFwk::BundleType::APP_PLUGIN;
         if (isPlugin) {
@@ -598,9 +641,12 @@ std::shared_ptr<AbilityRuntime::Context> OHOSApplication::AddAbilityStage(
             return nullptr;
         }
         PreloadHybridModule(*hapModuleInfo);
-        if (runtime_ && (runtime_->GetLanguage() == AbilityRuntime::Runtime::Language::JS)) {
-            static_cast<AbilityRuntime::JsRuntime&>(*runtime_).SetPkgContextInfoJson(
-                hapModuleInfo->moduleName, hapModuleInfo->hapPath, hapModuleInfo->packageName);
+        {
+            std::lock_guard<std::mutex> lock(runtimeMutex_);
+            if (runtime_ && (runtime_->GetLanguage() == AbilityRuntime::Runtime::Language::JS)) {
+                static_cast<AbilityRuntime::JsRuntime&>(*runtime_).SetPkgContextInfoJson(
+                    hapModuleInfo->moduleName, hapModuleInfo->hapPath, hapModuleInfo->packageName);
+            }
         }
         SetAppEnv(hapModuleInfo->appEnvironments);
 
@@ -631,6 +677,12 @@ std::shared_ptr<AbilityRuntime::Context> OHOSApplication::AddAbilityStage(
 
         abilityStage->Init(stageContext, weak);
         abilityStage->SetSkipAbilityStageLifecycle(abilityRecord->IsSkipAbilityStageLifecycle());
+        // Init 完成后立即入表，消除「占位 nullptr → 回填」之间的重入空指针窗口：
+        // 同模块重入调用将命中此合法 stage 并复用，而非读到 nullptr 占位。
+        {
+            std::lock_guard<std::mutex> lock(abilityStagesMutex_);
+            abilityStages_.emplace(moduleName, abilityStage);
+        }
         auto firstCallback = CreateFirstStartupCallbackForRecord(abilityStage, abilityRecord, *hapModuleInfo,
             callback);
         if (firstCallback != nullptr) {
@@ -658,9 +710,6 @@ std::shared_ptr<AbilityRuntime::Context> OHOSApplication::AddAbilityStage(
         if (!abilityStage->IsSkipAbilityStageLifecycle()) {
             abilityStage->OnCreate(want);
         }
-        abilityStages_[moduleName] = abilityStage;
-    } else {
-        abilityStage = iterator->second;
     }
     const sptr<IRemoteObject> &token = abilityRecord->GetToken();
     if (token == nullptr) {
@@ -846,7 +895,10 @@ void OHOSApplication::AutoStartupDone(const std::shared_ptr<AbilityLocalRecord> 
     }
 
     abilityStage->OnCreate(want);
-    abilityStages_[moduleName] = abilityStage;
+    {
+        std::lock_guard<std::mutex> lock(abilityStagesMutex_);
+        abilityStages_[moduleName] = abilityStage;
+    }
     const sptr<IRemoteObject> &token = abilityRecord->GetToken();
     if (token == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null token");
@@ -866,7 +918,10 @@ void OHOSApplication::AutoStartupDone(
 
     Want want;
     abilityStage->OnCreate(want);
-    abilityStages_[hapModuleInfo.moduleName] = abilityStage;
+    {
+        std::lock_guard<std::mutex> lock(abilityStagesMutex_);
+        abilityStages_[hapModuleInfo.moduleName] = abilityStage;
+    }
     TAG_LOGI(AAFwkTag::APPKIT, "abilityStage insert and initialization");
     return;
 }
@@ -900,14 +955,20 @@ bool OHOSApplication::AddAbilityStage(
         return false;
     }
 
-    if (runtime_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null runtime_");
-        return false;
+    {
+        std::lock_guard<std::mutex> lock(runtimeMutex_);
+        if (runtime_ == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null runtime_");
+            return false;
+        }
     }
 
-    if (abilityStages_.find(hapModuleInfo.moduleName) != abilityStages_.end()) {
-        TAG_LOGE(AAFwkTag::APPKIT, "object exist");
-        return false;
+    {
+        std::lock_guard<std::mutex> lock(abilityStagesMutex_);
+        if (abilityStages_.find(hapModuleInfo.moduleName) != abilityStages_.end()) {
+            TAG_LOGE(AAFwkTag::APPKIT, "object exist");
+            return false;
+        }
     }
 
     auto stageContext = CreateAndInitStageContext(hapModuleInfo);
@@ -928,6 +989,11 @@ bool OHOSApplication::AddAbilityStage(
     auto application = std::static_pointer_cast<OHOSApplication>(shared_from_this());
     std::weak_ptr<OHOSApplication> weak = application;
     abilityStage->Init(stageContext, weak);
+    // Init 完成后立即入表，消除「占位 nullptr → 回填」之间的重入窗口。
+    {
+        std::lock_guard<std::mutex> lock(abilityStagesMutex_);
+        abilityStages_.emplace(hapModuleInfo.moduleName, abilityStage);
+    }
 
     if (!ExecuteAutoStartupTasks(abilityStage, hapModuleInfo, callback, isAsyncCallback, stageContext)) {
         return false;
@@ -936,7 +1002,6 @@ bool OHOSApplication::AddAbilityStage(
     TAG_LOGD(AAFwkTag::APPKIT, "no wait startup second");
     Want want;
     abilityStage->OnCreate(want);
-    abilityStages_[hapModuleInfo.moduleName] = abilityStage;
     TAG_LOGI(AAFwkTag::APPKIT, "abilityStage insert and initialization");
     return true;
 }
@@ -953,20 +1018,27 @@ void OHOSApplication::CleanAbilityStage(const sptr<IRemoteObject> &token,
         return;
     }
     std::string moduleName = abilityInfo->moduleName;
-    auto iterator = abilityStages_.find(moduleName);
-    if (iterator != abilityStages_.end()) {
-        auto abilityStage = iterator->second;
-        if (abilityStage == nullptr) {
-            TAG_LOGE(AAFwkTag::APPKIT, "null abilityStage");
-            return;
+    std::shared_ptr<AbilityRuntime::AbilityStage> abilityStage;
+    bool shouldErase = false;
+    {
+        std::lock_guard<std::mutex> lock(abilityStagesMutex_);
+        auto iterator = abilityStages_.find(moduleName);
+        if (iterator != abilityStages_.end()) {
+            abilityStage = iterator->second;
         }
+    }
+    if (abilityStage != nullptr) {
         abilityStage->RemoveAbility(token);
         if (!abilityStage->ContainsAbility() && !isCacheProcess) {
             if (!abilityStage->IsSkipAbilityStageLifecycle()) {
                 abilityStage->OnDestroy();
             }
-            abilityStages_.erase(moduleName);
+            shouldErase = true;
         }
+    }
+    if (shouldErase) {
+        std::lock_guard<std::mutex> lock(abilityStagesMutex_);
+        abilityStages_.erase(moduleName);
     }
 }
 
@@ -1009,8 +1081,15 @@ void OHOSApplication::ScheduleAcceptWant(const AAFwk::Want &want, const std::str
         TAG_LOGE(AAFwkTag::APPKIT, "null callback");
         return;
     }
-    auto iter = abilityStages_.find(moduleName);
-    if (iter == abilityStages_.end() || iter->second == nullptr) {
+    std::shared_ptr<AbilityRuntime::AbilityStage> abilityStage;
+    {
+        std::lock_guard<std::mutex> lock(abilityStagesMutex_);
+        auto iter = abilityStages_.find(moduleName);
+        if (iter != abilityStages_.end()) {
+            abilityStage = iter->second;
+        }
+    }
+    if (abilityStage == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "%{public}s is not in abilityStage", moduleName.c_str());
         std::string flag;
         callback(flag);
@@ -1025,7 +1104,7 @@ void OHOSApplication::ScheduleAcceptWant(const AAFwk::Want &want, const std::str
         return;
     }
     callbackInfo->Push(callback);
-    if (iter->second->OnAcceptWant(want, callbackInfo, isAsync).empty()) {
+    if (abilityStage->OnAcceptWant(want, callbackInfo, isAsync).empty()) {
         TAG_LOGE(AAFwkTag::APPKIT, "not exist");
         std::string result;
         callbackInfo->Call(result);
@@ -1041,8 +1120,15 @@ void OHOSApplication::SchedulePrepareTerminate(const std::string &moduleName,
         TAG_LOGE(AAFwkTag::APPKIT, "null callback");
         return;
     }
-    auto iter = abilityStages_.find(moduleName);
-    if (iter == abilityStages_.end() || iter->second == nullptr) {
+    std::shared_ptr<AbilityRuntime::AbilityStage> abilityStage;
+    {
+        std::lock_guard<std::mutex> lock(abilityStagesMutex_);
+        auto iter = abilityStages_.find(moduleName);
+        if (iter != abilityStages_.end()) {
+            abilityStage = iter->second;
+        }
+    }
+    if (abilityStage == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "%{public}s is not in abilityStage", moduleName.c_str());
         return;
     }
@@ -1053,7 +1139,7 @@ void OHOSApplication::SchedulePrepareTerminate(const std::string &moduleName,
         return;
     }
     callbackInfo->Push(callback);
-    if (iter->second->IsSkipAbilityStageLifecycle() || !iter->second->OnPrepareTerminate(callbackInfo, isAsync)) {
+    if (abilityStage->IsSkipAbilityStageLifecycle() || !abilityStage->OnPrepareTerminate(callbackInfo, isAsync)) {
         TAG_LOGI(AAFwkTag::APPKIT, "not exist");
         AppExecFwk::OnPrepareTerminationResult result = { 0, false };
         callbackInfo->Call(result);
@@ -1070,14 +1156,26 @@ void OHOSApplication::ScheduleNewProcessRequest(const AAFwk::Want &want, const s
         return;
     }
 
-    if (abilityStages_.empty()) {
+    std::shared_ptr<AbilityRuntime::AbilityStage> abilityStage;
+    bool isEmpty = false;
+    {
+        std::lock_guard<std::mutex> lock(abilityStagesMutex_);
+        if (abilityStages_.empty()) {
+            isEmpty = true;
+        } else {
+            auto iter = abilityStages_.find(moduleName);
+            if (iter != abilityStages_.end()) {
+                abilityStage = iter->second;
+            }
+        }
+    }
+    if (isEmpty) {
         TAG_LOGE(AAFwkTag::APPKIT, "abilityStages_ empty");
         std::string flag;
         callback(flag);
         return;
     }
-    auto iter = abilityStages_.find(moduleName);
-    if (iter == abilityStages_.end() || iter->second == nullptr) {
+    if (abilityStage == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "%{public}s not in abilityStage", moduleName.c_str());
         std::string flag;
         callback(flag);
@@ -1091,7 +1189,7 @@ void OHOSApplication::ScheduleNewProcessRequest(const AAFwk::Want &want, const s
         return;
     }
     callbackInfo->Push(callback);
-    if (iter->second->OnNewProcessRequest(want, callbackInfo, isAsync).empty()) {
+    if (abilityStage->OnNewProcessRequest(want, callbackInfo, isAsync).empty()) {
         TAG_LOGE(AAFwkTag::APPKIT, "not exist");
         std::string result;
         callbackInfo->Call(result);
@@ -1111,6 +1209,7 @@ void OHOSApplication::SetExtensionTypeMap(std::map<int32_t, std::string> map)
 
 bool OHOSApplication::NotifyLoadRepairPatch(const std::string &hqfFile, const std::string &hapPath)
 {
+    std::lock_guard<std::mutex> lock(runtimeMutex_);
     if (runtime_ == nullptr) {
         TAG_LOGD(AAFwkTag::APPKIT, "null runtime");
         return true;
@@ -1121,6 +1220,7 @@ bool OHOSApplication::NotifyLoadRepairPatch(const std::string &hqfFile, const st
 
 bool OHOSApplication::NotifyHotReloadPage()
 {
+    std::lock_guard<std::mutex> lock(runtimeMutex_);
     if (runtime_ == nullptr) {
         TAG_LOGD(AAFwkTag::APPKIT, "null runtime");
         return true;
@@ -1131,6 +1231,7 @@ bool OHOSApplication::NotifyHotReloadPage()
 
 bool OHOSApplication::NotifyUnLoadRepairPatch(const std::string &hqfFile)
 {
+    std::lock_guard<std::mutex> lock(runtimeMutex_);
     if (runtime_ == nullptr) {
         TAG_LOGD(AAFwkTag::APPKIT, "null runtime");
         return true;
@@ -1186,20 +1287,29 @@ void OHOSApplication::UpdateAppContextResMgr(const Configuration &config)
 void OHOSApplication::CleanEmptyAbilityStage()
 {
     bool containsNonEmpty = false;
-    for (auto it = abilityStages_.begin(); it != abilityStages_.end();) {
-        auto abilityStage = it->second;
-        if (abilityStage == nullptr) {
-            it++;
-            continue;
-        }
-        if (!abilityStage->ContainsAbility()) {
-            if (!abilityStage->IsSkipAbilityStageLifecycle()) {
-                abilityStage->OnDestroy();
+    std::vector<std::string> toErase;
+    std::vector<std::shared_ptr<AbilityRuntime::AbilityStage>> toDestroy;
+    {
+        std::lock_guard<std::mutex> lock(abilityStagesMutex_);
+        for (auto it = abilityStages_.begin(); it != abilityStages_.end(); ++it) {
+            auto abilityStage = it->second;
+            if (abilityStage == nullptr) {
+                continue;
             }
-            it = abilityStages_.erase(it);
-        } else {
-            containsNonEmpty = true;
-            it++;
+            if (!abilityStage->ContainsAbility()) {
+                toErase.push_back(it->first);
+                toDestroy.push_back(abilityStage);
+            } else {
+                containsNonEmpty = true;
+            }
+        }
+        for (const auto &key : toErase) {
+            abilityStages_.erase(key);
+        }
+    }
+    for (const auto &stage : toDestroy) {
+        if (!stage->IsSkipAbilityStageLifecycle()) {
+            stage->OnDestroy();
         }
     }
     if (containsNonEmpty) {
@@ -1398,6 +1508,7 @@ bool OHOSApplication::GetDisplayConfig(uint64_t displayId, float &density, std::
 
 bool OHOSApplication::UpdateETSRuntime(AbilityRuntime::Runtime::Options &option)
 {
+    std::lock_guard<std::mutex> lock(runtimeMutex_);
     if (runtime_ == nullptr || runtime_->GetLanguage() != AbilityRuntime::Runtime::Language::JS) {
         TAG_LOGE(AAFwkTag::APPKIT, "null runtime or wrong language");
         return false;
@@ -1409,17 +1520,15 @@ bool OHOSApplication::UpdateETSRuntime(AbilityRuntime::Runtime::Options &option)
         TAG_LOGE(AAFwkTag::APPKIT, "create etsRuntime failed");
         return false;
     }
-    {
-        std::lock_guard<std::mutex> lock(runtimeMutex_);
-        etsRuntime->SetJsRuntime(runtime_);
-        runtime_ = std::move(etsRuntime);
-    }
+    etsRuntime->SetJsRuntime(runtime_);
+    runtime_ = std::move(etsRuntime);
     return true;
 }
 
 void OHOSApplication::InitJSLeakWatcher(const std::string &bundleName)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "InitJSLeakWatcher call");
+    std::lock_guard<std::mutex> lock(runtimeMutex_);
     if (runtime_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
         return;
