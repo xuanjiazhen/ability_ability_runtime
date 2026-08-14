@@ -36,6 +36,8 @@ ohos_fuzztest("AbilityTokenStubFuzzTest") {
   ]
   sources = [ "abilitytokenstub_fuzzer.cpp" ]
 
+  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
+
   deps = [
     "${ability_runtime_services_path}/abilitymgr:abilityms",
   ]
