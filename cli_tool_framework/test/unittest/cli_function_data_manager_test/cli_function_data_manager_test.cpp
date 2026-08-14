@@ -1241,7 +1241,7 @@ HWTEST_F(CliFunctionDataManagerTest, CliFunctionDataManager_BatchRegisterFunctio
 
 /**
  * @tc.name: CliFunctionDataManager_BatchRegisterFunctions_003
- * @tc.desc: Test BatchRegisterFunctions with KVStore failure on first function
+ * @tc.desc: Test BatchRegisterFunctions with PutBatch failure
  * @tc.type: FUNC
  */
 HWTEST_F(CliFunctionDataManagerTest, CliFunctionDataManager_BatchRegisterFunctions_003, TestSize.Level1)
@@ -1249,7 +1249,7 @@ HWTEST_F(CliFunctionDataManagerTest, CliFunctionDataManager_BatchRegisterFunctio
     TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_BatchRegisterFunctions_003 start");
 
     auto mockStore = std::make_shared<MockSingleKvStore>();
-    mockStore->Put_ = DistributedKv::Status::ERROR;
+    mockStore->PutBatch_ = DistributedKv::Status::ERROR;
     CliFunctionDataManager::GetInstance().kvStorePtr_ = mockStore;
 
     std::vector<FunctionInfo> functions;
@@ -1266,13 +1266,17 @@ HWTEST_F(CliFunctionDataManagerTest, CliFunctionDataManager_BatchRegisterFunctio
 
     EXPECT_EQ(ret, ERR_KVSTORE_ERROR);
     EXPECT_EQ(successCount, 0);
+    // No functions should be stored on PutBatch failure
+    EXPECT_FALSE(mockStore->HasMockData("fail_ns/fail_func_0"));
+    EXPECT_FALSE(mockStore->HasMockData("fail_ns/fail_func_1"));
+    EXPECT_FALSE(mockStore->HasMockData("fail_ns/fail_func_2"));
 
     TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_BatchRegisterFunctions_003 end");
 }
 
 /**
  * @tc.name: CliFunctionDataManager_BatchRegisterFunctions_004
- * @tc.desc: Test BatchRegisterFunctions with failure on middle function
+ * @tc.desc: Test BatchRegisterFunctions with multiple functions using PutBatch
  * @tc.type: FUNC
  */
 HWTEST_F(CliFunctionDataManagerTest, CliFunctionDataManager_BatchRegisterFunctions_004, TestSize.Level1)
@@ -1283,33 +1287,23 @@ HWTEST_F(CliFunctionDataManagerTest, CliFunctionDataManager_BatchRegisterFunctio
     CliFunctionDataManager::GetInstance().kvStorePtr_ = mockStore;
 
     std::vector<FunctionInfo> functions;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 10; i++) {
         FunctionInfo function;
-        function.functionName = "partial_func_" + std::to_string(i);
-        function.functionNamespace = "partial_ns";
+        function.functionName = "multi_func_" + std::to_string(i);
+        function.functionNamespace = "multi_ns";
         function.functionType = FunctionType::INTENT_FUNCTION;
         functions.push_back(function);
     }
 
-    // After 2 successful Put, make the 3rd fail
-    int callCount = 0;
-    mockStore->Put_ = DistributedKv::Status::SUCCESS;
-    mockStore->PutCallback = [&callCount](const DistributedKv::Key&, const DistributedKv::Value&)
-        -> DistributedKv::Status {
-        callCount++;
-        return callCount <= 2 ? DistributedKv::Status::SUCCESS : DistributedKv::Status::ERROR;
-    };
-
     int32_t successCount = 0;
     int32_t ret = CliFunctionDataManager::GetInstance().BatchRegisterFunctions(functions, successCount);
 
-    EXPECT_EQ(ret, ERR_KVSTORE_ERROR);
-    EXPECT_EQ(successCount, 2);
-    // First 2 functions should be stored
-    EXPECT_TRUE(mockStore->HasMockData("partial_ns/partial_func_0"));
-    EXPECT_TRUE(mockStore->HasMockData("partial_ns/partial_func_1"));
-    // Remaining functions should not be stored due to early break
-    EXPECT_FALSE(mockStore->HasMockData("partial_ns/partial_func_2"));
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(successCount, 10);
+    // All functions should be stored via PutBatch
+    for (int i = 0; i < 10; i++) {
+        EXPECT_TRUE(mockStore->HasMockData("multi_ns/multi_func_" + std::to_string(i)));
+    }
 
     TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_BatchRegisterFunctions_004 end");
 }
@@ -1502,8 +1496,8 @@ HWTEST_F(CliFunctionDataManagerTest, CliFunctionDataManager_ResetNamespaceFuncti
     mockStore->SetMockData("preserve_ns/old_func1", BuildFunctionJson("preserve_ns", "old_func1"));
     mockStore->SetMockData("preserve_ns/old_func2", BuildFunctionJson("preserve_ns", "old_func2"));
 
-    // Make Put fail during AddNewFunctions
-    mockStore->Put_ = DistributedKv::Status::ERROR;
+    // Make PutBatch fail
+    mockStore->PutBatch_ = DistributedKv::Status::ERROR;
 
     std::vector<FunctionInfo> functions;
     for (int i = 0; i < 3; i++) {

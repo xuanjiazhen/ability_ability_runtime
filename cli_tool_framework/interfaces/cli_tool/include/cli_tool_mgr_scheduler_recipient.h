@@ -35,6 +35,15 @@ public:
 
     int32_t SchedulerExecToolReplyEvent(const std::string &eventId, int32_t resultCode,
         const CliSessionInfo &session) override;
+
+    int32_t SchedulerBatchRegisterFunctionsReplyEvent(const std::string &eventId, int32_t resultCode,
+        int32_t successCount) override;
+
+    int32_t SchedulerResetNamespaceFunctionsReplyEvent(const std::string &eventId, int32_t resultCode,
+        int32_t successCount) override;
+
+    int32_t SchedulerUnregisterIntentFunctionsByNamespaceReplyEvent(const std::string &eventId,
+        int32_t resultCode) override;
 };
 
 } // namespace CliTool

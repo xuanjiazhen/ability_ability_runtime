@@ -120,6 +120,11 @@ enum {
      * Result (35700020): Function execute timeout.
      */
     ERR_FUNCTION_EXECUTE_TIMEOUT = 35700020,
+
+    /*
+     * Result (35700021): Scheduler is null.
+     */
+    ERR_NULL_SCHEDULER = 35700021,
 };
 
 } // namespace CliTool

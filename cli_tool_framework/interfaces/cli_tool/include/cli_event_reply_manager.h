@@ -32,6 +32,7 @@ namespace CliTool {
 struct CliEventReplyResult {
     int32_t code = 0;
     std::optional<CliSessionInfo> sessionInfo = std::nullopt;
+    std::optional<int32_t> successCount = std::nullopt;  // For batch operations
 };
 
 class CliEventReplyManager final {

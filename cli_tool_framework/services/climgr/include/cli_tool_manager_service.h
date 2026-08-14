@@ -159,6 +159,38 @@ public:
      */
     int32_t GetAllFunctions(FunctionsRawData &functions) override;
 
+    /**
+     * @brief Async batch register functions with callback
+     * @param functions Vector of FunctionInfo to register
+     * @param eventId Event ID for callback
+     * @param scheduler Callback interface
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    int32_t BatchRegisterFunctionsAsync(const FunctionsRawData &functions, const std::string &eventId,
+        const sptr<ICliToolManagerScheduler> &scheduler) override;
+
+    /**
+     * @brief Async reset namespace functions with callback
+     * @param functionNamespace Namespace to reset
+     * @param functions New function list
+     * @param eventId Event ID for callback
+     * @param scheduler Callback interface
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    int32_t ResetNamespaceFunctionsAsync(const std::string &functionNamespace,
+        const FunctionsRawData &functions, const std::string &eventId,
+        const sptr<ICliToolManagerScheduler> &scheduler) override;
+
+    /**
+     * @brief Async unregister intent functions by namespace with callback
+     * @param functionNamespace Namespace to delete functions from
+     * @param eventId Event ID for callback
+     * @param scheduler Callback interface
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    int32_t UnregisterIntentFunctionsByNamespaceAsync(const std::string &functionNamespace,
+        const std::string &eventId, const sptr<ICliToolManagerScheduler> &scheduler) override;
+
 protected:
     void OnStart() override;
     void OnStop() override;

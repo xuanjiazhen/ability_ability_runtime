@@ -68,15 +68,53 @@ public:
         return execReplyResult;
     }
 
+    int32_t SchedulerBatchRegisterFunctionsReplyEvent(const std::string &eventId, int32_t resultCode,
+        int32_t successCount) override
+    {
+        batchRegisterReplyCount++;
+        lastBatchRegisterEventId = eventId;
+        lastBatchRegisterResult = resultCode;
+        lastBatchRegisterSuccessCount = successCount;
+        return batchRegisterReplyResult;
+    }
+
+    int32_t SchedulerResetNamespaceFunctionsReplyEvent(const std::string &eventId, int32_t resultCode,
+        int32_t successCount) override
+    {
+        resetNamespaceReplyCount++;
+        lastResetNamespaceEventId = eventId;
+        lastResetNamespaceResult = resultCode;
+        lastResetNamespaceSuccessCount = successCount;
+        return resetNamespaceReplyResult;
+    }
+
+    int32_t SchedulerUnregisterIntentFunctionsByNamespaceReplyEvent(const std::string &eventId,
+        int32_t resultCode) override
+    {
+        unregisterReplyCount++;
+        lastUnregisterEventId = eventId;
+        lastUnregisterResult = resultCode;
+        return unregisterReplyResult;
+    }
+
     int32_t sessionEventResult = ERR_OK;
     int32_t inputReplyResult = ERR_OK;
     int32_t execReplyResult = ERR_OK;
+    int32_t batchRegisterReplyResult = ERR_OK;
+    int32_t resetNamespaceReplyResult = ERR_OK;
+    int32_t unregisterReplyResult = ERR_OK;
     int32_t sessionEventCount = 0;
     int32_t inputReplyCount = 0;
     int32_t execReplyCount = 0;
+    int32_t batchRegisterReplyCount = 0;
+    int32_t resetNamespaceReplyCount = 0;
+    int32_t unregisterReplyCount = 0;
     int32_t lastExitCode = 0;
     int32_t lastInputResult = 0;
     int32_t lastExecResult = 0;
+    int32_t lastBatchRegisterSuccessCount = 0;
+    int32_t lastResetNamespaceSuccessCount = 0;
+    int32_t lastUnregisterResult = 0;
     std::string lastSessionId;
     std::string lastSubscriptionId;
     std::string lastEventType;
@@ -84,6 +122,9 @@ public:
     std::string lastInputEventId;
     std::string lastExecEventId;
     std::string lastExecSessionId;
+    std::string lastBatchRegisterEventId;
+    std::string lastResetNamespaceEventId;
+    std::string lastUnregisterEventId;
 };
 
 class TrackingRemoteObject : public IRemoteObject {
@@ -199,12 +240,39 @@ public:
         return execReplyResult;
     }
 
+    ErrCode SchedulerBatchRegisterFunctionsReplyEvent(const std::string &eventId, int32_t resultCode,
+        int32_t successCount) override
+    {
+        batchRegisterReplyCount++;
+        return batchRegisterReplyResult;
+    }
+
+    ErrCode SchedulerResetNamespaceFunctionsReplyEvent(const std::string &eventId, int32_t resultCode,
+        int32_t successCount) override
+    {
+        resetNamespaceReplyCount++;
+        return resetNamespaceReplyResult;
+    }
+
+    ErrCode SchedulerUnregisterIntentFunctionsByNamespaceReplyEvent(const std::string &eventId,
+        int32_t resultCode) override
+    {
+        unregisterReplyCount++;
+        return unregisterReplyResult;
+    }
+
     int32_t sessionEventResult = ERR_OK;
     int32_t inputReplyResult = ERR_OK;
     int32_t execReplyResult = ERR_OK;
+    int32_t batchRegisterReplyResult = ERR_OK;
+    int32_t resetNamespaceReplyResult = ERR_OK;
+    int32_t unregisterReplyResult = ERR_OK;
     int32_t sessionEventCount = 0;
     int32_t inputReplyCount = 0;
     int32_t execReplyCount = 0;
+    int32_t batchRegisterReplyCount = 0;
+    int32_t resetNamespaceReplyCount = 0;
+    int32_t unregisterReplyCount = 0;
     std::string lastSubscriptionId;
     std::string lastEventType;
 
