@@ -39,5 +39,30 @@ int32_t CliToolManagerSchedulerRecipient::SchedulerExecToolReplyEvent(const std:
     return CliEventReplyManager::GetInstance().HandleEventReply(eventId, CliEventReplyResult {resultCode, session});
 }
 
+int32_t CliToolManagerSchedulerRecipient::SchedulerBatchRegisterFunctionsReplyEvent(const std::string &eventId,
+    int32_t resultCode, int32_t successCount)
+{
+    CliEventReplyResult result;
+    result.code = resultCode;
+    result.successCount = successCount;
+    return CliEventReplyManager::GetInstance().HandleEventReply(eventId, result);
+}
+
+int32_t CliToolManagerSchedulerRecipient::SchedulerResetNamespaceFunctionsReplyEvent(const std::string &eventId,
+    int32_t resultCode, int32_t successCount)
+{
+    CliEventReplyResult result;
+    result.code = resultCode;
+    result.successCount = successCount;
+    return CliEventReplyManager::GetInstance().HandleEventReply(eventId, result);
+}
+
+int32_t CliToolManagerSchedulerRecipient::SchedulerUnregisterIntentFunctionsByNamespaceReplyEvent(
+    const std::string &eventId, int32_t resultCode)
+{
+    return CliEventReplyManager::GetInstance().HandleEventReply(
+        eventId, CliEventReplyResult {resultCode, std::nullopt});
+}
+
 } // namespace CliTool
 } // namespace OHOS

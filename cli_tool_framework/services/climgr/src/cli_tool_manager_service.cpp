@@ -844,6 +844,61 @@ int32_t CliToolManagerService::GetAllFunctions(FunctionsRawData &functions)
     return ERR_OK;
 }
 
+int32_t CliToolManagerService::BatchRegisterFunctionsAsync(const FunctionsRawData &functions,
+    const std::string &eventId, const sptr<ICliToolManagerScheduler> &scheduler)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "BatchRegisterFunctionsAsync called: eventId=%{public}s", eventId.c_str());
+
+    if (scheduler == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "BatchRegisterFunctionsAsync: scheduler is null");
+        return ERR_NULL_SCHEDULER;
+    }
+
+    int32_t successCount = 0;
+    int32_t ret = BatchRegisterFunctions(functions, successCount);
+
+    // Callback with result
+    scheduler->SchedulerBatchRegisterFunctionsReplyEvent(eventId, ret, successCount);
+    return ERR_OK;
+}
+
+int32_t CliToolManagerService::ResetNamespaceFunctionsAsync(const std::string &functionNamespace,
+    const FunctionsRawData &functions, const std::string &eventId, const sptr<ICliToolManagerScheduler> &scheduler)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "ResetNamespaceFunctionsAsync called: namespace=%{public}s, eventId=%{public}s",
+        functionNamespace.c_str(), eventId.c_str());
+
+    if (scheduler == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "ResetNamespaceFunctionsAsync: scheduler is null");
+        return ERR_NULL_SCHEDULER;
+    }
+
+    int32_t successCount = 0;
+    int32_t ret = ResetNamespaceFunctions(functionNamespace, functions, successCount);
+
+    // Callback with result
+    scheduler->SchedulerResetNamespaceFunctionsReplyEvent(eventId, ret, successCount);
+    return ERR_OK;
+}
+
+int32_t CliToolManagerService::UnregisterIntentFunctionsByNamespaceAsync(const std::string &functionNamespace,
+    const std::string &eventId, const sptr<ICliToolManagerScheduler> &scheduler)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "UnregisterIntentFunctionsByNamespaceAsync called: namespace=%{public}s, eventId=%{public}s",
+        functionNamespace.c_str(), eventId.c_str());
+
+    if (scheduler == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "UnregisterIntentFunctionsByNamespaceAsync: scheduler is null");
+        return ERR_NULL_SCHEDULER;
+    }
+
+    int32_t ret = UnregisterIntentFunctionsByNamespace(functionNamespace);
+
+    // Callback with result
+    scheduler->SchedulerUnregisterIntentFunctionsByNamespaceReplyEvent(eventId, ret);
+    return ERR_OK;
+}
+
 int32_t CliToolManagerService::ValidateExecToolPermissions()
 {
     auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
