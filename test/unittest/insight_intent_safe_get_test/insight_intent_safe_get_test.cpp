@@ -134,7 +134,9 @@ HWTEST_F(IntentJsonSafeGetTest, SafeDump_0100, TestSize.Level0)
 }
 
 namespace {
-// Build a json nested `depth` levels deep, e.g. depth=3 -> {"c":{"c":{"c":1}}}.
+// Build a json with `depth` nested objects around a scalar leaf, e.g. depth=3 ->
+// {"c":{"c":{"c":1}}}. IsJsonDepthOk counts every node including the scalar leaf,
+// so the walker reports max depth = depth + 1 for the result.
 // Uses string concatenation so we don't need pointer chasing to construct it.
 nlohmann::json BuildNestedJson(size_t depth)
 {
@@ -216,11 +218,11 @@ HWTEST_F(IntentJsonSafeGetTest, IsJsonDepthOk_FlatArray_0100, TestSize.Level0)
 /**
  * @tc.number: IsJsonDepthOk_UnderLimit_0100
  * @tc.name: IsJsonDepthOk
- * @tc.desc: depth = maxDepth - 1 (99) returns true.
+ * @tc.desc: walker depth = maxDepth - 1 (leaf at 99) returns true.
  */
 HWTEST_F(IntentJsonSafeGetTest, IsJsonDepthOk_UnderLimit_0100, TestSize.Level0)
 {
-    auto j = BuildNestedJson(JSON_DUMP_MAX_DEPTH - 1);
+    auto j = BuildNestedJson(JSON_DUMP_MAX_DEPTH - 2);
     ASSERT_FALSE(j.is_discarded());
     EXPECT_TRUE(IsJsonDepthOk(j, JSON_DUMP_MAX_DEPTH));
 }
@@ -228,11 +230,11 @@ HWTEST_F(IntentJsonSafeGetTest, IsJsonDepthOk_UnderLimit_0100, TestSize.Level0)
 /**
  * @tc.number: IsJsonDepthOk_AtLimit_0100
  * @tc.name: IsJsonDepthOk
- * @tc.desc: depth = maxDepth (100) returns true (boundary: depth > maxDepth is false).
+ * @tc.desc: walker depth = maxDepth (leaf at 100) returns true (boundary: depth > maxDepth is false).
  */
 HWTEST_F(IntentJsonSafeGetTest, IsJsonDepthOk_AtLimit_0100, TestSize.Level0)
 {
-    auto j = BuildNestedJson(JSON_DUMP_MAX_DEPTH);
+    auto j = BuildNestedJson(JSON_DUMP_MAX_DEPTH - 1);
     ASSERT_FALSE(j.is_discarded());
     EXPECT_TRUE(IsJsonDepthOk(j, JSON_DUMP_MAX_DEPTH));
 }
@@ -240,11 +242,11 @@ HWTEST_F(IntentJsonSafeGetTest, IsJsonDepthOk_AtLimit_0100, TestSize.Level0)
 /**
  * @tc.number: IsJsonDepthOk_OverLimit_0100
  * @tc.name: IsJsonDepthOk
- * @tc.desc: depth = maxDepth + 1 (101) returns false.
+ * @tc.desc: walker depth = maxDepth + 1 (leaf at 101) returns false.
  */
 HWTEST_F(IntentJsonSafeGetTest, IsJsonDepthOk_OverLimit_0100, TestSize.Level0)
 {
-    auto j = BuildNestedJson(JSON_DUMP_MAX_DEPTH + 1);
+    auto j = BuildNestedJson(JSON_DUMP_MAX_DEPTH);
     ASSERT_FALSE(j.is_discarded());
     EXPECT_FALSE(IsJsonDepthOk(j, JSON_DUMP_MAX_DEPTH));
 }
@@ -274,11 +276,11 @@ HWTEST_F(IntentJsonSafeGetTest, IsJsonDepthOk_ArrayNesting_0100, TestSize.Level0
 /**
  * @tc.number: SafeDump_AtLimit_0100
  * @tc.name: SafeDump
- * @tc.desc: depth = JSON_DUMP_MAX_DEPTH produces non-empty dump.
+ * @tc.desc: walker depth = JSON_DUMP_MAX_DEPTH (leaf at 100) produces non-empty dump.
  */
 HWTEST_F(IntentJsonSafeGetTest, SafeDump_AtLimit_0100, TestSize.Level0)
 {
-    auto j = BuildNestedJson(JSON_DUMP_MAX_DEPTH);
+    auto j = BuildNestedJson(JSON_DUMP_MAX_DEPTH - 1);
     ASSERT_FALSE(j.is_discarded());
     auto s = SafeDump(j);
     EXPECT_FALSE(s.empty());
@@ -287,11 +289,11 @@ HWTEST_F(IntentJsonSafeGetTest, SafeDump_AtLimit_0100, TestSize.Level0)
 /**
  * @tc.number: SafeDump_OverLimit_0100
  * @tc.name: SafeDump
- * @tc.desc: depth = JSON_DUMP_MAX_DEPTH + 1 produces empty string (depth guard).
+ * @tc.desc: walker depth = JSON_DUMP_MAX_DEPTH + 1 (leaf at 101) produces empty string (depth guard).
  */
 HWTEST_F(IntentJsonSafeGetTest, SafeDump_OverLimit_0100, TestSize.Level0)
 {
-    auto j = BuildNestedJson(JSON_DUMP_MAX_DEPTH + 1);
+    auto j = BuildNestedJson(JSON_DUMP_MAX_DEPTH);
     ASSERT_FALSE(j.is_discarded());
     auto s = SafeDump(j);
     EXPECT_TRUE(s.empty());
@@ -300,11 +302,11 @@ HWTEST_F(IntentJsonSafeGetTest, SafeDump_OverLimit_0100, TestSize.Level0)
 /**
  * @tc.number: SafeDumpTo_AtLimit_0100
  * @tc.name: SafeDumpTo
- * @tc.desc: depth = JSON_DUMP_MAX_DEPTH succeeds.
+ * @tc.desc: walker depth = JSON_DUMP_MAX_DEPTH (leaf at 100) succeeds.
  */
 HWTEST_F(IntentJsonSafeGetTest, SafeDumpTo_AtLimit_0100, TestSize.Level0)
 {
-    auto j = BuildNestedJson(JSON_DUMP_MAX_DEPTH);
+    auto j = BuildNestedJson(JSON_DUMP_MAX_DEPTH - 1);
     ASSERT_FALSE(j.is_discarded());
     std::string out;
     EXPECT_TRUE(SafeDumpTo(j, out));
@@ -314,11 +316,11 @@ HWTEST_F(IntentJsonSafeGetTest, SafeDumpTo_AtLimit_0100, TestSize.Level0)
 /**
  * @tc.number: SafeDumpTo_OverLimit_0100
  * @tc.name: SafeDumpTo
- * @tc.desc: depth = JSON_DUMP_MAX_DEPTH + 1 returns false.
+ * @tc.desc: walker depth = JSON_DUMP_MAX_DEPTH + 1 (leaf at 101) returns false.
  */
 HWTEST_F(IntentJsonSafeGetTest, SafeDumpTo_OverLimit_0100, TestSize.Level0)
 {
-    auto j = BuildNestedJson(JSON_DUMP_MAX_DEPTH + 1);
+    auto j = BuildNestedJson(JSON_DUMP_MAX_DEPTH);
     ASSERT_FALSE(j.is_discarded());
     std::string out;
     EXPECT_FALSE(SafeDumpTo(j, out));

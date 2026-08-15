@@ -474,7 +474,6 @@ std::string InsightIntentExecuteResult::ToJsonString() const
         infoJson[KEY_INTERACTION_UI] = BuildInteractionUIJson(interactionInfo->interactionUI);
         jsonObject[KEY_INTERACTION_INFO] = infoJson;
     }
-    std::string out;
     if (!CheckJsonObjectDepth(jsonObject, INTENT_JSON_MAX_DEPTH)) {
         TAG_LOGW(AAFwkTag::INTENT, "json depth exceeds limit %{public}zu", INTENT_JSON_MAX_DEPTH);
         return std::string();
