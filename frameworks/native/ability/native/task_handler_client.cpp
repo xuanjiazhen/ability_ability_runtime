@@ -18,18 +18,10 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-std::shared_ptr<TaskHandlerClient> TaskHandlerClient::instance_ = nullptr;
-std::mutex TaskHandlerClient::mutex_;
-
 std::shared_ptr<TaskHandlerClient> TaskHandlerClient::GetInstance()
 {
-    if (instance_ == nullptr) {
-        std::lock_guard<std::mutex> lock_l(mutex_);
-        if (instance_ == nullptr) {
-            instance_ = std::make_shared<TaskHandlerClient>();
-        }
-    }
-    return instance_;
+    static auto instance = std::make_shared<TaskHandlerClient>();
+    return instance;
 }
 
 TaskHandlerClient::TaskHandlerClient()
@@ -42,14 +34,25 @@ bool TaskHandlerClient::PostTask(std::function<void()> task, long delayTime)
 {
     TAG_LOGI(AAFwkTag::ABILITY, "called");
 
-    if (taskHandler_ == nullptr) {
-        if (!CreateRunner()) {
-            TAG_LOGE(AAFwkTag::ABILITY, "CreateRunner failed");
-            return false;
+    std::shared_ptr<TaskHandler> handler;
+    {
+        std::lock_guard<std::mutex> lock(taskHandlerMutex_);
+        if (taskHandler_ == nullptr) {
+            std::shared_ptr<EventRunner> runner = EventRunner::Create("TaskRunner");
+            if (runner == nullptr) {
+                TAG_LOGE(AAFwkTag::ABILITY, "null runner");
+                return false;
+            }
+            taskHandler_ = std::make_shared<TaskHandler>(runner);
+            if (taskHandler_ == nullptr) {
+                TAG_LOGE(AAFwkTag::ABILITY, "null taskHandler_");
+                return false;
+            }
         }
+        handler = taskHandler_;
     }
 
-    bool ret = taskHandler_->PostTask(task, delayTime, EventQueue::Priority::LOW);
+    bool ret = handler->PostTask(task, delayTime, EventQueue::Priority::LOW);
     if (!ret) {
         TAG_LOGE(AAFwkTag::ABILITY, "taskHandler_ PostTask failed");
     }
@@ -58,17 +61,19 @@ bool TaskHandlerClient::PostTask(std::function<void()> task, long delayTime)
 
 bool TaskHandlerClient::CreateRunner()
 {
+    std::lock_guard<std::mutex> lock(taskHandlerMutex_);
+    if (taskHandler_ != nullptr) {
+        return true;
+    }
+    std::shared_ptr<EventRunner> runner = EventRunner::Create("TaskRunner");
+    if (runner == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "null runner");
+        return false;
+    }
+    taskHandler_ = std::make_shared<TaskHandler>(runner);
     if (taskHandler_ == nullptr) {
-        std::shared_ptr<EventRunner> runner = EventRunner::Create("TaskRunner");
-        if (runner == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITY, "null runner");
-            return false;
-        }
-        taskHandler_ = std::make_shared<TaskHandler>(runner);
-        if (taskHandler_ == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITY, "null taskHandler_");
-            return false;
-        }
+        TAG_LOGE(AAFwkTag::ABILITY, "null taskHandler_");
+        return false;
     }
     return true;
 }
