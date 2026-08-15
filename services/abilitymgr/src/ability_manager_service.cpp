@@ -854,6 +854,13 @@ int AbilityManagerService::StartAbilityWithRemoveIntentFlag(const StartAbilityWr
         InsightIntentExecuteParam::RemoveInsightIntent(const_cast<Want &>(param.want));
     }
     SkillExecuteParam::RemoveSkillParam(const_cast<Want &>(param.want));
+    // The non-standard scheme uri pass-through flag (ohos.want.setUriWithOriginString)
+    // is only honored when the call comes from the in-lake(anco/broker) source.
+    // Strip it for any other caller (including a third-party re-forward) so that
+    // the scheme validation cannot be bypassed.
+    if (!StartAbilityUtils::IsCallFromAncoShellOrBroker(param.callerToken)) {
+        const_cast<Want &>(param.want).RemoveParam(Want::PARAM_SET_URI_WITH_ORIGIN_STRING);
+    }
 #ifdef SUPPORT_SCREEN
     DmsUtil::GetInstance().UpdateFlagForCollaboration(param.want);
 #endif
