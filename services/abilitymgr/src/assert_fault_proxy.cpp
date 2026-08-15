@@ -84,13 +84,10 @@ ModalSystemAssertUIExtension::~ModalSystemAssertUIExtension()
 
 sptr<ModalSystemAssertUIExtension::AssertDialogConnection> ModalSystemAssertUIExtension::GetConnection()
 {
+    std::lock_guard<std::mutex> lock(dialogConnectionMutex_);
     if (dialogConnectionCallback_ == nullptr) {
-        std::lock_guard lock(dialogConnectionMutex_);
-        if (dialogConnectionCallback_ == nullptr) {
-            dialogConnectionCallback_ = new (std::nothrow) AssertDialogConnection();
-        }
+        dialogConnectionCallback_ = new (std::nothrow) AssertDialogConnection();
     }
-
     return dialogConnectionCallback_;
 }
 

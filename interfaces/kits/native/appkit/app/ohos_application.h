@@ -340,7 +340,11 @@ private:
     std::shared_ptr<AbilityRecordMgr> abilityRecordMgr_ = nullptr;
     std::shared_ptr<AbilityRuntime::ApplicationContext> abilityRuntimeContext_ = nullptr;
     std::unordered_map<std::string, std::shared_ptr<AbilityRuntime::AbilityStage>> abilityStages_;
+    mutable std::mutex abilityStagesMutex_;
     std::unique_ptr<AbilityRuntime::Runtime> runtime_ = nullptr;
+    // runtime_ 由 unique_ptr 独占，调用方须持 runtimeMutex_ 才能保证对象在调用期间不被
+    // SetRuntime/UpdateETSRuntime 并发析构，故锁内会调用 Runtime::*（NotifyApplicationState /
+    // PreloadModule 等）。锁序不变量：这些 Runtime::* 方法不得反向回调 SetRuntime/UpdateETSRuntime。
     mutable std::mutex runtimeMutex_;
     std::shared_ptr<Configuration> configuration_ = nullptr;
     std::map<int32_t, std::string> extensionTypeMap_;
