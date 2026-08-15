@@ -1097,6 +1097,17 @@ public:
     };
 #endif // SUPPORT_CHILD_PROCESS
 
+    /**
+     * Get all UIAbility child processes of the calling application (aggregated across all
+     * processes sharing the caller's accessTokenId).
+     * @param infos Output vector of child process info.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetAllUIAbilityChildProcesses(std::vector<ChildProcessInfo> &infos)
+    {
+        return 0;
+    }
+
      /**
      * Register native child exit callback to notify.
      * @param notify, Callback used to notify caller the info of native child exit.
