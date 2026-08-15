@@ -33,6 +33,7 @@
 #include "runtime.h"
 #include "ui_service_extension_connection_constants.h"
 #include "ui_service_host_stub.h"
+#include "napi_common_want.h"
 
 
 using namespace testing::ext;
@@ -154,6 +155,15 @@ public:
     int Dump(int fd, const std::vector<std::u16string>& args)
     {
         return 0;
+    }
+};
+
+class MockIUIService : public OHOS::AAFwk::IUIService {
+public:
+    MOCK_METHOD2(SendData, int32_t(sptr<IRemoteObject>, OHOS::AAFwk::WantParams&));
+    sptr<IRemoteObject> AsObject() override
+    {
+        return nullptr;
     }
 };
 
@@ -283,6 +293,152 @@ HWTEST_F(JsUIServiceProxyTest, OnSendData_0300, TestSize.Level1)
     napi_value result = infos->OnSendData(env_, info);
     EXPECT_EQ(result, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "OnSendData_0300 end");
+}
+
+/**
+ * @tc.number: GetConnectionId_0100
+ * @tc.name: GetConnectionId
+ * @tc.desc: Verify SetConnectionId and GetConnectionId round-trip.
+ */
+HWTEST_F(JsUIServiceProxyTest, GetConnectionId_0100, TestSize.Level1)
+{
+    sptr<IRemoteObject> impl = new IRemoteObjectMocker();
+    sptr<IRemoteObject> hostProxy = new IRemoteObjectMocker();
+    auto infos = std::make_shared<AAFwk::JsUIServiceProxy>(impl, hostProxy);
+    infos->SetConnectionId(42);
+    EXPECT_EQ(infos->GetConnectionId(), 42);
+}
+
+/**
+ * @tc.number: OnSendData_0400
+ * @tc.name: OnSendData_0400
+ * @tc.desc: OnSendData throws when proxy_ and hostProxy_ are null with valid env.
+ */
+HWTEST_F(JsUIServiceProxyTest, OnSendData_0400, TestSize.Level1)
+{
+    auto infos = std::make_shared<AAFwk::JsUIServiceProxy>(nullptr, nullptr);
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+    NapiCallbackInfo info{1};
+    infos->OnSendData(env, info);
+    bool hasException = false;
+    napi_is_exception_pending(env, &hasException);
+    EXPECT_TRUE(hasException);
+}
+
+/**
+ * @tc.number: OnSendData_0500
+ * @tc.name: OnSendData_0500
+ * @tc.desc: OnSendData throws too-few-parameters when argc < 1 with valid proxy.
+ */
+HWTEST_F(JsUIServiceProxyTest, OnSendData_0500, TestSize.Level1)
+{
+    sptr<IRemoteObject> impl = new IRemoteObjectMocker();
+    sptr<IRemoteObject> hostProxy = new IRemoteObjectMocker();
+    auto infos = std::make_shared<AAFwk::JsUIServiceProxy>(impl, hostProxy);
+    infos->proxy_ = sptr<IUIService>(static_cast<IUIService*>(new MockIUIService()));
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+    NapiCallbackInfo info{0};
+    infos->OnSendData(env, info);
+    bool hasException = false;
+    napi_is_exception_pending(env, &hasException);
+    EXPECT_TRUE(hasException);
+}
+
+/**
+ * @tc.number: OnSendData_0600
+ * @tc.name: OnSendData_0600
+ * @tc.desc: OnSendData throws when UnwrapWantParams fails (argv not WantParams).
+ */
+HWTEST_F(JsUIServiceProxyTest, OnSendData_0600, TestSize.Level1)
+{
+    sptr<IRemoteObject> impl = new IRemoteObjectMocker();
+    sptr<IRemoteObject> hostProxy = new IRemoteObjectMocker();
+    auto infos = std::make_shared<AAFwk::JsUIServiceProxy>(impl, hostProxy);
+    infos->proxy_ = sptr<IUIService>(static_cast<IUIService*>(new MockIUIService()));
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+    NapiCallbackInfo info{1};
+    napi_value undefined = nullptr;
+    napi_get_undefined(env, &undefined);
+    info.argv[0] = undefined;
+    infos->OnSendData(env, info);
+    bool hasException = false;
+    napi_is_exception_pending(env, &hasException);
+    EXPECT_TRUE(hasException);
+}
+
+/**
+ * @tc.number: OnSendData_0700
+ * @tc.name: OnSendData_0700
+ * @tc.desc: OnSendData throws when proxy_->SendData returns failure.
+ */
+HWTEST_F(JsUIServiceProxyTest, OnSendData_0700, TestSize.Level1)
+{
+    sptr<IRemoteObject> impl = new IRemoteObjectMocker();
+    sptr<IRemoteObject> hostProxy = new IRemoteObjectMocker();
+    auto infos = std::make_shared<AAFwk::JsUIServiceProxy>(impl, hostProxy);
+    auto* mockService = new MockIUIService();
+    infos->proxy_ = sptr<IUIService>(static_cast<IUIService*>(mockService));
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+    AAFwk::WantParams params;
+    NapiCallbackInfo info{1};
+    info.argv[0] = AppExecFwk::WrapWantParams(env, params);
+    EXPECT_CALL(*mockService, SendData).WillOnce(testing::Return(-1));
+    infos->OnSendData(env, info);
+    bool hasException = false;
+    napi_is_exception_pending(env, &hasException);
+    EXPECT_TRUE(hasException);
+}
+
+/**
+ * @tc.number: OnSendData_0800
+ * @tc.name: OnSendData_0800
+ * @tc.desc: OnSendData succeeds (no exception) when proxy_->SendData returns OK.
+ */
+HWTEST_F(JsUIServiceProxyTest, OnSendData_0800, TestSize.Level1)
+{
+    sptr<IRemoteObject> impl = new IRemoteObjectMocker();
+    sptr<IRemoteObject> hostProxy = new IRemoteObjectMocker();
+    auto infos = std::make_shared<AAFwk::JsUIServiceProxy>(impl, hostProxy);
+    auto* mockService = new MockIUIService();
+    infos->proxy_ = sptr<IUIService>(static_cast<IUIService*>(mockService));
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+    AAFwk::WantParams params;
+    NapiCallbackInfo info{1};
+    info.argv[0] = AppExecFwk::WrapWantParams(env, params);
+    EXPECT_CALL(*mockService, SendData).WillOnce(testing::Return(0));
+    infos->OnSendData(env, info);
+    bool hasException = false;
+    napi_is_exception_pending(env, &hasException);
+    EXPECT_FALSE(hasException);
+}
+
+/**
+ * @tc.number: Finalizer_0200
+ * @tc.name: Finalizer_0200
+ * @tc.desc: Finalizer destructs a real JsUIServiceProxy object without crash.
+ */
+HWTEST_F(JsUIServiceProxyTest, Finalizer_0200, TestSize.Level1)
+{
+    sptr<IRemoteObject> impl = new IRemoteObjectMocker();
+    sptr<IRemoteObject> hostProxy = new IRemoteObjectMocker();
+    auto* raw = new AAFwk::JsUIServiceProxy(impl, hostProxy);
+    AAFwk::JsUIServiceProxy::Finalizer(nullptr, raw, nullptr);
+    SUCCEED();
 }
 
 } // namespace AbilityRuntime

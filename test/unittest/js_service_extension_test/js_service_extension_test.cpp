@@ -381,5 +381,159 @@ HWTEST_F(JsServiceExtensionTest, GetSrcPath_0300, TestSize.Level1)
     jsServiceExtension_->GetSrcPath(srcPath);
     EXPECT_EQ(srcPath, "entry/ets/pages/Index.abc");
 }
+
+/**
+ * @tc.name: OnConnect_0100
+ * @tc.desc: Js service extension OnConnect returns nullptr when jsObj_ not loaded.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsServiceExtensionTest, OnConnect_0100, TestSize.Level1)
+{
+    ASSERT_NE(jsServiceExtension_, nullptr);
+    Want want;
+    auto result = jsServiceExtension_->OnConnect(want);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: OnConnect_0200
+ * @tc.desc: Js service extension OnConnect async overload sets isAsyncCallback false when no promise.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsServiceExtensionTest, OnConnect_0200, TestSize.Level1)
+{
+    ASSERT_NE(jsServiceExtension_, nullptr);
+    Want want;
+    bool isAsyncCallback = true;
+    auto *callbackInfo = AppExecFwk::AbilityTransactionCallbackInfo<sptr<IRemoteObject>>::Create();
+    ASSERT_NE(callbackInfo, nullptr);
+    auto result = jsServiceExtension_->OnConnect(want, callbackInfo, isAsyncCallback);
+    EXPECT_EQ(result, nullptr);
+    EXPECT_FALSE(isAsyncCallback);
+    AppExecFwk::AbilityTransactionCallbackInfo<sptr<IRemoteObject>>::Destroy(callbackInfo);
+}
+
+/**
+ * @tc.name: OnDisconnect_0100
+ * @tc.desc: Js service extension OnDisconnect does not crash with valid context.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsServiceExtensionTest, OnDisconnect_0100, TestSize.Level1)
+{
+    ASSERT_NE(jsServiceExtension_, nullptr);
+    Want want;
+    jsServiceExtension_->OnDisconnect(want);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: OnDisconnect_0200
+ * @tc.desc: Js service extension OnDisconnect async overload sets isAsyncCallback false when no promise.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsServiceExtensionTest, OnDisconnect_0200, TestSize.Level1)
+{
+    ASSERT_NE(jsServiceExtension_, nullptr);
+    Want want;
+    bool isAsyncCallback = true;
+    auto *callbackInfo = AppExecFwk::AbilityTransactionCallbackInfo<>::Create();
+    ASSERT_NE(callbackInfo, nullptr);
+    jsServiceExtension_->OnDisconnect(want, callbackInfo, isAsyncCallback);
+    EXPECT_FALSE(isAsyncCallback);
+    AppExecFwk::AbilityTransactionCallbackInfo<>::Destroy(callbackInfo);
+}
+
+/**
+ * @tc.name: OnCommand_0100
+ * @tc.desc: Js service extension OnCommand normal startup does not crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsServiceExtensionTest, OnCommand_0100, TestSize.Level1)
+{
+    ASSERT_NE(jsServiceExtension_, nullptr);
+    Want want;
+    jsServiceExtension_->OnCommand(want, false, 1);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: OnCommand_0200
+ * @tc.desc: Js service extension OnCommand restart=true does not crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsServiceExtensionTest, OnCommand_0200, TestSize.Level1)
+{
+    ASSERT_NE(jsServiceExtension_, nullptr);
+    Want want;
+    jsServiceExtension_->OnCommand(want, true, 2);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: OnStop_0100
+ * @tc.desc: Js service extension OnStop does not crash (jsObj_ null early return, JS callback untestable).
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsServiceExtensionTest, OnStop_0100, TestSize.Level1)
+{
+    ASSERT_NE(jsServiceExtension_, nullptr);
+    jsServiceExtension_->OnStop();
+    SUCCEED();
+}
+
+/**
+ * @tc.name: HandleExecuteSkill_0100
+ * @tc.desc: Js service extension HandleExecuteSkill returns false when want has no skill param.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsServiceExtensionTest, HandleExecuteSkill_0100, TestSize.Level1)
+{
+    ASSERT_NE(jsServiceExtension_, nullptr);
+    Want want;
+    auto ret = jsServiceExtension_->HandleExecuteSkill(want);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: ConfigurationUpdated_0100
+ * @tc.desc: Js service extension ConfigurationUpdated does not crash with valid config.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsServiceExtensionTest, ConfigurationUpdated_0100, TestSize.Level1)
+{
+    ASSERT_NE(jsServiceExtension_, nullptr);
+    jsServiceExtension_->ConfigurationUpdated();
+    SUCCEED();
+}
+
+/**
+ * @tc.name: Dump_0100
+ * @tc.desc: Js service extension Dump does not clear pre-existing info when jsObj_ not loaded.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsServiceExtensionTest, Dump_0100, TestSize.Level1)
+{
+    ASSERT_NE(jsServiceExtension_, nullptr);
+    std::vector<std::string> params = {"-h"};
+    std::vector<std::string> info;
+    info.push_back("pre-existing");
+    jsServiceExtension_->Dump(params, info);
+    EXPECT_GE(info.size(), 1);
+}
+
+#ifdef SUPPORT_GRAPHICS
+/**
+ * @tc.name: OnDisplayInfoChange_0100
+ * @tc.desc: Js service extension OnDisplayInfoChange does not crash with valid context.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsServiceExtensionTest, OnDisplayInfoChange_0100, TestSize.Level1)
+{
+    ASSERT_NE(jsServiceExtension_, nullptr);
+    sptr<IRemoteObject> token(new (std::nothrow) MockAbilityToken());
+    jsServiceExtension_->OnDisplayInfoChange(token, 1, 1.0, Rosen::DisplayOrientation::PORTRAIT);
+    SUCCEED();
+}
+#endif
 } // namespace AbilityRuntime
 } // namespace OHOS

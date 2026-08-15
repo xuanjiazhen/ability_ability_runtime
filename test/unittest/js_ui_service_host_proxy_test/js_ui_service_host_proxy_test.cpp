@@ -159,5 +159,50 @@ HWTEST_F(JsUIServiceHostStubTest, OnSendData_0100, TestSize.Level1)
     EXPECT_EQ(proxy->proxy_, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "OnSendData_0100 end");
 }
+
+/**
+ * @tc.number: OnSendData_0200
+ * @tc.name: OnSendData_0200
+ * @tc.desc: OnSendData throws NOT_SYSTEM_APP when caller is not system app with valid env.
+ */
+HWTEST_F(JsUIServiceHostStubTest, OnSendData_0200, TestSize.Level1)
+{
+    sptr<AppExecFwk::MockAbilityToken> impl = new (std::nothrow) AppExecFwk::MockAbilityToken();
+    auto proxy = std::make_shared<JsUIServiceHostProxy>(impl);
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+    NapiCallbackInfo info{1};
+    proxy->OnSendData(env, info);
+    bool hasException = false;
+    napi_is_exception_pending(env, &hasException);
+    EXPECT_TRUE(hasException);
+}
+
+/**
+ * @tc.number: Constructor_0100
+ * @tc.name: Constructor_0100
+ * @tc.desc: Constructor with null impl results in null proxy_.
+ */
+HWTEST_F(JsUIServiceHostStubTest, Constructor_0100, TestSize.Level1)
+{
+    sptr<IRemoteObject> impl = nullptr;
+    JsUIServiceHostProxy proxy(impl);
+    EXPECT_EQ(proxy.proxy_, nullptr);
+}
+
+/**
+ * @tc.number: Finalizer_0200
+ * @tc.name: Finalizer_0200
+ * @tc.desc: Finalizer destructs a real JsUIServiceHostProxy object without crash.
+ */
+HWTEST_F(JsUIServiceHostStubTest, Finalizer_0200, TestSize.Level1)
+{
+    sptr<AppExecFwk::MockAbilityToken> impl = new (std::nothrow) AppExecFwk::MockAbilityToken();
+    auto* raw = new JsUIServiceHostProxy(impl);
+    JsUIServiceHostProxy::Finalizer(nullptr, raw, nullptr);
+    SUCCEED();
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
