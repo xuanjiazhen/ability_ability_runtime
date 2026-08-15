@@ -136,5 +136,110 @@ HWTEST_F(JsRuntimeCommonTest, StopDebugModeTest_0100, TestSize.Level1)
     EXPECT_EQ(ret, JsRuntimeCommon::GetInstance().StopDebugMode(nullptr));
     GTEST_LOG_(INFO) << "StopDebugModeTest_0100 end";
 }
+
+/**
+ * @tc.name: IsDebugModeTest_0200
+ * @tc.desc: SetDebugMode(false) and verify IsDebugMode returns false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeCommonTest, IsDebugModeTest_0200, TestSize.Level1)
+{
+    JsRuntimeCommon::GetInstance().SetDebugMode(false);
+    EXPECT_FALSE(JsRuntimeCommon::GetInstance().IsDebugMode());
+}
+
+/**
+ * @tc.name: IsDebugAppTest_0200
+ * @tc.desc: SetDebugApp(false) and verify IsDebugApp returns false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeCommonTest, IsDebugAppTest_0200, TestSize.Level1)
+{
+    JsRuntimeCommon::GetInstance().SetDebugApp(false);
+    EXPECT_FALSE(JsRuntimeCommon::GetInstance().IsDebugApp());
+}
+
+/**
+ * @tc.name: IsNativeStartTest_0200
+ * @tc.desc: SetNativeStart(false) and verify IsNativeStart returns false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeCommonTest, IsNativeStartTest_0200, TestSize.Level1)
+{
+    JsRuntimeCommon::GetInstance().SetNativeStart(false);
+    EXPECT_FALSE(JsRuntimeCommon::GetInstance().IsNativeStart());
+}
+
+/**
+ * @tc.name: StartDebuggerModuleTest_0200
+ * @tc.desc: StartDebuggerModule(false,false) forces debugMode_ true (invariant).
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeCommonTest, StartDebuggerModuleTest_0200, TestSize.Level1)
+{
+    JsRuntimeCommon::GetInstance().SetDebugMode(false);
+    JsRuntimeCommon::GetInstance().StartDebuggerModule(false, false);
+    EXPECT_TRUE(JsRuntimeCommon::GetInstance().IsDebugMode());
+    EXPECT_FALSE(JsRuntimeCommon::GetInstance().IsDebugApp());
+    EXPECT_FALSE(JsRuntimeCommon::GetInstance().IsNativeStart());
+}
+
+/**
+ * @tc.name: StartDebuggerModuleTest_0300
+ * @tc.desc: StartDebuggerModule(true,false) forces debugMode_ true (invariant).
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeCommonTest, StartDebuggerModuleTest_0300, TestSize.Level1)
+{
+    JsRuntimeCommon::GetInstance().SetDebugMode(false);
+    JsRuntimeCommon::GetInstance().StartDebuggerModule(true, false);
+    EXPECT_TRUE(JsRuntimeCommon::GetInstance().IsDebugMode());
+    EXPECT_TRUE(JsRuntimeCommon::GetInstance().IsDebugApp());
+    EXPECT_FALSE(JsRuntimeCommon::GetInstance().IsNativeStart());
+}
+
+/**
+ * @tc.name: StartDebuggerModuleTest_0400
+ * @tc.desc: StartDebuggerModule(false,true) forces debugMode_ true (invariant).
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeCommonTest, StartDebuggerModuleTest_0400, TestSize.Level1)
+{
+    JsRuntimeCommon::GetInstance().SetDebugMode(false);
+    JsRuntimeCommon::GetInstance().StartDebuggerModule(false, true);
+    EXPECT_TRUE(JsRuntimeCommon::GetInstance().IsDebugMode());
+    EXPECT_FALSE(JsRuntimeCommon::GetInstance().IsDebugApp());
+    EXPECT_TRUE(JsRuntimeCommon::GetInstance().IsNativeStart());
+}
+
+/**
+ * @tc.name: StartDebugModeTest_0200
+ * @tc.desc: StartDebugMode is idempotent (repeat call returns napi_ok).
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeCommonTest, StartDebugModeTest_0200, TestSize.Level1)
+{
+    AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    auto nativeEngine = jsEnv->GetNativeEngine();
+    EXPECT_EQ(napi_status::napi_ok, JsRuntimeCommon::GetInstance().StartDebugMode(nativeEngine, "thread"));
+    EXPECT_EQ(napi_status::napi_ok, JsRuntimeCommon::GetInstance().StartDebugMode(nativeEngine, "thread"));
+    JsRuntimeCommon::GetInstance().StopDebugMode(nativeEngine);
+}
+
+/**
+ * @tc.name: StopDebugModeTest_0200
+ * @tc.desc: StopDebugMode without prior Start (orphan) returns napi_ok without crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeCommonTest, StopDebugModeTest_0200, TestSize.Level1)
+{
+    AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    auto nativeEngine = jsEnv->GetNativeEngine();
+    EXPECT_EQ(napi_status::napi_ok, JsRuntimeCommon::GetInstance().StopDebugMode(nativeEngine));
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

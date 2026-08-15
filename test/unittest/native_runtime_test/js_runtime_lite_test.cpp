@@ -330,5 +330,33 @@ HWTEST_F(JsRuntimeLiteTest, ParsePkgContextInfoJsonString_0200, TestSize.Level1)
     auto rBeginIt = items.rbegin();
     EXPECT_EQ(*rBeginIt, "");
 }
+
+/**
+ * @tc.name: InitJsRuntimeLite_0100
+ * @tc.desc: InitJsRuntimeLite with isUnique=true returns early (childOptions_ stays null).
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeLiteTest, InitJsRuntimeLite_0100, TestSize.Level1)
+{
+    Options options;
+    options.isUnique = true;
+    JsRuntimeLite::GetInstance().childOptions_ = nullptr;
+    JsRuntimeLite::InitJsRuntimeLite(options);
+    EXPECT_EQ(JsRuntimeLite::GetInstance().GetChildOptions(), nullptr);
+}
+
+/**
+ * @tc.name: InitJsRuntimeLite_0200
+ * @tc.desc: InitJsRuntimeLite with isUnique=false calls SetChildOptions (childOptions_ non-null).
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeLiteTest, InitJsRuntimeLite_0200, TestSize.Level1)
+{
+    Options options;
+    options.isUnique = false;
+    JsRuntimeLite::GetInstance().childOptions_ = nullptr;
+    JsRuntimeLite::InitJsRuntimeLite(options);
+    EXPECT_NE(JsRuntimeLite::GetInstance().GetChildOptions(), nullptr);
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
