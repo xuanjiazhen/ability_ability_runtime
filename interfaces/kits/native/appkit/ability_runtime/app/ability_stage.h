@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_ABILITY_STAGE_H
 #define OHOS_ABILITY_RUNTIME_ABILITY_STAGE_H
 
+#include <atomic>
 #include <functional>
 #include <map>
 #include <memory>
@@ -42,6 +43,13 @@ class Runtime;
  * To share the data among the abilities of a hap,
  * and supply lifecycle func for the developers.
  */
+enum class StageState : uint8_t {
+    UNINITIALIZED,
+    INITIALIZING,
+    READY,
+    DESTROYING,
+};
+
 class AbilityStage {
 public:
     static std::shared_ptr<AbilityStage> Create(
@@ -81,6 +89,15 @@ public:
     void SetSkipAbilityStageLifecycle(bool skipAbilityStageLifecycle);
     bool IsSkipAbilityStageLifecycle() const;
 
+    StageState GetStageState() const
+    {
+        return stageState_.load(std::memory_order_acquire);
+    }
+    void SetStageState(StageState state) const
+    {
+        stageState_.store(state, std::memory_order_release);
+    }
+
 private:
     friend class JsAbilityStage;
     friend class ETSAbilityStage;
@@ -89,6 +106,7 @@ private:
     std::weak_ptr<AppExecFwk::OHOSApplication> application_;
     bool isAbilityCreate_ = false;
     bool skipAbilityStageLifecycle_ = false;
+    mutable std::atomic<StageState> stageState_{StageState::UNINITIALIZED};
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

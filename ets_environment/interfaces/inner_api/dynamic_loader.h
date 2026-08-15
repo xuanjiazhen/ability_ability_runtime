@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <dlfcn.h>
+#include <string>
 
 namespace OHOS {
 namespace EtsEnv {

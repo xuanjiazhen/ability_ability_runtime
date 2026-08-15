@@ -14,6 +14,8 @@
  */
 
 #include <gtest/gtest.h>
+#include <mutex>
+#include <string>
 #define private public
 #include "ability.h"
 #include "ability_local_record.h"
@@ -54,6 +56,32 @@ public:
     void TearDown() override;
     std::shared_ptr<OHOSApplication> ohosApplication_;
     std::unordered_map<std::string, std::shared_ptr<AbilityRuntime::AbilityStage>> abilityStages_;
+
+    static void EmplaceAbilityStage(OHOSApplication *app, const std::string &moduleName,
+        const std::shared_ptr<AbilityRuntime::AbilityStage> &stage)
+    {
+        std::lock_guard<std::mutex> lock(app->abilityStagesMutex_);
+        app->abilityStages_.emplace(moduleName, stage);
+        if (stage != nullptr) {
+            stage->SetStageState(AbilityRuntime::StageState::READY);
+        }
+    }
+    static bool IsAbilityStagesEmpty(OHOSApplication *app)
+    {
+        std::lock_guard<std::mutex> lock(app->abilityStagesMutex_);
+        return app->abilityStages_.empty();
+    }
+    static void SetAbilityStages(OHOSApplication *app,
+        const std::unordered_map<std::string, std::shared_ptr<AbilityRuntime::AbilityStage>> &stages)
+    {
+        std::lock_guard<std::mutex> lock(app->abilityStagesMutex_);
+        app->abilityStages_ = stages;
+        for (const auto &item : app->abilityStages_) {
+            if (item.second != nullptr) {
+                item.second->SetStageState(AbilityRuntime::StageState::READY);
+            }
+        }
+    }
 };
 
 void OHOSApplicationFirstTest::SetUpTestCase(void)
@@ -81,9 +109,9 @@ void OHOSApplicationFirstTest::TearDown()
 HWTEST_F(OHOSApplicationFirstTest, CleanEmptyAbilityStage_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "CleanEmptyAbilityStage_0100 start");
-    ohosApplication_->abilityStages_ = abilityStages_;
+    SetAbilityStages(ohosApplication_.get(), abilityStages_);
     ohosApplication_->CleanEmptyAbilityStage();
-    EXPECT_TRUE(ohosApplication_->abilityStages_.empty());
+    EXPECT_TRUE(IsAbilityStagesEmpty(ohosApplication_.get()));
     TAG_LOGI(AAFwkTag::TEST, "CleanEmptyAbilityStage_0100 end");
 }
 
@@ -101,10 +129,10 @@ HWTEST_F(OHOSApplicationFirstTest, CleanEmptyAbilityStage_0200, TestSize.Level2)
     abilityStages_.emplace("1", AbilityRuntime::AbilityStage::Create(runTime, info));
     abilityStages_.emplace("2", AbilityRuntime::AbilityStage::Create(runTime, info));
     abilityStages_.emplace("3", AbilityRuntime::AbilityStage::Create(runTime, info));
-    ohosApplication_->abilityStages_ = abilityStages_;
-    EXPECT_FALSE(ohosApplication_->abilityStages_.empty());
+    SetAbilityStages(ohosApplication_.get(), abilityStages_);
+    EXPECT_FALSE(IsAbilityStagesEmpty(ohosApplication_.get()));
     ohosApplication_->CleanEmptyAbilityStage();
-    EXPECT_TRUE(ohosApplication_->abilityStages_.empty());
+    EXPECT_TRUE(IsAbilityStagesEmpty(ohosApplication_.get()));
     abilityStages_.clear();
     TAG_LOGI(AAFwkTag::TEST, "CleanEmptyAbilityStage_0200 end");
 }
@@ -126,10 +154,10 @@ HWTEST_F(OHOSApplicationFirstTest, CleanEmptyAbilityStage_0300, TestSize.Level2)
     for (auto &it : abilityStages_) {
         it.second = AbilityRuntime::AbilityStage::Create(runTime, info);
     }
-    ohosApplication_->abilityStages_ = abilityStages_;
-    EXPECT_FALSE(ohosApplication_->abilityStages_.empty());
+    SetAbilityStages(ohosApplication_.get(), abilityStages_);
+    EXPECT_FALSE(IsAbilityStagesEmpty(ohosApplication_.get()));
     ohosApplication_->CleanEmptyAbilityStage();
-    EXPECT_TRUE(ohosApplication_->abilityStages_.empty());
+    EXPECT_TRUE(IsAbilityStagesEmpty(ohosApplication_.get()));
     abilityStages_.clear();
     TAG_LOGI(AAFwkTag::TEST, "CleanEmptyAbilityStage_0300 end");
 }
@@ -437,12 +465,12 @@ HWTEST_F(OHOSApplicationFirstTest, AppExecFwk_OHOSApplicationTest_OnConfiguratio
     ohosApplication_->configuration_->AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE, "value");
     ohosApplication_->configuration_->AddItem(AAFwk::GlobalConfigurationKey::COLORMODE_IS_SET_BY_APP, "value");
     ohosApplication_->configuration_->AddItem(AAFwk::GlobalConfigurationKey::COLORMODE_IS_SET_BY_SA, "value");
-    EXPECT_TRUE(ohosApplication_->abilityStages_.empty());
+    EXPECT_TRUE(IsAbilityStagesEmpty(ohosApplication_.get()));
     std::string moduleName = "entry";
     std::shared_ptr<AbilityRuntime::AbilityStage> abilityStages = std::make_shared<AbilityRuntime::AbilityStage>();
-    ohosApplication_->abilityStages_.emplace(moduleName, abilityStages);
+    EmplaceAbilityStage(ohosApplication_.get(), moduleName, abilityStages);
     ohosApplication_->OnConfigurationUpdated(config);
-    EXPECT_TRUE(!ohosApplication_->abilityStages_.empty());
+    EXPECT_TRUE(!IsAbilityStagesEmpty(ohosApplication_.get()));
     GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_OnConfigurationUpdated_0300 end.";
 }
 
