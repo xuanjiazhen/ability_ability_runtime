@@ -42,6 +42,8 @@
  * @since 12
  */
 
+#include "ability_runtime/child_process_info.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -506,6 +508,31 @@ Ability_NativeChildProcess_ErrCode OH_Ability_UnregisterNativeChildProcessExitCa
 Ability_NativeChildProcess_ErrCode OH_Ability_KillChildProcess(int32_t pid);
 
 bool OH_Ability_IsNativeChildProcessSupported();
+
+/**
+ * @brief Acquires child process infos of the current application.
+ *
+ * Includes child processes created via:
+ * - OH_Ability_CreateNativeChildProcess / OH_Ability_CreateNativeChildProcessWithConfigs
+ * - OH_Ability_StartNativeChildProcess / OH_Ability_StartNativeChildProcessWithConfigs
+ * - childProcessManager.startChildProcess (non-SELF_FORK mode)
+ * - childProcessManager.startArkChildProcess
+ * - childProcessManager.startNativeChildProcess
+ *
+ * @param infos Output parameter, pointer to child process info collection. Must not be nullptr.
+ *      When no child processes exist, the dereferenced value of the pointer **infos** is set to nullptr.
+ * @param count Output parameter, returns the number of child processes. Must not be nullptr.
+ * @return <ul>
+ *      <li>{@link NCP_NO_ERROR} if the operation is successful.</li>
+ *      <li>{@link NCP_ERR_INVALID_PARAM} if infos or count is nullptr.</li>
+ *      <li>{@link NCP_ERR_INTERNAL} if an internal error occurs.</li>
+ *      </ul>
+ * @release OH_AbilityRuntime_ReleaseChildProcessInfos {infos}
+ * @since 26.0.0
+ */
+Ability_NativeChildProcess_ErrCode OH_Ability_AcquireChildProcessInfos(
+    OH_AbilityRuntime_ChildProcessInfosHandle* infos, uint32_t* count);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

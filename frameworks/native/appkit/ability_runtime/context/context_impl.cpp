@@ -1496,6 +1496,14 @@ int32_t ContextImpl::GetProcessRunningInformation(AppExecFwk::RunningProcessInfo
     return result;
 }
 
+int32_t ContextImpl::GetUIAbilityChildProcessInfos(std::vector<AppExecFwk::ChildProcessInfo> &infos)
+{
+    auto appMgrClient = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+    auto result = appMgrClient->GetAllUIAbilityChildProcesses(infos);
+    TAG_LOGD(AAFwkTag::APPKIT, "result is %{public}d", result);
+    return result;
+}
+
 int32_t ContextImpl::GetAllRunningInstanceKeys(std::vector<std::string> &instanceKeys)
 {
     auto appMgrClient = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
