@@ -289,6 +289,7 @@ ohos_shared_library("configuration_helper") {
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 ohos_shared_library("abilitykit_native") {
@@ -620,6 +621,7 @@ ohos_shared_library("cj_abilitykit_native_ffi") {
   version_script = "libabilitykit_native.map"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 config("extensionkit_public_config") {
@@ -791,6 +793,7 @@ ohos_shared_library("cj_extensionkit_native") {
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 config("insight_intent_executor_public_config") {
@@ -1633,6 +1636,7 @@ ohos_shared_library("form_extension_module") {
   relative_install_dir = "extensionability"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 ohos_shared_library("service_extension") {
@@ -2282,6 +2286,7 @@ ohos_shared_library("ui_service_extension_module") {
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 ohos_shared_library("continuation_ipc") {
@@ -2457,6 +2462,7 @@ ohos_shared_library("service_extension_module") {
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 config("ability_business_error_config") {
@@ -2493,6 +2499,7 @@ ohos_shared_library("ability_business_error") {
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 config("dialog_request_callback_config") {
@@ -2951,6 +2958,7 @@ ohos_shared_library("cj_ui_extension") {
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 ohos_shared_library("ui_extension_module") {
@@ -2995,6 +3003,7 @@ ohos_shared_library("ui_extension_module") {
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 config("share_extension_config") {
@@ -3114,6 +3123,7 @@ ohos_shared_library("cj_share_extension") {
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 config("action_extension_config") {
@@ -3233,6 +3243,7 @@ ohos_shared_library("cj_action_extension") {
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 ohos_shared_library("share_extension_module") {
@@ -3279,6 +3290,7 @@ ohos_shared_library("share_extension_module") {
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 ohos_shared_library("auto_startup_callback") {
@@ -3313,6 +3325,7 @@ ohos_shared_library("auto_startup_callback") {
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 ohos_shared_library("action_extension_module") {
@@ -3359,6 +3372,7 @@ ohos_shared_library("action_extension_module") {
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 config("embedded_ui_extension_config") {
@@ -3601,6 +3615,7 @@ ohos_shared_library("embedded_ui_extension_module") {
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 config("auto_fill_extension_config") {
@@ -3832,6 +3847,7 @@ ohos_shared_library("auto_fill_extension_module") {
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 config("photo_editor_extension_config") {
@@ -3975,6 +3991,7 @@ ohos_shared_library("cj_photo_editor_extension") {
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 ohos_shared_library("photo_editor_extension_module") {
@@ -4159,6 +4176,7 @@ ohos_shared_library("app_service_extension_module") {
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 config("modular_object_extension_config") {
