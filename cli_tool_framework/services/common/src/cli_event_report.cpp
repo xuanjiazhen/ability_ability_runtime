@@ -33,11 +33,11 @@ namespace {
     T ParseInt(const std::string& str)
     {
         if (str.empty()) {
-            return 0;
+            return static_cast<T>(-1);
         }
         T value = 0;
         auto result = std::from_chars(str.data(), str.data() + str.size(), value);
-        return (result.ec == std::errc()) ? value : 0;
+        return (result.ec == std::errc()) ? value : static_cast<T>(-1);
     }
 }
 
