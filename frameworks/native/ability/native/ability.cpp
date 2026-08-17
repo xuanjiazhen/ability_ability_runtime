@@ -76,6 +76,7 @@ const std::string LAUNCHER_ABILITY_NAME = "com.ohos.launcher.MainAbility";
 const std::string SHOW_ON_LOCK_SCREEN = "ShowOnLockScreen";
 #ifdef WITH_DLP
 const std::string DLP_PARAMS_SECURITY_FLAG = "ohos.dlp.params.securityFlag";
+const std::string DLP_PARAMS_CUSTOM_FLAG = "ohos.dlp.params.customFlag";
 #endif // WITH_DLP
 const std::string COMPONENT_STARTUP_NEW_RULES = "component.startup.newRules";
 
@@ -171,6 +172,7 @@ void Ability::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
 #ifdef WITH_DLP
     securityFlag_ = want.GetBoolParam(DLP_PARAMS_SECURITY_FLAG, false);
     (const_cast<Want &>(want)).RemoveParam(DLP_PARAMS_SECURITY_FLAG);
+    (const_cast<Want &>(want)).RemoveParam(DLP_PARAMS_CUSTOM_FLAG);
 #endif // WITH_DLP
     SetWant(want);
 #ifdef SUPPORT_SCREEN

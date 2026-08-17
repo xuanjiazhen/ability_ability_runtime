@@ -62,6 +62,7 @@ constexpr char SHOW_ON_LOCK_SCREEN[] = "ShowOnLockScreen";
 
 #ifdef WITH_DLP
 constexpr char DLP_PARAMS_SECURITY_FLAG[] = "ohos.dlp.params.securityFlag";
+constexpr char DLP_PARAMS_CUSTOM_FLAG[] = "ohos.dlp.params.customFlag";
 #endif // WITH_DLP
 constexpr char COMPONENT_STARTUP_NEW_RULES[] = "component.startup.newRules";
 
@@ -285,6 +286,7 @@ void UIAbility::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessio
     }
     securityFlag_ = want.GetBoolParam(DLP_PARAMS_SECURITY_FLAG, false);
     (const_cast<AAFwk::Want &>(want)).RemoveParam(DLP_PARAMS_SECURITY_FLAG);
+    (const_cast<AAFwk::Want &>(want)).RemoveParam(DLP_PARAMS_CUSTOM_FLAG);
 #endif // WITH_DLP
 
     AAFwk::Want wantWithoutRequestId = want;
