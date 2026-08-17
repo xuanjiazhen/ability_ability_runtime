@@ -18,6 +18,7 @@
 #include "array_wrapper.h"
 #include "hilog_tag_wrapper.h"
 #include "int_wrapper.h"
+#include "intent_json_safe_get.h"
 #include "nlohmann/json.hpp"
 #include "string_wrapper.h"
 #include "want_params_wrapper.h"
@@ -445,7 +446,15 @@ std::string InsightIntentExecuteResult::ToJsonString() const
         infoJson[KEY_INTERACTION_UI] = BuildInteractionUIJson(interactionInfo->interactionUI);
         jsonObject[KEY_INTERACTION_INFO] = infoJson;
     }
-    return jsonObject.dump();
+    if (!IsJsonDepthOk(jsonObject, JSON_DUMP_MAX_DEPTH)) {
+        TAG_LOGW(AAFwkTag::INTENT, "json depth exceeds limit %{public}zu", JSON_DUMP_MAX_DEPTH);
+        return std::string();
+    }
+    try {
+        return jsonObject.dump();
+    } catch (...) {
+        return std::string();
+    }
 }
 
 bool InsightIntentExecuteResult::CheckResult(std::shared_ptr<const WantParams> result)

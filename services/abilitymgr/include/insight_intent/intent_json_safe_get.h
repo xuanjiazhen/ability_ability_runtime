@@ -27,6 +27,10 @@ namespace AbilityRuntime {
 
 constexpr size_t DUMP_TOKEN_MAX_LEN = 50;   // single short token; longest ExecuteMode value is 26 chars
 constexpr size_t DUMP_LOG_MAX_LEN = 1000;   // full JSON debug dump, bounded for hilog readability
+// nlohmann::json::dump() recurses on nested objects/arrays; super-deep input triggers
+// stack overflow (SIGSEGV) that try/catch cannot intercept. This bound keeps dump stack
+// usage bounded. 100 is far above any legitimate intent payload depth.
+constexpr size_t JSON_DUMP_MAX_DEPTH = 100;
 
 template<typename T>
 bool SafeJsonGet(const nlohmann::json &jsonObject, T &out, const char *tag)
@@ -46,25 +50,24 @@ bool SafeJsonGet(const nlohmann::json &jsonObject, T &out, const char *tag)
     }
 }
 
-inline std::string SafeDump(const nlohmann::json &jsonObject, size_t maxLen = 0)
-{
-    try {
-        auto s = jsonObject.dump();
-        return (maxLen > 0 && s.size() > maxLen) ? s.substr(0, maxLen) + "..." : s;
-    } catch (...) {
-        return "<dump_failed>";
-    }
-}
+// NOTE: the helpers below are declared here and defined in intent_json_safe_get.cpp, which
+// is compiled ONLY into the ability_manager innerkit (libability_manager.so). The innerkit
+// has no version script, so the symbols are exported and resolve for:
+// - innerkit TUs (e.g. insight_intent_info_for_query.cpp) compiled into libability_manager.so;
+// - libabilityms.so, which depends on the innerkit;
+// - test/fuzz targets that compile the calling TUs directly and link either SO.
+// Never add intent_json_safe_get.cpp to the abilityms sources: the libabilityms.map version
+// script is a whitelist ending with "local: *", which would hide the symbols and break every
+// direct-compiling test/fuzz target, and the innerkit cannot depend on abilityms.
 
-inline bool SafeDumpTo(const nlohmann::json &jsonObject, std::string &out)
-{
-    try {
-        out = jsonObject.dump();
-    } catch (...) {
-        return false;
-    }
-    return true;
-}
+// Iterative depth walker. Uses an explicit stack so that checking an
+// already-deep json object cannot itself stack-overflow.
+bool IsJsonDepthOk(const nlohmann::json &jsonObject, size_t maxDepth);
+
+std::string SafeDump(const nlohmann::json &jsonObject, size_t maxLen = 0);
+
+bool SafeDumpTo(const nlohmann::json &jsonObject, std::string &out);
+
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_INTENT_JSON_SAFE_GET_H
