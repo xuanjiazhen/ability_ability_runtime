@@ -48,3 +48,7 @@ const.max_native_child_process = 0
 const.sys.abilityms.allow_child_process_in_multi_process_feature_app = false
 const.sys.abilityms.max_multi_process_feature_child_process = 0
 persist.sys.abilityms.enable_madvise = false
+# 保存系统恢复模式首次修改飞行模式时的补偿状态，正常重启后清除。
+persist.sys.abilityms.system_recovery.airplane_restore_valid = false
+persist.sys.abilityms.system_recovery.airplane_restore_value = false
+persist.sys.abilityms.system_recovery.airplane_initialized = false

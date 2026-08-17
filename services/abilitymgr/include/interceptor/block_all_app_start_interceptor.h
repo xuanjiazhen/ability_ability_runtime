@@ -34,6 +34,15 @@ public:
     using IsAbilityStartedFunc = std::function<bool(AbilityRequest&, int32_t)>;
     void SetIsAbilityStartedFunc(const IsAbilityStartedFunc& func);
 
+    // 根据完整的启动请求判断是否允许恢复模式例外启动。
+    // 仅传 Bundle 名称无法区分普通 Ability 和 BackupExtensionAbility。
+    // 回调可以在 AMS 完成认证后给当前请求附加一次性内部启动上下文。
+    using AllowStartFunc = std::function<bool(AbilityRequest&)>;
+    void SetAllowStartFunc(const AllowStartFunc& func);
+
+    // 严格模式禁止沿用低内存场景“已启动页面继续运行”的历史例外。
+    void SetStrictBlockFunc(const std::function<bool()>& func);
+
     ErrCode Execute();
     ErrCode Execute(AbilityRequest& abilityRequest, int32_t validUserId);
     virtual void SetTaskHandler(std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler) override
@@ -44,6 +53,10 @@ public:
 private:
     std::function<bool()> shouldBlockFunc_;
     IsAbilityStartedFunc isAbilityStartedFunc_;
+    // 保存由 AMS 注入的恢复白名单和受控备份判断。
+    AllowStartFunc allowStartFunc_;
+    // 标识当前是否采用系统恢复模式的严格阻断语义。
+    std::function<bool()> strictBlockFunc_;
 };
 } // namespace AAFwk
 } // namespace OHOS

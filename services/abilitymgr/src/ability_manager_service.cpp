@@ -115,6 +115,8 @@
 #include "start_ability_utils.h"
 #include "start_options_utils.h"
 #include "startup_util.h"
+#include "system_recovery_mode_constants.h"
+#include "system_recovery_mode_policy.h"
 #ifdef ENABLE_CLONE_FOR_ACCOUNT
 #include "clone_for_account_util.h"
 #endif
@@ -333,6 +335,27 @@ bool IsEmbeddableStart(int32_t screenMode)
 {
     return screenMode == AAFwk::EMBEDDED_FULL_SCREEN_MODE ||
         screenMode == AAFwk::EMBEDDED_HALF_SCREEN_MODE;
+}
+
+// 通过 BMS 的 UID 转换接口识别 Backup SA，避免在 ability_runtime 中依赖具体的系统 UID 数值。
+bool IsBackupSaCaller()
+{
+    if (!PermissionVerification::GetInstance()->IsSACall()) {
+        return false;
+    }
+
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to get bundle manager helper for backup caller");
+        return false;
+    }
+
+    std::string callerName;
+    if (IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(IPCSkeleton::GetCallingUid(), callerName)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to resolve caller name from uid");
+        return false;
+    }
+    return callerName == SYSTEM_RECOVERY_BACKUP_SA_NAME;
 }
 } // namespace
 
@@ -553,11 +576,41 @@ void AbilityManagerService::InitBlockAllAppStartInterceptorCallbacks()
     }
     auto aams = shared_from_this();
     blockAllAppStartInterceptor_->SetShouldBlockFunc([aams]() {
-        return aams->ShouldBlockAllAppStart();
+        // BlockAllAppStart 保留原有全局暂停语义；系统恢复模式只在 Ability
+        // 拦截器内部参与判断，避免影响 StartUser 等非应用启动流程。
+        return aams->ShouldBlockAllAppStart() || SystemRecoveryModePolicy::GetInstance().IsEnabled();
     });
     blockAllAppStartInterceptor_->SetIsAbilityStartedFunc([aams](AbilityRequest& req, int32_t userId) {
         std::shared_ptr<AbilityRecord> targetRecord;
         return aams->IsAbilityStarted(req, targetRecord, userId);
+    });
+    blockAllAppStartInterceptor_->SetAllowStartFunc([](AbilityRequest &request) {
+        auto &policy = SystemRecoveryModePolicy::GetInstance();
+        if (!policy.IsEnabled()) {
+            return false;
+        }
+
+        // Backup SA 使用 ConnectAbility 启动用户选择的 BackupExtensionAbility。
+        // 只有已解析为 BACKUP 类型且调用者确认为 Backup SA 时才放行；不能因为目标应用在恢复白名单中，
+        // 就让普通调用者间接启动该应用的 BackupExtensionAbility。
+        if (request.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::BACKUP) {
+            // ConnectLocalAbility 后续已有 BackupExtensionAbility 的 CONNECT_BACKUP_EXTENSION 权限校验，
+            // 这里仅负责确认调用者身份和目标类型，避免重复造一套权限判断。
+            if (!IsBackupSaCaller()) {
+                return false;
+            }
+            // 进程创建发生在 AppMgr，使用当前请求的内部 Want 传递已认证的单次启动上下文。
+            // 不把目标 Bundle 加入全局白名单，避免放开该应用的其他 Ability。
+            request.want.SetParam(SYSTEM_RECOVERY_BACKUP_EXTENSION_START_CONTEXT, true);
+            return true;
+        }
+
+        // 普通 Ability 仍按恢复模式白名单判断。
+        return policy.IsRecoveryEssentialBundle(request.abilityInfo.bundleName);
+    });
+    blockAllAppStartInterceptor_->SetStrictBlockFunc([]() {
+        // 系统恢复模式必须拒绝已运行的非白名单页面，不能复用低内存放行规则。
+        return SystemRecoveryModePolicy::GetInstance().IsEnabled();
     });
 }
 
@@ -3251,6 +3304,11 @@ int32_t AbilityManagerService::RequestDialogServiceInner(const Want &want, const
         TAG_LOGE(AAFwkTag::ABILITYMGR, "generate ability request local error when requestDialogService");
         return result;
     }
+    // 对解析后的真实 Dialog Service 执行恢复白名单检查，避免早期 Want 判断误伤白名单组件。
+    result = ExecuteBlockAllAppStartInterceptor(abilityRequest, validUserId);
+    if (result != ERR_OK) {
+        return result;
+    }
     UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityRequest.want, callerToken);
 
     const auto &abilityInfo = abilityRequest.abilityInfo;
@@ -4779,6 +4837,11 @@ int32_t AbilityManagerService::StartExtensionAbilityInner(const Want &want, cons
 
     abilityRequest.skillCallerTokenId = skillCallerTokenId;
     abilityRequest.userId = validUserId;
+    // Extension 类型和 Bundle 已解析完成，此处执行最终恢复模式启动资格判断。
+    result = ExecuteBlockAllAppStartInterceptor(abilityRequest, validUserId);
+    if (result != ERR_OK) {
+        return result;
+    }
     if (!HandleExecuteSAInterceptor(want, callerToken, abilityRequest, result)) {
         return result;
     }
@@ -5146,6 +5209,11 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
         TAG_LOGE(AAFwkTag::UI_EXT, "generate ability request local error");
         eventInfo->errReason = "generate ability request local error";
         SendExtensionReport(*eventInfo, result);
+        return result;
+    }
+    // UIExtension 解析完成后再按 Bundle 执行恢复模式白名单检查。
+    result = ExecuteBlockAllAppStartInterceptor(abilityRequest, validUserId);
+    if (result != ERR_OK) {
         return result;
     }
     abilityRequest.extensionType = abilityRequest.abilityInfo.extensionAbilityType;
@@ -6126,6 +6194,11 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
     auto eventInfo = BuildEventInfo(checkedWant, userId);
 	eventInfo->lifeCycle = LIFE_CYCLE_CONNECT;
 
+    // 系统恢复模式只允许本机白名单组件和受控 BackupExtension，不允许绕过本机门禁连接远端组件。
+    if (SystemRecoveryModePolicy::GetInstance().IsEnabled() && CheckIfOperateRemote(checkedWant)) {
+        return ERR_ALL_APP_START_BLOCKED;
+    }
+
 #ifdef WITH_DLP
     result = CheckDlpForExtension(checkedWant, callerToken, userId, *eventInfo, EventName::CONNECT_SERVICE_ERROR);
     if (result != ERR_OK) {
@@ -6138,6 +6211,7 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
     AbilityInterceptorParam interceptorParam = AbilityInterceptorParam(checkedWant, 0, GetValidUserId(userId), false,
         nullptr, shouldBlockFunc);
     interceptorParam.fromConnect = true;
+    // 低内存策略仍可在早期阻断；恢复策略由 ConnectLocalAbility 在目标解析后统一判断。
     auto blockResult = ExecuteBlockAllAppStartInterceptor();
     result = interceptorExecuter_ == nullptr ? ERR_INVALID_VALUE :
         interceptorExecuter_->DoProcess(interceptorParam);
@@ -6550,6 +6624,12 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
     }
 
     abilityRequest.userId = validUserId;
+    // Connect 场景必须在目标解析后执行最终检查，才能准确区分白名单组件与 BackupExtension。
+    result = ExecuteBlockAllAppStartInterceptor(abilityRequest, validUserId);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "blockAllAppStartInterceptor failed: %{public}d", result);
+        return result;
+    }
     if (!HandleExecuteSAInterceptor(want, callerToken, abilityRequest, result)) {
         return result;
     }

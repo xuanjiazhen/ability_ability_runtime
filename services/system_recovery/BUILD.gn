@@ -1,0 +1,109 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/ability/ability_runtime/ability_runtime.gni")
+
+config("system_recovery_config") {
+  include_dirs = [
+    "include",
+    "${ability_runtime_services_path}/common/include",
+  ]
+}
+
+# AMS 和 AppMgr 共用的轻量只读策略，不引入网络、窗口或 DataShare 依赖。
+ohos_static_library("system_recovery_policy") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_policy = "adaptive"
+    debug = false
+  }
+  branch_protector_ret = "pac_ret"
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
+  public_configs = [ ":system_recovery_config" ]
+  defines = []
+
+  sources = [ "src/system_recovery_mode_policy.cpp" ]
+
+  deps = [ "${ability_runtime_services_path}/common:app_util" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "config_policy:configpolicy_util",
+    "init:libbegetutil",
+    "json:nlohmann_json_static",
+  ]
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+# AppMgr 启动后的模式编排，只负责飞行模式状态和系统水印。
+ohos_static_library("system_recovery_framework") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_policy = "adaptive"
+    debug = false
+  }
+  branch_protector_ret = "pac_ret"
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
+  public_configs = [ ":system_recovery_config" ]
+  defines = []
+
+  sources = [
+    "src/system_recovery_mode_framework.cpp",
+    "src/system_recovery_settings_data.cpp",
+  ]
+
+  deps = [
+    ":system_recovery_policy",
+    ":system_recovery_watermark",
+    "${ability_runtime_services_path}/common:task_handler_wrap",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "data_share:datashare_common",
+    "data_share:datashare_consumer",
+    "hilog:libhilog",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+  ]
+
+  if (product_name != "ohcore") {
+    defines += [ "SUPPORT_SYSTEM_RECOVERY_AIRPLANE_MODE" ]
+    external_deps += [ "netmanager_base:net_conn_manager_if" ]
+  }
+
+  if (ability_runtime_graphics) {
+    defines += [ "SUPPORT_GRAPHICS" ]
+    external_deps += [
+      "image_framework:image_native",
+      "window_manager:libwm",
+    ]
+  }
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+# 将水印作为系统资源安装，避免在代码中内嵌图像数据。
+ohos_prebuilt_etc("system_recovery_watermark") {
+  source = "resource/system_recovery_watermark.svg"
+  relative_install_dir = "ability_runtime"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
