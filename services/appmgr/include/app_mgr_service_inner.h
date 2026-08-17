@@ -2397,6 +2397,10 @@ private:
     void UnSubscribeScreenOffEvent();
     int32_t RestartExitKeepAliveProcess(const std::vector<ExitResidentProcessInfo> &exitProcessInfos);
     bool IsNeedRestartKeepAliveProcess(const std::string &bundleName, int32_t uid);
+    bool IsAsanEnabled(const std::shared_ptr<AppRunningRecord> &record, const std::string &bundleName, int32_t pid);
+    void DoTimeoutNotify(int32_t pid, int32_t uid, const std::string &bundleName,
+        const std::string &processName, const FaultData &transformedFaultData, int32_t recordId,
+        const std::string &eventName);
     int32_t GetAllRunningInstanceKeysByBundleNameInner(const std::string &bundleName,
         std::vector<std::string> &instanceKeys, int32_t userId);
     int32_t KillProcessByPidInner(const pid_t pid, const std::string& reason,
