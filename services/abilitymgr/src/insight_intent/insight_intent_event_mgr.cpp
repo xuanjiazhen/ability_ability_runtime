@@ -118,6 +118,12 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
                 if (item.moduleName.empty()) {
                     item.moduleName = moduleNameLocal;
                 }
+                item.bundleName = bundleName;
+            }
+            // force BMS bundleName over the profile value so the function namespace
+            // matches the name UnregisterInsightIntentFunctions uses
+            for (auto &item : infos.insightIntents) {
+                item.bundleName = bundleName;
             }
             // save database
             DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->SaveInsightIntentTotalInfo(
