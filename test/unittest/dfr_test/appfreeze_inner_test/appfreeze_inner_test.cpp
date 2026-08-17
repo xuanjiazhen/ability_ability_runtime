@@ -199,7 +199,6 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner_AppfreezeHandle_003, TestSize.Level1
     applicationInfo->tsanEnabled = false;
     appfreezeInner->SetApplicationInfo(applicationInfo);
     FaultData faultData;
-    faultData.pid = pid;
     faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
     faultData.faultType = FaultDataType::APP_FREEZE;
     int ret = appfreezeInner->AppfreezeHandle(faultData, true);
