@@ -490,7 +490,7 @@ HWTEST_F(DisposedRuleInterceptorTest, CheckControl_001, TestSize.Level1)
     int32_t appCloneIndex = 0;
     AppExecFwk::DisposedRule rule;
     auto ret = interceptor.CheckControl(want, userId, rule, appCloneIndex);
-    EXPECT_EQ(ret, false);
+    EXPECT_EQ(ret, DisposedRuleResult::QUERY_FAILED);
     TAG_LOGI(AAFwkTag::TEST, "CheckControl_001 end");
 }
 
@@ -511,7 +511,7 @@ HWTEST_F(DisposedRuleInterceptorTest, CheckControl_002, TestSize.Level1)
     int32_t appCloneIndex = 0;
     AppExecFwk::DisposedRule rule;
     auto ret = interceptor.CheckControl(want, userId, rule, appCloneIndex);
-    EXPECT_EQ(ret, false);
+    EXPECT_EQ(ret, DisposedRuleResult::QUERY_FAILED);
     TAG_LOGI(AAFwkTag::TEST, "CheckControl_002 end");
 }
 
@@ -535,7 +535,7 @@ HWTEST_F(DisposedRuleInterceptorTest, CheckControl_003, TestSize.Level1)
     int32_t appCloneIndex = 1;
     AppExecFwk::DisposedRule rule;
     auto ret = interceptor.CheckControl(want, userId, rule, appCloneIndex);
-    EXPECT_EQ(ret, false);
+    EXPECT_EQ(ret, DisposedRuleResult::QUERY_FAILED);
     TAG_LOGI(AAFwkTag::TEST, "CheckControl_003 end");
 }
 
@@ -559,7 +559,7 @@ HWTEST_F(DisposedRuleInterceptorTest, CheckControl_004, TestSize.Level1)
     int32_t appCloneIndex = 0;
     AppExecFwk::DisposedRule rule;
     auto ret = interceptor.CheckControl(want, userId, rule, appCloneIndex);
-    EXPECT_EQ(ret, false);
+    EXPECT_EQ(ret, DisposedRuleResult::QUERY_FAILED);
     TAG_LOGI(AAFwkTag::TEST, "CheckControl_004 end");
 }
 
@@ -583,7 +583,7 @@ HWTEST_F(DisposedRuleInterceptorTest, CheckControl_005, TestSize.Level1)
     int32_t appCloneIndex = 0;
     AppExecFwk::DisposedRule rule;
     auto ret = interceptor.CheckControl(want, userId, rule, appCloneIndex);
-    EXPECT_EQ(ret, false);
+    EXPECT_EQ(ret, DisposedRuleResult::NO_RULE);
     TAG_LOGI(AAFwkTag::TEST, "CheckControl_005 end");
 }
 
@@ -616,7 +616,7 @@ HWTEST_F(DisposedRuleInterceptorTest, CheckControl_006, TestSize.Level1)
     int32_t appCloneIndex = 0;
     AppExecFwk::DisposedRule rule;
     auto ret = interceptor.CheckControl(want, userId, rule, appCloneIndex);
-    EXPECT_EQ(ret, true);
+    EXPECT_EQ(ret, DisposedRuleResult::BLOCK_RULE);
     TAG_LOGI(AAFwkTag::TEST, "CheckControl_006 end");
 }
 
@@ -645,7 +645,7 @@ HWTEST_F(DisposedRuleInterceptorTest, CheckControl_007, TestSize.Level1)
     int32_t appCloneIndex = 0;
     AppExecFwk::DisposedRule rule;
     auto ret = interceptor.CheckControl(want, userId, rule, appCloneIndex);
-    EXPECT_EQ(ret, false);
+    EXPECT_EQ(ret, DisposedRuleResult::NON_BLOCK_RULE);
     TAG_LOGI(AAFwkTag::TEST, "CheckControl_007 end");
 }
 
