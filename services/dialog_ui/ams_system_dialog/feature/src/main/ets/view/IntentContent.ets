@@ -20,6 +20,7 @@ import { image } from '@kit.ImageKit';
 import { jsClone } from './format';
 import { TAG, DOMAIN} from '../pages/Index'
 import bundle from '@ohos.bundle.bundleManager';
+import { window } from '@kit.ArkUI';
 
 
 export interface ItemInfo {
@@ -50,9 +51,40 @@ export struct IntentContent {
   @State groupMaterial: Record<string, IntentInfo[]> = {};
   context = this.getUIContext().getHostContext();
   @State pixelMap: image.PixelMap | ResourceStr | DrawableDescriptor | undefined = undefined;
+  @State statusBarHeight: number = 0;
+  private win: window.Window | null = null;
 
   aboutToAppear() {
+    this.updateStatusBarHeight();
     this.getInfos();
+  }
+
+  aboutToDisappear() {
+    if (this.win) {
+      this.win.off('avoidAreaChange');
+      this.win = null;
+    }
+  }
+
+  async updateStatusBarHeight() {
+    try {
+      const win = await window.getLastWindow(getContext(this));
+      this.win = win;
+      const avoidArea = win.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM);
+      this.setStatusBarHeight(avoidArea.topRect.height);
+      win.off('avoidAreaChange');
+      win.on('avoidAreaChange', (avoidArea: window.AvoidArea) => {
+        this.setStatusBarHeight(avoidArea.topRect.height);
+      });
+    } catch (err) {
+      hilog.error(DOMAIN, TAG, 'getWindowAvoidArea failed. Cause: %{public}s', JSON.stringify(err));
+    }
+  }
+
+  setStatusBarHeight(top: number) {
+    if (top !== this.statusBarHeight) {
+      this.statusBarHeight = top;
+    }
   }
 
   onBackPress() {
@@ -336,8 +368,6 @@ export struct IntentContent {
         left: 16,
         bottom: 14.5
       })
-      .position({ top: 0, left: 0 })
-      .zIndex(100)
       .backgroundColor($r('app.color.background_cont'))
 
       Scroll(this.scroller) {
@@ -350,23 +380,22 @@ export struct IntentContent {
       }
       .align(Alignment.TopStart)
       .padding({
-        top: 76,
+        top: 12,
         right: 20,
         left: 20,
         bottom: 20
       })
-      .constraintSize({ minHeight: '100%' })
-      .align(Alignment.TopStart)
+      .layoutWeight(1)
       .edgeEffect(EdgeEffect.Spring)
       .scrollable(ScrollDirection.Vertical)
       .scrollBar(BarState.Off)
       .width('100%')
-      .height('100%')
       .backgroundColor($r('app.color.background_cont'))
       .clip(true)
     }
     .width('100%')
     .height('100%')
+    .padding({ top: this.statusBarHeight })
     .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
     .backgroundColor($r('app.color.background_cont'))
   }
