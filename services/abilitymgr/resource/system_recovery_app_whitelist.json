@@ -1,0 +1,11 @@
+{
+    "allowSystemApps": true,
+    "bundleNames": [
+        "com.ohos.settings",
+        "com.ohos.settingsdata",
+        "com.ohos.systemui",
+        "com.ohos.sceneboard",
+        "com.ohos.launcher",
+        "com.ohos.systemdialog"
+    ]
+}

@@ -92,6 +92,9 @@
 #include "res_sched_util.h"
 #include "startup_util.h"
 #include "string_ex.h"
+#include "system_recovery_mode_constants.h"
+#include "system_recovery_mode_framework.h"
+#include "system_recovery_mode_policy.h"
 #ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
 #include "sandbox_manager_kit.h"
 #endif
@@ -221,6 +224,15 @@ constexpr const int64_t PRELOAD_FREEZE_TIMEOUT = 60000;
 constexpr size_t MAX_PROCESS_NAME_LENGTH = 64;
 constexpr const int32_t DEFAULT_APPFREEZE_KILL_WAIT_TIME = 3500; // 3.5s
 constexpr const int32_t BETA_APPFREEZE_KILL_WAIT_TIME = 6000; // 6s
+
+bool IsRecoveryBackupExtensionStart(const std::shared_ptr<AAFwk::Want> &want,
+    ExtensionAbilityType extensionAbilityType)
+{
+    // 只接受 AMS 在解析并认证 Backup SA 后写入的内部标记，同时再次校验真实扩展类型。
+    return AAFwk::SystemRecoveryModePolicy::GetInstance().IsEnabled() &&
+        extensionAbilityType == ExtensionAbilityType::BACKUP && want != nullptr &&
+        want->GetBoolParam(AAFwk::SYSTEM_RECOVERY_BACKUP_EXTENSION_START_CONTEXT, false);
+}
 
 #ifdef WITH_DLP
 constexpr const char* DLP_PARAMS_SECURITY_FLAG = "ohos.dlp.params.securityFlag";
@@ -529,6 +541,8 @@ void AppMgrServiceInner::Init()
     AppNativeSpawnManager::GetInstance().InitNativeSpawnMsgPipe(appRunningManager_);
     AppHybridSpawnManager::GetInstance().InitHybridSpawnMsgPipe(weak_from_this());
     AppPidFdManager::GetInstance().Init(weak_from_this(), taskHandler_);
+    // AppMgr 工作队列就绪后异步设置飞行模式和水印；应用门禁读取只读策略，无需额外 IPC。
+    SystemRecoveryModeFramework::GetInstance().Start(taskHandler_);
 }
 
 AppMgrServiceInner::~AppMgrServiceInner()
@@ -1511,7 +1525,15 @@ int32_t AppMgrServiceInner::TryToUseImageInfo(std::shared_ptr<AbilityInfo> abili
         NotifyLoadAbilityFailed(token);
         return ERR_INVALID_VALUE;
     }
-    auto ret = PreCheckStartProcess(appInfo->bundleName, appInfo->uid, appIndex);
+    const bool isRecoveryBackupExtensionStart = IsRecoveryBackupExtensionStart(
+        imageInfo->want, abilityInfo->extensionAbilityType);
+    if (isRecoveryBackupExtensionStart && imageInfo->want != nullptr) {
+        // 内部标记只消费一次，禁止继续随镜像启动信息传播。
+        imageInfo->want->RemoveParam(AAFwk::SYSTEM_RECOVERY_BACKUP_EXTENSION_START_CONTEXT);
+    }
+    // 镜像进程同样使用 BMS 提供的目标 ApplicationInfo 判断系统应用属性。
+    auto ret = PreCheckStartProcess(appInfo->bundleName, appInfo->uid, appIndex,
+        appInfo->isSystemApp, isRecoveryBackupExtensionStart);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "precheck failed");
         NotifyStartProcessFailed(token);
@@ -6050,7 +6072,14 @@ int32_t AppMgrServiceInner::StartProcess(const std::string &appName, const std::
         TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
         return ERR_INVALID_VALUE;
     }
-    auto ret = PreCheckStartProcess(bundleName, uid, bundleIndex);
+    const bool isRecoveryBackupExtensionStart = IsRecoveryBackupExtensionStart(want, extensionAbilityType);
+    if (isRecoveryBackupExtensionStart && want != nullptr) {
+        // 上下文只用于 AppMgr 本次进程检查，不能继续传入应用进程。
+        want->RemoveParam(AAFwk::SYSTEM_RECOVERY_BACKUP_EXTENSION_START_CONTEXT);
+    }
+    // 普通进程启动使用已解析 BundleInfo 中的系统应用属性，不根据 UID 或路径重复推断。
+    auto ret = PreCheckStartProcess(bundleName, uid, bundleIndex,
+        bundleInfo.applicationInfo.isSystemApp, isRecoveryBackupExtensionStart);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "precheck failed");
         appRunningManager_->RemoveAppRunningRecordById(appRecord->GetRecordId());
@@ -12960,11 +12989,23 @@ bool AppMgrServiceInner::IsBlockedByDisposeRules(const std::string &bundleName, 
     return false;
 }
 
-int32_t AppMgrServiceInner::PreCheckStartProcess(const std::string &bundleName, int32_t uid, int32_t appIndex)
+int32_t AppMgrServiceInner::PreCheckStartProcess(const std::string &bundleName, int32_t uid, int32_t appIndex,
+    bool isSystemApp, bool isRecoveryBackupExtensionStart)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR,
         "bundleName: %{public}s, uid: %{public}d", bundleName.c_str(), uid);
+    if (!isRecoveryBackupExtensionStart &&
+        AAFwk::SystemRecoveryModePolicy::GetInstance().ShouldBlockBundle(bundleName, isSystemApp)) {
+        TAG_LOGW(AAFwkTag::APPMGR, "block process in system recovery mode: %{public}s", bundleName.c_str());
+        // 复用现有全局启动阻断错误，避免为 AppMgr 内部门禁扩展公共错误码。
+        return AAFwk::ERR_ALL_APP_START_BLOCKED;
+    }
+    if (isRecoveryBackupExtensionStart) {
+        TAG_LOGI(AAFwkTag::APPMGR,
+            "allow process for authenticated BackupExtensionAbility in system recovery mode: %{public}s",
+            bundleName.c_str());
+    }
     if (!IsUninstallingOrUpgrading(uid)) {
         return ERR_OK;
     }

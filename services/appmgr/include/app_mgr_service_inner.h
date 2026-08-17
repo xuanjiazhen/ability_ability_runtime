@@ -2436,7 +2436,10 @@ private:
     void OnProcessDied(std::shared_ptr<AppRunningRecord> appRecord);
     bool IsBlockedByDisposeRules(const std::string &bundleName, int32_t userId,
         int32_t appIndex);
-    int32_t PreCheckStartProcess(const std::string &bundleName, int32_t uid, int32_t appIndex);
+    // 进程创建前统一执行卸载状态和系统恢复模式门禁；系统应用资格由产品配置决定。
+    // 认证后的 BackupExtension 仅豁免本次检查。
+    int32_t PreCheckStartProcess(const std::string &bundleName, int32_t uid, int32_t appIndex,
+        bool isSystemApp, bool isRecoveryBackupExtensionStart = false);
     void InsertUninstallOrUpgradeUidSet(int32_t uid);
     void RemoveUninstallOrUpgradeUidSet(int32_t uid);
     bool IsUninstallingOrUpgrading(int32_t uid);

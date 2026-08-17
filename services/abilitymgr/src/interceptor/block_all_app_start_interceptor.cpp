@@ -33,6 +33,16 @@ void BlockAllAppStartInterceptor::SetIsAbilityStartedFunc(const IsAbilityStarted
     isAbilityStartedFunc_ = func;
 }
 
+void BlockAllAppStartInterceptor::SetAllowStartFunc(const AllowStartFunc& func)
+{
+    allowStartFunc_ = func;
+}
+
+void BlockAllAppStartInterceptor::SetStrictBlockFunc(const std::function<bool()>& func)
+{
+    strictBlockFunc_ = func;
+}
+
 ErrCode BlockAllAppStartInterceptor::Execute()
 {
     if (!shouldBlockFunc_) {
@@ -40,6 +50,12 @@ ErrCode BlockAllAppStartInterceptor::Execute()
         return ERR_INVALID_VALUE;
     }
     if (!shouldBlockFunc_()) {
+        return ERR_OK;
+    }
+
+    // 系统恢复模式需要完整 AbilityInfo 才能执行白名单和 BackupExtension 判断，
+    // 无目标信息的早期阶段只保留原有低内存拦截，恢复策略延后到解析完成后执行。
+    if (strictBlockFunc_ && strictBlockFunc_()) {
         return ERR_OK;
     }
 
@@ -61,6 +77,19 @@ ErrCode BlockAllAppStartInterceptor::Execute(AbilityRequest& abilityRequest, int
         return ERR_OK;
     }
 
+    // 目标解析完成后，先判断恢复白名单和已认证的 BackupExtension 单次例外。
+    const auto &bundleName = abilityRequest.abilityInfo.bundleName;
+    if (allowStartFunc_ && allowStartFunc_(abilityRequest)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "allow app in current system policy, bundle=%{public}s", bundleName.c_str());
+        return ERR_OK;
+    }
+
+    // 恢复模式只允许白名单应用，不能沿用低内存场景“已启动页面可继续拉起”的例外。
+    if (strictBlockFunc_ && strictBlockFunc_()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "blocking non-essential app in system recovery mode");
+        return ERR_ALL_APP_START_BLOCKED;
+    }
+
     if (abilityRequest.abilityInfo.type == AppExecFwk::AbilityType::PAGE) {
         if (isAbilityStartedFunc_(abilityRequest, validUserId)) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "UIAbility already started, allowing start despite block mode");
@@ -68,7 +97,7 @@ ErrCode BlockAllAppStartInterceptor::Execute(AbilityRequest& abilityRequest, int
         }
     }
 
-    TAG_LOGE(AAFwkTag::ABILITYMGR, "blocking app start due to low memory");
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "blocking app start by current system policy");
     return ERR_ALL_APP_START_BLOCKED;
 }
 
