@@ -19,6 +19,7 @@
 #include "ability_info.h"
 #include "app_spawn_client.h"
 #include "global_constant.h"
+#include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "want.h"
 
@@ -35,6 +36,7 @@ constexpr const char*
 constexpr const char*
     JIT_PERMISSION_DISABLE_GOTPLT_RO_PROTECTION = "ohos.permission.kernel.DISABLE_GOTPLT_RO_PROTECTION";
 constexpr const char* DLP_PARAMS_SECURITY_FLAG = "ohos.dlp.params.securityFlag";
+constexpr const char* DLP_PARAMS_CUSTOM_FLAG = "ohos.dlp.params.customFlag";
 
 static uint64_t BuildStartFlags(const AAFwk::Want &want, const ApplicationInfo &applicationInfo)
 {
@@ -44,10 +46,9 @@ static uint64_t BuildStartFlags(const AAFwk::Want &want, const ApplicationInfo &
     }
 #ifdef WITH_DLP
     if (want.GetIntParam(DLP_PARAMS_INDEX, 0) != 0) {
-        if (want.GetBoolParam(DLP_PARAMS_SECURITY_FLAG, false)) {
-            startFlags = startFlags | (START_FLAG_BASE << StartFlags::DLP_MANAGER_READ_ONLY);
-        } else {
-            startFlags = startFlags | (START_FLAG_BASE << StartFlags::DLP_MANAGER_FULL_CONTROL);
+        int dlpShift = want.GetIntParam(DLP_PARAMS_CUSTOM_FLAG, 0);
+        if (dlpShift > 0) {
+            startFlags |= (START_FLAG_BASE << dlpShift);
         }
     }
 #endif // WITH_DLP

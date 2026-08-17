@@ -744,6 +744,16 @@ public:
         return securityFlag_;
     }
 
+    void SetDlpCustomFlag(bool dlpCustomFlag)
+    {
+        dlpCustomFlag_ = dlpCustomFlag;
+    }
+
+    bool GetDlpCustomFlag() const
+    {
+        return dlpCustomFlag_;
+    }
+
     bool IsPluginAbility() const
     {
         return isPluginAbility_;
@@ -958,6 +968,7 @@ protected:
     bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
     bool isLaunching_ = true;
     bool securityFlag_ = false;
+    bool dlpCustomFlag_ = false;
     bool isHook_ = false;
     bool isPluginAbility_ = false;
     bool isPrelaunch_ = false;
