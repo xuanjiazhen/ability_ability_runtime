@@ -53,6 +53,8 @@ ohos_unittest("invoke_function_executor_test") {
     "${ability_runtime_services_path}/abilitymgr/src/insight_intent/insight_intent_execute_result.cpp",
   ]
 
+  configs = [ "//build/config/compiler:exceptions" ]
+
   deps = [
     # FunctionInfo is a Parcelable whose vtable (key function Marshalling) lives
     # in this source set; DoExecute constructs a local FunctionInfo.
