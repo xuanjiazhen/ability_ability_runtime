@@ -1,0 +1,60 @@
+{
+  "findings": [
+    {
+      "file_path": "services/abilitymgr/src/ability_manager_service.cpp",
+      "line_number": "15186-15203, 10247",
+      "summary": "StartAbilityByCallWithSkill 的 caller 身份修复不完整：已启动分支用 skillCallerTokenId，未启动分支仍用 IPC(SA) 身份",
+      "description": "commit 4aecb0dafd 的目标是'用 callerTokenId 填 Want'修复身份混淆，但仅在 IsAbilityStarted==true 分支（15188-15194）调用 UpdateCallerInfoByHapTokenId；false 分支（15202）直接走 StartAbilityByCall(want, ...)，内部在 10247 行用 UpdateCallerInfo 以 IPCSkeleton 调用者（SA）身份重填 want 的 caller 参数。同一 skill 首次启动（未启动）与再次执行（已启动）时目标侧看到的 caller 身份不一致，修复只覆盖一半。建议：在未启动分支同样基于 skillCallerTokenId 回填 caller 信息，或统一两分支的 caller 语义。",
+      "issue_type": "代码逻辑",
+      "risk_level": "严重"
+    },
+    {
+      "file_path": "services/abilitymgr/src/ability_manager_stub.cpp",
+      "line_number": "5805-5834",
+      "summary": "ExecuteInAppSkillWithTokenId 信任 IPC 传入的 callerTokenId，未校验与直接调用者关系，SA 可冒充任意 HAP 身份",
+      "description": "ExecuteInAppSkillWithTokenIdInner 直接从 parcel 读取 request.callerTokenId（能力_manager_stub.cpp:5809），无任何校验。ExecuteInAppSkillWithTokenId（ability_manager_service.cpp:15102-15153）用该值派生 userId、callerBundleName、做 CheckSkillPermission 权限判定（skill_execute_manager.cpp:105-111），最终写入目标 Want 的 CALLER_TOKEN/UID/BUNDLE_NAME 并用于 ExecuteSkillDone 的 GrantUriPermission（skill_execute_manager.cpp:214-221）。唯一门槛是 CheckSkillPermission 中 IsSACall() 要求直接调用者为 SA，但服务端未验证该 SA 是否有权代表该 token（如 climgr 场景传的是 climgr 自己的 token，见 cli_tool_manager_service.cpp:1593-1608）。被攻陷/恶意的 SA 可冒充任意已知 token 的 HAP 身份发起 skill 启动并造成 URI 授权归因错误。建议：增加 callerTokenId 与 IPCSkeleton::GetCallingTokenID() 的绑定校验或显式 SA 委托授权校验，并校验 skill 目标 userId 与 token 所属 user 一致性。",
+      "issue_type": "权限安全",
+      "risk_level": "严重"
+    },
+    {
+      "file_path": "services/abilitymgr/src/utils/update_caller_info_util.cpp",
+      "line_number": "126-170",
+      "summary": "UpdateCallerInfoByHapTokenId 为 void，GetHapTokenInfo 失败时静默返回，调用点不感知且丢失/残留 caller 身份",
+      "description": "UpdateCallerInfoByHapTokenId 在 callerTokenId 非 HAP token（如 ExecuteInAppSkill 路径下 SA 的 native token）、token 失效、app 已卸载等情况下，GetHapTokenInfo 失败后直接 return，不清理 want 已有 caller 参数也不置新值。StartExtensionAbilityInner（ability_manager_service.cpp:4565-4571）与 StartAbilityByCallWithSkill（15188-15194）无感知此失败。回归：改造前该两路径用 UpdateCallerInfo 会以 IPC(SA) 身份填充 caller 信息；改造后 ExecuteInAppSkill（SA 直接调用，native token）路径目标侧将读到缺失的 caller 参数（CALLER_UID/TOKEN/BUNDLE_NAME 全无），或读到 want 中残留的旧值。建议：返回 bool/错误码，失败时回退 UpdateCallerInfo 或显式清除 caller 参数并记录错误。",
+      "issue_type": "错误处理",
+      "risk_level": "严重"
+    },
+    {
+      "file_path": "services/abilitymgr/src/skill/skill_execute_manager.cpp",
+      "line_number": "88-113",
+      "summary": "移除 START_INVISIBLE_ABILITY 豁免属安全收紧，但存在兼容性回归风险（climgr/SA 调用方需持有 skill 全部声明权限）",
+      "description": "commit 29539b1562 移除了 CheckSkillPermission 中 START_INVISIBLE_ABILITY 持有者跳过 skill 权限校验的豁免，方向正确。但 climgr 等合法 SA 调用方经 ExecuteInAppSkillWithTokenId 传入的是自身的 native token（cli_tool_manager_service.cpp:1593-1608），现在必须持有 skill 声明的每个 permission，否则返回 CHECK_PERMISSION_FAILED；且用 native token 校验 HAP 声明权限可能恒失败，导致 skill 功能回归。需逐项确认所有合法 skill 调用方持有声明权限，或在 skillInfo.permissions 为空/为建议性时保持通过。",
+      "issue_type": "权限安全",
+      "risk_level": "严重"
+    },
+    {
+      "file_path": "services/abilitymgr/src/ability_manager_service.cpp",
+      "line_number": "4569-4570, 15192-15193",
+      "summary": "skillCallerTokenId 为 uint32_t，'< 0' 分支永不成立（死代码），0fd79635a5 的非法值拒绝意图未生效",
+      "description": "两处调用点的 else { return ERR_INVALID_VALUE; } 分支无法触达：skillCallerTokenId 声明为 uint32_t（ability_manager_service.h:1438），'>0'/'==0' 已覆盖全部取值，'<0' 恒 false。若意图是拒绝'无效负值'，需将参数改为 int32_t 或改用显式哨兵值并注释；当前死代码会误导维护者。",
+      "issue_type": "代码逻辑",
+      "risk_level": "一般"
+    },
+    {
+      "file_path": "services/abilitymgr/src/utils/update_caller_info_util.cpp",
+      "line_number": "144-159",
+      "summary": "GetUidByBundleName 失败时 CALLER_UID 被 Remove 后不再 Set，造成 Want 中 CALLER_TOKEN 有值而 CALLER_UID 缺失的不一致态",
+      "description": "UpdateCallerInfoByHapTokenId 先 RemoveParam(CALLER_UID)，仅当 GetUidByBundleName 返回 >=0 才 SetParam。失败（如跨用户/未安装/instIndex 不匹配）时 CALLER_UID 键缺失，下游读取默认 0（uid 0 为系统），可能造成错误归因。与 UpdateCallerInfo 无条件设置的行为不对称。建议失败时显式设置 0 或回滚整个 caller 更新。",
+      "issue_type": "代码逻辑",
+      "risk_level": "一般"
+    },
+    {
+      "file_path": "test/unittest/update_caller_info_util_test/update_caller_info_util_test.cpp",
+      "line_number": "708-745",
+      "summary": "新增单测仅覆盖 early-return 路径，happy path 与两个调用点的分支逻辑未覆盖",
+      "description": "UpdateCallerInfoByHapTokenId_0001/0002 只验证 tokenId=0 与 GetHapTokenInfo 失败两条早退路径。成功路径（有效 HAP token → CALLER_TOKEN/UID/BUNDLE_NAME/APP_CLONE_INDEX/签名信息正确设置）以及 StartExtensionAbilityInner / StartAbilityByCallWithSkill 两处 '>0/==0/<0' 分支逻辑均无测试。建议补成功路径单测（mock AccessTokenKit）与调用点分支测试。",
+      "issue_type": "代码逻辑",
+      "risk_level": "一般"
+    }
+  ]
+}
