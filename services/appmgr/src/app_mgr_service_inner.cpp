@@ -9435,6 +9435,11 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
     TAG_LOGW(AAFwkTag::APPDFR, "called, eventName:%{public}s, pid:%{public}d, bundleName:%{public}s, "
         "currentTime:%{public}s", eventName.c_str(), pid, bundleName.c_str(),
         AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str());
+    if(appRecord->GetApplicationInfo()->asanEnabled || appRecord->GetApplicationInfo()->hwasanEnabled || appRecord->GetApplicationInfo()->tsanEnabled)
+    {
+        TAG_LOGI(AAFwkTag::APPMGR, "asan enable, bundleName:%{public}s, pid:%{public}d", bundleName.c_str(), pid);
+        return ERR_OK;
+    }
     if (AppExecFwk::AppfreezeManager::GetInstance()->IsSkipDetect(pid, uid, bundleName,
         eventName) || AppExecFwk::AppfreezeManager::GetInstance()->IsFreezeExcludedPid(pid)) {
         return ERR_OK;
@@ -9469,11 +9474,6 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
 
     if (SubmitDfxFaultTask(nonConstFaultData, bundleName, appRecord, pid) != ERR_OK) {
         return ERR_INVALID_VALUE;
-    }
-
-    if (appRecord->GetApplicationInfo()->asanEnabled) {
-        TAG_LOGI(AAFwkTag::APPMGR, "asan enable, bundleName:%{public}s, pid:%{public}d", bundleName.c_str(), pid);
-        return ERR_OK;
     }
 
 #ifdef APP_NO_RESPONSE_DIALOG
@@ -9593,6 +9593,9 @@ int32_t AppMgrServiceInner::TransformedNotifyAppFault(const AppFaultDataBySA &fa
     int32_t recordId = record->GetRecordId();
     std::string bundleName = record->GetBundleName();
     std::string processName = record->GetProcessName();
+    if (IsAsanEnabled(record, bundleName, pid)) {
+        return ERR_OK;
+    }
     if (AppExecFwk::AppfreezeManager::GetInstance()->IsSkipDetect(pid, uid, bundleName, eventName) ||
         AppExecFwk::AppfreezeManager::GetInstance()->IsFreezeExcludedPid(pid)) {
         return ERR_OK;
@@ -10656,6 +10659,15 @@ void AppMgrServiceInner::ClearResidentProcessAppRunningData(const std::shared_pt
             taskHandler_->SubmitTaskJust(restartProcess, "RestartResidentProcessDelayTask", RESTART_INTERVAL_TIME);
         }
     }
+}
+
+bool AppMgrServiceInner::IsAsanEnabled(const std::shared_ptr<AppRunningRecord> &record, const std::string &bundleName, int32_t pid) const
+{
+    if (record->GetApplicationInfo()->asanEnabled || record->GetApplicationInfo()->hwasanEnabled || record->GetApplicationInfo()->tsanEnabled) {
+        TAG_LOGI(AAFwkTag::APPMGR, "no freeze detect cause asan enable, bundleName:%{public}s, pid:%{public}d", bundleName.c_str(), pid);
+        return true;
+    }
+    return false;
 }
 
 void AppMgrServiceInner::ClearNonResidentKeepAliveAppRunningData(const std::shared_ptr<AppRunningRecord> &appRecord)
