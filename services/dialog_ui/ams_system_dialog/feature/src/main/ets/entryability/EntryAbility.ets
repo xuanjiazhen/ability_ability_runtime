@@ -112,8 +112,8 @@ export default class EntryAbility extends UIAbility {
             hilog.error(DOMAIN, TAG, 'Failed to set the window layout to full-screen mode. Cause: %{public}s', JSON.stringify(err));
           })
           data.setWindowSystemBarProperties({
-            navigationBarColor: '#F1F3F5',
-            statusBarColor: '#F1F3F5'
+            navigationBarColor: '#00000000',
+            statusBarColor: '#00000000'
           }).then(() => {
             hilog.info(DOMAIN, TAG, 'Succeeded in setting the system bar properties.');
           }).catch((err: BusinessError) => {
