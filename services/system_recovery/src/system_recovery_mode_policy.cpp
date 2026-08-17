@@ -19,6 +19,7 @@
 #include <string_view>
 #include <unordered_set>
 
+#include "hilog_tag_wrapper.h"
 #include "json_utils.h"
 #include "parameters.h"
 #include "system_recovery_mode_constants.h"
@@ -62,6 +63,8 @@ const RecoveryAppConfig &GetRecoveryAppConfig()
         // 优先读取产品定制路径，失败时回退系统默认路径和内置集合。
         if (!JsonUtils::GetInstance().LoadConfiguration(SYSTEM_RECOVERY_APP_WHITELIST_CONFIG, jsonConfig,
             SYSTEM_RECOVERY_APP_WHITELIST_DEFAULT_CONFIG)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR,
+                "system recovery app config load failed, use fail-closed built-in config");
             return builtInConfig;
         }
         // 系统应用开关和 Bundle 数组类型必须正确，格式异常时整体回退到最小集合。
@@ -69,6 +72,8 @@ const RecoveryAppConfig &GetRecoveryAppConfig()
             !jsonConfig.at(SYSTEM_RECOVERY_ALLOW_SYSTEM_APPS_KEY).is_boolean() ||
             !jsonConfig.contains(SYSTEM_RECOVERY_APP_WHITELIST_KEY) ||
             !jsonConfig.at(SYSTEM_RECOVERY_APP_WHITELIST_KEY).is_array()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR,
+                "system recovery app config format invalid, use fail-closed built-in config");
             return builtInConfig;
         }
 
@@ -77,18 +82,41 @@ const RecoveryAppConfig &GetRecoveryAppConfig()
         for (const auto &item : jsonConfig.at(SYSTEM_RECOVERY_APP_WHITELIST_KEY)) {
             // 任意非法条目都会使整份配置失效，避免只加载半份白名单。
             if (!item.is_string()) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR,
+                    "system recovery app config contains non-string bundle, use built-in config");
                 return builtInConfig;
             }
             auto bundleName = item.get<std::string>();
             if (bundleName.empty()) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR,
+                    "system recovery app config contains empty bundle, use built-in config");
                 return builtInConfig;
             }
             configuredAppConfig.bundleNames.emplace(bundleName);
         }
         // Bundle 白名单不能为空，避免产品误配置后连恢复界面也无法启动。
-        return configuredAppConfig.bundleNames.empty() ? builtInConfig : configuredAppConfig;
+        if (configuredAppConfig.bundleNames.empty()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR,
+                "system recovery app config bundle list empty, use fail-closed built-in config");
+            return builtInConfig;
+        }
+        TAG_LOGI(AAFwkTag::ABILITYMGR,
+            "system recovery app config loaded, allowSystemApps=%{public}d, bundleCount=%{public}zu",
+            configuredAppConfig.allowSystemApps, configuredAppConfig.bundleNames.size());
+        return configuredAppConfig;
     }();
     return recoveryConfig;
+}
+
+bool IsRecoveryModeEnabledByParameter()
+{
+    // 原始启动模式只记录一次，便于区分参数未生效与后续门禁未执行两类问题。
+    const std::string startMode = system::GetParameter(SYSTEM_RECOVERY_MODE_PARAMETER, "");
+    const bool enabled = startMode == SYSTEM_RECOVERY_MODE_VALUE;
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "system recovery policy initialized, startMode=%{public}s, enabled=%{public}d",
+        startMode.c_str(), enabled);
+    return enabled;
 }
 
 } // namespace
@@ -101,7 +129,7 @@ SystemRecoveryModePolicy &SystemRecoveryModePolicy::GetInstance()
 
 // 模式参数在 init 的 ReadConfig 阶段已经可用，并在本次启动周期内保持不变。
 SystemRecoveryModePolicy::SystemRecoveryModePolicy()
-    : enabled_(system::GetParameter(SYSTEM_RECOVERY_MODE_PARAMETER, "") == SYSTEM_RECOVERY_MODE_VALUE)
+    : enabled_(IsRecoveryModeEnabledByParameter())
 {
 }
 

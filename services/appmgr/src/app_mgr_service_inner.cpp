@@ -12995,8 +12995,18 @@ int32_t AppMgrServiceInner::PreCheckStartProcess(const std::string &bundleName, 
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR,
         "bundleName: %{public}s, uid: %{public}d", bundleName.c_str(), uid);
-    if (!isRecoveryBackupExtensionStart &&
-        AAFwk::SystemRecoveryModePolicy::GetInstance().ShouldBlockBundle(bundleName, isSystemApp)) {
+    auto &recoveryPolicy = AAFwk::SystemRecoveryModePolicy::GetInstance();
+    const bool isSystemRecoveryMode = recoveryPolicy.IsEnabled();
+    const bool shouldBlockInRecovery = !isRecoveryBackupExtensionStart &&
+        recoveryPolicy.ShouldBlockBundle(bundleName, isSystemApp);
+    if (isSystemRecoveryMode) {
+        // 冷启动进程必经此日志，可与 AMS 的解析后检查配对确认门禁链路。
+        TAG_LOGI(AAFwkTag::APPMGR,
+            "system recovery process check, bundle=%{public}s, isSystemApp=%{public}d, "
+            "backupExtension=%{public}d, block=%{public}d",
+            bundleName.c_str(), isSystemApp, isRecoveryBackupExtensionStart, shouldBlockInRecovery);
+    }
+    if (shouldBlockInRecovery) {
         TAG_LOGW(AAFwkTag::APPMGR, "block process in system recovery mode: %{public}s", bundleName.c_str());
         // 复用现有全局启动阻断错误，避免为 AppMgr 内部门禁扩展公共错误码。
         return AAFwk::ERR_ALL_APP_START_BLOCKED;

@@ -41,6 +41,7 @@ ohos_static_library("system_recovery_policy") {
   external_deps = [
     "c_utils:utils",
     "config_policy:configpolicy_util",
+    "hilog:libhilog",
     "init:libbegetutil",
     "json:nlohmann_json_static",
   ]

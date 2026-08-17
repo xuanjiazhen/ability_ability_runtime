@@ -15,11 +15,10 @@
 
 #include "interceptor/block_all_app_start_interceptor.h"
 
-#include "ability_manager_service.h"
-#include "ability_record.h"
-#include "hilog_tag_wrapper.h"
-#include "errors.h"
 #include "ability_config.h"
+#include "ability_record/ability_request.h"
+#include "errors.h"
+#include "hilog_tag_wrapper.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -38,9 +37,9 @@ void BlockAllAppStartInterceptor::SetAllowStartFunc(const AllowStartFunc& func)
     allowStartFunc_ = func;
 }
 
-void BlockAllAppStartInterceptor::SetStrictBlockFunc(const std::function<bool()>& func)
+void BlockAllAppStartInterceptor::SetSystemRecoveryModeFunc(const std::function<bool()>& func)
 {
-    strictBlockFunc_ = func;
+    systemRecoveryModeFunc_ = func;
 }
 
 ErrCode BlockAllAppStartInterceptor::Execute()
@@ -49,13 +48,16 @@ ErrCode BlockAllAppStartInterceptor::Execute()
         TAG_LOGE(AAFwkTag::ABILITYMGR, "shouldBlockFunc_ is nullptr");
         return ERR_INVALID_VALUE;
     }
-    if (!shouldBlockFunc_()) {
+    const bool shouldBlockAllAppStart = shouldBlockFunc_();
+    const bool isSystemRecoveryMode = systemRecoveryModeFunc_ && systemRecoveryModeFunc_();
+    if (!shouldBlockAllAppStart && !isSystemRecoveryMode) {
         return ERR_OK;
     }
 
     // 系统恢复模式需要完整 AbilityInfo 才能执行白名单和 BackupExtension 判断，
     // 无目标信息的早期阶段只保留原有低内存拦截，恢复策略延后到解析完成后执行。
-    if (strictBlockFunc_ && strictBlockFunc_()) {
+    if (isSystemRecoveryMode) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "system recovery gate defers check until target is resolved");
         return ERR_OK;
     }
 
@@ -73,21 +75,21 @@ ErrCode BlockAllAppStartInterceptor::Execute(AbilityRequest& abilityRequest, int
         TAG_LOGE(AAFwkTag::ABILITYMGR, "isAbilityStartedFunc_ is nullptr");
         return ERR_INVALID_VALUE;
     }
-    if (!shouldBlockFunc_()) {
+    const bool shouldBlockAllAppStart = shouldBlockFunc_();
+    const bool isSystemRecoveryMode = systemRecoveryModeFunc_ && systemRecoveryModeFunc_();
+    if (!shouldBlockAllAppStart && !isSystemRecoveryMode) {
         return ERR_OK;
     }
 
     // 目标解析完成后，先判断恢复白名单和已认证的 BackupExtension 单次例外。
     const auto &bundleName = abilityRequest.abilityInfo.bundleName;
-    if (allowStartFunc_ && allowStartFunc_(abilityRequest)) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "allow app in current system policy, bundle=%{public}s", bundleName.c_str());
-        return ERR_OK;
-    }
-
-    // 恢复模式只允许白名单应用，不能沿用低内存场景“已启动页面可继续拉起”的例外。
-    if (strictBlockFunc_ && strictBlockFunc_()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "blocking non-essential app in system recovery mode");
-        return ERR_ALL_APP_START_BLOCKED;
+    if (isSystemRecoveryMode) {
+        // 恢复模式只允许配置放行的应用，不能沿用低内存场景“已启动页面可继续拉起”的例外。
+        const bool allowStart = allowStartFunc_ && allowStartFunc_(abilityRequest);
+        TAG_LOGI(AAFwkTag::ABILITYMGR,
+            "system recovery resolved check, bundle=%{public}s, isSystemApp=%{public}d, allow=%{public}d",
+            bundleName.c_str(), abilityRequest.appInfo.isSystemApp, allowStart);
+        return allowStart ? ERR_OK : ERR_ALL_APP_START_BLOCKED;
     }
 
     if (abilityRequest.abilityInfo.type == AppExecFwk::AbilityType::PAGE) {

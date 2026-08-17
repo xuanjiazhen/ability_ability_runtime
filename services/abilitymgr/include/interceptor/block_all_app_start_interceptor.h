@@ -40,8 +40,8 @@ public:
     using AllowStartFunc = std::function<bool(AbilityRequest&)>;
     void SetAllowStartFunc(const AllowStartFunc& func);
 
-    // 严格模式禁止沿用低内存场景“已启动页面继续运行”的历史例外。
-    void SetStrictBlockFunc(const std::function<bool()>& func);
+    // 恢复模式使用独立判断，避免改变 ShouldBlockAllAppStart 原有的全局暂停语义。
+    void SetSystemRecoveryModeFunc(const std::function<bool()>& func);
 
     ErrCode Execute();
     ErrCode Execute(AbilityRequest& abilityRequest, int32_t validUserId);
@@ -55,8 +55,8 @@ private:
     IsAbilityStartedFunc isAbilityStartedFunc_;
     // 保存由 AMS 注入的恢复白名单和受控备份判断。
     AllowStartFunc allowStartFunc_;
-    // 标识当前是否采用系统恢复模式的严格阻断语义。
-    std::function<bool()> strictBlockFunc_;
+    // 标识当前是否采用系统恢复模式的白名单阻断语义。
+    std::function<bool()> systemRecoveryModeFunc_;
 };
 } // namespace AAFwk
 } // namespace OHOS

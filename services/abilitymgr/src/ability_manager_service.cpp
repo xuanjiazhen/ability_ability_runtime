@@ -562,8 +562,13 @@ void AbilityManagerService::InitInterceptor()
     afterCheckExecuter_->AddInterceptor("DisposedRule", std::make_shared<DisposedRuleInterceptor>());
     afterCheckExecuter_->AddInterceptor("EcologicalRule", std::make_shared<EcologicalRuleInterceptor>());
     afterCheckExecuter_->SetTaskHandler(taskHandler_);
-    if (AppUtils::GetInstance().IsStartOptionsWithAnimation()) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "create BlockAllAppStartInterceptor");
+    const bool supportStartAnimation = AppUtils::GetInstance().IsStartOptionsWithAnimation();
+    const bool isSystemRecoveryMode = SystemRecoveryModePolicy::GetInstance().IsEnabled();
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "initialize app start gate, supportStartAnimation=%{public}d, systemRecoveryMode=%{public}d",
+        supportStartAnimation, isSystemRecoveryMode);
+    // 普通模式保持原有产品条件；恢复模式必须创建门禁，否则不支持启动动画的产品会直接放行应用。
+    if (supportStartAnimation || isSystemRecoveryMode) {
         blockAllAppStartInterceptor_ = std::make_shared<BlockAllAppStartInterceptor>();
         InitBlockAllAppStartInterceptorCallbacks();
     }
@@ -576,9 +581,8 @@ void AbilityManagerService::InitBlockAllAppStartInterceptorCallbacks()
     }
     auto aams = shared_from_this();
     blockAllAppStartInterceptor_->SetShouldBlockFunc([aams]() {
-        // BlockAllAppStart 保留原有全局暂停语义；系统恢复模式只在 Ability
-        // 拦截器内部参与判断，避免影响 StartUser 等非应用启动流程。
-        return aams->ShouldBlockAllAppStart() || SystemRecoveryModePolicy::GetInstance().IsEnabled();
+        // 保留 BlockAllAppStart 原有全局暂停语义，不在该回调中混入恢复模式条件。
+        return aams->ShouldBlockAllAppStart();
     });
     blockAllAppStartInterceptor_->SetIsAbilityStartedFunc([aams](AbilityRequest& req, int32_t userId) {
         std::shared_ptr<AbilityRecord> targetRecord;
@@ -609,8 +613,8 @@ void AbilityManagerService::InitBlockAllAppStartInterceptorCallbacks()
         // 未开启系统应用开关时仍只允许明确列入 Bundle 白名单的应用。
         return !policy.ShouldBlockBundle(request.abilityInfo.bundleName, request.appInfo.isSystemApp);
     });
-    blockAllAppStartInterceptor_->SetStrictBlockFunc([]() {
-        // 系统恢复模式必须拒绝已运行的非白名单页面，不能复用低内存放行规则。
+    blockAllAppStartInterceptor_->SetSystemRecoveryModeFunc([]() {
+        // 恢复模式由独立回调激活目标解析后的白名单门禁。
         return SystemRecoveryModePolicy::GetInstance().IsEnabled();
     });
 }
@@ -618,6 +622,9 @@ void AbilityManagerService::InitBlockAllAppStartInterceptorCallbacks()
 ErrCode AbilityManagerService::ExecuteBlockAllAppStartInterceptor()
 {
     if (blockAllAppStartInterceptor_ == nullptr) {
+        if (SystemRecoveryModePolicy::GetInstance().IsEnabled()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "system recovery app start gate is not initialized");
+        }
         TAG_LOGD(AAFwkTag::ABILITYMGR, "blockAllAppStartInterceptor_ nullptr");
         return ERR_OK;
     }
@@ -628,6 +635,11 @@ ErrCode AbilityManagerService::ExecuteBlockAllAppStartInterceptor(AbilityRequest
     int32_t validUserId)
 {
     if (blockAllAppStartInterceptor_ == nullptr) {
+        if (SystemRecoveryModePolicy::GetInstance().IsEnabled()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR,
+                "system recovery app start gate is not initialized, bundle=%{public}s",
+                abilityRequest.abilityInfo.bundleName.c_str());
+        }
         TAG_LOGD(AAFwkTag::ABILITYMGR, "blockAllAppStartInterceptor_ nullptr");
         return ERR_OK;
     }
