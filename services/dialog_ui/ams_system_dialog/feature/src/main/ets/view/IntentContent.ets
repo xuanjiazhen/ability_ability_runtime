@@ -50,6 +50,7 @@ export struct IntentContent {
   @State groupMaterial: Record<string, IntentInfo[]> = {};
   context = this.getUIContext().getHostContext();
   @State pixelMap: image.PixelMap | ResourceStr | DrawableDescriptor | undefined = undefined;
+  @State statusBarHeight: number = 0;
 
   aboutToAppear() {
     this.getInfos();
@@ -336,8 +337,6 @@ export struct IntentContent {
         left: 16,
         bottom: 14.5
       })
-      .position({ top: 0, left: 0 })
-      .zIndex(100)
       .backgroundColor($r('app.color.background_cont'))
 
       Scroll(this.scroller) {
@@ -350,23 +349,28 @@ export struct IntentContent {
       }
       .align(Alignment.TopStart)
       .padding({
-        top: 76,
+        top: 12,
         right: 20,
         left: 20,
         bottom: 20
       })
-      .constraintSize({ minHeight: '100%' })
-      .align(Alignment.TopStart)
+      .layoutWeight(1)
       .edgeEffect(EdgeEffect.Spring)
       .scrollable(ScrollDirection.Vertical)
       .scrollBar(BarState.Off)
       .width('100%')
-      .height('100%')
       .backgroundColor($r('app.color.background_cont'))
       .clip(true)
     }
     .width('100%')
     .height('100%')
+    .padding({ top: this.statusBarHeight })
+    .onSafeAreaChange((newValue: SafeAreaInsets) => {
+      const top = parseFloat(newValue.top.length.toString());
+      if (top !== this.statusBarHeight) {
+        this.statusBarHeight = top;
+      }
+    })
     .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
     .backgroundColor($r('app.color.background_cont'))
   }
