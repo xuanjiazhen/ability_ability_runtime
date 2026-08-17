@@ -16,6 +16,8 @@
 #ifndef OHOS_ABILITY_RUNTIME_INSIGHT_INTENT_SYS_EVENT_RECEIVER_H
 #define OHOS_ABILITY_RUNTIME_INSIGHT_INTENT_SYS_EVENT_RECEIVER_H
 
+#include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -27,6 +29,9 @@
 #include "task_handler_wrap.h"
 
 namespace OHOS {
+namespace AppExecFwk {
+class BundleMgrHelper;
+}
 namespace AbilityRuntime {
 class InsightIntentSysEventReceiver : public EventFwk::CommonEventSubscriber,
     public std::enable_shared_from_this<InsightIntentSysEventReceiver> {
@@ -38,6 +43,8 @@ public:
 private:
     bool SaveInsightIntentInfos(const std::string &bundleName, const std::string &moduleName,
         uint32_t versionCode, int32_t userId);
+    bool SaveInsightIntentInfosForModule(const std::shared_ptr<AppExecFwk::BundleMgrHelper> &bundleMgrHelper,
+        const std::string &bundleName, const std::string &moduleName, uint32_t versionCode, int32_t userId);
     void RegisterAllFunctions(const std::vector<std::pair<std::string, uint32_t>> &newBundles,
         const std::vector<ExtractInsightIntentInfo> &allIntentInfos,
         const std::vector<InsightIntentInfo> &allConfigInfos);

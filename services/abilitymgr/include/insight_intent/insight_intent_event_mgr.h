@@ -16,13 +16,18 @@
 #ifndef OHOS_ABILITY_RUNTIME_INSIGHT_INTENT_EVENT_MGR_H
 #define OHOS_ABILITY_RUNTIME_INSIGHT_INTENT_EVENT_MGR_H
 
+#include <memory>
 #include <string>
+#include <vector>
 
 #include "bundlemgr/bundle_mgr_interface.h"
 #include "element_name.h"
 #include "insight_intent_sys_event_receiver.h"
 
 namespace OHOS {
+namespace AppExecFwk {
+class BundleMgrHelper;
+}
 namespace AbilityRuntime {
 class InsightIntentEventMgr : public std::enable_shared_from_this<InsightIntentEventMgr> {
 public:
@@ -34,6 +39,11 @@ private:
     std::shared_ptr<InsightIntentSysEventReceiver> insightIntentSysEventReceiver_ = nullptr;
 
     static void DeleteInsightIntent(const std::string &bundleName, const std::string &moduleName, int32_t userId);
+    static void CollectModuleIntents(const std::shared_ptr<AppExecFwk::BundleMgrHelper> &bundleMgrHelper,
+        const std::string &bundleName, const std::string &moduleName, uint32_t versionCode, int32_t userId,
+        ExtractInsightIntentProfileInfoVec &allInfos, std::vector<InsightIntentInfo> &allConfigInfos);
+    static void RegisterModuleIntents(const std::string &bundleName, uint32_t versionCode,
+        const ExtractInsightIntentProfileInfoVec &allInfos, std::vector<InsightIntentInfo> &allConfigInfos);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
