@@ -125,8 +125,7 @@ HWTEST_F(KioskInterceptorTest, KioskInterceptor_001, TestSize.Level1)
     want.SetParam(AAFwk::SCREEN_MODE_KEY, ScreenMode::IDLE_SCREEN_MODE);
     want.SetAction("com.example.myapplication");
     auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param = AbilityInterceptorParam(want, 0, 0, false, nullptr,
-        shouldBlockFunc);
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, 0, 0).WithUI(false).CallerToken(nullptr).ShouldBlockAllAppStart(shouldBlockFunc).Build();
     KioskManager::GetInstance().kioskStatus_.isKioskMode_ = false;
     int32_t result = kioskInterceptor->DoProcess(param);
     EXPECT_EQ(result, ERR_OK);
@@ -146,8 +145,7 @@ HWTEST_F(KioskInterceptorTest, KioskInterceptor_002, TestSize.Level1)
     want.SetParam(AAFwk::SCREEN_MODE_KEY, ScreenMode::IDLE_SCREEN_MODE);
     want.SetAction("com.example.myapplication");
     auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param = AbilityInterceptorParam(want, 0, 0, false, nullptr,
-        shouldBlockFunc);
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, 0, 0).WithUI(false).CallerToken(nullptr).ShouldBlockAllAppStart(shouldBlockFunc).Build();
     KioskManager::GetInstance().kioskStatus_.isKioskMode_ = true;
     KioskManager::GetInstance().whitelist_.clear();
     int32_t result = kioskInterceptor->DoProcess(param);
@@ -169,8 +167,7 @@ HWTEST_F(KioskInterceptorTest, KioskInterceptor_003, TestSize.Level1)
     want.SetParam(AAFwk::SCREEN_MODE_KEY, ScreenMode::IDLE_SCREEN_MODE);
     want.SetAction("com.example.myapplication");
     auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param = AbilityInterceptorParam(want, 0, 0, false, nullptr,
-        shouldBlockFunc);
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, 0, 0).WithUI(false).CallerToken(nullptr).ShouldBlockAllAppStart(shouldBlockFunc).Build();
     KioskManager::GetInstance().kioskStatus_.isKioskMode_ = true;
     KioskManager::GetInstance().whitelist_.emplace(bundleName);
     int32_t result = kioskInterceptor->DoProcess(param);
@@ -192,8 +189,7 @@ HWTEST_F(KioskInterceptorTest, KioskInterceptor_004, TestSize.Level1)
     want.SetParam(AAFwk::SCREEN_MODE_KEY, ScreenMode::IDLE_SCREEN_MODE);
     want.SetAction("com.example.myapplication");
     auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param = AbilityInterceptorParam(want, 0, 0, false, nullptr,
-        shouldBlockFunc);
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, 0, 0).WithUI(false).CallerToken(nullptr).ShouldBlockAllAppStart(shouldBlockFunc).Build();
     KioskManager::GetInstance().kioskStatus_.isKioskMode_ = true;
     int32_t result = kioskInterceptor->DoProcess(param);
     EXPECT_EQ(result, ERR_KIOSK_MODE_NOT_IN_WHITELIST);
@@ -211,8 +207,7 @@ HWTEST_F(KioskInterceptorTest, KioskInterceptor_005, TestSize.Level1)
     Want want;
     std::string bundleName = "com.test.example";
     auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param = AbilityInterceptorParam(want, 0, 0, false, nullptr,
-        shouldBlockFunc);
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, 0, 0).WithUI(false).CallerToken(nullptr).ShouldBlockAllAppStart(shouldBlockFunc).Build();
     int32_t result = kioskInterceptor->DoProcess(param);
     EXPECT_EQ(result, ERR_OK);
 }

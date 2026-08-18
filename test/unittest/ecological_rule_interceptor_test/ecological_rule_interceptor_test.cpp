@@ -905,8 +905,7 @@ HWTEST_F(EcologicalRuleInterceptorTest, DoProcess_001, TestSize.Level1)
     StartAbilityUtils::skipErms = true;
     int userId = 100;
     auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param = AbilityInterceptorParam(want, requestCode, userId, false, nullptr,
-        shouldBlockFunc);
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId).WithUI(false).CallerToken(nullptr).ShouldBlockAllAppStart(shouldBlockFunc).Build();
     ErrCode result = interceptor->DoProcess(param);
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(StartAbilityUtils::skipErms, false);
@@ -929,8 +928,7 @@ HWTEST_F(EcologicalRuleInterceptorTest, DoProcess_002, TestSize.Level1)
     int requestCode = 0;
     int userId = 100;
     auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param = AbilityInterceptorParam(want, requestCode, userId, false, nullptr,
-        shouldBlockFunc);
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId).WithUI(false).CallerToken(nullptr).ShouldBlockAllAppStart(shouldBlockFunc).Build();
     ErrCode result = interceptor->DoProcess(param);
     EXPECT_EQ(result, ERR_OK);
 }
@@ -973,8 +971,7 @@ HWTEST_F(EcologicalRuleInterceptorTest, DoProcess_004, TestSize.Level1)
     int userId = 100;
     StartAbilityUtils::skipErms = true;
     auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param = AbilityInterceptorParam(want, requestCode, userId, false, nullptr,
-        shouldBlockFunc);
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId).WithUI(false).CallerToken(nullptr).ShouldBlockAllAppStart(shouldBlockFunc).Build();
     ErrCode result = interceptor->DoProcess(param);
     EXPECT_EQ(result, ERR_OK);
     StartAbilityUtils::skipErms = false;
@@ -1022,8 +1019,7 @@ HWTEST_F(EcologicalRuleInterceptorTest, DoProcess_006, TestSize.Level1)
     StartAbilityUtils::skipErms = false;
     int userId = 100;
     auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param = AbilityInterceptorParam(want, requestCode, userId, false, nullptr,
-        shouldBlockFunc);
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId).WithUI(false).CallerToken(nullptr).ShouldBlockAllAppStart(shouldBlockFunc).Build();
     param.isStartAsCaller = true;
     AbilityEcologicalRuleMgrServiceClient::retQueryStartExperience = -1;
     ErrCode result = interceptor->DoProcess(param);
@@ -1049,8 +1045,7 @@ HWTEST_F(EcologicalRuleInterceptorTest, DoProcess_007, TestSize.Level1)
     StartAbilityUtils::skipErms = false;
     int userId = 100;
     auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param = AbilityInterceptorParam(want, requestCode, userId, false, nullptr,
-        shouldBlockFunc);
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId).WithUI(false).CallerToken(nullptr).ShouldBlockAllAppStart(shouldBlockFunc).Build();
     AbilityEcologicalRuleMgrServiceClient::retQueryStartExperience = 0;
     AbilityEcologicalRuleMgrServiceClient::queryStartExperienceRule.resultCode = ERMS_ISALLOW_RESULTCODE;
     ErrCode result = interceptor->DoProcess(param);
@@ -1076,8 +1071,7 @@ HWTEST_F(EcologicalRuleInterceptorTest, DoProcess_008, TestSize.Level1)
     StartAbilityUtils::skipErms = false;
     int userId = 100;
     auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param = AbilityInterceptorParam(want, requestCode, userId, false, nullptr,
-        shouldBlockFunc);
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId).WithUI(false).CallerToken(nullptr).ShouldBlockAllAppStart(shouldBlockFunc).Build();
     AbilityEcologicalRuleMgrServiceClient::retQueryStartExperience = 0;
     AbilityEcologicalRuleMgrServiceClient::queryStartExperienceRule.resultCode = -1;
     OHOS::system::SetParameter(ABILITY_SUPPORT_ECOLOGICAL_RULEMGRSERVICE, "false");
@@ -1104,8 +1098,7 @@ HWTEST_F(EcologicalRuleInterceptorTest, DoProcess_009, TestSize.Level1)
     StartAbilityUtils::skipErms = false;
     int userId = 100;
     auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param = AbilityInterceptorParam(want, requestCode, userId, true, nullptr,
-        shouldBlockFunc);
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId).WithUI(true).CallerToken(nullptr).ShouldBlockAllAppStart(shouldBlockFunc).Build();
     AbilityEcologicalRuleMgrServiceClient::retQueryStartExperience = 0;
     AbilityEcologicalRuleMgrServiceClient::queryStartExperienceRule.resultCode = -1;
     AbilityEcologicalRuleMgrServiceClient::queryStartExperienceRule.replaceWant =
@@ -1142,8 +1135,7 @@ HWTEST_F(EcologicalRuleInterceptorTest, DoProcess_010, TestSize.Level1)
     StartAbilityUtils::skipErms = false;
     int userId = 100;
     auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param = AbilityInterceptorParam(want, requestCode, userId, true, nullptr,
-        shouldBlockFunc);
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId).WithUI(true).CallerToken(nullptr).ShouldBlockAllAppStart(shouldBlockFunc).Build();
     AbilityEcologicalRuleMgrServiceClient::retQueryStartExperience = 0;
     AbilityEcologicalRuleMgrServiceClient::queryStartExperienceRule.resultCode = -1;
     OHOS::system::SetParameter(ABILITY_SUPPORT_ECOLOGICAL_RULEMGRSERVICE, "false");
@@ -1353,8 +1345,7 @@ HWTEST_F(EcologicalRuleInterceptorTest, DoProcess_019, TestSize.Level1)
     int requestCode = 0;
     int userId = 100;
     auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param = AbilityInterceptorParam(want, requestCode, userId, false, nullptr,
-        shouldBlockFunc);
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId).WithUI(false).CallerToken(nullptr).ShouldBlockAllAppStart(shouldBlockFunc).Build();
     param.isTargetPlugin = true;
     ErrCode result = interceptor->DoProcess(param);
     EXPECT_EQ(result, ERR_OK);
@@ -1373,8 +1364,7 @@ HWTEST_F(EcologicalRuleInterceptorTest, DoProcess_020, TestSize.Level1)
     int requestCode = 0;
     int userId = 100;
     auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param = AbilityInterceptorParam(want, requestCode, userId, false, nullptr,
-        shouldBlockFunc);
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId).WithUI(false).CallerToken(nullptr).ShouldBlockAllAppStart(shouldBlockFunc).Build();
     param.hostBundleName = "bundle.test.com";
     ErrCode result = interceptor->DoProcess(param);
     EXPECT_EQ(result, ERR_OK);
@@ -1393,7 +1383,8 @@ HWTEST_F(EcologicalRuleInterceptorTest, NoNeedErms_001, TestSize.Level1)
     int32_t userId = -1;
     int32_t isWithUI = false;
     auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param{want, requestCode, userId, false, nullptr, shouldBlockFunc};
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId)
+        .WithUI(false).CallerToken(nullptr).ShouldBlockAllAppStart(shouldBlockFunc).Build();
     StartAbilityUtils::skipErms = true;
     EXPECT_TRUE(EcologicalRuleInterceptor::NoNeedErms(param));
     EXPECT_FALSE(StartAbilityUtils::skipErms);
