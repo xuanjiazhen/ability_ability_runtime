@@ -142,7 +142,7 @@ std::shared_ptr<AbilityManagerService> AbilityManagerServiceSixthTest::MockAbili
     auto eventHandler = std::make_shared<AbilityEventHandler>(taskHandler, abilityMs);
     abilityMs->taskHandler_ = taskHandler;
     abilityMs->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
-    abilityMs->afterCheckExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+    abilityMs->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
     abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(taskHandler, eventHandler);
     return abilityMs;
 }
@@ -345,7 +345,7 @@ HWTEST_F(AbilityManagerServiceSixthTest, StartAbilityInner_002, TestSize.Level1)
 
     abilityMs->taskHandler_ = MockTaskHandlerWrap::CreateQueueHandler("StartAbilityInner_002");
     abilityMs->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
-    abilityMs->afterCheckExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+    abilityMs->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
     Want want;
     want.SetFlags(Want::FLAG_ABILITY_PREPARE_CONTINUATION);
     StartAbilityWrapParam param = {
@@ -1852,7 +1852,7 @@ HWTEST_F(AbilityManagerServiceSixthTest, StartUIAbilityByPreInstallInner_002, Te
 
     ret = abilityMs->StartUIAbilityByPreInstallInner(sessionInfo, 1, params, isColdStart);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
-    abilityMs->afterCheckExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+    abilityMs->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
     ret = abilityMs->StartUIAbilityByPreInstallInner(sessionInfo, 1, params, isColdStart);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     ret = abilityMs->StartUIAbilityByPreInstallInner(sessionInfo, -1, params, isColdStart);
