@@ -127,8 +127,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     sptr<IRemoteObject> token = GetFuzzAbilityToken();
     auto shouldBlockFunc = []() { return false; };
     
-    AbilityInterceptorParam param =
-        AbilityInterceptorParam(want, requestCode, userId, isWithUI, token, shouldBlockFunc);
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId).WithUI(isWithUI).CallerToken(token).ShouldBlockAllAppStart(shouldBlockFunc).Build();
     param.isTargetPlugin = false;
     param.isStartAsCaller = false;
     param.isWithUI = isWithUI;

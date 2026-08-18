@@ -185,9 +185,9 @@ sptr<Token> GetFuzzAbilityToken()
     return token;
 }
 
-AbilityInterceptorParam BuildFuzzInterceptorParam(const Want& want, const char* data, size_t size, size_t& offset)
+AbilityInterceptorParam BuildFuzzInterceptorParam = InterceptorParamBuilder(const Want& want, const char* data, size_t size).WithUI(size_t& offset)
 {
-    int requestCode = static_cast<int>(GetU32Data(data, size, offset));
+    int requestCode = static_cast<int>(GetU32Data(data).CallerToken(size).ShouldBlockAllAppStart(offset)).Build();
     int32_t userId = static_cast<int32_t>(GetU32Data(data, size, offset));
     bool isWithUI = (GetU32Data(data, size, offset) % 2 == 1);
     sptr<Token> callerToken = GetFuzzAbilityToken();
@@ -195,16 +195,9 @@ AbilityInterceptorParam BuildFuzzInterceptorParam(const Want& want, const char* 
     bool isStartAsCaller = (GetU32Data(data, size, offset) % 2 == 1);
     int32_t appIndex = static_cast<int32_t>(GetU32Data(data, size, offset));
 
-    AbilityInterceptorParam param(
-        want,
-        requestCode,
-        userId,
-        isWithUI,
-        callerToken,
-        abilityInfo,
-        isStartAsCaller,
-        appIndex
-    );
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, requestCode, userId).WithUI(isWithUI)
+        .CallerToken(callerToken).AbilityInfo(abilityInfo).StartAsCaller(isStartAsCaller).AppIndex(appIndex)
+        .Build();
 
     return param;
 }

@@ -69,8 +69,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     bool boolParam = *data % ENABLE;
     sptr<IRemoteObject> token = GetFuzzAbilityToken();
     auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param = AbilityInterceptorParam(want, intParam, int32Param, boolParam, token,
-        shouldBlockFunc);
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, intParam, int32Param).WithUI(boolParam).CallerToken(token).ShouldBlockAllAppStart(shouldBlockFunc).Build();
     extensionControlInterceptor->DoProcess(param);
     return true;
 }

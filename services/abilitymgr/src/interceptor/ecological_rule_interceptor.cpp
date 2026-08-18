@@ -34,6 +34,10 @@ constexpr int32_t ERMS_ISALLOW_EMBED_RESULTCODE = 1;
 ErrCode EcologicalRuleInterceptor::DoProcess(const AbilityInterceptorParam &param)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (param.abilityInfo == nullptr) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "ecological abilityInfo is nullptr, skip");
+        return ERR_OK;
+    }
     if (NoNeedErms(param)) {
         return ERR_OK;
     }
