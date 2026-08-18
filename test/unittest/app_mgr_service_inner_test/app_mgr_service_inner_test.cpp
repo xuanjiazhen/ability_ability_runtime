@@ -7045,8 +7045,11 @@ HWTEST_F(AppMgrServiceInnerTest, SnapshotStartReport_001, TestSize.Level1)
     std::string appVersionName = "1.0.0";
     int32_t result = 0;
     std::string reason = "";
+    auto appRecord = std::make_shared<AppRunningRecord>(applicationInfo_, RECORD_ID, bundleName);
+    ASSERT_NE(appRecord, nullptr);
+    appRecord->SetUid(uid);
 
-    serviceInner->SnapshotStartReport(uid, bundleName, appVersionName, result, reason);
+    serviceInner->SnapshotStartReport(appRecord, uid, bundleName, appVersionName, result, reason);
 
     EXPECT_FALSE(serviceInner->imageStartReportMap_.empty());
     std::string bundleVersionName = bundleName + "_" + std::to_string(uid) + "@" + appVersionName;
@@ -7074,7 +7077,7 @@ HWTEST_F(AppMgrServiceInnerTest, SnapshotStartReport_002, TestSize.Level1)
     int32_t result = -1;
     std::string reason = "error";
 
-    serviceInner->SnapshotStartReport(uid, bundleName, appVersionName, result, reason);
+    serviceInner->SnapshotStartReport(nullptr, uid, bundleName, appVersionName, result, reason);
 
     EXPECT_TRUE(serviceInner->imageStartReportMap_.empty());
 
@@ -7098,8 +7101,8 @@ HWTEST_F(AppMgrServiceInnerTest, SnapshotStartReport_003, TestSize.Level1)
     int32_t result = 0;
     std::string reason = "";
 
-    serviceInner->SnapshotStartReport(uid, bundleName, appVersionName, result, reason);
-    serviceInner->SnapshotStartReport(uid, bundleName, appVersionName, result, reason);
+    serviceInner->SnapshotStartReport(nullptr, uid, bundleName, appVersionName, result, reason);
+    serviceInner->SnapshotStartReport(nullptr, uid, bundleName, appVersionName, result, reason);
 
     std::string bundleVersionName = bundleName + "_" + std::to_string(uid) + "@" + appVersionName;
     auto iter = serviceInner->imageStartReportMap_.find(bundleVersionName);
@@ -7120,8 +7123,8 @@ HWTEST_F(AppMgrServiceInnerTest, SnapshotStartReport_004, TestSize.Level1)
     auto serviceInner = std::make_shared<AppMgrServiceInner>();
     ASSERT_NE(serviceInner, nullptr);
 
-    serviceInner->SnapshotStartReport(1004, "com.example.test4", "1.0.0", 0, "");
-    serviceInner->SnapshotStartReport(1005, "com.example.test4", "2.0.0", 0, "");
+    serviceInner->SnapshotStartReport(nullptr, 1004, "com.example.test4", "1.0.0", 0, "");
+    serviceInner->SnapshotStartReport(nullptr, 1005, "com.example.test4", "2.0.0", 0, "");
 
     EXPECT_EQ(serviceInner->imageStartReportMap_.size(), 2);
 
@@ -7139,12 +7142,12 @@ HWTEST_F(AppMgrServiceInnerTest, SnapshotStartReport_005, TestSize.Level1)
     auto serviceInner = std::make_shared<AppMgrServiceInner>();
     ASSERT_NE(serviceInner, nullptr);
 
-    serviceInner->SnapshotStartReport(1006, "com.example.interval", "1.0.0", 0, "");
+    serviceInner->SnapshotStartReport(nullptr, 1006, "com.example.interval", "1.0.0", 0, "");
     EXPECT_EQ(serviceInner->imageStartReportMap_.size(), 1);
 
     serviceInner->lastReportTime_ = std::chrono::steady_clock::now() - std::chrono::hours(21);
     auto lastReportTime = serviceInner->lastReportTime_;
-    serviceInner->SnapshotStartReport(1007, "com.example.interval", "2.0.0", 0, "");
+    serviceInner->SnapshotStartReport(nullptr, 1007, "com.example.interval", "2.0.0", 0, "");
     EXPECT_TRUE(serviceInner->imageStartReportMap_.empty());
     EXPECT_GE(serviceInner->lastReportTime_, lastReportTime);
 
@@ -7167,8 +7170,11 @@ HWTEST_F(AppMgrServiceInnerTest, SnapshotErrorReport_001, TestSize.Level1)
     std::string appVersionName = "1.0.0";
     int32_t result = -1;
     std::string reason = "test error";
+    auto appRecord = std::make_shared<AppRunningRecord>(applicationInfo_, RECORD_ID, bundleName);
+    ASSERT_NE(appRecord, nullptr);
+    appRecord->SetUid(uid);
 
-    serviceInner->SnapshotErrorReport(uid, bundleName, appVersionName, result, reason);
+    serviceInner->SnapshotErrorReport(appRecord, uid, bundleName, appVersionName, result, reason);
 
     EXPECT_FALSE(serviceInner->imageStartReportMap_.empty());
     std::string bundleVersionName = bundleName + "_" + std::to_string(uid) + "@" + appVersionName;
@@ -7196,7 +7202,7 @@ HWTEST_F(AppMgrServiceInnerTest, SnapshotErrorReport_002, TestSize.Level1)
     int32_t result = -1;
     std::string reason = "test error";
 
-    serviceInner->SnapshotErrorReport(uid, bundleName, appVersionName, result, reason);
+    serviceInner->SnapshotErrorReport(nullptr, uid, bundleName, appVersionName, result, reason);
 
     EXPECT_FALSE(serviceInner->imageStartReportMap_.empty());
     std::string bundleVersionName = bundleName + "_" + std::to_string(uid) + "@" + appVersionName;
@@ -7224,8 +7230,8 @@ HWTEST_F(AppMgrServiceInnerTest, SnapshotErrorReport_003, TestSize.Level1)
     int32_t result = -1;
     std::string reason = "test error";
 
-    serviceInner->SnapshotErrorReport(uid, bundleName, appVersionName, result, reason);
-    serviceInner->SnapshotErrorReport(uid, bundleName, appVersionName, result, reason);
+    serviceInner->SnapshotErrorReport(nullptr, uid, bundleName, appVersionName, result, reason);
+    serviceInner->SnapshotErrorReport(nullptr, uid, bundleName, appVersionName, result, reason);
 
     std::string bundleVersionName = bundleName + "_" + std::to_string(uid) + "@" + appVersionName;
     auto iter = serviceInner->imageStartReportMap_.find(bundleVersionName);
@@ -7249,9 +7255,9 @@ HWTEST_F(AppMgrServiceInnerTest, SnapshotStartReportAndErrorReport_001, TestSize
     std::string bundleName = "com.example.mixedtest";
     std::string appVersionName = "1.0.0";
 
-    serviceInner->SnapshotStartReport(3001, bundleName, appVersionName, 0, "");
-    serviceInner->SnapshotStartReport(3002, bundleName, appVersionName, 0, "");
-    serviceInner->SnapshotErrorReport(3003, bundleName, appVersionName, -1, "error");
+    serviceInner->SnapshotStartReport(nullptr, 3001, bundleName, appVersionName, 0, "");
+    serviceInner->SnapshotStartReport(nullptr, 3002, bundleName, appVersionName, 0, "");
+    serviceInner->SnapshotErrorReport(nullptr, 3003, bundleName, appVersionName, -1, "error");
 
     std::string bundleVersionName1 = bundleName + "_3001@" + appVersionName;
     std::string bundleVersionName2 = bundleName + "_3002@" + appVersionName;
@@ -7285,13 +7291,12 @@ HWTEST_F(AppMgrServiceInnerTest, SnapshotStartReport_DebugAppSkipped, TestSize.L
 
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->bundleName = "com.example.debugapp";
-    auto appRecord = serviceInner->appRunningManager_->CreateAppRunningRecord(
-        appInfo, "com.example.debugapp", BundleInfo(), "");
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.debugapp");
     ASSERT_NE(appRecord, nullptr);
     appRecord->SetUid(4001);
     appRecord->SetDebugApp(true);
 
-    serviceInner->SnapshotStartReport(4001, "com.example.debugapp", "1.0.0", 0, "");
+    serviceInner->SnapshotStartReport(appRecord, 4001, "com.example.debugapp", "1.0.0", 0, "");
     EXPECT_TRUE(serviceInner->imageStartReportMap_.empty());
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
@@ -7310,13 +7315,12 @@ HWTEST_F(AppMgrServiceInnerTest, SnapshotErrorReport_DebugAppSkipped, TestSize.L
 
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->bundleName = "com.example.debugapp";
-    auto appRecord = serviceInner->appRunningManager_->CreateAppRunningRecord(
-        appInfo, "com.example.debugapp", BundleInfo(), "");
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.debugapp");
     ASSERT_NE(appRecord, nullptr);
     appRecord->SetUid(4002);
     appRecord->SetDebugApp(true);
 
-    serviceInner->SnapshotErrorReport(4002, "com.example.debugapp", "1.0.0", -1, "error");
+    serviceInner->SnapshotErrorReport(appRecord, 4002, "com.example.debugapp", "1.0.0", -1, "error");
     EXPECT_TRUE(serviceInner->imageStartReportMap_.empty());
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);

@@ -1550,7 +1550,8 @@ int32_t AppMgrServiceInner::TryToUseImageInfo(std::shared_ptr<AbilityInfo> abili
     }
     appRecord = CreateAppRunningRecordFromImageInfo(imageInfo);
     if (appRecord == nullptr) {
-        SnapshotErrorReport(appInfo->uid, appInfo->bundleName, appInfo->versionName, -1, "appRecord not exist");
+        SnapshotErrorReport(imageInfo->baseAppRecord, appInfo->uid, appInfo->bundleName,
+            appInfo->versionName, -1, "appRecord not exist");
         return ERR_OK;
     }
     int32_t workPid = -1;
@@ -1574,7 +1575,8 @@ int32_t AppMgrServiceInner::TryToUseImageInfo(std::shared_ptr<AbilityInfo> abili
         TAG_LOGE(AAFwkTag::APPMGR, "fork from image failed, imagePid:%{public}d,workpid:%{public}d,errCode:%{public}d",
             imageInfo->imagePid, workPid, errCode);
         DelayedSingleton<AppStateObserverManager>::GetInstance()->OnForkAllWorkProcessFailed(imageInfo, errCode);
-        SnapshotErrorReport(appInfo->uid, appInfo->bundleName, appInfo->versionName, errCode, "forkall failed");
+        SnapshotErrorReport(appRecord, appInfo->uid, appInfo->bundleName,
+            appInfo->versionName, errCode, "forkall failed");
         appRunningManager_->RemoveAppRunningRecordById(appRecord->GetRecordId());
         appRecord = nullptr;
         return ERR_OK;
@@ -1595,17 +1597,16 @@ int32_t AppMgrServiceInner::TryToUseImageInfo(std::shared_ptr<AbilityInfo> abili
         innerService->OnAppStateChanged(appRecord, ApplicationState::APP_STATE_SET_COLD_START, false, false, false);
     }, ffrt::task_attr().name("AppStateChangedNotify")
     .timeout(AbilityRuntime::GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));
-    SnapshotStartReport(appRecord->GetUid(), appInfo->bundleName, appInfo->versionName, 0, "");
+    SnapshotStartReport(appRecord, appRecord->GetUid(), appInfo->bundleName, appInfo->versionName, 0, "");
     return ERR_OK;
 }
 
-void AppMgrServiceInner::SnapshotStartReport(int32_t uid, const std::string &bundleName,
-    const std::string &appVersionName, int32_t result, const std::string &reason)
+void AppMgrServiceInner::SnapshotStartReport(const std::shared_ptr<AppRunningRecord> &appRecord, int32_t uid,
+    const std::string &bundleName, const std::string &appVersionName, int32_t result, const std::string &reason)
 {
     if (result != 0) {
         return;
     }
-    auto appRecord = appRunningManager_->FindMainProcessAppRunningRecord(uid);
     if (appRecord && appRecord->IsDebug()) {
         return;
     }
@@ -1641,10 +1642,9 @@ void AppMgrServiceInner::SnapshotStartReport(int32_t uid, const std::string &bun
     AAFwk::EventReport::SendSnapshotEvent(AAFwk::EventName::SNAPSHOT_REPORT, snapshotInfo);
 }
 
-void AppMgrServiceInner::SnapshotErrorReport(int32_t uid, const std::string &bundleName,
-    const std::string &appVersionName, int32_t result, const std::string &reason)
+void AppMgrServiceInner::SnapshotErrorReport(const std::shared_ptr<AppRunningRecord> &appRecord, int32_t uid,
+    const std::string &bundleName, const std::string &appVersionName, int32_t result, const std::string &reason)
 {
-    auto appRecord = appRunningManager_->FindMainProcessAppRunningRecord(uid);
     if (appRecord && appRecord->IsDebug()) {
         return;
     }
