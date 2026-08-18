@@ -73,7 +73,9 @@ public:
     int32_t JsonArrayToTools(const std::string &jsonStr, std::vector<ToolInfo> &tools);
 
     /**
-     * @brief Ensure tools are loaded from config directory (lazy initialization)
+     * @brief Ensure tools are loaded from config directory (lazy initialization).
+     *        Config directory is read-only and only changes across OTA, so tools are
+     *        reloaded only when the persisted system version differs from the current one.
      * @return int32_t ERR_OK on success, error code otherwise
      */
     int32_t EnsureToolsLoaded();
@@ -130,6 +132,20 @@ private:
      * @return int32_t ERR_OK on success, error code otherwise
      */
     int32_t SyncToolNames(const std::vector<std::string> &currentToolNames);
+
+    /**
+     * @brief Check whether persisted system version matches current one (no OTA occurred)
+     * @param currentVersion Current system version string
+     * @return bool true if versions match and reload can be skipped
+     */
+    bool IsConfigVersionMatched(const std::string &currentVersion);
+
+    /**
+     * @brief Persist current system version after a successful tools load
+     * @param version System version string to persist
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    int32_t SaveConfigVersion(const std::string &version);
 
     DistributedKv::DistributedKvDataManager dataManager_;
     std::shared_ptr<DistributedKv::SingleKvStore> kvStorePtr_;

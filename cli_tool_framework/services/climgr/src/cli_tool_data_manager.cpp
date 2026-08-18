@@ -24,6 +24,7 @@
 
 #include "cli_error_code.h"
 #include "hilog_tag_wrapper.h"
+#include "parameters.h"
 
 namespace OHOS {
 namespace CliTool {
@@ -36,6 +37,8 @@ constexpr const char* KV_STORE_APP_ID = "cli_tools_db";
 constexpr const char* KV_STORE_STORE_ID = "cli_tools_store";
 constexpr const char* CLI_TOOLS_STORAGE_DIR = "/data/service/el1/public/database/aimgr/cli_tool";
 constexpr const char* ALL_CLI_TOOL_NAMES_KEY = "AllCliToolNames";
+constexpr const char* CLI_TOOLS_VERSION_KEY = "CliToolConfigVersion";
+constexpr const char* SYSTEM_VERSION_PARAM = "const.product.software.version";
 
 const DistributedKv::AppId APP_ID { KV_STORE_APP_ID };
 const DistributedKv::StoreId STORE_ID { KV_STORE_STORE_ID };
@@ -114,13 +117,65 @@ int32_t CliToolDataManager::EnsureToolsLoaded()
         return ERR_KVSTORE_NOT_READY;
     }
 
+    // The config directory is on the read-only system partition and only changes across
+    // OTA. Skip the expensive directory scan and KV rewrite when the persisted system
+    // version matches the current one.
+    std::string currentVersion = system::GetParameter(SYSTEM_VERSION_PARAM, "");
+    if (IsConfigVersionMatched(currentVersion)) {
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "System version unchanged, skip reloading tools");
+        toolsLoaded_ = true;
+        return ERR_OK;
+    }
+
     int32_t ret = LoadToolsFromDir(DEFAULT_CONFIG_DIR);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to load tools from config dir: %{public}d", ret);
         return ret;
     }
 
+    int32_t versionRet = SaveConfigVersion(currentVersion);
+    if (versionRet != ERR_OK) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "Failed to save config version: %{public}d", versionRet);
+    }
+
     toolsLoaded_ = true;
+    return ERR_OK;
+}
+
+bool CliToolDataManager::IsConfigVersionMatched(const std::string &currentVersion)
+{
+    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+    if (!CheckKvStore()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready for IsConfigVersionMatched");
+        return false;
+    }
+
+    DistributedKv::Key versionKey(CLI_TOOLS_VERSION_KEY);
+    DistributedKv::Value savedValue;
+    DistributedKv::Status status = kvStorePtr_->Get(versionKey, savedValue);
+    if (status != DistributedKv::Status::SUCCESS) {
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "No saved config version, need reload: %{public}d",
+            static_cast<int>(status));
+        return false;
+    }
+    return savedValue.ToString() == currentVersion;
+}
+
+int32_t CliToolDataManager::SaveConfigVersion(const std::string &version)
+{
+    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+    if (!CheckKvStore()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready for SaveConfigVersion");
+        return ERR_KVSTORE_NOT_READY;
+    }
+
+    DistributedKv::Key versionKey(CLI_TOOLS_VERSION_KEY);
+    DistributedKv::Value versionValue(version);
+    DistributedKv::Status status = kvStorePtr_->Put(versionKey, versionValue);
+    if (status != DistributedKv::Status::SUCCESS) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "Failed to save config version: %{public}d", static_cast<int>(status));
+        return -1;
+    }
     return ERR_OK;
 }
 
