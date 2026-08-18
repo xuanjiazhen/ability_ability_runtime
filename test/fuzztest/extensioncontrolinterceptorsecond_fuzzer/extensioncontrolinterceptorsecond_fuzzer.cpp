@@ -132,9 +132,9 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     bool isStartAsCaller = (GetU32Data(data) % 2) == 1;
     int32_t appIndex = static_cast<int32_t>(GetU32Data(data) % 100);
 
-    AbilityInterceptorParam param1(want, intParam, int32Param, boolParam, token, shouldBlockFunc);
-    AbilityInterceptorParam param2(want, intParam, int32Param, boolParam, token,
-        abilityInfo, isStartAsCaller, appIndex);
+    AbilityInterceptorParam param1 = InterceptorParamBuilder(want, intParam, int32Param).WithUI(boolParam).CallerToken(token).ShouldBlockAllAppStart(shouldBlockFunc).Build();
+    AbilityInterceptorParam param2 = InterceptorParamBuilder(want, intParam, int32Param).WithUI(boolParam)
+        .CallerToken(token).AbilityInfo(abilityInfo).StartAsCaller(isStartAsCaller).AppIndex(appIndex).Build();
     
     param1.isTargetPlugin = true;
     param2.isTargetPlugin = false;

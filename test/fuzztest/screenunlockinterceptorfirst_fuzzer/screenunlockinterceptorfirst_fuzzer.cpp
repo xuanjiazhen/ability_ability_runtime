@@ -129,7 +129,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     bool boolParam = (GetU32Data(data) % ENABLE) == 1;
     sptr<IRemoteObject> token = GetFuzzAbilityToken(data, size);
     static auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param(want, intParam, int32Param, boolParam, token, shouldBlockFunc);
+    AbilityInterceptorParam param = InterceptorParamBuilder(want, intParam, int32Param).WithUI(boolParam).CallerToken(token).ShouldBlockAllAppStart(shouldBlockFunc).Build();
     AppExecFwk::AbilityInfo targetAbilityInfo = BuildFuzzAbilityInfo(data, size);
     
     (void)screenUnlockInterceptor->DoProcess(param);
