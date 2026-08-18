@@ -650,7 +650,7 @@ int AppfreezeInner::AppfreezeHandle(const FaultData& faultData, bool onlyMainThr
     int32_t pid = static_cast<int32_t>(getpid());
     std::string bundleName = GetBundleNameByApplication();
     if (IsAsanEnabled()) {
-        TAG_LOGI(AAFwkTag::APPMGR, "asan enable, bundleName:%{public}s, pid:%{public}d", bundleName.c_str(), pid);
+        TAG_LOGI(AAFwkTag::APPMGR, "skip freeze detect cause asan enable, bundleName:%{public}s, pid:%{public}d", bundleName.c_str(), pid);
         return ERR_OK;
     }
     if (!IsHandleAppfreeze() || IsProcessDebug(pid, bundleName)) {
