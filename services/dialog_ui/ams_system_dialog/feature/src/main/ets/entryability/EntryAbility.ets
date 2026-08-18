@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { AbilityConstant, application, ConfigurationConstant, errorManager, UIAbility, Want } from '@kit.AbilityKit';
+import { AbilityConstant, application, Configuration, ConfigurationConstant, errorManager, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
 import { BusinessError } from '@kit.BasicServicesKit';
@@ -111,9 +111,15 @@ export default class EntryAbility extends UIAbility {
           }).catch((err:BusinessError) => {
             hilog.error(DOMAIN, TAG, 'Failed to set the window layout to full-screen mode. Cause: %{public}s', JSON.stringify(err));
           })
+          const systemBarColor = this.getSystemBarColor();
+          data.setWindowBackgroundColor(systemBarColor).then(() => {
+            hilog.info(DOMAIN, TAG, 'Succeeded in setting the window background color.');
+          }).catch((err: BusinessError) => {
+            hilog.error(DOMAIN, TAG, 'Failed to set the window background color. Cause: %{public}s', JSON.stringify(err));
+          })
           data.setWindowSystemBarProperties({
-            navigationBarColor: '#F1F3F5',
-            statusBarColor: '#F1F3F5'
+            navigationBarColor: systemBarColor,
+            statusBarColor: systemBarColor
           }).then(() => {
             hilog.info(DOMAIN, TAG, 'Succeeded in setting the system bar properties.');
           }).catch((err: BusinessError) => {
@@ -128,6 +134,46 @@ export default class EntryAbility extends UIAbility {
 
   onWindowStageDestroy(): void {
     hilog.info(DOMAIN, TAG, '%{public}s', 'Ability onWindowStageDestroy');
+  }
+
+  getSystemBarColor(): string {
+    try {
+      const color: number = this.context.resourceManager.getColorSync($r('app.color.background_cont'));
+      return '#' + color.toString(16).padStart(8, '0');
+    } catch (err) {
+      hilog.error(DOMAIN, TAG, 'getColorSync failed. Cause: %{public}s', JSON.stringify(err));
+      return '#F1F3F5';
+    }
+  }
+
+  updateWindowAppearance(): void {
+    try {
+      window.getLastWindow(this.context).then((win: window.Window) => {
+        const systemBarColor = this.getSystemBarColor();
+        win.setWindowBackgroundColor(systemBarColor).then(() => {
+          hilog.info(DOMAIN, TAG, 'Succeeded in updating the window background color.');
+        }).catch((err: BusinessError) => {
+          hilog.error(DOMAIN, TAG, 'Failed to update the window background color. Cause: %{public}s', JSON.stringify(err));
+        });
+        win.setWindowSystemBarProperties({
+          navigationBarColor: systemBarColor,
+          statusBarColor: systemBarColor
+        }).then(() => {
+          hilog.info(DOMAIN, TAG, 'Succeeded in updating the system bar properties.');
+        }).catch((err: BusinessError) => {
+          hilog.error(DOMAIN, TAG, 'Failed to update the system bar properties. Cause: %{public}s', JSON.stringify(err));
+        });
+      }).catch((err: BusinessError) => {
+        hilog.error(DOMAIN, TAG, 'Failed to get last window. Cause: %{public}s', JSON.stringify(err));
+      });
+    } catch (err) {
+      hilog.error(DOMAIN, TAG, 'updateWindowAppearance error. Cause: %{public}s', JSON.stringify(err));
+    }
+  }
+
+  onConfigurationUpdate(newConfig: Configuration): void {
+    super.onConfigurationUpdate(newConfig);
+    this.updateWindowAppearance();
   }
 
   onForeground(): void {
