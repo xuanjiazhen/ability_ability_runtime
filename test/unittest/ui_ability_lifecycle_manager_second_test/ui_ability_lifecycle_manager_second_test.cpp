@@ -1215,17 +1215,16 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, SetSandboxCloneParamsForSession_00
 
     mgr->SetSandboxCloneParamsForSession(sessionInfo, abilityRequest);
 
-    EXPECT_FALSE(sessionInfo->want.GetBoolParam(
-        AbilityRuntime::GlobalConstant::IS_WEB_SANDBOX_CLONE, false));
     EXPECT_EQ(sessionInfo->want.GetIntParam(
         AbilityRuntime::GlobalConstant::SANDBOX_CLONE_INDEX, -1), -1);
-    EXPECT_TRUE(sessionInfo->want.GetStringParam(
-        AbilityRuntime::GlobalConstant::CLI_CALLER_BUNDLE_NAME).empty());
+    AbilitySessionInfo info;
+    EXPECT_FALSE(mgr->GetAbilitySessionInfo(sessionInfo->requestId, info));
 }
 
 /**
  * @tc.name: UIAbilityLifecycleManager_SetSandboxCloneParamsForSession_0300
- * @tc.desc: SetSandboxCloneParamsForSession with isWebSandBoxClone true stores all params into sessionInfo->want.
+ * @tc.desc: SetSandboxCloneParamsForSession with isWebSandBoxClone true stores caller info in the map,
+ *           not in sessionInfo->want.
  * @tc.type: FUNC
  */
 HWTEST_F(UIAbilityLifecycleManagerSecondTest, SetSandboxCloneParamsForSession_003, TestSize.Level1)
@@ -1233,25 +1232,28 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, SetSandboxCloneParamsForSession_00
     auto mgr = std::make_shared<UIAbilityLifecycleManager>();
     sptr<SessionInfo> sessionInfo(new SessionInfo());
     ASSERT_NE(sessionInfo, nullptr);
+    sessionInfo->requestId = 12345;
     AbilityRequest abilityRequest;
     abilityRequest.isWebSandBoxClone = true;
     abilityRequest.abilityInfo.applicationInfo.appIndex = 2000;
     const std::string callerBundleName = "com.test.cli.caller";
-    const std::string callerTokenId = "537919265";
-    abilityRequest.want.SetParam(AbilityRuntime::GlobalConstant::CLI_CALLER_BUNDLE_NAME, callerBundleName);
-    abilityRequest.want.SetParam(AbilityRuntime::GlobalConstant::CLI_CALLER_TOKEN_ID, callerTokenId);
+    const uint32_t callerTokenId = 537919265;
+    abilityRequest.sandboxCloneParams = std::make_shared<SandboxCloneParams>();
+    abilityRequest.sandboxCloneParams->callerBundleName = callerBundleName;
+    abilityRequest.sandboxCloneParams->callerTokenId = callerTokenId;
 
     mgr->SetSandboxCloneParamsForSession(sessionInfo, abilityRequest);
 
-    EXPECT_TRUE(sessionInfo->want.GetBoolParam(
-        AbilityRuntime::GlobalConstant::IS_WEB_SANDBOX_CLONE, false));
     EXPECT_EQ(sessionInfo->want.GetIntParam(
         AbilityRuntime::GlobalConstant::SANDBOX_CLONE_INDEX, -1),
         abilityRequest.abilityInfo.applicationInfo.appIndex);
-    EXPECT_EQ(sessionInfo->want.GetStringParam(
-        AbilityRuntime::GlobalConstant::CLI_CALLER_BUNDLE_NAME), callerBundleName);
-    EXPECT_EQ(sessionInfo->want.GetStringParam(
-        AbilityRuntime::GlobalConstant::CLI_CALLER_TOKEN_ID), callerTokenId);
+    // Caller info must be stored in the internal map.
+    AbilitySessionInfo info;
+    EXPECT_TRUE(mgr->GetAbilitySessionInfo(sessionInfo->requestId, info));
+    EXPECT_EQ(info.callerBundleName, callerBundleName);
+    EXPECT_EQ(info.callerTokenId, callerTokenId);
+    EXPECT_TRUE(info.isWebSandBoxClone);
+    mgr->RemoveAbilitySessionInfo(sessionInfo->requestId);
 }
 
 /**

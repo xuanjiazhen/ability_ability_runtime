@@ -2979,7 +2979,7 @@ private:
     int StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionInfo, AbilityRuntime::StartParamsBySCB &params,
         bool &isColdStart);
     int HandleSandboxCloneLaunch(sptr<SessionInfo> sessionInfo, std::shared_ptr<SandboxCloneParams> &sandboxCloneParams,
-        int32_t currentUserId, std::shared_ptr<EventInfo> eventInfo);
+        int32_t currentUserId, std::shared_ptr<EventInfo> eventInfo, const AbilitySessionInfo &abilitySessionInfo);
     int StartUIAbilityByPreInstallInner(sptr<SessionInfo> sessionInfo, uint32_t specifyTokenId,
         AbilityRuntime::StartParamsBySCB &params, bool &isColdStart);
     int32_t PreStartInner(const FreeInstallInfo& taskInfo);
