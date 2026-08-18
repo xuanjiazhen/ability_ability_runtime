@@ -423,15 +423,23 @@ std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateCallerAbilityInfo(cons
 
 bool StartAbilityUtils::IsCallFromAncoShellOrBroker(const sptr<IRemoteObject> &callerToken)
 {
+    // Trust the IPC-derived identity instead of the caller-supplied token:
+    // the token argument can be forged and GetCallerAbilityInfo may return a
+    // stale thread-local identity, so resolve the caller bundle from its UID.
+    (void)callerToken;
     auto callingUid = IPCSkeleton::GetCallingUid();
     if (callingUid == AppUtils::GetInstance().GetCollaboratorBrokerUID()) {
         return true;
     }
-    AppExecFwk::AbilityInfo callerAbilityInfo;
-    if (GetCallerAbilityInfo(callerToken, callerAbilityInfo)) {
-        return callerAbilityInfo.bundleName == AppUtils::GetInstance().GetBrokerDelegateBundleName();
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+    if (bundleMgrHelper == nullptr) {
+        return false;
     }
-    return false;
+    std::string callerBundleName;
+    if (IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callingUid, callerBundleName)) != ERR_OK) {
+        return false;
+    }
+    return callerBundleName == AppUtils::GetInstance().GetBrokerDelegateBundleName();
 }
 
 void StartAbilityUtils::SetTargetCloneIndexInSameBundle(const Want &want, sptr<IRemoteObject> callerToken)

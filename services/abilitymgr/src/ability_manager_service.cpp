@@ -1370,6 +1370,13 @@ void AbilityManagerService::CheckExtensionRateLimit(const Want &want)
 int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    // The non-standard scheme uri pass-through flag (ohos.want.setUriWithOriginString)
+    // is only honored when the call comes from the in-lake(anco/broker) source.
+    // Strip it for any other caller (including a third-party re-forward) so that
+    // the scheme validation cannot be bypassed.
+    if (!StartAbilityUtils::IsCallFromAncoShellOrBroker(param.callerToken)) {
+        param.want.RemoveParam(Want::PARAM_SET_URI_WITH_ORIGIN_STRING);
+    }
     if (!param.isStartAsCaller || param.isImplicit) {
         param.want.RemoveParam("ability.params.picker.erms.policy");
     }
