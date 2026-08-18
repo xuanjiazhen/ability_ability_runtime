@@ -96,8 +96,8 @@ ErrCode DisposedRuleInterceptor::DoProcess(const AbilityInterceptorParam &param)
         return ERR_OK;
     }
     if (param.abilityInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "disposed abilityInfo is nullptr");
-        return RESOLVE_ABILITY_ERR;
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "disposed abilityInfo is nullptr, skip non-block rule");
+        return ERR_OK;
     }
     return StartNonBlockRule(param.want, disposedRule, param.abilityInfo);
 }

@@ -228,13 +228,11 @@ void TestNoNeedErms(
     auto blockFunc = []() { return false; };
     Want sameBundleWant = BuildSameBundleWant(fdp);
     int32_t userId = fdp.ConsumeIntegralInRange<int32_t>(0, TEST_USER_ID);
-    AbilityInterceptorParam sameParam(
-        sameBundleWant, 0, userId, false, nullptr, blockFunc);
+    AbilityInterceptorParam sameParam = InterceptorParamBuilder(sameBundleWant, 0, userId).WithUI(false).CallerToken(nullptr).Build();
     sameParam.isTargetPlugin = false;
     interceptor->NoNeedErms(sameParam);
     Want diffBundleWant = BuildDifferentBundleWant(fdp);
-    AbilityInterceptorParam pluginParam(
-        diffBundleWant, 0, userId, false, nullptr, blockFunc);
+    AbilityInterceptorParam pluginParam = InterceptorParamBuilder(diffBundleWant, 0, userId).WithUI(false).CallerToken(nullptr).Build();
     pluginParam.isTargetPlugin = true;
     interceptor->NoNeedErms(pluginParam);
 }
