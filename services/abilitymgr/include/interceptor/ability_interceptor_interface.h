@@ -24,28 +24,44 @@
 namespace OHOS {
 namespace AAFwk {
 struct AbilityInterceptorParam {
-    AbilityInterceptorParam(const Want &want, int requestCode, int32_t userId, bool isWithUI,
-        const sptr<IRemoteObject> &callerToken, const std::function<bool(void)> &shouldBlockAllAppStartFunc)
-        : want(want), requestCode(requestCode), userId(userId),
-        isWithUI(isWithUI), callerToken(callerToken), shouldBlockAllAppStartFunc_(shouldBlockAllAppStartFunc){};
-    AbilityInterceptorParam(const Want &want, int requestCode, int32_t userId, bool isWithUI,
-        const sptr<IRemoteObject> &callerToken, const std::shared_ptr<AppExecFwk::AbilityInfo> &abilityInfo,
-        bool isStartAsCaller = false, int32_t appIndex = 0, const StartOptions* startOptions = nullptr) : want(want),
-        requestCode(requestCode), userId(userId), isWithUI(isWithUI), callerToken(callerToken),
-        abilityInfo(abilityInfo), isStartAsCaller(isStartAsCaller), appIndex(appIndex), startOptions(startOptions){};
-    const Want &want;
-    int32_t requestCode;
-    int32_t userId;
+    Want want;
+    int32_t requestCode = 0;
+    int32_t userId = 0;
     bool isWithUI = false;
     sptr<IRemoteObject> callerToken = nullptr;
-    std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo;  // target abilityInfo get in afterCheckExecuter_
+    std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo;  // resolved target abilityInfo passed to the interceptor
     bool isStartAsCaller = false;
     int32_t appIndex = 0;
-    std::function<bool(void)> shouldBlockAllAppStartFunc_;
     bool isTargetPlugin = false; //Is it pulling up a plugin
     std::string hostBundleName;
     const StartOptions* startOptions = nullptr;
     bool fromConnect = false;
+};
+
+// Fluent builder: setters mutate an internal AbilityInterceptorParam directly, Build() moves it out.
+// Defined after AbilityInterceptorParam so it can hold one by value.
+class InterceptorParamBuilder {
+public:
+    InterceptorParamBuilder(const Want &want, int32_t requestCode, int32_t userId)
+    {
+        param_.want = want;
+        param_.requestCode = requestCode;
+        param_.userId = userId;
+    }
+    ~InterceptorParamBuilder() = default;
+    InterceptorParamBuilder &WithUI(bool isWithUI) { param_.isWithUI = isWithUI; return *this; }
+    InterceptorParamBuilder &CallerToken(const sptr<IRemoteObject> &callerToken) { param_.callerToken = callerToken; return *this; }
+    InterceptorParamBuilder &AbilityInfo(const std::shared_ptr<AppExecFwk::AbilityInfo> &abilityInfo)
+    { param_.abilityInfo = abilityInfo; return *this; }
+    InterceptorParamBuilder &StartAsCaller(bool isStartAsCaller) { param_.isStartAsCaller = isStartAsCaller; return *this; }
+    InterceptorParamBuilder &AppIndex(int32_t appIndex) { param_.appIndex = appIndex; return *this; }
+    InterceptorParamBuilder &WithStartOptions(const StartOptions *startOptions) { param_.startOptions = startOptions; return *this; }
+    InterceptorParamBuilder &HostBundleName(const std::string &hostBundleName) { param_.hostBundleName = hostBundleName; return *this; }
+    InterceptorParamBuilder &IsTargetPlugin(bool isTargetPlugin) { param_.isTargetPlugin = isTargetPlugin; return *this; }
+    InterceptorParamBuilder &FromConnect(bool fromConnect) { param_.fromConnect = fromConnect; return *this; }
+    AbilityInterceptorParam Build() { return std::move(param_); }
+private:
+    AbilityInterceptorParam param_;
 };
 
 /**
