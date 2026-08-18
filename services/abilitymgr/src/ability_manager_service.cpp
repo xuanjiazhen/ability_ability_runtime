@@ -271,7 +271,7 @@ constexpr const char* IS_PRELOADED_UI_EXTENSION_SUCCESS = "ability.want.params.i
 constexpr const char* UIEXTENSION_MODAL_TYPE = "ability.want.params.modalType";
 constexpr const char* SUPPORT_CLOSE_ON_BLUR = "supportCloseOnBlur";
 constexpr const char* ATOMIC_SERVICE_PREFIX = "com.atomicservice.";
-constexpr const char* PARAM_SPECIFIED_PROCESS_FLAG = "ohosSpecifiedProcessFlag";
+constexpr const char* PARAM_SPECIFIED_PROCESS_FLAG = "ohoSpecifiedProcessFlag";
 #ifdef MEMMGR_OVERRIDE_ENABLE
 constexpr const char* EXPECT_WINDOW_MODE = "expectWindowMode";
 #endif
