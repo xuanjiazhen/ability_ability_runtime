@@ -253,6 +253,11 @@ int UIExtensionAbilityManager::UnloadUIExtensionAbility(
     uiExtensionAbilityRecordMgr_->RemovePreloadUIExtensionRecordById(preLoadUIExtensionInfo, extensionRecordId);
 
     auto token = abilityRecord->GetToken();
+    // 告警28直接相关: 获取 serialMutex_ 锁，与 AbilityConnectManager::TerminateAbility
+    // (ability_connect_manager.cpp:115-118) 保持一致。TerminateAbilityInner 内部存在
+    // TOCTOU 窗口（先 GetExtensionByTokenFromServiceMap 再 MoveToTerminatingMap，
+    // 两次加锁之间无保护），不加锁可导致重复终止、状态不一致甚至 UAF/系统服务崩溃
+    std::lock_guard guard(serialMutex_);
     auto result = TerminateAbilityInner(token);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "terminate error");
