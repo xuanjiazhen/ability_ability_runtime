@@ -83,7 +83,9 @@ bool ScreenUnlockInterceptor::GetTargetAbilityInfo(const AbilityInterceptorParam
         return true;
     }
 
-    if (param.fromConnect) {
+    const auto *suCtx = param.GetContext<AbilityInterceptorParam::ScreenUnlockCtx>();
+    bool fromConnect = suCtx && suCtx->fromConnect;
+    if (fromConnect) {
         std::string uri = param.want.GetUriRef().ToString();
         bool isFileUri = (param.want.GetUri().GetScheme() == "file");
         if (!uri.empty() && !isFileUri) {
