@@ -55,12 +55,14 @@ std::string DisposedRuleInterceptor::GenerateEventTaskName(int32_t uid)
 ErrCode DisposedRuleInterceptor::DoProcess(const AbilityInterceptorParam &param)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call");
+    const auto *dispCtx = param.GetContext<AbilityInterceptorParam::DisposedCtx>();
+    int32_t appIndex = dispCtx ? dispCtx->appIndex : 0;
     AppExecFwk::DisposedRule disposedRule;
-    if (CheckControl(param.want, param.userId, disposedRule, param.appIndex)) {
+    if (CheckControl(param.want, param.userId, disposedRule, appIndex)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "disposedType: %{public}d, controlType: %{public}d, componentType: %{public}d",
             disposedRule.disposedType, disposedRule.controlType, disposedRule.componentType);
 #ifdef SUPPORT_GRAPHICS
-        if (!param.isWithUI || disposedRule.want == nullptr
+        if (!param.isVisible || disposedRule.want == nullptr
             || disposedRule.disposedType == AppExecFwk::DisposedType::NON_BLOCK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "no dispose want");
             return AbilityUtil::EdmErrorType(disposedRule.isEdm);
@@ -96,8 +98,8 @@ ErrCode DisposedRuleInterceptor::DoProcess(const AbilityInterceptorParam &param)
         return ERR_OK;
     }
     if (param.abilityInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "disposed abilityInfo is nullptr");
-        return RESOLVE_ABILITY_ERR;
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "disposed abilityInfo is nullptr, skip non-block rule");
+        return ERR_OK;
     }
     return StartNonBlockRule(param.want, disposedRule, param.abilityInfo);
 }
@@ -321,12 +323,14 @@ void DisposedRuleInterceptor::SetInterceptInfo(const Want &want, AppExecFwk::Dis
 
 bool DisposedRuleInterceptor::IsSkipDisposeRule(AppExecFwk::PageJumpMode mode, const AbilityInterceptorParam &param)
 {
-    if (param.startOptions == nullptr || param.startOptions->processOptions == nullptr) {
+    const auto *dispCtx = param.GetContext<AbilityInterceptorParam::DisposedCtx>();
+    const StartOptions *startOptions = dispCtx ? dispCtx->startOptions : nullptr;
+    if (startOptions == nullptr || startOptions->processOptions == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null startOptions or processOptions");
         return false;
     }
     return mode == AppExecFwk::PageJumpMode::PAGE_JUMP_WINDOW_NOT_SHOW &&
-        param.startOptions->processOptions->startupVisibility == StartupVisibility::STARTUP_HIDE;
+        startOptions->processOptions->startupVisibility == StartupVisibility::STARTUP_HIDE;
 }
 } // namespace AAFwk
 } // namespace OHOS
