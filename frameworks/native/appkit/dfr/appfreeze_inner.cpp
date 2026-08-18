@@ -585,7 +585,8 @@ void AppfreezeInner::AppfreezeHandleOverReportCount(bool isSixSecondEvent)
     }
     std::string bundleName = GetBundleNameByApplication();
     if (IsAsanEnabled()) {
-        TAG_LOGI(AAFwkTag::APPMGR, "asan enable, bundleName:%{public}s, pid:%{public}d", bundleName.c_str(), pid);
+        TAG_LOGI(AAFwkTag::APPMGR, "skip freeze detect cause asan enable, bundleName:%{public}s, pid:%{public}d",
+                 bundleName.c_str(), pid);
         return;
     }
     if (!IsHandleAppfreeze() || IsProcessDebug(pid, bundleName)) {
