@@ -701,27 +701,7 @@ napi_value JsUIExtensionContentSession::OnSetReceiveDataForResultCallback(napi_e
     }
 
     if (!isSyncRegistered) {
-        if (uiWindow_ == nullptr) {
-            TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow_");
-            ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
-                GetInnerErrorMsg(AbilityInnerErrorMsg::INVALID_SESSION));
-            return CreateJsUndefined(env);
-        }
-        receiveDataForResultCallback_ = std::make_shared<CallbackWrapper>();
-        std::weak_ptr<CallbackWrapper> weakCallback(receiveDataForResultCallback_);
-        auto handler = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
-        uiWindow_->RegisterTransferComponentDataForResultListener([env, handler, weakCallback] (
-            const AAFwk::WantParams& wantParams) -> AAFwk::WantParams {
-                AAFwk::WantParams retWantParams;
-                if (handler) {
-                    handler->PostSyncTask([env, weakCallback, wantParams, &retWantParams]() {
-                        JsUIExtensionContentSession::CallReceiveDataCallbackForResult(env, weakCallback,
-                            wantParams, retWantParams);
-                        }, "JsUIExtensionContentSession:OnSetReceiveDataForResultCallback");
-                }
-                return retWantParams;
-        });
-        isSyncRegistered = true;
+        RegisterReceiveDataForResultListener(env);
     }
     napi_value callback = info.argv[INDEX_ZERO];
     if (receiveDataForResultCallback_ == nullptr) {
@@ -738,8 +718,32 @@ napi_value JsUIExtensionContentSession::OnSetReceiveDataForResultCallback(napi_e
     }
     receiveDataForResultCallback_->ResetCallback(
         std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference*>(ref)));
-
     return CreateJsUndefined(env);
+}
+
+void JsUIExtensionContentSession::RegisterReceiveDataForResultListener(napi_env env)
+{
+    if (uiWindow_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow_");
+        ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+            GetInnerErrorMsg(AbilityInnerErrorMsg::INVALID_SESSION));
+        return;
+    }
+    receiveDataForResultCallback_ = std::make_shared<CallbackWrapper>();
+    std::weak_ptr<CallbackWrapper> weakCallback(receiveDataForResultCallback_);
+    auto handler = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
+    uiWindow_->RegisterTransferComponentDataForResultListener([env, handler, weakCallback] (
+        const AAFwk::WantParams& wantParams) -> AAFwk::WantParams {
+            AAFwk::WantParams retWantParams;
+            if (handler) {
+                handler->PostSyncTask([env, weakCallback, wantParams, &retWantParams]() {
+                    JsUIExtensionContentSession::CallReceiveDataCallbackForResult(env, weakCallback,
+                        wantParams, retWantParams);
+                    }, "JsUIExtensionContentSession:OnSetReceiveDataForResultCallback");
+            }
+            return retWantParams;
+    });
+    isSyncRegistered = true;
 }
 
 napi_value JsUIExtensionContentSession::OnLoadContent(napi_env env, NapiCallbackInfo& info)

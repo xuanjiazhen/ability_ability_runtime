@@ -48,9 +48,9 @@ bool AbilityWindow::InitWindow(const std::shared_ptr<AbilityRuntime::AbilityCont
         TAG_LOGE(AAFwkTag::ABILITY, "null abilityContext");
         return false;
     }
-    if (option == nullptr) { 
+    if (option == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "null option");
-        return false; 
+        return false;
     }
     if (windowScene_ == nullptr) {
         windowScene_ = std::make_shared<Rosen::WindowScene>();

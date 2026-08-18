@@ -652,14 +652,14 @@ HWTEST_F(FaAbilityThreadTest, AaFwk_AbilityThread_SchedulePrepareTerminateAbilit
 }
 
 /**
- * @tc.number: AaFwk_AbilityThread_DumpAbilityInfoInner_NullAbilityImpl_0100
+ * @tc.number: AaFwk_AbilityThread_DumpAbilityInfoInner_NullImpl_0100
  * @tc.name: DumpAbilityInfoInner with null abilityImpl_ skips ability dump
  * @tc.desc: Test DumpAbilityInfoInner does not crash when abilityImpl_ is null.
  *           abilityImpl_==null means JsAbility::Init was never called.
  */
-HWTEST_F(FaAbilityThreadTest, AaFwk_AbilityThread_DumpAbilityInfoInner_NullAbilityImpl_0100, Function | MediumTest | Level1)
+HWTEST_F(FaAbilityThreadTest, AaFwk_AbilityThread_DumpAbilityInfoInner_NullImpl_0100, Function | MediumTest | Level1)
 {
-    GTEST_LOG_(INFO) << "AaFwk_AbilityThread_DumpAbilityInfoInner_NullAbilityImpl_0100 start";
+    GTEST_LOG_(INFO) << "AaFwk_AbilityThread_DumpAbilityInfoInner_NullImpl_0100 start";
     AbilityRuntime::FAAbilityThread *abilitythread = new (std::nothrow) AbilityRuntime::FAAbilityThread();
     ASSERT_NE(abilitythread, nullptr);
 
@@ -675,17 +675,17 @@ HWTEST_F(FaAbilityThreadTest, AaFwk_AbilityThread_DumpAbilityInfoInner_NullAbili
     SUCCEED();
 
     delete abilitythread;
-    GTEST_LOG_(INFO) << "AaFwk_AbilityThread_DumpAbilityInfoInner_NullAbilityImpl_0100 end";
+    GTEST_LOG_(INFO) << "AaFwk_AbilityThread_DumpAbilityInfoInner_NullImpl_0100 end";
 }
 
 /**
- * @tc.number: AaFwk_AbilityThread_HandlePrepareTerminateAbility_NullAbilityImpl_0100
+ * @tc.number: AaFwk_AbilityThread_HandlePrepareTerminateAbility_NullImpl_0100
  * @tc.name: HandlePrepareTerminateAbility with null abilityImpl_ triggers notify
  * @tc.desc: Test HandlePrepareTerminateAbility notifies waiting thread when abilityImpl_ is null
  */
-HWTEST_F(FaAbilityThreadTest, AaFwk_AbilityThread_HandlePrepareTerminateAbility_NullAbilityImpl_0100, Function | MediumTest | Level1)
+HWTEST_F(FaAbilityThreadTest, AaFwk_AbilityThread_HandlePrepareTerminateAbility_NullImpl_0100, Function | MediumTest | Level1)
 {
-    GTEST_LOG_(INFO) << "AaFwk_AbilityThread_HandlePrepareTerminateAbility_NullAbilityImpl_0100 start";
+    GTEST_LOG_(INFO) << "AaFwk_AbilityThread_HandlePrepareTerminateAbility_NullImpl_0100 start";
     AbilityRuntime::FAAbilityThread *abilitythread = new (std::nothrow) AbilityRuntime::FAAbilityThread();
     ASSERT_NE(abilitythread, nullptr);
 
@@ -697,17 +697,17 @@ HWTEST_F(FaAbilityThreadTest, AaFwk_AbilityThread_HandlePrepareTerminateAbility_
     EXPECT_TRUE(abilitythread->isPrepareTerminateAbilityDone_.load());
 
     delete abilitythread;
-    GTEST_LOG_(INFO) << "AaFwk_AbilityThread_HandlePrepareTerminateAbility_NullAbilityImpl_0100 end";
+    GTEST_LOG_(INFO) << "AaFwk_AbilityThread_HandlePrepareTerminateAbility_NullImpl_0100 end";
 }
 
 /**
- * @tc.number: AaFwk_AbilityThread_CreateAndInitContextDeal_NullAbilityInfo_0100
+ * @tc.number: AaFwk_AbilityThread_CreateAndInitContextDeal_NullInfo_0100
  * @tc.name: CreateAndInitContextDeal with null abilityInfo
  * @tc.desc: Test CreateAndInitContextDeal handles null GetAbilityInfo without crash
  */
-HWTEST_F(FaAbilityThreadTest, AaFwk_AbilityThread_CreateAndInitContextDeal_NullAbilityInfo_0100, Function | MediumTest | Level1)
+HWTEST_F(FaAbilityThreadTest, AaFwk_AbilityThread_CreateAndInitContextDeal_NullInfo_0100, Function | MediumTest | Level1)
 {
-    GTEST_LOG_(INFO) << "AaFwk_AbilityThread_CreateAndInitContextDeal_NullAbilityInfo_0100 start";
+    GTEST_LOG_(INFO) << "AaFwk_AbilityThread_CreateAndInitContextDeal_NullInfo_0100 start";
     AbilityRuntime::FAAbilityThread *abilitythread = new (std::nothrow) AbilityRuntime::FAAbilityThread();
     ASSERT_NE(abilitythread, nullptr);
 
@@ -719,7 +719,7 @@ HWTEST_F(FaAbilityThreadTest, AaFwk_AbilityThread_CreateAndInitContextDeal_NullA
     EXPECT_EQ(contextDeal, nullptr);
 
     delete abilitythread;
-    GTEST_LOG_(INFO) << "AaFwk_AbilityThread_CreateAndInitContextDeal_NullAbilityInfo_0100 end";
+    GTEST_LOG_(INFO) << "AaFwk_AbilityThread_CreateAndInitContextDeal_NullInfo_0100 end";
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

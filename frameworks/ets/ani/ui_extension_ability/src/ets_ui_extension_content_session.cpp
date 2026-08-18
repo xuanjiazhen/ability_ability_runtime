@@ -898,7 +898,8 @@ ani_object EtsUIExtensionContentSession::StartAbilityByTypeSync(
     uiExtensionCallback->SetEtsCallbackObject(startCallback);
     ani_ref completionHandler = nullptr;
     ani_boolean isUndefined = false;
-    bool getPropOk = AppExecFwk::GetPropertyRef(env, startCallback, "completionHandler", completionHandler, isUndefined);
+    bool getPropOk = AppExecFwk::GetPropertyRef(
+        env, startCallback, "completionHandler", completionHandler, isUndefined);
     if (getPropOk && !isUndefined && completionHandler != nullptr) {
         uiExtensionCallback->SetCompletionHandler(env, static_cast<ani_object>(completionHandler));
     }
@@ -1153,21 +1154,27 @@ void EtsUIExtensionContentSession::OnStartAbilityForResult(ani_env *env, ani_obj
         AddFreeInstallObserver(env, want, callback, context, true);
     }
 
+    ani_ref callbackRef = CreateCallbackRef(env, callback, etsVm);
+    if (callbackRef == nullptr) {
+        return;
+    }
+    StartAbilityForResultDoTask(etsVm, startOptionsObj, callbackRef, want, options, startTime, context);
+}
+
+ani_ref EtsUIExtensionContentSession::CreateCallbackRef(ani_env *env, ani_object callback, ani_vm *&etsVm)
+{
     ani_ref callbackRef = nullptr;
     if (env->GlobalReference_Create(callback, &callbackRef) != ANI_OK || callbackRef == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "GlobalReference_Create failed");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
-        return;
+        return nullptr;
     }
-    ani_vm *etsVm = nullptr;
-    ani_status status = ANI_ERROR;
-    if ((status = env->GetVM(&etsVm)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
+    if (env->GetVM(&etsVm) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "GetVM failed");
         env->GlobalReference_Delete(callbackRef);
-        return;
+        return nullptr;
     }
-    
-    return StartAbilityForResultDoTask(etsVm, startOptionsObj, callbackRef, want, options, startTime, context);
+    return callbackRef;
 }
 
 void EtsUIExtensionContentSession::StartAbilityForResultDoTask(ani_vm *etsVm,

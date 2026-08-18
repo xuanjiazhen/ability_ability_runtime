@@ -343,15 +343,15 @@ HWTEST_F(AbilityProcessTest, AaFwk_AbilityProcess_1600, Function | MediumTest | 
 }
 
 /**
- * @tc.number: AaFwk_AbilityProcess_StartAbility_ForResultCallbackRegistered_0100
+ * @tc.number: AaFwk_AbilityProcess_StartAbility_ForResultCbReg_0100
  * @tc.name: StartAbility with forResultOption registers callback in abilityResultMap_
  * @tc.desc: Test that StartAbility registers callback in abilityResultMap_ after StartAbilityForResult
  *           call returns. 调用者 feature_ability.cpp:312 已通过 AddAbilityResultCallback
  *           先行注册，此测试验证 StartAbility 自身的注册逻辑。
  */
-HWTEST_F(AbilityProcessTest, AaFwk_AbilityProcess_StartAbility_ForResultCallbackRegistered_0100, Function | MediumTest | Level1)
+HWTEST_F(AbilityProcessTest, AaFwk_AbilityProcess_StartAbility_ForResultCbReg_0100, Function | MediumTest | Level1)
 {
-    GTEST_LOG_(INFO) << "AaFwk_AbilityProcess_StartAbility_ForResultCallbackRegistered_0100 start";
+    GTEST_LOG_(INFO) << "AaFwk_AbilityProcess_StartAbility_ForResultCbReg_0100 start";
     Ability *ability = new (std::nothrow) MockNewAbility();
     ASSERT_NE(ability, nullptr);
 
@@ -372,7 +372,7 @@ HWTEST_F(AbilityProcessTest, AaFwk_AbilityProcess_StartAbility_ForResultCallback
     }
 
     delete ability;
-    GTEST_LOG_(INFO) << "AaFwk_AbilityProcess_StartAbility_ForResultCallbackRegistered_0100 end";
+    GTEST_LOG_(INFO) << "AaFwk_AbilityProcess_StartAbility_ForResultCbReg_0100 end";
 }
 } // namespace AppExecFwk
 } // namespace OHOS

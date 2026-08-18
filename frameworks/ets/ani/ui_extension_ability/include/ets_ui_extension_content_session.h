@@ -146,6 +146,7 @@ private:
     ani_object GetUIExtensionWindowProxy(ani_env *env, ani_object object);
     void SetWindowPrivacyModeInner(ani_env *env, ani_boolean isPrivacyMode, ani_object callbackObj,
         ani_vm *etsVm, ani_ref callbackRef);
+    ani_ref CreateCallbackRef(ani_env *env, ani_object callback, ani_vm *&etsVm);
     void LoadContentByName(ani_env *env, ani_object object, ani_string path, ani_object storage);
     void StartAbilityInner(ani_env* env, ani_object object, ani_object opt,
         ani_object callback, AAFwk::Want &want, std::shared_ptr<AbilityRuntime::Context> context);
