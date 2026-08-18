@@ -2494,11 +2494,11 @@ private:
         const std::string& specifiedProcessFlag, const std::string& customProcessFlag,
         std::shared_ptr<AppRunningRecord>& appRecord);
 
-    void SnapshotStartReport(int32_t uid, const std::string &bundleName, const std::string &appVersionName,
-        int32_t result, const std::string &reason);
+    void SnapshotStartReport(const std::shared_ptr<AppRunningRecord> &appRecord, int32_t uid,
+        const std::string &bundleName, const std::string &appVersionName, int32_t result, const std::string &reason);
 
-    void SnapshotErrorReport(int32_t uid, const std::string &bundleName, const std::string &appVersionName,
-        int32_t result, const std::string &reason);
+    void SnapshotErrorReport(const std::shared_ptr<AppRunningRecord> &appRecord, int32_t uid,
+        const std::string &bundleName, const std::string &appVersionName, int32_t result, const std::string &reason);
 
     void MarkTemplateProcess(const std::shared_ptr<AppRunningRecord> &appRecord, std::string bundleName);
     void UnMarkTemplateProcess(int32_t templatePid);
