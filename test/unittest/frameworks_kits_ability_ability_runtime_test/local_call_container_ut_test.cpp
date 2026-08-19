@@ -1023,5 +1023,24 @@ HWTEST_F(LocalCallContainerTest, Local_Call_Container_OnAbilityDisconnectDone_08
     EXPECT_NE(connect->localCallRecord_, nullptr);
     EXPECT_EQ(localCallContainer->connections_.size(), 1u);
 }
+
+/**
+ * @tc.number: LocalCallContainer_GetCurrentUserId_0100
+ * @tc.name: GetCurrentUserId returns DEFAULT_INVAL_VALUE on failure
+ * @tc.desc: Test GetCurrentUserId handles OsAccount failure by returning sentinel
+ */
+HWTEST_F(LocalCallContainerTest, LocalCallContainer_GetCurrentUserId_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "LocalCallContainer_GetCurrentUserId_0100 start";
+    auto localCallContainer = std::make_shared<LocalCallContainer>();
+    ASSERT_NE(localCallContainer, nullptr);
+
+    localCallContainer->currentUserId_ = AbilityRuntime::DEFAULT_INVAL_VALUE;
+    int32_t result = localCallContainer->GetCurrentUserId();
+
+    EXPECT_EQ(result, AbilityRuntime::DEFAULT_INVAL_VALUE);
+
+    GTEST_LOG_(INFO) << "LocalCallContainer_GetCurrentUserId_0100 end";
+}
 } // namespace AppExecFwk
 } // namespace OHOS

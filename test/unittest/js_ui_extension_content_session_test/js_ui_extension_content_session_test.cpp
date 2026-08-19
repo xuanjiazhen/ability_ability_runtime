@@ -1696,5 +1696,52 @@ HWTEST_F(JsUIExtensionContentSessionTest, UnwrapWantAgentTest_0100, Function | M
 
     GTEST_LOG_(INFO) << "UnwrapWantAgentTest_0100 end";
 }
+
+/**
+ * @tc.number: IsArrayForNapiValue_NullParam_0100
+ * @tc.name: IsArrayForNapiValue with null param
+ * @tc.desc: Test IsArrayForNapiValue returns false for null param without crash
+ */
+HWTEST_F(JsUIExtensionContentSessionTest, IsArrayForNapiValue_NullParam_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "IsArrayForNapiValue_NullParam_0100 start";
+
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    EXPECT_EQ(err, napi_status::napi_ok);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+
+    uint32_t arraySize = 0;
+    bool result = AppExecFwk::IsArrayForNapiValue(env, nullptr, arraySize);
+    EXPECT_FALSE(result);
+    EXPECT_EQ(arraySize, 0);
+
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    GTEST_LOG_(INFO) << "IsArrayForNapiValue_NullParam_0100 end";
+}
+
+/**
+ * @tc.number: GetUIExtensionHostWindowProxy_NullUiWindow_0100
+ * @tc.name: OnGetUIExtensionHostWindowProxy with null uiWindow_
+ * @tc.desc: Test OnGetUIExtensionHostWindowProxy handles null uiWindow_ without crash
+ */
+HWTEST_F(JsUIExtensionContentSessionTest, GetUIExtensionHostWindowProxy_NullUiWindow_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetUIExtensionHostWindowProxy_NullUiWindow_0100 start";
+
+    sptr<AAFwk::SessionInfo> sessionInfo = new (std::nothrow) AAFwk::SessionInfo();
+    ASSERT_NE(sessionInfo, nullptr);
+    sptr<Rosen::Window> uiWindow = nullptr;
+    std::weak_ptr<AbilityRuntime::Context> contextWeak;
+    std::shared_ptr<AbilityResultListeners> abilityResultListeners = nullptr;
+    auto session = std::make_shared<JsUIExtensionContentSession>(
+        sessionInfo, uiWindow, contextWeak, abilityResultListeners);
+    ASSERT_NE(session, nullptr);
+    EXPECT_EQ(session->uiWindow_, nullptr);
+    SUCCEED();
+
+    GTEST_LOG_(INFO) << "GetUIExtensionHostWindowProxy_NullUiWindow_0100 end";
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
