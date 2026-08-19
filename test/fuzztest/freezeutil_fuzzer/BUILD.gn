@@ -66,6 +66,7 @@ ohos_fuzztest("FreezeUtilFuzzTest") {
     "ability_base:want",
     "ability_base:zuri",
     "ability_runtime:ability_deps_wrapper",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "ffrt:libffrt",
@@ -86,6 +87,7 @@ ohos_fuzztest("FreezeUtilFuzzTest") {
   if (ability_runtime_graphics) {
     deps += []
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "i18n:intl_util",
       "window_manager:libwm",
     ]

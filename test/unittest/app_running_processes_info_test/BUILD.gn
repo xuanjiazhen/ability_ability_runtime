@@ -78,6 +78,7 @@ ohos_unittest("AppRunningProcessesInfoTest") {
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
     "appspawn:appspawn_client",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_core",
     "cJSON:cjson",
     "c_utils:utils",

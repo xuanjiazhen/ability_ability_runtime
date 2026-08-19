@@ -325,6 +325,7 @@ ohos_shared_library("appkit_native") {
         [ "${ability_runtime_path}/frameworks/cj/ffi/context:cj_context_ffi" ]
 
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "bundle_framework:appexecfwk_base",
       "napi:cj_bind_ffi",
       "napi:cj_bind_native",

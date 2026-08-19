@@ -36,6 +36,7 @@ ohos_fuzztest("ToolsTestObserverFuzzTest") {
   ]
   external_deps = [
     "ability_base:configuration",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "hilog:libhilog",
     "ipc:ipc_core",

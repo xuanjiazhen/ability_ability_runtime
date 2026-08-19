@@ -47,6 +47,7 @@ ohos_fuzztest("GetMissionIdByTokenFuzzTest") {
   external_deps = [
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -61,6 +62,7 @@ ohos_fuzztest("GetMissionIdByTokenFuzzTest") {
   if (ability_runtime_graphics) {
     deps += []
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "i18n:intl_util",
       "window_manager:libwm",
     ]

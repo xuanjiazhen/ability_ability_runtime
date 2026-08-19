@@ -50,6 +50,7 @@ ohos_fuzztest("StartAbilityFuzzTest") {
   external_deps = [
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",

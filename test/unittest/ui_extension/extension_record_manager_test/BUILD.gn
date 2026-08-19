@@ -82,6 +82,7 @@ ohos_unittest("extension_record_manager_test") {
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "bundle_framework:libappexecfwk_common",
@@ -108,6 +109,7 @@ ohos_unittest("extension_record_manager_test") {
   }
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "input:libmmi-client",
       "window_manager:libwsutils",
       "window_manager:scene_session",

@@ -73,6 +73,7 @@ ohos_unittest("cj_ability_stage_test") {
     "ability_base:base",
     "ability_base:configuration",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "bundle_framework:cj_bundle_manager_ffi",

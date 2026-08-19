@@ -54,6 +54,7 @@ ohos_fuzztest("MissionListenerControllerFuzzTest") {
     "ability_base:want",
     "ability_base:zuri",
     "background_task_mgr:bgtaskmgr_innerkits",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_core",
@@ -70,6 +71,7 @@ ohos_fuzztest("MissionListenerControllerFuzzTest") {
   if (ability_runtime_graphics) {
     deps += []
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "i18n:intl_util",
       "image_framework:image_native",
       "window_manager:libwm",

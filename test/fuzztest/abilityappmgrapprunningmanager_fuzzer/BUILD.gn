@@ -71,6 +71,7 @@ ohos_fuzztest("AbilityAppMgrAppRunningManagerFuzzTest") {
     "ability_base:zuri",
     "access_token:libaccesstoken_sdk",
     "appspawn:appspawn_client",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -109,6 +110,7 @@ ohos_fuzztest("AbilityAppMgrAppRunningManagerFuzzTest") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "window_manager:libwm",
       "window_manager:libwsutils",
     ]

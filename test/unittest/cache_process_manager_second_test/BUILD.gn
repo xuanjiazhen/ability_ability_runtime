@@ -133,6 +133,7 @@ ohos_unittest("cache_process_manager_second_test") {
     "ability_base:zuri",
     "access_token:libaccesstoken_sdk",
     "appspawn:appspawn_client",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -188,6 +189,7 @@ ohos_unittest("cache_process_manager_second_test") {
 
     deps += []
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "i18n:i18n_sa_client",
       "i18n:intl_util",
       "window_manager:libdm",

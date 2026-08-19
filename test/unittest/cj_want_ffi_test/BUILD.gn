@@ -51,6 +51,7 @@ ohos_unittest("cj_want_ffi_test") {
     "ability_base:configuration",
     "ability_base:session_info",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",

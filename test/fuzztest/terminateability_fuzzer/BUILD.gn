@@ -55,6 +55,7 @@ ohos_fuzztest("TerminateAbilityFuzzTest") {
   external_deps = [
     "ability_base:want",
     "appspawn:appspawn_client",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",

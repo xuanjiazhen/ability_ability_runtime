@@ -47,6 +47,7 @@ ohos_fuzztest("AppStateObserverManagerFuzzTest") {
     "ability_base:zuri",
     "access_token:libaccesstoken_sdk",
     "appspawn:appspawn_client",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",

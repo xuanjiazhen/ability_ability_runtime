@@ -52,6 +52,7 @@ ohos_shared_library("child_process_manager") {
 
   external_deps = [
     "ability_base:extractortool",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",

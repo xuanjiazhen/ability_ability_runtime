@@ -46,6 +46,7 @@ ohos_fuzztest("StartUserTestProcessFuzzTest") {
     "ability_base:configuration",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",

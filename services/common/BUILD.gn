@@ -262,6 +262,7 @@ ohos_shared_library("hisysevent_report") {
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "hilog:libhilog",
     "c_utils:utils",
     "hilog:libhilog",
@@ -290,6 +291,7 @@ ohos_static_library("hisysevent_report_static") {
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "hilog:libhilog",
     "c_utils:utils",
     "hilog:libhilog",

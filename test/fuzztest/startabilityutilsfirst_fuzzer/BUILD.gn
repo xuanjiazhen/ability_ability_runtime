@@ -64,6 +64,7 @@ ohos_fuzztest("StartAbilityUtilsFirstFuzzTest") {
     "ability_base:zuri",
     "access_token:libaccesstoken_sdk",
     "access_token:libtokenid_sdk",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "bundle_framework:libappexecfwk_common",
@@ -87,6 +88,7 @@ ohos_fuzztest("StartAbilityUtilsFirstFuzzTest") {
   if (ability_runtime_graphics) {
     deps += []
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "i18n:intl_util",
       "window_manager:libwm",
     ]

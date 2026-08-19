@@ -46,6 +46,7 @@ ohos_fuzztest("GetAppMemorySizeFuzzTest") {
   external_deps = [
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "ipc:ipc_core",
@@ -57,6 +58,7 @@ ohos_fuzztest("GetAppMemorySizeFuzzTest") {
   if (ability_runtime_graphics) {
     deps += []
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "i18n:intl_util",
       "window_manager:libwm",
     ]

@@ -48,6 +48,7 @@ ohos_fuzztest("StopServiceAbilityFuzzTest") {
 
   external_deps = [
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "napi:ace_napi",
   ]

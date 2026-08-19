@@ -72,6 +72,7 @@ ohos_fuzztest("ScreenUnlockInterceptorFirstFuzzTest") {
     "ability_base:zuri",
     "access_token:libaccesstoken_sdk",
     "access_token:libtokenid_sdk",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -105,6 +106,7 @@ ohos_fuzztest("ScreenUnlockInterceptorFirstFuzzTest") {
       "ABILITY_RUNTIME_SCREENLOCK_ENABLE"
     ]
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "screenlock_mgr:screenlock_client",
     ]
   }

@@ -107,6 +107,7 @@ ohos_unittest("ability_test") {
     "ability_base:session_info",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -135,6 +136,7 @@ ohos_unittest("ability_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "image_framework:image_native",
@@ -164,6 +166,7 @@ ohos_unittest("ability_lifecycle_test") {
   external_deps = [
     "ability_base:extractortool",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "eventhandler:libeventhandler",
@@ -177,6 +180,7 @@ ohos_unittest("ability_lifecycle_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -202,6 +206,7 @@ ohos_unittest("ability_lifecycle_executor_test") {
   external_deps = [
     "ability_base:extractortool",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "eventhandler:libeventhandler",
@@ -215,6 +220,7 @@ ohos_unittest("ability_lifecycle_executor_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -254,6 +260,7 @@ ohos_unittest("ability_context_test") {
   external_deps = [
     "ability_base:session_info",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -299,6 +306,7 @@ ohos_unittest("page_ability_impl_test") {
     external_deps = [
       "ability_base:extractortool",
       "ability_base:want",
+      "bounds_checking_function:libsec_shared",
       "bundle_framework:appexecfwk_base",
       "c_utils:utils",
       "common_event_service:cesfwk_innerkits",
@@ -341,6 +349,7 @@ ohos_unittest("service_ability_impl_test") {
   external_deps = [
     "ability_base:extractortool",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -358,6 +367,7 @@ ohos_unittest("service_ability_impl_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -382,6 +392,7 @@ ohos_unittest("scene_created_test") {
 
     external_deps = [
       "ability_base:want",
+      "bounds_checking_function:libsec_shared",
       "bundle_framework:appexecfwk_base",
       "c_utils:utils",
       "googletest:gmock",
@@ -439,6 +450,7 @@ ohos_unittest("data_ability_helper_test") {
     "ability_base:session_info",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_common",
@@ -507,6 +519,7 @@ ohos_unittest("data_ability_helper_impl_test") {
     "ability_base:session_info",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -557,6 +570,7 @@ ohos_unittest("data_ability_operation_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "eventhandler:libeventhandler",
@@ -575,6 +589,7 @@ ohos_unittest("data_ability_operation_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -607,6 +622,7 @@ ohos_unittest("ability_impl_active_test") {
     "ability_base:want",
     "ability_base:zuri",
     "ability_runtime:runtime",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -626,6 +642,7 @@ ohos_unittest("ability_impl_active_test") {
   if (ability_runtime_graphics) {
     sources += [ "ability_impl_active_test.cpp" ]
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -667,6 +684,7 @@ ohos_unittest("ability_impl_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -690,6 +708,7 @@ ohos_unittest("ability_impl_test") {
   if (ability_runtime_graphics) {
     sources += [ "ability_impl_test.cpp" ]
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -735,6 +754,7 @@ ohos_unittest("ui_ability_impl_test") {
     "ability_base:extractortool",
     "ability_base:session_info",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -758,6 +778,7 @@ ohos_unittest("ui_ability_impl_test") {
     ]
     sources += [ "ui_ability_impl_test.cpp" ]
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -821,6 +842,7 @@ ohos_unittest("ability_thread_test") {
     "ability_base:extractresourcemanager",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -847,6 +869,7 @@ ohos_unittest("ability_thread_test") {
   if (ability_runtime_graphics) {
     external_deps += [
       "ability_base:session_info",
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -909,6 +932,7 @@ ohos_unittest("fa_ability_thread_test") {
     "ability_base:extractresourcemanager",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -935,6 +959,7 @@ ohos_unittest("fa_ability_thread_test") {
   if (ability_runtime_graphics) {
     external_deps += [
       "ability_base:session_info",
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -966,6 +991,7 @@ ohos_unittest("extension_ability_thread_test") {
     "ability_base:configuration",
     "ability_base:extractortool",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "eventhandler:libeventhandler",
@@ -986,6 +1012,7 @@ ohos_unittest("extension_ability_thread_test") {
   if (ability_runtime_graphics) {
     external_deps += [
       "ability_base:session_info",
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -1038,6 +1065,7 @@ ohos_unittest("ui_ability_thread_test") {
     "ability_base:extractortool",
     "ability_base:extractresourcemanager",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -1061,6 +1089,7 @@ ohos_unittest("ui_ability_thread_test") {
   if (ability_runtime_graphics) {
     external_deps += [
       "ability_base:session_info",
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -1099,6 +1128,7 @@ ohos_unittest("service_extension_module_loader_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -1118,6 +1148,7 @@ ohos_unittest("service_extension_module_loader_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -1152,6 +1183,7 @@ ohos_unittest("ability_process_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -1170,6 +1202,7 @@ ohos_unittest("ability_process_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -1202,6 +1235,7 @@ ohos_unittest("extension_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -1223,6 +1257,7 @@ ohos_unittest("extension_test") {
   if (ability_runtime_graphics) {
     external_deps += [
       "ability_base:session_info",
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -1256,6 +1291,7 @@ ohos_unittest("extension_second_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -1276,6 +1312,7 @@ ohos_unittest("extension_second_test") {
   if (ability_runtime_graphics) {
     external_deps += [
       "ability_base:session_info",
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -1308,6 +1345,7 @@ ohos_unittest("form_extension_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -1331,6 +1369,7 @@ ohos_unittest("form_extension_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -1362,6 +1401,7 @@ ohos_unittest("ability_thread_call_request_test") {
     "ability_base:extractresourcemanager",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -1377,6 +1417,7 @@ ohos_unittest("ability_thread_call_request_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
     ]
@@ -1408,6 +1449,7 @@ ohos_unittest("form_extension_provider_client_test") {
       "ability_base:extractortool",
       "ability_base:want",
       "access_token:libaccesstoken_sdk",
+      "bounds_checking_function:libsec_shared",
       "bundle_framework:appexecfwk_base",
       "bundle_framework:appexecfwk_core",
       "c_utils:utils",
@@ -1482,6 +1524,7 @@ ohos_unittest("data_ability_impl_test") {
     "ability_base:want",
     "ability_base:zuri",
     "access_token:libaccesstoken_sdk",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -1511,6 +1554,7 @@ ohos_unittest("data_ability_impl_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -1556,6 +1600,7 @@ ohos_unittest("data_ability_impl_file_secondpart_test") {
     "ability_base:extractresourcemanager",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -1580,6 +1625,7 @@ ohos_unittest("data_ability_impl_file_secondpart_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -1625,6 +1671,7 @@ ohos_unittest("data_ability_impl_file_test") {
     "ability_base:extractresourcemanager",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -1649,6 +1696,7 @@ ohos_unittest("data_ability_impl_file_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -1696,6 +1744,7 @@ ohos_unittest("ability_thread_dataability_test") {
     "ability_base:extractresourcemanager",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -1720,6 +1769,7 @@ ohos_unittest("ability_thread_dataability_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -1760,6 +1810,7 @@ ohos_unittest("data_uri_utils_test") {
   external_deps = [
     "ability_base:extractortool",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "cJSON:cjson",
     "c_utils:utils",
@@ -1772,6 +1823,7 @@ ohos_unittest("data_uri_utils_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -1808,6 +1860,7 @@ ohos_unittest("extension_impl_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -1832,6 +1885,7 @@ ohos_unittest("extension_impl_test") {
   if (ability_runtime_graphics) {
     external_deps += [
       "ability_base:session_info",
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -1861,6 +1915,7 @@ ohos_unittest("ability_permission_test") {
   external_deps = [
     "ability_base:session_info",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -1894,6 +1949,7 @@ ohos_unittest("task_handler_client_test") {
   external_deps = [
     "ability_base:extractortool",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "googletest:gtest_main",
@@ -1902,6 +1958,7 @@ ohos_unittest("task_handler_client_test") {
   ]
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -1948,6 +2005,7 @@ ohos_unittest("ui_ability_test") {
     "ability_base:extractortool",
     "ability_base:session_info",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -1970,6 +2028,7 @@ ohos_unittest("ui_ability_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "image_framework:image_native",
@@ -1993,6 +2052,7 @@ ohos_unittest("data_ability_result_test") {
   external_deps = [
     "ability_base:extractortool",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -2003,6 +2063,7 @@ ohos_unittest("data_ability_result_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -2044,6 +2105,7 @@ ohos_unittest("form_host_client_test") {
       "ability_base:configuration",
       "ability_base:extractortool",
       "ability_base:want",
+      "bounds_checking_function:libsec_shared",
       "bundle_framework:appexecfwk_base",
       "bundle_framework:appexecfwk_core",
       "c_utils:utils",
@@ -2107,6 +2169,7 @@ ohos_unittest("continuation_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -2139,6 +2202,7 @@ ohos_unittest("continuation_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "input:libmmi-client",
@@ -2163,6 +2227,7 @@ ohos_unittest("ability_transaction_callback_info_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "eventhandler:libeventhandler",
@@ -2177,6 +2242,7 @@ ohos_unittest("ability_transaction_callback_info_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
     ]
@@ -2202,6 +2268,7 @@ ohos_unittest("reserse_continuation_scheduler_primary_stub_test") {
     external_deps = [
       "ability_base:extractortool",
       "ability_base:want",
+      "bounds_checking_function:libsec_shared",
       "bundle_framework:appexecfwk_base",
       "c_utils:utils",
       "common_event_service:cesfwk_innerkits",
@@ -2244,6 +2311,7 @@ ohos_unittest("reserse_continuation_scheduler_primary_proxy_test") {
 
     external_deps = [
       "ability_base:want",
+      "bounds_checking_function:libsec_shared",
       "bundle_framework:appexecfwk_base",
       "c_utils:utils",
       "common_event_service:cesfwk_innerkits",
@@ -2287,6 +2355,7 @@ ohos_unittest("distributed_client_test") {
   external_deps = [
     "ability_base:extractortool",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "googletest:gtest_main",
@@ -2300,6 +2369,7 @@ ohos_unittest("distributed_client_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
     ]
@@ -2342,6 +2412,7 @@ ohos_unittest("ability_window_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -2376,6 +2447,7 @@ ohos_unittest("ability_window_test") {
   if (ability_runtime_graphics) {
     external_deps += [
       "ace_engine:ace_uicontent",
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "image_framework:image_native",
@@ -2418,6 +2490,7 @@ ohos_unittest("ability_handler_test") {
     "ability_base:configuration",
     "ability_base:extractortool",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -2437,6 +2510,7 @@ ohos_unittest("ability_handler_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "window_manager:libwm",
@@ -2487,6 +2561,7 @@ ohos_unittest("ability_impl_factory_test") {
     "ability_base:want",
     "ability_base:zuri",
     "access_token:libaccesstoken_sdk",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -2512,6 +2587,7 @@ ohos_unittest("ability_impl_factory_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "window_manager:libwm",
@@ -2541,6 +2617,7 @@ ohos_unittest("ability_loader_test") {
   external_deps = [
     "ability_base:extractortool",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -2557,6 +2634,7 @@ ohos_unittest("ability_loader_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
     ]
@@ -2582,6 +2660,7 @@ ohos_unittest("ability_local_record_test") {
   external_deps = [
     "ability_base:extractortool",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -2598,6 +2677,7 @@ ohos_unittest("ability_local_record_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
     ]
@@ -2621,6 +2701,7 @@ ohos_unittest("reverse_continuation_scheduler_replica_proxy_test") {
   external_deps = [
     "ability_base:extractortool",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -2638,6 +2719,7 @@ ohos_unittest("reverse_continuation_scheduler_replica_proxy_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
     ]
@@ -2665,6 +2747,7 @@ ohos_unittest("reverse_continuation_scheduler_replica_test") {
   external_deps = [
     "ability_base:extractortool",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -2682,6 +2765,7 @@ ohos_unittest("reverse_continuation_scheduler_replica_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
     ]
@@ -2705,6 +2789,7 @@ ohos_unittest("reverse_continuation_scheduler_replica_stub_test") {
   external_deps = [
     "ability_base:extractortool",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "eventhandler:libeventhandler",
@@ -2721,6 +2806,7 @@ ohos_unittest("reverse_continuation_scheduler_replica_stub_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
     ]
@@ -2754,6 +2840,7 @@ ohos_unittest("ability_connection_manager_test") {
     "ability_base:want",
     "access_token:libaccesstoken_sdk",
     "access_token:libtoken_callback_sdk",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -2773,6 +2860,7 @@ ohos_unittest("ability_connection_manager_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
     ]
@@ -2797,6 +2885,7 @@ ohos_unittest("abilityruntime_test") {
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "googletest:gmock_main",
@@ -2833,6 +2922,7 @@ ohos_unittest("form_extension_module_loader_test") {
   external_deps = [
     "ability_base:configuration",
     "ability_base:session_info",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -2870,6 +2960,7 @@ ohos_unittest("action_extension_module_loader_test") {
   external_deps = [
     "ability_base:configuration",
     "ability_base:extractortool",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",
@@ -2882,6 +2973,7 @@ ohos_unittest("action_extension_module_loader_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
     ]
@@ -2915,6 +3007,7 @@ ohos_unittest("action_extension_test") {
     "ability_base:base",
     "ability_base:extractortool",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "eventhandler:libeventhandler",
@@ -2930,6 +3023,7 @@ ohos_unittest("action_extension_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
     ]
@@ -2959,6 +3053,7 @@ ohos_unittest("share_extension_module_loader_test") {
 
   external_deps = [
     "ability_base:extractortool",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "googletest:gmock_main",
@@ -2973,6 +3068,7 @@ ohos_unittest("share_extension_module_loader_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
     ]
@@ -3005,6 +3101,7 @@ ohos_unittest("share_extension_test") {
     "ability_base:base",
     "ability_base:extractortool",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "eventhandler:libeventhandler",
@@ -3020,6 +3117,7 @@ ohos_unittest("share_extension_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
     ]
@@ -3046,6 +3144,7 @@ ohos_unittest("auto_fill_extension_module_loader_test") {
 
   external_deps = [
     "ability_base:extractortool",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "googletest:gtest_main",
@@ -3062,6 +3161,7 @@ ohos_unittest("auto_fill_extension_module_loader_test") {
   }
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
     ]
@@ -3094,6 +3194,7 @@ ohos_unittest("auto_fill_extension_test") {
     "ability_base:extractortool",
     "ability_base:view_data",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "eventhandler:libeventhandler",
@@ -3114,6 +3215,7 @@ ohos_unittest("auto_fill_extension_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
     ]
@@ -3141,6 +3243,7 @@ ohos_unittest("embedded_ui_extension_module_loader_test") {
   external_deps = [
     "ability_base:configuration",
     "ability_base:extractortool",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",
@@ -3153,6 +3256,7 @@ ohos_unittest("embedded_ui_extension_module_loader_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
     ]
@@ -3185,6 +3289,7 @@ ohos_unittest("embedded_ui_extension_test") {
     "ability_base:base",
     "ability_base:extractortool",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "eventhandler:libeventhandler",
@@ -3200,6 +3305,7 @@ ohos_unittest("embedded_ui_extension_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
     ]
@@ -3228,6 +3334,7 @@ ohos_unittest("app_module_checker_test") {
   external_deps = [
     "ability_base:base",
     "ability_base:extractortool",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "googletest:gmock_main",
@@ -3241,6 +3348,7 @@ ohos_unittest("app_module_checker_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
     ]
@@ -3277,6 +3385,7 @@ ohos_unittest("app_service_extension_module_loader_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -3296,6 +3405,7 @@ ohos_unittest("app_service_extension_module_loader_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "window_manager:libdm",
       "window_manager:libwm",
       "window_manager:libwsutils",
@@ -3335,6 +3445,7 @@ ohos_unittest("js_ui_extension_Callback_test") {
     "ability_base:session_info",
     "ability_base:want",
     "ace_engine:ace_uicontent",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -3352,6 +3463,7 @@ ohos_unittest("js_ui_extension_Callback_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
     ]
@@ -3380,6 +3492,7 @@ ohos_unittest("dialog_request_callback_test") {
     "ability_base:base",
     "ability_base:extractortool",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",
@@ -3396,6 +3509,7 @@ ohos_unittest("dialog_request_callback_test") {
       "SUPPORT_GRAPHICS",
     ]
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
     ]
@@ -3446,6 +3560,7 @@ ohos_unittest("ability_second_test") {
     "ability_base:session_info",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -3474,6 +3589,7 @@ ohos_unittest("ability_second_test") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "form_fwk:fmskit_native",
       "i18n:intl_util",
       "image_framework:image_native",

@@ -33,6 +33,7 @@ ohos_fuzztest("DeepLinkReserveConfigFuzzTest") {
   deps = [ "${ability_runtime_services_path}/abilitymgr:abilityms" ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "json:nlohmann_json_static",
   ]

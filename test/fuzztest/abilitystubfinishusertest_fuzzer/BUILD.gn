@@ -44,6 +44,7 @@ ohos_fuzztest("AbilityStubFinishUserTestFuzzTest") {
   external_deps = [
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -61,6 +62,7 @@ ohos_fuzztest("AbilityStubFinishUserTestFuzzTest") {
 
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "input:libmmi-client",
       "window_manager:libwm",
     ]

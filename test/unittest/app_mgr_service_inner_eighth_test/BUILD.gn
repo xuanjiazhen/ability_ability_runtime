@@ -121,6 +121,7 @@ ohos_unittest("app_mgr_service_inner_eighth_test") {
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
     "appspawn:appspawn_client",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "cJSON:cjson",
@@ -159,6 +160,7 @@ ohos_unittest("app_mgr_service_inner_eighth_test") {
   if (ability_runtime_graphics) {
     defines += [ "SUPPORT_GRAPHICS" ]
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "i18n:intl_util",
       "window_manager:libdm",
       "window_manager:libwm",

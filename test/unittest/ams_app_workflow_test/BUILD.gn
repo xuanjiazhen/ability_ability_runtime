@@ -69,6 +69,7 @@ ohos_unittest("AmsWorkFlowTest") {
     "ability_runtime:ability_deps_wrapper",
     "access_token:libaccesstoken_sdk",
     "appspawn:appspawn_client",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -93,6 +94,7 @@ ohos_unittest("AmsWorkFlowTest") {
   }
   if (ability_runtime_graphics) {
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "window_manager:libwm",
       "window_manager:libwsutils",
     ]

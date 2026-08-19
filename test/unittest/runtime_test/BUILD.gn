@@ -37,6 +37,7 @@ ohos_unittest("quickfix_callback_test") {
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
   ]
 }
@@ -61,6 +62,7 @@ ohos_unittest("runtime_test") {
 
   external_deps = [
     "ability_base:extractortool",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "zlib:libz",
     "zlib:shared_libz",
@@ -87,6 +89,7 @@ ohos_unittest("hybrid_js_module_reader_test") {
 
   external_deps = [
     "ability_base:extractortool",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "zlib:libz",
     "zlib:shared_libz",
@@ -122,6 +125,7 @@ ohos_unittest("js_runtime_test") {
 
   external_deps = [
     "ability_base:extractortool",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -166,6 +170,7 @@ ohos_unittest("js_runtime_first_test") {
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -199,6 +204,7 @@ ohos_unittest("hdc_register_test") {
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "googletest:gmock_main",
@@ -230,6 +236,7 @@ ohos_unittest("ohos_js_environment_test") {
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "ets_runtime:libark_jsruntime",
     "eventhandler:libeventhandler",
@@ -261,6 +268,7 @@ ohos_unittest("js_worker_test") {
 
   external_deps = [
     "ability_base:extractortool",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -308,6 +316,7 @@ ohos_unittest("ets_runtime_test") {
 
   external_deps = [
     "ability_base:string_utils",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -353,6 +362,7 @@ ohos_unittest("native_runtime_test") {
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "ipc:ipc_napi",
     "napi:ace_napi",
   ]

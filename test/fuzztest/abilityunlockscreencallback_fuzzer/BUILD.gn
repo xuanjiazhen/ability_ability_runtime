@@ -42,6 +42,7 @@ ohos_fuzztest("AbilityUnlockScreenCallbackFuzzTest") {
   external_deps = [
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -60,6 +61,7 @@ ohos_fuzztest("AbilityUnlockScreenCallbackFuzzTest") {
       "ABILITY_RUNTIME_SCREENLOCK_ENABLE"
     ]
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "screenlock_mgr:screenlock_client",
     ]
   }

@@ -44,6 +44,7 @@ ohos_fuzztest("UnregisterApplicationStateObserverFuzzTest") {
   external_deps = [
     "ability_base:base",
     "appspawn:appspawn_client",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -60,6 +61,7 @@ ohos_fuzztest("UnregisterApplicationStateObserverFuzzTest") {
   if (ability_runtime_graphics) {
     deps += []
     external_deps += [
+      "bounds_checking_function:libsec_shared",
       "i18n:intl_util",
       "window_manager:libwm",
     ]

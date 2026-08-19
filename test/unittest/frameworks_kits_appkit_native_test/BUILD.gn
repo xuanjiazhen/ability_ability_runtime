@@ -95,6 +95,7 @@ ohos_unittest("application_test") {
     "ability_base:configuration",
     "ability_base:extractortool",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -169,6 +170,7 @@ ohos_unittest("context_impl_test") {
     "ability_base:configuration",
     "ability_base:extractortool",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -233,6 +235,7 @@ ohos_unittest("context_impl_second_test") {
     "ability_base:configuration",
     "ability_base:extractortool",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -297,6 +300,7 @@ ohos_unittest("context_impl_third_test") {
     "ability_base:configuration",
     "ability_base:extractortool",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -354,6 +358,7 @@ ohos_unittest("context_container_test") {
     "ability_base:configuration",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -422,6 +427,7 @@ ohos_unittest("overlay_event_subscriber_test") {
     "ability_base:configuration",
     "ability_base:want",
     "access_token:libaccesstoken_sdk",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -490,6 +496,7 @@ ohos_unittest("dump_ffrt_helper_test") {
     "ability_base:configuration",
     "ability_base:want",
     "access_token:libaccesstoken_sdk",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -559,6 +566,7 @@ ohos_unittest("context_deal_test") {
     "ability_base:configuration",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -628,6 +636,7 @@ ohos_unittest("application_impl_test") {
     "ability_base:configuration",
     "ability_base:want",
     "access_token:libaccesstoken_sdk",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -677,6 +686,7 @@ ohos_unittest("ability_start_setting_test") {
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -724,6 +734,7 @@ ohos_unittest("ability_stage_test") {
     "ability_base:configuration",
     "ability_base:extractortool",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -777,6 +788,7 @@ ohos_unittest("form_extension_context_test") {
   external_deps = [
     "ability_base:configuration",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -837,6 +849,7 @@ ohos_unittest("bms_context_impl_test") {
     "ability_base:base",
     "ability_base:configuration",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -880,6 +893,7 @@ ohos_unittest("context_container_by_mock_bms_test") {
     "ability_base:configuration",
     "ability_base:want",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -921,6 +935,7 @@ ohos_unittest("assert_fault_test") {
     "ability_base:base",
     "ability_base:configuration",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -955,6 +970,7 @@ ohos_unittest("dump_ipc_helper_test") {
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -986,6 +1002,7 @@ ohos_unittest("dump_runtime_helper_test") {
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "faultloggerd:dfx_signalhandler",
     "faultloggerd:libfaultloggerd",
@@ -1025,6 +1042,7 @@ ohos_unittest("extension_plugin_info_test") {
 
   external_deps = [
     "ability_base:string_utils",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -1049,6 +1067,7 @@ ohos_unittest("idle_time_test") {
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
@@ -1087,6 +1106,7 @@ ohos_unittest("dump_runtime_helper_second_test") {
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "ets_runtime:libark_jsruntime",
     "faultloggerd:dfx_signalhandler",
@@ -1130,6 +1150,7 @@ ohos_unittest("native_lib_util_test") {
 
   external_deps = [
     "ability_base:extractresourcemanager",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "faultloggerd:libfaultloggerd",
     "googletest:gtest_main",
@@ -1167,6 +1188,7 @@ ohos_unittest("ets_native_lib_util_test") {
 
   external_deps = [
     "ability_base:extractresourcemanager",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "faultloggerd:libfaultloggerd",
     "googletest:gtest_main",
@@ -1201,6 +1223,7 @@ ohos_unittest("application_cleaner_test") {
   configs = [ ":module_context_config" ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -1255,6 +1278,7 @@ ohos_unittest("startup_manager_test") {
   external_deps = [
     "ability_base:extractortool",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "eventhandler:libeventhandler",
@@ -1321,6 +1345,7 @@ ohos_unittest("startup_manager_mock_test") {
   external_deps = [
     "ability_base:base",
     "ability_base:zuri",
+    "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "eventhandler:libeventhandler",
@@ -1368,6 +1393,7 @@ ohos_unittest("js_environment_callback_test") {
     "ability_base:configuration",
     "ability_base:extractortool",
     "ability_base:want",
+    "bounds_checking_function:libsec_shared",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
