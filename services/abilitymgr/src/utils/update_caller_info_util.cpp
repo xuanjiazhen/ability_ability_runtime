@@ -113,6 +113,10 @@ void UpdateCallerInfoUtil::UpdateCallerInfo(Want& want, const sptr<IRemoteObject
         UpdateCallerBundleName(want, bundleName);
         UpdateCallerAbilityName(want, "");
         UpdateCallerAppCloneIndex(want, 0);
+        // No ability record for the caller: signature info cannot be re-derived here, so drop
+        // any client-supplied identity parameters instead of letting them survive sanitization.
+        want.RemoveParam(Want::PARAM_RESV_CALLER_APP_ID);
+        want.RemoveParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER);
         return;
     }
     std::string callerBundleName = abilityRecord->GetAbilityInfo().bundleName;
@@ -198,6 +202,10 @@ void UpdateCallerInfoUtil::UpdateAsCallerSourceInfo(Want& want, sptr<IRemoteObje
     want.RemoveParam(Want::PARAM_RESV_CALLER_PID);
     want.RemoveParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
     want.RemoveParam(Want::PARAM_RESV_CALLER_ABILITY_NAME);
+    // Identity strings must come from server-side signature info only; drop client-supplied
+    // values before the Want is re-populated from a trusted caller source.
+    want.RemoveParam(Want::PARAM_RESV_CALLER_APP_ID);
+    want.RemoveParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER);
     want.RemoveParam(WANT_PARAMS_APP_RESTART_FLAG);
     want.RemoveParam(IS_SHELL_CALL);
     want.RemoveParam(Want::PARAMS_REAL_CALLER_KEY);

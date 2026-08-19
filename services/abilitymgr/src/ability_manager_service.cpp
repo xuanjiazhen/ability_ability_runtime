@@ -16000,7 +16000,13 @@ bool AbilityManagerService::VerifySameAppOrAppIdentifierAllowListPermission(cons
     auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bms, false);
     AppExecFwk::BundleInfo targetBundleInfo;
-    std::string callerAppIdentifier = abilityRequest.want.GetStringParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER);
+    std::string callerAppIdentifier;
+    if (IPCSkeleton::GetCallingUid() == DMS_UID) {
+        // For cross-device requests relayed by the distributed schedule manager, the identifier
+        // in the Want was set by DMS from the remote caller's signature info. For any other
+        // caller the Want parameter is attacker-controlled and must not be trusted here.
+        callerAppIdentifier = abilityRequest.want.GetStringParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER);
+    }
     if (callerAppIdentifier.empty()) {
         AppExecFwk::SignatureInfo signatureInfo;
         auto abilityRecord = Token::GetAbilityRecordByToken(abilityRequest.callerToken);

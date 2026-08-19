@@ -743,5 +743,45 @@ HWTEST_F(UpdateCallerInfoUtilTest, UpdateCallerInfoByHapTokenId_0002, TestSize.L
     // Want baseline value must remain (failure-path early-return verified)
     EXPECT_EQ(want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME), "baseline_bundle");
 }
+
+/**
+ * @tc.name: UpdateCallerInfo_StripClientAppIdentifier_001
+ * @tc.desc: Client-supplied identity params must be stripped when caller has no ability record
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, UpdateCallerInfo_StripClientAppIdentifier_001, TestSize.Level1)
+{
+    auto updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+    Want want;
+    want.SetParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER, std::string("spoofed_identifier"));
+    want.SetParam(Want::PARAM_RESV_CALLER_APP_ID, std::string("spoofed_app_id"));
+    // Unregistered token: Token::GetAbilityRecordByToken returns nullptr in test env
+    sptr<IRemoteObject> callerToken = nullptr;
+
+    updateCallerUtil->UpdateCallerInfo(want, callerToken);
+
+    EXPECT_EQ(want.GetStringParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER), "");
+    EXPECT_EQ(want.GetStringParam(Want::PARAM_RESV_CALLER_APP_ID), "");
+}
+
+/**
+ * @tc.name: UpdateAsCallerSourceInfo_StripClientAppIdentifier_001
+ * @tc.desc: Client-supplied identity params must be stripped before as-caller repopulation
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, UpdateAsCallerSourceInfo_StripClientAppIdentifier_001, TestSize.Level1)
+{
+    auto updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+    Want want;
+    want.SetParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER, std::string("spoofed_identifier"));
+    want.SetParam(Want::PARAM_RESV_CALLER_APP_ID, std::string("spoofed_app_id"));
+    sptr<IRemoteObject> asCallerSourceToken = nullptr;
+    sptr<IRemoteObject> callerToken = nullptr;
+
+    updateCallerUtil->UpdateAsCallerSourceInfo(want, asCallerSourceToken, callerToken);
+
+    EXPECT_EQ(want.GetStringParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER), "");
+    EXPECT_EQ(want.GetStringParam(Want::PARAM_RESV_CALLER_APP_ID), "");
+}
 } // namespace AAFwk
 } // namespace OHOS
