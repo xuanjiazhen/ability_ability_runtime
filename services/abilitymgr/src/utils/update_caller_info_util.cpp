@@ -52,6 +52,14 @@ constexpr const char* UIEXTENSION_TYPE_KEY = "ability.want.params.uiExtensionTyp
 const std::string HIDE_SENSITIVE_TYPE = "ohos.media.params.hideSensitiveType";
 constexpr int32_t DEFAULT_HIDE_SENSITIVE_TYPE = 4;
 constexpr int32_t BROKER_UID = 5557;
+
+void RemoveUntrustedCallerIdentityParams(Want &want)
+{
+    // Identity strings must come from server-side signature info only; drop client-supplied
+    // values so they cannot survive Want sanitization (issue #16015).
+    want.RemoveParam(Want::PARAM_RESV_CALLER_APP_ID);
+    want.RemoveParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER);
+}
 }
 
 UpdateCallerInfoUtil &UpdateCallerInfoUtil::GetInstance()
@@ -113,10 +121,7 @@ void UpdateCallerInfoUtil::UpdateCallerInfo(Want& want, const sptr<IRemoteObject
         UpdateCallerBundleName(want, bundleName);
         UpdateCallerAbilityName(want, "");
         UpdateCallerAppCloneIndex(want, 0);
-        // No ability record for the caller: signature info cannot be re-derived here, so drop
-        // any client-supplied identity parameters instead of letting them survive sanitization.
-        want.RemoveParam(Want::PARAM_RESV_CALLER_APP_ID);
-        want.RemoveParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER);
+        RemoveUntrustedCallerIdentityParams(want);
         return;
     }
     std::string callerBundleName = abilityRecord->GetAbilityInfo().bundleName;
@@ -202,10 +207,7 @@ void UpdateCallerInfoUtil::UpdateAsCallerSourceInfo(Want& want, sptr<IRemoteObje
     want.RemoveParam(Want::PARAM_RESV_CALLER_PID);
     want.RemoveParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
     want.RemoveParam(Want::PARAM_RESV_CALLER_ABILITY_NAME);
-    // Identity strings must come from server-side signature info only; drop client-supplied
-    // values before the Want is re-populated from a trusted caller source.
-    want.RemoveParam(Want::PARAM_RESV_CALLER_APP_ID);
-    want.RemoveParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER);
+    RemoveUntrustedCallerIdentityParams(want);
     want.RemoveParam(WANT_PARAMS_APP_RESTART_FLAG);
     want.RemoveParam(IS_SHELL_CALL);
     want.RemoveParam(Want::PARAMS_REAL_CALLER_KEY);
