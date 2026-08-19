@@ -1350,7 +1350,7 @@ std::shared_ptr<SessionRecord> CliToolManagerService::CreateSessionRecord(const 
     }
     record->sessionId = ToolUtil::GenerateCliSessionId(param.toolName, record);
     record->toolName = param.toolName;
-    record->timeoutMs = param.options.timeout * COEFFICIENT;
+    record->timeoutMs = 1000; // TODO: 测试用，验证超时打点后改回
     record->SetState(SessionState::RUNNING);
     record->SetBackground(param.options.background);
     record->eventId = eventId;

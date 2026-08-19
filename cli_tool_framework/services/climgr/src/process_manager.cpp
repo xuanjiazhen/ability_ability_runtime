@@ -157,6 +157,7 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std
         }
         execArgs.push_back(nullptr);
         TAG_LOGI(AAFwkTag::CLI_TOOL, "Before execvp");
+        sleep(30); // TODO: 测试用，验证超时打点后删除
         execvp(execArgs[0], execArgs.data());
         TAG_LOGE(AAFwkTag::CLI_TOOL, "execvp failed:%{public}d", errno);
         _exit(EXIT_FAILURE);
