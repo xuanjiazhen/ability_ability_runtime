@@ -101,9 +101,6 @@ void AbilityStartupServiceFuzztest1(bool boolParam, std::string &stringParam, in
     service->CancelApplicationAutoStartupByEDM(info, boolParam);
     service->InnerApplicationAutoStartupByEDM(info, boolParam, boolParam);
     service->CheckPermissionForEDM();
-    service->AddHandledAutoStartupUsers(int32Param);
-    service->RemoveHandledAutoStartupUsers(int32Param);
-    service->FindHandledAutoStartupUsers(int32Param);
 }
 
 void AbilityStartupServiceFuzztest2(bool boolParam, std::string &stringParam, int32_t int32Param)

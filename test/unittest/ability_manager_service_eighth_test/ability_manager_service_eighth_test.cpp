@@ -27,6 +27,7 @@
 #include "mock_parameters.h"
 #include "mock_scene_board_judgement.h"
 #include "start_params_by_SCB.h"
+#include "user_controller/user_controller.h"
 #include "session/host/include/session.h"
 
 using namespace testing;
@@ -191,23 +192,22 @@ HWTEST_F(AbilityManagerServiceEighthTest, LogoutUser_001, TestSize.Level1)
  * Feature: AbilityManagerService
  * Function: LogoutUser
  * SubFunction: NA
- * FunctionPoints: AbilityManagerService LogoutUser HandledAutoStartupUsers succeed.
+ * FunctionPoints: AbilityManagerService LogoutUser user lock status cleanup succeed.
  */
 HWTEST_F(AbilityManagerServiceEighthTest, LogoutUser_002, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest LogoutUser_002 start");
     std::shared_ptr<AbilityManagerService> abilityMs = std::make_shared<AbilityManagerService>();
-    abilityMs->abilityAutoStartupService_ = std::make_shared<AbilityRuntime::AbilityAutoStartupService>();
-    EXPECT_NE(abilityMs->abilityAutoStartupService_, nullptr);
     IPCSkeleton::SetCallingUid(TEST_UID);
     sptr<IUserCallback> callback1 = new MockIUserCallback();
     IPCSkeleton::SetCallingUid(ACCOUNT_MGR_SERVICE_UID);
     system::SetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, true);
     int32_t userId = 100;
-    abilityMs->abilityAutoStartupService_->AddHandledAutoStartupUsers(userId);
+    AbilityRuntime::UserController::GetInstance().SetUserLockStatus(userId,
+        AbilityRuntime::UserController::UserLockStatus::USER_UNLOCKED);
     EXPECT_EQ(abilityMs->LogoutUser(userId, callback1), ERR_OK);
-    bool isHandled = abilityMs->abilityAutoStartupService_->FindHandledAutoStartupUsers(userId);
-    EXPECT_FALSE(isHandled);
+    EXPECT_EQ(AbilityRuntime::UserController::GetInstance().GetUserLockStatus(userId),
+        AbilityRuntime::UserController::UserLockStatus::USER_LOCK_STATUS_BUTT);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest LogoutUser_002 end");
 }
 
@@ -241,16 +241,12 @@ HWTEST_F(AbilityManagerServiceEighthTest, LogoutUser_004, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest LogoutUser_004 start");
     std::shared_ptr<AbilityManagerService> abilityMs = std::make_shared<AbilityManagerService>();
-    abilityMs->abilityAutoStartupService_ = std::make_shared<AbilityRuntime::AbilityAutoStartupService>();
     IPCSkeleton::SetCallingUid(TEST_UID);
     sptr<IUserCallback> callback1 = new MockIUserCallback();
     IPCSkeleton::SetCallingUid(ACCOUNT_MGR_SERVICE_UID);
     system::SetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false);
     int32_t userId = 100;
-    abilityMs->abilityAutoStartupService_->AddHandledAutoStartupUsers(userId);
     EXPECT_EQ(abilityMs->LogoutUser(userId, callback1), ERR_OK);
-    bool isHandled = abilityMs->abilityAutoStartupService_->FindHandledAutoStartupUsers(userId);
-    EXPECT_FALSE(isHandled);
     system::SetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, true);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest LogoutUser_004 end");
 }

@@ -9986,8 +9986,11 @@ void AbilityManagerService::StartAutoStartupApps(int32_t userId, bool isManualSt
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAutoStartupApps userId:%{public}d", userId);
     StartAutoStartupApps(infoQueue, userId);
-    if (!isManualStart) {
-        abilityAutoStartupService_->AddHandledAutoStartupUsers(userId);
+    // Manual start is an independent repeated entry, it must not consume the watcher armed for
+    // the automatic startup of this user.
+    if (isManualStart) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "manual start, keep watcher for auto startup");
+        return;
     }
     auto removeParameterWatcherTask = []() {
         int32_t ret = RemoveParameterWatcher(
@@ -10737,10 +10740,18 @@ int AbilityManagerService::StartUser(int userId, uint64_t displayId, sptr<IUserC
         callback->OnUserCmdDone(userId, ERR_ALL_APP_START_BLOCKED);
         return ERR_ALL_APP_START_BLOCKED;
     }
-    // Lister screen unlock for auto startup apps.
-    if (AppUtils::GetInstance().IsProductAppbootSettingEnabled() && abilityAutoStartupService_ &&
-        !abilityAutoStartupService_->FindHandledAutoStartupUsers(userId)) {
+    // Take the user lock status as the source of truth for pending auto startup: both USER_LOCKED
+    // and USER_LOCK_STATUS_BUTT (user not started yet) mean the auto startup is not handled.
+    if (AppUtils::GetInstance().IsProductAppbootSettingEnabled() &&
+        AbilityRuntime::UserController::GetInstance().GetUserLockStatus(userId) !=
+            AbilityRuntime::UserController::UserLockStatus::USER_UNLOCKED) {
         SubscribeScreenUnlockedEvent();
+        // External service may toggle the auto startup ready parameter to false and then true again
+        // when starting this user, re-watch it to catch the change since the old watcher was removed
+        // after the previous auto startup.
+        RemoveParameterWatcher(
+            AUTO_STARTUP_READY, AbilityManagerService::HandleAutoStartupReadyCallback, nullptr);
+        AddWatchParameters();
     }
 
     DelayedSingleton<AppScheduler>::GetInstance()->SetEnableStartProcessFlagByUserId(userId, true);
@@ -10797,10 +10808,6 @@ int AbilityManagerService::StopUser(int userId, const sptr<IUserCallback> &callb
         return checkRet;
     }
 
-    // clear userInfo for autoStartup
-    if (AppUtils::GetInstance().IsProductAppbootSettingEnabled() && abilityAutoStartupService_) {
-        abilityAutoStartupService_->RemoveHandledAutoStartupUsers(userId);
-    }
     AbilityRuntime::AbilityEventMapManager::GetInstance().RemoveUser(userId);
 
     AAFwk::ExitReasonCompability exitReasonCompability(
@@ -10868,10 +10875,6 @@ int AbilityManagerService::LogoutUser(int32_t userId, sptr<IUserCallback> callba
     if (checkRet != ERR_OK) {
         callback->OnUserCmdDone(userId, checkRet);
         return checkRet;
-    }
-    // clear userInfo for autoStartup
-    if (AppUtils::GetInstance().IsProductAppbootSettingEnabled() && abilityAutoStartupService_) {
-        abilityAutoStartupService_->RemoveHandledAutoStartupUsers(userId);
     }
     AbilityRuntime::AbilityEventMapManager::GetInstance().RemoveUser(userId);
 
