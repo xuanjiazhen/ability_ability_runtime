@@ -73,6 +73,14 @@ struct AbilitiesRequest {
     uint32_t doneCount = 0;
 };
 
+struct AbilitySessionInfo {
+    std::string callerBundleName;
+    uint32_t callerTokenId = 0;
+    bool isWebSandBoxClone = false;
+    int32_t sandBoxCloneIndex = 0;
+    std::string creatorBundleName;
+};
+
 class UIAbilityLifecycleManager : public std::enable_shared_from_this<UIAbilityLifecycleManager> {
 public:
     UIAbilityLifecycleManager() = default;
@@ -200,6 +208,27 @@ public:
         sptr<SessionInfo> &sessionInfo);
 
     int32_t NotifySCBToRecoveryAfterInterception(const AbilityRequest &abilityRequest);
+
+    /**
+     * @brief When communicating with SCB, cache the information required by AMS without passing it to SCB.
+     * @param requestId The request ID used as the map key.
+     * @param info The sandbox clone info to store.
+     */
+    void StoreAbilitySessionInfo(int32_t requestId, const AbilitySessionInfo &info);
+
+    /**
+     * @brief Retrieve AbilitySessionInfo from the internal map by requestId.
+     * @param requestId The request ID used as the map key.
+     * @param info Output parameter for the sandbox clone info.
+     * @return true if found, false otherwise.
+     */
+    bool GetAbilitySessionInfo(int32_t requestId, AbilitySessionInfo &info) const;
+
+    /**
+     * @brief Remove AbilitySessionInfo from the internal map by requestId.
+     * @param requestId The request ID used as the map key.
+     */
+    void RemoveAbilitySessionInfo(int32_t requestId);
 
     /**
      * @brief handle time out event
@@ -1361,6 +1390,9 @@ private:
 
     std::mutex exitReasonTaskMutex_;
     std::unordered_map<int32_t, ffrt::task_handle> exitReasonTasks_; // for sync querying exit-reason task
+
+    mutable ffrt::mutex abilitySessionInfoMapLock_;
+    std::unordered_map<int32_t, AbilitySessionInfo> abilitySessionInfoMap_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
