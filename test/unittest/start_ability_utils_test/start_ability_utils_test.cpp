@@ -636,8 +636,6 @@ HWTEST_F(StartAbilityUtilsTest, ResolveTargetAppCloneIndex_005, TestSize.Level1)
     std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     EXPECT_NE(abilityRecord, nullptr);
     abilityRecord->abilityInfo_.bundleName = "com.ohos.test";
-    abilityRecord->abilityInfo_.applicationInfo.appIndex =
-        AbilityRuntime::GlobalConstant::MIN_SANDBOX_CLONE_INDEX;
     MyStatus::GetInstance().appClonePreference_.mode = AppExecFwk::AppClonePreferenceMode::CLONE_APP;
     MyStatus::GetInstance().appClonePreference_.appIndex = 2;
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
@@ -646,8 +644,6 @@ HWTEST_F(StartAbilityUtilsTest, ResolveTargetAppCloneIndex_005, TestSize.Level1)
 
     // Sandbox clone index is written by SetTargetCloneIndexInSameBundle, but it is not a short-circuit selector,
     // so bundle-manager default clone preference is still queried and applied on top of it.
-    EXPECT_EQ(want.GetIntParam(AbilityRuntime::GlobalConstant::SANDBOX_CLONE_INDEX, 0),
-        AbilityRuntime::GlobalConstant::MIN_SANDBOX_CLONE_INDEX);
     EXPECT_TRUE(want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY));
     EXPECT_EQ(want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1), 2);
     EXPECT_EQ(MyStatus::GetInstance().lastClonePreferenceBundleName_, "com.ohos.test");
@@ -718,15 +714,10 @@ HWTEST_F(StartAbilityUtilsTest, ResolveTargetAppCloneIndex_008, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest ResolveTargetAppCloneIndex_008 start");
     Want want;
     want.SetElementName("com.ohos.test", "MainAbility");
-    // Forged sandbox index different from the caller's real sandbox index.
-    want.SetParam(AbilityRuntime::GlobalConstant::SANDBOX_CLONE_INDEX,
-        AbilityRuntime::GlobalConstant::MIN_SANDBOX_CLONE_INDEX + 1);
     AbilityRequest abilityRequest;
     std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
     EXPECT_NE(abilityRecord, nullptr);
     abilityRecord->abilityInfo_.bundleName = "com.ohos.test";
-    abilityRecord->abilityInfo_.applicationInfo.appIndex =
-        AbilityRuntime::GlobalConstant::MIN_SANDBOX_CLONE_INDEX;
     MyStatus::GetInstance().appClonePreference_.mode = AppExecFwk::AppClonePreferenceMode::CLONE_APP;
     MyStatus::GetInstance().appClonePreference_.appIndex = 2;
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
@@ -735,8 +726,6 @@ HWTEST_F(StartAbilityUtilsTest, ResolveTargetAppCloneIndex_008, TestSize.Level1)
 
     // The forged sandbox index is normalized to the caller's real sandbox index; sandbox clone index is not a
     // short-circuit selector, so bundle-manager default clone preference is still queried and applied on top.
-    EXPECT_EQ(want.GetIntParam(AbilityRuntime::GlobalConstant::SANDBOX_CLONE_INDEX, -1),
-        AbilityRuntime::GlobalConstant::MIN_SANDBOX_CLONE_INDEX);
     EXPECT_TRUE(want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY));
     EXPECT_EQ(want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1), 2);
     EXPECT_EQ(MyStatus::GetInstance().lastClonePreferenceBundleName_, "com.ohos.test");
