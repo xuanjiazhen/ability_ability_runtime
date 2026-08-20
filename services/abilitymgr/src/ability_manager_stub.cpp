@@ -18,14 +18,17 @@
 
 #include "ability_manager_errors.h"
 #include "ability_manager_radar.h"
+#include "accesstoken_kit.h"
 #include "app_utils.h"
 #include "fd_guard.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "insight_intent_execute_param.h"
 #include "insight_intent_execute_manager.h"
+#include "ipc_skeleton.h"
 #include "skill_execute_param.h"
 #include "status_bar_delegate_interface.h"
+#include "tokenid_kit.h"
 #include <iterator>
 #include "mission_listener_interface.h"
 #include "mission_snapshot.h"
@@ -56,6 +59,21 @@ void AbilityManagerStub::SanitizeWantParams(Want &want)
 {
     AppExecFwk::InsightIntentExecuteParam::RemoveInsightIntent(want);
     AppExecFwk::SkillExecuteParam::RemoveSkillParam(want);
+    // Pass-through of non-standard scheme uri is only allowed for system apps
+    // and native processes. Third-party apps cannot set this flag, so the raw
+    // uri is cleared here as the final interception point on the server side.
+    if (want.GetBoolParam(Want::PARAM_SET_URI_WITH_ORIGIN_STRING, false)) {
+        auto callingToken = IPCSkeleton::GetCallingTokenID();
+        auto fullToken = IPCSkeleton::GetCallingFullTokenID();
+        auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callingToken);
+        bool isNative = (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE);
+        bool isSysApp = Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullToken);
+        if (!(isNative || isSysApp)) {
+            want.RemoveParam(Want::PARAM_SET_URI_WITH_ORIGIN_STRING);
+            want.SetUri("");
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "third-party want uri pass-through blocked");
+        }
+    }
 }
 
 int AbilityManagerStub::OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data,
