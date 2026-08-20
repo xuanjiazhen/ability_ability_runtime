@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,8 +14,8 @@
  */
 
 #include "appmgrstub_fuzzer.h"
-#include "fuzz_util.h"
 #include "attack_vectors.h"
+#include "fuzz_util.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -32,25 +32,12 @@
 
 using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;
-using namespace OHOS;
 
 namespace OHOS {
-namespace {
-const std::u16string APPMGR_INTERFACE_TOKEN = u"ohos.appexecfwk.AppMgr";
-}
-
 class AppMgrStubFuzz : public AppMgrStubFuzzBase {};
 
-bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    FUZZ_EXTRACT_CODE(data, size);
-    MessageParcel parcel;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::APP_APPLICATION_TERMINATED);
-
-    parcel.WriteInterfaceToken(APPMGR_INTERFACE_TOKEN);
-
     switch (code % 10) {
         case 0:
             actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::APP_APPLICATION_TERMINATED);
@@ -112,11 +99,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
-            bool flag = fdp.ConsumeBool();
-            parcel.WriteBool(flag);
-            if (flag) {
-                parcel.WriteRemoteObject(nullptr);
-            }
+            FuzzUtil::WriteOptionalRemoteObject(parcel, fdp);
             OHOS::FuzzUtil::WriteMaliciousFaultData(parcel, fdp);
             std::vector<uint8_t> corruptData = OHOS::FuzzUtil::BuildNonIpcMemoryCorruption(fdp, 256);
             parcel.WriteString(std::string(corruptData.begin(), corruptData.end()));
@@ -128,12 +111,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
         default:
             break;
     }
-
-    parcel.RewindRead(0);
-    std::shared_ptr<AppMgrStub> appMgrStub = std::make_shared<AppMgrStubFuzz>();
-    appMgrStub->OnRemoteRequest(actualCode, parcel, reply, option);
-    return true;
 }
-} // namespace OHOS
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(AppMgrStubFuzz, FuzzUtil::Tokens::APP_MGR)
+} // namespace OHOS

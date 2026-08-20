@@ -12,45 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "apprunningstatusstub_fuzzer.h"
-#include "fuzz_util.h"
 #include "attack_vectors.h"
-
-#include <cstddef>
-#include <cstdint>
-#include <iostream>
-
-#include "app_running_status_stub.h"
-#include "parcel.h"
-#include "securec.h"
+#include "fuzz_util.h"
 
 using namespace OHOS::AbilityRuntime;
 using namespace OHOS;
 
 namespace OHOS {
-namespace {
-const std::u16string ABILITYMGR_INTERFACE_TOKEN = u"ohos.appexecfwk.AppRunningStatusListenerInterface";
-}
+class AppRunningStatusStubFuzz : public AppRunningStatusStub {};
 
-class AppRunningStatusStubFuzz : public AppRunningStatusStub {
-public:
-    AppRunningStatusStubFuzz() = default;
-    ~AppRunningStatusStubFuzz() = default;
-
-    void NotifyAppRunningStatus(const std::string &bundle, int32_t uid, RunningStatus runningStatus) override {}
-};
-
-bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    FUZZ_EXTRACT_CODE(data, size);
-    MessageParcel parcel;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t actualCode = static_cast<uint32_t>(AppRunningStatusListenerInterface::MessageCode::APP_RUNNING_STATUS);
-
-    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
-
     switch (code % 1) {
         case 0:
             actualCode = static_cast<uint32_t>(AppRunningStatusListenerInterface::MessageCode::APP_RUNNING_STATUS);
@@ -61,12 +34,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
         default:
             break;
     }
-
-    parcel.RewindRead(0);
-    std::shared_ptr<AppRunningStatusStub> stub = std::make_shared<AppRunningStatusStubFuzz>();
-    stub->OnRemoteRequest(actualCode, parcel, reply, option);
-    return true;
-}
 }
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(AppRunningStatusStubFuzz, FuzzUtil::Tokens::APP_RUNNING_STATUS)
+} // namespace OHOS

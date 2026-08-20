@@ -12,47 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "quickfixcallbackstub_fuzzer.h"
-#include "fuzz_util.h"
 #include "attack_vectors.h"
-
-#include <cstddef>
-#include <cstdint>
-#include <iostream>
-
-#include "parcel.h"
-#include "quick_fix_callback_stub.h"
-#include "securec.h"
+#include "fuzz_util.h"
+#include "quickfixcallbackstub_fuzzer.h"
 
 using namespace OHOS::AppExecFwk;
 using namespace OHOS;
 
 namespace OHOS {
-namespace {
-const std::u16string ABILITYMGR_INTERFACE_TOKEN = u"ohos.appexecfwk.QuickFixCallback";
-}
+class QuickFixCallbackStubFuzz : public QuickFixCallbackStub {};
 
-class QuickFixCallbackStubFuzz : public QuickFixCallbackStub {
-public:
-    QuickFixCallbackStubFuzz() = default;
-    ~QuickFixCallbackStubFuzz() = default;
-
-    void OnLoadPatchDone(int32_t resultCode, int32_t recordId) override {}
-    void OnUnloadPatchDone(int32_t resultCode, int32_t recordId) override {}
-    void OnReloadPageDone(int32_t resultCode, int32_t recordId) override {}
-};
-
-bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    FUZZ_EXTRACT_CODE(data, size);
-    MessageParcel parcel;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t actualCode = static_cast<uint32_t>(IQuickFixCallback::ON_NOTIFY_LOAD_PATCH);
-
-    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
-
     switch (code % 3) {
         case 0:
             actualCode = static_cast<uint32_t>(IQuickFixCallback::ON_NOTIFY_LOAD_PATCH);
@@ -72,12 +43,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
         default:
             break;
     }
-
-    parcel.RewindRead(0);
-    std::shared_ptr<QuickFixCallbackStub> stub = std::make_shared<QuickFixCallbackStubFuzz>();
-    stub->OnRemoteRequest(actualCode, parcel, reply, option);
-    return true;
-}
 }
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(QuickFixCallbackStubFuzz, FuzzUtil::Tokens::QUICK_FIX_CB)
+} // namespace OHOS

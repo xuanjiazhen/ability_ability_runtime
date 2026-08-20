@@ -12,46 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "hiddenstartobserverstub_fuzzer.h"
-#include "fuzz_util.h"
 #include "attack_vectors.h"
-
-#include <cstddef>
-#include <cstdint>
-
-#include "hidden_start_observer_stub.h"
-#include "message_parcel.h"
-#include "securec.h"
+#include "fuzz_util.h"
+#include "hiddenstartobserverstub_fuzzer.h"
 
 using namespace OHOS::AAFwk;
 
 namespace OHOS {
-namespace {
-const std::u16string ABILITYMGR_INTERFACE_TOKEN = u"ohos.aafwk.IHiddenStartObserver";
-}
+class HiddenStartObserverStubFuzzTest : public HiddenStartObserverStub {};
 
-class HiddenStartObserverStubFuzzTest : public HiddenStartObserverStub {
-public:
-    HiddenStartObserverStubFuzzTest() = default;
-    virtual ~HiddenStartObserverStubFuzzTest()
-    {}
-    bool IsHiddenStart(int32_t pid) override
-    {
-        return false;
-    }
-};
-
-bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    FUZZ_EXTRACT_CODE(data, size);
-    MessageParcel parcel;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t actualCode = static_cast<uint32_t>(IHiddenStartObserver::Message::TRANSACT_ON_IS_HIDDEN_START);
-
-    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
-
     switch (code % 1) {
         case 0:
             actualCode = static_cast<uint32_t>(IHiddenStartObserver::Message::TRANSACT_ON_IS_HIDDEN_START);
@@ -60,15 +31,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
         default:
             break;
     }
-
-    parcel.RewindRead(0);
-    std::shared_ptr<HiddenStartObserverStub> hiddenstartobserverstub =
-        std::make_shared<HiddenStartObserverStubFuzzTest>();
-
-    hiddenstartobserverstub->OnRemoteRequest(actualCode, parcel, reply, option);
-
-    return true;
-}
 }
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(HiddenStartObserverStubFuzzTest, FuzzUtil::Tokens::HIDDEN_START_OBSERVER)
+} // namespace OHOS

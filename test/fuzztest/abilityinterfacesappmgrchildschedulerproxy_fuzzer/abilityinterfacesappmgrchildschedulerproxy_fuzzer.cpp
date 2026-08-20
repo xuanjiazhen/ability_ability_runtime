@@ -14,6 +14,7 @@
  */
 
 #include "abilityinterfacesappmgrchildschedulerproxy_fuzzer.h"
+#include "fuzz_util.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -42,7 +43,6 @@ constexpr size_t OFFSET_ONE = 16;
 constexpr size_t OFFSET_TWO = 8;
 constexpr uint8_t ENABLE = 2;
 }
-const std::u16string AMSMGR_INTERFACE_TOKEN = u"ohos.appexecfwk.IAmsMgr";
 uint32_t GetU32Data(const char* ptr)
 {
     // convert fuzz input data to an integer
@@ -73,7 +73,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     sptr<IRemoteObject> mainProcessCb;
     infosProxy->ScheduleRunNativeProc(mainProcessCb);
     MessageParcel parcels;
-    parcels.WriteInterfaceToken(AMSMGR_INTERFACE_TOKEN);
+    parcels.WriteInterfaceToken(FuzzUtil::Tokens::AMS_MGR);
     parcels.WriteBuffer(data, size);
     parcels.RewindRead(0);
     infosProxy->WriteInterfaceToken(parcels);

@@ -12,45 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "imageerrorhandlerstub_fuzzer.h"
-#include "fuzz_util.h"
 #include "attack_vectors.h"
-
-#include <cstddef>
-#include <cstdint>
-#include <iostream>
-
-#include "image_error_handler_stub.h"
-#include "parcel.h"
-#include "securec.h"
+#include "fuzz_util.h"
+#include "imageerrorhandlerstub_fuzzer.h"
 
 using namespace OHOS::AppExecFwk;
 using namespace OHOS;
 
 namespace OHOS {
-namespace {
-const std::u16string ABILITYMGR_INTERFACE_TOKEN = u"ohos.appexecfwk.IImageErrorHandler";
-}
+class ImageErrorHandlerStubFuzz : public ImageErrorHandlerStub {};
 
-class ImageErrorHandlerStubFuzz : public ImageErrorHandlerStub {
-public:
-    ImageErrorHandlerStubFuzz() = default;
-    ~ImageErrorHandlerStubFuzz() = default;
-
-    void OnError(int32_t errorCode) override {}
-};
-
-bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    FUZZ_EXTRACT_CODE(data, size);
-    MessageParcel parcel;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t actualCode = static_cast<uint32_t>(IImageErrorHandler::Message::ON_ERROR);
-
-    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
-
     switch (code % 1) {
         case 0:
             actualCode = static_cast<uint32_t>(IImageErrorHandler::Message::ON_ERROR);
@@ -59,12 +32,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
         default:
             break;
     }
-
-    parcel.RewindRead(0);
-    std::shared_ptr<ImageErrorHandlerStub> stub = std::make_shared<ImageErrorHandlerStubFuzz>();
-    stub->OnRemoteRequest(actualCode, parcel, reply, option);
-    return true;
-}
 }
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(ImageErrorHandlerStubFuzz, FuzzUtil::Tokens::IMAGE_ERROR_HANDLER)
+} // namespace OHOS

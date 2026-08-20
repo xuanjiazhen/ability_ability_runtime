@@ -27,10 +27,6 @@
 using namespace OHOS::AAFwk;
 
 namespace OHOS {
-namespace {
-const std::u16string PREPARETERMINATECALLBACK_INTERFACE_TOKEN = u"ohos.aafwk.prepareTerminateCallback";
-}
-
 class PrepareTerminateCallbackStubFuzzTest : public PrepareTerminateCallbackStub {
 public:
     PrepareTerminateCallbackStubFuzzTest() = default;
@@ -45,7 +41,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     MessageOption option;
     uint32_t actualCode = static_cast<uint32_t>(IPrepareTerminateCallback::ON_DO_PREPARE_TERMINATE);
 
-    parcel.WriteInterfaceToken(PREPARETERMINATECALLBACK_INTERFACE_TOKEN);
+    parcel.WriteInterfaceToken(std::u16string(FuzzUtil::Tokens::PREPARE_TERMINATE_CB));
     parcel.RewindRead(0);
 
     std::shared_ptr<PrepareTerminateCallbackStub> prepareterminatecallbackstub =
@@ -57,5 +53,4 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 }
 }
 
-/* Fuzzer entry point */
 FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)

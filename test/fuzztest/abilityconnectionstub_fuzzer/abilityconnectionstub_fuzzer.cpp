@@ -14,6 +14,7 @@
  */
 
 #include "abilityconnectionstub_fuzzer.h"
+#include "fuzz_util.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -25,18 +26,6 @@
 using namespace OHOS::AAFwk;
 
 namespace OHOS {
-namespace {
-constexpr int INPUT_ZERO = 0;
-constexpr int INPUT_ONE = 1;
-constexpr int INPUT_TWO = 2;
-constexpr int INPUT_THREE = 3;
-constexpr size_t U32_AT_SIZE = 4;
-constexpr size_t OFFSET_ZERO = 24;
-constexpr size_t OFFSET_ONE = 16;
-constexpr size_t OFFSET_TWO = 8;
-}
-const std::u16string ABILITYMGR_INTERFACE_TOKEN = u"ohos.abilityshell.DistributedConnection";
-
 class AbilityConnectionStubFuzzTest : public AbilityConnectionStub {
 public:
     AbilityConnectionStubFuzzTest() = default;
@@ -49,19 +38,12 @@ public:
     {}
 };
 
-uint32_t GetU32Data(const char* ptr)
-{
-    // convert fuzz input data to an integer
-    return (ptr[INPUT_ZERO] << OFFSET_ZERO) | (ptr[INPUT_ONE] << OFFSET_ONE) | (ptr[INPUT_TWO] << OFFSET_TWO) |
-        ptr[INPUT_THREE];
-}
-
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
-    uint32_t code = GetU32Data(data);
+    uint32_t code = FuzzUtil::GetU32Data(data);
 
     MessageParcel parcel;
-    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    parcel.WriteInterfaceToken(std::u16string(FuzzUtil::Tokens::ABILITY_CONNECTION));
     parcel.WriteBuffer(data, size);
     parcel.RewindRead(0);
     MessageParcel reply;
@@ -75,37 +57,4 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 }
 }
 
-/* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
-{
-    /* Run your code on data */
-    if (data == nullptr) {
-        std::cout << "invalid data" << std::endl;
-        return 0;
-    }
-
-    /* Validate the length of size */
-    if (size < OHOS::U32_AT_SIZE) {
-        return 0;
-    }
-
-    char* ch = static_cast<char*>(malloc(size + 1));
-    if (ch == nullptr) {
-        std::cout << "malloc failed." << std::endl;
-        return 0;
-    }
-
-    (void)memset_s(ch, size + 1, 0x00, size + 1);
-    if (memcpy_s(ch, size, data, size) != EOK) {
-        std::cout << "copy failed." << std::endl;
-        free(ch);
-        ch = nullptr;
-        return 0;
-    }
-
-    OHOS::DoSomethingInterestingWithMyAPI(ch, size);
-    free(ch);
-    ch = nullptr;
-    return 0;
-}
-
+FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)

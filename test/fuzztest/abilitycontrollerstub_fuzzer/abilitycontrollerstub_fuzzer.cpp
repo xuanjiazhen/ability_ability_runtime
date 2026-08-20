@@ -12,53 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "abilitycontrollerstub_fuzzer.h"
-#include "fuzz_util.h"
 #include "attack_vectors.h"
-
-#include <cstddef>
-#include <cstdint>
-#include <iostream>
-
-#include "ability_controller_stub.h"
-#include "parcel.h"
-#include "securec.h"
+#include "fuzz_util.h"
 
 using namespace OHOS::AppExecFwk;
 using namespace OHOS;
 
 namespace OHOS {
-namespace {
-const std::u16string ABILITYMGR_INTERFACE_TOKEN = u"ohos.appexecfwk.IAbilityController";
-}
+class AbilityControllerStubFuzz : public AbilityControllerStub {};
 
-class AbilityControllerStubFuzz : public AbilityControllerStub {
-public:
-    AbilityControllerStubFuzz() = default;
-    ~AbilityControllerStubFuzz() = default;
-
-    bool AllowAbilityStart(const Want &want, const std::string &bundleName) override
-    {
-        return false;
-    }
-
-    bool AllowAbilityBackground(const std::string &bundleName) override
-    {
-        return false;
-    }
-};
-
-bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    FUZZ_EXTRACT_CODE(data, size);
-    MessageParcel parcel;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t actualCode = static_cast<uint32_t>(IAbilityController::Message::TRANSACT_ON_ALLOW_ABILITY_START);
-
-    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
-
     switch (code % 2) {
         case 0:
             actualCode = static_cast<uint32_t>(IAbilityController::Message::TRANSACT_ON_ALLOW_ABILITY_START);
@@ -72,12 +37,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
         default:
             break;
     }
-
-    parcel.RewindRead(0);
-    std::shared_ptr<AbilityControllerStub> stub = std::make_shared<AbilityControllerStubFuzz>();
-    stub->OnRemoteRequest(actualCode, parcel, reply, option);
-    return true;
-}
 }
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(AbilityControllerStubFuzz, FuzzUtil::Tokens::ABILITY_CONTROLLER)
+} // namespace OHOS

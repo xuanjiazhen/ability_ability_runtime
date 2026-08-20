@@ -14,6 +14,7 @@
  */
 
 #include "abilityinterfacesappmanageramsmgrstubseventh_fuzzer.h"
+#include "fuzz_util.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -31,7 +32,6 @@ namespace OHOS {
 namespace {
 constexpr size_t STRING_MAX_LENGTH = 128;
 }
-const std::u16string AMSMGR_INTERFACE_TOKEN = u"ohos.appexecfwk.IAmsMgr";
 bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 {
     std::shared_ptr<AppMgrServiceInner> MgrServiceInner;
@@ -40,7 +40,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     MessageParcel parcel;
     MessageParcel reply;
     FuzzedDataProvider fdp(data, size);
-    parcel.WriteInterfaceToken(AMSMGR_INTERFACE_TOKEN);
+    parcel.WriteInterfaceToken(FuzzUtil::Tokens::AMS_MGR);
     parcel.WriteString(fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH));
     parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
     parcel.RewindRead(0);

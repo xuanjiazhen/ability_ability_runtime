@@ -22,8 +22,13 @@ ohos_fuzztest("AmsManagerFuzzTest") {
   module_out_path = fuzz_test_output_path
 
   fuzz_config_file = "${ability_runtime_test_path}/fuzztest/amsmanager_fuzzer"
-  include_dirs =
-      [ "${ability_runtime_innerkits_path}/app_manager/include/appmgr" ]
+  include_dirs = [
+
+      "${ability_runtime_innerkits_path}/app_manager/include/appmgr",
+
+      "${ability_runtime_test_path}/fuzztest/common",
+
+  ]
   cflags = [
     "-g",
     "-O0",

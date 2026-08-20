@@ -12,46 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "kiainterceptorstub_fuzzer.h"
-#include "fuzz_util.h"
 #include "attack_vectors.h"
-
-#include <cstddef>
-#include <cstdint>
-
-#include "kia_interceptor_stub.h"
-#include "message_parcel.h"
-#include "securec.h"
+#include "fuzz_util.h"
+#include "kiainterceptorstub_fuzzer.h"
 
 using namespace OHOS::AppExecFwk;
 
 namespace OHOS {
-namespace {
-const std::u16string ABILITYMGR_INTERFACE_TOKEN = u"ohos.appexecfwk.IKiaInterceptor";
-}
+class KiaInterceptorStubFuzzTest : public KiaInterceptorStub {};
 
-class KiaInterceptorStubFuzzTest : public KiaInterceptorStub {
-public:
-    KiaInterceptorStubFuzzTest() = default;
-    virtual ~KiaInterceptorStubFuzzTest()
-    {}
-    int OnIntercept(AAFwk::Want &want) override
-    {
-        return 0;
-    }
-};
-
-bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    FUZZ_EXTRACT_CODE(data, size);
-    MessageParcel parcel;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t actualCode = static_cast<uint32_t>(IKiaInterceptor::KIA_INTERCEPTOR_ON_INTERCEPT);
-
-    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
-
     switch (code % 1) {
         case 0:
             actualCode = static_cast<uint32_t>(IKiaInterceptor::KIA_INTERCEPTOR_ON_INTERCEPT);
@@ -60,15 +31,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
         default:
             break;
     }
-
-    parcel.RewindRead(0);
-    std::shared_ptr<KiaInterceptorStub> kiainterceptorstub = std::make_shared<KiaInterceptorStubFuzzTest>();
-
-    kiainterceptorstub->OnRemoteRequest(actualCode, parcel, reply, option);
-
-    return true;
-}
 }
 
-/* Fuzzer entry point */
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(KiaInterceptorStubFuzzTest, FuzzUtil::Tokens::KIA_INTERCEPTOR)
+} // namespace OHOS

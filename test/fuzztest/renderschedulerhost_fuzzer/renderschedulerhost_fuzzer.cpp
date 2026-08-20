@@ -30,7 +30,6 @@ using namespace OHOS;
 
 namespace OHOS {
 namespace {
-const std::u16string ABILITYMGR_INTERFACE_TOKEN = u"ohos.appexecfwk.RenderScheduler";
 }
 
 class RenderSchedulerHostFuzz : public RenderSchedulerHost {
@@ -49,7 +48,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     MessageOption option;
     uint32_t actualCode = static_cast<uint32_t>(IRenderScheduler::Message::NOTIFY_BROWSER_FD);
 
-    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    parcel.WriteInterfaceToken(FuzzUtil::Tokens::RENDER_SCHEDULER);
 
     switch (code % 1) {
         case 0:

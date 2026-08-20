@@ -12,45 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "abilityfirstframestateobserverstub_fuzzer.h"
-#include "fuzz_util.h"
 #include "attack_vectors.h"
-
-#include <cstddef>
-#include <cstdint>
-
-#include "ability_first_frame_state_observer_stub.h"
-#include "message_parcel.h"
-#include "securec.h"
+#include "fuzz_util.h"
 
 using namespace OHOS::AppExecFwk;
 
 namespace OHOS {
-namespace {
-const std::u16string ABILITYMGR_INTERFACE_TOKEN = u"ohos.appexecfwk.IAbilitFirstFrameState";
-}
+class AbilityFirstFrameStateObserverStubFuzzTest : public AbilityFirstFrameStateObserverStub {};
 
-class AbilityFirstFrameStateObserverStubFuzzTest : public AbilityFirstFrameStateObserverStub {
-public:
-    AbilityFirstFrameStateObserverStubFuzzTest() = default;
-    virtual ~AbilityFirstFrameStateObserverStubFuzzTest()
-    {}
-    void OnAbilityFirstFrameState(const AbilityFirstFrameStateData &abilityFirstFrameStateData) override
-    {}
-};
-
-bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    FUZZ_EXTRACT_CODE(data, size);
-    MessageParcel parcel;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t actualCode =
-        static_cast<uint32_t>(IAbilityFirstFrameStateObserver::Message::ON_ABILITY_FIRST_FRAME_STATE);
-
-    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
-
     switch (code % 1) {
         case 0:
             actualCode =
@@ -64,15 +36,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
         default:
             break;
     }
-
-    parcel.RewindRead(0);
-    std::shared_ptr<AbilityFirstFrameStateObserverStub> abilityfirstframestateobserverstub =
-        std::make_shared<AbilityFirstFrameStateObserverStubFuzzTest>();
-
-    abilityfirstframestateobserverstub->OnRemoteRequest(actualCode, parcel, reply, option);
-
-    return true;
-}
 }
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(AbilityFirstFrameStateObserverStubFuzzTest, FuzzUtil::Tokens::FIRST_FRAME_OBSERVER)
+} // namespace OHOS

@@ -14,6 +14,7 @@
  */
 
 #include "appmanager_fuzzer.h"
+#include "fuzz_util.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -36,7 +37,6 @@ constexpr size_t OFFSET_ZERO = 24;
 constexpr size_t OFFSET_ONE = 16;
 constexpr size_t OFFSET_TWO = 8;
 constexpr uint32_t MAX_APP_MGR_INTERFACE_CODE = 999; // 999 is max interface code.
-const std::u16string APPMGR_INTERFACE_TOKEN = u"ohos.appexecfwk.AppMgr";
 }
 
 uint32_t GetU32Data(const char* ptr)
@@ -50,7 +50,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
     for (uint32_t code = 0; code <= MAX_APP_MGR_INTERFACE_CODE; ++code) {
         MessageParcel parcel;
-        parcel.WriteInterfaceToken(APPMGR_INTERFACE_TOKEN);
+        parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_MGR);
         parcel.WriteBuffer(data, size);
         parcel.RewindRead(0);
         MessageParcel reply;

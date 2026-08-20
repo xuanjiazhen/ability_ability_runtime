@@ -35,7 +35,6 @@ using namespace OHOS;
 
 namespace OHOS {
 namespace {
-const std::u16string APPSTATECALLBACK_INTERFACE_TOKEN = u"ohos.appexecfwk.AppStateCallback";
 }
 
 class AppStateCallbackHostFuzz : public AppStateCallbackHost {};
@@ -48,7 +47,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     MessageOption option;
     uint32_t actualCode = static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_APP_STATE_CHANGED);
 
-    parcel.WriteInterfaceToken(APPSTATECALLBACK_INTERFACE_TOKEN);
+    parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_STATE_CALLBACK);
 
     switch (code % 11) {
         case 0: {

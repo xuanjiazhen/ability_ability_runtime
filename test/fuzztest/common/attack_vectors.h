@@ -662,6 +662,86 @@ inline void WriteDumpStateInfoLeak(MessageParcel &parcel, FuzzedDataProvider &fd
     parcel.WriteBool(true);
     parcel.WriteString(BuildUriAttackString(fdp));
 }
+
+// ==================== W16 Variants ====================
+// Convert a std::string built by Builder to std::u16string for WriteString16 APIs.
+template <typename Builder>
+inline std::u16string ToU16(Builder &&builder, FuzzedDataProvider &fdp, size_t maxLen = 0)
+{
+    std::string s = builder(fdp, maxLen);
+    return std::u16string(s.begin(), s.end());
+}
+
+inline std::u16string BuildSymlinkAttackW16(FuzzedDataProvider &fdp, size_t maxLen = 0)
+{
+    return ToU16(BuildSymlinkAttack, fdp, maxLen);
+}
+
+inline std::u16string BuildSpecialCharStringW16(FuzzedDataProvider &fdp, size_t maxLen = 0)
+{
+    return ToU16(BuildSpecialCharString, fdp, maxLen);
+}
+
+inline std::u16string BuildOversizedStringW16(FuzzedDataProvider &fdp, size_t maxLen = 0)
+{
+    return ToU16(BuildOversizedString, fdp, maxLen);
+}
+
+inline std::u16string BuildMaliciousBundleNameW16(FuzzedDataProvider &fdp, size_t maxLen = 0)
+{
+    return ToU16(BuildMaliciousBundleName, fdp, maxLen);
+}
+
+inline std::u16string BuildUriAttackStringW16(FuzzedDataProvider &fdp, size_t maxLen = 0)
+{
+    return ToU16(BuildUriAttackString, fdp, maxLen);
+}
+
+inline std::u16string BuildSandboxEscapePathW16(FuzzedDataProvider &fdp, size_t maxLen = 0)
+{
+    return ToU16(BuildSandboxEscapePath, fdp, maxLen);
+}
+
+// ==================== Optional Field Helpers ====================
+// Write a bool flag + conditionally write RemoteObject (common pattern in IPC stubs).
+inline bool WriteOptionalRemoteObject(MessageParcel &parcel, FuzzedDataProvider &fdp,
+    sptr<IRemoteObject> obj = nullptr)
+{
+    bool has = fdp.ConsumeBool();
+    parcel.WriteBool(has);
+    if (has) {
+        parcel.WriteRemoteObject(obj);
+    }
+    return has;
+}
+
+// Write a bool flag + conditionally write a string.
+inline bool WriteOptionalString(MessageParcel &parcel, FuzzedDataProvider &fdp,
+    size_t maxLen = DEFAULT_MAX_STR_LEN)
+{
+    bool has = fdp.ConsumeBool();
+    parcel.WriteBool(has);
+    if (has) {
+        parcel.WriteString(WriteTruncatedString(fdp, maxLen));
+    }
+    return has;
+}
+
+// Write a bool flag + conditionally write an int32.
+inline bool WriteOptionalInt32(MessageParcel &parcel, FuzzedDataProvider &fdp)
+{
+    bool has = fdp.ConsumeBool();
+    parcel.WriteBool(has);
+    if (has) {
+        parcel.WriteInt32(BuildIntegerOverflow(fdp));
+    }
+    return has;
+}
+
+// ==================== Common Struct Constructors ====================
+// NOTE: Parcelable-typed helpers (e.g. WriteMaliciousExitReason) that require
+// concrete type headers should be defined locally in each fuzzer to avoid
+// adding heavy include dependencies to this shared header.
 } // namespace FuzzUtil
 } // namespace OHOS
 

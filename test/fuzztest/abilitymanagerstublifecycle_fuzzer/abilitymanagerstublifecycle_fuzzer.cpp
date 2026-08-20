@@ -35,30 +35,15 @@ using namespace OHOS::AppExecFwk;
 using namespace OHOS;
 
 namespace OHOS {
-namespace {
-const std::u16string ABILITYMGR_INTERFACE_TOKEN = u"ohos.aafwk.AbilityManager";
-}
 
 class AbilityManagerStubLifecycleFuzz : public AbilityManagerStubFuzzBase {};
 
-bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    FUZZ_EXTRACT_CODE(data, size);
-    MessageParcel parcel;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t actualCode = static_cast<uint32_t>(AbilityManagerInterfaceCode::TERMINATE_ABILITY);
-
-    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
-
     switch (code % 14) {
         case 0: {
             actualCode = static_cast<uint32_t>(AbilityManagerInterfaceCode::TERMINATE_ABILITY);
-            bool hasToken = fdp.ConsumeBool();
-            parcel.WriteBool(hasToken);
-            if (hasToken) {
-                parcel.WriteRemoteObject(nullptr);
-            }
+            FuzzUtil::WriteOptionalRemoteObject(parcel, fdp);
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             FuzzUtil::WriteMaliciousWant(parcel, fdp);
             parcel.WriteBool(fdp.ConsumeBool());
@@ -94,16 +79,8 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
         }
         case 4: {
             actualCode = static_cast<uint32_t>(AbilityManagerInterfaceCode::CONNECT_ABILITY_DONE);
-            bool hasToken = fdp.ConsumeBool();
-            parcel.WriteBool(hasToken);
-            if (hasToken) {
-                parcel.WriteRemoteObject(nullptr);
-            }
-            bool hasRemote = fdp.ConsumeBool();
-            parcel.WriteBool(hasRemote);
-            if (hasRemote) {
-                parcel.WriteRemoteObject(nullptr);
-            }
+            FuzzUtil::WriteOptionalRemoteObject(parcel, fdp);
+            FuzzUtil::WriteOptionalRemoteObject(parcel, fdp);
             break;
         }
         case 5: {
@@ -170,11 +147,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             break;
     }
 
-    parcel.RewindRead(0);
-    std::shared_ptr<AbilityManagerStub> stub = std::make_shared<AbilityManagerStubLifecycleFuzz>();
-    stub->OnRemoteRequest(actualCode, parcel, reply, option);
-    return true;
-}
 }
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(AbilityManagerStubLifecycleFuzz, FuzzUtil::Tokens::ABILITY_MGR)
+} // namespace OHOS

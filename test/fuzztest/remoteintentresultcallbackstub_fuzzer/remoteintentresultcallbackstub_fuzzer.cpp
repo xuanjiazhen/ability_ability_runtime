@@ -12,46 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "remoteintentresultcallbackstub_fuzzer.h"
-#include "fuzz_util.h"
 #include "attack_vectors.h"
-
-#include <cstddef>
-#include <cstdint>
-
-#include "message_parcel.h"
-#include "remote_intent_result_callback_stub.h"
-#include "securec.h"
+#include "fuzz_util.h"
+#include "remoteintentresultcallbackstub_fuzzer.h"
 
 using namespace OHOS::AAFwk;
 
 namespace OHOS {
-namespace {
-const std::u16string ABILITYMGR_INTERFACE_TOKEN = u"ohos.distributedschedule.IRemoteIntentResultCallback";
-}
+class RemoteIntentResultCallbackStubFuzzTest : public RemoteIntentResultCallbackStub {};
 
-class RemoteIntentResultCallbackStubFuzzTest : public RemoteIntentResultCallbackStub {
-public:
-    RemoteIntentResultCallbackStubFuzzTest() = default;
-    virtual ~RemoteIntentResultCallbackStubFuzzTest()
-    {}
-    void OnIntentResult(uint64_t requestCode, int32_t resultCode, const std::string& resultMsg) override
-    {}
-    void OnLinkDisconnected(uint64_t requestCode, int32_t reason) override
-    {}
-};
-
-bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    FUZZ_EXTRACT_CODE(data, size);
-    MessageParcel parcel;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t actualCode = static_cast<uint32_t>(IRemoteIntentResultCallback::ON_INTENT_RESULT);
-
-    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
-
     switch (code % 2) {
         case 0:
             actualCode = static_cast<uint32_t>(IRemoteIntentResultCallback::ON_INTENT_RESULT);
@@ -67,16 +38,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
         default:
             break;
     }
-
-    parcel.RewindRead(0);
-    std::shared_ptr<RemoteIntentResultCallbackStub> stub =
-        std::make_shared<RemoteIntentResultCallbackStubFuzzTest>();
-
-    stub->OnRemoteRequest(actualCode, parcel, reply, option);
-
-    return true;
-}
 }
 
-/* Fuzzer entry point */
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(RemoteIntentResultCallbackStubFuzzTest, FuzzUtil::Tokens::REMOTE_INTENT_CB)
+} // namespace OHOS

@@ -12,50 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "abilityinfocallbackstub_fuzzer.h"
-#include "fuzz_util.h"
 #include "attack_vectors.h"
-
-#include <cstddef>
-#include <cstdint>
-#include <iostream>
-
-#include "ability_info_callback_stub.h"
-#include "parcel.h"
-#include "securec.h"
-#include "want.h"
+#include "fuzz_util.h"
 
 using namespace OHOS::AppExecFwk;
 using namespace OHOS;
 
 namespace OHOS {
-namespace {
-const std::u16string ABILITYMGR_INTERFACE_TOKEN = u"ohos.appexecfwk.IAbilityInfoCallback";
-}
+class AbilityInfoCallbackStubFuzz : public AbilityInfoCallbackStub {};
 
-class AbilityInfoCallbackStubFuzz : public AbilityInfoCallbackStub {
-public:
-    AbilityInfoCallbackStubFuzz() = default;
-    ~AbilityInfoCallbackStubFuzz() = default;
-
-    void NotifyAbilityToken(const sptr<IRemoteObject> token, const Want &want) override {}
-    void NotifyStartSpecifiedAbility(const sptr<IRemoteObject> &callerToken, const Want &want, int requestCode,
-        sptr<Want> &extraParam) override {}
-    void NotifyRestartSpecifiedAbility(const sptr<IRemoteObject> &token) override {}
-    void NotifyStartAbilityResult(const Want &want, int result) override {}
-};
-
-bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    FUZZ_EXTRACT_CODE(data, size);
-    MessageParcel parcel;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t actualCode = static_cast<uint32_t>(IAbilityInfoCallback::Notify_ABILITY_TOKEN);
-
-    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
-
     switch (code % 1) {
         case 0:
             actualCode = static_cast<uint32_t>(IAbilityInfoCallback::Notify_ABILITY_TOKEN);
@@ -65,12 +33,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
         default:
             break;
     }
-
-    parcel.RewindRead(0);
-    std::shared_ptr<AbilityInfoCallbackStub> stub = std::make_shared<AbilityInfoCallbackStubFuzz>();
-    stub->OnRemoteRequest(actualCode, parcel, reply, option);
-    return true;
-}
 }
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(AbilityInfoCallbackStubFuzz, FuzzUtil::Tokens::ABILITY_INFO_CB)
+} // namespace OHOS

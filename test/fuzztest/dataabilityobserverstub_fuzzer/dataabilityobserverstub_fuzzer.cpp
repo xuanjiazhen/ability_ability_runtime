@@ -12,49 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include "attack_vectors.h"
 #include "dataabilityobserverstub_fuzzer.h"
 #include "fuzz_util.h"
-#include "attack_vectors.h"
-
-#include <cstddef>
-#include <cstdint>
-
-#include "data_ability_observer_stub.h"
-#include "parcel.h"
-#include "securec.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS;
 
 namespace OHOS {
-namespace {
-const std::u16string DATA_ABILITY_OBSERVER_INTERFACE_TOKEN = u"ohos.aafwk.DataAbilityObserver";
-}
+class DataAbilityObserverStubFuzz : public DataAbilityObserverStub {};
 
-class DataAbilityObserverStubFuzz : public DataAbilityObserverStub {
-public:
-    DataAbilityObserverStubFuzz() = default;
-    virtual ~DataAbilityObserverStubFuzz()
-    {}
-    void OnChange() override
-    {}
-    void OnChangeExt(const ChangeInfo &changeInfo) override
-    {}
-    void OnChangePreferences(const std::string &key) override
-    {}
-};
-
-bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    FUZZ_EXTRACT_CODE(data, size);
-    MessageParcel parcel;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t actualCode = static_cast<uint32_t>(IDataAbilityObserver::DATA_ABILITY_OBSERVER_CHANGE);
-
-    parcel.WriteInterfaceToken(DATA_ABILITY_OBSERVER_INTERFACE_TOKEN);
-
     switch (code % 3) {
         case 0:
             actualCode = static_cast<uint32_t>(IDataAbilityObserver::DATA_ABILITY_OBSERVER_CHANGE);
@@ -77,13 +46,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
         default:
             break;
     }
-
-    parcel.RewindRead(0);
-    std::shared_ptr<DataAbilityObserverStub> dataabilityobserverstub =
-        std::make_shared<DataAbilityObserverStubFuzz>();
-    dataabilityobserverstub->OnRemoteRequest(actualCode, parcel, reply, option);
-    return true;
-}
 }
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(DataAbilityObserverStubFuzz, FuzzUtil::Tokens::DATA_ABILITY_OBSERVER)
+} // namespace OHOS

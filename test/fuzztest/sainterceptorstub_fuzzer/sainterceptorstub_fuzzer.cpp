@@ -12,46 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "sainterceptorstub_fuzzer.h"
-#include "fuzz_util.h"
 #include "attack_vectors.h"
-
-#include <cstddef>
-#include <cstdint>
-
-#include "sa_interceptor_stub.h"
-#include "message_parcel.h"
-#include "securec.h"
+#include "fuzz_util.h"
+#include "sainterceptorstub_fuzzer.h"
 
 using namespace OHOS::AbilityRuntime;
 
 namespace OHOS {
-namespace {
-const std::u16string ABILITYMGR_INTERFACE_TOKEN = u"ohos.AbilityRuntime.ISAInterceptor";
-}
+class SAInterceptorStubFuzzTest : public SAInterceptorStub {};
 
-class SAInterceptorStubFuzzTest : public SAInterceptorStub {
-public:
-    SAInterceptorStubFuzzTest() = default;
-    virtual ~SAInterceptorStubFuzzTest()
-    {}
-    int32_t OnCheckStarting(const std::string &params, Rule &rule) override
-    {
-        return 0;
-    }
-};
-
-bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    FUZZ_EXTRACT_CODE(data, size);
-    MessageParcel parcel;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t actualCode = static_cast<uint32_t>(ISAInterceptor::SAInterceptorCmd::ON_DO_CHECK_STARTING);
-
-    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
-
     switch (code % 1) {
         case 0:
             actualCode = static_cast<uint32_t>(ISAInterceptor::SAInterceptorCmd::ON_DO_CHECK_STARTING);
@@ -60,13 +31,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
         default:
             break;
     }
-
-    parcel.RewindRead(0);
-    std::shared_ptr<SAInterceptorStub> sainterceptorstub = std::make_shared<SAInterceptorStubFuzzTest>();
-    sainterceptorstub->OnRemoteRequest(actualCode, parcel, reply, option);
-    return true;
-}
 }
 
-/* Fuzzer entry point */
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(SAInterceptorStubFuzzTest, FuzzUtil::Tokens::SA_INTERCEPTOR)
+} // namespace OHOS

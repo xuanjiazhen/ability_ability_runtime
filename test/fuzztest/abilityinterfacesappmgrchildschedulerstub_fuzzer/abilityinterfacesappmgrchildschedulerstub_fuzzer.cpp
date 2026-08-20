@@ -14,6 +14,7 @@
  */
 
 #include "abilityinterfacesappmgrchildschedulerstub_fuzzer.h"
+#include "fuzz_util.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -35,7 +36,6 @@ namespace OHOS {
 namespace {
 constexpr size_t STRING_MAX_LENGTH = 128;
 }
-const std::u16string CHILD_SCHEDULER_TOKEN = u"ohos.appexecfwk.ChildScheduler";
 
 class ChildSchedulerStubFUZZ : public ChildSchedulerStub {
 public:
@@ -57,7 +57,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     MessageParcel reply;
     MessageOption option;
     FuzzedDataProvider fdp(data, size);
-    parcel.WriteInterfaceToken(CHILD_SCHEDULER_TOKEN);
+    parcel.WriteInterfaceToken(FuzzUtil::Tokens::CHILD_SCHEDULER);
     parcel.WriteString(fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH));
     parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
     parcel.RewindRead(0);

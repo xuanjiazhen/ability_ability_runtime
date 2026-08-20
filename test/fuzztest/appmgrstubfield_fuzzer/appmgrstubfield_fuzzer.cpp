@@ -35,22 +35,10 @@ using namespace OHOS::AppExecFwk;
 using namespace OHOS;
 
 namespace OHOS {
-namespace {
-const std::u16string APPMGR_INTERFACE_TOKEN = u"ohos.appexecfwk.AppMgr";
-}
-
 class AppMgrStubFieldFuzz : public AppMgrStubFuzzBase {};
 
-bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    FUZZ_EXTRACT_CODE(data, size);
-    MessageParcel parcel;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::APP_ATTACH_APPLICATION);
-
-    parcel.WriteInterfaceToken(APPMGR_INTERFACE_TOKEN);
-
     switch (code % 10) {
         case 0:
             actualCode = static_cast<uint32_t>(AppMgrInterfaceCode::APP_ATTACH_APPLICATION);
@@ -111,22 +99,13 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
-            bool flag = fdp.ConsumeBool();
-            parcel.WriteBool(flag);
-            if (flag) {
-                parcel.WriteRemoteObject(nullptr);
-            }
+            FuzzUtil::WriteOptionalRemoteObject(parcel, fdp);
             break;
         }
         default:
             break;
     }
-
-    parcel.RewindRead(0);
-    std::shared_ptr<AppMgrStub> appMgrStub = std::make_shared<AppMgrStubFieldFuzz>();
-    appMgrStub->OnRemoteRequest(actualCode, parcel, reply, option);
-    return true;
 }
-} // namespace OHOS
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(AppMgrStubFieldFuzz, FuzzUtil::Tokens::APP_MGR)
+} // namespace OHOS

@@ -12,43 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "remoteonlistenerstub_fuzzer.h"
-#include "fuzz_util.h"
 #include "attack_vectors.h"
-
-#include <cstddef>
-#include <cstdint>
-#include <iostream>
-
-#include "remote_on_listener_stub.h"
-#include "message_parcel.h"
-#include "securec.h"
+#include "fuzz_util.h"
+#include "remoteonlistenerstub_fuzzer.h"
 
 using namespace OHOS::AAFwk;
 
 namespace OHOS {
-namespace {
-const std::u16string ABILITYMGR_INTERFACE_TOKEN = u"ohos.aafwk.RemoteOnListener";
-}
+class RemoteOnListenerStubFuzzTest : public RemoteOnListenerStub {};
 
-class RemoteOnListenerStubFuzzTest : public RemoteOnListenerStub {
-public:
-    RemoteOnListenerStubFuzzTest() = default;
-    virtual ~RemoteOnListenerStubFuzzTest() {}
-    void OnCallback(const OnCallbackInfo &info) override {}
-};
-
-bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    FUZZ_EXTRACT_CODE(data, size);
-    MessageParcel parcel;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t actualCode = static_cast<uint32_t>(IRemoteOnListener::ON_CALLBACK);
-
-    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
-
     switch (code % 1) {
         case 0: {
             actualCode = static_cast<uint32_t>(IRemoteOnListener::ON_CALLBACK);
@@ -67,14 +41,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
         default:
             break;
     }
-
-    parcel.RewindRead(0);
-    std::shared_ptr<RemoteOnListenerStub> stub = std::make_shared<RemoteOnListenerStubFuzzTest>();
-
-    stub->OnRemoteRequest(actualCode, parcel, reply, option);
-
-    return true;
-}
 }
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(RemoteOnListenerStubFuzzTest, FuzzUtil::Tokens::REMOTE_ON_LISTENER)
+} // namespace OHOS
