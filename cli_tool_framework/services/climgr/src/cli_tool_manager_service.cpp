@@ -62,6 +62,12 @@ constexpr int32_t QUERY_DB_ERROR = 2;
 constexpr int32_t MAX_QUERY_CMDS_SIZE = 100;
 constexpr int32_t ACTIVE_TIME = 30 * 1000; // 30s
 constexpr int32_t SKILL_TYPE_INDEPENDENT = -1;
+constexpr int32_t BASE_USER_RANGE = 200000; // uid range per user, same as appmgr
+
+int32_t GetCallingUserId()
+{
+    return static_cast<int32_t>(IPCSkeleton::GetCallingUid()) / BASE_USER_RANGE;
+}
 } // namespace
 
 std::mutex g_mutex;
@@ -591,7 +597,9 @@ int32_t CliToolManagerService::RegisterFunction(const FunctionInfo &function)
         return ERR_INVALID_PARAM;
     }
 
-    int32_t ret = CliFunctionDataManager::GetInstance().RegisterFunction(function);
+    FunctionInfo owned = function;
+    owned.userId = GetCallingUserId();
+    int32_t ret = CliFunctionDataManager::GetInstance().RegisterFunction(owned);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "RegisterFunction: Failed to register function, ret=%{public}d", ret);
         return ret;
@@ -629,6 +637,7 @@ int32_t CliToolManagerService::BatchRegisterFunctions(const FunctionsRawData &fu
         return ERR_INVALID_PARAM;
     }
 
+    int32_t userId = GetCallingUserId();
     std::vector<FunctionInfo> validFunctions;
     validFunctions.reserve(functionList.size());
     for (const auto &function : functionList) {
@@ -636,7 +645,9 @@ int32_t CliToolManagerService::BatchRegisterFunctions(const FunctionsRawData &fu
             TAG_LOGW(AAFwkTag::CLI_TOOL, "Invalid function info, will skip: %{public}s/%{public}s",
                 function.functionNamespace.c_str(), function.functionName.c_str());
         } else {
-            validFunctions.push_back(function);
+            FunctionInfo owned = function;
+            owned.userId = userId;
+            validFunctions.push_back(owned);
         }
     }
 
@@ -680,7 +691,8 @@ int32_t CliToolManagerService::GetFunctionInfo(const std::string &functionNamesp
         return ERR_PERMISSION_DENIED;
     }
 
-    int32_t ret = CliFunctionDataManager::GetInstance().GetFunctionByName(functionNamespace, functionName, function);
+    int32_t ret = CliFunctionDataManager::GetInstance().GetFunctionByName(
+        GetCallingUserId(), functionNamespace, functionName, function);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionInfo: Failed to get function, ret=%{public}d", ret);
         return ret;
@@ -707,7 +719,8 @@ int32_t CliToolManagerService::UnregisterFunction(const std::string &functionNam
         return ERR_PERMISSION_DENIED;
     }
 
-    int32_t ret = CliFunctionDataManager::GetInstance().UnregisterFunction(functionNamespace, functionName);
+    int32_t ret = CliFunctionDataManager::GetInstance().UnregisterFunction(
+        GetCallingUserId(), functionNamespace, functionName);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "UnregisterFunction: Failed to unregister function, ret=%{public}d", ret);
         return ret;
@@ -733,7 +746,8 @@ int32_t CliToolManagerService::UnregisterIntentFunctionsByNamespace(const std::s
         return ERR_PERMISSION_DENIED;
     }
 
-    int32_t ret = CliFunctionDataManager::GetInstance().UnregisterIntentFunctionsByNamespace(functionNamespace);
+    int32_t ret = CliFunctionDataManager::GetInstance().UnregisterIntentFunctionsByNamespace(
+        GetCallingUserId(), functionNamespace);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "UnregisterIntentFunctionsByNamespace: Failed, ret=%{public}d", ret);
         return ret;
@@ -777,6 +791,7 @@ int32_t CliToolManagerService::ResetNamespaceFunctions(const std::string &functi
         // Allow empty list - this means delete all existing functions
     }
 
+    int32_t userId = GetCallingUserId();
     std::vector<FunctionInfo> validFunctions;
     validFunctions.reserve(functionList.size());
     for (const auto &function : functionList) {
@@ -792,11 +807,13 @@ int32_t CliToolManagerService::ResetNamespaceFunctions(const std::string &functi
                 " got=%{public}s", functionNamespace.c_str(), function.functionNamespace.c_str());
             return ERR_INVALID_PARAM;
         }
-        validFunctions.push_back(function);
+        FunctionInfo owned = function;
+        owned.userId = userId;
+        validFunctions.push_back(owned);
     }
 
     ret = CliFunctionDataManager::GetInstance().ResetNamespaceFunctions(
-        functionNamespace, validFunctions, successCount);
+        userId, functionNamespace, validFunctions, successCount);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "ResetNamespaceFunctions: Failed, ret=%{public}d", ret);
         return ret;
@@ -829,7 +846,7 @@ int32_t CliToolManagerService::GetAllFunctions(FunctionsRawData &functions)
     }
 
     std::vector<FunctionInfo> functionList;
-    int32_t ret = CliFunctionDataManager::GetInstance().GetAllFunctions(functionList);
+    int32_t ret = CliFunctionDataManager::GetInstance().GetAllFunctions(GetCallingUserId(), functionList);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllFunctions: Failed to get functions, ret=%{public}d", ret);
         return ret;
