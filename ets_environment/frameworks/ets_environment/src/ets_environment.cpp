@@ -227,6 +227,7 @@ bool ETSEnvironment::LoadSymbolCreateVM(void *handle, ETSRuntimeAPI &apis)
     return true;
 }
 
+
 bool ETSEnvironment::LoadSymbolANIGetCreatedVMs(void *handle, ETSRuntimeAPI &apis)
 {
     auto symbol = dlsym(handle, ETS_ANI_GET_CREATEDVMS);
