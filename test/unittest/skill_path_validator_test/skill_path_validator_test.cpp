@@ -187,5 +187,21 @@ HWTEST_F(SkillPathValidatorTest, IsSafeHapPath_SpecialChars_0100, TestSize.Level
     EXPECT_FALSE(IsSafeHapPath("/data/app/foo;hap"));
 }
 
+// ---------------- IsSafeHapPath: install root confinement ----------------
+
+HWTEST_F(SkillPathValidatorTest, IsSafeHapPath_ManagedRootRequired_0100, TestSize.Level0)
+{
+    // third-party and system app install roots are accepted
+    EXPECT_TRUE(IsSafeHapPath("/data/app/el1/bundle/public/com.example/entry/entry.hap"));
+    EXPECT_TRUE(IsSafeHapPath("/data/app/el1/bundle/100/com.example/entry/entry.hap"));
+    EXPECT_TRUE(IsSafeHapPath("/system/app/foo/bar.hap"));
+    EXPECT_TRUE(IsSafeHapPath("/system/hap/foo/bar.hap"));
+    EXPECT_TRUE(IsSafeHapPath("/vendor/app/foo/bar.hap"));
+    // paths outside managed install roots are rejected
+    EXPECT_FALSE(IsSafeHapPath("/data/storage/el2/base/attacker/files/evil.hap"));
+    EXPECT_FALSE(IsSafeHapPath("/storage/app/foo.hap"));
+    EXPECT_FALSE(IsSafeHapPath("/system/application/foo.hap"));
+}
+
 }  // namespace AbilityRuntime
 }  // namespace OHOS
