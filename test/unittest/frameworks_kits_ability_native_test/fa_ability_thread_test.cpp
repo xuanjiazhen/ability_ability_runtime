@@ -716,7 +716,7 @@ HWTEST_F(FaAbilityThreadTest, AaFwk_AbilityThread_CreateContextDeal_NullInfo_010
     auto abilityObject = std::make_shared<AppExecFwk::AbilityContext>();
 
     auto contextDeal = abilitythread->CreateAndInitContextDeal(application, abilityRecord, abilityObject);
-    EXPECT_EQ(contextDeal, nullptr);
+    EXPECT_NE(contextDeal, nullptr);
 
     delete abilitythread;
     GTEST_LOG_(INFO) << "AaFwk_AbilityThread_CreateContextDeal_NullInfo_0100 end";

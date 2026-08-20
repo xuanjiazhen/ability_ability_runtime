@@ -19,6 +19,7 @@
 #define protected public
 #include "ability_loader.h"
 #include "ability_thread.h"
+#include "mock_my_status.h"
 #include "mock_serviceability_manager_service.h"
 #include "system_ability_definition.h"
 #include "sys_mgr_client.h"
@@ -1036,7 +1037,9 @@ HWTEST_F(LocalCallContainerTest, LocalCallContainer_GetCurrentUserId_0100, Funct
     ASSERT_NE(localCallContainer, nullptr);
 
     localCallContainer->currentUserId_ = AbilityRuntime::DEFAULT_INVAL_VALUE;
+    MyStatus::GetInstance().statusValue_ = 1; // mock returns non-ERR_OK
     int32_t result = localCallContainer->GetCurrentUserId();
+    MyStatus::GetInstance().statusValue_ = 0; // restore default
 
     EXPECT_EQ(result, AbilityRuntime::DEFAULT_INVAL_VALUE);
 
