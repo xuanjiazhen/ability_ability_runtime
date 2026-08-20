@@ -16,6 +16,7 @@
 #include "napi_common_want.h"
 
 #include "napi_common_util.h"
+#include "accesstoken_kit.h"
 #include "array_wrapper.h"
 #include "bool_wrapper.h"
 #include "byte_wrapper.h"
@@ -874,9 +875,14 @@ bool BlackListFilter(const std::string &strProName, const std::string &proNameNo
         return true;
     }
     // Reserved for non-standard scheme uri pass-through.
-    // Third-party JS apps are not allowed to set this key.
+    // Third-party JS apps are not allowed to set this key, system apps and
+    // native processes are allowed to pass it through.
     if (strProName == Want::PARAM_SET_URI_WITH_ORIGIN_STRING) {
-        return true;
+        auto selfToken = IPCSkeleton::GetSelfTokenID();
+        auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(selfToken);
+        bool isNative = (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE);
+        bool isSysApp = Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken);
+        return !(isNative || isSysApp);
     }
     return false;
 }
@@ -1245,6 +1251,13 @@ bool UnwrapWant(napi_env env, napi_value param, Want &want, const std::string &p
     natValueString = "";
     if (UnwrapStringByPropertyName(env, param, "uri", natValueString)) {
         want.SetUri(natValueString);
+        // Restore the raw uri when the pass-through flag is set, so that the
+        // non-standard scheme uri survives re-marshalling.
+        if (want.GetBoolParam(Want::PARAM_SET_URI_WITH_ORIGIN_STRING, false)) {
+            Uri uri(natValueString);
+            uri.SetUriWithOriginString(natValueString);
+            want.SetUri(uri);
+        }
     }
 
     int32_t flags = 0;
