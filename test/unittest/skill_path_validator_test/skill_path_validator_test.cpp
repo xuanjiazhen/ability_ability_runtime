@@ -187,5 +187,58 @@ HWTEST_F(SkillPathValidatorTest, IsSafeHapPath_SpecialChars_0100, TestSize.Level
     EXPECT_FALSE(IsSafeHapPath("/data/app/foo;hap"));
 }
 
+// ---------------- IsHapPathInBundle: valid inputs ----------------
+
+HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_UnderCodePath_0100, TestSize.Level0)
+{
+    const std::string codePath = "/data/app/el1/bundle/public/com.example.app";
+    EXPECT_TRUE(IsHapPathInBundle(codePath + "/123/entry/entry.hap", codePath, "com.example.app"));
+    EXPECT_TRUE(IsHapPathInBundle(codePath + "/feature/feature.hap", codePath, "com.example.app"));
+    EXPECT_TRUE(IsHapPathInBundle(codePath + "/entry.hap", codePath, "com.example.app"));
+}
+
+HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_CodePathTrailingSlash_0100, TestSize.Level0)
+{
+    const std::string codePath = "/data/app/el1/bundle/public/com.example.app/";
+    EXPECT_TRUE(IsHapPathInBundle(
+        "/data/app/el1/bundle/public/com.example.app/entry/entry.hap", codePath, "com.example.app"));
+}
+
+HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_SameBundleMultiInstall_0100, TestSize.Level0)
+{
+    // clone install dir differs from base codePath, but bundle segment matches
+    EXPECT_TRUE(IsHapPathInBundle("/data/app/el1/bundle/public/com.example.app/1/entry/entry.hap",
+        "/data/app/el1/bundle/100/com.example.app", "com.example.app"));
+}
+
+HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_EmptyHapPath_0100, TestSize.Level0)
+{
+    EXPECT_TRUE(IsHapPathInBundle("", "/data/app/el1/bundle/public/com.example.app", "com.example.app"));
+}
+
+// ---------------- IsHapPathInBundle: invalid inputs ----------------
+
+HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_OtherBundle_0100, TestSize.Level0)
+{
+    const std::string codePath = "/data/app/el1/bundle/public/com.example.app";
+    EXPECT_FALSE(IsHapPathInBundle("/data/app/el1/bundle/public/com.victim/1/entry/entry.hap",
+        codePath, "com.example.app"));
+    EXPECT_FALSE(IsHapPathInBundle("/system/app/other/other.hap", codePath, "com.example.app"));
+}
+
+HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_BundleNamePrefixTrick_0100, TestSize.Level0)
+{
+    // "com.example.app.evil" must not match segment "com.example.app"
+    const std::string codePath = "/data/app/el1/bundle/public/com.example.app";
+    EXPECT_FALSE(IsHapPathInBundle("/data/app/el1/bundle/public/com.example.app.evil/entry.hap",
+        codePath, "com.example.app"));
+}
+
+HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_EmptyCodePath_0100, TestSize.Level0)
+{
+    EXPECT_FALSE(IsHapPathInBundle("/data/app/el1/bundle/public/com.example.app/entry.hap",
+        "", "com.example.app"));
+}
+
 }  // namespace AbilityRuntime
 }  // namespace OHOS

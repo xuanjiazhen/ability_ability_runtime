@@ -57,5 +57,41 @@ bool IsSafeHapPath(const std::string &s)
     return true;
 }
 
+namespace {
+std::string StripTrailingSlash(const std::string &path)
+{
+    if (path.size() > 1 && path.back() == '/') {
+        return path.substr(0, path.size() - 1);
+    }
+    return path;
+}
+
+bool HasPathSegment(const std::string &path, const std::string &segment)
+{
+    if (path.empty() || segment.empty()) {
+        return false;
+    }
+    std::string bordered = "/" + path + "/";
+    return bordered.find("/" + segment + "/") != std::string::npos;
+}
+} // namespace
+
+bool IsHapPathInBundle(const std::string &hapPath, const std::string &codePath,
+    const std::string &bundleName)
+{
+    if (hapPath.empty()) {
+        return true;
+    }
+    std::string normalizedCodePath = StripTrailingSlash(codePath);
+    if (!normalizedCodePath.empty() && hapPath.rfind(normalizedCodePath + "/", 0) == 0) {
+        return true;
+    }
+    if (!bundleName.empty() && !normalizedCodePath.empty() &&
+        HasPathSegment(hapPath, bundleName) && HasPathSegment(normalizedCodePath, bundleName)) {
+        return true;
+    }
+    return false;
+}
+
 }  // namespace AbilityRuntime
 }  // namespace OHOS

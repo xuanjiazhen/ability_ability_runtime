@@ -102,6 +102,7 @@ private:
     };
 
     sptr<AppExecFwk::IBundleSkillManager> GetSkillManagerProxy();
+    bool IsHapPathInBundle(const std::string &bundleName, const std::string &hapPath, int32_t userId);
     std::string ResolveDefaultAbilityName(const std::string &bundleName,
         const std::string &moduleName, int32_t userId);
     AppExecFwk::ExtensionAbilityType ResolveTargetType(const std::string &bundleName,
