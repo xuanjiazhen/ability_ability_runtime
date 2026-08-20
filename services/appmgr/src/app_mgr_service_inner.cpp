@@ -6650,6 +6650,10 @@ void AppMgrServiceInner::HandleTimeOut(const AAFwk::EventWrap &event)
             innerService->HandleTimeOutInner(event);
         }
     };
+    if (!taskHandler_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null taskHandler_");
+        return;
+    }
     taskHandler_->SubmitTask(task, AAFwk::TaskAttribute{
         .taskName_ = "HandleTimeOutTask",
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
@@ -9436,7 +9440,6 @@ int32_t AppMgrServiceInner::SubmitDfxFaultTask(const FaultData &faultData, const
     };
     AppExecFwk::AppfreezeManager::GetInstance()->InitWarningCpuInfo(faultData, info);
     dfxTaskHandler_->SubmitTask(notifyAppTask, "NotifyAppFaultTask");
-    dfxTaskHandler_->SubmitTask(notifyAppTask, "NotifyAppFaultTask");
     TAG_LOGW(AAFwkTag::APPDFR, "submit NotifyAppFaultTask, eventName:%{public}s, bundleName:%{public}s, "
         "endTime:%{public}s, interval:%{public}" PRId64 " ms", faultData.errorObject.name.c_str(),
         bundleName.c_str(), AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str(),
@@ -9545,7 +9548,8 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
 
 bool AppMgrServiceInner::CheckAppFault(const std::shared_ptr<AppRunningRecord> &appRecord, const FaultData &faultData)
 {
-    if (faultData.timeoutMarkers != "" && !dfxTaskHandler_->CancelTask(faultData.timeoutMarkers)) {
+    if (faultData.timeoutMarkers != "" && dfxTaskHandler_ != nullptr &&
+        !dfxTaskHandler_->CancelTask(faultData.timeoutMarkers)) {
         return true;
     }
 
@@ -9627,6 +9631,34 @@ void AppMgrServiceInner::TimeoutNotifyApp(int32_t pid, int32_t uid,
     }
 }
 
+int32_t AppMgrServiceInner::SubmitAppFreezeNotifyTask(int32_t pid, int32_t uid, const std::string& bundleName,
+    const std::string& processName, const FaultData &faultData, int32_t recordId, const std::string& eventName,
+    const std::string& timeoutMarkers)
+{
+    auto timeoutNotifyApp = [innerServiceWeak = weak_from_this(), pid, uid, bundleName, processName,
+        faultData, recordId, eventName]() {
+        std::string key = std::to_string(pid) + "_" + std::to_string(uid) + "_" + bundleName;
+        std::string message = faultData.errorObject.message;
+        if (AppExecFwk::AppfreezeManager::GetInstance()->CheckPreloadUIExtension(message, bundleName, pid,
+            eventName) || AppExecFwk::AppfreezeManager::GetInstance()->CheckAppfreezeHappend(key, eventName)) {
+            return;
+        }
+        auto innerService = innerServiceWeak.lock();
+        if (innerService == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "get appMgrServiceInner fail");
+            return;
+        }
+        innerService->TimeoutNotifyApp(pid, uid, bundleName, processName, faultData, recordId);
+    };
+    if (!dfxTaskHandler_) {
+        TAG_LOGW(AAFwkTag::APPMGR, "get dfx handler fail");
+        return ERR_INVALID_VALUE;
+    }
+    constexpr int64_t timeout = 3000; // ipc timeout 3000ms
+    dfxTaskHandler_->SubmitTask(timeoutNotifyApp, timeoutMarkers, timeout);
+    return ERR_OK;
+}
+
 struct AppFaultCtx {
     int32_t pid;
     int32_t uid;
@@ -9664,21 +9696,14 @@ int32_t AppMgrServiceInner::TransformedNotifyAppFault(const AppFaultDataBySA &fa
         transformedFaultData.timeoutMarkers = "notifyFault:" + ctx.eventName +
             std::to_string(ctx.pid) + "-" + std::to_string(SystemTimeMillisecond());
     }
-    const int64_t timeout = 3000; // ipc timeout 3000ms
     if (faultData.faultType == FaultDataType::APP_FREEZE) {
         if (!AppExecFwk::AppfreezeManager::GetInstance()->IsHandleAppfreeze(ctx.bundleName) || record->IsDebugging()) {
             return ERR_OK;
         }
-        auto timeoutNotifyApp = [this, ctx, transformedFaultData]() {
-            std::string key = std::to_string(ctx.pid) + "_" + std::to_string(ctx.uid) + "_" + ctx.bundleName;
-            std::string message = transformedFaultData.errorObject.message;
-            if (AppExecFwk::AppfreezeManager::GetInstance()->CheckPreloadUIExtension(message, ctx.bundleName, ctx.pid,
-                ctx.eventName) || AppExecFwk::AppfreezeManager::GetInstance()->CheckAppfreezeHappend(key, ctx.eventName)) {
-                return;
-            }
-            this->TimeoutNotifyApp(ctx.pid, ctx.uid, ctx.bundleName, ctx.processName, transformedFaultData, ctx.recordId);
-        };
-        dfxTaskHandler_->SubmitTask(timeoutNotifyApp, transformedFaultData.timeoutMarkers, timeout);
+        if (SubmitAppFreezeNotifyTask(ctx.pid, ctx.uid, ctx.bundleName, ctx.processName, transformedFaultData,
+            ctx.recordId, ctx.eventName, transformedFaultData.timeoutMarkers) != ERR_OK) {
+            return ERR_INVALID_VALUE;
+        }
     }
     record->NotifyAppFault(transformedFaultData);
     TAG_LOGW(AAFwkTag::APPMGR, "FaultDataBySA is: name: %{public}s, faultType: %{public}s, uid: %{public}d,"
@@ -10561,6 +10586,10 @@ bool AppMgrServiceInner::IsAttachDebug(const std::string &bundleName)
         TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ or bundleName null");
         return false;
     }
+    if (appDebugManager_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appDebugManager_ null");
+        return false;
+    }
     return appDebugManager_->IsAttachDebug(bundleName);
 }
 
@@ -10586,12 +10615,10 @@ void AppMgrServiceInner::ApplicationTerminatedSendProcessEvent(const std::shared
         OnAppStopped(appRecord);
     }
 
-    if (appDebugManager_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "debug manager null");
-        return;
+    if (appDebugManager_ != nullptr) {
+        auto info = MakeAppDebugInfo(appRecord, appRecord->IsDebugApp());
+        appDebugManager_->RemoveAppDebugInfo(info);
     }
-    auto info = MakeAppDebugInfo(appRecord, appRecord->IsDebugApp());
-    appDebugManager_->RemoveAppDebugInfo(info);
 
     TAG_LOGD(AAFwkTag::APPMGR, "Application is terminated.");
     SendProcessExitEvent(appRecord);
@@ -11604,9 +11631,11 @@ void AppMgrServiceInner::SetAppAssertionPauseState(bool flag)
     appRecord->SetAssertionPauseFlag(flag);
     auto isDebugStart = appRecord->IsDebugApp() || appRecord->IsAttachDebug();
     if (!isDebugStart) {
-        std::vector<AppDebugInfo> debugInfos;
-        debugInfos.emplace_back(MakeAppDebugInfo(appRecord, flag));
-        flag ? appDebugManager_->StartDebug(debugInfos) : appDebugManager_->StopDebug(debugInfos);
+        if (appDebugManager_ != nullptr) {
+            std::vector<AppDebugInfo> debugInfos;
+            debugInfos.emplace_back(MakeAppDebugInfo(appRecord, flag));
+            flag ? appDebugManager_->StartDebug(debugInfos) : appDebugManager_->StopDebug(debugInfos);
+        }
     }
 
     NotifyAbilitiesAssertDebugChange(appRecord, flag);
