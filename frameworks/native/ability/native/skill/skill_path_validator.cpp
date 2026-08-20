@@ -91,7 +91,13 @@ bool IsHapPathInBundle(const std::string &hapPath, const std::string &codePath,
     if (!normalizedCodePath.empty() && hapPath.rfind(normalizedCodePath + "/", 0) == 0) {
         return true;
     }
-    if (!bundleName.empty() && !normalizedCodePath.empty() &&
+    // Segment fallback only under the managed install root and only for
+    // dot-separated bundle names, so structural directory segments such as
+    // "app"/"bundle" can never collide and arbitrary filesystem locations
+    // (e.g. /data/storage) are rejected.
+    if (!bundleName.empty() && bundleName.find('.') != std::string::npos &&
+        !normalizedCodePath.empty() &&
+        hapPath.rfind("/data/app/", 0) == 0 && normalizedCodePath.rfind("/data/app/", 0) == 0 &&
         HasPathSegment(hapPath, bundleName) && HasPathSegment(normalizedCodePath, bundleName)) {
         return true;
     }

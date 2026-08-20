@@ -255,5 +255,26 @@ HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_TraversalRejected_0100, TestS
         codePath + "/../com.example.app", "com.example.app"));
 }
 
+HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_ShortNameCollisionRejected_0100, TestSize.Level0)
+{
+    // structural directory segment must never match as a bundle name
+    EXPECT_FALSE(IsHapPathInBundle("/data/app/el1/bundle/public/com.victim/1/entry.hap",
+        "/data/app/el1/bundle/public/com.example.app", "app"));
+    EXPECT_FALSE(IsHapPathInBundle("/data/app/el1/bundle/public/com.victim/1/entry.hap",
+        "/data/app/el1/bundle/public/com.example.app", "bundle"));
+}
+
+HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_SegmentOutsideInstallRootRejected_0100, TestSize.Level0)
+{
+    const std::string codePath = "/data/app/el1/bundle/public/com.example.app";
+    // forged segment at an arbitrary filesystem location
+    EXPECT_FALSE(IsHapPathInBundle(
+        "/data/storage/el2/base/attacker/files/com.example.app/evil.hap",
+        codePath, "com.example.app"));
+    // codePath itself outside the managed install root disables the fallback
+    EXPECT_FALSE(IsHapPathInBundle("/system/app/com.example.app/feature/feature.hap",
+        codePath, "com.example.app"));
+}
+
 }  // namespace AbilityRuntime
 }  // namespace OHOS
