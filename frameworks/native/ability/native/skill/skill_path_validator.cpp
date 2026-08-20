@@ -20,6 +20,28 @@
 namespace OHOS {
 namespace AbilityRuntime {
 
+namespace {
+// Managed HAP install roots: third-party (and clone) installs under /data/app,
+// preinstalled bundles under the read-only system/vendor partitions. None of
+// them is writable by regular apps.
+constexpr const char *MANAGED_INSTALL_ROOTS[] = {
+    "/data/app/",
+    "/system/app/",
+    "/system/hap/",
+    "/vendor/app/",
+};
+
+bool IsUnderManagedInstallRoot(const std::string &path)
+{
+    for (const char *root : MANAGED_INSTALL_ROOTS) {
+        if (path.rfind(root, 0) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+} // namespace
+
 bool IsSafeSkillPath(const std::string &s)
 {
     if (s.empty() || s.front() == '/') {
@@ -40,6 +62,10 @@ bool IsSafeSkillPath(const std::string &s)
 bool IsSafeHapPath(const std::string &s)
 {
     if (s.empty() || s.front() != '/') {
+        return false;
+    }
+    // hapPath must begin with a third-party or system app install path.
+    if (!IsUnderManagedInstallRoot(s)) {
         return false;
     }
     if (s.find('\0') != std::string::npos || s.find("..") != std::string::npos) {

@@ -27,9 +27,10 @@ namespace AbilityRuntime {
 // [A-Za-z0-9_\-./].
 bool IsSafeSkillPath(const std::string &s);
 
-// Validate hapPath: must be absolute, must not traverse (..), must not target
-// procfs / devfs (FD loading attacks), must not contain embedded NUL or
-// non-whitelisted chars.
+// Validate hapPath: must begin with a third-party (/data/app/) or system app
+// (/system/app/, /system/hap/, /vendor/app/) install path, must not traverse
+// (..), must not target procfs / devfs (FD loading attacks), must not contain
+// embedded NUL or non-whitelisted chars.
 bool IsSafeHapPath(const std::string &s);
 
 }  // namespace AbilityRuntime
