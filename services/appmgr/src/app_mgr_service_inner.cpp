@@ -9622,6 +9622,34 @@ void AppMgrServiceInner::TimeoutNotifyApp(int32_t pid, int32_t uid,
     }
 }
 
+int32_t AppMgrServiceInner::SubmitAppFreezeNotifyTask(int32_t pid, int32_t uid, const std::string& bundleName,
+    const std::string& processName, const FaultData &faultData, int32_t recordId, const std::string& eventName,
+    const std::string& timeoutMarkers)
+{
+    auto timeoutNotifyApp = [innerServiceWeak = weak_from_this(), pid, uid, bundleName, processName,
+        faultData, recordId, eventName]() {
+        std::string key = std::to_string(pid) + "_" + std::to_string(uid) + "_" + bundleName;
+        std::string message = faultData.errorObject.message;
+        if (AppExecFwk::AppfreezeManager::GetInstance()->CheckPreloadUIExtension(message, bundleName, pid,
+            eventName) || AppExecFwk::AppfreezeManager::GetInstance()->CheckAppfreezeHappend(key, eventName)) {
+            return;
+        }
+        auto innerService = innerServiceWeak.lock();
+        if (innerService == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "get appMgrServiceInner fail");
+            return;
+        }
+        innerService->TimeoutNotifyApp(pid, uid, bundleName, processName, faultData, recordId);
+    };
+    if (!dfxTaskHandler_) {
+        TAG_LOGW(AAFwkTag::APPMGR, "get dfx handler fail");
+        return ERR_INVALID_VALUE;
+    }
+    constexpr int64_t timeout = 3000; // ipc timeout 3000ms
+    dfxTaskHandler_->SubmitTask(timeoutNotifyApp, timeoutMarkers, timeout);
+    return ERR_OK;
+}
+
 int32_t AppMgrServiceInner::TransformedNotifyAppFault(const AppFaultDataBySA &faultData)
 {
     int32_t pid = faultData.pid;
@@ -9651,31 +9679,14 @@ int32_t AppMgrServiceInner::TransformedNotifyAppFault(const AppFaultDataBySA &fa
         transformedFaultData.timeoutMarkers = "notifyFault:" + eventName +
             std::to_string(pid) + "-" + std::to_string(SystemTimeMillisecond());
     }
-    const int64_t timeout = 3000; // ipc timeout 3000ms
     if (faultData.faultType == FaultDataType::APP_FREEZE) {
         if (!AppExecFwk::AppfreezeManager::GetInstance()->IsHandleAppfreeze(bundleName) || record->IsDebugging()) {
             return ERR_OK;
         }
-        auto timeoutNotifyApp = [innerServiceWeak = weak_from_this(), pid, uid, bundleName, processName,
-            transformedFaultData, recordId, eventName]() {
-            std::string key = std::to_string(pid) + "_" + std::to_string(uid) + "_" + bundleName;
-            std::string message = transformedFaultData.errorObject.message;
-            if (AppExecFwk::AppfreezeManager::GetInstance()->CheckPreloadUIExtension(message, bundleName, pid,
-                eventName) || AppExecFwk::AppfreezeManager::GetInstance()->CheckAppfreezeHappend(key, eventName)) {
-                return;
-            }
-            auto innerService = innerServiceWeak.lock();
-            if (innerService == nullptr) {
-                TAG_LOGE(AAFwkTag::APPMGR, "get appMgrServiceInner fail");
-                return;
-            }
-            innerService->TimeoutNotifyApp(pid, uid, bundleName, processName, transformedFaultData, recordId);
-        };
-        if (!dfxTaskHandler_) {
-            TAG_LOGW(AAFwkTag::APPMGR, "get dfx handler fail");
+        if (SubmitAppFreezeNotifyTask(pid, uid, bundleName, processName, transformedFaultData, recordId,
+            eventName, transformedFaultData.timeoutMarkers) != ERR_OK) {
             return ERR_INVALID_VALUE;
         }
-        dfxTaskHandler_->SubmitTask(timeoutNotifyApp, transformedFaultData.timeoutMarkers, timeout);
     }
     record->NotifyAppFault(transformedFaultData);
     TAG_LOGW(AAFwkTag::APPMGR, "FaultDataBySA is: name: %{public}s, faultType: %{public}s, uid: %{public}d,"

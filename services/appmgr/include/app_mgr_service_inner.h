@@ -2233,6 +2233,10 @@ private:
     void TimeoutNotifyApp(int32_t pid, int32_t uid, const std::string& bundleName, const std::string& processName,
         const FaultData &faultData, int32_t recordId);
 
+    int32_t SubmitAppFreezeNotifyTask(int32_t pid, int32_t uid, const std::string& bundleName,
+        const std::string& processName, const FaultData &faultData, int32_t recordId,
+        const std::string& eventName, const std::string& timeoutMarkers);
+
     void AppRecoveryNotifyApp(int32_t pid, const std::string& bundleName,
         FaultDataType faultType, const std::string& markers, int32_t recordId);
     
