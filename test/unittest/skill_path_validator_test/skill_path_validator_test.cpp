@@ -271,9 +271,19 @@ HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_SegmentOutsideInstallRootReje
     EXPECT_FALSE(IsHapPathInBundle(
         "/data/storage/el2/base/attacker/files/com.example.app/evil.hap",
         codePath, "com.example.app"));
-    // codePath itself outside the managed install root disables the fallback
-    EXPECT_FALSE(IsHapPathInBundle("/system/app/com.example.app/feature/feature.hap",
-        codePath, "com.example.app"));
+    // codePath itself outside managed install roots disables the fallback
+    EXPECT_FALSE(IsHapPathInBundle("/data/app/el1/bundle/public/com.example.app/entry/entry.hap",
+        "/storage/data/com.example.app", "com.example.app"));
+}
+
+HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_SegmentUnderSystemRootAccepted_0100, TestSize.Level0)
+{
+    // preinstalled bundles may live under /system/app (or other managed
+    // system roots), not only under /data/app
+    EXPECT_TRUE(IsHapPathInBundle("/system/app/com.example.app/feature/feature.hap",
+        "/system/app/100/com.example.app", "com.example.app"));
+    EXPECT_TRUE(IsHapPathInBundle("/data/app/el1/bundle/public/com.example.app/1/entry/entry.hap",
+        "/system/app/com.example.app", "com.example.app"));
 }
 
 }  // namespace AbilityRuntime

@@ -58,6 +58,27 @@ bool IsSafeHapPath(const std::string &s)
 }
 
 namespace {
+// BMS-managed install roots. HAPs may live under any of them (user-installed
+// and clone bundles under /data/app, preinstalled bundles under the read-only
+// system/vendor partitions). None of them is writable by regular apps, which
+// is what makes the segment fallback below trustworthy.
+constexpr const char *MANAGED_INSTALL_ROOTS[] = {
+    "/data/app/",
+    "/system/app/",
+    "/system/hap/",
+    "/vendor/app/",
+};
+
+bool IsUnderManagedInstallRoot(const std::string &path)
+{
+    for (const char *root : MANAGED_INSTALL_ROOTS) {
+        if (path.rfind(root, 0) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 std::string StripTrailingSlash(const std::string &path)
 {
     if (path.size() > 1 && path.back() == '/') {
@@ -91,13 +112,13 @@ bool IsHapPathInBundle(const std::string &hapPath, const std::string &codePath,
     if (!normalizedCodePath.empty() && hapPath.rfind(normalizedCodePath + "/", 0) == 0) {
         return true;
     }
-    // Segment fallback only under the managed install root and only for
+    // Segment fallback only under managed install roots and only for
     // dot-separated bundle names, so structural directory segments such as
     // "app"/"bundle" can never collide and arbitrary filesystem locations
     // (e.g. /data/storage) are rejected.
     if (!bundleName.empty() && bundleName.find('.') != std::string::npos &&
         !normalizedCodePath.empty() &&
-        hapPath.rfind("/data/app/", 0) == 0 && normalizedCodePath.rfind("/data/app/", 0) == 0 &&
+        IsUnderManagedInstallRoot(hapPath) && IsUnderManagedInstallRoot(normalizedCodePath) &&
         HasPathSegment(hapPath, bundleName) && HasPathSegment(normalizedCodePath, bundleName)) {
         return true;
     }
