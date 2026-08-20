@@ -467,7 +467,7 @@ public:
      * @param record Error record output.
      * @return true if call succeeded (whether error exists or not), false if parameter error.
      */
-    bool GetHyperSnapLastError(ErrorType errType, HyperSnapErrorRecord& record);
+    bool GetHyperSnapLastError(HyperSnapErrorType errType, HyperSnapErrorRecord& record);
 
     /**
      * KillApplicationSelf, this allows app to terminate itself.
@@ -1900,7 +1900,7 @@ private:
      * @param errType Error type.
      * @param code Error code.
      */
-    void SaveHyperSnapError(int32_t uid, ErrorType errType, HyperSnapErrorCode code);
+    void SaveHyperSnapError(int32_t uid, HyperSnapErrorType errType, HyperSnapErrorCode code);
 
     /**
      * Clear error information by type for the specified app uid.
@@ -1908,7 +1908,7 @@ private:
      * @param uid The target app uid whose error record should be cleared.
      * @param errType Error type to clear.
      */
-    void ClearHyperSnapError(int32_t uid, ErrorType errType);
+    void ClearHyperSnapError(int32_t uid, HyperSnapErrorType errType);
 
     /**
      * Clear all error information for the specified uid. Used for system-initiated clears
