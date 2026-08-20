@@ -32,6 +32,17 @@ bool IsSafeSkillPath(const std::string &s);
 // non-whitelisted chars.
 bool IsSafeHapPath(const std::string &s);
 
+// Check that hapPath is an install path owned by the current bundle.
+// codePath is the bundle install dir (ApplicationInfo.codePath) and bundleName
+// is the current bundle name. Passes when hapPath is under the same install
+// dir, or when both paths sit under managed install roots (/data/app/,
+// /system/app/, /system/hap/, /vendor/app/) and contain the same dot-separated
+// bundle-named directory segment (covers multi-instance installs of the same
+// bundle). Paths containing ".." are rejected so the check alone resists
+// traversal. Fails closed when ownership cannot be established.
+bool IsHapPathInBundle(const std::string &hapPath, const std::string &codePath,
+    const std::string &bundleName);
+
 }  // namespace AbilityRuntime
 }  // namespace OHOS
 

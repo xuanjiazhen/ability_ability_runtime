@@ -187,5 +187,104 @@ HWTEST_F(SkillPathValidatorTest, IsSafeHapPath_SpecialChars_0100, TestSize.Level
     EXPECT_FALSE(IsSafeHapPath("/data/app/foo;hap"));
 }
 
+// ---------------- IsHapPathInBundle: valid inputs ----------------
+
+HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_UnderCodePath_0100, TestSize.Level0)
+{
+    const std::string codePath = "/data/app/el1/bundle/public/com.example.app";
+    EXPECT_TRUE(IsHapPathInBundle(codePath + "/123/entry/entry.hap", codePath, "com.example.app"));
+    EXPECT_TRUE(IsHapPathInBundle(codePath + "/feature/feature.hap", codePath, "com.example.app"));
+    EXPECT_TRUE(IsHapPathInBundle(codePath + "/entry.hap", codePath, "com.example.app"));
+}
+
+HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_CodePathTrailingSlash_0100, TestSize.Level0)
+{
+    const std::string codePath = "/data/app/el1/bundle/public/com.example.app/";
+    EXPECT_TRUE(IsHapPathInBundle(
+        "/data/app/el1/bundle/public/com.example.app/entry/entry.hap", codePath, "com.example.app"));
+}
+
+HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_SameBundleMultiInstall_0100, TestSize.Level0)
+{
+    // clone install dir differs from base codePath, but bundle segment matches
+    EXPECT_TRUE(IsHapPathInBundle("/data/app/el1/bundle/public/com.example.app/1/entry/entry.hap",
+        "/data/app/el1/bundle/100/com.example.app", "com.example.app"));
+}
+
+HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_EmptyHapPath_0100, TestSize.Level0)
+{
+    EXPECT_TRUE(IsHapPathInBundle("", "/data/app/el1/bundle/public/com.example.app", "com.example.app"));
+}
+
+// ---------------- IsHapPathInBundle: invalid inputs ----------------
+
+HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_OtherBundle_0100, TestSize.Level0)
+{
+    const std::string codePath = "/data/app/el1/bundle/public/com.example.app";
+    EXPECT_FALSE(IsHapPathInBundle("/data/app/el1/bundle/public/com.victim/1/entry/entry.hap",
+        codePath, "com.example.app"));
+    EXPECT_FALSE(IsHapPathInBundle("/system/app/other/other.hap", codePath, "com.example.app"));
+}
+
+HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_BundleNamePrefixTrick_0100, TestSize.Level0)
+{
+    // "com.example.app.evil" must not match segment "com.example.app"
+    const std::string codePath = "/data/app/el1/bundle/public/com.example.app";
+    EXPECT_FALSE(IsHapPathInBundle("/data/app/el1/bundle/public/com.example.app.evil/entry.hap",
+        codePath, "com.example.app"));
+}
+
+HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_EmptyCodePath_0100, TestSize.Level0)
+{
+    EXPECT_FALSE(IsHapPathInBundle("/data/app/el1/bundle/public/com.example.app/entry.hap",
+        "", "com.example.app"));
+}
+
+HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_TraversalRejected_0100, TestSize.Level0)
+{
+    const std::string codePath = "/data/app/el1/bundle/public/com.example.app";
+    // forged bundle segment via traversal (AI review sample)
+    EXPECT_FALSE(IsHapPathInBundle("/data/app/com.victim/../../../com.example.app/hap.hap",
+        codePath, "com.example.app"));
+    // traversal escaping the codePath prefix after matching it
+    EXPECT_FALSE(IsHapPathInBundle(
+        "/data/app/el1/bundle/public/com.example.app/../../com.victim/victim.hap",
+        codePath, "com.example.app"));
+    // traversal hidden inside codePath is also rejected (fail-closed)
+    EXPECT_FALSE(IsHapPathInBundle("/data/app/el1/bundle/public/com.example.app/entry/entry.hap",
+        codePath + "/../com.example.app", "com.example.app"));
+}
+
+HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_ShortNameCollisionRejected_0100, TestSize.Level0)
+{
+    // structural directory segment must never match as a bundle name
+    EXPECT_FALSE(IsHapPathInBundle("/data/app/el1/bundle/public/com.victim/1/entry.hap",
+        "/data/app/el1/bundle/public/com.example.app", "app"));
+    EXPECT_FALSE(IsHapPathInBundle("/data/app/el1/bundle/public/com.victim/1/entry.hap",
+        "/data/app/el1/bundle/public/com.example.app", "bundle"));
+}
+
+HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_SegmentOutsideInstallRootRejected_0100, TestSize.Level0)
+{
+    const std::string codePath = "/data/app/el1/bundle/public/com.example.app";
+    // forged segment at an arbitrary filesystem location
+    EXPECT_FALSE(IsHapPathInBundle(
+        "/data/storage/el2/base/attacker/files/com.example.app/evil.hap",
+        codePath, "com.example.app"));
+    // codePath itself outside managed install roots disables the fallback
+    EXPECT_FALSE(IsHapPathInBundle("/data/app/el1/bundle/public/com.example.app/entry/entry.hap",
+        "/storage/data/com.example.app", "com.example.app"));
+}
+
+HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_SegmentUnderSystemRootAccepted_0100, TestSize.Level0)
+{
+    // preinstalled bundles may live under /system/app (or other managed
+    // system roots), not only under /data/app
+    EXPECT_TRUE(IsHapPathInBundle("/system/app/com.example.app/feature/feature.hap",
+        "/system/app/100/com.example.app", "com.example.app"));
+    EXPECT_TRUE(IsHapPathInBundle("/data/app/el1/bundle/public/com.example.app/1/entry/entry.hap",
+        "/system/app/com.example.app", "com.example.app"));
+}
+
 }  // namespace AbilityRuntime
 }  // namespace OHOS

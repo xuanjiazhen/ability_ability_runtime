@@ -2699,12 +2699,19 @@ bool JsUIAbility::TryLoadSkillEntry(const std::string &srcEntry,
         TAG_LOGW(AAFwkTag::UIABILITY, "param is null");
         return false;
     }
+    if (abilityInfo_ == nullptr) {
+        TAG_LOGW(AAFwkTag::UIABILITY, "abilityInfo is null");
+        return false;
+    }
     if (!IsSafeSkillPath(param->moduleName_)) {
         TAG_LOGW(AAFwkTag::UIABILITY, "invalid moduleName");
         return false;
     }
-    if (!param->hapPath_.empty() && !IsSafeHapPath(param->hapPath_)) {
-        TAG_LOGW(AAFwkTag::UIABILITY, "invalid hapPath");
+    if (!param->hapPath_.empty() &&
+        (!IsSafeHapPath(param->hapPath_) ||
+        !IsHapPathInBundle(param->hapPath_, abilityInfo_->applicationInfo.codePath,
+        abilityInfo_->bundleName))) {
+        TAG_LOGW(AAFwkTag::UIABILITY, "invalid hapPath or hapPath not owned by current bundle");
         return false;
     }
     if (IsBlockedSkillKeyName(param->functionName_)) {
@@ -2718,7 +2725,7 @@ bool JsUIAbility::TryLoadSkillEntry(const std::string &srcEntry,
         srcPath.erase(pos);
         srcPath.append(".abc");
     }
-    if (abilityInfo_ == nullptr || !abilityInfo_->isStageBasedModel) {
+    if (!abilityInfo_->isStageBasedModel) {
         TAG_LOGW(AAFwkTag::UIABILITY,
             "skill load requires stage model, srcEntry:%{public}s", srcEntry.c_str());
         return false;

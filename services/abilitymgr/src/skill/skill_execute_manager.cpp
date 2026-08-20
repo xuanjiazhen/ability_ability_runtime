@@ -23,6 +23,7 @@
 #include "ability_manager_service.h"
 #include "accesstoken_kit.h"
 #include "bundle_constants.h"
+#include "bundle_info.h"
 #include "bundle_mgr_helper.h"
 #include "hilog_tag_wrapper.h"
 #include "in_process_call_wrapper.h"
@@ -115,11 +116,44 @@ int32_t SkillExecuteManager::CheckSkillPermission(const AppExecFwk::SkillInfo &s
     return ERR_OK;
 }
 
+bool SkillExecuteManager::IsHapPathInBundle(const std::string &bundleName,
+    const std::string &hapPath, int32_t userId)
+{
+    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null bundleMgrHelper");
+        return false;
+    }
+    AppExecFwk::BundleInfo bundleInfo;
+    auto flags = static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE);
+    if (IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfoV9(bundleName, flags, bundleInfo, userId)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetBundleInfoV9 failed, bundle:%{public}s", bundleName.c_str());
+        return false;
+    }
+    for (const auto &hapModuleInfo : bundleInfo.hapModuleInfos) {
+        if (hapModuleInfo.hapPath == hapPath) {
+            return true;
+        }
+    }
+    TAG_LOGE(AAFwkTag::ABILITYMGR,
+        "hapPath is not owned by bundle:%{public}s, hapPath:%{private}s",
+        bundleName.c_str(), hapPath.c_str());
+    return false;
+}
+
 int32_t SkillExecuteManager::GenerateSkillWant(const AppExecFwk::SkillInfo &skillInfo, Want &want,
     int32_t userId, const std::string &requestCode, AppExecFwk::ExtensionAbilityType &targetType,
     const std::string &scriptPath, const std::string &functionName,
     const std::shared_ptr<AAFwk::WantParams> &skillArgs)
 {
+    // hapPath must belong to the target bundle; reject cross-bundle code loading.
+    if (!skillInfo.hapPath.empty() &&
+        !IsHapPathInBundle(skillInfo.bundleName, skillInfo.hapPath, userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "skill hapPath ownership check failed, bundle:%{public}s skill:%{public}s",
+            skillInfo.bundleName.c_str(), skillInfo.skillName.c_str());
+        return CHECK_PERMISSION_FAILED;
+    }
     std::string abilityName = skillInfo.abilityName;
     if (abilityName.empty()) {
         abilityName = ResolveDefaultAbilityName(skillInfo.bundleName, skillInfo.moduleName, userId);
