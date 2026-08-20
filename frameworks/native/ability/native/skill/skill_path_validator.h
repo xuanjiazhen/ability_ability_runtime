@@ -36,7 +36,8 @@ bool IsSafeHapPath(const std::string &s);
 // codePath is the bundle install dir (ApplicationInfo.codePath) and bundleName
 // is the current bundle name. Passes when hapPath is under the same install
 // dir, or when both paths contain the same bundle-named directory segment
-// (covers multi-instance installs of the same bundle). Fails closed when
+// (covers multi-instance installs of the same bundle). Paths containing ".."
+// are rejected so the check alone resists traversal. Fails closed when
 // ownership cannot be established.
 bool IsHapPathInBundle(const std::string &hapPath, const std::string &codePath,
     const std::string &bundleName);

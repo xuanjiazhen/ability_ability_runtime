@@ -240,5 +240,20 @@ HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_EmptyCodePath_0100, TestSize.
         "", "com.example.app"));
 }
 
+HWTEST_F(SkillPathValidatorTest, IsHapPathInBundle_TraversalRejected_0100, TestSize.Level0)
+{
+    const std::string codePath = "/data/app/el1/bundle/public/com.example.app";
+    // forged bundle segment via traversal (AI review sample)
+    EXPECT_FALSE(IsHapPathInBundle("/data/app/com.victim/../../../com.example.app/hap.hap",
+        codePath, "com.example.app"));
+    // traversal escaping the codePath prefix after matching it
+    EXPECT_FALSE(IsHapPathInBundle(
+        "/data/app/el1/bundle/public/com.example.app/../../com.victim/victim.hap",
+        codePath, "com.example.app"));
+    // traversal hidden inside codePath is also rejected (fail-closed)
+    EXPECT_FALSE(IsHapPathInBundle("/data/app/el1/bundle/public/com.example.app/entry/entry.hap",
+        codePath + "/../com.example.app", "com.example.app"));
+}
+
 }  // namespace AbilityRuntime
 }  // namespace OHOS

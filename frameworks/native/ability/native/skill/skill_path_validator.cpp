@@ -82,6 +82,11 @@ bool IsHapPathInBundle(const std::string &hapPath, const std::string &codePath,
     if (hapPath.empty()) {
         return true;
     }
+    // Self-contained traversal guard: never rely on callers running
+    // IsSafeHapPath first, so that this check alone cannot be bypassed by "..".
+    if (hapPath.find("..") != std::string::npos || codePath.find("..") != std::string::npos) {
+        return false;
+    }
     std::string normalizedCodePath = StripTrailingSlash(codePath);
     if (!normalizedCodePath.empty() && hapPath.rfind(normalizedCodePath + "/", 0) == 0) {
         return true;
