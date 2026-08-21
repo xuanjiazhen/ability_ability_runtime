@@ -834,8 +834,6 @@ bool JsRuntime::CreateJsEnv(const Options& options)
     pandaOption.SetGcThreadNum(gcThreadNum);
     pandaOption.SetLongPauseTime(longPauseTime);
     pandaOption.SetIsFormThread(options.isFormRender);
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "ark properties=%{public}d bundlename=%{public}s",
-        arkProperties, bundleName.c_str());
     pandaOption.SetGcType(panda::RuntimeOption::GC_TYPE::GEN_GC);
     pandaOption.SetGcPoolSize(DEFAULT_GC_POOL_SIZE);
     pandaOption.SetLogLevel(panda::RuntimeOption::LOG_LEVEL::FOLLOW);
@@ -845,7 +843,6 @@ bool JsRuntime::CreateJsEnv(const Options& options)
     std::string asmOpcodeDisableRange = OHOS::system::GetParameter("persist.ark.asmopcodedisablerange", "");
     pandaOption.SetEnableAsmInterpreter(asmInterpreterEnabled);
     pandaOption.SetAsmOpcodeDisableRange(asmOpcodeDisableRange);
-    TAG_LOGD(AAFwkTag::JSRUNTIME, "ASMM JIT Verify CreateJsEnv, jitEnabled: %{public}d", options.jitEnabled);
     pandaOption.SetEnableJIT(options.jitEnabled);
 
     if (options.isMultiThread) {
