@@ -9968,6 +9968,10 @@ void AbilityManagerService::StartAutoStartupApps(int32_t userId, bool isManualSt
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityAutoStartupService_ null");
         return;
     }
+    if (!isManualStart && abilityAutoStartupService_->FindHandledAutoStartupUsers(userId)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "auto startup already handled, userId:%{public}d", userId);
+        return;
+    }
     std::vector<AutoStartupInfo> infoList;
     int32_t result = abilityAutoStartupService_->QueryAllAutoStartupApplicationsWithoutPermission(infoList, userId);
     if (result != ERR_OK) {
@@ -9986,9 +9990,10 @@ void AbilityManagerService::StartAutoStartupApps(int32_t userId, bool isManualSt
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAutoStartupApps userId:%{public}d", userId);
     StartAutoStartupApps(infoQueue, userId);
-    if (!isManualStart) {
-        abilityAutoStartupService_->AddHandledAutoStartupUsers(userId);
+    if (isManualStart) {
+        return;
     }
+    abilityAutoStartupService_->AddHandledAutoStartupUsers(userId);
     auto removeParameterWatcherTask = []() {
         int32_t ret = RemoveParameterWatcher(
             AUTO_STARTUP_READY, AbilityManagerService::HandleAutoStartupReadyCallback, nullptr);
@@ -10737,11 +10742,6 @@ int AbilityManagerService::StartUser(int userId, uint64_t displayId, sptr<IUserC
         callback->OnUserCmdDone(userId, ERR_ALL_APP_START_BLOCKED);
         return ERR_ALL_APP_START_BLOCKED;
     }
-    // Lister screen unlock for auto startup apps.
-    if (AppUtils::GetInstance().IsProductAppbootSettingEnabled() && abilityAutoStartupService_ &&
-        !abilityAutoStartupService_->FindHandledAutoStartupUsers(userId)) {
-        SubscribeScreenUnlockedEvent();
-    }
 
     DelayedSingleton<AppScheduler>::GetInstance()->SetEnableStartProcessFlagByUserId(userId, true);
     auto oldUserId = AbilityRuntime::UserController::GetInstance().GetForegroundUserId(displayId);
@@ -10770,6 +10770,14 @@ int AbilityManagerService::StartUser(int userId, uint64_t displayId, sptr<IUserC
         AbilityRuntime::UserController::GetInstance().SetUserLockStatus(userId,
             AbilityRuntime::UserController::UserLockStatus::USER_LOCKED);
         UpdateScreenUnlockInterceptor(userId);
+        // Lister screen unlock for auto startup apps.
+        if (AppUtils::GetInstance().IsProductAppbootSettingEnabled() && abilityAutoStartupService_ &&
+            !abilityAutoStartupService_->FindHandledAutoStartupUsers(userId)) {
+            SubscribeScreenUnlockedEvent();
+            RemoveParameterWatcher(
+                AUTO_STARTUP_READY, AbilityManagerService::HandleAutoStartupReadyCallback, nullptr);
+            AddWatchParameters();
+        }
         return ERR_OK;
     }
     TAG_LOGE(AAFwkTag::ABILITYMGR, "SwitchToUser filed, oldUserId:%{public}d, hasDisplayId:%{public}d", oldUserId, hasDisplayId);
@@ -10797,7 +10805,12 @@ int AbilityManagerService::StopUser(int userId, const sptr<IUserCallback> &callb
         return checkRet;
     }
 
-    // clear userInfo for autoStartup
+    if (AbilityRuntime::UserController::GetInstance().IsForegroundUser(userId)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "user current:%{public}d", userId);
+        callback->OnUserCmdDone(userId, ERR_OK);
+        return ERR_OK;
+    }
+
     if (AppUtils::GetInstance().IsProductAppbootSettingEnabled() && abilityAutoStartupService_) {
         abilityAutoStartupService_->RemoveHandledAutoStartupUsers(userId);
     }
@@ -10807,11 +10820,6 @@ int AbilityManagerService::StopUser(int userId, const sptr<IUserCallback> &callb
         HiviewDFX::ProcessKillReason::KillEventId::REASON_USER_STOP);
     IN_PROCESS_CALL(RecordAppWithReasonByUserId(userId, exitReasonCompability));
 
-    if (AbilityRuntime::UserController::GetInstance().IsForegroundUser(userId)) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "user current:%{public}d", userId);
-        callback->OnUserCmdDone(userId, ERR_OK);
-        return ERR_OK;
-    }
     DelayedSingleton<AppScheduler>::GetInstance()->SetEnableStartProcessFlagByUserId(userId, false);
     DelayedSingleton<AppScheduler>::GetInstance()->KillProcessesByUserId(userId,
         system::GetBoolParameter(DEVELOPER_MODE_STATE, false), callback);
