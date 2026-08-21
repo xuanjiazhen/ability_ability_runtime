@@ -1,7 +1,7 @@
 ---
 target_release:
   id: OpenHarmony-7.0
-  status: proposed
+  status: release
 ---
 
 # 需求文档
@@ -14,7 +14,7 @@ target_release:
 
 | 字段 | 内容 |
 |------|------|
-| 需求ID | REQ-015 |
+| 需求ID | issue-15014 |
 | 需求名称 | CLI 工具注册（cli-register）：OnStart 配置加载与 KVStore 同步 |
 | 来源 | 待确认（实现已存在于 cli_tool_framework，2026 版权） |
 | 提出人 | 待确认 |
@@ -233,7 +233,7 @@ target_release:
 |------|-----|
 | 基线版本 | v1.0 |
 | 基线日期 | 2026-08-21 |
-| Owner | 待确认 |
+| Owner | littlejerry1 |
 | 确认人 | 需求方/模块Owner/SIG代表（待确认） |
 | 复杂度 | 标准 |
 | Profile | none |
