@@ -54,6 +54,11 @@ private:
     bool CreatePipes(SessionRecord &record) const;
     void CloseAllPipes(SessionRecord &record) const;
     void CloseNonStdFds() const;
+    void SetupChildToken(uint32_t atmTokenId) const;
+    void SetupChildPipesAndExec(const SessionRecord &record,
+        std::vector<char *> &execArgs) const;
+
+    static const char *clawSandboxPath_;
 };
 
 } // namespace CliTool
