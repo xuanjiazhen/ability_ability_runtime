@@ -141,14 +141,13 @@
 
 ### 架构图
 
-```
-[系统应用/NAPI query*] → [cli_tool_client Proxy] →（IPC 同步）→ [SA 186 climgr 查询方法]
-                                                           ↓
-                                            [PermissionUtil: 系统应用 + 权限校验]
-                                                           ↓
-                                            [CliToolDataManager: KVStore 只读查询]
-                                                           ↓
-                                            [返回 [out] 参数: ToolSummary[]/ToolInfo/ToolInfo[]]
+```mermaid
+flowchart TD
+  A[系统应用 NAPI query] --> B[cli_tool_client Proxy]
+  B -->|IPC 同步| C[SA 186 climgr 查询方法]
+  C --> D[PermissionUtil<br/>系统应用 + 权限校验]
+  D --> E[CliToolDataManager<br/>KVStore 只读查询]
+  E --> F["返回 [out] 参数<br/>ToolSummary[]/ToolInfo/ToolInfo[]"]
 ```
 
 ### 数据流/控制流

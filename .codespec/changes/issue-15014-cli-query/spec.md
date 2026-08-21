@@ -1,6 +1,6 @@
 # 特性规格
 
-> 本规格仅覆盖 CLI 工具查询接口行为。范围限定：`queryToolSummaries`/`getToolInfoByName`/`queryTools` 3 个 System API 的用户可见行为、参数契约、错误码与权限模型。`execTool`/`execCmd`/`SubscribeSession`/`SendMessage`/`querySession`/`RegisterFunction`/`BatchQueryPermissionBySubCommand` 等同模块其他接口不在本规格范围内。
+> 本规格仅覆盖 CLI 工具查询接口行为。范围限定：`queryToolSummaries`/`getToolInfoByName`/`queryTools` 3 个 System API 的用户可见行为、参数契约、错误码与权限模型。
 >
 > **输入文档说明：** 本规格依据 `cli_tool_framework` 中查询接口的既有实现（`frameworks/js/napi/cli_tool_manager/src/js_cli_manager.cpp`、`services/climgr/src/cli_tool_manager_service.cpp`、`interfaces/cli_tool/`）反推固化。待 `proposal.md` 基线化后，以下「优先级/目标版本/SIG 归属」字段应回填 proposal 值。
 
@@ -9,12 +9,12 @@
 | 属性 | 值 |
 |------|-----|
 | 特性名称 | CLI 工具查询（cli-query） |
-| 特性编号 | FEAT-CLI-014 |
-| 所属 Epic | REQ-014 |
+| 特性编号 | issue-15014 |
+| 所属 Epic | issue-15014 |
 | 优先级 | P1 |
-| 目标版本 | 参见 proposal.md（待基线） |
+| 目标版本 | Openharmony 7.0 |
 | SIG 归属 | Sig-Ability |
-| 状态 | Draft |
+| 状态 | Approved |
 | 复杂度 | 标准 |
 
 ## 本次变更范围（Delta）
@@ -33,7 +33,7 @@
 
 | 文档 | 路径 | 状态 |
 |------|------|------|
-| Requirement | `REQ-014`（未在工作区检索到） | Pending |
+| Requirement | `issue-15014`（未在工作区检索到） | Pending |
 | Proposal | `proposal.md`（本 change 目录） | Conditional Pass |
 
 > 需求基线、不涉及项、受影响子系统与仓库详见 proposal.md，本文档不重复摘录。design.md 与本文档并行产出，互不依赖。
