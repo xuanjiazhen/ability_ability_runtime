@@ -9,12 +9,12 @@
 | 属性 | 值 |
 |------|-----|
 | 特性名称 | CLI 工具注册（cli-register） |
-| 特性编号 | FEAT-CLI-015 |
-| 所属 Epic | REQ-015 |
+| 特性编号 | issue-15014 |
+| 所属 Epic | issue-15014 |
 | 优先级 | P1 |
 | 目标版本 | 参见 proposal.md（待基线） |
 | SIG 归属 | Sig-Ability |
-| 状态 | Draft |
+| 状态 | Approve |
 | 复杂度 | 标准 |
 
 ## 本次变更范围（Delta）

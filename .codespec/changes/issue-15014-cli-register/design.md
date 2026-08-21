@@ -125,26 +125,17 @@
 
 ### 架构图
 
-```
-[SA 186 OnStart]
-    ↓
-[Init() — SIGCHLD handler + IOMonitor]
-    ↓
-[EnsureToolsLoaded()]
-    ↓ toolsLoaded_==false
-[CheckKvStore() — 重试 5 次 × 100ms]
-    ↓ kvStorePtr_ != nullptr
-[LoadToolsFromDir("/system/bin/cli_tool/configs")]
-    ↓ opendir → 遍历 .json 文件
-[ParseToolFromJsonFile()]
-    ↓ ifstream → BOM 去除 → json::parse → ToolInfo::ParseFromJson (字段校验)
-[StoreTool() — kvStorePtr_->Put(name, JSON)]
-    ↓
-[SyncToolNames() — 读 AllCliToolNames → diff → delete 旧 → put 新]
-    ↓ toolsLoaded_ = true
-[Publish() — SA 注册到 samgr]
-    ↓
-[DelayUnloadTask()]
+```mermaid
+flowchart TD
+  A[SA 186 OnStart] --> B["Init() — SIGCHLD handler + IOMonitor"]
+  B --> C["EnsureToolsLoaded()"]
+  C -->|toolsLoaded_==false| D["CheckKvStore() — 重试 5 次 × 100ms"]
+  D -->|kvStorePtr_ != nullptr| E["LoadToolsFromDir(/system/bin/cli_tool/configs)"]
+  E -->|opendir → 遍历 .json 文件| F["ParseToolFromJsonFile()"]
+  F -->|ifstream → BOM 去除 → json::parse → ToolInfo::ParseFromJson 字段校验| G["StoreTool() — kvStorePtr_->Put(name, JSON)"]
+  G --> H["SyncToolNames() — 读 AllCliToolNames → diff → delete 旧 → put 新"]
+  H -->|toolsLoaded_ = true| I["Publish() — SA 注册到 samgr"]
+  I --> J["DelayUnloadTask()"]
 ```
 
 ### 数据流/控制流
