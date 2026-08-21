@@ -182,6 +182,7 @@ std::unique_ptr<ETSRuntime> ETSRuntime::PreFork(const Options &options,
 
 void ETSRuntime::PreloadLibrary()
 {
+    TAG_LOGI(AAFwkTag::ETSRUNTIME, "PreloadLibrary begin");
     const char *ETS_ANI_LIBNAME_UI_ABILITY = "libui_ability_ani.z.so";
     const char *ETS_ANI_LIBNAME_ABILITY_STAGE = "libability_stage_ani.z.so";
 
@@ -196,6 +197,7 @@ void ETSRuntime::PreloadLibrary()
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "dlopen failed %{public}s, %{public}s",
             ETS_ANI_LIBNAME_ABILITY_STAGE, dlerror());
     }
+    TAG_LOGI(AAFwkTag::ETSRUNTIME, "PreloadLibrary end");
 }
 
 bool ETSRuntime::IsAotCompiledSuccess(int32_t status)
