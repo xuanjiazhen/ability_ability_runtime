@@ -873,11 +873,6 @@ bool BlackListFilter(const std::string &strProName, const std::string &proNameNo
     if (strProName == Want::PARAM_RESV_DISPLAY_ID) {
         return true;
     }
-    // Reserved for non-standard scheme uri pass-through.
-    // Third-party JS apps are not allowed to set this key.
-    if (strProName == Want::PARAM_SET_URI_WITH_ORIGIN_STRING) {
-        return true;
-    }
     return false;
 }
 
@@ -1245,6 +1240,13 @@ bool UnwrapWant(napi_env env, napi_value param, Want &want, const std::string &p
     natValueString = "";
     if (UnwrapStringByPropertyName(env, param, "uri", natValueString)) {
         want.SetUri(natValueString);
+        // Restore the raw uri when the pass-through flag is set, so that the
+        // non-standard scheme uri survives re-marshalling.
+        if (want.GetBoolParam(Want::PARAM_SET_URI_WITH_ORIGIN_STRING, false)) {
+            Uri uri(natValueString);
+            uri.SetUriWithOriginString(natValueString);
+            want.SetUri(uri);
+        }
     }
 
     int32_t flags = 0;
