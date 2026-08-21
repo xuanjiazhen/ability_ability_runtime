@@ -168,15 +168,15 @@ std::string GetHostPrivateHspAotAnPath(const CommonHspBundleInfo &bundleInfo)
 std::unique_ptr<ETSRuntime> ETSRuntime::PreFork(const Options &options,
     std::unique_ptr<Runtime> &jsRuntime, bool isMove)
 {
-    TAG_LOGI(AAFwkTag::JSRUNTIME, "PreFork begin");
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "ETSRuntime PreFork begin");
     std::unique_ptr<ETSRuntime> instance = std::make_unique<ETSRuntime>();
 
     if (!instance->Initialize(options, jsRuntime, isMove)) {
-        TAG_LOGI(AAFwkTag::JSRUNTIME, "PreFork end, initialize failed");
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "ETSRuntime PreFork end, initialize failed");
         return std::unique_ptr<ETSRuntime>();
     }
     PreloadLibrary();
-    TAG_LOGI(AAFwkTag::JSRUNTIME, "PreFork end");
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "ETSRuntime PreFork end");
     return instance;
 }
 
@@ -573,6 +573,7 @@ void ETSRuntime::XGC()
 
 void ETSRuntime::FinishPreload()
 {
+    TAG_LOGI(AAFwkTag::ETSRUNTIME, "FinishPreload begin");
     if (jsRuntime_ != nullptr) {
         jsRuntime_->FinishPreload();
     }
@@ -587,7 +588,10 @@ void ETSRuntime::FinishPreload()
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "null g_etsEnvFuncs or FinishPreload");
         return;
     }
+    TAG_LOGI(AAFwkTag::ETSRUNTIME, "ETS VM FinishPreload begin");
     g_etsEnvFuncs->FinishPreload(napiEnv);
+    TAG_LOGI(AAFwkTag::ETSRUNTIME, "ETS VM FinishPreload end");
+    TAG_LOGI(AAFwkTag::ETSRUNTIME, "FinishPreload end");
 }
 
 void ETSRuntime::RegisterUncaughtExceptionHandler(const EtsEnv::ETSUncaughtExceptionInfo &uncaughtExceptionInfo)
