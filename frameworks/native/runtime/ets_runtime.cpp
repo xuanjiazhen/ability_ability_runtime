@@ -17,6 +17,8 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cerrno>
+#include <cstdint>
 #include <cstdlib>
 #include <dlfcn.h>
 #include <filesystem>
@@ -71,6 +73,9 @@ const std::string ARK_CACHE_NATIVE_PATH = "arm64/";
 
 const char *ETS_ENV_LIBNAME = "libets_environment.z.so";
 const char *ETS_ENV_REGISTER_FUNCS = "OHOS_ETS_ENV_RegisterFuncs";
+
+constexpr size_t PARAM_TWO = 2;
+constexpr int32_t DEFAULT_INTER_VAL = 500;
 
 ETSEnvFuncs *g_etsEnvFuncs = nullptr;
 
@@ -916,6 +921,73 @@ void ETSRuntime::StopDebugMode()
     g_etsEnvFuncs->StopDebugMode(vm);
 }
 
+int32_t ETSRuntime::JsperfProfilerCommandParse(const std::string &command, int32_t defaultValue)
+{
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "profiler command parse %{public}s", command.c_str());
+    auto findPos = command.find("jsperf");
+    if (findPos == std::string::npos) {
+        return 0;
+    }
+    auto jsPerfStr = command.substr(findPos, command.length() - findPos);
+    const std::regex regexJsperf(R"(^jsperf($|\s+($|\d*\s*($|nativeperf.*))))");
+    std::match_results<std::string::const_iterator> matchResults;
+    if (!std::regex_match(jsPerfStr, matchResults, regexJsperf)) {
+        return defaultValue;
+    }
+    if (matchResults.size() < PARAM_TWO) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "no results need to be matched");
+        return defaultValue;
+    }
+    auto jsperfResuflt = matchResults[1].str();
+    const std::regex regexJsperfNum(R"(^\s*(\d+).*)");
+    std::match_results<std::string::const_iterator> jsperfMatchResults;
+    if (!std::regex_match(jsperfResuflt, jsperfMatchResults, regexJsperfNum)) {
+        return defaultValue;
+    }
+    if (jsperfMatchResults.size() < PARAM_TWO) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "jsperfMatchResults not match");
+        return defaultValue;
+    }
+    auto interval = jsperfMatchResults[1].str();
+    if (interval.empty()) {
+        return defaultValue;
+    }
+    errno = 0;
+    char *endPtr = nullptr;
+    long result = strtol(interval.c_str(), &endPtr, 10);
+    if (errno != 0 || endPtr == interval.c_str() || result < 0 || result > INT32_MAX) {
+        return defaultValue;
+    }
+    return static_cast<int32_t>(result);
+}
+
+void ETSRuntime::StartProfilerTask(const DebugOption &dOption)
+{
+    const std::string profilerCommand("profile");
+    if (dOption.perfCmd.find(profilerCommand) == std::string::npos) {
+        return;
+    }
+    uint32_t interval = static_cast<uint32_t>(JsperfProfilerCommandParse(dOption.perfCmd, DEFAULT_INTER_VAL));
+    if (interval == 0) {
+        TAG_LOGD(AAFwkTag::ETSRUNTIME, "no jsperf interval specified, skip profiler");
+        return;
+    }
+    if (jsRuntime_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null jsRuntime_ for profiler");
+        return;
+    }
+    auto vm = static_cast<JsRuntime &>(*jsRuntime_).GetEcmaVm();
+    if (vm == nullptr || g_etsEnvFuncs == nullptr || g_etsEnvFuncs->StartProfiler == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null vm or g_etsEnvFuncs or StartProfiler");
+        return;
+    }
+    bool ret = g_etsEnvFuncs->StartProfiler(getproctid(), static_cast<int32_t>(instanceId_),
+        dOption.isDebugApp, vm, interval);
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "StartProfiler failed");
+    }
+}
+
 void ETSRuntime::StartProfiler(const DebugOption dOption)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "localDebug %{public}d", dOption.isDebugFromLocal);
@@ -924,6 +996,7 @@ void ETSRuntime::StartProfiler(const DebugOption dOption)
         return;
     }
     instanceId_ = static_cast<uint32_t>(getproctid());
+    StartProfilerTask(dOption);
 
     bool isStartWithDebug = dOption.isStartWithDebug;
     bool isDebugApp = dOption.isDebugApp;

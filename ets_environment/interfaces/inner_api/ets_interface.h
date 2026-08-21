@@ -64,6 +64,8 @@ struct ETSEnvFuncs {
     void (*NotifyDebugMode)(uint32_t tid, uint32_t instanceId, bool isStartWithDebug,
         void *jsVm, bool isDebugApp) = nullptr;
     void (*BroadcastAndConnect)(const std::string& bundleName, int socketFd) = nullptr;
+    bool (*StartProfiler)(int tid, int32_t instanceId, bool debugApp, void *jsVm,
+        uint32_t interval) = nullptr;
 };
 }
 #endif // OHOS_ABILITY_RUNTIME_ETS_INTERFACE_H
