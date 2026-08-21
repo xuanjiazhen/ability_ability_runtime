@@ -75,7 +75,7 @@ public:
     void NotifyDebugMode(uint32_t tid, uint32_t instanceId, bool isStartWithDebug, void *jsVm, bool isDebugApp);
     void PostTask(const std::function<void()> &task, const std::string &name, int64_t delayTime);
     void BroadcastAndConnect(const std::string& bundleName, int socketFd);
-
+    bool StartProfiler(int tid, int32_t instanceId, bool debugApp, void *jsVm, uint32_t interval);
     DebuggerPostTask GetDebuggerPostTask();
 
     struct VMEntry {
