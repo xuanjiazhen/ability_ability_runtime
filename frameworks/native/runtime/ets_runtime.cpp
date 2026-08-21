@@ -168,13 +168,15 @@ std::string GetHostPrivateHspAotAnPath(const CommonHspBundleInfo &bundleInfo)
 std::unique_ptr<ETSRuntime> ETSRuntime::PreFork(const Options &options,
     std::unique_ptr<Runtime> &jsRuntime, bool isMove)
 {
-    TAG_LOGD(AAFwkTag::ETSRUNTIME, "PreFork begin");
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "PreFork begin");
     std::unique_ptr<ETSRuntime> instance = std::make_unique<ETSRuntime>();
 
     if (!instance->Initialize(options, jsRuntime, isMove)) {
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "PreFork end, initialize failed");
         return std::unique_ptr<ETSRuntime>();
     }
     PreloadLibrary();
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "PreFork end");
     return instance;
 }
 
@@ -314,20 +316,23 @@ std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options,
     std::unique_ptr<Runtime> &jsRuntime, bool isMove)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::ETSRUNTIME, "Create called");
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "ETSRuntime::Create begin");
     UnmapHwasanProtectGap();
     if (!RegisterETSEnvFuncs()) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "RegisterETSEnvFuncs failed");
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "ETSRuntime::Create end, RegisterETSEnvFuncs failed");
         return std::unique_ptr<ETSRuntime>();
     }
 
     if (g_etsEnvFuncs == nullptr) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "null g_etsEnvFuncs");
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "ETSRuntime::Create end, null g_etsEnvFuncs");
         return std::unique_ptr<ETSRuntime>();
     }
 
     if (jsRuntime == nullptr) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "null jsRuntime");
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "ETSRuntime::Create end, null jsRuntime");
         return std::unique_ptr<ETSRuntime>();
     }
     std::unique_ptr<ETSRuntime> instance;
@@ -347,6 +352,7 @@ std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options,
     if (instance != nullptr && !options.preload) {
         instance->PostFork(options, jsRuntime, isMove);
     }
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "ETSRuntime::Create end");
     return instance;
 }
 
@@ -443,7 +449,9 @@ bool ETSRuntime::Initialize(const Options &options, std::unique_ptr<Runtime> &js
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetAniEnv failed");
         return false;
     }
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "PreloadAce(ETS) begin");
     OHOS::Ace::ArkTSModulePreloader::Preload(aniEngine);
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "PreloadAce(ETS) end");
 #endif
     if (!options.preload) {
         napi_env napiEnv = nullptr;
@@ -606,17 +614,23 @@ void ETSRuntime::Deinitialize()
 
 bool ETSRuntime::CreateEtsEnv(const Options &options)
 {
-    TAG_LOGD(AAFwkTag::ETSRUNTIME, "CreateEtsEnv called");
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "CreateEtsEnv begin");
     if (g_etsEnvFuncs == nullptr ||
         g_etsEnvFuncs->Initialize == nullptr) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "null g_etsEnvFuncs or Initialize");
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "CreateEtsEnv end, null funcs");
         return false;
     }
 
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "Create ETS VM begin");
     if (!g_etsEnvFuncs->Initialize(options.eventRunner, options.isStartWithDebug, options.bundleName)) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Initialize failed");
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "Create ETS VM end, failed");
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "CreateEtsEnv end, failed");
         return false;
     }
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "Create ETS VM end");
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "CreateEtsEnv end");
     return true;
 }
 

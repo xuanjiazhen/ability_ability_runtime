@@ -146,6 +146,7 @@ bool JsRuntime::Init(const Options& options)
 std::unique_ptr<JsRuntime> JsRuntime::Create(const Options& options)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "JsRuntime::Create begin");
     std::unique_ptr<JsRuntime> instance;
     JsRuntimeLite::InitJsRuntimeLite(options);
     if (!options.preload && options.isStageModel) {
@@ -166,8 +167,10 @@ std::unique_ptr<JsRuntime> JsRuntime::Create(const Options& options)
     }
 
     if (!instance->Initialize(options)) {
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "JsRuntime::Create end, initialize failed");
         return std::unique_ptr<JsRuntime>();
     }
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "JsRuntime::Create end");
     return instance;
 }
 
@@ -633,7 +636,9 @@ void JsRuntime::FinishPreload()
 {
     auto vm = GetEcmaVm();
     CHECK_POINTER(vm);
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "PreFork begin");
     panda::JSNApi::PreFork(vm);
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "PreFork end");
 }
 
 void JsRuntime::PostPreload(const Options& options)
@@ -664,10 +669,12 @@ void JsRuntime::PostPreload(const Options& options)
     postOption.SetAOTCompileStatusMap(options.aotCompileStatusMap);
     TAG_LOGD(AAFwkTag::JSRUNTIME, "SmartGC: set options enableWarmStartupSmartGC to RuntimeOption");
     postOption.SetEnableWarmStartupSmartGC(options.enableWarmStartupSmartGC);
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "PostFork begin");
     {
         HITRACE_METER_NAME(HITRACE_TAG_APP, "panda::JSNApi::PostFork");
         panda::JSNApi::PostFork(vm, postOption);
     }
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "PostFork end");
     reinterpret_cast<NativeEngine*>(env)->ReinitUVLoop();
     uv_loop_s* loop = nullptr;
     napi_get_uv_event_loop(env, &loop);
@@ -813,6 +820,7 @@ bool JsRuntime::Initialize(const Options& options)
 
 bool JsRuntime::CreateJsEnv(const Options& options)
 {
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "CreateJsEnv begin");
     panda::RuntimeOption pandaOption;
     int arkProperties = OHOS::system::GetIntParameter<int>("persist.ark.properties", -1);
     std::string bundleName = OHOS::system::GetParameter("persist.ark.arkbundlename", "");
@@ -858,31 +866,40 @@ bool JsRuntime::CreateJsEnv(const Options& options)
     }
 
     OHOSJsEnvLogger::RegisterJsEnvLogger();
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "Create JS VM begin");
     jsEnv_ = std::make_shared<JsEnv::JsEnvironment>(std::make_unique<OHOSJsEnvironmentImpl>(options.eventRunner));
     if (jsEnv_ == nullptr || !jsEnv_->Initialize(pandaOption, static_cast<void*>(this))) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "Init jsEnv failed");
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "CreateJsEnv end, failed");
         return false;
     }
-
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "Create JS VM end");
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "CreateJsEnv end");
     return true;
 }
 
 void JsRuntime::PreloadAce(const Options& options)
 {
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "PreloadAce begin");
     auto nativeEngine = GetNativeEnginePointer();
     CHECK_POINTER(nativeEngine);
 #ifdef SUPPORT_SCREEN
     if (options.loadAce) {
         // ArkTsCard start
         if (options.isUnique) {
+            TAG_LOGI(AAFwkTag::JSRUNTIME, "PreloadAce loadAce(Card) begin");
             OHOS::Ace::DeclarativeModulePreloader::PreloadCard(
                 *nativeEngine, options.bundleName, options.pkgContextInfoJsonStringMap);
+            TAG_LOGI(AAFwkTag::JSRUNTIME, "PreloadAce loadAce(Card) end");
         } else {
+            TAG_LOGI(AAFwkTag::JSRUNTIME, "PreloadAce loadAce begin");
             OHOS::Ace::DeclarativeModulePreloader::Preload(*nativeEngine);
+            TAG_LOGI(AAFwkTag::JSRUNTIME, "PreloadAce loadAce end");
         }
         // ArkTsCard end
     }
 #endif
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "PreloadAce end");
 }
 
 void JsRuntime::ReloadFormComponent()
