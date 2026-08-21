@@ -11,7 +11,7 @@
 | 关联 Epic | 无（独立特性） |
 | 目标 Feature | FEAT-CLI-015 |
 | 复杂度 | 标准 |
-| 目标版本 | OpenHarmony-6.0-Release（待确认） |
+| 目标版本 | OpenHarmony-7.0 |
 | Owner | 待确认 |
 | 状态 | Draft |
 

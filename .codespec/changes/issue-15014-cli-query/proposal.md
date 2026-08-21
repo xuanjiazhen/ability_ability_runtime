@@ -1,6 +1,6 @@
 ---
 target_release:
-  id: OpenHarmony-6.0-Release
+  id: OpenHarmony-7.0
   status: proposed
 ---
 
@@ -18,7 +18,7 @@ target_release:
 | 需求名称 | CLI 工具查询（cli-query）System API 与 Inner API |
 | 来源 | 待确认（实现已存在于 cli_tool_framework，2026 版权） |
 | 提出人 | 待确认 |
-| 目标发行版本 | OpenHarmony-6.0-Release（待确认） |
+| 目标发行版本 | OpenHarmony-7.0 |
 | 候选 Profile | none |
 | 优先级 | P1 |
 | 状态 | Clarifying |
@@ -228,7 +228,7 @@ target_release:
 | 确认人 | 需求方/模块Owner/SIG代表（待确认） |
 | 复杂度 | 标准 |
 | Profile | none |
-| 目标发行版本 | OpenHarmony-6.0-Release（待确认） |
+| 目标发行版本 | OpenHarmony-7.0 |
 | 版本状态 | proposed |
 
 ### 问题陈述
