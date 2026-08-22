@@ -658,6 +658,17 @@ bool PermissionVerification::VerifyStartLocalDebug(int32_t tokenId) const
     return false;
 }
 
+bool PermissionVerification::VerifyLocalDebugOtherAppsPermission() const
+{
+    auto callerToken = GetCallingTokenID();
+    if (VerifyPermissionByTokenId(callerToken, PermissionConstants::PERMISSION_LOCAL_DEBUG_OTHER_APPS)) {
+        TAG_LOGD(AAFwkTag::DEFAULT, "Permission granted");
+        return true;
+    }
+    TAG_LOGE(AAFwkTag::DEFAULT, "Permission denied");
+    return false;
+}
+
 bool PermissionVerification::VerifyStartSelfUIAbility(int tokenId) const
 {
     if (!IsSACall() && VerifyPermissionByTokenId(tokenId, PermissionConstants::PERMISSION_NDK_START_SELF_UI_ABILITY)) {

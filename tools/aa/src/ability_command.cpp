@@ -24,8 +24,10 @@
 #include "ability_start_with_wait_observer.h"
 #include "ability_start_with_wait_observer_utils.h"
 #include "ability_tool_convert_util.h"
+#include "accesstoken_kit.h"
 #include "app_mgr_client.h"
 #include "hilog_tag_wrapper.h"
+#include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "mission_snapshot.h"
 #include "bool_wrapper.h"
@@ -71,6 +73,7 @@ constexpr int64_t WAIT_INTERVAL = 10 * 1000; // us
 constexpr int64_t MAX_WAIT_TIME = 15 * 1000 * 1000; // us
 
 const std::string DEVELOPERMODE_STATE = "const.security.developermode.state";
+const std::string PERMISSION_LOCAL_DEBUG_OTHER_APPS = "ohos.permission.LOCAL_DEBUG_OTHER_APPS";
 
 const std::string SHORT_OPTIONS = "ch:d:a:b:e:t:p:s:m:u:A:U:CDESNR";
 const std::string SHORT_OPTION_CHARS = "chdabetpsmuAUCDESNR";
@@ -462,6 +465,16 @@ ErrCode AbilityManagerShellCommand::init()
 
 ErrCode AbilityManagerShellCommand::RunAsHelpCommand()
 {
+    bool isDevelopMode = system::GetBoolParameter(DEVELOPERMODE_STATE, false);
+    auto selfTokenId = IPCSkeleton::GetSelfTokenID();
+    bool hasPermission = Security::AccessToken::AccessTokenKit::VerifyAccessToken(
+        selfTokenId, PERMISSION_LOCAL_DEBUG_OTHER_APPS, false) ==
+        Security::AccessToken::PermissionState::PERMISSION_GRANTED;
+    if (!isDevelopMode && !hasPermission) {
+        resultReceiver_ = STRING_APP_DEBUG_NG + "\n";
+        resultReceiver_.append(GetMessageFromCode(ERR_NOT_DEVELOPER_MODE));
+        return OHOS::ERR_INVALID_OPERATION;
+    }
     resultReceiver_.append(HELP_MSG);
 
     return OHOS::ERR_OK;

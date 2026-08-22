@@ -765,7 +765,8 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
             !AAFwk::PermissionVerification::GetInstance()->VerifyStartLocalDebug(IPCSkeleton::GetCallingTokenID())) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "local debugging, permission denied");
             return CHECK_PERMISSION_FAILED;
-        } else if (!isDebugFromLocal && !system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
+        } else if (!isDebugFromLocal && !system::GetBoolParameter(DEVELOPER_MODE_STATE, false) &&
+            !AAFwk::PermissionVerification::GetInstance()->VerifyLocalDebugOtherAppsPermission()) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "not developer Mode");
             return ERR_NOT_DEVELOPER_MODE;
         }
@@ -2053,7 +2054,8 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
         RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
 #endif
     if (want.GetBoolParam(AbilityConfig::DEBUG_APP, false)) {
-        if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
+        if (!system::GetBoolParameter(DEVELOPER_MODE_STATE, false) &&
+            !AAFwk::PermissionVerification::GetInstance()->VerifyLocalDebugOtherAppsPermission()) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "not developer Mode");
             AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_NOT_DEVELOPER_MODE, "not developer Mode");
             return ERR_NOT_DEVELOPER_MODE;
@@ -8519,7 +8521,10 @@ void AbilityManagerService::DumpSysState(
     TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}s begin", __func__);
     auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
     auto isHidumperServiceCall = (IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID);
-    if (!isShellCall && !isHidumperServiceCall) {
+    bool isDevelopMode = system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
+    bool hasLocalDebugOtherAppsPerm =
+        AAFwk::PermissionVerification::GetInstance()->VerifyLocalDebugOtherAppsPermission();
+    if (!(isShellCall && (isDevelopMode || hasLocalDebugOtherAppsPerm)) && !isHidumperServiceCall) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "permission deny");
         return;
     }
@@ -9321,6 +9326,13 @@ int AbilityManagerService::KillProcess(const std::string &bundleName, bool clear
         DelayedSingleton<AppScheduler>::GetInstance()->VerifyKillProcessPermission(bundleName) != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "KillProcess permission verification fail");
         return ERR_PERMISSION_DENIED;
+    }
+
+    if (AAFwk::PermissionVerification::GetInstance()->IsShellCall() &&
+        !system::GetBoolParameter(DEVELOPER_MODE_STATE, false) &&
+        !AAFwk::PermissionVerification::GetInstance()->VerifyLocalDebugOtherAppsPermission()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not developer Mode");
+        return ERR_NOT_DEVELOPER_MODE;
     }
 
     auto bms = AbilityUtil::GetBundleManagerHelper();

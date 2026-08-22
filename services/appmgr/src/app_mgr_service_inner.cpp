@@ -4397,7 +4397,9 @@ int32_t AppMgrServiceInner::NotifyProcMemoryLevel(const std::map<pid_t, MemoryLe
         MEMMGR_PROC_NAME);
     auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
     bool isDevelopMode = system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
-    if (!(isMemmgrCall || (isShellCall && isDevelopMode))) {
+    bool hasLocalDebugOtherAppsPerm =
+        AAFwk::PermissionVerification::GetInstance()->VerifyLocalDebugOtherAppsPermission();
+    if (!(isMemmgrCall || (isShellCall && (isDevelopMode || hasLocalDebugOtherAppsPerm)))) {
         TAG_LOGE(AAFwkTag::APPMGR, "Permission check failed: callerToken is not %{public}s, isMemmgrCall=%{public}d, "
         "isShellCall=%{public}d, isDevelopMode=%{public}d", MEMMGR_PROC_NAME, isMemmgrCall, isShellCall, isDevelopMode);
         return ERR_INVALID_VALUE;
@@ -10013,9 +10015,12 @@ int32_t AppMgrServiceInner::StartNativeProcessForDebugger(const AAFwk::Want &wan
         appRunningManager_->CheckAppRunningRecordIsExist(appInfo->name, processName, appInfo->uid, bundleInfo);
     AppSpawnStartMsg startMsg;
     bool isDevelopeMode = system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
+    bool hasLocalDebugOtherAppsPerm =
+        AAFwk::PermissionVerification::GetInstance()->VerifyLocalDebugOtherAppsPermission();
     if (appRecord) {
         startMsg = appRecord->GetStartMsg();
-    } else if (!isDevelopeMode || CreatNewStartMsg(want, abilityInfo, appInfo, processName, startMsg) != ERR_OK) {
+    } else if ((!isDevelopeMode && !hasLocalDebugOtherAppsPerm) ||
+        CreatNewStartMsg(want, abilityInfo, appInfo, processName, startMsg) != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "invalid Operation");
         return ERR_INVALID_OPERATION;
     }
