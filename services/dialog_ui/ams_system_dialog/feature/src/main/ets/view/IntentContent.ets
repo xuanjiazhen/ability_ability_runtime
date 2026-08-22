@@ -20,6 +20,7 @@ import { image } from '@kit.ImageKit';
 import { jsClone } from './format';
 import { TAG, DOMAIN} from '../pages/Index'
 import bundle from '@ohos.bundle.bundleManager';
+import { window } from '@kit.ArkUI';
 
 
 export interface ItemInfo {
@@ -52,7 +53,21 @@ export struct IntentContent {
   @State pixelMap: image.PixelMap | ResourceStr | DrawableDescriptor | undefined = undefined;
 
   aboutToAppear() {
+    this.logAvoidAreaAtRender();
     this.getInfos();
+  }
+
+  private logAvoidAreaAtRender(): void {
+    try {
+      window.getLastWindow(getContext(this)).then((win: window.Window) => {
+        const avoidArea = win.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM);
+        hilog.info(DOMAIN, TAG, 'page render avoidArea topRect: %{public}s', JSON.stringify(avoidArea.topRect));
+      }).catch((err: BusinessError) => {
+        hilog.error(DOMAIN, TAG, 'getLastWindow failed at page render. Cause: %{public}s', JSON.stringify(err));
+      });
+    } catch (err) {
+      hilog.error(DOMAIN, TAG, 'logAvoidAreaAtRender error. Cause: %{public}s', JSON.stringify(err));
+    }
   }
 
   onBackPress() {
@@ -336,8 +351,6 @@ export struct IntentContent {
         left: 16,
         bottom: 14.5
       })
-      .position({ top: 0, left: 0 })
-      .zIndex(100)
       .backgroundColor($r('app.color.background_cont'))
 
       Scroll(this.scroller) {
@@ -350,24 +363,26 @@ export struct IntentContent {
       }
       .align(Alignment.TopStart)
       .padding({
-        top: 76,
+        top: 12,
         right: 20,
         left: 20,
         bottom: 20
       })
-      .constraintSize({ minHeight: '100%' })
-      .align(Alignment.TopStart)
+      .layoutWeight(1)
       .edgeEffect(EdgeEffect.Spring)
       .scrollable(ScrollDirection.Vertical)
       .scrollBar(BarState.Off)
       .width('100%')
-      .height('100%')
       .backgroundColor($r('app.color.background_cont'))
       .clip(true)
     }
     .width('100%')
     .height('100%')
-    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
+    .onAreaChange((oldValue: Area, newValue: Area) => {
+      hilog.info(DOMAIN, TAG, 'page onAreaChange: old=%{public}s new=%{public}s',
+        JSON.stringify(oldValue), JSON.stringify(newValue));
+    })
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
     .backgroundColor($r('app.color.background_cont'))
   }
 }
