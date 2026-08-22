@@ -37,6 +37,7 @@ public:
     void RemoveUser(int32_t userId);
     bool CheckAllUnlocked(int32_t userId);
     bool CheckUserUnlocked(int32_t userId);
+    size_t GetUserCount();
 
 private:
     AbilityEventMapManager();

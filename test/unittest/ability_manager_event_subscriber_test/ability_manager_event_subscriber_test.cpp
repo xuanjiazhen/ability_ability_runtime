@@ -380,5 +380,99 @@ HWTEST_F(AbilityManagerEventSubscriberTest, AbilityEventSubscriber_OnReceiveEven
     AbilityEventMapManager::GetInstance().RemoveUser(userId);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerEventSubscriberTest AbilityEventSubscriber_OnReceiveEvent_0002 end");
 }
+
+/**
+ * @tc.name: AbilityManagerEventSubscriberTest_GetUserCount_0001
+ * @tc.desc: GetUserCount reflects users added to and removed from event map
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerEventSubscriberTest, GetUserCount_0001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerEventSubscriberTest GetUserCount_0001 start");
+    int32_t userId = 1;
+    int32_t otherUserId = 2;
+    AbilityEventMapManager::GetInstance().RemoveUser(userId);
+    AbilityEventMapManager::GetInstance().RemoveUser(otherUserId);
+    EXPECT_EQ(AbilityEventMapManager::GetInstance().GetUserCount(), 0u);
+    AbilityEventMapManager::GetInstance().AddEvent(userId,
+        EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED);
+    EXPECT_EQ(AbilityEventMapManager::GetInstance().GetUserCount(), 1u);
+    AbilityEventMapManager::GetInstance().AddEvent(otherUserId,
+        EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED);
+    EXPECT_EQ(AbilityEventMapManager::GetInstance().GetUserCount(), 2u);
+    AbilityEventMapManager::GetInstance().RemoveUser(userId);
+    EXPECT_EQ(AbilityEventMapManager::GetInstance().GetUserCount(), 1u);
+    AbilityEventMapManager::GetInstance().RemoveUser(otherUserId);
+    EXPECT_EQ(AbilityEventMapManager::GetInstance().GetUserCount(), 0u);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerEventSubscriberTest GetUserCount_0001 end");
+}
+
+/**
+ * @tc.name: AbilityManagerEventSubscriberTest_AbilityEventSubscriber_OnReceiveEvent_0003
+ * @tc.desc: finished user is removed from event map before screenUnlockCallback is invoked
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerEventSubscriberTest, AbilityEventSubscriber_OnReceiveEvent_0003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerEventSubscriberTest AbilityEventSubscriber_OnReceiveEvent_0003 start");
+    int32_t userId = 1;
+    int32_t callbackUserId = -1;
+    size_t pendingUserCountWhenCallback = 1;
+    std::function<void(int32_t)> callback = [&callbackUserId, &pendingUserCountWhenCallback](int32_t id) {
+        callbackUserId = id;
+        // UnSubscribeScreenUnlockedEvent counts pending users, the finished one must be gone already.
+        pendingUserCountWhenCallback = AbilityEventMapManager::GetInstance().GetUserCount();
+    };
+    std::function<void(int32_t)> callback2 = [](int32_t) {};
+    EventFwk::CommonEventSubscribeInfo subscribeInfo;
+    auto userSubscriber = std::make_shared<AbilityUserUnlockEventSubscriber>(subscribeInfo, callback, callback2);
+    EventFwk::CommonEventData userData;
+    userData.want_.operation_.action_ = EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED;
+    userData.code_ = userId;
+    userSubscriber->OnReceiveEvent(userData);
+    auto screenSubscriber = std::make_shared<AbilityScreenUnlockEventSubscriber>(subscribeInfo, callback);
+    EventFwk::CommonEventData screenData;
+    screenData.want_.operation_.action_ = EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED;
+    screenData.want_.SetParam("userId", userId);
+    screenSubscriber->OnReceiveEvent(screenData);
+    EXPECT_EQ(callbackUserId, userId);
+    EXPECT_EQ(pendingUserCountWhenCallback, 0u);
+    AbilityEventMapManager::GetInstance().RemoveUser(userId);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerEventSubscriberTest AbilityEventSubscriber_OnReceiveEvent_0003 end");
+}
+
+/**
+ * @tc.name: AbilityManagerEventSubscriberTest_AbilityEventSubscriber_OnReceiveEvent_0004
+ * @tc.desc: finished user is removed from event map before userUnlockCallback completes the chain
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerEventSubscriberTest, AbilityEventSubscriber_OnReceiveEvent_0004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerEventSubscriberTest AbilityEventSubscriber_OnReceiveEvent_0004 start");
+    int32_t userId = 1;
+    int32_t callbackUserId = -1;
+    size_t pendingUserCountWhenCallback = 1;
+    std::function<void(int32_t)> callback = [&callbackUserId, &pendingUserCountWhenCallback](int32_t id) {
+        callbackUserId = id;
+        // UnSubscribeScreenUnlockedEvent counts pending users, the finished one must be gone already.
+        pendingUserCountWhenCallback = AbilityEventMapManager::GetInstance().GetUserCount();
+    };
+    std::function<void(int32_t)> callback2 = [](int32_t) {};
+    EventFwk::CommonEventSubscribeInfo subscribeInfo;
+    auto screenSubscriber = std::make_shared<AbilityScreenUnlockEventSubscriber>(subscribeInfo, callback);
+    EventFwk::CommonEventData screenData;
+    screenData.want_.operation_.action_ = EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED;
+    screenData.want_.SetParam("userId", userId);
+    screenSubscriber->OnReceiveEvent(screenData);
+    auto userSubscriber = std::make_shared<AbilityUserUnlockEventSubscriber>(subscribeInfo, callback, callback2);
+    EventFwk::CommonEventData userData;
+    userData.want_.operation_.action_ = EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED;
+    userData.code_ = userId;
+    userSubscriber->OnReceiveEvent(userData);
+    EXPECT_EQ(callbackUserId, userId);
+    EXPECT_EQ(pendingUserCountWhenCallback, 0u);
+    AbilityEventMapManager::GetInstance().RemoveUser(userId);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerEventSubscriberTest AbilityEventSubscriber_OnReceiveEvent_0004 end");
+}
 } // namespace AAFwk
 } // namespace OHOS

@@ -80,6 +80,12 @@ bool AbilityEventMapManager::CheckUserUnlocked(int32_t userId)
     return false;
 }
 
+size_t AbilityEventMapManager::GetUserCount()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return eventMap_.size();
+}
+
 AbilityScreenUnlockEventSubscriber::AbilityScreenUnlockEventSubscriber(
     const EventFwk::CommonEventSubscribeInfo &subscribeInfo, const std::function<void(int32_t)> &screenUnlockCallback)
     : EventFwk::CommonEventSubscriber(subscribeInfo), screenUnlockCallback_(screenUnlockCallback)
@@ -104,8 +110,10 @@ void AbilityScreenUnlockEventSubscriber::OnReceiveEvent(const EventFwk::CommonEv
     }
     AbilityEventMapManager::GetInstance().AddEvent(userId, action);
     if (AbilityEventMapManager::GetInstance().CheckAllUnlocked(userId)) {
-        screenUnlockCallback_(userId);
+        // Remove the finished user before notifying, otherwise it is still counted by
+        // UnSubscribeScreenUnlockedEvent as a pending user and the subscriber never goes away.
         AbilityEventMapManager::GetInstance().RemoveUser(userId);
+        screenUnlockCallback_(userId);
     }
 }
 
@@ -132,8 +140,8 @@ void AbilityUserUnlockEventSubscriber::OnReceiveEvent(const EventFwk::CommonEven
     AbilityEventMapManager::GetInstance().AddEvent(userId, action);
     UserController::GetInstance().SetUserLockStatus(userId, UserController::UserLockStatus::USER_UNLOCKED);
     if (AbilityEventMapManager::GetInstance().CheckAllUnlocked(userId)) {
-        screenUnlockCallback_(userId);
         AbilityEventMapManager::GetInstance().RemoveUser(userId);
+        screenUnlockCallback_(userId);
         return;
     }
     userScreenUnlockCallback_(userId);
