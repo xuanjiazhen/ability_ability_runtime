@@ -4503,13 +4503,13 @@ int32_t AppMgrServiceInner::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IM
 }
 
 int32_t AppMgrServiceInner::ReportDumpMemResult(sptr<IMemDumpCallback> callback,
-    const std::string &dumpResult)
+    const MemDumpResult &result)
 {
     if (callback == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "callback is nullptr");
         return ERR_INVALID_VALUE;
     }
-    callback->OnMemDumpDone(dumpResult);
+    callback->OnMemDumpDone(result);
     return ERR_OK;
 }
 

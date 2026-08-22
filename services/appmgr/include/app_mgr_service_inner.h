@@ -696,7 +696,7 @@ public:
      * @return ERR_OK ,return back success, others fail.
      */
     virtual int32_t ReportDumpMemResult(sptr<IMemDumpCallback> callback,
-        const std::string &dumpResult);
+        const MemDumpResult &result);
 
     /**
      * @brief Check whether the shared bundle is running.

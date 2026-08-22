@@ -750,13 +750,13 @@ int32_t AppMgrService::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDum
 }
 
 int32_t AppMgrService::ReportDumpMemResult(sptr<IMemDumpCallback> callback,
-    const std::string &dumpResult)
+    const MemDumpResult &result)
 {
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "AppMgrService not ready");
         return ERR_INVALID_OPERATION;
     }
-    return appMgrServiceInner_->ReportDumpMemResult(callback, dumpResult);
+    return appMgrServiceInner_->ReportDumpMemResult(callback, result);
 }
 
 void AppMgrService::AddAbilityStageDone(const int32_t recordId)
