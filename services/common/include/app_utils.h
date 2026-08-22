@@ -471,10 +471,12 @@ private:
     volatile DeviceConfiguration<bool> isSupportAllowDebugPermission_ = {false, false};
     volatile DeviceConfiguration<bool> isStartUIAbilityInCurrentProcess_ = {false, false};
     volatile DeviceConfiguration<bool> isSupportModularObjectExtension_ = {false, false};
+    std::mutex isAutoStartupSupportedMutex_;
     volatile DeviceConfiguration<bool> isAutoStartupSupported_ = {false, false};
     volatile DeviceConfiguration<bool> isProductAppbootSettingEnabled_ = {false, false};
     volatile DeviceConfiguration<bool> isHybridSpawnUnified_ = {false, false};
     volatile DeviceConfiguration<bool> isSupportNativeUIAbility_ = {false, false};
+    std::mutex isSupportDelayedProcessExitMutex_;
     volatile DeviceConfiguration<bool> isSupportDelayedProcessExit_ = {false, false};
     volatile DeviceConfiguration<bool> isBopdOrRescueMode_ = {false, false};
     DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>

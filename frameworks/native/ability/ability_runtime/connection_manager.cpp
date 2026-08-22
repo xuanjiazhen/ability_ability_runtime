@@ -217,13 +217,14 @@ ErrCode ConnectionManager::DisconnectAbility(const sptr<IRemoteObject>& connectC
         }
         sptr<AbilityConnection> abilityConnection = item->first.abilityConnection;
         if (item->second.empty()) {
-            item = abilityConnections_.erase(item);
             TAG_LOGI(AAFwkTag::CONNECTION, "no callback,disconnect");
             auto ret = AAFwk::AbilityManagerClient::GetInstance()->DisconnectAbility(abilityConnection);
             if (ret != ERR_OK) {
                 TAG_LOGE(AAFwkTag::CONNECTION, "disconnect err:%{public}d", ret);
+                item->second.push_back(connectCallback);
                 return ret;
             }
+            item = abilityConnections_.erase(item);
         } else {
             connectCallback->OnAbilityDisconnectDone(element, ERR_OK);
             abilityConnection->RemoveConnectCallback(connectCallback);

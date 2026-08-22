@@ -38,6 +38,16 @@ void JsMemoryOptimizer::Finalizer(napi_env env, void *data, void *hint)
     std::unique_ptr<JsMemoryOptimizer>(static_cast<JsMemoryOptimizer *>(data));
 }
 
+bool JsMemoryOptimizer::CheckCallerIsSystemApp()
+{
+    auto selfToken = IPCSkeleton::GetSelfTokenID();
+    if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
+        TAG_LOGE(AAFwkTag::ABILITY, "not system app");
+        return false;
+    }
+    return true;
+}
+
 napi_value JsMemoryOptimizer::EvictFilePages(napi_env env, napi_callback_info info)
 {
     GET_NAPI_INFO_AND_CALL(env, info, JsMemoryOptimizer, OnEvictFilePages);
@@ -56,6 +66,11 @@ napi_value JsMemoryOptimizer::OnEvictFilePages(napi_env env, NapiCallbackInfo &i
         return nullptr;
     }
     AbilityRuntime::HandleEscape handleEscape(env);
+    if (!CheckCallerIsSystemApp()) {
+        TAG_LOGE(AAFwkTag::ABILITY, "not system app");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
+        return CreateJsUndefined(env);
+    }
     if (info.argc < ARGC_ONE) {
         TAG_LOGE(AAFwkTag::ABILITY, "invalid argc");
         ThrowTooFewParametersError(env);
@@ -103,6 +118,11 @@ napi_value JsMemoryOptimizer::OnEvictModuleFilePages(napi_env env, NapiCallbackI
         return nullptr;
     }
     AbilityRuntime::HandleEscape handleEscape(env);
+    if (!CheckCallerIsSystemApp()) {
+        TAG_LOGE(AAFwkTag::ABILITY, "not system app");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
+        return CreateJsUndefined(env);
+    }
     if (info.argc < ARGC_ONE) {
         TAG_LOGE(AAFwkTag::ABILITY, "invalid argc");
         ThrowTooFewParametersError(env);
@@ -149,8 +169,14 @@ napi_value JsMemoryOptimizerInit(napi_env env, napi_value exportObj)
     }
 
     auto jsMemoryOptimizer = std::make_unique<JsMemoryOptimizer>();
-    napi_wrap(env, exportObj, jsMemoryOptimizer.release(),
+    napi_status status = napi_wrap(env, exportObj, jsMemoryOptimizer.get(),
         JsMemoryOptimizer::Finalizer, nullptr, nullptr);
+    if (status == napi_ok) {
+        jsMemoryOptimizer.release();
+    } else {
+        TAG_LOGE(AAFwkTag::ABILITY, "napi_wrap failed: %{public}d", status);
+        return nullptr;
+    }
 
     BindNativeFunction(env, exportObj, "evictFilePages", MODULE_NAME, JsMemoryOptimizer::EvictFilePages);
     BindNativeFunction(env, exportObj, "evictModuleFilePages", MODULE_NAME, JsMemoryOptimizer::EvictModuleFilePages);
