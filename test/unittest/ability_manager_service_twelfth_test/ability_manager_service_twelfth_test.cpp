@@ -20,6 +20,8 @@
 #include "mock_my_flag.h"
 #include "mock_ability_connect_callback.h"
 #include "ability_manager_service.h"
+#include "ability_manager_event_subscriber.h"
+#include "common_event_support.h"
 #include "modal_system_dialog/modal_system_dialog_ui_extension.h"
 #include "utils/modal_system_dialog_util.h"
 #include "user_controller/user_controller.h"
