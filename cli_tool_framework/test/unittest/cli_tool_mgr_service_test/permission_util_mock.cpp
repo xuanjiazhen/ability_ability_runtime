@@ -15,11 +15,18 @@
 
 #include "permission_util.h"
 
+#include <set>
+#include <string>
+
 namespace OHOS {
 namespace CliTool {
-bool PermissionUtil::VerifyAccessToken(Security::AccessToken::AccessTokenID, const std::string &)
+// Test-only deny-list: permissions listed here fail verification, everything else is granted
+std::set<std::string> g_mockDeniedPermissions;
+
+bool PermissionUtil::VerifyAccessToken(Security::AccessToken::AccessTokenID,
+    const std::string &requirePermission)
 {
-    return true;
+    return g_mockDeniedPermissions.find(requirePermission) == g_mockDeniedPermissions.end();
 }
 
 } // namespace CliTool

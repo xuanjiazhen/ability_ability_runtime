@@ -32,6 +32,7 @@ namespace CliTool {
 struct CliEventReplyResult {
     int32_t code = 0;
     std::optional<CliSessionInfo> sessionInfo = std::nullopt;
+    int32_t successCount = 0;
 };
 
 class CliEventReplyManager final {

@@ -24,4 +24,6 @@ interface ICliToolManagerScheduler {
     [oneway]void SchedulerInputReplyEvent([in] String eventId, [in] int resultCode);
 
     [oneway]void SchedulerExecToolReplyEvent([in] String eventId, [in] int resultCode, [in] CliSessionInfo session);
+
+    [oneway]void SchedulerFunctionsReplyEvent([in] String eventId, [in] int resultCode, [in] int successCount);
 }

@@ -21,6 +21,7 @@
 #include <gtest/gtest.h>
 #include <memory>
 #include <mutex>
+#include <set>
 #include <string>
 #include <sys/wait.h>
 #include <thread>
@@ -70,6 +71,8 @@ bool TokenIdKit::IsSystemAppByFullTokenID(uint64_t)
 } // namespace AccessToken
 } // namespace Security
 namespace CliTool {
+// Defined in permission_util_mock.cpp: permissions listed there fail verification
+extern std::set<std::string> g_mockDeniedPermissions;
 namespace {
 const char *CLI_TOOL_PERMS[] = {
     "ohos.permission.EXEC_CLI_TOOL",
@@ -98,6 +101,19 @@ public:
     {
         return ERR_OK;
     }
+
+    int32_t SchedulerFunctionsReplyEvent(const std::string &eventId, int32_t resultCode,
+        int32_t successCount) override
+    {
+        lastEventId = eventId;
+        lastResultCode = resultCode;
+        lastSuccessCount = successCount;
+        return ERR_OK;
+    }
+
+    std::string lastEventId;
+    int32_t lastResultCode = -1;
+    int32_t lastSuccessCount = -1;
 };
 
 class CliToolManagerServiceTest : public testing::Test {
@@ -2411,6 +2427,7 @@ HWTEST_F(CliToolManagerServiceTest, RegisterFunction_0100, TestSize.Level1)
     function.functionName = "test_function";
     function.functionNamespace = "test_ns";
     function.functionType = FunctionType::INTENT_FUNCTION;
+    function.userId = 0;
 
     // Mock returns ERR_OK by default
     int32_t ret = service_->RegisterFunction(function);
@@ -2486,6 +2503,7 @@ HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctions_0100, TestSize.Level1
         function.functionName = "batch_test_func_" + std::to_string(i);
         function.functionNamespace = "batch_test_ns";
         function.functionType = FunctionType::INTENT_FUNCTION;
+        function.userId = 0;
         functions.push_back(function);
     }
     FunctionsRawData rawData;
@@ -2639,11 +2657,12 @@ HWTEST_F(CliToolManagerServiceTest, GetFunctionInfo_0100, TestSize.Level1)
     function.functionName = "get_test_function";
     function.functionNamespace = "get_test_ns";
     function.functionType = FunctionType::INTENT_FUNCTION;
+    function.userId = 0;
     service_->RegisterFunction(function);
 
     // Then get it
     FunctionInfo retrievedFunction;
-    int32_t ret = service_->GetFunctionInfo("get_test_ns", "get_test_function", retrievedFunction);
+    int32_t ret = service_->GetFunctionInfo(-1, "get_test_ns", "get_test_function", retrievedFunction);
 
     // Mock returns ERR_OK by default
     EXPECT_EQ(ret, ERR_OK);
@@ -2661,13 +2680,76 @@ HWTEST_F(CliToolManagerServiceTest, GetFunctionInfo_0200, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetFunctionInfo_0200 start");
 
     FunctionInfo function;
-    int32_t ret = service_->GetFunctionInfo("non_existent_ns", "non_existent_function", function);
+    int32_t ret = service_->GetFunctionInfo(-1, "non_existent_ns", "non_existent_function", function);
 
     // With mocked FOUNDATION_UID, should pass permission check and reach data manager
     // Mock returns ERR_OK by default (even for non-existent, as it's a simple mock)
     EXPECT_EQ(ret, ERR_OK);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetFunctionInfo_0200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_GetFunctionInfo_CrossUser_0100
+ * @tc.desc: Test GetFunctionInfo cross-user query without the cross-account permission
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetFunctionInfo_CrossUser_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetFunctionInfo_CrossUser_0100 start");
+
+    // The mock calling uid derives caller user 0; target 100 belongs to another user
+    g_mockDeniedPermissions.insert("ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS");
+
+    FunctionInfo function;
+    EXPECT_EQ(service_->GetFunctionInfo(100, "cross_user_ns", "cross_user_function", function),
+        ERR_PERMISSION_DENIED);
+
+    // An explicit same-user userId is not a cross-user query and stays allowed
+    EXPECT_EQ(service_->GetFunctionInfo(0, "cross_user_ns", "cross_user_function", function), ERR_OK);
+
+    g_mockDeniedPermissions.clear();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetFunctionInfo_CrossUser_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_GetFunctionInfo_CrossUser_0200
+ * @tc.desc: Test GetFunctionInfo cross-user query with the cross-account permission granted
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetFunctionInfo_CrossUser_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetFunctionInfo_CrossUser_0200 start");
+
+    FunctionInfo function;
+    EXPECT_EQ(service_->GetFunctionInfo(100, "cross_user_ns", "cross_user_function", function), ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetFunctionInfo_CrossUser_0200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_GetFunctionInfo_CrossUser_0300
+ * @tc.desc: Test GetFunctionInfo cross-user query rejected for an app caller even with permission
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetFunctionInfo_CrossUser_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetFunctionInfo_CrossUser_0300 start");
+
+    // A HAP token makes the caller a system app (not an SA); apps can only query their own user
+    IPCSkeleton::SetCallingTokenID(TOKEN_HAP);
+
+    FunctionInfo function;
+    EXPECT_EQ(service_->GetFunctionInfo(100, "cross_user_ns", "cross_user_function", function),
+        ERR_PERMISSION_DENIED);
+
+    // Querying the caller's own user stays allowed for apps
+    EXPECT_EQ(service_->GetFunctionInfo(0, "cross_user_ns", "cross_user_function", function), ERR_OK);
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetFunctionInfo_CrossUser_0300 end");
 }
 
 /**
@@ -2684,10 +2766,11 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterFunction_0100, TestSize.Level1)
     function.functionName = "unreg_test_function";
     function.functionNamespace = "unreg_test_ns";
     function.functionType = FunctionType::INTENT_FUNCTION;
+    function.userId = 0;
     service_->RegisterFunction(function);
 
     // Then unregister it
-    int32_t ret = service_->UnregisterFunction("unreg_test_ns", "unreg_test_function");
+    int32_t ret = service_->UnregisterFunction(0, "unreg_test_ns", "unreg_test_function");
 
     // Mock returns ERR_OK by default
     EXPECT_EQ(ret, ERR_OK);
@@ -2704,7 +2787,7 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterFunction_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterFunction_0200 start");
 
-    int32_t ret = service_->UnregisterFunction("non_existent_ns", "non_existent_function");
+    int32_t ret = service_->UnregisterFunction(0, "non_existent_ns", "non_existent_function");
 
     // Mock returns ERR_OK by default
     EXPECT_EQ(ret, ERR_OK);
@@ -2721,7 +2804,7 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterIntentFunctionsByNamespace_0100, T
 {
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespace_0100 start");
 
-    int32_t ret = service_->UnregisterIntentFunctionsByNamespace("test_intent_ns");
+    int32_t ret = service_->UnregisterIntentFunctionsByNamespace(0, "test_intent_ns");
 
     // Mock returns ERR_OK by default
     EXPECT_EQ(ret, ERR_OK);
@@ -2741,7 +2824,7 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterFunction_0300, TestSize.Level1)
     // Set callingUid to non-FOUNDATION_UID
     IPCSkeleton::callingUid = 9999;
 
-    int32_t ret = service_->UnregisterFunction("test_ns", "test_function");
+    int32_t ret = service_->UnregisterFunction(0, "test_ns", "test_function");
 
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
 
@@ -2763,7 +2846,7 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterIntentFunctionsByNamespace_0200, T
     // Set callingUid to non-FOUNDATION_UID
     IPCSkeleton::callingUid = 9999;
 
-    int32_t ret = service_->UnregisterIntentFunctionsByNamespace("test_ns");
+    int32_t ret = service_->UnregisterIntentFunctionsByNamespace(0, "test_ns");
 
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
 
@@ -2787,23 +2870,89 @@ HWTEST_F(CliToolManagerServiceTest, GetAllFunctions_0100, TestSize.Level1)
     function1.functionName = "all_test_function1";
     function1.functionNamespace = "all_test_ns";
     function1.functionType = FunctionType::INTENT_FUNCTION;
+    function1.userId = 0;
     service_->RegisterFunction(function1);
 
     FunctionInfo function2;
     function2.functionName = "all_test_function2";
     function2.functionNamespace = "all_test_ns";
     function2.functionType = FunctionType::INTENT_FUNCTION;
+    function2.userId = 0;
     service_->RegisterFunction(function2);
 
     // Then get all functions
     FunctionsRawData rawData;
-    int32_t ret = service_->GetAllFunctions(rawData);
+    int32_t ret = service_->GetAllFunctions(-1, rawData);
 
     // May succeed or return ERR_NO_INIT
     // With mocked permissions returning true, should not get permission errors
     EXPECT_TRUE(ret == ERR_OK || ret == ERR_NO_INIT);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetAllFunctions_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_GetAllFunctions_CrossUser_0100
+ * @tc.desc: Test GetAllFunctions cross-user query without the cross-account permission
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetAllFunctions_CrossUser_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetAllFunctions_CrossUser_0100 start");
+
+    // The mock calling uid derives caller user 0; target 100 belongs to another user
+    g_mockDeniedPermissions.insert("ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS");
+
+    FunctionsRawData rawData;
+    EXPECT_EQ(service_->GetAllFunctions(100, rawData), ERR_PERMISSION_DENIED);
+
+    // An explicit same-user userId is not a cross-user query and stays allowed
+    int32_t ret = service_->GetAllFunctions(0, rawData);
+    EXPECT_TRUE(ret == ERR_OK || ret == ERR_NO_INIT);
+
+    g_mockDeniedPermissions.clear();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetAllFunctions_CrossUser_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_GetAllFunctions_CrossUser_0200
+ * @tc.desc: Test GetAllFunctions cross-user query with the cross-account permission granted
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetAllFunctions_CrossUser_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetAllFunctions_CrossUser_0200 start");
+
+    FunctionsRawData rawData;
+    int32_t ret = service_->GetAllFunctions(100, rawData);
+    EXPECT_TRUE(ret == ERR_OK || ret == ERR_NO_INIT);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetAllFunctions_CrossUser_0200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_GetAllFunctions_CrossUser_0300
+ * @tc.desc: Test GetAllFunctions cross-user query rejected for an app caller even with permission
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, GetAllFunctions_CrossUser_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetAllFunctions_CrossUser_0300 start");
+
+    // A HAP token makes the caller a system app (not an SA); apps can only query their own user
+    IPCSkeleton::SetCallingTokenID(TOKEN_HAP);
+
+    FunctionsRawData rawData;
+    EXPECT_EQ(service_->GetAllFunctions(100, rawData), ERR_PERMISSION_DENIED);
+
+    // Querying the caller's own user stays allowed for apps
+    int32_t ret = service_->GetAllFunctions(0, rawData);
+    EXPECT_TRUE(ret == ERR_OK || ret == ERR_NO_INIT);
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_GetAllFunctions_CrossUser_0300 end");
 }
 
 /**
@@ -2826,18 +2975,19 @@ HWTEST_F(CliToolManagerServiceTest, FunctionInterfaces_0100, TestSize.Level1)
     function.functionName = "null_kv_function";
     function.functionNamespace = "null_kv_ns";
     function.functionType = FunctionType::INTENT_FUNCTION;
+    function.userId = 0;
 
     EXPECT_EQ(service_->RegisterFunction(function), ERR_NO_INIT);
 
     FunctionInfo retrievedFunction;
-    EXPECT_EQ(service_->GetFunctionInfo("null_kv_ns", "null_kv_function", retrievedFunction), ERR_NO_INIT);
+    EXPECT_EQ(service_->GetFunctionInfo(-1, "null_kv_ns", "null_kv_function", retrievedFunction), ERR_NO_INIT);
 
-    EXPECT_EQ(service_->UnregisterFunction("null_kv_ns", "null_kv_function"), ERR_NO_INIT);
+    EXPECT_EQ(service_->UnregisterFunction(0, "null_kv_ns", "null_kv_function"), ERR_NO_INIT);
 
-    EXPECT_EQ(service_->UnregisterIntentFunctionsByNamespace("null_kv_ns"), ERR_NO_INIT);
+    EXPECT_EQ(service_->UnregisterIntentFunctionsByNamespace(0, "null_kv_ns"), ERR_NO_INIT);
 
     FunctionsRawData rawData;
-    EXPECT_EQ(service_->GetAllFunctions(rawData), ERR_NO_INIT);
+    EXPECT_EQ(service_->GetAllFunctions(-1, rawData), ERR_NO_INIT);
 
     // Reset mock to default values
     CliFunctionDataManagerMock::Reset();
@@ -3016,6 +3166,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0100, TestSize.Level
     func1.functionName = "func1";
     func1.functionNamespace = "test_ns";
     func1.functionType = FunctionType::INTENT_FUNCTION;
+    func1.userId = 0;
     func1.version = "1.0";
     func1.description = "Test function 1";
     functionList.push_back(func1);
@@ -3024,6 +3175,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0100, TestSize.Level
     func2.functionName = "func2";
     func2.functionNamespace = "test_ns";
     func2.functionType = FunctionType::INTENT_FUNCTION;
+    func2.userId = 0;
     func2.version = "1.0";
     func2.description = "Test function 2";
     functionList.push_back(func2);
@@ -3032,7 +3184,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0100, TestSize.Level
     FunctionsRawData::FromFunctionInfoVec(functionList, functions);
     int32_t successCount = 0;
 
-    int32_t result = service_->ResetNamespaceFunctions("test_ns", functions, successCount);
+    int32_t result = service_->ResetNamespaceFunctions(0, "test_ns", functions, successCount);
 
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(successCount, 3);
@@ -3053,7 +3205,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0200, TestSize.Level
     FunctionsRawData functions;
     int32_t successCount = 0;
 
-    int32_t result = service_->ResetNamespaceFunctions("", functions, successCount);
+    int32_t result = service_->ResetNamespaceFunctions(0, "", functions, successCount);
 
     EXPECT_EQ(result, ERR_INVALID_PARAM);
 
@@ -3062,22 +3214,19 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0200, TestSize.Level
 
 /**
  * @tc.name: CliToolManagerService_ResetNamespaceFunctions_0300
- * @tc.desc: Test ResetNamespaceFunctions with empty function list
+ * @tc.desc: Test ResetNamespaceFunctions with empty function list (rejected: owning user cannot be determined)
  * @tc.type: FUNC
  */
 HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0300, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctions_0300 start");
 
-    CliFunctionDataManagerMock::resetNamespaceFunctionsResult = ERR_OK;
-    CliFunctionDataManagerMock::resetNamespaceFunctionsSuccessCount = 0;
-
     FunctionsRawData functions;  // Empty
     int32_t successCount = -1;  // Initialize to non-zero
 
-    int32_t result = service_->ResetNamespaceFunctions("empty_ns", functions, successCount);
+    int32_t result = service_->ResetNamespaceFunctions(0, "empty_ns", functions, successCount);
 
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(result, ERR_INVALID_PARAM);
     EXPECT_EQ(successCount, 0);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctions_0300 end");
@@ -3097,6 +3246,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0400, TestSize.Level
     func.functionName = "func1";
     func.functionNamespace = "wrong_ns";  // Different from parameter
     func.functionType = FunctionType::INTENT_FUNCTION;
+    func.userId = 0;
     func.version = "1.0";
     func.description = "Test function";
     functionList.push_back(func);
@@ -3105,7 +3255,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0400, TestSize.Level
     FunctionsRawData::FromFunctionInfoVec(functionList, functions);
     int32_t successCount = 0;
 
-    int32_t result = service_->ResetNamespaceFunctions("test_ns", functions, successCount);
+    int32_t result = service_->ResetNamespaceFunctions(0, "test_ns", functions, successCount);
 
     EXPECT_EQ(result, ERR_INVALID_PARAM);
 
@@ -3130,6 +3280,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0500, TestSize.Level
     func1.functionName = "valid_func1";
     func1.functionNamespace = "test_ns";
     func1.functionType = FunctionType::INTENT_FUNCTION;
+    func1.userId = 0;
     func1.version = "1.0";
     func1.description = "Valid function 1";
     functionList.push_back(func1);
@@ -3139,6 +3290,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0500, TestSize.Level
     func2.functionName = "valid_func2";
     func2.functionNamespace = "test_ns";
     func2.functionType = FunctionType::INTENT_FUNCTION;
+    func2.userId = 0;
     func2.version = "1.0";
     func2.description = "Valid function 2";
     functionList.push_back(func2);
@@ -3147,7 +3299,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0500, TestSize.Level
     FunctionsRawData::FromFunctionInfoVec(functionList, functions);
     int32_t successCount = 0;
 
-    int32_t result = service_->ResetNamespaceFunctions("test_ns", functions, successCount);
+    int32_t result = service_->ResetNamespaceFunctions(0, "test_ns", functions, successCount);
 
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(successCount, 2);
@@ -3180,7 +3332,7 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0600, TestSize.Level
     FunctionsRawData::FromFunctionInfoVec(functionList, functions);
     int32_t successCount = 0;
 
-    int32_t result = service_->ResetNamespaceFunctions("test_ns", functions, successCount);
+    int32_t result = service_->ResetNamespaceFunctions(0, "test_ns", functions, successCount);
 
     EXPECT_EQ(result, ERR_PERMISSION_DENIED);
 
@@ -3188,6 +3340,309 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0600, TestSize.Level
     IPCSkeleton::Reset();
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctions_0600 end");
+}
+
+// ==================== Async (oneway) function interfaces Tests ====================
+
+/**
+ * @tc.name: CliToolManagerService_BatchRegisterFunctionsAsync_0100
+ * @tc.desc: Test BatchRegisterFunctionsAsync with valid functions replies success via scheduler
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctionsAsync_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctionsAsync_0100 start");
+
+    IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+
+    std::vector<FunctionInfo> functions;
+    for (int i = 0; i < 3; i++) {
+        FunctionInfo function;
+        function.functionName = "async_batch_func_" + std::to_string(i);
+        function.functionNamespace = "async_batch_ns";
+        function.functionType = FunctionType::INTENT_FUNCTION;
+        function.userId = 0;
+        functions.push_back(function);
+    }
+    FunctionsRawData rawData;
+    FunctionsRawData::FromFunctionInfoVec(functions, rawData);
+
+    auto scheduler = sptr<TestScheduler>::MakeSptr();
+    int32_t ret = service_->BatchRegisterFunctionsAsync(rawData, "async_event_1", scheduler);
+
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(scheduler->lastEventId, "async_event_1");
+    EXPECT_EQ(scheduler->lastResultCode, ERR_OK);
+    EXPECT_EQ(scheduler->lastSuccessCount, 3);
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctionsAsync_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_BatchRegisterFunctionsAsync_0200
+ * @tc.desc: Test BatchRegisterFunctionsAsync with empty vector replies error via scheduler
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctionsAsync_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctionsAsync_0200 start");
+
+    IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+
+    std::vector<FunctionInfo> functions;
+    FunctionsRawData rawData;
+    FunctionsRawData::FromFunctionInfoVec(functions, rawData);
+
+    auto scheduler = sptr<TestScheduler>::MakeSptr();
+    int32_t ret = service_->BatchRegisterFunctionsAsync(rawData, "async_event_2", scheduler);
+
+    EXPECT_EQ(ret, ERR_INVALID_PARAM);
+    EXPECT_EQ(scheduler->lastResultCode, ERR_INVALID_PARAM);
+    EXPECT_EQ(scheduler->lastSuccessCount, 0);
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctionsAsync_0200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_BatchRegisterFunctionsAsync_0300
+ * @tc.desc: Test BatchRegisterFunctionsAsync with non-FOUNDATION UID (permission denied, still replied)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctionsAsync_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctionsAsync_0300 start");
+
+    IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
+    IPCSkeleton::SetCallingUid(9999); // Non-FOUNDATION UID
+
+    std::vector<FunctionInfo> functions;
+    FunctionInfo function;
+    function.functionName = "async_func";
+    function.functionNamespace = "async_ns";
+    function.functionType = FunctionType::INTENT_FUNCTION;
+    function.userId = 0;
+    functions.push_back(function);
+    FunctionsRawData rawData;
+    FunctionsRawData::FromFunctionInfoVec(functions, rawData);
+
+    auto scheduler = sptr<TestScheduler>::MakeSptr();
+    int32_t ret = service_->BatchRegisterFunctionsAsync(rawData, "async_event_3", scheduler);
+
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    EXPECT_EQ(scheduler->lastResultCode, ERR_PERMISSION_DENIED);
+    EXPECT_EQ(scheduler->lastSuccessCount, 0);
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctionsAsync_0300 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_BatchRegisterFunctionsAsync_0400
+ * @tc.desc: Test BatchRegisterFunctionsAsync with null scheduler does not crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctionsAsync_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctionsAsync_0400 start");
+
+    IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+
+    std::vector<FunctionInfo> functions;
+    FunctionInfo function;
+    function.functionName = "async_func";
+    function.functionNamespace = "async_ns";
+    function.functionType = FunctionType::INTENT_FUNCTION;
+    function.userId = 0;
+    functions.push_back(function);
+    FunctionsRawData rawData;
+    FunctionsRawData::FromFunctionInfoVec(functions, rawData);
+
+    EXPECT_NO_FATAL_FAILURE(service_->BatchRegisterFunctionsAsync(rawData, "async_event_4", nullptr));
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctionsAsync_0400 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0100
+ * @tc.desc: Test UnregisterIntentFunctionsByNamespaceAsync success path replies via scheduler
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterIntentFunctionsByNamespaceAsync_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0100 start");
+
+    IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+
+    auto scheduler = sptr<TestScheduler>::MakeSptr();
+    int32_t ret = service_->UnregisterIntentFunctionsByNamespaceAsync(0, "async_intent_ns",
+        "async_event_5", scheduler);
+
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(scheduler->lastEventId, "async_event_5");
+    EXPECT_EQ(scheduler->lastResultCode, ERR_OK);
+    EXPECT_EQ(scheduler->lastSuccessCount, 0);
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0200
+ * @tc.desc: Test UnregisterIntentFunctionsByNamespaceAsync with non-FOUNDATION UID (permission denied)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterIntentFunctionsByNamespaceAsync_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0200 start");
+
+    IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
+    IPCSkeleton::SetCallingUid(9999); // Non-FOUNDATION UID
+
+    auto scheduler = sptr<TestScheduler>::MakeSptr();
+    int32_t ret = service_->UnregisterIntentFunctionsByNamespaceAsync(0, "async_ns", "async_event_6", scheduler);
+
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    EXPECT_EQ(scheduler->lastResultCode, ERR_PERMISSION_DENIED);
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0300
+ * @tc.desc: Test UnregisterIntentFunctionsByNamespaceAsync with invalid userId
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterIntentFunctionsByNamespaceAsync_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0300 start");
+
+    IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+
+    auto scheduler = sptr<TestScheduler>::MakeSptr();
+    int32_t ret = service_->UnregisterIntentFunctionsByNamespaceAsync(-1, "async_ns", "async_event_7", scheduler);
+
+    EXPECT_EQ(ret, ERR_INVALID_PARAM);
+    EXPECT_EQ(scheduler->lastResultCode, ERR_INVALID_PARAM);
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0300 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ResetNamespaceFunctionsAsync_0100
+ * @tc.desc: Test ResetNamespaceFunctionsAsync with valid namespace and functions replies via scheduler
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctionsAsync_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctionsAsync_0100 start");
+
+    IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+
+    std::vector<FunctionInfo> functionList;
+    FunctionInfo func;
+    func.functionName = "async_reset_func";
+    func.functionNamespace = "async_reset_ns";
+    func.functionType = FunctionType::INTENT_FUNCTION;
+    func.userId = 0;
+    func.version = "1.0";
+    func.description = "Test async reset function";
+    functionList.push_back(func);
+
+    FunctionsRawData rawData;
+    FunctionsRawData::FromFunctionInfoVec(functionList, rawData);
+
+    auto scheduler = sptr<TestScheduler>::MakeSptr();
+    int32_t ret = service_->ResetNamespaceFunctionsAsync(0, "async_reset_ns", rawData, "async_event_8", scheduler);
+
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(scheduler->lastEventId, "async_event_8");
+    EXPECT_EQ(scheduler->lastResultCode, ERR_OK);
+    EXPECT_EQ(scheduler->lastSuccessCount, 1);
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctionsAsync_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ResetNamespaceFunctionsAsync_0200
+ * @tc.desc: Test ResetNamespaceFunctionsAsync with namespace mismatch
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctionsAsync_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctionsAsync_0200 start");
+
+    IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+
+    std::vector<FunctionInfo> functionList;
+    FunctionInfo func;
+    func.functionName = "async_reset_func";
+    func.functionNamespace = "other_ns"; // Mismatch with the requested namespace
+    func.functionType = FunctionType::INTENT_FUNCTION;
+    func.userId = 0;
+    functionList.push_back(func);
+
+    FunctionsRawData rawData;
+    FunctionsRawData::FromFunctionInfoVec(functionList, rawData);
+
+    auto scheduler = sptr<TestScheduler>::MakeSptr();
+    int32_t ret = service_->ResetNamespaceFunctionsAsync(0, "async_reset_ns", rawData, "async_event_9", scheduler);
+
+    EXPECT_EQ(ret, ERR_INVALID_PARAM);
+    EXPECT_EQ(scheduler->lastResultCode, ERR_INVALID_PARAM);
+    EXPECT_EQ(scheduler->lastSuccessCount, 0);
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctionsAsync_0200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ResetNamespaceFunctionsAsync_0300
+ * @tc.desc: Test ResetNamespaceFunctionsAsync with empty function list
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctionsAsync_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctionsAsync_0300 start");
+
+    IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+
+    std::vector<FunctionInfo> functionList;
+    FunctionsRawData rawData;
+    FunctionsRawData::FromFunctionInfoVec(functionList, rawData);
+
+    auto scheduler = sptr<TestScheduler>::MakeSptr();
+    int32_t ret = service_->ResetNamespaceFunctionsAsync(0, "async_reset_ns", rawData, "async_event_10", scheduler);
+
+    EXPECT_EQ(ret, ERR_INVALID_PARAM);
+    EXPECT_EQ(scheduler->lastResultCode, ERR_INVALID_PARAM);
+    EXPECT_EQ(scheduler->lastSuccessCount, 0);
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctionsAsync_0300 end");
 }
 } // namespace CliTool
 } // namespace OHOS

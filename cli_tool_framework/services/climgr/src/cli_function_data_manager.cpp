@@ -20,6 +20,7 @@
 
 #include "cli_error_code.h"
 #include "hilog_tag_wrapper.h"
+#include "kvstore_transaction.h"
 
 namespace OHOS {
 namespace CliTool {
@@ -123,7 +124,9 @@ int32_t CliFunctionDataManager::RegisterFunction(const FunctionInfo &function)
         return ERR_NO_INIT;
     }
 
-    std::string keyStr = GenerateFunctionKey(function.functionNamespace, function.functionName);
+    // function.userId is caller-supplied (validated >= 0) and used as-is for both key and record
+    std::string keyStr = GenerateFunctionKey(
+        function.userId, function.functionNamespace, function.functionName, function.functionType);
     DistributedKv::Key key(keyStr);
     DistributedKv::Value value;
     DistributedKv::Status status = kvStorePtr_->Get(key, value);
@@ -138,8 +141,8 @@ int32_t CliFunctionDataManager::RegisterFunction(const FunctionInfo &function)
         return ret;
     }
 
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully registered function: %{public}s/%{public}s",
-        function.functionNamespace.c_str(), function.functionName.c_str());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully registered function: %{public}s/%{public}s, userId: %{public}d",
+        function.functionNamespace.c_str(), function.functionName.c_str(), function.userId);
     return ERR_OK;
 }
 
@@ -156,37 +159,53 @@ int32_t CliFunctionDataManager::BatchRegisterFunctions(const std::vector<Functio
 
     successCount = 0;
 
-    // Acquire lock for entire batch operation
-    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+    // Phase 1 (outside lock): Process and prepare entries; userId is caller-supplied (validated >= 0)
+    std::vector<DistributedKv::Entry> entries;
+    entries.reserve(functions.size());
 
     for (const auto &function : functions) {
-        if (!CheckKvStore()) {
-            TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready for function: %{public}s/%{public}s",
-                function.functionNamespace.c_str(), function.functionName.c_str());
-            break;
-        }
-
-        int32_t ret = StoreFunctionNoLock(function);
-        if (ret != ERR_OK) {
-            TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to store function: %{public}s/%{public}s, ret=%{public}d",
-                function.functionNamespace.c_str(), function.functionName.c_str(), ret);
-            break;  // Stop batch operation on failure (database may be corrupted)
-        }
-        successCount++;
+        std::string keyStr = GenerateFunctionKey(
+            function.userId, function.functionNamespace, function.functionName, function.functionType);
+        DistributedKv::Entry entry;
+        entry.key = DistributedKv::Key(keyStr);
+        entry.value = DistributedKv::Value(function.ParseToJson().dump());
+        entries.push_back(entry);
     }
 
-    // Only return ERR_OK if all functions were registered successfully
-    if (successCount == static_cast<int32_t>(functions.size())) {
-        TAG_LOGI(AAFwkTag::CLI_TOOL, "BatchRegisterFunctions completed successfully");
-        return ERR_OK;
+    // Phase 2 (with lock): Batch insert with transaction
+    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+
+    if (!CheckKvStore()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready");
+        return ERR_NO_INIT;
     }
 
-    TAG_LOGW(AAFwkTag::CLI_TOOL, "BatchRegisterFunctions partially failed. success/total: %{public}d/%{public}zu",
-        successCount, functions.size());
-    return ERR_KVSTORE_ERROR;
+    // Start transaction for batch put operation
+    KvStoreTransaction transaction(kvStorePtr_);
+    if (!transaction.IsStarted()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to start transaction for batch register");
+        return ERR_KVSTORE_ERROR;
+    }
+
+    DistributedKv::Status status = kvStorePtr_->PutBatch(entries);
+    if (status != DistributedKv::Status::SUCCESS) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "PutBatch failed: %{public}d", static_cast<int>(status));
+        transaction.Rollback();
+        RestoreKvStore(status);
+        return ERR_KVSTORE_ERROR;
+    }
+
+    if (transaction.Commit() != DistributedKv::Status::SUCCESS) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to commit transaction for batch register");
+        return ERR_KVSTORE_ERROR;
+    }
+
+    successCount = static_cast<int32_t>(entries.size());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "BatchRegisterFunctions completed successfully: %{public}d functions", successCount);
+    return ERR_OK;
 }
 
-int32_t CliFunctionDataManager::GetFunctionByName(const std::string &functionNamespace,
+int32_t CliFunctionDataManager::GetFunctionByName(int32_t userId, const std::string &functionNamespace,
     const std::string &functionName, FunctionInfo &function)
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "GetFunctionByName called: %{public}s/%{public}s",
@@ -197,11 +216,12 @@ int32_t CliFunctionDataManager::GetFunctionByName(const std::string &functionNam
         TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready");
         return ERR_NO_INIT;
     }
-
-    std::string keyStr = GenerateFunctionKey(functionNamespace, functionName);
-    DistributedKv::Key key(keyStr);
-    DistributedKv::Value value;
-    DistributedKv::Status status = kvStorePtr_->Get(key, value);
+    // 存在问题
+    // The key contains the functionType, which is not part of the query, so scan
+    // the user's {userId}/{namespace}/{functionName}/ prefix instead of a point Get
+    std::vector<DistributedKv::Entry> entries;
+    DistributedKv::Key prefixKey(GenerateFunctionNamePrefix(userId, functionNamespace, functionName));
+    DistributedKv::Status status = kvStorePtr_->GetEntries(prefixKey, entries);
     if (status != DistributedKv::Status::SUCCESS) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionByName error: %{public}d", status);
         if (status == DistributedKv::Status::KEY_NOT_FOUND) {
@@ -211,7 +231,12 @@ int32_t CliFunctionDataManager::GetFunctionByName(const std::string &functionNam
         RestoreKvStore(status);
         return ERR_KVSTORE_ERROR;
     }
+    if (entries.empty()) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "function not found under userId: %{public}d", userId);
+        return ERR_FUNCTION_NOT_EXIST;
+    }
 
+    const DistributedKv::Value &value = entries.front().value;
     nlohmann::json j = nlohmann::json::parse(value.ToString(), nullptr, false);
     if (j.is_discarded()) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to parse JSON for function: %{public}s", functionName.c_str());
@@ -228,36 +253,73 @@ int32_t CliFunctionDataManager::GetFunctionByName(const std::string &functionNam
 
 int32_t CliFunctionDataManager::StoreFunctionNoLock(const FunctionInfo &function)
 {
-    std::string keyStr = GenerateFunctionKey(function.functionNamespace, function.functionName);
+    // Start transaction for single put operation
+    KvStoreTransaction transaction(kvStorePtr_);
+    if (!transaction.IsStarted()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to start transaction for storing function");
+        return ERR_KVSTORE_ERROR;
+    }
+
+    std::string keyStr = GenerateFunctionKey(
+        function.userId, function.functionNamespace, function.functionName, function.functionType);
     DistributedKv::Key key(keyStr);
     DistributedKv::Value value(function.ParseToJson().dump());
     DistributedKv::Status status = kvStorePtr_->Put(key, value);
     if (status != DistributedKv::Status::SUCCESS) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to store function: %{public}s/%{public}s, status: %{public}d",
             function.functionNamespace.c_str(), function.functionName.c_str(), static_cast<int>(status));
+        transaction.Rollback();
         RestoreKvStore(status);
         return ERR_KVSTORE_ERROR;
     }
+
+    if (transaction.Commit() != DistributedKv::Status::SUCCESS) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to commit transaction for storing function");
+        return ERR_KVSTORE_ERROR;
+    }
+
     TAG_LOGI(AAFwkTag::CLI_TOOL, "Stored function: %{public}s/%{public}s",
         function.functionNamespace.c_str(), function.functionName.c_str());
     return ERR_OK;
 }
 
-std::string CliFunctionDataManager::GenerateFunctionKey(const std::string &functionNamespace,
+std::string CliFunctionDataManager::GenerateFunctionKey(int32_t userId, const std::string &functionNamespace,
+    const std::string &functionName, FunctionType functionType)
+{
+    return std::to_string(userId) + "/" + functionNamespace + "/" + functionName + "/" +
+        std::to_string(static_cast<int32_t>(functionType));
+}
+
+std::string CliFunctionDataManager::GenerateUserPrefix(int32_t userId)
+{
+    return std::to_string(userId) + "/";
+}
+
+std::string CliFunctionDataManager::GenerateNamespacePrefix(int32_t userId, const std::string &functionNamespace)
+{
+    return GenerateUserPrefix(userId) + functionNamespace + "/";
+}
+
+std::string CliFunctionDataManager::GenerateFunctionNamePrefix(int32_t userId, const std::string &functionNamespace,
     const std::string &functionName)
 {
-    return functionNamespace + "/" + functionName;
+    return GenerateNamespacePrefix(userId, functionNamespace) + functionName + "/";
 }
 
 std::string CliFunctionDataManager::ExtractNamespaceFromKey(const std::string &keyStr)
 {
-    // Key format: {namespace}/{functionName}
-    // Since neither namespace nor name can contain '/', the first '/' is the separator
-    size_t pos = keyStr.find('/');
-    if (pos == std::string::npos) {
+    // Key format: {userId}/{namespace}/{functionName}/{functionType}
+    // Since namespace and name cannot contain '/', the namespace is the segment
+    // between the first and second '/'
+    size_t firstPos = keyStr.find('/');
+    if (firstPos == std::string::npos) {
         return "";  // Invalid key format
     }
-    return keyStr.substr(0, pos);
+    size_t secondPos = keyStr.find('/', firstPos + 1);
+    if (secondPos == std::string::npos) {
+        return "";  // Invalid key format
+    }
+    return keyStr.substr(firstPos + 1, secondPos - firstPos - 1);
 }
 
 bool CliFunctionDataManager::KeyMatchesNamespace(const std::string &entryKey,
@@ -271,30 +333,28 @@ bool CliFunctionDataManager::KeyMatchesNamespace(const std::string &entryKey,
     return ns == functionNamespace;
 }
 
-bool CliFunctionDataManager::IsIntentFunction(const DistributedKv::Value &entryValue)
+bool CliFunctionDataManager::IsIntentFunction(const std::string &entryKey)
 {
-    nlohmann::json j = nlohmann::json::parse(entryValue.ToString(), nullptr, false);
-    if (j.is_discarded()) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "Failed to parse entry value as JSON");
+    // Key format: {userId}/{namespace}/{functionName}/{functionType}
+    // Since namespace and name cannot contain '/', the segment after the
+    // last '/' is always the functionType
+    size_t lastPos = entryKey.find_last_of('/');
+    if (lastPos == std::string::npos) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "Invalid key format: %{public}s", entryKey.c_str());
         return false;
     }
-    FunctionInfo functionInfo;
-    if (!FunctionInfo::ParseFromJson(j, functionInfo)) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "Failed to parse FunctionInfo from JSON");
-        return false;
-    }
-    return functionInfo.functionType == FunctionType::INTENT_FUNCTION;
+    return entryKey.substr(lastPos + 1) == std::to_string(static_cast<int32_t>(FunctionType::INTENT_FUNCTION));
 }
 
-int32_t CliFunctionDataManager::GetExistingIntentFunctions(const std::string &functionNamespace,
-    std::unordered_set<std::string> &existingKeys)
+int32_t CliFunctionDataManager::GetExistingIntentFunctionsNoLock(int32_t userId,
+    const std::string &functionNamespace, std::unordered_set<std::string> &existingKeys)
 {
     if (!CheckKvStore()) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready");
         return ERR_NO_INIT;
     }
     existingKeys.clear();
-    DistributedKv::Key prefixKey(functionNamespace + "/");
+    DistributedKv::Key prefixKey(GenerateNamespacePrefix(userId, functionNamespace));
     std::vector<DistributedKv::Entry> existingEntries;
     DistributedKv::Status status = kvStorePtr_->GetEntries(prefixKey, existingEntries);
     if (status != DistributedKv::Status::SUCCESS) {
@@ -305,7 +365,7 @@ int32_t CliFunctionDataManager::GetExistingIntentFunctions(const std::string &fu
     }
 
     for (const auto &entry : existingEntries) {
-        if (IsIntentFunction(entry.value)) {
+        if (IsIntentFunction(entry.key.ToString())) {
             existingKeys.insert(entry.key.ToString());
         }
     }
@@ -314,70 +374,51 @@ int32_t CliFunctionDataManager::GetExistingIntentFunctions(const std::string &fu
     return ERR_OK;
 }
 
-int32_t CliFunctionDataManager::AddNewFunctions(const std::vector<FunctionInfo> &functions,
-    std::unordered_set<std::string> &newKeys, int32_t &successCount)
+void CliFunctionDataManager::ProcessNewFunctions(const std::vector<FunctionInfo> &functions,
+    std::unordered_set<std::string> &newKeys, std::vector<DistributedKv::Entry> &entries)
 {
     newKeys.clear();
-    successCount = 0;
+    entries.clear();
+    entries.reserve(functions.size());
 
     for (const auto &function : functions) {
         if (function.functionType != FunctionType::INTENT_FUNCTION) {
-            TAG_LOGW(AAFwkTag::CLI_TOOL,
+            TAG_LOGD(AAFwkTag::CLI_TOOL,
                 "Function is not an intent function: %{public}s/%{public}s, skipping",
                 function.functionNamespace.c_str(), function.functionName.c_str());
             continue;
         }
-        if (!CheckKvStore()) {
-            TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready");
-            return ERR_NO_INIT;
-        }
 
-        std::string keyStr = GenerateFunctionKey(function.functionNamespace, function.functionName);
+        // userId is caller-supplied and used as-is for the key
+        std::string keyStr = GenerateFunctionKey(
+            function.userId, function.functionNamespace, function.functionName, function.functionType);
         newKeys.insert(keyStr);
 
-        int32_t ret = StoreFunctionNoLock(function);
-        if (ret != ERR_OK) {
-            TAG_LOGE(AAFwkTag::CLI_TOOL,
-                "Failed to store function: %{public}s/%{public}s (ret=%{public}d), abort reset to preserve old data",
-                function.functionNamespace.c_str(), function.functionName.c_str(), ret);
-            return ret;
-        }
-        successCount++;
+        DistributedKv::Entry entry;
+        entry.key = DistributedKv::Key(keyStr);
+        entry.value = DistributedKv::Value(function.ParseToJson().dump());
+        entries.push_back(entry);
     }
 
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully added %{public}d new functions", successCount);
-    return ERR_OK;
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Processed %{public}zu new intent functions", entries.size());
 }
 
-int32_t CliFunctionDataManager::DeleteObsoleteFunctions(const std::unordered_set<std::string> &existingKeys,
-    const std::unordered_set<std::string> &newKeys, int32_t &deletedCount)
+void CliFunctionDataManager::CalculateObsoleteKeys(const std::unordered_set<std::string> &existingKeys,
+    const std::unordered_set<std::string> &newKeys, std::vector<DistributedKv::Key> &keysToDelete)
 {
-    deletedCount = 0;
+    keysToDelete.clear();
+    keysToDelete.reserve(existingKeys.size());
 
     for (const auto &oldKey : existingKeys) {
         if (newKeys.find(oldKey) == newKeys.end()) {
-            if (!CheckKvStore()) {
-                TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready");
-                return ERR_NO_INIT;
-            }
-            DistributedKv::Key key(oldKey);
-            DistributedKv::Status deleteStatus = kvStorePtr_->Delete(key);
-            if (deleteStatus != DistributedKv::Status::SUCCESS &&
-                deleteStatus != DistributedKv::Status::KEY_NOT_FOUND) {
-                TAG_LOGW(AAFwkTag::CLI_TOOL, "Failed to delete: %{public}s, status=%{public}d",
-                    oldKey.c_str(), static_cast<int>(deleteStatus));
-                RestoreKvStore(deleteStatus);
-                return ERR_KVSTORE_ERROR;
-            }
-            deletedCount++;
+            keysToDelete.push_back(DistributedKv::Key(oldKey));
         }
     }
 
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "Deleted %{public}d obsolete functions", deletedCount);
-    return ERR_OK;
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Calculated %{public}zu obsolete keys to delete", keysToDelete.size());
 }
 
-int32_t CliFunctionDataManager::UnregisterFunction(const std::string &functionNamespace,
+int32_t CliFunctionDataManager::UnregisterFunction(int32_t userId, const std::string &functionNamespace,
     const std::string &functionName)
 {
     std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
@@ -388,65 +429,101 @@ int32_t CliFunctionDataManager::UnregisterFunction(const std::string &functionNa
         TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready");
         return ERR_NO_INIT;
     }
+    //有问题
 
-    std::string keyStr = GenerateFunctionKey(functionNamespace, functionName);
-    DistributedKv::Key key(keyStr);
-    DistributedKv::Status status = kvStorePtr_->Delete(key);
+    // Start transaction for delete operation
+    KvStoreTransaction transaction(kvStorePtr_);
+    if (!transaction.IsStarted()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to start transaction for unregister");
+        return ERR_KVSTORE_ERROR;
+    }
+
+    std::vector<DistributedKv::Entry> entries;
+    DistributedKv::Key prefixKey(GenerateFunctionNamePrefix(userId, functionNamespace, functionName));
+    DistributedKv::Status status = kvStorePtr_->GetEntries(prefixKey, entries);
+    if (status != DistributedKv::Status::SUCCESS) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to get entries: %{public}d", static_cast<int>(status));
+        RestoreKvStore(status);
+        return ERR_KVSTORE_ERROR;
+    }
+    if (entries.empty()) {
+        // Idempotent delete: nothing stored under this user
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "function not found under userId: %{public}d", userId);
+        return ERR_OK;
+    }
+
+    std::vector<DistributedKv::Key> keysToDelete;
+    keysToDelete.reserve(entries.size());
+    for (const auto &entry : entries) {
+        keysToDelete.push_back(entry.key);
+    }
+
+    status = kvStorePtr_->DeleteBatch(keysToDelete);
     if (status != DistributedKv::Status::SUCCESS) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to delete function: %{public}s/%{public}s, status: %{public}d",
             functionNamespace.c_str(), functionName.c_str(), static_cast<int>(status));
-        if (status == DistributedKv::Status::KEY_NOT_FOUND) {
-            TAG_LOGW(AAFwkTag::CLI_TOOL, "function not found");
-            return ERR_FUNCTION_NOT_EXIST;
-        }
+        transaction.Rollback();
         RestoreKvStore(status);
         return ERR_KVSTORE_ERROR;
     }
 
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully unregistered function: %{public}s/%{public}s",
-        functionNamespace.c_str(), functionName.c_str());
+    if (transaction.Commit() != DistributedKv::Status::SUCCESS) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to commit transaction for unregister");
+        return ERR_KVSTORE_ERROR;
+    }
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully unregistered function: %{public}s/%{public}s, userId: %{public}d",
+        functionNamespace.c_str(), functionName.c_str(), userId);
     return ERR_OK;
 }
 
 void CliFunctionDataManager::RestoreKvStore(DistributedKv::Status status)
 {
-    if (status == DistributedKv::Status::DATA_CORRUPTED) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore data corrupted, deleting and recreating");
-        DistributedKv::Options options = {
-            .createIfMissing = true,
-            .encrypt = false,
-            .autoSync = false,
-            .syncable = false,
-            .securityLevel = DistributedKv::SecurityLevel::S2,
-            .area = DistributedKv::EL1,
-            .kvStoreType = DistributedKv::KvStoreType::SINGLE_VERSION,
-            .baseDir = STORAGE_DIR
-        };
-        dataManager_.DeleteKvStore(APP_ID, STORE_ID, options.baseDir);
-        kvStorePtr_ = nullptr;  // Clear before GetSingleKvStore
-        status = dataManager_.GetSingleKvStore(options, APP_ID, STORE_ID, kvStorePtr_);
-        if (status != DistributedKv::Status::SUCCESS) {
-            TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to recreate KVStore, status: %{public}d", static_cast<int>(status));
-            kvStorePtr_ = nullptr;  // Ensure null on failure
-            return;
-        }
-        TAG_LOGI(AAFwkTag::CLI_TOOL, "KVStore recreated successfully");
+    if (status != DistributedKv::Status::DATA_CORRUPTED) {
+        return;
     }
+
+    TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore data corrupted, deleting and recreating");
+    DistributedKv::Options options = { .createIfMissing = true,
+        .encrypt = false,
+        .autoSync = false,
+        .syncable = false,
+        .securityLevel = DistributedKv::SecurityLevel::S2,
+        .area = DistributedKv::EL1,
+        .kvStoreType = DistributedKv::KvStoreType::SINGLE_VERSION,
+        .baseDir = STORAGE_DIR };
+    dataManager_.DeleteKvStore(APP_ID, STORE_ID, options.baseDir);
+    kvStorePtr_ = nullptr;  // Clear before GetSingleKvStore
+    status = dataManager_.GetSingleKvStore(options, APP_ID, STORE_ID, kvStorePtr_);
+    if (status != DistributedKv::Status::SUCCESS) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to recreate KVStore, status: %{public}d", static_cast<int>(status));
+        kvStorePtr_ = nullptr;  // Ensure null on failure
+        return;
+    }
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "KVStore recreated successfully");
 }
 
-int32_t CliFunctionDataManager::DeleteIntentFunctionsByNamespaceNoLock(const std::string &functionNamespace,
-    int32_t &deletedCount)
+int32_t CliFunctionDataManager::DeleteIntentFunctionsByNamespaceNoLock(int32_t userId,
+    const std::string &functionNamespace)
 {
-    deletedCount = 0;
-    std::vector<DistributedKv::Entry> allEntries;
+    std::vector<DistributedKv::Key> keysToDelete;
 
     if (!CheckKvStore()) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready");
         return ERR_NO_INIT;
     }
 
-    // Get entries with namespace prefix
-    DistributedKv::Key prefixKey(functionNamespace + "/");
+    // Start transaction before the query: reads use the transaction snapshot,
+    // so the query and the batch delete commit as one atomic read-modify-write
+    KvStoreTransaction transaction(kvStorePtr_);
+    if (!transaction.IsStarted()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to start transaction for batch delete");
+        return ERR_KVSTORE_ERROR;
+    }
+
+    // Get entries with the user's namespace prefix from the transaction snapshot
+    std::vector<DistributedKv::Entry> allEntries;
+    DistributedKv::Key prefixKey(GenerateNamespacePrefix(userId, functionNamespace));
     DistributedKv::Status status = kvStorePtr_->GetEntries(prefixKey, allEntries);
     if (status != DistributedKv::Status::SUCCESS) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to get entries: %{public}d", static_cast<int>(status));
@@ -454,68 +531,71 @@ int32_t CliFunctionDataManager::DeleteIntentFunctionsByNamespaceNoLock(const std
         return ERR_KVSTORE_ERROR;
     }
 
-    // Delete entries (already filtered by namespace prefix)
+    // Filter intent function keys
     for (const auto &entry : allEntries) {
-        if (!CheckKvStore()) {
-            TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not available, abort delete");
-            break;
+        if (IsIntentFunction(entry.key.ToString())) {
+            keysToDelete.push_back(entry.key);
         }
-        // Verify function type (prefix query ensures namespace match)
-        if (!IsIntentFunction(entry.value)) {
-            continue;
-        }
-        DistributedKv::Status deleteStatus = kvStorePtr_->Delete(entry.key);
+    }
+
+    // Batch delete
+    if (!keysToDelete.empty()) {
+        DistributedKv::Status deleteStatus = kvStorePtr_->DeleteBatch(keysToDelete);
         if (deleteStatus != DistributedKv::Status::SUCCESS) {
-            if (deleteStatus == DistributedKv::Status::KEY_NOT_FOUND) {
-                TAG_LOGD(AAFwkTag::CLI_TOOL, "Key not found: %{public}s, already deleted",
-                    entry.key.ToString().c_str());
-                continue;
-            }
-            TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to delete: %{public}s, status: %{public}d",
-                entry.key.ToString().c_str(), static_cast<int>(deleteStatus));
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "DeleteBatch failed: %{public}d", static_cast<int>(deleteStatus));
+            transaction.Rollback();
             RestoreKvStore(deleteStatus);
             return ERR_KVSTORE_ERROR;
         }
-
-        deletedCount++;
-        TAG_LOGD(AAFwkTag::CLI_TOOL, "Deleted function: %{public}s", entry.key.ToString().c_str());
     }
 
+    if (transaction.Commit() != DistributedKv::Status::SUCCESS) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to commit transaction for batch delete");
+        return ERR_KVSTORE_ERROR;
+    }
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Deleted %{public}zu intent functions in namespace: %{public}s",
+        keysToDelete.size(), functionNamespace.c_str());
     return ERR_OK;
 }
 
-int32_t CliFunctionDataManager::UnregisterIntentFunctionsByNamespace(const std::string &functionNamespace)
+int32_t CliFunctionDataManager::UnregisterIntentFunctionsByNamespace(int32_t userId,
+    const std::string &functionNamespace)
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "UnregisterIntentFunctionsByNamespace called: %{public}s", functionNamespace.c_str());
 
     std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
 
-    int32_t deletedCount = 0;
-    int32_t ret = DeleteIntentFunctionsByNamespaceNoLock(functionNamespace, deletedCount);
+    int32_t ret = DeleteIntentFunctionsByNamespaceNoLock(userId, functionNamespace);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "DeleteIntentFunctionsByNamespaceNoLock failed: %{public}d", ret);
         return ret;
     }
 
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "UnregisterIntentFunctionsByNamespace completed: %{public}s, deleted: %{public}d",
-        functionNamespace.c_str(), deletedCount);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "UnregisterIntentFunctionsByNamespace completed: %{public}s",
+        functionNamespace.c_str());
     return ERR_OK;
 }
 
-int32_t CliFunctionDataManager::GetAllFunctions(std::vector<FunctionInfo> &functions)
+int32_t CliFunctionDataManager::GetAllFunctions(int32_t userId, std::vector<FunctionInfo> &functions)
 {
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllFunctions called");
-    // Get all entries
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllFunctions called, userId: %{public}d", userId);
+    // Scope the query to the user's {userId}/ prefix so other users' records
+    // never leave the store
     std::vector<DistributedKv::Entry> allEntries;
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
-    
         if (!CheckKvStore()) {
             TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready");
             return ERR_NO_INIT;
         }
-    
-        DistributedKv::Status status = kvStorePtr_->GetEntries(nullptr, allEntries);
+        DistributedKv::Key prefixKey(GenerateUserPrefix(userId));
+        DistributedKv::Status status = kvStorePtr_->GetEntries(prefixKey, allEntries);
+        if (status == DistributedKv::Status::KEY_NOT_FOUND) {
+            // No functions registered for this user yet, which is not an error
+            functions.clear();
+            return ERR_OK;
+        }
         if (status != DistributedKv::Status::SUCCESS) {
             TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to get entries: %{public}d", static_cast<int>(status));
             RestoreKvStore(status);
@@ -542,11 +622,12 @@ int32_t CliFunctionDataManager::GetAllFunctions(std::vector<FunctionInfo> &funct
         }
     }
 
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllFunctions completed: %{public}zu functions", functions.size());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllFunctions completed: %{public}zu functions, userId: %{public}d",
+        functions.size(), userId);
     return ERR_OK;
 }
 
-int32_t CliFunctionDataManager::ResetNamespaceFunctions(const std::string &functionNamespace,
+int32_t CliFunctionDataManager::ResetNamespaceFunctions(int32_t userId, const std::string &functionNamespace,
     const std::vector<FunctionInfo> &functions, int32_t &successCount)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ResetNamespaceFunctions called: %{public}s, %{public}zu functions",
@@ -557,33 +638,73 @@ int32_t CliFunctionDataManager::ResetNamespaceFunctions(const std::string &funct
         return ERR_INVALID_PARAM;
     }
 
-    int32_t deletedCount = 0;
+    // The existing-key query is scoped by the userId argument, and every new entry's
+    // key is built from its caller-supplied function.userId (the service layer validates
+    // they match), keeping the read-modify-write within one user's records
     std::unordered_set<std::string> existingKeys;
     std::unordered_set<std::string> newKeys;
+    std::vector<DistributedKv::Entry> entriesToAdd;
+    std::vector<DistributedKv::Key> keysToDelete;
+
+    ProcessNewFunctions(functions, newKeys, entriesToAdd);
 
     std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
 
-    // Step 1: Get existing intent functions
-    int32_t ret = GetExistingIntentFunctions(functionNamespace, existingKeys);
+    if (!CheckKvStore()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready");
+        return ERR_NO_INIT;
+    }
+
+    // Start transaction before the query: reads use the transaction snapshot,
+    // so the query and the batch writes commit as one atomic read-modify-write
+    KvStoreTransaction transaction(kvStorePtr_);
+    if (!transaction.IsStarted()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to start transaction for reset namespace");
+        return ERR_KVSTORE_ERROR;
+    }
+
+    // Step 1: Get existing data from the transaction snapshot
+    int32_t ret = GetExistingIntentFunctionsNoLock(userId, functionNamespace, existingKeys);
     if (ret != ERR_OK) {
         return ret;
     }
 
-    // Step 2: Add new functions (overwrites existing keys)
-    ret = AddNewFunctions(functions, newKeys, successCount);
-    if (ret != ERR_OK) {
-        return ret;  // Old data preserved on failure
+    // Step 2: Calculate obsolete keys
+    CalculateObsoleteKeys(existingKeys, newKeys, keysToDelete);
+
+    // Batch insert new functions
+    if (!entriesToAdd.empty()) {
+        DistributedKv::Status status = kvStorePtr_->PutBatch(entriesToAdd);
+        if (status != DistributedKv::Status::SUCCESS) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "PutBatch failed: %{public}d", static_cast<int>(status));
+            transaction.Rollback();
+            RestoreKvStore(status);
+            return ERR_KVSTORE_ERROR;
+        }
     }
 
-    // Step 3: Delete obsolete functions (diff set)
-    ret = DeleteObsoleteFunctions(existingKeys, newKeys, deletedCount);
-    if (ret != ERR_OK) {
-        return ret;
+    // Batch delete obsolete functions
+    if (!keysToDelete.empty()) {
+        DistributedKv::Status status = kvStorePtr_->DeleteBatch(keysToDelete);
+        if (status != DistributedKv::Status::SUCCESS) {
+            TAG_LOGW(AAFwkTag::CLI_TOOL, "DeleteBatch failed: %{public}d", static_cast<int>(status));
+            transaction.Rollback();
+            RestoreKvStore(status);
+            return ERR_KVSTORE_ERROR;
+        }
     }
+
+    // Commit transaction atomically
+    if (transaction.Commit() != DistributedKv::Status::SUCCESS) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to commit transaction for reset namespace");
+        return ERR_KVSTORE_ERROR;
+    }
+
+    successCount = static_cast<int32_t>(entriesToAdd.size());
 
     TAG_LOGI(AAFwkTag::CLI_TOOL,
-        "ResetNamespaceFunctions completed: %{public}s, added=%{public}d, deleted=%{public}d",
-        functionNamespace.c_str(), successCount, deletedCount);
+        "ResetNamespaceFunctions completed: %{public}s, added=%{public}d, deleted=%{public}zu, userId: %{public}d",
+        functionNamespace.c_str(), successCount, keysToDelete.size(), userId);
 
     return ERR_OK;
 }

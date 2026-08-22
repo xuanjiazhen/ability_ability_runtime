@@ -35,6 +35,9 @@ public:
 
     int32_t SchedulerExecToolReplyEvent(const std::string &eventId, int32_t resultCode,
         const CliSessionInfo &session) override;
+
+    int32_t SchedulerFunctionsReplyEvent(const std::string &eventId, int32_t resultCode,
+        int32_t successCount) override;
 };
 
 } // namespace CliTool

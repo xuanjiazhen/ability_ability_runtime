@@ -68,6 +68,12 @@ public:
         return execReplyResult;
     }
 
+    int32_t SchedulerFunctionsReplyEvent(const std::string &eventId, int32_t resultCode,
+        int32_t successCount) override
+    {
+        return ERR_OK;
+    }
+
     int32_t sessionEventResult = ERR_OK;
     int32_t inputReplyResult = ERR_OK;
     int32_t execReplyResult = ERR_OK;
@@ -197,6 +203,12 @@ public:
     {
         execReplyCount++;
         return execReplyResult;
+    }
+
+    ErrCode SchedulerFunctionsReplyEvent(const std::string &eventId, int32_t resultCode,
+        int32_t successCount) override
+    {
+        return ERR_OK;
     }
 
     int32_t sessionEventResult = ERR_OK;

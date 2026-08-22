@@ -53,6 +53,8 @@ public:
 
     using EventReplyCallback = std::function<void(int32_t)>;
 
+    using FunctionsReplyCallback = std::function<void(int32_t resultCode, int32_t successCount)>;
+
     /**
      * @brief Get the singleton instance of CliToolMGRClient.
      * @return Reference to the CliToolMGRClient instance.
@@ -102,46 +104,85 @@ public:
     ErrCode BatchRegisterFunctions(const std::vector<FunctionInfo> &functions, int32_t &successCount);
 
     /**
+     * @brief Async (oneway) variant of BatchRegisterFunctions; returns once the request is sent, without
+     *        waiting for the service. The result is delivered via callback
+     * @param functions Vector of FunctionInfo to register
+     * @param callback Result callback (resultCode and count of successfully registered functions)
+     * @return ErrCode ERR_OK when the request was sent successfully
+     */
+    ErrCode BatchRegisterFunctionsAsync(const std::vector<FunctionInfo> &functions,
+        const FunctionsReplyCallback &callback);
+
+    /**
      * @brief Get function information by bundleName and functionName
      * @param bundleName Bundle name
      * @param functionName Function name
      * @param function Output FunctionInfo
+     * @param userId Owner user to query; -1 (default) resolves to the caller's user
      * @return ErrCode ERR_OK on success
      */
     ErrCode GetFunctionInfo(const std::string &functionNamespace, const std::string &functionName,
-        FunctionInfo &function);
+        FunctionInfo &function, int32_t userId = -1);
 
     /**
      * @brief Unregister a function
+     * @param userId Owner user whose record is deleted (must be >= 0)
      * @param functionNamespace Namespace
      * @param functionName Function name
      * @return ErrCode ERR_OK on success
      */
-    ErrCode UnregisterFunction(const std::string &functionNamespace, const std::string &functionName);
+    ErrCode UnregisterFunction(int32_t userId, const std::string &functionNamespace,
+        const std::string &functionName);
 
     /**
      * @brief Batch unregister intentFunctions by namespace
+     * @param userId Owner user whose records are deleted (must be >= 0)
      * @param functionNamespace Namespace to delete all functions from
      * @return ErrCode ERR_OK on success
      */
-    ErrCode UnregisterIntentFunctionsByNamespace(const std::string &functionNamespace);
+    ErrCode UnregisterIntentFunctionsByNamespace(int32_t userId, const std::string &functionNamespace);
+
+    /**
+     * @brief Async (oneway) variant of UnregisterIntentFunctionsByNamespace; returns once the request is
+     *        sent, without waiting for the service. The result is delivered via callback
+     * @param userId Owner user whose records are deleted (must be >= 0)
+     * @param functionNamespace Namespace to delete all functions from
+     * @param callback Result callback (resultCode; successCount is always 0)
+     * @return ErrCode ERR_OK when the request was sent successfully
+     */
+    ErrCode UnregisterIntentFunctionsByNamespaceAsync(int32_t userId, const std::string &functionNamespace,
+        const FunctionsReplyCallback &callback);
 
     /**
      * @brief Reset all functions by namespace (delete all existing and add new ones)
+     * @param userId Owner user whose records are reset (must be >= 0)
      * @param functionNamespace Namespace to reset functions for
      * @param functions New function list to replace existing ones
      * @param successCount Output count of successfully reset functions
      * @return ErrCode ERR_OK on success
      */
-    ErrCode ResetNamespaceFunctions(const std::string &functionNamespace,
+    ErrCode ResetNamespaceFunctions(int32_t userId, const std::string &functionNamespace,
         const std::vector<FunctionInfo> &functions, int32_t &successCount);
+
+    /**
+     * @brief Async (oneway) variant of ResetNamespaceFunctions; returns once the request is sent, without
+     *        waiting for the service. The result is delivered via callback
+     * @param userId Owner user whose records are reset (must be >= 0)
+     * @param functionNamespace Namespace to reset functions for
+     * @param functions New function list to replace existing ones
+     * @param callback Result callback (resultCode and count of successfully reset functions)
+     * @return ErrCode ERR_OK when the request was sent successfully
+     */
+    ErrCode ResetNamespaceFunctionsAsync(int32_t userId, const std::string &functionNamespace,
+        const std::vector<FunctionInfo> &functions, const FunctionsReplyCallback &callback);
 
     /**
      * @brief Get all functions
      * @param functions Output vector of FunctionInfo
+     * @param userId Owner user to query; -1 (default) resolves to the caller's user
      * @return ErrCode ERR_OK on success
      */
-    ErrCode GetAllFunctions(std::vector<FunctionInfo> &functions);
+    ErrCode GetAllFunctions(std::vector<FunctionInfo> &functions, int32_t userId = -1);
 
     /**
      * @brief Execute a CLI tool with key-value pairs (convenience method).

@@ -31,5 +31,14 @@ int32_t CliToolManagerSchedulerRecipient::SchedulerExecToolReplyEvent(
     result.sessionInfo = session;
     return CliEventReplyManager::GetInstance().HandleEventReply(eventId, result);
 }
+
+int32_t CliToolManagerSchedulerRecipient::SchedulerFunctionsReplyEvent(
+    const std::string &eventId, int32_t resultCode, int32_t successCount)
+{
+    CliEventReplyResult result;
+    result.code = resultCode;
+    result.successCount = successCount;
+    return CliEventReplyManager::GetInstance().HandleEventReply(eventId, result);
+}
 } // namespace CliTool
 } // namespace OHOS

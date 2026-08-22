@@ -21,6 +21,8 @@ public:
     virtual int32_t SchedulerInputReplyEvent(const std::string &eventId, int32_t resultCode) = 0;
     virtual int32_t SchedulerExecToolReplyEvent(
         const std::string &eventId, int32_t resultCode, const CliSessionInfo &session) = 0;
+    virtual int32_t SchedulerFunctionsReplyEvent(
+        const std::string &eventId, int32_t resultCode, int32_t successCount) = 0;
 };
 } // namespace CliTool
 } // namespace OHOS

@@ -245,6 +245,12 @@ HWTEST_F(CliToolMGRClientTest, NullProxyInterfaces_0100, TestSize.Level1)
     int32_t successCount = 0;
     EXPECT_EQ(CliToolMGRClient::GetInstance().BatchRegisterFunctions(functions, successCount),
         GET_CLI_TOOL_MGR_SERVICE_FAILED);
+    EXPECT_EQ(CliToolMGRClient::GetInstance().BatchRegisterFunctionsAsync(functions, nullptr),
+        GET_CLI_TOOL_MGR_SERVICE_FAILED);
+    EXPECT_EQ(CliToolMGRClient::GetInstance().UnregisterIntentFunctionsByNamespaceAsync(0, "null_ns", nullptr),
+        GET_CLI_TOOL_MGR_SERVICE_FAILED);
+    EXPECT_EQ(CliToolMGRClient::GetInstance().ResetNamespaceFunctionsAsync(0, "null_ns", functions, nullptr),
+        GET_CLI_TOOL_MGR_SERVICE_FAILED);
 }
 
 /**
@@ -582,8 +588,8 @@ HWTEST_F(CliToolMGRClientTest, FunctionInterfaces_0200, TestSize.Level1)
     std::vector<FunctionInfo> functions;
     EXPECT_EQ(CliToolMGRClient::GetInstance().GetAllFunctions(functions), ERR_INVALID_VALUE);
 
-    EXPECT_EQ(CliToolMGRClient::GetInstance().UnregisterFunction("error_ns", "error_function"), ERR_INVALID_VALUE);
-    EXPECT_EQ(CliToolMGRClient::GetInstance().UnregisterIntentFunctionsByNamespace("error_ns"), ERR_INVALID_VALUE);
+    EXPECT_EQ(CliToolMGRClient::GetInstance().UnregisterFunction(0, "error_ns", "error_function"), ERR_INVALID_VALUE);
+    EXPECT_EQ(CliToolMGRClient::GetInstance().UnregisterIntentFunctionsByNamespace(0, "error_ns"), ERR_INVALID_VALUE);
 }
 
 /**
@@ -603,9 +609,9 @@ HWTEST_F(CliToolMGRClientTest, FunctionInterfaces_0300, TestSize.Level1)
     EXPECT_EQ(CliToolMGRClient::GetInstance().GetFunctionInfo("null_ns", "null_function", retrievedFunction),
         GET_CLI_TOOL_MGR_SERVICE_FAILED);
     EXPECT_EQ(CliToolMGRClient::GetInstance().GetAllFunctions(functions), GET_CLI_TOOL_MGR_SERVICE_FAILED);
-    EXPECT_EQ(CliToolMGRClient::GetInstance().UnregisterFunction("null_ns", "null_function"),
+    EXPECT_EQ(CliToolMGRClient::GetInstance().UnregisterFunction(0, "null_ns", "null_function"),
         GET_CLI_TOOL_MGR_SERVICE_FAILED);
-    EXPECT_EQ(CliToolMGRClient::GetInstance().UnregisterIntentFunctionsByNamespace("null_ns"),
+    EXPECT_EQ(CliToolMGRClient::GetInstance().UnregisterIntentFunctionsByNamespace(0, "null_ns"),
         GET_CLI_TOOL_MGR_SERVICE_FAILED);
 }
 
@@ -619,7 +625,7 @@ HWTEST_F(CliToolMGRClientTest, UnregisterFunction_0100, TestSize.Level1)
     SetMockService();
     CliToolMgrClientFlag::functionInfos = {BuildFunctionInfo("unreg_ns", "unreg_function")};
 
-    EXPECT_EQ(CliToolMGRClient::GetInstance().UnregisterFunction("unreg_ns", "unreg_function"), ERR_OK);
+    EXPECT_EQ(CliToolMGRClient::GetInstance().UnregisterFunction(0, "unreg_ns", "unreg_function"), ERR_OK);
 }
 
 /**
@@ -631,7 +637,7 @@ HWTEST_F(CliToolMGRClientTest, UnregisterIntentFunctionsByNamespace_0100, TestSi
 {
     SetMockService();
 
-    EXPECT_EQ(CliToolMGRClient::GetInstance().UnregisterIntentFunctionsByNamespace("intent_ns"), ERR_OK);
+    EXPECT_EQ(CliToolMGRClient::GetInstance().UnregisterIntentFunctionsByNamespace(0, "intent_ns"), ERR_OK);
 }
 
 /**
@@ -723,7 +729,8 @@ HWTEST_F(CliToolMGRClientTest, ResetNamespaceFunctions_0100, TestSize.Level1)
     functions.push_back(BuildFunctionInfo("test_ns", "func3"));
 
     int32_t successCount = 0;
-    EXPECT_EQ(CliToolMGRClient::GetInstance().ResetNamespaceFunctions("test_ns", functions, successCount), ERR_OK);
+    EXPECT_EQ(CliToolMGRClient::GetInstance().ResetNamespaceFunctions(0, "test_ns", functions, successCount),
+        ERR_OK);
     EXPECT_EQ(successCount, 3);
 }
 
@@ -741,7 +748,7 @@ HWTEST_F(CliToolMGRClientTest, ResetNamespaceFunctions_0200, TestSize.Level1)
     functions.push_back(BuildFunctionInfo("error_ns", "func1"));
 
     int32_t successCount = 0;
-    EXPECT_EQ(CliToolMGRClient::GetInstance().ResetNamespaceFunctions("error_ns", functions, successCount),
+    EXPECT_EQ(CliToolMGRClient::GetInstance().ResetNamespaceFunctions(0, "error_ns", functions, successCount),
         ERR_INVALID_VALUE);
 }
 
@@ -758,7 +765,7 @@ HWTEST_F(CliToolMGRClientTest, ResetNamespaceFunctions_0300, TestSize.Level1)
     functions.push_back(BuildFunctionInfo("null_ns", "func1"));
 
     int32_t successCount = 0;
-    EXPECT_EQ(CliToolMGRClient::GetInstance().ResetNamespaceFunctions("null_ns", functions, successCount),
+    EXPECT_EQ(CliToolMGRClient::GetInstance().ResetNamespaceFunctions(0, "null_ns", functions, successCount),
         GET_CLI_TOOL_MGR_SERVICE_FAILED);
 }
 
@@ -775,8 +782,100 @@ HWTEST_F(CliToolMGRClientTest, ResetNamespaceFunctions_0400, TestSize.Level1)
 
     std::vector<FunctionInfo> functions;  // Empty vector
     int32_t successCount = -1;  // Initialize to non-zero
-    EXPECT_EQ(CliToolMGRClient::GetInstance().ResetNamespaceFunctions("empty_ns", functions, successCount), ERR_OK);
+    EXPECT_EQ(CliToolMGRClient::GetInstance().ResetNamespaceFunctions(0, "empty_ns", functions, successCount),
+        ERR_OK);
     EXPECT_EQ(successCount, 0);
+}
+
+/**
+ * @tc.name: AsyncFunctionInterfaces_0100
+ * @tc.desc: Test async batch register/unregister/reset success paths with reply callbacks
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, AsyncFunctionInterfaces_0100, TestSize.Level1)
+{
+    SetMockService();
+    auto &client = CliToolMGRClient::GetInstance();
+    int32_t resultCode = -1;
+    int32_t successCount = -1;
+    auto callback = [&resultCode, &successCount](int32_t code, int32_t count) {
+        resultCode = code;
+        successCount = count;
+    };
+
+    // BatchRegisterFunctionsAsync: request sent, mock records the delivered functions and eventId
+    std::vector<FunctionInfo> functions;
+    functions.push_back(BuildFunctionInfo("async_ns", "func1"));
+    functions.push_back(BuildFunctionInfo("async_ns", "func2"));
+    EXPECT_EQ(client.BatchRegisterFunctionsAsync(functions, callback), ERR_OK);
+    ASSERT_EQ(CliToolMgrClientFlag::functionInfos.size(), 2);
+
+    // Simulate the service reply dispatched through the scheduler recipient
+    resultCode = -1;
+    successCount = -1;
+    EXPECT_EQ(client.schedulerStub_->SchedulerFunctionsReplyEvent(
+        CliToolMgrClientFlag::lastEventId, ERR_OK, 2), ERR_OK);
+    EXPECT_EQ(resultCode, ERR_OK);
+    EXPECT_EQ(successCount, 2);
+
+    // UnregisterIntentFunctionsByNamespaceAsync
+    EXPECT_EQ(client.UnregisterIntentFunctionsByNamespaceAsync(0, "async_ns", callback), ERR_OK);
+    resultCode = -1;
+    successCount = -1;
+    EXPECT_EQ(client.schedulerStub_->SchedulerFunctionsReplyEvent(
+        CliToolMgrClientFlag::lastEventId, ERR_OK, 0), ERR_OK);
+    EXPECT_EQ(resultCode, ERR_OK);
+    EXPECT_EQ(successCount, 0);
+
+    // ResetNamespaceFunctionsAsync: mock records the delivered functions
+    CliToolMgrClientFlag::functionInfos.clear();
+    functions.clear();
+    functions.push_back(BuildFunctionInfo("reset_ns", "func1"));
+    EXPECT_EQ(client.ResetNamespaceFunctionsAsync(0, "reset_ns", functions, callback), ERR_OK);
+    ASSERT_EQ(CliToolMgrClientFlag::functionInfos.size(), 1);
+    EXPECT_EQ(CliToolMgrClientFlag::functionInfos[0].functionNamespace, "reset_ns");
+
+    resultCode = -1;
+    successCount = -1;
+    EXPECT_EQ(client.schedulerStub_->SchedulerFunctionsReplyEvent(
+        CliToolMgrClientFlag::lastEventId, ERR_OK, 1), ERR_OK);
+    EXPECT_EQ(resultCode, ERR_OK);
+    EXPECT_EQ(successCount, 1);
+}
+
+/**
+ * @tc.name: AsyncFunctionInterfaces_0200
+ * @tc.desc: Test async batch register/unregister/reset send failure removes reply callbacks
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, AsyncFunctionInterfaces_0200, TestSize.Level1)
+{
+    SetMockService();
+    auto &client = CliToolMGRClient::GetInstance();
+    CliToolMgrClientFlag::retBatchRegisterFunctionsAsync = ERR_INVALID_VALUE;
+    CliToolMgrClientFlag::retUnregisterIntentFunctionsByNamespaceAsync = ERR_INVALID_VALUE;
+    CliToolMgrClientFlag::retResetNamespaceFunctionsAsync = ERR_INVALID_VALUE;
+
+    int32_t resultCode = -1;
+    auto callback = [&resultCode](int32_t code, int32_t) { resultCode = code; };
+
+    // Send failure: the registered reply callback is removed, so a later reply finds no record
+    std::vector<FunctionInfo> functions;
+    functions.push_back(BuildFunctionInfo("error_ns", "func1"));
+    EXPECT_EQ(client.BatchRegisterFunctionsAsync(functions, callback), ERR_INVALID_VALUE);
+    EXPECT_EQ(CliEventReplyManager::GetInstance().HandleEventReply(
+        CliToolMgrClientFlag::lastEventId, CliEventReplyResult {}), -1);
+    EXPECT_EQ(resultCode, -1);
+
+    EXPECT_EQ(client.UnregisterIntentFunctionsByNamespaceAsync(0, "error_ns", callback), ERR_INVALID_VALUE);
+    EXPECT_EQ(CliEventReplyManager::GetInstance().HandleEventReply(
+        CliToolMgrClientFlag::lastEventId, CliEventReplyResult {}), -1);
+    EXPECT_EQ(resultCode, -1);
+
+    EXPECT_EQ(client.ResetNamespaceFunctionsAsync(0, "error_ns", functions, callback), ERR_INVALID_VALUE);
+    EXPECT_EQ(CliEventReplyManager::GetInstance().HandleEventReply(
+        CliToolMgrClientFlag::lastEventId, CliEventReplyResult {}), -1);
+    EXPECT_EQ(resultCode, -1);
 }
 
 } // namespace CliTool

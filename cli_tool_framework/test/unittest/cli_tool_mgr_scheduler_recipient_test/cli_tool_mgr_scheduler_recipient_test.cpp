@@ -80,5 +80,28 @@ HWTEST_F(CliToolMgrSchedulerRecipientTest, CliToolManagerSchedulerRecipient_0100
     EXPECT_EQ(recipient.SchedulerSessionEvent("session", subscriptionId, event), ERR_OK);
     EXPECT_EQ(sessionEventCount, 1);
 }
+
+/**
+ * @tc.name: CliToolManagerSchedulerRecipient_0200
+ * @tc.desc: Test scheduler recipient forwards functions reply (code and successCount) to manager
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMgrSchedulerRecipientTest, CliToolManagerSchedulerRecipient_0200, TestSize.Level1)
+{
+    CliToolManagerSchedulerRecipient recipient;
+
+    int32_t replyCode = 0;
+    int32_t replySuccessCount = 0;
+    std::string eventId = CliEventReplyManager::GetInstance().AddEventReplyCallback("functions-",
+        [&](const CliEventReplyResult &result) {
+            replyCode = result.code;
+            replySuccessCount = result.successCount;
+        });
+    CliEventReplyManager::GetInstance().ActivateEventReplyCallback(eventId);
+
+    EXPECT_EQ(recipient.SchedulerFunctionsReplyEvent(eventId, TEST_RESULT_CODE, 7), ERR_OK);
+    EXPECT_EQ(replyCode, TEST_RESULT_CODE);
+    EXPECT_EQ(replySuccessCount, 7);
+}
 } // namespace CliTool
 } // namespace OHOS

@@ -119,45 +119,73 @@ public:
 
     /**
      * @brief Get function information by bundleName and functionName
+     * @param userId Owner user to query; invalid value (< 0, e.g. -1) falls back to the IPC caller's user
      * @param bundleName Bundle name
      * @param functionName Function name
      * @param function Output FunctionInfo
      * @return int32_t ERR_OK if found, error code otherwise
      */
-    int32_t GetFunctionInfo(const std::string &functionNamespace, const std::string &functionName,
-        FunctionInfo &function) override;
+    int32_t GetFunctionInfo(int32_t userId, const std::string &functionNamespace,
+        const std::string &functionName, FunctionInfo &function) override;
 
     /**
      * @brief Unregister a function
+     * @param userId Owner user whose record is deleted (caller-supplied, must be >= 0)
      * @param functionNamespace Namespace
      * @param functionName Function name
      * @return int32_t ERR_OK on success, error code otherwise
      */
-    int32_t UnregisterFunction(const std::string &functionNamespace, const std::string &functionName) override;
+    int32_t UnregisterFunction(int32_t userId, const std::string &functionNamespace,
+        const std::string &functionName) override;
 
     /**
      * @brief Batch unregister intentFunctions by namespace
+     * @param userId Owner user whose records are deleted (caller-supplied, must be >= 0)
      * @param functionNamespace Namespace to delete all functions from
      * @return int32_t ERR_OK on success, error code otherwise
      */
-    int32_t UnregisterIntentFunctionsByNamespace(const std::string &functionNamespace) override;
+    int32_t UnregisterIntentFunctionsByNamespace(int32_t userId, const std::string &functionNamespace) override;
 
     /**
      * @brief Reset all functions by namespace (delete all existing and add new ones)
+     * @param userId Owner user whose records are reset (caller-supplied, must be >= 0)
      * @param functionNamespace Namespace to reset functions for
      * @param functions New function list to replace existing ones
      * @param successCount Output count of successfully reset functions
      * @return int32_t ERR_OK on success, error code otherwise
      */
-    int32_t ResetNamespaceFunctions(const std::string &functionNamespace,
+    int32_t ResetNamespaceFunctions(int32_t userId, const std::string &functionNamespace,
         const FunctionsRawData &functions, int32_t &successCount) override;
 
     /**
      * @brief Get all functions via raw data (for large data transfer)
+     * @param userId Owner user to query; invalid value (< 0, e.g. -1) falls back to the IPC caller's user
      * @param functions Output FunctionsRawData
      * @return int32_t ERR_OK on success, error code otherwise
      */
-    int32_t GetAllFunctions(FunctionsRawData &functions) override;
+    int32_t GetAllFunctions(int32_t userId, FunctionsRawData &functions) override;
+
+    /**
+     * @brief Async (oneway) variant of BatchRegisterFunctions; runs the same permission checks and
+     *        persistence as the sync version, then reports the result via the scheduler callback
+     */
+    int32_t BatchRegisterFunctionsAsync(const FunctionsRawData &functions, const std::string &eventId,
+        const sptr<ICliToolManagerScheduler> &scheduler) override;
+
+    /**
+     * @brief Async (oneway) variant of UnregisterIntentFunctionsByNamespace; runs the same permission
+     *        checks and persistence as the sync version, then reports the result via the scheduler callback
+     */
+    int32_t UnregisterIntentFunctionsByNamespaceAsync(int32_t userId, const std::string &functionNamespace,
+        const std::string &eventId, const sptr<ICliToolManagerScheduler> &scheduler) override;
+
+    /**
+     * @brief Async (oneway) variant of ResetNamespaceFunctions; runs the same permission checks and
+     *        persistence as the sync version, then reports the result via the scheduler callback
+     */
+    int32_t ResetNamespaceFunctionsAsync(int32_t userId, const std::string &functionNamespace,
+        const FunctionsRawData &functions, const std::string &eventId,
+        const sptr<ICliToolManagerScheduler> &scheduler) override;
 
 protected:
     void OnStart() override;
@@ -212,6 +240,9 @@ private:
 
     bool RegisterSessionWithMonitors(const std::shared_ptr<SessionRecord> &record, const ExecOptions &options);
     void UnregisterSessionWithMonitors(const std::string &sessionId);
+
+    void ReplyFunctionsResult(const std::string &eventId, const sptr<ICliToolManagerScheduler> &scheduler,
+        int32_t resultCode, int32_t successCount);
 
     int32_t ValidateExecToolPermissions();
     int32_t ValidateSessionLimit();
