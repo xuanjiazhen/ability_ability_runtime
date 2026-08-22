@@ -290,7 +290,7 @@ HWTEST_F(AppMgrServiceThirdTest, ReportDumpMemResult_001, TestSize.Level1)
     ASSERT_NE(appMgrService, nullptr);
     appMgrService->SetInnerService(nullptr);
     sptr<IMemDumpCallback> callback = nullptr;
-    std::string dumpResult = "test";
+    MemDumpResult dumpResult;
     int32_t res = appMgrService->ReportDumpMemResult(callback, dumpResult);
     EXPECT_EQ(res, ERR_INVALID_OPERATION);
 

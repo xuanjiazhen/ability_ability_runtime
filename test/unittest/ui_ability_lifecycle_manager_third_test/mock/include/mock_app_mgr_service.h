@@ -230,7 +230,7 @@ public:
     }
 
     int32_t ReportDumpMemResult(sptr<IMemDumpCallback> callback,
-        const std::string &dumpResult)
+        const MemDumpResult &result)
     {
         return 0;
     }

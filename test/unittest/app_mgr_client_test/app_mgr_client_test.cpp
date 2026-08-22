@@ -768,7 +768,7 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_ReportDumpMemResult_001, TestSize.Level2
     EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
 
     sptr<IMemDumpCallback> callback = nullptr;
-    std::string dumpResult = "test";
+    MemDumpResult dumpResult;
     appMgrClient->ReportDumpMemResult(callback, dumpResult);
     EXPECT_NE(appMgrClient, nullptr);
 }

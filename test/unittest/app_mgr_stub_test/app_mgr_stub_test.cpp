@@ -93,11 +93,11 @@ public:
     MemDumpCallbackMock() = default;
     virtual ~MemDumpCallbackMock() = default;
 
-    void OnMemDumpDone(const std::string &dumpResult) override
+    void OnMemDumpDone(const MemDumpResult &result) override
     {
-        dumpResult_ = dumpResult;
+        result_ = result;
     }
-    std::string dumpResult_;
+    MemDumpResult result_;
 };
 
 class MemDumpCallbackProxyTest : public testing::Test {
@@ -1690,8 +1690,8 @@ HWTEST_F(AppMgrStubTest, HandleReportDumpMemResult_001, TestSize.Level1)
     WriteInterfaceToken(data);
     sptr<IRemoteObject> remoteCallback = nullptr;
     data.WriteRemoteObject(remoteCallback);
-    std::string dumpResult = "test result";
-    data.WriteString(dumpResult);
+    MemDumpResult dumpResult;
+    data.WriteParcelable(&dumpResult);
 
     EXPECT_CALL(*mockAppMgrService_, ReportDumpMemResult(_, _)).Times(1);
 
@@ -1716,8 +1716,8 @@ HWTEST_F(AppMgrStubTest, HandleReportDumpMemResult_002, TestSize.Level1)
     WriteInterfaceToken(data);
     sptr<IRemoteObject> remoteCallback = nullptr;
     data.WriteRemoteObject(remoteCallback);
-    std::string dumpResult = "test result";
-    data.WriteString(dumpResult);
+    MemDumpResult dumpResult;
+    data.WriteParcelable(&dumpResult);
 
     auto result = mockAppMgrService_->OnRemoteRequest(
         static_cast<uint32_t>(AppMgrInterfaceCode::REPORT_DUMP_MEM_RESULT), data, reply, option);
@@ -1739,15 +1739,16 @@ HWTEST_F(AppMgrStubTest, MemDumpCallbackStub_OnRemoteRequest_001, TestSize.Level
 
     MessageParcel data;
     data.WriteInterfaceToken(MemDumpCallbackStub::GetDescriptor());
-    std::string dumpResult = "test dump result";
-    data.WriteString(dumpResult);
+    MemDumpResult dumpResult;
+    dumpResult.rawResult = "test dump result";
+    data.WriteParcelable(&dumpResult);
     MessageParcel reply;
     MessageOption option;
 
     auto result = callback->OnRemoteRequest(
         static_cast<uint32_t>(IMemDumpCallback::Message::ON_MEM_DUMP_DONE), data, reply, option);
     EXPECT_EQ(result, NO_ERROR);
-    EXPECT_EQ(callback->dumpResult_, dumpResult);
+    EXPECT_EQ(callback->result_.rawResult, dumpResult.rawResult);
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
@@ -1809,7 +1810,9 @@ HWTEST_F(MemDumpCallbackProxyTest, MemDumpCallbackProxy_OnMemDumpDone_001, TestS
     sptr<MemDumpCallbackProxy> proxy = new (std::nothrow) MemDumpCallbackProxy(impl);
     ASSERT_NE(proxy, nullptr);
 
-    proxy->OnMemDumpDone("test result");
+    MemDumpResult result;
+    result.rawResult = "test result";
+    proxy->OnMemDumpDone(result);
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }

@@ -101,11 +101,11 @@ public:
     MemDumpCallbackMock() = default;
     virtual ~MemDumpCallbackMock() = default;
 
-    void OnMemDumpDone(const std::string &dumpResult) override
+    void OnMemDumpDone(const MemDumpResult &result) override
     {
-        dumpResult_ = dumpResult;
+        result_ = result;
     }
-    std::string dumpResult_;
+    MemDumpResult result_;
 };
 
 class AppMgrProxyTest : public testing::Test {
@@ -1702,7 +1702,7 @@ HWTEST_F(AppMgrProxyTest, AppMgrProxy_ReportDumpMemResult_001, TestSize.Level1)
         .Times(0);
 
     sptr<IMemDumpCallback> callback = nullptr;
-    std::string dumpResult = "test result";
+    MemDumpResult dumpResult;
     auto ret = appMgrProxy_->ReportDumpMemResult(callback, dumpResult);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
@@ -1737,7 +1737,7 @@ HWTEST_F(AppMgrProxyTest, AppMgrProxy_ReportDumpMemResult_002, TestSize.Level1)
         .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
 
     sptr<IMemDumpCallback> callback = new (std::nothrow) MemDumpCallbackMock();
-    std::string dumpResult = "test result";
+    MemDumpResult dumpResult;
     appMgrProxy_->ReportDumpMemResult(callback, dumpResult);
     EXPECT_EQ(mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::REPORT_DUMP_MEM_RESULT));
 }

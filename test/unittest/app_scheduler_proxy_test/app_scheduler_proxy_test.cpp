@@ -38,11 +38,11 @@ namespace {
         MemDumpCallbackMock() = default;
         virtual ~MemDumpCallbackMock() = default;
 
-        void OnMemDumpDone(const std::string &dumpResult) override
+        void OnMemDumpDone(const MemDumpResult &result) override
         {
-            dumpResult_ = dumpResult;
+            result_ = result;
         }
-        std::string dumpResult_;
+        MemDumpResult result_;
     };
 }
 class AppSchedulerProxyTest : public testing::Test {

@@ -6905,7 +6905,7 @@ HWTEST_F(AppMgrServiceInnerTest, ReportDumpMemResult_001, TestSize.Level1)
     ASSERT_NE(serviceInner, nullptr);
 
     sptr<IMemDumpCallback> callback = nullptr;
-    std::string dumpResult = "test result";
+    MemDumpResult dumpResult;
     auto ret = serviceInner->ReportDumpMemResult(callback, dumpResult);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
