@@ -16,7 +16,7 @@
 #include "dump_runtime_helper.h"
 
 #include <dfx_signal_handler.h>
-#include <inttypes.h>
+#include <cinttypes>
 #include <malloc.h>
 #include <pthread.h>
 #include <sys/statvfs.h>
