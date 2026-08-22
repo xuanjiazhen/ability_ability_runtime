@@ -971,6 +971,35 @@ HWTEST_F(AbilityManagerServiceTenhtTest, StartAutoStartupApps_009, TestSize.Leve
 
 /*
  * Feature: AbilityManagerService
+ * Name: StartAutoStartupApps_010
+ * Function: StartAutoStartupApps
+ * SubFunction: NA
+ * already handled user: auto flow deduplicated, manual flow not affected
+ */
+HWTEST_F(AbilityManagerServiceTenhtTest, StartAutoStartupApps_010, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTenhtTest StartAutoStartupApps_010 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    auto taskHandler = MockTaskHandlerWrap::CreateQueueHandler("AbilityManagerServiceTenhtTest");
+    abilityMs->taskHandler_ = taskHandler;
+    abilityMs->abilityAutoStartupService_ = std::make_shared<AbilityAutoStartupService>();
+    EXPECT_NE(abilityMs->abilityAutoStartupService_, nullptr);
+    int32_t userId = USER_ID_U100;
+
+    // The auto flow bails out for an already handled user before any task is submitted.
+    EXPECT_CALL(*taskHandler, SubmitTaskInner(_, _)).Times(0);
+    abilityMs->abilityAutoStartupService_->AddHandledAutoStartupUsers(userId);
+    abilityMs->StartAutoStartupApps(userId);
+    EXPECT_TRUE(abilityMs->abilityAutoStartupService_->FindHandledAutoStartupUsers(userId));
+    // The manual flow deliberately ignores the handled record and stays repeatable.
+    abilityMs->StartAutoStartupApps(userId, true);
+    EXPECT_TRUE(abilityMs->abilityAutoStartupService_->FindHandledAutoStartupUsers(userId));
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTenhtTest StartAutoStartupApps_010 end");
+}
+
+/*
+ * Feature: AbilityManagerService
  * Name: JudgeCallerIsAllowedToUseSystemAPIByTokenId_0100
  * Function: JudgeCallerIsAllowedToUseSystemAPIByTokenId
  */

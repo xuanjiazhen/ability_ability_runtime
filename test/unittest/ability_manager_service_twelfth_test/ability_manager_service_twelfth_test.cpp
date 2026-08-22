@@ -20,6 +20,8 @@
 #include "mock_my_flag.h"
 #include "mock_ability_connect_callback.h"
 #include "ability_manager_service.h"
+#include "ability_manager_event_subscriber.h"
+#include "common_event_support.h"
 #include "modal_system_dialog/modal_system_dialog_ui_extension.h"
 #include "utils/modal_system_dialog_util.h"
 #include "user_controller/user_controller.h"
@@ -1401,6 +1403,31 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, SubscribeScreenUnlockedEvent_001, Tes
     EXPECT_EQ(abilityMs->isSubscribed_, true);
     abilityMs->UnSubscribeScreenUnlockedEvent();
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest SubscribeScreenUnlockedEvent_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: UnSubscribeScreenUnlockedEvent_001
+ * SubFunction: NA
+ * Function: AbilityManagerService UnSubscribeScreenUnlockedEvent
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, UnSubscribeScreenUnlockedEvent_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest UnSubscribeScreenUnlockedEvent_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->SubscribeScreenUnlockedEvent();
+    EXPECT_EQ(abilityMs->isSubscribed_, true);
+    // Another user is still waiting for its unlock events, the subscriber must be kept alive.
+    AbilityRuntime::AbilityEventMapManager::GetInstance().AddEvent(
+        TEST_USER_ID, EventFwk::CommonEventSupport::COMMON_EVENT_USER_UNLOCKED);
+    abilityMs->UnSubscribeScreenUnlockedEvent();
+    EXPECT_EQ(abilityMs->isSubscribed_, true);
+    // The last pending user is gone, unsubscribe can proceed now.
+    AbilityRuntime::AbilityEventMapManager::GetInstance().RemoveUser(TEST_USER_ID);
+    abilityMs->UnSubscribeScreenUnlockedEvent();
+    EXPECT_EQ(abilityMs->isSubscribed_, false);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest UnSubscribeScreenUnlockedEvent_001 end");
 }
 
 /*
