@@ -16,6 +16,7 @@
 #include "dump_runtime_helper.h"
 
 #include <dfx_signal_handler.h>
+#include <inttypes.h>
 #include <malloc.h>
 #include <pthread.h>
 #include <sys/statvfs.h>
@@ -382,9 +383,10 @@ void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, sptr<
     auto client = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
 
     if (info.dumpType == MemDumpType::NATIVE) {
-        std::string dumpResult;
-        auto task = [self = shared_from_this(), info, callback, client, dumpResult]() mutable {
-            self->DumpNativeHeap(info, dumpResult);
+        auto task = [self = shared_from_this(), info, callback, client]() mutable {
+            MemDumpResult dumpResult;
+            dumpResult.dumpType = info.dumpType;
+            self->DumpNativeHeap(info, dumpResult.rawResult);
             if (client != nullptr && callback != nullptr) {
                 client->ReportDumpMemResult(callback, dumpResult);
             }
@@ -393,7 +395,8 @@ void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, sptr<
         return;
     }
 
-    std::string dumpResult;
+    MemDumpResult dumpResult;
+    dumpResult.dumpType = info.dumpType;
     if (info.dumpType == MemDumpType::KMP_KOTLIN) {
         DumpKmpKotlinHeap(info);
     }
@@ -587,7 +590,8 @@ void DumpRuntimeHelper::DumpArkwebJsHeap(const OHOS::AppExecFwk::MemDumpInfo &in
 #endif
 }
 
-void DumpRuntimeHelper::DumpArktsHeapSize(const OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+void DumpRuntimeHelper::DumpArktsHeapSize(const OHOS::AppExecFwk::MemDumpInfo &info,
+    OHOS::AppExecFwk::MemDumpResult &result)
 {
     if (application_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null application");
@@ -620,11 +624,12 @@ void DumpRuntimeHelper::DumpArktsHeapSize(const OHOS::AppExecFwk::MemDumpInfo &i
         TAG_LOGE(AAFwkTag::APPKIT, "null jsRuntime");
         return;
     }
-    size_t heapSize = jsRuntime->GetHeapTotalSize();
+    result.heapSize = static_cast<int64_t>(jsRuntime->GetHeapTotalSize());
     char threadName[16] = {0};
     pthread_getname_np(pthread_self(), threadName, sizeof(threadName));
-    dumpResult = std::to_string(heapSize) + "|" + threadName;
-    TAG_LOGI(AAFwkTag::APPKIT, "arkts heap size: %{public}zu bytes, thread: %{public}s", heapSize, threadName);
+    result.threadName = threadName;
+    TAG_LOGI(AAFwkTag::APPKIT, "arkts heap size: %{public}" PRId64 " bytes, thread: %{public}s",
+        result.heapSize, result.threadName.c_str());
 }
 
 void DumpRuntimeHelper::GetCheckList(const std::unique_ptr<AbilityRuntime::Runtime> &runtime, std::string &checkList)

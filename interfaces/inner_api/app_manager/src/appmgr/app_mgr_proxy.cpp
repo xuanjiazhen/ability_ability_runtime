@@ -24,6 +24,7 @@
 #include "hitrace_meter.h"
 #include "ipc_capacity_wrap.h"
 #include "ipc_types.h"
+#include "parcel.h"
 #include "iremote_object.h"
 #include "parcel_util.h"
 
@@ -664,7 +665,7 @@ int32_t AppMgrProxy::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpC
 }
 
 int32_t AppMgrProxy::ReportDumpMemResult(sptr<IMemDumpCallback> callback,
-    const std::string &dumpResult)
+    const MemDumpResult &result)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -683,8 +684,8 @@ int32_t AppMgrProxy::ReportDumpMemResult(sptr<IMemDumpCallback> callback,
             return ERR_INVALID_VALUE;
         }
     }
-    if (!data.WriteString(dumpResult)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write dumpResult failed");
+    if (!data.WriteParcelable(&result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write result failed");
         return ERR_INVALID_VALUE;
     }
     int32_t ret = SendRequest(AppMgrInterfaceCode::REPORT_DUMP_MEM_RESULT, data, reply, option);

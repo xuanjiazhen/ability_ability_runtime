@@ -45,8 +45,12 @@ int32_t MemDumpCallbackStub::OnRemoteRequest(
 
 int32_t MemDumpCallbackStub::HandleOnMemDumpDone(MessageParcel &data, MessageParcel &reply)
 {
-    std::string dumpResult = data.ReadString();
-    OnMemDumpDone(dumpResult);
+    std::unique_ptr<MemDumpResult> dumpResult(data.ReadParcelable<MemDumpResult>());
+    if (dumpResult == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "read MemDumpResult failed");
+        return ERR_INVALID_VALUE;
+    }
+    OnMemDumpDone(*dumpResult);
     return NO_ERROR;
 }
 }  // namespace AppExecFwk

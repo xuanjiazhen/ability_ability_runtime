@@ -18,6 +18,7 @@
 
 #include "parcel.h"
 #include "iremote_object.h"
+#include <string>
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -43,6 +44,15 @@ struct MemDumpInfo : public Parcelable {
     bool needGc = false;
     virtual bool Marshalling(Parcel &parcel) const override;
     static MemDumpInfo *Unmarshalling(Parcel &parcel);
+};
+
+struct MemDumpResult : public Parcelable {
+    MemDumpType dumpType = MemDumpType::INVALID;
+    std::string rawResult;
+    int64_t heapSize = 0;
+    std::string threadName;
+    virtual bool Marshalling(Parcel &parcel) const override;
+    static MemDumpResult *Unmarshalling(Parcel &parcel);
 };
 } // namespace AppExecFwk
 } // namespace OHOS

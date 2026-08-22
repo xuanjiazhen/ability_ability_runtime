@@ -432,7 +432,7 @@ public:
      * @return ERR_OK ,return back success, others fail.
      */
     virtual AppMgrResultCode ReportDumpMemResult(sptr<IMemDumpCallback> callback,
-        const std::string &dumpResult);
+        const MemDumpResult &result);
 
     /**
      * GetConfiguration

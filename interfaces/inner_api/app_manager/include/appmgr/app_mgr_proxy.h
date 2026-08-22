@@ -319,7 +319,7 @@ public:
      * @return ERR_OK ,return back success, others fail.
      */
     virtual int32_t ReportDumpMemResult(sptr<IMemDumpCallback> callback,
-        const std::string &dumpResult) override;
+        const MemDumpResult &result) override;
 
     /**
      * Notify that the ability stage has been updated

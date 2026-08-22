@@ -17,6 +17,7 @@
 
 #include "hilog_tag_wrapper.h"
 #include "ipc_types.h"
+#include "parcel.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -33,15 +34,15 @@ bool MemDumpCallbackProxy::WriteInterfaceToken(MessageParcel &data)
     return true;
 }
 
-void MemDumpCallbackProxy::OnMemDumpDone(const std::string &dumpResult)
+void MemDumpCallbackProxy::OnMemDumpDone(const MemDumpResult &result)
 {
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write Token failed");
         return;
     }
-    if (!data.WriteString(dumpResult)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write dumpResult failed");
+    if (!data.WriteParcelable(&result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write result failed");
         return;
     }
     sptr<IRemoteObject> remote = Remote();

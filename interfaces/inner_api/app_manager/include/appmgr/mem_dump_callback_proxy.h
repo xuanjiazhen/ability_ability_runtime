@@ -28,7 +28,7 @@ public:
     explicit MemDumpCallbackProxy(const sptr<IRemoteObject> &impl);
     virtual ~MemDumpCallbackProxy() = default;
 
-    void OnMemDumpDone(const std::string &dumpResult) override;
+    void OnMemDumpDone(const MemDumpResult &result) override;
 
 private:
     bool WriteInterfaceToken(MessageParcel &data);

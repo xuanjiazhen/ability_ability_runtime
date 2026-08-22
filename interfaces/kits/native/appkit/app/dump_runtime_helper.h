@@ -83,7 +83,7 @@ private:
     void DumpKmpKotlinHeap(const OHOS::AppExecFwk::MemDumpInfo &info);
     void DumpJsvmHeap(const OHOS::AppExecFwk::MemDumpInfo &info);
     void DumpArkwebJsHeap(const OHOS::AppExecFwk::MemDumpInfo &info);
-    void DumpArktsHeapSize(const OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult);
+    void DumpArktsHeapSize(const OHOS::AppExecFwk::MemDumpInfo &info, OHOS::AppExecFwk::MemDumpResult &result);
 };
 } // namespace AppExecFwk
 } // namespace OHOS

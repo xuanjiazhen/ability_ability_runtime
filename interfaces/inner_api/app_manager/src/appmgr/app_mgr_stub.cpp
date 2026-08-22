@@ -994,8 +994,12 @@ int32_t AppMgrStub::HandleReportDumpMemResult(MessageParcel &data, MessageParcel
 {
     sptr<IRemoteObject> remoteCallback = data.ReadRemoteObject();
     sptr<IMemDumpCallback> callback = iface_cast<IMemDumpCallback>(remoteCallback);
-    std::string dumpResult = data.ReadString();
-    auto result = ReportDumpMemResult(callback, dumpResult);
+    std::unique_ptr<MemDumpResult> dumpResult(data.ReadParcelable<MemDumpResult>());
+    if (dumpResult == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "read MemDumpResult failed");
+        return ERR_INVALID_VALUE;
+    }
+    auto result = ReportDumpMemResult(callback, *dumpResult);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "write result error");
         return ERR_INVALID_VALUE;

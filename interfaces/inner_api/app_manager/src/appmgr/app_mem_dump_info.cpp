@@ -106,5 +106,53 @@ MemDumpInfo *MemDumpInfo::Unmarshalling(Parcel &parcel)
     return info;
 }
 
+bool MemDumpResult::Marshalling(Parcel &parcel) const
+{
+    if (!parcel.WriteUint32(static_cast<uint32_t>(dumpType))) {
+        return false;
+    }
+    if (!parcel.WriteString(rawResult)) {
+        return false;
+    }
+    if (!parcel.WriteInt64(heapSize)) {
+        return false;
+    }
+    if (!parcel.WriteString(threadName)) {
+        return false;
+    }
+    return true;
+}
+
+MemDumpResult *MemDumpResult::Unmarshalling(Parcel &parcel)
+{
+    MemDumpResult *result = new (std::nothrow) MemDumpResult();
+    if (result == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "result nullptr");
+        return nullptr;
+    }
+
+    uint32_t dumpTypeValue = 0;
+    if (!parcel.ReadUint32(dumpTypeValue)) {
+        delete result;
+        return nullptr;
+    }
+    result->dumpType = static_cast<MemDumpType>(dumpTypeValue);
+
+    if (!parcel.ReadString(result->rawResult)) {
+        delete result;
+        return nullptr;
+    }
+    if (!parcel.ReadInt64(result->heapSize)) {
+        delete result;
+        return nullptr;
+    }
+    if (!parcel.ReadString(result->threadName)) {
+        delete result;
+        return nullptr;
+    }
+
+    return result;
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS

@@ -392,11 +392,11 @@ public:
      * appmgr will forward the result to hidumper via callback.
      *
      * @param callback The callback received from ScheduleMem
-     * @param dumpResult The dump result string
+     * @param result The dump result
      * @return ERR_OK ,return back success, others fail.
      */
     virtual int ReportDumpMemResult(sptr<IMemDumpCallback> callback,
-        const std::string &dumpResult) = 0;
+        const MemDumpResult &result) = 0;
 
     /**
      * Start a resident process

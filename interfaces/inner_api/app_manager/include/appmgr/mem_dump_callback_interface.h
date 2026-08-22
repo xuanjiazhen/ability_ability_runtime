@@ -18,6 +18,7 @@
 
 #include "iremote_broker.h"
 #include "iremote_object.h"
+#include "app_mem_dump_info.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -25,7 +26,7 @@ class IMemDumpCallback : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.appexecfwk.MemDumpCallback");
 
-    virtual void OnMemDumpDone(const std::string &dumpResult) = 0;
+    virtual void OnMemDumpDone(const MemDumpResult &result) = 0;
 
     enum class Message {
         ON_MEM_DUMP_DONE,

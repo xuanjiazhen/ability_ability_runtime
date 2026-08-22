@@ -724,14 +724,14 @@ AppMgrResultCode AppMgrClient::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr
 }
 
 AppMgrResultCode AppMgrClient::ReportDumpMemResult(sptr<IMemDumpCallback> callback,
-    const std::string &dumpResult)
+    const MemDumpResult &result)
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "ReportDumpMemResult: service is nullptr");
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
-    return AppMgrResultCode(service->ReportDumpMemResult(callback, dumpResult));
+    return AppMgrResultCode(service->ReportDumpMemResult(callback, result));
 }
 
 AppMgrResultCode AppMgrClient::GetConfiguration(Configuration& config)
