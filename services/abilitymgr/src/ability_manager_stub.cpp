@@ -24,6 +24,7 @@
 #include "hitrace_meter.h"
 #include "insight_intent_execute_param.h"
 #include "insight_intent_execute_manager.h"
+#include "process_options.h"
 #include "skill_execute_param.h"
 #include "status_bar_delegate_interface.h"
 #include <iterator>
@@ -2123,6 +2124,9 @@ int AbilityManagerStub::StartAbilityForOptionsInner(MessageParcel &data, Message
     if (startOptions == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startOptions null");
         return ERR_INVALID_VALUE;
+    }
+    if (startOptions->processOptions != nullptr) {
+        startOptions->processOptions->SanitizeSystemFields();
     }
     sptr<IRemoteObject> callerToken = nullptr;
     if (data.ReadBool()) {
@@ -4536,6 +4540,9 @@ int AbilityManagerStub::StartAbilityForResultAsCallerForOptionsInner(MessageParc
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startOptions null");
         return ERR_INVALID_VALUE;
     }
+    if (startOptions->processOptions != nullptr) {
+        startOptions->processOptions->SanitizeSystemFields();
+    }
     sptr<IRemoteObject> callerToken = nullptr;
     if (data.ReadBool()) {
         callerToken = data.ReadRemoteObject();
@@ -4864,6 +4871,9 @@ int32_t AbilityManagerStub::OpenAtomicServiceInner(MessageParcel &data, MessageP
     if (options == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "options null");
         return ERR_INVALID_VALUE;
+    }
+    if (options->processOptions != nullptr) {
+        options->processOptions->SanitizeSystemFields();
     }
     sptr<IRemoteObject> callerToken = nullptr;
     if (data.ReadBool()) {
@@ -5222,6 +5232,9 @@ int32_t AbilityManagerStub::StartSelfUIAbilityWithStartOptionsInner(MessageParce
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startOptions null");
         return ERR_READ_START_OPTIONS;
     }
+    if (options->processOptions != nullptr) {
+        options->processOptions->SanitizeSystemFields();
+    }
     int32_t result = StartSelfUIAbilityWithStartOptions(*want, *options);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write StartSelfUIAbilityWithStartOptions result fail");
@@ -5265,6 +5278,9 @@ int32_t AbilityManagerStub::StartSelfUIAbilityWithStartOptionsAndTokenInner(Mess
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startOptions null");
         return ERR_READ_START_OPTIONS;
     }
+    if (options->processOptions != nullptr) {
+        options->processOptions->SanitizeSystemFields();
+    }
     sptr<IRemoteObject> callerToken = nullptr;
     if (data.ReadBool()) {
         callerToken = data.ReadRemoteObject();
@@ -5290,6 +5306,9 @@ int32_t AbilityManagerStub::StartSelfUIAbilityWithPidResultInner(MessageParcel &
     if (options == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startOptions null");
         return ERR_READ_START_OPTIONS;
+    }
+    if (options->processOptions != nullptr) {
+        options->processOptions->SanitizeSystemFields();
     }
     auto callbackId = data.ReadUint64();
     int32_t result = StartSelfUIAbilityWithPidResult(*want, *options, callbackId);
@@ -5736,6 +5755,9 @@ int AbilityManagerStub::StartSelfUIAbilityInCurrentProcessInner(MessageParcel &d
     if (startOptions == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startOptions null");
         return ERR_INVALID_VALUE;
+    }
+    if (startOptions->processOptions != nullptr) {
+        startOptions->processOptions->SanitizeSystemFields();
     }
     sptr<IRemoteObject> callerToken = nullptr;
     if (data.ReadBool()) {
