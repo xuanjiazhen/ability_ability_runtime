@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1500" font-family="'PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8c8c8c"/>
+    </marker>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1677ff"/>
+    </marker>
+    <linearGradient id="headGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#1f3a8a"/><stop offset="100%" stop-color="#1677ff"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 头部 -->
+  <rect x="0" y="0" width="1600" height="86" fill="url(#headGrad)"/>
+  <text x="800" y="40" font-size="34" font-weight="bold" fill="#ffffff" text-anchor="middle">AI 语音助手任务管理机制（AI Task Manager）</text>
+  <text x="800" y="70" font-size="18" fill="#d6e4ff" text-anchor="middle">OpenHarmony 7.1 · ability_runtime · 任务级进程管控 · 参考 google-adk Invocation</text>
+
+  <!-- ══════════ 背景 ══════════ -->
+  <text x="60" y="130" font-size="26" font-weight="bold" fill="#cf1322">▍背景：AI 语音助手当前痛点</text>
+  <rect x="60" y="150" width="720" height="120" rx="12" fill="#fff1f0" stroke="#ff7875" stroke-width="2"/>
+  <text x="420" y="182" font-size="20" font-weight="bold" fill="#cf1322" text-anchor="middle">定时任务 · 锁屏下执行失败</text>
+  <text x="420" y="212" font-size="16" fill="#595959" text-anchor="middle">闹钟联动、定时播报等任务在锁屏场景</text>
+  <text x="420" y="236" font-size="16" fill="#595959" text-anchor="middle">进程被系统冻结，任务无法完成</text>
+  <rect x="820" y="150" width="720" height="120" rx="12" fill="#fff1f0" stroke="#ff7875" stroke-width="2"/>
+  <text x="1180" y="182" font-size="20" font-weight="bold" fill="#cf1322" text-anchor="middle">长时任务 · 切后台后被冻结</text>
+  <text x="1180" y="212" font-size="16" fill="#595959" text-anchor="middle">批量处理、持续播报等任务切换后台后，</text>
+  <text x="1180" y="236" font-size="16" fill="#595959" text-anchor="middle">进程被 RSS 管控冻结，执行中断</text>
+  <rect x="60" y="290" width="1480" height="44" rx="10" fill="#fffbe6" stroke="#faad14" stroke-width="1.5"/>
+  <text x="800" y="318" font-size="17" fill="#ad6800" text-anchor="middle">根因：缺乏任务级维度的可信资源管控手段 —— 安全管控问题暂不讨论，本期聚焦 RSS 管控（冻结）问题</text>
+
+  <!-- ══════════ 方案 ══════════ -->
+  <text x="60" y="380" font-size="26" font-weight="bold" fill="#003eb3">▍方案：任务管理机制架构</text>
+
+  <!-- 调用方层 -->
+  <rect x="60" y="400" width="1480" height="64" rx="10" fill="#e6f4ff" stroke="#69b1ff" stroke-width="1.5"/>
+  <text x="220" y="438" font-size="18" font-weight="bold" fill="#003eb3" text-anchor="middle">AI 语音助手</text>
+  <text x="220" y="456" font-size="13" fill="#595959" text-anchor="middle">创建任务/设置状态/提交输入</text>
+  <text x="800" y="438" font-size="18" font-weight="bold" fill="#003eb3" text-anchor="middle">系统 UI</text>
+  <text x="800" y="456" font-size="13" fill="#595959" text-anchor="middle">监听任务状态/展示进度/用户交互</text>
+  <text x="1380" y="438" font-size="18" font-weight="bold" fill="#003eb3" text-anchor="middle">启动链路</text>
+  <text x="1380" y="456" font-size="13" fill="#595959" text-anchor="middle">StartAbility / ConnectAbility / 意图 / Cli / A2A</text>
+  <line x1="220" y1="464" x2="220" y2="500" stroke="#8c8c8c" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="800" y1="464" x2="800" y2="500" stroke="#8c8c8c" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="1380" y1="464" x2="1380" y2="500" stroke="#8c8c8c" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- AMS 拦截点 -->
+  <rect x="1080" y="500" width="460" height="74" rx="10" fill="#f0f5ff" stroke="#597ef7" stroke-width="2" stroke-dasharray="6 4"/>
+  <text x="1310" y="528" font-size="17" font-weight="bold" fill="#2f54eb" text-anchor="middle">AMS 拦截点（最小改动）</text>
+  <text x="1310" y="552" font-size="14" fill="#595959" text-anchor="middle">解析 Want 携带的 ohos.ai.taskId → 两段式纳管</text>
+  <text x="1310" y="570" font-size="13" fill="#8c8c8c" text-anchor="middle">① RegisterTaskIntent（意向）② attach 后 RegisterTaskProcess</text>
+
+  <!-- AppMS 主框 -->
+  <rect x="60" y="500" width="980" height="330" rx="14" fill="#fafafa" stroke="#1677ff" stroke-width="3"/>
+  <text x="100" y="528" font-size="20" font-weight="bold" fill="#1677ff">AppMS（SA 501 · foundation 进程 · 收口）</text>
+
+  <!-- task_mgr -->
+  <rect x="90" y="548" width="430" height="118" rx="10" fill="#e6f4ff" stroke="#69b1ff" stroke-width="2"/>
+  <text x="305" y="574" font-size="17" font-weight="bold" fill="#003eb3" text-anchor="middle">task_mgr（任务语义层）</text>
+  <text x="305" y="600" font-size="14" fill="#595959" text-anchor="middle">任务模型 · 状态机（9 态）· 生命周期</text>
+  <text x="305" y="624" font-size="14" fill="#595959" text-anchor="middle">状态查询/监听 · INPUT/AUTH 交互传达 · DFX</text>
+  <text x="305" y="648" font-size="13" fill="#8c8c8c" text-anchor="middle">ITaskManager（IDL）· 创建者鉴权 · 随机 taskId（B-1）</text>
+
+  <!-- process_schedule -->
+  <rect x="550" y="548" width="460" height="118" rx="10" fill="#e6fffb" stroke="#5cdbd3" stroke-width="2"/>
+  <text x="780" y="574" font-size="17" font-weight="bold" fill="#08979c" text-anchor="middle">process_schedule（通用能力层）</text>
+  <text x="780" y="600" font-size="14" fill="#595959" text-anchor="middle">进程组双向索引 · 管控档位合并（max）</text>
+  <text x="780" y="624" font-size="14" fill="#595959" text-anchor="middle">多任务归属（进程按最高档管控）</text>
+  <text x="780" y="648" font-size="13" fill="#8c8c8c" text-anchor="middle">结束降级恢复 · 进程死亡清理 · 上限防滥用</text>
+
+  <!-- ResourceControlProxy -->
+  <rect x="90" y="690" width="920" height="118" rx="10" fill="#f9f0ff" stroke="#b37feb" stroke-width="2"/>
+  <text x="550" y="716" font-size="17" font-weight="bold" fill="#531dab" text-anchor="middle">ResourceControlProxy（资源管控代理层 · 代理模式）</text>
+  <text x="550" y="742" font-size="14" fill="#595959" text-anchor="middle">语义接口：ControlRequest{taskId, pid, uid, tokenId, bundleName, type, priority, state, level, reason, timestamp}</text>
+  <text x="550" y="766" font-size="14" fill="#595959" text-anchor="middle">一期 RCP-Stub：动作账本 + 告警 + 探测开关（默认关）｜RSS 对接后替换 RCP-Impl，上层零改动</text>
+  <text x="550" y="790" font-size="13" fill="#8c8c8c" text-anchor="middle">管控动作：EXEMPT 冻结豁免 / CLEAR_EXEMPT / THAW 解冻 / SET_QOS（二期）/ ResetAll 恢复</text>
+
+  <line x1="305" y1="666" x2="305" y2="690" stroke="#8c8c8c" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="780" y1="666" x2="550" y2="690" stroke="#8c8c8c" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- RSS 层 -->
+  <rect x="60" y="850" width="980" height="66" rx="10" fill="#f6ffed" stroke="#95de64" stroke-width="2"/>
+  <text x="550" y="878" font-size="17" font-weight="bold" fill="#389e0d" text-anchor="middle">resource_schedule_service（RSS 团队主导 · 不改代码）</text>
+  <text x="550" y="902" font-size="14" fill="#595959" text-anchor="middle">冻结豁免 505 / 解冻 517 / 状态查询 506·507 · 二期扩展：CPU 优先级 221 · 低内存查杀 520</text>
+  <line x1="550" y1="808" x2="550" y2="850" stroke="#8c8c8c" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="1310" y1="574" x2="980" y2="574" stroke="#597ef7" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrowBlue)"/>
+
+  <!-- 关键机制条 -->
+  <rect x="1080" y="600" width="460" height="230" rx="12" fill="#fafafa" stroke="#d9d9d9" stroke-width="1.5"/>
+  <text x="1310" y="630" font-size="18" font-weight="bold" fill="#262626" text-anchor="middle">关键机制</text>
+  <text x="1100" y="664" font-size="15" fill="#595959">· 状态机：9 态 + 流转校验（终态不可回退）</text>
+  <text x="1100" y="692" font-size="15" fill="#595959">· 优先级 4 档：LOW / MEDIUM / HIGH / CRITICAL</text>
+  <text x="1100" y="720" font-size="15" fill="#595959">· 防仿冒 B-1+B-2：随机 taskId + caller 身份校验</text>
+  <text x="1100" y="748" font-size="15" fill="#595959">· 交互传达：INPUT/AUTH payload 挂起 → 回传</text>
+  <text x="1100" y="776" font-size="15" fill="#595959">· 对齐 google-adk：Invocation / HITL / 事件流</text>
+  <text x="1100" y="804" font-size="15" fill="#595959">· 多任务并发 ≥16 · 进程多任务按最高档</text>
+  <rect x="1080" y="830" width="460" height="46" rx="10" fill="#fffbe6" stroke="#faad14" stroke-width="1.5"/>
+  <text x="1310" y="858" font-size="14" fill="#ad6800" text-anchor="middle">开放项：枚举与 AI 助手对齐 · 锁屏豁免边界（搁置）· RSS 对接</text>
+
+  <!-- ══════════ 修改点 ══════════ -->
+  <text x="60" y="960" font-size="26" font-weight="bold" fill="#389e0d">▍修改点（ability_ability_runtime）</text>
+
+  <!-- 新增 -->
+  <rect x="60" y="980" width="780" height="430" rx="12" fill="#f6ffed" stroke="#95de64" stroke-width="2"/>
+  <text x="450" y="1012" font-size="19" font-weight="bold" fill="#389e0d" text-anchor="middle">新增（约 35~40 个文件）</text>
+  <text x="90" y="1046" font-size="15" fill="#595959">· services/appmgr/src/task_mgr/ —— 任务模型、状态机、监听、交互、DFX</text>
+  <text x="90" y="1076" font-size="15" fill="#595959">· services/appmgr/src/process_schedule/ —— 进程组、档位合并、管控动作</text>
+  <text x="90" y="1106" font-size="15" fill="#595959">· services/appmgr/src/resource_control_proxy/ —— 代理层（Stub 骨架 + Impl 占位）</text>
+  <text x="90" y="1136" font-size="15" fill="#595959">· interfaces/inner_api/app_manager/task_manager/ —— ITaskManager.idl</text>
+  <text x="90" y="1166" font-size="15" fill="#595959">· TaskManagerClient（C++ 客户端）· TaskListener 回调接口</text>
+  <text x="90" y="1196" font-size="15" fill="#595959">· hisysevent.yaml —— TASK_CREATE / TASK_STATE_CHANGE / TASK_DESTROY /</text>
+  <text x="90" y="1226" font-size="15" fill="#595959">   TASK_INPUT / TASK_RSSCONTROL / TASK_ABUSE_WARNING 共 6 事件</text>
+  <text x="90" y="1256" font-size="15" fill="#595959">· 错误码段（任务域 5 个 + 复用 ERR_INVALID_PARAM）</text>
+  <text x="90" y="1286" font-size="15" fill="#595959">· test/unittest/ —— task_mgr 单测、拦截集成用例（四链路）</text>
+  <text x="90" y="1316" font-size="15" fill="#595959">· 特性开关 ability_runtime_ai_task_manager_enable（默认 true）</text>
+
+  <!-- 修改 -->
+  <rect x="880" y="980" width="660" height="430" rx="12" fill="#fff7e6" stroke="#ffc53d" stroke-width="2"/>
+  <text x="1210" y="1012" font-size="19" font-weight="bold" fill="#d48806" text-anchor="middle">修改（最小化）</text>
+  <text x="910" y="1046" font-size="15" fill="#595959">· services/abilitymgr —— StartAbilityInner / ConnectAbility</text>
+  <text x="930" y="1072" font-size="14" fill="#8c8c8c">  拦截点：解析 ohos.ai.taskId → 两段式纳管（失败不阻断启动）</text>
+  <text x="910" y="1106" font-size="15" fill="#595959">· services/appmgr/BUILD.gn —— 新增源文件（ressched_client 依赖已有）</text>
+  <text x="910" y="1136" font-size="15" fill="#595959">· services/appmgr 主类 OnStart —— 最小挂点（taskHandler 初始化）</text>
+  <text x="910" y="1166" font-size="15" fill="#595959">· 进程死亡通知链 —— 复用既有 AppDeathRecipient（最小挂点）</text>
+  <text x="910" y="1196" font-size="15" fill="#595959">· ability_runtime.gni / error_utils —— 开关与错误码</text>
+  <text x="910" y="1236" font-size="16" font-weight="bold" fill="#d48806">约束</text>
+  <text x="910" y="1266" font-size="14" fill="#595959">· 不扩 IAppMgr 既有接口、不改 IPC 序列化（AGENTS.md）</text>
+  <text x="910" y="1296" font-size="14" fill="#595959">· AMS 经 inner_api 客户端调 AppMS，不直接调内部方法</text>
+  <text x="910" y="1326" font-size="14" fill="#595959">· RSS 仓不改代码（RSS 团队主导设计）</text>
+
+  <!-- 规模条 -->
+  <rect x="60" y="1430" width="1480" height="52" rx="10" fill="#f0f5ff" stroke="#597ef7" stroke-width="2"/>
+  <text x="800" y="1462" font-size="17" font-weight="bold" fill="#2f54eb" text-anchor="middle">代码量 ≈ 1.1 万行（生产 ~6,600 + 单测 ~4,300）· 单人约 4~6 周 · 任务分解 TASK-0~TASK-6 · RSS 真实对接与二期扩展（QoS/低内存查杀/NAPI）另计</text>
+</svg>

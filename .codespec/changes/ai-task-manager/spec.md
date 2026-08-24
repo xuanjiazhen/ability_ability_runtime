@@ -164,7 +164,7 @@
 | R-4 | 异常 | 调用 SetTaskState 发起非法流转（终态回退、未注册流转、REJECTED 由非创建者设置） | 返回 ERR_TASK_INVALID_STATE_TRANSITION，任务状态不变 | 终态（COMPLETED/CANCELED/FAILED/REJECTED）不可再流转 | AC-1.3 |
 | R-5 | 行为 | 调用 CancelTask/DestroyTask，任务存在且调用方为创建者 | CancelTask：任务进入 CANCELED（非终态时）并触发降级；DestroyTask：任务记录清理并触发降级；返回 ERR_OK | DestroyTask 对任意状态可执行（幂等：不存在返回 ERR_TASK_NOT_FOUND） | AC-1.4 |
 | R-6 | 异常 | 非任务创建者调用 SetTaskState/CancelTask/DestroyTask/SubmitTaskInput | 返回 ERR_TASK_PERMISSION_DENIED，任务不受影响 | 创建者为 CreateTask 时的调用方 tokenId/uid 绑定 | AC-1.6, AC-4.4 |
-| R-7 | 行为 | 启动链路（StartAbility/ConnectAbility/意图/Cli/A2A）请求中 Want 携带 taskId，且发起方为任务创建者或任务内已纳管进程 | 目标进程注册进任务，GetTaskInfo 可见；纳管成功不影响启动结果 | 任务不存在时忽略 taskId，不报错不阻断 | AC-2.1 |
+| R-7 | 行为 | 启动链路（StartAbility/ConnectAbility/意图/Cli/A2A，含代理启动变体）请求中 Want 携带 taskId，且业务发起方为任务创建者或任务内已纳管进程 | 目标进程注册进任务（**条件两段式**：进程已存在→直接注册；未创建→意向登记+attach 补注册），GetTaskInfo 可见；纳管成功不影响启动结果 | 校验身份取业务发起方（asCallerSourceToken/specifyTokenId 优先）；任务不存在时忽略 taskId，不报错不阻断 | AC-2.1 |
 | R-8 | 异常 | Want 携带 taskId，但发起方既非任务创建者也非任务内进程（伪造/仿冒） | 拒绝纳管：启动正常执行但进程不纳入任务；不上报错误给调用方 | 校验基于发起方 tokenId/uid 与任务创建者绑定；taskId 不可猜测（R-1） | AC-2.2 |
 | R-9 | 行为 | 任务进入终态（COMPLETED/CANCELED/FAILED/REJECTED）或 DestroyTask | 对该任务下全部纳管进程执行降级：撤销豁免/恢复 QoS；进程归属按剩余任务最高优先级重算（无任务则完全恢复） | 降级在状态机事件处理中同步执行；失败重试 ≤3 次后记录告警 | AC-1.4, AC-5.2 |
 | R-10 | 边界 | 进程被多个任务纳管，各任务管控档位不同 | 进程实际管控档位 = 纳管它的任务中最高档位；高任务结束后降至次高档位 | 档位映射：任务优先级→管控档位表见 design.md | AC-2.3, AC-5.4 |
@@ -177,7 +177,7 @@
 | R-17 | 行为 | 用户选择后调用 SubmitTaskInput(taskId, input)，调用方为创建者，任务处于交互状态 | 返回 ERR_OK；input 持久到任务记录，创建者通过监听/查询获取；任务可流转出交互状态 | 非交互状态调用返回 ERR_TASK_INVALID_STATE；input 大小上限可配（默认 4KB） | AC-4.2 |
 | R-18 | 异常 | 任务处于交互状态时被取消/销毁 | 交互状态清理（payload/input 清除），不再回调，任务进入终态 | 清理在状态机终态处理中同步完成 | AC-4.3 |
 | R-19 | 行为 | 高优先级任务处于工作状态（WORKING/INPUT_REQUIRED/AUTH_REQUIRED），策略判定需豁免 | 经 RSS 管控层（ResourceControlProxy）对纳管进程下发冻结豁免请求并留存豁免账本（账本含 pid/动作/档位/时间戳/结果）；RSS 对接完成后豁免实际生效 | 优先级→豁免档位映射与豁免判定见 design.md 资源调度子模块；ResourceControlProxy 一期为骨架实现（账本+告警，探测开关默认关），对接策略见 design.md §6.4 | AC-5.1 |
-| R-20 | 行为 | 任务降级/结束，且豁免需撤销 | 经 RSS 管控层（ResourceControlProxy）撤销豁免/解冻并记录账本，进程恢复任务前状态 | 撤销失败重试 ≤3 次后告警并保留账本供复核 | AC-5.2, AC-5.4 |
+| R-20 | 行为 | 任务降级/结束（终态/DestroyTask） | **双通道清理**：① 进程级——经 ResourceControlProxy 对纳管进程撤销豁免/解冻并记录账本，进程按剩余任务最高档重算；② 任务级——NotifyTaskEnd(taskId, pids, reason) 通知 RSS 清理按任务建立的策略/账本 | 两通道在 taskHandler 串行执行，②在①之后；失败重试 ≤3 次后告警并保留账本供复核 | AC-5.2, AC-5.4 |
 | R-21 | 边界 | 低优先级任务或任务处于非工作状态（UNKNOWN/SUBMITTED/COMPLETED 等） | 不豁免，或仅限时豁免（时长可配，默认 0 = 不豁免） | 豁免时长上限可配（默认 60min） | AC-5.3 |
 | R-22 | 边界 | 系统中活跃豁免数量或单任务豁免时长超过配置上限 | 拒绝新增豁免，任务降级为不豁免档，记录告警 hisysevent | 豁免数量上限可配（默认 64 进程）；时长上限见 R-21 | AC-5.5 |
 | R-23 | 行为 | 执行任务相关 dump（hidumper -a 501 / aa 命令） | 输出任务列表：taskId、状态、类型、优先级、纳管进程（pid）、管控档位、payload 摘要、时间戳 | dump 仅 shell/hidumper 可调用（复用既有校验） | AC-6.1 |

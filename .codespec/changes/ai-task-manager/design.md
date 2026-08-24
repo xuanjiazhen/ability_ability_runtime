@@ -83,7 +83,7 @@
 |---------|------|----------|-----------------|------|------|
 | ADR-1 | 模块形态 | 并入 AppMS（SA 501）：task_mgr + process_schedule 两子模块 | agentmgr 内嵌（A-1：A2A/意图/Cli 进程不经过，收口不全，放弃）；独立 SA（A-3：进程/IPC 形态重，进程信息仍需 AppMS，放弃） | 进程权威信息在 AppMS；RSS 通道现成；收口单一接口面（proposal 方案探索 A-2） | 影响范围表、任务 #5 |
 | ADR-2 | taskId 传递与防仿冒 | Want 参数统一拦截（key 约定 `ohos.ai.taskId`）+ B-1 随机 taskId + B-2 caller 身份绑定校验 | token 化（B-3：短时 token 换 taskId，防重放增强但增加调用方负担，作可选增强）；显式注册（B-4：与统一拦截冲突，放弃） | 调用方无感知；caller 校验防仿冒最彻底；链式启动语义与 ADK supervisor 可信链一致 | 接口 RegisterTaskProcess 带 callerTokenId；AC-2.2 |
-| ADR-3 | 进程纳管时机 | 两段式：① 拦截点解析 Want → RegisterTaskIntent(taskId, callerTokenId)（AppMS 校验 caller 并登记意向，超时 30s 清理）；② 进程 attach（pid 就绪）→ RegisterTaskProcess(taskId, pid, callerTokenId) 完成纳管 | 仅启动请求时纳管（进程未创建无 pid，需按 pid 匹配进程，失败率高）；仅 attach 后纳管（taskId 需穿透 attach 链，侵入 appmgr 热路径） | 覆盖进程未创建/已存在两态；attach 点复用 AMS 既有 pid 就绪回调（OnAbilityRequestDone/AttachAbilityThread），appmgr 热路径零侵入 | AC-2.1 |
+| ADR-3 | 进程纳管时机 | **条件两段式**：拦截点① 解析 Want + 判定目标 pid——进程已存在（record->GetPid()>0）→ 直接 RegisterTaskProcess；进程未创建 → RegisterTaskIntent 意向登记，attach（pid 就绪）时补 RegisterTaskProcess | 仅启动请求时纳管（进程未创建无 pid，失败率高）；仅 attach 后纳管（已存在进程无 attach，无法覆盖，且 taskId 需穿透 attach 链） | 覆盖进程未创建/已存在两态（评审第六轮修正）；attach 点复用 AMS 既有 pid 就绪回调，appmgr 热路径零侵入 | AC-2.1 |
 | ADR-4 | RSS 集成方式 | **封装 RSS Proxy 代理层**（代理模式）：按管控动作语义定义接口（豁免/解冻/查询/提权预留），一期骨架实现（动作记账+告警，可配探测开关），RSS 团队设计明确后替换真实实现（优先复用现有 resType 505/517，如 RSS 提供新接口则直接对接） | 直接复用现有 resType 对接（payload 语义未明确，无法落地）；新增 RSS resType/插件（RSS 团队主导，触发内存基线评审） | RSS 设计由 RSS 团队主导（暂未明确）；代理层隔离使 RSS 对接变化不波及任务/调度上层；白名单已确认（res_sched_service.cpp:175）可供对接期参考 | AC-5.x |
 | ADR-5 | 管控档位模型 | 档位化 + 合并：任务优先级→管控档位（0~3）；进程档位 = max(纳管任务档位)；档位变化增量施加/撤销 RSS 动作 | 每任务独立施加（同进程重复调用 RSS，幂等管理复杂）；全局统一（无法表达优先级差） | 档位合并天然满足需求 11（多任务按最高）；增量动作避免重复调用 | AC-2.3, AC-5.4 |
 | ADR-6 | 状态机驱动 | AI 助手驱动 + 模块校验（合法流转表；终态不可回退；REJECTED 仅创建者可设） | 助手全权设置（状态易乱，放弃）；模块自动推导（语义易偏差，放弃） | 与需求 2/5 一致；流转合法性由系统把关 | AC-1.2, AC-1.3 |
@@ -295,27 +295,54 @@ interface ITaskListener {   // 系统 UI 注册
 | ③ 任务内进程链式纳管（任务内进程启动新进程并携带 taskId） | 属 B-2 接受的信任语义（创建者可信链，对齐 ADK supervisor→sub-agent）；滥用面受 **任务进程集合上限**（R-22，默认 64）与豁免时长上限约束，且 TASK_RSSCONTROL/TASK_ABUSE_WARNING 全程审计 | 接受，上限+审计约束 |
 | ④ AMS 拦截点覆盖不全（绕过拦截直接启动） | 所有启动链路收敛于 AMS 统一入口（StartAbilityInner/ConnectAbility 收敛点），拦截点置于收敛处；execution-plan TASK-3 以四链路（Start/Connect/意图/Cli）集成用例验证覆盖 | 收敛点覆盖保证 |
 | ⑤ taskId 猜测 | B-1：128bit 随机熵，不可猜测 | 无风险 |
+| ⑥ 代理启动（StartAbilityAsCaller/WithSpecifyTokenId）绕过校验 | 拦截点校验身份取**业务发起方**（asCallerSourceToken/specifyTokenId 优先，非 AMS 内部调用者）——代理启动时被代理身份才是 B-2 校验对象；系统服务内部转发（无业务发起方）视为无身份 → 不纳管 | 无仿冒面（补充：校验身份规则明确） |
+| ⑦ 已存在进程直接纳管（条件两段式）的身份一致性 | 直接注册路径同样携带业务发起方 tokenId 过 B-2 校验（与意向路径同一校验函数），AppMS 校验 pid 存活且归属与目标一致 | 无仿冒面 |
 
-**结论**：两段式本身不引入新增仿冒面——仿冒防护完全由 B-2 caller 校验承担，且在意向与纳管两阶段都执行；设计强化点 = ②pid 归属校验 + ③进程集合上限（均已在 R-22/5.6 覆盖，落地时落实）。
+**结论**：两段式（修正为条件两段式）本身不引入新增仿冒面——仿冒防护完全由 B-2 caller 校验承担，且在意向/直接注册路径都执行；设计强化点 = ②pid 归属校验 + ③进程集合上限 + ⑥代理启动身份规则（均已在 5.4/5.6/R-22 覆盖，落地时落实）。
 
-### 5.4 AMS 拦截点设计（最小改动）
+### 5.4 AMS 拦截点设计（启动链路场景全覆盖 + 条件两段式）
 
-| 链路 | 拦截位置 | 说明 |
-|------|----------|------|
-| StartAbility | `AbilityManagerService::StartAbilityInner`（ability_manager_service.cpp，启动参数解析处） | 解析 `want.GetStringParam("ohos.ai.taskId")`；无参数直接短路（零开销 R-13） |
-| ConnectAbility / ServiceExtension / UIExtension | `AbilityConnectManager` 连接处理收敛点 | 同上 |
-| 意图框架（InsightIntent） | 意图执行最终收敛于 StartAbility/ConnectAbility 既有链路 | 无需独立拦截点 |
-| Cli | `tools/aa` 启动最终收敛于 AMS StartAbility | 同上 |
-| A2A | A2A 服务端为 Agent 扩展，启动/连接收敛于 AMS 链路；taskId 由 supervisor 透传 | 同上 |
+#### 5.4.1 启动链路场景全覆盖（评审答复 2026-08-21 第六轮）
 
-拦截逻辑（不侵入 appmgr 热路径）：
+| # | 场景 | 收敛点（全部经核实的 file:line） | 拦截设计 | 覆盖 |
+|---|------|-------------------------------|----------|------|
+| 1 | StartAbility（前台/后台 want 启动） | `StartAbilityInner`（ability_manager_service.cpp:1360 定义；:807/:876/:1013/:1130/:1195/:2372/:14183/:14777 全部变体收敛于此） | 拦截点①位于 StartAbilityInner 参数解析处 | ✅ |
+| 2 | 免安装启动 StartAbilityByFreeInstall | :876 收敛 StartAbilityInner | 同上（天然覆盖） | ✅ |
+| 3 | 指定身份启动 StartAbilityWithSpecifyTokenId | :895/:1013 收敛 StartAbilityInner（specifyTokenId 传入） | 同上；**校验身份 = specifyTokenId 而非 GetCallingTokenID**（业务发起方） | ✅ |
+| 4 | 以调用方身份启动 StartAbilityAsCaller / ImplicitStartAbilityAsCaller | :1145/:1156/:1195 收敛（asCallerSourceToken 传入） | 同上；**校验身份 = asCallerSourceToken**（业务发起方） | ✅ |
+| 5 | ConnectAbility / ConnectAbilityWithExtensionType | `AbilityConnectManager` 连接处理收敛点（含 agentmgr 转发路径，agent 连接验证先例 ability_manager_service.cpp:6085） | 拦截点①在连接收敛点解析；②在 ServiceRecord attach 处补注册 | ✅ |
+| 6 | StartServiceExtensionAbility / StartUIExtensionAbility / StartModalUIExtension | 扩展启动收敛于 AMS 启动/连接链路 | 同上 | ✅ |
+| 7 | 意图框架 InsightIntent | 意图执行器最终调用 AMS StartAbility/ConnectAbility 既有接口 | 天然覆盖 | ✅ |
+| 8 | Cli（aa 命令） | `tools/aa` 经 AMS StartAbility 接口 | 天然覆盖；shell 身份带 taskId 时按 B-2 校验（非创建者 → 拒） | ✅ |
+| 9 | A2A（Agent 扩展） | A2A 服务端为 AgentExtensionAbility，经 agentmgr→AMS ConnectAbilityWithExtensionType；taskId 由 supervisor 参数透传 | 覆盖（场景 5 链路） | ✅ |
+| 10 | 后台拉起（WorkScheduler/BackgroundTask 拉起进程） | 非 AI 助手启动链，无 taskId 透传 | **不纳管**（设计原则：纳管只发生在带合法 taskId 的启动链） | 原则 |
+| 11 | 卡片/表单启动、系统恢复启动 | 无 taskId | 不纳管（R-13 零影响） | 原则 |
+| 12 | 任务内进程派生子进程（ChildProcess） | 子进程经 appmgr ChildProcessRecord 创建（非 AMS 链路） | **扩展场景**：appmgr 侧挂点——父进程在任务内则子进程自动纳入任务（复用同一挂点链）；一期最小实现或开放项（记录待确认） | 扩展 |
+
+> 原则：拦截点置于**收敛处**（StartAbilityInner + AbilityConnectManager 两处），任何新启动变体只要收敛于此即自动覆盖；拦截仅做参数解析与身份判定，失败不阻断启动（R-8/R-13）。
+
+#### 5.4.2 条件两段式拦截逻辑（修正：覆盖"已存在进程"场景）
+
+**问题**（评审指出）：原两段式的②挂于"进程 attach"（AttachAbilityThread/OnAbilityRequestDone）——该回调**仅在进程新建时发生**；若启动目标进程已存在（如复用的 ServiceRecord、已运行的扩展进程、预加载进程），②不会触发 → 已存在进程无法被纳管。
+
+**修正：条件两段式**——拦截点①在获得目标 AbilityRecord 后判断 pid 可得性：
 ```
-taskId = want.GetStringParam("ohos.ai.taskId")          // 无 → 短路返回
-callerTokenId = IPCSkeleton::GetCallingTokenID()
-TaskManagerClient::RegisterTaskIntent(taskId, callerTokenId)   // ① 意向（AppMS 校验+登记，30s 超时清理）
-// 进程 attach 时（AMS OnAbilityRequestDone / AttachAbilityThread 处 pid 就绪）：
-TaskManagerClient::RegisterTaskProcess(taskId, pid, callerTokenId)  // ② 完成纳管
+taskId = want.GetStringParam("ohos.ai.taskId")              // 无 → 短路（零开销 R-13）
+callerTokenId = 业务发起方身份（specifyTokenId / asCallerSourceToken 优先，
+                 否则 callerToken 解析，兜底 IPCSkeleton::GetCallingTokenID()）
+targetPid = abilityRecord ? abilityRecord->GetPid() : 0      // 目标 record 已关联进程时可得
+if (targetPid > 0) {
+    TaskManagerClient::RegisterTaskProcess(taskId, targetPid, callerTokenId)   // 进程已存在 → 直接纳管
+} else {
+    TaskManagerClient::RegisterTaskIntent(taskId, callerTokenId)               // 进程未创建 → 意向登记
+    // attach 时（AttachAbilityThread / OnAbilityRequestDone，pid 就绪）：
+    TaskManagerClient::RegisterTaskProcess(taskId, pid, callerTokenId)         // 补注册
+}
 ```
+- 意向超时清理：30s 未补注册则移除（attach 晚于超时由 attach 处重发①）；
+- 进程已存在直接纳管时无意向阶段（简化账本：一次动作）；
+- `AbilityRecord::GetPid()` 可得性已核实（ability_connect_manager.cpp:327 既有使用）；连接场景对已运行服务同理（ServiceRecord 持有 pid，:791）。
+
 > 调用经 `interfaces/inner_api/app_manager/` 客户端（既有 AMS→AppMS 通道体系），符合 AGENTS.md；所有调用失败仅日志告警，不阻断启动（R-7/R-8/R-13）。
 
 ### 5.5 监听与交互机制
@@ -412,11 +439,24 @@ struct ControlRequest {          // 完整上下文：供 RSS 对接实现与未
 
 class ResourceControlProxy {     // 单例；taskHandler 串行访问
     virtual int32_t ApplyControl(const ControlRequest& request) = 0;    // 施加管控（按 action 与 level）
-    virtual int32_t RestoreControl(const ControlRequest& request) = 0;  // 撤销管控
+    virtual int32_t RestoreControl(const ControlRequest& request) = 0;  // 撤销管控（单进程）
+    virtual int32_t NotifyTaskEnd(const TaskEndInfo& info) = 0;         // 任务结束通知（RSS 侧清理任务级策略）
     virtual int32_t QueryControlState(int32_t pid, bool& controlled) = 0; // 查询（预留）
     virtual int32_t ResetAll(int32_t pid) = 0;                          // 恢复该进程全部管控
 };
+
+struct TaskEndInfo {             // 任务结束清理信息（评审第六轮：task 结束后通知 RSS 清理资源管控策略）
+    std::string taskId;          // 结束的任务
+    std::vector<int32_t> pids;   // 该任务全部纳管进程（结束前快照）
+    int32_t endReason;           // 结束原因（COMPLETED/CANCELED/FAILED/REJECTED/DESTROY）
+    uint64_t timestamp;
+};
 ```
+
+> **任务结束清理双通道**（评审第六轮）：任务进入终态/DestroyTask 时——
+> ① **进程级撤销**：对每个纳管进程 RestoreControl（撤销豁免/恢复 QoS），进程按剩余任务最高档重算（R-9/R-10）；
+> ② **任务级清理通知**：NotifyTaskEnd(taskId, pids, reason) 一次性通知 RSS 侧清理按 taskId 建立的任务级策略/账本（如豁免组、优先级组），防止 RSS 侧残留策略；RSS 对接后实现为 RSS 清理接口，一期 Stub 记账 + 告警。
+> 两者在 taskHandler 串行执行，②在①之后；执行失败重试 ≤3 并告警保留账本（R-20 扩展）。
 
 > **暴露更多信息的意图**（评审反馈）：ControlRequest 携带任务与进程完整上下文，① RSS 对接实现可基于 bundleName/type/priority/state 等字段做定制化策略（RSS 侧策略未定时信息不缺失）；② 未来对接其他管控方（qos/温控/低内存查杀）时请求结构直接复用；③ 账本记录完整上下文，对接验收与问题定位信息完备。
 

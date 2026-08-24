@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1560" font-family="'PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8c8c8c"/>
+    </marker>
+    <marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1677ff"/>
+    </marker>
+    <linearGradient id="hg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#1f3a8a"/><stop offset="100%" stop-color="#1677ff"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="80" fill="url(#hg)"/>
+  <text x="800" y="38" font-size="30" font-weight="bold" fill="#fff" text-anchor="middle">任务管理机制 · 整体流程图</text>
+  <text x="800" y="66" font-size="16" fill="#d6e4ff" text-anchor="middle">任务创建 → 启动纳管 → RSS 管控 → 交互传达 → 结束清理（泳道时序）</text>
+
+  <!-- 泳道 -->
+  <rect x="40" y="100" width="370" height="1420" fill="#f0f5ff"/>
+  <rect x="420" y="100" width="360" height="1420" fill="#fff7e6"/>
+  <rect x="790" y="100" width="420" height="1420" fill="#f6ffed"/>
+  <rect x="1220" y="100" width="340" height="1420" fill="#f9f0ff"/>
+  <text x="225" y="128" font-size="19" font-weight="bold" fill="#2f54eb" text-anchor="middle">AI 语音助手</text>
+  <text x="600" y="128" font-size="19" font-weight="bold" fill="#d48806" text-anchor="middle">AMS（拦截点）</text>
+  <text x="1000" y="128" font-size="19" font-weight="bold" fill="#389e0d" text-anchor="middle">AppMS（task_mgr / process_schedule / RCP）</text>
+  <text x="1390" y="128" font-size="19" font-weight="bold" fill="#531dab" text-anchor="middle">RSS</text>
+
+  <!-- ① 创建任务 -->
+  <circle cx="225" cy="180" r="15" fill="#1677ff"/>
+  <text x="225" y="185" font-size="15" font-weight="bold" fill="#fff" text-anchor="middle">1</text>
+  <rect x="90" y="210" width="270" height="74" rx="10" fill="#fff" stroke="#69b1ff" stroke-width="2"/>
+  <text x="225" y="236" font-size="14" font-weight="bold" fill="#003eb3" text-anchor="middle">CreateTask(type, priority, payload)</text>
+  <text x="225" y="258" font-size="12" fill="#595959" text-anchor="middle">系统应用鉴权 · 随机 taskId（B-1）</text>
+  <text x="225" y="276" font-size="12" fill="#8c8c8c" text-anchor="middle">创建 TaskRecord · 状态=UNKNOWN</text>
+  <line x1="225" y1="284" x2="225" y2="330" stroke="#8c8c8c" stroke-width="2" marker-end="url(#ar)"/>
+  <rect x="90" y="330" width="270" height="44" rx="8" fill="#e6f4ff" stroke="#69b1ff" stroke-width="1.5"/>
+  <text x="225" y="350" font-size="12" fill="#003eb3" text-anchor="middle">返回 taskId · TASK_CREATE 事件</text>
+  <text x="225" y="366" font-size="11" fill="#8c8c8c" text-anchor="middle">任务数上限校验（≤16）</text>
+
+  <!-- ② 提交并激活 -->
+  <circle cx="225" cy="420" r="15" fill="#1677ff"/>
+  <text x="225" y="425" font-size="15" font-weight="bold" fill="#fff" text-anchor="middle">2</text>
+  <rect x="90" y="450" width="270" height="90" rx="10" fill="#fff" stroke="#69b1ff" stroke-width="2"/>
+  <text x="225" y="476" font-size="14" font-weight="bold" fill="#003eb3" text-anchor="middle">SetTaskState(SUBMITTED→WORKING)</text>
+  <text x="225" y="500" font-size="12" fill="#595959" text-anchor="middle">状态机校验流转合法</text>
+  <text x="225" y="520" font-size="12" fill="#8c8c8c" text-anchor="middle">UNKNOWN→SUBMITTED→WORKING</text>
+  <text x="225" y="534" font-size="11" fill="#8c8c8c" text-anchor="middle">监听者收到状态回调</text>
+  <line x1="225" y1="540" x2="225" y2="580" stroke="#8c8c8c" stroke-width="2" marker-end="url(#ar)"/>
+  <rect x="90" y="580" width="270" height="60" rx="8" fill="#e6fffb" stroke="#5cdbd3" stroke-width="1.5"/>
+  <text x="225" y="602" font-size="12" font-weight="bold" fill="#08979c" text-anchor="middle">task_mgr → process_schedule</text>
+  <text x="225" y="622" font-size="12" fill="#595959" text-anchor="middle">OnTaskActiveChanged：HIGH→档位 2（激活态）</text>
+  <text x="225" y="636" font-size="11" fill="#8c8c8c" text-anchor="middle">暂未纳管进程，档位记任务级</text>
+
+  <!-- ③④ 启动纳管 -->
+  <circle cx="225" cy="690" r="15" fill="#fa8c16"/>
+  <text x="225" y="695" font-size="15" font-weight="bold" fill="#fff" text-anchor="middle">3</text>
+  <rect x="90" y="720" width="270" height="90" rx="10" fill="#fff" stroke="#ffc53d" stroke-width="2"/>
+  <text x="225" y="746" font-size="14" font-weight="bold" fill="#d48806" text-anchor="middle">StartAbility(want[ohos.ai.taskId])</text>
+  <text x="225" y="770" font-size="12" fill="#595959" text-anchor="middle">StartAbilityInner 拦截点</text>
+  <text x="225" y="792" font-size="12" fill="#8c8c8c" text-anchor="middle">解析 taskId · 业务发起方身份</text>
+  <text x="225" y="806" font-size="11" fill="#8c8c8c" text-anchor="middle">无 taskId → 短路零开销（R-13）</text>
+  <line x1="360" y1="780" x2="430" y2="780" stroke="#fa8c16" stroke-width="2.5" marker-end="url(#ar)"/>
+  <circle cx="600" cy="780" r="15" fill="#fa8c16"/>
+  <text x="600" y="785" font-size="15" font-weight="bold" fill="#fff" text-anchor="middle">4</text>
+  <rect x="460" y="815" width="280" height="130" rx="10" fill="#fff" stroke="#ffc53d" stroke-width="2"/>
+  <text x="600" y="841" font-size="14" font-weight="bold" fill="#d48806" text-anchor="middle">条件两段式判定（目标 pid）</text>
+  <text x="600" y="865" font-size="12" fill="#595959" text-anchor="middle">进程已存在（GetPid()>0）</text>
+  <text x="600" y="883" font-size="12" fill="#595959" text-anchor="middle">→ RegisterTaskProcess 直接纳管</text>
+  <text x="600" y="905" font-size="12" fill="#595959" text-anchor="middle">进程未创建</text>
+  <text x="600" y="923" font-size="12" fill="#595959" text-anchor="middle">→ RegisterTaskIntent 意向（30s 超时）</text>
+  <text x="600" y="941" font-size="12" fill="#8c8c8c" text-anchor="middle">attach 后（pid 就绪）补注册</text>
+  <line x1="790" y1="880" x2="800" y2="880" stroke="#fa8c16" stroke-width="2.5" marker-end="url(#ar)"/>
+
+  <!-- ⑤ B-2 校验 + 纳管 -->
+  <circle cx="1000" cy="880" r="15" fill="#fa8c16"/>
+  <text x="1000" y="885" font-size="15" font-weight="bold" fill="#fff" text-anchor="middle">5</text>
+  <rect x="830" y="915" width="340" height="120" rx="10" fill="#fff" stroke="#95de64" stroke-width="2"/>
+  <text x="1000" y="941" font-size="14" font-weight="bold" fill="#389e0d" text-anchor="middle">task_mgr：B-2 caller 校验</text>
+  <text x="1000" y="963" font-size="12" fill="#595959" text-anchor="middle">callerTokenId ∈ {creator} ∪ {任务内进程}</text>
+  <text x="1000" y="983" font-size="12" fill="#595959" text-anchor="middle">仿冒 → 拒绝纳管，不阻断启动（防探测）</text>
+  <text x="1000" y="1003" font-size="12" fill="#595959" text-anchor="middle">通过 → pid 加入 processPids</text>
+  <text x="1000" y="1023" font-size="11" fill="#8c8c8c" text-anchor="middle">进程死亡 → 死亡通知链自动移除</text>
+  <line x1="1000" y1="1035" x2="1000" y2="1075" stroke="#8c8c8c" stroke-width="2" marker-end="url(#ar)"/>
+  <rect x="830" y="1075" width="340" height="86" rx="10" fill="#e6fffb" stroke="#5cdbd3" stroke-width="1.5"/>
+  <text x="1000" y="1097" font-size="12" font-weight="bold" fill="#08979c" text-anchor="middle">process_schedule：AddProcessToTask</text>
+  <text x="1000" y="1119" font-size="12" fill="#595959" text-anchor="middle">档位合并：effective(pid) = max(任务档位)</text>
+  <text x="1000" y="1139" font-size="12" fill="#8c8c8c" text-anchor="middle">多任务纳管按最高档 · 升档增量施加</text>
+  <text x="1000" y="1155" font-size="11" fill="#8c8c8c" text-anchor="middle">→ 档位 2 生效（该 pid）</text>
+
+  <!-- ⑥ RCP + RSS -->
+  <line x1="1000" y1="1161" x2="1000" y2="1200" stroke="#8c8c8c" stroke-width="2" marker-end="url(#ar)"/>
+  <circle cx="1000" cy="1200" r="15" fill="#722ed1"/>
+  <text x="1000" y="1205" font-size="15" font-weight="bold" fill="#fff" text-anchor="middle">6</text>
+  <rect x="830" y="1230" width="340" height="110" rx="10" fill="#fff" stroke="#b37feb" stroke-width="2"/>
+  <text x="1000" y="1256" font-size="14" font-weight="bold" fill="#531dab" text-anchor="middle">RCP：ApplyControl(EXEMPT, 档位2)</text>
+  <text x="1000" y="1278" font-size="12" fill="#595959" text-anchor="middle">ControlRequest 完整上下文 · 账本记录</text>
+  <text x="1000" y="1298" font-size="12" fill="#595959" text-anchor="middle">TASK_RSSCONTROL 事件</text>
+  <text x="1000" y="1316" font-size="11" fill="#8c8c8c" text-anchor="middle">一期 Stub：记账 + 告警（探测开关默认关）</text>
+  <text x="1000" y="1332" font-size="11" fill="#8c8c8c" text-anchor="middle">对接期 Impl：真实下发（RSS 对接后）</text>
+  <line x1="1220" y1="1285" x2="1245" y2="1285" stroke="#722ed1" stroke-width="2.5" marker-end="url(#ar)"/>
+  <rect x="1245" y="1252" width="300" height="80" rx="10" fill="#fff" stroke="#b37feb" stroke-width="1.5"/>
+  <text x="1395" y="1278" font-size="13" font-weight="bold" fill="#531dab" text-anchor="middle">冻结豁免生效（对接后）</text>
+  <text x="1395" y="1300" font-size="12" fill="#595959" text-anchor="middle">505 豁免 · 517 解冻 · 506/507 查询</text>
+  <text x="1395" y="1318" font-size="11" fill="#8c8c8c" text-anchor="middle">锁屏/后台场景进程不被冻结</text>
+
+  <!-- ⑦ 交互分支 -->
+  <circle cx="225" cy="1400" r="15" fill="#1677ff"/>
+  <text x="225" y="1405" font-size="15" font-weight="bold" fill="#fff" text-anchor="middle">7</text>
+  <rect x="90" y="1430" width="270" height="80" rx="10" fill="#fff" stroke="#69b1ff" stroke-width="2" stroke-dasharray="5 3"/>
+  <text x="225" y="1456" font-size="13" font-weight="bold" fill="#003eb3" text-anchor="middle">INPUT/AUTH 交互（可选分支）</text>
+  <text x="225" y="1478" font-size="12" fill="#595959" text-anchor="middle">SetTaskState(INPUT_REQUIRED, payload)</text>
+  <text x="225" y="1498" font-size="12" fill="#8c8c8c" text-anchor="middle">→ 监听回调（系统 UI 展示描述/可选项）</text>
+  <text x="225" y="1512" font-size="11" fill="#8c8c8c" text-anchor="middle">→ SubmitTaskInput 回传 → 流转回 WORKING</text>
+  <line x1="360" y1="1470" x2="430" y2="1470" stroke="#8c8c8c" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#ar)"/>
+  <rect x="430" y="1438" width="280" height="64" rx="8" fill="#fffbe6" stroke="#faad14" stroke-width="1.5" stroke-dasharray="5 3"/>
+  <text x="570" y="1464" font-size="12" fill="#ad6800" text-anchor="middle">task_mgr 校验创建者后回传 input</text>
+  <text x="570" y="1486" font-size="12" fill="#8c8c8c" text-anchor="middle">对齐 google-adk HITL（request_credential）</text>
+
+  <!-- ⑧ 结束清理 -->
+  <circle cx="1000" cy="1400" r="15" fill="#cf1322"/>
+  <text x="1000" y="1405" font-size="15" font-weight="bold" fill="#fff" text-anchor="middle">8</text>
+  <rect x="830" y="1430" width="340" height="80" rx="10" fill="#fff" stroke="#ff7875" stroke-width="2"/>
+  <text x="1000" y="1456" font-size="14" font-weight="bold" fill="#cf1322" text-anchor="middle">任务终态 / DestroyTask（双通道清理）</text>
+  <text x="1000" y="1478" font-size="12" fill="#595959" text-anchor="middle">① 每进程 RestoreControl → 档位重算（剩余任务最高档）</text>
+  <text x="1000" y="1498" font-size="12" fill="#595959" text-anchor="middle">② NotifyTaskEnd(taskId, pids, reason) → RSS 清理任务级策略</text>
+  <text x="1000" y="1512" font-size="11" fill="#8c8c8c" text-anchor="middle">失败重试 ≤3 · 账本保留 · TASK_DESTROY 事件</text>
+  <line x1="1220" y1="1470" x2="1245" y2="1470" stroke="#cf1322" stroke-width="2.5" marker-end="url(#ar)"/>
+  <rect x="1245" y="1440" width="300" height="60" rx="10" fill="#fff1f0" stroke="#ff7875" stroke-width="1.5"/>
+  <text x="1395" y="1466" font-size="13" font-weight="bold" fill="#cf1322" text-anchor="middle">清理任务级策略/账本（对接后）</text>
+  <text x="1395" y="1486" font-size="11" fill="#8c8c8c" text-anchor="middle">进程未退出 → 恢复原 RSS 调度状态（需求 12）</text>
+
+  <!-- 状态机侧注 -->
+  <rect x="60" y="1000" width="320" height="240" rx="10" fill="#f0f5ff"/>
+  <text x="220" y="1030" font-size="15" font-weight="bold" fill="#2f54eb" text-anchor="middle">任务状态机（9 态）</text>
+  <text x="220" y="1060" font-size="13" fill="#262626" text-anchor="middle">UNKNOWN → SUBMITTED → WORKING</text>
+  <text x="220" y="1084" font-size="13" fill="#262626" text-anchor="middle">WORKING ⇄ INPUT_REQUIRED / AUTH_REQUIRED</text>
+  <text x="220" y="1108" font-size="13" fill="#262626" text-anchor="middle">→ COMPLETED / FAILED / CANCELED</text>
+  <text x="220" y="1132" font-size="13" fill="#262626" text-anchor="middle">UNKNOWN / SUBMITTED → REJECTED（创建者）</text>
+  <text x="220" y="1164" font-size="13" fill="#8c8c8c" text-anchor="middle">终态不可回退 · 交互态必带 payload</text>
+  <text x="220" y="1188" font-size="13" fill="#8c8c8c" text-anchor="middle">流转校验：TaskStateMachine</text>
+  <text x="220" y="1212" font-size="13" fill="#8c8c8c" text-anchor="middle">每次流转：监听回调 + 档位重算</text>
+  <line x1="380" y1="1100" x2="430" y2="1100" stroke="#8c8c8c" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="405" y="1090" font-size="11" fill="#8c8c8c" text-anchor="middle">状态事件</text>
+</svg>
