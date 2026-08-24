@@ -80,6 +80,35 @@ bool AbilityEventMapManager::CheckUserUnlocked(int32_t userId)
     return false;
 }
 
+size_t AbilityEventMapManager::GetUserCount()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return eventMap_.size();
+}
+
+void AbilityEventMapManager::SetPendingUserId(int32_t userId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetPendingUserId: %{public}d.", userId);
+    pendingUserId_ = userId;
+}
+
+int32_t AbilityEventMapManager::GetPendingUserId()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return pendingUserId_;
+}
+
+void AbilityEventMapManager::ClearPendingUserId(int32_t userId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (pendingUserId_ != userId) {
+        return;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ClearPendingUserId: %{public}d.", userId);
+    pendingUserId_ = INVALID_USERID;
+}
+
 AbilityScreenUnlockEventSubscriber::AbilityScreenUnlockEventSubscriber(
     const EventFwk::CommonEventSubscribeInfo &subscribeInfo, const std::function<void(int32_t)> &screenUnlockCallback)
     : EventFwk::CommonEventSubscriber(subscribeInfo), screenUnlockCallback_(screenUnlockCallback)
@@ -104,8 +133,13 @@ void AbilityScreenUnlockEventSubscriber::OnReceiveEvent(const EventFwk::CommonEv
     }
     AbilityEventMapManager::GetInstance().AddEvent(userId, action);
     if (AbilityEventMapManager::GetInstance().CheckAllUnlocked(userId)) {
-        screenUnlockCallback_(userId);
+        // Remove the finished user before notifying, otherwise it is still counted by
+        // UnSubscribeScreenUnlockedEvent as a pending user and the subscriber never goes away.
         AbilityEventMapManager::GetInstance().RemoveUser(userId);
+        // Record the passed user for the auto startup trigger, consumed after the
+        // trigger is done no matter whether the launches succeed.
+        AbilityEventMapManager::GetInstance().SetPendingUserId(userId);
+        screenUnlockCallback_(userId);
     }
 }
 
@@ -132,8 +166,11 @@ void AbilityUserUnlockEventSubscriber::OnReceiveEvent(const EventFwk::CommonEven
     AbilityEventMapManager::GetInstance().AddEvent(userId, action);
     UserController::GetInstance().SetUserLockStatus(userId, UserController::UserLockStatus::USER_UNLOCKED);
     if (AbilityEventMapManager::GetInstance().CheckAllUnlocked(userId)) {
-        screenUnlockCallback_(userId);
         AbilityEventMapManager::GetInstance().RemoveUser(userId);
+        // Record the passed user for the auto startup trigger, consumed after the
+        // trigger is done no matter whether the launches succeed.
+        AbilityEventMapManager::GetInstance().SetPendingUserId(userId);
+        screenUnlockCallback_(userId);
         return;
     }
     userScreenUnlockCallback_(userId);
