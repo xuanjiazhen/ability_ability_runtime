@@ -99,7 +99,7 @@
   <text x="622" y="748" font-size="12" font-weight="600" fill="#b54708">激活态 = {SUBMITTED, WORKING, INPUT, AUTH}（F-1）</text>
   <text x="610" y="780" font-size="13.5" fill="#595959">上限/时长配置（可配）：</text>
   <text x="622" y="806" font-size="12.5" fill="#667085">创建者活跃任务 ≤16（R-2）· 任务进程集合 ≤64（R-22）</text>
-  <text x="622" y="828" font-size="12.5" fill="#667085">豁免时长上限 · 交互态超时 30min（F-5）</text>
+  <text x="622" y="828" font-size="12.5" fill="#667085">交互态超时 30min → 宽限 5min → 降档+告警 · 时长上限 60min（F-5）</text>
   <text x="622" y="858" font-size="12.5" fill="#98a2b3">配置加载：系统参数/配置文件（ability_runtime.gni 开关）</text>
   <text x="622" y="880" font-size="12.5" fill="#98a2b3">超限 → 拒绝新增 + TASK_ABUSE_WARNING 告警</text>
   <text x="622" y="908" font-size="12.5" fill="#98a2b3">SetTaskParams 提级 → OnTaskActiveChanged 重算（F-6）</text>
