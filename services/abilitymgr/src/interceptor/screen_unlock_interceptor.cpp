@@ -19,7 +19,9 @@
 #include "ability_util.h"
 #include "bundle_mgr_helper.h"
 #include "extension_config.h"
+#include "extension_query_event_util.h"
 #include "event_report.h"
+#include "ipc_skeleton.h"
 #include "parameters.h"
 #include "start_ability_utils.h"
 #include "startup_util.h"
@@ -275,6 +277,12 @@ void ScreenUnlockInterceptor::QueryTargetAbilityInfo(const AbilityInterceptorPar
     std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
     IN_PROCESS_CALL(bundleMgrHelper->QueryExtensionAbilityInfos(param.want,
         AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, param.userId, extensionInfos));
+    if (NeedReportExtensionQueryMultiResult(extensionInfos)) {
+        auto callingUid = IPCSkeleton::GetCallingUid();
+        std::string callerBundleName;
+        IN_PROCESS_CALL_WITHOUT_RET(bundleMgrHelper->GetNameForUid(callingUid, callerBundleName));
+        ReportExtensionQueryMultiResult(extensionInfos, false, callingUid, callerBundleName);
+    }
     if (extensionInfos.size() <= 0) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "extensionInfo empty");
         return;

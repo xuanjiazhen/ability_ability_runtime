@@ -2888,6 +2888,8 @@ protected:
     virtual int32_t StartSandboxCloneAbility(const Want &want, const SandboxCloneParams &params) override;
 
 private:
+    void ReportImplicitStartWithoutBundleName(const Want &want);
+
     int GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId = 0);
 
     /**
