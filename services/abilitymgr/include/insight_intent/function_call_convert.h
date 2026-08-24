@@ -41,21 +41,20 @@ bool RegisterInsightIntentFunctions(
 
 bool UnregisterInsightIntentFunctions(const std::string &bundleName);
 
-// 批量注册（开关机场景）：跨 bundle 收集 FunctionInfo 一次性写入 KVStore，
+// 批量注册（开关机场景）：跨 bundle 收集 FunctionInfo 一次性下发 KVStore，
 // 减少开机阶段 IPC 次数。bundleVersionMap 提供 functionNamespace(bundleName) → versionCode 映射。
-// successCount 返回服务端实际写入条数。依赖 CliToolMGRClient::BatchRegisterFunctions。
+// 依赖 CliToolMGRClient::BatchRegisterFunctionsAsync（one-way，返回值仅表示请求是否发出，
+// 服务端写入结果不回报）。
 bool BatchRegisterInsightIntentFunctions(
     const std::vector<AbilityRuntime::ExtractInsightIntentInfo> &intentInfos,
     const std::vector<AbilityRuntime::InsightIntentInfo> &configInfos,
-    const std::unordered_map<std::string, uint32_t> &bundleVersionMap,
-    int32_t &successCount);
+    const std::unordered_map<std::string, uint32_t> &bundleVersionMap);
 
 bool BatchUpdateInsightIntentFunctions(
     const std::vector<AbilityRuntime::ExtractInsightIntentInfo> &intentInfos,
     const std::vector<AbilityRuntime::InsightIntentInfo> &configInfos,
     const std::string &bundleName,
-    uint32_t versionCode,
-    int32_t &successCount);
+    uint32_t versionCode);
 
 // 工具类：调用方在调 RegisterInsightIntentFunctions 之前预处理意图列表。
 // 规则 1：丢弃非"后台 UIAbility / ServiceExtension"的意图。
