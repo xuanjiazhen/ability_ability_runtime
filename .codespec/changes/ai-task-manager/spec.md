@@ -90,7 +90,7 @@
 | AC-4.1 | WHEN 任务进入 INPUT_REQUIRED/AUTH_REQUIRED 且携带描述与可选项 payload THEN 监听者（系统 UI）收到包含该 payload 的回调并可展示 | 正常 |
 | AC-4.2 | WHEN 用户选择后调用 SubmitTaskInput(taskId, input) THEN 返回成功，AI 助手（创建者）通过查询/监听获得 input，任务可流转出交互状态 | 正常 |
 | AC-4.3 | WHEN 任务在交互状态被取消/销毁 THEN 交互状态清理，不再回调，任务进入终态 | 异常 |
-| AC-4.4 | WHEN 非任务创建者调用 SubmitTaskInput THEN 返回权限错误码 | 异常 |
+| AC-4.4 | WHEN 非任务创建者且非已注册监听的系统 UI 调用 SubmitTaskInput THEN 返回权限错误码（传递通道由任务管理模块提供，评审决策 2026-08-24） | 异常 |
 
 ### US-5: RSS 分级管控与降级恢复
 
@@ -163,7 +163,7 @@
 | R-3 | 行为 | 调用 SetTaskState 发起合法流转（按状态机表，如 SUBMITTED→WORKING） | 状态更新成功返回 ERR_OK；监听者收到回调（携带 payload） | 状态机合法流转表见 design.md | AC-1.2 |
 | R-4 | 异常 | 调用 SetTaskState 发起非法流转（终态回退、未注册流转、REJECTED 由非创建者设置） | 返回 ERR_TASK_INVALID_STATE_TRANSITION，任务状态不变 | 终态（COMPLETED/CANCELED/FAILED/REJECTED）不可再流转 | AC-1.3 |
 | R-5 | 行为 | 调用 CancelTask/DestroyTask，任务存在且调用方为创建者 | CancelTask：任务进入 CANCELED（非终态时）并触发降级；DestroyTask：任务记录清理并触发降级；返回 ERR_OK | DestroyTask 对任意状态可执行（幂等：不存在返回 ERR_TASK_NOT_FOUND） | AC-1.4 |
-| R-6 | 异常 | 非任务创建者调用 SetTaskState/CancelTask/DestroyTask/SubmitTaskInput | 返回 ERR_TASK_PERMISSION_DENIED，任务不受影响 | 创建者为 CreateTask 时的调用方 tokenId/uid 绑定 | AC-1.6, AC-4.4 |
+| R-6 | 异常 | 非任务创建者调用 SetTaskState/CancelTask/DestroyTask；SubmitTaskInput 由非创建者且非已注册监听的系统 UI 调用 | 返回 ERR_TASK_PERMISSION_DENIED，任务不受影响 | 创建者为 CreateTask 时的调用方 tokenId/uid 绑定；SubmitTaskInput 白名单 = 创建者 + 已注册监听的系统 UI（任务管理模块提供 UI→助手传递通道，评审决策 2026-08-24） | AC-1.6, AC-4.4 |
 | R-7 | 行为 | 启动链路（StartAbility/ConnectAbility/意图/Cli/A2A，含代理启动变体）请求中 Want 携带 taskId，且业务发起方为任务创建者或任务内已纳管进程 | 目标进程注册进任务（**条件两段式**：进程已存在→直接注册；未创建→意向登记+attach 补注册），GetTaskInfo 可见；纳管成功不影响启动结果 | 校验身份取业务发起方（asCallerSourceToken/specifyTokenId 优先）；任务不存在时忽略 taskId，不报错不阻断 | AC-2.1 |
 | R-8 | 异常 | Want 携带 taskId，但发起方既非任务创建者也非任务内进程（伪造/仿冒） | 拒绝纳管：启动正常执行但进程不纳入任务；不上报错误给调用方 | 校验基于发起方 tokenId/uid 与任务创建者绑定；taskId 不可猜测（R-1） | AC-2.2 |
 | R-9 | 行为 | 任务进入终态（COMPLETED/CANCELED/FAILED/REJECTED）或 DestroyTask | 对该任务下全部纳管进程执行降级：撤销豁免/恢复 QoS；进程归属按剩余任务最高优先级重算（无任务则完全恢复） | 降级在状态机事件处理中同步执行；失败重试 ≤3 次后记录告警 | AC-1.4, AC-5.2 |
@@ -178,8 +178,8 @@
 | R-18 | 异常 | 任务处于交互状态时被取消/销毁 | 交互状态清理（payload/input 清除），不再回调，任务进入终态 | 清理在状态机终态处理中同步完成 | AC-4.3 |
 | R-19 | 行为 | 高优先级任务处于**激活态**（SUBMITTED/WORKING/INPUT_REQUIRED/AUTH_REQUIRED），策略判定需豁免 | 经 RSS 管控层（ResourceControlProxy）对纳管进程下发冻结豁免请求并留存豁免账本（含 pid/动作/档位/时间戳/结果）；**施加后生效校验（查询冻结状态，未生效上报 TASK 告警）**；RSS 对接完成后豁免实际生效 | 优先级→豁免档位映射与豁免判定见 design.md 资源调度子模块；ResourceControlProxy 一期为骨架实现（账本+告警，探测开关默认关），对接策略见 design.md §6.4；激活态集合含 SUBMITTED（F-1：就绪态保障可调度） | AC-5.1 |
 | R-20 | 行为 | 任务降级/结束（终态/DestroyTask） | **双通道清理**：① 进程级——经 ResourceControlProxy 对纳管进程撤销豁免/解冻并记录账本，进程按剩余任务最高档重算；② 任务级——NotifyTaskEnd(taskId, pids, reason) 通知 RSS 清理按任务建立的策略/账本 | 两通道在 taskHandler 串行执行，②在①之后；失败重试 ≤3 次后告警并保留账本供复核 | AC-5.2, AC-5.4 |
-| R-21 | 边界 | 低优先级任务（LOW）或任务处于非激活态（UNKNOWN/终态） | 不豁免（与原系统调度行为一致）；MEDIUM 任务限时豁免（时长可配，默认 30min） | 交互态属激活态且配置交互超时（默认 30min）：超时后先经 OnTaskNotice 通知创建者限期处置（宽限默认 5min），宽限后仍未流转则 task_mgr 主动降档撤销豁免并告警（design.md §6.1 F-5 细化）；豁免时长硬上限可配（默认 60min，最终兜底），到期前可经 SetTaskParams 续期重置计时（C-2/A-6）；档位 1 限时豁免（默认 30min）到期未续期 → 撤销豁免并按剩余任务重算档位；交互超时与限时豁免双计时器取先到者触发（design §6.1） | AC-5.3 |
-| R-22 | 边界 | 系统中活跃豁免数量或单任务豁免时长超过配置上限 | 拒绝新增豁免，任务降级为不豁免档，记录告警 hisysevent | 全局活跃豁免数量上限可配（默认 64 进程）；单任务纳管进程数上限可配（默认 16，A-5）；时长上限见 R-21（可续期） | AC-5.5 |
+| R-21 | 边界 | 低优先级任务（LOW）或任务处于非激活态（UNKNOWN/终态） | 不豁免（与原系统调度行为一致）；MEDIUM 任务限时豁免（时长可配，默认 30min） | 交互态属激活态且配置交互超时（默认 30min）：超时后先经 OnTaskNotice 通知创建者限期处置（宽限默认 5min），宽限后仍未流转则 task_mgr 主动降档撤销豁免并告警（design.md §6.1 F-5 细化）；豁免时长硬上限可配（默认 60min，最终兜底），到期前可经 SetTaskParams 续期重置计时——**仅 priority 变化触发续期、续期次数上限 N 次（默认 3，可配）**（C-2/A-6，评审决策 2026-08-24）；档位 1 限时豁免（默认 30min）到期未续期 → 撤销豁免并按剩余任务重算档位；交互超时与限时豁免双计时器取先到者触发（design §6.1）；各超时参数（交互/宽限/限时/硬上限/续期次数）为初始默认值、评估调整中，落地经 CCM 参数可调 | AC-5.3 |
+| R-22 | 边界 | 系统中活跃豁免数量或单任务豁免时长超过配置上限 | 拒绝新增豁免，任务降级为不豁免档，记录告警 hisysevent | 全局活跃豁免数量上限（默认 64 进程）与单任务纳管进程数上限（默认 16，A-5）——两项上限经 CCM 参数可调（评审决策 2026-08-24）；**豁免粒度按 pid（进程级）计**（评审决策 2026-08-24）；时长与续期次数上限见 R-21 | AC-5.5 |
 | R-23 | 行为 | 执行任务相关 dump（hidumper -a 501 / aa 命令） | 输出任务列表：taskId、状态、类型、优先级、纳管进程（pid）、管控档位、payload 摘要、时间戳 | dump 仅 shell/hidumper 可调用（复用既有校验） | AC-6.1 |
 | R-24 | 行为 | 任务创建、状态流转、终态、豁免施加/撤销 | 上报对应 hisysevent 行为事件（事件名/字段见 hisysevent.yaml 新增定义） | 事件定义不可破坏既有事件（AGENTS.md 约束） | AC-6.2 |
 
@@ -343,10 +343,11 @@
 
 | # | 触发条件 | 预期行为 | 关联 AC |
 |---|----------|----------|---------|
-| 1 | 任务处于交互态（INPUT/AUTH），调用方为创建者 | input 写入 TaskRecord；TASK_INPUT(submit)；返回 ERR_OK | AC-4.2 |
+| 1 | 任务处于交互态（INPUT/AUTH），调用方为创建者 | input 写入 TaskRecord；TASK_INPUT(submit)；OnTaskNotice(INPUT_ARRIVED) 通知创建者；返回 ERR_OK | AC-4.2 |
 | 2 | 任务处于非交互态 | 返回 ERR_TASK_INVALID_STATE | AC-4.2 |
-| 3 | 调用方非创建者（含系统 UI 直接调用） | 返回 ERR_TASK_PERMISSION_DENIED——系统 UI 经 AI 助手转发提交，不直接调用（A-2 归属规则唯一化） | AC-4.4 |
-| 4 | input 缺失或超限 | 返回 ERR_INVALID_PARAM | AC-4.2 |
+| 3 | 调用方为已注册监听的系统 UI（非创建者） | input 写入 TaskRecord；OnTaskNotice(INPUT_ARRIVED) 通知创建者；返回 ERR_OK——**任务管理模块提供 UI→助手传递通道**（评审决策 2026-08-24，A-2） | AC-4.2, AC-4.4 |
+| 4 | 调用方非创建者且非已注册监听的系统 UI | 返回 ERR_TASK_PERMISSION_DENIED | AC-4.4 |
+| 5 | input 缺失或超限 | 返回 ERR_INVALID_PARAM | AC-4.2 |
 
 ### SetTaskParams
 
@@ -370,7 +371,7 @@
 
 | # | 触发条件 | 预期行为 | 关联 AC |
 |---|----------|----------|---------|
-| 1 | 任务非终态，调用方为创建者，参数合法 | priority/payload 更新；priority 变化联动档位重算（F-6，升档立即施加/降档立即撤销）；激活态任务触发豁免时长续期（重置计时并记入账本，R-21） | AC-1.2 |
+| 1 | 任务非终态，调用方为创建者，参数合法 | priority/payload 更新；priority 变化联动档位重算（F-6，升档立即施加/降档立即撤销）；**priority 发生变化**的激活态任务触发豁免时长续期（payload-only 变更不续期；重置计时并记入账本，R-21，评审决策 2026-08-24） | AC-1.2 |
 | 2 | 任务处于终态 | 返回 ERR_TASK_INVALID_STATE | AC-1.2 |
 | 3 | 调用方非创建者 | 返回 ERR_TASK_PERMISSION_DENIED | AC-1.2 |
 | 4 | 参数非法（枚举越界/payload 超限） | 返回 ERR_INVALID_PARAM | AC-1.2 |
