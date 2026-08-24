@@ -110,7 +110,7 @@
 | TASK-3 | 拦截纳管+防仿冒：**条件两段式**（进程已存在直接纳管/未创建意向+attach）、B-1 随机 taskId、B-2 caller 校验（含代理启动身份规则） | ability_manager_service.cpp、ability_connect_manager.cpp、task_manager_service（RegisterTaskIntent/Process）、集成用例 | AC-2.1~AC-2.5 | TASK-1 | 集成用例覆盖四链路（Start/Connect/意图/Cli）+ 代理启动变体（AsCaller/WithSpecifyTokenId）+ **已存在进程场景** + 仿冒拒绝；无 taskId 零影响回归 | `run -t UT -ts ability_manager_service_first_test` | 生产 ~950（AMS 拦截点 350 + 意向表/B-2 校验 500 + 死亡挂点 50 + 工具 50）；集成用例 ~900 |
 | TASK-4 | 管控与 ResourceControlProxy：档位合并、经代理施加/撤销豁免（一期骨架）、**NotifyTaskEnd 任务级清理通知**、降级恢复、上限防滥用、进程死亡清理 | process_schedule_*、resource_control_proxy_*、task_mgr 联动、单测+集成 | AC-5.1~AC-5.5 | TASK-1, TASK-3 | 单测覆盖档位合并/降级/幂等/账本断言（含 NotifyTaskEnd 双通道时序）；集成覆盖动作序列 | `run -t UT -ts task_mgr_test` | 生产 ~1,700（schedule_mgr 700 + policy 200 + types 80 + RCP 接口 100 + stub 300 + impl 占位 150 + 联动 200）；单测 ~1,000 |
 | TASK-5 | DFX：hisysevent 6 事件、dump、日志、错误码接入 | hisysevent.yaml、task_dfx、dump 入口 | AC-6.1~AC-6.2 | TASK-1~TASK-4 | 事件上报可检索；dump 输出任务全景 | 事件检索 + `hidumper -a 501` | 生产 ~630（task_dfx 400 + yaml 80 + 接入 150）；验证用例 ~300 |
-| TASK-6 | 验证收口：全量 AC 用例、真机锁屏/后台场景验证（锁屏豁免边界与 RSS owner 对齐） | test/ 全量 + 真机 | 全部 AC | TASK-1~TASK-5 | 全量单测/集成通过；真机验证报告（锁屏定时任务、后台长时任务） | `run -t UT -tp ability_runtime` | 用例补强 ~700（真机脚本/集成补强） |
+| TASK-6 | 验证收口：全量 AC 用例、真机锁屏/后台场景验证（锁屏豁免边界与 RSS owner 对齐；**前置（P1 代码勘察 2026-08-24）：产品含 freezer 执行器 + `const.taskmanager.low_memory_frozen_enable=true`——开源 master 无 505/517/520 消费者，端到端验证会假成功**） | test/ 全量 + 真机 | 全部 AC | TASK-1~TASK-5；RSS 对接（外部依赖）；真机端到端另需产品 freezer 环境 | 全量单测/集成通过；真机验证报告（锁屏定时任务、后台长时任务，须记录产品 freezer/开关配置）；master 上以 Stub 账本断言为基线 | `run -t UT -tp ability_runtime` | 用例补强 ~700（真机脚本/集成补强） |
 
 > 规模预估：C++ 行数（含头文件），±20% 误差；IDL 生成物（stub/proxy 本体）由构建生成不计入；不含 RSS 真实对接（ResourceControlProxyImpl 落地，RSS 团队明确后另估 ~300~500 行）与二期扩展（QoS 提权 221/低内存查杀 520/线程级 RTG/NAPI）。合计：生产 ~6,600 行 + 单测 ~4,300 行 ≈ 1.1 万行；单人开发约 4~6 周（骨架 1~2 天 → 核心 5~7 天 → 拦截 3~4 天 → 管控 4~5 天 → DFX 2 天 → 联调/真机 3~5 天，单测贯穿）。
 
@@ -253,12 +253,12 @@
 
 | 字段 | 内容 |
 |------|------|
-| 任务目标 | 全量 AC 用例执行；真机场景验证：锁屏定时任务执行成功、后台长时任务不被冻结、任务结束后进程恢复原调度；**依赖 RSS 对接完成（ResourceControlProxyImpl 落地 + RSS 团队评审），对接前以 ResourceControlProxyStub 账本断言作为模块级验证基线** |
+| 任务目标 | 全量 AC 用例执行；真机场景验证：锁屏定时任务执行成功、后台长时任务不被冻结、任务结束后进程恢复原调度；**依赖 RSS 对接完成（ResourceControlProxyImpl 落地 + RSS 团队评审），对接前以 ResourceControlProxyStub 账本断言作为模块级验证基线**；**真机端到端前置条件（P1 代码勘察 2026-08-24）**：目标产品须含 freezer 执行插件且 `const.taskmanager.low_memory_frozen_enable=true`——开源 master 上 505/517/520 无消费插件、507 恒返回未冻结，端到端豁免验证会"假成功"，master 环境仅能以账本断言为基线 |
 | 规模预估 | 用例补强 ~700（真机脚本/集成补强） |
 | AC 映射 | 全部 AC（AC-1.1~AC-6.2） |
-| 前置依赖 | TASK-1~TASK-5；RSS 对接（ResourceControlProxyImpl，外部依赖） |
+| 前置依赖 | TASK-1~TASK-5；RSS 对接（ResourceControlProxyImpl，外部依赖）；真机端到端另需产品镜像含 freezer 执行器且 `const.taskmanager.low_memory_frozen_enable=true` |
 | 非目标 | 二期能力（QoS 提权/520/线程级） |
-| 完成判据 | `run -t UT -tp ability_runtime` 通过；真机验证报告含锁屏/后台场景结果（对接完成后）或模块级账本断言结果（对接前，标注开放项）；RSS 对齐结论记录 |
+| 完成判据 | `run -t UT -tp ability_runtime` 通过；真机验证报告含锁屏/后台场景结果（对接完成后）或模块级账本断言结果（对接前，标注开放项）；**真机报告须记录所用产品形态的 freezer 执行器与 `low_memory_frozen_enable` 配置（防 master 环境假成功）**；RSS 对齐结论记录 |
 | 停止条件 | RSS 对接未就绪且真机场景不可达 → 输出模块级验证结论与对接待办清单 |
 
 **Files**
