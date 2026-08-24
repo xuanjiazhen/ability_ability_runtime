@@ -1357,6 +1357,22 @@ void AbilityManagerService::CheckExtensionRateLimit(const Want &want)
     EventReport::SendStartAbilityOtherExtensionEvent(EventName::START_ABILITY_OTHER_EXTENSION, eventInfo);
 }
 
+void AbilityManagerService::ReportImplicitStartWithoutBundleName(const Want &want)
+{
+    auto element = want.GetElement();
+    if (!element.GetBundleName().empty()) {
+        return;
+    }
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ImplicitStart with no bundleName, %{public}s, callingUid:%{public}d",
+        element.GetAbilityName().c_str(), callingUid);
+    EventInfo eventInfo;
+    eventInfo.moduleName = "ImplicitStart";
+    eventInfo.abilityName = element.GetAbilityName();
+    eventInfo.callerBundleName = std::to_string(callingUid);
+    EventReport::SendStartAbilityOtherExtensionEvent(EventName::START_ABILITY_OTHER_EXTENSION, eventInfo);
+}
+
 int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -1551,6 +1567,8 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
             AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, result, "implicit start error");
         }
         return AbilityErrorUtil::ConvertToOriginErrorCode(result);
+    } else {
+        ReportImplicitStartWithoutBundleName(param.want);
     }
     if (param.want.GetActionRef().compare(ACTION_CHOOSE) == 0) {
         result = ShowPickerDialog(param.want, validUserId, param.callerToken);
@@ -2179,6 +2197,8 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
             AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, result, "implicit start error");
         }
         return AbilityErrorUtil::ConvertToOriginErrorCode(result);
+    } else {
+        ReportImplicitStartWithoutBundleName(want);
     }
     if (want.GetActionRef().compare(ACTION_CHOOSE) == 0) {
         result = ShowPickerDialog(want, validUserId, callerToken);
@@ -2576,6 +2596,8 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
             AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, result, "implicit start error");
         }
         return AbilityErrorUtil::ConvertToOriginErrorCode(result);
+    } else {
+        ReportImplicitStartWithoutBundleName(want);
     }
     if (want.GetActionRef().compare(ACTION_CHOOSE) == 0) {
         result = ShowPickerDialog(want, validUserId, callerToken);
@@ -3045,6 +3067,8 @@ int32_t AbilityManagerService::StartUIAbilitiesHandleWant(const Want &want, sptr
     if (ImplicitStartProcessor::IsImplicitStartAction(want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "StartUIAbilities not support implicit start");
         return START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START;
+    } else {
+        ReportImplicitStartWithoutBundleName(want);
     }
 #endif
     AbilityRequest abilityRequest;
@@ -18116,6 +18140,8 @@ int AbilityManagerService::StartSelfUIAbilityByAppContext(const Want &want)
     if (ImplicitStartProcessor::IsImplicitStartAction(want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "StartUIAbilities not support implicit start");
         return START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START;
+    } else {
+        ReportImplicitStartWithoutBundleName(want);
     }
 #endif
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
