@@ -1357,6 +1357,21 @@ void AbilityManagerService::CheckExtensionRateLimit(const Want &want)
     EventReport::SendStartAbilityOtherExtensionEvent(EventName::START_ABILITY_OTHER_EXTENSION, eventInfo);
 }
 
+void AbilityManagerService::ReportImplicitStartWithoutBundleName(const Want &want)
+{
+    auto element = want.GetElement();
+    if (element.GetBundleName().empty()) {
+        int32_t callingUid = IPCSkeleton::GetCallingUid();
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "ImplicitStart with no bundleName, %{public}s, callingUid:%{public}d",
+            element.GetAbilityName().c_str(), callingUid);
+        EventInfo eventInfo;
+        eventInfo.moduleName = "ImplicitStart";
+        eventInfo.abilityName = element.GetAbilityName();
+        eventInfo.callerBundleName = std::to_string(callingUid);
+        EventReport::SendStartAbilityOtherExtensionEvent(EventName::START_ABILITY_OTHER_EXTENSION, eventInfo);
+    }
+}
+
 int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -1526,6 +1541,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     abilityRequest.isWebSandBoxClone = !sandboxAbilityInfo.bundleName.empty();
 #ifdef SUPPORT_SCREEN
     if (ImplicitStartProcessor::IsImplicitStartAction(param.want)) {
+        ReportImplicitStartWithoutBundleName(param.want);
         TAG_LOGD(AAFwkTag::ABILITYMGR, "is implicit start action");
         int32_t isAtomicUrl = AtomicServicePreprocess(param.want);
         abilityRequest.atomicServiceShortLink = isAtomicUrl;
@@ -2162,6 +2178,7 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
     AbilityRequest abilityRequest;
 #ifdef SUPPORT_SCREEN
     if (ImplicitStartProcessor::IsImplicitStartAction(want)) {
+        ReportImplicitStartWithoutBundleName(want);
         TAG_LOGD(AAFwkTag::ABILITYMGR, "is implicit start action");
         auto checkResult = AbilityUtil::CheckInstanceKey(want);
         if (checkResult != ERR_OK) {
@@ -2533,6 +2550,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
     abilityRequest.callType = AbilityCallType::START_OPTIONS_TYPE;
 #ifdef SUPPORT_SCREEN
     if (ImplicitStartProcessor::IsImplicitStartAction(want)) {
+        ReportImplicitStartWithoutBundleName(want);
         TAG_LOGD(AAFwkTag::ABILITYMGR, "is implicit start action");
         int32_t isAtomicUrl = AtomicServicePreprocess(want);
         abilityRequest.atomicServiceShortLink = isAtomicUrl;
@@ -3043,6 +3061,7 @@ int32_t AbilityManagerService::StartUIAbilitiesHandleWant(const Want &want, sptr
     }
 #ifdef SUPPORT_SCREEN
     if (ImplicitStartProcessor::IsImplicitStartAction(want)) {
+        ReportImplicitStartWithoutBundleName(want);
         TAG_LOGE(AAFwkTag::ABILITYMGR, "StartUIAbilities not support implicit start");
         return START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START;
     }
@@ -18114,6 +18133,7 @@ int AbilityManagerService::StartSelfUIAbilityByAppContext(const Want &want)
     }
 #ifdef SUPPORT_SCREEN
     if (ImplicitStartProcessor::IsImplicitStartAction(want)) {
+        ReportImplicitStartWithoutBundleName(want);
         TAG_LOGE(AAFwkTag::ABILITYMGR, "StartUIAbilities not support implicit start");
         return START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START;
     }
