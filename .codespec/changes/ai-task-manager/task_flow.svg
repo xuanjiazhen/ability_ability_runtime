@@ -95,7 +95,7 @@
   <circle cx="1022" cy="1064" r="16" fill="#7c3aed"/><text x="1022" y="1070" font-size="16" font-weight="700" fill="#fff" text-anchor="middle">6</text>
   <rect x="856" y="1092" width="332" height="128" rx="14" fill="#ffffff" stroke="#d0b3f7" stroke-width="2"/>
   <text x="1022" y="1120" font-size="15" font-weight="700" fill="#7c3aed" text-anchor="middle">RCP：ApplyControl(EXEMPT, 档位 2)</text>
-  <text x="1022" y="1144" font-size="12" fill="#667085" text-anchor="middle">ControlRequest 完整上下文 · 账本记录</text>
+  <text x="1022" y="1144" font-size="12" fill="#667085" text-anchor="middle">ControlRequest 完整上下文 · 内存登记+日志</text>
   <text x="1022" y="1166" font-size="12" font-weight="600" fill="#b54708" text-anchor="middle">生效校验（F-4）：507 查询 · 已冻结→THAW(517)</text>
   <text x="1022" y="1188" font-size="11" fill="#98a2b3" text-anchor="middle">一期 Stub：记账 + TASK_RSSCONTROL + 告警</text>
   <text x="1022" y="1206" font-size="11" fill="#98a2b3" text-anchor="middle">对接期 Impl：真实下发（RSS 对接后）</text>
@@ -124,11 +124,11 @@
   <text x="1022" y="1304" font-size="15" font-weight="700" fill="#d92d20" text-anchor="middle">任务终态 / DestroyTask（双通道清理）</text>
   <text x="1022" y="1328" font-size="12" fill="#667085" text-anchor="middle">① 每进程 RestoreControl → 档位重算（剩余最高档）</text>
   <text x="1022" y="1350" font-size="12" fill="#667085" text-anchor="middle">② NotifyTaskEnd(taskId, pids, reason) → RSS 清理策略</text>
-  <text x="1022" y="1374" font-size="11" fill="#98a2b3" text-anchor="middle">失败重试 ≤3 · 账本保留 · TASK_DESTROY 事件</text>
-  <text x="1022" y="1394" font-size="11" fill="#98a2b3" text-anchor="middle">进程未退出 → 恢复原调度（需求 12）· RSS 重启按账本重放豁免</text>
+  <text x="1022" y="1374" font-size="11" fill="#98a2b3" text-anchor="middle">失败重试 ≤3 · 日志留痕 · TASK_DESTROY 事件</text>
+  <text x="1022" y="1394" font-size="11" fill="#98a2b3" text-anchor="middle">进程未退出 → 恢复原调度（需求12）· RSS 重启按内存登记重放</text>
   <path d="M 1188 1338 L 1232 1338" stroke="#d92d20" stroke-width="2.5" marker-end="url(#ar)"/>
   <rect x="1232" y="1300" width="304" height="92" rx="14" fill="#fff5f4" stroke="#fda29b" stroke-width="1.5"/>
-  <text x="1384" y="1328" font-size="14" font-weight="700" fill="#d92d20" text-anchor="middle">清理任务级策略/账本（对接后）</text>
+  <text x="1384" y="1328" font-size="14" font-weight="700" fill="#d92d20" text-anchor="middle">清理任务级策略（对接后）</text>
   <text x="1384" y="1352" font-size="12" fill="#667085" text-anchor="middle">豁免组/优先级组残留清理</text>
   <text x="1384" y="1374" font-size="11" fill="#98a2b3" text-anchor="middle">按 taskId 建立的 RSS 策略回收</text>
 

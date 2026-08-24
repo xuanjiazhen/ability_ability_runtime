@@ -129,7 +129,7 @@ status: Draft
 | Q-9 | Want 透传 taskId 是否可被仿冒？如何防？ | 决定纳管链路的信任模型 | 已澄清（2026-08-21 第三轮）：同意 **B-1+B-2**（不可猜测随机 taskId + caller 身份绑定校验）；B-3 token 化可选增强 |
 | Q-10 | 可否借用 QosManager 的 sessionQos/QoS 机制管控？ | 决定资源调度子模块的管控手段构成 | 已澄清（2026-08-21 第三轮）：采纳借用评估结论（一期冻结豁免主线，QoS 提权二期扩展）；"sessionQos" 具体机制设计阶段再探索 |
 | Q-11 | RSS 管控的维度范围？ | 决定资源调度子模块策略覆盖面 | 已澄清（2026-08-21 第三轮）：**不仅限冻结**——含 CPU 调度、内存、低内存查杀、功耗、温控等，设计阶段细化分析（设计文档列出各维度接口与一期/二期取舍） |
-| Q-12 | RSS 对接方式？ | 决定资源调度子模块与 RSS 的边界 | 已澄清（2026-08-21 第四轮）：**RSS 具体设计由 RSS 团队主导，暂未明确**；本模块封装 **ResourceControlProxy 资源管控代理层**（管控动作语义接口 + 完整上下文暴露 + 一期骨架实现：账本+告警+探测开关），RSS 明确后替换真实实现，上层零改动（第五轮确认命名与信息暴露） |
+| Q-12 | RSS 对接方式？ | 决定资源调度子模块与 RSS 的边界 | 已澄清（2026-08-21 第四轮）：**RSS 具体设计由 RSS 团队主导**；本模块封装 **ResourceControlProxy 资源管控代理层**（管控动作语义接口 + 完整上下文暴露 + 一期骨架实现：内存登记+日志+告警+探测开关——记录机制不持久化，第十一轮定稿），RSS 明确后替换真实实现，上层零改动（第五轮确认命名与信息暴露；第十轮补 EDS P7 一期联动） |
 
 ### 讨论记录
 
@@ -143,6 +143,12 @@ status: Draft
 | 2026-08-21 | yangzk、需求方 | 基线确认（第三轮） | ① 枚举初稿设计阶段细化；② 锁屏豁免边界**暂且搁置**（不阻塞基线，设计/验证阶段开放项）；③ 同意防仿冒 B-1+B-2；④ sessionQos 机制设计阶段探索；⑤ **RSS 管控维度扩展**（冻结/CPU 调度/内存/低内存查杀/功耗/温控）设计阶段细化 | 基线固化；Q-9/Q-10/Q-11 关闭 |
 | 2026-08-21 | yangzk、需求方 | RSS 对接方式（第四轮） | **RSS 具体设计由 RSS 团队主导，暂未明确**；任务管理模块封装 **RSS Proxy 代理层**（语义接口 + 一期骨架：账本+告警+探测开关），RSS 明确后替换实现，上层零改动 | 设计文档 §6.4/ADR-4、spec R-19/R-20、plan TASK-4 同步更新；Q-12 关闭 |
 | 2026-08-21 | yangzk、需求方 | 设计评审（第五轮） | ① 枚举初稿基本认可，**与 AI 语音助手对齐**（开放项）；② 两段式纳管安全分析：无新增仿冒面（B-2 两阶段校验），补 pid 归属校验与进程集合上限强化点；③ 同意执行计划；④ 锁屏豁免边界仍搁置；⑤ **RssProxy 更名 ResourceControlProxy，接口暴露完整上下文**（ControlRequest）以便扩展；⑥ 暂不开始写代码 | 设计 §5.3.1/§6.4 更新；proposal/spec/plan 同步 |
+| 2026-08-24 | yangzk、需求方 | 模块设计深化（第六轮） | 三层模块（task_mgr / process_schedule / resource_control_proxy）细化、代码勘察 P1~P7 结论落地（开源 master 无 505/517/520 执行器、C-1 AppMS 崩溃即失效等）、对外三张 SVG 定稿 | design §6、module_design/task_flow/architecture_overview 图 |
+| 2026-08-24 | yangzk、需求方 | 深度审查（第七轮） | F-1~F-7 七问题修正：激活态纳入 SUBMITTED、LOW 基础保障档、进程级纳管原则、RCP 生效校验环、交互超时、提级联动、意向清理 | review-analysis.md、design/spec 同步 |
+| 2026-08-24 | yangzk、需求方 | 交互超时细化（第八轮） | F-5 两段式处置：交互超时 30min → OnTaskNotice 限期处置（宽限 5min）→ 宽限后仍未流转则主动降档撤销豁免+告警 | design §6.1、spec R-16/R-21 |
+| 2026-08-24 | yangzk、需求方 | 全量复审（第九轮） | 21 项缺陷修复：状态表补 CANCELED、SubmitTaskInput 所有权、tier-2 持续豁免、单任务纳管进程上限 16、OnTaskNotice 通道、接口规格 6 节、TaskParams、多用户 userId 过滤、C-1 结论固化、风险表 D-1/D-2 | design/spec 全文（commit 365cff1acf） |
+| 2026-08-24 | yangzk、需求方 | 开放点闭环（第十轮） | 13 项决策落定：**UI↔助手传递通道由本模块提供**（SubmitTaskInput 白名单=创建者+已注册监听的系统 UI，+OnTaskNotice(INPUT_ARRIVED)）；**豁免粒度=pid**（设计 D-1 关闭）；**EDS 一期经 P7 ApplyAllowResource**（设计 D-2 关闭）；续期仅 priority 变化触发、上限 N=3；各项上限经 CCM 可调；payload 权限管控 | design/spec 同步（commit 9a5864e8b5） |
+| 2026-08-24 | yangzk、需求方 | 豁免记录降级（第十一轮） | "动作账本"降级为**内存登记**：不持久化、仅活跃任务 {taskId, pid, action, level, timestamp, result}，单一职责=RSS 重启重放+撤销重试，随 AppMS 进程消亡（与 C-1 一致）；计时/续期计数记 TaskRecord；审计/验收/定位/复核一律走 TASK_RSSCONTROL+hilog 日志，对账基线=动作日志序列 | design/spec/plan/HANDOVER/三图全量同步（commit 7747518002+本轮外围补齐） |
 
 ### 功能范围确认
 

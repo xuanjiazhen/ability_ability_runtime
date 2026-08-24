@@ -1,7 +1,7 @@
 # 交接文档：AI 语音助手任务管理机制（AI Task Manager）
 
 > 供后续 AI/工程师接手。目标：不依赖上下文对话即可继续分析与开发。
-> 生成时间：2026-08-22 · 当前进度：SDD 文档阶段完成（设计评审第七轮），**尚未开始写代码**。
+> 生成时间：2026-08-22 · 最近更新：2026-08-24（第十一轮评审后全量刷新）· 当前进度：SDD 文档阶段（设计评审第十一轮），**尚未开始写代码**。
 
 ---
 
@@ -27,7 +27,7 @@
 ```
 .codespec/changes/ai-task-manager/
 ├── manifest.md              # 元数据（profile: none, complexity: standard, status: draft）
-├── proposal.md              # 需求文档 + 基线（已通过，七轮澄清/评审）
+├── proposal.md              # 需求文档 + 基线（2026-08-21 通过；讨论记录补录至第十一轮）
 ├── spec.md                  # 特性规格：US-1~6 + AC-1.1~AC-6.2 + 规则 R-1~R-24 + 接口行为规格
 ├── design.md                # 架构设计：任务模型/状态机/模块设计/RSS 细化/防仿冒/拦截点 + ADR-1~9
 ├── execution-plan.md        # 执行计划：TASK-0~6 + 文件全量清单 + AC 追溯 + 代码量估算
@@ -40,22 +40,23 @@
 **校验命令**（在 item 目录执行，插件路径版本号可能变化）：
 ```bash
 cd .codespec/changes/ai-task-manager
-/home/huawei/.claude/plugins/cache/ohos-sdd-local/ohos-sdd/0.3.3/bin/ohos-sdd validate . --level all
-# A=结构存在 B=锚点标题 C=依赖边一致 → 应 PASS
-# D=归档就绪（registry.md 索引、review 证据）→ 当前 2 broken 属正常（流程末端项）
+export PATH=/home/huawei/.claude/plugins/cache/ohos-sdd-local/ohos-sdd/0.3.3/bin:$PATH
+ohos-sdd validate . --level c
+# A=结构存在 B=锚点标题 C=依赖边一致 → 应 PASS（当前 4 checks 0 broken）
+# 注：--level all 的 D 检查需归档证据（registry.md 索引、review 证据），流程末端才可达
 # E=profile 命中 → none
 ```
 
-**Git**：分支 `feature/ai-task-manager`（基于 aaf020f296 master），7 次提交均含 `Signed-off-by: yangzk <yangzhongkai@huawei.com>`，最新 `7fe9e832bf`。
+**Git**：分支 `feature/ai-task-manager`（基于 aaf020f296 master，远端 `yzk/feature/ai-task-manager`），本目录 8 次提交均含 `Signed-off-by: yangzk <yangzhongkai@huawei.com>`，最新 `7747518002`（第十一轮）；2026-08-24 第九~十一轮 3 个提交（`365cff1acf` / `9a5864e8b5` / `7747518002`）待人工 push。
 
 ---
 
-## 3. 关键决策汇总（七轮评审固化，勿轻易推翻）
+## 3. 关键决策汇总（十一轮评审固化，勿轻易推翻）
 
 | # | 决策 | 结论 |
 |---|------|------|
 | D-1 | 模块形态 | **并入 AppMS**（AppManagerService，SA 501，foundation 进程）：`services/appmgr/src/task_mgr/`（任务语义层）+ `process_schedule/`（通用进程调度能力层）。否决 agentmgr 方案的理由：A2A/意图/CLI 启动的进程不经过 agentmgr，但**所有应用进程都经过 AppMS**（进程权威信息在手），且 appmgr 已依赖 `ressched_client`（BUILD.gn:159） |
-| D-2 | RSS 集成 | **ResourceControlProxy 代理层**（代理模式）：RSS 具体设计由 RSS 团队主导（暂未明确），一期 RCP-Stub 骨架（动作账本+告警+探测开关默认关），对接后 RCP-Impl 替换（条件编译），上层零改动 |
+| D-2 | RSS 集成 | **ResourceControlProxy 代理层**（代理模式）：RSS 具体设计由 RSS 团队主导，一期 RCP-Stub 骨架（内存登记+日志+告警+探测开关默认关），对接后 RCP-Impl 替换（条件编译），上层零改动；**EDS 一期经 P7 ApplyAllowResource 打通待机豁免（2026-08-24 第十轮，设计开放项 D-2 关闭，联合调试验收待 device_standby 侧）** |
 | D-3 | taskId 传递 | **Want 参数统一拦截**（key 约定 `ohos.ai.taskId`），AI 助手调用侧无感知 |
 | D-4 | 防仿冒 | **B-1 + B-2**：taskId 随机 128bit（UUID v4 风格）+ caller 身份绑定校验（callerTokenId ∈ {creator} ∪ {任务内进程 tokenId}）；仿冒拒绝不阻断启动、不报错（防探测） |
 | D-5 | 接口面向 | 一期仅 **inner API**（ITaskManager IDL，放 `interfaces/inner_api/app_manager/task_manager/`），预留 NAPI 层 |
@@ -64,6 +65,12 @@ cd .codespec/changes/ai-task-manager
 | D-8 | RSS 管控粒度 | 按优先级分级（4 档）；管控维度含冻结/CPU 调度/内存/低内存查杀/功耗/温控（冻结一期主线，其余二期扩展） |
 | D-9 | 目标版本 | 7.1 |
 | D-10 | 节奏 | 先文档评审再写代码；当前暂不写代码，待设计评审正式通过 |
+| D-11 | 交互传递通道 | 系统 UI ↔ AI 助手间**不假设既有通道，传递通道由本模块提供**（第十轮）：SubmitTaskInput 白名单=创建者+已注册监听的系统 UI（白名单外拒绝）；input 经 OnTaskNotice(INPUT_ARRIVED) 通知创建者 |
+| D-12 | 豁免粒度 | 按 pid（进程级）计（第十轮，设计开放项 D-1 关闭） |
+| D-13 | 续期机制 | 仅 priority 变化触发续期（payload-only 变更不续期）；次数上限 N=3（默认，可配）；达上限后到期撤销豁免并降档+TASK_ABUSE_WARNING（第十轮） |
+| D-14 | 上限配置 | 任务数/单任务进程数/全局豁免数/时长/续期次数等上限均经 CCM 参数可调（第十轮） |
+| D-15 | payload 权限 | 交互 payload 含敏感内容时按权限管控（第十轮） |
+| D-16 | 豁免记录 | "动作账本"降级为**内存登记**（第十一轮）：不持久化、仅活跃任务 {taskId, pid, action, level, timestamp, result}，单一职责=RSS 重启重放（P4）+撤销重试，随 AppMS 进程消亡（与 C-1 一致）；计时/续期计数为 TaskRecord 内存态；审计/验收/定位/复核一律走 TASK_RSSCONTROL+hilog 日志，对账基线=动作日志序列 |
 
 ---
 
@@ -76,7 +83,7 @@ cd .codespec/changes/ai-task-manager
 - **TaskPriority（4 档 → 管控档位）**：LOW=0 不豁免 / MEDIUM=1 限时豁免(30min) / HIGH=2 激活态全时豁免 / CRITICAL=3 豁免+提权(二期)
 - **TaskType（初稿）**：GENERAL / VOICE_PLAYBACK / TIMER_TASK / DATA_PROCESSING / SYNC_TRANSFER / INTERACTION / DOWNLOAD / CUSTOM
 - **状态机流转**：见 design.md §4.2 流转表；终态不可回退；交互态必带 payload；REJECTED 仅创建者
-- **TaskRecord**（≤1KB，内存态）：taskId / type / priority / state / payload / input / creatorTokenId / creatorUid / userId / processPids / createTime / updateTime / exemptRefCount
+- **TaskRecord**（≤1KB，内存态）：taskId / type / priority / state / payload / input / creatorTokenId / creatorUid / userId / processPids / createTime / updateTime / exemptRefCount / 豁免计时与续期计数（N=3 可配，第十轮）
 
 ### 4.2 拦截点：条件两段式（design.md §5.4，第六轮修正）
 
@@ -107,14 +114,14 @@ else                → RegisterTaskIntent(taskId, callerTokenId)          // �
 class ResourceControlProxy {
     ApplyControl(ControlRequest)      // 施加管控（ControlAction: EXEMPT/CLEAR_EXEMPT/THAW/SET_QOS…）
     RestoreControl(ControlRequest)    // 撤销（单进程）
-    NotifyTaskEnd(TaskEndInfo)        // 任务级清理通知（RSS 侧清理任务级策略/账本）
+    NotifyTaskEnd(TaskEndInfo)        // 任务级清理通知（RSS 侧清理任务级策略）
     QueryControlState(pid, controlled)// 生效校验（F-4：施加后查询冻结状态，未生效告警）
     ResetAll(pid)                     // 恢复该进程全部管控
 }
 ControlRequest = {taskId, pid, uid, tokenId, bundleName, taskType, priority, taskState, level, reason, timestamp}  // 完整上下文供 RSS 定制策略与未来管控方复用
 ```
 
-**任务结束双通道清理**：① 进程级 RestoreControl（逐进程，按剩余任务最高档重算）→ ② NotifyTaskEnd（任务级策略清理，防 RSS 残留）；串行执行，失败重试 ≤3 + 告警 + 保留账本。
+**任务结束双通道清理**：① 进程级 RestoreControl（逐进程，按剩余任务最高档重算）→ ② NotifyTaskEnd（任务级策略清理，防 RSS 残留）；串行执行，失败重试 ≤3 + 告警 + 日志留痕（内存登记仅保存活跃任务，随终态消亡）。
 
 ### 4.5 RSS 维度细化（design.md §6.2）
 
@@ -132,17 +139,19 @@ ControlRequest = {taskId, pid, uid, tokenId, bundleName, taskType, priority, tas
 
 CreateTask / DestroyTask / CancelTask / SetTaskState / SetTaskParams / GetTaskInfo / GetTaskInfos / RegisterTaskListener / UnregisterTaskListener / SubmitTaskInput / RegisterTaskIntent / RegisterTaskProcess / UnregisterTaskProcess（后 3 个为 AMS 内部调用）
 
+监听回调（ITaskListener）：状态变更回调（携带 payload）+ **OnTaskNotice 通知类事件**（INPUT_ARRIVED / INTERACTIVE_TIMEOUT / EXEMPT_EXPIRING / EXEMPT_EXPIRED，第十/十一轮补全）；同注册、同派发线程、同受 userId 过滤；SubmitTaskInput 白名单=创建者+已注册监听的系统 UI（D-11）。
+
 错误码：ERR_TASK_NOT_FOUND / ERR_TASK_INVALID_STATE / ERR_TASK_INVALID_STATE_TRANSITION / ERR_TASK_PERMISSION_DENIED / ERR_TASK_LIMIT_EXCEEDED（+ 复用 ERR_INVALID_PARAM）
 
 ### 4.7 DFX
 
 - hisysevent 6 事件（AAFWK 域，hisysevent.yaml 新增）：TASK_CREATE / TASK_STATE_CHANGE / TASK_DESTROY / TASK_INPUT / TASK_RSSCONTROL / TASK_ABUSE_WARNING
-- dump：hidumper -a 501（任务全景：状态/进程/档位/payload 摘要/账本）
+- dump：hidumper -a 501（任务全景：状态/进程/档位/payload 摘要/活跃豁免登记摘要）
 - 日志：hilog_tag_wrapper
 
-### 4.8 防滥用上限
+### 4.8 防滥用上限（均 CCM 参数可调，默认值评估调整中，评审决策 2026-08-24）
 
-创建者活跃任务 ≤16；任务进程集合 ≤64；豁免时长上限 60min；交互态超时 30min（F-5）；上限超限拒绝 + TASK_ABUSE_WARNING。
+创建者活跃任务 ≤16（R-2）；单任务纳管进程 ≤16 与全局活跃豁免进程 ≤64（R-22，豁免按 pid 计）；豁免时长硬上限 60min、档位 1 限时 30min、交互态超时 30min+宽限 5min（F-5 两段式）、续期次数 N=3（仅 priority 变化触发）；上限超限拒绝 + TASK_ABUSE_WARNING。
 
 ---
 
@@ -179,10 +188,11 @@ CreateTask / DestroyTask / CancelTask / SetTaskState / SetTaskParams / GetTaskIn
 | 编号 | 开放项 | 依赖方 |
 |------|--------|--------|
 | O-1 | 任务类型/优先级/状态枚举最终对齐 | AI 语音助手团队 |
-| O-2 | 锁屏豁免场景边界（豁免覆盖哪些冻结类型、时长/数量上限；锁屏冻结 = suspend 冻结 + 可能叠加 standby 待机冻结） | RSS 团队（已搁置） |
+| O-2 | 锁屏豁免场景边界（豁免覆盖哪些冻结类型、时长/数量上限；锁屏冻结 = suspend 冻结 + 可能叠加 standby 待机冻结）——**EDS 一期经 P7 ApplyAllowResource 联动（第十轮 D-2 关闭），联合调试验收待 device_standby 侧** | RSS 团队 |
 | O-3 | RSS 真实对接（ResourceControlProxyImpl 落地） | RSS 团队 |
 | O-4 | 子进程自动纳入任务是否纳入一期 | 需求方确认 |
 | O-5 | 520 低内存查杀豁免消费方语义 | RSS 团队 |
+| O-6 | RSS 505 payload 语义与豁免覆盖范围（RCP-Impl 对接前必须确认） | RSS 团队 |
 
 ## 8. 执行计划（execution-plan.md，待评审通过后启动）
 
@@ -200,7 +210,7 @@ CreateTask / DestroyTask / CancelTask / SetTaskState / SetTaskParams / GetTaskIn
 
 ## 9. 后续 AI 接手指引
 
-1. **先读**：`.codespec/changes/ai-task-manager/proposal.md`（基线与决策记录）→ `design.md`（设计全貌）→ `spec.md`（AC/规则）→ `execution-plan.md`（任务分解）→ `review-analysis.md`（第七轮审查修正）
+1. **先读**：`.codespec/changes/ai-task-manager/proposal.md`（基线与决策记录，含 2026-08-24 第八~十一轮补录）→ `design.md`（设计全貌）→ `spec.md`（AC/规则）→ `execution-plan.md`（任务分解）→ `review-analysis.md`（第七轮审查修正）
 2. **再看图**：三张 SVG（总览/模块设计/流程）
 3. **如需继续分析**：重点审查 design.md §4.1（枚举，待 AI 助手对齐）、§5.4（拦截点）、§6.4（RCP 对接策略）
 4. **如需写代码**：确认设计评审通过后从 TASK-0 开始（IDL + 骨架），每 Task 的 Files/完成判据/验证命令见 execution-plan.md
