@@ -45,7 +45,7 @@
 | inner API 客户端 | `interfaces/inner_api/app_manager/task_manager/` | TaskManagerClient / ITaskManager stub·proxy / TaskListener | 新增 |
 | 服务层 | `services/appmgr/src/task_mgr/` | 任务管理：任务模型、状态机、监听、交互传达、DFX | 新增 |
 | 服务层 | `services/appmgr/src/process_schedule/` | 通用进程调度管理：进程组、管控档位、管控动作施加/撤销、多任务归属合并 | 新增 |
-| 服务层（RSS 适配层） | `services/appmgr/src/resource_control_proxy/` | **RSS Proxy 代理层**：按管控动作语义抽象 RSS 能力接口；一期骨架实现（账本+告警，可配探测对接开关）；RSS 明确后替换真实实现 | 新增 |
+| 服务层（RSS 适配层） | `services/appmgr/src/resource_control_proxy/` | **RSS Proxy 代理层**：按管控动作语义抽象 RSS 能力接口；一期骨架实现（内存登记+告警日志，可配探测对接开关）；RSS 明确后替换真实实现 | 新增 |
 | 服务层 | `services/abilitymgr` | 启动/连接链路 Want 拦截：解析 taskId → 经 app_manager inner_api 客户端上报 AppMS | 修改（最小拦截点） |
 | 平台能力 | resource_schedule_service（ressched_client） | 冻结豁免/解冻/状态查询（一期）；进程级 QoS（二期 221） | 复用 |
 | 平台能力 | qos_manager（QosController/RTG） | 线程级 QoS 提权（二期，需线程 tid） | 复用（二期） |
@@ -311,7 +311,7 @@ interface ITaskListener {   // 系统 UI 注册
    - AppMS 校验（权威）：`callerTokenId ∈ {creatorTokenId} ∪ {该任务纳管进程的 tokenId 集合}` 才接受纳管（R-8）；
    - 校验失败：拒绝纳管、**不阻断启动**、不上报错误给调用方（防探测）；
    - 链式启动：任务内进程 A 启动 B → callerTokenId = A 的 tokenId ∈ 纳管集合 → 合法（与 ADK supervisor→sub-agent 可信链一致）。
-3. **B-3 可选增强**（预留）：若后续需要防重放/防泄露增强，增加短时 token 换 taskId 通道，接口与账本已预留扩展点。
+3. **B-3 可选增强**（预留）：若后续需要防重放/防泄露增强，增加短时 token 换 taskId 通道，接口与内存登记已预留扩展点。
 
 #### 5.3.1 两段式纳管安全分析（评审答复 2026-08-21 第五轮）
 
@@ -372,7 +372,7 @@ if (targetPid > 0) {
 }
 ```
 - 意向超时清理：30s 未补注册则移除（attach 晚于超时由 attach 处重发①）；**attach 失败清理**（F-7 修正）：进程启动失败（attach 失败回调）时主动 UnregisterTaskIntent，避免意向残留 30s；
-- 进程已存在直接纳管时无意向阶段（简化账本：一次动作）；
+- 进程已存在直接纳管时无意向阶段（简化登记：一次动作）；
 - `AbilityRecord::GetPid()` 可得性已核实（ability_connect_manager.cpp:327 既有使用）；连接场景对已运行服务同理（ServiceRecord 持有 pid，:791）。
 - **attach 身份来源（P2 修正，代码勘察 2026-08-24）**：`AttachAbilityThread`（ability_manager_service.cpp:7957）由**目标进程自身经 IPC 调起**，现场 `GetCallingTokenID()` 恒为目标进程 tokenId——直接取用不仅恒被 B-2 拒绝，还构成自报身份仿冒面（§5.3.1 ⑧）。因此②的 callerTokenId 必须取①意向登记时解析并存入 AbilityRecord 的业务发起方 tokenId；信任锚 = AMS→AppMS 为 foundation 进程内调用（native token），恶意应用无法直接触达该内部通道。该来源同时正确覆盖"创建者直启目标进程"场景（发起方 = 创建者，B-2 通过，§5.2.1）。
 
@@ -398,7 +398,7 @@ if (targetPid > 0) {
 - 并发上限：创建者活跃任务 ≤ 16（R-2）；全局活跃豁免进程数上限（默认 64）与**单任务纳管进程数上限（默认 16）**（R-22，A-5 补全：单任务上限约束链式纳管膨胀；**两项上限经 CCM 参数支持调整**，评审决策 2026-08-24）；豁免时长上限见 R-21。
 - **进程级纳管原则**（F-3 修正，评审第七轮）：纳管以**进程**为单位——进程加入任务后，其内全部组件活动（新建 ability/连接等）共享该任务的管控档位，无需组件级单独纳管；taskId 仅用于"进程加入任务"的触发点，同进程内后续组件启动无需携带 taskId（也不改变归属）。同进程组件在任务内的活动天然受管控（进程被豁免 → 其内组件活动不被冻结）。
 - **优先级动态调整联动**（F-6 修正）：SetTaskParams 提升优先级且任务处于激活态时，触发 OnTaskActiveChanged → process_schedule 档位重算，管控立即按新档位生效（与状态变更同一联动路径）。
-- **SetTaskParams 受限规则**（B-4 补全）：仅创建者可调；任务处于非终态（终态返回 ERR_TASK_INVALID_STATE）；可调字段 = priority / payload（type 创建后不可调）；priority 变化经上述联动路径重算档位（升档立即施加、降档立即撤销）；激活态任务且 **priority 发生变化**时触发豁免时长**续期**（payload-only 变更不续期，防滥用续期；重置计时并记入账本，§6.1/R-21，评审决策 2026-08-24）。
+- **SetTaskParams 受限规则**（B-4 补全）：仅创建者可调；任务处于非终态（终态返回 ERR_TASK_INVALID_STATE）；可调字段 = priority / payload（type 创建后不可调）；priority 变化经上述联动路径重算档位（升档立即施加、降档立即撤销）；激活态任务且 **priority 发生变化**时触发豁免时长**续期**（payload-only 变更不续期，防滥用续期；计时/续期计数为 TaskRecord 内存态，§6.1/R-21，评审决策 2026-08-24）。
 
 ### 5.7 权限与身份（基础鉴权）
 
@@ -437,25 +437,25 @@ if (targetPid > 0) {
 **限时豁免到期与续期（C-2/A-6 补全，评审答复 2026-08-24 第九轮）**：
 
 - 档位 1（MEDIUM）限时豁免到期前经 `OnTaskNotice(EXEMPT_EXPIRING)` 预警（提前量可配，默认 5min）；到期未续期 → 撤销豁免、档位按剩余归属任务重算、TASK_ABUSE_WARNING(reason=limit)；
-- **续期机制（全档位）**：豁免时长硬上限（默认 60min，R-21/R-22）到期前，创建者可经 SetTaskParams 续期（**仅 priority 发生变化时触发续期**，payload-only 变更不续期——防滥用续期；重置计时并记入账本）；档位 2 语义由"全时"修正为"持续（激活期间、可续期）"——长时 HIGH 任务经周期性续期维持豁免，**续期次数上限 N 次（可配，默认 3 次，评审决策 2026-08-24）**，达到上限后到期即撤销豁免并降档、TASK_ABUSE_WARNING(reason=limit)；每次续期动作经 TASK_RSSCONTROL 记录审计；
+- **续期机制（全档位）**：豁免时长硬上限（默认 60min，R-21/R-22）到期前，创建者可经 SetTaskParams 续期（**仅 priority 发生变化时触发续期**，payload-only 变更不续期——防滥用续期；计时/续期计数为 TaskRecord 内存态）；档位 2 语义由"全时"修正为"持续（激活期间、可续期）"——长时 HIGH 任务经周期性续期维持豁免，**续期次数上限 N 次（可配，默认 3 次，评审决策 2026-08-24）**，达到上限后到期即撤销豁免并降档、TASK_ABUSE_WARNING(reason=limit)；每次续期动作经 TASK_RSSCONTROL 记录审计；
 - **双计时器叠加**：交互态任务同时存在交互超时（30min+5min 宽限）与豁免时长计时（档位 1 为 30min 限时）时，取先到者触发，先触发者的处置（降档/撤销豁免）即终止另一计时，避免双重降档。**上述超时相关参数（交互 30min/宽限 5min/档位 1 限时 30min/硬上限 60min/续期次数）均为初始默认值，处于评估调整中**（评审决策 2026-08-24），落地时全部经可配参数（CCM）支持调整。
 
 > **开放项（二期评估）**：交互态降档折中——HIGH/CRITICAL 任务进入交互态后自动降为限时豁免档（交互等待本质为"低活动、需快速唤醒"，与 MEDIUM 语义接近），可压缩用户无响应期间的资源占用；一期不引入（收益不抵"状态×档位"二维映射复杂度）。
 
-动作账本：`{taskId, pid, action, level, timestamp, result}`，供撤销（R-20 重试 ≤3）、dump 与审计使用。
+内存登记（评审决策 2026-08-24：**不持久化**，仅内存保存**正在运行中任务**的调度/豁免信息）：`{taskId, pid, action, level, timestamp, result}`——单一职责为 **RSS 重启重放（§6.1.1-5）与撤销重试**的运行时依据；AppMS 重启随进程消亡（C-1 结论一致）；撤销/计时/限次等运行时状态以 TaskRecord 为准；**审计、对接验收、问题定位、复核一律经日志查看**（TASK_RSSCONTROL hisysevent + hilog，含完整 ControlRequest 上下文），不依赖登记查询。
 
 ### 6.1.1 生效校验环（F-4 修正，评审第七轮）
 
 管控动作施加后**校验是否真实生效**（防 RSS 内部策略拒绝后系统不知、任务仍失败）：
 1. 施加 EXEMPT/THAW 后，经 RCP 查询冻结状态（`GetSuspendState(pid)`，对接后实现为 SYNC_RES_TYPE_GET_SUSPEND_STATE_BY_PID 507）；
 2. 未生效（进程仍被冻结/策略拒绝）→ 上报 TASK_ABUSE_WARNING 告警 + 向任务创建者侧上报 TASK 事件（供 AI 助手决策重试/降级/取消）；
-3. 校验结果记入账本（result 字段），供对接验收与问题定位。
+3. 校验结果记入内存登记（result 字段）并打印日志，供对接验收与问题定位（评审决策 2026-08-24：经日志查看）。
 4. **已冻结进程纳管分支（P3，代码勘察 2026-08-24）**：施加管控时目标进程可能已被冻结（典型：SUBMITTED 定时任务就绪前进程已被 RSS 冻结）——ApplyControl 施加顺序固定为：EXEMPT(505) → 507 查询 → 若 `isFrozen=true` → THAW(517) → 507 复查；复查仍未解冻才判定失败（告警 + TASK 事件）。注意：507 在无消费插件的环境恒返回 `isFrozen=false` 默认值（suspend_manager_base_service.cpp:66-72），该分支仅在有 freezer 执行器的产品环境下有实际意义；
-5. **RSS 重启状态重放（P4）**：RSS（SA 1901）异常重启会清空其内部豁免状态，而 AppMS 账本仍显示"已豁免"（状态漂移）。RCP-Impl 复用 RSS 客户端内置死亡通知（`suspend_manager_base_client` 懒加载代理 + 死亡监听），RSS 重启后**按账本幂等重放（replay）全部活跃豁免**，重放失败按 R-20 重试 ≤3 + 告警；二期以 push observer 做运行时漂移检测（§6.4 P5）；
+5. **RSS 重启状态重放（P4）**：RSS（SA 1901）异常重启会清空其内部豁免状态，而 AppMS 内存登记仍显示"已豁免"（状态漂移）。RCP-Impl 复用 RSS 客户端内置死亡通知（`suspend_manager_base_client` 懒加载代理 + 死亡监听），RSS 重启后**按内存登记幂等重放（replay）全部活跃豁免**，重放失败按 R-20 重试 ≤3 + 告警；二期以 push observer 做运行时漂移检测（§6.4 P5）；
 6. **同步调用纪律（P6）**：507/517/520 均经 `ReportSyncEvent` **同步**上报——RCP 不得在持有 task_mgr/process_schedule 锁时发起同步调用（死锁/长阻塞风险），统一设置超时保护；状态查询优先走本地 observer 缓存（§6.4 P5）。
-7. **待机豁免联动（P7，评审决策 2026-08-24）**：任务进入激活态（豁免生效）时，ResourceControlProxy 经 `StandbyServiceClient::ApplyAllowResource` 向 device_standby 申请待机资源豁免（网络/任务执行），覆盖夜间深度待机场景（需求场景 1，D-2 关闭）；任务终态/豁免撤销/进程移除时 `UnapplyAllowResource`；与 505/517 同一生命周期账本管理，避免待机豁免残留。
+7. **待机豁免联动（P7，评审决策 2026-08-24）**：任务进入激活态（豁免生效）时，ResourceControlProxy 经 `StandbyServiceClient::ApplyAllowResource` 向 device_standby 申请待机资源豁免（网络/任务执行），覆盖夜间深度待机场景（需求场景 1，D-2 关闭）；任务终态/豁免撤销/进程移除时 `UnapplyAllowResource`；与 505/517 同一生命周期内存登记管理，避免待机豁免残留。
 
-> **AppMS 重启反向场景（C-1 分析，结论：无需处理）**：P4 只覆盖"RSS 重启、AppMS 账本漂移"；反向的"AppMS 重启、RSS 侧豁免残留"不存在——AppMS 位于 foundation 进程，异常重启即 foundation 进程重启，系统将清理全部应用进程，纳管进程与 RSS 侧豁免随进程消亡同亡，无孤儿豁免（评审结论 2026-08-24）。
+> **AppMS 重启反向场景（C-1 分析，结论：无需处理）**：P4 只覆盖"RSS 重启、AppMS 登记漂移"；反向的"AppMS 重启、RSS 侧豁免残留"不存在——AppMS 位于 foundation 进程，异常重启即 foundation 进程重启，系统将清理全部应用进程，纳管进程与 RSS 侧豁免随进程消亡同亡，无孤儿豁免（评审结论 2026-08-24）。内存登记同为进程内存态，同亡一致。
 
 > 一期 RCP-Stub：施加记账并默认"成功"，生效校验在 RCP-Impl 对接后启用（接口已预留）。
 
@@ -477,7 +477,7 @@ LOW（档位 0）任务切后台/锁屏同样会被冻结。为避免"已纳管�
 | 内存/低内存查杀 | 520 SYNC_RES_TYPE_SHOULD_FORCE_KILL_PROCESS（lmkd 杀前同步查询）；214 LOAD_KILL_REASON_CONFIG | 评估预留 | ✅ | 高优先级任务进程可响应"不应杀"；需与 RSS owner 确认 520 消费方语义 |
 | 功耗 | 92 POWER_MODE_CHANGED / 155 BATTERY_STATUS / 170 APP_HIGH_POWER_CONSUMPTION / 215 BATTERY_LOW | 不主动豁免（观察维度） | 待评估 | 任务豁免不豁免功耗策略；高功耗场景告警观察 |
 | 温控 | 66 THERMAL_STATE / 93 THERMAL_SCENARIO / 519 GET_THERMAL_DATA | 不主动豁免（系统级热管控） | 待评估 | 不做任务级豁免 |
-| 设备待机（EDS） | device_standby 独立通道：ApplyAllowResource/UnapplyAllowResource/GetAllowList（IStandbyService.idl:22-25），与 505 冻结豁免**互不相通** | ✅ 一期支持（P7，评审决策 2026-08-24） | ✅ 已决策 | 任务激活期间经 StandbyServiceClient::ApplyAllowResource 申请待机资源豁免（网络/任务执行），任务终态/豁免撤销时 UnapplyAllowResource，与 505/517 同一生命周期账本（D-2 关闭）；依赖 device_standby 接口联调验收 |
+| 设备待机（EDS） | device_standby 独立通道：ApplyAllowResource/UnapplyAllowResource/GetAllowList（IStandbyService.idl:22-25），与 505 冻结豁免**互不相通** | ✅ 一期支持（P7，评审决策 2026-08-24） | ✅ 已决策 | 任务激活期间经 StandbyServiceClient::ApplyAllowResource 申请待机资源豁免（网络/任务执行），任务终态/豁免撤销时 UnapplyAllowResource，与 505/517 同一生命周期内存登记（D-2 关闭）；依赖 device_standby 接口联调验收 |
 
 **结论**：一期 = 冻结/解冻（档位 0~2 完整落地，档位 3 豁免部分落地）；二期 = CPU 调度（221/QosController）与低内存查杀（520）作为扩展点接入；功耗/温控为观察维度。
 
@@ -489,7 +489,7 @@ LOW（档位 0）任务切后台/锁屏同样会被冻结。为避免"已纳管�
 
 ### 6.4 资源管控代理层（ResourceControlProxy）设计（RSS 对接方式）
 
-**背景**：RSS 的具体设计由 RSS 团队主导，目前暂未明确。任务管理模块**封装资源管控代理层（代理模式）**，按"管控动作语义"抽象资源管控能力，一期以骨架实现承载动作账本与告警，RSS 明确后替换为真实对接实现，上层（task_mgr/process_schedule）零改动。
+**背景**：RSS 的具体设计由 RSS 团队主导，目前暂未明确。任务管理模块**封装资源管控代理层（代理模式）**，按"管控动作语义"抽象资源管控能力，一期以骨架实现承载内存登记（活跃豁免，供 RSS 重启重放）与告警日志（不持久化，评审决策 2026-08-24），RSS 明确后替换为真实对接实现，上层（task_mgr/process_schedule）零改动。
 
 **命名**：早期版本曾称 RSS Proxy / RssControlProxy，2026-08-21 第五轮评审定为 **ResourceControlProxy**——本层是任务管理模块的**资源管控出口**，代理对接各资源管控方（RSS 为主，未来 qos/温控/低内存查杀等管控方），不绑定 RSS 命名，为后续扩展留空间。
 
@@ -537,21 +537,21 @@ struct TaskEndInfo {             // 任务结束清理信息（评审第六轮�
 
 > **任务结束清理双通道**（评审第六轮）：任务进入终态/DestroyTask 时——
 > ① **进程级撤销**：对每个纳管进程 RestoreControl（撤销豁免/恢复 QoS），进程按剩余任务最高档重算（R-9/R-10）；
-> ② **任务级清理通知**：NotifyTaskEnd(taskId, pids, reason) 一次性通知 RSS 侧清理按 taskId 建立的任务级策略/账本（如豁免组、优先级组），防止 RSS 侧残留策略；RSS 对接后实现为 RSS 清理接口，一期 Stub 记账 + 告警。
-> 两者在 taskHandler 串行执行，②在①之后；执行失败重试 ≤3 并告警保留账本（R-20 扩展）。
+> ② **任务级清理通知**：NotifyTaskEnd(taskId, pids, reason) 一次性通知 RSS 侧清理按 taskId 建立的任务级策略（如豁免组、优先级组），防止 RSS 侧残留策略；RSS 对接后实现为 RSS 清理接口，一期 Stub 记录日志 + 告警。
+> 两者在 taskHandler 串行执行，②在①之后；执行失败重试 ≤3 并告警（日志留痕供复核，R-20 扩展）。
 
-> **暴露更多信息的意图**（评审反馈）：ControlRequest 携带任务与进程完整上下文，① RSS 对接实现可基于 bundleName/type/priority/state 等字段做定制化策略（RSS 侧策略未定时信息不缺失）；② 未来对接其他管控方（qos/温控/低内存查杀）时请求结构直接复用；③ 账本记录完整上下文，对接验收与问题定位信息完备。
+> **暴露更多信息的意图**（评审反馈）：ControlRequest 携带任务与进程完整上下文，① RSS 对接实现可基于 bundleName/type/priority/state 等字段做定制化策略（RSS 侧策略未定时信息不缺失）；② 未来对接其他管控方（qos/温控/低内存查杀）时请求结构直接复用；③ 日志记录完整上下文，对接验收与问题定位信息完备。
 
 **一期实现 `ResourceControlProxyStub`（骨架，代理模式中的"空代理"）：**
-- 全部接口：动作账本记录（完整 ControlRequest 序列）+ TASK_RSSCONTROL hisysevent 上报 + hilog 日志；默认返回成功（账本记录），**不产生真实 RSS 副作用**；
+- 全部接口：内存登记（活跃豁免，供重放）+ TASK_RSSCONTROL hisysevent 上报 + hilog 日志（完整 ControlRequest 序列）；默认返回成功，**不产生真实 RSS 副作用**；
 - 可配探测开关 `resource_control_probe_enable`（默认 false）：开启后对既有候选 resType（505 豁免/517 解冻，白名单已确认 res_sched_service.cpp:175）做真实调用，供联调期探测。**探测边界（P1，代码勘察 2026-08-24）**：开源 master 上 505/517/520 无任何消费插件——505 上报过权限/白名单检查后被静默丢弃，507 查询恒返回 `isFrozen=false` 默认值（suspend_manager_base_service.cpp:66-72）。因此 master 上开启探测只能验证"上报链路与权限配置正确"，**不能证明豁免生效**（会假成功）；端到端生效验证必须以产品含 freezer 执行器且 `const.taskmanager.low_memory_frozen_enable=true` 为前置条件（TASK-6 门禁）；
 - 策略配置（档位→动作、上限/时长）仍在 process_schedule_policy，与代理实现无关；
-- **冻结状态获取通道（P5，代码勘察 2026-08-24）**：RSS 已具备 push 通道 `RegisterSuspendObserver`（`ISuspendStateObserverBase.idl`：OnFrozen/OnActive/OnDoze oneway 回调，现网尚无消费者；mmi/camera 有使用先例 suspend_state_manager.cpp:60-78），且 `suspend_manager_base_client` 已随 `ressched_client` innerkit 交付（appmgr BUILD.gn 已依赖，无新增依赖）。RCP-Impl 落地时优先注册 observer 维护进程冻结状态**本地缓存**（O(1) 查询替代同步 507）并做账本-RSS 漂移检测；507/517 同步调用不持锁 + 超时保护（P6，见 §6.1.1-6）。
+- **冻结状态获取通道（P5，代码勘察 2026-08-24）**：RSS 已具备 push 通道 `RegisterSuspendObserver`（`ISuspendStateObserverBase.idl`：OnFrozen/OnActive/OnDoze oneway 回调，现网尚无消费者；mmi/camera 有使用先例 suspend_state_manager.cpp:60-78），且 `suspend_manager_base_client` 已随 `ressched_client` innerkit 交付（appmgr BUILD.gn 已依赖，无新增依赖）。RCP-Impl 落地时优先注册 observer 维护进程冻结状态**本地缓存**（O(1) 查询替代同步 507）并做登记-RSS 漂移检测；507/517 同步调用不持锁 + 超时保护（P6，见 §6.1.1-6）。
 
 **对接策略（RSS 团队明确后）：**
 1. RSS 提供接口（无论复用 505/517 还是新接口）→ 实现 `ResourceControlProxyImpl`，替换编译单元（条件编译），上层接口不变；
-2. 对账：ResourceControlProxyStub 的账本作为对接验收基线（账本动作序列 == RSS 实际生效序列）；
-3. 真机验证（TASK-6）在对接完成后执行端到端豁免生效验证；对接前以"动作账本断言"作为模块级验证。
+2. 对账：以**动作日志**（TASK_RSSCONTROL/hilog）作为对接验收基线（日志动作序列 == RSS 实际生效序列；评审决策 2026-08-24：经日志查看）；
+3. 真机验证（TASK-6）在对接完成后执行端到端豁免生效验证；对接前以"动作日志断言"作为模块级验证。
 
 ## DFX 设计
 
@@ -568,7 +568,7 @@ struct TaskEndInfo {             // 任务结束清理信息（评审第六轮�
 
 ### 7.2 dump（hidumper -a 501 / aa）
 
-输出任务全景：taskId、type、priority、state、纳管进程（pid 列表）、生效档位、payload 摘要（截断）、创建/更新时间；RSS 动作账本摘要。复用 appmgr DumpState 入口（shell/hidumper 校验，R-23）。
+输出任务全景：taskId、type、priority、state、纳管进程（pid 列表）、生效档位、payload 摘要（截断）、创建/更新时间；RSS 活跃豁免内存登记摘要。复用 appmgr DumpState 入口（shell/hidumper 校验，R-23）。
 
 ### 7.3 日志
 
@@ -609,7 +609,7 @@ hilog_tag_wrapper 新增 `AAFwkLogTag::TASK`（或复用 AppMgr tag），TAG_LOG
 | Task ID | 目标 | 受影响文件 | 依赖 |
 |---------|------|------------|------|
 | TASK-1 | 任务模型与状态机（TaskRecord/StateMachine/CreateTask/SetTaskState/生命周期） | task_mgr 核心 | design+spec Approved |
-| TASK-2 | 进程调度管理（档位合并/RSS 动作/账本） | process_schedule | TASK-1 |
+| TASK-2 | 进程调度管理（档位合并/RSS 动作/内存登记） | process_schedule | TASK-1 |
 | TASK-3 | AMS 拦截点（两段式纳管 + caller 校验） | abilitymgr 拦截点 | TASK-1 |
 | TASK-4 | 监听与交互传达（ListenerManager/SubmitTaskInput/payload） | task_mgr | TASK-1 |
 | TASK-5 | DFX（hisysevent/dump/日志）+ 错误码接入 | hisysevent.yaml、task_dfx | TASK-1~4 |
@@ -688,7 +688,7 @@ sa_profile/501.json: 不变（复用 appms）
                                         ┌──────────────────────┐
                                         │ ResourceControlProxy（代理层）     │
                                         │ 一期：ResourceControlProxyStub     │
-                                        │ （账本+告警+探测开关）  │
+                                        │ （内存登记+告警日志+探测开关） │
                                         └──────────┬───────────┘
                                         （RSS 对接后替换为 ResourceControlProxyImpl）
                                         ┌──────────────▼──────────────┐
@@ -709,7 +709,7 @@ sa_profile/501.json: 不变（复用 appms）
 | 3 | AppMS | process_schedule | OnTaskActiveChanged | 档位合并重算；ApplyLevel 施加豁免（505） |
 | 4 | AI 助手 | AMS | StartAbility(want[ohos.ai.taskId]) | 拦截点解析 → RegisterTaskIntent/RegisterTaskProcess |
 | 5 | AMS | AppMS | RegisterTaskProcess(taskId, pid, callerTokenId) | B-2 校验；纳管；档位重算（进程加入后豁免生效） |
-| 6 | AppMS | RSS | ReportData(505, exempt) | 豁免账本；TASK_RSSCONTROL |
+| 6 | AppMS | RSS | ReportData(505, exempt) | 内存登记（活跃豁免，供重放）；TASK_RSSCONTROL 日志 |
 | 7 | AI 助手 | AppMS | SetTaskState(COMPLETED) | 终态；监听回调 |
 | 8 | AppMS | process_schedule | OnTaskActiveChanged | 档位重算；撤销豁免（剩余任务最高档）；TASK_RSSCONTROL |
 
@@ -722,17 +722,17 @@ sa_profile/501.json: 不变（复用 appms）
 | 3 | 系统 UI（用户选择） | AppMS | SubmitTaskInput(taskId, input) | 校验：创建者或已注册监听的系统 UI（白名单，任务管理模块提供传递通道，A-2 决策 2026-08-24）；写入 TaskRecord.input；TASK_INPUT(submit)；OnTaskNotice(INPUT_ARRIVED) 通知创建者 |
 | 4 | AI 助手（创建者） | AppMS | 监听 OnTaskNotice / GetTaskInfo | 获得 input；SetTaskState(WORKING/COMPLETED) 继续 |
 
-**异常/降级流：** 豁免撤销失败重试 ≤3 → 告警保留账本（R-20）；进程死亡 → 死亡通知链 → RemoveProcessFromTask + 档位重算（R-12）；AppMS 异常重启 → foundation 进程重启、全部应用进程被清理，任务记录与 RSS 侧豁免随进程消亡同亡（无孤儿豁免，C-1 结论；spec 非功能可靠性）。
+**异常/降级流：** 豁免撤销失败重试 ≤3 → 告警（日志留痕，R-20）；进程死亡 → 死亡通知链 → RemoveProcessFromTask + 档位重算（R-12）；AppMS 异常重启 → foundation 进程重启、全部应用进程被清理，任务记录与 RSS 侧豁免随进程消亡同亡（无孤儿豁免，C-1 结论；spec 非功能可靠性）。
 
 ### 风险与开放项
 
 | 风险/开放项 | 影响 | 缓解/关闭方式 |
 |-------------|------|---------------|
-| RSS 设计未明确，且**开源 master 上 505/517/520 无消费执行器**（P1：505 上报过权限检查后即被丢弃、507 恒返回未冻结）——真实豁免/解冻在 master 上无法端到端生效，探测会"假成功" | 高 | **ResourceControlProxy 代理层隔离**（ADR-4/§6.4）：一期骨架实现（动作账本+告警+探测开关），模块行为可单测验证，**Stub 账本断言为 master 上唯一可复现的验证基线**；端到端真机验证前置条件 = 产品含 freezer 执行器且 `const.taskmanager.low_memory_frozen_enable=true`（TASK-6 门禁） |
-| RSS（SA 1901）异常重启导致豁免状态丢失、AppMS 账本与 RSS 实际状态漂移（P4） | 中 | RCP-Impl 复用 RSS 客户端内置死亡通知 → RSS 重启后按账本幂等重放全部活跃豁免（§6.1.1-5），重放失败重试 ≤3 + 告警；二期 push observer 运行时漂移检测 |
-| RSS 505 payload 语义与豁免覆盖范围未对齐（含锁屏冻结是否覆盖） | 高 | **豁免粒度已决策 pid（2026-08-24，D-1 关闭）**；payload 语义仍为对接必答项；以 ResourceControlProxyStub 账本为验收基线；RSS 明确前不阻断模块开发 |
+| RSS 设计未明确，且**开源 master 上 505/517/520 无消费执行器**（P1：505 上报过权限检查后即被丢弃、507 恒返回未冻结）——真实豁免/解冻在 master 上无法端到端生效，探测会"假成功" | 高 | **ResourceControlProxy 代理层隔离**（ADR-4/§6.4）：一期骨架实现（内存登记+告警日志+探测开关），模块行为可单测验证，**Stub 动作日志断言为 master 上唯一可复现的验证基线**；端到端真机验证前置条件 = 产品含 freezer 执行器且 `const.taskmanager.low_memory_frozen_enable=true`（TASK-6 门禁） |
+| RSS（SA 1901）异常重启导致豁免状态丢失、AppMS 内存登记与 RSS 实际状态漂移（P4） | 中 | RCP-Impl 复用 RSS 客户端内置死亡通知 → RSS 重启后按内存登记幂等重放全部活跃豁免（§6.1.1-5），重放失败重试 ≤3 + 告警；二期 push observer 运行时漂移检测 |
+| RSS 505 payload 语义与豁免覆盖范围未对齐（含锁屏冻结是否覆盖） | 高 | **豁免粒度已决策 pid（2026-08-24，D-1 关闭）**；payload 语义仍为对接必答项；以动作日志（TASK_RSSCONTROL）为验收基线；RSS 明确前不阻断模块开发 |
 | 520 SHOULD_FORCE_KILL_PROCESS 消费方语义未确认 | 中 | 二期启用前确认；一期仅评估预留 |
-| 设备待机（EDS）限制通道与 505 豁免互不相通：夜间待机期间 AI 定时任务可能被待机网络/任务限制阻断（需求场景 1 典型时序，D-2） | 中 | **已决策一期支持（2026-08-24）**：新增 P7 待机豁免联动（ApplyAllowResource/UnapplyAllowResource，与 505 同生命周期账本）；依赖 device_standby 接口联调验收 |
+| 设备待机（EDS）限制通道与 505 豁免互不相通：夜间待机期间 AI 定时任务可能被待机网络/任务限制阻断（需求场景 1 典型时序，D-2） | 中 | **已决策一期支持（2026-08-24）**：新增 P7 待机豁免联动（ApplyAllowResource/UnapplyAllowResource，与 505 同生命周期内存登记）；依赖 device_standby 接口联调验收 |
 | 两段式纳管的意向超时窗口（30s）内进程未 attach | 低 | 意向超时清理；attach 晚于超时则重新走①（拦截点在 attach 处重发） |
 | 系统应用白名单口径 | 低 | 复用 AppMS 既有 token 校验；白名单范围随评审定 |
 | 多用户隔离细节（任务跨用户可见性） | 低 | 一期按 userId 隔离；细化随 execution-plan 评审 |
@@ -749,6 +749,6 @@ sa_profile/501.json: 不变（复用 appms）
 | 监听/交互 payload 机制（5.5） | R-14, R-16~R-18 | AC-3.x, AC-4.x |
 | 上限与防滥用（R-2, R-22 对应实现） | R-2, R-22 | AC-1.5, AC-5.5 |
 | 进程死亡清理（5.6） | R-12 | AC-2.4 |
-| 降级恢复与重试（6.1 账本） | R-9, R-20 | AC-5.2, AC-5.4 |
+| 降级恢复与重试（6.1 内存登记与日志） | R-9, R-20 | AC-5.2, AC-5.4 |
 | 错误码设计 | R-4~R-6 等错误码引用 | AC-1.x~AC-6.x |
 | DFX（7.1~7.3） | R-23, R-24 | AC-6.1, AC-6.2 |
