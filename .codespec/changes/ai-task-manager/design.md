@@ -22,6 +22,8 @@
 | 模块形态 | 并入 AppMS（SA 501，foundation 进程）：任务管理模块 + 通用"App 进程调度管理"能力（A-2 收口） |
 | 防仿冒 | B-1+B-2：不可猜测随机 taskId + caller 身份绑定校验（本期确认） |
 | RSS 集成 | 复用现有接口（505/517/506/507 等），不新增 RSS 插件/resType；管控维度设计阶段细化 |
+| RSS 对接方式 | **RSS 具体设计由 RSS 团队主导，暂未明确**；本模块封装 **ResourceControlProxy 资源管控代理层**（按管控动作语义抽象接口并暴露完整任务/进程上下文，一期骨架实现：动作记账+告警，真实豁免/解冻在 RSS 对接后生效），后续明确后替换实现，上层零改动 |
+| 枚举对齐 | 任务类型/优先级/状态枚举初稿（§4.1）需与 **AI 语音助手团队对齐**（开放项，评审后确认） |
 | 锁屏豁免边界 | 搁置，不阻塞设计；真机验证阶段与 RSS owner 对齐 |
 | sessionQos | 设计阶段探索（本设计 6.3 节结论） |
 | 任务类型/优先级枚举 | 设计阶段细化（本设计 4.1 节初稿，随设计评审确认） |
@@ -42,7 +44,8 @@
 | 应用层（AI 助手/系统 UI，系统应用） | 调用方进程 | 经 TaskManagerClient 调用任务接口 | 新增（外部调用方，本仓提供客户端） |
 | inner API 客户端 | `interfaces/inner_api/app_manager/task_manager/` | TaskManagerClient / ITaskManager stub·proxy / TaskListener | 新增 |
 | 服务层 | `services/appmgr/src/task_mgr/` | 任务管理：任务模型、状态机、监听、交互传达、DFX | 新增 |
-| 服务层 | `services/appmgr/src/process_schedule/` | 通用进程调度管理：进程组、管控档位、RSS 动作施加/撤销、多任务归属合并 | 新增 |
+| 服务层 | `services/appmgr/src/process_schedule/` | 通用进程调度管理：进程组、管控档位、管控动作施加/撤销、多任务归属合并 | 新增 |
+| 服务层（RSS 适配层） | `services/appmgr/src/resource_control_proxy/` | **RSS Proxy 代理层**：按管控动作语义抽象 RSS 能力接口；一期骨架实现（账本+告警，可配探测对接开关）；RSS 明确后替换真实实现 | 新增 |
 | 服务层 | `services/abilitymgr` | 启动/连接链路 Want 拦截：解析 taskId → 经 app_manager inner_api 客户端上报 AppMS | 修改（最小拦截点） |
 | 平台能力 | resource_schedule_service（ressched_client） | 冻结豁免/解冻/状态查询（一期）；进程级 QoS（二期 221） | 复用 |
 | 平台能力 | qos_manager（QosController/RTG） | 线程级 QoS 提权（二期，需线程 tid） | 复用（二期） |
@@ -81,7 +84,7 @@
 | ADR-1 | 模块形态 | 并入 AppMS（SA 501）：task_mgr + process_schedule 两子模块 | agentmgr 内嵌（A-1：A2A/意图/Cli 进程不经过，收口不全，放弃）；独立 SA（A-3：进程/IPC 形态重，进程信息仍需 AppMS，放弃） | 进程权威信息在 AppMS；RSS 通道现成；收口单一接口面（proposal 方案探索 A-2） | 影响范围表、任务 #5 |
 | ADR-2 | taskId 传递与防仿冒 | Want 参数统一拦截（key 约定 `ohos.ai.taskId`）+ B-1 随机 taskId + B-2 caller 身份绑定校验 | token 化（B-3：短时 token 换 taskId，防重放增强但增加调用方负担，作可选增强）；显式注册（B-4：与统一拦截冲突，放弃） | 调用方无感知；caller 校验防仿冒最彻底；链式启动语义与 ADK supervisor 可信链一致 | 接口 RegisterTaskProcess 带 callerTokenId；AC-2.2 |
 | ADR-3 | 进程纳管时机 | 两段式：① 拦截点解析 Want → RegisterTaskIntent(taskId, callerTokenId)（AppMS 校验 caller 并登记意向，超时 30s 清理）；② 进程 attach（pid 就绪）→ RegisterTaskProcess(taskId, pid, callerTokenId) 完成纳管 | 仅启动请求时纳管（进程未创建无 pid，需按 pid 匹配进程，失败率高）；仅 attach 后纳管（taskId 需穿透 attach 链，侵入 appmgr 热路径） | 覆盖进程未创建/已存在两态；attach 点复用 AMS 既有 pid 就绪回调（OnAbilityRequestDone/AttachAbilityThread），appmgr 热路径零侵入 | AC-2.1 |
-| ADR-4 | RSS 集成方式 | 复用现有 resType（505 豁免 / 517 解冻 / 506·507·518 查询），payload 语义与 RSS owner 对齐 | 新增 RSS resType/插件（触发 RSS 内存基线评审，跨仓周期长）；二期再评估专用接口 | 落地最快；白名单已确认（res_sched_service.cpp:175） | AC-5.x |
+| ADR-4 | RSS 集成方式 | **封装 RSS Proxy 代理层**（代理模式）：按管控动作语义定义接口（豁免/解冻/查询/提权预留），一期骨架实现（动作记账+告警，可配探测开关），RSS 团队设计明确后替换真实实现（优先复用现有 resType 505/517，如 RSS 提供新接口则直接对接） | 直接复用现有 resType 对接（payload 语义未明确，无法落地）；新增 RSS resType/插件（RSS 团队主导，触发内存基线评审） | RSS 设计由 RSS 团队主导（暂未明确）；代理层隔离使 RSS 对接变化不波及任务/调度上层；白名单已确认（res_sched_service.cpp:175）可供对接期参考 | AC-5.x |
 | ADR-5 | 管控档位模型 | 档位化 + 合并：任务优先级→管控档位（0~3）；进程档位 = max(纳管任务档位)；档位变化增量施加/撤销 RSS 动作 | 每任务独立施加（同进程重复调用 RSS，幂等管理复杂）；全局统一（无法表达优先级差） | 档位合并天然满足需求 11（多任务按最高）；增量动作避免重复调用 | AC-2.3, AC-5.4 |
 | ADR-6 | 状态机驱动 | AI 助手驱动 + 模块校验（合法流转表；终态不可回退；REJECTED 仅创建者可设） | 助手全权设置（状态易乱，放弃）；模块自动推导（语义易偏差，放弃） | 与需求 2/5 一致；流转合法性由系统把关 | AC-1.2, AC-1.3 |
 | ADR-7 | INPUT/AUTH 交互通道 | 状态监听回调携带 payload（描述+可选项 JSON），SubmitTaskInput 回传，input 存任务记录 | 独立消息通道（机制更重，与状态监听解耦，一期不需要） | 与 ADK HITL（request_credential 挂起-恢复）语义一致；系统 UI 已监听状态流 | AC-4.x |
@@ -192,10 +195,15 @@ services/appmgr/
 │   └── task_dfx.h                        # hisysevent 上报/dump
 ├── src/task_mgr/…（对应实现）
 ├── include/process_schedule/             # 通用进程调度管理（进程调度能力层，与任务语义解耦）
-│   ├── process_schedule_manager.h        # 进程组注册/注销、档位计算、RSS 动作施加/撤销
+│   ├── process_schedule_manager.h        # 进程组注册/注销、档位计算、管控动作施加/撤销
 │   ├── process_schedule_policy.h         # 策略：优先级→档位映射、上限/时长配置
-│   └── process_schedule_types.h          # 档位枚举、RSS 动作记录
-└── src/process_schedule/…（对应实现）
+│   └── process_schedule_types.h          # 档位枚举、管控动作记录
+├── src/process_schedule/…（对应实现）
+├── include/resource_control_proxy/                    # RSS Proxy 代理层（RSS 适配，代理模式）
+│   ├── resource_control_proxy.h                       # 管控动作语义接口（豁免/解冻/查询/提权预留）
+│   ├── resource_control_proxy_stub.h                  # 一期骨架实现：动作记账 + 告警（可配探测开关）
+│   └── resource_control_proxy_impl.h                  # RSS 对接实现（RSS 团队明确后落地，默认编译期二选一）
+└── src/resource_control_proxy/…（对应实现）
 
 interfaces/inner_api/app_manager/task_manager/
 ├── ITaskManager.idl                      # 接口定义（IDL 生成 stub/proxy）
@@ -214,14 +222,14 @@ class ProcessScheduleManager {          // 单例，taskHandler 串行访问
     void    OnTaskActiveChanged(const std::string& taskId);    // 任务状态/优先级变化触发重算
     Level   GetEffectiveLevel(int32_t pid);                    // 档位合并（max）
 private:
-    void    ApplyLevel(int32_t pid, Level level);              // 增量施加/撤销 RSS 动作
+    void    ApplyLevel(int32_t pid, Level level);              // 增量施加/撤销管控动作（经 ResourceControlProxy）
     std::unordered_map<int32_t, std::set<std::string>> pidToTasks_;
     std::unordered_map<std::string, std::set<int32_t>> taskToPids_;
     std::unordered_map<int32_t, Level> effectiveLevel_;
 };
 ```
 
-> 该层不感知"任务"业务语义（状态机/交互），只管理"进程组 + 档位 + RSS 动作"，供任务层及其他未来场景（系统级长时任务等）复用（ADR-1 抽象化）。
+> 该层不感知"任务"业务语义（状态机/交互），只管理"进程组 + 档位 + 管控动作"，供任务层及其他未来场景（系统级长时任务等）复用（ADR-1 抽象化）。管控动作的执行经 **ResourceControlProxy** 下发（§6.4），不直接依赖 RSS 接口细节。
 
 ### 5.2 接口定义（ITaskManager.idl，InnerApi）
 
@@ -275,6 +283,20 @@ interface ITaskListener {   // 系统 UI 注册
    - 校验失败：拒绝纳管、**不阻断启动**、不上报错误给调用方（防探测）；
    - 链式启动：任务内进程 A 启动 B → callerTokenId = A 的 tokenId ∈ 纳管集合 → 合法（与 ADK supervisor→sub-agent 可信链一致）。
 3. **B-3 可选增强**（预留）：若后续需要防重放/防泄露增强，增加短时 token 换 taskId 通道，接口与账本已预留扩展点。
+
+#### 5.3.1 两段式纳管安全分析（评审答复 2026-08-21 第五轮）
+
+对"拦截点两段式（意向 + attach 纳管）是否有仿冒风险"的逐面分析：
+
+| 仿冒面 | 分析 | 结论 |
+|--------|------|------|
+| ① 恶意应用直接调 RegisterTaskIntent/RegisterTaskProcess 伪造 taskId | **两阶段均执行 B-2 caller 校验**：callerTokenId 必须 ∈ {creatorTokenId} ∪ {该任务纳管进程 tokenId 集合}；恶意应用非创建者/非任务内进程 → 拒绝。校验失败不阻断启动、不上报错误（R-8 防探测，调用方无法区分"任务不存在"与"无权限"） | 无新增仿冒面 |
+| ② attach 阶段 pid 篡改/误绑 | pid 由 AMS attach 回调（OnAbilityRequestDone/AttachAbilityThread）提供，**非调用方自报**；强化：AppMS 侧校验 pid 存活且 pid 归属 uid/tokenId 与启动目标一致（防 AMS 层异常/中间人） | 无仿冒面；补 pid 归属校验 |
+| ③ 任务内进程链式纳管（任务内进程启动新进程并携带 taskId） | 属 B-2 接受的信任语义（创建者可信链，对齐 ADK supervisor→sub-agent）；滥用面受 **任务进程集合上限**（R-22，默认 64）与豁免时长上限约束，且 TASK_RSSCONTROL/TASK_ABUSE_WARNING 全程审计 | 接受，上限+审计约束 |
+| ④ AMS 拦截点覆盖不全（绕过拦截直接启动） | 所有启动链路收敛于 AMS 统一入口（StartAbilityInner/ConnectAbility 收敛点），拦截点置于收敛处；execution-plan TASK-3 以四链路（Start/Connect/意图/Cli）集成用例验证覆盖 | 收敛点覆盖保证 |
+| ⑤ taskId 猜测 | B-1：128bit 随机熵，不可猜测 | 无风险 |
+
+**结论**：两段式本身不引入新增仿冒面——仿冒防护完全由 B-2 caller 校验承担，且在意向与纳管两阶段都执行；设计强化点 = ②pid 归属校验 + ③进程集合上限（均已在 R-22/5.6 覆盖，落地时落实）。
 
 ### 5.4 AMS 拦截点设计（最小改动）
 
@@ -355,6 +377,58 @@ TaskManagerClient::RegisterTaskProcess(taskId, pid, callerTokenId)  // ② 完�
 - 全树勘察（qos_manager / resource_schedule_service / ability_runtime）无 "sessionQos" 接口；QosManager 为内核 `sched_qos`（/proc/thread-self/sched_qos_ctrl）的用户态封装，提供**线程级** QoS 设置/恢复与 RTG 线程组，无"会话"维度。
 - "会话级 QoS"语义由本模块的**任务管控档位**承载（任务 ≈ 会话；档位 ≈ 会话级管控强度），RSS 221 为进程级 QoS 通道。
 - 结论：不引入 QosManager 作为一期依赖；二期经 `RES_TYPE_PROCESS_QOS_CHANGE`（进程级）与 QosController/RTG（线程级，需线程信息）扩展（ADR-9）。
+
+### 6.4 资源管控代理层（ResourceControlProxy）设计（RSS 对接方式）
+
+**背景**：RSS 的具体设计由 RSS 团队主导，目前暂未明确。任务管理模块**封装资源管控代理层（代理模式）**，按"管控动作语义"抽象资源管控能力，一期以骨架实现承载动作账本与告警，RSS 明确后替换为真实对接实现，上层（task_mgr/process_schedule）零改动。
+
+**命名**：由 ResourceControlProxy 更名为 **ResourceControlProxy**（2026-08-21 第五轮评审）——本层是任务管理模块的**资源管控出口**，代理对接各资源管控方（RSS 为主，未来 qos/温控/低内存查杀等管控方），不绑定 RSS 命名，为后续扩展留空间。
+
+**接口定义（管控动作语义 + 完整上下文暴露，与 RSS resType 细节解耦）：**
+
+```
+enum class ControlAction {
+    EXEMPT,          // 施加冻结豁免（一期）
+    CLEAR_EXEMPT,    // 撤销冻结豁免（一期）
+    THAW,            // 解冻（一期）
+    SET_QOS,         // 设置进程级 QoS（二期预留）
+    CLEAR_QOS,       // 恢复进程级 QoS（二期预留）
+    // 预留扩展位
+};
+
+struct ControlRequest {          // 完整上下文：供 RSS 对接实现与未来管控方（qos/温控等）定制策略
+    std::string taskId;          // 任务标识
+    int32_t pid;                 // 目标进程 pid
+    int32_t uid;                 // 进程 uid
+    int32_t tokenId;             // 进程 tokenId
+    std::string bundleName;      // 进程 bundleName
+    int32_t taskType;            // 任务类型（枚举）
+    int32_t priority;            // 任务优先级
+    int32_t taskState;           // 任务状态
+    int32_t level;               // 管控档位（0~3）
+    std::string reason;          // 触发原因（任务激活/优先级变化/降级/任务结束/进程死亡）
+    uint64_t timestamp;          // 事件时间戳
+};
+
+class ResourceControlProxy {     // 单例；taskHandler 串行访问
+    virtual int32_t ApplyControl(const ControlRequest& request) = 0;    // 施加管控（按 action 与 level）
+    virtual int32_t RestoreControl(const ControlRequest& request) = 0;  // 撤销管控
+    virtual int32_t QueryControlState(int32_t pid, bool& controlled) = 0; // 查询（预留）
+    virtual int32_t ResetAll(int32_t pid) = 0;                          // 恢复该进程全部管控
+};
+```
+
+> **暴露更多信息的意图**（评审反馈）：ControlRequest 携带任务与进程完整上下文，① RSS 对接实现可基于 bundleName/type/priority/state 等字段做定制化策略（RSS 侧策略未定时信息不缺失）；② 未来对接其他管控方（qos/温控/低内存查杀）时请求结构直接复用；③ 账本记录完整上下文，对接验收与问题定位信息完备。
+
+**一期实现 `ResourceControlProxyStub`（骨架，代理模式中的"空代理"）：**
+- 全部接口：动作账本记录（完整 ControlRequest 序列）+ TASK_RSSCONTROL hisysevent 上报 + hilog 日志；默认返回成功（账本记录），**不产生真实 RSS 副作用**；
+- 可配探测开关 `resource_control_probe_enable`（默认 false）：开启后对既有候选 resType（505 豁免/517 解冻，白名单已确认 res_sched_service.cpp:175）做真实调用，供联调期探测；
+- 策略配置（档位→动作、上限/时长）仍在 process_schedule_policy，与代理实现无关。
+
+**对接策略（RSS 团队明确后）：**
+1. RSS 提供接口（无论复用 505/517 还是新接口）→ 实现 `ResourceControlProxyImpl`，替换编译单元（条件编译），上层接口不变；
+2. 对账：ResourceControlProxyStub 的账本作为对接验收基线（账本动作序列 == RSS 实际生效序列）；
+3. 真机验证（TASK-6）在对接完成后执行端到端豁免生效验证；对接前以"动作账本断言"作为模块级验证。
 
 ## DFX 设计
 
@@ -485,12 +559,18 @@ sa_profile/501.json: 不变（复用 appms）
                                             AppMS 内部：
                         ┌───────────────┐    ┌──────────────────────┐
                         │ task_mgr      │──▶│ process_schedule     │
-                        │ 任务模型/状态机 │    │ 进程组/档位/RSS 动作  │
+                        │ 任务模型/状态机 │    │ 进程组/档位/管控动作  │
                         │ 监听/交互/DFX  │    └──────────┬───────────┘
-                        └───────────────┘               │ ResSchedClient
+                        └───────────────┘               ▼
+                                        ┌──────────────────────┐
+                                        │ ResourceControlProxy（代理层）     │
+                                        │ 一期：ResourceControlProxyStub     │
+                                        │ （账本+告警+探测开关）  │
+                                        └──────────┬───────────┘
+                                        （RSS 对接后替换为 ResourceControlProxyImpl）
                                         ┌──────────────▼──────────────┐
                                         │ resource_schedule_service    │
-                                        │ 505/517/506/507（一期）       │
+                                        │ 505/517/506/507（一期候选）   │
                                         │ 221/520（二期扩展）           │
                                         └─────────────────────────────┘
 ```
@@ -525,7 +605,8 @@ sa_profile/501.json: 不变（复用 appms）
 
 | 风险/开放项 | 影响 | 缓解/关闭方式 |
 |-------------|------|---------------|
-| RSS 505 payload 语义与豁免覆盖范围未对齐（含锁屏冻结是否覆盖） | 高 | 设计评审后与 RSS owner 对齐；一期降级为"不豁免不阻断" |
+| RSS 设计未明确，真实豁免/解冻无法端到端生效 | 高 | **ResourceControlProxy 代理层隔离**（ADR-4/§6.4）：一期骨架实现（动作账本+告警+探测开关），模块行为可单测验证；RSS 对接后替换 ResourceControlProxyImpl，端到端真机验证（TASK-6） |
+| RSS 505 payload 语义与豁免覆盖范围未对齐（含锁屏冻结是否覆盖） | 高 | RSS 团队主导设计；对接期以 ResourceControlProxyStub 账本为验收基线；RSS 明确前不阻断模块开发 |
 | 520 SHOULD_FORCE_KILL_PROCESS 消费方语义未确认 | 中 | 二期启用前确认；一期仅评估预留 |
 | 两段式纳管的意向超时窗口（30s）内进程未 attach | 低 | 意向超时清理；attach 晚于超时则重新走①（拦截点在 attach 处重发） |
 | 系统应用白名单口径 | 低 | 复用 AppMS 既有 token 校验；白名单范围随评审定 |

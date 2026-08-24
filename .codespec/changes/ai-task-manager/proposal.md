@@ -129,6 +129,7 @@ status: Draft
 | Q-9 | Want 透传 taskId 是否可被仿冒？如何防？ | 决定纳管链路的信任模型 | 已澄清（2026-08-21 第三轮）：同意 **B-1+B-2**（不可猜测随机 taskId + caller 身份绑定校验）；B-3 token 化可选增强 |
 | Q-10 | 可否借用 QosManager 的 sessionQos/QoS 机制管控？ | 决定资源调度子模块的管控手段构成 | 已澄清（2026-08-21 第三轮）：采纳借用评估结论（一期冻结豁免主线，QoS 提权二期扩展）；"sessionQos" 具体机制设计阶段再探索 |
 | Q-11 | RSS 管控的维度范围？ | 决定资源调度子模块策略覆盖面 | 已澄清（2026-08-21 第三轮）：**不仅限冻结**——含 CPU 调度、内存、低内存查杀、功耗、温控等，设计阶段细化分析（设计文档列出各维度接口与一期/二期取舍） |
+| Q-12 | RSS 对接方式？ | 决定资源调度子模块与 RSS 的边界 | 已澄清（2026-08-21 第四轮）：**RSS 具体设计由 RSS 团队主导，暂未明确**；本模块封装 **ResourceControlProxy 资源管控代理层**（管控动作语义接口 + 完整上下文暴露 + 一期骨架实现：账本+告警+探测开关），RSS 明确后替换真实实现，上层零改动（第五轮确认命名与信息暴露） |
 
 ### 讨论记录
 
@@ -140,6 +141,8 @@ status: Draft
 | 2026-08-21 | yangzk、需求方 | 模块形态（第二轮） | **改为并入 AppMS 收口**：A2A/意图/CLI 均不经过 agentmgr，但所有应用进程都经过 AppMS；抽象为通用"App 进程调度管理"能力；目标版本 7.1；参考 google-adk 设计 | 方案探索 A-2 定为推荐，重写取舍理由 |
 | 2026-08-21 | yangzk、需求方 | 锁屏豁免场景边界（第二轮） | 解释边界含义：锁屏冻结的管控组成（RSS suspend / standby / 省电策略）与豁免接口覆盖范围，需与 RSS owner 对齐 | 基线条件 4 重述 |
 | 2026-08-21 | yangzk、需求方 | 基线确认（第三轮） | ① 枚举初稿设计阶段细化；② 锁屏豁免边界**暂且搁置**（不阻塞基线，设计/验证阶段开放项）；③ 同意防仿冒 B-1+B-2；④ sessionQos 机制设计阶段探索；⑤ **RSS 管控维度扩展**（冻结/CPU 调度/内存/低内存查杀/功耗/温控）设计阶段细化 | 基线固化；Q-9/Q-10/Q-11 关闭 |
+| 2026-08-21 | yangzk、需求方 | RSS 对接方式（第四轮） | **RSS 具体设计由 RSS 团队主导，暂未明确**；任务管理模块封装 **RSS Proxy 代理层**（语义接口 + 一期骨架：账本+告警+探测开关），RSS 明确后替换实现，上层零改动 | 设计文档 §6.4/ADR-4、spec R-19/R-20、plan TASK-4 同步更新；Q-12 关闭 |
+| 2026-08-21 | yangzk、需求方 | 设计评审（第五轮） | ① 枚举初稿基本认可，**与 AI 语音助手对齐**（开放项）；② 两段式纳管安全分析：无新增仿冒面（B-2 两阶段校验），补 pid 归属校验与进程集合上限强化点；③ 同意执行计划；④ 锁屏豁免边界仍搁置；⑤ **RssProxy 更名 ResourceControlProxy，接口暴露完整上下文**（ControlRequest）以便扩展；⑥ 暂不开始写代码 | 设计 §5.3.1/§6.4 更新；proposal/spec/plan 同步 |
 
 ### 功能范围确认
 
@@ -367,7 +370,7 @@ AI 语音助手在锁屏定时任务与后台长时任务场景下，任务进�
 | ability | ability_ability_runtime | `interfaces/inner_api/app_manager/` | 内部组件接口 | 新增：ITaskManager IDL（stub/proxy）+ C++ 客户端（AI 助手/系统 UI/AMS 使用）；不扩 IAppMgr 既有接口 | yangzk |
 | ability | ability_ability_runtime | `services/abilitymgr` | AMS 启动/连接调度 | 修改：启动/连接收敛点解析 Want taskId，经 app_manager inner_api 客户端转发 AppMS（最小改动，拦截失败不阻断启动） | yangzk |
 | ability | ability_ability_runtime | `hisysevent.yaml` / `services/appmgr/BUILD.gn` / `ability_runtime.gni` | DFX 事件定义/构建 | 新增：任务事件定义；BUILD.gn 新增源文件（ressched_client 依赖已具备） | yangzk |
-| resourceschedule | resource_schedule_service | `ressched`（接口层） | RSS 管控 | 不改代码；RSS owner 评审确认复用接口 payload 语义 | RSS owner |
+| resourceschedule | resource_schedule_service | `ressched`（接口层） | RSS 管控 | 不改代码；RSS 具体设计由 RSS 团队主导（暂未明确），本模块经 ResourceControlProxy 资源管控代理层对接（设计 §6.4） | RSS 团队 |
 
 ### API 变更项清单
 
@@ -415,10 +418,12 @@ AI 语音助手在锁屏定时任务与后台长时任务场景下，任务进�
 - [x] 上下文与知识源检索日志已填写；未查询关键来源的原因已记录
 - [x] 目标仓 Agent 指南已检查并记录关键约束（AGENTS.md：services/appmgr 🔴 高风险需最小挂点、不直接调 appmgr 内部方法需经 inner_api 客户端、BUILD.gn 必更新、DFX 定义 hisysevent.yaml）
 
-**基线结论:** 通过 —— 需求方 2026-08-21 三轮确认全部关键决策：模块形态（A-2 AppMS 收口 + 通用进程调度能力）、目标版本（7.1）、防仿冒（B-1+B-2）、RSS 集成（复用现有接口）、纳管方式（Want 统一拦截）、接口面向（inner API）、状态机驱动（助手驱动+模块校验）、交互机制（状态回调携带 payload）。基线成立，开放项随设计/验证阶段关闭：
+**基线结论:** 通过 —— 需求方 2026-08-21 四轮确认全部关键决策：模块形态（A-2 AppMS 收口 + 通用进程调度能力）、目标版本（7.1）、防仿冒（B-1+B-2）、RSS 集成（复用现有接口）、RSS 对接方式（**RSS 团队主导设计，本模块封装 RSS Proxy 代理层**，Q-12）、纳管方式（Want 统一拦截）、接口面向（inner API）、状态机驱动（助手驱动+模块校验）、交互机制（状态回调携带 payload）。基线成立，开放项随设计/验证阶段关闭：
 1. 任务类型/优先级枚举初稿（design.md 细化，随设计评审确认）；
 2. 锁屏豁免场景边界（**搁置**，不阻塞基线；真机验证阶段与 RSS owner 对齐后确认）；
 3. RSS 管控维度细化（冻结/CPU 调度/内存/低内存查杀/功耗/温控，design.md 分析各维度接口与一期/二期取舍）；
-4. sessionQos 机制（design.md 探索）。
+4. sessionQos 机制（design.md 探索）；
+5. **RSS 真实对接**（RSS 设计明确后由 ResourceControlProxyImpl 承接，design.md §6.4 对接策略）；
+6. **枚举对齐**（任务类型/优先级/状态枚举初稿与 AI 语音助手团队对齐，评审后确认）。
 
 **锁屏豁免场景边界（解释，供设计/验证阶段参考）：** "边界"指设备锁屏后应用进程面临的**冻结管控的组成与豁免接口的覆盖范围**：1) RSS suspend 冻结（按前后台/空闲判定，`RES_TYPE_DYNAMICALLY_SET_SUSPEND_EXEMPT` 主要豁免此类）；2) standby（待机）深度冻结（设备静置进入待机管控，豁免是否覆盖待与 RSS owner 确认）；3) 豁免的时长/数量上限与调用方资质约束。该边界决定 AC-11（锁屏定时任务进程不被冻结）的可达成性与实现范围。

@@ -102,8 +102,8 @@
 
 | AC编号 | 验收标准 | 类型 |
 |--------|----------|------|
-| AC-5.1 | WHEN 高优先级任务进入工作状态（WORKING 等，策略判定激活）THEN 纳管进程冻结豁免生效（经 RSS 接口），后台/锁屏场景进程不被冻结 | 正常 |
-| AC-5.2 | WHEN 任务结束/取消/销毁 THEN 纳管进程豁免撤销，恢复任务前的 RSS 调度状态（多任务归属时按次高优先级继续管控） | 正常 |
+| AC-5.1 | WHEN 高优先级任务进入工作状态（WORKING 等，策略判定激活）THEN 任务管理模块经 RSS 管控层（ResourceControlProxy）向纳管进程下发豁免请求并记录账本（模块级可验证）；RSS 对接完成后端到端豁免生效，后台/锁屏场景进程不被冻结（TASK-6 门禁） | 正常 |
+| AC-5.2 | WHEN 任务结束/取消/销毁 THEN 经 RSS 管控层撤销豁免并记录账本，恢复任务前的调度状态（多任务归属时按次高优先级继续管控） | 正常 |
 | AC-5.3 | WHEN 低优先级任务或任务处于非工作状态 THEN 不豁免或按配置限时豁免 | 边界 |
 | AC-5.4 | WHEN 同一进程被多任务纳管且高优先级任务结束 THEN 降级至次高优先级任务的管控档位 | 边界 |
 | AC-5.5 | WHEN 豁免数量/时长超过配置上限 THEN 拒绝新增豁免并按策略降级（防滥用） | 边界 |
@@ -176,8 +176,8 @@
 | R-16 | 行为 | 任务进入 INPUT_REQUIRED/AUTH_REQUIRED，payload 含描述（text）与可选项（options 数组） | 状态回调携带完整 payload；监听者（系统 UI）可展示并可调用 SubmitTaskInput 回传 | payload 大小上限可配（默认 4KB） | AC-4.1 |
 | R-17 | 行为 | 用户选择后调用 SubmitTaskInput(taskId, input)，调用方为创建者，任务处于交互状态 | 返回 ERR_OK；input 持久到任务记录，创建者通过监听/查询获取；任务可流转出交互状态 | 非交互状态调用返回 ERR_TASK_INVALID_STATE；input 大小上限可配（默认 4KB） | AC-4.2 |
 | R-18 | 异常 | 任务处于交互状态时被取消/销毁 | 交互状态清理（payload/input 清除），不再回调，任务进入终态 | 清理在状态机终态处理中同步完成 | AC-4.3 |
-| R-19 | 行为 | 高优先级任务处于工作状态（WORKING/INPUT_REQUIRED/AUTH_REQUIRED），策略判定需豁免 | 对纳管进程执行冻结豁免（经 RSS RES_TYPE_DYNAMICALLY_SET_SUSPEND_EXEMPT），并留存豁免账本 | 优先级→豁免档位映射与豁免判定见 design.md 资源调度子模块 | AC-5.1 |
-| R-20 | 行为 | 任务降级/结束，且 RSS 豁免需撤销 | 经 RSS 撤销豁免/解冻（SYNC_RES_TYPE_THAW_ONE_APP 或撤销 exempt），进程恢复任务前状态 | 撤销失败重试 ≤3 次后告警并保留账本供复核 | AC-5.2, AC-5.4 |
+| R-19 | 行为 | 高优先级任务处于工作状态（WORKING/INPUT_REQUIRED/AUTH_REQUIRED），策略判定需豁免 | 经 RSS 管控层（ResourceControlProxy）对纳管进程下发冻结豁免请求并留存豁免账本（账本含 pid/动作/档位/时间戳/结果）；RSS 对接完成后豁免实际生效 | 优先级→豁免档位映射与豁免判定见 design.md 资源调度子模块；ResourceControlProxy 一期为骨架实现（账本+告警，探测开关默认关），对接策略见 design.md §6.4 | AC-5.1 |
+| R-20 | 行为 | 任务降级/结束，且豁免需撤销 | 经 RSS 管控层（ResourceControlProxy）撤销豁免/解冻并记录账本，进程恢复任务前状态 | 撤销失败重试 ≤3 次后告警并保留账本供复核 | AC-5.2, AC-5.4 |
 | R-21 | 边界 | 低优先级任务或任务处于非工作状态（UNKNOWN/SUBMITTED/COMPLETED 等） | 不豁免，或仅限时豁免（时长可配，默认 0 = 不豁免） | 豁免时长上限可配（默认 60min） | AC-5.3 |
 | R-22 | 边界 | 系统中活跃豁免数量或单任务豁免时长超过配置上限 | 拒绝新增豁免，任务降级为不豁免档，记录告警 hisysevent | 豁免数量上限可配（默认 64 进程）；时长上限见 R-21 | AC-5.5 |
 | R-23 | 行为 | 执行任务相关 dump（hidumper -a 501 / aa 命令） | 输出任务列表：taskId、状态、类型、优先级、纳管进程（pid）、管控档位、payload 摘要、时间戳 | dump 仅 shell/hidumper 可调用（复用既有校验） | AC-6.1 |
@@ -339,7 +339,7 @@
 | 纳管必须经 caller 身份绑定校验 | 防仿冒：仅任务创建者或任务内进程可携带 taskId 纳管新进程（B-2） | AC-2.2 |
 | 不修改 appmgr 既有 IPC 序列化 | 新增独立 ITaskManager IDL，不扩 IAppMgr | AC-2.x |
 | 拦截失败不阻断启动 | Want 解析/校验失败仅不纳管，启动照常 | AC-2.2, AC-2.5 |
-| RSS 复用现有接口 | 冻结豁免/解冻走既有 resType（505/517 等），不新增 RSS 插件 | AC-5.x |
+| RSS 经 ResourceControlProxy 代理层对接 | 任务管理模块不直接依赖 RSS 接口细节；RSS 设计由 RSS 团队主导（暂未明确），一期 ResourceControlProxy 骨架实现（账本+告警），对接后替换实现，上层零改动 | AC-5.x |
 | DFX 事件定义不可破坏既有事件 | hisysevent.yaml 仅新增事件，不修改既有事件 | AC-6.2 |
 
 ## 非功能性需求
