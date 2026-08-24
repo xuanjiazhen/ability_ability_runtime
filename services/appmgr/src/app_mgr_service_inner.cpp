@@ -334,6 +334,27 @@ constexpr const char* REASON_APPRECOVERY_NOTIFYAPP_OVER_LIMIT = "AppRecoveryNoti
 #define CHECKPOINT_MONITOR_IOCTL_UNMARK_TEMPLATE _IOR(0xE0, 0x8, struct HMCheckpointUnMarkS)
 #define CHECKPOINT_IOCTL_GET_LAST_ERROR          _IOWR(0xE0, 0xC, struct HmCheckpointErrMsgS)
 
+#define CHECKPOINT_ERRMSG_MSG_LEN 256
+#define CHECKPOINT_IOCTL_GET_LAST_ERROR          _IOWR(0xE0, 0xC, struct HmCheckpointErrMsgS)
+
+enum CheckpointErrorType : int32_t {
+    CHECKPOINT_ERR_NOERROR = 0,
+    CHECKPOINT_ERR_BINDER,
+    CHECKPOINT_ERR_FS,
+    CHECKPOINT_ERR_NETWORK,
+    CHECKPOINT_ERR_DRIVER,
+    CHECKPOINT_ERR_PROCESS,
+    CHECKPOINT_ERR_UNKNOWN,
+    CHECKPOINT_ERR_MAX
+};
+
+struct HmCheckpointErrMsgS {
+    pid_t pid;
+    uint64_t checkpointId;
+    int32_t errNo;
+    char msg[CHECKPOINT_ERRMSG_MSG_LEN];
+};
+
 constexpr int32_t ROOT_UID = 0;
 constexpr int32_t FOUNDATION_UID = 5523;
 constexpr int32_t QUICKFIX_UID = 5524;
