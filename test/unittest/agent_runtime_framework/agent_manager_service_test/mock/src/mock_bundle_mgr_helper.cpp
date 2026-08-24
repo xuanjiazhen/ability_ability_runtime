@@ -87,5 +87,10 @@ bool BundleMgrHelper::QueryExtensionAbilityInfos(const AAFwk::Want &want, const 
     }
     return AgentRuntime::MyFlag::retQueryExtensionAbilityInfos;
 }
+
+ErrCode BundleMgrHelper::GetNameForUid(const int32_t uid, std::string &name)
+{
+    return ERR_OK;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

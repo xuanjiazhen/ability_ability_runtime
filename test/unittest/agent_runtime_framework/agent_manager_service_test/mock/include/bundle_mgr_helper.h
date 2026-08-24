@@ -39,6 +39,8 @@ public:
     bool QueryExtensionAbilityInfos(const AAFwk::Want &want, const int32_t &flag, const int32_t &userId,
         std::vector<ExtensionAbilityInfo> &extensionInfos);
 
+    ErrCode GetNameForUid(const int32_t uid, std::string &name);
+
 private:
     DECLARE_DELAYED_SINGLETON(BundleMgrHelper)
 };
