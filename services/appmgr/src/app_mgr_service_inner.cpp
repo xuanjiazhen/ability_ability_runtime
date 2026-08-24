@@ -9464,10 +9464,6 @@ int32_t AppMgrServiceInner::SubmitDfxFaultTask(const FaultData &faultData, const
 
 bool AppMgrServiceInner::IsAsanEnabled(const std::shared_ptr<AppRunningRecord> &record)
 {
-    if (record == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "record null");
-        return false;
-    }
     const auto &applicationInfo = record->GetApplicationInfo();
     if (applicationInfo == nullptr) {
         return false;
