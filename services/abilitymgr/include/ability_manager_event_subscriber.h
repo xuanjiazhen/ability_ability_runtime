@@ -37,11 +37,16 @@ public:
     void RemoveUser(int32_t userId);
     bool CheckAllUnlocked(int32_t userId);
     bool CheckUserUnlocked(int32_t userId);
+    size_t GetUserCount();
+    void SetPendingUserId(int32_t userId);
+    int32_t GetPendingUserId();
+    void ClearPendingUserId(int32_t userId);
 
 private:
     AbilityEventMapManager();
     ~AbilityEventMapManager();
     std::unordered_map<int32_t, LockEventData> eventMap_;
+    int32_t pendingUserId_ = -1;
     std::mutex mutex_;
 
     DISALLOW_COPY_AND_MOVE(AbilityEventMapManager);
