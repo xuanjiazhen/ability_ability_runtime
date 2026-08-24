@@ -19,6 +19,7 @@
 #include "ability_util.h"
 #include "atomic_service_status_callback.h"
 #include "distributed_client.h"
+#include "extension_query_event_util.h"
 #include "hitrace_meter.h"
 #include "insight_intent_execute_manager.h"
 #include "insight_intent_utils.h"
@@ -620,6 +621,12 @@ int FreeInstallManager::ConnectFreeInstall(const Want &want, int32_t userId,
     if (!queryAbilityResult) {
         queryExtensionResult = IN_PROCESS_CALL(bundleMgrHelper->QueryExtensionAbilityInfos(
             want, AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, userId, extensionInfos));
+    }
+    if (NeedReportExtensionQueryMultiResult(extensionInfos)) {
+        auto callingUid = IPCSkeleton::GetCallingUid();
+        std::string callerBundleName;
+        IN_PROCESS_CALL_WITHOUT_RET(bundleMgrHelper->GetNameForUid(callingUid, callerBundleName));
+        ReportExtensionQueryMultiResult(extensionInfos, false, callingUid, callerBundleName);
     }
     bool hasAgentExtension = false;
     for (const auto &extensionInfo : extensionInfos) {

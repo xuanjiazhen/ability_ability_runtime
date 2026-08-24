@@ -33,6 +33,7 @@
 #include "agent_service_connection.h"
 #include "app_mgr_client.h"
 #include "bundle_mgr_helper.h"
+#include "extension_query_event_util.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
 #include "in_process_call_wrapper.h"
@@ -691,10 +692,17 @@ int32_t AgentManagerService::PrepareServiceConnectWant(const AAFwk::Want &want, 
 {
     connectWant = want;
     std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
-    auto userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    auto userId = callingUid / BASE_USER_RANGE;
     bool queryResult = IN_PROCESS_CALL(
         DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance()->QueryExtensionAbilityInfos(
             connectWant, AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, userId, extensionInfos));
+    if (AAFwk::NeedReportExtensionQueryMultiResult(extensionInfos)) {
+        std::string callerBundleName;
+        IN_PROCESS_CALL_WITHOUT_RET(
+            DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance()->GetNameForUid(callingUid, callerBundleName));
+        AAFwk::ReportExtensionQueryMultiResult(extensionInfos, false, callingUid, callerBundleName);
+    }
     if (!queryResult || extensionInfos.empty()) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "service extension ability not exist");
         return AAFwk::RESOLVE_ABILITY_ERR;
