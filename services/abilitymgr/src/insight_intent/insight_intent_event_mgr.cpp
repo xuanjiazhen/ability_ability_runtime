@@ -193,6 +193,12 @@ void InsightIntentEventMgr::DeleteInsightIntentEvent(const AppExecFwk::ElementNa
     }
 
     ffrt::submit([bundleName, moduleName, userId]() {
+        if (!DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->HasBundleCache(bundleName)) {
+            TAG_LOGI(AAFwkTag::INTENT, "no intent cache, skip delete, bundleName: %{public}s, "
+                "moduleName: %{public}s, userId: %{public}d",
+                bundleName.c_str(), moduleName.c_str(), userId);
+            return;
+        }
         ErrCode ret = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->
             DeleteInsightIntentTotalInfo(bundleName, moduleName, userId);
         if (ret != ERR_OK) {
