@@ -102,59 +102,64 @@ export default class EntryAbility extends UIAbility {
 
   onWindowStageCreate(windowStage: window.WindowStage): void {
     this.colorMode = this.context.config.colorMode;
-    windowStage.loadContent('pages/Index', (err) => {
-      if (err.code) {
-        hilog.error(DOMAIN, TAG, 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
-        return;
-      }
-      hilog.info(DOMAIN, TAG, 'Succeeded in loading the content.');
-      try {
-        windowStage.getMainWindow((err, data) => {
-          if (err && err.code !== 0) {
-            hilog.error(DOMAIN, TAG, 'Failed to get main window. code=%{public}d, Cause: %{public}s',
-              err.code, JSON.stringify(err.message ?? err));
+    hilog.info(DOMAIN, TAG, 'onWindowStageCreate: colorMode=%{public}d', this.colorMode);
+    try {
+      windowStage.getMainWindow((err, data) => {
+        if (err && err.code !== 0) {
+          hilog.error(DOMAIN, TAG, 'Failed to get main window. code=%{public}d, Cause: %{public}s',
+            err.code, JSON.stringify(err.message ?? err));
+          return;
+        }
+        this.mainWindow = data;
+        hilog.info(DOMAIN, TAG, 'getMainWindow success, set full-screen before loadContent.');
+        data.setWindowLayoutFullScreen(true).then(() => {
+          hilog.info(DOMAIN, TAG, 'setWindowLayoutFullScreen success.');
+        }).catch((err: BusinessError) => {
+          hilog.error(DOMAIN, TAG, 'Failed to set the window layout to full-screen mode. Cause: %{public}s', JSON.stringify(err));
+        });
+        windowStage.loadContent('pages/Index', (err) => {
+          if (err.code) {
+            hilog.error(DOMAIN, TAG, 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
             return;
           }
-          this.mainWindow = data;
-          this.applyAppearance(data);
+          hilog.info(DOMAIN, TAG, 'Succeeded in loading the content.');
+          this.updateAppearance(data);
+          data.setWindowSystemBarProperties({
+            navigationBarColor: '#00000000',
+            statusBarColor: '#00000000'
+          }).then(() => {
+            hilog.info(DOMAIN, TAG, 'Succeeded in setting the system bar properties.');
+          }).catch((err: BusinessError) => {
+            hilog.error(DOMAIN, TAG, 'Failed to set the system bar properties. Cause: %{public}s', JSON.stringify(err));
+          });
         });
-      } catch (err) {
-        hilog.error(DOMAIN, TAG, 'Failed to getMainWindow. Cause: %{public}s', JSON.stringify(err));
-      }
-    });
+      });
+    } catch (err) {
+      hilog.error(DOMAIN, TAG, 'Failed to getMainWindow. Cause: %{public}s', JSON.stringify(err));
+    }
   }
 
   getMainPageColor(): string {
     return this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FF151515' : '#F1F3F5';
   }
 
-  applyAppearance(data: window.Window): void {
-    data.setWindowLayoutFullScreen(true).then(() => {
-      hilog.info(DOMAIN, TAG, 'Succeeded in setting the window layout to full-screen mode.');
-    }).catch((err: BusinessError) => {
-      hilog.error(DOMAIN, TAG, 'Failed to set the window layout to full-screen mode. Cause: %{public}s', JSON.stringify(err));
-    });
+  updateAppearance(data: window.Window): void {
     const pageColor = this.getMainPageColor();
+    hilog.info(DOMAIN, TAG, 'updateAppearance: colorMode=%{public}d, pageColor=%{public}s', this.colorMode, pageColor);
     try {
       data.setWindowBackgroundColor(pageColor);
     } catch (err) {
       hilog.error(DOMAIN, TAG, 'setWindowBackgroundColor failed. Cause: %{public}s', JSON.stringify(err));
     }
-    data.setWindowSystemBarProperties({
-      navigationBarColor: '#00000000',
-      statusBarColor: '#00000000'
-    }).then(() => {
-      hilog.info(DOMAIN, TAG, 'Succeeded in setting the system bar properties.');
-    }).catch((err: BusinessError) => {
-      hilog.error(DOMAIN, TAG, 'Failed to set the system bar properties. Cause: %{public}s', JSON.stringify(err));
-    });
   }
 
   onConfigurationUpdate(newConfig: Configuration): void {
     super.onConfigurationUpdate(newConfig);
     this.colorMode = newConfig.colorMode;
+    hilog.info(DOMAIN, TAG, 'onConfigurationUpdate: colorMode=%{public}d, mainWindow=%{public}s', this.colorMode,
+      this.mainWindow ? 'not null' : 'null');
     if (this.mainWindow) {
-      this.applyAppearance(this.mainWindow);
+      this.updateAppearance(this.mainWindow);
     }
   }
 
