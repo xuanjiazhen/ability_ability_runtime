@@ -55,6 +55,7 @@ constexpr int32_t QUICKFIX_UID = 5524;
 constexpr int32_t DEAD_APP_RECORD_CLEAR_TIME = 3000; // ms
 constexpr int32_t DEAD_CHILD_RELATION_CLEAR_TIME = 3000; // ms
 constexpr const char* DEVELOPER_MODE_STATE = "const.security.developermode.state";
+const std::regex SIGN_CODE_RULE("[a-zA-Z.]+[-_#]{1}");
 }
 using EventFwk::CommonEventSupport;
 
@@ -80,10 +81,9 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CreateAppRunningRecord(
     auto recordId = AppRecordId::Create();
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
 
-    std::regex rule("[a-zA-Z.]+[-_#]{1}");
     std::string signCode;
     bool isStageBasedModel = false;
-    ClipStringContent(rule, bundleInfo.appId, signCode);
+    ClipStringContent(SIGN_CODE_RULE, bundleInfo.appId, signCode);
     if (!bundleInfo.hapModuleInfos.empty()) {
         isStageBasedModel = bundleInfo.hapModuleInfos.back().isStageBasedModel;
     }
@@ -130,27 +130,9 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExis
         "appName: %{public}s, processName: %{public}s, uid: %{public}d, specifiedProcessFlag: %{public}s, \
          customProcessFlag: %{public}s",
         appName.c_str(), processName.c_str(), uid, specifiedProcessFlag.c_str(), customProcessFlag.c_str());
-    std::regex rule("[a-zA-Z.]+[-_#]{1}");
     std::string signCode;
-    auto jointUserId = bundleInfo.jointUserId;
-    TAG_LOGD(AAFwkTag::APPMGR, "jointUserId : %{public}s", jointUserId.c_str());
-    ClipStringContent(rule, bundleInfo.appId, signCode);
-    auto findSameProcess = [signCode, specifiedProcessFlag, processName, jointUserId, customProcessFlag, isFromPreload]
-        (const auto &pair) {
-            return (pair.second != nullptr) &&
-            (specifiedProcessFlag.empty() || pair.second->GetSpecifiedProcessFlag() == specifiedProcessFlag) &&
-            (pair.second->GetCustomProcessFlag() == customProcessFlag) &&
-            (pair.second->GetSignCode() == signCode) &&
-            AppRunningManager::CheckAppProcessNameIsSame(pair.second, processName, isFromPreload) &&
-            (pair.second->GetJointUserId() == jointUserId) && !(pair.second->IsTerminating()) &&
-            !(pair.second->IsKilling()) && !(pair.second->GetRestartAppFlag()) &&
-            !(pair.second->IsKillPrecedeStart());
-    };
+    ClipStringContent(SIGN_CODE_RULE, bundleInfo.appId, signCode);
     auto appRunningMap = GetAppRunningRecordMap();
-    if (!jointUserId.empty()) {
-        auto iter = std::find_if(appRunningMap.begin(), appRunningMap.end(), findSameProcess);
-        return ((iter == appRunningMap.end()) ? nullptr : iter->second);
-    }
     for (const auto &item : appRunningMap) {
         const auto &appRecord = item.second;
         if (appRecord && CheckAppProcessNameIsSame(appRecord, processName, isFromPreload) &&
