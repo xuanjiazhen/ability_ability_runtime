@@ -3303,6 +3303,140 @@ HWTEST_F(AbilityManagerServiceFirstTest, ProcessSandboxCloneLaunch_0700, TestSiz
 }
 
 /**
+ * @tc.name: StartAbilityForOptionInner_SandboxClone_001
+ * @tc.desc: Test StartAbilityForOptionInner with null callerToken skips sandbox clone adaptation
+ *           (callerRecord is nullptr → sandbox clone block skipped → ProcessSandboxCloneLaunch with
+ *           null params returns ERR_OK → sandboxAbilityInfo empty → GetAppIndex fallback path).
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityForOptionInner_SandboxClone_001, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs_, nullptr);
+
+    MyFlag::flag_ = 0;
+    StartAbilityUtils::isSandBoxClone = false;
+    StartAbilityUtils::startAbilityInfo = nullptr;
+
+    Want want;
+    StartOptions startOptions;
+    const sptr<IRemoteObject> callerToken = nullptr;
+    int32_t userId = 0;
+    int requestCode = 0;
+    bool isStartAsCaller = false;
+    uint32_t specifyTokenId = 0;
+    bool isImplicit = false;
+
+    auto result = abilityMs_->StartAbilityForOptionInner(want, startOptions, callerToken, false, userId, requestCode,
+        isStartAsCaller, specifyTokenId, isImplicit);
+    EXPECT_EQ(result, ERR_NULL_INTERCEPTOR_EXECUTER);
+    // StartAbilityInfoWrap destructor resets thread-local state; verify clean exit.
+    EXPECT_FALSE(StartAbilityUtils::isSandBoxClone);
+    EXPECT_EQ(StartAbilityUtils::startAbilityInfo, nullptr);
+}
+
+/**
+ * @tc.name: StartAbilityForOptionInner_SandboxClone_002
+ * @tc.desc: Test StartAbilityForOptionInner with PARAM_APP_CLONE_INDEX_KEY in want and null callerToken.
+ *           Even with the clone index key present, null callerToken means callerRecord is nullptr,
+ *           so the HasParameter guard short-circuits and sandbox clone params are not retrieved.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityForOptionInner_SandboxClone_002, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs_, nullptr);
+
+    MyFlag::flag_ = 0;
+    StartAbilityUtils::isSandBoxClone = false;
+    StartAbilityUtils::startAbilityInfo = nullptr;
+
+    Want want;
+    want.SetParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, 2000);
+    StartOptions startOptions;
+    const sptr<IRemoteObject> callerToken = nullptr;
+    int32_t userId = 0;
+    int requestCode = 0;
+    bool isStartAsCaller = false;
+    uint32_t specifyTokenId = 0;
+    bool isImplicit = false;
+
+    auto result = abilityMs_->StartAbilityForOptionInner(want, startOptions, callerToken, false, userId, requestCode,
+        isStartAsCaller, specifyTokenId, isImplicit);
+    EXPECT_EQ(result, ERR_NULL_INTERCEPTOR_EXECUTER);
+    EXPECT_FALSE(StartAbilityUtils::isSandBoxClone);
+    EXPECT_EQ(StartAbilityUtils::startAbilityInfo, nullptr);
+}
+
+/**
+ * @tc.name: StartAbilityForOptionInner_SandboxClone_003
+ * @tc.desc: Test StartAbilityForOptionInner with non-null unverified callerToken. The
+ *           VerificationAllToken gate (before the sandbox clone block) returns false because
+ *           subManagersHelper_ is null in a fresh service → ERR_INVALID_CALLER. Confirms the
+ *           sandbox clone adaptation does not bypass the existing token verification gate.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityForOptionInner_SandboxClone_003, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs_, nullptr);
+
+    MyFlag::flag_ = 0;
+    StartAbilityUtils::isSandBoxClone = false;
+    StartAbilityUtils::startAbilityInfo = nullptr;
+
+    Want want;
+    StartOptions startOptions;
+    sptr<IRemoteObject> callerToken = MockToken(AbilityType::PAGE);
+    ASSERT_NE(callerToken, nullptr);
+    int32_t userId = 0;
+    int requestCode = 0;
+    bool isStartAsCaller = false;
+    uint32_t specifyTokenId = 0;
+    bool isImplicit = false;
+
+    auto result = abilityMs_->StartAbilityForOptionInner(want, startOptions, callerToken, false, userId, requestCode,
+        isStartAsCaller, specifyTokenId, isImplicit);
+    EXPECT_EQ(result, ERR_INVALID_CALLER);
+    EXPECT_FALSE(StartAbilityUtils::isSandBoxClone);
+    EXPECT_EQ(StartAbilityUtils::startAbilityInfo, nullptr);
+}
+
+/**
+ * @tc.name: StartAbilityForOptionInner_SandboxClone_004
+ * @tc.desc: Test StartAbilityForOptionInner non-sandbox path with interceptor set and implicit
+ *           start. Confirms the sandbox clone adaptation does not interfere with the implicit
+ *           start path when no sandbox clone is involved, and isWebSandBoxClone is set false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityForOptionInner_SandboxClone_004, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs_, nullptr);
+
+    MyFlag::flag_ = 0;
+    StartAbilityUtils::isSandBoxClone = false;
+    StartAbilityUtils::startAbilityInfo = nullptr;
+
+    Want want;
+    StartOptions startOptions;
+    const sptr<IRemoteObject> callerToken = nullptr;
+    int32_t userId = 0;
+    int requestCode = 0;
+    bool isStartAsCaller = false;
+    uint32_t specifyTokenId = 0;
+    bool isImplicit = true;
+
+    abilityMs_->interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+
+    auto result = abilityMs_->StartAbilityForOptionInner(want, startOptions, callerToken, false, userId, requestCode,
+        isStartAsCaller, specifyTokenId, isImplicit);
+    EXPECT_EQ(result, ERR_IMPLICIT_START_ABILITY_FAIL);
+    EXPECT_FALSE(StartAbilityUtils::isSandBoxClone);
+    EXPECT_EQ(StartAbilityUtils::startAbilityInfo, nullptr);
+}
+
+/**
  * @tc.name: StartSandboxCloneAbility_0100
  * @tc.desc: Test StartSandboxCloneAbility with valid parameters but no CLI tool token
  * @tc.type: FUNC
