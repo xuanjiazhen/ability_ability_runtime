@@ -2205,6 +2205,10 @@ int32_t AppMgrProxy::GetChildProcessInfoForSelf(ChildProcessInfo &info)
     auto result = reply.ReadInt32();
     if (result == ERR_OK) {
         std::unique_ptr<ChildProcessInfo> infoReply(reply.ReadParcelable<ChildProcessInfo>());
+        if (infoReply == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "null infoReply");
+            return ERR_INVALID_VALUE;
+        }
         info = *infoReply;
     }
     return result;
