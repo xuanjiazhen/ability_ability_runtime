@@ -15,6 +15,8 @@
 
 #include "ets_app_manager.h"
 
+#include <atomic>
+
 #include "ability_business_error.h"
 #include "ability_manager_client.h"
 #include "ability_manager_interface.h"
@@ -148,13 +150,13 @@ private:
     static void OnOnAbilityFirstFrameStateInner(ani_env *env, ani_object aniObserver, const std::string &strBundleName);
     static void OnOffInner(ani_env *env, ani_int etsObserverId, ani_object callback);
     static int32_t GetObserverId();
-    static int32_t serialNumber_;
+    static std::atomic<int32_t> serialNumber_;
     static sptr<AbilityRuntime::EtsAppStateObserver> appStateObserver_;
     static sptr<OHOS::AbilityRuntime::ETSAppForegroundStateObserver> observerForeground_;
     static std::mutex appStateObserverLock_;
 };
 
-int32_t EtsAppManager::serialNumber_ = 0;
+std::atomic<int32_t> EtsAppManager::serialNumber_(0);
 sptr<AbilityRuntime::EtsAppStateObserver> EtsAppManager::appStateObserver_ = nullptr;
 sptr<OHOS::AbilityRuntime::ETSAppForegroundStateObserver> EtsAppManager::observerForeground_ = nullptr;
 std::mutex EtsAppManager::appStateObserverLock_;
@@ -450,11 +452,10 @@ void EtsAppManager::GetRunningProcessInfoByBundleName(ani_env *env, ani_string a
 
 int32_t EtsAppManager::GetObserverId()
 {
-    int32_t observerId = serialNumber_;
-    if (serialNumber_ < INT32_MAX) {
-        serialNumber_++;
-    } else {
-        serialNumber_ = 0;
+    int32_t observerId = serialNumber_.load(std::memory_order_relaxed);
+    int32_t next = (observerId < INT32_MAX) ? observerId + 1 : 0;
+    while (!serialNumber_.compare_exchange_weak(observerId, next, std::memory_order_relaxed)) {
+        next = (observerId < INT32_MAX) ? observerId + 1 : 0;
     }
     return observerId;
 }
@@ -1416,17 +1417,17 @@ void EtsAppManager::OnOffAbilityFirstFrameState(ani_env *env, ani_string type, a
     }
     ani_vm *aniVM = nullptr;
     if (env->GetVM(&aniVM) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "get aniVM failed");
+        TAG_LOGE(AAFwkTag::APPMGR, "get aniVM failed");
         EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(
             AbilityErrorCode::ERROR_CODE_INNER), "", GetInnerErrorMsg(AbilityInnerErrorMsg::OPERATION_FAILED)));
         return;
     }
     std::string strType;
     if (!OHOS::AppExecFwk::GetStdString(env, type, strType)
-        && strType != ON_OFF_TYPE_ABILITY_FIRST_FRAME_STATE) {
+        || strType != ON_OFF_TYPE_ABILITY_FIRST_FRAME_STATE) {
         TAG_LOGE(AAFwkTag::APPMGR, "GetStdString failed");
         AbilityRuntime::EtsErrorUtil::ThrowInvalidParamError(env,
-            "Parse param observer failed, must be a AbilityFirstFrameStateObserver.");
+            "Parse param type failed, must be abilityFirstFrameState.");
         return;
     }
     ani_status status = ANI_OK;
@@ -1560,6 +1561,10 @@ void EtsAppManager::GetKeepAliveAppServiceExtensions(ani_env *env, ani_object ca
     TAG_LOGD(AAFwkTag::APPMGR, "GetKeepAliveAppServiceExtensions called");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "env null ptr");
+        return;
+    }
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "callback null ptr");
         return;
     }
     ani_object emptyArray = CreateEmptyAniArray(env);
@@ -1702,6 +1707,10 @@ void EtsAppManager::TerminateMission(ani_env *env, ani_int missionId, ani_object
     TAG_LOGD(AAFwkTag::APPMGR, "TerminateMission call");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "env null ptr");
+        return;
+    }
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "callback null ptr");
         return;
     }
     TAG_LOGD(AAFwkTag::APPMGR, "missionId:%{public}d", missionId);

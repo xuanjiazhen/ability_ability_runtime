@@ -368,7 +368,7 @@ private:
             TAG_LOGE(AAFwkTag::APPMGR, "invalid argc");
             errCode = ERR_NOT_OK;
         } else {
-            if (!ConvertFromJsValue(env, argv[0], bundleName)) {
+            if (!ConvertFromJsValue(env, argv[0], bundleName) || bundleName.empty()) {
                 TAG_LOGE(AAFwkTag::APPMGR, "get bundleName failed");
                 errCode = ERR_NOT_OK;
             } else {
