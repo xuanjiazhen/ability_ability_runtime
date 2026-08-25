@@ -195,9 +195,12 @@ bool InsightIntentExecuteResult::Marshalling(Parcel &parcel) const
             return false;
         }
     }
-    if (interactionInfo != nullptr) {
+    if (interactionInfo != nullptr && CheckInteractionInfo(*interactionInfo)) {
         if (!interactionInfo->Marshalling(parcel)) { return false; }
     } else {
+        if (interactionInfo != nullptr) {
+            TAG_LOGW(AAFwkTag::INTENT, "Marshalling drop invalid interactionInfo");
+        }
         InteractionInfo empty;
         if (!empty.Marshalling(parcel)) { return false; }
     }
@@ -441,10 +444,13 @@ std::string InsightIntentExecuteResult::ToJsonString() const
         queryResultsJson.emplace_back(itemJson);
     }
     jsonObject[KEY_QUERY_RESULTS] = queryResultsJson;
-    if (interactionInfo != nullptr && interactionInfo->interactionUI != nullptr) {
+    if (interactionInfo != nullptr && interactionInfo->interactionUI != nullptr &&
+        CheckInteractionInfo(*interactionInfo)) {
         nlohmann::json infoJson;
         infoJson[KEY_INTERACTION_UI] = BuildInteractionUIJson(interactionInfo->interactionUI);
         jsonObject[KEY_INTERACTION_INFO] = infoJson;
+    } else if (interactionInfo != nullptr && interactionInfo->interactionUI != nullptr) {
+        TAG_LOGW(AAFwkTag::INTENT, "ToJsonString drop invalid interactionInfo");
     }
     return AbilityRuntime::SafeDump(jsonObject);
 }
@@ -525,7 +531,8 @@ std::shared_ptr<WantParams> InsightIntentExecuteResult::BuildFunctionResult() co
     if (result != nullptr) {
         resultParams->SetParam(KEY_RESULT, OHOS::AAFwk::WantParamWrapper::Box(*result));
     }
-    if (interactionInfo != nullptr && interactionInfo->interactionUI != nullptr) {
+    if (interactionInfo != nullptr && interactionInfo->interactionUI != nullptr &&
+        CheckInteractionInfo(*interactionInfo)) {
         auto infoParams = std::make_shared<WantParams>();
         auto uiParams = std::make_shared<WantParams>();
         uiParams->SetParam(KEY_INTERACTION_UI_TYPE,
@@ -546,6 +553,8 @@ std::shared_ptr<WantParams> InsightIntentExecuteResult::BuildFunctionResult() co
         }
         infoParams->SetParam(KEY_INTERACTION_UI, OHOS::AAFwk::WantParamWrapper::Box(*uiParams));
         resultParams->SetParam(KEY_INTERACTION_INFO, OHOS::AAFwk::WantParamWrapper::Box(*infoParams));
+    } else if (interactionInfo != nullptr && interactionInfo->interactionUI != nullptr) {
+        TAG_LOGW(AAFwkTag::INTENT, "BuildFunctionResult drop invalid interactionInfo");
     }
     return resultParams;
 }
