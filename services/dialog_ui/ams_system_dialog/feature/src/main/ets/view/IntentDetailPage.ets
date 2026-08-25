@@ -736,6 +736,10 @@ export struct IntentDetailPage {
       .backgroundColor($r('app.color.background_cont'))
       .position({ top: 0, left: 0 })
       .zIndex(100)
+      .onAreaChange((oldValue: Area, newValue: Area) => {
+        hilog.info(DOMAIN, TAG, 'IntentDetailPage header onAreaChange: globalY=%{public}d, width=%{public}d, height=%{public}d',
+          Math.round(newValue.globalPosition?.y ?? -1), Math.round(newValue.width ?? -1), Math.round(newValue.height ?? -1));
+      })
       .onClick(() => {
         this.articlePathStack.pop();
       })
