@@ -339,6 +339,11 @@ export struct IntentContent {
       .position({ top: 0, left: 0 })
       .zIndex(100)
       .backgroundColor($r('app.color.background_cont'))
+      .onAreaChange((oldValue: Area, newValue: Area) => {
+        hilog.info(DOMAIN, TAG, 'IntentContent header onAreaChange: globalY=%{public}d, width=%{public}d, height=%{public}d',
+          Math.round(Number(newValue.globalPosition?.y ?? -1)), Math.round(Number(newValue.width ?? -1)),
+          Math.round(Number(newValue.height ?? -1)));
+      })
 
       Scroll(this.scroller) {
         Column() {
@@ -369,5 +374,10 @@ export struct IntentContent {
     .height('100%')
     .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
     .backgroundColor($r('app.color.background_cont'))
+    .onAreaChange((oldValue: Area, newValue: Area) => {
+      hilog.info(DOMAIN, TAG, 'IntentContent root onAreaChange: globalY=%{public}d, width=%{public}d, height=%{public}d',
+        Math.round(Number(newValue.globalPosition?.y ?? -1)), Math.round(Number(newValue.width ?? -1)),
+        Math.round(Number(newValue.height ?? -1)));
+    })
   }
 }
