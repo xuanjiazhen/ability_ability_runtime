@@ -51,6 +51,7 @@ struct Index {
     .navDestination(this.intentRouter)
     .hideTitleBar(true)
     .mode(NavigationMode.Stack)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
 
   }
 }

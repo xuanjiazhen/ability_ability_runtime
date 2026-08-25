@@ -44,6 +44,7 @@ interface MaterialResult {
 @Component
 export struct IntentContent {
   @Consume('articlePathStack') articlePathStack: NavPathStack;
+  @StorageLink('statusBarHeight') statusBarHeight: number = 0;
   scroller: Scroller = new Scroller();
   @State listMaterial: IntentInfo[] | null = null;
   @State intermediateGroupMaterial: Record<string, IntentInfo[]> = {};
@@ -336,9 +337,14 @@ export struct IntentContent {
         left: 16,
         bottom: 14.5
       })
-      .position({ top: 0, left: 0 })
+      .position({ top: this.statusBarHeight, left: 0 })
       .zIndex(100)
       .backgroundColor($r('app.color.background_cont'))
+      .onAreaChange((oldValue: Area, newValue: Area) => {
+        hilog.info(DOMAIN, TAG, 'IntentContent header onAreaChange: globalY=%{public}d, width=%{public}d, height=%{public}d',
+          Math.round(Number(newValue.globalPosition?.y ?? -1)), Math.round(Number(newValue.width ?? -1)),
+          Math.round(Number(newValue.height ?? -1)));
+      })
 
       Scroll(this.scroller) {
         Column() {
@@ -350,7 +356,7 @@ export struct IntentContent {
       }
       .align(Alignment.TopStart)
       .padding({
-        top: 76,
+        top: this.statusBarHeight + 76,
         right: 20,
         left: 20,
         bottom: 20
@@ -367,7 +373,12 @@ export struct IntentContent {
     }
     .width('100%')
     .height('100%')
-    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
     .backgroundColor($r('app.color.background_cont'))
+    .onAreaChange((oldValue: Area, newValue: Area) => {
+      hilog.info(DOMAIN, TAG, 'IntentContent root onAreaChange: globalY=%{public}d, width=%{public}d, height=%{public}d',
+        Math.round(Number(newValue.globalPosition?.y ?? -1)), Math.round(Number(newValue.width ?? -1)),
+        Math.round(Number(newValue.height ?? -1)));
+    })
   }
 }

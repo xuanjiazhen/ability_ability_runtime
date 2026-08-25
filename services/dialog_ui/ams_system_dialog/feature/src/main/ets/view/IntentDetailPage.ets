@@ -84,6 +84,7 @@ function extStyle() {
 @Component
 export struct IntentDetailPage {
   @Consume('articlePathStack') articlePathStack: NavPathStack;
+  @StorageLink('statusBarHeight') statusBarHeight: number = 0;
   @State intentDetail: IntentInfo | null = null;
   @State intentDetailMap: Map<string, string> | null = null;
   @State intentDetailEntries: Array<[string, string | string[] | object]> | [] = [];
@@ -734,8 +735,13 @@ export struct IntentDetailPage {
         bottom: 14.5
       })
       .backgroundColor($r('app.color.background_cont'))
-      .position({ top: 0, left: 0 })
+      .position({ top: this.statusBarHeight, left: 0 })
       .zIndex(100)
+      .onAreaChange((oldValue: Area, newValue: Area) => {
+        hilog.info(DOMAIN, TAG, 'IntentDetailPage header onAreaChange: globalY=%{public}d, width=%{public}d, height=%{public}d',
+          Math.round(Number(newValue.globalPosition?.y ?? -1)), Math.round(Number(newValue.width ?? -1)),
+          Math.round(Number(newValue.height ?? -1)));
+      })
       .onClick(() => {
         this.articlePathStack.pop();
       })
@@ -886,7 +892,7 @@ export struct IntentDetailPage {
       .backgroundColor($r('app.color.background_cont'))
       .width('100%')
       .height('100%')
-      .padding({ top: 56, bottom: 0 })
+      .padding({ top: this.statusBarHeight + 56, bottom: 0 })
       .clip(true)
 
       Row() {
