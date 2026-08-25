@@ -238,10 +238,6 @@ void AppRunningManager::SetAbilityForegroundingFlagToAppRecord(const pid_t pid)
 {
 }
 
-void AppRunningManager::ClipStringContent(const std::regex &re, const std::string &source, std::string &afterCutStr)
-{
-}
-
 void AppRunningManager::GetForegroundApplications(std::vector<AppStateData> &list)
 {
 }

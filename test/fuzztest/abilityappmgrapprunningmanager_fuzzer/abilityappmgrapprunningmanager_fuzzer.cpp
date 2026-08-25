@@ -98,7 +98,6 @@ void DoSomethingInterestingWithMyAPIadda(const char* data, size_t size)
     OHOS::AppExecFwk::RunningProcessInfo infoByPid;
     manager->GetRunningProcessInfoByPid(pidApps, infoByPid);
     std::regex re;
-    manager->ClipStringContent(re, jsonStr, jsonStr);
     manager->GetAppRunningRecordByRenderPid(pidApps);
     manager->OnRenderProcessExitedByPid(pidApps);
     manager->GetAppRunningStateByBundleName(jsonStr);
