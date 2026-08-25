@@ -658,6 +658,11 @@ bool PermissionVerification::VerifyStartLocalDebug(int32_t tokenId) const
     return false;
 }
 
+bool PermissionVerification::VerifyLocalDebugOtherApps() const
+{
+    return VerifyCallingPermission(PermissionConstants::PERMISSION_LOCAL_DEBUG_OTHER_APPS);
+}
+
 bool PermissionVerification::VerifyStartSelfUIAbility(int tokenId) const
 {
     if (!IsSACall() && VerifyPermissionByTokenId(tokenId, PermissionConstants::PERMISSION_NDK_START_SELF_UI_ABILITY)) {
