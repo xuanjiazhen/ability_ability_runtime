@@ -851,6 +851,16 @@ bool AppUtils::IsSupportAllowDebugPermission()
     return isSupportAllowDebugPermission_.value;
 }
 
+bool AppUtils::IsPCOrPad()
+{
+    if (!isPCOrPad_.isLoaded) {
+        auto deviceType = system::GetDeviceType();
+        isPCOrPad_.value = (deviceType == "2in1" || deviceType == "tablet");
+        isPCOrPad_.isLoaded = true;
+    }
+    return isPCOrPad_.value;
+}
+
 bool AppUtils::IsStartUIAbilityInCurrentProcess()
 {
     if (!isStartUIAbilityInCurrentProcess_.isLoaded) {
