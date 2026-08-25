@@ -50,9 +50,34 @@ export struct IntentContent {
   @State groupMaterial: Record<string, IntentInfo[]> = {};
   context = this.getUIContext().getHostContext();
   @State pixelMap: image.PixelMap | ResourceStr | DrawableDescriptor | undefined = undefined;
+  private isCompActive: boolean = true;
 
   aboutToAppear() {
     this.getInfos();
+  }
+
+  aboutToDisappear() {
+    this.isCompActive = false;
+    this.releasePixelMaps();
+  }
+
+  private releaseIconImg(iconImg: image.PixelMap | ResourceStr | DrawableDescriptor | undefined) {
+    if (iconImg instanceof image.PixelMap) {
+      try {
+        iconImg.release();
+      } catch (err) {
+        hilog.error(DOMAIN, TAG, 'release pixelMap failed: %{public}s', JSON.stringify(err));
+      }
+    }
+  }
+
+  private releasePixelMaps() {
+    if (!this.listMaterial) {
+      return;
+    }
+    this.listMaterial.forEach((item: IntentInfo) => {
+      this.releaseIconImg(item.iconImg);
+    });
   }
 
   onBackPress() {
@@ -72,6 +97,10 @@ export struct IntentContent {
     try {
       insightIntentDriver.getAllInsightIntentInfo(insightIntentDriver.GetInsightIntentFlag.GET_FULL_INSIGHT_INTENT)
         .then((data) => {
+          if (!this.isCompActive) {
+            hilog.info(DOMAIN, TAG, 'component destroyed, skip getInfos result');
+            return;
+          }
           hilog.info(DOMAIN, TAG, `getAllInsightIntentInfo success: found ${data.length} total intents`);
           this.listMaterial = data as IntentInfo[];
           this.intermediateGroupMaterial = this.listMaterial
@@ -93,6 +122,10 @@ export struct IntentContent {
                 const materialItems = this.intermediateGroupMaterial[bundleName];
                 for (const key of Object.keys(materialItems)) {
                   const iconImg = await this.getAllIntentIcon(materialItems[key].icon, bundleName);
+                  if (!this.isCompActive) {
+                    this.releaseIconImg(iconImg);
+                    return null;
+                  }
                   materialItems[key].iconImg = iconImg;
                   const appName = await this.setAppName(materialItems[0]);
                   materialItems[key].bundleNameCN = appName;
@@ -106,6 +139,9 @@ export struct IntentContent {
             return null;
           });
           Promise.all(promises).then((results: Array<MaterialResult | null>) => {
+            if (!this.isCompActive) {
+              return;
+            }
             results.forEach((result: MaterialResult | null) => {
               if (result && result.bundleName && result.materialItems) {
                 this.groupMaterial[result.bundleName] = result.materialItems;
