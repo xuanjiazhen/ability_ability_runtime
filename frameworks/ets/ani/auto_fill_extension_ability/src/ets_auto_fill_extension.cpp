@@ -478,6 +478,7 @@ bool EtsAutoFillExtension::CreateNewWindow(sptr<AAFwk::SessionInfo> sessionInfo,
         TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "isNotAllow: %{public}d", isNotAllow);
         option->SetConstrainedModal(isNotAllow);
     }
+    option->SetCallerPid(sharedWant->GetIntParam(AAFwk::Want::PARAM_RESV_CALLER_PID, -1));
     sptr<Rosen::Window> uiWindow;
     {
         HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::Create");
