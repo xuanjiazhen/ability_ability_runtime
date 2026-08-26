@@ -340,16 +340,6 @@ std::string AppfreezeInner::GetProcessIOStr()
     return ParseIOValue(ioStr);
 }
 
-bool AppfreezeInner::IsAsanEnabled()
-{
-    auto applicationInfo = applicationInfo_.lock();
-    if (applicationInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::APPDFR, "null applicationInfo_");
-        return false;
-    }
-    return applicationInfo->asanEnabled || applicationInfo->hwasanEnabled || applicationInfo->tsanEnabled;
-}
-
 void AppfreezeInner::GetApplicationInfo(FaultData& faultData)
 {
     TAG_LOGD(AAFwkTag::APPDFR, "called");
