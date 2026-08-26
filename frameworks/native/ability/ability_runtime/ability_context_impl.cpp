@@ -1147,11 +1147,16 @@ ErrCode AbilityContextImpl::SetMissionWindowIcon(std::shared_ptr<OHOS::Media::Pi
 }
 
 ErrCode AbilityContextImpl::SetAbilityInstanceInfo(const std::string& label,
-    std::shared_ptr<OHOS::Media::PixelMap> icon)
+    std::shared_ptr<OHOS::Media::PixelMap> icon, const std::string& groupId)
 {
+    constexpr size_t MAX_ABILITY_INSTANCE_GROUP_ID_SIZE = 1024;
     TAG_LOGD(AAFwkTag::CONTEXT, "SetAbilityInstanceInfo");
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    if (groupId.length() > MAX_ABILITY_INSTANCE_GROUP_ID_SIZE) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "groupId length exceeds limit: %{public}zu", groupId.length());
+        return ERR_INVALID_VALUE;
     }
 
     auto ifaceSession = iface_cast<Rosen::ISession>(GetSessionToken());
@@ -1161,7 +1166,7 @@ ErrCode AbilityContextImpl::SetAbilityInstanceInfo(const std::string& label,
     }
 
     TAG_LOGI(AAFwkTag::CONTEXT, "SetSessionLabelAndIcon");
-    auto errCode = ifaceSession->SetSessionLabelAndIcon(label, icon);
+    auto errCode = ifaceSession->SetSessionLabelAndIcon(label, icon, groupId);
     auto ret = TransferSetAbilityInstanceInfoErr(errCode);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "SetSessionLabelAndIcon err: %{public}d", ret);
