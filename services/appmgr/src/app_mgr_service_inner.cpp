@@ -1922,6 +1922,7 @@ void AppMgrServiceInner::reportpreLoadTask(const std::shared_ptr<AppRunningRecor
 {
     auto reportLoadTask = [appRecord]() {
         if (appRecord == nullptr) {
+            TAG_LOGD(AAFwkTag::APPMGR, "appRecord null");
             return;
         }
         auto priorityObj = appRecord->GetPriorityObject();
