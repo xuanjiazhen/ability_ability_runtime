@@ -25,7 +25,6 @@
 #include <vector>
 
 #include "ams_mgr_stub.h"
-#include "ams_mgr_stub_mock.h"
 #include "parcel.h"
 #include "securec.h"
 #include "want.h"
@@ -36,13 +35,88 @@ using namespace OHOS;
 
 namespace OHOS {
 namespace {
+const std::u16string AMSMGR_INTERFACE_TOKEN = u"ohos.appexecfwk.IAmsMgr";
 constexpr uint32_t KILL_PIDS_MAX_COUNT = 50;
 }
 
-class AmsMgrStubKillFuzz : public AmsMgrStubFuzzBase {};
+class AmsMgrStubKillFuzz : public AmsMgrStub {
+public:
+    AmsMgrStubKillFuzz() = default;
+    ~AmsMgrStubKillFuzz() = default;
 
-void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
+    void TerminateAbility(const sptr<IRemoteObject> &token, bool clearMissionFlag) override {}
+    void UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
+        bool isFromScreenOffBackground = false) override {}
+    void RegisterAppStateCallback(const sptr<IAppStateCallback> &callback) override {}
+    void KillProcessByAbilityToken(const sptr<IRemoteObject> &token) override {}
+    int32_t SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bool isGameSAPrelaunch) override { return 0; }
+    void KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg = false,
+        sptr<AAFwk::IUserCallback> callback = nullptr) override {}
+    int32_t KillProcessesByPids(const std::vector<int32_t> &pids,
+        const std::string &reason = "KillProcessesByPids", bool subProcess = false,
+        bool isKillPrecedeStart = false) override { return 0; }
+    int KillProcessWithAccount(const std::string &bundleName, const int accountId,
+        const bool clearPageStack = false, int32_t appIndex = 0) override { return 0; }
+    int32_t KillProcessesInBatch(const std::vector<int32_t> &pids) override { return 0; }
+    int UpdateApplicationInfoInstalled(const std::string &bundleName, const int uid,
+        const std::string &moduleName, bool isPlugin) override { return 0; }
+    int KillApplication(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = 0,
+        const std::string &reason = "KillApplication") override { return 0; }
+    int ForceKillApplication(const std::string &bundleName, const int userId = -1, const int appIndex = 0) override
+    {
+        return 0;
+    }
+    int KillApplicationWithUserId(const std::string &bundleName,
+        const int userId = -1, const int appIndex = 0) override { return 0; }
+    int KillProcessesByAccessTokenId(const uint32_t accessTokenId) override { return 0; }
+    int KillApplicationByUid(const std::string &bundleName, const int uid,
+        const std::string& reason = "KillApplicationByUid") override { return 0; }
+    void AbilityAttachTimeOut(const sptr<IRemoteObject> &token) override {}
+    void PrepareTerminate(const sptr<IRemoteObject> &token, bool clearMissionFlag = false) override {}
+    void GetRunningProcessInfoByToken(
+        const sptr<IRemoteObject> &token, OHOS::AppExecFwk::RunningProcessInfo &info) override {}
+    void SetAbilityForegroundingFlagToAppRecord(const pid_t pid) override {}
+    void StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
+        const AbilityRuntime::StartSpecifiedParam &param) override {}
+    void RegisterStartSpecifiedAbilityResponse(const sptr<IStartSpecifiedAbilityResponse> &response) override {}
+    void PrepareTerminateApp(const pid_t pid, const std::string &moduleName) override {}
+    void StartSpecifiedProcess(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
+        int32_t requestId = 0, const std::string &customProcess = "") override {}
+    int GetApplicationInfoByProcessID(const int pid, AppExecFwk::ApplicationInfo &application, bool &debug) override
+    {
+        return 0;
+    }
+    int32_t NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg) override
+    {
+        return 0;
+    }
+    int32_t NotifyAppMgrRecordExitReasonCompability(
+        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg,
+        int32_t reason) override { return 0; }
+    int32_t GetBundleNameByPid(const int pid, std::string &bundleName, int32_t &uid) override { return 0; }
+    int32_t RegisterAppDebugListener(const sptr<IAppDebugListener> &listener) override { return 0; }
+    int32_t UnregisterAppDebugListener(const sptr<IAppDebugListener> &listener) override { return 0; }
+    int32_t AttachAppDebug(const std::string &bundleName, bool isDebugFromLocal) override { return 0; }
+    int32_t DetachAppDebug(const std::string &bundleName) override { return 0; }
+    int32_t SetAppWaitingDebug(const std::string &bundleName, bool isPersist) override { return 0; }
+    int32_t CancelAppWaitingDebug() override { return 0; }
+    int32_t GetWaitingDebugApp(std::vector<std::string> &debugInfoList) override { return 0; }
+    bool IsWaitingDebugApp(const std::string &bundleName) override { return false; }
+    void ClearNonPersistWaitingDebugFlag() override {}
+    int32_t RegisterAbilityDebugResponse(const sptr<IAbilityDebugResponse> &response) override { return 0; }
+    bool IsAttachDebug(const std::string &bundleName) override { return false; }
+    bool IsMemorySizeSufficient() override { return false; }
+};
+
+bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
 {
+    if (data == nullptr || size < sizeof(uint32_t)) {
+        return false;
+    }
+    FUZZ_EXTRACT_CODE(data, size);
+    MessageParcel parcel;
+    parcel.WriteInterfaceToken(AMSMGR_INTERFACE_TOKEN);
+    uint32_t actualCode = 0;
     switch (code % 35) {
         case 0: {
             actualCode = static_cast<uint32_t>(IAmsMgr::Message::TERMINATE_ABILITY);
@@ -310,8 +384,15 @@ void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, 
             break;
         }
         default:
-            break;
+            return false;
     }
-
-FUZZ_STUB_ENTRY_IMPL(AmsMgrStubKillFuzz, FuzzUtil::Tokens::AMS_MGR)
+    parcel.RewindRead(0);
+    MessageParcel reply;
+    MessageOption option;
+    std::shared_ptr<AmsMgrStub> stub = std::make_shared<AmsMgrStubKillFuzz>();
+    stub->OnRemoteRequest(actualCode, parcel, reply, option);
+    return true;
+}
 } // namespace OHOS
+
+FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)

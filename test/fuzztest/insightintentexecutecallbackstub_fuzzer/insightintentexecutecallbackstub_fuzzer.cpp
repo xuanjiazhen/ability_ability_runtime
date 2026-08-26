@@ -12,50 +12,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "insightintentexecutecallbackstub_fuzzer.h"
+#include "attack_vectors.h"
 #include "fuzz_util.h"
 
-#include <cstddef>
-#include <cstdint>
-
-#define private public
 #include "insight_intent_execute_callback_stub.h"
-#undef private
-
-#include "ability_record.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;
 
 namespace OHOS {
-const std::u16string APPMGR_INTERFACE_TOKEN = u"ohos.aafwk.AppManager";
-
-class InsightIntentExecuteCallbackStubFuzzTest : public InsightIntentExecuteCallbackStub {
+class InsightIntentExecuteCallbackStubFuzz : public InsightIntentExecuteCallbackStub {
 public:
-    InsightIntentExecuteCallbackStubFuzzTest() = default;
-    virtual ~InsightIntentExecuteCallbackStubFuzzTest()
-    {}
+    InsightIntentExecuteCallbackStubFuzz() = default;
+    ~InsightIntentExecuteCallbackStubFuzz() = default;
     void OnExecuteDone(uint64_t key, int32_t resultCode,
         const AppExecFwk::InsightIntentExecuteResult &executeResult) override {}
 };
 
-bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    uint32_t code = FuzzUtil::GetU32Data(data);
-    std::shared_ptr<InsightIntentExecuteCallbackStub> backStub =
-        std::make_shared<InsightIntentExecuteCallbackStubFuzzTest>();
-    MessageParcel dataParcel;
-    MessageParcel reply;
-    MessageOption option;
-    dataParcel.WriteInterfaceToken(APPMGR_INTERFACE_TOKEN);
-    dataParcel.WriteBuffer(data, size);
-    dataParcel.RewindRead(0);
-    backStub->OnRemoteRequest(code, dataParcel, reply, option);
-    backStub->OnExecuteDoneInner(dataParcel, reply);
-
-    return true;
+    switch (code % 1) {
+        case 0: {
+            actualCode = static_cast<uint32_t>(IInsightIntentExecuteCallback::ON_INSIGHT_INTENT_EXECUTE_DONE);
+            parcel.WriteUint64(fdp.ConsumeIntegral<uint64_t>());
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            InsightIntentExecuteResult executeResult;
+            parcel.WriteParcelable(&executeResult);
+            break;
+        }
+        default:
+            break;
+    }
 }
-} // namespace OHOS
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(InsightIntentExecuteCallbackStubFuzz, FuzzUtil::Tokens::INSIGHT_INTENT_EXEC_CB)
+} // namespace OHOS

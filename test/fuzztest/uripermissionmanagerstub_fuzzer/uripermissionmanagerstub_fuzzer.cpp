@@ -152,16 +152,8 @@ public:
 #endif
 };
 
-bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    FUZZ_EXTRACT_CODE(data, size);
-    MessageParcel parcel;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t actualCode = 1;
-
-    parcel.WriteInterfaceToken(std::u16string(FuzzUtil::Tokens::URI_PERMISSION_MGR));
-
     switch (code % HANDLE_COUNT) {
         case 0:  // code 1: GrantUriPermission(Uri, flag, targetBundleName, appIndex, initiatorTokenId)
             actualCode = 1;
@@ -290,12 +282,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
         default:
             break;
     }
-
-    parcel.RewindRead(0);
-    std::shared_ptr<UriPermissionManagerStub> stub = std::make_shared<UriPermissionManagerStubFuzz>();
-    stub->OnRemoteRequest(actualCode, parcel, reply, option);
-    return true;
-}
 }
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(UriPermissionManagerStubFuzz, FuzzUtil::Tokens::URI_PERMISSION_MGR)
+} // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,50 +12,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "systemabilitytokencallbackstub_fuzzer.h"
+#include "attack_vectors.h"
 #include "fuzz_util.h"
 
-#include <cstddef>
-#include <cstdint>
-
 #include "system_ability_token_callback_stub.h"
-#include "message_parcel.h"
-#include "securec.h"
 
 using namespace OHOS::AAFwk;
 
 namespace OHOS {
-class SystemAbilityTokenCallbackStubFuzzTest : public SystemAbilityTokenCallbackStub {
+class SystemAbilityTokenCallbackStubFuzz : public SystemAbilityTokenCallbackStub {
 public:
-    SystemAbilityTokenCallbackStubFuzzTest() = default;
-    virtual ~SystemAbilityTokenCallbackStubFuzzTest()
-    {}
-    int32_t SendResult(OHOS::AAFwk::Want& want, int32_t callerUid, int32_t requestCode,
+    SystemAbilityTokenCallbackStubFuzz() = default;
+    ~SystemAbilityTokenCallbackStubFuzz() = default;
+    int32_t SendResult(OHOS::AAFwk::Want &want, int32_t callerUid, int32_t requestCode,
         uint32_t accessToken, int32_t resultCode) override
     {
         return 0;
     }
 };
 
-bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    uint32_t code = FuzzUtil::GetU32Data(data);
-
-    MessageParcel parcel;
-    parcel.WriteInterfaceToken(std::u16string(FuzzUtil::Tokens::SA_TOKEN_CALLBACK));
-    parcel.WriteBuffer(data, size);
-    parcel.RewindRead(0);
-    MessageParcel reply;
-    MessageOption option;
-
-    std::shared_ptr<SystemAbilityTokenCallbackStub> systemabilitytokencallbackstub
-        = std::make_shared<SystemAbilityTokenCallbackStubFuzzTest>();
-
-    systemabilitytokencallbackstub->OnRemoteRequest(code, parcel, reply, option);
-
-    return true;
-}
+    switch (code % 1) {
+        case 0: {
+            actualCode = static_cast<uint32_t>(ISystemAbilityTokenCallback::SEND_RESULT);
+            FuzzUtil::WriteMaliciousWant(parcel, fdp);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteUint32(fdp.ConsumeIntegral<uint32_t>());
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        }
+        default:
+            break;
+    }
 }
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(SystemAbilityTokenCallbackStubFuzz, FuzzUtil::Tokens::SA_TOKEN_CALLBACK)
+} // namespace OHOS

@@ -29,14 +29,14 @@ void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, 
             actualCode = static_cast<uint32_t>(IForegroundAppConnection::ON_FOREGROUND_APP_CONNECTED);
             {
                 ForegroundAppConnectionData connectionData;
-                parcel.WriteParcelable(connectionData);
+                parcel.WriteParcelable(&connectionData);
             }
             break;
         case 1:
             actualCode = static_cast<uint32_t>(IForegroundAppConnection::ON_FOREGROUND_APP_DISCONNECTED);
             {
                 ForegroundAppConnectionData connectionData;
-                parcel.WriteParcelable(connectionData);
+                parcel.WriteParcelable(&connectionData);
             }
             break;
         case 2:

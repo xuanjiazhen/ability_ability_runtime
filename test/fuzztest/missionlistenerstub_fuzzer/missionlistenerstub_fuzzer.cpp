@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,63 +12,86 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "missionlistenerstub_fuzzer.h"
+#include "attack_vectors.h"
 #include "fuzz_util.h"
 
-#include <cstddef>
-#include <cstdint>
-
 #include "mission_listener_stub.h"
-#include "message_parcel.h"
-#include "securec.h"
 
 using namespace OHOS::AAFwk;
 
 namespace OHOS {
-class MissionListenerStubFuzzTest : public MissionListenerStub {
+class MissionListenerStubFuzz : public MissionListenerStub {
 public:
-    MissionListenerStubFuzzTest() = default;
-    virtual ~MissionListenerStubFuzzTest()
-    {};
-    void OnMissionCreated(int32_t missionId) override
-    {}
-    void OnMissionDestroyed(int32_t missionId) override
-    {}
-    void OnMissionSnapshotChanged(int32_t missionId) override
-    {}
-    void OnMissionMovedToFront(int32_t missionId) override
-    {}
-    void OnMissionMovedToBackground(int32_t missionId) override
-    {}
-    void OnMissionIconUpdated(int32_t missionId, const std::shared_ptr<OHOS::Media::PixelMap>& icon) override
-    {}
-    void OnMissionClosed(int32_t missionId) override
-    {}
-    void OnMissionLabelUpdated(int32_t missionId) override
-    {}
+    MissionListenerStubFuzz() = default;
+    ~MissionListenerStubFuzz() = default;
+    void OnMissionCreated(int32_t missionId) override {}
+    void OnMissionDestroyed(int32_t missionId) override {}
+    void OnMissionSnapshotChanged(int32_t missionId) override {}
+    void OnMissionMovedToFront(int32_t missionId) override {}
+    void OnMissionMovedToBackground(int32_t missionId) override {}
+    void OnMissionIconUpdated(int32_t missionId, const std::shared_ptr<OHOS::Media::PixelMap> &icon) override {}
+    void OnMissionClosed(int32_t missionId) override {}
+    void OnMissionLabelUpdated(int32_t missionId) override {}
 };
 
-bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    uint32_t code = FuzzUtil::GetU32Data(data);
-
-    MessageParcel parcel;
-    parcel.WriteInterfaceToken(std::u16string(FuzzUtil::Tokens::MISSION_LISTENER));
-    parcel.WriteBuffer(data, size);
-    parcel.RewindRead(0);
-    MessageParcel reply;
-    MessageOption option;
-
-    std::shared_ptr<MissionListenerStub> missionlistenerstub = std::make_shared<MissionListenerStubFuzzTest>();
-    if (missionlistenerstub == nullptr) {
-        return false;
+    switch (code % 10) {
+        case 0: {
+            actualCode = static_cast<uint32_t>(IMissionListener::ON_MISSION_CREATED);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        }
+        case 1: {
+            actualCode = static_cast<uint32_t>(IMissionListener::ON_MISSION_DESTROYED);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        }
+        case 2: {
+            actualCode = static_cast<uint32_t>(IMissionListener::ON_MISSION_SNAPSHOT_CHANGED);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        }
+        case 3: {
+            actualCode = static_cast<uint32_t>(IMissionListener::ON_MISSION_MOVED_TO_FRONT);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        }
+        case 4: {
+            actualCode = static_cast<uint32_t>(IMissionListener::ON_MISSION_ICON_UPDATED);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        }
+        case 5: {
+            actualCode = static_cast<uint32_t>(IMissionListener::ON_MISSION_CLOSED);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        }
+        case 6: {
+            actualCode = static_cast<uint32_t>(IMissionListener::ON_MISSION_LABEL_UPDATED);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        }
+        case 7: {
+            actualCode = static_cast<uint32_t>(IMissionListener::ON_MISSION_FOCUSED);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        }
+        case 8: {
+            actualCode = static_cast<uint32_t>(IMissionListener::ON_MISSION_UNFOCUSED);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        }
+        case 9: {
+            actualCode = static_cast<uint32_t>(IMissionListener::ON_MISSION_MOVED_TO_BACKGROUND);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        }
+        default:
+            break;
     }
-
-    missionlistenerstub->OnRemoteRequest(code, parcel, reply, option);
-
-    return true;
-}
 }
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(MissionListenerStubFuzz, FuzzUtil::Tokens::MISSION_LISTENER)
+} // namespace OHOS

@@ -39,16 +39,8 @@ namespace {
 
 class AppStateCallbackHostFuzz : public AppStateCallbackHost {};
 
-bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    FUZZ_EXTRACT_CODE(data, size);
-    MessageParcel parcel;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t actualCode = static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_APP_STATE_CHANGED);
-
-    parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_STATE_CALLBACK);
-
     switch (code % 11) {
         case 0: {
             actualCode = static_cast<uint32_t>(IAppStateCallback::Message::TRANSACT_ON_APP_STATE_CHANGED);
@@ -146,12 +138,7 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
         default:
             break;
     }
-
-    parcel.RewindRead(0);
-    std::shared_ptr<AppStateCallbackHost> appStateCallbackHost = std::make_shared<AppStateCallbackHostFuzz>();
-    appStateCallbackHost->OnRemoteRequest(actualCode, parcel, reply, option);
-    return true;
 }
-} // namespace OHOS
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(AppStateCallbackHostFuzz, FuzzUtil::Tokens::APP_STATE_CALLBACK)
+} // namespace OHOS

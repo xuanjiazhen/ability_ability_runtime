@@ -175,7 +175,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) \
 
 #define FUZZ_EXTRACT_CODE(data, size) \
     uint32_t code = OHOS::FuzzUtil::GetU32Data(data); \
-    FuzzedDataProvider fdp(data + OHOS::FuzzUtil::U32_AT_SIZE, size - OHOS::FuzzUtil::U32_AT_SIZE)
+    FuzzedDataProvider fdp(reinterpret_cast<const uint8_t *>(data + OHOS::FuzzUtil::U32_AT_SIZE), \
+        size - OHOS::FuzzUtil::U32_AT_SIZE)
 
 // Skeleton macro for structured stub fuzzers.
 // Usage: FUZZ_STUB_ENTRY_IMPL(MockClass, Token, StubBase)

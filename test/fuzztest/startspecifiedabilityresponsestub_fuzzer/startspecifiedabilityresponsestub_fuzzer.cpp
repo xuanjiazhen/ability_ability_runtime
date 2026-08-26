@@ -12,18 +12,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "attack_vectors.h"
-#include "fuzz_util.h"
+
 #include "startspecifiedabilityresponsestub_fuzzer.h"
+#include "fuzz_util.h"
+#include "attack_vectors.h"
+
+#include <cstddef>
+#include <cstdint>
+#include <iostream>
+#include <memory>
+
+#include "start_specified_ability_response_stub.h"
+#include "message_parcel.h"
+#include "securec.h"
+#include "want.h"
 
 using namespace OHOS::AppExecFwk;
 using namespace OHOS;
 
 namespace OHOS {
-class StartSpecifiedAbilityResponseStubFuzz : public StartSpecifiedAbilityResponseStub {};
+namespace {
+const std::u16string STARTSPECIFIEDABILITYRESPONSE_INTERFACE_TOKEN = u"ohos.appexecfwk.startSpecifiedAbilityResponse";
+}
 
-void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
+class StartSpecifiedAbilityResponseStubFuzz : public StartSpecifiedAbilityResponseStub {
+public:
+    StartSpecifiedAbilityResponseStubFuzz() = default;
+    ~StartSpecifiedAbilityResponseStubFuzz() = default;
+    void OnAcceptWantResponse(const AAFwk::Want &want, const std::string &flag, int32_t requestId,
+        int32_t userId) override {}
+    void OnTimeoutResponse(int32_t requestId, int32_t userId) override {}
+    void OnNewProcessRequestResponse(const std::string &flag, int32_t userId, int32_t requestId,
+        const std::string &callerProcessName, int32_t recordId) override {}
+    void OnNewProcessRequestTimeoutResponse(int32_t requestId, int32_t userId) override {}
+};
+
+bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
 {
+    FUZZ_EXTRACT_CODE(data, size);
+    MessageParcel parcel;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t actualCode =
+        static_cast<uint32_t>(IStartSpecifiedAbilityResponse::Message::ON_ACCEPT_WANT_RESPONSE);
+
+    parcel.WriteInterfaceToken(STARTSPECIFIEDABILITYRESPONSE_INTERFACE_TOKEN);
+
     switch (code % 5) {
         case 0: {
             actualCode =
@@ -31,7 +65,7 @@ void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, 
             AAFwk::Want want;
             want.SetAction(FuzzUtil::BuildSpecialCharString(fdp));
             want.SetUri(FuzzUtil::BuildSpecialCharString(fdp));
-            want.SetEntity(FuzzUtil::BuildSpecialCharString(fdp));
+            want.AddEntity(FuzzUtil::BuildSpecialCharString(fdp));
             want.SetBundle(FuzzUtil::BuildOversizedString(fdp, FuzzUtil::DEFAULT_MAX_STR_LEN,
                 FuzzUtil::DEFAULT_MAX_STR_LEN));
             want.SetFlags(fdp.ConsumeIntegral<uint32_t>());
@@ -78,7 +112,13 @@ void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, 
         default:
             break;
     }
-}
 
-FUZZ_STUB_ENTRY_IMPL(StartSpecifiedAbilityResponseStubFuzz, FuzzUtil::Tokens::START_SPECIFIED_RESPONSE)
+    parcel.RewindRead(0);
+    std::shared_ptr<StartSpecifiedAbilityResponseStub> stub =
+        std::make_shared<StartSpecifiedAbilityResponseStubFuzz>();
+    stub->OnRemoteRequest(actualCode, parcel, reply, option);
+    return true;
+}
 } // namespace OHOS
+
+FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)

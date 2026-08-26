@@ -29,7 +29,7 @@ void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, 
             actualCode = static_cast<uint32_t>(IWantReceiver::WANT_RECEIVER_SEND);
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             break;
-        case 1:
+        case 1: {
             actualCode = static_cast<uint32_t>(IWantReceiver::WANT_RECEIVER_PERFORM_RECEIVE);
             parcel.WriteInt32(1);
             FuzzUtil::WriteMaliciousWant(parcel, fdp);
@@ -42,6 +42,7 @@ void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, 
             parcel.WriteBool(fdp.ConsumeBool());
             parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
             break;
+        }
         default:
             break;
     }

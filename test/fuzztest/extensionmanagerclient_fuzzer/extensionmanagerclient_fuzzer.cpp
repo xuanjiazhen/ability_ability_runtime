@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "extension_manager_client.h"
+#include "extension_running_info.h"
 #include "want.h"
 
 using namespace OHOS::AAFwk;

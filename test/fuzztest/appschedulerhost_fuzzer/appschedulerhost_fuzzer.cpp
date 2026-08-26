@@ -35,10 +35,10 @@ namespace {
 constexpr uint8_t SCHEDULER_HANDLE_COUNT = 40;
 constexpr size_t TARGET_BUF_SIZE = 256;
 
-class AppSchedulerHostFUZZ : public AppSchedulerHost {
+class AppSchedulerHostFuzz : public AppSchedulerHost {
 public:
-    AppSchedulerHostFUZZ() = default;
-    ~AppSchedulerHostFUZZ() = default;
+    AppSchedulerHostFuzz() = default;
+    ~AppSchedulerHostFuzz() = default;
 
     bool ScheduleForegroundApplication() override { return false; }
     void ScheduleBackgroundApplication() override {}
@@ -87,83 +87,54 @@ public:
     void OnLoadAbilityFinished(uint64_t callbackId, int32_t pid) override {}
 };
 
-sptr<AppSchedulerHostFUZZ> g_stub = nullptr;
-
-void InitAppSchedulerStub()
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    if (g_stub == nullptr) {
-        g_stub = new AppSchedulerHostFUZZ();
-    }
-}
-
-bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
-{
-    InitAppSchedulerStub();
-    if (g_stub == nullptr) {
-        return false;
-    }
-    FUZZ_EXTRACT_CODE(data, size);
-    MessageParcel parcel;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t actualCode = 0;
-    uint8_t tarPos = static_cast<uint8_t>(code % SCHEDULER_HANDLE_COUNT);
-    switch (tarPos) {
+    switch (code % SCHEDULER_HANDLE_COUNT) {
         case 0: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_FOREGROUND_APPLICATION_TRANSACTION);
             break;
         }
         case 1: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_BACKGROUND_APPLICATION_TRANSACTION);
             break;
         }
         case 2: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             parcel.WriteBool(fdp.ConsumeBool());
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_TERMINATE_APPLICATION_TRANSACTION);
             break;
         }
         case 3: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             parcel.WriteInt32(BuildIntegerOverflow(fdp));
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_SHRINK_MEMORY_APPLICATION_TRANSACTION);
             break;
         }
         case 4: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_LOWMEMORY_APPLICATION_TRANSACTION);
             break;
         }
         case 5: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             parcel.WriteInt32(BuildIntegerOverflow(fdp));
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_MEMORYLEVEL_APPLICATION_TRANSACTION);
             break;
         }
         case 6: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             parcel.WriteInt32(BuildIntegerOverflow(fdp));
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_HEAPMEMORY_APPLICATION_TRANSACTION);
             break;
         }
         case 7: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             JsHeapDumpInfo jsHeapDumpInfo;
             parcel.WriteParcelable(&jsHeapDumpInfo);
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_JSHEAP_MEMORY_APPLICATION_TRANSACTION);
             break;
         }
         case 8: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             CjHeapDumpInfo cjHeapDumpInfo;
             parcel.WriteParcelable(&cjHeapDumpInfo);
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_CJHEAP_MEMORY_APPLICATION_TRANSACTION);
             break;
         }
         case 9: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             MemDumpInfo memDumpInfo;
             parcel.WriteParcelable(&memDumpInfo);
             bool hasCallback = fdp.ConsumeBool();
@@ -175,7 +146,6 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             break;
         }
         case 10: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             AppLaunchData appLaunchData;
             parcel.WriteParcelable(&appLaunchData);
             Configuration configuration;
@@ -184,7 +154,6 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             break;
         }
         case 11: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             AbilityInfo abilityInfo;
             parcel.WriteParcelable(&abilityInfo);
             bool hasToken = fdp.ConsumeBool();
@@ -204,21 +173,18 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             break;
         }
         case 12: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             parcel.WriteRemoteObject(nullptr);
             parcel.WriteBool(fdp.ConsumeBool());
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_CLEAN_ABILITY_TRANSACTION);
             break;
         }
         case 13: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             Profile profile;
             parcel.WriteParcelable(&profile);
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_PROFILE_CHANGED_TRANSACTION);
             break;
         }
         case 14: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             Configuration configuration;
             parcel.WriteParcelable(&configuration);
             parcel.WriteUint8(fdp.ConsumeIntegral<uint8_t>());
@@ -226,44 +192,37 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             break;
         }
         case 15: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_PROCESS_SECURITY_EXIT_TRANSACTION);
             break;
         }
         case 16: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             HapModuleInfo hapModuleInfo;
             parcel.WriteParcelable(&hapModuleInfo);
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_ABILITY_STAGE_INFO);
             break;
         }
         case 17: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_CLEAR_PAGE_STACK);
             break;
         }
         case 18: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             WriteMaliciousWant(parcel, fdp);
             parcel.WriteString(BuildSpecialCharString(fdp));
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_ACCEPT_WANT);
             break;
         }
         case 19: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             parcel.WriteString(BuildSpecialCharString(fdp));
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_PREPARE_TERMINATE);
             break;
         }
         case 20: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             WriteMaliciousWant(parcel, fdp);
             parcel.WriteString(BuildSpecialCharString(fdp));
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_NEW_PROCESS_REQUEST);
             break;
         }
         case 21: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             parcel.WriteString(BuildMaliciousBundleName(fdp));
             parcel.WriteRemoteObject(nullptr);
             parcel.WriteInt32(BuildIntegerOverflow(fdp));
@@ -271,14 +230,12 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             break;
         }
         case 22: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             parcel.WriteRemoteObject(nullptr);
             parcel.WriteInt32(BuildIntegerOverflow(fdp));
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_NOTIFY_HOT_RELOAD_PAGE);
             break;
         }
         case 23: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             parcel.WriteString(BuildMaliciousBundleName(fdp));
             parcel.WriteRemoteObject(nullptr);
             parcel.WriteInt32(BuildIntegerOverflow(fdp));
@@ -286,7 +243,6 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             break;
         }
         case 24: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             ApplicationInfo appInfo;
             parcel.WriteParcelable(&appInfo);
             parcel.WriteString(BuildSpecialCharString(fdp));
@@ -294,100 +250,83 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             break;
         }
         case 25: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             FaultData faultData;
             parcel.WriteParcelable(&faultData);
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_NOTIFY_FAULT);
             break;
         }
         case 26: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             parcel.WriteInt32(BuildIntegerOverflow(fdp));
             parcel.WriteUint64(fdp.ConsumeIntegral<uint64_t>());
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::APP_GC_STATE_CHANGE);
             break;
         }
         case 27: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             parcel.WriteBool(fdp.ConsumeBool());
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_ATTACH_APP_DEBUG);
             break;
         }
         case 28: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_DETACH_APP_DEBUG);
             break;
         }
         case 29: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             JsHandleMapInfo jsHandleMapInfo;
             parcel.WriteParcelable(&jsHandleMapInfo);
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_JSHANDLE_MAP_APPLICATION_TRANSACTION);
             break;
         }
         case 30: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_DUMP_IPC_START);
             break;
         }
         case 31: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_DUMP_IPC_STOP);
             break;
         }
         case 32: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_DUMP_IPC_STAT);
             break;
         }
         case 33: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_DUMP_FFRT);
             break;
         }
         case 34: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             parcel.WriteString(BuildSpecialCharString(fdp));
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_DUMP_ARKWEB);
             break;
         }
         case 35: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_CACHE_PROCESS);
             break;
         }
         case 36: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             parcel.WriteBool(fdp.ConsumeBool());
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::WATCHDOG_BACKGROUND_STATUS_TRANSACTION);
             break;
         }
         case 37: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             parcel.WriteUint64(fdp.ConsumeIntegral<uint64_t>());
             parcel.WriteInt32(BuildIntegerOverflow(fdp));
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::ON_LOAD_ABILITY_FINISHED);
             break;
         }
         case 38: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             AppUpdateInfo updateInfo;
             parcel.WriteParcelable(&updateInfo);
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_UPDATE_WORK_PROCESS_INFO);
             break;
         }
         case 39: {
-            parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_SCHEDULER);
             actualCode = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_PRE_TEMPLATE_PROCESS_DEEP_FROZEN);
             break;
         }
         default:
-            return false;
+            break;
     }
-    parcel.RewindRead(0);
-    g_stub->OnRemoteRequest(actualCode, parcel, reply, option);
-    return true;
 }
 }
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(AppSchedulerHostFuzz, FuzzUtil::Tokens::APP_SCHEDULER)
+} // namespace OHOS

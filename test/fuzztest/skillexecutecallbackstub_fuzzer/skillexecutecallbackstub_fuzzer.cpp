@@ -31,7 +31,7 @@ void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, 
             parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
             {
                 AppExecFwk::SkillExecuteResult result;
-                parcel.WriteParcelable(result);
+                parcel.WriteParcelable(&result);
             }
             break;
         default:

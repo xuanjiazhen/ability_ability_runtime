@@ -219,7 +219,8 @@ public:
         return 0;
     }
 
-    int ContinueAbility(const std::string &deviceId, int32_t missionId, uint32_t versionCode) override
+    int ContinueAbility(const std::string &deviceId, int32_t missionId, uint32_t versionCode,
+        int32_t userId = -1) override
     {
         return 0;
     }

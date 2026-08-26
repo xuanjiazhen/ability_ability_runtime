@@ -12,48 +12,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "usercallbackstub_fuzzer.h"
+#include "attack_vectors.h"
 #include "fuzz_util.h"
 
-#include <cstddef>
-#include <cstdint>
-
-#define private public
 #include "user_callback_stub.h"
-#undef private
-
-#include "ability_record.h"
 
 using namespace OHOS::AAFwk;
-using namespace OHOS::AppExecFwk;
 
 namespace OHOS {
-const std::u16string APPMGR_INTERFACE_TOKEN = u"ohos.aafwk.AppManager";
-
-class UserCallbackStubFuzzTest : public UserCallbackStub {
+class UserCallbackStubFuzz : public UserCallbackStub {
 public:
-    UserCallbackStubFuzzTest() = default;
-    virtual ~UserCallbackStubFuzzTest()
-    {}
-    void OnUserCmdDone(int userId, int errcode) override
-    {}
+    UserCallbackStubFuzz() = default;
+    ~UserCallbackStubFuzz() = default;
+    void OnUserCmdDone(int userId, int errcode) override {}
 };
 
-bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    uint32_t code = FuzzUtil::GetU32Data(data);
-    std::shared_ptr<UserCallbackStub> backStub = std::make_shared<UserCallbackStubFuzzTest>();
-    MessageParcel dataParcel;
-    dataParcel.WriteInterfaceToken(APPMGR_INTERFACE_TOKEN);
-    dataParcel.WriteBuffer(data, size);
-    dataParcel.RewindRead(0);
-    MessageParcel reply;
-    MessageOption option;
-    backStub->OnRemoteRequest(code, dataParcel, reply, option);
-
-    return true;
+    switch (code % 1) {
+        case 0: {
+            actualCode = static_cast<uint32_t>(IUserCallback::ON_USER_CMD_DONE);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        }
+        default:
+            break;
+    }
 }
-} // namespace OHOS
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(UserCallbackStubFuzz, FuzzUtil::Tokens::USER_CALLBACK)
+} // namespace OHOS

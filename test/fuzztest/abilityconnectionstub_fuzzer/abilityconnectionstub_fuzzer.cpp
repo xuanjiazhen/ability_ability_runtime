@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,49 +12,54 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "abilityconnectionstub_fuzzer.h"
+#include "attack_vectors.h"
 #include "fuzz_util.h"
 
-#include <cstddef>
-#include <cstdint>
-
 #include "ability_connect_callback_stub.h"
-#include "message_parcel.h"
-#include "securec.h"
+#include "element_name.h"
 
 using namespace OHOS::AAFwk;
 
 namespace OHOS {
-class AbilityConnectionStubFuzzTest : public AbilityConnectionStub {
+class AbilityConnectionStubFuzz : public AbilityConnectionStub {
 public:
-    AbilityConnectionStubFuzzTest() = default;
-    virtual ~AbilityConnectionStubFuzzTest()
-    {};
-    void OnAbilityConnectDone(const AppExecFwk::ElementName& element,
-        const sptr<IRemoteObject>& remoteObject, int resultCode) override
-    {}
-    void OnAbilityDisconnectDone(const AppExecFwk::ElementName& element, int resultCode) override
-    {}
+    AbilityConnectionStubFuzz() = default;
+    ~AbilityConnectionStubFuzz() = default;
+    void OnAbilityConnectDone(const AppExecFwk::ElementName &element,
+        const sptr<IRemoteObject> &remoteObject, int resultCode) override {}
+    void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) override {}
 };
 
-bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    uint32_t code = FuzzUtil::GetU32Data(data);
-
-    MessageParcel parcel;
-    parcel.WriteInterfaceToken(std::u16string(FuzzUtil::Tokens::ABILITY_CONNECTION));
-    parcel.WriteBuffer(data, size);
-    parcel.RewindRead(0);
-    MessageParcel reply;
-    MessageOption option;
-
-    std::shared_ptr<AbilityConnectionStub> abilityconnectionstub = std::make_shared<AbilityConnectionStubFuzzTest>();
-
-    abilityconnectionstub->OnRemoteRequest(code, parcel, reply, option);
-
-    return true;
+    switch (code % 3) {
+        case 0: {
+            actualCode = static_cast<uint32_t>(IAbilityConnection::ON_ABILITY_CONNECT_DONE);
+            AppExecFwk::ElementName element;
+            parcel.WriteParcelable(&element);
+            parcel.WriteRemoteObject(nullptr);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        }
+        case 1: {
+            actualCode = static_cast<uint32_t>(IAbilityConnection::ON_ABILITY_DISCONNECT_DONE);
+            AppExecFwk::ElementName element;
+            parcel.WriteParcelable(&element);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        }
+        case 2: {
+            actualCode = static_cast<uint32_t>(IAbilityConnection::ON_REMOTE_STATE_CHANGED);
+            AppExecFwk::ElementName element;
+            parcel.WriteParcelable(&element);
+            parcel.WriteInt32(FuzzUtil::BuildIntegerOverflow(fdp));
+            break;
+        }
+        default:
+            break;
+    }
 }
-}
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(AbilityConnectionStubFuzz, FuzzUtil::Tokens::ABILITY_CONNECTION)
+} // namespace OHOS

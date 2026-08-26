@@ -30,7 +30,7 @@ void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, 
             parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
             {
                 WantParams wantParam;
-                parcel.WriteParcelable(wantParam);
+                parcel.WriteParcelable(&wantParam);
             }
             break;
         default:

@@ -16,7 +16,6 @@
 #include "amsmgrstubmisc_fuzzer.h"
 #include "fuzz_util.h"
 #include "attack_vectors.h"
-#include "ams_mgr_stub_mock.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -34,15 +33,11 @@ using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;
 using namespace OHOS;
 
-bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
+namespace OHOS {
+class AmsMgrStubMiscFuzz : public AmsMgrStubFuzzBase {};
+
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    if (data == nullptr || size < sizeof(uint32_t)) {
-        return false;
-    }
-    FUZZ_EXTRACT_CODE(data, size);
-    MessageParcel parcel;
-    parcel.WriteInterfaceToken(std::u16string(FuzzUtil::Tokens::AMS_MGR));
-    uint32_t actualCode = 0;
     switch (code % 11) {
         case 0: {
             // START_SPECIFIED_ABILITY: Want, AbilityInfo, requestId, customProcess, isWindowStagePreload
@@ -131,14 +126,9 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             break;
         }
         default:
-            return false;
+            break;
     }
-    parcel.RewindRead(0);
-    MessageParcel reply;
-    MessageOption option;
-    std::shared_ptr<AmsMgrStub> stub = std::make_shared<AmsMgrStubFuzzBase>();
-    stub->OnRemoteRequest(actualCode, parcel, reply, option);
-    return true;
 }
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(AmsMgrStubMiscFuzz, FuzzUtil::Tokens::AMS_MGR)
+} // namespace OHOS

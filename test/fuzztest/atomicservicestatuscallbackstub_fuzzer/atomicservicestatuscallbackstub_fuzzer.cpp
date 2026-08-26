@@ -12,27 +12,58 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "atomicservicestatuscallbackstub_fuzzer.h"
-#include "attack_vectors.h"
 #include "fuzz_util.h"
+#include "attack_vectors.h"
+
+#include <cstddef>
+#include <cstdint>
+#include <iostream>
+
+#include "atomic_service_status_callback_stub.h"
+#include "parcel.h"
+#include "securec.h"
+#include "want.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS;
 
 namespace OHOS {
-class AtomicServiceStatusCallbackStubFuzz : public AtomicServiceStatusCallbackStub {};
+namespace {
+const std::u16string ABILITYMGR_INTERFACE_TOKEN = u"ohos.IAtomicServiceStatusCallback";
+constexpr uint32_t ON_FREE_INSTALL_DONE = 0;
+constexpr uint32_t ON_REMOTE_FREE_INSTALL_DONE = 1;
+}
 
-void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
+class AtomicServiceStatusCallbackStubFuzz : public AtomicServiceStatusCallbackStub {
+public:
+    AtomicServiceStatusCallbackStubFuzz() = default;
+    ~AtomicServiceStatusCallbackStubFuzz() = default;
+
+    void OnInstallFinished(int resultCode, const Want &want, int32_t userId) override {}
+    void OnRemoteInstallFinished(int resultCode, const Want &want, int32_t userId) override {}
+};
+
+bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
+    FUZZ_EXTRACT_CODE(data, size);
+    MessageParcel parcel;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t actualCode = static_cast<uint32_t>(ON_FREE_INSTALL_DONE);
+
+    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+
     switch (code % 2) {
         case 0:
-            actualCode = static_cast<uint32_t>(IAtomicServiceStatusCallback::ON_FREE_INSTALL_DONE);
+            actualCode = static_cast<uint32_t>(ON_FREE_INSTALL_DONE);
             parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
             OHOS::FuzzUtil::WriteMaliciousWant(parcel, fdp);
             parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
             break;
         case 1:
-            actualCode = static_cast<uint32_t>(IAtomicServiceStatusCallback::ON_REMOTE_FREE_INSTALL_DONE);
+            actualCode = static_cast<uint32_t>(ON_REMOTE_FREE_INSTALL_DONE);
             parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
             OHOS::FuzzUtil::WriteMaliciousWant(parcel, fdp);
             parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
@@ -40,7 +71,12 @@ void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, 
         default:
             break;
     }
+
+    parcel.RewindRead(0);
+    std::shared_ptr<AtomicServiceStatusCallbackStub> stub = std::make_shared<AtomicServiceStatusCallbackStubFuzz>();
+    stub->OnRemoteRequest(actualCode, parcel, reply, option);
+    return true;
+}
 }
 
-FUZZ_STUB_ENTRY_IMPL(AtomicServiceStatusCallbackStubFuzz, FuzzUtil::Tokens::ATOMIC_SERVICE_CB)
-} // namespace OHOS
+FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)

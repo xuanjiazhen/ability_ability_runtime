@@ -22,6 +22,7 @@
 #include <vector>
 
 #include <fuzzer/FuzzedDataProvider.h>
+#include "fuzz_util.h"
 #include "message_parcel.h"
 #include "want.h"
 
@@ -91,7 +92,7 @@ inline int32_t BuildInvalidEnum(FuzzedDataProvider &fdp, int32_t enumMax)
 inline std::vector<int32_t> BuildInvalidPids(FuzzedDataProvider &fdp)
 {
     std::vector<int32_t> pids;
-    uint8_t count = fdp.ConsumeIntegral<uint8_t>() % VEC_MAX_SIZE;
+    uint8_t count = fdp.ConsumeIntegral<uint8_t>() % OHOS::FuzzUtil::VEC_MAX_SIZE;
     static const int32_t invalidPidValues[] = { -1, 0, INT32_MAX, INT32_MIN, 1, 99999 };
     for (uint8_t i = 0; i < count; i++) {
         if (fdp.ConsumeBool()) {
@@ -110,12 +111,11 @@ inline void WriteMaliciousWant(MessageParcel &parcel, FuzzedDataProvider &fdp,
    AAFwk::Want want;
     want.SetAction(BuildOversizedString(fdp, maxStrLen, maxStrLen));
     want.SetUri(BuildSpecialCharString(fdp, maxStrLen));
-    want.SetEntity(BuildSpecialCharString(fdp, maxStrLen));
     want.SetType(BuildSpecialCharString(fdp, maxStrLen));
     want.AddEntity(BuildSpecialCharString(fdp, maxStrLen));
     want.SetBundle(BuildOversizedString(fdp, maxStrLen, maxStrLen));
     want.SetFlags(fdp.ConsumeIntegral<uint32_t>());
-    want.Marshal(parcel);
+    want.Marshalling(parcel);
 }
 
 // Write a deep nested parcel structure to trigger recursive parsing issues.
@@ -261,7 +261,7 @@ inline std::string BuildSqlInjectionString(FuzzedDataProvider &fdp, size_t maxLe
 inline std::vector<std::string> BuildMaliciousStringVector(FuzzedDataProvider &fdp)
 {
     std::vector<std::string> vec;
-    uint8_t count = fdp.ConsumeIntegral<uint8_t>() % VEC_MAX_SIZE;
+    uint8_t count = fdp.ConsumeIntegral<uint8_t>() % OHOS::FuzzUtil::VEC_MAX_SIZE;
     for (uint8_t i = 0; i < count; i++) {
         uint8_t choice = fdp.ConsumeIntegral<uint8_t>() % 3;
         if (choice == 0) {
@@ -279,7 +279,7 @@ inline std::vector<std::string> BuildMaliciousStringVector(FuzzedDataProvider &f
 inline std::vector<int32_t> BuildMaliciousInt32Vector(FuzzedDataProvider &fdp)
 {
     std::vector<int32_t> vec;
-    uint8_t count = fdp.ConsumeIntegral<uint8_t>() % VEC_MAX_SIZE;
+    uint8_t count = fdp.ConsumeIntegral<uint8_t>() % OHOS::FuzzUtil::VEC_MAX_SIZE;
     static const int32_t boundaryValues[] = { 0x7FFFFFFF, static_cast<int32_t>(0x80000000), 0, -1, 1, 0x7FFFFFFE, 2 };
     for (uint8_t i = 0; i < count; i++) {
         uint8_t choice = fdp.ConsumeIntegral<uint8_t>() % 3;

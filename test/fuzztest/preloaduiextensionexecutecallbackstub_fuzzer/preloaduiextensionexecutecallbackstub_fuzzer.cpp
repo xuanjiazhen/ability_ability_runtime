@@ -12,29 +12,58 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "attack_vectors.h"
-#include "fuzz_util.h"
+
 #include "preloaduiextensionexecutecallbackstub_fuzzer.h"
+#include "fuzz_util.h"
+#include "attack_vectors.h"
+
+#include <cstddef>
+#include <cstdint>
+#include <iostream>
+
+#include "parcel.h"
+#include "preload_ui_extension_execute_callback_stub.h"
+#include "securec.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS;
 
 namespace OHOS {
-class PreloadUIExtensionExecuteCallbackStubFuzz : public PreloadUIExtensionExecuteCallbackStub {};
+namespace {
+const std::u16string ABILITYMGR_INTERFACE_TOKEN = u"ohos.AAFwk.PreloadUIExtensionCallback";
+}
 
-void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
+class PreloadUIExtensionExecuteCallbackStubFuzz : public PreloadUIExtensionExecuteCallbackStub {
+public:
+    PreloadUIExtensionExecuteCallbackStubFuzz() = default;
+    ~PreloadUIExtensionExecuteCallbackStubFuzz() = default;
+
+    void OnLoadedDone(int32_t extensionAbilityId) override {}
+    void OnDestroyDone(int32_t extensionAbilityId) override {}
+    void OnPreloadSuccess(int32_t requestCode, int32_t extensionAbilityId, int32_t innerErrCode) override {}
+};
+
+bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
+    FUZZ_EXTRACT_CODE(data, size);
+    MessageParcel parcel;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t actualCode = static_cast<uint32_t>(IPreloadUIExtensionExecuteCallback::ON_PRELOAD_UI_EXTENSION_ABILITY_LOADED_DONE);
+
+    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+
     switch (code % 3) {
         case 0:
-            actualCode = static_cast<uint32_t>(ON_PRELOAD_UI_EXTENSION_ABILITY_LOADED_DONE);
+            actualCode = static_cast<uint32_t>(IPreloadUIExtensionExecuteCallback::ON_PRELOAD_UI_EXTENSION_ABILITY_LOADED_DONE);
             parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
             break;
         case 1:
-            actualCode = static_cast<uint32_t>(ON_PRELOAD_UI_EXTENSION_ABILITY_DESTROY_DONE);
+            actualCode = static_cast<uint32_t>(IPreloadUIExtensionExecuteCallback::ON_PRELOAD_UI_EXTENSION_ABILITY_DESTROY_DONE);
             parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
             break;
         case 2:
-            actualCode = static_cast<uint32_t>(ON_PRELOAD_UI_EXTENSION_ABILITY_SUCCESS);
+            actualCode = static_cast<uint32_t>(IPreloadUIExtensionExecuteCallback::ON_PRELOAD_UI_EXTENSION_ABILITY_SUCCESS);
             parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
             parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
@@ -42,7 +71,13 @@ void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, 
         default:
             break;
     }
+
+    parcel.RewindRead(0);
+    std::shared_ptr<PreloadUIExtensionExecuteCallbackStub> stub =
+        std::make_shared<PreloadUIExtensionExecuteCallbackStubFuzz>();
+    stub->OnRemoteRequest(actualCode, parcel, reply, option);
+    return true;
+}
 }
 
-FUZZ_STUB_ENTRY_IMPL(PreloadUIExtensionExecuteCallbackStubFuzz, FuzzUtil::Tokens::PRELOAD_UIEXT_CB)
-} // namespace OHOS
+FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)

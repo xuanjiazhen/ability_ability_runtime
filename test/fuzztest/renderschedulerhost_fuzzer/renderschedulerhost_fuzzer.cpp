@@ -40,16 +40,8 @@ public:
     void NotifyBrowserFd(int32_t ipcFd, int32_t sharedFd, int32_t crashFd, sptr<IRemoteObject> browser) override {}
 };
 
-bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    FUZZ_EXTRACT_CODE(data, size);
-    MessageParcel parcel;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t actualCode = static_cast<uint32_t>(IRenderScheduler::Message::NOTIFY_BROWSER_FD);
-
-    parcel.WriteInterfaceToken(FuzzUtil::Tokens::RENDER_SCHEDULER);
-
     switch (code % 1) {
         case 0:
             actualCode = static_cast<uint32_t>(IRenderScheduler::Message::NOTIFY_BROWSER_FD);
@@ -61,12 +53,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
         default:
             break;
     }
-
-    parcel.RewindRead(0);
-    std::shared_ptr<RenderSchedulerHost> stub = std::make_shared<RenderSchedulerHostFuzz>();
-    stub->OnRemoteRequest(actualCode, parcel, reply, option);
-    return true;
-}
 }
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(RenderSchedulerHostFuzz, FuzzUtil::Tokens::RENDER_SCHEDULER)
+} // namespace OHOS

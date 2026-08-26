@@ -27,30 +27,22 @@
 using namespace OHOS::AAFwk;
 
 namespace OHOS {
-class PrepareTerminateCallbackStubFuzzTest : public PrepareTerminateCallbackStub {
+class PrepareTerminateCallbackStubFuzz : public PrepareTerminateCallbackStub {
 public:
-    PrepareTerminateCallbackStubFuzzTest() = default;
-    virtual ~PrepareTerminateCallbackStubFuzzTest()
-    {}
+    PrepareTerminateCallbackStubFuzz() = default;
+    virtual ~PrepareTerminateCallbackStubFuzz() {}
 };
 
-bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    MessageParcel parcel;
-    MessageParcel reply;
-    MessageOption option;
-    uint32_t actualCode = static_cast<uint32_t>(IPrepareTerminateCallback::ON_DO_PREPARE_TERMINATE);
-
-    parcel.WriteInterfaceToken(std::u16string(FuzzUtil::Tokens::PREPARE_TERMINATE_CB));
-    parcel.RewindRead(0);
-
-    std::shared_ptr<PrepareTerminateCallbackStub> prepareterminatecallbackstub =
-        std::make_shared<PrepareTerminateCallbackStubFuzzTest>();
-
-    prepareterminatecallbackstub->OnRemoteRequest(actualCode, parcel, reply, option);
-
-    return true;
-}
+    switch (code % 1) {
+        case 0:
+            actualCode = static_cast<uint32_t>(IPrepareTerminateCallback::ON_DO_PREPARE_TERMINATE);
+            break;
+        default:
+            break;
+    }
 }
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(PrepareTerminateCallbackStubFuzz, FuzzUtil::Tokens::PREPARE_TERMINATE_CB)
+} // namespace OHOS

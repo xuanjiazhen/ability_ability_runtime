@@ -16,7 +16,6 @@
 #include "amsmgrstublifecycle_fuzzer.h"
 #include "fuzz_util.h"
 #include "attack_vectors.h"
-#include "ams_mgr_stub_mock.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -38,17 +37,11 @@ namespace OHOS {
 namespace {
 constexpr size_t LIFECYCLE_PARCELABLE_COUNT = 4;
 }
-} // namespace OHOS
 
-bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
+class AmsMgrStubLifecycleFuzz : public AmsMgrStubFuzzBase {};
+
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    if (data == nullptr || size < sizeof(uint32_t)) {
-        return false;
-    }
-    FUZZ_EXTRACT_CODE(data, size);
-    MessageParcel parcel;
-    parcel.WriteInterfaceToken(std::u16string(FuzzUtil::Tokens::AMS_MGR));
-    uint32_t actualCode = 0;
     switch (code % 11) {
         case 0: {
             // LOAD_ABILITY: AbilityInfo, ApplicationInfo, Want, LoadParam
@@ -138,14 +131,9 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
             break;
         }
         default:
-            return false;
+            break;
     }
-    parcel.RewindRead(0);
-    MessageParcel reply;
-    MessageOption option;
-    std::shared_ptr<AmsMgrStub> stub = std::make_shared<AmsMgrStubFuzzBase>();
-    stub->OnRemoteRequest(actualCode, parcel, reply, option);
-    return true;
 }
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(AmsMgrStubLifecycleFuzz, FuzzUtil::Tokens::AMS_MGR)
+} // namespace OHOS

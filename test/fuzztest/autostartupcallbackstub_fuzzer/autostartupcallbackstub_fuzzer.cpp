@@ -17,6 +17,7 @@
 #include "fuzz_util.h"
 
 using namespace OHOS::AbilityRuntime;
+using namespace OHOS::AAFwk;
 using namespace OHOS;
 
 namespace OHOS {
@@ -29,14 +30,14 @@ void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, 
             actualCode = static_cast<uint32_t>(AbilityManagerInterfaceCode::ON_AUTO_STARTUP_ON);
             {
                 AutoStartupInfo info;
-                parcel.WriteParcelable(info);
+                parcel.WriteParcelable(&info);
             }
             break;
         case 1:
             actualCode = static_cast<uint32_t>(AbilityManagerInterfaceCode::ON_AUTO_STARTUP_OFF);
             {
                 AutoStartupInfo info;
-                parcel.WriteParcelable(info);
+                parcel.WriteParcelable(&info);
             }
             break;
         default:

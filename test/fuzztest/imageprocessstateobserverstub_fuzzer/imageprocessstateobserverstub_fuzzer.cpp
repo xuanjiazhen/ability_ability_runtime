@@ -29,14 +29,14 @@ void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, 
             actualCode = static_cast<uint32_t>(IImageProcessStateObserver::Message::ON_IMAGE_PROCESS_STATE_CHANGED);
             {
                 ImageProcessStateData processData;
-                parcel.WriteParcelable(processData);
+                parcel.WriteParcelable(&processData);
             }
             break;
         case 1:
             actualCode = static_cast<uint32_t>(IImageProcessStateObserver::Message::ON_FORKALL_WORK_PROCESS_FAILED);
             {
                 ImageProcessStateData processData;
-                parcel.WriteParcelable(processData);
+                parcel.WriteParcelable(&processData);
             }
             parcel.WriteInt32(OHOS::FuzzUtil::BuildIntegerOverflow(fdp));
             break;
@@ -44,7 +44,7 @@ void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, 
             actualCode = static_cast<uint32_t>(IImageProcessStateObserver::Message::ON_PRE_FORK_ALL_WORK_PROCESS);
             {
                 ImageProcessStateData processData;
-                parcel.WriteParcelable(processData);
+                parcel.WriteParcelable(&processData);
             }
             break;
         default:

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,46 +12,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "wantsenderstub_fuzzer.h"
+#include "attack_vectors.h"
 #include "fuzz_util.h"
 
-#include <cstddef>
-#include <cstdint>
-
 #include "want_sender_stub.h"
-#include "message_parcel.h"
-#include "securec.h"
 
 using namespace OHOS::AAFwk;
 
 namespace OHOS {
-class WantSenderStubFuzzTest : public WantSenderStub {
+class WantSenderStubFuzz : public WantSenderStub {
 public:
-    WantSenderStubFuzzTest() = default;
-    virtual ~WantSenderStubFuzzTest()
-    {}
-    void Send(SenderInfo& senderInfo) override
-    {}
+    WantSenderStubFuzz() = default;
+    ~WantSenderStubFuzz() = default;
+    void Send(SenderInfo &senderInfo) override {}
 };
 
-bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    uint32_t code = FuzzUtil::GetU32Data(data);
-
-    MessageParcel parcel;
-    parcel.WriteInterfaceToken(std::u16string(FuzzUtil::Tokens::WANT_SENDER));
-    parcel.WriteBuffer(data, size);
-    parcel.RewindRead(0);
-    MessageParcel reply;
-    MessageOption option;
-
-    std::shared_ptr<WantSenderStub> wantsenderstub = std::make_shared<WantSenderStubFuzzTest>();
-
-    wantsenderstub->OnRemoteRequest(code, parcel, reply, option);
-
-    return true;
-}
+    switch (code % 1) {
+        case 0: {
+            actualCode = static_cast<uint32_t>(IWantSender::WANT_SENDER_SEND);
+            SenderInfo senderInfo;
+            parcel.WriteParcelable(&senderInfo);
+            break;
+        }
+        default:
+            break;
+    }
 }
 
-FUZZ_ENTRY_IMPL(OHOS::DoSomethingInterestingWithMyAPI)
+FUZZ_STUB_ENTRY_IMPL(WantSenderStubFuzz, FuzzUtil::Tokens::WANT_SENDER)
+} // namespace OHOS
