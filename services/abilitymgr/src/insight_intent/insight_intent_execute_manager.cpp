@@ -320,13 +320,6 @@ int32_t InsightIntentExecuteManager::ExecuteIntentDone(uint64_t intentId, int32_
     record->state = InsightIntentExecuteState::EXECUTE_DONE;
 
     AppExecFwk::InsightIntentExecuteResult filteredResult = result;
-    bool isSystemApp = PermissionVerification::GetInstance()
-        ->JudgeCallerIsAllowedToUseSystemAPIByTokenId(accessToken);
-    if (!isSystemApp) {
-        filteredResult.interactionInfo = nullptr;
-        TAG_LOGD(AAFwkTag::INTENT, "filtered interactionInfo for non-system app");
-    }
-
     if (record->isDistributed) {
         filteredResult.interactionInfo = nullptr;
         TAG_LOGD(AAFwkTag::INTENT, "filtered interactionInfo for distributed scenario");
