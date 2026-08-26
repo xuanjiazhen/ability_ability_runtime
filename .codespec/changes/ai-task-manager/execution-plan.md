@@ -50,6 +50,8 @@
 | ability_ability_runtime | DFX/构建 | `hisysevent.yaml` | 修改 | 新增 TASK_CREATE/TASK_STATE_CHANGE/TASK_DESTROY/TASK_INPUT/TASK_RSSCONTROL/TASK_ABUSE_WARNING 6 事件 |
 | ability_ability_runtime | 构建 | `ability_runtime.gni` | 修改 | 新增特性开关 `ability_runtime_ai_task_manager_enable`（默认 true） |
 | ability_ability_runtime | 构建/配置 | `services/appmgr/etc/taskmanager.para`（新增） | 新增 | 可调参数定义（上限/时长/续期次数/探测开关，命名 `const.sys.appms.taskmanager.*`；sysparam 体系，F-14 补全；随 BUILD.gn 安装） |
+| ability_ability_runtime | 服务层（修改） | `services/abilitymgr/include/ability_record.h` + `src/ability_record.cpp` | 修改 | **新增业务发起方 taskId/tokenId 存储（F-31：意向登记写入、attach 读取）** |
+| ability_ability_runtime | 依赖 | `services/appmgr/BUILD.gn` 新增外部依赖 `device_standby:standby_innerkits` | 修改 | **P7 EDS 联动前置（F-30：appmgr 现无 device_standby 依赖；native 调用免权限）** |
 | ability_ability_runtime | 错误码 | `interfaces/inner_api/error_utils/include/ability_runtime_error_util.h`（或任务域新头文件） | 修改 | 新增任务域错误码段（5 个 + 复用 ERR_INVALID_PARAM） |
 | ability_ability_runtime | 测试 | `test/unittest/task_mgr_test/`（新增，F-27：扁平命名与仓惯例/套件名一致） | 新增 | 任务管理单测（状态机/生命周期/权限/并发/档位合并/防仿冒） |
 | ability_ability_runtime | 测试 | `test/unittest/task_intercept_test/`（新增拦截相关用例，F-27） | 新增 | 拦截点纳管集成用例（两段式） |
@@ -187,21 +189,22 @@
 
 | 字段 | 内容 |
 |------|------|
-| 任务目标 | AMS 启动/连接链路拦截：解析 `ohos.ai.taskId` → 两段式（RegisterTaskIntent 意向 + attach 后 RegisterTaskProcess）；**拦截点①共 5 处收敛点（F-22 修正，design §5.4.1）：StartAbilityInner(:1360) / StartExtensionAbilityInner(:4656) / StartUIExtensionAbility(:4989) / RequestModalUIExtensionInner(:4508) / ConnectAbilityCommon(:6063)，共用同一解析/上报辅助函数**；B-2 caller 身份校验（creatorTokenId ∪ 纳管进程 tokenId）+ 通道鉴权（F-8）；意向超时清理；无 taskId 零开销（R-13）；仿冒拒绝不阻断启动（R-8） |
-| 规模预估 | 生产 ~950（AMS 拦截点 350 + 意向表/B-2 校验 500 + 死亡挂点 50 + 工具 50）；集成用例 ~900 |
+| 任务目标 | AMS 启动/连接链路拦截：解析 `ohos.ai.taskId` → 两段式（RegisterTaskIntent 意向 + attach 后 RegisterTaskProcess）；**拦截点①共 5 处收敛点（F-22 修正，design §5.4.1）：StartAbilityInner(:1360) / StartExtensionAbilityInner(:4656) / StartUIExtensionAbility(:4989) / RequestModalUIExtensionInner(:4508) / ConnectAbilityCommon(:6063)，共用同一解析/上报辅助函数**；B-2 caller 身份校验（creatorTokenId ∪ 纳管进程 tokenId）+ 通道鉴权（F-8：**AMS 侧调用统一 IN_PROCESS_CALL 包装 + AppMS 侧 CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS_NAME) 判定原语，F-29 修正**）；**UIExtension 路径身份取 SessionInfo.callerToken_/callingTokenId_（F-32）**；**AbilityRecord 新增业务发起方 tokenId 存储（F-31）**；意向超时清理；无 taskId 零开销（R-13）；仿冒拒绝不阻断启动（R-8） |
+| 规模预估 | 生产 ~1,050（AMS 拦截点 400 + 意向表/B-2/通道鉴权 500 + 死亡挂点 50 + 工具 50 + AbilityRecord 字段 50，F-29/F-31 增量）；集成用例 ~1,000 |
 | AC 映射 | AC-2.1, AC-2.2, AC-2.3, AC-2.4, AC-2.5 |
 | 前置依赖 | TASK-1 |
 | 非目标 | RSS 动作施加（TASK-4）——本 Task 纳管仅更新进程集合 |
-| 完成判据 | 集成用例覆盖 StartAbility/ConnectAbility 纳管成功、仿冒拒绝、链式启动合法、进程死亡移除（挂点）；无 taskId 回归用例通过 |
+| 完成判据 | 集成用例覆盖 StartAbility/ConnectAbility 纳管成功、仿冒拒绝、链式启动合法、进程死亡移除（挂点）；**通道鉴权用例（F-8/F-29）：非 foundation native 直调自报身份拒绝、pid 归属不符拒绝、attach/代理启动路径纳管成功（身份重置生效）**；无 taskId 回归用例通过 |
 | 停止条件 | 拦截点位置与 AMS 架构不符（如启动早期无法取 callerTokenId）→ 回 design 评审 |
 
 **Files**
 
 | 操作 | 文件 | 说明 |
 |------|------|------|
-| 修改 | `services/abilitymgr/src/ability_manager_service.cpp` | 拦截点①：StartAbilityInner + StartExtensionAbilityInner + StartUIExtensionAbility + RequestModalUIExtensionInner + ConnectAbilityCommon（F-22，5 收敛点共用辅助函数） |
+| 修改 | `services/abilitymgr/src/ability_manager_service.cpp` | 拦截点①：StartAbilityInner + StartExtensionAbilityInner + StartUIExtensionAbility + RequestModalUIExtensionInner + ConnectAbilityCommon（F-22，5 收敛点共用辅助函数；**TaskManagerClient 调用统一 IN_PROCESS_CALL 包装，F-29**） |
 | 修改 | `services/abilitymgr/src/ability_connect_manager.cpp` | attach 拦截点②（pid 就绪 → RegisterTaskProcess） |
-| 修改 | `services/appmgr/src/task_mgr/task_manager_service.cpp` | RegisterTaskIntent/RegisterTaskProcess/UnregisterTaskProcess + B-2 校验 + 通道鉴权（F-8） |
+| 修改 | `services/abilitymgr/include/ability_record.h` + `src/ability_record.cpp` | **新增业务发起方 taskId/tokenId 存储（F-31，意向登记时随 want 解析写入，attach 时读取）** |
+| 修改 | `services/appmgr/src/task_mgr/task_manager_service.cpp` | RegisterTaskIntent/RegisterTaskProcess/UnregisterTaskProcess + B-2 校验 + 通道鉴权（F-8/F-29：CheckSpecificSystemAbilityAccessPermission 原语） |
 | 修改 | `services/appmgr/` 进程死亡通知挂点 | OnProcessDied 接入 |
 | 新增 | `test/unittest/task_intercept_test/`（F-27：扁平命名，与套件名一致） | 集成用例 |
 
@@ -225,6 +228,7 @@
 | 新增 | `services/appmgr/include/process_schedule/process_schedule_policy.h` + `src/process_schedule/process_schedule_policy.cpp` | 优先级→档位映射、上限/时长配置 |
 | 新增 | `services/appmgr/include/process_schedule/process_schedule_types.h` | 档位/动作记录 |
 | 新增 | `services/appmgr/etc/taskmanager.para` | 可调参数定义（sysparam，F-14：上限/时长/续期次数/探测开关；随 BUILD.gn 安装） |
+| 修改 | `services/appmgr/BUILD.gn`（依赖段） | **新增 `device_standby:standby_innerkits` 外部依赖（F-30：P7 EDS 联动前置，appmgr 现无该依赖）** |
 | 新增 | `services/appmgr/include/resource_control_proxy/resource_control_proxy.h` | ResourceControlProxy 语义接口 |
 | 新增 | `services/appmgr/include/resource_control_proxy/resource_control_proxy_stub.h` + `src/resource_control_proxy/resource_control_proxy_stub.cpp` | 一期骨架（内存登记+日志+告警+探测开关） |
 | 新增 | `services/appmgr/include/resource_control_proxy/resource_control_proxy_impl.h` + `src/resource_control_proxy/resource_control_proxy_impl.cpp` | 对接实现占位（条件编译，RSS 明确后落地） |

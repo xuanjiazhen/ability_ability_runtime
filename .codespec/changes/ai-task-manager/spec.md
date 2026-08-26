@@ -480,7 +480,7 @@
 
 | 类型 | 指标/阈值 | 验证方式 | 证据 |
 |------|-----------|----------|------|
-| 性能 | 任务创建/状态流转/查询响应 < 5ms（ITaskManager 跨进程 IPC，含 Binder 往返）；AMS 拦截点→AppMS 为 foundation 进程内调用；纳管拦截附加开销不阻塞启动主流程（无 taskId 时零开销） | 单测+benchmark | `[test/unittest/task_mgr/…]` |
+| 性能 | 任务创建/状态流转/查询响应 < 5ms（ITaskManager 跨进程 IPC，含 Binder 往返）；AMS 拦截点→AppMS 为 foundation 进程内调用（经 IN_PROCESS_CALL 身份重置，F-29）；纳管拦截附加开销不阻塞启动主流程（无 taskId 时零开销） | 单测+benchmark | `[test/unittest/task_mgr/…]` |
 | 并发 | 支持 ≥16 并发任务（配置上限默认 16）；监听回调不阻塞状态机 | 并发单测 | `[…]` |
 | 内存 | 任务记录基础字段 ≤1KB/任务（payload/input 为变长字段各 ≤4KB 另计，单任务记录上限 ~9KB，F-12 修正） | hidumper | `[…]` |
 | 安全 | 任务接口仅系统应用可调用；taskId 不可猜测；纳管需 caller 校验 | 安全用例 | `[…]` |

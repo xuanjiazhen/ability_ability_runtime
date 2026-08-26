@@ -9,10 +9,10 @@
 | # | 问题 | 我方假设/先例 | 需 RSS 确认 |
 |---|------|--------------|-------------|
 | 1 | `RES_TYPE_DYNAMICALLY_SET_SUSPEND_EXEMPT`(505) 的 payload 字段约定？ | 参照本仓先例（services/common/src/res_sched_util.cpp:228-234，THAW_ONE_APP payload 含 uid/pid/bundleName/reason）：拟携带 `uid + pid`（豁免粒度已决策为 pid，2026-08-24） | 字段名/必选性/是否有 clientId 或作用域字段 |
-| 2 | 豁免的**施加/撤销**语义：value 取值（0/1？）？撤销是否即"恢复默认调度"？ | 拟 EXEMPT→value=1、CLEAR_EXEMPT→value=0，幂等重发安全 | 确认或给出正确约定 |
+| 2 | 豁免的**施加/撤销**语义：value 取值（0/1？）？撤销是否即"恢复默认调度"？ | 拟 EXEMPT→value=1、CLEAR_EXEMPT→value=0，幂等重发安全——**注意：505 的 value 语义在 res_type.h 无任何文档（对比 503 有明确 value 0/1 注释），此为纯假设（F-35），必须确认** | 确认或给出正确约定 |
 | 3 | 豁免**覆盖范围**：仅 RSS suspend 冻结，还是叠加待机（standby）冻结？（锁屏冻结 = suspend + 可能叠加 standby，proposal 基线条件 4） | 505 只覆盖 suspend 类；待机类经 device_standby ApplyAllowResource（P7 联动，design §6.1.1-7）已另行打通 | 505 与 standby 通道的边界确认；是否存在第三类冻结 |
 | 4 | 豁免的时效语义：一次性申请后长期有效，还是需周期性重申（心跳）？ | 我方按"长期有效直至撤销"设计；RSS 重启后我方按内存登记幂等重放（design §6.1.1-5 P4） | 确认；RSS 重启后豁免状态是否确会清空（重放机制的前提） |
-| 5 | 白名单与权限确认：505/517 上报的调用方要求 | **已实证（2026-08-26 第十四轮勘察）**：505/517 在 SA_RES 白名单（res_sched_service.cpp:145/:175）；上报要求 TOKEN_NATIVE + `ohos.permission.REPORT_RESOURCE_SCHEDULE_EVENT`（:43/:273-300）——foundation 进程 native token 已具备（AMS 既有 ResSchedUtil 上报先例佐证） | 确认无额外配置；**新增确认：507 查询经 suspend_manager_base_client 专用入口另需 `ohos.permission.GET_SUSPEND_STATE`（suspend_manager_base_service.cpp:27/:39）——foundation native token 是否已配置该权限？未配置时的推荐路径（权限配置 vs 改走 ReportSyncEvent 直报）** |
+| 5 | 白名单与权限确认：505/517 上报的调用方要求 | **已实证（2026-08-26 第十四轮勘察）**：505/517 在 SA_RES 白名单（res_sched_service.cpp:145/:175）；上报要求 TOKEN_NATIVE + `ohos.permission.REPORT_RESOURCE_SCHEDULE_EVENT`（:43/:273-300）——foundation 进程 native token 已具备（AMS 既有 ResSchedUtil 上报先例佐证） | 确认无额外配置；**新增确认：507 查询与 RegisterSuspendObserver 注册（P5 冻结状态本地缓存通道）均需 `ohos.permission.GET_SUSPEND_STATE`（suspend_manager_base_service.cpp:27/:39/:103-111，F-33 扩大）——foundation native token 是否已配置该权限？未配置时的推荐路径（权限配置 vs 改走 ReportSyncEvent 直报）** |
 
 ## P0：517/507 配套语义
 
@@ -34,6 +34,7 @@
 ## P2：锁屏豁免边界联合验收（O-2）
 
 - EDS（device_standby）P7 联动已设计（ApplyAllowResource，IStandbyService.idl:22-25 已核实）：任务激活期间申请待机资源豁免，任务终态撤销——**联合调试验收待 device_standby 侧**，需 RSS 团队协同定义验收场景（夜间深度待机 + 定时任务唤起执行）。
+- **新增确认（F-34，第十五轮实证）**：EDS AllowType 含 **FREEZE 位**（allow_type.h：NETWORK/RUNNING_LOCK/TIMER/WORK_SCHEDULER/AUTO_SYNC/PUSH/FREEZE）——待机**冻结**豁免可经 EDS 申请。我方 P7 现拟申请 NETWORK（+任务执行类）；**是否应一并申请 FREEZE 位以覆盖待机深度冻结？与 505 冻结豁免的边界如何划分（待机冻结归 EDS、suspend 冻结归 505？）**——此问题直接决定 O-2（锁屏冻结边界）的答案构成。
 - 验收基线：以我方 TASK_RSSCONTROL 动作日志序列 == RSS 实际生效序列（对账基线，D-16，2026-08-24 决策）。
 
 ## 我方承诺（对齐后即可执行）

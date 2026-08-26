@@ -70,7 +70,7 @@
 
 | 维度 | 设计结论 |
 |------|----------|
-| 性能 | 拦截点零开销（无 taskId 直接短路）；任务操作（AI 助手/系统 UI）为 ITaskManager 跨进程 IPC（含 Binder 往返），AMS 拦截点→AppMS 为 foundation 进程内调用；状态机事件处理器串行，任务操作端到端 <5ms（spec NFR） |
+| 性能 | 拦截点零开销（无 taskId 直接短路）；任务操作（AI 助手/系统 UI）为 ITaskManager 跨进程 IPC（含 Binder 往返），AMS 拦截点→AppMS 为 foundation 进程内调用（经 IN_PROCESS_CALL 身份重置，F-29）；状态机事件处理器串行，任务操作端到端 <5ms（spec NFR） |
 | 安全与权限 | 仅基础鉴权：接口入口校验系统应用身份；纳管走 B-2 caller 校验；安全管控细则（隐私/授权策略）不在范围 |
 | 兼容性 | 全新增 inner API 与模块；无 taskId 启动行为不变（R-13）；新增配置项不改变既有默认行为 |
 | API/SDK | 新增 ITaskManager InnerApi（IDL），无 Public/System API |
@@ -311,7 +311,7 @@ interface ITaskListener {   // 系统 UI 注册
 **方案（描述符路由）**：
 
 1. **服务端**：AppMgrService 覆写 `OnRemoteRequest`——读取接口令牌，命中 `ITaskManager::GetDescriptor()` 时委托 TaskManagerService 桩的内部分发入口（跳过重复令牌校验；或缓存令牌后 RewindRead 再走标准桩入口），否则回落 AppMgrStub 既有分发（IAppMgr 行为零改动，符合"不改既有 IPC 序列化"约束）；
-2. **客户端**：TaskManagerClient 经 `SystemAbilityManagerClient::GetSystemAbility(APP_MGR_SERVICE_ID)` 取 501 远端对象后 `iface_cast<ITaskManager>`（与既有 AMS→AppMS 取代理方式一致，app_service_manager.cpp:29-33 先例）；
+2. **客户端**：TaskManagerClient 经 `SystemAbilityManagerClient::GetSystemAbility(APP_MGR_SERVICE_ID)` 取 501 远端对象后 `iface_cast<ITaskManager>`（与既有 AMS→AppMS 取代理方式一致，app_service_manager.cpp:29-33 先例）；**AMS 侧全部调用经 IN_PROCESS_CALL 包装**（身份重置，F-29，§5.3 通道鉴权规则 0）；
 3. **否决备选**：同进程新 SA ID（183/184/185 同 foundation 进程先例）——需 SA ID 审批 + sa_profile 新增，与 D-1"不新增 SA"决策冲突，不采纳；扩 IAppMgr 接口——违反既定约束，不采纳。
 
 > 该机制为 TASK-0 骨架的一部分（AppMgrService 挂点 + 路由代码），TASK-0 完成判据相应包含"ITaskManager 代理经 501 可达 TaskManagerService（最小 IPC 用例）"。
@@ -325,8 +325,9 @@ interface ITaskListener {   // 系统 UI 注册
    - AppMS 校验（权威）：`callerTokenId ∈ {creatorTokenId} ∪ {该任务纳管进程的 tokenId 集合}` 才接受纳管（R-8）；
    - 校验失败：拒绝纳管、**不阻断启动**、不上报错误给调用方（防探测）；
    - 链式启动：任务内进程 A 启动 B → callerTokenId = A 的 tokenId ∈ 纳管集合 → 合法（与 ADK supervisor→sub-agent 可信链一致）。
-   - **通道鉴权（F-8 补全，第十三轮）**：callerTokenId 为 IPC 入参而非通道派生值，ITaskManager 为可直调的 IPC 接口——若不校验通道身份，任意系统应用可自报 callerTokenId=creatorTokenId 绕过 B-2（§5.3.1 ⑧"恶意应用无法直接触达内部通道"的断言必须由显式校验支撑）。规则：
-     1. IPC 调用方为 **foundation 内部 native 身份**（AMS 同进程转发，`IPCSkeleton::GetCallingTokenID()` 为 native token）→ 信任入参 callerTokenId（AMS 转发的业务发起方）；
+   - **通道鉴权（F-8 补全，第十三轮；F-29 修正，第十五轮）**：callerTokenId 为 IPC 入参而非通道派生值，ITaskManager 为可直调的 IPC 接口——若不校验通道身份，任意系统应用可自报 callerTokenId=creatorTokenId 绕过 B-2（§5.3.1 ⑧"恶意应用无法直接触达内部通道"的断言必须由显式校验支撑）。规则：
+     0. **调用方式前提（F-29，第十五轮实证）**：AMS 拦截点/attach 点对 TaskManagerClient 的全部调用必须经 **IN_PROCESS_CALL（ResetCallingIdentity）包装**——同进程 SA 代理调用为进程内直接分发，被调方看到的 calling identity **透传原始 IPC 调用方**而非 native（机制实证：`services/common/include/in_process_call_wrapper.h`；AMS→AppMS/agentmgr 既有调用全部如此包装，先例 app_scheduler.cpp:82、ability_manager_service.cpp:6092）。**不包装的后果**：规则①永不命中（actual=原始调用方 HAP token），规则②对 attach 路径（param=①登记的业务发起方 ≠ actual=目标进程 token）与代理启动路径（param=specifyTokenId ≠ actual=发起 app token）误拒——两条核心纳管链路断裂；
+     1. IPC 调用方为 **foundation 进程 native 身份** → 信任入参 callerTokenId（AMS 转发的业务发起方）。判定原语 = `PermissionVerification::CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS_NAME)`（IsSACall + native token processName=="foundation"；agentmgr 鉴权 AMS 同进程调用的同一先例：agent_manager_service.cpp:993、permission_verification.cpp:115-131）。**不可用裸 IsSACall**——任何进程的 native SA（如其他系统进程）直调均可过裸 native 判定，伪造入参即绕过；信任边界 = foundation 进程内互信（与 agentmgr 先例一致）；
      2. 其他调用方（含创建者自注册，§5.2.1）→ **入参 callerTokenId 必须等于 IPC 实际调用方 tokenId**（杜绝自报他人身份），再过 B-2 集合校验；
      3. **pid 归属校验**（直调路径强化，②⑦既有 pid 归属校验的直调版）：直调注册的 pid 归属 uid 须与调用方一致，或该 pid 已在目标任务内（防创建者/任务内进程注册**他人进程**骗取豁免）；
      4. 不满足 → 返回 ERR_TASK_PERMISSION_DENIED（内部通道错误码，不透传应用侧，C-5）。
@@ -360,7 +361,7 @@ interface ITaskListener {   // 系统 UI 注册
 | 3 | 指定身份启动 StartAbilityWithSpecifyTokenId | :895（→StartAbilityWithSpecifyTokenIdInner）/:1013 收敛 StartAbilityInner（specifyTokenId 传入） | 同上；**校验身份 = specifyTokenId 而非 GetCallingTokenID**（业务发起方） | ✅ |
 | 4 | 以调用方身份启动 StartAbilityAsCaller / ImplicitStartAbilityAsCaller | :1145/:1156（→StartAbilityAsCallerDetails）/:1195 收敛（asCallerSourceToken 传入） | 同上；**校验身份 = asCallerSourceToken**（业务发起方） | ✅ |
 | 5 | ConnectAbility / ConnectAbilityWithExtensionType | `ConnectAbilityCommon`（ability_manager_service.cpp:6063；ConnectAbilityWithExtensionType 为客户端方法 ability_manager_client.cpp:686，服务端收敛于 ConnectAbilityCommon；含 agentmgr 转发路径 VerifyAgentConnectRequest 先例 ~:6094） | 拦截点①在 ConnectAbilityCommon 解析；②在 ServiceRecord attach 处补注册 | ✅ |
-| 6 | StartServiceExtensionAbility / StartUIExtensionAbility / RequestModalUIExtension | **三独立路径，均不经 StartAbilityInner（F-22 修正，第十四轮勘察）**：① StartExtensionAbility/ImplicitStartExtensionAbility（:4338/:4357）→ `StartExtensionAbilityInner`（:4656，StartAbilityInner 亦在 :1404/:2437 内部转调它）；② `StartUIExtensionAbility`（:4989，Want 在 SessionInfo 内，经 UIExtensionAbilityManager）；③ `RequestModalUIExtension`（:4475）→ `RequestModalUIExtensionInner`（:4508） | 拦截点①分别置于 StartExtensionAbilityInner / StartUIExtensionAbility / RequestModalUIExtensionInner 三处（与 StartAbilityInner 共用同一解析/上报辅助函数） | ✅（修正后） |
+| 6 | StartServiceExtensionAbility / StartUIExtensionAbility / RequestModalUIExtension | **三独立路径，均不经 StartAbilityInner（F-22 修正，第十四轮勘察）**：① StartExtensionAbility/ImplicitStartExtensionAbility（:4338/:4357）→ `StartExtensionAbilityInner`（:4656，StartAbilityInner 亦在 :1404/:2437 内部转调它）；② `StartUIExtensionAbility`（:4989，Want 在 SessionInfo 内，经 UIExtensionAbilityManager）；③ `RequestModalUIExtension`（:4475）→ `RequestModalUIExtensionInner`（:4508） | 拦截点①分别置于 StartExtensionAbilityInner / StartUIExtensionAbility / RequestModalUIExtensionInner 三处（与 StartAbilityInner 共用同一解析/上报辅助函数）。**身份解析来源（F-32 补全，第十五轮勘察）**：①有 callerToken 参数（正常解析）；② StartUIExtensionAbility **无 callerToken 参数**且 IPC 调用方为 sceneboard——须取 `SessionInfo.callerToken_/callingTokenId_`（ws_common.h:464/:488）为业务发起方，直接取 GetCallingTokenID 会得 sceneboard 身份被 B-2 必拒；③由应用侧框架直调 AMS（js_service_extension_context.cpp:187），GetCallingTokenID=应用自身 ✓ | ✅（修正后） |
 | 7 | 意图框架 InsightIntent | `StartAbilityWithInsightIntent`（:15241）收敛 StartAbilityInner（意图执行器最终调用 AMS StartAbility/ConnectAbility 既有接口） | 天然覆盖（:15241 为意图链路实证收敛点） | ✅ |
 | 8 | Cli（aa 命令） | `tools/aa` 经 AbilityManagerClient::StartAbility（ability_command.cpp:486/:491）→ 收敛 StartAbilityInner | 天然覆盖；shell 身份带 taskId 时按 B-2 校验（非创建者 → 拒） | ✅ |
 | 9 | A2A（Agent 扩展） | A2A 服务端为 AgentExtensionAbility，经 agentmgr→AMS ConnectAbilityWithExtensionType（服务端收敛 ConnectAbilityCommon，场景 5）；taskId 由 supervisor 参数透传 | 覆盖（场景 5 链路） | ✅ |
@@ -380,6 +381,7 @@ taskId = want.GetStringParam("ohos.ai.taskId")              // 无 → 短路（
 callerTokenId = 业务发起方身份（specifyTokenId / asCallerSourceToken 优先，
                  否则 callerToken 解析，兜底 IPCSkeleton::GetCallingTokenID()）
 targetPid = abilityRecord ? abilityRecord->GetPid() : 0      // 目标 record 已关联进程时可得
+// 以下全部 TaskManagerClient 调用经 IN_PROCESS_CALL 包装（身份重置，F-29）
 if (targetPid > 0) {
     TaskManagerClient::RegisterTaskProcess(taskId, targetPid, callerTokenId)   // 进程已存在 → 直接纳管
 } else {
@@ -394,7 +396,8 @@ if (targetPid > 0) {
 - 进程已存在直接纳管时无意向阶段（简化登记：一次动作）；
 - **分支①适用边界（F-11 勘察补强，第十三轮）**：`AbilityRecord` 的 pid **仅在 attach 时设置**（`SetScheduler` 内 `SetPid(IPCSkeleton::GetCallingPid())`，ability_record.cpp:1096——目标进程自报；全库无其他 SetPid 路径），因此"直接纳管"分支仅对**既有 record 且已 attach**（运行中 Service/单例/扩展复用等场景）成立；**进程已存在但目标 ability record 为新建**（热启动新实例）时 record 尚无 pid → 走意向路径，attach（该实例 SetScheduler）时补注册——两路径全覆盖，无遗漏；
 - `AbilityRecord::GetPid()` 可得性已核实（ability_connect_manager.cpp:327 既有使用）；连接场景对已运行服务同理（ServiceRecord 持有 pid，:791）。
-- **attach 身份来源（P2 修正，代码勘察 2026-08-24）**：`AttachAbilityThread`（ability_manager_service.cpp:7957）由**目标进程自身经 IPC 调起**，现场 `GetCallingTokenID()` 恒为目标进程 tokenId——直接取用不仅恒被 B-2 拒绝，还构成自报身份仿冒面（§5.3.1 ⑧）。因此②的 callerTokenId 必须取①意向登记时解析并存入 AbilityRecord 的业务发起方 tokenId；信任锚 = AMS→AppMS 为 foundation 进程内调用（native token），恶意应用无法直接触达该内部通道。该来源同时正确覆盖"创建者直启目标进程"场景（发起方 = 创建者，B-2 通过，§5.2.1）。
+- **attach 身份来源（P2 修正，代码勘察 2026-08-24）**：`AttachAbilityThread`（ability_manager_service.cpp:7957）由**目标进程自身经 IPC 调起**，现场 `GetCallingTokenID()` 恒为目标进程 tokenId——直接取用不仅恒被 B-2 拒绝，还构成自报身份仿冒面（§5.3.1 ⑧）。因此②的 callerTokenId 必须取①意向登记时解析并存入 AbilityRecord 的业务发起方 tokenId；信任锚 = AMS→AppMS 为 foundation 进程内调用（经 IN_PROCESS_CALL 身份重置后 AppMS 侧见 native token，F-29），恶意应用无法直接触达该内部通道。该来源同时正确覆盖"创建者直启目标进程"场景（发起方 = 创建者，B-2 通过，§5.2.1）。
+- **AbilityRecord 存储缺口（F-31 补全，第十五轮勘察）**：`AbilityRecord` 现无"业务发起方 tokenId"字段（ability_record.h 仅有 want_ 与 CallerRecord 列表）——①意向登记时须**新增字段**（如 `taskOriginatorTokenId_`，随 want 解析写入）或 AMS 侧维护 taskId→originator 侧表；该修改属 TASK-3 文件范围（ability_record.h/cpp，execution-plan 已同步）。
 
 > 调用经 `interfaces/inner_api/app_manager/` 客户端（既有 AMS→AppMS 通道体系），符合 AGENTS.md；所有调用失败仅日志告警，不阻断启动（R-7/R-8/R-13）。
 
@@ -474,7 +477,7 @@ if (targetPid > 0) {
 4. **已冻结进程纳管分支（P3，代码勘察 2026-08-24）**：施加管控时目标进程可能已被冻结（典型：SUBMITTED 定时任务就绪前进程已被 RSS 冻结）——ApplyControl 施加顺序固定为：EXEMPT(505) → 507 查询 → 若 `isFrozen=true` → THAW(517) → 507 复查；复查仍未解冻才判定失败（告警 + TASK 事件）。注意：507 在无消费插件的环境恒返回 `isFrozen=false` 默认值（suspend_manager_base_service.cpp:66-72），该分支仅在有 freezer 执行器的产品环境下有实际意义；
 5. **RSS 重启状态重放（P4）**：RSS（SA 1901）异常重启会清空其内部豁免状态，而 AppMS 内存登记仍显示"已豁免"（状态漂移）。RCP-Impl 复用 RSS 客户端内置死亡通知（`suspend_manager_base_client` 懒加载代理 + 死亡监听），RSS 重启后**按内存登记幂等重放（replay）全部活跃豁免**，重放失败按 R-20 重试 ≤3 + 告警；二期以 push observer 做运行时漂移检测（§6.4 P5）；
 6. **同步调用纪律（P6）**：507/517/520 均经 `ReportSyncEvent` **同步**上报——RCP 不得在持有 task_mgr/process_schedule 锁时发起同步调用（死锁/长阻塞风险），统一设置超时保护；状态查询优先走本地 observer 缓存（§6.4 P5）。
-7. **待机豁免联动（P7，评审决策 2026-08-24）**：任务进入激活态（豁免生效）时，ResourceControlProxy 经 `StandbyServiceClient::ApplyAllowResource` 向 device_standby 申请待机资源豁免（网络/任务执行），覆盖夜间深度待机场景（需求场景 1，D-2 关闭）；任务终态/豁免撤销/进程移除时 `UnapplyAllowResource`；与 505/517 同一生命周期内存登记管理，避免待机豁免残留。
+7. **待机豁免联动（P7，评审决策 2026-08-24；F-30/F-34 补全，第十五轮实证）**：任务进入激活态（豁免生效）时，ResourceControlProxy 经 `StandbyServiceClient::ApplyAllowResource` 向 device_standby 申请待机资源豁免（网络/任务执行），覆盖夜间深度待机场景（需求场景 1，D-2 关闭）；任务终态/豁免撤销/进程移除时 `UnapplyAllowResource`；与 505/517 同一生命周期内存登记管理，避免待机豁免残留。**落地要点（实证）**：① ResourceRequest 构造字段 = {allowType(位掩码), uid, name, duration, reason, reasonCode=REASON_NATIVE_API}（resource_request.h）；② **AllowType 含 FREEZE 位**（allow_type.h:25-34：NETWORK/RUNNING_LOCK/TIMER/WORK_SCHEDULER/AUTO_SYNC/PUSH/FREEZE）——待机**冻结**豁免可经 EDS 申请，与 O-2（锁屏冻结边界）直接相关，P7 是否一并申请 FREEZE 位列入 device_standby 对齐评估；③ 权限无阻碍：native 调用方免权限（standby_service_impl.cpp:626-636 CheckCallerPermission 仅 HAP 需 DEVICE_STANDBY_EXEMPTION）；④ **新增依赖**：appmgr BUILD.gn 须新增 `device_standby:standby_innerkits`（现有依赖无 device_standby，execution-plan 已同步）。
 
 > **AppMS 重启反向场景（C-1 分析，结论：无需处理）**：P4 只覆盖"RSS 重启、AppMS 登记漂移"；反向的"AppMS 重启、RSS 侧豁免残留"不存在——AppMS 位于 foundation 进程，异常重启即 foundation 进程重启，系统将清理全部应用进程，纳管进程与 RSS 侧豁免随进程消亡同亡，无孤儿豁免（评审结论 2026-08-24）。内存登记同为进程内存态，同亡一致。
 
@@ -492,7 +495,7 @@ LOW（档位 0）任务切后台/锁屏同样会被冻结。为避免"已纳管�
 
 | 维度 | 现状接口（勘察结论） | 一期 | 二期 | 说明 |
 |------|---------------------|------|------|------|
-| 冻结/解冻 | 505 DYNAMICALLY_SET_SUSPEND_EXEMPT（白名单 res_sched_service.cpp:175）；517 THAW_ONE_APP（同步）；506/507/518 状态查询 | ✅ 主线 | — | payload 语义与 RSS owner 对齐（对接必答项）；**豁免粒度已决策为 pid（进程级，评审决策 2026-08-24，D-1 关闭）**——505 payload 携带 uid+pid（对齐 AMS res_sched_util.cpp:228-234 先例），R-22 全局豁免计数按进程（pid）计；**开源 master 上 505/517/520 无任何消费插件**——505 上报过权限/白名单检查后即被丢弃、507 恒返回 `isFrozen=false`（suspend_manager_base_service.cpp:66-72），端到端冻结管控仅在含 freezer 执行插件的产品上生效（P1，TASK-6 门禁前置条件；F-23 勘察修正：`const.taskmanager.low_memory_frozen_enable` 参数在开源 RSS master 不存在，产品侧启用开关以实际配置为准——RSS 对齐问题 #8） |
+| 冻结/解冻 | 505 DYNAMICALLY_SET_SUSPEND_EXEMPT（白名单 res_sched_service.cpp:175）；517 THAW_ONE_APP（同步）；506/507/518 状态查询 | ✅ 主线 | — | payload 语义与 RSS owner 对齐（对接必答项）；**豁免粒度已决策为 pid（进程级，评审决策 2026-08-24，D-1 关闭）**——505 payload 拟携带 uid+pid（字段模式对齐 AMS 既有 RSS payload 先例 res_sched_util.cpp:228-234——该先例实为 517 payload，F-35 精确化；**505 的 value 施加/撤销语义（拟 1/0）在 res_type.h 无文档，纯为假设待 RSS 确认**，对齐问题 #2），R-22 全局豁免计数按进程（pid）计；**开源 master 上 505/517/520 无任何消费插件**——505 上报过权限/白名单检查后即被丢弃、507 恒返回 `isFrozen=false`（suspend_manager_base_service.cpp:66-72），端到端冻结管控仅在含 freezer 执行插件的产品上生效（P1，TASK-6 门禁前置条件；F-23 勘察修正：`const.taskmanager.low_memory_frozen_enable` 参数在开源 RSS master 不存在，产品侧启用开关以实际配置为准——RSS 对齐问题 #8） |
 | CPU 调度（进程级） | 221 PROCESS_QOS_CHANGE（白名单 res_sched_service.cpp:151）；134 SET_BACKGROUND_PROCESS_PRIORITY；8 CGROUP_ADJUSTER | 预留（档位 3 扩展位） | ✅ | 进程级无需线程信息；与 RSS owner 对齐 payload 后启用 |
 | CPU 调度（线程级） | QosController::SetThreadQosForOtherThread/Reset（qos_manager，内核 sched_qos 封装）；RTG（AddThreadToProcRtg） | — | ✅ | 需线程 tid（目标进程协作或 /proc 遍历），复杂度高 |
 | 内存/低内存查杀 | 520 SYNC_RES_TYPE_SHOULD_FORCE_KILL_PROCESS（lmkd 杀前同步查询）；214 LOAD_KILL_REASON_CONFIG | 评估预留 | ✅ | 高优先级任务进程可响应"不应杀"；需与 RSS owner 确认 520 消费方语义 |
@@ -568,7 +571,7 @@ struct TaskEndInfo {             // 任务结束清理信息（评审第六轮�
 - 可配探测开关 `resource_control_probe_enable`（默认 false）：开启后对既有候选 resType（505 豁免/517 解冻，白名单已确认 res_sched_service.cpp:175）做真实调用，供联调期探测。**探测边界（P1，代码勘察 2026-08-24）**：开源 master 上 505/517/520 无任何消费插件——505 上报过权限/白名单检查后被静默丢弃，507 查询恒返回 `isFrozen=false` 默认值（suspend_manager_base_service.cpp:66-72）。因此 master 上开启探测只能验证"上报链路与权限配置正确"，**不能证明豁免生效**（会假成功）；端到端生效验证必须以产品含 freezer 执行插件（启用开关以产品配置为准，F-23）为前置条件（TASK-6 门禁）；
 - 策略配置（档位→动作、上限/时长）仍在 process_schedule_policy，与代理实现无关；
 - **冻结状态获取通道（P5，代码勘察 2026-08-24；第十四轮实证补强）**：RSS 已具备 push 通道 `RegisterSuspendObserver`（`ISuspendStateObserverBase.idl`：OnFrozen/OnActive/OnDoze oneway 回调，携带 pidList+uid；现网尚无消费者；mmi 有使用先例 suspend_state_manager.cpp:60-78——注册 observer 维护 frozen pid 本地缓存，与 P5 方案同构），且 `suspend_manager_base_client` 已随 `ressched_client` innerkit 交付（无独立 BUILD.gn，由 ressched_client 的 public_config 暴露——appmgr BUILD.gn 已依赖，无新增依赖，第十四轮实证）。RCP-Impl 落地时优先注册 observer 维护进程冻结状态**本地缓存**（O(1) 查询替代同步 507）并做登记-RSS 漂移检测；507/517 同步调用不持锁 + 超时保护（P6，见 §6.1.1-6）。
-- **RSS 侧权限前置（F-24 补全，第十四轮勘察实证）**：① 505/517 经 `ResSchedClient::ReportData/ReportSyncEvent` 上报要求调用方为 **TOKEN_NATIVE** 且持有 **`ohos.permission.REPORT_RESOURCE_SCHEDULE_EVENT`**（res_sched_service.cpp:43/:273-300 IsHasPermission；505/517 在 SA_RES 白名单 :145/:175）——foundation 进程 native token 已具备该权限（AMS 既有 ResSchedUtil 上报先例佐证，无需新增配置）；② 507 查询若经 `suspend_manager_base_client::GetSuspendStateByPid` 专用 IPC 入口，另要求 **`ohos.permission.GET_SUSPEND_STATE`**（suspend_manager_base_service.cpp:27/:39 CheckSuspendPermission，native token + 权限校验）——foundation native token 是否已配置该权限**待确认**（列入 RSS 对齐问题，未配置则需产品侧权限配置或改走 ReportSyncEvent 直报通道）；③ 520 上报需权限 5523（res_sched_service.cpp:214 权限映射表，二期对接时确认）。
+- **RSS 侧权限前置（F-24 补全，第十四轮勘察实证；F-33 扩大，第十五轮）**：① 505/517 经 `ResSchedClient::ReportData/ReportSyncEvent` 上报要求调用方为 **TOKEN_NATIVE** 且持有 **`ohos.permission.REPORT_RESOURCE_SCHEDULE_EVENT`**（res_sched_service.cpp:43/:273-300 IsHasPermission；505/517 在 SA_RES 白名单 :145/:175）——foundation 进程 native token 已具备该权限（AMS 既有 ResSchedUtil 上报先例佐证，无需新增配置）；② 507 查询**与 RegisterSuspendObserver 注册**（P5 本地缓存通道）均要求 **`ohos.permission.GET_SUSPEND_STATE`**（suspend_manager_base_service.cpp:27/:39/:103-111——observer 注册同走 CheckSuspendPermission，F-33）——foundation native token 是否已配置该权限**待确认**（列入 RSS 对齐问题，未配置则需产品侧权限配置或改走 ReportSyncEvent 直报通道）；③ 520 上报需权限 5523（res_sched_service.cpp:214 权限映射表，二期对接时确认）。
 
 **对接策略（RSS 团队明确后）：**
 1. RSS 提供接口（无论复用 505/517 还是新接口）→ 实现 `ResourceControlProxyImpl`，替换编译单元（条件编译），上层接口不变；

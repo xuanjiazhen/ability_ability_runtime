@@ -1,4 +1,4 @@
-# 方案深度审查报告（2026-08-22 第七轮；2026-08-26 第十三轮自审追加；2026-08-26 第十四轮代码实证复核追加）
+# 方案深度审查报告（2026-08-22 第七轮；2026-08-26 第十三轮自审追加；2026-08-26 第十四轮代码实证复核追加；2026-08-26 第十五轮 IPC 机制深挖追加）
 
 > 对 proposal / spec / design / execution-plan 的逐项审查。审查方法：对照需求 13 条、已确认决策（六轮）、AGENTS.md 约束、既有源码事实，逐项核查设计完整性。
 
@@ -100,6 +100,53 @@ N=3 续期次数上限、INPUT_ARRIVED 枚举命名、交互 30min/宽限 5min/�
 ### 结论
 
 第十四轮以代码实证复核发现 8 项（F-21~F-28：高 2 / 中 2 / 低 3 / 实证记录 1），已全部修复。两项高严重度均为**落地阻断级**：F-21（SA 承载机制——不补则 TASK-0 的 IPC 通路不通）、F-22（扩展启动覆盖缺口——不补则 ServiceExtension/UIExtension/Modal 扩展启动全部漏拦，A2A 与意图扩展场景受损）。开放项 O-1~O-6 维持；新增 RSS 对齐确认项：GET_SUSPEND_STATE 权限（foundation native token）、freezer 启用开关实际名称。
+
+---
+
+## 第十五轮：IPC 机制深挖（2026-08-26）
+
+> 审查方法：针对第十三/十四轮**修复方案自身的底层假设**做机制级验证（同进程 SA 调用的身份语义、SA 501 分发结构、P5/P7 依赖细节）。发现接续编号 F-29~F-35。本轮特点：**F-29 直接推翻 F-8 修复的一个隐含前提**。
+
+### 发现与处理
+
+| 编号 | 类别 | 问题点 | 严重度 | 处理 | 状态 |
+|------|------|--------|--------|------|------|
+| F-29 | 安全+功能（**前轮修复缺陷**） | **F-8 通道鉴权规则①前提不成立**：设计假设"AMS 同进程转发 → AppMS 侧 GetCallingTokenID 为 native token"，但同进程 SA 代理调用为进程内直接分发，被调方看到的身份**透传原始 IPC 调用方**——本仓全部 AMS→AppMS/agentmgr 调用均须包裹 `IN_PROCESS_CALL`（ResetCallingIdentity）即为此机制的存在证明（in_process_call_wrapper.h；先例 app_scheduler.cpp:82、ability_manager_service.cpp:6092）。**后果推演（不修复）**：① attach 路径（param=①登记发起方 ≠ actual=目标进程 token）与代理启动路径（param=specifyTokenId ≠ actual=发起 app）被规则②误拒——两条核心纳管链路断裂；② 规则①若用裸 IsSACall 判定，任何进程的 native SA 直调+伪造入参即绕过（如其他系统进程 SA） | 高 | design §5.3 通道鉴权重写：新增规则 0（AMS 侧全部 TaskManagerClient 调用经 IN_PROCESS_CALL 包装）；规则①判定原语改为 `CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS_NAME)`（IsSACall+native processName，agentmgr 鉴权 AMS 同进程调用同一先例 agent_manager_service.cpp:993、permission_verification.cpp:115-131）；信任边界=foundation 进程内互信；§5.2.2/§5.4.2/性能行同步；TASK-3 目标/判据/Files 同步 | 已修正 |
+| F-30 | 依赖缺口 | **P7 EDS 落地依赖缺失**：appmgr BUILD.gn 现无 device_standby 依赖（deps 清单实证），plan BUILD 变更未列；目标名 `device_standby:standby_innerkits`。权限无阻碍（standby_service_impl.cpp:626-636：native 免权限，仅 HAP 需 DEVICE_STANDBY_EXEMPTION） | 中 | plan 全量清单与 TASK-4 Files 补依赖行；design §6.1.1-7 补落地要点（ResourceRequest 字段/权限/依赖） | 已修正 |
+| F-31 | 计划缺口 | **AbilityRecord 无"业务发起方 tokenId"字段**（ability_record.h 实证：仅 want_/CallerRecord）——§5.4.2"存入 AbilityRecord"需新增字段或 AMS 侧表，TASK-3 文件清单原缺 ability_record.h/cpp | 中 | design §5.4.2 补存储缺口说明；TASK-3 Files 补 ability_record.h/cpp（规模 +50 行） | 已修正 |
+| F-32 | 设计缺口 | **场景 6 UIExtension 路径身份解析来源未指定**：StartUIExtensionAbility(SessionInfo, userId) 无 callerToken 参数，IPC 调用方为 sceneboard——直接取 GetCallingTokenID 得 sceneboard 身份被 B-2 必拒；须取 SessionInfo.callerToken_/callingTokenId_（ws_common.h:464/:488 实证）。RequestModalUIExtension 由应用侧框架直调（js_service_extension_context.cpp:187）→ GetCallingTokenID=应用自身 ✓ 无此问题 | 中 | design §5.4.1 场景 6 补身份解析来源；TASK-3 目标同步 | 已修正 |
+| F-33 | 权限前置扩大 | **RegisterSuspendObserver 同样要求 GET_SUSPEND_STATE 权限**（suspend_manager_base_service.cpp:103-111）——P5 observer 注册与 507 查询同受 F-24 确认项约束 | 低 | design §6.4 权限前置条目②合并标注 | 已修正 |
+| F-34 | EDS 能力发现 | **AllowType 含 FREEZE 位**（allow_type.h:25-34：NETWORK/RUNNING_LOCK/TIMER/WORK_SCHEDULER/AUTO_SYNC/PUSH/FREEZE）——待机**冻结**豁免可经 EDS 申请，与 O-2（锁屏冻结边界）直接相关；P7 原仅提"网络/任务执行" | 低 | design §6.1.1-7 补 FREEZE 位评估；rss-alignment 新增对齐问题 | 已修正 |
+| F-35 | 假设标注 | **505 value 施加/撤销语义在 res_type.h 无文档**（对比 503 有明确 value 0/1 注释）——设计"EXEMPT→1/CLEAR→0"纯为假设；另 §6.2 引 res_sched_util.cpp:228-234 为"505 payload 先例"实为 517 payload（字段模式先例） | 信息 | design §6.2 显式标注"假设待 RSS 确认"+先例措辞精确化（rss-alignment #2 已列） | 已修正 |
+
+### 本轮机制级实证清单（增强可信度）
+
+| 断言 | 证据 |
+|------|------|
+| 同进程 SA 代理调用透传原始调用方身份；IN_PROCESS_CALL 为身份重置标准手段 | in_process_call_wrapper.h（ResetCallingIdentity 包装宏）；AMS→AppMS 全调用包裹（app_scheduler.cpp:82/:96 等 8+ 处）；AMS→agentmgr 同（ability_manager_service.cpp:6092） |
+| 同进程 SA 鉴权既有原语 = CheckSpecificSystemAbilityAccessPermission(processName) | agentmgr 鉴权 AMS：agent_manager_service.cpp:993-1001；实现 permission_verification.cpp:115-131（IsSACall + GetNativeTokenInfo.processName） |
+| SystemAbility 不继承 IRemoteStub——SA 501 唯一 IRemoteObject 基座是 AppMgrStub，单入口分发（F-21 路由结构可行） | safwk system_ability.h:62（`class SystemAbility {` 纯基类）；AppMgrService : SystemAbility + AppMgrStub |
+| Parcel::RewindRead 存在（F-21 路由实现选项可行） | commonlibrary/c_utils/base/include/parcel.h:617 |
+| StartAbilityWrapParam 含 callerToken/specifyTokenId/specifiedFullTokenId（拦截点身份解析输入完备） | start_ability_utils.h:96-124 |
+| hisysevent.yaml 域名 = AAFWK（design 7.1 断言成立） | hisysevent.yaml:14 |
+
+### 未与用户对齐的自主决策清单（待用户确认）
+
+> 以下为历轮 AI 自主做出、用户尚未逐项显式确认的决策点（用户要求暴露）：
+
+| # | 决策 | 轮次 | 性质 | 若不认可的回退成本 |
+|---|------|------|------|-------------------|
+| A-1 | PAYLOAD_UPDATED noticeType 新增（API 面变更） | 第十三轮 F-9 | inner API 增量（未编码，零兼容成本） | 低：删枚举+回调场景描述 |
+| A-2 | SA 501 描述符路由方案（含否决"同进程新 SA ID"备选） | 第十四轮 F-21 | 架构决策 D-19 | 中：改独立 SA 需 SA ID 审批+sa_profile |
+| A-3 | 拦截点扩为 5 收敛点（TASK-3 范围约翻倍） | 第十四轮 F-22 | 覆盖范围决策 D-20 | 中：若一期只做 StartAbilityInner+Connect 两点，扩展启动场景（A2A/意图扩展）暂不纳管 |
+| A-4 | 通道鉴权规则 0/①（IN_PROCESS_CALL + CheckSpecificSystemAbilityAccessPermission） | 本轮 F-29 | 安全机制细化 | 低：实现细节层，方案框架不变 |
+| A-5 | proposal frontmatter status Draft→committed | 上轮 | 元数据 | 极低 |
+| A-6 | registry.md / evidence/reviews/spec-compliance.md / review.md 创建与"文档阶段 PASS"自评 | 上轮 | Level D 证据 | 低：自评结论有十四轮审查记录支撑，可复核 |
+| A-7 | D-17~D-20 决策条目化 | 第十三/十四轮 | 决策记录 | 极低 |
+
+### 结论
+
+第十五轮发现 7 项（F-29~F-35：高 1 / 中 3 / 低 2 / 信息 1），已全部修复。**F-29 是对本特性审查方法的警示**：第十三轮设计通道鉴权时未验证"同进程调用身份语义"这一底层机制，第十四轮 F-28 虽实证"AMS→AppMS 经 samgr 代理"却未追问身份透传问题——两轮都在"看起来合理"的假设上构建了安全规则。经本轮修正，通道鉴权机制与本仓既有惯例（IN_PROCESS_CALL + CheckSpecificSystemAbilityAccessPermission）完全对齐，attach/代理启动两链路的功能正确性与"非 foundation native 伪造"的安全性同时闭环。
 
 ---
 
