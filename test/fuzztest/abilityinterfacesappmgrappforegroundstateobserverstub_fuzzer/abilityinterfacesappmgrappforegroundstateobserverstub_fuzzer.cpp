@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,20 +13,21 @@
  * limitations under the License.
  */
 
+#include "ability_record.h"
 #include "abilityinterfacesappmgrappforegroundstateobserverstub_fuzzer.h"
 
+#include "app_foreground_state_observer_interface.h"
+#include "app_foreground_state_observer_stub.h"
 #include <cstddef>
-#include <cstdint>
-#include <fuzzer/FuzzedDataProvider.h>
 
 #define private public
-#include "app_foreground_state_observer_stub.h"
-#include "app_foreground_state_observer_interface.h"
+#include <cstdint>
+#include "fuzz_util.h"
 #undef private
 
-#include "securec.h"
+#include <fuzzer/FuzzedDataProvider.h>
 #include "parcel.h"
-#include "ability_record.h"
+#include "securec.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;
@@ -35,7 +36,6 @@ namespace OHOS {
 namespace {
 constexpr size_t STRING_MAX_LENGTH = 128;
 }
-const std::u16string IA_APP_FOREGROUND_STATE_OBSERVER_TOKEN = u"ohos.appexecfwk.IAppForegroundStateObserver";
 
 class AppForegroundStateObserverStubFUZZ : public AppForegroundStateObserverStub {
 public:
@@ -54,7 +54,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     MessageParcel reply;
     MessageOption option;
     FuzzedDataProvider fdp(data, size);
-    parcel.WriteInterfaceToken(IA_APP_FOREGROUND_STATE_OBSERVER_TOKEN);
+    parcel.WriteInterfaceToken(FuzzUtil::Tokens::APP_FG_STATE_OBSERVER);
     parcel.WriteString(fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH));
     parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
     parcel.RewindRead(0);

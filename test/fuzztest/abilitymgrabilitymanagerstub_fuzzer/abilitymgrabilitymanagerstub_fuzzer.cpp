@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,22 +13,23 @@
  * limitations under the License.
  */
 
-#include "abilitymgrabilitymanagerstub_fuzzer.h"
-
-#include <cstddef>
-#include <cstdint>
-
-#define private public
 #include "ability_manager_service.h"
 #include "ability_manager_stub.h"
-#include "iconnection_observer.h"
+
+#include "ability_record.h"
+#include "abilitymgrabilitymanagerstub_fuzzer.h"
+
+#define private public
 #include "connection_data.h"
-#include "want_sender_interface.h"
+#include <cstddef>
+#include <cstdint>
+#include "fuzz_util.h"
+#include "iconnection_observer.h"
 #include "iforeground_app_connection.h"
 #undef private
 
 #include "securec.h"
-#include "ability_record.h"
+#include "want_sender_interface.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS::AbilityRuntime;
@@ -83,9 +84,9 @@ public:
 class ForegroundAppConnectionFuzz : public IForegroundAppConnection {
 public:
     void OnForegroundAppConnected(const ForegroundAppConnectionData &data) override {}
-    
+
     void OnForegroundAppDisconnected(const ForegroundAppConnectionData &data) override {}
-    
+
     void OnForegroundAppCallerStarted(int32_t callerPid, int32_t callerUid, const std::string &bundleName) override {}
 
     int OnRemoteRequest(
@@ -97,7 +98,6 @@ public:
     }
 };
 }
-const std::u16string ABILITYMGR_INTERFACE_TOKEN = u"ohos.aafwk.AbilityManager";
 uint32_t GetU32Data(const char* ptr)
 {
     // convert fuzz input data to an integer
@@ -123,7 +123,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
     uint32_t codeOne = static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_PENDING_WANT_TYPE);
     MessageParcel parcel;
-    parcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    parcel.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     parcel.WriteBuffer(data, size);
     parcel.RewindRead(0);
     MessageParcel reply;
@@ -133,7 +133,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 
     uint32_t codeTwo = static_cast<uint32_t>(AbilityManagerInterfaceCode::START_UI_EXTENSION_ABILITY);
     MessageParcel parcels;
-    parcels.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    parcels.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     parcels.WriteBuffer(data, size);
     parcels.RewindRead(0);
     std::shared_ptr<AbilityManagerService> abmsTwo = std::make_shared<AbilityManagerService>();
@@ -146,230 +146,230 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     uint32_t flags = static_cast<uint32_t>(INPUT_ZERO);
     sptr<AbilityRuntime::IForegroundAppConnection> observers = new ForegroundAppConnectionFuzz();
     MessageParcel dataParcel;
-    dataParcel.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcel.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcel.WriteBuffer(data, size);
     dataParcel.RewindRead(0);
     MessageParcel reply1;
     abilityMgrStub->StartUIExtensionPreViewEmbeddedInner(dataParcel, reply1);
 
     MessageParcel dataParcel1;
-    dataParcel1.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcel1.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcel1.WriteBuffer(data, size);
     dataParcel1.RewindRead(0);
     abilityMgrStub->GetAllIntentExemptionInfoInner(dataParcel1, reply1);
 
     MessageParcel dataParcel2;
-    dataParcel2.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcel2.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcel2.WriteBuffer(data, size);
     dataParcel2.RewindRead(0);
     abilityMgrStub->RegisterSnapshotHandlerInner(dataParcel2, reply1);
 
     MessageParcel dataParcel3;
-    dataParcel3.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcel3.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcel3.WriteBuffer(data, size);
     dataParcel3.RewindRead(0);
     abilityMgrStub->TerminateMissionInner(dataParcel3, reply1);
 
     MessageParcel dataParcel4;
-    dataParcel4.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcel4.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcel4.WriteBuffer(data, size);
     dataParcel4.RewindRead(0);
     abilityMgrStub->BlockAllAppStartInner(dataParcel4, reply1);
 
     MessageParcel dataParcel5;
-    dataParcel5.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcel5.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcel5.WriteBuffer(data, size);
     dataParcel5.RewindRead(0);
     abilityMgrStub->UpdateAssociateConfigListInner(dataParcel5, reply1);
 
     MessageParcel dataParcel6;
-    dataParcel6.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcel6.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcel6.WriteBuffer(data, size);
     dataParcel6.RewindRead(0);
     abilityMgrStub->SetApplicationKeepAliveInner(dataParcel6, reply1);
 
     MessageParcel dataParcel7;
-    dataParcel7.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcel7.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcel7.WriteBuffer(data, size);
     dataParcel7.RewindRead(0);
     abilityMgrStub->QueryKeepAliveApplicationsInner(dataParcel7, reply1);
 
     MessageParcel dataParcel8;
-    dataParcel8.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcel8.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcel8.WriteBuffer(data, size);
     dataParcel8.RewindRead(0);
     abilityMgrStub->AddQueryERMSObserverInner(dataParcel8, reply1);
 
     MessageParcel dataParcel9;
-    dataParcel9.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcel9.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcel9.WriteBuffer(data, size);
     dataParcel9.RewindRead(0);
     abilityMgrStub->QueryAtomicServiceStartupRuleInner(dataParcel9, reply1);
 
     MessageParcel dataParcel10;
-    dataParcel10.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcel10.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcel10.WriteBuffer(data, size);
     dataParcel10.RewindRead(0);
     abilityMgrStub->GetKioskStatusInner(dataParcel10, reply1);
 
     MessageParcel dataParcel11;
-    dataParcel11.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcel11.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcel11.WriteBuffer(data, size);
     dataParcel11.RewindRead(0);
     abilityMgrStub->RegisterSAInterceptorInner(dataParcel11, reply1);
 
     MessageParcel dataParcel11a;
-    dataParcel11a.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcel11a.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcel11a.WriteBuffer(data, size);
     dataParcel11a.RewindRead(0);
     abilityMgrStub->UnregisterSAInterceptorInner(dataParcel11a, reply1);
 
     MessageParcel dataParcel12;
-    dataParcel12.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcel12.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcel12.WriteBuffer(data, size);
     dataParcel12.RewindRead(0);
     abilityMgrStub->PreloadApplicationInner(dataParcel12, reply1);
 
     MessageParcel dataParcel13;
-    dataParcel13.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcel13.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcel13.WriteBuffer(data, size);
     dataParcel13.RewindRead(0);
     abilityMgrStub->StartSelfUIAbilityInCurrentProcessInner(dataParcel13, reply1);
 
     MessageParcel dataParcel14;
-    dataParcel14.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcel14.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcel14.WriteBuffer(data, size);
     dataParcel14.RewindRead(0);
     abilityMgrStub->IsRestartAppLimitInner(dataParcel14, reply1);
 
     MessageParcel dataParcel15;
-    dataParcel15.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcel15.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcel15.WriteBuffer(data, size);
     dataParcel15.RewindRead(0);
     abilityMgrStub->UnPreloadUIExtensionAbilityInner(dataParcel15, reply1);
 
     MessageParcel dataParcel16;
-    dataParcel16.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcel16.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcel16.WriteBuffer(data, size);
     dataParcel16.RewindRead(0);
     abilityMgrStub->ClearAllPreloadUIExtensionAbilityInner(dataParcel16, reply1);
 
     MessageParcel dataParcel17;
-    dataParcel17.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcel17.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcel17.WriteBuffer(data, size);
     dataParcel17.RewindRead(0);
     abilityMgrStub->RegisterPreloadUIExtensionHostClientInner(dataParcel17, reply1);
 
     MessageParcel dataParcel18;
-    dataParcel18.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcel18.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcel18.WriteBuffer(data, size);
     dataParcel18.RewindRead(0);
     abilityMgrStub->UnRegisterPreloadUIExtensionHostClientInner(dataParcel18, reply1);
 
     MessageParcel dataParcels1;
-    dataParcels1.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcels1.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcels1.WriteBuffer(data, size);
     dataParcels1.RewindRead(0);
     abilityMgrStub->StartSelfUIAbilityWithStartOptionsInner(dataParcels1, reply1);
 
     MessageParcel dataParcels2;
-    dataParcels2.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcels2.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcels2.WriteBuffer(data, size);
     dataParcels2.RewindRead(0);
     abilityMgrStub->StartSelfUIAbilityWithPidResultInner(dataParcels2, reply1);
 
     MessageParcel dataParcels3;
-    dataParcels3.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcels3.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcels3.WriteBuffer(data, size);
     dataParcels3.RewindRead(0);
     abilityMgrStub->PrepareTerminateAbilityDoneInner(dataParcels3, reply1);
 
     MessageParcel dataParcels4;
-    dataParcels4.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcels4.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcels4.WriteBuffer(data, size);
     dataParcels4.RewindRead(0);
     abilityMgrStub->KillProcessWithPrepareTerminateDoneInner(dataParcels4, reply1);
 
     MessageParcel dataParcels5;
-    dataParcels5.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcels5.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcels5.WriteBuffer(data, size);
     dataParcels5.RewindRead(0);
     abilityMgrStub->RegisterHiddenStartObserverInner(dataParcels5, reply1);
 
     MessageParcel dataParcels6;
-    dataParcels6.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcels6.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcels6.WriteBuffer(data, size);
     dataParcels6.RewindRead(0);
     abilityMgrStub->UnregisterHiddenStartObserverInner(dataParcels6, reply1);
 
     MessageParcel dataParcels7;
-    dataParcels7.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcels7.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcels7.WriteBuffer(data, size);
     dataParcels7.RewindRead(0);
     abilityMgrStub->QueryPreLoadUIExtensionRecordInner(dataParcels7, reply1);
 
     MessageParcel dataParcels8;
-    dataParcels8.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcels8.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcels8.WriteBuffer(data, size);
     dataParcels8.RewindRead(0);
     abilityMgrStub->RevokeDelegatorInner(dataParcels8, reply1);
 
     MessageParcel dataParcels9;
-    dataParcels9.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcels9.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcels9.WriteBuffer(data, size);
     dataParcels9.RewindRead(0);
     abilityMgrStub->GetAllInsightIntentInfoInner(dataParcels9, reply1);
 
     MessageParcel dataParcels10;
-    dataParcels10.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcels10.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcels10.WriteBuffer(data, size);
     dataParcels10.RewindRead(0);
     abilityMgrStub->GetInsightIntentInfoByBundleNameInner(dataParcels10, reply1);
 
     MessageParcel dataParcels11;
-    dataParcels11.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcels11.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcels11.WriteBuffer(data, size);
     dataParcels11.RewindRead(0);
     abilityMgrStub->GetInsightIntentInfoByIntentNameInner(dataParcels11, reply1);
 
     MessageParcel dataParcels12;
-    dataParcels12.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcels12.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcels12.WriteBuffer(data, size);
     dataParcels12.RewindRead(0);
     abilityMgrStub->StartAbilityWithWaitInner(dataParcels12, reply1);
 
     MessageParcel dataParcels13;
-    dataParcels13.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcels13.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcels13.WriteBuffer(data, size);
     dataParcels13.RewindRead(0);
     abilityMgrStub->RestartSelfAtomicServiceInner(dataParcels13, reply1);
 
     MessageParcel dataParcels14;
-    dataParcels14.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcels14.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcels14.WriteBuffer(data, size);
     dataParcels14.RewindRead(0);
     abilityMgrStub->SetAppServiceExtensionKeepAliveInner(dataParcels14, reply1);
 
     MessageParcel dataParcels15;
-    dataParcels15.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcels15.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcels15.WriteBuffer(data, size);
     dataParcels15.RewindRead(0);
     abilityMgrStub->QueryKeepAliveAppServiceExtensionsInner(dataParcels15, reply1);
 
     MessageParcel dataParcels16;
-    dataParcels16.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcels16.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcels16.WriteBuffer(data, size);
     dataParcels16.RewindRead(0);
     abilityMgrStub->UpdateKioskApplicationListInner(dataParcels16, reply1);
 
     MessageParcel dataParcels17;
-    dataParcels17.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcels17.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcels17.WriteBuffer(data, size);
     dataParcels17.RewindRead(0);
     abilityMgrStub->EnterKioskModeInner(dataParcels17, reply1);
 
     MessageParcel dataParcels18;
-    dataParcels18.WriteInterfaceToken(ABILITYMGR_INTERFACE_TOKEN);
+    dataParcels18.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_MGR);
     dataParcels18.WriteBuffer(data, size);
     dataParcels18.RewindRead(0);
     abilityMgrStub->ExitKioskModeInner(dataParcels18, reply1);
@@ -417,4 +417,3 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     ch = nullptr;
     return 0;
 }
-

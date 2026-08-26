@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,14 +14,16 @@
  */
 
 #include "abilityinterfacesappmanageramsmgrstubsixth_fuzzer.h"
+#include "ams_mgr_stub.h"
+#include "ams_mgr_stub_mock.h"
 
+#include "attack_vectors.h"
 #include <cstddef>
 #include <cstdint>
-#include <fuzzer/FuzzedDataProvider.h>
 
 #define private public
-#include "ams_mgr_stub.h"
-#include "ams_mgr_scheduler.h"
+#include "fuzz_util.h"
+#include <fuzzer/FuzzedDataProvider.h>
 #undef private
 
 using namespace OHOS::AAFwk;
@@ -31,28 +33,15 @@ namespace OHOS {
 namespace {
 constexpr size_t STRING_MAX_LENGTH = 128;
 }
-const std::u16string AMSMGR_INTERFACE_TOKEN = u"ohos.appexecfwk.IAmsMgr";
-bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
+
+class AmsMgrStubSixthFuzz : public AmsMgrStubFuzzBase {};
+
+void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
-    std::shared_ptr<AppMgrServiceInner> MgrServiceInner;
-    std::shared_ptr<AAFwk::TaskHandlerWrap> Handler;
-    std::shared_ptr<AmsMgrScheduler> amsmgr = std::make_shared<AmsMgrScheduler>(MgrServiceInner, Handler);
-    MessageParcel parcel;
-    MessageParcel reply;
-    FuzzedDataProvider fdp(data, size);
-    parcel.WriteInterfaceToken(AMSMGR_INTERFACE_TOKEN);
+    actualCode = static_cast<uint32_t>(IAmsMgr::Message::KILL_APPLICATION);
     parcel.WriteString(fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH));
     parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
-    parcel.RewindRead(0);
-    amsmgr->HandleKillApplication(parcel, reply);
-    return true;
-}
 }
 
-/* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
-{
-    /* Run your code on data */
-    OHOS::DoSomethingInterestingWithMyAPI(data, size);
-    return 0;
-}
+FUZZ_STUB_ENTRY_IMPL(AmsMgrStubSixthFuzz, FuzzUtil::Tokens::AMS_MGR)
+} // namespace OHOS

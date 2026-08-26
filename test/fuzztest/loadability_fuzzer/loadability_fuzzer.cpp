@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-#include "loadability_fuzzer.h"
-
-#include <cstddef>
-#include <cstdint>
-
 #include "ability_record.h"
+
 #include "app_mgr_client.h"
+#include <cstddef>
+
+#include <cstdint>
+#include "loadability_fuzzer.h"
 #include "param.h"
 #include "parcel.h"
 #include "securec.h"
@@ -64,7 +64,7 @@ sptr<Token> GetFuzzAbilityToken()
 
 bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
-    AppMgrClient* appMgrClient = new AppMgrClient();
+    std::shared_ptr<AppMgrClient> appMgrClient = std::make_shared<AppMgrClient>();
     if (!appMgrClient) {
         return false;
     }
@@ -93,11 +93,10 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
         want = Want::Unmarshalling(wantParcel);
         if (want) {
             appMgrClient->LoadAbility(abilityInfo, appInfo, *want, loadParam);
+            delete want;
+            want = nullptr;
         }
     }
-
-    delete appMgrClient;
-    appMgrClient = nullptr;
 
     return true;
 }
@@ -136,4 +135,3 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     ch = nullptr;
     return 0;
 }
-
