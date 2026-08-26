@@ -173,7 +173,8 @@ export default class UIAbilityContext extends Context {
   private native nativeRequestDialogService(want: Want,
     result: AsyncCallbackWrapper<dialogRequest.RequestResult>): void;
 
-  private native nativeSetAbilityInstanceInfo(label: string, icon: image.PixelMap, callback: AsyncCallbackWrapper<void>): void;
+  private native nativeSetAbilityInstanceInfo(label: string, icon: image.PixelMap, groupId: string,
+    callback: AsyncCallbackWrapper<void>): void;
 
   private native nativeOpenAtomicService(appId: string, callback: AsyncCallbackWrapper<AbilityResult>, options?: AtomicServiceOptions): void;
 
@@ -776,7 +777,7 @@ hideAbility(): Promise<void> {
     });
   }
 
-  setAbilityInstanceInfo(label: string, icon: image.PixelMap): Promise<void> {
+  setAbilityInstanceInfo(label: string, icon: image.PixelMap, groupId: string = ''): Promise<void> {
     this.nativeSetAbilityInstanceInfoCheck(label, icon);
     let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject: (err: BusinessError)=>void):void => {
       let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=>{
@@ -787,7 +788,7 @@ hideAbility(): Promise<void> {
         }
       });
       taskpool.execute((): void => {
-        this.nativeSetAbilityInstanceInfo(label, icon, syncCall);
+        this.nativeSetAbilityInstanceInfo(label, icon, groupId, syncCall);
       });
     });
     return p;

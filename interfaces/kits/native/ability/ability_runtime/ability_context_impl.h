@@ -317,9 +317,11 @@ public:
      *
      * @param label the label of this ability.
      * @param icon the icon of this ability.
+     * @param groupId the group id of this ability, optional. The length must not exceed 1024 bytes.
      * @return Returns ERR_OK if success.
      */
-    ErrCode SetAbilityInstanceInfo(const std::string& label, std::shared_ptr<OHOS::Media::PixelMap> icon) override;
+    ErrCode SetAbilityInstanceInfo(const std::string& label, std::shared_ptr<OHOS::Media::PixelMap> icon,
+        const std::string& groupId = "") override;
 
     /**
      * @brief get current window mode.

@@ -105,6 +105,28 @@ HWTEST_F(AbilityContextImplSecondTest, SetAbilityInstanceInfo_0100, Function | M
 }
 
 /**
+ * @tc.number: SetAbilityInstanceInfo_0200
+ * @tc.name: SetAbilityInstanceInfo with groupId
+ */
+HWTEST_F(AbilityContextImplSecondTest, SetAbilityInstanceInfo_0200, Function | MediumTest | Level1)
+{
+    std::shared_ptr<OHOS::Media::PixelMap> icon = nullptr;
+    // groupId length exceeds the 1024-byte limit
+    std::string oversizeGroupId(1025, 'a');
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled()).Times(1).WillOnce(Return(true));
+    ErrCode ret = context_->SetAbilityInstanceInfo(g_testLabel, icon, oversizeGroupId);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // groupId exactly 1024 bytes (within the limit) is not rejected for length
+    std::string validGroupId(1024, 'a');
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled()).Times(1).WillOnce(Return(true));
+    Rosen::SessionInfo info;
+    context_->sessionToken_ = wptr<IRemoteObject> (new Rosen::Session(info));
+    ret = context_->SetAbilityInstanceInfo(g_testLabel, icon, validGroupId);
+    EXPECT_FALSE(ret == ERR_INVALID_VALUE);
+}
+
+/**
  * @tc.number: RestartAppWithWindow_0100
  * @tc.name: RestartAppWithWindow
  */
