@@ -47,7 +47,7 @@ ohos-sdd validate . --level c
 # E=profile 命中 → none
 ```
 
-**Git**：分支 `feature/ai-task-manager`（基于 aaf020f296 master，远端 `yzk/feature/ai-task-manager`），本目录 8 次提交均含 `Signed-off-by: yangzk <yangzhongkai@huawei.com>`，最新 `7747518002`（第十一轮）；2026-08-24 第九~十一轮 3 个提交（`365cff1acf` / `9a5864e8b5` / `7747518002`）待人工 push。
+**Git**：分支 `feature/ai-task-manager`（基于 aaf020f296 master，远端 `yzk/feature/ai-task-manager`），本目录 9 次提交均含 `Signed-off-by: yangzk <yangzhongkai@huawei.com>`，最新 `6325ac84f0`（第十二轮）；2026-08-24 第九~十二轮 4 个提交（`365cff1acf` / `9a5864e8b5` / `7747518002` / `6325ac84f0`）待人工 push。会话级交接见 `SESSION-HANDOVER.md`。
 
 ---
 
