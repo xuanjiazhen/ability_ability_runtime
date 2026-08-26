@@ -275,9 +275,10 @@ struct TaskInfo {
 
 ```
 interface ITaskListener {   // 系统 UI 注册
-    void OnTaskStateChanged(in string taskId, in int32 state, in string payload, in int64 timestamp);
-    void OnTaskNotice(in string taskId, in int32 noticeType, in string payload, in int64 timestamp);
-    // 通知类事件（B-5 补全）：交互超时限期处置（F-5）、限时豁免到期预警（C-2）等非状态变更通知；oneway
+    [oneway] void OnTaskStateChanged(in string taskId, in int32 state, in string payload, in int64 timestamp);
+    [oneway] void OnTaskNotice(in string taskId, in int32 noticeType, in string payload, in int64 timestamp);
+    // 通知类事件（B-5 补全）：交互超时限期处置（F-5）、限时豁免到期预警（C-2）等非状态变更通知；
+    // 两回调均 oneway（F-38 修正：R-14"回调不阻塞状态机"要求，慢监听者不得阻塞 taskHandler 派发线程）
 };
 ```
 
@@ -371,6 +372,23 @@ interface ITaskListener {   // 系统 UI 注册
 
 > 原则（F-22 修正）：拦截点①置于**全部启动/连接收敛处**——`StartAbilityInner`（:1360）+ `StartExtensionAbilityInner`（:4656）+ `StartUIExtensionAbility`（:4989）+ `RequestModalUIExtensionInner`（:4508）+ `ConnectAbilityCommon`（:6063）**共 5 处**，共用同一 Want 解析/身份判定/上报辅助函数；"任何新启动变体只要收敛于此即自动覆盖"仅对上述 5 收敛点成立，新增独立入口（如未来新的扩展类型入口）需评估补点。拦截仅做参数解析与身份判定，失败不阻断启动（R-8/R-13）。
 
+#### 5.4.1a 拦截器框架方案分析（F-36 补全，第十六轮勘察）
+
+**勘察事实**：AMS 已有规范拦截器框架（`AbilityInterceptorExecuter` + `IAbilityInterceptor`，CLAUDE.md 列"Adding a New Interceptor"为标准扩展程序），且在 5 收敛点中的 **4 处已运行**：StartAbilityInner（:1490，另有 afterCheckExecuter_ :1705 后置段）、StartExtensionAbilityInner（:4712）、StartUIExtensionAbility（:5100）、ConnectAbilityCommon（:6135，fromConnect=true）；仅 RequestModalUIExtension（:4508）无拦截器。本设计原方案（ad-hoc 辅助函数插入 5 处）**未分析该框架选项**——此为本轮修正的方案分析缺口。
+
+**两方案对比**：
+
+| 维度 | 方案 A：TaskInterceptor（走拦截器框架） | 方案 B：ad-hoc 辅助函数（原方案） |
+|------|----------------------------------------|-----------------------------------|
+| 侵入性 | 4/5 收敛点零改动（AddInterceptor 注册即可） | 5 处插入调用代码 |
+| 架构一致性 | AMS 规范扩展机制（CLAUDE.md 标准程序） | 自建挂点，新变体需逐点评估 |
+| 身份获取 | **摩擦**：全部拦截器调用点 callerToken=nullptr（:1489/:4712/:5100/:6135 实证）——需扩展 AbilityInterceptorParam（触碰全部拦截器共享结构）或拦截器内另行取身份（函数参数/SessionInfo，F-32） | 直接取函数参数（callerToken/specifyTokenId/asCallerSourceToken） |
+| 时序 | 拦截器在 record 解析**前**执行——"既有 record 直接纳管"分支需拦截器内自查 record 管理器 | 可置于 record 解析后 |
+| 失败语义 | 拦截器返回非 ERR_OK **阻断启动**——任务拦截器必须恒返 ERR_OK（观察者模式，与 R-8/R-13 一致，可控） | 天然不阻断 |
+| 覆盖 | RequestModalUIExtension 无拦截器，仍需 ad-hoc 挂点（或推动框架补点） | 全覆盖 |
+
+**结论（推荐混合方案，待评审确认——列入未对齐清单 A-8）**：**方案 A 为主 + B 补角**——新建 `TaskInterceptor`（`IAbilityInterceptor` 实现，恒返 ERR_OK）经 `AddInterceptor("Task", …)` 注册，承载 4 个已覆盖收敛点的 Want 解析 + 意向登记（冷启动路径①）；身份捕获在拦截器内按来源取（StartAbility 路径取 StartAbilityWrapParam 不可得——**需扩展 AbilityInterceptorParam 增加 callerTokenId 字段**（低风险：纯增字段，既有拦截器不受影响）或复用 Want 内 AMS 保留参数机制）；"既有 record 直接纳管"分支由拦截器自查 record 管理器判定；RequestModalUIExtension 单点 ad-hoc 挂同一辅助函数。若评审否决扩展 AbilityInterceptorParam，则回退方案 B（原 5 点 ad-hoc）。
+
 #### 5.4.2 条件两段式拦截逻辑（修正：覆盖"已存在进程"场景）
 
 **问题**（评审指出）：原两段式的②挂于"进程 attach"（AttachAbilityThread/OnAbilityRequestDone）——该回调**仅在进程新建时发生**；若启动目标进程已存在（如复用的 ServiceRecord、已运行的扩展进程、预加载进程），②不会触发 → 已存在进程无法被纳管。
@@ -392,7 +410,7 @@ if (targetPid > 0) {
     TaskManagerClient::RegisterTaskProcess(taskId, pid, callerTokenId /* =①登记值 */)  // 补注册
 }
 ```
-- 意向超时清理：30s 未补注册则移除（attach 晚于超时由 attach 处重发①）；**attach 失败清理**（F-7 修正）：进程启动失败（attach 失败回调）时主动 UnregisterTaskIntent，避免意向残留 30s；
+- 意向超时清理：30s 未补注册则移除（attach 晚于超时由 attach 处**直接补发②**——pid 已就绪，身份取 AbilityRecord 存储值（F-31），重发①无意义，F-39 修正）；**attach 失败清理**（F-7 修正）：进程启动失败（attach 失败回调）时主动 UnregisterTaskIntent，避免意向残留 30s；
 - 进程已存在直接纳管时无意向阶段（简化登记：一次动作）；
 - **分支①适用边界（F-11 勘察补强，第十三轮）**：`AbilityRecord` 的 pid **仅在 attach 时设置**（`SetScheduler` 内 `SetPid(IPCSkeleton::GetCallingPid())`，ability_record.cpp:1096——目标进程自报；全库无其他 SetPid 路径），因此"直接纳管"分支仅对**既有 record 且已 attach**（运行中 Service/单例/扩展复用等场景）成立；**进程已存在但目标 ability record 为新建**（热启动新实例）时 record 尚无 pid → 走意向路径，attach（该实例 SetScheduler）时补注册——两路径全覆盖，无遗漏；
 - `AbilityRecord::GetPid()` 可得性已核实（ability_connect_manager.cpp:327 既有使用）；连接场景对已运行服务同理（ServiceRecord 持有 pid，:791）。
@@ -462,7 +480,7 @@ if (targetPid > 0) {
 - 档位 1（MEDIUM）限时豁免到期前经 `OnTaskNotice(EXEMPT_EXPIRING)` 预警（提前量可配，默认 5min）；到期未续期 → 撤销豁免、档位按剩余归属任务重算、TASK_ABUSE_WARNING(reason=limit)；
 - **续期机制（全档位）**：豁免时长硬上限（默认 60min，R-21/R-22）到期前，创建者可经 SetTaskParams 续期（**仅 priority 发生变化时触发续期**，payload-only 变更不续期——防滥用续期；计时/续期计数为 TaskRecord 内存态）；档位 2 语义由"全时"修正为"持续（激活期间、可续期）"——长时 HIGH 任务经周期性续期维持豁免，**续期次数上限 N 次（可配，默认 3 次，评审决策 2026-08-24）**，达到上限后到期即撤销豁免并降档、TASK_ABUSE_WARNING(reason=limit)；每次续期动作经 TASK_RSSCONTROL 记录审计；
 - **双计时器叠加**：交互态任务同时存在交互超时（30min+5min 宽限）与豁免时长计时（档位 1 为 30min 限时）时，取先到者触发，先触发者的处置（降档/撤销豁免）即终止另一计时，避免双重降档。**上述超时相关参数（交互 30min/宽限 5min/档位 1 限时 30min/硬上限 60min/到期预警提前量 5min/续期次数 N=3）默认值已确认**（评审决策 2026-08-24 提出、2026-08-26 第十三轮用户确认），落地时全部经可配参数支持调整。
-- **参数落地机制（F-14 明确，第十三轮）**：可调参数（上限/时长/续期次数/开关）经本仓 **sysparam 参数体系**落地——`.para` 定义（命名如 `const.sys.appms.taskmanager.*`，先例：services/abilitymgr/etc/appfwk.para）+ `OHOS::system::Get*Parameter` 读取（先例：app_running_manager.cpp:1145）；appmgr 无既有 .para 文件，随 TASK-4 新增参数定义文件并接入 BUILD.gn（需求侧"CCM 可调"要求即由该机制承载）。
+- **参数落地机制（F-14 明确，第十三轮；F-37 修正前缀，第十六轮）**：可调参数（上限/时长/续期次数/开关）经本仓 **sysparam 参数体系**落地——`.para` 定义 + `OHOS::system::Get*Parameter` 读取（先例：app_running_manager.cpp:1145）；**命名必须用 `persist.sys.appms.taskmanager.*` 前缀而非 const.**（本仓惯例实证：`const.*` 启动后不可变（appfwk.para:43-49），**运行时可调参数用 `persist.*`**（先例 persist.sys.abilityms.support.ecologicalrulemgrservice 等，appfwk.para:21-25，运行时经 param set 调整、Get*Parameter 实时读取）——"CCM 可调"若含运行时调参（产品调优不重启），const.* 前缀不达目标）；appmgr 无既有 .para 文件，随 TASK-4 新增参数定义文件并接入 BUILD.gn（需求侧"CCM 可调"要求即由该机制承载）。
 
 > **开放项（二期评估）**：交互态降档折中——HIGH/CRITICAL 任务进入交互态后自动降为限时豁免档（交互等待本质为"低活动、需快速唤醒"，与 MEDIUM 语义接近），可压缩用户无响应期间的资源占用；一期不引入（收益不抵"状态×档位"二维映射复杂度）。
 
@@ -582,6 +600,8 @@ struct TaskEndInfo {             // 任务结束清理信息（评审第六轮�
 
 ### 7.1 hisysevent 事件（hisysevent.yaml 新增，AAFWK 域；不修改既有事件）
 
+> 格式约束（F-40 补全）：每事件需 `__BASE`（type/level/tag/desc）+ 类型化字段（hisysevent.yaml 既有格式实证）；BEHAVIOR 事件 level 建议 MINOR、TASK_ABUSE_WARNING（FAULT）建议 CRITICAL + tag=STABILITY，随 TASK-5 评审定稿。
+
 | 事件名 | 类型 | 关键字段 |
 |--------|------|----------|
 | TASK_CREATE | BEHAVIOR | taskId, type, priority, callerUid, result |
@@ -602,6 +622,8 @@ hilog_tag_wrapper 新增 `AAFwkLogTag::TASK`（或复用 AppMgr tag），TAG_LOG
 ## 错误码设计
 
 新增任务域错误码段（`interfaces/inner_api/error_utils/` 任务域段，编号设计定稿，不占既有段）：
+
+> **编号约束（F-40 补全，第十六轮）**：16000001~16000205 为公共 JS API 错误码契约段（ability_runtime_error_util.h 现有 57 个 EXTERNAL 错误码占用），任务域错误码（inner API）**必须避开该段**——建议新段（如 16000300+ 或独立段，随 TASK-0 定稿并与 API 评审确认）；inner API 错误码不进 JS 侧映射，无 @since 兼容负担。
 
 | 错误码 | 值（占位） | 语义 |
 |--------|-----------|------|
@@ -761,7 +783,7 @@ sa_profile/501.json: 不变（复用 appms）
 | RSS 505 payload 语义与豁免覆盖范围未对齐（含锁屏冻结是否覆盖） | 高 | **豁免粒度已决策 pid（2026-08-24，D-1 关闭）**；payload 语义仍为对接必答项；以动作日志（TASK_RSSCONTROL）为验收基线；RSS 明确前不阻断模块开发 |
 | 520 SHOULD_FORCE_KILL_PROCESS 消费方语义未确认 | 中 | 二期启用前确认；一期仅评估预留 |
 | 设备待机（EDS）限制通道与 505 豁免互不相通：夜间待机期间 AI 定时任务可能被待机网络/任务限制阻断（需求场景 1 典型时序，D-2） | 中 | **已决策一期支持（2026-08-24）**：新增 P7 待机豁免联动（ApplyAllowResource/UnapplyAllowResource，与 505 同生命周期内存登记）；依赖 device_standby 接口联调验收 |
-| 两段式纳管的意向超时窗口（30s）内进程未 attach | 低 | 意向超时清理；attach 晚于超时则重新走①（拦截点在 attach 处重发） |
+| 两段式纳管的意向超时窗口（30s）内进程未 attach | 低 | 意向超时清理；attach 晚于超时由 attach 处直接补发②（身份取 AbilityRecord 存储值，F-39 修正） |
 | 系统应用白名单口径 | 低 | 复用 AppMS 既有 token 校验；白名单范围随评审定 |
 | 多用户隔离细节（任务跨用户可见性） | 低 | 一期按 userId 隔离；细化随 execution-plan 评审 |
 | AI 助手进程自身的冻结策略与自注册需求（§5.2.1） | 中 | 与 AI 助手团队对齐目标设备上助手的冻结策略（前台/continuous task/白名单现状）；真机验证阶段与 RSS owner 确认"助手冻结→任务空转至超时"窗口是否真实发生；显式自注册通道一期即可用，supervisor 弱保障档位列二期评估 |

@@ -18,6 +18,7 @@
 | 第十三轮 | 2026-08-26 | 文档自审（全量通读 + 关键源码复核） | F-8~F-20（通道鉴权安全缺口/PAYLOAD_UPDATED 功能缺口/spec 内部矛盾/NFR 矛盾/拦截点精确化/sysparam 落地等 13 项） | 全部修复（review-analysis.md 第十三轮节） |
 | 第十四轮 | 2026-08-26 | **代码实证复核**（ability_runtime + resourceschedule 实际代码逐项验证文档断言） | F-21~F-28（SA 501 承载机制缺口/扩展启动覆盖缺口/参数不存在/权限前置遗漏等 8 项） | 全部修复（review-analysis.md 第十四轮节） |
 | 第十五轮 | 2026-08-26 | **IPC 机制深挖**（针对前两轮修复方案的底层假设：同进程 SA 调用身份语义/SA 分发结构/P5/P7 依赖） | F-29~F-35（F-8 通道鉴权前提缺陷——同进程调用透传原始调用方身份，attach/代理启动链路断裂风险+裸 IsSACall 绕过面；P7 依赖缺口；AbilityRecord 存储缺口；UIExtension 身份解析来源等 7 项） | 全部修复（review-analysis.md 第十五轮节，含 7 项未对齐自主决策清单 A-1~A-7 待用户确认） |
+| 第十六轮 | 2026-08-26 | **拦截器框架与参数语义**（AMS 拦截器框架/sysparam 前缀语义/attach 兜底/IDL 细节/错误码段） | F-36~F-41（AMS 拦截器框架未分析——4/5 收敛点已运行规范框架，推荐混合方案待评审 A-8；const.* 前缀语义错误改 persist.*；oneway 缺失；"重发①"措辞错误；错误码段约束；UIExtension Want 存活推测项） | 全部修复（review-analysis.md 第十六轮节；F-36 方案待评审确认） |
 
 **文档阶段结论**：PASS——spec.md AC-1.1~AC-6.2 与规则 R-1~R-24 经十四轮审查一致、可测试、可追溯（AC→Task 映射见 execution-plan.md）；关键源码断言经实地勘察实证（file:line 可复核，F-28 清单）。
 

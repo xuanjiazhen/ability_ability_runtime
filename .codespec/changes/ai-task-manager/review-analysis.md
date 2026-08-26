@@ -1,4 +1,4 @@
-# 方案深度审查报告（2026-08-22 第七轮；2026-08-26 第十三轮自审追加；2026-08-26 第十四轮代码实证复核追加；2026-08-26 第十五轮 IPC 机制深挖追加）
+# 方案深度审查报告（2026-08-22 第七轮；2026-08-26 第十三轮自审追加；2026-08-26 第十四轮代码实证复核追加；2026-08-26 第十五轮 IPC 机制深挖追加；2026-08-26 第十六轮拦截器框架与参数语义追加）
 
 > 对 proposal / spec / design / execution-plan 的逐项审查。审查方法：对照需求 13 条、已确认决策（六轮）、AGENTS.md 约束、既有源码事实，逐项核查设计完整性。
 
@@ -147,6 +147,48 @@ N=3 续期次数上限、INPUT_ARRIVED 枚举命名、交互 30min/宽限 5min/�
 ### 结论
 
 第十五轮发现 7 项（F-29~F-35：高 1 / 中 3 / 低 2 / 信息 1），已全部修复。**F-29 是对本特性审查方法的警示**：第十三轮设计通道鉴权时未验证"同进程调用身份语义"这一底层机制，第十四轮 F-28 虽实证"AMS→AppMS 经 samgr 代理"却未追问身份透传问题——两轮都在"看起来合理"的假设上构建了安全规则。经本轮修正，通道鉴权机制与本仓既有惯例（IN_PROCESS_CALL + CheckSpecificSystemAbilityAccessPermission）完全对齐，attach/代理启动两链路的功能正确性与"非 foundation native 伪造"的安全性同时闭环。
+
+---
+
+## 第十六轮：拦截器框架与参数语义（2026-08-26）
+
+> 审查方法：攻击尚未验证过的机制层——AMS 拦截器框架（设计通篇未提）、sysparam 前缀语义、attach 兜底链路措辞、IDL 细节、错误码段约束。发现接续编号 F-36~F-41。
+
+### 发现与处理
+
+| 编号 | 类别 | 问题点 | 严重度 | 处理 | 状态 |
+|------|------|--------|--------|------|------|
+| F-36 | **架构分析缺失** | **AMS 拦截器框架未分析**：`AbilityInterceptorExecuter`（CLAUDE.md 列"Adding a New Interceptor"为标准扩展程序）在 5 收敛点中的 **4 处已运行**——StartAbilityInner(:1490)/StartExtensionAbilityInner(:4712)/StartUIExtensionAbility(:5100)/ConnectAbilityCommon(:6135, fromConnect=true)，仅 RequestModalUIExtension 无。设计提出 ad-hoc 辅助函数插入 5 处而**从未分析框架选项**——违背 AMS 架构惯例的风险：自建挂点绕过规范扩展机制，后续维护者需理解两套拦截逻辑。**摩擦点（诚实列出）**：① 全部拦截器调用点 callerToken=nullptr（:1489/:4712/:5100/:6135 实证）——需扩展 AbilityInterceptorParam（纯增字段）或拦截器内另行取身份；② 拦截器在 record 解析前执行——"既有 record 直接纳管"分支需拦截器自查 record 管理器；③ 拦截器返回非 ERR_OK 阻断启动——任务拦截器必须恒返 ERR_OK（观察者模式，与 R-8/R-13 一致）；④ RequestModalUIExtension 仍需 ad-hoc 挂点 | 高 | design 新增 §5.4.1a 方案对比（A 框架 vs B ad-hoc），**推荐混合方案**（TaskInterceptor 走框架覆盖 4 点 + Modal 单点 ad-hoc + AbilityInterceptorParam 增 callerTokenId 字段），**列入未对齐清单 A-8 待评审确认**；TASK-3 目标/Files 同步（新增 task_interceptor.h/cpp + ability_interceptor_interface.h 修改） | 已修正（方案待确认） |
+| F-37 | **前轮修复缺陷** | **const.* 参数前缀语义错误**（第十三轮 F-14 自身缺陷）：本仓惯例实证——`const.*` 启动后**不可变**（appfwk.para:43-49），**运行时可调用 `persist.*`**（先例 persist.sys.abilityms.support_ecologicalrulemgrservice 等，appfwk.para:21-25，运行时 param set + Get*Parameter 实时读取）。"CCM 可调"若含运行时调参（产品调优不重启），const.sys.appms.taskmanager.* **不达目标** | 中 | design §6.1/plan 全量清单与 TASK-4 Files 改 `persist.sys.appms.taskmanager.*` | 已修正 |
+| F-38 | IDL 细节 | OnTaskStateChanged 缺 oneway 标注（OnTaskNotice 有）——R-14"回调不阻塞状态机"要求两者均 oneway，否则慢监听者阻塞 taskHandler 派发线程 | 低 | design §5.2 IDL 两回调均补 [oneway] | 已修正 |
+| F-39 | 措辞错误 | "attach 晚于超时由 attach 处重发①"（两处）——attach 时 pid 已就绪，应**直接补发②**（RegisterTaskProcess，身份取 AbilityRecord 存储值 F-31）；重发①（意向登记）在 pid 已知时无意义，系早期两段式设计残留 | 低 | design §5.4.2/风险表两处修正 | 已修正 |
+| F-40 | 约束未声明 | ① 错误码段：16000001~16000205 为公共 JS API 错误码契约段（57 个 EXTERNAL 错误码占用），任务域错误码必须避开——设计"编号设计定稿"未声明该约束；② hisysevent 事件定义缺 `__BASE`（type/level/tag）属性约定（yaml 格式实证） | 低 | design 错误码节补编号约束（建议 16000300+ 或独立段）；§7.1 补 __BASE 格式约束 | 已修正 |
+| F-41 | 推测项 | **StartUIExtensionAbility 的 Want 参数存活性未验证**：Want 经 sceneboard 组装进 SessionInfo 再到 AMS——自定义参数（ohos.ai.taskId）应随 Want 序列化保留（**此处为推测**：Want 为 parcelable 透传、未见参数清洗逻辑），但依赖 sceneboard 不剥离未知参数；若剥离则 UIExtension 链路纳管失效 | 信息 | TASK-3 集成用例补 UIExtension Want 参数 taskId 存活验证（plan Files 已同步）；若实测被剥离，需 sceneboard 侧确认保留策略（新增对齐项） | 已标注 |
+
+### 本轮机制级实证清单
+
+| 断言 | 证据 |
+|------|------|
+| 拦截器框架覆盖 4/5 收敛点（含连接路径 fromConnect） | interceptorExecuter_->DoProcess：:1490（StartAbilityInner）/ :4712（StartExtensionAbilityInner）/ :5100（StartUIExtensionAbility）/ :6135（ConnectAbilityCommon）；RequestModalUIExtension（:4508）无 |
+| 拦截器 param 全部 callerToken=nullptr | :1489/:4712/:5100/:6135 构造处实证（AbilityInterceptorParam 第 5 参 nullptr） |
+| afterCheckExecuter_ 后置段携带 abilityInfo | ability_interceptor_interface.h:50 注释 + :1705/:1922/:2234 调用 |
+| const.* 不可变 / persist.* 运行时可调 | appfwk.para:21-25（persist.sys.abilityms.* 先例）vs :43-49（const.sys.abilityms.*）；运行时读取先例 ability_connect_manager.cpp:2323（persist.sceneboard.restart） |
+| OnAbilityRequestDone 为 AppMS→AMS 状态回调（attach 兜底可行） | app_state_callback_proxy.cpp:37 → ability_manager_service.cpp:8788（按 DATA/SERVICE/EXTENSION/default 分发） |
+| 公共错误码段占用 16000001~16000205（57 个） | ability_runtime_error_util.h 实证 |
+| hisysevent 事件需 __BASE + 类型化字段 | hisysevent.yaml:16-23 格式实证 |
+| Want 保留参数机制存在（PARAM_RESV_CALLER_TOKEN 由 AMS 内部写入） | update_caller_info_util.cpp:88/:145/:231；ability_manager_service.cpp:8993 |
+
+### 未与用户对齐的自主决策清单（更新）
+
+> 历轮 AI 自主做出、用户尚未逐项显式确认的决策点（用户要求暴露；A-1~A-7 见第十五轮，本轮新增 A-8）：
+
+| # | 决策 | 轮次 | 性质 | 若不认可的回退成本 |
+|---|------|------|------|-------------------|
+| A-8 | **拦截实现混合方案**（TaskInterceptor 走拦截器框架覆盖 4 收敛点 + RequestModalUIExtension ad-hoc + AbilityInterceptorParam 增 callerTokenId 字段） | 本轮 F-36 | 架构决策（TASK-3 实现路径） | 低：回退方案 B（5 点 ad-hoc 辅助函数，原第十四轮 F-22 方案），文件清单相应回退 |
+
+### 结论
+
+第十六轮发现 6 项（F-36~F-41：高 1 / 中 1 / 低 3 / 信息 1），已全部修复（F-36 方案待评审确认）。**F-36 再次印证第十五轮的教训**：第十四轮 F-22 修正拦截点覆盖时逐点勘察了收敛性，却未注意到这些点上**已经运行着 AMS 的规范拦截器框架**——"看到函数"不等于"看到架构"。F-37 则是第十三轮 F-14 修复在未验证参数前缀语义的情况下选错了前缀（const vs persist），所幸未编码零成本修正。累计十六轮共 41 项发现（F-1~F-41），文档阶段审查深度已覆盖：需求映射/状态机/安全（B-1+B-2+通道鉴权）/IPC 机制（身份语义/SA 承载）/拦截架构（收敛点+框架）/参数体系/权限前置/DFX 格式。
 
 ---
 
