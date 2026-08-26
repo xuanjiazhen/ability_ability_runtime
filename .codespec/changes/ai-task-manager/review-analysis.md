@@ -1,4 +1,4 @@
-# 方案深度审查报告（2026-08-22 第七轮；2026-08-26 第十三轮自审追加）
+# 方案深度审查报告（2026-08-22 第七轮；2026-08-26 第十三轮自审追加；2026-08-26 第十四轮代码实证复核追加）
 
 > 对 proposal / spec / design / execution-plan 的逐项审查。审查方法：对照需求 13 条、已确认决策（六轮）、AGENTS.md 约束、既有源码事实，逐项核查设计完整性。
 
@@ -31,11 +31,12 @@
 
 | 编号 | 开放项 | 依赖方 | 关联 |
 |------|--------|--------|------|
-| O-1 | 任务类型/优先级/状态枚举最终对齐 | AI 语音助手团队 | design 4.1 |
-| O-2 | 锁屏豁免场景边界（豁免覆盖哪些冻结类型、时长/数量上限） | RSS 团队 | design §6 开放项 |
-| O-3 | RSS 真实对接（ResourceControlProxyImpl 落地） | RSS 团队 | design 6.4 |
+| O-1 | 任务类型/优先级/状态枚举最终对齐 | AI 语音助手团队 | design 4.1；对齐材料 docs/ai-assistant-alignment.md |
+| O-2 | 锁屏豁免场景边界（豁免覆盖哪些冻结类型、时长/数量上限） | RSS 团队 | design §6 开放项；docs/rss-alignment.md P2 |
+| O-3 | RSS 真实对接（ResourceControlProxyImpl 落地） | RSS 团队 | design 6.4；docs/rss-alignment.md P1 |
 | O-4 | 子进程自动纳入（F-3 扩展场景 12 是否纳入一期） | 需求方确认 | design 5.4.1 |
-| O-5 | 520 低内存查杀豁免消费方语义 | RSS 团队 | design 6.2 二期 |
+| O-5 | 520 低内存查杀豁免消费方语义 | RSS 团队 | design 6.2 二期；docs/rss-alignment.md #12 |
+| O-6 | RSS 505 payload 语义与豁免覆盖范围（RCP-Impl 对接前必须确认） | RSS 团队 | design 6.2/6.4；docs/rss-alignment.md P0（含 507 GET_SUSPEND_STATE 权限确认，F-24） |
 
 ## 结论
 
@@ -76,3 +77,43 @@ N=3 续期次数上限、INPUT_ARRIVED 枚举命名、交互 30min/宽限 5min/�
 ### 结论
 
 第十三轮自审发现 13 项（F-8~F-20：高 2 / 中 6 / 低 5），已全部修复至交付件；其中 F-8 通道鉴权为安全闭环必改项（落地时 TASK-3 需覆盖通道鉴权用例：非 native 自报身份拒绝、pid 归属不符拒绝）。开放项 O-1~O-6 维持不变（外部对齐），不阻塞模块级开发。
+
+---
+
+## 第十四轮：代码实证复核（2026-08-26）
+
+> 审查方法：以 ability_runtime 与 resourceschedule **实际代码逐项验证文档断言**（拦截链路收敛性/SA 承载机制/RSS 权限与插件/工程惯例），非文档级自审。发现接续编号 F-21~F-28。
+
+### 发现与处理
+
+| 编号 | 类别 | 问题点 | 严重度 | 处理 | 状态 |
+|------|------|--------|--------|------|------|
+| F-21 | 架构落地缺口 | **ITaskManager 挂 SA 501 的承载机制未设计**：AppMgrStub::OnRemoteRequest 校验接口描述符（app_mgr_stub.cpp:57-62），非 IAppMgr 描述符请求直接被拒——ITaskManager 代理请求无法经既有桩到达 TaskManagerService，TASK-0 无法直接开工 | 高 | 新增 design §5.2.2：AppMgrService 覆写 OnRemoteRequest 按描述符路由（ITaskManager → TaskManagerService 桩内部分发；IAppMgr 零改动）；客户端 GetSystemAbility(501)+iface_cast（app_service_manager.cpp:29-33 先例）；否决备选=同进程新 SA ID（与 D-1 冲突）；TASK-0 目标/判据/Files 同步 | 已修正 |
+| F-22 | 覆盖缺口 | **扩展启动不收敛于 StartAbilityInner**（场景 6 断言错误）：StartServiceExtensionAbility/ImplicitStartExtensionAbility（:4338/:4357）直连 StartExtensionAbilityInner（:4656）；StartUIExtensionAbility（:4989）走 SessionInfo 独立路径；RequestModalUIExtension（:4475→:4508）独立路径——仅拦 StartAbilityInner 将漏掉全部扩展启动 | 高 | 拦截点①扩为 **5 收敛点**（StartAbilityInner:1360 / StartExtensionAbilityInner:4656 / StartUIExtensionAbility:4989 / RequestModalUIExtensionInner:4508 / ConnectAbilityCommon:6063），共用同一解析/上报辅助函数；场景 5/6/7/8 收敛点精确化（场景 7 意图链路实证收敛点=StartAbilityWithInsightIntent:15241）；"新变体自动覆盖"原则表述修正；TASK-3 同步 | 已修正 |
+| F-23 | 事实错误 | **`const.taskmanager.low_memory_frozen_enable` 参数在开源 RSS master 不存在**（全仓 grep 无匹配；freezer 仅现于 init cfg）——TASK-6 门禁前置条件描述基于不存在的参数 | 中 | 全部 8 处替换为"产品含 freezer 执行插件（启用开关以产品配置为准）"；实际开关名列入 RSS 对齐问题 #8 | 已修正 |
+| F-24 | 遗漏前置 | **RSS 侧权限前置未记录**：505/517 上报需 TOKEN_NATIVE + `ohos.permission.REPORT_RESOURCE_SCHEDULE_EVENT`（res_sched_service.cpp:43/:273-300，foundation 已具备——AMS 既有上报先例佐证）；507 查询经 suspend_manager_base_client 另需 `ohos.permission.GET_SUSPEND_STATE`（suspend_manager_base_service.cpp:27/:39，**foundation 是否已配置待确认**）；520 需权限 5523（:214） | 中 | design §6.4 新增"RSS 侧权限前置"条目（三项全列）；rss-alignment.md #5 更新为实证结论 + 新增 GET_SUSPEND_STATE 确认项 | 已修正 |
+| F-25 | 清单不全 | StartAbilityInner 调用点清单不全：完整 13 处（…/:15241/:16359/:18349/:19367）+ implicit_start_processor.cpp:820 + preload_manager_service.cpp:111；第十三轮 F-11 修复时因 grep 截断**误删**了原文档正确的 :15241/:16359 | 低 | 场景 1 调用点清单恢复并补全（:15241=StartAbilityWithInsightIntent 意图收敛点、:16359=RestartApp、:18349=StartUIAbilityWithCallback、:19367=StartSandboxCloneAbility） | 已修正 |
+| F-26 | 命令语法 | "hidumper -a 501" 语法错误——实际为 `hidumper -s 501 -a "<选项>"`（SA dump 入口=AppMgrService::Dump(fd,args)，app_mgr_service.cpp:928） | 低 | design §7.2 / spec R-23 修正；补 HasDumpPermission 复用说明 | 已修正 |
+| F-27 | 路径惯例 | 测试目录路径不符仓惯例：test/unittest/ 为扁平命名（app_mgr_client_test 等先例），无 appmgr/ 子目录 | 低 | plan 全部测试路径改为扁平命名（task_mgr_test/、task_intercept_test/，与 `run -t UT -ts` 套件名一致） | 已修正 |
+| F-28 | 实证升级 | 20+ 项此前"待确认/推断"断言本轮实证（增强可信度）：master 插件仅 device_standby/frame_aware/socperf/cgroup_sched 且均不订阅 505/517/520（P1 结论坐实）；suspend_manager_base_client 随 ressched_client 交付（无独立 BUILD.gn）；ISuspendStateObserverBase 回调携带 pidList+uid；mmi observer 先例（suspend_state_manager.cpp:60-78，与 P5 本地缓存同构）；StandbyServiceClient::ApplyAllowResource/Unapply（standby_service_client.h:76/84）；PermissionVerification::IsSystemAppCall（:106/:108）；GetUserIdByUid(GetCallingUid())（app_mgr_service_inner.cpp:679）；AMSEventHandler:EventHandlerWrap（ADR-8 先例）；aa→AbilityManagerClient::StartAbility（ability_command.cpp:486）；IAgentManager.idl 15 方法；res_type.h 全部枚举值（8/23/66/92/93/134/155/170/215/221/505~520）；OnAbilityRequestDone（:8788）；child_process_record.cpp；RSS 进程管理规范文档存在；:895/:1145/:1156 行号准确；AMS→AppMS 经 samgr 代理 IPC（同进程，native token 信任锚成立）；appmgr BUILD.gn:159 ressched_client 为无条件依赖（proposal"resource_schedule_service_enable 条件"表述过时） | 信息 | 关键实证已落入 design §5.2.2/§5.4.1/§6.4/§7.2 与本表（其余以本行清单为准）；proposal 依赖表述修正 | 已记录 |
+
+### 结论
+
+第十四轮以代码实证复核发现 8 项（F-21~F-28：高 2 / 中 2 / 低 3 / 实证记录 1），已全部修复。两项高严重度均为**落地阻断级**：F-21（SA 承载机制——不补则 TASK-0 的 IPC 通路不通）、F-22（扩展启动覆盖缺口——不补则 ServiceExtension/UIExtension/Modal 扩展启动全部漏拦，A2A 与意图扩展场景受损）。开放项 O-1~O-6 维持；新增 RSS 对齐确认项：GET_SUSPEND_STATE 权限（foundation native token）、freezer 启用开关实际名称。
+
+---
+
+## 维护说明（原交接文档关键过程信息收口，2026-08-26）
+
+> 本特性历经十四轮评审（第一~十二轮见 proposal.md 讨论记录；第七/十三/十四轮审查见本文档），文档阶段收口，代码未启动（TASK-0 启动前置 = design/spec 评审通过，见 execution-plan.md）。
+
+**交付件导航**：proposal.md（需求基线与决策链）→ spec.md（AC/规则/接口规格）→ design.md（架构设计，重点 §5.2.2 SA 承载 / §5.4.1 五收敛点 / §6.4 RCP）→ execution-plan.md（TASK-0~6）→ 本文档（三轮审查记录 + 开放项 O-1~O-6）→ docs/（扩展场景分析 + 两份外部对齐材料）→ 三张 SVG。
+
+**文档变更后必做**：
+1. `grep -n '账本\|记账' *.md *.svg docs/*.md` 确认无新增残留（历史决策记录行除外——"内存登记"为 D-16 定稿术语，旧"账本"已废弃）；
+2. 在本目录执行 `ohos-sdd validate . --level c`（应 PASS；`--level all` 需归档证据，流程末端才可达，勿误报）；
+3. `git commit -s`（Signed-off-by 签名；push 由 owner 手动执行）。
+
+**术语陷阱**：N 指 SetTaskParams 续期次数上限（仅 priority 变化触发）；"动作日志断言"≠旧"账本断言"；master 环境 505/517/520 无消费者、507 恒返回未冻结——端到端验证会假成功（P1/F-23，TASK-6 门禁）；"CCM"为需求侧术语，本仓落地 = sysparam（.para + GetParameter，F-14）。
+
+**勿轻易推翻的决策**（变更须与需求方重开澄清并更新 proposal.md 变更控制）：模块形态（AppMS 收口，D-1）、防仿冒（B-1+B-2+通道鉴权 D-17）、RCP 代理层（ADR-4）、inner API（D-5）、SA 501 描述符路由（D-19）、五收敛点拦截（D-20）。

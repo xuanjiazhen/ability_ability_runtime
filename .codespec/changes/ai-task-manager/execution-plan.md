@@ -51,8 +51,8 @@
 | ability_ability_runtime | 构建 | `ability_runtime.gni` | 修改 | 新增特性开关 `ability_runtime_ai_task_manager_enable`（默认 true） |
 | ability_ability_runtime | 构建/配置 | `services/appmgr/etc/taskmanager.para`（新增） | 新增 | 可调参数定义（上限/时长/续期次数/探测开关，命名 `const.sys.appms.taskmanager.*`；sysparam 体系，F-14 补全；随 BUILD.gn 安装） |
 | ability_ability_runtime | 错误码 | `interfaces/inner_api/error_utils/include/ability_runtime_error_util.h`（或任务域新头文件） | 修改 | 新增任务域错误码段（5 个 + 复用 ERR_INVALID_PARAM） |
-| ability_ability_runtime | 测试 | `test/unittest/appmgr/task_mgr/`（新增） | 新增 | 任务管理单测（状态机/生命周期/权限/并发/档位合并/防仿冒） |
-| ability_ability_runtime | 测试 | `test/unittest/abilitymgr/`（新增拦截相关用例） | 新增 | 拦截点纳管集成用例（两段式） |
+| ability_ability_runtime | 测试 | `test/unittest/task_mgr_test/`（新增，F-27：扁平命名与仓惯例/套件名一致） | 新增 | 任务管理单测（状态机/生命周期/权限/并发/档位合并/防仿冒） |
+| ability_ability_runtime | 测试 | `test/unittest/task_intercept_test/`（新增拦截相关用例，F-27） | 新增 | 拦截点纳管集成用例（两段式） |
 
 **检查项：**
 - [x] design.md 调用链每一层都有对应文件列出（客户端/服务层 task_mgr/process_schedule/AMS 拦截/DFX/测试）
@@ -111,7 +111,7 @@
 | TASK-3 | 拦截纳管+防仿冒：**条件两段式**（进程已存在直接纳管/未创建意向+attach）、B-1 随机 taskId、B-2 caller 校验（含代理启动身份规则） | ability_manager_service.cpp、ability_connect_manager.cpp、task_manager_service（RegisterTaskIntent/Process）、集成用例 | AC-2.1~AC-2.5 | TASK-1 | 集成用例覆盖四链路（Start/Connect/意图/Cli）+ 代理启动变体（AsCaller/WithSpecifyTokenId）+ **已存在进程场景** + 仿冒拒绝；无 taskId 零影响回归 | `run -t UT -ts ability_manager_service_first_test` | 生产 ~950（AMS 拦截点 350 + 意向表/B-2 校验 500 + 死亡挂点 50 + 工具 50）；集成用例 ~900 |
 | TASK-4 | 管控与 ResourceControlProxy：档位合并、经代理施加/撤销豁免（一期骨架）、**NotifyTaskEnd 任务级清理通知**、降级恢复、上限防滥用（sysparam 参数化，F-14）、续期与到期处置（仅 priority 变化触发、N=3 默认可配）、进程死亡清理 | process_schedule_*、resource_control_proxy_*、task_mgr 联动、单测+集成 | AC-5.1~AC-5.5 | TASK-1, TASK-3 | 单测覆盖档位合并/降级/幂等/动作日志断言（含 NotifyTaskEnd 双通道时序、续期次数上限）；集成覆盖动作序列 | `run -t UT -ts task_mgr_test` | 生产 ~1,700（schedule_mgr 700 + policy 200 + types 80 + RCP 接口 100 + stub 300 + impl 占位 150 + 联动 200）；单测 ~1,000 |
 | TASK-5 | DFX：hisysevent 6 事件、dump、日志、错误码接入 | hisysevent.yaml、task_dfx、dump 入口 | AC-6.1~AC-6.2 | TASK-1~TASK-4 | 事件上报可检索；dump 输出任务全景 | 事件检索 + `hidumper -a 501` | 生产 ~630（task_dfx 400 + yaml 80 + 接入 150）；验证用例 ~300 |
-| TASK-6 | 验证收口：全量 AC 用例、真机锁屏/后台场景验证（锁屏豁免边界与 RSS owner 对齐；**前置（P1 代码勘察 2026-08-24）：产品含 freezer 执行器 + `const.taskmanager.low_memory_frozen_enable=true`——开源 master 无 505/517/520 消费者，端到端验证会假成功**） | test/ 全量 + 真机 | 全部 AC | TASK-1~TASK-5；RSS 对接（外部依赖）；真机端到端另需产品 freezer 环境 | 全量单测/集成通过；真机验证报告（锁屏定时任务、后台长时任务，须记录产品 freezer/开关配置）；master 上以 Stub 动作日志断言为基线 | `run -t UT -tp ability_runtime` | 用例补强 ~700（真机脚本/集成补强） |
+| TASK-6 | 验证收口：全量 AC 用例、真机锁屏/后台场景验证（锁屏豁免边界与 RSS owner 对齐；**前置（P1 代码勘察 2026-08-24）：产品含 freezer 执行插件（启用开关以产品配置为准，F-23 勘察修正：该参数在开源 master 不存在）——开源 master 无 505/517/520 消费者，端到端验证会假成功**） | test/ 全量 + 真机 | 全部 AC | TASK-1~TASK-5；RSS 对接（外部依赖）；真机端到端另需产品 freezer 环境 | 全量单测/集成通过；真机验证报告（锁屏定时任务、后台长时任务，须记录产品 freezer/开关配置）；master 上以 Stub 动作日志断言为基线 | `run -t UT -tp ability_runtime` | 用例补强 ~700（真机脚本/集成补强） |
 
 > 规模预估：C++ 行数（含头文件），±20% 误差；IDL 生成物（stub/proxy 本体）由构建生成不计入；不含 RSS 真实对接（ResourceControlProxyImpl 落地，RSS 团队明确后另估 ~300~500 行）与二期扩展（QoS 提权 221/低内存查杀 520/线程级 RTG/NAPI）。合计：生产 ~6,600 行 + 单测 ~4,300 行 ≈ 1.1 万行；单人开发约 4~6 周（骨架 1~2 天 → 核心 5~7 天 → 拦截 3~4 天 → 管控 4~5 天 → DFX 2 天 → 联调/真机 3~5 天，单测贯穿）。
 
@@ -121,12 +121,12 @@
 
 | 字段 | 内容 |
 |------|------|
-| 任务目标 | IDL 定义 + stub/proxy 生成 + TaskManagerClient/TaskListener + appmgr BUILD.gn/gni/error_utils 接入，编译通过 |
+| 任务目标 | IDL 定义 + stub/proxy 生成 + TaskManagerClient/TaskListener + **SA 501 描述符路由承载（F-21：AppMgrService 覆写 OnRemoteRequest，ITaskManager 描述符请求委托 TaskManagerService 桩，IAppMgr 行为零改动；design §5.2.2）** + appmgr BUILD.gn/gni/error_utils 接入，编译通过 |
 | 规模预估 | 生产 ~1,000 行（IDL 150 + stub 分发 300 + 客户端 350 + listener 60 + BUILD/gni/error 130）；无单测 |
 | AC 映射 | 骨架（对应 AC-1.1 可调用的接口存在） |
 | 前置依赖 | design.md、spec.md 评审通过 |
 | 非目标 | 无业务逻辑 |
-| 完成判据 | `./build.sh --build-target libappms` 编译通过；stub/proxy/客户端头文件生成 |
+| 完成判据 | `./build.sh --build-target libappms` 编译通过；stub/proxy/客户端头文件生成；**ITaskManager 代理经 SA 501 可达 TaskManagerService（最小 IPC 用例，F-21）** |
 | 停止条件 | IDL 编译错误无法定位；接口结构与 design 不一致需先回 design 评审 |
 
 **Files**
@@ -134,9 +134,10 @@
 | 操作 | 文件 | 说明 |
 |------|------|------|
 | 新增 | `interfaces/inner_api/app_manager/task_manager/ITaskManager.idl` | 13 个方法 + 3 个 struct（TaskCreateParams/TaskParams/TaskInfo）+ ITaskListener 回调接口（task_listener.h，IRemoteBroker 手写，design 5.2 节；F-19 修正） |
-| 新增 | `interfaces/inner_api/app_manager/task_manager/include/task_manager_client.h` + `src/task_manager_client.cpp` | 客户端（含 AMS 内部调用入口） |
+| 新增 | `interfaces/inner_api/app_manager/task_manager/include/task_manager_client.h` + `src/task_manager_client.cpp` | 客户端（含 AMS 内部调用入口；GetSystemAbility(501)+iface_cast<ITaskManager>，design §5.2.2） |
 | 新增 | `interfaces/inner_api/app_manager/task_manager/include/task_listener.h` | ITaskListener 回调 |
 | 新增 | `interfaces/inner_api/app_manager/task_manager/BUILD.gn` | IDL 生成 + 客户端组件 |
+| 修改 | `services/appmgr/src/app_mgr_service.cpp` + `include/app_mgr_service.h` | **OnRemoteRequest 描述符路由（F-21：ITaskManager 描述符 → TaskManagerService 桩分发；IAppMgr 零改动）** |
 | 修改 | `services/appmgr/BUILD.gn` | 接入新组件依赖 |
 | 修改 | `ability_runtime.gni` | 新增 `ability_runtime_ai_task_manager_enable`（默认 true） |
 | 修改 | `interfaces/inner_api/error_utils/include/ability_runtime_error_util.h` | 任务域错误码段 |
@@ -160,7 +161,7 @@
 | 新增 | `services/appmgr/include/task_mgr/task_record.h` + `src/task_mgr/task_record.cpp` | TaskRecord 存储与查询 |
 | 新增 | `services/appmgr/include/task_mgr/task_state_machine.h` + `src/task_mgr/task_state_machine.cpp` | CanTransition + 创建者校验 |
 | 新增 | `services/appmgr/include/task_mgr/task_manager_service.h` + `src/task_mgr/task_manager_service.cpp` | stub 实现：CreateTask/DestroyTask/CancelTask/SetTaskState/SetTaskParams；系统应用鉴权；taskHandler 串行 |
-| 新增 | `test/unittest/appmgr/task_mgr/task_manager_service_test.cpp` 等 | 单测 |
+| 新增 | `test/unittest/task_mgr_test/task_manager_service_test.cpp` 等（F-27） | 单测 |
 
 ### TASK-2: 查询/监听/交互
 
@@ -180,13 +181,13 @@
 |------|------|------|
 | 新增 | `services/appmgr/include/task_mgr/task_listener_manager.h` + `src/task_mgr/task_listener_manager.cpp` | 注册表/派发/DeathRecipient |
 | 修改 | `services/appmgr/src/task_mgr/task_manager_service.cpp` | GetTaskInfo(s)/Register/Unregister/SubmitTaskInput 实现 |
-| 新增 | `test/unittest/appmgr/task_mgr/task_listener_test.cpp` | 单测 |
+| 新增 | `test/unittest/task_mgr_test/task_listener_test.cpp`（F-27） | 单测 |
 
 ### TASK-3: 拦截纳管与防仿冒
 
 | 字段 | 内容 |
 |------|------|
-| 任务目标 | AMS 启动/连接链路拦截：解析 `ohos.ai.taskId` → 两段式（RegisterTaskIntent 意向 + attach 后 RegisterTaskProcess）；B-2 caller 身份校验（creatorTokenId ∪ 纳管进程 tokenId）；意向超时清理；无 taskId 零开销（R-13）；仿冒拒绝不阻断启动（R-8） |
+| 任务目标 | AMS 启动/连接链路拦截：解析 `ohos.ai.taskId` → 两段式（RegisterTaskIntent 意向 + attach 后 RegisterTaskProcess）；**拦截点①共 5 处收敛点（F-22 修正，design §5.4.1）：StartAbilityInner(:1360) / StartExtensionAbilityInner(:4656) / StartUIExtensionAbility(:4989) / RequestModalUIExtensionInner(:4508) / ConnectAbilityCommon(:6063)，共用同一解析/上报辅助函数**；B-2 caller 身份校验（creatorTokenId ∪ 纳管进程 tokenId）+ 通道鉴权（F-8）；意向超时清理；无 taskId 零开销（R-13）；仿冒拒绝不阻断启动（R-8） |
 | 规模预估 | 生产 ~950（AMS 拦截点 350 + 意向表/B-2 校验 500 + 死亡挂点 50 + 工具 50）；集成用例 ~900 |
 | AC 映射 | AC-2.1, AC-2.2, AC-2.3, AC-2.4, AC-2.5 |
 | 前置依赖 | TASK-1 |
@@ -198,11 +199,11 @@
 
 | 操作 | 文件 | 说明 |
 |------|------|------|
-| 修改 | `services/abilitymgr/src/ability_manager_service.cpp` | StartAbilityInner 拦截点① |
-| 修改 | `services/abilitymgr/src/ability_connect_manager.cpp` | Connect 链路拦截点① + attach 拦截点② |
-| 修改 | `services/appmgr/src/task_mgr/task_manager_service.cpp` | RegisterTaskIntent/RegisterTaskProcess/UnregisterTaskProcess + B-2 校验 |
+| 修改 | `services/abilitymgr/src/ability_manager_service.cpp` | 拦截点①：StartAbilityInner + StartExtensionAbilityInner + StartUIExtensionAbility + RequestModalUIExtensionInner + ConnectAbilityCommon（F-22，5 收敛点共用辅助函数） |
+| 修改 | `services/abilitymgr/src/ability_connect_manager.cpp` | attach 拦截点②（pid 就绪 → RegisterTaskProcess） |
+| 修改 | `services/appmgr/src/task_mgr/task_manager_service.cpp` | RegisterTaskIntent/RegisterTaskProcess/UnregisterTaskProcess + B-2 校验 + 通道鉴权（F-8） |
 | 修改 | `services/appmgr/` 进程死亡通知挂点 | OnProcessDied 接入 |
-| 新增 | `test/unittest/abilitymgr/task_intercept_test.cpp` | 集成用例 |
+| 新增 | `test/unittest/task_intercept_test/`（F-27：扁平命名，与套件名一致） | 集成用例 |
 
 ### TASK-4: RSS 管控（资源调度子模块）
 
@@ -228,7 +229,7 @@
 | 新增 | `services/appmgr/include/resource_control_proxy/resource_control_proxy_stub.h` + `src/resource_control_proxy/resource_control_proxy_stub.cpp` | 一期骨架（内存登记+日志+告警+探测开关） |
 | 新增 | `services/appmgr/include/resource_control_proxy/resource_control_proxy_impl.h` + `src/resource_control_proxy/resource_control_proxy_impl.cpp` | 对接实现占位（条件编译，RSS 明确后落地） |
 | 修改 | `services/appmgr/src/task_mgr/task_manager_service.cpp` | 状态/生命周期事件联动 process_schedule |
-| 新增 | `test/unittest/appmgr/task_mgr/process_schedule_test.cpp` | 单测（动作日志断言 + 桩 ResourceControlProxy） |
+| 新增 | `test/unittest/task_mgr_test/process_schedule_test.cpp`（F-27） | 单测（动作日志断言 + 桩 ResourceControlProxy） |
 
 ### TASK-5: DFX 与错误码
 
@@ -255,12 +256,12 @@
 
 | 字段 | 内容 |
 |------|------|
-| 任务目标 | 全量 AC 用例执行；真机场景验证：锁屏定时任务执行成功、后台长时任务不被冻结、任务结束后进程恢复原调度；**依赖 RSS 对接完成（ResourceControlProxyImpl 落地 + RSS 团队评审），对接前以 ResourceControlProxyStub 动作日志断言作为模块级验证基线**；**真机端到端前置条件（P1 代码勘察 2026-08-24）**：目标产品须含 freezer 执行插件且 `const.taskmanager.low_memory_frozen_enable=true`——开源 master 上 505/517/520 无消费插件、507 恒返回未冻结，端到端豁免验证会"假成功"，master 环境仅能以动作日志断言为基线 |
+| 任务目标 | 全量 AC 用例执行；真机场景验证：锁屏定时任务执行成功、后台长时任务不被冻结、任务结束后进程恢复原调度；**依赖 RSS 对接完成（ResourceControlProxyImpl 落地 + RSS 团队评审），对接前以 ResourceControlProxyStub 动作日志断言作为模块级验证基线**；**真机端到端前置条件（P1 代码勘察 2026-08-24）**：目标产品须含 freezer 执行插件（启用开关以产品配置为准，F-23）——开源 master 上 505/517/520 无消费插件、507 恒返回未冻结，端到端豁免验证会"假成功"，master 环境仅能以动作日志断言为基线 |
 | 规模预估 | 用例补强 ~700（真机脚本/集成补强） |
 | AC 映射 | 全部 AC（AC-1.1~AC-6.2） |
-| 前置依赖 | TASK-1~TASK-5；RSS 对接（ResourceControlProxyImpl，外部依赖）；真机端到端另需产品镜像含 freezer 执行器且 `const.taskmanager.low_memory_frozen_enable=true` |
+| 前置依赖 | TASK-1~TASK-5；RSS 对接（ResourceControlProxyImpl，外部依赖）；真机端到端另需产品镜像含 freezer 执行插件（启用开关以产品配置为准，F-23） |
 | 非目标 | 二期能力（QoS 提权/520/线程级） |
-| 完成判据 | `run -t UT -tp ability_runtime` 通过；真机验证报告含锁屏/后台场景结果（对接完成后）或模块级动作日志断言结果（对接前，标注开放项）；**真机报告须记录所用产品形态的 freezer 执行器与 `low_memory_frozen_enable` 配置（防 master 环境假成功）**；RSS 对齐结论记录 |
+| 完成判据 | `run -t UT -tp ability_runtime` 通过；真机验证报告含锁屏/后台场景结果（对接完成后）或模块级动作日志断言结果（对接前，标注开放项）；**真机报告须记录所用产品形态的 freezer 执行插件与启用开关配置（防 master 环境假成功）**；RSS 对齐结论记录 |
 | 停止条件 | RSS 对接未就绪且真机场景不可达 → 输出模块级验证结论与对接待办清单 |
 
 **Files**

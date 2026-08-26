@@ -108,8 +108,9 @@
 
   <rect x="880" y="1018" width="660" height="360" rx="14" fill="#fffbf2" stroke="#fec84b" stroke-width="2"/>
   <text x="1210" y="1048" font-size="18" font-weight="700" fill="#b54708" text-anchor="middle">修改（最小化）</text>
-  <text x="910" y="1080" font-size="14" fill="#667085">· services/abilitymgr —— StartAbilityInner / ConnectAbility 拦截点</text>
-  <text x="930" y="1106" font-size="12.5" fill="#98a2b3">  解析 ohos.ai.taskId → 条件两段式纳管（失败不阻断启动）</text>
+  <text x="910" y="1080" font-size="14" fill="#667085">· services/abilitymgr —— 5 收敛点拦截（StartAbilityInner / StartExtensionAbilityInner /</text>
+  <text x="910" y="1104" font-size="14" fill="#667085">  StartUIExtensionAbility / RequestModalUIExtensionInner / ConnectAbilityCommon）</text>
+  <text x="930" y="1128" font-size="12.5" fill="#98a2b3">  解析 ohos.ai.taskId → 条件两段式纳管（失败不阻断启动）</text>
   <text x="910" y="1140" font-size="14" fill="#667085">· services/appmgr/BUILD.gn —— 新增源文件（ressched_client 依赖已有）</text>
   <text x="910" y="1170" font-size="14" fill="#667085">· services/appmgr 主类 OnStart —— 最小挂点（taskHandler 初始化）</text>
   <text x="910" y="1200" font-size="14" fill="#667085">· 进程死亡通知链 —— 复用既有 AppDeathRecipient（最小挂点）</text>

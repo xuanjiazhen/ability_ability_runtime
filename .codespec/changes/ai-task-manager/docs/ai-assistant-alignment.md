@@ -74,4 +74,4 @@
 | Q-12 | 交互超时行为 | INPUT/AUTH 态默认 30min 超时 → OnTaskNotice(INTERACTIVE_TIMEOUT, {deadline}) 限期处置（宽限 5min）→ 仍未流转则模块主动降档撤销豁免 + 告警 | 确认助手能响应 INTERACTIVE_TIMEOUT（重设状态/取消/续交互），否则任务将被降档 |
 
 ---
-*对齐结论处理：Q-1~Q-8 结论回写 design.md §4.1（枚举冻结）；Q-9~Q-12 结论回写 design.md §5.2.1/§5.5。关联：HANDOVER.md §7 开放项 O-1。*
+*对齐结论处理：Q-1~Q-8 结论回写 design.md §4.1（枚举冻结）；Q-9~Q-12 结论回写 design.md §5.2.1/§5.5。关联：review-analysis.md 开放项 O-1。*

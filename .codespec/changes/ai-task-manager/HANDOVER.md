@@ -1,7 +1,7 @@
 # 交接文档：AI 语音助手任务管理机制（AI Task Manager）
 
 > 供后续 AI/工程师接手。目标：不依赖上下文对话即可继续分析与开发。
-> 生成时间：2026-08-22 · 最近更新：2026-08-26（第十三轮自审后全量刷新）· 当前进度：SDD 文档阶段（设计评审第十三轮），**尚未开始写代码**。
+> 生成时间：2026-08-22 · 最近更新：2026-08-26（第十四轮代码实证复核后全量刷新）· 当前进度：SDD 文档阶段（设计评审第十四轮），**尚未开始写代码**。
 
 ---
 
@@ -31,7 +31,7 @@
 ├── spec.md                  # 特性规格：US-1~6 + AC-1.1~AC-6.2 + 规则 R-1~R-24 + 接口行为规格
 ├── design.md                # 架构设计：任务模型/状态机/模块设计/RSS 细化/防仿冒/拦截点 + ADR-1~9
 ├── execution-plan.md        # 执行计划：TASK-0~6 + 文件全量清单 + AC 追溯 + 代码量估算
-├── review-analysis.md       # 第七轮深度审查（F-1~F-7）+ 第十三轮自审（F-8~F-20）修正记录
+├── review-analysis.md       # 第七轮深度审查（F-1~F-7）+ 第十三轮自审（F-8~F-20）+ 第十四轮代码实证复核（F-21~F-28）修正记录
 ├── docs/
 │   ├── extension-analysis.md      # 扩展场景分析（A/B/C 三层 + 三不碰边界，二期规划输入）
 │   ├── rss-alignment.md           # RSS 团队对齐问题清单（O-2/O-3/O-5/O-6，P0 必答项标注）
@@ -55,7 +55,7 @@ ohos-sdd validate . --level c
 
 ---
 
-## 3. 关键决策汇总（十三轮评审固化，勿轻易推翻）
+## 3. 关键决策汇总（十四轮评审固化，勿轻易推翻）
 
 | # | 决策 | 结论 |
 |---|------|------|
@@ -77,6 +77,8 @@ ohos-sdd validate . --level c
 | D-16 | 豁免记录 | "动作账本"降级为**内存登记**（第十一轮）：不持久化、仅活跃任务 {taskId, pid, action, level, timestamp, result}，单一职责=RSS 重启重放（P4）+撤销重试，随 AppMS 进程消亡（与 C-1 一致）；计时/续期计数为 TaskRecord 内存态；审计/验收/定位/复核一律走 TASK_RSSCONTROL+hilog 日志，对账基线=动作日志序列 |
 | D-17 | 通道鉴权（F-8，第十三轮） | RegisterTaskIntent/RegisterTaskProcess 可被系统应用直调（callerTokenId 为 IPC 入参非通道派生）→ **四规则**：① foundation native 调用方信任入参身份（AMS 转发）；② 非 native 调用方入参 callerTokenId 必须等于 IPC 实际身份（杜绝自报他人）；③ 直调路径 pid 归属校验（uid 一致或 pid 已在任务内）；④ 拒绝返回 ERR_TASK_PERMISSION_DENIED 不透传应用侧。与 D-4 互补，B-2 仿冒面闭环 |
 | D-18 | payload 更新通知（F-9，第十三轮） | SetTaskParams 的 payload 变化经 OnTaskNotice(**PAYLOAD_UPDATED**) 派发已注册监听者（R-14 状态回调仅覆盖状态变更）——支撑 US-3 进度实时展示；noticeType 全集 = INPUT_ARRIVED / PAYLOAD_UPDATED / INTERACTIVE_TIMEOUT / EXEMPT_EXPIRING / EXEMPT_EXPIRED |
+| D-19 | SA 501 承载机制（F-21，第十四轮） | ITaskManager 经 **AppMgrService::OnRemoteRequest 描述符路由**挂载 SA 501（AppMgrStub 既有描述符校验会拒绝非 IAppMgr 请求，app_mgr_stub.cpp:57-62）：命中 ITaskManager 描述符 → 委托 TaskManagerService 桩内部分发；IAppMgr 行为零改动；客户端 GetSystemAbility(501)+iface_cast；否决同进程新 SA ID（与 D-1 冲突）——design §5.2.2 |
+| D-20 | 拦截点收敛集（F-22，第十四轮） | 拦截点①共 **5 收敛点**：StartAbilityInner(:1360) / StartExtensionAbilityInner(:4656) / StartUIExtensionAbility(:4989) / RequestModalUIExtensionInner(:4508) / ConnectAbilityCommon(:6063)——扩展启动（ServiceExtension/UIExtension/Modal）均**不**经 StartAbilityInner，须分别挂点；共用同一 Want 解析/身份判定/上报辅助函数 |
 
 ---
 
@@ -104,11 +106,12 @@ else                → RegisterTaskIntent(taskId, callerTokenId)          // �
 ```
 
 **启动链路 12 场景覆盖**（design.md §5.4.1，含 file:line 证据）：
-- 所有 Start 变体收敛 `StartAbilityInner`（ability_manager_service.cpp:1360）——含 FreeInstall(:876) / WithSpecifyTokenId(:1013) / AsCaller(:1195) 代理启动（校验身份取业务发起方）
-- Connect 收敛 `AbilityConnectManager`；意图/Cli/A2A 天然覆盖（A2A 经 agentmgr→AMS ConnectAbilityWithExtensionType）
+- Start 变体收敛 `StartAbilityInner`（ability_manager_service.cpp:1360；调用点 13 处：:807/:876/:928/:1013/:1130/:1195/:2372/:14183/:14777/:15241/:16359/:18349/:19367 + implicit_start_processor.cpp:820 + preload_manager_service.cpp:111）——含 FreeInstall(:876) / WithSpecifyTokenId(:895/:1013) / AsCaller(:1145/:1156/:1195) 代理启动（校验身份取业务发起方）/ InsightIntent(:15241) / RestartApp(:16359)
+- **扩展启动三独立路径（F-22，第十四轮）**：StartServiceExtensionAbility→StartExtensionAbilityInner(:4656)；StartUIExtensionAbility(:4989，Want 在 SessionInfo)；RequestModalUIExtension→RequestModalUIExtensionInner(:4508)——**均不经 StartAbilityInner，拦截点①共 5 收敛点**（D-20）
+- Connect 收敛 `ConnectAbilityCommon`（:6063；ConnectAbilityWithExtensionType 为客户端方法 ability_manager_client.cpp:686）；A2A 经 agentmgr→AMS ConnectAbilityCommon（VerifyAgentConnectRequest 先例 ~:6094）
 - 后台拉起（WorkScheduler）/卡片启动：无 taskId，**不纳管**（原则）
 - 子进程派生（ChildProcess）：扩展场景（开放项 O-4）
-- 已核实：`AbilityRecord::GetPid()` 可得（ability_connect_manager.cpp:327）
+- 已核实：`AbilityRecord::GetPid()` 可得（ability_connect_manager.cpp:327）；**pid 仅 attach 时设置**（ability_record.cpp:1096 SetScheduler 内 SetPid，全库唯一路径——F-11）
 
 ### 4.3 进程纳管原则（F-3）
 
@@ -180,6 +183,15 @@ CreateTask / DestroyTask / CancelTask / SetTaskState / SetTaskParams / GetTaskIn
 | EDS 接口核实（P7） | `device_standby/interfaces/innerkits/IStandbyService.idl:22-25`（ApplyAllowResource:22 / UnapplyAllowResource:23 / GetAllowList:24） |
 | 本仓参数体系惯例（F-14） | sysparam：`services/abilitymgr/etc/appfwk.para`（.para 定义先例）+ `OHOS::system::Get*Parameter`（app_running_manager.cpp:1145 读取先例）；无 CCM 实现——taskmanager.para 随 TASK-4 新增 |
 | 505/517 payload 先例 | `services/common/src/res_sched_util.cpp:228-234`（THAW_ONE_APP payload：uid/pid/bundleName/reason/callerPid） |
+| **AppMgrStub 描述符校验（F-21 证据）** | `interfaces/inner_api/app_manager/src/appmgr/app_mgr_stub.cpp:57-62`（非 IAppMgr 描述符请求被拒）→ ITaskManager 须 AppMgrService::OnRemoteRequest 路由（design §5.2.2） |
+| **扩展启动独立路径（F-22 证据）** | StartExtensionAbilityInner(:4656) / StartUIExtensionAbility(:4989) / RequestModalUIExtensionInner(:4508)——均不经 StartAbilityInner |
+| **RSS 上报权限模型（F-24 实证）** | 505/517：TOKEN_NATIVE + `REPORT_RESOURCE_SCHEDULE_EVENT`（res_sched_service.cpp:43/:273-300；foundation 已具备）；507 专用入口另需 `GET_SUSPEND_STATE`（suspend_manager_base_service.cpp:27/:39，foundation 配置待确认）；520 需权限 5523（:214） |
+| **master 插件全景（P1 坐实）** | RSS 开源插件仅 device_standby/frame_aware/socperf/cgroup_sched，均不订阅 505/517/520；`low_memory_frozen_enable` 参数不存在（F-23） |
+| suspend observer 通道 | `ISuspendStateObserverBase.idl`（OnFrozen/OnActive/OnDoze(pidList,uid) oneway）；mmi 先例 `multimodalinput/input/service/suspend_state_manager/src/suspend_state_manager.cpp:60-78`（frozen pid 本地缓存，与 P5 同构）；suspend_manager_base_client 随 ressched_client 交付（无独立 BUILD.gn） |
+| EDS 客户端 | `device_standby/interfaces/innerkits/include/standby_service_client.h:76/84`（ApplyAllowResource/UnapplyAllowResource） |
+| 系统应用校验/用户推导/事件处理器先例 | PermissionVerification::IsSystemAppCall（permission_verification.h:106/:108）；GetUserIdByUid(GetCallingUid())（app_mgr_service_inner.cpp:679）；AMSEventHandler:EventHandlerWrap（app_mgr_service_event_handler.h:28） |
+| SA dump 入口 | AppMgrService::Dump(fd,args)（app_mgr_service.cpp:928）；调用语法 `hidumper -s 501 -a "<选项>"`（F-26） |
+| 测试目录惯例 | test/unittest/ 扁平命名（app_mgr_client_test 等先例，无 appmgr/ 子目录，F-27） |
 
 ---
 
@@ -220,11 +232,11 @@ CreateTask / DestroyTask / CancelTask / SetTaskState / SetTaskParams / GetTaskIn
 
 ## 9. 后续 AI 接手指引
 
-1. **先读**：`.codespec/changes/ai-task-manager/proposal.md`（基线与决策记录，含 2026-08-26 第十三轮补录）→ `design.md`（设计全貌）→ `spec.md`（AC/规则）→ `execution-plan.md`（任务分解）→ `review-analysis.md`（第七轮 F-1~F-7 + 第十三轮 F-8~F-20 修正记录）
+1. **先读**：`.codespec/changes/ai-task-manager/proposal.md`（基线与决策记录，含 2026-08-26 第十三/十四轮补录）→ `design.md`（设计全貌，**重点 §5.2.2 SA 承载机制与 §5.4.1 五收敛点**）→ `spec.md`（AC/规则）→ `execution-plan.md`（任务分解）→ `review-analysis.md`（第七轮 F-1~F-7 + 第十三轮 F-8~F-20 + 第十四轮 F-21~F-28 修正记录）
 2. **再看图**：三张 SVG（总览/模块设计/流程）
 3. **外部对齐**：docs/rss-alignment.md（RSS 团队，O-2/O-3/O-5/O-6）+ docs/ai-assistant-alignment.md（AI 助手团队，O-1）已备好，可直接发出；结论回写 design §4.1/§5 后冻结
 4. **二期规划输入**：docs/extension-analysis.md（A/B/C 三层扩展场景 + 三不碰边界）
-5. **如需写代码**：确认设计评审通过后从 TASK-0 开始（IDL + 骨架），每 Task 的 Files/完成判据/验证命令见 execution-plan.md；TASK-3 需覆盖通道鉴权用例（F-8：非 native 自报身份拒绝、pid 归属不符拒绝）
+5. **如需写代码**：确认设计评审通过后从 TASK-0 开始（IDL + 骨架 + **SA 501 描述符路由**），每 Task 的 Files/完成判据/验证命令见 execution-plan.md；TASK-3 需覆盖通道鉴权用例（F-8）与 5 收敛点拦截用例（F-22，含扩展启动三路径）
 6. **提交规范**：`-s` 签名 + `Co-Authored-By: Claude <noreply@anthropic.com>`；每阶段完成跑 ohos-sdd validate
 7. **勿推翻的决策**：模块形态（AppMS）、防仿冒（B-1+B-2+通道鉴权 D-17）、RCP 代理层、inner API——若要变更须与需求方重开澄清并更新 proposal.md（变更控制规则）
 
