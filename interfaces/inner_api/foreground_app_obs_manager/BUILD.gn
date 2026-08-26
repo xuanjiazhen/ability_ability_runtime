@@ -20,6 +20,7 @@ config("foreground_app_obs_manager_public_config") {
   visibility = [ ":*" ]
   visibility += [
     "${ability_runtime_test_path}/unittest/foreground_app_connection_test/*",
+    "${ability_runtime_test_path}/fuzztest/*",
   ]
   include_dirs = [
     "include",

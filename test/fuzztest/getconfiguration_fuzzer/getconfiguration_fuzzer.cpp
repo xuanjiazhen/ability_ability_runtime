@@ -40,7 +40,8 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     }
 
     Configuration config;
-    if (!config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE, reinterpret_cast<const char*>(data))) {
+    std::string language(data, size);
+    if (!config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE, language)) {
         return false;
     }
 

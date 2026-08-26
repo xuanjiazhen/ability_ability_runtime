@@ -14,6 +14,7 @@
  */
 
 #include "abilityinterfacesappmgrrenderstateobserverstub_fuzzer.h"
+#include "fuzz_util.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -34,7 +35,6 @@ namespace OHOS {
 namespace {
 constexpr size_t STRING_MAX_LENGTH = 128;
 }
-const std::u16string IR_ENDER_STATE_OBSERVER_TOKEN = u"ohos.appexecfwk.IRenderStateObserver";
 class RenderStateObserverStubFUZZ : public RenderStateObserverStub {
 public:
     explicit RenderStateObserverStubFUZZ() {};
@@ -52,7 +52,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     MessageParcel reply;
     MessageOption option;
     FuzzedDataProvider fdp(data, size);
-    parcel.WriteInterfaceToken(IR_ENDER_STATE_OBSERVER_TOKEN);
+    parcel.WriteInterfaceToken(FuzzUtil::Tokens::RENDER_STATE_OBSERVER);
     parcel.WriteString(fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH));
     parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
     parcel.RewindRead(0);

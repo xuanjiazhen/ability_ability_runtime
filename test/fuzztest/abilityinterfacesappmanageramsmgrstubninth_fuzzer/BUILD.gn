@@ -24,7 +24,10 @@ ohos_fuzztest("AbilityInterfacesAppManagerAmsMgrStubNinthFuzzTest") {
 
   cflags_cc = []
   fuzz_config_file = "${ability_runtime_test_path}/fuzztest/abilityinterfacesappmanageramsmgrstubninth_fuzzer"
-  include_dirs = [ "${ability_runtime_services_path}/appmgr/include" ]
+  include_dirs = [
+    "${ability_runtime_services_path}/appmgr/include",
+    "${ability_runtime_test_path}/fuzztest/common",
+  ]
   cflags = [
     "-g",
     "-O0",

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,7 @@
  */
 
 #include "abilityinterfacesappmgrnativechildnotifystub_fuzzer.h"
+#include "fuzz_util.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -44,7 +45,6 @@ constexpr size_t OFFSET_ONE = 16;
 constexpr size_t OFFSET_TWO = 8;
 constexpr uint8_t ENABLE = 2;
 }
-const std::u16string NATIVE_CHILD_NOTIFY_TOKEN = u"ohos.appexecfwk.NativeChildNotify";
 uint32_t GetU32Data(const char* ptr)
 {
     // convert fuzz input data to an integer
@@ -81,7 +81,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
 {
     uint32_t code = static_cast<uint32_t>(INativeChildNotify::IPC_ID_ON_NATIVE_CHILD_STARTED);
     MessageParcel parcel;
-    parcel.WriteInterfaceToken(NATIVE_CHILD_NOTIFY_TOKEN);
+    parcel.WriteInterfaceToken(FuzzUtil::Tokens::NATIVE_CHILD_NOTIFY);
     parcel.WriteBuffer(data, size);
     parcel.RewindRead(0);
     MessageParcel reply;

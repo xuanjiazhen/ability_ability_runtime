@@ -27,6 +27,11 @@ ohos_fuzztest("AppManagerFuzzTest") {
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
     "${ability_runtime_services_path}/appmgr/include",
     "${ability_runtime_innerkits_path}/app_manager/include",
+
+
+      "${ability_runtime_test_path}/fuzztest/common",
+
+
   ]
   cflags = [
     "-g",

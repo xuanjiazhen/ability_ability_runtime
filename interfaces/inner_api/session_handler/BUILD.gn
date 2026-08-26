@@ -24,6 +24,7 @@ config("session_handler_public_config") {
 
 config("session_handler_config") {
   visibility = [ ":*" ]
+  visibility += [ "${ability_runtime_test_path}/fuzztest/*" ]
 
   include_dirs = [
     "include",

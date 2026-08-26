@@ -16,7 +16,10 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 config("uripermkit_public_config") {
   visibility = [ ":*" ]
-  visibility += [ "${ability_runtime_test_path}/unittest/*" ]
+  visibility += [
+    "${ability_runtime_test_path}/unittest/*",
+    "${ability_runtime_test_path}/fuzztest/*",
+  ]
   include_dirs = [
     "include",
     "${ability_runtime_services_path}/uripermmgr/include",

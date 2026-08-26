@@ -44,7 +44,7 @@ sptr<Token> GetFuzzAbilityToken(FuzzedDataProvider *fdp)
 
 bool DoSomethingInterestingWithMyAPI(FuzzedDataProvider *fdp)
 {
-    AppMgrClient* appMgrClient = new AppMgrClient();
+    std::shared_ptr<AppMgrClient> appMgrClient = std::make_shared<AppMgrClient>();
     if (!appMgrClient) {
         return false;
     }
@@ -59,11 +59,6 @@ bool DoSomethingInterestingWithMyAPI(FuzzedDataProvider *fdp)
     if (appMgrClient->UpdateExtensionState(token, state) != AppMgrResultCode::RESULT_OK) {
         return false;
     }
-    if (appMgrClient) {
-        delete appMgrClient;
-        appMgrClient = nullptr;
-    }
-    
     return true;
 }
 }

@@ -24,7 +24,13 @@ ohos_fuzztest("AbilityInterfacesAppMgrNativeChildNotifyProxyFuzzTest") {
 
   cflags_cc = []
   fuzz_config_file = "${ability_runtime_test_path}/fuzztest/abilityinterfacesappmgrnativechildnotifyproxy_fuzzer"
-  include_dirs = [ "${ability_runtime_services_path}/appmgr/include" ]
+  include_dirs = [
+
+      "${ability_runtime_services_path}/appmgr/include",
+
+      "${ability_runtime_test_path}/fuzztest/common",
+
+  ]
   cflags = [
     "-g",
     "-O0",
