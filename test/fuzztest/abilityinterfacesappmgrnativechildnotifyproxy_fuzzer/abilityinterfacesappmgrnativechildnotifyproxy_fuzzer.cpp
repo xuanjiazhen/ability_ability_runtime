@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,9 +23,9 @@
 #include "native_child_notify_interface.h"
 #undef private
 
-#include "securec.h"
-#include "parcel.h"
 #include "ability_record.h"
+#include "parcel.h"
+#include "securec.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;
@@ -42,7 +42,6 @@ constexpr size_t OFFSET_ONE = 16;
 constexpr size_t OFFSET_TWO = 8;
 constexpr uint8_t ENABLE = 2;
 }
-const std::u16string AMSMGR_INTERFACE_TOKEN = u"ohos.appexecfwk.IAmsMgr";
 uint32_t GetU32Data(const char* ptr)
 {
     // convert fuzz input data to an integer
@@ -73,11 +72,11 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     int32_t errCode = static_cast<int32_t>(GetU32Data(data));
     infosProxy->OnError(errCode);
     MessageParcel parcel;
-    parcel.WriteInterfaceToken(AMSMGR_INTERFACE_TOKEN);
+    parcel.WriteInterfaceToken(FuzzUtil::Tokens::AMS_MGR);
     parcel.WriteBuffer(data, size);
     parcel.RewindRead(0);
     MessageParcel parcels;
-    parcels.WriteInterfaceToken(AMSMGR_INTERFACE_TOKEN);
+    parcels.WriteInterfaceToken(FuzzUtil::Tokens::AMS_MGR);
     parcels.WriteBuffer(data, size);
     parcels.RewindRead(0);
     infosProxy->WriteInterfaceToken(parcels);
@@ -124,4 +123,3 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     ch = nullptr;
     return 0;
 }
-

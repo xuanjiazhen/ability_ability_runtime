@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,9 +24,9 @@
 #include "child_scheduler_interface.h"
 #undef private
 
-#include "securec.h"
-#include "parcel.h"
 #include "ability_record.h"
+#include "parcel.h"
+#include "securec.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;
@@ -35,7 +35,6 @@ namespace OHOS {
 namespace {
 constexpr size_t STRING_MAX_LENGTH = 128;
 }
-const std::u16string CHILD_SCHEDULER_TOKEN = u"ohos.appexecfwk.ChildScheduler";
 
 class ChildSchedulerStubFUZZ : public ChildSchedulerStub {
 public:
@@ -57,7 +56,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     MessageParcel reply;
     MessageOption option;
     FuzzedDataProvider fdp(data, size);
-    parcel.WriteInterfaceToken(CHILD_SCHEDULER_TOKEN);
+    parcel.WriteInterfaceToken(FuzzUtil::Tokens::CHILD_SCHEDULER);
     parcel.WriteString(fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH));
     parcel.WriteInt32(fdp.ConsumeIntegral<int32_t>());
     parcel.RewindRead(0);
