@@ -23,15 +23,16 @@
   <text x="290" y="218" font-size="17" font-weight="700" fill="#0b3d91" text-anchor="middle">TaskManagerService（入口 · taskHandler 串行）</text>
   <text x="80" y="256" font-size="14" fill="#262626">职责：IPC 分发 · 系统应用鉴权 · 创建者校验（R-6）</text>
   <text x="80" y="280" font-size="14" fill="#262626">· 随机 taskId（B-1 · 128bit）· 上限管理（R-2）</text>
-  <text x="80" y="306" font-size="13" fill="#667085">方法：</text>
-  <text x="92" y="330" font-size="12.5" fill="#667085">CreateTask · DestroyTask · CancelTask · SetTaskState</text>
-  <text x="92" y="352" font-size="12.5" fill="#667085">SetTaskParams · GetTaskInfo(s) · Register/UnregisterTaskListener</text>
-  <text x="92" y="374" font-size="12.5" fill="#667085">SubmitTaskInput · RegisterTaskIntent · RegisterTaskProcess</text>
-  <text x="92" y="396" font-size="12.5" fill="#667085">UnregisterTaskProcess / UnregisterTaskIntent（attach 失败清理）</text>
-  <text x="80" y="426" font-size="12.5" fill="#8c8c8c">事件联动：状态/通知（OnTaskNotice）→ 回调 + process_schedule 重算</text>
-  <text x="80" y="450" font-size="12.5" fill="#8c8c8c">终态 → 双通道清理（RestoreControl + NotifyTaskEnd）</text>
-  <text x="80" y="474" font-size="12.5" fill="#8c8c8c">B-2 校验：callerTokenId ∈ {creator} ∪ {任务内进程}</text>
-  <text x="80" y="498" font-size="12.5" fill="#8c8c8c">意向表：RegisterTaskIntent 登记 · 30s 超时清理</text>
+  <text x="80" y="304" font-size="12.5" fill="#8c8c8c">承载：SA 501 描述符路由（AppMgrService::OnRemoteRequest，F-21）</text>
+  <text x="80" y="326" font-size="13" fill="#667085">方法：</text>
+  <text x="92" y="348" font-size="12.5" fill="#667085">CreateTask · DestroyTask · CancelTask · SetTaskState</text>
+  <text x="92" y="370" font-size="12.5" fill="#667085">SetTaskParams · GetTaskInfo(s) · Register/UnregisterTaskListener</text>
+  <text x="92" y="392" font-size="12.5" fill="#667085">SubmitTaskInput · RegisterTaskIntent · RegisterTaskProcess</text>
+  <text x="92" y="414" font-size="12.5" fill="#667085">UnregisterTaskProcess / UnregisterTaskIntent（attach 失败清理）</text>
+  <text x="80" y="442" font-size="12.5" fill="#8c8c8c">事件联动：状态/通知（OnTaskNotice）→ 回调 + process_schedule 重算</text>
+  <text x="80" y="466" font-size="12.5" fill="#8c8c8c">终态 → 双通道清理（RestoreControl + NotifyTaskEnd）</text>
+  <text x="80" y="490" font-size="12.5" fill="#8c8c8c">B-2 校验：callerTokenId ∈ {creator} ∪ {任务内进程} + 通道鉴权（F-8）</text>
+  <text x="80" y="514" font-size="12.5" fill="#8c8c8c">意向表：RegisterTaskIntent 登记 · 30s 超时清理</text>
 
   <rect x="64" y="540" width="452" height="196" rx="14" fill="#ffffff" stroke="#a9c5f9" stroke-width="1.5"/>
   <rect x="64" y="540" width="452" height="38" rx="14" fill="#e1ecff"/>

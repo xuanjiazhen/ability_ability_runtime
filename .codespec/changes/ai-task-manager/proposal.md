@@ -4,7 +4,7 @@ change_type: new-feature
 issue: ""
 author: "yangzk"
 date: "2026-08-21"
-status: Draft
+status: committed
 ---
 
 # 需求文档：AI 语音助手任务管理机制

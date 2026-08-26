@@ -111,7 +111,7 @@ N=3 续期次数上限、INPUT_ARRIVED 枚举命名、交互 30min/宽限 5min/�
 
 **文档变更后必做**：
 1. `grep -n '账本\|记账' *.md *.svg docs/*.md` 确认无新增残留（历史决策记录行除外——"内存登记"为 D-16 定稿术语，旧"账本"已废弃）；
-2. 在本目录执行 `ohos-sdd validate . --level c`（应 PASS；`--level all` 需归档证据，流程末端才可达，勿误报）；
+2. 在本目录执行 `ohos-sdd validate . --level all`（2026-08-26 起 D 级证据已补齐——registry.md 索引 + evidence/reviews/spec-compliance.md——应全量 PASS；若 review 边 FAIL，先更新 spec-compliance.md 再收口）；
 3. `git commit -s`（Signed-off-by 签名；push 由 owner 手动执行）。
 
 **术语陷阱**：N 指 SetTaskParams 续期次数上限（仅 priority 变化触发）；"动作日志断言"≠旧"账本断言"；master 环境 505/517/520 无消费者、507 恒返回未冻结——端到端验证会假成功（P1/F-23，TASK-6 门禁）；"CCM"为需求侧术语，本仓落地 = sysparam（.para + GetParameter，F-14）。
