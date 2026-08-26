@@ -86,6 +86,7 @@ private:
     std::weak_ptr<AppExecFwk::ApplicationInfo> applicationInfo_;
     std::weak_ptr<AbilityRuntime::UIAbility> ability_;
     std::vector<std::shared_ptr<AbilityRecovery>> abilityRecoverys_;
+    std::mutex recoveryMutex_;
     std::shared_ptr<AAFwk::Want> want_ = nullptr;
     std::atomic<bool> useAppSettedValue_ = false; // If the value is true means app call appRecovery.enableAppRecovery
     FreezeFunction freezeCallback = nullptr;
