@@ -3071,8 +3071,14 @@ napi_value JsAbilityContext::OnSetAbilityInstanceInfo(napi_env env, NapiCallback
         ThrowInvalidParamError(env, "Parse icon failed.");
         return CreateJsUndefined(env);
     }
+    std::string groupId;
+    if (info.argc > ARGC_TWO && !ConvertFromJsValue(env, info.argv[INDEX_TWO], groupId)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse groupId failed");
+        ThrowInvalidParamError(env, "Parse param groupId failed, groupId must be string.");
+        return CreateJsUndefined(env);
+    }
     NapiAsyncTask::CompleteCallback complete =
-        [weak = context_, label, icon](napi_env env, NapiAsyncTask& task, int32_t status) {
+        [weak = context_, label, icon, groupId](napi_env env, NapiAsyncTask& task, int32_t status) {
             HandleScope handleScope(env);
             auto context = weak.lock();
             if (!context) {
@@ -3080,7 +3086,7 @@ napi_value JsAbilityContext::OnSetAbilityInstanceInfo(napi_env env, NapiCallback
                 task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
                 return;
             }
-            auto errCode = context->SetAbilityInstanceInfo(label, icon);
+            auto errCode = context->SetAbilityInstanceInfo(label, icon, groupId);
             if (errCode == ERR_OK) {
                 task.Resolve(env, CreateJsUndefined(env));
             } else {

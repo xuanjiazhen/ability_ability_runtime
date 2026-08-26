@@ -774,7 +774,7 @@ void EtsAbilityContext::StartAbilityWithAccountAndOptions(
 }
 #ifdef SUPPORT_SCREEN
 void EtsAbilityContext::SetAbilityInstanceInfo(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object iconObj,
-    ani_object callback)
+    ani_string groupIdObj, ani_object callback)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "SetAbilityInstanceInfo called");
     auto etsContext = GetEtsAbilityContext(env, aniObj);
@@ -782,11 +782,11 @@ void EtsAbilityContext::SetAbilityInstanceInfo(ani_env *env, ani_object aniObj, 
         TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
         return;
     }
-    etsContext->OnSetAbilityInstanceInfo(env, aniObj, labelObj, iconObj, callback);
+    etsContext->OnSetAbilityInstanceInfo(env, aniObj, labelObj, iconObj, groupIdObj, callback);
 }
 
 void EtsAbilityContext::SetAbilityInstanceInfoCheck(ani_env *env, ani_object aniObj, ani_string labelObj,
-    ani_object iconObj)
+    ani_object iconObj, ani_string groupIdObj)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "SetAbilityInstanceInfoCheck called");
     if (env == nullptr || aniObj == nullptr) {
@@ -803,6 +803,16 @@ void EtsAbilityContext::SetAbilityInstanceInfoCheck(ani_env *env, ani_object ani
     if (icon == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "parse icon failed");
         EtsErrorUtil::ThrowInvalidParamError(env, "Parse icon failed.");
+        return;
+    }
+    std::string groupId;
+    if (!AppExecFwk::GetStdString(env, groupIdObj, groupId)) {
+        groupId.clear();
+    }
+    constexpr size_t MAX_ABILITY_INSTANCE_GROUP_ID_SIZE = 1024;
+    if (groupId.length() > MAX_ABILITY_INSTANCE_GROUP_ID_SIZE) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "groupId length exceeds limit: %{public}zu", groupId.length());
+        EtsErrorUtil::ThrowInvalidParamError(env, "Invalid groupId, length must not exceed 1024 bytes.");
         return;
     }
 }
@@ -2745,7 +2755,7 @@ bool EtsAbilityContext::CheckConnectAlreadyExist(ani_env *env, const AAFwk::Want
 
 #ifdef SUPPORT_SCREEN
 void EtsAbilityContext::OnSetAbilityInstanceInfo(ani_env *env, ani_object aniObj, ani_string labelObj,
-    ani_object iconObj, ani_object callback)
+    ani_object iconObj, ani_string groupIdObj, ani_object callback)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "OnSetAbilityInstanceInfo called");
     if (env == nullptr) {
@@ -2761,6 +2771,11 @@ void EtsAbilityContext::OnSetAbilityInstanceInfo(ani_env *env, ani_object aniObj
     }
 
     auto icon = OHOS::Media::PixelMapTaiheAni::GetNativePixelMap(env, iconObj);
+
+    std::string groupId;
+    if (!AppExecFwk::GetStdString(env, groupIdObj, groupId)) {
+        groupId.clear();
+    }
 
     ani_object errorObj = nullptr;
     ani_vm *etsVm = nullptr;
@@ -2782,11 +2797,12 @@ void EtsAbilityContext::OnSetAbilityInstanceInfo(ani_env *env, ani_object aniObj
         return;
     }
 
-    OnSetAbilityInstanceInfoInner(env, label, icon, callback, etsVm, callbackRef);
+    OnSetAbilityInstanceInfoInner(env, label, icon, groupId, callback, etsVm, callbackRef);
 }
 
 void EtsAbilityContext::OnSetAbilityInstanceInfoInner(ani_env *env, std::string& label,
-    std::shared_ptr<OHOS::Media::PixelMap> icon, ani_object callback, ani_vm *etsVm, ani_ref callbackRef)
+    std::shared_ptr<OHOS::Media::PixelMap> icon, std::string& groupId, ani_object callback, ani_vm *etsVm,
+    ani_ref callbackRef)
 {
     if (env == nullptr || etsVm == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null env or etsVm");
@@ -2806,7 +2822,7 @@ void EtsAbilityContext::OnSetAbilityInstanceInfoInner(ani_env *env, std::string&
         return;
     }
     ani_object errorObj = nullptr;
-    auto task = [context, label, icon, etsVm, callbackRef]() {
+    auto task = [context, label, icon, groupId, etsVm, callbackRef]() {
         ani_status status = ANI_ERROR;
         ani_env *env = nullptr;
         if ((status = etsVm->GetEnv(ANI_VERSION_1, &env)) != ANI_OK || env == nullptr) {
@@ -2814,7 +2830,7 @@ void EtsAbilityContext::OnSetAbilityInstanceInfoInner(ani_env *env, std::string&
             return;
         }
         ani_object errorObj = nullptr;
-        ErrCode ret = context->SetAbilityInstanceInfo(label, icon);
+        ErrCode ret = context->SetAbilityInstanceInfo(label, icon, groupId);
         if (ret == ERR_OK) {
             errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
             AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef), errorObj, nullptr);
@@ -3220,10 +3236,10 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 reinterpret_cast<void *>(EtsAbilityContext::StartAbilityWithAccountAndOptions) },
 #ifdef SUPPORT_GRAPHICS
             ani_native_function { "nativeSetAbilityInstanceInfo",
-                "C{std.core.String}C{@ohos.multimedia.image.image.PixelMap}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{std.core.String}C{@ohos.multimedia.image.image.PixelMap}C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::SetAbilityInstanceInfo) },
             ani_native_function { "nativeSetAbilityInstanceInfoCheck",
-                "C{std.core.String}C{@ohos.multimedia.image.image.PixelMap}:",
+                "C{std.core.String}C{@ohos.multimedia.image.image.PixelMap}C{std.core.String}:",
                 reinterpret_cast<void *>(EtsAbilityContext::SetAbilityInstanceInfoCheck) },
             ani_native_function { "nativeSetMissionIcon",
                 "C{@ohos.multimedia.image.image.PixelMap}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
