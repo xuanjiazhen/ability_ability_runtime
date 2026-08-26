@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Copyright (c) 2024-2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -32,6 +32,7 @@ ohos_fuzztest("AbilityMgrAbilityManagerStubFuzzTest") {
     "${ability_runtime_services_path}/common/include",
     "${ability_runtime_path}/interfaces/inner_api/connectionobs_manager/include",
     "${ability_runtime_path}/interfaces/kits/native/session_info/include",
+    "${ability_runtime_test_path}/fuzztest/common",
   ]
   cflags = [
     "-g",
