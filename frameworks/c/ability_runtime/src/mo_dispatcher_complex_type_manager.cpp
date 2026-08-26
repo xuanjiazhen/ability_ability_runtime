@@ -229,16 +229,18 @@ bool VariantDeepEquals(const MoVariantStorage& lhs, const OH_AbilityRuntime_ModO
             if (lhsVec == nullptr || rhsVec == nullptr) {
                 return lhsVec == rhsVec;
             }
-            if (lhsVec->elements.size() != rhsVec->elements.size()) {
-                return false;
+            if (!visited.insert(lhsVec).second) {
+                return true;
             }
-            for (size_t i = 0; i < lhsVec->elements.size(); i++) {
+            bool result = (lhsVec->elements.size() == rhsVec->elements.size());
+            for (size_t i = 0; i < lhsVec->elements.size() && result; i++) {
                 OH_AbilityRuntime_ModObjDispatcher_Variant rhsElem = rhsVec->elements[i].value;
                 if (!VariantDeepEquals(lhsVec->elements[i], &rhsElem, visited)) {
-                    return false;
+                    result = false;
                 }
             }
-            return true;
+            visited.erase(lhsVec);
+            return result;
         }
         case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET: {
             auto* lhsSet = lhs.value.u.psetVal;
@@ -248,6 +250,13 @@ bool VariantDeepEquals(const MoVariantStorage& lhs, const OH_AbilityRuntime_ModO
             }
             if (!visited.insert(lhsSet).second) {
                 return true; // Already visiting, avoid infinite recursion
+            }
+            if (lhsSet->elements.size() > MAX_CONTAINER_SIZE ||
+                rhsSet->elements.size() > MAX_CONTAINER_SIZE) {
+                TAG_LOGE(AAFwkTag::EXT, "VariantDeepEquals: set too large, lhs=%{public}zu, rhs=%{public}zu",
+                    lhsSet->elements.size(), rhsSet->elements.size());
+                visited.erase(lhsSet);
+                return false;
             }
             bool result = false;
             if (lhsSet->elements.size() == rhsSet->elements.size()) {
@@ -288,20 +297,24 @@ bool VariantDeepEquals(const MoVariantStorage& lhs, const OH_AbilityRuntime_ModO
             if (lhs.value.u.pstructVal == nullptr || rhs->u.pstructVal == nullptr) {
                 return lhs.value.u.pstructVal == rhs->u.pstructVal;
             }
-            if (lhs.value.u.pstructVal->fields.size() != rhs->u.pstructVal->fields.size()) {
-                return false;
+            if (!visited.insert(lhs.value.u.pstructVal).second) {
+                return true;
             }
+            bool result = (lhs.value.u.pstructVal->fields.size() == rhs->u.pstructVal->fields.size());
             for (const auto& field : lhs.value.u.pstructVal->fields) {
                 auto rhsIter = rhs->u.pstructVal->fields.find(field.first);
                 if (rhsIter == rhs->u.pstructVal->fields.end()) {
-                    return false;
+                    result = false;
+                    break;
                 }
                 OH_AbilityRuntime_ModObjDispatcher_Variant rhsField = rhsIter->second.value;
                 if (!VariantDeepEquals(field.second, &rhsField, visited)) {
-                    return false;
+                    result = false;
+                    break;
                 }
             }
-            return true;
+            visited.erase(lhs.value.u.pstructVal);
+            return result;
         }
         case OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_IPC_REMOTE_PROXY:
             return lhs.value.u.premoteProxyVal == rhs->u.premoteProxyVal;
@@ -896,6 +909,10 @@ AbilityRuntime_ErrorCode ModObjDispatcherComplexTypeManager::SetAdd(OH_AbilityRu
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         TAG_LOGE(AAFwkTag::EXT, "SetAdd: type mismatch");
         return ret;
+    }
+    if (pSet->elements.size() >= MAX_CONTAINER_SIZE) {
+        TAG_LOGE(AAFwkTag::EXT, "SetAdd: set size exceeds limit %{public}u", MAX_CONTAINER_SIZE);
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
     for (const auto& element : pSet->elements) {
         if (VariantEquals(element, pValue)) {
