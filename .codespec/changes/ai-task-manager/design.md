@@ -22,7 +22,7 @@
 | 模块形态 | 并入 AppMS（SA 501，foundation 进程）：任务管理模块 + 通用"App 进程调度管理"能力（A-2 收口） |
 | 防仿冒 | B-1+B-2：不可猜测随机 taskId + caller 身份绑定校验（本期确认） |
 | RSS 集成 | 复用现有接口（505/517/506/507 等），不新增 RSS 插件/resType；管控维度设计阶段细化 |
-| RSS 对接方式 | **RSS 具体设计由 RSS 团队主导，暂未明确**；本模块封装 **ResourceControlProxy 资源管控代理层**（按管控动作语义抽象接口并暴露完整任务/进程上下文，一期骨架实现：动作记账+告警，真实豁免/解冻在 RSS 对接后生效），后续明确后替换实现，上层零改动 |
+| RSS 对接方式 | **RSS 具体设计由 RSS 团队主导，暂未明确**；本模块封装 **ResourceControlProxy 资源管控代理层**（按管控动作语义抽象接口并暴露完整任务/进程上下文，一期骨架实现：内存登记+告警，真实豁免/解冻在 RSS 对接后生效），后续明确后替换实现，上层零改动 |
 | 枚举对齐 | 任务类型/优先级/状态枚举初稿（§4.1）需与 **AI 语音助手团队对齐**（开放项，评审后确认） |
 | 锁屏豁免边界 | 搁置，不阻塞设计；真机验证阶段与 RSS owner 对齐 |
 | sessionQos | 设计阶段探索（本设计 6.3 节结论） |
@@ -84,7 +84,7 @@
 | ADR-1 | 模块形态 | 并入 AppMS（SA 501）：task_mgr + process_schedule 两子模块 | agentmgr 内嵌（A-1：A2A/意图/Cli 进程不经过，收口不全，放弃）；独立 SA（A-3：进程/IPC 形态重，进程信息仍需 AppMS，放弃） | 进程权威信息在 AppMS；RSS 通道现成；收口单一接口面（proposal 方案探索 A-2） | 影响范围表、任务 #5 |
 | ADR-2 | taskId 传递与防仿冒 | Want 参数统一拦截（key 约定 `ohos.ai.taskId`）+ B-1 随机 taskId + B-2 caller 身份绑定校验 | token 化（B-3：短时 token 换 taskId，防重放增强但增加调用方负担，作可选增强）；显式注册（B-4：与统一拦截冲突，放弃） | 调用方无感知；caller 校验防仿冒最彻底；链式启动语义与 ADK supervisor 可信链一致 | 接口 RegisterTaskProcess 带 callerTokenId；AC-2.2 |
 | ADR-3 | 进程纳管时机 | **条件两段式**：拦截点① 解析 Want + 判定目标 pid——进程已存在（record->GetPid()>0）→ 直接 RegisterTaskProcess；进程未创建 → RegisterTaskIntent 意向登记，attach（pid 就绪）时补 RegisterTaskProcess | 仅启动请求时纳管（进程未创建无 pid，失败率高）；仅 attach 后纳管（已存在进程无 attach，无法覆盖，且 taskId 需穿透 attach 链） | 覆盖进程未创建/已存在两态（评审第六轮修正）；attach 点复用 AMS 既有 pid 就绪回调，appmgr 热路径零侵入 | AC-2.1 |
-| ADR-4 | RSS 集成方式 | **封装 RSS Proxy 代理层**（代理模式）：按管控动作语义定义接口（豁免/解冻/查询/提权预留），一期骨架实现（动作记账+告警，可配探测开关），RSS 团队设计明确后替换真实实现（优先复用现有 resType 505/517，如 RSS 提供新接口则直接对接） | 直接复用现有 resType 对接（payload 语义未明确，无法落地）；新增 RSS resType/插件（RSS 团队主导，触发内存基线评审） | RSS 设计由 RSS 团队主导（暂未明确）；代理层隔离使 RSS 对接变化不波及任务/调度上层；白名单已确认（res_sched_service.cpp:175）可供对接期参考 | AC-5.x |
+| ADR-4 | RSS 集成方式 | **封装 RSS Proxy 代理层**（代理模式）：按管控动作语义定义接口（豁免/解冻/查询/提权预留），一期骨架实现（内存登记+告警，可配探测开关），RSS 团队设计明确后替换真实实现（优先复用现有 resType 505/517，如 RSS 提供新接口则直接对接） | 直接复用现有 resType 对接（payload 语义未明确，无法落地）；新增 RSS resType/插件（RSS 团队主导，触发内存基线评审） | RSS 设计由 RSS 团队主导（暂未明确）；代理层隔离使 RSS 对接变化不波及任务/调度上层；白名单已确认（res_sched_service.cpp:175）可供对接期参考 | AC-5.x |
 | ADR-5 | 管控档位模型 | 档位化 + 合并：任务优先级→管控档位（0~3）；进程档位 = max(纳管任务档位)；档位变化增量施加/撤销 RSS 动作 | 每任务独立施加（同进程重复调用 RSS，幂等管理复杂）；全局统一（无法表达优先级差） | 档位合并天然满足需求 11（多任务按最高）；增量动作避免重复调用 | AC-2.3, AC-5.4 |
 | ADR-6 | 状态机驱动 | AI 助手驱动 + 模块校验（合法流转表；终态不可回退；REJECTED 仅创建者可设） | 助手全权设置（状态易乱，放弃）；模块自动推导（语义易偏差，放弃） | 与需求 2/5 一致；流转合法性由系统把关 | AC-1.2, AC-1.3 |
 | ADR-7 | INPUT/AUTH 交互通道 | 状态监听回调携带 payload（描述+可选项 JSON），SubmitTaskInput 回传，input 存任务记录 | 独立消息通道（机制更重，与状态监听解耦，一期不需要） | 与 ADK HITL（request_credential 挂起-恢复）语义一致；系统 UI 已监听状态流 | AC-4.x |
@@ -165,6 +165,8 @@ enum class TaskType {
 
 ### 4.3 任务记录（TaskRecord）
 
+> 基础字段 ≤1KB；payload/input 为变长字段各 ≤4KB（可配，另计，F-12 修正）。豁免幂等引用计数不在 TaskRecord（per-pid 归属 process_schedule 档位状态，F-15 修正）。
+
 ```
 struct TaskRecord {
     std::string taskId;            // 不可猜测随机 ID（16 字节熵，UUID v4 风格）
@@ -179,8 +181,8 @@ struct TaskRecord {
     std::set<int32_t> processPids; // 纳管进程集合
     uint64_t createTime;           // 创建时间戳
     uint64_t updateTime;           // 最近状态变更时间戳
-    int32_t exemptRefCount;        // 豁免引用计数（同进程幂等）
 };
+// 豁免计时与续期计数（N=3 可配）同为 TaskRecord 内存态字段（§6.1/R-21，第十轮）
 ```
 
 ## 模块设计
@@ -204,7 +206,7 @@ services/appmgr/
 ├── src/process_schedule/…（对应实现）
 ├── include/resource_control_proxy/                    # RSS Proxy 代理层（RSS 适配，代理模式）
 │   ├── resource_control_proxy.h                       # 管控动作语义接口（豁免/解冻/查询/提权预留）
-│   ├── resource_control_proxy_stub.h                  # 一期骨架实现：动作记账 + 告警（可配探测开关）
+│   ├── resource_control_proxy_stub.h                  # 一期骨架实现：内存登记（活跃豁免）+ 告警（可配探测开关）
 │   └── resource_control_proxy_impl.h                  # RSS 对接实现（RSS 团队明确后落地，默认编译期二选一）
 └── src/resource_control_proxy/…（对应实现）
 
@@ -292,9 +294,9 @@ interface ITaskListener {   // 系统 UI 注册
 3. **防滥用模型被削弱**（R-22）：60min 豁免上限按任务计。若助手自动进入其创建的每个任务，只要保持 ≥1 个活跃任务即获得事实上的永久豁免，上限机制失效；
 4. **超时兜底已覆盖控制面失联**：若助手冻结导致状态机无法推进，30min 交互超时/60min 豁免上限使任务自动流转到超时终态并撤销豁免，不会死锁（代价为本次执行浪费）。
 
-显式自注册通道（B-2 校验规则的显式化推论）：
+显式自注册通道（B-2 校验规则的显式化推论；通道鉴权规则②，F-8 补全）：
 
-- B-2 允许 `callerTokenId = creatorTokenId` 通过校验，因此**助手可按需显式调用 `RegisterTaskProcess(taskId, ownPid, creatorTokenId)` 将自身纳入任务**（占用该任务单任务纳管进程数上限名额，默认 16 可配，R-22）；
+- B-2 允许 `callerTokenId = creatorTokenId` 通过校验，因此**助手可按需显式调用 `RegisterTaskProcess(taskId, ownPid, creatorTokenId)` 将自身纳入任务**（占用该任务单任务纳管进程数上限名额，默认 16 可配，R-22）；直调时通道鉴权规则②③适用：入参 callerTokenId 须等于助手自身 IPC tokenId（不可代报他人身份）、ownPid 归属 uid 须与助手一致；
 - 是否使用由助手侧自评估决定，系统不做无条件纳管；
 - 纳管后助手进程在该任务生命周期内享受与任务进程同等的档位保障，任务结束时随进程组一并撤销。
 
@@ -311,6 +313,11 @@ interface ITaskListener {   // 系统 UI 注册
    - AppMS 校验（权威）：`callerTokenId ∈ {creatorTokenId} ∪ {该任务纳管进程的 tokenId 集合}` 才接受纳管（R-8）；
    - 校验失败：拒绝纳管、**不阻断启动**、不上报错误给调用方（防探测）；
    - 链式启动：任务内进程 A 启动 B → callerTokenId = A 的 tokenId ∈ 纳管集合 → 合法（与 ADK supervisor→sub-agent 可信链一致）。
+   - **通道鉴权（F-8 补全，第十三轮）**：callerTokenId 为 IPC 入参而非通道派生值，ITaskManager 为可直调的 IPC 接口——若不校验通道身份，任意系统应用可自报 callerTokenId=creatorTokenId 绕过 B-2（§5.3.1 ⑧"恶意应用无法直接触达内部通道"的断言必须由显式校验支撑）。规则：
+     1. IPC 调用方为 **foundation 内部 native 身份**（AMS 同进程转发，`IPCSkeleton::GetCallingTokenID()` 为 native token）→ 信任入参 callerTokenId（AMS 转发的业务发起方）；
+     2. 其他调用方（含创建者自注册，§5.2.1）→ **入参 callerTokenId 必须等于 IPC 实际调用方 tokenId**（杜绝自报他人身份），再过 B-2 集合校验；
+     3. **pid 归属校验**（直调路径强化，②⑦既有 pid 归属校验的直调版）：直调注册的 pid 归属 uid 须与调用方一致，或该 pid 已在目标任务内（防创建者/任务内进程注册**他人进程**骗取豁免）；
+     4. 不满足 → 返回 ERR_TASK_PERMISSION_DENIED（内部通道错误码，不透传应用侧，C-5）。
 3. **B-3 可选增强**（预留）：若后续需要防重放/防泄露增强，增加短时 token 换 taskId 通道，接口与内存登记已预留扩展点。
 
 #### 5.3.1 两段式纳管安全分析（评审答复 2026-08-21 第五轮）
@@ -326,9 +333,9 @@ interface ITaskListener {   // 系统 UI 注册
 | ⑤ taskId 猜测 | B-1：128bit 随机熵，不可猜测 | 无风险 |
 | ⑥ 代理启动（StartAbilityAsCaller/WithSpecifyTokenId）绕过校验 | 拦截点校验身份取**业务发起方**（asCallerSourceToken/specifyTokenId 优先，非 AMS 内部调用者）——代理启动时被代理身份才是 B-2 校验对象；系统服务内部转发（无业务发起方）视为无身份 → 不纳管 | 无仿冒面（补充：校验身份规则明确） |
 | ⑦ 已存在进程直接纳管（条件两段式）的身份一致性 | 直接注册路径同样携带业务发起方 tokenId 过 B-2 校验（与意向路径同一校验函数），AppMS 校验 pid 存活且归属与目标一致 | 无仿冒面 |
-| ⑧ attach 补注册通道的身份伪造（恶意进程冒充 attach 上报他人 taskId/pid） | **代码勘察发现（P2，2026-08-24）**：attach 挂点 `AttachAbilityThread`（ability_manager_service.cpp:7957）由**目标进程自身经 IPC 调起**——attach 现场 `IPCSkeleton::GetCallingTokenID()` 恒为目标进程 tokenId，若直接取用则恒被 B-2 拒绝，且构成"目标进程自报身份"的仿冒面。**修正**：②的 callerTokenId 必须取**①意向登记时随 want 解析并存入 AbilityRecord 的业务发起方 tokenId**（非 attach 现场取值）；信任锚 = AMS→AppMS 为 foundation 进程内调用（native token），恶意应用无法直接触达该内部通道（详见 §5.4.2 attach 身份来源） | 无仿冒面（需落实：attach 身份来源 = ①登记值） |
+| ⑧ attach 补注册通道的身份伪造（恶意进程冒充 attach 上报他人 taskId/pid） | **代码勘察发现（P2，2026-08-24）**：attach 挂点 `AttachAbilityThread`（ability_manager_service.cpp:7957）由**目标进程自身经 IPC 调起**——attach 现场 `IPCSkeleton::GetCallingTokenID()` 恒为目标进程 tokenId，若直接取用则恒被 B-2 拒绝，且构成"目标进程自报身份"的仿冒面。**修正**：②的 callerTokenId 必须取**①意向登记时随 want 解析并存入 AbilityRecord 的业务发起方 tokenId**（非 attach 现场取值）；信任锚 = AMS→AppMS 为 foundation 进程内调用（native token）——**该信任锚由 AppMS 侧通道鉴权显式校验**（F-8，§5.3 通道鉴权规则①：native 调用方才信任入参身份；非 native 直调一律"入参身份=IPC 实际身份"，恶意应用自报他人身份必被拒） | 无仿冒面（需落实：attach 身份来源 = ①登记值 + 通道鉴权） |
 
-**结论**：两段式（修正为条件两段式）本身不引入新增仿冒面——仿冒防护完全由 B-2 caller 校验承担，且在意向/直接注册路径都执行；设计强化点 = ②pid 归属校验 + ③进程集合上限 + ⑥代理启动身份规则 + ⑧attach 身份来源（取①登记的业务发起方 tokenId，非 attach 现场 GetCallingTokenID）（均已在 5.4/5.6/R-22 覆盖，落地时落实）。
+**结论**：两段式（修正为条件两段式）本身不引入新增仿冒面——仿冒防护完全由 B-2 caller 校验承担，且在意向/直接注册路径都执行；设计强化点 = ②pid 归属校验 + ③进程集合上限 + ⑥代理启动身份规则 + ⑧attach 身份来源（取①登记的业务发起方 tokenId，非 attach 现场 GetCallingTokenID）+ **通道鉴权**（F-8：ITaskManager 可被系统应用直调，AppMS 必须校验 IPC 通道身份——native 信任入参、非 native 强制入参身份=IPC 实际身份+pid 归属校验）（均已在 5.3/5.4/5.6/5.7/R-22 覆盖，落地时落实）。
 
 ### 5.4 AMS 拦截点设计（启动链路场景全覆盖 + 条件两段式）
 
@@ -336,7 +343,7 @@ interface ITaskListener {   // 系统 UI 注册
 
 | # | 场景 | 收敛点（全部经核实的 file:line） | 拦截设计 | 覆盖 |
 |---|------|-------------------------------|----------|------|
-| 1 | StartAbility（前台/后台 want 启动） | `StartAbilityInner`（ability_manager_service.cpp:1360 定义；:807/:876/:928/:1013/:1130/:1195/:2372/:14183/:14777/:15241/:16359 全部变体收敛于此） | 拦截点①位于 StartAbilityInner 参数解析处 | ✅ |
+| 1 | StartAbility（前台/后台 want 启动） | `StartAbilityInner`（ability_manager_service.cpp:1360 定义；:807/:876/:928/:1013/:1130/:1195/:2372/:14183/:14777 全部变体收敛于此） | 拦截点①：Want 参数解析于 StartAbilityInner 入口；分支判定（目标 record pid 可得性）于获得目标 AbilityRecord 后（F-11 精确化，详见 §5.4.2） | ✅ |
 | 2 | 免安装启动 StartAbilityByFreeInstall | :876 收敛 StartAbilityInner | 同上（天然覆盖） | ✅ |
 | 3 | 指定身份启动 StartAbilityWithSpecifyTokenId | :895/:1013 收敛 StartAbilityInner（specifyTokenId 传入） | 同上；**校验身份 = specifyTokenId 而非 GetCallingTokenID**（业务发起方） | ✅ |
 | 4 | 以调用方身份启动 StartAbilityAsCaller / ImplicitStartAbilityAsCaller | :1145/:1156/:1195 收敛（asCallerSourceToken 传入） | 同上；**校验身份 = asCallerSourceToken**（业务发起方） | ✅ |
@@ -373,6 +380,7 @@ if (targetPid > 0) {
 ```
 - 意向超时清理：30s 未补注册则移除（attach 晚于超时由 attach 处重发①）；**attach 失败清理**（F-7 修正）：进程启动失败（attach 失败回调）时主动 UnregisterTaskIntent，避免意向残留 30s；
 - 进程已存在直接纳管时无意向阶段（简化登记：一次动作）；
+- **分支①适用边界（F-11 勘察补强，第十三轮）**：`AbilityRecord` 的 pid **仅在 attach 时设置**（`SetScheduler` 内 `SetPid(IPCSkeleton::GetCallingPid())`，ability_record.cpp:1096——目标进程自报；全库无其他 SetPid 路径），因此"直接纳管"分支仅对**既有 record 且已 attach**（运行中 Service/单例/扩展复用等场景）成立；**进程已存在但目标 ability record 为新建**（热启动新实例）时 record 尚无 pid → 走意向路径，attach（该实例 SetScheduler）时补注册——两路径全覆盖，无遗漏；
 - `AbilityRecord::GetPid()` 可得性已核实（ability_connect_manager.cpp:327 既有使用）；连接场景对已运行服务同理（ServiceRecord 持有 pid，:791）。
 - **attach 身份来源（P2 修正，代码勘察 2026-08-24）**：`AttachAbilityThread`（ability_manager_service.cpp:7957）由**目标进程自身经 IPC 调起**，现场 `GetCallingTokenID()` 恒为目标进程 tokenId——直接取用不仅恒被 B-2 拒绝，还构成自报身份仿冒面（§5.3.1 ⑧）。因此②的 callerTokenId 必须取①意向登记时解析并存入 AbilityRecord 的业务发起方 tokenId；信任锚 = AMS→AppMS 为 foundation 进程内调用（native token），恶意应用无法直接触达该内部通道。该来源同时正确覆盖"创建者直启目标进程"场景（发起方 = 创建者，B-2 通过，§5.2.1）。
 
@@ -386,19 +394,19 @@ if (targetPid > 0) {
   - 用户选择/输入后：系统 UI 调 `SubmitTaskInput(taskId, input)` 直接提交——**任务管理模块即为 UI→助手的传递通道**（评审决策 2026-08-24：系统 UI ↔ AI 助手间不假设存在可依赖的既有通道，传递通道由本模块提供）；调用方白名单 = 创建者 + **已注册监听的系统 UI**（权限管控，A-2 决策落定）；input 写入 TaskRecord（TASK_INPUT(submit)）并经 `OnTaskNotice(INPUT_ARRIVED)` 通知创建者；
   - input 写入 TaskRecord；创建者经 GetTaskInfo/监听获得；任务可流转出交互态（R-17）；
   - 交互态任务被取消/销毁：payload/input 清除、不再回调（R-18）。
-- **通知类事件（B-5 补全）**：交互超时限期处置（F-5）、限时豁免到期预警（C-2）等非状态变更通知经 `OnTaskNotice(taskId, noticeType, payload, timestamp)` 回调派发（与状态回调同一监听注册、同一派发线程、同受 userId 过滤）；noticeType 枚举：**INPUT_ARRIVED**（交互输入到达，通知创建者）/ INTERACTIVE_TIMEOUT / EXEMPT_EXPIRING / EXEMPT_EXPIRED。
+- **通知类事件（B-5 补全）**：交互超时限期处置（F-5）、限时豁免到期预警（C-2）等非状态变更通知经 `OnTaskNotice(taskId, noticeType, payload, timestamp)` 回调派发（与状态回调同一监听注册、同一派发线程、同受 userId 过滤）；noticeType 枚举：**INPUT_ARRIVED**（交互输入到达，通知创建者）/ **PAYLOAD_UPDATED**（任务 payload 更新，通知监听者——SetTaskParams 的 payload 变化经此派发，支撑系统 UI 实时展示执行进度，F-9 补全，第十三轮）/ INTERACTIVE_TIMEOUT / EXEMPT_EXPIRING / EXEMPT_EXPIRED。
 - **payload 内容约定（C-4，评审决策 2026-08-24：权限管控）**：payload/input 为任务业务描述；敏感内容可见性经**权限管控**约束——RegisterTaskListener 与 SubmitTaskInput 均校验系统应用身份/调用白名单，仅授权系统应用可收发任务数据；模块不做内容过滤。
 
 ### 5.6 并发与多任务归属（需求 10/11）
 
 - 双向索引（`taskToPids_`/`pidToTasks_`，5.1）；单任务记录 ≤1KB；
 - 档位合并：`effectiveLevel(pid) = max(其任务集合中激活任务的档位)`（ADR-5，R-10）；
-- 档位变化 → `ApplyLevel` 增量施加/撤销 RSS 动作（同 pid 同类型豁免幂等，exemptRefCount，R-11）；
+- 档位变化 → `ApplyLevel` 增量施加/撤销 RSS 动作（同 pid 同类型豁免幂等——幂等引用计数按 pid 维护于 process_schedule 档位状态，幂等键 taskId+pid+豁免类型，R-11）；
 - 任务结束/降级 → 重算剩余任务档位并撤销（R-9/R-20）；
-- 并发上限：创建者活跃任务 ≤ 16（R-2）；全局活跃豁免进程数上限（默认 64）与**单任务纳管进程数上限（默认 16）**（R-22，A-5 补全：单任务上限约束链式纳管膨胀；**两项上限经 CCM 参数支持调整**，评审决策 2026-08-24）；豁免时长上限见 R-21。
+- 并发上限：创建者活跃任务 ≤ 16（R-2）；全局活跃豁免进程数上限（默认 64）与**单任务纳管进程数上限（默认 16）**（R-22，A-5 补全：单任务上限约束链式纳管膨胀；**两项上限经可配参数支持调整**，评审决策 2026-08-24）；豁免时长上限见 R-21。
 - **进程级纳管原则**（F-3 修正，评审第七轮）：纳管以**进程**为单位——进程加入任务后，其内全部组件活动（新建 ability/连接等）共享该任务的管控档位，无需组件级单独纳管；taskId 仅用于"进程加入任务"的触发点，同进程内后续组件启动无需携带 taskId（也不改变归属）。同进程组件在任务内的活动天然受管控（进程被豁免 → 其内组件活动不被冻结）。
 - **优先级动态调整联动**（F-6 修正）：SetTaskParams 提升优先级且任务处于激活态时，触发 OnTaskActiveChanged → process_schedule 档位重算，管控立即按新档位生效（与状态变更同一联动路径）。
-- **SetTaskParams 受限规则**（B-4 补全）：仅创建者可调；任务处于非终态（终态返回 ERR_TASK_INVALID_STATE）；可调字段 = priority / payload（type 创建后不可调）；priority 变化经上述联动路径重算档位（升档立即施加、降档立即撤销）；激活态任务且 **priority 发生变化**时触发豁免时长**续期**（payload-only 变更不续期，防滥用续期；计时/续期计数为 TaskRecord 内存态，§6.1/R-21，评审决策 2026-08-24）。
+- **SetTaskParams 受限规则**（B-4 补全）：仅创建者可调；任务处于非终态（终态返回 ERR_TASK_INVALID_STATE）；可调字段 = priority / payload（type 创建后不可调）；priority 变化经上述联动路径重算档位（升档立即施加、降档立即撤销）；**payload 发生变化**时经 `OnTaskNotice(PAYLOAD_UPDATED)` 派发给已注册监听者（任务进度/描述更新实时触达系统 UI，F-9 补全——R-14 状态回调仅覆盖状态变更，payload-only 变更无状态回调）；激活态任务且 **priority 发生变化**时触发豁免时长**续期**（payload-only 变更不续期，防滥用续期；计时/续期计数为 TaskRecord 内存态，§6.1/R-21，评审决策 2026-08-24）。
 
 ### 5.7 权限与身份（基础鉴权）
 
@@ -407,7 +415,7 @@ if (targetPid > 0) {
 | CreateTask/DestroyTask/CancelTask/SetTaskState/SetTaskParams | 系统应用身份（tokenId 属系统应用/SA 白名单）；除 CreateTask 外再校验创建者（R-6） |
 | SubmitTaskInput | 系统应用身份 + 调用方白名单 = **创建者或已注册监听的系统 UI**（任务管理模块提供 UI→助手传递通道，A-2 决策 2026-08-24；数据收发经权限管控，C-4） |
 | GetTaskInfo(s)/RegisterTaskListener | 系统应用身份（R-15） |
-| RegisterTaskIntent/RegisterTaskProcess | B-2 caller 校验（5.3） |
+| RegisterTaskIntent/RegisterTaskProcess | B-2 caller 校验（5.3）+ **通道鉴权**（F-8：native 调用方信任入参身份；非 native 调用方入参 callerTokenId 须等于 IPC 实际身份 + pid 归属校验） |
 | 多用户 | 任务归属 userId；**GetTaskInfos 按调用方 userId 过滤、跨用户 taskId 的 GetTaskInfo 返回 ERR_TASK_NOT_FOUND、OnTaskStateChanged/OnTaskNotice 仅派发给同 userId 监听者**（C-3 落地，R-14/R-15） |
 
 > 系统应用白名单复用 AppMS 既有校验能力（`PermissionVerification` 或 token 校验工具），不新增权限项。
@@ -438,7 +446,8 @@ if (targetPid > 0) {
 
 - 档位 1（MEDIUM）限时豁免到期前经 `OnTaskNotice(EXEMPT_EXPIRING)` 预警（提前量可配，默认 5min）；到期未续期 → 撤销豁免、档位按剩余归属任务重算、TASK_ABUSE_WARNING(reason=limit)；
 - **续期机制（全档位）**：豁免时长硬上限（默认 60min，R-21/R-22）到期前，创建者可经 SetTaskParams 续期（**仅 priority 发生变化时触发续期**，payload-only 变更不续期——防滥用续期；计时/续期计数为 TaskRecord 内存态）；档位 2 语义由"全时"修正为"持续（激活期间、可续期）"——长时 HIGH 任务经周期性续期维持豁免，**续期次数上限 N 次（可配，默认 3 次，评审决策 2026-08-24）**，达到上限后到期即撤销豁免并降档、TASK_ABUSE_WARNING(reason=limit)；每次续期动作经 TASK_RSSCONTROL 记录审计；
-- **双计时器叠加**：交互态任务同时存在交互超时（30min+5min 宽限）与豁免时长计时（档位 1 为 30min 限时）时，取先到者触发，先触发者的处置（降档/撤销豁免）即终止另一计时，避免双重降档。**上述超时相关参数（交互 30min/宽限 5min/档位 1 限时 30min/硬上限 60min/续期次数）均为初始默认值，处于评估调整中**（评审决策 2026-08-24），落地时全部经可配参数（CCM）支持调整。
+- **双计时器叠加**：交互态任务同时存在交互超时（30min+5min 宽限）与豁免时长计时（档位 1 为 30min 限时）时，取先到者触发，先触发者的处置（降档/撤销豁免）即终止另一计时，避免双重降档。**上述超时相关参数（交互 30min/宽限 5min/档位 1 限时 30min/硬上限 60min/到期预警提前量 5min/续期次数 N=3）默认值已确认**（评审决策 2026-08-24 提出、2026-08-26 第十三轮用户确认），落地时全部经可配参数支持调整。
+- **参数落地机制（F-14 明确，第十三轮）**：可调参数（上限/时长/续期次数/开关）经本仓 **sysparam 参数体系**落地——`.para` 定义（命名如 `const.sys.appms.taskmanager.*`，先例：services/abilitymgr/etc/appfwk.para）+ `OHOS::system::Get*Parameter` 读取（先例：app_running_manager.cpp:1145）；appmgr 无既有 .para 文件，随 TASK-4 新增参数定义文件并接入 BUILD.gn（需求侧"CCM 可调"要求即由该机制承载）。
 
 > **开放项（二期评估）**：交互态降档折中——HIGH/CRITICAL 任务进入交互态后自动降为限时豁免档（交互等待本质为"低活动、需快速唤醒"，与 MEDIUM 语义接近），可压缩用户无响应期间的资源占用；一期不引入（收益不抵"状态×档位"二维映射复杂度）。
 
@@ -457,7 +466,7 @@ if (targetPid > 0) {
 
 > **AppMS 重启反向场景（C-1 分析，结论：无需处理）**：P4 只覆盖"RSS 重启、AppMS 登记漂移"；反向的"AppMS 重启、RSS 侧豁免残留"不存在——AppMS 位于 foundation 进程，异常重启即 foundation 进程重启，系统将清理全部应用进程，纳管进程与 RSS 侧豁免随进程消亡同亡，无孤儿豁免（评审结论 2026-08-24）。内存登记同为进程内存态，同亡一致。
 
-> 一期 RCP-Stub：施加记账并默认"成功"，生效校验在 RCP-Impl 对接后启用（接口已预留）。
+> 一期 RCP-Stub：施加动作内存登记并默认"成功"，生效校验在 RCP-Impl 对接后启用（接口已预留）。
 
 ### 6.1.2 低优先级保障档（F-2 修正，评审第七轮）
 
@@ -602,18 +611,21 @@ hilog_tag_wrapper 新增 `AAFwkLogTag::TASK`（或复用 AppMgr tag），TAG_LOG
 
 | Task ID | 目标 | 受影响文件 | AC |
 |---------|------|------------|-----|
-| TASK-SKELETON-1 | IDL + 客户端 + 模块目录/BUILD.gn | ITaskManager.idl、task_manager_client、appmgr BUILD.gn | WHEN 构建 task_mgr 目标 THEN 编译通过且 stub/proxy/客户端生成 |
+| TASK-0（原 TASK-SKELETON-1，编号随 execution-plan 对齐，F-13） | IDL + 客户端 + 模块目录/BUILD.gn | ITaskManager.idl、task_manager_client、appmgr BUILD.gn | WHEN 构建 task_mgr 目标 THEN 编译通过且 stub/proxy/客户端生成 |
 
 ## 后续 Task 拆分
 
 | Task ID | 目标 | 受影响文件 | 依赖 |
 |---------|------|------------|------|
+| TASK-0 | 骨架接线：IDL/客户端/模块目录/BUILD/gni/错误码 | ITaskManager.idl、task_manager_client、appmgr BUILD.gn | 无 |
 | TASK-1 | 任务模型与状态机（TaskRecord/StateMachine/CreateTask/SetTaskState/生命周期） | task_mgr 核心 | design+spec Approved |
-| TASK-2 | 进程调度管理（档位合并/RSS 动作/内存登记） | process_schedule | TASK-1 |
-| TASK-3 | AMS 拦截点（两段式纳管 + caller 校验） | abilitymgr 拦截点 | TASK-1 |
-| TASK-4 | 监听与交互传达（ListenerManager/SubmitTaskInput/payload） | task_mgr | TASK-1 |
+| TASK-2 | 查询/监听/交互（ListenerManager/SubmitTaskInput/payload 传达/UI→助手传递通道） | task_mgr | TASK-1 |
+| TASK-3 | AMS 拦截点（条件两段式纳管 + caller 校验 + 通道鉴权） | abilitymgr 拦截点 | TASK-1 |
+| TASK-4 | 管控与 ResourceControlProxy（档位合并/RSS 动作/内存登记/上限/续期） | process_schedule、resource_control_proxy | TASK-1, TASK-3 |
 | TASK-5 | DFX（hisysevent/dump/日志）+ 错误码接入 | hisysevent.yaml、task_dfx | TASK-1~4 |
-| TASK-6 | 单测/集成用例 + 真机场景验证（锁屏/后台） | test/ | TASK-1~5 |
+| TASK-6 | 验证收口（全量 AC + 真机锁屏/后台场景） | test/ | TASK-1~5 |
+
+> 编号与粒度以 execution-plan.md 为准（F-13 修正，第十三轮：本表此前与 execution-plan TASK-2/TASK-4 编号错位，已对齐）。
 
 ## API 签名、Kit 与权限
 

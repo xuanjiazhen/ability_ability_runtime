@@ -149,6 +149,7 @@ status: Draft
 | 2026-08-24 | yangzk、需求方 | 全量复审（第九轮） | 21 项缺陷修复：状态表补 CANCELED、SubmitTaskInput 所有权、tier-2 持续豁免、单任务纳管进程上限 16、OnTaskNotice 通道、接口规格 6 节、TaskParams、多用户 userId 过滤、C-1 结论固化、风险表 D-1/D-2 | design/spec 全文（commit 365cff1acf） |
 | 2026-08-24 | yangzk、需求方 | 开放点闭环（第十轮） | 13 项决策落定：**UI↔助手传递通道由本模块提供**（SubmitTaskInput 白名单=创建者+已注册监听的系统 UI，+OnTaskNotice(INPUT_ARRIVED)）；**豁免粒度=pid**（设计 D-1 关闭）；**EDS 一期经 P7 ApplyAllowResource**（设计 D-2 关闭）；续期仅 priority 变化触发、上限 N=3；各项上限经 CCM 可调；payload 权限管控 | design/spec 同步（commit 9a5864e8b5） |
 | 2026-08-24 | yangzk、需求方 | 豁免记录降级（第十一轮） | "动作账本"降级为**内存登记**：不持久化、仅活跃任务 {taskId, pid, action, level, timestamp, result}，单一职责=RSS 重启重放+撤销重试，随 AppMS 进程消亡（与 C-1 一致）；计时/续期计数记 TaskRecord；审计/验收/定位/复核一律走 TASK_RSSCONTROL+hilog 日志，对账基线=动作日志序列 | design/spec/plan/HANDOVER/三图全量同步（commit 7747518002+本轮外围补齐） |
+| 2026-08-26 | yangzk、用户 | 第十三轮自审与待定项确认 | ① §5.2 待定项**全部确认保留**：N=3 / INPUT_ARRIVED / 交互 30min·宽限 5min·档位1限时 30min·硬上限 60min·预警提前量 5min；② 自审修复 F-8~F-20（13 项）：**通道鉴权**（RegisterTaskIntent/RegisterTaskProcess 可被系统应用直调，native 信任入参身份/非 native 强制入参=IPC 实际身份+pid 归属校验——B-2 仿冒面闭环，安全）、**PAYLOAD_UPDATED 通知**（payload 更新实时触达系统 UI，US-3 进度展示补全）、spec 内部矛盾消除（SetTaskParams 可调字段/RegisterTaskProcess 签名）、NFR ≤1KB 与 payload 4KB 矛盾修正、拦截点①位置与 SetPid 事实精确化（ability_record.cpp:1096）、CCM→sysparam 落地机制明确、design/plan TASK 编号对齐、exemptRefCount 归属 process_schedule 等 | review-analysis.md 追加第十三轮节；design/spec/plan 同步；新增 docs/extension-analysis.md 与外部对齐材料 |
 
 ### 功能范围确认
 
@@ -384,7 +385,7 @@ AI 语音助手在锁屏定时任务与后台长时任务场景下，任务进�
 
 | API 名称 | 变更类型 | 开放范围 | 概要说明 |
 |----------|----------|----------|----------|
-| ITaskManager（IDL 新增，放 `interfaces/inner_api/app_manager/task_manager/`，方法以接口定义定稿为准） | 新增 | InnerAPI | CreateTask / DestroyTask / CancelTask / SetTaskState / SetTaskParams / GetTaskInfo / GetTaskInfos / RegisterTaskListener / UnregisterTaskListener / SubmitTaskInput / （内部：RegisterTaskProcess/UnregisterTaskProcess 供 AMS 拦截点调用） |
+| ITaskManager（IDL 新增，放 `interfaces/inner_api/app_manager/task_manager/`，方法以接口定义定稿为准） | 新增 | InnerAPI | CreateTask / DestroyTask / CancelTask / SetTaskState / SetTaskParams / GetTaskInfo / GetTaskInfos / RegisterTaskListener / UnregisterTaskListener / SubmitTaskInput / （内部：RegisterTaskIntent/RegisterTaskProcess/UnregisterTaskProcess 供 AMS 拦截点调用；RegisterTaskProcess 兼创建者显式自注册，design §5.2.1；F-20 补全） |
 | TaskManagerClient（C++ 客户端） | 新增 | InnerAPI | AI 助手/系统 UI/AMS 使用的客户端封装 |
 
 ### 不涉及项确认

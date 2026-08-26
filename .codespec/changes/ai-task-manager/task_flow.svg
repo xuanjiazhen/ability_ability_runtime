@@ -97,7 +97,7 @@
   <text x="1022" y="1120" font-size="15" font-weight="700" fill="#7c3aed" text-anchor="middle">RCP：ApplyControl(EXEMPT, 档位 2)</text>
   <text x="1022" y="1144" font-size="12" fill="#667085" text-anchor="middle">ControlRequest 完整上下文 · 内存登记+日志</text>
   <text x="1022" y="1166" font-size="12" font-weight="600" fill="#b54708" text-anchor="middle">生效校验（F-4）：507 查询 · 已冻结→THAW(517)</text>
-  <text x="1022" y="1188" font-size="11" fill="#98a2b3" text-anchor="middle">一期 Stub：记账 + TASK_RSSCONTROL + 告警</text>
+  <text x="1022" y="1188" font-size="11" fill="#98a2b3" text-anchor="middle">一期 Stub：内存登记 + TASK_RSSCONTROL + 告警</text>
   <text x="1022" y="1206" font-size="11" fill="#98a2b3" text-anchor="middle">对接期 Impl：真实下发（RSS 对接后）</text>
   <path d="M 1188 1156 L 1232 1156" stroke="#7c3aed" stroke-width="2.5" marker-end="url(#arP)"/>
   <rect x="1232" y="1112" width="304" height="92" rx="14" fill="#ffffff" stroke="#d0b3f7" stroke-width="1.5"/>

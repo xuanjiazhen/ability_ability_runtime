@@ -1,4 +1,4 @@
-# 方案深度审查报告（2026-08-22 第七轮）
+# 方案深度审查报告（2026-08-22 第七轮；2026-08-26 第十三轮自审追加）
 
 > 对 proposal / spec / design / execution-plan 的逐项审查。审查方法：对照需求 13 条、已确认决策（六轮）、AGENTS.md 约束、既有源码事实，逐项核查设计完整性。
 
@@ -40,3 +40,39 @@
 ## 结论
 
 经第七轮审查，新发现 7 个问题点（F-1~F-7）已全部在设计文档中修正（见上述"处理"列对应章节），无新增"设计无法闭环"的阻塞问题；方案覆盖需求 13 条、六轮决策与 AGENTS.md 约束。剩余开放项 O-1~O-5 均需外部对齐（AI 助手团队/RSS 团队），不阻塞模块级开发（ResourceControlProxyStub 骨架先行）。
+
+---
+
+## 第十三轮自审（2026-08-26）
+
+> 审查方法：全量通读 design/spec/proposal/execution-plan + 关键源码事实复核（拦截点收敛、SetPid 路径、IStandbyService 接口、sysparam 惯例、res_sched_util payload 先例）。发现接第七轮编号 F-8~F-20，均已直接修复至 design/spec/plan/proposal。
+
+### 发现与处理
+
+| 编号 | 类别 | 问题点 | 严重度 | 处理 | 状态 |
+|------|------|--------|--------|------|------|
+| F-8 | 安全 | **RegisterTaskIntent/RegisterTaskProcess 通道鉴权缺失**：callerTokenId 为 IPC 入参（非通道派生），ITaskManager 为可直调 IPC 接口——任意系统应用可自报 callerTokenId=creatorTokenId 绕过 B-2（§5.3.1⑧"恶意应用无法直接触达内部通道"断言需显式校验支撑）；且 §5.2.1 助手自注册依赖直调，与"仅内部通道"矛盾；直调路径亦无 pid 归属校验（可注册他人进程骗取豁免） | 高 | **通道鉴权四规则**（design §5.3）：① IPC 调用方为 foundation native → 信任入参 callerTokenId；② 非 native → 入参 callerTokenId 必须等于 IPC 实际调用方 tokenId；③ 直调路径 pid 归属校验（uid 一致或 pid 已在任务内）；④ 不满足返回 ERR_TASK_PERMISSION_DENIED（不透传应用侧）。§5.2.1/§5.3.1⑧/§5.7、spec RegisterTaskIntent/RegisterTaskProcess 接口规格同步 | 已修正 |
+| F-9 | 功能缺口 | **payload 更新无通知通道**：R-14 仅状态变更回调，SetTaskParams 的 payload-only 变更无任何回调——US-3"展示执行进度"实时性落空（UI 只能轮询 GetTaskInfo） | 高 | 新增 noticeType **PAYLOAD_UPDATED**：SetTaskParams payload 变化经 OnTaskNotice 派发已注册监听者（design §5.5/§5.6、spec AC-3.1/SetTaskParams 行为场景同步） | 已修正 |
+| F-10 | 规格一致性 | spec 内部矛盾两处：① API 变更分析表 SetTaskParams"优先级/类型可调"与接口规格"type 创建后不可调"矛盾；② RegisterTaskProcess 接口规格签名 2 参（缺 callerTokenId），与 design IDL 3 参不一致 | 中 | ① 改为"可调字段仅 priority/payload"；② 签名补 callerTokenId（含参数约束与通道鉴权行为场景） | 已修正 |
+| F-11 | 设计精确性 | 拦截点①位置表述矛盾（§5.4.1"参数解析处" vs §5.4.2"获得 AbilityRecord 后"）；勘察补强：`AbilityRecord` pid **仅在 attach 时设置**（SetScheduler 内 SetPid(GetCallingPid())，ability_record.cpp:1096，全库唯一路径）——"进程已存在直接纳管"仅对既有 record 成立，热启动新实例走意向路径 | 中 | §5.4.1 场景 1 精确为"Want 解析于入口、分支判定于获得 record 后"；§5.4.2 补分支①适用边界与 file:line 证据（两路径全覆盖无遗漏） | 已修正 |
+| F-12 | NFR 矛盾 | 任务记录 ≤1KB（design 4.3/spec NFR）与 payload/input 各 ≤4KB 矛盾（合计可达 ~9KB） | 中 | 修正为"基础字段 ≤1KB，payload/input 变长字段各 ≤4KB 另计，单任务记录上限 ~9KB"（design 4.3/spec NFR 同步） | 已修正 |
+| F-13 | 文档错位 | design"后续 Task 拆分"表与 execution-plan TASK 编号错位（design T2=进程调度/T4=监听交互 vs plan T2=监听交互/T4=管控RCP）；骨架表 TASK-SKELETON-1 vs plan TASK-0 | 中 | design 两表对齐 execution-plan 编号（TASK-0~6）并注明以 plan 为准 | 已修正 |
+| F-14 | 落地机制 | "CCM"术语未映射本仓参数体系（本仓无 CCM 实现；惯例为 sysparam：.para 定义+GetParameter 读取，先例 appfwk.para / app_running_manager.cpp:1145）；execution-plan 文件清单缺参数定义文件 | 中 | design §6.1 明确参数落地机制（sysparam，命名 const.sys.appms.taskmanager.*）；execution-plan 全量清单与 TASK-4 Files 补 `services/appmgr/etc/taskmanager.para`；spec R-21/R-22 措辞同步 | 已修正 |
+| F-15 | 结构归属 | TaskRecord.exemptRefCount 归属错误：R-11 幂等键=taskId+pid+豁免类型（per-pid），单一 TaskRecord 字段无法表达多进程计数 | 中 | 从 TaskRecord 移除；幂等引用计数按 pid 维护于 process_schedule 档位状态（design 4.3/5.6、plan TASK-4、module_design.svg 同步） | 已修正 |
+| F-16 | AC 措辞 | AC-1.4"任务记录不可再查询"对 CancelTask 不成立（CANCELED 终态记录保留至 DestroyTask 仍可查询） | 低 | AC-1.4 措辞区分：CancelTask 后记录保留至 DestroyTask；DestroyTask 后不可查询 | 已修正 |
+| F-17 | 字段完整性 | R-19 豁免登记字段列表漏 taskId（D-16 定义含 taskId） | 低 | R-19 补 taskId（对齐 D-16 字段集） | 已修正 |
+| F-18 | 行为完备性 | 监听重复注册/注销未注册行为未定义；SubmitTaskInput 多次提交覆盖语义未定义 | 低 | spec 补幂等语义：重复注册幂等（单份派发）、注销未注册幂等 ERR_OK；input 多次提交以最后一次为准（覆盖） | 已修正 |
+| F-19 | 清单准确性 | TASK-0"2 个 struct"——design §5.2 实为 3 个 struct（TaskCreateParams/TaskParams/TaskInfo）+ ITaskListener | 低 | 修正为"13 方法 + 3 struct + ITaskListener（task_listener.h 手写）" | 已修正 |
+| F-20 | 锚点完整性 | proposal API 变更项清单（design/spec 共享锚点）漏 RegisterTaskIntent（第十二轮条件两段式新增） | 低 | 清单补 RegisterTaskIntent（含自注册说明） | 已修正 |
+
+### 术语残留清理（随本轮）
+
+design.md 与 task_flow.svg 中"动作记账/施加记账/记账"活描述 5 处统一为"内存登记"（D-16 术语，历史决策记录行保留原文）。
+
+### 待定项确认（用户 2026-08-26）
+
+N=3 续期次数上限、INPUT_ARRIVED 枚举命名、交互 30min/宽限 5min/档位1限时 30min/硬上限 60min/预警提前量 5min 默认值——**全部确认保留**（design §6.1/spec R-21 同步标注"已确认"）。
+
+### 结论
+
+第十三轮自审发现 13 项（F-8~F-20：高 2 / 中 6 / 低 5），已全部修复至交付件；其中 F-8 通道鉴权为安全闭环必改项（落地时 TASK-3 需覆盖通道鉴权用例：非 native 自报身份拒绝、pid 归属不符拒绝）。开放项 O-1~O-6 维持不变（外部对齐），不阻塞模块级开发。

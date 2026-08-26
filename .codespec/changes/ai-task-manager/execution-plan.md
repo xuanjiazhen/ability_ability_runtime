@@ -49,6 +49,7 @@
 | ability_ability_runtime | 服务层 | `services/abilitymgr/include/`（拦截工具头文件，如 ability_start_utils.h 或新建拦截点辅助） | 修改/新增 | taskId 解析/上报辅助函数 |
 | ability_ability_runtime | DFX/构建 | `hisysevent.yaml` | 修改 | 新增 TASK_CREATE/TASK_STATE_CHANGE/TASK_DESTROY/TASK_INPUT/TASK_RSSCONTROL/TASK_ABUSE_WARNING 6 事件 |
 | ability_ability_runtime | 构建 | `ability_runtime.gni` | 修改 | 新增特性开关 `ability_runtime_ai_task_manager_enable`（默认 true） |
+| ability_ability_runtime | 构建/配置 | `services/appmgr/etc/taskmanager.para`（新增） | 新增 | 可调参数定义（上限/时长/续期次数/探测开关，命名 `const.sys.appms.taskmanager.*`；sysparam 体系，F-14 补全；随 BUILD.gn 安装） |
 | ability_ability_runtime | 错误码 | `interfaces/inner_api/error_utils/include/ability_runtime_error_util.h`（或任务域新头文件） | 修改 | 新增任务域错误码段（5 个 + 复用 ERR_INVALID_PARAM） |
 | ability_ability_runtime | 测试 | `test/unittest/appmgr/task_mgr/`（新增） | 新增 | 任务管理单测（状态机/生命周期/权限/并发/档位合并/防仿冒） |
 | ability_ability_runtime | 测试 | `test/unittest/abilitymgr/`（新增拦截相关用例） | 新增 | 拦截点纳管集成用例（两段式） |
@@ -108,7 +109,7 @@
 | TASK-1 | 任务模型与状态机：CreateTask/SetTaskState/DestroyTask/CancelTask/SetTaskParams + 生命周期 | task_record、task_state_machine、task_manager_service（核心路径）、单测 | AC-1.1~AC-1.6 | TASK-0 | 单测覆盖合法/非法流转、权限、上限 | `run -t UT -ts task_mgr_test` | 生产 ~1,300（record 300 + state_machine 200 + service 800）；单测 ~800 |
 | TASK-2 | 查询/监听/交互：GetTaskInfo(s)/RegisterTaskListener/SubmitTaskInput/payload 传达 + **UI→助手传递通道**（SubmitTaskInput 白名单=创建者+已注册监听的系统 UI，OnTaskNotice(INPUT_ARRIVED) 通知创建者，评审决策 2026-08-24） | task_listener_manager、task_manager_service、单测 | AC-3.1~AC-3.4, AC-4.1~AC-4.4 | TASK-1 | 单测覆盖回调顺序/负载/交互挂起回传/白名单外拒绝 | `run -t UT -ts task_mgr_test` | 生产 ~900（listener_mgr 400 + service 增量 500）；单测 ~700 |
 | TASK-3 | 拦截纳管+防仿冒：**条件两段式**（进程已存在直接纳管/未创建意向+attach）、B-1 随机 taskId、B-2 caller 校验（含代理启动身份规则） | ability_manager_service.cpp、ability_connect_manager.cpp、task_manager_service（RegisterTaskIntent/Process）、集成用例 | AC-2.1~AC-2.5 | TASK-1 | 集成用例覆盖四链路（Start/Connect/意图/Cli）+ 代理启动变体（AsCaller/WithSpecifyTokenId）+ **已存在进程场景** + 仿冒拒绝；无 taskId 零影响回归 | `run -t UT -ts ability_manager_service_first_test` | 生产 ~950（AMS 拦截点 350 + 意向表/B-2 校验 500 + 死亡挂点 50 + 工具 50）；集成用例 ~900 |
-| TASK-4 | 管控与 ResourceControlProxy：档位合并、经代理施加/撤销豁免（一期骨架）、**NotifyTaskEnd 任务级清理通知**、降级恢复、上限防滥用（CCM 参数化）、续期与到期处置（仅 priority 变化触发、N=3 默认可配）、进程死亡清理 | process_schedule_*、resource_control_proxy_*、task_mgr 联动、单测+集成 | AC-5.1~AC-5.5 | TASK-1, TASK-3 | 单测覆盖档位合并/降级/幂等/动作日志断言（含 NotifyTaskEnd 双通道时序、续期次数上限）；集成覆盖动作序列 | `run -t UT -ts task_mgr_test` | 生产 ~1,700（schedule_mgr 700 + policy 200 + types 80 + RCP 接口 100 + stub 300 + impl 占位 150 + 联动 200）；单测 ~1,000 |
+| TASK-4 | 管控与 ResourceControlProxy：档位合并、经代理施加/撤销豁免（一期骨架）、**NotifyTaskEnd 任务级清理通知**、降级恢复、上限防滥用（sysparam 参数化，F-14）、续期与到期处置（仅 priority 变化触发、N=3 默认可配）、进程死亡清理 | process_schedule_*、resource_control_proxy_*、task_mgr 联动、单测+集成 | AC-5.1~AC-5.5 | TASK-1, TASK-3 | 单测覆盖档位合并/降级/幂等/动作日志断言（含 NotifyTaskEnd 双通道时序、续期次数上限）；集成覆盖动作序列 | `run -t UT -ts task_mgr_test` | 生产 ~1,700（schedule_mgr 700 + policy 200 + types 80 + RCP 接口 100 + stub 300 + impl 占位 150 + 联动 200）；单测 ~1,000 |
 | TASK-5 | DFX：hisysevent 6 事件、dump、日志、错误码接入 | hisysevent.yaml、task_dfx、dump 入口 | AC-6.1~AC-6.2 | TASK-1~TASK-4 | 事件上报可检索；dump 输出任务全景 | 事件检索 + `hidumper -a 501` | 生产 ~630（task_dfx 400 + yaml 80 + 接入 150）；验证用例 ~300 |
 | TASK-6 | 验证收口：全量 AC 用例、真机锁屏/后台场景验证（锁屏豁免边界与 RSS owner 对齐；**前置（P1 代码勘察 2026-08-24）：产品含 freezer 执行器 + `const.taskmanager.low_memory_frozen_enable=true`——开源 master 无 505/517/520 消费者，端到端验证会假成功**） | test/ 全量 + 真机 | 全部 AC | TASK-1~TASK-5；RSS 对接（外部依赖）；真机端到端另需产品 freezer 环境 | 全量单测/集成通过；真机验证报告（锁屏定时任务、后台长时任务，须记录产品 freezer/开关配置）；master 上以 Stub 动作日志断言为基线 | `run -t UT -tp ability_runtime` | 用例补强 ~700（真机脚本/集成补强） |
 
@@ -132,7 +133,7 @@
 
 | 操作 | 文件 | 说明 |
 |------|------|------|
-| 新增 | `interfaces/inner_api/app_manager/task_manager/ITaskManager.idl` | 13 个方法 + 2 个 struct（design 5.2 节） |
+| 新增 | `interfaces/inner_api/app_manager/task_manager/ITaskManager.idl` | 13 个方法 + 3 个 struct（TaskCreateParams/TaskParams/TaskInfo）+ ITaskListener 回调接口（task_listener.h，IRemoteBroker 手写，design 5.2 节；F-19 修正） |
 | 新增 | `interfaces/inner_api/app_manager/task_manager/include/task_manager_client.h` + `src/task_manager_client.cpp` | 客户端（含 AMS 内部调用入口） |
 | 新增 | `interfaces/inner_api/app_manager/task_manager/include/task_listener.h` | ITaskListener 回调 |
 | 新增 | `interfaces/inner_api/app_manager/task_manager/BUILD.gn` | IDL 生成 + 客户端组件 |
@@ -207,7 +208,7 @@
 
 | 字段 | 内容 |
 |------|------|
-| 任务目标 | process_schedule 闭环：进程组双向索引、档位合并（max）、ApplyLevel 增量施加/撤销（经 ResourceControlProxy）、任务结束降级（剩余任务最高档）、上限防滥用（R-22）、幂等（exemptRefCount）；**ResourceControlProxy 代理层**：语义接口（ControlAction/ControlRequest）+ 一期骨架实现（内存登记 + TASK_RSSCONTROL 日志/告警 + 探测开关 resource_control_proxy_probe_enable 默认关）+ 对接实现占位（条件编译）；**续期机制**（仅 priority 变化触发、次数上限 N=3 默认可配）与各项上限 CCM 参数化（评审决策 2026-08-24） |
+| 任务目标 | process_schedule 闭环：进程组双向索引、档位合并（max）、ApplyLevel 增量施加/撤销（经 ResourceControlProxy）、任务结束降级（剩余任务最高档）、上限防滥用（R-22）、幂等（豁免引用计数按 pid 维护于 process_schedule，F-15 修正）；**ResourceControlProxy 代理层**：语义接口（ControlAction/ControlRequest）+ 一期骨架实现（内存登记 + TASK_RSSCONTROL 日志/告警 + 探测开关 resource_control_proxy_probe_enable 默认关）+ 对接实现占位（条件编译）；**续期机制**（仅 priority 变化触发、次数上限 N=3 默认可配）与各项上限参数化（sysparam 落地：`.para` 定义 + GetParameter 读取，design §6.1 F-14；评审决策 2026-08-24，默认值 2026-08-26 第十三轮确认） |
 | 规模预估 | 生产 ~1,700（schedule_mgr 700 + policy 200 + types 80 + RCP 接口 100 + stub 300 + impl 占位 150 + 联动 200）；单测 ~1,000 |
 | AC 映射 | AC-5.1, AC-5.2, AC-5.3, AC-5.4, AC-5.5 |
 | 前置依赖 | TASK-1, TASK-3 |
@@ -222,6 +223,7 @@
 | 新增 | `services/appmgr/include/process_schedule/process_schedule_manager.h` + `src/process_schedule/process_schedule_manager.cpp` | 索引/档位/管控动作（经 ResourceControlProxy）/内存登记 |
 | 新增 | `services/appmgr/include/process_schedule/process_schedule_policy.h` + `src/process_schedule/process_schedule_policy.cpp` | 优先级→档位映射、上限/时长配置 |
 | 新增 | `services/appmgr/include/process_schedule/process_schedule_types.h` | 档位/动作记录 |
+| 新增 | `services/appmgr/etc/taskmanager.para` | 可调参数定义（sysparam，F-14：上限/时长/续期次数/探测开关；随 BUILD.gn 安装） |
 | 新增 | `services/appmgr/include/resource_control_proxy/resource_control_proxy.h` | ResourceControlProxy 语义接口 |
 | 新增 | `services/appmgr/include/resource_control_proxy/resource_control_proxy_stub.h` + `src/resource_control_proxy/resource_control_proxy_stub.cpp` | 一期骨架（内存登记+日志+告警+探测开关） |
 | 新增 | `services/appmgr/include/resource_control_proxy/resource_control_proxy_impl.h` + `src/resource_control_proxy/resource_control_proxy_impl.cpp` | 对接实现占位（条件编译，RSS 明确后落地） |

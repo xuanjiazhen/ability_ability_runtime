@@ -1,7 +1,7 @@
 # 交接文档：AI 语音助手任务管理机制（AI Task Manager）
 
 > 供后续 AI/工程师接手。目标：不依赖上下文对话即可继续分析与开发。
-> 生成时间：2026-08-22 · 最近更新：2026-08-24（第十一轮评审后全量刷新）· 当前进度：SDD 文档阶段（设计评审第十一轮），**尚未开始写代码**。
+> 生成时间：2026-08-22 · 最近更新：2026-08-26（第十三轮自审后全量刷新）· 当前进度：SDD 文档阶段（设计评审第十三轮），**尚未开始写代码**。
 
 ---
 
@@ -27,11 +27,15 @@
 ```
 .codespec/changes/ai-task-manager/
 ├── manifest.md              # 元数据（profile: none, complexity: standard, status: draft）
-├── proposal.md              # 需求文档 + 基线（2026-08-21 通过；讨论记录补录至第十一轮）
+├── proposal.md              # 需求文档 + 基线（2026-08-21 通过；讨论记录补录至第十三轮）
 ├── spec.md                  # 特性规格：US-1~6 + AC-1.1~AC-6.2 + 规则 R-1~R-24 + 接口行为规格
 ├── design.md                # 架构设计：任务模型/状态机/模块设计/RSS 细化/防仿冒/拦截点 + ADR-1~9
 ├── execution-plan.md        # 执行计划：TASK-0~6 + 文件全量清单 + AC 追溯 + 代码量估算
-├── review-analysis.md       # 第七轮深度审查报告（F-1~F-7 修正记录）
+├── review-analysis.md       # 第七轮深度审查（F-1~F-7）+ 第十三轮自审（F-8~F-20）修正记录
+├── docs/
+│   ├── extension-analysis.md      # 扩展场景分析（A/B/C 三层 + 三不碰边界，二期规划输入）
+│   ├── rss-alignment.md           # RSS 团队对齐问题清单（O-2/O-3/O-5/O-6，P0 必答项标注）
+│   └── ai-assistant-alignment.md  # AI 助手团队对齐表（O-1 枚举 + Q-1~Q-12 调用模式）
 ├── architecture_overview.svg # 对外总览图（背景/方案/修改点）
 ├── module_design.svg        # 三模块具体设计图（类图式）
 └── task_flow.svg            # 整体流程图（泳道时序）
@@ -51,7 +55,7 @@ ohos-sdd validate . --level c
 
 ---
 
-## 3. 关键决策汇总（十一轮评审固化，勿轻易推翻）
+## 3. 关键决策汇总（十三轮评审固化，勿轻易推翻）
 
 | # | 决策 | 结论 |
 |---|------|------|
@@ -71,6 +75,8 @@ ohos-sdd validate . --level c
 | D-14 | 上限配置 | 任务数/单任务进程数/全局豁免数/时长/续期次数等上限均经 CCM 参数可调（第十轮） |
 | D-15 | payload 权限 | 交互 payload 含敏感内容时按权限管控（第十轮） |
 | D-16 | 豁免记录 | "动作账本"降级为**内存登记**（第十一轮）：不持久化、仅活跃任务 {taskId, pid, action, level, timestamp, result}，单一职责=RSS 重启重放（P4）+撤销重试，随 AppMS 进程消亡（与 C-1 一致）；计时/续期计数为 TaskRecord 内存态；审计/验收/定位/复核一律走 TASK_RSSCONTROL+hilog 日志，对账基线=动作日志序列 |
+| D-17 | 通道鉴权（F-8，第十三轮） | RegisterTaskIntent/RegisterTaskProcess 可被系统应用直调（callerTokenId 为 IPC 入参非通道派生）→ **四规则**：① foundation native 调用方信任入参身份（AMS 转发）；② 非 native 调用方入参 callerTokenId 必须等于 IPC 实际身份（杜绝自报他人）；③ 直调路径 pid 归属校验（uid 一致或 pid 已在任务内）；④ 拒绝返回 ERR_TASK_PERMISSION_DENIED 不透传应用侧。与 D-4 互补，B-2 仿冒面闭环 |
+| D-18 | payload 更新通知（F-9，第十三轮） | SetTaskParams 的 payload 变化经 OnTaskNotice(**PAYLOAD_UPDATED**) 派发已注册监听者（R-14 状态回调仅覆盖状态变更）——支撑 US-3 进度实时展示；noticeType 全集 = INPUT_ARRIVED / PAYLOAD_UPDATED / INTERACTIVE_TIMEOUT / EXEMPT_EXPIRING / EXEMPT_EXPIRED |
 
 ---
 
@@ -83,7 +89,7 @@ ohos-sdd validate . --level c
 - **TaskPriority（4 档 → 管控档位）**：LOW=0 不豁免 / MEDIUM=1 限时豁免(30min) / HIGH=2 激活态全时豁免 / CRITICAL=3 豁免+提权(二期)
 - **TaskType（初稿）**：GENERAL / VOICE_PLAYBACK / TIMER_TASK / DATA_PROCESSING / SYNC_TRANSFER / INTERACTION / DOWNLOAD / CUSTOM
 - **状态机流转**：见 design.md §4.2 流转表；终态不可回退；交互态必带 payload；REJECTED 仅创建者
-- **TaskRecord**（≤1KB，内存态）：taskId / type / priority / state / payload / input / creatorTokenId / creatorUid / userId / processPids / createTime / updateTime / exemptRefCount / 豁免计时与续期计数（N=3 可配，第十轮）
+- **TaskRecord**（基础字段 ≤1KB，payload/input 各 ≤4KB 另计，F-12；内存态）：taskId / type / priority / state / payload / input / creatorTokenId / creatorUid / userId / processPids / createTime / updateTime / 豁免计时与续期计数（N=3 可配，第十轮）；豁免幂等计数按 pid 维护于 process_schedule（F-15，不在 TaskRecord）
 
 ### 4.2 拦截点：条件两段式（design.md §5.4，第六轮修正）
 
@@ -139,7 +145,7 @@ ControlRequest = {taskId, pid, uid, tokenId, bundleName, taskType, priority, tas
 
 CreateTask / DestroyTask / CancelTask / SetTaskState / SetTaskParams / GetTaskInfo / GetTaskInfos / RegisterTaskListener / UnregisterTaskListener / SubmitTaskInput / RegisterTaskIntent / RegisterTaskProcess / UnregisterTaskProcess（后 3 个为 AMS 内部调用）
 
-监听回调（ITaskListener）：状态变更回调（携带 payload）+ **OnTaskNotice 通知类事件**（INPUT_ARRIVED / INTERACTIVE_TIMEOUT / EXEMPT_EXPIRING / EXEMPT_EXPIRED，第十/十一轮补全）；同注册、同派发线程、同受 userId 过滤；SubmitTaskInput 白名单=创建者+已注册监听的系统 UI（D-11）。
+监听回调（ITaskListener）：状态变更回调（携带 payload）+ **OnTaskNotice 通知类事件**（INPUT_ARRIVED / **PAYLOAD_UPDATED**（F-9，第十三轮）/ INTERACTIVE_TIMEOUT / EXEMPT_EXPIRING / EXEMPT_EXPIRED）；同注册、同派发线程、同受 userId 过滤；SubmitTaskInput 白名单=创建者+已注册监听的系统 UI（D-11）。
 
 错误码：ERR_TASK_NOT_FOUND / ERR_TASK_INVALID_STATE / ERR_TASK_INVALID_STATE_TRANSITION / ERR_TASK_PERMISSION_DENIED / ERR_TASK_LIMIT_EXCEEDED（+ 复用 ERR_INVALID_PARAM）
 
@@ -149,9 +155,9 @@ CreateTask / DestroyTask / CancelTask / SetTaskState / SetTaskParams / GetTaskIn
 - dump：hidumper -a 501（任务全景：状态/进程/档位/payload 摘要/活跃豁免登记摘要）
 - 日志：hilog_tag_wrapper
 
-### 4.8 防滥用上限（均 CCM 参数可调，默认值评估调整中，评审决策 2026-08-24）
+### 4.8 防滥用上限（均经 sysparam 可调（`.para` + GetParameter，F-14；需求侧"CCM 可调"由该机制承载），默认值已确认 2026-08-26 第十三轮）
 
-创建者活跃任务 ≤16（R-2）；单任务纳管进程 ≤16 与全局活跃豁免进程 ≤64（R-22，豁免按 pid 计）；豁免时长硬上限 60min、档位 1 限时 30min、交互态超时 30min+宽限 5min（F-5 两段式）、续期次数 N=3（仅 priority 变化触发）；上限超限拒绝 + TASK_ABUSE_WARNING。
+创建者活跃任务 ≤16（R-2）；单任务纳管进程 ≤16 与全局活跃豁免进程 ≤64（R-22，豁免按 pid 计）；豁免时长硬上限 60min、档位 1 限时 30min、交互态超时 30min+宽限 5min+预警提前量 5min（F-5 两段式）、续期次数 N=3（仅 priority 变化触发）；上限超限拒绝 + TASK_ABUSE_WARNING。
 
 ---
 
@@ -170,6 +176,10 @@ CreateTask / DestroyTask / CancelTask / SetTaskState / SetTaskParams / GetTaskIn
 | 505/221 在 RSS 服务端白名单 | `resource_schedule_service/ressched/services/resschedservice/src/res_sched_service.cpp:175/151` |
 | QosManager = 内核 sched_qos 用户态封装 | `qos_manager/services/src/qos_interface.cpp:48`（/proc/thread-self/sched_qos_ctrl） |
 | RSS 新增插件需评审内存基线（故倾向复用现有 resType） | `resource_schedule_service/Resource_Schedule_Service_Process_Management_Specifications_ZH.md` |
+| **AbilityRecord pid 仅 attach 时设置**（F-11 勘察，第十三轮） | `services/abilitymgr/src/ability_record.cpp:1096`（SetScheduler 内 SetPid(GetCallingPid())，全库唯一 SetPid 路径）——"进程已存在直接纳管"仅对既有 record 成立，热启动新实例走意向路径 |
+| EDS 接口核实（P7） | `device_standby/interfaces/innerkits/IStandbyService.idl:22-25`（ApplyAllowResource:22 / UnapplyAllowResource:23 / GetAllowList:24） |
+| 本仓参数体系惯例（F-14） | sysparam：`services/abilitymgr/etc/appfwk.para`（.para 定义先例）+ `OHOS::system::Get*Parameter`（app_running_manager.cpp:1145 读取先例）；无 CCM 实现——taskmanager.para 随 TASK-4 新增 |
+| 505/517 payload 先例 | `services/common/src/res_sched_util.cpp:228-234`（THAW_ONE_APP payload：uid/pid/bundleName/reason/callerPid） |
 
 ---
 
@@ -185,14 +195,14 @@ CreateTask / DestroyTask / CancelTask / SetTaskState / SetTaskParams / GetTaskIn
 
 ## 7. 开放项（需外部对齐，不阻塞模块级开发）
 
-| 编号 | 开放项 | 依赖方 |
-|------|--------|--------|
-| O-1 | 任务类型/优先级/状态枚举最终对齐 | AI 语音助手团队 |
-| O-2 | 锁屏豁免场景边界（豁免覆盖哪些冻结类型、时长/数量上限；锁屏冻结 = suspend 冻结 + 可能叠加 standby 待机冻结）——**EDS 一期经 P7 ApplyAllowResource 联动（第十轮 D-2 关闭），联合调试验收待 device_standby 侧** | RSS 团队 |
-| O-3 | RSS 真实对接（ResourceControlProxyImpl 落地） | RSS 团队 |
-| O-4 | 子进程自动纳入任务是否纳入一期 | 需求方确认 |
-| O-5 | 520 低内存查杀豁免消费方语义 | RSS 团队 |
-| O-6 | RSS 505 payload 语义与豁免覆盖范围（RCP-Impl 对接前必须确认） | RSS 团队 |
+| 编号 | 开放项 | 依赖方 | 对齐材料 |
+|------|--------|--------|----------|
+| O-1 | 任务类型/优先级/状态枚举最终对齐 | AI 语音助手团队 | **docs/ai-assistant-alignment.md**（枚举表 + Q-1~Q-12 调用模式，2026-08-26 备好） |
+| O-2 | 锁屏豁免场景边界（豁免覆盖哪些冻结类型、时长/数量上限；锁屏冻结 = suspend 冻结 + 可能叠加 standby 待机冻结）——**EDS 一期经 P7 ApplyAllowResource 联动（第十轮 D-2 关闭），联合调试验收待 device_standby 侧** | RSS 团队 | docs/rss-alignment.md P2 节 |
+| O-3 | RSS 真实对接（ResourceControlProxyImpl 落地） | RSS 团队 | docs/rss-alignment.md P1 节（#9~#11） |
+| O-4 | 子进程自动纳入任务是否纳入一期 | 需求方确认 | — |
+| O-5 | 520 低内存查杀豁免消费方语义 | RSS 团队 | docs/rss-alignment.md #12 |
+| O-6 | RSS 505 payload 语义与豁免覆盖范围（RCP-Impl 对接前必须确认） | RSS 团队 | **docs/rss-alignment.md P0 节**（#1~#8，含 master 无执行器假成功问题） |
 
 ## 8. 执行计划（execution-plan.md，待评审通过后启动）
 
@@ -210,12 +220,13 @@ CreateTask / DestroyTask / CancelTask / SetTaskState / SetTaskParams / GetTaskIn
 
 ## 9. 后续 AI 接手指引
 
-1. **先读**：`.codespec/changes/ai-task-manager/proposal.md`（基线与决策记录，含 2026-08-24 第八~十一轮补录）→ `design.md`（设计全貌）→ `spec.md`（AC/规则）→ `execution-plan.md`（任务分解）→ `review-analysis.md`（第七轮审查修正）
+1. **先读**：`.codespec/changes/ai-task-manager/proposal.md`（基线与决策记录，含 2026-08-26 第十三轮补录）→ `design.md`（设计全貌）→ `spec.md`（AC/规则）→ `execution-plan.md`（任务分解）→ `review-analysis.md`（第七轮 F-1~F-7 + 第十三轮 F-8~F-20 修正记录）
 2. **再看图**：三张 SVG（总览/模块设计/流程）
-3. **如需继续分析**：重点审查 design.md §4.1（枚举，待 AI 助手对齐）、§5.4（拦截点）、§6.4（RCP 对接策略）
-4. **如需写代码**：确认设计评审通过后从 TASK-0 开始（IDL + 骨架），每 Task 的 Files/完成判据/验证命令见 execution-plan.md
-5. **提交规范**：`-s` 签名 + `Co-Authored-By: Claude <noreply@anthropic.com>`；每阶段完成跑 ohos-sdd validate
-6. **勿推翻的决策**：模块形态（AppMS）、防仿冒（B-1+B-2）、RCP 代理层、inner API——若要变更须与需求方重开澄清并更新 proposal.md（变更控制规则）
+3. **外部对齐**：docs/rss-alignment.md（RSS 团队，O-2/O-3/O-5/O-6）+ docs/ai-assistant-alignment.md（AI 助手团队，O-1）已备好，可直接发出；结论回写 design §4.1/§5 后冻结
+4. **二期规划输入**：docs/extension-analysis.md（A/B/C 三层扩展场景 + 三不碰边界）
+5. **如需写代码**：确认设计评审通过后从 TASK-0 开始（IDL + 骨架），每 Task 的 Files/完成判据/验证命令见 execution-plan.md；TASK-3 需覆盖通道鉴权用例（F-8：非 native 自报身份拒绝、pid 归属不符拒绝）
+6. **提交规范**：`-s` 签名 + `Co-Authored-By: Claude <noreply@anthropic.com>`；每阶段完成跑 ohos-sdd validate
+7. **勿推翻的决策**：模块形态（AppMS）、防仿冒（B-1+B-2+通道鉴权 D-17）、RCP 代理层、inner API——若要变更须与需求方重开澄清并更新 proposal.md（变更控制规则）
 
 ---
 
