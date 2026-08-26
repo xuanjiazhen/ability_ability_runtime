@@ -4627,6 +4627,17 @@ void UIAbilityLifecycleManager::StartSpecifiedRequest(SpecifiedRequest &specifie
                 return;
             }
         } else {
+            if (request.isWebSandBoxClone) {
+                AbilitySessionInfo info;
+                info.isWebSandBoxClone = request.isWebSandBoxClone;
+                info.sandBoxCloneIndex = request.abilityInfo.applicationInfo.appIndex;
+                if (request.sandboxCloneParams != nullptr) {
+                    info.callerBundleName = request.sandboxCloneParams->callerBundleName;
+                    info.callerTokenId = request.sandboxCloneParams->callerTokenId;
+                    info.creatorBundleName = request.sandboxCloneParams->creatorBundleName;
+                }
+                StoreAbilitySessionInfo(specifiedRequest.requestId, info);
+            }
             AbilityRuntime::StartSpecifiedParam specifiedParam;
             BuildStartSpecifiedParam(request, specifiedRequest.requestId, specifiedParam);
             DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedAbility(request.want,
