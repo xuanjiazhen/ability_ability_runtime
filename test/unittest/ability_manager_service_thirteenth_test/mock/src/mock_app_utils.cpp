@@ -85,6 +85,11 @@ bool AppUtils::IsStartOptionsWithAnimation()
     return true;
 }
 
+bool AppUtils::IsSupportBlockAllAppStart()
+{
+    return true;
+}
+
 bool AppUtils::IsMultiProcessModel()
 {
     return true;
