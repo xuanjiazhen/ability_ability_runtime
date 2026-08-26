@@ -29,7 +29,6 @@
 #include "napi/native_api.h"
 #include "app_recovery.h"
 
-
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
