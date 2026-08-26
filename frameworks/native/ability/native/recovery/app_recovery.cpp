@@ -123,7 +123,11 @@ bool AppRecovery::AddAbility(std::shared_ptr<AbilityRuntime::UIAbility> ability,
         return false;
     }
 
-    token_ = token;
+    {
+        std::lock_guard<std::mutex> lock(recoveryMutex_);
+        token_ = token;
+        ability_ = ability;
+    }
     mainWant_.SetElementName(abilityInfo->bundleName, abilityInfo->name);
     auto handler = mainHandler_.lock();
     if (handler != nullptr) {
@@ -134,18 +138,27 @@ bool AppRecovery::AddAbility(std::shared_ptr<AbilityRuntime::UIAbility> ability,
             TAG_LOGE(AAFwkTag::RECOVERY, "DeleteInValidMissionFiles failed");
         }
     }
- 
-    if (isEnable_ && !abilityRecoverys_.empty() && !abilityInfo->recoverable) {
-        TAG_LOGE(AAFwkTag::RECOVERY, "recoverable is false");
-        return false;
+
+    {
+        std::lock_guard<std::mutex> lock(recoveryMutex_);
+        if (isEnable_ && !abilityRecoverys_.empty() && !abilityInfo->recoverable) {
+            TAG_LOGE(AAFwkTag::RECOVERY, "recoverable is false");
+            return false;
+        }
     }
-    ability_ = ability;
     std::shared_ptr<AbilityRecovery> abilityRecovery = std::make_shared<AbilityRecovery>();
     abilityRecovery->InitAbilityInfo(ability, abilityInfo, token);
     abilityRecovery->EnableAbilityRecovery(useAppSettedValue_.load(), restartFlag_, saveOccasion_, saveMode_);
     ability->EnableAbilityRecovery(abilityRecovery, useAppSettedValue_.load());
-    abilityRecoverys_.push_back(abilityRecovery);
+    {
+        std::lock_guard<std::mutex> lock(recoveryMutex_);
+        abilityRecoverys_.push_back(abilityRecovery);
+    }
     std::shared_ptr<AAFwk::AbilityManagerClient> abilityMgr = AAFwk::AbilityManagerClient::GetInstance();
+    if (abilityMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "null abilityMgr");
+        return false;
+    }
     abilityMgr->SetAppRecoveryFlag(token_.promote(), crashFlag_);
     return true;
 }
@@ -157,6 +170,7 @@ bool AppRecovery::RemoveAbility(const sptr<IRemoteObject>& tokenId)
         return false;
     }
     TAG_LOGD(AAFwkTag::RECOVERY, "start");
+    std::lock_guard<std::mutex> lock(recoveryMutex_);
     auto itr = std::find_if(abilityRecoverys_.begin(), abilityRecoverys_.end(),
         [&tokenId](std::shared_ptr<AbilityRecovery> &abilityRecovery) {
         return (abilityRecovery && abilityRecovery->GetToken() == tokenId);
@@ -169,6 +183,7 @@ bool AppRecovery::RemoveAbility(const sptr<IRemoteObject>& tokenId)
 
 void AppRecovery::SetFreezeCallback(FreezeFunction freezeCallback)
 {
+    std::lock_guard<std::mutex> lock(g_mutex);
     if (!this->freezeCallback) {
         this->freezeCallback = freezeCallback;
     }
@@ -195,8 +210,11 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
     if (reason == StateReason::APP_FREEZE) {
         panda::JSNApi::NotifyOnANR();
     }
-    if (!ret && this->freezeCallback ==  nullptr) {
-        return false;
+    if (!ret) {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        if (this->freezeCallback == nullptr) {
+            return false;
+        }
     }
 
     if (reason == StateReason::APP_FREEZE) {
@@ -293,9 +311,12 @@ bool AppRecovery::ScheduleRecoverApp(StateReason reason)
         return false;
     }
 
-    if (abilityRecoverys_.empty()) {
-        TAG_LOGE(AAFwkTag::RECOVERY, "null ability");
-        return false;
+    {
+        std::lock_guard<std::mutex> lock(recoveryMutex_);
+        if (abilityRecoverys_.empty()) {
+            TAG_LOGE(AAFwkTag::RECOVERY, "null ability");
+            return false;
+        }
     }
 
     if (reason == StateReason::APP_FREEZE) {
@@ -340,13 +361,15 @@ bool AppRecovery::TryRecoverApp(StateReason reason)
 void AppRecovery::DoRecoverApp(StateReason reason)
 {
     TAG_LOGD(AAFwkTag::RECOVERY, "begin");
-    if (abilityRecoverys_.empty()) {
-        TAG_LOGE(AAFwkTag::RECOVERY, "no ability exist");
-        return;
-    }
     AAFwk::Want *want = nullptr;
     if (want_ != nullptr) {
         want = want_.get();
+    }
+
+    std::lock_guard<std::mutex> lock(recoveryMutex_);
+    if (abilityRecoverys_.empty()) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "no ability exist");
+        return;
     }
 
     if (abilityRecoverys_.size() == 1) {
@@ -369,7 +392,11 @@ void AppRecovery::DoRecoverMainApp(StateReason reason)
     TAG_LOGD(AAFwkTag::RECOVERY, "DoReciverMainApp begin");
     AAFwk::Want *want = &mainWant_;
     want->SetParam(AAFwk::Want::PARAM_ABILITY_RECOVERY_RESTART, false);
-    auto token = token_.promote();
+    sptr<IRemoteObject> token;
+    {
+        std::lock_guard<std::mutex> lock(recoveryMutex_);
+        token = token_.promote();
+    }
     if (token == nullptr) {
         return;
     }
@@ -385,29 +412,39 @@ void AppRecovery::DoSaveAppState(StateReason reason, uintptr_t ability)
 {
     TAG_LOGD(AAFwkTag::RECOVERY, "begin");
     auto appInfo = applicationInfo_.lock();
-    if (appInfo == nullptr || abilityRecoverys_.empty()) {
-        TAG_LOGE(AAFwkTag::RECOVERY, "not exist application or ability info");
+    if (appInfo == nullptr) {
         return;
     }
 
     bool onlySaveTargetAbility = (ability != 0);
-    for (auto& abilityRecoveryRecord : abilityRecoverys_) {
-        if (!onlySaveTargetAbility) {
-            abilityRecoveryRecord->ScheduleSaveAbilityState(reason);
-            TAG_LOGD(AAFwkTag::RECOVERY, "not onlySaveTargetAbility");
-            continue;
+    {
+        std::lock_guard<std::mutex> lock(recoveryMutex_);
+        if (abilityRecoverys_.empty()) {
+            TAG_LOGE(AAFwkTag::RECOVERY, "not exist application or ability info");
+            return;
         }
-        if (abilityRecoveryRecord->IsSameAbility(ability)) {
-            abilityRecoveryRecord->ScheduleSaveAbilityState(reason);
-            TAG_LOGD(AAFwkTag::RECOVERY, "IsSameAbility");
-            break;
+
+        for (auto& abilityRecoveryRecord : abilityRecoverys_) {
+            if (!onlySaveTargetAbility) {
+                abilityRecoveryRecord->ScheduleSaveAbilityState(reason);
+                TAG_LOGD(AAFwkTag::RECOVERY, "not onlySaveTargetAbility");
+                continue;
+            }
+            if (abilityRecoveryRecord->IsSameAbility(ability)) {
+                abilityRecoveryRecord->ScheduleSaveAbilityState(reason);
+                TAG_LOGD(AAFwkTag::RECOVERY, "IsSameAbility");
+                break;
+            }
         }
     }
 }
 
 void AppRecovery::EnableAppRecovery(uint16_t restartFlag, uint16_t saveFlag, uint16_t saveMode)
 {
-    isEnable_ = true;
+    {
+        std::lock_guard<std::mutex> lock(recoveryMutex_);
+        isEnable_ = true;
+    }
     restartFlag_ = restartFlag;
     crashFlag_ = restartFlag;
     saveOccasion_ = saveFlag;
@@ -552,13 +589,14 @@ void AppRecovery::ClearPageStack(std::string bundleName)
 
 bool AppRecovery::GetMissionIds(std::string path, std::vector<int32_t> &missionIds)
 {
-    DIR *dir = opendir(path.c_str());
-    if (dir == nullptr) {
+    DIR* rawDir = opendir(path.c_str());
+    if (rawDir == nullptr) {
         TAG_LOGE(AAFwkTag::RECOVERY, "null dir");
         return false;
     }
+    std::unique_ptr<DIR, decltype(&closedir)> dir(rawDir, closedir);
     struct dirent *ptr;
-    while ((ptr = readdir(dir)) != nullptr) {
+    while ((ptr = readdir(dir.get())) != nullptr) {
         if (strcmp(ptr->d_name, ".") == 0 || strcmp(ptr->d_name, "..") == 0) {
             continue;
         } else if (ptr->d_type == DT_REG) {
@@ -572,7 +610,6 @@ bool AppRecovery::GetMissionIds(std::string path, std::vector<int32_t> &missionI
             continue;
         }
     }
-    closedir(dir);
     return true;
 }
 

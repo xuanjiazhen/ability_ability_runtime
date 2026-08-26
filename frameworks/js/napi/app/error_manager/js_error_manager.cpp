@@ -78,7 +78,7 @@ static std::recursive_mutex errorMtx;
 static std::mutex freezeMtx;
 static std::once_flag registerCallbackFlag;
 static std::shared_ptr<JsLoopObserver> loopObserver_;
-static bool freezeCallbackRegistered = false;
+static std::atomic<bool> freezeCallbackRegistered = false;
 static bool isSetHandler = false;
 static bool g_isSetLeakObserver = false;
 static std::mutex onErrorMtx;
@@ -652,6 +652,10 @@ static void OnFreezeCallback()
 static void DefaultFreezeCallback()
 {
     TAG_LOGD(AAFwkTag::JSNAPI, "DefaultFreezeCallback start");
+    if (g_defaulFreezeObserver.env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null env");
+        return;
+    }
     std::lock_guard<std::mutex> lock(g_defaultFreezeMtx);
     napi_handle_scope scope_ = nullptr;
     napi_status scopeStatus = napi_open_handle_scope(g_defaulFreezeObserver.env, &scope_);
@@ -1076,7 +1080,9 @@ private:
         }
 
         if (g_defaultLeakObserver.ref) {
-            napi_delete_reference(env, g_defaultLeakObserver.ref);
+            if (napi_delete_reference(env, defaultLeakObserver.ref) != napi_ok) {
+                TAG_LOGW(AAFwkTag::JSNAPI, "Failed to delete defaultLeakObserver reference");
+            }
             g_defaultLeakObserver.ref = nullptr;
         }
 
@@ -1118,7 +1124,9 @@ private:
             TAG_LOGE(AAFwkTag::JSNAPI, "Get g_defaulFreezeObserver Failed");
         }
         if (g_defaulFreezeObserver.ref) {
-            napi_delete_reference(env, g_defaulFreezeObserver.ref);
+            if (napi_delete_reference(env, g_defaulFreezeObserver.ref) != napi_ok) {
+                TAG_LOGW(AAFwkTag::JSNAPI, "Failed to delete defaultFreezeObserver reference");
+            }
             g_defaulFreezeObserver.ref = nullptr;
         }
         if (function) {
