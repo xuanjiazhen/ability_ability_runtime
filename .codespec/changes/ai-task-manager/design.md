@@ -88,7 +88,7 @@
 | ADR-5 | 管控档位模型 | 档位化 + 合并：任务优先级→管控档位（0~3）；进程档位 = max(纳管任务档位)；档位变化增量施加/撤销 RSS 动作 | 每任务独立施加（同进程重复调用 RSS，幂等管理复杂）；全局统一（无法表达优先级差） | 档位合并天然满足需求 11（多任务按最高）；增量动作避免重复调用 | AC-2.3, AC-5.4 |
 | ADR-6 | 状态机驱动 | AI 助手驱动 + 模块校验（合法流转表；终态不可回退；REJECTED 仅创建者可设） | 助手全权设置（状态易乱，放弃）；模块自动推导（语义易偏差，放弃） | 与需求 2/5 一致；流转合法性由系统把关 | AC-1.2, AC-1.3 |
 | ADR-7 | INPUT/AUTH 交互通道 | 状态监听回调携带 payload（描述+可选项 JSON），SubmitTaskInput 回传，input 存任务记录 | 独立消息通道（机制更重，与状态监听解耦，一期不需要） | 与 ADK HITL（request_credential 挂起-恢复）语义一致；系统 UI 已监听状态流 | AC-4.x |
-| ADR-8 | 线程模型 | AppMS 内独立事件处理器（taskHandler 串行线程）处理全部任务操作与回调派发 | 多线程并发处理（需锁/一致性管理，收益低） | 与 appmgr/agentmgr 既有 EventHandlerWrap 风格一致；串行免锁、回调顺序有保证 | 非功能（并发 ≥16） |
+| ADR-8 | 线程模型 | AppMS 内独立事件处理器（taskHandler 串行线程）处理全部任务操作与回调派发；**IPC 入口线程模型（F-44 补全，第十七轮）：stub 方法 post-and-wait taskHandler（CreateTask 等需同步返回值）；RCP 同步调用（507/517）在 RCP 内部工作线程执行、结果回投 taskHandler——不得在 taskHandler 上直接发起同步调用（串行线程即全局锁，一次 507 超时将阻塞全部任务操作与等待中的 binder 线程）** | 多线程并发处理（需锁/一致性管理，收益低）；RCP 同步调用直接在 taskHandler 执行（实现简单但阻塞放大：超时预算 × 并发任务数） | 与 appmgr/agentmgr 既有 EventHandlerWrap 风格一致；串行免锁、回调顺序有保证；P6"不持锁"要求在串行模型下唯一自洽解 = 同步调用移出串行线程 | 非功能（并发 ≥16） |
 | ADR-9 | QoS 提权（sessionQos 探索结论） | 一期冻结豁免主线；管控档位预留 QoS 扩展位；二期进程级走 RSS 221（PROCESS_QOS_CHANGE），线程级走 QosController/RTG | 一期即上线程级 QoS（需线程 tid：目标进程协作或 /proc 遍历，复杂度高且收益不明，后置） | "sessionQos" 无既有接口（全树勘察）；QosManager 为内核 sched_qos 用户态封装，线程级；任务级"会话语义"由本模块管控档位承载 | 资源调度子模块扩展点 |
 
 ## 任务模型（设计细化，随评审确认）
@@ -293,7 +293,7 @@ interface ITaskListener {   // 系统 UI 注册
 1. **控制面/被控面分离**：助手是任务的控制面（CreateTask/SetTaskState/DestroyTask 均由其发起）。若纳入被控集合会引入自指——豁免的施加与撤销依赖被豁免者自身的调用行为；
 2. **进程级纳管的爆炸半径**（F-3 原则）：进程加入任务后其**全部组件活动**共享管控档位。助手进程承载的并非单个任务（还包含其他并发任务、语音会话、卡片等无关功能），纳管助手 = 无差别豁免整个进程；
 3. **防滥用模型被削弱**（R-22）：60min 豁免上限按任务计。若助手自动进入其创建的每个任务，只要保持 ≥1 个活跃任务即获得事实上的永久豁免，上限机制失效；
-4. **超时兜底已覆盖控制面失联**：若助手冻结导致状态机无法推进，30min 交互超时/60min 豁免上限使任务自动流转到超时终态并撤销豁免，不会死锁（代价为本次执行浪费）。
+4. **超时兜底覆盖资源面，不覆盖状态面（F-43 修正，第十七轮）**：若助手冻结/死亡导致状态机无法推进，30min 交互超时/60min 豁免上限使**豁免被撤销**（F-5 两段式/R-21，资源不死锁）；但**任务状态不自动流转**（ADR-6：状态机仅创建者驱动；F-5/R-21 的超时处置仅降档+告警，不改状态）——任务滞留激活态（如 INPUT_REQUIRED），**占用创建者活跃任务配额（R-2）**。原表述"任务自动流转到超时终态"与 ADR-6/F-5/R-21 矛盾，已修正。滞留任务处置两方案（**A-9，待用户对齐**）：(a) ADR-6 增补窄口径系统流转——超时降档时任务置 FAILED(reason=timeout)、创建者进程死亡时置 CANCELED（AppMS 经既有 AppDeathRecipient 链可知创建者死亡，app_death_recipient.h）；(b) 维持"仅创建者驱动"，接受滞留（创建者重启后可自行 Cancel/Destroy 恢复配额；创建者永久死亡则配额滞留至 foundation 重启）。推荐 (a)——否则 16 个滞留任务即配额死锁且无人可解。
 
 显式自注册通道（B-2 校验规则的显式化推论；通道鉴权规则②，F-8 补全）：
 
@@ -387,7 +387,7 @@ interface ITaskListener {   // 系统 UI 注册
 | 失败语义 | 拦截器返回非 ERR_OK **阻断启动**——任务拦截器必须恒返 ERR_OK（观察者模式，与 R-8/R-13 一致，可控） | 天然不阻断 |
 | 覆盖 | RequestModalUIExtension 无拦截器，仍需 ad-hoc 挂点（或推动框架补点） | 全覆盖 |
 
-**结论（推荐混合方案，待评审确认——列入未对齐清单 A-8）**：**方案 A 为主 + B 补角**——新建 `TaskInterceptor`（`IAbilityInterceptor` 实现，恒返 ERR_OK）经 `AddInterceptor("Task", …)` 注册，承载 4 个已覆盖收敛点的 Want 解析 + 意向登记（冷启动路径①）；身份捕获在拦截器内按来源取（StartAbility 路径取 StartAbilityWrapParam 不可得——**需扩展 AbilityInterceptorParam 增加 callerTokenId 字段**（低风险：纯增字段，既有拦截器不受影响）或复用 Want 内 AMS 保留参数机制）；"既有 record 直接纳管"分支由拦截器自查 record 管理器判定；RequestModalUIExtension 单点 ad-hoc 挂同一辅助函数。若评审否决扩展 AbilityInterceptorParam，则回退方案 B（原 5 点 ad-hoc）。
+**结论（推荐混合方案，待评审确认——列入未对齐清单 A-8）**：**方案 A 为主 + B 补角**——新建 `TaskInterceptor`（`IAbilityInterceptor` 实现，恒返 ERR_OK）经 `AddInterceptor("Task", …)` 注册，承载 4 个已覆盖收敛点的 Want 解析 + 意向登记（冷启动路径①）；身份捕获在拦截器内按来源取（StartAbility 路径取 StartAbilityWrapParam 不可得——**需扩展 AbilityInterceptorParam 增加 callerTokenId 字段**（低风险：纯增字段，既有拦截器不受影响）或复用 Want 内 AMS 保留参数机制）；"既有 record 直接纳管"分支由拦截器自查 record 管理器判定（**或挂 afterCheckExecuter_ 后置段——abilityInfo 已解析处 :1705/:1922/:2234，F-46 补充**）；RequestModalUIExtension 单点 ad-hoc 挂同一辅助函数。若评审否决扩展 AbilityInterceptorParam，则回退方案 B（原 5 点 ad-hoc）。
 
 #### 5.4.2 条件两段式拦截逻辑（修正：覆盖"已存在进程"场景）
 
@@ -494,7 +494,7 @@ if (targetPid > 0) {
 3. 校验结果记入内存登记（result 字段）并打印日志，供对接验收与问题定位（评审决策 2026-08-24：经日志查看）。
 4. **已冻结进程纳管分支（P3，代码勘察 2026-08-24）**：施加管控时目标进程可能已被冻结（典型：SUBMITTED 定时任务就绪前进程已被 RSS 冻结）——ApplyControl 施加顺序固定为：EXEMPT(505) → 507 查询 → 若 `isFrozen=true` → THAW(517) → 507 复查；复查仍未解冻才判定失败（告警 + TASK 事件）。注意：507 在无消费插件的环境恒返回 `isFrozen=false` 默认值（suspend_manager_base_service.cpp:66-72），该分支仅在有 freezer 执行器的产品环境下有实际意义；
 5. **RSS 重启状态重放（P4）**：RSS（SA 1901）异常重启会清空其内部豁免状态，而 AppMS 内存登记仍显示"已豁免"（状态漂移）。RCP-Impl 复用 RSS 客户端内置死亡通知（`suspend_manager_base_client` 懒加载代理 + 死亡监听），RSS 重启后**按内存登记幂等重放（replay）全部活跃豁免**，重放失败按 R-20 重试 ≤3 + 告警；二期以 push observer 做运行时漂移检测（§6.4 P5）；
-6. **同步调用纪律（P6）**：507/517/520 均经 `ReportSyncEvent` **同步**上报——RCP 不得在持有 task_mgr/process_schedule 锁时发起同步调用（死锁/长阻塞风险），统一设置超时保护；状态查询优先走本地 observer 缓存（§6.4 P5）。
+6. **同步调用纪律（P6；F-44 补强，第十七轮）**：507/517/520 均经 `ReportSyncEvent` **同步**上报——RCP 不得在持有 task_mgr/process_schedule 锁时发起同步调用（死锁/长阻塞风险），**且不得在 taskHandler 串行线程上直接发起**（串行线程即全局锁：一次 507 超时阻塞全部任务操作 + post-and-wait 的 binder 线程；F-44——同步调用在 RCP 内部工作线程执行、结果回投 taskHandler，ADR-8）；统一设置超时保护（建议 ≤500ms 预算，落地随 TASK-4 定稿）；状态查询优先走本地 observer 缓存（§6.4 P5）。
 7. **待机豁免联动（P7，评审决策 2026-08-24；F-30/F-34 补全，第十五轮实证）**：任务进入激活态（豁免生效）时，ResourceControlProxy 经 `StandbyServiceClient::ApplyAllowResource` 向 device_standby 申请待机资源豁免（网络/任务执行），覆盖夜间深度待机场景（需求场景 1，D-2 关闭）；任务终态/豁免撤销/进程移除时 `UnapplyAllowResource`；与 505/517 同一生命周期内存登记管理，避免待机豁免残留。**落地要点（实证）**：① ResourceRequest 构造字段 = {allowType(位掩码), uid, name, duration, reason, reasonCode=REASON_NATIVE_API}（resource_request.h）；② **AllowType 含 FREEZE 位**（allow_type.h:25-34：NETWORK/RUNNING_LOCK/TIMER/WORK_SCHEDULER/AUTO_SYNC/PUSH/FREEZE）——待机**冻结**豁免可经 EDS 申请，与 O-2（锁屏冻结边界）直接相关，P7 是否一并申请 FREEZE 位列入 device_standby 对齐评估；③ 权限无阻碍：native 调用方免权限（standby_service_impl.cpp:626-636 CheckCallerPermission 仅 HAP 需 DEVICE_STANDBY_EXEMPTION）；④ **新增依赖**：appmgr BUILD.gn 须新增 `device_standby:standby_innerkits`（现有依赖无 device_standby，execution-plan 已同步）。
 
 > **AppMS 重启反向场景（C-1 分析，结论：无需处理）**：P4 只覆盖"RSS 重启、AppMS 登记漂移"；反向的"AppMS 重启、RSS 侧豁免残留"不存在——AppMS 位于 foundation 进程，异常重启即 foundation 进程重启，系统将清理全部应用进程，纳管进程与 RSS 侧豁免随进程消亡同亡，无孤儿豁免（评审结论 2026-08-24）。内存登记同为进程内存态，同亡一致。
@@ -787,6 +787,7 @@ sa_profile/501.json: 不变（复用 appms）
 | 系统应用白名单口径 | 低 | 复用 AppMS 既有 token 校验；白名单范围随评审定 |
 | 多用户隔离细节（任务跨用户可见性） | 低 | 一期按 userId 隔离；细化随 execution-plan 评审 |
 | AI 助手进程自身的冻结策略与自注册需求（§5.2.1） | 中 | 与 AI 助手团队对齐目标设备上助手的冻结策略（前台/continuous task/白名单现状）；真机验证阶段与 RSS owner 确认"助手冻结→任务空转至超时"窗口是否真实发生；显式自注册通道一期即可用，supervisor 弱保障档位列二期评估 |
+| **创建者失联/死亡时任务滞留激活态（F-43，第十七轮）** | 中 | 超时仅撤销豁免不改状态（ADR-6）→ 滞留任务占用 R-2 配额（活跃=非终态）；16 个滞留即配额死锁且无人可解（创建者死亡时）。处置方案 A-9 待对齐：(a) 窄口径系统流转（超时→FAILED/创建者死亡→CANCELED，复用 AppDeathRecipient 链）——推荐；(b) 接受滞留（创建者重启可恢复） |
 
 ### 设计→规格追溯表（Define→Specify carry-through）
 

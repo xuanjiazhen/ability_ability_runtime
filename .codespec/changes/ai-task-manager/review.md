@@ -12,6 +12,7 @@
 
 ## 当前结论（2026-08-26）
 
-- **文档阶段**：十四轮审查收口，PASS（validate --level all 通过）；
+- **文档阶段**：十七轮审查收口，PASS（validate --level all 通过）；
 - **实现阶段**：未开始（代码冻结，TASK-0 待用户显式指令）；
-- **前置开放项**：O-1（枚举对齐，AI 助手团队）/ O-6（RSS 505 payload 语义）等，见 review-analysis.md 开放项表。
+- **前置开放项**：O-1（枚举对齐，AI 助手团队）/ O-6（RSS 505 payload 语义）等，见 review-analysis.md 开放项表；
+- **待用户对齐**：A-1~A-9 自主决策清单（review-analysis.md 第十五/十六/十七轮节）。

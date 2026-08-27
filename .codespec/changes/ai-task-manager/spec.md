@@ -159,7 +159,7 @@
 | 规则ID | 类型 | 触发条件 | 预期行为 | 边界/约束 | 关联AC |
 |--------|------|----------|----------|-----------|--------|
 | R-1 | 行为 | 系统应用调用 CreateTask，参数（type/priority/payload）合法 | 返回 ERR_OK 与不可猜测 taskId（随机，≥128bit 熵）；任务以 UNKNOWN 状态创建；同创建者可查询 | type/priority 为枚举值，非法值返回 ERR_INVALID_PARAM | AC-1.1 |
-| R-2 | 边界 | 创建任务时系统中该创建者活跃任务数达到上限（可配，默认 16） | 返回 ERR_TASK_LIMIT_EXCEEDED，不创建任务 | 上限为配置项，默认 16；上限 0 表示禁用创建 | AC-1.1, AC-1.5 |
+| R-2 | 边界 | 创建任务时系统中该创建者活跃任务数达到上限（可配，默认 16） | 返回 ERR_TASK_LIMIT_EXCEEDED，不创建任务 | 上限为配置项，默认 16；上限 0 表示禁用创建；**活跃 = 非终态任务**（UNKNOWN~交互态均计入；创建者失联导致的滞留任务同样占用配额，处置见 design §5.2.1 F-43/A-9） | AC-1.1, AC-1.5 |
 | R-3 | 行为 | 调用 SetTaskState 发起合法流转（按状态机表，如 SUBMITTED→WORKING） | 状态更新成功返回 ERR_OK；监听者收到回调（携带 payload） | 状态机合法流转表见 design.md | AC-1.2 |
 | R-4 | 异常 | 调用 SetTaskState 发起非法流转（终态回退、未注册流转、REJECTED 由非创建者设置） | 返回 ERR_TASK_INVALID_STATE_TRANSITION，任务状态不变 | 终态（COMPLETED/CANCELED/FAILED/REJECTED）不可再流转 | AC-1.3 |
 | R-5 | 行为 | 调用 CancelTask/DestroyTask，任务存在且调用方为创建者 | CancelTask：任务进入 CANCELED（非终态时）并触发降级；DestroyTask：任务记录清理并触发降级；返回 ERR_OK | DestroyTask 对任意状态可执行（幂等：不存在返回 ERR_TASK_NOT_FOUND） | AC-1.4 |
