@@ -1011,17 +1011,22 @@ void JsRuntime::InitSourceMap(const std::string bundleName)
     CHECK_POINTER(jsEnv_);
 
     auto init = [bundleName]() {
-        DFXJSNApi::SourceMapSetInitStatus(false);
+        DFXJSNApi::SourceMapSetInitStatus(panda::ecmascript::InitStatus::IN_EXECUTED);
         std::vector<std::string> hapList;
         JsModuleReader::GetHapPathList(bundleName, hapList);
         for (auto &hapInfo : hapList) {
-            if (!hapInfo.empty()) {
-                std::string sourceMapData;
-                JsRuntime::ReadSourceMapData(hapInfo, MERGE_SOURCE_MAP_PATH, sourceMapData);
-                DFXJSNApi::SourceMapSplitSourceMap(sourceMapData);
+            if (hapInfo.empty()) {
+                continue;
             }
+            std::string sourceMapData;
+            if (JsRuntime::ReadSourceMapData(hapInfo, MERGE_SOURCE_MAP_PATH, sourceMapData)) {
+                DFXJSNApi::SourceMapSetIsRelease(false);
+            } else {
+                DFXJSNApi::SourceMapSetIsRelease(true);
+            }
+            DFXJSNApi::SourceMapSplitSourceMap(sourceMapData);
         }
-        DFXJSNApi::SourceMapSetInitStatus(true);
+        DFXJSNApi::SourceMapSetInitStatus(panda::ecmascript::InitStatus::EXECUTED_SUCCESSFULLY);
     };
 
     ffrt::submit(init, {}, {}, ffrt::task_attr().qos(ffrt::qos_user_initiated));
