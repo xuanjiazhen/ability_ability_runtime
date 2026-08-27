@@ -199,13 +199,6 @@ public:
     void SetCustomProcessFlag(const std::string &flag);
 
     /**
-     * @brief Obtains the sign code.
-     *
-     * @return Returns the sign code.
-     */
-    const std::string &GetSignCode() const;
-
-    /**
      * @brief Setting the sign code.
      *
      * @param code, the sign code.

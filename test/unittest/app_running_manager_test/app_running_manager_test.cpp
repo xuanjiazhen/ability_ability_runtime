@@ -934,41 +934,6 @@ HWTEST_F(AppRunningManagerTest, AppRunningManager_ClearAppRunningRecordMap_0100,
     EXPECT_EQ(appRunningManager->appRunningRecordMap_.empty(), true);
 }
 
-/////
-/**
- * @tc.name: AppRunningManager_ClipStringContent_0100
- * @tc.desc: Test ClipStringContent with regex match
- * @tc.type: FUNC
- */
-HWTEST_F(AppRunningManagerTest, AppRunningManager_ClipStringContent_0100, TestSize.Level1)
-{
-    auto appRunningManager = std::make_shared<AppRunningManager>();
-    EXPECT_NE(appRunningManager, nullptr);
-
-    std::regex rule("[a-zA-Z.]+[-_#]{1}");
-    std::string source = "test.value-123";
-    std::string afterCutStr;
-    appRunningManager->ClipStringContent(rule, source, afterCutStr);
-    EXPECT_NE(afterCutStr.empty(), true);
-}
-
-/**
- * @tc.name: AppRunningManager_ClipStringContent_0200
- * @tc.desc: Test ClipStringContent without regex match
- * @tc.type: FUNC
- */
-HWTEST_F(AppRunningManagerTest, AppRunningManager_ClipStringContent_0200, TestSize.Level1)
-{
-    auto appRunningManager = std::make_shared<AppRunningManager>();
-    EXPECT_NE(appRunningManager, nullptr);
-
-    std::regex rule("[a-zA-Z.]+[-_#]{1}");
-    std::string source = "testvalue123";
-    std::string afterCutStr;
-    appRunningManager->ClipStringContent(rule, source, afterCutStr);
-    EXPECT_EQ(afterCutStr.empty(), true);
-}
-
 /**
  * @tc.name: AppRunningManager_GetForegroundApplications_0100
  * @tc.desc: Test GetForegroundApplications with empty map

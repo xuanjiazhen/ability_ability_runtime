@@ -1070,24 +1070,6 @@ HWTEST_F(AppRunningRecordTest, AppRunningRecord_GetNeedLimitPrio_0100, TestSize.
 }
 
 /**
- * @tc.name: AppRunningRecord_GetSignCode_0100
- * @tc.desc: Test GetSignCode works.
- * @tc.type: FUNC
- */
-HWTEST_F(AppRunningRecordTest, AppRunningRecord_GetSignCode_0100, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_GetSignCode_0100 start.");
-    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
-    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.child");
-    ASSERT_NE(appRecord, nullptr);
-    std::string signCodeString = "testSignCode";
-    appRecord->signCode_ = signCodeString;
-    std::string result  = appRecord->GetSignCode();
-    EXPECT_EQ(result, signCodeString);
-    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_GetSignCode_0100 end.");
-}
-
-/**
  * @tc.name: AppRunningRecord_SetNeedLimitPrio_0100
  * @tc.desc: Test SetNeedLimitPrio works.
  * @tc.type: FUNC

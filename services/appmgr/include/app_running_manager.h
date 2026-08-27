@@ -380,7 +380,6 @@ public:
     int32_t GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExecFwk::RunningProcessInfo &info);
     int32_t GetRunningProcessInfoByChildProcessPid(const pid_t childPid, OHOS::AppExecFwk::RunningProcessInfo &info);
 
-    void ClipStringContent(const std::regex &re, const std::string &source, std::string &afterCutStr);
     std::shared_ptr<AppRunningRecord> GetAppRunningRecordByRenderPid(const pid_t pid);
     bool GetAppRunningStateByBundleName(const std::string &bundleName);
     int32_t NotifyLoadRepairPatch(const std::string &bundleName, const sptr<IQuickFixCallback> &callback);
