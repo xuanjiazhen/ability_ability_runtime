@@ -1058,8 +1058,20 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
         return ret;
     }
     auto tokenId = IPCSkeleton::GetCallingTokenID();
-    std::string sandboxConfig;
     std::string bundleName;
+    AppExecFwk::BundleInfo bundleInfo;
+    if (ToolUtil::GetBundleInfoByTokenId(tokenId, bundleInfo)) {
+        bundleName = bundleInfo.name;
+    }
+
+    // ===== 工具命令模式分流（新增，放在 shell 逻辑之前） =====
+    if (!param.isShellCommand) {
+        return ExecCmdToolMode(param, eventId, scheduler, subscriptionId,
+            callerPid, callerUid, tokenId, bundleName);
+    }
+
+    // ===== 以下为原有 shell 路径，逻辑完全不变 =====
+    std::string sandboxConfig;
     if (auto ret = ValidateAndPrepareCmd(param, tokenId, sandboxConfig, bundleName); ret != ERR_OK) {
         return ret;
     }
@@ -1098,6 +1110,100 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
     if (param.options.background) {
         HandleBackgroundSessionReply(record, eventId);
     }
+    return ERR_OK;
+}
+
+int32_t CliToolManagerService::ExecCmdToolMode(const ExecCmdParam &param, const std::string &eventId,
+    const sptr<ICliToolManagerScheduler> &scheduler, const std::string &subscriptionId,
+    int32_t callerPid, int32_t callerUid, uint32_t tokenId, const std::string &bundleName)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL,
+        "ExecCmdToolMode: cmd=%{public}s, callerPid=%{public}d, callerUid=%{public}d",
+        param.cmd.c_str(), callerPid, callerUid);
+
+    // Step 1: Extract toolName from cmd and look up tool info.
+    auto first = param.cmd.find_first_not_of(" \t");
+    if (first == std::string::npos) {
+        ReportCliExecuteFailed(bundleName, "", "invalid_tool_name");
+        return ERR_INVALID_PARAM;
+    }
+    auto pos = param.cmd.find_first_of(" \t", first);
+    std::string toolName = (pos == std::string::npos) ? param.cmd.substr(first) : param.cmd.substr(first, pos - first);
+    if (toolName.empty() || toolName[0] == '/') {
+        ReportCliExecuteFailed(bundleName, toolName, "invalid_tool_name");
+        return ERR_INVALID_PARAM;
+    }
+
+    ToolInfo toolInfo;
+    if (CliToolDataManager::GetInstance().GetToolByName(toolName, toolInfo) != ERR_OK) {
+        ReportCliExecuteFailed(bundleName, toolName, GetFailureReason(ERR_TOOL_NOT_EXIST));
+        return ERR_TOOL_NOT_EXIST;
+    }
+
+    // Step 2: Parse the command string into ExecToolParam.
+    ExecToolParam toolParam;
+    std::string detail;
+    auto parseRet = ToolUtil::ParseToolCommand(param.cmd, toolInfo, toolParam, detail);
+    if (parseRet != ERR_OK) {
+        ReportCliExecuteFailed(bundleName, toolName, GetFailureReason(parseRet), detail);
+        return parseRet;
+    }
+
+    // Step 3: Pass through options from ExecCmdParam.
+    toolParam.options = param.options;
+
+    // Step 4: Challenge defaults to empty (design.md §5.5).
+    toolParam.challenge = "";
+
+    // Step 5: Validate and prepare sandbox config (reuses execTool path).
+    std::string sandboxConfig;
+    if (auto ret = ValidateAndPrepareTool(toolParam, tokenId, toolInfo, sandboxConfig, bundleName, detail);
+        ret != ERR_OK) {
+        ReportCliExecuteFailed(bundleName, toolName, GetFailureReason(ret), detail);
+        return ret;
+    }
+
+    // Step 6: Create session record and subscribe BEFORE starting process.
+    //         Inlined from SetupAndStartSession to insert SubscribeSession
+    //         between AddSessionRecord and CreateChildProcess, aligning
+    //         with the shell path (subscribe before process creation).
+    auto record = CreateSessionRecord(toolParam, eventId);
+    if (record == nullptr) {
+        ReportCliExecuteFailed(bundleName, toolName, GetFailureReason(ERR_NO_INIT));
+        return ERR_NO_INIT;
+    }
+    AddSessionRecord(record);
+
+    auto subscribeRet = SubscribeSession(record->sessionId, subscriptionId, scheduler);
+    if (subscribeRet != ERR_OK) {
+        RemoveSessionRecord(record->sessionId);
+        ReportCliExecuteFailed(bundleName, toolName, GetFailureReason(subscribeRet));
+        return subscribeRet;
+    }
+
+    auto createRet = ProcessManager::GetInstance().CreateChildProcess(
+        toolParam, sandboxConfig, toolInfo, record);
+    if (createRet != ERR_OK) {
+        RemoveSessionRecord(record->sessionId);
+        ReportCliExecuteFailed(bundleName, toolName, GetFailureReason(createRet));
+        return createRet;
+    }
+
+    if (!RegisterSessionWithMonitors(record, toolParam.options)) {
+        ProcessManager::GetInstance().Killpg(record->processId);
+        RemoveSessionRecord(record->sessionId);
+        ReportCliExecuteFailed(bundleName, toolName, GetFailureReason(ERR_NO_INIT));
+        return ERR_NO_INIT;
+    }
+
+    if (!bundleName.empty()) {
+        RegisterAppStateObserver(bundleName, record->callerPid);
+    }
+
+    if (toolParam.options.background) {
+        HandleBackgroundSessionReply(record, eventId);
+    }
+
     return ERR_OK;
 }
 

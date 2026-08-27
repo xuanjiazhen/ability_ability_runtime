@@ -19,6 +19,7 @@
 #include <cerrno>
 #include <climits>
 #include <cstdlib>
+#include <cstdint>
 #include <nlohmann/json.hpp>
 #include <random>
 #include <set>
@@ -47,7 +48,6 @@
 #include "want_params_wrapper.h"
 #include "bool_wrapper.h"
 #include "int_wrapper.h"
-#include "string_wrapper.h"
 
 namespace OHOS {
 namespace CliTool {
