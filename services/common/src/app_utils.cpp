@@ -873,6 +873,7 @@ bool AppUtils::IsSupportModularObjectExtension()
 
 bool AppUtils::IsSupportDelayedProcessExit()
 {
+    std::lock_guard lock(isSupportDelayedProcessExitMutex_);
     if (!isSupportDelayedProcessExit_.isLoaded) {
         isSupportDelayedProcessExit_.value = system::GetBoolParameter(SUPPORT_DELAYED_PROCESS_EXIT, false);
         isSupportDelayedProcessExit_.isLoaded = true;
@@ -883,6 +884,7 @@ bool AppUtils::IsSupportDelayedProcessExit()
 
 bool AppUtils::IsAutoStartupSupported()
 {
+    std::lock_guard lock(isAutoStartupSupportedMutex_);
     if (!isAutoStartupSupported_.isLoaded) {
         isAutoStartupSupported_.value =
             system::GetBoolParameter(IS_ENTERPRISE_DEVICE_TYPE, false) ||
