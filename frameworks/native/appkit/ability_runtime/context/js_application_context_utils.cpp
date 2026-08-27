@@ -1116,7 +1116,7 @@ napi_value JsApplicationContextUtils::OnGetUIAbilityChildProcessInfos(napi_env e
             if (array == nullptr) {
                 TAG_LOGE(AAFwkTag::APPKIT, "null array");
                 task.Reject(env, CreateJsError(env, ERR_ABILITY_RUNTIME_EXTERNAL_INTERNAL_ERROR,
-                    GetInnerErrorMsg(AbilityInnerErrorMsg::CREATE_PROCESS_INFO_ARRAY_FAILED)));
+                    GetInnerErrorMsg("Failed to create array.")));
                 return;
             }
             uint32_t index = 0;
