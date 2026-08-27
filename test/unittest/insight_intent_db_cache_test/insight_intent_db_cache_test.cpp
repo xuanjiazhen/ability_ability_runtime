@@ -301,5 +301,137 @@ HWTEST_F(InsightIntentDbCacheTest, InsightIntentDbCacheTest_006, TestSize.Level0
     initialized = DelayedSingleton<InsightIntentDbCache>::GetInstance()->IsCacheInitialized(999);
     EXPECT_EQ(initialized, false);
 }
+
+/**
+ * @tc.name: InsightIntentDbCacheTest_007
+ * @tc.desc: Test uncached GetInsightIntentGenericInfo/GetInsightIntentInfo forward the data
+ *           returned by InsightRdbStorageMgr::LoadInsightIntentInfo to the caller
+ *           (downstream boundary of LoadInsightIntentInfo)
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentDbCacheTest, InsightIntentDbCacheTest_007, TestSize.Level0)
+{
+    int32_t cachedUserId = 0;
+    int32_t otherUserId = 100;
+    std::string bundleName = "mock.bundle";
+    std::string moduleName = "mockModule";
+    std::string intentName = "mockIntent";
+
+    MockLoadInsightIntentInfos(true);
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->InitInsightIntentCache(cachedUserId);
+
+    MockLoadInsightIntentInfo(true);
+    ExtractInsightIntentGenericInfo genericInfo;
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentGenericInfo(
+        bundleName, moduleName, intentName, otherUserId, genericInfo);
+    EXPECT_EQ(genericInfo.bundleName, bundleName);
+    EXPECT_EQ(genericInfo.moduleName, moduleName);
+    EXPECT_EQ(genericInfo.intentName, intentName);
+
+    ExtractInsightIntentInfo info;
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(
+        bundleName, moduleName, intentName, otherUserId, info);
+    EXPECT_EQ(info.genericInfo.bundleName, bundleName);
+    EXPECT_EQ(info.genericInfo.moduleName, moduleName);
+    EXPECT_EQ(info.genericInfo.intentName, intentName);
+
+    MockLoadInsightIntentInfo(false);
+    ExtractInsightIntentGenericInfo genericInfoEmpty;
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentGenericInfo(
+        bundleName, moduleName, intentName, otherUserId, genericInfoEmpty);
+    EXPECT_TRUE(genericInfoEmpty.intentName.empty());
+}
+
+/**
+ * @tc.name: InsightIntentDbCacheTest_008
+ * @tc.desc: Test uncached GetConfigInsightIntentInfo forward the data
+ *           returned by InsightRdbStorageMgr::LoadConfigInsightIntentInfo to the caller
+ *           (downstream boundary of LoadConfigInsightIntentInfo)
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentDbCacheTest, InsightIntentDbCacheTest_008, TestSize.Level0)
+{
+    int32_t cachedUserId = 0;
+    int32_t otherUserId = 100;
+    std::string bundleName = "mock.bundle";
+    std::string moduleName = "mockModule";
+    std::string intentName = "mockConfigIntent";
+
+    MockLoadInsightIntentInfos(true);
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->InitInsightIntentCache(cachedUserId);
+
+    MockLoadConfigInsightIntentInfo(true);
+    InsightIntentInfo info;
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetConfigInsightIntentInfo(
+        bundleName, moduleName, intentName, otherUserId, info);
+    EXPECT_EQ(info.bundleName, bundleName);
+    EXPECT_EQ(info.moduleName, moduleName);
+    EXPECT_EQ(info.intentName, intentName);
+
+    MockLoadConfigInsightIntentInfo(false);
+    InsightIntentInfo infoEmpty;
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetConfigInsightIntentInfo(
+        bundleName, moduleName, intentName, otherUserId, infoEmpty);
+    EXPECT_TRUE(infoEmpty.intentName.empty());
+}
+
+/**
+ * @tc.name: InsightIntentDbCacheTest_009
+ * @tc.desc: Test CanSkipDelete: trusted only when the cache loaded for the user
+ *           and holds no entry for the bundle; a failed load must not be trusted
+ *           even after a same-user re-init early return
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentDbCacheTest, InsightIntentDbCacheTest_009, TestSize.Level0)
+{
+    // fresh userIds keep this test independent of singleton state left by earlier cases
+    int32_t cachedUserId = 300;
+    int32_t switchedUserId = 400;
+    std::string bundleName = "skip_delete_bundle";
+    std::string moduleName = "skipModule";
+    ExtractInsightIntentProfileInfoVec profileInfos;
+    ExtractInsightIntentProfileInfo info;
+    std::vector<InsightIntentInfo> configInfos;
+    InsightIntentInfo cfg;
+    cfg.intentName = "MockIntent";
+    configInfos.push_back(cfg);
+    profileInfos.insightIntents.push_back(info);
+
+    MockLoadInsightIntentInfos(true);
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->InitInsightIntentCache(cachedUserId);
+
+    // loaded for the user and bundle absent: skip is trusted
+    EXPECT_TRUE(DelayedSingleton<InsightIntentDbCache>::GetInstance()->CanSkipDelete(
+        bundleName, cachedUserId));
+    // wrong user: never trusted
+    EXPECT_FALSE(DelayedSingleton<InsightIntentDbCache>::GetInstance()->CanSkipDelete(
+        bundleName, switchedUserId));
+
+    MockSaveData(true);
+    EXPECT_EQ(DelayedSingleton<InsightIntentDbCache>::GetInstance()->SaveInsightIntentTotalInfo(
+        bundleName, moduleName, cachedUserId, 0, profileInfos, configInfos), ERR_OK);
+    // bundle cached: no skip
+    EXPECT_FALSE(DelayedSingleton<InsightIntentDbCache>::GetInstance()->CanSkipDelete(
+        bundleName, cachedUserId));
+
+    // user switch load failure clears the map but keeps the old userId:
+    // the empty map must not be trusted for the old user
+    MockLoadInsightIntentInfos(false);
+    EXPECT_EQ(DelayedSingleton<InsightIntentDbCache>::GetInstance()->InitInsightIntentCache(
+        switchedUserId), ERR_INVALID_VALUE);
+    EXPECT_FALSE(DelayedSingleton<InsightIntentDbCache>::GetInstance()->CanSkipDelete(
+        "any_bundle", cachedUserId));
+
+    // same-user re-init must reload instead of early-returning, restoring trust
+    MockLoadInsightIntentInfos(true);
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->InitInsightIntentCache(cachedUserId);
+    EXPECT_TRUE(DelayedSingleton<InsightIntentDbCache>::GetInstance()->CanSkipDelete(
+        "other_bundle", cachedUserId));
+
+    // successful switch works as before
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->InitInsightIntentCache(switchedUserId);
+    EXPECT_TRUE(DelayedSingleton<InsightIntentDbCache>::GetInstance()->CanSkipDelete(
+        bundleName, switchedUserId));
+}
 }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,4 +13,22 @@
  * limitations under the License.
  */
 
-FUZZ
+#ifndef MOCK_PARAMETERS_H
+#define MOCK_PARAMETERS_H
+
+#include <string>
+
+#include "mock_my_status.h"
+
+namespace OHOS {
+namespace system {
+
+inline bool GetBoolParameter(const std::string& key, bool def)
+{
+    return AAFwk::MyStatus::GetInstance().retIsDevelopMode_;
+}
+
+} // namespace system
+} // namespace OHOS
+
+#endif // MOCK_PARAMETERS_H

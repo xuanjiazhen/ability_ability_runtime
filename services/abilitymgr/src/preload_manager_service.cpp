@@ -90,7 +90,7 @@ int32_t PreloadManagerService::LaunchGameCustomized(const std::string &bundleNam
     bool isDevelopMode = OHOS::system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
     if (!(isGameSACall || (isShellCall && isDevelopMode))) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Permission check failed: callingUid: %{public}d, isGameSACall = %{public}d, "
-            "isShellCall = %{public}d, isDevelopMode = %{public}d",
+            "isShellCall = %{private}d, isDevelopMode = %{private}d",
             IPCSkeleton::GetCallingUid(), isGameSACall, isShellCall, isDevelopMode);
         return CHECK_PERMISSION_FAILED;
     }

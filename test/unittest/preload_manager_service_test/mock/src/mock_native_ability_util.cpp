@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,9 +13,15 @@
  * limitations under the License.
  */
 
-#ifndef FUZZTEST_OHOS_ABILITY_RUNTIME_STARTOTHERAPPINTERCEPTOR_FUZZER_H
-#define FUZZTEST_OHOS_ABILITY_RUNTIME_STARTOTHERAPPINTERCEPTOR_FUZZER_H
+#include "native_ability_util.h"
 
-#define FUZZ_PROJECT_NAME "startotherappinterceptor_fuzzer"
+#include "mock_my_status.h"
 
-#endif
+namespace OHOS {
+namespace AAFwk {
+bool NativeAbilityMetaData::IsWithNative(const AppExecFwk::AbilityInfo &abilityInfo)
+{
+    return MyStatus::GetInstance().retIsWithNative_;
+}
+}  // namespace AAFwk
+}  // namespace OHOS

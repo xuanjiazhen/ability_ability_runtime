@@ -67,6 +67,8 @@ constexpr const int BASE_TEN = 10;
 constexpr const char SIGN_TERMINAL = '\0';
 constexpr int32_t DEFAULT_CONCURRENT_NUMBER = 1;
 constexpr int32_t HIPROFILER_UID = 3063;
+constexpr int32_t REPORT_TEMPLATE_PROCESS_READY_DELAY_TIME = 2000;
+
 namespace {
 #define CHECK_CALLER_IS_SYSTEM_APP                                                             \
     if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) { \
@@ -363,7 +365,14 @@ int32_t AppMgrService::NotifyTemplateProcessReadyDone()
         return ERR_INVALID_OPERATION;
     }
     pid_t callingPid = IPCSkeleton::GetCallingPid();
-    appMgrServiceInner_->HandleNotifyTemplateProcessReadyDone(callingPid);
+    auto task = [appMgrServiceInner = appMgrServiceInner_, callingPid]() {
+        appMgrServiceInner->HandleNotifyTemplateProcessReadyDone(callingPid);
+    };
+    AAFwk::TaskHandlerWrap::GetFfrtHandler()->SubmitTask(task, AAFwk::TaskAttribute{
+        .taskName_ = TASK_NOTIFY_TEMPLATE_PROCESS_READY_DONE,
+        .delayMillis_ = REPORT_TEMPLATE_PROCESS_READY_DELAY_TIME,
+        .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
+    });
     return ERR_OK;
 }
 
@@ -615,6 +624,17 @@ int AppMgrService::GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info)
         return ERR_INVALID_OPERATION;
     }
     return appMgrServiceInner_->GetAllChildrenProcesses(info);
+#endif // SUPPORT_CHILD_PROCESS
+    return ERR_INVALID_OPERATION;
+}
+
+int AppMgrService::GetSelfChildrenProcesses(std::vector<ChildProcessInfo> &info)
+{
+#ifdef SUPPORT_CHILD_PROCESS
+    if (!IsReady()) {
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->GetSelfChildrenProcesses(info);
 #endif // SUPPORT_CHILD_PROCESS
     return ERR_INVALID_OPERATION;
 }
@@ -2079,15 +2099,30 @@ int32_t AppMgrService::CreateNativeChildProcess(const std::string &libName,
 {
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::APPMGR, "call");
+    std::vector<FdGuard> fds;
+    for (const auto &[name, fd] : request.args.fds) {
+        fds.emplace_back(fd);
+    }
     if (!IsReady()) {
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
-    
+
     return appMgrServiceInner_->CreateNativeChildProcess(
         IPCSkeleton::GetCallingPid(), libName, callback, request);
 }
 #endif // SUPPORT_CHILD_PROCESS
+
+int32_t AppMgrService::GetSelfUIAbilityChildProcesses(std::vector<ChildProcessInfo> &infos)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "call");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+
+    return appMgrServiceInner_->GetSelfUIAbilityChildProcesses(infos);
+}
 
 int32_t AppMgrService::CheckCallingIsUserTestMode(const pid_t pid, bool &isUserTest)
 {

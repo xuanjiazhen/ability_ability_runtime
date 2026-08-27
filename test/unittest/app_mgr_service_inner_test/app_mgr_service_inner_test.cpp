@@ -872,10 +872,10 @@ HWTEST_F(AppMgrServiceInnerTest, MakeProcessName_001, TestSize.Level0)
     HapModuleInfo hapModuleInfo;
     hapModuleInfo.moduleName = "module789";
     std::string processName = "test_processName";
-    appMgrServiceInner->MakeProcessName(nullptr, nullptr, hapModuleInfo, 1, "", processName, false);
-    appMgrServiceInner->MakeProcessName(nullptr, applicationInfo_, hapModuleInfo, 1, "", processName, false);
-    appMgrServiceInner->MakeProcessName(abilityInfo_, nullptr, hapModuleInfo, 1, "", processName, false);
-    appMgrServiceInner->MakeProcessName(abilityInfo_, applicationInfo_, hapModuleInfo, 1, "", processName, false);
+    appMgrServiceInner->MakeProcessName(nullptr, nullptr, hapModuleInfo, 1, "", processName);
+    appMgrServiceInner->MakeProcessName(nullptr, applicationInfo_, hapModuleInfo, 1, "", processName);
+    appMgrServiceInner->MakeProcessName(abilityInfo_, nullptr, hapModuleInfo, 1, "", processName);
+    appMgrServiceInner->MakeProcessName(abilityInfo_, applicationInfo_, hapModuleInfo, 1, "", processName);
 
     EXPECT_NE(appMgrServiceInner, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "MakeProcessName_001 end");
@@ -3091,18 +3091,19 @@ HWTEST_F(AppMgrServiceInnerTest, StartSpecifiedAbility_001, TestSize.Level2)
 
     AAFwk::Want want;
     AbilityInfo abilityInfo;
-    appMgrServiceInner->StartSpecifiedAbility(want, abilityInfo);
+    AbilityRuntime::StartSpecifiedParam specifiedParam;
+    appMgrServiceInner->StartSpecifiedAbility(want, abilityInfo, specifiedParam);
 
-    appMgrServiceInner->StartSpecifiedAbility(want, *abilityInfo_);
+    appMgrServiceInner->StartSpecifiedAbility(want, *abilityInfo_, specifiedParam);
 
     abilityInfo_->applicationInfo = *applicationInfo_;
-    appMgrServiceInner->StartSpecifiedAbility(want, *abilityInfo_);
+    appMgrServiceInner->StartSpecifiedAbility(want, *abilityInfo_, specifiedParam);
 
     appMgrServiceInner->remoteClientManager_->SetBundleManagerHelper(nullptr);
-    appMgrServiceInner->StartSpecifiedAbility(want, *abilityInfo_);
+    appMgrServiceInner->StartSpecifiedAbility(want, *abilityInfo_, specifiedParam);
 
     appMgrServiceInner->remoteClientManager_ = nullptr;
-    appMgrServiceInner->StartSpecifiedAbility(want, *abilityInfo_);
+    appMgrServiceInner->StartSpecifiedAbility(want, *abilityInfo_, specifiedParam);
 
     TAG_LOGI(AAFwkTag::TEST, "StartSpecifiedAbility_001 end");
 }
@@ -4877,6 +4878,90 @@ HWTEST_F(AppMgrServiceInnerTest, NotifyAppFault_001, TestSize.Level1)
     faultData1.timeoutMarkers = "456";
     int32_t ret1 = appMgrServiceInner->NotifyAppFault(faultData1);
     EXPECT_EQ(ret1, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: NotifyAppFault_002
+ * @tc.desc: Test NotifyAppFault when asanEnabled is true, should return ERR_OK directory.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, NotifyAppFault_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppFault_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    EXPECT_NE(appInfo, nullptr);
+    appInfo->asanEnabled = true;
+    appInfo->hwasanEnabled = false;
+    appInfo->tsanEnabled = false;
+    appInfo->bundleName = "asan_bundle";
+    int32_t recordId = 1;
+    std::string processName = "asan_process";
+    std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    EXPECT_NE(appRecord, nullptr);
+    int32_t pid = IPCSkeleton::GetCallingPid();
+    appRecord->priorityObject_->pid_ = pid;
+    appMgrServiceInner->appRunningManager_->appRunningRecordMap_.emplace(recordId, appRecord);
+    FaultData faultData;
+    faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
+    faultData.faultType = FaultDataType::APP_FREEZE;
+    int32_t ret = appMgrServiceInner->NotifyAppFault(faultData);
+    EXPECT_EQ(ret, ERR_OK);
+    appMgrServiceInner->appRunningManager_->appRunningRecordMap_.erase(recordId);
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppFault_002 end");
+}
+
+/**
+ * @tc.name: TransformedNotifyAppFault_002
+ * @tc.desc: Test TransformedNotifyAppFault when asanEnabled is true, should return ERR_OK directory.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, TransformedNotifyAppFault_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "TransformedNotifyAppFault_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    EXPECT_NE(appInfo, nullptr);
+    appInfo->asanEnabled = true;
+    appInfo->hwasanEnabled = false;
+    appInfo->tsanEnabled = false;
+    appInfo->bundleName = "asan_bundle";
+    int32_t recordId = 2;
+    std::string processName = "asan_process";
+    std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    EXPECT_NE(appRecord, nullptr);
+    int32_t pid = 12346;
+    appRecord->priorityObject_->pid_ = pid;
+    appMgrServiceInner->appRunningManager_->appRunningRecordMap_.emplace(recordId, appRecord);
+    AppFaultDataBySA faultData;
+    faultData.pid = pid;
+    faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
+    faultData.faultType = FaultDataType::APP_FREEZE;
+    int32_t ret = appMgrServiceInner->TransformedNotifyAppFault(faultData);
+    EXPECT_EQ(ret, ERR_OK);
+    appMgrServiceInner->appRunningManager_->appRunningRecordMap_.erase(recordId);
+    TAG_LOGI(AAFwkTag::TEST, "TransformedNotifyAppFault_002 end");
+}
+
+/**
+ * @tc.name: IsAsanEnabled_001
+ * @tc.desc: Test IsAsanEnabled when applicationInfo is nullptr, should return false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, IsAsanEnabled_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsAsanEnabled_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    int32_t recordId = 1;
+    std::string processName = "asan_test_process";
+    std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(nullptr, recordId, processName);
+    EXPECT_NE(appRecord, nullptr);
+    bool ret = appMgrServiceInner->IsAsanEnabled(appRecord);
+    EXPECT_EQ(ret, false);
+    TAG_LOGI(AAFwkTag::TEST, "IsAsanEnabled_001 end");
 }
 
 /**

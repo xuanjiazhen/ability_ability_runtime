@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 #define private public
 #include "app_mgr_service_inner.h"
+#include "param.h"
 #include "app_running_record.h"
 #include "app_spawn_client.h"
 #include "app_utils.h"
@@ -233,6 +234,99 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, UpdateApplicationInfoInstalled_003, Test
     int32_t ret = appMgrServiceInner->UpdateApplicationInfoInstalled(bundleName, uid, moduleName, isPlugin);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_003 end");
+}
+
+/**
+ * @tc.name: UpdateApplicationInfoInstalled_004
+ * @tc.desc: test UpdateApplicationInfoInstalled when GetNameAndIndexForUid fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, UpdateApplicationInfoInstalled_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_004 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getNameAndIndexForUidRet_ = ERR_INVALID_OPERATION;
+
+    std::string bundleName = "com.test.app";
+    int uid = 10000;
+    std::string moduleName = "test_module";
+    bool isPlugin = false;
+    int32_t ret = appMgrServiceInner->UpdateApplicationInfoInstalled(bundleName, uid, moduleName, isPlugin);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+    TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_004 end");
+}
+
+/**
+ * @tc.name: UpdateApplicationInfoInstalled_005
+ * @tc.desc: test UpdateApplicationInfoInstalled when GetApplicationInfoWithAppIndex fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, UpdateApplicationInfoInstalled_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_005 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getNameAndIndexForUidRet_ = ERR_OK;
+    AAFwk::MyStatus::GetInstance().getApplicationInfoWithAppIndexRet_ = false;
+
+    std::string bundleName = "com.test.app";
+    int uid = 10000;
+    std::string moduleName = "test_module";
+    bool isPlugin = false;
+    int32_t ret = appMgrServiceInner->UpdateApplicationInfoInstalled(bundleName, uid, moduleName, isPlugin);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+    TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_005 end");
+}
+
+/**
+ * @tc.name: UpdateApplicationInfoInstalled_006
+ * @tc.desc: test UpdateApplicationInfoInstalled when ProcessUpdateApplicationInfoInstalled fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, UpdateApplicationInfoInstalled_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_006 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getNameAndIndexForUidRet_ = ERR_OK;
+    AAFwk::MyStatus::GetInstance().getApplicationInfoWithAppIndexRet_ = true;
+    AAFwk::MyStatus::GetInstance().processUpdate_ = ERR_INVALID_STATE;
+
+    std::string bundleName = "com.test.app";
+    int uid = 10000;
+    std::string moduleName = "test_module";
+    bool isPlugin = false;
+    int32_t ret = appMgrServiceInner->UpdateApplicationInfoInstalled(bundleName, uid, moduleName, isPlugin);
+    EXPECT_EQ(ret, ERR_INVALID_STATE);
+    TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_006 end");
+}
+
+/**
+ * @tc.name: UpdateApplicationInfoInstalled_007
+ * @tc.desc: test UpdateApplicationInfoInstalled when all steps succeed
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, UpdateApplicationInfoInstalled_007, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_007 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getNameAndIndexForUidRet_ = ERR_OK;
+    AAFwk::MyStatus::GetInstance().getApplicationInfoWithAppIndexRet_ = true;
+    AAFwk::MyStatus::GetInstance().processUpdate_ = ERR_OK;
+
+    std::string bundleName = "com.test.app";
+    int uid = 10000;
+    std::string moduleName = "test_module";
+    bool isPlugin = false;
+    int32_t ret = appMgrServiceInner->UpdateApplicationInfoInstalled(bundleName, uid, moduleName, isPlugin);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "UpdateApplicationInfoInstalled_007 end");
 }
 
 /**
@@ -1588,7 +1682,9 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, StartSpecifiedAbility_001, TestSize.Leve
     AAFwk::Want want;
     AppExecFwk::AbilityInfo abilityInfo;
     int32_t requestId = 0;
-    appMgrServiceInner->StartSpecifiedAbility(want, abilityInfo, requestId);
+    AbilityRuntime::StartSpecifiedParam specifiedParam;
+    specifiedParam.requestId = requestId;
+    appMgrServiceInner->StartSpecifiedAbility(want, abilityInfo, specifiedParam);
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().checkAppRunningCall_, 0);
     TAG_LOGI(AAFwkTag::TEST, "StartSpecifiedAbility_001 end");
 }
@@ -1614,7 +1710,9 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, StartSpecifiedAbility_002, TestSize.Leve
     AAFwk::Want want;
     AppExecFwk::AbilityInfo abilityInfo;
     int32_t requestId = 0;
-    appMgrServiceInner->StartSpecifiedAbility(want, abilityInfo, requestId);
+    AbilityRuntime::StartSpecifiedParam specifiedParam;
+    specifiedParam.requestId = requestId;
+    appMgrServiceInner->StartSpecifiedAbility(want, abilityInfo, specifiedParam);
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().scheduleAcceptCall_, 1);
     TAG_LOGI(AAFwkTag::TEST, "StartSpecifiedAbility_002 end");
 }
@@ -1640,7 +1738,9 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, StartSpecifiedAbility_003, TestSize.Leve
     AAFwk::Want want;
     AppExecFwk::AbilityInfo abilityInfo;
     int32_t requestId = 0;
-    appMgrServiceInner->StartSpecifiedAbility(want, abilityInfo, requestId);
+    AbilityRuntime::StartSpecifiedParam specifiedParam;
+    specifiedParam.requestId = requestId;
+    appMgrServiceInner->StartSpecifiedAbility(want, abilityInfo, specifiedParam);
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().addModulesCall_, 1);
     TAG_LOGI(AAFwkTag::TEST, "StartSpecifiedAbility_003 end");
 }
@@ -1668,7 +1768,9 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, StartSpecifiedAbility_004, TestSize.Leve
     want.SetParam("debugApp", true);
     AppExecFwk::AbilityInfo abilityInfo;
     int32_t requestId = 0;
-    appMgrServiceInner->StartSpecifiedAbility(want, abilityInfo, requestId);
+    AbilityRuntime::StartSpecifiedParam specifiedParam;
+    specifiedParam.requestId = requestId;
+    appMgrServiceInner->StartSpecifiedAbility(want, abilityInfo, specifiedParam);
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().addModulesCall_, 1);
     TAG_LOGI(AAFwkTag::TEST, "StartSpecifiedAbility_004 end");
 }
@@ -1696,7 +1798,9 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, StartSpecifiedAbility_005, TestSize.Leve
     want.SetParam("debugApp", true);
     AppExecFwk::AbilityInfo abilityInfo;
     int32_t requestId = 0;
-    appMgrServiceInner->StartSpecifiedAbility(want, abilityInfo, requestId);
+    AbilityRuntime::StartSpecifiedParam specifiedParam;
+    specifiedParam.requestId = requestId;
+    appMgrServiceInner->StartSpecifiedAbility(want, abilityInfo, specifiedParam);
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().isAppExistCall_, 1);
     TAG_LOGI(AAFwkTag::TEST, "StartSpecifiedAbility_005 end");
 }
@@ -1724,7 +1828,9 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, StartSpecifiedAbility_006, TestSize.Leve
     want.SetParam("debugApp", true);
     AppExecFwk::AbilityInfo abilityInfo;
     int32_t requestId = 0;
-    appMgrServiceInner->StartSpecifiedAbility(want, abilityInfo, requestId);
+    AbilityRuntime::StartSpecifiedParam specifiedParam;
+    specifiedParam.requestId = requestId;
+    appMgrServiceInner->StartSpecifiedAbility(want, abilityInfo, specifiedParam);
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().addModulesCall_, 1);
     TAG_LOGI(AAFwkTag::TEST, "StartSpecifiedAbility_006 end");
 }
@@ -1752,7 +1858,9 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, StartSpecifiedAbility_007, TestSize.Leve
     want.SetParam("debugApp", true);
     AppExecFwk::AbilityInfo abilityInfo;
     int32_t requestId = 0;
-    appMgrServiceInner->StartSpecifiedAbility(want, abilityInfo, requestId);
+    AbilityRuntime::StartSpecifiedParam specifiedParam;
+    specifiedParam.requestId = requestId;
+    appMgrServiceInner->StartSpecifiedAbility(want, abilityInfo, specifiedParam);
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().addModulesCall_, 1);
     TAG_LOGI(AAFwkTag::TEST, "StartSpecifiedAbility_007 end");
 }
@@ -2202,6 +2310,108 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, VerifyKillProcessPermissionCommon_002, T
     auto ret = appMgrServiceInner->VerifyKillProcessPermissionCommon();
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermissionCommon_002 end");
+}
+
+/**
+* @tc.name: VerifyKillProcessPermissionCommon_003
+* @tc.desc: test VerifyKillProcessPermissionCommon_003 when caller is cli tool token without permission
+* @tc.type: FUNC
+*/
+HWTEST_F(AppMgrServiceInnerSeventhTest, VerifyKillProcessPermissionCommon_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermissionCommon_003 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().verifyCallingPermission_ = false;
+    AAFwk::MyStatus::GetInstance().isSACall_ = false;
+    AAFwk::MyStatus::GetInstance().isShellCall_ = false;
+    AAFwk::MyStatus::GetInstance().isCliToolToken_ = true;
+
+    auto ret = appMgrServiceInner->VerifyKillProcessPermissionCommon();
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    AAFwk::MyStatus::GetInstance().isCliToolToken_ = false;
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermissionCommon_003 end");
+}
+
+/**
+* @tc.name: VerifyKillProcessPermissionCommon_004
+* @tc.desc: test VerifyKillProcessPermissionCommon_004 when caller is cli tool token but has kill permission
+* @tc.type: FUNC
+*/
+HWTEST_F(AppMgrServiceInnerSeventhTest, VerifyKillProcessPermissionCommon_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermissionCommon_004 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().verifyCallingPermission_ = true;
+    AAFwk::MyStatus::GetInstance().isSACall_ = false;
+    AAFwk::MyStatus::GetInstance().isShellCall_ = false;
+    AAFwk::MyStatus::GetInstance().isCliToolToken_ = true;
+
+    auto ret = appMgrServiceInner->VerifyKillProcessPermissionCommon();
+    EXPECT_EQ(ret, ERR_OK);
+    AAFwk::MyStatus::GetInstance().isCliToolToken_ = false;
+    AAFwk::MyStatus::GetInstance().verifyCallingPermission_ = false;
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermissionCommon_004 end");
+}
+
+/**
+* @tc.name: VerifyKillProcessPermissionCommon_005
+* @tc.desc: test VerifyKillProcessPermissionCommon_005 when caller is cli tool token and SA call
+* @tc.type: FUNC
+*/
+HWTEST_F(AppMgrServiceInnerSeventhTest, VerifyKillProcessPermissionCommon_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermissionCommon_005 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().verifyCallingPermission_ = false;
+    AAFwk::MyStatus::GetInstance().isSACall_ = true;
+    AAFwk::MyStatus::GetInstance().isShellCall_ = false;
+    AAFwk::MyStatus::GetInstance().isCliToolToken_ = true;
+
+    auto ret = appMgrServiceInner->VerifyKillProcessPermissionCommon();
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    AAFwk::MyStatus::GetInstance().isCliToolToken_ = false;
+    AAFwk::MyStatus::GetInstance().isSACall_ = false;
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermissionCommon_005 end");
+}
+
+/**
+* @tc.name: VerifyKillProcessPermissionCommon_006
+* @tc.desc: test VerifyKillProcessPermissionCommon_006 when caller is not cli tool token and is shell call
+* @tc.type: FUNC
+*/
+HWTEST_F(AppMgrServiceInnerSeventhTest, VerifyKillProcessPermissionCommon_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermissionCommon_006 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().verifyCallingPermission_ = false;
+    AAFwk::MyStatus::GetInstance().isSACall_ = false;
+    AAFwk::MyStatus::GetInstance().isShellCall_ = true;
+    AAFwk::MyStatus::GetInstance().isCliToolToken_ = false;
+
+    auto ret = appMgrServiceInner->VerifyKillProcessPermissionCommon();
+    EXPECT_EQ(ret, ERR_OK);
+    AAFwk::MyStatus::GetInstance().isShellCall_ = false;
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermissionCommon_006 end");
+}
+
+/**
+* @tc.name: VerifyKillProcessPermissionCommon_007
+* @tc.desc: test VerifyKillProcessPermissionCommon_007 when all permission checks fail
+* @tc.type: FUNC
+*/
+HWTEST_F(AppMgrServiceInnerSeventhTest, VerifyKillProcessPermissionCommon_007, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermissionCommon_007 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().verifyCallingPermission_ = false;
+    AAFwk::MyStatus::GetInstance().isSACall_ = false;
+    AAFwk::MyStatus::GetInstance().isShellCall_ = false;
+    AAFwk::MyStatus::GetInstance().isCliToolToken_ = false;
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;
+
+    auto ret = appMgrServiceInner->VerifyKillProcessPermissionCommon();
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermissionCommon_007 end");
 }
 
 /**

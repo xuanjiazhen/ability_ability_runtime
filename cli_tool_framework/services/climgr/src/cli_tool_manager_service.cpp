@@ -104,7 +104,7 @@ void CliToolManagerService::HandleProcessTimeout(const std::string &sessionId)
     record->SetTerminalResult(0, 0);
 
     int64_t durationMs = record->GetEndTimeMs() - record->startTime;
-    ReportCliTimeout(record->callerBundleName, record->toolName, std::to_string(durationMs));
+    ReportCliTimeout(record->callerBundleName, record->toolName, durationMs);
 
     auto oldBackground = record->SetBackground(true);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "HandleProcessTimeout: sessionId=%{public}s, background=%{public}d",
@@ -844,6 +844,48 @@ int32_t CliToolManagerService::GetAllFunctions(FunctionsRawData &functions)
     return ERR_OK;
 }
 
+int32_t CliToolManagerService::BatchRegisterFunctionsAsync(const FunctionsRawData &functions)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "BatchRegisterFunctionsAsync called: %{public}u bytes", functions.size);
+
+    int32_t successCount = 0;
+    int32_t ret = BatchRegisterFunctions(functions, successCount);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "BatchRegisterFunctionsAsync: Failed, ret=%{public}d", ret);
+    } else {
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "BatchRegisterFunctionsAsync: success=%{public}d", successCount);
+    }
+    return ret;
+}
+
+int32_t CliToolManagerService::UnregisterIntentFunctionsByNamespaceAsync(const std::string &functionNamespace)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "UnregisterIntentFunctionsByNamespaceAsync called: %{public}s",
+        functionNamespace.c_str());
+
+    int32_t ret = UnregisterIntentFunctionsByNamespace(functionNamespace);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "UnregisterIntentFunctionsByNamespaceAsync: Failed, ret=%{public}d", ret);
+    }
+    return ret;
+}
+
+int32_t CliToolManagerService::ResetNamespaceFunctionsAsync(const std::string &functionNamespace,
+    const FunctionsRawData &functions)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "ResetNamespaceFunctionsAsync called: %{public}s, %{public}u bytes",
+        functionNamespace.c_str(), functions.size);
+
+    int32_t successCount = 0;
+    int32_t ret = ResetNamespaceFunctions(functionNamespace, functions, successCount);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "ResetNamespaceFunctionsAsync: Failed, ret=%{public}d", ret);
+    } else {
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "ResetNamespaceFunctionsAsync: success=%{public}d", successCount);
+    }
+    return ret;
+}
+
 int32_t CliToolManagerService::ValidateExecToolPermissions()
 {
     auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
@@ -919,9 +961,8 @@ int32_t CliToolManagerService::SetupAndStartSession(const ExecToolParam &param, 
         return ERR_NO_INIT;
     }
 
-    auto fatherSessionRecords = GetSessionRecords();
     auto createRet = ProcessManager::GetInstance().CreateChildProcess(
-        param, sandboxConfig, toolInfo, record, fatherSessionRecords);
+        param, sandboxConfig, toolInfo, record);
     if (createRet != ERR_OK) {
         return createRet;
     }
@@ -1076,7 +1117,6 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
     record->SetState(SessionState::RUNNING);
     record->SetBackground(param.options.background);
     record->eventId = eventId;
-    auto fatherSessionRecords = GetSessionRecords();
     AddSessionRecord(record);
     auto subscribeRet = SubscribeSession(record->sessionId, subscriptionId, scheduler);
     if (subscribeRet != ERR_OK) {
@@ -1084,7 +1124,7 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
         return subscribeRet;
     }
     auto createRet = ProcessManager::GetInstance().CreateShellProcess(param,
-        sandboxConfig, record, fatherSessionRecords);
+        sandboxConfig, record);
     if (createRet != ERR_OK) {
         RemoveSessionRecord(record->sessionId);
         return createRet;
@@ -1152,7 +1192,7 @@ void CliToolManagerService::WaitPid(pid_t pid, int32_t status, int32_t sig)
             termSignal = WTERMSIG(status);
             TAG_LOGI(AAFwkTag::CLI_TOOL, "WaitPid: process killed by signal=%{public}d", termSignal);
             if (termSignal != 0 && termSignal != SIGTERM && termSignal != SIGHUP && termSignal != SIGCHLD) {
-                ReportCliSignal(record->toolName, std::to_string(termSignal));
+                ReportCliSignal(record->toolName, termSignal);
             }
         }
 

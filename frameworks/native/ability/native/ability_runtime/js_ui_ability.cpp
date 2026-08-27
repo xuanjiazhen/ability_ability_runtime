@@ -38,6 +38,7 @@
 #include "insight_intent_executor_info.h"
 #include "insight_intent_executor_mgr.h"
 #include "insight_intent_execute_param.h"
+#include "skill/skill_path_validator.h"
 #include "interop_object_instance.h"
 #include "js_ability_context.h"
 #include "js_ability_lifecycle_callback.h"
@@ -64,6 +65,10 @@
 #include "time_util.h"
 #include "skill/skill_execute_param.h"
 #include "skill/skill_execute_result.h"
+#include "extractor.h"
+
+using Extractor = OHOS::AbilityBase::Extractor;
+using ExtractorUtil = OHOS::AbilityBase::ExtractorUtil;
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -2655,6 +2660,10 @@ napi_value JsUIAbility::LoadSkillFunction(
     napi_value method = nullptr;
 
     if (!param->scriptPath_.empty()) {
+        if (!IsSafeSkillPath(param->scriptPath_)) {
+            TAG_LOGW(AAFwkTag::UIABILITY, "invalid scriptPath");
+            return nullptr;
+        }
         auto scriptBase = ExtractBaseName(param->scriptPath_);
         for (const auto &srcEntry : param->srcEntries_) {
             if (ExtractBaseName(srcEntry) != scriptBase) {
@@ -2686,6 +2695,18 @@ bool JsUIAbility::TryLoadSkillEntry(const std::string &srcEntry,
     const std::shared_ptr<AppExecFwk::SkillExecuteParam> &param,
     napi_env env, napi_value &outJsObj, napi_value &method)
 {
+    if (param == nullptr) {
+        TAG_LOGW(AAFwkTag::UIABILITY, "param is null");
+        return false;
+    }
+    if (!IsSafeSkillPath(param->moduleName_)) {
+        TAG_LOGW(AAFwkTag::UIABILITY, "invalid moduleName");
+        return false;
+    }
+    if (!param->hapPath_.empty() && !IsSafeHapPath(param->hapPath_)) {
+        TAG_LOGW(AAFwkTag::UIABILITY, "invalid hapPath");
+        return false;
+    }
     if (IsBlockedSkillKeyName(param->functionName_)) {
         TAG_LOGW(AAFwkTag::UIABILITY, "blocked skill function name:%{public}s",
             param->functionName_.c_str());
@@ -2696,6 +2717,28 @@ bool JsUIAbility::TryLoadSkillEntry(const std::string &srcEntry,
     if (pos != std::string::npos) {
         srcPath.erase(pos);
         srcPath.append(".abc");
+    }
+    if (abilityInfo_ == nullptr || !abilityInfo_->isStageBasedModel) {
+        TAG_LOGW(AAFwkTag::UIABILITY,
+            "skill load requires stage model, srcEntry:%{public}s", srcEntry.c_str());
+        return false;
+    }
+    if (!param->hapPath_.empty()) {
+        bool newCreate = false;
+        std::string loadPath = ExtractorUtil::GetLoadFilePath(param->hapPath_);
+        std::shared_ptr<Extractor> extractor = ExtractorUtil::GetExtractor(loadPath, newCreate);
+        if (extractor == nullptr) {
+            TAG_LOGW(AAFwkTag::UIABILITY, "get extractor failed, hapPath:%{private}s", param->hapPath_.c_str());
+            return false;
+        }
+        auto slashPos = srcPath.find('/');
+        std::string abcPath = (slashPos != std::string::npos) ? srcPath.substr(slashPos + 1) : srcPath;
+        bool isHapCompressed = extractor->IsHapCompress(abcPath);
+        if (isHapCompressed) {
+            TAG_LOGW(AAFwkTag::UIABILITY,
+                "abc is compressed, not allowed, abcPath:%{public}s", abcPath.c_str());
+            return false;
+        }
     }
     skillModuleRef_ = jsRuntime_.LoadModule(param->moduleName_, srcPath, param->hapPath_, true, false, srcEntry);
     if (skillModuleRef_ == nullptr) {

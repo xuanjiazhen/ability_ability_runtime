@@ -289,6 +289,7 @@ ohos_shared_library("configuration_helper") {
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 ohos_shared_library("abilitykit_native") {
@@ -620,6 +621,7 @@ ohos_shared_library("cj_abilitykit_native_ffi") {
   version_script = "libabilitykit_native.map"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs = [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 config("extensionkit_public_config") {
@@ -791,6 +793,7 @@ ohos_shared_library("cj_extensionkit_native") {
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs = [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 config("insight_intent_executor_public_config") {
@@ -1143,6 +1146,7 @@ ohos_shared_library("uiabilitykit_native") {
   branch_protector_ret = "pac_ret"
 
   include_dirs = [
+    "${ability_runtime_native_path}/ability/native",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ability_runtime",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_ability",
@@ -1154,6 +1158,7 @@ ohos_shared_library("uiabilitykit_native") {
   sources = [
     "${ability_runtime_native_path}/ability/native/ability_runtime/ets_ui_ability_instance.cpp",
     "${ability_runtime_native_path}/ability/native/ability_runtime/js_ui_ability.cpp",
+    "${ability_runtime_native_path}/ability/native/skill/skill_path_validator.cpp",
     "${ability_runtime_native_path}/ability/native/continuation/distributed/continuation_handler_stage.cpp",
     "${ability_runtime_native_path}/ability/native/continuation/distributed/continuation_manager_stage.cpp",
     "${ability_runtime_native_path}/ability/native/continuation/distributed/reverse_continuation_scheduler_primary_stage.cpp",
@@ -1199,6 +1204,7 @@ ohos_shared_library("uiabilitykit_native") {
   external_deps = [
     "ability_base:base",
     "ability_base:configuration",
+    "ability_base:extractortool",
     "ability_base:want",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
@@ -1633,6 +1639,7 @@ ohos_shared_library("form_extension_module") {
   relative_install_dir = "extensionability"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 ohos_shared_library("service_extension") {
@@ -1644,6 +1651,7 @@ ohos_shared_library("service_extension") {
   defines = [ "AMS_LOG_TAG = \"Ability\"" ]
   defines += [ "AMS_LOG_DOMAIN = 0xD001300" ]
   include_dirs = [
+    "${ability_runtime_native_path}/ability/native",
     "${ability_runtime_path}/frameworks/ets/ani/service_extension_ability/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime",
@@ -1654,6 +1662,7 @@ ohos_shared_library("service_extension") {
     "${ability_runtime_native_path}/ability/native/js_service_extension.cpp",
     "${ability_runtime_native_path}/ability/native/js_service_extension_context.cpp",
     "${ability_runtime_native_path}/ability/native/service_extension.cpp",
+    "${ability_runtime_native_path}/ability/native/skill/skill_path_validator.cpp",
     "${ability_runtime_native_path}/appkit/ability_runtime/service_extension_context.cpp",
     "${ability_runtime_path}/frameworks/ets/ani/service_extension_ability/src/ets_service_extension_instance.cpp",
   ]
@@ -1677,6 +1686,7 @@ ohos_shared_library("service_extension") {
 
   external_deps = [
     "ability_base:configuration",
+    "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
     "bundle_framework:libappexecfwk_common",
@@ -2282,6 +2292,7 @@ ohos_shared_library("ui_service_extension_module") {
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 ohos_shared_library("continuation_ipc") {
@@ -2457,6 +2468,7 @@ ohos_shared_library("service_extension_module") {
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 config("ability_business_error_config") {
@@ -2493,6 +2505,7 @@ ohos_shared_library("ability_business_error") {
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 config("dialog_request_callback_config") {
@@ -2951,6 +2964,7 @@ ohos_shared_library("cj_ui_extension") {
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs = [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 ohos_shared_library("ui_extension_module") {
@@ -2995,6 +3009,7 @@ ohos_shared_library("ui_extension_module") {
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 config("share_extension_config") {
@@ -3114,6 +3129,7 @@ ohos_shared_library("cj_share_extension") {
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 config("action_extension_config") {
@@ -3233,6 +3249,7 @@ ohos_shared_library("cj_action_extension") {
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 ohos_shared_library("share_extension_module") {
@@ -3279,6 +3296,7 @@ ohos_shared_library("share_extension_module") {
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 ohos_shared_library("auto_startup_callback") {
@@ -3313,6 +3331,7 @@ ohos_shared_library("auto_startup_callback") {
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 ohos_shared_library("action_extension_module") {
@@ -3359,6 +3378,7 @@ ohos_shared_library("action_extension_module") {
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 config("embedded_ui_extension_config") {
@@ -3601,6 +3621,7 @@ ohos_shared_library("embedded_ui_extension_module") {
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 config("auto_fill_extension_config") {
@@ -3832,6 +3853,7 @@ ohos_shared_library("auto_fill_extension_module") {
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 config("photo_editor_extension_config") {
@@ -3975,6 +3997,7 @@ ohos_shared_library("cj_photo_editor_extension") {
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 ohos_shared_library("photo_editor_extension_module") {
@@ -4159,6 +4182,7 @@ ohos_shared_library("app_service_extension_module") {
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 config("modular_object_extension_config") {

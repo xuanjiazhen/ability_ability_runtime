@@ -64,9 +64,7 @@ bool InsightIntentSysEventReceiver::SaveInsightIntentInfos(const std::string &bu
             moduleNameLocal, profile, userId));
         if (ret != ERR_OK) {
             TAG_LOGW(AAFwkTag::INTENT, "GetJsonProfile failed, code: %{public}d", ret);
-            if (DelayedSingleton<InsightIntentDbCache>::GetInstance()->HasBundleCache(bundleName)) {
-                DeleteInsightIntent(bundleName, moduleNameLocal, userId);
-            }
+            DeleteInsightIntent(bundleName, moduleNameLocal, userId);
             continue;
         }
 
@@ -82,6 +80,18 @@ bool InsightIntentSysEventReceiver::SaveInsightIntentInfos(const std::string &bu
                 bundleName.c_str(), moduleNameLocal.c_str());
             DeleteInsightIntent(bundleName, moduleNameLocal, userId);
             continue;
+        }
+
+        // force BMS bundleName/moduleName over the profile values so the function
+        // namespace matches the name UnregisterInsightIntentFunctions uses and the
+        // db cache erase-by-moduleName hits stale entries
+        for (auto &item : configIntentInfos) {
+            item.bundleName = bundleName;
+            item.moduleName = moduleNameLocal;
+        }
+        for (auto &item : infos.insightIntents) {
+            item.bundleName = bundleName;
+            item.moduleName = moduleNameLocal;
         }
 
         // save database
@@ -115,15 +125,20 @@ void InsightIntentSysEventReceiver::RegisterAllFunctions(
     for (const auto &entry : newBundles) {
         bundleVersionMap[entry.first] = entry.second;
     }
-    int32_t successCount = 0;
     CliTool::BatchRegisterInsightIntentFunctions(
-        allIntentInfos, allConfigInfos, bundleVersionMap, successCount);
-    TAG_LOGI(AAFwkTag::INTENT, "register all functions done, success: %{public}d", successCount);
+        allIntentInfos, allConfigInfos, bundleVersionMap);
+    TAG_LOGI(AAFwkTag::INTENT, "register all functions request done");
 }
 
 void InsightIntentSysEventReceiver::DeleteInsightIntent(const std::string &bundleName,
     const std::string &moduleName, int32_t userId)
 {
+    if (DelayedSingleton<InsightIntentDbCache>::GetInstance()->CanSkipDelete(bundleName, userId)) {
+        TAG_LOGI(AAFwkTag::INTENT, "no intent cache, skip delete, bundleName: %{public}s, "
+            "moduleName: %{public}s, userId: %{public}d",
+            bundleName.c_str(), moduleName.c_str(), userId);
+        return;
+    }
     std::vector<ExtractInsightIntentInfo> intentInfos;
     std::vector<InsightIntentInfo> configIntentInfos;
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentInfoByName(

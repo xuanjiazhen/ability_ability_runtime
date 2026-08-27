@@ -50,6 +50,7 @@
 namespace OHOS {
 namespace AbilityRuntime {
 struct LoadParam;
+struct StartSpecifiedParam;
 }
 namespace AppExecFwk {
 class AppServiceManager;
@@ -357,6 +358,15 @@ public:
     virtual AppMgrResultCode GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info);
 
     /**
+     * GetSelfChildrenProcesses, call GetSelfChildrenProcesses() through proxy project.
+     * Obtains information about children processes that are running for the calling application.
+     *
+     * @param info, child process info.
+     * @return ERR_OK, return back success, others fail.
+     */
+    virtual AppMgrResultCode GetSelfChildrenProcesses(std::vector<ChildProcessInfo> &info);
+
+    /**
      * NotifyMemoryLevel, call NotifyMemoryLevel() through proxy project.
      * Notify abilities background the current memory level.
      *
@@ -565,7 +575,7 @@ public:
      * @param requestId request id to callback
      */
     virtual void StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
-        int32_t requestId = 0, const std::string &customProcess = "", bool isWindowStagePreload = false);
+        const AbilityRuntime::StartSpecifiedParam &param);
 
     /**
      * Register response of start specified ability.
@@ -1005,10 +1015,11 @@ public:
      * @param killId Kill reason enum.
      * @param killMsg Kill message.
      * @param innerMsg Inner message.
+     * @param reason reason enum
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t NotifyAppMgrRecordExitReasonCompability(
-        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg);
+        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg, int32_t reason);
 
     /**
      * Preload application.
@@ -1043,6 +1054,8 @@ public:
     int32_t IsProcessCacheSupported(int32_t pid, bool &isSupported);
 
     int32_t IsChildProcessSupported(bool isNative, bool &isSupported);
+
+    int32_t GetSelfUIAbilityChildProcesses(std::vector<ChildProcessInfo> &infos);
 
     int32_t SetProcessCacheEnable(int32_t pid, bool enable);
 
