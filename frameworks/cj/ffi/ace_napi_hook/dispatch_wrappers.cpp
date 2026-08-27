@@ -28,6 +28,7 @@
 #include <memory>
 #include <mutex>
 #include <new>
+#include <limits>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -448,35 +449,407 @@ napi_env GetCangjieEnv(napi_env env)
     return call_env->cj_env;
 }
 
-napi_status MaterializeCurrentLazyValues(napi_env env)
+bool IsOrdinaryHandleSafeForScope(
+    fast::Store* store, fast::detail::Scope* target, napi_value value)
 {
-    auto* store = GetFastStore(env);
-    auto* scope = store == nullptr ? nullptr : store->currentTop();
-    if (scope == nullptr) {
-        return napi_ok;
+    if (store == nullptr || target == nullptr || value == nullptr) {
+        return false;
+    }
+    const auto raw = reinterpret_cast<uintptr_t>(value);
+    const auto scope_index = static_cast<uint16_t>((raw >> 48) & 0xFFFFu);
+    const auto scope_id = static_cast<uint16_t>((raw >> 32) & 0xFFFFu);
+    if (scope_index == 1) {
+        return scope_id == 0;
+    }
+    auto* source = store->scopeAtIndex(scope_index);
+    return source != nullptr && static_cast<uint16_t>(source->id & 0xFFFFu) == scope_id &&
+        fast::detail::IsAncestorOrSelf(source, target);
+}
+
+class ScopeCapturePlan {
+public:
+    ScopeCapturePlan(fast::Store* store, fast::detail::Scope* target, napi_value value)
+        : store_(store), target_(target), captured_(value)
+    {
     }
 
-    auto cj_env = GetCangjieEnv(env);
-    if (cj_env == nullptr || cj_napi_typeof == nullptr) {
-        return napi_invalid_arg;
+    napi_status Prepare()
+    {
+        if (store_ == nullptr || target_ == nullptr || !store_->containsScope(target_)) {
+            return napi_handle_scope_mismatch;
+        }
+        return PlanValue(captured_, &captured_);
     }
 
-    // A value created in a parent N-API handle scope may be populated from a
-    // nested scope. Materialize the parent's lazy values before entering that
-    // nested scope so their Cangjie handles are owned by the parent scope. If
-    // they stayed lazy, their property tables could retain fast handles from
-    // the child scope after that scope had been released.
-    for (auto* lazy = scope->lazy_head; lazy != nullptr;) {
-        auto* next = lazy->scope_next;
-        if (lazy->materialized == nullptr) {
-            napi_valuetype type = napi_undefined;
-            auto status = cj_napi_typeof(cj_env, fast::EncodeLazyPointer(lazy), &type);
+    bool NeedsCangjieCapture() const
+    {
+        return !ordinary_handles_.empty();
+    }
+
+    napi_status Commit(napi_env cj_env)
+    {
+        std::vector<napi_value> captured_handles;
+        if (!ordinary_handles_.empty()) {
+            if (cj_env == nullptr || cj_napi_capture_values_to_scope == nullptr) {
+                return napi_generic_failure;
+            }
+            if (ordinary_handles_.size() >
+                static_cast<size_t>(std::numeric_limits<int64_t>::max())) {
+                return napi_generic_failure;
+            }
+            captured_handles.resize(ordinary_handles_.size());
+            auto status = cj_napi_capture_values_to_scope(cj_env, target_->id,
+                ordinary_handles_.data(), static_cast<int64_t>(ordinary_handles_.size()),
+                captured_handles.data());
             if (status != napi_ok) {
                 return status;
             }
         }
-        lazy = next;
+
+        // The plan was fully validated before this point. Moving chunks and
+        // lazy nodes is allocation-free and therefore cannot fail in normal
+        // operation. A failure still leaves memory retained longer, never
+        // shorter, and the caller will not publish the property slot.
+        for (auto* chunk : value_chunks_) {
+            if (!fast::detail::PromoteValueChunk(store_, chunk, target_)) {
+                return napi_generic_failure;
+            }
+        }
+        for (auto* value : fast_values_) {
+            fast::detail::SetValueOwnerScope(value, target_);
+        }
+        for (auto* chunk : lazy_chunks_) {
+            if (!fast::detail::PromoteLazyChunk(store_, chunk, target_)) {
+                return napi_generic_failure;
+            }
+        }
+        for (auto* lazy : lazy_values_) {
+            if (!fast::detail::PromoteLazyValue(store_, lazy, target_)) {
+                return napi_generic_failure;
+            }
+        }
+        for (const auto& rewrite : direct_rewrites_) {
+            *rewrite.first = rewrite.second;
+        }
+        for (const auto& rewrite : captured_rewrites_) {
+            *rewrite.first = captured_handles[rewrite.second];
+        }
+        return napi_ok;
     }
+
+    napi_value CapturedValue() const
+    {
+        return captured_;
+    }
+
+private:
+    using DirectRewrite = std::pair<napi_value*, napi_value>;
+    using CapturedRewrite = std::pair<napi_value*, size_t>;
+
+    napi_status PlanOwner(fast::detail::Scope* owner)
+    {
+        if (!fast::detail::CanPromoteOwnerToScope(store_, owner, target_)) {
+            return napi_handle_scope_mismatch;
+        }
+        return napi_ok;
+    }
+
+    napi_status PlanValueChunk(fast::Value* value)
+    {
+        auto* logical_owner = fast::detail::GetValueOwnerScope(store_, value);
+        if (logical_owner == nullptr || PlanOwner(logical_owner) != napi_ok) {
+            return napi_handle_scope_mismatch;
+        }
+        auto* chunk = fast::detail::FindValueChunk(store_, value);
+        if (chunk == nullptr || PlanOwner(chunk->owner) != napi_ok) {
+            return napi_handle_scope_mismatch;
+        }
+        if (fast::detail::IsAncestorOrSelf(target_, logical_owner)) {
+            fast_values_.insert(value);
+        }
+        if (fast::detail::IsAncestorOrSelf(target_, chunk->owner)) {
+            value_chunks_.insert(chunk);
+        }
+        return napi_ok;
+    }
+
+    napi_status PlanLazyAllocation(const void* allocation)
+    {
+        auto* chunk = fast::detail::FindLazyChunk(store_, allocation);
+        if (chunk == nullptr || PlanOwner(chunk->owner) != napi_ok) {
+            return napi_handle_scope_mismatch;
+        }
+        if (fast::detail::IsAncestorOrSelf(target_, chunk->owner)) {
+            lazy_chunks_.insert(chunk);
+        }
+        return napi_ok;
+    }
+
+    bool IsOrdinaryHandleSafe(napi_value value) const
+    {
+        return IsOrdinaryHandleSafeForScope(store_, target_, value);
+    }
+
+    napi_status PlanOrdinaryHandle(napi_value value, napi_value* slot, bool always_rewrite)
+    {
+        if (value == nullptr) {
+            return napi_invalid_arg;
+        }
+        if (IsOrdinaryHandleSafe(value)) {
+            if (always_rewrite) {
+                direct_rewrites_.emplace_back(slot, value);
+            }
+            return napi_ok;
+        }
+
+        const auto raw = reinterpret_cast<uintptr_t>(value);
+        const auto scope_index = static_cast<uint16_t>((raw >> 48) & 0xFFFFu);
+        const auto scope_id = static_cast<uint16_t>((raw >> 32) & 0xFFFFu);
+        auto* source = store_->scopeAtIndex(scope_index);
+        if (source == nullptr || static_cast<uint16_t>(source->id & 0xFFFFu) != scope_id ||
+            !fast::detail::IsAncestorOrSelf(target_, source)) {
+            return napi_handle_scope_mismatch;
+        }
+
+        auto [it, inserted] = ordinary_handle_indices_.emplace(raw, ordinary_handles_.size());
+        if (inserted) {
+            ordinary_handles_.push_back(value);
+        }
+        captured_rewrites_.emplace_back(slot, it->second);
+        return napi_ok;
+    }
+
+    napi_status PlanLazyValue(napi_value encoded, napi_value* slot)
+    {
+        auto* lazy = fast::DecodeLazyPointer(encoded);
+        if (lazy == nullptr || fast::detail::FindLazyChunk(store_, lazy) == nullptr ||
+            lazy->store != store_ || !fast::detail::IsKnownLazyValue(store_, lazy)) {
+            return napi_handle_scope_mismatch;
+        }
+        if (lazy->materialized != nullptr) {
+            return PlanOrdinaryHandle(lazy->materialized, slot, true);
+        }
+        if (!visited_lazy_.insert(lazy).second) {
+            return napi_ok;
+        }
+        auto status = PlanOwner(lazy->scope);
+        if (status != napi_ok) {
+            return status;
+        }
+        if (fast::detail::IsAncestorOrSelf(target_, lazy->scope)) {
+            lazy_values_.insert(lazy);
+        }
+        status = PlanLazyAllocation(lazy);
+        if (status != napi_ok) {
+            return status;
+        }
+        if (lazy->text != nullptr) {
+            status = PlanLazyAllocation(lazy->text);
+            if (status != napi_ok) {
+                return status;
+            }
+        }
+        for (auto* segment = lazy->named_head; segment != nullptr; segment = segment->next) {
+            status = PlanLazyAllocation(segment);
+            if (status != napi_ok) {
+                return status;
+            }
+            for (uint16_t i = 0; i < segment->used; ++i) {
+                auto& property = segment->entries[i];
+                status = PlanLazyAllocation(property.name);
+                if (status != napi_ok) {
+                    return status;
+                }
+                status = PlanValue(property.value, &property.value);
+                if (status != napi_ok) {
+                    return status;
+                }
+            }
+        }
+        for (auto* segment = lazy->elements_head; segment != nullptr; segment = segment->next) {
+            status = PlanLazyAllocation(segment);
+            if (status != napi_ok) {
+                return status;
+            }
+            for (uint16_t i = 0; i < segment->used; ++i) {
+                auto& element = segment->entries[i];
+                status = PlanValue(element.value, &element.value);
+                if (status != napi_ok) {
+                    return status;
+                }
+            }
+        }
+        return napi_ok;
+    }
+
+    napi_status PlanValue(napi_value value, napi_value* slot)
+    {
+        if (value == nullptr) {
+            return napi_invalid_arg;
+        }
+        if (fast::IsImmediateValue(value)) {
+            return napi_ok;
+        }
+        if (fast::IsPointerValue(value)) {
+            return PlanValueChunk(fast::DecodePointer(value));
+        }
+        if (fast::IsLazyValue(value)) {
+            return PlanLazyValue(value, slot);
+        }
+        return PlanOrdinaryHandle(value, slot, false);
+    }
+
+    fast::Store* store_ {nullptr};
+    fast::detail::Scope* target_ {nullptr};
+    napi_value captured_ {nullptr};
+    std::unordered_set<fast::detail::LazyValue*> visited_lazy_;
+    std::unordered_set<fast::Value*> fast_values_;
+    std::unordered_set<fast::detail::ValueChunk*> value_chunks_;
+    std::unordered_set<fast::detail::LazyChunk*> lazy_chunks_;
+    std::unordered_set<fast::detail::LazyValue*> lazy_values_;
+    std::unordered_map<uintptr_t, size_t> ordinary_handle_indices_;
+    std::vector<napi_value> ordinary_handles_;
+    std::vector<DirectRewrite> direct_rewrites_;
+    std::vector<CapturedRewrite> captured_rewrites_;
+};
+
+napi_status CaptureValueForLazyObject(
+    napi_env env, napi_value object, napi_value value, napi_value* captured, bool* fallback)
+{
+    if (captured == nullptr || fallback == nullptr || !fast::IsUnmaterializedLazyValue(object)) {
+        return napi_invalid_arg;
+    }
+    auto* lazy = fast::DecodeLazyPointer(object);
+    auto* store = GetFastStore(env);
+    if (lazy == nullptr || lazy->store != store || lazy->scope == nullptr ||
+        !fast::IsLazyObjectLike(lazy) || !store->containsScope(lazy->scope)) {
+        return napi_invalid_arg;
+    }
+    auto* target = lazy->scope;
+    if (fast::IsImmediateValue(value)) {
+        *fallback = false;
+        *captured = value;
+        return napi_ok;
+    }
+    if (fast::IsPointerValue(value)) {
+        auto* owner = fast::detail::GetValueOwnerScope(store, fast::DecodePointer(value));
+        if (owner != nullptr && fast::detail::IsAncestorOrSelf(owner, target)) {
+            *fallback = false;
+            *captured = value;
+            return napi_ok;
+        }
+    } else if (fast::IsLazyValue(value)) {
+        auto* value_lazy = fast::DecodeLazyPointer(value);
+        if (value_lazy != nullptr && value_lazy->store == store && value_lazy->scope != nullptr &&
+            store->containsScope(value_lazy->scope)) {
+            if (value_lazy->materialized != nullptr &&
+                IsOrdinaryHandleSafeForScope(store, target, value_lazy->materialized)) {
+                *fallback = false;
+                *captured = value_lazy->materialized;
+                return napi_ok;
+            }
+            if (value_lazy->materialized == nullptr && value_lazy->scope != nullptr &&
+                fast::detail::IsAncestorOrSelf(value_lazy->scope, target)) {
+                *fallback = false;
+                *captured = value;
+                return napi_ok;
+            }
+        }
+    } else if (IsOrdinaryHandleSafeForScope(store, target, value)) {
+        *fallback = false;
+        *captured = value;
+        return napi_ok;
+    }
+    try {
+        ScopeCapturePlan plan(store, lazy->scope, value);
+        auto status = plan.Prepare();
+        if (status != napi_ok) {
+            return status;
+        }
+        if (plan.NeedsCangjieCapture() && cj_napi_capture_values_to_scope == nullptr) {
+            *fallback = true;
+            *captured = value;
+            return napi_ok;
+        }
+        status = plan.Commit(GetCangjieEnv(env));
+        if (status != napi_ok) {
+            return status;
+        }
+        *fallback = false;
+        *captured = plan.CapturedValue();
+        return napi_ok;
+    } catch (const std::bad_alloc&) {
+        return napi_generic_failure;
+    }
+}
+
+napi_status TrySetCapturedNamedProperty(napi_env env, napi_value object, const char* name,
+    napi_value value, bool* handled)
+{
+    *handled = false;
+    if (!fast::IsUnmaterializedLazyValue(object)) {
+        return napi_ok;
+    }
+    auto* lazy = fast::DecodeLazyPointer(object);
+    if (!fast::IsLazyObjectLike(lazy)) {
+        return napi_ok;
+    }
+    *handled = true;
+    auto* store = GetFastStore(env);
+    if (lazy->store != store || lazy->scope == nullptr || !store->containsScope(lazy->scope)) {
+        return napi_handle_scope_mismatch;
+    }
+    fast::NamedPropertyReservation reservation;
+    auto status = fast::PrepareNamedProperty(object, name, &reservation);
+    if (status != napi_ok) {
+        return status;
+    }
+    napi_value captured = nullptr;
+    bool fallback = false;
+    status = CaptureValueForLazyObject(env, object, value, &captured, &fallback);
+    if (status != napi_ok) {
+        return status;
+    }
+    if (fallback) {
+        *handled = false;
+        return napi_ok;
+    }
+    fast::CommitNamedProperty(reservation, captured);
+    return napi_ok;
+}
+
+napi_status TrySetCapturedElement(napi_env env, napi_value object, uint32_t index,
+    napi_value value, bool* handled)
+{
+    *handled = false;
+    if (!fast::IsUnmaterializedLazyValue(object)) {
+        return napi_ok;
+    }
+    auto* lazy = fast::DecodeLazyPointer(object);
+    if (!fast::IsLazyObjectLike(lazy)) {
+        return napi_ok;
+    }
+    *handled = true;
+    auto* store = GetFastStore(env);
+    if (lazy->store != store || lazy->scope == nullptr || !store->containsScope(lazy->scope)) {
+        return napi_handle_scope_mismatch;
+    }
+    fast::ElementReservation reservation;
+    auto status = fast::PrepareElement(object, index, &reservation);
+    if (status != napi_ok) {
+        return status;
+    }
+    napi_value captured = nullptr;
+    bool fallback = false;
+    status = CaptureValueForLazyObject(env, object, value, &captured, &fallback);
+    if (status != napi_ok) {
+        return status;
+    }
+    if (fallback) {
+        *handled = false;
+        return napi_ok;
+    }
+    fast::CommitElement(reservation, captured);
     return napi_ok;
 }
 
@@ -842,6 +1215,15 @@ extern "C" CJ_EXPORT int32_t CJNAPI_FastValue_LockLazyValue(napi_value value)
     return 0;
 }
 
+extern "C" CJ_EXPORT uint64_t CJNAPI_FastValue_GetOwnerScopeId(napi_value value)
+{
+    if (!ace_napi_hook::fast::IsLazyValue(value)) {
+        return 0;
+    }
+    auto* lazy = ace_napi_hook::fast::DecodeLazyPointer(value);
+    return lazy == nullptr || lazy->scope == nullptr ? 0 : static_cast<uint64_t>(lazy->scope->id);
+}
+
 extern "C" CJ_EXPORT void CJNAPI_FastValue_UnlockLazyValue(napi_value value, int32_t locked)
 {
     (void)value;
@@ -1126,11 +1508,7 @@ extern "C" napi_status dispatch_napi_open_handle_scope(napi_env env, napi_handle
         if (result == nullptr) {
             return napi_invalid_arg;
         }
-        auto status = ace_napi_hook::MaterializeCurrentLazyValues(env);
-        if (status != napi_ok) {
-            return ace_napi_hook::RecordStatus(env, status);
-        }
-        status = ace_napi_hook::cj_napi_open_handle_scope(ace_napi_hook::GetCangjieEnv(env), result);
+        auto status = ace_napi_hook::cj_napi_open_handle_scope(ace_napi_hook::GetCangjieEnv(env), result);
         if (status == napi_ok) {
             if (!ace_napi_hook::fast::OpenScope(ace_napi_hook::GetFastStore(env), reinterpret_cast<uintptr_t>(*result), false)) {
                 return napi_generic_failure;
@@ -1162,11 +1540,7 @@ extern "C" napi_status dispatch_napi_open_escapable_handle_scope(napi_env env, n
         if (result == nullptr) {
             return napi_invalid_arg;
         }
-        auto status = ace_napi_hook::MaterializeCurrentLazyValues(env);
-        if (status != napi_ok) {
-            return ace_napi_hook::RecordStatus(env, status);
-        }
-        status = ace_napi_hook::cj_napi_open_escapable_handle_scope(ace_napi_hook::GetCangjieEnv(env), result);
+        auto status = ace_napi_hook::cj_napi_open_escapable_handle_scope(ace_napi_hook::GetCangjieEnv(env), result);
         if (status == napi_ok) {
             if (!ace_napi_hook::fast::OpenScope(ace_napi_hook::GetFastStore(env), reinterpret_cast<uintptr_t>(*result), true)) {
                 return napi_generic_failure;
@@ -1385,11 +1759,10 @@ extern "C" napi_status dispatch_napi_set_named_property(napi_env env, napi_value
         if (value == nullptr) {
             return ace_napi_hook::RecordStatus(env, napi_invalid_arg);
         }
-        if (ace_napi_hook::fast::IsUnmaterializedLazyValue(object)) {
-            auto st = ace_napi_hook::fast::SetNamedProperty(object, utf8name, value);
-            if (st == napi_ok) {
-                return ace_napi_hook::RecordStatus(env, st);
-            }
+        bool handled = false;
+        auto st = ace_napi_hook::TrySetCapturedNamedProperty(env, object, utf8name, value, &handled);
+        if (handled || st != napi_ok) {
+            return ace_napi_hook::RecordStatus(env, st);
         }
         object = ace_napi_hook::UseMaterializedLazyHandle(object);
         value = ace_napi_hook::UseMaterializedLazyHandle(value);
@@ -1424,8 +1797,9 @@ extern "C" napi_status dispatch_napi_set_property(napi_env env, napi_value objec
         if (ace_napi_hook::fast::IsUnmaterializedLazyValue(object)) {
             auto* text = ace_napi_hook::fast::LazyStringData(key);
             if (text != nullptr) {
-                auto st = ace_napi_hook::fast::SetNamedProperty(object, text, value);
-                if (st == napi_ok) {
+                bool handled = false;
+                auto st = ace_napi_hook::TrySetCapturedNamedProperty(env, object, text, value, &handled);
+                if (handled || st != napi_ok) {
                     return ace_napi_hook::RecordStatus(env, st);
                 }
             }
@@ -1538,11 +1912,13 @@ extern "C" napi_status dispatch_napi_delete_property(napi_env env, napi_value ob
 extern "C" napi_status dispatch_napi_set_element(napi_env env, napi_value object, uint32_t index, napi_value value)
 {
     if (ace_napi_hook::is_tagged_cangjie_pointer(env)) {
-        if (ace_napi_hook::fast::IsUnmaterializedLazyValue(object)) {
-            auto st = ace_napi_hook::fast::SetElement(object, index, value);
-            if (st == napi_ok) {
-                return ace_napi_hook::RecordStatus(env, st);
-            }
+        if (value == nullptr) {
+            return ace_napi_hook::RecordStatus(env, napi_invalid_arg);
+        }
+        bool handled = false;
+        auto st = ace_napi_hook::TrySetCapturedElement(env, object, index, value, &handled);
+        if (handled || st != napi_ok) {
+            return ace_napi_hook::RecordStatus(env, st);
         }
         object = ace_napi_hook::UseMaterializedLazyHandle(object);
         value = ace_napi_hook::UseMaterializedLazyHandle(value);

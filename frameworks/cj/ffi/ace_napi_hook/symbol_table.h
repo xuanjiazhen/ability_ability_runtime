@@ -49,6 +49,11 @@ using napi_send_event_fn = napi_status (*)(napi_env env,
                                            int barrier_option);
 extern napi_send_event_fn orig_napi_send_event;
 
+using cangjie_napi_capture_values_to_scope_fn = napi_status (*)(
+    napi_env env, uint64_t target_scope_id, const napi_value* inputs,
+    int64_t count, napi_value* outputs);
+extern cangjie_napi_capture_values_to_scope_fn cj_napi_capture_values_to_scope;
+
 using napi_remove_async_cleanup_hook_fn =
     napi_status (*)(napi_async_cleanup_hook_handle remove_handle);
 extern napi_remove_async_cleanup_hook_fn orig_napi_remove_async_cleanup_hook;

@@ -36,6 +36,7 @@ namespace ace_napi_hook {
 
 napi_fatal_error_fn orig_napi_fatal_error = nullptr;
 napi_send_event_fn orig_napi_send_event = nullptr;
+cangjie_napi_capture_values_to_scope_fn cj_napi_capture_values_to_scope = nullptr;
 napi_remove_async_cleanup_hook_fn orig_napi_remove_async_cleanup_hook = nullptr;
 napi_remove_async_cleanup_hook_fn cj_napi_remove_async_cleanup_hook = nullptr;
 napi_wrap_s_fn orig_napi_wrap_s = nullptr;
@@ -174,6 +175,8 @@ bool ResolveAllSymbols()
     orig_napi_send_event =
         reinterpret_cast<napi_send_event_fn>(ResolvePlatformNapiSymbol(
             "_Z15napi_send_eventP10napi_env__RKNSt3__h8functionIFvvEEE19napi_event_priorityPKc25napi_event_barrier_option"));
+    cj_napi_capture_values_to_scope = reinterpret_cast<cangjie_napi_capture_values_to_scope_fn>(
+        ResolveCangjieSymbol("cangjie_napi_capture_values_to_scope"));
     orig_napi_remove_async_cleanup_hook = reinterpret_cast<napi_remove_async_cleanup_hook_fn>(
         ResolvePlatformNapiSymbol("napi_remove_async_cleanup_hook"));
     cj_napi_remove_async_cleanup_hook = reinterpret_cast<napi_remove_async_cleanup_hook_fn>(
@@ -237,6 +240,8 @@ bool ResolveAllSymbols()
     required_resolved = CheckResolved("Cangjie", symbol, function) && required_resolved
     CHECK_PLATFORM("napi_fatal_error", orig_napi_fatal_error);
     CHECK_PLATFORM("napi_send_event", orig_napi_send_event);
+    ReportOptionalUnresolved(
+        "Cangjie", "cangjie_napi_capture_values_to_scope", cj_napi_capture_values_to_scope);
     CHECK_PLATFORM("napi_remove_async_cleanup_hook", orig_napi_remove_async_cleanup_hook);
     CHECK_CANGJIE("cangjie_napi_remove_async_cleanup_hook", cj_napi_remove_async_cleanup_hook);
     CHECK_PLATFORM("napi_wrap_s", orig_napi_wrap_s);
