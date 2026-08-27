@@ -46,7 +46,10 @@ enum class Kind : uint16_t {
 
 struct Value {
     uint16_t kind;
+    // Byte offset back to ValueChunk enables O(1) Store provenance checks.
     uint16_t pad0;
+    // Low 32 bits of the logical owner scope generation. The logical owner
+    // can differ from the physical chunk owner after a partial-chunk capture.
     uint32_t pad1;
     union {
         bool b;
@@ -69,15 +72,20 @@ inline constexpr uintptr_t FAST_PAYLOAD_MASK = 0x00FFFFFFFFFFFFFFull;
 inline constexpr uintptr_t FAST_POINTER_MASK = 0x0FFFFFFFFFFFFFFFull;
 inline constexpr size_t CHUNK_SIZE = 4096;
 inline constexpr size_t MAX_FREE_CHUNK_BYTES = 2 * 1024 * 1024;
-inline constexpr size_t CHUNK_HEADER_SIZE = 16;
+inline constexpr size_t CHUNK_HEADER_SIZE = 32;
 inline constexpr size_t VALUES_PER_CHUNK = (CHUNK_SIZE - CHUNK_HEADER_SIZE) / sizeof(Value);
 inline constexpr size_t LAZY_CHUNK_DEFAULT_PAYLOAD = 4096;
 
+struct Scope;
+struct ScopeList;
+
 struct ValueChunk {
     ValueChunk* next {nullptr};
+    Scope* owner {nullptr};
+    ScopeList* store {nullptr};
     uint16_t used {0};
-    uint16_t pad0 {0};
-    uint32_t pad1 {0};
+    bool sealed {false};
+    uint8_t pad0[5] {0, 0, 0, 0, 0};
     Value values[VALUES_PER_CHUNK];
 };
 
@@ -85,15 +93,16 @@ static_assert(sizeof(ValueChunk) == CHUNK_SIZE, "fast NAPI value chunk must stay
 
 struct LazyChunk {
     LazyChunk* next {nullptr};
+    Scope* owner {nullptr};
     size_t capacity {0};
     size_t used {0};
+    bool sealed {false};
     alignas(std::max_align_t) unsigned char data[1];
 };
 
-struct ScopeList;
-
 struct Scope {
     uintptr_t id {0};
+    uint16_t index {0};
     bool escapable {false};
     bool closed {false};
     bool chunks_released {false};
@@ -180,7 +189,10 @@ struct ChunkPool {
             free_head = chunk->next;
             cached_bytes -= CHUNK_SIZE;
             chunk->next = nullptr;
+            chunk->owner = nullptr;
+            chunk->store = nullptr;
             chunk->used = 0;
+            chunk->sealed = false;
             return chunk;
         }
         return new ValueChunk();
@@ -188,7 +200,10 @@ struct ChunkPool {
 
     void release(ValueChunk* chunk)
     {
+        chunk->owner = nullptr;
+        chunk->store = nullptr;
         chunk->used = 0;
+        chunk->sealed = false;
         if (cached_bytes + CHUNK_SIZE <= MAX_FREE_CHUNK_BYTES) {
             chunk->next = free_head;
             free_head = chunk;
@@ -219,21 +234,27 @@ struct LazyChunkPool {
             free_head = chunk->next;
             cached_bytes -= chunk->capacity;
             chunk->next = nullptr;
+            chunk->owner = nullptr;
             chunk->used = 0;
+            chunk->sealed = false;
             return chunk;
         }
         const size_t capacity = payload <= LAZY_CHUNK_DEFAULT_PAYLOAD ? LAZY_CHUNK_DEFAULT_PAYLOAD : payload;
         auto* mem = ::operator new(sizeof(LazyChunk) - 1 + capacity);
         auto* chunk = static_cast<LazyChunk*>(mem);
         chunk->next = nullptr;
+        chunk->owner = nullptr;
         chunk->capacity = capacity;
         chunk->used = 0;
+        chunk->sealed = false;
         return chunk;
     }
 
     void release(LazyChunk* chunk)
     {
+        chunk->owner = nullptr;
         chunk->used = 0;
+        chunk->sealed = false;
         if (chunk->capacity == LAZY_CHUNK_DEFAULT_PAYLOAD &&
             cached_bytes + chunk->capacity <= MAX_FREE_CHUNK_BYTES) {
             chunk->next = free_head;
@@ -281,6 +302,7 @@ struct ScopeList {
             top = top->prev;
         }
         scope->prev = top;
+        scope->index = top == nullptr ? 1 : static_cast<uint16_t>(top->index + 1);
         scope->all_next = all_scopes;
         all_scopes = scope;
         top = scope;
@@ -361,6 +383,30 @@ struct ScopeList {
         return false;
     }
 
+    bool containsScope(const Scope* target) const
+    {
+        auto* scope = all_scopes;
+        while (scope != nullptr) {
+            if (scope == target && !scope->closed) {
+                return true;
+            }
+            scope = scope->all_next;
+        }
+        return false;
+    }
+
+    Scope* scopeAtIndex(uint16_t index) const
+    {
+        auto* scope = top;
+        while (scope != nullptr) {
+            if (!scope->closed && scope->index == index) {
+                return scope;
+            }
+            scope = scope->prev;
+        }
+        return nullptr;
+    }
+
     void unlinkAllScope(Scope* target)
     {
         Scope* prev = nullptr;
@@ -411,14 +457,233 @@ using Store = detail::ScopeList;
 
 namespace detail {
 
+CJNAPI_ALWAYS_INLINE bool IsAncestorOrSelf(const Scope* ancestor, const Scope* scope)
+{
+    auto* current = scope;
+    while (current != nullptr) {
+        if (current == ancestor) {
+            return true;
+        }
+        current = current->prev;
+    }
+    return false;
+}
+
+CJNAPI_ALWAYS_INLINE ValueChunk* FindValueChunk(Store* store, const Value* value)
+{
+    if (store == nullptr || value == nullptr) {
+        return nullptr;
+    }
+    constexpr size_t values_offset = offsetof(ValueChunk, values);
+    const size_t offset = value->pad0;
+    if (offset < values_offset || offset > CHUNK_SIZE - sizeof(Value) ||
+        (offset - values_offset) % sizeof(Value) != 0) {
+        return nullptr;
+    }
+    const auto address = reinterpret_cast<uintptr_t>(value);
+    auto* chunk = reinterpret_cast<ValueChunk*>(address - offset);
+    const size_t index = (offset - values_offset) / sizeof(Value);
+    return chunk->store == store && index < chunk->used && &chunk->values[index] == value ? chunk : nullptr;
+}
+
+CJNAPI_ALWAYS_INLINE Scope* GetValueOwnerScope(Store* store, const Value* value)
+{
+    if (FindValueChunk(store, value) == nullptr) {
+        return nullptr;
+    }
+    auto* scope = store->all_scopes;
+    while (scope != nullptr) {
+        if (!scope->closed && static_cast<uint32_t>(scope->id) == value->pad1) {
+            return scope;
+        }
+        scope = scope->all_next;
+    }
+    return nullptr;
+}
+
+CJNAPI_ALWAYS_INLINE void SetValueOwnerScope(Value* value, const Scope* scope)
+{
+    value->pad1 = scope == nullptr ? 0 : static_cast<uint32_t>(scope->id);
+}
+
+CJNAPI_ALWAYS_INLINE LazyChunk* FindLazyChunk(Store* store, const void* value)
+{
+    if (store == nullptr || value == nullptr) {
+        return nullptr;
+    }
+    const auto address = reinterpret_cast<uintptr_t>(value);
+    auto* scope = store->all_scopes;
+    while (scope != nullptr) {
+        auto* chunk = scope->lazy_head_chunk;
+        while (chunk != nullptr) {
+            const auto begin = reinterpret_cast<uintptr_t>(chunk->data);
+            const auto end = reinterpret_cast<uintptr_t>(chunk->data + chunk->used);
+            if (address >= begin && address < end) {
+                return chunk;
+            }
+            chunk = chunk->next;
+        }
+        scope = scope->all_next;
+    }
+    return nullptr;
+}
+
+CJNAPI_ALWAYS_INLINE bool IsKnownLazyValue(Store* store, const LazyValue* value)
+{
+    if (store == nullptr || value == nullptr) {
+        return false;
+    }
+    auto* scope = store->all_scopes;
+    while (scope != nullptr) {
+        auto* lazy = scope->lazy_head;
+        while (lazy != nullptr) {
+            if (lazy == value) {
+                return true;
+            }
+            lazy = lazy->scope_next;
+        }
+        scope = scope->all_next;
+    }
+    return false;
+}
+
+CJNAPI_ALWAYS_INLINE bool UnlinkValueChunk(ValueChunk* chunk)
+{
+    if (chunk == nullptr || chunk->owner == nullptr) {
+        return false;
+    }
+    auto* owner = chunk->owner;
+    ValueChunk* previous = nullptr;
+    auto* current = owner->head;
+    while (current != nullptr && current != chunk) {
+        previous = current;
+        current = current->next;
+    }
+    if (current == nullptr) {
+        return false;
+    }
+    if (previous == nullptr) {
+        owner->head = current->next;
+    } else {
+        previous->next = current->next;
+    }
+    if (owner->current == current) {
+        owner->current = nullptr;
+    }
+    current->next = nullptr;
+    return true;
+}
+
+CJNAPI_ALWAYS_INLINE bool UnlinkLazyChunk(LazyChunk* chunk)
+{
+    if (chunk == nullptr || chunk->owner == nullptr) {
+        return false;
+    }
+    auto* owner = chunk->owner;
+    LazyChunk* previous = nullptr;
+    auto* current = owner->lazy_head_chunk;
+    while (current != nullptr && current != chunk) {
+        previous = current;
+        current = current->next;
+    }
+    if (current == nullptr) {
+        return false;
+    }
+    if (previous == nullptr) {
+        owner->lazy_head_chunk = current->next;
+    } else {
+        previous->next = current->next;
+    }
+    if (owner->lazy_current_chunk == current) {
+        owner->lazy_current_chunk = nullptr;
+    }
+    current->next = nullptr;
+    return true;
+}
+
+CJNAPI_ALWAYS_INLINE bool CanPromoteOwnerToScope(Store* store, const Scope* owner, const Scope* target)
+{
+    if (store == nullptr || owner == nullptr || target == nullptr ||
+        !store->containsScope(owner) || !store->containsScope(target)) {
+        return false;
+    }
+    return IsAncestorOrSelf(owner, target) || IsAncestorOrSelf(target, owner);
+}
+
+CJNAPI_ALWAYS_INLINE bool PromoteValueChunk(Store* store, ValueChunk* chunk, Scope* target)
+{
+    if (chunk == nullptr || !CanPromoteOwnerToScope(store, chunk->owner, target)) {
+        return false;
+    }
+    if (IsAncestorOrSelf(chunk->owner, target)) {
+        return true;
+    }
+    if (!UnlinkValueChunk(chunk)) {
+        return false;
+    }
+    chunk->owner = target;
+    chunk->sealed = true;
+    chunk->next = target->head;
+    target->head = chunk;
+    return true;
+}
+
+CJNAPI_ALWAYS_INLINE bool PromoteLazyChunk(Store* store, LazyChunk* chunk, Scope* target)
+{
+    if (chunk == nullptr || !CanPromoteOwnerToScope(store, chunk->owner, target)) {
+        return false;
+    }
+    if (IsAncestorOrSelf(chunk->owner, target)) {
+        return true;
+    }
+    if (!UnlinkLazyChunk(chunk)) {
+        return false;
+    }
+    chunk->owner = target;
+    chunk->sealed = true;
+    chunk->next = target->lazy_head_chunk;
+    target->lazy_head_chunk = chunk;
+    return true;
+}
+
+CJNAPI_ALWAYS_INLINE bool PromoteLazyValue(Store* store, LazyValue* value, Scope* target)
+{
+    if (store == nullptr || value == nullptr || value->store != store || value->scope == nullptr ||
+        !IsKnownLazyValue(store, value) || !CanPromoteOwnerToScope(store, value->scope, target)) {
+        return false;
+    }
+    auto* owner = value->scope;
+    if (IsAncestorOrSelf(owner, target)) {
+        return true;
+    }
+    LazyValue* previous = nullptr;
+    auto* current = owner->lazy_head;
+    while (current != nullptr && current != value) {
+        previous = current;
+        current = current->scope_next;
+    }
+    if (current == nullptr) {
+        return false;
+    }
+    if (previous == nullptr) {
+        owner->lazy_head = current->scope_next;
+    } else {
+        previous->scope_next = current->scope_next;
+    }
+    current->scope = target;
+    current->scope_next = target->lazy_head;
+    target->lazy_head = current;
+    return true;
+}
+
 CJNAPI_ALWAYS_INLINE ValueChunk* AddChunk(Store& store, Scope& scope)
 {
     auto* chunk = store.chunks.alloc();
-    if (scope.head == nullptr) {
-        scope.head = chunk;
-    } else {
-        scope.current->next = chunk;
-    }
+    chunk->owner = &scope;
+    chunk->store = &store;
+    chunk->sealed = false;
+    chunk->next = scope.head;
+    scope.head = chunk;
     scope.current = chunk;
     return chunk;
 }
@@ -438,8 +703,9 @@ CJNAPI_ALWAYS_INLINE Value* AllocateUnlocked(Store* store, Kind kind)
     }
     auto* raw = &chunk->values[chunk->used++];
     raw->kind = static_cast<uint16_t>(kind);
-    raw->pad0 = 0;
-    raw->pad1 = 0;
+    raw->pad0 = static_cast<uint16_t>(reinterpret_cast<uintptr_t>(raw) -
+        reinterpret_cast<uintptr_t>(chunk));
+    SetValueOwnerScope(raw, scope);
     return raw;
 }
 
@@ -463,11 +729,10 @@ CJNAPI_ALWAYS_INLINE void* AllocateLazyBytesInScopeRawUnlocked(Store* store, Sco
     auto* chunk = scope->lazy_current_chunk;
     if (chunk == nullptr || chunk->used + size > chunk->capacity) {
         chunk = store->lazy_chunks.alloc(size);
-        if (scope->lazy_head_chunk == nullptr) {
-            scope->lazy_head_chunk = chunk;
-        } else {
-            scope->lazy_current_chunk->next = chunk;
-        }
+        chunk->owner = scope;
+        chunk->sealed = false;
+        chunk->next = scope->lazy_head_chunk;
+        scope->lazy_head_chunk = chunk;
         scope->lazy_current_chunk = chunk;
     }
     auto* out = chunk->data + chunk->used;
@@ -806,6 +1071,105 @@ CJNAPI_ALWAYS_INLINE detail::LazyElementEntry* FindElement(detail::LazyValue* la
     return nullptr;
 }
 
+struct NamedPropertyReservation {
+    detail::LazyValue* lazy {nullptr};
+    detail::LazyNamedPropertySegment* segment {nullptr};
+    detail::LazyNamedPropertyEntry* entry {nullptr};
+    bool existing {false};
+};
+
+struct ElementReservation {
+    detail::LazyValue* lazy {nullptr};
+    detail::LazyElementSegment* segment {nullptr};
+    detail::LazyElementEntry* entry {nullptr};
+    uint32_t index {0};
+    bool existing {false};
+};
+
+CJNAPI_ALWAYS_INLINE napi_status PrepareNamedProperty(
+    napi_value object, const char* name, NamedPropertyReservation* reservation)
+{
+    if (!IsUnmaterializedLazyValue(object) || name == nullptr || reservation == nullptr) {
+        return napi_invalid_arg;
+    }
+    auto* lazy = DecodeLazyPointer(object);
+    if (lazy == nullptr || lazy->store == nullptr || !IsLazyObjectLike(lazy)) {
+        return napi_invalid_arg;
+    }
+    const size_t name_len = std::strlen(name);
+    if (auto* prop = FindNamedProperty(lazy, name, name_len); prop != nullptr) {
+        *reservation = {lazy, nullptr, prop, true};
+        return napi_ok;
+    }
+    auto* segment = lazy->named_tail;
+    if (segment == nullptr || segment->used == segment->capacity) {
+        segment = AddNamedPropertySegment(lazy);
+    }
+    if (segment == nullptr || segment->used >= segment->capacity) {
+        return napi_generic_failure;
+    }
+    auto* prop = &segment->entries[segment->used];
+    auto* copied_name = CopyBytesUnlocked(lazy, name, name_len);
+    if (copied_name == nullptr) {
+        return napi_generic_failure;
+    }
+    prop->name = copied_name;
+    prop->name_len = name_len;
+    prop->value = nullptr;
+    *reservation = {lazy, segment, prop, false};
+    return napi_ok;
+}
+
+CJNAPI_ALWAYS_INLINE void CommitNamedProperty(
+    const NamedPropertyReservation& reservation, napi_value value)
+{
+    reservation.entry->value = value;
+    if (!reservation.existing) {
+        ++reservation.segment->used;
+    }
+}
+
+CJNAPI_ALWAYS_INLINE napi_status PrepareElement(
+    napi_value object, uint32_t index, ElementReservation* reservation)
+{
+    if (!IsUnmaterializedLazyValue(object) || reservation == nullptr) {
+        return napi_invalid_arg;
+    }
+    auto* lazy = DecodeLazyPointer(object);
+    if (lazy == nullptr || lazy->store == nullptr || !IsLazyObjectLike(lazy)) {
+        return napi_invalid_arg;
+    }
+    if (auto* element = FindElement(lazy, index); element != nullptr) {
+        *reservation = {lazy, nullptr, element, index, true};
+        return napi_ok;
+    }
+    auto* segment = lazy->elements_tail;
+    if (segment == nullptr || segment->used == segment->capacity) {
+        segment = AddElementSegment(lazy);
+    }
+    if (segment == nullptr || segment->used >= segment->capacity) {
+        return napi_generic_failure;
+    }
+    auto* element = &segment->entries[segment->used];
+    element->index = index;
+    element->pad0 = 0;
+    element->value = nullptr;
+    *reservation = {lazy, segment, element, index, false};
+    return napi_ok;
+}
+
+CJNAPI_ALWAYS_INLINE void CommitElement(const ElementReservation& reservation, napi_value value)
+{
+    reservation.entry->value = value;
+    if (!reservation.existing) {
+        ++reservation.segment->used;
+    }
+    if (reservation.lazy->kind == static_cast<uint16_t>(detail::LazyKind::Array) &&
+        reservation.index >= reservation.lazy->array_length) {
+        reservation.lazy->array_length = reservation.index + 1;
+    }
+}
+
 CJNAPI_ALWAYS_INLINE napi_status CreateObject(Store* store, napi_value* result)
 {
     if (result == nullptr) {
@@ -958,36 +1322,12 @@ CJNAPI_ALWAYS_INLINE napi_status TypeofLazy(napi_value value, napi_valuetype* re
 
 CJNAPI_ALWAYS_INLINE napi_status SetNamedPropertyUnlocked(napi_value object, const char* name, napi_value value)
 {
-    if (!IsUnmaterializedLazyValue(object) || name == nullptr) {
-        return napi_invalid_arg;
+    NamedPropertyReservation reservation;
+    auto status = PrepareNamedProperty(object, name, &reservation);
+    if (status != napi_ok) {
+        return status;
     }
-    auto* lazy = DecodeLazyPointer(object);
-    if (lazy == nullptr || lazy->store == nullptr) {
-        return napi_invalid_arg;
-    }
-    if (!IsLazyObjectLike(lazy)) {
-        return napi_invalid_arg;
-    }
-    const size_t name_len = std::strlen(name);
-    if (auto* prop = FindNamedProperty(lazy, name, name_len); prop != nullptr) {
-        prop->value = value;
-        return napi_ok;
-    }
-    auto* segment = lazy->named_tail;
-    if (segment == nullptr || segment->used == segment->capacity) {
-        segment = AddNamedPropertySegment(lazy);
-    }
-    if (segment == nullptr || segment->used >= segment->capacity) {
-        return napi_generic_failure;
-    }
-    auto& prop = segment->entries[segment->used++];
-    prop.name = CopyBytesUnlocked(lazy, name, name_len);
-    if (prop.name == nullptr) {
-        --segment->used;
-        return napi_generic_failure;
-    }
-    prop.name_len = name_len;
-    prop.value = value;
+    CommitNamedProperty(reservation, value);
     return napi_ok;
 }
 
@@ -1088,34 +1428,12 @@ CJNAPI_ALWAYS_INLINE napi_status DeleteNamedProperty(napi_value object, const ch
 
 CJNAPI_ALWAYS_INLINE napi_status SetElementUnlocked(napi_value object, uint32_t index, napi_value value)
 {
-    if (!IsUnmaterializedLazyValue(object)) {
-        return napi_invalid_arg;
+    ElementReservation reservation;
+    auto status = PrepareElement(object, index, &reservation);
+    if (status != napi_ok) {
+        return status;
     }
-    auto* lazy = DecodeLazyPointer(object);
-    if (lazy == nullptr || lazy->store == nullptr) {
-        return napi_invalid_arg;
-    }
-    if (!IsLazyObjectLike(lazy)) {
-        return napi_invalid_arg;
-    }
-    if (auto* element = FindElement(lazy, index); element != nullptr) {
-        element->value = value;
-        return napi_ok;
-    }
-    auto* segment = lazy->elements_tail;
-    if (segment == nullptr || segment->used == segment->capacity) {
-        segment = AddElementSegment(lazy);
-    }
-    if (segment == nullptr || segment->used >= segment->capacity) {
-        return napi_generic_failure;
-    }
-    auto& element = segment->entries[segment->used++];
-    element.index = index;
-    element.pad0 = 0;
-    element.value = value;
-    if (lazy->kind == static_cast<uint16_t>(detail::LazyKind::Array) && index >= lazy->array_length) {
-        lazy->array_length = index + 1;
-    }
+    CommitElement(reservation, value);
     return napi_ok;
 }
 
@@ -1502,4 +1820,3 @@ CJNAPI_ALWAYS_INLINE napi_status StrictEquals(napi_env env, napi_value lhs, napi
 }  // namespace ace_napi_hook::fast
 
 #endif
-
