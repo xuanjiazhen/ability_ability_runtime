@@ -243,6 +243,9 @@ private:
 
     int32_t ValidateAndPrepareCmd(const ExecCmdParam &param, uint32_t tokenId,
         std::string &sandboxConfig, std::string &bundleName);
+    int32_t ExecCmdToolMode(const ExecCmdParam &param, const std::string &eventId,
+        const sptr<ICliToolManagerScheduler> &scheduler, const std::string &subscriptionId,
+        int32_t callerPid, int32_t callerUid, uint32_t tokenId, const std::string &bundleName);
     int32_t SetupAndStartSession(const ExecToolParam &param, const std::string &eventId,
         const ToolInfo &toolInfo, const std::string &sandboxConfig, const std::string &bundleName);
 

@@ -31,6 +31,16 @@ namespace CliTool {
 
 namespace {
 constexpr int32_t ERR_OK = 0;
+
+std::string ExtractToolName(const std::string &cmd)
+{
+    auto first = cmd.find_first_not_of(" \t");
+    if (first == std::string::npos) {
+        return "";
+    }
+    auto pos = cmd.find_first_of(" \t", first);
+    return (pos == std::string::npos) ? cmd.substr(first) : cmd.substr(first, pos - first);
+}
 } // namespace
 
 CliToolMGRClient& CliToolMGRClient::GetInstance()
@@ -85,7 +95,8 @@ ErrCode CliToolMGRClient::ExecCmd(const ExecCmdParam &param,
         return GET_CLI_TOOL_MGR_SERVICE_FAILED;
     }
 
-    std::string eventId = CliEventReplyManager::GetInstance().AddEventReplyCallback("shell",
+    std::string eventKey = param.isShellCommand ? "shell" : ExtractToolName(param.cmd);
+    std::string eventId = CliEventReplyManager::GetInstance().AddEventReplyCallback(eventKey,
         [cb = std::move(callback)](const CliEventReplyResult &result) {
             if (cb) {
                 CliSessionInfo sessionInfo;
@@ -96,7 +107,7 @@ ErrCode CliToolMGRClient::ExecCmd(const ExecCmdParam &param,
             }
         });
     
-    std::string subscriptionId = CliSessionSubscriptionManager::GetInstance().AddProvisionalSubscription("shell",
+    std::string subscriptionId = CliSessionSubscriptionManager::GetInstance().AddProvisionalSubscription(eventKey,
         [sessionEventCallback](const std::string &sessionId,
             const std::string &subscriptionId, const CliToolEvent &event) {
             if (sessionEventCallback) {
