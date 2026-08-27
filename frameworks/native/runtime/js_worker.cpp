@@ -276,6 +276,25 @@ void AssetHelper::operator()(const std::string& uri, uint8_t** buff, size_t* buf
     }
 }
 
+bool AssetHelper::IsPathWithinCodePath(const std::string& resolvedPath) const
+{
+    if (workerInfo_ == nullptr) {
+        return false;
+    }
+    char codePathResolved[PATH_MAX] = {0};
+    std::string codePathOrigin = (workerInfo_->codePath).GetOriginString();
+    if (realpath(codePathOrigin.c_str(), codePathResolved) == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "realpath codePath %{private}s failed", codePathOrigin.c_str());
+        return false;
+    }
+    std::string codePathPrefix(codePathResolved);
+    if (codePathPrefix.empty() || codePathPrefix.back() != '/') {
+        codePathPrefix += '/';
+    }
+    return resolvedPath.size() > codePathPrefix.size() &&
+        resolvedPath.compare(0, codePathPrefix.size(), codePathPrefix) == 0;
+}
+
 bool AssetHelper::GetSafeData(const std::string& ami, uint8_t** buff, size_t* buffSize, void** mapper)
 {
     TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
@@ -284,6 +303,10 @@ bool AssetHelper::GetSafeData(const std::string& ami, uint8_t** buff, size_t* bu
     resolvedPath.resize(PATH_MAX - 1);
     if (realpath(ami.c_str(), &(resolvedPath[0])) == nullptr) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "Realpath file %{private}s caught error: %{public}d", ami.c_str(), errno);
+        return false;
+    }
+    if (!IsPathWithinCodePath(resolvedPath)) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "Resolved path escapes codePath");
         return false;
     }
     FILE *fileF = fopen(resolvedPath.c_str(), "r");
@@ -347,6 +370,10 @@ bool AssetHelper::ReadAmiData(const std::string& ami, uint8_t** buff, size_t* bu
     char path[PATH_MAX];
     if (realpath(ami.c_str(), path) == nullptr) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "Realpath file %{private}s caught error: %{public}d", ami.c_str(), errno);
+        return false;
+    }
+    if (!IsPathWithinCodePath(std::string(path))) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "Resolved path escapes codePath");
         return false;
     }
 

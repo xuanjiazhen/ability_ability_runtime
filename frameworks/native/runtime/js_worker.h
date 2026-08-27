@@ -52,6 +52,8 @@ private:
     void GetAmi(std::string& ami, const std::string& filePath);
 
     bool GetSafeData(const std::string& ami, uint8_t** buff, size_t* buffSize, void** mapper);
+
+    bool IsPathWithinCodePath(const std::string& resolvedPath) const;
     
     bool GetIsStageModel();
 
