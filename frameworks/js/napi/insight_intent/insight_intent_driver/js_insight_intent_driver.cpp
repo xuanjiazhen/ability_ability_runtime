@@ -54,6 +54,7 @@ constexpr size_t ARGC_FOUR = 4;
 constexpr const char *DISTRIBUTE_LIBNAME = "libhmos_distribute.z.so";
 using Distribute = void(*)(InsightIntentExecuteParam&);
 Distribute g_distributeFunc = nullptr;
+std::once_flag g_distributeOnce;
 }
 class JsInsightIntentExecuteCallbackClient : public InsightIntentExecuteCallbackInterface,
     public std::enable_shared_from_this<JsInsightIntentExecuteCallbackClient> {
@@ -136,7 +137,7 @@ public:
 private:
     void ParseParam(InsightIntentExecuteParam &param)
     {
-        if (g_distributeFunc == nullptr) {
+        std::call_once(g_distributeOnce, [&]() {
             auto handle = dlopen(DISTRIBUTE_LIBNAME, RTLD_LAZY);
             if (handle == nullptr) {
                 TAG_LOGE(AAFwkTag::INTENT, "dlopen %{public}s error: %{public}s", DISTRIBUTE_LIBNAME, dlerror());
@@ -148,11 +149,12 @@ private:
                 dlclose(handle);
                 return;
             }
-
             g_distributeFunc = reinterpret_cast<Distribute>(symbol);
-        }
+        });
 
-        g_distributeFunc(param);
+        if (g_distributeFunc != nullptr) {
+            g_distributeFunc(param);
+        }
     }
 
     std::shared_ptr<AbilityContext> GetAbilityContext(napi_env env, napi_value object)
