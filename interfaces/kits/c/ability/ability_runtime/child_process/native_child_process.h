@@ -526,6 +526,7 @@ bool OH_Ability_IsNativeChildProcessSupported();
  *      <li>{@link NCP_NO_ERROR} if the operation is successful.</li>
  *      <li>{@link NCP_ERR_INVALID_PARAM} if infos or count is nullptr.</li>
  *      <li>{@link NCP_ERR_INTERNAL} if an internal error occurs, such as connect system service failed.</li>
+*       <li>{@link NCP_ERR_SERVICE_ERROR} if system service error occurs..</li>
  *      </ul>
  * @release OH_AbilityRuntime_ReleaseChildProcessInfos {infos}
  * @since 26.1.0

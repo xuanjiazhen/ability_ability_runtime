@@ -385,7 +385,7 @@ Ability_NativeChildProcess_ErrCode OH_Ability_AcquireChildProcessInfos(
     auto cpmErr = ChildProcessManager::GetInstance().AcquireChildProcesses(childInfos);
     if (cpmErr != ChildProcessManagerErrorCode::ERR_OK) {
         TAG_LOGE(AAFwkTag::PROCESSMGR, "AcquireChildProcesses failed, err=%{public}d", static_cast<int>(cpmErr));
-        return NCP_ERR_INTERNAL;
+        return ChildProcessManagerErrorUtil::CvtChildProcessManagerErrCode(cpmErr);
     }
     if (!CreateAndFillChildProcessInfos(childInfos, infos, count)) {
         return NCP_ERR_INTERNAL;
