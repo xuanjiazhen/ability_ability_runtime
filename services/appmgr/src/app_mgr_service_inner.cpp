@@ -221,6 +221,7 @@ constexpr const int64_t PRELOAD_FREEZE_TIMEOUT = 60000;
 constexpr size_t MAX_PROCESS_NAME_LENGTH = 64;
 constexpr const int32_t DEFAULT_APPFREEZE_KILL_WAIT_TIME = 3500; // 3.5s
 constexpr const int32_t BETA_APPFREEZE_KILL_WAIT_TIME = 6000; // 6s
+constexpr const int32_t PROCESS_KILLDELAY_TIME = 2000 * 1000; // 2000ms in microseconds
 
 #ifdef WITH_DLP
 constexpr const char* DLP_PARAMS_SECURITY_FLAG = "ohos.dlp.params.securityFlag";
@@ -6557,6 +6558,30 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
         return;
     }
     int32_t pid = appRecord->GetPid();
+    AppfreezeManager::ProcessKillInfo killInfo = {};
+    bool res = AppExecFwk::AppfreezeManager::GetInstance()->GetProcessKillReason(killIno,
+        appRecord->GetKillId(), pid, appRecord->GetKillMsg());
+    std::string versionCode = std::to_string(appInfo->versionCode);
+    std::string versionName = appInfo->versionName;
+    AAFwk::EventInfo eventInfo;
+    SetKilledEventInfo(appRecord, eventInfo);
+    AAFwk::EventReport::SendAppEvent(AAFwk::EventName::APP_TERMINATE, HISYSEVENT_BEHAVIOR, eventInfo);
+    if (!res) {
+        ffrt::submit([appRecord, pid, versionCode, versionName] () {
+            AppfreezeManager::ProcessKillInfo delayInfo = {};
+            AAFwk::AppfreezeManager::GetInstance()->GetProcessKillReason(delayKillInfo,
+                appRecord->GetKillId(), pid, appRecord->GetKillMsg());
+            ReportProcessKillEvent(pid, versionCode, versionName, appRecord, delayKillInfo);
+        }, ffrt::task_attr().name("delayKillUIAbility").delay(PROCESS_KILL_DELAY_TIME)
+        .timeout(AbilityRuntime::GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));
+    } else {
+        ReportProcessKillEvent(pid, versionCode, versionName, appRecord, killIno);
+    }
+}
+
+void AppMgrServiceInner::ReportProcessKillEvent(int32_t pid, std::string versionCode, std::string versionName,
+    std::shared_ptr<AppRunningRecord> appRecord, const AppfreezeManager::ProcessKillInfo& killInfo)
+{
     bool foreground = appRecord->GetState() == ApplicationState::APP_STATE_FOREGROUND ||
         appRecord->GetState() == ApplicationState::APP_STATE_FOCUS;
     AppfreezeManager::ProcessKillInfo killInfo = AppExecFwk::AppfreezeManager::GetInstance()->GetProcessKillReason(
@@ -6566,7 +6591,6 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
         std::chrono::system_clock::now().time_since_epoch()).count();
     AAFwk::EventInfo eventInfo;
     SetKilledEventInfo(appRecord, eventInfo);
-    AAFwk::EventReport::SendAppEvent(AAFwk::EventName::APP_TERMINATE, HISYSEVENT_BEHAVIOR, eventInfo);
     auto hisyseventReport = std::make_shared<AAFwk::HisyseventReport>(PROCESS_KILL_PARAM);
     hisyseventReport->InsertParam(EVENT_KEY_PID, pid);
     hisyseventReport->InsertParam(EVENT_KEY_UID, appRecord->GetUid());
@@ -6576,8 +6600,8 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
     hisyseventReport->InsertParam(EVENT_KEY_REASON, killInfo.killReason);
     hisyseventReport->InsertParam(EVENT_KEY_FOREGROUND, killInfo.foreground);
     hisyseventReport->InsertParam(EVENT_KEY_APP_RUNNING_UNIQUE_ID, appRunningUniqueId);
-    hisyseventReport->InsertParam(EVENT_KEY_VERSIONCODE, std::to_string(appInfo->versionCode));
-    hisyseventReport->InsertParam(EVENT_KEY_VERSIONNAME, appInfo->versionName);
+    hisyseventReport->InsertParam(EVENT_KEY_VERSIONCODE, versionCode);
+    hisyseventReport->InsertParam(EVENT_KEY_VERSIONNAME, versionName);
     hisyseventReport->InsertParam(EVENT_KEY_INNER_MSG, appRecord->GetInnerMsg());
     hisyseventReport->InsertParam(EVENT_KEY_PROCESS_KILL_ID, killInfo.killId);
     hisyseventReport->InsertParam(EVENT_KEY_ADJ, killInfo.adj);
