@@ -39,6 +39,7 @@ const std::string CODE_LANGUAGE_ARKTS_1_0 = "dynamic";
 const std::string CODE_LANGUAGE_ARKTS_1_2 = "static";
 const std::string CODE_LANGUAGE_ARKTS_HYBRID = "hybrid";
 const std::string DEBUGGER = "@Debugger";
+static std::string SendBoxPath = "data/storage/el1/bundle/";
 } // namespace
 
 class Runtime {
@@ -119,7 +120,8 @@ public:
     static std::unique_ptr<Runtime> Create(Options &options);
     static void SavePreloaded(std::unique_ptr<Runtime> &&instance);
     static std::unique_ptr<Runtime> GetPreloaded(Language key);
-
+    static void SaveSendboxPath(std::string path);
+    static std::string GetSendboxPath();
     Runtime() = default;
     virtual ~Runtime() = default;
 

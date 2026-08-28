@@ -67,5 +67,17 @@ std::unique_ptr<Runtime> Runtime::GetPreloaded(Language key)
     }
     return std::move(g_preloadedInstance);
 }
+
+void Runtime::SaveSendboxPath(std::string path) 
+{
+    if (!path.empty()) {
+        AbilityRuntime::SendBoxPath = path;
+    }
+}
+
+std::string Runtime::GetSendboxPath() 
+{
+    return AbilityRuntime::SendBoxPath;
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS

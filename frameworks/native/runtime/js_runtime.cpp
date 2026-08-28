@@ -89,7 +89,6 @@ const std::string SANDBOX_ARK_CACHE_PATH = "/data/storage/ark-cache/";
 const std::string SANDBOX_ARK_PROIFILE_PATH = "/data/storage/ark-profile";
 
 constexpr char MERGE_ABC_PATH[] = "/ets/modules.abc";
-constexpr char BUNDLE_INSTALL_PATH[] = "/data/storage/el1/bundle/";
 constexpr const char* PERMISSION_RUN_ANY_CODE = "ohos.permission.RUN_ANY_CODE";
 constexpr const char* PERMISSION_LOAD_INDEPENDENT_LIBRARY = "ohos.permission.kernel.LOAD_INDEPENDENT_LIBRARY";
 constexpr const char* PERMISSION_LOAD_CERTSIGN_LIBRARY = "ohos.permission.kernel.LOAD_CERTSIGN_LIBRARY_FOR_WEB";
@@ -582,7 +581,7 @@ bool JsRuntime::LoadScript(const std::string& path, uint8_t* buffer, size_t len,
         auto vm = GetEcmaVm();
         CHECK_POINTER_AND_RETURN(vm, false);
         std::string srcFilename = "";
-        srcFilename = BUNDLE_INSTALL_PATH + moduleName_ + MERGE_ABC_PATH;
+        srcFilename = AbilityRuntime::Runtime::GetSendboxPath() + moduleName_ + MERGE_ABC_PATH;
         return panda::JSNApi::ExecuteSecureWithOhmUrl(vm, buffer, len, srcFilename, srcEntrance);
     }
     return jsEnv_->LoadScript(path, buffer, len, isBundle);
@@ -1262,7 +1261,7 @@ std::unique_ptr<AbilityBase::FileMapper> JsRuntime::ExecuteSecureWithOhmUrl(cons
     }
     extractor->SetAutoCloseFd(true);
 
-    std::string srcFileName = BUNDLE_INSTALL_PATH + moduleName + MERGE_ABC_PATH;
+    std::string srcFileName = AbilityRuntime::Runtime::GetSendboxPath() + moduleName + MERGE_ABC_PATH;
     auto safeData = extractor->GetSafeData(srcFileName);
     if (safeData == nullptr) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "null safeData srcFileName %{private}s", srcFileName.c_str());
@@ -1366,7 +1365,7 @@ bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath
             TAG_LOGE(AAFwkTag::JSRUNTIME, "moduleName empty");
             return false;
         }
-        path = BUNDLE_INSTALL_PATH + moduleName_ + MERGE_ABC_PATH;
+        path = AbilityRuntime::Runtime::GetSendboxPath() + moduleName_ + MERGE_ABC_PATH;
         panda::JSNApi::SetAssetPath(vm, path);
         panda::JSNApi::SetModuleName(vm, moduleName_);
     }
@@ -1660,7 +1659,7 @@ void JsRuntime::UpdateModuleNameAndAssetPath(const std::string& moduleName)
     }
 
     moduleName_ = moduleName;
-    std::string path = BUNDLE_INSTALL_PATH + moduleName_ + MERGE_ABC_PATH;
+    std::string path = AbilityRuntime::Runtime::GetSendboxPath() + moduleName_ + MERGE_ABC_PATH;
     panda::JSNApi::SetAssetPath(vm, path);
     panda::JSNApi::SetModuleName(vm, moduleName_);
 }
