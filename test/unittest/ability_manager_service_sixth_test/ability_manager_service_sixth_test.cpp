@@ -90,6 +90,8 @@ constexpr const char* BUNDLE_NAME_SMART_TEST = "com.hms.textautofill";
 const std::string APP_INSTANCE_KEY("ohos.extra.param.key.appInstance");
 const std::string CREATE_APP_INSTANCE_KEY("ohos.extra.param.key.createAppInstance");
 constexpr const char* CALLER_REQUEST_CODE = "ohos.extra.param.key.callerRequestCode";
+constexpr const char* DEBUG_FROM_KEY = "ohos.param.debugFrom";
+constexpr const char* DEVELOPER_MODE_STATE_KEY = "const.security.developermode.state";
 }  // namespace
 class AbilityManagerServiceSixthTest : public testing::Test {
 public:
@@ -2828,6 +2830,96 @@ HWTEST_F(AbilityManagerServiceSixthTest, SetRemoteIntentTimeout_001, TestSize.Le
     abilityMs->RemoveIntentTimeout(insightIntentId);
     EXPECT_EQ(abilityMs->remoteTaskHandles_.size(), 0);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest SetRemoteIntentTimeout_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbility
+ * FunctionPoints: StartAbility debug gate allows LOCAL_DEBUG_OTHER_APPS caller
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, StartAbility_LocalDebugGate_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest StartAbility_LocalDebugGate_0100 start");
+    auto abilityMs = MockAbilityManagerService();
+    ASSERT_NE(abilityMs, nullptr);
+    OHOS::system::SetBoolParameter(DEVELOPER_MODE_STATE_KEY, false);
+    MyFlag::verifyStartLocalDebugFlag_ = 0;
+    MyFlag::localDebugOtherAppsCallFlag_ = 1;
+
+    Want want;
+    want.SetParam(DEBUG_FROM_KEY, true);
+    int32_t ret = abilityMs->StartAbility(want, DEFAULT_INVALID_USER_ID, -1, 0);
+    EXPECT_NE(ret, CHECK_PERMISSION_FAILED);
+
+    MyFlag::verifyStartLocalDebugFlag_ = 1;
+    MyFlag::localDebugOtherAppsCallFlag_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest StartAbility_LocalDebugGate_0100 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbility
+ * FunctionPoints: StartAbility debug gate denies caller without LOCAL_DEBUG_OTHER_APPS
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, StartAbility_LocalDebugGate_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest StartAbility_LocalDebugGate_0200 start");
+    auto abilityMs = MockAbilityManagerService();
+    ASSERT_NE(abilityMs, nullptr);
+    OHOS::system::SetBoolParameter(DEVELOPER_MODE_STATE_KEY, false);
+    MyFlag::verifyStartLocalDebugFlag_ = 0;
+    MyFlag::localDebugOtherAppsCallFlag_ = 0;
+
+    Want want;
+    want.SetParam(DEBUG_FROM_KEY, true);
+    int32_t ret = abilityMs->StartAbility(want, DEFAULT_INVALID_USER_ID, -1, 0);
+    EXPECT_EQ(ret, CHECK_PERMISSION_FAILED);
+
+    MyFlag::verifyStartLocalDebugFlag_ = 1;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest StartAbility_LocalDebugGate_0200 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbility
+ * FunctionPoints: StartAbility developer-mode gate denies non-developer-mode caller
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, StartAbility_DevModeGate_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest StartAbility_DevModeGate_0100 start");
+    auto abilityMs = MockAbilityManagerService();
+    ASSERT_NE(abilityMs, nullptr);
+    OHOS::system::SetBoolParameter(DEVELOPER_MODE_STATE_KEY, false);
+    MyFlag::localDebugOtherAppsCallFlag_ = 0;
+
+    Want want;
+    want.SetParam(DEBUG_APP, true);
+    int32_t ret = abilityMs->StartAbility(want, DEFAULT_INVALID_USER_ID, -1, 0);
+    EXPECT_EQ(ret, ERR_NOT_DEVELOPER_MODE);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest StartAbility_DevModeGate_0100 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbility
+ * FunctionPoints: StartAbility developer-mode gate allows LOCAL_DEBUG_OTHER_APPS caller
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, StartAbility_DevModeGate_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest StartAbility_DevModeGate_0200 start");
+    auto abilityMs = MockAbilityManagerService();
+    ASSERT_NE(abilityMs, nullptr);
+    OHOS::system::SetBoolParameter(DEVELOPER_MODE_STATE_KEY, false);
+    MyFlag::localDebugOtherAppsCallFlag_ = 1;
+
+    Want want;
+    want.SetParam(DEBUG_APP, true);
+    int32_t ret = abilityMs->StartAbility(want, DEFAULT_INVALID_USER_ID, -1, 0);
+    EXPECT_NE(ret, ERR_NOT_DEVELOPER_MODE);
+
+    MyFlag::localDebugOtherAppsCallFlag_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest StartAbility_DevModeGate_0200 end");
 }
 }  // namespace AAFwk
 }  // namespace OHOS
