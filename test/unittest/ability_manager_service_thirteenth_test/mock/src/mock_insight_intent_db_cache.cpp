@@ -137,6 +137,23 @@ bool InsightIntentDbCache::CanSkipDelete(const std::string &bundleName, int32_t 
         bundleVersionMap_.find(bundleName) == bundleVersionMap_.end();
 }
 
+bool InsightIntentDbCache::DeleteInsightIntentIfExist(const std::string &bundleName,
+    const std::string &moduleName, int32_t userId)
+{
+    if (CanSkipDelete(bundleName, userId)) {
+        return false;
+    }
+    std::vector<ExtractInsightIntentInfo> intentInfos;
+    std::vector<InsightIntentInfo> configIntentInfos;
+    GetInsightIntentInfoByName(bundleName, userId, intentInfos);
+    GetConfigInsightIntentInfoByName(bundleName, userId, configIntentInfos);
+    if (intentInfos.empty() && configIntentInfos.empty()) {
+        return false;
+    }
+    DeleteInsightIntentTotalInfo(bundleName, moduleName, userId);
+    return true;
+}
+
 int32_t InsightIntentDbCache::DeleteInsightIntentTotalInfo(const std::string &bundleName,
     const std::string &moduleName, const int32_t userId)
 {

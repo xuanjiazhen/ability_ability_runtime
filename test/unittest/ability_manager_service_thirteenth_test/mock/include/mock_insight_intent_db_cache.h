@@ -61,6 +61,8 @@ public:
     bool HasBundleCache(const std::string &bundleName);
     bool IsCacheInitialized(int32_t userId);
     bool CanSkipDelete(const std::string &bundleName, int32_t userId);
+    bool DeleteInsightIntentIfExist(const std::string &bundleName,
+        const std::string &moduleName, int32_t userId);
     void BackupRdb();
 private:
     int32_t userId_ = -1;

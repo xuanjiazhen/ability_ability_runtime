@@ -433,5 +433,42 @@ HWTEST_F(InsightIntentDbCacheTest, InsightIntentDbCacheTest_009, TestSize.Level0
     EXPECT_TRUE(DelayedSingleton<InsightIntentDbCache>::GetInstance()->CanSkipDelete(
         bundleName, switchedUserId));
 }
+
+/**
+ * @tc.name: InsightIntentDbCacheTest_010
+ * @tc.desc: Test DeleteInsightIntentIfExist: skips when the cache proves the
+ *           bundle holds no entry, deletes and reports when db entries exist
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentDbCacheTest, InsightIntentDbCacheTest_010, TestSize.Level0)
+{
+    int32_t userId = 500;
+    std::string bundleName = "if_exist_bundle";
+    std::string moduleName = "ifExistModule";
+    ExtractInsightIntentProfileInfoVec profileInfos;
+    ExtractInsightIntentProfileInfo info;
+    std::vector<InsightIntentInfo> configInfos;
+    InsightIntentInfo cfg;
+    cfg.intentName = "MockIntent";
+    configInfos.push_back(cfg);
+    profileInfos.insightIntents.push_back(info);
+
+    MockLoadInsightIntentInfos(true);
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->InitInsightIntentCache(userId);
+    MockLoadInsightIntentInfoByName(true);
+    MockLoadConfigInsightIntentInfoByName(true);
+    MockDeleteData(true);
+
+    // cache loaded for the user and bundle absent: nothing to delete
+    EXPECT_FALSE(DelayedSingleton<InsightIntentDbCache>::GetInstance()->DeleteInsightIntentIfExist(
+        bundleName, moduleName, userId));
+
+    // bundle cached and db entries present: delete and report
+    MockSaveData(true);
+    EXPECT_EQ(DelayedSingleton<InsightIntentDbCache>::GetInstance()->SaveInsightIntentTotalInfo(
+        bundleName, moduleName, userId, 0, profileInfos, configInfos), ERR_OK);
+    EXPECT_TRUE(DelayedSingleton<InsightIntentDbCache>::GetInstance()->DeleteInsightIntentIfExist(
+        bundleName, moduleName, userId));
+}
 }
 }

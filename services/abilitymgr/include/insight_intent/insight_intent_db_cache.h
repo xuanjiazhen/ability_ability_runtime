@@ -62,6 +62,11 @@ public:
     // True only when the cache is loaded for this user and holds no entry for the
     // bundle, so callers may safely skip the delete work.
     bool CanSkipDelete(const std::string &bundleName, int32_t userId);
+    // Delete intent entries of the bundle only when present. Returns true when
+    // stale entries were found and removed, so callers run follow-up work
+    // (backup, unregister) exactly once.
+    bool DeleteInsightIntentIfExist(const std::string &bundleName,
+        const std::string &moduleName, int32_t userId);
     void BackupRdb();
 private:
     int32_t userId_ = -1;
