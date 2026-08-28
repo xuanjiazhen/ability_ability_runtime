@@ -29,6 +29,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+
 #include "ability_manager_errors.h"
 #include "ability_state.h"
 #include "ability_window_configuration.h"
