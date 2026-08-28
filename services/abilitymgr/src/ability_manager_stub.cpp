@@ -24,11 +24,13 @@
 #include "hitrace_meter.h"
 #include "insight_intent_execute_param.h"
 #include "insight_intent_execute_manager.h"
+#include "ipc_skeleton.h"
 #include "skill_execute_param.h"
 #include "status_bar_delegate_interface.h"
 #include <iterator>
 #include "mission_listener_interface.h"
 #include "mission_snapshot.h"
+#include "permission_verification.h"
 #include "snapshot.h"
 #ifdef SUPPORT_SCREEN
 #include "pixel_map_bridge.h"
@@ -45,6 +47,7 @@ constexpr int32_t MAX_KILL_PROCESS_PID_COUNT = 100;
 constexpr int32_t MAX_UPDATE_CONFIG_SIZE = 100;
 constexpr int32_t MAX_WANT_LIST_SIZE = 4;
 constexpr int32_t INVALID_USER_ID = -1;
+constexpr int32_t DMS_UID = 5522;
 } // namespace
 AbilityManagerStub::AbilityManagerStub()
 {}
@@ -1560,6 +1563,13 @@ int AbilityManagerStub::StartAbilityInner(MessageParcel &data, MessageParcel &re
         return ERR_INVALID_VALUE;
     }
     SanitizeWantParams(*want);
+    if (!AAFwk::PermissionVerification::GetInstance()->IsShellCall() &&
+        !AAFwk::PermissionVerification::GetInstance()->IsLocalDebugOtherAppsCall() &&
+        IPCSkeleton::GetCallingUid() != DMS_UID) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "aa start permission denied");
+        reply.WriteInt32(ERR_PERMISSION_DENIED);
+        return NO_ERROR;
+    }
     int32_t userId = data.ReadInt32();
     int requestCode = data.ReadInt32();
     uint64_t specifiedFullTokenId = data.ReadUint64();
