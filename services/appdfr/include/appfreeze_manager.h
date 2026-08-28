@@ -128,9 +128,10 @@ public:
     void InsertKillThread(int32_t state, int32_t pid, int32_t uid, const std::string& bundleName);
     bool IsSkipDetect(int32_t pid, int32_t uid, const std::string& bundleName,
         const std::string& eventName);
-    AppfreezeManager::ProcessKillInfo GetProcessKillReason(int32_t killId, int32_t pid,
-        const std::string& killMsg, bool foreground);
-    void GetExitKernelReason(int32_t pid, ProcessKillInfo& killInfo);
+    bool GetProcessKillReason(AppfreezeManager::ProcessKillInfo &killInfo,
+        int32_t killId, int32_t pid, const std::string& killMsg);
+    bool GetExitKernelReason(int32_t pid, ProcessKillInfo& killInfo);
+    void SetExitKernelReason(int32_t pid);
     int GetFreezeExitReason(const std::string& eventName);
     void UpdateFreezeExcludedPid(bool isAdd, int32_t targetPid, int32_t profilerPid);
     bool IsFreezeExcludedPid(int32_t targetPid);

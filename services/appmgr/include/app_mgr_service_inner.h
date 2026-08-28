@@ -36,6 +36,7 @@
 #include "app_malloc_info.h"
 #include "app_mgr_constants.h"
 #include "app_mgr_event.h"
+#include "appfreeze_manager.h"
 #include "app_preloader.h"
 #include "app_record_id.h"
 #include "app_refresh_recipient.h"
@@ -2426,7 +2427,7 @@ private:
         std::vector<std::string> &instanceKeys, int32_t userId);
     int32_t KillProcessByPidInner(const pid_t pid, const std::string& reason,
         const std::string& killReason, std::shared_ptr<AppRunningRecord> appRecord, bool isKillPrecedeStart);
-    void SetKilledEventInfo(std::shared_ptr<AppRunningRecord> appRecord, AAFwk::EventInfo &eventInfo);
+    static void SetKilledEventInfo(std::shared_ptr<AppRunningRecord> appRecord, AAFwk::EventInfo &eventInfo);
     void AddToKillProcessMap(const std::string &processName);
     bool IsAllowedNWebPreload(const std::string &processName);
     void ParseInfoToAppfreeze(const FaultData &faultData, int32_t pid, int32_t uid, const std::string &bundleName,
@@ -2466,6 +2467,10 @@ private:
     void RemoveUninstallOrUpgradeUidSet(int32_t uid);
     bool IsUninstallingOrUpgrading(int32_t uid);
     void SendProcessKillEvent(std::shared_ptr<AppRunningRecord> appRecord);
+
+private:
+    static void ReportProcessKillEvent(int32_t pid, std::string versionCode, std::string versionName,
+        std::shared_ptr<AppRunningRecord> appRecord, const AppfreezeManager::ProcessKillInfo& killInfo);
     void HandleForegroundAbilityDied(const std::vector<sptr<IRemoteObject>>& abilityTokens,
         ApplicationState state);
 
