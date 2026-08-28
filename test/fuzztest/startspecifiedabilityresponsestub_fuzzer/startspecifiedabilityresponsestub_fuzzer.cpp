@@ -14,17 +14,17 @@
  */
 
 #include "startspecifiedabilityresponsestub_fuzzer.h"
-#include "fuzz_util.h"
 #include "attack_vectors.h"
+#include "fuzz_util.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <memory>
 
-#include "start_specified_ability_response_stub.h"
 #include "message_parcel.h"
 #include "securec.h"
+#include "start_specified_ability_response_stub.h"
 #include "want.h"
 
 using namespace OHOS::AppExecFwk;

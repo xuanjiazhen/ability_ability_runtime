@@ -14,7 +14,7 @@
  */
 
 #include "dataobsmgrclient_fuzzer.h"
-#include "fuzz_util.h"
+#include "dataobs_mgr_changeinfo.h"
 
 #include <fuzzer/FuzzedDataProvider.h>
 
@@ -23,8 +23,8 @@
 #include <string>
 #include <vector>
 
-#include "dataobs_mgr_changeinfo.h"
 #include "dataobs_mgr_client.h"
+#include "fuzz_util.h"
 #include "uri.h"
 
 using namespace OHOS::AAFwk;

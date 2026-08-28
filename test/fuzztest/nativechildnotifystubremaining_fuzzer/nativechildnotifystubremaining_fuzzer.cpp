@@ -17,8 +17,8 @@
 #include "attack_vectors.h"
 #include "fuzz_util.h"
 
-#include "native_child_notify_stub.h"
 #include "native_child_notify_interface.h"
+#include "native_child_notify_stub.h"
 
 using namespace OHOS::AppExecFwk;
 

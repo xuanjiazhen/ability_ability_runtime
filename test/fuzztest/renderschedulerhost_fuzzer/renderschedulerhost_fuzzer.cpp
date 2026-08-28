@@ -14,8 +14,8 @@
  */
 
 #include "renderschedulerhost_fuzzer.h"
-#include "fuzz_util.h"
 #include "attack_vectors.h"
+#include "fuzz_util.h"
 
 #include <cstddef>
 #include <cstdint>

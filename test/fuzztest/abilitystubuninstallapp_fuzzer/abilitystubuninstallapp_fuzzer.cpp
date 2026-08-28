@@ -23,6 +23,7 @@
 #undef private
 
 #include "app_exit_reason_data_manager.h"
+#include "fuzz_util.h"
 #include "message_parcel.h"
 #include "securec.h"
 

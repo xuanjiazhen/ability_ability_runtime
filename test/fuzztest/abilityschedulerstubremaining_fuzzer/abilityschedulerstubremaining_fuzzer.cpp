@@ -14,18 +14,18 @@
  */
 
 #include "abilityschedulerstubremaining_fuzzer.h"
+#include "ability_scheduler_stub.h"
 #include "attack_vectors.h"
-#include "fuzz_util.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <vector>
 
-#include "ability_scheduler_stub.h"
 #include "data_ability_operation.h"
 #include "data_ability_predicates.h"
 #include "element_name.h"
+#include "fuzz_util.h"
 #include "message_parcel.h"
 #include "pac_map.h"
 #include "securec.h"

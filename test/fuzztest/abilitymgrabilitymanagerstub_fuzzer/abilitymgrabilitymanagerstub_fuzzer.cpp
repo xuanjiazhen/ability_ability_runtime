@@ -28,6 +28,7 @@
 #undef private
 
 #include "ability_record.h"
+#include "fuzz_util.h"
 #include "securec.h"
 
 using namespace OHOS::AAFwk;

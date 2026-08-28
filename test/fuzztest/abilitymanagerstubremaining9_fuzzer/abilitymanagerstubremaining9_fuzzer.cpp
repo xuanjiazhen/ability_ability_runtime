@@ -14,20 +14,20 @@
  */
 
 #include "abilitymanagerstubremaining9_fuzzer.h"
-#include "fuzz_util.h"
+#include "ability_manager_stub.h"
+#include "ability_manager_stub_mock.h"
 #include "attack_vectors.h"
-#include "parcelable_constructors.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <memory>
 
-#include "ability_manager_stub.h"
-#include "ability_manager_stub_mock.h"
 #include "auto_startup_info.h"
 #include "exit_reason.h"
+#include "fuzz_util.h"
 #include "message_parcel.h"
+#include "parcelable_constructors.h"
 #include "securec.h"
 
 using namespace OHOS::AAFwk;

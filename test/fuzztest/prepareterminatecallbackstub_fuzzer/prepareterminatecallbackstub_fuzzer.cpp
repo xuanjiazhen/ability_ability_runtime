@@ -14,14 +14,14 @@
  */
 
 #include "prepareterminatecallbackstub_fuzzer.h"
-#include "fuzz_util.h"
 #include "attack_vectors.h"
+#include "fuzz_util.h"
 
 #include <cstddef>
 #include <cstdint>
 
-#include "prepare_terminate_callback_stub.h"
 #include "message_parcel.h"
+#include "prepare_terminate_callback_stub.h"
 #include "securec.h"
 
 using namespace OHOS::AAFwk;

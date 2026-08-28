@@ -26,6 +26,7 @@
 #undef protected
 
 #include "ability_record.h"
+#include "fuzz_util.h"
 #include "parcel.h"
 #include "securec.h"
 

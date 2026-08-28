@@ -14,14 +14,14 @@
  */
 
 #include "atomicservicestatuscallbackstub_fuzzer.h"
-#include "fuzz_util.h"
+#include "atomic_service_status_callback_stub.h"
 #include "attack_vectors.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
 
-#include "atomic_service_status_callback_stub.h"
+#include "fuzz_util.h"
 #include "parcel.h"
 #include "securec.h"
 #include "want.h"

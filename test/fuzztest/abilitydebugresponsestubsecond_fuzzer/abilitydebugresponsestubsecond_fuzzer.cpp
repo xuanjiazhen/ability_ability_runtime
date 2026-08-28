@@ -23,6 +23,7 @@
 
 #define protected public
 #include "ability_debug_response_stub.h"
+#include "fuzz_util.h"
 #undef protected
 #undef private
 

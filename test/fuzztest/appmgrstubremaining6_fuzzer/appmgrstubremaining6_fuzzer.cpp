@@ -14,19 +14,19 @@
  */
 
 #include "appmgrstubremaining6_fuzzer.h"
-#include "attack_vectors.h"
-#include "fuzz_util.h"
+#include "ability_info.h"
+#include "app_jshandle_map_info.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <memory>
 
-#include "ability_info.h"
-#include "app_jshandle_map_info.h"
 #include "app_mgr_stub.h"
 #include "app_mgr_stub_mock.h"
+#include "attack_vectors.h"
 #include "bundle_info.h"
+#include "fuzz_util.h"
 #include "message_parcel.h"
 #include "securec.h"
 #include "want.h"

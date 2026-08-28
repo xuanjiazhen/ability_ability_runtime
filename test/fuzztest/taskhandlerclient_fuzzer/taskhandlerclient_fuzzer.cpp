@@ -14,7 +14,6 @@
  */
 
 #include "taskhandlerclient_fuzzer.h"
-#include "fuzz_util.h"
 
 #include <fuzzer/FuzzedDataProvider.h>
 

@@ -22,6 +22,7 @@
 #include "ability_manager_service.h"
 #undef private
 
+#include "fuzz_util.h"
 #include "message_parcel.h"
 #include "securec.h"
 

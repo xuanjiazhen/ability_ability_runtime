@@ -14,16 +14,16 @@
  */
 
 #include "abilitymanagerstubremaining2_fuzzer.h"
-#include "fuzz_util.h"
-#include "attack_vectors.h"
+#include "ability_manager_stub.h"
+#include "ability_manager_stub_mock.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <memory>
 
-#include "ability_manager_stub.h"
-#include "ability_manager_stub_mock.h"
+#include "attack_vectors.h"
+#include "fuzz_util.h"
 #include "message_parcel.h"
 #include "securec.h"
 #include "session_info.h"

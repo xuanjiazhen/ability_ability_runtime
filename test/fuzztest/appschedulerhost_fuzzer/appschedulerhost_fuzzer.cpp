@@ -22,9 +22,9 @@
 #include <fuzzer/FuzzedDataProvider.h>
 
 #include "app_scheduler_host.h"
-#include "message_parcel.h"
 #include "attack_vectors.h"
 #include "fuzz_util.h"
+#include "message_parcel.h"
 
 using namespace OHOS::AppExecFwk;
 using namespace OHOS::AAFwk;

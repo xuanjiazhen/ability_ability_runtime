@@ -14,7 +14,7 @@
  */
 
 #include "amsmgrstubkill_fuzzer.h"
-#include "fuzz_util.h"
+#include "ams_mgr_stub.h"
 #include "attack_vectors.h"
 
 #include <cstddef>
@@ -24,7 +24,7 @@
 #include <string>
 #include <vector>
 
-#include "ams_mgr_stub.h"
+#include "fuzz_util.h"
 #include "parcel.h"
 #include "securec.h"
 #include "want.h"
