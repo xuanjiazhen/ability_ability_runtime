@@ -203,6 +203,11 @@ const std::string CANGJIE_TYPE = "CJNATIVE";
 
 constexpr uint32_t CHECK_MAIN_THREAD_IS_ALIVE = 1;
 constexpr int32_t LAUNCH_TASK_QOS = 5;
+constexpr int32_t REPLACE_LENGTH = 8;
+const std::string DATA_APP = "data/app";
+const std::string DATA_STORAGE = "data/storage";
+const std::string SENDBOX_PUBLIC = "public";
+
 
 const std::string OVERLAY_STATE_CHANGED = "usual.event.OVERLAY_STATE_CHANGED";
 const std::string JSON_KEY_APP_FONT_SIZE_SCALE = "fontSizeScale";
@@ -1956,6 +1961,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
             TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
             return;
         }
+        ConvertToSendboxPath();
         runtimeUpdateParam_.option = options;
         if (appInfo.debug && appLaunchData.GetDebugApp()) {
             wptr<MainThread> weak = this;
@@ -4845,6 +4851,37 @@ void MainThread::TransferEnvToEventHandler(std::unique_ptr<Runtime> &runtime)
         return;
     }
     eventRunner->EventSetEnvToHandler(env);
+}
+
+void MainThread::ConvertToSendboxPath() 
+{
+    if (applicationInfo_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applictionInfo_");
+        return;
+    }
+    std::string path = applicationInfo_->codePath;
+    if (path.empty()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null codePath");
+        return;
+    }
+    size_t pos = path.find(DATA_APP);
+    if (pos != std::string::npos) {
+        path.replace(pos, REPLACE_LENGTH, DATA_STORAGE);
+    }
+    size_t lastSlash = path.find_last_of("/");
+    if (lastSlash != std::string::npos) {
+        std::string lastPart = path.substr(lastSlash + 1);
+        if (lastPart.find('.') != std::string::npos) {
+            path = path.substr(0, lastSlash);
+        }
+    }
+    std::string target = SENDBOX_PUBLIC;
+    pos = path.find(target);
+    while (pos != std::string::npos) {
+        path.erase(pos, target.length());
+        pos = path.find(target);
+    }
+    AbilityRuntime::Runtime::SaveSendBoxPath(path);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -17,10 +17,10 @@
 
 #include "constants.h"
 #include "hilog_tag_wrapper.h"
+#include "runtime.h"
 
 namespace OHOS {
 namespace AppExecFwk {
-constexpr char APP_ABC_LIB_PATH_KEY_PREFIX[] = "/data/storage/el1/bundle/";
 constexpr char APP_ABC_LIB_PATH_KEY_SUFFIX[] = "/ets/modules_static.abc";
 
 std::string GetEtsLibPath(const std::string &hapPath, bool isPreInstallApp)
@@ -57,7 +57,7 @@ void GetEtsHapSoPath(const HapModuleInfo &hapInfo, AppLibPathMap &appLibPaths, b
         TraverseLibrarySupportDirectory(hapInfo.librarySupportDirectory, libPath, appLibPathKey, appLibPaths);
     }
 
-    std::string appLibAbcPathKey = APP_ABC_LIB_PATH_KEY_PREFIX + hapInfo.moduleName + APP_ABC_LIB_PATH_KEY_SUFFIX;
+    std::string appLibAbcPathKey = AbilityRuntime::Runtime::GetSendboxPath() + hapInfo.moduleName + APP_ABC_LIB_PATH_KEY_SUFFIX;
     abcPathsToBundleModuleNameMap[appLibAbcPathKey] = appLibPathKey;
 }
 
@@ -93,7 +93,7 @@ void GetEtsHspNativeLibPath(const BaseSharedBundleInfo &hspInfo, AppLibPathMap &
     if (!appBundleName.empty()) {
         const bool isInternalHsp = (hspInfo.bundleName == appBundleName);
         const std::string name = isInternalHsp ? hspInfo.moduleName : hspInfo.bundleName + "/" + hspInfo.moduleName;
-        const std::string appLibAbcPathKey = APP_ABC_LIB_PATH_KEY_PREFIX + name + APP_ABC_LIB_PATH_KEY_SUFFIX;
+        const std::string appLibAbcPathKey = AbilityRuntime::Runtime::GetSendboxPath() + name + APP_ABC_LIB_PATH_KEY_SUFFIX;
         abcPathsToBundleModuleNameMap[appLibAbcPathKey] = appLibPathKey;
     }
 }
@@ -125,7 +125,7 @@ void GetEtsPatchNativeLibPath(const HapModuleInfo &hapInfo, std::string &patchNa
     if (!hapInfo.librarySupportDirectory.empty()) {
         TraverseLibrarySupportDirectory(hapInfo.librarySupportDirectory, patchLibPath, appLibPathKey, appLibPaths);
     }
-    std::string appLibAbcPathKey = APP_ABC_LIB_PATH_KEY_PREFIX + hapInfo.moduleName + APP_ABC_LIB_PATH_KEY_SUFFIX;
+    std::string appLibAbcPathKey = AbilityRuntime::Runtime::GetSendboxPath() + hapInfo.moduleName + APP_ABC_LIB_PATH_KEY_SUFFIX;
     abcPathsToBundleModuleNameMap[appLibAbcPathKey] = appLibPathKey;
 }
 

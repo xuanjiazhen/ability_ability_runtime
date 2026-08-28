@@ -745,7 +745,7 @@ std::vector<ETSEnvironment::ProfilePathInfo> ETSEnvironment::BuildProfilePathInf
             TAG_LOGW(AAFwkTag::ETSRUNTIME, "RegisterProfilePaths: skip empty moduleName");
             continue;
         }
-        std::string abcPath = std::string(BUNDLE_INSTALL_PATH) + moduleName + MERGE_ABC_PATH;
+        std::string abcPath = AbilityRuntime::Runtime::GetSendboxPath() + moduleName + MERGE_ABC_PATH;
         std::string curProfilePath =
             std::string(SANDBOX_ARK_PROFILE_PATH) + moduleName + ARK_PROFILE_SUFFIX;
         profileInfos.push_back({std::move(abcPath), std::move(curProfilePath), {}});
@@ -1000,7 +1000,7 @@ std::vector<std::string> ETSEnvironment::GetHspPathList()
 
     for (const auto &pluginHspPath : staticPluginHspPathList_) {
         std::string targetPath = pluginHspPath;
-        std::regex patter(std::string(ABS_DATA_CODE_PATH) + bundleName_ + "/");
+        std::regex patter(AbilityRuntime::Runtime::GetSendboxPath() + bundleName_ + "/");
         targetPath = std::regex_replace(targetPath, patter, std::string(ABS_CODE_PATH) + std::string(BUNDLE));
         hspPathList.push_back(targetPath);
     }

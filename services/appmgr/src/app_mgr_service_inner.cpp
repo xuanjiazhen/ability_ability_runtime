@@ -369,6 +369,11 @@ constexpr int32_t PC_MAX_CHILD_PROCESS_NUM = 50;
 constexpr int32_t USER100 = 100;
 const std::string LARGE_SCREEN = "large_screen";
 
+constexpr int32_t REPLACE_LENGTH = 8;
+const std::string DATA_APP = "data/app";
+const std::string DATA_STORAGE = "data/storage";
+const std::string SENDBOX_PUBLIC = "public";
+
 // runtime language arkts version
 const std::string CODE_LANGUAGE_ARKTS_1_2 = "static";
 const std::string CODE_LANGUAGE_ARKTS_HYBRID = "hybrid";
@@ -2184,10 +2189,9 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
             auto hostBundleName = want->GetStringParam(UIEXTENSION_HOST_BUNDLENAME);
             auto userId = want->GetIntParam(UIEXTENSION_HOST_UID, -1) / BASE_USER_RANGE;
             appInfo->bundleName = hostBundleName;
-            std::regex pattern(
-                std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR) + hostBundleName);
-            abilityInfo->hapPath = std::regex_replace(abilityInfo->hapPath, pattern, LOCAL_CODE_PATH);
-            abilityInfo->resourcePath = std::regex_replace(abilityInfo->resourcePath, pattern, LOCAL_CODE_PATH);
+            std::string codePath = appInfo->codePath;
+            abilityInfo->hapPath = GetSendBoxPath(codePath) + hostBundleName;
+            abilityInfo->resourcePath = GetSendBoxPath(codePath) + hostBundleName;
             GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex);
             appInfo = std::make_shared<ApplicationInfo>(bundleInfo.applicationInfo);
             auto pluginRet = DelayedSingleton<BundleMgrHelper>::GetInstance()->GetPluginHapModuleInfo(
@@ -13387,6 +13391,32 @@ void AppMgrServiceInner::CancelDelayedExitTask(int32_t pid)
             taskHandler_->CancelTask("DELAY_EXIT_UI_PROCESS_" + std::to_string(appRecord->GetRecordId()));
         }
     }
+}
+
+std::string AppMgrServiceInner::GetSendBoxPath(const std::string &codePath) {
+    if (codePath.empty()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null codePath");
+        return LOCAL_CODE_PATH;
+    }
+    std::string path = codePath;
+    size_t pos = path.find(DATA_APP);
+    if (pos != std::string::npos) {
+        path.replace(pos, REPLACE_LENGTH, DATA_STORAGE);
+    }
+    size_t lastSlash = path.find_last_of("/");
+    if (lastSlash != std::string::npos) {
+        std::string lastPart = path.substr(lastSlash + 1);
+        if (lastPart.find('.') != std::string::npos) {
+            path = path.substr(0, lastSlash);
+        }
+    }
+    std::string target = SENDBOX_PUBLIC;
+    pos = path.find(target);
+    while (pos != std::string::npos) {
+        path.erase(pos, target.length());
+        pos = path.find(target);
+    }
+    return path;
 }
 } // namespace AppExecFwk
 }  // namespace OHOS
