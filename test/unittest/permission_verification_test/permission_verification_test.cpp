@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include "parameters.h"
 #define private public
 #define protected public
 #include "ability_manager_errors.h"
@@ -962,6 +963,23 @@ HWTEST_F(PermissionVerificationTest, VerifyContinuationNotifyPermission_0100, Te
 {
     bool result = AAFwk::PermissionVerification::GetInstance()->VerifyContinuationNotifyPermission();
     EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: IsLocalDebugOtherAppsCall_0100
+ * @tc.desc: IsLocalDebugOtherAppsCall Test, not in developer mode should return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(PermissionVerificationTest, IsLocalDebugOtherAppsCall_0100, TestSize.Level1)
+{
+    const char* DEVELOPER_MODE_STATE = "const.security.developermode.state";
+    bool srcDeveloperMode = OHOS::system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
+    OHOS::system::SetBoolParameter(DEVELOPER_MODE_STATE, false);
+
+    bool result = AAFwk::PermissionVerification::GetInstance()->IsLocalDebugOtherAppsCall();
+    EXPECT_FALSE(result);
+
+    OHOS::system::SetBoolParameter(DEVELOPER_MODE_STATE, srcDeveloperMode);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

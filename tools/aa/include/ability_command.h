@@ -253,6 +253,8 @@ private:
     ErrCode CreateCommandMap() override;
     ErrCode init() override;
 
+    bool IsShellCall() const;
+    bool IsLocalDebugOtherAppsCall() const;
     ErrCode RunAsHelpCommand();
     ErrCode RunAsStartAbility();
     ErrCode RunAsStopService();
