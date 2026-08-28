@@ -2052,6 +2052,19 @@ public:
     }
 
     /**
+     * @brief Execute intent with specified token id.
+     * @param key The key of intent executing client.
+     * @param callerToken Caller ability token.
+     * @param param The Intent execute param.
+     * @param specifyTokenId The specified token id for permission checking.
+     * @param userId Designation User ID.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t ExecuteIntentWithSpecifyTokenId(uint64_t key, const sptr<IRemoteObject> &callerToken,
+        const InsightIntentExecuteParam &param, uint32_t specifyTokenId,
+        int32_t userId = DEFAULT_INVAL_VALUE) = 0;
+
+    /**
       * @brief Execute intent for distributed scenario.
       *
       * @param want The want containing intent execution information.
