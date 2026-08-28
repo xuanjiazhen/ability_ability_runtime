@@ -326,6 +326,65 @@ ErrCode CliToolMGRClient::ResetNamespaceFunctionsAsync(const std::string &functi
     return proxy->ResetNamespaceFunctionsAsync(functionNamespace, rawData);
 }
 
+ErrCode CliToolMGRClient::RegisterCliHook(const sptr<ICliHookScheduler> &hook)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "RegisterCliHook");
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    return proxy->RegisterCliHook(hook);
+}
+
+ErrCode CliToolMGRClient::UnregisterCliHook(const sptr<ICliHookScheduler> &hook)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "UnregisterCliHook");
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    return proxy->UnregisterCliHook(hook);
+}
+
+ErrCode CliToolMGRClient::RegisterFunctionHook(const sptr<IFunctionHookScheduler> &hook)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "RegisterFunctionHook");
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    return proxy->RegisterFunctionHook(hook);
+}
+
+ErrCode CliToolMGRClient::UnregisterFunctionHook(const sptr<IFunctionHookScheduler> &hook)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "UnregisterFunctionHook");
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    return proxy->UnregisterFunctionHook(hook);
+}
+
+ErrCode CliToolMGRClient::GetFunctionHook(sptr<IFunctionHookScheduler> &hook)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    return proxy->GetFunctionHook(hook);
+}
+
 int32_t CliToolMGRClient::BatchQueryPermissionBySubCommand(
     const std::vector<Command> &cmds,
     std::vector<CommandPermission> &cmdPermissions)

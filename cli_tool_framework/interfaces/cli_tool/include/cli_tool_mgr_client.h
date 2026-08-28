@@ -166,6 +166,12 @@ public:
     ErrCode ResetNamespaceFunctionsAsync(const std::string &functionNamespace,
         const std::vector<FunctionInfo> &functions);
 
+    ErrCode RegisterCliHook(const sptr<ICliHookScheduler> &hook);
+    ErrCode UnregisterCliHook(const sptr<ICliHookScheduler> &hook);
+    ErrCode RegisterFunctionHook(const sptr<IFunctionHookScheduler> &hook);
+    ErrCode UnregisterFunctionHook(const sptr<IFunctionHookScheduler> &hook);
+    ErrCode GetFunctionHook(sptr<IFunctionHookScheduler> &hook);
+
     /**
      * @brief Execute a CLI tool with key-value pairs (convenience method).
      * @param param The CLI tool param.
