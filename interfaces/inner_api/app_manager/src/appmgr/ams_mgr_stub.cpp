@@ -1007,7 +1007,7 @@ ErrCode AmsMgrStub::HandleCleanAbilityByUserRequest(MessageParcel &data, Message
 
 int32_t AmsMgrStub::HandleIsProcessContainsOnlyUIAbility(MessageParcel &data, MessageParcel &reply)
 {
-    auto pid = data.ReadUint32();
+    auto pid = data.ReadInt32();
 
     auto result = IsProcessContainsOnlyUIAbility(pid);
     if (!reply.WriteBool(result)) {

@@ -5454,7 +5454,7 @@ int AbilityManagerService::TerminateAbility(const sptr<IRemoteObject> &token, in
     if (AppUtils::GetInstance().IsLauncher(elementName.GetBundleName()) &&
         AppUtils::GetInstance().IsLauncherAbility(elementName.GetAbilityName())) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "cannot terminate launcher ability");
-        return ERR_OK;
+        return TERMINATE_LAUNCHER_DENIED;
     }
     return TerminateAbilityWithFlag(token, resultCode, resultWant, true);
 }
@@ -12514,7 +12514,7 @@ int AbilityManagerService::SetMissionContinueState(const sptr<IRemoteObject> &to
         TAG_LOGE(AAFwkTag::ABILITYMGR,
             "no such ability record missionId:%{public}d, state:%{public}d",
             missionId, state);
-        return -1;
+        return ERR_INVALID_VALUE;
     }
 
     auto callingTokenId = IPCSkeleton::GetCallingTokenID();
@@ -12523,15 +12523,16 @@ int AbilityManagerService::SetMissionContinueState(const sptr<IRemoteObject> &to
         TAG_LOGE(AAFwkTag::ABILITYMGR,
             "setMissionContinueState not self, not enabled. missionId:%{public}d, state:%{public}d",
             missionId, state);
-        return -1;
+        return CHECK_PERMISSION_FAILED;
     }
 
     auto userId = abilityRecord->GetOwnerMissionUserId();
     auto missionListManager = GetMissionListManagerByUserId(userId);
     if (!missionListManager) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "find missionListManager failed missionId:%{public}d, state:%{public}d",
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "find missionListManager failed missionId:%{public}d, state:%{public}d",
             missionId, state);
-        return -1;
+        return ERR_INVALID_VALUE;
     }
 
     auto setResult = missionListManager->SetMissionContinueState(token, missionId, state);
@@ -12563,21 +12564,21 @@ int AbilityManagerService::SetMissionLabel(const sptr<IRemoteObject> &token, con
     auto abilityRecord = Token::GetAbilityRecordByToken(token);
     if (!abilityRecord) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no such ability record");
-        return -1;
+        return ERR_INVALID_VALUE;
     }
 
     auto callingTokenId = IPCSkeleton::GetCallingTokenID();
     auto tokenID = abilityRecord->GetApplicationInfo().accessTokenId;
     if (callingTokenId != tokenID) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "setMissionLabel not self, not enabled");
-        return -1;
+        return CHECK_PERMISSION_FAILED;
     }
 
     auto userId = abilityRecord->GetOwnerMissionUserId();
     auto missionListManager = GetMissionListManagerByUserId(userId);
     if (!missionListManager) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "missionListManager find failed when set mission label");
-        return -1;
+        return ERR_INVALID_VALUE;
     }
 
     return missionListManager->SetMissionLabel(token, label);
@@ -12591,21 +12592,21 @@ int AbilityManagerService::SetMissionIcon(const sptr<IRemoteObject> &token,
     auto abilityRecord = Token::GetAbilityRecordByToken(token);
     if (!abilityRecord) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no such ability record");
-        return -1;
+        return ERR_INVALID_VALUE;
     }
 
     auto callingTokenId = IPCSkeleton::GetCallingTokenID();
     auto tokenID = abilityRecord->GetApplicationInfo().accessTokenId;
     if (callingTokenId != tokenID) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not self, not enable set mission icon");
-        return -1;
+        return CHECK_PERMISSION_FAILED;
     }
 
     auto userId = abilityRecord->GetOwnerMissionUserId();
     auto missionListManager = GetMissionListManagerByUserId(userId);
     if (!missionListManager) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "find missionListManager failed");
-        return -1;
+        return ERR_INVALID_VALUE;
     }
 
     return missionListManager->SetMissionIcon(token, icon);
