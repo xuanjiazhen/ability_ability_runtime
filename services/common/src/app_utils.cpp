@@ -90,6 +90,7 @@ constexpr const char* IS_ENTERPRISE_DEVICE_TYPE = "const.edm.is_enterprise_devic
 constexpr const char* IS_EDM_ENABLE = "persist.edm.edm_enable";
 constexpr const char* IS_DEVELOPER_MODE = "security.developermode.state";
 constexpr const char* SUPPORT_AUTO_STARTUP = "const.abilityms.enable_auto_startup";
+constexpr const char* SUPPORT_EXEC_CMD = "const.abilityms.support_exec_cmd";
 constexpr const char* SUPPORT_DELAYED_PROCESS_EXIT = "const.abilityms.support_delayed_process_exit";
 // Support prepare terminate
 constexpr int32_t PREPARE_TERMINATE_ENABLE_SIZE = 6;
@@ -903,6 +904,17 @@ bool AppUtils::IsAutoStartupSupported()
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "IsAutoStartupSupported: %{public}d", isAutoStartupSupported_.value);
     return isAutoStartupSupported_.value;
+}
+
+bool AppUtils::IsSupportExecCmd()
+{
+    std::lock_guard lock(isSupportExecCmdMutex_);
+    if (!isSupportExecCmd_.isLoaded) {
+        isSupportExecCmd_.value = system::GetBoolParameter(SUPPORT_EXEC_CMD, false);
+        isSupportExecCmd_.isLoaded = true;
+    }
+    TAG_LOGD(AAFwkTag::DEFAULT, "SupportExecCmd: %{public}d", isSupportExecCmd_.value);
+    return isSupportExecCmd_.value;
 }
 
 bool AppUtils::IsProductAppbootSettingEnabled()

@@ -22,6 +22,8 @@
 namespace OHOS {
 namespace CliTool {
 namespace {
+constexpr const char* ERROR_MSG_NOT_SUPPORTED =
+    "Capability not supported. Failed to call the API due to limited device capabilities.";
 static const std::map<CliManagerErrorCode, std::string> ERROR_MSG_MAP = {
     {CliManagerErrorCode::ERROR_PERMISSION_DENIED, "Permission denied."},
     {CliManagerErrorCode::ERROR_NOT_SYSTEM_APP, "Not system application."},
@@ -34,6 +36,7 @@ static const std::map<CliManagerErrorCode, std::string> ERROR_MSG_MAP = {
     {CliManagerErrorCode::ERROR_FUNCTION_NOT_EXIST, "The function does not exist."},
     {CliManagerErrorCode::ERROR_FUNCTION_EXECUTE_FAILED, "The function execute failed."},
     {CliManagerErrorCode::ERROR_FUNCTION_EXECUTE_TIMEOUT, "The function execute timeout."},
+    {CliManagerErrorCode::ERROR_NOT_SUPPORTED, ERROR_MSG_NOT_SUPPORTED},
 };
 
 static const std::map<int32_t, CliManagerErrorCode> NATIVE_TO_BUSINESS_ERROR_MAP = {
@@ -49,6 +52,7 @@ static const std::map<int32_t, CliManagerErrorCode> NATIVE_TO_BUSINESS_ERROR_MAP
     {ERR_FUNCTION_NOT_EXIST, CliManagerErrorCode::ERROR_FUNCTION_NOT_EXIST},
     {ERR_FUNCTION_EXECUTE_FAILED, CliManagerErrorCode::ERROR_FUNCTION_EXECUTE_FAILED},
     {ERR_FUNCTION_EXECUTE_TIMEOUT, CliManagerErrorCode::ERROR_FUNCTION_EXECUTE_TIMEOUT},
+    {AAFwk::ERR_CAPABILITY_NOT_SUPPORT, CliManagerErrorCode::ERROR_NOT_SUPPORTED},
 };
 
 static const std::map<int32_t, std::string> INNER_ERROR_MSG_MAP = {

@@ -1088,6 +1088,10 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecCmd called: cmd=%{public}s", param.cmd.c_str());
+    if (!AAFwk::AppUtils::GetInstance().IsSupportExecCmd()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Disabled ExecCmd");
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
     if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
         return ret;
     }
