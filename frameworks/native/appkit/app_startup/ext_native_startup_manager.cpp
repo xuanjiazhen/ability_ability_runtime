@@ -18,6 +18,7 @@
 #include <dirent.h>
 #include <dlfcn.h>
 
+#include "c/ffrt_ipc.h"
 #include "ffrt.h"
 #include "hilog_tag_wrapper.h"
 #include "startup_task_manager.h"
@@ -59,6 +60,7 @@ public:
         callback_ = std::move(callback);
         auto self = std::static_pointer_cast<ExtNativeStartupTaskWrapper>(shared_from_this());
         auto runTaskInitCallback = [weak = std::weak_ptr(self)]() {
+            ffrt_this_task_set_legacy_mode(true);
             auto self = weak.lock();
             if (self == nullptr) {
                 TAG_LOGE(AAFwkTag::STARTUP, "null self");

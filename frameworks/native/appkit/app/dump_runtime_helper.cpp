@@ -29,6 +29,7 @@
 #include "singleton.h"
 #include "dfx_jsnapi.h"
 #include "parameters.h"
+#include "c/ffrt_ipc.h"
 #include "ffrt.h"
 #include "directory_ex.h"
 #include "storage_acl.h"
@@ -383,6 +384,7 @@ void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, sptr<
     if (info.dumpType == MemDumpType::NATIVE) {
         std::string dumpResult;
         auto task = [self = shared_from_this(), info, callback, client, dumpResult]() mutable {
+            ffrt_this_task_set_legacy_mode(true);
             self->DumpNativeHeap(info, dumpResult);
             if (client != nullptr && callback != nullptr) {
                 client->ReportDumpMemResult(callback, dumpResult);
