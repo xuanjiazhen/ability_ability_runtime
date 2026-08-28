@@ -17,6 +17,8 @@ package OHOS.CliTool;
 
 import ICliToolData;
 import ICliToolManagerScheduler;
+import ICliHookScheduler;
+import IFunctionHookScheduler;
 sequenceable CliSessionInfo..OHOS.CliTool.CliSessionInfo;
 sequenceable ExecCmdParam..OHOS.CliTool.ExecCmdParam;
 sequenceable ExecToolParam..OHOS.CliTool.ExecToolParam;
@@ -49,4 +51,9 @@ interface ICliToolManager {
     [oneway] void BatchRegisterFunctionsAsync([in] FunctionsRawData functions);
     [oneway] void UnregisterIntentFunctionsByNamespaceAsync([in] String functionNamespace);
     [oneway] void ResetNamespaceFunctionsAsync([in] String functionNamespace, [in] FunctionsRawData functions);
+    void RegisterCliHook([in] ICliHookScheduler hook);
+    void UnregisterCliHook([in] ICliHookScheduler hook);
+    void RegisterFunctionHook([in] IFunctionHookScheduler hook);
+    void UnregisterFunctionHook([in] IFunctionHookScheduler hook);
+    void GetFunctionHook([out] IFunctionHookScheduler hook);
 }

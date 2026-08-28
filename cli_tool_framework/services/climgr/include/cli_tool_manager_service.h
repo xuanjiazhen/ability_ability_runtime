@@ -159,6 +159,12 @@ public:
      */
     int32_t GetAllFunctions(FunctionsRawData &functions) override;
 
+    int32_t RegisterCliHook(const sptr<ICliHookScheduler> &hook) override;
+    int32_t UnregisterCliHook(const sptr<ICliHookScheduler> &hook) override;
+    int32_t RegisterFunctionHook(const sptr<IFunctionHookScheduler> &hook) override;
+    int32_t UnregisterFunctionHook(const sptr<IFunctionHookScheduler> &hook) override;
+    int32_t GetFunctionHook(sptr<IFunctionHookScheduler> &hook) override;
+
     /**
      * @brief Batch register functions (one-way, result not reported to caller)
      * @param functions FunctionsRawData to register
@@ -287,6 +293,10 @@ private:
     void RemoveCallerPid(int64_t pid);
     int32_t GetCallerPidCount();
 
+    sptr<ICliHookScheduler> GetCliHookSnapshot();
+    void InvokeBeforeCallTool(ExecToolParam &param);
+    void InvokeAfterCallTool(CliSessionInfo &session);
+
     bool initialized_ = false;
     std::shared_ptr<IOMonitor> ioMonitor_ = nullptr;
 
@@ -307,6 +317,11 @@ private:
     std::unordered_map<std::string, sptr<AppExecFwk::IApplicationStateObserver>> bundleObservers_;
     ffrt::mutex callerPidsMutex_;
     std::unordered_set<int64_t> callerPids;
+
+    ffrt::mutex hookMutex_;
+    sptr<ICliHookScheduler> cliHook_;
+    sptr<IFunctionHookScheduler> functionHook_;
+    sptr<IRemoteObject::DeathRecipient> hookDeathRecipient_;
 };
 
 class SkillCallbackAdapter : public AAFwk::SkillExecuteCallbackStub {
