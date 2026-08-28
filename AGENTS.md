@@ -138,6 +138,7 @@
 - 不要在 `frameworks/native/` 中直接调用 `services/` 的内部头文件——应通过 `interfaces/inner_api/` 的客户端接口。
 - 不要跳过 BUILD.gn 更新——添加源文件后必须更新对应 BUILD.gn 和 `.gni` 源文件列表。
 - 不要新增第三方依赖——必须先在 `bundle.json` 中声明并通过 License 审查。
+- 不要在ffrt任务中未关闭协程的情况下调用dlclose，存在死锁风险。关闭协程用`ffrt_this_task_set_legacy_mode(true)`。
 
 ### Ask before
 
