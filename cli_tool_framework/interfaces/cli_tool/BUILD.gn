@@ -19,6 +19,8 @@ idl_gen_interface("cli_tool_manager_interface") {
   sources = [
     "ICliToolManager.idl",
     "ICliToolManagerScheduler.idl",
+    "ICliHookScheduler.idl",
+    "IFunctionHookScheduler.idl",
   ]
 
   sources_common = [ "ICliToolData.idl" ]

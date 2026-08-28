@@ -31,9 +31,12 @@
 #include "ccm_util.h"
 #include "cli_error_code.h"
 #include "cli_event_report.h"
+#include "cli_hook_scheduler_proxy.h"
 #include "cli_tool_app_state_observer.h"
 #include "cli_function_data_manager.h"
 #include "event_dispatcher.h"
+#include "exec_result.h"
+#include "function_hook_scheduler_proxy.h"
 #include "function_info.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
@@ -62,6 +65,21 @@ constexpr int32_t QUERY_DB_ERROR = 2;
 constexpr int32_t MAX_QUERY_CMDS_SIZE = 100;
 constexpr int32_t ACTIVE_TIME = 30 * 1000; // 30s
 constexpr int32_t SKILL_TYPE_INDEPENDENT = -1;
+
+class HookDeathRecipient final : public IRemoteObject::DeathRecipient {
+public:
+    using Handler = std::function<void(const wptr<IRemoteObject> &)>;
+    explicit HookDeathRecipient(Handler handler) : handler_(std::move(handler)) {}
+    ~HookDeathRecipient() override = default;
+    void OnRemoteDied(const wptr<IRemoteObject> &remote) override
+    {
+        if (handler_) {
+            handler_(remote);
+        }
+    }
+private:
+    Handler handler_;
+};
 } // namespace
 
 std::mutex g_mutex;
@@ -112,6 +130,7 @@ void CliToolManagerService::HandleProcessTimeout(const std::string &sessionId)
     if (!oldBackground) {
         CliSessionInfo session;
         record->BuildSessionInfo(session);
+        InvokeAfterCallTool(session);
         EventDispatcher::GetInstance().DispatchExecToolReplyEvent(
             record->callerPid, record->callerUid, record->eventId, ERR_OK, session);
     }
@@ -139,6 +158,7 @@ void CliToolManagerService::HandleProcessYieldTimeout(const std::string &session
     if (!oldBackground) {
         CliSessionInfo session;
         record->BuildSessionInfo(session);
+        InvokeAfterCallTool(session);
         EventDispatcher::GetInstance().DispatchExecToolReplyEvent(
             record->callerPid, record->callerUid, record->eventId, ERR_OK, session);
     }
@@ -189,6 +209,7 @@ void CliToolManagerService::FinalizeBackgroundSession(const std::shared_ptr<Sess
     if (!oldBackground) {
         CliSessionInfo session;
         record->BuildSessionInfo(session);
+        InvokeAfterCallTool(session);
         EventDispatcher::GetInstance().DispatchExecToolReplyEvent(
             record->callerPid, record->callerUid, record->eventId, ERR_OK, session);
     }
@@ -990,8 +1011,136 @@ void CliToolManagerService::HandleBackgroundSessionReply(
 {
     CliSessionInfo session;
     record->BuildSessionInfo(session);
+    InvokeAfterCallTool(session);
     EventDispatcher::GetInstance().DispatchExecToolReplyEvent(
         record->callerPid, record->callerUid, eventId, ERR_OK, session);
+}
+
+int32_t CliToolManagerService::RegisterCliHook(const sptr<ICliHookScheduler> &hook)
+{
+    if (hook == nullptr || hook->AsObject() == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "RegisterCliHook: hook is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    auto remote = hook->AsObject();
+    std::lock_guard<ffrt::mutex> lock(hookMutex_);
+    if (cliHook_ != nullptr && cliHook_->AsObject() != nullptr && hookDeathRecipient_ != nullptr) {
+        cliHook_->AsObject()->RemoveDeathRecipient(hookDeathRecipient_);
+    }
+    if (hookDeathRecipient_ == nullptr) {
+        auto self = CliToolManagerService::GetInstance();
+        hookDeathRecipient_ = sptr<IRemoteObject::DeathRecipient>(
+            new HookDeathRecipient([self](const wptr<IRemoteObject> &) {
+                auto svc = CliToolManagerService::GetInstance();
+                if (svc == nullptr) {
+                    return;
+                }
+                std::lock_guard<ffrt::mutex> lock(svc->hookMutex_);
+                svc->cliHook_ = nullptr;
+                svc->functionHook_ = nullptr;
+                TAG_LOGI(AAFwkTag::CLI_TOOL, "HookDeathRecipient: cleared cliHook_ + functionHook_");
+            }));
+    }
+    remote->AddDeathRecipient(hookDeathRecipient_);
+    cliHook_ = hook;
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "RegisterCliHook success");
+    return ERR_OK;
+}
+
+int32_t CliToolManagerService::UnregisterCliHook(const sptr<ICliHookScheduler> &hook)
+{
+    if (hook == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    std::lock_guard<ffrt::mutex> lock(hookMutex_);
+    if (cliHook_ != nullptr && cliHook_->AsObject() == hook->AsObject()) {
+        if (hookDeathRecipient_ != nullptr) {
+            cliHook_->AsObject()->RemoveDeathRecipient(hookDeathRecipient_);
+        }
+        cliHook_ = nullptr;
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "UnregisterCliHook success");
+    }
+    return ERR_OK;
+}
+
+int32_t CliToolManagerService::RegisterFunctionHook(const sptr<IFunctionHookScheduler> &hook)
+{
+    if (hook == nullptr || hook->AsObject() == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    auto remote = hook->AsObject();
+    std::lock_guard<ffrt::mutex> lock(hookMutex_);
+    if (functionHook_ != nullptr && functionHook_->AsObject() != nullptr && hookDeathRecipient_ != nullptr) {
+        functionHook_->AsObject()->RemoveDeathRecipient(hookDeathRecipient_);
+    }
+    if (hookDeathRecipient_ == nullptr) {
+        hookDeathRecipient_ = sptr<IRemoteObject::DeathRecipient>(
+            new HookDeathRecipient([](const wptr<IRemoteObject> &) {
+                auto svc = CliToolManagerService::GetInstance();
+                if (svc == nullptr) {
+                    return;
+                }
+                std::lock_guard<ffrt::mutex> lock(svc->hookMutex_);
+                svc->cliHook_ = nullptr;
+                svc->functionHook_ = nullptr;
+                TAG_LOGI(AAFwkTag::CLI_TOOL, "HookDeathRecipient: cleared cliHook_ + functionHook_");
+            }));
+    }
+    remote->AddDeathRecipient(hookDeathRecipient_);
+    functionHook_ = hook;
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "RegisterFunctionHook success");
+    return ERR_OK;
+}
+
+int32_t CliToolManagerService::UnregisterFunctionHook(const sptr<IFunctionHookScheduler> &hook)
+{
+    if (hook == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    std::lock_guard<ffrt::mutex> lock(hookMutex_);
+    if (functionHook_ != nullptr && functionHook_->AsObject() == hook->AsObject()) {
+        if (hookDeathRecipient_ != nullptr) {
+            functionHook_->AsObject()->RemoveDeathRecipient(hookDeathRecipient_);
+        }
+        functionHook_ = nullptr;
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "UnregisterFunctionHook success");
+    }
+    return ERR_OK;
+}
+
+int32_t CliToolManagerService::GetFunctionHook(sptr<IFunctionHookScheduler> &hook)
+{
+    std::lock_guard<ffrt::mutex> lock(hookMutex_);
+    hook = functionHook_;
+    return ERR_OK;
+}
+
+sptr<ICliHookScheduler> CliToolManagerService::GetCliHookSnapshot()
+{
+    std::lock_guard<ffrt::mutex> lock(hookMutex_);
+    return cliHook_;
+}
+
+void CliToolManagerService::InvokeBeforeCallTool(ExecToolParam &param)
+{
+    auto hook = GetCliHookSnapshot();
+    if (hook == nullptr) {
+        return;
+    }
+    hook->BeforeCallTool(param);
+}
+
+void CliToolManagerService::InvokeAfterCallTool(CliSessionInfo &session)
+{
+    auto hook = GetCliHookSnapshot();
+    if (hook == nullptr || session.result == nullptr) {
+        return;
+    }
+    if (session.toolName == "shell") {
+        hook->AfterCallCmd(*session.result);
+    } else {
+        hook->AfterCallTool(*session.result);
+    }
 }
 
 int32_t CliToolManagerService::TryDispatchSkillSession(const ExecToolParam &param,
@@ -1033,6 +1182,9 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecTool called: toolName=%{public}s, subcommand=%{public}s",
         param.toolName.c_str(), param.subcommand.c_str());
 
+    ExecToolParam actualParam = param;
+    InvokeBeforeCallTool(actualParam);
+
     std::string bundleName;
     auto tokenId = IPCSkeleton::GetCallingTokenID();
 
@@ -1043,21 +1195,21 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
     }
 
     if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
-        ReportCliExecuteFailed(bundleName, param.toolName, GetFailureReason(ret));
+        ReportCliExecuteFailed(bundleName, actualParam.toolName, GetFailureReason(ret));
         return ret;
     }
     int32_t callerPid = IPCSkeleton::GetCallingPid();
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
-        ReportCliExecuteFailed(bundleName, param.toolName, GetFailureReason(ERR_NO_INIT));
+        ReportCliExecuteFailed(bundleName, actualParam.toolName, GetFailureReason(ERR_NO_INIT));
         return ERR_NO_INIT;
     }
 
     ToolInfo toolInfo;
     bool dispatched = false;
-    auto skillRet = TryDispatchSkillSession(param, eventId, toolInfo, dispatched);
+    auto skillRet = TryDispatchSkillSession(actualParam, eventId, toolInfo, dispatched);
     if (skillRet != ERR_OK) {
-        ReportCliExecuteFailed(bundleName, param.toolName, GetFailureReason(skillRet));
+        ReportCliExecuteFailed(bundleName, actualParam.toolName, GetFailureReason(skillRet));
         return skillRet;
     }
     if (dispatched) {
@@ -1065,20 +1217,20 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
     }
 
     if (auto ret = ValidateSessionLimit(); ret != ERR_OK) {
-        ReportCliExecuteFailed(bundleName, param.toolName, GetFailureReason(ret));
+        ReportCliExecuteFailed(bundleName, actualParam.toolName, GetFailureReason(ret));
         return ret;
     }
 
     std::string sandboxConfig;
     std::string detail;
-    if (auto ret = ValidateAndPrepareTool(param, tokenId, toolInfo, sandboxConfig, bundleName, detail); ret != ERR_OK) {
-        ReportCliExecuteFailed(bundleName, param.toolName, GetFailureReason(ret), detail);
+    if (auto ret = ValidateAndPrepareTool(actualParam, tokenId, toolInfo, sandboxConfig, bundleName, detail); ret != ERR_OK) {
+        ReportCliExecuteFailed(bundleName, actualParam.toolName, GetFailureReason(ret), detail);
         return ret;
     }
 
-    auto ret = SetupAndStartSession(param, eventId, toolInfo, sandboxConfig, bundleName);
+    auto ret = SetupAndStartSession(actualParam, eventId, toolInfo, sandboxConfig, bundleName);
     if (ret != ERR_OK) {
-        ReportCliExecuteFailed(bundleName, param.toolName, GetFailureReason(ret));
+        ReportCliExecuteFailed(bundleName, actualParam.toolName, GetFailureReason(ret));
     }
     return ret;
 }
@@ -1088,6 +1240,13 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecCmd called: cmd=%{public}s", param.cmd.c_str());
+
+    ExecCmdParam actualParam = param;
+    auto hook = GetCliHookSnapshot();
+    if (hook != nullptr) {
+        hook->BeforeCallCmd(actualParam);
+    }
+
     if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
         return ret;
     }
@@ -1102,7 +1261,7 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
     auto tokenId = IPCSkeleton::GetCallingTokenID();
     std::string sandboxConfig;
     std::string bundleName;
-    if (auto ret = ValidateAndPrepareCmd(param, tokenId, sandboxConfig, bundleName); ret != ERR_OK) {
+    if (auto ret = ValidateAndPrepareCmd(actualParam, tokenId, sandboxConfig, bundleName); ret != ERR_OK) {
         return ret;
     }
     // Create session record for shell command
@@ -1113,9 +1272,9 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
     record->callerBundleName = bundleName;
     record->sessionId = ToolUtil::GenerateCliSessionId("shell", record);
     record->toolName = "shell";
-    record->timeoutMs = param.options.timeout * COEFFICIENT;
+    record->timeoutMs = actualParam.options.timeout * COEFFICIENT;
     record->SetState(SessionState::RUNNING);
-    record->SetBackground(param.options.background);
+    record->SetBackground(actualParam.options.background);
     record->eventId = eventId;
     AddSessionRecord(record);
     auto subscribeRet = SubscribeSession(record->sessionId, subscriptionId, scheduler);
@@ -1123,13 +1282,13 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
         RemoveSessionRecord(record->sessionId);
         return subscribeRet;
     }
-    auto createRet = ProcessManager::GetInstance().CreateShellProcess(param,
+    auto createRet = ProcessManager::GetInstance().CreateShellProcess(actualParam,
         sandboxConfig, record);
     if (createRet != ERR_OK) {
         RemoveSessionRecord(record->sessionId);
         return createRet;
     }
-    if (!RegisterSessionWithMonitors(record, param.options)) {
+    if (!RegisterSessionWithMonitors(record, actualParam.options)) {
         ProcessManager::GetInstance().Killpg(record->processId);
         RemoveSessionRecord(record->sessionId);
         return ERR_NO_INIT;
@@ -1137,7 +1296,7 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
     if (!bundleName.empty()) {
         RegisterAppStateObserver(bundleName, record->callerPid);
     }
-    if (param.options.background) {
+    if (actualParam.options.background) {
         HandleBackgroundSessionReply(record, eventId);
     }
     return ERR_OK;
@@ -1757,7 +1916,9 @@ void CliToolManagerService::HandleSkillSessionComplete(const std::string &sessio
 
     auto oldBackground = record->SetBackground(true);
     if (!oldBackground) {
-        EventDispatcher::GetInstance().DispatchExecToolReplyEvent(callerPid, callerUid, eventId, ERR_OK, session);
+        CliSessionInfo hookSession = session;
+        InvokeAfterCallTool(hookSession);
+        EventDispatcher::GetInstance().DispatchExecToolReplyEvent(callerPid, callerUid, eventId, ERR_OK, hookSession);
     }
 
     EventDispatcher::GetInstance().DispatchExitEvent(sessionId, 0);
@@ -1781,6 +1942,7 @@ void CliToolManagerService::HandleSkillSessionTimeout(const std::string &session
     if (!oldBackground) {
         CliSessionInfo session;
         record->BuildSessionInfo(session);
+        InvokeAfterCallTool(session);
         EventDispatcher::GetInstance().DispatchExecToolReplyEvent(
             record->callerPid, record->callerUid, record->eventId, ERR_OK, session);
     }
