@@ -58,9 +58,10 @@ public:
         const std::string &moduleName, const int32_t userId);
     int32_t DeleteInsightIntentByUserId(const int32_t userId);
     bool HasInsightIntentByName(uint32_t versionCode, const std::string &bundleName, const int32_t userId);
-    bool HasBundleCache(const std::string &bundleName);
     bool IsCacheInitialized(int32_t userId);
-    bool CanSkipDelete(const std::string &bundleName, int32_t userId);
+    bool HasBundleCache(const std::string &bundleName, int32_t userId);
+    bool DeleteInsightIntentIfExist(const std::string &bundleName,
+        const std::string &moduleName, int32_t userId);
     void BackupRdb();
 private:
     int32_t userId_ = -1;

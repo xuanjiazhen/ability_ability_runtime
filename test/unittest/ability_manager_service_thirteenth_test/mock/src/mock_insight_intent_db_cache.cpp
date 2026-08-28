@@ -118,9 +118,15 @@ bool InsightIntentDbCache::HasInsightIntentByName(uint32_t versionCode,
     return false;
 }
 
-bool InsightIntentDbCache::HasBundleCache(const std::string &bundleName)
+bool InsightIntentDbCache::HasBundleCache(const std::string &bundleName, int32_t userId)
 {
     std::lock_guard<std::mutex> lock(genericInfosMutex_);
+    if (userId_ != userId) {
+        return false;
+    }
+    if (cacheLoadFailed_) {
+        return false;
+    }
     return bundleVersionMap_.find(bundleName) != bundleVersionMap_.end();
 }
 
@@ -130,11 +136,14 @@ bool InsightIntentDbCache::IsCacheInitialized(int32_t userId)
     return userId_ == userId;
 }
 
-bool InsightIntentDbCache::CanSkipDelete(const std::string &bundleName, int32_t userId)
+bool InsightIntentDbCache::DeleteInsightIntentIfExist(const std::string &bundleName,
+    const std::string &moduleName, int32_t userId)
 {
-    std::lock_guard<std::mutex> lock(genericInfosMutex_);
-    return userId_ == userId && !cacheLoadFailed_ &&
-        bundleVersionMap_.find(bundleName) == bundleVersionMap_.end();
+    if (!HasBundleCache(bundleName, userId)) {
+        return false;
+    }
+    DeleteInsightIntentTotalInfo(bundleName, moduleName, userId);
+    return true;
 }
 
 int32_t InsightIntentDbCache::DeleteInsightIntentTotalInfo(const std::string &bundleName,

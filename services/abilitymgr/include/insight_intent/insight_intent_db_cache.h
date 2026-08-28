@@ -57,11 +57,14 @@ public:
         const std::string &moduleName, const int32_t userId);
     int32_t DeleteInsightIntentByUserId(const int32_t userId);
     bool HasInsightIntentByName(uint32_t versionCode, const std::string &bundleName, const int32_t userId);
-    bool HasBundleCache(const std::string &bundleName);
     bool IsCacheInitialized(int32_t userId);
-    // True only when the cache is loaded for this user and holds no entry for the
-    // bundle, so callers may safely skip the delete work.
-    bool CanSkipDelete(const std::string &bundleName, int32_t userId);
+    // True when the cache is loaded for this user and holds an entry for the bundle.
+    bool HasBundleCache(const std::string &bundleName, int32_t userId);
+    // Delete intent entries of the bundle only when present. Returns true when
+    // stale entries were found and removed, so callers run follow-up work
+    // (backup, unregister) exactly once.
+    bool DeleteInsightIntentIfExist(const std::string &bundleName,
+        const std::string &moduleName, int32_t userId);
     void BackupRdb();
 private:
     int32_t userId_ = -1;

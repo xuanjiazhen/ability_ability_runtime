@@ -36,20 +36,12 @@ namespace AbilityRuntime {
 void InsightIntentEventMgr::DeleteInsightIntent(const std::string &bundleName, const std::string &moduleName,
     int32_t userId)
 {
-    std::vector<ExtractInsightIntentInfo> intentInfos;
-    std::vector<InsightIntentInfo> configIntentInfos;
-    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentInfoByName(
-        bundleName, userId, intentInfos);
-    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetConfigInsightIntentInfoByName(
-        bundleName, userId, configIntentInfos);
-    if (!intentInfos.empty() || !configIntentInfos.empty()) {
-        TAG_LOGI(AAFwkTag::INTENT, "update bundleName: %{public}s to no insight intent", bundleName.c_str());
-        DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->DeleteInsightIntentTotalInfo(
-            bundleName, moduleName, userId);
-        DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->BackupRdb();
+    if (!DelayedSingleton<InsightIntentDbCache>::GetInstance()->DeleteInsightIntentIfExist(
+        bundleName, moduleName, userId)) {
+        return;
     }
-
-    return;
+    TAG_LOGI(AAFwkTag::INTENT, "update bundleName: %{public}s to no insight intent", bundleName.c_str());
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->BackupRdb();
 }
 
 void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementName &elementName, int32_t userId)
@@ -193,7 +185,7 @@ void InsightIntentEventMgr::DeleteInsightIntentEvent(const AppExecFwk::ElementNa
     }
 
     ffrt::submit([bundleName, moduleName, userId]() {
-        if (DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->CanSkipDelete(
+        if (!DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->HasBundleCache(
             bundleName, userId)) {
             TAG_LOGI(AAFwkTag::INTENT, "no intent cache, skip delete, bundleName: %{public}s, "
                 "moduleName: %{public}s, userId: %{public}d",
