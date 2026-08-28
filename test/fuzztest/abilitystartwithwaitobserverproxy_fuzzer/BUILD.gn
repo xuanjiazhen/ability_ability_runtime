@@ -36,6 +36,7 @@ ohos_fuzztest("AbilityStartWithWaitObserverProxyFuzzTest") {
     "${ability_runtime_innerkits_path}/ability_manager/src/aa_tools/ability_start_with_wait_observer_proxy.cpp",
     "abilitystartwithwaitobserverproxy_fuzzer.cpp",
   ]
+  configs = [ "${ability_runtime_test_path}/fuzztest:no_split_lto_unit" ]
 
   deps = [
     "${ability_runtime_innerkits_path}/app_manager:app_manager",

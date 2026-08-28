@@ -43,7 +43,10 @@ ohos_fuzztest("ExtensionControlInterceptorSecondFuzzTest") {
     "extensioncontrolinterceptorsecond_fuzzer.cpp",
   ]
 
-  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
+  configs = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_config",
+    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
+  ]
 
   cflags = []
   if (target_cpu == "arm") {
