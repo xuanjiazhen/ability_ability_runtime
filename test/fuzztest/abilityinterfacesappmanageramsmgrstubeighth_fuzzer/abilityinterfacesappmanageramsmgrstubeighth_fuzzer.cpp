@@ -22,6 +22,7 @@
 #define private public
 #include "ams_mgr_stub.h"
 #include "ams_mgr_scheduler.h"
+#include "fuzz_util.h"
 #undef private
 
 using namespace OHOS::AAFwk;

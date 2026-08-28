@@ -14,10 +14,10 @@
  */
 
 #include "abilitydebugresponsestubremaining_fuzzer.h"
-#include "attack_vectors.h"
-#include "fuzz_util.h"
-
 #include "ability_debug_response_stub.h"
+#include "attack_vectors.h"
+
+#include "fuzz_util.h"
 
 using namespace OHOS::AppExecFwk;
 

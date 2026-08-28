@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 #include "abilityconnectionstubremaining_fuzzer.h"
-#include "attack_vectors.h"
-#include "fuzz_util.h"
-
 #include "ability_connect_callback_stub.h"
+#include "attack_vectors.h"
+
 #include "element_name.h"
+#include "fuzz_util.h"
 
 using namespace OHOS::AAFwk;
 

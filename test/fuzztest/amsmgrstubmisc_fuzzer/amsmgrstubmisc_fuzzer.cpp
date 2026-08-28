@@ -14,8 +14,8 @@
  */
 
 #include "amsmgrstubmisc_fuzzer.h"
-#include "fuzz_util.h"
-#include "attack_vectors.h"
+#include "ability_info.h"
+#include "ams_mgr_interface.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -23,9 +23,9 @@
 #include <string>
 #include <vector>
 
-#include "ability_info.h"
-#include "ams_mgr_interface.h"
 #include "application_info.h"
+#include "attack_vectors.h"
+#include "fuzz_util.h"
 #include "parcel.h"
 #include "want.h"
 

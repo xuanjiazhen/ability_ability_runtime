@@ -14,8 +14,8 @@
  */
 
 #include "abilitymanagerstubautostart_fuzzer.h"
-#include "fuzz_util.h"
-#include "attack_vectors.h"
+#include "ability_manager_stub.h"
+#include "ability_manager_stub_mock.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -24,9 +24,9 @@
 #include <string>
 #include <vector>
 
-#include "ability_manager_stub.h"
-#include "ability_manager_stub_mock.h"
+#include "attack_vectors.h"
 #include "auto_startup_info.h"
+#include "fuzz_util.h"
 #include "message_parcel.h"
 #include "securec.h"
 #include "want.h"

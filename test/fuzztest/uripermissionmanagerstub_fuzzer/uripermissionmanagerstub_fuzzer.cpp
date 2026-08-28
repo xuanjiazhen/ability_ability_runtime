@@ -14,16 +14,16 @@
  */
 
 #include "uripermissionmanagerstub_fuzzer.h"
-#include "fuzz_util.h"
 #include "attack_vectors.h"
-#include "parcelable_constructors.h"
+#include "fuzz_util.h"
+#include "message_parcel.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <vector>
 
-#include "message_parcel.h"
+#include "parcelable_constructors.h"
 #include "securec.h"
 #include "uri.h"
 #include "uri_permission_manager_stub.h"

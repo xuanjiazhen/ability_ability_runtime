@@ -14,16 +14,16 @@
  */
 
 #include "appmgrstubchild_fuzzer.h"
-#include "attack_vectors.h"
-#include "fuzz_util.h"
+#include "app_mgr_stub.h"
+#include "app_mgr_stub_mock.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <memory>
 
-#include "app_mgr_stub.h"
-#include "app_mgr_stub_mock.h"
+#include "attack_vectors.h"
+#include "fuzz_util.h"
 #include "message_parcel.h"
 #include "securec.h"
 #include "want.h"

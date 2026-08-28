@@ -23,7 +23,6 @@
 
 #include "app_mgr_client.h"
 #include "attack_vectors.h"
-#include "fuzz_util.h"
 
 using namespace OHOS::AppExecFwk;
 using namespace OHOS::FuzzUtil;

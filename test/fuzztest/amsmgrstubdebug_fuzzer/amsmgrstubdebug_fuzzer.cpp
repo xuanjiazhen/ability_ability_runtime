@@ -14,8 +14,8 @@
  */
 
 #include "amsmgrstubdebug_fuzzer.h"
-#include "fuzz_util.h"
-#include "attack_vectors.h"
+#include "ams_mgr_interface.h"
+#include "ams_mgr_stub_mock.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -23,8 +23,8 @@
 #include <string>
 #include <vector>
 
-#include "ams_mgr_interface.h"
-#include "ams_mgr_stub_mock.h"
+#include "attack_vectors.h"
+#include "fuzz_util.h"
 #include "parcel.h"
 
 using namespace OHOS::AAFwk;

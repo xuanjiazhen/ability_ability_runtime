@@ -14,18 +14,18 @@
  */
 
 #include "appstatecallbackhost_fuzzer.h"
-#include "fuzz_util.h"
-#include "attack_vectors.h"
+#include "app_process_data.h"
+#include "app_state_callback_host.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <memory>
 
-#include "app_state_callback_host.h"
-#include "app_process_data.h"
+#include "attack_vectors.h"
 #include "bundle_info.h"
 #include "configuration.h"
+#include "fuzz_util.h"
 #include "iapp_state_callback.h"
 #include "message_parcel.h"
 #include "securec.h"
