@@ -4480,7 +4480,8 @@ int32_t AppMgrServiceInner::NotifyProcMemoryLevel(const std::map<pid_t, MemoryLe
         MEMMGR_PROC_NAME);
     auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
     bool isDevelopMode = system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
-    if (!(isMemmgrCall || (isShellCall && isDevelopMode))) {
+    if (!(isMemmgrCall || (isShellCall && isDevelopMode) ||
+        AAFwk::PermissionVerification::GetInstance()->IsLocalDebugOtherAppsCall())) {
         TAG_LOGE(AAFwkTag::APPMGR, "Permission check failed: callerToken is not %{public}s, isMemmgrCall=%{public}d, "
         "isShellCall=%{public}d, isDevelopMode=%{public}d", MEMMGR_PROC_NAME, isMemmgrCall, isShellCall, isDevelopMode);
         return ERR_INVALID_VALUE;
@@ -8522,6 +8523,10 @@ int32_t AppMgrServiceInner::VerifyKillProcessPermissionCommon() const
     auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
     auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
     if (isSaCall || isShellCall) {
+        return ERR_OK;
+    }
+
+    if (AAFwk::PermissionVerification::GetInstance()->IsLocalDebugOtherAppsCall()) {
         return ERR_OK;
     }
 
