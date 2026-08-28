@@ -113,7 +113,11 @@ private:
 
     void AddAbilityInfoToDialogInfos(const AddInfoParam &param, std::vector<DialogAppInfo> &dialogAppInfos);
 
-    bool IsExistDefaultApp(int32_t userId, const std::string &typeName);
+    bool IsExistDefaultApp(int32_t userId, const std::string &typeName,
+        std::string &defaultBundleName, int32_t &defaultAppIndex);
+
+    void FilterCloneByDefaultApp(std::vector<DialogAppInfo> &dialogAppInfos,
+        const std::string &defaultBundleName, int32_t defaultAppIndex);
 
     void SetTargetLinkInfo(const std::vector<AppExecFwk::SkillUriForAbilityAndExtension> &skillUri, Want &want);
 
