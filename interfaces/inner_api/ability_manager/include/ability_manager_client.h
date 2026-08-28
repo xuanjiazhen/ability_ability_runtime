@@ -1792,6 +1792,19 @@ public:
         uint64_t requestCode, uint64_t specifiedFullTokenId = 0);
 
     /**
+     * @brief Execute intent with specified token id.
+     * @param key The key of intent executing client.
+     * @param callerToken Caller ability token.
+     * @param param The Intent execute param.
+     * @param specifyTokenId The specified token id for permission checking.
+     * @param userId Designation User ID.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode ExecuteIntentWithSpecifyTokenId(uint64_t key, sptr<IRemoteObject> callerToken,
+        const InsightIntentExecuteParam &param, uint32_t specifyTokenId,
+        int32_t userId = DEFAULT_INVAL_VALUE);
+
+    /**
      * @brief Query entity info.
      * @param key The key of intent executing client.
      * @param callerToken Caller ability token.

@@ -5855,6 +5855,48 @@ int32_t AbilityManagerProxy::ExecuteIntentByFunctionCall(uint64_t key, const spt
     return reply.ReadInt32();
 }
 
+int32_t AbilityManagerProxy::ExecuteIntentWithSpecifyTokenId(uint64_t key,
+    const sptr<IRemoteObject> &callerToken, const InsightIntentExecuteParam &param,
+    uint32_t specifyTokenId, int32_t userId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteUint64(key)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write key fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteRemoteObject(callerToken)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write callerToken fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteParcelable(&param)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write param fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteUint32(specifyTokenId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write specifyTokenId fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write userId fail");
+        return INNER_ERR;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "send execute intent with specify token id.");
+    int32_t error = SendRequest(
+        AbilityManagerInterfaceCode::EXECUTE_INTENT_WITH_SPECIFY_TOKEN_ID, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request err:%{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
 int32_t AbilityManagerProxy::QueryEntityInfo(uint64_t key, sptr<IRemoteObject> callerToken,
     const InsightIntentQueryParam &param)
 {
