@@ -337,9 +337,18 @@ private:
 #endif
 
 private:
+    bool RunStageStartupTasks(
+        std::shared_ptr<AbilityRuntime::AbilityStage> abilityStage,
+        std::shared_ptr<AbilityLocalRecord> abilityRecord,
+        const AppExecFwk::HapModuleInfo &hapModuleInfo,
+        const std::function<void(std::shared_ptr<AbilityRuntime::Context>)> &callback,
+        bool &isAsyncCallback,
+        const std::shared_ptr<AbilityRuntime::Context> &stageContext,
+        const AAFwk::Want &want);
     std::shared_ptr<AbilityRecordMgr> abilityRecordMgr_ = nullptr;
     std::shared_ptr<AbilityRuntime::ApplicationContext> abilityRuntimeContext_ = nullptr;
     std::unordered_map<std::string, std::shared_ptr<AbilityRuntime::AbilityStage>> abilityStages_;
+    mutable std::mutex abilityStagesMutex_;
     std::unique_ptr<AbilityRuntime::Runtime> runtime_ = nullptr;
     mutable std::mutex runtimeMutex_;
     std::shared_ptr<Configuration> configuration_ = nullptr;
