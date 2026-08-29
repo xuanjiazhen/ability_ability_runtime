@@ -27,7 +27,7 @@
   <text x="80" y="326" font-size="13" fill="#667085">方法：</text>
   <text x="92" y="348" font-size="12.5" fill="#667085">CreateTask · DestroyTask · CancelTask · SetTaskState</text>
   <text x="92" y="370" font-size="12.5" fill="#667085">SetTaskParams · GetTaskInfo(s) · Register/UnregisterTaskListener</text>
-  <text x="92" y="392" font-size="12.5" fill="#667085">SubmitTaskInput · RegisterTaskIntent · RegisterTaskProcess</text>
+  <text x="92" y="392" font-size="12.5" fill="#667085">RegisterTaskIntent · RegisterTaskProcess（SubmitTaskInput 随 D-21 移除）</text>
   <text x="92" y="414" font-size="12.5" fill="#667085">UnregisterTaskProcess / UnregisterTaskIntent（attach 失败清理）</text>
   <text x="80" y="442" font-size="12.5" fill="#8c8c8c">事件联动：状态/通知（OnTaskNotice）→ 回调 + process_schedule 重算</text>
   <text x="80" y="466" font-size="12.5" fill="#8c8c8c">终态 → 双通道清理（RestoreControl + NotifyTaskEnd）</text>

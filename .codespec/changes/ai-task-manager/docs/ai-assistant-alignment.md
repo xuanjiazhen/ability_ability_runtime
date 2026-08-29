@@ -24,8 +24,8 @@
 | # | 问题 | 说明 |
 |---|------|------|
 | Q-1 | UNKNOWN→WORKING 直达是否需要？ | 现设计强制 UNKNOWN→SUBMITTED→WORKING 两跳（两 IPC 调用）；若助手普遍"创建即执行"，可评估允许 UNKNOWN→WORKING（状态机表一处改动，需评审） |
-| Q-2 | 进度上报模式确认 | 任务执行进度经 SetTaskParams 更新 payload → 系统 UI 经 OnTaskNotice(**PAYLOAD_UPDATED**) 实时收到（第十三轮 F-9 补全）；确认进度 payload 的 JSON 约定（如 {"progress": 0~100, "text": "..."}），我方对内容不做解析 |
-| Q-3 | INPUT/AUTH payload JSON 约定 | 现约定 {"type":"input"|"auth","text":"<描述>","options":["<可选项>"]}（≤4KB 可配）；用户选择经 SubmitTaskInput 回传原始 input 字符串——确认是否需要结构化回传约定（如 {"selectedIndex": n} 或自由文本） |
+| Q-2 | 进度呈现模式确认（D-21 更新） | 进度展示由助手自有 **AI bar** 呈现（数据在己方，无外部通知——PAYLOAD_UPDATED 已移除）；SetTaskParams 更新 payload 仅作任务记录（查询/审计可见）；确认进度 payload 的 JSON 约定（如 {"progress": 0~100, "text": "..."}），我方对内容不做解析 |
+| Q-3 | INPUT/AUTH payload JSON 约定（D-21 更新） | 现约定 {"type":"input"|"auth","text":"<描述>","options":["<可选项>"]}（≤4KB 可配）留存任务记录（供 AI bar 呈现/查询/审计）；用户响应在助手进程内经 AI bar 获得（~~SubmitTaskInput 回传~~已移除），可选取流转出交互态时的 payload 携带——确认是否需要响应携带的结构化约定（如 {"selectedIndex": n} 或自由文本） |
 | Q-4 | REJECTED 的实际使用场景 | 现语义"创建者拒绝执行该任务"（如用户明确拒绝授权后助手放弃）；确认与 CANCELED 的分工是否符合助手侧模型 |
 
 ## 2. TaskPriority（4 档 → 资源管控档位）
@@ -69,7 +69,7 @@
 | # | 事项 | 我方设计 | 需助手侧确认 |
 |---|------|---------|-------------|
 | Q-9 | **创建者进程自注册**（design §5.2.1） | 默认不自动纳管助手进程（控制面/被控面分离、防豁免滥用）；助手可显式 RegisterTaskProcess(taskId, ownPid, 自身 tokenId) 自注册（占单任务 16 进程名额）；二期备选 supervisor 弱保障档 | 是否需要？若助手退后台被冻结导致交互停摆，请提供场景描述（决定二期是否启动 supervisor 档） |
-| Q-10 | **监听注册模式** | 助手注册 ITaskListener 后可收：状态回调 OnTaskStateChanged + 通知 OnTaskNotice（INPUT_ARRIVED / PAYLOAD_UPDATED / INTERACTIVE_TIMEOUT / EXEMPT_EXPIRING / EXEMPT_EXPIRED） | 确认助手会注册监听（INPUT_ARRIVED 实时收 input 的前提）；未注册时仅能 GetTaskInfo 轮询 |
+| Q-10 | **监听注册模式**（D-21 更新） | 助手注册 ITaskListener 后可收：状态回调 OnTaskStateChanged + 通知 OnTaskNotice（INTERACTIVE_TIMEOUT / EXEMPT_EXPIRING / EXEMPT_EXPIRED——~~INPUT_ARRIVED/PAYLOAD_UPDATED~~随 D-21 移除）；监听通道的消费方另含安全管控/审计/系统状态监控等系统模块 | 确认助手会注册监听（实时感知 INTERACTIVE_TIMEOUT 宽限窗口的前提）；未注册时仅能 GetTaskInfo 轮询 |
 | Q-11 | taskId 透传责任 | 助手在构造 Want 时显式携带 `ohos.ai.taskId`（string 参数）；链式调用（任务内进程再启动）由发起进程自行转发该参数 | 确认助手侧 Want 构造点可控；taskId 经 hisysevent（TASK_CREATE 等）留痕，按系统事件权限管控 |
 | Q-12 | 交互超时行为 | INPUT/AUTH 态默认 30min 超时 → OnTaskNotice(INTERACTIVE_TIMEOUT, {deadline}) 限期处置（宽限 5min）→ 仍未流转则模块主动降档撤销豁免 + 告警 | 确认助手能响应 INTERACTIVE_TIMEOUT（重设状态/取消/续交互），否则任务将被降档 |
 

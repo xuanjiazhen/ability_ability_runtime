@@ -155,6 +155,7 @@ status: committed
 | 2026-08-26 | yangzk、用户 | 第十六轮拦截器框架与参数语义 | 修复 F-36~F-41：**AMS 拦截器框架未分析（高）**——AbilityInterceptorExecuter 在 4/5 收敛点已运行（CLAUDE.md 标准扩展程序），设计原 ad-hoc 方案未分析该选项；新增 design §5.4.1a 方案对比，推荐混合方案（TaskInterceptor 走框架 + Modal ad-hoc + AbilityInterceptorParam 增字段），列入未对齐清单 A-8；**const.* 前缀语义错误（中，第十三轮 F-14 自身缺陷）**——运行时可调须 persist.*（本仓先例），taskmanager.para 命名修正；OnTaskStateChanged 补 oneway；"重发①"措辞错误修正（应直接补发②）；错误码段避开公共 16000001~16000205 约束声明；hisysevent __BASE 格式约束；UIExtension Want 参数存活为推测项（TASK-3 用例覆盖） | review-analysis.md 追加第十六轮节；design/plan 同步 |
 | 2026-08-26 | yangzk、用户 | 第十七轮状态机闭环与线程模型 | 修复 F-43~F-46：**§5.2.1 #4 内部矛盾（高）**——"超时自动流转终态"与 ADR-6/F-5/R-21 三方矛盾（超时仅撤销豁免不改状态），控制面失联时任务滞留激活态→R-2 配额死锁且创建者死亡时无人可清理；修正表述+风险表+R-2 活跃定义，处置两方案列入 A-9 待对齐（推荐窄口径系统流转：超时→FAILED/创建者死亡→CANCELED）；**taskHandler 串行 vs RCP 同步调用阻塞放大（中）**——ADR-8 补 IPC 入口线程模型（post-and-wait）+ 同步调用移 RCP 工作线程；review/manifest 收口文档时效修正；§5.4.1a 补 afterCheck 挂点选项；实证 attach 每 ability 触发（热启动覆盖前提成立）与 AppDeathRecipient 链（创建者死亡监听可复用） | review-analysis.md 追加第十七轮节；design/spec/manifest/review 同步 |
 | 2026-08-26 | yangzk、用户 | 分步流程图集生成 | 基于十七轮评审后方案生成 docs/flow-diagrams.md（8 图）：主生命周期时序/条件两段式纳管决策（5 收敛点+身份解析+attach 补注册）/通道鉴权与 B-2 校验链/档位计算与 P3 生效校验环/HITL 交互传达/超时处置与续期（双计时器）/双通道清理/异常处置矩阵——每图附分步说明表（动作/依据/失败路径），A-8/A-9 待对齐项图内标记 | docs/flow-diagrams.md 新增；review-analysis 导航同步 |
+| 2026-08-26 | yangzk、用户 | **需求变更 D-21：AI bar 内化交互，监听保留给安全等模块** | 用户指令：① 原设计"系统 UI 展示执行进度"改由 **AI 助手自有 AI bar** 实现（助手即创建者、数据在己方，无需外部通知）；② INPUT/AUTH 人机交互在助手进程内闭环，**无需外部交互传递**；③ **保留状态监听能力**，消费方重定位为安全管控/审计/系统状态监控等系统模块。落地：移除 SubmitTaskInput 接口、INPUT_ARRIVED/PAYLOAD_UPDATED 通知、input 字段、D-11 白名单传递通道（ITaskManager 13→12 方法）；INPUT_REQUIRED/AUTH_REQUIRED 状态+payload 保留（事实记录：AI bar 呈现/查询/审计）；交互响应可选取流转 payload 携带；RegisterTaskListener/OnTaskStateChanged/OnTaskNotice（余 3 类超时通知）保留。**D-11（2026-08-24）被 D-21 取代；A-1（PAYLOAD_UPDATED 待对齐）随之关闭** | design ADR-7/§5.2/§5.5/数据流、spec US-3/US-4/AC/R-6/R-16~R-18/API 表、proposal 活基线、plan TASK-2、flow-diagrams 图 1/图 5、对齐材料 Q-2/Q-3/Q-10 同步 |
 
 ### 功能范围确认
 
@@ -308,7 +309,7 @@ status: committed
 
 ### 问题陈述
 
-AI 语音助手在锁屏定时任务与后台长时任务场景下，任务进程因 RSS 冻结/资源管控而执行失败或中断。系统缺少一个可信的"任务"级维度来表达 AI 助手对后台持续执行的需求。需要提供一套任务管理机制：AI 助手创建任务（指定优先级、类型、状态），任务执行涉及的进程通过启动链路自动纳入任务，任务管理模块按任务优先级对进程施加 RSS 管控（冻结豁免、解冻、结束后降级），以状态机管理任务生命周期，支持状态查询/监听（系统 UI 展示进度）与 INPUT_REQUIRED/AUTH_REQUIRED 的人机交互传达，并提供 DFX 手段。安全管控问题不在本需求范围。
+AI 语音助手在锁屏定时任务与后台长时任务场景下，任务进程因 RSS 冻结/资源管控而执行失败或中断。系统缺少一个可信的"任务"级维度来表达 AI 助手对后台持续执行的需求。需要提供一套任务管理机制：AI 助手创建任务（指定优先级、类型、状态），任务执行涉及的进程通过启动链路自动纳入任务，任务管理模块按任务优先级对进程施加 RSS 管控（冻结豁免、解冻、结束后降级），以状态机管理任务生命周期，支持状态查询/监听（供安全管控/审计/系统状态监控等系统模块感知任务事实）与 INPUT_REQUIRED/AUTH_REQUIRED 交互承载（人机交互经 AI 助手自有 AI bar 闭环，D-21），并提供 DFX 手段。安全管控问题不在本需求范围。
 
 ### 目标和成功指标
 
@@ -318,7 +319,7 @@ AI 语音助手在锁屏定时任务与后台长时任务场景下，任务进�
 | 后台长时任务不被冻结中断 | 后台切换后任务进程不被 RSS 冻结，任务完成 | 真机场景用例（前后台切换 + 长时任务） |
 | 任务级管控对原有调度无影响 | 无 taskId 的启动/进程调度行为与改动前完全一致 | 全量回归 + 性能对比 |
 | 多任务并发与进程多任务归属正确 | 进程按最高优先级任务管控；任务结束降级正确（单测覆盖多任务/多进程矩阵） | 单测 + 集成用例 |
-| 任务状态可视化与交互传达 | 系统 UI 能监听任务状态并展示 INPUT/AUTH 交互 | 系统 UI 联调用例 |
+| 任务状态可观测与交互承载 | 安全等系统模块能监听任务状态（含交互态 payload）；INPUT/AUTH 交互经 AI bar 闭环后任务正确流转 | 监听方联调用例 + AI 助手交互用例（D-21） |
 
 ### 用户故事与 AC
 
@@ -326,8 +327,8 @@ AI 语音助手在锁屏定时任务与后台长时任务场景下，任务进�
 |----------|----------|--------|
 | US-1 | 作为 AI 语音助手，我想要创建任务（指定类型、优先级）并管理其生命周期（设置状态、销毁、取消），以便表达任务执行诉求并控制任务节奏 | P0 |
 | US-2 | 作为 AI 语音助手，我想要通过 StartAbility/ConnectAbility/意图/Cli/A2A 启动能力时自动携带 taskId 并把目标进程纳入任务，以便任务级管控进程 | P0 |
-| US-3 | 作为系统 UI，我想要监听任务状态变化并查询任务详情，以便展示任务执行进度 | P1 |
-| US-4 | 作为 AI 语音助手和用户，我想要 INPUT_REQUIRED/AUTH_REQUIRED 阶段通过任务传达描述与可选项、回传用户选择，以便完成授权/意图确认 | P1 |
+| US-3 | 作为安全管控/审计/系统状态监控等系统模块，我想要监听任务状态变化并查询任务详情，以便感知任务生命周期事实（D-21：进度展示由 AI 助手 AI bar 承担） | P1 |
+| US-4 | 作为 AI 语音助手，我想要以 INPUT_REQUIRED/AUTH_REQUIRED 状态标记人机交互阶段（payload 记录描述与可选项供 AI bar 呈现），交互在助手进程内闭环，以便交互期间保持管控且事实可观测（D-21） | P1 |
 | US-5 | 作为任务管理模块，我想要按任务优先级对纳管进程施加 RSS 分级管控（冻结豁免/解冻/降级），以便在锁屏/后台场景保障任务执行且结束后恢复 | P0 |
 | US-6 | 作为系统开发者，我想要任务管理具备 DFX（状态 dump、hisysevent），以便排查任务执行问题 | P2 |
 
@@ -339,9 +340,9 @@ AI 语音助手在锁屏定时任务与后台长时任务场景下，任务进�
 | AC-4 | WHEN 调用 SetTaskState 发起非法流转（终态回退、未创建任务、REJECTED 由非创建方设置）THEN 返回明确错误码且任务状态不变 | 异常 | US-1 |
 | AC-5 | WHEN 任务已存在且通过 StartAbility/ConnectAbility/意图框架/Cli/A2A 任一链路启动、Want 携带 taskId THEN 目标进程自动注册进该任务 | 正常 | US-2 |
 | AC-6 | WHEN 同一进程被多个任务纳管 THEN 该进程按其中最高优先级任务执行 RSS 管控 | 边界 | US-2 |
-| AC-7 | WHEN 系统 UI 注册任务监听 THEN 任务状态变化（含进入 INPUT_REQUIRED/AUTH_REQUIRED 的 payload）实时回调，卸载后不再回调 | 正常 | US-3 |
+| AC-7 | WHEN 系统模块注册任务监听 THEN 任务状态变化（含进入 INPUT_REQUIRED/AUTH_REQUIRED 的 payload）实时回调，注销后不再回调 | 正常 | US-3 |
 | AC-8 | WHEN 查询任务列表或任务详情 THEN 返回状态、纳管进程（pid）、payload、创建/更新时间戳 | 正常 | US-3 |
-| AC-9 | WHEN 任务进入 INPUT_REQUIRED/AUTH_REQUIRED 且携带描述与可选项 THEN 系统 UI 收到并可展示，用户提交选择后通过 SubmitTaskInput(taskId, input) 回传，AI 助手可获取 | 正常 | US-4 |
+| AC-9 | WHEN 任务进入 INPUT_REQUIRED/AUTH_REQUIRED 且携带描述与可选项 THEN payload 留存任务记录且监听回调可观测；用户经 AI bar 完成选择后助手流转出交互态（D-21：~~SubmitTaskInput 回传~~移除） | 正常 | US-4 |
 | AC-10 | WHEN 任务在 INPUT/AUTH 阶段被取消/销毁 THEN 交互状态清理且不再回调，状态机进入终态 | 异常 | US-4 |
 | AC-11 | WHEN 高优先级任务进入工作状态（如 WORKING）THEN 纳管进程冻结豁免生效（经 RSS DYNAMICALLY_SET_SUSPEND_EXEMPT），锁屏/后台场景进程不被冻结 | 正常 | US-5 |
 | AC-12 | WHEN 任务结束/取消/销毁 THEN 纳管进程豁免撤销，恢复任务前的 RSS 调度状态（多任务归属时按次高优先级任务继续管控） | 正常 | US-5 |
@@ -357,7 +358,7 @@ AI 语音助手在锁屏定时任务与后台长时任务场景下，任务进�
 - 启动链路拦截纳管：StartAbility/ConnectAbility/意图框架/Cli/A2A 收敛点解析 Want taskId（参数 key 约定如 `ohos.ai.taskId`，设计定稿）
 - 状态机：UNKNOWN/SUBMITTED/WORKING/INPUT_REQUIRED/AUTH_REQUIRED/COMPLETED/CANCELED/FAILED/REJECTED + 流转校验
 - 查询/监听：任务列表/详情查询、状态监听（含 payload 事件）
-- 交互传达：INPUT_REQUIRED/AUTH_REQUIRED 描述+可选项下发、SubmitTaskInput 回传
+- 交互承载：INPUT_REQUIRED/AUTH_REQUIRED 状态+payload 事实记录（交互经 AI bar 闭环，D-21；~~SubmitTaskInput 回传~~移除）
 - RSS 资源调度子模块：按优先级分级（冻结豁免、解冻、状态查询、结束降级），复用 RSS 现有接口，策略可配，预留扩展点
 - DFX：hisysevent（hisysevent.yaml 新增事件）、hidumper/dump、TAG_LOGI 日志
 - 进程纳管数据：taskId↔pid 映射、多任务归属（按高优先级）、进程死亡自动清理
@@ -379,7 +380,7 @@ AI 语音助手在锁屏定时任务与后台长时任务场景下，任务进�
 | ability | ability_ability_runtime | `services/appmgr/src/task_mgr/`（新增） | — | 新增：任务管理模块（任务模型、状态机、inner API 服务、监听、交互传达） | yangzk |
 | ability | ability_ability_runtime | `services/appmgr/src/process_schedule/`（新增） | — | 新增：通用"App 进程调度管理"能力（进程组纳管、优先级档、RSS 管控施加/撤销、死亡清理、多组归属合并） | yangzk |
 | ability | ability_ability_runtime | `services/appmgr/`（既有热路径） | 进程生命周期管理 | 最小挂点：复用既有进程死亡/状态通知链（AppStateObserverManager/AppDeathRecipient）接入新模块，不修改既有接口与序列化 | yangzk |
-| ability | ability_ability_runtime | `interfaces/inner_api/app_manager/` | 内部组件接口 | 新增：ITaskManager IDL（stub/proxy）+ C++ 客户端（AI 助手/系统 UI/AMS 使用）；不扩 IAppMgr 既有接口 | yangzk |
+| ability | ability_ability_runtime | `interfaces/inner_api/app_manager/` | 内部组件接口 | 新增：ITaskManager IDL（stub/proxy）+ C++ 客户端（AI 助手/监听方系统模块/AMS 使用，D-21）；不扩 IAppMgr 既有接口 | yangzk |
 | ability | ability_ability_runtime | `services/abilitymgr` | AMS 启动/连接调度 | 修改：启动/连接收敛点解析 Want taskId，经 app_manager inner_api 客户端转发 AppMS（最小改动，拦截失败不阻断启动） | yangzk |
 | ability | ability_ability_runtime | `hisysevent.yaml` / `services/appmgr/BUILD.gn` / `ability_runtime.gni` | DFX 事件定义/构建 | 新增：任务事件定义；BUILD.gn 新增源文件（ressched_client 依赖已具备） | yangzk |
 | resourceschedule | resource_schedule_service | `ressched`（接口层） | RSS 管控 | 不改代码；RSS 具体设计由 RSS 团队主导（暂未明确），本模块经 ResourceControlProxy 资源管控代理层对接（设计 §6.4） | RSS 团队 |
@@ -390,8 +391,8 @@ AI 语音助手在锁屏定时任务与后台长时任务场景下，任务进�
 
 | API 名称 | 变更类型 | 开放范围 | 概要说明 |
 |----------|----------|----------|----------|
-| ITaskManager（IDL 新增，放 `interfaces/inner_api/app_manager/task_manager/`，方法以接口定义定稿为准） | 新增 | InnerAPI | CreateTask / DestroyTask / CancelTask / SetTaskState / SetTaskParams / GetTaskInfo / GetTaskInfos / RegisterTaskListener / UnregisterTaskListener / SubmitTaskInput / （内部：RegisterTaskIntent/RegisterTaskProcess/UnregisterTaskProcess 供 AMS 拦截点调用；RegisterTaskProcess 兼创建者显式自注册，design §5.2.1；F-20 补全） |
-| TaskManagerClient（C++ 客户端） | 新增 | InnerAPI | AI 助手/系统 UI/AMS 使用的客户端封装 |
+| ITaskManager（IDL 新增，放 `interfaces/inner_api/app_manager/task_manager/`，方法以接口定义定稿为准） | 新增 | InnerAPI | CreateTask / DestroyTask / CancelTask / SetTaskState / SetTaskParams / GetTaskInfo / GetTaskInfos / RegisterTaskListener / UnregisterTaskListener / （内部：RegisterTaskIntent/RegisterTaskProcess/UnregisterTaskProcess 供 AMS 拦截点调用；RegisterTaskProcess 兼创建者显式自注册，design §5.2.1；F-20 补全）——共 12 方法（~~SubmitTaskInput~~随 D-21 移除） |
+| TaskManagerClient（C++ 客户端） | 新增 | InnerAPI | AI 助手/监听方系统模块/AMS 使用的客户端封装（D-21） |
 
 ### 不涉及项确认
 

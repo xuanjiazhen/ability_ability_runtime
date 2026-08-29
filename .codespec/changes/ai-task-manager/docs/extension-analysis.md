@@ -11,7 +11,7 @@
 |------|------|-----------|
 | 进程组调度原语 | `process_schedule`（design §5.1） | 进程组注册/注销、档位合并（max）、管控动作施加/撤销、死亡自动清理、结束恢复——不感知任务语义 |
 | 资源管控出口 | `ResourceControlProxy`（design §6.4） | ControlAction 语义接口 + ControlRequest 完整上下文（taskId/type/priority/state/bundleName…），天然可对接多管控方（RSS/qos/温控/低内存查杀） |
-| 挂起-回传交互通道 | `SubmitTaskInput` + `OnTaskNotice`（design §5.5） | 状态回调 + 通知类事件 + 白名单传递通道，任意"服务进程 ↔ 系统 UI"交互可复用 |
+| 状态监听通道 | `RegisterTaskListener` + `OnTaskStateChanged/OnTaskNotice`（design §5.5，D-21 后定位） | 状态事实推送通道，任意系统模块（安全/审计/监控）可复用感知任务生命周期（~~挂起-回传交互通道~~随 D-21 移除——交互由调用方自有 UI 内化） |
 
 ## A 层：零设计增量（机制现状即可承载，仅缺调用方）
 

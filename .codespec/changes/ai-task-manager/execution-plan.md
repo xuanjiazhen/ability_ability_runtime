@@ -26,7 +26,7 @@
 | 仓 | 层（来自 design.md） | 文件路径 | 修改类型 | 说明 |
 |----|---------------------|----------|----------|------|
 | ability_ability_runtime | inner API 客户端 | `interfaces/inner_api/app_manager/task_manager/ITaskManager.idl` | 新增 | IDL：接口方法 + TaskCreateParams/TaskInfo 数据结构 |
-| ability_ability_runtime | inner API 客户端 | `interfaces/inner_api/app_manager/task_manager/include/task_manager_client.h` + `src/task_manager_client.cpp` | 新增 | C++ 客户端（AI 助手/系统 UI/AMS 调用入口，stub/proxy 封装） |
+| ability_ability_runtime | inner API 客户端 | `interfaces/inner_api/app_manager/task_manager/include/task_manager_client.h` + `src/task_manager_client.cpp` | 新增 | C++ 客户端（AI 助手/监听方系统模块/AMS 调用入口，stub/proxy 封装，D-21） |
 | ability_ability_runtime | inner API 客户端 | `interfaces/inner_api/app_manager/task_manager/include/task_listener.h` | 新增 | ITaskListener 回调接口（IRemoteBroker） |
 | ability_ability_runtime | inner API 客户端 | `interfaces/inner_api/app_manager/task_manager/BUILD.gn` | 新增 | IDL 生成 + 客户端组件构建 |
 | ability_ability_runtime | 服务层 | `services/appmgr/include/task_mgr/task_manager_service.h` + `src/task_mgr/task_manager_service.cpp` | 新增 | 任务管理入口：stub 实现、taskHandler、IPC 分发、接口鉴权 |
@@ -68,7 +68,7 @@
 | AC-1（AC-1.1~AC-1.6） | spec.md | TASK-1, TASK-2 | 单测 | 是 |
 | AC-2（AC-2.1~AC-2.5） | spec.md | TASK-3 | 单测+集成 | 是 |
 | AC-3（AC-3.1~AC-3.4） | spec.md | TASK-2 | 单测 | 是 |
-| AC-4（AC-4.1~AC-4.4） | spec.md | TASK-2 | 单测+集成 | 是 |
+| AC-4（AC-4.1~AC-4.3） | spec.md | TASK-2 | 单测+集成 | 是（AC-4.4 随 D-21 移除） |
 | AC-5（AC-5.1~AC-5.5） | spec.md | TASK-4 | 单测+集成+真机 | 是（真机验证在 TASK-6 门禁） |
 | AC-6（AC-6.1~AC-6.2） | spec.md | TASK-5 | 人工+集成 | 是 |
 
@@ -109,13 +109,13 @@
 |---------|------|----------|---------|----------|----------|----------|----------|
 | TASK-0 | 骨架接线：IDL/客户端/模块目录/BUILD | `interfaces/inner_api/app_manager/task_manager/*`、`services/appmgr/BUILD.gn`、gni、error_utils | —（骨架） | 无 | 编译通过，stub/proxy/客户端生成 | `./build.sh --build-target libappms` | 生产 ~1,000 行（IDL 150 + stub 分发 300 + 客户端 350 + listener 60 + BUILD/gni/error 130）；无单测 |
 | TASK-1 | 任务模型与状态机：CreateTask/SetTaskState/DestroyTask/CancelTask/SetTaskParams + 生命周期 | task_record、task_state_machine、task_manager_service（核心路径）、单测 | AC-1.1~AC-1.6 | TASK-0 | 单测覆盖合法/非法流转、权限、上限 | `run -t UT -ts task_mgr_test` | 生产 ~1,300（record 300 + state_machine 200 + service 800）；单测 ~800 |
-| TASK-2 | 查询/监听/交互：GetTaskInfo(s)/RegisterTaskListener/SubmitTaskInput/payload 传达 + **UI→助手传递通道**（SubmitTaskInput 白名单=创建者+已注册监听的系统 UI，OnTaskNotice(INPUT_ARRIVED) 通知创建者，评审决策 2026-08-24） | task_listener_manager、task_manager_service、单测 | AC-3.1~AC-3.4, AC-4.1~AC-4.4 | TASK-1 | 单测覆盖回调顺序/负载/交互挂起回传/白名单外拒绝 | `run -t UT -ts task_mgr_test` | 生产 ~900（listener_mgr 400 + service 增量 500）；单测 ~700 |
+| TASK-2 | 查询/监听：GetTaskInfo(s)/RegisterTaskListener/payload 事实记录与回调（**交互经 AI bar 内化，D-21：~~SubmitTaskInput/INPUT_ARRIVED/白名单传递~~移除**；监听消费方=安全等系统模块） | task_listener_manager、task_manager_service、单测 | AC-3.1~AC-3.4, AC-4.1~AC-4.3 | TASK-1 | 单测覆盖回调顺序/负载/交互态 payload 留存与回调/注销停止 | `run -t UT -ts task_mgr_test` | 生产 ~700（listener_mgr 400 + service 增量 300）；单测 ~550 |
 | TASK-3 | 拦截纳管+防仿冒：**条件两段式**（进程已存在直接纳管/未创建意向+attach）、B-1 随机 taskId、B-2 caller 校验（含代理启动身份规则） | ability_manager_service.cpp、ability_connect_manager.cpp、task_manager_service（RegisterTaskIntent/Process）、集成用例 | AC-2.1~AC-2.5 | TASK-1 | 集成用例覆盖四链路（Start/Connect/意图/Cli）+ 代理启动变体（AsCaller/WithSpecifyTokenId）+ **已存在进程场景** + 仿冒拒绝；无 taskId 零影响回归 | `run -t UT -ts ability_manager_service_first_test` | 生产 ~950（AMS 拦截点 350 + 意向表/B-2 校验 500 + 死亡挂点 50 + 工具 50）；集成用例 ~900 |
 | TASK-4 | 管控与 ResourceControlProxy：档位合并、经代理施加/撤销豁免（一期骨架）、**NotifyTaskEnd 任务级清理通知**、降级恢复、上限防滥用（sysparam 参数化，F-14）、续期与到期处置（仅 priority 变化触发、N=3 默认可配）、进程死亡清理 | process_schedule_*、resource_control_proxy_*、task_mgr 联动、单测+集成 | AC-5.1~AC-5.5 | TASK-1, TASK-3 | 单测覆盖档位合并/降级/幂等/动作日志断言（含 NotifyTaskEnd 双通道时序、续期次数上限）；集成覆盖动作序列 | `run -t UT -ts task_mgr_test` | 生产 ~1,700（schedule_mgr 700 + policy 200 + types 80 + RCP 接口 100 + stub 300 + impl 占位 150 + 联动 200）；单测 ~1,000 |
 | TASK-5 | DFX：hisysevent 6 事件、dump、日志、错误码接入 | hisysevent.yaml、task_dfx、dump 入口 | AC-6.1~AC-6.2 | TASK-1~TASK-4 | 事件上报可检索；dump 输出任务全景 | 事件检索 + `hidumper -a 501` | 生产 ~630（task_dfx 400 + yaml 80 + 接入 150）；验证用例 ~300 |
 | TASK-6 | 验证收口：全量 AC 用例、真机锁屏/后台场景验证（锁屏豁免边界与 RSS owner 对齐；**前置（P1 代码勘察 2026-08-24）：产品含 freezer 执行插件（启用开关以产品配置为准，F-23 勘察修正：该参数在开源 master 不存在）——开源 master 无 505/517/520 消费者，端到端验证会假成功**） | test/ 全量 + 真机 | 全部 AC | TASK-1~TASK-5；RSS 对接（外部依赖）；真机端到端另需产品 freezer 环境 | 全量单测/集成通过；真机验证报告（锁屏定时任务、后台长时任务，须记录产品 freezer/开关配置）；master 上以 Stub 动作日志断言为基线 | `run -t UT -tp ability_runtime` | 用例补强 ~700（真机脚本/集成补强） |
 
-> 规模预估：C++ 行数（含头文件），±20% 误差；IDL 生成物（stub/proxy 本体）由构建生成不计入；不含 RSS 真实对接（ResourceControlProxyImpl 落地，RSS 团队明确后另估 ~300~500 行）与二期扩展（QoS 提权 221/低内存查杀 520/线程级 RTG/NAPI）。合计：生产 ~6,600 行 + 单测 ~4,300 行 ≈ 1.1 万行；单人开发约 4~6 周（骨架 1~2 天 → 核心 5~7 天 → 拦截 3~4 天 → 管控 4~5 天 → DFX 2 天 → 联调/真机 3~5 天，单测贯穿）。
+> 规模预估：C++ 行数（含头文件），±20% 误差；IDL 生成物（stub/proxy 本体）由构建生成不计入；不含 RSS 真实对接（ResourceControlProxyImpl 落地，RSS 团队明确后另估 ~300~500 行）与二期扩展（QoS 提权 221/低内存查杀 520/线程级 RTG/NAPI）。合计：生产 ~6,400 行 + 单测 ~4,150 行 ≈ 1.05 万行（D-21 后 TASK-2 缩减 ~200 生产 + ~150 单测）；单人开发约 4~6 周（骨架 1~2 天 → 核心 5~7 天 → 拦截 3~4 天 → 管控 4~5 天 → DFX 2 天 → 联调/真机 3~5 天，单测贯穿）。
 
 ## Task 详情
 
@@ -135,7 +135,7 @@
 
 | 操作 | 文件 | 说明 |
 |------|------|------|
-| 新增 | `interfaces/inner_api/app_manager/task_manager/ITaskManager.idl` | 13 个方法 + 3 个 struct（TaskCreateParams/TaskParams/TaskInfo）+ ITaskListener 回调接口（task_listener.h，IRemoteBroker 手写，design 5.2 节；F-19 修正） |
+| 新增 | `interfaces/inner_api/app_manager/task_manager/ITaskManager.idl` | 12 个方法（~~SubmitTaskInput~~随 D-21 移除）+ 3 个 struct（TaskCreateParams/TaskParams/TaskInfo）+ ITaskListener 回调接口（task_listener.h，IRemoteBroker 手写，design 5.2 节；F-19 修正） |
 | 新增 | `interfaces/inner_api/app_manager/task_manager/include/task_manager_client.h` + `src/task_manager_client.cpp` | 客户端（含 AMS 内部调用入口；GetSystemAbility(501)+iface_cast<ITaskManager>，design §5.2.2） |
 | 新增 | `interfaces/inner_api/app_manager/task_manager/include/task_listener.h` | ITaskListener 回调 |
 | 新增 | `interfaces/inner_api/app_manager/task_manager/BUILD.gn` | IDL 生成 + 客户端组件 |
@@ -169,12 +169,12 @@
 
 | 字段 | 内容 |
 |------|------|
-| 任务目标 | GetTaskInfo(s)/RegisterTaskListener/UnregisterTaskListener/SubmitTaskInput 闭环：监听注册表与回调派发（顺序一致 R-14）、交互 payload 挂起/回传（R-16~R-18）、监听者死亡清理、输入超限校验；**UI→助手传递通道**（评审决策 2026-08-24）：SubmitTaskInput 调用方白名单=创建者+已注册监听的系统 UI（白名单外拒绝），input 写入 TaskRecord 后经 OnTaskNotice(INPUT_ARRIVED) 通知创建者（含其余通知类事件派发）；payload 权限管控 |
+| 任务目标 | GetTaskInfo(s)/RegisterTaskListener/UnregisterTaskListener 闭环：监听注册表与回调派发（顺序一致 R-14）、交互态 payload 事实记录与回调（R-16/R-18，D-21：交互经 AI bar 闭环，无回传接口）、监听者死亡清理、通知类事件派发（INTERACTIVE_TIMEOUT/EXEMPT_EXPIRING/EXEMPT_EXPIRED）；payload 权限管控（监听方=安全等系统模块） |
 | 规模预估 | 生产 ~900（listener_mgr 400 + service 增量 500）；单测 ~700 |
-| AC 映射 | AC-3.1, AC-3.2, AC-3.3, AC-3.4, AC-4.1, AC-4.2, AC-4.3, AC-4.4 |
+| AC 映射 | AC-3.1, AC-3.2, AC-3.3, AC-3.4, AC-4.1, AC-4.2, AC-4.3（AC-4.4 随 D-21 移除） |
 | 前置依赖 | TASK-1 |
 | 非目标 | RSS 管控联动（TASK-4）——本 Task 交互状态流转仅更新状态与 payload |
-| 完成判据 | 单测覆盖回调顺序/注销停止/查询快照/交互挂起-回传-清理/权限拒绝/白名单外拒绝 + INPUT_ARRIVED 通知到达 |
+| 完成判据 | 单测覆盖回调顺序/注销停止/查询快照/交互态 payload 留存与回调/交互清理（R-18）/权限拒绝 |
 | 停止条件 | 回调跨进程序列化异常无法定位 |
 
 **Files**
@@ -182,7 +182,7 @@
 | 操作 | 文件 | 说明 |
 |------|------|------|
 | 新增 | `services/appmgr/include/task_mgr/task_listener_manager.h` + `src/task_mgr/task_listener_manager.cpp` | 注册表/派发/DeathRecipient |
-| 修改 | `services/appmgr/src/task_mgr/task_manager_service.cpp` | GetTaskInfo(s)/Register/Unregister/SubmitTaskInput 实现 |
+| 修改 | `services/appmgr/src/task_mgr/task_manager_service.cpp` | GetTaskInfo(s)/Register/Unregister 实现（~~SubmitTaskInput~~随 D-21 移除） |
 | 新增 | `test/unittest/task_mgr_test/task_listener_test.cpp`（F-27） | 单测 |
 
 ### TASK-3: 拦截纳管与防仿冒
@@ -245,7 +245,7 @@
 | 规模预估 | 生产 ~630（task_dfx 400 + yaml 80 + 接入 150）；验证用例 ~300 |
 | AC 映射 | AC-6.1, AC-6.2 |
 | 前置依赖 | TASK-1~TASK-4 |
-| 非目标 | 系统 UI 侧展示（外部调用方） |
+| 非目标 | AI bar 侧呈现（AI 助手自有，D-21）；监听方业务消费（安全等模块自行实现） |
 | 完成判据 | 事件上报可检索（hievent 工具）；dump 输出任务全景；既有事件未被破坏（AGENTS.md 约束） |
 | 停止条件 | hisysevent 事件定义评审未过 |
 

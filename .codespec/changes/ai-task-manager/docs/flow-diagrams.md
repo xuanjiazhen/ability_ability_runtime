@@ -11,7 +11,7 @@
 | 图 2 | 启动链路拦截与条件两段式纳管 | 决策流程图 | 5 收敛点/身份解析/targetPid 分支/attach 补注册 |
 | 图 3 | 通道鉴权与 B-2 校验（AppMS 侧） | 决策流程图 | 规则 0~4/集合校验/上限/幂等 |
 | 图 4 | 档位计算与豁免施加（P3 生效校验环） | 决策流程图 | 档位合并/505→507→517/EDS P7/线程模型 |
-| 图 5 | INPUT/AUTH 交互传达（HITL） | 时序图 | payload 下发/白名单回传/INPUT_ARRIVED |
+| 图 5 | INPUT/AUTH 交互承载（AI bar 内化，D-21） | 时序图 | payload 事实记录/监听可观测/AI bar 进程内闭环/流转携带响应 |
 | 图 6 | 超时处置与续期（F-5 两段式+双计时器） | 决策流程图 | 交互超时/限时豁免/硬上限/续期 N=3 |
 | 图 7 | 任务结束双通道清理 | 决策流程图 | 进程级撤销→任务级通知/重试 |
 | 图 8 | 异常场景处置矩阵 | 表+流程 | 进程死亡/创建者死亡/RSS 重启/AppMS 重启 |
@@ -58,15 +58,14 @@ sequenceDiagram
     end
 
     rect rgb(255,251,242)
-    Note over AI,LSN: 阶段三 执行·进度与交互
-    AI->>TMS: SetTaskParams(payload更新·进度)
-    TMS-->>LSN: OnTaskNotice(PAYLOAD_UPDATED)(F-9)
+    Note over AI,LSN: 阶段三 执行·进度与交互(D-21:进度由AI bar自呈现·交互进程内闭环)
+    AI->>TMS: SetTaskParams(payload更新·进度记录)
+    Note over AI: 进度呈现=AI bar(助手自有·数据在己方·无外部通知)
     AI->>TMS: SetTaskState(INPUT_REQUIRED, payload)
-    TMS-->>LSN: OnTaskStateChanged(含payload)
-    LSN->>TMS: SubmitTaskInput(taskId, input)
-    Note right of TMS: 白名单=创建者+已注册监听的系统应用(D-11)·<br/>input覆盖式写入(F-18)
-    TMS-->>AI: OnTaskNotice(INPUT_ARRIVED)
-    AI->>TMS: SetTaskState(WORKING)
+    Note right of TMS: payload留存TaskRecord(事实记录·R-16)·<br/>交互超时计时启动(30min)
+    TMS-->>LSN: OnTaskStateChanged(含payload·安全等模块可观测)
+    Note over AI: AI bar呈现描述与可选项→用户选择<br/>(助手进程内闭环·无IPC·无模块中介)
+    AI->>TMS: SetTaskState(WORKING, payload可选携带响应)
     end
 
     rect rgb(255,244,244)
@@ -93,8 +92,8 @@ sequenceDiagram
 | 4 | AMS→TMS | 意向/进程注册（IN_PROCESS_CALL） | F-29 规则 0 | 通道鉴权/B-2 失败→拒绝纳管，启动不受影响（R-8） |
 | 5 | TMS→PS | AddProcessToTask | ADR-5 | R-22 超限→拒绝+告警 |
 | 6 | PS→RCP→EXT | 施加豁免+生效校验+EDS | R-19/P3/P7 | 未生效→告警+TASK 事件（图 4） |
-| 7 | AI→TMS | SetTaskParams(payload) | F-9 | payload 超限→ERR_INVALID_PARAM |
-| 8 | LSN→TMS | SubmitTaskInput | R-17/D-11 | 白名单外→ERR_TASK_PERMISSION_DENIED；非交互态→ERR_TASK_INVALID_STATE |
+| 7 | AI→TMS | SetTaskParams(payload) | B-4/D-21 | payload 超限→ERR_INVALID_PARAM（进度呈现由 AI bar 自呈现，无外部通知） |
+| 8 | AI 进程内 | AI bar 交互闭环→SetTaskState 流转 | R-17/D-21 | 流转非法→ERR_TASK_INVALID_STATE_TRANSITION（响应可选经流转 payload 携带） |
 | 9 | AI→TMS | SetTaskState(COMPLETED) | R-4/R-9 | — |
 | 10 | PS→RCP | 双通道清理 | R-20 | 失败重试≤3+告警（图 7） |
 
@@ -218,39 +217,38 @@ flowchart TD
 
 ---
 
-## 图 5：INPUT/AUTH 交互传达（HITL）
+## 图 5：INPUT/AUTH 交互承载（AI bar 内化，D-21）
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant AI as AI助手(创建者)
+    participant BAR as AI bar(助手自有UI·进程内)
     participant TMS as TaskManagerService
-    participant UI as 系统UI(已注册监听)
+    participant LSN as 监听者(安全等系统模块)
     participant USR as 用户
 
     AI->>TMS: SetTaskState(INPUT_REQUIRED, payload)
-    Note right of TMS: payload必填校验(AC-4.1·≤4KB)·<br/>状态机WORKING→INPUT_REQUIRED·<br/>交互态属激活态(豁免维持F-5)·<br/>交互超时计时启动(30min)
-    TMS-->>UI: OnTaskStateChanged(taskId,INPUT_REQUIRED,payload)
-    Note over UI: 展示描述与可选项
-    USR->>UI: 选择/输入
-    UI->>TMS: SubmitTaskInput(taskId,input)
-    Note right of TMS: 白名单:创建者或已注册监听系统UI(D-11)·<br/>非交互态→ERR_TASK_INVALID_STATE·<br/>input≤4KB·多次提交覆盖(F-18)
-    TMS->>TMS: input写入TaskRecord<br/>TASK_INPUT(submit)事件
-    TMS-->>AI: OnTaskNotice(INPUT_ARRIVED)
-    Note over AI: 已注册监听则实时收到·<br/>未注册可GetTaskInfo轮询
-    AI->>TMS: SetTaskState(WORKING或COMPLETED)
-    Note over TMS: 出交互态·交互超时计时终止
+    Note right of TMS: payload必填校验(AC-4.1·≤4KB)·<br/>状态机WORKING→INPUT_REQUIRED·<br/>payload留存TaskRecord(事实记录·R-16)·<br/>交互态属激活态(豁免维持F-5)·<br/>交互超时计时启动(30min)
+    TMS-->>LSN: OnTaskStateChanged(taskId,INPUT_REQUIRED,payload)
+    Note over LSN: 交互事实可观测(安全/审计)<br/>不参与交互
+    AI->>BAR: 呈现描述与可选项(进程内·数据在己方)
+    BAR->>USR: 展示
+    USR->>BAR: 选择/输入
+    BAR->>AI: 响应(进程内·无IPC·无模块中介)
+    AI->>TMS: SetTaskState(WORKING或COMPLETED·payload可选携带响应)
+    Note over TMS: 出交互态·交互超时计时终止·<br/>TASK_INPUT(require)已记录·submit事件随D-21移除
 ```
 
 **分步说明**
 
 | 步骤 | 动作 | 依据 | 失败路径 |
 |------|------|------|----------|
-| 1 | 进入交互态 | R-16 | payload 缺失→ERR_INVALID_PARAM |
-| 2 | 回调携带 payload | R-14 | 监听者死亡自动移除（DeathRecipient） |
-| 3 | 回传 input | R-17/D-11 | 白名单外→ERR_TASK_PERMISSION_DENIED（AC-4.4） |
-| 4 | 通知创建者 | D-11 | 未注册监听→轮询兜底 |
-| 5 | 流转出交互态 | R-17 | 任务被取消/销毁→R-18 清理不再回调 |
+| 1 | 进入交互态（payload 留存） | R-16/D-21 | payload 缺失→ERR_INVALID_PARAM |
+| 2 | 回调携带 payload（监听方可观测） | R-14/D-21 | 监听者死亡自动移除（DeathRecipient） |
+| 3 | AI bar 呈现（助手进程内） | D-21 | 无模块中介——不经任务管理模块 |
+| 4 | 用户响应→助手直接获得 | D-21 | 助手超时未流转→图 6 交互超时处置 |
+| 5 | 流转出交互态（响应可选经 payload 携带） | R-17/D-21 | 流转非法→ERR_TASK_INVALID_STATE_TRANSITION；任务被取消/销毁→R-18 清理不再回调 |
 
 ---
 

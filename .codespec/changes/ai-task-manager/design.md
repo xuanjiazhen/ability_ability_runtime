@@ -41,7 +41,7 @@
 
 | 层 | 模块 | 职责 | 修改类型 |
 |----|------|------|----------|
-| 应用层（AI 助手/系统 UI，系统应用） | 调用方进程 | 经 TaskManagerClient 调用任务接口 | 新增（外部调用方，本仓提供客户端） |
+| 应用层（AI 助手；安全管控/审计/系统状态监控等监听方，系统应用） | 调用方进程 | 经 TaskManagerClient 调用任务接口（D-21：监听消费方重定位） | 新增（外部调用方，本仓提供客户端） |
 | inner API 客户端 | `interfaces/inner_api/app_manager/task_manager/` | TaskManagerClient / ITaskManager stub·proxy / TaskListener | 新增 |
 | 服务层 | `services/appmgr/src/task_mgr/` | 任务管理：任务模型、状态机、监听、交互传达、DFX | 新增 |
 | 服务层 | `services/appmgr/src/process_schedule/` | 通用进程调度管理：进程组、管控档位、管控动作施加/撤销、多任务归属合并 | 新增 |
@@ -70,7 +70,7 @@
 
 | 维度 | 设计结论 |
 |------|----------|
-| 性能 | 拦截点零开销（无 taskId 直接短路）；任务操作（AI 助手/系统 UI）为 ITaskManager 跨进程 IPC（含 Binder 往返），AMS 拦截点→AppMS 为 foundation 进程内调用（经 IN_PROCESS_CALL 身份重置，F-29）；状态机事件处理器串行，任务操作端到端 <5ms（spec NFR） |
+| 性能 | 拦截点零开销（无 taskId 直接短路）；任务操作（AI 助手/监听方系统模块）为 ITaskManager 跨进程 IPC（含 Binder 往返），AMS 拦截点→AppMS 为 foundation 进程内调用（经 IN_PROCESS_CALL 身份重置，F-29）；状态机事件处理器串行，任务操作端到端 <5ms（spec NFR） |
 | 安全与权限 | 仅基础鉴权：接口入口校验系统应用身份；纳管走 B-2 caller 校验；安全管控细则（隐私/授权策略）不在范围 |
 | 兼容性 | 全新增 inner API 与模块；无 taskId 启动行为不变（R-13）；新增配置项不改变既有默认行为 |
 | API/SDK | 新增 ITaskManager InnerApi（IDL），无 Public/System API |
@@ -87,7 +87,7 @@
 | ADR-4 | RSS 集成方式 | **封装 RSS Proxy 代理层**（代理模式）：按管控动作语义定义接口（豁免/解冻/查询/提权预留），一期骨架实现（内存登记+告警，可配探测开关），RSS 团队设计明确后替换真实实现（优先复用现有 resType 505/517，如 RSS 提供新接口则直接对接） | 直接复用现有 resType 对接（payload 语义未明确，无法落地）；新增 RSS resType/插件（RSS 团队主导，触发内存基线评审） | RSS 设计由 RSS 团队主导（暂未明确）；代理层隔离使 RSS 对接变化不波及任务/调度上层；白名单已确认（res_sched_service.cpp:175）可供对接期参考 | AC-5.x |
 | ADR-5 | 管控档位模型 | 档位化 + 合并：任务优先级→管控档位（0~3）；进程档位 = max(纳管任务档位)；档位变化增量施加/撤销 RSS 动作 | 每任务独立施加（同进程重复调用 RSS，幂等管理复杂）；全局统一（无法表达优先级差） | 档位合并天然满足需求 11（多任务按最高）；增量动作避免重复调用 | AC-2.3, AC-5.4 |
 | ADR-6 | 状态机驱动 | AI 助手驱动 + 模块校验（合法流转表；终态不可回退；REJECTED 仅创建者可设） | 助手全权设置（状态易乱，放弃）；模块自动推导（语义易偏差，放弃） | 与需求 2/5 一致；流转合法性由系统把关 | AC-1.2, AC-1.3 |
-| ADR-7 | INPUT/AUTH 交互通道 | 状态监听回调携带 payload（描述+可选项 JSON），SubmitTaskInput 回传，input 存任务记录 | 独立消息通道（机制更重，与状态监听解耦，一期不需要） | 与 ADK HITL（request_credential 挂起-恢复）语义一致；系统 UI 已监听状态流 | AC-4.x |
+| ADR-7 | INPUT/AUTH 交互承载 | **AI bar 内化交互（D-21，2026-08-26 需求变更）**：INPUT_REQUIRED/AUTH_REQUIRED 状态 + payload（描述+可选项）由创建者设置并留存任务记录（供 AI bar 呈现与状态可观测）；人机交互（用户选择/输入）在助手进程内经 AI bar 完成，**不经任务管理模块传递**；交互响应可选取流转 payload 携带（无专用机制）。状态监听通道保留，消费者=安全等系统模块（状态感知/审计） | ~~状态监听回调携带 payload + SubmitTaskInput 回传通道（D-11，2026-08-24 决策）~~——被 D-21 取代（进度展示与交互均由 AI bar 承担，外部传递通道无消费方）；独立消息通道（更重，放弃） | 与 ADK HITL 语义对应（挂起-恢复由助手自闭环）；任务模块职责收敛为状态事实记录；监听能力保留供安全等模块 | AC-4.x |
 | ADR-8 | 线程模型 | AppMS 内独立事件处理器（taskHandler 串行线程）处理全部任务操作与回调派发；**IPC 入口线程模型（F-44 补全，第十七轮）：stub 方法 post-and-wait taskHandler（CreateTask 等需同步返回值）；RCP 同步调用（507/517）在 RCP 内部工作线程执行、结果回投 taskHandler——不得在 taskHandler 上直接发起同步调用（串行线程即全局锁，一次 507 超时将阻塞全部任务操作与等待中的 binder 线程）** | 多线程并发处理（需锁/一致性管理，收益低）；RCP 同步调用直接在 taskHandler 执行（实现简单但阻塞放大：超时预算 × 并发任务数） | 与 appmgr/agentmgr 既有 EventHandlerWrap 风格一致；串行免锁、回调顺序有保证；P6"不持锁"要求在串行模型下唯一自洽解 = 同步调用移出串行线程 | 非功能（并发 ≥16） |
 | ADR-9 | QoS 提权（sessionQos 探索结论） | 一期冻结豁免主线；管控档位预留 QoS 扩展位；二期进程级走 RSS 221（PROCESS_QOS_CHANGE），线程级走 QosController/RTG | 一期即上线程级 QoS（需线程 tid：目标进程协作或 /proc 遍历，复杂度高且收益不明，后置） | "sessionQos" 无既有接口（全树勘察）；QosManager 为内核 sched_qos 用户态封装，线程级；任务级"会话语义"由本模块管控档位承载 | 资源调度子模块扩展点 |
 
@@ -142,7 +142,7 @@ enum class TaskType {
 ```
 创建(UNKNOWN) ──┬──> SUBMITTED ──> WORKING ──┬──> INPUT_REQUIRED ──┐
                 │                            ├──> AUTH_REQUIRED ──┤
-                └──> REJECTED（终态）         │                    ├─（SubmitTaskInput 回传）──> WORKING
+                └──> REJECTED（终态）         │                    ├─（AI bar 交互完成·创建者流转）──> WORKING
                                              │                    └─（回传即完成）──> COMPLETED
                                              ├──> COMPLETED（终态）
                                              ├──> FAILED（终态）
@@ -155,7 +155,7 @@ enum class TaskType {
 | UNKNOWN | REJECTED | 创建者 | REJECTED 仅创建者可设（AC-1.3） |
 | SUBMITTED | WORKING / REJECTED / CANCELED | 创建者 | CANCELED 同上 |
 | WORKING | INPUT_REQUIRED / AUTH_REQUIRED / COMPLETED / FAILED / CANCELED | 创建者 | 进入交互状态必须携带 payload（AC-4.1） |
-| INPUT_REQUIRED | WORKING / COMPLETED / FAILED / CANCELED | 创建者 | 出交互状态前可选校验 input 已提交 |
+| INPUT_REQUIRED | WORKING / COMPLETED / FAILED / CANCELED | 创建者 | 交互在 AI bar 内闭环（D-21），流转由创建者驱动 |
 | AUTH_REQUIRED | WORKING / COMPLETED / FAILED / CANCELED | 创建者 | 同上 |
 | 任意终态 | 无（不可回退） | — | R-4 |
 
@@ -165,7 +165,7 @@ enum class TaskType {
 
 ### 4.3 任务记录（TaskRecord）
 
-> 基础字段 ≤1KB；payload/input 为变长字段各 ≤4KB（可配，另计，F-12 修正）。豁免幂等引用计数不在 TaskRecord（per-pid 归属 process_schedule 档位状态，F-15 修正）。
+> 基础字段 ≤1KB；payload 为变长字段 ≤4KB（可配，另计，F-12 修正；input 字段随 D-21 移除）。豁免幂等引用计数不在 TaskRecord（per-pid 归属 process_schedule 档位状态，F-15 修正）。
 
 ```
 struct TaskRecord {
@@ -174,7 +174,6 @@ struct TaskRecord {
     TaskPriority priority;
     TaskState state;
     std::string payload;           // 状态 payload（交互描述/可选项/进度）
-    std::string input;             // SubmitTaskInput 回传内容（交互态）
     int32_t creatorTokenId;        // B-2 校验：创建者 tokenId
     int32_t creatorUid;            // 创建者 uid（多用户隔离维度）
     int32_t userId;                // 创建者 userId（跨用户不可见）
@@ -212,7 +211,7 @@ services/appmgr/
 
 interfaces/inner_api/app_manager/task_manager/
 ├── ITaskManager.idl                      # 接口定义（IDL 生成 stub/proxy）
-├── include/task_manager_client.h         # C++ 客户端（AI 助手/系统 UI/AMS 使用）
+├── include/task_manager_client.h         # C++ 客户端（AI 助手/监听方系统模块/AMS 使用）
 ├── include/task_listener.h               # ITaskListener 回调接口（IRemoteBroker）
 └── BUILD.gn
 ```
@@ -251,7 +250,7 @@ interface ITaskManager {
     int32 GetTaskInfos(out List<TaskInfo> infos);
     int32 RegisterTaskListener(in IRemoteObject listener);
     int32 UnregisterTaskListener(in IRemoteObject listener);
-    int32 SubmitTaskInput(in string taskId, in string input);
+    // SubmitTaskInput 已移除（D-21：交互经 AI bar 内化，无外部传递通道）
     // 内部（AMS 拦截点→AppMS，经 app_manager 客户端体系）
     int32 RegisterTaskIntent(in string taskId, in int32 callerTokenId);  // 两段式①
     int32 RegisterTaskProcess(in string taskId, in int32 pid, in int32 callerTokenId); // 两段式②
@@ -266,7 +265,7 @@ struct TaskCreateParams { int32 type; int32 priority; string payload; };  // pay
 struct TaskParams { int32 priority; string payload; };  // 可调参数：priority/payload（type 创建后不可调，受限规则见 §5.6，B-3/B-4 补全）
 struct TaskInfo {
     string taskId; int32 type; int32 priority; int32 state;
-    string payload; string input; List<int32> processPids;
+    string payload; List<int32> processPids;
     int64 createTime; int64 updateTime;
 };
 ```
@@ -274,7 +273,7 @@ struct TaskInfo {
 **回调接口：**
 
 ```
-interface ITaskListener {   // 系统 UI 注册
+interface ITaskListener {   // 监听方注册（安全管控/审计/系统状态监控等系统模块，D-21）
     [oneway] void OnTaskStateChanged(in string taskId, in int32 state, in string payload, in int64 timestamp);
     [oneway] void OnTaskNotice(in string taskId, in int32 noticeType, in string payload, in int64 timestamp);
     // 通知类事件（B-5 补全）：交互超时限期处置（F-5）、限时豁免到期预警（C-2）等非状态变更通知；
@@ -419,16 +418,16 @@ if (targetPid > 0) {
 
 > 调用经 `interfaces/inner_api/app_manager/` 客户端（既有 AMS→AppMS 通道体系），符合 AGENTS.md；所有调用失败仅日志告警，不阻断启动（R-7/R-8/R-13）。
 
-### 5.5 监听与交互机制
+### 5.5 监听与交互机制（D-21 重写，2026-08-26 需求变更）
 
-- **监听**：`TaskListenerManager` 维护注册表（IRemoteObject 序列化后为 key）；状态变更在 taskHandler 线程派发（回调顺序与状态变更顺序一致，R-14）；监听者死亡自动移除（DeathRecipient）。
-- **交互传达**（ADR-7，对齐 ADK HITL）：
-  - 进入 INPUT_REQUIRED/AUTH_REQUIRED：创建者 `SetTaskState` 携带 payload `{"type":"input"|"auth","text":"<描述>","options":["<可选项>"]}`（≤4KB，R-16）；监听者（系统 UI）收到回调展示；
-  - 用户选择/输入后：系统 UI 调 `SubmitTaskInput(taskId, input)` 直接提交——**任务管理模块即为 UI→助手的传递通道**（评审决策 2026-08-24：系统 UI ↔ AI 助手间不假设存在可依赖的既有通道，传递通道由本模块提供）；调用方白名单 = 创建者 + **已注册监听的系统 UI**（权限管控，A-2 决策落定）；input 写入 TaskRecord（TASK_INPUT(submit)）并经 `OnTaskNotice(INPUT_ARRIVED)` 通知创建者；
-  - input 写入 TaskRecord；创建者经 GetTaskInfo/监听获得；任务可流转出交互态（R-17）；
-  - 交互态任务被取消/销毁：payload/input 清除、不再回调（R-18）。
-- **通知类事件（B-5 补全）**：交互超时限期处置（F-5）、限时豁免到期预警（C-2）等非状态变更通知经 `OnTaskNotice(taskId, noticeType, payload, timestamp)` 回调派发（与状态回调同一监听注册、同一派发线程、同受 userId 过滤）；noticeType 枚举：**INPUT_ARRIVED**（交互输入到达，通知创建者）/ **PAYLOAD_UPDATED**（任务 payload 更新，通知监听者——SetTaskParams 的 payload 变化经此派发，支撑系统 UI 实时展示执行进度，F-9 补全，第十三轮）/ INTERACTIVE_TIMEOUT / EXEMPT_EXPIRING / EXEMPT_EXPIRED。
-- **payload 内容约定（C-4，评审决策 2026-08-24：权限管控）**：payload/input 为任务业务描述；敏感内容可见性经**权限管控**约束——RegisterTaskListener 与 SubmitTaskInput 均校验系统应用身份/调用白名单，仅授权系统应用可收发任务数据；模块不做内容过滤。
+- **监听（保留，消费者重定位）**：`TaskListenerManager` 维护注册表（IRemoteObject 序列化后为 key）；状态变更在 taskHandler 线程派发（回调顺序与状态变更顺序一致，R-14）；监听者死亡自动移除（DeathRecipient）。**监听者 = 任意已注册 ITaskListener 的系统应用**——典型消费方为**安全管控、审计、系统状态监控等系统模块**（状态感知：任务何时进入交互态/终态、归属进程变化）；执行进度展示**不再依赖本通道**（由 AI 助手自有 AI bar 呈现，助手即创建者、数据在己方）。
+- **交互承载（ADR-7/D-21：AI bar 内化）**：
+  - 进入 INPUT_REQUIRED/AUTH_REQUIRED：创建者 `SetTaskState` 携带 payload `{"type":"input"|"auth","text":"<描述>","options":["<可选项>"]}`（≤4KB，R-16）——payload 留存 TaskRecord（**事实记录**：交互请求的内容快照，供 AI bar 呈现、GetTaskInfo 查询与审计）；监听者经状态回调感知交互态（含 payload，安全模块可见交互发生与内容）；
+  - **人机交互在助手进程内闭环**：AI bar（助手自有 UI）呈现描述与可选项 → 用户选择/输入 → 助手直接获得响应（进程内/自有通道）→ 助手 `SetTaskState` 流转出交互态（WORKING/COMPLETED 等）；**交互响应可选取该次流转的 payload 携带**（可选，无专用机制、无专用存储字段）；
+  - ~~SubmitTaskInput 回传通道 / INPUT_ARRIVED 通知 / input 字段 / 白名单传递（D-11，2026-08-24）~~——**随 D-21 移除**（外部传递通道无消费方：进度展示与交互均由 AI bar 承担）；
+  - 交互态任务被取消/销毁：payload 清除、不再回调（R-18）。
+- **通知类事件（B-5 补全；D-21 后余 3 类）**：交互超时限期处置（F-5）、限时豁免到期预警（C-2）等非状态变更通知经 `OnTaskNotice(taskId, noticeType, payload, timestamp)` 回调派发（与状态回调同一监听注册、同一派发线程、同受 userId 过滤）；noticeType 枚举：INTERACTIVE_TIMEOUT / EXEMPT_EXPIRING / EXEMPT_EXPIRED（~~INPUT_ARRIVED~~/~~PAYLOAD_UPDATED~~ 随 D-21 移除——前者无外部回传方，后者面向外部进度展示无消费方）。
+- **payload 内容约定（C-4，评审决策 2026-08-24：权限管控）**：payload 为任务业务描述；敏感内容可见性经**权限管控**约束——RegisterTaskListener 校验系统应用身份，仅授权系统应用可接收任务数据（含回调 payload 与 GetTaskInfo 查询）；模块不做内容过滤。
 
 ### 5.6 并发与多任务归属（需求 10/11）
 
@@ -439,15 +438,14 @@ if (targetPid > 0) {
 - 并发上限：创建者活跃任务 ≤ 16（R-2）；全局活跃豁免进程数上限（默认 64）与**单任务纳管进程数上限（默认 16）**（R-22，A-5 补全：单任务上限约束链式纳管膨胀；**两项上限经可配参数支持调整**，评审决策 2026-08-24）；豁免时长上限见 R-21。
 - **进程级纳管原则**（F-3 修正，评审第七轮）：纳管以**进程**为单位——进程加入任务后，其内全部组件活动（新建 ability/连接等）共享该任务的管控档位，无需组件级单独纳管；taskId 仅用于"进程加入任务"的触发点，同进程内后续组件启动无需携带 taskId（也不改变归属）。同进程组件在任务内的活动天然受管控（进程被豁免 → 其内组件活动不被冻结）。
 - **优先级动态调整联动**（F-6 修正）：SetTaskParams 提升优先级且任务处于激活态时，触发 OnTaskActiveChanged → process_schedule 档位重算，管控立即按新档位生效（与状态变更同一联动路径）。
-- **SetTaskParams 受限规则**（B-4 补全）：仅创建者可调；任务处于非终态（终态返回 ERR_TASK_INVALID_STATE）；可调字段 = priority / payload（type 创建后不可调）；priority 变化经上述联动路径重算档位（升档立即施加、降档立即撤销）；**payload 发生变化**时经 `OnTaskNotice(PAYLOAD_UPDATED)` 派发给已注册监听者（任务进度/描述更新实时触达系统 UI，F-9 补全——R-14 状态回调仅覆盖状态变更，payload-only 变更无状态回调）；激活态任务且 **priority 发生变化**时触发豁免时长**续期**（payload-only 变更不续期，防滥用续期；计时/续期计数为 TaskRecord 内存态，§6.1/R-21，评审决策 2026-08-24）。
+- **SetTaskParams 受限规则**（B-4 补全）：仅创建者可调；任务处于非终态（终态返回 ERR_TASK_INVALID_STATE）；可调字段 = priority / payload（type 创建后不可调）；priority 变化经上述联动路径重算档位（升档立即施加、降档立即撤销）；payload 变化仅更新 TaskRecord（~~PAYLOAD_UPDATED 通知~~随 D-21 移除——进度展示由 AI bar 自呈现，助手即数据源，无需回调通知）；激活态任务且 **priority 发生变化**时触发豁免时长**续期**（payload-only 变更不续期，防滥用续期；计时/续期计数为 TaskRecord 内存态，§6.1/R-21，评审决策 2026-08-24）。
 
 ### 5.7 权限与身份（基础鉴权）
 
 | 入口 | 校验 |
 |------|------|
 | CreateTask/DestroyTask/CancelTask/SetTaskState/SetTaskParams | 系统应用身份（tokenId 属系统应用/SA 白名单）；除 CreateTask 外再校验创建者（R-6） |
-| SubmitTaskInput | 系统应用身份 + 调用方白名单 = **创建者或已注册监听的系统 UI**（任务管理模块提供 UI→助手传递通道，A-2 决策 2026-08-24；数据收发经权限管控，C-4） |
-| GetTaskInfo(s)/RegisterTaskListener | 系统应用身份（R-15） |
+| GetTaskInfo(s)/RegisterTaskListener | 系统应用身份（R-15；监听典型消费方=安全管控/审计/系统状态监控等系统模块，D-21） |
 | RegisterTaskIntent/RegisterTaskProcess | B-2 caller 校验（5.3）+ **通道鉴权**（F-8：native 调用方信任入参身份；非 native 调用方入参 callerTokenId 须等于 IPC 实际身份 + pid 归属校验） |
 | 多用户 | 任务归属 userId；**GetTaskInfos 按调用方 userId 过滤、跨用户 taskId 的 GetTaskInfo 返回 ERR_TASK_NOT_FOUND、OnTaskStateChanged/OnTaskNotice 仅派发给同 userId 监听者**（C-3 落地，R-14/R-15） |
 
@@ -607,7 +605,7 @@ struct TaskEndInfo {             // 任务结束清理信息（评审第六轮�
 | TASK_CREATE | BEHAVIOR | taskId, type, priority, callerUid, result |
 | TASK_STATE_CHANGE | BEHAVIOR | taskId, oldState, newState, result |
 | TASK_DESTROY | BEHAVIOR | taskId, state, reason(cancel/destroy), result |
-| TASK_INPUT | BEHAVIOR | taskId, action(require/submit/clear), result |
+| TASK_INPUT | BEHAVIOR | taskId, action(require/clear), result（submit 随 D-21 移除——无外部回传） |
 | TASK_RSSCONTROL | BEHAVIOR | taskId, pid, action(exempt/thaw/restore), level, result |
 | TASK_ABUSE_WARNING | FAULT | taskId, callerUid, reason(limit/permission_forgery/timeout_demote/verify_failed/replay_failed) |
 
@@ -628,7 +626,7 @@ hilog_tag_wrapper 新增 `AAFwkLogTag::TASK`（或复用 AppMgr tag），TAG_LOG
 | 错误码 | 值（占位） | 语义 |
 |--------|-----------|------|
 | ERR_TASK_NOT_FOUND | TASK 段 + 1 | 任务不存在 |
-| ERR_TASK_INVALID_STATE | + 2 | 当前状态不允许该操作（如终态 CancelTask、非交互态 SubmitTaskInput） |
+| ERR_TASK_INVALID_STATE | + 2 | 当前状态不允许该操作（如终态 CancelTask、终态 SetTaskParams） |
 | ERR_TASK_INVALID_STATE_TRANSITION | + 3 | 非法状态流转 |
 | ERR_TASK_PERMISSION_DENIED | + 4 | 非创建者操作/仿冒拒绝/非系统应用 |
 | ERR_TASK_LIMIT_EXCEEDED | + 5 | 任务数/豁免上限 |
@@ -657,7 +655,7 @@ hilog_tag_wrapper 新增 `AAFwkLogTag::TASK`（或复用 AppMgr tag），TAG_LOG
 |---------|------|------------|------|
 | TASK-0 | 骨架接线：IDL/客户端/模块目录/BUILD/gni/错误码 | ITaskManager.idl、task_manager_client、appmgr BUILD.gn | 无 |
 | TASK-1 | 任务模型与状态机（TaskRecord/StateMachine/CreateTask/SetTaskState/生命周期） | task_mgr 核心 | design+spec Approved |
-| TASK-2 | 查询/监听/交互（ListenerManager/SubmitTaskInput/payload 传达/UI→助手传递通道） | task_mgr | TASK-1 |
+| TASK-2 | 查询/监听（ListenerManager/payload 事实记录；交互经 AI bar 内化，D-21） | task_mgr | TASK-1 |
 | TASK-3 | AMS 拦截点（条件两段式纳管 + caller 校验 + 通道鉴权） | abilitymgr 拦截点 | TASK-1 |
 | TASK-4 | 管控与 ResourceControlProxy（档位合并/RSS 动作/内存登记/上限/续期） | process_schedule、resource_control_proxy | TASK-1, TASK-3 |
 | TASK-5 | DFX（hisysevent/dump/日志）+ 错误码接入 | hisysevent.yaml、task_dfx | TASK-1~4 |
@@ -680,7 +678,6 @@ hilog_tag_wrapper 新增 `AAFwkLogTag::TASK`（或复用 AppMgr tag），TAG_LOG
 | `int32_t ITaskManager::GetTaskInfos(std::vector<TaskInfo>&)` | InnerApi | — | 同上 | 系统应用 | - |
 | `int32_t ITaskManager::RegisterTaskListener(const sptr<IRemoteObject>&)` | InnerApi | — | 同上 | 系统应用 | - |
 | `int32_t ITaskManager::UnregisterTaskListener(const sptr<IRemoteObject>&)` | InnerApi | — | 同上 | 系统应用 | - |
-| `int32_t ITaskManager::SubmitTaskInput(const std::string&, const std::string&)` | InnerApi | — | 同上 | 系统应用 | - |
 | `int32_t ITaskManager::RegisterTaskIntent(const std::string&, int32_t)`（内部） | InnerApi | — | 同上 | AMS 调用 | - |
 | `int32_t ITaskManager::RegisterTaskProcess(const std::string&, int32_t, int32_t)`（内部） | InnerApi | — | 同上 | AMS 调用 | - |
 | `int32_t ITaskManager::UnregisterTaskProcess(const std::string&, int32_t)`（内部） | InnerApi | — | 同上 | AMS 调用 | - |
@@ -727,7 +724,7 @@ sa_profile/501.json: 不变（复用 appms）
 
 ```
 [AI 助手（系统应用）]──ITaskManager IPC──▶[AppMS (SA 501, foundation)]
-[系统 UI（系统应用）]──ITaskManager IPC──▶[AppMS]         │
+[监听方系统模块（安全/审计等，系统应用）]──ITaskManager IPC──▶[AppMS]  │
         [AMS (SA 180, foundation)]──拦截点(app_manager 客户端)──▶[AppMS]
                                             AppMS 内部：
                         ┌───────────────┐    ┌──────────────────────┐
@@ -763,14 +760,14 @@ sa_profile/501.json: 不变（复用 appms）
 | 7 | AI 助手 | AppMS | SetTaskState(COMPLETED) | 终态；监听回调 |
 | 8 | AppMS | process_schedule | OnTaskActiveChanged | 档位重算；撤销豁免（剩余任务最高档）；TASK_RSSCONTROL |
 
-**INPUT/AUTH 交互流（对齐 ADK HITL）：**
+**INPUT/AUTH 交互流（D-21 重写：AI bar 内化，对齐 ADK HITL 挂起-恢复由助手自闭环）：**
 
 | 步骤 | 调用方 | 被调用方 | 数据/接口 | 说明 |
 |------|--------|----------|-----------|------|
-| 1 | AI 助手 | AppMS | SetTaskState(INPUT_REQUIRED, payload{text, options}) | 状态机校验 payload 必填；监听回调携带 payload；TASK_INPUT(require) |
-| 2 | AppMS | 系统 UI | OnTaskStateChanged(INPUT_REQUIRED, payload) | UI 展示描述与可选项 |
-| 3 | 系统 UI（用户选择） | AppMS | SubmitTaskInput(taskId, input) | 校验：创建者或已注册监听的系统 UI（白名单，任务管理模块提供传递通道，A-2 决策 2026-08-24）；写入 TaskRecord.input；TASK_INPUT(submit)；OnTaskNotice(INPUT_ARRIVED) 通知创建者 |
-| 4 | AI 助手（创建者） | AppMS | 监听 OnTaskNotice / GetTaskInfo | 获得 input；SetTaskState(WORKING/COMPLETED) 继续 |
+| 1 | AI 助手 | AppMS | SetTaskState(INPUT_REQUIRED, payload{text, options}) | 状态机校验 payload 必填；payload 留存 TaskRecord（事实记录）；监听回调携带 payload（安全等模块感知交互态）；TASK_INPUT(require) |
+| 2 | AI 助手（AI bar） | 用户 | 助手进程内呈现 | 描述与可选项经 AI bar 展示——**不经任务管理模块**（助手即 payload 源） |
+| 3 | 用户 → AI bar → 助手 | （助手进程内） | 用户选择/输入 | 助手直接获得响应，无 IPC、无模块中介 |
+| 4 | AI 助手 | AppMS | SetTaskState(WORKING/COMPLETED, payload 可选携带响应) | 流转出交互态；监听回调；交互超时计时终止 |
 
 **异常/降级流：** 豁免撤销失败重试 ≤3 → 告警（日志留痕，R-20）；进程死亡 → 死亡通知链 → RemoveProcessFromTask + 档位重算（R-12）；AppMS 异常重启 → foundation 进程重启、全部应用进程被清理，任务记录与 RSS 侧豁免随进程消亡同亡（无孤儿豁免，C-1 结论；spec 非功能可靠性）。
 

@@ -33,9 +33,9 @@
   <!-- 调用方层 -->
   <rect x="60" y="410" width="1480" height="68" rx="14" fill="#f4f8ff" stroke="#a9c5f9" stroke-width="2"/>
   <text x="230" y="442" font-size="17" font-weight="700" fill="#155eef" text-anchor="middle">AI 语音助手</text>
-  <text x="230" y="464" font-size="12.5" fill="#667085" text-anchor="middle">创建任务/设置状态/提交输入</text>
-  <text x="800" y="442" font-size="17" font-weight="700" fill="#155eef" text-anchor="middle">系统 UI</text>
-  <text x="800" y="464" font-size="12.5" fill="#667085" text-anchor="middle">监听任务状态/展示进度/用户交互</text>
+  <text x="230" y="464" font-size="12.5" fill="#667085" text-anchor="middle">创建任务/设置状态（AI bar 呈现进度与交互）</text>
+  <text x="800" y="442" font-size="17" font-weight="700" fill="#155eef" text-anchor="middle">监听方系统模块</text>
+  <text x="800" y="464" font-size="12.5" fill="#667085" text-anchor="middle">安全/审计/监控：监听任务状态（D-21）</text>
   <text x="1370" y="442" font-size="17" font-weight="700" fill="#155eef" text-anchor="middle">启动链路</text>
   <text x="1370" y="464" font-size="12.5" fill="#667085" text-anchor="middle">StartAbility / ConnectAbility / 意图 / Cli / A2A</text>
   <path d="M 230 478 L 230 512" stroke="#667085" stroke-width="2" marker-end="url(#ar)"/>
