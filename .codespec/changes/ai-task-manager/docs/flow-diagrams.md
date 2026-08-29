@@ -24,7 +24,7 @@
 sequenceDiagram
     autonumber
     participant AI as AI 助手(创建者)
-    participant UI as 系统 UI(监听者)
+    participant LSN as 监听者(已注册 ITaskListener 的系统应用)
     participant AMS as AMS(SA 180)
     participant TMS as TaskManagerService(AppMS·SA 501)
     participant PS as ProcessScheduleManager
@@ -39,7 +39,7 @@ sequenceDiagram
     Note over TMS: TASK_CREATE 事件(hisysevent)
     AI->>TMS: SetTaskState(SUBMITTED)
     Note right of TMS: 状态机校验(UNKNOWN→SUBMITTED合法)·<br/>SUBMITTED属激活态(F-1)
-    TMS-->>UI: OnTaskStateChanged(oneway·R-14)
+    TMS-->>LSN: OnTaskStateChanged(oneway·R-14)
     AI->>TMS: SetTaskState(WORKING)
     end
 
@@ -58,13 +58,13 @@ sequenceDiagram
     end
 
     rect rgb(255,251,242)
-    Note over AI,UI: 阶段三 执行·进度与交互
+    Note over AI,LSN: 阶段三 执行·进度与交互
     AI->>TMS: SetTaskParams(payload更新·进度)
-    TMS-->>UI: OnTaskNotice(PAYLOAD_UPDATED)(F-9)
+    TMS-->>LSN: OnTaskNotice(PAYLOAD_UPDATED)(F-9)
     AI->>TMS: SetTaskState(INPUT_REQUIRED, payload)
-    TMS-->>UI: OnTaskStateChanged(含payload)
-    UI->>TMS: SubmitTaskInput(taskId, input)
-    Note right of TMS: 白名单=创建者+已注册监听UI(D-11)·<br/>input覆盖式写入(F-18)
+    TMS-->>LSN: OnTaskStateChanged(含payload)
+    LSN->>TMS: SubmitTaskInput(taskId, input)
+    Note right of TMS: 白名单=创建者+已注册监听的系统应用(D-11)·<br/>input覆盖式写入(F-18)
     TMS-->>AI: OnTaskNotice(INPUT_ARRIVED)
     AI->>TMS: SetTaskState(WORKING)
     end
@@ -77,7 +77,7 @@ sequenceDiagram
     PS->>RCP: ①RestoreControl(逐pid·按剩余任务重算)
     PS->>RCP: ②NotifyTaskEnd(taskId,pids,reason)
     Note over RCP: 串行执行②在①后·失败重试≤3(R-20)<br/>P7:UnapplyAllowResource(详见图7)
-    TMS-->>UI: OnTaskStateChanged(COMPLETED)
+    TMS-->>LSN: OnTaskStateChanged(COMPLETED)
     AI->>TMS: DestroyTask
     TMS-->>AI: ERR_OK(记录清理·不可再查询)
     end
@@ -94,7 +94,7 @@ sequenceDiagram
 | 5 | TMS→PS | AddProcessToTask | ADR-5 | R-22 超限→拒绝+告警 |
 | 6 | PS→RCP→EXT | 施加豁免+生效校验+EDS | R-19/P3/P7 | 未生效→告警+TASK 事件（图 4） |
 | 7 | AI→TMS | SetTaskParams(payload) | F-9 | payload 超限→ERR_INVALID_PARAM |
-| 8 | UI→TMS | SubmitTaskInput | R-17/D-11 | 白名单外→ERR_TASK_PERMISSION_DENIED；非交互态→ERR_TASK_INVALID_STATE |
+| 8 | LSN→TMS | SubmitTaskInput | R-17/D-11 | 白名单外→ERR_TASK_PERMISSION_DENIED；非交互态→ERR_TASK_INVALID_STATE |
 | 9 | AI→TMS | SetTaskState(COMPLETED) | R-4/R-9 | — |
 | 10 | PS→RCP | 双通道清理 | R-20 | 失败重试≤3+告警（图 7） |
 
