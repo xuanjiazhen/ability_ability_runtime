@@ -665,41 +665,42 @@ inline void WriteDumpStateInfoLeak(MessageParcel &parcel, FuzzedDataProvider &fd
 
 // ==================== W16 Variants ====================
 // Convert a std::string built by Builder to std::u16string for WriteString16 APIs.
-template <typename Builder>
-inline std::u16string ToU16(Builder &&builder, FuzzedDataProvider &fdp, size_t maxLen = 0)
-{
-    std::string s = builder(fdp, maxLen);
-    return std::u16string(s.begin(), s.end());
-}
-
+// Call builders by name directly so default arguments apply (they do not through
+// function references, which caused "too few arguments" compile errors).
 inline std::u16string BuildSymlinkAttackW16(FuzzedDataProvider &fdp, size_t maxLen = 0)
 {
-    return ToU16(BuildSymlinkAttack, fdp, maxLen);
+    std::string s = BuildSymlinkAttack(fdp, maxLen);
+    return std::u16string(s.begin(), s.end());
 }
 
 inline std::u16string BuildSpecialCharStringW16(FuzzedDataProvider &fdp, size_t maxLen = 0)
 {
-    return ToU16(BuildSpecialCharString, fdp, maxLen);
+    std::string s = BuildSpecialCharString(fdp, maxLen);
+    return std::u16string(s.begin(), s.end());
 }
 
 inline std::u16string BuildOversizedStringW16(FuzzedDataProvider &fdp, size_t maxLen = 0)
 {
-    return ToU16(BuildOversizedString, fdp, maxLen);
+    std::string s = BuildOversizedString(fdp, maxLen);
+    return std::u16string(s.begin(), s.end());
 }
 
 inline std::u16string BuildMaliciousBundleNameW16(FuzzedDataProvider &fdp, size_t maxLen = 0)
 {
-    return ToU16(BuildMaliciousBundleName, fdp, maxLen);
+    std::string s = BuildMaliciousBundleName(fdp, maxLen);
+    return std::u16string(s.begin(), s.end());
 }
 
 inline std::u16string BuildUriAttackStringW16(FuzzedDataProvider &fdp, size_t maxLen = 0)
 {
-    return ToU16(BuildUriAttackString, fdp, maxLen);
+    std::string s = BuildUriAttackString(fdp, maxLen);
+    return std::u16string(s.begin(), s.end());
 }
 
 inline std::u16string BuildSandboxEscapePathW16(FuzzedDataProvider &fdp, size_t maxLen = 0)
 {
-    return ToU16(BuildSandboxEscapePath, fdp, maxLen);
+    std::string s = BuildSandboxEscapePath(fdp, maxLen);
+    return std::u16string(s.begin(), s.end());
 }
 
 // ==================== Optional Field Helpers ====================

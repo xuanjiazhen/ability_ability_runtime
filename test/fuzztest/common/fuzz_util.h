@@ -24,6 +24,8 @@
 
 #include <fuzzer/FuzzedDataProvider.h>
 #include "message_parcel.h"
+#include "message_option.h"
+#include "securec.h"
 
 namespace OHOS {
 namespace FuzzUtil {
@@ -146,7 +148,8 @@ inline FuzzedDataProvider PrepareFuzzParcel(const char *data, size_t size,
     MessageParcel &parcel, const std::u16string &token)
 {
     parcel.WriteInterfaceToken(token);
-    return FuzzedDataProvider(data + U32_AT_SIZE, size - U32_AT_SIZE);
+    return FuzzedDataProvider(reinterpret_cast<const uint8_t *>(data + U32_AT_SIZE),
+         size - U32_AT_SIZE);
 }
 
 // Dispatch OnRemoteRequest on a stub instance after parcel construction.

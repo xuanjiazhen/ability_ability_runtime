@@ -13,14 +13,23 @@
  * limitations under the License.
  */
 #include "abilityinfocallbackstub_fuzzer.h"
+
+#include "ability_info_callback_stub.h"
 #include "attack_vectors.h"
 #include "fuzz_util.h"
+#include "iability_info_callback.h"
 
-using namespace OHOS::AppExecFwk;
 using namespace OHOS;
+using namespace OHOS::AppExecFwk;
 
 namespace OHOS {
-class AbilityInfoCallbackStubFuzz : public AbilityInfoCallbackStub {};
+class AbilityInfoCallbackStubFuzz : public AbilityInfoCallbackStub {
+public:
+    void NotifyStartSpecifiedAbility(const sptr<IRemoteObject> &callerToken, const Want &want,
+        int requestCode, sptr<Want> &extraParam) override {}
+    void NotifyRestartSpecifiedAbility(const sptr<IRemoteObject> &token) override {}
+    void NotifyStartAbilityResult(const Want &want, int result) override {}
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
