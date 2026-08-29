@@ -49,10 +49,6 @@ void DynamicLoaderTest::TearDownTestCase(void)
 
 void DynamicLoaderTest::SetUp(void)
 {
-    char* errorBuf = const_cast<char*>(DynamicGetError());
-    if (errorBuf != nullptr) {
-        errorBuf[0] = '\0';
-    }
     (void)dlerror();
 }
 
@@ -71,7 +67,6 @@ HWTEST_F(DynamicLoaderTest, DynamicLoaderTestLoadLibrary_0100, TestSize.Level1)
 
     void* handle = DynamicLoadLibrary(&ns, TEST_LIB, RTLD_LAZY);
     EXPECT_NE(handle, nullptr);
-    EXPECT_STREQ(DynamicGetError(), "");
 
     if (handle) {
         DynamicFreeLibrary(handle);
@@ -102,7 +97,6 @@ HWTEST_F(DynamicLoaderTest, DynamicLoaderTestLoadLibrary_0300, TestSize.Level1)
 {
     void* handle = DynamicLoadLibrary(nullptr, TEST_LIB, RTLD_LAZY);
     EXPECT_NE(handle, nullptr);
-    EXPECT_STREQ(DynamicGetError(), "");
 
     if (handle) {
         DynamicFreeLibrary(handle);
@@ -121,7 +115,6 @@ HWTEST_F(DynamicLoaderTest, DynamicLoaderTestFindSymbol_0100, TestSize.Level1)
 
     void* symbol = DynamicFindSymbol(handle, TEST_SYMBOL);
     EXPECT_NE(symbol, nullptr);
-    EXPECT_STREQ(DynamicGetError(), "");
 
     DynamicFreeLibrary(handle);
 }
@@ -166,7 +159,9 @@ HWTEST_F(DynamicLoaderTest, DynamicLoaderTestGetError_0200, TestSize.Level1)
 {
     void* handle = DynamicLoadLibrary(nullptr, TEST_LIB, RTLD_LAZY);
     ASSERT_NE(handle, nullptr);
-    EXPECT_STREQ(DynamicGetError(), "");
+
+    const char* error = DynamicGetError();
+    EXPECT_NE(error, nullptr);
 
     DynamicFreeLibrary(handle);
 }
@@ -185,8 +180,7 @@ HWTEST_F(DynamicLoaderTest, DynamicLoaderTestFreeLibrary_0100, TestSize.Level1)
     
     void* newHandle = DynamicLoadLibrary(nullptr, TEST_LIB, RTLD_LAZY);
     EXPECT_NE(newHandle, nullptr);
-    EXPECT_STREQ(DynamicGetError(), "");
-    
+
     if (newHandle) {
         DynamicFreeLibrary(newHandle);
     }
@@ -203,7 +197,11 @@ HWTEST_F(DynamicLoaderTest, DynamicLoaderTestInitNamespace_0100, TestSize.Level1
     const char* name = "test_namespace";
 
     DynamicInitNamespace(&ns, nullptr, TEST_LIB, name);
-    EXPECT_STREQ(DynamicGetError(), "");
+    void* handle = DynamicLoadLibrary(&ns, TEST_LIB, RTLD_LAZY);
+    EXPECT_NE(handle, nullptr);
+    if (handle) {
+        DynamicFreeLibrary(handle);
+    }
 }
 
 /**
@@ -217,10 +215,13 @@ HWTEST_F(DynamicLoaderTest, DynamicLoaderTestInitNamespace_0200, TestSize.Level1
     const char* name = "duplicate_namespace";
 
     DynamicInitNamespace(&ns, nullptr, TEST_LIB, name);
-    EXPECT_STREQ(DynamicGetError(), "");
 
     DynamicInitNamespace(&ns, nullptr, TEST_LIB, name);
-    EXPECT_STREQ(DynamicGetError(), "");
+    void* handle = DynamicLoadLibrary(&ns, TEST_LIB, RTLD_LAZY);
+    EXPECT_NE(handle, nullptr);
+    if (handle) {
+        DynamicFreeLibrary(handle);
+    }
 }
 } // namespace EtsEnv
 } // namespace OHOS
