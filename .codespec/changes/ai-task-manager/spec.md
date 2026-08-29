@@ -164,10 +164,10 @@
 | R-6 | 异常 | 非任务创建者调用 SetTaskState/CancelTask/DestroyTask/SetTaskParams | 返回 ERR_TASK_PERMISSION_DENIED，任务不受影响 | 创建者为 CreateTask 时的调用方 tokenId/uid 绑定（~~SubmitTaskInput 白名单~~随 D-21 移除） | AC-1.6 |
 | R-7 | 行为 | 启动链路（StartAbility/ConnectAbility/意图/Cli/A2A，含代理启动变体）请求中 Want 携带 taskId，且业务发起方为任务创建者或任务内已纳管进程 | 目标进程注册进任务（**条件两段式**：进程已存在→直接注册；未创建→意向登记+attach 补注册），GetTaskInfo 可见；纳管成功不影响启动结果 | 校验身份取业务发起方（asCallerSourceToken/specifyTokenId 优先）；任务不存在时忽略 taskId，不报错不阻断 | AC-2.1 |
 | R-8 | 异常 | Want 携带 taskId，但发起方既非任务创建者也非任务内进程（伪造/仿冒） | 拒绝纳管：启动正常执行但进程不纳入任务；不上报错误给调用方 | 校验基于发起方 tokenId/uid 与任务创建者绑定；taskId 不可猜测（R-1） | AC-2.2 |
-| R-9 | 行为 | 任务进入终态（COMPLETED/CANCELED/FAILED/REJECTED）或 DestroyTask | 对该任务下全部纳管进程执行降级：撤销豁免/恢复 QoS；进程归属按剩余任务最高优先级重算（无任务则完全恢复） | 降级在状态机事件处理中同步执行；失败重试 ≤3 次后记录告警 | AC-1.4, AC-5.2 |
+| R-9 | 行为 | 任务进入终态（COMPLETED/CANCELED/FAILED/REJECTED）或 DestroyTask | 对该任务下全部纳管进程执行降级：撤销冻结豁免（CLEAR_EXEMPT）/恢复调度优先级（CLEAR_QOS，二期 QoS 落地后）；进程归属按剩余任务最高优先级重算（无任务则完全恢复——RSS 按原策略自然回冻，无需显式 re-freeze）；**EDS 待机豁免按 uid 级引用计数撤销（该 uid 无其他激活态任务才 Unapply，F-47）**；任务级 NotifyTaskEnd 通知 RSS 清理任务级策略（R-20） | 降级在状态机事件处理中同步执行；**终态同步取消全部计时器（交互超时/限时/硬上限/续期计数），超时处理器校验任务非终态（双保险，F-47）**；失败重试 ≤3 次后记录告警 | AC-1.4, AC-5.2 |
 | R-10 | 边界 | 进程被多个任务纳管，各任务管控档位不同 | 进程实际管控档位 = 纳管它的任务中最高档位；高任务结束后降至次高档位 | 档位映射：任务优先级→管控档位表见 design.md | AC-2.3, AC-5.4 |
 | R-11 | 边界 | 进程被多个任务纳管且最高档任务冻结豁免与次高任务冲突 | 豁免以最高档任务为准；其余任务豁免申请合并（同进程同类型豁免幂等） | 幂等键：taskId+pid+豁免类型 | AC-2.3 |
-| R-12 | 异常 | 任务内纳管进程死亡（进程退出/被杀） | 该进程从任务记录移除，释放其豁免；任务其余进程与任务状态不受影响 | 进程死亡经 appmgr 既有死亡通知链驱动，延迟 ≤ 1s | AC-2.4 |
+| R-12 | 异常 | 任务内纳管进程死亡（进程退出/被杀） | 该进程从任务记录移除，释放其豁免；任务其余进程与任务状态不受影响 | 进程死亡经 appmgr 既有死亡通知链驱动，延迟 ≤ 1s；**该任务全部纳管进程死亡且无其他激活态任务同 uid 时，EDS 待机豁免按 uid 引用计数撤销（F-47）** | AC-2.4 |
 | R-13 | 边界 | 启动请求 Want 未携带 taskId，或携带非法格式 taskId | 启动行为与改动前完全一致；不产生任何纳管/管控副作用 | 拦截仅做参数解析与校验，失败不阻断启动 | AC-2.5 |
 | R-14 | 行为 | 调用 RegisterTaskListener（系统应用），任务状态发生变更 | 监听者回调收到变更事件（含 taskId、新状态、payload、时间戳）；UnregisterTaskListener 后停止回调 | 回调事件顺序与状态变更顺序一致；监听回调不阻塞状态机；回调按监听者 userId 过滤（跨用户任务不派发，C-3） | AC-3.1, AC-3.2 |
 | R-15 | 行为 | 调用 GetTaskInfo(taskId)/GetTaskInfos() | 返回任务详情（状态、类型、优先级、纳管进程、payload、时间戳）/全部任务列表；不存在的 taskId 返回 ERR_TASK_NOT_FOUND | 查询对系统应用开放；返回数据为快照；按调用方 userId 过滤——跨用户 taskId 视为不存在（ERR_TASK_NOT_FOUND），GetTaskInfos 仅返回同 userId 任务（C-3） | AC-3.3, AC-3.4 |

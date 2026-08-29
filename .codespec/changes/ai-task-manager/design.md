@@ -438,7 +438,7 @@ if (targetPid > 0) {
 - 并发上限：创建者活跃任务 ≤ 16（R-2）；全局活跃豁免进程数上限（默认 64）与**单任务纳管进程数上限（默认 16）**（R-22，A-5 补全：单任务上限约束链式纳管膨胀；**两项上限经可配参数支持调整**，评审决策 2026-08-24）；豁免时长上限见 R-21。
 - **进程级纳管原则**（F-3 修正，评审第七轮）：纳管以**进程**为单位——进程加入任务后，其内全部组件活动（新建 ability/连接等）共享该任务的管控档位，无需组件级单独纳管；taskId 仅用于"进程加入任务"的触发点，同进程内后续组件启动无需携带 taskId（也不改变归属）。同进程组件在任务内的活动天然受管控（进程被豁免 → 其内组件活动不被冻结）。
 - **优先级动态调整联动**（F-6 修正）：SetTaskParams 提升优先级且任务处于激活态时，触发 OnTaskActiveChanged → process_schedule 档位重算，管控立即按新档位生效（与状态变更同一联动路径）。
-- **SetTaskParams 受限规则**（B-4 补全）：仅创建者可调；任务处于非终态（终态返回 ERR_TASK_INVALID_STATE）；可调字段 = priority / payload（type 创建后不可调）；priority 变化经上述联动路径重算档位（升档立即施加、降档立即撤销）；payload 变化仅更新 TaskRecord（~~PAYLOAD_UPDATED 通知~~随 D-21 移除——进度展示由 AI bar 自呈现，助手即数据源，无需回调通知）；激活态任务且 **priority 发生变化**时触发豁免时长**续期**（payload-only 变更不续期，防滥用续期；计时/续期计数为 TaskRecord 内存态，§6.1/R-21，评审决策 2026-08-24）。
+- **SetTaskParams 受限规则**（B-4 补全）：仅创建者可调；任务处于非终态（终态返回 ERR_TASK_INVALID_STATE）；可调字段 = priority / payload（type 创建后不可调）；priority 变化经上述联动路径重算档位（升档立即施加、降档立即撤销——降档至不豁免时 EDS 待机豁免同步按 uid 引用计数重评估，F-47）；payload 变化仅更新 TaskRecord（~~PAYLOAD_UPDATED 通知~~随 D-21 移除——进度展示由 AI bar 自呈现，助手即数据源，无需回调通知）；激活态任务且 **priority 发生变化**时触发豁免时长**续期**（payload-only 变更不续期，防滥用续期；计时/续期计数为 TaskRecord 内存态，§6.1/R-21，评审决策 2026-08-24）。
 
 ### 5.7 权限与身份（基础鉴权）
 
@@ -468,7 +468,7 @@ if (targetPid > 0) {
 
 **交互态超时策略动作（F-5 细化，评审答复 2026-08-24 第八轮）**：超时后执行两段式处置——
 1. **限期处置通知**：task_mgr 向任务创建者上报 TASK 事件（含超时信息），给予短宽限期（可配，默认 5min）供助手重设状态（回 WORKING、转 FAILED/CANCELED 或续期交互）；
-2. **宽限后仍未流转 → task_mgr 主动降档**：撤销该任务对纳管进程的豁免（档位按剩余归属任务 max 重算），上报 TASK_ABUSE_WARNING 告警；后续用户若响应、助手 SetTaskState 回 WORKING 时，经 §6.1.1-4 的 P3 分支重新施加（EXEMPT→507→THAW→复查）。
+2. **宽限后仍未流转 → task_mgr 主动降档**：撤销该任务对纳管进程的豁免（档位按剩余归属任务 max 重算；**EDS 待机豁免同步按 uid 引用计数重评估**——该 uid 无其他激活态任务则 Unapply，F-47），上报 TASK_ABUSE_WARNING 告警；后续用户若响应、助手 SetTaskState 回 WORKING 时，经 §6.1.1-4 的 P3 分支重新施加（EXEMPT→507→THAW→复查）。
 3. 兜底关系：本策略与 R-22 豁免时长硬上限（默认 60min）叠加生效——超时降档通常先于硬上限触发；硬上限仍是防滥用的最终兜底。
 4. 明确排除"超时后保持豁免仅上报告警"路径（该路径与"避免豁免无限占用"目标矛盾，已废弃）。
 5. **通知载体（B-5 补全）**：第 1 步"限期处置通知"经 `OnTaskNotice(taskId, INTERACTIVE_TIMEOUT, {deadline})` 回调派发给已注册监听者（创建者注册监听即可实时感知宽限窗口；未注册时可经 GetTaskInfo 轮询，或依赖第 2 步降档兜底），同时上报 hisysevent TASK_ABUSE_WARNING(reason=timeout_demote)。
@@ -493,7 +493,7 @@ if (targetPid > 0) {
 4. **已冻结进程纳管分支（P3，代码勘察 2026-08-24）**：施加管控时目标进程可能已被冻结（典型：SUBMITTED 定时任务就绪前进程已被 RSS 冻结）——ApplyControl 施加顺序固定为：EXEMPT(505) → 507 查询 → 若 `isFrozen=true` → THAW(517) → 507 复查；复查仍未解冻才判定失败（告警 + TASK 事件）。注意：507 在无消费插件的环境恒返回 `isFrozen=false` 默认值（suspend_manager_base_service.cpp:66-72），该分支仅在有 freezer 执行器的产品环境下有实际意义；
 5. **RSS 重启状态重放（P4）**：RSS（SA 1901）异常重启会清空其内部豁免状态，而 AppMS 内存登记仍显示"已豁免"（状态漂移）。RCP-Impl 复用 RSS 客户端内置死亡通知（`suspend_manager_base_client` 懒加载代理 + 死亡监听），RSS 重启后**按内存登记幂等重放（replay）全部活跃豁免**，重放失败按 R-20 重试 ≤3 + 告警；二期以 push observer 做运行时漂移检测（§6.4 P5）；
 6. **同步调用纪律（P6；F-44 补强，第十七轮）**：507/517/520 均经 `ReportSyncEvent` **同步**上报——RCP 不得在持有 task_mgr/process_schedule 锁时发起同步调用（死锁/长阻塞风险），**且不得在 taskHandler 串行线程上直接发起**（串行线程即全局锁：一次 507 超时阻塞全部任务操作 + post-and-wait 的 binder 线程；F-44——同步调用在 RCP 内部工作线程执行、结果回投 taskHandler，ADR-8）；统一设置超时保护（建议 ≤500ms 预算，落地随 TASK-4 定稿）；状态查询优先走本地 observer 缓存（§6.4 P5）。
-7. **待机豁免联动（P7，评审决策 2026-08-24；F-30/F-34 补全，第十五轮实证）**：任务进入激活态（豁免生效）时，ResourceControlProxy 经 `StandbyServiceClient::ApplyAllowResource` 向 device_standby 申请待机资源豁免（网络/任务执行），覆盖夜间深度待机场景（需求场景 1，D-2 关闭）；任务终态/豁免撤销/进程移除时 `UnapplyAllowResource`；与 505/517 同一生命周期内存登记管理，避免待机豁免残留。**落地要点（实证）**：① ResourceRequest 构造字段 = {allowType(位掩码), uid, name, duration, reason, reasonCode=REASON_NATIVE_API}（resource_request.h）；② **AllowType 含 FREEZE 位**（allow_type.h:25-34：NETWORK/RUNNING_LOCK/TIMER/WORK_SCHEDULER/AUTO_SYNC/PUSH/FREEZE）——待机**冻结**豁免可经 EDS 申请，与 O-2（锁屏冻结边界）直接相关，P7 是否一并申请 FREEZE 位列入 device_standby 对齐评估；③ 权限无阻碍：native 调用方免权限（standby_service_impl.cpp:626-636 CheckCallerPermission 仅 HAP 需 DEVICE_STANDBY_EXEMPTION）；④ **新增依赖**：appmgr BUILD.gn 须新增 `device_standby:standby_innerkits`（现有依赖无 device_standby，execution-plan 已同步）。
+7. **待机豁免联动（P7，评审决策 2026-08-24；F-30/F-34 补全，第十五轮实证）**：任务进入激活态（豁免生效）时，ResourceControlProxy 经 `StandbyServiceClient::ApplyAllowResource` 向 device_standby 申请待机资源豁免（网络/任务执行），覆盖夜间深度待机场景（需求场景 1，D-2 关闭）；任务终态/豁免撤销/进程移除时 `UnapplyAllowResource`——**按 uid 级引用计数：仅当该 uid 无其他激活态任务时撤销**（EDS 按 uid+bundleName 授权而非 pid，ResourceRequest 实证；同 uid 多任务并发时逐任务 Unapply 会误杀其余任务的待机豁免，F-47；计数规则见 §6.4）；与 505/517 同一生命周期内存登记管理，避免待机豁免残留。**落地要点（实证）**：① ResourceRequest 构造字段 = {allowType(位掩码), uid, name, duration, reason, reasonCode=REASON_NATIVE_API}（resource_request.h）；② **AllowType 含 FREEZE 位**（allow_type.h:25-34：NETWORK/RUNNING_LOCK/TIMER/WORK_SCHEDULER/AUTO_SYNC/PUSH/FREEZE）——待机**冻结**豁免可经 EDS 申请，与 O-2（锁屏冻结边界）直接相关，P7 是否一并申请 FREEZE 位列入 device_standby 对齐评估；③ 权限无阻碍：native 调用方免权限（standby_service_impl.cpp:626-636 CheckCallerPermission 仅 HAP 需 DEVICE_STANDBY_EXEMPTION）；④ **新增依赖**：appmgr BUILD.gn 须新增 `device_standby:standby_innerkits`（现有依赖无 device_standby，execution-plan 已同步）。
 
 > **AppMS 重启反向场景（C-1 分析，结论：无需处理）**：P4 只覆盖"RSS 重启、AppMS 登记漂移"；反向的"AppMS 重启、RSS 侧豁免残留"不存在——AppMS 位于 foundation 进程，异常重启即 foundation 进程重启，系统将清理全部应用进程，纳管进程与 RSS 侧豁免随进程消亡同亡，无孤儿豁免（评审结论 2026-08-24）。内存登记同为进程内存态，同亡一致。
 
@@ -575,10 +575,14 @@ struct TaskEndInfo {             // 任务结束清理信息（评审第六轮�
 };
 ```
 
-> **任务结束清理双通道**（评审第六轮）：任务进入终态/DestroyTask 时——
-> ① **进程级撤销**：对每个纳管进程 RestoreControl（撤销豁免/恢复 QoS），进程按剩余任务最高档重算（R-9/R-10）；
-> ② **任务级清理通知**：NotifyTaskEnd(taskId, pids, reason) 一次性通知 RSS 侧清理按 taskId 建立的任务级策略（如豁免组、优先级组），防止 RSS 侧残留策略；RSS 对接后实现为 RSS 清理接口，一期 Stub 记录日志 + 告警。
-> 两者在 taskHandler 串行执行，②在①之后；执行失败重试 ≤3 并告警（日志留痕供复核，R-20 扩展）。
+> **任务结束清理双通道**（评审第六轮；F-47 补全清理清单，第十九轮）：任务进入终态/DestroyTask 时——
+> **前置清理（终态处理内同步完成）**：① R-18 交互态清理（payload 清除、停止回调）；② **取消全部计时器**（交互超时/限时豁免/硬上限/续期计数——防终态后误触发超时处置；超时事件处理器同时校验任务非终态，双保险，F-47）；
+> ① **进程级撤销**：对每个纳管进程 RestoreControl——清理清单 = **CLEAR_EXEMPT（撤销冻结豁免，一期）+ CLEAR_QOS（恢复进程级调度优先级，二期 QoS 提权落地后启用；ControlAction 已预留）**；进程按剩余任务最高档重算（R-9/R-10，无任务则完全恢复原调度——**撤销豁免后 RSS 按原策略自然回冻/回降，无需显式 re-freeze 指令**）；**EDS 待机豁免撤销（P7）：按 uid 级引用计数判断——仅当该 uid（+bundleName）无其他激活态任务时 UnapplyAllowResource**（EDS 按 uid 授权而非 pid，ResourceRequest 实证 resource_request.h；同 uid 多任务并发时任一任务结束即 Unapply 会误杀其余任务的待机豁免，F-47）；
+> ② **任务级清理通知**：NotifyTaskEnd(taskId, pids, reason) 一次性通知 RSS 侧清理按 taskId 建立的任务级策略（如豁免组、优先级组），防止 RSS 侧残留策略；RSS 对接后实现为 RSS 清理接口，一期 Stub 记录日志 + 告警。**EDS 无任务级策略**（仅 uid+allowType 授权记录，uid 引用计数归零时 Unapply 即彻底清理）——无需向 EDS 发任务级通知（F-47 显式声明，防对接误解）；
+> ③ **内存登记清理**：该任务全部活跃豁免登记条目随终态移除（D-16"仅活跃任务"语义的落地动作，F-47 补入流程）。
+> ①②③在 taskHandler 串行执行（②在①后、③最后）；执行失败重试 ≤3 并告警（日志留痕供复核，R-20 扩展）。
+>
+> **EDS uid 级引用计数规则（F-47，与 505 的 pid 级幂等计数同构）**：施加——该 uid 首个激活态任务出现时 ApplyAllowResource（重复 Apply 幂等）；撤销——该 uid 最后一个激活态任务结束/降档至不豁免/其全部纳管进程死亡时 UnapplyAllowResource。计数维护于 process_schedule（uid→活跃任务集合），随内存登记同生命周期。
 
 > **暴露更多信息的意图**（评审反馈）：ControlRequest 携带任务与进程完整上下文，① RSS 对接实现可基于 bundleName/type/priority/state 等字段做定制化策略（RSS 侧策略未定时信息不缺失）；② 未来对接其他管控方（qos/温控/低内存查杀）时请求结构直接复用；③ 日志记录完整上下文，对接验收与问题定位信息完备。
 

@@ -75,7 +75,7 @@ sequenceDiagram
     TMS->>PS: OnTaskActiveChanged(终态)
     PS->>RCP: ①RestoreControl(逐pid·按剩余任务重算)
     PS->>RCP: ②NotifyTaskEnd(taskId,pids,reason)
-    Note over RCP: 串行执行②在①后·失败重试≤3(R-20)<br/>P7:UnapplyAllowResource(详见图7)
+    Note over RCP: ①=CLEAR_EXEMPT+CLEAR_QOS(二期)·②在①后串行<br/>P7:EDS按uid引用计数撤销·③登记清理(详见图7·F-47)
     TMS-->>LSN: OnTaskStateChanged(COMPLETED)
     AI->>TMS: DestroyTask
     TMS-->>AI: ERR_OK(记录清理·不可再查询)
@@ -260,9 +260,9 @@ flowchart TD
     W -- "交互超时30min<br/>(交互态任务)" --> N1["OnTaskNotice(INTERACTIVE_TIMEOUT,{deadline})<br/>+TASK_ABUSE_WARNING(timeout_demote)"]
     N1 --> G{"宽限5min内<br/>创建者流转状态?"}
     G -- "是(回WORKING/转终态/续交互)" --> OK(["正常继续"])
-    G -- "否" --> DM["task_mgr主动降档:<br/>撤销豁免·按剩余任务max重算"]
+    G -- "否" --> DM["task_mgr主动降档:<br/>撤销豁免·按剩余任务max重算<br/>EDS按uid引用计数重评估(F-47)"]
     DM --> A9["任务状态处置【A-9待对齐】:<br/>(a)置FAILED(reason=timeout)·推荐<br/>(b)维持交互态(滞留占R-2配额)"]
-    W -- "档位1限时豁免30min到期<br/>(未续期)" --> DM2["撤销豁免+降档+<br/>TASK_ABUSE_WARNING(limit)"]
+    W -- "档位1限时豁免30min到期<br/>(未续期)" --> DM2["撤销豁免+降档+EDS重评估(F-47)+<br/>TASK_ABUSE_WARNING(limit)"]
     W -- "硬上限60min到期前5min<br/>(预警提前量)" --> WARN["OnTaskNotice(EXEMPT_EXPIRING)"]
     WARN --> RN{"创建者SetTaskParams<br/>priority变化续期?<br/>且计数<N=3?"}
     RN -- "是" --> OK2(["重置计时·继续"])
@@ -287,14 +287,17 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    S(["任务进入终态(COMPLETED/CANCELED/<br/>FAILED/REJECTED)或DestroyTask"]) --> R18["R-18:交互态清理<br/>payload/input清除·停止回调"]
-    R18 --> CH1["通道①进程级撤销(逐pid·taskHandler串行)"]
-    CH1 --> RC["RestoreControl(CLEAR_EXEMPT)"]
-    RC --> RC2["该pid按剩余任务max重算<br/>(无任务→完全恢复原调度)"]
-    RC2 --> ED["P7:EDS UnapplyAllowResource"]
-    ED --> CH2["通道②任务级通知(①之后·串行)"]
-    CH2 --> NE["NotifyTaskEnd(taskId,pids,reason)<br/>RSS清理任务级策略(防残留)"]
-    NE --> RT{"任一通道失败?"}
+    S(["任务进入终态(COMPLETED/CANCELED/<br/>FAILED/REJECTED)或DestroyTask"]) --> PRE["前置清理(终态处理内同步·F-47)<br/>R-18:payload清除·停止回调<br/>取消全部计时器(交互超时/限时/硬上限/续期计数)"]
+    PRE --> CH1["通道①进程级撤销(逐pid·taskHandler串行)"]
+    CH1 --> RC["RestoreControl:<br/>CLEAR_EXEMPT(撤销冻结豁免·一期)<br/>+ CLEAR_QOS(恢复调度优先级·二期预留)"]
+    RC --> RC2["该pid按剩余任务max重算<br/>(无任务→完全恢复原调度·<br/>RSS按原策略自然回冻·无需re-freeze)"]
+    RC2 --> ED{"EDS撤销判定(F-47):<br/>该uid+bundleName还有<br/>其他激活态任务?"}
+    ED -- "有(引用计数>0)" --> KEEP["跳过Unapply<br/>(防误杀同uid其他任务待机豁免)"]
+    ED -- "无(归零)" --> ED2["P7:UnapplyAllowResource"]
+    KEEP & ED2 --> CH2["通道②任务级通知(①之后·串行)"]
+    CH2 --> NE["NotifyTaskEnd(taskId,pids,reason)<br/>RSS清理任务级策略(豁免组/优先级组·防残留)<br/>注:EDS无任务级策略·uid归零即彻底清理"]
+    NE --> CH3["③内存登记清理(F-47):<br/>该任务全部活跃豁免登记条目移除(D-16)"]
+    CH3 --> RT{"任一通道失败?"}
     RT -- "是" --> RT2["重试≤3→仍失败→告警<br/>(R-20·日志留痕供复核)"]
     RT -- "否" --> FIN["TASK_DESTROY事件<br/>DestroyTask→记录清理不可再查询"]
     RT2 --> FIN
@@ -304,10 +307,12 @@ flowchart TD
 
 | 步骤 | 动作 | 依据 | 备注 |
 |------|------|------|------|
-| 1 | 交互态清理 | R-18 | 在状态机终态处理中同步完成 |
-| 2 | 进程级撤销 | R-9/R-20 | 多任务归属按剩余最高档继续管控（AC-5.4） |
-| 3 | 任务级通知 | R-20/§6.4 | ②在①之后串行执行 |
-| 4 | 失败重试 | R-20 | ≤3 次后告警，日志留痕（对账基线=动作日志序列） |
+| 0 | 前置清理：payload 清除/停止回调 + **取消全部计时器** | R-18/F-47 | 在状态机终态处理中同步完成；超时处理器另校验非终态（双保险） |
+| 1 | 进程级撤销：CLEAR_EXEMPT + **CLEAR_QOS（二期）** | R-9/R-20 | 多任务归属按剩余最高档继续管控（AC-5.4）；撤销后 RSS 按原策略自然回冻/回降，无需显式 re-freeze |
+| 2 | **EDS 撤销判定：uid 级引用计数** | P7/F-47 | EDS 按 uid+bundleName 授权（非 pid）——归零才 Unapply，防误杀同 uid 其他任务 |
+| 3 | 任务级通知 NotifyTaskEnd | R-20/§6.4 | ②在①之后串行执行；EDS 无任务级策略（uid 归零即彻底清理） |
+| 4 | 内存登记清理 | D-16/F-47 | 该任务全部活跃豁免登记条目移除（③最后执行） |
+| 5 | 失败重试 | R-20 | ≤3 次后告警，日志留痕（对账基线=动作日志序列） |
 
 ---
 
@@ -315,7 +320,7 @@ flowchart TD
 
 | # | 场景 | 检测机制 | 处置流程 | 依据 |
 |---|------|----------|----------|------|
-| 1 | 纳管进程死亡 | AppMS 既有 AppDeathRecipient 链 | RemoveProcessFromTask → 释放豁免 → 档位按剩余任务重算（延迟 ≤1s） | R-12 |
+| 1 | 纳管进程死亡 | AppMS 既有 AppDeathRecipient 链 | RemoveProcessFromTask → 释放豁免 → 档位按剩余任务重算（延迟 ≤1s）；该任务全部进程死亡且同 uid 无其他激活态任务 → EDS 按 uid 引用计数撤销（F-47） | R-12 |
 | 2 | 创建者进程死亡 | 复用 AppDeathRecipient（创建者 uid/tokenId 已知） | 【A-9 待对齐】(a) 该创建者全部非终态任务置 CANCELED + 双通道清理（推荐）；(b) 任务滞留（占配额，创建者重启可恢复） | F-43 |
 | 3 | RSS（SA 1901）重启 | suspend_manager_base_client 内置死亡通知 | 按内存登记幂等重放全部活跃豁免（重放失败重试 ≤3+告警）；二期 push observer 漂移检测 | P4 |
 | 4 | AppMS/foundation 重启 | — | foundation 重启清理全部应用进程，任务记录（内存态）与 RSS 侧豁免随进程消亡同亡，无孤儿豁免 | C-1 |
