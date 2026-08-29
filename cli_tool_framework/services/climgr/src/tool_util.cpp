@@ -585,7 +585,7 @@ int32_t ToolUtil::ParseToolCommand(const std::string &cmd, const ToolInfo &toolI
         return ERR_INVALID_PARAM;
     }
 
-    // Stage 1: extract and validate toolName.
+    // Stage 1: validate toolName.
     const std::string &toolName = tokens[0];
     if (toolName.empty() || toolName[0] == '/') {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "invalid toolName");
@@ -599,14 +599,14 @@ int32_t ToolUtil::ParseToolCommand(const std::string &cmd, const ToolInfo &toolI
     }
     param.toolName = toolName;
 
-    // Stage 2: decide subcommand and the effective inputSchema.
+    // Stage 2: resolve subcommand.
     std::string inputSchema;
     size_t argStart = 0;
     if (auto ret = ResolveSubCommand(tokens, toolInfo, param, inputSchema, argStart, detail); ret != ERR_OK) {
         return ret;
     }
 
-    // Load "properties" from the effective schema for key mapping and type recovery.
+    // Load properties from schema.
     nlohmann::json properties = nlohmann::json::object();
     if (!inputSchema.empty()) {
         nlohmann::json schema = nlohmann::json::parse(inputSchema, nullptr, false);
@@ -615,14 +615,14 @@ int32_t ToolUtil::ParseToolCommand(const std::string &cmd, const ToolInfo &toolI
         }
     }
 
-    // Stage 3: parse the argument region.
+    // Stage 3: parse arguments.
     ParsedCommandArgs parsed;
     auto res = ParseArgTokens(tokens, argStart, properties, parsed, detail);
     if (res != ERR_OK) {
         return res;
     }
 
-    // Stage 4: recover typed values driven by the schema.
+    // Stage 4: type recovery.
     return ConvertParsedArgs(parsed, properties, param.args, detail);
 }
 

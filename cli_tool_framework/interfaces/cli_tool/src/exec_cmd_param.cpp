@@ -79,9 +79,7 @@ ExecCmdParam *ExecCmdParam::Unmarshalling(Parcel &parcel)
     }
     result->options = *execOptions;
 
-    // isShellCommand is at the tail for backward compatibility.
-    // Old clients that don't write this field leave the parcel exhausted,
-    // so ReadBool fails and we keep the default true (shell mode).
+    // Tail field for backward compat: ReadBool fails on old clients, defaults to true.
     result->isShellCommand = true;
     if (parcel.ReadBool(result->isShellCommand)) {
         return result;
