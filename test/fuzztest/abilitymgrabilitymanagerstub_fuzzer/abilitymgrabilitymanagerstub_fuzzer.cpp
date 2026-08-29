@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -83,9 +83,9 @@ public:
 class ForegroundAppConnectionFuzz : public IForegroundAppConnection {
 public:
     void OnForegroundAppConnected(const ForegroundAppConnectionData &data) override {}
-    
+
     void OnForegroundAppDisconnected(const ForegroundAppConnectionData &data) override {}
-    
+
     void OnForegroundAppCallerStarted(int32_t callerPid, int32_t callerUid, const std::string &bundleName) override {}
 
     int OnRemoteRequest(
