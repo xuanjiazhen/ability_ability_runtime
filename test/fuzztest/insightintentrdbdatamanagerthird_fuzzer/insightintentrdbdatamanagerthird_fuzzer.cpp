@@ -23,7 +23,6 @@
 #define private public
 #include "insight_intent_rdb_data_mgr.h"
 #undef private
-#include "ability_fuzz_util.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS::AbilityRuntime;
