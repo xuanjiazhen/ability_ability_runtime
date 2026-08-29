@@ -156,7 +156,7 @@ std::string ContextDeal::GetDatabaseDir()
 
 std::string ContextDeal::GetDataDir()
 {
-    std::string dir = GetBaseDir() + CONTEXT_DEAL_FILE_SEPARATOR + CONTEXT_DEAL_DATA;
+    std::string dir =   () + CONTEXT_DEAL_FILE_SEPARATOR + CONTEXT_DEAL_DATA;
     CreateDirIfNotExist(dir);
     TAG_LOGD(AAFwkTag::APPKIT, "GetDataDir dir = %{public}s", dir.c_str());
     return dir;
