@@ -335,6 +335,12 @@ struct ParsedCommandArgs {
     std::map<std::string, std::vector<std::string>> values;
 };
 
+struct SubCommandResult {
+    std::string inputSchema;
+    size_t argStart = ARG_START_TOOLNAME_ONLY;
+    std::string subcommand;
+};
+
 bool TokenizeCommand(const std::string &cmd, std::vector<std::string> &tokens)
 {
     std::string current;
@@ -549,10 +555,10 @@ int32_t ConvertParsedArgs(const ParsedCommandArgs &parsed, const nlohmann::json 
 }
 
 int32_t ResolveSubCommand(const std::vector<std::string> &tokens, const ToolInfo &toolInfo,
-    ExecToolParam &param, std::string &inputSchema, size_t &argStart, std::string &detail)
+    SubCommandResult &result, std::string &detail)
 {
-    inputSchema = toolInfo.inputSchema;
-    argStart = ARG_START_TOOLNAME_ONLY;
+    result.inputSchema = toolInfo.inputSchema;
+    result.argStart = ARG_START_TOOLNAME_ONLY;
     if (tokens.size() <= 1 || IsFlagToken(tokens[1])) {
         return ERR_OK;
     }
@@ -567,9 +573,9 @@ int32_t ResolveSubCommand(const std::vector<std::string> &tokens, const ToolInfo
         detail = DETAIL_SUBCOMMAND_NOT_FOUND;
         return ERR_TOOL_NOT_EXIST;
     }
-    param.subcommand = tokens[1];
-    inputSchema = it->second.inputSchema;
-    argStart = ARG_START_WITH_SUBCOMMAND;
+    result.subcommand = tokens[1];
+    result.inputSchema = it->second.inputSchema;
+    result.argStart = ARG_START_WITH_SUBCOMMAND;
     return ERR_OK;
 }
 } // namespace
@@ -600,11 +606,13 @@ int32_t ToolUtil::ParseToolCommand(const std::string &cmd, const ToolInfo &toolI
     param.toolName = toolName;
 
     // Stage 2: resolve subcommand.
-    std::string inputSchema;
-    size_t argStart = 0;
-    if (auto ret = ResolveSubCommand(tokens, toolInfo, param, inputSchema, argStart, detail); ret != ERR_OK) {
+    SubCommandResult subResult;
+    if (auto ret = ResolveSubCommand(tokens, toolInfo, subResult, detail); ret != ERR_OK) {
         return ret;
     }
+    param.subcommand = std::move(subResult.subcommand);
+    const std::string &inputSchema = subResult.inputSchema;
+    size_t argStart = subResult.argStart;
 
     // Load properties from schema.
     nlohmann::json properties = nlohmann::json::object();
