@@ -1106,13 +1106,13 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
         bundleName = bundleInfo.name;
     }
 
-    // ===== 工具命令模式分流（新增，放在 shell 逻辑之前） =====
+    // Tool command mode
     if (!param.isShellCommand) {
         return ExecCmdToolMode(param, eventId, scheduler, subscriptionId,
             callerPid, callerUid, tokenId, bundleName);
     }
 
-    // ===== 以下为原有 shell 路径，逻辑完全不变 =====
+    // Shell path (original logic)
     std::string sandboxConfig;
     if (auto ret = ValidateAndPrepareCmd(param, tokenId, sandboxConfig, bundleName); ret != ERR_OK) {
         return ret;
@@ -1163,7 +1163,7 @@ int32_t CliToolManagerService::ExecCmdToolMode(const ExecCmdParam &param, const 
         "ExecCmdToolMode: cmd=%{public}s, callerPid=%{public}d, callerUid=%{public}d",
         param.cmd.c_str(), callerPid, callerUid);
 
-    // Step 1: Extract toolName from cmd and look up tool info.
+    // Step 1: Extract toolName, look up tool.
     auto first = param.cmd.find_first_not_of(" \t");
     if (first == std::string::npos) {
         ReportCliExecuteFailed(bundleName, "", "invalid_tool_name");
@@ -1182,7 +1182,7 @@ int32_t CliToolManagerService::ExecCmdToolMode(const ExecCmdParam &param, const 
         return ERR_TOOL_NOT_EXIST;
     }
 
-    // Step 2: Parse the command string into ExecToolParam.
+    // Step 2: Parse command string.
     ExecToolParam toolParam;
     std::string detail;
     auto parseRet = ToolUtil::ParseToolCommand(param.cmd, toolInfo, toolParam, detail);
@@ -1191,14 +1191,10 @@ int32_t CliToolManagerService::ExecCmdToolMode(const ExecCmdParam &param, const 
         return parseRet;
     }
 
-    // Step 3: Pass through options from ExecCmdParam.
     toolParam.options = param.options;
-
-    // Step 4: Challenge defaults to empty (design.md §5.5).
     toolParam.challenge = "";
 
-    // Step 5: Validate and prepare sandbox config (reuses execTool path).
-    // GenerateSandboxConfig may update bundleName, so use a mutable copy.
+    // Step 3: Validate and prepare sandbox. GenerateSandboxConfig may overwrite bundleName.
     std::string sandboxConfig;
     std::string mutableBundleName = bundleName;
     if (auto ret = ValidateAndPrepareTool(toolParam, tokenId, toolInfo, sandboxConfig, mutableBundleName, detail);
@@ -1207,7 +1203,7 @@ int32_t CliToolManagerService::ExecCmdToolMode(const ExecCmdParam &param, const 
         return ret;
     }
 
-    // Step 6: Setup session (subscribe before process creation, aligned with shell path).
+    // Step 4: Subscribe before process creation (aligned with shell path).
     return SetupCmdSession(toolParam, toolInfo, sandboxConfig, eventId, subscriptionId,
         scheduler, callerPid, callerUid, mutableBundleName, toolName);
 }
