@@ -327,6 +327,9 @@ namespace {
 constexpr char FLAG_PREFIX[] = "--";
 constexpr size_t FLAG_PREFIX_LEN = 2;
 constexpr char HELP_KEY[] = "help";
+// Argument start index: tokens[0] is always toolName.
+constexpr size_t ARG_START_TOOLNAME_ONLY = 1;       // no subcommand
+constexpr size_t ARG_START_WITH_SUBCOMMAND = 2;     // tokens[1] is subcommand
 
 struct ParsedCommandArgs {
     std::map<std::string, std::vector<std::string>> values;
@@ -481,6 +484,32 @@ AAFwk::InterfaceID GetArrayTypeId(const std::string &type)
     return AAFwk::g_IID_IString;
 }
 
+int32_t ConvertArrayArg(const nlohmann::json &prop, const std::vector<std::string> &values,
+    AAFwk::WantParams &args, const std::string &key, std::string &detail)
+{
+    std::string itemType = "string";
+    if (prop.contains("items") && prop["items"].is_object() &&
+        prop["items"].contains("type") && prop["items"]["type"].is_string()) {
+        itemType = prop["items"]["type"].get<std::string>();
+    }
+    sptr<AAFwk::IArray> array = new (std::nothrow) AAFwk::Array(
+        static_cast<long>(values.size()), GetArrayTypeId(itemType));
+    if (array == nullptr) {
+        detail = DETAIL_PARAM_TYPE_MISMATCH;
+        return ERR_INVALID_PARAM;
+    }
+    for (size_t i = 0; i < values.size(); ++i) {
+        sptr<AAFwk::IInterface> element;
+        if (!ConvertRawValue(values[i], itemType, element)) {
+            detail = DETAIL_PARAM_TYPE_MISMATCH;
+            return ERR_INVALID_PARAM;
+        }
+        array->Set(static_cast<long>(i), element);
+    }
+    args.SetParam(key, array);
+    return ERR_OK;
+}
+
 int32_t ConvertParsedArgs(const ParsedCommandArgs &parsed, const nlohmann::json &properties,
     AAFwk::WantParams &args, std::string &detail)
 {
@@ -499,26 +528,9 @@ int32_t ConvertParsedArgs(const ParsedCommandArgs &parsed, const nlohmann::json 
             type = prop["type"].get<std::string>();
         }
         if (type == "array") {
-            std::string itemType = "string";
-            if (prop.contains("items") && prop["items"].is_object() &&
-                prop["items"].contains("type") && prop["items"]["type"].is_string()) {
-                itemType = prop["items"]["type"].get<std::string>();
-            }
-            sptr<AAFwk::IArray> array = new (std::nothrow) AAFwk::Array(
-                static_cast<long>(values.size()), GetArrayTypeId(itemType));
-            if (array == nullptr) {
-                detail = DETAIL_PARAM_TYPE_MISMATCH;
+            if (ConvertArrayArg(prop, values, args, key, detail) != ERR_OK) {
                 return ERR_INVALID_PARAM;
             }
-            for (size_t i = 0; i < values.size(); ++i) {
-                sptr<AAFwk::IInterface> element;
-                if (!ConvertRawValue(values[i], itemType, element)) {
-                    detail = DETAIL_PARAM_TYPE_MISMATCH;
-                    return ERR_INVALID_PARAM;
-                }
-                array->Set(static_cast<long>(i), element);
-            }
-            args.SetParam(key, array);
             continue;
         }
         // Non-array parameter must not be repeated.
@@ -533,6 +545,31 @@ int32_t ConvertParsedArgs(const ParsedCommandArgs &parsed, const nlohmann::json 
         }
         args.SetParam(key, value);
     }
+    return ERR_OK;
+}
+
+int32_t ResolveSubCommand(const std::vector<std::string> &tokens, const ToolInfo &toolInfo,
+    ExecToolParam &param, std::string &inputSchema, size_t &argStart, std::string &detail)
+{
+    inputSchema = toolInfo.inputSchema;
+    argStart = ARG_START_TOOLNAME_ONLY;
+    if (tokens.size() <= 1 || IsFlagToken(tokens[1])) {
+        return ERR_OK;
+    }
+    if (!toolInfo.hasSubCommand) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "tool has no subcommand");
+        detail = DETAIL_SUBCOMMAND_NOT_FOUND;
+        return ERR_TOOL_NOT_EXIST;
+    }
+    auto it = toolInfo.subcommands.find(tokens[1]);
+    if (it == toolInfo.subcommands.end()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "subcommand not found: %{public}s", tokens[1].c_str());
+        detail = DETAIL_SUBCOMMAND_NOT_FOUND;
+        return ERR_TOOL_NOT_EXIST;
+    }
+    param.subcommand = tokens[1];
+    inputSchema = it->second.inputSchema;
+    argStart = ARG_START_WITH_SUBCOMMAND;
     return ERR_OK;
 }
 } // namespace
@@ -563,23 +600,10 @@ int32_t ToolUtil::ParseToolCommand(const std::string &cmd, const ToolInfo &toolI
     param.toolName = toolName;
 
     // Stage 2: decide subcommand and the effective inputSchema.
-    std::string inputSchema = toolInfo.inputSchema;
-    size_t argStart = 1;
-    if (tokens.size() > 1 && !IsFlagToken(tokens[1])) {
-        if (!toolInfo.hasSubCommand) {
-            TAG_LOGE(AAFwkTag::CLI_TOOL, "tool has no subcommand");
-            detail = DETAIL_SUBCOMMAND_NOT_FOUND;
-            return ERR_TOOL_NOT_EXIST;
-        }
-        auto it = toolInfo.subcommands.find(tokens[1]);
-        if (it == toolInfo.subcommands.end()) {
-            TAG_LOGE(AAFwkTag::CLI_TOOL, "subcommand not found: %{public}s", tokens[1].c_str());
-            detail = DETAIL_SUBCOMMAND_NOT_FOUND;
-            return ERR_TOOL_NOT_EXIST;
-        }
-        param.subcommand = tokens[1];
-        inputSchema = it->second.inputSchema;
-        argStart = 2;
+    std::string inputSchema;
+    size_t argStart = 0;
+    if (auto ret = ResolveSubCommand(tokens, toolInfo, param, inputSchema, argStart, detail); ret != ERR_OK) {
+        return ret;
     }
 
     // Load "properties" from the effective schema for key mapping and type recovery.
