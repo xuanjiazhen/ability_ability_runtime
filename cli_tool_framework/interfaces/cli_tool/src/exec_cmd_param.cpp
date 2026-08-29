@@ -79,11 +79,14 @@ ExecCmdParam *ExecCmdParam::Unmarshalling(Parcel &parcel)
     }
     result->options = *execOptions;
 
-    // isShellCommand is at the tail for backward compatibility:
-    // old clients that don't write this field leave the parcel exhausted here,
-    // so ReadBool fails and we default to true (shell mode).
+    // isShellCommand is at the tail for backward compatibility.
+    // Old clients that don't write this field leave the parcel exhausted,
+    // so ReadBool fails and we keep the default true (shell mode).
     result->isShellCommand = true;
-    parcel.ReadBool(result->isShellCommand);
+    if (parcel.ReadBool(result->isShellCommand)) {
+        return result;
+    }
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "isShellCommand not present in parcel, using default(true).");
     return result;
 }
 } // namespace CliTool
