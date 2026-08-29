@@ -959,6 +959,7 @@ protected:
     bool isHook_ = false;
     bool isPluginAbility_ = false;
     bool isPrelaunch_ = false;
+    std::atomic<bool> isPrelaunched_ = false;
     std::atomic<bool> isGameSAPreLaunch_ = false;
     std::shared_ptr<SandboxCloneParams> sandboxCloneParams_ = nullptr;
 
