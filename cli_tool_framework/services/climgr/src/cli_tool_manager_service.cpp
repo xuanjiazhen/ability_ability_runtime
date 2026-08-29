@@ -1198,17 +1198,26 @@ int32_t CliToolManagerService::ExecCmdToolMode(const ExecCmdParam &param, const 
     toolParam.challenge = "";
 
     // Step 5: Validate and prepare sandbox config (reuses execTool path).
+    // GenerateSandboxConfig may update bundleName, so use a mutable copy.
     std::string sandboxConfig;
-    if (auto ret = ValidateAndPrepareTool(toolParam, tokenId, toolInfo, sandboxConfig, bundleName, detail);
+    std::string mutableBundleName = bundleName;
+    if (auto ret = ValidateAndPrepareTool(toolParam, tokenId, toolInfo, sandboxConfig, mutableBundleName, detail);
         ret != ERR_OK) {
         ReportCliExecuteFailed(bundleName, toolName, GetFailureReason(ret), detail);
         return ret;
     }
 
-    // Step 6: Create session record and subscribe BEFORE starting process.
-    //         Inlined from SetupAndStartSession to insert SubscribeSession
-    //         between AddSessionRecord and CreateChildProcess, aligning
-    //         with the shell path (subscribe before process creation).
+    // Step 6: Setup session (subscribe before process creation, aligned with shell path).
+    return SetupCmdSession(toolParam, toolInfo, sandboxConfig, eventId, subscriptionId,
+        scheduler, callerPid, callerUid, mutableBundleName, toolName);
+}
+
+int32_t CliToolManagerService::SetupCmdSession(const ExecToolParam &toolParam, const ToolInfo &toolInfo,
+    const std::string &sandboxConfig, const std::string &eventId,
+    const std::string &subscriptionId, const sptr<ICliToolManagerScheduler> &scheduler,
+    int32_t callerPid, int32_t callerUid, const std::string &bundleName,
+    const std::string &toolName)
+{
     auto record = CreateSessionRecord(toolParam, eventId);
     if (record == nullptr) {
         ReportCliExecuteFailed(bundleName, toolName, GetFailureReason(ERR_NO_INIT));
@@ -1226,6 +1235,8 @@ int32_t CliToolManagerService::ExecCmdToolMode(const ExecCmdParam &param, const 
     auto createRet = ProcessManager::GetInstance().CreateChildProcess(
         toolParam, sandboxConfig, toolInfo, record);
     if (createRet != ERR_OK) {
+        EventDispatcher::GetInstance().UnregisterSubscriber(
+            record->sessionId, subscriptionId, callerPid, callerUid);
         RemoveSessionRecord(record->sessionId);
         ReportCliExecuteFailed(bundleName, toolName, GetFailureReason(createRet));
         return createRet;
@@ -1233,6 +1244,8 @@ int32_t CliToolManagerService::ExecCmdToolMode(const ExecCmdParam &param, const 
 
     if (!RegisterSessionWithMonitors(record, toolParam.options)) {
         ProcessManager::GetInstance().Killpg(record->processId);
+        EventDispatcher::GetInstance().UnregisterSubscriber(
+            record->sessionId, subscriptionId, callerPid, callerUid);
         RemoveSessionRecord(record->sessionId);
         ReportCliExecuteFailed(bundleName, toolName, GetFailureReason(ERR_NO_INIT));
         return ERR_NO_INIT;
