@@ -1395,6 +1395,18 @@ public:
     virtual int StartAbilityForPrelaunch(const Want &want, const int32_t frameNum) override;
 
     /**
+     * Run the post-check interceptors for a prelaunch request and report a fault event on
+     * failure. Extracted so the failure/redirect paths are unit-testable without bundle resolution.
+     *
+     * @param abilityRequest the resolved prelaunch request (want may be mutated by ERMS redirect).
+     * @param userId the validated target user id.
+     * @param eventInfo fault attribution context (may be null).
+     * @return ERR_OK to proceed, otherwise the interceptor error to abort the prelaunch.
+     */
+    int32_t ExecutePrelaunchAfterCheck(AbilityRequest &abilityRequest, int32_t userId,
+        const std::shared_ptr<EventInfo> &eventInfo);
+
+    /**
      * CallRequestDone, after invoke callRequest, ability will call this interface to return callee.
      *
      * @param token, ability's token.
