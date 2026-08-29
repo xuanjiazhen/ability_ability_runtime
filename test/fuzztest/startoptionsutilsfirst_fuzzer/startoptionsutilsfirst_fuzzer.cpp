@@ -20,8 +20,8 @@
 #include <fuzzer/FuzzedDataProvider.h>
 
 #include "ability_fuzz_util.h"
-#include "start_options_utils.h"
 #include "process_options.h"
+#include "start_options_utils.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;

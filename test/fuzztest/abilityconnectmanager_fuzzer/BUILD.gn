@@ -31,7 +31,10 @@ ohos_fuzztest("AbilityConnectManagerFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
-  sources = [ "abilityconnectmanager_fuzzer.cpp" ]
+  sources = [
+    "${ability_runtime_services_path}/abilitymgr/src/ability_connect_callback_stub.cpp",
+    "abilityconnectmanager_fuzzer.cpp",
+  ]
 
   configs = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
@@ -50,8 +53,11 @@ ohos_fuzztest("AbilityConnectManagerFuzzTest") {
     "ability_base:zuri",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
+    "ffrt:libffrt",
+    "hisysevent:libhisysevent",
     "common_event_service:cesfwk_innerkits",
     "ffrt:libffrt",
+    "hisysevent:libhisysevent",
     "ipc:ipc_core",
     "napi:ace_napi",
     "relational_store:native_dataability",
