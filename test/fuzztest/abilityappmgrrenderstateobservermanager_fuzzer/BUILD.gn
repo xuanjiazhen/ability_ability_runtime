@@ -43,7 +43,10 @@ ohos_fuzztest("AbilityAppMgrRenderStateObserverManagerFuzzTest") {
     "abilityappmgrrenderstateobservermanager_fuzzer.cpp",
   ]
 
-  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
+  configs = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_config",
+    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
+  ]
 
   cflags = []
   if (target_cpu == "arm") {
@@ -54,6 +57,7 @@ ohos_fuzztest("AbilityAppMgrRenderStateObserverManagerFuzzTest") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_path}/utils/server/startup:startup_util",
@@ -66,7 +70,6 @@ ohos_fuzztest("AbilityAppMgrRenderStateObserverManagerFuzzTest") {
   external_deps = [
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_deps_wrapper",
     "appspawn:appspawn_client",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",

@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+# Copyright (c) 2022-2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -16,14 +16,18 @@ import("//build/config/features.gni")
 import("//build/ohos.gni")
 import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
-module_output_path = "ability_runtime/appmgr"
+module_output_path = "ability_runtime/abilitymgr"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("AppmgrStubFuzzTest") {
+ohos_fuzztest("AppMgrStubFuzzTest") {
   module_out_path = module_output_path
 
-  fuzz_config_file = "${ability_runtime_test_path}/fuzztest/appmgrstub_fuzzer"
-  include_dirs = [ "${ability_runtime_services_path}/appmgr/include" ]
+  fuzz_config_file =
+      "${ability_runtime_test_path}/fuzztest/appmgrstub_fuzzer"
+  include_dirs = [
+    "${ability_runtime_innerkits_path}/app_manager/include",
+    "${ability_runtime_test_path}/fuzztest/common",
+  ]
   cflags = [
     "-g",
     "-O0",
@@ -32,37 +36,19 @@ ohos_fuzztest("AppmgrStubFuzzTest") {
   ]
   sources = [ "appmgrstub_fuzzer.cpp" ]
 
-  configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config" ]
+  configs = [ "${ability_runtime_innerkits_path}/app_manager:appmgr_sdk_config" ]
 
   deps = [
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
-    "${ability_runtime_native_path}/ability/native:abilitykit_native",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
-    "${ability_runtime_services_path}/appmgr:libappms",
   ]
 
   external_deps = [
-    "ability_base:session_info",
     "ability_base:want",
-    "ability_base:zuri",
-    "appspawn:appspawn_client",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
-    "common_event_service:cesfwk_innerkits",
-    "ffrt:libffrt",
-    "hisysevent:libhisysevent",
     "hilog:libhilog",
-    "init:libbegetutil",
     "ipc:ipc_core",
-    "napi:ace_napi",
-    "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
-
-  if (ability_runtime_graphics) {
-    external_deps += [ "input:libmmi-client" ]
-  }
 }
 
 ###############################################################################
@@ -70,8 +56,7 @@ group("fuzztest") {
   testonly = true
   deps = []
   deps += [
-    # deps file
-    ":AppmgrStubFuzzTest",
+    ":AppMgrStubFuzzTest",
   ]
 }
 ###############################################################################

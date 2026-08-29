@@ -1,0 +1,1190 @@
+diff --git a/interfaces/inner_api/connectionobs_manager/BUILD.gn b/interfaces/inner_api/connectionobs_manager/BUILD.gn
+index d9978ff0a7..f2dd278c29 100644
+--- a/interfaces/inner_api/connectionobs_manager/BUILD.gn
++++ b/interfaces/inner_api/connectionobs_manager/BUILD.gn
+@@ -20,6 +20,7 @@ config("connection_obs_manager_public_config") {
+   visibility = [ ":*" ]
+   visibility +=
+       [ "${ability_runtime_test_path}/unittest/connection_observer_test/*" ]
++  visibility += [ "${ability_runtime_test_path}/fuzztest/*" ]
+   include_dirs = [
+     "include",
+     "${ability_runtime_services_path}/common/include",
+diff --git a/interfaces/inner_api/dataobs_manager/BUILD.gn b/interfaces/inner_api/dataobs_manager/BUILD.gn
+index 6b59cd76cc..73dd75530c 100644
+--- a/interfaces/inner_api/dataobs_manager/BUILD.gn
++++ b/interfaces/inner_api/dataobs_manager/BUILD.gn
+@@ -16,6 +16,7 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ config("dataobs_manager_public_config") {
+   visibility = [ ":*" ]
++  visibility += [ "${ability_runtime_test_path}/fuzztest/*" ]
+   include_dirs = [
+     "include/",
+     "${ability_runtime_path}/interfaces/kits/native/ability/native",
+diff --git a/interfaces/inner_api/foreground_app_obs_manager/BUILD.gn b/interfaces/inner_api/foreground_app_obs_manager/BUILD.gn
+index ae9648f4b5..96024f0859 100644
+--- a/interfaces/inner_api/foreground_app_obs_manager/BUILD.gn
++++ b/interfaces/inner_api/foreground_app_obs_manager/BUILD.gn
+@@ -20,6 +20,7 @@ config("foreground_app_obs_manager_public_config") {
+   visibility = [ ":*" ]
+   visibility += [
+     "${ability_runtime_test_path}/unittest/foreground_app_connection_test/*",
++    "${ability_runtime_test_path}/fuzztest/*",
+   ]
+   include_dirs = [
+     "include",
+diff --git a/interfaces/inner_api/insight_intent/intent_client/BUILD.gn b/interfaces/inner_api/insight_intent/intent_client/BUILD.gn
+index 54bf8e17a1..b098e8636c 100644
+--- a/interfaces/inner_api/insight_intent/intent_client/BUILD.gn
++++ b/interfaces/inner_api/insight_intent/intent_client/BUILD.gn
+@@ -16,6 +16,7 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ config("intent_client_config") {
+   visibility = [ ":*" ]
++  visibility += [ "${ability_runtime_test_path}/fuzztest/*" ]
+   include_dirs = [
+     "include",
+     "${ability_runtime_innerkits_path}/ability_manager/include",
+diff --git a/interfaces/inner_api/quick_fix/BUILD.gn b/interfaces/inner_api/quick_fix/BUILD.gn
+index d832f21c8a..bda3df2cc5 100644
+--- a/interfaces/inner_api/quick_fix/BUILD.gn
++++ b/interfaces/inner_api/quick_fix/BUILD.gn
+@@ -30,6 +30,7 @@ idl_gen_interface("quickfix_manager_interface") {
+ 
+ config("quickfix_config") {
+   visibility = [ ":*" ]
++  visibility += [ "${ability_runtime_test_path}/fuzztest/*" ]
+   include_dirs = [
+     "include",
+     "${target_gen_dir}",
+diff --git a/interfaces/inner_api/uri_permission/BUILD.gn b/interfaces/inner_api/uri_permission/BUILD.gn
+index 702d75f867..6f18446c38 100644
+--- a/interfaces/inner_api/uri_permission/BUILD.gn
++++ b/interfaces/inner_api/uri_permission/BUILD.gn
+@@ -16,7 +16,10 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
+ config("uripermkit_public_config") {
+   visibility = [ ":*" ]
+-  visibility += [ "${ability_runtime_test_path}/unittest/*" ]
++  visibility += [
++    "${ability_runtime_test_path}/unittest/*",
++    "${ability_runtime_test_path}/fuzztest/*",
++  ]
+   include_dirs = [
+     "include",
+     "${ability_runtime_services_path}/uripermmgr/include",
+diff --git a/test/fuzztest/BUILD.gn b/test/fuzztest/BUILD.gn
+index f5af69b812..dbd6681dfd 100644
+--- a/test/fuzztest/BUILD.gn
++++ b/test/fuzztest/BUILD.gn
+@@ -13,6 +13,10 @@
+ 
+ import("//foundation/ability/ability_runtime/ability_runtime.gni")
+ 
++config("no_split_lto_unit") {
++  cflags = [ "-fno-split-lto-unit" ]
++}
++
+ group("fuzztest") {
+   testonly = true
+ 
+@@ -594,6 +598,24 @@ group("fuzztest") {
+     "wantsenderstub_fuzzer:fuzztest",
+     "wantutils_fuzzer:fuzztest",
+     "windowoptionsutils_fuzzer:fuzztest",
++    "abilityappjsheapmeminfo_fuzzer:fuzztest",
++    "abilityappmgrrenderstateobservermanager_fuzzer:fuzztest",
++    "abilityautostartupclient_fuzzer:fuzztest",
++    "abilityconnectmanager_fuzzer:fuzztest",
++    "abilityinterfacesappmanageramsmgrstubseventh_fuzzer:fuzztest",
++    "abilitymanagereventsubscriber_fuzzer:fuzztest",
++    "abilitymgrpreloaduiextstateobserver_fuzzer:fuzztest",
++    "abilityschedulerstub_fuzzer:fuzztest",
++    "abilitystubsendanrprocessid_fuzzer:fuzztest",
++    "appforegroundstateobserverproxy_fuzzer:fuzztest",
++    "appmgrservicefirst_fuzzer:fuzztest",
++    "assertfaultproxy_fuzzer:fuzztest",
++    "connectionobserverclientimpl_fuzzer:fuzztest",
++    "getabilityrunninginfos_fuzzer:fuzztest",
++    "getprocessrunninginfos_fuzzer:fuzztest",
++    "startupresidentprocess_fuzzer:fuzztest",
++    "testobserverstub_fuzzer:fuzztest",
++    "toolstestobserver_fuzzer:fuzztest",
+   ]
+   if (ability_runtime_child_process) {
+     deps += [
+diff --git a/test/fuzztest/abilityappjsheapmeminfo_fuzzer/abilityappjsheapmeminfo_fuzzer.cpp b/test/fuzztest/abilityappjsheapmeminfo_fuzzer/abilityappjsheapmeminfo_fuzzer.cpp
+index 5001a72050..922f8e71d9 100644
+--- a/test/fuzztest/abilityappjsheapmeminfo_fuzzer/abilityappjsheapmeminfo_fuzzer.cpp
++++ b/test/fuzztest/abilityappjsheapmeminfo_fuzzer/abilityappjsheapmeminfo_fuzzer.cpp
+@@ -37,8 +37,8 @@ bool DoSomethingInterestingWithMyAPI(FuzzedDataProvider *fdp)
+     js.needSnapshot = fdp->ConsumeBool();
+     js.needLeakobj = fdp->ConsumeBool();
+     js.needBinary = fdp->ConsumeBool();
+-    js.pid = fdp->ConsumeIntegral<int32_t>()
+-    js.tid = fdp->ConsumeIntegral<int32_t>()
++    js.pid = fdp->ConsumeIntegral<int32_t>();
++    js.tid = fdp->ConsumeIntegral<int32_t>();
+     Parcel parcel;
+     js.Marshalling(parcel);
+     return true;
+diff --git a/test/fuzztest/abilityappmgrevent_fuzzer/BUILD.gn b/test/fuzztest/abilityappmgrevent_fuzzer/BUILD.gn
+index d9b5726416..4a402ca9f9 100644
+--- a/test/fuzztest/abilityappmgrevent_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilityappmgrevent_fuzzer/BUILD.gn
+@@ -37,7 +37,10 @@ ohos_fuzztest("AbilityAppMgrEventFuzzTest") {
+     "abilityappmgrevent_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config" ]
++  configs = [
++    "${ability_runtime_services_path}/appmgr:appmgr_config",
++    "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit",
++  ]
+ 
+   deps = [
+     "${ability_runtime_innerkits_path}/app_manager:app_manager",
+diff --git a/test/fuzztest/abilityappmgreventfirst_fuzzer/BUILD.gn b/test/fuzztest/abilityappmgreventfirst_fuzzer/BUILD.gn
+index 71dd4a96ac..160d9da50d 100644
+--- a/test/fuzztest/abilityappmgreventfirst_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilityappmgreventfirst_fuzzer/BUILD.gn
+@@ -37,7 +37,7 @@ ohos_fuzztest("AbilityAppMgrEventFirstFuzzTest") {
+     "abilityappmgreventfirst_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config" ]
++  configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+ 
+   deps = [
+     "${ability_runtime_innerkits_path}/app_manager:app_manager",
+diff --git a/test/fuzztest/abilityappmgreventfourth_fuzzer/BUILD.gn b/test/fuzztest/abilityappmgreventfourth_fuzzer/BUILD.gn
+index 50e5ffd108..ba14dd2bd7 100644
+--- a/test/fuzztest/abilityappmgreventfourth_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilityappmgreventfourth_fuzzer/BUILD.gn
+@@ -37,7 +37,7 @@ ohos_fuzztest("AbilityAppMgrEventFourthFuzzTest") {
+     "abilityappmgreventfourth_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config" ]
++  configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+ 
+   deps = [
+     "${ability_runtime_services_path}/appmgr:libappms",
+diff --git a/test/fuzztest/abilityappmgreventsecond_fuzzer/BUILD.gn b/test/fuzztest/abilityappmgreventsecond_fuzzer/BUILD.gn
+index bac80c4080..2bd58bff7c 100644
+--- a/test/fuzztest/abilityappmgreventsecond_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilityappmgreventsecond_fuzzer/BUILD.gn
+@@ -37,7 +37,7 @@ ohos_fuzztest("AbilityAppMgrEventSecondFuzzTest") {
+     "abilityappmgreventsecond_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config" ]
++  configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+ 
+   deps = [
+     "${ability_runtime_services_path}/appmgr:libappms",
+diff --git a/test/fuzztest/abilityappmgreventthird_fuzzer/BUILD.gn b/test/fuzztest/abilityappmgreventthird_fuzzer/BUILD.gn
+index 69476db546..02fb29097a 100644
+--- a/test/fuzztest/abilityappmgreventthird_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilityappmgreventthird_fuzzer/BUILD.gn
+@@ -37,7 +37,7 @@ ohos_fuzztest("AbilityAppMgrEventThirdFuzzTest") {
+     "abilityappmgreventthird_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config" ]
++  configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+ 
+   deps = [
+     "${ability_runtime_services_path}/appmgr:libappms",
+diff --git a/test/fuzztest/abilityappmgrrenderstateobservermanager_fuzzer/BUILD.gn b/test/fuzztest/abilityappmgrrenderstateobservermanager_fuzzer/BUILD.gn
+index ab96516cc4..133c14b626 100644
+--- a/test/fuzztest/abilityappmgrrenderstateobservermanager_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilityappmgrrenderstateobservermanager_fuzzer/BUILD.gn
+@@ -43,7 +43,7 @@ ohos_fuzztest("AbilityAppMgrRenderStateObserverManagerFuzzTest") {
+     "abilityappmgrrenderstateobservermanager_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
++  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+ 
+   cflags = []
+   if (target_cpu == "arm") {
+diff --git a/test/fuzztest/abilityautostartupclient_fuzzer/BUILD.gn b/test/fuzztest/abilityautostartupclient_fuzzer/BUILD.gn
+index 5a36837662..cd5115c477 100644
+--- a/test/fuzztest/abilityautostartupclient_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilityautostartupclient_fuzzer/BUILD.gn
+@@ -41,7 +41,7 @@ ohos_fuzztest("AbilityAutoStartupClientFuzzTest") {
+     "abilityautostartupclient_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
++  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+   cflags = []
+   if (target_cpu == "arm") {
+     cflags += [ "-DBINDER_IPC_32BIT" ]
+diff --git a/test/fuzztest/abilityautostartupclientfirst_fuzzer/BUILD.gn b/test/fuzztest/abilityautostartupclientfirst_fuzzer/BUILD.gn
+index ef0bca0fe2..a648dfd223 100644
+--- a/test/fuzztest/abilityautostartupclientfirst_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilityautostartupclientfirst_fuzzer/BUILD.gn
+@@ -42,7 +42,7 @@ ohos_fuzztest("AbilityAutoStartupClientFirstFuzzTest") {
+     "abilityautostartupclientfirst_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
++  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+   cflags = []
+   if (target_cpu == "arm") {
+     cflags += [ "-DBINDER_IPC_32BIT" ]
+diff --git a/test/fuzztest/abilityautostartupclientsecond_fuzzer/BUILD.gn b/test/fuzztest/abilityautostartupclientsecond_fuzzer/BUILD.gn
+index 52e617d3ef..3a80b299ea 100644
+--- a/test/fuzztest/abilityautostartupclientsecond_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilityautostartupclientsecond_fuzzer/BUILD.gn
+@@ -42,7 +42,7 @@ ohos_fuzztest("AbilityAutoStartupClientSecondFuzzTest") {
+     "abilityautostartupclientsecond_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
++  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+   cflags = []
+   if (target_cpu == "arm") {
+     cflags += [ "-DBINDER_IPC_32BIT" ]
+diff --git a/test/fuzztest/abilityautostartupclientthird_fuzzer/BUILD.gn b/test/fuzztest/abilityautostartupclientthird_fuzzer/BUILD.gn
+index f70ca2dc1b..8355813aa2 100644
+--- a/test/fuzztest/abilityautostartupclientthird_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilityautostartupclientthird_fuzzer/BUILD.gn
+@@ -42,7 +42,7 @@ ohos_fuzztest("AbilityAutoStartupClientThirdFuzzTest") {
+     "abilityautostartupclientthird_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
++  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+   cflags = []
+   if (target_cpu == "arm") {
+     cflags += [ "-DBINDER_IPC_32BIT" ]
+diff --git a/test/fuzztest/abilityautostartupdatamanagerfifth_fuzzer/BUILD.gn b/test/fuzztest/abilityautostartupdatamanagerfifth_fuzzer/BUILD.gn
+index 1e6568a0b5..568bbc2b08 100644
+--- a/test/fuzztest/abilityautostartupdatamanagerfifth_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilityautostartupdatamanagerfifth_fuzzer/BUILD.gn
+@@ -42,7 +42,7 @@ ohos_fuzztest("AbilityAutoStartupDataManagerFifthFuzzTest") {
+     "abilityautostartupdatamanagerfifth_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
++  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+   cflags = []
+   if (target_cpu == "arm") {
+     cflags += [ "-DBINDER_IPC_32BIT" ]
+diff --git a/test/fuzztest/abilityautostartupdatamanagerfourth_fuzzer/BUILD.gn b/test/fuzztest/abilityautostartupdatamanagerfourth_fuzzer/BUILD.gn
+index 2d01e0cb8d..8a741abaa0 100644
+--- a/test/fuzztest/abilityautostartupdatamanagerfourth_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilityautostartupdatamanagerfourth_fuzzer/BUILD.gn
+@@ -42,7 +42,7 @@ ohos_fuzztest("AbilityAutoStartupDataManagerFourthFuzzTest") {
+     "abilityautostartupdatamanagerfourth_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
++  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+   cflags = []
+   if (target_cpu == "arm") {
+     cflags += [ "-DBINDER_IPC_32BIT" ]
+diff --git a/test/fuzztest/abilityautostartupdatamanagerthird_fuzzer/BUILD.gn b/test/fuzztest/abilityautostartupdatamanagerthird_fuzzer/BUILD.gn
+index 64afcd3f09..a4693a923b 100644
+--- a/test/fuzztest/abilityautostartupdatamanagerthird_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilityautostartupdatamanagerthird_fuzzer/BUILD.gn
+@@ -42,7 +42,7 @@ ohos_fuzztest("AbilityAutoStartupDataManagerThirdFuzzTest") {
+     "abilityautostartupdatamanagerthird_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
++  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+   cflags = []
+   if (target_cpu == "arm") {
+     cflags += [ "-DBINDER_IPC_32BIT" ]
+diff --git a/test/fuzztest/abilitychildprocessrecord_fuzzer/BUILD.gn b/test/fuzztest/abilitychildprocessrecord_fuzzer/BUILD.gn
+index be4e6614d3..b0083e73e4 100644
+--- a/test/fuzztest/abilitychildprocessrecord_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilitychildprocessrecord_fuzzer/BUILD.gn
+@@ -43,7 +43,7 @@ ohos_fuzztest("AbilityChildProcessRecordFuzzTest") {
+     "abilitychildprocessrecord_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config" ]
++  configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+ 
+   deps = [
+     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+diff --git a/test/fuzztest/abilitychildprocessrecordfirst_fuzzer/BUILD.gn b/test/fuzztest/abilitychildprocessrecordfirst_fuzzer/BUILD.gn
+index a7ff3eded5..dc84dfc6ef 100644
+--- a/test/fuzztest/abilitychildprocessrecordfirst_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilitychildprocessrecordfirst_fuzzer/BUILD.gn
+@@ -43,7 +43,7 @@ ohos_fuzztest("AbilityChildProcessRecordFirstFuzzTest") {
+     "abilitychildprocessrecordfirst_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config" ]
++  configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+ 
+   deps = [
+     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+diff --git a/test/fuzztest/abilityconnectmanager_fuzzer/BUILD.gn b/test/fuzztest/abilityconnectmanager_fuzzer/BUILD.gn
+index deb45e6206..266a636900 100755
+--- a/test/fuzztest/abilityconnectmanager_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilityconnectmanager_fuzzer/BUILD.gn
+@@ -31,7 +31,10 @@ ohos_fuzztest("AbilityConnectManagerFuzzTest") {
+     "-Wno-unused-variable",
+     "-fno-omit-frame-pointer",
+   ]
+-  sources = [ "abilityconnectmanager_fuzzer.cpp" ]
++  sources = [
++    "${ability_runtime_services_path}/abilitymgr/src/ability_connect_callback_stub.cpp",
++    "abilityconnectmanager_fuzzer.cpp",
++  ]
+ 
+   configs = [
+     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
+@@ -50,8 +53,11 @@ ohos_fuzztest("AbilityConnectManagerFuzzTest") {
+     "ability_base:zuri",
+     "bundle_framework:appexecfwk_base",
+     "c_utils:utils",
++    "ffrt:libffrt",
++    "hisysevent:libhisysevent",
+     "common_event_service:cesfwk_innerkits",
+     "ffrt:libffrt",
++    "hisysevent:libhisysevent",
+     "ipc:ipc_core",
+     "napi:ace_napi",
+     "relational_store:native_dataability",
+diff --git a/test/fuzztest/abilityconnectmanager_fuzzer/abilityconnectmanager_fuzzer.cpp b/test/fuzztest/abilityconnectmanager_fuzzer/abilityconnectmanager_fuzzer.cpp
+index f33d2f2a99..4e33b54a1d 100755
+--- a/test/fuzztest/abilityconnectmanager_fuzzer/abilityconnectmanager_fuzzer.cpp
++++ b/test/fuzztest/abilityconnectmanager_fuzzer/abilityconnectmanager_fuzzer.cpp
+@@ -91,12 +91,9 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+     sptr<IRemoteObject> token = GetFuzzAbilityToken();
+     abilityConnectManager->TerminateAbility(token);
+     abilityConnectManager->StopServiceAbility(abilityRequest);
+-    abilityConnectManager->StartAbilityLocked(abilityRequest);
+-    abilityConnectManager->TerminateAbilityLocked(token);
+-    abilityConnectManager->StopServiceAbilityLocked(abilityRequest);
+     bool boolParam = *data % ENABLE;
+     std::shared_ptr<BaseExtensionRecord> targetService = GetFuzzAbilityRecord();
+-    const sptr<IAbilityConnection> connect = new AbilityConnectCallback();
++    const sptr<AbilityConnectionStub> connect = new AbilityConnectCallback();
+     std::list<std::shared_ptr<ConnectionRecord>> connectRecordList;
+     abilityConnectManager->GetConnectRecordListFromMap(connect, connectRecordList);
+     sptr<IRemoteObject> callerToken = GetFuzzAbilityToken();
+@@ -116,11 +113,9 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+     std::string stringParam(data, size);
+     abilityConnectManager->GetServiceRecordByElementName(stringParam);
+     abilityConnectManager->GetExtensionByTokenFromServiceMap(token);
+-    sptr<IAbilityConnection> callback = new AbilityConnectCallback();
++    sptr<AbilityConnectionStub> callback = new AbilityConnectCallback();
+     abilityConnectManager->GetConnectRecordListByCallback(callback);
+     int64_t int64Param = static_cast<int64_t>(GetU32Data(data));
+-    abilityConnectManager->GetAbilityRecordById(int64Param);
+-    abilityConnectManager->LoadAbility(abilityRecord);
+     uint32_t uint32Param = GetU32Data(data);
+     abilityConnectManager->PostTimeOutTask(abilityRecord, uint32Param);
+     abilityConnectManager->HandleStartTimeoutTask(abilityRecord);
+@@ -128,15 +123,10 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+     abilityConnectManager->HandleStopTimeoutTask(abilityRecord);
+     AbilityConnectManager::ConnectListType connectlist;
+     abilityConnectManager->HandleTerminateDisconnectTask(connectlist);
+-    abilityConnectManager->DispatchInactive(abilityRecord, intParam, token);
+     abilityConnectManager->DispatchTerminate(abilityRecord, token);
+-    abilityConnectManager->ConnectAbility(abilityRecord);
+-    abilityConnectManager->CommandAbility(abilityRecord);
+-    abilityConnectManager->TerminateDone(abilityRecord);
+     abilityConnectManager->GetAbilityConnectedRecordFromRecordList(abilityRecord, connectRecordList);
+     std::shared_ptr<ConnectionRecord> connection;
+     abilityConnectManager->RemoveConnectionRecordFromMap(connection);
+-    abilityConnectManager->RemoveServiceAbility(abilityRecord);
+     abilityConnectManager->AddConnectDeathRecipient(connect);
+     abilityConnectManager->RemoveConnectDeathRecipient(connect);
+     sptr<IRemoteObject> connectRemoteObject = GetFuzzAbilityToken();
+@@ -144,12 +134,8 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+     abilityConnectManager->OnCallBackDied(remote);
+     abilityConnectManager->HandleCallBackDiedTask(connectRemoteObject);
+     int int32Param = static_cast<int32_t>(GetU32Data(data));
+-    abilityConnectManager->OnAbilityDied(abilityRecord, int32Param);
+     abilityConnectManager->OnTimeOut(uint32Param, int64Param);
+     std::shared_ptr<AbilityRecord> ability = GetFuzzAbilityRecord();
+-    abilityConnectManager->HandleInactiveTimeout(ability);
+-    abilityConnectManager->IsAbilityNeedKeepAlive(abilityRecord);
+-    abilityConnectManager->HandleAbilityDiedTask(abilityRecord, int32Param);
+     std::vector<std::string> info;
+     AbilityConnectManager::ServiceMapType serviceMap;
+     AbilityConnectManager::DumpState(serviceMap, info, boolParam, stringParam);
+diff --git a/test/fuzztest/abilityecologicalrulemgrservicefirst_fuzzer/BUILD.gn b/test/fuzztest/abilityecologicalrulemgrservicefirst_fuzzer/BUILD.gn
+index ab9cd6d82d..cab11d0253 100644
+--- a/test/fuzztest/abilityecologicalrulemgrservicefirst_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilityecologicalrulemgrservicefirst_fuzzer/BUILD.gn
+@@ -50,6 +50,7 @@ ohos_fuzztest("AbilityEcologicalRuleMgrServiceFirstFuzzTest") {
+ 
+   configs = [
+     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
++    "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit",
+     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
+   ]
+   cflags = []
+diff --git a/test/fuzztest/abilityframeworkscjenvironment_fuzzer/BUILD.gn b/test/fuzztest/abilityframeworkscjenvironment_fuzzer/BUILD.gn
+index 96b4256844..09d17b63fa 100644
+--- a/test/fuzztest/abilityframeworkscjenvironment_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilityframeworkscjenvironment_fuzzer/BUILD.gn
+@@ -69,7 +69,6 @@ ohos_fuzztest("AbilityFrameworksCjEnvironmentFuzzTest") {
+     "${ability_runtime_path}/utils/server/startup:startup_util",
+     "${ability_runtime_services_path}/abilitymgr:abilityms",
+     "${ability_runtime_services_path}/common:perm_verification",
+-    "//third_party/libjpeg-turbo:turbojpeg_static",
+   ]
+   defines = [ "WITH_EVENT_HANDLER" ]
+   external_deps = [
+diff --git a/test/fuzztest/abilityframeworksnativeohosjsenvlogger_fuzzer/BUILD.gn b/test/fuzztest/abilityframeworksnativeohosjsenvlogger_fuzzer/BUILD.gn
+index 5bbb8bf6f0..094d87d740 100644
+--- a/test/fuzztest/abilityframeworksnativeohosjsenvlogger_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilityframeworksnativeohosjsenvlogger_fuzzer/BUILD.gn
+@@ -51,6 +51,7 @@ ohos_fuzztest("AbilityFrameworksNativeOhosJsEnvLoggerFuzzTest") {
+ 
+   configs = [
+     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
++    "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit",
+     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
+   ]
+ 
+diff --git a/test/fuzztest/abilitymanagereventsubscriber_fuzzer/BUILD.gn b/test/fuzztest/abilitymanagereventsubscriber_fuzzer/BUILD.gn
+index b15f210da0..49a971566d 100644
+--- a/test/fuzztest/abilitymanagereventsubscriber_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilitymanagereventsubscriber_fuzzer/BUILD.gn
+@@ -57,6 +57,8 @@ ohos_fuzztest("AbilityManagerEventSubscriberFuzzTest") {
+     "bundle_framework:appexecfwk_base",
+     "bundle_framework:appexecfwk_core",
+     "c_utils:utils",
++    "ffrt:libffrt",
++    "hisysevent:libhisysevent",
+     "common_event_service:cesfwk_innerkits",
+     "hilog:libhilog",
+     "hitrace:hitrace_meter",
+diff --git a/test/fuzztest/abilitymgrappexitreasonhelper_fuzzer/BUILD.gn b/test/fuzztest/abilitymgrappexitreasonhelper_fuzzer/BUILD.gn
+index 3707c90a5d..b5010ee888 100644
+--- a/test/fuzztest/abilitymgrappexitreasonhelper_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilitymgrappexitreasonhelper_fuzzer/BUILD.gn
+@@ -62,7 +62,7 @@ ohos_fuzztest("AbilityMgrAppExitReasonHelperFuzzTest") {
+     "abilitymgrappexitreasonhelper_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
++  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+ 
+   cflags = []
+   if (target_cpu == "arm") {
+diff --git a/test/fuzztest/abilitymgrappexitreasonhelpersecond_fuzzer/BUILD.gn b/test/fuzztest/abilitymgrappexitreasonhelpersecond_fuzzer/BUILD.gn
+index fb60feeac5..b166b5c9bf 100644
+--- a/test/fuzztest/abilitymgrappexitreasonhelpersecond_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilitymgrappexitreasonhelpersecond_fuzzer/BUILD.gn
+@@ -62,7 +62,7 @@ ohos_fuzztest("AbilityMgrAppExitReasonHelperSecondFuzzTest") {
+     "abilitymgrappexitreasonhelpersecond_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
++  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+ 
+   cflags = []
+   if (target_cpu == "arm") {
+diff --git a/test/fuzztest/abilitymgrcontrolinterceptor_fuzzer/BUILD.gn b/test/fuzztest/abilitymgrcontrolinterceptor_fuzzer/BUILD.gn
+index 071e8cd19e..57eefa0f49 100644
+--- a/test/fuzztest/abilitymgrcontrolinterceptor_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilitymgrcontrolinterceptor_fuzzer/BUILD.gn
+@@ -44,7 +44,7 @@ ohos_fuzztest("AbilityMgrControlInterceptorFuzzTest") {
+     "abilitymgrcontrolinterceptor_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
++  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+ 
+   cflags = []
+   if (target_cpu == "arm") {
+diff --git a/test/fuzztest/abilitymgrinsightintentexecutemanager_fuzzer/BUILD.gn b/test/fuzztest/abilitymgrinsightintentexecutemanager_fuzzer/BUILD.gn
+index a7dc95f66f..6f7a9ef5de 100644
+--- a/test/fuzztest/abilitymgrinsightintentexecutemanager_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilitymgrinsightintentexecutemanager_fuzzer/BUILD.gn
+@@ -50,6 +50,7 @@ ohos_fuzztest("AbilityMgrInsightIntentExecuteManagerFuzzTest") {
+ 
+   configs = [
+     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
++    "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit",
+     "//build/config/compiler:exceptions",
+   ]
+ 
+diff --git a/test/fuzztest/abilitymgrinsightintentexecuteresult_fuzzer/BUILD.gn b/test/fuzztest/abilitymgrinsightintentexecuteresult_fuzzer/BUILD.gn
+index 6b26a68743..a1cdd9059b 100644
+--- a/test/fuzztest/abilitymgrinsightintentexecuteresult_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilitymgrinsightintentexecuteresult_fuzzer/BUILD.gn
+@@ -45,6 +45,7 @@ ohos_fuzztest("AbilityMgrInsightIntentExecuteResultFuzzTest") {
+ 
+   configs = [
+     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
++    "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit",
+     "//build/config/compiler:exceptions",
+   ]
+ 
+diff --git a/test/fuzztest/abilitymgrinsightintentutils_fuzzer/BUILD.gn b/test/fuzztest/abilitymgrinsightintentutils_fuzzer/BUILD.gn
+index ea877435fb..b5c24855c6 100644
+--- a/test/fuzztest/abilitymgrinsightintentutils_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilitymgrinsightintentutils_fuzzer/BUILD.gn
+@@ -45,6 +45,7 @@ ohos_fuzztest("AbilityMgrInsightIntentUtilsFuzzTest") {
+ 
+   configs = [
+     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
++    "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit",
+     "//build/config/compiler:exceptions",
+   ]
+ 
+diff --git a/test/fuzztest/abilitymgrpreloaduiextstateobserver_fuzzer/BUILD.gn b/test/fuzztest/abilitymgrpreloaduiextstateobserver_fuzzer/BUILD.gn
+index 4c17645979..d4e3bfc3de 100644
+--- a/test/fuzztest/abilitymgrpreloaduiextstateobserver_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilitymgrpreloaduiextstateobserver_fuzzer/BUILD.gn
+@@ -69,6 +69,7 @@ ohos_fuzztest("AbilitymgrPreloadUiextStateObserverFuzzTest") {
+     "ability_base:zuri",
+     "bundle_framework:appexecfwk_base",
+     "bundle_framework:appexecfwk_core",
++    "hisysevent:libhisysevent",
+     "c_utils:utils",
+     "common_event_service:cesfwk_innerkits",
+     "ffrt:libffrt",
+diff --git a/test/fuzztest/abilitystartwithwaitobserverproxy_fuzzer/BUILD.gn b/test/fuzztest/abilitystartwithwaitobserverproxy_fuzzer/BUILD.gn
+index ab76269e9b..01488691a4 100644
+--- a/test/fuzztest/abilitystartwithwaitobserverproxy_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilitystartwithwaitobserverproxy_fuzzer/BUILD.gn
+@@ -36,6 +36,7 @@ ohos_fuzztest("AbilityStartWithWaitObserverProxyFuzzTest") {
+     "${ability_runtime_innerkits_path}/ability_manager/src/aa_tools/ability_start_with_wait_observer_proxy.cpp",
+     "abilitystartwithwaitobserverproxy_fuzzer.cpp",
+   ]
++  configs = [ "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+ 
+   deps = [
+     "${ability_runtime_innerkits_path}/app_manager:app_manager",
+diff --git a/test/fuzztest/abilitystubsendanrprocessid_fuzzer/BUILD.gn b/test/fuzztest/abilitystubsendanrprocessid_fuzzer/BUILD.gn
+index 95eed7fd4d..6c5a49a9f0 100644
+--- a/test/fuzztest/abilitystubsendanrprocessid_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilitystubsendanrprocessid_fuzzer/BUILD.gn
+@@ -45,6 +45,7 @@ ohos_fuzztest("AbilityStubSendANRProcessIDFuzzTest") {
+     "ability_base:zuri",
+     "bundle_framework:appexecfwk_base",
+     "bundle_framework:appexecfwk_core",
++    "hisysevent:libhisysevent",
+     "c_utils:utils",
+     "common_event_service:cesfwk_innerkits",
+     "ffrt:libffrt",
+diff --git a/test/fuzztest/abilitytokenstub_fuzzer/BUILD.gn b/test/fuzztest/abilitytokenstub_fuzzer/BUILD.gn
+index d7f1c9b59d..b44a3e512d 100644
+--- a/test/fuzztest/abilitytokenstub_fuzzer/BUILD.gn
++++ b/test/fuzztest/abilitytokenstub_fuzzer/BUILD.gn
+@@ -41,6 +41,7 @@ ohos_fuzztest("AbilityTokenStubFuzzTest") {
+   ]
+ 
+   external_deps = [
++    "ability_base:want",
+     "c_utils:utils",
+     "hilog:libhilog",
+     "ipc:ipc_core",
+diff --git a/test/fuzztest/appmgrservicefirst_fuzzer/BUILD.gn b/test/fuzztest/appmgrservicefirst_fuzzer/BUILD.gn
+index 28adb930cb..895f76817a 100755
+--- a/test/fuzztest/appmgrservicefirst_fuzzer/BUILD.gn
++++ b/test/fuzztest/appmgrservicefirst_fuzzer/BUILD.gn
+@@ -50,6 +50,7 @@ ohos_fuzztest("AppMgrServiceFirstFuzzTest") {
+     "appspawn:appspawn_client",
+     "bundle_framework:appexecfwk_base",
+     "bundle_framework:appexecfwk_core",
++    "hisysevent:libhisysevent",
+     "c_utils:utils",
+     "common_event_service:cesfwk_innerkits",
+     "ffrt:libffrt",
+diff --git a/test/fuzztest/appmgrservicefirst_fuzzer/appmgrservicefirst_fuzzer.cpp b/test/fuzztest/appmgrservicefirst_fuzzer/appmgrservicefirst_fuzzer.cpp
+index 4dbfd06897..ce7c8ea65c 100644
+--- a/test/fuzztest/appmgrservicefirst_fuzzer/appmgrservicefirst_fuzzer.cpp
++++ b/test/fuzztest/appmgrservicefirst_fuzzer/appmgrservicefirst_fuzzer.cpp
+@@ -77,7 +77,6 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
+     appMgrService->RegisterNativeChildExitNotify(nativeChildNotify);
+     appMgrService->UnregisterNativeChildExitNotify(nativeChildNotify);
+     pid_t pid = static_cast<pid_t>(GetU32Data(data));
+-    appMgrService->AddAppDeathRecipient(pid);
+     appMgrService->QueryServiceState();
+     sptr<IRemoteObject> app = nullptr;
+     appMgrService->AttachApplication(app);
+diff --git a/test/fuzztest/appschedulerhost_fuzzer/appschedulerhost_fuzzer.cpp b/test/fuzztest/appschedulerhost_fuzzer/appschedulerhost_fuzzer.cpp
+index e6879346a8..0d949f1ec6 100644
+--- a/test/fuzztest/appschedulerhost_fuzzer/appschedulerhost_fuzzer.cpp
++++ b/test/fuzztest/appschedulerhost_fuzzer/appschedulerhost_fuzzer.cpp
+@@ -34,7 +34,7 @@ namespace OHOS {
+ namespace {
+ const std::u16string APP_SCHEDULER_INTERFACE_TOKEN = u"ohos.appexecfwk.AppScheduler";
+ constexpr uint8_t SCHEDULER_HANDLE_COUNT = 40;
+-constexpr size_t TARGET_BUF_SIZE = 256;
++[[maybe_unused]] constexpr size_t TARGET_BUF_SIZE = 256;
+ 
+ class AppSchedulerHostFUZZ : public AppSchedulerHost {
+ public:
+diff --git a/test/fuzztest/assertfaultcallbackdeathmgr_fuzzer/BUILD.gn b/test/fuzztest/assertfaultcallbackdeathmgr_fuzzer/BUILD.gn
+index 28ecd4e2a5..40564f4b7a 100644
+--- a/test/fuzztest/assertfaultcallbackdeathmgr_fuzzer/BUILD.gn
++++ b/test/fuzztest/assertfaultcallbackdeathmgr_fuzzer/BUILD.gn
+@@ -44,7 +44,7 @@ ohos_fuzztest("AssertFaultCallbackDeathMgrFuzzTest") {
+     "assertfaultcallbackdeathmgr_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
++  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+   cflags = []
+   if (target_cpu == "arm") {
+     cflags += [ "-DBINDER_IPC_32BIT" ]
+diff --git a/test/fuzztest/assertfaultproxy_fuzzer/BUILD.gn b/test/fuzztest/assertfaultproxy_fuzzer/BUILD.gn
+index 2a470593f3..dfc85b4e23 100644
+--- a/test/fuzztest/assertfaultproxy_fuzzer/BUILD.gn
++++ b/test/fuzztest/assertfaultproxy_fuzzer/BUILD.gn
+@@ -36,6 +36,7 @@ ohos_fuzztest("AssertFaultProxyFuzzTest") {
+     "-fno-omit-frame-pointer",
+   ]
+   sources = [
++    "${ability_runtime_services_path}/abilitymgr/src/ability_connect_callback_stub.cpp",
+     "${ability_runtime_services_path}/abilitymgr/src/assert_fault_proxy.cpp",
+     "${ability_runtime_services_path}/common/src/ffrt_task_handler_wrap.cpp",
+     "${ability_runtime_services_path}/common/src/queue_task_handler_wrap.cpp",
+@@ -43,7 +44,7 @@ ohos_fuzztest("AssertFaultProxyFuzzTest") {
+     "assertfaultproxy_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
++  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+   cflags = []
+   if (target_cpu == "arm") {
+     cflags += [ "-DBINDER_IPC_32BIT" ]
+diff --git a/test/fuzztest/atomicservicestatuscallbackstub_fuzzer/BUILD.gn b/test/fuzztest/atomicservicestatuscallbackstub_fuzzer/BUILD.gn
+index 3b81231d79..013ba0f9f6 100644
+--- a/test/fuzztest/atomicservicestatuscallbackstub_fuzzer/BUILD.gn
++++ b/test/fuzztest/atomicservicestatuscallbackstub_fuzzer/BUILD.gn
+@@ -37,9 +37,12 @@ ohos_fuzztest("AtomicServiceStatusCallbackStubFuzzTest") {
+     "-fno-omit-frame-pointer",
+   ]
+ 
+-  sources = [ "atomicservicestatuscallbackstub_fuzzer.cpp" ]
++  sources = [
++    "${ability_runtime_services_path}/abilitymgr/src/atomic_service_status_callback_stub.cpp",
++    "atomicservicestatuscallbackstub_fuzzer.cpp",
++  ]
+ 
+-  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
++  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+ 
+   deps = [
+     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+diff --git a/test/fuzztest/autostartupcallbackstub_fuzzer/BUILD.gn b/test/fuzztest/autostartupcallbackstub_fuzzer/BUILD.gn
+index 56e71ba737..9590c154f6 100644
+--- a/test/fuzztest/autostartupcallbackstub_fuzzer/BUILD.gn
++++ b/test/fuzztest/autostartupcallbackstub_fuzzer/BUILD.gn
+@@ -37,16 +37,21 @@ ohos_fuzztest("AutoStartupCallBackStubFuzzTest") {
+     "-fno-omit-frame-pointer",
+   ]
+ 
+-  sources = [ "autostartupcallbackstub_fuzzer.cpp" ]
++  sources = [
++    "${ability_runtime_path}/frameworks/native/ability/native/auto_startup_callback/auto_startup_callback_stub.cpp",
++    "autostartupcallbackstub_fuzzer.cpp",
++  ]
+ 
+-  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
++  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+ 
+   deps = [
+     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
++    "${ability_runtime_native_path}/ability/native:abilitykit_native",
+   ]
+ 
+   external_deps = [
+     "ability_base:want",
++    "eventhandler:libeventhandler",
+     "c_utils:utils",
+     "hilog:libhilog",
+     "ipc:ipc_core",
+diff --git a/test/fuzztest/dataabilityobserverstub_fuzzer/BUILD.gn b/test/fuzztest/dataabilityobserverstub_fuzzer/BUILD.gn
+index cbf6647295..a5cc76fc5f 100644
+--- a/test/fuzztest/dataabilityobserverstub_fuzzer/BUILD.gn
++++ b/test/fuzztest/dataabilityobserverstub_fuzzer/BUILD.gn
+@@ -44,6 +44,7 @@ ohos_fuzztest("DataAbilityObserverStubFuzzTest") {
+   ]
+ 
+   external_deps = [
++    "ability_base:want",
+     "c_utils:utils",
+     "hilog:libhilog",
+     "ipc:ipc_core",
+diff --git a/test/fuzztest/dataobsmgrstub_fuzzer/BUILD.gn b/test/fuzztest/dataobsmgrstub_fuzzer/BUILD.gn
+index e6cde61588..64b927eb71 100644
+--- a/test/fuzztest/dataobsmgrstub_fuzzer/BUILD.gn
++++ b/test/fuzztest/dataobsmgrstub_fuzzer/BUILD.gn
+@@ -35,7 +35,10 @@ ohos_fuzztest("DataObsMgrStubFuzzTest") {
+     "-Wno-unused-variable",
+     "-fno-omit-frame-pointer",
+   ]
+-  sources = [ "dataobsmgrstub_fuzzer.cpp" ]
++  sources = [
++    "${ability_runtime_services_path}/dataobsmgr/src/dataobs_mgr_stub.cpp",
++    "dataobsmgrstub_fuzzer.cpp",
++  ]
+ 
+   configs = [
+     "${ability_runtime_innerkits_path}/dataobs_manager:dataobs_manager_public_config",
+@@ -48,6 +51,7 @@ ohos_fuzztest("DataObsMgrStubFuzzTest") {
+   ]
+ 
+   external_deps = [
++    "ability_base:want",
+     "ability_base:zuri",
+     "c_utils:utils",
+     "hilog:libhilog",
+diff --git a/test/fuzztest/disposedobserver_fuzzer/BUILD.gn b/test/fuzztest/disposedobserver_fuzzer/BUILD.gn
+index 4e87f69ef6..44d47dba2d 100644
+--- a/test/fuzztest/disposedobserver_fuzzer/BUILD.gn
++++ b/test/fuzztest/disposedobserver_fuzzer/BUILD.gn
+@@ -47,7 +47,7 @@ ohos_fuzztest("DisposedObserverFuzzTest") {
+     "disposedobserver_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
++  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+   cflags = []
+   if (target_cpu == "arm") {
+     cflags += [ "-DBINDER_IPC_32BIT" ]
+diff --git a/test/fuzztest/exitinfodatamanagerfirst_fuzzer/BUILD.gn b/test/fuzztest/exitinfodatamanagerfirst_fuzzer/BUILD.gn
+index 73de0ede48..b93f219018 100644
+--- a/test/fuzztest/exitinfodatamanagerfirst_fuzzer/BUILD.gn
++++ b/test/fuzztest/exitinfodatamanagerfirst_fuzzer/BUILD.gn
+@@ -45,7 +45,7 @@ ohos_fuzztest("ExitInfoDataManagerFirstFuzzTest") {
+     "exitinfodatamanagerfirst_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
++  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+ 
+   cflags = []
+   if (target_cpu == "arm") {
+diff --git a/test/fuzztest/exitinfodatamanagersecond_fuzzer/BUILD.gn b/test/fuzztest/exitinfodatamanagersecond_fuzzer/BUILD.gn
+index 288457ee7b..333642e52e 100644
+--- a/test/fuzztest/exitinfodatamanagersecond_fuzzer/BUILD.gn
++++ b/test/fuzztest/exitinfodatamanagersecond_fuzzer/BUILD.gn
+@@ -45,7 +45,7 @@ ohos_fuzztest("ExitInfoDataManagerSecondFuzzTest") {
+     "exitinfodatamanagersecond_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
++  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+ 
+   cflags = []
+   if (target_cpu == "arm") {
+diff --git a/test/fuzztest/exitinfodatamanagerthird_fuzzer/BUILD.gn b/test/fuzztest/exitinfodatamanagerthird_fuzzer/BUILD.gn
+index 55b86297ec..86cf702b77 100644
+--- a/test/fuzztest/exitinfodatamanagerthird_fuzzer/BUILD.gn
++++ b/test/fuzztest/exitinfodatamanagerthird_fuzzer/BUILD.gn
+@@ -45,7 +45,7 @@ ohos_fuzztest("ExitInfoDataManagerThirdFuzzTest") {
+     "exitinfodatamanagerthird_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
++  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+ 
+   cflags = []
+   if (target_cpu == "arm") {
+diff --git a/test/fuzztest/extensioncontrolinterceptor_fuzzer/BUILD.gn b/test/fuzztest/extensioncontrolinterceptor_fuzzer/BUILD.gn
+index 0171005cc5..a9c92d1b43 100644
+--- a/test/fuzztest/extensioncontrolinterceptor_fuzzer/BUILD.gn
++++ b/test/fuzztest/extensioncontrolinterceptor_fuzzer/BUILD.gn
+@@ -44,7 +44,7 @@ ohos_fuzztest("ExtensionControlInterceptorFuzzTest") {
+     "extension_control_interceptor_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
++  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+ 
+   cflags = []
+   if (target_cpu == "arm") {
+diff --git a/test/fuzztest/extensioncontrolinterceptorfirst_fuzzer/BUILD.gn b/test/fuzztest/extensioncontrolinterceptorfirst_fuzzer/BUILD.gn
+index f4f50d7a63..4ac0cf62d5 100644
+--- a/test/fuzztest/extensioncontrolinterceptorfirst_fuzzer/BUILD.gn
++++ b/test/fuzztest/extensioncontrolinterceptorfirst_fuzzer/BUILD.gn
+@@ -44,7 +44,7 @@ ohos_fuzztest("ExtensionControlInterceptorFirstFuzzTest") {
+     "extensioncontrolinterceptorfirst_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
++  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+ 
+   cflags = []
+   if (target_cpu == "arm") {
+diff --git a/test/fuzztest/extensioncontrolinterceptorsecond_fuzzer/BUILD.gn b/test/fuzztest/extensioncontrolinterceptorsecond_fuzzer/BUILD.gn
+index 0a088f2b80..fd5c57acbb 100644
+--- a/test/fuzztest/extensioncontrolinterceptorsecond_fuzzer/BUILD.gn
++++ b/test/fuzztest/extensioncontrolinterceptorsecond_fuzzer/BUILD.gn
+@@ -44,7 +44,7 @@ ohos_fuzztest("ExtensionControlInterceptorSecondFuzzTest") {
+     "extensioncontrolinterceptorsecond_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
++  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+ 
+   cflags = []
+   if (target_cpu == "arm") {
+diff --git a/test/fuzztest/extensionmanagerclient_fuzzer/BUILD.gn b/test/fuzztest/extensionmanagerclient_fuzzer/BUILD.gn
+index 0a464d36ec..9896f62099 100644
+--- a/test/fuzztest/extensionmanagerclient_fuzzer/BUILD.gn
++++ b/test/fuzztest/extensionmanagerclient_fuzzer/BUILD.gn
+@@ -49,6 +49,7 @@ ohos_fuzztest("ExtensionManagerClientFuzzTest") {
+ 
+   external_deps = [
+     "ability_base:want",
++    "bundle_framework:appexecfwk_base",
+     "c_utils:utils",
+     "hilog:libhilog",
+     "ipc:ipc_core",
+diff --git a/test/fuzztest/extensionrecordfactory_fuzzer/BUILD.gn b/test/fuzztest/extensionrecordfactory_fuzzer/BUILD.gn
+index 9bcf1bba7e..34d70fe98a 100644
+--- a/test/fuzztest/extensionrecordfactory_fuzzer/BUILD.gn
++++ b/test/fuzztest/extensionrecordfactory_fuzzer/BUILD.gn
+@@ -43,7 +43,7 @@ ohos_fuzztest("ExtensionRecordFactoryFuzzTest") {
+     "extensionrecordfactory_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
++  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+   cflags = []
+   if (target_cpu == "arm") {
+     cflags += [ "-DBINDER_IPC_32BIT" ]
+diff --git a/test/fuzztest/extensionrecordmanager_fuzzer/BUILD.gn b/test/fuzztest/extensionrecordmanager_fuzzer/BUILD.gn
+index c4088a97c5..12cf89961a 100644
+--- a/test/fuzztest/extensionrecordmanager_fuzzer/BUILD.gn
++++ b/test/fuzztest/extensionrecordmanager_fuzzer/BUILD.gn
+@@ -59,7 +59,7 @@ ohos_fuzztest("ExtensionRecordManagerFuzzTest") {
+     "extensionrecordmanager_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
++  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+   cflags = []
+   if (target_cpu == "arm") {
+     cflags += [ "-DBINDER_IPC_32BIT" ]
+diff --git a/test/fuzztest/extensionrunningtimeoutmonitor_fuzzer/BUILD.gn b/test/fuzztest/extensionrunningtimeoutmonitor_fuzzer/BUILD.gn
+index cf1b2eafe1..fb76625aac 100644
+--- a/test/fuzztest/extensionrunningtimeoutmonitor_fuzzer/BUILD.gn
++++ b/test/fuzztest/extensionrunningtimeoutmonitor_fuzzer/BUILD.gn
+@@ -46,7 +46,7 @@ ohos_fuzztest("ExtensionRunningTimeoutMonitorFuzzTest") {
+     "extensionrunningtimeoutmonitor_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
++  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+   cflags = []
+   if (target_cpu == "arm") {
+     cflags += [ "-DBINDER_IPC_32BIT" ]
+diff --git a/test/fuzztest/extractinsightintentprofile_fuzzer/BUILD.gn b/test/fuzztest/extractinsightintentprofile_fuzzer/BUILD.gn
+index faf5759e62..fcf7b3871e 100644
+--- a/test/fuzztest/extractinsightintentprofile_fuzzer/BUILD.gn
++++ b/test/fuzztest/extractinsightintentprofile_fuzzer/BUILD.gn
+@@ -55,6 +55,7 @@ ohos_fuzztest("ExtractInsightIntentProfileFuzzTest") {
+ 
+   configs = [
+     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
++    "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit",
+     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
+     "//build/config/compiler:exceptions",
+   ]
+diff --git a/test/fuzztest/foregroundappconnectionstub_fuzzer/BUILD.gn b/test/fuzztest/foregroundappconnectionstub_fuzzer/BUILD.gn
+index 13e0a60696..102e4d8cd5 100644
+--- a/test/fuzztest/foregroundappconnectionstub_fuzzer/BUILD.gn
++++ b/test/fuzztest/foregroundappconnectionstub_fuzzer/BUILD.gn
+@@ -47,6 +47,7 @@ ohos_fuzztest("ForegroundAppConnectionStubFuzzTest") {
+   ]
+ 
+   external_deps = [
++    "ability_base:want",
+     "c_utils:utils",
+     "hilog:libhilog",
+     "ipc:ipc_core",
+diff --git a/test/fuzztest/freezeutil_fuzzer/BUILD.gn b/test/fuzztest/freezeutil_fuzzer/BUILD.gn
+index 7cf0a50598..1918651a99 100644
+--- a/test/fuzztest/freezeutil_fuzzer/BUILD.gn
++++ b/test/fuzztest/freezeutil_fuzzer/BUILD.gn
+@@ -60,7 +60,6 @@ ohos_fuzztest("FreezeUtilFuzzTest") {
+     "${ability_runtime_services_path}/abilitymgr:abilityms",
+     "${ability_runtime_services_path}/common:app_util",
+     "${ability_runtime_services_path}/common:perm_verification",
+-    "//third_party/libjpeg-turbo:turbojpeg_static",
+   ]
+ 
+   external_deps = [
+diff --git a/test/fuzztest/insightintentdbcache_fuzzer/BUILD.gn b/test/fuzztest/insightintentdbcache_fuzzer/BUILD.gn
+index 3a5f66cf92..2803d385dd 100644
+--- a/test/fuzztest/insightintentdbcache_fuzzer/BUILD.gn
++++ b/test/fuzztest/insightintentdbcache_fuzzer/BUILD.gn
+@@ -57,6 +57,7 @@ ohos_fuzztest("InsightIntentDBCacheFuzzTest") {
+ 
+   configs = [
+     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
++    "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit",
+     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
+     "//build/config/compiler:exceptions",
+   ]
+diff --git a/test/fuzztest/insightintentdbcachefirst_fuzzer/BUILD.gn b/test/fuzztest/insightintentdbcachefirst_fuzzer/BUILD.gn
+index e226ffbb70..c31aa34867 100644
+--- a/test/fuzztest/insightintentdbcachefirst_fuzzer/BUILD.gn
++++ b/test/fuzztest/insightintentdbcachefirst_fuzzer/BUILD.gn
+@@ -57,6 +57,7 @@ ohos_fuzztest("InsightIntentDBCacheFirstFuzzTest") {
+ 
+   configs = [
+     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
++    "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit",
+     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
+     "//build/config/compiler:exceptions",
+   ]
+diff --git a/test/fuzztest/insightintentexecutemanagerfirst_fuzzer/BUILD.gn b/test/fuzztest/insightintentexecutemanagerfirst_fuzzer/BUILD.gn
+index 72b43ad5ed..14e26d1282 100644
+--- a/test/fuzztest/insightintentexecutemanagerfirst_fuzzer/BUILD.gn
++++ b/test/fuzztest/insightintentexecutemanagerfirst_fuzzer/BUILD.gn
+@@ -57,6 +57,7 @@ ohos_fuzztest("InsightIntentExecuteManagerFirstFuzzTest") {
+ 
+   configs = [
+     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
++    "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit",
+     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
+     "//build/config/compiler:exceptions",
+   ]
+diff --git a/test/fuzztest/insightintentexecutemanagersecond_fuzzer/BUILD.gn b/test/fuzztest/insightintentexecutemanagersecond_fuzzer/BUILD.gn
+index a0405e8f69..6727ecc048 100644
+--- a/test/fuzztest/insightintentexecutemanagersecond_fuzzer/BUILD.gn
++++ b/test/fuzztest/insightintentexecutemanagersecond_fuzzer/BUILD.gn
+@@ -57,6 +57,7 @@ ohos_fuzztest("InsightIntentExecuteManagerSecondFuzzTest") {
+ 
+   configs = [
+     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
++    "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit",
+     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
+     "//build/config/compiler:exceptions",
+   ]
+diff --git a/test/fuzztest/insightintentexecutemanagerthird_fuzzer/BUILD.gn b/test/fuzztest/insightintentexecutemanagerthird_fuzzer/BUILD.gn
+index cfda8698b3..65b4284840 100644
+--- a/test/fuzztest/insightintentexecutemanagerthird_fuzzer/BUILD.gn
++++ b/test/fuzztest/insightintentexecutemanagerthird_fuzzer/BUILD.gn
+@@ -58,6 +58,7 @@ ohos_fuzztest("InsightIntentExecuteManagerThirdFuzzTest") {
+ 
+   configs = [
+     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
++    "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit",
+     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
+   ]
+   cflags = []
+diff --git a/test/fuzztest/insightintentrdbdatamanagerfirst_fuzzer/BUILD.gn b/test/fuzztest/insightintentrdbdatamanagerfirst_fuzzer/BUILD.gn
+index f38e88faf2..e9bac2c3f1 100644
+--- a/test/fuzztest/insightintentrdbdatamanagerfirst_fuzzer/BUILD.gn
++++ b/test/fuzztest/insightintentrdbdatamanagerfirst_fuzzer/BUILD.gn
+@@ -57,6 +57,7 @@ ohos_fuzztest("InsightIntentRdbDataManagerFirstFuzzTest") {
+ 
+   configs = [
+     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
++    "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit",
+     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
+     "//build/config/compiler:exceptions",
+   ]
+diff --git a/test/fuzztest/insightintentrdbdatamanagersecond_fuzzer/BUILD.gn b/test/fuzztest/insightintentrdbdatamanagersecond_fuzzer/BUILD.gn
+index e7cc57151c..8ddc733190 100644
+--- a/test/fuzztest/insightintentrdbdatamanagersecond_fuzzer/BUILD.gn
++++ b/test/fuzztest/insightintentrdbdatamanagersecond_fuzzer/BUILD.gn
+@@ -57,6 +57,7 @@ ohos_fuzztest("InsightIntentRdbDataManagerSecondFuzzTest") {
+ 
+   configs = [
+     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
++    "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit",
+     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
+     "//build/config/compiler:exceptions",
+   ]
+diff --git a/test/fuzztest/insightintentrdbdatamanagerthird_fuzzer/BUILD.gn b/test/fuzztest/insightintentrdbdatamanagerthird_fuzzer/BUILD.gn
+index b42dd41af6..b3931b1d41 100644
+--- a/test/fuzztest/insightintentrdbdatamanagerthird_fuzzer/BUILD.gn
++++ b/test/fuzztest/insightintentrdbdatamanagerthird_fuzzer/BUILD.gn
+@@ -57,6 +57,7 @@ ohos_fuzztest("InsightIntentRdbDataManagerThirdFuzzTest") {
+ 
+   configs = [
+     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
++    "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit",
+     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
+     "//build/config/compiler:exceptions",
+   ]
+diff --git a/test/fuzztest/insightintentrdbstoragemgr_fuzzer/BUILD.gn b/test/fuzztest/insightintentrdbstoragemgr_fuzzer/BUILD.gn
+index 46edd85c3b..da832a5050 100644
+--- a/test/fuzztest/insightintentrdbstoragemgr_fuzzer/BUILD.gn
++++ b/test/fuzztest/insightintentrdbstoragemgr_fuzzer/BUILD.gn
+@@ -57,6 +57,7 @@ ohos_fuzztest("InsightIntentRdbStoragemgrFuzzTest") {
+ 
+   configs = [
+     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
++    "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit",
+     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
+     "//build/config/compiler:exceptions",
+   ]
+diff --git a/test/fuzztest/missionmanagerclient_fuzzer/BUILD.gn b/test/fuzztest/missionmanagerclient_fuzzer/BUILD.gn
+index 48c6970e0d..16b01b5ad6 100644
+--- a/test/fuzztest/missionmanagerclient_fuzzer/BUILD.gn
++++ b/test/fuzztest/missionmanagerclient_fuzzer/BUILD.gn
+@@ -53,6 +53,11 @@ ohos_fuzztest("MissionManagerClientFuzzTest") {
+ 
+   external_deps = [
+     "ability_base:want",
++    "ability_base:session_info",
++    "bundle_framework:appexecfwk_base",
++    "window_manager:libwsutils",
++    "window_manager:session_manager_lite",
++    "image_framework:image_native",
+     "c_utils:utils",
+     "hilog:libhilog",
+     "ipc:ipc_core",
+diff --git a/test/fuzztest/observerstubfield_fuzzer/BUILD.gn b/test/fuzztest/observerstubfield_fuzzer/BUILD.gn
+index b974de3655..9032f2feb5 100644
+--- a/test/fuzztest/observerstubfield_fuzzer/BUILD.gn
++++ b/test/fuzztest/observerstubfield_fuzzer/BUILD.gn
+@@ -36,10 +36,14 @@ ohos_fuzztest("ObserverStubFieldFuzzTest") {
+     "-Wno-unused-variable",
+     "-fno-omit-frame-pointer",
+   ]
+-  sources = [ "observerstubfield_fuzzer.cpp" ]
++  sources = [
++    "${ability_runtime_services_path}/abilitymgr/src/remote_intent_result_callback_stub.cpp",
++    "observerstubfield_fuzzer.cpp",
++  ]
+ 
+   configs = [
+     "${ability_runtime_innerkits_path}/app_manager:appmgr_sdk_config",
++    "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit",
+     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
+     "${ability_runtime_innerkits_path}/dataobs_manager:dataobs_manager_public_config",
+   ]
+diff --git a/test/fuzztest/openlinkoptions_fuzzer/BUILD.gn b/test/fuzztest/openlinkoptions_fuzzer/BUILD.gn
+index 444d8adad1..9292dce458 100644
+--- a/test/fuzztest/openlinkoptions_fuzzer/BUILD.gn
++++ b/test/fuzztest/openlinkoptions_fuzzer/BUILD.gn
+@@ -61,7 +61,6 @@ ohos_fuzztest("OpenLinkOptionsFuzzTest") {
+     "${ability_runtime_services_path}/abilitymgr:abilityms",
+     "${ability_runtime_services_path}/common:app_util",
+     "${ability_runtime_services_path}/common:perm_verification",
+-    "//third_party/libjpeg-turbo:turbojpeg_static",
+   ]
+ 
+   external_deps = [
+diff --git a/test/fuzztest/quickfixmanagerclient_fuzzer/BUILD.gn b/test/fuzztest/quickfixmanagerclient_fuzzer/BUILD.gn
+index 63dfdca721..d543e4f589 100644
+--- a/test/fuzztest/quickfixmanagerclient_fuzzer/BUILD.gn
++++ b/test/fuzztest/quickfixmanagerclient_fuzzer/BUILD.gn
+@@ -47,6 +47,7 @@ ohos_fuzztest("QuickFixManagerClientFuzzTest") {
+   ]
+ 
+   external_deps = [
++    "bundle_framework:appexecfwk_base",
+     "c_utils:utils",
+     "hilog:libhilog",
+     "ipc:ipc_core",
+diff --git a/test/fuzztest/remoteintentresultcallbackstub_fuzzer/BUILD.gn b/test/fuzztest/remoteintentresultcallbackstub_fuzzer/BUILD.gn
+index 32174e1e48..2513195c4d 100644
+--- a/test/fuzztest/remoteintentresultcallbackstub_fuzzer/BUILD.gn
++++ b/test/fuzztest/remoteintentresultcallbackstub_fuzzer/BUILD.gn
+@@ -34,9 +34,12 @@ ohos_fuzztest("RemoteIntentResultCallbackStubFuzzTest") {
+     "-Wno-unused-variable",
+     "-fno-omit-frame-pointer",
+   ]
+-  sources = [ "remoteintentresultcallbackstub_fuzzer.cpp" ]
++  sources = [
++    "${ability_runtime_services_path}/abilitymgr/src/remote_intent_result_callback_stub.cpp",
++    "remoteintentresultcallbackstub_fuzzer.cpp",
++  ]
+ 
+-  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
++  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+ 
+   deps = [
+     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+diff --git a/test/fuzztest/sessionhandlerstub_fuzzer/BUILD.gn b/test/fuzztest/sessionhandlerstub_fuzzer/BUILD.gn
+index 366352c751..ce9b044aa2 100644
+--- a/test/fuzztest/sessionhandlerstub_fuzzer/BUILD.gn
++++ b/test/fuzztest/sessionhandlerstub_fuzzer/BUILD.gn
+@@ -45,6 +45,7 @@ ohos_fuzztest("SessionHandlerStubFuzzTest") {
+   ]
+ 
+   external_deps = [
++    "ability_base:want",
+     "c_utils:utils",
+     "hilog:libhilog",
+     "ipc:ipc_core",
+diff --git a/test/fuzztest/statusbardelegatemanager_fuzzer/BUILD.gn b/test/fuzztest/statusbardelegatemanager_fuzzer/BUILD.gn
+index 50ff26253a..8ad3a24328 100644
+--- a/test/fuzztest/statusbardelegatemanager_fuzzer/BUILD.gn
++++ b/test/fuzztest/statusbardelegatemanager_fuzzer/BUILD.gn
+@@ -64,7 +64,6 @@ ohos_fuzztest("StatusBarDelegateManagerFuzzTest") {
+     "${ability_runtime_services_path}/abilitymgr:abilityms",
+     "${ability_runtime_services_path}/common:app_util",
+     "${ability_runtime_services_path}/common:perm_verification",
+-    "//third_party/libjpeg-turbo:turbojpeg_static",
+   ]
+ 
+   external_deps = [
+diff --git a/test/fuzztest/statusbardelegatemanagerfirst_fuzzer/BUILD.gn b/test/fuzztest/statusbardelegatemanagerfirst_fuzzer/BUILD.gn
+index 2f04f8e918..4078b90f54 100644
+--- a/test/fuzztest/statusbardelegatemanagerfirst_fuzzer/BUILD.gn
++++ b/test/fuzztest/statusbardelegatemanagerfirst_fuzzer/BUILD.gn
+@@ -54,6 +54,7 @@ ohos_fuzztest("StatusBarDelegateManagerFirstFuzzTest") {
+ 
+   configs = [
+     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
++    "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit",
+     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
+   ]
+   cflags = []
+diff --git a/test/fuzztest/uiabilitylifecyclemanagerb_fuzzer/BUILD.gn b/test/fuzztest/uiabilitylifecyclemanagerb_fuzzer/BUILD.gn
+index e2a7ad344b..a19fd1b045 100644
+--- a/test/fuzztest/uiabilitylifecyclemanagerb_fuzzer/BUILD.gn
++++ b/test/fuzztest/uiabilitylifecyclemanagerb_fuzzer/BUILD.gn
+@@ -32,7 +32,7 @@ ohos_fuzztest("UiAbilityLifeCycleManagerBFuzzTest") {
+   ]
+ 
+   public_configs =
+-      [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
++      [ "${ability_runtime_services_path}/abilitymgr:abilityms_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+ 
+   sources = [
+     "${ability_runtime_services_path}/abilitymgr/src/hidden_start_observer_manager.cpp",
+diff --git a/test/fuzztest/uiextensionrecordfactory_fuzzer/BUILD.gn b/test/fuzztest/uiextensionrecordfactory_fuzzer/BUILD.gn
+index 484b61b2e0..813466e187 100644
+--- a/test/fuzztest/uiextensionrecordfactory_fuzzer/BUILD.gn
++++ b/test/fuzztest/uiextensionrecordfactory_fuzzer/BUILD.gn
+@@ -43,7 +43,7 @@ ohos_fuzztest("UIExtensionRecordFactoryFuzzTest") {
+     "uiextensionrecordfactory_fuzzer.cpp",
+   ]
+ 
+-  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
++  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config", "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit" ]
+   cflags = []
+   if (target_cpu == "arm") {
+     cflags += [ "-DBINDER_IPC_32BIT" ]
+diff --git a/test/fuzztest/wantreceiverstub_fuzzer/BUILD.gn b/test/fuzztest/wantreceiverstub_fuzzer/BUILD.gn
+index 44bc36bd20..103bd9bcb7 100644
+--- a/test/fuzztest/wantreceiverstub_fuzzer/BUILD.gn
++++ b/test/fuzztest/wantreceiverstub_fuzzer/BUILD.gn
+@@ -35,10 +35,14 @@ ohos_fuzztest("WantReceiverStubFuzzTest") {
+     "-Wno-unused-variable",
+     "-fno-omit-frame-pointer",
+   ]
+-  sources = [ "wantreceiverstub_fuzzer.cpp" ]
++  sources = [
++    "${ability_runtime_services_path}/abilitymgr/src/want_receiver_stub.cpp",
++    "wantreceiverstub_fuzzer.cpp",
++  ]
+ 
+   configs = [
+     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
++    "//foundation/ability/ability_runtime/test/fuzztest:no_split_lto_unit",
+     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
+   ]
+ 

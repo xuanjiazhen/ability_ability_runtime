@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,9 +18,12 @@
 #include <cstddef>
 #include <cstdint>
 #include <fuzzer/FuzzedDataProvider.h>
+
 #define private public
+
 #define protected public
 #include "ability_debug_response_stub.h"
+#include "fuzz_util.h"
 #undef protected
 #undef private
 
@@ -31,8 +34,6 @@ namespace {
     constexpr size_t U32_AT_SIZE = 4;
 }
 
-const std::u16string IA_APP_FOREGROUND_STATE_OBSERVER_TOKEN = u"ohos.appexecfwk.AbilityDebugResponse";
-
 class AbilityDebugResponseStubFuzz : public AbilityDebugResponseStub {
 public:
     explicit AbilityDebugResponseStubFuzz() {};
@@ -40,7 +41,7 @@ public:
 
     virtual int OnRemoteRequest(
         uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override{ return 0; };
-    
+
     virtual void OnAbilitysDebugStarted(const std::vector<sptr<IRemoteObject>> &tokens) override{};
     virtual void OnAbilitysDebugStoped(const std::vector<sptr<IRemoteObject>> &tokens) override{};
     virtual void OnAbilitysAssertDebugChange(
@@ -51,7 +52,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 {
     FuzzedDataProvider fdp(data, size);
     MessageParcel parcel;
-    parcel.WriteInterfaceToken(IA_APP_FOREGROUND_STATE_OBSERVER_TOKEN);
+    parcel.WriteInterfaceToken(FuzzUtil::Tokens::ABILITY_DEBUG_RESPONSE);
     parcel.WriteBuffer(data, size);
     parcel.RewindRead(0);
     MessageParcel reply;
