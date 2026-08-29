@@ -26,6 +26,7 @@
 #include "ability_manager_service.h"
 #include "ability_scheduler.h"
 #include "ability_util.h"
+#include "freeze_util.h"
 #include "connection_record.h"
 #include "constants.h"
 #include "mock_ability_connect_callback.h"
@@ -1261,6 +1262,53 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_CallRequestDone_001, TestSize.Level1)
     sptr<IRemoteObject> callStub = abilityRecord->GetToken();
     bool res2 = abilityRecord->CallRequestDone(callStub);
     EXPECT_TRUE(res2);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: CallRequest
+ * SubFunction: CallRequest
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify CallRequest returns early when isPrelaunch_ is true
+ */
+HWTEST_F(AbilityRecordTest, AbilityRecord_CallRequest_001, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->Init(AbilityRequest());
+    abilityRecord->scheduler_ = new AbilityScheduler();
+    abilityRecord->isPrelaunch_ = true;
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    ASSERT_NE(token, nullptr);
+    OHOS::AbilityRuntime::FreezeUtil::GetInstance().DeleteLifecycleEvent(token);
+    // prelaunch guard: must return before AddLifecycleEvent
+    abilityRecord->CallRequest();
+    EXPECT_TRUE(OHOS::AbilityRuntime::FreezeUtil::GetInstance().GetLifecycleEvent(token).empty());
+    OHOS::AbilityRuntime::FreezeUtil::GetInstance().DeleteLifecycleEvent(token);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: CallRequest
+ * SubFunction: CallRequest
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify CallRequest proceeds when isPrelaunch_ is false
+ */
+HWTEST_F(AbilityRecordTest, AbilityRecord_CallRequest_002, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->Init(AbilityRequest());
+    abilityRecord->scheduler_ = new AbilityScheduler();
+    abilityRecord->isPrelaunch_ = false;
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    ASSERT_NE(token, nullptr);
+    OHOS::AbilityRuntime::FreezeUtil::GetInstance().DeleteLifecycleEvent(token);
+    abilityRecord->CallRequest();
+    EXPECT_FALSE(OHOS::AbilityRuntime::FreezeUtil::GetInstance().GetLifecycleEvent(token).empty());
+    OHOS::AbilityRuntime::FreezeUtil::GetInstance().DeleteLifecycleEvent(token);
 }
 
 /*

@@ -2675,6 +2675,10 @@ void AbilityRecord::PostStartAbilityByCallTimeoutTask(bool isHalf)
 void AbilityRecord::CallRequest()
 {
     CHECK_POINTER(scheduler_);
+    if (isPrelaunch_) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "prelaunch, no call request");
+        return;
+    }
     // Async call request
     std::string entry = "AbilityRecord::CallRequest Begin";
     FreezeUtil::GetInstance().AddLifecycleEvent(token_, entry);
