@@ -14,6 +14,7 @@
 #include "cli_tool_mgr_client.h"
 #undef private
 
+#include "ability_manager_errors.h"
 #include "cli_error_code.h"
 #include "mock_cli_tool_mgr_client_flag.h"
 #include "mock_cli_tool_mgr_service.h"
@@ -462,6 +463,31 @@ HWTEST_F(CliToolMGRClientTest, ExecCmd_0200, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ExecCmd_0300
+ * @tc.desc: Test ExecCmd success activates the provisional session subscription
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, ExecCmd_0300, TestSize.Level1)
+{
+    SetMockService();
+    ExecCmdParam param;
+    param.cmd = "echo activate_subscription";
+    param.options.timeout = 30;
+    auto sessionCallback = std::make_shared<MockSessionCallback>();
+
+    // Success path: the provisional subscription is activated, so a session event is delivered.
+    CliToolMgrClientFlag::retExecCmd = ERR_OK;
+    EXPECT_EQ(CliToolMGRClient::GetInstance().ExecCmd(param, nullptr, sessionCallback), ERR_OK);
+
+    CliToolEvent event;
+    event.type = "stdout";
+    EXPECT_EQ(CliSessionSubscriptionManager::GetInstance().HandleSessionEvent(
+        "shell", CliToolMgrClientFlag::lastSubscriptionId, event), ERR_OK);
+    EXPECT_EQ(sessionCallback->eventCount, 1);
+    EXPECT_EQ(sessionCallback->lastEventType, "stdout");
+}
+
+/**
  * @tc.name: ExecCmd_0400
  * @tc.desc: Test ExecCmd with null session callback still succeeds
  * @tc.type: FUNC
@@ -533,6 +559,72 @@ HWTEST_F(CliToolMGRClientTest, ExecCmd_0600, TestSize.Level1)
     // sessionInfo was not set, so receivedSession keeps default empty state
     EXPECT_TRUE(receivedSession.sessionId.empty());
 }
+
+/**
+ * @tc.name: ExecCmd_0700
+ * @tc.desc: Test ExecCmd propagates capability-not-supported verbatim and cleans up callback and subscription
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, ExecCmd_0700, TestSize.Level1)
+{
+    SetMockService();
+    ExecCmdParam param;
+    param.cmd = "echo capability_disabled";
+    param.options.timeout = 30;
+    int32_t callbackCode = -1;
+    auto sessionCallback = std::make_shared<MockSessionCallback>();
+
+    // Simulate the service-side capability gate rejecting ExecCmd (device does not support exec cmd).
+    CliToolMgrClientFlag::retExecCmd = AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    EXPECT_EQ(CliToolMGRClient::GetInstance().ExecCmd(param,
+        [&callbackCode](int32_t code, const CliSessionInfo &) { callbackCode = code; },
+        sessionCallback), AAFwk::ERR_CAPABILITY_NOT_SUPPORT);
+
+    // Error path: the reply callback is removed (stray reply dropped) and the subscription is removed.
+    EXPECT_EQ(CliEventReplyManager::GetInstance().HandleEventReply(
+        CliToolMgrClientFlag::lastEventId, CliEventReplyResult {}), -1);
+    CliToolEvent event;
+    event.type = "stdout";
+    EXPECT_NE(CliSessionSubscriptionManager::GetInstance().HandleSessionEvent(
+        "shell", CliToolMgrClientFlag::lastSubscriptionId, event), ERR_OK);
+    EXPECT_EQ(callbackCode, -1);
+    EXPECT_EQ(sessionCallback->eventCount, 0);
+}
+
+/**
+ * @tc.name: ExecCmd_0800
+ * @tc.desc: Test ExecCmd success delivers a non-OK reply code and sessionInfo to the reply callback
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, ExecCmd_0800, TestSize.Level1)
+{
+    SetMockService();
+    ExecCmdParam param;
+    param.cmd = "echo reply_with_code";
+    param.options.timeout = 30;
+    int32_t receivedCode = -1;
+    CliSessionInfo receivedSession;
+    receivedSession.sessionId = "unset";
+
+    CliToolMgrClientFlag::retExecCmd = ERR_OK;
+    EXPECT_EQ(CliToolMGRClient::GetInstance().ExecCmd(param,
+        [&receivedCode, &receivedSession](int32_t code, const CliSessionInfo &session) {
+            receivedCode = code;
+            receivedSession = session;
+        }, nullptr), ERR_OK);
+
+    // The service later reports a non-OK result with a populated session; both must reach the callback verbatim.
+    CliSessionInfo session;
+    session.sessionId = "shell_session";
+    CliEventReplyResult result;
+    result.code = ERR_NO_INIT;
+    result.sessionInfo = session;
+    EXPECT_EQ(CliEventReplyManager::GetInstance().HandleEventReply(
+        CliToolMgrClientFlag::lastEventId, result), ERR_OK);
+    EXPECT_EQ(receivedCode, ERR_NO_INIT);
+    EXPECT_EQ(receivedSession.sessionId, "shell_session");
+}
+
 /**
  * @tc.name: FunctionInterfaces_0100
  * @tc.desc: Test function register/query/getAll success paths

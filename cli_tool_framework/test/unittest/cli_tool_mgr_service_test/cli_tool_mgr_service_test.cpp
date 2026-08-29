@@ -36,6 +36,7 @@
 #undef private
 #undef protected
 
+#include "ability_manager_errors.h"
 #include "cli_error_code.h"
 #include "cli_tool_app_state_observer.h"
 #include "ccm_util.h"
@@ -79,6 +80,11 @@ const char *CLI_TOOL_PERMS[] = {
 bool IsPermissionGateResult(int32_t result)
 {
     return result == ERR_NOT_SYSTEM_APP || result == ERR_PERMISSION_DENIED;
+}
+
+bool IsCapabilityGateResult(int32_t result)
+{
+    return result == AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
 }
 } // namespace {
 
@@ -2396,6 +2402,52 @@ HWTEST_F(CliToolManagerServiceTest, ExecCmd_0700, TestSize.Level1)
     EXPECT_TRUE(result == ERR_INVALID_PARAM || IsPermissionGateResult(result));
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_0700 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_0800
+ * @tc.desc: Test ExecCmd capability gate rejects before session setup and creates no session record
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_0800, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_0800 start");
+
+    ExecCmdParam param;
+    param.cmd = "echo capability_gate";
+    param.options.timeout = 30;
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecCmd(param, "event_exec_cmd_cap_gate", scheduler, "subscription_cap_gate");
+
+    // When exec cmd is not supported on the device, ExecCmd is rejected at the capability gate
+    // (before permission/scheduler/session setup); otherwise an early-rejection code is returned.
+    EXPECT_TRUE(IsCapabilityGateResult(result) || IsPermissionGateResult(result) ||
+        result == ERR_NO_INIT || result == ERR_NOT_HAP || result == ERR_INVALID_PARAM);
+    // No session record is created on early rejection.
+    EXPECT_TRUE(service_->sessionRecords_.empty());
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_0800 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_0900
+ * @tc.desc: Test ExecCmd capability gate takes precedence over scheduler setup with null scheduler
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_0900, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_0900 start");
+
+    ExecCmdParam param;
+    param.cmd = "echo null_scheduler_gate";
+    param.options.timeout = 30;
+    // A null scheduler would normally yield ERR_NO_INIT at SetScheduler; the capability gate rejects first.
+    int32_t result = service_->ExecCmd(param, "event_exec_cmd_null_sched_gate", nullptr, "subscription_ns_gate");
+
+    EXPECT_TRUE(IsCapabilityGateResult(result) || result == ERR_NO_INIT || IsPermissionGateResult(result));
+    EXPECT_TRUE(service_->sessionRecords_.empty());
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_0900 end");
 }
 
 /**

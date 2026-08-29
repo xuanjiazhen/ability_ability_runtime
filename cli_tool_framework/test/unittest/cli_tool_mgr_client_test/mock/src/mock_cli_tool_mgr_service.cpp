@@ -194,9 +194,10 @@ int32_t MockCliToolMgrService::ExecTool(const ExecToolParam &, const std::string
 }
 
 int32_t MockCliToolMgrService::ExecCmd(const ExecCmdParam &, const std::string &eventId,
-    const sptr<ICliToolManagerScheduler> &, const std::string &)
+    const sptr<ICliToolManagerScheduler> &, const std::string &subscriptionId)
 {
     CliToolMgrClientFlag::lastEventId = eventId;
+    CliToolMgrClientFlag::lastSubscriptionId = subscriptionId;
     return CliToolMgrClientFlag::retExecCmd;
 }
 
