@@ -55,6 +55,7 @@ ohos_fuzztest("AbilitymgrUiExtensionSessionInfoFuzzTest") {
   ]
 
   external_deps = [
+    "ability_base:session_info",
     "ability_base:want",
     "ability_base:zuri",
     "bundle_framework:appexecfwk_base",
@@ -65,7 +66,7 @@ ohos_fuzztest("AbilitymgrUiExtensionSessionInfoFuzzTest") {
     "ipc:ipc_core",
     "napi:ace_napi",
     "safwk:system_ability_fwk",
-    "samgr:samgr_proxy",
+    "samgr:samgr_proxy"
   ]
 
   if (ability_runtime_graphics) {

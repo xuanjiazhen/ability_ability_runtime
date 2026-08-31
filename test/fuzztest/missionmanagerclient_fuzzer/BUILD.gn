@@ -53,16 +53,16 @@ ohos_fuzztest("MissionManagerClientFuzzTest") {
   ]
 
   external_deps = [
-    "ability_base:want",
     "ability_base:session_info",
+    "ability_base:want",
     "bundle_framework:appexecfwk_base",
-    "window_manager:libwsutils",
-    "window_manager:session_manager_lite",
-    "image_framework:image_native",
     "c_utils:utils",
     "hilog:libhilog",
+    "image_framework:image_native",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "window_manager:libwsutils",
+    "window_manager:session_manager_lite"
   ]
 }
 

@@ -49,12 +49,13 @@ ohos_fuzztest("AbilityManagerStubRemaining14FuzzTest") {
   ]
 
   external_deps = [
+    "ability_base:session_info",
     "ability_base:want",
     "ability_base:zuri",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_core",
-    "samgr:samgr_proxy",
+    "samgr:samgr_proxy"
   ]
 }
 
