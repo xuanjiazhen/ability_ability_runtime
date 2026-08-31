@@ -488,7 +488,7 @@ void StartAbilityUtils::ResolveTargetAppCloneIndex(const Want &want, sptr<IRemot
         return;
     }
 
-    int32_t appIndex = 0;
+    int32_t appIndex = -1;
     if (MultiAppUtils::GetPreferredAppCloneIndex(want.GetBundleNameRef(), userId, appIndex)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "resolve app clone preference, bundle:%{public}s appIndex:%{public}d",
             want.GetBundleNameRef().c_str(), appIndex);
