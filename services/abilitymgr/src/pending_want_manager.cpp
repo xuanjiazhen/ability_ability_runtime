@@ -235,7 +235,8 @@ sptr<IWantSender> PendingWantManager::GetWantSenderLocked(const int32_t callingU
 
 void PendingWantManager::MakeWantSenderCanceledLocked(PendingWantRecord &record)
 {
-    TAG_LOGI(AAFwkTag::WANTAGENT, "cancel");
+    TAG_LOGI(AAFwkTag::WANTAGENT, "cancel, recordKey code=%{public}d",
+        record.GetKey() != nullptr ? record.GetKey()->GetCode() : -1);
 
     record.SetCanceled();
     for (auto &callback : record.GetCancelCallbacks()) {
