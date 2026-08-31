@@ -618,7 +618,7 @@ ohos_shared_library("cj_abilitykit_native_ffi") {
   }
 
   innerapi_tags = [ "platformsdk" ]
-  version_script = "libabilitykit_native.map"
+  version_script = "libcj_abilitykit_native_ffi.map"
   subsystem_name = "ability"
   part_name = "ability_runtime"
   configs = [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
@@ -791,6 +791,7 @@ ohos_shared_library("cj_extensionkit_native") {
   }
 
   innerapi_tags = [ "platformsdk" ]
+  version_script = "libcj_extensionkit_native.map"
   subsystem_name = "ability"
   part_name = "ability_runtime"
   configs = [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
@@ -985,6 +986,7 @@ ohos_shared_library("cj_insight_intent_executor") {
     "node:node_header_notice",
   ]
   innerapi_tags = [ "platformsdk" ]
+  version_script = "libcj_insight_intent_executor.map"
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }
@@ -1586,6 +1588,7 @@ ohos_shared_library("cj_form_extension") {
       ]
     }
   }
+  version_script = "libcj_form_extension.map"
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }
@@ -2962,6 +2965,7 @@ ohos_shared_library("cj_ui_extension") {
     public_external_deps = [ "window_manager:scene_session_manager" ]
   }
 
+  version_script = "libcj_ui_extension.map"
   subsystem_name = "ability"
   part_name = "ability_runtime"
   configs = [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
@@ -3127,6 +3131,7 @@ ohos_shared_library("cj_share_extension") {
     external_deps += [ "window_manager:libwm" ]
   }
 
+  version_script = "libcj_share_extension.map"
   subsystem_name = "ability"
   part_name = "ability_runtime"
   configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
@@ -3247,6 +3252,7 @@ ohos_shared_library("cj_action_extension") {
     external_deps += [ "window_manager:libwm" ]
   }
 
+  version_script = "libcj_action_extension.map"
   subsystem_name = "ability"
   part_name = "ability_runtime"
   configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
@@ -3567,6 +3573,7 @@ ohos_shared_library("cj_embedded_ui_extension") {
     external_deps += [ "window_manager:libwm" ]
   }
 
+  version_script = "libcj_embedded_ui_extension.map"
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }
@@ -3995,6 +4002,7 @@ ohos_shared_library("cj_photo_editor_extension") {
     external_deps += [ "window_manager:libwm" ]
   }
 
+  version_script = "libcj_photo_editor_extension.map"
   subsystem_name = "ability"
   part_name = "ability_runtime"
   configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
