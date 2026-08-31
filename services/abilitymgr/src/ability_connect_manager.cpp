@@ -155,6 +155,11 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
         return ERR_INVALID_VALUE;
     }
 
+    ret = ReportXiaoYiToRSSIfNeeded(abilityRequest.abilityInfo);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
     std::shared_ptr<BaseExtensionRecord> targetService;
     bool isLoadedAbility = false;
     std::string hostBundleName;
@@ -171,11 +176,6 @@ int AbilityConnectManager::StartAbilityLocked(const AbilityRequest &abilityReque
     targetService->DoBackgroundAbilityWindowDelayed(false);
 
     targetService->SetSessionInfo(abilityRequest.sessionInfo);
-
-    ret = ReportXiaoYiToRSSIfNeeded(abilityRequest.abilityInfo);
-    if (ret != ERR_OK) {
-        return ret;
-    }
 
     ReportEventToRSS(abilityRequest.abilityInfo, targetService, abilityRequest.callerToken);
     if (!isLoadedAbility) {
@@ -422,6 +422,11 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
         return ERR_OK;
     }
 
+    ret = ReportXiaoYiToRSSIfNeeded(abilityRequest.abilityInfo);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
     // 4. Other cases , need to connect the service ability
     auto connectRecord = ConnectionRecord::CreateConnectionRecord(
         callerToken, targetService, connect, shared_from_this());
@@ -452,11 +457,6 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
             WindowExtMapValType(targetService->GetApplicationInfo().accessTokenId, abilityRequest.sessionInfo));
     }
 
-    auto &abilityInfo = abilityRequest.abilityInfo;
-    ret = ReportXiaoYiToRSSIfNeeded(abilityInfo);
-    if (ret != ERR_OK) {
-        return ret;
-    }
     ConnectAbilityLockedInner(isLoadedAbility, targetService, abilityRequest, connectRecord);
     return ret;
 }
@@ -592,7 +592,11 @@ int AbilityConnectManager::DisconnectAbilityLocked(const sptr<IAbilityConnection
     for (auto &connectRecord : connectRecordList) {
         if (connectRecord) {
             auto abilityRecord = connectRecord->GetAbilityRecord();
-            CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+            if (abilityRecord == nullptr) {
+                TAG_LOGW(AAFwkTag::EXT, "null abilityRecord, skip");
+                result = ERR_INVALID_VALUE;
+                continue;
+            }
             TAG_LOGD(AAFwkTag::EXT, "abilityName: %{public}s, bundleName: %{public}s",
                 abilityRecord->GetAbilityInfo().name.c_str(), abilityRecord->GetAbilityInfo().bundleName.c_str());
             if (abilityRecord->GetAbilityInfo().type == AbilityType::EXTENSION) {
@@ -1384,6 +1388,29 @@ void AbilityConnectManager::StartSpecifiedProcess(
         *context.want, *context.abilityInfo, requestId, context.loadParam->customProcessFlag);
 }
 
+void AbilityConnectManager::StartNextLoadAbilityInQueue()
+{
+    while (!loadAbilityQueue_.empty()) {
+        auto &front = loadAbilityQueue_.front();
+        if (front.empty()) {
+            loadAbilityQueue_.pop_front();
+            continue;
+        }
+        auto it = front.begin();
+        const auto &context = it->second;
+        if (context.want == nullptr || context.abilityInfo == nullptr ||
+            context.loadParam == nullptr || context.appInfo == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "StartNextLoadAbilityInQueue invalid context, drop");
+            loadAbilityQueue_.pop_front();
+            continue;
+        }
+        DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedProcess(
+            *context.want, *context.abilityInfo, it->first,
+            context.loadParam->customProcessFlag);
+        return;
+    }
+}
+
 void AbilityConnectManager::OnStartSpecifiedProcessResponse(const std::string &flag, int32_t requestId)
 {
     std::lock_guard<std::mutex> guard(loadAbilityQueueLock_);
@@ -1404,12 +1431,14 @@ void AbilityConnectManager::OnStartSpecifiedProcessResponse(const std::string &f
             TAG_LOGE(AAFwkTag::ABILITYMGR,
                 "OnStartSpecifiedProcessResponse invalid context, requestId: %{public}d", requestId);
             loadAbilityQueue_.pop_front();
+            StartNextLoadAbilityInQueue();
             return;
         }
         context.want->SetParam(PARAM_SPECIFIED_PROCESS_FLAG, flag);
         DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(*context.loadParam,
             *context.abilityInfo, *context.appInfo, *context.want);
         loadAbilityQueue_.pop_front();
+        StartNextLoadAbilityInQueue();
     }
 }
 
@@ -1432,11 +1461,13 @@ void AbilityConnectManager::OnStartSpecifiedProcessTimeoutResponse(int32_t reque
             TAG_LOGE(AAFwkTag::ABILITYMGR,
                 "OnStartSpecifiedProcessTimeoutResponse invalid context, requestId: %{public}d", requestId);
             loadAbilityQueue_.pop_front();
+            StartNextLoadAbilityInQueue();
             return;
         }
         DelayedSingleton<AppScheduler>::GetInstance()->LoadAbility(*context.loadParam,
             *context.abilityInfo, *context.appInfo, *context.want);
         loadAbilityQueue_.pop_front();
+        StartNextLoadAbilityInQueue();
     }
 }
 
@@ -1549,10 +1580,15 @@ void AbilityConnectManager::HandleRestartResidentTask(const AbilityRequest &abil
             dstElement.GetAbilityName() == srcElement.GetAbilityName());
     };
     auto findIter = find_if(restartResidentTaskList_.begin(), restartResidentTaskList_.end(), findRestartResidentTask);
-    if (findIter != restartResidentTaskList_.end()) {
-        restartResidentTaskList_.erase(findIter);
+    auto ret = StartAbilityLocked(abilityRequest);
+    if (ret == ERR_OK) {
+        if (findIter != restartResidentTaskList_.end()) {
+            restartResidentTaskList_.erase(findIter);
+        }
+    } else {
+        TAG_LOGW(AAFwkTag::EXT, "restart resident failed ret=%{public}d, retry later", ret);
+        PostRestartResidentTask(abilityRequest);
     }
-    StartAbilityLocked(abilityRequest);
 }
 
 void AbilityConnectManager::PostTimeOutTask(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
@@ -2017,7 +2053,7 @@ void AbilityConnectManager::TerminateAbilityWindowLocked(const std::shared_ptr<B
     CHECK_POINTER(sessionInfo);
     auto abilitystateStr = abilityRecord->ConvertAbilityState(abilityRecord->GetAbilityState());
     TAG_LOGI(AAFwkTag::ABILITYMGR,
-        "ability:%{public}s/%{public}s, persistentId:%{public}d, abilityState:%{public}s",
+        "ability:%{public}s/%{public}s, persistentId:%{private}d, abilityState:%{public}s",
         abilityRecord->GetInfoBundleName().c_str(),
         abilityRecord->GetInfoAbilityName().c_str(),
         sessionInfo->persistentId, abilitystateStr.c_str());
@@ -2540,7 +2576,10 @@ void AbilityConnectManager::CloseAssertDialog(const std::string &assertSessionId
         return;
     }
     TAG_LOGD(AAFwkTag::EXT, "Terminate assert fault dialog");
-    terminatingExtensionList_.push_back(abilityRecord);
+    {
+        std::lock_guard lock(serviceMapMutex_);
+        terminatingExtensionList_.push_back(abilityRecord);
+    }
     sptr<IRemoteObject> token = abilityRecord->GetToken();
     if (token != nullptr) {
         std::lock_guard lock(serialMutex_);
@@ -2615,6 +2654,10 @@ void AbilityConnectManager::RestartAbility(const std::shared_ptr<BaseExtensionRe
 
 std::string AbilityConnectManager::GetServiceKey(const std::shared_ptr<BaseExtensionRecord> &service)
 {
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "null service");
+        return "";
+    }
     std::string serviceKey = service->GetURI();
     if (FRS_BUNDLE_NAME == service->GetAbilityInfo().bundleName) {
         serviceKey = serviceKey + std::to_string(service->GetIntParam(FRS_APP_INDEX, 0));
@@ -2671,6 +2714,9 @@ void AbilityConnectManager::DumpState(ServiceMapType &serviceMapBack, std::vecto
 
         std::string serviceKey;
         auto iter = std::find_if(cacheList.begin(), cacheList.end(), [&args, &serviceKey](const auto &service) {
+            if (service == nullptr) {
+                return false;
+            }
             serviceKey = GetServiceKey(service);
             return serviceKey.compare(args) == 0;
         });
@@ -2691,11 +2737,12 @@ void AbilityConnectManager::DumpState(ServiceMapType &serviceMapBack, std::vecto
             }
         }
         for (auto &&service : cacheList) {
+            if (service == nullptr) {
+                continue;
+            }
             std::string serviceKey = GetServiceKey(service);
             info.emplace_back("    uri [" + serviceKey + "]");
-            if (service != nullptr) {
-                service->DumpService(info, isClient);
-            }
+            service->DumpService(info, isClient);
         }
     }
 }
@@ -3237,9 +3284,12 @@ EventInfo AbilityConnectManager::BuildEventInfo(const std::shared_ptr<BaseExtens
         std::chrono::system_clock::now().time_since_epoch()).count();
     auto callerPid = abilityRecord->GetIntParam(Want::PARAM_RESV_CALLER_PID, -1);
     eventInfo.callerPid = callerPid == -1 ? IPCSkeleton::GetCallingPid() : callerPid;
-    DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(eventInfo.callerPid, processInfo);
-    eventInfo.callerPid = processInfo.pid_;
-    eventInfo.callerProcessName = processInfo.processName_;
+    AppExecFwk::RunningProcessInfo callerProcessInfo;
+    DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(eventInfo.callerPid, callerProcessInfo);
+    if (callerProcessInfo.pid_ != 0) {
+        eventInfo.callerPid = callerProcessInfo.pid_;
+        eventInfo.callerProcessName = callerProcessInfo.processName_;
+    }
     if (!abilityRecord->IsCreateByConnect()) {
         auto abilityInfo = abilityRecord->GetAbilityInfo();
         eventInfo.extensionType = static_cast<int32_t>(abilityInfo.extensionAbilityType);

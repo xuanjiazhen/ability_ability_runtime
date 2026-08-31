@@ -258,8 +258,12 @@ bool JsRuntime::ShouldSkipDebugMode(const DebugOption dOption)
 void JsRuntime::DebuggerConnectionHandler(bool isDebugApp, bool isStartWithDebug)
 {
     ConnectServerManager::Get().StoreInstanceMessage(getproctid(), instanceId_);
-    EcmaVM* vm = GetEcmaVm();
     CHECK_POINTER(jsEnv_);
+    EcmaVM* vm = GetEcmaVm();
+    if (vm == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null vm");
+        return;
+    }
     auto dTask = jsEnv_->GetDebuggerPostTask();
     panda::JSNApi::DebugOption option = {ARK_DEBUGGER_LIB_PATH, isDebugApp ? isStartWithDebug : false};
     ConnectServerManager::Get().StoreDebuggerInfo(getproctid(), reinterpret_cast<void*>(vm), option, dTask, isDebugApp);

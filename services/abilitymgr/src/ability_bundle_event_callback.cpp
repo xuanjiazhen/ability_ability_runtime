@@ -81,12 +81,12 @@ void AbilityBundleEventCallback::OnReceiveEvent(const EventFwk::CommonEventData 
         // uninstall bundle
         HandleRemoveUriPermission(tokenId);
         HandleUpdatedModuleInfo(bundleName, uid, moduleName, false);
+        AbilityRuntime::InsightIntentEventMgr::DeleteInsightIntentEvent(want.GetElement(), userId, appIndex);
         if (abilityAutoStartupService_ == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "OnReceiveEvent failed, abilityAutoStartupService is nullptr");
             return;
         }
         abilityAutoStartupService_->DeleteAutoStartupData(bundleName, tokenId);
-        AbilityRuntime::InsightIntentEventMgr::DeleteInsightIntentEvent(want.GetElement(), userId, appIndex);
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_ADDED) {
         // install or uninstall module/bundle
         HandleUpdatedModuleInfo(bundleName, uid, moduleName, false);
@@ -105,12 +105,12 @@ void AbilityBundleEventCallback::OnReceiveEvent(const EventFwk::CommonEventData 
         }
         HandleUpdatedModuleInfo(bundleName, uid, moduleName, false);
         HandleAppUpgradeCompleted(uid, installType);
+        AbilityRuntime::InsightIntentEventMgr::UpdateInsightIntentEvent(want.GetElement(), userId);
         if (abilityAutoStartupService_ == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "OnReceiveEvent failed, abilityAutoStartupService is nullptr");
             return;
         }
         abilityAutoStartupService_->CheckAutoStartupData(bundleName, uid);
-        AbilityRuntime::InsightIntentEventMgr::UpdateInsightIntentEvent(want.GetElement(), userId);
     }
 }
 

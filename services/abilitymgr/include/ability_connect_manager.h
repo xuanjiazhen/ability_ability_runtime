@@ -837,6 +837,7 @@ private:
     void DecrementConnectionCountAndCleanup(int32_t pid);
 
 private:
+    void StartNextLoadAbilityInQueue();
     const std::string TASK_ON_CALLBACK_DIED = "OnCallbackDiedTask";
     const std::string TASK_ON_ABILITY_DIED = "OnAbilityDiedTask";
 

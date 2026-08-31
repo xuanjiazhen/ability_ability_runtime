@@ -102,8 +102,8 @@ int ConnectionRecord::DisconnectAbility()
         return INVALID_CONNECTION_STATE;
     }
 
-    SetConnectState(ConnectionState::DISCONNECTING);
     CHECK_POINTER_AND_RETURN(targetService_, ERR_INVALID_VALUE);
+    SetConnectState(ConnectionState::DISCONNECTING);
 
     const auto &abilityInfo = targetService_->GetAbilityInfo();
     auto extAbilityType = abilityInfo.extensionAbilityType;
@@ -140,8 +140,8 @@ int ConnectionRecord::DisconnectAbility()
 
 void ConnectionRecord::CompleteConnect()
 {
-    SetConnectState(ConnectionState::CONNECTED);
     CHECK_POINTER(targetService_);
+    SetConnectState(ConnectionState::CONNECTED);
     targetService_->SetAbilityState(AbilityState::ACTIVE);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Connect,%{public}s", targetService_->GetAbilityInfo().name.c_str());
     const AppExecFwk::AbilityInfo &abilityInfo = targetService_->GetAbilityInfo();
@@ -337,10 +337,10 @@ void ConnectionRecord::ScheduleDisconnectAbilityDone()
     auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
     if (handler == nullptr) {
         TAG_LOGE(AAFwkTag::CONNECTION, "fail to get AbilityTaskHandler");
-    } else {
-        std::string taskName = std::string("DisconnectTimeout_") + std::to_string(recordId_);
-        handler->CancelTask(taskName);
+        return;
     }
+    std::string taskName = std::string("DisconnectTimeout_") + std::to_string(recordId_);
+    handler->CancelTask(taskName);
 
     CompleteDisconnect(ERR_OK, GetAbilityConnectCallback() == nullptr);
 }
@@ -459,12 +459,18 @@ void ConnectionRecord::CompleteLowCodeAgentInvocation(const Want &want, const sp
     if (callback == nullptr || handler == nullptr) {
         return;
     }
-    handler->SubmitTask([callback, element, remoteObject] {
+    handler->SubmitTask([callback, element, remoteObject, weakConnectionRecord = weak_from_this(),
+        weakConnectManager = abilityConnectManager_] {
         auto ret = ConnectionRecord::CallOnAbilityConnectDone(callback, element, remoteObject, ERR_OK);
         if (ret == ERR_OK) {
             return;
         }
         TAG_LOGE(AAFwkTag::SER_ROUTER, "low-code connect callback failed");
+        auto connectionRecord = weakConnectionRecord.lock();
+        CHECK_POINTER(connectionRecord);
+        auto abilityConnectManager = weakConnectManager.lock();
+        CHECK_POINTER(abilityConnectManager);
+        abilityConnectManager->HandleExtensionDisconnectTask(connectionRecord);
     });
 }
 

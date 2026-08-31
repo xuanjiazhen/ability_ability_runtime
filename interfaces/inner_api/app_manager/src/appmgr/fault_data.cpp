@@ -92,9 +92,11 @@ bool FaultData::ReadContent(Parcel &parcel)
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ProcStatm read string failed.");
     procStatm = strValue;
 
-    isInForeground = parcel.ReadBool();
-    isEnableMainThreadSample = parcel.ReadBool();
-    reportLifecycleToFreeze = parcel.ReadBool();
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(isInForeground), "isInForeground read bool failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(isEnableMainThreadSample),
+        "isEnableMainThreadSample read bool failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(reportLifecycleToFreeze),
+        "reportLifecycleToFreeze read bool failed.");
 
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ApplicationHeapInfo read string failed.");
     applicationHeapInfo = strValue;
@@ -105,7 +107,7 @@ bool FaultData::ReadContent(Parcel &parcel)
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ApplicationIOInfo read string failed.");
     applicationIOInfo = strValue;
 
-    isBlockInGc = parcel.ReadBool();
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(isBlockInGc), "isBlockInGc read bool failed.");
 
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ProcessLifeTime read string failed.");
     processLifeTime = strValue;
@@ -445,9 +447,11 @@ bool AppFaultDataBySA::ReadContent(Parcel &parcel)
 
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ProcStatm read string failed.");
     procStatm = strValue;
-    isInForeground = parcel.ReadBool();
-    isEnableMainThreadSample = parcel.ReadBool();
-    reportLifecycleToFreeze = parcel.ReadBool();
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(isInForeground), "isInForeground read bool failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(isEnableMainThreadSample),
+        "isEnableMainThreadSample read bool failed.");
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(reportLifecycleToFreeze),
+        "reportLifecycleToFreeze read bool failed.");
 
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ApplicationHeapInfo read string failed.");
     applicationHeapInfo = strValue;
@@ -458,7 +462,7 @@ bool AppFaultDataBySA::ReadContent(Parcel &parcel)
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ApplicationIOInfo read string failed.");
     applicationIOInfo = strValue;
 
-    isBlockInGc = parcel.ReadBool();
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadBool(isBlockInGc), "isBlockInGc read bool failed.");
 
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ProcessLifeTime read string failed.");
     processLifeTime = strValue;
