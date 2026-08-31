@@ -32,6 +32,9 @@ ohos_fuzztest("AbilityStartWithWaitDataFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
+  configs = [
+    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
+  ]
   sources = [
     "${ability_runtime_path}/interfaces/inner_api/ability_manager/src/aa_tools/ability_start_with_wait_data.cpp",
     "abilitystartwithwaitdata_fuzzer.cpp",

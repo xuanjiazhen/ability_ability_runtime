@@ -14,6 +14,7 @@
  */
 #include "attack_vectors.h"
 #include "fuzz_util.h"
+#include "session_handler_stub.h"
 #include "sessionhandlerstub_fuzzer.h"
 
 using namespace OHOS::AAFwk;

@@ -37,7 +37,10 @@ ohos_fuzztest("AbilityAppMgrEventSecondFuzzTest") {
     "abilityappmgreventsecond_fuzzer.cpp",
   ]
 
-  configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config" ]
+  configs = [
+    "${ability_runtime_services_path}/appmgr:appmgr_config",
+    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
+  ]
 
   deps = [
     "${ability_runtime_services_path}/appmgr:libappms",

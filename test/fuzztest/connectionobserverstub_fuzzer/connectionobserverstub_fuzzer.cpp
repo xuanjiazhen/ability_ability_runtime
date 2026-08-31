@@ -16,12 +16,24 @@
 #include "connectionobserverstub_fuzzer.h"
 #include "fuzz_util.h"
 #include "parcelable_constructors.h"
+#include "connection_observer_stub.h"
+#include "iconnection_observer.h"
 
 using namespace OHOS::AbilityRuntime;
 using namespace OHOS;
 
 namespace OHOS {
-class ConnectionObserverStubFuzz : public ConnectionObserverStub {};
+class ConnectionObserverStubFuzz : public ConnectionObserverStub {
+public:
+    void OnExtensionConnected(const ConnectionData &data) override {}
+    void OnExtensionDisconnected(const ConnectionData &data) override {}
+    void OnExtensionSuspended(const ConnectionData &data) override {}
+    void OnExtensionResumed(const ConnectionData &data) override {}
+#ifdef WITH_DLP
+    void OnDlpAbilityOpened(const DlpStateData &data) override {}
+    void OnDlpAbilityClosed(const DlpStateData &data) override {}
+#endif
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

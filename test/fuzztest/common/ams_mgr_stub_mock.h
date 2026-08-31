@@ -68,7 +68,7 @@ public:
         const sptr<IRemoteObject> &token, OHOS::AppExecFwk::RunningProcessInfo &info) override {}
     void SetAbilityForegroundingFlagToAppRecord(const pid_t pid) override {}
     void StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
-        int32_t requestId = 0, const std::string &customProcess = "", bool isWindowStagePreload = false) override {}
+        const AbilityRuntime::StartSpecifiedParam &param) override {}
     void RegisterStartSpecifiedAbilityResponse(const sptr<IStartSpecifiedAbilityResponse> &response) override {}
     void PrepareTerminateApp(const pid_t pid, const std::string &moduleName) override {}
     void StartSpecifiedProcess(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
@@ -82,7 +82,10 @@ public:
         return 0;
     }
     int32_t NotifyAppMgrRecordExitReasonCompability(
-        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg) override { return 0; }
+        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg, int32_t reason) override
+    {
+        return 0;
+    }
     int32_t GetBundleNameByPid(const int pid, std::string &bundleName, int32_t &uid) override { return 0; }
     int32_t RegisterAppDebugListener(const sptr<IAppDebugListener> &listener) override { return 0; }
     int32_t UnregisterAppDebugListener(const sptr<IAppDebugListener> &listener) override { return 0; }

@@ -14,6 +14,13 @@
  */
 
 #include "abilitymanagerstubstartextra_fuzzer.h"
+
+#define private public
+#define protected public
+#include "ability_start_setting.h"
+#undef private
+#undef protected
+
 #include "ability_manager_stub.h"
 #include "ability_manager_stub_mock.h"
 
@@ -22,7 +29,6 @@
 #include <iostream>
 #include <memory>
 
-#include "ability_start_setting.h"
 #include "attack_vectors.h"
 #include "fuzz_util.h"
 #include "message_parcel.h"

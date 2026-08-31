@@ -15,12 +15,17 @@
 #include "apprunningstatusstub_fuzzer.h"
 #include "attack_vectors.h"
 #include "fuzz_util.h"
+#include "app_running_status_stub.h"
+#include "app_running_status_listener_interface.h"
 
 using namespace OHOS::AbilityRuntime;
 using namespace OHOS;
 
 namespace OHOS {
-class AppRunningStatusStubFuzz : public AppRunningStatusStub {};
+class AppRunningStatusStubFuzz : public AppRunningStatusStub {
+public:
+    void NotifyAppRunningStatus(const std::string &bundle, int32_t uid, RunningStatus runningStatus) override {}
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

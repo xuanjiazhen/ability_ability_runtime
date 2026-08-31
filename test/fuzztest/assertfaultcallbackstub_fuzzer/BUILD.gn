@@ -36,11 +36,16 @@ ohos_fuzztest("AssertFaultCallbackStubFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
 
-  sources = [ "assertfaultcallbackstub_fuzzer.cpp" ]
+  sources = [
+    "assertfaultcallbackstub_fuzzer.cpp",
+    "${ability_runtime_path}/frameworks/native/appkit/app/assert_fault_callback.cpp",
+    "${ability_runtime_path}/frameworks/native/appkit/app/assert_fault_task_thread.cpp",
+  ]
 
   configs = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
+    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
   ]
 
   deps = [

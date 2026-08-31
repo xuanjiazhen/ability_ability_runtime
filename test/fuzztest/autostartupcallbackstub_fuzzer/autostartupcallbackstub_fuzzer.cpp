@@ -15,13 +15,20 @@
 #include "attack_vectors.h"
 #include "autostartupcallbackstub_fuzzer.h"
 #include "fuzz_util.h"
+#include "auto_startup_callback_stub.h"
+#include "auto_startup_interface.h"
+#include "ability_manager_ipc_interface_code.h"
 
 using namespace OHOS::AbilityRuntime;
 using namespace OHOS::AAFwk;
 using namespace OHOS;
 
 namespace OHOS {
-class AutoStartupCallBackStubFuzz : public AutoStartupCallBackStub {};
+class AutoStartupCallBackStubFuzz : public AutoStartupCallBackStub {
+public:
+    void OnAutoStartupOn(const AutoStartupInfo &info) override {}
+    void OnAutoStartupOff(const AutoStartupInfo &info) override {}
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

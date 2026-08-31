@@ -15,12 +15,22 @@
 #include "attack_vectors.h"
 #include "fuzz_util.h"
 #include "remoteregisterservicestub_fuzzer.h"
+#include "remote_register_service_stub.h"
+#include "remote_register_service_interface.h"
 
 using namespace OHOS::AppExecFwk;
 using namespace OHOS;
 
 namespace OHOS {
-class RemoteRegisterServiceStubFuzz : public RemoteRegisterServiceStub {};
+class RemoteRegisterServiceStubFuzz : public RemoteRegisterServiceStub {
+public:
+    int Register(const std::string &bundleName, const sptr<IRemoteObject> &token,
+        const ExtraParams &extras, const sptr<IConnectCallback> &callback) override { return 0; }
+    bool Unregister(int registerToken) override { return false; }
+    bool UpdateConnectStatus(int registerToken, const std::string &deviceId,
+        int status) override { return false; }
+    bool ShowDeviceList(int registerToken, const ExtraParams &extras) override { return false; }
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

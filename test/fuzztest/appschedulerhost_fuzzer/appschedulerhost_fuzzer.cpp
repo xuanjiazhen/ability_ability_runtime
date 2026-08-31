@@ -38,7 +38,7 @@ constexpr uint8_t SCHEDULER_HANDLE_COUNT = 40;
 class AppSchedulerHostFuzz : public AppSchedulerHost {
 public:
     AppSchedulerHostFuzz() = default;
-    ~AppSchedulerHostFuzz() = default;
+    ~AppSchedulerHostFuzz() override = default;
 
     bool ScheduleForegroundApplication() override { return false; }
     void ScheduleBackgroundApplication() override {}
@@ -48,6 +48,7 @@ public:
     void ScheduleMemoryLevel(int32_t level, bool isShellCall = false) override {}
     void ScheduleHeapMemory(const int32_t pid, OHOS::AppExecFwk::MallocInfo &mallocInfo) override {}
     void ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info) override {}
+    void ScheduleJsHandleMap(OHOS::AppExecFwk::JsHandleMapInfo &info) override {}
     void ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info) override {}
     void ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback) override {}
     void ScheduleLaunchApplication(const AppLaunchData &launchData, const Configuration &config) override {}
@@ -85,6 +86,8 @@ public:
     int32_t ScheduleDumpArkWeb(const std::string &customArgs, std::string &result) override { return 0; }
     void SetWatchdogBackgroundStatus(bool status) override {}
     void OnLoadAbilityFinished(uint64_t callbackId, int32_t pid) override {}
+    void ScheduleUpdateWorkProcessInfo(std::shared_ptr<AppUpdateInfo> updateInfo) override {}
+    int32_t SchedulePreTemplateProcessDeepFrozen() override { return 0; }
 };
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)

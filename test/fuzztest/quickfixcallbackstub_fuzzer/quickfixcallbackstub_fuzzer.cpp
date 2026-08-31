@@ -14,13 +14,19 @@
  */
 #include "attack_vectors.h"
 #include "fuzz_util.h"
+#include "appmgr/quick_fix_callback_stub.h"
 #include "quickfixcallbackstub_fuzzer.h"
 
 using namespace OHOS::AppExecFwk;
 using namespace OHOS;
 
 namespace OHOS {
-class QuickFixCallbackStubFuzz : public QuickFixCallbackStub {};
+class QuickFixCallbackStubFuzz : public QuickFixCallbackStub {
+public:
+    void OnLoadPatchDone(int32_t resultCode, int32_t recordId) override {};
+    void OnUnloadPatchDone(int32_t resultCode, int32_t recordId) override {};
+    void OnReloadPageDone(int32_t resultCode, int32_t recordId) override {};
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

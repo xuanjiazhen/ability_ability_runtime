@@ -15,12 +15,17 @@
 #include "attack_vectors.h"
 #include "dataabilityobserverstub_fuzzer.h"
 #include "fuzz_util.h"
+#include "data_ability_observer_stub.h"
+#include "data_ability_observer_interface.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS;
 
 namespace OHOS {
-class DataAbilityObserverStubFuzz : public DataAbilityObserverStub {};
+class DataAbilityObserverStubFuzz : public DataAbilityObserverStub {
+public:
+    void OnChange() override {}
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

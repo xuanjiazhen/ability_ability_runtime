@@ -36,7 +36,10 @@ ohos_fuzztest("ApplicationStateObserverStubFuzzTest") {
   ]
   sources = [ "applicationstateobserverstub_fuzzer.cpp" ]
 
-  configs = [ "${ability_runtime_innerkits_path}/app_manager:appmgr_sdk_config" ]
+  configs = [
+    "${ability_runtime_innerkits_path}/app_manager:appmgr_sdk_config",
+    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
+  ]
 
   deps = [
     "${ability_runtime_innerkits_path}/app_manager:app_manager",

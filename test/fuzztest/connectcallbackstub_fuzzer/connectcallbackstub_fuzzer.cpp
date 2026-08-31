@@ -15,12 +15,18 @@
 #include "attack_vectors.h"
 #include "connectcallbackstub_fuzzer.h"
 #include "fuzz_util.h"
+#include "connect_callback_stub.h"
+#include "connect_callback_interface.h"
 
 using namespace OHOS::AppExecFwk;
 using namespace OHOS;
 
 namespace OHOS {
-class ConnectCallbackStubFuzz : public ConnectCallbackStub {};
+class ConnectCallbackStubFuzz : public ConnectCallbackStub {
+public:
+    void Connect(const std::string &deviceId, const std::string &deviceType) override {}
+    void Disconnect(const std::string &deviceId) override {}
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

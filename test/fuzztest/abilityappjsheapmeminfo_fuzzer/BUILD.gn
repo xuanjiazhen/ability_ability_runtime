@@ -28,6 +28,9 @@ ohos_fuzztest("AbilityAppJsHeapMemInfoFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
+  configs = [
+    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
+  ]
   sources = [
     "${ability_runtime_innerkits_path}/app_manager/src/appmgr/app_jsheap_mem_info.cpp",
     "abilityappjsheapmeminfo_fuzzer.cpp",

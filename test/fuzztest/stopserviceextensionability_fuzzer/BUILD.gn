@@ -36,7 +36,9 @@ ohos_fuzztest("StopServiceExtensionAbilityFuzzTest") {
 
   sources = [ "stopserviceextensionability_fuzzer.cpp" ]
 
-  configs = []
+  configs = [
+    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
+  ]
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",

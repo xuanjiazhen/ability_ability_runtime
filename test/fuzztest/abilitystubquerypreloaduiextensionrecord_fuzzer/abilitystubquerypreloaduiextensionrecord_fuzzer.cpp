@@ -22,4 +22,6 @@
 
 using namespace OHOS::AAFwk;
 
+namespace OHOS {
 FUZZ_ABILITY_SERVICE_ENTRY_IMPL(AbilityManagerInterfaceCode::QUERY_PRELOAD_UIEXTENSION_RECORD)
+}

@@ -15,12 +15,20 @@
 #include "abilityinfocallbackstubremaining_fuzzer.h"
 #include "attack_vectors.h"
 #include "fuzz_util.h"
+#include "ability_info_callback_stub.h"
+#include "iability_info_callback.h"
 
 using namespace OHOS::AppExecFwk;
 using namespace OHOS;
 
 namespace OHOS {
-class AbilityInfoCallbackStubRemainingFuzz : public AbilityInfoCallbackStub {};
+class AbilityInfoCallbackStubRemainingFuzz : public AbilityInfoCallbackStub {
+public:
+    void NotifyStartSpecifiedAbility(const sptr<IRemoteObject> &callerToken, const Want &want, int requestCode,
+        sptr<Want> &extraParam) override {}
+    void NotifyRestartSpecifiedAbility(const sptr<IRemoteObject> &token) override {}
+    void NotifyStartAbilityResult(const Want &want, int result) override {}
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

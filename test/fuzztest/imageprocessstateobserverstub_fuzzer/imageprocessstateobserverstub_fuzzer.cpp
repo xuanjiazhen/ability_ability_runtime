@@ -15,6 +15,8 @@
 #include "attack_vectors.h"
 #include "fuzz_util.h"
 #include "imageprocessstateobserverstub_fuzzer.h"
+#include "image_process_state_observer_stub.h"
+#include "image_process_state_observer_interface.h"
 
 using namespace OHOS::AppExecFwk;
 using namespace OHOS;

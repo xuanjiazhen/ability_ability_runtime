@@ -38,9 +38,14 @@ ohos_fuzztest("AbilityManagerStubStartExtraFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
-  sources = [ "abilitymanagerstubstartextra_fuzzer.cpp" ]
+  sources = [ "abilitymanagerstubstartextra_fuzzer.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/ability_start_setting.cpp",
+  ]
 
-  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
+  configs = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_config",
+    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
+  ]
 
   cflags = []
   if (target_cpu == "arm") {

@@ -35,6 +35,9 @@ ohos_fuzztest("AbilityAppFreezeManagerEleventhFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
+  configs = [
+    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
+  ]
   sources = [ "abilityappfreezemanagereleventh_fuzzer.cpp" ]
 
   deps = [

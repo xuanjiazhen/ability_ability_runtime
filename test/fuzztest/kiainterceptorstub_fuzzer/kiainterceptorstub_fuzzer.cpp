@@ -15,11 +15,16 @@
 #include "attack_vectors.h"
 #include "fuzz_util.h"
 #include "kiainterceptorstub_fuzzer.h"
+#include "kia_interceptor_stub.h"
+#include "kia_interceptor_interface.h"
 
 using namespace OHOS::AppExecFwk;
 
 namespace OHOS {
-class KiaInterceptorStubFuzzTest : public KiaInterceptorStub {};
+class KiaInterceptorStubFuzzTest : public KiaInterceptorStub {
+public:
+    int OnIntercept(AAFwk::Want &want) override { return 0; }
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

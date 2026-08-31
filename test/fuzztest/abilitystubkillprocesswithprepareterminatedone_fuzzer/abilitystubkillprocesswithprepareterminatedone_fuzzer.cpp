@@ -22,4 +22,6 @@
 
 using namespace OHOS::AAFwk;
 
+namespace OHOS {
 FUZZ_ABILITY_SERVICE_ENTRY_IMPL(AbilityManagerInterfaceCode::KILL_PROCESS_WITH_PREPARE_TERMINATE_DONE)
+}

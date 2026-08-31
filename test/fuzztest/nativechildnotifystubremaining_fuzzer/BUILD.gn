@@ -27,9 +27,7 @@ ohos_fuzztest("NativeChildNotifyStubRemainingFuzzTest") {
   include_dirs = [
 
       "${ability_runtime_services_path}/appmgr/include",
-
       "${ability_runtime_test_path}/fuzztest/common",
-
   ]
   cflags = [
     "-g",
@@ -39,7 +37,10 @@ ohos_fuzztest("NativeChildNotifyStubRemainingFuzzTest") {
   ]
   sources = [ "nativechildnotifystubremaining_fuzzer.cpp" ]
 
-  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
+  configs = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_config",
+    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
+  ]
 
   cflags = []
   if (target_cpu == "arm") {

@@ -39,13 +39,18 @@ ohos_fuzztest("QuickFixManagerStubFuzzTest") {
 
   sources = [ "quickfixmanagerstub_fuzzer.cpp" ]
 
-  configs = [ "${ability_runtime_innerkits_path}/quick_fix:quickfix_config" ]
+  configs = [
+    "${ability_runtime_innerkits_path}/quick_fix:quickfix_config",
+    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
+  ]
 
   deps = [
     "${ability_runtime_innerkits_path}/quick_fix:quickfix_manager",
   ]
 
   external_deps = [
+    "ability_base:want",
+    "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_core",

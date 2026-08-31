@@ -38,6 +38,7 @@ ohos_fuzztest("SessionHandlerStubFuzzTest") {
 
   configs = [
     "${ability_runtime_innerkits_path}/session_handler:session_handler_public_config",
+    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
   ]
 
   deps = [

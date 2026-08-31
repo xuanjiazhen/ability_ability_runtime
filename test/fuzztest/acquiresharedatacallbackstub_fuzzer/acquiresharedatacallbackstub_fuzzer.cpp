@@ -15,6 +15,8 @@
 #include "acquiresharedatacallbackstub_fuzzer.h"
 #include "attack_vectors.h"
 #include "fuzz_util.h"
+#include "acquire_share_data_callback_stub.h"
+#include "iacquire_share_data_callback_interface.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS;
