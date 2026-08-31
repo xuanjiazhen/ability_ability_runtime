@@ -20,6 +20,7 @@ related_decisions:
   - "D-16 豁免记录=内存登记（不持久化）"
   - "D-19 ITaskManager 经 SA 501 描述符路由承载（F-21）"
   - "D-21 AI bar 内化交互，监听保留给安全等模块（取代 D-11）"
+  - "D-22 CLI=cli_tool_framework：工具路径 aimgr 挂点+Skill 路径收敛点覆盖"
   - "D-20 拦截点①共 5 收敛点（F-22）"
 subprofiles: []
 profile_source: owner
@@ -46,4 +47,5 @@ commits:
   - "170506ec66 图1监听者泛化"
   - "D-21 需求变更：AI bar 内化交互（第十八轮）"
   - "第十九轮：清理完整性 F-47（EDS uid 引用计数/清理清单全景）"
+  - "D-22 需求变更：CLI=cli_tool_framework（第二十轮，aimgr 挂点双路径）"
 ---

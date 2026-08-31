@@ -47,6 +47,7 @@
 | 服务层 | `services/appmgr/src/process_schedule/` | 通用进程调度管理：进程组、管控档位、管控动作施加/撤销、多任务归属合并 | 新增 |
 | 服务层（RSS 适配层） | `services/appmgr/src/resource_control_proxy/` | **RSS Proxy 代理层**：按管控动作语义抽象 RSS 能力接口；一期骨架实现（内存登记+告警日志，可配探测对接开关）；RSS 明确后替换真实实现 | 新增 |
 | 服务层 | `services/abilitymgr` | 启动/连接链路 Want 拦截：解析 taskId → 经 app_manager inner_api 客户端上报 AppMS | 修改（最小拦截点） |
+| 服务层 | `cli_tool_framework/services/climgr`（aimgr，SA 186） | **CLI 工具进程纳管挂点（D-22，§5.4.3）**：ExecTool/ExecCmd fork 后 RegisterTaskProcess、SIGCHLD 死亡 UnregisterTaskProcess、Killpg 前清理 | 修改（挂点） |
 | 平台能力 | resource_schedule_service（ressched_client） | 冻结豁免/解冻/状态查询（一期）；进程级 QoS（二期 221） | 复用 |
 | 平台能力 | qos_manager（QosController/RTG） | 线程级 QoS 提权（二期，需线程 tid） | 复用（二期） |
 
@@ -328,6 +329,7 @@ interface ITaskListener {   // 监听方注册（安全管控/审计/系统状�
    - **通道鉴权（F-8 补全，第十三轮；F-29 修正，第十五轮）**：callerTokenId 为 IPC 入参而非通道派生值，ITaskManager 为可直调的 IPC 接口——若不校验通道身份，任意系统应用可自报 callerTokenId=creatorTokenId 绕过 B-2（§5.3.1 ⑧"恶意应用无法直接触达内部通道"的断言必须由显式校验支撑）。规则：
      0. **调用方式前提（F-29，第十五轮实证）**：AMS 拦截点/attach 点对 TaskManagerClient 的全部调用必须经 **IN_PROCESS_CALL（ResetCallingIdentity）包装**——同进程 SA 代理调用为进程内直接分发，被调方看到的 calling identity **透传原始 IPC 调用方**而非 native（机制实证：`services/common/include/in_process_call_wrapper.h`；AMS→AppMS/agentmgr 既有调用全部如此包装，先例 app_scheduler.cpp:82、ability_manager_service.cpp:6092）。**不包装的后果**：规则①永不命中（actual=原始调用方 HAP token），规则②对 attach 路径（param=①登记的业务发起方 ≠ actual=目标进程 token）与代理启动路径（param=specifyTokenId ≠ actual=发起 app token）误拒——两条核心纳管链路断裂；
      1. IPC 调用方为 **foundation 进程 native 身份** → 信任入参 callerTokenId（AMS 转发的业务发起方）。判定原语 = `PermissionVerification::CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS_NAME)`（IsSACall + native token processName=="foundation"；agentmgr 鉴权 AMS 同进程调用的同一先例：agent_manager_service.cpp:993、permission_verification.cpp:115-131）。**不可用裸 IsSACall**——任何进程的 native SA（如其他系统进程）直调均可过裸 native 判定，伪造入参即绕过；信任边界 = foundation 进程内互信（与 agentmgr 先例一致）；
+     1b. **IPC 调用方为 aimgr 进程 native 身份（D-22 扩展，第二十轮）** → 同样信任入参 callerTokenId（cli_tool_framework 转发的 ExecTool 调用方）。判定原语同上（processName=="aimgr"）；信任边界论证见 §5.4.3-3（aimgr 系统 SA + EXEC_CLI_TOOL 权限门 + callerTokenId 取自 IPC 现场非自报）；
      2. 其他调用方（含创建者自注册，§5.2.1）→ **入参 callerTokenId 必须等于 IPC 实际调用方 tokenId**（杜绝自报他人身份），再过 B-2 集合校验；
      3. **pid 归属校验**（直调路径强化，②⑦既有 pid 归属校验的直调版）：直调注册的 pid 归属 uid 须与调用方一致，或该 pid 已在目标任务内（防创建者/任务内进程注册**他人进程**骗取豁免）；
      4. 不满足 → 返回 ERR_TASK_PERMISSION_DENIED（内部通道错误码，不透传应用侧，C-5）。
@@ -347,6 +349,7 @@ interface ITaskListener {   // 监听方注册（安全管控/审计/系统状�
 | ⑥ 代理启动（StartAbilityAsCaller/WithSpecifyTokenId）绕过校验 | 拦截点校验身份取**业务发起方**（asCallerSourceToken/specifyTokenId 优先，非 AMS 内部调用者）——代理启动时被代理身份才是 B-2 校验对象；系统服务内部转发（无业务发起方）视为无身份 → 不纳管 | 无仿冒面（补充：校验身份规则明确） |
 | ⑦ 已存在进程直接纳管（条件两段式）的身份一致性 | 直接注册路径同样携带业务发起方 tokenId 过 B-2 校验（与意向路径同一校验函数），AppMS 校验 pid 存活且归属与目标一致 | 无仿冒面 |
 | ⑧ attach 补注册通道的身份伪造（恶意进程冒充 attach 上报他人 taskId/pid） | **代码勘察发现（P2，2026-08-24）**：attach 挂点 `AttachAbilityThread`（ability_manager_service.cpp:7957）由**目标进程自身经 IPC 调起**——attach 现场 `IPCSkeleton::GetCallingTokenID()` 恒为目标进程 tokenId，若直接取用则恒被 B-2 拒绝，且构成"目标进程自报身份"的仿冒面。**修正**：②的 callerTokenId 必须取**①意向登记时随 want 解析并存入 AbilityRecord 的业务发起方 tokenId**（非 attach 现场取值）；信任锚 = AMS→AppMS 为 foundation 进程内调用（native token）——**该信任锚由 AppMS 侧通道鉴权显式校验**（F-8，§5.3 通道鉴权规则①：native 调用方才信任入参身份；非 native 直调一律"入参身份=IPC 实际身份"，恶意应用自报他人身份必被拒） | 无仿冒面（需落实：attach 身份来源 = ①登记值 + 通道鉴权） |
+| ⑨ CLI 挂点通道的身份伪造（恶意应用驱动 aimgr 注册他人进程，D-22 新增，第二十轮） | aimgr 侧 RegisterTaskProcess 的入参 callerTokenId 取自 **ExecTool IPC 现场 GetCallingTokenID()**（cli_tool_manager_service.cpp:994，非应用自报）；aimgr→AppMS 调用方为 aimgr native token（通道鉴权规则 1b 校验 processName=="aimgr"）；恶意应用要伪造需同时：持有 EXEC_CLI_TOOL 权限调 ExecTool（系统权限门）+ 绕过 aimgr 取值逻辑（不可控） | 无新增仿冒面（权限门 + 现场取值 + 规则 1b 三重约束） |
 
 **结论**：两段式（修正为条件两段式）本身不引入新增仿冒面——仿冒防护完全由 B-2 caller 校验承担，且在意向/直接注册路径都执行；设计强化点 = ②pid 归属校验 + ③进程集合上限 + ⑥代理启动身份规则 + ⑧attach 身份来源（取①登记的业务发起方 tokenId，非 attach 现场 GetCallingTokenID）+ **通道鉴权**（F-8：ITaskManager 可被系统应用直调，AppMS 必须校验 IPC 通道身份——native 信任入参、非 native 强制入参身份=IPC 实际身份+pid 归属校验）（均已在 5.3/5.4/5.6/5.7/R-22 覆盖，落地时落实）。
 
@@ -363,7 +366,7 @@ interface ITaskListener {   // 监听方注册（安全管控/审计/系统状�
 | 5 | ConnectAbility / ConnectAbilityWithExtensionType | `ConnectAbilityCommon`（ability_manager_service.cpp:6063；ConnectAbilityWithExtensionType 为客户端方法 ability_manager_client.cpp:686，服务端收敛于 ConnectAbilityCommon；含 agentmgr 转发路径 VerifyAgentConnectRequest 先例 ~:6094） | 拦截点①在 ConnectAbilityCommon 解析；②在 ServiceRecord attach 处补注册 | ✅ |
 | 6 | StartServiceExtensionAbility / StartUIExtensionAbility / RequestModalUIExtension | **三独立路径，均不经 StartAbilityInner（F-22 修正，第十四轮勘察）**：① StartExtensionAbility/ImplicitStartExtensionAbility（:4338/:4357）→ `StartExtensionAbilityInner`（:4656，StartAbilityInner 亦在 :1404/:2437 内部转调它）；② `StartUIExtensionAbility`（:4989，Want 在 SessionInfo 内，经 UIExtensionAbilityManager）；③ `RequestModalUIExtension`（:4475）→ `RequestModalUIExtensionInner`（:4508） | 拦截点①分别置于 StartExtensionAbilityInner / StartUIExtensionAbility / RequestModalUIExtensionInner 三处（与 StartAbilityInner 共用同一解析/上报辅助函数）。**身份解析来源（F-32 补全，第十五轮勘察）**：①有 callerToken 参数（正常解析）；② StartUIExtensionAbility **无 callerToken 参数**且 IPC 调用方为 sceneboard——须取 `SessionInfo.callerToken_/callingTokenId_`（ws_common.h:464/:488）为业务发起方，直接取 GetCallingTokenID 会得 sceneboard 身份被 B-2 必拒；③由应用侧框架直调 AMS（js_service_extension_context.cpp:187），GetCallingTokenID=应用自身 ✓ | ✅（修正后） |
 | 7 | 意图框架 InsightIntent | `StartAbilityWithInsightIntent`（:15241）收敛 StartAbilityInner（意图执行器最终调用 AMS StartAbility/ConnectAbility 既有接口） | 天然覆盖（:15241 为意图链路实证收敛点） | ✅ |
-| 8 | Cli（aa 命令） | `tools/aa` 经 AbilityManagerClient::StartAbility（ability_command.cpp:486/:491）→ 收敛 StartAbilityInner | 天然覆盖；shell 身份带 taskId 时按 B-2 校验（非创建者 → 拒） | ✅ |
+| 8 | Cli（**cli_tool_framework 拉起的 CLI**，D-22 修正，第二十轮勘察） | **双路径**（cli_tool_framework/services/climgr，aimgr 独立进程 SA 186）：路径 A ExecTool/ExecCmd（CLI 工具/shell）= aimgr `ProcessManager::CreateChildProcess` **fork+execvp(claw_sandbox)**（process_manager.cpp:139/:203）——**不经 AMS 任何收敛点、不经 AppSpawn、无 AbilityRecord/attach**；路径 B Skill 会话 = `ExecuteInAppSkillWithTokenId`（cli_tool_manager_service.cpp:1685）→ AMS `StartExtensionAbilityInner`（:4656）/StartAbilityByCall——**天然经收敛点覆盖**（场景 6 链路） | **路径 B 天然覆盖**（skillArgs 经 `ohos.skill.executeParam.args.*` 写入 Want，taskId 可随 args 透传，skill_execute_param.cpp:210-213）；**路径 A 需 aimgr 侧挂点**（§5.4.3）：CliToolManagerService 在 CreateChildProcess 成功后调 RegisterTaskProcess（taskId 经 ExecToolParam.args 透传，`ohos.ai.taskId` 键）；CLI 进程身份 = 调用方 HAP tokenId+CliBinaryInvoker 标志（SetParentHapTokenId，process_manager.cpp:273-289） | ✅（A 经挂点/B 天然） |
 | 9 | A2A（Agent 扩展） | A2A 服务端为 AgentExtensionAbility，经 agentmgr→AMS ConnectAbilityWithExtensionType（服务端收敛 ConnectAbilityCommon，场景 5）；taskId 由 supervisor 参数透传 | 覆盖（场景 5 链路） | ✅ |
 | 10 | 后台拉起（WorkScheduler/BackgroundTask 拉起进程） | 非 AI 助手启动链，无 taskId 透传 | **不纳管**（设计原则：纳管只发生在带合法 taskId 的启动链） | 原则 |
 | 11 | 卡片/表单启动、系统恢复启动 | 无 taskId | 不纳管（R-13 零影响）；注：RestartApp（:16359）亦收敛 StartAbilityInner，恢复启动无 taskId 不纳管 | 原则 |
@@ -417,6 +420,23 @@ if (targetPid > 0) {
 - **AbilityRecord 存储缺口（F-31 补全，第十五轮勘察）**：`AbilityRecord` 现无"业务发起方 tokenId"字段（ability_record.h 仅有 want_ 与 CallerRecord 列表）——①意向登记时须**新增字段**（如 `taskOriginatorTokenId_`，随 want 解析写入）或 AMS 侧维护 taskId→originator 侧表；该修改属 TASK-3 文件范围（ability_record.h/cpp，execution-plan 已同步）。
 
 > 调用经 `interfaces/inner_api/app_manager/` 客户端（既有 AMS→AppMS 通道体系），符合 AGENTS.md；所有调用失败仅日志告警，不阻断启动（R-7/R-8/R-13）。
+
+#### 5.4.3 CLI 工具进程纳管挂点（D-22 新增，第二十轮勘察）
+
+**背景（cli_tool_framework 进程模型实证）**：CLI 工具进程 = aimgr（独立进程，uid=aimgr，SA 186 libclimgr，ondemand）`ProcessManager::CreateChildProcess` 的 **fork+execvp("/system/bin/claw_sandbox")** 子进程（process_manager.cpp:139-191；ExecCmd 同构 :203）——**不经 AMS 启动链路（5 收敛点全覆盖不到）、不经 AppSpawn 孵化、无 AbilityRecord/attach**，Want 拦截方案对其失效。CLI 进程身份 = 调用方 HAP tokenId + CliBinaryInvoker 标志（`SetParentHapTokenId`：`AddCliBinaryInvokerTokenFlag(tokenId)` 经 /dev/access_token_id ioctl 注入，process_manager.cpp:273-289）；aimgr 自带 SIGCHLD reaper 监控子进程死亡（cli_tool_manager_service.cpp:228/:364）。
+
+**挂点设计（路径 A：ExecTool/ExecCmd）**：
+
+1. **taskId 透传**：调用方（AI 助手）在 `ExecToolParam.args`（WantParams）中携带 `ohos.ai.taskId`（与 Want 参数同一键约定；args 为自由键值对，cli_tool_manager_service.cpp:1626 既有 GetStringParam 消费先例）；
+2. **aimgr 侧注册**：CliToolManagerService 在 `CreateChildProcess` 成功获得 pid 后，调 `TaskManagerClient::RegisterTaskProcess(taskId, pid, callerTokenId)`——callerTokenId 取 **ExecTool 现场调用方 tokenId**（cli_tool_manager_service.cpp:994 `IPCSkeleton::GetCallingTokenID()`，即业务发起方，语义与 AMS 拦截点一致）；
+3. **通道鉴权适配（F-8 规则扩展）**：aimgr 为**独立系统进程（非 foundation）**——规则①的 `CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS_NAME)` 不命中。扩展：**规则 1b——native 调用方且 processName=="aimgr"**（`CheckSpecificSystemAbilityAccessPermission("aimgr")`，同一原语换进程名）同样信任入参 callerTokenId。信任边界论证：aimgr 为系统 SA（cfg uid=aimgr、SELinux u:r:aimgr:s0），其 ExecTool 入口有 `ohos.permission.EXEC_CLI_TOOL` 权限校验（cli_tool_manager_service.cpp:52/:856）——恶意应用无法驱动 aimgr 伪造注册（无权限调 ExecTool；且 aimgr 转发的 callerTokenId 取自 IPC 现场，非应用自报）；
+4. **B-2 语义适配**：CLI 进程的 tokenId = 调用方 HAP token **+ CliBinaryInvoker 标志位**（AddCliBinaryInvokerTokenFlag 变换后的值，≠原始 tokenId 数值）——**B-2 集合校验对"任务内进程 tokenId"匹配时须同时接受原始值与 Invoker 标志值**（或统一在注册时记录原始 callerTokenId、以注册链信任替代进程 token 匹配）；一期采用前者（集合匹配双值），实现于 task_mgr B-2 校验函数；
+5. **进程死亡清理**：aimgr SIGCHLD reaper 感知 CLI 进程退出（cli_tool_manager_service.cpp:364）→ 调 `UnregisterTaskProcess(taskId, pid)`（与 AppMS AppDeathRecipient 链互补——CLI 进程非 AppMS 管理的应用进程，R-12 原链不覆盖）；
+6. **会话超时/清理联动**：aimgr 既有会话超时 Killpg（:121）与 ClearSession 清理路径，Killpg 前先 UnregisterTaskProcess（防豁免残留至进程被杀后才清理）。
+
+**路径 B（Skill 会话）**：`ExecuteInAppSkillWithTokenId` → AMS `StartExtensionAbilityInner`（:4656，5 收敛点之一）——skillArgs 经 `ohos.skill.executeParam.args.*` 前缀写入 Want（skill_execute_param.cpp:210-213），taskId 随 args 透传后由 TaskInterceptor 在收敛点解析（键名还原：args 前缀剥离后匹配 `ohos.ai.taskId`）；**无需 aimgr 挂点**（天然覆盖）。skillCallerTokenId 语义（StartExtensionAbilityWithSkill :15535-15541 传入 skillCallerTokenId）与拦截点身份解析规则一致（业务发起方）。
+
+**边界声明**：CLI 工具进程跑在 claw_sandbox 沙箱内（uid 降权），RSS 冻结管控对其的适用性（沙箱进程是否在 RSS 冻结策略覆盖范围）**待真机验证**（列入 TASK-6 验证项）；若沙箱进程不受冻结管控，则纳管仅提供状态可观测（进程集合记录），管控收益为零——不影响机制正确性。
 
 ### 5.5 监听与交互机制（D-21 重写，2026-08-26 需求变更）
 
@@ -773,7 +793,7 @@ sa_profile/501.json: 不变（复用 appms）
 | 3 | 用户 → AI bar → 助手 | （助手进程内） | 用户选择/输入 | 助手直接获得响应，无 IPC、无模块中介 |
 | 4 | AI 助手 | AppMS | SetTaskState(WORKING/COMPLETED, payload 可选携带响应) | 流转出交互态；监听回调；交互超时计时终止 |
 
-**异常/降级流：** 豁免撤销失败重试 ≤3 → 告警（日志留痕，R-20）；进程死亡 → 死亡通知链 → RemoveProcessFromTask + 档位重算（R-12）；AppMS 异常重启 → foundation 进程重启、全部应用进程被清理，任务记录与 RSS 侧豁免随进程消亡同亡（无孤儿豁免，C-1 结论；spec 非功能可靠性）。
+**异常/降级流：** 豁免撤销失败重试 ≤3 → 告警（日志留痕，R-20）；进程死亡 → 死亡通知链 → RemoveProcessFromTask + 档位重算（R-12；**CLI 工具进程死亡经 aimgr SIGCHLD reaper → UnregisterTaskProcess，与 AppMS 死亡链互补**，D-22/§5.4.3-5）；AppMS 异常重启 → foundation 进程重启、全部应用进程被清理，任务记录与 RSS 侧豁免随进程消亡同亡（无孤儿豁免，C-1 结论；spec 非功能可靠性）。
 
 ### 风险与开放项
 

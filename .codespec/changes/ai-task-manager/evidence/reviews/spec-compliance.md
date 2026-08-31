@@ -20,6 +20,7 @@
 | 第十五轮 | 2026-08-26 | **IPC 机制深挖**（针对前两轮修复方案的底层假设：同进程 SA 调用身份语义/SA 分发结构/P5/P7 依赖） | F-29~F-35（F-8 通道鉴权前提缺陷——同进程调用透传原始调用方身份，attach/代理启动链路断裂风险+裸 IsSACall 绕过面；P7 依赖缺口；AbilityRecord 存储缺口；UIExtension 身份解析来源等 7 项） | 全部修复（review-analysis.md 第十五轮节，含 7 项未对齐自主决策清单 A-1~A-7 待用户确认） |
 | 第十六轮 | 2026-08-26 | **拦截器框架与参数语义**（AMS 拦截器框架/sysparam 前缀语义/attach 兜底/IDL 细节/错误码段） | F-36~F-41（AMS 拦截器框架未分析——4/5 收敛点已运行规范框架，推荐混合方案待评审 A-8；const.* 前缀语义错误改 persist.*；oneway 缺失；"重发①"措辞错误；错误码段约束；UIExtension Want 存活推测项） | 全部修复（review-analysis.md 第十六轮节；F-36 方案待评审确认） |
 | 第十七轮 | 2026-08-26 | **状态机闭环与线程模型**（控制面失联端到端推演/线程模型一致性/收口文档时效） | F-43~F-46（§5.2.1 #4"超时自动流转终态"与 ADR-6/F-5/R-21 三方矛盾——控制面失联任务滞留→配额死锁，处置方案 A-9 待对齐；taskHandler 串行 vs RCP 同步调用阻塞放大——ADR-8/P6 补线程模型；收口文档过时；afterCheck 挂点选项） | 全部修复（review-analysis.md 第十七轮节；F-43 处置待 A-9 对齐） |
+| 第二十轮 | 2026-08-26 | **需求变更 D-22**（用户确认 CLI=cli_tool_framework） | F-48（场景 8 理解错误——CLI 工具进程 fork+claw_sandbox 不经 AMS，覆盖断裂；aimgr 挂点双路径修复+通道鉴权规则 1b+B-2 双值匹配+死亡链互补） | 变更落地完成（review-analysis.md 第二十轮节） |
 | 第十九轮 | 2026-08-26 | **清理完整性**（用户指出阶段四遗漏后全路径核查） | F-47（8 子项：EDS 撤销粒度错误→uid 级引用计数；CLEAR_QOS 补入；降档/死亡路径 EDS 重评估；终态取消计时器；登记清理入流程等） | 全部修复（review-analysis.md 第十九轮节，含清理清单全景表） |
 | 第十八轮 | 2026-08-26 | **需求变更 D-21**（用户指令：进度展示与交互由 AI bar 内化，监听保留给安全等模块） | 接口面 13→12 方法（SubmitTaskInput/INPUT_ARRIVED/PAYLOAD_UPDATED/input 字段/D-11 通道移除）；US-3/US-4 重写、AC-4.4 删除；全交付件同步（design/spec/proposal 活基线/plan/flow-diagrams/对齐材料/3 SVG） | 变更落地完成（review-analysis.md 第十八轮节；D-11 取代、A-1 关闭） |
 

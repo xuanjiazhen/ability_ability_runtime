@@ -162,7 +162,7 @@
 | R-4 | 异常 | 调用 SetTaskState 发起非法流转（终态回退、未注册流转、REJECTED 由非创建者设置） | 返回 ERR_TASK_INVALID_STATE_TRANSITION，任务状态不变 | 终态（COMPLETED/CANCELED/FAILED/REJECTED）不可再流转 | AC-1.3 |
 | R-5 | 行为 | 调用 CancelTask/DestroyTask，任务存在且调用方为创建者 | CancelTask：任务进入 CANCELED（非终态时）并触发降级；DestroyTask：任务记录清理并触发降级；返回 ERR_OK | DestroyTask 对任意状态可执行（幂等：不存在返回 ERR_TASK_NOT_FOUND） | AC-1.4 |
 | R-6 | 异常 | 非任务创建者调用 SetTaskState/CancelTask/DestroyTask/SetTaskParams | 返回 ERR_TASK_PERMISSION_DENIED，任务不受影响 | 创建者为 CreateTask 时的调用方 tokenId/uid 绑定（~~SubmitTaskInput 白名单~~随 D-21 移除） | AC-1.6 |
-| R-7 | 行为 | 启动链路（StartAbility/ConnectAbility/意图/Cli/A2A，含代理启动变体）请求中 Want 携带 taskId，且业务发起方为任务创建者或任务内已纳管进程 | 目标进程注册进任务（**条件两段式**：进程已存在→直接注册；未创建→意向登记+attach 补注册），GetTaskInfo 可见；纳管成功不影响启动结果 | 校验身份取业务发起方（asCallerSourceToken/specifyTokenId 优先）；任务不存在时忽略 taskId，不报错不阻断 | AC-2.1 |
+| R-7 | 行为 | 启动链路（StartAbility/ConnectAbility/意图/Cli/A2A，含代理启动变体）请求中 Want 携带 taskId，且业务发起方为任务创建者或任务内已纳管进程 | 目标进程注册进任务（**条件两段式**：进程已存在→直接注册；未创建→意向登记+attach 补注册），GetTaskInfo 可见；纳管成功不影响启动结果 | 校验身份取业务发起方（asCallerSourceToken/specifyTokenId 优先）；任务不存在时忽略 taskId，不报错不阻断；**Cli = cli_tool_framework（D-22）：Skill 会话路径经 AMS 收敛点天然覆盖（taskId 随 skillArgs 透传）；CLI 工具路径（fork+claw_sandbox，不经 AMS）经 aimgr 挂点注册（design §5.4.3）** | AC-2.1 |
 | R-8 | 异常 | Want 携带 taskId，但发起方既非任务创建者也非任务内进程（伪造/仿冒） | 拒绝纳管：启动正常执行但进程不纳入任务；不上报错误给调用方 | 校验基于发起方 tokenId/uid 与任务创建者绑定；taskId 不可猜测（R-1） | AC-2.2 |
 | R-9 | 行为 | 任务进入终态（COMPLETED/CANCELED/FAILED/REJECTED）或 DestroyTask | 对该任务下全部纳管进程执行降级：撤销冻结豁免（CLEAR_EXEMPT）/恢复调度优先级（CLEAR_QOS，二期 QoS 落地后）；进程归属按剩余任务最高优先级重算（无任务则完全恢复——RSS 按原策略自然回冻，无需显式 re-freeze）；**EDS 待机豁免按 uid 级引用计数撤销（该 uid 无其他激活态任务才 Unapply，F-47）**；任务级 NotifyTaskEnd 通知 RSS 清理任务级策略（R-20） | 降级在状态机事件处理中同步执行；**终态同步取消全部计时器（交互超时/限时/硬上限/续期计数），超时处理器校验任务非终态（双保险，F-47）**；失败重试 ≤3 次后记录告警 | AC-1.4, AC-5.2 |
 | R-10 | 边界 | 进程被多个任务纳管，各任务管控档位不同 | 进程实际管控档位 = 纳管它的任务中最高档位；高任务结束后降至次高档位 | 档位映射：任务优先级→管控档位表见 design.md | AC-2.3, AC-5.4 |
@@ -300,7 +300,7 @@
 |------|-----|
 | 函数签名 | `int32_t RegisterTaskProcess(const std::string& taskId, int32_t pid, int32_t callerTokenId)` |
 | 返回值 | `int32_t` — 0=ERR_OK |
-| 开放范围 | InnerApi（AMS→AppMS 内部通道；创建者显式自注册，design §5.2.1） |
+| 开放范围 | InnerApi（AMS→AppMS 内部通道；创建者显式自注册，design §5.2.1；**aimgr CLI 挂点通道，D-22/design §5.4.3**） |
 | 错误码 | ERR_TASK_NOT_FOUND / ERR_TASK_PERMISSION_DENIED |
 | 关联 AC | AC-2.1, AC-2.2 |
 
@@ -321,6 +321,7 @@
 | 3 | 进程已在任务中（重复纳管） | 幂等成功 | AC-2.1 |
 | 4 | IPC 调用方非 foundation native 身份且入参 callerTokenId ≠ IPC 实际调用方 tokenId（自报他人身份，通道鉴权） | 返回 ERR_TASK_PERMISSION_DENIED，不纳管（F-8，design §5.3 通道鉴权规则②） | AC-2.2 |
 | 5 | 直调路径注册 pid 归属 uid 与调用方不一致且该 pid 不在目标任务内（注册他人进程） | 返回 ERR_TASK_PERMISSION_DENIED，不纳管（F-8，通道鉴权规则③ pid 归属校验） | AC-2.2 |
+| 6 | aimgr 转发 CLI 工具进程注册（通道鉴权规则 1b：native processName=="aimgr"，D-22） | 信任入参 callerTokenId（ExecTool IPC 现场值）→ B-2 校验（集合匹配接受原始值与 CliBinaryInvoker 标志值）→ 纳管 | AC-2.1 |
 
 ### ~~SubmitTaskInput~~（随 D-21 移除，2026-08-26 需求变更）
 

@@ -118,7 +118,12 @@ flowchart TD
     ID1 -- "UIExtension路径" --> IDC["取SessionInfo.callerToken_/<br/>callingTokenId_(F-32)"]
     ID1 -- "Modal路径(应用直调)" --> IDD["取GetCallingTokenID"]
     ID1 -- "其他" --> IDE["callerToken解析→兜底GetCallingTokenID"]
-    IDA & IDB & IDC & IDD & IDE --> TP{"targetPid=<br/>record.GetPid()>0?"}
+    IDE --> CLI{"CLI路径判定(D-22)"}
+    CLI -- "cli_tool_framework<br/>Skill会话" --> CLIS["taskId随skillArgs透传<br/>(ohos.skill.executeParam.args.*)<br/>→AMS收敛点天然覆盖"]
+    CLI -- "CLI工具(ExecTool/ExecCmd)<br/>fork+claw_sandbox·不经AMS" --> CLIA["aimgr挂点(§5.4.3):<br/>CreateChildProcess成功后<br/>RegisterTaskProcess<br/>(callerTokenId=ExecTool现场值)"]
+    CLIS --> AUTH
+    CLIA --> AUTH
+    IDA & IDB & IDC & IDD --> TP{"targetPid=<br/>record.GetPid()>0?"}
     TP -- "是(既有record:运行中<br/>Service/单例/扩展复用)" --> RA["分支A直接纳管"]
     TP -- "否(冷启动或热启动新实例<br/>pid仅attach时设置F-11)" --> RB["分支B意向登记"]
     RA --> CA["IN_PROCESS_CALL<br/>RegisterTaskProcess(taskId,pid,身份)"]
@@ -138,13 +143,14 @@ flowchart TD
 |------|------|------|------|
 | 1 | Want 解析 taskId | R-13 | 无 taskId 短路，不产生任何副作用 |
 | 2 | 收敛点判定 | F-22/D-20 | 4 点走 TaskInterceptor（A-8 待评审），Modal 单点 ad-hoc |
-| 3 | 身份解析 | F-32/C-2 | UIExtension 必须取 SessionInfo（GetCallingTokenID=sceneboard 必被 B-2 拒） |
+| 3 | 身份解析 | F-32/C-2 | UIExtension 必须取 SessionInfo（GetCallingTokenID=sceneboard 必被 B-2 拒）；CLI 工具路径身份=ExecTool 现场调用方（aimgr 转发，D-22） |
 | 4 | targetPid 判定 | F-11 | pid 仅 attach 时设置（ability_record.cpp:1096，全库唯一路径） |
 | 5a | 分支 A 直接纳管 | ADR-3 | 既有 record 场景，一次动作 |
 | 5b | 分支 B 意向登记 | ADR-3/F-31 | 身份存入 AbilityRecord（新增字段） |
 | 6 | attach 补注册 | §5.4.2 | 身份取①登记值（非 attach 现场 GetCallingTokenID，§5.3.1⑧） |
 | 7 | attach 失败清理 | F-7 | 避免意向残留 30s |
 | 8 | attach 晚于超时 | F-39 | 直接补发②（pid 已就绪，重发①无意义） |
+| 9 | CLI 工具进程（D-22） | §5.4.3 | fork+claw_sandbox 不经 AMS——aimgr 挂点注册（通道鉴权规则 1b）；死亡经 aimgr SIGCHLD reaper 清理（与 AppMS 死亡链互补）；Skill 会话路径经收敛点天然覆盖 |
 
 ---
 

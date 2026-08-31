@@ -189,12 +189,12 @@
 
 | 字段 | 内容 |
 |------|------|
-| 任务目标 | AMS 启动/连接链路拦截：解析 `ohos.ai.taskId` → 两段式（RegisterTaskIntent 意向 + attach 后 RegisterTaskProcess）；**拦截实现采用混合方案（F-36，design §5.4.1a，待评审确认 A-8）：新建 TaskInterceptor（IAbilityInterceptor，恒返 ERR_OK）经 AddInterceptor 注册覆盖 4 收敛点（StartAbilityInner:1490 / StartExtensionAbilityInner:4712 / StartUIExtensionAbility:5100 / ConnectAbilityCommon:6135）+ RequestModalUIExtension 单点 ad-hoc；需扩展 AbilityInterceptorParam 增加 callerTokenId 字段（纯增字段）**；B-2 caller 身份校验（creatorTokenId ∪ 纳管进程 tokenId）+ 通道鉴权（F-8：**AMS 侧调用统一 IN_PROCESS_CALL 包装 + AppMS 侧 CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS_NAME) 判定，F-29**）；**UIExtension 路径身份取 SessionInfo.callerToken_/callingTokenId_（F-32）**；**AbilityRecord 新增业务发起方 tokenId 存储（F-31）**；意向超时清理（attach 晚于超时直接补发②，F-39）；无 taskId 零开销（R-13）；仿冒拒绝不阻断启动（R-8） |
-| 规模预估 | 生产 ~1,050（AMS 拦截点 400 + 意向表/B-2/通道鉴权 500 + 死亡挂点 50 + 工具 50 + AbilityRecord 字段 50，F-29/F-31 增量）；集成用例 ~1,000 |
+| 任务目标 | AMS 启动/连接链路拦截：解析 `ohos.ai.taskId` → 两段式（RegisterTaskIntent 意向 + attach 后 RegisterTaskProcess）；**拦截实现采用混合方案（F-36，design §5.4.1a，待评审确认 A-8）：新建 TaskInterceptor（IAbilityInterceptor，恒返 ERR_OK）经 AddInterceptor 注册覆盖 4 收敛点（StartAbilityInner:1490 / StartExtensionAbilityInner:4712 / StartUIExtensionAbility:5100 / ConnectAbilityCommon:6135）+ RequestModalUIExtension 单点 ad-hoc；需扩展 AbilityInterceptorParam 增加 callerTokenId 字段（纯增字段）**；B-2 caller 身份校验（creatorTokenId ∪ 纳管进程 tokenId）+ 通道鉴权（F-8：**AMS 侧调用统一 IN_PROCESS_CALL 包装 + AppMS 侧 CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS_NAME) 判定，F-29**）；**UIExtension 路径身份取 SessionInfo.callerToken_/callingTokenId_（F-32）**；**AbilityRecord 新增业务发起方 tokenId 存储（F-31）**；**CLI 工具进程纳管挂点（D-22，design §5.4.3）：aimgr ExecTool/ExecCmd fork 后 RegisterTaskProcess（通道鉴权规则 1b）+ SIGCHLD/Killpg/ClearSession 死亡清理；Skill 路径 taskId 随 skillArgs 透传（收敛点天然覆盖）**；意向超时清理（attach 晚于超时直接补发②，F-39）；无 taskId 零开销（R-13）；仿冒拒绝不阻断启动（R-8） |
+| 规模预估 | 生产 ~1,150（AMS 拦截点 400 + 意向表/B-2/通道鉴权 500 + 死亡挂点 50 + 工具 50 + AbilityRecord 字段 50 + **aimgr CLI 挂点 100**，F-29/F-31/D-22 增量）；集成用例 ~1,100 |
 | AC 映射 | AC-2.1, AC-2.2, AC-2.3, AC-2.4, AC-2.5 |
 | 前置依赖 | TASK-1 |
 | 非目标 | RSS 动作施加（TASK-4）——本 Task 纳管仅更新进程集合 |
-| 完成判据 | 集成用例覆盖 StartAbility/ConnectAbility 纳管成功、仿冒拒绝、链式启动合法、进程死亡移除（挂点）；**通道鉴权用例（F-8/F-29）：非 foundation native 直调自报身份拒绝、pid 归属不符拒绝、attach/代理启动路径纳管成功（身份重置生效）**；无 taskId 回归用例通过 |
+| 完成判据 | 集成用例覆盖 StartAbility/ConnectAbility 纳管成功、仿冒拒绝、链式启动合法、进程死亡移除（挂点）；**通道鉴权用例（F-8/F-29）：非 foundation native 直调自报身份拒绝、pid 归属不符拒绝、attach/代理启动路径纳管成功（身份重置生效）**；**CLI 用例（D-22）：ExecTool 带 taskId → CLI 进程纳管、CLI 退出 → 移除、Skill 会话 taskId 透传纳管、aimgr 伪造注册拒绝（规则 1b）**；无 taskId 回归用例通过 |
 | 停止条件 | 拦截点位置与 AMS 架构不符（如启动早期无法取 callerTokenId）→ 回 design 评审 |
 
 **Files**
@@ -206,7 +206,8 @@
 | 修改 | `services/abilitymgr/src/ability_manager_service.cpp` | TaskInterceptor 注册（AddInterceptor）+ RequestModalUIExtensionInner 单点 ad-hoc 挂接（F-36）；**TaskManagerClient 调用统一 IN_PROCESS_CALL 包装（F-29）** |
 | 修改 | `services/abilitymgr/src/ability_connect_manager.cpp` | attach 拦截点②（pid 就绪 → RegisterTaskProcess） |
 | 修改 | `services/abilitymgr/include/ability_record.h` + `src/ability_record.cpp` | **新增业务发起方 taskId/tokenId 存储（F-31，意向登记时随 want 解析写入，attach 时读取）** |
-| 修改 | `services/appmgr/src/task_mgr/task_manager_service.cpp` | RegisterTaskIntent/RegisterTaskProcess/UnregisterTaskProcess + B-2 校验 + 通道鉴权（F-8/F-29：CheckSpecificSystemAbilityAccessPermission 原语） |
+| 修改 | `services/appmgr/src/task_mgr/task_manager_service.cpp` | RegisterTaskIntent/RegisterTaskProcess/UnregisterTaskProcess + B-2 校验（集合匹配双值：原始/Invoker 标志 tokenId，D-22）+ 通道鉴权（F-8/F-29 规则①/1b：CheckSpecificSystemAbilityAccessPermission 原语，foundation 与 aimgr 双进程名） |
+| 修改 | `cli_tool_framework/services/climgr/src/cli_tool_manager_service.cpp` + `include/cli_tool_manager_service.h` | **CLI 挂点（D-22）：args 解析 taskId、fork 后注册、SIGCHLD/Killpg/ClearSession 清理** |
 | 修改 | `services/appmgr/` 进程死亡通知挂点 | OnProcessDied 接入 |
 | 新增 | `test/unittest/task_intercept_test/`（F-27：扁平命名，与套件名一致） | 集成用例（含 UIExtension Want 参数 taskId 存活验证，F-41） |
 

@@ -1,4 +1,4 @@
-# 方案深度审查报告（2026-08-22 第七轮；2026-08-26 第十三轮自审追加；2026-08-26 第十四轮代码实证复核追加；2026-08-26 第十五轮 IPC 机制深挖追加；2026-08-26 第十六轮拦截器框架与参数语义追加；2026-08-26 第十七轮状态机闭环与线程模型追加；2026-08-26 第十八轮需求变更 D-21 追加；2026-08-26 第十九轮清理完整性追加）
+# 方案深度审查报告（2026-08-22 第七轮；2026-08-26 第十三轮自审追加；2026-08-26 第十四轮代码实证复核追加；2026-08-26 第十五轮 IPC 机制深挖追加；2026-08-26 第十六轮拦截器框架与参数语义追加；2026-08-26 第十七轮状态机闭环与线程模型追加；2026-08-26 第十八轮需求变更 D-21 追加；2026-08-26 第十九轮清理完整性追加；2026-08-26 第二十轮需求变更 D-22（CLI=cli_tool_framework）追加）
 
 > 对 proposal / spec / design / execution-plan 的逐项审查。审查方法：对照需求 13 条、已确认决策（六轮）、AGENTS.md 约束、既有源码事实，逐项核查设计完整性。
 
@@ -290,6 +290,34 @@ N=3 续期次数上限、INPUT_ARRIVED 枚举命名、交互 30min/宽限 5min/�
 ### 结论
 
 第十九轮发现 1 项复合问题（F-47，含 8 子项，核心为 EDS 撤销粒度——多任务并发下待机豁免误杀会直接击穿"夜间定时任务"核心场景）。已全部修复：design §6.4 清理清单全景化 + EDS uid 引用计数规则、spec R-9/R-12、图 1/6/7/8 联动。**教训**：P7（第十五轮）补入 EDS 联动时只定义了施加/撤销的成对调用，未推导"撤销的粒度必须与授权粒度一致"（uid≠pid）——新增联动通道时必须同步推导其**计数模型**。
+
+---
+
+## 第二十轮：需求变更 D-22——CLI 确指 cli_tool_framework（2026-08-26）
+
+> **触发：用户确认**——需求中的"Cli"指 cli_tool_framework 拉起的 CLI（非 tools/aa 调试工具）。原方案场景 8 基于错误理解（aa 命令→StartAbilityInner 天然覆盖），实际进程模型完全不同。
+
+### cli_tool_framework 进程模型（实地勘察实证）
+
+| 维度 | 事实 | 证据 |
+|------|------|------|
+| 服务进程 | aimgr **独立进程**（uid=aimgr，SA 186 libclimgr，ondemand，SELinux u:r:aimgr:s0） | cli_tool_framework/etc/profile/aimgr.cfg；sa_profile/186.json |
+| CLI 工具进程 | aimgr `ProcessManager::CreateChildProcess` = **fork() + execvp("/system/bin/claw_sandbox")**（沙箱内执行工具）；ExecCmd 同构（/bin/sh -c） | process_manager.cpp:139-191/:203-240 |
+| **关键：不经 AMS/AppSpawn** | CLI 进程无 AbilityRecord、无 attach、不经 5 收敛点任何一处——**Want 拦截方案对其完全失效** | process_manager.cpp 全文 |
+| CLI 进程身份 | 调用方 HAP tokenId + CliBinaryInvoker 标志（AddCliBinaryInvokerTokenFlag 经 /dev/access_token_id ioctl 注入）——**≠原始 tokenId 数值** | process_manager.cpp:273-289 |
+| 死亡监控 | aimgr 自带 SIGCHLD reaper（waitpid 循环）+ 会话超时 Killpg | cli_tool_manager_service.cpp:228/:364/:121 |
+| Skill 会话路径 | ExecuteInAppSkillWithTokenId → AMS StartExtensionAbilityInner(:4656)/StartAbilityByCall——**经收敛点，天然覆盖**；skillArgs 经 ohos.skill.executeParam.args.* 写入 Want | cli_tool_manager_service.cpp:1685；skill_execute_param.cpp:210-213 |
+| 权限门 | ExecTool 需 ohos.permission.EXEC_CLI_TOOL | cli_tool_manager_service.cpp:52/:856 |
+
+### 发现与处理（F-48）
+
+| 编号 | 问题点 | 严重度 | 处理 |
+|------|--------|--------|------|
+| F-48 | **场景 8 理解错误（覆盖断裂）**：原设计"Cli=tools/aa→StartAbilityInner 天然覆盖"——实际 CLI 工具进程 fork+claw_sandbox 不经 AMS，5 收敛点全覆盖不到；且 B-2 集合匹配对 Invoker 标志 tokenId 不命中；R-12 死亡链（AppMS AppDeathRecipient）不覆盖 aimgr 子进程 | 高（若不修正：CLI 场景纳管完全失效——需求 3 明确列 Cli 为五大启动链路之一） | design 场景 8 重写（双路径）+ 新增 §5.4.3 CLI 挂点设计（taskId 经 ExecToolParam.args 透传/aimgr fork 后 RegisterTaskProcess/通道鉴权规则 1b（processName=="aimgr"，EXEC_CLI_TOOL 权限门+现场取值三重约束）/B-2 集合匹配双值/SIGCHLD+Killpg+ClearSession 死亡清理/Skill 路径 args 透传天然覆盖/沙箱 RSS 适用性待真机验证）；§5.3 规则 1b/§5.3.1 ⑨ 仿冒面分析/调用链层级表；spec R-7/R-12/RegisterTaskProcess 场景 6；plan TASK-3（climgr 挂点文件+用例+规模 +100）；图 2 CLI 分支 | 已修正 |
+
+### 结论
+
+需求变更 D-22 落地完成：CLI 纳管经"aimgr 挂点（工具路径）+ 收敛点天然覆盖（Skill 路径）"双路径闭环；通道鉴权扩展规则 1b（aimgr native 信任，三重约束论证）；B-2/R-12 语义适配完成。**教训**：需求术语（"Cli"）在基线阶段未与需求方确认具体所指，方案基于字面理解（aa 工具）建立了错误覆盖断言并延续十九轮——**关键术语应在澄清阶段要求需求方给出实体级定义**（本项已列入 ai-assistant-alignment 后续对齐惯例）。
 
 ---
 
