@@ -22,7 +22,10 @@ ohos_unittest("cj_ability_lifecycle_callback_Impl_test") {
     "${ability_runtime_path}/frameworks/cj/ffi/application_context/include",
   ]
 
-  sources = [ "cj_ability_lifecycle_callback_Impl_test.cpp" ]
+  sources = [
+    "${ability_runtime_path}/frameworks/cj/ffi/application_context/src/cj_ability_lifecycle_callback_impl.cpp",
+    "cj_ability_lifecycle_callback_Impl_test.cpp",
+  ]
 
   cflags = [
     "-Dprivate = public",
@@ -38,7 +41,7 @@ ohos_unittest("cj_ability_lifecycle_callback_Impl_test") {
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
     "${ability_runtime_innerkits_path}/uri_permission:uri_permission_mgr",
     "${ability_runtime_native_path}/ability:ability_context_native",
-    "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi",
+    "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi_source",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
     "${ability_runtime_services_path}/common:app_util",
     "${ability_runtime_services_path}/common:perm_verification",
