@@ -761,7 +761,7 @@ HWTEST_F(StartAbilityUtilsTest, StartUIAbilitiesProcessAppIndex_001, TestSize.Le
     abilityRecord->abilityInfo_.applicationInfo.appIndex = -2;
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
 
-    StartAbilityUtils::StartUIAbilitiesProcessAppIndex(want, callerToken, appIndex);
+    StartAbilityUtils::StartUIAbilitiesProcessAppIndex(want, callerToken, appIndex, 0);
     int32_t appCloneIndex = want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1);
     EXPECT_EQ(appCloneIndex, appIndex);
     EXPECT_EQ(appIndex, 0);
@@ -788,7 +788,7 @@ HWTEST_F(StartAbilityUtilsTest, StartUIAbilitiesProcessAppIndex_002, TestSize.Le
     abilityRecord->abilityInfo_.applicationInfo.appIndex = -2;
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
 
-    int32_t ret = StartAbilityUtils::StartUIAbilitiesProcessAppIndex(want, callerToken, appIndex);
+    int32_t ret = StartAbilityUtils::StartUIAbilitiesProcessAppIndex(want, callerToken, appIndex, 0);
     int32_t appCloneIndex = want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1);
     EXPECT_EQ(appCloneIndex, appIndex);
     EXPECT_EQ(appIndex, 1);
@@ -816,7 +816,7 @@ HWTEST_F(StartAbilityUtilsTest, StartUIAbilitiesProcessAppIndex_003, TestSize.Le
     abilityRecord->abilityInfo_.applicationInfo.appIndex = -2;
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
 
-    int32_t ret = StartAbilityUtils::StartUIAbilitiesProcessAppIndex(want, callerToken, appIndex);
+    int32_t ret = StartAbilityUtils::StartUIAbilitiesProcessAppIndex(want, callerToken, appIndex, 0);
     int32_t appCloneIndex = want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1);
     EXPECT_EQ(appCloneIndex, appIndex);
     EXPECT_EQ(appIndex, -5);
@@ -846,7 +846,7 @@ HWTEST_F(StartAbilityUtilsTest, StartUIAbilitiesProcessAppIndex_004, TestSize.Le
     MyStatus::GetInstance().appClonePreference_.appIndex = 2;
     sptr<IRemoteObject> callerToken = abilityRecord->GetToken();
 
-    int32_t ret = StartAbilityUtils::StartUIAbilitiesProcessAppIndex(want, callerToken, appIndex);
+    int32_t ret = StartAbilityUtils::StartUIAbilitiesProcessAppIndex(want, callerToken, appIndex, 0);
     int32_t appCloneIndex = want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1);
     EXPECT_EQ(appCloneIndex, appIndex);
     EXPECT_EQ(appIndex, 0);

@@ -121,9 +121,9 @@ bool DisposedRuleInterceptor::CheckControl(const Want &want, int32_t userId,
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "GetAbilityRunningControlRule");
         int32_t ret = ERR_OK;
-        if (appIndex > 0 && appIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+        if (appIndex > 0 && AbilityRuntime::GlobalConstant::IsAppCloneIndex(appIndex)) {
             ret = IN_PROCESS_CALL(appControlMgr->GetAbilityRunningControlRule(bundleName,
-                userId, disposedRuleList, appIndex));
+                 userId, disposedRuleList, appIndex));
         } else {
             ret = IN_PROCESS_CALL(appControlMgr->GetAbilityRunningControlRule(bundleName,
                 userId, disposedRuleList, 0));

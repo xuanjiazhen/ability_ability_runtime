@@ -205,7 +205,7 @@ void EtsAppManager::PreloadApplication(ani_env *env, ani_object callback, ani_st
     }
 
     ani_status status = ANI_OK;
-    int32_t appIndex = 0;
+    int32_t appIndex = -1;
     ani_boolean isUndefined = false;
     if ((status = env->Reference_IsUndefined(aniAppIndex, &isUndefined)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "Failed to check undefined status : %{public}d", status);
@@ -834,7 +834,7 @@ void EtsAppManager::KillProcessesByBundleNameInner(ani_env *env, ani_object call
                 env, "Parse param bundleName failed, must be a string."), nullptr);
         return;
     }
-    int32_t appIndex = 0;
+    int32_t appIndex = -1;
     ani_status status = ANI_OK;
     ani_boolean isUndefined = false;
     if ((status = env->Reference_IsUndefined(etsAppIndex, &isUndefined)) != ANI_OK) {
@@ -901,7 +901,7 @@ void EtsAppManager::KillProcessWithAccountInner(ani_env *env, ani_object callbac
         return;
     }
     TAG_LOGD(AAFwkTag::APPMGR, "KillProcessWithAccount accountId:%{public}d", aniAccountId);
-    int32_t appIndex = 0;
+    int32_t appIndex = -1;
     ani_status status = ANI_OK;
     ani_boolean isUndefined = false;
     if ((status = env->Reference_IsUndefined(aniAppIndex, &isUndefined)) != ANI_OK) {
