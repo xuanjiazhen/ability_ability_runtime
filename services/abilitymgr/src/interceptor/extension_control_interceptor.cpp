@@ -24,7 +24,7 @@
 namespace OHOS {
 namespace AAFwk {
 
-ErrCode ExtensionControlInterceptor::DoProcess(const AbilityInterceptorParam &param)
+ErrCode ExtensionControlInterceptor::DoProcess(AbilityInterceptorParam &param)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call.");
     if (param.callerToken == nullptr) {
