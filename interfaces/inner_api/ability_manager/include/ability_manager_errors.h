@@ -739,10 +739,6 @@ enum {
      */
     ERR_NULL_INTERCEPTOR_EXECUTER = 2097312,
 
-    /**
-     * Result (2097313) for after check executer is nullptr.
-     */
-    ERR_NULL_AFTER_CHECK_EXECUTER = 2097313,
 
     /**
      * Result (2097314) for mission list manager is nullptr.
