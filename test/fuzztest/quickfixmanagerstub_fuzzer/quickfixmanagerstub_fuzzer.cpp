@@ -14,13 +14,28 @@
  */
 #include "attack_vectors.h"
 #include "fuzz_util.h"
+#include "quick_fix_manager_stub.h"
 #include "quickfixmanagerstub_fuzzer.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS;
 
 namespace OHOS {
-class QuickFixManagerStubFuzz : public QuickFixManagerStub {};
+class QuickFixManagerStubFuzz : public QuickFixManagerStub {
+public:
+    ErrCode ApplyQuickFix(const std::vector<std::string> &quickFixFiles, bool isDebug, bool isReplace) override
+    {
+        return 0;
+    }
+    ErrCode GetApplyedQuickFixInfo(const std::string &bundleName, ApplicationQuickFixInfo &quickFixInfo) override
+    {
+        return 0;
+    }
+    ErrCode RevokeQuickFix(const std::string &bundleName) override
+    {
+        return 0;
+    }
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

@@ -15,6 +15,8 @@
 #include "abilitytokenstub_fuzzer.h"
 #include "attack_vectors.h"
 #include "fuzz_util.h"
+#include "ability_token_stub.h"
+#include "ability_token_interface.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS;

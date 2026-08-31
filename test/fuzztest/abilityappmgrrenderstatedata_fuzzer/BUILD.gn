@@ -31,6 +31,9 @@ ohos_fuzztest("AbilityAppMgrRenderStateDataFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
+  configs = [
+    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
+  ]
   sources = [ "abilityappmgrrenderstatedata_fuzzer.cpp" ]
 
   deps = [

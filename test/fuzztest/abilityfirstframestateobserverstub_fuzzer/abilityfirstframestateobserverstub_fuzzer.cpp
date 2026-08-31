@@ -15,11 +15,16 @@
 #include "abilityfirstframestateobserverstub_fuzzer.h"
 #include "attack_vectors.h"
 #include "fuzz_util.h"
+#include "ability_first_frame_state_observer_stub.h"
+#include "ability_first_frame_state_observer_interface.h"
 
 using namespace OHOS::AppExecFwk;
 
 namespace OHOS {
-class AbilityFirstFrameStateObserverStubFuzzTest : public AbilityFirstFrameStateObserverStub {};
+class AbilityFirstFrameStateObserverStubFuzzTest : public AbilityFirstFrameStateObserverStub {
+public:
+    void OnAbilityFirstFrameState(const AbilityFirstFrameStateData &abilityFirstFrameStateData) override {}
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

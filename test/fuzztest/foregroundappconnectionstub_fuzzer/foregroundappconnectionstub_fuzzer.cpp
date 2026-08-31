@@ -15,12 +15,20 @@
 #include "attack_vectors.h"
 #include "foregroundappconnectionstub_fuzzer.h"
 #include "fuzz_util.h"
+#include "foreground_app_connection_stub.h"
+#include "iforeground_app_connection.h"
 
 using namespace OHOS::AbilityRuntime;
 using namespace OHOS;
 
 namespace OHOS {
-class ForegroundAppConnectionStubFuzz : public ForegroundAppConnectionStub {};
+class ForegroundAppConnectionStubFuzz : public ForegroundAppConnectionStub {
+public:
+    void OnForegroundAppConnected(const ForegroundAppConnectionData &data) override {}
+    void OnForegroundAppDisconnected(const ForegroundAppConnectionData &data) override {}
+    void OnForegroundAppCallerStarted(int32_t callerPid, int32_t callerUid,
+        const std::string &bundleName) override {}
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

@@ -15,12 +15,17 @@
 #include "attack_vectors.h"
 #include "fuzz_util.h"
 #include "requeststartabilitycallbackstub_fuzzer.h"
+#include "request_start_ability_callback_stub.h"
+#include "irequest_start_ability_callback.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS;
 
 namespace OHOS {
-class RequestStartAbilityCallbackStubFuzz : public RequestStartAbilityCallbackStub {};
+class RequestStartAbilityCallbackStubFuzz : public RequestStartAbilityCallbackStub {
+public:
+    void OnRequestStartAbilityResult(bool result) override {}
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

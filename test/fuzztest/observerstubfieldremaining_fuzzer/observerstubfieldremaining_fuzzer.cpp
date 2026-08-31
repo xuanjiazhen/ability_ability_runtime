@@ -14,6 +14,7 @@
  */
 #include "attack_vectors.h"
 #include "fuzz_util.h"
+#include "appmgr/application_state_observer_stub.h"
 #include "observerstubfieldremaining_fuzzer.h"
 
 using namespace OHOS::AAFwk;

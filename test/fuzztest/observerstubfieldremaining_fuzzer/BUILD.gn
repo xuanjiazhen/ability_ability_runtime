@@ -42,6 +42,7 @@ ohos_fuzztest("ObserverStubFieldRemainingFuzzTest") {
     "${ability_runtime_innerkits_path}/app_manager:appmgr_sdk_config",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
     "${ability_runtime_innerkits_path}/dataobs_manager:dataobs_manager_public_config",
+    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
   ]
 
   deps = [

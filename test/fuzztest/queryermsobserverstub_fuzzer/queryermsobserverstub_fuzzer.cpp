@@ -15,12 +15,18 @@
 #include "attack_vectors.h"
 #include "fuzz_util.h"
 #include "queryermsobserverstub_fuzzer.h"
+#include "query_erms_observer_interface.h"
+#include "query_erms_observer_stub.h"
 
 using namespace OHOS::AbilityRuntime;
 using namespace OHOS;
 
 namespace OHOS {
-class QueryErmsObserverStubFuzz : public QueryERMSObserverStub {};
+class QueryErmsObserverStubFuzz : public QueryERMSObserverStub {
+public:
+    void OnQueryFinished(const std::string &appId, const std::string &startTime,
+        const AtomicServiceStartupRule &rule, int resultCode) override {}
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

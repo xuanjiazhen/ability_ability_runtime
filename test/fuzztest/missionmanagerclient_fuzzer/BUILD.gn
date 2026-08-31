@@ -44,6 +44,7 @@ ohos_fuzztest("MissionManagerClientFuzzTest") {
   configs = [
     "${ability_runtime_innerkits_path}/mission_manager:mission_manager_public_config",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
+    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
   ]
 
   deps = [

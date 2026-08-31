@@ -14,13 +14,36 @@
  */
 #include "attack_vectors.h"
 #include "fuzz_util.h"
+#include "window_manager_service_handler_stub.h"
 #include "windowmanagerservicehandlerstub_fuzzer.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS;
 
 namespace OHOS {
-class WindowManagerServiceHandlerStubFuzz : public WindowManagerServiceHandlerStub {};
+class WindowManagerServiceHandlerStubFuzz : public WindowManagerServiceHandlerStub {
+public:
+    void NotifyWindowTransition(sptr<AbilityTransitionInfo> fromInfo, sptr<AbilityTransitionInfo> toInfo,
+        bool &animaEnabled) override {};
+    int32_t GetFocusWindow(sptr<IRemoteObject> &abilityToken) override
+    {
+        return 0;
+    }
+    void StartingWindow(sptr<AbilityTransitionInfo> info, std::shared_ptr<Media::PixelMap> pixelMap,
+        uint32_t bgColor) override {};
+    void StartingWindow(sptr<AbilityTransitionInfo> info, std::shared_ptr<Media::PixelMap> pixelMap) override {};
+    void CancelStartingWindow(sptr<IRemoteObject> abilityToken) override {};
+    void NotifyAnimationAbilityDied(sptr<AbilityTransitionInfo> info) override {};
+    int32_t MoveMissionsToForeground(const std::vector<int32_t> &missionIds, int32_t topMissionId) override
+    {
+        return 0;
+    }
+    int32_t MoveMissionsToBackground(const std::vector<int32_t> &missionIds,
+        std::vector<int32_t> &result) override
+    {
+        return 0;
+    }
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

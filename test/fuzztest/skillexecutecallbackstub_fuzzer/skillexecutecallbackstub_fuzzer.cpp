@@ -14,13 +14,18 @@
  */
 #include "attack_vectors.h"
 #include "fuzz_util.h"
+#include "skill/skill_execute_callback_stub.h"
 #include "skillexecutecallbackstub_fuzzer.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS;
 
 namespace OHOS {
-class SkillExecuteCallbackStubFuzz : public SkillExecuteCallbackStub {};
+class SkillExecuteCallbackStubFuzz : public SkillExecuteCallbackStub {
+public:
+    void OnExecuteDone(const std::string &requestCode, int32_t resultCode,
+        const AppExecFwk::SkillExecuteResult &result) override {};
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

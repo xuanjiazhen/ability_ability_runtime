@@ -15,12 +15,17 @@
 #include "attack_vectors.h"
 #include "fuzz_util.h"
 #include "memdumpcallbackstub_fuzzer.h"
+#include "mem_dump_callback_stub.h"
+#include "mem_dump_callback_interface.h"
 
 using namespace OHOS::AppExecFwk;
 using namespace OHOS;
 
 namespace OHOS {
-class MemDumpCallbackStubFuzz : public MemDumpCallbackStub {};
+class MemDumpCallbackStubFuzz : public MemDumpCallbackStub {
+public:
+    void OnMemDumpDone(const std::string &dumpResult) override {}
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

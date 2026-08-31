@@ -32,7 +32,10 @@ ohos_fuzztest("AbilityStubSendANRProcessIDFuzzTest") {
   ]
   sources = [ "abilitystubsendanrprocessid_fuzzer.cpp" ]
 
-  configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
+  configs = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
+    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
+  ]
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
@@ -47,8 +50,10 @@ ohos_fuzztest("AbilityStubSendANRProcessIDFuzzTest") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
+    "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "ipc:ipc_core",
     "napi:ace_napi",
     "safwk:system_ability_fwk",

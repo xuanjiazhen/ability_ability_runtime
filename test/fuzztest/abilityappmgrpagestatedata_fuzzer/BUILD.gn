@@ -33,6 +33,9 @@ ohos_fuzztest("AbilityAppMgrPageStateDataFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
+  configs = [
+    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
+  ]
   sources = [
     "${ability_runtime_services_path}/abilitymgr/src/start_params_by_SCB.cpp",
     "abilityappmgrpagestatedata_fuzzer.cpp",

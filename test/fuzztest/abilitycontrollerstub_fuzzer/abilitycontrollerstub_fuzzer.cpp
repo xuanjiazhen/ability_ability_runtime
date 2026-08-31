@@ -15,6 +15,8 @@
 #include "abilitycontrollerstub_fuzzer.h"
 #include "attack_vectors.h"
 #include "fuzz_util.h"
+#include "ability_controller_stub.h"
+#include "iability_controller.h"
 
 using namespace OHOS::AppExecFwk;
 using namespace OHOS;

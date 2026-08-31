@@ -16,12 +16,33 @@
 #include "dataobsmgrstub_fuzzer.h"
 #include "fuzz_util.h"
 #include "parcelable_constructors.h"
+#include "dataobs_mgr_stub.h"
+#include "dataobs_mgr_interface.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS;
 
 namespace OHOS {
-class DataObsMgrStubFuzz : public DataObsManagerStub {};
+class DataObsMgrStubFuzz : public DataObsManagerStub {
+public:
+    int RegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
+        int32_t userId, DataObsOption opt) override { return 0; }
+    int RegisterObserverFromExtension(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
+        int32_t userId, DataObsOption opt) override { return 0; }
+    int UnregisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
+        int32_t userId, DataObsOption opt) override { return 0; }
+    int NotifyChange(const Uri &uri, int32_t userId, DataObsOption opt) override { return 0; }
+    int NotifyChangeFromExtension(const Uri &uri, int32_t userId, DataObsOption opt) override { return 0; }
+    Status RegisterObserverExt(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
+        bool isDescendants, DataObsOption opt) override { return Status::SUCCESS; }
+    Status UnregisterObserverExt(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
+        DataObsOption opt) override { return Status::SUCCESS; }
+    Status UnregisterObserverExt(sptr<IDataAbilityObserver> dataObserver,
+        DataObsOption opt) override { return Status::SUCCESS; }
+    Status NotifyChangeExt(const ChangeInfo &changeInfo, DataObsOption opt) override { return Status::SUCCESS; }
+    Status NotifyProcessObserver(const std::string &key,
+        const sptr<IRemoteObject> observer) override { return Status::SUCCESS; }
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

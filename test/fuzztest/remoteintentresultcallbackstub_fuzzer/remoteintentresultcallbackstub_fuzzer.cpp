@@ -15,11 +15,18 @@
 #include "attack_vectors.h"
 #include "fuzz_util.h"
 #include "remoteintentresultcallbackstub_fuzzer.h"
+#include "remote_intent_result_callback_stub.h"
+#include "remote_intent_result_callback_interface.h"
 
 using namespace OHOS::AAFwk;
 
 namespace OHOS {
-class RemoteIntentResultCallbackStubFuzzTest : public RemoteIntentResultCallbackStub {};
+class RemoteIntentResultCallbackStubFuzzTest : public RemoteIntentResultCallbackStub {
+public:
+    void OnIntentResult(uint64_t requestCode, int32_t resultCode,
+        const std::string &resultMsg) override {}
+    void OnLinkDisconnected(uint64_t requestCode, int32_t reason) override {}
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

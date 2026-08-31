@@ -15,12 +15,20 @@
 #include "attack_vectors.h"
 #include "freeinstallobserverstub_fuzzer.h"
 #include "fuzz_util.h"
+#include "free_install_observer_stub.h"
+#include "free_install_observer_interface.h"
 
 using namespace OHOS::AbilityRuntime;
 using namespace OHOS;
 
 namespace OHOS {
-class FreeInstallObserverStubFuzz : public FreeInstallObserverStub {};
+class FreeInstallObserverStubFuzz : public FreeInstallObserverStub {
+public:
+    void OnInstallFinished(const std::string &bundleName, const std::string &abilityName,
+        const std::string &startTime, int32_t resultCode) override {}
+    void OnInstallFinishedByUrl(const std::string &startTime, const std::string &url,
+        int32_t resultCode) override {}
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

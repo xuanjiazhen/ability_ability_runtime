@@ -16,6 +16,7 @@
 #include "amsmgrstublifecycle_fuzzer.h"
 #include "ability_info.h"
 #include "ams_mgr_interface.h"
+#include "ams_mgr_stub_mock.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -35,7 +36,7 @@ using namespace OHOS;
 
 namespace OHOS {
 namespace {
-constexpr size_t LIFECYCLE_PARCELABLE_COUNT = 4;
+constexpr size_t LIFECYCLE_PARCELABLE_COUNT __attribute__((unused)) = 4;
 }
 
 class AmsMgrStubLifecycleFuzz : public AmsMgrStubFuzzBase {};

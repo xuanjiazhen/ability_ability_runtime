@@ -15,11 +15,16 @@
 #include "attack_vectors.h"
 #include "fuzz_util.h"
 #include "sainterceptorstub_fuzzer.h"
+#include "sa_interceptor_stub.h"
+#include "sa_interceptor_interface.h"
 
 using namespace OHOS::AbilityRuntime;
 
 namespace OHOS {
-class SAInterceptorStubFuzzTest : public SAInterceptorStub {};
+class SAInterceptorStubFuzzTest : public SAInterceptorStub {
+public:
+    int32_t OnCheckStarting(const std::string &params, Rule &rule) override { return 0; }
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

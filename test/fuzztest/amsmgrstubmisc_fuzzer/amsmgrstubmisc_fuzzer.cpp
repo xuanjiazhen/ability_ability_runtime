@@ -16,6 +16,7 @@
 #include "amsmgrstubmisc_fuzzer.h"
 #include "ability_info.h"
 #include "ams_mgr_interface.h"
+#include "ams_mgr_stub_mock.h"
 
 #include <cstddef>
 #include <cstdint>

@@ -15,11 +15,16 @@
 #include "attack_vectors.h"
 #include "fuzz_util.h"
 #include "remoteonlistenerstub_fuzzer.h"
+#include "remote_on_listener_stub.h"
+#include "remote_on_listener_interface.h"
 
 using namespace OHOS::AAFwk;
 
 namespace OHOS {
-class RemoteOnListenerStubFuzzTest : public RemoteOnListenerStub {};
+class RemoteOnListenerStubFuzzTest : public RemoteOnListenerStub {
+public:
+    void OnCallback(const OnCallbackInfo &info) override {}
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

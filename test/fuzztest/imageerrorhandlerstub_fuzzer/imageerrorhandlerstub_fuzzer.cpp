@@ -15,12 +15,17 @@
 #include "attack_vectors.h"
 #include "fuzz_util.h"
 #include "imageerrorhandlerstub_fuzzer.h"
+#include "image_error_handler_stub.h"
+#include "image_error_handler_interface.h"
 
 using namespace OHOS::AppExecFwk;
 using namespace OHOS;
 
 namespace OHOS {
-class ImageErrorHandlerStubFuzz : public ImageErrorHandlerStub {};
+class ImageErrorHandlerStubFuzz : public ImageErrorHandlerStub {
+public:
+    void OnError(int32_t errorCode) override {}
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

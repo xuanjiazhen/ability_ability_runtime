@@ -15,12 +15,17 @@
 #include "attack_vectors.h"
 #include "fuzz_util.h"
 #include "loadabilitycallbackstub_fuzzer.h"
+#include "load_ability_callback_stub.h"
+#include "iload_ability_callback.h"
 
 using namespace OHOS::AppExecFwk;
 using namespace OHOS;
 
 namespace OHOS {
-class LoadAbilityCallbackStubFuzz : public LoadAbilityCallbackStub {};
+class LoadAbilityCallbackStubFuzz : public LoadAbilityCallbackStub {
+public:
+    void OnFinish(int32_t pid) override {}
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

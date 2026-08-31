@@ -14,13 +14,19 @@
  */
 #include "attack_vectors.h"
 #include "fuzz_util.h"
+#include "want_receiver_stub.h"
 #include "wantreceiverstub_fuzzer.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS;
 
 namespace OHOS {
-class WantReceiverStubFuzz : public WantReceiverStub {};
+class WantReceiverStubFuzz : public WantReceiverStub {
+public:
+    void Send(const int32_t resultCode) override {};
+    void PerformReceive(const Want &want, int resultCode, const std::string &data, const WantParams &extras,
+        bool serialized, bool sticky, int sendingUser) override {};
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

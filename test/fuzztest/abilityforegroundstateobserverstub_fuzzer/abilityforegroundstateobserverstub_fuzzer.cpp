@@ -15,12 +15,17 @@
 #include "abilityforegroundstateobserverstub_fuzzer.h"
 #include "attack_vectors.h"
 #include "fuzz_util.h"
+#include "ability_foreground_state_observer_stub.h"
+#include "ability_foreground_state_observer_interface.h"
 
 using namespace OHOS::AppExecFwk;
 using namespace OHOS;
 
 namespace OHOS {
-class AbilityForegroundStateObserverStubFuzz : public AbilityForegroundStateObserverStub {};
+class AbilityForegroundStateObserverStubFuzz : public AbilityForegroundStateObserverStub {
+public:
+    void OnAbilityStateChanged(const AbilityStateData &abilityStateData) override {}
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {

@@ -15,6 +15,8 @@
 #include "applicationstateobserverstub_fuzzer.h"
 #include "attack_vectors.h"
 #include "fuzz_util.h"
+#include "application_state_observer_stub.h"
+#include "iapplication_state_observer.h"
 
 using namespace OHOS::AppExecFwk;
 using namespace OHOS;

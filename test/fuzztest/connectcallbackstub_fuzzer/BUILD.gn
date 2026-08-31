@@ -37,6 +37,9 @@ ohos_fuzztest("ConnectCallbackStubFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
+  configs = [
+    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
+  ]
 
   sources = [ "connectcallbackstub_fuzzer.cpp" ]
 

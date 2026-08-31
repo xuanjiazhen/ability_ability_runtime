@@ -15,11 +15,16 @@
 #include "attack_vectors.h"
 #include "fuzz_util.h"
 #include "hiddenstartobserverstub_fuzzer.h"
+#include "hidden_start_observer_stub.h"
+#include "ihidden_start_observer.h"
 
 using namespace OHOS::AAFwk;
 
 namespace OHOS {
-class HiddenStartObserverStubFuzzTest : public HiddenStartObserverStub {};
+class HiddenStartObserverStubFuzzTest : public HiddenStartObserverStub {
+public:
+    bool IsHiddenStart(int32_t pid) override { return false; }
+};
 
 void DoFuzzCases(uint32_t code, MessageParcel &parcel, FuzzedDataProvider &fdp, uint32_t &actualCode)
 {
