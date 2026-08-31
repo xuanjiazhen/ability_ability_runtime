@@ -60,10 +60,10 @@ HWTEST_F(AbilityInterceptorThirdTest, RemoveInterceptor_001, TestSize.Level1)
 {
     std::shared_ptr<AbilityInterceptorExecuter> executer = std::make_shared<AbilityInterceptorExecuter>();
     executer->AddInterceptor("CrowdTest", std::make_shared<CrowdTestInterceptor>());
-    auto resMap = executer->GetInterceptorMapCopy();
+    auto resMap = executer->GetInterceptorListCopy();
     EXPECT_EQ(resMap.size(), 1);
     executer->RemoveInterceptor("CrowdTest");
-    auto resMap2 = executer->GetInterceptorMapCopy();
+    auto resMap2 = executer->GetInterceptorListCopy();
     EXPECT_EQ(resMap2.size(), 0);
 }
 
