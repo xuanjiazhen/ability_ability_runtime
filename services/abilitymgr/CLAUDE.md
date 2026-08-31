@@ -313,8 +313,8 @@ interceptorExecuter_->AddInterceptor("MyInterceptor",
 
 Example from `AbilityInterceptorExecuter`:
 ```cpp
-std::recursive_mutex interceptorMapLock_;
-std::unordered_map<std::string, std::shared_ptr<IAbilityInterceptor>> interceptorMap_;
+std::recursive_mutex interceptorListLock_;
+InterceptorList interceptorList_; // std::vector<std::pair<std::string, std::shared_ptr<IAbilityInterceptor>>>
 ```
 
 ## Utility Files
