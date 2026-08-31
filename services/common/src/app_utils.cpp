@@ -117,7 +117,7 @@ AppUtils::AppUtils()
 #ifdef ABILITY_RUNTIME_FORBID_START_ENABLED
     if (WatchParameter(FORBID_START, AppUtils::ForbidStartCallback, nullptr) != 0) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "want param failed: %{public}s", FORBID_START);
-        isForbidStart_.isLoaded = false;
+        isForbidStart_.isLoaded.store(false);
     }
 #endif
 }
@@ -131,9 +131,9 @@ AppUtils &AppUtils::GetInstance()
 void AppUtils::ForbidStartCallback(const char *key, const char *, void *)
 {
     if (strcmp(key, FORBID_START) == 0) {
-        GetInstance().isForbidStart_.value = system::GetBoolParameter(FORBID_START, false);
+        GetInstance().isForbidStart_.value.store(system::GetBoolParameter(FORBID_START, false));
         TAG_LOGI(AAFwkTag::ABILITYMGR, "param %{public}s changed: %{public}d", FORBID_START,
-            GetInstance().isForbidStart_.value);
+            GetInstance().isForbidStart_.value.load());
     }
 }
 
@@ -157,205 +157,207 @@ bool AppUtils::IsLauncherAbility(const std::string &abilityName) const
 
 bool AppUtils::IsInheritWindowSplitScreenMode()
 {
-    if (!isInheritWindowSplitScreenMode_.isLoaded) {
-        isInheritWindowSplitScreenMode_.value = system::GetBoolParameter(INHERIT_WINDOW_SPLIT_SCREEN_MODE, true);
-        isInheritWindowSplitScreenMode_.isLoaded = true;
+    if (!isInheritWindowSplitScreenMode_.isLoaded.load()) {
+        isInheritWindowSplitScreenMode_.value.store(system::GetBoolParameter(INHERIT_WINDOW_SPLIT_SCREEN_MODE, true));
+        isInheritWindowSplitScreenMode_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isInheritWindowSplitScreenMode_.value);
-    return isInheritWindowSplitScreenMode_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isInheritWindowSplitScreenMode_.value.load());
+    return isInheritWindowSplitScreenMode_.value.load();
 }
 
 bool AppUtils::IsSupportAncoApp()
 {
-    if (!isSupportAncoApp_.isLoaded) {
-        isSupportAncoApp_.value = system::GetBoolParameter(SUPPORT_ANCO_APP, false);
-        isSupportAncoApp_.isLoaded = true;
+    if (!isSupportAncoApp_.isLoaded.load()) {
+        isSupportAncoApp_.value.store(system::GetBoolParameter(SUPPORT_ANCO_APP, false));
+        isSupportAncoApp_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportAncoApp_.value);
-    return isSupportAncoApp_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportAncoApp_.value.load());
+    return isSupportAncoApp_.value.load();
 }
 
 bool AppUtils::IsRescueMode()
 {
-    if (!isRescueMode_.isLoaded) {
-        isRescueMode_.value = (system::GetParameter("soc.boot.mode", "") == "rescue");
-        TAG_LOGI(AAFwkTag::DEFAULT, "rescue mode: %{public}s", isRescueMode_.value ? "true" : "false");
-        isRescueMode_.isLoaded = true;
+    if (!isRescueMode_.isLoaded.load()) {
+        isRescueMode_.value.store((system::GetParameter("soc.boot.mode", "") == "rescue"));
+        TAG_LOGI(AAFwkTag::DEFAULT, "rescue mode: %{public}s", isRescueMode_.value.load() ? "true" : "false");
+        isRescueMode_.isLoaded.store(true);
     }
 
-    return isRescueMode_.value;
+    return isRescueMode_.value.load();
 }
 
 int32_t AppUtils::GetTimeoutUnitTimeRatio()
 {
-    if (!timeoutUnitTimeRatio_.isLoaded) {
-        timeoutUnitTimeRatio_.value = system::GetIntParameter<int32_t>(TIMEOUT_UNIT_TIME_RATIO, 1);
+    if (!timeoutUnitTimeRatio_.isLoaded.load()) {
+        timeoutUnitTimeRatio_.value.store(system::GetIntParameter<int32_t>(TIMEOUT_UNIT_TIME_RATIO, 1));
         if (IsRescueMode()) {
             TAG_LOGI(AAFwkTag::DEFAULT, "rescue mode: increase timeout ratio");
-            if (timeoutUnitTimeRatio_.value <= INT32_MAX / RESCUE_MODE_TIMEOUT_RATIO) {
-                timeoutUnitTimeRatio_.value *= RESCUE_MODE_TIMEOUT_RATIO;
+            int32_t ratio = timeoutUnitTimeRatio_.value.load();
+            if (ratio <= INT32_MAX / RESCUE_MODE_TIMEOUT_RATIO) {
+                ratio *= RESCUE_MODE_TIMEOUT_RATIO;
             } else {
                 TAG_LOGW(AAFwkTag::DEFAULT, "rescue mode: ratio too large, clamp to max");
-                timeoutUnitTimeRatio_.value = INT32_MAX;
+                ratio = INT32_MAX;
             }
+            timeoutUnitTimeRatio_.value.store(ratio);
         }
-        timeoutUnitTimeRatio_.isLoaded = true;
+        timeoutUnitTimeRatio_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", timeoutUnitTimeRatio_.value);
-    return timeoutUnitTimeRatio_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", timeoutUnitTimeRatio_.value.load());
+    return timeoutUnitTimeRatio_.value.load();
 }
 
 bool AppUtils::IsSelectorDialogDefaultPossion()
 {
-    if (!isSelectorDialogDefaultPossion_.isLoaded) {
-        isSelectorDialogDefaultPossion_.value = system::GetBoolParameter(SELECTOR_DIALOG_POSSION, true);
-        isSelectorDialogDefaultPossion_.isLoaded = true;
+    if (!isSelectorDialogDefaultPossion_.isLoaded.load()) {
+        isSelectorDialogDefaultPossion_.value.store(system::GetBoolParameter(SELECTOR_DIALOG_POSSION, true));
+        isSelectorDialogDefaultPossion_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSelectorDialogDefaultPossion_.value);
-    return isSelectorDialogDefaultPossion_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSelectorDialogDefaultPossion_.value.load());
+    return isSelectorDialogDefaultPossion_.value.load();
 }
 
 bool AppUtils::IsStartSpecifiedProcess()
 {
-    if (!isStartSpecifiedProcess_.isLoaded) {
-        isStartSpecifiedProcess_.value = system::GetBoolParameter(START_SPECIFIED_PROCESS, false);
-        isStartSpecifiedProcess_.isLoaded = true;
+    if (!isStartSpecifiedProcess_.isLoaded.load()) {
+        isStartSpecifiedProcess_.value.store(system::GetBoolParameter(START_SPECIFIED_PROCESS, false));
+        isStartSpecifiedProcess_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isStartSpecifiedProcess_.value);
-    return isStartSpecifiedProcess_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isStartSpecifiedProcess_.value.load());
+    return isStartSpecifiedProcess_.value.load();
 }
 
 bool AppUtils::IsUseMultiRenderProcess()
 {
-    if (!isUseMultiRenderProcess_.isLoaded) {
-        isUseMultiRenderProcess_.value = system::GetBoolParameter(USE_MULTI_RENDER_PROCESS, true);
-        isUseMultiRenderProcess_.isLoaded = true;
+    if (!isUseMultiRenderProcess_.isLoaded.load()) {
+        isUseMultiRenderProcess_.value.store(system::GetBoolParameter(USE_MULTI_RENDER_PROCESS, true));
+        isUseMultiRenderProcess_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isUseMultiRenderProcess_.value);
-    return isUseMultiRenderProcess_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isUseMultiRenderProcess_.value.load());
+    return isUseMultiRenderProcess_.value.load();
 }
 
 bool AppUtils::IsLimitMaximumOfRenderProcess()
 {
-    if (!isLimitMaximumOfRenderProcess_.isLoaded) {
-        isLimitMaximumOfRenderProcess_.value = system::GetBoolParameter(LIMIT_MAXIMUM_OF_RENDER_PROCESS, true);
-        isLimitMaximumOfRenderProcess_.isLoaded = true;
+    if (!isLimitMaximumOfRenderProcess_.isLoaded.load()) {
+        isLimitMaximumOfRenderProcess_.value.store(system::GetBoolParameter(LIMIT_MAXIMUM_OF_RENDER_PROCESS, true));
+        isLimitMaximumOfRenderProcess_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isLimitMaximumOfRenderProcess_.value);
-    return isLimitMaximumOfRenderProcess_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isLimitMaximumOfRenderProcess_.value.load());
+    return isLimitMaximumOfRenderProcess_.value.load();
 }
 
 bool AppUtils::IsGrantPersistUriPermission()
 {
-    if (!isGrantPersistUriPermission_.isLoaded) {
-        isGrantPersistUriPermission_.value = system::GetBoolParameter(GRANT_PERSIST_URI_PERMISSION, false);
-        isGrantPersistUriPermission_.isLoaded = true;
+    if (!isGrantPersistUriPermission_.isLoaded.load()) {
+        isGrantPersistUriPermission_.value.store(system::GetBoolParameter(GRANT_PERSIST_URI_PERMISSION, false));
+        isGrantPersistUriPermission_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isGrantPersistUriPermission_.value);
-    return isGrantPersistUriPermission_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isGrantPersistUriPermission_.value.load());
+    return isGrantPersistUriPermission_.value.load();
 }
 
 bool AppUtils::IsSupportGrantUriPermission()
 {
-    if (!isGrantTempUriPermission_.isLoaded) {
-        isGrantTempUriPermission_.value = system::GetBoolParameter(GRANT_TEMPORARY_URI_PERMISSION, true);
-        isGrantTempUriPermission_.isLoaded = true;
+    if (!isGrantTempUriPermission_.isLoaded.load()) {
+        isGrantTempUriPermission_.value.store(system::GetBoolParameter(GRANT_TEMPORARY_URI_PERMISSION, true));
+        isGrantTempUriPermission_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isGrantTempUriPermission_.value);
-    return isGrantTempUriPermission_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isGrantTempUriPermission_.value.load());
+    return isGrantTempUriPermission_.value.load();
 }
 
 bool AppUtils::IsStartOptionsWithAnimation()
 {
-    if (!isStartOptionsWithAnimation_.isLoaded) {
-        isStartOptionsWithAnimation_.value = system::GetBoolParameter(START_OPTIONS_WITH_ANIMATION, false);
-        isStartOptionsWithAnimation_.isLoaded = true;
+    if (!isStartOptionsWithAnimation_.isLoaded.load()) {
+        isStartOptionsWithAnimation_.value.store(system::GetBoolParameter(START_OPTIONS_WITH_ANIMATION, false));
+        isStartOptionsWithAnimation_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isStartOptionsWithAnimation_.value);
-    return isStartOptionsWithAnimation_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isStartOptionsWithAnimation_.value.load());
+    return isStartOptionsWithAnimation_.value.load();
 }
 
 bool AppUtils::IsSupportBlockAllAppStart()
 {
-    if (!isSupportBlockAllAppStart_.isLoaded) {
-        isSupportBlockAllAppStart_.value = system::GetBoolParameter(SUPPORT_BLOCK_ALL_APP_START, false);
-        isSupportBlockAllAppStart_.isLoaded = true;
+    if (!isSupportBlockAllAppStart_.isLoaded.load()) {
+        isSupportBlockAllAppStart_.value.store(system::GetBoolParameter(SUPPORT_BLOCK_ALL_APP_START, false));
+        isSupportBlockAllAppStart_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportBlockAllAppStart_.value);
-    return isSupportBlockAllAppStart_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportBlockAllAppStart_.value.load());
+    return isSupportBlockAllAppStart_.value.load();
 }
 
 bool AppUtils::IsSupportStartAbilities()
 {
-    if (!isSupportStartAbilities_.isLoaded) {
-        isSupportStartAbilities_.value = system::GetBoolParameter(SUPPORT_START_ABILITIES, false);
-        isSupportStartAbilities_.isLoaded = true;
+    if (!isSupportStartAbilities_.isLoaded.load()) {
+        isSupportStartAbilities_.value.store(system::GetBoolParameter(SUPPORT_START_ABILITIES, false));
+        isSupportStartAbilities_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportStartAbilities_.value);
-    return isSupportStartAbilities_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportStartAbilities_.value.load());
+    return isSupportStartAbilities_.value.load();
 }
 
 bool AppUtils::IsMultiProcessModel()
 {
-    if (!isMultiProcessModel_.isLoaded) {
-        isMultiProcessModel_.value = system::GetBoolParameter(MULTI_PROCESS_MODEL, false);
-        isMultiProcessModel_.isLoaded = true;
+    if (!isMultiProcessModel_.isLoaded.load()) {
+        isMultiProcessModel_.value.store(system::GetBoolParameter(MULTI_PROCESS_MODEL, false));
+        isMultiProcessModel_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isMultiProcessModel_.value);
-    return isMultiProcessModel_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isMultiProcessModel_.value.load());
+    return isMultiProcessModel_.value.load();
 }
 
 bool AppUtils::AllowChildProcessInMultiProcessFeatureApp()
 {
-    if (!allowChildProcessInMultiProcessFeatureApp_.isLoaded) {
-        allowChildProcessInMultiProcessFeatureApp_.value =
-            system::GetBoolParameter(ALLOW_CHILD_PROCESS_IN_MULTI_PROCESS_FEATURE_APP, false);
-            allowChildProcessInMultiProcessFeatureApp_.isLoaded = true;
+    if (!allowChildProcessInMultiProcessFeatureApp_.isLoaded.load()) {
+        allowChildProcessInMultiProcessFeatureApp_.value.store(
+            system::GetBoolParameter(ALLOW_CHILD_PROCESS_IN_MULTI_PROCESS_FEATURE_APP, false));
+            allowChildProcessInMultiProcessFeatureApp_.isLoaded.store(true);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "AllowChildProcessInMultiProcessFeatureApp:%{public}d",
-        allowChildProcessInMultiProcessFeatureApp_.value);
-    return allowChildProcessInMultiProcessFeatureApp_.value;
+        allowChildProcessInMultiProcessFeatureApp_.value.load());
+    return allowChildProcessInMultiProcessFeatureApp_.value.load();
 }
 
 bool AppUtils::IsStartOptionsWithProcessOptions()
 {
-    if (!isStartOptionsWithProcessOptions_.isLoaded) {
-        isStartOptionsWithProcessOptions_.value = system::GetBoolParameter(START_OPTIONS_WITH_PROCESS_OPTION, false);
-        isStartOptionsWithProcessOptions_.isLoaded = true;
+    if (!isStartOptionsWithProcessOptions_.isLoaded.load()) {
+        isStartOptionsWithProcessOptions_.value.store(system::GetBoolParameter(START_OPTIONS_WITH_PROCESS_OPTION, false));
+        isStartOptionsWithProcessOptions_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isStartOptionsWithProcessOptions_.value);
-    return isStartOptionsWithProcessOptions_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isStartOptionsWithProcessOptions_.value.load());
+    return isStartOptionsWithProcessOptions_.value.load();
 }
 
 bool AppUtils::EnableMoveUIAbilityToBackgroundApi()
 {
-    if (!enableMoveUIAbilityToBackgroundApi_.isLoaded) {
-        enableMoveUIAbilityToBackgroundApi_.value =
-            system::GetBoolParameter(MOVE_UI_ABILITY_TO_BACKGROUND_API_ENABLE, true);
-        enableMoveUIAbilityToBackgroundApi_.isLoaded = true;
+    if (!enableMoveUIAbilityToBackgroundApi_.isLoaded.load()) {
+        enableMoveUIAbilityToBackgroundApi_.value.store(
+            system::GetBoolParameter(MOVE_UI_ABILITY_TO_BACKGROUND_API_ENABLE, true));
+        enableMoveUIAbilityToBackgroundApi_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", enableMoveUIAbilityToBackgroundApi_.value);
-    return enableMoveUIAbilityToBackgroundApi_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", enableMoveUIAbilityToBackgroundApi_.value.load());
+    return enableMoveUIAbilityToBackgroundApi_.value.load();
 }
 
 bool AppUtils::IsLaunchEmbededUIAbility()
 {
-    if (!isLaunchEmbededUIAbility_.isLoaded) {
-        isLaunchEmbededUIAbility_.value = system::GetBoolParameter(LAUNCH_EMBEDED_UI_ABILITY, false);
-        isLaunchEmbededUIAbility_.isLoaded = true;
+    if (!isLaunchEmbededUIAbility_.isLoaded.load()) {
+        isLaunchEmbededUIAbility_.value.store(system::GetBoolParameter(LAUNCH_EMBEDED_UI_ABILITY, false));
+        isLaunchEmbededUIAbility_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isLaunchEmbededUIAbility_.value);
-    return isLaunchEmbededUIAbility_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isLaunchEmbededUIAbility_.value.load());
+    return isLaunchEmbededUIAbility_.value.load();
 }
 
 bool AppUtils::IsSupportNativeChildProcess()
 {
-    if (!isSupportNativeChildProcess_.isLoaded) {
-        isSupportNativeChildProcess_.value = system::GetBoolParameter(SUPPROT_NATIVE_CHILD_PROCESS, false);
-        isSupportNativeChildProcess_.isLoaded = true;
+    if (!isSupportNativeChildProcess_.isLoaded.load()) {
+        isSupportNativeChildProcess_.value.store(system::GetBoolParameter(SUPPROT_NATIVE_CHILD_PROCESS, false));
+        isSupportNativeChildProcess_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportNativeChildProcess_.value);
-    return isSupportNativeChildProcess_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportNativeChildProcess_.value.load());
+    return isSupportNativeChildProcess_.value.load();
 }
 
 bool AppUtils::IsAllowResidentInExtremeMemory(const std::string& bundleName, const std::string& abilityName)
@@ -365,7 +367,7 @@ bool AppUtils::IsAllowResidentInExtremeMemory(const std::string& bundleName, con
         LoadResidentProcessInExtremeMemory();
         residentProcessInExtremeMemory_.isLoaded = true;
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportNativeChildProcess_.value);
+    TAG_LOGD(AAFwkTag::DEFAULT, "residentProcessInExtremeMemory_ size %{public}d", residentProcessInExtremeMemory_.value.size());
     for (auto &element : residentProcessInExtremeMemory_.value) {
         if (bundleName == element.first &&
             (abilityName == "" || abilityName == element.second)) {
@@ -525,24 +527,24 @@ void AppUtils::LoadAllowNativeChildProcessApps()
 
 int32_t AppUtils::GetLimitMaximumExtensionsPerProc()
 {
-    if (!limitMaximumExtensionsPerProc_.isLoaded) {
-        limitMaximumExtensionsPerProc_.value =
-            system::GetIntParameter<int32_t>(LIMIT_MAXIMUM_EXTENSIONS_OF_PER_PROCESS, DEFAULT_MAX_EXT_PER_PROC);
-        limitMaximumExtensionsPerProc_.isLoaded = true;
+    if (!limitMaximumExtensionsPerProc_.isLoaded.load()) {
+        limitMaximumExtensionsPerProc_.value.store(
+            system::GetIntParameter<int32_t>(LIMIT_MAXIMUM_EXTENSIONS_OF_PER_PROCESS, DEFAULT_MAX_EXT_PER_PROC));
+        limitMaximumExtensionsPerProc_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "limitMaximumExtensionsPerProc: %{public}d", limitMaximumExtensionsPerProc_.value);
-    return limitMaximumExtensionsPerProc_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "limitMaximumExtensionsPerProc: %{public}d", limitMaximumExtensionsPerProc_.value.load());
+    return limitMaximumExtensionsPerProc_.value.load();
 }
 
 int32_t AppUtils::GetLimitMaximumExtensionsPerDevice()
 {
-    if (!limitMaximumExtensionsPerDevice_.isLoaded) {
-        limitMaximumExtensionsPerDevice_.value =
-            system::GetIntParameter<int32_t>(LIMIT_MAXIMUM_EXTENSIONS_OF_PER_DEVICE, DEFAULT_MAX_EXT_PER_DEV);
-        limitMaximumExtensionsPerDevice_.isLoaded = true;
+    if (!limitMaximumExtensionsPerDevice_.isLoaded.load()) {
+        limitMaximumExtensionsPerDevice_.value.store(
+            system::GetIntParameter<int32_t>(LIMIT_MAXIMUM_EXTENSIONS_OF_PER_DEVICE, DEFAULT_MAX_EXT_PER_DEV));
+        limitMaximumExtensionsPerDevice_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "limitMaximumExtensionsPerDevice: %{public}d", limitMaximumExtensionsPerDevice_.value);
-    return limitMaximumExtensionsPerDevice_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "limitMaximumExtensionsPerDevice: %{public}d", limitMaximumExtensionsPerDevice_.value.load());
+    return limitMaximumExtensionsPerDevice_.value.load();
 }
 
 std::string AppUtils::GetCacheExtensionTypeList()
@@ -564,62 +566,62 @@ std::string AppUtils::GetBrokerDelegateBundleName()
         brokerDelegateBundleName_.value = system::GetParameter(BROKER_DELEGATE_BUNDLE_NAME, "");
         brokerDelegateBundleName_.isLoaded = true;
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "shellAssistantBundleName_ is %{public}s", brokerDelegateBundleName_.value.c_str());
+    TAG_LOGD(AAFwkTag::DEFAULT, "brokerDelegateBundleName_ is %{public}s", brokerDelegateBundleName_.value.c_str());
     return brokerDelegateBundleName_.value;
 }
 
 int32_t AppUtils::GetCollaboratorBrokerUID()
 {
-    if (!collaboratorBrokerUid_.isLoaded) {
-        collaboratorBrokerUid_.value = system::GetIntParameter(COLLABORATOR_BROKER_UID, DEFAULT_INVALID_VALUE);
-        collaboratorBrokerUid_.isLoaded = true;
+    if (!collaboratorBrokerUid_.isLoaded.load()) {
+        collaboratorBrokerUid_.value.store(system::GetIntParameter(COLLABORATOR_BROKER_UID, DEFAULT_INVALID_VALUE));
+        collaboratorBrokerUid_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "collaboratorBrokerUid_ is %{public}d", collaboratorBrokerUid_.value);
-    return collaboratorBrokerUid_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "collaboratorBrokerUid_ is %{public}d", collaboratorBrokerUid_.value.load());
+    return collaboratorBrokerUid_.value.load();
 }
 
 int32_t AppUtils::GetCollaboratorBrokerReserveUID()
 {
-    if (!collaboratorBrokerReserveUid_.isLoaded) {
-        collaboratorBrokerReserveUid_.value = system::GetIntParameter(COLLABORATOR_BROKER_RESERVE_UID,
-            DEFAULT_INVALID_VALUE);
-        collaboratorBrokerReserveUid_.isLoaded = true;
+    if (!collaboratorBrokerReserveUid_.isLoaded.load()) {
+        collaboratorBrokerReserveUid_.value.store(system::GetIntParameter(COLLABORATOR_BROKER_RESERVE_UID,
+            DEFAULT_INVALID_VALUE));
+        collaboratorBrokerReserveUid_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "collaboratorBrokerReserveUid_ is %{public}d", collaboratorBrokerReserveUid_.value);
-    return collaboratorBrokerReserveUid_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "collaboratorBrokerReserveUid_ is %{public}d", collaboratorBrokerReserveUid_.value.load());
+    return collaboratorBrokerReserveUid_.value.load();
 }
 
 int32_t AppUtils::MaxChildProcess()
 {
-    if (!maxChildProcess_.isLoaded) {
-        maxChildProcess_.value =
-            system::GetIntParameter<int32_t>(MAX_CHILD_PROCESS, DEFAULT_MAX_CHILD_PROCESS);
-        maxChildProcess_.isLoaded = true;
+    if (!maxChildProcess_.isLoaded.load()) {
+        maxChildProcess_.value.store(
+            system::GetIntParameter<int32_t>(MAX_CHILD_PROCESS, DEFAULT_MAX_CHILD_PROCESS));
+        maxChildProcess_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "MaxChildProcess: %{public}d", maxChildProcess_.value);
-    return maxChildProcess_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "MaxChildProcess: %{public}d", maxChildProcess_.value.load());
+    return maxChildProcess_.value.load();
 }
 
 int32_t AppUtils::MaxMultiProcessFeatureChildProcess()
 {
-    if (!maxMultiProcessFeatureChildProcess_.isLoaded) {
-        maxMultiProcessFeatureChildProcess_.value =
-            system::GetIntParameter<int32_t>(MAX_MULTI_PROCESS_FEATURE_CHILD_PROCESS, DEFAULT_MAX_CHILD_PROCESS);
-            maxMultiProcessFeatureChildProcess_.isLoaded = true;
+    if (!maxMultiProcessFeatureChildProcess_.isLoaded.load()) {
+        maxMultiProcessFeatureChildProcess_.value.store(
+            system::GetIntParameter<int32_t>(MAX_MULTI_PROCESS_FEATURE_CHILD_PROCESS, DEFAULT_MAX_CHILD_PROCESS));
+            maxMultiProcessFeatureChildProcess_.isLoaded.store(true);
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "maxMultiProcessFeatureChildProcess: %{public}d",
-        maxMultiProcessFeatureChildProcess_.value);
-    return maxMultiProcessFeatureChildProcess_.value;
+        maxMultiProcessFeatureChildProcess_.value.load());
+    return maxMultiProcessFeatureChildProcess_.value.load();
 }
 
 bool AppUtils::IsSupportMultiInstance()
 {
-    if (!isSupportMultiInstance_.isLoaded) {
-        isSupportMultiInstance_.value = system::GetBoolParameter(SUPPORT_MULTI_INSTANCE, false);
-        isSupportMultiInstance_.isLoaded = true;
+    if (!isSupportMultiInstance_.isLoaded.load()) {
+        isSupportMultiInstance_.value.store(system::GetBoolParameter(SUPPORT_MULTI_INSTANCE, false));
+        isSupportMultiInstance_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportMultiInstance_.value);
-    return isSupportMultiInstance_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportMultiInstance_.value.load());
+    return isSupportMultiInstance_.value.load();
 }
 
 std::string AppUtils::GetMigrateClientBundleName()
@@ -634,13 +636,12 @@ std::string AppUtils::GetMigrateClientBundleName()
 
 bool AppUtils::IsConnectSupportCrossUser()
 {
-    std::lock_guard guard(isConnectSupportCrossUserMutex_);
-    if (!isConnectSupportCrossUser_.isLoaded) {
-        isConnectSupportCrossUser_.value = system::GetBoolParameter(CONNECT_SUPPORT_CROSS_USER, false);
-        isConnectSupportCrossUser_.isLoaded = true;
+    if (!isConnectSupportCrossUser_.isLoaded.load()) {
+        isConnectSupportCrossUser_.value.store(system::GetBoolParameter(CONNECT_SUPPORT_CROSS_USER, false));
+        isConnectSupportCrossUser_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isConnectSupportCrossUser_.value);
-    return isConnectSupportCrossUser_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isConnectSupportCrossUser_.value.load());
+    return isConnectSupportCrossUser_.value.load();
 }
 
 bool AppUtils::IsPrepareTerminateEnabled()
@@ -811,23 +812,23 @@ bool AppUtils::InOnNewProcessEnableList(const std::string &bundleName)
 
 bool AppUtils::IsSupportAppServiceExtension()
 {
-    if (!isSupportAppServiceExtension_.isLoaded) {
-        isSupportAppServiceExtension_.value = system::GetBoolParameter(SUPPORT_APP_SERVICE_EXTENSION, false);
-        isSupportAppServiceExtension_.isLoaded = true;
+    if (!isSupportAppServiceExtension_.isLoaded.load()) {
+        isSupportAppServiceExtension_.value.store(system::GetBoolParameter(SUPPORT_APP_SERVICE_EXTENSION, false));
+        isSupportAppServiceExtension_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportAppServiceExtension_.value);
-    return isSupportAppServiceExtension_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportAppServiceExtension_.value.load());
+    return isSupportAppServiceExtension_.value.load();
 }
 
 bool AppUtils::IsPreloadApplicationEnabled()
 {
-    if (!isPreloadApplicationEnabled_.isLoaded) {
-        isPreloadApplicationEnabled_.value = system::GetBoolParameter(
-            PRODUCT_PRELOAD_APPLICATION_SETTING_ENABLED, false);
-        isPreloadApplicationEnabled_.isLoaded = true;
+    if (!isPreloadApplicationEnabled_.isLoaded.load()) {
+        isPreloadApplicationEnabled_.value.store(system::GetBoolParameter(
+            PRODUCT_PRELOAD_APPLICATION_SETTING_ENABLED, false));
+        isPreloadApplicationEnabled_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isPreloadApplicationEnabled_.value);
-    return isPreloadApplicationEnabled_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isPreloadApplicationEnabled_.value.load());
+    return isPreloadApplicationEnabled_.value.load();
 }
 
 bool AppUtils::IsForbidStart()
@@ -835,84 +836,84 @@ bool AppUtils::IsForbidStart()
 #ifndef ABILITY_RUNTIME_FORBID_START_ENABLED
     return false;
 #else
-    if (!isForbidStart_.isLoaded) {
-        isForbidStart_.value = system::GetBoolParameter(FORBID_START, false);
+    if (!isForbidStart_.isLoaded.load()) {
+        isForbidStart_.value.store(system::GetBoolParameter(FORBID_START, false));
     }
-    return isForbidStart_.value;
+    return isForbidStart_.value.load();
 #endif
 }
 
 bool AppUtils::IsSupportRestartAppWithWindow()
 {
-    if (!isSupportRestartAppWithWindow_.isLoaded) {
-        isSupportRestartAppWithWindow_.value = system::GetBoolParameter(RESTART_APP_WITH_WINDOW, false);
-        isSupportRestartAppWithWindow_.isLoaded = true;
+    if (!isSupportRestartAppWithWindow_.isLoaded.load()) {
+        isSupportRestartAppWithWindow_.value.store(system::GetBoolParameter(RESTART_APP_WITH_WINDOW, false));
+        isSupportRestartAppWithWindow_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "restartApp: %{public}d", isSupportRestartAppWithWindow_.value);
-    return isSupportRestartAppWithWindow_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "restartApp: %{public}d", isSupportRestartAppWithWindow_.value.load());
+    return isSupportRestartAppWithWindow_.value.load();
 }
 
 bool AppUtils::IsSupportAllowDebugPermission()
 {
-    if (!isSupportAllowDebugPermission_.isLoaded) {
-        isSupportAllowDebugPermission_.value = system::GetBoolParameter(ALLOW_DEBUG_PERMISSION, false);
-        isSupportAllowDebugPermission_.isLoaded = true;
+    if (!isSupportAllowDebugPermission_.isLoaded.load()) {
+        isSupportAllowDebugPermission_.value.store(system::GetBoolParameter(ALLOW_DEBUG_PERMISSION, false));
+        isSupportAllowDebugPermission_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "restartApp: %{public}d", isSupportAllowDebugPermission_.value);
-    return isSupportAllowDebugPermission_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "isSupportAllowDebugPermission_: %{public}d", isSupportAllowDebugPermission_.value.load());
+    return isSupportAllowDebugPermission_.value.load();
 }
 
 bool AppUtils::IsStartUIAbilityInCurrentProcess()
 {
-    if (!isStartUIAbilityInCurrentProcess_.isLoaded) {
-        isStartUIAbilityInCurrentProcess_.value = system::GetBoolParameter(START_ABILITY_IN_CURRENT_PROCESS, false);
-        isStartUIAbilityInCurrentProcess_.isLoaded = true;
+    if (!isStartUIAbilityInCurrentProcess_.isLoaded.load()) {
+        isStartUIAbilityInCurrentProcess_.value.store(system::GetBoolParameter(START_ABILITY_IN_CURRENT_PROCESS, false));
+        isStartUIAbilityInCurrentProcess_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "startAbilityInCurrentProcess: %{public}d", isStartUIAbilityInCurrentProcess_.value);
-    return isStartUIAbilityInCurrentProcess_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "startAbilityInCurrentProcess: %{public}d", isStartUIAbilityInCurrentProcess_.value.load());
+    return isStartUIAbilityInCurrentProcess_.value.load();
 }
 
 bool AppUtils::IsSupportModularObjectExtension()
 {
-    if (!isSupportModularObjectExtension_.isLoaded) {
-        isSupportModularObjectExtension_.value = system::GetBoolParameter(SUPPORT_MODULAR_OBJECT_EXTENSION, false);
-        isSupportModularObjectExtension_.isLoaded = true;
+    if (!isSupportModularObjectExtension_.isLoaded.load()) {
+        isSupportModularObjectExtension_.value.store(system::GetBoolParameter(SUPPORT_MODULAR_OBJECT_EXTENSION, false));
+        isSupportModularObjectExtension_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "supportModularObjectExtension: %{public}d", isSupportModularObjectExtension_.value);
-    return isSupportModularObjectExtension_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "supportModularObjectExtension: %{public}d", isSupportModularObjectExtension_.value.load());
+    return isSupportModularObjectExtension_.value.load();
 }
 
 bool AppUtils::IsSupportDelayedProcessExit()
 {
-    if (!isSupportDelayedProcessExit_.isLoaded) {
-        isSupportDelayedProcessExit_.value = system::GetBoolParameter(SUPPORT_DELAYED_PROCESS_EXIT, false);
-        isSupportDelayedProcessExit_.isLoaded = true;
+    if (!isSupportDelayedProcessExit_.isLoaded.load()) {
+        isSupportDelayedProcessExit_.value.store(system::GetBoolParameter(SUPPORT_DELAYED_PROCESS_EXIT, false));
+        isSupportDelayedProcessExit_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "supportDelayedProcessExit: %{public}d", isSupportDelayedProcessExit_.value);
-    return isSupportDelayedProcessExit_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "supportDelayedProcessExit: %{public}d", isSupportDelayedProcessExit_.value.load());
+    return isSupportDelayedProcessExit_.value.load();
 }
 
 bool AppUtils::IsAutoStartupSupported()
 {
-    if (!isAutoStartupSupported_.isLoaded) {
-        isAutoStartupSupported_.value =
+    if (!isAutoStartupSupported_.isLoaded.load()) {
+        isAutoStartupSupported_.value.store(
             system::GetBoolParameter(IS_ENTERPRISE_DEVICE_TYPE, false) ||
             (system::GetBoolParameter(IS_EDM_ENABLE, false) && system::GetBoolParameter(IS_DEVELOPER_MODE, false)) ||
-            system::GetBoolParameter(SUPPORT_AUTO_STARTUP, false);
-        isAutoStartupSupported_.isLoaded = true;
+            system::GetBoolParameter(SUPPORT_AUTO_STARTUP, false));
+        isAutoStartupSupported_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "IsAutoStartupSupported: %{public}d", isAutoStartupSupported_.value);
-    return isAutoStartupSupported_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "IsAutoStartupSupported: %{public}d", isAutoStartupSupported_.value.load());
+    return isAutoStartupSupported_.value.load();
 }
 
 bool AppUtils::IsProductAppbootSettingEnabled()
 {
-    if (!isProductAppbootSettingEnabled_.isLoaded) {
-        isProductAppbootSettingEnabled_.value = system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false);
-        isProductAppbootSettingEnabled_.isLoaded = true;
+    if (!isProductAppbootSettingEnabled_.isLoaded.load()) {
+        isProductAppbootSettingEnabled_.value.store(system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false));
+        isProductAppbootSettingEnabled_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "ProductAppbootSettingEnabled: %{public}d", isProductAppbootSettingEnabled_.value);
-    return isProductAppbootSettingEnabled_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "ProductAppbootSettingEnabled: %{public}d", isProductAppbootSettingEnabled_.value.load());
+    return isProductAppbootSettingEnabled_.value.load();
 }
 
 void AppUtils::LoadAppTransferList()
@@ -954,22 +955,22 @@ bool AppUtils::InAppTransferList(const std::string &bundleName)
 
 bool AppUtils::IsHybridSpawnUnified()
 {
-    if (!isHybridSpawnUnified_.isLoaded) {
-        isHybridSpawnUnified_.value = system::GetBoolParameter(HYBRIDSPAWN_UNIFIED, false);
-        isHybridSpawnUnified_.isLoaded = true;
+    if (!isHybridSpawnUnified_.isLoaded.load()) {
+        isHybridSpawnUnified_.value.store(system::GetBoolParameter(HYBRIDSPAWN_UNIFIED, false));
+        isHybridSpawnUnified_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "IsHybridSpawnUnified: %{public}d", isHybridSpawnUnified_.value);
-    return isHybridSpawnUnified_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "IsHybridSpawnUnified: %{public}d", isHybridSpawnUnified_.value.load());
+    return isHybridSpawnUnified_.value.load();
 }
 
 bool AppUtils::IsSupportNativeUIAbility()
 {
-    if (!isSupportNativeUIAbility_.isLoaded) {
-        isSupportNativeUIAbility_.value = system::GetBoolParameter(SUPPORT_NATIVE_UI_ABILITY, false);
-        isSupportNativeUIAbility_.isLoaded = true;
+    if (!isSupportNativeUIAbility_.isLoaded.load()) {
+        isSupportNativeUIAbility_.value.store(system::GetBoolParameter(SUPPORT_NATIVE_UI_ABILITY, false));
+        isSupportNativeUIAbility_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "IsSupportNativeUIAbility: %{public}d", isSupportNativeUIAbility_.value);
-    return isSupportNativeUIAbility_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "IsSupportNativeUIAbility: %{public}d", isSupportNativeUIAbility_.value.load());
+    return isSupportNativeUIAbility_.value.load();
 }
 
 bool AppUtils::IsBopdMode()
@@ -989,12 +990,12 @@ bool AppUtils::IsBopdMode()
 
 bool AppUtils::IsBopdOrRescueMode()
 {
-    if (!isBopdOrRescueMode_.isLoaded) {
-        isBopdOrRescueMode_.value = (IsBopdMode() || system::GetParameter("soc.boot.mode", "") == "rescue");
-        isBopdOrRescueMode_.isLoaded = true;
+    if (!isBopdOrRescueMode_.isLoaded.load()) {
+        isBopdOrRescueMode_.value.store((IsBopdMode() || system::GetParameter("soc.boot.mode", "") == "rescue"));
+        isBopdOrRescueMode_.isLoaded.store(true);
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "IsBopdOrRescueMode: %{public}d", isBopdOrRescueMode_.value);
-    return isBopdOrRescueMode_.value;
+    TAG_LOGD(AAFwkTag::DEFAULT, "IsBopdOrRescueMode: %{public}d", isBopdOrRescueMode_.value.load());
+    return isBopdOrRescueMode_.value.load();
 }
 }  // namespace AAFwk
 }  // namespace OHOS
