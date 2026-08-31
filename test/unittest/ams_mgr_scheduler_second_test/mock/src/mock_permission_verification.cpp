@@ -130,5 +130,9 @@ bool PermissionVerification::IsSystemAppCall() const
 {
     return true;
 }
+bool PermissionVerification::IsLocalDebugOtherAppsCall() const
+{
+    return true;
+}
 }  // namespace AAFwk
 }  // namespace OHOS
