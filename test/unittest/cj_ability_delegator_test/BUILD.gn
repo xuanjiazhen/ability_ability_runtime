@@ -29,6 +29,9 @@ ohos_unittest("cj_ability_delegator_test") {
 
   sources = [
     "${ability_runtime_path}/frameworks/cj/ffi/cj_ability_delegator.cpp",
+    "${ability_runtime_path}/frameworks/cj/ffi/cj_ability_monitor.cpp",
+    "${ability_runtime_path}/frameworks/cj/ffi/cj_ability_monitor_object.cpp",
+    "${ability_runtime_path}/frameworks/cj/ffi/application_context/src/cj_application_context.cpp",
     "cj_ability_delegator_test.cpp",
   ]
 
