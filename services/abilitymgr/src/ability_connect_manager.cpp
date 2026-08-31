@@ -1354,7 +1354,6 @@ void AbilityConnectManager::LoadAbility(const std::shared_ptr<BaseExtensionRecor
     loadParam.token = token;
     loadParam.preToken = perToken;
     loadParam.instanceKey = abilityRecord->GetInstanceKey();
-    loadParam.isCallerSetProcess = abilityRecord->IsCallerSetProcess();
     loadParam.customProcessFlag = abilityRecord->GetCustomProcessFlag();
     loadParam.extensionProcessMode = abilityRecord->GetExtensionProcessMode();
     loadParam.isPreloadUIExtension = isPreloadUIExtension;
@@ -1771,8 +1770,8 @@ void AbilityConnectManager::HandleConnectTimeoutTask(std::shared_ptr<BaseExtensi
 {
     TAG_LOGW(AAFwkTag::EXT, "connect timeout");
     CHECK_POINTER(abilityRecord);
-    auto connectList = abilityRecord->GetConnectRecordList();
     std::lock_guard guard(serialMutex_);
+    auto connectList = abilityRecord->GetConnectRecordList();
     for (const auto &connectRecord : connectList) {
         RemoveExtensionDelayDisconnectTask(connectRecord);
         connectRecord->CancelConnectTimeoutTask();

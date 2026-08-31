@@ -487,7 +487,7 @@ bool JsRuntime::LoadRepairPatch(const std::string& hqfFile, const std::string& h
     auto vm = GetEcmaVm();
     CHECK_POINTER_AND_RETURN(vm, false);
 
-    InitSourceMap(hqfFile);
+    HqfInitSourceMap(hqfFile);
 
     std::string patchFile;
     auto hqfSafeData = GetSafeData(hqfFile, patchFile);
@@ -792,7 +792,7 @@ bool JsRuntime::Initialize(const Options& options)
     }
 
     if (!options.preload) {
-        SourceMapInit(options.bundleName);
+        InitSourceMap(options.bundleName);
 
         if (options.isUnique) {
             TAG_LOGD(AAFwkTag::JSRUNTIME, "Not supported TimerModule when form render");
@@ -829,6 +829,7 @@ bool JsRuntime::CreateJsEnv(const Options& options)
     pandaOption.SetMemConfigProperty(memConfigProperty);
     pandaOption.SetGcThreadNum(gcThreadNum);
     pandaOption.SetLongPauseTime(longPauseTime);
+    pandaOption.SetIsFormThread(options.isFormRender);
     TAG_LOGD(AAFwkTag::JSRUNTIME, "ark properties=%{public}d bundlename=%{public}s",
         arkProperties, bundleName.c_str());
     pandaOption.SetGcType(panda::RuntimeOption::GC_TYPE::GEN_GC);
@@ -1008,7 +1009,7 @@ void JsRuntime::CreatePluginDefaultNamespace(const std::string &lddictionaries)
     moduleManager->InheritNamespaceEachOther(currentNamespace, pluginDefaultNamespace);
 }
 
-void JsRuntime::SourceMapInit(const std::string bundleName)
+void JsRuntime::InitSourceMap(const std::string bundleName)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     CHECK_POINTER(jsEnv_);
@@ -1030,7 +1031,7 @@ void JsRuntime::SourceMapInit(const std::string bundleName)
     ffrt::submit(init, {}, {}, ffrt::task_attr().qos(ffrt::qos_user_initiated));
 }
 
-void JsRuntime::InitSourceMap(const std::string hqfFilePath)
+void JsRuntime::HqfInitSourceMap(const std::string hqfFilePath)
 {
     std::string patchSoureMapFile;
     std::vector<uint8_t> soureMapBuffer;
@@ -1690,7 +1691,7 @@ void JsRuntime::RegisterQuickFixQueryFunc(const std::map<std::string, std::strin
     CHECK_POINTER(vm);
     for (auto it = moduleAndPath.begin(); it != moduleAndPath.end(); it++) {
         std::string hqfFile(AbilityBase::GetLoadPath(it->second));
-        InitSourceMap(hqfFile);
+        HqfInitSourceMap(hqfFile);
     }
     panda::JSNApi::RegisterQuickFixQueryFunc(vm, JsQuickfixCallback(moduleAndPath));
 }
