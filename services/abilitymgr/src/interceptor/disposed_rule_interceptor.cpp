@@ -123,7 +123,7 @@ bool DisposedRuleInterceptor::CheckControl(const Want &want, int32_t userId,
         int32_t ret = ERR_OK;
         if (appIndex > 0 && AbilityRuntime::GlobalConstant::IsAppCloneIndex(appIndex)) {
             ret = IN_PROCESS_CALL(appControlMgr->GetAbilityRunningControlRule(bundleName,
-                 userId, disposedRuleList, appIndex));
+                userId, disposedRuleList, appIndex));
         } else {
             ret = IN_PROCESS_CALL(appControlMgr->GetAbilityRunningControlRule(bundleName,
                 userId, disposedRuleList, 0));

@@ -1459,7 +1459,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     if (!sandboxAbilityInfo.bundleName.empty()) {
         appIndex = sandboxAbilityInfo.applicationInfo.appIndex;
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Using sandbox clone appIndex: %{public}d from sandboxAbilityInfo", appIndex);
-    } else if (!StartAbilityUtils::GetAppIndex(param.want, param.callerToken, appIndex)) {
+    } else if (!StartAbilityUtils::GetAppIndex(param.want, param.callerToken, appIndex, validUserId)) {
         AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_APP_CLONE_INDEX_INVALID, "GetAppIndex failed");
         return ERR_APP_CLONE_INDEX_INVALID;
     }
@@ -2145,7 +2145,7 @@ int AbilityManagerService::StartAbilityDetails(const Want &want, const AbilitySt
     int32_t validUserId = oriValidUserId;
     StartAbilityUtils::ResolveTargetAppCloneIndex(want, callerToken, validUserId);
     int32_t appIndex = 0;
-    if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
+    if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex, validUserId)) {
         AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_APP_CLONE_INDEX_INVALID, "GetAppIndex failed");
         return ERR_APP_CLONE_INDEX_INVALID;
     }
@@ -2493,7 +2493,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
     int32_t validUserId = oriValidUserId;
     StartAbilityUtils::ResolveTargetAppCloneIndex(want, callerToken, validUserId);
     int32_t appIndex = 0;
-    if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
+    if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex, validUserId)) {
         AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_APP_CLONE_INDEX_INVALID, "GetAppIndex failed");
         return ERR_APP_CLONE_INDEX_INVALID;
     }
@@ -3488,7 +3488,7 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
         if (cloneRet != ERR_OK) {
             return cloneRet;
         }
-    } else if (!StartAbilityUtils::GetAppIndex(sessionInfo->want, sessionInfo->callerToken, appIndex)) {
+    } else if (!StartAbilityUtils::GetAppIndex(sessionInfo->want, sessionInfo->callerToken, appIndex, currentUserId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "get app index error");
         return ERR_APP_CLONE_INDEX_INVALID;
     }
@@ -4713,7 +4713,7 @@ int32_t AbilityManagerService::StartExtensionAbilityInner(const Want &want, cons
         RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
 #endif
     int32_t appIndex = 0;
-    if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
+    if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex, validUserId)) {
         if (extensionType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
             eventInfo->errReason = "GetAppIndex error";
             SendExtensionReport(*eventInfo, ERR_APP_CLONE_INDEX_INVALID, true);
@@ -8988,7 +8988,7 @@ int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestC
     auto abilityInfo = StartAbilityUtils::startAbilityInfo;
     if (abilityInfo == nullptr || abilityInfo->GetAppBundleName() != want.GetBundleNameRef()) {
         int32_t appIndex = 0;
-        if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
+        if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex, userId)) {
             return ERR_APP_CLONE_INDEX_INVALID;
         }
         Want localWant = want;
@@ -9119,7 +9119,7 @@ int AbilityManagerService::GenerateExtensionAbilityRequest(const Want &want, Abi
     auto abilityInfo = StartAbilityUtils::startAbilityInfo;
     if (abilityInfo == nullptr || abilityInfo->GetAppBundleName() != want.GetBundleNameRef()) {
         int32_t appIndex = 0;
-        if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
+        if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex, userId)) {
             return ERR_APP_CLONE_INDEX_INVALID;
         }
         std::string nHostBundleName = GetHostBundleName(hostBundleName, callerToken);
@@ -10445,7 +10445,7 @@ int AbilityManagerService::StartAbilityByCallWithErrMsg(const Want &want, const 
 #endif
     AbilityUtil::RemoveWantKey(const_cast<Want &>(want));
     int32_t appIndex = 0;
-    if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
+    if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex, oriValidUserId)) {
         errMsg = "app index is error";
         AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, ERR_APP_CLONE_INDEX_INVALID,
             "startAbilityByCall app index is invalid");
@@ -11731,7 +11731,7 @@ int AbilityManagerService::StartUserTest(const Want &want, const sptr<IRemoteObj
         GetValidUserId(DEFAULT_INVAL_VALUE)), RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
 #endif
     int32_t appIndex = 0;
-    if (!StartAbilityUtils::GetAppIndex(want, nullptr, appIndex) || appIndex != 0) {
+    if (!StartAbilityUtils::GetAppIndex(want, nullptr, appIndex, userId) || appIndex != 0) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Not support app clone");
         return ERR_NOT_SUPPORT_APP_CLONE;
     }
@@ -17069,7 +17069,7 @@ int32_t AbilityManagerService::PreStartInner(const FreeInstallInfo& taskInfo)
 
     int32_t appIndex = 0;
     StartAbilityInfoWrap threadLocalInfo(want, oriValidUserId,
-        StartAbilityUtils::GetAppIndex(want, callerToken, appIndex), callerToken);
+        StartAbilityUtils::GetAppIndex(want, callerToken, appIndex, oriValidUserId), callerToken);
 
     AbilityRequest abilityRequest = {
         .requestCode = taskInfo.requestCode,
@@ -17188,7 +17188,7 @@ int AbilityManagerService::StartUIAbilityByPreInstallInner(sptr<SessionInfo> ses
     int32_t validUserId = oriValidUserId;
 
     int32_t appIndex = 0;
-    if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
+    if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex, validUserId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s GetAppIndex failed", __func__);
         return ERR_APP_CLONE_INDEX_INVALID;
     }
