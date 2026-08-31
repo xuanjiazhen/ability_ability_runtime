@@ -16,8 +16,10 @@
 #ifndef OHOS_ABILITY_RUNTIME_APP_UTILS_H
 #define OHOS_ABILITY_RUNTIME_APP_UTILS_H
 
+#include <atomic>
 #include <mutex>
 #include <string>
+#include <type_traits>
 
 #include "nocopyable.h"
 
@@ -27,8 +29,18 @@ constexpr const int32_t DEFAULT_MAX_EXT_PER_PROC = 10;
 constexpr const int32_t DEFAULT_MAX_EXT_PER_DEV = 100;
 constexpr const int32_t DEFAULT_INVALID_VALUE = -1;
 constexpr const int32_t DEFAULT_MAX_CHILD_PROCESS = 0;
+template<typename T, typename = void>
+class DeviceConfiguration;
+
 template<typename T>
-class DeviceConfiguration {
+class DeviceConfiguration<T, std::enable_if_t<std::is_trivially_copyable_v<T>>> {
+public:
+    std::atomic<bool> isLoaded {false};
+    std::atomic<T> value {};
+};
+
+template<typename T>
+class DeviceConfiguration<T, std::enable_if_t<!std::is_trivially_copyable_v<T>>> {
 public:
     bool isLoaded = false;
     T value;
@@ -450,41 +462,40 @@ private:
     AppUtils();
 
     volatile bool isSceneBoard_ = false;
-    volatile DeviceConfiguration<bool> isInheritWindowSplitScreenMode_ = {false, true};
-    volatile DeviceConfiguration<bool> isSupportAncoApp_ = {false, false};
-    volatile DeviceConfiguration<int32_t> timeoutUnitTimeRatio_ = {false, 1};
-    volatile DeviceConfiguration<bool> isSelectorDialogDefaultPossion_ = {false, true};
-    volatile DeviceConfiguration<bool> isStartSpecifiedProcess_ = {false, false};
-    volatile DeviceConfiguration<bool> isUseMultiRenderProcess_ = {false, true};
-    volatile DeviceConfiguration<bool> isLimitMaximumOfRenderProcess_ = {false, true};
-    volatile DeviceConfiguration<bool> isGrantPersistUriPermission_ = {false, false};
-    volatile DeviceConfiguration<bool> isStartOptionsWithAnimation_ = {false, false};
-    volatile DeviceConfiguration<bool> isSupportBlockAllAppStart_ = {false, false};
-    volatile DeviceConfiguration<bool> isMultiProcessModel_ = {false, false};
-    volatile DeviceConfiguration<bool> allowChildProcessInMultiProcessFeatureApp_ = {false, false};
-    volatile DeviceConfiguration<bool> isStartOptionsWithProcessOptions_ = {false, false};
-    volatile DeviceConfiguration<bool> enableMoveUIAbilityToBackgroundApi_ = {false, true};
-    volatile DeviceConfiguration<bool> isLaunchEmbededUIAbility_ = {false, false};
-    volatile DeviceConfiguration<bool> isSupportNativeChildProcess_ = {false, false};
-    volatile DeviceConfiguration<bool> isSupportMultiInstance_ = {false, false};
-    std::mutex isConnectSupportCrossUserMutex_;
-    volatile DeviceConfiguration<bool> isConnectSupportCrossUser_ = {false, false};
-    volatile DeviceConfiguration<bool> isSupportAppServiceExtension_ = {false, false};
-    volatile DeviceConfiguration<bool> isGrantTempUriPermission_ = {false, true};
-    volatile DeviceConfiguration<bool> isSupportStartAbilities_ = {false, false};
-    volatile DeviceConfiguration<bool> isPreloadApplicationEnabled_ = {false, false};
-    volatile DeviceConfiguration<bool> isForbidStart_ = {true, false};
-    volatile DeviceConfiguration<bool> isRescueMode_ = {false, false};
-    volatile DeviceConfiguration<bool> isSupportRestartAppWithWindow_ = {false, false};
-    volatile DeviceConfiguration<bool> isSupportAllowDebugPermission_ = {false, false};
-    volatile DeviceConfiguration<bool> isStartUIAbilityInCurrentProcess_ = {false, false};
-    volatile DeviceConfiguration<bool> isSupportModularObjectExtension_ = {false, false};
-    volatile DeviceConfiguration<bool> isAutoStartupSupported_ = {false, false};
-    volatile DeviceConfiguration<bool> isProductAppbootSettingEnabled_ = {false, false};
-    volatile DeviceConfiguration<bool> isHybridSpawnUnified_ = {false, false};
-    volatile DeviceConfiguration<bool> isSupportNativeUIAbility_ = {false, false};
-    volatile DeviceConfiguration<bool> isSupportDelayedProcessExit_ = {false, false};
-    volatile DeviceConfiguration<bool> isBopdOrRescueMode_ = {false, false};
+    DeviceConfiguration<bool> isInheritWindowSplitScreenMode_ = {false, true};
+    DeviceConfiguration<bool> isSupportAncoApp_ = {false, false};
+    DeviceConfiguration<int32_t> timeoutUnitTimeRatio_ = {false, 1};
+    DeviceConfiguration<bool> isSelectorDialogDefaultPossion_ = {false, true};
+    DeviceConfiguration<bool> isStartSpecifiedProcess_ = {false, false};
+    DeviceConfiguration<bool> isUseMultiRenderProcess_ = {false, true};
+    DeviceConfiguration<bool> isLimitMaximumOfRenderProcess_ = {false, true};
+    DeviceConfiguration<bool> isGrantPersistUriPermission_ = {false, false};
+    DeviceConfiguration<bool> isStartOptionsWithAnimation_ = {false, false};
+    DeviceConfiguration<bool> isSupportBlockAllAppStart_ = {false, false};
+    DeviceConfiguration<bool> isMultiProcessModel_ = {false, false};
+    DeviceConfiguration<bool> allowChildProcessInMultiProcessFeatureApp_ = {false, false};
+    DeviceConfiguration<bool> isStartOptionsWithProcessOptions_ = {false, false};
+    DeviceConfiguration<bool> enableMoveUIAbilityToBackgroundApi_ = {false, true};
+    DeviceConfiguration<bool> isLaunchEmbededUIAbility_ = {false, false};
+    DeviceConfiguration<bool> isSupportNativeChildProcess_ = {false, false};
+    DeviceConfiguration<bool> isSupportMultiInstance_ = {false, false};
+    DeviceConfiguration<bool> isConnectSupportCrossUser_ = {false, false};
+    DeviceConfiguration<bool> isSupportAppServiceExtension_ = {false, false};
+    DeviceConfiguration<bool> isGrantTempUriPermission_ = {false, true};
+    DeviceConfiguration<bool> isSupportStartAbilities_ = {false, false};
+    DeviceConfiguration<bool> isPreloadApplicationEnabled_ = {false, false};
+    DeviceConfiguration<bool> isForbidStart_ = {true, false};
+    DeviceConfiguration<bool> isRescueMode_ = {false, false};
+    DeviceConfiguration<bool> isSupportRestartAppWithWindow_ = {false, false};
+    DeviceConfiguration<bool> isSupportAllowDebugPermission_ = {false, false};
+    DeviceConfiguration<bool> isStartUIAbilityInCurrentProcess_ = {false, false};
+    DeviceConfiguration<bool> isSupportModularObjectExtension_ = {false, false};
+    DeviceConfiguration<bool> isAutoStartupSupported_ = {false, false};
+    DeviceConfiguration<bool> isProductAppbootSettingEnabled_ = {false, false};
+    DeviceConfiguration<bool> isHybridSpawnUnified_ = {false, false};
+    DeviceConfiguration<bool> isSupportNativeUIAbility_ = {false, false};
+    DeviceConfiguration<bool> isSupportDelayedProcessExit_ = {false, false};
+    DeviceConfiguration<bool> isBopdOrRescueMode_ = {false, false};
     DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>
         residentProcessInExtremeMemory_ = {false, {}};
     std::mutex residentProcessInExtremeMemoryMutex_;
@@ -495,13 +506,14 @@ private:
     DeviceConfiguration<std::vector<std::string>>
         allowStartNativeProcessApps_ = {false, {}};
     std::mutex allowStartNativeProcessAppsMutex_;
-    volatile DeviceConfiguration<int32_t> limitMaximumExtensionsPerProc_ = {false, DEFAULT_MAX_EXT_PER_PROC};
-    volatile DeviceConfiguration<int32_t> limitMaximumExtensionsPerDevice_ = {false, DEFAULT_MAX_EXT_PER_DEV};
+    DeviceConfiguration<int32_t> limitMaximumExtensionsPerProc_ = {false, DEFAULT_MAX_EXT_PER_PROC};
+    DeviceConfiguration<int32_t> limitMaximumExtensionsPerDevice_ = {false, DEFAULT_MAX_EXT_PER_DEV};
+    std::mutex brokerDelegateBundleNameMutex_;
     DeviceConfiguration<std::string> brokerDelegateBundleName_ = {false, ""};
-    volatile DeviceConfiguration<int32_t> collaboratorBrokerUid_ = {false, DEFAULT_INVALID_VALUE};
-    volatile DeviceConfiguration<int32_t> collaboratorBrokerReserveUid_ = {false, DEFAULT_INVALID_VALUE};
-    volatile DeviceConfiguration<int32_t> maxChildProcess_ = {false, DEFAULT_MAX_CHILD_PROCESS};
-    volatile DeviceConfiguration<int32_t> maxMultiProcessFeatureChildProcess_ = {false, DEFAULT_MAX_CHILD_PROCESS};
+    DeviceConfiguration<int32_t> collaboratorBrokerUid_ = {false, DEFAULT_INVALID_VALUE};
+    DeviceConfiguration<int32_t> collaboratorBrokerReserveUid_ = {false, DEFAULT_INVALID_VALUE};
+    DeviceConfiguration<int32_t> maxChildProcess_ = {false, DEFAULT_MAX_CHILD_PROCESS};
+    DeviceConfiguration<int32_t> maxMultiProcessFeatureChildProcess_ = {false, DEFAULT_MAX_CHILD_PROCESS};
     DeviceConfiguration<std::string> migrateClientBundleName_ = {true, "com.huwei.hmos.migratecilent"};
     std::mutex cacheAbilityListMutex_;
     DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>
