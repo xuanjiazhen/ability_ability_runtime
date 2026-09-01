@@ -325,7 +325,7 @@ N=3 续期次数上限、INPUT_ARRIVED 枚举命名、交互 30min/宽限 5min/�
 
 > 本特性历经十四轮评审（第一~十二轮见 proposal.md 讨论记录；第七/十三/十四轮审查见本文档），文档阶段收口，代码未启动（TASK-0 启动前置 = design/spec 评审通过，见 execution-plan.md）。
 
-**交付件导航**：proposal.md（需求基线与决策链）→ spec.md（AC/规则/接口规格）→ design.md（架构设计，重点 §5.2.2 SA 承载 / §5.4.1 五收敛点 / §6.4 RCP）→ execution-plan.md（TASK-0~6）→ 本文档（三轮审查记录 + 开放项 O-1~O-6）→ docs/（**flow-diagrams.md 分步流程图集（8 图，含决策分支/失败路径/规则追溯）** + 扩展场景分析 + 两份外部对齐材料）→ 四张 SVG（含 **interaction_overview.svg 系统交互概览**：语音助手/AI bar、AMS 5 收敛点、AppMS task_mgr、RSS/EDS、cli_tool_framework 双路径（D-22）、意图应用、ServiceExtension、UIAbility、监听方）。
+**交付件导航**：proposal.md（需求基线与决策链）→ spec.md（AC/规则/接口规格）→ design.md（架构设计，重点 §5.2.2 SA 承载 / §5.4.1 五收敛点 / §6.4 RCP）→ execution-plan.md（TASK-0~6）→ 本文档（三轮审查记录 + 开放项 O-1~O-6）→ docs/（**flow-diagrams.md 分步流程图集（8 图，含决策分支/失败路径/规则追溯）** + 扩展场景分析 + 两份外部对齐材料）→ 对外呈现图集（1920×1080，4 张拆分）：**overview_1_architecture.svg 总览**（痛点/参与方/五链路/三角色）、**overview_2_intercept.svg 纳管拦截**（5 收敛点/TaskInterceptor/条件两段式/CLI 双路径/校验链）、**overview_3_control.svg 任务管控**（档位映射/合并/RCP 代理层/RSS·EDS 通道/防滥用/双通道清理）、**overview_4_interaction.svg 交互与可观测**（AI bar 闭环时序/监听通道/DFX/9 态状态机）+ 原三张内部设计图（architecture_overview/module_design/task_flow）。
 
 **文档变更后必做**：
 1. `grep -n '账本\|记账' *.md *.svg docs/*.md` 确认无新增残留（历史决策记录行除外——"内存登记"为 D-16 定稿术语，旧"账本"已废弃）；

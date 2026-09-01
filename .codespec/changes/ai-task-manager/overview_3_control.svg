@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" font-family="'PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif">
+  <defs>
+    <marker id="arP3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#7c3aed"/></marker>
+    <marker id="arG3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#067647"/></marker>
+    <linearGradient id="hg3" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#067647"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1920" height="1080" fill="#ffffff"/>
+  <rect x="0" y="0" width="1920" height="96" fill="url(#hg3)"/>
+  <text x="960" y="44" font-size="32" font-weight="700" fill="#ffffff" text-anchor="middle">任务管控与资源调度（3/4）</text>
+  <text x="960" y="76" font-size="15" fill="#e7f5ec" text-anchor="middle">优先级→档位映射 → 档位合并（max）→ ResourceControlProxy 施加/撤销 → RSS 冻结豁免 + EDS 待机联动 → 任务结束双通道清理</text>
+
+  <!-- ══ 左上：优先级→档位 ══ -->
+  <rect x="60" y="130" width="560" height="320" rx="18" fill="#f0fdf4" stroke="#067647" stroke-width="2.5"/>
+  <rect x="60" y="130" width="560" height="54" rx="18" fill="#dcfce7"/>
+  <text x="340" y="164" font-size="20" font-weight="700" fill="#067647" text-anchor="middle">优先级 → 管控档位映射</text>
+  <rect x="90" y="204" width="500" height="48" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="120" y="234" font-size="14" font-weight="700" fill="#475467">LOW（0）</text>
+  <text x="560" y="234" font-size="13" fill="#475467" text-anchor="end">不豁免（与原调度一致）</text>
+  <rect x="90" y="262" width="500" height="48" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+  <text x="120" y="292" font-size="14" font-weight="700" fill="#067647">MEDIUM（1）</text>
+  <text x="560" y="292" font-size="13" fill="#475467" text-anchor="end">限时豁免 30min（可配）</text>
+  <rect x="90" y="320" width="500" height="48" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+  <text x="120" y="350" font-size="14" font-weight="700" fill="#067647">HIGH（2）</text>
+  <text x="560" y="350" font-size="13" fill="#475467" text-anchor="end">激活期持续豁免 · 可续期（≤3 次）</text>
+  <rect x="90" y="378" width="500" height="48" rx="8" fill="#faf5ff" stroke="#d8b4fe" stroke-width="1.5"/>
+  <text x="120" y="408" font-size="14" font-weight="700" fill="#6b21a8">CRITICAL（3）</text>
+  <text x="560" y="408" font-size="13" fill="#475467" text-anchor="end">豁免 + QoS 提权（二期）</text>
+  <text x="340" y="440" font-size="12" fill="#98a2b3" text-anchor="middle">激活态 = SUBMITTED/WORKING/INPUT/AUTH_REQUIRED（F-1）· 硬上限 60min</text>
+
+  <!-- ══ 右上：档位合并与线程模型 ══ -->
+  <rect x="680" y="130" width="560" height="320" rx="18" fill="#f0fdf4" stroke="#067647" stroke-width="2.5"/>
+  <rect x="680" y="130" width="560" height="54" rx="18" fill="#dcfce7"/>
+  <text x="960" y="164" font-size="20" font-weight="700" fill="#067647" text-anchor="middle">process_schedule：档位合并</text>
+  <text x="710" y="212" font-size="14.5" fill="#344054">· effectiveLevel(pid) = max(其任务集合中激活任务档位)</text>
+  <text x="710" y="240" font-size="13" fill="#667085">同一进程多任务归属 → 按最高优先级管控（需求 11）</text>
+  <text x="710" y="276" font-size="14.5" fill="#344054">· 档位变化 → 增量施加/撤销（升档立即/降档立即）</text>
+  <text x="710" y="304" font-size="13" fill="#667085">同 pid 同类型豁免幂等（taskId+pid+类型，R-11）</text>
+  <text x="710" y="340" font-size="14.5" fill="#344054">· taskHandler 串行线程：全部任务操作与回调派发</text>
+  <text x="710" y="368" font-size="13" fill="#667085">免锁 · 回调顺序一致（R-14）· IPC 入口 post-and-wait</text>
+  <rect x="710" y="386" width="500" height="48" rx="8" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="960" y="415" font-size="12.5" fill="#92400e" text-anchor="middle">RCP 同步调用（507/517）在 RCP 工作线程执行（F-44）· ≤500ms 预算</text>
+
+  <!-- ══ 右上2：RCP 代理层 ══ -->
+  <rect x="1300" y="130" width="560" height="320" rx="18" fill="#faf5ff" stroke="#7c3aed" stroke-width="2.5"/>
+  <rect x="1300" y="130" width="560" height="54" rx="18" fill="#f3e8ff"/>
+  <text x="1580" y="164" font-size="20" font-weight="700" fill="#6b21a8" text-anchor="middle">ResourceControlProxy（代理层）</text>
+  <text x="1330" y="212" font-size="14.5" fill="#344054">· 语义接口：ApplyControl / RestoreControl /</text>
+  <text x="1350" y="236" font-size="13" fill="#667085">NotifyTaskEnd / QueryControlState / ResetAll</text>
+  <text x="1330" y="268" font-size="14.5" fill="#344054">· ControlRequest 携带完整上下文（任务+进程）</text>
+  <text x="1330" y="300" font-size="14.5" fill="#344054">· 一期 RCP-Stub：内存登记 + 日志 + 探测开关</text>
+  <text x="1350" y="324" font-size="13" fill="#667085">RSS 对接后 RCP-Impl 替换（条件编译，上层零改动）</text>
+  <text x="1330" y="356" font-size="14.5" fill="#344054">· 生效校验环（P3）：EXEMPT→507 查询→</text>
+  <text x="1350" y="380" font-size="13" fill="#667085">isFrozen 则 THAW(517)→复查；未生效告警+事件</text>
+  <text x="1330" y="412" font-size="12" fill="#98a2b3">· RSS 重启：按内存登记幂等重放活跃豁免（P4）</text>
+
+  <!-- ══ 中部：RSS/EDS 通道 ══ -->
+  <rect x="60" y="490" width="1180" height="250" rx="18" fill="#faf5ff" stroke="#7c3aed" stroke-width="2.5"/>
+  <rect x="60" y="490" width="1180" height="54" rx="18" fill="#f3e8ff"/>
+  <text x="650" y="524" font-size="20" font-weight="700" fill="#6b21a8" text-anchor="middle">下游管控通道（复用现有接口 · 不改 RSS 仓代码）</text>
+  <rect x="90" y="566" width="560" height="150" rx="12" fill="#ffffff" stroke="#d8b4fe" stroke-width="2"/>
+  <text x="370" y="594" font-size="16" font-weight="700" fill="#6b21a8" text-anchor="middle">RSS（SA 1901 · ressched_client）</text>
+  <text x="110" y="624" font-size="13" fill="#344054">· 505 冻结豁免（payload：uid+pid）｜ 517 解冻（同步）</text>
+  <text x="110" y="650" font-size="13" fill="#344054">· 507 冻结状态查询 ｜ 518 全量查询</text>
+  <text x="110" y="676" font-size="13" fill="#344054">· 221 进程 QoS（二期提权）｜ 520 低内存查杀（二期）</text>
+  <text x="110" y="700" font-size="11.5" fill="#98a2b3">· 权限：REPORT_RESOURCE_SCHEDULE_EVENT（foundation 已具备）</text>
+  <rect x="680" y="566" width="530" height="150" rx="12" fill="#ffffff" stroke="#d8b4fe" stroke-width="2"/>
+  <text x="945" y="594" font-size="16" font-weight="700" fill="#6b21a8" text-anchor="middle">EDS（device_standby · standby_innerkits）</text>
+  <text x="700" y="624" font-size="13" fill="#344054">· ApplyAllowResource / Unapply（待机网络/定时豁免）</text>
+  <text x="700" y="650" font-size="13" fill="#344054">· uid 级引用计数：归零才撤销（F-47，防误杀并发任务）</text>
+  <text x="700" y="676" font-size="13" fill="#344054">· AllowType：NETWORK / TIMER / FREEZE（FREEZE 待评估）</text>
+  <text x="700" y="700" font-size="11.5" fill="#98a2b3">· native 免权限 · 覆盖夜间深度待机场景</text>
+
+  <!-- ══ 右中：防滥用上限 ══ -->
+  <rect x="1300" y="490" width="560" height="250" rx="18" fill="#fef2f2" stroke="#d92d20" stroke-width="2.5"/>
+  <rect x="1300" y="490" width="560" height="54" rx="18" fill="#fee2e2"/>
+  <text x="1580" y="524" font-size="20" font-weight="700" fill="#b91c1c" text-anchor="middle">防滥用上限（均可配）</text>
+  <text x="1330" y="570" font-size="14" fill="#344054">· 创建者活跃任务 ≤ 16（活跃=非终态）</text>
+  <text x="1330" y="600" font-size="14" fill="#344054">· 单任务纳管进程 ≤ 16 · 全局豁免进程 ≤ 64</text>
+  <text x="1330" y="630" font-size="14" fill="#344054">· 豁免硬上限 60min · 档位 1 限时 30min</text>
+  <text x="1330" y="660" font-size="14" fill="#344054">· 交互超时 30min + 宽限 5min（两段式处置）</text>
+  <text x="1330" y="690" font-size="14" fill="#344054">· 续期仅 priority 变化触发 · ≤ 3 次</text>
+  <text x="1330" y="722" font-size="12" fill="#98a2b3">· 超限拒绝 + TASK_ABUSE_WARNING 告警（hisysevent FAULT）</text>
+
+  <!-- ══ 底部：双通道清理 ══ -->
+  <rect x="60" y="780" width="1800" height="250" rx="18" fill="#f8f9fc" stroke="#344054" stroke-width="2"/>
+  <rect x="60" y="780" width="1800" height="54" rx="18" fill="#e9edf5"/>
+  <text x="960" y="814" font-size="20" font-weight="700" fill="#344054" text-anchor="middle">任务结束清理（终态/DestroyTask · F-47 清理清单全景）</text>
+
+  <rect x="100" y="856" width="400" height="150" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="300" y="884" font-size="14.5" font-weight="700" fill="#344054" text-anchor="middle">前置清理（终态处理内同步）</text>
+  <text x="120" y="912" font-size="12.5" fill="#475467">· R-18：交互态 payload 清除 · 停止回调</text>
+  <text x="120" y="936" font-size="12.5" fill="#475467">· 取消全部计时器（交互超时/限时/硬上限/续期）</text>
+  <text x="120" y="960" font-size="12.5" fill="#475467">· 超时处理器另校验非终态（双保险）</text>
+  <text x="120" y="988" font-size="11" fill="#98a2b3">· 防终态后误触发超时处置</text>
+
+  <rect x="540" y="856" width="460" height="150" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="770" y="884" font-size="14.5" font-weight="700" fill="#344054" text-anchor="middle">① 进程级撤销（逐 pid）</text>
+  <text x="560" y="912" font-size="12.5" fill="#475467">· CLEAR_EXEMPT 撤销冻结豁免 + CLEAR_QOS 恢复优先级</text>
+  <text x="560" y="936" font-size="12.5" fill="#475467">· 按剩余任务 max 重算（无任务→完全恢复原调度）</text>
+  <text x="560" y="960" font-size="12.5" fill="#475467">· EDS：uid 引用计数归零才 Unapply</text>
+  <text x="560" y="988" font-size="11" fill="#98a2b3">· 撤销后 RSS 按原策略自然回冻（无需 re-freeze）</text>
+
+  <rect x="1040" y="856" width="400" height="150" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="1240" y="884" font-size="14.5" font-weight="700" fill="#344054" text-anchor="middle">② 任务级通知 + ③ 登记清理</text>
+  <text x="1060" y="912" font-size="12.5" fill="#475467">· NotifyTaskEnd(taskId, pids, reason) → RSS 清理</text>
+  <text x="1060" y="936" font-size="12.5" fill="#475467">  任务级策略（豁免组/优先级组，防残留）</text>
+  <text x="1060" y="960" font-size="12.5" fill="#475467">· ③ 该任务全部活跃豁免登记条目移除（D-16）</text>
+  <text x="1060" y="988" font-size="11" fill="#98a2b3">· EDS 无任务级策略（uid 归零即彻底清理）</text>
+
+  <rect x="1480" y="856" width="340" height="150" rx="10" fill="#fef2f2" stroke="#fca5a5" stroke-width="2"/>
+  <text x="1650" y="884" font-size="14.5" font-weight="700" fill="#b91c1c" text-anchor="middle">失败处置</text>
+  <text x="1500" y="912" font-size="12.5" fill="#475467">· 任一通道失败重试 ≤ 3 次</text>
+  <text x="1500" y="936" font-size="12.5" fill="#475467">· 仍失败 → 告警 + 日志留痕</text>
+  <text x="1500" y="960" font-size="12.5" fill="#475467">· 对账基线 = 动作日志序列（D-16）</text>
+  <text x="1500" y="988" font-size="11" fill="#98a2b3">· ①②③ taskHandler 串行（②在①后、③最后）</text>
+
+  <text x="960" y="1058" font-size="12" fill="#98a2b3" text-anchor="middle">AI Task Manager · 任务管控 3/4 · 依据 design.md §6（资源调度子模块）· 注意：开源 master 无 freezer 执行插件，端到端验证需产品环境（P1/F-23）</text>
+</svg>

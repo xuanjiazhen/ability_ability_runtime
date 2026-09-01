@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" font-family="'PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#475467"/></marker>
+    <marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#155eef"/></marker>
+    <marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#067647"/></marker>
+    <marker id="arR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#d92d20"/></marker>
+    <linearGradient id="hg2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#155eef"/><stop offset="100%" stop-color="#4385f5"/></linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1920" height="1080" fill="#ffffff"/>
+  <rect x="0" y="0" width="1920" height="96" fill="url(#hg2)"/>
+  <text x="960" y="44" font-size="32" font-weight="700" fill="#ffffff" text-anchor="middle">启动链路拦截与进程纳管（2/4）</text>
+  <text x="960" y="76" font-size="15" fill="#dbe7fe" text-anchor="middle">5 收敛点 TaskInterceptor → 身份解析（业务发起方）→ 条件两段式纳管 → 通道鉴权与 B-2 校验（AppMS 侧）</text>
+
+  <!-- ══ 左上：5 收敛点 ══ -->
+  <rect x="60" y="130" width="880" height="300" rx="18" fill="#f4f8ff" stroke="#155eef" stroke-width="2.5"/>
+  <rect x="60" y="130" width="880" height="54" rx="18" fill="#e1ecff"/>
+  <text x="500" y="164" font-size="20" font-weight="700" fill="#0b3d91" text-anchor="middle">AMS 拦截点①：全部启动/连接收敛处（5 处）</text>
+  <rect x="90" y="204" width="400" height="92" rx="10" fill="#ffffff" stroke="#a9c5f9" stroke-width="2"/>
+  <text x="290" y="232" font-size="15" font-weight="700" fill="#0b3d91" text-anchor="middle">StartAbilityInner（:1360）</text>
+  <text x="290" y="256" font-size="12" fill="#475467" text-anchor="middle">StartAbility 全部变体收敛（13 调用点）</text>
+  <text x="290" y="278" font-size="11.5" fill="#98a2b3" text-anchor="middle">含 FreeInstall / SpecifyTokenId / AsCaller / 意图（:15241）</text>
+  <rect x="510" y="204" width="400" height="92" rx="10" fill="#ffffff" stroke="#a9c5f9" stroke-width="2"/>
+  <text x="710" y="232" font-size="15" font-weight="700" fill="#0b3d91" text-anchor="middle">StartExtensionAbilityInner（:4656）</text>
+  <text x="710" y="256" font-size="12" fill="#475467" text-anchor="middle">ServiceExtension 启动（含 Skill 会话路径）</text>
+  <text x="710" y="278" font-size="11.5" fill="#98a2b3" text-anchor="middle">A2A 经 agentmgr → ConnectAbilityCommon</text>
+  <rect x="90" y="310" width="400" height="92" rx="10" fill="#ffffff" stroke="#a9c5f9" stroke-width="2"/>
+  <text x="290" y="338" font-size="15" font-weight="700" fill="#0b3d91" text-anchor="middle">StartUIExtensionAbility（:4989）</text>
+  <text x="290" y="362" font-size="12" fill="#475467" text-anchor="middle">UIExtension 启动（Want 在 SessionInfo）</text>
+  <text x="290" y="384" font-size="11.5" fill="#98a2b3" text-anchor="middle">身份取 SessionInfo.callerToken_（F-32）</text>
+  <rect x="510" y="310" width="400" height="92" rx="10" fill="#ffffff" stroke="#a9c5f9" stroke-width="2"/>
+  <text x="710" y="338" font-size="15" font-weight="700" fill="#0b3d91" text-anchor="middle">RequestModalUIExtInner（:4508）</text>
+  <text x="710" y="362" font-size="12" fill="#475467" text-anchor="middle">Modal 扩展（唯一无既有拦截器的收敛点）</text>
+  <text x="710" y="384" font-size="11.5" fill="#98a2b3" text-anchor="middle">ad-hoc 挂接同一辅助函数</text>
+
+  <!-- ══ 右上：TaskInterceptor 说明 ══ -->
+  <rect x="980" y="130" width="880" height="300" rx="18" fill="#fffbeb" stroke="#f59e0b" stroke-width="2.5"/>
+  <rect x="980" y="130" width="880" height="54" rx="18" fill="#fef3c7"/>
+  <text x="1420" y="164" font-size="20" font-weight="700" fill="#92400e" text-anchor="middle">TaskInterceptor（AMS 规范拦截器框架）</text>
+  <text x="1010" y="212" font-size="14.5" fill="#344054">· 实现 IAbilityInterceptor，经 AddInterceptor("Task") 注册——4/5 收敛点</text>
+  <text x="1030" y="236" font-size="13" fill="#667085">已有既有拦截器链运行（ScreenUnlock/CrowdTest/Control…），复用架构（F-36）</text>
+  <text x="1010" y="268" font-size="14.5" fill="#344054">· 恒返 ERR_OK（观察者模式）：纳管失败不阻断启动（R-8/R-13）</text>
+  <text x="1010" y="300" font-size="14.5" fill="#344054">· Want 无 taskId → 短路返回，零开销（R-13）</text>
+  <text x="1010" y="332" font-size="14.5" fill="#344054">· 身份解析：specifyTokenId / asCallerSourceToken 优先（代理启动</text>
+  <text x="1030" y="356" font-size="13" fill="#667085">取业务发起方，非 IPC 现场值——防 sceneboard/AMS 身份误判）</text>
+  <text x="1010" y="388" font-size="14.5" fill="#344054">· 对 AMS→AppMS 调用统一 IN_PROCESS_CALL 身份重置（F-29）</text>
+  <text x="1030" y="412" font-size="13" fill="#667085">AppMS 侧见 foundation native token，通道鉴权规则①命中</text>
+
+  <!-- ══ 中部：条件两段式 ══ -->
+  <rect x="60" y="470" width="1180" height="280" rx="18" fill="#f0fdf4" stroke="#067647" stroke-width="2.5"/>
+  <rect x="60" y="470" width="1180" height="54" rx="18" fill="#dcfce7"/>
+  <text x="650" y="504" font-size="20" font-weight="700" fill="#067647" text-anchor="middle">条件两段式纳管（targetPid 判定分流）</text>
+
+  <rect x="90" y="548" width="540" height="176" rx="12" fill="#ffffff" stroke="#86efac" stroke-width="2"/>
+  <text x="360" y="580" font-size="16" font-weight="700" fill="#067647" text-anchor="middle">分支 A：目标 record 已存在且 attach（GetPid&gt;0）</text>
+  <text x="110" y="612" font-size="13.5" fill="#344054">· 场景：运行中 Service / 单例 / 扩展复用</text>
+  <text x="110" y="638" font-size="13.5" fill="#344054">· 动作：RegisterTaskProcess(taskId, pid, 身份)</text>
+  <text x="110" y="664" font-size="13.5" fill="#344054">· 一次动作完成纳管（无意向阶段）</text>
+  <text x="110" y="696" font-size="12" fill="#98a2b3">· 前提：pid 仅 attach 时设置（F-11 实证）</text>
+
+  <rect x="670" y="548" width="540" height="176" rx="12" fill="#ffffff" stroke="#86efac" stroke-width="2"/>
+  <text x="940" y="580" font-size="16" font-weight="700" fill="#067647" text-anchor="middle">分支 B：冷启动 / 热启动新实例（无 pid）</text>
+  <text x="690" y="612" font-size="13.5" fill="#344054">① RegisterTaskIntent 意向登记（30s 超时清理）</text>
+  <text x="690" y="638" font-size="13.5" fill="#344054">② attach（每 ability 实例）→ 补注册（身份=①登记值）</text>
+  <text x="690" y="664" font-size="13.5" fill="#344054">· attach 失败 → 主动清理意向（F-7）</text>
+  <text x="690" y="696" font-size="12" fill="#98a2b3">· attach 晚于超时 → 直接补发②（F-39）</text>
+
+  <!-- ══ 右中：CLI 双路径 ══ -->
+  <rect x="1280" y="470" width="580" height="280" rx="18" fill="#fff7ed" stroke="#ea580c" stroke-width="2.5"/>
+  <rect x="1280" y="470" width="580" height="54" rx="18" fill="#ffe8d2"/>
+  <text x="1570" y="504" font-size="20" font-weight="700" fill="#9a3412" text-anchor="middle">CLI：cli_tool_framework 双路径（D-22）</text>
+  <rect x="1300" y="548" width="540" height="86" rx="10" fill="#ffffff" stroke="#fdba74" stroke-width="1.8"/>
+  <text x="1570" y="574" font-size="14" font-weight="700" fill="#9a3412" text-anchor="middle">路径 A：CLI 工具（ExecTool/ExecCmd）</text>
+  <text x="1570" y="596" font-size="12" fill="#475467" text-anchor="middle">aimgr fork + execvp(claw_sandbox) → 沙箱内 CLI 进程</text>
+  <text x="1570" y="618" font-size="12" fill="#475467" text-anchor="middle">不经 AMS → aimgr 挂点注册（taskId 经 args 透传）</text>
+  <rect x="1300" y="646" width="540" height="86" rx="10" fill="#ffffff" stroke="#fdba74" stroke-width="1.8"/>
+  <text x="1570" y="672" font-size="14" font-weight="700" fill="#9a3412" text-anchor="middle">路径 B：Skill 会话</text>
+  <text x="1570" y="694" font-size="12" fill="#475467" text-anchor="middle">ExecuteInAppSkillWithTokenId → AMS StartExtensionAbilityInner</text>
+  <text x="1570" y="716" font-size="12" fill="#475467" text-anchor="middle">taskId 随 skillArgs 透传 → 收敛点天然覆盖（无需挂点）</text>
+
+  <!-- ══ 底部：AppMS 校验链 ══ -->
+  <rect x="60" y="790" width="1800" height="240" rx="18" fill="#f8f9fc" stroke="#344054" stroke-width="2"/>
+  <rect x="60" y="790" width="1800" height="54" rx="18" fill="#e9edf5"/>
+  <text x="960" y="824" font-size="20" font-weight="700" fill="#344054" text-anchor="middle">AppMS 侧校验链（通道鉴权 + B-2 + 上限，F-8/F-29/D-22）</text>
+
+  <rect x="100" y="866" width="420" height="140" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="310" y="894" font-size="14.5" font-weight="700" fill="#344054" text-anchor="middle">通道鉴权（谁的注册可信任）</text>
+  <text x="120" y="922" font-size="12.5" fill="#475467">· foundation native（规则①）：信任入参（AMS 转发）</text>
+  <text x="120" y="946" font-size="12.5" fill="#475467">· aimgr native（规则 1b，D-22）：信任入参（CLI 挂点）</text>
+  <text x="120" y="970" font-size="12.5" fill="#475467">· 其他调用（规则②③）：入参=IPC 实际身份 + pid 归属校验</text>
+  <text x="120" y="992" font-size="11" fill="#98a2b3">· 判定原语 CheckSpecificSystemAbilityAccessPermission</text>
+
+  <rect x="560" y="866" width="420" height="140" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="770" y="894" font-size="14.5" font-weight="700" fill="#344054" text-anchor="middle">B-2 集合校验（防仿冒核心）</text>
+  <text x="580" y="922" font-size="12.5" fill="#475467">· callerTokenId ∈ {创建者} ∪ {任务内进程}</text>
+  <text x="580" y="946" font-size="12.5" fill="#475467">· 链式启动合法：任务内进程 A 启动 B（可信链）</text>
+  <text x="580" y="970" font-size="12.5" fill="#475467">· CLI 进程 tokenId 双值匹配（原始/Invoker 标志）</text>
+  <text x="580" y="992" font-size="11" fill="#98a2b3">· taskId 随机 128bit 不可猜测（B-1）</text>
+
+  <rect x="1020" y="866" width="420" height="140" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="1230" y="894" font-size="14.5" font-weight="700" fill="#344054" text-anchor="middle">上限与幂等（防滥用）</text>
+  <text x="1040" y="922" font-size="12.5" fill="#475467">· 单任务纳管进程 ≤16 · 全局豁免进程 ≤64（R-22）</text>
+  <text x="1040" y="946" font-size="12.5" fill="#475467">· 重复纳管幂等成功</text>
+  <text x="1040" y="970" font-size="12.5" fill="#475467">· 校验失败：拒绝纳管，不阻断启动，不上报错误</text>
+  <text x="1040" y="992" font-size="11" fill="#98a2b3">· 防探测：无法区分"任务不存在"与"无权限"</text>
+
+  <rect x="1480" y="866" width="340" height="140" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="1650" y="894" font-size="14.5" font-weight="700" fill="#344054" text-anchor="middle">进程死亡清理（R-12）</text>
+  <text x="1500" y="922" font-size="12.5" fill="#475467">· 应用进程：AppMS 死亡通知链（≤1s）</text>
+  <text x="1500" y="946" font-size="12.5" fill="#475467">· CLI 进程：aimgr SIGCHLD reaper（互补）</text>
+  <text x="1500" y="970" font-size="12.5" fill="#475467">· 移除 + 释放豁免 + 档位按剩余任务重算</text>
+  <text x="1500" y="992" font-size="11" fill="#98a2b3">· EDS 按 uid 引用计数重评估（F-47）</text>
+
+  <text x="960" y="1062" font-size="12" fill="#98a2b3" text-anchor="middle">AI Task Manager · 纳管拦截 2/4 · 依据 design.md §5.3/§5.4（含 §5.4.3 CLI 挂点）</text>
+</svg>
