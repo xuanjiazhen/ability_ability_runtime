@@ -556,22 +556,32 @@ ani_object EtsApplication::GetApplicationContextInstance(ani_env *env)
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
         return nullptr;
     }
+    auto applicationContext = ApplicationContext::GetInstance();
     auto etsReference =
         AbilityRuntime::ApplicationContextManager::GetApplicationContextManager().GetEtsGlobalObject();
-    if (etsReference == nullptr || etsReference->aniRef == nullptr) {
-        auto applicationContext = ApplicationContext::GetInstance();
-        ani_object applicationContextObject =
-            EtsApplicationContextUtils::CreateEtsApplicationContext(env, applicationContext);
-        if (applicationContextObject == nullptr) {
-            TAG_LOGE(AAFwkTag::APPKIT, "null applicationContextObject");
-            AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
-            ani_ref result = nullptr;
-            env->GetNull(&result);
-            return static_cast<ani_object>(result);
+    if (etsReference != nullptr && etsReference->aniRef != nullptr) {
+        auto cachedObj = reinterpret_cast<ani_object>(etsReference->aniRef);
+        if (applicationContext != nullptr && applicationContext->ConsumeApplicationInfoUpdateFlag()) {
+            ContextUtil::UpdateEtsApplicationContextInfo(env, cachedObj, applicationContext);
         }
-        return applicationContextObject;
+        return cachedObj;
     }
-    return reinterpret_cast<ani_object>(etsReference->aniRef);
+    if (applicationContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
+        ani_ref result = nullptr;
+        env->GetNull(&result);
+        return static_cast<ani_object>(result);
+    }
+    ani_object applicationContextObject =
+        EtsApplicationContextUtils::CreateEtsApplicationContext(env, applicationContext);
+    if (applicationContextObject == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applicationContextObject");
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        ani_ref result = nullptr;
+        env->GetNull(&result);
+        return static_cast<ani_object>(result);
+    }
+    return applicationContextObject;
 }
 
 ani_object EtsApplication::GetApplicationContext(ani_env *env)
@@ -581,8 +591,22 @@ ani_object EtsApplication::GetApplicationContext(ani_env *env)
         TAG_LOGE(AAFwkTag::APPKIT, "null env");
         return nullptr;
     }
-
     auto applicationContext = ApplicationContext::GetInstance();
+    if (applicationContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
+        ani_ref result = nullptr;
+        env->GetNull(&result);
+        return static_cast<ani_object>(result);
+    }
+    auto etsReference =
+        AbilityRuntime::ApplicationContextManager::GetApplicationContextManager().GetEtsGlobalObject();
+    if (etsReference != nullptr && etsReference->aniRef != nullptr) {
+        auto cachedObj = reinterpret_cast<ani_object>(etsReference->aniRef);
+        if (applicationContext->ConsumeApplicationInfoUpdateFlag()) {
+            ContextUtil::UpdateEtsApplicationContextInfo(env, cachedObj, applicationContext);
+        }
+        return cachedObj;
+    }
     ani_object applicationContextObject =
         EtsApplicationContextUtils::CreateEtsApplicationContext(env, applicationContext);
     if (applicationContextObject == nullptr) {

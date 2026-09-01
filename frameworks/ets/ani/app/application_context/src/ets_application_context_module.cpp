@@ -162,6 +162,24 @@ std::unique_ptr<NativeReference> EtsApplicationContextModule::CreateNativeRefere
     return systemModule;
 }
 
+napi_value EtsApplicationContextModule::GetOrCreateSubThreadObject(napi_env napiEnv,
+    std::shared_ptr<ApplicationContext> applicationContext)
+{
+    auto subThreadObj = static_cast<NativeReference *>(
+        applicationContext->GetSubThreadObject(static_cast<void *>(napiEnv)));
+    if (subThreadObj != nullptr) {
+        return subThreadObj->Get();
+    }
+    auto subThreadRef = CreateNativeReference(napiEnv, applicationContext);
+    if (subThreadRef == nullptr) {
+        return nullptr;
+    }
+    auto newObject = subThreadRef->Get();
+    applicationContext->BindSubThreadObject(
+        static_cast<void *>(napiEnv), static_cast<void *>(subThreadRef.release()));
+    return newObject;
+}
+
 napi_value EtsApplicationContextModule::GetOrCreateDynamicObject(napi_env napiEnv,
     std::shared_ptr<ApplicationContext> applicationContext)
 {
@@ -170,52 +188,36 @@ napi_value EtsApplicationContextModule::GetOrCreateDynamicObject(napi_env napiEn
         TAG_LOGE(AAFwkTag::CONTEXT, "null param");
         return nullptr;
     }
-
-    // if sub-thread, create a new applicationContext and return
     if (getpid() != syscall(SYS_gettid)) {
-        auto subThreadObj = static_cast<NativeReference *>(
-            applicationContext->GetSubThreadObject(static_cast<void *>(napiEnv)));
-        if (subThreadObj != nullptr) {
-            return subThreadObj->Get();
-        }
-        auto subThreadRef = CreateNativeReference(napiEnv, applicationContext);
-        if (subThreadRef == nullptr) {
-            return nullptr;
-        }
-        auto newObject = subThreadRef->Get();
-        applicationContext->BindSubThreadObject(
-            static_cast<void *>(napiEnv), static_cast<void *>(subThreadRef.release()));
-        return newObject;
+        return GetOrCreateSubThreadObject(napiEnv, applicationContext);
     }
-
-    // if main-thread, get bindingObj firstly
     auto &bindingObj = applicationContext->GetBindingObject();
     if (bindingObj == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null bindingObj");
         return nullptr;
     }
-
-    // if main-thread bindingObj exist, return it directly
     auto dynamicContext = bindingObj->Get<NativeReference>();
     if (dynamicContext != nullptr) {
-        TAG_LOGI(AAFwkTag::CONTEXT, "there exist a dynamicContext");
-        return dynamicContext->Get();
-    }
-
-    if (!applicationContext->GetApplicationInfoUpdateFlag()) {
-        auto appContextObj = ApplicationContextManager::GetApplicationContextManager().GetGlobalObject(napiEnv);
-        if (appContextObj != nullptr) {
-            TAG_LOGI(AAFwkTag::UIABILITY, "there exist a appContextObj");
-            return appContextObj->GetNapiValue();
+        napi_value objValue = dynamicContext->Get();
+        if (applicationContext->ConsumeApplicationInfoUpdateFlag()) {
+            return JsApplicationContextUtils::UpdateApplicationContextInfo(
+                napiEnv, objValue, applicationContext);
         }
+        return objValue;
     }
-
-    // if main-thread bindingObj didn't exist, create and bind
+    auto appContextObj = ApplicationContextManager::GetApplicationContextManager().GetGlobalObject(napiEnv);
+    if (appContextObj != nullptr) {
+        napi_value objValue = appContextObj->GetNapiValue();
+        if (applicationContext->ConsumeApplicationInfoUpdateFlag()) {
+            return JsApplicationContextUtils::UpdateApplicationContextInfo(
+                napiEnv, objValue, applicationContext);
+        }
+        return objValue;
+    }
     auto nativeRef = CreateNativeReference(napiEnv, applicationContext);
     if (nativeRef == nullptr) {
         return nullptr;
     }
-
     auto object = nativeRef->Get();
     applicationContext->Bind(nativeRef.release());
     return object;

@@ -44,6 +44,8 @@ private:
     static bool IsInstanceOf(ani_env *aniEnv, ani_object aniObj);
     static std::unique_ptr<NativeReference> CreateNativeReference(napi_env napiEnv,
         std::shared_ptr<ApplicationContext> applicationContext);
+    static napi_value GetOrCreateSubThreadObject(napi_env napiEnv,
+        std::shared_ptr<ApplicationContext> applicationContext);
     static ani_object CreateDynamicObject(ani_env *aniEnv, ani_class aniCls,
         std::shared_ptr<ApplicationContext> applicationContext);
 };

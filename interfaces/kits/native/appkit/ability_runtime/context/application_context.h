@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_APPLICATION_CONTEXT_H
 #define OHOS_ABILITY_RUNTIME_APPLICATION_CONTEXT_H
 
+#include <atomic>
 #include <vector>
 #include <shared_mutex>
 #include <unordered_map>
@@ -203,6 +204,7 @@ public:
 
     bool GetApplicationInfoUpdateFlag() const;
     void SetApplicationInfoUpdateFlag(bool flag);
+    bool ConsumeApplicationInfoUpdateFlag();
     void RegisterAppConfigUpdateObserver(AppConfigUpdateCallback appConfigChangeCallback);
     void RegisterAppFontObserver(AppConfigUpdateCallback appFontCallback);
     void RegisterProcessSecurityExit(AppProcessExitCallback appProcessExitCallback);
@@ -273,7 +275,7 @@ private:
     std::mutex interopCallbackLock_;
     std::recursive_mutex envCallbacksLock_;
     std::recursive_mutex applicationStateCallbackLock_;
-    bool applicationInfoUpdateFlag_ = false;
+    std::atomic<bool> applicationInfoUpdateFlag_{false};
     AppConfigUpdateCallback appConfigChangeCallback_ = nullptr;
     AppConfigUpdateCallback appFontCallback_ = nullptr;
     AppProcessExitCallback appProcessExitCallback_ = nullptr;
