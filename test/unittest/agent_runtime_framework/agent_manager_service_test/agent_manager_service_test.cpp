@@ -241,6 +241,12 @@ void AgentManagerServiceTest::SetUp(void)
     MyFlag::agentCardAbilityName = "TestAbility";
     MyFlag::shouldCreateAgentCardAppInfo = true;
     MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::APP);
+    // ForCli (CLI agent connect, issue-16055) test seams — reset to the happy-path defaults so each
+    // test starts from a known-good baseline (CCM on, CLI tool token, valid HAP, uid = calling uid).
+    MyFlag::retGetBoolParameterCliEnabled = true;
+    MyFlag::retIsCliToolToken = true;
+    MyFlag::retGetHapTokenInfo = 0;
+    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingUid();
     MyFlag::lastConnectAbilityWant = Want();
     MyFlag::shouldFillExtensionAbilityInfos = true;
     MyFlag::retGetApplicationInfo = false;
@@ -5387,5 +5393,196 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_035, TestSize.Lev
     // Pre-existing 100 agents remain; the second caller added none.
     EXPECT_EQ(AgentConnectManager::GetInstance().agentOwners_.size(), LOW_CODE_HOST_LIMIT_PROBE_COUNT);
 }
+// ---- TASK-6: ForCli interface UT coverage (issue-16055) ----
+// ConnectAgentExtensionAbilityForCli / DisconnectAgentExtensionAbilityForCli — security-critical
+// branch coverage: CCM gate, IsCliToolToken gate, anti-spoof (callerIdentity HAP uid == CLI tool
+// uid), APP-type enforcement, app-A CONNECT_AGENT / system-app / foreground enforcement, success.
+// All error codes are asserted against the exact values the production ForCli code returns so the
+// test guards against a silent relaxation of any branch.
+static Want BuildForCliConnectWant()
+{
+    Want want;
+    want.SetParam(AGENTID_KEY, std::string("testAgent"));
+    want.SetElementName("", "test.bundle", "TestAbility");
+    return want;
+}
+
+// ConnectAgentExtensionAbilityForCli: CCM flag off (system param false) -> permission denied.
+HWTEST_F(AgentManagerServiceTest, ConnectForCli_CcmOff_ReturnsPermissionDenied, TestSize.Level1)
+{
+    MyFlag::retGetBoolParameterCliEnabled = false;
+    auto connection = sptr<MockAbilityConnection>::MakeSptr();
+    EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbilityForCli(
+        BuildForCliConnectWant(), connection, std::string("callerIdentity")), ERR_PERMISSION_DENIED);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 0);
+}
+
+// ConnectAgentExtensionAbilityForCli: CCM on but caller is not a CLI tool token -> denied.
+HWTEST_F(AgentManagerServiceTest, ConnectForCli_NotCliTool_ReturnsPermissionDenied, TestSize.Level1)
+{
+    MyFlag::retGetBoolParameterCliEnabled = true;
+    MyFlag::retIsCliToolToken = false;
+    auto connection = sptr<MockAbilityConnection>::MakeSptr();
+    EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbilityForCli(
+        BuildForCliConnectWant(), connection, std::string("callerIdentity")), ERR_PERMISSION_DENIED);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 0);
+}
+
+// ConnectAgentExtensionAbilityForCli: null connection -> invalid value.
+HWTEST_F(AgentManagerServiceTest, ConnectForCli_NullConnection_ReturnsInvalidValue, TestSize.Level1)
+{
+    MyFlag::retGetBoolParameterCliEnabled = true;
+    MyFlag::retIsCliToolToken = true;
+    EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbilityForCli(
+        BuildForCliConnectWant(), nullptr, std::string("callerIdentity")), ERR_INVALID_VALUE);
+}
+
+// ConnectAgentExtensionAbilityForCli: callerIdentity token is not a HAP token (GetHapTokenInfo fails)
+// -> denied (anti-spoof).
+HWTEST_F(AgentManagerServiceTest, ConnectForCli_CallerIdentityNotHap_ReturnsPermissionDenied, TestSize.Level1)
+{
+    MyFlag::retGetBoolParameterCliEnabled = true;
+    MyFlag::retIsCliToolToken = true;
+    MyFlag::retGetHapTokenInfo = -1;  // not a HAP token
+    auto connection = sptr<MockAbilityConnection>::MakeSptr();
+    EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbilityForCli(
+        BuildForCliConnectWant(), connection, std::string("callerIdentity")), ERR_PERMISSION_DENIED);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 0);
+}
+
+// ConnectAgentExtensionAbilityForCli: callerIdentity token uid != CLI tool uid (spoof) -> denied.
+HWTEST_F(AgentManagerServiceTest, ConnectForCli_UidSpoof_ReturnsPermissionDenied, TestSize.Level1)
+{
+    MyFlag::retGetBoolParameterCliEnabled = true;
+    MyFlag::retIsCliToolToken = true;
+    MyFlag::retGetHapTokenInfo = 0;
+    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingUid() + 1;  // != CLI tool uid
+    auto connection = sptr<MockAbilityConnection>::MakeSptr();
+    EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbilityForCli(
+        BuildForCliConnectWant(), connection, std::string("callerIdentity")), ERR_PERMISSION_DENIED);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 0);
+}
+
+// ConnectAgentExtensionAbilityForCli: agent card type is not APP (CLI path: APP only) -> wrong
+// interface call (no preflight; the ForCli interface enforces APP inline).
+HWTEST_F(AgentManagerServiceTest, ConnectForCli_NonAppType_ReturnsWrongInterfaceCall, TestSize.Level1)
+{
+    MyFlag::retGetBoolParameterCliEnabled = true;
+    MyFlag::retIsCliToolToken = true;
+    MyFlag::retGetHapTokenInfo = 0;
+    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingUid();
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::ATOMIC_SERVICE);
+    auto connection = sptr<MockAbilityConnection>::MakeSptr();
+    EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbilityForCli(
+        BuildForCliConnectWant(), connection, std::string("callerIdentity")), AAFwk::ERR_WRONG_INTERFACE_CALL);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 0);
+}
+
+// ConnectAgentExtensionAbilityForCli: app A lacks ohos.permission.CONNECT_AGENT -> denied (no bypass;
+// the ForCli path enforces the entry permission on app A's real token).
+HWTEST_F(AgentManagerServiceTest, ConnectForCli_NoConnectAgentPerm_ReturnsPermissionDenied, TestSize.Level1)
+{
+    MyFlag::retGetBoolParameterCliEnabled = true;
+    MyFlag::retIsCliToolToken = true;
+    MyFlag::retGetHapTokenInfo = 0;
+    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingUid();
+    MyFlag::retVerifyConnectAgentPermission = false;
+    auto connection = sptr<MockAbilityConnection>::MakeSptr();
+    EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbilityForCli(
+        BuildForCliConnectWant(), connection, std::string("callerIdentity")), ERR_PERMISSION_DENIED);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 0);
+}
+
+// ConnectAgentExtensionAbilityForCli: app A is not a system app -> not system app (no bypass).
+HWTEST_F(AgentManagerServiceTest, ConnectForCli_NotSystemApp_ReturnsNotSystemApp, TestSize.Level1)
+{
+    MyFlag::retGetBoolParameterCliEnabled = true;
+    MyFlag::retIsCliToolToken = true;
+    MyFlag::retGetHapTokenInfo = 0;
+    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingUid();
+    MyFlag::retJudgeCallerIsAllowedToUseSystemAPI = false;
+    auto connection = sptr<MockAbilityConnection>::MakeSptr();
+    EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbilityForCli(
+        BuildForCliConnectWant(), connection, std::string("callerIdentity")), AAFwk::ERR_NOT_SYSTEM_APP);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 0);
+}
+
+// ConnectAgentExtensionAbilityForCli: app A not foreground -> not top ability (O-13: callerIdentity
+// propagates app A's pid so the foreground check runs on app A's real process).
+HWTEST_F(AgentManagerServiceTest, ConnectForCli_NotForeground_ReturnsNotTopAbility, TestSize.Level1)
+{
+    MyFlag::retGetBoolParameterCliEnabled = true;
+    MyFlag::retIsCliToolToken = true;
+    MyFlag::retGetHapTokenInfo = 0;
+    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingUid();
+    MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_BACKGROUND;
+    auto connection = sptr<MockAbilityConnection>::MakeSptr();
+    EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbilityForCli(
+        BuildForCliConnectWant(), connection, std::string("callerIdentity")), AAFwk::NOT_TOP_ABILITY);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 0);
+}
+
+// ConnectAgentExtensionAbilityForCli: all checks pass -> delegates to ConnectStandardAgentExtensionAbility
+// -> OK; :438 captures app A's identity (propagated to B-side). Verifies the happy path end-to-end.
+HWTEST_F(AgentManagerServiceTest, ConnectForCli_AllOk_ReturnsOk, TestSize.Level1)
+{
+    MyFlag::retGetBoolParameterCliEnabled = true;
+    MyFlag::retIsCliToolToken = true;
+    MyFlag::retGetHapTokenInfo = 0;
+    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingUid();
+    MyFlag::retConnectAbilityWithExtensionType = ERR_OK;
+    auto connection = sptr<MockAbilityConnection>::MakeSptr();
+    EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbilityForCli(
+        BuildForCliConnectWant(), connection, std::string("callerIdentity")), ERR_OK);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 1);
+}
+
+// DisconnectAgentExtensionAbilityForCli: CCM off -> denied.
+HWTEST_F(AgentManagerServiceTest, DisconnectForCli_CcmOff_ReturnsPermissionDenied, TestSize.Level1)
+{
+    MyFlag::retGetBoolParameterCliEnabled = false;
+    auto connection = sptr<MockAbilityConnection>::MakeSptr();
+    EXPECT_EQ(AgentManagerService::GetInstance()->DisconnectAgentExtensionAbilityForCli(
+        connection, std::string("callerIdentity")), ERR_PERMISSION_DENIED);
+    EXPECT_EQ(MyFlag::disconnectAbilityCallCount, 0);
+}
+
+// DisconnectAgentExtensionAbilityForCli: null connection -> invalid value.
+HWTEST_F(AgentManagerServiceTest, DisconnectForCli_NullConnection_ReturnsInvalidValue, TestSize.Level1)
+{
+    MyFlag::retGetBoolParameterCliEnabled = true;
+    MyFlag::retIsCliToolToken = true;
+    EXPECT_EQ(AgentManagerService::GetInstance()->DisconnectAgentExtensionAbilityForCli(
+        nullptr, std::string("callerIdentity")), ERR_INVALID_VALUE);
+}
+
+// DisconnectAgentExtensionAbilityForCli: callerIdentity uid spoof -> denied.
+HWTEST_F(AgentManagerServiceTest, DisconnectForCli_Spoof_ReturnsPermissionDenied, TestSize.Level1)
+{
+    MyFlag::retGetBoolParameterCliEnabled = true;
+    MyFlag::retIsCliToolToken = true;
+    MyFlag::retGetHapTokenInfo = 0;
+    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingUid() + 1;
+    auto connection = sptr<MockAbilityConnection>::MakeSptr();
+    EXPECT_EQ(AgentManagerService::GetInstance()->DisconnectAgentExtensionAbilityForCli(
+        connection, std::string("callerIdentity")), ERR_PERMISSION_DENIED);
+    EXPECT_EQ(MyFlag::disconnectAbilityCallCount, 0);
+}
+
+// DisconnectAgentExtensionAbilityForCli: all checks pass -> delegates to
+// DisconnectAgentExtensionAbility (ValidateDisconnectAgentRequest runs on app A's token via
+// SetCallingIdentity) -> OK.
+HWTEST_F(AgentManagerServiceTest, DisconnectForCli_AllOk_DelegatesAndReturnsOk, TestSize.Level1)
+{
+    MyFlag::retGetBoolParameterCliEnabled = true;
+    MyFlag::retIsCliToolToken = true;
+    MyFlag::retGetHapTokenInfo = 0;
+    MyFlag::hapTokenInfoUid = IPCSkeleton::GetCallingUid();
+    MyFlag::retDisconnectAbility = ERR_OK;
+    auto connection = sptr<MockAbilityConnection>::MakeSptr();
+    EXPECT_EQ(AgentManagerService::GetInstance()->DisconnectAgentExtensionAbilityForCli(
+        connection, std::string("callerIdentity")), ERR_OK);
+}
+
 } // namespace AgentRuntime
 } // namespace OHOS
