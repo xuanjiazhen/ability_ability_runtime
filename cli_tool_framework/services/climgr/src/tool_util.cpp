@@ -201,6 +201,12 @@ bool ToolUtil::GenerateSandboxConfig(const ExecToolParam &param, AccessToken::Ac
     config["subCliName"] = param.subcommand;
     config["type"] = "cli";
     nlohmann::json envConfig;
+    // Capture app A's calling-identity string (cliMgr's caller IS app A) so the ForCli agentmgr
+    // interface can propagate app A end-to-end. ResetCallingIdentity resets the thread to cliMgr's
+    // own identity, so restore app A immediately so the GetCalling* below still see app A.
+    std::string callerIdentity = IPCSkeleton::ResetCallingIdentity();
+    IPCSkeleton::SetCallingIdentity(callerIdentity);
+    envConfig["ohos_cli_callerIdentity"] = callerIdentity;
     envConfig["ohos_cli_callerBundleName"] = bundleInfo.name;
     envConfig["ohos_cli_callerUid"] = std::to_string(IPCSkeleton::GetCallingUid());
     envConfig["ohos_cli_callerTokenId"] = std::to_string(IPCSkeleton::GetCallingTokenID());
