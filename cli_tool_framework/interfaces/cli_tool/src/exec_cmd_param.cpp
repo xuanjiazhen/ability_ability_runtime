@@ -45,6 +45,10 @@ bool ExecCmdParam::Marshalling(Parcel &parcel) const
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Write isShellCommand failed.");
         return false;
     }
+    if (!parcel.WriteString(challenge)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Write challenge failed.");
+        return false;
+    }
     return true;
 }
 
@@ -79,13 +83,27 @@ ExecCmdParam *ExecCmdParam::Unmarshalling(Parcel &parcel)
     }
     result->options = *execOptions;
 
-    // Tail field for backward compat: ReadBool fails on old clients, defaults to true.
+    // Tail fields for backward compat: old clients don't write these.
     result->isShellCommand = true;
-    if (parcel.ReadBool(result->isShellCommand)) {
+    if (!parcel.ReadBool(result->isShellCommand)) {
+        TAG_LOGD(AAFwkTag::CLI_TOOL, "isShellCommand not present, using default(true).");
         return result;
     }
-    TAG_LOGD(AAFwkTag::CLI_TOOL, "isShellCommand not present in parcel, using default(true).");
+    result->challenge = "";
+    if (!parcel.ReadString(result->challenge)) {
+        TAG_LOGD(AAFwkTag::CLI_TOOL, "challenge not present, using default(\"\").");
+    }
     return result;
+}
+
+std::string ExecCmdParam::ExtractToolName(const std::string &cmd)
+{
+    auto first = cmd.find_first_not_of(" \t");
+    if (first == std::string::npos) {
+        return "";
+    }
+    auto pos = cmd.find_first_of(" \t", first);
+    return (pos == std::string::npos) ? cmd.substr(first) : cmd.substr(first, pos - first);
 }
 } // namespace CliTool
 } // namespace OHOS

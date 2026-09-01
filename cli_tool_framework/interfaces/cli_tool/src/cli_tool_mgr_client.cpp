@@ -31,16 +31,6 @@ namespace CliTool {
 
 namespace {
 constexpr int32_t ERR_OK = 0;
-
-std::string ExtractToolName(const std::string &cmd)
-{
-    auto first = cmd.find_first_not_of(" \t");
-    if (first == std::string::npos) {
-        return "";
-    }
-    auto pos = cmd.find_first_of(" \t", first);
-    return (pos == std::string::npos) ? cmd.substr(first) : cmd.substr(first, pos - first);
-}
 } // namespace
 
 CliToolMGRClient& CliToolMGRClient::GetInstance()
@@ -95,7 +85,12 @@ ErrCode CliToolMGRClient::ExecCmd(const ExecCmdParam &param,
         return GET_CLI_TOOL_MGR_SERVICE_FAILED;
     }
 
-    std::string eventKey = param.isShellCommand ? "shell" : ExtractToolName(param.cmd);
+    if (!param.isShellCommand && param.cmd.find_first_not_of(" \t") == std::string::npos) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "cmd is empty in tool command mode");
+        return ERR_INVALID_PARAM;
+    }
+
+    std::string eventKey = param.isShellCommand ? "shell" : ExecCmdParam::ExtractToolName(param.cmd);
     std::string eventId = CliEventReplyManager::GetInstance().AddEventReplyCallback(eventKey,
         [cb = std::move(callback)](const CliEventReplyResult &result) {
             if (cb) {
