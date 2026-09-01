@@ -1160,18 +1160,14 @@ int32_t CliToolManagerService::ExecCmdToolMode(const ExecCmdParam &param, const 
     int32_t callerPid, int32_t callerUid, uint32_t tokenId, const std::string &bundleName)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL,
-        "ExecCmdToolMode: cmd=%{public}s, callerPid=%{public}d, callerUid=%{public}d",
+        "ExecCmdToolMode: cmd=%{private}s, callerPid=%{public}d, callerUid=%{public}d",
         param.cmd.c_str(), callerPid, callerUid);
 
     // Step 1: Extract toolName, look up tool.
-    auto first = param.cmd.find_first_not_of(" \t");
-    if (first == std::string::npos) {
-        ReportCliExecuteFailed(bundleName, "", "invalid_tool_name");
-        return ERR_INVALID_PARAM;
-    }
-    auto pos = param.cmd.find_first_of(" \t", first);
-    std::string toolName = (pos == std::string::npos) ? param.cmd.substr(first) : param.cmd.substr(first, pos - first);
-    if (toolName.empty() || toolName[0] == '/') {
+    std::string toolName = ExecCmdParam::ExtractToolName(param.cmd);
+    // Tool names: alphanumeric, hyphen, underscore only (no path separators).
+    if (toolName.empty() || toolName.find_first_not_of(
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_") != std::string::npos) {
         ReportCliExecuteFailed(bundleName, toolName, "invalid_tool_name");
         return ERR_INVALID_PARAM;
     }
@@ -1192,7 +1188,7 @@ int32_t CliToolManagerService::ExecCmdToolMode(const ExecCmdParam &param, const 
     }
 
     toolParam.options = param.options;
-    toolParam.challenge = "";
+    toolParam.challenge = param.challenge;
 
     // Step 3: Validate and prepare sandbox. GenerateSandboxConfig may overwrite bundleName.
     std::string sandboxConfig;

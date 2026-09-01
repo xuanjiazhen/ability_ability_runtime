@@ -310,6 +310,25 @@ bool UnwrapExecCmdOptions(napi_env env, napi_value obj, ExecCmdParam &param,
         }
     }
 
+    if (napi_has_named_property(env, obj, "challenge", &hasProperty) != napi_ok) {
+        msg = "has challenge failed";
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+        return false;
+    }
+    if (hasProperty) {
+        napi_value challengeProp = nullptr;
+        if (napi_get_named_property(env, obj, "challenge", &challengeProp) != napi_ok) {
+            msg = "invalid challenge property";
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+            return false;
+        }
+        if (!AppExecFwk::UnwrapStringFromJS2(env, challengeProp, param.challenge)) {
+            msg = "unwrap challenge failed";
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+            return false;
+        }
+    }
+
     if (napi_has_named_property(env, obj, "callback", &hasProperty) != napi_ok) {
         msg = "has callback failed";
         TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
