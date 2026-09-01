@@ -79,6 +79,11 @@ public:
     static sptr<AAFwk::IAbilityConnection> lastDisconnectAbilityConnection;
     static int32_t connectAbilityWithExtensionTypeCallCount;
     static int32_t disconnectAbilityCallCount;
+    // ForCli (CLI agent connect, issue-16055) test seams.
+    static bool retGetBoolParameterCliEnabled;  // system::GetBoolParameter(CCM flag) -> this
+    static bool retIsCliToolToken;              // AccessTokenKit::IsCliToolToken -> this
+    static int32_t retGetHapTokenInfo;          // AccessTokenKit::GetHapTokenInfo return code (0 = ok)
+    static int32_t hapTokenInfoUid;             // uid filled into HapTokenInfo (anti-spoof: vs CLI tool uid)
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS

@@ -22,6 +22,8 @@
 
 #include "ability_manager_client.h"
 #include "ability_manager_errors.h"
+#include "accesstoken_kit.h"
+#include "hap_token_info.h"
 #include "agent_bundle_event_callback.h"
 #include "agent_connect_manager.h"
 #include "agent_utils.h"
@@ -38,6 +40,7 @@
 #include "in_process_call_wrapper.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
+#include "parameters.h"
 #include "permission_constants.h"
 #include "permission_verification.h"
 #include "system_ability_definition.h"
@@ -61,6 +64,20 @@ bool IsLowCodeTargetMatched(const AAFwk::Want &want, const AgentCard &card)
         return false;
     }
     return true;
+}
+
+constexpr char OHOS_AGENT_CLI_ENABLED[] = "const.product.ohos_agent_cli.enabled";
+
+// ADR-5(revised): IsCliToolToken + CCM is a FEATURE GATE only ("is CLI-driven agent connect supported on
+// this device"), NOT a security bypass. The CLI tool process (TOKEN_SHELL) lacks app A's HAP identity,
+// so app A's real permission/foreground is validated on app A's token via the ForCli interfaces
+// (callerIdentity from cliMgr). Non-CLI callers never reach the ForCli path.
+bool IsOhosAgentCliEnabled()
+{
+    if (!system::GetBoolParameter(OHOS_AGENT_CLI_ENABLED, false)) {
+        return false;
+    }
+    return Security::AccessToken::AccessTokenKit::IsCliToolToken(IPCSkeleton::GetCallingTokenID());
 }
 }
 
@@ -376,6 +393,111 @@ int32_t AgentManagerService::ConnectAgentExtensionAbility(const AAFwk::Want &wan
     }
 
     return ConnectStandardAgentExtensionAbility(connectWant, agentId, card, connection, callerUid);
+}
+
+// ---- CLI-only connect/disconnect: propagate app A's real identity ----
+// IsCliToolToken+CCM is a FEATURE GATE only (not a bypass). The CLI tool process (TOKEN_SHELL) lacks
+// app A's HAP identity, so the end-to-end ability-level auth at AMS (CheckCallPermission + visibility)
+// would see the wrong token. cliMgr captures app A's identity string (ResetCallingIdentity, where app A
+// is the cliMgr caller) + passes it (env -> ohos-agent -> callerIdentity param). Here we
+// SetCallingIdentity(app A) so the connect's :438 capture + the AMS restore propagate app A -> B-side
+// sees app A's real perms. Anti-spoof: the callerIdentity's token must belong to the CLI tool's uid
+// (= app A's uid, unforgeable via claw_sandbox setresuid + cap-drop).
+int32_t AgentManagerService::ConnectAgentExtensionAbilityForCli(const AAFwk::Want &want,
+    const sptr<AAFwk::IAbilityConnection> &connection, const std::string &callerIdentity)
+{
+    if (!IsOhosAgentCliEnabled()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "ForCli connect: not enabled (CCM off or not CLI tool)");
+        return ERR_PERMISSION_DENIED;
+    }
+    if (connection == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "ForCli connect: invalid connection");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t cliToolUid = IPCSkeleton::GetCallingUid();  // app A's uid (claw_sandbox setresuid), unforgeable
+    std::string savedIdentity = IPCSkeleton::ResetCallingIdentity();
+    std::string identity = callerIdentity;
+    IPCSkeleton::SetCallingIdentity(identity);
+    int32_t ret = ERR_OK;
+    do {
+        // anti-spoof: callerIdentity's token must belong to app A's uid
+        Security::AccessToken::HapTokenInfo info;
+        if (Security::AccessToken::AccessTokenKit::GetHapTokenInfo(
+            IPCSkeleton::GetCallingTokenID(), info) != 0) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "ForCli: callerIdentity token not a HAP token");
+            ret = ERR_PERMISSION_DENIED;
+            break;
+        }
+        if (info.uid != cliToolUid) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "ForCli: callerIdentity token uid != CLI tool uid (spoof)");
+            ret = ERR_PERMISSION_DENIED;
+            break;
+        }
+        // resolve + enforce APP type (CLI path: APP only; replaces preflight type-validation)
+        AAFwk::Want connectWant;
+        std::string agentId;
+        AgentCard card;
+        int32_t callerUid = IPCSkeleton::GetCallingUid();  // app A's uid (now restored)
+        ret = ResolveConnectAgentTarget(want, connectWant, agentId, card, callerUid);
+        if (ret != ERR_OK) {
+            break;
+        }
+        if (card.type != AgentCardType::APP) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "ForCli: only APP agent type allowed for CLI connect");
+            ret = AAFwk::ERR_WRONG_INTERFACE_CALL;
+            break;
+        }
+        connectWant.SetParam(AGENT_CARD_TYPE_KEY, static_cast<int32_t>(card.type));
+        // entry auth on app A's real token (no bypass)
+        if (!AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+            AAFwk::PermissionConstants::PERMISSION_CONNECT_AGENT)) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "ForCli: app A lacks CONNECT_AGENT");
+            ret = ERR_PERMISSION_DENIED;
+            break;
+        }
+        if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "ForCli: app A not system-app");
+            ret = AAFwk::ERR_NOT_SYSTEM_APP;
+            break;
+        }
+        ret = ValidateConnectCallerForeground();  // GetCallingPid = app A's pid (from callerIdentity)
+        if (ret != ERR_OK) {
+            break;
+        }
+        // connect: :438 captures originalIdentity = app A -> AMS restores app A -> B-side sees app A
+        ret = ConnectStandardAgentExtensionAbility(connectWant, agentId, card, connection, callerUid);
+    } while (false);
+    IPCSkeleton::SetCallingIdentity(savedIdentity);
+    return ret;
+}
+
+int32_t AgentManagerService::DisconnectAgentExtensionAbilityForCli(
+    const sptr<AAFwk::IAbilityConnection> &connection, const std::string &callerIdentity)
+{
+    if (!IsOhosAgentCliEnabled()) {
+        return ERR_PERMISSION_DENIED;
+    }
+    if (connection == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    int32_t cliToolUid = IPCSkeleton::GetCallingUid();
+    std::string savedIdentity = IPCSkeleton::ResetCallingIdentity();
+    std::string identity = callerIdentity;
+    IPCSkeleton::SetCallingIdentity(identity);
+    int32_t ret = ERR_OK;
+    do {
+        Security::AccessToken::HapTokenInfo info;
+        if (Security::AccessToken::AccessTokenKit::GetHapTokenInfo(
+            IPCSkeleton::GetCallingTokenID(), info) != 0 || info.uid != cliToolUid) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "ForCli disconnect: callerIdentity spoof");
+            ret = ERR_PERMISSION_DENIED;
+            break;
+        }
+        // delegate: ValidateDisconnectAgentRequest checks app A's token now (via SetCallingIdentity)
+        ret = DisconnectAgentExtensionAbility(connection);
+    } while (false);
+    IPCSkeleton::SetCallingIdentity(savedIdentity);
+    return ret;
 }
 
 int32_t AgentManagerService::GetAgentCardTypeForConnect(AAFwk::Want &want, int32_t &cardType)
