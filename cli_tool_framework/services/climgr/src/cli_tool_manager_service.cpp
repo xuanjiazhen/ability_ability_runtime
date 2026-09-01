@@ -15,6 +15,8 @@
 
 #include "cli_tool_manager_service.h"
 
+#include <algorithm>
+#include <cctype>
 #include <cerrno>
 #include <csignal>
 #include <cstring>
@@ -1123,9 +1125,8 @@ int32_t CliToolManagerService::ExecCmdToolMode(const ExecCmdParam &param, const 
 
     // Step 1: Extract toolName, look up tool.
     std::string toolName = ExecCmdParam::ExtractToolName(param.cmd);
-    // Tool names: alphanumeric, hyphen, underscore only (no path separators).
-    if (toolName.empty() || toolName.find_first_not_of(
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_") != std::string::npos) {
+    if (toolName.empty() || !std::all_of(toolName.begin(), toolName.end(),
+        [](char c) { return std::isalnum(static_cast<unsigned char>(c)) || c == '-' || c == '_'; })) {
         ReportCliExecuteFailed(bundleName, toolName, "invalid_tool_name");
         return ERR_INVALID_PARAM;
     }
