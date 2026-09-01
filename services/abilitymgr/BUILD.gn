@@ -69,6 +69,7 @@ config("abilityms_config") {
     "${ability_runtime_innerkits_path}/foreground_app_obs_manager/include",
     "${ability_runtime_services_path}/common/include",
     "${ability_runtime_services_path}/common/include/user_controller",
+    "${ability_runtime_path}/utils/global/common/include",
     "//prebuilts/jdk/jdk8/linux-x86/include",
     "//prebuilts/jdk/jdk8/linux-x86/include/linux",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
