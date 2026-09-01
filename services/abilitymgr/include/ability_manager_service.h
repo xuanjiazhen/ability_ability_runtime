@@ -2891,6 +2891,18 @@ private:
     int GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId = 0);
 
     /**
+     * Run the post-check interceptors for a prelaunch request and report a fault event on failure.
+     * Extracted so the failure/redirect paths are unit-testable without bundle resolution.
+     *
+     * @param abilityRequest the resolved prelaunch request (want may be mutated by ERMS redirect).
+     * @param userId the validated target user id.
+     * @param eventInfo fault attribution context (may be null).
+     * @return ERR_OK to proceed, otherwise the interceptor error to abort the prelaunch.
+     */
+    int32_t ExecutePrelaunchAfterCheck(AbilityRequest &abilityRequest, int32_t userId,
+        const std::shared_ptr<EventInfo> &eventInfo);
+
+    /**
      * @brief Get the top ability token for specified user.
      * @param token Output parameter for the top ability token.
      * @param userId The target user ID.
@@ -3148,8 +3160,9 @@ private:
 
     void StartKeepAliveApps(int32_t userId);
 
-    void StartAutoStartupApps(int32_t userId, bool isManualStart = false);
+    void StartAutoStartupApps(int32_t userId, bool isEDMStart = false);
     void StartAutoStartupApps(std::queue<AutoStartupInfo> infoList, int32_t userId);
+    bool IsAutoStartupAllowed(int32_t userId, bool isEDMStart);
     void SubscribeUserUnlockedEvent();
     void SubscribeScreenUnlockedEvent();
     std::function<void(int32_t)> GetScreenUnlockCallback();
@@ -3673,6 +3686,10 @@ private:
         AppExecFwk::ExtensionAbilityType extensionType);
 
     bool IsAllowAttachOrDetachAppDebug(AppExecFwk::ApplicationInfo &appInfo);
+    bool IsAllowLocalDebugOtherApps(bool isDebugFromLocal);
+    ErrCode CheckLocalDebugPermission(bool isDebugApp, bool isDebugFromLocal);
+    ErrCode GetBundleInfoForUserTest(const std::string &bundleName,
+        int32_t userId, AppExecFwk::BundleInfo &bundleInfo);
     bool IsExitReasonValid(const ExitReasonCompability &reason);
     void RecordAppRestartExitReason(bool isAppRecovery, int32_t callerPid, int32_t callerUid);
     void SetAppDeathRecipient(const sptr<IRemoteObject>& abilityToken);

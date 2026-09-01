@@ -22,6 +22,7 @@
 #include "app_utils.h"
 #include "render_record.h"
 #undef private
+#include "meminfo.h"
 #include "user_record_manager.h"
 #include "mock_my_status.h"
 #include "ability_manager_errors.h"
@@ -2415,6 +2416,75 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, VerifyKillProcessPermissionCommon_007, T
 }
 
 /**
+* @tc.name: VerifyKillProcessPermissionCommon_008
+* @tc.desc: test VerifyKillProcessPermissionCommon_008 when caller is treated as shell by
+*     LOCAL_DEBUG_OTHER_APPS permission in developer mode
+* @tc.type: FUNC
+*/
+HWTEST_F(AppMgrServiceInnerSeventhTest, VerifyKillProcessPermissionCommon_008, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermissionCommon_008 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().verifyCallingPermission_ = false;
+    AAFwk::MyStatus::GetInstance().isSACall_ = false;
+    AAFwk::MyStatus::GetInstance().isShellCall_ = false;
+    AAFwk::MyStatus::GetInstance().isCliToolToken_ = false;
+    AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = true;
+
+    auto ret = appMgrServiceInner->VerifyKillProcessPermissionCommon();
+    EXPECT_EQ(ret, ERR_OK);
+    AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = false;
+    TAG_LOGI(AAFwkTag::TEST, "VerifyKillProcessPermissionCommon_008 end");
+}
+
+/**
+* @tc.name: NotifyProcMemoryLevel_002
+* @tc.desc: test NotifyProcMemoryLevel_002 when caller is treated as shell by
+*     LOCAL_DEBUG_OTHER_APPS permission in developer mode
+* @tc.type: FUNC
+*/
+HWTEST_F(AppMgrServiceInnerSeventhTest, NotifyProcMemoryLevel_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NotifyProcMemoryLevel_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().checkSpecific_ = false;
+    AAFwk::MyStatus::GetInstance().isShellCall_ = false;
+    AAFwk::MyStatus::GetInstance().getBoolParameter_ = true;
+    AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = true;
+    AAFwk::MyStatus::GetInstance().notifyProcMemory_ = ERR_OK;
+    AAFwk::MyStatus::GetInstance().notifyProcMemoryShellCall_ = 0;
+
+    const std::map<pid_t, MemoryLevel> procLevelMap;
+    int32_t ret = appMgrServiceInner->NotifyProcMemoryLevel(procLevelMap);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(AAFwk::MyStatus::GetInstance().notifyProcMemoryShellCall_, 1);
+    AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = false;
+    AAFwk::MyStatus::GetInstance().getBoolParameter_ = false;
+    TAG_LOGI(AAFwkTag::TEST, "NotifyProcMemoryLevel_002 end");
+}
+
+/**
+* @tc.name: NotifyProcMemoryLevel_003
+* @tc.desc: test NotifyProcMemoryLevel_003 when caller is not memmgr, not shell call, not developer mode
+*     and has no LOCAL_DEBUG_OTHER_APPS permission
+* @tc.type: FUNC
+*/
+HWTEST_F(AppMgrServiceInnerSeventhTest, NotifyProcMemoryLevel_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NotifyProcMemoryLevel_003 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().checkSpecific_ = false;
+    AAFwk::MyStatus::GetInstance().isShellCall_ = false;
+    AAFwk::MyStatus::GetInstance().getBoolParameter_ = false;
+    AAFwk::MyStatus::GetInstance().isLocalDebugOtherAppsCall_ = false;
+
+    const std::map<pid_t, MemoryLevel> procLevelMap;
+    int32_t ret = appMgrServiceInner->NotifyProcMemoryLevel(procLevelMap);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "NotifyProcMemoryLevel_003 end");
+}
+
+/**
 * @tc.name: VerifyAPL_001
 * @tc.desc: test VerifyAPL_001
 * @tc.type: FUNC
@@ -3497,6 +3567,86 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, CheckAppProvisionType_0300, TestSize.Lev
     AAFwk::MyStatus::GetInstance().applicationInfo_.appProvisionType = "debug";
     ret = appMgrServiceInner->CheckAppProvisionType(bundleName, callerUid, appCloneIndex, userId);
     EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: GetProcessMemoryByPid_Overflow_001
+ * @tc.desc: Test GetProcessMemoryByPid when PSS exceeds INT32_MAX, verify memorySize is set to -1.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, GetProcessMemoryByPid_Overflow_001, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    AAFwk::MyStatus::GetInstance().judgeCallerIsAllowed_ = true;
+
+    OHOS::g_mockPssByPid = static_cast<uint64_t>(INT32_MAX) + 1;
+    int32_t memorySize = 0;
+    int32_t ret = appMgrServiceInner->GetProcessMemoryByPid(1, memorySize);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(memorySize, -1);
+
+    OHOS::g_mockPssByPid = 0;
+    AAFwk::MyStatus::GetInstance().judgeCallerIsAllowed_ = false;
+}
+
+/**
+ * @tc.name: GetProcessMemoryByPid_Overflow_002
+ * @tc.desc: Test GetProcessMemoryByPid with PSS exactly at INT32_MAX boundary, verify normal cast.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, GetProcessMemoryByPid_Overflow_002, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    AAFwk::MyStatus::GetInstance().judgeCallerIsAllowed_ = true;
+
+    OHOS::g_mockPssByPid = static_cast<uint64_t>(INT32_MAX);
+    int32_t memorySize = -1;
+    int32_t ret = appMgrServiceInner->GetProcessMemoryByPid(1, memorySize);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(memorySize, INT32_MAX);
+
+    OHOS::g_mockPssByPid = 0;
+    AAFwk::MyStatus::GetInstance().judgeCallerIsAllowed_ = false;
+}
+
+/**
+ * @tc.name: GetProcessMemoryByPid_Overflow_003
+ * @tc.desc: Test GetProcessMemoryByPid with normal PSS value, verify memorySize is set correctly.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, GetProcessMemoryByPid_Overflow_003, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    AAFwk::MyStatus::GetInstance().judgeCallerIsAllowed_ = true;
+
+    const uint64_t normalPss = 102400;
+    OHOS::g_mockPssByPid = normalPss;
+    int32_t memorySize = -1;
+    int32_t ret = appMgrServiceInner->GetProcessMemoryByPid(1, memorySize);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(memorySize, static_cast<int32_t>(normalPss));
+
+    OHOS::g_mockPssByPid = 0;
+    AAFwk::MyStatus::GetInstance().judgeCallerIsAllowed_ = false;
+}
+
+/**
+ * @tc.name: GetProcessMemoryByPid_Overflow_004
+ * @tc.desc: Test GetProcessMemoryByPid without system app permission, verify permission denied.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSeventhTest, GetProcessMemoryByPid_Overflow_004, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    AAFwk::MyStatus::GetInstance().judgeCallerIsAllowed_ = false;
+
+    int32_t memorySize = -1;
+    int32_t ret = appMgrServiceInner->GetProcessMemoryByPid(1, memorySize);
+    EXPECT_EQ(ret, AAFwk::ERR_NOT_SYSTEM_APP);
 }
 } // namespace AppExecFwk
 } // namespace OHOS

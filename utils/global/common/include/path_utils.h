@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,22 +13,19 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_WANT_SENDER_STUB_H
-#define OHOS_ABILITY_RUNTIME_WANT_SENDER_STUB_H
+#ifndef OHOS_ABILITY_RUNTIME_PATH_UTILS_H
+#define OHOS_ABILITY_RUNTIME_PATH_UTILS_H
 
-#include <map>
-#include "want_sender_interface.h"
-
-#include <iremote_object.h>
-#include <iremote_stub.h>
+#include <string>
 
 namespace OHOS {
-namespace AAFwk {
-class WantSenderStub : public IRemoteStub<IWantSender> {
-public:
-    WantSenderStub() = default;
-    virtual ~WantSenderStub() = default;
-};
-}  // namespace AAFwk
+namespace AbilityRuntime {
+
+// Checks path validity: rejects empty, "..", traversal combinations ("../",
+// "/.."), backslash, embedded NUL and control chars. Direction (absolute or
+// relative) is not part of validity; consumers fail safely on both.
+bool IsPathValid(const std::string &path);
+
+}  // namespace AbilityRuntime
 }  // namespace OHOS
-#endif  // OHOS_ABILITY_RUNTIME_WANT_SENDER_STUB_H
+#endif  // OHOS_ABILITY_RUNTIME_PATH_UTILS_H

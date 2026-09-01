@@ -1130,7 +1130,7 @@ int32_t ApplicationContext::GetProcessRunningInformation(AppExecFwk::RunningProc
 
 int32_t ApplicationContext::GetUIAbilityChildProcessInfos(std::vector<AppExecFwk::ChildProcessInfo> &infos)
 {
-    return (contextImpl_ != nullptr) ? contextImpl_->GetUIAbilityChildProcessInfos(infos) : -1;
+    return (contextImpl_ != nullptr) ? contextImpl_->GetUIAbilityChildProcessInfos(infos) : ERR_INVALID_VALUE;
 }
 
 #ifdef SUPPORT_SCREEN
@@ -1594,7 +1594,16 @@ std::string ApplicationContext::GetDataDir()
     std::lock_guard<std::mutex> lock(dataDirMutex_);
     if (dataDir_.empty()) {
         auto bundleManagerHelper = AAFwk::AbilityUtil::GetBundleManagerHelper();
-        dataDir_ = bundleManagerHelper->GetDataDir(GetBundleName(), appIndex_);
+        if (bundleManagerHelper == nullptr) {
+            TAG_LOGD(AAFwkTag::APPKIT, "bundleManagerHelper null");
+            return "";
+        }
+        auto bundleName = GetBundleName();
+        if (bundleName.empty()) {
+            TAG_LOGD(AAFwkTag::APPKIT, "bundleName is invalid");
+            return "";
+        }
+        dataDir_ = bundleManagerHelper->GetDataDir(bundleName, appIndex_);
         if (dataDir_.empty()) {
             TAG_LOGE(AAFwkTag::APPKIT, "dataDir is empty");
             return "";

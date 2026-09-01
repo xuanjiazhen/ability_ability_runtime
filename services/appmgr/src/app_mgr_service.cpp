@@ -317,6 +317,26 @@ int32_t AppMgrService::DestroyImage(uint64_t checkpointId, sptr<IImageErrorHandl
     return ERR_OK;
 }
 
+int32_t AppMgrService::GetHyperSnapLastError(int32_t errType, HyperSnapErrorRecord &record)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "GetHyperSnapLastError called, errType: %{public}d", errType);
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "GetHyperSnapLastError failed: service not ready");
+        return ERR_INVALID_OPERATION;
+    }
+
+    HyperSnapErrorType errorType = static_cast<HyperSnapErrorType>(errType);
+
+    bool success = appMgrServiceInner_->GetHyperSnapLastError(errorType, record);
+    if (!success) {
+        TAG_LOGE(AAFwkTag::APPMGR, "GetHyperSnapLastError failed: invalid parameter");
+        return ERR_INVALID_VALUE;
+    }
+
+    TAG_LOGD(AAFwkTag::APPMGR, "GetHyperSnapLastError success, code: %{public}d", static_cast<int32_t>(record.code));
+    return ERR_OK;
+}
+
 int32_t AppMgrService::NotifyTemplateProcessDeepFrozen(int32_t pid)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
@@ -886,7 +906,9 @@ int AppMgrService::StartUserTestProcess(const AAFwk::Want &want, const sptr<IRem
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
-    if (!AAFwk::PermissionVerification::GetInstance()->IsShellCall()) {
+    if (!AAFwk::PermissionVerification::GetInstance()->IsShellCall() &&
+        !AAFwk::PermissionVerification::GetInstance()->IsAllowLocalDebugOtherApps(
+            want.GetBoolParam("ohos.param.debugFrom", false))) {
         TAG_LOGE(AAFwkTag::APPMGR, "StartUserTestProcess is not shell call");
         return ERR_INVALID_OPERATION;
     }
@@ -1506,7 +1528,8 @@ bool AppMgrService::JudgeAppSelfCalled(int32_t recordId)
 
     auto callingTokenId = IPCSkeleton::GetCallingTokenID();
     std::shared_ptr<AppRunningRecord> appRecord = appMgrServiceInner_->GetAppRunningRecordByAppRecordId(recordId);
-    if (appRecord == nullptr || ((appRecord->GetApplicationInfo())->accessTokenId) != callingTokenId) {
+    if (appRecord == nullptr || appRecord->GetApplicationInfo() == nullptr ||
+        ((appRecord->GetApplicationInfo())->accessTokenId) != callingTokenId) {
         TAG_LOGE(AAFwkTag::APPMGR, "not enabled");
         return false;
     }
@@ -1531,7 +1554,8 @@ int32_t AppMgrService::StartNativeProcessForDebugger(const AAFwk::Want &want)
     bool isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
     auto callingTokenId = IPCSkeleton::GetCallingTokenID();
     bool isLocalDebugCall = AAFwk::PermissionVerification::GetInstance()->VerifyStartLocalDebug(callingTokenId);
-    if (!isShellCall && !isLocalDebugCall) {
+    if (!isShellCall && !isLocalDebugCall &&
+        !AAFwk::PermissionVerification::GetInstance()->IsLocalDebugOtherAppsCall()) {
         TAG_LOGE(AAFwkTag::APPMGR, "permission denied");
         return ERR_INVALID_OPERATION;
     }
