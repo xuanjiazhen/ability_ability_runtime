@@ -343,25 +343,34 @@ void UIExtensionAbilityManager::OnAbilityRequestDone(const sptr<IRemoteObject> &
     std::lock_guard guard(serialMutex_);
 
     AppAbilityState abilityState = DelayedSingleton<AppScheduler>::GetInstance()->ConvertToAppAbilityState(state);
-    if (abilityState == AppAbilityState::ABILITY_STATE_FOREGROUND) {
-        auto abilityRecord = GetExtensionByTokenFromServiceMap(token);
-        CHECK_POINTER(abilityRecord);
-
-        if (!IsUIExtensionAbility(abilityRecord)) {
-            TAG_LOGE(AAFwkTag::EXT, "Not ui extension");
-            return;
-        }
-
-        if (abilityRecord->IsAbilityState(AbilityState::FOREGROUNDING)) {
-            TAG_LOGW(AAFwkTag::EXT, "abilityRecord foregrounding");
-            return;
-        }
-
-        std::string element = abilityRecord->GetURI();
-        TAG_LOGD(AAFwkTag::EXT, "Ability is %{public}s, start to foreground.", element.c_str());
-        abilityRecord->ForegroundUIExtensionAbility();
-        abilityRecord->RemoveUIExtensionLaunchTimestamp();
+    if (abilityState != AppAbilityState::ABILITY_STATE_FOREGROUND) {
+        return;
     }
+
+    auto abilityRecord = GetExtensionByTokenFromServiceMap(token);
+    CHECK_POINTER(abilityRecord);
+
+    if (!IsUIExtensionAbility(abilityRecord)) {
+        TAG_LOGE(AAFwkTag::EXT, "Not ui extension");
+        return;
+    }
+
+    auto currentAbilityState = abilityRecord->GetAbilityState();
+    auto sessionInfo = abilityRecord->GetSessionInfo();
+    TAG_LOGI(AAFwkTag::UI_EXT, "%{public}s/%{public}s, persistentId:%{public}d, Id:%{public}d, "
+        "abilityState:%{public}d, pendingState:%{public}d",
+        abilityRecord->GetInfoBundleName().c_str(),
+        abilityRecord->GetInfoAbilityName().c_str(),
+        sessionInfo ? sessionInfo->persistentId : -1,
+        abilityRecord->GetUIExtensionAbilityId(),
+        static_cast<int32_t>(currentAbilityState),
+        static_cast<int32_t>(abilityRecord->GetPendingState()));
+    if (currentAbilityState == AbilityState::BACKGROUND || currentAbilityState == AbilityState::INITIAL) {
+        abilityRecord->ForegroundUIExtensionAbility();
+    } else {
+        TAG_LOGW(AAFwkTag::UI_EXT, "skip foreground, abilityState not in {BACKGROUND, INITIAL}");
+    }
+    abilityRecord->RemoveUIExtensionLaunchTimestamp();
 }
 
 std::shared_ptr<BaseExtensionRecord> UIExtensionAbilityManager::GetUIExtensionBySessionInfo(
