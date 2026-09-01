@@ -18,33 +18,21 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-/**
- * @description: Gets the ApplicationLoader object to application register
- * @param None
- * @return ApplicationLoader
- */
+
 ApplicationLoader &ApplicationLoader::GetInstance()
 {
     static ApplicationLoader applicationLoader;
     return applicationLoader;
 }
 
-/**
- * @description: Gets the ApplicationLoader object to register application
- * @param bundleName the bundle name of the application.
- * @param createFunc constructor function of application class.
- * @return None
- */
+
 void ApplicationLoader::RegisterApplication(const std::string &bundleName, const CreateApplication &createFunc)
 {
     applications_.emplace(bundleName, createFunc);
     TAG_LOGD(AAFwkTag::APPKIT, "ApplicationLoader::RegisterApplication:%{public}s", bundleName.c_str());
 }
 
-/**
- * @description: Gets the {@link OHOSApplication} object
- * @return Return {@link OHOSApplication} object which is registered by developer.
- */
+
 OHOSApplication *ApplicationLoader::GetApplicationByName()
 {
     auto it = applications_.find("OHOSApplication");

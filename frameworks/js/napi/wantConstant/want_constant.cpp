@@ -18,14 +18,7 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-/**
- * @brief WantConstantInit NAPI module registration.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param exports An empty object via the exports parameter as a convenience.
- *
- * @return The return value from Init is treated as the exports object for the module.
- */
+
 napi_value WantConstantInit(napi_env env, napi_value exports)
 {
     TAG_LOGD(AAFwkTag::WANT, "called");

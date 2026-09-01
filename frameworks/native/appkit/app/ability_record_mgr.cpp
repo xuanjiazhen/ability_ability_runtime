@@ -17,21 +17,13 @@
 #include "hilog_tag_wrapper.h"
 namespace OHOS {
 namespace AppExecFwk {
-/**
- * @brief Get the token witch is set to the AbilityRecordMgr.
- *
- * @return Returns the token which is set to the AbilityRecordMgr.
- */
+
 sptr<IRemoteObject> AbilityRecordMgr::GetToken() const
 {
     return tokens_;
 }
 
-/**
- * @brief Set the token witch the app launched.
- *
- * @param token The token which the is launched by app.
- */
+
 void AbilityRecordMgr::SetToken(const sptr<IRemoteObject> &token)
 {
     if (token == nullptr) {
@@ -41,13 +33,7 @@ void AbilityRecordMgr::SetToken(const sptr<IRemoteObject> &token)
     tokens_ = token;
 }
 
-/**
- * @brief Save the token and abilityRecord to the AbilityRecordMgr.
- *
- * @param token The token which the abilityRecord belongs to.
- * @param abilityRecord the abilityRecord witch contains the context info belong the the ability.
- *
- */
+
 void AbilityRecordMgr::AddAbilityRecord(
     const sptr<IRemoteObject> &token, const std::shared_ptr<AbilityLocalRecord> &abilityRecord)
 {
@@ -63,12 +49,7 @@ void AbilityRecordMgr::AddAbilityRecord(
     abilityRecords_[token] = abilityRecord;
 }
 
-/**
- * @brief Remove the abilityRecord by token.
- *
- * @param token The token which the abilityRecord belongs to.
- *
- */
+
 void AbilityRecordMgr::RemoveAbilityRecord(const sptr<IRemoteObject> &token)
 {
     if (token == nullptr) {
@@ -78,23 +59,13 @@ void AbilityRecordMgr::RemoveAbilityRecord(const sptr<IRemoteObject> &token)
     abilityRecords_.erase(token);
 }
 
-/**
- * @brief Get the number of abilityRecords which the AbilityRecordMgr saved.
- *
- * @return Return the number of abilityRecords which the AbilityRecordMgr saved.
- *
- */
+
 int AbilityRecordMgr::GetRecordCount() const
 {
     return abilityRecords_.size();
 }
 
-/**
- * @brief Get the abilityRecord by token.
- *
- * @param token The token which the abilityRecord belongs to.
- *
- */
+
 std::shared_ptr<AbilityLocalRecord> AbilityRecordMgr::GetAbilityItem(const sptr<IRemoteObject> &token) const
 {
     if (token == nullptr) {
@@ -110,12 +81,7 @@ std::shared_ptr<AbilityLocalRecord> AbilityRecordMgr::GetAbilityItem(const sptr<
     return nullptr;
 }
 
-/**
- * @brief Get the all tokens in the abilityRecordMgr.
- *
- * @return all tokens in the abilityRecordMgr.
- *
- */
+
 std::vector<sptr<IRemoteObject>> AbilityRecordMgr::GetAllTokens()
 {
     std::vector<sptr<IRemoteObject>> tokens;

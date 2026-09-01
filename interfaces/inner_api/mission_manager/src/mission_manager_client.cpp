@@ -481,13 +481,7 @@ ErrCode MissionManagerClient::GetMissionIdByToken(sptr<IRemoteObject> token, int
     return ERR_OK;
 }
 
-/**
- * Start synchronizing remote device mission
- * @param devId, deviceId.
- * @param fixConflict, resolve synchronizing conflicts flag.
- * @param tag, call tag.
- * @return Returns ERR_OK on success, others on failure.
- */
+
 ErrCode MissionManagerClient::StartSyncRemoteMissions(const std::string &devId, bool fixConflict, int64_t tag)
 {
     auto abms = GetMissionManager();

@@ -26,11 +26,7 @@ DataAbilityObserverProxy::DataAbilityObserverProxy(const sptr<IRemoteObject> &re
 DataAbilityObserverProxy::~DataAbilityObserverProxy()
 {}
 
-/**
- * @brief Set the message option.
- *
- * @param option Indicates the option of message.
- */
+
 void DataAbilityObserverProxy::SetMessageOption(MessageOption &option)
 {
     std::lock_guard<std::mutex> lock(countMutex_);
@@ -44,11 +40,7 @@ void DataAbilityObserverProxy::SetMessageOption(MessageOption &option)
     }
 }
 
-/**
- * @brief Called back to notify that the data being observed has changed.
- *
- * @param uri Indicates the path of the data to operate.
- */
+
 void DataAbilityObserverProxy::OnChange()
 {
     OHOS::MessageParcel data;
@@ -67,11 +59,7 @@ void DataAbilityObserverProxy::OnChange()
     }
 }
 
-/**
- * @brief Called back to notify that the data being observed has changed.
- *
- * @param changeInfo Indicates the info of the data to operate.
- */
+
 void DataAbilityObserverProxy::OnChangeExt(const ChangeInfo &changeInfo)
 {
     OHOS::MessageParcel data;
@@ -95,11 +83,7 @@ void DataAbilityObserverProxy::OnChangeExt(const ChangeInfo &changeInfo)
     }
 }
 
-/**
- * @brief Called back to notify that the data being observed has changed.
- *
- * @param uri Indicates the path of the data to operate.
- */
+
 void DataAbilityObserverProxy::OnChangePreferences(const std::string &key)
 {
     OHOS::MessageParcel data;

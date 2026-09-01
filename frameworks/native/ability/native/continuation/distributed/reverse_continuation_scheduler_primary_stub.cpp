@@ -27,16 +27,7 @@ ReverseContinuationSchedulerPrimaryStub::ReverseContinuationSchedulerPrimaryStub
 
 ReverseContinuationSchedulerPrimaryStub::~ReverseContinuationSchedulerPrimaryStub() {}
 
-/**
- * @brief Sets an entry for receiving requests.
- *
- * @param code Indicates the service request code sent from the peer end.
- * @param data Indicates the MessageParcel object sent from the peer end.
- * @param reply Indicates the response message object sent from the remote service. The local service writes the
- * response data to the MessageParcel object.
- * @param option Indicates whether the operation is synchronous or asynchronous.
- * @return ERR_NONE if success, otherwise false.
- */
+
 int ReverseContinuationSchedulerPrimaryStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {

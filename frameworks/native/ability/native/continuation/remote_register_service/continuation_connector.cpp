@@ -31,13 +31,7 @@ const std::string ContinuationConnector::CONNECTOR_ABILITY_NAME(
 ContinuationConnector::ContinuationConnector(const std::weak_ptr<Context> &context) : context_(context)
 {}
 
-/**
- * @brief get singleton of Class ContinuationConnector
- *
- * @param context: the running context for appcontext
- *
- * @return The singleton of ContinuationConnector
- */
+
 sptr<ContinuationConnector> ContinuationConnector::GetInstance(const std::weak_ptr<Context> &context)
 {
     if (instance_ == nullptr) {
@@ -49,15 +43,7 @@ sptr<ContinuationConnector> ContinuationConnector::GetInstance(const std::weak_p
     return instance_;
 }
 
-/**
- * @brief This method is called back to receive the connection result after an ability calls the
- * Ability#connectAbility(Want, IAbilityConnection) method to connect it to a Service ability.
- *
- * @param element: Indicates information about the connected Service ability.
- * @param remote: Indicates the remote proxy object of the Service ability.
- * @param resultCode: Indicates the connection result code. The value 0 indicates a successful connection, and any other
- * value indicates a connection failure.
- */
+
 void ContinuationConnector::OnAbilityConnectDone(
     const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode)
 {
@@ -81,26 +67,14 @@ void ContinuationConnector::OnAbilityConnectDone(
     }
 }
 
-/**
- * @brief This method is called back to receive the disconnection result after the connected Service ability crashes or
- * is killed. If the Service ability exits unexpectedly, all its connections are disconnected, and each ability
- * previously connected to it will call onAbilityDisconnectDone.
- *
- * @param element: Indicates information about the disconnected Service ability.
- * @param resultCode: Indicates the disconnection result code. The value 0 indicates a successful disconnection, and any
- * other value indicates a disconnection failure.
- */
+
 void ContinuationConnector::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
 {
     remoteRegisterService_ = nullptr;
     isConnected_.store(false);
 }
 
-/**
- * @brief bind remote ability of RemoteRegisterService.
- *
- * @param request: request for continuation.
- */
+
 void ContinuationConnector::BindRemoteRegisterAbility(const std::shared_ptr<AppExecFwk::ContinuationRequest> &request)
 {
     TAG_LOGI(AAFwkTag::CONTINUATION, "begin");
@@ -126,9 +100,7 @@ void ContinuationConnector::BindRemoteRegisterAbility(const std::shared_ptr<AppE
     BindRemoteRegisterAbility();
 }
 
-/**
- * @brief unbind remote ability of RemoteRegisterService.
- */
+
 void ContinuationConnector::UnbindRemoteRegisterAbility()
 {
     TAG_LOGI(AAFwkTag::CONTINUATION, "begin");
@@ -143,23 +115,13 @@ void ContinuationConnector::UnbindRemoteRegisterAbility()
     remoteRegisterService_ = nullptr;
 }
 
-/**
- * @brief check whether connected to remote register service.
- *
- * @return bool true if connected, otherwise false.
- */
+
 bool ContinuationConnector::IsAbilityConnected()
 {
     return isConnected_.load();
 }
 
-/**
- * @brief unregister to control center continuation register service.
- *
- * @param token token from register return value.
- *
- * @return bool result of unregister.
- */
+
 bool ContinuationConnector::Unregister(int token)
 {
     TAG_LOGI(AAFwkTag::CONTINUATION, "begin");
@@ -171,15 +133,7 @@ bool ContinuationConnector::Unregister(int token)
     return remoteRegisterService_->Unregister(token);
 }
 
-/**
- * @brief notify continuation status to control center continuation register service.
- *
- * @param token token from register.
- * @param deviceId device id.
- * @param status device status.
- *
- * @return bool result of updateConnectStatus.
- */
+
 bool ContinuationConnector::UpdateConnectStatus(int token, const std::string &deviceId, int status)
 {
     TAG_LOGI(AAFwkTag::CONTINUATION, "begin");
@@ -191,13 +145,7 @@ bool ContinuationConnector::UpdateConnectStatus(int token, const std::string &de
     return remoteRegisterService_->UpdateConnectStatus(token, deviceId, status);
 }
 
-/**
- * @brief notify control center continuation register service to show device list.
- *
- * @param token token from register
- * @param parameter filter with supported device list.
- * @return bool result of showDeviceList.
- */
+
 bool ContinuationConnector::ShowDeviceList(int token, const AppExecFwk::ExtraParams &parameter)
 {
     TAG_LOGI(AAFwkTag::CONTINUATION, "begin");
@@ -208,16 +156,7 @@ bool ContinuationConnector::ShowDeviceList(int token, const AppExecFwk::ExtraPar
     return remoteRegisterService_->ShowDeviceList(token, parameter);
 }
 
-/**
- * @brief register to control center continuation register service.
- *
- * @param context ability context.
- * @param bundleName bundle name of ability.
- * @param parameter filter with supported device list.
- * @param callback callback for device connect and disconnect.
- *
- * @return int token.
- */
+
 int ContinuationConnector::Register(std::weak_ptr<Context> &context, std::string bundleName,
     const AppExecFwk::ExtraParams &parameter, std::shared_ptr<IContinuationDeviceCallback> &callback)
 {
@@ -242,9 +181,7 @@ int ContinuationConnector::Register(std::weak_ptr<Context> &context, std::string
     return remoteRegisterService_->Register(bundleName, token, parameter, callBackSptr);
 }
 
-/**
- * @brief bind remote ability of RemoteRegisterService.
- */
+
 void ContinuationConnector::BindRemoteRegisterAbility()
 {
     TAG_LOGI(AAFwkTag::CONTINUATION, "begin");

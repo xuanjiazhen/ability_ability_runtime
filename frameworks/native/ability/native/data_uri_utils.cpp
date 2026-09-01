@@ -29,26 +29,15 @@ const int BUFFER_LEN = 64;
 const char *SEPARATOR = "/";
 };  // namespace
 
-/**
- * @brief Default constructor of DataUriUtils class
- * @return None
- */
+
 DataUriUtils::DataUriUtils()
 {}
 
-/**
- * @brief Default deconstructor of DataUriUtils class
- * @return None
- */
+
 DataUriUtils::~DataUriUtils()
 {}
 
-/**
- * @brief Attaches the given ID to the end of the path component of the given URI.
- * @param dataUri based on RFC 2396( Uniform Resource Identifier ).
- * @param id
- * @return Uri( scheme://authority/path1/path2/path3/updateIDNumber....)
- */
+
 Uri DataUriUtils::AttachId(const Uri &dataUri, long long id)
 {
     // 1. get Path
@@ -85,11 +74,7 @@ Uri DataUriUtils::AttachId(const Uri &dataUri, long long id)
     return Uri(uriString);
 }
 
-/**
- * @brief Obtains the ID attached to the end of the path component of the given URI.
- * @param dataUri based on RFC 2396( Uniform Resource Identifier ).
- * @return long ID
- */
+
 long long DataUriUtils::GetId(const Uri &dataUri)
 {
     // 1. get Path
@@ -109,22 +94,13 @@ long long DataUriUtils::GetId(const Uri &dataUri)
     return std::atoll(lastPath.c_str());
 }
 
-/**
- * @brief Deletes the ID from the end of the path component of the given URI.
- * @param dataUri based on RFC 2396( Uniform Resource Identifier ).
- * @return long ID
- */
+
 Uri DataUriUtils::DeleteId(const Uri &dataUri)
 {
     return UriUpateLastPath(dataUri, EMPTY);
 }
 
-/**
- * @brief Updates the ID in the specified dataUri
- * @param dataUri based on RFC 2396( Uniform Resource Identifier ).
- * @param id indiates Update attached to the end of the path component of the given URI
- * @return Uri return is the URI after path is updated
- */
+
 Uri DataUriUtils::UpdateId(const Uri &dataUri, long long id)
 {
     char longBuffer[BUFFER_LEN] = {0};
@@ -139,11 +115,7 @@ Uri DataUriUtils::UpdateId(const Uri &dataUri, long long id)
     return UriUpateLastPath(dataUri, newLastPath);
 }
 
-/**
- * @brief Does the end path of the path component of the given URI have an ID attached to it?
- * @param dataUri based on RFC 2396( Uniform Resource Identifier ).
- * @return bool
- */
+
 bool DataUriUtils::IsAttachedId(const Uri &dataUri)
 {
     // 1. get Path
@@ -162,11 +134,7 @@ bool DataUriUtils::IsAttachedId(const Uri &dataUri)
     return IsNumber(lastPath);
 }
 
-/**
- * @brief Determine whether the string content is a numeric string
- * @param str indicates stirng.
- * @return bool
- */
+
 bool DataUriUtils::IsNumber(const string &str)
 {
     try {
@@ -179,12 +147,7 @@ bool DataUriUtils::IsNumber(const string &str)
     }
 }
 
-/**
- * @brief Determine whether the string content is a numeric string
- * @param dataUri indicates Uri object
-   scheme://authority/path/aaa?query/#fragment
- * @return Uri return is the URI after path is updated
- */
+
 Uri DataUriUtils::UriUpateLastPath(const Uri &dataUri, const string &updateLastPath)
 {
     std::string strUpdateLastPath;
