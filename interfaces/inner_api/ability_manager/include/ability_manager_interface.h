@@ -2052,6 +2052,17 @@ public:
     }
 
     /**
+     * @brief Execute intent with specified token id.
+     * @param key The key of intent executing client.
+     * @param hostClient The host client carrying execute-done callback context.
+     * @param param The Intent execute param.
+     * @param specifyTokenId The specified token id for permission checking.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t ExecuteIntentWithSpecifyTokenId(uint64_t key, const sptr<IRemoteObject> &hostClient,
+        const InsightIntentExecuteParam &param, uint32_t specifyTokenId) = 0;
+
+    /**
       * @brief Execute intent for distributed scenario.
       *
       * @param want The want containing intent execution information.

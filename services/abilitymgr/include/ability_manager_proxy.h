@@ -1559,6 +1559,17 @@ public:
         const std::string &bundleName, const std::string &intentName, const WantParams &wantParam) override;
 
     /**
+     * @brief Execute intent with specified token id.
+     * @param key The key of intent executing client.
+     * @param hostClient The host client carrying execute-done callback context.
+     * @param param The Intent execute param.
+     * @param specifyTokenId The specified token id for permission checking.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t ExecuteIntentWithSpecifyTokenId(uint64_t key, const sptr<IRemoteObject> &hostClient,
+        const InsightIntentExecuteParam &param, uint32_t specifyTokenId) override;
+
+    /**
      * @brief Query entity.
      * @param key The key of intent executing client.
      * @param callerToken Caller ability token.
