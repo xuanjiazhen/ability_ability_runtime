@@ -22,7 +22,7 @@
 #include "insight_intent_info_for_query.h"
 #include "insight_intent_info_for_query_json.h"
 #include "insight_intent_profile.h"
-#include "intent_json_safe_get.h"
+#include "json_safe_utils.h"
 #include "nlohmann/json.hpp"
 
 using namespace testing;

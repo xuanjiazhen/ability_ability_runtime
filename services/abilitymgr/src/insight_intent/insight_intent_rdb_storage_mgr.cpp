@@ -18,7 +18,7 @@
 #include <sstream>
 
 #include "hilog_tag_wrapper.h"
-#include "intent_json_safe_get.h"
+#include "json_safe_utils.h"
 
 namespace OHOS {
 namespace AbilityRuntime {

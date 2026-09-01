@@ -18,7 +18,7 @@
 #include <algorithm>
 
 #include "hilog_tag_wrapper.h"
-#include "intent_json_safe_get.h"
+#include "json_safe_utils.h"
 #include "json_util.h"
 
 namespace OHOS {
