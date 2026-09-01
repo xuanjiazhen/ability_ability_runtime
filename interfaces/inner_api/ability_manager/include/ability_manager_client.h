@@ -834,7 +834,7 @@ public:
      * @param clearPageStack.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode KillProcess(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = 0,
+    ErrCode KillProcess(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = -1,
         const std::string& reason = "Abilityms::KillProcess");
 
     #ifdef ABILITY_COMMAND_FOR_TEST
@@ -1327,7 +1327,7 @@ public:
      * @param appIndex app clone index. Currently, only appIndex = 0 is supported.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode LaunchGameCustomized(const std::string &bundleName, int32_t userId, int32_t appIndex = 0);
+    ErrCode LaunchGameCustomized(const std::string &bundleName, int32_t userId, int32_t appIndex = -1);
     
     /**
      * SetGamePreLaunchCompleteTime, set the complete time (in milliseconds) for the game pre-launch.

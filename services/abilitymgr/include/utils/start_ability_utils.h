@@ -54,7 +54,7 @@ struct StartAbilityInfo {
 };
 
 struct StartAbilityUtils {
-    static bool GetAppIndex(const Want &want, sptr<IRemoteObject> callerToken, int32_t &appIndex);
+    static bool GetAppIndex(const Want &want, sptr callerToken, int32_t &appIndex, int userId);
     static bool GetApplicationInfo(const std::string &bundleName, int32_t userId,
         AppExecFwk::ApplicationInfo &appInfo);
     static bool GetCallerAbilityInfo(const sptr<IRemoteObject> &callerToken,
@@ -66,7 +66,7 @@ struct StartAbilityUtils {
     static void SetTargetCloneIndexInSameBundle(const Want &want, sptr<IRemoteObject> callerToken);
     static void ResolveTargetAppCloneIndex(const Want &want, sptr<IRemoteObject> callerToken, int32_t userId);
     static int32_t StartUIAbilitiesProcessAppIndex(Want &want,
-        sptr<IRemoteObject> callerToken, int32_t &appIndex);
+        sptr<IRemoteObject> callerToken, int32_t &appIndex, int userId);
     static int32_t HandleSelfRedirection(bool isFromOpenLink,
         const std::vector<AppExecFwk::AbilityInfo> &abilityInfos);
     static std::string GenerateAsCallerForAncoSessionId();

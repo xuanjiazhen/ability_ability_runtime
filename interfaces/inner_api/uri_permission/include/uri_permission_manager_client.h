@@ -45,7 +45,7 @@ public:
      * @param flag Want::FLAG_AUTH_READ_URI_PERMISSION or Want::FLAG_AUTH_WRITE_URI_PERMISSION.
      * @param targetBundleName The user of uri.
      */
-    int GrantUriPermission(const Uri &uri, uint32_t flag, const std::string targetBundleName, int32_t appIndex = 0,
+    int GrantUriPermission(const Uri &uri, uint32_t flag, const std::string targetBundleName, int32_t appIndex = -1,
         uint32_t initiatorTokenId = 0);
 
     /**
@@ -55,7 +55,7 @@ public:
      * @param targetBundleName The user of uri.
      */
     int GrantUriPermission(const std::vector<Uri> &uriVec, uint32_t flag, const std::string targetBundleName,
-        int32_t appIndex = 0, uint32_t initiatorTokenId = 0);
+        int32_t appIndex = -1, uint32_t initiatorTokenId = 0);
 
     /**
      * @brief Authorize the uri permission to targetBundleName.
@@ -68,7 +68,7 @@ public:
      * @return Returns ERR_OK if the authorization is successful, otherwise returns error code.
      */
     int32_t GrantUriPermissionPrivileged(const std::vector<Uri> &uriVec, uint32_t flag,
-        const std::string &targetBundleName, int32_t appIndex = 0, uint32_t initiatorTokenId = 0,
+        const std::string &targetBundleName, int32_t appIndex = -1, uint32_t initiatorTokenId = 0,
         int32_t hideSensitiveType = DEFAULT_HIDE_SENSITIVE_TYPE);
     
     /**
@@ -112,7 +112,7 @@ public:
      * @param BundleName A BundleName of an application.
      * @param appIndex The index of application in sandbox.
      */
-    int RevokeUriPermissionManually(const Uri &uri, const std::string bundleName, int32_t appIndex = 0);
+    int RevokeUriPermissionManually(const Uri &uri, const std::string bundleName, int32_t appIndex = -1);
 
     /**
      * @brief verify if tokenId have uri permission of flag, including temporary permission and persistable permission

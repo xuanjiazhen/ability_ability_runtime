@@ -192,7 +192,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual AppMgrResultCode KillApplication(const std::string &bundleName, bool clearPageStack = false,
-        int32_t appIndex = 0, const std::string &reason = "KillApplication");
+        int32_t appIndex = -1, const std::string &reason = "KillApplication");
 
     /**
      * ForceKillApplication, call ForceKillApplication() through proxy object, force kill the application.
@@ -203,7 +203,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual AppMgrResultCode ForceKillApplication(const std::string &bundleName, const int userId = -1,
-        const int appIndex = 0);
+        const int appIndex = -1);
 
     /**
      * KillApplicationWithUserId, call KillApplicationWithUserId() through proxy object, kill the application.
@@ -214,7 +214,7 @@ public:
      * @return ERR_OK, return back success, others fail.
      */
     virtual AppMgrResultCode KillApplicationWithUserId(const std::string &bundleName, const int userId = -1,
-        const int appIndex = 0);
+        const int appIndex = -1);
 
     /**
      * KillProcessesByAccessTokenId, call KillProcessesByAccessTokenId() through proxy object,
@@ -522,7 +522,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual AppMgrResultCode UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,
-        int32_t appIndex = 0);
+        int32_t appIndex = -1);
 
     /**
      * Register configuration observer.
@@ -1020,10 +1020,10 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t PreloadApplication(const std::string &bundleName, int32_t userId,
-        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = 0);
+        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = -1);
 
     int32_t MakeImage(const AAFwk::Want &want, int32_t userId,
-        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = 0, sptr<IImageErrorHandler> errorHandler = nullptr);
+        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = -1, sptr<IImageErrorHandler> errorHandler = nullptr);
 
     int32_t DestroyImage(uint64_t checkpointId, sptr<IImageErrorHandler> errorHandler = nullptr);
 

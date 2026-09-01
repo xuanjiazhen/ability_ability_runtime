@@ -83,7 +83,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t PreloadApplication(const std::string &bundleName, int32_t userId,
-        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = 0)
+        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = -1)
     {
         return 0;
     }
@@ -98,7 +98,7 @@ public:
     }
 
     virtual int32_t MakeImage(const AAFwk::Want &want, int32_t userId,
-        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = 0, sptr<IImageErrorHandler> errorHandler = nullptr)
+        AppExecFwk::PreloadMode preloadMode, int32_t appIndex = -1, sptr<IImageErrorHandler> errorHandler = nullptr)
     {
         return 0;
     }
@@ -582,7 +582,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UpdateConfigurationByBundleName(const Configuration &config, const std::string &name,
-        int32_t appIndex = 0) = 0;
+        int32_t appIndex = -1) = 0;
 
     /**
      * Register configuration observer.
