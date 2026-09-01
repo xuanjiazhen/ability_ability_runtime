@@ -20,6 +20,10 @@
 #include "function_info.h"
 #include "hilog_tag_wrapper.h"
 
+namespace {
+constexpr int32_t ERR_OK = 0;
+}  // namespace
+
 using namespace testing::ext;
 
 namespace OHOS {
@@ -817,6 +821,62 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_ParseFromJson_1600, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_ParseFromJson_1600 end");
 }
 
+/**
+ * @tc.name: FunctionInfo_ParseFromJson_1700
+ * @tc.desc: Test ParseFromJson with functionType exceeding INT64_MAX (number_unsigned storage). A naive
+ *           get<number_integer_t>() would throw out_of_range and crash the process; this guards the branch.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FunctionInfoTest, FunctionInfo_ParseFromJson_1700, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_ParseFromJson_1700 start");
+
+    // INT64_MAX + 1: parsed into number_unsigned storage, so is_number_integer() is true but
+    // get<number_integer_t>() would throw. Must be rejected, not crash.
+    nlohmann::json json = R"({
+        "functionName": "overflowType",
+        "functionNamespace": "com.test.overflow",
+        "functionType": 9223372036854775808,
+        "version": "1.0.0",
+        "description": ""
+    })"_json;
+
+    FunctionInfo function;
+    bool result = FunctionInfo::ParseFromJson(json, function);
+
+    EXPECT_FALSE(result);
+
+    TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_ParseFromJson_1700 end");
+}
+
+/**
+ * @tc.name: FunctionInfo_ParseFromJson_1800
+ * @tc.desc: Test ParseFromJson with functionType exceeding INT32_MAX but within INT64 range
+ *           (number_integer storage). The original get<int32_t>() would throw out_of_range and crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(FunctionInfoTest, FunctionInfo_ParseFromJson_1800, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_ParseFromJson_1800 start");
+
+    // 9999999999 > INT32_MAX but < INT64_MAX: stored as number_integer. get<int32_t>() would throw;
+    // must be rejected after reading the full-precision value.
+    nlohmann::json json = R"({
+        "functionName": "int32Overflow",
+        "functionNamespace": "com.test.int32overflow",
+        "functionType": 9999999999,
+        "version": "1.0.0",
+        "description": ""
+    })"_json;
+
+    FunctionInfo function;
+    bool result = FunctionInfo::ParseFromJson(json, function);
+
+    EXPECT_FALSE(result);
+
+    TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_ParseFromJson_1800 end");
+}
+
 // ==================== ParseToJson Tests ====================
 
 /**
@@ -1210,6 +1270,100 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_Validate_0900, TestSize.Level1)
     EXPECT_TRUE(FunctionInfo::Validate(function));
 
     TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_Validate_0900 end");
+}
+
+// ==================== FunctionsRawData Tests ====================
+
+/**
+ * @tc.name: FunctionsRawData_ToFunctionInfoVec_EmptyData_0100
+ * @tc.desc: Test FunctionsRawData ToFunctionInfoVec with null data returns empty list
+ * @tc.type: FUNC
+ */
+HWTEST_F(FunctionInfoTest, FunctionsRawData_ToFunctionInfoVec_EmptyData_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "FunctionsRawData_ToFunctionInfoVec_EmptyData_0100 start");
+
+    FunctionsRawData rawData;
+    rawData.data = nullptr;
+    rawData.size = 0;
+
+    std::vector<FunctionInfo> functions;
+    int32_t ret = FunctionsRawData::ToFunctionInfoVec(rawData, functions);
+
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(functions.size(), 0u);
+
+    TAG_LOGI(AAFwkTag::TEST, "FunctionsRawData_ToFunctionInfoVec_EmptyData_0100 end");
+}
+
+/**
+ * @tc.name: FunctionsRawData_ToFunctionInfoVec_EmptyData_0200
+ * @tc.desc: Test FunctionsRawData ToFunctionInfoVec with zero size returns empty list
+ * @tc.type: FUNC
+ */
+HWTEST_F(FunctionInfoTest, FunctionsRawData_ToFunctionInfoVec_EmptyData_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "FunctionsRawData_ToFunctionInfoVec_EmptyData_0200 start");
+
+    std::string dummyData = "dummy";
+    FunctionsRawData rawData;
+    rawData.ownedData = dummyData;
+    rawData.data = rawData.ownedData.data();
+    rawData.size = 0;
+
+    std::vector<FunctionInfo> functions;
+    int32_t ret = FunctionsRawData::ToFunctionInfoVec(rawData, functions);
+
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(functions.size(), 0u);
+
+    TAG_LOGI(AAFwkTag::TEST, "FunctionsRawData_ToFunctionInfoVec_EmptyData_0200 end");
+}
+
+/**
+ * @tc.name: FunctionsRawData_FromFunctionInfoVec_RoundTrip_0100
+ * @tc.desc: Test FunctionsRawData FromFunctionInfoVec and ToFunctionInfoVec round trip
+ * @tc.type: FUNC
+ */
+HWTEST_F(FunctionInfoTest, FunctionsRawData_FromFunctionInfoVec_RoundTrip_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "FunctionsRawData_FromFunctionInfoVec_RoundTrip_0100 start");
+
+    std::vector<FunctionInfo> originalFunctions;
+    FunctionInfo func1;
+    func1.functionName = "testFunction1";
+    func1.functionNamespace = "com.test.namespace1";
+    func1.version = "1.0.0";
+    func1.description = "Test function 1";
+    func1.inputSchema = R"({"type": "object"})";
+    func1.outputSchema = R"({"type": "string"})";
+    func1.functionType = FunctionType::INTENT_FUNCTION;
+    originalFunctions.push_back(func1);
+
+    FunctionInfo func2;
+    func2.functionName = "testFunction2";
+    func2.functionNamespace = "com.test.namespace2";
+    func2.version = "2.0.0";
+    func2.description = "Test function 2";
+    func2.inputSchema = "{}";
+    func2.outputSchema = "{}";
+    func2.functionType = FunctionType::INTENT_FUNCTION;
+    originalFunctions.push_back(func2);
+
+    FunctionsRawData rawData;
+    int32_t ret = FunctionsRawData::FromFunctionInfoVec(originalFunctions, rawData);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_NE(rawData.data, nullptr);
+    EXPECT_GT(rawData.size, 0u);
+
+    std::vector<FunctionInfo> parsedFunctions;
+    ret = FunctionsRawData::ToFunctionInfoVec(rawData, parsedFunctions);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(parsedFunctions.size(), 2u);
+    EXPECT_EQ(parsedFunctions[0].functionName, "testFunction1");
+    EXPECT_EQ(parsedFunctions[1].functionName, "testFunction2");
+
+    TAG_LOGI(AAFwkTag::TEST, "FunctionsRawData_FromFunctionInfoVec_RoundTrip_0100 end");
 }
 
 } // namespace CliTool

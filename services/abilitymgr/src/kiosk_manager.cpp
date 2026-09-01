@@ -70,9 +70,8 @@ int32_t KioskManager::VerifyUpdatePermissions()
         return ERR_CAPABILITY_NOT_SUPPORT;
     }
 
-    if (!PermissionVerification::GetInstance()->IsSystemAppCall() &&
-        !PermissionVerification::GetInstance()->IsSACall()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "not system app");
+    if (!PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not SA call");
         return ERR_NOT_SYSTEM_APP;
     }
     if (!PermissionVerification::GetInstance()->VerifyCallingPermission(
@@ -139,10 +138,6 @@ int32_t KioskManager::EnterKioskMode(sptr<IRemoteObject> callerToken)
         return INVALID_PARAMETERS_ERR;
     }
     std::string bundleName = record->GetAbilityInfo().bundleName;
-    if (!CheckCallerIsForeground(callerToken)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "The application is not in the foreground !");
-        return ERR_APP_NOT_IN_FOCUS;
-    }
     int32_t kioskBundleUid = IPCSkeleton::GetCallingUid();
     {
         std::lock_guard<std::mutex> lock(kioskManagerMutex_);
@@ -282,6 +277,12 @@ bool KioskManager::IsKioskBundleUid(int32_t uid)
     return uid == kioskStatus_.kioskBundleUid_;
 }
 
+bool KioskManager::ShouldIntercept(const std::string &bundleName)
+{
+    std::lock_guard<std::mutex> lock(kioskManagerMutex_);
+    return IsInKioskModeInner() && !IsInWhiteListInner(bundleName);
+}
+
 void KioskManager::NotifyKioskModeChanged(bool isInKioskMode, const std::string &bundleName,
     int32_t kioskBundleUid)
 {
@@ -350,16 +351,6 @@ void KioskManager::RemoveKioskInterceptor()
         return;
     }
     interceptorExecuter->RemoveInterceptor("KioskWhitelist");
-}
-
-bool KioskManager::CheckCallerIsForeground(sptr<IRemoteObject> callerToken)
-{
-    AppExecFwk::RunningProcessInfo processInfo;
-    DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByToken(
-        callerToken, processInfo);
-
-    return processInfo.state_ ==
-           AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
 }
 } // namespace AAFwk
 } // namespace OHOS

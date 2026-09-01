@@ -85,6 +85,11 @@ bool AppUtils::IsStartOptionsWithAnimation()
     return true;
 }
 
+bool AppUtils::IsSupportBlockAllAppStart()
+{
+    return MyStatus::GetInstance().auIsSupportBlockAllAppStart_;
+}
+
 bool AppUtils::IsMultiProcessModel()
 {
     return true;
@@ -159,15 +164,6 @@ int32_t AppUtils::GetLimitMaximumExtensionsPerDevice()
 std::string AppUtils::GetCacheExtensionTypeList()
 {
     return "";
-}
-
-bool AppUtils::IsAllowStartAbilityWithoutCallerToken(const std::string& bundleName, const std::string& abilityName)
-{
-    return true;
-}
-
-void AppUtils::LoadStartAbilityWithoutCallerToken()
-{
 }
 
 std::string AppUtils::GetBrokerDelegateBundleName()

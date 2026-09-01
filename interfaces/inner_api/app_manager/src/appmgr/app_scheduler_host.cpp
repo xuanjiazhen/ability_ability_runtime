@@ -17,6 +17,7 @@
 #include "ability_info.h"
 #include "ability_manager_errors.h"
 #include "appexecfwk_errors.h"
+#include "app_scheduler_const.h"
 #include "hitrace_meter.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_types.h"
@@ -47,6 +48,7 @@ int AppSchedulerHost::OnRemoteRequest(uint32_t code, MessageParcel &data, Messag
         TAG_LOGE(AAFwkTag::APPMGR, "local descriptor is not equal to remote");
         return ERR_INVALID_STATE;
     }
+    BeforeHandleRequest();
     return OnRemoteRequestInner(code, data, reply, option);
 }
 
@@ -168,6 +170,8 @@ int32_t AppSchedulerHost::OnRemoteRequestInnerThird(uint32_t code, MessageParcel
             return HandleOnLoadAbilityFinished(data, reply);
         case static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_UPDATE_WORK_PROCESS_INFO):
             return HandleScheduleUpdateWorkProcessInfo(data, reply);
+        case static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_PRE_TEMPLATE_PROCESS_DEEP_FROZEN):
+            return HandleSchedulePreTemplateProcessDeepFrozen(data, reply);
     }
     return INVALID_FD;
 }
@@ -564,6 +568,7 @@ int32_t AppSchedulerHost::HandleScheduleDumpFfrt(MessageParcel &data, MessagePar
     HITRACE_METER(HITRACE_TAG_APP);
     std::string result;
     ScheduleDumpFfrt(result);
+    reply.SetMaxCapacity(MAX_CAPACITY);
     if (!reply.WriteString(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Fail to write string of ScheduleDumpFfrt result");
         return ERR_INVALID_VALUE;
@@ -577,6 +582,7 @@ int32_t AppSchedulerHost::HandleScheduleDumpArkWeb(MessageParcel &data, MessageP
     auto customArgs = data.ReadString();
     std::string result;
     ScheduleDumpArkWeb(customArgs, result);
+    reply.SetMaxCapacity(MAX_CAPACITY);
     if (!reply.WriteString(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write ScheduleDumpArkWeb result fail");
         return ERR_INVALID_VALUE;
@@ -606,6 +612,12 @@ int32_t AppSchedulerHost::HandleScheduleUpdateWorkProcessInfo(MessageParcel &dat
     HITRACE_METER(HITRACE_TAG_APP);
     auto updateInfo = std::shared_ptr<AppUpdateInfo>(data.ReadParcelable<AppUpdateInfo>());
     ScheduleUpdateWorkProcessInfo(updateInfo);
+    return NO_ERROR;
+}
+int32_t AppSchedulerHost::HandleSchedulePreTemplateProcessDeepFrozen(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    SchedulePreTemplateProcessDeepFrozen();
     return NO_ERROR;
 }
 }  // namespace AppExecFwk

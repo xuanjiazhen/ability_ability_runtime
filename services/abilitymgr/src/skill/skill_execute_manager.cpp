@@ -100,15 +100,6 @@ int32_t SkillExecuteManager::CheckSkillPermission(const AppExecFwk::SkillInfo &s
         return ERR_NOT_SYSTEM_APP;
     }
 
-    if (Security::AccessToken::AccessTokenKit::VerifyAccessToken(callerTokenId,
-        PermissionConstants::PERMISSION_START_INVISIBLE_ABILITY, false) ==
-        AppExecFwk::Constants::PERMISSION_GRANTED) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR,
-            "caller has START_INVISIBLE_ABILITY, skip skill permission check, skill:%{public}s",
-            skillInfo.skillName.c_str());
-        return ERR_OK;
-    }
-
     for (const auto &permission : skillInfo.permissions) {
         if (permission.empty()) {
             continue;
@@ -438,11 +429,21 @@ void SkillExecuteManager::EnsureAppStateObserverRegistered()
 void SkillExecuteManager::OnLaunchCompleted(const std::string &requestCode)
 {
     pid_t callerPid = IPCSkeleton::GetCallingPid();
+    Security::AccessToken::HapTokenInfo hapInfo;
+    if (Security::AccessToken::AccessTokenKit::GetHapTokenInfo(
+        IPCSkeleton::GetCallingTokenID(), hapInfo) != 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "OnLaunchCompleted: failed to get hap token info");
+        return;
+    }
     std::lock_guard<ffrt::mutex> lock(mutex_);
     auto it = records_.find(requestCode);
     if (it == records_.end()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR,
             "OnLaunchCompleted: record gone, req:%{public}s", requestCode.c_str());
+        return;
+    }
+    if (it->second->targetBundleName != hapInfo.bundleName) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "OnLaunchCompleted: bundleName mismatch");
         return;
     }
     it->second->targetPid = callerPid;

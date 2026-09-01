@@ -693,6 +693,36 @@ HWTEST_F(AppRunningManagerFourthTest, AppRunningManager_IsAppRunningByBundleName
 }
 
 /**
+ * @tc.name: AppRunningManager_IsAppRunningByBundleName_0200
+ * @tc.desc: verify wildcard matching is removed for negative appCloneIndex/userId
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerFourthTest, AppRunningManager_IsAppRunningByBundleName_0200, TestSize.Level1)
+{
+    int32_t userId = ONE;
+    bool isRunning = false;
+    BundleInfo bundleInfo;
+    std::shared_ptr<AppRunningRecord> record =
+        appRunningManager_->CreateAppRunningRecord(appInfo_, PROCESS_NAME, bundleInfo, "");
+    ASSERT_NE(record, nullptr);
+    record->SetRestartAppFlag(false);
+    record->SetUid(TEST_BASE_USER_RANGE);
+    appRunningManager_->appRunningRecordMap_.clear();
+    appRunningManager_->appRunningRecordMap_.insert(std::make_pair(ONE, record));
+
+    auto ret = appRunningManager_->IsAppRunningByBundleName(BUNDLE_NAME, 0, userId, isRunning);
+    EXPECT_TRUE(isRunning);
+
+    isRunning = false;
+    ret = appRunningManager_->IsAppRunningByBundleName(BUNDLE_NAME, -1, userId, isRunning);
+    EXPECT_FALSE(isRunning);
+
+    isRunning = false;
+    ret = appRunningManager_->IsAppRunningByBundleName(BUNDLE_NAME, 0, -1, isRunning);
+    EXPECT_FALSE(isRunning);
+}
+
+/**
  * @tc.name: AppRunningManager_ProcessUpdateApplicationInfoInstalled_0100
  * @tc.desc: NA
  * @tc.type: FUNC
@@ -1212,30 +1242,66 @@ HWTEST_F(AppRunningManagerFourthTest, AppRunningManager_DumpArkWeb_0300, TestSiz
 }
 
 /**
- * @tc.name: AppRunningManager_OnRemoteRenderDied_0100
- * @tc.desc: Test the state of OnRemoteRenderDied
+ * @tc.name: AppRunningManager_OnRenderProcessExitedByPid_0100
+ * @tc.desc: Test the state of OnRenderProcessExitedByPid
  * @tc.type: FUNC
  */
-HWTEST_F(AppRunningManagerFourthTest, AppRunningManager_OnRemoteRenderDied_0100, TestSize.Level1)
+HWTEST_F(AppRunningManagerFourthTest, AppRunningManager_OnRenderProcessExitedByPid_0100, TestSize.Level1)
 {
     auto appRunningManager = std::make_shared<AppRunningManager>();
     EXPECT_NE(appRunningManager, nullptr);
 
-    auto ret = appRunningManager->OnRemoteRenderDied(nullptr);
+    // invalid pid
+    auto ret = appRunningManager->OnRenderProcessExitedByPid(0);
+    EXPECT_EQ(ret, nullptr);
+    ret = appRunningManager->OnRenderProcessExitedByPid(-1);
     EXPECT_EQ(ret, nullptr);
 
-    OHOS::sptr<IRemoteObject> remote = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    // no app record for the pid
+    int32_t pid = 1;
     appRunningManager->appRunningRecordMap_.clear();
-    int32_t recordId = 0;
-    ret  = appRunningManager->OnRemoteRenderDied(remote);
+    ret = appRunningManager->OnRenderProcessExitedByPid(pid);
     EXPECT_EQ(ret, nullptr);
 
+    // app record exists, but no render record for the pid
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
     auto appRunningRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, PROCESS_NAME);
     appRunningRecord->appLifeCycleDeal_ = std::make_shared<AppLifeCycleDeal>();
-    appRunningManager->appRunningRecordMap_.insert(make_pair(recordId, appRunningRecord));
-    ret = appRunningManager->OnRemoteRenderDied(remote);
+    appRunningManager->appRunningRecordMap_.clear();
+    appRunningManager->appRunningRecordMap_.insert(std::make_pair(0, appRunningRecord));
+    ret = appRunningManager->OnRenderProcessExitedByPid(pid);
     EXPECT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: AppRunningManager_OnRenderProcessExitedByPid_0200
+ * @tc.desc: Test OnRenderProcessExitedByPid with a valid render record
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerFourthTest, AppRunningManager_OnRenderProcessExitedByPid_0200, TestSize.Level1)
+{
+    auto appRunningManager = std::make_shared<AppRunningManager>();
+    ASSERT_NE(appRunningManager, nullptr);
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    auto hostRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, PROCESS_NAME);
+    hostRecord->appLifeCycleDeal_ = std::make_shared<AppLifeCycleDeal>();
+    appRunningManager->appRunningRecordMap_.clear();
+    appRunningManager->appRunningRecordMap_.insert(std::make_pair(RECORD_ID, hostRecord));
+
+    pid_t renderPid = 200;
+    int32_t renderUid = 100200;
+    auto renderRecord = std::make_shared<RenderRecord>(
+        100, "renderParam", AAFwk::FdGuard(), AAFwk::FdGuard(), AAFwk::FdGuard(), hostRecord);
+    renderRecord->SetPid(renderPid);
+    renderRecord->SetUid(renderUid);
+    hostRecord->AddRenderRecord(renderRecord);
+    EXPECT_NE(hostRecord->GetRenderRecordByPid(renderPid), nullptr);
+
+    auto ret = appRunningManager->OnRenderProcessExitedByPid(renderPid);
+    ASSERT_NE(ret, nullptr);
+    EXPECT_EQ(ret->GetPid(), renderPid);
+    EXPECT_EQ(hostRecord->GetRenderRecordByPid(renderPid), nullptr);
 }
 
 /**

@@ -3200,6 +3200,52 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, GetInsightIntentInfoByBundleName_0
 
 /*
  * Feature: AbilityManagerService
+ * Function: GenerateQueryEntityWant
+ * SubFunction: Use the ability name from matched entry profile
+ * FunctionPoints: GenerateQueryEntityWant
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, GenerateQueryEntityWant_001, TestSize.Level1)
+{
+    auto param = std::make_shared<InsightIntentQueryParam>();
+    param->bundleName_ = "test.bundleName";
+    param->moduleName_ = "test.moduleName";
+    param->intentName_ = "mockQueryEntryProfile";
+    param->className_ = "MockQueryEntity";
+    param->queryEntityParam_.queryType_ = "all";
+
+    Want want;
+    auto ret = InsightIntentExecuteManager::GenerateQueryEntityWant(param, want);
+
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(want.GetElement().GetBundleName(), param->bundleName_);
+    EXPECT_EQ(want.GetElement().GetModuleName(), param->moduleName_);
+    EXPECT_EQ(want.GetElement().GetAbilityName(), "FeatureAbility");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GenerateQueryEntityWant
+ * SubFunction: Fall back to the main element when matched ability name is empty
+ * FunctionPoints: GenerateQueryEntityWant
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, GenerateQueryEntityWant_002, TestSize.Level1)
+{
+    auto param = std::make_shared<InsightIntentQueryParam>();
+    param->bundleName_ = "";
+    param->moduleName_ = "test.moduleName";
+    param->intentName_ = "mockQueryFunctionProfile";
+    param->className_ = "MockQueryEntity";
+    param->queryEntityParam_.queryType_ = "all";
+
+    Want want;
+    auto ret = InsightIntentExecuteManager::GenerateQueryEntityWant(param, want);
+
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_TRUE(want.GetElement().GetAbilityName().empty());
+}
+
+/*
+ * Feature: AbilityManagerService
  * Function: GetInsightIntentInfoByBundleName
  * SubFunction: flag is GET_FULL_INSIGHT_INTENT or GET_ENTITY_INFO
  * FunctionPoints: AbilityManagerService GetInsightIntentInfoByBundleName
@@ -3849,153 +3895,6 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, KillProcessWithReason_ShouldKillFo
 
 /*
  * Feature: AbilityManagerService
- * Name: ValidateAppCloneIndex_001
- * Function: ValidateAppCloneIndex
- * SubFunction: NA
- * FunctionPoints: ValidateAppCloneIndex returns ERR_APP_CLONE_INDEX_INVALID when appCloneIndex is missing
- */
-HWTEST_F(AbilityManagerServiceThirteenthTest, ValidateAppCloneIndex_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_001 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    EXPECT_NE(abilityMs_, nullptr);
-
-    Want want;
-    want.SetElementName("com.ohos.test", "MainAbility");
-    // Don't set PARAM_APP_CLONE_INDEX_KEY - should fail validation
-    int32_t appCloneIndex = DEFAULT_INVAL_VALUE;
-    auto eventInfo = abilityMs_->BuildEventInfo(want, DEFAULT_INVAL_VALUE);
-
-    int result = abilityMs_->ValidateAppCloneIndex(want, appCloneIndex, eventInfo);
-    EXPECT_EQ(result, ERR_APP_CLONE_INDEX_INVALID);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_001 end");
-}
-
-/*
- * Feature: AbilityManagerService
- * Name: ValidateAppCloneIndex_002
- * Function: ValidateAppCloneIndex
- * SubFunction: NA
- * FunctionPoints: ValidateAppCloneIndex returns ERR_OK with valid appCloneIndex
- */
-HWTEST_F(AbilityManagerServiceThirteenthTest, ValidateAppCloneIndex_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_002 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    EXPECT_NE(abilityMs_, nullptr);
-
-    Want want;
-    want.SetElementName("com.ohos.test", "MainAbility");
-    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0); // Valid index
-    int32_t appCloneIndex = DEFAULT_INVAL_VALUE;
-    auto eventInfo = abilityMs_->BuildEventInfo(want, DEFAULT_INVAL_VALUE);
-
-    int result = abilityMs_->ValidateAppCloneIndex(want, appCloneIndex, eventInfo);
-    EXPECT_EQ(result, ERR_OK);
-    EXPECT_EQ(appCloneIndex, 0); // Verify the index is set correctly
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_002 end");
-}
-
-/*
- * Feature: AbilityManagerService
- * Name: ValidateAppCloneIndex_003
- * Function: ValidateAppCloneIndex
- * SubFunction: NA
- * FunctionPoints: ValidateAppCloneIndex returns ERR_OK with valid appCloneIndex=1
- */
-HWTEST_F(AbilityManagerServiceThirteenthTest, ValidateAppCloneIndex_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_003 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    EXPECT_NE(abilityMs_, nullptr);
-
-    Want want;
-    want.SetElementName("com.ohos.test", "MainAbility");
-    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 1); // Valid index for clone
-    int32_t appCloneIndex = DEFAULT_INVAL_VALUE;
-    auto eventInfo = abilityMs_->BuildEventInfo(want, DEFAULT_INVAL_VALUE);
-
-    int result = abilityMs_->ValidateAppCloneIndex(want, appCloneIndex, eventInfo);
-    EXPECT_EQ(result, ERR_OK);
-    EXPECT_EQ(appCloneIndex, 1); // Verify the index is set correctly
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_003 end");
-}
-
-/*
- * Feature: AbilityManagerService
- * Name: ValidateAppCloneIndex_004
- * Function: ValidateAppCloneIndex
- * SubFunction: NA
- * FunctionPoints: ValidateAppCloneIndex returns ERR_OK with max valid appCloneIndex (1000)
- */
-HWTEST_F(AbilityManagerServiceThirteenthTest, ValidateAppCloneIndex_004, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_004 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    EXPECT_NE(abilityMs_, nullptr);
-
-    Want want;
-    want.SetElementName("com.ohos.test", "MainAbility");
-    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 1000); // MAX valid index
-    int32_t appCloneIndex = DEFAULT_INVAL_VALUE;
-    auto eventInfo = abilityMs_->BuildEventInfo(want, DEFAULT_INVAL_VALUE);
-
-    int result = abilityMs_->ValidateAppCloneIndex(want, appCloneIndex, eventInfo);
-    EXPECT_EQ(result, ERR_OK);
-    EXPECT_EQ(appCloneIndex, 1000); // Verify the index is set correctly
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_004 end");
-}
-
-/*
- * Feature: AbilityManagerService
- * Name: ValidateAppCloneIndex_005
- * Function: ValidateAppCloneIndex
- * SubFunction: NA
- * FunctionPoints: ValidateAppCloneIndex returns ERR_APP_CLONE_INDEX_INVALID when appCloneIndex > MAX_APP_CLONE_INDEX
- */
-HWTEST_F(AbilityManagerServiceThirteenthTest, ValidateAppCloneIndex_005, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_005 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    EXPECT_NE(abilityMs_, nullptr);
-
-    Want want;
-    want.SetElementName("com.ohos.test", "MainAbility");
-    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 1001); // Invalid: exceeds MAX_APP_CLONE_INDEX
-    int32_t appCloneIndex = DEFAULT_INVAL_VALUE;
-    auto eventInfo = abilityMs_->BuildEventInfo(want, DEFAULT_INVAL_VALUE);
-
-    int result = abilityMs_->ValidateAppCloneIndex(want, appCloneIndex, eventInfo);
-    EXPECT_EQ(result, ERR_APP_CLONE_INDEX_INVALID);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_005 end");
-}
-
-/*
- * Feature: AbilityManagerService
- * Name: ValidateAppCloneIndex_006
- * Function: ValidateAppCloneIndex
- * SubFunction: NA
- * FunctionPoints: ValidateAppCloneIndex returns ERR_APP_CLONE_INDEX_INVALID when appCloneIndex is negative
- */
-HWTEST_F(AbilityManagerServiceThirteenthTest, ValidateAppCloneIndex_006, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_006 start");
-    auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    EXPECT_NE(abilityMs_, nullptr);
-
-    Want want;
-    want.SetElementName("com.ohos.test", "MainAbility");
-    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, -2); // Invalid: negative value
-    int32_t appCloneIndex = DEFAULT_INVAL_VALUE;
-    auto eventInfo = abilityMs_->BuildEventInfo(want, DEFAULT_INVAL_VALUE);
-
-    int result = abilityMs_->ValidateAppCloneIndex(want, appCloneIndex, eventInfo);
-    EXPECT_EQ(result, ERR_APP_CLONE_INDEX_INVALID);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ValidateAppCloneIndex_006 end");
-}
-
-/*
- * Feature: AbilityManagerService
  * Name: InitializeAppCloneRequest_001
  * Function: InitializeAppCloneRequest
  * SubFunction: NA
@@ -4042,8 +3941,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, InitializeAppCloneRequest_001, Tes
     int32_t appCloneIndex = 0;
 
     int32_t validUserId = 0;
-    int result = abilityMs_->InitializeAppCloneRequest(param, appCloneIndex, abilityRequest, abilityInfo, validUserId);
-    EXPECT_EQ(result, RESOLVE_ABILITY_ERR);
+    int result = abilityMs_->InitializeAppCloneRequest(param, appCloneIndex, validUserId, abilityRequest, abilityInfo);
+    EXPECT_EQ(result, ERR_OK);
     MyStatus::GetInstance().isSupportMultiInstance_ = true;
 
     // Reset mock
@@ -4099,8 +3998,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, InitializeAppCloneRequest_002, Tes
     int32_t appCloneIndex = 1;
 
     int32_t validUserId = 0;
-    int result = abilityMs_->InitializeAppCloneRequest(param, appCloneIndex, abilityRequest, abilityInfo, validUserId);
-    EXPECT_EQ(result, RESOLVE_ABILITY_ERR);
+    int result = abilityMs_->InitializeAppCloneRequest(param, appCloneIndex, validUserId, abilityRequest, abilityInfo);
+    EXPECT_EQ(result, ERR_OK);
     MyStatus::GetInstance().isSupportMultiInstance_ = true;
 
     // Reset mock
@@ -4142,7 +4041,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, ProcessLaunchReasonAndController_0
     // Mock IsAbilityControllerStart to return false
     MyStatus::GetInstance().paramGetBoolParameter_ = false;
 
-    int result = abilityMs_->ProcessLaunchReasonAndController(param, abilityRequest, abilityInfo, eventInfo);
+    int result = abilityMs_->ProcessLaunchReasonAndController(param, eventInfo, abilityInfo, abilityRequest);
     EXPECT_EQ(result, ERR_OK);
     MyStatus::GetInstance().paramGetBoolParameter_ = true;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ProcessLaunchReasonAndController_001 end");
@@ -4182,7 +4081,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, ProcessLaunchReasonAndController_0
     // Mock IsAbilityControllerStart to return true
     MyStatus::GetInstance().paramGetBoolParameter_ = true;
 
-    int result = abilityMs_->ProcessLaunchReasonAndController(param, abilityRequest, abilityInfo, eventInfo);
+    int result = abilityMs_->ProcessLaunchReasonAndController(param, eventInfo, abilityInfo, abilityRequest);
     EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ProcessLaunchReasonAndController_002 end");
 }
@@ -4192,7 +4091,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, ProcessLaunchReasonAndController_0
  * Name: ProcessLaunchReasonAndController_003
  * Function: ProcessLaunchReasonAndController
  * SubFunction: NA
- * FunctionPoints: ProcessLaunchReasonAndController returns ERR_INVALID_VALUE when callerToken is nullptr
+ * FunctionPoints: ProcessLaunchReasonAndController returns ERR_OK when callerToken is nullptr
+ * (callerTokenId defaults to 0)
  */
 HWTEST_F(AbilityManagerServiceThirteenthTest, ProcessLaunchReasonAndController_003, TestSize.Level1)
 {
@@ -4206,15 +4106,18 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, ProcessLaunchReasonAndController_0
     StartAbilityWrapParam param;
     param.want = want;
     param.userId = DEFAULT_INVAL_VALUE;
-    param.callerToken = nullptr;  // callerToken is nullptr
+    param.callerToken = nullptr;  // callerToken is nullptr, callerTokenId defaults to 0
 
     AbilityRequest abilityRequest;
     AppExecFwk::AbilityInfo abilityInfo;
     abilityInfo.bundleName = "com.ohos.test";
     auto eventInfo = abilityMs_->BuildEventInfo(want, DEFAULT_INVAL_VALUE);
 
-    int result = abilityMs_->ProcessLaunchReasonAndController(param, abilityRequest, abilityInfo, eventInfo);
-    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    // Mock IsAbilityControllerStart to return true
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+
+    int result = abilityMs_->ProcessLaunchReasonAndController(param, eventInfo, abilityInfo, abilityRequest);
+    EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ProcessLaunchReasonAndController_003 end");
 }
 
@@ -4284,7 +4187,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, ExecuteAbilityStart_001, TestSize.
     int32_t validUserId = 0;
     bool isGamePrelaunch = false;
 
-    int result = abilityMs_->ExecuteAbilityStart(abilityRequest, abilityInfo, validUserId, isGamePrelaunch, eventInfo);
+    int result = abilityMs_->ExecuteAbilityStart(abilityInfo, validUserId, isGamePrelaunch, eventInfo, abilityRequest);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
     MyStatus::GetInstance().sbjIsSceneBoardEnabled_ = false;
     MyStatus::GetInstance().smhGetUIAbilityManagerByUserId_ = true;
@@ -4318,7 +4221,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, ExecuteAbilityStart_002, TestSize.
     int32_t validUserId = 0;
     bool isGamePrelaunch = false;
 
-    int result = abilityMs_->ExecuteAbilityStart(abilityRequest, abilityInfo, validUserId, isGamePrelaunch, eventInfo);
+    int result = abilityMs_->ExecuteAbilityStart(abilityInfo, validUserId, isGamePrelaunch, eventInfo, abilityRequest);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
     MyStatus::GetInstance().smhGetMissionListManagerByUserId_ = true;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ExecuteAbilityStart_002 end");
@@ -4866,6 +4769,138 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, StartAbilityForAppCloneSelector_01
     MyStatus::GetInstance().paramGetBoolParameter_ = true;
     MyStatus::GetInstance().arGetAbilityRecord_ = nullptr;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest StartAbilityForAppCloneSelector_011 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: BlockAllAppStart_001
+ * Function: BlockAllAppStart
+ * SubFunction: NA
+ * FunctionPoints: BlockAllAppStart succeeds when supported and permission granted.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, BlockAllAppStart_001, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.auIsSupportBlockAllAppStart_ = true;
+    status.permVerifyBlockAllAppStartPermission_ = true;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->shouldBlockAllAppStart_ = false;
+    EXPECT_EQ(abilityMs->BlockAllAppStart(true), ERR_OK);
+    EXPECT_EQ(abilityMs->shouldBlockAllAppStart_, true);
+    status.auIsSupportBlockAllAppStart_ = true;
+    status.permVerifyBlockAllAppStartPermission_ = false;
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: BlockAllAppStart_002
+ * Function: BlockAllAppStart
+ * SubFunction: NA
+ * FunctionPoints: BlockAllAppStart returns ERR_PERMISSION_DENIED when not supported.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, BlockAllAppStart_002, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.auIsSupportBlockAllAppStart_ = false;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->shouldBlockAllAppStart_ = false;
+    EXPECT_EQ(abilityMs->BlockAllAppStart(true), ERR_PERMISSION_DENIED);
+    EXPECT_EQ(abilityMs->shouldBlockAllAppStart_, false);
+    status.auIsSupportBlockAllAppStart_ = true;
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: BlockAllAppStart_003
+ * Function: BlockAllAppStart
+ * SubFunction: NA
+ * FunctionPoints: BlockAllAppStart returns ERR_PERMISSION_DENIED when permission denied.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, BlockAllAppStart_003, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.auIsSupportBlockAllAppStart_ = true;
+    status.permVerifyBlockAllAppStartPermission_ = false;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->shouldBlockAllAppStart_ = false;
+    EXPECT_EQ(abilityMs->BlockAllAppStart(true), ERR_PERMISSION_DENIED);
+    EXPECT_EQ(abilityMs->shouldBlockAllAppStart_, false);
+    status.auIsSupportBlockAllAppStart_ = true;
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ShouldBlockAllAppStart_001
+ * Function: ShouldBlockAllAppStart
+ * SubFunction: NA
+ * FunctionPoints: ShouldBlockAllAppStart returns the flag when supported.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ShouldBlockAllAppStart_001, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.auIsSupportBlockAllAppStart_ = true;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->shouldBlockAllAppStart_ = true;
+    EXPECT_EQ(abilityMs->ShouldBlockAllAppStart(), true);
+    status.auIsSupportBlockAllAppStart_ = true;
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: ShouldBlockAllAppStart_002
+ * Function: ShouldBlockAllAppStart
+ * SubFunction: NA
+ * FunctionPoints: ShouldBlockAllAppStart returns false when not supported.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ShouldBlockAllAppStart_002, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.auIsSupportBlockAllAppStart_ = false;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->shouldBlockAllAppStart_ = true;
+    EXPECT_EQ(abilityMs->ShouldBlockAllAppStart(), false);
+    status.auIsSupportBlockAllAppStart_ = true;
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: InitInterceptor_BlockAllAppStart_001
+ * Function: InitInterceptor
+ * SubFunction: NA
+ * FunctionPoints: InitInterceptor creates BlockAllAppStartInterceptor when supported.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, InitInterceptor_BlockAllAppStart_001, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.auIsSupportBlockAllAppStart_ = true;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->InitInterceptor();
+    EXPECT_NE(abilityMs->blockAllAppStartInterceptor_, nullptr);
+    status.auIsSupportBlockAllAppStart_ = true;
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: InitInterceptor_BlockAllAppStart_002
+ * Function: InitInterceptor
+ * SubFunction: NA
+ * FunctionPoints: InitInterceptor does not create BlockAllAppStartInterceptor when not supported.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, InitInterceptor_BlockAllAppStart_002, TestSize.Level1)
+{
+    auto &status = MyStatus::GetInstance();
+    status.auIsSupportBlockAllAppStart_ = false;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->InitInterceptor();
+    EXPECT_EQ(abilityMs->blockAllAppStartInterceptor_, nullptr);
+    status.auIsSupportBlockAllAppStart_ = true;
 }
 
 } // namespace AAFwk

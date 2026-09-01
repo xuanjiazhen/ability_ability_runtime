@@ -235,6 +235,7 @@ bool ToolUtil::GenerateCmdSandboxConfig(const ExecCmdParam &param, AccessToken::
         config["workdir"] = param.workDir;
     }
     config["env"] = param.env;
+    config["nsFlags"] = {"pid"};
     sandboxConfig = config.dump();
     bundleName = bundleInfo.name;
     TAG_LOGI(AAFwkTag::CLI_TOOL, "bundleName:%{public}s, gid:%{public}d", bundleInfo.name.c_str(), bundleInfo.gid);
@@ -602,7 +603,10 @@ bool ToolUtil::ExpandArgsFromJson(AAFwk::WantParams &args, const std::string &ar
         if (val.is_string()) {
             args.SetParam(key, AAFwk::String::Box(val.get<std::string>()));
         } else if (val.is_number_integer()) {
-            args.SetParam(key, AAFwk::Integer::Box(val.get<int32_t>()));
+            int64_t intVal = val.get<int64_t>();
+            if (intVal >= INT32_MIN && intVal <= INT32_MAX) {
+                args.SetParam(key, AAFwk::Integer::Box(static_cast<int32_t>(intVal)));
+            }
         } else if (val.is_boolean()) {
             args.SetParam(key, AAFwk::Boolean::Box(val.get<bool>()));
         }

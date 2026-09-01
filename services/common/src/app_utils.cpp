@@ -42,6 +42,7 @@ constexpr const char* LIMIT_MAXIMUM_OF_RENDER_PROCESS = "persist.sys.abilityms.l
 constexpr const char* GRANT_PERSIST_URI_PERMISSION = "persist.sys.abilityms.grant_persist_uri_permission";
 constexpr const char* GRANT_TEMPORARY_URI_PERMISSION = "persist.sys.abilityms.grant_temporary_uri_permission";
 constexpr const char* START_OPTIONS_WITH_ANIMATION = "persist.sys.abilityms.start_options_with_animation";
+constexpr const char* SUPPORT_BLOCK_ALL_APP_START = "persist.sys.abilityms.support_block_all_app_start";
 constexpr const char* SUPPORT_START_ABILITIES = "persist.sys.abilityms.enable_start_abilities";
 constexpr const char* MULTI_PROCESS_MODEL = "persist.sys.abilityms.multi_process_model";
 constexpr const char* PARAM_ANCO_APP_IDENTIFIER = "persist.hmos_fusion_mgr.anco_identifier";
@@ -69,10 +70,6 @@ const std::string LIMIT_MAXIMUM_EXTENSIONS_OF_PER_PROCESS =
 const std::string LIMIT_MAXIMUM_EXTENSIONS_OF_PER_DEVICE =
     "const.sys.abilityms.limit_maximum_extensions_of_per_device";
 const std::string CACHE_EXTENSION_TYPES = "const.sys.abilityms.cache_extension";
-constexpr const char* START_ABILITY_WITHOUT_CALLERTOKEN = "/system/etc/start_ability_without_caller_token.json";
-constexpr const char* START_ABILITY_WITHOUT_CALLERTOKEN_PATH =
-    "/etc/ability_runtime/start_ability_without_caller_token.json";
-constexpr const char* START_ABILITY_WITHOUT_CALLERTOKEN_TITLE = "startAbilityWithoutCallerToken";
 constexpr const char* BROKER_DELEGATE_BUNDLE_NAME = "const.sys.abilityms.broker_delegate_bundle_name";
 constexpr const char* COLLABORATOR_BROKER_UID = "const.sys.abilityms.collaborator_broker_uid";
 constexpr const char* COLLABORATOR_BROKER_RESERVE_UID = "const.sys.abilityms.collaborator_broker_reserve_uid";
@@ -276,6 +273,16 @@ bool AppUtils::IsStartOptionsWithAnimation()
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isStartOptionsWithAnimation_.value);
     return isStartOptionsWithAnimation_.value;
+}
+
+bool AppUtils::IsSupportBlockAllAppStart()
+{
+    if (!isSupportBlockAllAppStart_.isLoaded) {
+        isSupportBlockAllAppStart_.value = system::GetBoolParameter(SUPPORT_BLOCK_ALL_APP_START, false);
+        isSupportBlockAllAppStart_.isLoaded = true;
+    }
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportBlockAllAppStart_.value);
+    return isSupportBlockAllAppStart_.value;
 }
 
 bool AppUtils::IsSupportStartAbilities()
@@ -549,53 +556,6 @@ std::string AppUtils::GetAncoAppIdentifiers()
 {
     std::string identifiers = system::GetParameter(PARAM_ANCO_APP_IDENTIFIER, "");
     return identifiers;
-}
-
-bool AppUtils::IsAllowStartAbilityWithoutCallerToken(const std::string& bundleName, const std::string& abilityName)
-{
-    std::lock_guard lock(startAbilityWithoutCallerTokenMutex_);
-    if (!startAbilityWithoutCallerToken_.isLoaded) {
-        LoadStartAbilityWithoutCallerToken();
-        startAbilityWithoutCallerToken_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "isLoaded: %{public}d", startAbilityWithoutCallerToken_.isLoaded);
-    for (auto &element : startAbilityWithoutCallerToken_.value) {
-        if (bundleName == element.first && abilityName == element.second) {
-            TAG_LOGI(AAFwkTag::DEFAULT, "call");
-            return true;
-        }
-    }
-    return false;
-}
-
-void AppUtils::LoadStartAbilityWithoutCallerToken()
-{
-    nlohmann::json object;
-    if (!JsonUtils::GetInstance().LoadConfiguration(
-        START_ABILITY_WITHOUT_CALLERTOKEN_PATH, object, START_ABILITY_WITHOUT_CALLERTOKEN)) {
-        TAG_LOGE(AAFwkTag::DEFAULT, "token list failed");
-        return;
-    }
-    if (!object.contains(START_ABILITY_WITHOUT_CALLERTOKEN_TITLE) ||
-        !object.at(START_ABILITY_WITHOUT_CALLERTOKEN_TITLE).is_array()) {
-        TAG_LOGE(AAFwkTag::DEFAULT, "token config invalid");
-        return;
-    }
-
-    for (auto &item : object.at(START_ABILITY_WITHOUT_CALLERTOKEN_TITLE).items()) {
-        const nlohmann::json& jsonObject = item.value();
-        if (!jsonObject.contains(BUNDLE_NAME) || !jsonObject.at(BUNDLE_NAME).is_string()) {
-            TAG_LOGE(AAFwkTag::DEFAULT, "load bundleName failed");
-            return;
-        }
-        if (!jsonObject.contains(ABILITY_NAME) || !jsonObject.at(ABILITY_NAME).is_string()) {
-            TAG_LOGE(AAFwkTag::DEFAULT, "load abilityName failed");
-            return;
-        }
-        std::string bundleName = jsonObject.at(BUNDLE_NAME).get<std::string>();
-        std::string abilityName = jsonObject.at(ABILITY_NAME).get<std::string>();
-        startAbilityWithoutCallerToken_.value.emplace_back(std::make_pair(bundleName, abilityName));
-    }
 }
 
 std::string AppUtils::GetBrokerDelegateBundleName()
@@ -1010,6 +970,31 @@ bool AppUtils::IsSupportNativeUIAbility()
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "IsSupportNativeUIAbility: %{public}d", isSupportNativeUIAbility_.value);
     return isSupportNativeUIAbility_.value;
+}
+
+bool AppUtils::IsBopdMode()
+{
+    const std::unordered_set<std::string> bopdModeSet = {
+        "0x2",
+        "0x3",
+        "0x6",
+        "0x7",
+        "0xa",
+        "0xe",
+        "0xf",
+    };
+    auto mode = system::GetParameter("ohos.boot.bopd.mode", "NA");
+    return bopdModeSet.find(mode) != bopdModeSet.end();
+}
+
+bool AppUtils::IsBopdOrRescueMode()
+{
+    if (!isBopdOrRescueMode_.isLoaded) {
+        isBopdOrRescueMode_.value = (IsBopdMode() || system::GetParameter("soc.boot.mode", "") == "rescue");
+        isBopdOrRescueMode_.isLoaded = true;
+    }
+    TAG_LOGD(AAFwkTag::DEFAULT, "IsBopdOrRescueMode: %{public}d", isBopdOrRescueMode_.value);
+    return isBopdOrRescueMode_.value;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

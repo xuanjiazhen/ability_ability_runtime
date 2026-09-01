@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,6 +36,7 @@
 #include "res_sched_util.h"
 #include "server_constant.h"
 #include "startup_util.h"
+#include "param.h"
 #include "ui_extension_wrapper.h"
 #ifdef SUPPORT_GRAPHICS
 #include "ability_first_frame_state_observer_manager.h"
@@ -220,8 +221,9 @@ int MissionListManager::StartAbility(const std::shared_ptr<AbilityRecord> &curre
         TAG_LOGD(AAFwkTag::ABILITYMGR, "ability launch mode:%{public}d",
             static_cast<int32_t>(abilityRequest.abilityInfo.launchMode));
         EnqueueWaitingAbilityToFront(abilityRequest);
+        AbilityRuntime::StartSpecifiedParam specifiedParam;
         DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedAbility(
-            abilityRequest.want, abilityRequest.abilityInfo);
+            abilityRequest.want, abilityRequest.abilityInfo, specifiedParam);
         return 0;
     }
 
@@ -2856,6 +2858,7 @@ void MissionListManager::HandleAbilityDiedByDefault(std::shared_ptr<AbilityRecor
     auto missionList = mission->GetMissionList();
     CHECK_POINTER_LOG(missionList, "Fail to get mission list.");
 
+    CHECK_POINTER_LOG(launcherList_, "launcherList_ is null.");
     std::shared_ptr<AbilityRecord> launcherRoot = launcherList_->GetLauncherRoot();
     bool isLauncherActive = (launcherRoot &&
         (launcherRoot->IsAbilityState(FOREGROUND) || launcherRoot->IsAbilityState(FOREGROUNDING)));

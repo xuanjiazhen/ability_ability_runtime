@@ -62,9 +62,9 @@
 #include "extractor.h"
 #include "replace_intl_module.h"
 #include "system_ability_definition.h"
-#include "source_map.h"
-#include "source_map_operator.h"
+#include "dfx_jsnapi.h"
 #include "worker_info.h"
+#include "ffrt.h"
 
 #ifdef SUPPORT_SCREEN
 #include "hot_reloader.h"
@@ -483,7 +483,7 @@ bool JsRuntime::LoadRepairPatch(const std::string& hqfFile, const std::string& h
     auto vm = GetEcmaVm();
     CHECK_POINTER_AND_RETURN(vm, false);
 
-    InitSourceMap(hqfFile);
+    HqfInitSourceMap(hqfFile);
 
     std::string patchFile;
     auto hqfSafeData = GetSafeData(hqfFile, patchFile);
@@ -788,8 +788,7 @@ bool JsRuntime::Initialize(const Options& options)
     }
 
     if (!options.preload) {
-        auto operatorObj = std::make_shared<JsEnv::SourceMapOperator>(options.bundleName);
-        InitSourceMap(operatorObj);
+        InitSourceMap(options.bundleName);
 
         if (options.isUnique) {
             TAG_LOGD(AAFwkTag::JSRUNTIME, "Not supported TimerModule when form render");
@@ -826,6 +825,7 @@ bool JsRuntime::CreateJsEnv(const Options& options)
     pandaOption.SetMemConfigProperty(memConfigProperty);
     pandaOption.SetGcThreadNum(gcThreadNum);
     pandaOption.SetLongPauseTime(longPauseTime);
+    pandaOption.SetIsFormThread(options.isFormRender);
     TAG_LOGD(AAFwkTag::JSRUNTIME, "ark properties=%{public}d bundlename=%{public}s",
         arkProperties, bundleName.c_str());
     pandaOption.SetGcType(panda::RuntimeOption::GC_TYPE::GEN_GC);
@@ -1005,16 +1005,29 @@ void JsRuntime::CreatePluginDefaultNamespace(const std::string &lddictionaries)
     moduleManager->InheritNamespaceEachOther(currentNamespace, pluginDefaultNamespace);
 }
 
-void JsRuntime::InitSourceMap(const std::shared_ptr<JsEnv::SourceMapOperator> operatorObj)
+void JsRuntime::InitSourceMap(const std::string bundleName)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     CHECK_POINTER(jsEnv_);
-    JsEnv::SourceMap::RegisterReadSourceMapCallback(JsRuntime::ReadSourceMapData);
-    JsEnv::SourceMap::RegisterGetHapPathCallback(JsModuleReader::GetHapPathList);
-    jsEnv_->InitSourceMap(operatorObj);
+
+    auto init = [bundleName]() {
+        DFXJSNApi::SourceMapSetInitStatus(false);
+        std::vector<std::string> hapList;
+        JsModuleReader::GetHapPathList(bundleName, hapList);
+        for (auto &hapInfo : hapList) {
+            if (!hapInfo.empty()) {
+                std::string sourceMapData;
+                JsRuntime::ReadSourceMapData(hapInfo, MERGE_SOURCE_MAP_PATH, sourceMapData);
+                DFXJSNApi::SourceMapSplitSourceMap(sourceMapData);
+            }
+        }
+        DFXJSNApi::SourceMapSetInitStatus(true);
+    };
+
+    ffrt::submit(init, {}, {}, ffrt::task_attr().qos(ffrt::qos_user_initiated));
 }
 
-void JsRuntime::InitSourceMap(const std::string hqfFilePath)
+void JsRuntime::HqfInitSourceMap(const std::string hqfFilePath)
 {
     std::string patchSoureMapFile;
     std::vector<uint8_t> soureMapBuffer;
@@ -1024,13 +1037,7 @@ void JsRuntime::InitSourceMap(const std::string hqfFilePath)
     }
     std::string str(soureMapBuffer.begin(), soureMapBuffer.end());
     CHECK_POINTER(jsEnv_);
-    auto sourceMapOperator = jsEnv_->GetSourceMapOperator();
-    if (sourceMapOperator != nullptr) {
-        auto sourceMapObj = sourceMapOperator->GetSourceMapObj();
-        if (sourceMapObj != nullptr) {
-            sourceMapObj->SplitSourceMap(str);
-        }
-    }
+    DFXJSNApi::SourceMapSplitSourceMap(str);
 }
 
 void JsRuntime::Deinitialize()
@@ -1464,6 +1471,7 @@ void JsRuntime::DumpJsHandleMap()
     auto vm = GetEcmaVm();
     CHECK_POINTER(vm);
     DFXJSNApi::GetHandleNodeIdMap(vm);
+    DFXJSNApi::DestroyHeapProfiler(vm);
 }
 
 size_t JsRuntime::GetHeapTotalSize()
@@ -1679,7 +1687,7 @@ void JsRuntime::RegisterQuickFixQueryFunc(const std::map<std::string, std::strin
     CHECK_POINTER(vm);
     for (auto it = moduleAndPath.begin(); it != moduleAndPath.end(); it++) {
         std::string hqfFile(AbilityBase::GetLoadPath(it->second));
-        InitSourceMap(hqfFile);
+        HqfInitSourceMap(hqfFile);
     }
     panda::JSNApi::RegisterQuickFixQueryFunc(vm, JsQuickfixCallback(moduleAndPath));
 }

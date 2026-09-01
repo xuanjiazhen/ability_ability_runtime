@@ -733,6 +733,31 @@ void ETSRuntime::PreloadSystemModule(const std::string &moduleName)
     }
 }
 
+void ETSRuntime::PreloadMainAbility(const std::string &moduleName, const std::string &srcPath,
+    const std::string &hapPath, bool isEsMode, const std::string &srcEntrance)
+{
+    std::string key(moduleName);
+    key.append("::");
+    key.append(srcPath);
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "PreloadMainAbility srcPath: %{public}s", srcPath.c_str());
+    preloadList_[key] = LoadModule(moduleName, srcPath, hapPath, isEsMode, false, srcEntrance);
+}
+
+bool ETSRuntime::PopPreloadObj(const std::string &key, std::unique_ptr<AppExecFwk::ETSNativeReference> &obj)
+{
+    if (preloadList_.find(key) == preloadList_.end()) {
+        return false;
+    }
+    if (preloadList_[key] != nullptr) {
+        obj = std::move(preloadList_[key]);
+        preloadList_.erase(key);
+        TAG_LOGD(AAFwkTag::ETSRUNTIME, "PopPreloadObj key: %{public}s", key.c_str());
+        return true;
+    }
+    preloadList_.erase(key);
+    return false;
+}
+
 bool ETSRuntime::PreloadSystemClass(const char *className)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "PreloadSystemClass called");
@@ -860,7 +885,7 @@ void ETSRuntime::DebuggerConnectionHandler(bool isDebugApp, bool isStartWithDebu
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "null js vm");
         return;
     }
-    g_etsEnvFuncs->NotifyDebugMode(getproctid(), instanceId_, isStartWithDebug, vm);
+    g_etsEnvFuncs->NotifyDebugMode(getproctid(), instanceId_, isStartWithDebug, vm, isDebugApp);
 }
 
 void ETSRuntime::StopDebugMode()

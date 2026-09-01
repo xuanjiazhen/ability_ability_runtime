@@ -22,8 +22,10 @@ config("upms_config") {
     "${ability_runtime_utils_path}/global/constant",
   ]
   cflags = []
+  defines = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
+    defines += [ "APP_USE_ARM" ]
   }
 }
 
@@ -105,6 +107,7 @@ ohos_shared_library("libupms") {
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 # Note: Just for test

@@ -23,6 +23,12 @@
 #include "ets_agent_extension_stub_impl.h"
 #include "ets_native_reference.h"
 
+#ifdef SUPPORT_GRAPHICS
+#include "display_manager.h"
+#include "system_ability_status_change_stub.h"
+#include "window_manager.h"
+#endif
+
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -87,8 +93,17 @@ public:
 
     /**
      * @brief Called when this extension enters the <b>STATE_STOP</b> state.
+     *
+     * You can override this function to implement your own processing logic.
      */
     virtual void OnStop() override;
+
+    /**
+     * @brief Called when the system configuration is updated.
+     *
+     * @param configuration Indicates the updated configuration information.
+     */
+    void OnConfigurationUpdated(const AppExecFwk::Configuration &configuration) override;
 
     /**
      * @brief Called when client send data to extension.
@@ -133,6 +148,10 @@ private:
 
     sptr<IRemoteObject> GetHostProxyFromWant(const AAFwk::Want &want);
 
+    void ConfigurationUpdated();
+    void ListenWMS();
+    bool HasScreenDensityBeenSet(std::shared_ptr<Global::Resource::ResourceManager> resourceManager);
+
     ETSRuntime& etsRuntime_;
     std::unique_ptr<ETSNativeReference> etsObj_;
     std::shared_ptr<AbilityContext> aContext_ = nullptr;
@@ -140,7 +159,50 @@ private:
     std::shared_ptr<AbilityHandler> handler_ = nullptr;
     sptr<EtsAgentExtensionStubImpl> extensionStub_;
     std::map<AgentRemoteObjectKey, ani_ref> hostProxyMap_;
+    std::mutex hostProxyMapMutex_;
     ani_vm *etsVm_ = nullptr;
+
+#ifdef SUPPORT_GRAPHICS
+protected:
+    class EtsAgentExtensionDisplayListener : public Rosen::IDisplayInfoChangedListener {
+    public:
+        explicit EtsAgentExtensionDisplayListener(const std::weak_ptr<EtsAgentExtension>& etsAgentExtension)
+        {
+            etsAgentExtension_ = etsAgentExtension;
+        }
+
+        void OnDisplayInfoChange(const sptr<IRemoteObject>& token, Rosen::DisplayId displayId, float density,
+            Rosen::DisplayOrientation orientation) override
+        {
+            auto sptr = etsAgentExtension_.lock();
+            if (sptr != nullptr) {
+                sptr->OnDisplayInfoChange(token, displayId, density, orientation);
+            }
+        }
+
+    private:
+        std::weak_ptr<EtsAgentExtension> etsAgentExtension_;
+    };
+
+    void OnDisplayInfoChange(const sptr<IRemoteObject>& token, Rosen::DisplayId displayId, float density,
+        Rosen::DisplayOrientation orientation);
+
+private:
+    class SystemAbilityStatusChangeListener : public OHOS::SystemAbilityStatusChangeStub {
+    public:
+        SystemAbilityStatusChangeListener(sptr<EtsAgentExtensionDisplayListener> displayListener,
+            const sptr<IRemoteObject> & token): tmpDisplayListener_(displayListener), token_(token) {};
+        virtual void OnAddSystemAbility(int32_t systemAbilityId, const std::string& deviceId) override;
+        virtual void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string& deviceId) override {}
+
+    private:
+        sptr<EtsAgentExtensionDisplayListener> tmpDisplayListener_ = nullptr;
+        sptr<IRemoteObject> token_ = nullptr;
+    };
+
+    sptr<EtsAgentExtensionDisplayListener> displayListener_ = nullptr;
+    sptr<SystemAbilityStatusChangeListener> saStatusChangeListener_ = nullptr;
+#endif
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS

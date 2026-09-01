@@ -154,9 +154,15 @@ void EtsUIExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
     std::string moduleName(Extension::abilityInfo_->moduleName);
     moduleName.append("::").append(abilityInfo_->name);
 
-    etsObj_ = etsRuntime_.LoadModule(
-        moduleName, srcPath, abilityInfo_->hapPath, abilityInfo_->compileMode == AppExecFwk::CompileMode::ES_MODULE,
-        false, abilityInfo_->srcEntrance);
+    std::string preloadKey = moduleName + "::" + srcPath;
+    std::unique_ptr<AppExecFwk::ETSNativeReference> moduleObj = nullptr;
+    if (etsRuntime_.PopPreloadObj(preloadKey, moduleObj)) {
+        etsObj_ = std::move(moduleObj);
+    } else {
+        etsObj_ = etsRuntime_.LoadModule(
+            moduleName, srcPath, abilityInfo_->hapPath,
+            abilityInfo_->compileMode == AppExecFwk::CompileMode::ES_MODULE, false, abilityInfo_->srcEntrance);
+    }
 
     if (etsObj_ == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "etsObj_ null");
@@ -456,7 +462,7 @@ bool EtsUIExtension::ForegroundWindowWithInsightIntent(const AAFwk::Want &want,
 
         InsightIntentExecuteParam executeParam;
         InsightIntentExecuteParam::GenerateFromWant(want, executeParam);
-        if (result.uris.size() > 0) {
+        if (result.uris.size() > 0 || result.interactionInfo != nullptr) {
             uiExtension->ExecuteInsightIntentDone(executeParam.insightIntentId_, result);
         }
         uiExtension->PostInsightIntentExecuted(sessionInfo, result, needForeground);
@@ -516,7 +522,10 @@ void EtsUIExtension::PostInsightIntentExecuted(const sptr<AAFwk::SessionInfo> &s
         CallObjectMethod(false, "onForeground", nullptr);
     }
 
-    OnInsightIntentExecuteDone(sessionInfo, result);
+    auto filtered = result;
+    filtered.interactionInfo = nullptr;
+    TAG_LOGW(AAFwkTag::UI_EXT, "filter interactionInfo in window path");
+    OnInsightIntentExecuteDone(sessionInfo, filtered);
 
     if (needForeground) {
         // If need foreground, that means triggered by onForeground.
@@ -572,7 +581,7 @@ bool EtsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAF
     auto compId = sessionInfo->uiExtensionComponentId;
     if (uiWindowMap_.find(compId) == uiWindowMap_.end()) {
         auto context = GetContext();
-        auto uiWindow = CreateUIWindow(context, sessionInfo);
+        auto uiWindow = CreateUIWindow(context, sessionInfo, want);
         if (uiWindow == nullptr) {
             TAG_LOGE(AAFwkTag::UI_EXT, "create ui window error");
             return false;
@@ -625,7 +634,7 @@ bool EtsUIExtension::HandleSessionCreate(const AAFwk::Want &want, const sptr<AAF
 }
 
 sptr<Rosen::Window> EtsUIExtension::CreateUIWindow(const std::shared_ptr<UIExtensionContext> context,
-    const sptr<AAFwk::SessionInfo> &sessionInfo)
+    const sptr<AAFwk::SessionInfo> &sessionInfo, const AAFwk::Want &want)
 {
     if (context == nullptr || context->GetAbilityInfo() == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "context null");
@@ -643,6 +652,7 @@ sptr<Rosen::Window> EtsUIExtension::CreateUIWindow(const std::shared_ptr<UIExten
     option->SetRealParentId(sessionInfo->realHostWindowId);
     option->SetParentWindowType(static_cast<Rosen::WindowType>(sessionInfo->parentWindowType));
     option->SetUIExtensionUsage(static_cast<uint32_t>(sessionInfo->uiExtensionUsage));
+    option->SetCallerPid(want.GetIntParam(AAFwk::Want::PARAM_RESV_CALLER_PID, -1));
     HITRACE_METER_NAME(HITRACE_TAG_APP, "Rosen::Window::Create");
     return Rosen::Window::Create(option, GetContext(), sessionInfo->sessionToken);
 }

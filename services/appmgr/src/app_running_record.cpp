@@ -1709,7 +1709,7 @@ void AppRunningRecord::SetStartupTaskData(const AAFwk::Want &want)
     if (wantParams.HasParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME)) {
         startupTaskData_->insightIntentName = wantParams.GetStringParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME);
     }
-    TAG_LOGD(AAFwkTag::APPMGR, "uri: %{public}s, action: %{public}s, intentName: %{public}s",
+    TAG_LOGD(AAFwkTag::APPMGR, "uri: %{private}s, action: %{public}s, intentName: %{public}s",
         startupTaskData_->uri.c_str(), startupTaskData_->action.c_str(),
         startupTaskData_->insightIntentName.c_str());
 }
@@ -2173,6 +2173,16 @@ int32_t AppRunningRecord::NotifyAppFault(const FaultData &faultData)
         return ERR_INVALID_VALUE;
     }
     return appLifeCycleDeal_->NotifyAppFault(faultData);
+}
+
+int32_t AppRunningRecord::PreTemplateProcessDeepFrozen()
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (!appLifeCycleDeal_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null appLifeCycleDeal_");
+        return ERR_INVALID_VALUE;
+    }
+    return appLifeCycleDeal_->PreTemplateProcessDeepFrozen();
 }
 
 bool AppRunningRecord::IsAbilitiesBackground()
@@ -2706,21 +2716,25 @@ bool AppRunningRecord::isNativeStart() const
 
 void AppRunningRecord::SetExitReason(int32_t reason)
 {
+    std::lock_guard<ffrt::mutex> lock(exitReasonLock_);
     exitReason_ = reason;
 }
 
 int32_t AppRunningRecord::GetExitReason() const
 {
+    std::lock_guard<ffrt::mutex> lock(exitReasonLock_);
     return exitReason_;
 }
 
 void AppRunningRecord::SetExitMsg(const std::string &exitMsg)
 {
+    std::lock_guard<ffrt::mutex> lock(exitMsgLock_);
     exitMsg_ = exitMsg;
 }
 
 std::string AppRunningRecord::GetExitMsg() const
 {
+    std::lock_guard<ffrt::mutex> lock(exitMsgLock_);
     return exitMsg_;
 }
 
@@ -2736,21 +2750,25 @@ int32_t AppRunningRecord::GetKillId() const
 
 void AppRunningRecord::SetKillMsg(const std::string &killMsg)
 {
+    std::lock_guard<ffrt::mutex> lock(killMsgLock_);
     killMsg_ = killMsg;
 }
 
 std::string AppRunningRecord::GetKillMsg() const
 {
+    std::lock_guard<ffrt::mutex> lock(killMsgLock_);
     return killMsg_;
 }
 
 void AppRunningRecord::SetInnerMsg(const std::string &innerMsg)
 {
+    std::lock_guard<ffrt::mutex> lock(innerMsgLock_);
     innerMsg_ = innerMsg;
 }
 
 std::string AppRunningRecord::GetInnerMsg() const
 {
+    std::lock_guard<ffrt::mutex> lock(innerMsgLock_);
     return innerMsg_;
 }
 

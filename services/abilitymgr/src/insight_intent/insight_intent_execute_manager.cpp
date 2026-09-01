@@ -43,6 +43,7 @@ namespace {
 constexpr size_t INSIGHT_INTENT_EXECUTE_RECORDS_MAX_SIZE = 256;
 constexpr char EXECUTE_INSIGHT_INTENT_PERMISSION[] = "ohos.permission.EXECUTE_INSIGHT_INTENT";
 constexpr char PERMISSION_GET_BUNDLE_INFO_PRIVILEGED[] = "ohos.permission.GET_BUNDLE_INFO_PRIVILEGED";
+constexpr const char *KEY_INTERACTION_INFO = "interactionInfo";
 constexpr int32_t OPERATION_DURATION = 10000;
 constexpr int32_t DYING_CALLBACK_DELAY_MS = 100;
 constexpr int64_t MICROSECONDS_PER_MILLISECOND = 1000;
@@ -318,9 +319,26 @@ int32_t InsightIntentExecuteManager::ExecuteIntentDone(uint64_t intentId, int32_
         return ERR_INVALID_OPERATION;
     }
     record->state = InsightIntentExecuteState::EXECUTE_DONE;
-    
+
+    AppExecFwk::InsightIntentExecuteResult filteredResult = result;
+    bool isSystemApp = PermissionVerification::GetInstance()->IsSACallByTokenId(accessToken) ||
+        PermissionVerification::GetInstance()->IsShellCallByTokenId(accessToken) ||
+        PermissionVerification::GetInstance()->IsSystemAppCallByTokenId(accessToken);
+    if (!isSystemApp) {
+        filteredResult.interactionInfo = nullptr;
+        if (filteredResult.result != nullptr) {
+            filteredResult.result->Remove(KEY_INTERACTION_INFO);
+        }
+        TAG_LOGE(AAFwkTag::INTENT, "filtered interactionInfo for non-system app");
+    }
+
     if (record->isDistributed) {
-        std::string msg = result.ToJsonString();
+        filteredResult.interactionInfo = nullptr;
+        if (filteredResult.result != nullptr) {
+            filteredResult.result->Remove(KEY_INTERACTION_INFO);
+        }
+        TAG_LOGW(AAFwkTag::INTENT, "filtered interactionInfo for distributed scenario");
+        std::string msg = filteredResult.ToJsonString();
         Want want;
         want.SetElementName(record->deviceId, record->bundleName, "", "");
         IntentCallerInfo callerInfo;
@@ -340,7 +358,7 @@ int32_t InsightIntentExecuteManager::ExecuteIntentDone(uint64_t intentId, int32_
                 " intentId: %{public}" PRIu64 ", records_ size: %{public}zu", intentId, records_.size());
             return ERR_INVALID_VALUE;
         }
-        remoteCallback->OnExecuteDone(record->key, resultCode, result);
+        remoteCallback->OnExecuteDone(record->key, resultCode, filteredResult);
     }
     
     if (record->callerToken != nullptr) {
@@ -956,6 +974,21 @@ std::shared_ptr<AbilityRuntime::InsightIntentEntityInfo> InsightIntentExecuteMan
     return nullptr;
 }
 
+std::string InsightIntentExecuteManager::GetAbilityNameFromMatched(
+    AbilityRuntime::ExtractInsightIntentGenericInfo &info)
+{
+    if (info.currentType == AbilityRuntime::InfoType::Entry) {
+        return info.get<AbilityRuntime::InsightIntentEntryInfo>().abilityName;
+    }
+    if (info.currentType == AbilityRuntime::InfoType::Page) {
+        return info.get<AbilityRuntime::InsightIntentPageInfo>().uiAbility;
+    }
+    if (info.currentType == AbilityRuntime::InfoType::Form) {
+        return info.get<AbilityRuntime::InsightIntentFormInfo>().abilityName;
+    }
+    return "";
+}
+
 int32_t InsightIntentExecuteManager::GenerateQueryEntityWant(
     const std::shared_ptr<AppExecFwk::InsightIntentQueryParam> &param, Want &want)
 {
@@ -976,7 +1009,10 @@ int32_t InsightIntentExecuteManager::GenerateQueryEntityWant(
         return INTENT_NOT_EXIST;
     }
 
-    auto abilityName = InsightIntentExecuteManager::GetMainElementName(param->bundleName_, param->moduleName_);
+    auto abilityName = GetAbilityNameFromMatched(intentInfo.genericInfo);
+    if (abilityName.empty()) {
+        abilityName = GetMainElementName(param->bundleName_, param->moduleName_, param->userId_);
+    }
     if (abilityName.empty()) {
         TAG_LOGE(AAFwkTag::INTENT, "ability name empty");
         return ERR_INVALID_VALUE;

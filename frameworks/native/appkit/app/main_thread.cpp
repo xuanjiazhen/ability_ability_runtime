@@ -158,6 +158,8 @@ constexpr int32_t UNSPECIFIED_USERID = -2;
 constexpr int32_t JS_ERROR_EXIT = -2;
 constexpr int32_t TIME_OUT = 120;
 constexpr int32_t DEFAULT_SLEEP_TIME = 100000;
+constexpr int32_t SNAPSHOT_START = 0;
+constexpr int32_t SNAPSHOT_FAILURE = 1;
 
 enum class SignalType {
     SIGNAL_JSHEAP_OLD,
@@ -188,6 +190,7 @@ constexpr char PRODUCT_ASSERT_FAULT_DIALOG_ENABLED[] = "persisit.sys.abilityms.s
 constexpr const char* INHERIT_PLUGIN_NAMESPACE = "persist.sys.abilityms.inherit_plugin_namespace";
 constexpr const char* PLUGIN_DEFAULT_NAMESPACE_LDDICTIONARY =
     "persist.sys.abilityms.plugin_default_namespace_lddictionary";
+constexpr const char* FORM_RENDER_SERVICE_NAME = "com.ohos.formrenderservice";
 constexpr char KILL_REASON[] = "Kill Reason:Js Error";
 constexpr const char* KEY_SKIP_ABILITY_STAGE_LIFECYCLE = "ohos.ability.param.skipAbilityStageLifecycle";
 
@@ -213,6 +216,8 @@ const char* PRELOAD_APP_STARTUP = "PreloadAppStartup";
 const int32_t TYPE_RESERVE = 1;
 const int32_t TYPE_OTHERS = 2;
 constexpr int32_t FOUNDATION_UID = 5523;
+const char* FFRT_LIBRARY_PATH = "/system/lib64/ndk/libffrt.so";
+const char* FFRT_NOTIFY_SNAPSHOT_FUNC = "ffrt_notify_snapshot";
 
 #if defined(NWEB) && defined(NWEB_GRAPHIC)
 const std::string NWEB_SURFACE_NODE_NAME = "nwebPreloadSurface";
@@ -1424,19 +1429,17 @@ void MainThread::HandleOnOverlayChanged(const EventFwk::CommonEventData &data,
     }
 }
 
-bool IsNeedLoadLibrary(const std::string &bundleName)
+bool IsNeedLoadLibrary(const std::vector<OHOS::AppExecFwk::Metadata> &metaData, const bool isSystemApp)
 {
-    std::vector<std::string> needLoadLibraryBundleNames{
-        "com.ohos.contactsdataability",
-        "com.ohos.medialibrary.medialibrarydata",
-        "com.ohos.ringtonelibrary.ringtonelibrarydata",
-        "com.ohos.telephonydataability",
-        "com.ohos.FusionSearch",
-        "com.ohos.formrenderservice"
-    };
+    bool loadNativeLibraryForApplication = std::any_of(metaData.begin(), metaData.end(), [](const auto &metaDataItem) {
+        return metaDataItem.name == "ohos.ability.loadNativeLibraryForApplication" && metaDataItem.value == "true";
+    });
+    return loadNativeLibraryForApplication && isSystemApp;
+}
 
-    return std::find(needLoadLibraryBundleNames.begin(), needLoadLibraryBundleNames.end(), bundleName)
-        != needLoadLibraryBundleNames.end();
+bool IsFormRenderService(const std::string &bundleName)
+{
+    return FORM_RENDER_SERVICE_NAME == bundleName;
 }
 
 bool GetBundleForLaunchApplication(std::shared_ptr<BundleMgrHelper> bundleMgrHelper, const std::string &bundleName,
@@ -1742,7 +1745,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     }
 #endif
 
-    if (IsNeedLoadLibrary(bundleName)) {
+    if (IsNeedLoadLibrary(entryHapModuleInfo.metadata, isSystemApp) || IsFormRenderService(bundleName)) {
         std::vector<std::string> localPaths;
         ChangeToLocalPath(bundleName, appInfo.moduleSourceDirs, localPaths);
         LoadAbilityLibrary(localPaths);
@@ -2185,9 +2188,8 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     }
 #endif
     RunNativeStartupTask(bundleInfo, appLaunchData);
-    if (!IsEtsAPP(appInfo) &&
-        (appLaunchData.IsNeedPreloadModule() ||
-        appLaunchData.GetAppPreloadMode() == AppExecFwk::PreloadMode::PRELOAD_MODULE)) {
+    if (appLaunchData.IsNeedPreloadModule() ||
+        appLaunchData.GetAppPreloadMode() == AppExecFwk::PreloadMode::PRELOAD_MODULE) {
         PreloadModule(bundleInfo, appLaunchData, entryHapModuleInfo, application_->GetRuntime());
         if (appMgr_ == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "null appMgr");
@@ -2378,14 +2380,29 @@ void MainThread::ProcessMainAbility(const AbilityInfo &info, const std::unique_p
         }
         srcPath.append("/");
         srcPath.append(info.srcEntrance);
-        AbilityRuntime::RemoveFileExtension(srcPath);
-        srcPath.append(".abc");
+        // STATIC srcEntrance carries no ".ets" extension (OHM addressing), so rfind may
+        // return npos — guard like the ETS consumers (EtsUIAbility/EtsUIExtension/ETSAbilityStage),
+        // otherwise erase(npos) throws std::out_of_range.
+        auto pos = srcPath.rfind(".");
+        if (pos != std::string::npos) {
+            srcPath.erase(pos);
+            srcPath.append(".abc");
+        }
         TAG_LOGD(AAFwkTag::UIABILITY, "jsAbility srcPath: %{public}s", srcPath.c_str());
     }
 
     std::string moduleName(info.moduleName);
     moduleName.append("::").append(info.name);
     bool isEsmode = info.compileMode == AppExecFwk::CompileMode::ES_MODULE;
+    // HYBRID apps mix JS and ETS modules: route each to the runtime that will later host it
+    // (consistent with AddAbilityStage), so the preloaded module survives the fork-restore lookup.
+    if (application_ != nullptr) {
+        const auto &specifiedRuntime = application_->GetSpecifiedRuntime(info.arkTSMode);
+        if (specifiedRuntime != nullptr) {
+            specifiedRuntime->PreloadMainAbility(moduleName, srcPath, info.hapPath, isEsmode, info.srcEntrance);
+            return;
+        }
+    }
     runtime->PreloadMainAbility(moduleName, srcPath, info.hapPath, isEsmode, info.srcEntrance);
 }
 
@@ -4660,6 +4677,74 @@ void MainThread::ScheduleUpdateWorkProcessInfo(std::shared_ptr<AppUpdateInfo> up
     };
     if (!mainHandler_->PostTask(task, "MainThread:ScheduleUpdateWorkProcessInfo")) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
+    }
+}
+
+int32_t MainThread::SchedulePreTemplateProcessDeepFrozen()
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    wptr<MainThread> weak = this;
+    if (mainHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null mainHandler");
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [weak]() {
+        auto appThread = weak.promote();
+        if (appThread == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
+            return;
+        }
+        appThread->NotifyPreTemplateProcessDeepFrozen();
+    };
+    if (!mainHandler_->PostTask(task, "MainThread:SchedulePreTemplateProcessDeepFrozen")) {
+        TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
+    }
+    return NO_ERROR;
+}
+
+void MainThread::NotifyPreTemplateProcessDeepFrozen()
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "pre template process deep frozen");
+    DelayedReportNotifyFFRTToRss();
+}
+
+void MainThread::NotifyFFRTSnapshot(int32_t snapshotState)
+{
+    void* handle = dlopen(FFRT_LIBRARY_PATH, RTLD_LAZY);
+    if (handle == nullptr) {
+        TAG_LOGW(AAFwkTag::APPKIT, "dlopen %{public}s failed, reason: %{public}s", FFRT_LIBRARY_PATH, dlerror());
+        return;
+    }
+    auto ffrtNotifySnapshot = reinterpret_cast<void (*)(int32_t)>(dlsym(handle, FFRT_NOTIFY_SNAPSHOT_FUNC));
+    if (ffrtNotifySnapshot == nullptr) {
+        dlclose(handle);
+        TAG_LOGE(AAFwkTag::APPKIT, "dlsym %{public}s failed", FFRT_NOTIFY_SNAPSHOT_FUNC);
+        return;
+    }
+    ffrtNotifySnapshot(snapshotState);
+    dlclose(handle);
+}
+
+void MainThread::DelayedReportNotifyFFRTToRss()
+{
+    NotifyFFRTSnapshot(SNAPSHOT_START);
+    {
+        std::lock_guard<std::mutex> lock(needNotifyFFRTNewIpcMutex_);
+        needToNotifyFFRTForNewIpc_ = true;
+    }
+    TAG_LOGI(AAFwkTag::APPKIT, "After notify ffrt snapshot start");
+    if (appMgr_ != nullptr) {
+        appMgr_->NotifyTemplateProcessReadyDone();
+    }
+}
+
+void MainThread::BeforeHandleRequest()
+{
+    std::lock_guard<std::mutex> lock(needNotifyFFRTNewIpcMutex_);
+    if (needToNotifyFFRTForNewIpc_) {
+        TAG_LOGI(AAFwkTag::APPKIT, "new ipc after start make image, notify ffrt");
+        NotifyFFRTSnapshot(SNAPSHOT_FAILURE);
+        needToNotifyFFRTForNewIpc_ = false;
     }
 }
 

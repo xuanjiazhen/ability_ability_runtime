@@ -17,6 +17,9 @@
 #include "nlohmann/json.hpp"
 #include <sstream>
 
+#include "hilog_tag_wrapper.h"
+#include "intent_json_safe_get.h"
+
 namespace OHOS {
 namespace AbilityRuntime {
 const int32_t BUNDLE_NAME = 1;
@@ -118,7 +121,7 @@ int32_t InsightRdbStorageMgr::LoadInsightIntentInfo(const std::string &bundleNam
     TAG_LOGD(AAFwkTag::INTENT, "InsightRdbStorageMgr load intent total info");
     std::unordered_map<std::string, std::string> value;
     std::string key = std::to_string(userId).append("/").append(bundleName).append("/")
-        .append(moduleName).append("/").append(intentName);
+        .append(moduleName).append("/").append(intentName).append("/");
     bool result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->QueryDataBeginWithKey(key, value);
     if (!result) {
         TAG_LOGW(AAFwkTag::INTENT, "get entries error");
@@ -146,7 +149,7 @@ int32_t InsightRdbStorageMgr::LoadConfigInsightIntentInfo(const std::string &bun
     TAG_LOGD(AAFwkTag::INTENT, "InsightRdbStorageMgr load intent total info");
     std::unordered_map<std::string, std::string> value;
     std::string key = std::to_string(userId).append("/").append(bundleName).append("/")
-        .append(moduleName).append("/").append(intentName);
+        .append(moduleName).append("/").append(intentName).append("/");
     bool result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->QueryDataBeginWithKey(key, value);
     if (!result) {
         TAG_LOGW(AAFwkTag::INTENT, "get entries error");
@@ -226,7 +229,12 @@ int32_t InsightRdbStorageMgr::SaveStorageInsightIntentData(const std::string &bu
             TAG_LOGE(AAFwkTag::INTENT, "Transform error, key: %{private}s", key.c_str());
             return ERR_INVALID_VALUE;
         }
-        bool result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->InsertData(key, jsonObject.dump());
+        std::string value;
+        if (!SafeDumpTo(jsonObject, value)) {
+            TAG_LOGE(AAFwkTag::INTENT, "dump error, key: %{private}s", key.c_str());
+            return ERR_INVALID_VALUE;
+        }
+        bool result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->InsertData(key, value);
         if (!result) {
             TAG_LOGE(AAFwkTag::INTENT, "InsertData error, key: %{private}s", key.c_str());
         }
@@ -241,7 +249,12 @@ int32_t InsightRdbStorageMgr::SaveStorageInsightIntentData(const std::string &bu
             TAG_LOGE(AAFwkTag::INTENT, "Transform error, key: %{private}s", key.c_str());
             return ERR_INVALID_VALUE;
         }
-        bool result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->InsertData(key, jsonObject.dump());
+        std::string value;
+        if (!SafeDumpTo(jsonObject, value)) {
+            TAG_LOGE(AAFwkTag::INTENT, "dump error, key: %{private}s", key.c_str());
+            return ERR_INVALID_VALUE;
+        }
+        bool result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->InsertData(key, value);
         if (!result) {
             TAG_LOGE(AAFwkTag::INTENT, "InsertData error, key: %{private}s", key.c_str());
         }

@@ -21,15 +21,16 @@
 #include "cpp/mutex.h"
 
 #include "iremote_object.h"
+#include "iremote_stub.h"
 #include "pending_want_key.h"
 #include "refbase.h"
 #include "sender_info.h"
-#include "want_sender_stub.h"
+#include "want_sender_interface.h"
 
 namespace OHOS {
 namespace AAFwk {
 class PendingWantManager;
-class PendingWantRecord : public WantSenderStub {
+class PendingWantRecord : public IRemoteStub<IWantSender> {
 public:
 
     PendingWantRecord();
@@ -37,7 +38,6 @@ public:
         int32_t callerTokenId, const sptr<IRemoteObject> &callerToken, std::shared_ptr<PendingWantKey> key);
     virtual ~PendingWantRecord();
 
-    virtual void Send(SenderInfo &senderInfo);
     virtual void RegisterCancelListener(const sptr<IWantReceiver> &receiver);
     virtual void UnregisterCancelListener(const sptr<IWantReceiver> &receiver);
 

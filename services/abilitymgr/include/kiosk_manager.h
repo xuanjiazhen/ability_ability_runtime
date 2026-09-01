@@ -42,6 +42,7 @@ public:
     void FilterDialogAppInfos(std::vector<DialogAppInfo> &dialogAppInfos);
     void FilterAbilityInfos(std::vector<AppExecFwk::AbilityInfo> &abilityInfos);
     bool IsKioskBundleUid(int32_t uid);
+    bool ShouldIntercept(const std::string &bundleName);
 
 private:
     KioskManager() = default;
@@ -56,7 +57,6 @@ private:
     std::function<void()> GetExitKioskModeCallback();
     void AddKioskInterceptor();
     void RemoveKioskInterceptor();
-    bool CheckCallerIsForeground(sptr<IRemoteObject> callerToken);
 
     std::unordered_set<std::string> whitelist_;
     KioskStatus kioskStatus_;

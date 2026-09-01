@@ -143,9 +143,15 @@ std::shared_ptr<ExtensionCommon> EtsUIExtensionBase::Init(const std::shared_ptr<
     }
     std::string moduleName(abilityInfo_->moduleName);
     moduleName.append("::").append(abilityInfo_->name);
-    etsObj_ = etsRuntime_.LoadModule(
-        moduleName, srcPath, abilityInfo_->hapPath, abilityInfo_->compileMode == AppExecFwk::CompileMode::ES_MODULE,
-        false, abilityInfo_->srcEntrance);
+    std::string preloadKey = moduleName + "::" + srcPath;
+    std::unique_ptr<AppExecFwk::ETSNativeReference> moduleObj = nullptr;
+    if (etsRuntime_.PopPreloadObj(preloadKey, moduleObj)) {
+        etsObj_ = std::move(moduleObj);
+    } else {
+        etsObj_ = etsRuntime_.LoadModule(
+            moduleName, srcPath, abilityInfo_->hapPath,
+            abilityInfo_->compileMode == AppExecFwk::CompileMode::ES_MODULE, false, abilityInfo_->srcEntrance);
+    }
     if (etsObj_ == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null etsObj_");
         return nullptr;
@@ -479,7 +485,7 @@ bool EtsUIExtensionBase::ForegroundWindowWithInsightIntent(const AAFwk::Want &wa
             }
             InsightIntentExecuteParam executeParam;
             InsightIntentExecuteParam::GenerateFromWant(want, executeParam);
-            if (result.uris.size() > 0) {
+            if (result.uris.size() > 0 || result.interactionInfo != nullptr) {
                 extension->ExecuteInsightIntentDone(executeParam.insightIntentId_, result);
             }
             extension->PostInsightIntentExecuted(sessionInfo, result, needForeground);
@@ -516,7 +522,10 @@ void EtsUIExtensionBase::PostInsightIntentExecuted(const sptr<AAFwk::SessionInfo
         CallObjectMethod(false, "onForeground", nullptr);
     }
 
-    OnInsightIntentExecuteDone(sessionInfo, result);
+    auto filtered = result;
+    filtered.interactionInfo = nullptr;
+    TAG_LOGW(AAFwkTag::UI_EXT, "filter interactionInfo in window path");
+    OnInsightIntentExecuteDone(sessionInfo, filtered);
 
     if (needForeground) {
         // If need foreground, that means triggered by onForeground.
@@ -580,26 +589,9 @@ void EtsUIExtensionBase::OnInsightIntentExecuteDone(const sptr<AAFwk::SessionInf
 
     WantParams params;
     params.SetParam(INSIGHT_INTENT_EXECUTE_RESULT_CODE, Integer::Box(result.innerErr));
-    WantParams resultParams;
-    resultParams.SetParam("code", Integer::Box(result.code));
-    if (result.result != nullptr) {
-        sptr<AAFwk::IWantParams> pWantParams = WantParamWrapper::Box(*result.result);
-        if (pWantParams != nullptr) {
-            resultParams.SetParam("result", pWantParams);
-        }
-    }
-    auto size = result.uris.size();
-    sptr<IArray> uriArray = new (std::nothrow) Array(size, g_IID_IString);
-    if (uriArray == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "new uriArray failed");
-        return;
-    }
-    for (std::size_t i = 0; i < size; i++) {
-        uriArray->Set(i, String::Box(result.uris[i]));
-    }
-    resultParams.SetParam("uris", uriArray);
-    resultParams.SetParam("flags", Integer::Box(result.flags));
-    sptr<AAFwk::IWantParams> pWantParams = WantParamWrapper::Box(resultParams);
+    auto resultParams = result.BuildFunctionResult();
+    resultParams->SetParam("code", Integer::Box(result.code));
+    sptr<AAFwk::IWantParams> pWantParams = WantParamWrapper::Box(*resultParams);
     if (pWantParams != nullptr) {
         params.SetParam(INSIGHT_INTENT_EXECUTE_RESULT, pWantParams);
     }
@@ -688,7 +680,8 @@ bool EtsUIExtensionBase::CallEtsOnSessionCreate(const AAFwk::Want &want, const s
     return true;
 }
 
-sptr<Rosen::WindowOption> EtsUIExtensionBase::CreateWindowOption(const sptr<AAFwk::SessionInfo> &sessionInfo)
+sptr<Rosen::WindowOption> EtsUIExtensionBase::CreateWindowOption(const sptr<AAFwk::SessionInfo> &sessionInfo,
+    const AAFwk::Want &want)
 {
     auto option = sptr<Rosen::WindowOption>::MakeSptr();
     if (option == nullptr) {
@@ -714,6 +707,7 @@ sptr<Rosen::WindowOption> EtsUIExtensionBase::CreateWindowOption(const sptr<AAFw
         AppExecFwk::ExtensionAbilityType::AGENT_UI) {
         option->SetIsBlockSubwindow(true);
     }
+    option->SetCallerPid(want.GetIntParam(AAFwk::Want::PARAM_RESV_CALLER_PID, -1));
     return option;
 }
 
@@ -737,7 +731,7 @@ bool EtsUIExtensionBase::HandleSessionCreate(const AAFwk::Want &want, const sptr
             TAG_LOGE(AAFwkTag::UI_EXT, "null context");
             return false;
         }
-        auto option = CreateWindowOption(sessionInfo);
+        auto option = CreateWindowOption(sessionInfo, want);
         if (option == nullptr) {
             return false;
         }
