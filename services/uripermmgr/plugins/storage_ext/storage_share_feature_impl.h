@@ -30,7 +30,7 @@ namespace AAFwk {
 
 // Plugin implementation of IStorageShareFeature, compiled into libupms_storage_ext.z.so.
 // Owns its IStorageManager IPC proxy + a death recipient that clears the proxy when the
-// storage SA dies (parity with the former stub_impl ConnectManager behaviour). The
+// storage SA dies (parity with the former stub_impl ConnectManager behavior). The
 // destructor unregisters the death recipient before the plugin is dlclose'd, so no
 // dangling callback remains in unloaded memory.
 class StorageShareFeatureImpl : public IStorageShareFeature {

@@ -50,6 +50,11 @@ public:
 private:
     static inline BrokerDelegator<DataAbilityObserverProxy> delegator_;
     int32_t SendTransactCmd(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    /**
+    * @brief Set the message option.
+    *
+    * @param option Indicates the option of message.
+    */
     void SetMessageOption(MessageOption &option);
     uint32_t messageCount_ = 0;
     std::mutex countMutex_;

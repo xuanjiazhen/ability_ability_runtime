@@ -110,7 +110,7 @@ public:
     int GetAMSTimeOutTime() const;
 
     /**
-     * get boot animation stared timout time.
+     * get boot animation stared timeout time.
      */
     int GetBootAnimationTimeoutTime() const;
 

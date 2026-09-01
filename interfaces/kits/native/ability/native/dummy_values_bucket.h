@@ -31,8 +31,24 @@ public:
     ~ValuesBucket() = default;
     ValuesBucket(const Parcel &parcel) {};
 
+    /**
+    * @brief read this Sequenceable object from a Parcel.
+    *
+    * @param inParcel Indicates the Parcel object into which the Sequenceable object has been marshaled.
+    * @return Returns true if read succeeded; returns false otherwise.
+    */
     bool ReadFromParcel(Parcel &parcel);
+    /**
+    * @brief Marshals this Sequenceable object into a Parcel.
+    *
+    * @param outParcel Indicates the Parcel object to which the Sequenceable object will be marshaled.
+    */
     bool Marshalling(Parcel &parcel) const;
+    /**
+    * @brief Unmarshals this Sequenceable object from a Parcel.
+    *
+    * @param inParcel Indicates the Parcel object into which the Sequenceable object has been marshaled.
+    */
     static ValuesBucket Unmarshalling(Parcel &parcel);
 
     bool IsEmpty()

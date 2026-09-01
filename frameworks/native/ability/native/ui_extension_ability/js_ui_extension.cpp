@@ -766,7 +766,7 @@ void JsUIExtension::DestroyWindow(const sptr<AAFwk::SessionInfo> &sessionInfo)
             CallObjectMethod("onSessionDestroy", argv, ARGC_ONE);
         }
     }
-    TAG_LOGI(AAFwkTag::UI_EXT, "Befor window destory, UIExtcomponent id: %{public}" PRId64,
+    TAG_LOGI(AAFwkTag::UI_EXT, "Befor window destroy, UIExtcomponent id: %{public}" PRId64,
         sessionInfo->uiExtensionComponentId);
     auto uiWindow = uiWindowMap_[componentId];
     if (uiWindow) {

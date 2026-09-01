@@ -56,7 +56,7 @@ struct InnerModuleInfo {
     bool installationFree = false;
     // all user's value of isRemovable
     // key:userId
-    // value:isRemovable true or flase
+    // value:isRemovable true or false
     std::map<std::string, bool> isRemovable;
     MetaData metaData;
     ModuleColorMode colorMode = ModuleColorMode::AUTO;

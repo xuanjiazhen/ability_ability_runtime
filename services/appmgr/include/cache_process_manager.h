@@ -62,7 +62,7 @@ private:
     std::unordered_set<std::shared_ptr<AppRunningRecord>> srvExtCheckedFlag;
     // bundleName->uid->record
     std::map<std::string, std::map<int32_t, std::set<std::shared_ptr<AppRunningRecord>>>> sameAppSet;
-    // stores records that are servcie extension
+    // stores records that are service extension
     std::set<std::shared_ptr<AppRunningRecord>> srvExtRecords;
     std::deque<std::shared_ptr<AppRunningRecord>> cachedAppRecordQueue_;
     std::weak_ptr<AppMgrServiceInner> appMgr_;

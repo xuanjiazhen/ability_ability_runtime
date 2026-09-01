@@ -706,15 +706,6 @@ bool UnwrapArrayComplexFromJS(napi_env env, napi_value param, ComplexArrayData &
     return true;
 }
 
-/**
- * @brief Indicates the specified attribute exists in the object passed by JS.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param jsObject Indicates object passed by JS.
- * @param propertyName Indicates the name of the property.
- *
- * @return Returns true if the attribute exists, else returns false.
- */
 bool IsExistsByPropertyName(napi_env env, napi_value jsObject, const char *propertyName)
 {
     bool result = false;
@@ -725,16 +716,6 @@ bool IsExistsByPropertyName(napi_env env, napi_value jsObject, const char *prope
     }
 }
 
-/**
- * @brief Get the JSValue of the specified name from the JS object.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param jsObject Indicates object passed by JS.
- * @param propertyName Indicates the name of the property.
- * @param expectType Indicates expected JS data type.
- *
- * @return Return the property value of the specified property name int jsObject on success, otherwise return nullptr.
- */
 napi_value GetPropertyValueByPropertyName(
     napi_env env, napi_value jsObject, const char *propertyName, napi_valuetype expectType)
 {
@@ -784,16 +765,6 @@ std::shared_ptr<NativeReference> CreateNativeRef(
     return std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference *>(ref));
 }
 
-/**
- * @brief Get the native number(int32) from the JSObject of the given property name.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param jsObject Indicates object passed by JS.
- * @param propertyName Indicates the name of the property.
- * @param value Indicates the returned native value.
- *
- * @return Return true if successful, else return false.
- */
 bool UnwrapInt32ByPropertyName(napi_env env, napi_value jsObject, const char *propertyName, int32_t &value)
 {
     AbilityRuntime::HandleScope handleScope(env);
@@ -805,16 +776,6 @@ bool UnwrapInt32ByPropertyName(napi_env env, napi_value jsObject, const char *pr
     }
 }
 
-/**
- * @brief Get the native array number(int32) from the JSObject of the given property name.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param jsObject Indicates object passed by JS.
- * @param propertyName Indicates the name of the property.
- * @param value Indicates the returned native value.
- *
- * @return Return true if successful, else return false.
- */
 bool UnwrapInt32ArrayByPropertyName(
     napi_env env, napi_value jsObject, const char *propertyName, std::vector<int32_t> &value)
 {
@@ -827,16 +788,6 @@ bool UnwrapInt32ArrayByPropertyName(
     return UnwrapArrayInt32FromJS(env, jsArray, value);
 }
 
-/**
- * @brief Get the native number(double) from the JSObject of the given property name.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param jsObject Indicates object passed by JS.
- * @param propertyName Indicates the name of the property.
- * @param value Indicates the returned native value.
- *
- * @return Return true if successful, else return false.
- */
 bool UnwrapDoubleByPropertyName(napi_env env, napi_value jsObject, const char *propertyName, double &value)
 {
     AbilityRuntime::HandleScope handleScope(env);
@@ -848,16 +799,6 @@ bool UnwrapDoubleByPropertyName(napi_env env, napi_value jsObject, const char *p
     }
 }
 
-/**
- * @brief Get the native boolean from the JSObject of the given property name.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param jsObject Indicates object passed by JS.
- * @param propertyName Indicates the name of the property.
- * @param value Indicates the returned native value.
- *
- * @return Return true if successful, else return false.
- */
 bool UnwrapBooleanByPropertyName(napi_env env, napi_value jsObject, const char *propertyName, bool &value)
 {
     AbilityRuntime::HandleScope handleScope(env);
@@ -881,16 +822,6 @@ bool UnwrapBooleanArrayByPropertyName(
     return UnwrapArrayBoolFromJS(env, jsArray, value);
 }
 
-/**
- * @brief Get the native string from the JSObject of the given property name.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param jsObject Indicates object passed by JS.
- * @param propertyName Indicates the name of the property.
- * @param value Indicates the returned native value.
- *
- * @return Return true if successful, else return false.
- */
 bool UnwrapStringByPropertyName(napi_env env, napi_value jsObject, const char *propertyName, std::string &value)
 {
     AbilityRuntime::HandleScope handleScope(env);
@@ -947,13 +878,6 @@ napi_value GetCallbackErrorValue(napi_env env, int errCode)
     return handleEscape.Escape(jsObject);
 }
 
-/**
- * @brief Create asynchronous data.
- *
- * @param env The environment that the Node-API call is invoked under.
- *
- * @return Return a pointer to AsyncPermissionCallbackInfo on success, nullptr on failure
- */
 AsyncJSCallbackInfo *CreateAsyncJSCallbackInfo(napi_env env)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -1005,15 +929,6 @@ void FreeAsyncJSCallbackInfo(AsyncJSCallbackInfo **asyncCallbackInfo)
     *asyncCallbackInfo = nullptr;
 }
 
-/**
- * @brief Convert local data to JS data.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param data The local data.
- * @param value the JS data.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
 bool WrapThreadReturnData(napi_env env, const ThreadReturnData *data, napi_value *value)
 {
     AbilityRuntime::HandleEscape handleEscape(env);
@@ -1042,15 +957,6 @@ bool WrapThreadReturnData(napi_env env, const ThreadReturnData *data, napi_value
     return true;
 }
 
-/**
- * @brief Create asynchronous data.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param param Parameter list.
- * @param callback Point to asynchronous processing of data.
- *
- * @return Return true successfully, otherwise return false.
- */
 bool CreateAsyncCallback(napi_env env, napi_value param, AsyncJSCallbackInfo *callback)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -1089,15 +995,6 @@ napi_ref CreateCallbackRefFromJS(napi_env env, napi_value param)
     return callbackRef;
 }
 
-/**
- * @brief Asynchronous callback processing.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param asyncCallbackInfo Process data asynchronously.
- * @param param other param.
- *
- * @return Return JS data successfully, otherwise return nullptr.
- */
 napi_value ExecuteAsyncCallbackWork(napi_env env, AsyncJSCallbackInfo *asyncCallbackInfo, const AsyncParamEx *param)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -1123,15 +1020,6 @@ napi_value ExecuteAsyncCallbackWork(napi_env env, AsyncJSCallbackInfo *asyncCall
     return WrapVoidToJS(env);
 }
 
-/**
- * @brief Asynchronous promise processing.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param asyncCallbackInfo Process data asynchronously.
- * @param param other param.
- *
- * @return Return JS data successfully, otherwise return nullptr.
- */
 napi_value ExecutePromiseCallbackWork(napi_env env, AsyncJSCallbackInfo *asyncCallbackInfo, const AsyncParamEx *param)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -1161,12 +1049,6 @@ napi_value ExecutePromiseCallbackWork(napi_env env, AsyncJSCallbackInfo *asyncCa
     return promise;
 }
 
-/**
- * @brief The callback at the end of the asynchronous callback.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param data Point to asynchronous processing of data.
- */
 void CompleteAsyncCallbackWork(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -1231,12 +1113,6 @@ void CompleteAsyncVoidCallbackWork(napi_env env, napi_status status, void *data)
     asyncCallbackInfo = nullptr;
 }
 
-/**
- * @brief The callback at the end of the Promise callback.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param data Point to asynchronous processing of data.
- */
 void CompletePromiseCallbackWork(napi_env env, napi_status status, void *data)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -1420,16 +1296,6 @@ bool UnwrapLocaleFromJS(napi_env env, napi_value jsValue, std::string &value)
     return UnwrapStringFromJS2(env, locale, value);
 }
 
-/**
- * @brief Get the native number(uint32) from the JSObject of the given property name.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param jsObject Indicates object passed by JS.
- * @param propertyName Indicates the name of the property.
- * @param value Indicates the returned native value.
- *
- * @return Return true if successful, else return false.
- */
 bool UnwrapUint32ByPropertyName(napi_env env, napi_value jsObject, const char *propertyName, uint32_t &value)
 {
     AbilityRuntime::HandleScope handleScope(env);

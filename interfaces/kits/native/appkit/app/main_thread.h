@@ -260,7 +260,7 @@ public:
      *
      * @brief Launch the application.
      *
-     * @param data The launchdata of the application witch launced.
+     * @param data The launchdata of the application which launced.
      *
      */
     void ScheduleLaunchApplication(const AppLaunchData &data, const Configuration &config) override;
@@ -336,6 +336,11 @@ public:
      */
     void ScheduleProcessSecurityExit() override;
 
+    /**
+    *
+    * @brief Schedule the application clear recovery page stack.
+    *
+    */
     void ScheduleClearPageStack() override;
 
     void ScheduleAcceptWant(const AAFwk::Want &want, const std::string &moduleName) override;
@@ -415,6 +420,11 @@ public:
      */
     int32_t ScheduleDumpIpcStat(std::string& result) override;
 
+    /**
+    *
+    * @brief Notify application to prepare for process caching.
+    *
+    */
     void ScheduleCacheProcess() override;
     /**
      * ScheduleDumpFfrt, call ScheduleDumpFfrt(std::string& result) through proxy project,
@@ -484,7 +494,7 @@ private:
      *
      * @brief Launch the application.
      *
-     * @param appLaunchData The launchdata of the application witch launced.
+     * @param appLaunchData The launchdata of the application which launced.
      *
      */
     void HandleLaunchApplication(const AppLaunchData &appLaunchData, const Configuration &config);
@@ -522,7 +532,7 @@ private:
      *
      * @brief Launch the application.
      *
-     * @param appLaunchData The launchdata of the application witch launced.
+     * @param appLaunchData The launchdata of the application which launced.
      *
      */
     void HandleAbilityStage(const HapModuleInfo &abilityStage);
@@ -729,6 +739,11 @@ private:
 
     int32_t ChangeAppGcState(int32_t state, uint64_t tid = 0);
 
+    /**
+    *
+    * @brief Notify application to prepare for process caching.
+    *
+    */
     void HandleCacheProcess();
 
     bool IsBgWorkingThread(const AbilityInfo &info);

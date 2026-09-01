@@ -25,7 +25,7 @@ namespace AAFwk {
 using InterceptorMap = std::unordered_map<std::string, std::shared_ptr<IAbilityInterceptor>>;
 /**
  * @class AbilityInterceptorExecuter
- * AbilityInterceptorExecuter excute the interceptors.
+ * AbilityInterceptorExecuter execute the interceptors.
  */
 class AbilityInterceptorExecuter {
 public:
@@ -48,7 +48,7 @@ public:
     bool HasInterceptor(std::string interceptorName);
 
     /**
-     * Excute the DoProcess of the interceptors.
+     * Execute the DoProcess of the interceptors.
      */
     ErrCode DoProcess(const AbilityInterceptorParam &param);
 private:

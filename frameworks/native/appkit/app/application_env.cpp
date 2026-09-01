@@ -20,11 +20,6 @@
 extern "C" {
 #endif
 
-/**
- * @brief Obtains the bundle name of the application
- * @param -
- * @return Returns the pointer to the bundle name if the operation is successful; returns a null pointer otherwise.
- */
 const char *GetBundleName()
 {
     OHOS::AppExecFwk::ApplicationEnvImpl *pApplicationEnvIml = OHOS::AppExecFwk::ApplicationEnvImpl::GetInstance();
@@ -37,11 +32,6 @@ const char *GetBundleName()
     return pBundleName;
 }
 
-/**
- * @brief Obtains the source code path of this application.
- * @param -
- * @return Returns the pointer to the source code path of this application.
- */
 const char *GetSrcPath()
 {
     OHOS::AppExecFwk::ApplicationEnvImpl *pApplicationEnvIml = OHOS::AppExecFwk::ApplicationEnvImpl::GetInstance();
@@ -54,11 +44,6 @@ const char *GetSrcPath()
     return pSrcPath;
 }
 
-/**
- * @brief Obtains the data path of this application.
- * @param -
- * @return Returns the pointer to the data path of this application.
- */
 const char *GetDataPath()
 {
     OHOS::AppExecFwk::ApplicationEnvImpl *pApplicationEnvIml = OHOS::AppExecFwk::ApplicationEnvImpl::GetInstance();

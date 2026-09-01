@@ -171,30 +171,30 @@ public:
     void SetExtensionSandBoxFlag(bool extensionSandBoxFlag);
 
     /**
-     * @brief Obtains the the flag of specified process.
+     * @brief Obtains the flag of specified process.
      *
-     * @return Returns the the flag of specified process.
+     * @return Returns the flag of specified process.
      */
     const std::string &GetSpecifiedProcessFlag() const;
 
     /**
-     * @brief Setting the the flag of specified process.
+     * @brief Setting the flag of specified process.
      *
-     * @param flag, the the flag of specified process.
+     * @param flag, the flag of specified process.
      */
     void SetSpecifiedProcessFlag(const std::string &flag);
 
     /**
-     * @brief Obtains the the flag of custom process.
+     * @brief Obtains the flag of custom process.
      *
-     * @return Returns the the flag of custom process.
+     * @return Returns the flag of custom process.
      */
     const std::string &GetCustomProcessFlag() const;
 
     /**
-     * @brief Setting the the flag of custom process.
+     * @brief Setting the flag of custom process.
      *
-     * @param flag, the the flag of custom process.
+     * @param flag, the flag of custom process.
      */
     void SetCustomProcessFlag(const std::string &flag);
 

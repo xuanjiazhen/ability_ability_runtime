@@ -735,7 +735,6 @@ void AmsMgrProxy::NotifyUninstallOrUpgradeAppEnd(int32_t uid)
     TAG_LOGD(AAFwkTag::APPMGR, "end");
 }
 
-
 int32_t AmsMgrProxy::KillApplicationSelf(const bool clearPageStack, const std::string& reason)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "call");
@@ -835,7 +834,7 @@ void AmsMgrProxy::GetRunningProcessInfoByToken(
 
     std::unique_ptr<AppExecFwk::RunningProcessInfo> processInfo(reply.ReadParcelable<AppExecFwk::RunningProcessInfo>());
     if (processInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "recv process info faild");
+        TAG_LOGE(AAFwkTag::APPMGR, "recv process info failed");
         return;
     }
 

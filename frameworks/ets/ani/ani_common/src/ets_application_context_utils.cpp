@@ -52,7 +52,6 @@ constexpr const char* CLASSNAME_ARRAY = "std.core.Array";
 std::mutex EtsApplicationContextUtils::abilityLifecycleCallbackLock_;
 std::shared_ptr<EtsAbilityLifecycleCallback> EtsApplicationContextUtils::abilityLifecycleCallback_ = nullptr;
 
-
 std::mutex g_interopAbilityLifecycleCallbackLock;
 std::shared_ptr<EtsInteropAbilityLifecycleCallback> interopAbilityLifecycleCallback_ = nullptr;
 
@@ -243,7 +242,7 @@ void EtsApplicationContextUtils::OffNativeSystemConfigurationUpdatedSync(
     if (systemConfigurationUpdatedCallback_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null applicationStateCallback_");
         EtsErrorUtil::ThrowInvalidParamError(
-            env, "invalid paramter.");
+            env, "invalid parameter.");
         return;
     }
     ani_boolean isUndefined = true;
@@ -253,7 +252,7 @@ void EtsApplicationContextUtils::OffNativeSystemConfigurationUpdatedSync(
     } else if (!systemConfigurationUpdatedCallback_->UnRegister(callback)) {
         TAG_LOGE(AAFwkTag::APPKIT, "call UnRegister failed");
         EtsErrorUtil::ThrowInvalidParamError(
-            env, "Parse param call UnRegister failed, invalid paramter.");
+            env, "Parse param call UnRegister failed, invalid parameter.");
         return;
     }
     if (systemConfigurationUpdatedCallback_->IsEmpty()) {

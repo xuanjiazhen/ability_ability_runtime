@@ -151,7 +151,6 @@ ErrCode MissionManagerClient::RemoveDeathRecipient()
     return ERR_OK;
 }
 
-
 ErrCode MissionManagerClient::ContinueMission(const std::string &srcDeviceId, const std::string &dstDeviceId,
     int32_t missionId, sptr<IRemoteObject> callback, AAFwk::WantParams &wantParams)
 {
@@ -165,7 +164,6 @@ ErrCode MissionManagerClient::ContinueMission(const std::string &srcDeviceId, co
     int result = abms->ContinueMission(srcDeviceId, dstDeviceId, missionId, callback, wantParams);
     return result;
 }
-
 
 ErrCode MissionManagerClient::ContinueMission(AAFwk::ContinueMissionInfo continueMissionInfo,
     const sptr<IRemoteObject> &callback)
@@ -181,7 +179,6 @@ ErrCode MissionManagerClient::ContinueMission(AAFwk::ContinueMissionInfo continu
     int result = abms->ContinueMission(continueMissionInfo, callback);
     return result;
 }
-
 
 ErrCode MissionManagerClient::LockMissionForCleanup(int32_t missionId)
 {
@@ -202,7 +199,6 @@ ErrCode MissionManagerClient::LockMissionForCleanup(int32_t missionId)
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->LockMissionForCleanup(missionId);
 }
-
 
 ErrCode MissionManagerClient::UnlockMissionForCleanup(int32_t missionId)
 {
@@ -225,7 +221,6 @@ ErrCode MissionManagerClient::UnlockMissionForCleanup(int32_t missionId)
     return abms->UnlockMissionForCleanup(missionId);
 }
 
-
 ErrCode MissionManagerClient::RegisterMissionListener(sptr<IMissionListener> listener)
 {
 #ifdef SUPPORT_SCREEN
@@ -245,7 +240,6 @@ ErrCode MissionManagerClient::RegisterMissionListener(sptr<IMissionListener> lis
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->RegisterMissionListener(listener);
 }
-
 
 ErrCode MissionManagerClient::UnRegisterMissionListener(sptr<IMissionListener> listener)
 {
@@ -267,7 +261,6 @@ ErrCode MissionManagerClient::UnRegisterMissionListener(sptr<IMissionListener> l
     return abms->UnRegisterMissionListener(listener);
 }
 
-
 ErrCode MissionManagerClient::RegisterMissionListener(const std::string &deviceId,
     sptr<IRemoteMissionListener> listener)
 {
@@ -283,7 +276,6 @@ ErrCode MissionManagerClient::UnRegisterMissionListener(const std::string &devic
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->UnRegisterMissionListener(deviceId, listener);
 }
-
 
 ErrCode MissionManagerClient::GetMissionInfos(const std::string &deviceId, int32_t numMax,
     std::vector<MissionInfo> &missionInfos)
@@ -329,7 +321,6 @@ ErrCode MissionManagerClient::GetMissionInfo(const std::string &deviceId, int32_
     return abms->GetMissionInfo(deviceId, missionId, missionInfo);
 }
 
-
 ErrCode MissionManagerClient::GetMissionSnapshot(const std::string &deviceId, int32_t missionId,
     MissionSnapshot &snapshot, bool isLowResolution)
 {
@@ -352,7 +343,6 @@ ErrCode MissionManagerClient::GetMissionSnapshot(const std::string &deviceId, in
     return abms->GetMissionSnapshot(deviceId, missionId, snapshot, isLowResolution);
 }
 
-
 ErrCode MissionManagerClient::CleanMission(int32_t missionId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -373,7 +363,6 @@ ErrCode MissionManagerClient::CleanMission(int32_t missionId)
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->CleanMission(missionId);
 }
-
 
 ErrCode MissionManagerClient::CleanAllMissions()
 {
@@ -396,7 +385,6 @@ ErrCode MissionManagerClient::CleanAllMissions()
     return abms->CleanAllMissions();
 }
 
-
 ErrCode MissionManagerClient::MoveMissionToFront(int32_t missionId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -412,7 +400,6 @@ ErrCode MissionManagerClient::MoveMissionToFront(int32_t missionId, const StartO
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->MoveMissionToFront(missionId, startOptions);
 }
-
 
 ErrCode MissionManagerClient::MoveMissionsToForeground(const std::vector<int32_t> &missionIds, int32_t topMissionId)
 {
@@ -481,13 +468,6 @@ ErrCode MissionManagerClient::GetMissionIdByToken(sptr<IRemoteObject> token, int
     return ERR_OK;
 }
 
-/**
- * Start synchronizing remote device mission
- * @param devId, deviceId.
- * @param fixConflict, resolve synchronizing conflicts flag.
- * @param tag, call tag.
- * @return Returns ERR_OK on success, others on failure.
- */
 ErrCode MissionManagerClient::StartSyncRemoteMissions(const std::string &devId, bool fixConflict, int64_t tag)
 {
     auto abms = GetMissionManager();
@@ -525,7 +505,6 @@ ErrCode MissionManagerClient::SetMissionContinueState(sptr<IRemoteObject> token,
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->SetMissionContinueState(token, state);
 }
-
 
 #ifdef SUPPORT_SCREEN
 ErrCode MissionManagerClient::SetMissionLabel(sptr<IRemoteObject> token, const std::string &label)
@@ -609,7 +588,6 @@ ErrCode MissionManagerClient::PreStartMission(const std::string &bundleName, con
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->PreStartMission(bundleName, moduleName, abilityName, startTime);
 }
-
 
 ErrCode MissionManagerClient::TerminateMission(int32_t missionId)
 {

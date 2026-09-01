@@ -280,12 +280,6 @@ int32_t GetStartAbilityErrorCode(ErrCode innerErrorCode)
     return ERR_ABILITY_QUERY_FAILED;
 }
 
-/**
- * @brief GetFilesDir asynchronous processing function.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param data Point to asynchronous processing of data.
- */
 void GetFilesDirExecuteCallback(napi_env, void *data)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "start");
@@ -350,12 +344,6 @@ void IsUpdatingConfigurationsExecuteCallback(napi_env, void *data)
     asyncCallbackInfo->native_data.bool_value = asyncCallbackInfo->ability->IsUpdatingConfigurations();
 }
 
-/**
- * @brief PrintDrawnCompleted asynchronous processing function.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param data Point to asynchronous processing of data.
- */
 void PrintDrawnCompletedExecuteCallback(napi_env, void *data)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -383,7 +371,6 @@ void PrintDrawnCompletedExecuteCallback(napi_env, void *data)
     asyncCallbackInfo->native_data.data_type = NVT_NONE;
     asyncCallbackInfo->native_data.bool_value = asyncCallbackInfo->ability->PrintDrawnCompleted();
 }
-
 
 void GetOrCreateDistributedDirExecuteCallback(napi_env, void *data)
 {
@@ -421,12 +408,6 @@ void GetOrCreateDistributedDirExecuteCallback(napi_env, void *data)
              asyncCallbackInfo->native_data.str_value.c_str());
 }
 
-/**
- * @brief GetCacheDir asynchronous processing function.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param data Point to asynchronous processing of data.
- */
 void GetCacheDirExecuteCallback(napi_env, void *data)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -463,12 +444,6 @@ void GetCacheDirExecuteCallback(napi_env, void *data)
              asyncCallbackInfo->native_data.str_value.c_str());
 }
 
-/**
- * @brief GetExternalCacheDir asynchronous processing function.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param data Point to asynchronous processing of data.
- */
 void GetExternalCacheDirExecuteCallback(napi_env, void *data)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -499,13 +474,6 @@ void GetExternalCacheDirExecuteCallback(napi_env, void *data)
              asyncCallbackInfo->native_data.str_value.c_str());
 }
 
-/**
- * @brief Create asynchronous data.
- *
- * @param env The environment that the Node-API call is invoked under.
- *
- * @return Return a pointer to AppTypeCB on success, nullptr on failure.
- */
 AppTypeCB *CreateAppTypeCBInfo(napi_env env)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -531,13 +499,6 @@ AppTypeCB *CreateAppTypeCBInfo(napi_env env)
     return appTypeCB;
 }
 
-/**
- * @brief Create asynchronous data.
- *
- * @param env The environment that the Node-API call is invoked under.
- *
- * @return Return a pointer to AbilityInfoCB on success, nullptr on failure.
- */
 AbilityInfoCB *CreateAbilityInfoCBInfo(napi_env env)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -718,13 +679,6 @@ napi_value ConvertAbilityInfo(napi_env env, const AbilityInfo &abilityInfo)
     return WrapAbilityInfo(env, abilityInfo);
 }
 
-/**
- * @brief Create asynchronous data.
- *
- * @param env The environment that the Node-API call is invoked under.
- *
- * @return Return a pointer to HapModuleInfoCB on success, nullptr on failure.
- */
 HapModuleInfoCB *CreateHapModuleInfoCBInfo(napi_env env)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -836,13 +790,6 @@ napi_value WrapHapModuleInfo(napi_env env, const HapModuleInfoCB &cb)
     return handleEscape.Escape(result);
 }
 
-/**
- * @brief Create asynchronous data.
- *
- * @param env The environment that the Node-API call is invoked under.
- *
- * @return Return a pointer to AppVersionInfoCB on success, nullptr on failure.
- */
 AppVersionInfoCB *CreateAppVersionInfoCBInfo(napi_env env)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -898,13 +845,6 @@ napi_value WrapAppVersionInfo(napi_env env, const AppVersionInfoCB &appVersionIn
     return handleEscape.Escape(result);
 }
 
-/**
- * @brief Create asynchronous data.
- *
- * @param env The environment that the Node-API call is invoked under.
- *
- * @return Return a pointer to AbilityNameCB on success, nullptr on failure.
- */
 AbilityNameCB *CreateAbilityNameCBInfo(napi_env env)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");

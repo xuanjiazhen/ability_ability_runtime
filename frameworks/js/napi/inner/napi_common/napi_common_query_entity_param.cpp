@@ -123,7 +123,7 @@ bool UnwrapQueryEntityParam(napi_env env, napi_value param, InsightIntentQueryPa
     }
 
     if (!UnwrapQueryEntityWantParamters(env, param, queryParam)) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "unwrap paramters fail");
+        TAG_LOGE(AAFwkTag::JSNAPI, "unwrap parameters fail");
         return false;
     }
 

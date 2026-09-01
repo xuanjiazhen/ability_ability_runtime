@@ -22,23 +22,12 @@ namespace AppExecFwk {
 ValuesBucket::ValuesBucket(const std::string &testInf) : testInf_(testInf)
 {}
 
-/**
- * @brief read this Sequenceable object from a Parcel.
- *
- * @param inParcel Indicates the Parcel object into which the Sequenceable object has been marshaled.
- * @return Returns true if read succeeded; returns false otherwise.
- */
 bool ValuesBucket::ReadFromParcel(Parcel &parcel)
 {
     testInf_ = Str16ToStr8(parcel.ReadString16());
     return true;
 }
 
-/**
- * @brief Unmarshals this Sequenceable object from a Parcel.
- *
- * @param inParcel Indicates the Parcel object into which the Sequenceable object has been marshaled.
- */
 ValuesBucket ValuesBucket::Unmarshalling(Parcel &parcel)
 {
     ValuesBucket valuesBucket;
@@ -48,11 +37,6 @@ ValuesBucket ValuesBucket::Unmarshalling(Parcel &parcel)
     return valuesBucket;
 }
 
-/**
- * @brief Marshals this Sequenceable object into a Parcel.
- *
- * @param outParcel Indicates the Parcel object to which the Sequenceable object will be marshaled.
- */
 bool ValuesBucket::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteString16(Str8ToStr16(testInf_))) {

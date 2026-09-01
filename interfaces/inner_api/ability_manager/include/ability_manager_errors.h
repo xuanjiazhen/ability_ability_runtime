@@ -255,7 +255,7 @@ enum {
     ERR_AAFWK_PARCEL_FAIL,
 
     /**
-     * Result(2097199) for for implicit start ability is failed.
+     * Result(2097199) for implicit start ability is failed.
      */
     ERR_IMPLICIT_START_ABILITY_FAIL,
 
@@ -552,7 +552,7 @@ enum {
     ERR_BUNDLE_NOT_EXIST,
 
     /*
-     * Result(2097259) for open link start abilty default ok.
+     * Result(2097259) for open link start ability default ok.
      */
     ERR_OPEN_LINK_START_ABILITY_DEFAULT_OK = 2097259,
 

@@ -1270,7 +1270,7 @@ bool AppfreezeManager::CheckAppfreezeHappend(const std::string& key, const std::
 #endif
      }
     if (result) {
-        TAG_LOGE(AAFwkTag::APPDFR, "appFreeze happend, key:%{public}s, eventName:%{public}s",
+        TAG_LOGE(AAFwkTag::APPDFR, "appFreeze happened, key:%{public}s, eventName:%{public}s",
             key.c_str(), eventName.c_str());
     }
     return result;

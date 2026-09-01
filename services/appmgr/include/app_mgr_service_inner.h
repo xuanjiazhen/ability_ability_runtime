@@ -1661,7 +1661,7 @@ public:
      * @brief A process can config itself to keep alive or not.
      * when one process started, this method will be called from ability mgr with data selected from db.
      *
-     * @param bundleName processed of witch to be configed
+     * @param bundleName processed of which to be configed
      * @param enable config value
      * @param uid indicates user, 0 for all users
      */
@@ -1671,7 +1671,7 @@ public:
      * @brief Set non-resident keep-alive process status.
      * when one process started, this method will be called from ability mgr with data selected from db.
      *
-     * @param bundleName processed of witch to be configed
+     * @param bundleName processed of which to be configed
      * @param enable config value
      * @param uid indicates user, 0 for all users
      */

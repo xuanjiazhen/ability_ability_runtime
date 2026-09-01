@@ -92,7 +92,7 @@ public:
     // Task can't be canceled by name if submitted with this method
     TaskHandle SubmitTaskJust(const std::function<void()> &task, const std::string &name,
         int64_t delayMillis);
-    // This is only used for compatibility and could be be wrong if multi tasks with same name submitted.
+    // This is only used for compatibility and could be wrong if multi tasks with same name submitted.
     // TaskHandle::Cancel is preferred.
     bool CancelTask(const std::string &name);
     void SetPrintTaskLog(bool printTaskLog)

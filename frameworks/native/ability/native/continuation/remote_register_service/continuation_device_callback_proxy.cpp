@@ -16,16 +16,12 @@
 #include "hilog_tag_wrapper.h"
 namespace OHOS {
 namespace AppExecFwk {
-/**
- * A constructor used to create a {@link ohos.aafwk.ability.continuation.ContinuationDeviceCallbackProxy} instance.
- */
+
 ContinuationDeviceCallbackProxy::ContinuationDeviceCallbackProxy(std::shared_ptr<IContinuationDeviceCallback> &callback)
 {
     callback_ = std::weak_ptr<IContinuationDeviceCallback>(callback);
 }
-/**
- * A destructor used to release a {@link ohos.aafwk.ability.continuation.ContinuationDeviceCallbackProxy} instance.
- */
+
 ContinuationDeviceCallbackProxy::~ContinuationDeviceCallbackProxy()
 {}
 void ContinuationDeviceCallbackProxy::Connect(const std::string &deviceId, const std::string &deviceType)

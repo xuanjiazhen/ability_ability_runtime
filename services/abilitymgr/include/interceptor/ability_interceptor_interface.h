@@ -57,7 +57,7 @@ public:
     virtual ~IAbilityInterceptor() = default;
 
     /**
-     * Excute interception processing.
+     * Execute interception processing.
      */
     virtual ErrCode DoProcess(const AbilityInterceptorParam &param) = 0;
 };

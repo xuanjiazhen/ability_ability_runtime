@@ -53,7 +53,7 @@ EtsAppServiceExtension* EtsAppServiceExtension::Create(const std::unique_ptr<Run
 EtsAppServiceExtension::EtsAppServiceExtension(ETSRuntime& etsRuntime) : etsRuntime_(etsRuntime) {}
 EtsAppServiceExtension::~EtsAppServiceExtension()
 {
-    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "EtsAppServiceExtension destory");
+    TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "EtsAppServiceExtension destroy");
     auto context = GetContext();
     if (context) {
         context->Unbind();

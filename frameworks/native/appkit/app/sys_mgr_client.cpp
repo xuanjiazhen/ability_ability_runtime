@@ -29,12 +29,6 @@ SysMrgClient::SysMrgClient() : abilityManager_(nullptr)
 SysMrgClient::~SysMrgClient()
 {}
 
-/**
- *
- * Get the systemAbility by ID.
- *
- * @param systemAbilityId The ID of systemAbility which want to get.
- */
 sptr<IRemoteObject> SysMrgClient::GetSystemAbility(const int32_t systemAbilityId)
 {
     // use single instance of abilityManager_
@@ -51,25 +45,12 @@ sptr<IRemoteObject> SysMrgClient::GetSystemAbility(const int32_t systemAbilityId
     return abilityManager_->GetSystemAbility(systemAbilityId);
 }
 
-/**
- *
- * Register the systemAbility by ID.
- *
- * @param systemAbilityId The ID of systemAbility which want to register.
- * @param broker The systemAbility which want to be registered.
- */
 void SysMrgClient::RegisterSystemAbility(
     const int32_t __attribute__((unused)) systemAbilityId, sptr<IRemoteObject> __attribute__((unused)) broker)
 {
     (void)servicesMap_;
 }
 
-/**
- *
- * Unregister the systemAbility by ID.
- *
- * @param systemAbilityId The ID of systemAbility which want to unregister.
- */
 void SysMrgClient::UnregisterSystemAbility(const int32_t systemAbilityId)
 {}
 }  // namespace AppExecFwk

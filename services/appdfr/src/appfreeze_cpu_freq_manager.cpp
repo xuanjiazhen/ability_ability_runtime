@@ -491,7 +491,7 @@ std::string AppfreezeCpuFreqManager::GetConsumeTimeInfo(int32_t pid, CpuConsumeT
 
     std::ostringstream timeInfo;
     timeInfo << GetStaticInfoHead() << std::endl;
-    timeInfo << "#Basic Statistical Infomation " << std::endl;
+    timeInfo << "#Basic Statistical Information " << std::endl;
     timeInfo << "ProcessCpuTime: " << processCpuTime << " ms" << std::endl;
     timeInfo << "DeviceRuntime: " << deviceRunTime << " ms" << std::endl;
     timeInfo << "Tid: " << pid << std::endl;
