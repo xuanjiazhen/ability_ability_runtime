@@ -88,11 +88,7 @@ OHOSApplication::~OHOSApplication()
     TAG_LOGD(AAFwkTag::APPKIT, "called");
 }
 
-/**
- *
- * @brief Will be called the application foregrounds
- *
- */
+
 void OHOSApplication::OnForeground()
 {
     TAG_LOGD(AAFwkTag::APPKIT, "begin");
@@ -108,11 +104,7 @@ void OHOSApplication::OnForeground()
     TAG_LOGD(AAFwkTag::APPKIT, "NotifyApplicationState::OnForeground end");
 }
 
-/**
- *
- * @brief Will be called the application backgrounds
- *
- */
+
 void OHOSApplication::OnBackground()
 {
     TAG_LOGD(AAFwkTag::APPKIT, "begin");
@@ -171,11 +163,7 @@ void OHOSApplication::DumpApplication()
     }
 }
 
-/**
- * @brief Set Runtime
- *
- * @param runtime Runtime instance.
- */
+
 void OHOSApplication::SetRuntime(std::unique_ptr<AbilityRuntime::Runtime> &&runtime)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "begin");
@@ -186,11 +174,7 @@ void OHOSApplication::SetRuntime(std::unique_ptr<AbilityRuntime::Runtime> &&runt
     runtime_ = std::move(runtime);
 }
 
-/**
- * @brief Set ApplicationContext
- *
- * @param abilityRuntimeContext ApplicationContext instance.
- */
+
 void OHOSApplication::SetApplicationContext(
     const std::shared_ptr<AbilityRuntime::ApplicationContext> &abilityRuntimeContext)
 {
@@ -244,12 +228,7 @@ void OHOSApplication::SetApplicationContext(
 #endif
 }
 
-/**
- *
- * @brief Set the abilityRecordMgr to the OHOSApplication.
- *
- * @param abilityRecordMgr
- */
+
 void OHOSApplication::SetAbilityRecordMgr(const std::shared_ptr<AbilityRecordMgr> &abilityRecordMgr)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
@@ -260,13 +239,7 @@ void OHOSApplication::SetAbilityRecordMgr(const std::shared_ptr<AbilityRecordMgr
     abilityRecordMgr_ = abilityRecordMgr;
 }
 
-/**
- *
- * @brief Will be Called when the system configuration of the device changes.
- *
- * @param config Indicates the new Configuration object.
- * @param reason Indicates the Configuration update scene flag.
- */
+
 void OHOSApplication::OnConfigurationUpdated(
     Configuration config, AbilityRuntime::SetLevel level, ConfigUpdateReason reason)
 {
@@ -326,12 +299,7 @@ void OHOSApplication::OnConfigurationUpdated(
     abilityRuntimeContext_->SetConfiguration(configuration_);
 }
 
-/**
- *
- * @brief Will be Called when the application font of the device changes.
- *
- * @param config Indicates the new Configuration object.
- */
+
 void OHOSApplication::OnUpdateConfigurationForAll(Configuration config)
 {
 #ifdef SUPPORT_GRAPHICS
@@ -341,14 +309,7 @@ void OHOSApplication::OnUpdateConfigurationForAll(Configuration config)
 #endif
 }
 
-/**
- *
- * @brief Called when the system has determined to trim the memory, for example,
- * when the ability is running in the background and there is no enough memory for
- * running as many background processes as possible.
- *
- * @param level Indicates the memory trim level, which shows the current memory usage status.
- */
+
 void OHOSApplication::OnMemoryLevel(int32_t level)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
@@ -379,18 +340,11 @@ void OHOSApplication::OnMemoryLevel(int32_t level)
     abilityRuntimeContext_->DispatchMemoryLevel(level);
 }
 
-/**
- *
- * @brief Will be called the application starts
- *
- */
+
 void OHOSApplication::OnStart()
 {}
 
-/**
- *
- * @brief Will be called the application ends
- */
+
 void OHOSApplication::OnTerminate()
 {
     if (abilityRuntimeContext_ != nullptr) {
@@ -871,13 +825,7 @@ void OHOSApplication::AutoStartupDone(
     return;
 }
 
-/**
- *
- * @brief update the application info after new module installed.
- *
- * @param appInfo The latest application info obtained from bms for update abilityRuntimeContext.
- *
- */
+
 void OHOSApplication::UpdateApplicationInfoInstalled(const AppExecFwk::ApplicationInfo &appInfo)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");

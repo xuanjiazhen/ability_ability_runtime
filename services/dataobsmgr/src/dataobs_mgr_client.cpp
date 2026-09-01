@@ -95,14 +95,7 @@ DataObsMgrClient::~DataObsMgrClient()
     }
 }
 
-/**
- * Registers an observer to DataObsMgr specified by the given Uri.
- *
- * @param uri, Indicates the path of the data to operate.
- * @param dataObserver, Indicates the IDataAbilityObserver object.
- *
- * @return Returns ERR_OK on success, others on failure.
- */
+
 ErrCode DataObsMgrClient::RegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver, int userId,
     DataObsOption opt)
 {
@@ -145,14 +138,7 @@ ErrCode DataObsMgrClient::RegisterObserverFromExtension(const Uri &uri, sptr<IDa
     return status;
 }
 
-/**
- * Deregisters an observer used for DataObsMgr specified by the given Uri.
- *
- * @param uri, Indicates the path of the data to operate.
- * @param dataObserver, Indicates the IDataAbilityObserver object.
- *
- * @return Returns ERR_OK on success, others on failure.
- */
+
 ErrCode DataObsMgrClient::UnregisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver, int userId,
     DataObsOption opt)
 {
@@ -173,13 +159,7 @@ ErrCode DataObsMgrClient::UnregisterObserver(const Uri &uri, sptr<IDataAbilityOb
     return status;
 }
 
-/**
- * Notifies the registered observers of a change to the data resource specified by Uri.
- *
- * @param uri, Indicates the path of the data to operate.
- *
- * @return Returns ERR_OK on success, others on failure.
- */
+
 ErrCode DataObsMgrClient::NotifyChange(const Uri &uri, int userId, DataObsOption opt)
 {
     auto [errCode, dataObsManger] = GetObsMgr();
@@ -189,13 +169,7 @@ ErrCode DataObsMgrClient::NotifyChange(const Uri &uri, int userId, DataObsOption
     return dataObsManger->NotifyChange(uri, userId, opt);
 }
 
-/**
- * Notifies the registered observers of a change to the data resource specified by Uri.
- *
- * @param uri, Indicates the path of the data to operate.
- *
- * @return Returns ERR_OK on success, others on failure.
- */
+
 ErrCode DataObsMgrClient::NotifyChangeFromExtension(const Uri &uri, int userId, DataObsOption opt)
 {
     auto [errCode, dataObsManger] = GetObsMgr();
@@ -205,11 +179,7 @@ ErrCode DataObsMgrClient::NotifyChangeFromExtension(const Uri &uri, int userId, 
     return dataObsManger->NotifyChangeFromExtension(uri, userId, opt);
 }
 
-/**
- * Connect dataobs manager service.
- *
- * @return Returns SUCCESS on success, others on failure.
- */
+
 __attribute__ ((no_sanitize("cfi"))) std::pair<Status, sptr<IDataObsMgr>> DataObsMgrClient::GetObsMgr()
 {
     std::lock_guard<std::mutex> lock(mutex_);

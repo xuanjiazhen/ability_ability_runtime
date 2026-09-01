@@ -55,22 +55,14 @@ int DataAbilityObserverStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
     return (this->*HANDLES[code])(data, reply);
 }
 
-/**
- * @brief Called back to notify that the data being observed has changed.
- *
- * @return Returns 0 on success, others on failure.
- */
+
 int32_t DataAbilityObserverStub::OnChangeInner(MessageParcel &data, MessageParcel &reply)
 {
     OnChange();
     return ERR_NONE;
 }
 
-/**
- * @brief Called back to notify that the data being observed has changed.
- *
- * @return Returns 0 on success, others on failure.
- */
+
 int32_t DataAbilityObserverStub::OnChangeExtInner(MessageParcel &data, MessageParcel &reply)
 {
     ChangeInfo changeInfo;
@@ -81,11 +73,7 @@ int32_t DataAbilityObserverStub::OnChangeExtInner(MessageParcel &data, MessagePa
     return ERR_NONE;
 }
 
-/**
- * @brief Called back to notify that the data being observed has changed.
- *
- * @return Returns 0 on success, others on failure.
- */
+
 int32_t DataAbilityObserverStub::OnChangePreferencesInner(MessageParcel &data, MessageParcel &reply)
 {
     std::string key = data.ReadString();

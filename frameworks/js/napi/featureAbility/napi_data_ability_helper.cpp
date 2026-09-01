@@ -44,14 +44,7 @@ namespace AppExecFwk {
 std::list<std::shared_ptr<DataAbilityHelper>> g_dataAbilityHelperList;
 std::vector<DAHelperOnOffCB *> g_registerInstances;
 
-/**
- * @brief DataAbilityHelper NAPI module registration.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param exports An empty object via the exports parameter as a convenience.
- *
- * @return The return value from Init is treated as the exports object for the module.
- */
+
 napi_value DataAbilityHelperInit(napi_env env, napi_value exports)
 {
     TAG_LOGD(AAFwkTag::FA, "called");
@@ -180,14 +173,7 @@ napi_value DataAbilityHelperConstructor(napi_env env, napi_callback_info info)
     return handleEscape.Escape(thisVar);
 }
 
-/**
- * @brief DataAbilityHelper NAPI method : insert.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
+
 napi_value NAPI_Insert(napi_env env, napi_callback_info info)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -213,14 +199,7 @@ napi_value NAPI_Insert(napi_env env, napi_callback_info info)
     return handleEscape.Escape(ret);
 }
 
-/**
- * @brief Insert processing function.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param insertCB Process data asynchronously.
- *
- * @return Return JS data successfully, otherwise return nullptr.
- */
+
 napi_value InsertWrap(napi_env env, napi_callback_info info, DAHelperInsertCB *insertCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -319,15 +298,7 @@ void SetValuesBucketObject(
         TAG_LOGE(AAFwkTag::FA, "valuesBucket error");
     }
 }
-/**
- * @brief Parse the ValuesBucket parameters.
- *
- * @param param Indicates the want parameters saved the parse result.
- * @param env The environment that the Node-API call is invoked under.
- * @param args Indicates the arguments passed into the callback.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
+
 napi_value UnwrapValuesBucket(std::string &value, napi_env env, napi_value args)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -354,14 +325,7 @@ napi_value UnwrapValuesBucket(std::string &value, napi_env env, napi_value args)
     return handleEscape.Escape(result);
 }
 
-/**
- * @brief DataAbilityHelper NAPI method : notifyChange.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
+
 napi_value NAPI_NotifyChange(napi_env env, napi_callback_info info)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -383,14 +347,7 @@ napi_value NAPI_NotifyChange(napi_env env, napi_callback_info info)
     return handleEscape.Escape(ret);
 }
 
-/**
- * @brief NotifyChange processing function.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param notifyChangeCB Process data asynchronously.
- *
- * @return Return JS data successfully, otherwise return nullptr.
- */
+
 napi_value NotifyChangeWrap(napi_env env, napi_callback_info info, DAHelperNotifyChangeCB *notifyChangeCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -424,14 +381,7 @@ napi_value NotifyChangeWrap(napi_env env, napi_callback_info info, DAHelperNotif
     return handleEscape.Escape(ret);
 }
 
-/**
- * @brief DataAbilityHelper NAPI method : on.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
+
 napi_value NAPI_Register(napi_env env, napi_callback_info info)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -453,14 +403,7 @@ napi_value NAPI_Register(napi_env env, napi_callback_info info)
     return handleEscape.Escape(ret);
 }
 
-/**
- * @brief On processing function.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param onCB Process data asynchronously.
- *
- * @return Return JS data successfully, otherwise return nullptr.
- */
+
 napi_value RegisterWrap(napi_env env, napi_callback_info info, DAHelperOnOffCB *onCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -599,14 +542,7 @@ void RegisterCompleteCB(napi_env env, napi_status status, void *data)
     DeleteDAHelperOnOffCB(onCB);
 }
 
-/**
- * @brief DataAbilityHelper NAPI method : Off.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
+
 napi_value NAPI_UnRegister(napi_env env, napi_callback_info info)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -628,14 +564,7 @@ napi_value NAPI_UnRegister(napi_env env, napi_callback_info info)
     return handleEscape.Escape(ret);
 }
 
-/**
- * @brief Off processing function.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param offCB Process data asynchronously.
- *
- * @return Return JS data successfully, otherwise return nullptr.
- */
+
 napi_value UnRegisterWrap(napi_env env, napi_callback_info info, DAHelperOnOffCB *offCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -1032,14 +961,7 @@ void UnwrapDataAbilityPredicates(NativeRdb::DataAbilityPredicates &predicates, n
     predicates = *tempPredicates;
 }
 
-/**
- * @brief DataAbilityHelper NAPI method : insert.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
+
 napi_value NAPI_Delete(napi_env env, napi_callback_info info)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -1061,14 +983,7 @@ napi_value NAPI_Delete(napi_env env, napi_callback_info info)
     return handleEscape.Escape(ret);
 }
 
-/**
- * @brief Insert processing function.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param insertCB Process data asynchronously.
- *
- * @return Return JS data successfully, otherwise return nullptr.
- */
+
 napi_value DeleteWrap(napi_env env, napi_callback_info info, DAHelperDeleteCB *deleteCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -1105,14 +1020,7 @@ napi_value DeleteWrap(napi_env env, napi_callback_info info, DAHelperDeleteCB *d
     return handleEscape.Escape(ret);
 }
 
-/**
- * @brief DataAbilityHelper NAPI method : insert.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
+
 napi_value NAPI_Update(napi_env env, napi_callback_info info)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -1134,14 +1042,7 @@ napi_value NAPI_Update(napi_env env, napi_callback_info info)
     return handleEscape.Escape(ret);
 }
 
-/**
- * @brief Insert processing function.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param insertCB Process data asynchronously.
- *
- * @return Return JS data successfully, otherwise return nullptr.
- */
+
 napi_value UpdateWrap(napi_env env, napi_callback_info info, DAHelperUpdateCB *updateCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -1281,14 +1182,7 @@ napi_value CallWrap(napi_env env, napi_callback_info info, DAHelperCallCB *callC
     return handleEscape.Escape(ret);
 }
 
-/**
- * @brief DataAbilityHelper NAPI method : call.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
+
 napi_value NAPI_Call(napi_env env, napi_callback_info info)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -1314,14 +1208,7 @@ napi_value NAPI_Call(napi_env env, napi_callback_info info)
     return handleEscape.Escape(ret);
 }
 
-/**
- * @brief DataAbilityHelper NAPI method : insert.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
+
 napi_value NAPI_OpenFile(napi_env env, napi_callback_info info)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -1347,14 +1234,7 @@ napi_value NAPI_OpenFile(napi_env env, napi_callback_info info)
     return handleEscape.Escape(ret);
 }
 
-/**
- * @brief Insert processing function.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param insertCB Process data asynchronously.
- *
- * @return Return JS data successfully, otherwise return nullptr.
- */
+
 napi_value OpenFileWrap(napi_env env, napi_callback_info info, DAHelperOpenFileCB *openFileCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -1395,14 +1275,7 @@ napi_value OpenFileWrap(napi_env env, napi_callback_info info, DAHelperOpenFileC
     return handleEscape.Escape(ret);
 }
 
-/**
- * @brief DataAbilityHelper NAPI method : insert.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
+
 napi_value NAPI_BatchInsert(napi_env env, napi_callback_info info)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -1466,14 +1339,7 @@ bool UnwrapArrayObjectFromJS(napi_env env, napi_value param, std::vector<NativeR
     return true;
 }
 
-/**
- * @brief Insert processing function.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param insertCB Process data asynchronously.
- *
- * @return Return JS data successfully, otherwise return nullptr.
- */
+
 napi_value BatchInsertWrap(napi_env env, napi_callback_info info, DAHelperBatchInsertCB *batchInsertCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -1510,14 +1376,7 @@ napi_value BatchInsertWrap(napi_env env, napi_callback_info info, DAHelperBatchI
     return handleEscape.Escape(ret);
 }
 
-/**
- * @brief DataAbilityHelper NAPI method : insert.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
+
 napi_value NAPI_Query(napi_env env, napi_callback_info info)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -1539,14 +1398,7 @@ napi_value NAPI_Query(napi_env env, napi_callback_info info)
     return handleEscape.Escape(ret);
 }
 
-/**
- * @brief Insert processing function.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param insertCB Process data asynchronously.
- *
- * @return Return JS data successfully, otherwise return nullptr.
- */
+
 napi_value QueryWrap(napi_env env, napi_callback_info info, DAHelperQueryCB *queryCB)
 {
     AbilityRuntime::HandleEscape handleEscape(env);

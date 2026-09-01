@@ -302,12 +302,7 @@ void MainThread::GetPluginNativeLibPath(std::vector<AppExecFwk::PluginBundleInfo
     }
 }
 
-/**
- *
- * @brief Notify the AppMgrDeathRecipient that the remote is dead.
- *
- * @param remote The remote which is dead.
- */
+
 void AppMgrDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
     TAG_LOGE(AAFwkTag::APPKIT, "remote died receive");
@@ -331,88 +326,49 @@ MainThread::~MainThread()
     }
 }
 
-/**
- *
- * @brief Get the current MainThreadState.
- *
- * @return Returns the current MainThreadState.
- */
+
 MainThreadState MainThread::GetMainThreadState() const
 {
     return mainThreadState_;
 }
 
-/**
- *
- * @brief Set the runner state of mainthread.
- *
- * @param runnerStart whether the runner is started.
- */
+
 void MainThread::SetRunnerStarted(bool runnerStart)
 {
     isRunnerStarted_ = runnerStart;
 }
 
-/**
- *
- * @brief Get the runner state of mainthread.
- *
- * @return Returns the runner state of mainthread.
- */
+
 bool MainThread::GetRunnerStarted() const
 {
     return isRunnerStarted_;
 }
 
-/**
- *
- * @brief Get the newThreadId.
- *
- * @return Returns the newThreadId.
- */
+
 int MainThread::GetNewThreadId()
 {
     return newThreadId_++;
 }
 
-/**
- *
- * @brief Get the application.
- *
- * @return Returns the application.
- */
+
 std::shared_ptr<OHOSApplication> MainThread::GetApplication() const
 {
     return application_;
 }
 
-/**
- *
- * @brief Get the applicationInfo.
- *
- * @return Returns the applicationInfo.
- */
+
 std::shared_ptr<ApplicationInfo> MainThread::GetApplicationInfo() const
 {
     return applicationInfo_;
 }
 
-/**
- *
- * @brief Get the applicationImpl.
- *
- * @return Returns the applicationImpl.
- */
+
 std::shared_ptr<ApplicationImpl> MainThread::GetApplicationImpl()
 {
     return applicationImpl_;
 }
 
-/**
- *
- * @brief Connect the mainthread to the AppMgr.
- *
- */
+
 bool MainThread::ConnectToAppMgr()
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -444,11 +400,7 @@ bool MainThread::ConnectToAppMgr()
     return true;
 }
 
-/**
- *
- * @brief Attach the mainthread to the AppMgr.
- *
- */
+
 void MainThread::Attach()
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -467,11 +419,7 @@ void MainThread::Attach()
     bundleMgrHelper->PreConnect();
 }
 
-/**
- *
- * @brief remove the deathRecipient from appMgr.
- *
- */
+
 void MainThread::RemoveAppMgrDeathRecipient()
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
@@ -488,22 +436,13 @@ void MainThread::RemoveAppMgrDeathRecipient()
     }
 }
 
-/**
- *
- * @brief Get the eventHandler of mainthread.
- *
- * @return Returns the eventHandler of mainthread.
- */
+
 std::shared_ptr<EventHandler> MainThread::GetMainHandler() const
 {
     return mainHandler_;
 }
 
-/**
- *
- * @brief Schedule the foreground lifecycle of application.
- *
- */
+
 bool MainThread::ScheduleForegroundApplication()
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -530,11 +469,7 @@ bool MainThread::ScheduleForegroundApplication()
     return true;
 }
 
-/**
- *
- * @brief Schedule the background lifecycle of application.
- *
- */
+
 void MainThread::ScheduleBackgroundApplication()
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
@@ -561,12 +496,7 @@ void MainThread::ScheduleBackgroundApplication()
     tmpWatchdog = nullptr;
 }
 
-/**
- *
- * @brief Schedule the terminate lifecycle of application.
- *
- * @param isLastProcess When it is the last application process, pass in true.
- */
+
 void MainThread::ScheduleTerminateApplication(bool isLastProcess)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
@@ -584,12 +514,7 @@ void MainThread::ScheduleTerminateApplication(bool isLastProcess)
     }
 }
 
-/**
- *
- * @brief Shrink the memory which used by application.
- *
- * @param level Indicates the memory trim level, which shows the current memory usage status.
- */
+
 void MainThread::ScheduleShrinkMemory(const int level)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "level: %{public}d", level);
@@ -607,12 +532,7 @@ void MainThread::ScheduleShrinkMemory(const int level)
     }
 }
 
-/**
- *
- * @brief Notify the memory level.
- *
- * @param level Indicates the memory trim level, which shows the current memory usage status.
- */
+
 void MainThread::ScheduleMemoryLevel(const int level, bool isShellCall)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "level: %{public}d", level);
@@ -630,13 +550,7 @@ void MainThread::ScheduleMemoryLevel(const int level, bool isShellCall)
     }
 }
 
-/**
- *
- * @brief Get the application's memory allocation info.
- *
- * @param pid, pid input.
- * @param mallocInfo, dynamic storage information output.
- */
+
 void MainThread::ScheduleHeapMemory(const int32_t pid, OHOS::AppExecFwk::MallocInfo &mallocInfo)
 {
     struct mallinfo mi = mallinfo();
@@ -653,12 +567,7 @@ void MainThread::ScheduleHeapMemory(const int32_t pid, OHOS::AppExecFwk::MallocI
     mallocInfo.hblkhd = hblkhd;
 }
 
-/**
- *
- * @brief the application triggerGC and dump jsheap memory.
- *
- * @param info, pid, tid, needGC, needSnapshot.
- */
+
 void MainThread::ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
 {
     TAG_LOGI(AAFwkTag::APPKIT, "pid: %{public}d, tid: %{public}d, needGc: %{public}d, needSnapshot: %{public}d,\n"
@@ -678,12 +587,7 @@ void MainThread::ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
     }
 }
 
-/**
- *
- * @brief the application dump jshandle map.
- *
- * @param info, pid, tid.
- */
+
 void MainThread::ScheduleJsHandleMap(OHOS::AppExecFwk::JsHandleMapInfo &info)
 {
     TAG_LOGI(AAFwkTag::APPKIT, "pid: %{public}u, tid: %{public}u", info.pid, info.tid);
@@ -701,12 +605,7 @@ void MainThread::ScheduleJsHandleMap(OHOS::AppExecFwk::JsHandleMapInfo &info)
     }
 }
 
-/**
- *
- * @brief the application triggerGC and dump cjheap memory.
- *
- * @param info, pid, tid, needGC, needSnapshot.
- */
+
 void MainThread::ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
 {
     TAG_LOGI(AAFwkTag::APPKIT, "pid: %{public}d, needGc: %{public}d, needSnapshot: %{public}d",
@@ -725,13 +624,7 @@ void MainThread::ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
     }
 }
 
-/**
- *
- * @brief triggerGC and dump application's memory info.
- *
- * @param info, pid, tid, needGC, needSnapshot.
- * @param callback The callback to receive dump result
- */
+
 void MainThread::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
 {
     wptr<MainThread> weak = this;
@@ -748,11 +641,7 @@ void MainThread::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpC
     }
 }
 
-/**
- *
- * @brief Schedule the application process exit safely.
- *
- */
+
 void MainThread::ScheduleProcessSecurityExit()
 {
     wptr<MainThread> weak = this;
@@ -770,11 +659,7 @@ void MainThread::ScheduleProcessSecurityExit()
     }
 }
 
-/**
- *
- * @brief Schedule the application clear recovery page stack.
- *
- */
+
 void MainThread::ScheduleClearPageStack()
 {
     TAG_LOGI(AAFwkTag::APPKIT, "ScheduleClearPageStack called");
@@ -787,21 +672,11 @@ void MainThread::ScheduleClearPageStack()
     AppRecovery::GetInstance().ClearPageStack(bundleName);
 }
 
-/**
- *
- * @brief Low the memory which used by application.
- *
- */
+
 void MainThread::ScheduleLowMemory()
 {}
 
-/**
- *
- * @brief Launch the application.
- *
- * @param data The launchdata of the application witch launced.
- *
- */
+
 void MainThread::ScheduleLaunchApplication(const AppLaunchData &data, const Configuration &config)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -824,13 +699,7 @@ void MainThread::ScheduleLaunchApplication(const AppLaunchData &data, const Conf
     }
 }
 
-/**
- *
- * @brief update the application info after new module installed.
- *
- * @param appInfo The latest application info obtained from bms for update abilityRuntimeContext.
- *
- */
+
 void MainThread::ScheduleUpdateApplicationInfoInstalled(const ApplicationInfo &appInfo, const std::string &moduleName)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "ScheduleUpdateApplicationInfoInstalled");
@@ -914,13 +783,7 @@ void MainThread::ScheduleLaunchAbility(const AbilityInfo &info, const sptr<IRemo
     }
 }
 
-/**
- *
- * @brief clean the ability by token.
- *
- * @param token The token belong to the ability which want to be cleaned.
- *
- */
+
 void MainThread::ScheduleCleanAbility(const sptr<IRemoteObject> &token, bool isCacheProcess)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called, with isCacheProcess =%{public}d.", isCacheProcess);
@@ -940,25 +803,13 @@ void MainThread::ScheduleCleanAbility(const sptr<IRemoteObject> &token, bool isC
     }
 }
 
-/**
- *
- * @brief send the new profile.
- *
- * @param profile The updated profile.
- *
- */
+
 void MainThread::ScheduleProfileChanged(const Profile &profile)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "profile name: %{public}s", profile.GetName().c_str());
 }
 
-/**
- *
- * @brief send the new config to the application.
- *
- * @param config The updated config.
- * @param reason The updated configuration scene flag.
- */
+
 void MainThread::ScheduleConfigurationUpdated(const Configuration &config, ConfigUpdateReason reason)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -991,14 +842,7 @@ bool MainThread::CheckLaunchApplicationParam(const AppLaunchData &appLaunchData)
     return true;
 }
 
-/**
- *
- * @brief Check whether the record is legal.
- *
- * @param record The record should be checked.
- *
- * @return if the record is legal, return true. else return false.
- */
+
 bool MainThread::CheckAbilityItem(const std::shared_ptr<AbilityLocalRecord> &record) const
 {
     if (record == nullptr) {
@@ -1021,11 +865,7 @@ bool MainThread::CheckAbilityItem(const std::shared_ptr<AbilityLocalRecord> &rec
     return true;
 }
 
-/**
- *
- * @brief Terminate the application but don't notify ams.
- *
- */
+
 void MainThread::HandleTerminateApplicationLocal()
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
@@ -1140,11 +980,7 @@ void MainThread::HandleMem(const OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemD
     helper->DumpMem(info, callback);
 }
 
-/**
- *
- * @brief Schedule the application process exit safely.
- *
- */
+
 void MainThread::HandleProcessSecurityExit()
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -1649,13 +1485,7 @@ EtsEnv::ETSUncaughtExceptionInfo MainThread::CreateEtsExceptionInfo(const std::s
     };
     return uncaughtExceptionInfo;
 }
-/**
- *
- * @brief Launch the application.
- *
- * @param appLaunchData The launchdata of the application witch launced.
- *
- */
+
 void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, const Configuration &config)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -2211,14 +2041,7 @@ std::string GetProcessLifeCycleByPid(pid_t pid)
     return lifeTime;
 }
 
-/**
- *
- * @brief Init the uncatchable task.
- *
- * @param uncatchableTaskInfo The info of the uncatchable task.
- * @param isUncatchable Weather task is uncatcheable.
- *
- */
+
 void MainThread::InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, const UncatchableTaskInfo &uncatchableTaskInfo,
     bool isUncatchable)
 {
@@ -2298,13 +2121,7 @@ void MainThread::InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, co
     };
 }
 
-/**
- *
- * @brief Handle process exit.
- *
- * @param processExitInfo The info of the process exit info.
- *
- */
+
 void MainThread::ProcessExit(const ProcessExitInfo& info)
 {
     // if app's callback has been registered, let app decide whether exit or not.
@@ -2883,13 +2700,7 @@ void MainThread::UpdateWorkProcessInfo(std::shared_ptr<AppUpdateInfo> updateInfo
     }
 }
 
-/**
- *
- * @brief launch the ability.
- *
- * @param abilityRecord The abilityRecord which belongs to the ability launched.
- *
- */
+
 void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &abilityRecord,
     std::shared_ptr<AppUpdateInfo> updateInfo)
 {
@@ -2989,13 +2800,7 @@ void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &
 #endif
 }
 
-/**
- *
- * @brief Clean the ability but don't notify ams.
- *
- * @param token The token which belongs to the ability launched.
- *
- */
+
 void MainThread::HandleCleanAbilityLocal(const sptr<IRemoteObject> &token)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "start");
@@ -3031,13 +2836,7 @@ void MainThread::HandleCleanAbilityLocal(const sptr<IRemoteObject> &token)
 #endif
 }
 
-/**
- *
- * @brief Clean the ability.
- *
- * @param token The token which belongs to the ability launched.
- *
- */
+
 void MainThread::HandleCleanAbility(const sptr<IRemoteObject> &token, bool isCacheProcess)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -3081,11 +2880,7 @@ void MainThread::HandleCleanAbility(const sptr<IRemoteObject> &token, bool isCac
         applicationInfo_->name.c_str(), abilityInfo->name.c_str());
 }
 
-/**
- *
- * @brief Foreground the application.
- *
- */
+
 void MainThread::HandleForegroundApplication()
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -3110,11 +2905,7 @@ void MainThread::HandleForegroundApplication()
     appMgr_->ApplicationForegrounded(applicationImpl_->GetRecordId());
 }
 
-/**
- *
- * @brief Background the application.
- *
- */
+
 void MainThread::HandleBackgroundApplication()
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -3137,12 +2928,7 @@ void MainThread::HandleBackgroundApplication()
     appMgr_->ApplicationBackgrounded(applicationImpl_->GetRecordId());
 }
 
-/**
- *
- * @brief Terminate the application.
- *
- * @param isLastProcess When it is the last application process, pass in true.
- */
+
 void MainThread::HandleTerminateApplication(bool isLastProcess)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -3175,13 +2961,7 @@ void MainThread::HandleTerminateApplication(bool isLastProcess)
     appMgr_->ApplicationTerminated(applicationImpl_->GetRecordId());
 }
 
-/**
- *
- * @brief Shrink the memory which used by application.
- *
- * @param level Indicates the memory trim level, which shows the current memory usage status.
- *
- */
+
 void MainThread::HandleShrinkMemory(const int level)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -3194,13 +2974,7 @@ void MainThread::HandleShrinkMemory(const int level)
     applicationImpl_->PerformMemoryLevel(level);
 }
 
-/**
- *
- * @brief Handle NotifyMemoryLevel.
- *
- * @param level Indicates the memory trim level, which shows the current memory usage status.
- *
- */
+
 void MainThread::HandleMemoryLevel(int level)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -3214,14 +2988,7 @@ void MainThread::HandleMemoryLevel(int level)
     application_->OnMemoryLevel(level);
 }
 
-/**
- *
- * @brief send the new config to the application.
- *
- * @param config The updated config.
- * @param reason The updated scene flag.
- *
- */
+
 void MainThread::HandleConfigurationUpdated(const Configuration &config, ConfigUpdateReason reason)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -3510,13 +3277,7 @@ MainThread::MainHandler::MainHandler(const std::shared_ptr<EventRunner> &runner,
     : AppExecFwk::EventHandler(runner), mainThreadObj_(thread)
 {}
 
-/**
- *
- * @brief Process the event.
- *
- * @param event the event want to be processed.
- *
- */
+
 void MainThread::MainHandler::ProcessEvent(const OHOS::AppExecFwk::InnerEvent::Pointer &event)
 {
     auto eventId = event->GetInnerEventId();
@@ -3528,13 +3289,7 @@ void MainThread::MainHandler::ProcessEvent(const OHOS::AppExecFwk::InnerEvent::P
     }
 }
 
-/**
- *
- * @brief Check whether the OHOSApplication is ready.
- *
- * @return if the record is legal, return true. else return false.
- *
- */
+
 bool MainThread::IsApplicationReady() const
 {
     TAG_LOGD(AAFwkTag::APPKIT, "start");
@@ -3547,13 +3302,7 @@ bool MainThread::IsApplicationReady() const
 }
 
 #ifdef ABILITY_LIBRARY_LOADER
-/**
- *
- * @brief Load the ability library.
- *
- * @param libraryPaths the library paths.
- *
- */
+
 void MainThread::LoadAbilityLibrary(const std::vector<std::string> &libraryPaths)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -3694,16 +3443,7 @@ bool MainThread::ScanDir(const std::string &dirPath, std::vector<std::string> &f
     return true;
 }
 
-/**
- *
- * @brief Check the fileType.
- *
- * @param fileName The fileName of the lib.
- * @param extensionName The extensionName of the lib.
- *
- * @return if the FileType is legal, return true. else return false.
- *
- */
+
 bool MainThread::CheckFileType(const std::string &fileName, const std::string &extensionName)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "path is %{public}s, support suffix is %{public}s",
@@ -4388,11 +4128,7 @@ int32_t MainThread::ScheduleDumpArkWeb(const std::string &customArgs, std::strin
     return DumpArkWebHelper::DumpArkWeb(customArgs, result);
 }
 
-/**
- *
- * @brief Set watchdog background status of applicaton.
- *
- */
+
 void MainThread::SetWatchdogBackgroundStatus(bool status)
 {
     auto tmpWatchdog = watchdog_;
@@ -4404,11 +4140,7 @@ void MainThread::SetWatchdogBackgroundStatus(bool status)
     tmpWatchdog = nullptr;
 }
 
-/**
- *
- * @brief Notify application to prepare for process caching.
- *
- */
+
 void MainThread::ScheduleCacheProcess()
 {
     TAG_LOGD(AAFwkTag::APPKIT, "ScheduleCacheProcess");
@@ -4476,11 +4208,7 @@ void MainThread::ParseAppConfigurationParams(const std::string configuration, Co
     TAG_LOGD(AAFwkTag::APPKIT, "configuration_: %{public}s", appConfig.GetName().c_str());
 }
 
-/**
- *
- * @brief Notify application to prepare for process caching.
- *
- */
+
 void MainThread::HandleCacheProcess()
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);

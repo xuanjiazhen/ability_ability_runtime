@@ -25,9 +25,7 @@ ReverseContinuationSchedulerPrimary::ReverseContinuationSchedulerPrimary(
     : continuationHandler_(continuationHandler), mainHandler_(mainHandler)
 {}
 
-/**
- * @brief Replica call this method when it terminated.
- */
+
 void ReverseContinuationSchedulerPrimary::NotifyReplicaTerminated()
 {
     auto task = [reverseContinuationSchedulerPrimary = this]() {
@@ -46,12 +44,7 @@ void ReverseContinuationSchedulerPrimary::NotifyReplicaTerminated()
     }
 }
 
-/**
- * @brief Replica call this method to notify primary go on.
- *
- * @param want Contains data to be restore.
- * @return True if success, otherwise false.
- */
+
 bool ReverseContinuationSchedulerPrimary::ContinuationBack(const AAFwk::Want &want)
 {
     auto task = [reverseContinuationSchedulerPrimary = this, want]() {

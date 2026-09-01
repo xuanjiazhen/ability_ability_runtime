@@ -30,9 +30,7 @@ constexpr int32_t MIN_BUFFER_SIZE = 37; // UUID format: xxxxxxxx-xxxx-xxxx-xxxx-
 extern "C" {
 #endif
 
-/**
- * @brief Get ability instance ID from NativeAbilityWrapper.
- */
+
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetAbilityInstanceId(
     const AbilityRuntime_NativeAbilityWrapper* nativeAbilityWrapper, char* buffer, const int32_t bufferSize)
 {
@@ -63,9 +61,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_GetAbilityInstanceId(
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
-/**
- * @brief Get ability name from NativeAbilityWrapper.
- */
+
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetAbilityName(
     const AbilityRuntime_NativeAbilityWrapper *nativeAbilityWrapper, char *buffer, const int32_t bufferSize,
     int32_t *writeLength)
@@ -117,9 +113,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_GetAbilityName(
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
-/**
- * @brief Get napi_env from NativeAbilityWrapper.
- */
+
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetEnv(
     const AbilityRuntime_NativeAbilityWrapper* nativeAbilityWrapper, napi_env* env)
 {

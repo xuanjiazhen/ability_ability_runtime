@@ -24,9 +24,7 @@ ReverseContinuationSchedulerPrimaryProxy::ReverseContinuationSchedulerPrimaryPro
     : IRemoteProxy<IReverseContinuationSchedulerPrimary>(remoteObject)
 {}
 
-/**
- * @brief Replica call this method when it terminated.
- */
+
 void ReverseContinuationSchedulerPrimaryProxy::NotifyReplicaTerminated()
 {
     MessageParcel data;
@@ -48,12 +46,7 @@ void ReverseContinuationSchedulerPrimaryProxy::NotifyReplicaTerminated()
     }
 }
 
-/**
- * @brief Replica call this method to notify primary go on.
- *
- * @param want Contains data to be restore.
- * @return True if success, otherwise false.
- */
+
 bool ReverseContinuationSchedulerPrimaryProxy::ContinuationBack(const AAFwk::Want &want)
 {
     MessageParcel data;

@@ -1750,14 +1750,7 @@ int MissionListManager::TerminateAbilityLocked(MissionAbilityRecordPtr abilityRe
     return ERR_OK;
 }
 
-/**
- * @brief This method aims to do things as below
- * 1. remove the mission from the current missionList
- * 2. if the current missionList is empty after, then remove from the manager
- * 3. if the current ability is foreground, then should schedule the next ability to foreground before terminate
- *
- * @param abilityRecord the ability that was terminating
- */
+
 void MissionListManager::RemoveTerminatingAbility(MissionAbilityRecordPtr abilityRecord, bool flag)
 {
     CHECK_POINTER(abilityRecord);
