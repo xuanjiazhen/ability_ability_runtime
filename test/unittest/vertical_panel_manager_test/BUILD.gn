@@ -41,7 +41,7 @@ ohos_unittest("start_vertical_panel_test") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_src",
   ]
 
   external_deps = [
@@ -98,7 +98,7 @@ ohos_unittest("panel_start_callback_test") {
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_path}/js_environment/frameworks/js_environment:js_environment",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_src",
   ]
 
   external_deps = [
