@@ -38,7 +38,6 @@
 #include "insight_intent_executor_info.h"
 #include "insight_intent_executor_mgr.h"
 #include "insight_intent_execute_param.h"
-#include "skill/skill_path_validator.h"
 #include "interop_object_instance.h"
 #include "js_ability_context.h"
 #include "js_ability_lifecycle_callback.h"
@@ -2660,7 +2659,7 @@ napi_value JsUIAbility::LoadSkillFunction(
     napi_value method = nullptr;
 
     if (!param->scriptPath_.empty()) {
-        if (!IsSafeSkillPath(param->scriptPath_)) {
+        if (!IsPathValid(param->scriptPath_, false)) {
             TAG_LOGW(AAFwkTag::UIABILITY, "invalid scriptPath");
             return nullptr;
         }
@@ -2699,11 +2698,11 @@ bool JsUIAbility::TryLoadSkillEntry(const std::string &srcEntry,
         TAG_LOGW(AAFwkTag::UIABILITY, "param is null");
         return false;
     }
-    if (!IsSafeSkillPath(param->moduleName_)) {
+    if (!IsPathValid(param->moduleName_, false)) {
         TAG_LOGW(AAFwkTag::UIABILITY, "invalid moduleName");
         return false;
     }
-    if (!param->hapPath_.empty() && !IsSafeHapPath(param->hapPath_)) {
+    if (!param->hapPath_.empty() && !IsPathValid(param->hapPath_, true)) {
         TAG_LOGW(AAFwkTag::UIABILITY, "invalid hapPath");
         return false;
     }

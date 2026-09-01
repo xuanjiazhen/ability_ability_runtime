@@ -69,6 +69,11 @@ inline void *DetachCallbackFunc(napi_env env, void *value, void *)
     return value;
 }
 
+// Checks path validity: rejects empty, "..", traversal combinations ("../",
+// "/.."), backslash, embedded NUL and control chars. requireAbsolute picks
+// the expected path direction.
+bool IsPathValid(const std::string &path, bool requireAbsolute);
+
 class JsRuntime : public Runtime {
 public:
     using Runtime::PreloadModule;

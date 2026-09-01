@@ -1980,5 +1980,25 @@ void JsRuntime::StartLocalDebugMode(bool isDebugFromLocal)
     debugOption_.isDebugFromLocal = isDebugFromLocal;
     StartDebugMode(debugOption_);
 }
+
+bool IsPathValid(const std::string &path, bool requireAbsolute)
+{
+    if (path.empty() || path == "..") {
+        return false;
+    }
+    if (path.find("../") != std::string::npos || path.find("/..") != std::string::npos ||
+        path.find("//..") != std::string::npos) {
+        return false;
+    }
+    if (path.find('\\') != std::string::npos || path.find('\0') != std::string::npos) {
+        return false;
+    }
+    for (char c : path) {
+        if (static_cast<unsigned char>(c) < 0x20) {
+            return false;
+        }
+    }
+    return requireAbsolute ? path.front() == '/' : path.front() != '/';
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
