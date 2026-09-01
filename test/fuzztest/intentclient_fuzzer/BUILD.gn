@@ -40,10 +40,7 @@ ohos_fuzztest("IntentClientFuzzTest") {
 
   sources = [ "intentclient_fuzzer.cpp" ]
 
-  configs = [
-    "${ability_runtime_innerkits_path}/insight_intent/intent_client:intent_client_config",
-    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
-  ]
+  configs = [ "${ability_runtime_innerkits_path}/insight_intent/intent_client:intent_client_config" ]
 
   deps = [
     "${ability_runtime_innerkits_path}/insight_intent/intent_client:intent_client",

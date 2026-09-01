@@ -30,9 +30,6 @@ ohos_fuzztest("UiAbilityLifeCycleManagerAFuzzTest") {
     "${ability_runtime_services_path}/abilitymgr/include/",
     "${ability_runtime_services_path}/abilitymgr/include/scene_board/",
   ]
-  configs = [
-    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
-  ]
 
   public_configs = [
     "${ability_runtime_services_path}/abilitymgr:abilityms_config"

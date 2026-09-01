@@ -36,7 +36,6 @@ ohos_fuzztest("CancelWantSenderFuzzTest") {
   configs = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config",
     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
-    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
   ]
 
   deps = [
