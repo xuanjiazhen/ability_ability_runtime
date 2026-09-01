@@ -207,6 +207,21 @@ void BindApplicationInfo(ani_env *aniEnv, ani_class contextClass, ani_object con
     }
 }
 
+void UpdateEtsApplicationContextInfo(ani_env *aniEnv, ani_object cachedObj,
+    const std::shared_ptr<ApplicationContext>& applicationContext)
+{
+    if (aniEnv == nullptr || cachedObj == nullptr || applicationContext == nullptr) {
+        return;
+    }
+    ani_class contextCls = nullptr;
+    if (aniEnv->FindClass(CONTEXT_CLASS_NAME, &contextCls) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "FindClass Context failed");
+        return;
+    }
+    BindApplicationInfo(aniEnv, contextCls, cachedObj, applicationContext);
+    applicationContext->SetApplicationInfoUpdateFlag(false);
+}
+
 void BindResourceManager(ani_env *aniEnv, ani_class contextClass, ani_object contextObj,
     std::shared_ptr<Context> context)
 {
@@ -704,12 +719,13 @@ ani_object GetApplicationContextSync(ani_env *env, ani_object aniObj)
         EtsErrorUtil::ThrowError(env, (int32_t)AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
         return {};
     }
-    if (!applicationContext->GetApplicationInfoUpdateFlag()) {
-        auto appContextObj = ApplicationContextManager::GetApplicationContextManager().GetEtsGlobalObject();
-        if (appContextObj != nullptr && appContextObj->aniRef != nullptr) {
-            TAG_LOGD(AAFwkTag::APPKIT, "appContextObj is not nullptr");
-            return reinterpret_cast<ani_object>(appContextObj->aniRef);
+    auto appContextObj = ApplicationContextManager::GetApplicationContextManager().GetEtsGlobalObject();
+    if (appContextObj != nullptr && appContextObj->aniRef != nullptr) {
+        auto cachedObj = reinterpret_cast<ani_object>(appContextObj->aniRef);
+        if (applicationContext->GetApplicationInfoUpdateFlag()) {
+            UpdateEtsApplicationContextInfo(env, cachedObj, applicationContext);
         }
+        return cachedObj;
     }
     return GetApplicationContext(env, applicationContext);
 }

@@ -2095,45 +2095,15 @@ napi_value JsApplicationContextUtils::OnGetApplicationContext(napi_env env, Napi
         AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
         return CreateJsUndefined(env);
     }
-
-    if (!applicationContext->GetApplicationInfoUpdateFlag()) {
-        auto appContextObj = ApplicationContextManager::GetApplicationContextManager().GetGlobalObject(env);
-        if (appContextObj != nullptr) {
-            return appContextObj->GetNapiValue();
+    auto cachedObj = ApplicationContextManager::GetApplicationContextManager().GetGlobalObject(env);
+    if (cachedObj != nullptr) {
+        napi_value objValue = cachedObj->GetNapiValue();
+        if (applicationContext->GetApplicationInfoUpdateFlag()) {
+            return UpdateApplicationContextInfo(env, objValue, applicationContext);
         }
+        return objValue;
     }
-
-    napi_value value = CreateJsApplicationContext(env);
-    auto systemModule = JsRuntime::LoadSystemModuleByEngine(env, "application.ApplicationContext", &value, 1);
-    if (systemModule == nullptr) {
-        TAG_LOGW(AAFwkTag::APPKIT, "null systemModule");
-        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
-        return CreateJsUndefined(env);
-    }
-    napi_value contextObj = systemModule->GetNapiValue();
-    if (!CheckTypeForNapiValue(env, contextObj, napi_object)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "get object failed");
-        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
-        return CreateJsUndefined(env);
-    }
-    auto workContext = new (std::nothrow) std::weak_ptr<ApplicationContext>(applicationContext);
-    napi_coerce_to_native_binding_object(
-        env, contextObj, DetachCallbackFunc, AttachApplicationContext, workContext, nullptr);
-    if (workContext != nullptr) {
-        auto res = napi_wrap(env, contextObj, workContext,
-            [](napi_env, void *data, void *) {
-              TAG_LOGD(AAFwkTag::APPKIT, "Finalizer for weak_ptr application context is called");
-              delete static_cast<std::weak_ptr<ApplicationContext> *>(data);
-              data = nullptr;
-            },
-            nullptr, nullptr);
-        if (res != napi_ok && workContext != nullptr) {
-            TAG_LOGE(AAFwkTag::APPKIT, "napi_wrap failed:%{public}d", res);
-            delete workContext;
-            return CreateJsUndefined(env);
-        }
-    }
-    return contextObj;
+    return CreateAndCacheApplicationContext(env, applicationContext);
 }
 
 bool JsApplicationContextUtils::CheckCallerIsSystemApp()
@@ -2189,6 +2159,65 @@ napi_value JsApplicationContextUtils::CreateJsApplicationContext(napi_env env)
     BindNativeApplicationContextOne(env, object);
     BindNativeApplicationContextTwo(env, object);
     return handleEscape.Escape(object);
+}
+
+napi_value JsApplicationContextUtils::UpdateApplicationContextInfo(
+    napi_env env, napi_value cachedObj,
+    const std::shared_ptr<ApplicationContext>& applicationContext)
+{
+    if (cachedObj == nullptr || applicationContext == nullptr) {
+        return cachedObj;
+    }
+    auto appInfo = applicationContext->GetApplicationInfo();
+    if (appInfo != nullptr) {
+        napi_set_named_property(env, cachedObj, "applicationInfo",
+            CreateJsApplicationInfo(env, *appInfo));
+    }
+    applicationContext->SetApplicationInfoUpdateFlag(false);
+    return cachedObj;
+}
+
+napi_value JsApplicationContextUtils::CreateAndCacheApplicationContext(
+    napi_env env, const std::shared_ptr<ApplicationContext>& applicationContext)
+{
+    HandleEscape handleEscape(env);
+    napi_value value = CreateJsApplicationContext(env);
+    auto systemModule = JsRuntime::LoadSystemModuleByEngine(
+        env, "application.ApplicationContext", &value, 1);
+    if (systemModule == nullptr) {
+        TAG_LOGW(AAFwkTag::APPKIT, "null systemModule");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return CreateJsUndefined(env);
+    }
+    napi_value contextObj = systemModule->GetNapiValue();
+    if (!CheckTypeForNapiValue(env, contextObj, napi_object)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "get object failed");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return CreateJsUndefined(env);
+    }
+    auto workContext = new (std::nothrow) std::weak_ptr<ApplicationContext>(applicationContext);
+    napi_coerce_to_native_binding_object(
+        env, contextObj, DetachCallbackFunc, AttachApplicationContext, workContext, nullptr);
+    if (workContext != nullptr) {
+        auto res = napi_wrap(env, contextObj, workContext,
+            [](napi_env, void *data, void *) {
+                TAG_LOGD(AAFwkTag::APPKIT, "Finalizer for weak_ptr application context is called");
+                delete static_cast<std::weak_ptr<ApplicationContext> *>(data);
+                data = nullptr;
+            },
+            nullptr, nullptr);
+        if (res != napi_ok && workContext != nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "napi_wrap failed:%{public}d", res);
+            delete workContext;
+            return CreateJsUndefined(env);
+        }
+    }
+    napi_ref ref = nullptr;
+    napi_create_reference(env, contextObj, 1, &ref);
+    ApplicationContextManager::GetApplicationContextManager()
+        .AddGlobalObject(env, std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference*>(ref)));
+    applicationContext->SetApplicationInfoUpdateFlag(false);
+    return handleEscape.Escape(contextObj);
 }
 
 napi_value JsApplicationContextUtils::GetUIAbilityByInstanceId(napi_env env, napi_callback_info info)

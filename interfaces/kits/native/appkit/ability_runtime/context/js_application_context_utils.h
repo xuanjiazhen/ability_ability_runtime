@@ -133,6 +133,11 @@ public:
     static napi_value GetRunningProcessInformation(napi_env env, napi_callback_info info);
     static napi_value GetUIAbilityChildProcessInfos(napi_env env, napi_callback_info info);
     static napi_value CreateJsApplicationContext(napi_env env);
+    static napi_value UpdateApplicationContextInfo(
+        napi_env env, napi_value cachedObj,
+        const std::shared_ptr<ApplicationContext>& applicationContext);
+    static napi_value CreateAndCacheApplicationContext(
+        napi_env env, const std::shared_ptr<ApplicationContext>& applicationContext);
     static napi_value RestartApp(napi_env env, napi_callback_info info);
     static napi_value SetSupportedProcessCacheSelf(napi_env env, napi_callback_info info);
     static napi_value PreloadUIExtensionAbility(napi_env env, napi_callback_info info);

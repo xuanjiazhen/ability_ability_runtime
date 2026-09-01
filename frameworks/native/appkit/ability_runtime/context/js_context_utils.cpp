@@ -694,13 +694,14 @@ napi_value JsBaseContext::OnGetApplicationContext(napi_env env, NapiCallbackInfo
         return CreateJsUndefined(env);
     }
 
-    if (!applicationContext->GetApplicationInfoUpdateFlag()) {
-        std::shared_ptr<NativeReference> applicationContextObj =
-            ApplicationContextManager::GetApplicationContextManager().GetGlobalObject(env);
-        if (applicationContextObj != nullptr) {
-            napi_value objValue = applicationContextObj->GetNapiValue();
-            return objValue;
+    auto cachedObj = ApplicationContextManager::GetApplicationContextManager().GetGlobalObject(env);
+    if (cachedObj != nullptr) {
+        napi_value objValue = cachedObj->GetNapiValue();
+        if (applicationContext->GetApplicationInfoUpdateFlag()) {
+            return JsApplicationContextUtils::UpdateApplicationContextInfo(
+                env, objValue, applicationContext);
         }
+        return objValue;
     }
     return CreateJSApplicationContext(env, applicationContext);
 }

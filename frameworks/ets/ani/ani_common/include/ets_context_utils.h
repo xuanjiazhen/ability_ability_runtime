@@ -24,6 +24,8 @@ namespace AbilityRuntime {
 namespace ContextUtil {
 void BindApplicationInfo(ani_env *aniEnv, ani_class contextClass, ani_object contextObj,
     std::shared_ptr<Context> context);
+void UpdateEtsApplicationContextInfo(ani_env *aniEnv, ani_object cachedObj,
+    const std::shared_ptr<ApplicationContext>& applicationContext);
 void BindResourceManager(ani_env *aniEnv, ani_class contextClass, ani_object contextObj,
     std::shared_ptr<Context> context);
 void CreateEtsBaseContext(ani_env *aniEnv, ani_class contextClass, ani_object contextObj,
