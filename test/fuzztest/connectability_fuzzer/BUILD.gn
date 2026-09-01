@@ -36,10 +36,7 @@ ohos_fuzztest("ConnectAbilityFuzzTest") {
 
   sources = [ "connectability_fuzzer.cpp" ]
 
-  configs = [
-    "${ability_runtime_native_path}/ability/native:ability_config",
-    "${ability_runtime_test_path}/fuzztest:no_split_lto_unit"
-  ]
+  configs = [ "${ability_runtime_native_path}/ability/native:ability_config" ]
 
   public_configs = [
     "${ability_runtime_native_path}/ability/native:ability_public_config",
