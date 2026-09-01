@@ -39,9 +39,10 @@ ErrCode ExtensionControlInterceptor::DoProcess(const AbilityInterceptorParam &pa
     }
     // get target ability info
     AppExecFwk::AbilityInfo targetAbilityInfo;
-    if (GetTargetAbilityInfo(param, targetAbilityInfo)) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "target enable.");
-        return ERR_OK;
+    auto targetQueryRet = GetTargetAbilityInfo(param, targetAbilityInfo);
+    if (targetQueryRet != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetTargetAbilityInfo failed, ret: %{public}d", targetQueryRet);
+        return targetQueryRet;
     }
 
     if (!DelayedSingleton<ExtensionConfig>::GetInstance()->HasAbilityAccess(callerAbilityInfo.extensionTypeName)) {
@@ -143,7 +144,7 @@ bool ExtensionControlInterceptor::GetCallerAbilityInfo(const AbilityInterceptorP
     return false;
 }
 
-bool ExtensionControlInterceptor::GetTargetAbilityInfo(const AbilityInterceptorParam& param,
+ErrCode ExtensionControlInterceptor::GetTargetAbilityInfo(const AbilityInterceptorParam& param,
     AppExecFwk::AbilityInfo& targetAbilityInfo)
 {
     if (StartAbilityUtils::startAbilityInfo != nullptr &&
@@ -151,20 +152,20 @@ bool ExtensionControlInterceptor::GetTargetAbilityInfo(const AbilityInterceptorP
         StartAbilityUtils::startAbilityInfo->abilityInfo.name == param.want.GetAbilityNameRef()) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "targetAbilityInfo get from startAbiiltyInfo");
         targetAbilityInfo = StartAbilityUtils::startAbilityInfo->abilityInfo;
-    } else {
-        auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
-        if (bundleMgrHelper == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "null bundleMgrHelper");
-            return true;
-        }
-        auto queryRet = IN_PROCESS_CALL(bundleMgrHelper->QueryAbilityInfo(param.want,
-            AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, param.userId, targetAbilityInfo));
-        if (queryRet != ERR_OK || targetAbilityInfo.bundleName.empty() || targetAbilityInfo.name.empty()) {
-            TAG_LOGW(AAFwkTag::ABILITYMGR, "QueryAbilityInfo failed or invalid info, ret=%{public}d", queryRet);
-            return true;
-        }
+        return ERR_OK;
     }
-    return false;
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null bundleMgrHelper");
+        return ERR_NO_INIT;
+    }
+    auto queryRet = IN_PROCESS_CALL(bundleMgrHelper->QueryAbilityInfo(param.want,
+        AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, param.userId, targetAbilityInfo));
+    if (queryRet != ERR_OK || targetAbilityInfo.bundleName.empty() || targetAbilityInfo.name.empty()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "QueryAbilityInfo failed or invalid info, ret=%{public}d", queryRet);
+        return queryRet != ERR_OK ? queryRet : ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
 }
 } // namespace AAFwk
 } // namespace OHOS
