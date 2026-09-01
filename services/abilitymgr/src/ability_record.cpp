@@ -2114,7 +2114,9 @@ void AbilityRecord::SetWant(const Want &want)
     auto errorInfoEnhance = want_.GetBoolParam(ERROR_INFO_ENHANCE, false);
     want_.CloseAllFd();
 
-    want_ = want;
+    if (!want_.AssignDup(want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "AssignDup want_ failed, fd stripped");
+    }
     if (launchDebugInfo_.isDebugAppSet) {
         want_.SetParam(AbilityConfig::DEBUG_APP, launchDebugInfo_.debugApp);
     } else {

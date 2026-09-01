@@ -311,7 +311,7 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
         uiAbilityRecord->SetIsNewWant(sessionInfo->isNewWant);
         if (sessionInfo->isNewWant) {
             uiAbilityRecord->SetWant(abilityRequest.want);
-            uiAbilityRecord->GetSessionInfo()->want.RemoveAllFd();
+            uiAbilityRecord->GetSessionInfo()->want.CloseAllFd();
         } else {
             sessionInfo->want.CloseAllFd();
         }
@@ -804,12 +804,15 @@ bool UIAbilityLifecycleManager::HandleHookModule(AbilityRequest &abilityRequest,
     request.requestCallback = abilityRequest.requestCallback;
     sptr<SessionInfo> hookSessionInfo = abilityRecord->GetSessionInfo();
     if (hookSessionInfo != nullptr) {
-        hookSessionInfo->want = abilityRequest.want;
+        hookSessionInfo->want.CloseAllFd();
+        if (!hookSessionInfo->want.AssignDup(abilityRequest.want)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "AssignDup hookSession want failed");
+        }
     }
     std::string errMsg;
     ret = NotifySCBPendingActivation(hookSessionInfo, request, errMsg);
     if (hookSessionInfo != nullptr) {
-        hookSessionInfo->want.RemoveAllFd();
+        hookSessionInfo->want.CloseAllFd();
     }
     if (ret == ERR_INVALID_VALUE) {
         ret = ERR_NOTIFY_SCB_PENDING_ACTIVATION_FAILED;
@@ -893,7 +896,7 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &ability
     if (ret != ERR_OK) {
         RemoveAbilitySessionInfo(sessionInfo->requestId);
     }
-    sessionInfo->want.RemoveAllFd();
+    sessionInfo->want.CloseAllFd();
     return ret;
 }
 
@@ -972,7 +975,7 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbilities(std::vector<AbilityRe
     TAG_LOGI(AAFwkTag::ABILITYMGR, "StartUIAbilities normal, size: %{public}zu", abilityRequestList.size());
     ret = BatchNotifySCBPendingActivations(*abilitiesRequest);
     for (auto &[id, sessionInfo] : abilitiesRequest->sessionInfoList) {
-        sessionInfo->want.RemoveAllFd();
+        sessionInfo->want.CloseAllFd();
     }
     abilitiesRequestMap_.erase(requestListId);
     return ret;
@@ -2005,7 +2008,10 @@ sptr<SessionInfo> UIAbilityLifecycleManager::CreateSessionInfo(const AbilityRequ
     CHECK_POINTER_AND_RETURN_LOG(sessionInfo, nullptr, "Failed to create SessionInfo.");
     sessionInfo->requestId = requestId;
     sessionInfo->callerToken = abilityRequest.callerToken;
-    sessionInfo->want = abilityRequest.want;
+    sessionInfo->want.CloseAllFd();
+    if (!sessionInfo->want.AssignDup(abilityRequest.want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "AssignDup session want failed");
+    }
     sessionInfo->processOptions = abilityRequest.processOptions;
     sessionInfo->startWindowOption = abilityRequest.startWindowOption;
     sessionInfo->supportWindowModes = abilityRequest.supportWindowModes;
@@ -2428,7 +2434,10 @@ int32_t UIAbilityLifecycleManager::BackToCallerAbilityWithResultLocked(sptr<Sess
         return ERR_INVALID_VALUE;
     }
     sptr<SessionInfo> newSessionInfo = sptr<SessionInfo>::MakeSptr();
-    newSessionInfo->want = callerSessionInfo->want;
+    newSessionInfo->want.CloseAllFd();
+    if (!newSessionInfo->want.AssignDup(callerSessionInfo->want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "AssignDup newSession want failed");
+    }
     newSessionInfo->persistentId = callerSessionInfo->persistentId;
     newSessionInfo->identityToken = callerSessionInfo->identityToken;
 
@@ -4619,7 +4628,7 @@ void UIAbilityLifecycleManager::StartSpecifiedRequest(SpecifiedRequest &specifie
             TAG_LOGI(AAFwkTag::ABILITYMGR, "StartSpecifiedRequest cold");
             std::string errMsg;
             auto result = NotifySCBPendingActivation(sessionInfo, request, errMsg);
-            sessionInfo->want.RemoveAllFd();
+            sessionInfo->want.CloseAllFd();
             if (result != ERR_OK) {
                 RemoveAbilitySessionInfo(sessionInfo->requestId);
                 RemoveInstanceKey(request);
@@ -4880,7 +4889,10 @@ int32_t UIAbilityLifecycleManager::RevokeDelegator(sptr<IRemoteObject> token)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "launchWant is nullptr");
         return ERR_INVALID_VALUE;
     }
-    sessionInfo->want = *launchWant;
+    sessionInfo->want.CloseAllFd();
+    if (!sessionInfo->want.AssignDup(*launchWant)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "AssignDup launchWant failed");
+    }
     abilityRecord->SetWant(sessionInfo->want);
     AbilityRequest request;
     request.callerToken = token;
@@ -4889,7 +4901,7 @@ int32_t UIAbilityLifecycleManager::RevokeDelegator(sptr<IRemoteObject> token)
     TAG_LOGI(
         AAFwkTag::ABILITYMGR, "Reused sessionId: %{public}d, ret: %{public}d.", sessionInfo->persistentId, ret);
     sessionInfo->reuseDelegatorWindow = false;
-    sessionInfo->want.RemoveAllFd();
+    sessionInfo->want.CloseAllFd();
     if (ret == ERR_OK) {
         abilityRecord->SetHookOff(true);
         abilityRecord->SetIsHook(false);
