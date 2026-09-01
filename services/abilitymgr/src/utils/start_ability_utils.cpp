@@ -497,9 +497,7 @@ int32_t StartAbilityUtils::StartUIAbilitiesProcessAppIndex(Want &want,
     sptr<IRemoteObject> callerToken, int32_t &appIndex, int userId)
 {
     SetTargetCloneIndexInSameBundle(want, callerToken);
-    if (!want.HasParameter(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY)) {
-        want.SetParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, 0);
-    }
+    want.SetParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, 0);
     if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex, userId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "StartUIAbilities GetAppIndex failed.");
         return ERR_APP_CLONE_INDEX_INVALID;

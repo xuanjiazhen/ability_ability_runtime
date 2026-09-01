@@ -124,7 +124,6 @@ bool AbilityPermissionUtil::IsDominateScreen(const Want &want, bool isPendingWan
 int32_t AbilityPermissionUtil::CheckMultiInstanceAndAppClone(Want &want, int32_t userId, int32_t appIndex,
     sptr<IRemoteObject> callerToken, bool isScbCall)
 {
-    //包管理获取appIndex
     auto instanceKey = want.GetStringParam(Want::APP_INSTANCE_KEY);
     auto isCreating = want.GetBoolParam(Want::CREATE_APP_INSTANCE_KEY, false);
     AppExecFwk::ApplicationInfo appInfo;
