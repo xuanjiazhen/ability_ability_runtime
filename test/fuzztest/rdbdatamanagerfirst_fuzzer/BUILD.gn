@@ -44,7 +44,7 @@ ohos_fuzztest("RdbDataManagerFirstFuzzTest") {
   configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
 
   deps = [
-    "${ability_runtime_abilitymgr_path}/:abilityms",
+    "${ability_runtime_abilitymgr_path}/:abilityms_src",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_services_path}/common:app_util",
   ]
