@@ -1,124 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" font-family="'PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif">
   <defs>
-    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#475467"/></marker>
-    <marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#155eef"/></marker>
-    <marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#067647"/></marker>
-    <marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#7c3aed"/></marker>
-    <linearGradient id="hg" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#155eef"/><stop offset="100%" stop-color="#4385f5"/></linearGradient>
+    <marker id="arB1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#155eef"/></marker>
+    <marker id="arP1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#7c3aed"/></marker>
+    <linearGradient id="hgA" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#155eef"/><stop offset="100%" stop-color="#4385f5"/></linearGradient>
   </defs>
 
   <rect x="0" y="0" width="1920" height="1080" fill="#ffffff"/>
-  <rect x="0" y="0" width="1920" height="96" fill="url(#hg)"/>
-  <text x="960" y="44" font-size="32" font-weight="700" fill="#ffffff" text-anchor="middle">AI 任务管理机制 · 系统总览（1/4）</text>
-  <text x="960" y="76" font-size="15" fill="#dbe7fe" text-anchor="middle">一句话：AI 助手创建任务（9 态状态机 · 4 档优先级）→ 启动链路携带 taskId 拦截纳管目标进程 → 按任务档位对进程做冻结豁免/解冻 → 任务结束降级恢复</text>
+  <rect x="0" y="0" width="1920" height="96" fill="url(#hgA)"/>
+  <text x="960" y="42" font-size="34" font-weight="700" fill="#ffffff" text-anchor="middle">AI 任务管理机制 · 方案介绍（1/4）</text>
+  <text x="960" y="76" font-size="16" fill="#dbe7fe" text-anchor="middle">为 AI 语音助手提供的任务级资源保障：你的任务在锁屏、后台都能跑完</text>
 
-  <!-- ══ 三个核心问题 ══ -->
-  <rect x="60" y="130" width="560" height="120" rx="14" fill="#fef2f2" stroke="#fca5a5" stroke-width="2"/>
-  <text x="340" y="166" font-size="19" font-weight="700" fill="#b91c1c" text-anchor="middle">痛点 1：定时任务锁屏执行失败</text>
-  <text x="340" y="196" font-size="13.5" fill="#475467" text-anchor="middle">锁屏后进程被 RSS 冻结，闹钟联动/定时播报无法唤醒执行</text>
-  <text x="340" y="220" font-size="12.5" fill="#98a2b3" text-anchor="middle">豁免冻结（505）+ 待机联动（EDS）解决</text>
+  <!-- ══ 你遇到的问题 ══ -->
+  <rect x="80" y="136" width="860" height="200" rx="16" fill="#fef2f2" stroke="#fca5a5" stroke-width="2.5"/>
+  <text x="510" y="182" font-size="24" font-weight="700" fill="#b91c1c" text-anchor="middle">你的任务会被系统"冻住"</text>
+  <text x="120" y="228" font-size="17" fill="#475467">· 定时任务（闹钟联动、定时播报）→ 锁屏后进程被冻结 → 到点无法执行</text>
+  <text x="120" y="262" font-size="17" fill="#475467">· 长时任务（批量处理、持续播报）→ 切后台后进程被冻结 → 任务中断</text>
+  <text x="120" y="300" font-size="15" fill="#98a2b3">系统资源管控（RSS）不知道"这批进程正在为用户做事"，一律按后台应用处理</text>
 
-  <rect x="680" y="130" width="560" height="120" rx="14" fill="#fef2f2" stroke="#fca5a5" stroke-width="2"/>
-  <text x="960" y="166" font-size="19" font-weight="700" fill="#b91c1c" text-anchor="middle">痛点 2：长时任务切后台被冻结</text>
-  <text x="960" y="196" font-size="13.5" fill="#475467" text-anchor="middle">批量处理/持续播报切后台后进程冻结，任务中断</text>
-  <text x="960" y="220" font-size="12.5" fill="#98a2b3" text-anchor="middle">激活态持续豁免（可续期）解决</text>
+  <rect x="980" y="136" width="860" height="200" rx="16" fill="#eff4ff" stroke="#a9c5f9" stroke-width="2.5"/>
+  <text x="1410" y="182" font-size="24" font-weight="700" fill="#0b3d91" text-anchor="middle">机制给你一个"任务"维度</text>
+  <text x="1020" y="228" font-size="17" fill="#475467">· 把"我需要后台持续运行"变成系统可信的正式诉求</text>
+  <text x="1020" y="262" font-size="17" fill="#475467">· 按任务优先级保障：高优任务进程不被冻结、按时唤醒执行</text>
+  <text x="1020" y="300" font-size="15" fill="#98a2b3">不是绕过管控——有档位、有时长上限、有数量上限、全程可审计</text>
 
-  <rect x="1300" y="130" width="560" height="120" rx="14" fill="#eff4ff" stroke="#a9c5f9" stroke-width="2"/>
-  <text x="1580" y="166" font-size="19" font-weight="700" fill="#0b3d91" text-anchor="middle">机制定位：可信的"任务"级维度</text>
-  <text x="1580" y="196" font-size="13.5" fill="#475467" text-anchor="middle">应用后台诉求与系统资源管控之间的中间机制</text>
-  <text x="1580" y="220" font-size="12.5" fill="#98a2b3" text-anchor="middle">不绕过管控 · 按优先级分级 · 有上限可审计</text>
+  <!-- ══ 三步使用模型 ══ -->
+  <text x="960" y="396" font-size="24" font-weight="700" fill="#101828" text-anchor="middle">使用只需三步</text>
 
-  <!-- ══ 五大参与方（横向泳道式）══ -->
-  <!-- 语音助手 -->
-  <rect x="60" y="300" width="320" height="240" rx="18" fill="#eff4ff" stroke="#155eef" stroke-width="3"/>
-  <rect x="60" y="300" width="320" height="56" rx="18" fill="#e1ecff"/>
-  <text x="220" y="336" font-size="21" font-weight="700" fill="#0b3d91" text-anchor="middle">AI 语音助手</text>
-  <text x="220" y="356" font-size="12" fill="#667085" text-anchor="middle">创建者 · 系统应用</text>
-  <text x="80" y="392" font-size="14" fill="#344054">· 创建任务：类型/优先级/payload</text>
-  <text x="80" y="418" font-size="14" fill="#344054">· 驱动 9 态状态机流转</text>
-  <text x="80" y="444" font-size="14" fill="#344054">· Want 携带 taskId 启动能力</text>
-  <text x="80" y="470" font-size="14" fill="#344054">· AI bar：进度呈现 + 人机交互</text>
-  <rect x="80" y="486" width="280" height="38" rx="8" fill="#ffffff" stroke="#a9c5f9" stroke-width="1.5"/>
-  <text x="220" y="510" font-size="12" fill="#155eef" text-anchor="middle">交互在助手进程内闭环（D-21）</text>
+  <rect x="80" y="424" width="560" height="250" rx="18" fill="#eff4ff" stroke="#155eef" stroke-width="3"/>
+  <circle cx="140" cy="484" r="28" fill="#155eef"/><text x="140" y="493" font-size="26" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+  <text x="360" y="492" font-size="22" font-weight="700" fill="#0b3d91" text-anchor="middle">创建任务</text>
+  <text x="110" y="544" font-size="15.5" fill="#344054">CreateTask(类型, 优先级, 描述)</text>
+  <text x="110" y="576" font-size="15.5" fill="#344054">选优先级：</text>
+  <text x="130" y="606" font-size="14.5" fill="#475467">· HIGH —— 锁屏定时/长时任务（推荐）</text>
+  <text x="130" y="634" font-size="14.5" fill="#475467">· MEDIUM —— 可中断的普通后台任务</text>
+  <text x="130" y="660" font-size="13" fill="#98a2b3">系统返回随机 taskId（无需保存到持久存储）</text>
 
-  <!-- AppMS 任务管理 -->
-  <rect x="480" y="300" width="420" height="240" rx="18" fill="#f0fdf4" stroke="#067647" stroke-width="3"/>
-  <rect x="480" y="300" width="420" height="56" rx="18" fill="#dcfce7"/>
-  <text x="690" y="336" font-size="21" font-weight="700" fill="#067647" text-anchor="middle">AppMS · 任务管理模块（新增）</text>
-  <text x="690" y="356" font-size="12" fill="#667085" text-anchor="middle">SA 501 · foundation 进程 · 本需求交付</text>
-  <text x="500" y="392" font-size="14" fill="#344054">· task_mgr：任务模型/状态机/监听/上限</text>
-  <text x="500" y="418" font-size="14" fill="#344054">· process_schedule：进程组/档位合并</text>
-  <text x="500" y="444" font-size="14" fill="#344054">· ResourceControlProxy：资源管控出口</text>
-  <text x="500" y="470" font-size="14" fill="#344054">· ITaskManager 内部接口（12 方法）</text>
-  <text x="500" y="496" font-size="12.5" fill="#98a2b3">· 任务不持久化 · 防仿冒（B-1+B-2+通道鉴权）</text>
+  <rect x="680" y="424" width="560" height="250" rx="18" fill="#eff4ff" stroke="#155eef" stroke-width="3"/>
+  <circle cx="740" cy="484" r="28" fill="#155eef"/><text x="740" y="493" font-size="26" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+  <text x="960" y="492" font-size="22" font-weight="700" fill="#0b3d91" text-anchor="middle">带 taskId 启动能力</text>
+  <text x="710" y="544" font-size="15.5" fill="#344054">Want 里加一个参数：ohos.ai.taskId</text>
+  <text x="710" y="576" font-size="15.5" fill="#344054">· StartAbility / ConnectAbility</text>
+  <text x="710" y="604" font-size="15.5" fill="#344054">· 意图框架 / CLI 工具 / A2A</text>
+  <text x="710" y="636" font-size="14.5" fill="#067647">目标进程被自动纳入任务，获得同等的资源保障</text>
+  <text x="710" y="660" font-size="13" fill="#98a2b3">进程内后续组件活动自动覆盖，无需逐个携带</text>
 
-  <!-- AMS 拦截 -->
-  <rect x="1000" y="300" width="400" height="240" rx="18" fill="#f4f8ff" stroke="#155eef" stroke-width="3"/>
-  <rect x="1000" y="300" width="400" height="56" rx="18" fill="#e1ecff"/>
-  <text x="1200" y="336" font-size="21" font-weight="700" fill="#0b3d91" text-anchor="middle">AMS · 启动链路拦截（修改）</text>
-  <text x="1200" y="356" font-size="12" fill="#667085" text-anchor="middle">SA 180 · 5 收敛点 · TaskInterceptor</text>
-  <text x="1020" y="392" font-size="14" fill="#344054">· 解析 Want 中 ohos.ai.taskId</text>
-  <text x="1020" y="418" font-size="14" fill="#344054">· 条件两段式：意向登记 + attach 补注册</text>
-  <text x="1020" y="444" font-size="14" fill="#344054">· 身份解析：业务发起方 tokenId</text>
-  <text x="1020" y="470" font-size="14" fill="#344054">· 失败不阻断启动（零影响兜底）</text>
-  <text x="1020" y="496" font-size="12.5" fill="#98a2b3">· 无 taskId 时短路，零开销</text>
+  <rect x="1280" y="424" width="560" height="250" rx="18" fill="#eff4ff" stroke="#155eef" stroke-width="3"/>
+  <circle cx="1340" cy="484" r="28" fill="#155eef"/><text x="1340" y="493" font-size="26" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+  <text x="1560" y="492" font-size="22" font-weight="700" fill="#0b3d91" text-anchor="middle">驱动状态 + 结束</text>
+  <text x="1310" y="544" font-size="15.5" fill="#344054">SetTaskState 推进：提交 → 执行中 → 完成</text>
+  <text x="1310" y="576" font-size="15.5" fill="#344054">等待用户输入/授权时：置交互态，随身 UI 展示</text>
+  <text x="1310" y="608" font-size="15.5" fill="#344054">结束时：COMPLETED / FAILED / CANCELED</text>
+  <text x="1310" y="640" font-size="14.5" fill="#067647">任务结束，系统自动撤销保障、恢复原调度</text>
+  <text x="1310" y="664" font-size="13" fill="#98a2b3">忘记结束也没关系：超时机制自动兜底回收</text>
 
-  <!-- 资源管控方 -->
-  <rect x="1480" y="300" width="380" height="240" rx="18" fill="#faf5ff" stroke="#7c3aed" stroke-width="3"/>
-  <rect x="1480" y="300" width="380" height="56" rx="18" fill="#f3e8ff"/>
-  <text x="1670" y="336" font-size="21" font-weight="700" fill="#6b21a8" text-anchor="middle">RSS + EDS 资源管控</text>
-  <text x="1670" y="356" font-size="12" fill="#667085" text-anchor="middle">复用现有接口 · 不改 RSS 仓代码</text>
-  <text x="1500" y="392" font-size="14" fill="#344054">· RSS 505 冻结豁免 / 517 解冻 / 507 查询</text>
-  <text x="1500" y="418" font-size="14" fill="#344054">· RSS 221 进程 QoS（二期提权）</text>
-  <text x="1500" y="444" font-size="14" fill="#344054">· EDS 待机资源豁免（网络/定时）</text>
-  <text x="1500" y="470" font-size="14" fill="#344054">· 管控档位：0 不豁免 ～ 3 豁免+提权</text>
-  <text x="1500" y="496" font-size="12.5" fill="#98a2b3">· 任务结束：撤销豁免，恢复原调度</text>
+  <!-- ══ 系统侧发生了什么（黑盒视角）══ -->
+  <rect x="80" y="716" width="1760" height="300" rx="18" fill="#f8f9fc" stroke="#d0d5dd" stroke-width="2"/>
+  <text x="960" y="756" font-size="21" font-weight="700" fill="#101828" text-anchor="middle">系统内部帮你做了什么（无需关注细节）</text>
 
-  <!-- 连线 -->
-  <path d="M 380 420 L 476 420" stroke="#155eef" stroke-width="3" marker-end="url(#arB)"/>
-  <text x="428" y="404" font-size="12.5" fill="#155eef" text-anchor="middle">任务接口</text>
-  <path d="M 900 420 L 996 420" stroke="#155eef" stroke-width="3" marker-end="url(#arB)"/>
-  <text x="948" y="404" font-size="12.5" fill="#155eef" text-anchor="middle">纳管上报</text>
-  <path d="M 1400 420 L 1476 420" stroke="#7c3aed" stroke-width="3" marker-end="url(#arP)"/>
-  <text x="1438" y="404" font-size="12.5" fill="#6b21a8" text-anchor="middle">施加/撤销</text>
+  <rect x="120" y="788" width="520" height="190" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="380" y="822" font-size="17" font-weight="700" fill="#344054" text-anchor="middle">自动识别并纳管任务进程</text>
+  <text x="140" y="858" font-size="14" fill="#475467">启动链路上统一解析 taskId，无论经哪条</text>
+  <text x="140" y="884" font-size="14" fill="#475467">链路启动的进程都自动进入任务</text>
+  <text x="140" y="916" font-size="14" fill="#475467">进程退出自动移除；身份校验防伪造</text>
+  <text x="140" y="950" font-size="12.5" fill="#98a2b3">→ 你只管带 taskId，别的都不用管</text>
 
-  <!-- 启动链路标注 -->
-  <rect x="60" y="580" width="1800" height="110" rx="14" fill="#f8f9fc" stroke="#d0d5dd" stroke-width="1.5"/>
-  <text x="960" y="616" font-size="17" font-weight="700" fill="#344054" text-anchor="middle">五大启动链路全覆盖（taskId 携带即纳管）</text>
-  <rect x="100" y="636" width="300" height="38" rx="8" fill="#eff4ff" stroke="#a9c5f9"/><text x="250" y="660" font-size="13.5" fill="#0b3d91" text-anchor="middle">StartAbility（含代理启动变体）</text>
-  <rect x="440" y="636" width="300" height="38" rx="8" fill="#eff4ff" stroke="#a9c5f9"/><text x="590" y="660" font-size="13.5" fill="#0b3d91" text-anchor="middle">ConnectAbility（含 A2A）</text>
-  <rect x="780" y="636" width="300" height="38" rx="8" fill="#eff4ff" stroke="#a9c5f9"/><text x="930" y="660" font-size="13.5" fill="#0b3d91" text-anchor="middle">意图框架（InsightIntent）</text>
-  <rect x="1120" y="636" width="300" height="38" rx="8" fill="#fff7ed" stroke="#fdba74"/><text x="1270" y="660" font-size="13.5" fill="#9a3412" text-anchor="middle">CLI（cli_tool_framework，D-22）</text>
-  <rect x="1460" y="636" width="360" height="38" rx="8" fill="#eff4ff" stroke="#a9c5f9"/><text x="1640" y="660" font-size="13.5" fill="#0b3d91" text-anchor="middle">ServiceExtension / UIExtension</text>
+  <rect x="700" y="788" width="520" height="190" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="960" y="822" font-size="17" font-weight="700" fill="#344054" text-anchor="middle">按优先级施加资源保障</text>
+  <text x="720" y="858" font-size="14" fill="#475467">冻结豁免：任务执行期间进程不被冻结</text>
+  <text x="720" y="884" font-size="14" fill="#475467">解冻唤醒：已冻结的进程被及时解冻</text>
+  <text x="720" y="916" font-size="14" fill="#475467">待机联动：夜间深度待机也能联网执行</text>
+  <text x="720" y="950" font-size="12.5" fill="#98a2b3">→ 锁屏/后台/夜间三类场景全覆盖</text>
 
-  <!-- 底部：三方角色带 -->
-  <rect x="60" y="730" width="1800" height="290" rx="16" fill="#ffffff" stroke="#d0d5dd" stroke-width="1.5"/>
-  <text x="960" y="768" font-size="18" font-weight="700" fill="#344054" text-anchor="middle">三类系统角色（各取所需）</text>
+  <rect x="1280" y="788" width="520" height="190" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="1540" y="822" font-size="17" font-weight="700" fill="#344054" text-anchor="middle">自动降级与防滥用</text>
+  <text x="1300" y="858" font-size="14" fill="#475467">任务结束/进程退出：立即恢复原调度，不留残留</text>
+  <text x="1300" y="884" font-size="14" fill="#475467">多任务同进程：按最高优先级保障</text>
+  <text x="1300" y="916" font-size="14" fill="#475467">上限保护：任务数/进程数/时长/续期次数</text>
+  <text x="1300" y="950" font-size="12.5" fill="#98a2b3">→ 对系统资源影响可控，商用可审计</text>
 
-  <rect x="100" y="792" width="540" height="196" rx="12" fill="#eff4ff" stroke="#a9c5f9" stroke-width="2"/>
-  <text x="370" y="826" font-size="17" font-weight="700" fill="#0b3d91" text-anchor="middle">AI 助手（任务创建者）</text>
-  <text x="120" y="860" font-size="13.5" fill="#344054">· 表达后台执行诉求（优先级/类型/超时/续期）</text>
-  <text x="120" y="886" font-size="13.5" fill="#344054">· 交互与进度自有 AI bar 承担（D-21）</text>
-  <text x="120" y="912" font-size="13.5" fill="#344054">· 获得：锁屏/后台场景任务进程不被冻结</text>
-  <text x="120" y="938" font-size="13.5" fill="#344054">· 约束：任务数 ≤16 · 豁免硬上限 60min · 续期 ≤3</text>
-  <text x="120" y="968" font-size="12" fill="#98a2b3">· 全程 hisysevent 审计（6 类事件）</text>
-
-  <rect x="690" y="792" width="540" height="196" rx="12" fill="#f0fdf4" stroke="#86efac" stroke-width="2"/>
-  <text x="960" y="826" font-size="17" font-weight="700" fill="#067647" text-anchor="middle">系统（资源管控方）</text>
-  <text x="710" y="860" font-size="13.5" fill="#344054">· 管控不失控：豁免有档位/时长/数量上限</text>
-  <text x="710" y="886" font-size="13.5" fill="#344054">· 多任务同进程：按最高优先级合并（max）</text>
-  <text x="710" y="912" font-size="13.5" fill="#344054">· 任务结束/进程死亡：自动降级恢复原调度</text>
-  <text x="710" y="938" font-size="13.5" fill="#344054">· 防仿冒：随机 taskId + 身份绑定 + 通道鉴权</text>
-  <text x="710" y="968" font-size="12" fill="#98a2b3">· 超限拒绝 + TASK_ABUSE_WARNING 告警</text>
-
-  <rect x="1280" y="792" width="540" height="196" rx="12" fill="#f8f9fc" stroke="#cbd5e1" stroke-width="2"/>
-  <text x="1550" y="826" font-size="17" font-weight="700" fill="#344054" text-anchor="middle">监听方（安全管控/审计/监控）</text>
-  <text x="1300" y="860" font-size="13.5" fill="#344054">· 注册监听：任务状态变化实时回调</text>
-  <text x="1300" y="886" font-size="13.5" fill="#344054">· 感知：任务何时进入交互态/终态/进程归属</text>
-  <text x="1300" y="912" font-size="13.5" fill="#344054">· 查询：任务列表/详情（含 payload）</text>
-  <text x="1300" y="938" font-size="13.5" fill="#344054">· dump：hidumper 任务全景（排查定位）</text>
-  <text x="1300" y="968" font-size="12" fill="#98a2b3">· 不参与任务控制与人机交互（D-21 定位）</text>
-
-  <text x="960" y="1058" font-size="12" fill="#98a2b3" text-anchor="middle">AI Task Manager · 总览 1/4 · 详见后续：纳管拦截（2/4）· 任务管控（3/4）· 交互与可观测（4/4）</text>
+  <text x="960" y="1054" font-size="13" fill="#98a2b3" text-anchor="middle">AI 任务管理机制 · 1/4 使用总览 · 后续：2/4 任务状态与优先级 · 3/4 场景保障效果 · 4/4 交互与接入</text>
 </svg>

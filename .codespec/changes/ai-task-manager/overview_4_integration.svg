@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" font-family="'PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif">
+  <defs>
+    <marker id="arD6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#db2777"/></marker>
+    <marker id="arE6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#155eef"/></marker>
+    <linearGradient id="hgD" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#db2777"/><stop offset="100%" stop-color="#155eef"/></linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1920" height="1080" fill="#ffffff"/>
+  <rect x="0" y="0" width="1920" height="96" fill="url(#hgD)"/>
+  <text x="960" y="42" font-size="34" font-weight="700" fill="#ffffff" text-anchor="middle">人机交互与接入方式（4/4）</text>
+  <text x="960" y="76" font-size="16" fill="#fce7f3" text-anchor="middle">交互在你的 AI bar 内闭环——任务机制只记录事实并提供可观测；本页同时给出接入清单</text>
+
+  <!-- ══ 左：交互闭环 ══ -->
+  <rect x="60" y="130" width="940" height="600" rx="20" fill="#fdf2f8" stroke="#db2777" stroke-width="2.5"/>
+  <text x="530" y="172" font-size="24" font-weight="700" fill="#9d174d" text-anchor="middle">等待用户输入/授权：全程在你的应用内完成</text>
+
+  <!-- 泳道头 -->
+  <rect x="110" y="210" width="200" height="48" rx="10" fill="#ffffff" stroke="#f9a8d4" stroke-width="2"/>
+  <text x="210" y="241" font-size="15" font-weight="700" fill="#9d174d" text-anchor="middle">你的助手进程</text>
+  <rect x="430" y="210" width="200" height="48" rx="10" fill="#ffffff" stroke="#f9a8d4" stroke-width="2"/>
+  <text x="530" y="241" font-size="15" font-weight="700" fill="#9d174d" text-anchor="middle">你的 AI bar</text>
+  <rect x="750" y="210" width="200" height="48" rx="10" fill="#ffffff" stroke="#f9a8d4" stroke-width="2"/>
+  <text x="850" y="241" font-size="15" font-weight="700" fill="#9d174d" text-anchor="middle">用户</text>
+  <line x1="210" y1="258" x2="210" y2="690" stroke="#f9a8d4" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <line x1="530" y1="258" x2="530" y2="690" stroke="#f9a8d4" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <line x1="850" y1="258" x2="850" y2="690" stroke="#f9a8d4" stroke-width="1.5" stroke-dasharray="6 4"/>
+
+  <!-- 步骤 -->
+  <rect x="130" y="290" width="160" height="34" rx="6" fill="#fce7f3"/><text x="210" y="312" font-size="12.5" fill="#9d174d" text-anchor="middle">① 置"等待用户输入"</text>
+  <text x="380" y="312" font-size="12.5" fill="#98a2b3" text-anchor="middle">描述+可选项随任务留存（供查询与审计）</text>
+
+  <path d="M 296 360 L 426 360" stroke="#db2777" stroke-width="2.5" marker-end="url(#arD6)"/>
+  <text x="360" y="348" font-size="12.5" fill="#9d174d" text-anchor="middle">② 进程内直接呈现</text>
+  <path d="M 636 420 L 846 420" stroke="#db2777" stroke-width="2.5" marker-end="url(#arD6)"/>
+  <text x="740" y="408" font-size="12.5" fill="#9d174d" text-anchor="middle">③ 展示给用户</text>
+  <path d="M 846 490 L 636 490" stroke="#db2777" stroke-width="2.5" marker-end="url(#arD6)"/>
+  <text x="740" y="478" font-size="12.5" fill="#9d174d" text-anchor="middle">④ 用户选择</text>
+  <path d="M 426 560 L 296 560" stroke="#db2777" stroke-width="2.5" marker-end="url(#arD6)"/>
+  <text x="360" y="548" font-size="12.5" fill="#9d174d" text-anchor="middle">⑤ 响应直达（无跨进程）</text>
+
+  <rect x="130" y="620" width="160" height="34" rx="6" fill="#e1ecff"/><text x="210" y="642" font-size="12.5" fill="#0b3d91" text-anchor="middle">⑥ 置"执行中/已完成"</text>
+  <text x="380" y="642" font-size="12.5" fill="#98a2b3" text-anchor="middle">响应内容可随状态更新一并留存（可选）</text>
+
+  <rect x="110" y="700" width="880" height="0" fill="none"/>
+  <rect x="100" y="660" width="880" height="52" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="540" y="682" font-size="13" fill="#92400e" text-anchor="middle">对系统的一次调用都不需要：没有提交接口、没有通知回调——进度展示同样在你自己 UI 内完成</text>
+  <text x="540" y="702" font-size="12" fill="#98a2b3" text-anchor="middle">超 30 分钟未推进时系统会通知你限期处理（唯一需要响应的系统回调）</text>
+
+  <!-- ══ 右：可观测与接入 ══ -->
+  <rect x="1040" y="130" width="820" height="600" rx="20" fill="#f8f9fc" stroke="#344054" stroke-width="2.5"/>
+  <text x="1450" y="172" font-size="24" font-weight="700" fill="#101828" text-anchor="middle">接入清单（对语音助手团队）</text>
+
+  <rect x="1080" y="206" width="740" height="240" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="1450" y="238" font-size="17" font-weight="700" fill="#344054" text-anchor="middle">你需要做的（全部工作量）</text>
+  <text x="1100" y="272" font-size="14.5" fill="#475467">1. 集成任务管理客户端（系统内部接口，随版本交付）</text>
+  <text x="1100" y="304" font-size="14.5" fill="#475467">2. 创建任务：类型 + 优先级 + 描述（一次调用）</text>
+  <text x="1100" y="336" font-size="14.5" fill="#475467">3. 启动能力时 Want 带 taskId（一个参数）</text>
+  <text x="1100" y="368" font-size="14.5" fill="#475467">4. 按状态机推进状态；结束时置终态</text>
+  <text x="1100" y="400" font-size="14.5" fill="#475467">5. （可选）注册监听接收超时通知</text>
+  <text x="1100" y="432" font-size="12.5" fill="#98a2b3">没有回调适配、没有 UI 对接、没有通道联调——交互完全在你已有的 AI bar 内</text>
+
+  <rect x="1080" y="466" width="740" height="240" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="1450" y="498" font-size="17" font-weight="700" fill="#344054" text-anchor="middle">你不需要做的（系统代办）</text>
+  <text x="1100" y="532" font-size="14.5" fill="#475467">· 进程纳管与身份校验（启动链路自动识别）</text>
+  <text x="1100" y="564" font-size="14.5" fill="#475467">· 冻结豁免/解冻/待机联动的施加与撤销</text>
+  <text x="1100" y="596" font-size="14.5" fill="#475467">· 进程退出清理、多任务优先级合并</text>
+  <text x="1100" y="628" font-size="14.5" fill="#475467">· 超时兜底回收、上限防滥用</text>
+  <text x="1100" y="668" font-size="12.5" fill="#98a2b3">安全/审计等系统模块经独立监听通道感知任务状态，与你无交互负担</text>
+
+  <!-- ══ 底部：待对齐项 ══ -->
+  <rect x="60" y="760" width="1800" height="260" rx="20" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/>
+  <text x="960" y="802" font-size="22" font-weight="700" fill="#92400e" text-anchor="middle">需要双方对齐的事项（联调前确认）</text>
+
+  <rect x="100" y="834" width="560" height="150" rx="12" fill="#ffffff" stroke="#fcd34d" stroke-width="1.5"/>
+  <text x="380" y="866" font-size="15.5" font-weight="700" fill="#92400e" text-anchor="middle">任务类型与优先级映射</text>
+  <text x="120" y="898" font-size="13.5" fill="#475467">· 你的典型场景（闹钟/播报/批量/下载…）</text>
+  <text x="120" y="926" font-size="13.5" fill="#475467">  分别建议用什么类型与优先级</text>
+  <text x="120" y="954" font-size="13.5" fill="#475467">· 是否需要新增任务类型</text>
+
+  <rect x="700" y="834" width="560" height="150" rx="12" fill="#ffffff" stroke="#fcd34d" stroke-width="1.5"/>
+  <text x="980" y="866" font-size="15.5" font-weight="700" fill="#92400e" text-anchor="middle">交互内容约定</text>
+  <text x="720" y="898" font-size="13.5" fill="#475467">· 等待输入/授权时"描述+可选项"的内容格式</text>
+  <text x="720" y="926" font-size="13.5" fill="#475467">· 进度更新的内容格式（供审计与查询）</text>
+  <text x="720" y="954" font-size="13.5" fill="#475467">· 是否需要把你自身进程也纳入保障</text>
+
+  <rect x="1300" y="834" width="520" height="150" rx="12" fill="#ffffff" stroke="#fcd34d" stroke-width="1.5"/>
+  <text x="1560" y="866" font-size="15.5" font-weight="700" fill="#92400e" text-anchor="middle">验证场景</text>
+  <text x="1320" y="898" font-size="13.5" fill="#475467">· 锁屏定时任务到点执行（核心验收）</text>
+  <text x="1320" y="926" font-size="13.5" fill="#475467">· 后台长时任务不中断</text>
+  <text x="1320" y="954" font-size="13.5" fill="#475467">· 夜间待机联网执行</text>
+
+  <text x="960" y="1054" font-size="13" fill="#98a2b3" text-anchor="middle">AI 任务管理机制 · 4/4 交互与接入 · 详细接口规格与设计文档随版本一并提供</text>
+</svg>

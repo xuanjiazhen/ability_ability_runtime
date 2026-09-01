@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" font-family="'PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif">
+  <defs>
+    <marker id="arB2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#155eef"/></marker>
+    <linearGradient id="hgB" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#155eef"/><stop offset="100%" stop-color="#4385f5"/></linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1920" height="1080" fill="#ffffff"/>
+  <rect x="0" y="0" width="1920" height="96" fill="url(#hgB)"/>
+  <text x="960" y="42" font-size="34" font-weight="700" fill="#ffffff" text-anchor="middle">任务状态与优先级（2/4）</text>
+  <text x="960" y="76" font-size="16" fill="#dbe7fe" text-anchor="middle">状态机由你驱动、系统校验；优先级决定保障强度——这是你唯二需要理解的模型</text>
+
+  <!-- ══ 状态机 ══ -->
+  <rect x="60" y="130" width="1800" height="480" rx="20" fill="#f8fafc" stroke="#d0d5dd" stroke-width="2"/>
+  <text x="960" y="172" font-size="24" font-weight="700" fill="#101828" text-anchor="middle">任务状态：9 态生命周期（你设置，系统校验合法性）</text>
+
+  <!-- 状态节点 -->
+  <g font-size="15" font-weight="700" text-anchor="middle">
+    <rect x="140" y="220" width="190" height="60" rx="30" fill="#ffffff" stroke="#98a2b3" stroke-width="2.5"/><text x="235" y="256" fill="#475467">已创建</text>
+    <rect x="430" y="220" width="190" height="60" rx="30" fill="#eff4ff" stroke="#155eef" stroke-width="2.5"/><text x="525" y="249" fill="#0b3d91">已提交</text>
+    <rect x="720" y="220" width="190" height="60" rx="30" fill="#155eef"/><text x="815" y="256" fill="#ffffff">执行中</text>
+    <rect x="1010" y="130" width="220" height="60" rx="30" fill="#fdf2f8" stroke="#db2777" stroke-width="2.5"/><text x="1120" y="156" fill="#9d174d">等待用户输入</text>
+    <rect x="1010" y="310" width="220" height="60" rx="30" fill="#fdf2f8" stroke="#db2777" stroke-width="2.5"/><text x="1120" y="336" fill="#9d174d">等待用户授权</text>
+  </g>
+  <!-- 终态组 -->
+  <rect x="1420" y="120" width="420" height="300" rx="16" fill="#fef2f2" stroke="#fca5a5" stroke-width="2" stroke-dasharray="8 5"/>
+  <text x="1630" y="154" font-size="16" font-weight="700" fill="#b91c1c" text-anchor="middle">终态（不可回退）</text>
+  <g font-size="14.5" font-weight="700" text-anchor="middle">
+    <rect x="1450" y="180" width="170" height="52" rx="26" fill="#f0fdf4" stroke="#067647" stroke-width="2.5"/><text x="1535" y="212" fill="#067647">已完成</text>
+    <rect x="1640" y="180" width="170" height="52" rx="26" fill="#fee2e2" stroke="#d92d20" stroke-width="2.5"/><text x="1725" y="212" fill="#b91c1c">已失败</text>
+    <rect x="1450" y="260" width="170" height="52" rx="26" fill="#fee2e2" stroke="#d92d20" stroke-width="2.5"/><text x="1535" y="292" fill="#b91c1c">已取消</text>
+    <rect x="1640" y="260" width="170" height="52" rx="26" fill="#fee2e2" stroke="#d92d20" stroke-width="2.5"/><text x="1725" y="292" fill="#b91c1c">已拒绝</text>
+  </g>
+  <text x="1630" y="348" font-size="12.5" fill="#98a2b3" text-anchor="middle">取消：任意非终态可发起</text>
+  <text x="1630" y="372" font-size="12.5" fill="#98a2b3" text-anchor="middle">拒绝：仅创建者可设置</text>
+
+  <!-- 流转箭头 -->
+  <g stroke="#475467" stroke-width="2.5" fill="none">
+    <path d="M 330 250 L 426 250" marker-end="url(#arB2)"/>
+    <path d="M 620 250 L 716 250" marker-end="url(#arB2)"/>
+    <path d="M 910 235 L 1006 172" marker-end="url(#arB2)"/>
+    <path d="M 910 265 L 1006 328" marker-end="url(#arB2)"/>
+    <path d="M 1120 190 L 815 240" stroke-dasharray="6 4" marker-end="url(#arB2)"/>
+    <path d="M 1120 370 L 815 285" stroke-dasharray="6 4" marker-end="url(#arB2)"/>
+    <path d="M 910 210 L 1446 200" stroke-dasharray="4 3" marker-end="url(#arB2)"/>
+    <path d="M 1230 330 L 1636 238" stroke-dasharray="4 3" marker-end="url(#arB2)"/>
+    <path d="M 235 280 L 235 400 L 1446 236" stroke-dasharray="4 3" marker-end="url(#arB2)"/>
+  </g>
+  <text x="378" y="234" font-size="12" fill="#667085" text-anchor="middle">提交</text>
+  <text x="668" y="234" font-size="12" fill="#667085" text-anchor="middle">开始执行</text>
+  <text x="985" y="148" font-size="12" fill="#667085" text-anchor="middle">需用户输入</text>
+  <text x="985" y="352" font-size="12" fill="#667085" text-anchor="middle">需用户授权</text>
+  <text x="968" y="188" font-size="12" fill="#667085" text-anchor="middle">用户已响应，回到执行</text>
+
+  <!-- 状态机要点 -->
+  <text x="140" y="420" font-size="16" font-weight="700" fill="#101828">使用要点</text>
+  <text x="160" y="452" font-size="14.5" fill="#475467">· 正常路径：创建 → 提交 → 执行中 → 已完成（四步）</text>
+  <text x="160" y="482" font-size="14.5" fill="#475467">· 等待用户：执行中 → 等待输入/授权 →（用户响应后）→ 执行中；必须带描述与可选项</text>
+  <text x="160" y="512" font-size="14.5" fill="#475467">· 执行中可随时更新任务描述/进度（供查询与审计）；优先级可调（立即生效）</text>
+  <text x="160" y="542" font-size="14.5" fill="#475467">· 非法跳转/终态回退会被系统拒绝并返回明确错误码——不会破坏任务状态</text>
+  <text x="160" y="578" font-size="13" fill="#98a2b3">注：等待输入/授权也属于"工作中"——资源保障持续；但超过 30 分钟未推进，系统将通知你限期处理并自动回收保障</text>
+
+  <!-- ══ 优先级 ══ -->
+  <rect x="60" y="640" width="1800" height="370" rx="20" fill="#f0fdf4" stroke="#86efac" stroke-width="2"/>
+  <text x="960" y="682" font-size="24" font-weight="700" fill="#067647" text-anchor="middle">任务优先级：决定保障强度（创建时指定，可调整）</text>
+
+  <rect x="110" y="720" width="410" height="180" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="315" y="756" font-size="20" font-weight="700" fill="#475467" text-anchor="middle">LOW · 低</text>
+  <text x="130" y="792" font-size="14.5" fill="#475467">不额外保障（与普通后台一致）</text>
+  <text x="130" y="822" font-size="14" fill="#475467">适用：进度可丢失的次要工作</text>
+  <text x="130" y="852" font-size="14" fill="#475467">进程可正常被冻结</text>
+  <text x="130" y="884" font-size="12.5" fill="#98a2b3">例如：后台整理缓存</text>
+
+  <rect x="560" y="720" width="410" height="180" rx="14" fill="#f0fdf4" stroke="#86efac" stroke-width="2.5"/>
+  <text x="765" y="756" font-size="20" font-weight="700" fill="#067647" text-anchor="middle">MEDIUM · 中</text>
+  <text x="580" y="792" font-size="14.5" fill="#475467">限时保障 30 分钟（可配置）</text>
+  <text x="580" y="822" font-size="14" fill="#475467">适用：有界时间的后台工作</text>
+  <text x="580" y="852" font-size="14" fill="#475467">到期未续自动恢复原调度</text>
+  <text x="580" y="884" font-size="12.5" fill="#98a2b3">例如：批量文件处理</text>
+
+  <rect x="1010" y="720" width="410" height="180" rx="14" fill="#155eef"/>
+  <text x="1215" y="756" font-size="20" font-weight="700" fill="#ffffff" text-anchor="middle">HIGH · 高（推荐）</text>
+  <text x="1030" y="792" font-size="14.5" fill="#dbe7fe">执行期间持续保障（防冻结）</text>
+  <text x="1030" y="822" font-size="14" fill="#dbe7fe">适用：锁屏定时任务、长时任务</text>
+  <text x="1030" y="852" font-size="14" fill="#dbe7fe">可续期延长（最多 3 次）</text>
+  <text x="1030" y="884" font-size="12.5" fill="#93b4f7">例如：闹钟联动、定时播报、持续播报</text>
+
+  <rect x="1460" y="720" width="350" height="180" rx="14" fill="#faf5ff" stroke="#d8b4fe" stroke-width="2.5"/>
+  <text x="1635" y="756" font-size="20" font-weight="700" fill="#6b21a8" text-anchor="middle">CRITICAL · 最高</text>
+  <text x="1480" y="792" font-size="14.5" fill="#475467">保障 + 调度优先级提升</text>
+  <text x="1480" y="822" font-size="14" fill="#475467">适用：用户正在等待的关键交互</text>
+  <text x="1480" y="852" font-size="14" fill="#475467">提权能力二期提供</text>
+  <text x="1480" y="884" font-size="12.5" fill="#98a2b3">例如：实时语音转写</text>
+
+  <rect x="110" y="926" width="1700" height="64" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="960" y="950" font-size="14.5" fill="#92400e" text-anchor="middle">通用保护规则：单应用同时活跃任务 ≤ 16 · 单任务进程数 ≤ 16 · 保障时长硬上限 60 分钟（到期前系统预警通知，可调整优先级续期）</text>
+  <text x="960" y="974" font-size="13" fill="#98a2b3" text-anchor="middle">同一进程被多个任务使用时按最高优先级保障；所有上限均可用系统参数调整</text>
+
+  <text x="960" y="1058" font-size="13" fill="#98a2b3" text-anchor="middle">AI 任务管理机制 · 2/4 任务状态与优先级 · 3/4 将展示各场景下的保障效果</text>
+</svg>

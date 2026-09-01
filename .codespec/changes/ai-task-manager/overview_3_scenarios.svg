@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" font-family="'PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif">
+  <defs>
+    <marker id="arG5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#067647"/></marker>
+    <linearGradient id="hgC" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#067647"/><stop offset="100%" stop-color="#155eef"/></linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1920" height="1080" fill="#ffffff"/>
+  <rect x="0" y="0" width="1920" height="96" fill="url(#hgC)"/>
+  <text x="960" y="42" font-size="34" font-weight="700" fill="#ffffff" text-anchor="middle">典型场景：保障效果（3/4）</text>
+  <text x="960" y="76" font-size="16" fill="#e7f5ec" text-anchor="middle">锁屏定时 · 后台长时 · 夜间待机 —— 三个你关心的场景，任务期间进程不被冻结、到点能跑、联网可用</text>
+
+  <!-- ══ 场景 1：锁屏定时任务 ══ -->
+  <rect x="60" y="130" width="1800" height="280" rx="20" fill="#f0fdf4" stroke="#067647" stroke-width="2.5"/>
+  <rect x="100" y="170" width="120" height="44" rx="22" fill="#067647"/><text x="160" y="199" font-size="19" font-weight="700" fill="#ffffff" text-anchor="middle">场景 1</text>
+  <text x="250" y="200" font-size="24" font-weight="700" fill="#067647">锁屏定时任务（闹钟联动 / 定时播报）</text>
+
+  <!-- 时序条 -->
+  <text x="130" y="258" font-size="14.5" font-weight="700" fill="#344054">无任务机制（现状）：</text>
+  <rect x="430" y="240" width="200" height="36" rx="6" fill="#dcfce7"/><text x="530" y="264" font-size="13" fill="#166534" text-anchor="middle">创建定时任务</text>
+  <rect x="640" y="240" width="240" height="36" rx="6" fill="#fef9c3"/><text x="760" y="264" font-size="13" fill="#854d0e" text-anchor="middle">锁屏 → 进程被冻结</text>
+  <rect x="890" y="240" width="280" height="36" rx="6" fill="#fee2e2"/><text x="1030" y="264" font-size="13" fill="#b91c1c" text-anchor="middle">到点无法执行 ✗</text>
+  <text x="1190" y="264" font-size="13" fill="#98a2b3">用户感知：答应的事没发生</text>
+
+  <text x="130" y="330" font-size="14.5" font-weight="700" fill="#067647">使用任务机制后：</text>
+  <rect x="430" y="312" width="200" height="36" rx="6" fill="#dcfce7"/><text x="530" y="336" font-size="13" fill="#166534" text-anchor="middle">创建任务(HIGH)</text>
+  <rect x="640" y="312" width="240" height="36" rx="6" fill="#dcfce7"/><text x="760" y="336" font-size="13" fill="#166534" text-anchor="middle">锁屏 → 保障生效</text>
+  <rect x="890" y="312" width="280" height="36" rx="6" fill="#dcfce7"/><text x="1030" y="336" font-size="13" fill="#166534" text-anchor="middle">到点正常执行 ✓</text>
+  <rect x="1180" y="312" width="300" height="36" rx="6" fill="#f0fdf4" stroke="#86efac"/><text x="1330" y="336" font-size="13" fill="#067647" text-anchor="middle">播报完成 → 状态已完成 → 自动恢复</text>
+  <text x="130" y="386" font-size="13.5" fill="#475467">关键点：任务在"已提交"待触发阶段即被保障——不会因就绪等待而被冻结导致无法进入执行</text>
+
+  <!-- ══ 场景 2：后台长时任务 ══ -->
+  <rect x="60" y="440" width="880" height="280" rx="20" fill="#eff4ff" stroke="#155eef" stroke-width="2.5"/>
+  <rect x="100" y="480" width="120" height="44" rx="22" fill="#155eef"/><text x="160" y="509" font-size="19" font-weight="700" fill="#ffffff" text-anchor="middle">场景 2</text>
+  <text x="250" y="510" font-size="24" font-weight="700" fill="#0b3d91">后台长时任务（批量处理 / 持续播报）</text>
+  <text x="100" y="560" font-size="15.5" fill="#475467">· 创建 HIGH 任务 → 启动处理进程（Want 带 taskId）</text>
+  <text x="100" y="592" font-size="15.5" fill="#475467">· 用户切走 / 熄屏 → 任务进程持续保障，处理不中断</text>
+  <text x="100" y="624" font-size="15.5" fill="#475467">· 执行中随时更新进度 → 用户回来看到最新状态</text>
+  <text x="100" y="656" font-size="15.5" fill="#475467">· 需要 60 分钟以上？到期前系统预警，调一次优先级即续期</text>
+  <rect x="100" y="676" width="800" height="30" rx="6" fill="#e1ecff"/>
+  <text x="500" y="697" font-size="13" fill="#0b3d91" text-anchor="middle">忘了续期也没关系：硬上限到期自动回收保障，不会无限占用</text>
+
+  <!-- ══ 场景 3：夜间待机 ══ -->
+  <rect x="980" y="440" width="880" height="280" rx="20" fill="#faf5ff" stroke="#7c3aed" stroke-width="2.5"/>
+  <rect x="1020" y="480" width="120" height="44" rx="22" fill="#7c3aed"/><text x="1080" y="509" font-size="19" font-weight="700" fill="#ffffff" text-anchor="middle">场景 3</text>
+  <text x="1170" y="510" font-size="24" font-weight="700" fill="#6b21a8">夜间深度待机（定时下载 / 夜间同步）</text>
+  <text x="1020" y="560" font-size="15.5" fill="#475467">· 夜间设备进入深度待机 → 普通应用被限制联网/延时执行</text>
+  <text x="1020" y="592" font-size="15.5" fill="#475467">· 任务机制同步申请"待机资源豁免"（网络/定时）</text>
+  <text x="1020" y="624" font-size="15.5" fill="#475467">· 凌晨 3 点的定时任务照常联网执行，无需用户设置白名单</text>
+  <text x="1020" y="656" font-size="15.5" fill="#475467">· 多任务并发时按应用计数：全部结束才解除，互不影响</text>
+  <rect x="1020" y="676" width="800" height="30" rx="6" fill="#f3e8ff"/>
+  <text x="1420" y="697" font-size="13" fill="#6b21a8" text-anchor="middle">待机豁免与冻结豁免分属两个系统通道，任务机制统一打理</text>
+
+  <!-- ══ 底部：保障边界（诚实说明）══ -->
+  <rect x="60" y="750" width="1800" height="270" rx="20" fill="#f8f9fc" stroke="#d0d5dd" stroke-width="2"/>
+  <text x="960" y="792" font-size="22" font-weight="700" fill="#101828" text-anchor="middle">保障边界（建议了解）</text>
+
+  <rect x="100" y="824" width="560" height="160" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="380" y="858" font-size="16.5" font-weight="700" fill="#344054" text-anchor="middle">保障的是"可运行"，不是"免杀免限"</text>
+  <text x="120" y="892" font-size="13.5" fill="#475467">· 冻结：任务期间豁免（核心能力）</text>
+  <text x="120" y="920" font-size="13.5" fill="#475467">· 调度优先级：仅最高优先级任务提升（二期）</text>
+  <text x="120" y="948" font-size="13.5" fill="#475467">· 低内存查杀：高优任务"不应杀"（评估中，二期）</text>
+  <text x="120" y="972" font-size="12" fill="#98a2b3">· 功耗/温控：系统级策略，不做任务豁免</text>
+
+  <rect x="700" y="824" width="560" height="160" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="980" y="858" font-size="16.5" font-weight="700" fill="#344054" text-anchor="middle">超时自动回收（防遗忘）</text>
+  <text x="720" y="892" font-size="13.5" fill="#475467">· 等待用户响应 30 分钟 → 系统通知你限期处理（5 分钟）</text>
+  <text x="720" y="920" font-size="13.5" fill="#475467">· 仍未处理 → 自动撤销保障并告警（任务不丢，等你后续推进）</text>
+  <text x="720" y="948" font-size="13.5" fill="#475467">· 用户回来后重新置"执行中"，保障自动恢复</text>
+  <text x="720" y="972" font-size="12" fill="#98a2b3">· 续期只能通过调整优先级触发，防止无限占用</text>
+
+  <rect x="1300" y="824" width="520" height="160" rx="12" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/>
+  <text x="1560" y="858" font-size="16.5" font-weight="700" fill="#92400e" text-anchor="middle">环境依赖（验收前提）</text>
+  <text x="1320" y="892" font-size="13.5" fill="#475467">· 冻结豁免依赖设备侧冻结管控执行器</text>
+  <text x="1320" y="920" font-size="13.5" fill="#475467">· 部分开源环境无执行器 → 验证时表现为"假成功"</text>
+  <text x="1320" y="948" font-size="13.5" fill="#475467">· 端到端验收需在配置完整的产品设备上进行</text>
+  <text x="1320" y="972" font-size="12" fill="#98a2b3">· CLI 沙箱进程的保障适用性也在真机验证范围</text>
+
+  <text x="960" y="1058" font-size="13" fill="#98a2b3" text-anchor="middle">AI 任务管理机制 · 3/4 场景保障效果 · 4/4 将介绍交互模式与接入方式</text>
+</svg>
