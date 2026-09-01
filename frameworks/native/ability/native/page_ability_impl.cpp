@@ -80,15 +80,6 @@ void PageAbilityImpl::HandleAbilityTransaction(const Want &want, const AAFwk::Li
     }
 }
 
-/**
- * @brief Handling the life cycle switching of PageAbility in switch.
- *
- * @param want Indicates the structure containing information about the ability.
- * @param targetState The life cycle state to switch to.
- *
- * @return return true if the lifecycle transaction successfully, otherwise return false.
- *
- */
 bool PageAbilityImpl::AbilityTransaction(const Want &want, const AAFwk::LifeCycleStateInfo &targetState)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "begin");
@@ -154,14 +145,6 @@ void PageAbilityImpl::AbilityTransactionForeground(const Want &want, const AAFwk
     }
 }
 
-/**
- * @brief Execution the KeyDown callback of the ability
- * @param keyEvent Indicates the key-down event.
- *
- * @return Returns true if this event is handled and will not be passed further; returns false if this event is
- * not handled and should be passed to other handlers.
- *
- */
 void PageAbilityImpl::DoKeyDown(const std::shared_ptr<MMI::KeyEvent>& keyEvent)
 {
     TAG_LOGI(AAFwkTag::ABILITY, "begin");
@@ -177,14 +160,6 @@ void PageAbilityImpl::DoKeyDown(const std::shared_ptr<MMI::KeyEvent>& keyEvent)
     ability_->OnKeyDown(keyEvent);
 }
 
-/**
- * @brief Execution the KeyUp callback of the ability
- * @param keyEvent Indicates the key-up event.
- *
- * @return Returns true if this event is handled and will not be passed further; returns false if this event is
- * not handled and should be passed to other handlers.
- *
- */
 void PageAbilityImpl::DoKeyUp(const std::shared_ptr<MMI::KeyEvent>& keyEvent)
 {
     TAG_LOGI(AAFwkTag::ABILITY, "begin");
@@ -200,14 +175,6 @@ void PageAbilityImpl::DoKeyUp(const std::shared_ptr<MMI::KeyEvent>& keyEvent)
     ability_->OnKeyUp(keyEvent);
 }
 
-/**
- * @brief Called when a touch event is dispatched to this ability. The default implementation of this callback
- * does nothing and returns false.
- * @param touchEvent Indicates information about the touch event.
- *
- * @return Returns true if the event is handled; returns false otherwise.
- *
- */
 void PageAbilityImpl::DoPointerEvent(std::shared_ptr<MMI::PointerEvent>& pointerEvent)
 {
     TAG_LOGI(AAFwkTag::ABILITY, "begin");

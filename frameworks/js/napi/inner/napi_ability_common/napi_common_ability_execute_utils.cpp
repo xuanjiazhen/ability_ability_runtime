@@ -188,14 +188,6 @@ napi_value GetAppTypePromise(napi_env env, AppTypeCB *appTypeCB)
     return promise;
 }
 
-/**
- * @brief GetAppType processing function.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param appTypeCB Process data asynchronously.
- *
- * @return Return JS data successfully, otherwise return nullptr.
- */
 napi_value GetAppTypeWrap(napi_env env, napi_callback_info info, AppTypeCB *appTypeCB)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "asyncCallback");
@@ -397,14 +389,6 @@ napi_value GetAbilityInfoPromise(napi_env env, AbilityInfoCB *abilityInfoCB)
     return promise;
 }
 
-/**
- * @brief GetAbilityInfo processing function.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param abilityInfoCB Process data asynchronously.
- *
- * @return Return JS data successfully, otherwise return nullptr.
- */
 napi_value GetAbilityInfoWrap(napi_env env, napi_callback_info info, AbilityInfoCB *abilityInfoCB)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "asyncCallback");
@@ -920,14 +904,6 @@ napi_value GetWantPromise(napi_env env, AsyncCallbackInfo *asyncCallbackInfo)
     return promise;
 }
 
-/**
- * @brief GetWantWrap processing function.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param asyncCallbackInfo Process data asynchronously.
- *
- * @return Return JS data successfully, otherwise return nullptr.
- */
 napi_value GetWantWrap(napi_env env, napi_callback_info info, AsyncCallbackInfo *asyncCallbackInfo)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "asyncCallback");
@@ -1119,14 +1095,6 @@ napi_value GetAbilityNamePromise(napi_env env, AbilityNameCB *abilityNameCB)
     return promise;
 }
 
-/**
- * @brief GetAbilityName processing function.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param abilityNameCB Process data asynchronously.
- *
- * @return Return JS data successfully, otherwise return nullptr.
- */
 napi_value GetAbilityNameWrap(napi_env env, napi_callback_info info, AbilityNameCB *abilityNameCB)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "asyncCallback");

@@ -2769,7 +2769,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
     }
     auto missionListManager = GetMissionListManagerByUserId(oriValidUserId);
     if (missionListManager == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "missionListManager null userId=%{public}d, errror:%{public}d",
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "missionListManager null userId=%{public}d, error:%{public}d",
             oriValidUserId, ERR_NULL_MISSION_LIST_MANAGER);
         return ERR_NULL_MISSION_LIST_MANAGER;
     }
@@ -8282,7 +8282,7 @@ void AbilityManagerService::DumpUIExtensionRootHostRunningInfos(pid_t pid, std::
     std::vector<pid_t> hostPids;
     auto ret = IN_PROCESS_CALL(appMgr->GetAllUIExtensionRootHostPid(pid, hostPids));
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "get root host process info faild");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get root host process info failed");
         return;
     }
 
@@ -9813,7 +9813,6 @@ std::shared_ptr<UIExtensionAbilityManager> AbilityManagerService::GetUIExtension
     CHECK_POINTER_AND_RETURN(subManagersHelper_, nullptr);
     return subManagersHelper_->GetUIExtensionAbilityManagerByAbilityRecordId(abilityRecordId);
 }
-
 
 std::unordered_map<int, std::shared_ptr<CommonExtensionManager>> AbilityManagerService::GetCommonExtensionManagers()
 {
@@ -16856,7 +16855,6 @@ void AbilityManagerService::PrintStartAbilityInfo(const AppExecFwk::AbilityInfo 
         static_cast<int32_t>(calledInfo.extensionAbilityType),
         calledInfo.moduleName.c_str(),
         calledInfo.applicationName.c_str());
-
 
     TAG_LOGD(AAFwkTag::ABILITYMGR, "callerAbilityInfo toString: "
         "callerUid is: %{public}d, "

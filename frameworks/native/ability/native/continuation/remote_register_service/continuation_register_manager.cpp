@@ -28,14 +28,6 @@ void ContinuationRegisterManager::Init(
     continuationRegisterManagerProxy_ = continuationRegisterManagerProxy;
 }
 
-/**
- * register to controlcenter continuation register service.
- *
- * @param bundleName bundlename of ability.
- * @param parameter filter with supported device list.
- * @param callback callback for device connect and disconnect.
- * @param requestCallback callback for this request, -1 means failed, otherwise is register token.
- */
 void ContinuationRegisterManager::Register(const std::string &bundleName, const ExtraParams &parameter,
     const std::shared_ptr<IContinuationDeviceCallback> &deviceCallback,
     const std::shared_ptr<RequestCallback> &requestCallback)
@@ -48,12 +40,6 @@ void ContinuationRegisterManager::Register(const std::string &bundleName, const 
     }
 }
 
-/**
- * unregister to controlcenter continuation register service.
- *
- * @param token token from register return value.
- * @param requestCallback callback for this request, -1 means failed, otherwise succeeded.
- */
 void ContinuationRegisterManager::Unregister(int token, const std::shared_ptr<RequestCallback> &requestCallback)
 {
     TAG_LOGI(AAFwkTag::CONTINUATION, "begin");
@@ -64,14 +50,6 @@ void ContinuationRegisterManager::Unregister(int token, const std::shared_ptr<Re
     }
 }
 
-/**
- * notify continuation status to controlcenter continuation register service.
- *
- * @param token token from register.
- * @param deviceId deviceId.
- * @param status device status.
- * @param requestCallback callback for this request, -1 means failed, otherwise successed.
- */
 void ContinuationRegisterManager::UpdateConnectStatus(
     int token, const std::string &deviceId, int status, const std::shared_ptr<RequestCallback> &requestCallback)
 {
@@ -83,13 +61,6 @@ void ContinuationRegisterManager::UpdateConnectStatus(
     }
 }
 
-/**
- * notify controlcenter continuation register service to show device list.
- *
- * @param token token from register
- * @param parameter filter with supported device list.
- * @param requestCallback callback for this request, -1 means failed, otherwise successed.
- */
 void ContinuationRegisterManager::ShowDeviceList(
     int token, const ExtraParams &parameter, const std::shared_ptr<RequestCallback> &requestCallback)
 {
@@ -101,9 +72,6 @@ void ContinuationRegisterManager::ShowDeviceList(
     }
 }
 
-/**
- * disconnect to controlcenter continuation register service.
- */
 void ContinuationRegisterManager::Disconnect(void)
 {
     TAG_LOGI(AAFwkTag::CONTINUATION, "begin");

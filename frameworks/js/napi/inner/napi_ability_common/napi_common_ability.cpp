@@ -457,14 +457,6 @@ napi_value NAPI_PrintDrawnCompletedCommon(napi_env env, napi_callback_info info,
     return ret;
 }
 
-/**
- * @brief Obtains the type of this application.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
 napi_value NAPI_GetAppTypeCommon(napi_env env, napi_callback_info info, AbilityType abilityType)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -593,14 +585,6 @@ napi_value NAPI_GetDisplayOrientationCommon(napi_env env, napi_callback_info inf
 }
 #endif
 
-/**
- * @brief Obtains information about the current ability.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
 napi_value NAPI_GetAbilityInfoCommon(napi_env env, napi_callback_info info, AbilityType abilityType)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -624,14 +608,6 @@ napi_value NAPI_GetAbilityInfoCommon(napi_env env, napi_callback_info info, Abil
     return ret;
 }
 
-/**
- * @brief Obtains the HapModuleInfo object of the application.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
 napi_value NAPI_GetHapModuleInfoCommon(napi_env env, napi_callback_info info, AbilityType abilityType)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -655,14 +631,6 @@ napi_value NAPI_GetHapModuleInfoCommon(napi_env env, napi_callback_info info, Ab
     return ret;
 }
 
-/**
- * @brief Obtains the AppVersionInfo object of the application.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
 napi_value NAPI_GetAppVersionInfoCommon(napi_env env, napi_callback_info info, AbilityType abilityType)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -686,13 +654,6 @@ napi_value NAPI_GetAppVersionInfoCommon(napi_env env, napi_callback_info info, A
     return ret;
 }
 
-/**
- * @brief Create asynchronous data.
- *
- * @param env The environment that the Node-API call is invoked under.
- *
- * @return Return a pointer to AsyncCallbackInfo on success, nullptr on failure
- */
 AsyncCallbackInfo *CreateAsyncCallbackInfo(napi_env env)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -889,14 +850,6 @@ napi_value GetContextWrap(napi_env env, napi_callback_info, AsyncCallbackInfo *a
     return result;
 }
 
-/**
- * @brief Get context.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
 napi_value NAPI_GetContextCommon(napi_env env, napi_callback_info info, AbilityType abilityType)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -920,14 +873,6 @@ napi_value NAPI_GetContextCommon(napi_env env, napi_callback_info info, AbilityT
     return ret;
 }
 
-/**
- * @brief Get want.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
 napi_value NAPI_GetWantCommon(napi_env env, napi_callback_info info, AbilityType abilityType)
 {
     AsyncCallbackInfo *asyncCallbackInfo = CreateAsyncCallbackInfo(env);
@@ -950,14 +895,6 @@ napi_value NAPI_GetWantCommon(napi_env env, napi_callback_info info, AbilityType
     return ret;
 }
 
-/**
- * @brief Obtains the class name in this ability name, without the prefixed bundle name.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
 napi_value NAPI_GetAbilityNameCommon(napi_env env, napi_callback_info info, AbilityType abilityType)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -982,14 +919,6 @@ napi_value NAPI_GetAbilityNameCommon(napi_env env, napi_callback_info info, Abil
     return ret;
 }
 
-/**
- * @brief stopAbility.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
 napi_value NAPI_StopAbilityCommon(napi_env env, napi_callback_info info, AbilityType abilityType)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -1011,14 +940,6 @@ napi_value NAPI_StopAbilityCommon(napi_env env, napi_callback_info info, Ability
     return ret;
 }
 
-/**
- * @brief AcquireDataAbilityHelper.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
 napi_value NAPI_AcquireDataAbilityHelperCommon(napi_env env, napi_callback_info info, AbilityType abilityType)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -1040,14 +961,6 @@ napi_value NAPI_AcquireDataAbilityHelperCommon(napi_env env, napi_callback_info 
     return ret;
 }
 
-/**
- * @brief acquireDataAbilityHelper processing function.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param dataAbilityHelperCB Process data asynchronously.
- *
- * @return Return JS data successfully, otherwise return nullptr.
- */
 napi_value AcquireDataAbilityHelperWrap(napi_env env, napi_callback_info info, DataAbilityHelperCB *dataAbilityHelperCB)
 {
     if (dataAbilityHelperCB == nullptr) {

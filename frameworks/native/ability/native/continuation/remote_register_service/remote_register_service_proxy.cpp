@@ -17,13 +17,7 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-/**
- * register to controlcenter continuation register service.
- *
- * @param bundleName bundlename of ability.
- * @param extras filter with supported device list.
- * @param callback callback for device connect and disconnect.
- */
+
 int RemoteRegisterServiceProxy::Register(const std::string &bundleName, const sptr<IRemoteObject> &token,
     const ExtraParams &extras, const sptr<IConnectCallback> &callback)
 {
@@ -51,11 +45,6 @@ int RemoteRegisterServiceProxy::Register(const std::string &bundleName, const sp
     }
 }
 
-/**
- * unregister to controlcenter continuation register service.
- *
- * @param registerToken token from register return value.
- */
 bool RemoteRegisterServiceProxy::Unregister(int registerToken)
 {
     MessageParcel data;
@@ -75,13 +64,6 @@ bool RemoteRegisterServiceProxy::Unregister(int registerToken)
     }
 }
 
-/**
- * notify continuation status to controlcenter continuation register service.
- *
- * @param registerToken token from register.
- * @param deviceId deviceId.
- * @param status device status.
- */
 bool RemoteRegisterServiceProxy::UpdateConnectStatus(int registerToken, const std::string &deviceId, int status)
 {
     MessageParcel data;
@@ -102,12 +84,6 @@ bool RemoteRegisterServiceProxy::UpdateConnectStatus(int registerToken, const st
     }
 }
 
-/**
- * notify controlcenter continuation register service to show device list.
- *
- * @param registerToken token from register
- * @param extras filter with supported device list.
- */
 bool RemoteRegisterServiceProxy::ShowDeviceList(int registerToken, const ExtraParams &extras)
 {
     MessageParcel data;

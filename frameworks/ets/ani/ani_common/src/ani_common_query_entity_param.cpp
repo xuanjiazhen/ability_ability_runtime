@@ -161,7 +161,7 @@ bool UnwrapQueryEntityParam(ani_env *env, ani_object param, InsightIntentQueryPa
     }
 
     if (!UnwrapQueryEntityWantParamters(env, param, queryParam)) {
-        TAG_LOGE(AAFwkTag::INTENT, "unwrap query entity want paramters failed");
+        TAG_LOGE(AAFwkTag::INTENT, "unwrap query entity want parameters failed");
         return false;
     }
 

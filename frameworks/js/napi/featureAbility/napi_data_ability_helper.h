@@ -178,29 +178,117 @@ napi_value NormalizeUriWrap(napi_env env, napi_callback_info info, DAHelperNorma
 napi_value NAPI_DenormalizeUri(napi_env env, napi_callback_info info);
 napi_value DenormalizeUriWrap(napi_env env, napi_callback_info info, DAHelperDenormalizeUriCB *denormalizeuriCB);
 
+/**
+* @brief DataAbilityHelper NAPI method : delete.
+ *
+ * @param env The environment that the Node-API call is invoked under.
+ * @param info The callback info passed into the callback function.
+ *
+ * @return The return value from NAPI C++ to JS for the module.
+ */
 napi_value NAPI_Delete(napi_env env, napi_callback_info info);
 
+/**
+* @brief Delete processing function.
+ *
+ * @param env The environment that the Node-API call is invoked under.
+ * @param deleteCB Process data asynchronously.
+ *
+ * @return Return JS data successfully, otherwise return nullptr.
+ */
 napi_value DeleteWrap(napi_env env, napi_callback_info info, DAHelperDeleteCB *deleteCB);
 
+/**
+* @brief DataAbilityHelper NAPI method : update.
+ *
+ * @param env The environment that the Node-API call is invoked under.
+ * @param info The callback info passed into the callback function.
+ *
+ * @return The return value from NAPI C++ to JS for the module.
+ */
 napi_value NAPI_Update(napi_env env, napi_callback_info info);
 
+/**
+* @brief Update processing function.
+ *
+ * @param env The environment that the Node-API call is invoked under.
+ * @param updateCB Process data asynchronously.
+ *
+ * @return Return JS data successfully, otherwise return nullptr.
+ */
 napi_value UpdateWrap(napi_env env, napi_callback_info info, DAHelperUpdateCB *updateCB);
 
+/**
+* @brief DataAbilityHelper NAPI method : call.
+*
+* @param env The environment that the Node-API call is invoked under.
+* @param info The callback info passed into the callback function.
+*
+* @return The return value from NAPI C++ to JS for the module.
+*/
 napi_value NAPI_Call(napi_env env, napi_callback_info info);
 
+/**
+* @brief DataAbilityHelper NAPI method : openFile.
+ *
+ * @param env The environment that the Node-API call is invoked under.
+ * @param info The callback info passed into the callback function.
+ *
+ * @return The return value from NAPI C++ to JS for the module.
+ */
 napi_value NAPI_OpenFile(napi_env env, napi_callback_info info);
 
+/**
+* @brief OpenFile processing function.
+ *
+ * @param env The environment that the Node-API call is invoked under.
+ * @param openFileCB Process data asynchronously.
+ *
+ * @return Return JS data successfully, otherwise return nullptr.
+ */
 napi_value OpenFileWrap(napi_env env, napi_callback_info info, DAHelperOpenFileCB *openFileCB);
 
+/**
+* @brief DataAbilityHelper NAPI method : batchInsert.
+ *
+ * @param env The environment that the Node-API call is invoked under.
+ * @param info The callback info passed into the callback function.
+ *
+ * @return The return value from NAPI C++ to JS for the module.
+ */
 napi_value NAPI_BatchInsert(napi_env env, napi_callback_info info);
 
+/**
+* @brief BatchInsert processing function.
+ *
+ * @param env The environment that the Node-API call is invoked under.
+ * @param batchInsertCB Process data asynchronously.
+ *
+ * @return Return JS data successfully, otherwise return nullptr.
+ */
 napi_value BatchInsertWrap(napi_env env, napi_callback_info info, DAHelperBatchInsertCB *batchInsertCB);
 std::vector<NativeRdb::ValuesBucket> NapiValueObject(napi_env env, napi_value param);
 
 bool UnwrapArrayObjectFromJS(napi_env env, napi_value param, std::vector<NativeRdb::ValuesBucket> &value);
 
+/**
+* @brief DataAbilityHelper NAPI method : query.
+ *
+ * @param env The environment that the Node-API call is invoked under.
+ * @param info The callback info passed into the callback function.
+ *
+ * @return The return value from NAPI C++ to JS for the module.
+ */
 napi_value NAPI_Query(napi_env env, napi_callback_info info);
 
+/**
+* @brief Query processing function.
+ *
+ * @param env The environment that the Node-API call is invoked under.
+ * @param queryCB Process data asynchronously.
+ *
+ * @return Return JS data successfully, otherwise return nullptr.
+ */
 napi_value QueryWrap(napi_env env, napi_callback_info info, DAHelperQueryCB *queryCB);
 
 void AnalysisValuesBucket(NativeRdb::ValuesBucket &valuesBucket, const napi_env &env, const napi_value &arg);

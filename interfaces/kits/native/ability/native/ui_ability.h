@@ -448,13 +448,13 @@ public:
     virtual void OnSceneCreated();
 
     /**
-     * @brief Called after ability stoped.
+     * @brief Called after ability stopped.
      * You can override this function to implement your own processing logic.
      */
     virtual void OnSceneWillDestroy();
 
     /**
-     * @brief Called after ability stoped.
+     * @brief Called after ability stopped.
      * You can override this function to implement your own processing logic.
      */
     virtual void onSceneDestroyed();

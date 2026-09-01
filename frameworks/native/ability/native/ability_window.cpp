@@ -27,11 +27,6 @@ AbilityWindow::AbilityWindow()
 AbilityWindow::~AbilityWindow()
 {}
 
-/**
- * @brief Init the AbilityWindow object.
- *
- * @param handler The EventHandler of the Ability the AbilityWindow belong.
- */
 void AbilityWindow::Init(const std::shared_ptr<AbilityHandler> &handler, const std::shared_ptr<Ability> &ability)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
@@ -74,10 +69,6 @@ bool AbilityWindow::InitWindow(const std::shared_ptr<AbilityRuntime::AbilityCont
     return true;
 }
 
-/**
- * @brief Called when this ability is background.
- *
- */
 void AbilityWindow::OnPostAbilityBackground(uint32_t sceneFlag)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
@@ -95,10 +86,6 @@ void AbilityWindow::OnPostAbilityBackground(uint32_t sceneFlag)
     TAG_LOGD(AAFwkTag::ABILITY, "end");
 }
 
-/**
- * @brief Called when this ability is foreground.
- *
- */
 void AbilityWindow::OnPostAbilityForeground(uint32_t sceneFlag)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
@@ -116,10 +103,6 @@ void AbilityWindow::OnPostAbilityForeground(uint32_t sceneFlag)
     TAG_LOGD(AAFwkTag::ABILITY, "end");
 }
 
-/**
- * @brief Called when this ability is stopped.
- *
- */
 void AbilityWindow::OnPostAbilityStop()
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
@@ -135,11 +118,6 @@ void AbilityWindow::OnPostAbilityStop()
     TAG_LOGD(AAFwkTag::ABILITY, "end");
 }
 
-/**
- * @brief Get the window belong to the ability.
- *
- * @return Returns a Window object pointer.
- */
 const sptr<Rosen::Window> AbilityWindow::GetWindow()
 {
     if (!isWindowAttached) {

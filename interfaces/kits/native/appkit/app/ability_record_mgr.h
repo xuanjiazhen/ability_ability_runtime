@@ -29,14 +29,14 @@ public:
     ~AbilityRecordMgr() = default;
 
     /**
-     * @brief Get the token witch is set to the AbilityRecordMgr.
+     * @brief Get the token which is set to the AbilityRecordMgr.
      *
      * @return Returns the token which is set to the AbilityRecordMgr.
      */
     sptr<IRemoteObject> GetToken() const;
 
     /**
-     * @brief Set the token witch the app launched.
+     * @brief Set the token which the app launched.
      *
      * @param token The token which the is launched by app.
      */
@@ -46,7 +46,7 @@ public:
      * @brief Save the token and abilityRecord to the AbilityRecordMgr.
      *
      * @param token The token which the abilityRecord belongs to.
-     * @param abilityRecord the abilityRecord witch contains the context info belong the the ability.
+     * @param abilityRecord the abilityRecord which contains the context info belong the ability.
      *
      */
     void AddAbilityRecord(const sptr<IRemoteObject> &token, const std::shared_ptr<AbilityLocalRecord> &abilityRecord);

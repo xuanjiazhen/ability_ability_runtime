@@ -364,21 +364,21 @@ public:
     void InitHapModuleInfo(const AppExecFwk::HapModuleInfo &hapModuleInfo);
 
     /**
-     * @brief Set the token witch the app launched.
+     * @brief Set the token which the app launched.
      *
      * @param token The token which the is launched by app.
      */
     void SetToken(const sptr<IRemoteObject> &token) override;
 
     /**
-     * @brief Get the token witch the app launched.
+     * @brief Get the token which the app launched.
      *
      * @return token The token which the is launched by app.
      */
     sptr<IRemoteObject> GetToken() override;
 
     /**
-     * @brief Get the token witch the app launched.
+     * @brief Get the token which the app launched.
      *
      * @return token The token which the is launched by app.
      */
@@ -420,7 +420,7 @@ public:
     int32_t RestartApp(const AAFwk::Want& want);
 
     /**
-     * @brief Get the token witch the app launched.
+     * @brief Get the token which the app launched.
      *
      * @return token The token which the is launched by app.
      */

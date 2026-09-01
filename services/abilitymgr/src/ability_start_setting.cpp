@@ -27,21 +27,12 @@ const std::string AbilityStartSetting::WINDOW_MODE_KEY = "windowMode";
 const std::string AbilityStartSetting::IS_START_BY_SCB_KEY = "isStartByScb";
 constexpr uint32_t CYCLE_LIMIT = 1000;
 
-/**
- * @brief Construct copy function.
- * @param other indicates instance of abilitystartsetting object
- * @return none.
- */
 AbilityStartSetting::AbilityStartSetting(const AbilityStartSetting &other)
 {
     abilityStarKey_.clear();
     abilityStarKey_ = other.abilityStarKey_;
 }
-/**
- * @brief Overload assignment operation.
- * @param other indicates instance of abilitystartsetting object.
- * @return Returns current instance of abilitystartsetting object.
- */
+
 AbilityStartSetting &AbilityStartSetting::operator=(const AbilityStartSetting &other)
 {
     if (this != &other) {
@@ -50,32 +41,18 @@ AbilityStartSetting &AbilityStartSetting::operator=(const AbilityStartSetting &o
     }
     return *this;
 }
-/**
- * @brief Inner function to create AbilityStartSetting
- *
- * @return Returns the shared_ptr of AbilityStartSetting object.
- */
+
 std::shared_ptr<AbilityStartSetting> AbilityStartSettingCreator()
 {
     std::shared_ptr<AbilityStartSetting> abilityStartSetting {new (std::nothrow) AbilityStartSetting()};
     return abilityStartSetting;
 }
 
-/**
- * @brief Obtains an empty AbilityStartSetting object.
- *
- * @return Returns the btains an empty AbilityStartSetting object.
- */
 std::shared_ptr<AbilityStartSetting> AbilityStartSetting::GetEmptySetting()
 {
     return AbilityStartSettingCreator();
 }
 
-/**
- * @brief Obtains the names of all the attributes that have been added to this AbilityStartSetting object.
- *
- * @return Returns the set of attribute names included in this AbilityStartSetting object.
- */
 std::set<std::string> AbilityStartSetting::GetPropertiesKey()
 {
     std::set<std::string> abilityStartSet;
@@ -87,33 +64,16 @@ std::set<std::string> AbilityStartSetting::GetPropertiesKey()
     return abilityStartSet;
 }
 
-/**
- * @brief Checks whether this AbilityStartSetting object is empty.
- *
- * @return Returns true if this AbilityStartSetting object is empty and animatorOption is null; returns false otherwise.
- */
 bool AbilityStartSetting::IsEmpty()
 {
     return (abilityStarKey_.size() == 0);
 }
 
-/**
- * @brief Sets the names of all the attributes of the AbilityStartSetting object.
- *
- * @param key Indicates the name of the key.
- * @param value The window display mode of the values.
- */
 void AbilityStartSetting::AddProperty(const std::string &key, const std::string &value)
 {
     abilityStarKey_[key] = value;
 }
 
-/**
- * @brief Gets the name of the attributes of the AbilityStartSetting object.
- *
- * @param key Indicates the name of the key.
- * @return Returns value Indicates the value of the attributes of the AbilityStartSetting object
- */
 std::string AbilityStartSetting::GetProperty(const std::string &key)
 {
     auto it = abilityStarKey_.find(key);
@@ -123,11 +83,6 @@ std::string AbilityStartSetting::GetProperty(const std::string &key)
     return abilityStarKey_[key];
 }
 
-/**
- * @brief Write the data of AbilityStartSetting to the file stream
- * @param parcel indicates write the data of AbilityStartSetting to the file stream through parcel
- * @return bool
- */
 bool AbilityStartSetting::Marshalling(Parcel &parcel) const
 {
     size_t size = abilityStarKey_.size();
@@ -148,11 +103,6 @@ bool AbilityStartSetting::Marshalling(Parcel &parcel) const
     return true;
 }
 
-/**
- * @brief Reading file stream through parcel to generate AbilityStartSetting instance
- * @param parcel indicates reading file stream through parcel to generate AbilityStartSetting instance
- * @return AbilityStartSetting shared_ptr
- */
 AbilityStartSetting *AbilityStartSetting::Unmarshalling(Parcel &parcel)
 {
     AbilityStartSetting *abilityStartSetting = new (std::nothrow) AbilityStartSetting();
