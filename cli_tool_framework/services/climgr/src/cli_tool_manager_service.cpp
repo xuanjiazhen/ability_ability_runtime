@@ -50,6 +50,7 @@ namespace OHOS {
 namespace CliTool {
 namespace {
 constexpr const char* PERMISSION_EXEC_CLI_TOOL = "ohos.permission.EXEC_CLI_TOOL";
+constexpr const char* PERMISSION_EXEC_PUBLIC_CLI_TOOL = "ohos.permission.EXEC_PUBLIC_CLI_TOOL";
 constexpr const char* PERMISSION_QUERY_CLI_TOOL = "ohos.permission.QUERY_CLI_TOOL";
 constexpr const char* PERMISSION_REGISTER_CLI_TOOL = "ohos.permission.REGISTER_CLI_TOOL";
 constexpr const char* PERMISSION_ACCESS_FUNCTION = "ohos.permission.ACCESS_FUNCTION";
@@ -901,6 +902,20 @@ int32_t CliToolManagerService::ValidateExecToolPermissions()
     return ERR_OK;
 }
 
+int32_t CliToolManagerService::ValidateExecPublicCmdPermissions()
+{
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_PUBLIC_CLI_TOOL)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "not granted EXEC_PUBLIC_CLI_TOOL");
+        return ERR_PERMISSION_DENIED;
+    }
+    if (!CcmUtil::GetInstance().IsPublicCmdEnabled()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "public cmd disabled by ccm");
+        return ERR_PERMISSION_DENIED;
+    }
+    return ERR_OK;
+}
+
 int32_t CliToolManagerService::ValidateSessionLimit()
 {
     auto cliQuantity = CcmUtil::GetInstance().GetCliConcurrencyLimit();
@@ -1088,8 +1103,15 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecCmd called: cmd=%{public}s", param.cmd.c_str());
-    if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
-        return ret;
+    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
+    if (AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
+        if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
+            return ret;
+        }
+    } else {
+        if (auto ret = ValidateExecPublicCmdPermissions(); ret != ERR_OK) {
+            return ret;
+        }
     }
     int32_t callerPid = IPCSkeleton::GetCallingPid();
     int32_t callerUid = IPCSkeleton::GetCallingUid();
