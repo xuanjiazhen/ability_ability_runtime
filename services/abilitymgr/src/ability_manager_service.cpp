@@ -10288,15 +10288,11 @@ int AbilityManagerService::GetAppMemorySize()
     TAG_LOGI(AAFwkTag::ABILITYMGR, "service getAppMemorySize start");
     const char *key = "const.product.arkheaplimit";
     const char *def = "512m";
-    char *valueGet = nullptr;
+    char valueGet[128] = {0};
     unsigned int len = 128;
     int ret = GetParameter(key, def, valueGet, len);
     int resultInt = 0;
     if ((ret != GET_PARAMETER_OTHER) && (ret != GET_PARAMETER_INCORRECT)) {
-        if (valueGet == nullptr) {
-            TAG_LOGW(AAFwkTag::ABILITYMGR, "%{public}s, valueGet null", __func__);
-            return APP_MEMORY_SIZE;
-        }
         int len = strlen(valueGet);
         for (int i = 0; i < len; i++) {
             if (valueGet[i] >= '0' && valueGet[i] <= '9') {
@@ -10317,7 +10313,7 @@ bool AbilityManagerService::IsRamConstrainedDevice()
     TAG_LOGI(AAFwkTag::ABILITYMGR, "service IsRamConstrainedDevice start");
     const char *key = "const.product.islowram";
     const char *def = "0";
-    char *valueGet = nullptr;
+    char valueGet[128] = {0};
     unsigned int len = 128;
     int ret = GetParameter(key, def, valueGet, len);
     if ((ret != GET_PARAMETER_OTHER) && (ret != GET_PARAMETER_INCORRECT)) {
