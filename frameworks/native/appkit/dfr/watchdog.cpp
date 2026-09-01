@@ -154,7 +154,7 @@ void Watchdog::Stop()
     TAG_LOGD(AAFwkTag::APPDFR, "called");
     std::unique_lock<std::mutex> lock(cvMutex_);
     if (stopWatchdog_) {
-        TAG_LOGD(AAFwkTag::APPDFR, "stoped");
+        TAG_LOGD(AAFwkTag::APPDFR, "stopped");
         return;
     }
     stopWatchdog_.store(true);
@@ -271,7 +271,7 @@ void Watchdog::Timer()
 {
     std::unique_lock<std::mutex> lock(cvMutex_);
     if (stopWatchdog_) {
-        TAG_LOGD(AAFwkTag::APPDFR, "stoped");
+        TAG_LOGD(AAFwkTag::APPDFR, "stopped");
         return;
     }
     if (!needReport_) {

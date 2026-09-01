@@ -87,7 +87,7 @@ sptr<IAbilityEcologicalRuleMgrService> AbilityEcologicalRuleMgrServiceClient::Co
 
     sptr<IAbilityEcologicalRuleMgrService> service = iface_cast<IAbilityEcologicalRuleMgrService>(systemAbility);
     if (service == nullptr) {
-        TAG_LOGD(AAFwkTag::ECOLOGICAL_RULE, "erms transfered to foundation");
+        TAG_LOGD(AAFwkTag::ECOLOGICAL_RULE, "erms transferred to foundation");
         service = new AbilityEcologicalRuleMgrServiceProxy(systemAbility);
     }
     return service;

@@ -20,11 +20,7 @@ namespace AppExecFwk {
 TaskHandler::TaskHandler(const std::shared_ptr<EventRunner> &runner) : EventHandler(runner)
 {}
 
-/**
- * Process the event. Developers should override this method.
- *
- * @param event The event should be processed.
- */
+
 void TaskHandler::ProcessEvent([[maybe_unused]] const InnerEvent::Pointer &event)
 {}
 }  // namespace AppExecFwk

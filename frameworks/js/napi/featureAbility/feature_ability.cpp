@@ -854,14 +854,7 @@ napi_value GetWantSyncWrap(napi_env env, napi_callback_info info, AsyncCallbackI
     return handleEscape.Escape(result);
 }
 
-/**
- * @brief Get want(Sync).
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
+
 napi_value NAPI_GetWantSync(napi_env env, napi_callback_info info)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -885,70 +878,35 @@ napi_value NAPI_GetWantSync(napi_env env, napi_callback_info info)
     return ret;
 }
 
-/**
- * @brief Obtains the type of this application.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
+
 napi_value NAPI_GetAppType(napi_env env, napi_callback_info info)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
     return NAPI_GetAppTypeCommon(env, info, AbilityType::PAGE);
 }
 
-/**
- * @brief Obtains the class name in this ability name, without the prefixed bundle name.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
+
 napi_value NAPI_GetAbilityName(napi_env env, napi_callback_info info)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
     return NAPI_GetAbilityNameCommon(env, info, AbilityType::PAGE);
 }
 
-/**
- * @brief Obtains information about the current ability.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
+
 napi_value NAPI_GetAbilityInfo(napi_env env, napi_callback_info info)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
     return NAPI_GetAbilityInfoCommon(env, info, AbilityType::PAGE);
 }
 
-/**
- * @brief Obtains the HapModuleInfo object of the application.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
+
 napi_value NAPI_GetHapModuleInfo(napi_env env, napi_callback_info info)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
     return NAPI_GetHapModuleInfoCommon(env, info, AbilityType::PAGE);
 }
 
-/**
- * @brief FeatureAbility NAPI method : getDataAbilityHelper.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
+
 napi_value NAPI_GetDataAbilityHelper(napi_env env, napi_callback_info info)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -971,14 +929,7 @@ napi_value NAPI_GetDataAbilityHelper(napi_env env, napi_callback_info info)
     return ret;
 }
 
-/**
- * @brief getDataAbilityHelper processing function.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param dataAbilityHelperCB Process data asynchronously.
- *
- * @return Return JS data successfully, otherwise return nullptr.
- */
+
 napi_value GetDataAbilityHelperWrap(napi_env env, napi_callback_info info, DataAbilityHelperCB *dataAbilityHelperCB)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -1146,27 +1097,13 @@ void GetDataAbilityHelperPromiseCompleteCB(napi_env env, napi_status status, voi
     TAG_LOGI(AAFwkTag::FA, "end");
 }
 
-/**
- * @brief FeatureAbility NAPI method : acquireDataAbilityHelper.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
+
 napi_value NAPI_AcquireDataAbilityHelper(napi_env env, napi_callback_info info)
 {
     return NAPI_AcquireDataAbilityHelperCommon(env, info, AbilityType::PAGE);
 }
 
-/**
- * @brief FeatureAbility NAPI method : continueAbility.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param info The callback info passed into the callback function.
- *
- * @return The return value from NAPI C++ to JS for the module.
- */
+
 napi_value NAPI_FAContinueAbility(napi_env env, napi_callback_info info)
 {
     TAG_LOGI(AAFwkTag::FA, "called");
@@ -1188,14 +1125,7 @@ napi_value NAPI_FAContinueAbility(napi_env env, napi_callback_info info)
     return ret;
 }
 
-/**
- * @brief ContinueAbilityWrap processing function.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param asyncCallbackInfo Process data asynchronously.
- *
- * @return Return JS data successfully, otherwise return nullptr.
- */
+
 napi_value ContinueAbilityWrap(napi_env env, napi_callback_info info, AsyncCallbackInfo *asyncCallbackInfo)
 {
     TAG_LOGI(AAFwkTag::FA, "called");

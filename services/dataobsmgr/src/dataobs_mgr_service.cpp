@@ -976,7 +976,7 @@ void DataObsMgrService::Dump(const std::vector<std::u16string>& args, std::strin
 
     std::string optionKey = Str16ToStr8(args[0]);
     if (optionKey != "-h") {
-        result.append("error: unkown option.\n");
+        result.append("error: unknown option.\n");
     }
     ShowHelp(result);
 }

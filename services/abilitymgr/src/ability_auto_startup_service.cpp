@@ -855,7 +855,7 @@ std::function<void()> AbilityAutoStartupService::CreateHiddenStartCheckTask(
     return [abilityRecordWeak, userId]() {
         auto abilityRecord = abilityRecordWeak.lock();
         if (!abilityRecord) {
-            TAG_LOGI(AAFwkTag::AUTO_STARTUP, "abilityRecord has been destoryed");
+            TAG_LOGI(AAFwkTag::AUTO_STARTUP, "abilityRecord has been destroyed");
             return;
         }
         if (!abilityRecord->NeedCheckAutoStartupStatusBar()) {

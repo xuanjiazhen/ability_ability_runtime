@@ -23,12 +23,7 @@ namespace AppExecFwk {
 ProcessInfo::ProcessInfo(const std::string &name, const pid_t &pid) : processName_(name), pid_(pid)
 {}
 
-/**
- * @brief read this Sequenceable object from a Parcel.
- *
- * @param inParcel Indicates the Parcel object into which the Sequenceable object has been marshaled.
- * @return Returns true if read successed; returns false otherwise.
- */
+
 bool ProcessInfo::ReadFromParcel(Parcel &parcel)
 {
     processName_ = Str16ToStr8(parcel.ReadString16());
@@ -37,11 +32,7 @@ bool ProcessInfo::ReadFromParcel(Parcel &parcel)
     return true;
 }
 
-/**
- * @brief Unmarshals this Sequenceable object from a Parcel.
- *
- * @param inParcel Indicates the Parcel object into which the Sequenceable object has been marshaled.
- */
+
 ProcessInfo *ProcessInfo::Unmarshalling(Parcel &parcel)
 {
     ProcessInfo *processInfo = new (std::nothrow) ProcessInfo();
@@ -53,11 +44,7 @@ ProcessInfo *ProcessInfo::Unmarshalling(Parcel &parcel)
     return processInfo;
 }
 
-/**
- * @brief Marshals this Sequenceable object into a Parcel.
- *
- * @param outParcel Indicates the Parcel object to which the Sequenceable object will be marshaled.
- */
+
 bool ProcessInfo::Marshalling(Parcel &parcel) const
 {
     return (parcel.WriteString16(Str8ToStr16(processName_)) && parcel.WriteInt32(pid_)

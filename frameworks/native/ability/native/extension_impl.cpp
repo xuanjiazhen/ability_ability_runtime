@@ -71,14 +71,7 @@ void ExtensionImpl::Init(const std::shared_ptr<AppExecFwk::OHOSApplication> &app
     skipCommandExtensionWithIntent_ = false;
 }
 
-/**
- * @brief Handling the life cycle switching of Extension.
- *
- * @param want Indicates the structure containing information about the extension.
- * @param targetState The life cycle state to switch to.
- * @param sessionInfo  Indicates the sessionInfo.
- *
- */
+
 void ExtensionImpl::HandleExtensionTransaction(const Want &want, const AAFwk::LifeCycleStateInfo &targetState,
     sptr<AAFwk::SessionInfo> sessionInfo)
 {
@@ -163,13 +156,7 @@ void ExtensionImpl::NotifyMemoryLevel(int level)
     }
 }
 
-/**
- * @brief Toggles the lifecycle status of Extension to AAFwk::ABILITY_STATE_INACTIVE. And notifies the application
- * that it belongs to of the lifecycle status.
- *
- * @param want  The Want object to switch the life cycle.
- * @param sessionInfo  Indicates the sessionInfo.
- */
+
 void ExtensionImpl::Start(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -190,11 +177,7 @@ void ExtensionImpl::Start(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
     TAG_LOGD(AAFwkTag::EXT, "ok");
 }
 
-/**
- * @brief Toggles the lifecycle status of Extension to AAFwk::ABILITY_STATE_INITIAL. And notifies the application
- * that it belongs to of the lifecycle status.
- *
- */
+
 void ExtensionImpl::Stop()
 {
     TAG_LOGD(AAFwkTag::EXT, "call");
@@ -257,12 +240,7 @@ void ExtensionImpl::AbilityTransactionCallback(const AAFwk::AbilityLifeCycleStat
     AAFwk::AbilityManagerClient::GetInstance()->AbilityTransitionDone(token_, state, restoreData);
 }
 
-/**
- * @brief Connect the extension. and Calling information back to Extension.
- *
- * @param want The Want object to connect to.
- *
- */
+
 sptr<IRemoteObject> ExtensionImpl::ConnectExtension(const Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -339,11 +317,7 @@ void ExtensionImpl::ConnectExtensionCallback(sptr<IRemoteObject> &service)
     FreezeUtil::GetInstance().DeleteAppLifecycleEvent(0);
 }
 
-/**
- * @brief Disconnects the connected object.
- *
- * @param want The Want object to disconnect to.
- */
+
 void ExtensionImpl::DisconnectExtension(const Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -402,18 +376,7 @@ void ExtensionImpl::DisconnectExtensionCallback()
     }
 }
 
-/**
- * @brief Command the Extension. and Calling information back to Extension.
- *
- * @param want The Want object to command to.
- *
- * * @param restart Indicates the startup mode. The value true indicates that Service is restarted after being
- * destroyed, and the value false indicates a normal startup.
- *
- * @param startId Indicates the number of times the Service Extension has been started. The startId is incremented by 1
- * every time the Extension is started. For example, if the Extension has been started for six times,
- * the value of startId is 6.
- */
+
 void ExtensionImpl::CommandExtension(const Want &want, bool restart, int startId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);

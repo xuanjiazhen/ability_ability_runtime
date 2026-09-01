@@ -997,7 +997,7 @@ int AppMgrService::Dump(const std::vector<std::u16string>& args, std::string& re
     if (optionKey == OPTION_KEY_DUMP_WEB) {
         return DumpArkWeb(args, result);
     }
-    result.append("error: unkown option.\n");
+    result.append("error: unknown option.\n");
     TAG_LOGE(AAFwkTag::APPMGR, "option key %{public}s does not exist", optionKey.c_str());
     return DumpErrorCode::ERR_UNKNOWN_OPTION_ERROR;
 }

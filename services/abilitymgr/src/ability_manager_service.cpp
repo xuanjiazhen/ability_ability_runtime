@@ -2769,7 +2769,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
     }
     auto missionListManager = GetMissionListManagerByUserId(oriValidUserId);
     if (missionListManager == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "missionListManager null userId=%{public}d, errror:%{public}d",
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "missionListManager null userId=%{public}d, error:%{public}d",
             oriValidUserId, ERR_NULL_MISSION_LIST_MANAGER);
         return ERR_NULL_MISSION_LIST_MANAGER;
     }
@@ -8282,7 +8282,7 @@ void AbilityManagerService::DumpUIExtensionRootHostRunningInfos(pid_t pid, std::
     std::vector<pid_t> hostPids;
     auto ret = IN_PROCESS_CALL(appMgr->GetAllUIExtensionRootHostPid(pid, hostPids));
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "get root host process info faild");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get root host process info failed");
         return;
     }
 

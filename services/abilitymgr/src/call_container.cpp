@@ -121,7 +121,7 @@ bool CallContainer::RemoveCallRecord(const sptr<IAbilityConnection> & connect)
     }
 
     if (EmptyCallRecordMap()) {
-        // notify soft resouce service.
+        // notify soft resource service.
         TAG_LOGD(AAFwkTag::ABILITYMGR, "this ability has no callrecord.");
     }
 

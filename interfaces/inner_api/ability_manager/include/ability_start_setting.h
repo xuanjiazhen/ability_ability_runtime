@@ -100,6 +100,11 @@ public:
 
 protected:
     AbilityStartSetting() = default;
+    /**
+    * @brief Inner function to create AbilityStartSetting
+    *
+    * @return Returns the shared_ptr of AbilityStartSetting object.
+    */
     friend std::shared_ptr<AbilityStartSetting> AbilityStartSettingCreator();
 
 private:

@@ -271,7 +271,7 @@ public:
     /**
      *  Update config by sa.
      *
-     * @param config Application enviroment change parameters.
+     * @param config Application environment change parameters.
      * @param name Application bundle name.
      * @return Returns ERR_OK on success, others on failure.
      */

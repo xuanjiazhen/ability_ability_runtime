@@ -346,7 +346,7 @@ public:
         const Uri &uri, const NativeRdb::ValuesBucket &value, const NativeRdb::DataAbilityPredicates &predicates);
 
     /**
-     * @brief get application witch the ability belong
+     * @brief get application which the ability belong
      *
      * @return Returns the application ptr
      */
@@ -860,7 +860,7 @@ public:
     virtual void OnSceneCreated();
 
     /**
-     * @brief Called after ability stoped.
+     * @brief Called after ability stopped.
      *
      *
      * You can override this function to implement your own processing logic.

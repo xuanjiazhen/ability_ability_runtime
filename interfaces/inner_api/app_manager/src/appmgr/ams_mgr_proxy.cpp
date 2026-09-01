@@ -835,7 +835,7 @@ void AmsMgrProxy::GetRunningProcessInfoByToken(
 
     std::unique_ptr<AppExecFwk::RunningProcessInfo> processInfo(reply.ReadParcelable<AppExecFwk::RunningProcessInfo>());
     if (processInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "recv process info faild");
+        TAG_LOGE(AAFwkTag::APPMGR, "recv process info failed");
         return;
     }
 

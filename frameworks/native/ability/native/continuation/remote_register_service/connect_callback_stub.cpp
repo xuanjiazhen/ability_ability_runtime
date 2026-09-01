@@ -36,13 +36,7 @@ int ConnectCallbackStub::DisconnectInner(MessageParcel &data, MessageParcel &rep
     Disconnect(deviceId);
     return OHOS::ERR_NONE;
 }
-/**
- * @brief Remote device sends connection or disconnection request.
- * @param Code indicators code of the connection or disconnection request function.
- * @param data indicators receives the message object.
- * @param reply indicators reply the message object.
- * @return none
- */
+
 int ConnectCallbackStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {

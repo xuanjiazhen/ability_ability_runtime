@@ -863,12 +863,12 @@ int32_t AppMgrStub::HandleGetAllChildrenProcesses(MessageParcel &data, MessagePa
     reply.WriteInt32(info.size());
     for (auto &it : info) {
         if (!reply.WriteParcelable(&it)) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Write ChildProcessInfo faild, child pid=%{public}d", it.pid);
+            TAG_LOGE(AAFwkTag::APPMGR, "Write ChildProcessInfo failed, child pid=%{public}d", it.pid);
             return ERR_INVALID_VALUE;
         }
     }
     if (!reply.WriteInt32(result)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write result faild");
+        TAG_LOGE(AAFwkTag::APPMGR, "Write result failed");
         return ERR_INVALID_VALUE;
     }
     return NO_ERROR;
@@ -882,17 +882,17 @@ int32_t AppMgrStub::HandleGetSelfChildrenProcesses(MessageParcel &data, MessageP
     std::vector<ChildProcessInfo> info;
     auto result = GetSelfChildrenProcesses(info);
     if (!reply.WriteInt32(info.size())) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write ChildProcessInfo size faild");
+        TAG_LOGE(AAFwkTag::APPMGR, "Write ChildProcessInfo size failed");
         return ERR_INVALID_VALUE;
     }
     for (auto &it : info) {
         if (!reply.WriteParcelable(&it)) {
-            TAG_LOGE(AAFwkTag::APPMGR, "Write ChildProcessInfo faild, child pid=%{public}d", it.pid);
+            TAG_LOGE(AAFwkTag::APPMGR, "Write ChildProcessInfo failed, child pid=%{public}d", it.pid);
             return ERR_INVALID_VALUE;
         }
     }
     if (!reply.WriteInt32(result)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Write result faild");
+        TAG_LOGE(AAFwkTag::APPMGR, "Write result failed");
         return ERR_INVALID_VALUE;
     }
     return NO_ERROR;

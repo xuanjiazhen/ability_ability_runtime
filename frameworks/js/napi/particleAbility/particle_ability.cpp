@@ -170,14 +170,7 @@ napi_value NAPI_PACancelBackgroundRunning(napi_env env, napi_callback_info info)
     return NAPI_CancelBackgroundRunningCommon(env, info);
 }
 
-/**
- * @brief ParticleAbility NAPI module registration.
- *
- * @param env The environment that the Node-API call is invoked under.
- * @param exports An empty object via the exports parameter as a convenience.
- *
- * @return The return value from Init is treated as the exports object for the module.
- */
+
 napi_value ParticleAbilityInit(napi_env env, napi_value exports)
 {
     TAG_LOGI(AAFwkTag::FA, "called");

@@ -123,7 +123,7 @@ EtsServiceExtension *EtsServiceExtension::Create(const std::unique_ptr<Runtime> 
 EtsServiceExtension::EtsServiceExtension(ETSRuntime &etsRuntime) : etsRuntime_(etsRuntime) {}
 EtsServiceExtension::~EtsServiceExtension()
 {
-    TAG_LOGD(AAFwkTag::SERVICE_EXT, "EtsServiceExtension destory");
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "EtsServiceExtension destroy");
     auto context = GetContext();
     if (context) {
         context->Unbind();

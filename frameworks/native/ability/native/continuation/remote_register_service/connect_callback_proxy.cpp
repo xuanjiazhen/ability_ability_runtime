@@ -20,12 +20,7 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-/**
- * @brief Remote device sends connection request.
- * @param deviceId indicators id of connection device.
- * @param deviceType indicators type of connection device.
- * @return none
- */
+
 void ConnectCallbackProxy::Connect(const string &deviceId, const string &deviceType)
 {
     MessageParcel data;
@@ -36,11 +31,7 @@ void ConnectCallbackProxy::Connect(const string &deviceId, const string &deviceT
     }
     RemoteRequest(data, COMMAND_CONNECT);
 }
-/**
- * @brief Remote device sends disconnection request.
- * @param deviceId indicators id of disconnection device.
- * @return none
- */
+
 void ConnectCallbackProxy::Disconnect(const string &deviceId)
 {
     MessageParcel data;
