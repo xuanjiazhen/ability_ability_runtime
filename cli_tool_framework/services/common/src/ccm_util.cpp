@@ -15,13 +15,25 @@
 
 #include "ccm_util.h"
 
+#include <cstring>
+
 #include "hilog_tag_wrapper.h"
+#include "parameter.h"
 #include "parameters.h"
 
 namespace OHOS {
 namespace CliTool {
 namespace {
 constexpr const char* MAX_CLI_QUANTITY = "const.sys.cli.limit_maximum_concurrency_quantity";
+constexpr const char* CLI_PUBLIC_CMD_ENABLED = "persist.sys.cli.public_cmd_enabled";
+
+bool IsPcOr2in1()
+{
+    const int bufLen = 128;
+    char buf[bufLen] = {0};
+    int ret = GetParameter("const.product.devicetype", "", buf, bufLen);
+    return ret > 0 && strncmp(buf, "2in1", strlen("2in1")) == 0;
+}
 }
 
 CcmUtil &CcmUtil::GetInstance()
@@ -44,6 +56,16 @@ int32_t CcmUtil::GetCliConcurrencyLimit()
     }
     TAG_LOGD(AAFwkTag::CLI_TOOL, "MaxCLiQuantity: %{public}d", maxCliQuantity_.value);
     return maxCliQuantity_.value;
+}
+
+bool CcmUtil::IsPublicCmdEnabled()
+{
+    if (!publicCmdEnabled_.isLoaded) {
+        bool def = IsPcOr2in1();
+        publicCmdEnabled_.value = system::GetBoolParameter(CLI_PUBLIC_CMD_ENABLED, def);
+        publicCmdEnabled_.isLoaded = true;
+    }
+    return publicCmdEnabled_.value;
 }
 } // namespace CliTool
 } // namespace OHOS
