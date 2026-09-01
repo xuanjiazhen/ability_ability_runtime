@@ -341,6 +341,7 @@ struct SubCommandResult {
     std::string subcommand;
 };
 
+// Only single-quote is supported. Double quotes and backslash escapes are not.
 bool TokenizeCommand(const std::string &cmd, std::vector<std::string> &tokens)
 {
     std::string current;

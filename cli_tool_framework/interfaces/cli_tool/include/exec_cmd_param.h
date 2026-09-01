@@ -34,9 +34,12 @@ public:
     std::string policy;
     ExecOptions options;
     bool isShellCommand = true;
+    std::string challenge;
 
     bool Marshalling(Parcel &parcel) const;
     static ExecCmdParam *Unmarshalling(Parcel &parcel);
+    // Extract the first whitespace-delimited token (toolName) from cmd.
+    static std::string ExtractToolName(const std::string &cmd);
 };
 } // namespace CliTool
 } // namespace OHOS
