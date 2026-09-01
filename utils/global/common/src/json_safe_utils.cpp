@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "intent_json_safe_get.h"
+#include "json_safe_utils.h"
 
 #include <functional>
 #include <utility>
@@ -75,5 +75,5 @@ bool SafeDumpTo(const nlohmann::json &jsonObject, std::string &out)
     return true;
 }
 
-} // namespace AbilityRuntime
-} // namespace OHOS
+}  // namespace AbilityRuntime
+}  // namespace OHOS

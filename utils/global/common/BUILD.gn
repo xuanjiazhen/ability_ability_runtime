@@ -19,6 +19,7 @@ config("runtime_utils_config") {
 }
 
 ohos_shared_library("runtime_utils") {
+  use_exceptions = true
   sanitize = {
     integer_overflow = true
     ubsan = true
@@ -35,6 +36,7 @@ ohos_shared_library("runtime_utils") {
   ]
 
   sources = [
+    "src/json_safe_utils.cpp",
     "src/ui_extension_wrapper.cpp",
   ]
 

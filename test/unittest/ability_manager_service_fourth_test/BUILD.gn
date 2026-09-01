@@ -81,6 +81,7 @@ ohos_unittest("ability_manager_service_fourth_test") {
   ]
 
   deps = [
+    "${ability_runtime_path}/utils/global/common:runtime_utils",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
     "${ability_runtime_innerkits_path}/ability_manager:mission_info",
