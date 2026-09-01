@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <sys/types.h>
+#include <string>
 
 namespace OHOS {
 class IPCSkeleton {
@@ -26,10 +27,15 @@ public:
     static pid_t GetCallingPid();
     static uint64_t GetCallingFullTokenID();
     static void Reset();
+    static std::string ResetCallingIdentity();
+    static void SetCallingIdentity(const std::string &identity);
+    static uint32_t GetCallingTokenID();
 
     static pid_t callingUid;
     static pid_t callingPid;
     static uint64_t callingFullTokenId;
+    static std::string callingIdentity;
+    static uint32_t callingTokenId;
 };
 } // namespace OHOS
 
