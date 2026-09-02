@@ -1064,7 +1064,7 @@ std::shared_ptr<Global::Resource::ResourceManager> ContextImpl::InitResourceMana
                     *deduplicate |= hapModuleInfo.deduplicateHar;
                 }
                 if (currentBundle) {
-                    loadPath = ExtractorUtil::GetLoadFilePath(loadPath);;
+                    loadPath = ExtractorUtil::GetLoadFilePath(loadPath);
                 } else if (bundleInfo.applicationInfo.bundleType == AppExecFwk::BundleType::SHARED) {
                     loadPath = std::regex_replace(loadPath, hsp_pattern, hsp_sandbox);
                 } else if (bundleInfo.applicationInfo.bundleType == AppExecFwk::BundleType::APP_SERVICE_FWK) {
