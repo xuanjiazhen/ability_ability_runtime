@@ -13411,16 +13411,18 @@ void AppMgrServiceInner::CheckRenderAttachTimeout(std::shared_ptr<RenderRecord> 
 
 std::string AppMgrServiceInner::GetStoragePath(const std::string& hapPath) {
     if (hapPath.empty()) {
-	    return hapPath;
-	} 
-	std::regex hapPattern(std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR));
-	std::string loadPath = std::regex_replace(hapPath, hapPattern, ""); 
-	auto pos = loadPath.find(std::string(FILE_SEPARATOR));
-	if (pos == std::string::npos) {
-	    return std::string(LOCAL_CODE_PATH) + std::string(FILE_SEPARATOR) + loadPath;
-	}
-	loadPath = std::string(LOCAL_CODE_PATH) + std::string(FILE_SEPARATOR) + loadPath.substr(pos + 1);
-	return loadPath;
+        return hapPath;
+    }
+    std::string absPrefix = std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR);
+    if (hapPath.find(absPrefix) != 0) {
+        return hapPath;
+    }
+    std::string loadPath = hapPath.substr(absPrefix.length());
+    auto pos = loadPath.find(std::string(FILE_SEPARATOR));
+    if (pos == std::string::npos) {
+        return std::string(LOCAL_CODE_PATH) + std::string(FILE_SEPARATOR) + loadPath;
+    }
+    return std::string(LOCAL_CODE_PATH) + std::string(FILE_SEPARATOR) + loadPath.substr(pos + 1);
 }
 
 void AppMgrServiceInner::HandleForegroundAbilityDied(
