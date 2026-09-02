@@ -1001,7 +1001,7 @@ std::vector<std::string> ETSEnvironment::GetHspPathList()
         std::regex patter((std::string(ABS_DATA_CODE_PATH)));
  	    targetPath = std::regex_replace(targetPath, patter, "");
  	    targetPath = std::string(BUNDLE_INSTALL_PATH) + targetPath.substr(targetPath.find("/") + 1);
-        hspPathList.push_back(targetPath);
+        hspPathList.push_back(targetPath);;
     }
 
     for (const auto &it : hspPathList) {
