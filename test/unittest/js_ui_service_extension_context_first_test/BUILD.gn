@@ -53,7 +53,7 @@ ohos_unittest("js_ui_service_extension_context_first_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
     "${ability_runtime_path}/services/abilitymgr:abilityms_target",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_src",
   ]
 
   external_deps = [
