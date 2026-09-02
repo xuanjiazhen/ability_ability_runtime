@@ -2262,7 +2262,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
             appInfo->bundleName = hostBundleName;
             std::regex pattern(
                 std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR) + hostBundleName);
-            abilityInfo->hapPath = GetStoragePath(abilityInfo->hapPath);
+            abilityInfo->hapPath = GetStoragePath(abilityInfo->hapPath);;
             abilityInfo->resourcePath = GetStoragePath(abilityInfo->resourcePath);
             GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex);
             appInfo = std::make_shared<ApplicationInfo>(bundleInfo.applicationInfo);
