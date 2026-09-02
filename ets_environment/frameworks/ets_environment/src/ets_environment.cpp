@@ -84,12 +84,12 @@ constexpr const int32_t ARG_ONE = 1;
 
 static void PostTaskWrapper(void(*task)(void *), void *data, const char *taskName, int64_t delayMs);
 ETSRuntimeAPI ETSEnvironment::lazyApis_ {};
-std::unique_ptr<ETSEnvironment> instance_ = nullptr;
+std::shared_ptr<ETSEnvironment> instance_ = nullptr;
 
-std::unique_ptr<ETSEnvironment> &ETSEnvironment::GetInstance()
+std::shared_ptr<ETSEnvironment> ETSEnvironment::GetInstance()
 {
     if (instance_ == nullptr) {
-        instance_ = std::make_unique<ETSEnvironment>();
+        instance_ = std::make_shared<ETSEnvironment>();
     }
     return instance_;
 }
