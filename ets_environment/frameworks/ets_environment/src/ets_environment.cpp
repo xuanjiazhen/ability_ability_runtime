@@ -998,12 +998,12 @@ std::vector<std::string> ETSEnvironment::GetHspPathList()
 
     for (const auto &pluginHspPath : staticPluginHspPathList_) {
         std::string targetPath = pluginHspPath;
-        std::regex pattern((std::string(ABS_DATA_CODE_PATH)));
-        if (targetPath.find(ABS_DATA_CODE_PATH) == 0) {
-            targetPath = std::regex_replace(targetPath, pattern, "");
-            size_t slashPos = targetPath.find('/');
-            if (slashPos!= std::string::npos) {
-                targetPath = std::string(BUNDLE_INSTALL_PATH) + targetPath.substr(slashPos + 1);
+        std::string absDataCodePath = std::string(ABS_DATA_CODE_PATH);
+        if (targetPath.find(absDataCodePath) == 0) {
+            std::string remainingPath = targetPath.substr(absDataCodePath.length());
+            size_t slashPos = remainingPath.find('/');
+            if (slashPos != std::string::npos) {
+                targetPath = std::string(BUNDLE_INSTALL_PATH) + remainingPath.substr(slashPos + 1);
             }
         }
         hspPathList.push_back(targetPath);
