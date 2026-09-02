@@ -149,10 +149,11 @@ void ResidentProcessManager::StartResidentProcessWithMainElementPerBundleHap(
 }
 
 int32_t ResidentProcessManager::SetResidentProcessEnabled(
-    const std::string &bundleName, const std::string &callerName, bool updateEnable)
+    const std::string &bundleName, const std::string &callerName, bool updateEnable, bool isSACall)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetResidentProcessEnabled,bundle:%{public}s,caller:%{public}s,enable:%{public}d",
-        bundleName.c_str(), callerName.c_str(), updateEnable);
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "SetResidentProcessEnabled,bundle:%{public}s,caller:%{public}s,enable:%{public}d,isSACall:%{public}d",
+        bundleName.c_str(), callerName.c_str(), updateEnable, isSACall);
     if (bundleName.empty() || callerName.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "input parameter error");
         return INVALID_PARAMETERS_ERR;

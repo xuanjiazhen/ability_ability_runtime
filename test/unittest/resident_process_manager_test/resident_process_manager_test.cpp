@@ -117,6 +117,51 @@ HWTEST_F(ResidentProcessManagerTest, SetResidentProcessEnable_002, TestSize.Leve
 
 /*
  * Feature: ResidentProcessManager
+ * Function: SetResidentProcessEnabled
+ * SubFunction: NA
+ * FunctionPoints:ResidentProcessManager SetResidentProcessEnabled
+ * EnvConditions: NA
+ * CaseDescription: Verify SetResidentProcessEnabled with SA caller
+ */
+HWTEST_F(ResidentProcessManagerTest, SetResidentProcessEnable_003, TestSize.Level1)
+{
+    auto manager = std::make_shared<ResidentProcessManager>();
+    ASSERT_NE(manager, nullptr);
+    std::string bundleName = "com.example.resident.process";
+    // SA caller uses bundleName as callerName, pass permission check, rdb is not initialized in ut.
+    EXPECT_CALL(AmsResidentProcessRdb::GetInstance(), VerifyConfigurationPermissions(bundleName, bundleName))
+        .Times(1)
+        .WillOnce(Return(RdbResult::Rdb_OK));
+    EXPECT_CALL(AmsResidentProcessRdb::GetInstance(), GetResidentProcessEnable(bundleName, _))
+        .Times(1)
+        .WillOnce(Return(RdbResult::Rdb_Parameter_Err));
+    EXPECT_EQ(manager->SetResidentProcessEnabled(bundleName, bundleName, false, true), INNER_ERR);
+}
+
+/*
+ * Feature: ResidentProcessManager
+ * Function: SetResidentProcessEnabled
+ * SubFunction: NA
+ * FunctionPoints:ResidentProcessManager SetResidentProcessEnabled
+ * EnvConditions: NA
+ * CaseDescription: Verify SetResidentProcessEnabled with SA caller and rdb error
+ */
+HWTEST_F(ResidentProcessManagerTest, SetResidentProcessEnable_004, TestSize.Level1)
+{
+    auto manager = std::make_shared<ResidentProcessManager>();
+    ASSERT_NE(manager, nullptr);
+    std::string bundleName = "com.example.resident.process";
+    EXPECT_CALL(AmsResidentProcessRdb::GetInstance(), VerifyConfigurationPermissions(bundleName, bundleName))
+        .Times(1)
+        .WillOnce(Return(RdbResult::Rdb_OK));
+    EXPECT_CALL(AmsResidentProcessRdb::GetInstance(), GetResidentProcessEnable(bundleName, _))
+        .Times(1)
+        .WillOnce(Return(RdbResult::Rdb_Init_Err));
+    EXPECT_EQ(manager->SetResidentProcessEnabled(bundleName, bundleName, true, true), INNER_ERR);
+}
+
+/*
+ * Feature: ResidentProcessManager
  * Function: PutResidentAbility
  * SubFunction: NA
  * FunctionPoints:ResidentProcessManager PutResidentAbility

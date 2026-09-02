@@ -1575,6 +1575,25 @@ HWTEST_F(AbilityManagerServiceSecondTest, SetResidentProcessEnable_001, TestSize
 
 /*
  * Feature: AbilityManagerService
+ * Function: SetResidentProcessEnabled
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService SetResidentProcessEnabled
+ * EnvConditions: NA
+ * CaseDescription: Verify SetResidentProcessEnabled with SA caller
+ */
+HWTEST_F(AbilityManagerServiceSecondTest, SetResidentProcessEnable_002, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    std::string bundleName = "ability.manager.service.test";
+    bool enable = true;
+    AAFwk::IsMockSaCall::IsMockSaCallWithPermission();
+    // SA call passes permission check, rdb is not initialized in ut, so return INNER_ERR.
+    EXPECT_EQ(abilityMs_->SetResidentProcessEnabled(bundleName, enable), INNER_ERR);
+    AAFwk::IsMockSaCall::IsMockResetPermission();
+}
+
+/*
+ * Feature: AbilityManagerService
  * Function: DumpMissionInner
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService DumpMissionInner
