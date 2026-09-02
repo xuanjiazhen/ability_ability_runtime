@@ -16184,7 +16184,6 @@ int32_t AbilityManagerService::SetResidentProcessEnabled(const std::string &bund
 
     std::string callerName;
     if (isSACall) {
-        // SA process is not managed by appmgr, use bundleName as callerName to pass permission check.
         callerName = bundleName;
     } else {
         int32_t uid = 0;
