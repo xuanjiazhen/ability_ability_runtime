@@ -45,7 +45,7 @@ ohos_unittest("ohos_aa_command_start_test") {
 
   deps = [
     "${ability_runtime_path}/tools/ohos-aa:ohos_aa_cli_source_set",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_src",
   ]
 
   external_deps = [
@@ -81,7 +81,7 @@ ohos_unittest("ohos_aa_command_force_stop_test") {
 
   deps = [
     "${ability_runtime_path}/tools/ohos-aa:ohos_aa_cli_source_set",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_src",
   ]
 
   external_deps = [
@@ -118,7 +118,7 @@ ohos_unittest("ohos_aa_command_util_test") {
 
   deps = [
     "${ability_runtime_path}/tools/ohos-aa:ohos_aa_cli_source_set",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_src",
   ]
 
   external_deps = [
