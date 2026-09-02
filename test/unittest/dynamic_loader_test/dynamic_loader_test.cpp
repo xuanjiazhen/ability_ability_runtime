@@ -23,6 +23,7 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace EtsEnv {
+
 class DynamicLoaderTest : public testing::Test {
 public:
     DynamicLoaderTest()
