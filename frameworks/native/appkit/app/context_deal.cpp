@@ -35,7 +35,7 @@
 namespace OHOS {
 namespace AppExecFwk {
 using namespace OHOS::AbilityBase::Constants;
-using ExtractorUtil = AbilityBase::ExtractorUtil;;
+using ExtractorUtil = AbilityBase::ExtractorUtil;
 const std::string ContextDeal::CONTEXT_DEAL_FILE_SEPARATOR("/");
 const std::string ContextDeal::CONTEXT_DEAL_Files("files");
 const int64_t ContextDeal::CONTEXT_CREATE_BY_SYSTEM_APP(0x00000001);
