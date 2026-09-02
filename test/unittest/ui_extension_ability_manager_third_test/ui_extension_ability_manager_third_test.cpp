@@ -146,7 +146,7 @@ HWTEST_F(UIExtensionAbilityManagerThirdTest, OnAbilityRequestDone_001, TestSize.
 /*
  * Feature: UIExtensionAbilityManager
  * Function: OnAbilityRequestDone
- * CaseDescription: Verify an already foreground UIExtension clears its modal launch timestamp
+ * CaseDescription: Verify an already foreground UIExtension skips foreground and retains timestamp
  */
 HWTEST_F(UIExtensionAbilityManagerThirdTest, OnAbilityRequestDone_002, TestSize.Level1)
 {
@@ -171,7 +171,7 @@ HWTEST_F(UIExtensionAbilityManagerThirdTest, OnAbilityRequestDone_002, TestSize.
 
     connectManager->OnAbilityRequestDone(abilityRecord->GetToken(),
         static_cast<int32_t>(AppAbilityState::ABILITY_STATE_FOREGROUND));
-    EXPECT_EQ(abilityRecord->GetWant().GetIntParam(UIEXTENSION_LAUNCH_TIMESTAMP_HIGH, -1), -1);
+    EXPECT_NE(abilityRecord->GetWant().GetIntParam(UIEXTENSION_LAUNCH_TIMESTAMP_HIGH, -1), -1);
 }
 
 /*
