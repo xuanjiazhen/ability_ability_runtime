@@ -13411,7 +13411,7 @@ void AppMgrServiceInner::CheckRenderAttachTimeout(std::shared_ptr<RenderRecord> 
 
 std::string AppMgrServiceInner::GetStoragePath(const std::string& hapPath) {
     if (hapPath.empty()) {
- 	         return hapPath;
+ 	    return hapPath;
  	}
  	std::string absPrefix = std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR);
  	if (hapPath.find(absPrefix) != 0) {
