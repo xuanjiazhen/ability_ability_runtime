@@ -15,6 +15,8 @@
 
 #include <dlfcn.h>
 #include <gtest/gtest.h>
+#include <thread>
+#include <vector>
 
 #include "dynamic_loader.h"
 
@@ -219,6 +221,33 @@ HWTEST_F(DynamicLoaderTest, DynamicLoaderTestInitNamespace_0200, TestSize.Level1
     DynamicInitNamespace(&ns, nullptr, TEST_LIB, name);
     EXPECT_STREQ(DynamicGetError(), "");
 
+    DynamicInitNamespace(&ns, nullptr, TEST_LIB, name);
+    EXPECT_STREQ(DynamicGetError(), "");
+}
+
+/**
+ * @tc.name: DynamicLoaderTestInitNamespace_Concurrent_0100
+ * @tc.desc: DynamicLoaderTest test for concurrent dynamic_init_namespace with the same name.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DynamicLoaderTest, DynamicLoaderTestInitNamespace_Concurrent_0100, TestSize.Level2)
+{
+    const char* name = "concurrent_namespace";
+    constexpr int THREAD_NUM = 8;
+    std::vector<std::thread> threads;
+    threads.reserve(THREAD_NUM);
+    for (int i = 0; i < THREAD_NUM; ++i) {
+        threads.emplace_back([&name]() {
+            Dl_namespace ns;
+            DynamicInitNamespace(&ns, nullptr, TEST_LIB, name);
+        });
+    }
+    for (auto &t : threads) {
+        t.join();
+    }
+    EXPECT_STREQ(DynamicGetError(), "");
+
+    Dl_namespace ns;
     DynamicInitNamespace(&ns, nullptr, TEST_LIB, name);
     EXPECT_STREQ(DynamicGetError(), "");
 }
