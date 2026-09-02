@@ -125,7 +125,7 @@ std::string JsModuleReader::GetPluginHspPath(const std::string& inputPath) const
                 && sharedBundleName == pluginBundleInfo.pluginBundleName) {
                 presetAppHapPath = pluginModuleInfo.hapPath;
                 TAG_LOGD(AAFwkTag::JSRUNTIME, "presetAppHapPath %{public}s", presetAppHapPath.c_str());
-                presetAppHapPath = ExtractorUtil::GetLoadFilePath(presetAppHapPath);;
+                presetAppHapPath = ExtractorUtil::GetLoadFilePath(presetAppHapPath);
                 TAG_LOGD(AAFwkTag::JSRUNTIME, "presetAppHapPath %{public}s", presetAppHapPath.c_str());
                 return presetAppHapPath;
             }
