@@ -367,10 +367,10 @@ void UIExtensionAbilityManager::OnAbilityRequestDone(const sptr<IRemoteObject> &
         static_cast<int32_t>(abilityRecord->GetPendingState()));
     if (currentAbilityState == AbilityState::BACKGROUND || currentAbilityState == AbilityState::INITIAL) {
         abilityRecord->ForegroundUIExtensionAbility();
+        abilityRecord->RemoveUIExtensionLaunchTimestamp();
     } else {
         TAG_LOGW(AAFwkTag::UI_EXT, "skip foreground, abilityState not in {BACKGROUND, INITIAL}");
     }
-    abilityRecord->RemoveUIExtensionLaunchTimestamp();
 }
 
 std::shared_ptr<BaseExtensionRecord> UIExtensionAbilityManager::GetUIExtensionBySessionInfo(
