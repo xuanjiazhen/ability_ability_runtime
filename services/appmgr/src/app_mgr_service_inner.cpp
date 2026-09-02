@@ -13411,18 +13411,19 @@ void AppMgrServiceInner::CheckRenderAttachTimeout(std::shared_ptr<RenderRecord> 
 
 std::string AppMgrServiceInner::GetStoragePath(const std::string& hapPath) {
     if (hapPath.empty()) {
- 	    return hapPath;
- 	}
- 	std::string absPrefix = std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR);
- 	if (hapPath.find(absPrefix) != 0) {
- 	    return hapPath;
- 	}
- 	std::string loadPath = hapPath.substr(absPrefix.length());
- 	auto pos = loadPath.find(std::string(FILE_SEPARATOR));
- 	if (pos == std::string::npos) {
- 	    return std::string(LOCAL_CODE_PATH) + std::string(FILE_SEPARATOR) + loadPath;
- 	}
- 	return std::string(LOCAL_CODE_PATH) + std::string(FILE_SEPARATOR) + loadPath.substr(pos + 1);
+        return hapPath;
+    }
+    std::string absPrefix = std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR);
+    size_t prefixPos = hapPath.find(absPrefix);
+    if (prefixPos == std::string::npos) {
+        return hapPath;
+    }
+    std::string loadPath = hapPath.substr(prefixPos + absPrefix.length());
+    size_t slashPos = loadPath.find(std::string(FILE_SEPARATOR));
+    if (slashPos == std::string::npos) {
+        return std::string(LOCAL_CODE_PATH);
+    }
+    return std::string(LOCAL_CODE_PATH) + loadPath.substr(slashPos);
 }
 
 void AppMgrServiceInner::HandleForegroundAbilityDied(
