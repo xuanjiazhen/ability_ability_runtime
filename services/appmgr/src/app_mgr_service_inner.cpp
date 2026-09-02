@@ -2262,8 +2262,8 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
             appInfo->bundleName = hostBundleName;
             std::regex pattern(
                 std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR) + hostBundleName);
-            abilityInfo->hapPath = std::regex_replace(abilityInfo->hapPath, pattern, LOCAL_CODE_PATH);
-            abilityInfo->resourcePath = std::regex_replace(abilityInfo->resourcePath, pattern, LOCAL_CODE_PATH);
+            abilityInfo->hapPath = GetStoragePath(abilityInfo->hapPath);
+            abilityInfo->resourcePath = GetStoragePath(abilityInfo->resourcePath);
             GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex);
             appInfo = std::make_shared<ApplicationInfo>(bundleInfo.applicationInfo);
             auto pluginRet = DelayedSingleton<BundleMgrHelper>::GetInstance()->GetPluginHapModuleInfo(
@@ -13407,6 +13407,20 @@ void AppMgrServiceInner::CheckRenderAttachTimeout(std::shared_ptr<RenderRecord> 
         pid, elapsedMs);
     AppMgrEventUtil::SendRenderProcessStartFailedEvent(renderRecord,
         ProcessStartFailedReason::ATTACH_TIMEOUT, elapsedMs);
+}
+
+std::string AppMgrServiceInner::GetStoragePath(const std::string& hapPath) {
+    if (hapPath.empty()) {
+	    return hapPath;
+	} 
+	std::regex hapPattern(std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR));
+	std::string loadPath = std::regex_replace(hapPath, hapPattern, ""); 
+	auto pos = loadPath.find(std::string(FILE_SEPARATOR));
+	if (pos == std::string::npos) {
+	    return std::string(LOCAL_CODE_PATH) + std::string(FILE_SEPARATOR) + loadPath;
+	}
+	loadPath = std::string(LOCAL_CODE_PATH) + std::string(FILE_SEPARATOR) + loadPath.substr(pos + 1);
+	return loadPath;
 }
 
 void AppMgrServiceInner::HandleForegroundAbilityDied(
