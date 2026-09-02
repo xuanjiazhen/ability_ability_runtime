@@ -48,7 +48,7 @@ public:
     ETSEnvironment() {};
     ~ETSEnvironment();
 
-    static std::unique_ptr<ETSEnvironment> &GetInstance();
+    static std::shared_ptr<ETSEnvironment> GetInstance();
     static void InitETSSDKNS(const std::string &path);
     static void InitETSSysNS(const std::string &path);
     static ETSEnvFuncs *RegisterFuncs();
