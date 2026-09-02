@@ -12,13 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include <string>
 #include "ccm_util.h"
-
-#include <cstring>
-
 #include "hilog_tag_wrapper.h"
-#include "parameter.h"
 #include "parameters.h"
 
 namespace OHOS {
@@ -29,10 +25,8 @@ constexpr const char* CLI_PUBLIC_CMD_ENABLED = "persist.sys.cli.public_cmd_enabl
 
 bool IsPcOr2in1()
 {
-    const int bufLen = 128;
-    char buf[bufLen] = {0};
-    int ret = GetParameter("const.product.devicetype", "", buf, bufLen);
-    return ret > 0 && strncmp(buf, "2in1", strlen("2in1")) == 0;
+    std::string  ret = system::GetParameter("const.product.devicetype", "");
+    return !deviceType.empty() && deviceType.compare(0, 4, "2in1") == 0;
 }
 }
 
