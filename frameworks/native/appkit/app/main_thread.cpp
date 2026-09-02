@@ -150,7 +150,7 @@ constexpr char FORM_RENDER_LIB_PATH[] = "/system/lib64/libformrender.z.so";
 #else
 constexpr char FORM_RENDER_LIB_PATH[] = "/system/lib64/libformrender.z.so";
 #endif
-using ExtractorUtil = AbilityBase::ExtractorUtil;
+using ExtractorUtil = AbilityBase::ExtractorUtil;;
 constexpr int32_t DELIVERY_TIME = 200;
 constexpr int32_t DISTRIBUTE_TIME = 100;
 constexpr int32_t START_HIGH_SENSITIVE = 1;
