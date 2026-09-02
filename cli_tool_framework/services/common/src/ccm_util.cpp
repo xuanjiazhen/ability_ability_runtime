@@ -23,9 +23,9 @@ namespace {
 constexpr const char* MAX_CLI_QUANTITY = "const.sys.cli.limit_maximum_concurrency_quantity";
 constexpr const char* CLI_PUBLIC_CMD_ENABLED = "persist.sys.cli.public_cmd_enabled";
 
-bool IsPcOr2in1()
+bool Is2in1Device()
 {
-    std::string  ret = system::GetParameter("const.product.devicetype", "");
+    std::string  deviceType = system::GetParameter("const.product.devicetype", "");
     return !deviceType.empty() && deviceType.compare(0, 4, "2in1") == 0;
 }
 }
@@ -55,7 +55,7 @@ int32_t CcmUtil::GetCliConcurrencyLimit()
 bool CcmUtil::IsPublicCmdEnabled()
 {
     if (!publicCmdEnabled_.isLoaded) {
-        bool def = IsPcOr2in1();
+        bool def = Is2in1Device();
         publicCmdEnabled_.value = system::GetBoolParameter(CLI_PUBLIC_CMD_ENABLED, def);
         publicCmdEnabled_.isLoaded = true;
     }
