@@ -998,9 +998,24 @@ std::vector<std::string> ETSEnvironment::GetHspPathList()
 
     for (const auto &pluginHspPath : staticPluginHspPathList_) {
         std::string targetPath = pluginHspPath;
-        std::regex patter((std::string(ABS_DATA_CODE_PATH)));
- 	    targetPath = std::regex_replace(targetPath, patter, "");
- 	    targetPath = std::string(BUNDLE_INSTALL_PATH) + targetPath.substr(targetPath.find("/") + 1);
+        std::string prefix = std::string(ABS_DATA_CODE_PATH) + std::string(FILE_SEPARATOR);
+        if (targetPath.find(prefix) != 0) {
+            continue;
+        }
+        std::string relativePath = targetPath.substr(prefix.length());
+        if (relativePath.empty()) {
+            continue;
+        }
+        auto pos = relativePath.find(FILE_SEPARATOR);
+        if (pos == std::string::npos) {
+            targetPath = std::string(BUNDLE_INSTALL_PATH) + std::string(FILE_SEPARATOR) + relativePath;
+        } else {
+            std::string finalPath = relativePath.substr(pos + 1);
+            if (finalPath.empty()) {
+                continue;
+            }
+            targetPath = std::string(BUNDLE_INSTALL_PATH) + std::string(FILE_SEPARATOR) + finalPath;
+        }
         hspPathList.push_back(targetPath);
     }
 
