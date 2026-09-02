@@ -60,8 +60,7 @@ ErrCode DisposedRuleInterceptor::DoProcess(const AbilityInterceptorParam &param)
         TAG_LOGI(AAFwkTag::ABILITYMGR, "disposedType: %{public}d, controlType: %{public}d, componentType: %{public}d",
             disposedRule.disposedType, disposedRule.controlType, disposedRule.componentType);
 #ifdef SUPPORT_GRAPHICS
-        if (!param.isWithUI || disposedRule.want == nullptr
-            || disposedRule.disposedType == AppExecFwk::DisposedType::NON_BLOCK) {
+        if (!param.isWithUI || disposedRule.want == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "no dispose want");
             return AbilityUtil::EdmErrorType(disposedRule.isEdm);
         }
