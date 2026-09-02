@@ -112,7 +112,7 @@
 #endif
 
 #include "sleep_clean.h"
-#include "extractor.h" 
+#include "extractor.h"
 
 #if defined(NWEB)
 #include <thread>
