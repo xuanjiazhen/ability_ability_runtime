@@ -77,6 +77,7 @@ ohos_unittest("app_exit_reason_helper_fourth_test") {
   ]
 
   external_deps = [
+    "os_account:os_account_innerkits",
     "ability_base:session_info",
     "background_task_mgr:bgtaskmgr_innerkits",
     "ability_base:want",

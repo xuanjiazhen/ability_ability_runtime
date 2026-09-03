@@ -55,6 +55,7 @@ ohos_fuzztest("AbilityAutoStartupDataManagerThirdFuzzTest") {
   ]
 
   external_deps = [
+    "os_account:os_account_innerkits",
     "ability_base:want",
     "background_task_mgr:bgtaskmgr_innerkits",
     "ability_base:zuri",
