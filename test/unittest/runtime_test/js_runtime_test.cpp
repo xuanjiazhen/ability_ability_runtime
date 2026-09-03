@@ -31,6 +31,7 @@
 #include "hilog_tag_wrapper.h"
 #include "js_runtime_lite.h"
 #include "file_mapper.h"
+#include "ecmascript/napi/include/dfx_jsnapi.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -2447,6 +2448,108 @@ HWTEST_F(JsRuntimeTest, InitSourceMap_0300, TestSize.Level2)
     jsRuntime.reset();
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0300 end");
+}
+
+/**
+ * @tc.name: InitSourceMap_0400
+ * @tc.desc: JsRuntime InitSourceMap completes ffrt task, verify InitStatus via TranslateBySourceMap
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, InitSourceMap_0400, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0400 start");
+
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    ASSERT_NE(jsRuntime, nullptr);
+    jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    std::string bundleName = TEST_BUNDLE_NAME;
+
+    // Reset state before test
+    DFXJSNApi::SourceMapSetInitStatus(panda::ecmascript::InitStatus::NOT_EXECUTED);
+    DFXJSNApi::SourceMapSetIsRelease(false);
+
+    jsRuntime->InitSourceMap(bundleName);
+    // Wait for ffrt task to complete
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    // In test env, GetHapPathList returns empty list -> for-loop does not execute
+    // -> IsRelease remains false (never set in the loop)
+    // -> TranslateBySourceMap does NOT return NOT_FOUNDMAP prefix
+    std::string stackStr = "at func (entry/src/main/ets/pages/Index.ts:10:5)";
+    std::string result = DFXJSNApi::SourceMapTranslateBySourceMap(stackStr);
+    EXPECT_EQ(result.find("Cannot get SourceMap info"), std::string::npos);
+
+    // Cleanup
+    DFXJSNApi::SourceMapSetInitStatus(panda::ecmascript::InitStatus::NOT_EXECUTED);
+    DFXJSNApi::SourceMapSetIsRelease(false);
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0400 end");
+}
+
+/**
+ * @tc.name: InitSourceMap_0500
+ * @tc.desc: Verify SourceMapSetIsRelease explicit both branches affect TranslateBySourceMap
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, InitSourceMap_0500, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0500 start");
+
+    // Verify IsRelease=true branch: TranslateBySourceMap returns NOT_FOUNDMAP prefix
+    DFXJSNApi::SourceMapSetInitStatus(panda::ecmascript::InitStatus::EXECUTED_SUCCESSFULLY);
+    DFXJSNApi::SourceMapSetIsRelease(true);
+
+    std::string stackStr = "at func (entry/src/main/ets/pages/Index.ts:10:5)";
+    std::string resultTrue = DFXJSNApi::SourceMapTranslateBySourceMap(stackStr);
+    EXPECT_NE(resultTrue.find("Cannot get SourceMap info"), std::string::npos);
+
+    // Verify IsRelease=false branch: TranslateBySourceMap does NOT return NOT_FOUNDMAP prefix
+    DFXJSNApi::SourceMapSetIsRelease(false);
+    std::string resultFalse = DFXJSNApi::SourceMapTranslateBySourceMap(stackStr);
+    EXPECT_EQ(resultFalse.find("Cannot get SourceMap info"), std::string::npos);
+
+    // Cleanup
+    DFXJSNApi::SourceMapSetInitStatus(panda::ecmascript::InitStatus::NOT_EXECUTED);
+    DFXJSNApi::SourceMapSetIsRelease(false);
+    TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0500 end");
+}
+
+/**
+ * @tc.name: InitSourceMap_0600
+ * @tc.desc: JsRuntime InitSourceMap with empty bundleName, no hap iteration, InitStatus still EXECUTED_SUCCESSFULLY
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, InitSourceMap_0600, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0600 start");
+
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    ASSERT_NE(jsRuntime, nullptr);
+    jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    std::string bundleName = "";
+
+    // Reset state before test
+    DFXJSNApi::SourceMapSetInitStatus(panda::ecmascript::InitStatus::NOT_EXECUTED);
+    DFXJSNApi::SourceMapSetIsRelease(false);
+
+    jsRuntime->InitSourceMap(bundleName);
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    // Empty bundleName -> empty hapList -> no for-loop iteration
+    // InitStatus still transitions: IN_EXECUTED -> EXECUTED_SUCCESSFULLY
+    // IsRelease remains false (never set in the loop)
+    // Verify: IsRelease=false -> TranslateBySourceMap does NOT return NOT_FOUNDMAP prefix
+    std::string stackStr = "at func (unknown.ts:10:5)";
+    std::string result = DFXJSNApi::SourceMapTranslateBySourceMap(stackStr);
+    EXPECT_EQ(result.find("Cannot get SourceMap info"), std::string::npos);
+
+    // Cleanup
+    DFXJSNApi::SourceMapSetInitStatus(panda::ecmascript::InitStatus::NOT_EXECUTED);
+    DFXJSNApi::SourceMapSetIsRelease(false);
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0600 end");
 }
 
 /**
