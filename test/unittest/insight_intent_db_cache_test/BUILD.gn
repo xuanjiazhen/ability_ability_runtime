@@ -40,12 +40,14 @@ ohos_unittest("insight_intent_db_cache_test") {
   ]
 
   deps = [
-    "${ability_runtime_abilitymgr_path}/:abilityms",
+    "${ability_runtime_abilitymgr_path}/:abilityms_test",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
   ]
 
   external_deps = [
+    "bundle_framework:appexecfwk_base",
     "ability_base:want",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "ability_base:zuri",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:libappexecfwk_common",

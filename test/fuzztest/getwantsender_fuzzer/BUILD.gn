@@ -42,10 +42,11 @@ ohos_fuzztest("GetWantSenderFuzzTest") {
   configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
 
   deps = [
+    "${ability_runtime_services_path}/common:app_util",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/wantagent:wantagent_innerkits",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
     "${ability_runtime_services_path}/abilitymgr:wantagent_manager",
   ]
 

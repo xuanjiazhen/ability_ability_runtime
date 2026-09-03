@@ -60,6 +60,8 @@ ohos_unittest("window_focus_changed_listener_test") {
   }
 
   deps = [
+    "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:task_handler_wrap",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
@@ -72,13 +74,17 @@ ohos_unittest("window_focus_changed_listener_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
     "${ability_runtime_path}/utils/server/startup:startup_util",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
     "${ability_runtime_services_path}/abilitymgr:mission_list",
     "${ability_runtime_services_path}/common:perm_verification",
   ]
 
   external_deps = [
+    "bundle_framework:appexecfwk_core",
+    "ipc:ipc_single",
+    "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "ability_base:configuration",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "ability_base:extractortool",
     "ability_base:session_info",
     "ability_base:want",
