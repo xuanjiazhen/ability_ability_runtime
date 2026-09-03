@@ -35,13 +35,18 @@ ohos_fuzztest("AbilityStubKillProcessFuzzTest") {
   configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
 
   deps = [
+    "${ability_runtime_innerkits_path}/session_handler:session_handler",
+    "${ability_runtime_innerkits_path}/foreground_app_obs_manager:foreground_app_obs_manager",
+    "${ability_runtime_innerkits_path}/connectionobs_manager:connection_obs_manager",
+    "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
 
   external_deps = [
     "ability_base:want",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "ability_base:zuri",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",

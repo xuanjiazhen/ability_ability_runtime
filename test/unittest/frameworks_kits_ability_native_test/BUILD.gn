@@ -82,6 +82,8 @@ ohos_unittest("ability_test") {
   configs = [ ":module_private_config" ]
 
   deps = [
+    "${ability_runtime_native_path}/ability/native:ability_observer_ipc",
+    "${ability_runtime_services_path}/common:perm_verification",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
@@ -101,6 +103,7 @@ ohos_unittest("ability_test") {
   ]
 
   external_deps = [
+    "access_token:libtokenid_sdk",
     "ability_base:base",
     "ability_base:configuration",
     "ability_base:extractortool",
@@ -275,7 +278,7 @@ ohos_unittest("ability_context_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
 
   external_deps = [
@@ -458,7 +461,7 @@ ohos_unittest("data_ability_helper_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:data_ability_helper",
     "${ability_runtime_native_path}/appkit:app_context",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
 
   external_deps = [
@@ -527,7 +530,7 @@ ohos_unittest("data_ability_helper_impl_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:data_ability_helper",
     "${ability_runtime_native_path}/appkit:app_context",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
   external_deps = [
     "ability_base:base",
@@ -1882,7 +1885,7 @@ ohos_unittest("ability_permission_test") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
 
   external_deps = [

@@ -36,7 +36,7 @@ ohos_moduletest("ability_command_module_test") {
 
   deps = [
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
 
   external_deps = [
@@ -59,7 +59,7 @@ ohos_moduletest("test_observer_module_test") {
 
   deps = [
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
 
   external_deps = [

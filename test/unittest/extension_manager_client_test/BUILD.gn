@@ -26,7 +26,7 @@ ohos_unittest("extension_manager_client_test") {
 
   deps = [
     "${ability_runtime_innerkits_path}/extension_manager:extension_manager",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
     "${ability_runtime_services_path}/common:perm_verification",
   ]
 
