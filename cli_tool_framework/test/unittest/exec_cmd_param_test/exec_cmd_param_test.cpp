@@ -22,8 +22,9 @@
 #include "exec_options.h"
 
 using namespace testing::ext;
-using namespace OHOS::CliTool;
 
+namespace OHOS {
+namespace CliTool {
 namespace {
 const std::string TEST_CMD = "ohos-aa start --bundleName=com.example";
 const std::string TEST_CHALLENGE = "test_challenge_token";
@@ -146,3 +147,5 @@ HWTEST_F(ExecCmdParamTest, ExecCmdParam_ExtractToolName_0300, TestSize.Level2)
     EXPECT_TRUE(ExecCmdParam::ExtractToolName("   ").empty());
     EXPECT_TRUE(ExecCmdParam::ExtractToolName("\t\t").empty());
 }
+} // namespace CliTool
+} // namespace OHOS
