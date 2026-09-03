@@ -42,6 +42,7 @@
 #include "cli_tool_manager_scheduler_stub.h"
 #include "cli_tool_data_manager_mock.h"
 #include "event_dispatcher.h"
+#include "exec_cmd_param.h"
 #include "exec_options.h"
 #include "function_info.h"
 #include "ipc_skeleton.h"
