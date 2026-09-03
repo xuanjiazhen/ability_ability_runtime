@@ -35,11 +35,13 @@ ohos_unittest("ability_debug_deal_test") {
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
 
   external_deps = [
+    "ipc:ipc_single",
     "ability_base:want",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "ffrt:libffrt",

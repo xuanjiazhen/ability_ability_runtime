@@ -26,16 +26,18 @@ ohos_moduletest("on_new_want_module_test") {
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
 
   deps = [
+    "${ability_runtime_services_path}/common:app_util",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
     "${ability_runtime_services_path}/abilitymgr:mission_list",
     "${ability_runtime_services_path}/common:perm_verification",
   ]
 
   external_deps = [
     "ability_base:session_info",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "ability_base:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
