@@ -34,7 +34,7 @@ ohos_fuzztest("TestObserverStubFuzzTest") {
   sources = [ "testobserverstub_fuzzer.cpp" ]
   deps = [
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
   external_deps = [
     "ability_base:configuration",
