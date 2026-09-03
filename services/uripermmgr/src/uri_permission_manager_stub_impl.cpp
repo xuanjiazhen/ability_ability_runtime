@@ -535,7 +535,7 @@ int32_t UriPermissionManagerStubImpl::SandboxManagerSetPolicy(const std::vector<
     }
     uint32_t policyFlag = (flag & FLAG_PERSIST_URI) == 0 ? 0 : IS_POLICY_ALLOWED_TO_BE_PRESISTED;
     SetInfo setInfo;
-    setInfo.userId = userId;
+    setInfo.userId = userId; //
     setInfo.bundleName = callerInfo.alterBundleName;
     setInfo.timestamp = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
     std::chrono::high_resolution_clock::now().time_since_epoch()).count());
