@@ -26,6 +26,7 @@
       *AppScheduler*;
       *CallRecord*;
       *InnerMissionInfo*;
+      *MissionListenerController*;
       *StartOptions*;
       *Token*;
     };
