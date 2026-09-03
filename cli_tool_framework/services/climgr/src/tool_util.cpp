@@ -386,7 +386,8 @@ bool IsBooleanSchema(const nlohmann::json &properties, const std::string &key)
 int32_t ParseArgTokens(const std::vector<std::string> &tokens, size_t start,
     const nlohmann::json &properties, ParsedCommandArgs &parsed, std::string &detail)
 {
-    for (size_t i = start; i < tokens.size(); ++i) {
+    size_t i = start;
+    while (i < tokens.size()) {
         const std::string &token = tokens[i];
         if (!IsFlagToken(token)) {
             // Bare token without "--" prefix (short flags / custom prefix) is not supported.
@@ -403,6 +404,7 @@ int32_t ParseArgTokens(const std::vector<std::string> &tokens, size_t start,
         // "help" is always allowed, matching ValidateInputSchemaProperties.
         if (key == HELP_KEY) {
             parsed.values[key].push_back("true");
+            ++i;
             continue;
         }
         if (!properties.contains(key)) {
@@ -412,6 +414,7 @@ int32_t ParseArgTokens(const std::vector<std::string> &tokens, size_t start,
         // --key=value
         if (eqPos != std::string::npos) {
             parsed.values[key].push_back(flagText.substr(eqPos + 1));
+            ++i;
             continue;
         }
         // --key with no inline value: decide whether it takes a value or is a boolean flag.
@@ -422,17 +425,18 @@ int32_t ParseArgTokens(const std::vector<std::string> &tokens, size_t start,
                 return ERR_INVALID_PARAM;
             }
             parsed.values[key].push_back("true");
+            ++i;
             continue;
         }
         // --key false (explicit boolean false)
         if (isBool && tokens[i + 1] == "false") {
             parsed.values[key].push_back("false");
-            ++i;
+            i += 2;
             continue;
         }
         // --key value
         parsed.values[key].push_back(tokens[i + 1]);
-        ++i;
+        i += 2;
     }
     return ERR_OK;
 }
