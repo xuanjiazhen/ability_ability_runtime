@@ -38,7 +38,7 @@ ohos_unittest("aa_command_test") {
 
   deps = [
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
 
   external_deps = [
@@ -66,7 +66,7 @@ ohos_unittest("aa_command_ability_first_test") {
 
   deps = [
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
 
   external_deps = [
@@ -94,7 +94,7 @@ ohos_unittest("aa_command_start_test") {
 
   deps = [
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
 
   external_deps = [
@@ -122,7 +122,7 @@ ohos_unittest("aa_command_stop_service_test") {
 
   deps = [
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
 
   external_deps = [
@@ -150,7 +150,7 @@ ohos_unittest("aa_command_dump_test") {
 
   deps = [
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
 
   external_deps = [
@@ -178,7 +178,7 @@ ohos_unittest("aa_command_dumpsys_test") {
 
   deps = [
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
 
   external_deps = [
@@ -206,7 +206,7 @@ ohos_unittest("aa_command_force_stop_test") {
 
   deps = [
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
 
   external_deps = [
@@ -234,7 +234,7 @@ ohos_unittest("aa_command_force_timeout_test") {
 
   deps = [
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
 
   external_deps = [
@@ -262,7 +262,7 @@ ohos_unittest("aa_command_test_test") {
 
   deps = [
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
 
   external_deps = [
@@ -315,7 +315,7 @@ ohos_unittest("aa_command_send_memory_level_test") {
 
   deps = [
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",

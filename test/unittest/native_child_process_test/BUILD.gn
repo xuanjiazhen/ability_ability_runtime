@@ -70,6 +70,8 @@ ohos_unittest("native_child_process_test") {
   ]
 
   deps = [
+    "${ability_runtime_innerkits_path}/session_handler:session_handler",
+    "${ability_runtime_services_path}/common:user_controller",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
     "${ability_runtime_innerkits_path}/ability_manager:process_options",
@@ -83,7 +85,7 @@ ohos_unittest("native_child_process_test") {
     "${ability_runtime_path}/utils/global/common:runtime_utils",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_path}/utils/server/startup:startup_util",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
     "${ability_runtime_services_path}/common:app_util",
     "${ability_runtime_services_path}/common:hisysevent_report",
     "${ability_runtime_services_path}/common:perm_verification",
@@ -91,6 +93,8 @@ ohos_unittest("native_child_process_test") {
   ]
 
   external_deps = [
+    "access_token:libtokenid_sdk",
+    "ipc:ipc_single",
     "ability_base:session_info",
     "ability_base:want",
     "ability_base:zuri",
