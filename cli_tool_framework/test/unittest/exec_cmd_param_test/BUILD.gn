@@ -19,7 +19,10 @@ module_output_path = "ability_runtime/ability_runtime/clitool"
 ohos_unittest("exec_cmd_param_test") {
   module_out_path = module_output_path
 
-  include_dirs = [ "${cli_tool_framework_path}/interfaces/cli_tool/include" ]
+  include_dirs = [
+    "${cli_tool_framework_path}/interfaces/cli_tool/include",
+    "${ability_runtime_services_path}/common/include",
+  ]
 
   sources = [
     "exec_cmd_param_test.cpp",
