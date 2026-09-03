@@ -61,13 +61,13 @@ public:
      * Set the enable flag for resident processes.
      *
      * @param bundleName, The bundle name of the resident process.
-     * @param callerName, The name of the caller, usually the system application.
+     * @param callerName, The name of the caller, usually the system application. Empty when isSACall is true.
      * @param updateEnable, Set value, if true, start the resident process, If false, stop the resident process
-     * @param isSACall, Whether the caller is a system ability.
+     * @param isSACall, Whether the caller is a system ability. If true, skip caller check and permission verify.
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t SetResidentProcessEnabled(const std::string &bundleName, const std::string &callerName,
-        bool updateEnable, bool isSACall = false);
+        bool updateEnable, bool isSACall);
 
     /**
      * start empty resident processes.

@@ -94,7 +94,7 @@ HWTEST_F(ResidentProcessManagerTest, SetResidentProcessEnable_001, TestSize.Leve
     ASSERT_NE(manager, nullptr);
     std::string bundleName = "com.example.resident.process";
     std::string callerName;
-    EXPECT_EQ(manager->SetResidentProcessEnabled(bundleName, callerName, false), INVALID_PARAMETERS_ERR);
+    EXPECT_EQ(manager->SetResidentProcessEnabled(bundleName, callerName, false, false), INVALID_PARAMETERS_ERR);
 }
 
 /*
@@ -112,7 +112,13 @@ HWTEST_F(ResidentProcessManagerTest, SetResidentProcessEnable_002, TestSize.Leve
 
     std::string bundleName = "com.example.resident.process";
     std::string callerName = "resident.process.manager.test";
-    EXPECT_EQ(manager->SetResidentProcessEnabled(bundleName, callerName, false), ERR_NO_RESIDENT_PERMISSION);
+    EXPECT_CALL(AmsResidentProcessRdb::GetInstance(), VerifyConfigurationPermissions(bundleName, callerName))
+        .Times(1)
+        .WillOnce(Return(RdbResult::Rdb_Permissions_Err));
+    EXPECT_CALL(AmsResidentProcessRdb::GetInstance(), GetResidentProcessRawData(bundleName, callerName))
+        .Times(1)
+        .WillOnce(Return(RdbResult::Rdb_Search_Record_Err));
+    EXPECT_EQ(manager->SetResidentProcessEnabled(bundleName, callerName, false, false), ERR_NO_RESIDENT_PERMISSION);
 }
 
 /*
@@ -128,14 +134,15 @@ HWTEST_F(ResidentProcessManagerTest, SetResidentProcessEnable_003, TestSize.Leve
     auto manager = std::make_shared<ResidentProcessManager>();
     ASSERT_NE(manager, nullptr);
     std::string bundleName = "com.example.resident.process";
-    // SA caller uses bundleName as callerName, pass permission check, rdb is not initialized in ut.
-    EXPECT_CALL(AmsResidentProcessRdb::GetInstance(), VerifyConfigurationPermissions(bundleName, bundleName))
-        .Times(1)
-        .WillOnce(Return(RdbResult::Rdb_OK));
+    // SA caller passes empty callerName and skips permission verification.
+    EXPECT_CALL(AmsResidentProcessRdb::GetInstance(), VerifyConfigurationPermissions(bundleName, _))
+        .Times(0);
+    EXPECT_CALL(AmsResidentProcessRdb::GetInstance(), GetResidentProcessRawData(bundleName, _))
+        .Times(0);
     EXPECT_CALL(AmsResidentProcessRdb::GetInstance(), GetResidentProcessEnable(bundleName, _))
         .Times(1)
         .WillOnce(Return(RdbResult::Rdb_Parameter_Err));
-    EXPECT_EQ(manager->SetResidentProcessEnabled(bundleName, bundleName, false, true), INNER_ERR);
+    EXPECT_EQ(manager->SetResidentProcessEnabled(bundleName, std::string(), false, true), INNER_ERR);
 }
 
 /*
@@ -151,13 +158,14 @@ HWTEST_F(ResidentProcessManagerTest, SetResidentProcessEnable_004, TestSize.Leve
     auto manager = std::make_shared<ResidentProcessManager>();
     ASSERT_NE(manager, nullptr);
     std::string bundleName = "com.example.resident.process";
-    EXPECT_CALL(AmsResidentProcessRdb::GetInstance(), VerifyConfigurationPermissions(bundleName, bundleName))
-        .Times(1)
-        .WillOnce(Return(RdbResult::Rdb_OK));
+    EXPECT_CALL(AmsResidentProcessRdb::GetInstance(), VerifyConfigurationPermissions(bundleName, _))
+        .Times(0);
+    EXPECT_CALL(AmsResidentProcessRdb::GetInstance(), GetResidentProcessRawData(bundleName, _))
+        .Times(0);
     EXPECT_CALL(AmsResidentProcessRdb::GetInstance(), GetResidentProcessEnable(bundleName, _))
         .Times(1)
         .WillOnce(Return(RdbResult::Rdb_Init_Err));
-    EXPECT_EQ(manager->SetResidentProcessEnabled(bundleName, bundleName, true, true), INNER_ERR);
+    EXPECT_EQ(manager->SetResidentProcessEnabled(bundleName, std::string(), true, true), INNER_ERR);
 }
 
 /*

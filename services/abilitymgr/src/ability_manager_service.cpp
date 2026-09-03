@@ -16183,16 +16183,14 @@ int32_t AbilityManagerService::SetResidentProcessEnabled(const std::string &bund
     CHECK_POINTER_AND_RETURN(residentProcessManager, INNER_ERR);
 
     std::string callerName;
-    if (isSACall) {
-        callerName = bundleName;
-    } else {
+    if (!isSACall) {
         int32_t uid = 0;
         auto callerPid = IPCSkeleton::GetCallingPid();
         DelayedSingleton<AppScheduler>::GetInstance()->GetBundleNameByPid(callerPid, callerName, uid);
-    }
-    if (callerName.empty()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "obtain caller name failed");
-        return INNER_ERR;
+        if (callerName.empty()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "obtain caller name failed");
+            return INNER_ERR;
+        }
     }
 
     return residentProcessManager->SetResidentProcessEnabled(bundleName, callerName, enable, isSACall);

@@ -1587,7 +1587,7 @@ HWTEST_F(AbilityManagerServiceSecondTest, SetResidentProcessEnable_002, TestSize
     std::string bundleName = "ability.manager.service.test";
     bool enable = true;
     AAFwk::IsMockSaCall::IsMockSaCallWithPermission();
-    // SA call passes permission check, rdb is not initialized in ut, so return INNER_ERR.
+    // SA call skips permission check, rdb is not initialized in ut, so return INNER_ERR.
     EXPECT_EQ(abilityMs_->SetResidentProcessEnabled(bundleName, enable), INNER_ERR);
     AAFwk::IsMockSaCall::IsMockResetPermission();
 }

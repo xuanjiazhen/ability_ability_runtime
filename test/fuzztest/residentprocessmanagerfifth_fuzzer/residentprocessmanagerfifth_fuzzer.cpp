@@ -40,11 +40,13 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     std::string bundleName;
     std::string callerName;
     bool updateEnable;
+    bool isSACall;
     FuzzedDataProvider fdp(data, size);
     bundleName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
     callerName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
     updateEnable = fdp.ConsumeBool();
-    residentProcessManager->SetResidentProcessEnabled(bundleName, callerName, updateEnable);
+    isSACall = fdp.ConsumeBool();
+    residentProcessManager->SetResidentProcessEnabled(bundleName, callerName, updateEnable, isSACall);
     return true;
 }
 }
