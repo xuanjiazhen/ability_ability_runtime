@@ -154,23 +154,21 @@ int32_t ResidentProcessManager::SetResidentProcessEnabled(
     TAG_LOGI(AAFwkTag::ABILITYMGR,
         "SetResidentProcessEnabled,bundle:%{public}s,caller:%{public}s,enable:%{public}d,isSACall:%{public}d",
         bundleName.c_str(), callerName.c_str(), updateEnable, isSACall);
-    if (bundleName.empty()) {
+    if (bundleName.empty() || (!isSACall && callerName.empty())) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "input parameter error");
         return INVALID_PARAMETERS_ERR;
     }
+    auto &rdb = AmsResidentProcessRdb::GetInstance();
+    int32_t rdbResult = Rdb_OK;
+    int32_t configResult = Rdb_OK;
     if (!isSACall) {
-        if (callerName.empty()) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "input parameter error");
-            return INVALID_PARAMETERS_ERR;
-        }
-        auto &rdb = AmsResidentProcessRdb::GetInstance();
-        auto rdbResult = rdb.VerifyConfigurationPermissions(bundleName, callerName);
-        auto configResult = rdb.GetResidentProcessRawData(bundleName, callerName);
-        if (rdbResult != Rdb_OK && configResult != Rdb_OK) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "obtain permissions failed. result: %{public}d, configResult: %{public}d",
-                rdbResult, configResult);
-            return ERR_NO_RESIDENT_PERMISSION;
-        }
+        rdbResult = rdb.VerifyConfigurationPermissions(bundleName, callerName);
+        configResult = rdb.GetResidentProcessRawData(bundleName, callerName);
+    }
+    if (rdbResult != Rdb_OK && configResult != Rdb_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "obtain permissions failed. result: %{public}d, configResult: %{public}d",
+            rdbResult, configResult);
+        return ERR_NO_RESIDENT_PERMISSION;
     }
 
     bool localEnable = false;
