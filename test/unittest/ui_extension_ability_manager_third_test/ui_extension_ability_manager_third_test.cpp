@@ -32,6 +32,7 @@
 #include "iremote_object.h"
 #include "message_option.h"
 #include "message_parcel.h"
+#include "mock_task_handler_wrap.h"
 
 using namespace testing::ext;
 
@@ -39,6 +40,15 @@ namespace OHOS {
 namespace AAFwk {
 namespace {
 const std::string UIEXTENSION_LAUNCH_TIMESTAMP_HIGH = "ohos.ability.params.uiExtensionLaunchTimestampHigh";
+
+sptr<SessionInfo> MockSessionInfo(int32_t persistentId)
+{
+    auto sessionInfo = sptr<SessionInfo>::MakeSptr();
+    if (sessionInfo != nullptr) {
+        sessionInfo->persistentId = persistentId;
+    }
+    return sessionInfo;
+}
 }
 
 class MockPreloadHostClient final : public IRemoteObject {
@@ -172,6 +182,121 @@ HWTEST_F(UIExtensionAbilityManagerThirdTest, OnAbilityRequestDone_002, TestSize.
     connectManager->OnAbilityRequestDone(abilityRecord->GetToken(),
         static_cast<int32_t>(AppAbilityState::ABILITY_STATE_FOREGROUND));
     EXPECT_NE(abilityRecord->GetWant().GetIntParam(UIEXTENSION_LAUNCH_TIMESTAMP_HIGH, -1), -1);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: DoBackgroundAbilityWindow
+ * CaseDescription: Verify a newer background request removes queued foreground requests for the same record
+ */
+HWTEST_F(UIExtensionAbilityManagerThirdTest, DoBackgroundAbilityWindow_002, TestSize.Level1)
+{
+    auto connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    auto taskHandler = AppExecFwk::MockTaskHandlerWrap::CreateQueueHandler(
+        "DoBackgroundAbilityWindow_002");
+    ASSERT_NE(taskHandler, nullptr);
+    connectManager->SetTaskHandler(taskHandler);
+    EXPECT_CALL(*taskHandler, SubmitTaskInner(testing::_, testing::_))
+        .Times(testing::AnyNumber()).WillRepeatedly(testing::Return(nullptr));
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SYS_COMMON_UI;
+    abilityRequest.sessionInfo = MockSessionInfo(1);
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    const std::string recordUri = "ui_extension_record_1";
+    abilityRecord->SetURI(recordUri);
+    abilityRecord->SetAbilityState(AbilityState::BACKGROUNDING);
+
+    connectManager->DoForegroundUIExtension(abilityRecord, abilityRequest);
+    auto requestIt = connectManager->startServiceReqList_.find(recordUri);
+    ASSERT_NE(requestIt, connectManager->startServiceReqList_.end());
+    ASSERT_NE(requestIt->second, nullptr);
+    EXPECT_EQ(requestIt->second->size(), 1);
+    const std::string timeoutTaskName = "start_service_timeout:" + recordUri;
+    EXPECT_EQ(taskHandler->tasks_.count(timeoutTaskName), 1);
+
+    connectManager->DoBackgroundAbilityWindow(abilityRecord, abilityRequest.sessionInfo);
+
+    EXPECT_EQ(connectManager->startServiceReqList_.count(recordUri), 0);
+    EXPECT_EQ(taskHandler->tasks_.count(timeoutTaskName), 0);
+    EXPECT_EQ(abilityRecord->GetPendingState(), AbilityState::BACKGROUND);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: DoBackgroundAbilityWindow
+ * CaseDescription: Verify cancellation is record-scoped and a later foreground request can be queued again
+ */
+HWTEST_F(UIExtensionAbilityManagerThirdTest, DoBackgroundAbilityWindow_003, TestSize.Level1)
+{
+    auto connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    auto taskHandler = AppExecFwk::MockTaskHandlerWrap::CreateQueueHandler(
+        "DoBackgroundAbilityWindow_003");
+    ASSERT_NE(taskHandler, nullptr);
+    connectManager->SetTaskHandler(taskHandler);
+    EXPECT_CALL(*taskHandler, SubmitTaskInner(testing::_, testing::_))
+        .Times(testing::AnyNumber()).WillRepeatedly(testing::Return(nullptr));
+    AbilityRequest oldForegroundRequest;
+    oldForegroundRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SYS_COMMON_UI;
+    oldForegroundRequest.sessionInfo = MockSessionInfo(1);
+    oldForegroundRequest.requestCode = 1;
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(oldForegroundRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    const std::string recordUri = "ui_extension_record_1";
+    const std::string otherRecordUri = "ui_extension_record_2";
+    abilityRecord->SetURI(recordUri);
+    abilityRecord->SetAbilityState(AbilityState::BACKGROUNDING);
+
+    connectManager->DoForegroundUIExtension(abilityRecord, oldForegroundRequest);
+    AbilityRequest repeatedForegroundRequest = oldForegroundRequest;
+    repeatedForegroundRequest.requestCode = 11;
+    connectManager->DoForegroundUIExtension(abilityRecord, repeatedForegroundRequest);
+    connectManager->CallEnqueueStartServiceReq(oldForegroundRequest, otherRecordUri);
+    auto oldRequestIt = connectManager->startServiceReqList_.find(recordUri);
+    ASSERT_NE(oldRequestIt, connectManager->startServiceReqList_.end());
+    ASSERT_NE(oldRequestIt->second, nullptr);
+    ASSERT_EQ(oldRequestIt->second->size(), 2);
+    connectManager->DoBackgroundAbilityWindow(abilityRecord, oldForegroundRequest.sessionInfo);
+
+    EXPECT_EQ(connectManager->startServiceReqList_.count(recordUri), 0);
+    EXPECT_EQ(connectManager->startServiceReqList_.count(otherRecordUri), 1);
+    EXPECT_EQ(taskHandler->tasks_.count("start_service_timeout:" + recordUri), 0);
+    EXPECT_EQ(taskHandler->tasks_.count("start_service_timeout:" + otherRecordUri), 1);
+
+    AbilityRequest newForegroundRequest = oldForegroundRequest;
+    newForegroundRequest.requestCode = 2;
+    connectManager->DoForegroundUIExtension(abilityRecord, newForegroundRequest);
+
+    auto requestIt = connectManager->startServiceReqList_.find(recordUri);
+    ASSERT_NE(requestIt, connectManager->startServiceReqList_.end());
+    ASSERT_NE(requestIt->second, nullptr);
+    ASSERT_EQ(requestIt->second->size(), 1);
+    EXPECT_EQ(requestIt->second->front().requestCode, 2);
+    EXPECT_EQ(taskHandler->tasks_.count("start_service_timeout:" + recordUri), 1);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: CompleteBackground
+ * CaseDescription: Verify pending foreground waits for request-done before entering FOREGROUNDING
+ */
+HWTEST_F(UIExtensionAbilityManagerThirdTest, CompleteBackground_001, TestSize.Level1)
+{
+    auto connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SYS_COMMON_UI;
+    abilityRequest.sessionInfo = MockSessionInfo(1);
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->SetSessionInfo(abilityRequest.sessionInfo);
+    abilityRecord->SetDebugApp(true);
+    abilityRecord->SetAbilityState(AbilityState::BACKGROUNDING);
+    abilityRecord->SetPendingState(AbilityState::FOREGROUND);
+
+    connectManager->CompleteBackground(abilityRecord);
+
+    EXPECT_EQ(abilityRecord->GetAbilityState(), AbilityState::BACKGROUND);
+    EXPECT_EQ(abilityRecord->GetPendingState(), AbilityState::FOREGROUND);
 }
 
 /*

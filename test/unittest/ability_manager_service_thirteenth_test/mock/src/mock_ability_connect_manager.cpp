@@ -219,6 +219,10 @@ void AbilityConnectManager::CompleteStartServiceReq(const std::string &serviceUr
 {
 }
 
+void AbilityConnectManager::RemoveStartServiceReq(const std::string &serviceUri)
+{
+}
+
 std::shared_ptr<BaseExtensionRecord> AbilityConnectManager::GetServiceRecordByAbilityRequest(
     const AbilityRequest &abilityRequest)
 {

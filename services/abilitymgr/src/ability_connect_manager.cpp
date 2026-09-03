@@ -1198,6 +1198,25 @@ void AbilityConnectManager::CompleteStartServiceReq(const std::string &serviceUr
     }
 }
 
+void AbilityConnectManager::RemoveStartServiceReq(const std::string &serviceUri)
+{
+    std::lock_guard guard(startServiceReqListLock_);
+    auto it = startServiceReqList_.find(serviceUri);
+    if (it == startServiceReqList_.end()) {
+        TAG_LOGD(AAFwkTag::EXT, "no queued start request to remove, uri: %{public}s", serviceUri.c_str());
+        return;
+    }
+    size_t requestCount = it->second ? it->second->size() : 0;
+    startServiceReqList_.erase(it);
+    bool timeoutTaskCanceled = false;
+    if (taskHandler_) {
+        timeoutTaskCanceled = taskHandler_->CancelTask(std::string("start_service_timeout:") + serviceUri);
+    }
+    TAG_LOGI(AAFwkTag::EXT,
+        "remove queued start requests, uri: %{public}s, count: %{public}zu, timeoutTaskCanceled: %{public}d",
+        serviceUri.c_str(), requestCount, static_cast<int32_t>(timeoutTaskCanceled));
+}
+
 std::shared_ptr<BaseExtensionRecord> AbilityConnectManager::GetServiceRecordByAbilityRequest(
     const AbilityRequest &abilityRequest)
 {

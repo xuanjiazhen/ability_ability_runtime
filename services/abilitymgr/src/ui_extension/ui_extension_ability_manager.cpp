@@ -479,6 +479,7 @@ void UIExtensionAbilityManager::DoBackgroundAbilityWindow(const std::shared_ptr<
         sessionInfo->persistentId, abilitystateStr.c_str(),
         static_cast<int32_t>(abilityRecord->GetPendingState()));
     abilityRecord->SetPendingState(AbilityState::BACKGROUND);
+    RemoveStartServiceReq(abilityRecord->GetURI());
     if (abilityRecord->IsAbilityState(AbilityState::FOREGROUND)) {
         MoveToBackground(abilityRecord);
     } else if (abilityRecord->IsAbilityState(AbilityState::INITIAL) ||

@@ -436,6 +436,11 @@ protected:
      * After the service starting completes, complete the request list
      */
     void CompleteStartServiceReq(const std::string &serviceUri);
+    /**
+     * Remove queued start service requests without replaying, used when a newer
+     * background intent supersedes stale queued foreground requests.
+     */
+    void RemoveStartServiceReq(const std::string &serviceUri);
 
     bool IsCacheExtensionAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
 
