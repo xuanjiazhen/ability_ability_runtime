@@ -46,13 +46,15 @@ ohos_unittest("app_lifecycle_deal_test") {
   ]
 
   deps = [
+    "${ability_runtime_services_path}/common:app_util",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
     "${ability_runtime_services_path}/appmgr:libappms",
     "${ability_runtime_services_path}/common:perm_verification",
   ]
 
   external_deps = [
+    "ability_base:base",
     "ability_base:configuration",
     "ability_base:session_info",
     "ability_base:want",

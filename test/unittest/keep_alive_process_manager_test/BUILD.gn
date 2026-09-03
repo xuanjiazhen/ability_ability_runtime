@@ -49,12 +49,17 @@ ohos_unittest("keep_alive_process_manager_test") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   deps = [
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:perm_verification",
+    "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
     "${ability_runtime_services_path}/common:user_controller",
   ]
 
   external_deps = [
+    "ipc:ipc_single",
     "ability_base:base",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "ability_base:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",

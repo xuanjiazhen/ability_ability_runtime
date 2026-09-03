@@ -43,8 +43,9 @@ ohos_fuzztest("UpdateCallerInfoUtilFuzzTest") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   deps = [
+    "${ability_runtime_services_path}/common:app_util",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
 
   external_deps = [

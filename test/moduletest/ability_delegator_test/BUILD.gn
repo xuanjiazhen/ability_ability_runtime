@@ -113,6 +113,7 @@ ohos_moduletest("ability_delegator_registry_moduletest") {
   configs += [ "${ability_runtime_services_path}/common:common_config" ]
 
   deps = [
+    "${ability_runtime_services_path}/common:app_util",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/runtime:runtime",
@@ -120,7 +121,7 @@ ohos_moduletest("ability_delegator_registry_moduletest") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_delegator",
     "${ability_runtime_native_path}/appkit:appkit_native",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
 
   external_deps = [
@@ -152,7 +153,7 @@ ohos_moduletest("iability_monitor_moduletest") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:appkit_delegator",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
 
   external_deps = [
@@ -186,7 +187,7 @@ ohos_moduletest("ability_delegator_moduletest") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_delegator",
     "${ability_runtime_native_path}/appkit:appkit_native",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
 
   external_deps = [
@@ -229,7 +230,7 @@ ohos_moduletest("js_test_runner_moduletest") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_delegator",
     "${ability_runtime_native_path}/appkit:appkit_native",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]
 
   external_deps = [
