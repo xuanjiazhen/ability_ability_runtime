@@ -438,7 +438,7 @@ protected:
     void CompleteStartServiceReq(const std::string &serviceUri);
     /**
      * Remove queued start service requests without replaying, used when a newer
-     * background intent supersedes stale queued foreground requests.
+     * background request supersedes stale queued foreground requests.
      */
     void RemoveStartServiceReq(const std::string &serviceUri);
 
