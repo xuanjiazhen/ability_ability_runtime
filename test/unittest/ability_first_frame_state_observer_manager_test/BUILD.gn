@@ -41,6 +41,7 @@ ohos_unittest("ability_first_frame_state_observer_manager_test") {
 
   external_deps = [
     "ability_base:want",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",

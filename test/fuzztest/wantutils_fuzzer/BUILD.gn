@@ -49,6 +49,7 @@ ohos_fuzztest("WantUtilsFuzzTest") {
 
   external_deps = [
     "ability_base:want",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",

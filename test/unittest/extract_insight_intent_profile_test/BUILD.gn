@@ -42,6 +42,7 @@ ohos_unittest("extract_insight_intent_profile_test") {
 
   external_deps = [
     "ability_base:want",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "ability_base:zuri",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:libappexecfwk_common",

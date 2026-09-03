@@ -44,6 +44,7 @@ ohos_unittest("sa_interceptor_proxy_test") {
 
   external_deps = [
     "ability_base:want",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "ability_base:zuri",
     "c_utils:utils",
     "googletest:gmock_main",

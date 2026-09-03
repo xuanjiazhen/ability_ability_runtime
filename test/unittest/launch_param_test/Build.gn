@@ -42,6 +42,7 @@ ohos_unittest("launch_param_test") {
   ]
 
   external_deps = [
+    "background_task_mgr:bgtaskmgr_innerkits",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",

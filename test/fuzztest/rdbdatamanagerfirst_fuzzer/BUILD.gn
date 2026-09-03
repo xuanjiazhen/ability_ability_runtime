@@ -51,6 +51,7 @@ ohos_fuzztest("RdbDataManagerFirstFuzzTest") {
 
   external_deps = [
     "ability_base:base",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "ability_base:configuration",
     "ability_base:extractortool",
     "ability_base:session_info",

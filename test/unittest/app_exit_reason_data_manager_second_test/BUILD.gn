@@ -49,6 +49,7 @@ ohos_unittest("app_exit_reason_data_manager_second_test") {
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gmock_main",

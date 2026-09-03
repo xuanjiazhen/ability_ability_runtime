@@ -55,6 +55,7 @@ ohos_unittest("js_ui_service_extension_context_second_test") {
 
   external_deps = [
     "ability_base:configuration",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "ability_base:want",
     "ace_engine:ace_uicontent",
     "c_utils:utils",

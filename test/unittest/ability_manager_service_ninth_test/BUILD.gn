@@ -68,6 +68,7 @@ ohos_unittest("ability_manager_service_ninth_test") {
 
   external_deps = [
     "ability_base:session_info",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "ability_base:want",
     "ability_base:zuri",
     "access_token:libaccesstoken_sdk",

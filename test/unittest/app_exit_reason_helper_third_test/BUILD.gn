@@ -74,6 +74,7 @@ ohos_unittest("app_exit_reason_helper_third_test") {
 
   external_deps = [
     "ability_base:want",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "ability_base:zuri",
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",

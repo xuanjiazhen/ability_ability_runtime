@@ -70,6 +70,7 @@ ohos_unittest("ability_resident_process_rdb_test") {
 
   external_deps = [
     "ability_base:configuration",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "ability_base:session_info",
     "ability_base:want",
     "ability_base:zuri",

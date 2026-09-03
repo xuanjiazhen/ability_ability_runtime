@@ -50,6 +50,7 @@ ohos_fuzztest("AbilityManagerServiceFirstFuzzTest") {
 
   external_deps = [
     "ability_base:session_info",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "ability_base:want",
     "ability_base:zuri",
     "bundle_framework:appexecfwk_base",

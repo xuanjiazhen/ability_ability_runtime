@@ -50,6 +50,7 @@ ohos_unittest("free_install_manager_third_test") {
 
   external_deps = [
     "ability_base:session_info",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "ability_base:want",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_base",

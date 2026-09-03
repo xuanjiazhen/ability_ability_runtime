@@ -47,6 +47,7 @@ ohos_unittest("insight_intent_safe_get_test") {
 
   external_deps = [
     "ability_base:want",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "bundle_framework:libappexecfwk_common",
     "c_utils:utils",
     "ffrt:libffrt",

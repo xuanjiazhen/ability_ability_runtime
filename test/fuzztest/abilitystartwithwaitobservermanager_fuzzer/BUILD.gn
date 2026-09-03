@@ -49,6 +49,7 @@ ohos_fuzztest("AbilityStartWithWaitObserverManagerFuzzTest") {
 
   external_deps = [
     "ability_base:want",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "appspawn:appspawn_client",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",

@@ -54,6 +54,7 @@ ohos_unittest("ag_convert_callback_impl_test") {
 
   external_deps = [
     "ability_base:extractortool",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "ability_base:want",
     "ability_base:zuri",
     "access_token:libaccesstoken_sdk",

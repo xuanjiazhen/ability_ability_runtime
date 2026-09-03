@@ -79,6 +79,7 @@ ohos_fuzztest("ExtensionRecordManageraFuzzTest") {
 
   external_deps = [
     "ability_base:session_info",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "ability_base:want",
     "ability_base:zuri",
     "access_token:libaccesstoken_sdk",

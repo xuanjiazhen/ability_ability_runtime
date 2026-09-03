@@ -51,6 +51,7 @@ ohos_unittest("update_caller_info_util_test") {
 
   external_deps = [
     "ability_base:session_info",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "ability_base:want",
     "ability_base:zuri",
     "access_token:libaccesstoken_sdk",
