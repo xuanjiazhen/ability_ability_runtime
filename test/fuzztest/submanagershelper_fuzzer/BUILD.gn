@@ -48,6 +48,8 @@ ohos_fuzztest("SubManagersHelperFuzzTest") {
   configs = [ "${ability_runtime_innerkits_path}/ability_manager:ability_manager_public_config" ]
 
   deps = [
+    "${ability_runtime_innerkits_path}/session_handler:session_handler",
+    "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
     "${ability_runtime_services_path}/common:user_controller",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",

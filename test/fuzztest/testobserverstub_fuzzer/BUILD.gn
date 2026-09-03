@@ -33,6 +33,11 @@ ohos_fuzztest("TestObserverStubFuzzTest") {
   configs = []
   sources = [ "testobserverstub_fuzzer.cpp" ]
   deps = [
+    "${ability_runtime_innerkits_path}/session_handler:session_handler",
+    "${ability_runtime_innerkits_path}/foreground_app_obs_manager:foreground_app_obs_manager",
+    "${ability_runtime_innerkits_path}/connectionobs_manager:connection_obs_manager",
+    "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
     "${ability_runtime_services_path}/abilitymgr:abilityms_test",
   ]

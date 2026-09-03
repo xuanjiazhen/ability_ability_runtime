@@ -70,6 +70,7 @@ ohos_unittest("native_child_process_test") {
   ]
 
   deps = [
+    "${ability_runtime_innerkits_path}/session_handler:session_handler",
     "${ability_runtime_services_path}/common:user_controller",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",

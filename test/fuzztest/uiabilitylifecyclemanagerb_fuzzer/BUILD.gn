@@ -47,6 +47,7 @@ ohos_fuzztest("UiAbilityLifeCycleManagerBFuzzTest") {
   ]
 
   deps = [
+    "${ability_runtime_innerkits_path}/session_handler:session_handler",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
     "${ability_runtime_innerkits_path}/ability_manager:process_options",

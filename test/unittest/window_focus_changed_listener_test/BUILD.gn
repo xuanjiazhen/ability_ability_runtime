@@ -60,6 +60,7 @@ ohos_unittest("window_focus_changed_listener_test") {
   }
 
   deps = [
+    "${ability_runtime_services_path}/common:app_util",
     "${ability_runtime_services_path}/common:task_handler_wrap",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",

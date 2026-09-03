@@ -64,6 +64,10 @@ ohos_unittest("extension_record_manager_test") {
   }
 
   deps = [
+    "${ability_runtime_services_path}/common:hisysevent_report",
+    "${ability_runtime_innerkits_path}/session_handler:session_handler",
+    "${ability_runtime_innerkits_path}/foreground_app_obs_manager:foreground_app_obs_manager",
+    "${ability_runtime_innerkits_path}/connectionobs_manager:connection_obs_manager",
     "${ability_runtime_services_path}/common:user_controller",
     "${ability_runtime_services_path}/common:task_handler_wrap",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
