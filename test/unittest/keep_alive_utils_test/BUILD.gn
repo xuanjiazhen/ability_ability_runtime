@@ -49,12 +49,13 @@ ohos_unittest("keep_alive_utils_test") {
   deps = [
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
     "${ability_runtime_services_path}/common:app_util",
   ]
 
   external_deps = [
     "ability_base:base",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "ability_base:configuration",
     "ability_base:want",
     "ability_base:zuri",

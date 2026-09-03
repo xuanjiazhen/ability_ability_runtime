@@ -31,11 +31,12 @@ ohos_unittest("ability_extension_config_test") {
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
     "${ability_runtime_services_path}/common:app_util",
   ]
 
   external_deps = [
+    "background_task_mgr:bgtaskmgr_innerkits",
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "googletest:gmock_main",

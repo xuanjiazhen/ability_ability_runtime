@@ -43,14 +43,22 @@ ohos_unittest("function_call_convert_test") {
   ]
 
   deps = [
+    "${ability_runtime_path}/utils/global/common:runtime_utils",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
     "${ability_runtime_services_path}/common:app_util",
     "${cli_tool_framework_path}/interfaces/cli_tool:cli_tool_client",
   ]
 
   external_deps = [
+    "bundle_framework:appexecfwk_base",
+    "ability_base:zuri",
+    "ability_base:view_data",
+    "ability_base:session_info",
+    "ability_base:extractortool",
+    "ability_base:base",
     "ability_base:want",
+    "background_task_mgr:bgtaskmgr_innerkits",
     "c_utils:utils",
     "googletest:gtest_main",
     "hilog:libhilog",
