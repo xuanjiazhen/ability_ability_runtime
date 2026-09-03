@@ -735,6 +735,40 @@ bool UIAbilityLifecycleManager::AddStartCallerTimestamp(int32_t callerUid)
     return true;
 }
 
+void UIAbilityLifecycleManager::StoreAbilitySessionInfo(int32_t requestId, const AbilitySessionInfo &info)
+{
+    std::lock_guard<ffrt::mutex> guard(abilitySessionInfoMapLock_);
+    abilitySessionInfoMap_[requestId] = info;
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "StoreAbilitySessionInfo requestId=%{public}d, bundle=%{public}s, "
+        "tokenId=%{public}u, isWebSandBoxClone=%{public}d", requestId, info.callerBundleName.c_str(),
+        info.callerTokenId, info.isWebSandBoxClone);
+}
+
+bool UIAbilityLifecycleManager::GetAbilitySessionInfo(int32_t requestId, AbilitySessionInfo &info) const
+{
+    std::lock_guard<ffrt::mutex> guard(abilitySessionInfoMapLock_);
+    auto it = abilitySessionInfoMap_.find(requestId);
+    if (it == abilitySessionInfoMap_.end()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "GetAbilitySessionInfo not found requestId=%{public}d", requestId);
+        return false;
+    }
+    info = it->second;
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "GetAbilitySessionInfo requestId=%{public}d, bundle=%{public}s, tokenId=%{public}u, "
+        "isWebSandBoxClone=%{public}d", requestId, info.callerBundleName.c_str(), info.callerTokenId,
+        info.isWebSandBoxClone);
+    return true;
+}
+
+void UIAbilityLifecycleManager::RemoveAbilitySessionInfo(int32_t requestId)
+{
+    std::lock_guard<ffrt::mutex> guard(abilitySessionInfoMapLock_);
+    auto it = abilitySessionInfoMap_.find(requestId);
+    if (it != abilitySessionInfoMap_.end()) {
+        abilitySessionInfoMap_.erase(it);
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "RemoveAbilitySessionInfo requestId=%{public}d", requestId);
+    }
+}
+
 void UIAbilityLifecycleManager::SetSandboxCloneParamsForSession(sptr<SessionInfo> &sessionInfo,
     const AbilityRequest &abilityRequest)
 {
@@ -743,19 +777,47 @@ void UIAbilityLifecycleManager::SetSandboxCloneParamsForSession(sptr<SessionInfo
     }
     sessionInfo->want.SetParam(AbilityRuntime::ServerConstant::DLP_INDEX,
         abilityRequest.abilityInfo.applicationInfo.appIndex);
-    // Store isWebSandBoxClone and appIndex in want for SCB callback.
-    sessionInfo->want.SetParam(AbilityRuntime::GlobalConstant::IS_WEB_SANDBOX_CLONE,
-        abilityRequest.isWebSandBoxClone);
-    sessionInfo->want.SetParam(AbilityRuntime::GlobalConstant::SANDBOX_CLONE_INDEX,
-        abilityRequest.abilityInfo.applicationInfo.appIndex);
-    std::string callerBundleName = abilityRequest.want.GetStringParam(
-        AbilityRuntime::GlobalConstant::CLI_CALLER_BUNDLE_NAME);
-    std::string callerTokenId = abilityRequest.want.GetStringParam(
-        AbilityRuntime::GlobalConstant::CLI_CALLER_TOKEN_ID);
-    sessionInfo->want.SetParam(AbilityRuntime::GlobalConstant::CLI_CALLER_BUNDLE_NAME, callerBundleName);
-    sessionInfo->want.SetParam(AbilityRuntime::GlobalConstant::CLI_CALLER_TOKEN_ID, callerTokenId);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "WebSandBoxClone params: bundle = %{public}s, tokenId = %{public}s",
-        callerBundleName.c_str(), callerTokenId.c_str());
+    // Store AbilitySessionInfo in the internal map
+    AbilitySessionInfo info;
+    info.isWebSandBoxClone = abilityRequest.isWebSandBoxClone;
+    info.sandBoxCloneIndex = abilityRequest.abilityInfo.applicationInfo.appIndex;
+    if (abilityRequest.sandboxCloneParams != nullptr) {
+        info.callerBundleName = abilityRequest.sandboxCloneParams->callerBundleName;
+        info.callerTokenId = abilityRequest.sandboxCloneParams->callerTokenId;
+        info.creatorBundleName = abilityRequest.sandboxCloneParams->creatorBundleName;
+    }
+    StoreAbilitySessionInfo(sessionInfo->requestId, info);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "SandboxClone params stored in map: bundle = %{public}s, tokenId = %{public}u, "
+        "isWebSandBoxClone = %{public}d, sandBoxCloneIndex = %{public}d, creatorBundleName = %{public}s, "
+        "requestId = %{public}d", info.callerBundleName.c_str(), info.callerTokenId, info.isWebSandBoxClone,
+        info.sandBoxCloneIndex, info.creatorBundleName.c_str(), sessionInfo->requestId);
+}
+
+bool UIAbilityLifecycleManager::HandleHookModule(AbilityRequest &abilityRequest, int32_t &ret)
+{
+    auto abilityRecord = FindRecordFromSessionMap(abilityRequest);
+    if (abilityRecord == nullptr || !abilityRecord->IsHook() || abilityRecord->GetHookOff()) {
+        return false;
+    }
+    AbilityRequest request;
+    request.callerToken = abilityRequest.callerToken;
+    request.requestCallback = abilityRequest.requestCallback;
+    sptr<SessionInfo> hookSessionInfo = abilityRecord->GetSessionInfo();
+    if (hookSessionInfo != nullptr) {
+        hookSessionInfo->want = abilityRequest.want;
+    }
+    std::string errMsg;
+    ret = NotifySCBPendingActivation(hookSessionInfo, request, errMsg);
+    if (hookSessionInfo != nullptr) {
+        hookSessionInfo->want.RemoveAllFd();
+    }
+    if (ret == ERR_INVALID_VALUE) {
+        ret = ERR_NOTIFY_SCB_PENDING_ACTIVATION_FAILED;
+    }
+    if (ret != ERR_OK && hookSessionInfo != nullptr) {
+        RemoveAbilitySessionInfo(hookSessionInfo->requestId);
+    }
+    return true;
 }
 
 int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &abilityRequest)
@@ -796,24 +858,9 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &ability
     }
 
     if (IsHookModule(abilityRequest)) {
-        auto abilityRecord = FindRecordFromSessionMap(abilityRequest);
-        if (abilityRecord != nullptr && abilityRecord->IsHook() && !abilityRecord->GetHookOff()) {
-            AbilityRequest request;
-            request.callerToken = abilityRequest.callerToken;
-            request.requestCallback = abilityRequest.requestCallback;
-            sptr<SessionInfo> hookSessionInfo = abilityRecord->GetSessionInfo();
-            if (hookSessionInfo != nullptr) {
-                hookSessionInfo->want = abilityRequest.want;
-            }
-            std::string errMsg;
-            int ret = NotifySCBPendingActivation(hookSessionInfo, request, errMsg);
-            if (hookSessionInfo != nullptr) {
-                hookSessionInfo->want.RemoveAllFd();
-            }
-            if (ret == ERR_INVALID_VALUE) {
-                ret = ERR_NOTIFY_SCB_PENDING_ACTIVATION_FAILED;
-            }
-            return ret;
+        int32_t hookRet = ERR_OK;
+        if (HandleHookModule(abilityRequest, hookRet)) {
+            return hookRet;
         }
     }
     bool reuse = false;
@@ -842,6 +889,9 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &ability
     int ret = NotifySCBPendingActivation(sessionInfo, abilityRequest, errMsg);
     if (ret == ERR_INVALID_VALUE) {
         ret = ERR_NOTIFY_SCB_PENDING_ACTIVATION_FAILED;
+    }
+    if (ret != ERR_OK) {
+        RemoveAbilitySessionInfo(sessionInfo->requestId);
     }
     sessionInfo->want.RemoveAllFd();
     return ret;
@@ -1280,7 +1330,7 @@ int32_t UIAbilityLifecycleManager::NotifyCompleteGamePreLaunch(const sptr<IRemot
     }
 
     if (!abilityRecord->IsGameSAPreLaunch()) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "Ability is not a game SA prelaunch");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Ability is not a game SA prelaunch");
         return ERR_NOT_GAME_PRELOAD_STATE;
     }
 
@@ -1410,13 +1460,14 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::GetAbilityRecordByToken(const sptr
     }
 
     for (auto ability : terminateAbilityList_) {
-        if (ability && token == ability->GetToken()->AsObject()) {
+        if (ability && ability->GetToken() && token == ability->GetToken()->AsObject()) {
             return ability;
         }
     }
 
     for (auto iter = sessionAbilityMap_.begin(); iter != sessionAbilityMap_.end(); iter++) {
-        if (iter->second != nullptr && iter->second->GetToken()->AsObject() == token) {
+        if (iter->second != nullptr && iter->second->GetToken() &&
+            iter->second->GetToken()->AsObject() == token) {
             return iter->second;
         }
     }
@@ -1460,7 +1511,8 @@ bool UIAbilityLifecycleManager::IsContainsAbility(const sptr<IRemoteObject> &tok
 bool UIAbilityLifecycleManager::IsContainsAbilityInner(const sptr<IRemoteObject> &token) const
 {
     for (auto iter = sessionAbilityMap_.begin(); iter != sessionAbilityMap_.end(); iter++) {
-        if (iter->second != nullptr && iter->second->GetToken()->AsObject() == token) {
+        if (iter->second != nullptr && iter->second->GetToken() &&
+            iter->second->GetToken()->AsObject() == token) {
             return true;
         }
     }
@@ -1480,13 +1532,15 @@ void UIAbilityLifecycleManager::EraseAbilityRecord(const UIAbilityRecordPtr &abi
     }
 
     for (auto iter = sessionAbilityMap_.begin(); iter != sessionAbilityMap_.end(); iter++) {
-        if (iter->second != nullptr && iter->second->GetToken()->AsObject() == abilityRecord->GetToken()->AsObject()) {
+        if (iter->second != nullptr && iter->second->GetToken() && abilityRecord->GetToken() &&
+            iter->second->GetToken()->AsObject() == abilityRecord->GetToken()->AsObject()) {
             sessionAbilityMap_.erase(iter);
             break;
         }
     }
     for (auto iter = lowMemKillAbilityMap_.begin(); iter != lowMemKillAbilityMap_.end(); iter++) {
-        if (iter->second != nullptr && iter->second->GetToken()->AsObject() == abilityRecord->GetToken()->AsObject()) {
+        if (iter->second != nullptr && iter->second->GetToken() && abilityRecord->GetToken() &&
+            iter->second->GetToken()->AsObject() == abilityRecord->GetToken()->AsObject()) {
             lowMemKillAbilityMap_.erase(iter);
             break;
         }
@@ -3397,6 +3451,9 @@ std::vector<UIAbilityRecordPtr> UIAbilityLifecycleManager::GetAbilityRecordsByNa
 {
     std::vector<UIAbilityRecordPtr> records;
     for (const auto& [first, second] : sessionAbilityMap_) {
+        if (second == nullptr) {
+            continue;
+        }
         auto &abilityInfo = second->GetAbilityInfo();
         AppExecFwk::ElementName localElement(abilityInfo.deviceId, abilityInfo.bundleName,
             abilityInfo.name, abilityInfo.moduleName);
@@ -3417,7 +3474,7 @@ int32_t UIAbilityLifecycleManager::GetSessionIdByAbilityToken(const sptr<IRemote
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
     for (const auto& [first, second] : sessionAbilityMap_) {
-        if (second && second->GetToken()->AsObject() == token) {
+        if (second && second->GetToken() && second->GetToken()->AsObject() == token) {
             return first;
         }
     }
@@ -4571,6 +4628,7 @@ void UIAbilityLifecycleManager::StartSpecifiedRequest(SpecifiedRequest &specifie
             auto result = NotifySCBPendingActivation(sessionInfo, request, errMsg);
             sessionInfo->want.RemoveAllFd();
             if (result != ERR_OK) {
+                RemoveAbilitySessionInfo(sessionInfo->requestId);
                 RemoveInstanceKey(request);
                 SubmitSpecifiedFailTask(specifiedRequest.requestId, false);
                 return;

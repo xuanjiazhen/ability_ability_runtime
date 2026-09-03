@@ -102,6 +102,7 @@ constexpr const char* PARAM_SEND_RESULT_CALLER_BUNDLENAME = "ohos.anco.param.sen
 constexpr const char* PARAM_SEND_RESULT_CALLER_TOKENID = "ohos.anco.param.sendResultCallerTokenId";
 constexpr const char* PARAM_RESV_ANCO_IS_NEED_UPDATE_NAME = "ohos.anco.param.isNeedUpdateName";
 constexpr const char* DLP_PARAMS_SECURITY_FLAG = "ohos.dlp.params.securityFlag";
+constexpr const char* DLP_PARAMS_CUSTOM_FLAG = "ohos.dlp.params.customFlag";
 constexpr const char* SPECIFIED_ABILITY_FLAG = "ohos.ability.params.specifiedAbilityFlag";
 constexpr const char* UIEXTENSION_LAUNCH_TIMESTAMP_HIGH = "ohos.ability.params.uiExtensionLaunchTimestampHigh";
 constexpr const char* UIEXTENSION_LAUNCH_TIMESTAMP_LOW = "ohos.ability.params.uiExtensionLaunchTimestampLow";
@@ -201,6 +202,7 @@ void AbilityRecord::Init(const AbilityRequest &abilityRequest)
     }
     SetAppIndex(appIndex);
     SetSecurityFlag(abilityRequest.want.GetBoolParam(DLP_PARAMS_SECURITY_FLAG, false));
+    SetDlpCustomFlag(abilityRequest.want.GetIntParam(DLP_PARAMS_CUSTOM_FLAG, 0));
     SetCallerAccessTokenId(abilityRequest.callerAccessTokenId);
     if (abilityRequest.processOptions != nullptr) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "isPreloadStart:%{public}d", abilityRequest.processOptions->isPreloadStart);
@@ -251,9 +253,13 @@ void AbilityRecord::InitSandboxCloneParams(const AbilityRequest &abilityRequest)
     auto sandboxCloneParams = std::make_shared<SandboxCloneParams>();
     sandboxCloneParams->callerBundleName = abilityRequest.sandboxCloneParams->callerBundleName;
     sandboxCloneParams->callerTokenId = abilityRequest.sandboxCloneParams->callerTokenId;
+    sandboxCloneParams->sandBoxCloneIndex = abilityRequest.sandboxCloneParams->sandBoxCloneIndex;
+    sandboxCloneParams->creatorBundleName = abilityRequest.sandboxCloneParams->creatorBundleName;
     SetSandboxCloneParams(sandboxCloneParams);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "InitSandboxCloneParams, callerBundleName = %{public}s, callerTokenId = %{public}d",
- 	    sandboxCloneParams->callerBundleName.c_str(), sandboxCloneParams->callerTokenId);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "InitSandboxCloneParams, callerBundleName = %{public}s, callerTokenId = %{public}d, "
+        "sandBoxCloneIndex = %{public}d, creatorBundleName = %{public}s", sandboxCloneParams->callerBundleName.c_str(),
+        sandboxCloneParams->callerTokenId, sandboxCloneParams->sandBoxCloneIndex,
+        sandboxCloneParams->creatorBundleName.c_str());
 }
 
 AbilityRecordType AbilityRecord::GetAbilityRecordType()
@@ -430,6 +436,7 @@ void AbilityRecord::ForegroundAbility(uint32_t sceneFlag)
 #endif // SUPPORT_SCREEN
     lifeCycleStateInfo_.sceneFlag = sceneFlag;
     auto want = GetWant();
+    want.RemoveParam(DLP_PARAMS_CUSTOM_FLAG);
     UpdateDmsCallerInfo(want);
     AbilityRuntime::ErrorMsgGuard errorMsgGuard(token_ ? token_->AsObject() : nullptr,
         reinterpret_cast<uintptr_t>(GetScheduler().GetRefPtr()), "ScheduleAbilityTransaction");
@@ -2671,6 +2678,13 @@ void AbilityRecord::PostStartAbilityByCallTimeoutTask(bool isHalf)
 void AbilityRecord::CallRequest()
 {
     CHECK_POINTER(scheduler_);
+    // Suppress the spurious prelaunch call request only when no real caller is waiting,
+    // otherwise a pending StartAbilityByCall would hang with no by_call timeout.
+    if (isPrelaunch_ && !IsNeedToCallRequest()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "prelaunch, no call request, bundle:%{public}s, ability:%{public}s, "
+            "recordId:%{public}d", GetInfoBundleName().c_str(), GetInfoAbilityName().c_str(), GetRecordId());
+        return;
+    }
     // Async call request
     std::string entry = "AbilityRecord::CallRequest Begin";
     FreezeUtil::GetInstance().AddLifecycleEvent(token_, entry);

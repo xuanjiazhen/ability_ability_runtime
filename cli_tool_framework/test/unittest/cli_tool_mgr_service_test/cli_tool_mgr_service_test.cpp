@@ -3191,135 +3191,182 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctions_0600, TestSize.Level
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctions_0600 end");
 }
 
-// ==================== ExecCmd Tool Command Mode Tests ====================
+// ==================== Async Function Interfaces Tests ====================
 
 /**
- * @tc.name: CliToolManagerService_ExecCmd_ToolMode_InvalidToolName_0100
- * @tc.desc: Test ExecCmd tool mode rejects toolName with path separator (path injection)
+ * @tc.name: CliToolManagerService_BatchRegisterFunctionsAsync_0100
+ * @tc.desc: Test BatchRegisterFunctionsAsync with valid functions
  * @tc.type: FUNC
  */
-HWTEST_F(CliToolManagerServiceTest, ExecCmd_ToolMode_InvalidToolName_0100, TestSize.Level1)
+HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctionsAsync_0100, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_ToolMode_InvalidToolName_0100 start");
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctionsAsync_0100 start");
 
-    ExecCmdParam param;
-    param.cmd = "/system/bin/ohos-aa start --bundleName=com.x";
-    param.isShellCommand = false;
-    sptr<TestScheduler> scheduler = new TestScheduler();
-    int32_t result = service_->ExecCmd(param, "event_path_inject", scheduler, "sub_path_inject");
-    EXPECT_TRUE(result == ERR_INVALID_PARAM || IsPermissionGateResult(result));
+    IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
 
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_ToolMode_InvalidToolName_0100 end");
-}
-
-/**
- * @tc.name: CliToolManagerService_ExecCmd_ToolMode_InvalidToolName_0200
- * @tc.desc: Test ExecCmd tool mode rejects toolName with dot or special chars
- * @tc.type: FUNC
- */
-HWTEST_F(CliToolManagerServiceTest, ExecCmd_ToolMode_InvalidToolName_0200, TestSize.Level2)
-{
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_ToolMode_InvalidToolName_0200 start");
-
-    ExecCmdParam param;
-    param.isShellCommand = false;
-    sptr<TestScheduler> scheduler = new TestScheduler();
-
-    param.cmd = "../ohos-aa start";
-    int32_t result = service_->ExecCmd(param, "event_dot", scheduler, "sub_dot");
-    EXPECT_TRUE(result == ERR_INVALID_PARAM || IsPermissionGateResult(result));
-
-    param.cmd = "ohos-aa;rm start";
-    result = service_->ExecCmd(param, "event_semicolon", scheduler, "sub_semicolon");
-    EXPECT_TRUE(result == ERR_INVALID_PARAM || IsPermissionGateResult(result));
-
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_ToolMode_InvalidToolName_0200 end");
-}
-
-/**
- * @tc.name: CliToolManagerService_ExecCmd_ToolMode_EmptyToolName_0100
- * @tc.desc: Test ExecCmd tool mode rejects whitespace-only cmd yielding empty toolName
- * @tc.type: FUNC
- */
-HWTEST_F(CliToolManagerServiceTest, ExecCmd_ToolMode_EmptyToolName_0100, TestSize.Level2)
-{
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_ToolMode_EmptyToolName_0100 start");
-
-    ExecCmdParam param;
-    param.cmd = "   ";
-    param.isShellCommand = false;
-    sptr<TestScheduler> scheduler = new TestScheduler();
-    int32_t result = service_->ExecCmd(param, "event_empty", scheduler, "sub_empty");
-    EXPECT_TRUE(result == ERR_INVALID_PARAM || IsPermissionGateResult(result));
-
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_ToolMode_EmptyToolName_0100 end");
-}
-
-/**
- * @tc.name: CliToolManagerService_ExecCmd_ToolMode_ToolNotExist_0100
- * @tc.desc: Test ExecCmd tool mode returns not-exist for unregistered toolName
- * @tc.type: FUNC
- */
-HWTEST_F(CliToolManagerServiceTest, ExecCmd_ToolMode_ToolNotExist_0100, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_ToolMode_ToolNotExist_0100 start");
-
-    CliToolDataManagerMock::Reset();
-    ExecCmdParam param;
-    param.cmd = "ohos-nonexistent-tool start --flag=true";
-    param.isShellCommand = false;
-    sptr<TestScheduler> scheduler = new TestScheduler();
-    int32_t result = service_->ExecCmd(param, "event_missing", scheduler, "sub_missing");
-    EXPECT_TRUE(result == ERR_TOOL_NOT_EXIST || IsPermissionGateResult(result));
-
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_ToolMode_ToolNotExist_0100 end");
-}
-
-/**
- * @tc.name: CliToolManagerService_ExecCmd_ToolMode_SessionLimit_0100
- * @tc.desc: Test ExecCmd tool mode returns session-limit when sessions are full
- * @tc.type: FUNC
- */
-HWTEST_F(CliToolManagerServiceTest, ExecCmd_ToolMode_SessionLimit_0100, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_ToolMode_SessionLimit_0100 start");
-
-    auto cliQuantity = CcmUtil::GetInstance().GetCliConcurrencyLimit();
-    for (int32_t i = 0; i < cliQuantity; ++i) {
-        auto record = std::make_shared<SessionRecord>();
-        record->sessionId = "exec_cmd_limit_session_" + std::to_string(i);
-        service_->AddSessionRecord(record);
+    std::vector<FunctionInfo> functions;
+    for (int i = 0; i < 3; i++) {
+        FunctionInfo function;
+        function.functionName = "async_test_func_" + std::to_string(i);
+        function.functionNamespace = "async_test_ns";
+        function.functionType = FunctionType::INTENT_FUNCTION;
+        functions.push_back(function);
     }
+    FunctionsRawData rawData;
+    FunctionsRawData::FromFunctionInfoVec(functions, rawData);
 
-    ExecCmdParam param;
-    param.cmd = "ohos-aa start --bundleName=com.x";
-    param.isShellCommand = false;
-    sptr<TestScheduler> scheduler = new TestScheduler();
-    int32_t result = service_->ExecCmd(param, "event_limit", scheduler, "sub_limit");
-    EXPECT_TRUE(result == ERR_SESSION_LIMIT_EXCEEDED || IsPermissionGateResult(result));
+    int32_t ret = service_->BatchRegisterFunctionsAsync(rawData);
 
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_ToolMode_SessionLimit_0100 end");
+    EXPECT_EQ(ret, ERR_OK);
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctionsAsync_0100 end");
 }
 
 /**
- * @tc.name: CliToolManagerService_ExecCmd_DefaultShellDispatch_0100
- * @tc.desc: Test ExecCmd with default isShellCommand=true does not enter tool-mode whitelist path
+ * @tc.name: CliToolManagerService_BatchRegisterFunctionsAsync_0200
+ * @tc.desc: Test BatchRegisterFunctionsAsync with non-FOUNDATION UID (permission denied)
  * @tc.type: FUNC
  */
-HWTEST_F(CliToolManagerServiceTest, ExecCmd_DefaultShellDispatch_0100, TestSize.Level2)
+HWTEST_F(CliToolManagerServiceTest, BatchRegisterFunctionsAsync_0200, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_DefaultShellDispatch_0100 start");
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctionsAsync_0200 start");
 
-    // isShellCommand defaults to true; a path-injection cmd would be rejected by tool-mode
-    // whitelist only. In shell mode it must NOT return ERR_INVALID_PARAM from the whitelist.
-    ExecCmdParam param;
-    param.cmd = "/bin/echo hello";
-    EXPECT_TRUE(param.isShellCommand);
-    sptr<TestScheduler> scheduler = new TestScheduler();
-    int32_t result = service_->ExecCmd(param, "event_shell_default", scheduler, "sub_shell_default");
-    EXPECT_NE(result, ERR_INVALID_PARAM);
+    IPCSkeleton::callingUid = 9999;
 
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_DefaultShellDispatch_0100 end");
+    std::vector<FunctionInfo> functions;
+    FunctionInfo function;
+    function.functionName = "async_test_func";
+    function.functionNamespace = "async_test_ns";
+    function.functionType = FunctionType::INTENT_FUNCTION;
+    functions.push_back(function);
+    FunctionsRawData rawData;
+    FunctionsRawData::FromFunctionInfoVec(functions, rawData);
+
+    int32_t ret = service_->BatchRegisterFunctionsAsync(rawData);
+
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_BatchRegisterFunctionsAsync_0200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0100
+ * @tc.desc: Test UnregisterIntentFunctionsByNamespaceAsync success
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterIntentFunctionsByNamespaceAsync_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0100 start");
+
+    IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    CliFunctionDataManagerMock::unregisterByNamespaceResult = ERR_OK;
+
+    int32_t ret = service_->UnregisterIntentFunctionsByNamespaceAsync("async_test_ns");
+
+    EXPECT_EQ(ret, ERR_OK);
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0200
+ * @tc.desc: Test UnregisterIntentFunctionsByNamespaceAsync with non-FOUNDATION UID (permission denied)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterIntentFunctionsByNamespaceAsync_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0200 start");
+
+    IPCSkeleton::callingUid = 9999;
+
+    int32_t ret = service_->UnregisterIntentFunctionsByNamespaceAsync("async_test_ns");
+
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_UnregisterIntentFunctionsByNamespaceAsync_0200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ResetNamespaceFunctionsAsync_0100
+ * @tc.desc: Test ResetNamespaceFunctionsAsync with valid namespace and functions
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctionsAsync_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctionsAsync_0100 start");
+
+    IPCSkeleton::SetCallingTokenID(TOKEN_NATIVE);
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    CliFunctionDataManagerMock::resetNamespaceFunctionsResult = ERR_OK;
+    CliFunctionDataManagerMock::resetNamespaceFunctionsSuccessCount = 2;
+
+    std::vector<FunctionInfo> functionList;
+    FunctionInfo func1;
+    func1.functionName = "async_func1";
+    func1.functionNamespace = "async_test_ns";
+    func1.functionType = FunctionType::INTENT_FUNCTION;
+    func1.version = "1.0";
+    func1.description = "Test function 1";
+    functionList.push_back(func1);
+
+    FunctionInfo func2;
+    func2.functionName = "async_func2";
+    func2.functionNamespace = "async_test_ns";
+    func2.functionType = FunctionType::INTENT_FUNCTION;
+    func2.version = "1.0";
+    func2.description = "Test function 2";
+    functionList.push_back(func2);
+
+    FunctionsRawData functions;
+    FunctionsRawData::FromFunctionInfoVec(functionList, functions);
+
+    int32_t result = service_->ResetNamespaceFunctionsAsync("async_test_ns", functions);
+
+    EXPECT_EQ(result, ERR_OK);
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctionsAsync_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ResetNamespaceFunctionsAsync_0200
+ * @tc.desc: Test ResetNamespaceFunctionsAsync with non-FOUNDATION UID (permission denied)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctionsAsync_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctionsAsync_0200 start");
+
+    IPCSkeleton::callingUid = 9999;
+
+    std::vector<FunctionInfo> functionList;
+    FunctionInfo func;
+    func.functionName = "async_func";
+    func.functionNamespace = "async_test_ns";
+    func.functionType = FunctionType::INTENT_FUNCTION;
+    functionList.push_back(func);
+
+    FunctionsRawData functions;
+    FunctionsRawData::FromFunctionInfoVec(functionList, functions);
+
+    int32_t result = service_->ResetNamespaceFunctionsAsync("async_test_ns", functions);
+
+    EXPECT_EQ(result, ERR_PERMISSION_DENIED);
+
+    IPCSkeleton::Reset();
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctionsAsync_0200 end");
 }
 } // namespace CliTool
 } // namespace OHOS

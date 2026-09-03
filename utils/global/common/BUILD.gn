@@ -36,6 +36,7 @@ ohos_shared_library("runtime_utils") {
 
   sources = [
     "src/ui_extension_wrapper.cpp",
+    "src/path_utils.cpp",
   ]
 
   public_configs = [
@@ -65,4 +66,5 @@ ohos_shared_library("runtime_utils") {
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs = [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }

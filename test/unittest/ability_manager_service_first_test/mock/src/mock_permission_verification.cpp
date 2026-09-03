@@ -295,6 +295,16 @@ bool PermissionVerification::VerifyStartLocalDebug(int32_t tokenId) const
     return true;
 }
 
+bool PermissionVerification::VerifyLocalDebugOtherApps() const
+{
+    return !!(MyFlag::flag_);
+}
+
+bool PermissionVerification::IsAllowLocalDebugOtherApps(bool isDebugFromLocal) const
+{
+    return !!(MyFlag::flag_);
+}
+
 bool PermissionVerification::VerifyStartSelfUIAbility(int tokenId) const
 {
     TAG_LOGI(AAFwkTag::TEST, "%{public}s enter", __func__);
@@ -316,6 +326,11 @@ int PermissionVerification::CheckCallModularObjectExtensionPermission(
 bool PermissionVerification::VerifySupportCrossAppEmbedForOaPermission() const
 {
     return true;
+}
+
+bool PermissionVerification::IsLocalDebugOtherAppsCall() const
+{
+    return false;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

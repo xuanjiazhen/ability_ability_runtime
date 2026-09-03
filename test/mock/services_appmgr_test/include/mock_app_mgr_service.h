@@ -57,6 +57,8 @@ public:
         std::vector<RunningProcessInfo>& info));
     MOCK_METHOD1(GetAllRenderProcesses, int(std::vector<RenderProcessInfo>& info));
     MOCK_METHOD1(GetAllChildrenProcesses, int(std::vector<ChildProcessInfo>&));
+    MOCK_METHOD1(GetSelfChildrenProcesses, int(std::vector<ChildProcessInfo>&));
+    MOCK_METHOD1(GetSelfUIAbilityChildProcesses, int32_t(std::vector<ChildProcessInfo>&));
     MOCK_METHOD0(GetAmsMgr, sptr<IAmsMgr>());
     MOCK_METHOD1(GetAppFreezingTime, void(int& time));
     MOCK_METHOD1(SetAppFreezingTime, void(int time));
@@ -155,6 +157,7 @@ public:
     MOCK_METHOD2(DumpMem, int32_t(MemDumpInfo &info, sptr<IMemDumpCallback> callback));
     MOCK_METHOD2(ReportDumpMemResult, int32_t(sptr<IMemDumpCallback>, const std::string&));
     MOCK_METHOD1(DumpJsHandleMap, int32_t(OHOS::AppExecFwk::JsHandleMapInfo &));
+    MOCK_METHOD2(GetHyperSnapLastError, int32_t(int32_t errType, HyperSnapErrorRecord &record));
     virtual int StartUserTestProcess(
         const AAFwk::Want &want, const sptr<IRemoteObject> &observer, const BundleInfo &bundleInfo, int32_t userId)
     {
