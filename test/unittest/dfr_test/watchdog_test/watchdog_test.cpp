@@ -289,6 +289,100 @@ HWTEST_F(WatchdogTest, WatchdogTest_SetBackgroundStatus_001, TestSize.Level0)
 }
 
 /**
+ * @tc.name: StartTransitionGuard
+ * @tc.desc: Verify that a Binder-side transition starts a two-cycle guard and
+ *           clears the one-shot diagnostic marker.
+ */
+HWTEST_F(WatchdogTest, WatchdogTest_StartTransitionGuard_001, TestSize.Level1)
+{
+    watchdog_->transitionDiagnosticReported_ = true;
+
+    watchdog_->StartTransitionGuard();
+
+    EXPECT_FALSE(watchdog_->transitionDiagnosticReported_);
+    EXPECT_EQ(watchdog_->transitionGuardRemainingCycles_, 2);
+}
+
+/**
+ * @tc.name: CompleteTransitionGuard
+ * @tc.desc: Verify lifecycle completion ends the transition guard early.
+ */
+HWTEST_F(WatchdogTest, WatchdogTest_CompleteTransitionGuard_001, TestSize.Level1)
+{
+    watchdog_->StartTransitionGuard();
+    watchdog_->CompleteTransitionGuard();
+    EXPECT_EQ(watchdog_->transitionGuardRemainingCycles_, 0);
+}
+
+/**
+ * @tc.name: IsSixSecondReportSuppressed
+ * @tc.desc: Verify ordinary applications are protected only in the guard window,
+ *           while SceneBoard remains the explicit exception.
+ */
+HWTEST_F(WatchdogTest, WatchdogTest_IsSixSecondReportSuppressed_001, TestSize.Level1)
+{
+    watchdog_->transitionGuardRemainingCycles_ = 2;
+    watchdog_->bundleName_ = "com.example.transition";
+    EXPECT_TRUE(watchdog_->IsSixSecondReportSuppressed());
+
+    watchdog_->bundleName_ = "com.ohos.sceneboard";
+    EXPECT_FALSE(watchdog_->IsSixSecondReportSuppressed());
+
+    watchdog_->bundleName_ = "com.example.transition";
+    watchdog_->transitionGuardRemainingCycles_ = 0;
+    EXPECT_FALSE(watchdog_->IsSixSecondReportSuppressed());
+}
+
+/**
+ * @tc.name: TransitionGuardConsumedByTimer
+ * @tc.desc: Verify the guard lasts for exactly two watchdog detection cycles.
+ */
+HWTEST_F(WatchdogTest, WatchdogTest_TransitionGuardConsumedByTimer_001, TestSize.Level1)
+{
+    watchdog_->needReport_ = true;
+    watchdog_->stopWatchdog_ = false;
+    watchdog_->transitionGuardRemainingCycles_ = 2;
+    watchdog_->SetAppMainThreadState(true);
+
+    watchdog_->Timer();
+    EXPECT_EQ(watchdog_->transitionGuardRemainingCycles_, 1);
+
+    watchdog_->Timer();
+    EXPECT_EQ(watchdog_->transitionGuardRemainingCycles_, 0);
+}
+
+/**
+ * @tc.name: ReportEventDuringTransition
+ * @tc.desc: Verify that the first diagnostic remains a 3s event and that a 6s
+ *           event is available after the two-cycle guard expires.
+ */
+HWTEST_F(WatchdogTest, WatchdogTest_ReportEventDuringTransition_001, TestSize.Level1)
+{
+    watchdog_->bundleName_ = "com.example.transition";
+    watchdog_->isInBackground_ = false;
+    watchdog_->StartTransitionGuard();
+    int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now()
+        .time_since_epoch()).count();
+    watchdog_->lastWatchTime_ = now - TEST_INTERVAL_TIME;
+    watchdog_->needReport_ = true;
+    watchdog_->isSixSecondEvent_ = true;
+
+    watchdog_->ReportEvent();
+
+    EXPECT_TRUE(watchdog_->needReport_);
+    EXPECT_TRUE(watchdog_->isSixSecondEvent_);
+    EXPECT_TRUE(watchdog_->transitionDiagnosticReported_);
+    EXPECT_EQ(watchdog_->backgroundReportCount_.load(), 1);
+
+    watchdog_->ReportEvent();
+    EXPECT_EQ(watchdog_->backgroundReportCount_.load(), 1);
+
+    watchdog_->transitionGuardRemainingCycles_ = 0;
+    watchdog_->ReportEvent();
+    EXPECT_FALSE(watchdog_->needReport_);
+}
+
+/**
  * @tc.number: WatchdogTest_AllowReportEvent_001
  * @tc.name: AllowReportEvent
  * @tc.desc: Verify that function AllowReportEvent.

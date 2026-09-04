@@ -509,6 +509,15 @@ bool MainThread::ScheduleForegroundApplication()
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "ScheduleForegroundApplication");
     TAG_LOGD(AAFwkTag::APPKIT, "called");
+    auto tmpWatchdog = watchdog_;
+    if (tmpWatchdog == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null Watch dog");
+    } else {
+        // This method is entered from the AppScheduler Binder callback. Start the
+        // guard before posting work to the main handler so a blocked lifecycle task
+        // cannot be promoted to a 6s kill during the transition.
+        tmpWatchdog->StartTransitionGuard();
+    }
     wptr<MainThread> weak = this;
     auto task = [weak]() {
         auto appThread = weak.promote();
@@ -521,7 +530,6 @@ bool MainThread::ScheduleForegroundApplication()
     if (!mainHandler_->PostTask(task, "MainThread:ForegroundApplication")) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
     }
-    auto tmpWatchdog = watchdog_;
     if (tmpWatchdog == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null Watch dog");
     } else {
@@ -539,6 +547,14 @@ void MainThread::ScheduleBackgroundApplication()
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    auto tmpWatchdog = watchdog_;
+    if (tmpWatchdog == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null Watch dog");
+    } else {
+        // See ScheduleForegroundApplication(). This records the Binder-side
+        // transition start rather than waiting for the main-thread callback.
+        tmpWatchdog->StartTransitionGuard();
+    }
     wptr<MainThread> weak = this;
     auto task = [weak]() {
         auto appThread = weak.promote();
@@ -552,7 +568,6 @@ void MainThread::ScheduleBackgroundApplication()
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
     }
 
-    auto tmpWatchdog = watchdog_;
     if (tmpWatchdog == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null Watch dog");
         return;
@@ -3093,6 +3108,9 @@ void MainThread::HandleForegroundApplication()
     TAG_LOGI(AAFwkTag::APPKIT, "called");
     if ((application_ == nullptr) || (appMgr_ == nullptr)) {
         TAG_LOGE(AAFwkTag::APPKIT, "null application_ or appMgr_");
+        if (watchdog_ != nullptr) {
+            watchdog_->CompleteTransitionGuard();
+        }
         return;
     }
 
@@ -3108,6 +3126,9 @@ void MainThread::HandleForegroundApplication()
 
     TAG_LOGD(AAFwkTag::APPKIT, "to foreground success, recordId is %{public}d", applicationImpl_->GetRecordId());
     appMgr_->ApplicationForegrounded(applicationImpl_->GetRecordId());
+    if (watchdog_ != nullptr) {
+        watchdog_->CompleteTransitionGuard();
+    }
 }
 
 /**
@@ -3122,6 +3143,9 @@ void MainThread::HandleBackgroundApplication()
     FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "HandleBackgroundApplication");
     if ((application_ == nullptr) || (appMgr_ == nullptr)) {
         TAG_LOGE(AAFwkTag::APPKIT, "error");
+        if (watchdog_ != nullptr) {
+            watchdog_->CompleteTransitionGuard();
+        }
         return;
     }
 
@@ -3135,6 +3159,9 @@ void MainThread::HandleBackgroundApplication()
 #endif
 
     appMgr_->ApplicationBackgrounded(applicationImpl_->GetRecordId());
+    if (watchdog_ != nullptr) {
+        watchdog_->CompleteTransitionGuard();
+    }
 }
 
 /**
