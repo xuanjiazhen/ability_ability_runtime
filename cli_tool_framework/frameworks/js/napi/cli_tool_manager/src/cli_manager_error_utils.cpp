@@ -22,14 +22,11 @@
 namespace OHOS {
 namespace CliTool {
 namespace {
-constexpr const char* ERROR_MSG_NOT_SUPPORTED =
-    "Capability not supported. Failed to call the API due to limited device capabilities.";
-
 static const std::map<CliManagerErrorCode, std::string> ERROR_MSG_MAP = {
     {CliManagerErrorCode::ERROR_PERMISSION_DENIED, "Permission denied."},
     {CliManagerErrorCode::ERROR_NOT_SYSTEM_APP, "Not system application."},
     {CliManagerErrorCode::ERROR_INVALID_PARAM, "Invalid input parameter."},
-    {CliManagerErrorCode::ERROR_NOT_SUPPORTED, ERROR_MSG_NOT_SUPPORTED},
+    {CliManagerErrorCode::ERROR_NOT_SUPPORTED, "Capability not supported. Failed to call the API due to limited device capabilities.";},
     {CliManagerErrorCode::ERROR_TOOL_NOT_FOUND, "The tool does not exist."},
     {CliManagerErrorCode::ERROR_REACH_LIMIT, "Maximum number of processes has been reached."},
     {CliManagerErrorCode::ERROR_SESSION_NOT_FOUND, "The session does not exist."},
