@@ -16,8 +16,9 @@
 package OHOS.CliTool;
 
 sequenceable WantParams..OHOS.AAFwk.WantParams;
+sequenceable InvokeFunctionResult..OHOS.CliTool.InvokeFunctionResult;
 
 interface IFunctionHookScheduler {
     void BeforeInvokeFunction([in] String funcNamespace, [in] String functionName, [inout] WantParams param);
-    void AfterInvokeFunction([in] String funcNamespace, [in] String functionName, [inout] WantParams hookResult);
+    void AfterInvokeFunction([in] String funcNamespace, [in] String functionName, [inout] InvokeFunctionResult invokeResult);
 }

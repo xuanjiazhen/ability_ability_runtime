@@ -30,9 +30,11 @@
 #include "exec_cmd_param.h"
 #include "exec_options.h"
 #include "ffrt.h"
+#include "invoke_function_result.h"
 #include "iremote_object.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
+#include "want_params.h"
 
 #include "io_monitor.h"
 #include "process_manager.h"
@@ -163,7 +165,10 @@ public:
     int32_t UnregisterCliHook(const sptr<ICliHookScheduler> &hook) override;
     int32_t RegisterFunctionHook(const sptr<IFunctionHookScheduler> &hook) override;
     int32_t UnregisterFunctionHook(const sptr<IFunctionHookScheduler> &hook) override;
-    int32_t GetFunctionHook(sptr<IFunctionHookScheduler> &hook) override;
+    int32_t BeforeInvokeFunction(const std::string &funcNamespace, const std::string &functionName,
+        AAFwk::WantParams &param) override;
+    int32_t AfterInvokeFunction(const std::string &funcNamespace, const std::string &functionName,
+        InvokeFunctionResult &result) override;
 
     /**
      * @brief Batch register functions (one-way, result not reported to caller)
@@ -294,8 +299,12 @@ private:
     int32_t GetCallerPidCount();
 
     sptr<ICliHookScheduler> GetCliHookSnapshot();
+    sptr<IFunctionHookScheduler> GetFunctionHookSnapshot();
+    bool IsDeveloperMode() const;
+    void EnsureHookDeathRecipient();
     void InvokeBeforeCallTool(ExecToolParam &param);
     void InvokeAfterCallTool(CliSessionInfo &session);
+    void InvokeBeforeCallCmd(ExecCmdParam &param);
 
     bool initialized_ = false;
     std::shared_ptr<IOMonitor> ioMonitor_ = nullptr;
