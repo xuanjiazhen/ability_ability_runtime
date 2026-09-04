@@ -38,6 +38,7 @@ constexpr int32_t CHARACTER_WIDTH = 2;
 
 constexpr int32_t BACKGROUND_REPORT_COUNT_MAX = 5;
 constexpr int32_t WATCHDOG_REPORT_COUNT_MAX = 5;
+constexpr int32_t TRANSITION_GUARD_CHECK_COUNT = 2;
 #ifdef SUPPORT_ASAN
 constexpr uint32_t CHECK_INTERVAL_TIME = 45000;
 #else
@@ -236,6 +237,22 @@ void Watchdog::SetBackgroundStatus(const bool isInBackground)
     AppExecFwk::AppfreezeInner::GetInstance()->SetAppInForeground(!isInBackground);
 }
 
+void Watchdog::StartTransitionGuard()
+{
+    std::unique_lock<std::mutex> lock(cvMutex_);
+    transitionGuardRemainingCycles_ = TRANSITION_GUARD_CHECK_COUNT;
+    transitionDiagnosticReported_ = false;
+    TAG_LOGD(AAFwkTag::APPDFR, "start application transition guard, cycles:%{public}d",
+        transitionGuardRemainingCycles_);
+}
+
+void Watchdog::CompleteTransitionGuard()
+{
+    std::unique_lock<std::mutex> lock(cvMutex_);
+    transitionGuardRemainingCycles_ = 0;
+    TAG_LOGD(AAFwkTag::APPDFR, "complete application transition guard");
+}
+
 void Watchdog::AllowReportEvent()
 {
     std::unique_lock<std::mutex> lock(cvMutex_);
@@ -261,6 +278,40 @@ bool Watchdog::IsStopWatchdog()
     return stopWatchdog_;
 }
 
+bool Watchdog::IsReportEventOverCount()
+{
+    if (needReport_) {
+        return false;
+    }
+    bool transitionGuardActive = transitionGuardRemainingCycles_ > 0;
+    watchdogReportCount_++;
+    TAG_LOGE(AAFwkTag::APPDFR, "wait count: %{public}d", watchdogReportCount_.load());
+    if (watchdogReportCount_.load() >= WATCHDOG_REPORT_COUNT_MAX) {
+#ifdef ABILITY_RUNTIME_HITRACE_ENABLE
+        SetHiTraceChainId();
+#endif
+#ifndef APP_NO_RESPONSE_DIALOG
+        if (!IsSixSecondReportSuppressed()) {
+            AppExecFwk::AppfreezeInner::GetInstance()->AppfreezeHandleOverReportCount(true);
+        }
+#endif
+        watchdogReportCount_.store(0);
+    } else if (watchdogReportCount_.load() >= (WATCHDOG_REPORT_COUNT_MAX - 1)) {
+#ifndef APP_NO_RESPONSE_DIALOG
+        if (!IsSixSecondReportSuppressed() || !transitionDiagnosticReported_) {
+            AppExecFwk::AppfreezeInner::GetInstance()->AppfreezeHandleOverReportCount(false);
+            if (IsSixSecondReportSuppressed()) {
+                transitionDiagnosticReported_ = true;
+            }
+        }
+#endif
+    }
+    if (transitionGuardActive) {
+        --transitionGuardRemainingCycles_;
+    }
+    return true;
+}
+
 void Watchdog::SetBgWorkingThreadStatus(const bool isBgWorkingThread)
 {
     std::unique_lock<std::mutex> lock(cvMutex_);
@@ -274,22 +325,8 @@ void Watchdog::Timer()
         TAG_LOGD(AAFwkTag::APPDFR, "stoped");
         return;
     }
-    if (!needReport_) {
-        watchdogReportCount_++;
-        TAG_LOGE(AAFwkTag::APPDFR, "wait count: %{public}d", watchdogReportCount_.load());
-        if (watchdogReportCount_.load() >= WATCHDOG_REPORT_COUNT_MAX) {
-#ifdef ABILITY_RUNTIME_HITRACE_ENABLE
-            SetHiTraceChainId();
-#endif
-#ifndef APP_NO_RESPONSE_DIALOG
-            AppExecFwk::AppfreezeInner::GetInstance()->AppfreezeHandleOverReportCount(true);
-#endif
-            watchdogReportCount_.store(0);
-        } else if (watchdogReportCount_.load() >= (WATCHDOG_REPORT_COUNT_MAX - 1)) {
-#ifndef APP_NO_RESPONSE_DIALOG
-            AppExecFwk::AppfreezeInner::GetInstance()->AppfreezeHandleOverReportCount(false);
-#endif
-        }
+
+    if (IsReportEventOverCount()) {
         return;
     }
 
@@ -305,14 +342,17 @@ void Watchdog::Timer()
     if (appMainHandler_ != nullptr) {
         appMainHandler_->SendEvent(CHECK_MAIN_THREAD_IS_ALIVE, 0, EventQueue::Priority::VIP);
     }
-    int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
-        system_clock::now().time_since_epoch()).count();
+    int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
 #ifdef APP_NO_RESPONSE_DIALOG_WEARABLE
     if ((now - lastWatchTime_) < 0 || (now - lastWatchTime_) >= (WEARABLE_CHECK_INTERVAL_TIME / RESET_RATIO)) {
 #else
     if ((now - lastWatchTime_) < 0 || (now - lastWatchTime_) >= (checkIntervalTime_ / RESET_RATIO)) {
 #endif
         lastWatchTime_ = now;
+    }
+    if (transitionGuardActive) {
+        --transitionGuardRemainingCycles_;
     }
 }
 
@@ -339,6 +379,12 @@ bool Watchdog::CheckReportEvent(int64_t now)
     return true;
 }
 
+bool Watchdog::IsSixSecondReportSuppressed() const
+{
+    // SceneBoard is explicitly allowed to be watched while it is in the background.
+    return transitionGuardRemainingCycles_ > 0 && bundleName_ != CHECK_BACKGROUND_THREAD[0];
+}
+
 void Watchdog::ReportEvent()
 {
     if (isBgWorkingThread_) {
@@ -359,6 +405,10 @@ void Watchdog::ReportEvent()
             static_cast<unsigned long long>(now), static_cast<unsigned long long>(lastWatchTime_));
         return;
     }
+    bool suppressSixSecond = IsSixSecondReportSuppressed();
+    if (suppressSixSecond && transitionDiagnosticReported_) {
+        return;
+    }
     if (!CheckReportEvent(now)) {
         return;
     }
@@ -370,17 +420,21 @@ void Watchdog::ReportEvent()
     }
 
 #ifndef APP_NO_RESPONSE_DIALOG
-    if (isSixSecondEvent_) {
+    if (isSixSecondEvent_ && !suppressSixSecond) {
         needReport_.store(false);
     }
 #endif
 
 #ifdef ABILITY_RUNTIME_HITRACE_ENABLE
-    if (isSixSecondEvent_) {
+    if (isSixSecondEvent_ && !suppressSixSecond) {
         SetHiTraceChainId();
     }
 #endif
-    AppExecFwk::AppfreezeInner::GetInstance()->ThreadBlock(isSixSecondEvent_, 0, now, isInBackground_);
+    AppExecFwk::AppfreezeInner::GetInstance()->ThreadBlock(isSixSecondEvent_, 0, now, isInBackground_,
+        suppressSixSecond);
+    if (suppressSixSecond) {
+        transitionDiagnosticReported_ = true;
+    }
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

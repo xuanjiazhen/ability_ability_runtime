@@ -412,6 +412,23 @@ HWTEST_F(MainThreadTest, GetMainHandler_0100, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
 
+/**
+ * @tc.name: ScheduleApplicationStartsTransitionGuard
+ * @tc.desc: Verify both Binder-dispatched application lifecycle schedules start
+ *           the transition guard before the main-thread task is handled.
+ */
+HWTEST_F(MainThreadTest, ScheduleApplicationStartsTransitionGuard_0100, TestSize.Level1)
+{
+    ASSERT_NE(mainThread_->watchdog_, nullptr);
+    mainThread_->watchdog_->transitionGuardRemainingCycles_ = 0;
+    mainThread_->ScheduleForegroundApplication();
+    EXPECT_EQ(mainThread_->watchdog_->transitionGuardRemainingCycles_, 2);
+
+    mainThread_->watchdog_->transitionDiagnosticReported_ = true;
+    mainThread_->ScheduleBackgroundApplication();
+    EXPECT_FALSE(mainThread_->watchdog_->transitionDiagnosticReported_);
+}
+
 /*
  * Feature: MainThread
  * Function: InitCreate
