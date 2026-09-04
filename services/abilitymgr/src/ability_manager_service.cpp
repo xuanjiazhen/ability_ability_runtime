@@ -8893,7 +8893,10 @@ int AbilityManagerService::StartHighestPriorityAbility(int32_t userId, uint64_t 
     TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}s", __func__);
     auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bms, BMS_NOT_CONNECTED);
-
+    if (AppUtils::GetInstance().IsBopdOrRescueMode()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "Skip KeepAbilityAlive in bopd or rescue mode");
+        return;
+    }
     /* Query the highest priority ability or extension ability, and start it. usually, it is OOBE or launcher */
     Want want;
     want.AddEntity(HIGHEST_PRIORITY_ABILITY_ENTITY);

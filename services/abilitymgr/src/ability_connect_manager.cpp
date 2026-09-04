@@ -2299,6 +2299,10 @@ bool AbilityConnectManager::IsAbilityNeedKeepAlive(const std::shared_ptr<BaseExt
 
 void AbilityConnectManager::KeepAbilityAlive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
+    if (AppUtils::GetInstance().IsBopdOrRescueMode()) {
+        TAG_LOGW(AAFwkTag::EXT, "Skip KeepAbilityAlive in bopd or rescue mode");
+        return;
+    }
     CHECK_POINTER(abilityRecord);
     auto abilityInfo = abilityRecord->GetAbilityInfo();
     TAG_LOGI(AAFwkTag::EXT, "restart ability, bundleName: %{public}s, abilityName: %{public}s",
