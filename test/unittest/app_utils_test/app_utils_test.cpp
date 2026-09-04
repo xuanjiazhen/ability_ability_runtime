@@ -1148,5 +1148,52 @@ HWTEST_F(AppUtilsTest, IsBopdOrRescueMode_0200, TestSize.Level2)
     appUtils.isBopdOrRescueMode_.value = false;
     EXPECT_FALSE(appUtils.IsBopdOrRescueMode());
 }
+
+/**
+ * @tc.number: IsSupportExecCmd_0100
+ * @tc.desc: Test IsSupportExecCmd when already loaded with true
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppUtilsTest, IsSupportExecCmd_0100, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsSupportExecCmd_0100 called.");
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isSupportExecCmd_.isLoaded = true;
+    appUtils.isSupportExecCmd_.value = true;
+    EXPECT_TRUE(appUtils.IsSupportExecCmd());
+}
+
+/**
+ * @tc.number: IsSupportExecCmd_0200
+ * @tc.desc: Test IsSupportExecCmd when already loaded with false
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppUtilsTest, IsSupportExecCmd_0200, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsSupportExecCmd_0200 called.");
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isSupportExecCmd_.isLoaded = true;
+    appUtils.isSupportExecCmd_.value = false;
+    EXPECT_FALSE(appUtils.IsSupportExecCmd());
+}
+
+/**
+ * @tc.number: IsSupportExecCmd_0300
+ * @tc.desc: Test IsSupportExecCmd lazy load uses device type as default
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppUtilsTest, IsSupportExecCmd_0300, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsSupportExecCmd_0300 called.");
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isSupportExecCmd_.isLoaded = false;
+    bool result = appUtils.IsSupportExecCmd();
+    std::string deviceType = OHOS::system::GetDeviceType();
+    if (deviceType == "2in1") {
+        EXPECT_TRUE(result);
+    } else {
+        EXPECT_FALSE(result);
+    }
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
