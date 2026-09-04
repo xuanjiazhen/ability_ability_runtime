@@ -42,6 +42,7 @@
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
+#include "parameters.h"
 #include "permission_query_util.h"
 #include "permission_util.h"
 #include "process_manager.h"
@@ -1018,29 +1019,21 @@ void CliToolManagerService::HandleBackgroundSessionReply(
 
 int32_t CliToolManagerService::RegisterCliHook(const sptr<ICliHookScheduler> &hook)
 {
+    if (!IsDeveloperMode()) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "RegisterCliHook rejected: not developer mode");
+        return ERR_INVALID_VALUE;
+    }
     if (hook == nullptr || hook->AsObject() == nullptr) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "RegisterCliHook: hook is nullptr");
         return ERR_INVALID_VALUE;
     }
     auto remote = hook->AsObject();
     std::lock_guard<ffrt::mutex> lock(hookMutex_);
-    if (cliHook_ != nullptr && cliHook_->AsObject() != nullptr && hookDeathRecipient_ != nullptr) {
-        cliHook_->AsObject()->RemoveDeathRecipient(hookDeathRecipient_);
+    if (cliHook_ != nullptr) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "RegisterCliHook rejected: already registered");
+        return ERR_INVALID_VALUE;
     }
-    if (hookDeathRecipient_ == nullptr) {
-        auto self = CliToolManagerService::GetInstance();
-        hookDeathRecipient_ = sptr<IRemoteObject::DeathRecipient>(
-            new HookDeathRecipient([self](const wptr<IRemoteObject> &) {
-                auto svc = CliToolManagerService::GetInstance();
-                if (svc == nullptr) {
-                    return;
-                }
-                std::lock_guard<ffrt::mutex> lock(svc->hookMutex_);
-                svc->cliHook_ = nullptr;
-                svc->functionHook_ = nullptr;
-                TAG_LOGI(AAFwkTag::CLI_TOOL, "HookDeathRecipient: cleared cliHook_ + functionHook_");
-            }));
-    }
+    EnsureHookDeathRecipient();
     remote->AddDeathRecipient(hookDeathRecipient_);
     cliHook_ = hook;
     TAG_LOGI(AAFwkTag::CLI_TOOL, "RegisterCliHook success");
@@ -1065,27 +1058,20 @@ int32_t CliToolManagerService::UnregisterCliHook(const sptr<ICliHookScheduler> &
 
 int32_t CliToolManagerService::RegisterFunctionHook(const sptr<IFunctionHookScheduler> &hook)
 {
+    if (!IsDeveloperMode()) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "RegisterFunctionHook rejected: not developer mode");
+        return ERR_INVALID_VALUE;
+    }
     if (hook == nullptr || hook->AsObject() == nullptr) {
         return ERR_INVALID_VALUE;
     }
     auto remote = hook->AsObject();
     std::lock_guard<ffrt::mutex> lock(hookMutex_);
-    if (functionHook_ != nullptr && functionHook_->AsObject() != nullptr && hookDeathRecipient_ != nullptr) {
-        functionHook_->AsObject()->RemoveDeathRecipient(hookDeathRecipient_);
+    if (functionHook_ != nullptr) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "RegisterFunctionHook rejected: already registered");
+        return ERR_INVALID_VALUE;
     }
-    if (hookDeathRecipient_ == nullptr) {
-        hookDeathRecipient_ = sptr<IRemoteObject::DeathRecipient>(
-            new HookDeathRecipient([](const wptr<IRemoteObject> &) {
-                auto svc = CliToolManagerService::GetInstance();
-                if (svc == nullptr) {
-                    return;
-                }
-                std::lock_guard<ffrt::mutex> lock(svc->hookMutex_);
-                svc->cliHook_ = nullptr;
-                svc->functionHook_ = nullptr;
-                TAG_LOGI(AAFwkTag::CLI_TOOL, "HookDeathRecipient: cleared cliHook_ + functionHook_");
-            }));
-    }
+    EnsureHookDeathRecipient();
     remote->AddDeathRecipient(hookDeathRecipient_);
     functionHook_ = hook;
     TAG_LOGI(AAFwkTag::CLI_TOOL, "RegisterFunctionHook success");
@@ -1108,11 +1094,61 @@ int32_t CliToolManagerService::UnregisterFunctionHook(const sptr<IFunctionHookSc
     return ERR_OK;
 }
 
-int32_t CliToolManagerService::GetFunctionHook(sptr<IFunctionHookScheduler> &hook)
+int32_t CliToolManagerService::BeforeInvokeFunction(const std::string &funcNamespace,
+    const std::string &functionName, AAFwk::WantParams &param)
 {
-    std::lock_guard<ffrt::mutex> lock(hookMutex_);
-    hook = functionHook_;
+    if (!IsDeveloperMode()) {
+        return ERR_OK;
+    }
+    auto hook = GetFunctionHookSnapshot();
+    if (hook == nullptr) {
+        return ERR_OK;
+    }
+    hook->BeforeInvokeFunction(funcNamespace, functionName, param);
     return ERR_OK;
+}
+
+int32_t CliToolManagerService::AfterInvokeFunction(const std::string &funcNamespace,
+    const std::string &functionName, InvokeFunctionResult &result)
+{
+    if (!IsDeveloperMode()) {
+        return ERR_OK;
+    }
+    auto hook = GetFunctionHookSnapshot();
+    if (hook == nullptr) {
+        return ERR_OK;
+    }
+    hook->AfterInvokeFunction(funcNamespace, functionName, result);
+    return ERR_OK;
+}
+
+void CliToolManagerService::EnsureHookDeathRecipient()
+{
+    if (hookDeathRecipient_ != nullptr) {
+        return;
+    }
+    hookDeathRecipient_ = sptr<IRemoteObject::DeathRecipient>(
+        new HookDeathRecipient([](const wptr<IRemoteObject> &remote) {
+            auto svc = CliToolManagerService::GetInstance();
+            if (svc == nullptr) {
+                return;
+            }
+            auto remoteObj = remote.promote();
+            std::lock_guard<ffrt::mutex> lock(svc->hookMutex_);
+            if (svc->cliHook_ != nullptr && svc->cliHook_->AsObject() == remoteObj) {
+                svc->cliHook_ = nullptr;
+                TAG_LOGI(AAFwkTag::CLI_TOOL, "HookDeathRecipient: cleared cliHook_");
+            }
+            if (svc->functionHook_ != nullptr && svc->functionHook_->AsObject() == remoteObj) {
+                svc->functionHook_ = nullptr;
+                TAG_LOGI(AAFwkTag::CLI_TOOL, "HookDeathRecipient: cleared functionHook_");
+            }
+        }));
+}
+
+bool CliToolManagerService::IsDeveloperMode() const
+{
+    return system::GetBoolParameter("const.security.developermode.state", false);
 }
 
 sptr<ICliHookScheduler> CliToolManagerService::GetCliHookSnapshot()
@@ -1121,8 +1157,17 @@ sptr<ICliHookScheduler> CliToolManagerService::GetCliHookSnapshot()
     return cliHook_;
 }
 
+sptr<IFunctionHookScheduler> CliToolManagerService::GetFunctionHookSnapshot()
+{
+    std::lock_guard<ffrt::mutex> lock(hookMutex_);
+    return functionHook_;
+}
+
 void CliToolManagerService::InvokeBeforeCallTool(ExecToolParam &param)
 {
+    if (!IsDeveloperMode()) {
+        return;
+    }
     auto hook = GetCliHookSnapshot();
     if (hook == nullptr) {
         return;
@@ -1130,8 +1175,23 @@ void CliToolManagerService::InvokeBeforeCallTool(ExecToolParam &param)
     hook->BeforeCallTool(param);
 }
 
+void CliToolManagerService::InvokeBeforeCallCmd(ExecCmdParam &param)
+{
+    if (!IsDeveloperMode()) {
+        return;
+    }
+    auto hook = GetCliHookSnapshot();
+    if (hook == nullptr) {
+        return;
+    }
+    hook->BeforeCallCmd(param);
+}
+
 void CliToolManagerService::InvokeAfterCallTool(CliSessionInfo &session)
 {
+    if (!IsDeveloperMode()) {
+        return;
+    }
     auto hook = GetCliHookSnapshot();
     if (hook == nullptr || session.result == nullptr) {
         return;
@@ -1242,10 +1302,7 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecCmd called: cmd=%{public}s", param.cmd.c_str());
 
     ExecCmdParam actualParam = param;
-    auto hook = GetCliHookSnapshot();
-    if (hook != nullptr) {
-        hook->BeforeCallCmd(actualParam);
-    }
+    InvokeBeforeCallCmd(actualParam);
 
     if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
         return ret;

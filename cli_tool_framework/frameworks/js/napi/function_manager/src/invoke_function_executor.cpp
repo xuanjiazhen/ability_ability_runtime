@@ -88,23 +88,18 @@ void InvokeFunctionExecutor::DoExecute(const std::string &funcNamespace, const s
         return;
     }
 
-    // Step 3: Query functionHook and invoke BeforeInvokeFunction
-    sptr<IFunctionHookScheduler> functionHook;
-    CliToolMGRClient::GetInstance().GetFunctionHook(functionHook);
+    // Step 3: BeforeInvokeFunction — IPC to service, service dispatches to registered functionHook
     AAFwk::WantParams hookParams = wantParams;
-    if (functionHook != nullptr) {
-        functionHook->BeforeInvokeFunction(funcNamespace, functionName, hookParams);
-    }
+    CliToolMGRClient::GetInstance().BeforeInvokeFunction(funcNamespace, functionName, hookParams);
 
     // Step 4: Execute with (possibly modified) params
     auto self = shared_from_this();
-    InvokeResultCallback wrappedCallback = [self, functionHook, funcNamespace, functionName](
+    InvokeResultCallback wrappedCallback = [self, funcNamespace, functionName](
         const InvokeFunctionResult &out) {
-        if (functionHook != nullptr && out.result != nullptr) {
-            functionHook->AfterInvokeFunction(funcNamespace, functionName, *out.result);
-        }
+        InvokeFunctionResult hookResult = out;
+        CliToolMGRClient::GetInstance().AfterInvokeFunction(funcNamespace, functionName, hookResult);
         if (self->callback_) {
-            self->callback_(out);
+            self->callback_(hookResult);
         }
     };
     auto client = std::make_shared<InvokeFunctionCallbackClient>(completed_, std::move(wrappedCallback));
