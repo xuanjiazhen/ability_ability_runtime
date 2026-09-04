@@ -15,7 +15,7 @@
 
 #include "interceptor/disposed_rule_interceptor.h"
 
-#include "ability_manager_client.h"
+#include "ability_manager_service.h"
 #include "ability_record.h"
 #include "ability_util.h"
 #include "app_mgr_util.h"
@@ -92,8 +92,9 @@ ErrCode DisposedRuleInterceptor::HandleBlockRule(
     }
     SetInterceptInfo(param.want, disposedRule);
     if (disposedRule.componentType == AppExecFwk::ComponentType::UI_ABILITY) {
-        int32_t ret = IN_PROCESS_CALL(AbilityManagerClient::GetInstance()->StartAbility(*disposedRule.want,
-            param.requestCode, param.userId));
+        int32_t ret = IN_PROCESS_CALL(
+            DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbility(
+                *disposedRule.want, param.userId, param.requestCode));
         if (ret != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "disposedRuleInterceptor failed");
             return ret;
@@ -313,7 +314,6 @@ void DisposedRuleInterceptor::UnregisterObserver(int32_t uid)
     };
     taskHandler_->SubmitTask(unregisterTask, GenerateEventTaskName(uid));
 }
-
 ErrCode DisposedRuleInterceptor::CreateModalUIExtension(Want &want, const sptr<IRemoteObject> &callerToken)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);

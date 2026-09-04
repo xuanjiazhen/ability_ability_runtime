@@ -15,6 +15,7 @@
 
 #include "interceptor/control_interceptor.h"
 
+#include "ability_manager_service.h"
 #include "ability_util.h"
 #include "hitrace_meter.h"
 
@@ -52,8 +53,8 @@ ErrCode ControlInterceptor::DoProcess(const AbilityInterceptorParam &param)
             controlWant->SetParam(INTERCEPT_ABILITY_NAME, wantEle.GetAbilityName());
             controlWant->SetParam(INTERCEPT_MODULE_NAME, wantEle.GetModuleNameRef());
         }
-        int ret = IN_PROCESS_CALL(AbilityManagerClient::GetInstance()->StartAbility(*controlRule.controlWant,
-            param.requestCode, param.userId));
+        int ret = IN_PROCESS_CALL(DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbility(
+            *controlRule.controlWant, param.userId, param.requestCode));
         if (ret != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "ControlInterceptor start failed:%{public}d", ret);
             return ret;

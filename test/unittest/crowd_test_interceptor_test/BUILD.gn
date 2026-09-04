@@ -19,6 +19,9 @@ module_output_path = "ability_runtime/ability_runtime/abilitymgr"
 ohos_unittest("crowd_test_interceptor_test") {
   module_out_path = module_output_path
   cflags_cc = []
+  configs = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_config",
+  ]
   include_dirs = [
     "./mock",
     "${ability_runtime_services_path}/abilitymgr/include",
@@ -61,6 +64,7 @@ ohos_unittest("crowd_test_interceptor_test") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
+    "init:libbegetutil",
     "ipc:ipc_core",
     "libjpeg-turbo:turbojpeg",
     "napi:ace_napi",
