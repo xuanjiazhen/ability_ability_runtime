@@ -371,6 +371,8 @@ public:
 
     bool IsAutoStartupSupported();
 
+    bool IsSupportExecCmd();
+
     bool IsProductAppbootSettingEnabled();
 
     void LoadAppTransferList();
@@ -506,6 +508,8 @@ private:
     volatile DeviceConfiguration<bool> isSupportNativeUIAbility_ = {false, false};
     volatile DeviceConfiguration<bool> isSupportDelayedProcessExit_ = {false, false};
     volatile DeviceConfiguration<bool> isBopdOrRescueMode_ = {false, false};
+    volatile DeviceConfiguration<bool> isSupportExecCmd_ = {false, false};
+    std::mutex isSupportExecCmdMutex_;
     DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>
         residentProcessInExtremeMemory_ = {false, {}};
     std::mutex residentProcessInExtremeMemoryMutex_;
