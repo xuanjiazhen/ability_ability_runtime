@@ -3845,6 +3845,7 @@ int32_t AbilityManagerService::ForceExitApp(const int32_t pid, const ExitReason 
 
 int32_t AbilityManagerService::KillAppWithReason(const int32_t pid, const ExitReasonCompability &exitReason)
 {
+    //TODO: Record the info of Caller
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
 
@@ -3915,6 +3916,7 @@ int32_t AbilityManagerService::KillAppWithReasonInner(int32_t pid,
 int32_t AbilityManagerService::KillBundleWithReason(
     const std::string &bundleName, int32_t userId, int32_t appIndex, const ExitReasonCompability &exitReason)
 {
+    //TODO: Record the info of Caller
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
 
