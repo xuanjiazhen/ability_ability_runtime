@@ -911,21 +911,18 @@ int32_t CliToolManagerService::ValidateExecCmdPublicPermissions(const ExecCmdPar
         return ERR_INVALID_PARAM;
     }
 
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL)) {
-        return ERR_OK;
-    }
-
     if (!AAFwk::AppUtils::GetInstance().IsSupportExecCmd()) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Capability not supported");
         return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
     }
 
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_PUBLIC_CLI_TOOL)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "not granted EXEC_PUBLIC_CLI_TOOL");
-        return ERR_PERMISSION_DENIED;
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    if (PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL) ||
+        PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_PUBLIC_CLI_TOOL)) {
+        return ERR_OK;
     }
-    return ERR_OK;
+    TAG_LOGE(AAFwkTag::CLI_TOOL, "not granted EXEC_CLI_TOOL or EXEC_PUBLIC_CLI_TOOL");
+    return ERR_PERMISSION_DENIED;
 }
 
 int32_t CliToolManagerService::ValidateSessionLimit()
