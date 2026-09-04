@@ -22,7 +22,6 @@
 namespace OHOS {
 namespace CliTool {
 namespace {
-static const std::map<CliManagerErrorCode, std::string> ERROR_MSG_MAP = {
 constexpr const char* ERROR_MSG_NOT_SUPPORTED =
     "Capability not supported. Failed to call the API due to limited device capabilities.";
 
