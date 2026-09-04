@@ -26,8 +26,10 @@
 #include <unistd.h>
 
 #include "ability_manager_client.h"
+#include "ability_manager_errors.h"
 #include "accesstoken_kit.h"
 #include "app_mgr_client.h"
+#include "app_utils.h"
 #include "ccm_util.h"
 #include "cli_error_code.h"
 #include "cli_event_report.h"
@@ -902,15 +904,25 @@ int32_t CliToolManagerService::ValidateExecToolPermissions()
     return ERR_OK;
 }
 
-int32_t CliToolManagerService::ValidateExecPublicCmdPermissions()
+int32_t CliToolManagerService::ValidateExecCmdPublicPermissions(const ExecCmdParam &param)
 {
+    if (param.cmd.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Invalid param: cmd is empty");
+        return ERR_INVALID_PARAM;
+    }
+
     auto tokenId = IPCSkeleton::GetCallingTokenID();
+    if (PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL)) {
+        return ERR_OK;
+    }
+
+    if (!AAFwk::AppUtils::GetInstance().IsSupportExecCmd()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Capability not supported");
+        return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+    }
+
     if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_PUBLIC_CLI_TOOL)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "not granted EXEC_PUBLIC_CLI_TOOL");
-        return ERR_PERMISSION_DENIED;
-    }
-    if (!CcmUtil::GetInstance().IsPublicCmdEnabled()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "public cmd disabled by ccm");
         return ERR_PERMISSION_DENIED;
     }
     return ERR_OK;
@@ -1103,15 +1115,8 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecCmd called: cmd=%{public}s", param.cmd.c_str());
-    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
-    if (AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
-        if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
-            return ret;
-        }
-    } else {
-        if (auto ret = ValidateExecPublicCmdPermissions(); ret != ERR_OK) {
-            return ret;
-        }
+    if (auto ret = ValidateExecCmdPublicPermissions(param); ret != ERR_OK) {
+        return ret;
     }
     int32_t callerPid = IPCSkeleton::GetCallingPid();
     int32_t callerUid = IPCSkeleton::GetCallingUid();

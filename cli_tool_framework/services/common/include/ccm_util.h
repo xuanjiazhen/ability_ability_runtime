@@ -47,8 +47,6 @@ public:
      */
     int32_t GetCliConcurrencyLimit();
 
-    bool IsPublicCmdEnabled();
-
 private:
     /**
      * CcmUtil, private constructor.
@@ -57,7 +55,6 @@ private:
     CcmUtil() = default;
 
     volatile DeviceConfiguration<int32_t> maxCliQuantity_ = {false, DEFAULT_MAX_CLI_QUANTITY};
-    volatile DeviceConfiguration<bool> publicCmdEnabled_ = {false, false};
 };
 
 } // namespace CliTool
