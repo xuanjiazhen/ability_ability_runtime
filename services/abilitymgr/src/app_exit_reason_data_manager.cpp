@@ -371,13 +371,21 @@ void AppExitReasonDataManager::ConvertAppExitReasonInfoFromValue(const Distribut
         TAG_LOGE(AAFwkTag::ABILITYMGR, "parse json sting failed");
         return;
     }
+    ConvertProcessInfoFromValue(jsonObject, processInfo, time_stamp);
+    ConvertReasonFromValue(jsonObject, exitReason, withKillMsg);
+    ConvertAbilityListFromValue(jsonObject, abilityList);
+    ConvertCallerInfoFromValue(jsonObject, callerInfo);
+}
+
+void AppExitReasonDataManager::ConvertProcessInfoFromValue(const nlohmann::json &jsonObject,
+    AppExecFwk::RunningProcessInfo &processInfo, int64_t &time_stamp)
+{
     if (jsonObject.contains(JSON_KEY_PID) && jsonObject[JSON_KEY_PID].is_number_integer()) {
         processInfo.pid_ = jsonObject.at(JSON_KEY_PID).get<int32_t>();
     }
     if (jsonObject.contains(JSON_KEY_UID) && jsonObject[JSON_KEY_UID].is_number_integer()) {
         processInfo.uid_ = jsonObject.at(JSON_KEY_UID).get<int32_t>();
     }
-    ConvertReasonFromValue(jsonObject, exitReason, withKillMsg);
     if (jsonObject.contains(JSON_KEY_RSS_VALUE) && jsonObject[JSON_KEY_RSS_VALUE].is_number_integer()) {
         processInfo.rssValue = jsonObject.at(JSON_KEY_RSS_VALUE).get<int32_t>();
     }
@@ -394,15 +402,26 @@ void AppExitReasonDataManager::ConvertAppExitReasonInfoFromValue(const Distribut
         processInfo.state_ = static_cast<OHOS::AppExecFwk::AppProcessState>(
             jsonObject.at(JSON_KEY_PROSESS_STATE).get<int32_t>());
     }
-    if (jsonObject.contains(JSON_KEY_ABILITY_LIST) && jsonObject[JSON_KEY_ABILITY_LIST].is_array()) {
-        abilityList.clear();
-        auto size = jsonObject[JSON_KEY_ABILITY_LIST].size();
-        for (size_t i = 0; i < size; i++) {
-            if (jsonObject[JSON_KEY_ABILITY_LIST][i].is_string()) {
-                abilityList.emplace_back(jsonObject[JSON_KEY_ABILITY_LIST][i]);
-            }
+}
+
+void AppExitReasonDataManager::ConvertAbilityListFromValue(const nlohmann::json &jsonObject,
+    std::vector<std::string> &abilityList)
+{
+    if (!jsonObject.contains(JSON_KEY_ABILITY_LIST) || !jsonObject[JSON_KEY_ABILITY_LIST].is_array()) {
+        return;
+    }
+    abilityList.clear();
+    auto size = jsonObject[JSON_KEY_ABILITY_LIST].size();
+    for (size_t i = 0; i < size; i++) {
+        if (jsonObject[JSON_KEY_ABILITY_LIST][i].is_string()) {
+            abilityList.emplace_back(jsonObject[JSON_KEY_ABILITY_LIST][i]);
         }
     }
+}
+
+void AppExitReasonDataManager::ConvertCallerInfoFromValue(const nlohmann::json &jsonObject,
+    AAFwk::CallerInfo &callerInfo)
+{
     if (jsonObject.contains(JSON_KEY_CALLER_PID) && jsonObject[JSON_KEY_CALLER_PID].is_number_integer()) {
         callerInfo.callerPid = jsonObject.at(JSON_KEY_CALLER_PID).get<int32_t>();
     }
