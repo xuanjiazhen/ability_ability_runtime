@@ -67,6 +67,20 @@ public:
     void SetBackgroundStatus(const bool isInBackground);
 
     /**
+     * @brief Start the guard window for an application foreground/background transition.
+     *
+     * The caller is the Binder dispatch path. The guard is intentionally independent
+     * of the main-thread lifecycle callback because that callback may be the blocked
+     * work being watched.
+     */
+    void StartTransitionGuard();
+
+    /**
+     * @brief Complete the transition guard after the lifecycle callback finishes.
+     */
+    void CompleteTransitionGuard();
+
+    /**
      *
      * @brief Allow report the main thread timeout event.
      *
@@ -116,6 +130,7 @@ private:
     bool IsNumeric(const std::string &str);
     void SetReportLifeCycleAsAppfreeze();
     bool CheckReportEvent(int64_t now);
+    bool IsSixSecondReportSuppressed() const;
 #ifdef ABILITY_RUNTIME_HITRACE_ENABLE
     void SetHiTraceChainId();
 
@@ -136,6 +151,8 @@ private:
     static std::shared_ptr<EventHandler> appMainHandler_;
     int64_t lastWatchTime_ = 0;
     int64_t lastBackGroundWatchTime_ = 0;
+    int32_t transitionGuardRemainingCycles_ = 0;
+    bool transitionDiagnosticReported_ = false;
     std::string bundleName_;
 };
 }  // namespace AppExecFwk

@@ -734,13 +734,14 @@ int AppfreezeInner::AcquireStack(const FaultData& info, bool onlyMainThread)
         faultData.pid = it->pid;
         faultData.applicationHeapInfo = it->applicationHeapInfo;
         faultData.processLifeTime = it->processLifeTime;
+        faultData.abilityPendingBackground = it->abilityPendingBackground;
         ChangeFaultDateInfo(faultData, msgContent);
     }
     return 0;
 }
 
 void AppfreezeInner::ThreadBlock(std::atomic_bool& isSixSecondEvent, uint64_t schedTime,
-    uint64_t now, bool isInBackground)
+    uint64_t now, bool isInBackground, bool forceThreeSecondEvent)
 {
     FaultData faultData;
     std::string faultTimeStr = "\nFault time:" + AbilityRuntime::TimeUtil::FormatTime("%Y/%m/%d-%H:%M:%S") + "\n";
@@ -753,7 +754,7 @@ void AppfreezeInner::ThreadBlock(std::atomic_bool& isSixSecondEvent, uint64_t sc
     faultData.detectTime = now;
     faultData.appStatus = isInBackground ? AppStatus::APP_STATUS_BACKGROUND : AppStatus::APP_STATUS_FOREGROUND;
 
-    if (isSixSecondEvent) {
+    if (isSixSecondEvent && !forceThreeSecondEvent) {
         faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
         onlyMainThread = true;
 #ifdef APP_NO_RESPONSE_DIALOG
