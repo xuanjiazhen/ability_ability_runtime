@@ -14,11 +14,13 @@
  */
 
 #include <gtest/gtest.h>
+#include <unistd.h>
 
 #include "app_exit_reason_helper.h"
 #include "task_handler_wrap.h"
 #include "ability_event_handler.h"
 #include "ability_manager_service.h"
+#include "ipc_skeleton.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -175,6 +177,35 @@ HWTEST_F(AppExitReasonHelperTest, GetRunningProcessInfos_0300, TestSize.Level1)
     std::string bundleName = "";
     auto res = appExitReasonHelper->GetRunningProcessInfos(userId, bundleName);
     EXPECT_TRUE(res.empty());
+}
+
+/**
+ * @tc.name: AppExitReasonHelper_GetCallerInfo_0100
+ * @tc.desc: GetCallerInfo captures calling pid and resolves process name
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppExitReasonHelperTest, AppExitReasonHelper_GetCallerInfo_0100, TestSize.Level1)
+{
+    auto appExitReasonHelper = std::make_shared<AAFwk::AppExitReasonHelper>(nullptr);
+
+    AAFwk::CallerInfo callerInfo;
+    appExitReasonHelper->GetCallerInfo(callerInfo);
+    EXPECT_EQ(callerInfo.callerPid, static_cast<int32_t>(IPCSkeleton::GetCallingPid()));
+    EXPECT_FALSE(callerInfo.callerProcessName.empty());
+}
+
+/**
+ * @tc.name: AppExitReasonHelper_GetCallerInfo_0200
+ * @tc.desc: GetProcessNameByPid returns empty for invalid pid and resolves current process
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppExitReasonHelperTest, AppExitReasonHelper_GetCallerInfo_0200, TestSize.Level1)
+{
+    EXPECT_TRUE(AAFwk::AppExitReasonHelper::GetProcessNameByPid(-1).empty());
+    EXPECT_TRUE(AAFwk::AppExitReasonHelper::GetProcessNameByPid(0).empty());
+    EXPECT_FALSE(AAFwk::AppExitReasonHelper::GetProcessNameByPid(static_cast<int32_t>(getpid())).empty());
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

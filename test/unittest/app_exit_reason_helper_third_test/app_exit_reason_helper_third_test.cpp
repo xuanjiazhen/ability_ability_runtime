@@ -163,5 +163,45 @@ HWTEST_F(AppExitReasonHelperThirdTest, RecordUIAbilityExitReason_0100, TestSize.
     result = appExitReasonHelper_->RecordUIAbilityExitReason(pid, "", exitReason);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
 }
+
+/**
+ * @tc.name: RecordWithReason_CallerResolveFail_0100
+ * @tc.desc: caller resolve failure does not block main flow and returns original error code
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppExitReasonHelperThirdTest, RecordWithReason_CallerResolveFail_0100, TestSize.Level1)
+{
+    constexpr int32_t NON_EXIST_PID = 999999999;
+    EXPECT_TRUE(AAFwk::AppExitReasonHelper::GetProcessNameByPid(NON_EXIST_PID).empty());
+
+    std::shared_ptr<AAFwk::AppExitReasonHelper> appExitReasonHelper_;
+    appExitReasonHelper_ = std::make_shared<AAFwk::AppExitReasonHelper>(nullptr);
+    AAFwk::CallerInfo callerInfo;
+    callerInfo.callerPid = NON_EXIST_PID;
+    callerInfo.callerProcessName = "";
+    AAFwk::ExitReasonCompability exitReason(AAFwk::REASON_JS_ERROR, "test reason");
+    int32_t result = appExitReasonHelper_->RecordAppWithReason(1, 20000001, exitReason, callerInfo);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: DefaultCallerInfo_InternalPath_0100
+ * @tc.desc: default CallerInfo keeps existing call sites unchanged
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppExitReasonHelperThirdTest, DefaultCallerInfo_InternalPath_0100, TestSize.Level1)
+{
+    AAFwk::CallerInfo defaultCallerInfo;
+    EXPECT_EQ(defaultCallerInfo.callerPid, 0);
+    EXPECT_TRUE(defaultCallerInfo.callerProcessName.empty());
+
+    std::shared_ptr<AAFwk::AppExitReasonHelper> appExitReasonHelper_;
+    appExitReasonHelper_ = std::make_shared<AAFwk::AppExitReasonHelper>(nullptr);
+    AAFwk::ExitReasonCompability exitReason(AAFwk::REASON_JS_ERROR, "test reason");
+    int32_t result = appExitReasonHelper_->RecordAppWithReason(1, 20000001, exitReason);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS

@@ -563,5 +563,119 @@ HWTEST_F(AppExitReasonDataManagerTest, AppExitReasonDataManager_ConvertAppExitRe
     auto exitMsg = jsonObject.at(JSON_KEY_EXIT_MSG).get<std::string>();
     EXPECT_EQ(exitMsg, exitReason.exitMsg);
 }
+
+/* *
+ * @tc.name: AppExitReasonDataManager_SetAppExitReasonWithCallerInfo_0100
+ * @tc.desc: ConvertAppExitReasonInfoToValue writes caller keys and FromValue reads them back
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppExitReasonDataManagerTest, AppExitReasonDataManager_SetAppExitReasonWithCallerInfo_0100, TestSize.Level1)
+{
+    std::vector<std::string> abilityList = { ABILITY_NAME };
+    AAFwk::ExitReason exitReason = { AAFwk::REASON_JS_ERROR, "Js Error." };
+    AppExecFwk::RunningProcessInfo processInfo;
+    processInfo.pid_ = 100;
+    processInfo.uid_ = 20000001;
+    AAFwk::CallerInfo callerInfo;
+    callerInfo.callerPid = 1234;
+    callerInfo.callerProcessName = "foundation";
+
+    auto value = DelayedSingleton<AppExitReasonDataManager>::GetInstance()->ConvertAppExitReasonInfoToValue(
+        abilityList, exitReason, processInfo, false, callerInfo);
+    auto jsonObject = nlohmann::json::parse(value.ToString(), nullptr, false);
+    ASSERT_FALSE(jsonObject.is_discarded());
+    ASSERT_TRUE(jsonObject.contains("caller_pid"));
+    ASSERT_TRUE(jsonObject.contains("caller_process_name"));
+    EXPECT_EQ(jsonObject.at("caller_pid").get<int32_t>(), callerInfo.callerPid);
+    EXPECT_EQ(jsonObject.at("caller_process_name").get<std::string>(), callerInfo.callerProcessName);
+
+    AAFwk::ExitReason readReason;
+    int64_t timeStamp = 0;
+    std::vector<std::string> readAbilityList;
+    AppExecFwk::RunningProcessInfo readProcessInfo;
+    bool withKillMsg = false;
+    AAFwk::CallerInfo readCallerInfo;
+    DelayedSingleton<AppExitReasonDataManager>::GetInstance()->ConvertAppExitReasonInfoFromValue(
+        value, readReason, timeStamp, readAbilityList, readProcessInfo, withKillMsg, readCallerInfo);
+    EXPECT_EQ(readCallerInfo.callerPid, callerInfo.callerPid);
+    EXPECT_EQ(readCallerInfo.callerProcessName, callerInfo.callerProcessName);
+}
+
+/* *
+ * @tc.name: AppExitReasonDataManager_ReadOldValueWithoutCallerKey_0100
+ * @tc.desc: FromValue falls back to empty caller for legacy records without caller keys
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppExitReasonDataManagerTest, AppExitReasonDataManager_ReadOldValueWithoutCallerKey_0100, TestSize.Level1)
+{
+    nlohmann::json jsonObject = nlohmann::json {
+        { "pid", 100 },
+        { "uid", 20000001 },
+        { JSON_KEY_REASON, AAFwk::Reason::REASON_JS_ERROR },
+        { JSON_KEY_EXIT_MSG, "Js Error." }
+    };
+    DistributedKv::Value value(jsonObject.dump());
+
+    AAFwk::ExitReason exitReason;
+    int64_t timeStamp = 0;
+    std::vector<std::string> abilityList;
+    AppExecFwk::RunningProcessInfo processInfo;
+    bool withKillMsg = false;
+    AAFwk::CallerInfo callerInfo;
+    callerInfo.callerPid = -1;
+    callerInfo.callerProcessName = "init";
+    DelayedSingleton<AppExitReasonDataManager>::GetInstance()->ConvertAppExitReasonInfoFromValue(
+        value, exitReason, timeStamp, abilityList, processInfo, withKillMsg, callerInfo);
+    EXPECT_EQ(callerInfo.callerPid, -1);
+    EXPECT_EQ(callerInfo.callerProcessName, "init");
+    EXPECT_EQ(exitReason.reason, AAFwk::REASON_JS_ERROR);
+}
+
+/* *
+ * @tc.name: AppExitReasonDataManager_GetAppExitReasonCallerRoundTrip_0100
+ * @tc.desc: GetAppExitReason returns caller info and rewrite keeps caller fields
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppExitReasonDataManagerTest, AppExitReasonDataManager_GetAppExitReasonCallerRoundTrip_0100,
+    TestSize.Level1)
+{
+    std::vector<std::string> abilityList = { ABILITY_NAME };
+    AAFwk::ExitReason exitReason = { AAFwk::REASON_JS_ERROR, "Js Error." };
+    AppExecFwk::RunningProcessInfo processInfo;
+    processInfo.pid_ = 100;
+    processInfo.uid_ = 20000001;
+    AAFwk::CallerInfo callerInfo;
+    callerInfo.callerPid = 1234;
+    callerInfo.callerProcessName = "foundation";
+
+    auto tempKv = DelayedSingleton<AppExitReasonDataManager>::GetInstance()->kvStorePtr_;
+    std::shared_ptr<MockSingleKvStore> kvStorePtr = std::make_shared<MockSingleKvStore>();
+    DelayedSingleton<AppExitReasonDataManager>::GetInstance()->kvStorePtr_ = kvStorePtr;
+
+    DistributedKv::Entry entry;
+    entry.key = std::to_string(ACCESS_TOKEN_ID);
+    entry.value = DelayedSingleton<AppExitReasonDataManager>::GetInstance()->ConvertAppExitReasonInfoToValue(
+        abilityList, exitReason, processInfo, false, callerInfo);
+    std::vector<DistributedKv::Entry> allEntries;
+    allEntries.push_back(entry);
+    EXPECT_CALL(*kvStorePtr, GetEntries(_, _)).Times(1)
+        .WillOnce(DoAll(SetArgReferee<1>(allEntries), Return(DistributedKv::Status::SUCCESS)));
+
+    bool isSetReason = false;
+    AAFwk::ExitReason readReason;
+    AppExecFwk::RunningProcessInfo readProcessInfo;
+    int64_t timeStamp = 0;
+    bool withKillMsg = false;
+    AAFwk::CallerInfo readCallerInfo;
+    auto result = DelayedSingleton<AppExitReasonDataManager>::GetInstance()->GetAppExitReason(
+        BUNDLE_NAME, ACCESS_TOKEN_ID, ABILITY_NAME, isSetReason, readReason, readProcessInfo, timeStamp,
+        withKillMsg, true, &readCallerInfo);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_TRUE(isSetReason);
+    EXPECT_EQ(readCallerInfo.callerPid, callerInfo.callerPid);
+    EXPECT_EQ(readCallerInfo.callerProcessName, callerInfo.callerProcessName);
+
+    DelayedSingleton<AppExitReasonDataManager>::GetInstance()->kvStorePtr_ = tempKv;
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

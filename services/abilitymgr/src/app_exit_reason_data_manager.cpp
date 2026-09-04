@@ -53,6 +53,8 @@ const std::string JSON_KEY_RSS_VALUE = "rss_value";
 const std::string JSON_KEY_PROSESS_STATE = "process_state";
 constexpr const char* PUT_TASK_NAME = "kvStorePtr_->Put";
 const std::string JSON_KEY_KILL_ID = "kill_id";
+const std::string JSON_KEY_CALLER_PID = "caller_pid";
+const std::string JSON_KEY_CALLER_PROCESS_NAME = "caller_process_name";
 } // namespace
 AppExitReasonDataManager::AppExitReasonDataManager() {}
 
@@ -110,7 +112,7 @@ bool AppExitReasonDataManager::CheckKvStore()
 
 int32_t AppExitReasonDataManager::SetAppExitReason(const std::string &bundleName, uint32_t accessTokenId,
     const std::vector<std::string> &abilityList, const AAFwk::ExitReason &exitReason,
-    const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg)
+    const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg, const AAFwk::CallerInfo &callerInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     AAFwk::RecordCostTimeUtil timeRecord("SetAppExitReason");
@@ -128,7 +130,8 @@ int32_t AppExitReasonDataManager::SetAppExitReason(const std::string &bundleName
     }
 
     DistributedKv::Key key(keyStr);
-    DistributedKv::Value value = ConvertAppExitReasonInfoToValue(abilityList, exitReason, processInfo, withKillMsg);
+    DistributedKv::Value value =
+        ConvertAppExitReasonInfoToValue(abilityList, exitReason, processInfo, withKillMsg, callerInfo);
     PutAsync(key, value);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "bundleName: %{public}s, tokenId: %{private}u", bundleName.c_str(), accessTokenId);
     return ERR_OK;
@@ -195,8 +198,8 @@ int32_t AppExitReasonDataManager::DeleteAppExitReason(const std::string &bundleN
 
 int32_t AppExitReasonDataManager::GetAppExitReason(const std::string &bundleName, uint32_t accessTokenId,
     const std::string &abilityName, bool &isSetReason, AAFwk::ExitReason &exitReason,
-    AppExecFwk::RunningProcessInfo &processInfo, int64_t &time_stamp, bool &withKillMsg,
-    bool cleanFlag)
+    AppExecFwk::RunningProcessInfo &processInfo, int64_t &time_stamp, bool &withKillMsg, bool cleanFlag,
+    AAFwk::CallerInfo *callerInfo)
 {
     auto accessTokenIdStr = std::to_string(accessTokenId);
     if (bundleName.empty() || accessTokenId == Security::AccessToken::INVALID_TOKENID) {
@@ -219,14 +222,19 @@ int32_t AppExitReasonDataManager::GetAppExitReason(const std::string &bundleName
     }
 
     std::vector<std::string> abilityList;
+    AAFwk::CallerInfo innerCallerInfo;
     for (const auto &item : allEntries) {
         if (item.key.ToString() == accessTokenIdStr) {
             ConvertAppExitReasonInfoFromValue(item.value, exitReason, time_stamp, abilityList, processInfo,
-                withKillMsg);
+                withKillMsg, innerCallerInfo);
+            if (callerInfo != nullptr) {
+                *callerInfo = innerCallerInfo;
+            }
             auto pos = std::find(abilityList.begin(), abilityList.end(), abilityName);
             if (pos != abilityList.end()) {
                 HandleAbilityMatchAndCleanup(abilityName, abilityList, isSetReason, cleanFlag);
-                UpdateAppExitReason(accessTokenId, abilityList, exitReason, processInfo, withKillMsg);
+                UpdateAppExitReason(accessTokenId, abilityList, exitReason, processInfo, withKillMsg,
+                    innerCallerInfo);
             }
             TAG_LOGD(AAFwkTag::ABILITYMGR, "current bundle name: %{public}s, tokenId:%{private}u, reason: %{public}d,"
                 "  exitMsg: %{public}s, abilityName:%{public}s, isSetReason:%{public}d, killId:%{public}d",
@@ -254,7 +262,8 @@ void AppExitReasonDataManager::HandleAbilityMatchAndCleanup(
 }
 
 void AppExitReasonDataManager::UpdateAppExitReason(uint32_t accessTokenId, const std::vector<std::string> &abilityList,
-    const AAFwk::ExitReason &exitReason, const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg)
+    const AAFwk::ExitReason &exitReason, const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg,
+    const AAFwk::CallerInfo &callerInfo)
 {
     if (kvStorePtr_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStorePtr_");
@@ -263,7 +272,8 @@ void AppExitReasonDataManager::UpdateAppExitReason(uint32_t accessTokenId, const
 
     DistributedKv::Key key(std::to_string(accessTokenId));
     DistributedKv::Status status;
-    DistributedKv::Value value = ConvertAppExitReasonInfoToValue(abilityList, exitReason, processInfo, withKillMsg);
+    DistributedKv::Value value =
+        ConvertAppExitReasonInfoToValue(abilityList, exitReason, processInfo, withKillMsg, callerInfo);
     {
         std::lock_guard lock(kvStorePtrMutex_);
         status = kvStorePtr_->Put(key, value);
@@ -322,7 +332,7 @@ int32_t AppExitReasonDataManager::RecordSignalReason(int32_t pid, int32_t uid, i
 
 DistributedKv::Value AppExitReasonDataManager::ConvertAppExitReasonInfoToValue(
     const std::vector<std::string> &abilityList, const AAFwk::ExitReason &exitReason,
-    const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg)
+    const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg, const AAFwk::CallerInfo &callerInfo)
 {
     std::chrono::milliseconds nowMs =
         std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
@@ -344,7 +354,9 @@ DistributedKv::Value AppExitReasonDataManager::ConvertAppExitReasonInfoToValue(
         { JSON_KEY_TIME_STAMP, nowMs.count() },
         { JSON_KEY_ABILITY_LIST, abilityList },
         { JSON_KEY_PROSESS_STATE, processInfo.state_ },
-        { JSON_KEY_KILL_ID, exitReason.killId }
+        { JSON_KEY_KILL_ID, exitReason.killId },
+        { JSON_KEY_CALLER_PID, callerInfo.callerPid },
+        { JSON_KEY_CALLER_PROCESS_NAME, callerInfo.callerProcessName }
     };
     DistributedKv::Value value(jsonObject.dump());
     return value;
@@ -352,7 +364,7 @@ DistributedKv::Value AppExitReasonDataManager::ConvertAppExitReasonInfoToValue(
 
 void AppExitReasonDataManager::ConvertAppExitReasonInfoFromValue(const DistributedKv::Value &value,
     AAFwk::ExitReason &exitReason, int64_t &time_stamp, std::vector<std::string> &abilityList,
-    AppExecFwk::RunningProcessInfo &processInfo, bool &withKillMsg)
+    AppExecFwk::RunningProcessInfo &processInfo, bool &withKillMsg, AAFwk::CallerInfo &callerInfo)
 {
     nlohmann::json jsonObject = nlohmann::json::parse(value.ToString(), nullptr, false);
     if (jsonObject.is_discarded()) {
@@ -390,6 +402,12 @@ void AppExitReasonDataManager::ConvertAppExitReasonInfoFromValue(const Distribut
                 abilityList.emplace_back(jsonObject[JSON_KEY_ABILITY_LIST][i]);
             }
         }
+    }
+    if (jsonObject.contains(JSON_KEY_CALLER_PID) && jsonObject[JSON_KEY_CALLER_PID].is_number_integer()) {
+        callerInfo.callerPid = jsonObject.at(JSON_KEY_CALLER_PID).get<int32_t>();
+    }
+    if (jsonObject.contains(JSON_KEY_CALLER_PROCESS_NAME) && jsonObject[JSON_KEY_CALLER_PROCESS_NAME].is_string()) {
+        callerInfo.callerProcessName = jsonObject.at(JSON_KEY_CALLER_PROCESS_NAME).get<std::string>();
     }
 }
 
@@ -747,10 +765,11 @@ bool AppExitReasonDataManager::GetUIExtensionAbilityExitReason(const std::string
     }
     std::vector<std::string> abilityList;
     bool isHaveReason = false;
+    AAFwk::CallerInfo callerInfo;
     for (const auto &item : allEntries) {
         if (item.key.ToString() == keyEx) {
             ConvertAppExitReasonInfoFromValue(item.value, exitReason, time_stamp, abilityList,
-                processInfo, withKillMsg);
+                processInfo, withKillMsg, callerInfo);
             isHaveReason = true;
             InnerDeleteAppExitReason(keyEx);
             break;
@@ -1011,10 +1030,11 @@ int32_t AppExitReasonDataManager::GetRecordAppAbilityNames(const uint32_t access
     int64_t timeStamp = 0;
     AppExecFwk::RunningProcessInfo processInfo = {};
     bool withKillMsg = false;
+    AAFwk::CallerInfo callerInfo;
     for (const auto &item : allEntries) {
         if (item.key.ToString() == accessTokenIdStr) {
             ConvertAppExitReasonInfoFromValue(item.value, exitReason, timeStamp, abilityLists, processInfo,
-                withKillMsg);
+                withKillMsg, callerInfo);
         }
     }
 

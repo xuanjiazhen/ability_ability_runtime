@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <unistd.h>
 
 #define private public
 #define protected public
@@ -3295,6 +3296,96 @@ HWTEST_F(AbilityManagerServiceThirdTest, CheckSupportVpn_002, TestSize.Level1)
     abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SERVICE;
     auto result = abilityMs_->CheckSupportVpn(abilityInfo);
     EXPECT_TRUE(result);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RecordAppWithReason
+ * FunctionPoints: RecordAppWithReason captures caller info and passes through to helper
+ * @tc.name: RecordAppWithReason_RecordCaller_0100
+ * @tc.desc: caller info is captured at IPC entry and threaded into record chain
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceThirdTest, RecordAppWithReason_RecordCaller_0100, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+    ASSERT_NE(abilityMs->appExitReasonHelper_, nullptr);
+
+    ExitReasonCompability invalidReason(static_cast<Reason>(REASON_MAX + 1), "test invalid reason");
+    auto ret = abilityMs->RecordAppWithReason(static_cast<int32_t>(getpid()),
+        static_cast<int32_t>(getuid()), invalidReason);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    CallerInfo callerInfo;
+    callerInfo.callerPid = static_cast<int32_t>(getpid());
+    callerInfo.callerProcessName = "test_caller";
+    ExitReasonCompability validReason(REASON_JS_ERROR, "test reason");
+    ret = abilityMs->RecordAppWithReason(static_cast<int32_t>(getpid()),
+        static_cast<int32_t>(getuid()), validReason, callerInfo);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: ForceExitApp
+ * FunctionPoints: ForceExitApp captures caller at its own entry before IN_PROCESS_CALL
+ * @tc.name: ForceExitApp_RecordCaller_0100
+ * @tc.desc: capture executes before delegation, permission gate unchanged
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceThirdTest, ForceExitApp_RecordCaller_0100, TestSize.Level1)
+{
+    IsMockSaCall::IsMockSaCallWithPermission();
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+
+    ExitReason exitReason(REASON_RESOURCE_CONTROL, "test force exit");
+    auto ret = abilityMs->ForceExitApp(static_cast<int32_t>(getpid()), exitReason);
+    EXPECT_NE(ret, ERR_PERMISSION_DENIED);
+    IsMockSaCall::IsMockResetPermission();
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: KillAppWithReason
+ * FunctionPoints: KillAppWithReason permission gate regression and capture path
+ * @tc.name: KillAppWithReason_RecordCaller_0100
+ * @tc.desc: unauthorized caller is rejected; capture path runs after permission check
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceThirdTest, KillAppWithReason_RecordCaller_0100, TestSize.Level1)
+{
+    IsMockSaCall::IsMockResetPermission();
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+
+    ExitReasonCompability exitReason(REASON_RESOURCE_CONTROL, "test kill");
+    auto ret = abilityMs->KillAppWithReason(static_cast<int32_t>(getpid()), exitReason);
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: KillBundleWithReason
+ * FunctionPoints: KillBundleWithReason permission gate regression
+ * @tc.name: KillBundleWithReason_RecordCaller_0100
+ * @tc.desc: unauthorized caller is rejected
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceThirdTest, KillBundleWithReason_RecordCaller_0100, TestSize.Level1)
+{
+    IsMockSaCall::IsMockResetPermission();
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+
+    ExitReasonCompability exitReason(REASON_RESOURCE_CONTROL, "test kill bundle");
+    auto ret = abilityMs->KillBundleWithReason("com.test.caller.bundle", 0, 0, exitReason);
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
 }
 
 }  // namespace AAFwk
