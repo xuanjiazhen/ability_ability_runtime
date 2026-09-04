@@ -2149,7 +2149,11 @@ public:
 
     ErrCode UpdateKioskApplicationList(const std::vector<std::string> &appList);
 
-    ErrCode EnterKioskMode(sptr<IRemoteObject> callerToken);
+    ErrCode SetKioskApplicationList(const std::vector<std::string> &appList);
+
+    ErrCode DeleteKioskApplicationList(const std::vector<std::string> &appList);
+
+    ErrCode EnterKioskMode(sptr<IRemoteObject> callerToken, int32_t kioskType = 0);
 
     ErrCode ExitKioskMode(sptr<IRemoteObject> callerToken);
 

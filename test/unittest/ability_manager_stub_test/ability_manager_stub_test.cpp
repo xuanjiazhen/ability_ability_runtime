@@ -4678,6 +4678,7 @@ HWTEST_F(AbilityManagerStubTest, EnterKioskModeInner, TestSize.Level1)
     bool writeRet = data.WriteInterfaceToken(AbilityManagerStubImplMock::GetDescriptor());
     auto token = sptr<AppExecFwk::MockAbilityToken>::MakeSptr();
     writeRet &= data.WriteRemoteObject(token);
+    writeRet &= data.WriteInt32(0); // kioskType
     EXPECT_EQ(writeRet, true);
 
     MessageParcel reply;
@@ -4726,6 +4727,50 @@ HWTEST_F(AbilityManagerStubTest, GetKioskStatusInner, TestSize.Level1)
     MessageOption option;
     auto ret = stub_->OnRemoteRequest(
         static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_KIOSK_INFO), data, reply, option);
+    EXPECT_EQ(ret, NO_ERROR);
+    TAG_LOGI(AAFwkTag::TEST, "end");
+}
+
+/**
+ * @tc.name: SetKioskApplicationListInner
+ * @tc.desc: SetKioskApplicationListInner IPC dispatch
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, SetKioskApplicationListInner, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin");
+    MessageParcel data;
+    bool writeRet = data.WriteInterfaceToken(AbilityManagerStubImplMock::GetDescriptor());
+    std::vector<std::string> appList = {"com.ohos.test1"};
+    writeRet &= data.WriteStringVector(appList);
+    EXPECT_EQ(writeRet, true);
+
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::SET_KIOSK_APP_LIST), data, reply, option);
+    EXPECT_EQ(ret, NO_ERROR);
+    TAG_LOGI(AAFwkTag::TEST, "end");
+}
+
+/**
+ * @tc.name: DeleteKioskApplicationListInner
+ * @tc.desc: DeleteKioskApplicationListInner IPC dispatch
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, DeleteKioskApplicationListInner, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin");
+    MessageParcel data;
+    bool writeRet = data.WriteInterfaceToken(AbilityManagerStubImplMock::GetDescriptor());
+    std::vector<std::string> appList = {"com.ohos.test1"};
+    writeRet &= data.WriteStringVector(appList);
+    EXPECT_EQ(writeRet, true);
+
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::DELETE_KIOSK_APP_FROM_LIST), data, reply, option);
     EXPECT_EQ(ret, NO_ERROR);
     TAG_LOGI(AAFwkTag::TEST, "end");
 }

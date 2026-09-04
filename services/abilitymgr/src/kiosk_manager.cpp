@@ -51,15 +51,17 @@ void KioskManager::OnAppStop(const AppInfo &info)
         info.bundleName.c_str(), static_cast<int32_t>(info.state));
     bool shouldExit = false;
     sptr<IRemoteObject> exitToken;
+    std::string exitBundle;
     {
         std::lock_guard<std::mutex> lock(kioskManagerMutex_);
         if (IsInKioskModeInner() && (info.bundleName == kioskStatus_.kioskBundleName_)) {
             shouldExit = true;
+            exitBundle = kioskStatus_.kioskBundleName_;
             exitToken = kioskStatus_.kioskToken_;
         }
     }
     if (shouldExit) {
-        ExitKioskModeInner(info.bundleName, exitToken, true);
+        ExitKioskModeInner(exitBundle, exitToken, true);
     }
 }
 
@@ -82,13 +84,26 @@ int32_t KioskManager::VerifyUpdatePermissions()
     return ERR_OK;
 }
 
-int32_t KioskManager::UpdateKioskApplicationList(const std::vector<std::string> &appList)
+int32_t KioskManager::VerifyKioskPermissions()
 {
-    auto permRet = VerifyUpdatePermissions();
-    if (permRet != ERR_OK) {
-        return permRet;
+    if (!system::GetBoolParameter(KIOSK_MODE_ENABLED, false)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Disabled config");
+        return ERR_CAPABILITY_NOT_SUPPORT;
     }
+    if (!PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not SA call");
+        return ERR_NOT_SYSTEM_APP;
+    }
+    if (!PermissionVerification::GetInstance()->VerifyCallingPermission(
+        PermissionConstants::PERMISSION_SWITCH_KIOSK_MODE)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not SWITCH_KIOSK_MODE permission");
+        return CHECK_PERMISSION_FAILED;
+    }
+    return ERR_OK;
+}
 
+int32_t KioskManager::CheckAndExitIfOutOfList(const std::vector<std::string> &appList)
+{
     bool needExit = false;
     std::string exitBundleName;
     sptr<IRemoteObject> exitToken;
@@ -109,12 +124,34 @@ int32_t KioskManager::UpdateKioskApplicationList(const std::vector<std::string> 
             return exitRet;
         }
     }
+    return ERR_OK;
+}
+
+int32_t KioskManager::NotifyWmsUpdateAppList(const std::vector<std::string> &appList)
+{
     auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
     CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, INNER_ERR, "sceneSessionManager is nullptr");
     auto ret = static_cast<int>(sceneSessionManager->UpdateKioskAppList(appList));
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "UpdateKioskAppList failed: %{public}d", ret);
         return ret;
+    }
+    return ERR_OK;
+}
+
+int32_t KioskManager::UpdateKioskApplicationList(const std::vector<std::string> &appList)
+{
+    auto permRet = VerifyUpdatePermissions();
+    if (permRet != ERR_OK) {
+        return permRet;
+    }
+    auto exitRet = CheckAndExitIfOutOfList(appList);
+    if (exitRet != ERR_OK) {
+        return exitRet;
+    }
+    auto wmsRet = NotifyWmsUpdateAppList(appList);
+    if (wmsRet != ERR_OK) {
+        return wmsRet;
     }
     {
         std::lock_guard<std::mutex> lock(kioskManagerMutex_);
@@ -126,7 +163,71 @@ int32_t KioskManager::UpdateKioskApplicationList(const std::vector<std::string> 
     return ERR_OK;
 }
 
-int32_t KioskManager::EnterKioskMode(sptr<IRemoteObject> callerToken)
+int32_t KioskManager::SetKioskApplicationList(const std::vector<std::string> &appList)
+{
+    auto permRet = VerifyKioskPermissions();
+    if (permRet != ERR_OK) {
+        return permRet;
+    }
+    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    auto exitRet = CheckAndExitIfOutOfList(appList);
+    if (exitRet != ERR_OK) {
+        return exitRet;
+    }
+    auto wmsRet = NotifyWmsUpdateAppList(appList);
+    if (wmsRet != ERR_OK) {
+        return wmsRet;
+    }
+    {
+        std::lock_guard<std::mutex> lock(kioskManagerMutex_);
+        auto iter = kioskWhitelistMap_.find(callerUid);
+        if (iter == kioskWhitelistMap_.end()) {
+            iter = kioskWhitelistMap_.emplace(callerUid, std::unordered_set<std::string>{}).first;
+        }
+        iter->second.clear();
+        for (const auto &app : appList) {
+            iter->second.insert(app);
+        }
+    }
+    return ERR_OK;
+}
+
+int32_t KioskManager::DeleteKioskApplicationList(const std::vector<std::string> &appList)
+{
+    auto permRet = VerifyKioskPermissions();
+    if (permRet != ERR_OK) {
+        return permRet;
+    }
+    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    std::vector<std::string> remainList; //删除后剩余名单快照
+    {
+        std::lock_guard<std::mutex> lock(kioskManagerMutex_);
+        auto it = kioskWhitelistMap_.find(callerUid); // 只查自己的槽位
+        if (it != kioskWhitelistMap_.end()) {
+            if (appList.empty()) {
+                kioskWhitelistMap_.erase(it); // 空列表 => 清空整个槽位
+            } else {
+                for (const auto &app : appList) {
+                    it->second.erase(app); // 逐条删除
+                }
+                if (it->second.empty()) {
+                    kioskWhitelistMap_.erase(it);  // 删空了也 erase 槽位
+                } else {
+                    for (const auto &app : it->second) {
+                        remainList.push_back(app); // 收集剩余名单
+                    }
+                }
+            }
+        }
+    }
+    auto wmsRet = NotifyWmsUpdateAppList(remainList);
+    if (wmsRet != ERR_OK) {
+        return wmsRet;
+    }
+    return ERR_OK;
+}
+
+int32_t KioskManager::EnterKioskMode(sptr<IRemoteObject> callerToken, int32_t kioskType)
 {
     if (!system::GetBoolParameter(KIOSK_MODE_ENABLED, false)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Disabled config");
@@ -138,27 +239,48 @@ int32_t KioskManager::EnterKioskMode(sptr<IRemoteObject> callerToken)
         return INVALID_PARAMETERS_ERR;
     }
     std::string bundleName = record->GetAbilityInfo().bundleName;
-    int32_t kioskBundleUid = IPCSkeleton::GetCallingUid();
-    {
+    int32_t recordUid = record->GetAbilityInfo().uid;
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    bool isSelf = (callingUid == recordUid);
+    if (isSelf) {
         std::lock_guard<std::mutex> lock(kioskManagerMutex_);
         if (!IsInWhiteListInner(bundleName)) {
             return ERR_KIOSK_MODE_NOT_IN_WHITELIST;
         }
-
         if (IsInKioskModeInner()) {
             return ERR_ALREADY_IN_KIOSK_MODE;
         }
-
+        kioskStatus_.isProxyEnter_ = false;
+        kioskStatus_.kioskCallerUid_ = callingUid;
+    } else {
+        auto permRet = VerifyKioskPermissions();
+        if (permRet != ERR_OK) {
+            return permRet;
+        }
+        std::lock_guard<std::mutex> lock(kioskManagerMutex_);
+        if (!IsSAProxyInKioskWhitelist(callingUid, bundleName)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "proxy target not in caller whitelist");
+            return ERR_KIOSK_MODE_NOT_IN_WHITELIST;
+        }
+        if (IsInKioskModeInner()) {
+            return ERR_ALREADY_IN_KIOSK_MODE;
+        }
+        kioskStatus_.isProxyEnter_ = true;
+        kioskStatus_.kioskCallerUid_ = callingUid;
+    }
+    {
+        std::lock_guard<std::mutex> lock(kioskManagerMutex_);
         kioskStatus_.isKioskMode_ = true;
         kioskStatus_.kioskBundleName_ = bundleName;
-        kioskStatus_.kioskBundleUid_ = kioskBundleUid;
+        kioskStatus_.kioskBundleUid_ = recordUid;
         kioskStatus_.kioskToken_ = callerToken;
+        kioskStatus_.kioskType_ = kioskType;
     }
     GetEnterKioskModeCallback()();
-    NotifyKioskModeChanged(true, bundleName, kioskBundleUid);
+    NotifyKioskModeChanged(true, bundleName, recordUid, kioskType);
     auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
     CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, INNER_ERR, "sceneSessionManager is nullptr");
-    sceneSessionManager->EnterKioskMode(callerToken);
+    sceneSessionManager->EnterKioskMode(callerToken, kioskType);
     return ERR_OK;
 }
 
@@ -181,27 +303,32 @@ int32_t KioskManager::ExitKioskModeInner(const std::string &bundleName, sptr<IRe
 {
     std::string outBundleName;
     int32_t outUid = 0;
+    int32_t outKioskType = static_cast<int32_t>(KioskType::DEFAULT);
     {
         std::lock_guard<std::mutex> lock(kioskManagerMutex_);
         if (!IsInWhiteListInner(bundleName)) {
             return ERR_KIOSK_MODE_NOT_IN_WHITELIST;
         }
-
         if (!IsInKioskModeInner()) {
             return ERR_NOT_IN_KIOSK_MODE;
         }
-
         if (!isFoundation && kioskStatus_.kioskBundleUid_ != IPCSkeleton::GetCallingUid()) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleName %{public}s is not the currently kiosk app", bundleName.c_str());
-            return ERR_NOT_IN_KIOSK_MODE;
+            auto permRet = VerifyKioskPermissions();
+            if (permRet != ERR_OK) {
+                return permRet;
+            }
+            if (!IsSAProxyInKioskWhitelist(IPCSkeleton::GetCallingUid(), bundleName)) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "SA proxy not in whitelist");
+                return ERR_KIOSK_MODE_NOT_IN_WHITELIST;
+            }
         }
-
         outBundleName = kioskStatus_.kioskBundleName_;
         outUid = kioskStatus_.kioskBundleUid_;
+        outKioskType = kioskStatus_.kioskType_;
         kioskStatus_.Clear();
     }
     GetExitKioskModeCallback()();
-    NotifyKioskModeChanged(false, outBundleName, outUid);
+    NotifyKioskModeChanged(false, outBundleName, outUid, outKioskType);
     auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
     CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, INNER_ERR, "sceneSessionManager is nullptr");
     sceneSessionManager->ExitKioskMode(callerToken);
@@ -232,7 +359,6 @@ void KioskManager::FilterDialogAppInfos(std::vector<DialogAppInfo> &dialogAppInf
     if (!IsInKioskModeInner()) {
         return;
     }
-
     auto newEnd = std::remove_if(dialogAppInfos.begin(), dialogAppInfos.end(),
         [this](const DialogAppInfo &appInfo) {
             return !IsInWhiteListInner(appInfo.bundleName);
@@ -246,7 +372,6 @@ void KioskManager::FilterAbilityInfos(std::vector<AppExecFwk::AbilityInfo> &abil
     if (!IsInKioskModeInner()) {
         return;
     }
-
     auto newEnd = std::remove_if(abilityInfos.begin(), abilityInfos.end(),
         [this](const AppExecFwk::AbilityInfo &abilityInfo) {
             return !IsInWhiteListInner(abilityInfo.bundleName);
@@ -284,7 +409,7 @@ bool KioskManager::ShouldIntercept(const std::string &bundleName)
 }
 
 void KioskManager::NotifyKioskModeChanged(bool isInKioskMode, const std::string &bundleName,
-    int32_t kioskBundleUid)
+    int32_t kioskBundleUid, int32_t kioskType)
 {
     std::string eventData = isInKioskMode
                                 ? EventFwk::CommonEventSupport::COMMON_EVENT_KIOSK_MODE_ON
@@ -294,6 +419,7 @@ void KioskManager::NotifyKioskModeChanged(bool isInKioskMode, const std::string 
     want.SetParam("bundleName", bundleName);
     want.SetParam("uid", kioskBundleUid);
     want.SetParam("userId", kioskBundleUid / BASE_USER_RANGE);
+    want.SetParam("type", kioskType);
     EventFwk::CommonEventData commonData {want};
     if (!IN_PROCESS_CALL(EventFwk::CommonEventManager::PublishCommonEvent(commonData))) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "PublishCommonEvent failed, eventData: %{public}s", eventData.c_str());
@@ -302,7 +428,20 @@ void KioskManager::NotifyKioskModeChanged(bool isInKioskMode, const std::string 
 
 bool KioskManager::IsInWhiteListInner(const std::string &bundleName)
 {
+    // Only the active (current kiosk caller) whitelist participates in interception.
+    if (kioskStatus_.isProxyEnter_) {
+        return IsSAProxyInKioskWhitelist(kioskStatus_.kioskCallerUid_, bundleName);
+    }
     return whitelist_.count(bundleName) != 0;
+}
+
+bool KioskManager::IsSAProxyInKioskWhitelist(int32_t callerUid, const std::string &bundleName)
+{
+    auto it = kioskWhitelistMap_.find(callerUid);
+    if (it == kioskWhitelistMap_.end()) {
+        return false;
+    }
+    return it->second.count(bundleName) != 0;
 }
 
 std::function<void()> KioskManager::GetEnterKioskModeCallback()

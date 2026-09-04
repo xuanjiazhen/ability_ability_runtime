@@ -1042,7 +1042,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, EnterKioskMode_Fail, TestSize.Level1)
     MyFlag::flag_ = true;
     auto result = abilityManagerService->UpdateKioskApplicationList(bundleNames);
     auto callerToken = MockToken(AbilityType::PAGE, ONE);
-    result = abilityManagerService->EnterKioskMode(callerToken);
+    result = abilityManagerService->EnterKioskMode(callerToken,
+        static_cast<int32_t>(KioskType::DEFAULT));
     if (!system::GetBoolParameter(KIOSK_MODE_ENABLED, false)) {
         ASSERT_EQ(result, ERR_CAPABILITY_NOT_SUPPORT);
     }
@@ -1117,7 +1118,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, KioskManager_UpdateKioskApplicationLi
  */
 HWTEST_F(AbilityManagerServiceTwelfthTest, KioskManager_EnterKioskMode_Fail_01, TestSize.Level1) {
     auto callerToken = MockToken(AbilityType::PAGE);
-    auto result = KioskManager::GetInstance().EnterKioskMode(callerToken);
+    auto result = KioskManager::GetInstance().EnterKioskMode(callerToken,
+        static_cast<int32_t>(KioskType::DEFAULT));
     if (!system::GetBoolParameter(KIOSK_MODE_ENABLED, false)) {
         ASSERT_EQ(result, ERR_CAPABILITY_NOT_SUPPORT);
     }
@@ -1363,7 +1365,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, EnterKioskMode_003, TestSize.Level1) 
     uint32_t tokenId = 0;
     auto callerToken = MockToken(AbilityType::PAGE, tokenId);
     ASSERT_NE(callerToken, nullptr);
-    auto result = abilityManagerService->EnterKioskMode(callerToken);
+    auto result = abilityManagerService->EnterKioskMode(callerToken,
+        static_cast<int32_t>(KioskType::DEFAULT));
     EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
 }
 
