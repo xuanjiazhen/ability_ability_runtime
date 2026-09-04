@@ -88,6 +88,7 @@ constexpr const char* WANT_PARAMS_APP_RESTART_FLAG = "ohos.aafwk.app.restart";
 constexpr const char* PARAM_SPECIFIED_PROCESS_FLAG = "ohoSpecifiedProcessFlag";
 constexpr int32_t HALF_TIMEOUT = 2;
 const std::string IS_PRELOAD_UIEXTENSION_ABILITY = "ability.want.params.is_preload_uiextension_ability";
+constexpr char SOC_BOOT_NODE[] = "soc.boot.mode";
 
 constexpr uint32_t PROCESS_MODE_RUN_WITH_MAIN_PROCESS =
     1 << static_cast<uint32_t>(AppExecFwk::ExtensionProcessMode::RUN_WITH_MAIN_PROCESS);
@@ -2299,6 +2300,10 @@ bool AbilityConnectManager::IsAbilityNeedKeepAlive(const std::shared_ptr<BaseExt
 
 void AbilityConnectManager::KeepAbilityAlive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
+    if (system::GetParameter(SOC_BOOT_NODE, "") == "rescue") {
+        TAG_LOGW(AAFwkTag::EXT, "Skip KeepAbilityAlive in rescue mode");
+        return;
+    }
     CHECK_POINTER(abilityRecord);
     auto abilityInfo = abilityRecord->GetAbilityInfo();
     TAG_LOGI(AAFwkTag::EXT, "restart ability, bundleName: %{public}s, abilityName: %{public}s",

@@ -284,6 +284,7 @@ constexpr const char* DLP_PARAMS_SECURITY_FLAG = "ohos.dlp.params.securityFlag";
 constexpr const char* DLP_PARAMS_CUSTOM_FLAG = "ohos.dlp.params.customFlag";
 
 constexpr char PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED[] = "const.product.enterprisefeature.setting.enabled";
+constexpr char SOC_BOOT_NODE[] = "soc.boot.mode";
 
 constexpr int32_t RESOURCE_SCHEDULE_UID = 1096;
 constexpr int32_t HIVIEW_UID = 1201;
@@ -8893,7 +8894,10 @@ int AbilityManagerService::StartHighestPriorityAbility(int32_t userId, uint64_t 
     TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}s", __func__);
     auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bms, BMS_NOT_CONNECTED);
-
+    if (system::GetParameter(SOC_BOOT_NODE, "") == "rescue") {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "Skip KeepAbilityAlive in rescue mode");
+        return ERR_OK;
+    }
     /* Query the highest priority ability or extension ability, and start it. usually, it is OOBE or launcher */
     Want want;
     want.AddEntity(HIGHEST_PRIORITY_ABILITY_ENTITY);
