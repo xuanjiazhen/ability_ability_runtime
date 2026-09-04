@@ -33,9 +33,11 @@
 #define private public
 #include "cli_tool_manager_service.h"
 #include "cli_function_data_manager.h"
+#include "app_utils.h"
 #undef private
 #undef protected
 
+#include "ability_manager_errors.h"
 #include "cli_error_code.h"
 #include "cli_tool_app_state_observer.h"
 #include "ccm_util.h"
@@ -78,7 +80,13 @@ const char *CLI_TOOL_PERMS[] = {
 
 bool IsPermissionGateResult(int32_t result)
 {
-    return result == ERR_NOT_SYSTEM_APP || result == ERR_PERMISSION_DENIED;
+    return result == ERR_NOT_SYSTEM_APP || result == ERR_PERMISSION_DENIED ||
+           result == AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+}
+
+bool IsCapabilityGateResult(int32_t result)
+{
+    return result == AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
 }
 } // namespace {
 
@@ -141,6 +149,9 @@ void CliToolManagerServiceTest::SetUp()
     std::lock_guard<ffrt::mutex> guard(service_->sessionsMutex_);
     service_->sessionRecords_.clear();
     service_->bundleObservers_.clear();
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isSupportExecCmd_.isLoaded = false;
+    appUtils.isSupportExecCmd_.value = false;
 }
 
 void CliToolManagerServiceTest::TearDown()
@@ -2396,6 +2407,114 @@ HWTEST_F(CliToolManagerServiceTest, ExecCmd_0700, TestSize.Level1)
     EXPECT_TRUE(result == ERR_INVALID_PARAM || IsPermissionGateResult(result));
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_0700 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ValidateExecCmdPublicPermissions_0100
+ * @tc.desc: Test ValidateExecCmdPublicPermissions with empty cmd returns ERR_INVALID_PARAM
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ValidateExecCmdPublicPermissions_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateExecCmdPublicPermissions_0100 start");
+
+    ExecCmdParam param;
+    param.cmd = "";
+    int32_t result = service_->ValidateExecCmdPublicPermissions(param);
+    EXPECT_EQ(result, ERR_INVALID_PARAM);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateExecCmdPublicPermissions_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ValidateExecCmdPublicPermissions_0200
+ * @tc.desc: Test ValidateExecCmdPublicPermissions returns ERR_CAPABILITY_NOT_SUPPORT when device not supported
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ValidateExecCmdPublicPermissions_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateExecCmdPublicPermissions_0200 start");
+
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isSupportExecCmd_.isLoaded = true;
+    appUtils.isSupportExecCmd_.value = false;
+
+    ExecCmdParam param;
+    param.cmd = "echo test";
+    int32_t result = service_->ValidateExecCmdPublicPermissions(param);
+    EXPECT_EQ(result, AAFwk::ERR_CAPABILITY_NOT_SUPPORT);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateExecCmdPublicPermissions_0200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ValidateExecCmdPublicPermissions_0300
+ * @tc.desc: Test ValidateExecCmdPublicPermissions returns ERR_OK when capability supported and permission granted
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ValidateExecCmdPublicPermissions_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateExecCmdPublicPermissions_0300 start");
+
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isSupportExecCmd_.isLoaded = true;
+    appUtils.isSupportExecCmd_.value = true;
+
+    ExecCmdParam param;
+    param.cmd = "echo test";
+    int32_t result = service_->ValidateExecCmdPublicPermissions(param);
+    EXPECT_EQ(result, ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateExecCmdPublicPermissions_0300 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_0800
+ * @tc.desc: Test ExecCmd capability gate rejects before session setup and creates no session record
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_0800, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_0800 start");
+
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isSupportExecCmd_.isLoaded = true;
+    appUtils.isSupportExecCmd_.value = false;
+
+    ExecCmdParam param;
+    param.cmd = "echo capability_gate";
+    param.options.timeout = 30;
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecCmd(param, "event_exec_cmd_cap_gate", scheduler, "subscription_cap_gate");
+
+    EXPECT_EQ(result, AAFwk::ERR_CAPABILITY_NOT_SUPPORT);
+    EXPECT_TRUE(service_->sessionRecords_.empty());
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_0800 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_0900
+ * @tc.desc: Test ExecCmd capability gate takes precedence over scheduler setup with null scheduler
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_0900, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_0900 start");
+
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isSupportExecCmd_.isLoaded = true;
+    appUtils.isSupportExecCmd_.value = false;
+
+    ExecCmdParam param;
+    param.cmd = "echo null_scheduler_gate";
+    param.options.timeout = 30;
+    int32_t result = service_->ExecCmd(param, "event_exec_cmd_null_sched_gate", nullptr, "subscription_ns_gate");
+
+    EXPECT_EQ(result, AAFwk::ERR_CAPABILITY_NOT_SUPPORT);
+    EXPECT_TRUE(service_->sessionRecords_.empty());
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_0900 end");
 }
 
 /**
