@@ -236,6 +236,7 @@ struct ExecuteIntentCommonOptions {
     std::string srcDeviceId;
     uint64_t requestCode = 0;
     uint64_t specifiedFullTokenId = 0;
+    uint32_t specifyTokenId = 0;
     ExecuteIntentCommonOptions(bool ignoreAbilityName, const ExtractInsightIntentGenericInfo &infos,
         uint64_t key): ignoreAbilityName(ignoreAbilityName), infos(infos), key(key){};
 };
