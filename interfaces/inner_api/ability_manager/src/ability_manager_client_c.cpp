@@ -39,6 +39,7 @@ int RecordAppExitReason(int exitReason, const char *exitMsg)
 
 int RecordAppWithReason(int pid, int uid, int exitReason, int killId, const char *exitMsg)
 {
+    //TODO: Record the info of Caller
     if (exitReason < static_cast<int>(OHOS::AAFwk::Reason::REASON_MIN) ||
         exitReason > static_cast<int>(OHOS::AAFwk::Reason::REASON_MAX)) {
         return -1;
