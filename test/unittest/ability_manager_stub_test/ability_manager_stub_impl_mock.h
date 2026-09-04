@@ -431,7 +431,17 @@ public:
         return ERR_OK;
     }
 
-    int32_t EnterKioskMode(sptr<IRemoteObject> callerToken) override
+    int32_t SetKioskApplicationList(const std::vector<std::string> &appList) override
+    {
+        return ERR_OK;
+    }
+
+    int32_t DeleteKioskApplicationList(const std::vector<std::string> &appList) override
+    {
+        return ERR_OK;
+    }
+
+    int32_t EnterKioskMode(sptr<IRemoteObject> callerToken, int32_t kioskType = 0) override
     {
         return ERR_OK;
     }
