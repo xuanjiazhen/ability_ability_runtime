@@ -23,6 +23,15 @@
 namespace OHOS {
 namespace AAFwk {
 /**
+ * @brief Kiosk type, used to distinguish normal kiosk mode from exam mode.
+ */
+enum class KioskType : int32_t {
+    DEFAULT = 0,
+    EXAM_MODE = 1,
+    END,
+};
+
+/**
  * @struct KioskStatus
  * KioskStatus is used to save information about Kiosk mode.
  */
@@ -36,6 +45,10 @@ struct KioskStatus : public Parcelable {
     std::string kioskBundleName_;
     int32_t kioskBundleUid_{};
     sptr<IRemoteObject> kioskToken_;
+    int32_t kioskType_ = static_cast<int32_t>(KioskType::DEFAULT);
+    // In-memory only (not marshalled): the caller uid that entered kiosk and how it was entered.
+    int32_t kioskCallerUid_{};
+    bool isProxyEnter_ = false;
 };
 } // namespace AAFwk
 } // namespace OHOS

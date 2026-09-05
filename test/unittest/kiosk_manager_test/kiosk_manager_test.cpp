@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -439,7 +439,7 @@ HWTEST_F(KioskManagerTest, GetKioskStatus_006, TestSize.Level1) {
 HWTEST_F(KioskManagerTest, EnterKioskMode_001, TestSize.Level1) {
     MyStatus::GetInstance().paramGetBoolParameter_ = false;
     auto callerToken = MockToken(AbilityType::PAGE);
-    auto result = KioskManager::GetInstance().EnterKioskMode(callerToken);
+    auto result = KioskManager::GetInstance().EnterKioskMode(callerToken, static_cast<int32_t>(KioskType::DEFAULT));
     EXPECT_EQ(result, ERR_CAPABILITY_NOT_SUPPORT);
 }
 
@@ -451,7 +451,7 @@ HWTEST_F(KioskManagerTest, EnterKioskMode_001, TestSize.Level1) {
  */
 HWTEST_F(KioskManagerTest, EnterKioskMode_002, TestSize.Level1) {
     MyStatus::GetInstance().paramGetBoolParameter_ = true;
-    auto result = KioskManager::GetInstance().EnterKioskMode(nullptr);
+    auto result = KioskManager::GetInstance().EnterKioskMode(nullptr, static_cast<int32_t>(KioskType::DEFAULT));
     EXPECT_EQ(result, INVALID_PARAMETERS_ERR);
 }
 
@@ -670,7 +670,7 @@ HWTEST_F(KioskManagerTest, UpdateKioskApplicationList_003, TestSize.Level1) {
     MyFlag::permissionFlag_ = true;
     std::vector<std::string> appList;
     KioskManager::GetInstance().kioskStatus_.isKioskMode_ = true;
-    KioskManager::GetInstance().NotifyKioskModeChanged(true, "", 0);
+    KioskManager::GetInstance().NotifyKioskModeChanged(true, "", 0, static_cast<int32_t>(KioskType::DEFAULT));
     std::string bundleName = "com.test.demo";
     appList.emplace_back(bundleName);
     KioskManager::GetInstance().kioskStatus_.kioskBundleName_ = bundleName;
@@ -689,7 +689,7 @@ HWTEST_F(KioskManagerTest, ExitKioskModeInner_002, TestSize.Level1) {
     auto callerToken = MockToken(AbilityType::PAGE);
     std::string bundleName = "com.test.demo";
     KioskManager::GetInstance().whitelist_.emplace(bundleName);
-    KioskManager::GetInstance().NotifyKioskModeChanged(false, bundleName, 0);
+    KioskManager::GetInstance().NotifyKioskModeChanged(false, bundleName, 0, static_cast<int32_t>(KioskType::DEFAULT));
     AppInfo appInfo;
     appInfo.bundleName = bundleName;
     appInfo.state = AppState::BEGIN;
@@ -699,28 +699,30 @@ HWTEST_F(KioskManagerTest, ExitKioskModeInner_002, TestSize.Level1) {
     EXPECT_EQ(result, INNER_ERR);
 }
 
-/*
- * Feature: KioskManager
- * Function: ExitKioskMode
- * SubFunction: NA
- * FunctionPoints: KioskManager ExitKioskModeInner
+/**
+ * @tc.name: ExitKioskModeInner_003
+ * @tc.desc: SA proxy exit, has permission but not in SA whitelist -> ERR_KIOSK_MODE_NOT_IN_WHITELIST
  */
 HWTEST_F(KioskManagerTest, ExitKioskModeInner_003, TestSize.Level1) {
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyFlag::saFlag_ = MyFlag::FLAG::IS_SA_CALL;
+    MyFlag::permissionFlag_ = 1;
     KioskManager::GetInstance().kioskStatus_.isKioskMode_ = true;
     auto callerToken = MockToken(AbilityType::PAGE);
     std::string bundleName = "com.test.demo";
     KioskManager::GetInstance().whitelist_.emplace(bundleName);
     KioskManager::GetInstance().kioskStatus_.kioskBundleName_ = bundleName;
     MyStatus::GetInstance().ipcGetCallingUid_ = KioskManager::GetInstance().kioskStatus_.kioskBundleUid_ + 1;
+    KioskManager::GetInstance().kioskWhitelistMap_.clear();
     auto result = KioskManager::GetInstance().ExitKioskModeInner(bundleName, callerToken, false);
-    EXPECT_EQ(result, ERR_NOT_IN_KIOSK_MODE);
+    EXPECT_EQ(result, ERR_KIOSK_MODE_NOT_IN_WHITELIST);
+    KioskManager::GetInstance().kioskStatus_.Clear();
+    KioskManager::GetInstance().kioskWhitelistMap_.clear();
 }
 
-/*
- * Feature: KioskManager
- * Function: ExitKioskMode
- * SubFunction: NA
- * FunctionPoints: KioskManager ExitKioskModeInner
+/**
+ * @tc.name: ExitKioskModeInner_004
+ * @tc.desc: self-exit (callingUid == kioskBundleUid) proceeds past UID check
  */
 HWTEST_F(KioskManagerTest, ExitKioskModeInner_004, TestSize.Level1) {
     KioskManager::GetInstance().kioskStatus_.isKioskMode_ = true;
@@ -767,6 +769,48 @@ HWTEST_F(KioskManagerTest, ExitKioskModeInner_006, TestSize.Level1) {
     EXPECT_NE(result, ERR_NOT_IN_KIOSK_MODE);
 }
 
+/**
+ * @tc.name: ExitKioskModeInner_007
+ * @tc.desc: SA proxy exit, not SA call -> ERR_NOT_SYSTEM_APP
+ */
+HWTEST_F(KioskManagerTest, ExitKioskModeInner_007, TestSize.Level1) {
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyFlag::saFlag_ = 0;
+    KioskManager::GetInstance().kioskStatus_.isKioskMode_ = true;
+    auto callerToken = MockToken(AbilityType::PAGE);
+    std::string bundleName = "com.test.demo";
+    KioskManager::GetInstance().whitelist_.emplace(bundleName);
+    KioskManager::GetInstance().kioskStatus_.kioskBundleName_ = bundleName;
+    MyStatus::GetInstance().ipcGetCallingUid_ = KioskManager::GetInstance().kioskStatus_.kioskBundleUid_ + 1;
+    auto result = KioskManager::GetInstance().ExitKioskModeInner(bundleName, callerToken, false);
+    EXPECT_EQ(result, ERR_NOT_SYSTEM_APP);
+    MyFlag::saFlag_ = MyFlag::FLAG::IS_SA_CALL;
+    KioskManager::GetInstance().kioskStatus_.Clear();
+}
+
+/**
+ * @tc.name: ExitKioskModeInner_008
+ * @tc.desc: SA proxy exit, has permission + in SA whitelist -> proceeds (WMS null -> INNER_ERR)
+ */
+HWTEST_F(KioskManagerTest, ExitKioskModeInner_008, TestSize.Level1) {
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyFlag::saFlag_ = MyFlag::FLAG::IS_SA_CALL;
+    MyFlag::permissionFlag_ = 1;
+    KioskManager::GetInstance().kioskStatus_.isKioskMode_ = true;
+    auto callerToken = MockToken(AbilityType::PAGE);
+    std::string bundleName = "com.test.demo";
+    KioskManager::GetInstance().whitelist_.emplace(bundleName);
+    KioskManager::GetInstance().kioskStatus_.kioskBundleName_ = bundleName;
+    KioskManager::GetInstance().kioskStatus_.kioskBundleUid_ = 0;
+    MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+    KioskManager::GetInstance().kioskWhitelistMap_.clear();
+    KioskManager::GetInstance().kioskWhitelistMap_[1] = {"com.test.demo"};
+    auto result = KioskManager::GetInstance().ExitKioskModeInner(bundleName, callerToken, false);
+    EXPECT_EQ(result, INNER_ERR);
+    KioskManager::GetInstance().kioskStatus_.Clear();
+    KioskManager::GetInstance().kioskWhitelistMap_.clear();
+}
+
 /*
  * Feature: KioskManager
  * Function: IsKioskBundleUid
@@ -781,6 +825,166 @@ HWTEST_F(KioskManagerTest, IsKioskBundleUid_001, TestSize.Level1) {
     uid = uid + 1;
     result = KioskManager::GetInstance().IsKioskBundleUid(uid);
     EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SetKioskApplicationList_001
+ * @tc.desc: product switch off -> ERR_CAPABILITY_NOT_SUPPORT
+ */
+HWTEST_F(KioskManagerTest, SetKioskApplicationList_001, TestSize.Level1) {
+    MyStatus::GetInstance().paramGetBoolParameter_ = false;
+    std::vector<std::string> appList;
+    auto result = KioskManager::GetInstance().SetKioskApplicationList(appList);
+    EXPECT_EQ(result, ERR_CAPABILITY_NOT_SUPPORT);
+}
+
+/**
+ * @tc.name: SetKioskApplicationList_002
+ * @tc.desc: not SA call -> ERR_NOT_SYSTEM_APP
+ */
+HWTEST_F(KioskManagerTest, SetKioskApplicationList_002, TestSize.Level1) {
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyFlag::saFlag_ = 0;
+    std::vector<std::string> appList;
+    auto result = KioskManager::GetInstance().SetKioskApplicationList(appList);
+    EXPECT_EQ(result, ERR_NOT_SYSTEM_APP);
+    MyFlag::saFlag_ = MyFlag::FLAG::IS_SA_CALL;
+}
+
+/**
+ * @tc.name: SetKioskApplicationList_003
+ * @tc.desc: perm ok, WMS null -> INNER_ERR; whitelist isolated by caller uid (key=callingUid)
+ */
+HWTEST_F(KioskManagerTest, SetKioskApplicationList_003, TestSize.Level1) {
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyFlag::saFlag_ = MyFlag::FLAG::IS_SA_CALL;
+    MyFlag::permissionFlag_ = 1;
+    MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+    KioskManager::GetInstance().kioskWhitelistMap_.clear();
+    std::vector<std::string> appList = {"com.test.demo", "com.test.exam"};
+    auto result = KioskManager::GetInstance().SetKioskApplicationList(appList);
+    EXPECT_EQ(result, INNER_ERR);
+    // data isolation: written into the slot keyed by caller uid (1)
+    auto it = KioskManager::GetInstance().kioskWhitelistMap_.find(1);
+    ASSERT_NE(it, KioskManager::GetInstance().kioskWhitelistMap_.end());
+    EXPECT_EQ(it->second.size(), 2UL);
+    EXPECT_EQ(it->second.count("com.test.demo"), 1UL);
+    EXPECT_EQ(it->second.count("com.test.exam"), 1UL);
+    KioskManager::GetInstance().kioskWhitelistMap_.clear();
+}
+
+/**
+ * @tc.name: DeleteKioskApplicationList_001
+ * @tc.desc: product switch off -> ERR_CAPABILITY_NOT_SUPPORT
+ */
+HWTEST_F(KioskManagerTest, DeleteKioskApplicationList_001, TestSize.Level1) {
+    MyStatus::GetInstance().paramGetBoolParameter_ = false;
+    std::vector<std::string> appList;
+    auto result = KioskManager::GetInstance().DeleteKioskApplicationList(appList);
+    EXPECT_EQ(result, ERR_CAPABILITY_NOT_SUPPORT);
+}
+
+/**
+ * @tc.name: DeleteKioskApplicationList_002
+ * @tc.desc: not SA call -> ERR_NOT_SYSTEM_APP
+ */
+HWTEST_F(KioskManagerTest, DeleteKioskApplicationList_002, TestSize.Level1) {
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyFlag::saFlag_ = 0;
+    std::vector<std::string> appList;
+    auto result = KioskManager::GetInstance().DeleteKioskApplicationList(appList);
+    EXPECT_EQ(result, ERR_NOT_SYSTEM_APP);
+    MyFlag::saFlag_ = MyFlag::FLAG::IS_SA_CALL;
+}
+
+/**
+ * @tc.name: DeleteKioskApplicationList_003
+ * @tc.desc: only caller's own entries deleted (data isolation); other callers untouched
+ */
+HWTEST_F(KioskManagerTest, DeleteKioskApplicationList_003, TestSize.Level1) {
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyFlag::saFlag_ = MyFlag::FLAG::IS_SA_CALL;
+    MyFlag::permissionFlag_ = 1;
+    MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+    KioskManager::GetInstance().kioskWhitelistMap_.clear();
+    KioskManager::GetInstance().kioskWhitelistMap_[1] = {"com.test.demo", "com.test.exam"};
+    KioskManager::GetInstance().kioskWhitelistMap_[2] = {"com.other.sa"};
+    std::vector<std::string> toDelete = {"com.test.demo"};
+    auto result = KioskManager::GetInstance().DeleteKioskApplicationList(toDelete);
+    EXPECT_EQ(result, INNER_ERR);
+    // caller 1's list: com.test.demo removed, com.test.exam remains
+    EXPECT_EQ(KioskManager::GetInstance().kioskWhitelistMap_[1].count("com.test.demo"), 0UL);
+    EXPECT_EQ(KioskManager::GetInstance().kioskWhitelistMap_[1].count("com.test.exam"), 1UL);
+    // caller 2's list untouched (data isolation)
+    EXPECT_EQ(KioskManager::GetInstance().kioskWhitelistMap_[2].count("com.other.sa"), 1UL);
+    KioskManager::GetInstance().kioskWhitelistMap_.clear();
+}
+
+/**
+ * @tc.name: EnterKioskMode_SAProxy_001
+ * @tc.desc: SA proxy enter, target not in caller whitelist -> ERR_KIOSK_MODE_NOT_IN_WHITELIST
+ */
+HWTEST_F(KioskManagerTest, EnterKioskMode_SAProxy_001, TestSize.Level1) {
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyFlag::saFlag_ = MyFlag::FLAG::IS_SA_CALL;
+    MyFlag::permissionFlag_ = 1;
+    MyStatus::GetInstance().ipcGetCallingUid_ = 1; // != record.uid(0) => proxy path
+    KioskManager::GetInstance().kioskStatus_.Clear();
+    KioskManager::GetInstance().kioskWhitelistMap_.clear();
+    auto callerToken = MockToken(AbilityType::PAGE);
+    ASSERT_NE(callerToken, nullptr);
+    // caller(1) whitelist empty => target not whitelisted
+    auto result = KioskManager::GetInstance().EnterKioskMode(callerToken, static_cast<int32_t>(KioskType::DEFAULT));
+    EXPECT_EQ(result, ERR_KIOSK_MODE_NOT_IN_WHITELIST);
+    KioskManager::GetInstance().kioskWhitelistMap_.clear();
+    KioskManager::GetInstance().kioskStatus_.Clear();
+}
+
+/**
+ * @tc.name: EnterKioskMode_SAProxy_002
+ * @tc.desc: SA proxy enter with target whitelisted; kioskType stored & isProxyEnter set
+ */
+HWTEST_F(KioskManagerTest, EnterKioskMode_SAProxy_002, TestSize.Level1) {
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyFlag::saFlag_ = MyFlag::FLAG::IS_SA_CALL;
+    MyFlag::permissionFlag_ = 1;
+    MyStatus::GetInstance().ipcGetCallingUid_ = 1; // != record.uid(0) => proxy path
+    KioskManager::GetInstance().kioskStatus_.Clear();
+    KioskManager::GetInstance().kioskWhitelistMap_.clear();
+    auto callerToken = MockToken(AbilityType::PAGE);
+    ASSERT_NE(callerToken, nullptr);
+    KioskManager::GetInstance().kioskWhitelistMap_[1] = {"com.test.demo"};
+    auto result = KioskManager::GetInstance().EnterKioskMode(callerToken, static_cast<int32_t>(KioskType::EXAM_MODE));
+    EXPECT_EQ(result, INNER_ERR); // WMS null in test env
+    // kioskType stored from SA input (CIRCULATION), proxy enter recorded
+    EXPECT_EQ(KioskManager::GetInstance().kioskStatus_.kioskType_, static_cast<int32_t>(KioskType::EXAM_MODE));
+    EXPECT_EQ(KioskManager::GetInstance().kioskStatus_.isProxyEnter_, true);
+    EXPECT_EQ(KioskManager::GetInstance().kioskStatus_.kioskCallerUid_, 1);
+    KioskManager::GetInstance().kioskWhitelistMap_.clear();
+    KioskManager::GetInstance().kioskStatus_.Clear();
+}
+
+/**
+ * @tc.name: EnterKioskMode_Self_PassthroughKioskType
+ * @tc.desc: self-enter path stores kioskType as passed (no forced override)
+ */
+HWTEST_F(KioskManagerTest, EnterKioskMode_Self_PassthroughKioskType, TestSize.Level1) {
+    MyStatus::GetInstance().paramGetBoolParameter_ = true;
+    MyFlag::saFlag_ = MyFlag::FLAG::IS_SA_CALL;
+    MyFlag::permissionFlag_ = 1;
+    MyStatus::GetInstance().ipcGetCallingUid_ = 0; // == record.uid(0) => self path
+    KioskManager::GetInstance().kioskStatus_.Clear();
+    KioskManager::GetInstance().whitelist_.clear();
+    auto callerToken = MockToken(AbilityType::PAGE);
+    ASSERT_NE(callerToken, nullptr);
+    KioskManager::GetInstance().whitelist_.emplace("com.test.demo");
+    auto result = KioskManager::GetInstance().EnterKioskMode(callerToken, static_cast<int32_t>(KioskType::EXAM_MODE));
+    EXPECT_EQ(result, INNER_ERR); // WMS null in test env
+    // self-enter: kioskType stored as-is (passthrough)
+    EXPECT_EQ(KioskManager::GetInstance().kioskStatus_.kioskType_, static_cast<int32_t>(KioskType::EXAM_MODE));
+    EXPECT_EQ(KioskManager::GetInstance().kioskStatus_.isProxyEnter_, false);
+    KioskManager::GetInstance().whitelist_.clear();
+    KioskManager::GetInstance().kioskStatus_.Clear();
 }
 } // namespace AAFwk
 } // namespace OHOS
