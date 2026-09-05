@@ -25,7 +25,7 @@
 
 namespace OHOS {
 namespace AAFwk {
-struct CallerInfo {
+struct ExitCallerInfo {
     int32_t callerPid = 0;
     std::string callerProcessName = "";
 };
@@ -47,9 +47,9 @@ public:
     explicit AppExitReasonHelper(std::shared_ptr<SubManagersHelper> subManagersHelper);
     ~AppExitReasonHelper() = default;
 
-    static void GetCallerInfo(CallerInfo &callerInfo);
+    static void GetCallerInfo(ExitCallerInfo &callerInfo);
     static std::string GetProcessNameByPid(const int32_t pid);
-    int32_t RecordAppExitReason(const ExitReason &exitReason, const CallerInfo &callerInfo = {});
+    int32_t RecordAppExitReason(const ExitReason &exitReason, const ExitCallerInfo &callerInfo = {});
     int32_t RecordAppExitReason(const std::string &bundleName, int32_t uid, int32_t appIndex,
         const ExitReason &exitReason);
     int32_t RecordProcessExtensionExitReason(
@@ -61,13 +61,13 @@ public:
     int32_t RecordProcessExitReasonForTimeout(const AppExecFwk::AbilityInfo &abilityInfo, const ExitReason &exitReason,
         const std::vector<std::string> &abilityList, const AppExecFwk::RunningProcessInfo &processInfo);
     int32_t AddAppExitReason(const std::string &bundleName, int32_t pid, int32_t uid, int32_t appIndex,
-        const ExitReasonCompability &exitReason, const CallerInfo &callerInfo = {});
+        const ExitReasonCompability &exitReason, const ExitCallerInfo &callerInfo = {});
     int32_t AddBundleExitReason(const std::string &bundleName, int32_t userId, int32_t appIndex,
-        const ExitReasonCompability &exitReason, const CallerInfo &callerInfo = {});
+        const ExitReasonCompability &exitReason, const ExitCallerInfo &callerInfo = {});
     int32_t RecordAppWithReason(int32_t pid, int32_t uid, const ExitReasonCompability &exitReason,
-        const CallerInfo &callerInfo = {});
+        const ExitCallerInfo &callerInfo = {});
     void RecordAppsWithReasonByProcessInfoList(const ExitReasonCompability &exitReason,
-        const std::vector<AppExecFwk::RunningProcessInfo> &processInfoList, const CallerInfo &callerInfo = {});
+        const std::vector<AppExecFwk::RunningProcessInfo> &processInfoList, const ExitCallerInfo &callerInfo = {});
     void RecordInvalidKillId(int32_t pid, const ExitReasonCompability &params,
         const std::string &bundleName = "", int32_t userId = 0);
 
@@ -86,7 +86,7 @@ private:
     std::vector<AppExecFwk::RunningProcessInfo> GetRunningProcessInfos(int32_t userId, const std::string &bundleName);
 
     int32_t RecordAppWithReasonInner(const ExitReasonCompability &exitReasonCompability,
-        const AppExecFwk::RunningProcessInfo &processInfo, const CallerInfo &callerInfo = {});
+        const AppExecFwk::RunningProcessInfo &processInfo, const ExitCallerInfo &callerInfo = {});
 
     std::shared_ptr<SubManagersHelper> subManagersHelper_;
 };

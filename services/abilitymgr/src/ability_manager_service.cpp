@@ -3772,7 +3772,7 @@ int32_t AbilityManagerService::RecordAppExitReason(const ExitReason &exitReason)
         exitReason.exitMsg.c_str());
 
     CHECK_POINTER_AND_RETURN(appExitReasonHelper_, ERR_NULL_OBJECT);
-    CallerInfo callerInfo;
+    ExitCallerInfo callerInfo;
     AppExitReasonHelper::GetCallerInfo(callerInfo);
     return appExitReasonHelper_->RecordAppExitReason(exitReason, callerInfo);
 }
@@ -3825,7 +3825,7 @@ int32_t AbilityManagerService::ForceExitApp(const int32_t pid, const ExitReason 
         return ERR_PERMISSION_DENIED;
     }
 
-    CallerInfo callerInfo;
+    ExitCallerInfo callerInfo;
     AppExitReasonHelper::GetCallerInfo(callerInfo);
 
     AppExecFwk::ApplicationInfo application;
@@ -3859,7 +3859,7 @@ int32_t AbilityManagerService::KillAppWithReason(const int32_t pid, const ExitRe
         return ERR_PERMISSION_DENIED;
     }
     CHECK_POINTER_AND_RETURN(appExitReasonHelper_, ERR_NULL_OBJECT);
-    CallerInfo callerInfo;
+    ExitCallerInfo callerInfo;
     AppExitReasonHelper::GetCallerInfo(callerInfo);
     if (!IsExitReasonValid(exitReason)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "exit reason is invalid");
@@ -3935,7 +3935,7 @@ int32_t AbilityManagerService::KillBundleWithReason(
         return ERR_PERMISSION_DENIED;
     }
     CHECK_POINTER_AND_RETURN(appExitReasonHelper_, ERR_NULL_OBJECT);
-    CallerInfo callerInfo;
+    ExitCallerInfo callerInfo;
     AppExitReasonHelper::GetCallerInfo(callerInfo);
     if (!IsExitReasonValid(exitReason)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "exit reason is invalid");
@@ -3967,13 +3967,13 @@ int32_t AbilityManagerService::RecordAppWithReason(
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     CHECK_POINTER_AND_RETURN(appExitReasonHelper_, ERR_NULL_APP_EXIT_REASON_HELPER);
-    CallerInfo callerInfo;
+    ExitCallerInfo callerInfo;
     AppExitReasonHelper::GetCallerInfo(callerInfo);
     return RecordAppWithReason(pid, uid, exitReason, callerInfo);
 }
 
 int32_t AbilityManagerService::RecordAppWithReason(
-    const int32_t pid, const int32_t uid, const ExitReasonCompability &exitReason, const CallerInfo &callerInfo)
+    const int32_t pid, const int32_t uid, const ExitReasonCompability &exitReason, const ExitCallerInfo &callerInfo)
 {
     if (!SupportSystemAbilityPermission::IsSupportSaKillPermission() &&
         !AAFwk::PermissionVerification::GetInstance()->IsShellCall() &&
@@ -4003,7 +4003,7 @@ int32_t AbilityManagerService::RecordAppWithReasonByUserId(int32_t userId,
         TAG_LOGE(AAFwkTag::ABILITYMGR, "exit reason is invalid");
         return ERR_INVALID_VALUE;
     }
-    CallerInfo callerInfo;
+    ExitCallerInfo callerInfo;
     AppExitReasonHelper::GetCallerInfo(callerInfo);
 
     std::vector<AppExecFwk::RunningProcessInfo> processInfoList;

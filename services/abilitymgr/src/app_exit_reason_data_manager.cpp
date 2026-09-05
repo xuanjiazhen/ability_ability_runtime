@@ -112,7 +112,7 @@ bool AppExitReasonDataManager::CheckKvStore()
 
 int32_t AppExitReasonDataManager::SetAppExitReason(const std::string &bundleName, uint32_t accessTokenId,
     const std::vector<std::string> &abilityList, const AAFwk::ExitReason &exitReason,
-    const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg, const AAFwk::CallerInfo &callerInfo)
+    const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg, const AAFwk::ExitCallerInfo &callerInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     AAFwk::RecordCostTimeUtil timeRecord("SetAppExitReason");
@@ -199,7 +199,7 @@ int32_t AppExitReasonDataManager::DeleteAppExitReason(const std::string &bundleN
 int32_t AppExitReasonDataManager::GetAppExitReason(const std::string &bundleName, uint32_t accessTokenId,
     const std::string &abilityName, bool &isSetReason, AAFwk::ExitReason &exitReason,
     AppExecFwk::RunningProcessInfo &processInfo, int64_t &time_stamp, bool &withKillMsg, bool cleanFlag,
-    AAFwk::CallerInfo *callerInfo)
+    AAFwk::ExitCallerInfo *callerInfo)
 {
     auto accessTokenIdStr = std::to_string(accessTokenId);
     if (bundleName.empty() || accessTokenId == Security::AccessToken::INVALID_TOKENID) {
@@ -222,7 +222,7 @@ int32_t AppExitReasonDataManager::GetAppExitReason(const std::string &bundleName
     }
 
     std::vector<std::string> abilityList;
-    AAFwk::CallerInfo innerCallerInfo;
+    AAFwk::ExitCallerInfo innerCallerInfo;
     for (const auto &item : allEntries) {
         if (item.key.ToString() == accessTokenIdStr) {
             ConvertAppExitReasonInfoFromValue(item.value, exitReason, time_stamp, abilityList, processInfo,
@@ -263,7 +263,7 @@ void AppExitReasonDataManager::HandleAbilityMatchAndCleanup(
 
 void AppExitReasonDataManager::UpdateAppExitReason(uint32_t accessTokenId, const std::vector<std::string> &abilityList,
     const AAFwk::ExitReason &exitReason, const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg,
-    const AAFwk::CallerInfo &callerInfo)
+    const AAFwk::ExitCallerInfo &callerInfo)
 {
     if (kvStorePtr_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStorePtr_");
@@ -332,7 +332,7 @@ int32_t AppExitReasonDataManager::RecordSignalReason(int32_t pid, int32_t uid, i
 
 DistributedKv::Value AppExitReasonDataManager::ConvertAppExitReasonInfoToValue(
     const std::vector<std::string> &abilityList, const AAFwk::ExitReason &exitReason,
-    const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg, const AAFwk::CallerInfo &callerInfo)
+    const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg, const AAFwk::ExitCallerInfo &callerInfo)
 {
     std::chrono::milliseconds nowMs =
         std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
@@ -364,7 +364,7 @@ DistributedKv::Value AppExitReasonDataManager::ConvertAppExitReasonInfoToValue(
 
 void AppExitReasonDataManager::ConvertAppExitReasonInfoFromValue(const DistributedKv::Value &value,
     AAFwk::ExitReason &exitReason, int64_t &time_stamp, std::vector<std::string> &abilityList,
-    AppExecFwk::RunningProcessInfo &processInfo, bool &withKillMsg, AAFwk::CallerInfo &callerInfo)
+    AppExecFwk::RunningProcessInfo &processInfo, bool &withKillMsg, AAFwk::ExitCallerInfo &callerInfo)
 {
     nlohmann::json jsonObject = nlohmann::json::parse(value.ToString(), nullptr, false);
     if (jsonObject.is_discarded()) {
@@ -374,7 +374,7 @@ void AppExitReasonDataManager::ConvertAppExitReasonInfoFromValue(const Distribut
     ConvertProcessInfoFromValue(jsonObject, processInfo, time_stamp);
     ConvertReasonFromValue(jsonObject, exitReason, withKillMsg);
     ConvertAbilityListFromValue(jsonObject, abilityList);
-    ConvertCallerInfoFromValue(jsonObject, callerInfo);
+    ConvertExitCallerInfoFromValue(jsonObject, callerInfo);
 }
 
 void AppExitReasonDataManager::ConvertProcessInfoFromValue(const nlohmann::json &jsonObject,
@@ -419,8 +419,8 @@ void AppExitReasonDataManager::ConvertAbilityListFromValue(const nlohmann::json 
     }
 }
 
-void AppExitReasonDataManager::ConvertCallerInfoFromValue(const nlohmann::json &jsonObject,
-    AAFwk::CallerInfo &callerInfo)
+void AppExitReasonDataManager::ConvertExitCallerInfoFromValue(const nlohmann::json &jsonObject,
+    AAFwk::ExitCallerInfo &callerInfo)
 {
     if (jsonObject.contains(JSON_KEY_CALLER_PID) && jsonObject[JSON_KEY_CALLER_PID].is_number_integer()) {
         callerInfo.callerPid = jsonObject.at(JSON_KEY_CALLER_PID).get<int32_t>();
@@ -784,7 +784,7 @@ bool AppExitReasonDataManager::GetUIExtensionAbilityExitReason(const std::string
     }
     std::vector<std::string> abilityList;
     bool isHaveReason = false;
-    AAFwk::CallerInfo callerInfo;
+    AAFwk::ExitCallerInfo callerInfo;
     for (const auto &item : allEntries) {
         if (item.key.ToString() == keyEx) {
             ConvertAppExitReasonInfoFromValue(item.value, exitReason, time_stamp, abilityList,
@@ -1049,7 +1049,7 @@ int32_t AppExitReasonDataManager::GetRecordAppAbilityNames(const uint32_t access
     int64_t timeStamp = 0;
     AppExecFwk::RunningProcessInfo processInfo = {};
     bool withKillMsg = false;
-    AAFwk::CallerInfo callerInfo;
+    AAFwk::ExitCallerInfo callerInfo;
     for (const auto &item : allEntries) {
         if (item.key.ToString() == accessTokenIdStr) {
             ConvertAppExitReasonInfoFromValue(item.value, exitReason, timeStamp, abilityLists, processInfo,

@@ -3554,7 +3554,7 @@ private:
     int32_t KillAppWithReasonInner(int32_t pid,
         const ExitReason &reason, bool isKillPrecedeStart, bool shouldKillForeground);
     int32_t RecordAppWithReason(const int32_t pid, const int32_t uid, const ExitReasonCompability &exitReason,
-        const CallerInfo &callerInfo);
+        const ExitCallerInfo &callerInfo);
 
     void TimeSequenceKeepAliveRestart(int32_t userId, pid_t pid,
         std::map<int32_t, std::vector<AppExecFwk::BundleInfo>> &bundleInfosMap,
