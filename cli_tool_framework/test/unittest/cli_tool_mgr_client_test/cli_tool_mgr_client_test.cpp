@@ -462,6 +462,28 @@ HWTEST_F(CliToolMGRClientTest, ExecCmd_0200, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ExecCmd_0300
+ * @tc.desc: Test ExecCmd rejects whitespace-only cmd in tool command mode before IPC dispatch
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, ExecCmd_0300, TestSize.Level1)
+{
+    SetMockService();
+    ExecCmdParam param;
+    param.cmd = "   ";
+    param.isShellCommand = false;
+
+    auto sessionCallback = std::make_shared<MockSessionCallback>();
+    // Tool command mode with whitespace-only cmd is rejected before IPC dispatch
+    EXPECT_EQ(CliToolMGRClient::GetInstance().ExecCmd(param,
+        [](int32_t, const CliSessionInfo &) {}, sessionCallback), ERR_INVALID_PARAM);
+
+    // No event reply callback should have been registered (rejection precedes AddEventReplyCallback)
+    EXPECT_EQ(CliEventReplyManager::GetInstance().HandleEventReply(
+        CliToolMgrClientFlag::lastEventId, CliEventReplyResult {}), -1);
+}
+
+/**
  * @tc.name: ExecCmd_0400
  * @tc.desc: Test ExecCmd with null session callback still succeeds
  * @tc.type: FUNC
