@@ -1596,7 +1596,7 @@ int AbilityManagerStub::StartAbilityInnerSpecifyTokenId(MessageParcel &data, Mes
     if (data.ReadBool()) {
         callerToken = data.ReadRemoteObject();
     }
-    int32_t specifyTokenId = data.ReadInt32();
+    uint32_t specifyTokenId = data.ReadUint32();
     int32_t userId = data.ReadInt32();
     int requestCode = data.ReadInt32();
     int32_t result = StartAbilityWithSpecifyTokenId(*want, callerToken, specifyTokenId, userId, requestCode);
@@ -2759,9 +2759,10 @@ int AbilityManagerStub::StartAbilityByCallInner(MessageParcel &data, MessageParc
     bool isSilent = data.ReadBool();
     bool promotePriority = data.ReadBool();
     bool isVisible = data.ReadBool();
+    uint64_t specifiedFullTokenId = data.ReadUint64();
     std::string errMsg = "";
     int32_t result = StartAbilityByCallWithErrMsg(*want, callback, callerToken, accountId, errMsg, isSilent,
-        promotePriority, isVisible);
+        promotePriority, isVisible, specifiedFullTokenId);
 
     TAG_LOGD(AAFwkTag::ABILITYMGR, "resolve call ability ret = %{public}d", result);
     reply.WriteString(errMsg);

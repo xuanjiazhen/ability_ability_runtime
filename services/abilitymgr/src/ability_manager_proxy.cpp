@@ -303,7 +303,7 @@ int AbilityManagerProxy::StartAbilityWithSpecifyTokenId(
             return ERR_NATIVE_IPC_PARCEL_FAILED;
         }
     }
-    if (!data.WriteInt32(specifyTokenId)) {
+    if (!data.WriteUint32(specifyTokenId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "specifyTokenId write fail");
         return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
@@ -4122,6 +4122,12 @@ int AbilityManagerProxy::StartAbilityByCallWithErrMsg(const Want &want, const sp
         return ERR_INVALID_VALUE;
     }
 
+    if (!data.WriteUint64(specifiedFullTokenId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "specifiedFullTokenId write fail");
+        errMsg = "specifiedFullTokenId write fail";
+        return ERR_INVALID_VALUE;
+    }
+
     error = SendRequest(AbilityManagerInterfaceCode::START_CALL_ABILITY, data, reply, option);
     if (error != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
@@ -5178,6 +5184,7 @@ int32_t AbilityManagerProxy::NotifySaveAsResult(const Want &want, int resultCode
     auto error = SendRequest(AbilityManagerInterfaceCode::NOTIFY_SAVE_AS_RESULT, data, reply, option);
     if (error != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
     }
 
     return reply.ReadInt32();
