@@ -63,6 +63,7 @@ constexpr int32_t QUERY_SUCCESS = 0;
 constexpr int32_t QUERY_COMMAND_NOT_EXIST = 1;
 constexpr int32_t QUERY_DB_ERROR = 2;
 constexpr int32_t MAX_QUERY_CMDS_SIZE = 100;
+constexpr uint32_t MAX_CMD_LENGTH = 16 * 1024;
 constexpr int32_t ACTIVE_TIME = 30 * 1000; // 30s
 constexpr int32_t SKILL_TYPE_INDEPENDENT = -1;
 } // namespace
@@ -908,6 +909,12 @@ int32_t CliToolManagerService::ValidateExecCmdPublicPermissions(const ExecCmdPar
 {
     if (param.cmd.empty()) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Invalid param: cmd is empty");
+        return ERR_INVALID_PARAM;
+    }
+
+    if (param.cmd.size() > MAX_CMD_LENGTH) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Invalid param: cmd too long: %{public}u, max: %{public}u",
+            static_cast<uint32_t>(param.cmd.size()), MAX_CMD_LENGTH);
         return ERR_INVALID_PARAM;
     }
 
