@@ -474,5 +474,60 @@ HWTEST_F(AppExitReasonHelperTest, AddProcessExitReason_0100, TestSize.Level1)
     int32_t result = appExitReasonHelper->AddProcessExitReason(params);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
 }
-} // namespace AbilityRuntime
-} // namespace OHOS
+/**
+ * @tc.name: RecordAppWithReason_0200
+ * @tc.desc: RecordAppWithReason carries explicit callerInfo without changing early-return behavior
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppExitReasonHelperTest, RecordAppWithReason_0200, TestSize.Level1)
+{
+    auto appExitReasonHelper = std::make_shared<AppExitReasonHelper>(nullptr);
+    EXPECT_NE(appExitReasonHelper, nullptr);
+    AbilityUtil::GetBundleManagerHelper()->getNameAndIndexForUid_ = true;
+    MyStatus::GetInstance().getOsAccountRet_ = 0;
+    std::shared_ptr<SubManagersHelper> subManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    EXPECT_NE(subManagersHelper, nullptr);
+    appExitReasonHelper->subManagersHelper_ = subManagersHelper;
+
+    AbilityRuntime::ExitCallerInfo callerInfo;
+    callerInfo.callerPid = 3000;
+    callerInfo.callerProcessName = "caller_process";
+    RecordExitReasonParams params;
+    params.callerInfo = callerInfo;
+    EXPECT_EQ(params.callerInfo.callerPid, callerInfo.callerPid);
+    EXPECT_EQ(params.callerInfo.callerProcessName, callerInfo.callerProcessName);
+
+    ExitReasonCompability exitReason;
+    exitReason.reason = Reason::REASON_CPP_CRASH;
+    int32_t pid = 1;
+    int32_t uid = 1;
+    int32_t result = appExitReasonHelper->RecordAppWithReason(pid, uid, exitReason, callerInfo);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: RecordAppWithReason_0300
+ * @tc.desc: RecordAppWithReason default callerInfo keeps existing behavior unchanged
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppExitReasonHelperTest, RecordAppWithReason_0300, TestSize.Level1)
+{
+    auto appExitReasonHelper = std::make_shared<AppExitReasonHelper>(nullptr);
+    EXPECT_NE(appExitReasonHelper, nullptr);
+    AbilityUtil::GetBundleManagerHelper()->getNameAndIndexForUid_ = false;
+    ExitReasonCompability exitReason;
+    int32_t pid = 1;
+    int32_t uid = 1;
+    int32_t result = appExitReasonHelper->RecordAppWithReason(pid, uid, exitReason);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+
+    AbilityUtil::GetBundleManagerHelper()->getNameAndIndexForUid_ = true;
+    RecordExitReasonParams defaultParams;
+    EXPECT_EQ(defaultParams.callerInfo.callerPid, -1);
+    EXPECT_TRUE(defaultParams.callerInfo.callerProcessName.empty());
+}
+
+}  // namespace AbilityRuntime
+}  // namespace OHOS
