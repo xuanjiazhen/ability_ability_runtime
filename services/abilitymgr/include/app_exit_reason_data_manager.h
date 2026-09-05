@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "ability_util.h"
+#include "app_exit_reason_helper.h"
 #include "database_write_counter.h"
 #include "distributed_kv_data_manager.h"
 #include "ffrt.h"
@@ -37,11 +38,12 @@ public:
 
     int32_t SetAppExitReason(const std::string &bundleName, uint32_t accessTokenId,
         const std::vector<std::string> &abilityList, const AAFwk::ExitReason &exitReason,
-        const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg);
+        const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg,
+        const AAFwk::CallerInfo &callerInfo = {});
 
     int32_t GetAppExitReason(const std::string &bundleName, uint32_t accessTokenId, const std::string &abilityName,
         bool &isSetReason, AAFwk::ExitReason &exitReason, AppExecFwk::RunningProcessInfo &processInfo,
-        int64_t &time_stamp, bool &withKillMsg, bool cleanFlag = true);
+        int64_t &time_stamp, bool &withKillMsg, bool cleanFlag = true, AAFwk::CallerInfo *callerInfo = nullptr);
 
     int32_t DeleteAppExitReason(const std::string &bundleName, int32_t uid, int32_t appIndex);
 
@@ -74,7 +76,8 @@ public:
     int32_t GetRecordAppAbilityNames(const uint32_t accessTokenId, std::vector<std::string> &abilityLists);
 
     void UpdateAppExitReason(uint32_t accessTokenId, const std::vector<std::string> &abilityList,
-        const AAFwk::ExitReason &exitReason, const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg);
+        const AAFwk::ExitReason &exitReason, const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg,
+        const AAFwk::CallerInfo &callerInfo = {});
     void HandleAbilityMatchAndCleanup(const std::string& abilityName, std::vector<std::string>& abilityList,
         bool& isSetReason, bool cleanFlag);
 
@@ -83,10 +86,10 @@ private:
     bool CheckKvStore();
     DistributedKv::Value ConvertAppExitReasonInfoToValue(
         const std::vector<std::string> &abilityList, const AAFwk::ExitReason &exitReason,
-        const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg);
+        const AppExecFwk::RunningProcessInfo &processInfo, bool withKillMsg, const AAFwk::CallerInfo &callerInfo);
     void ConvertAppExitReasonInfoFromValue(const DistributedKv::Value &value, AAFwk::ExitReason &exitReason,
         int64_t &time_stamp, std::vector<std::string> &abilityList, AppExecFwk::RunningProcessInfo &processInfo,
-        bool &withKillMsg);
+        bool &withKillMsg, AAFwk::CallerInfo &callerInfo);
     void ConvertReasonFromValue(const nlohmann::json &jsonObject, AAFwk::ExitReason &exitReason, bool &withKillMsg);
     void ConvertAccessTokenIdFromValue(const DistributedKv::Value &value, uint32_t &accessTokenId);
     void InnerDeleteAppExitReason(const std::string &keyName);
