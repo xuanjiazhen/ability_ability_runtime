@@ -924,12 +924,12 @@ int32_t CliToolManagerService::ValidateExecCmdPublicPermissions(const ExecCmdPar
     }
 
     auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL) ||
-        PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_PUBLIC_CLI_TOOL)) {
-        return ERR_OK;
+    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL) &&
+        !PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_PUBLIC_CLI_TOOL)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "not granted EXEC_CLI_TOOL or EXEC_PUBLIC_CLI_TOOL");
+        return ERR_PERMISSION_DENIED;
     }
-    TAG_LOGE(AAFwkTag::CLI_TOOL, "not granted EXEC_CLI_TOOL or EXEC_PUBLIC_CLI_TOOL");
-    return ERR_PERMISSION_DENIED;
+    return ERR_OK;
 }
 
 int32_t CliToolManagerService::ValidateSessionLimit()
