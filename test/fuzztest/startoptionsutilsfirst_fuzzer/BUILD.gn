@@ -38,9 +38,7 @@ ohos_fuzztest("StartOptionsUtilsFirstFuzzTest") {
     "startoptionsutilsfirst_fuzzer.cpp" 
     ]
 
-  configs = [
-    "${ability_runtime_services_path}/abilitymgr:abilityms_config",
-  ]
+  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
