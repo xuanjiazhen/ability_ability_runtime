@@ -66,6 +66,9 @@ ohos_shared_library("intent_client") {
     "samgr:samgr_proxy",
   ]
 
+  version_script = "libintent_client.map"
+  ldflags = [ "-Wl,-Bsymbolic" ]
+
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }
