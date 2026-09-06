@@ -27,7 +27,6 @@ ohos_unittest("connection_state_manager_test") {
   include_dirs = [ "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/system_ability_mock" ]
 
   sources = [
-    "${ability_runtime_services_path}/abilitymgr/src/dlp_state_item.cpp",
     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/appexecfwk_core/src/appmgr/mock_app_scheduler.cpp",
     "connection_state_manager_test.cpp",  # add mock file
   ]
@@ -45,7 +44,7 @@ ohos_unittest("connection_state_manager_test") {
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/connectionobs_manager:connection_obs_manager",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
-    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
     "${ability_runtime_services_path}/common:perm_verification",
   ]
 

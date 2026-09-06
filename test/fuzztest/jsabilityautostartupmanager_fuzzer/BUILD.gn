@@ -50,6 +50,7 @@ ohos_fuzztest("JsAbilityAutoStartupManagerFuzzTest") {
   ]
 
   deps = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_napi_path}/ability_auto_startup_callback:autostartupcallback",

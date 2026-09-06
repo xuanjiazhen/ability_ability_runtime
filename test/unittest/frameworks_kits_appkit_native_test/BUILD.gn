@@ -75,6 +75,7 @@ ohos_unittest("application_test") {
   configs = [ ":module_private_config" ]
 
   deps = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
@@ -146,6 +147,7 @@ ohos_unittest("context_impl_test") {
   configs = [ ":module_private_config" ]
 
   deps = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
@@ -214,6 +216,7 @@ ohos_unittest("context_impl_second_test") {
   configs = [ ":module_private_config" ]
 
   deps = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
@@ -278,6 +281,7 @@ ohos_unittest("context_impl_third_test") {
   configs = [ ":module_private_config" ]
 
   deps = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
@@ -338,6 +342,7 @@ ohos_unittest("context_container_test") {
   configs = [ ":module_context_config" ]
 
   deps = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
     "${ability_runtime_innerkits_path}/runtime:runtime",
@@ -542,6 +547,7 @@ ohos_unittest("context_deal_test") {
   configs = [ ":module_context_config" ]
 
   deps = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
     "${ability_runtime_innerkits_path}/runtime:runtime",
@@ -610,6 +616,7 @@ ohos_unittest("application_impl_test") {
   configs = [ ":module_private_config" ]
 
   deps = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
@@ -869,6 +876,7 @@ ohos_unittest("context_container_by_mock_bms_test") {
   configs = [ ":module_context_config" ]
 
   deps = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability/native:ability_thread",

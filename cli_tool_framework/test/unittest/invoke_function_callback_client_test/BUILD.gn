@@ -30,6 +30,7 @@ ohos_unittest("invoke_function_callback_client_test") {
   ]
 
   deps = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
     "${ability_runtime_path}/interfaces/inner_api/insight_intent/intent_client:intent_client",
   ]
 

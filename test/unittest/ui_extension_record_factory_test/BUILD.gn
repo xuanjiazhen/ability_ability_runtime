@@ -25,9 +25,6 @@ ohos_unittest("ui_extension_record_factory_test") {
     blocklist = "../../cfi_blocklist.txt"
   }
   sources = [
-    "${ability_runtime_services_path}/abilitymgr/src/extension_record/extension_record_factory.cpp",
-    "${ability_runtime_services_path}/abilitymgr/src/lifecycle_deal.cpp",
-    "${ability_runtime_services_path}/abilitymgr/src/ui_extension_record/ui_extension_record_factory.cpp",
     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/appexecfwk_core/src/appmgr/mock_app_scheduler.cpp",
     "ui_extension_record_factory_test.cpp",
   ]
@@ -69,7 +66,7 @@ ohos_unittest("ui_extension_record_factory_test") {
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
     "${ability_runtime_path}/utils/server/startup:startup_util",
-    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
     "${ability_runtime_services_path}/abilitymgr:mission_list",
     "${ability_runtime_services_path}/common:app_util",
     "${ability_runtime_services_path}/common:perm_verification",

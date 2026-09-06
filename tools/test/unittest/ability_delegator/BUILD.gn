@@ -40,7 +40,7 @@ ohos_unittest("ability_command_test") {
     "${ability_runtime_innerkits_path}/connectionobs_manager:connection_obs_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
-    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
   ]
 
   external_deps = [
@@ -68,7 +68,7 @@ ohos_unittest("ability_command_second_test") {
 
   deps = [
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
-    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
   ]
 
   external_deps = [
@@ -96,7 +96,7 @@ ohos_unittest("ability_command_third_test") {
 
   deps = [
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
-    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
   ]
 
   external_deps = [
@@ -119,7 +119,7 @@ ohos_unittest("test_observer_test") {
 
   deps = [
     "${ability_runtime_path}/tools/aa:tools_aa_source_set",
-    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
   ]
 
   external_deps = [

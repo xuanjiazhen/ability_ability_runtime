@@ -36,6 +36,7 @@ ohos_unittest("AppRecoveryUnitTest") {
   }
 
   deps = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/dataobs_manager:dataobs_manager",
@@ -103,6 +104,7 @@ ohos_unittest("AbilityRecoveryUnitTest") {
   }
 
   deps = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/dataobs_manager:dataobs_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",

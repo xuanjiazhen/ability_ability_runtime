@@ -278,7 +278,7 @@ ohos_unittest("ability_context_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_native",
-    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
   ]
 
   external_deps = [
@@ -461,7 +461,7 @@ ohos_unittest("data_ability_helper_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:data_ability_helper",
     "${ability_runtime_native_path}/appkit:app_context",
-    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
   ]
 
   external_deps = [
@@ -530,7 +530,7 @@ ohos_unittest("data_ability_helper_impl_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:data_ability_helper",
     "${ability_runtime_native_path}/appkit:app_context",
-    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
   ]
   external_deps = [
     "ability_base:base",
@@ -1885,7 +1885,7 @@ ohos_unittest("ability_permission_test") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
-    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
   ]
 
   external_deps = [

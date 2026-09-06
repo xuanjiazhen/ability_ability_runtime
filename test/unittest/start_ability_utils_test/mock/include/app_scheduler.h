@@ -13,27 +13,11 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_APP_SCHEDULER_H
-#define OHOS_ABILITY_RUNTIME_APP_SCHEDULER_H
+#ifndef OHOS_ABILITY_RUNTIME_MOCK_APP_SCHEDULER_H
+#define OHOS_ABILITY_RUNTIME_MOCK_APP_SCHEDULER_H
 
-#include "singleton.h"
+// 本目录 mock 源文件按真实 AppScheduler 类定义提供全部符号，
+// 这里直接转发到被测头文件，保证声明与 mock 定义一致。
+#include "../../../../../services/abilitymgr/include/app_scheduler.h"
 
-#include "running_process_info.h"
-
-namespace OHOS {
-namespace AAFwk {
-class AppScheduler {
-    DECLARE_DELAYED_SINGLETON(AppScheduler)
-public:
-    /**
-     * Get running process information by pid.
-     *
-     * @param pid process id.
-     * @param info Output parameters, return runningProcessInfo.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    void GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExecFwk::RunningProcessInfo &info) const;
-};
-}  // namespace AAFwk
-}  // namespace OHOS
-#endif  // OHOS_ABILITY_RUNTIME_APP_SCHEDULER_H
+#endif  // OHOS_ABILITY_RUNTIME_MOCK_APP_SCHEDULER_H

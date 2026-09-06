@@ -25,7 +25,6 @@ ohos_unittest("lifecycle_deal_test") {
   ]
 
   sources = [
-    "${ability_runtime_services_path}/abilitymgr/src/lifecycle_deal.cpp",
     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/appexecfwk_core/src/appmgr/mock_app_scheduler.cpp",
     "lifecycle_deal_test.cpp",  # add mock file
   ]
@@ -39,6 +38,7 @@ ohos_unittest("lifecycle_deal_test") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   deps = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",

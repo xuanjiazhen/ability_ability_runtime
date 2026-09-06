@@ -32,6 +32,7 @@ ohos_unittest("insight_intent_execute_result_test") {
   }
 
   deps = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
   ]
