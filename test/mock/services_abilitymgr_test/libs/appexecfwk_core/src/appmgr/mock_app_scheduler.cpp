@@ -269,7 +269,8 @@ int32_t AppScheduler::RegisterAbilityDebugResponse(const sptr<AppExecFwk::IAbili
 }
 
 // 链接补齐桩：本 mock 替换真实 app_scheduler.cpp 时，需要覆盖被测源码引用到的全部 AppScheduler 对外方法。
-void AppScheduler::AttachPidToParent(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callerToken)
+void AppScheduler::AttachPidToParent(const sptr<IRemoteObject> &token,
+    const sptr<IRemoteObject> &callerToken)
 {
 
 }
@@ -284,7 +285,8 @@ void AppScheduler::BlockProcessCacheByPids(const std::vector<int32_t> &pids)
 
 }
 
-int32_t AppScheduler::CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId, int32_t appIndex, bool &isExist)
+int32_t AppScheduler::CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId,
+    int32_t appIndex, bool &isExist)
 {
     return 0;
 }
@@ -304,12 +306,14 @@ std::string AppScheduler::ConvertAppState(const AppState &state)
     return "";
 }
 
-int AppScheduler::FinishUserTest(const std::string &msg, const int64_t &resultCode, const std::string &bundleName)
+int AppScheduler::FinishUserTest(const std::string &msg, const int64_t &resultCode,
+    const std::string &bundleName)
 {
     return 0;
 }
 
-int AppScheduler::ForceKillApplication(const std::string &bundleName, const int userId, const int appIndex)
+int AppScheduler::ForceKillApplication(const std::string &bundleName, const int userId,
+    const int appIndex)
 {
     return 0;
 }
@@ -324,17 +328,20 @@ int AppScheduler::GetConfiguration(AppExecFwk::Configuration &config)
     return 0;
 }
 
-int AppScheduler::GetProcessRunningInfosByAccessTokenId(uint32_t accessTokenId, std::vector<AppExecFwk::RunningProcessInfo> &info)
+int AppScheduler::GetProcessRunningInfosByAccessTokenId(uint32_t accessTokenId,
+    std::vector<AppExecFwk::RunningProcessInfo> &info)
 {
     return 0;
 }
 
-int AppScheduler::GetProcessRunningInfosByUserId(std::vector<AppExecFwk::RunningProcessInfo> &info, int32_t userId)
+int AppScheduler::GetProcessRunningInfosByUserId(std::vector<AppExecFwk::RunningProcessInfo> &info,
+    int32_t userId)
 {
     return 0;
 }
 
-void AppScheduler::GetRunningProcessInfoByChildProcessPid(const pid_t childPid, OHOS::AppExecFwk::RunningProcessInfo &info) const
+void AppScheduler::GetRunningProcessInfoByChildProcessPid(const pid_t childPid,
+    OHOS::AppExecFwk::RunningProcessInfo &info) const
 {
 
 }
@@ -379,12 +386,14 @@ bool AppScheduler::IsProcessContainsOnlyUIAbility(const pid_t pid)
     return false;
 }
 
-int AppScheduler::KillApplicationByUid(const std::string &bundleName, int32_t uid, const std::string& reason)
+int AppScheduler::KillApplicationByUid(const std::string &bundleName, int32_t uid,
+    const std::string& reason)
 {
     return 0;
 }
 
-int AppScheduler::KillApplicationWithUserId(const std::string &bundleName, const int userId, const int appIndex)
+int AppScheduler::KillApplicationWithUserId(const std::string &bundleName, const int userId,
+    const int appIndex)
 {
     return 0;
 }
@@ -394,7 +403,8 @@ int AppScheduler::KillProcessesByAccessTokenId(const uint32_t accessTokenId)
     return 0;
 }
 
-int32_t AppScheduler::KillProcessesByPids(const std::vector<int32_t> &pids, const std::string &reason, bool subProcess, bool isKillPrecedeStart)
+int32_t AppScheduler::KillProcessesByPids(const std::vector<int32_t> &pids,
+    const std::string &reason, bool subProcess, bool isKillPrecedeStart)
 {
     return 0;
 }
@@ -409,22 +419,27 @@ void AppScheduler::NotifyLoadAbilityFinished(pid_t callingPid, pid_t targetPid, 
 
 }
 
-int32_t AppScheduler::NotifyPreloadAbilityStateChanged(sptr<IRemoteObject> token, bool isPreForeground)
+int32_t AppScheduler::NotifyPreloadAbilityStateChanged(sptr<IRemoteObject> token,
+    bool isPreForeground)
 {
     return 0;
 }
 
-int AppScheduler::NotifyUninstallOrUpgradeApp(const std::string &bundleName, int32_t uid, bool isUpgrade)
+int AppScheduler::NotifyUninstallOrUpgradeApp(const std::string &bundleName, int32_t uid,
+    bool isUpgrade)
 {
     return 0;
 }
 
-void AppScheduler::OnCacheExitInfo(uint32_t accessTokenId, const AppExecFwk::RunningProcessInfo &exitInfo, const std::string &bundleName, const std::vector<std::string> &abilityNames, const std::vector<std::string> &uiExtensionNames)
+void AppScheduler::OnCacheExitInfo(uint32_t accessTokenId,
+    const AppExecFwk::RunningProcessInfo &exitInfo, const std::string &bundleName,
+    const std::vector<std::string> &abilityNames, const std::vector<std::string> &uiExtensionNames)
 {
 
 }
 
-int32_t AppScheduler::PreloadApplicationByPhase(const std::string &bundleName, int32_t userId, int32_t appIndex, AppExecFwk::PreloadPhase preloadPhase)
+int32_t AppScheduler::PreloadApplicationByPhase(const std::string &bundleName, int32_t userId,
+    int32_t appIndex, AppExecFwk::PreloadPhase preloadPhase)
 {
     return 0;
 }
@@ -459,12 +474,14 @@ void AppScheduler::SetSpecifiedProcessRequestId(int32_t recordId, int32_t reques
 
 }
 
-void AppScheduler::StartSpecifiedProcess(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo, int32_t requestId, const std::string &customProcess)
+void AppScheduler::StartSpecifiedProcess(const AAFwk::Want &want,
+    const AppExecFwk::AbilityInfo &abilityInfo, int32_t requestId, const std::string &customProcess)
 {
 
 }
 
-int AppScheduler::UpdateApplicationInfoInstalled(const std::string &bundleName, const int32_t uid, const std::string &moduleName, bool isPlugin)
+int AppScheduler::UpdateApplicationInfoInstalled(const std::string &bundleName, const int32_t uid,
+    const std::string &moduleName, bool isPlugin)
 {
     return 0;
 }
