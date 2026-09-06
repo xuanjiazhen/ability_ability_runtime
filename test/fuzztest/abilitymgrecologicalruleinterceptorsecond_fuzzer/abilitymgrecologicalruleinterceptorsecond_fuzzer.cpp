@@ -125,10 +125,9 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     int32_t userId = static_cast<int32_t>(GetU32Data(data + U32_AT_SIZE)) % DEFAULT_USER_ID + 1;
     bool isWithUI = (*data) % ENABLE;
     sptr<IRemoteObject> token = GetFuzzAbilityToken();
-    auto shouldBlockFunc = []() { return false; };
     
     AbilityInterceptorParam param =
-        AbilityInterceptorParam(want, requestCode, userId, isWithUI, token, shouldBlockFunc);
+        AbilityInterceptorParam(want, requestCode, userId, isWithUI, token);
     param.isTargetPlugin = false;
     param.isStartAsCaller = false;
     param.isWithUI = isWithUI;
