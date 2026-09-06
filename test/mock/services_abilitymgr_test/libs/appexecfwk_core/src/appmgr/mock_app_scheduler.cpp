@@ -269,24 +269,8 @@ int32_t AppScheduler::RegisterAbilityDebugResponse(const sptr<AppExecFwk::IAbili
 }
 
 // 链接补齐桩：本 mock 替换真实 app_scheduler.cpp 时，需要覆盖被测源码引用到的全部 AppScheduler 对外方法。
-void AppScheduler::AttachPidToParent(const sptr<IRemoteObject> &token,
-    const sptr<IRemoteObject> &callerToken)
-{
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::AttachPidToParent()");
 
-}
 
-void AppScheduler::AttachedToStatusBar(const sptr<IRemoteObject> &token)
-{
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::AttachedToStatusBar()");
-
-}
-
-void AppScheduler::BlockProcessCacheByPids(const std::vector<int32_t> &pids)
-{
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::BlockProcessCacheByPids()");
-
-}
 
 int32_t AppScheduler::CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId,
     int32_t appIndex, bool &isExist)
@@ -301,11 +285,6 @@ bool AppScheduler::CleanAbilityByUserRequest(const sptr<IRemoteObject> &token)
     return false;
 }
 
-void AppScheduler::ClearProcessByToken(sptr<IRemoteObject> token) const
-{
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::ClearProcessByToken()");
-
-}
 
 std::string AppScheduler::ConvertAppState(const AppState &state)
 {
@@ -353,12 +332,6 @@ int AppScheduler::GetProcessRunningInfosByUserId(std::vector<AppExecFwk::Running
     return 0;
 }
 
-void AppScheduler::GetRunningProcessInfoByChildProcessPid(const pid_t childPid,
-    OHOS::AppExecFwk::RunningProcessInfo &info) const
-{
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::GetRunningProcessInfoByChildProcessPid()");
-
-}
 
 bool AppScheduler::IsAttachDebug(const std::string &bundleName)
 {
@@ -441,11 +414,6 @@ int32_t AppScheduler::NotifyFault(const AppExecFwk::FaultData &faultData)
     return 0;
 }
 
-void AppScheduler::NotifyLoadAbilityFinished(pid_t callingPid, pid_t targetPid, uint64_t callbackId)
-{
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyLoadAbilityFinished()");
-
-}
 
 int32_t AppScheduler::NotifyPreloadAbilityStateChanged(sptr<IRemoteObject> token,
     bool isPreForeground)
@@ -461,13 +429,6 @@ int AppScheduler::NotifyUninstallOrUpgradeApp(const std::string &bundleName, int
     return 0;
 }
 
-void AppScheduler::OnCacheExitInfo(uint32_t accessTokenId,
-    const AppExecFwk::RunningProcessInfo &exitInfo, const std::string &bundleName,
-    const std::vector<std::string> &abilityNames, const std::vector<std::string> &uiExtensionNames)
-{
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::OnCacheExitInfo()");
-
-}
 
 int32_t AppScheduler::PreloadApplicationByPhase(const std::string &bundleName, int32_t userId,
     int32_t appIndex, AppExecFwk::PreloadPhase preloadPhase)
@@ -476,23 +437,8 @@ int32_t AppScheduler::PreloadApplicationByPhase(const std::string &bundleName, i
     return 0;
 }
 
-void AppScheduler::PrepareTerminateApp(const pid_t pid, const std::string &moduleName)
-{
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::PrepareTerminateApp()");
 
-}
 
-void AppScheduler::SetAbilityForegroundingFlagToAppRecord(const pid_t pid) const
-{
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::SetAbilityForegroundingFlagToAppRecord()");
-
-}
-
-void AppScheduler::SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess)
-{
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::SetEnableStartProcessFlagByUserId()");
-
-}
 
 int32_t AppScheduler::SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bool isGameSAPrelaunch)
 {
@@ -500,24 +446,8 @@ int32_t AppScheduler::SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bool 
     return 0;
 }
 
-void AppScheduler::SetProcessCacheStatus(int32_t pid, bool isSupport)
-{
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::SetProcessCacheStatus()");
 
-}
 
-void AppScheduler::SetSpecifiedProcessRequestId(int32_t recordId, int32_t requestId)
-{
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::SetSpecifiedProcessRequestId()");
-
-}
-
-void AppScheduler::StartSpecifiedProcess(const AAFwk::Want &want,
-    const AppExecFwk::AbilityInfo &abilityInfo, int32_t requestId, const std::string &customProcess)
-{
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::StartSpecifiedProcess()");
-
-}
 
 int AppScheduler::UpdateApplicationInfoInstalled(const std::string &bundleName, const int32_t uid,
     const std::string &moduleName, bool isPlugin)
