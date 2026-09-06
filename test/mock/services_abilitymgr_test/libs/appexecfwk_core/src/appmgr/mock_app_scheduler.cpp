@@ -272,162 +272,192 @@ int32_t AppScheduler::RegisterAbilityDebugResponse(const sptr<AppExecFwk::IAbili
 void AppScheduler::AttachPidToParent(const sptr<IRemoteObject> &token,
     const sptr<IRemoteObject> &callerToken)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::AttachPidToParent()");
 
 }
 
 void AppScheduler::AttachedToStatusBar(const sptr<IRemoteObject> &token)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::AttachedToStatusBar()");
 
 }
 
 void AppScheduler::BlockProcessCacheByPids(const std::vector<int32_t> &pids)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::BlockProcessCacheByPids()");
 
 }
 
 int32_t AppScheduler::CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId,
     int32_t appIndex, bool &isExist)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::CheckPreloadAppRecordExist()");
     return 0;
 }
 
 bool AppScheduler::CleanAbilityByUserRequest(const sptr<IRemoteObject> &token)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::CleanAbilityByUserRequest()");
     return false;
 }
 
 void AppScheduler::ClearProcessByToken(sptr<IRemoteObject> token) const
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::ClearProcessByToken()");
 
 }
 
 std::string AppScheduler::ConvertAppState(const AppState &state)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::ConvertAppState()");
     return "";
 }
 
 int AppScheduler::FinishUserTest(const std::string &msg, const int64_t &resultCode,
     const std::string &bundleName)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::FinishUserTest()");
     return 0;
 }
 
 int AppScheduler::ForceKillApplication(const std::string &bundleName, const int userId,
     const int appIndex)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::ForceKillApplication()");
     return 0;
 }
 
 int32_t AppScheduler::GetBundleNameByPid(const int pid, std::string &bundleName, int32_t &uid)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::GetBundleNameByPid()");
     return 0;
 }
 
 int AppScheduler::GetConfiguration(AppExecFwk::Configuration &config)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::GetConfiguration()");
     return 0;
 }
 
 int AppScheduler::GetProcessRunningInfosByAccessTokenId(uint32_t accessTokenId,
     std::vector<AppExecFwk::RunningProcessInfo> &info)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::GetProcessRunningInfosByAccessTokenId()");
     return 0;
 }
 
 int AppScheduler::GetProcessRunningInfosByUserId(std::vector<AppExecFwk::RunningProcessInfo> &info,
     int32_t userId)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::GetProcessRunningInfosByUserId()");
     return 0;
 }
 
 void AppScheduler::GetRunningProcessInfoByChildProcessPid(const pid_t childPid,
     OHOS::AppExecFwk::RunningProcessInfo &info) const
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::GetRunningProcessInfoByChildProcessPid()");
 
 }
 
 bool AppScheduler::IsAttachDebug(const std::string &bundleName)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::IsAttachDebug()");
     return false;
 }
 
 bool AppScheduler::IsCallerKilling(const std::string& callerKey) const
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::IsCallerKilling()");
     return false;
 }
 
 bool AppScheduler::IsCorrespondingProcessAttachDebug(const AppExecFwk::AbilityInfo &abilityInfo)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::IsCorrespondingProcessAttachDebug()");
     return false;
 }
 
 bool AppScheduler::IsKilledForUpgradeWeb(const std::string &bundleName)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::IsKilledForUpgradeWeb()");
     return false;
 }
 
 bool AppScheduler::IsMainProcessDebug(int32_t uid)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::IsMainProcessDebug()");
     return false;
 }
 
 bool AppScheduler::IsNoRequireBigMemory() const
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::IsNoRequireBigMemory()");
     return false;
 }
 
 bool AppScheduler::IsProcessAttached(sptr<IRemoteObject> token) const
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::IsProcessAttached()");
     return false;
 }
 
 bool AppScheduler::IsProcessContainsOnlyUIAbility(const pid_t pid)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::IsProcessContainsOnlyUIAbility()");
     return false;
 }
 
 int AppScheduler::KillApplicationByUid(const std::string &bundleName, int32_t uid,
     const std::string& reason)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::KillApplicationByUid()");
     return 0;
 }
 
 int AppScheduler::KillApplicationWithUserId(const std::string &bundleName, const int userId,
     const int appIndex)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::KillApplicationWithUserId()");
     return 0;
 }
 
 int AppScheduler::KillProcessesByAccessTokenId(const uint32_t accessTokenId)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::KillProcessesByAccessTokenId()");
     return 0;
 }
 
 int32_t AppScheduler::KillProcessesByPids(const std::vector<int32_t> &pids,
     const std::string &reason, bool subProcess, bool isKillPrecedeStart)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::KillProcessesByPids()");
     return 0;
 }
 
 int32_t AppScheduler::NotifyFault(const AppExecFwk::FaultData &faultData)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyFault()");
     return 0;
 }
 
 void AppScheduler::NotifyLoadAbilityFinished(pid_t callingPid, pid_t targetPid, uint64_t callbackId)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyLoadAbilityFinished()");
 
 }
 
 int32_t AppScheduler::NotifyPreloadAbilityStateChanged(sptr<IRemoteObject> token,
     bool isPreForeground)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyPreloadAbilityStateChanged()");
     return 0;
 }
 
 int AppScheduler::NotifyUninstallOrUpgradeApp(const std::string &bundleName, int32_t uid,
     bool isUpgrade)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyUninstallOrUpgradeApp()");
     return 0;
 }
 
@@ -435,59 +465,70 @@ void AppScheduler::OnCacheExitInfo(uint32_t accessTokenId,
     const AppExecFwk::RunningProcessInfo &exitInfo, const std::string &bundleName,
     const std::vector<std::string> &abilityNames, const std::vector<std::string> &uiExtensionNames)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::OnCacheExitInfo()");
 
 }
 
 int32_t AppScheduler::PreloadApplicationByPhase(const std::string &bundleName, int32_t userId,
     int32_t appIndex, AppExecFwk::PreloadPhase preloadPhase)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::PreloadApplicationByPhase()");
     return 0;
 }
 
 void AppScheduler::PrepareTerminateApp(const pid_t pid, const std::string &moduleName)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::PrepareTerminateApp()");
 
 }
 
 void AppScheduler::SetAbilityForegroundingFlagToAppRecord(const pid_t pid) const
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::SetAbilityForegroundingFlagToAppRecord()");
 
 }
 
 void AppScheduler::SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::SetEnableStartProcessFlagByUserId()");
 
 }
 
 int32_t AppScheduler::SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bool isGameSAPrelaunch)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::SetGameSAPrelaunch()");
     return 0;
 }
 
 void AppScheduler::SetProcessCacheStatus(int32_t pid, bool isSupport)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::SetProcessCacheStatus()");
 
 }
 
 void AppScheduler::SetSpecifiedProcessRequestId(int32_t recordId, int32_t requestId)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::SetSpecifiedProcessRequestId()");
 
 }
 
 void AppScheduler::StartSpecifiedProcess(const AAFwk::Want &want,
     const AppExecFwk::AbilityInfo &abilityInfo, int32_t requestId, const std::string &customProcess)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::StartSpecifiedProcess()");
 
 }
 
 int AppScheduler::UpdateApplicationInfoInstalled(const std::string &bundleName, const int32_t uid,
     const std::string &moduleName, bool isPlugin)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::UpdateApplicationInfoInstalled()");
     return 0;
 }
 
 int AppScheduler::UpdateConfiguration(const AppExecFwk::Configuration &config)
 {
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::UpdateConfiguration()");
     return 0;
 }
 }  // namespace AAFwk
