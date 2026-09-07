@@ -48,6 +48,8 @@ ohos_shared_library("agent_fwk") {
     "json:nlohmann_json_static",
   ]
 
+  version_script = "libagent_fwk.map"
+
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
@@ -158,6 +160,8 @@ ohos_shared_library("agent_manager") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+
+  version_script = "libagent_manager.map"
 
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
