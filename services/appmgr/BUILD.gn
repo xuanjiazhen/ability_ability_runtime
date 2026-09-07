@@ -106,6 +106,10 @@ ohos_shared_library("libappms") {
     defines += [ "ABILITY_PLATFORM_CHECK_PERMISSION" ]
   }
 
+  if (ability_runtime_cloud_push_enable) {
+    defines += [ "ABILITY_CLOUD_PUSH_ENABLE" ]
+  }
+
   configs = [ ":appmgr_config" ]
   cflags = []
   if (target_cpu == "arm") {
