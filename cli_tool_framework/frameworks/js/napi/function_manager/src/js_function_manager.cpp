@@ -23,8 +23,9 @@
 #include "function_info.h"
 #include "hilog_tag_wrapper.h"
 #include "invoke_function_executor.h"
-#include "js_function_manager_utils.h"
 #include "js_error_utils.h"
+#include "js_function_hook_scheduler_stub.h"
+#include "js_function_manager_utils.h"
 #include "napi_common_util.h"
 #include "napi_common_want.h"
 
@@ -291,6 +292,75 @@ napi_value JSFunctionManager::OnInvokeFunction(napi_env env, size_t argc, napi_v
     return handleEscape.Escape(promise);
 }
 
+napi_value JSFunctionManager::RegisterFunctionHook(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSFunctionManager, OnRegisterFunctionHook);
+}
+
+napi_value JSFunctionManager::UnregisterFunctionHook(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSFunctionManager, OnUnregisterFunctionHook);
+}
+
+napi_value JSFunctionManager::OnRegisterFunctionHook(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "JSFunctionManager::OnRegisterFunctionHook called");
+    HandleEscape handleEscape(env);
+    if (argc < INDEX_ONE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    napi_deferred deferred = nullptr;
+    napi_value promise = nullptr;
+    napi_create_promise(env, &deferred, &promise);
+
+    auto stub = sptr<JsFunctionHookSchedulerStub>(new JsFunctionHookSchedulerStub(env, argv[0]));
+    ErrCode ret = CliToolMGRClient::GetInstance().RegisterFunctionHook(stub);
+    if (ret == ERR_OK) {
+        napi_wrap(env, argv[0], stub.GetRefPtr(),
+            [](napi_env, void *, void *) {
+                // Stub lifecycle managed by sptr in service; do not delete here.
+            },
+            nullptr, nullptr);
+        napi_resolve_deferred(env, deferred, CreateJsUndefined(env));
+    } else {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "RegisterFunctionHook failed: %{public}d", ret);
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ret));
+    }
+    return handleEscape.Escape(promise);
+}
+
+napi_value JSFunctionManager::OnUnregisterFunctionHook(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "JSFunctionManager::OnUnregisterFunctionHook called");
+    HandleEscape handleEscape(env);
+    if (argc < INDEX_ONE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    napi_deferred deferred = nullptr;
+    napi_value promise = nullptr;
+    napi_create_promise(env, &deferred, &promise);
+
+    void *data = nullptr;
+    napi_unwrap(env, argv[0], &data);
+    if (data == nullptr) {
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_INVALID_VALUE));
+        return handleEscape.Escape(promise);
+    }
+    auto stub = sptr<JsFunctionHookSchedulerStub>(static_cast<JsFunctionHookSchedulerStub *>(data));
+    ErrCode ret = CliToolMGRClient::GetInstance().UnregisterFunctionHook(stub);
+    if (ret == ERR_OK) {
+        napi_remove_wrap(env, argv[0], &data);
+        napi_resolve_deferred(env, deferred, CreateJsUndefined(env));
+    } else {
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ret));
+    }
+    return handleEscape.Escape(promise);
+}
+
 napi_value JSFunctionManagerInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "Init JSFunctionManager");
@@ -312,6 +382,8 @@ napi_value JSFunctionManagerInit(napi_env env, napi_value exportObj)
     const char *moduleName = "FunctionManager";
     BindNativeFunction(env, exportObj, "queryFunctions", moduleName, JSFunctionManager::QueryFunctions);
     BindNativeFunction(env, exportObj, "invokeFunction", moduleName, JSFunctionManager::InvokeFunction);
+    BindNativeFunction(env, exportObj, "registerFunctionHook", moduleName, JSFunctionManager::RegisterFunctionHook);
+    BindNativeFunction(env, exportObj, "unregisterFunctionHook", moduleName, JSFunctionManager::UnregisterFunctionHook);
 
     TAG_LOGD(AAFwkTag::CLI_TOOL, "JSFunctionManagerInit end");
     return CreateJsUndefined(env);

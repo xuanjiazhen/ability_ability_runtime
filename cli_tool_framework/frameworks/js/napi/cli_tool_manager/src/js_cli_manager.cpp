@@ -25,6 +25,7 @@
 #include "exec_result.h"
 #include "hilog_tag_wrapper.h"
 #include "js_cli_event_handler_manager.h"
+#include "js_cli_hook_scheduler_stub.h"
 #include "js_cli_manager_utils.h"
 #include "js_cli_session_event_callback.h"
 #include "js_error_utils.h"
@@ -524,6 +525,75 @@ napi_value JSCliManager::OnQueryTools(napi_env env, size_t argc, napi_value *arg
     return handleEscape.Escape(asyncResult);
 }
 
+napi_value JSCliManager::RegisterCliHook(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnRegisterCliHook);
+}
+
+napi_value JSCliManager::UnregisterCliHook(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnUnregisterCliHook);
+}
+
+napi_value JSCliManager::OnRegisterCliHook(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "JSCliManager::OnRegisterCliHook called");
+    HandleEscape handleEscape(env);
+    if (argc < INDEX_ONE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    napi_deferred deferred = nullptr;
+    napi_value promise = nullptr;
+    napi_create_promise(env, &deferred, &promise);
+
+    auto stub = sptr<JsCliHookSchedulerStub>(new JsCliHookSchedulerStub(env, argv[0]));
+    ErrCode ret = CliToolMGRClient::GetInstance().RegisterCliHook(stub);
+    if (ret == ERR_OK) {
+        napi_wrap(env, argv[0], stub.GetRefPtr(),
+            [](napi_env, void *, void *) {
+                // Stub lifecycle managed by sptr in service; do not delete here.
+            },
+            nullptr, nullptr);
+        napi_resolve_deferred(env, deferred, CreateJsUndefined(env));
+    } else {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "RegisterCliHook failed: %{public}d", ret);
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ret));
+    }
+    return handleEscape.Escape(promise);
+}
+
+napi_value JSCliManager::OnUnregisterCliHook(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "JSCliManager::OnUnregisterCliHook called");
+    HandleEscape handleEscape(env);
+    if (argc < INDEX_ONE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    napi_deferred deferred = nullptr;
+    napi_value promise = nullptr;
+    napi_create_promise(env, &deferred, &promise);
+
+    void *data = nullptr;
+    napi_unwrap(env, argv[0], &data);
+    if (data == nullptr) {
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_INVALID_VALUE));
+        return handleEscape.Escape(promise);
+    }
+    auto stub = sptr<JsCliHookSchedulerStub>(static_cast<JsCliHookSchedulerStub *>(data));
+    ErrCode ret = CliToolMGRClient::GetInstance().UnregisterCliHook(stub);
+    if (ret == ERR_OK) {
+        napi_remove_wrap(env, argv[0], &data);
+        napi_resolve_deferred(env, deferred, CreateJsUndefined(env));
+    } else {
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ret));
+    }
+    return handleEscape.Escape(promise);
+}
+
 napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "Init JSCliManager");
@@ -546,6 +616,8 @@ napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "getToolInfoByName", moduleName, JSCliManager::GetToolInfoByName);
     BindNativeFunction(env, exportObj, "queryToolSummaries", moduleName, JSCliManager::QueryToolSummaries);
     BindNativeFunction(env, exportObj, "queryTools", moduleName, JSCliManager::QueryTools);
+    BindNativeFunction(env, exportObj, "registerCliHook", moduleName, JSCliManager::RegisterCliHook);
+    BindNativeFunction(env, exportObj, "unregisterCliHook", moduleName, JSCliManager::UnregisterCliHook);
 
     TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManagerInit end");
     return CreateJsUndefined(env);
