@@ -2441,8 +2441,8 @@ HWTEST_F(JsRuntimeTest, InitSourceMap_0300, TestSize.Level2)
     ASSERT_NE(jsRuntime, nullptr);
     jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
     std::string bundleName = TEST_BUNDLE_NAME;
-    jsRuntime->InitSourceMap(bundleName);
     // valid bundleName but no real hap files in test env, ffrt task runs safely
+    jsRuntime->InitSourceMap(bundleName);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     jsRuntime.reset();
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
