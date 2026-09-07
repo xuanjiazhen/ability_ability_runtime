@@ -278,6 +278,7 @@ int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteO
         // save the latest INSIGHT_INTENT_EXECUTE_RECORDS_MAX_SIZE records
         records_.erase(intentId - INSIGHT_INTENT_EXECUTE_RECORDS_MAX_SIZE);
     }
+    EnsureAppStateObserverRegistered();
     return ERR_OK;
 }
 
@@ -834,9 +835,9 @@ void InsightIntentExecuteManager::SendIntentReport(EventInfo &eventInfo, int32_t
     EventReport::SendExecuteIntentEvent(EventName::EXECUTE_INSIGHT_INTENT_ERROR, HISYSEVENT_FAULT, eventInfo);
 }
 
-void InsightIntentExecuteManager::OnInsightAppDied(const std::string &bundleName)
+void InsightIntentExecuteManager::OnInsightAppDied(const std::string &bundleName, pid_t pid)
 {
-    TAG_LOGD(AAFwkTag::INTENT, "app died: %{public}s", bundleName.c_str());
+    TAG_LOGD(AAFwkTag::INTENT, "app died: %{public}s, pid: %{public}d", bundleName.c_str(), pid);
     AppExecFwk::InsightIntentExecuteResult errorResult{};
     errorResult.innerErr = AbilityRuntime::InsightIntentInnerErr::INSIGHT_INTENT_EXECUTE_REPLY_FAILED;
 
@@ -847,9 +848,90 @@ void InsightIntentExecuteManager::OnInsightAppDied(const std::string &bundleName
             if (record == nullptr || bundleName != record->bundleName) {
                 continue;
             }
+            // pid 精确匹配，避免同 bundle 其他进程的记录被误清理；
+            // pid 为 0 时表示未知（应用整体终止），退化为全量匹配兜底。
+            if (pid != 0 && record->targetPid != 0 && record->targetPid != pid) {
+                continue;
+            }
             toRemove.push_back(intentId);
         }
     }
+
+    ffrt::submit([weakThis = weak_from_this(), errorResult, toRemove = std::move(toRemove)]() {
+        auto self = weakThis.lock();
+        if (self == nullptr) {
+            TAG_LOGW(AAFwkTag::INTENT, "InsightIntentExecuteManager already destroyed");
+            return;
+        }
+        self->HandleDiedRecordsCleanup(toRemove, errorResult);
+        }, ffrt::task_attr().delay(static_cast<uint64_t>(DYING_CALLBACK_DELAY_MS) * MICROSECONDS_PER_MILLISECOND)
+        .name("InsightIntentDiedCleanup"));
+}
+
+void InsightIntentExecuteManager::EnsureAppStateObserverRegistered()
+{
+    if (appStateObserver_ != nullptr) {
+        return;
+    }
+    auto appManager = AppMgrUtil::GetAppMgr();
+    if (appManager == nullptr) {
+        TAG_LOGW(AAFwkTag::INTENT, "null appManager, will retry on next record");
+        return;
+    }
+    auto observer = sptr<InsightIntentAppStateObserver>::MakeSptr(
+        [](const std::string &bundleName, pid_t pid) {
+            DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->OnTargetProcessDied(bundleName, pid);
+        });
+    if (observer == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "new InsightIntentAppStateObserver failed");
+        return;
+    }
+    auto err = appManager->RegisterApplicationStateObserver(observer);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "register app state observer err:%{public}d", err);
+        return;
+    }
+    appStateObserver_ = observer;
+    TAG_LOGI(AAFwkTag::INTENT, "app state observer registered");
+}
+
+void InsightIntentExecuteManager::SetTargetPid(uint64_t intentId, pid_t pid)
+{
+    std::lock_guard<ffrt::mutex> lock(mutex_);
+    auto it = records_.find(intentId);
+    if (it == records_.end() || it->second == nullptr) {
+        TAG_LOGD(AAFwkTag::INTENT, "SetTargetPid: record not found, intentId: %{public}" PRIu64, intentId);
+        return;
+    }
+    it->second->targetPid = pid;
+    TAG_LOGD(AAFwkTag::INTENT, "SetTargetPid: intentId: %{public}" PRIu64, pid: %{public}d", intentId, pid);
+}
+
+void InsightIntentExecuteManager::OnTargetProcessDied(const std::string &bundleName, pid_t pid)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "target process died: %{public}s pid:%{public}d", bundleName.c_str(), pid);
+    AppExecFwk::InsightIntentExecuteResult errorResult{};
+    errorResult.innerErr = AbilityRuntime::InsightIntentInnerErr::INSIGHT_INTENT_EXECUTE_REPLY_FAILED;
+
+    std::vector<uint64_t> toRemove;
+    {
+        std::lock_guard<ffrt::mutex> lock(mutex_);
+        for (const auto &[intentId, record] : records_) {
+            if (record == nullptr || bundleName != record->bundleName) {
+                continue;
+            }
+            if (record->targetPid == 0 || record->targetPid != pid) {
+                continue;
+            }
+            toRemove.push_back(intentId);
+        }
+    }
+    if (toRemove.empty()) {
+        return;
+    }
+    TAG_LOGW(AAFwkTag::INTENT,
+        "target process died, bundle:%{public}s pid:%{public}d, hit %{public}zu record(s)",
+        bundleName.c_str(), pid, toRemove.size());
 
     ffrt::submit([weakThis = weak_from_this(), errorResult, toRemove = std::move(toRemove)]() {
         auto self = weakThis.lock();

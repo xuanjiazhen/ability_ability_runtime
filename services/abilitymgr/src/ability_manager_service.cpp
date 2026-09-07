@@ -15,6 +15,7 @@
 
 #include "ability_manager_service.h"
 
+#include <charconv>
 #include <dlfcn.h>
 #include <sys/epoll.h>
 #include <unordered_map>
@@ -8858,7 +8859,7 @@ void AbilityManagerService::OnAppStateChanged(const AppInfo &info)
         userId = AbilityRuntime::UserController::GetInstance().GetForegroundUserId(ServerConstant::DEFAULT_DISPLAY_ID);
     }
     if (info.state == AppState::TERMINATED) {
-        DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->OnInsightAppDied(info.bundleName);
+        DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->OnInsightAppDied(info.bundleName, info.pid);
     }
 
     auto commonExtensionManager = GetCommonExtensionManagerByUserId(userId);
@@ -15375,6 +15376,15 @@ int32_t AbilityManagerService::OnExecuteIntent(AbilityRequest &abilityRequest,
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null scheduler");
         return ERR_INVALID_VALUE;
     }
+    if (InsightIntentExecuteParam::IsInsightIntentExecute(abilityRequest.want)) {
+        auto intentIdStr = abilityRequest.want.GetStringParam(INSIGHT_INTENT_EXECUTE_PARAM_ID);
+        uint64_t intentId = 0;
+        auto res = std::from_chars(intentIdStr.c_str(), intentIdStr.c_str() + intentIdStr.size(), intentId);
+        if (res.ec == std::errc()) {
+            DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->SetTargetPid(
+                intentId, targetRecord->GetPid());
+        }
+    }
     targetRecord->GetScheduler()->OnExecuteIntent(abilityRequest.want);
 
     return ERR_OK;
@@ -15487,6 +15497,8 @@ int32_t AbilityManagerService::ExecuteInsightIntentDone(const sptr<IRemoteObject
 
     FreezeUtil::GetInstance().AddLifecycleEvent(token, "ExecuteInsightIntentDone Start");
 
+    DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->SetTargetPid(
+        intentId, abilityRecord->GetPid());
     abilityRecord->RemoveInsightIntent();
     // check send by same bundleName.
     std::string bundleNameStored = "";
