@@ -17,7 +17,12 @@
 #define OHOS_ABILITY_RUNTIME_INSIGHT_INTENT_EXECUTE_MANAGER_H
 
 #include <map>
+#include <functional>
+#include <sys/types.h>
+
 #include "ability_connect_callback_stub.h"
+#include "app_mgr_util.h"
+#include "application_state_observer_stub.h"
 #include "cpp/mutex.h"
 #include "event_report.h"
 #include "extract_insight_intent_profile.h"
@@ -42,6 +47,7 @@ struct InsightIntentExecuteRecord {
     uint64_t key = 0;
     std::string bundleName;
     std::string callerBundleName;
+    pid_t targetPid = 0;
     InsightIntentExecuteState state = InsightIntentExecuteState::UNKNOWN;
     bool isDistributed = false;
     std::string deviceId;
@@ -73,6 +79,27 @@ public:
 
 private:
     uint64_t intentId_ = 0;
+};
+
+class InsightIntentAppStateObserver : public AppExecFwk::ApplicationStateObserverStub {
+public:
+    using ProcessDiedHandler = std::function<void(const std::string &, pid_t)>;
+    explicit InsightIntentAppStateObserver(ProcessDiedHandler handler) : handler_(std::move(handler)) {}
+    ~InsightIntentAppStateObserver() override = default;
+    void OnForegroundApplicationChanged(const AppExecFwk::AppStateData &) override {}
+    void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &) override {}
+    void OnExtensionStateChanged(const AppExecFwk::AbilityStateData &) override {}
+    void OnProcessCreated(const AppExecFwk::ProcessData &) override {}
+    void OnProcessStateChanged(const AppExecFwk::ProcessData &) override {}
+    void OnApplicationStateChanged(const AppExecFwk::AppStateData &) override {}
+    void OnProcessDied(const AppExecFwk::ProcessData &processData) override
+    {
+        if (handler_ != nullptr) {
+            handler_(processData.bundleName, processData.pid);
+        }
+    }
+private:
+    ProcessDiedHandler handler_;
 };
 
 class InsightIntentExecuteManager : public std::enable_shared_from_this<InsightIntentExecuteManager> {
@@ -119,7 +146,11 @@ public:
 
     static std::string GetCallerBundleNameByUid();
 
-    void OnInsightAppDied(const std::string &bundleName);
+    void OnInsightAppDied(const std::string &bundleName, pid_t pid);
+
+    void OnTargetProcessDied(const std::string &bundleName, pid_t pid);
+
+    void SetTargetPid(uint64_t intentId, pid_t pid);
 
     int32_t CheckAndUpdateQueryEntityParam(uint64_t key, const sptr<IRemoteObject> &callerToken,
         std::shared_ptr<OHOS::AppExecFwk::InsightIntentQueryParam> &param, const std::string& callerBundleName);
@@ -164,6 +195,10 @@ private:
 
     void HandleDiedRecordsCleanup(const std::vector<uint64_t> &toRemove,
         const AppExecFwk::InsightIntentExecuteResult &errorResult);
+
+    void EnsureAppStateObserverRegistered();
+
+    sptr<InsightIntentAppStateObserver> appStateObserver_;
 };
 } // namespace AAFwk
 } // namespace OHOS
