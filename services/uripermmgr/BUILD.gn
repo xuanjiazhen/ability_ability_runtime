@@ -104,6 +104,7 @@ ohos_shared_library("libupms") {
   }
 
   ldflags = [ "-Wl,-Bsymbolic" ]
+  version_script = "libupms.map"
 
   subsystem_name = "ability"
   part_name = "ability_runtime"

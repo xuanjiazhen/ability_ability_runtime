@@ -119,6 +119,8 @@ ohos_shared_library("agentmanager_napi") {
 
   relative_install_dir = "module/app/agent"
 
+  version_script = "libagentmanager_napi.map"
+
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }

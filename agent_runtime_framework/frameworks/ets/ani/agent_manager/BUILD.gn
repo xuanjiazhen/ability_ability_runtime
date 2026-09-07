@@ -80,6 +80,8 @@ ohos_shared_library("agentmanager_ani") {
     "samgr:samgr_proxy",
   ]
 
+  version_script = "libagentmanager_ani.map"
+
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }
