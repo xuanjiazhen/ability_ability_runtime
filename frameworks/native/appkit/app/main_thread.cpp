@@ -2541,8 +2541,6 @@ void MainThread::LoadNativeLibrary(const BundleInfo &bundleInfo, std::string &na
 void MainThread::ChangeToLocalPath(const std::string &bundleName,
     const std::vector<std::string> &sourceDirs, std::vector<std::string> &localPath)
 {
-    std::regex pattern(std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR) + bundleName
-        + std::string(FILE_SEPARATOR));
     for (auto item : sourceDirs) {
         if (item.empty()) {
             continue;
