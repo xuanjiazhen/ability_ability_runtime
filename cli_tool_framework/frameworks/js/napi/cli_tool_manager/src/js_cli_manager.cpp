@@ -211,9 +211,7 @@ napi_value JSCliManager::OnExecCmd(napi_env env, size_t argc, napi_value *argv)
         napi_status status = napi_typeof(env, argv[INDEX_ONE], &valueType);
         if (status == napi_ok && valueType == napi_object) {
             // Parse the rest of the options into param
-            std::string cmdOptionsMsg;
-            if (!UnwrapExecCmdOptions(env, argv[INDEX_ONE], param, callback, cmdOptionsMsg)) {
-                ThrowInvalidParamError(env, cmdOptionsMsg.empty() ? "Invalid ExecCmdOptions" : cmdOptionsMsg.c_str());
+            if (!UnwrapExecCmdOptions(env, argv[INDEX_ONE], param, callback)) {
                 return CreateJsUndefined(env);
             }
         }

@@ -330,6 +330,9 @@ constexpr char HELP_KEY[] = "help";
 // Argument start index: tokens[0] is always toolName.
 constexpr size_t ARG_START_TOOLNAME_ONLY = 1;       // no subcommand
 constexpr size_t ARG_START_WITH_SUBCOMMAND = 2;     // tokens[1] is subcommand
+// Tokens consumed by "--key value": the flag token plus its value token at i + 1.
+// "--key=value", boolean "--key" and "--help" consume only the flag token.
+constexpr size_t FLAG_WITH_VALUE_TOKEN_COUNT = 2;
 
 struct ParsedCommandArgs {
     std::map<std::string, std::vector<std::string>> values;
@@ -428,15 +431,10 @@ int32_t ParseArgTokens(const std::vector<std::string> &tokens, size_t start,
             ++i;
             continue;
         }
-        // --key false (explicit boolean false)
-        if (isBool && tokens[i + 1] == "false") {
-            parsed.values[key].push_back("false");
-            i += 2;
-            continue;
-        }
-        // --key value
+        // --key value: the value is taken from the next token, so an explicit "false"
+        // needs no special case here (ConvertRawValue turns it into Boolean(false)).
         parsed.values[key].push_back(tokens[i + 1]);
-        i += 2;
+        i += FLAG_WITH_VALUE_TOKEN_COUNT;
     }
     return ERR_OK;
 }
