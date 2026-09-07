@@ -19,8 +19,8 @@
 #include <memory>
 #include <mutex>
 
-#include "app_exit_reason_data_manager.h"
 #include "bundle_info.h"
+#include "exit_caller_info.h"
 #include "exit_reason.h"
 #include "sub_managers_helper.h"
 

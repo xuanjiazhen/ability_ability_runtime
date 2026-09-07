@@ -23,17 +23,13 @@
 #include "ability_util.h"
 #include "database_write_counter.h"
 #include "distributed_kv_data_manager.h"
+#include "exit_caller_info.h"
 #include "ffrt.h"
 #include "exit_reason.h"
 #include "singleton.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-struct ExitCallerInfo {
-    int32_t callerPid = -1;
-    std::string callerProcessName;
-};
-
 class AppExitReasonDataManager : public DelayedSingleton<AppExitReasonDataManager> {
 public:
     AppExitReasonDataManager();
