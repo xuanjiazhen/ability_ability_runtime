@@ -282,19 +282,19 @@ void AppScheduler::AttachPidToParent(const sptr<IRemoteObject> &token,
     const sptr<IRemoteObject> &callerToken)
 {
     LogMockCall("Test AppScheduler::AttachPidToParent()");
-
+    return;
 }
 
 void AppScheduler::AttachedToStatusBar(const sptr<IRemoteObject> &token)
 {
     LogMockCall("Test AppScheduler::AttachedToStatusBar()");
-
+    return;
 }
 
 void AppScheduler::BlockProcessCacheByPids(const std::vector<int32_t> &pids)
 {
     LogMockCall("Test AppScheduler::BlockProcessCacheByPids()");
-
+    return;
 }
 
 int32_t AppScheduler::CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId,
@@ -313,7 +313,7 @@ bool AppScheduler::CleanAbilityByUserRequest(const sptr<IRemoteObject> &token)
 void AppScheduler::ClearProcessByToken(sptr<IRemoteObject> token) const
 {
     LogMockCall("Test AppScheduler::ClearProcessByToken()");
-
+    return;
 }
 
 std::string AppScheduler::ConvertAppState(const AppState &state)
@@ -366,7 +366,7 @@ void AppScheduler::GetRunningProcessInfoByChildProcessPid(const pid_t childPid,
     OHOS::AppExecFwk::RunningProcessInfo &info) const
 {
     LogMockCall("Test AppScheduler::GetRunningProcessInfoByChildProcessPid()");
-
+    return;
 }
 
 bool AppScheduler::IsAttachDebug(const std::string &bundleName)
@@ -453,7 +453,7 @@ int32_t AppScheduler::NotifyFault(const AppExecFwk::FaultData &faultData)
 void AppScheduler::NotifyLoadAbilityFinished(pid_t callingPid, pid_t targetPid, uint64_t callbackId)
 {
     LogMockCall("Test AppScheduler::NotifyLoadAbilityFinished()");
-
+    return;
 }
 
 int32_t AppScheduler::NotifyPreloadAbilityStateChanged(sptr<IRemoteObject> token,
@@ -475,7 +475,7 @@ void AppScheduler::OnCacheExitInfo(uint32_t accessTokenId,
     const std::vector<std::string> &abilityNames, const std::vector<std::string> &uiExtensionNames)
 {
     LogMockCall("Test AppScheduler::OnCacheExitInfo()");
-
+    return;
 }
 
 int32_t AppScheduler::PreloadApplicationByPhase(const std::string &bundleName, int32_t userId,
@@ -488,19 +488,19 @@ int32_t AppScheduler::PreloadApplicationByPhase(const std::string &bundleName, i
 void AppScheduler::PrepareTerminateApp(const pid_t pid, const std::string &moduleName)
 {
     LogMockCall("Test AppScheduler::PrepareTerminateApp()");
-
+    return;
 }
 
 void AppScheduler::SetAbilityForegroundingFlagToAppRecord(const pid_t pid) const
 {
     LogMockCall("Test AppScheduler::SetAbilityForegroundingFlagToAppRecord()");
-
+    return;
 }
 
 void AppScheduler::SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess)
 {
     LogMockCall("Test AppScheduler::SetEnableStartProcessFlagByUserId()");
-
+    return;
 }
 
 int32_t AppScheduler::SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bool isGameSAPrelaunch)
@@ -512,20 +512,20 @@ int32_t AppScheduler::SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bool 
 void AppScheduler::SetProcessCacheStatus(int32_t pid, bool isSupport)
 {
     LogMockCall("Test AppScheduler::SetProcessCacheStatus()");
-
+    return;
 }
 
 void AppScheduler::SetSpecifiedProcessRequestId(int32_t recordId, int32_t requestId)
 {
     LogMockCall("Test AppScheduler::SetSpecifiedProcessRequestId()");
-
+    return;
 }
 
 void AppScheduler::StartSpecifiedProcess(const AAFwk::Want &want,
     const AppExecFwk::AbilityInfo &abilityInfo, int32_t requestId, const std::string &customProcess)
 {
     LogMockCall("Test AppScheduler::StartSpecifiedProcess()");
-
+    return;
 }
 
 int AppScheduler::UpdateApplicationInfoInstalled(const std::string &bundleName, const int32_t uid,
