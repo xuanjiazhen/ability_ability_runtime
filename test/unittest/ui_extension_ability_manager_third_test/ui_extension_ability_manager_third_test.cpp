@@ -16,7 +16,7 @@
 #include <functional>
 #include <memory>
 #include <string>
-#include <time.h>
+#include <ctime>
 #include <vector>
 
 #include <gtest/gtest.h>

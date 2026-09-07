@@ -20,7 +20,7 @@
 
 #include <list>
 #include <mutex>
-#include <time.h>
+#include <ctime>
 #include <tuple>
 #include <unordered_map>
 
@@ -308,6 +308,9 @@ private:
         std::list<UIExtensionForegroundRequest> requests;
     };
 
+    using UIExtensionForegroundRequestMap =
+        std::unordered_map<std::string, std::shared_ptr<UIExtensionForegroundRequestQueue>>;
+
     RecipientMapType uiExtRecipientMap_;
     UIExtensionMapType uiExtensionMap_;
     std::unique_ptr<UIExtensionAbilityConnectManager> uiExtensionAbilityRecordMgr_ = nullptr;
@@ -317,7 +320,7 @@ private:
     std::map<int32_t, sptr<IRemoteObject::DeathRecipient>> preloadUIExtensionHostClientDeathRecipients_;
     std::mutex startingRecordsMutex_;
     std::map<std::tuple<int32_t, pid_t, int64_t>, int32_t> startingRecordsMap_;
-    std::unordered_map<std::string, std::shared_ptr<UIExtensionForegroundRequestQueue>> uiExtensionForegroundRequestMap_;
+    UIExtensionForegroundRequestMap uiExtensionForegroundRequestMap_;
     std::mutex uiExtensionForegroundRequestMapLock_;
 
     DISALLOW_COPY_AND_MOVE(UIExtensionAbilityManager);

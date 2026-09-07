@@ -17,7 +17,7 @@
 
 #include <algorithm>
 #include <limits>
-#include <time.h>
+#include <ctime>
 #include "ability_manager_service.h"
 #include "ability_manager_constants.h"
 #include "ability_permission_util.h"
@@ -872,7 +872,8 @@ void UIExtensionAbilityManager::EnqueueStartServiceReq(const AbilityRequest &abi
     uiExtensionForegroundRequestMap_.emplace(abilityUri, requestQueue);
     CHECK_POINTER(taskHandler_);
     auto callback = [serviceUri = abilityUri,
-        requestQueueWeak = std::weak_ptr<UIExtensionForegroundRequestQueue>(requestQueue), managerWeak = weak_from_this()]() {
+        requestQueueWeak = std::weak_ptr<UIExtensionForegroundRequestQueue>(requestQueue),
+        managerWeak = weak_from_this()]() {
         auto connectManager = managerWeak.lock();
         auto requestQueue = requestQueueWeak.lock();
         auto uiExtensionManager = std::static_pointer_cast<UIExtensionAbilityManager>(connectManager);
