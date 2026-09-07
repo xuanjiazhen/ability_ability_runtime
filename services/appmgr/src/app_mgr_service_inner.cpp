@@ -2260,12 +2260,11 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
             auto element = want->GetElement();
             auto hostBundleName = want->GetStringParam(UIEXTENSION_HOST_BUNDLENAME);
             auto userId = want->GetIntParam(UIEXTENSION_HOST_UID, -1) / BASE_USER_RANGE;
-            if (hostBundleName.empty()) {
-                return;
+            if (!hostBundleName.empty()) {
+                appInfo->bundleName = hostBundleName;
+                abilityInfo->hapPath = GetStoragePath(abilityInfo->hapPath);
+                abilityInfo->resourcePath = GetStoragePath(abilityInfo->resourcePath);
             }
-            appInfo->bundleName = hostBundleName;
-            abilityInfo->hapPath = GetStoragePath(abilityInfo->hapPath);
-            abilityInfo->resourcePath = GetStoragePath(abilityInfo->resourcePath);
             GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex);
             appInfo = std::make_shared<ApplicationInfo>(bundleInfo.applicationInfo);
             auto pluginRet = DelayedSingleton<BundleMgrHelper>::GetInstance()->GetPluginHapModuleInfo(
