@@ -744,7 +744,7 @@ int32_t InsightIntentExecuteManager::CheckCallerPermission(uint64_t specifiedFul
     }
 
     bool isCallingPerm = PermissionVerification::GetInstance()->VerifyCallingPermission(
-        EXECUTE_INSIGHT_INTENT_PERMISSION, specifiedFullTokenId);
+        EXECUTE_INSIGHT_INTENT_PERMISSION, static_cast<uint32_t>(specifiedFullTokenId));
     if (!isCallingPerm) {
         TAG_LOGE(AAFwkTag::INTENT,
             "permission %{public}s verification failed",
