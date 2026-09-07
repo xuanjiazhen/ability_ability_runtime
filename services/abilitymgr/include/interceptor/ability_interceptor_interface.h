@@ -25,9 +25,9 @@ namespace OHOS {
 namespace AAFwk {
 struct AbilityInterceptorParam {
     AbilityInterceptorParam(const Want &want, int requestCode, int32_t userId, bool isWithUI,
-        const sptr<IRemoteObject> &callerToken, const std::function<bool(void)> &shouldBlockAllAppStartFunc)
+        const sptr<IRemoteObject> &callerToken)
         : want(want), requestCode(requestCode), userId(userId),
-        isWithUI(isWithUI), callerToken(callerToken), shouldBlockAllAppStartFunc_(shouldBlockAllAppStartFunc){};
+        isWithUI(isWithUI), callerToken(callerToken){};
     AbilityInterceptorParam(const Want &want, int requestCode, int32_t userId, bool isWithUI,
         const sptr<IRemoteObject> &callerToken, const std::shared_ptr<AppExecFwk::AbilityInfo> &abilityInfo,
         bool isStartAsCaller = false, int32_t appIndex = -1, const StartOptions* startOptions = nullptr) : want(want),
@@ -41,7 +41,6 @@ struct AbilityInterceptorParam {
     std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo;  // target abilityInfo get in afterCheckExecuter_
     bool isStartAsCaller = false;
     int32_t appIndex = -1;
-    std::function<bool(void)> shouldBlockAllAppStartFunc_;
     bool isTargetPlugin = false; //Is it pulling up a plugin
     std::string hostBundleName;
     const StartOptions* startOptions = nullptr;
