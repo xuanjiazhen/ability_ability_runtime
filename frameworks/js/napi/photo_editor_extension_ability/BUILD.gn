@@ -36,6 +36,7 @@ gen_js_obj("photo_editor_extension_ability_abc") {
 }
 
 ohos_shared_library("photoeditorextensionability_napi") {
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
   branch_protector_ret = "pac_ret"
 
   sanitize = {

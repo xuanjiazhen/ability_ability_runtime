@@ -23,6 +23,7 @@ config("demo_ui_extension_config") {
 }
 
 ohos_shared_library("demo_ui_extension") {
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
   sanitize = {
     integer_overflow = true
     ubsan = true
@@ -93,6 +94,7 @@ config("demo_ui_extension_module_config") {
 }
 
 ohos_shared_library("demo_ui_extension_module") {
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
   sanitize = {
     integer_overflow = true
     ubsan = true

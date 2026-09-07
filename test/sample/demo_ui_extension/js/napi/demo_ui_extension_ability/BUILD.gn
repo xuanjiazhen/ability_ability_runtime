@@ -35,6 +35,7 @@ gen_js_obj("demo_ui_extension_ability_abc") {
 }
 
 ohos_shared_library("demouiextensionability_napi") {
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
   sanitize = {
     integer_overflow = true
     ubsan = true

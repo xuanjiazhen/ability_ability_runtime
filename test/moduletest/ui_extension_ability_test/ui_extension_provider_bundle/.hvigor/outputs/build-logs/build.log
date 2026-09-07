@@ -1,0 +1,854 @@
+[2026-09-06T02:01:07.322] [DEBUG] debug-file - env: nodejsVersion=v18.20.1
+[2026-09-06T02:01:07.803] [DEBUG] debug-file - Hvigor init with startParameters:{
+  hvigorfileTypeCheck: false,
+  parallelExecution: true,
+  incrementalExecution: true,
+  printStackTrace: false,
+  daemon: false,
+  analyze: 0,
+  logLevel: Level { level: 20000, levelStr: 'INFO', colour: 'green' },
+  optimizationStrategy: 'memory',
+  hotCompile: undefined,
+  hotReloadBuild: undefined
+}
+[2026-09-06T02:01:09.345] [DEBUG] debug-file - hvigorfile, require result:  { default: { system: [Function: appTasks], plugins: [] } }
+[2026-09-06T02:01:09.617] [DEBUG] debug-file - Start initialize project's product build option map with build mode release.
+[2026-09-06T02:01:09.621] [DEBUG] debug-file - Obtain build option for product 'default'in this build.
+[2026-09-06T02:01:09.643] [DEBUG] debug-file - Start recording SDK configuration permission data.
+[2026-09-06T02:01:09.664] [DEBUG] debug-file - Project task initialization takes 20 ms 
+[2026-09-06T02:01:09.686] [DEBUG] debug-file - Start initialize module-target build option map, moduleName=entry, buildMode=debug
+[2026-09-06T02:01:09.698] [DEBUG] debug-file - project has submodules:entry
+[2026-09-06T02:01:09.708] [DEBUG] debug-file - Start to initialize dependency information.
+[2026-09-06T02:01:09.719] [DEBUG] debug-file - entry : clean cost memory 0.11360931396484375
+[2026-09-06T02:01:09.723] [DEBUG] debug-file - Since there is no instance or instance is terminated, create a new worker pool.
+[2026-09-06T02:01:09.738] [DEBUG] debug-file - Executing task :entry:default@PreBuild
+[2026-09-06T02:01:09.725] [DEBUG] debug-file - Create  resident worker with id: 0.
+[2026-09-06T02:01:10.079] [DEBUG] debug-file - Executing task :entry:default@GenerateMetadata
+[2026-09-06T02:01:10.090] [DEBUG] debug-file - Executing task :entry:default@CreateBuildProfile
+[2026-09-06T02:01:10.094] [DEBUG] debug-file - Executing task :entry:default@PreCheckSyscap
+[2026-09-06T02:01:10.107] [DEBUG] debug-file - Executing task :entry:default@ProcessIntegratedHsp
+[2026-09-06T02:01:10.110] [DEBUG] debug-file - Executing task :entry:default@BuildNativeWithCmake
+[2026-09-06T02:01:10.112] [DEBUG] debug-file - Executing task :entry:default@MakePackInfo
+[2026-09-06T02:01:10.117] [DEBUG] debug-file - Executing task :entry:default@SyscapTransform
+[2026-09-06T02:01:10.130] [DEBUG] debug-file - default@SyscapTransform work[0] is submitted.
+[2026-09-06T02:01:10.158] [DEBUG] debug-file - Executing task :entry:default@ProcessProfile
+[2026-09-06T02:01:10.233] [DEBUG] debug-file - Executing task :entry:default@ProcessRouterMap
+[2026-09-06T02:01:10.261] [DEBUG] debug-file - Executing task :entry:default@ProcessShareConfig
+[2026-09-06T02:01:10.266] [DEBUG] debug-file - Executing task :entry:default@ProcessStartupConfig
+[2026-09-06T02:01:10.271] [DEBUG] debug-file - Executing task :entry:default@BuildNativeWithNinja
+[2026-09-06T02:01:10.277] [DEBUG] debug-file - Executing task :entry:default@ProcessResource
+[2026-09-06T02:01:10.284] [DEBUG] debug-file - Executing task :entry:default@GenerateLoaderJson
+[2026-09-06T02:01:10.097] [DEBUG] debug-file - Executing task :entry:default@GeneratePkgContextInfo
+[2026-09-06T02:01:10.299] [DEBUG] debug-file - Executing task :entry:default@ProcessLibs
+[2026-09-06T02:01:10.310] [DEBUG] debug-file - Executing task :entry:default@CompileResource
+[2026-09-06T02:01:07.324] [DEBUG] debug-file - env: hvigor-config.json5 content = {
+  modelVersion: '6.0.0',
+  dependencies: {},
+  execution: {},
+  logging: {},
+  debugging: {},
+  nodeOptions: {}
+}
+[2026-09-06T02:01:10.358] [DEBUG] debug-file - current process  memoryUsage: {
+  rss: 332091392,
+  heapTotal: 171991040,
+  heapUsed: 142884832,
+  external: 3050145,
+  arrayBuffers: 241807
+} os memoryUsage :37.7462272644043
+[2026-09-06T02:01:07.803] [DEBUG] debug-file - Since current hvigor version 6.0.0-release-patch-rc.2 differs from last hvigor version 
+      undefined, delete file-cache.json and task-cache.json.
+[2026-09-06T02:01:09.345] [DEBUG] debug-file - hvigorfile, binding system plugins [Function: appTasks]
+[2026-09-06T02:01:09.617] [DEBUG] debug-file - Picking option from product 'default' with build mode 'release'.
+[2026-09-06T02:01:09.623] [DEBUG] debug-file - not found resModel json file in : /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/ohosTest/module.json5
+[2026-09-06T02:01:09.643] [DEBUG] debug-file - The file does not exist. At /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/prebuilts/ohos-sdk/linux/26.0.0/previewer/common/resources/module.json
+[2026-09-06T02:01:09.664] [DEBUG] debug-file - hvigorfile, binding custom plugins []
+[2026-09-06T02:01:09.686] [DEBUG] debug-file - Target 'default' config initialized
+[2026-09-06T02:01:09.699] [DEBUG] debug-file - start to load updatedOhPackageInfo to the disk
+[2026-09-06T02:01:09.710] [DEBUG] debug-file - Module entry Collected Dependency: 
+[2026-09-06T02:01:09.719] [DEBUG] debug-file - runTaskFromQueue task cost before running: 1 s 924 ms 
+[2026-09-06T02:01:09.724] [DEBUG] debug-file - Worker pool is initialized with config:  {
+  minPoolNum: 2,
+  maxPoolNum: undefined,
+  maxCoreSize: undefined,
+  cacheCapacity: undefined,
+  cacheTtl: undefined
+}
+[2026-09-06T02:01:09.739] [WARN] debug-file - The project has not explicitly set the 'targetSdkVersion' version at build-profile.json5. It is recommended to configure it. Reference: https://developer.huawei.com/consumer/en/doc/harmonyos-guides/ide-hvigor-build-profile-app#section45865492619
+[2026-09-06T02:01:09.728] [DEBUG] debug-file - Create  resident worker with id: 1.
+[2026-09-06T02:01:10.080] [DEBUG] debug-file - Task 'entry:default@GenerateMetadata' cost while wrapping incremental declarations: 1 ms 
+[2026-09-06T02:01:10.091] [DEBUG] debug-file - Task 'entry:default@CreateBuildProfile' cost while wrapping incremental declarations: 1 ms 
+[2026-09-06T02:01:10.094] [DEBUG] debug-file - entry : default@PreCheckSyscap cost memory 0.01767730712890625
+[2026-09-06T02:01:10.108] [DEBUG] debug-file - entry : default@ProcessIntegratedHsp cost memory 0.035552978515625
+[2026-09-06T02:01:10.111] [DEBUG] debug-file - entry : default@BuildNativeWithCmake cost memory 0.013916015625
+[2026-09-06T02:01:10.114] [DEBUG] debug-file - Module Pack Info:  {
+  summary: {
+    app: { bundleName: 'c***r', bundleType: 'app', version: [Object] },
+    modules: [ [Object] ]
+  },
+  packages: [
+    {
+      deviceType: [Array],
+      moduleType: 'entry',
+      deliveryWithInstall: true,
+      name: 'entry-default'
+    }
+  ]
+}
+[2026-09-06T02:01:10.117] [DEBUG] debug-file - File: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/syscap.json' from 'sysCapJsonPath' is not exists, just ignore.
+[2026-09-06T02:01:10.131] [DEBUG] debug-file - default@SyscapTransform work[0] is pushed to ready queue.
+[2026-09-06T02:01:10.160] [DEBUG] debug-file - Task 'entry:default@ProcessProfile' cost while wrapping incremental declarations: 1 ms 
+[2026-09-06T02:01:10.258] [DEBUG] debug-file - entry : default@ProcessRouterMap cost memory 0.39037322998046875
+[2026-09-06T02:01:10.263] [DEBUG] debug-file - entry : default@ProcessShareConfig cost memory 0.1012420654296875
+[2026-09-06T02:01:10.266] [DEBUG] debug-file - Task 'entry:default@ProcessStartupConfig' cost while wrapping incremental declarations: 1 ms 
+[2026-09-06T02:01:10.272] [DEBUG] debug-file - entry : default@BuildNativeWithNinja cost memory 0.02861785888671875
+[2026-09-06T02:01:10.277] [DEBUG] debug-file - Task 'entry:default@ProcessResource' cost while wrapping incremental declarations: 1 ms 
+[2026-09-06T02:01:10.286] [DEBUG] debug-file - Task 'entry:default@GenerateLoaderJson' cost while wrapping incremental declarations: 1 ms 
+[2026-09-06T02:01:10.101] [DEBUG] debug-file - Task 'entry:default@GeneratePkgContextInfo' cost while wrapping incremental declarations: 1 ms 
+[2026-09-06T02:01:10.305] [DEBUG] debug-file - Worker dispatch failed, running processLibs on main thread.
+[2026-09-06T02:01:10.319] [DEBUG] debug-file - Use tool [/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/prebuilts/ohos-sdk/linux/26.0.0/toolchains/restool]
+ [
+  '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/prebuilts/ohos-sdk/linux/26.0.0/toolchains/restool',
+  '-l',
+  '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/resConfig.json'
+]
+[2026-09-06T02:01:07.327] [DEBUG] debug-file - env: daemon=false
+[2026-09-06T02:01:10.384] [DEBUG] debug-file - Info: Pack: normal pack mode
+Warning: 'extensionPath' value cannot be empty.
+at /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/opt-compression.json
+
+[2026-09-06T02:01:07.803] [DEBUG] debug-file - Cache service initialization finished in 1 ms 
+[2026-09-06T02:01:09.618] [DEBUG] debug-file - Product 'default' build option initialized
+[2026-09-06T02:01:09.637] [DEBUG] debug-file - No signingConfig found, initRemoteHspCache failed.
+[2026-09-06T02:01:09.644] [DEBUG] debug-file - Sdk init in 6 ms 
+[2026-09-06T02:01:09.664] [DEBUG] debug-file - hvigorfile, no custom plugins were found in /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/hvigorfile.ts
+[2026-09-06T02:01:09.687] [DEBUG] debug-file - Target 'ohosTest' config initialized
+[2026-09-06T02:01:09.701] [DEBUG] debug-file - load to the disk finished
+[2026-09-06T02:01:09.710] [DEBUG] debug-file - Module entry's total dependency: 0
+[2026-09-06T02:01:09.721] [INFO] debug-file - Finished :entry:clean... after 3 ms 
+[2026-09-06T02:01:09.741] [DEBUG] debug-file - Task 'entry:default@PreBuild' cost while wrapping incremental declarations: 1 ms 
+[2026-09-06T02:01:10.082] [DEBUG] debug-file - entry : default@GenerateMetadata cost memory 0.06383514404296875
+[2026-09-06T02:01:10.092] [DEBUG] debug-file - entry : default@CreateBuildProfile cost memory 0.06893157958984375
+[2026-09-06T02:01:10.094] [DEBUG] debug-file - runTaskFromQueue task cost before running: 2 s 299 ms 
+[2026-09-06T02:01:10.108] [DEBUG] debug-file - runTaskFromQueue task cost before running: 2 s 313 ms 
+[2026-09-06T02:01:10.111] [DEBUG] debug-file - runTaskFromQueue task cost before running: 2 s 315 ms 
+[2026-09-06T02:01:10.115] [DEBUG] debug-file - entry : default@MakePackInfo cost memory 0.1057586669921875
+[2026-09-06T02:01:10.117] [DEBUG] debug-file - Task 'entry:default@SyscapTransform' cost while wrapping incremental declarations: 1 ms 
+[2026-09-06T02:01:10.131] [DEBUG] debug-file - A work dispatched to worker[47] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.162] [DEBUG] debug-file - [
+  '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/prebuilts/build-tools/common/nodejs/node-v18.20.1-linux-x64/bin/node',
+  '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/prebuilts/ohos-sdk/linux/26.0.0/ets/build-tools/ets-loader/bin/ark/ts2abc.js',
+  '--target-api-version',
+  '20'
+]
+[2026-09-06T02:01:10.258] [DEBUG] debug-file - runTaskFromQueue task cost before running: 2 s 462 ms 
+[2026-09-06T02:01:10.264] [DEBUG] debug-file - runTaskFromQueue task cost before running: 2 s 468 ms 
+[2026-09-06T02:01:10.268] [DEBUG] debug-file - entry : default@ProcessStartupConfig cost memory 0.1131591796875
+[2026-09-06T02:01:10.272] [DEBUG] debug-file - runTaskFromQueue task cost before running: 2 s 476 ms 
+[2026-09-06T02:01:10.279] [DEBUG] debug-file - entry : default@ProcessResource cost memory 0.14111328125
+[2026-09-06T02:01:10.295] [DEBUG] debug-file - entry : default@GenerateLoaderJson cost memory 0.407470703125
+[2026-09-06T02:01:10.102] [DEBUG] debug-file - entry : default@GeneratePkgContextInfo cost memory 0.20294952392578125
+[2026-09-06T02:01:10.306] [DEBUG] debug-file - entry : default@ProcessLibs cost memory 0.33453369140625
+[2026-09-06T02:01:07.327] [DEBUG] debug-file - no-daemon, use the parent process.execArgv --max-old-space-size=8192,--max-semi-space-size=16,--expose-gc
+[2026-09-06T02:01:07.805] [DEBUG] debug-file - hvigorfile, resolving /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/hvigorfile.ts
+[2026-09-06T02:01:09.618] [DEBUG] debug-file - End initialize project's product build option map with build mode 'release'.
+[2026-09-06T02:01:09.665] [DEBUG] debug-file - hvigorfile, resolve finished /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/hvigorfile.ts
+[2026-09-06T02:01:09.688] [DEBUG] debug-file - Module 'entry' target 'default' build option initialized
+[2026-09-06T02:01:09.701] [DEBUG] debug-file - Start to initialize dependency information.
+[2026-09-06T02:01:09.714] [DEBUG] debug-file - Configuration phase cost:1 s 910 ms 
+[2026-09-06T02:01:10.072] [DEBUG] debug-file - current product is not Atomic service.
+[2026-09-06T02:01:10.082] [DEBUG] debug-file - runTaskFromQueue task cost before running: 2 s 286 ms 
+[2026-09-06T02:01:10.092] [DEBUG] debug-file - runTaskFromQueue task cost before running: 2 s 296 ms 
+[2026-09-06T02:01:10.095] [INFO] debug-file - Finished :entry:default@PreCheckSyscap... after 1 ms 
+[2026-09-06T02:01:10.108] [INFO] debug-file - Finished :entry:default@ProcessIntegratedHsp... after 1 ms 
+[2026-09-06T02:01:10.111] [INFO] debug-file - Finished :entry:default@BuildNativeWithCmake... after 1 ms 
+[2026-09-06T02:01:10.115] [DEBUG] debug-file - runTaskFromQueue task cost before running: 2 s 319 ms 
+[2026-09-06T02:01:10.131] [DEBUG] debug-file - Create  resident worker with id: 46.
+[2026-09-06T02:01:10.230] [DEBUG] debug-file - 13.0.1.0
+[2026-09-06T02:01:10.259] [INFO] debug-file - Finished :entry:default@ProcessRouterMap... after 25 ms 
+[2026-09-06T02:01:10.264] [INFO] debug-file - Finished :entry:default@ProcessShareConfig... after 3 ms 
+[2026-09-06T02:01:10.268] [DEBUG] debug-file - runTaskFromQueue task cost before running: 2 s 473 ms 
+[2026-09-06T02:01:10.272] [INFO] debug-file - Finished :entry:default@BuildNativeWithNinja... after 1 ms 
+[2026-09-06T02:01:10.279] [DEBUG] debug-file - runTaskFromQueue task cost before running: 2 s 484 ms 
+[2026-09-06T02:01:10.295] [DEBUG] debug-file - runTaskFromQueue task cost before running: 2 s 499 ms 
+[2026-09-06T02:01:10.102] [DEBUG] debug-file - runTaskFromQueue task cost before running: 2 s 307 ms 
+[2026-09-06T02:01:10.307] [DEBUG] debug-file - runTaskFromQueue task cost before running: 2 s 511 ms 
+[2026-09-06T02:01:09.665] [DEBUG] debug-file - hvigorfile, resolving /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/hvigorfile.ts
+[2026-09-06T02:01:09.688] [DEBUG] debug-file - Module 'entry' target 'ohosTest' build option initialized
+[2026-09-06T02:01:09.705] [DEBUG] debug-file - Module ui_extension_provider_bundle Collected Dependency: 
+[2026-09-06T02:01:09.717] [DEBUG] debug-file - Configuration task cost before running: 1 s 921 ms 
+[2026-09-06T02:01:10.073] [DEBUG] debug-file - Use tool [linux: JAVA_HOME, CLASSPATH]
+ [ { JAVA_HOME: undefined }, { CLASSPATH: undefined } ]
+[2026-09-06T02:01:10.082] [INFO] debug-file - Finished :entry:default@GenerateMetadata... after 3 ms 
+[2026-09-06T02:01:10.092] [INFO] debug-file - Finished :entry:default@CreateBuildProfile... after 2 ms 
+[2026-09-06T02:01:10.115] [INFO] debug-file - Finished :entry:default@MakePackInfo... after 3 ms 
+[2026-09-06T02:01:10.133] [DEBUG] debug-file - default@SyscapTransform work[0] has been dispatched to worker[46].
+[2026-09-06T02:01:10.231] [DEBUG] debug-file - No need to add fake ui ability because of not in preview process.
+[2026-09-06T02:01:10.269] [INFO] debug-file - Finished :entry:default@ProcessStartupConfig... after 3 ms 
+[2026-09-06T02:01:10.274] [DEBUG] debug-file - restool module names: entry; moduleName=entry, taskName=default@ProcessResource
+[2026-09-06T02:01:10.280] [INFO] debug-file - Finished :entry:default@ProcessResource... after 4 ms 
+[2026-09-06T02:01:10.297] [INFO] debug-file - Finished :entry:default@GenerateLoaderJson... after 11 ms 
+[2026-09-06T02:01:10.103] [INFO] debug-file - Finished :entry:default@GeneratePkgContextInfo... after 6 ms 
+[2026-09-06T02:01:10.307] [INFO] debug-file - Finished :entry:default@ProcessLibs... after 8 ms 
+[2026-09-06T02:01:09.675] [DEBUG] debug-file - hvigorfile, require result:  { default: { system: [Function: hapTasks], plugins: [] } }
+[2026-09-06T02:01:09.688] [DEBUG] debug-file - End initialize module-target build option map, moduleName=entry
+[2026-09-06T02:01:09.705] [DEBUG] debug-file - Module ui_extension_provider_bundle's total dependency: 0
+[2026-09-06T02:01:09.717] [DEBUG] debug-file - Executing task :entry:clean
+[2026-09-06T02:01:10.073] [DEBUG] debug-file - Use tool [linux: NODE_HOME]
+ [
+  {
+    NODE_HOME: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/prebuilts/build-tools/common/nodejs/node-v18.20.1-linux-x64'
+  }
+]
+[2026-09-06T02:01:10.083] [DEBUG] debug-file - Executing task :entry:default@ConfigureCmake
+[2026-09-06T02:01:10.133] [DEBUG] debug-file - default@SyscapTransform work[0] is dispatched.
+[2026-09-06T02:01:10.231] [DEBUG] debug-file - entry : default@ProcessProfile cost memory 0.2912750244140625
+[2026-09-06T02:01:10.308] [DEBUG] debug-file - restool module names: entry; moduleName=entry, taskName=default@CompileResource
+[2026-09-06T02:01:09.675] [DEBUG] debug-file - hvigorfile, binding system plugins [Function: hapTasks]
+[2026-09-06T02:01:09.688] [DEBUG] debug-file - Start initialize module-target build option map, moduleName=entry, buildMode=release
+[2026-09-06T02:01:09.718] [DEBUG] debug-file - clean: Worker pool is inactive.
+[2026-09-06T02:01:10.074] [DEBUG] debug-file - entry : default@PreBuild cost memory 16.824234008789062
+[2026-09-06T02:01:10.083] [DEBUG] debug-file - entry : default@ConfigureCmake cost memory 0.01229095458984375
+[2026-09-06T02:01:10.133] [DEBUG] debug-file - entry : default@SyscapTransform cost memory -9.274635314941406
+[2026-09-06T02:01:10.231] [DEBUG] debug-file - runTaskFromQueue task cost before running: 2 s 436 ms 
+[2026-09-06T02:01:09.676] [DEBUG] debug-file - failed to load cangjie to dynamically generate schemas: Error: Cannot find module '@ohos/cangjie-build-support/index'
+Require stack:
+- /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/prebuilts/tool/command-line-tools/6.x/hvigor/hvigor-ohos-plugin/src/plugin/factory/plugin-factory.js
+- /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/prebuilts/tool/command-line-tools/6.x/hvigor/hvigor-ohos-plugin/index.js
+- /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/hvigorfile.ts
+- /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/prebuilts/tool/command-line-tools/6.x/hvigor/hvigor/src/base/internal/lifecycle/configuration.js
+- /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/prebuilts/tool/command-line-tools/6.x/hvigor/hvigor/src/base/boot/index.js
+- /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/prebuilts/tool/command-line-tools/6.x/hvigor/hvigor/src/cli/main/cli.js
+- /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/prebuilts/tool/command-line-tools/6.x/hvigor/hvigor/bin/hvigor.js
+[2026-09-06T02:01:09.688] [DEBUG] debug-file - Target 'default' config initialized
+[2026-09-06T02:01:10.074] [DEBUG] debug-file - runTaskFromQueue task cost before running: 2 s 278 ms 
+[2026-09-06T02:01:10.084] [DEBUG] debug-file - runTaskFromQueue task cost before running: 2 s 288 ms 
+[2026-09-06T02:01:10.232] [INFO] debug-file - Finished :entry:default@ProcessProfile... after 73 ms 
+[2026-09-06T02:01:09.688] [DEBUG] debug-file - Target 'ohosTest' config initialized
+[2026-09-06T02:01:10.075] [INFO] debug-file - Finished :entry:default@PreBuild... after 336 ms 
+[2026-09-06T02:01:10.084] [INFO] debug-file - Finished :entry:default@ConfigureCmake... after 1 ms 
+[2026-09-06T02:01:09.689] [DEBUG] debug-file - Module 'entry' target 'default' build option initialized
+[2026-09-06T02:01:10.076] [DEBUG] debug-file - Executing task :entry:default@CreateModuleInfo
+[2026-09-06T02:01:10.085] [DEBUG] debug-file - Executing task :entry:default@MergeProfile
+[2026-09-06T02:01:09.689] [DEBUG] debug-file - Module 'entry' target 'ohosTest' build option initialized
+[2026-09-06T02:01:10.076] [DEBUG] debug-file - Task 'entry:default@CreateModuleInfo' cost while wrapping incremental declarations: 1 ms 
+[2026-09-06T02:01:10.085] [DEBUG] debug-file - Task 'entry:default@MergeProfile' cost while wrapping incremental declarations: 1 ms 
+[2026-09-06T02:01:09.689] [DEBUG] debug-file - End initialize module-target build option map, moduleName=entry
+[2026-09-06T02:01:10.077] [DEBUG] debug-file - entry : default@CreateModuleInfo cost memory 0.03110504150390625
+[2026-09-06T02:01:10.087] [DEBUG] debug-file - Change app api release type with 'Beta'
+[2026-09-06T02:01:09.689] [DEBUG] debug-file - Start initialize module-target build option map, moduleName=entry, buildMode=release
+[2026-09-06T02:01:10.077] [DEBUG] debug-file - runTaskFromQueue task cost before running: 2 s 281 ms 
+[2026-09-06T02:01:10.087] [DEBUG] debug-file - Change app compile API version with '26.0.0.41'
+[2026-09-06T02:01:09.689] [DEBUG] debug-file - Target 'default' config initialized
+[2026-09-06T02:01:10.077] [INFO] debug-file - Finished :entry:default@CreateModuleInfo... after 1 ms 
+[2026-09-06T02:01:10.087] [DEBUG] debug-file - Change app target API version with '26'
+[2026-09-06T02:01:09.689] [DEBUG] debug-file - Target 'ohosTest' config initialized
+[2026-09-06T02:01:10.087] [DEBUG] debug-file - Change app minimum API version with '20'
+[2026-09-06T02:01:09.689] [DEBUG] debug-file - Module 'entry' target 'default' build option initialized
+[2026-09-06T02:01:10.087] [DEBUG] debug-file - Use cli appEnvironment
+[2026-09-06T02:01:09.689] [DEBUG] debug-file - Module 'entry' target 'ohosTest' build option initialized
+[2026-09-06T02:01:10.088] [DEBUG] debug-file - entry : default@MergeProfile cost memory 0.37247467041015625
+[2026-09-06T02:01:09.690] [DEBUG] debug-file - End initialize module-target build option map, moduleName=entry
+[2026-09-06T02:01:10.089] [DEBUG] debug-file - runTaskFromQueue task cost before running: 2 s 293 ms 
+[2026-09-06T02:01:09.690] [DEBUG] debug-file - Obtain build option for module 'entry' target 'default'in this build.
+[2026-09-06T02:01:10.089] [INFO] debug-file - Finished :entry:default@MergeProfile... after 4 ms 
+[2026-09-06T02:01:09.696] [DEBUG] debug-file - Module entry task initialization takes 6 ms 
+[2026-09-06T02:01:09.696] [DEBUG] debug-file - hvigorfile, binding custom plugins []
+[2026-09-06T02:01:09.696] [DEBUG] debug-file - hvigorfile, no custom plugins were found in /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/hvigorfile.ts
+[2026-09-06T02:01:09.696] [DEBUG] debug-file - hvigorfile, resolve finished /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/hvigorfile.ts
+[2026-09-06T02:01:10.473] [DEBUG] debug-file - Info: hardware concurrency count is : 48
+Info: thread count is : 48
+
+[2026-09-06T02:01:10.473] [DEBUG] debug-file - Info: thread pool is started
+
+[2026-09-06T02:01:10.475] [DEBUG] debug-file - Info: GenericCompiler::CompileFiles
+
+[2026-09-06T02:01:10.477] [DEBUG] debug-file - Info: GenericCompiler::CompileFiles
+
+[2026-09-06T02:01:10.477] [DEBUG] debug-file - Info: GenericCompiler::CompileFiles
+
+[2026-09-06T02:01:10.479] [DEBUG] debug-file - Info: scale icon is not enable.
+
+[2026-09-06T02:01:10.480] [DEBUG] debug-file - Warning: The width or height of the png file referenced by the icon exceeds the limit (41 pixels)
+at /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/AppScope/resources/base/media/app_icon.png
+Warning: The width or height of the png file referenced by the icon exceeds the limit (41 pixels)
+at /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/resources/base/media/icon.png
+Info: restool resources compile success.
+
+[2026-09-06T02:01:10.481] [DEBUG] debug-file - Info: thread pool is stopped
+
+[2026-09-06T02:01:10.485] [DEBUG] debug-file - entry : default@CompileResource cost memory 2.265716552734375
+[2026-09-06T02:01:10.485] [DEBUG] debug-file - runTaskFromQueue task cost before running: 2 s 690 ms 
+[2026-09-06T02:01:10.488] [DEBUG] debug-file - Executing task :entry:default@DoNativeStrip
+[2026-09-06T02:01:10.486] [INFO] debug-file - Finished :entry:default@CompileResource... after 176 ms 
+[2026-09-06T02:01:10.488] [DEBUG] debug-file - Task 'entry:default@DoNativeStrip' cost while wrapping incremental declarations: 1 ms 
+[2026-09-06T02:01:10.490] [DEBUG] debug-file - entry : default@DoNativeStrip cost memory 0.0511322021484375
+[2026-09-06T02:01:10.490] [DEBUG] debug-file - runTaskFromQueue task cost before running: 2 s 695 ms 
+[2026-09-06T02:01:10.493] [DEBUG] debug-file - Executing task :entry:default@CompileArkTS
+[2026-09-06T02:01:10.490] [INFO] debug-file - Finished :entry:default@DoNativeStrip... after 2 ms 
+[2026-09-06T02:01:10.496] [DEBUG] debug-file - obfuscationOptions: {"selfConfig":{"ruleOptions":{"enable":false,"rules":["/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/obfuscation-rules.txt"]},"consumerRules":[]},"sdkApis":[],"obfuscationCacheDir":"/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/cache/default/default@CompileArkTS/esmodule/release/obfuscation","exportRulePath":"/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/obfuscation/default/obfuscation.txt","dependencies":{"libraries":[],"hspLibraries":[],"hars":[],"hsps":[]}}
+[2026-09-06T02:01:10.497] [DEBUG] debug-file - ByteCodeHar2DependencyKeys in module “entry”: {}
+[2026-09-06T02:01:10.500] [DEBUG] debug-file - Clean the arkts cache due to obfuscation config changes.
+[2026-09-06T02:01:10.509] [DEBUG] debug-file - build config:
+[2026-09-06T02:01:10.509] [DEBUG] debug-file - {
+  moduleType: 'entry',
+  perf: 0,
+  targetName: '.default',
+  packageManagerType: 'ohpm',
+  localPropertiesPath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/local.properties',
+  isPreview: false,
+  isOhosTest: false,
+  isLocalTest: false,
+  buildMode: 'Release',
+  hotReloadBuild: undefined,
+  watchMode: 'false',
+  aceProfilePath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/resources/base/profile',
+  etsLoaderPath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/prebuilts/ohos-sdk/linux/26.0.0/ets/build-tools/ets-loader',
+  modulePath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry',
+  testFrameworkPar: {
+    testMode: undefined,
+    coveragePathFilter: undefined,
+    coverageMode: undefined
+  },
+  needCoverageInsert: false,
+  debugLine: false,
+  projectTopDir: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle',
+  compileSdkVersion: 26,
+  compatibleSdkVersion: 20,
+  compatibleSdkVersionStage: undefined,
+  bundleName: 'c***r',
+  etsLoaderVersion: '26.0.0.41',
+  etsLoaderReleaseType: 'Beta',
+  aotCompileMode: 'type',
+  apPath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/modules.ap',
+  entryModuleName: 'entry',
+  entryModuleVersion: '1.0.0',
+  entryPackageName: 'entry',
+  allModuleNameHash: 'b2a89be4135c8934eca804a64a68528e',
+  externalApiPaths: [],
+  compilerTypes: [],
+  isCrossplatform: false,
+  hvigorPluginFile: undefined,
+  compilePluginPath: undefined,
+  buildGeneratedProfilePath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/generated/profile/default',
+  bundleType: 'app',
+  arkTSVersion: undefined,
+  apiVersion: 26,
+  needCompleteSourcesMap: false,
+  isFaMode: false,
+  strictMode: {
+    caseSensitiveCheck: true,
+    useNormalizedOHMUrl: true,
+    noExternalImportByPath: true
+  },
+  buildDir: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build',
+  deviceTypes: [ 'default', 'tablet' ],
+  useNormalizedOHMUrl: true,
+  pkgContextInfo: {
+    '@ohos/hypium': {
+      packageName: '@ohos/hypium',
+      bundleName: '*****',
+      moduleName: '',
+      version: '1.0.21',
+      entryPath: 'index.js',
+      isSO: false,
+      dependencyAlias: ''
+    },
+    entry: {
+      packageName: 'entry',
+      bundleName: '*****',
+      moduleName: '',
+      version: '',
+      entryPath: 'src/main/',
+      isSO: false,
+      dependencyAlias: ''
+    }
+  },
+  ohPackagePathMap: {},
+  dependencyAliasMap: {},
+  permission: { requestPermissions: undefined, definePermissions: undefined },
+  integratedHsp: false,
+  projectArkOption: { obfuscation: { ruleOptions: [Object], consumerRules: [] } },
+  sourceMapDir: undefined,
+  branchElimination: false,
+  transformLib: undefined,
+  caseSensitiveCheck: false,
+  tsImportSendable: false,
+  resolveConflictMode: true,
+  depName2RootPath: {},
+  depName2DepInfo: {},
+  rootPathSet: [
+    '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle'
+  ],
+  useNativeResolver: true,
+  shouldEmitJs: true,
+  useTscResolve: false,
+  singleFileEmit: false,
+  userProjectConfig: {
+    autoLazyImport: false,
+    allowEmptyBundleName: false,
+    reExportCheckMode: 'noCheck',
+    executionMode: 'memory',
+    usePathPlaceholder: false,
+    writeRollupCache: true,
+    isExpandImportEnabled: false,
+    expandImportExclude: '',
+    ignoreCrossplatformCheck: false,
+    isPreloadSoEnabled: false
+  },
+  skipOhModulesLint: false,
+  executionMode: 'memory',
+  autoLazyImport: false,
+  allowEmptyBundleName: false,
+  reExportCheckMode: 'noCheck',
+  usePathPlaceholder: false,
+  writeRollupCache: true,
+  isExpandImportEnabled: false,
+  expandImportExclude: '',
+  ignoreCrossplatformCheck: false,
+  isPreloadSoEnabled: false,
+  arkCompileCachePath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/cache/default/default@CompileArkTS/esmodule',
+  aceModuleJsonPath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/ark_module.json',
+  appResource: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/ResourceTable.txt',
+  rawFileResource: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/resources/rawfile',
+  resourceTableHash: '5b4c9bf8fe35667e0985cf2aaaa4d57f',
+  runtimeOS: 'OpenHarmony',
+  sdkInfo: 'true:26:26.0.0.41:Beta',
+  aceModuleRoot: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/ets',
+  compileMode: 'esmodule',
+  aceSuperVisualPath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/supervisual',
+  aceBuildJson: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default/loader.json',
+  cachePath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/cache/default/default@CompileArkTS/esmodule/release',
+  aceModuleBuild: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader_out/default/ets',
+  supportChunks: true,
+  declaredFilesPath: undefined,
+  shouldCollectDirectImportees: false,
+  isByteCodeHarOptimize: false,
+  expandImportPath: undefined,
+  pkgNameToPkgBriefInfo: {
+    entry: {
+      pkgRoot: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry',
+      originalSourceRoots: undefined,
+      sourceRoots: [Array],
+      pkgName: 'entry'
+    }
+  },
+  projectModel: {
+    '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main': {
+      moduleName: 'entry',
+      modulePkgPath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry',
+      belongProjectPath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle'
+    },
+    '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/.test/default/intermediates/src/ohosTest/ets': {
+      moduleName: 'entry',
+      modulePkgPath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry',
+      belongProjectPath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle'
+    },
+    '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/ohosTest': {
+      moduleName: 'entry',
+      modulePkgPath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry',
+      belongProjectPath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle'
+    },
+    '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry': {
+      moduleName: 'entry',
+      modulePkgPath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry',
+      belongProjectPath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle'
+    },
+    '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle': {
+      moduleName: 'ui_extension_provider_bundle',
+      modulePkgPath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle',
+      belongProjectPath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle'
+    }
+  },
+  pkgJsonFileHash: '59825ae5f3ce6d597392f8956c8f0788',
+  allModulePaths: [
+    '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry'
+  ],
+  routerMap: {},
+  obfuscationOptions: {
+    selfConfig: { ruleOptions: [Object], consumerRules: [] },
+    sdkApis: [],
+    obfuscationCacheDir: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/cache/default/default@CompileArkTS/esmodule/release/obfuscation',
+    exportRulePath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/obfuscation/default/obfuscation.txt',
+    dependencies: { libraries: [], hspLibraries: [], hars: [], hsps: [] }
+  },
+  byteCodeHarToDependencyKeys: {},
+  compileBlockPkg: [],
+  mockParams: {
+    decorator: '@MockSetup',
+    packageName: '@ohos/hamock',
+    etsSourceRootPath: 'src/main/ets',
+    mockConfigPath: undefined,
+    mockConfigKey2ModuleInfo: {},
+    source2ModuleIdMap: {}
+  },
+  copyCodeResourceEnable: true,
+  copyCodeResourceExcludes: [],
+  copyCodeResourceIncludes: undefined,
+  uiTransformOptimization: false,
+  sdkPath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/prebuilts/ohos-sdk/linux',
+  needPreloadSoFileSet: {},
+  preloadSoFilePath: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/preload/default/preload.json',
+  useSourceHash: false,
+  localModuleParamMap: {},
+  otherPaths: {
+    'entry/*': [ '../*', '../../../build/default/generated/profile/default/*' ]
+  },
+  collectImportersConfig: undefined
+}
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - default@CompileArkTS work[1] is submitted.
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - default@CompileArkTS work[1] is pushed to ready queue.
+[2026-09-06T02:01:10.516] [DEBUG] debug-file - Executing task :entry:default@BuildJS
+[2026-09-06T02:01:10.519] [DEBUG] debug-file - Executing task :entry:default@CacheNativeLibs
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[47] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.517] [DEBUG] debug-file - entry : default@BuildJS cost memory 0.13604736328125
+[2026-09-06T02:01:10.519] [DEBUG] debug-file - Task 'entry:default@CacheNativeLibs' cost while wrapping incremental declarations: 1 ms 
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[46] failed because of worker busy.
+[2026-09-06T02:01:10.517] [DEBUG] debug-file - runTaskFromQueue task cost before running: 2 s 722 ms 
+[2026-09-06T02:01:10.519] [DEBUG] debug-file - default@CacheNativeLibs work[3] is submitted.
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[45] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.517] [INFO] debug-file - Finished :entry:default@BuildJS... after 2 ms 
+[2026-09-06T02:01:10.519] [DEBUG] debug-file - default@CacheNativeLibs work[3] is pushed to ready queue.
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[44] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.519] [DEBUG] debug-file - A work dispatched to worker[47] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[43] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.519] [DEBUG] debug-file - A work dispatched to worker[46] failed because of worker busy.
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[42] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.519] [DEBUG] debug-file - A work dispatched to worker[45] failed because of worker busy.
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[41] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.519] [DEBUG] debug-file - Create  resident worker with id: 44.
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[40] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.520] [DEBUG] debug-file - default@CacheNativeLibs work[3] has been dispatched to worker[44].
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[39] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.520] [DEBUG] debug-file - default@CacheNativeLibs work[3] is dispatched.
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[38] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.520] [DEBUG] debug-file - entry : default@CacheNativeLibs cost memory 0.13993072509765625
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[37] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[36] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[35] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[34] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[33] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[32] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[31] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[30] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[29] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[28] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[27] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[26] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[25] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[24] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.511] [DEBUG] debug-file - A work dispatched to worker[23] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.512] [DEBUG] debug-file - A work dispatched to worker[22] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.512] [DEBUG] debug-file - A work dispatched to worker[21] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.512] [DEBUG] debug-file - A work dispatched to worker[20] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.512] [DEBUG] debug-file - A work dispatched to worker[19] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.512] [DEBUG] debug-file - A work dispatched to worker[18] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.512] [DEBUG] debug-file - A work dispatched to worker[17] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.512] [DEBUG] debug-file - A work dispatched to worker[16] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.512] [DEBUG] debug-file - A work dispatched to worker[15] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.512] [DEBUG] debug-file - A work dispatched to worker[14] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.512] [DEBUG] debug-file - A work dispatched to worker[13] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.512] [DEBUG] debug-file - A work dispatched to worker[12] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.512] [DEBUG] debug-file - A work dispatched to worker[11] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.512] [DEBUG] debug-file - A work dispatched to worker[10] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.512] [DEBUG] debug-file - A work dispatched to worker[9] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.512] [DEBUG] debug-file - A work dispatched to worker[8] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.512] [DEBUG] debug-file - A work dispatched to worker[7] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.512] [DEBUG] debug-file - A work dispatched to worker[6] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.512] [DEBUG] debug-file - A work dispatched to worker[5] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.512] [DEBUG] debug-file - Create  resident worker with id: 4.
+[2026-09-06T02:01:10.513] [DEBUG] debug-file - default@CompileArkTS work[1] has been dispatched to worker[4].
+[2026-09-06T02:01:10.513] [DEBUG] debug-file - default@CompileArkTS work[1] is dispatched.
+[2026-09-06T02:01:10.513] [DEBUG] debug-file - CopyResources startTime: 3858196655569142
+[2026-09-06T02:01:10.513] [DEBUG] debug-file - default@CompileArkTS work[2] is submitted.
+[2026-09-06T02:01:10.513] [DEBUG] debug-file - default@CompileArkTS work[2] is pushed to ready queue.
+[2026-09-06T02:01:10.513] [DEBUG] debug-file - A work dispatched to worker[47] failed because unable to get work from ready queue.
+[2026-09-06T02:01:10.513] [DEBUG] debug-file - A work dispatched to worker[46] failed because of worker busy.
+[2026-09-06T02:01:10.513] [DEBUG] debug-file - Create  resident worker with id: 45.
+[2026-09-06T02:01:10.514] [DEBUG] debug-file - default@CompileArkTS work[2] has been dispatched to worker[45].
+[2026-09-06T02:01:10.514] [DEBUG] debug-file - default@CompileArkTS work[2] is dispatched.
+[2026-09-06T02:01:10.514] [DEBUG] debug-file - entry : default@CompileArkTS cost memory 1.8663711547851562
+[2026-09-06T02:01:11.422] [DEBUG] debug-file - current process  memoryUsage: {
+  rss: 644743168,
+  heapTotal: 79429632,
+  heapUsed: 55772872,
+  external: 2471562,
+  arrayBuffers: 317141
+} os memoryUsage :38.261444091796875
+[2026-09-06T02:01:11.473] [DEBUG] debug-file - worker[46] has one work done.
+[2026-09-06T02:01:11.473] [DEBUG] debug-file - default@SyscapTransform work[0] done.
+[2026-09-06T02:01:11.473] [DEBUG] debug-file - A work dispatched to worker[46] failed because unable to get work from ready queue.
+[2026-09-06T02:01:11.474] [INFO] debug-file - Finished :entry:default@SyscapTransform... after 72 ms 
+[2026-09-06T02:01:11.583] [DEBUG] debug-file - worker[45] has one work done.
+[2026-09-06T02:01:11.584] [DEBUG] debug-file - CopyResources is end, endTime: 3858197726050117
+[2026-09-06T02:01:11.584] [DEBUG] debug-file - default@CompileArkTS work[2] done.
+[2026-09-06T02:01:11.584] [DEBUG] debug-file - A work dispatched to worker[45] failed because unable to get work from ready queue.
+[2026-09-06T02:01:11.691] [DEBUG] debug-file - worker[44] has one work done.
+[2026-09-06T02:01:11.691] [DEBUG] debug-file - default@CacheNativeLibs work[3] done.
+[2026-09-06T02:01:11.691] [DEBUG] debug-file - A work dispatched to worker[44] failed because unable to get work from ready queue.
+[2026-09-06T02:01:11.691] [INFO] debug-file - Finished :entry:default@CacheNativeLibs... after 6 ms 
+[2026-09-06T02:01:22.403] [WARN] debug-file - [33mWARN: [33m[33mArkTS:WARN File: /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/ets/entryability/EntryAbility.ets:22:42
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/ets/IdlServiceExt/idl_service_ext_stub.ts:31:26
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/ets/IdlServiceExt/idl_service_ext_stub.ts:41:25
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/ets/IdlServiceExt/idl_service_ext_stub.ts:42:25
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/ets/uiextensionability/UIExtensionAbility.ets:46:13
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/ets/pages/Extension.ets:18:28
+ 'getShared' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/ets/pages/Extension.ets:50:27
+ 'sendData' is system api
+[39m[39m
+
+[2026-09-06T02:01:22.404] [DEBUG] debug-file - Ark compile task finished.finished time is 3858208546147939
+[2026-09-06T02:01:22.404] [DEBUG] debug-file - worker[4] has one work done.
+[2026-09-06T02:01:22.406] [DEBUG] debug-file - default@CompileArkTS work[1] done.
+[2026-09-06T02:01:22.414] [DEBUG] debug-file - Executing task :entry:default@PackageHap
+[2026-09-06T02:01:22.422] [DEBUG] debug-file - default@PackageHap work[4] is submitted.
+[2026-09-06T02:01:22.406] [DEBUG] debug-file - A work dispatched to worker[4] failed because unable to get work from ready queue.
+[2026-09-06T02:01:22.416] [WARN] debug-file - If obfuscation is needed, enable obfuscation settings in this build process; failing to do so may prevent future obfuscation. 
+               Properly configure obfuscation rules to avoid runtime issues.
+[2026-09-06T02:01:22.422] [DEBUG] debug-file - default@PackageHap work[4] is pushed to ready queue.
+[2026-09-06T02:01:22.408] [INFO] debug-file - Finished :entry:default@CompileArkTS... after 9 s 752 ms 
+[2026-09-06T02:01:22.419] [DEBUG] debug-file - Use tool [/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/prebuilts/ohos-sdk/linux/26.0.0/toolchains/lib/app_packing_tool.jar]
+ [
+  'java',
+  '-Dfile.encoding=utf-8',
+  '-jar',
+  '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/prebuilts/ohos-sdk/linux/26.0.0/toolchains/lib/app_packing_tool.jar',
+  '--mode',
+  'hap',
+  '--force',
+  'true',
+  '--lib-path',
+  '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/stripped_native_libs/default',
+  '--json-path',
+  '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/package/default/module.json',
+  '--resources-path',
+  '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/resources',
+  '--index-path',
+  '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/resources.index',
+  '--pack-info-path',
+  '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/outputs/default/pack.info',
+  '--out-path',
+  '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/outputs/default/entry-default-unsigned.hap',
+  '--rpcid-path',
+  '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/syscap/default/rpcid.sc',
+  '--ets-path',
+  '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader_out/default/ets',
+  '--pkg-context-path',
+  '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default/pkgContextInfo.json'
+]
+[2026-09-06T02:01:22.422] [DEBUG] debug-file - A work dispatched to worker[47] failed because unable to get work from ready queue.
+[2026-09-06T02:01:22.409] [DEBUG] debug-file - Executing task :entry:default@GeneratePkgModuleJson
+[2026-09-06T02:01:22.421] [DEBUG] debug-file - java daemon remote pack failed: read java daemon port failed. fallback to local java -jar pack
+[2026-09-06T02:01:22.422] [DEBUG] debug-file - default@PackageHap work[4] has been dispatched to worker[46].
+[2026-09-06T02:01:22.409] [DEBUG] debug-file - File: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/preload/default/preload.json' from 'preloadSoJsonPath' is not exists, just ignore.
+[2026-09-06T02:01:22.422] [DEBUG] debug-file - default@PackageHap work[4] is dispatched.
+[2026-09-06T02:01:22.409] [DEBUG] debug-file - Task 'entry:default@GeneratePkgModuleJson' cost while wrapping incremental declarations: 1 ms 
+[2026-09-06T02:01:22.423] [DEBUG] debug-file - entry : default@PackageHap cost memory 0.72454833984375
+[2026-09-06T02:01:22.410] [DEBUG] debug-file - entry : default@GeneratePkgModuleJson cost memory 0.05771636962890625
+[2026-09-06T02:01:22.410] [DEBUG] debug-file - runTaskFromQueue task cost before running: 14 s 614 ms 
+[2026-09-06T02:01:22.410] [INFO] debug-file - Finished :entry:default@GeneratePkgModuleJson... after 2 ms 
+[2026-09-06T02:01:22.411] [DEBUG] debug-file - Executing task :entry:default@ProcessCompiledResources
+[2026-09-06T02:01:22.411] [DEBUG] debug-file - File: '/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/preload/default/preload.json' from 'preloadSoJsonPath' is not exists, just ignore.
+[2026-09-06T02:01:22.411] [DEBUG] debug-file - Task 'entry:default@ProcessCompiledResources' cost while wrapping incremental declarations: 1 ms 
+[2026-09-06T02:01:22.411] [DEBUG] debug-file - entry : default@ProcessCompiledResources cost memory 0.054962158203125
+[2026-09-06T02:01:22.411] [DEBUG] debug-file - runTaskFromQueue task cost before running: 14 s 616 ms 
+[2026-09-06T02:01:22.411] [INFO] debug-file - Finished :entry:default@ProcessCompiledResources... after 1 ms 
+[2026-09-06T02:01:22.424] [DEBUG] debug-file - current process  memoryUsage: {
+  rss: 999194624,
+  heapTotal: 79953920,
+  heapUsed: 56616944,
+  external: 2473650,
+  arrayBuffers: 317141
+} os memoryUsage :41.08963394165039
+[2026-09-06T02:01:23.059] [DEBUG] debug-file - worker[46] has one work done.
+[2026-09-06T02:01:23.060] [DEBUG] debug-file - default@PackageHap work[4] done.
+[2026-09-06T02:01:23.063] [DEBUG] debug-file - Executing task :entry:default@PackingCheck
+[2026-09-06T02:01:23.071] [DEBUG] debug-file - Executing task :entry:default@SignHap
+[2026-09-06T02:01:23.075] [DEBUG] debug-file - Executing task :entry:default@CollectDebugSymbol
+[2026-09-06T02:01:23.060] [DEBUG] debug-file - A work dispatched to worker[46] failed because unable to get work from ready queue.
+[2026-09-06T02:01:23.068] [DEBUG] debug-file - entry : default@PackingCheck cost memory 0.7985153198242188
+[2026-09-06T02:01:23.072] [WARN] debug-file - Will skip sign 'hap'. No signingConfigs profile is configured in current project.
+             If needed, configure the signingConfigs in /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/build-profile.json5.
+[2026-09-06T02:01:23.077] [DEBUG] debug-file - nameCache.json for module entry does not exists
+[2026-09-06T02:01:23.061] [INFO] debug-file - Finished :entry:default@PackageHap... after 645 ms 
+[2026-09-06T02:01:23.068] [DEBUG] debug-file - runTaskFromQueue task cost before running: 15 s 273 ms 
+[2026-09-06T02:01:23.073] [DEBUG] debug-file - entry : default@SignHap cost memory 0.0462799072265625
+[2026-09-06T02:01:23.077] [DEBUG] debug-file - There are no cpp libraries for module entry
+[2026-09-06T02:01:23.068] [INFO] debug-file - Finished :entry:default@PackingCheck... after 6 ms 
+[2026-09-06T02:01:23.073] [DEBUG] debug-file - runTaskFromQueue task cost before running: 15 s 278 ms 
+[2026-09-06T02:01:23.077] [DEBUG] debug-file - entry : default@CollectDebugSymbol cost memory 0.20153045654296875
+[2026-09-06T02:01:23.073] [INFO] debug-file - Finished :entry:default@SignHap... after 2 ms 
+[2026-09-06T02:01:23.077] [DEBUG] debug-file - runTaskFromQueue task cost before running: 15 s 282 ms 
+[2026-09-06T02:01:23.078] [INFO] debug-file - Finished :entry:default@CollectDebugSymbol... after 3 ms 
+[2026-09-06T02:01:23.078] [DEBUG] debug-file - Executing task :entry:assembleHap
+[2026-09-06T02:01:23.079] [DEBUG] debug-file - entry : assembleHap cost memory 0.01061248779296875
+[2026-09-06T02:01:23.079] [DEBUG] debug-file - runTaskFromQueue task cost before running: 15 s 283 ms 
+[2026-09-06T02:01:23.079] [INFO] debug-file - Finished :entry:assembleHap... after 1 ms 
+[2026-09-06T02:01:23.081] [INFO] debug-file - BUILD SUCCESSFUL in 15 s 285 ms 
+[2026-09-06T02:01:23.082] [DEBUG] debug-file - Update task entry:default@PreBuild input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/AppScope/app.json5 cache by regenerate.
+[2026-09-06T02:01:23.083] [DEBUG] debug-file - Update task entry:default@PreBuild input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/module.json5 cache by regenerate.
+[2026-09-06T02:01:23.083] [DEBUG] debug-file - Update task entry:default@PreBuild input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/build-profile.json5 cache by regenerate.
+[2026-09-06T02:01:23.083] [DEBUG] debug-file - Update task entry:default@PreBuild input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build-profile.json5 cache by regenerate.
+[2026-09-06T02:01:23.083] [DEBUG] debug-file - Update task entry:default@PreBuild input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/resources/base/profile/main_pages.json cache by regenerate.
+[2026-09-06T02:01:23.084] [DEBUG] debug-file - Update task entry:default@PreBuild input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/hvigor/hvigor-config.json5 cache by regenerate.
+[2026-09-06T02:01:23.084] [DEBUG] debug-file - Update task entry:default@PreBuild input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/oh-package.json5 cache by regenerate.
+[2026-09-06T02:01:23.084] [DEBUG] debug-file - Update task entry:default@PreBuild input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/oh-package.json5 cache by regenerate.
+[2026-09-06T02:01:23.084] [DEBUG] debug-file - Incremental task entry:default@PreBuild post-execution cost:3 ms .
+[2026-09-06T02:01:23.084] [DEBUG] debug-file - Update task entry:default@CreateModuleInfo output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/generated/profile/default/ModuleInfo.ts cache.
+[2026-09-06T02:01:23.085] [DEBUG] debug-file - Incremental task entry:default@CreateModuleInfo post-execution cost:1 ms .
+[2026-09-06T02:01:23.085] [DEBUG] debug-file - Update task entry:default@GenerateMetadata input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/module.json5 cache by regenerate.
+[2026-09-06T02:01:23.085] [DEBUG] debug-file - Update task entry:default@GenerateMetadata output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/hap_metadata/default/output_metadata.json cache.
+[2026-09-06T02:01:23.085] [DEBUG] debug-file - Incremental task entry:default@GenerateMetadata post-execution cost:1 ms .
+[2026-09-06T02:01:23.085] [DEBUG] debug-file - Update task entry:default@MergeProfile input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/AppScope/app.json5 cache by regenerate.
+[2026-09-06T02:01:23.086] [DEBUG] debug-file - Update task entry:default@MergeProfile input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/build-profile.json5 cache by regenerate.
+[2026-09-06T02:01:23.086] [DEBUG] debug-file - Update task entry:default@MergeProfile input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/module.json5 cache by regenerate.
+[2026-09-06T02:01:23.086] [DEBUG] debug-file - Update task entry:default@MergeProfile output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/merge_profile/default/module.json cache.
+[2026-09-06T02:01:23.086] [DEBUG] debug-file - Incremental task entry:default@MergeProfile post-execution cost:1 ms .
+[2026-09-06T02:01:23.086] [DEBUG] debug-file - Update task entry:default@CreateBuildProfile input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/AppScope/app.json5 cache by regenerate.
+[2026-09-06T02:01:23.086] [DEBUG] debug-file - Update task entry:default@CreateBuildProfile input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/build-profile.json5 cache by regenerate.
+[2026-09-06T02:01:23.086] [DEBUG] debug-file - Update task entry:default@CreateBuildProfile output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/generated/profile/default/BuildProfile.ets cache.
+[2026-09-06T02:01:23.087] [DEBUG] debug-file - Incremental task entry:default@CreateBuildProfile post-execution cost:1 ms .
+[2026-09-06T02:01:23.087] [DEBUG] debug-file - Update task entry:default@GeneratePkgContextInfo output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default/pkgContextInfo.json cache.
+[2026-09-06T02:01:23.087] [DEBUG] debug-file - Incremental task entry:default@GeneratePkgContextInfo post-execution cost:1 ms .
+[2026-09-06T02:01:23.087] [DEBUG] debug-file - Update task entry:default@ProcessIntegratedHsp output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/build/cache/default/integrated_hsp/integratedHspCache.json cache.
+[2026-09-06T02:01:23.087] [DEBUG] debug-file - Incremental task entry:default@ProcessIntegratedHsp post-execution cost:1 ms .
+[2026-09-06T02:01:23.087] [DEBUG] debug-file - Update task entry:default@MakePackInfo input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/AppScope/app.json5 cache by regenerate.
+[2026-09-06T02:01:23.087] [DEBUG] debug-file - Update task entry:default@MakePackInfo input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/module.json5 cache by regenerate.
+[2026-09-06T02:01:23.087] [DEBUG] debug-file - Update task entry:default@MakePackInfo input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/build-profile.json5 cache by regenerate.
+[2026-09-06T02:01:23.088] [DEBUG] debug-file - Update task entry:default@MakePackInfo output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/outputs/default/pack.info cache.
+[2026-09-06T02:01:23.088] [DEBUG] debug-file - Incremental task entry:default@MakePackInfo post-execution cost:1 ms .
+[2026-09-06T02:01:23.088] [DEBUG] debug-file - Update task entry:default@SyscapTransform input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/prebuilts/ohos-sdk/linux/26.0.0/toolchains/syscap_tool cache by regenerate.
+[2026-09-06T02:01:23.088] [DEBUG] debug-file - Update task entry:default@SyscapTransform input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/prebuilts/ohos-sdk/linux/26.0.0/ets/api/device-define cache by regenerate.
+[2026-09-06T02:01:23.089] [DEBUG] debug-file - Update task entry:default@SyscapTransform output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/syscap/default/rpcid.sc cache.
+[2026-09-06T02:01:23.089] [DEBUG] debug-file - Incremental task entry:default@SyscapTransform post-execution cost:2 ms .
+[2026-09-06T02:01:23.089] [DEBUG] debug-file - Update task entry:default@ProcessProfile input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/merge_profile/default/module.json cache by regenerate.
+[2026-09-06T02:01:23.089] [DEBUG] debug-file - Update task entry:default@ProcessProfile output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/process_profile/default/module.json cache.
+[2026-09-06T02:01:23.089] [DEBUG] debug-file - Incremental task entry:default@ProcessProfile post-execution cost:1 ms .
+[2026-09-06T02:01:23.090] [DEBUG] debug-file - Update task entry:default@ProcessRouterMap input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/oh-package.json5 cache by regenerate.
+[2026-09-06T02:01:23.090] [DEBUG] debug-file - Update task entry:default@ProcessRouterMap input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/oh-package.json5 cache by regenerate.
+[2026-09-06T02:01:23.090] [DEBUG] debug-file - Update task entry:default@ProcessRouterMap input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/module.json5 cache by regenerate.
+[2026-09-06T02:01:23.090] [DEBUG] debug-file - Update task entry:default@ProcessRouterMap input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default/pkgContextInfo.json cache by regenerate.
+[2026-09-06T02:01:23.090] [DEBUG] debug-file - Update task entry:default@ProcessRouterMap output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/router_map/default/temp-router-map.json cache.
+[2026-09-06T02:01:23.090] [DEBUG] debug-file - Update task entry:default@ProcessRouterMap output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/router_map/default/loader-router-map.json cache.
+[2026-09-06T02:01:23.090] [DEBUG] debug-file - Incremental task entry:default@ProcessRouterMap post-execution cost:1 ms .
+[2026-09-06T02:01:23.091] [DEBUG] debug-file - Update task entry:default@ProcessShareConfig input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/oh-package.json5 cache by regenerate.
+[2026-09-06T02:01:23.091] [DEBUG] debug-file - Update task entry:default@ProcessShareConfig input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/oh-package.json5 cache by regenerate.
+[2026-09-06T02:01:23.091] [DEBUG] debug-file - Update task entry:default@ProcessShareConfig input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/module.json5 cache by regenerate.
+[2026-09-06T02:01:23.091] [DEBUG] debug-file - Update task entry:default@ProcessShareConfig input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default/pkgContextInfo.json cache by regenerate.
+[2026-09-06T02:01:23.091] [DEBUG] debug-file - Update task entry:default@ProcessShareConfig output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/share_config/default/temp-share-config.json cache.
+[2026-09-06T02:01:23.091] [DEBUG] debug-file - Incremental task entry:default@ProcessShareConfig post-execution cost:1 ms .
+[2026-09-06T02:01:23.091] [DEBUG] debug-file - Update task entry:default@ProcessStartupConfig input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default/pkgContextInfo.json cache by regenerate.
+[2026-09-06T02:01:23.092] [DEBUG] debug-file - Update task entry:default@ProcessStartupConfig output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/startup/default/startup_config.json cache.
+[2026-09-06T02:01:23.092] [DEBUG] debug-file - Incremental task entry:default@ProcessStartupConfig post-execution cost:1 ms .
+[2026-09-06T02:01:23.092] [DEBUG] debug-file - Update task entry:default@ProcessResource output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/resConfig.json cache.
+[2026-09-06T02:01:23.092] [DEBUG] debug-file - Update task entry:default@ProcessResource output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/opt-compression.json cache.
+[2026-09-06T02:01:23.092] [DEBUG] debug-file - Incremental task entry:default@ProcessResource post-execution cost:1 ms .
+[2026-09-06T02:01:23.093] [DEBUG] debug-file - Update task entry:default@GenerateLoaderJson input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default/pkgContextInfo.json cache by regenerate.
+[2026-09-06T02:01:23.093] [DEBUG] debug-file - Update task entry:default@GenerateLoaderJson input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/router_map/default/temp-router-map.json cache by regenerate.
+[2026-09-06T02:01:23.093] [DEBUG] debug-file - Update task entry:default@GenerateLoaderJson output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default/loader.json cache.
+[2026-09-06T02:01:23.093] [DEBUG] debug-file - Incremental task entry:default@GenerateLoaderJson post-execution cost:1 ms .
+[2026-09-06T02:01:23.093] [DEBUG] debug-file - Update task entry:default@ProcessLibs input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/build-profile.json5 cache by regenerate.
+[2026-09-06T02:01:23.093] [DEBUG] debug-file - Update task entry:default@ProcessLibs input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build-profile.json5 cache by regenerate.
+[2026-09-06T02:01:23.093] [DEBUG] debug-file - Update task entry:default@ProcessLibs output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/libs/default cache.
+[2026-09-06T02:01:23.094] [DEBUG] debug-file - Incremental task entry:default@ProcessLibs post-execution cost:1 ms .
+[2026-09-06T02:01:23.094] [DEBUG] debug-file - Update task entry:default@CompileResource input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/resources cache by regenerate.
+[2026-09-06T02:01:23.095] [DEBUG] debug-file - Update task entry:default@CompileResource input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/AppScope/resources cache by regenerate.
+[2026-09-06T02:01:23.096] [DEBUG] debug-file - Update task entry:default@CompileResource input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/process_profile/default/module.json cache by regenerate.
+[2026-09-06T02:01:23.096] [DEBUG] debug-file - Update task entry:default@CompileResource input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/resConfig.json cache by regenerate.
+[2026-09-06T02:01:23.096] [DEBUG] debug-file - Update task entry:default@CompileResource output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default cache.
+[2026-09-06T02:01:23.097] [DEBUG] debug-file - Update task entry:default@CompileResource output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/generated/r/default/ResourceTable.h cache.
+[2026-09-06T02:01:23.097] [DEBUG] debug-file - Update task entry:default@CompileResource output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/generated/r/default cache.
+[2026-09-06T02:01:23.097] [DEBUG] debug-file - Incremental task entry:default@CompileResource post-execution cost:4 ms .
+[2026-09-06T02:01:23.097] [DEBUG] debug-file - Update task entry:default@DoNativeStrip input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/libs/default cache by regenerate.
+[2026-09-06T02:01:23.098] [DEBUG] debug-file - Update task entry:default@DoNativeStrip output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/stripped_native_libs/default cache.
+[2026-09-06T02:01:23.098] [DEBUG] debug-file - Incremental task entry:default@DoNativeStrip post-execution cost:1 ms .
+[2026-09-06T02:01:23.098] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default cache by regenerate.
+[2026-09-06T02:01:23.099] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/ResourceTable.txt cache by regenerate.
+[2026-09-06T02:01:23.099] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/ark_module.json cache by regenerate.
+[2026-09-06T02:01:23.099] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/resources/base/profile cache by regenerate.
+[2026-09-06T02:01:23.099] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/src/main/ets cache by regenerate.
+[2026-09-06T02:01:23.100] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default/pkgContextInfo.json cache by regenerate.
+[2026-09-06T02:01:23.100] [DEBUG] debug-file - Update task entry:default@CompileArkTS input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/generated/profile/default/BuildProfile.ets cache by regenerate.
+[2026-09-06T02:01:23.100] [DEBUG] debug-file - Update task entry:default@CompileArkTS output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader_out/default/ets cache.
+[2026-09-06T02:01:23.101] [DEBUG] debug-file - Incremental task entry:default@CompileArkTS post-execution cost:3 ms .
+[2026-09-06T02:01:23.101] [DEBUG] debug-file - Update task entry:default@BuildJS input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default cache by regenerate.
+[2026-09-06T02:01:23.102] [DEBUG] debug-file - Update task entry:default@BuildJS input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/ResourceTable.txt cache by regenerate.
+[2026-09-06T02:01:23.102] [DEBUG] debug-file - Update task entry:default@BuildJS input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/ark_module.json cache by regenerate.
+[2026-09-06T02:01:23.102] [DEBUG] debug-file - Update task entry:default@BuildJS input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/resources/base/profile cache by regenerate.
+[2026-09-06T02:01:23.102] [DEBUG] debug-file - Update task entry:default@BuildJS input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default/pkgContextInfo.json cache by regenerate.
+[2026-09-06T02:01:23.102] [DEBUG] debug-file - Update task entry:default@BuildJS output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader_out/default/js cache.
+[2026-09-06T02:01:23.102] [DEBUG] debug-file - Incremental task entry:default@BuildJS post-execution cost:2 ms .
+[2026-09-06T02:01:23.102] [DEBUG] debug-file - Update task entry:default@CacheNativeLibs input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/stripped_native_libs/default cache by regenerate.
+[2026-09-06T02:01:23.103] [DEBUG] debug-file - Update task entry:default@CacheNativeLibs input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/libs/default cache by regenerate.
+[2026-09-06T02:01:23.103] [DEBUG] debug-file - Update task entry:default@CacheNativeLibs output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/patch/default/base_native_libs.json cache.
+[2026-09-06T02:01:23.103] [DEBUG] debug-file - Incremental task entry:default@CacheNativeLibs post-execution cost:1 ms .
+[2026-09-06T02:01:23.103] [DEBUG] debug-file - Update task entry:default@GeneratePkgModuleJson input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/module.json cache by regenerate.
+[2026-09-06T02:01:23.103] [DEBUG] debug-file - Update task entry:default@GeneratePkgModuleJson output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/package/default/module.json cache.
+[2026-09-06T02:01:23.103] [DEBUG] debug-file - Incremental task entry:default@GeneratePkgModuleJson post-execution cost:1 ms .
+[2026-09-06T02:01:23.103] [DEBUG] debug-file - Incremental task entry:default@ProcessCompiledResources post-execution cost:1 ms .
+[2026-09-06T02:01:23.103] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/stripped_native_libs/default cache by regenerate.
+[2026-09-06T02:01:23.104] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/module.json cache by regenerate.
+[2026-09-06T02:01:23.104] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/resources cache by regenerate.
+[2026-09-06T02:01:23.112] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/res/default/resources.index cache by regenerate.
+[2026-09-06T02:01:23.112] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/outputs/default/pack.info cache by regenerate.
+[2026-09-06T02:01:23.112] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/syscap/default/rpcid.sc cache by regenerate.
+[2026-09-06T02:01:23.112] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader_out/default/ets cache by regenerate.
+[2026-09-06T02:01:23.112] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/loader/default/pkgContextInfo.json cache by regenerate.
+[2026-09-06T02:01:23.113] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/cache/default/default@CompileArkTS/esmodule/release/sourceMaps.map cache by regenerate.
+[2026-09-06T02:01:23.113] [DEBUG] debug-file - Update task entry:default@PackageHap input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/generated/profile/default/BuildProfile.ets cache by regenerate.
+[2026-09-06T02:01:23.113] [DEBUG] debug-file - Update task entry:default@PackageHap output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/outputs/default/entry-default-unsigned.hap cache.
+[2026-09-06T02:01:23.113] [DEBUG] debug-file - Update task entry:default@PackageHap output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/source_map/default/sourceMaps.map cache.
+[2026-09-06T02:01:23.113] [DEBUG] debug-file - Update task entry:default@PackageHap output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/outputs/default/mapping/sourceMaps.map cache.
+[2026-09-06T02:01:23.113] [DEBUG] debug-file - Incremental task entry:default@PackageHap post-execution cost:10 ms .
+[2026-09-06T02:01:23.113] [DEBUG] debug-file - Update task entry:default@SignHap input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/outputs/default/entry-default-unsigned.hap cache by regenerate.
+[2026-09-06T02:01:23.113] [DEBUG] debug-file - Update task entry:default@SignHap output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/outputs/default/entry-default-signed.hap cache.
+[2026-09-06T02:01:23.114] [DEBUG] debug-file - Incremental task entry:default@SignHap post-execution cost:1 ms .
+[2026-09-06T02:01:23.114] [DEBUG] debug-file - Update task entry:default@CollectDebugSymbol input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/cache/default/default@CompileArkTS/esmodule/release/sourceMaps.map cache by regenerate.
+[2026-09-06T02:01:23.114] [DEBUG] debug-file - Update task entry:default@CollectDebugSymbol input file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/intermediates/libs/default cache by regenerate.
+[2026-09-06T02:01:23.114] [DEBUG] debug-file - Update task entry:default@CollectDebugSymbol output file:/srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_provider_bundle/entry/build/default/outputs/default/symbol cache.
+[2026-09-06T02:01:23.114] [DEBUG] debug-file - Incremental task entry:default@CollectDebugSymbol post-execution cost:1 ms .
+[2026-09-06T02:01:23.137] [DEBUG] debug-file - Current worker pool is stopped or closed.
+[2026-09-06T02:01:23.137] [DEBUG] debug-file - Clear worker 0.
+[2026-09-06T02:01:23.137] [DEBUG] debug-file - Worker 0 has been cleared.
+[2026-09-06T02:01:23.137] [DEBUG] debug-file - Current idle worker size: 5.
+[2026-09-06T02:01:23.137] [DEBUG] debug-file - Current busy worker size: 0.
+[2026-09-06T02:01:23.138] [DEBUG] debug-file - Clear worker 1.
+[2026-09-06T02:01:23.138] [DEBUG] debug-file - Worker 1 has been cleared.
+[2026-09-06T02:01:23.138] [DEBUG] debug-file - Current idle worker size: 4.
+[2026-09-06T02:01:23.138] [DEBUG] debug-file - Current busy worker size: 0.
+[2026-09-06T02:01:23.138] [DEBUG] debug-file - Clear worker 45.
+[2026-09-06T02:01:23.138] [DEBUG] debug-file - Worker 45 has been cleared.
+[2026-09-06T02:01:23.138] [DEBUG] debug-file - Current idle worker size: 3.
+[2026-09-06T02:01:23.138] [DEBUG] debug-file - Current busy worker size: 0.
+[2026-09-06T02:01:23.138] [DEBUG] debug-file - Clear worker 44.
+[2026-09-06T02:01:23.139] [DEBUG] debug-file - Worker 44 has been cleared.
+[2026-09-06T02:01:23.139] [DEBUG] debug-file - Current idle worker size: 2.
+[2026-09-06T02:01:23.140] [DEBUG] debug-file - Current busy worker size: 0.
+[2026-09-06T02:01:23.140] [DEBUG] debug-file - Clear worker 4.
+[2026-09-06T02:01:23.140] [DEBUG] debug-file - Worker 4 has been cleared.
+[2026-09-06T02:01:23.140] [DEBUG] debug-file - Current idle worker size: 1.
+[2026-09-06T02:01:23.141] [DEBUG] debug-file - Current busy worker size: 0.
+[2026-09-06T02:01:23.141] [DEBUG] debug-file - Clear worker 46.
+[2026-09-06T02:01:23.142] [DEBUG] debug-file - Worker 46 has been cleared.
+[2026-09-06T02:01:23.142] [DEBUG] debug-file - Current idle worker size: 0.
+[2026-09-06T02:01:23.142] [DEBUG] debug-file - Current busy worker size: 0.
+[2026-09-06T02:01:23.146] [DEBUG] debug-file - hvigor build process will be closed.
+[2026-09-06T02:01:23.164] [DEBUG] debug-file - worker[0] exits with exit code 1.
+[2026-09-06T02:01:23.168] [DEBUG] debug-file - worker[1] exits with exit code 1.
+[2026-09-06T02:01:23.172] [DEBUG] debug-file - Current worker pool is terminated.
+[2026-09-06T02:01:23.207] [DEBUG] debug-file - worker[44] exits with exit code 1.
+[2026-09-06T02:01:23.210] [DEBUG] debug-file - worker[45] exits with exit code 1.
+[2026-09-06T02:01:23.211] [DEBUG] debug-file - worker[46] exits with exit code 1.
+[2026-09-06T02:01:23.271] [DEBUG] debug-file - worker[4] exits with exit code 1.

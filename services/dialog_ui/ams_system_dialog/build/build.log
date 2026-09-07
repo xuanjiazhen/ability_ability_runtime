@@ -1,0 +1,82 @@
+> hvigor [32mFinished ::PreBuildApp... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@PreBuild...  [39m
+> hvigor [32mUP-TO-DATE :default:default@PreBuild...  [39m
+> hvigor [32mFinished ::DuplicateDependencyCheck... after 1 ms [39m
+> hvigor [32mFinished :entry:default@CreateModuleInfo... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@GenerateMetadata...  [39m
+> hvigor [32mFinished :entry:default@ConfigureCmake... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@MergeProfile...  [39m
+> hvigor [32mFinished :entry:default@PreCheckSyscap... after 1 ms [39m
+> hvigor [32mFinished :entry:default@GeneratePkgContextInfo... after 9 ms [39m
+> hvigor [32mFinished :entry:default@ProcessIntegratedHsp... after 1 ms [39m
+> hvigor [32mFinished :default:default@CreateModuleInfo... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :default:default@GenerateMetadata...  [39m
+> hvigor [32mFinished :default:default@ConfigureCmake... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :default:default@MergeProfile...  [39m
+> hvigor [32mFinished :default:default@PreCheckSyscap... after 1 ms [39m
+> hvigor [32mFinished :default:default@GeneratePkgContextInfo... after 3 ms [39m
+> hvigor [32mFinished :default:default@ProcessIntegratedHsp... after 1 ms [39m
+> hvigor [32mFinished :entry:default@BuildNativeWithCmake... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@MakePackInfo...  [39m
+> hvigor [32mUP-TO-DATE :entry:default@SyscapTransform...  [39m
+> hvigor [32mUP-TO-DATE :entry:default@ProcessProfile...  [39m
+> hvigor [32mUP-TO-DATE :entry:default@ProcessRouterMap...  [39m
+> hvigor [32mUP-TO-DATE :entry:default@ProcessShareConfig...  [39m
+> hvigor [32mFinished :entry:default@ProcessStartupConfig... after 2 ms [39m
+> hvigor [32mFinished :default:default@BuildNativeWithCmake... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :default:default@MakePackInfo...  [39m
+> hvigor [32mUP-TO-DATE :default:default@SyscapTransform...  [39m
+> hvigor [32mUP-TO-DATE :default:default@ProcessProfile...  [39m
+> hvigor [32mUP-TO-DATE :default:default@ProcessRouterMap...  [39m
+> hvigor [32mUP-TO-DATE :default:default@ProcessShareConfig...  [39m
+> hvigor [32mFinished :default:default@ProcessStartupConfig... after 1 ms [39m
+> hvigor [32mFinished :entry:default@BuildNativeWithNinja... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@ProcessResource...  [39m
+> hvigor [32mUP-TO-DATE :entry:default@GenerateLoaderJson...  [39m
+> hvigor [32mFinished :default:default@BuildNativeWithNinja... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :default:default@ProcessResource...  [39m
+> hvigor [32mUP-TO-DATE :default:default@GenerateLoaderJson...  [39m
+> hvigor [32mUP-TO-DATE :entry:default@ProcessLibs...  [39m
+> hvigor [32mUP-TO-DATE :entry:default@CompileResource...  [39m
+> hvigor [32mUP-TO-DATE :default:default@ProcessLibs...  [39m
+> hvigor [32mUP-TO-DATE :default:default@CompileResource...  [39m
+> hvigor [32mUP-TO-DATE :entry:default@DoNativeStrip...  [39m
+> hvigor [32mUP-TO-DATE :entry:default@CompileArkTS...  [39m
+> hvigor [32mFinished :entry:default@BuildJS... after 2 ms [39m
+> hvigor [32mUP-TO-DATE :default:default@DoNativeStrip...  [39m
+> hvigor [32mUP-TO-DATE :default:default@CompileArkTS...  [39m
+> hvigor [32mFinished :default:default@BuildJS... after 2 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@CacheNativeLibs...  [39m
+> hvigor [32mUP-TO-DATE :default:default@CacheNativeLibs...  [39m
+> hvigor [32mUP-TO-DATE :entry:default@GeneratePkgModuleJson...  [39m
+> hvigor [32mUP-TO-DATE :default:default@GeneratePkgModuleJson...  [39m
+> hvigor [32mFinished :entry:default@ProcessCompiledResources... after 1 ms [39m
+> hvigor [32mFinished :default:default@ProcessCompiledResources... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@PackageHap...  [39m
+> hvigor [32mUP-TO-DATE :default:default@PackageHap...  [39m
+> hvigor [32mFinished :entry:default@PackingCheck... after 8 ms [39m
+> hvigor [32mFinished :entry:default@SignHap... after 2 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@CollectDebugSymbol...  [39m
+> hvigor [32mFinished :default:default@PackingCheck... after 3 ms [39m
+> hvigor [32mFinished :default:default@SignHap... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :default:default@CollectDebugSymbol...  [39m
+> hvigor [32mFinished :entry:assembleHap... after 1 ms [39m
+> hvigor [32mFinished :default:assembleHap... after 1 ms [39m
+> hvigor [32mUP-TO-DATE ::MakeProjectPackInfo...  [39m
+> hvigor [32mFinished ::ProcessProjectPrivacyProfile... after 2 ms [39m
+> hvigor [32mUP-TO-DATE ::GeneratePackRes...  [39m
+> hvigor [32mUP-TO-DATE ::PackageApp...  [39m
+> hvigor [32mFinished ::SignApp... after 2 ms [39m
+> hvigor [32mFinished ::assembleApp... after 1 ms [39m
+> hvigor [32mBUILD SUCCESSFUL in 3 s 431 ms [39m
+
+> hvigor [33mWARN: The project has not explicitly set the 'targetSdkVersion' version at build-profile.json5. It is recommended to configure it. Reference: https://developer.huawei.com/consumer/en/doc/harmonyos-guides/ide-hvigor-build-profile-app#section45865492619[39m
+> hvigor [33mWARN: uiSyntax has been deprecated.
+         at /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/entry/src/main/module.json5:31:22[39m
+> hvigor [33mWARN: Will skip sign 'hap'. No signingConfigs profile is configured in current project.
+             If needed, configure the signingConfigs in /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/build-profile.json5.[39m
+> hvigor [33mWARN: Will skip sign 'hap'. No signingConfigs profile is configured in current project.
+             If needed, configure the signingConfigs in /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/build-profile.json5.[39m
+> hvigor [33mWARN: Will skip sign 'app'. No signingConfigs profile is configured in current project.
+             If needed, configure the signingConfigs in /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog/build-profile.json5.[39m
+

@@ -144,6 +144,7 @@ ohos_shared_library("abilityms") {
   configs = [
     ":abilityms_config",
     ":abilityms_exception_config",
+    "//foundation/ability/ability_runtime/services/common:optimize_config",
   ]
   public_configs = [ ":abilityms_cli_tool_function_include" ]
   include_dirs = [

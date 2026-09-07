@@ -26,6 +26,7 @@ config("module_test_dump_util_config") {
 }
 
 ohos_shared_library("module_test_dump_util_lib") {
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
   sources = [ "${ability_runtime_test_path}/moduletest/module_test_dump_util/module_test_dump_util.cpp" ]
 
   configs = [ ":module_test_dump_util_config" ]

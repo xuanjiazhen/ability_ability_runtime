@@ -573,6 +573,7 @@ ohos_static_library("user_controller_static") {
 }
 
 ohos_shared_library("image_native_bridge") {
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
   sanitize = {
     integer_overflow = true
     ubsan = true
@@ -600,6 +601,7 @@ ohos_shared_library("image_native_bridge") {
 }
 
 ohos_shared_library("image_native_wrap") {
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
   sanitize = {
     integer_overflow = true
     ubsan = true

@@ -1,0 +1,79 @@
+> hvigor [32mFinished :entry:clean... after 4 ms [39m
+> hvigor [32mFinished :entry:default@PreBuild... after 302 ms [39m
+> hvigor [32mFinished :entry:default@CreateModuleInfo... after 2 ms [39m
+> hvigor [32mFinished :entry:default@GenerateMetadata... after 4 ms [39m
+> hvigor [32mFinished :entry:default@ConfigureCmake... after 1 ms [39m
+> hvigor [32mFinished :entry:default@MergeProfile... after 6 ms [39m
+> hvigor [32mFinished :entry:default@CreateBuildProfile... after 3 ms [39m
+> hvigor [32mFinished :entry:default@PreCheckSyscap... after 1 ms [39m
+> hvigor [32mFinished :entry:default@GeneratePkgContextInfo... after 7 ms [39m
+> hvigor [32mFinished :entry:default@ProcessIntegratedHsp... after 2 ms [39m
+> hvigor [32mFinished :entry:default@BuildNativeWithCmake... after 1 ms [39m
+> hvigor [32mFinished :entry:default@MakePackInfo... after 5 ms [39m
+> hvigor [32mFinished :entry:default@ProcessProfile... after 54 ms [39m
+> hvigor [32mFinished :entry:default@ProcessRouterMap... after 3 ms [39m
+> hvigor [32mFinished :entry:default@ProcessShareConfig... after 2 ms [39m
+> hvigor [32mFinished :entry:default@ProcessStartupConfig... after 3 ms [39m
+> hvigor [32mFinished :entry:default@BuildNativeWithNinja... after 1 ms [39m
+> hvigor [32mFinished :entry:default@ProcessResource... after 3 ms [39m
+> hvigor [32mFinished :entry:default@GenerateLoaderJson... after 9 ms [39m
+> hvigor [32mFinished :entry:default@ProcessLibs... after 6 ms [39m
+> hvigor [32mFinished :entry:default@CompileResource... after 190 ms [39m
+> hvigor [32mFinished :entry:default@DoNativeStrip... after 3 ms [39m
+> hvigor [32mFinished :entry:default@BuildJS... after 3 ms [39m
+> hvigor [32mFinished :entry:default@SyscapTransform... after 86 ms [39m
+> hvigor [32mFinished :entry:default@CacheNativeLibs... after 9 ms [39m
+> hvigor [32mFinished :entry:default@CompileArkTS... after 9 s 228 ms [39m
+> hvigor [32mFinished :entry:default@GeneratePkgModuleJson... after 2 ms [39m
+> hvigor [32mFinished :entry:default@ProcessCompiledResources... after 1 ms [39m
+> hvigor [32mFinished :entry:default@PackageHap... after 522 ms [39m
+> hvigor [32mFinished :entry:default@PackingCheck... after 6 ms [39m
+> hvigor [32mFinished :entry:default@SignHap... after 3 ms [39m
+> hvigor [32mFinished :entry:default@CollectDebugSymbol... after 3 ms [39m
+> hvigor [32mFinished :entry:assembleHap... after 1 ms [39m
+> hvigor [32mBUILD SUCCESSFUL in 14 s 906 ms [39m
+
+> hvigor [33mWARN: The project has not explicitly set the 'targetSdkVersion' version at build-profile.json5. It is recommended to configure it. Reference: https://developer.huawei.com/consumer/en/doc/harmonyos-guides/ide-hvigor-build-profile-app#section45865492619[39m
+> hvigor [33mWARN: [33mWARN: [33m[33mArkTS:WARN File: /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_user_bundle/entry/src/main/ets/entryability/EntryAbility.ets:27:7
+ "globalThis" is not supported (arkts-no-globalthis)
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_user_bundle/entry/src/main/ets/entryability/EntryAbility.ets:37:7
+ "globalThis" is not supported (arkts-no-globalthis)
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_user_bundle/entry/src/main/ets/pages/Index.ets:31:30
+ "globalThis" is not supported (arkts-no-globalthis)
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN: For details about ArkTS syntax errors, see FAQs[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_user_bundle/entry/src/main/ets/entryability/EntryAbility.ets:22:42
+ Function may throw exceptions. Special handling is required.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_user_bundle/entry/src/main/ets/pages/Index.ets:31:9
+ 'UIExtensionComponent' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_user_bundle/entry/src/main/ets/pages/Index.ets:32:12
+ 'onRemoteReady' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_user_bundle/entry/src/main/ets/pages/Index.ets:35:12
+ 'onReceive' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_user_bundle/entry/src/main/ets/pages/Index.ets:38:12
+ 'onResult' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_user_bundle/entry/src/main/ets/pages/Index.ets:38:12
+ 'onResult' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_user_bundle/entry/src/main/ets/pages/Index.ets:41:12
+ 'onRelease' has been deprecated.
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_user_bundle/entry/src/main/ets/pages/Index.ets:41:12
+ 'onRelease' is system api
+[39m[39m
+[33mWARN: [33m[33mArkTS:WARN File: /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_user_bundle/entry/src/main/ets/pages/Index.ets:62:27
+ 'send' is system api
+[39m[39m
+[39m
+> hvigor [33mWARN: If obfuscation is needed, enable obfuscation settings in this build process; failing to do so may prevent future obfuscation. 
+               Properly configure obfuscation rules to avoid runtime issues.[39m
+> hvigor [33mWARN: Will skip sign 'hap'. No signingConfigs profile is configured in current project.
+             If needed, configure the signingConfigs in /srv/workspace/openharmony_master_default_20260904175722_huawei_8f6bfbb10/code/foundation/ability/ability_runtime/test/moduletest/ui_extension_ability_test/ui_extension_user_bundle/build-profile.json5.[39m
+

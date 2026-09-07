@@ -1443,6 +1443,7 @@ ohos_shared_library("ets_form_extension") {
 }
 
 ohos_shared_library("form_extension") {
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
   branch_protector_ret = "pac_ret"
   branch_protector_frt = "bti"
 
@@ -3869,6 +3870,7 @@ config("photo_editor_extension_config") {
 }
 
 ohos_shared_library("photo_editor_extension") {
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
   branch_protector_ret = "pac_ret"
 
   sanitize = {
