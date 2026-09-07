@@ -2776,6 +2776,26 @@ std::string AppRunningRecord::GetInnerMsg() const
     return innerMsg_;
 }
 
+void AppRunningRecord::SetCallerPid(int32_t callerPid)
+{
+    callerPid_ = callerPid;
+}
+
+int32_t AppRunningRecord::GetCallerPid() const
+{
+    return callerPid_;
+}
+
+void AppRunningRecord::SetCallerProcessName(const std::string &callerProcessName)
+{
+    callerProcessName_ = callerProcessName;
+}
+
+std::string AppRunningRecord::GetCallerProcessName() const
+{
+    return callerProcessName_;
+}
+
 int AppRunningRecord::DumpIpcStart(std::string& result)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");

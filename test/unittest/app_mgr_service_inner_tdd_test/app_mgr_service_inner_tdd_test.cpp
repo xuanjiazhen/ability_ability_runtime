@@ -889,13 +889,13 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_003, TestSize.Level1)
     int pid = getpid();
     int killId = 0;
     int32_t exitreason = 0;
-    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason);
+    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason, 0, reason);
     appMgrServiceInner->SendProcessKillEvent(appRecord);
     killId = -1;
-    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason);
+    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason, 0, reason);
     appMgrServiceInner->SendProcessKillEvent(appRecord);
     killId = -2;
-    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason);
+    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason, 0, reason);
     appMgrServiceInner->SendProcessKillEvent(appRecord);
     killId = 1;
     appMgrServiceInner->SendProcessKillEvent(appRecord);
@@ -1860,11 +1860,11 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_008, TestSize.Level1)
     int pid = getpid();
     int killId = 2;
     int32_t exitreason = 0;
-    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason);
+    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason, 0, reason);
     appMgrServiceInner->SendProcessKillEvent(appRecord);
 
     killId = 5;
-    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason);
+    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason, 0, reason);
     appMgrServiceInner->SendProcessKillEvent(appRecord);
     TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_008 end");
 }
