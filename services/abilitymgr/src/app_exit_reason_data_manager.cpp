@@ -55,7 +55,46 @@ constexpr const char* PUT_TASK_NAME = "kvStorePtr_->Put";
 const std::string JSON_KEY_KILL_ID = "kill_id";
 const std::string JSON_KEY_CALLER_PID = "caller_pid";
 const std::string JSON_KEY_CALLER_PROCESS_NAME = "caller_process_name";
+
+template<typename T>
+bool GetJsonValueAsNumber(const nlohmann::json &jsonObject, const std::string &key, T &outValue)
+{
+    if (!jsonObject.contains(key) || !jsonObject.at(key).is_number_integer()) {
+        return false;
+    }
+    outValue = jsonObject.at(key).get<T>();
+    return true;
+}
+
+bool GetJsonValueAsString(const nlohmann::json &jsonObject, const std::string &key, std::string &outValue)
+{
+    if (!jsonObject.contains(key) || !jsonObject.at(key).is_string()) {
+        return false;
+    }
+    outValue = jsonObject.at(key).get<std::string>();
+    return true;
+}
+
+void ConvertAbilityListFromJson(const nlohmann::json &jsonObject, std::vector<std::string> &abilityList)
+{
+    if (!jsonObject.contains(JSON_KEY_ABILITY_LIST) || !jsonObject.at(JSON_KEY_ABILITY_LIST).is_array()) {
+        return;
+    }
+    abilityList.clear();
+    for (const auto &item : jsonObject.at(JSON_KEY_ABILITY_LIST)) {
+        if (item.is_string()) {
+            abilityList.emplace_back(item.get<std::string>());
+        }
+    }
+}
+
+void ConvertCallerInfoFromJson(const nlohmann::json &jsonObject, ExitCallerInfo &callerInfo)
+{
+    GetJsonValueAsNumber(jsonObject, JSON_KEY_CALLER_PID, callerInfo.callerPid);
+    GetJsonValueAsString(jsonObject, JSON_KEY_CALLER_PROCESS_NAME, callerInfo.callerProcessName);
+}
 } // namespace
+
 AppExitReasonDataManager::AppExitReasonDataManager() {}
 
 AppExitReasonDataManager::~AppExitReasonDataManager()
@@ -375,48 +414,22 @@ void AppExitReasonDataManager::ConvertAppExitReasonInfoFromValue(const Distribut
         TAG_LOGE(AAFwkTag::ABILITYMGR, "parse json sting failed");
         return;
     }
-    if (jsonObject.contains(JSON_KEY_PID) && jsonObject[JSON_KEY_PID].is_number_integer()) {
-        processInfo.pid_ = jsonObject.at(JSON_KEY_PID).get<int32_t>();
-    }
-    if (jsonObject.contains(JSON_KEY_UID) && jsonObject[JSON_KEY_UID].is_number_integer()) {
-        processInfo.uid_ = jsonObject.at(JSON_KEY_UID).get<int32_t>();
-    }
+    GetJsonValueAsNumber(jsonObject, JSON_KEY_PID, processInfo.pid_);
+    GetJsonValueAsNumber(jsonObject, JSON_KEY_UID, processInfo.uid_);
     ConvertReasonFromValue(jsonObject, exitReason, withKillMsg);
-    if (jsonObject.contains(JSON_KEY_RSS_VALUE) && jsonObject[JSON_KEY_RSS_VALUE].is_number_integer()) {
-        processInfo.rssValue = jsonObject.at(JSON_KEY_RSS_VALUE).get<int32_t>();
+    GetJsonValueAsNumber(jsonObject, JSON_KEY_RSS_VALUE, processInfo.rssValue);
+    GetJsonValueAsNumber(jsonObject, JSON_KEY_PSS_VALUE, processInfo.pssValue);
+    GetJsonValueAsString(jsonObject, JSON_KEY_PROCESS_NAME, processInfo.processName_);
+    GetJsonValueAsNumber(jsonObject, JSON_KEY_TIME_STAMP, time_stamp);
+    int32_t processState = 0;
+    if (GetJsonValueAsNumber(jsonObject, JSON_KEY_PROSESS_STATE, processState)) {
+        processInfo.state_ = static_cast<OHOS::AppExecFwk::AppProcessState>(processState);
     }
-    if (jsonObject.contains(JSON_KEY_PSS_VALUE) && jsonObject[JSON_KEY_PSS_VALUE].is_number_integer()) {
-        processInfo.pssValue = jsonObject.at(JSON_KEY_PSS_VALUE).get<int32_t>();
-    }
-    if (jsonObject.contains(JSON_KEY_PROCESS_NAME) && jsonObject[JSON_KEY_PROCESS_NAME].is_string()) {
-        processInfo.processName_ = jsonObject.at(JSON_KEY_PROCESS_NAME).get<std::string>();
-    }
-    if (jsonObject.contains(JSON_KEY_TIME_STAMP) && jsonObject[JSON_KEY_TIME_STAMP].is_number_integer()) {
-        time_stamp = jsonObject.at(JSON_KEY_TIME_STAMP).get<int64_t>();
-    }
-    if (jsonObject.contains(JSON_KEY_PROSESS_STATE) && jsonObject[JSON_KEY_PROSESS_STATE].is_number_integer()) {
-        processInfo.state_ = static_cast<OHOS::AppExecFwk::AppProcessState>(
-            jsonObject.at(JSON_KEY_PROSESS_STATE).get<int32_t>());
-    }
-    if (jsonObject.contains(JSON_KEY_ABILITY_LIST) && jsonObject[JSON_KEY_ABILITY_LIST].is_array()) {
-        abilityList.clear();
-        auto size = jsonObject[JSON_KEY_ABILITY_LIST].size();
-        for (size_t i = 0; i < size; i++) {
-            if (jsonObject[JSON_KEY_ABILITY_LIST][i].is_string()) {
-                abilityList.emplace_back(jsonObject[JSON_KEY_ABILITY_LIST][i]);
-            }
-        }
-    }
+    ConvertAbilityListFromJson(jsonObject, abilityList);
     if (callerInfo == nullptr) {
         return;
     }
-    if (jsonObject.contains(JSON_KEY_CALLER_PID) && jsonObject[JSON_KEY_CALLER_PID].is_number_integer()) {
-        callerInfo->callerPid = jsonObject.at(JSON_KEY_CALLER_PID).get<int32_t>();
-    }
-    if (jsonObject.contains(JSON_KEY_CALLER_PROCESS_NAME) &&
-        jsonObject[JSON_KEY_CALLER_PROCESS_NAME].is_string()) {
-        callerInfo->callerProcessName = jsonObject.at(JSON_KEY_CALLER_PROCESS_NAME).get<std::string>();
-    }
+    ConvertCallerInfoFromJson(jsonObject, *callerInfo);
 }
 
 void AppExitReasonDataManager::ConvertReasonFromValue(const nlohmann::json &jsonObject, AAFwk::ExitReason &exitReason,
