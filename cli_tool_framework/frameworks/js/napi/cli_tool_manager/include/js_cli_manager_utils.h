@@ -59,7 +59,7 @@ bool UnwrapExecOptions(napi_env env, napi_value obj, ExecOptions &options);
  * @return Returns true on success, false otherwise.
  */
 bool UnwrapExecCmdOptions(napi_env env, napi_value obj,
-    ExecCmdParam &param, std::shared_ptr<JsCliSessionEventCallbackImpl>& callback, std::string &msg);
+    ExecCmdParam &param, std::shared_ptr<JsCliSessionEventCallbackImpl>& callback);
 
 bool UnwrapStringFromRecord(napi_env env, napi_value obj, std::string &paramEnv);
 
