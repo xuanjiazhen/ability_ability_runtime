@@ -2552,7 +2552,6 @@ void MainThread::ChangeToLocalPath(const std::string &bundleName,
 void MainThread::ChangeToLocalPath(const std::string &bundleName,
     const std::string &sourceDir, std::string &localPath)
 {
-    std::regex pattern(std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR) + bundleName);
     if (sourceDir.empty()) {
         return;
     }
