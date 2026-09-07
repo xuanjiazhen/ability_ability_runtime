@@ -5937,6 +5937,7 @@ int32_t AbilityManagerStub::ExecuteInAppSkillWithTokenIdInner(MessageParcel &dat
     request.skillName = Str16ToStr8(data.ReadString16());
     request.scriptPath = Str16ToStr8(data.ReadString16());
     request.functionName = Str16ToStr8(data.ReadString16());
+    request.toolCallId = Str16ToStr8(data.ReadString16());
 
     auto *args = data.ReadParcelable<AAFwk::WantParams>();
     if (args != nullptr) {
