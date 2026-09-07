@@ -41,6 +41,10 @@ bool ExecCmdParam::Marshalling(Parcel &parcel) const
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Write options failed.");
         return false;
     }
+    if (!parcel.WriteBool(isShellCommand)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Write isShellCommand failed.");
+        return false;
+    }
     return true;
 }
 
@@ -74,6 +78,13 @@ ExecCmdParam *ExecCmdParam::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
     result->options = *execOptions;
+
+    // Tail field for backward compat: ReadBool fails on old clients, defaults to true.
+    result->isShellCommand = true;
+    if (parcel.ReadBool(result->isShellCommand)) {
+        return result;
+    }
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "isShellCommand not present in parcel, using default(true).");
     return result;
 }
 } // namespace CliTool

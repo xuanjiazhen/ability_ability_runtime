@@ -33,6 +33,7 @@ public:
     std::string env;
     std::string policy;
     ExecOptions options;
+    bool isShellCommand = true;
 
     bool Marshalling(Parcel &parcel) const;
     static ExecCmdParam *Unmarshalling(Parcel &parcel);
