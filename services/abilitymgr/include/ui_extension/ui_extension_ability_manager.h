@@ -18,7 +18,11 @@
 
 #include "ability_connect_manager.h"
 
+#include <list>
+#include <mutex>
+#include <time.h>
 #include <tuple>
+#include <unordered_map>
 
 #include "extension_record_manager.h"
 #include "nocopyable.h"
@@ -168,6 +172,13 @@ private:
     void DoForegroundUIExtension(
         std::shared_ptr<BaseExtensionRecord> abilityRecord, const AbilityRequest &abilityRequest);
 
+    void EnqueueStartServiceReq(const AbilityRequest &abilityRequest, const std::string &serviceUri) override;
+
+    void CompleteStartServiceReq(const std::string &serviceUri) override;
+
+    void RemoveUIExtensionForegroundRequest(const std::string &serviceUri, const struct timespec &cutoffTime,
+        bool hasCutoffTime);
+
     void DoBackgroundAbilityWindow(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
         const sptr<SessionInfo> &sessionInfo) override;
 
@@ -288,6 +299,15 @@ private:
         PreloadUIExtensionHostClientDiedHandler diedHandler_;
     };
 private:
+    struct UIExtensionForegroundRequest {
+        AbilityRequest abilityRequest;
+        struct timespec enqueueTime = { 0, 0 };
+    };
+
+    struct UIExtensionForegroundRequestQueue {
+        std::list<UIExtensionForegroundRequest> requests;
+    };
+
     RecipientMapType uiExtRecipientMap_;
     UIExtensionMapType uiExtensionMap_;
     std::unique_ptr<UIExtensionAbilityConnectManager> uiExtensionAbilityRecordMgr_ = nullptr;
@@ -297,6 +317,8 @@ private:
     std::map<int32_t, sptr<IRemoteObject::DeathRecipient>> preloadUIExtensionHostClientDeathRecipients_;
     std::mutex startingRecordsMutex_;
     std::map<std::tuple<int32_t, pid_t, int64_t>, int32_t> startingRecordsMap_;
+    std::unordered_map<std::string, std::shared_ptr<UIExtensionForegroundRequestQueue>> uiExtensionForegroundRequestMap_;
+    std::mutex uiExtensionForegroundRequestMapLock_;
 
     DISALLOW_COPY_AND_MOVE(UIExtensionAbilityManager);
 };
