@@ -21,6 +21,7 @@
 #include <list>
 #include <map>
 #include <string>
+#include <time.h>
 #include <unordered_map>
 #include "cpp/mutex.h"
 
@@ -437,8 +438,9 @@ protected:
      */
     void CompleteStartServiceReq(const std::string &serviceUri);
     /**
-     * Remove queued start service requests without replaying, used when a newer
-     * background request supersedes stale queued foreground requests.
+     * Remove queued start service requests created no later than the monotonic
+     * cutoff sampled for this call. Used when a background request supersedes
+     * stale queued foreground requests.
      */
     void RemoveStartServiceReq(const std::string &serviceUri);
 
@@ -850,9 +852,18 @@ private:
     WindowExtensionMapType windowExtensionMap_;
     std::map<int32_t, int32_t> callerPidConnectionCountMap_;
 
+    struct StartServiceRequest {
+        AbilityRequest abilityRequest;
+        struct timespec enqueueTime = { 0, 0 };
+    };
+
+    struct StartServiceReqQueue {
+        std::list<StartServiceRequest> requests;
+    };
+
     std::list<std::shared_ptr<BaseExtensionRecord>> terminatingExtensionList_;
     std::vector<AbilityRequest> restartResidentTaskList_;
-    std::unordered_map<std::string, std::shared_ptr<std::list<AbilityRequest>>> startServiceReqList_;
+    std::unordered_map<std::string, std::shared_ptr<StartServiceReqQueue>> startServiceReqList_;
 
     std::mutex connectMapMutex_;
     std::mutex recipientMapMutex_;

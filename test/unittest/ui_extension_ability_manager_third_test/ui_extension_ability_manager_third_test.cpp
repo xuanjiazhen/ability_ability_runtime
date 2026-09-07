@@ -13,10 +13,13 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
+#include <functional>
 #include <memory>
 #include <string>
+#include <time.h>
 #include <vector>
+
+#include <gtest/gtest.h>
 
 #define private public
 #define protected public
@@ -186,10 +189,10 @@ HWTEST_F(UIExtensionAbilityManagerThirdTest, OnAbilityRequestDone_002, TestSize.
 
 /*
  * Feature: UIExtensionAbilityManager
- * Function: DoBackgroundAbilityWindow
+ * Function: BackgroundAbilityWindowLocked
  * CaseDescription: Verify a newer background request removes queued foreground requests for the same record
  */
-HWTEST_F(UIExtensionAbilityManagerThirdTest, DoBackgroundAbilityWindow_002, TestSize.Level1)
+HWTEST_F(UIExtensionAbilityManagerThirdTest, BackgroundAbilityWindowLocked_002, TestSize.Level1)
 {
     auto connectManager = std::make_shared<UIExtensionAbilityManager>(0);
     auto taskHandler = AppExecFwk::MockTaskHandlerWrap::CreateQueueHandler(
@@ -211,11 +214,11 @@ HWTEST_F(UIExtensionAbilityManagerThirdTest, DoBackgroundAbilityWindow_002, Test
     auto requestIt = connectManager->startServiceReqList_.find(recordUri);
     ASSERT_NE(requestIt, connectManager->startServiceReqList_.end());
     ASSERT_NE(requestIt->second, nullptr);
-    EXPECT_EQ(requestIt->second->size(), 1);
+    EXPECT_EQ(requestIt->second->requests.size(), 1);
     const std::string timeoutTaskName = "start_service_timeout:" + recordUri;
     EXPECT_EQ(taskHandler->tasks_.count(timeoutTaskName), 1);
 
-    connectManager->DoBackgroundAbilityWindow(abilityRecord, abilityRequest.sessionInfo);
+    connectManager->BackgroundAbilityWindowLocked(abilityRecord, abilityRequest.sessionInfo);
 
     EXPECT_EQ(connectManager->startServiceReqList_.count(recordUri), 0);
     EXPECT_EQ(taskHandler->tasks_.count(timeoutTaskName), 0);
@@ -224,10 +227,10 @@ HWTEST_F(UIExtensionAbilityManagerThirdTest, DoBackgroundAbilityWindow_002, Test
 
 /*
  * Feature: UIExtensionAbilityManager
- * Function: DoBackgroundAbilityWindow
+ * Function: BackgroundAbilityWindowLocked
  * CaseDescription: Verify cancellation is record-scoped and a later foreground request can be queued again
  */
-HWTEST_F(UIExtensionAbilityManagerThirdTest, DoBackgroundAbilityWindow_003, TestSize.Level1)
+HWTEST_F(UIExtensionAbilityManagerThirdTest, BackgroundAbilityWindowLocked_003, TestSize.Level1)
 {
     auto connectManager = std::make_shared<UIExtensionAbilityManager>(0);
     auto taskHandler = AppExecFwk::MockTaskHandlerWrap::CreateQueueHandler(
@@ -255,8 +258,8 @@ HWTEST_F(UIExtensionAbilityManagerThirdTest, DoBackgroundAbilityWindow_003, Test
     auto oldRequestIt = connectManager->startServiceReqList_.find(recordUri);
     ASSERT_NE(oldRequestIt, connectManager->startServiceReqList_.end());
     ASSERT_NE(oldRequestIt->second, nullptr);
-    ASSERT_EQ(oldRequestIt->second->size(), 2);
-    connectManager->DoBackgroundAbilityWindow(abilityRecord, oldForegroundRequest.sessionInfo);
+    ASSERT_EQ(oldRequestIt->second->requests.size(), 2);
+    connectManager->BackgroundAbilityWindowLocked(abilityRecord, oldForegroundRequest.sessionInfo);
 
     EXPECT_EQ(connectManager->startServiceReqList_.count(recordUri), 0);
     EXPECT_EQ(connectManager->startServiceReqList_.count(otherRecordUri), 1);
@@ -270,9 +273,184 @@ HWTEST_F(UIExtensionAbilityManagerThirdTest, DoBackgroundAbilityWindow_003, Test
     auto requestIt = connectManager->startServiceReqList_.find(recordUri);
     ASSERT_NE(requestIt, connectManager->startServiceReqList_.end());
     ASSERT_NE(requestIt->second, nullptr);
-    ASSERT_EQ(requestIt->second->size(), 1);
-    EXPECT_EQ(requestIt->second->front().requestCode, 2);
+    ASSERT_EQ(requestIt->second->requests.size(), 1);
+    EXPECT_EQ(requestIt->second->requests.front().abilityRequest.requestCode, 2);
     EXPECT_EQ(taskHandler->tasks_.count("start_service_timeout:" + recordUri), 1);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: DoBackgroundAbilityWindow
+ * CaseDescription: Verify delayed background reentry does not remove a later foreground request
+ */
+HWTEST_F(UIExtensionAbilityManagerThirdTest, DoBackgroundAbilityWindow_004, TestSize.Level1)
+{
+    auto connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    auto taskHandler = AppExecFwk::MockTaskHandlerWrap::CreateQueueHandler(
+        "DoBackgroundAbilityWindow_004");
+    ASSERT_NE(taskHandler, nullptr);
+    connectManager->SetTaskHandler(taskHandler);
+    EXPECT_CALL(*taskHandler, SubmitTaskInner(testing::_, testing::_))
+        .Times(testing::AnyNumber()).WillRepeatedly(testing::Return(nullptr));
+
+    AbilityRequest oldForegroundRequest;
+    oldForegroundRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SYS_COMMON_UI;
+    oldForegroundRequest.sessionInfo = MockSessionInfo(1);
+    oldForegroundRequest.requestCode = 1;
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(oldForegroundRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    const std::string recordUri = "ui_extension_record_1";
+    abilityRecord->SetURI(recordUri);
+    abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);
+
+    connectManager->DoForegroundUIExtension(abilityRecord, oldForegroundRequest);
+    connectManager->BackgroundAbilityWindowLocked(abilityRecord, oldForegroundRequest.sessionInfo);
+    EXPECT_EQ(connectManager->startServiceReqList_.count(recordUri), 0);
+
+    AbilityRequest laterForegroundRequest = oldForegroundRequest;
+    laterForegroundRequest.requestCode = 2;
+    connectManager->DoForegroundUIExtension(abilityRecord, laterForegroundRequest);
+
+    // Simulate the delayed background lifecycle reentry. It must not clear the later request.
+    connectManager->DoBackgroundAbilityWindow(abilityRecord, laterForegroundRequest.sessionInfo);
+
+    auto requestIt = connectManager->startServiceReqList_.find(recordUri);
+    ASSERT_NE(requestIt, connectManager->startServiceReqList_.end());
+    ASSERT_NE(requestIt->second, nullptr);
+    ASSERT_EQ(requestIt->second->requests.size(), 1);
+    EXPECT_EQ(requestIt->second->requests.front().abilityRequest.requestCode, laterForegroundRequest.requestCode);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: EnqueueStartServiceReq
+ * CaseDescription: Verify an executing timeout task cannot remove a recreated request queue
+ */
+HWTEST_F(UIExtensionAbilityManagerThirdTest, EnqueueStartServiceReq_001, TestSize.Level1)
+{
+    auto connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    auto taskHandler = AppExecFwk::MockTaskHandlerWrap::CreateQueueHandler("EnqueueStartServiceReq_001");
+    ASSERT_NE(taskHandler, nullptr);
+    connectManager->SetTaskHandler(taskHandler);
+
+    std::vector<std::function<void()>> timeoutTasks;
+    EXPECT_CALL(*taskHandler, SubmitTaskInner(testing::_, testing::_))
+        .Times(testing::AnyNumber())
+        .WillRepeatedly(testing::Invoke([&timeoutTasks](std::function<void()> &&task,
+            const TaskAttribute &taskAttr) -> std::shared_ptr<InnerTaskHandle> {
+            if (taskAttr.taskName_.find("start_service_timeout:") == 0) {
+                timeoutTasks.emplace_back(std::move(task));
+            }
+            return nullptr;
+        }));
+
+    const std::string serviceUri = "ui_extension_record_timeout";
+    AbilityRequest firstRequest;
+    firstRequest.requestCode = 1;
+    connectManager->CallEnqueueStartServiceReq(firstRequest, serviceUri);
+    ASSERT_EQ(timeoutTasks.size(), 1);
+    auto oldRequestQueue = connectManager->startServiceReqList_[serviceUri];
+    ASSERT_NE(oldRequestQueue, nullptr);
+
+    connectManager->RemoveStartServiceReq(serviceUri);
+
+    AbilityRequest laterRequest;
+    laterRequest.requestCode = 2;
+    connectManager->CallEnqueueStartServiceReq(laterRequest, serviceUri);
+    ASSERT_EQ(timeoutTasks.size(), 2);
+
+    timeoutTasks.front()();
+
+    auto requestIt = connectManager->startServiceReqList_.find(serviceUri);
+    ASSERT_NE(requestIt, connectManager->startServiceReqList_.end());
+    ASSERT_NE(requestIt->second, nullptr);
+    ASSERT_EQ(requestIt->second->requests.size(), 1);
+    EXPECT_EQ(requestIt->second->requests.front().abilityRequest.requestCode, laterRequest.requestCode);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: EnqueueStartServiceReq
+ * CaseDescription: Verify a queue timeout removes all requests waiting for the same start operation
+ */
+HWTEST_F(UIExtensionAbilityManagerThirdTest, EnqueueStartServiceReq_002, TestSize.Level1)
+{
+    auto connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    auto taskHandler = AppExecFwk::MockTaskHandlerWrap::CreateQueueHandler("EnqueueStartServiceReq_002");
+    ASSERT_NE(taskHandler, nullptr);
+    connectManager->SetTaskHandler(taskHandler);
+
+    std::vector<std::function<void()>> timeoutTasks;
+    EXPECT_CALL(*taskHandler, SubmitTaskInner(testing::_, testing::_))
+        .Times(testing::AnyNumber())
+        .WillRepeatedly(testing::Invoke([&timeoutTasks](std::function<void()> &&task,
+            const TaskAttribute &taskAttr) -> std::shared_ptr<InnerTaskHandle> {
+            if (taskAttr.taskName_.find("start_service_timeout:") == 0) {
+                timeoutTasks.emplace_back(std::move(task));
+            }
+            return nullptr;
+        }));
+
+    const std::string serviceUri = "ui_extension_record_timeout";
+    AbilityRequest firstRequest;
+    firstRequest.requestCode = 1;
+    connectManager->CallEnqueueStartServiceReq(firstRequest, serviceUri);
+    ASSERT_EQ(timeoutTasks.size(), 1);
+    auto requestQueue = connectManager->startServiceReqList_[serviceUri];
+    ASSERT_NE(requestQueue, nullptr);
+    ASSERT_EQ(requestQueue->requests.size(), 1);
+
+    AbilityRequest laterRequest;
+    laterRequest.requestCode = 2;
+    connectManager->CallEnqueueStartServiceReq(laterRequest, serviceUri);
+    ASSERT_EQ(requestQueue->requests.size(), 2);
+
+    auto firstTimeoutTask = timeoutTasks.front();
+    firstTimeoutTask();
+
+    EXPECT_EQ(connectManager->startServiceReqList_.count(serviceUri), 0);
+    EXPECT_EQ(timeoutTasks.size(), 1);
+}
+
+/*
+ * Feature: AbilityConnectManager
+ * Function: RemoveStartServiceReq
+ * CaseDescription: Verify lifecycle cancellation retains a request queued after its cutoff time
+ */
+HWTEST_F(UIExtensionAbilityManagerThirdTest, RemoveStartServiceReq_001, TestSize.Level1)
+{
+    auto connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    auto taskHandler = AppExecFwk::MockTaskHandlerWrap::CreateQueueHandler("RemoveStartServiceReq_001");
+    ASSERT_NE(taskHandler, nullptr);
+    connectManager->SetTaskHandler(taskHandler);
+    EXPECT_CALL(*taskHandler, SubmitTaskInner(testing::_, testing::_))
+        .Times(testing::AnyNumber()).WillRepeatedly(testing::Return(nullptr));
+
+    const std::string serviceUri = "ui_extension_record_remove";
+    AbilityRequest previousRequest;
+    previousRequest.requestCode = 1;
+    connectManager->CallEnqueueStartServiceReq(previousRequest, serviceUri);
+
+    AbilityRequest laterRequest;
+    laterRequest.requestCode = 2;
+    connectManager->CallEnqueueStartServiceReq(laterRequest, serviceUri);
+    auto requestQueue = connectManager->startServiceReqList_[serviceUri];
+    ASSERT_NE(requestQueue, nullptr);
+    ASSERT_EQ(requestQueue->requests.size(), 2);
+
+    struct timespec now = {};
+    ASSERT_EQ(clock_gettime(CLOCK_MONOTONIC, &now), 0);
+    // Model an enqueue that completed after the lifecycle IPC sampled its cutoff time.
+    requestQueue->requests.back().enqueueTime = now;
+    requestQueue->requests.back().enqueueTime.tv_sec += 3600;
+
+    connectManager->RemoveStartServiceReq(serviceUri);
+
+    auto requestIt = connectManager->startServiceReqList_.find(serviceUri);
+    ASSERT_NE(requestIt, connectManager->startServiceReqList_.end());
+    ASSERT_EQ(requestIt->second, requestQueue);
+    ASSERT_EQ(requestIt->second->requests.size(), 1);
+    EXPECT_EQ(requestIt->second->requests.front().abilityRequest.requestCode, laterRequest.requestCode);
 }
 
 /*

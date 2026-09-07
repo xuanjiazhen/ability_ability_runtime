@@ -479,7 +479,6 @@ void UIExtensionAbilityManager::DoBackgroundAbilityWindow(const std::shared_ptr<
         sessionInfo->persistentId, abilitystateStr.c_str(),
         static_cast<int32_t>(abilityRecord->GetPendingState()));
     abilityRecord->SetPendingState(AbilityState::BACKGROUND);
-    RemoveStartServiceReq(abilityRecord->GetURI());
     if (abilityRecord->IsAbilityState(AbilityState::FOREGROUND)) {
         MoveToBackground(abilityRecord);
     } else if (abilityRecord->IsAbilityState(AbilityState::INITIAL) ||
@@ -1159,6 +1158,10 @@ void UIExtensionAbilityManager::BackgroundAbilityWindowLocked(const std::shared_
     const sptr<SessionInfo> &sessionInfo)
 {
     std::lock_guard guard(serialMutex_);
+    CHECK_POINTER(abilityRecord);
+    CHECK_POINTER(sessionInfo);
+    // Only remove requests queued before this background IPC acquires serialMutex_.
+    RemoveStartServiceReq(abilityRecord->GetURI());
     DoBackgroundAbilityWindow(abilityRecord, sessionInfo);
 }
 
@@ -1193,7 +1196,11 @@ int UIExtensionAbilityManager::TerminateAbilityInner(const sptr<IRemoteObject> &
             abilityRecord->IsAbilityState(AbilityState::FOREGROUNDING) ||
             abilityRecord->IsAbilityState(AbilityState::BACKGROUNDING)) {
             TAG_LOGD(AAFwkTag::EXT, "current ability is active");
-            DoBackgroundAbilityWindow(abilityRecord, abilityRecord->GetSessionInfo());
+            auto sessionInfo = abilityRecord->GetSessionInfo();
+            if (sessionInfo != nullptr) {
+                RemoveStartServiceReq(abilityRecord->GetURI());
+            }
+            DoBackgroundAbilityWindow(abilityRecord, sessionInfo);
             MoveToTerminatingMap(abilityRecord);
             return ERR_OK;
         }
