@@ -26,6 +26,9 @@
 using namespace std::chrono_literals;
 namespace OHOS {
 namespace AAFwk {
+namespace {
+    constexpr const char* SYSTEM_BIN_PATH = "/system/bin/";
+}
 ShellCommandExecutor::ShellCommandExecutor(const std::string& cmd, const int64_t timeoutSec)
     : timeoutSec_(timeoutSec), cmd_(cmd)
 {
@@ -86,12 +89,13 @@ bool ShellCommandExecutor::DoWork()
     }
 
     auto self(shared_from_this());
-    handler_->PostTask([this, self]() {
+    std::string resolvedCmd = PrependSystemBinPath(cmd_);
+    handler_->PostTask([this, self, resolvedCmd]() {
         TAG_LOGI(AAFwkTag::AA_TOOL, "DoWork task begin, cmd: \"%{public}s\"", cmd_.data());
 
-        FILE* file = popen(cmd_.c_str(), "r");
+        FILE* file = popen(resolvedCmd.c_str(), "r");
         if (!file) {
-            TAG_LOGE(AAFwkTag::AA_TOOL, "popen failed, cmd: \"%{public}s\"", cmd_.data());
+            TAG_LOGE(AAFwkTag::AA_TOOL, "popen failed, cmd: \"%{public}s\"", resolvedCmd.data());
 
             {
                 std::unique_lock<std::mutex> workLock(mtxWork_);
@@ -123,6 +127,27 @@ bool ShellCommandExecutor::DoWork()
     });
 
     return true;
+}
+
+std::string ShellCommandExecutor::PrependSystemBinPath(const std::string& cmd)
+{
+    size_t start = cmd.find_first_not_of(' ');
+    if (start == std::string::npos) {
+        return cmd;
+    }
+    size_t end = cmd.find(' ', start);
+    std::string firstToken = (end == std::string::npos) ? cmd.substr(start) : cmd.substr(start, end - start);
+    if (firstToken.find('/') != std::string::npos) {
+        TAG_LOGD(AAFwkTag::AA_TOOL, "Command already contains path, use as-is: \"%{public}s\"", cmd.data());
+        return cmd;
+    }
+    std::string resolvedCmd = SYSTEM_BIN_PATH + firstToken;
+    if (end != std::string::npos) {
+        resolvedCmd += cmd.substr(end);
+    }
+    TAG_LOGI(AAFwkTag::AA_TOOL, "Prepend path to command, original: \"%{public}s\", resolved: \"%{public}s\"",
+        cmd.data(), resolvedCmd.c_str());
+    return resolvedCmd;
 }
 
 bool ShellCommandExecutor::CheckCommand()
