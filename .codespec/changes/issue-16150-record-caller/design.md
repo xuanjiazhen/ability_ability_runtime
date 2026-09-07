@@ -37,7 +37,7 @@
 ## 非目标
 
 - 不为调用方信息新增对外查询/暴露接口（含 public/system/hidumper 新字段）。
-- 不改造其他退出原因记录路径（崩溃、JS 错误、ANR、`RecordAppWithReasonByUserId/ByAccessTokenId` 等）携带调用方信息。
+- 不改造其余退出原因记录路径（崩溃、JS 错误、应用无响应、`RecordAppWithReasonByUserId/ByAccessTokenId` 等）携带调用方信息。
 - 不实现上层大数据消费逻辑。
 - 不修改 AppMgrService 侧行为（仅复用其进程信息查询）。
 
@@ -45,7 +45,7 @@
 
 在三个目标接口的服务入口处（现有占位注释位置）同步采集调用方信息：`IPCSkeleton::GetCallingPid()` 获取 pid，再经既有 `AppScheduler::GetRunningProcessInfoByPid` 反查进程名（失败记空）。采集结果封装为服务内部值类型 `ExitCallerInfo`（不参与 IPC 序列化），挂载到既有 `RecordExitReasonParams`，沿既有记录链路（Helper → AddProcessExitReason → AppExitReasonDataManager::SetAppExitReason）透传，最终以两个新 JSON key（`caller_pid` / `caller_process_name`）写入既有终止原因 KV 存储，与记录同生命周期。
 
-选择该路线的理由：全部复用既有入口、链路与持久化通道，无新组件、无新锁、无新异步任务；采集在请求线程同步完成，天然规避 IPC 上下文跨线程失效问题；默认参数扩展签名，未接入路径（其他记录来源）行为完全不变。
+选择该路线的理由：全部复用既有入口、链路与持久化通道，无新组件、无新锁、无新异步任务；采集在请求线程同步完成，天然规避 IPC 上下文跨线程失效问题；默认参数扩展签名，未接入路径（其余记录来源）行为完全不变。
 
 ## 架构图
 
@@ -213,7 +213,7 @@ classDiagram
 
 ### 深度威胁分析（如需）
 
-本次变更仅需上述基础检查，未触发深度威胁分析（理由：不涉及用户个人敏感数据、不新增网络暴露面、不改变认证/授权机制、不触发合规项；调用方身份为系统内部维测数据且采集来源可信）。
+本次变更仅需上述基础检查，未触发深度威胁分析（理由：不涉及用户个人敏感数据、不新增网络暴露面、不改变身份鉴别/授权机制、不触发合规项；调用方身份为系统内部维测数据且采集来源可信）。
 
 ## 时序设计
 

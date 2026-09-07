@@ -32,7 +32,7 @@ status: Draft
 ## 初始分级判断
 
 > 变更类型见 frontmatter `change_type`（new-feature/enhancement/optimization/bugfix/refactor/deprecation）。
-> L0/简单变更：非目标、影响范围等章节可简化为一句话；L1+ 建议完整填写所有表格。
+> Level 0/简单变更：非目标、影响范围等章节可简化为一句话；Level 1+ 建议完整填写所有表格。
 
 | 判断项 | 结果 | 依据 |
 |--------|------|------|
@@ -61,7 +61,7 @@ status: Draft
 
 | 维度 | 范围/限制 | 需人工确认的触发条件 |
 |------|-----------|----------------------|
-| 允许仓库 | ability_runtime | 涉及其他仓（如大数据消费侧） |
+| 允许仓库 | ability_runtime | 涉及其余仓（如大数据消费侧） |
 | 允许模块/目录 | services/abilitymgr/（终止原因数据管理与服务入口）、interfaces/inner_api/ability_manager/（终止原因结构体如需扩展） | 超出上述目录的任何修改 |
 | 禁止修改项 | interfaces/kits/ 公共 API、IPC Stub/Proxy 已发布序列化格式的兼容语义、hisysevent.yaml 已发布事件、权限校验规则、已发布错误码数值 | — |
 | 外部依赖/网络访问 | 无，不新增第三方依赖 | 需要新增依赖时 |

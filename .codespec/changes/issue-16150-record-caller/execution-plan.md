@@ -11,7 +11,7 @@
 ## 执行原则
 
 <!-- SYNC: execution-principles -->
-- **Spec 权威：** 若实现细节与 `spec.md` 的 AC、错误码或兼容性声明冲突，先更新 spec/design，再继续实现。
+- **Spec 优先：** 若实现细节与 `spec.md` 的 AC、错误码或兼容性声明冲突，先更新 spec/design，再继续实现。
 - **测试/证据先行：** 每个 Task 先写测试代码；**当前环境无编译环境，禁止任何编译/构建/测试执行**——RED/GREEN 运行一律推迟，以「延迟证据缺口」记录，验证状态标 Blocked，待环境就绪回填。
 - **任务小型化：** 一个 Task 只覆盖一个独立闭环。跨 API、事件链、状态缓存、渲染链、生命周期的需求必须拆成多个 Task。
 - **文件边界：** Task 只能修改 `Files` 表列出的文件；若构建暴露额外声明或 fixture 需求，先更新本计划。
@@ -44,7 +44,7 @@
 
 **可后置：** 编译与全量 UT 执行（环境就绪后统一执行并回填验证状态）；AC-1.9 现网抽样统计。
 
-**不建议延后：** TASK-4 静态一致性自检（签名不一致会在首次编译时集中暴露，静态自检是当前唯一可用的防线）；存量数据兼容用例（AC-1.6，避免上线破坏既有读回）。
+**不建议延后：** TASK-4 静态一致性自检（签名不一致会在第一轮编译时集中暴露，静态自检是当前唯一可用的防线）；存量数据兼容用例（AC-1.6，避免上线破坏既有读回）。
 
 ## 禁止项
 
@@ -190,7 +190,7 @@ Expected: 各至少 2 处命中（常量定义 + 写入 + 解析）；`grep -c "
 
 **前置依赖：** TASK-1 的 Produces（ExitCallerInfo、SetAppExitReason 新签名）。
 
-**非目标：** 不改其他 Record*/Update* 路径的行为（默认参数为空即保持现状）；不做采集逻辑（属 TASK-3）。
+**非目标：** 不改其余 Record*/Update* 路径的行为（默认参数为空即保持现状）；不做采集逻辑（属 TASK-3）。
 
 **状态所有权：** 无新增持久状态；callerInfo 为按值传递的临时参数（design Concurrency 不变量：请求线程同步拷贝下传）。
 
@@ -279,7 +279,7 @@ Expected: 命中覆盖三个入口、RecordAppWithReasonInner、AddProcessExitRe
 
 | Reviewer | Input |
 |----------|-------|
-| Spec Compliance | 默认参数保证其他记录路径行为不变（spec 非目标）；透传链与 design 实现入口表一致 |
+| Spec Compliance | 默认参数保证其余记录路径行为不变（spec 非目标）；透传链与 design 实现入口表一致 |
 | Code Quality | 签名追加位置统一（末位默认参数）；无逻辑分支新增 |
 
 ### TASK-3: 服务入口采集与接线
@@ -435,10 +435,10 @@ Expected: 第一条无输出（占位注释已移除）；第二条命中 ≥4�
 - [x] Step 2: 静态自检清单执行（禁止编译）。
 
 ```bash
-grep -rn "RecordAppWithReason(int32_t pid, int32_t uid, const ExitReasonCompability" test/unittest/ services/abilitymgr/include/ | grep -v "callerInfo"
+grep -r -n "RecordAppWithReason(int32_t pid, int32_t uid, const ExitReasonCompability" test/unittest/ services/abilitymgr/include/ | grep -v "callerInfo"
 grep -n "caller_pid\|caller_process_name" services/abilitymgr/src/app_exit_reason_data_manager.cpp
-grep -rn "Record the info of Caller" services/
-grep -rn "适当处理\|补充测试\|参考上文" .codespec/changes/issue-16150-record-caller/execution-plan.md
+grep -r -n "Record the info of Caller" services/
+grep -r -n "适当处理\|补充测试\|参考上文" .codespec/changes/issue-16150-record-caller/execution-plan.md
 ```
 
 Expected: 第一条仅命中允许保持旧签名的调用点（默认参数兼容，调用点无需改）或为空；第二条 JSON key 常量引用 ≥5 处；第三条无输出；第四条仅命中「禁止项」条文与自检命令自身的引用（非占位描述）或无输出。

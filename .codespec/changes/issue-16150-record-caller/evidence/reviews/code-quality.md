@@ -3,7 +3,7 @@
 - 变更：issue-16150-record-caller
 - 评审日期：2026-09-05
 - 评审范围：9 个修改文件（services/abilitymgr 6 + test/unittest 3），453+/32-，基于 `git diff` 静态检视
-- 评审约束：无编译环境，未执行编译/静态分析工具（cpplint/clang-tidy），结论基于人工检视与模式一致性核对
+- 评审约束：无编译环境，未执行编译与静态分析工具，结论基于人工检视与模式一致性核对
 
 ## Verdict
 
@@ -24,8 +24,8 @@
 
 | Severity | File:Line | Finding | Required Fix |
 |----------|-----------|---------|--------------|
-| Info | services/abilitymgr/src/ability_manager_service.cpp:3856/:3951/:3988 | 采集位于权限检查之后、但早于 helper 判空/原因校验/拦截检查；早期失败路径会多一次进程名反查（1 次低频 IPC） | 不要求修复：与 design D3「入口同步采集」一致，低频路径开销可忽略；如后续追求极致可将采集点移至 Add*/RecordAppWithReason 调用前一行 |
-| Info | services/abilitymgr/include/app_exit_reason_data_manager.h:32-35 | `ExitCallerInfo` 结构体无注释说明字段语义（-1 缺省约定） | 不要求修复（与同文件其他结构体风格一致）；建议合入前可选补充一行字段注释 |
+| Info | services/abilitymgr/src/ability_manager_service.cpp:3856/:3951/:3988 | 采集位于权限检查之后、但早于 helper 判空/原因校验/拦截检查；早期失败路径会多一次进程名反查（1 次低频 IPC） | 不要求修复：与 design D3「入口同步采集」一致，低频路径开销可忽略；如后续需要进一步优化可将采集点移至 Add*/RecordAppWithReason 调用前一行 |
+| Info | services/abilitymgr/include/app_exit_reason_data_manager.h:32-35 | `ExitCallerInfo` 结构体无注释说明字段语义（-1 缺省约定） | 不要求修复（与同文件其余结构体风格一致）；建议合入前可选补充一行字段注释 |
 | Info | test/unittest/ability_manager_service_thirteenth_test/ability_manager_service_thirteenth_test.cpp（0200/0500 用例） | 用例将 `permPermission_` 置 0 后未恢复默认值 1（与 suite 既有惯例「恢复为 0」一致，既有用例如 0100/0200/0300 亦恢复为 0） | 不要求修复：遵循 suite 既有惯例，无新增风险 |
 
 ## Recommendations
