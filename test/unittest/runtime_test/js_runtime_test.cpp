@@ -31,6 +31,7 @@
 #include "hilog_tag_wrapper.h"
 #include "js_runtime_lite.h"
 #include "file_mapper.h"
+#include "ecmascript/extractortool/src/source_map.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -2411,42 +2412,89 @@ HWTEST_F(JsRuntimeTest, InitSourceMap_0100, TestSize.Level1)
 /**
  * @tc.name: InitSourceMap_0200
  * @tc.desc: JsRuntime test for InitSourceMap with empty bundleName.
+ *   Empty bundleName -> GetHapPathList returns empty -> hasSourceMap stays false
+ *   -> InitStatus set to NO_SOURCEMAP.
  * @tc.type: FUNC
  */
 HWTEST_F(JsRuntimeTest, InitSourceMap_0200, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0200 start");
 
+    auto &sourceMap = panda::ecmascript::SourceMap::GetInstance();
+    auto savedStatus = sourceMap.GetInitStatus();
+    sourceMap.SetInitStatus(panda::ecmascript::InitStatus::NOT_EXECUTED);
+
     auto jsRuntime = std::make_unique<JsRuntime>();
     ASSERT_NE(jsRuntime, nullptr);
     jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
     std::string bundleName = "";
     jsRuntime->InitSourceMap(bundleName);
-    // empty bundleName, GetHapPathList returns empty, no crash
+    // empty bundleName, GetHapPathList returns empty, ffrt task sets NO_SOURCEMAP
     jsRuntime.reset();
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    EXPECT_EQ(sourceMap.GetInitStatus(), panda::ecmascript::InitStatus::NO_SOURCEMAP);
+    sourceMap.SetInitStatus(savedStatus);
     TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0200 end");
 }
 
 /**
  * @tc.name: InitSourceMap_0300
  * @tc.desc: JsRuntime test for InitSourceMap with valid bundleName.
+ *   Valid bundleName but no real hap files in test env -> ReadSourceMapData fails
+ *   -> hasSourceMap stays false -> InitStatus set to NO_SOURCEMAP.
  * @tc.type: FUNC
  */
 HWTEST_F(JsRuntimeTest, InitSourceMap_0300, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0300 start");
 
+    auto &sourceMap = panda::ecmascript::SourceMap::GetInstance();
+    auto savedStatus = sourceMap.GetInitStatus();
+    sourceMap.SetInitStatus(panda::ecmascript::InitStatus::NOT_EXECUTED);
+
     auto jsRuntime = std::make_unique<JsRuntime>();
     ASSERT_NE(jsRuntime, nullptr);
     jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
     std::string bundleName = TEST_BUNDLE_NAME;
     jsRuntime->InitSourceMap(bundleName);
-    // valid bundleName but no real hap files in test env, ffrt task runs safely
+    // valid bundleName but no real hap files, ffrt task sets NO_SOURCEMAP
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    EXPECT_EQ(sourceMap.GetInitStatus(), panda::ecmascript::InitStatus::NO_SOURCEMAP);
     jsRuntime.reset();
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    sourceMap.SetInitStatus(savedStatus);
     TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0300 end");
+}
+
+/**
+ * @tc.name: InitSourceMap_0400
+ * @tc.desc: JsRuntime test for InitSourceMap with jsEnv_ set and valid bundleName.
+ *   Verify that InitSourceMap transitions InitStatus from NOT_EXECUTED through
+ *   IN_EXECUTED and finally to NO_SOURCEMAP when no source map data is found.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, InitSourceMap_0400, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0400 start");
+
+    auto &sourceMap = panda::ecmascript::SourceMap::GetInstance();
+    auto savedStatus = sourceMap.GetInitStatus();
+    sourceMap.SetInitStatus(panda::ecmascript::InitStatus::NOT_EXECUTED);
+
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    ASSERT_NE(jsRuntime, nullptr);
+    jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
+    std::string bundleName = TEST_BUNDLE_NAME;
+    // Before InitSourceMap, status is NOT_EXECUTED
+    EXPECT_EQ(sourceMap.GetInitStatus(), panda::ecmascript::InitStatus::NOT_EXECUTED);
+    jsRuntime->InitSourceMap(bundleName);
+    // After ffrt task completes with no source map data, status becomes NO_SOURCEMAP
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    EXPECT_EQ(sourceMap.GetInitStatus(), panda::ecmascript::InitStatus::NO_SOURCEMAP);
+    jsRuntime.reset();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    sourceMap.SetInitStatus(savedStatus);
+    TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0400 end");
 }
 
 /**
