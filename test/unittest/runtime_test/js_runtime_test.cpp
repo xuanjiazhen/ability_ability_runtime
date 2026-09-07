@@ -2422,7 +2422,6 @@ HWTEST_F(JsRuntimeTest, InitSourceMap_0200, TestSize.Level2)
     jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
     std::string bundleName = "";
     jsRuntime->InitSourceMap(bundleName);
-    // empty bundleName, GetHapPathList returns empty, no crash
     jsRuntime.reset();
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     TAG_LOGI(AAFwkTag::TEST, "InitSourceMap_0200 end");
@@ -2442,7 +2441,6 @@ HWTEST_F(JsRuntimeTest, InitSourceMap_0300, TestSize.Level2)
     jsRuntime->jsEnv_ = std::make_shared<JsEnv::JsEnvironment>();
     std::string bundleName = TEST_BUNDLE_NAME;
     jsRuntime->InitSourceMap(bundleName);
-    // valid bundleName but no real hap files in test env, ffrt task runs safely
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     jsRuntime.reset();
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
