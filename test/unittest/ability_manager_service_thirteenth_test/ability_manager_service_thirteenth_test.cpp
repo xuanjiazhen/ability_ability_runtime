@@ -4903,5 +4903,204 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, InitInterceptor_BlockAllAppStart_0
     status.auIsSupportBlockAllAppStart_ = true;
 }
 
+/*
+ * Feature: AbilityManagerService
+ * Name: CaptureExitCallerInfo_0800
+ * Function: CaptureExitCallerInfo
+ * SubFunction: NA
+ * FunctionPoints: caller pid captured from IPC context, process name lookup failure tolerated as empty.
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, CaptureExitCallerInfo_0800, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    MyStatus::GetInstance().ipcGetCallingUid_ = 3000;
+    AbilityRuntime::ExitCallerInfo info = abilityMs->CaptureExitCallerInfo();
+    EXPECT_EQ(info.callerPid, 3000);
+    EXPECT_TRUE(info.callerProcessName.empty());
+    MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: KillAppWithReason_RecordsCallerInfo_0100
+ * Function: KillAppWithReason
+ * SubFunction: NA
+ * FunctionPoints: full kill path with caller info capture keeps existing return behavior (AC-1.1).
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, KillAppWithReason_RecordsCallerInfo_0100, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    MyStatus::GetInstance().permPermission_ = 2;
+    MyStatus::GetInstance().ipcGetCallingUid_ = 1111;
+    abilityMs->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+    ExitReasonCompability exitReason{};
+    exitReason.reason = Reason::REASON_JS_ERROR;
+    exitReason.exitMsg = "Js Error.";
+    exitReason.subReason = 0;
+    exitReason.shouldKillForeground = false;
+    exitReason.killId = 1;
+    int32_t pid = 654321;
+    auto res = abilityMs->KillAppWithReason(pid, exitReason);
+    EXPECT_EQ(res, ERR_OK);
+    MyStatus::GetInstance().permPermission_ = 0;
+    MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: KillBundleWithReason_RecordsCallerInfo_0200
+ * Function: KillBundleWithReason
+ * SubFunction: NA
+ * FunctionPoints: denied caller produces no record and unchanged error (AC-1.2/AC-1.5).
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, KillBundleWithReason_RecordsCallerInfo_0200, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    MyStatus::GetInstance().permPermission_ = 0;
+    MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+    abilityMs->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+    ExitReasonCompability exitReason{};
+    exitReason.reason = Reason::REASON_JS_ERROR;
+    exitReason.exitMsg = "Js Error.";
+    exitReason.killId = 1;
+    auto res = abilityMs->KillBundleWithReason("test", 0, 0, exitReason);
+    EXPECT_EQ(res, ERR_PERMISSION_DENIED);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: RecordAppWithReason_RecordsCallerInfo_0300
+ * Function: RecordAppWithReason
+ * SubFunction: NA
+ * FunctionPoints: self-record caller (callingUid == uid) passes permission and keeps existing behavior (AC-1.3).
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, RecordAppWithReason_RecordsCallerInfo_0300, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    MyStatus::GetInstance().permPermission_ = 0;
+    MyStatus::GetInstance().ipcGetCallingUid_ = 3000;
+    abilityMs->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+    ExitReasonCompability exitReason{};
+    exitReason.reason = Reason::REASON_JS_ERROR;
+    exitReason.exitMsg = "Js Error.";
+    exitReason.killId = 1;
+    auto res = abilityMs->RecordAppWithReason(1, 3000, exitReason);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+    MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: KillAppWithReason_ProcessNameLookupFailed_0400
+ * Function: KillAppWithReason
+ * SubFunction: NA
+ * FunctionPoints: caller process name lookup failure does not change kill result (AC-1.4).
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, KillAppWithReason_ProcessNameLookupFailed_0400, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    MyStatus::GetInstance().permPermission_ = 2;
+    MyStatus::GetInstance().ipcGetCallingUid_ = 9999;
+    abilityMs->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+    AbilityRuntime::ExitCallerInfo info = abilityMs->CaptureExitCallerInfo();
+    EXPECT_EQ(info.callerPid, 9999);
+    EXPECT_TRUE(info.callerProcessName.empty());
+    ExitReasonCompability exitReason{};
+    exitReason.reason = Reason::REASON_JS_ERROR;
+    exitReason.exitMsg = "Js Error.";
+    exitReason.shouldKillForeground = false;
+    exitReason.killId = 1;
+    auto res = abilityMs->KillAppWithReason(654321, exitReason);
+    EXPECT_EQ(res, ERR_OK);
+    MyStatus::GetInstance().permPermission_ = 0;
+    MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: KillAppWithReason_PermissionDenied_NoRecord_0500
+ * Function: KillAppWithReason
+ * SubFunction: NA
+ * FunctionPoints: denied caller gets ERR_PERMISSION_DENIED with no new record (AC-1.5).
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, KillAppWithReason_PermissionDenied_NoRecord_0500, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    MyStatus::GetInstance().permPermission_ = 0;
+    MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+    abilityMs->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+    ExitReasonCompability exitReason{};
+    exitReason.reason = Reason::REASON_JS_ERROR;
+    exitReason.exitMsg = "Js Error.";
+    exitReason.killId = 1;
+    auto res = abilityMs->KillAppWithReason(654321, exitReason);
+    EXPECT_EQ(res, ERR_PERMISSION_DENIED);
+    res = abilityMs->RecordAppWithReason(1, 2001, exitReason);
+    EXPECT_EQ(res, ERR_PERMISSION_DENIED);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: KillAppWithReason_BlockedByProtection_NoRecord_0600
+ * Function: KillAppWithReason
+ * SubFunction: NA
+ * FunctionPoints: foreground protection blocks kill, behavior unchanged (AC-1.7).
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, KillAppWithReason_BlockedByProtection_NoRecord_0600, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    MyStatus::GetInstance().permPermission_ = 2;
+    MyStatus::GetInstance().ipcGetCallingUid_ = 1111;
+    abilityMs->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+    ExitReasonCompability exitReason{};
+    exitReason.reason = Reason::REASON_JS_ERROR;
+    exitReason.exitMsg = "Js Error.";
+    exitReason.shouldKillForeground = false;
+    exitReason.killId = 1;
+    auto res = abilityMs->KillAppWithReason(12345, exitReason);
+    EXPECT_EQ(res, ERR_KILL_APP_WHILE_FOREGROUND);
+    MyStatus::GetInstance().permPermission_ = 0;
+    MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: RecordAppWithReason_ConcurrentCallers_0700
+ * Function: RecordAppWithReason
+ * SubFunction: NA
+ * FunctionPoints: each request captures its own caller pid without crosstalk (AC-1.8, sequential mock equivalence).
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, RecordAppWithReason_ConcurrentCallers_0700, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    MyStatus::GetInstance().permPermission_ = 0;
+    abilityMs->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
+    ExitReasonCompability exitReason{};
+    exitReason.reason = Reason::REASON_JS_ERROR;
+    exitReason.exitMsg = "Js Error.";
+    exitReason.killId = 1;
+
+    MyStatus::GetInstance().ipcGetCallingUid_ = 3000;
+    AbilityRuntime::ExitCallerInfo info1 = abilityMs->CaptureExitCallerInfo();
+    EXPECT_EQ(info1.callerPid, 3000);
+    auto res1 = abilityMs->RecordAppWithReason(1, 3000, exitReason);
+    EXPECT_EQ(res1, ERR_INVALID_VALUE);
+
+    MyStatus::GetInstance().ipcGetCallingUid_ = 4000;
+    AbilityRuntime::ExitCallerInfo info2 = abilityMs->CaptureExitCallerInfo();
+    EXPECT_EQ(info2.callerPid, 4000);
+    auto res2 = abilityMs->RecordAppWithReason(1, 4000, exitReason);
+    EXPECT_EQ(res2, ERR_INVALID_VALUE);
+    MyStatus::GetInstance().ipcGetCallingUid_ = 1;
+}
+
 } // namespace AAFwk
 } // namespace OHOS

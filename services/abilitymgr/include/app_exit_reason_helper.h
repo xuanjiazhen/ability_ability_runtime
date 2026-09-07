@@ -19,6 +19,7 @@
 #include <memory>
 #include <mutex>
 
+#include "app_exit_reason_data_manager.h"
 #include "bundle_info.h"
 #include "exit_reason.h"
 #include "sub_managers_helper.h"
@@ -33,6 +34,7 @@ struct RecordExitReasonParams {
     ExitReasonCompability exitReason;
     AppExecFwk::RunningProcessInfo processInfo;
     bool fromKillWithReason = false;
+    AbilityRuntime::ExitCallerInfo callerInfo;
 };
 
 class AppExitReasonHelper {
@@ -52,10 +54,13 @@ public:
     int32_t RecordProcessExitReasonForTimeout(const AppExecFwk::AbilityInfo &abilityInfo, const ExitReason &exitReason,
         const std::vector<std::string> &abilityList, const AppExecFwk::RunningProcessInfo &processInfo);
     int32_t AddAppExitReason(const std::string &bundleName, int32_t pid, int32_t uid, int32_t appIndex,
-        const ExitReasonCompability &exitReason);
+        const ExitReasonCompability &exitReason,
+        const AbilityRuntime::ExitCallerInfo &callerInfo = {});
     int32_t AddBundleExitReason(const std::string &bundleName, int32_t userId, int32_t appIndex,
-        const ExitReasonCompability &exitReason);
-    int32_t RecordAppWithReason(int32_t pid, int32_t uid, const ExitReasonCompability &exitReason);
+        const ExitReasonCompability &exitReason,
+        const AbilityRuntime::ExitCallerInfo &callerInfo = {});
+    int32_t RecordAppWithReason(int32_t pid, int32_t uid, const ExitReasonCompability &exitReason,
+        const AbilityRuntime::ExitCallerInfo &callerInfo = {});
     void RecordAppsWithReasonByProcessInfoList(const ExitReasonCompability &exitReason,
         const std::vector<AppExecFwk::RunningProcessInfo> &processInfoList);
     void RecordInvalidKillId(int32_t pid, const ExitReasonCompability &params,
@@ -76,7 +81,8 @@ private:
     std::vector<AppExecFwk::RunningProcessInfo> GetRunningProcessInfos(int32_t userId, const std::string &bundleName);
 
     int32_t RecordAppWithReasonInner(const ExitReasonCompability &exitReasonCompability,
-        const AppExecFwk::RunningProcessInfo &processInfo);
+        const AppExecFwk::RunningProcessInfo &processInfo,
+        const AbilityRuntime::ExitCallerInfo &callerInfo = {});
 
     std::shared_ptr<SubManagersHelper> subManagersHelper_;
 };
