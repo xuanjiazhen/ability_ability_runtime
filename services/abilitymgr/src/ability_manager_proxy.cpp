@@ -8397,7 +8397,8 @@ int32_t AbilityManagerProxy::ExecuteInAppSkillWithTokenId(const AppExecFwk::Skil
         !data.WriteString16(Str8ToStr16(request.moduleName)) ||
         !data.WriteString16(Str8ToStr16(request.skillName)) ||
         !data.WriteString16(Str8ToStr16(request.scriptPath)) ||
-        !data.WriteString16(Str8ToStr16(request.functionName))) {
+        !data.WriteString16(Str8ToStr16(request.functionName)) ||
+        !data.WriteString16(Str8ToStr16(request.toolCallId))) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write string params fail");
         return INNER_ERR;
     }
