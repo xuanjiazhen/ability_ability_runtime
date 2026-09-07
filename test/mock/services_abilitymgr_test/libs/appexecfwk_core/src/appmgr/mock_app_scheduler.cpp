@@ -20,6 +20,14 @@
 #include "ability_manager_errors.h"
 #include "appmgr/app_mgr_constants.h"
 
+namespace {
+// 测试桩空实现辅助：测试进程无 AppMgr，桩仅记录调用
+void LogMockCall(const char *name)
+{
+    TAG_LOGI(AAFwkTag::TEST, "mock %{public}s called", name);
+}
+}  // namespace
+
 namespace OHOS {
 namespace AAFwk {
 AppScheduler::AppScheduler()
@@ -34,7 +42,7 @@ AppScheduler::~AppScheduler()
 
 bool AppScheduler::Init(const std::weak_ptr<AppStateCallback>& callback)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::Init()");
+    LogMockCall("Test AppScheduler::Init()");
     if (!callback.lock()) {
         return false;
     }
@@ -44,7 +52,7 @@ bool AppScheduler::Init(const std::weak_ptr<AppStateCallback>& callback)
 int AppScheduler::LoadAbility(const AbilityRuntime::LoadParam &loadParam, const AppExecFwk::AbilityInfo& abilityInfo,
     const AppExecFwk::ApplicationInfo& applicationInfo, const AAFwk::Want& want)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::LoadAbility()");
+    LogMockCall("Test AppScheduler::LoadAbility()");
     if (applicationInfo.bundleName.find("com.ix.First.Test") != std::string::npos) {
         return INNER_ERR;
     }
@@ -53,29 +61,29 @@ int AppScheduler::LoadAbility(const AbilityRuntime::LoadParam &loadParam, const 
 
 int AppScheduler::TerminateAbility(const sptr<IRemoteObject>& token, bool isClearMissionFlag)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::TerminateAbility()");
+    LogMockCall("Test AppScheduler::TerminateAbility()");
     return ERR_OK;
 }
 
 void AppScheduler::MoveToForeground(const sptr<IRemoteObject>& token)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::MoveToForeground()");
+    LogMockCall("Test AppScheduler::MoveToForeground()");
 }
 
 void AppScheduler::MoveToBackground(const sptr<IRemoteObject>& token, bool isFromScreenOffBackground)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::MoveToBackground()");
+    LogMockCall("Test AppScheduler::MoveToBackground()");
 }
 
 void AppScheduler::KillProcessByAbilityToken(const sptr<IRemoteObject>& token)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::KillProcessByAbilityToken()");
+    LogMockCall("Test AppScheduler::KillProcessByAbilityToken()");
 }
 
 void AppScheduler::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg,
     sptr<AAFwk::IUserCallback> callback)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::KillProcessesByUserId()");
+    LogMockCall("Test AppScheduler::KillProcessesByUserId()");
 }
 
 AppAbilityState AppScheduler::ConvertToAppAbilityState(const int32_t state)
@@ -100,101 +108,101 @@ AppAbilityState AppScheduler::GetAbilityState() const
 
 void AppScheduler::OnAbilityRequestDone(const sptr<IRemoteObject>& token, const AppExecFwk::AbilityState state)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::OnAbilityRequestDone()");
+    LogMockCall("Test AppScheduler::OnAbilityRequestDone()");
 }
 
 int AppScheduler::KillApplication(const std::string& bundleName, bool clearPageStack, int32_t appIndex,
     const std::string& reason)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::KillApplication()");
+    LogMockCall("Test AppScheduler::KillApplication()");
     return ERR_OK;
 }
 
 void AppScheduler::AttachTimeOut(const sptr<IRemoteObject>& token)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::AttachTimeOut()");
+    LogMockCall("Test AppScheduler::AttachTimeOut()");
 }
 
 void AppScheduler::PrepareTerminate(const sptr<IRemoteObject>& token, bool clearMissionFlag)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::PrepareTerminate()");
+    LogMockCall("Test AppScheduler::PrepareTerminate()");
 }
 
 void AppScheduler::OnAppStateChanged(const AppExecFwk::AppProcessData& appData)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::OnAppStateChanged()");
+    LogMockCall("Test AppScheduler::OnAppStateChanged()");
 }
 
 void AppScheduler::NotifyConfigurationChange(const AppExecFwk::Configuration &config, int32_t userId)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyConfigurationChange()");
+    LogMockCall("Test AppScheduler::NotifyConfigurationChange()");
 }
 
 void AppScheduler::NotifyStartResidentProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyStartResidentProcess()");
+    LogMockCall("Test AppScheduler::NotifyStartResidentProcess()");
 }
 
 void AppScheduler::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos,
     pid_t diedPid)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyStartKeepAliveProcess()");
+    LogMockCall("Test AppScheduler::NotifyStartKeepAliveProcess()");
 }
 
 void AppScheduler::OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::OnAppRemoteDied()");
+    LogMockCall("Test AppScheduler::OnAppRemoteDied()");
 }
 
 void AppScheduler::OnStartProcessFailed(const std::vector<sptr<IRemoteObject>> &abilityTokens)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::OnStartProcessFailed()");
+    LogMockCall("Test AppScheduler::OnStartProcessFailed()");
 }
 
 void AppScheduler::NotifyTerminateAbility(const sptr<IRemoteObject> &token)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyTerminateAbility()");
+    LogMockCall("Test AppScheduler::NotifyTerminateAbility()");
 }
 
 void AppScheduler::NotifyAppPreCache(int32_t pid, int32_t userId)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyAppPreCache()");
+    LogMockCall("Test AppScheduler::NotifyAppPreCache()");
 }
 
 void AppScheduler::RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::RecordAppExitSignalReason()");
+    LogMockCall("Test AppScheduler::RecordAppExitSignalReason()");
 }
 
 void AppScheduler::UpdateAbilityState(const sptr<IRemoteObject>& token, const AppExecFwk::AbilityState state)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::UpdateAbilityState()");
+    LogMockCall("Test AppScheduler::UpdateAbilityState()");
 }
 
 void AppScheduler::UpdateExtensionState(const sptr<IRemoteObject>& token, const AppExecFwk::ExtensionState state)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::UpdateExtensionState()");
+    LogMockCall("Test AppScheduler::UpdateExtensionState()");
 }
 
 void AppScheduler::StartupResidentProcess(const std::vector<AppExecFwk::BundleInfo>& bundleInfos)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::StartupResidentProcess()");
+    LogMockCall("Test AppScheduler::StartupResidentProcess()");
 }
 
 int AppScheduler::GetProcessRunningInfos(std::vector<AppExecFwk::RunningProcessInfo>& info)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::GetProcessRunningInfos()");
+    LogMockCall("Test AppScheduler::GetProcessRunningInfos()");
     return 0;
 }
 
 void AppScheduler::GetRunningProcessInfoByToken(const sptr<IRemoteObject>& token, AppExecFwk::RunningProcessInfo& info)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::GetRunningProcessInfoByToken()");
+    LogMockCall("Test AppScheduler::GetRunningProcessInfoByToken()");
 }
 
 void AppScheduler::GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExecFwk::RunningProcessInfo& info) const
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::GetRunningProcessInfoByPid()");
+    LogMockCall("Test AppScheduler::GetRunningProcessInfoByPid()");
 }
 
 bool AppScheduler::IsMemorySizeSufficient() const
@@ -204,7 +212,7 @@ bool AppScheduler::IsMemorySizeSufficient() const
 
 int32_t AppScheduler::VerifyKillProcessPermission(const std::string &bundleName) const
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::VerifyKillProcessPermission()");
+    LogMockCall("Test AppScheduler::VerifyKillProcessPermission()");
     return ERR_OK;
 }
 
@@ -268,197 +276,268 @@ int32_t AppScheduler::RegisterAbilityDebugResponse(const sptr<AppExecFwk::IAbili
     return 0;
 }
 
-// 链接补齐桩：本 mock 替换真实 app_scheduler.cpp 时，需要覆盖被测源码引用到的全部 AppScheduler 对外方法。
+// 链接补齐桩：本 mock 替换真实 app_scheduler.cpp 时，
+// 需要覆盖被测源码引用到的全部 AppScheduler 对外方法。
+void AppScheduler::AttachPidToParent(const sptr<IRemoteObject> &token,
+    const sptr<IRemoteObject> &callerToken)
+{
+    LogMockCall("Test AppScheduler::AttachPidToParent()");
 
+}
 
+void AppScheduler::AttachedToStatusBar(const sptr<IRemoteObject> &token)
+{
+    LogMockCall("Test AppScheduler::AttachedToStatusBar()");
+
+}
+
+void AppScheduler::BlockProcessCacheByPids(const std::vector<int32_t> &pids)
+{
+    LogMockCall("Test AppScheduler::BlockProcessCacheByPids()");
+
+}
 
 int32_t AppScheduler::CheckPreloadAppRecordExist(const std::string &bundleName, int32_t userId,
     int32_t appIndex, bool &isExist)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::CheckPreloadAppRecordExist()");
+    LogMockCall("Test AppScheduler::CheckPreloadAppRecordExist()");
     return 0;
 }
 
 bool AppScheduler::CleanAbilityByUserRequest(const sptr<IRemoteObject> &token)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::CleanAbilityByUserRequest()");
+    LogMockCall("Test AppScheduler::CleanAbilityByUserRequest()");
     return false;
 }
 
+void AppScheduler::ClearProcessByToken(sptr<IRemoteObject> token) const
+{
+    LogMockCall("Test AppScheduler::ClearProcessByToken()");
+
+}
 
 std::string AppScheduler::ConvertAppState(const AppState &state)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::ConvertAppState()");
+    LogMockCall("Test AppScheduler::ConvertAppState()");
     return "";
 }
 
 int AppScheduler::FinishUserTest(const std::string &msg, const int64_t &resultCode,
     const std::string &bundleName)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::FinishUserTest()");
+    LogMockCall("Test AppScheduler::FinishUserTest()");
     return 0;
 }
 
 int AppScheduler::ForceKillApplication(const std::string &bundleName, const int userId,
     const int appIndex)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::ForceKillApplication()");
+    LogMockCall("Test AppScheduler::ForceKillApplication()");
     return 0;
 }
 
 int32_t AppScheduler::GetBundleNameByPid(const int pid, std::string &bundleName, int32_t &uid)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::GetBundleNameByPid()");
+    LogMockCall("Test AppScheduler::GetBundleNameByPid()");
     return 0;
 }
 
 int AppScheduler::GetConfiguration(AppExecFwk::Configuration &config)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::GetConfiguration()");
+    LogMockCall("Test AppScheduler::GetConfiguration()");
     return 0;
 }
 
 int AppScheduler::GetProcessRunningInfosByAccessTokenId(uint32_t accessTokenId,
     std::vector<AppExecFwk::RunningProcessInfo> &info)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::GetProcessRunningInfosByAccessTokenId()");
+    LogMockCall("Test AppScheduler::GetProcessRunningInfosByAccessTokenId()");
     return 0;
 }
 
 int AppScheduler::GetProcessRunningInfosByUserId(std::vector<AppExecFwk::RunningProcessInfo> &info,
     int32_t userId)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::GetProcessRunningInfosByUserId()");
+    LogMockCall("Test AppScheduler::GetProcessRunningInfosByUserId()");
     return 0;
 }
 
+void AppScheduler::GetRunningProcessInfoByChildProcessPid(const pid_t childPid,
+    OHOS::AppExecFwk::RunningProcessInfo &info) const
+{
+    LogMockCall("Test AppScheduler::GetRunningProcessInfoByChildProcessPid()");
+
+}
 
 bool AppScheduler::IsAttachDebug(const std::string &bundleName)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::IsAttachDebug()");
+    LogMockCall("Test AppScheduler::IsAttachDebug()");
     return false;
 }
 
 bool AppScheduler::IsCallerKilling(const std::string& callerKey) const
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::IsCallerKilling()");
+    LogMockCall("Test AppScheduler::IsCallerKilling()");
     return false;
 }
 
 bool AppScheduler::IsCorrespondingProcessAttachDebug(const AppExecFwk::AbilityInfo &abilityInfo)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::IsCorrespondingProcessAttachDebug()");
+    LogMockCall("Test AppScheduler::IsCorrespondingProcessAttachDebug()");
     return false;
 }
 
 bool AppScheduler::IsKilledForUpgradeWeb(const std::string &bundleName)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::IsKilledForUpgradeWeb()");
+    LogMockCall("Test AppScheduler::IsKilledForUpgradeWeb()");
     return false;
 }
 
 bool AppScheduler::IsMainProcessDebug(int32_t uid)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::IsMainProcessDebug()");
+    LogMockCall("Test AppScheduler::IsMainProcessDebug()");
     return false;
 }
 
 bool AppScheduler::IsNoRequireBigMemory() const
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::IsNoRequireBigMemory()");
+    LogMockCall("Test AppScheduler::IsNoRequireBigMemory()");
     return false;
 }
 
 bool AppScheduler::IsProcessAttached(sptr<IRemoteObject> token) const
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::IsProcessAttached()");
+    LogMockCall("Test AppScheduler::IsProcessAttached()");
     return false;
 }
 
 bool AppScheduler::IsProcessContainsOnlyUIAbility(const pid_t pid)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::IsProcessContainsOnlyUIAbility()");
+    LogMockCall("Test AppScheduler::IsProcessContainsOnlyUIAbility()");
     return false;
 }
 
 int AppScheduler::KillApplicationByUid(const std::string &bundleName, int32_t uid,
     const std::string& reason)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::KillApplicationByUid()");
+    LogMockCall("Test AppScheduler::KillApplicationByUid()");
     return 0;
 }
 
 int AppScheduler::KillApplicationWithUserId(const std::string &bundleName, const int userId,
     const int appIndex)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::KillApplicationWithUserId()");
+    LogMockCall("Test AppScheduler::KillApplicationWithUserId()");
     return 0;
 }
 
 int AppScheduler::KillProcessesByAccessTokenId(const uint32_t accessTokenId)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::KillProcessesByAccessTokenId()");
+    LogMockCall("Test AppScheduler::KillProcessesByAccessTokenId()");
     return 0;
 }
 
 int32_t AppScheduler::KillProcessesByPids(const std::vector<int32_t> &pids,
     const std::string &reason, bool subProcess, bool isKillPrecedeStart)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::KillProcessesByPids()");
+    LogMockCall("Test AppScheduler::KillProcessesByPids()");
     return 0;
 }
 
 int32_t AppScheduler::NotifyFault(const AppExecFwk::FaultData &faultData)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyFault()");
+    LogMockCall("Test AppScheduler::NotifyFault()");
     return 0;
 }
 
+void AppScheduler::NotifyLoadAbilityFinished(pid_t callingPid, pid_t targetPid, uint64_t callbackId)
+{
+    LogMockCall("Test AppScheduler::NotifyLoadAbilityFinished()");
+
+}
 
 int32_t AppScheduler::NotifyPreloadAbilityStateChanged(sptr<IRemoteObject> token,
     bool isPreForeground)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyPreloadAbilityStateChanged()");
+    LogMockCall("Test AppScheduler::NotifyPreloadAbilityStateChanged()");
     return 0;
 }
 
 int AppScheduler::NotifyUninstallOrUpgradeApp(const std::string &bundleName, int32_t uid,
     bool isUpgrade)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyUninstallOrUpgradeApp()");
+    LogMockCall("Test AppScheduler::NotifyUninstallOrUpgradeApp()");
     return 0;
 }
 
+void AppScheduler::OnCacheExitInfo(uint32_t accessTokenId,
+    const AppExecFwk::RunningProcessInfo &exitInfo, const std::string &bundleName,
+    const std::vector<std::string> &abilityNames, const std::vector<std::string> &uiExtensionNames)
+{
+    LogMockCall("Test AppScheduler::OnCacheExitInfo()");
+
+}
 
 int32_t AppScheduler::PreloadApplicationByPhase(const std::string &bundleName, int32_t userId,
     int32_t appIndex, AppExecFwk::PreloadPhase preloadPhase)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::PreloadApplicationByPhase()");
+    LogMockCall("Test AppScheduler::PreloadApplicationByPhase()");
     return 0;
 }
 
+void AppScheduler::PrepareTerminateApp(const pid_t pid, const std::string &moduleName)
+{
+    LogMockCall("Test AppScheduler::PrepareTerminateApp()");
 
+}
 
+void AppScheduler::SetAbilityForegroundingFlagToAppRecord(const pid_t pid) const
+{
+    LogMockCall("Test AppScheduler::SetAbilityForegroundingFlagToAppRecord()");
+
+}
+
+void AppScheduler::SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess)
+{
+    LogMockCall("Test AppScheduler::SetEnableStartProcessFlagByUserId()");
+
+}
 
 int32_t AppScheduler::SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bool isGameSAPrelaunch)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::SetGameSAPrelaunch()");
+    LogMockCall("Test AppScheduler::SetGameSAPrelaunch()");
     return 0;
 }
 
+void AppScheduler::SetProcessCacheStatus(int32_t pid, bool isSupport)
+{
+    LogMockCall("Test AppScheduler::SetProcessCacheStatus()");
 
+}
 
+void AppScheduler::SetSpecifiedProcessRequestId(int32_t recordId, int32_t requestId)
+{
+    LogMockCall("Test AppScheduler::SetSpecifiedProcessRequestId()");
+
+}
+
+void AppScheduler::StartSpecifiedProcess(const AAFwk::Want &want,
+    const AppExecFwk::AbilityInfo &abilityInfo, int32_t requestId, const std::string &customProcess)
+{
+    LogMockCall("Test AppScheduler::StartSpecifiedProcess()");
+
+}
 
 int AppScheduler::UpdateApplicationInfoInstalled(const std::string &bundleName, const int32_t uid,
     const std::string &moduleName, bool isPlugin)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::UpdateApplicationInfoInstalled()");
+    LogMockCall("Test AppScheduler::UpdateApplicationInfoInstalled()");
     return 0;
 }
 
 int AppScheduler::UpdateConfiguration(const AppExecFwk::Configuration &config)
 {
-    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::UpdateConfiguration()");
+    LogMockCall("Test AppScheduler::UpdateConfiguration()");
     return 0;
 }
 }  // namespace AAFwk
