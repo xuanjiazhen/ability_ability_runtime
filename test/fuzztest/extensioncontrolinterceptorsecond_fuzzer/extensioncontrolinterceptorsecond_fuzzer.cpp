@@ -127,12 +127,11 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     Want want = BuildFuzzWant(data, size);
     bool boolParam = (GetU32Data(data) % ENABLE) == 1;
     sptr<IRemoteObject> token = GetFuzzAbilityToken(data, size);
-    static auto shouldBlockFunc = []() { return false; };
     auto abilityInfo = BuildFuzzAbilityInfo(data, size);
     bool isStartAsCaller = (GetU32Data(data) % 2) == 1;
     int32_t appIndex = static_cast<int32_t>(GetU32Data(data) % 100);
 
-    AbilityInterceptorParam param1(want, intParam, int32Param, boolParam, token, shouldBlockFunc);
+    AbilityInterceptorParam param1(want, intParam, int32Param, boolParam, token);
     AbilityInterceptorParam param2(want, intParam, int32Param, boolParam, token,
         abilityInfo, isStartAsCaller, appIndex);
     

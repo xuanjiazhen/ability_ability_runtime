@@ -50,13 +50,11 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     Want want;
     bool boolParam;
     sptr<IRemoteObject> token = GetFuzzAbilityToken();
-    auto shouldBlockFunc = []() { return false; };
     FuzzedDataProvider fdp(data, size);
     intParam = fdp.ConsumeIntegral<int>();
     int32Param = fdp.ConsumeIntegral<int32_t>();
     boolParam = fdp.ConsumeBool();
-    AbilityInterceptorParam param = AbilityInterceptorParam(want, intParam, int32Param, boolParam, token,
-        shouldBlockFunc);
+    AbilityInterceptorParam param = AbilityInterceptorParam(want, intParam, int32Param, boolParam, token);
     AbilityInfo targetAbilityInfo;
     AbilityInfo callerAbilityInfo;
     extensionControlInterceptor->DoProcess(param);

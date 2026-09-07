@@ -94,8 +94,7 @@ HWTEST_F(CrowdTestInterceptorTest, DoProcess_001, TestSize.Level1)
     Want want;
     int requestCode = 0;
     int userId = 100;
-    auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param(want, requestCode, userId, false, nullptr, shouldBlockFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, false, nullptr);
     StartAbilityUtils::skipCrowTest = true;
     auto ret = crowdTestInterceptor.DoProcess(param);
     EXPECT_EQ(ret, ERR_OK);
@@ -113,8 +112,7 @@ HWTEST_F(CrowdTestInterceptorTest, DoProcess_002, TestSize.Level1)
     Want want;
     int requestCode = 0;
     int userId = 100;
-    auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param(want, requestCode, userId, false, nullptr, shouldBlockFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, false, nullptr);
 
     StartAbilityUtils::skipCrowTest = false;
     StartAbilityUtils::retGetApplicationInfo = false;
@@ -135,8 +133,7 @@ HWTEST_F(CrowdTestInterceptorTest, DoProcess_003, TestSize.Level1)
     int requestCode = 0;
     int userId = 100;
     bool isWithUI = true;
-    auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, nullptr, shouldBlockFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, nullptr);
 
     StartAbilityUtils::skipCrowTest = false;
     StartAbilityUtils::retGetApplicationInfo = true;
@@ -159,8 +156,7 @@ HWTEST_F(CrowdTestInterceptorTest, DoProcess_004, TestSize.Level1)
     int requestCode = 0;
     int userId = 100;
     bool isWithUI = true;
-    auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, nullptr, shouldBlockFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, nullptr);
 
     StartAbilityUtils::skipCrowTest = false;
     StartAbilityUtils::retGetApplicationInfo = true;
@@ -186,8 +182,7 @@ HWTEST_F(CrowdTestInterceptorTest, DoProcess_005, TestSize.Level1)
     int requestCode = 0;
     int userId = 100;
     bool isWithUI = true;
-    auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, nullptr, shouldBlockFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, nullptr);
 
     StartAbilityUtils::skipCrowTest = false;
     StartAbilityUtils::retGetApplicationInfo = true;
@@ -214,8 +209,7 @@ HWTEST_F(CrowdTestInterceptorTest, DoProcess_006, TestSize.Level1)
     int requestCode = 0;
     int userId = 100;
     bool isWithUI = true;
-    auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, nullptr, shouldBlockFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, nullptr);
 
     StartAbilityUtils::skipCrowTest = false;
     StartAbilityUtils::retGetApplicationInfo = true;
@@ -240,8 +234,7 @@ HWTEST_F(CrowdTestInterceptorTest, DoProcess_007, TestSize.Level1)
     int requestCode = 0;
     int userId = 100;
     bool isWithUI = true;
-    auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, nullptr, shouldBlockFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, nullptr);
 
     StartAbilityUtils::skipCrowTest = false;
     StartAbilityUtils::retGetApplicationInfo = true;
@@ -267,8 +260,7 @@ HWTEST_F(CrowdTestInterceptorTest, DoProcess_008, TestSize.Level1)
     int requestCode = 0;
     int userId = 100;
     bool isWithUI = true;
-    auto shouldBlockFunc = []() { return false; };
-    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, nullptr, shouldBlockFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, nullptr);
 
     StartAbilityUtils::skipCrowTest = false;
     StartAbilityUtils::retGetApplicationInfo = true;

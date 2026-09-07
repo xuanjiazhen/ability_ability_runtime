@@ -1265,8 +1265,7 @@ HWTEST_F(DisposedRuleInterceptorTest, DoProcess_001, TestSize.Level1)
     int32_t userId = 1001;
     bool isWithUI = false;
     sptr<IRemoteObject> callerToken = nullptr;
-    std::function<bool(void)> shouldDisposedRuleFunc = nullptr;
-    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldDisposedRuleFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken);
     auto ret = interceptor.DoProcess(param);
     EXPECT_EQ(ret, -1);
     TAG_LOGI(AAFwkTag::TEST, "DoProcess_001 end");
@@ -1305,8 +1304,7 @@ HWTEST_F(DisposedRuleInterceptorTest, DoProcess_002, TestSize.Level1)
     int32_t userId = 1001;
     bool isWithUI = true;
     sptr<IRemoteObject> callerToken = nullptr;
-    std::function<bool(void)> shouldDisposedRuleFunc = nullptr;
-    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldDisposedRuleFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken);
     auto ret = interceptor.DoProcess(param);
     EXPECT_EQ(ret, -2);
     TAG_LOGI(AAFwkTag::TEST, "DoProcess_002 end");
@@ -1345,8 +1343,7 @@ HWTEST_F(DisposedRuleInterceptorTest, DoProcess_003, TestSize.Level1)
     int32_t userId = 1001;
     bool isWithUI = true;
     sptr<IRemoteObject> callerToken = nullptr;
-    std::function<bool(void)> shouldDisposedRuleFunc = nullptr;
-    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldDisposedRuleFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken);
     auto ret = interceptor.DoProcess(param);
     EXPECT_EQ(ret, -1);
     TAG_LOGI(AAFwkTag::TEST, "DoProcess_003 end");
@@ -1386,8 +1383,7 @@ HWTEST_F(DisposedRuleInterceptorTest, DoProcess_004, TestSize.Level1)
     int32_t userId = 1001;
     bool isWithUI = true;
     sptr<IRemoteObject> callerToken = nullptr;
-    std::function<bool(void)> shouldDisposedRuleFunc = nullptr;
-    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldDisposedRuleFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken);
     auto ret = interceptor.DoProcess(param);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "DoProcess_004 end");
@@ -1427,8 +1423,7 @@ HWTEST_F(DisposedRuleInterceptorTest, DoProcess_005, TestSize.Level1)
     int32_t userId = 1001;
     bool isWithUI = true;
     sptr<IRemoteObject> callerToken = nullptr;
-    std::function<bool(void)> shouldDisposedRuleFunc = nullptr;
-    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldDisposedRuleFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken);
     auto ret = interceptor.DoProcess(param);
     EXPECT_EQ(ret, INNER_ERR);
     TAG_LOGI(AAFwkTag::TEST, "DoProcess_005 end");
@@ -1469,8 +1464,7 @@ HWTEST_F(DisposedRuleInterceptorTest, DoProcess_006, TestSize.Level1)
     int32_t userId = 1001;
     bool isWithUI = true;
     sptr<IRemoteObject> callerToken = nullptr;
-    std::function<bool(void)> shouldDisposedRuleFunc = nullptr;
-    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldDisposedRuleFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken);
     auto ret = interceptor.DoProcess(param);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "DoProcess_006 end");
@@ -1495,8 +1489,7 @@ HWTEST_F(DisposedRuleInterceptorTest, DoProcess_007, TestSize.Level1)
     int32_t userId = 1001;
     bool isWithUI = true;
     sptr<IRemoteObject> callerToken = nullptr;
-    std::function<bool(void)> shouldDisposedRuleFunc = nullptr;
-    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldDisposedRuleFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken);
     auto ret = interceptor.DoProcess(param);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "DoProcess_007 end");
@@ -1527,8 +1520,7 @@ HWTEST_F(DisposedRuleInterceptorTest, DoProcess_008, TestSize.Level1)
     int32_t userId = 1001;
     bool isWithUI = true;
     sptr<IRemoteObject> callerToken = nullptr;
-    std::function<bool(void)> shouldDisposedRuleFunc = nullptr;
-    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldDisposedRuleFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken);
     auto ret = interceptor.DoProcess(param);
     EXPECT_EQ(ret, RESOLVE_ABILITY_ERR);
     TAG_LOGI(AAFwkTag::TEST, "DoProcess_008 end");
@@ -1559,8 +1551,7 @@ HWTEST_F(DisposedRuleInterceptorTest, DoProcess_009, TestSize.Level1)
     int32_t userId = 1001;
     bool isWithUI = true;
     sptr<IRemoteObject> callerToken = nullptr;
-    std::function<bool(void)> shouldDisposedRuleFunc = nullptr;
-    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldDisposedRuleFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken);
     param.abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
     auto ret = interceptor.DoProcess(param);
     EXPECT_EQ(ret, ERR_OK);
@@ -1583,8 +1574,7 @@ HWTEST_F(DisposedRuleInterceptorTest, DoProcess_010, TestSize.Level1)
     int32_t userId = 1001;
     bool isWithUI = true;
     sptr<IRemoteObject> callerToken = nullptr;
-    std::function<bool(void)> shouldDisposedRuleFunc = nullptr;
-    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldDisposedRuleFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken);
     auto ret = interceptor.DoProcess(param);
     EXPECT_EQ(ret, ERR_QUERY_DISPOSED_RULE_FAILED);
     TAG_LOGI(AAFwkTag::TEST, "DoProcess_010 end");
@@ -1607,8 +1597,7 @@ HWTEST_F(DisposedRuleInterceptorTest, DoProcess_011, TestSize.Level1)
     int32_t userId = 1001;
     bool isWithUI = true;
     sptr<IRemoteObject> callerToken = nullptr;
-    std::function<bool(void)> shouldDisposedRuleFunc = nullptr;
-    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldDisposedRuleFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken);
     auto ret = interceptor.DoProcess(param);
     EXPECT_EQ(ret, ERR_QUERY_DISPOSED_RULE_FAILED);
     TAG_LOGI(AAFwkTag::TEST, "DoProcess_011 end");
@@ -1634,8 +1623,7 @@ HWTEST_F(DisposedRuleInterceptorTest, DoProcess_012, TestSize.Level1)
     int32_t userId = 1001;
     bool isWithUI = true;
     sptr<IRemoteObject> callerToken = nullptr;
-    std::function<bool(void)> shouldDisposedRuleFunc = nullptr;
-    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldDisposedRuleFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken);
     auto ret = interceptor.DoProcess(param);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "DoProcess_012 end");
@@ -1656,8 +1644,7 @@ HWTEST_F(DisposedRuleInterceptorTest, IsSkipDisposeRule_001, TestSize.Level1)
     int32_t userId = 1001;
     bool isWithUI = true;
     sptr<IRemoteObject> callerToken = nullptr;
-    std::function<bool(void)> shouldDisposedRuleFunc = nullptr;
-    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldDisposedRuleFunc);
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken);
     auto ret = interceptor.IsSkipDisposeRule(AppExecFwk::PageJumpMode::PAGE_JUMP_WINDOW_NOT_SHOW, param);
     EXPECT_EQ(ret, false);
     TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_001 end");
