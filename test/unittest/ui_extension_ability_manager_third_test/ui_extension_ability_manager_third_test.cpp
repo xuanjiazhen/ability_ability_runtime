@@ -123,6 +123,20 @@ public:
     sptr<DeathRecipient> deathRecipient_ = nullptr;
 };
 
+class MockUIExtensionAbilityManager final : public UIExtensionAbilityManager {
+public:
+    explicit MockUIExtensionAbilityManager(int userId) : UIExtensionAbilityManager(userId) {}
+    ~MockUIExtensionAbilityManager() override = default;
+
+    int32_t StartAbilityLocked(const AbilityRequest &abilityRequest) override
+    {
+        completedRequestCodes_.emplace_back(abilityRequest.requestCode);
+        return ERR_OK;
+    }
+
+    std::vector<int32_t> completedRequestCodes_;
+};
+
 class UIExtensionAbilityManagerThirdTest : public testing::Test {};
 
 /*
@@ -211,16 +225,17 @@ HWTEST_F(UIExtensionAbilityManagerThirdTest, BackgroundAbilityWindowLocked_002, 
     abilityRecord->SetAbilityState(AbilityState::BACKGROUNDING);
 
     connectManager->DoForegroundUIExtension(abilityRecord, abilityRequest);
-    auto requestIt = connectManager->startServiceReqList_.find(recordUri);
-    ASSERT_NE(requestIt, connectManager->startServiceReqList_.end());
+    auto requestIt = connectManager->uiExtensionStartServiceReqList_.find(recordUri);
+    ASSERT_NE(requestIt, connectManager->uiExtensionStartServiceReqList_.end());
     ASSERT_NE(requestIt->second, nullptr);
     EXPECT_EQ(requestIt->second->requests.size(), 1);
+    EXPECT_EQ(connectManager->startServiceReqList_.count(recordUri), 0);
     const std::string timeoutTaskName = "start_service_timeout:" + recordUri;
     EXPECT_EQ(taskHandler->tasks_.count(timeoutTaskName), 1);
 
     connectManager->BackgroundAbilityWindowLocked(abilityRecord, abilityRequest.sessionInfo);
 
-    EXPECT_EQ(connectManager->startServiceReqList_.count(recordUri), 0);
+    EXPECT_EQ(connectManager->uiExtensionStartServiceReqList_.count(recordUri), 0);
     EXPECT_EQ(taskHandler->tasks_.count(timeoutTaskName), 0);
     EXPECT_EQ(abilityRecord->GetPendingState(), AbilityState::BACKGROUND);
 }
@@ -254,15 +269,15 @@ HWTEST_F(UIExtensionAbilityManagerThirdTest, BackgroundAbilityWindowLocked_003, 
     AbilityRequest repeatedForegroundRequest = oldForegroundRequest;
     repeatedForegroundRequest.requestCode = 11;
     connectManager->DoForegroundUIExtension(abilityRecord, repeatedForegroundRequest);
-    connectManager->CallEnqueueStartServiceReq(oldForegroundRequest, otherRecordUri);
-    auto oldRequestIt = connectManager->startServiceReqList_.find(recordUri);
-    ASSERT_NE(oldRequestIt, connectManager->startServiceReqList_.end());
+    connectManager->EnqueueUIExtensionStartServiceReq(oldForegroundRequest, otherRecordUri);
+    auto oldRequestIt = connectManager->uiExtensionStartServiceReqList_.find(recordUri);
+    ASSERT_NE(oldRequestIt, connectManager->uiExtensionStartServiceReqList_.end());
     ASSERT_NE(oldRequestIt->second, nullptr);
     ASSERT_EQ(oldRequestIt->second->requests.size(), 2);
     connectManager->BackgroundAbilityWindowLocked(abilityRecord, oldForegroundRequest.sessionInfo);
 
-    EXPECT_EQ(connectManager->startServiceReqList_.count(recordUri), 0);
-    EXPECT_EQ(connectManager->startServiceReqList_.count(otherRecordUri), 1);
+    EXPECT_EQ(connectManager->uiExtensionStartServiceReqList_.count(recordUri), 0);
+    EXPECT_EQ(connectManager->uiExtensionStartServiceReqList_.count(otherRecordUri), 1);
     EXPECT_EQ(taskHandler->tasks_.count("start_service_timeout:" + recordUri), 0);
     EXPECT_EQ(taskHandler->tasks_.count("start_service_timeout:" + otherRecordUri), 1);
 
@@ -270,8 +285,8 @@ HWTEST_F(UIExtensionAbilityManagerThirdTest, BackgroundAbilityWindowLocked_003, 
     newForegroundRequest.requestCode = 2;
     connectManager->DoForegroundUIExtension(abilityRecord, newForegroundRequest);
 
-    auto requestIt = connectManager->startServiceReqList_.find(recordUri);
-    ASSERT_NE(requestIt, connectManager->startServiceReqList_.end());
+    auto requestIt = connectManager->uiExtensionStartServiceReqList_.find(recordUri);
+    ASSERT_NE(requestIt, connectManager->uiExtensionStartServiceReqList_.end());
     ASSERT_NE(requestIt->second, nullptr);
     ASSERT_EQ(requestIt->second->requests.size(), 1);
     EXPECT_EQ(requestIt->second->requests.front().abilityRequest.requestCode, 2);
@@ -305,7 +320,7 @@ HWTEST_F(UIExtensionAbilityManagerThirdTest, DoBackgroundAbilityWindow_004, Test
 
     connectManager->DoForegroundUIExtension(abilityRecord, oldForegroundRequest);
     connectManager->BackgroundAbilityWindowLocked(abilityRecord, oldForegroundRequest.sessionInfo);
-    EXPECT_EQ(connectManager->startServiceReqList_.count(recordUri), 0);
+    EXPECT_EQ(connectManager->uiExtensionStartServiceReqList_.count(recordUri), 0);
 
     AbilityRequest laterForegroundRequest = oldForegroundRequest;
     laterForegroundRequest.requestCode = 2;
@@ -314,16 +329,16 @@ HWTEST_F(UIExtensionAbilityManagerThirdTest, DoBackgroundAbilityWindow_004, Test
     // Simulate the delayed background lifecycle reentry. It must not clear the later request.
     connectManager->DoBackgroundAbilityWindow(abilityRecord, laterForegroundRequest.sessionInfo);
 
-    auto requestIt = connectManager->startServiceReqList_.find(recordUri);
-    ASSERT_NE(requestIt, connectManager->startServiceReqList_.end());
+    auto requestIt = connectManager->uiExtensionStartServiceReqList_.find(recordUri);
+    ASSERT_NE(requestIt, connectManager->uiExtensionStartServiceReqList_.end());
     ASSERT_NE(requestIt->second, nullptr);
     ASSERT_EQ(requestIt->second->requests.size(), 1);
     EXPECT_EQ(requestIt->second->requests.front().abilityRequest.requestCode, laterForegroundRequest.requestCode);
 }
 
 /*
- * Feature: AbilityConnectManager
- * Function: EnqueueStartServiceReq
+ * Feature: UIExtensionAbilityManager
+ * Function: EnqueueUIExtensionStartServiceReq
  * CaseDescription: Verify an executing timeout task cannot remove a recreated request queue
  */
 HWTEST_F(UIExtensionAbilityManagerThirdTest, EnqueueStartServiceReq_001, TestSize.Level1)
@@ -347,30 +362,31 @@ HWTEST_F(UIExtensionAbilityManagerThirdTest, EnqueueStartServiceReq_001, TestSiz
     const std::string serviceUri = "ui_extension_record_timeout";
     AbilityRequest firstRequest;
     firstRequest.requestCode = 1;
-    connectManager->CallEnqueueStartServiceReq(firstRequest, serviceUri);
+    connectManager->EnqueueUIExtensionStartServiceReq(firstRequest, serviceUri);
     ASSERT_EQ(timeoutTasks.size(), 1);
-    auto oldRequestQueue = connectManager->startServiceReqList_[serviceUri];
+    // Keep Q1 alive so its timeout reaches the map identity check after Q2 is created.
+    auto oldRequestQueue = connectManager->uiExtensionStartServiceReqList_[serviceUri];
     ASSERT_NE(oldRequestQueue, nullptr);
 
-    connectManager->RemoveStartServiceReq(serviceUri);
+    connectManager->RemoveUIExtensionStartServiceReq(serviceUri);
 
     AbilityRequest laterRequest;
     laterRequest.requestCode = 2;
-    connectManager->CallEnqueueStartServiceReq(laterRequest, serviceUri);
+    connectManager->EnqueueUIExtensionStartServiceReq(laterRequest, serviceUri);
     ASSERT_EQ(timeoutTasks.size(), 2);
 
     timeoutTasks.front()();
 
-    auto requestIt = connectManager->startServiceReqList_.find(serviceUri);
-    ASSERT_NE(requestIt, connectManager->startServiceReqList_.end());
+    auto requestIt = connectManager->uiExtensionStartServiceReqList_.find(serviceUri);
+    ASSERT_NE(requestIt, connectManager->uiExtensionStartServiceReqList_.end());
     ASSERT_NE(requestIt->second, nullptr);
     ASSERT_EQ(requestIt->second->requests.size(), 1);
     EXPECT_EQ(requestIt->second->requests.front().abilityRequest.requestCode, laterRequest.requestCode);
 }
 
 /*
- * Feature: AbilityConnectManager
- * Function: EnqueueStartServiceReq
+ * Feature: UIExtensionAbilityManager
+ * Function: EnqueueUIExtensionStartServiceReq
  * CaseDescription: Verify a queue timeout removes all requests waiting for the same start operation
  */
 HWTEST_F(UIExtensionAbilityManagerThirdTest, EnqueueStartServiceReq_002, TestSize.Level1)
@@ -394,27 +410,27 @@ HWTEST_F(UIExtensionAbilityManagerThirdTest, EnqueueStartServiceReq_002, TestSiz
     const std::string serviceUri = "ui_extension_record_timeout";
     AbilityRequest firstRequest;
     firstRequest.requestCode = 1;
-    connectManager->CallEnqueueStartServiceReq(firstRequest, serviceUri);
+    connectManager->EnqueueUIExtensionStartServiceReq(firstRequest, serviceUri);
     ASSERT_EQ(timeoutTasks.size(), 1);
-    auto requestQueue = connectManager->startServiceReqList_[serviceUri];
+    auto requestQueue = connectManager->uiExtensionStartServiceReqList_[serviceUri];
     ASSERT_NE(requestQueue, nullptr);
     ASSERT_EQ(requestQueue->requests.size(), 1);
 
     AbilityRequest laterRequest;
     laterRequest.requestCode = 2;
-    connectManager->CallEnqueueStartServiceReq(laterRequest, serviceUri);
+    connectManager->EnqueueUIExtensionStartServiceReq(laterRequest, serviceUri);
     ASSERT_EQ(requestQueue->requests.size(), 2);
 
     auto firstTimeoutTask = timeoutTasks.front();
     firstTimeoutTask();
 
-    EXPECT_EQ(connectManager->startServiceReqList_.count(serviceUri), 0);
+    EXPECT_EQ(connectManager->uiExtensionStartServiceReqList_.count(serviceUri), 0);
     EXPECT_EQ(timeoutTasks.size(), 1);
 }
 
 /*
- * Feature: AbilityConnectManager
- * Function: RemoveStartServiceReq
+ * Feature: UIExtensionAbilityManager
+ * Function: RemoveUIExtensionStartServiceReq
  * CaseDescription: Verify lifecycle cancellation retains a request queued after its cutoff time
  */
 HWTEST_F(UIExtensionAbilityManagerThirdTest, RemoveStartServiceReq_001, TestSize.Level1)
@@ -429,12 +445,12 @@ HWTEST_F(UIExtensionAbilityManagerThirdTest, RemoveStartServiceReq_001, TestSize
     const std::string serviceUri = "ui_extension_record_remove";
     AbilityRequest previousRequest;
     previousRequest.requestCode = 1;
-    connectManager->CallEnqueueStartServiceReq(previousRequest, serviceUri);
+    connectManager->EnqueueUIExtensionStartServiceReq(previousRequest, serviceUri);
 
     AbilityRequest laterRequest;
     laterRequest.requestCode = 2;
-    connectManager->CallEnqueueStartServiceReq(laterRequest, serviceUri);
-    auto requestQueue = connectManager->startServiceReqList_[serviceUri];
+    connectManager->EnqueueUIExtensionStartServiceReq(laterRequest, serviceUri);
+    auto requestQueue = connectManager->uiExtensionStartServiceReqList_[serviceUri];
     ASSERT_NE(requestQueue, nullptr);
     ASSERT_EQ(requestQueue->requests.size(), 2);
 
@@ -444,13 +460,38 @@ HWTEST_F(UIExtensionAbilityManagerThirdTest, RemoveStartServiceReq_001, TestSize
     requestQueue->requests.back().enqueueTime = now;
     requestQueue->requests.back().enqueueTime.tv_sec += 3600;
 
-    connectManager->RemoveStartServiceReq(serviceUri);
+    connectManager->RemoveUIExtensionStartServiceReq(serviceUri);
 
-    auto requestIt = connectManager->startServiceReqList_.find(serviceUri);
-    ASSERT_NE(requestIt, connectManager->startServiceReqList_.end());
+    auto requestIt = connectManager->uiExtensionStartServiceReqList_.find(serviceUri);
+    ASSERT_NE(requestIt, connectManager->uiExtensionStartServiceReqList_.end());
     ASSERT_EQ(requestIt->second, requestQueue);
     ASSERT_EQ(requestIt->second->requests.size(), 1);
     EXPECT_EQ(requestIt->second->requests.front().abilityRequest.requestCode, laterRequest.requestCode);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: CompleteStartServiceReq
+ * CaseDescription: Verify base lifecycle completion dispatches to the UI extension request queue
+ */
+HWTEST_F(UIExtensionAbilityManagerThirdTest, CompleteStartServiceReq_001, TestSize.Level1)
+{
+    auto uiExtensionManager = std::make_shared<MockUIExtensionAbilityManager>(0);
+    ASSERT_NE(uiExtensionManager, nullptr);
+
+    const std::string serviceUri = "ui_extension_record_complete";
+    AbilityRequest abilityRequest;
+    abilityRequest.requestCode = 1;
+    uiExtensionManager->EnqueueUIExtensionStartServiceReq(abilityRequest, serviceUri);
+    ASSERT_EQ(uiExtensionManager->uiExtensionStartServiceReqList_.count(serviceUri), 1);
+    EXPECT_EQ(uiExtensionManager->startServiceReqList_.count(serviceUri), 0);
+
+    std::shared_ptr<AbilityConnectManager> connectManager = uiExtensionManager;
+    connectManager->CompleteStartServiceReq(serviceUri);
+
+    EXPECT_EQ(uiExtensionManager->uiExtensionStartServiceReqList_.count(serviceUri), 0);
+    ASSERT_EQ(uiExtensionManager->completedRequestCodes_.size(), 1);
+    EXPECT_EQ(uiExtensionManager->completedRequestCodes_.front(), abilityRequest.requestCode);
 }
 
 /*

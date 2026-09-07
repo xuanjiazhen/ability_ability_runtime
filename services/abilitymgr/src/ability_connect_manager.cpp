@@ -16,7 +16,6 @@
 #include "ability_connect_manager.h"
 
 #include <regex>
-#include <time.h>
 
 #include "ability_manager_constants.h"
 #include "ability_manager_service.h"
@@ -94,26 +93,6 @@ constexpr uint32_t PROCESS_MODE_RUN_WITH_MAIN_PROCESS =
     1 << static_cast<uint32_t>(AppExecFwk::ExtensionProcessMode::RUN_WITH_MAIN_PROCESS);
 
 const std::string XIAOYI_BUNDLE_NAME = "com.hmos.vassistant";
-
-bool GetMonotonicTime(struct timespec &timestamp)
-{
-    if (clock_gettime(CLOCK_MONOTONIC, &timestamp) == 0) {
-        return true;
-    }
-    TAG_LOGE(AAFwkTag::EXT, "failed to get monotonic time");
-    return false;
-}
-
-int32_t CompareMonotonicTime(const struct timespec &first, const struct timespec &second)
-{
-    if (first.tv_sec != second.tv_sec) {
-        return first.tv_sec < second.tv_sec ? -1 : 1;
-    }
-    if (first.tv_nsec != second.tv_nsec) {
-        return first.tv_nsec < second.tv_nsec ? -1 : 1;
-    }
-    return 0;
-}
 
 }
 
@@ -225,38 +204,24 @@ void AbilityConnectManager::EnqueueStartServiceReq(const AbilityRequest &ability
     TAG_LOGI(AAFwkTag::EXT, "abilityUri: %{public}s/%{public}s",
         abilityRequest.want.GetBundleNameRef().c_str(),
         abilityRequest.want.GetAbilityNameRef().c_str());
-    struct timespec enqueueTime = { 0, 0 };
-    if (!GetMonotonicTime(enqueueTime)) {
-        // A zero timestamp makes lifecycle cancellation win when ordering is unavailable.
-        TAG_LOGW(AAFwkTag::EXT, "failed to timestamp start request, use conservative enqueue, uri: %{public}s",
-            abilityUri.c_str());
-    }
     auto reqListIt = startServiceReqList_.find(abilityUri);
     if (reqListIt != startServiceReqList_.end()) {
-        reqListIt->second->requests.emplace_back(StartServiceRequest { abilityRequest, enqueueTime });
+        reqListIt->second->emplace_back(abilityRequest);
         return;
     }
 
-    auto requestQueue = std::make_shared<StartServiceReqQueue>();
-    requestQueue->requests.emplace_back(StartServiceRequest { abilityRequest, enqueueTime });
-    startServiceReqList_.emplace(abilityUri, requestQueue);
+    auto reqList = std::make_shared<std::list<AbilityRequest>>();
+    reqList->emplace_back(abilityRequest);
+    startServiceReqList_.emplace(abilityUri, reqList);
     CHECK_POINTER(taskHandler_);
-    auto callback = [abilityUri, requestQueueWeak = std::weak_ptr<StartServiceReqQueue>(requestQueue),
-        connectManagerWeak = weak_from_this()]() {
+    auto callback = [abilityUri, connectManagerWeak = weak_from_this()]() {
         auto connectManager = connectManagerWeak.lock();
-        auto requestQueue = requestQueueWeak.lock();
-        if (connectManager == nullptr || requestQueue == nullptr) {
-            return;
-        }
+        CHECK_POINTER(connectManager);
         std::lock_guard guard(connectManager->startServiceReqListLock_);
-        auto it = connectManager->startServiceReqList_.find(abilityUri);
-        if (it == connectManager->startServiceReqList_.end() || it->second != requestQueue) {
-            return;
+        auto result = connectManager->startServiceReqList_.erase(abilityUri);
+        if (result > 0) {
+            TAG_LOGE(AAFwkTag::EXT, "Target service %{public}s start timeout", abilityUri.c_str());
         }
-        auto requestCount = requestQueue->requests.size();
-        connectManager->startServiceReqList_.erase(it);
-        TAG_LOGE(AAFwkTag::EXT, "Target service %{public}s start timeout, count: %{public}zu",
-            abilityUri.c_str(), requestCount);
     };
     int connectTimeout =
         AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * CONNECT_TIMEOUT_MULTIPLE;
@@ -1209,12 +1174,12 @@ void AbilityConnectManager::CompleteCommandAbility(std::shared_ptr<BaseExtension
 
 void AbilityConnectManager::CompleteStartServiceReq(const std::string &serviceUri)
 {
-    std::shared_ptr<StartServiceReqQueue> requestQueue;
+    std::shared_ptr<std::list<AbilityRequest>> reqList;
     {
         std::lock_guard guard(startServiceReqListLock_);
         auto it = startServiceReqList_.find(serviceUri);
         if (it != startServiceReqList_.end()) {
-            requestQueue = it->second;
+            reqList = it->second;
             startServiceReqList_.erase(it);
             if (taskHandler_) {
                 taskHandler_->CancelTask(std::string("start_service_timeout:") + serviceUri);
@@ -1222,20 +1187,18 @@ void AbilityConnectManager::CompleteStartServiceReq(const std::string &serviceUr
         }
     }
 
-    if (requestQueue) {
+    if (reqList) {
         TAG_LOGI(AAFwkTag::EXT, "target service activating: %{public}zu, uri: %{public}s",
-            requestQueue->requests.size(),
+            reqList->size(),
             serviceUri.c_str());
-        for (const auto &request : requestQueue->requests) {
-            StartAbilityLocked(request.abilityRequest);
+        for (const auto &request : *reqList) {
+            StartAbilityLocked(request);
         }
     }
 }
 
 void AbilityConnectManager::RemoveStartServiceReq(const std::string &serviceUri)
 {
-    struct timespec cutoffTime = { 0, 0 };
-    const bool hasCutoffTime = GetMonotonicTime(cutoffTime);
     std::lock_guard guard(startServiceReqListLock_);
     auto it = startServiceReqList_.find(serviceUri);
     if (it == startServiceReqList_.end()) {
@@ -1243,25 +1206,7 @@ void AbilityConnectManager::RemoveStartServiceReq(const std::string &serviceUri)
         return;
     }
 
-    auto requestQueue = it->second;
-    CHECK_POINTER(requestQueue);
-    size_t requestCount = 0;
-    for (auto requestIt = requestQueue->requests.begin(); requestIt != requestQueue->requests.end();) {
-        if (!hasCutoffTime || CompareMonotonicTime(requestIt->enqueueTime, cutoffTime) <= 0) {
-            requestIt = requestQueue->requests.erase(requestIt);
-            ++requestCount;
-            continue;
-        }
-        ++requestIt;
-    }
-    if (!requestQueue->requests.empty()) {
-        TAG_LOGI(AAFwkTag::EXT,
-            "keep queued start requests after lifecycle IPC, uri: %{public}s, removed: %{public}zu, remained: "
-            "%{public}zu",
-            serviceUri.c_str(), requestCount, requestQueue->requests.size());
-        return;
-    }
-
+    auto requestCount = it->second == nullptr ? 0 : it->second->size();
     startServiceReqList_.erase(it);
     bool timeoutTaskCanceled = false;
     if (taskHandler_) {

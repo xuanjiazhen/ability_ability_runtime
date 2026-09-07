@@ -18,7 +18,11 @@
 
 #include "ability_connect_manager.h"
 
+#include <list>
+#include <mutex>
+#include <time.h>
 #include <tuple>
+#include <unordered_map>
 
 #include "extension_record_manager.h"
 #include "nocopyable.h"
@@ -152,6 +156,7 @@ public:
 
 protected:
     int32_t StartAbilityLocked(const AbilityRequest &abilityRequest) override;
+    void CompleteStartServiceReq(const std::string &serviceUri) override;
     void HandleLoadAbilityOrStartSpecifiedProcess(
         const AbilityRuntime::LoadParam &loadParam, const std::shared_ptr<BaseExtensionRecord> &abilityRecord) override;
     int RemoveUIExtensionBySessionInfoToken(sptr<IRemoteObject> token) override;
@@ -167,6 +172,10 @@ private:
 
     void DoForegroundUIExtension(
         std::shared_ptr<BaseExtensionRecord> abilityRecord, const AbilityRequest &abilityRequest);
+
+    void EnqueueUIExtensionStartServiceReq(const AbilityRequest &abilityRequest, const std::string &serviceUri);
+
+    void RemoveUIExtensionStartServiceReq(const std::string &serviceUri);
 
     void DoBackgroundAbilityWindow(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
         const sptr<SessionInfo> &sessionInfo) override;
@@ -288,6 +297,15 @@ private:
         PreloadUIExtensionHostClientDiedHandler diedHandler_;
     };
 private:
+    struct UIExtensionStartServiceRequest {
+        AbilityRequest abilityRequest;
+        struct timespec enqueueTime = { 0, 0 };
+    };
+
+    struct UIExtensionStartServiceReqQueue {
+        std::list<UIExtensionStartServiceRequest> requests;
+    };
+
     RecipientMapType uiExtRecipientMap_;
     UIExtensionMapType uiExtensionMap_;
     std::unique_ptr<UIExtensionAbilityConnectManager> uiExtensionAbilityRecordMgr_ = nullptr;
@@ -297,6 +315,8 @@ private:
     std::map<int32_t, sptr<IRemoteObject::DeathRecipient>> preloadUIExtensionHostClientDeathRecipients_;
     std::mutex startingRecordsMutex_;
     std::map<std::tuple<int32_t, pid_t, int64_t>, int32_t> startingRecordsMap_;
+    std::unordered_map<std::string, std::shared_ptr<UIExtensionStartServiceReqQueue>> uiExtensionStartServiceReqList_;
+    std::mutex uiExtensionStartServiceReqListLock_;
 
     DISALLOW_COPY_AND_MOVE(UIExtensionAbilityManager);
 };
