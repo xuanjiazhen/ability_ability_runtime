@@ -44,7 +44,7 @@ ohos_fuzztest("MainElementUtilsFirstFuzzTest") {
   }
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
-    "${ability_runtime_services_path}/abilitymgr:abilityms_test_source",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_test",
     "${ability_runtime_path}/utils/server/startup:startup_util",
   ]
 
