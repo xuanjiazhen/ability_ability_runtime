@@ -3211,5 +3211,52 @@ HWTEST_F(MainThreadTest, PreloadModule_WithEmptyPreloadAbilityName_0200, TestSiz
 
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
+
+/**
+ * @tc.name: ChangeToLocalPath_0400
+ * @tc.desc: Change the inner path to local path in PC dual mode (clone bundle).
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, ChangeToLocalPath_0400, TestSize.Level1)
+{
+    EXPECT_TRUE(mainThread_ != nullptr);
+    std::string bundleName = "com.ohos.demo";
+    std::string localPath = "/data/app/el1/bundle/public/+clone-10000+com.ohos.demo/";
+    mainThread_->ChangeToLocalPath(bundleName, localPath, localPath);
+    EXPECT_TRUE(localPath == "/data/storage/el1/bundle/");
+}
+
+/**
+ * @tc.name: ChangeToLocalPath_0500
+ * @tc.desc: Change the outer path to local path in PC dual mode (clone bundle).
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, ChangeToLocalPath_0500, TestSize.Level1)
+{
+    EXPECT_TRUE(mainThread_ != nullptr);
+    std::string bundleName = "com.ohos.demo";
+    std::string localPath = "/data/app/el1/bundle/public/+clone-10000+com.example.demo/";
+    mainThread_->ChangeToLocalPath(bundleName, localPath, localPath);
+    EXPECT_TRUE(localPath == "/data/bundles/+clone-10000+com.example.demo/");
+}
+
+/**
+ * @tc.name: ChangeToLocalPath_0600
+ * @tc.desc: Change to local path with vector in PC dual mode (clone bundle).
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, ChangeToLocalPath_0600, TestSize.Level1)
+{
+    EXPECT_TRUE(mainThread_ != nullptr);
+    const std::string bundleName = "com.ohos.demo";
+    const std::vector<std::string> sourceDirs = {
+        "/data/app/el1/bundle/public/+clone-10000+com.ohos.demo/module/entry.hap"
+    };
+    std::vector<std::string> localPath;
+    mainThread_->ChangeToLocalPath(bundleName, sourceDirs, localPath);
+    EXPECT_EQ(localPath.size(), 1);
+    EXPECT_TRUE(localPath[0].find("/data/storage/el1/bundle/") != std::string::npos);
+    EXPECT_TRUE(localPath[0].find("+clone-10000+com.ohos.demo") == std::string::npos);
+}
 } // namespace AppExecFwk
 } // namespace OHOS
