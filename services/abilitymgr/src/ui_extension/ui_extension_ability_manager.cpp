@@ -914,7 +914,11 @@ void UIExtensionAbilityManager::CompleteStartServiceReq(const std::string &servi
         TAG_LOGI(AAFwkTag::UI_EXT, "complete UI extension foreground requests: %{public}zu, uri: %{public}s",
             requestQueue->requests.size(), serviceUri.c_str());
         for (const auto &request : requestQueue->requests) {
-            StartAbilityLocked(request.abilityRequest);
+            auto ret = StartAbilityLocked(request.abilityRequest);
+            if (ret != ERR_OK) {
+                TAG_LOGW(AAFwkTag::UI_EXT, "StartAbilityLocked failed: %{public}d, uri: %{public}s",
+                    ret, serviceUri.c_str());
+            }
         }
     }
 }
