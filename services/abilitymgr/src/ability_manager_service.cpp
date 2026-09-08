@@ -10304,8 +10304,9 @@ int AbilityManagerService::GetAppMemorySize()
     TAG_LOGI(AAFwkTag::ABILITYMGR, "service getAppMemorySize start");
     const char *key = "const.product.arkheaplimit";
     const char *def = "512m";
-    char valueGet[GET_PARAMETER_VALUE_LEN] = {0};
-    unsigned int len = sizeof(valueGet);
+    char valueGetBuf[GET_PARAMETER_VALUE_LEN] = {0};
+    char *valueGet = valueGetBuf;
+    unsigned int len = sizeof(valueGetBuf);
     int ret = GetParameter(key, def, valueGet, len);
     int resultInt = 0;
     if ((ret != GET_PARAMETER_OTHER) && (ret != GET_PARAMETER_INCORRECT)) {
@@ -10333,8 +10334,9 @@ bool AbilityManagerService::IsRamConstrainedDevice()
     TAG_LOGI(AAFwkTag::ABILITYMGR, "service IsRamConstrainedDevice start");
     const char *key = "const.product.islowram";
     const char *def = "0";
-    char valueGet[GET_PARAMETER_VALUE_LEN] = {0};
-    unsigned int len = sizeof(valueGet);
+    char valueGetBuf[GET_PARAMETER_VALUE_LEN] = {0};
+    char *valueGet = valueGetBuf;
+    unsigned int len = sizeof(valueGetBuf);
     int ret = GetParameter(key, def, valueGet, len);
     if ((ret != GET_PARAMETER_OTHER) && (ret != GET_PARAMETER_INCORRECT)) {
         int value = atoi(valueGet);
