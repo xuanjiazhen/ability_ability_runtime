@@ -98,6 +98,8 @@ ohos_shared_library("js_agent_connection") {
     "node:node_header_notice",
   ]
 
+  version_script = "libjs_agent_connection.map"
+
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }
@@ -183,6 +185,8 @@ ohos_shared_library("js_agent_extension") {
       "window_manager:libwsutils",
     ]
   }
+
+  version_script = "libjs_agent_extension.map"
 
   subsystem_name = "ability"
   part_name = "ability_runtime"

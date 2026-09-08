@@ -77,6 +77,8 @@ ohos_shared_library("mission_manager") {
     "window_manager:session_manager_lite",
   ]
 
+  version_script = "libmission_manager.map"
+
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"

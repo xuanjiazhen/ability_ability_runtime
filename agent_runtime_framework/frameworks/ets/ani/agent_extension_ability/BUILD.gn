@@ -73,6 +73,8 @@ ohos_shared_library("ets_agent_connection") {
     "samgr:samgr_proxy",
   ]
 
+  version_script = "libets_agent_connection.map"
+
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }
