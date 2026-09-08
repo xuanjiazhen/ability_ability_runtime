@@ -354,6 +354,7 @@ constexpr int32_t SWITCH_ACCOUNT_TRY = 3;
 constexpr int32_t APP_MEMORY_SIZE = 512;
 constexpr int32_t GET_PARAMETER_INCORRECT = -9;
 constexpr int32_t GET_PARAMETER_OTHER = -1;
+constexpr uint32_t GET_PARAMETER_VALUE_LEN = 128;
 constexpr int32_t SIZE_10 = 10;
 constexpr int32_t HIDUMPER_SERVICE_UID = 1212;
 constexpr int32_t ACCOUNT_MGR_SERVICE_UID = 3058;
@@ -10303,15 +10304,11 @@ int AbilityManagerService::GetAppMemorySize()
     TAG_LOGI(AAFwkTag::ABILITYMGR, "service getAppMemorySize start");
     const char *key = "const.product.arkheaplimit";
     const char *def = "512m";
-    char *valueGet = nullptr;
-    unsigned int len = 128;
+    char valueGet[GET_PARAMETER_VALUE_LEN] = {0};
+    unsigned int len = sizeof(valueGet);
     int ret = GetParameter(key, def, valueGet, len);
     int resultInt = 0;
     if ((ret != GET_PARAMETER_OTHER) && (ret != GET_PARAMETER_INCORRECT)) {
-        if (valueGet == nullptr) {
-            TAG_LOGW(AAFwkTag::ABILITYMGR, "%{public}s, valueGet null", __func__);
-            return APP_MEMORY_SIZE;
-        }
         int len = strlen(valueGet);
         for (int i = 0; i < len; i++) {
             if (valueGet[i] >= '0' && valueGet[i] <= '9') {
@@ -10332,8 +10329,8 @@ bool AbilityManagerService::IsRamConstrainedDevice()
     TAG_LOGI(AAFwkTag::ABILITYMGR, "service IsRamConstrainedDevice start");
     const char *key = "const.product.islowram";
     const char *def = "0";
-    char *valueGet = nullptr;
-    unsigned int len = 128;
+    char valueGet[GET_PARAMETER_VALUE_LEN] = {0};
+    unsigned int len = sizeof(valueGet);
     int ret = GetParameter(key, def, valueGet, len);
     if ((ret != GET_PARAMETER_OTHER) && (ret != GET_PARAMETER_INCORRECT)) {
         int value = atoi(valueGet);
