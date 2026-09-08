@@ -232,6 +232,10 @@ void Watchdog::SetBackgroundStatus(const bool isInBackground)
 {
     std::unique_lock<std::mutex> lock(cvMutex_);
     isInBackground_.store(isInBackground);
+    if (lastBackground_ != isInBackground_) {
+        isSixSecondEvent_.store(false);
+        lastBackground_ = isInBackground_;
+    }
     OHOS::HiviewDFX::Watchdog::GetInstance().SetForeground(!isInBackground);
     AppExecFwk::AppfreezeInner::GetInstance()->SetAppInForeground(!isInBackground);
 }
