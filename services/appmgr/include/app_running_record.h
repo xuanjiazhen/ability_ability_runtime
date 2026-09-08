@@ -1059,6 +1059,9 @@ public:
     void SetInnerMsg(const std::string &innerMsg);
     std::string GetInnerMsg() const;
 
+    void SetCallerProcessName(const std::string &callerProcessName);
+    std::string GetCallerProcessName() const;
+
     bool SetSupportedProcessCache(bool isSupport);
     SupportProcessCacheState GetSupportProcessCacheState();
     void SetAttachedToStatusBar(bool isAttached);
@@ -1503,6 +1506,7 @@ private:
     std::string killReason_ = "";
     std::string killMsg_ = "";
     std::string innerMsg_ = "";
+    std::string callerProcessName_ = "";
 
     bool isLauncherApp_;
     bool isAllowedNWebPreload_ = false;

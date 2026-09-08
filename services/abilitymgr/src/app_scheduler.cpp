@@ -615,8 +615,13 @@ int32_t AppScheduler::NotifyAppMgrRecordExitReasonCompability(
         return ERR_INVALID_VALUE;
     }
     CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
+    int32_t callerPid = IPCSkeleton::GetCallingPid();
+    std::string callerProcessName;
+    AppExecFwk::RunningProcessInfo callerInfo;
+    GetRunningProcessInfoByPid(callerPid, callerInfo);
+    callerProcessName = callerInfo.processName_;
     auto ret = static_cast<int32_t>(IN_PROCESS_CALL(appMgrClient_->NotifyAppMgrRecordExitReasonCompability(
-        pid, killId, killMsg, innerMsg, reason)));
+        pid, killId, killMsg, innerMsg, reason, callerPid, callerProcessName)));
     return ret;
 }
 
