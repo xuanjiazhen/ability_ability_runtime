@@ -116,6 +116,7 @@ ohos_executable("aa") {
 
   install_enable = true
 
+  version_script = "aa.map"
   subsystem_name = "ability"
   part_name = "ability_runtime"
   configs = [ "${ability_runtime_services_path}/common:size_optimize_config" ]

@@ -132,6 +132,7 @@ ohos_cli_executable("ohos-aa") {
   install_enable = true
   install_images = ["system"]
   cli_config_file = "ohos-aa.json"
+  version_script = "${ability_runtime_path}/tools/aa/aa.map"
   subsystem_name = "ability"
   part_name = "ability_runtime"
   configs = [ "${ability_runtime_services_path}/common:size_optimize_config" ]
