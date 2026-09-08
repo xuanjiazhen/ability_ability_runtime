@@ -5252,10 +5252,6 @@ int AbilityManagerService::StopExtensionAbility(const Want &want, const sptr<IRe
     }
 
     int32_t validUserId = GetValidUserId(userId);
-#ifdef ENABLE_CLONE_FOR_ACCOUNT
-    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), validUserId, true),
-        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
-#endif
     if (!JudgeMultiUserConcurrency(validUserId)) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "multi-user non-concurrent unsatisfied");
         eventInfo->errCode = ERR_INVALID_VALUE;
@@ -5269,6 +5265,11 @@ int AbilityManagerService::StopExtensionAbility(const Want &want, const sptr<IRe
         DistributedClient dmsClient;
         return dmsClient.StopRemoteExtensionAbility(want, callerUid, accessToken, eventInfo->extensionType);
     }
+
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), validUserId, true),
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
 
     AbilityRequest abilityRequest;
     result = GenerateExtensionAbilityRequest(want, abilityRequest, callerToken, validUserId);
@@ -6204,11 +6205,6 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
         abilityWant.SetElementName(extensionInfo.bundleName, extensionInfo.name);
     }
 
-#ifdef ENABLE_CLONE_FOR_ACCOUNT
-    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(abilityWant, validUserId, true),
-        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
-#endif
-
     if (CheckIfOperateRemote(abilityWant)) {
         // Remote extension connections are handled by DMS and the extension runs on another device.
         // Background user monitoring is not applicable for remote extensions, skip reporting.
@@ -6224,6 +6220,12 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
         }
         return eventInfo->errCode;
     }
+
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(abilityWant, validUserId, true),
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
+
     UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityWant, callerToken, indirectCallerInfo);
 
     if (callerToken != nullptr && callerToken->GetObjectDescriptor() != u"ohos.aafwk.AbilityToken") {
