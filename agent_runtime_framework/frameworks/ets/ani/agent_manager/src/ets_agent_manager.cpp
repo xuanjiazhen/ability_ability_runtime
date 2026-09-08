@@ -679,6 +679,9 @@ public:
     static void DisconnectServiceExtensionAbility(
         ani_env *env, ani_object aniContext, ani_long connectId, ani_object asyncCallback);
     static void NotifyLowCodeAgentComplete(ani_env *env, ani_string aniAgentId, ani_object asyncCallback);
+    static void StartTask(ani_env *env, ani_string aniTaskId, ani_object asyncCallback);
+    static void FinishTask(ani_env *env, ani_string aniTaskId, ani_object asyncCallback);
+    static void AbortTask(ani_env *env, ani_string aniTaskId, ani_object asyncCallback);
 };
 
 void EtsAgentManager::GetAllAgentCards(ani_env *env, ani_object asyncCallback)
@@ -1174,6 +1177,84 @@ void EtsAgentManager::NotifyLowCodeAgentComplete(ani_env *env, ani_string aniAge
         EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
 }
 
+void EtsAgentManager::StartTask(ani_env *env, ani_string aniTaskId, ani_object asyncCallback)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "env is null");
+        return;
+    }
+
+    std::string taskId;
+    if (!GetStdString(env, aniTaskId, taskId)) {
+        AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
+            EtsErrorUtil::CreateInvalidParamError(env, "Parameter error. Convert taskId fail."), nullptr);
+        return;
+    }
+
+    int32_t ret = AgentManagerClient::GetInstance().StartTask(taskId);
+    if (ret != ERR_OK) {
+        AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
+            EtsErrorUtil::CreateError(env, static_cast<int32_t>(GetJsErrorCodeByNativeError(ret)),
+                GetAgentManagerErrorMsg(ret, AgentManagerErrorOperation::START_TASK)),
+            nullptr);
+        return;
+    }
+    AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
+        EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
+}
+
+void EtsAgentManager::FinishTask(ani_env *env, ani_string aniTaskId, ani_object asyncCallback)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "env is null");
+        return;
+    }
+
+    std::string taskId;
+    if (!GetStdString(env, aniTaskId, taskId)) {
+        AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
+            EtsErrorUtil::CreateInvalidParamError(env, "Parameter error. Convert taskId fail."), nullptr);
+        return;
+    }
+
+    int32_t ret = AgentManagerClient::GetInstance().FinishTask(taskId);
+    if (ret != ERR_OK) {
+        AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
+            EtsErrorUtil::CreateError(env, static_cast<int32_t>(GetJsErrorCodeByNativeError(ret)),
+                GetAgentManagerErrorMsg(ret, AgentManagerErrorOperation::FINISH_TASK)),
+            nullptr);
+        return;
+    }
+    AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
+        EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
+}
+
+void EtsAgentManager::AbortTask(ani_env *env, ani_string aniTaskId, ani_object asyncCallback)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "env is null");
+        return;
+    }
+
+    std::string taskId;
+    if (!GetStdString(env, aniTaskId, taskId)) {
+        AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
+            EtsErrorUtil::CreateInvalidParamError(env, "Parameter error. Convert taskId fail."), nullptr);
+        return;
+    }
+
+    int32_t ret = AgentManagerClient::GetInstance().AbortTask(taskId);
+    if (ret != ERR_OK) {
+        AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
+            EtsErrorUtil::CreateError(env, static_cast<int32_t>(GetJsErrorCodeByNativeError(ret)),
+                GetAgentManagerErrorMsg(ret, AgentManagerErrorOperation::ABORT_TASK)),
+            nullptr);
+        return;
+    }
+    AsyncCallback(env, SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER, asyncCallback,
+        EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
+}
+
 void EtsAgentManagerRegistryInit(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "EtsAgentManagerRegistryInit call");
@@ -1227,6 +1308,15 @@ void EtsAgentManagerRegistryInit(ani_env *env)
         ani_native_function{ "nativeNotifyLowCodeAgentComplete",
             "C{std.core.String}C{utils.AgentUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAgentManager::NotifyLowCodeAgentComplete) },
+        ani_native_function{ "nativeStartTask",
+            "C{std.core.String}C{utils.AgentUtils.AsyncCallbackWrapper}:",
+            reinterpret_cast<void *>(EtsAgentManager::StartTask) },
+        ani_native_function{ "nativeFinishTask",
+            "C{std.core.String}C{utils.AgentUtils.AsyncCallbackWrapper}:",
+            reinterpret_cast<void *>(EtsAgentManager::FinishTask) },
+        ani_native_function{ "nativeAbortTask",
+            "C{std.core.String}C{utils.AgentUtils.AsyncCallbackWrapper}:",
+            reinterpret_cast<void *>(EtsAgentManager::AbortTask) },
     };
     status = env->Namespace_BindNativeFunctions(ns, kitFunctions.data(), kitFunctions.size());
     if (status != ANI_OK) {

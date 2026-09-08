@@ -1088,6 +1088,21 @@ napi_value JsAgentManager::NotifyLowCodeAgentComplete(napi_env env, napi_callbac
     GET_CB_INFO_AND_CALL(env, info, JsAgentManager, OnNotifyLowCodeAgentComplete);
 }
 
+napi_value JsAgentManager::StartTask(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JsAgentManager, OnStartTask);
+}
+
+napi_value JsAgentManager::FinishTask(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JsAgentManager, OnFinishTask);
+}
+
+napi_value JsAgentManager::AbortTask(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JsAgentManager, OnAbortTask);
+}
+
 napi_value JsAgentManager::OnDisconnectAgentExtensionAbility(napi_env env, size_t argc, napi_value *argv)
 {
     if (argc < ARGC_ONE) {
@@ -1309,6 +1324,105 @@ napi_value JsAgentManager::OnNotifyLowCodeAgentComplete(napi_env env, size_t arg
     return result;
 }
 
+napi_value JsAgentManager::OnStartTask(napi_env env, size_t argc, napi_value *argv)
+{
+    if (argc < ARGC_ONE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    std::string taskId;
+    if (!ConvertFromJsValue(env, argv[ARG_INDEX_0], taskId)) {
+        ThrowInvalidParamError(env, "Parse param taskId failed, must be a string.");
+        return CreateJsUndefined(env);
+    }
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute = [taskId, innerErrCode]() {
+        *innerErrCode = AgentManagerClient::GetInstance().StartTask(taskId);
+    };
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode](
+        napi_env env, NapiAsyncTask &task, int32_t status) {
+        if (*innerErrCode == ERR_OK) {
+            task.ResolveWithNoError(env, CreateJsUndefined(env));
+        } else {
+            task.Reject(env, CreateJsError(env, static_cast<int32_t>(GetJsErrorCodeByNativeError(*innerErrCode)),
+                GetAgentManagerErrorMsg(*innerErrCode, AgentManagerErrorOperation::START_TASK)));
+        }
+    };
+
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("JsAgentManager::OnStartTask",
+        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+    return result;
+}
+
+napi_value JsAgentManager::OnFinishTask(napi_env env, size_t argc, napi_value *argv)
+{
+    if (argc < ARGC_ONE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    std::string taskId;
+    if (!ConvertFromJsValue(env, argv[ARG_INDEX_0], taskId)) {
+        ThrowInvalidParamError(env, "Parse param taskId failed, must be a string.");
+        return CreateJsUndefined(env);
+    }
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute = [taskId, innerErrCode]() {
+        *innerErrCode = AgentManagerClient::GetInstance().FinishTask(taskId);
+    };
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode](
+        napi_env env, NapiAsyncTask &task, int32_t status) {
+        if (*innerErrCode == ERR_OK) {
+            task.ResolveWithNoError(env, CreateJsUndefined(env));
+        } else {
+            task.Reject(env, CreateJsError(env, static_cast<int32_t>(GetJsErrorCodeByNativeError(*innerErrCode)),
+                GetAgentManagerErrorMsg(*innerErrCode, AgentManagerErrorOperation::FINISH_TASK)));
+        }
+    };
+
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("JsAgentManager::OnFinishTask",
+        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+    return result;
+}
+
+napi_value JsAgentManager::OnAbortTask(napi_env env, size_t argc, napi_value *argv)
+{
+    if (argc < ARGC_ONE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    std::string taskId;
+    if (!ConvertFromJsValue(env, argv[ARG_INDEX_0], taskId)) {
+        ThrowInvalidParamError(env, "Parse param taskId failed, must be a string.");
+        return CreateJsUndefined(env);
+    }
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute = [taskId, innerErrCode]() {
+        *innerErrCode = AgentManagerClient::GetInstance().AbortTask(taskId);
+    };
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode](
+        napi_env env, NapiAsyncTask &task, int32_t status) {
+        if (*innerErrCode == ERR_OK) {
+            task.ResolveWithNoError(env, CreateJsUndefined(env));
+        } else {
+            task.Reject(env, CreateJsError(env, static_cast<int32_t>(GetJsErrorCodeByNativeError(*innerErrCode)),
+                GetAgentManagerErrorMsg(*innerErrCode, AgentManagerErrorOperation::ABORT_TASK)));
+        }
+    };
+
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("JsAgentManager::OnAbortTask",
+        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+    return result;
+}
+
 napi_value JsAgentManagerInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "init agentManager");
@@ -1342,6 +1456,9 @@ napi_value JsAgentManagerInit(napi_env env, napi_value exportObj)
         JsAgentManager::DisconnectServiceExtensionAbility);
     BindNativeFunction(env, exportObj, "notifyLowCodeAgentComplete", moduleName,
         JsAgentManager::NotifyLowCodeAgentComplete);
+    BindNativeFunction(env, exportObj, "startTask", moduleName, JsAgentManager::StartTask);
+    BindNativeFunction(env, exportObj, "finishTask", moduleName, JsAgentManager::FinishTask);
+    BindNativeFunction(env, exportObj, "abortTask", moduleName, JsAgentManager::AbortTask);
     TAG_LOGD(AAFwkTag::SER_ROUTER, "end");
     return CreateJsUndefined(env);
 }
