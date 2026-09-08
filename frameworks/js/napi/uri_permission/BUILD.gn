@@ -76,6 +76,8 @@ ohos_shared_library("uripermissionmanager_napi") {
 
   relative_install_dir = "module/application"
 
+  version_script = "liburipermissionmanager_napi.map"
+
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }

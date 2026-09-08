@@ -821,6 +821,8 @@ ohos_shared_library("mission_list") {
     cflags_cc += [ "-DWITH_DLP" ]
   }
 
+  version_script = "libmission_list.map"
+
   subsystem_name = "ability"
   innerapi_tags = [ "platformsdk_indirect" ]
   part_name = "ability_runtime"

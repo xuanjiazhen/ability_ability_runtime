@@ -60,6 +60,8 @@ ohos_shared_library("autostartupmanager") {
   ]
 
   relative_install_dir = "module/app/ability"
+  version_script = "libautostartupmanager.map"
+
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }

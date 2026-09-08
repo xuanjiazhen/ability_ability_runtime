@@ -52,6 +52,8 @@ ohos_shared_library("agent_extension_connection") {
     "ipc:ipc_core",
   ]
 
+  version_script = "libagent_extension_connection.map"
+
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }

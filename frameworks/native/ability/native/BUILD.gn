@@ -216,6 +216,8 @@ ohos_shared_library("abilitykit_utils") {
     ]
   }
 
+  version_script = "libabilitykit_utils.map"
+
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
@@ -790,10 +792,12 @@ ohos_shared_library("cj_extensionkit_native") {
     ]
   }
 
+  version_script = "libauto_startup_callback.map"
+
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
-  configs = [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
+  configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
 }
 
 config("insight_intent_executor_public_config") {
@@ -3764,6 +3768,8 @@ ohos_shared_library("auto_fill_extension_ani") {
   if (ability_runtime_graphics) {
     external_deps += [ "window_manager:libwm" ]
   }
+
+  version_script = "libauto_fill_extension_ani.map"
 
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
