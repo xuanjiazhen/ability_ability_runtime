@@ -48,6 +48,12 @@
 #include "app_native_spawn_manager.h"
 #include "xcollie/process_kill_reason.h"
 
+#define CHECK_POINTER_AND_RETURN_VALUE(object, value) \
+    if (!object) {                              \
+        TAG_LOGE(AAFwkTag::APPMGR, "nullptr");  \
+        return value;                           \
+    }
+
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
@@ -168,6 +174,7 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExis
                 appInfoList.size(), appRecord->GetProcessName().c_str(), specifiedProcessFlag.c_str(),
                 customProcessFlag.c_str());
             auto isExist = [&appName, &uid, &appRecord](const std::shared_ptr<ApplicationInfo> &appInfo) {
+                CHECK_POINTER_AND_RETURN(appInfo, false);
                 TAG_LOGD(AAFwkTag::APPMGR, "appInfo->name: %{public}s", appInfo->name.c_str());
                 return (appInfo->name == appName && appInfo->uid == uid) ||
                     (appInfo->bundleType == BundleType::APP_PLUGIN && appRecord->GetUid() == uid);
