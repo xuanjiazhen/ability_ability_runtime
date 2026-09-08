@@ -109,6 +109,12 @@ public:
 
     static napi_value NotifyLowCodeAgentComplete(napi_env env, napi_callback_info info);
 
+    static napi_value StartTask(napi_env env, napi_callback_info info);
+
+    static napi_value FinishTask(napi_env env, napi_callback_info info);
+
+    static napi_value AbortTask(napi_env env, napi_callback_info info);
+
 private:
     /**
      * @brief Implementation for getting all AgentCards.
@@ -171,6 +177,12 @@ private:
     napi_value OnDisconnectServiceExtensionAbility(napi_env env, size_t argc, napi_value *argv);
 
     napi_value OnNotifyLowCodeAgentComplete(napi_env env, size_t argc, napi_value *argv);
+
+    napi_value OnStartTask(napi_env env, size_t argc, napi_value *argv);
+
+    napi_value OnFinishTask(napi_env env, size_t argc, napi_value *argv);
+
+    napi_value OnAbortTask(napi_env env, size_t argc, napi_value *argv);
 
     /**
      * @brief Validate connection parameters.

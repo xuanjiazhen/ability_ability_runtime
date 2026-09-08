@@ -404,6 +404,9 @@ enum class AgentManagerErrorOperation {
     DISCONNECT_AGENT_EXTENSION,
     DISCONNECT_SERVICE_EXTENSION,
     COMPLETE_LOW_CODE_AGENT,
+    START_TASK,
+    FINISH_TASK,
+    ABORT_TASK,
 };
 
 std::string GetErrorMsg(const AbilityErrorCode& errCode);

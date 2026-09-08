@@ -49,6 +49,21 @@ public:
     int32_t UpdateAgentCard(const AgentCard &card);
     int32_t DeleteAgentCard(const std::string &bundleName, const std::string &agentId);
 
+    /**
+     * @brief Starts an agent task with the given task id.
+     */
+    int32_t StartTask(const std::string &taskId);
+
+    /**
+     * @brief Finishes an agent task with the given task id.
+     */
+    int32_t FinishTask(const std::string &taskId);
+
+    /**
+     * @brief Aborts an agent task with the given task id.
+     */
+    int32_t AbortTask(const std::string &taskId);
+
     int32_t ConnectAgentExtensionAbility(const AAFwk::Want &want,
         const sptr<AAFwk::IAbilityConnection> &connection);
 

@@ -124,6 +124,36 @@ int32_t AgentManagerClient::DeleteAgentCard(const std::string &bundleName, const
     return agentMgr->DeleteAgentCard(bundleName, agentId);
 }
 
+int32_t AgentManagerClient::StartTask(const std::string &taskId)
+{
+    auto agentMgr = GetAgentMgrProxy();
+    if (agentMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentmgr");
+        return ERR_NULL_AGENT_MGR_PROXY;
+    }
+    return agentMgr->StartTask(taskId);
+}
+
+int32_t AgentManagerClient::FinishTask(const std::string &taskId)
+{
+    auto agentMgr = GetAgentMgrProxy();
+    if (agentMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentmgr");
+        return ERR_NULL_AGENT_MGR_PROXY;
+    }
+    return agentMgr->FinishTask(taskId);
+}
+
+int32_t AgentManagerClient::AbortTask(const std::string &taskId)
+{
+    auto agentMgr = GetAgentMgrProxy();
+    if (agentMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentmgr");
+        return ERR_NULL_AGENT_MGR_PROXY;
+    }
+    return agentMgr->AbortTask(taskId);
+}
+
 int32_t AgentManagerClient::ConnectAgentExtensionAbility(const AAFwk::Want &want,
     const sptr<AAFwk::IAbilityConnection> &connection)
 {

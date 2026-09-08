@@ -88,6 +88,12 @@ public:
     int32_t VerifyAgentDisconnectRequests(const std::vector<AAFwk::Want> &wants,
         const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity) override;
 
+    int32_t StartTask(const std::string &taskId) override;
+
+    int32_t FinishTask(const std::string &taskId) override;
+
+    int32_t AbortTask(const std::string &taskId) override;
+
 private:
     friend class AgentServiceConnection;
     friend class AgentHostConnection;

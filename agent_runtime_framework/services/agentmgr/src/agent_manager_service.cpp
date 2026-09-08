@@ -300,6 +300,48 @@ int32_t AgentManagerService::DeleteAgentCard(const std::string &bundleName, cons
     return AgentCardMgr::GetInstance().DeleteAgentCard(bundleName, agentId);
 }
 
+int32_t AgentManagerService::StartTask(const std::string &taskId)
+{
+    if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "caller no system-app, can not use system-api");
+        return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    if (taskId.empty()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "empty taskId");
+        return AAFwk::INVALID_PARAMETERS_ERR;
+    }
+    TAG_LOGI(AAFwkTag::SER_ROUTER, "startTask, taskId: %{public}s", taskId.c_str());
+    return ERR_OK;
+}
+
+int32_t AgentManagerService::FinishTask(const std::string &taskId)
+{
+    if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "caller no system-app, can not use system-api");
+        return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    if (taskId.empty()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "empty taskId");
+        return AAFwk::INVALID_PARAMETERS_ERR;
+    }
+    TAG_LOGI(AAFwkTag::SER_ROUTER, "finishTask, taskId: %{public}s", taskId.c_str());
+    return ERR_OK;
+}
+
+int32_t AgentManagerService::AbortTask(const std::string &taskId)
+{
+    if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "caller no system-app, can not use system-api");
+        return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    if (taskId.empty()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "empty taskId");
+        return AAFwk::INVALID_PARAMETERS_ERR;
+    }
+    TAG_LOGI(AAFwkTag::SER_ROUTER, "abortTask, taskId: %{public}s", taskId.c_str());
+    return ERR_OK;
+}
+
 int32_t AgentManagerService::ConnectAgentExtensionAbility(const AAFwk::Want &want,
     const sptr<AAFwk::IAbilityConnection> &connection)
 {

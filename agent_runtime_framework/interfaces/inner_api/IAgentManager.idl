@@ -35,4 +35,7 @@ interface OHOS.AgentRuntime.IAgentManager {
     void VerifyAgentConnectRequest([in] Want want, [in] IAbilityConnection connect, [out] String callerIdentity);
     void VerifyAgentDisconnectRequests([in] List<Want> wants, [in] IAbilityConnection connect,
         [out] String callerIdentity);
+    void StartTask([in] String taskId);
+    void FinishTask([in] String taskId);
+    void AbortTask([in] String taskId);
 }
