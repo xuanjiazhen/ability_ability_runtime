@@ -1149,7 +1149,7 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
     record->SetBackground(param.options.background);
     record->eventId = eventId;
     AddSessionRecord(record);
-    auto subscribeRet = SubscribeSession(record->sessionId, subscriptionId, scheduler);
+    auto subscribeRet = SubscribeSessionInternal(record->sessionId, subscriptionId, scheduler);
     if (subscribeRet != ERR_OK) {
         RemoveSessionRecord(record->sessionId);
         return subscribeRet;
@@ -1482,21 +1482,9 @@ int32_t CliToolManagerService::ClearSession(const std::string &sessionId)
     return ERR_OK;
 }
 
-int32_t CliToolManagerService::SubscribeSession(const std::string &sessionId, const std::string &subscriptionId,
-    const sptr<ICliToolManagerScheduler> &scheduler)
+int32_t CliToolManagerService::SubscribeSessionInternal(const std::string &sessionId,
+    const std::string &subscriptionId, const sptr<ICliToolManagerScheduler> &scheduler)
 {
-    InterfaceCallCounter counter(interfaceCalledCount_);
-    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
-    if (!AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Not system app");
-        return ERR_NOT_SYSTEM_APP;
-    }
-
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL)) {
-        return ERR_PERMISSION_DENIED;
-    }
-
     if (sessionId.empty() || subscriptionId.empty()) {
         TAG_LOGE(AAFwkTag::CLI_TOOL,
             "SubscribeSession failed: invalid args sessionId=%{public}s, subscriptionId=%{public}s",
@@ -1531,6 +1519,24 @@ int32_t CliToolManagerService::SubscribeSession(const std::string &sessionId, co
         return ERR_NO_INIT;
     }
     return ERR_OK;
+}
+
+int32_t CliToolManagerService::SubscribeSession(const std::string &sessionId, const std::string &subscriptionId,
+    const sptr<ICliToolManagerScheduler> &scheduler)
+{
+    InterfaceCallCounter counter(interfaceCalledCount_);
+    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
+    if (!AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Not system app");
+        return ERR_NOT_SYSTEM_APP;
+    }
+
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL)) {
+        return ERR_PERMISSION_DENIED;
+    }
+
+    return SubscribeSessionInternal(sessionId, subscriptionId, scheduler);
 }
 
 int32_t CliToolManagerService::UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId)
