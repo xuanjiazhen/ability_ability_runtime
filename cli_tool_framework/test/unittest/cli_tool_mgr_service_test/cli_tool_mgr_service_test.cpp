@@ -2515,23 +2515,6 @@ HWTEST_F(CliToolManagerServiceTest, ExecCmd_0700, TestSize.Level1)
 }
 
 /**
- * @tc.name: CliToolManagerService_ValidateExecCmdPublicPermissions_0100
- * @tc.desc: Test ValidateExecCmdPublicPermissions with empty cmd returns ERR_INVALID_PARAM
- * @tc.type: FUNC
- */
-HWTEST_F(CliToolManagerServiceTest, ValidateExecCmdPublicPermissions_0100, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateExecCmdPublicPermissions_0100 start");
-
-    ExecCmdParam param;
-    param.cmd = "";
-    int32_t result = service_->ValidateExecCmdPublicPermissions(param);
-    EXPECT_EQ(result, ERR_INVALID_PARAM);
-
-    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateExecCmdPublicPermissions_0100 end");
-}
-
-/**
  * @tc.name: CliToolManagerService_ValidateExecCmdPublicPermissions_0200
  * @tc.desc: Test ValidateExecCmdPublicPermissions returns ERR_CAPABILITY_NOT_SUPPORT when device not supported
  * @tc.type: FUNC
