@@ -1127,5 +1127,94 @@ HWTEST_F(AppRunningManagerTest, GetAllAbilityInfos_0400, TestSize.Level1)
     auto ret = appRunningManager->GetAllAbilityInfos(-1, infos);
     EXPECT_EQ(ret, ERR_OK);
 }
+
+/**
+ * @tc.name: AppRunningManager_IsAppInfoMatch_0100
+ * @tc.desc: Test IsAppInfoMatch with nullptr appInfo returns false
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerTest, AppRunningManager_IsAppInfoMatch_0100, TestSize.Level1)
+{
+    auto placeholder = std::make_shared<ApplicationInfo>();
+    auto appRecord = std::make_shared<AppRunningRecord>(placeholder, AppRecordId::Create(), "processName");
+    EXPECT_FALSE(AppRunningManager::IsAppInfoMatch(nullptr, "com.test.app", 1000, appRecord));
+}
+
+/**
+ * @tc.name: AppRunningManager_IsAppInfoMatch_0200
+ * @tc.desc: Test IsAppInfoMatch returns true when appName and uid both match
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerTest, AppRunningManager_IsAppInfoMatch_0200, TestSize.Level1)
+{
+    std::string appName = "com.test.app";
+    int uid = 1000;
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->name = appName;
+    appInfo->uid = uid;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, AppRecordId::Create(), "processName");
+    EXPECT_TRUE(AppRunningManager::IsAppInfoMatch(appInfo, appName, uid, appRecord));
+}
+
+/**
+ * @tc.name: AppRunningManager_IsAppInfoMatch_0300
+ * @tc.desc: Test IsAppInfoMatch returns false when appName mismatches and not APP_PLUGIN
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerTest, AppRunningManager_IsAppInfoMatch_0300, TestSize.Level1)
+{
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->name = "com.test.app";
+    appInfo->uid = 1000;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, AppRecordId::Create(), "processName");
+    EXPECT_FALSE(AppRunningManager::IsAppInfoMatch(appInfo, "com.other.app", 1000, appRecord));
+}
+
+/**
+ * @tc.name: AppRunningManager_IsAppInfoMatch_0400
+ * @tc.desc: Test IsAppInfoMatch returns false when uid mismatches and not APP_PLUGIN
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerTest, AppRunningManager_IsAppInfoMatch_0400, TestSize.Level1)
+{
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->name = "com.test.app";
+    appInfo->uid = 1000;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, AppRecordId::Create(), "processName");
+    EXPECT_FALSE(AppRunningManager::IsAppInfoMatch(appInfo, "com.test.app", 2000, appRecord));
+}
+
+/**
+ * @tc.name: AppRunningManager_IsAppInfoMatch_0500
+ * @tc.desc: Test IsAppInfoMatch returns true via APP_PLUGIN branch when record uid matches input uid
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerTest, AppRunningManager_IsAppInfoMatch_0500, TestSize.Level1)
+{
+    int uid = 1000;
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->name = "com.test.app";
+    appInfo->uid = 2000;
+    appInfo->bundleType = BundleType::APP_PLUGIN;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, AppRecordId::Create(), "processName");
+    appRecord->SetUid(uid);
+    EXPECT_TRUE(AppRunningManager::IsAppInfoMatch(appInfo, "com.test.app", uid, appRecord));
+}
+
+/**
+ * @tc.name: AppRunningManager_IsAppInfoMatch_0600
+ * @tc.desc: Test IsAppInfoMatch returns false when APP_PLUGIN but record uid mismatches input uid
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerTest, AppRunningManager_IsAppInfoMatch_0600, TestSize.Level1)
+{
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->name = "com.test.app";
+    appInfo->uid = 2000;
+    appInfo->bundleType = BundleType::APP_PLUGIN;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, AppRecordId::Create(), "processName");
+    appRecord->SetUid(9999);
+    EXPECT_FALSE(AppRunningManager::IsAppInfoMatch(appInfo, "com.test.app", 1000, appRecord));
+}
 } // namespace AppExecFwk
 } // namespace OHOS
