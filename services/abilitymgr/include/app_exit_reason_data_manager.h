@@ -58,11 +58,17 @@ public:
     int32_t DeleteAbilityRecoverInfoBySessionId(const int32_t sessionId);
 
     /**
-     * @brief Clear all ability recover info after an OTA upgrade. The current software version is
-     *        compared with the version marker stored in the kv store. If the version changed (or
-     *        the marker does not exist), all entries with the recover info prefix are deleted so
-     *        apps will not be restored from the stale backup on next launch, and a new marker is
-     *        written after the cleanup.
+     * @brief Clear all ability recover info after an OTA upgrade. The current system fingerprint
+     *        (concatenation of multiple const.product.* and const.comp.* system parameters) is
+     *        compared with the fingerprint marker stored in the kv store. If the fingerprint
+     *        changed (or the marker does not exist), all entries with the recover info prefix are
+     *        deleted so apps will not be restored from the stale backup on next launch, and a new
+     *        marker is written after the cleanup. This mirrors the OTA detection used by
+     *        bundlemanager (BMSEventHandler::IsSystemFingerprintChanged) so that incremental or
+     *        component-level OTAs that only change parameters other than const.product.software.
+     *        version are also detected. A test hook persist.bms.test-upgrade ("true") forces the
+     *        cleanup path regardless of the fingerprint comparison, reusing the same parameter
+     *        as bundlemanager (BMSEventHandler::IsTestSystemUpgrade) so one command drives both.
      * @return Returns ERR_OK if the check is done; returns error code otherwise.
      */
     int32_t ResetRecoverInfoOnOtaUpgrade();
@@ -120,6 +126,17 @@ private:
     DistributedKv::Value ConvertAccessTokenIdToValue(uint32_t accessTokenId);
     DistributedKv::Status RestoreKvStore(DistributedKv::Status status);
     static void PutAsync(const DistributedKv::Key &key, const DistributedKv::Value &value);
+
+    // Build a system fingerprint by concatenating the non-empty values of the
+    // const.product.* and const.comp.* parameters listed in FINGERPRINT_PARAMS, separated by
+    // '/'. Empty/unavailable parameters are skipped, matching BMSEventHandler::GetCurSystem-
+    // Fingerprint. Returns an empty string when every parameter is unavailable.
+    std::string GetCurSystemFingerprint() const;
+    // Returns true when persist.bms.test-upgrade is set to "true", which forces the OTA cleanup
+    // path for field/integration testing without performing a real OTA upgrade. Reuses
+    // bundlemanager's parameter (BMSEventHandler::BMS_TEST_UPGRADE) so both subsystems share one
+    // test hook.
+    bool IsTestUpgrade() const;
 
     const DistributedKv::AppId appId_ { "app_exit_reason_storage" };
     const DistributedKv::StoreId storeId_ { "app_exit_reason_infos" };
