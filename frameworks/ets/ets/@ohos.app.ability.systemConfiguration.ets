@@ -15,17 +15,17 @@
 
 import ConfigurationConstant from './@ohos.app.ability.ConfigurationConstant';
 
-declare namespace systemConfiguration {
-  type OnColorModeUpdatedFn = (colorMode : ConfigurationConstant.ColorMode) => void;
-  type OnFontSizeScaleUpdatedFn = (fontSizeScale : double) => void;
-  type OnFontWeightScaleUpdatedFn = (fontWeightScale : double) => void;
-  type OnMCCUpdatedFn = (mcc : string) => void;
-  type OnMNCUpdatedFn = (mnc : string) => void;
-  type OnLanguageUpdatedFn = (language : string) => void;
-  type OnFontIdUpdatedFn = (fontId : string) => void;
-  type OnHasPointerDeviceUpdatedFn = (hasPointerDevice : boolean) => void;
-  type OnLocaleUpdatedFn = (locale : string) => void;
-  interface UpdatedCallback {  
+export default namespace systemConfiguration {
+  export type OnColorModeUpdatedFn = (colorMode : ConfigurationConstant.ColorMode) => void;
+  export type OnFontSizeScaleUpdatedFn = (fontSizeScale : double) => void;
+  export type OnFontWeightScaleUpdatedFn = (fontWeightScale : double) => void;
+  export type OnMCCUpdatedFn = (mcc : string) => void;
+  export type OnMNCUpdatedFn = (mnc : string) => void;
+  export type OnLanguageUpdatedFn = (language : string) => void;
+  export type OnFontIdUpdatedFn = (fontId : string) => void;
+  export type OnHasPointerDeviceUpdatedFn = (hasPointerDevice : boolean) => void;
+  export type OnLocaleUpdatedFn = (locale : string) => void;
+  export interface UpdatedCallback {  
     onColorModeUpdated?: OnColorModeUpdatedFn;
     onFontSizeScaleUpdated?: OnFontSizeScaleUpdatedFn;
     onFontWeightScaleUpdated?: OnFontWeightScaleUpdatedFn;
@@ -49,5 +49,3 @@ class UpdatedCallbackInner implements systemConfiguration.UpdatedCallback {
     onHasPointerDeviceUpdated?: systemConfiguration.OnHasPointerDeviceUpdatedFn = (hasPointerDevice : boolean) => {}
     onLocaleUpdated?: systemConfiguration.OnLocaleUpdatedFn = (locale : string) => {}
 }
-
-export default systemConfiguration;
