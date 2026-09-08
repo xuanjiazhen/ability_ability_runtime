@@ -423,6 +423,7 @@ AppFaultDataBySA AppfreezeManager::GenerateFaultDataBySA(const ParamInfo& info, 
                                  "-" + std::to_string(AbilityRuntime::TimeUtil::CurrentTimeMillis());
     faultDataSA.pid = info.pid;
     faultDataSA.needKillProcess = info.needKillProcess;
+    faultDataSA.abilityPendingBackground = info.abilityPendingBackground;
     if (flow.state != AbilityRuntime::FreezeUtil::TimeoutState::UNKNOWN) {
         faultDataSA.token = flow.token;
         faultDataSA.state = static_cast<uint32_t>(flow.state);
@@ -461,6 +462,7 @@ FaultData AppfreezeManager::GetFaultNotifyData(const FaultData& faultData, int p
     faultNotifyData.processedId = faultData.processedId;
     faultNotifyData.dispatchedEventId = faultData.dispatchedEventId;
     faultNotifyData.callbackLog = faultData.callbackLog;
+    faultNotifyData.abilityPendingBackground = faultData.abilityPendingBackground;
     return faultNotifyData;
 }
 
@@ -1539,6 +1541,26 @@ bool AppfreezeManager::CheckPreloadUIExtension(const std::string& message, const
         return true;
     }
     return false;
+}
+
+bool AppfreezeManager::CalculateFaultForeground(const std::string& eventName, const ForegroundState& state) const
+{
+    if (eventName == AppFreezeType::THREAD_BLOCK_3S || eventName == AppFreezeType::THREAD_BLOCK_6S ||
+        eventName == AppFreezeType::BUSSINESS_THREAD_BLOCK_3S ||
+        eventName == AppFreezeType::BUSSINESS_THREAD_BLOCK_6S) {
+        return state.isStateForeground;
+    }
+
+    if (state.abilityPendingBackground) {
+        return false;
+    }
+    if (state.isTransitioningToBackground) {
+        return false;
+    }
+    if (state.isStateForeground) {
+        return true;
+    }
+    return state.isTransitioningToForeground;
 }
 
 bool AppfreezeManager::CheckProcessExit(const std::string& processName, const std::string& eventName, bool foreground)
