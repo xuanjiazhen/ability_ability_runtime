@@ -1351,7 +1351,7 @@ public:
      */
     virtual int32_t NotifyAppMgrRecordExitReasonCompability(int32_t pid, int32_t killId,
         const std::string &killMsg, const std::string &innerMsg, int32_t reason,
-        int32_t callerPid, const std::string &callerProcessName);
+        int32_t callerPid = -1, const std::string &callerProcessName = "");
 
     /**
      * Preload an application (press-down / pre-make / preload-module /
