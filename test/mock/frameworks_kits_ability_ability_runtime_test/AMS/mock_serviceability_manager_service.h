@@ -348,6 +348,9 @@ public:
     MOCK_METHOD2(DetachAppDebug, int32_t(const std::string &bundleName, bool isDebugFromLocal));
     MOCK_METHOD3(ExecuteIntent, int32_t(uint64_t key, const sptr<IRemoteObject> &callerToken,
         const InsightIntentExecuteParam &param));
+    MOCK_METHOD6(ExecuteIntentWithSpecifyTokenId, int32_t(uint64_t key, const sptr<IRemoteObject> &hostClient,
+        const InsightIntentExecuteParam &param, const WantParams &wantParams, uint64_t specifyTokenId,
+        const sptr<IRemoteObject> &callerToken));
     MOCK_METHOD3(ExecuteInsightIntentDone, int32_t(const sptr<IRemoteObject> &token, uint64_t intentId,
         const InsightIntentExecuteResult &result));
 
@@ -356,7 +359,7 @@ public:
     bool startAbility = false;
     bool commonMockResultFlag_ = true;
     MOCK_METHOD5(StartAbilityWithSpecifyTokenId, int(const Want& want, const sptr<IRemoteObject>& callerToken,
-        uint32_t specifyTokenId, int32_t userId, int requestCode));
+        uint64_t specifyTokenId, int32_t userId, int requestCode));
 };
 } // namespace AAFwk
 } // namespace OHOS
