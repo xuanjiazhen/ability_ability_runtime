@@ -410,7 +410,9 @@ HWTEST_F(WatchdogTest, WatchdogTest_Timer_004, TestSize.Level1)
     bool appMainThreadState = true;
     EXPECT_FALSE(watchdog_->appMainThreadIsAlive_);
     watchdog_->SetAppMainThreadState(appMainThreadState);
-    bool isInBackground = false;
+    bool isInBackground = true;
+    watchdog_->SetBackgroundStatus(isInBackground);
+    isInBackground = false;
     watchdog_->SetBackgroundStatus(isInBackground);
     watchdog_->appMainHandler_ = std::make_shared<EventHandler>();
     watchdog_->Timer();
