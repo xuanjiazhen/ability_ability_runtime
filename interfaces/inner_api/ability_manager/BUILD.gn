@@ -445,6 +445,9 @@ ohos_shared_library("start_window_option") {
   }
 
   cflags_cc = []
+
+  version_script = "libability_start_options.map"
+
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"

@@ -72,6 +72,8 @@ ohos_shared_library("missionmanager_napi") {
 
   relative_install_dir = "module/application"
 
+  version_script = "libmissionmanager_napi.map"
+
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }

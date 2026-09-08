@@ -63,6 +63,8 @@ ohos_shared_library("startupmanager_napi") {
 
   relative_install_dir = "module/app/appstartup"
 
+  version_script = "libstartupmanager_napi.map"
+
   subsystem_name = "ability"
   part_name = "ability_runtime"
   configs += [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]

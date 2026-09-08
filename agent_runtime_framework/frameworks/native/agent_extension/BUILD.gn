@@ -122,6 +122,8 @@ ohos_shared_library("agent_extension") {
     "napi:ace_napi",
   ]
 
+  version_script = "libagent_extension.map"
+
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }

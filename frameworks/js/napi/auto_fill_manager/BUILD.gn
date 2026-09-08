@@ -64,6 +64,8 @@ ohos_shared_library("autofillmanager_napi") {
 
   relative_install_dir = "module/app/ability"
 
+  version_script = "libautofillmanager_napi.map"
+
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }

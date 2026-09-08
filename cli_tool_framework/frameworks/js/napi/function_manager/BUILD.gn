@@ -62,6 +62,8 @@ ohos_shared_library("functionmanager_napi") {
   ]
 
   relative_install_dir = "module/app/function"
+  version_script = "libfunctionmanager_napi.map"
+
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }

@@ -73,6 +73,8 @@ ohos_shared_library("missionmanager") {
 
   relative_install_dir = "module/app/ability"
 
+  version_script = "libmissionmanager.map"
+
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }

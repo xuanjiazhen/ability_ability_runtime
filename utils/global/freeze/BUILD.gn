@@ -53,6 +53,8 @@ ohos_shared_library("freeze_util") {
     "ipc:ipc_single",
   ]
 
+  version_script = "libfreeze_util.map"
+
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"

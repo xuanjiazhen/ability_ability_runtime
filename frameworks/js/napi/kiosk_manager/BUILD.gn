@@ -55,6 +55,8 @@ template("kioskmanager") {
       "napi:ace_napi",
     ]
 
+    version_script = "libkioskmanager.map"
+
     subsystem_name = "ability"
     part_name = "ability_runtime"
   }

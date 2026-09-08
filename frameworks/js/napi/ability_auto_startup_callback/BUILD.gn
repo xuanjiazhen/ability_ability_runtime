@@ -58,6 +58,8 @@ ohos_shared_library("autostartupcallback") {
     ]
   }
 
+  version_script = "libautostartupcallback.map"
+
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
