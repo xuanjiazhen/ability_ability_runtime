@@ -527,6 +527,107 @@ HWTEST_F(DynamicFeatureManagerTest, Destructor_LoadedAndPending_001, TestSize.Le
     SUCCEED(); // did not crash
 }
 
+/*
+ * Feature: DynamicFeatureManager
+ * Function: Destructor (private)
+ * FunctionPoints: empty registry — destructor is a no-op (Phase 1/3 loops don't execute)
+ */
+HWTEST_F(DynamicFeatureManagerTest, Destructor_EmptyRegistry_001, TestSize.Level1)
+{
+    {
+        DynamicFeatureManager localMgr;
+        // no entries — destructor must complete cleanly
+    }
+    SUCCEED();
+}
+
+/*
+ * Feature: DynamicFeatureManager
+ * Function: Destructor (private)
+ * FunctionPoints: loaded entry with no pending unload handle — Phase 1 continue + Phase 3 UnloadLocked
+ */
+HWTEST_F(DynamicFeatureManagerTest, Destructor_LoadedNoPendingHandle_001, TestSize.Level1)
+{
+    static MockFeature mock;
+    {
+        DynamicFeatureManager localMgr;
+        auto &entry = localMgr.registry_[FeatureId::STORAGE];
+        entry.destroy = nullptr; // NoOpDestroy for injected mock
+        entry.instance.reset(&mock);
+        entry.loaded = true;
+        // No ArmUnloadLocked — Phase 1 sees !has_value() and continues
+    }
+    SUCCEED();
+}
+
+/*
+ * Feature: DynamicFeatureManager
+ * Function: Destructor (private)
+ * FunctionPoints: not-loaded entry with no handle — Phase 1 continue + Phase 3 skips UnloadLocked
+ */
+HWTEST_F(DynamicFeatureManagerTest, Destructor_NotLoadedNoHandle_001, TestSize.Level1)
+{
+    {
+        DynamicFeatureManager localMgr;
+        localMgr.registry_[FeatureId::STORAGE]; // default-constructed: loaded=false, no handle
+    }
+    SUCCEED();
+}
+
+/*
+ * Feature: DynamicFeatureManager
+ * Function: Destructor (private)
+ * FunctionPoints: multiple entries with mixed states — all Phase 1/3 branches exercised
+ */
+HWTEST_F(DynamicFeatureManagerTest, Destructor_MultipleMixedEntries_001, TestSize.Level1)
+{
+    static MockFeature mockStorage;
+    static MockFeature mockMedia;
+    {
+        DynamicFeatureManager localMgr;
+        // STORAGE: loaded + pending unload task (skip==0 path)
+        auto &sEntry = localMgr.registry_[FeatureId::STORAGE];
+        sEntry.destroy = nullptr;
+        sEntry.instance.reset(&mockStorage);
+        sEntry.loaded = true;
+        localMgr.ArmUnloadLocked(sEntry, FeatureId::STORAGE);
+        ASSERT_TRUE(sEntry.unloadHandle.has_value());
+        // MEDIA: loaded, no pending handle (Phase 1 continue + Phase 3 UnloadLocked)
+        auto &mEntry = localMgr.registry_[FeatureId::MEDIA];
+        mEntry.destroy = nullptr;
+        mEntry.instance.reset(&mockMedia);
+        mEntry.loaded = true;
+    }
+    SUCCEED();
+}
+
+/*
+ * Feature: DynamicFeatureManager
+ * Function: Destructor (private)
+ * FunctionPoints: already-completed task — skip returns -1, handle captured for Phase 2 wait
+ *
+ * Simulates the rare race where the unload task has already fired by the time the
+ * destructor runs. We submit a no-op task (no delay) and wait for it to complete
+ * BEFORE destructing, so skip is guaranteed to return -1. Phase 2's ffrt::wait
+ * then returns immediately (task already done). Deterministic, no timing race.
+ */
+HWTEST_F(DynamicFeatureManagerTest, Destructor_CompletedTaskSkipsAndWaits_001, TestSize.Level1)
+{
+    static MockFeature mock;
+    {
+        DynamicFeatureManager localMgr;
+        auto &entry = localMgr.registry_[FeatureId::STORAGE];
+        entry.destroy = nullptr; // NoOpDestroy for injected mock
+        entry.instance.reset(&mock);
+        entry.loaded = true;
+        // Submit a no-op task and wait for it to finish before destructing.
+        entry.unloadHandle = ffrt::submit_h([] {}, {}, {}, ffrt::task_attr());
+        ffrt::wait({*entry.unloadHandle});
+        ASSERT_TRUE(entry.unloadHandle.has_value());
+    }
+    SUCCEED(); // destructor's skip returns -1, Phase 2 wait returns immediately, no crash
+}
+
 // ============================================================================
 // DynamicFeatureScope — separate fixture for the RAII guard itself
 // ============================================================================
