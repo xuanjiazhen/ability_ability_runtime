@@ -21,6 +21,7 @@
 #include "extension_context.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "session_info.h"
 
 namespace OHOS {
 namespace AbilityRuntime {

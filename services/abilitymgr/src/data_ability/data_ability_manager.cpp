@@ -16,6 +16,7 @@
 #include "data_ability_manager.h"
 
 #include "ability_manager_service.h"
+#include "configuration.h"
 #include "ability_resident_process_rdb.h"
 #include "ability_util.h"
 #include "connection_state_manager.h"

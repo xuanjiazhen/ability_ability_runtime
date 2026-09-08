@@ -15,6 +15,7 @@
 
 #include "configuration_observer_proxy.h"
 
+#include "configuration.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_types.h"
 

@@ -20,7 +20,11 @@
 
 #ifdef SUPPORT_GRAPHICS
 #ifdef SUPPORT_SCREEN
-#include "pixel_map.h"
+namespace OHOS {
+namespace Media {
+class PixelMap;
+}
+}
 #endif
 #endif
 

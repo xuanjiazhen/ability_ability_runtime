@@ -18,6 +18,7 @@
 
 #include "ability_manager_errors.h"
 #include "ability_manager_radar.h"
+#include "session_info.h"
 #include "app_utils.h"
 #include "fd_guard.h"
 #include "hilog_tag_wrapper.h"
