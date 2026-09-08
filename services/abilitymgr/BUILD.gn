@@ -21,8 +21,13 @@ ohos_shared_headers("abilityms_target") {
   deps = [
     ":abilityms",
     ":ams_service_config",
-    ":mission_list",
   ]
+  # mission_list is a runtime dlopen plugin of abilityms, only loaded when
+  # SceneBoard is disabled (sub_managers_helper.cpp). Phone products do not
+  # build it; other product forms keep it for their non-SceneBoard scenarios.
+  if (!is_phone_product) {
+    deps += [ ":mission_list" ]
+  }
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }
