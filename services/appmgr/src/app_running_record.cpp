@@ -2776,14 +2776,20 @@ std::string AppRunningRecord::GetInnerMsg() const
     return innerMsg_;
 }
 
-void AppRunningRecord::SetCallerProcessName(const std::string &callerProcessName)
+void AppRunningRecord::SetKillCallerInfo(int32_t killCallerPid, const std::string &killCallerProcessName)
 {
-    callerProcessName_ = callerProcessName;
+    killCallerPid_ = killCallerPid;
+    killCallerProcessName_ = killCallerProcessName;
 }
 
-std::string AppRunningRecord::GetCallerProcessName() const
+int32_t AppRunningRecord::GetKillCallerPid() const
 {
-    return callerProcessName_;
+    return killCallerPid_;
+}
+
+std::string AppRunningRecord::GetKillCallerProcessName() const
+{
+    return killCallerProcessName_;
 }
 
 int AppRunningRecord::DumpIpcStart(std::string& result)
