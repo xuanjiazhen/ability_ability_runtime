@@ -384,7 +384,7 @@ public:
         return E_OK;
     }
 
-    virtual int32_t UMountDlpFuse(const std::string &dstPath) override
+    virtual int32_t UMountDlpFuse(const std::string &dstPat) override
     {
         return E_OK;
     }
