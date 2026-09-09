@@ -324,7 +324,7 @@ Ability_NativeChildProcess_ErrCode OH_Ability_CreateNativeChildProcessWithConfig
  * @since 13
  */
 typedef struct NativeChildProcess_Fd {
-    /** the key of the file descriptor. */
+    /** The key of the file descriptor. It contains a maximum of 20 characters. */
     char* fdName;
 
     /** the value of the file descriptor. */
@@ -336,6 +336,7 @@ typedef struct NativeChildProcess_Fd {
 
 /**
  * @brief The list of the info of the file descriptors passed to child process.
+ * The list can contain a maximum of 16 entries.
  * @since 13
  */
 typedef struct NativeChildProcess_FdList {
@@ -397,8 +398,9 @@ typedef struct NativeChildProcess_Args {
  * For details, see {@link NativeChildProcess_Options}.
  * @param pid The started child process id.
  * @return Returns {@link NCP_NO_ERROR} if the call is successful.\n
- * Returns {@link NCP_ERR_INVALID_PARAM} if the dynamic library name or callback function pointer is invalid.\n
+ * Returns {@link NCP_ERR_INVALID_PARAM} if the dynamic library name or entry function pointer is invalid.\n
  * Returns {@link NCP_ERR_NOT_SUPPORTED} if the device does not support the creation of native child processes.\n
+ * Returns {@link NCP_ERR_MULTI_PROCESS_DISABLED} if the multi-process mode is disabled on the device.\n
  * Returns {@link NCP_ERR_ALREADY_IN_CHILD} if it is not allowed to create another child process in the child process.\n
  * Returns {@link NCP_ERR_MAX_CHILD_PROCESSES_REACHED} if the maximum number of native child processes is reached.\n
  * For details, see {@link Ability_NativeChildProcess_ErrCode}.
@@ -433,8 +435,9 @@ Ability_NativeChildProcess_ErrCode OH_Ability_StartNativeChildProcess(
  * For details, see {@link Ability_ChildProcessConfigs}.
  * @param pid The started child process id.
  * @return Returns {@link NCP_NO_ERROR} if the call is successful.
- * Returns {@link NCP_ERR_INVALID_PARAM} if the dynamic library name or callback function pointer is invalid.
+ * Returns {@link NCP_ERR_INVALID_PARAM} if the dynamic library name or entry function pointer is invalid.
  * Returns {@link NCP_ERR_NOT_SUPPORTED} if the device does not support the creation of native child processes.
+ * Returns {@link NCP_ERR_MULTI_PROCESS_DISABLED} if the multi-process mode is disabled on the device.
  * Returns {@link NCP_ERR_ALREADY_IN_CHILD} if it is not allowed to create another child process in the child process.
  * Returns {@link NCP_ERR_MAX_CHILD_PROCESSES_REACHED} if the maximum number of native child processes is reached.
  * For details, see {@link Ability_NativeChildProcess_ErrCode}.
