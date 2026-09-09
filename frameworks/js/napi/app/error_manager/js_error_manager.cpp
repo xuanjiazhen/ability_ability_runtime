@@ -32,6 +32,23 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
+struct NapiRefHolder {
+    explicit NapiRefHolder(napi_ref r, napi_env e) : ref(r), env(e) {}
+
+    NapiRefHolder(const NapiRefHolder&) = delete;
+    NapiRefHolder& operator=(const NapiRefHolder&) = delete;
+
+    ~NapiRefHolder()
+    {
+        if (ref != nullptr && env != nullptr) {
+            napi_delete_reference(env, ref);
+            ref = nullptr;
+        }
+    }
+
+    napi_ref ref = nullptr;
+    napi_env env = nullptr;
+};
 struct JsLoopObserver {
     std::shared_ptr<AppExecFwk::EventRunner> mainRunner;
     std::shared_ptr<NativeReference> observerObject;
@@ -39,7 +56,7 @@ struct JsLoopObserver {
 };
 struct WorkItem  {
     uv_work_t work;
-    napi_ref ref;
+    std::shared_ptr<NapiRefHolder> holder;
     napi_env env;
     std::string instanceName;
     uint32_t instanceType;
@@ -49,11 +66,11 @@ struct WorkItem  {
     std::shared_ptr<std::atomic<int>> remainingCount;
 };
 struct GlobalObserverItem {
-    napi_ref ref;
+    std::shared_ptr<NapiRefHolder> holder;
     napi_env env;
     bool operator<(const GlobalObserverItem& other) const
     {
-        return ref < other.ref;
+        return holder < other.holder;
     }
 };
 struct GlobalUnhandledRejection {
@@ -62,15 +79,19 @@ struct GlobalUnhandledRejection {
     std::string instanceName;
     uint32_t instanceType;
 };
+struct SingleObserverItem {
+    napi_ref ref;
+    napi_env env;
+};
 static std::set<GlobalObserverItem> globalObserverList;
 static std::set<GlobalObserverItem> globalPromiseList;
 static std::map<napi_env, std::vector<std::pair<int32_t, std::shared_ptr<NativeReference>>>> observerList;
-static GlobalObserverItem freezeObserver;
-static GlobalObserverItem defaultHandler;
+static SingleObserverItem freezeObserver;
+static SingleObserverItem defaultHandler;
+static SingleObserverItem g_defaultLeakObserver;
 static std::mutex defaultHandlerMtx;
-static GlobalObserverItem g_defaultLeakObserver;
 static std::mutex defaultLeakMtx;
-static GlobalObserverItem g_defaulFreezeObserver;
+static SingleObserverItem g_defaulFreezeObserver;
 static std::mutex g_defaultFreezeMtx;
 static std::mutex globalErrorMtx;
 static std::mutex globalPromiseMtx;
@@ -234,9 +255,6 @@ static void ClearGlobalObserverReference(napi_env env)
     auto it = globalObserverList.begin();
     while (it != globalObserverList.end()) {
         if (it->env == env) {
-            if (napi_delete_reference(env, it->ref) != napi_ok) {
-                TAG_LOGW(AAFwkTag::JSNAPI, "Failed to delete observer reference");
-            }
             it = globalObserverList.erase(it);
         } else {
             ++it;
@@ -251,9 +269,6 @@ static void ClearGlobalPromiseReference(napi_env env)
     auto it = globalPromiseList.begin();
     while (it != globalPromiseList.end()) {
         if (it->env == env) {
-            if (napi_delete_reference(env, it->ref) != napi_ok) {
-                TAG_LOGW(AAFwkTag::JSNAPI, "Failed to delete promise reference");
-            }
             it = globalPromiseList.erase(it);
         } else {
             ++it;
@@ -364,7 +379,7 @@ static bool NapiDoFunctionCallBack(WorkItem *newItem)
     size_t argc = ARGC_ONE;
     napi_value args[] = {CreateGlobalObject(newItem->env, newItem)};
     napi_value function = nullptr;
-    if (napi_get_reference_value(newItem->env, newItem->ref, &function) != napi_ok) {
+    if (napi_get_reference_value(newItem->env, newItem->holder->ref, &function) != napi_ok) {
         TAG_LOGI(AAFwkTag::JSNAPI, "Get Callback Failed");
         napi_close_handle_scope(newItem->env, scope_);
         delete newItem;
@@ -433,7 +448,7 @@ static void DoCallbackInRegesterThread(napi_env env, WorkItem &info)
                 continue;
             }
             item->env = iter.env;
-            item->ref = iter.ref;
+            item->holder = iter.holder;
             item->instanceName = info.instanceName;
             item->instanceType = info.instanceType;
             item->work.data = item;
@@ -810,7 +825,7 @@ static bool GlobalPromiseManagerCallback(
             continue;
         }
         item->env = iter.env;
-        item->ref = iter.ref;
+        item->holder = iter.holder;
         item->instanceName = instanceName;
         item->instanceType = instanceType;
         item->work.data = item;
@@ -1368,17 +1383,18 @@ private:
                 continue;
             }
             napi_value observer = nullptr;
-            NAPI_CALL(env, napi_get_reference_value(env, iter.ref, &observer));
+            NAPI_CALL(env, napi_get_reference_value(env, iter.holder->ref, &observer));
             bool equals = false;
             NAPI_CALL(env, napi_strict_equals(env, observer, function, &equals));
             if (equals) {
-                NAPI_CALL(env, napi_delete_reference(env, iter.ref));
                 globalObserverList.erase(iter);
                 break;
             }
         }
         GlobalObserverItem item;
-        NAPI_CALL(env, napi_create_reference(env, function, INITITAL_REFCOUNT_ONE, &item.ref));
+        napi_ref ref = nullptr;
+        NAPI_CALL(env, napi_create_reference(env, function, INITITAL_REFCOUNT_ONE, &ref));
+        item.holder = std::make_shared<NapiRefHolder>(ref, env);
         item.env = env;
         globalObserverList.insert(item);
         TAG_LOGI(AAFwkTag::JSNAPI, "add observer successfully");
@@ -1415,17 +1431,18 @@ private:
                 continue;
             }
             napi_value observer = nullptr;
-            NAPI_CALL(env, napi_get_reference_value(env, iter.ref, &observer));
+            NAPI_CALL(env, napi_get_reference_value(env, iter.holder->ref, &observer));
             bool equals = false;
             NAPI_CALL(env, napi_strict_equals(env, observer, function, &equals));
             if (equals) {
-                NAPI_CALL(env, napi_delete_reference(env, iter.ref));
                 globalPromiseList.erase(iter);
                 break;
             }
         }
         GlobalObserverItem item;
-        NAPI_CALL(env, napi_create_reference(env, function, INITITAL_REFCOUNT_ONE, &item.ref));
+        napi_ref ref = nullptr;
+        NAPI_CALL(env, napi_create_reference(env, function, INITITAL_REFCOUNT_ONE, &ref));
+        item.holder = std::make_shared<NapiRefHolder>(ref, env);
         item.env = env;
         globalPromiseList.insert(item);
         TAG_LOGI(AAFwkTag::JSNAPI, "add observer successfully");
@@ -1451,11 +1468,10 @@ private:
                 continue;
             }
             napi_value observer = nullptr;
-            NAPI_CALL(env, napi_get_reference_value(env, iter.ref, &observer));
+            NAPI_CALL(env, napi_get_reference_value(env, iter.holder->ref, &observer));
             bool equals = false;
             NAPI_CALL(env, napi_strict_equals(env, observer, function, &equals));
             if (equals) {
-                NAPI_CALL(env, napi_delete_reference(env, iter.ref));
                 globalObserverList.erase(iter);
                 TAG_LOGI(AAFwkTag::JSNAPI, "SubEvent op = off_all, kit = AbilityKit, "
                     "event=globalErrorOccurred");
@@ -1530,11 +1546,10 @@ private:
                 continue;
             }
             napi_value observer = nullptr;
-            NAPI_CALL(env, napi_get_reference_value(env, iter.ref, &observer));
+            NAPI_CALL(env, napi_get_reference_value(env, iter.holder->ref, &observer));
             bool equals = false;
             NAPI_CALL(env, napi_strict_equals(env, observer, function, &equals));
             if (equals) {
-                NAPI_CALL(env, napi_delete_reference(env, iter.ref));
                 globalPromiseList.erase(iter);
                 TAG_LOGI(AAFwkTag::JSNAPI, "SubEvent op = off_all, kit = AbilityKit, "
                     "event=globalUnhandledRejectionDetected");
