@@ -1327,7 +1327,8 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, EnterKioskMode_004, TestSize.Level
     ASSERT_NE(abilityManagerService, nullptr);
     auto callerToken = MockToken(AbilityType::PAGE);
     ASSERT_NE(callerToken, nullptr);
-    auto result = abilityManagerService->EnterKioskMode(callerToken);
+    auto result = abilityManagerService->EnterKioskMode(callerToken,
+        static_cast<int32_t>(Rosen::KioskType::DEFAULT));
     EXPECT_EQ(result, INVALID_PARAMETERS_ERR);
 }
 
