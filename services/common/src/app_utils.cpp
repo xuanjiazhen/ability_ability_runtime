@@ -912,8 +912,7 @@ bool AppUtils::IsSupportExecCmd()
     {
         std::lock_guard lock(isSupportExecCmdMutex_);
         if (!isSupportExecCmd_.isLoaded) {
-            bool def = (system::GetDeviceType() == "2in1");
-            isSupportExecCmd_.value = system::GetBoolParameter(SUPPORT_EXEC_CMD, def);
+            isSupportExecCmd_.value = system::GetBoolParameter(SUPPORT_EXEC_CMD, false);
             isSupportExecCmd_.isLoaded = true;
         }
         value = isSupportExecCmd_.value;
