@@ -367,6 +367,8 @@ public:
 
     bool IsProductAppbootSettingEnabled();
 
+    bool IsWindowForegroundCheckEnabled();
+
     void LoadAppTransferList();
 
     bool InAppTransferList(const std::string &bundleName);
@@ -481,6 +483,7 @@ private:
     volatile DeviceConfiguration<bool> isSupportModularObjectExtension_ = {false, false};
     volatile DeviceConfiguration<bool> isAutoStartupSupported_ = {false, false};
     volatile DeviceConfiguration<bool> isProductAppbootSettingEnabled_ = {false, false};
+    volatile DeviceConfiguration<bool> isWindowForegroundCheckEnabled_ = {false, false};
     volatile DeviceConfiguration<bool> isHybridSpawnUnified_ = {false, false};
     volatile DeviceConfiguration<bool> isSupportNativeUIAbility_ = {false, false};
     volatile DeviceConfiguration<bool> isSupportDelayedProcessExit_ = {false, false};

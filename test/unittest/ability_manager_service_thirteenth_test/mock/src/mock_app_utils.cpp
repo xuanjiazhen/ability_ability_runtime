@@ -263,5 +263,10 @@ bool AppUtils::IsSupportDelayedProcessExit()
 {
     return MyStatus::GetInstance().auIsSupportDelayedProcessExit_;
 }
+
+bool AppUtils::IsWindowForegroundCheckEnabled()
+{
+    return false;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

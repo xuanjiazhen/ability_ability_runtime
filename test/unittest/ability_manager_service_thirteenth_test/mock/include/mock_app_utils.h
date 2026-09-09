@@ -323,6 +323,8 @@ public:
 
     bool IsSupportDelayedProcessExit();
 
+    bool IsWindowForegroundCheckEnabled();
+
 private:
     /**
      * LoadResidentProcessInExtremeMemory, load resident process in extreme low memory.
