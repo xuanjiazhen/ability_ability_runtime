@@ -18,9 +18,9 @@
 
 #include <memory>
 
-#include "ability_record_mgr.h"
-#include "assert_fault_task_thread.h"
-#include "application_impl.h"
+#include "impl/ability_record_mgr.h"
+#include "impl/assert_fault_task_thread.h"
+#include "impl/application_impl.h"
 #include "fault_data.h"
 #include "ohos_application.h"
 

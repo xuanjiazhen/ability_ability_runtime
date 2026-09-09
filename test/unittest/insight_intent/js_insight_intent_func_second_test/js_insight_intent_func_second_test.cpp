@@ -20,8 +20,8 @@
 #define private public
 #define protected public
 #include "insight_intent_executor.h"
-#include "js_insight_intent_func.h"
-#include "js_insight_intent_utils.h"
+#include "impl/js_insight_intent_func.h"
+#include "impl/js_insight_intent_utils.h"
 #include "js_runtime.h"
 #include "js_environment.h"
 #undef private

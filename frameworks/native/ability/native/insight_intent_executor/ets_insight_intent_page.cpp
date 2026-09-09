@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "ets_insight_intent_page.h"
+#include "impl/ets_insight_intent_page.h"
 
 #include <want_params.h>
 #include <want_params_wrapper.h>

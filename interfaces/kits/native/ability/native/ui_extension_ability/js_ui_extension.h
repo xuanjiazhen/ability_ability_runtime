@@ -22,7 +22,7 @@
 #include "display_manager.h"
 #include "window_manager.h"
 #endif // SUPPORT_GRAPHICS
-#include "insight_intent_executor_info.h"
+#include "impl/insight_intent_executor_info.h"
 #include "js_ui_extension_content_session.h"
 #include "ui_extension.h"
 

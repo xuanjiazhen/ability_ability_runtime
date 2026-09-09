@@ -15,7 +15,7 @@
 
 #include <gtest/gtest.h>
 
-#include "native_lib_util.h"
+#include "impl/native_lib_util.h"
 
 using namespace testing::ext;
 

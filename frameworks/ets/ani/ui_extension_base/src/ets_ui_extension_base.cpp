@@ -40,7 +40,7 @@
 #include "hilog_tag_wrapper.h"
 #include "hilog_wrapper.h"
 #include "hitrace_meter.h"
-#include "insight_intent_executor_mgr.h"
+#include "impl/insight_intent_executor_mgr.h"
 #include "int_wrapper.h"
 #include "ohos_application.h"
 #include "string_wrapper.h"

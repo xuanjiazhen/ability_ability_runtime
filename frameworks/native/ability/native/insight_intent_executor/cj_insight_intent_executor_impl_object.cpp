@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "cj_insight_intent_executor_impl_object.h"
+#include "impl/cj_insight_intent_executor_impl_object.h"
 
 #include <want_params.h>
 

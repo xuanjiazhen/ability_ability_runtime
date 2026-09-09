@@ -13,20 +13,20 @@
  * limitations under the License.
  */
 
-#include "napi_context.h"
+#include "impl/napi_context.h"
 
 #include <cstring>
 #include <uv.h>
 
 #include "napi_common_ability.h"
-#include "napi_context_helper.h"
+#include "impl/napi_context_helper.h"
 #include "ability_util.h"
 #include "ability_process.h"
 #include "directory_ex.h"
-#include "feature_ability_common.h"
+#include "impl/feature_ability_common.h"
 #include "file_ex.h"
 #include "hilog_tag_wrapper.h"
-#include "js_napi_common_ability.h"
+#include "impl/js_napi_common_ability.h"
 #include "permission_list_state.h"
 #include "securec.h"
 

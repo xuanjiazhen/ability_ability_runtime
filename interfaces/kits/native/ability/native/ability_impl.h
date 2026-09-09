@@ -19,7 +19,7 @@
 #include "ability.h"
 #include "iability_lifecycle_callback.h"
 #include "context.h"
-#include "application_impl.h"
+#include "impl/application_impl.h"
 #include "ability_local_record.h"
 #include "ability_handler.h"
 #include "ability_manager_client.h"

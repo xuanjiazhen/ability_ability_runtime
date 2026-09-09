@@ -18,7 +18,7 @@
 #include "dialog_request_callback_stub.h"
 #ifdef SUPPORT_GRAPHICS
 #undef SUPPORT_GRAPHICS
-#include "dialog_request_callback_impl.h"
+#include "impl/dialog_request_callback_impl.h"
 #endif
 #include "idialog_request_callback.h"
 

@@ -23,8 +23,8 @@
 #include "ability_info.h"
 #include "ability_manager_errors.h"
 #include "application_info.h"
-#include "feature_ability_common.h"
-#include "napi_common_ability_wrap_utils.h"
+#include "impl/feature_ability_common.h"
+#include "impl/napi_common_ability_wrap_utils.h"
 
 namespace OHOS {
 namespace AppExecFwk {

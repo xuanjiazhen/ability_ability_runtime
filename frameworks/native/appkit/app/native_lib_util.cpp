@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "native_lib_util.h"
+#include "impl/native_lib_util.h"
 
 #include "constants.h"
 #include "hilog_tag_wrapper.h"

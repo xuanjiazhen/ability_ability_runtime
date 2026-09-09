@@ -13,16 +13,16 @@
  * limitations under the License.
  */
 
-#include "js_insight_intent_entry.h"
+#include "impl/js_insight_intent_entry.h"
 
 #include <want_params.h>
 
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_constant.h"
-#include "insight_intent_delay_result_callback_mgr.h"
+#include "impl/insight_intent_delay_result_callback_mgr.h"
 #include "insight_intent_execute_result.h"
 #include "js_insight_intent_context.h"
-#include "js_insight_intent_utils.h"
+#include "impl/js_insight_intent_utils.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
 #include "napi_common_execute_result.h"

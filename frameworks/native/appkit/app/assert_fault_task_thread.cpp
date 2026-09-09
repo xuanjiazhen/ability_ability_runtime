@@ -18,8 +18,8 @@
 
 #include "ability_manager_client.h"
 #include "assert.h"
-#include "assert_fault_task_thread.h"
-#include "assert_fault_callback.h"
+#include "impl/assert_fault_task_thread.h"
+#include "impl/assert_fault_callback.h"
 #include "hilog_tag_wrapper.h"
 #include "main_thread.h"
 #include "string_wrapper.h"

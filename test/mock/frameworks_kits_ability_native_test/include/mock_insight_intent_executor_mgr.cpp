@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "insight_intent_executor_mgr.h"
+#include "impl/insight_intent_executor_mgr.h"
 
 namespace OHOS {
 namespace AbilityRuntime {

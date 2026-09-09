@@ -14,14 +14,14 @@
  */
 
 #include "insight_intent_executor.h"
-#include "ets_insight_intent_executor_instance.h"
+#include "impl/ets_insight_intent_executor_instance.h"
 #include "ets_runtime.h"
 #include "hilog_tag_wrapper.h"
-#include "js_insight_intent_entry.h"
-#include "js_insight_intent_executor.h"
-#include "js_insight_intent_func.h"
-#include "js_insight_intent_page.h"
-#include "js_insight_intent_query_entity.h"
+#include "impl/js_insight_intent_entry.h"
+#include "impl/js_insight_intent_executor.h"
+#include "impl/js_insight_intent_func.h"
+#include "impl/js_insight_intent_page.h"
+#include "impl/js_insight_intent_query_entity.h"
 #include "js_runtime.h"
 #include "runtime.h"
 

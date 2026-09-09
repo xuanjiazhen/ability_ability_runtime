@@ -20,7 +20,7 @@
 
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
-#include "napi_context.h"
+#include "impl/napi_context.h"
 #include "napi_data_ability_helper.h"
 #include "particle_ability.h"
 namespace OHOS {

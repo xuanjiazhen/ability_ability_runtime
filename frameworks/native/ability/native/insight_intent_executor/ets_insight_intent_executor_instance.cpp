@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "ets_insight_intent_executor_instance.h"
+#include "impl/ets_insight_intent_executor_instance.h"
 
 #include <cstddef>
 #include <dlfcn.h>

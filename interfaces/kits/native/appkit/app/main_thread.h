@@ -20,25 +20,25 @@
 #include <signal.h>
 #include <mutex>
 
-#include "ability_record_mgr.h"
+#include "impl/ability_record_mgr.h"
 #include "app_jsheap_mem_info.h"
 #include "app_jshandle_map_info.h"
 #include "app_cjheap_mem_info.h"
 #include "app_malloc_info.h"
 #include "app_mgr_interface.h"
 #include "app_scheduler_host.h"
-#include "application_impl.h"
-#include "assert_fault_task_thread.h"
+#include "impl/application_impl.h"
+#include "impl/assert_fault_task_thread.h"
 #include "common_event_subscriber.h"
 #include "event_handler.h"
 #include "extension_config_mgr.h"
-#include "idle_time.h"
+#include "impl/idle_time.h"
 #include "inner_event.h"
 #include "ipc_singleton.h"
 #include "js_runtime.h"
 #include "mem_dump_callback_interface.h"
 #include "native_engine/native_engine.h"
-#include "overlay_event_subscriber.h"
+#include "impl/overlay_event_subscriber.h"
 #include "resource_manager.h"
 #include "runtime.h"
 #include "watchdog.h"
@@ -49,7 +49,7 @@
 #define ABILITY_LIBRARY_LOADER
 
 #if defined(NWEB) && defined(NWEB_GRAPHIC)
-#include "nweb_preload.h"
+#include "impl/nweb_preload.h"
 #include "ui/rs_surface_node.h"
 #endif
 

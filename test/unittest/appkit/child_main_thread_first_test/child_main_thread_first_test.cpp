@@ -17,7 +17,7 @@
 #include <gtest/gtest.h>
 
 #define private public
-#include "child_main_thread.h"
+#include "impl/child_main_thread.h"
 #include "sys_mgr_client.h"
 #undef private
 #include "app_log_wrapper.h"

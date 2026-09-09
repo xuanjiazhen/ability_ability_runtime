@@ -24,7 +24,7 @@
 #undef private
 #include "ability_manager_errors.h"
 #ifdef SUPPORT_CHILD_PROCESS
-#include "child_main_thread.h"
+#include "impl/child_main_thread.h"
 #endif // SUPPORT_CHILD_PROCESS
 #include "hilog_tag_wrapper.h"
 #include "mock_app_mgr_service_inner.h"

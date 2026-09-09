@@ -18,7 +18,7 @@
 #define protected public
 #include "startup_manager.h"
 #include "js_startup_task.h"
-#include "js_insight_intent_executor.h"
+#include "impl/js_insight_intent_executor.h"
 #undef private
 #undef protected
 #include "mock_config_policy_utils.h"

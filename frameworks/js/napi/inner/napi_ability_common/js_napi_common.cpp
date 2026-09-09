@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "js_napi_common_ability.h"
+#include "impl/js_napi_common_ability.h"
 
 #include "ability_manager_client.h"
 #include "ability_util.h"
@@ -21,9 +21,9 @@
 #include "hilog_tag_wrapper.h"
 #include "js_runtime_utils.h"
 #include "napi_common_ability.h"
-#include "napi_common_ability_wrap_utils.h"
+#include "impl/napi_common_ability_wrap_utils.h"
 #include "napi_common_util.h"
-#include "napi_context.h"
+#include "impl/napi_context.h"
 #include "napi_remote_object.h"
 
 using namespace OHOS::AbilityRuntime;

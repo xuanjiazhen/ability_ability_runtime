@@ -20,7 +20,7 @@
 #include "ets_error_utils.h"
 #include "ets_ui_service_proxy.h"
 #include "hilog_tag_wrapper.h"
-#include "ui_extension_servicehost_stub_impl.h"
+#include "impl/ui_extension_servicehost_stub_impl.h"
 
 namespace OHOS {
 namespace AbilityRuntime {

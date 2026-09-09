@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "idle_time.h"
+#include "impl/idle_time.h"
 
 #include "hilog_tag_wrapper.h"
 #ifdef SUPPORT_SCREEN

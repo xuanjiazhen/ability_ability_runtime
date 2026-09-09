@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "js_insight_intent_utils.h"
+#include "impl/js_insight_intent_utils.h"
 
 namespace OHOS {
 namespace AbilityRuntime {

@@ -20,7 +20,7 @@
 
 #define private public
 #define protected public
-#include "dump_ffrt_helper.h"
+#include "impl/dump_ffrt_helper.h"
 #include "ffrt_inner.h"
 #undef private
 #undef protected

@@ -21,7 +21,7 @@
 #include <string>
 #include "insight_intent_constant.h"
 #include "insight_intent_context.h"
-#include "insight_intent_executor_info.h"
+#include "impl/insight_intent_executor_info.h"
 
 namespace OHOS {
 namespace AAFwk {

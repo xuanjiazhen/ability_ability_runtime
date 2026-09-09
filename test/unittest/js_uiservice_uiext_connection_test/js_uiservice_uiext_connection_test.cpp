@@ -14,7 +14,7 @@
  */
 
 #include <gtest/gtest.h>
-#include "ui_extension_servicehost_stub_impl.h"
+#include "impl/ui_extension_servicehost_stub_impl.h"
 #define private public
 #include "js_uiservice_uiext_connection.h"
 #undef private

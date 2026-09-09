@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #define private public
 #define protected public
-#include "ability_record_mgr.h"
+#include "impl/ability_record_mgr.h"
 #undef private
 #undef protected
 #include "hilog_tag_wrapper.h"

@@ -19,7 +19,7 @@
 #include <memory>
 #include <string>
 
-#include "cj_insight_intent_executor_info.h"
+#include "impl/cj_insight_intent_executor_info.h"
 #include "insight_intent_constant.h"
 #include "insight_intent_context.h"
 

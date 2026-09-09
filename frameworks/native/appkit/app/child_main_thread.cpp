@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "child_main_thread.h"
+#include "impl/child_main_thread.h"
 
 #include <unistd.h>
 
@@ -26,7 +26,7 @@
 #include "hilog_tag_wrapper.h"
 #include "load_ability_callback_manager.h"
 #include "js_runtime.h"
-#include "native_lib_util.h"
+#include "impl/native_lib_util.h"
 #include "native_runtime.h"
 #include "sys_mgr_client.h"
 #include "system_ability_definition.h"

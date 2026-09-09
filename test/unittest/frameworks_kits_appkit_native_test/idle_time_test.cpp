@@ -18,7 +18,7 @@
 
 #define private public
 #define protected public
-#include "idle_time.h"
+#include "impl/idle_time.h"
 #include "main_thread.h"
 #undef private
 #undef protected

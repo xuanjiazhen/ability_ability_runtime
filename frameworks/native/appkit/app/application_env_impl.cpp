@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "application_env_impl.h"
+#include "impl/application_env_impl.h"
 #include "application_info.h"
 
 namespace OHOS {

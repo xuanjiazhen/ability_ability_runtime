@@ -14,7 +14,7 @@
  */
 
 #include "application_env.h"
-#include "application_env_impl.h"
+#include "impl/application_env_impl.h"
 
 #ifdef __cplusplus
 extern "C" {

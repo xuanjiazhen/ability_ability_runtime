@@ -21,7 +21,7 @@
 #include "ability_context.h"
 #include "ability_connect_callback_stub.h"
 #include "ability_connect_callback_proxy.h"
-#include "local_call_record.h"
+#include "impl/local_call_record.h"
 #include "want.h"
 
 namespace OHOS {

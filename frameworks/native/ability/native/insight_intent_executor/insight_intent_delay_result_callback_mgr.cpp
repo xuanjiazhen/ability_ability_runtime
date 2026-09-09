@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "insight_intent_delay_result_callback_mgr.h"
+#include "impl/insight_intent_delay_result_callback_mgr.h"
 #include "event_report.h"
 #include "hilog_tag_wrapper.h"
  

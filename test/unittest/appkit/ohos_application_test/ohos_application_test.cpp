@@ -17,9 +17,9 @@
 #define private public
 #include "ability.h"
 #include "ability_local_record.h"
-#include "ability_record_mgr.h"
+#include "impl/ability_record_mgr.h"
 #include "application_context.h"
-#include "application_impl.h"
+#include "impl/application_impl.h"
 #include "application_info.h"
 #include "context_deal.h"
 #include "context_impl.h"

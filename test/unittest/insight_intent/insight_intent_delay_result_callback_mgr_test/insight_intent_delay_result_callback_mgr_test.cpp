@@ -18,7 +18,7 @@
 #include "hilog_tag_wrapper.h"
 #define private public
 #define protected public
-#include "insight_intent_delay_result_callback_mgr.h"
+#include "impl/insight_intent_delay_result_callback_mgr.h"
 #undef private
 #undef protected
 

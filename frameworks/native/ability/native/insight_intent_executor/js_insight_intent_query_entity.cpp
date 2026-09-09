@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-#include "js_insight_intent_query_entity.h"
+#include "impl/js_insight_intent_query_entity.h"
 
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_constant.h"
 #include "insight_intent_execute_result.h"
 #include "int_wrapper.h"
-#include "js_insight_intent_utils.h"
+#include "impl/js_insight_intent_utils.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
 #include "napi_common_util.h"

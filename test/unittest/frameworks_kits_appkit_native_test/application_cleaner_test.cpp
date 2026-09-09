@@ -20,7 +20,7 @@
 
 #define private public
 #define protected public
-#include "application_cleaner.h"
+#include "impl/application_cleaner.h"
 #undef private
 #undef protected
 #include "hilog_tag_wrapper.h"

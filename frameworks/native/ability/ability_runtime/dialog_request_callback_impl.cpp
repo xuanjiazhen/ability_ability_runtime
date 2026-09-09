@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "dialog_request_callback_impl.h"
+#include "impl/dialog_request_callback_impl.h"
 
 #include "hilog_tag_wrapper.h"
 

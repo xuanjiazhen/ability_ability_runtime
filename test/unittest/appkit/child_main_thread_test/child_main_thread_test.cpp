@@ -17,7 +17,7 @@
 #include <gtest/gtest.h>
 
 #define private public
-#include "child_main_thread.h"
+#include "impl/child_main_thread.h"
 #undef private
 #include "child_process_info.h"
 #include "event_handler.h"

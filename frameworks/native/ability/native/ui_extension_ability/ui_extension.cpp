@@ -22,7 +22,7 @@
 #include "ets_ui_extension_instance.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
-#include "insight_intent_delay_result_callback_mgr.h"
+#include "impl/insight_intent_delay_result_callback_mgr.h"
 #include "int_wrapper.h"
 #include "js_ui_extension.h"
 #include "runtime.h"

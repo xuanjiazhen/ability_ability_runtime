@@ -19,7 +19,7 @@
 #include <vector>
 
 #include "napi_common_ability.h"
-#include "js_napi_common_ability.h"
+#include "impl/js_napi_common_ability.h"
 #include "ability_process.h"
 #include "element_name.h"
 #include "hilog_tag_wrapper.h"
@@ -29,7 +29,7 @@
 #include "js_window.h"
 #endif
 #include "napi_common_util.h"
-#include "napi_context.h"
+#include "impl/napi_context.h"
 #include "napi_data_ability_helper.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "ets_insight_intent_func.h"
+#include "impl/ets_insight_intent_func.h"
 
 #include <algorithm>
 #include <initializer_list>
@@ -22,7 +22,7 @@
 #include "ani_common_execute_result.h"
 #include "ani_common_want.h"
 #include "hilog_tag_wrapper.h"
-#include "insight_intent_delay_result_callback_mgr.h"
+#include "impl/insight_intent_delay_result_callback_mgr.h"
 #include "insight_intent_execute_result.h"
 
 #undef STATE_PATTERN_NAIVE_H

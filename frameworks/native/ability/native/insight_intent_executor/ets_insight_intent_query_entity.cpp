@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-#include "ets_insight_intent_query_entity.h"
+#include "impl/ets_insight_intent_query_entity.h"
 
 #include "ability_transaction_callback_info.h"
 #include "ani_common_query_entity_param.h"
 #include "ani_common_want.h"
 #include "ets_insight_intent_context.h"
 #include "hilog_tag_wrapper.h"
-#include "insight_intent_delay_result_callback_mgr.h"
+#include "impl/insight_intent_delay_result_callback_mgr.h"
 #include "insight_intent_execute_result.h"
 #include "int_wrapper.h"
 #include "want_params_wrapper.h"

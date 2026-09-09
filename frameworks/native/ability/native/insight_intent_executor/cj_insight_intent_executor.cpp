@@ -15,7 +15,7 @@
 
 #include "cj_insight_intent_executor.h"
 
-#include "cj_insight_intent_executor_impl.h"
+#include "impl/cj_insight_intent_executor_impl.h"
 #include "hilog_tag_wrapper.h"
 #include "runtime.h"
 

@@ -24,7 +24,7 @@
 #include "ability_impl_factory.h"
 #include "ability_loader.h"
 #include "abs_shared_result_set.h"
-#include "application_impl.h"
+#include "impl/application_impl.h"
 #include "context_deal.h"
 #include "data_ability_predicates.h"
 #include "dataobs_mgr_client.h"

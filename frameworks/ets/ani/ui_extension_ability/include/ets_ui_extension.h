@@ -23,7 +23,7 @@
 #include "ani.h"
 #include "configuration.h"
 #include "ets_runtime.h"
-#include "insight_intent_executor_info.h"
+#include "impl/insight_intent_executor_info.h"
 #include "ets_ui_extension_content_session.h"
 #include "ui_extension.h"
 #include "ui_extension_context.h"

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "js_insight_intent_utils.h"
+#include "impl/js_insight_intent_utils.h"
 #include "js_runtime_utils.h"
 #include "event_report.h"
 #include "hilog_tag_wrapper.h"

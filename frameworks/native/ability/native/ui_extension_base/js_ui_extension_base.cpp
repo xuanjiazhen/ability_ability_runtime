@@ -27,7 +27,7 @@
 #include "hilog_tag_wrapper.h"
 #include "hilog_wrapper.h"
 #include "hitrace_meter.h"
-#include "insight_intent_executor_mgr.h"
+#include "impl/insight_intent_executor_mgr.h"
 #include "int_wrapper.h"
 #include "js_ability_lifecycle_callback.h"
 #include "js_data_struct_converter.h"

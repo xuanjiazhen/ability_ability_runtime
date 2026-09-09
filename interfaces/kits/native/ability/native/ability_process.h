@@ -17,8 +17,8 @@
 #define OHOS_ABILITY_RUNTIME_ABILITY_PROCESS_H
 
 #include <mutex>
-#include "feature_ability_common.h"
-#include "napi_context.h"
+#include "impl/feature_ability_common.h"
+#include "impl/napi_context.h"
 
 namespace OHOS {
 namespace AppExecFwk {

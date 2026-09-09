@@ -19,8 +19,8 @@
 #define private public
 #define protected public
 #include "insight_intent_executor.h"
-#include "insight_intent_executor_mgr.h"
-#include "ets_insight_intent_executor_instance.h"
+#include "impl/insight_intent_executor_mgr.h"
+#include "impl/ets_insight_intent_executor_instance.h"
 #undef private
 #undef protected
 #include "mock_runtime.h"

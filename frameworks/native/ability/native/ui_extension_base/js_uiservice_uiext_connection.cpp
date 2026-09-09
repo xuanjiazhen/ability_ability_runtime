@@ -21,7 +21,7 @@
 #include "js_ui_service_proxy.h"
 #include "js_runtime_utils.h"
 #include "napi_common_want.h"
-#include "ui_extension_servicehost_stub_impl.h"
+#include "impl/ui_extension_servicehost_stub_impl.h"
 
 namespace OHOS {
 namespace AbilityRuntime {

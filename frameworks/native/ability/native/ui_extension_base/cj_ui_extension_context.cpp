@@ -23,7 +23,7 @@
 #include "open_link_options.h"
 #include "start_options.h"
 #include "uri.h"
-#include "ui_extension_servicehost_stub_impl.h"
+#include "impl/ui_extension_servicehost_stub_impl.h"
 #include "ui_service_extension_connection_constants.h"
 #include "cj_macro.h"
 #include "cj_common_ffi.h"

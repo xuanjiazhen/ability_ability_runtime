@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "local_call_record.h"
+#include "impl/local_call_record.h"
 
 #include "hilog_tag_wrapper.h"
 

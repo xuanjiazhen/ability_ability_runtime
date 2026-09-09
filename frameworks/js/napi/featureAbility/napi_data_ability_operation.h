@@ -16,7 +16,7 @@
 #define OHOS_ABILITY_RUNTIME_NAPI_DATA_ABILITY_OPERATION_H
 
 #include "data_ability_operation.h"
-#include "feature_ability_common.h"
+#include "impl/feature_ability_common.h"
 
 namespace OHOS {
 namespace NativeRdb {

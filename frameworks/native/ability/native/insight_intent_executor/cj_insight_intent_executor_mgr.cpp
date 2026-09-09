@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "cj_insight_intent_executor_mgr.h"
+#include "impl/cj_insight_intent_executor_mgr.h"
 
 #include "ability_business_error.h"
 #include "hilog_tag_wrapper.h"

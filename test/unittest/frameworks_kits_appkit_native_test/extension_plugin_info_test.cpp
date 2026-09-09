@@ -18,7 +18,7 @@
 
 #define private public
 #define protected public
-#include "extension_plugin_info.h"
+#include "impl/extension_plugin_info.h"
 #include "file_ex.h"
 #undef private
 #undef protected

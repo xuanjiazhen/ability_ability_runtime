@@ -21,7 +21,7 @@
 #include <thread>
 #include "event_handler.h"
 #include "inner_event.h"
-#include "application_impl.h"
+#include "impl/application_impl.h"
 #ifdef ABILITY_RUNTIME_HITRACE_ENABLE
 #include "hitrace/hitracechain.h"
 #endif

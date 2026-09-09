@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "overlay_event_subscriber.h"
+#include "impl/overlay_event_subscriber.h"
 
 #include "bundle_mgr_proxy.h"
 #include "hilog_tag_wrapper.h"

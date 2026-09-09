@@ -20,7 +20,7 @@
 #include "ets_runtime.h"
 #include "insight_intent_execute_param.h"
 #include "insight_intent_execute_result.h"
-#include "insight_intent_executor_info.h"
+#include "impl/insight_intent_executor_info.h"
 #include "service_extension.h"
 
 #ifdef SUPPORT_GRAPHICS

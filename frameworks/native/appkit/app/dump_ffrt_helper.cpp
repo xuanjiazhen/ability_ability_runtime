@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "dump_ffrt_helper.h"
+#include "impl/dump_ffrt_helper.h"
 
 #include <cstdint>
 #include <cstring>

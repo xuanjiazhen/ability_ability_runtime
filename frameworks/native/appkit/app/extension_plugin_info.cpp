@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "extension_plugin_info.h"
+#include "impl/extension_plugin_info.h"
 
 #include <dirent.h>
 #include <dlfcn.h>

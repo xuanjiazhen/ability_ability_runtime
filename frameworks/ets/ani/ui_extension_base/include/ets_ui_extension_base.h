@@ -23,7 +23,7 @@
 #include "ets_extension_common.h"
 #include "ets_native_reference.h"
 #include "ets_ui_extension_content_session.h"
-#include "insight_intent_executor_info.h"
+#include "impl/insight_intent_executor_info.h"
 #include "ohos_application.h"
 #include "session_info.h"
 #include "ui_extension_base.h"

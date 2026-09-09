@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-#include "ets_insight_intent_executor.h"
+#include "impl/ets_insight_intent_executor.h"
 #include "hitrace_meter.h"
 #include "ability_transaction_callback_info.h"
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_constant.h"
-#include "insight_intent_delay_result_callback_mgr.h"
+#include "impl/insight_intent_delay_result_callback_mgr.h"
 #include "insight_intent_execute_result.h"
 #include "ets_runtime.h"
 #include "ani_common_util.h"

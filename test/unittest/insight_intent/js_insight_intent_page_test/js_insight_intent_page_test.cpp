@@ -18,8 +18,8 @@
 #include "ability_transaction_callback_info.h"
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_executor.h"
-#include "js_insight_intent_page.h"
-#include "js_insight_intent_utils.h"
+#include "impl/js_insight_intent_page.h"
+#include "impl/js_insight_intent_utils.h"
 #include "js_runtime.h"
 #include "want_params.h"
 

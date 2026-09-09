@@ -40,7 +40,7 @@
 #include "locale_config.h"
 #endif
 #include "os_account_manager_wrapper.h"
-#include "overlay_event_subscriber.h"
+#include "impl/overlay_event_subscriber.h"
 #include "overlay_module_info.h"
 #include "parameters.h"
 #include "running_process_info.h"

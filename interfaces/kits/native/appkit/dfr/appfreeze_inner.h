@@ -29,7 +29,7 @@
 #include "event_handler.h"
 #include "app_mgr_client.h"
 #include "app_mgr_interface.h"
-#include "application_impl.h"
+#include "impl/application_impl.h"
 #include "fault_data.h"
 #include "task_handler_wrap.h"
 #include "ffrt.h"

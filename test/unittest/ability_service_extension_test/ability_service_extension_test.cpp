@@ -17,7 +17,7 @@
 
 #include "ability.h"
 #include "ability_handler.h"
-#include "insight_intent_executor_info.h"
+#include "impl/insight_intent_executor_info.h"
 #include "ohos_application.h"
 #include "mock_ability_token.h"
 #include "runtime.h"

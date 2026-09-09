@@ -30,8 +30,8 @@
 #include "hitrace_meter.h"
 #include "insight_intent_execute_param.h"
 #include "insight_intent_execute_result.h"
-#include "insight_intent_executor_info.h"
-#include "insight_intent_executor_mgr.h"
+#include "impl/insight_intent_executor_info.h"
+#include "impl/insight_intent_executor_mgr.h"
 #include "js_service_extension_context.h"
 #ifdef SUPPORT_GRAPHICS
 #include "iservice_registry.h"

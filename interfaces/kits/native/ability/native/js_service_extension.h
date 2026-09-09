@@ -20,7 +20,7 @@
 #include "configuration_utils.h"
 #include "insight_intent_execute_param.h"
 #include "insight_intent_execute_result.h"
-#include "insight_intent_executor_info.h"
+#include "impl/insight_intent_executor_info.h"
 #ifdef SUPPORT_GRAPHICS
 #include "display_manager.h"
 #include "system_ability_status_change_stub.h"

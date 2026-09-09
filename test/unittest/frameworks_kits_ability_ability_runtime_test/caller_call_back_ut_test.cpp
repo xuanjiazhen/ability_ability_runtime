@@ -17,7 +17,7 @@
 #define private public
 #define protected public
 #include "caller_callback.h"
-#include "local_call_record.h"
+#include "impl/local_call_record.h"
 #undef private
 #undef protected
 

@@ -16,8 +16,8 @@
 #ifndef OHOS_ABILITY_RUNTIME_NAPI_DATA_ABILITY_HELPER_UTILS_H
 #define OHOS_ABILITY_RUNTIME_NAPI_DATA_ABILITY_HELPER_UTILS_H
 
-#include "data_ability_helper_common.h"
-#include "feature_ability_common.h"
+#include "impl/data_ability_helper_common.h"
+#include "impl/feature_ability_common.h"
 
 namespace OHOS {
 namespace AppExecFwk {

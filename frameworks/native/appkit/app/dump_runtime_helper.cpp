@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "dump_runtime_helper.h"
+#include "impl/dump_runtime_helper.h"
 
 #include <dfx_signal_handler.h>
 #include <malloc.h>
@@ -38,7 +38,7 @@
 #include "cj_runtime.h"
 #endif
 #if defined(NWEB)
-#include "dump_arkweb_helper.h"
+#include "impl/dump_arkweb_helper.h"
 #endif
 
 namespace OHOS {

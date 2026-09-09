@@ -17,7 +17,7 @@
 #include "ui_ability.h"
 #include <gtest/gtest.h>
 
-#include "insight_intent_executor_info.h"
+#include "impl/insight_intent_executor_info.h"
 #include "ability_context_impl.h"
 #include "ability_handler.h"
 #include "ability_recovery.h"

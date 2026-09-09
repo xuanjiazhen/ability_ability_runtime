@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-#include "cj_insight_intent_executor_impl.h"
+#include "impl/cj_insight_intent_executor_impl.h"
 
 #include <want_params.h>
 
 #include "ability_transaction_callback_info.h"
-#include "cj_insight_intent_executor_impl_object.h"
+#include "impl/cj_insight_intent_executor_impl_object.h"
 #include "event_report.h"
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_constant.h"

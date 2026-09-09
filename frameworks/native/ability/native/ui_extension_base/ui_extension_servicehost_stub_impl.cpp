@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "ui_extension_servicehost_stub_impl.h"
+#include "impl/ui_extension_servicehost_stub_impl.h"
 
 #include "ability_business_error.h"
 #include "js_uiservice_uiext_connection.h"

@@ -20,7 +20,7 @@
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
 #include "js_runtime_utils.h"
-#include "js_napi_common_ability.h"
+#include "impl/js_napi_common_ability.h"
 
 namespace OHOS {
 namespace AppExecFwk {

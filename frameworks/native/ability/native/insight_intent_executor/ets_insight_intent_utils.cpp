@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "ets_insight_intent_utils.h"
+#include "impl/ets_insight_intent_utils.h"
 
 #include <cstdarg>
 

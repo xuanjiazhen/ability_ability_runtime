@@ -18,7 +18,7 @@
 #include "ability_thread.h"
 #include "mock_serviceability_manager_service.h"
 #define private public
-#include "local_call_record.h"
+#include "impl/local_call_record.h"
 #define protected public
 #include "system_ability_definition.h"
 #include "sys_mgr_client.h"

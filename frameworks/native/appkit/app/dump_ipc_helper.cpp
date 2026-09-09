@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "dump_ipc_helper.h"
+#include "impl/dump_ipc_helper.h"
 
 #include <vector>
 #include <sys/types.h>

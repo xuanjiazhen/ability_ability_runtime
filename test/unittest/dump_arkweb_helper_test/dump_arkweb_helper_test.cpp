@@ -15,7 +15,7 @@
 
 #include <gtest/gtest.h>
 
-#include "dump_arkweb_helper.h"
+#include "impl/dump_arkweb_helper.h"
 
 namespace OHOS {
 namespace AppExecFwk {

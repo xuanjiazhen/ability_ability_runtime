@@ -15,7 +15,7 @@
 #include <gtest/gtest.h>
 
 #define private public
-#include "dump_runtime_helper.h"
+#include "impl/dump_runtime_helper.h"
 #undef private
 
 #include "app_loader.h"

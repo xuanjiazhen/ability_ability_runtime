@@ -20,7 +20,7 @@
 
 #include "ability_transaction_callback_info.h"
 #include "insight_intent_executor.h"
-#include "insight_intent_executor_info.h"
+#include "impl/insight_intent_executor_info.h"
 #include "insight_intent_execute_result.h"
 #include "singleton.h"
 

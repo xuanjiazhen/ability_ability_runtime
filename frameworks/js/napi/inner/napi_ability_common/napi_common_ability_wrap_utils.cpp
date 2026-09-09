@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "napi_common_ability_wrap_utils.h"
+#include "impl/napi_common_ability_wrap_utils.h"
 
 #include "hilog_tag_wrapper.h"
 

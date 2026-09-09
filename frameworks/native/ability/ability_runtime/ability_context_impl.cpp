@@ -23,7 +23,7 @@
 #include "configuration_convertor.h"
 #include "bindable_sub_thread.h"
 #include "connection_manager.h"
-#include "dialog_request_callback_impl.h"
+#include "impl/dialog_request_callback_impl.h"
 #include "dialog_ui_extension_callback.h"
 #include "event_report.h"
 #include "hilog_tag_wrapper.h"

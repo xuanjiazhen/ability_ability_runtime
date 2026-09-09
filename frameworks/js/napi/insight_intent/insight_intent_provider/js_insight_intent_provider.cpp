@@ -21,7 +21,7 @@
 
 
 #include "napi_common_execute_result.h"
-#include "insight_intent_delay_result_callback_mgr.h"
+#include "impl/insight_intent_delay_result_callback_mgr.h"
 
 namespace OHOS {
 namespace AbilityRuntime {

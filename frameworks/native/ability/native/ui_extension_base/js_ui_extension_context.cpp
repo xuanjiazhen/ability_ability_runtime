@@ -43,7 +43,7 @@
 #include "start_options.h"
 #include "tokenid_kit.h"
 #include "uri.h"
-#include "ui_extension_servicehost_stub_impl.h"
+#include "impl/ui_extension_servicehost_stub_impl.h"
 #include "ui_service_extension_connection_constants.h"
 
 namespace OHOS {

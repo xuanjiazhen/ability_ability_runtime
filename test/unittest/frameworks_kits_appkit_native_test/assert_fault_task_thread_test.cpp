@@ -18,7 +18,7 @@
 
 #define private public
 #define protected public
-#include "assert_fault_task_thread.h"
+#include "impl/assert_fault_task_thread.h"
 #include "main_thread.h"
 #undef private
 #undef protected

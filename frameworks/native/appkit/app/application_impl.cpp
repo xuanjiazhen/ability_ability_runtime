@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "application_impl.h"
+#include "impl/application_impl.h"
 
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"

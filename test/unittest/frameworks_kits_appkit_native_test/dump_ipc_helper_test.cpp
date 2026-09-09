@@ -18,7 +18,7 @@
 
 #define private public
 #define protected public
-#include "dump_ipc_helper.h"
+#include "impl/dump_ipc_helper.h"
 #undef private
 #undef protected
 
