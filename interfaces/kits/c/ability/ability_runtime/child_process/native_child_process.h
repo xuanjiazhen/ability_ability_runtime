@@ -118,12 +118,14 @@ typedef enum Ability_NativeChildProcess_ErrCode {
 
     /**
      * @error The callback does not exist; it may not have been registered or has already been unregistered.
+     * @since 20
      */
     NCP_ERR_CALLBACK_NOT_EXIST = 16010009,
 
     /**
      * @error The specified PID does not exist or is not a child process of the current process
      * or is a SELF_FORK mode child process.
+     * @since 22
      */
     NCP_ERR_INVALID_PID = 16010010,
 } Ability_NativeChildProcess_ErrCode;
@@ -173,7 +175,8 @@ Ability_NativeChildProcess_ErrCode OH_Ability_DestroyChildProcessConfigs(Ability
 
 /**
  * @brief Sets the isolation mode for the specified child process configs.
- * The isolationMode only takes effect in {@link OH_Ability_StartNativeChildProcessWithConfigs}.
+ * The isolationMode only takes effect in {@link OH_Ability_StartNativeChildProcessWithConfigs}
+ * or {@link OH_Ability_CreateNativeChildProcessWithConfigs}.
  *
  * @param configs Pointer to the child process configs object. Must not be nullptr.
  * @param isolationMode The isolation mode to set. See {@link NativeChildProcess_IsolationMode} for details.
@@ -507,6 +510,12 @@ Ability_NativeChildProcess_ErrCode OH_Ability_UnregisterNativeChildProcessExitCa
  */
 Ability_NativeChildProcess_ErrCode OH_Ability_KillChildProcess(int32_t pid);
 
+/**
+ * @brief Checks whether the caller is allowed to use native child process capabilities.
+ *
+ * @return Returns true if the caller is allowed to create native child processes; returns false otherwise.
+ * @since 26.0.0
+ */
 bool OH_Ability_IsNativeChildProcessSupported();
 
 /**
