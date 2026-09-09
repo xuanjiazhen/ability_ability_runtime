@@ -63,7 +63,6 @@ constexpr int32_t QUERY_SUCCESS = 0;
 constexpr int32_t QUERY_COMMAND_NOT_EXIST = 1;
 constexpr int32_t QUERY_DB_ERROR = 2;
 constexpr int32_t MAX_QUERY_CMDS_SIZE = 100;
-constexpr uint32_t MAX_CMD_LENGTH = 16 * 1024;
 constexpr int32_t ACTIVE_TIME = 30 * 1000; // 30s
 constexpr int32_t SKILL_TYPE_INDEPENDENT = -1;
 } // namespace
@@ -907,29 +906,19 @@ int32_t CliToolManagerService::ValidateExecToolPermissions()
 
 int32_t CliToolManagerService::ValidateExecCmdPublicPermissions(const ExecCmdParam &param)
 {
-    if (param.cmd.empty()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Invalid param: cmd is empty");
-        return ERR_INVALID_PARAM;
-    }
-
-    if (param.cmd.size() > MAX_CMD_LENGTH) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Invalid param: cmd too long: %{public}u, max: %{public}u",
-            static_cast<uint32_t>(param.cmd.size()), MAX_CMD_LENGTH);
-        return ERR_INVALID_PARAM;
-    }
-
+    (void)param;
     if (!AAFwk::AppUtils::GetInstance().IsSupportExecCmd()) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Capability not supported");
         return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
     }
 
     auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL) ||
-        PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_PUBLIC_CLI_TOOL)) {
-        return ERR_OK;
+    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL) &&
+        !PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_PUBLIC_CLI_TOOL)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "not granted EXEC_CLI_TOOL or EXEC_PUBLIC_CLI_TOOL");
+        return ERR_PERMISSION_DENIED;
     }
-    TAG_LOGE(AAFwkTag::CLI_TOOL, "not granted EXEC_CLI_TOOL or EXEC_PUBLIC_CLI_TOOL");
-    return ERR_PERMISSION_DENIED;
+    return ERR_OK;
 }
 
 int32_t CliToolManagerService::ValidateSessionLimit()
@@ -1149,7 +1138,7 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
     record->SetBackground(param.options.background);
     record->eventId = eventId;
     AddSessionRecord(record);
-    auto subscribeRet = SubscribeSession(record->sessionId, subscriptionId, scheduler);
+    auto subscribeRet = SubscribeSessionInternal(record->sessionId, subscriptionId, scheduler);
     if (subscribeRet != ERR_OK) {
         RemoveSessionRecord(record->sessionId);
         return subscribeRet;
@@ -1482,21 +1471,9 @@ int32_t CliToolManagerService::ClearSession(const std::string &sessionId)
     return ERR_OK;
 }
 
-int32_t CliToolManagerService::SubscribeSession(const std::string &sessionId, const std::string &subscriptionId,
-    const sptr<ICliToolManagerScheduler> &scheduler)
+int32_t CliToolManagerService::SubscribeSessionInternal(const std::string &sessionId,
+    const std::string &subscriptionId, const sptr<ICliToolManagerScheduler> &scheduler)
 {
-    InterfaceCallCounter counter(interfaceCalledCount_);
-    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
-    if (!AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Not system app");
-        return ERR_NOT_SYSTEM_APP;
-    }
-
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL)) {
-        return ERR_PERMISSION_DENIED;
-    }
-
     if (sessionId.empty() || subscriptionId.empty()) {
         TAG_LOGE(AAFwkTag::CLI_TOOL,
             "SubscribeSession failed: invalid args sessionId=%{public}s, subscriptionId=%{public}s",
@@ -1531,6 +1508,24 @@ int32_t CliToolManagerService::SubscribeSession(const std::string &sessionId, co
         return ERR_NO_INIT;
     }
     return ERR_OK;
+}
+
+int32_t CliToolManagerService::SubscribeSession(const std::string &sessionId, const std::string &subscriptionId,
+    const sptr<ICliToolManagerScheduler> &scheduler)
+{
+    InterfaceCallCounter counter(interfaceCalledCount_);
+    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
+    if (!AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Not system app");
+        return ERR_NOT_SYSTEM_APP;
+    }
+
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL)) {
+        return ERR_PERMISSION_DENIED;
+    }
+
+    return SubscribeSessionInternal(sessionId, subscriptionId, scheduler);
 }
 
 int32_t CliToolManagerService::UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId)
