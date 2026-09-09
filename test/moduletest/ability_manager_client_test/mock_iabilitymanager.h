@@ -433,6 +433,12 @@ public:
     {
         return 0;
     }
+    int32_t ExecuteIntentWithSpecifyTokenId(uint64_t key, const sptr<IRemoteObject> &hostClient,
+        const InsightIntentExecuteParam &param, const WantParams &wantParams,
+        uint64_t specifiedFullTokenId, const sptr<IRemoteObject> &callerToken) override
+    {
+        return 0;
+    }
     int32_t ExecuteInsightIntentDone(const sptr<IRemoteObject> &token, uint64_t intentId,
         const InsightIntentExecuteResult &result) override
     {
