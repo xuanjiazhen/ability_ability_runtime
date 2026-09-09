@@ -954,6 +954,12 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentyFirst(uint32_t code, MessagePa
     if (interfaceCode == AbilityManagerInterfaceCode::UPDATE_KIOSK_APP_LIST) {
         return UpdateKioskApplicationListInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::SET_KIOSK_APP_LIST) {
+        return SetKioskApplicationListInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::DELETE_KIOSK_APP_FROM_LIST) {
+        return DeleteKioskApplicationListInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::ENTER_KIOSK_MODE) {
         return EnterKioskModeInner(data, reply);
     }
@@ -5605,10 +5611,41 @@ int32_t AbilityManagerStub::UpdateKioskApplicationListInner(MessageParcel &data,
     return NO_ERROR;
 }
 
+int32_t AbilityManagerStub::SetKioskApplicationListInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<std::string> appList;
+    data.ReadStringVector(&appList);
+
+    auto result = SetKioskApplicationList(appList);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::DeleteKioskApplicationListInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<std::string> appList;
+    data.ReadStringVector(&appList);
+
+    auto result = DeleteKioskApplicationList(appList);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    return NO_ERROR;
+}
+
 int32_t AbilityManagerStub::EnterKioskModeInner(MessageParcel &data, MessageParcel &reply)
 {
     sptr<IRemoteObject> token = data.ReadRemoteObject();
-    auto result = EnterKioskMode(token);
+    int32_t kioskType = static_cast<int32_t>(KioskType::DEFAULT);
+    if (!data.ReadInt32(kioskType)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read kioskType fail");
+        return ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    auto result = EnterKioskMode(token, kioskType);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
         return ERR_WRITE_RESULT_CODE_FAILED;
