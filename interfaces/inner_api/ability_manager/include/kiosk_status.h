@@ -19,6 +19,7 @@
 
 #include "iremote_object.h"
 #include "parcel.h"
+#include "ws_common.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -36,6 +37,9 @@ struct KioskStatus : public Parcelable {
     std::string kioskBundleName_;
     int32_t kioskBundleUid_{};
     sptr<IRemoteObject> kioskToken_;
+    int32_t kioskType_ = static_cast<int32_t>(Rosen::KioskType::DEFAULT);
+    int32_t kioskCallerUid_{};
+    bool isProxyEnter_ = false;
 };
 } // namespace AAFwk
 } // namespace OHOS
