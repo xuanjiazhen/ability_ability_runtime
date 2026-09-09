@@ -15,6 +15,8 @@
 
 #include <gtest/gtest.h>
 
+#include <chrono>
+#include <future>
 #include <memory>
 #include <thread>
 #include "file_ex.h"
@@ -846,11 +848,40 @@ HWTEST_F(AppRecoveryUnitTest, SetFreezeCallback_001, TestSize.Level1)
     auto callBack2 = []() {};
     FreezeFunction freezeCallback2 = callBack2;
     AppRecovery::GetInstance().SetFreezeCallback(freezeCallback2);
-    EXPECT_NE(&AppRecovery::GetInstance().freezeCallback, &freezeCallback2);
+    EXPECT_EQ(AppRecovery::GetInstance().freezeCallback.target_type(), freezeCallback2.target_type());
 
-    AppRecovery::GetInstance().freezeCallback = nullptr;
-    AppRecovery::GetInstance().SetFreezeCallback(freezeCallback2);
-    EXPECT_NE(&AppRecovery::GetInstance().freezeCallback, nullptr);
+    AppRecovery::GetInstance().SetFreezeCallback(nullptr);
+    EXPECT_EQ(AppRecovery::GetInstance().freezeCallback, nullptr);
+}
+
+/**
+ * @tc.name:  AppFreezeStateLockTimeout_001
+ * @tc.desc:  APP_FREEZE save and recover must fail in bounded time when recovery state is busy.
+ */
+HWTEST_F(AppRecoveryUnitTest, AppFreezeStateLockTimeout_001, TestSize.Level1)
+{
+    AppRecovery::GetInstance().EnableAppRecovery(RestartFlag::ALWAYS_RESTART,
+        SaveOccasionFlag::SAVE_WHEN_ERROR, SaveModeFlag::SAVE_WITH_FILE);
+
+    std::promise<void> lockedPromise;
+    std::promise<void> releasePromise;
+    auto releaseFuture = releasePromise.get_future();
+    std::thread stateOwner([&]() {
+        std::lock_guard<std::timed_mutex> lock(AppRecovery::GetInstance().stateMutex_);
+        lockedPromise.set_value();
+        releaseFuture.wait();
+    });
+    lockedPromise.get_future().wait();
+
+    auto begin = std::chrono::steady_clock::now();
+    EXPECT_FALSE(AppRecovery::GetInstance().ScheduleSaveAppState(StateReason::APP_FREEZE));
+    EXPECT_FALSE(AppRecovery::GetInstance().ScheduleRecoverApp(StateReason::APP_FREEZE));
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - begin);
+    EXPECT_LT(elapsed.count(), 500);
+
+    releasePromise.set_value();
+    stateOwner.join();
 }
 
 /**

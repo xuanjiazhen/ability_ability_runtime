@@ -15,6 +15,7 @@
 
 #include "ani.h"
 
+#include <chrono>
 #include <cstdint>
 #include <unistd.h>
 #include <memory>
@@ -40,14 +41,15 @@ struct ObserverItem {
 static ObserverItem g_freezeObserver;
 static ObserverItem g_defaultHandler;
 static std::mutex g_defaultHandlerMtx;
-static std::mutex g_freezeMtx;
+static std::timed_mutex g_freezeMtx;
 static bool g_freezeCallbackRegistered = false;
 static ObserverItem g_defaultFreezeObserver;
-static std::mutex g_defaultFreezeMtx;
+static std::timed_mutex g_defaultFreezeMtx;
 static std::set<ani_ref> g_unhandledRejectionObservers;
 static std::mutex g_unhandledRejectionMtx;
 static int64_t g_lastWatchTimeReport = 0;
 static int64_t ONE_MINUTES_DELAY_TIMER = 60 * 1000;
+constexpr auto FREEZE_CALLBACK_LOCK_TIMEOUT = std::chrono::milliseconds(50);
 } // namespace
 
 class ErrorManagerAni final {
@@ -187,7 +189,7 @@ public:
             function = nullptr;
             TAG_LOGI(AAFwkTag::JSNAPI, "func is undefined.");
         }
-        std::lock_guard<std::mutex> lock(g_defaultFreezeMtx);
+        std::lock_guard<std::timed_mutex> lock(g_defaultFreezeMtx);
         if (g_defaultFreezeObserver.ref) {
             ani_wref weakRef;
             auto status = env->WeakReference_Create(g_defaultFreezeObserver.ref, &weakRef);
@@ -258,7 +260,11 @@ public:
     static void OnFreezeCallback()
     {
         TAG_LOGD(AAFwkTag::JSNAPI, "FreezeCallback begin");
-        std::lock_guard<std::mutex> lock(g_freezeMtx);
+        std::unique_lock<std::timed_mutex> lock(g_freezeMtx, std::defer_lock);
+        if (!lock.try_lock_for(FREEZE_CALLBACK_LOCK_TIMEOUT)) {
+            TAG_LOGW(AAFwkTag::JSNAPI, "get freeze observer lock timeout in appfreeze");
+            return;
+        }
         ani_env *env = nullptr;
         bool isAttachThread = false;
         env = AppExecFwk::AttachAniEnv(g_freezeObserver.vm, isAttachThread);
@@ -284,7 +290,11 @@ public:
     static void DefaultFreezeCallback()
     {
         TAG_LOGD(AAFwkTag::JSNAPI, "DefaultFreezeCallback begin");
-        std::lock_guard<std::mutex> lock(g_defaultFreezeMtx);
+        std::unique_lock<std::timed_mutex> lock(g_defaultFreezeMtx, std::defer_lock);
+        if (!lock.try_lock_for(FREEZE_CALLBACK_LOCK_TIMEOUT)) {
+            TAG_LOGW(AAFwkTag::JSNAPI, "get default freeze observer lock timeout in appfreeze");
+            return;
+        }
         ani_env *env = nullptr;
         bool isAttachThread = false;
         env = AppExecFwk::AttachAniEnv(g_defaultFreezeObserver.vm, isAttachThread);
@@ -328,7 +338,7 @@ public:
             TAG_LOGE(AAFwkTag::JSNAPI, "invalid argc");
             return result;
         }
-        std::lock_guard<std::mutex> lock(g_freezeMtx);
+        std::lock_guard<std::timed_mutex> lock(g_freezeMtx);
         if (g_freezeObserver.ref) {
             env->GlobalReference_Delete(g_freezeObserver.ref);
             g_freezeObserver.ref = nullptr;
@@ -357,7 +367,7 @@ public:
             EtsErrorUtil::ThrowInvalidCallerError(env);
             return result;
         }
-        std::lock_guard<std::mutex> lock(g_freezeMtx);
+        std::lock_guard<std::timed_mutex> lock(g_freezeMtx);
         if (g_freezeObserver.ref == nullptr) {
             TAG_LOGE(AAFwkTag::JSNAPI, "null freezeObserver");
             return result;

@@ -16,10 +16,11 @@
 #ifndef OHOS_ABILITY_APP_RECOVERY_H
 #define OHOS_ABILITY_APP_RECOVERY_H
 
+#include <atomic>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <vector>
-#include <functional>
 
 #include "ability_info.h"
 #include "ability_recovery.h"
@@ -60,22 +61,45 @@ public:
     void SetFreezeCallback(FreezeFunction freezeCallback);
     bool IsNeedSaveAppState(StateReason reason);
 private:
+    struct RecoveryState {
+        bool isEnable = false;
+        uint16_t restartFlag = RestartFlag::ALWAYS_RESTART;
+        uint16_t saveOccasion = SaveOccasionFlag::SAVE_WHEN_ERROR;
+        uint16_t saveMode = SaveModeFlag::SAVE_WITH_FILE;
+        sptr<IRemoteObject> token;
+        AAFwk::Want mainWant;
+        std::shared_ptr<AppExecFwk::EventHandler> mainHandler;
+        std::shared_ptr<AppExecFwk::ApplicationInfo> applicationInfo;
+        std::shared_ptr<AbilityRuntime::UIAbility> ability;
+        std::vector<std::shared_ptr<AbilityRecovery>> abilityRecoverys;
+        std::shared_ptr<AAFwk::Want> want;
+        FreezeFunction freezeCallback;
+    };
+
     AppRecovery();
     ~AppRecovery();
     bool ShouldSaveAppState(StateReason reason);
     bool ShouldRecoverApp(StateReason reason);
+    static bool ShouldSaveAppState(StateReason reason, uint16_t saveOccasion);
+    static bool ShouldRecoverApp(StateReason reason, uint16_t restartFlag);
+    bool GetRecoveryState(StateReason reason, RecoveryState &state) const;
 
     void DoRecoverApp(StateReason reason);
+    void DoRecoverApp(StateReason reason, const RecoveryState &state);
     void DoRecoverMainApp(StateReason reason);
+    void DoRecoverMainApp(StateReason reason, const RecoveryState &state);
     void DoSaveAppState(StateReason reason, uintptr_t ability = 0);
+    void DoSaveAppState(StateReason reason, uintptr_t ability, const RecoveryState &state);
     void DeleteInValidMissionFileById(std::string path, int32_t missionId);
     bool GetMissionIds(std::string path, std::vector<int32_t> &missionIds);
-    bool ExecuteFreezeCallbackWithVMSafety(const std::shared_ptr<OHOS::AbilityRuntime::UIAbility>& abilityPtr);
+    bool ExecuteFreezeCallbackWithVMSafety(const RecoveryState &state);
     bool IsEtsAPP();
+    static bool IsEtsAPP(const std::shared_ptr<AppExecFwk::ApplicationInfo> &applicationInfo);
     panda::ecmascript::EcmaVM* GetVMFromAbility(const std::shared_ptr<AbilityRuntime::UIAbility>& abilityPtr);
     void DisallowCrossThreadExecutionInRecovery();
+    void DisallowCrossThreadExecutionInRecovery(const RecoveryState &state);
 
-    bool isEnable_;
+    std::atomic<bool> isEnable_;
     uint16_t restartFlag_;
     uint16_t saveOccasion_;
     uint16_t saveMode_;
@@ -89,6 +113,7 @@ private:
     std::shared_ptr<AAFwk::Want> want_ = nullptr;
     std::atomic<bool> useAppSettedValue_ = false; // If the value is true means app call appRecovery.enableAppRecovery
     FreezeFunction freezeCallback = nullptr;
+    mutable std::timed_mutex stateMutex_;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

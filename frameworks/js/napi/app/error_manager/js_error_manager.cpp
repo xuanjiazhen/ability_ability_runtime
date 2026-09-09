@@ -15,7 +15,9 @@
 
 #include "js_error_manager.h"
 
+#include <chrono>
 #include <cstdint>
+#include <mutex>
 #include <unistd.h>
 #include <memory>
 #include "ability_business_error.h"
@@ -71,11 +73,11 @@ static std::mutex defaultHandlerMtx;
 static GlobalObserverItem g_defaultLeakObserver;
 static std::mutex defaultLeakMtx;
 static GlobalObserverItem g_defaulFreezeObserver;
-static std::mutex g_defaultFreezeMtx;
+static std::timed_mutex g_defaultFreezeMtx;
 static std::mutex globalErrorMtx;
 static std::mutex globalPromiseMtx;
 static std::recursive_mutex errorMtx;
-static std::mutex freezeMtx;
+static std::timed_mutex freezeMtx;
 static std::once_flag registerCallbackFlag;
 static std::shared_ptr<JsLoopObserver> loopObserver_;
 static bool freezeCallbackRegistered = false;
@@ -88,6 +90,7 @@ constexpr int ON_ERROR_ASYNC_TIMEOUT = 2;
 constexpr int32_t INDEX_ZERO = 0;
 constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t INDEX_TWO = 2;
+constexpr auto FREEZE_CALLBACK_LOCK_TIMEOUT = std::chrono::milliseconds(50);
 constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
@@ -610,7 +613,11 @@ static void DoErrorHandlerCallback(napi_env env, std::string name, std::string m
 
 static void OnFreezeCallback()
 {
-    std::lock_guard<std::mutex> lock(freezeMtx);
+    std::unique_lock<std::timed_mutex> lock(freezeMtx, std::defer_lock);
+    if (!lock.try_lock_for(FREEZE_CALLBACK_LOCK_TIMEOUT)) {
+        TAG_LOGW(AAFwkTag::JSNAPI, "get freeze observer lock timeout in appfreeze");
+        return;
+    }
     napi_handle_scope scope_ = nullptr;
     napi_status scopeStatus = napi_open_handle_scope(freezeObserver.env, &scope_);
     if (scopeStatus != napi_ok || scope_ == nullptr) {
@@ -652,7 +659,11 @@ static void OnFreezeCallback()
 static void DefaultFreezeCallback()
 {
     TAG_LOGD(AAFwkTag::JSNAPI, "DefaultFreezeCallback start");
-    std::lock_guard<std::mutex> lock(g_defaultFreezeMtx);
+    std::unique_lock<std::timed_mutex> lock(g_defaultFreezeMtx, std::defer_lock);
+    if (!lock.try_lock_for(FREEZE_CALLBACK_LOCK_TIMEOUT)) {
+        TAG_LOGW(AAFwkTag::JSNAPI, "get default freeze observer lock timeout in appfreeze");
+        return;
+    }
     napi_handle_scope scope_ = nullptr;
     napi_status scopeStatus = napi_open_handle_scope(g_defaulFreezeObserver.env, &scope_);
     if (scopeStatus != napi_ok || scope_ == nullptr) {
@@ -1110,7 +1121,7 @@ private:
             TAG_LOGI(AAFwkTag::JSNAPI, "func is undefined.");
             function = nullptr;
         }
-        std::lock_guard<std::mutex> lock(g_defaultFreezeMtx);
+        std::lock_guard<std::timed_mutex> lock(g_defaultFreezeMtx);
         napi_value object = nullptr;
         if (g_defaulFreezeObserver.ref == nullptr) {
             object = nullptr;
@@ -1390,7 +1401,7 @@ private:
         if (!ValidateFunction(env, function)) {
             return nullptr;
         }
-        std::lock_guard<std::mutex> lock(freezeMtx);
+        std::lock_guard<std::timed_mutex> lock(freezeMtx);
         if (freezeObserver.ref) {
             napi_delete_reference(env, freezeObserver.ref);
         }
@@ -1470,7 +1481,7 @@ private:
     napi_value OnOffFreeze(napi_env env, napi_value function)
     {
         auto res = CreateJsUndefined(env);
-        std::lock_guard<std::mutex> lock(freezeMtx);
+        std::lock_guard<std::timed_mutex> lock(freezeMtx);
         if (freezeObserver.ref == nullptr) {
             TAG_LOGE(AAFwkTag::JSNAPI, "null freezeObserver");
             return res;
