@@ -12,9 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "ccm_util.h"
-
 #include "hilog_tag_wrapper.h"
 #include "parameters.h"
 
