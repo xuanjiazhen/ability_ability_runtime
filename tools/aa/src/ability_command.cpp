@@ -499,6 +499,11 @@ ErrCode AbilityManagerShellCommand::RunAsHelpCommand()
 
 ErrCode AbilityManagerShellCommand::RunAsStartAbility()
 {
+    if (!IsShellCall() && !IsLocalDebugOtherAppsCall()) {
+        resultReceiver_.append("error: permission denied. aa start requires shell identity or "
+            "developer mode with LOCAL_DEBUG_OTHER_APPS permission.\n");
+        return OHOS::ERR_PERMISSION_DENIED;
+    }
     Want want;
     std::string windowMode;
     int32_t userId = DEFAULT_INVAL_VALUE;

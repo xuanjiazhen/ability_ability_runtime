@@ -687,7 +687,8 @@ bool PermissionVerification::IsLocalDebugOtherAppsCall() const
         return false;
     }
     auto callerToken = GetCallingTokenID();
-    if (VerifyPermissionByTokenId(callerToken, PermissionConstants::PERMISSION_LOCAL_DEBUG_OTHER_APPS)) {
+    if (VerifyPermissionByTokenId(callerToken, PermissionConstants::PERMISSION_LOCAL_DEBUG_OTHER_APPS) ||
+        VerifyPermissionByTokenId(callerToken, PermissionConstants::PERMISSION_CUSTOM_SANDBOX)) {
         TAG_LOGD(AAFwkTag::DEFAULT, "Permission granted");
         return true;
     }
