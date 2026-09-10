@@ -432,6 +432,7 @@ public:
     MOCK_METHOD1(IsAbilityControllerStart, bool(const Want& want));
     MOCK_METHOD3(ExecuteIntent, int32_t(uint64_t key, const sptr<IRemoteObject> &callerToken,
         const InsightIntentExecuteParam &param));
+    MOCK_METHOD4(ExecuteIntentWithSpecifyTokenId, int32_t(const Want &want, const sptr<IRemoteObject> &callerAbilityToken, const InsightIntentExecuteParam &param, uint32_t specifyTokenId));
     MOCK_METHOD3(ExecuteInsightIntentDone, int32_t(const sptr<IRemoteObject> &token, uint64_t intentId,
         const InsightIntentExecuteResult &result));
     MOCK_METHOD7(ExecuteInAppSkill, int32_t(const std::string &, const std::string &,

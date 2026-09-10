@@ -422,6 +422,9 @@ int AbilityManagerStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel 
     if (interfaceCode == AbilityManagerInterfaceCode::EXECUTE_INTENT_BY_FUNCTION_CALL) {
         return ExecuteIntentByFunctionCallInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::EXECUTE_INTENT_WITH_SPECIFY_TOKEN_ID) {
+        return ExecuteIntentWithSpecifyTokenIdInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::UNREGISTER_SA_INTERCEPTOR) {
         return UnregisterSAInterceptorInner(data, reply);
     }
@@ -4449,6 +4452,28 @@ int32_t AbilityManagerStub::ExecuteIntentByFunctionCallInner(MessageParcel &data
         return ERR_INVALID_VALUE;
     }
     auto result = ExecuteIntentByFunctionCall(key, callerToken, bundleName, intentName, *wantParam);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::ExecuteIntentWithSpecifyTokenIdInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::unique_ptr<Want> want(data.ReadParcelable<Want>());
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
+        return ERR_INVALID_VALUE;
+    }
+    sptr<IRemoteObject> callerAbilityToken = data.ReadRemoteObject();
+    std::unique_ptr<InsightIntentExecuteParam> param(data.ReadParcelable<InsightIntentExecuteParam>());
+    if (param == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "param null");
+        return ERR_INVALID_VALUE;
+    }
+    uint32_t specifyTokenId = data.ReadUint32();
+    auto result = ExecuteIntentWithSpecifyTokenId(*want, callerAbilityToken, *param, specifyTokenId);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
         return ERR_INVALID_VALUE;
