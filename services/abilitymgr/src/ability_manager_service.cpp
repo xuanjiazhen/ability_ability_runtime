@@ -477,8 +477,6 @@ bool AbilityManagerService::Init()
 
     AmsConfigurationParameter::GetInstance().Parse();
     TAG_LOGI(AAFwkTag::ABILITYMGR, "config parse");
-    // Ignore the result: if cleanup fails, it will be retried on next startup.
-    DelayedSingleton<AppExitReasonDataManager>::GetInstance()->ResetRecoverInfoOnOtaUpgrade();
     subManagersHelper_ = std::make_shared<SubManagersHelper>(taskHandler_, eventHandler_);
     subManagersHelper_->InitSubManagers(MAIN_USER_ID, true);
     SwitchManagers(U0_USER_ID, false);
@@ -4110,6 +4108,11 @@ void AbilityManagerService::OnAddSystemAbility(int32_t systemAbilityId, const st
                 bundleMgrHelper->SetBmsReady(true);
             }
             SubscribeBundleEventCallback();
+            // Clear app recovery info after OTA upgrade. Runs after BMS is ready so the system
+            // fingerprint (const.product.*) and the persist.bms.test-upgrade test hook align with
+            // bundlemanager's IsSystemFingerprintChanged. Ignore the result: on failure it
+            // retries on next startup.
+            DelayedSingleton<AppExitReasonDataManager>::GetInstance()->ResetRecoverInfoOnOtaUpgrade();
             break;
         }
 #ifdef SUPPORT_SCREEN
