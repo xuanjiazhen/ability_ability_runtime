@@ -850,7 +850,7 @@ bool PendingWantManager::CheckCallerPermission()
         return false;
     }
     if ((!processInfo.isFocused && !processInfo.isAbilityForegrounding) ||
-        (!permission->IsSystemAppCall() && !CheckWindowState(callerPid))) {
+        (!permission->IsSystemAppCall() && !CheckWindowState(callerPid, processInfo.uid_ / BASE_USER_RANGE))) {
         TAG_LOGW(AAFwkTag::WANTAGENT, "caller unfocused");
         if (!permission->VerifyCallingPermission(PermissionConstants::PERMISSION_START_ABILITIES_FROM_BACKGROUND) &&
             !permission->VerifyCallingPermission(PermissionConstants::PERMISSION_START_ABILIIES_FROM_BACKGROUND) &&
@@ -862,9 +862,10 @@ bool PendingWantManager::CheckCallerPermission()
     return true;
 }
 
-bool PendingWantManager::CheckWindowState(int32_t pid)
+bool PendingWantManager::CheckWindowState(int32_t pid, int32_t userId)
 {
-    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+    auto sceneSessionManager =
+        IN_PROCESS_CALL(Rosen::SessionManagerLite::GetInstance(userId).GetSceneSessionManagerLiteProxy());
     if (sceneSessionManager == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "null manager");
         return false;
