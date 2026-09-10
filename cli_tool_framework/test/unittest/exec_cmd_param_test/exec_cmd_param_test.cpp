@@ -147,5 +147,31 @@ HWTEST_F(ExecCmdParamTest, ExecCmdParam_ExtractToolName_0300, TestSize.Level2)
     EXPECT_TRUE(ExecCmdParam::ExtractToolName("   ").empty());
     EXPECT_TRUE(ExecCmdParam::ExtractToolName("\t\t").empty());
 }
+
+/**
+ * @tc.name: ExecCmdParam_MaxCmdLength_0100
+ * @tc.desc: Test MAX_CMD_LENGTH value and boundary-length cmd parcel round-trip without truncation
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExecCmdParamTest, ExecCmdParam_MaxCmdLength_0100, TestSize.Level1)
+{
+    EXPECT_EQ(MAX_CMD_LENGTH, 8 * 1024);
+
+    ExecCmdParam param;
+    param.cmd = std::string(MAX_CMD_LENGTH, 'a');
+    param.isShellCommand = false;
+    param.challenge = TEST_CHALLENGE;
+
+    Parcel parcel;
+    ASSERT_TRUE(param.Marshalling(parcel));
+    parcel.RewindRead(0);
+
+    std::unique_ptr<ExecCmdParam> result(ExecCmdParam::Unmarshalling(parcel));
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->cmd.length(), MAX_CMD_LENGTH);
+    EXPECT_EQ(result->cmd, param.cmd);
+    EXPECT_FALSE(result->isShellCommand);
+    EXPECT_EQ(result->challenge, TEST_CHALLENGE);
+}
 } // namespace CliTool
 } // namespace OHOS

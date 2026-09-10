@@ -3497,5 +3497,62 @@ HWTEST_F(CliToolManagerServiceTest, ExecCmd_DefaultShellDispatch_0100, TestSize.
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_DefaultShellDispatch_0100 end");
 }
+
+// ==================== ExecCmd Cmd Length Limit Tests ====================
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_CmdTooLong_0100
+ * @tc.desc: Test ExecCmd rejects oversized cmd in shell mode before scheduler registration
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_CmdTooLong_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_CmdTooLong_0100 start");
+
+    ExecCmdParam param;
+    param.cmd = std::string(MAX_CMD_LENGTH + 1, 'a');
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecCmd(param, "event_cmd_too_long", scheduler, "sub_cmd_too_long");
+    EXPECT_TRUE(result == ERR_INVALID_PARAM || IsPermissionGateResult(result));
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_CmdTooLong_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_CmdTooLong_0200
+ * @tc.desc: Test ExecCmd rejects oversized cmd in tool command mode before tool lookup
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_CmdTooLong_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_CmdTooLong_0200 start");
+
+    ExecCmdParam param;
+    param.cmd = "ohos-aa start --bundleName=" + std::string(MAX_CMD_LENGTH, 'x');
+    param.isShellCommand = false;
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecCmd(param, "event_cmd_too_long_tool", scheduler, "sub_cmd_too_long_tool");
+    EXPECT_TRUE(result == ERR_INVALID_PARAM || IsPermissionGateResult(result));
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_CmdTooLong_0200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_CmdMaxLength_0300
+ * @tc.desc: Test ExecCmd accepts cmd whose length equals MAX_CMD_LENGTH (boundary value)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_CmdMaxLength_0300, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_CmdMaxLength_0300 start");
+
+    ExecCmdParam param;
+    param.cmd = std::string(MAX_CMD_LENGTH, 'a');
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecCmd(param, "event_cmd_max_length", scheduler, "sub_cmd_max_length");
+    EXPECT_NE(result, ERR_INVALID_PARAM);
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_CmdMaxLength_0300 end");
+}
 } // namespace CliTool
 } // namespace OHOS
