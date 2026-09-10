@@ -723,10 +723,20 @@ int32_t InsightIntentExecuteManager::CheckCallerPermission(uint64_t specifiedFul
     const std::string &callerBundleName, const std::string &targetBundleName)
 {
     TAG_LOGI(AAFwkTag::INTENT, "specifiedFullTokenId: %{public}" PRIu64, specifiedFullTokenId);
+    uint32_t specifyTokenId = static_cast<uint32_t>(specifiedFullTokenId);
     bool isSystemAppCall = false;
     if (specifiedFullTokenId != 0) {
-        isSystemAppCall = PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPIByTokenId(
-            specifiedFullTokenId);
+        if (specifiedFullTokenId >> 32 != 0) {
+            // DMS distributed path: full token carrying tokenAttr in the high 32 bits.
+            isSystemAppCall = PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPIByTokenId(
+                specifiedFullTokenId);
+        } else {
+            // FMS card path: only a 32-bit access token id is provided, reconstruct the
+            // full token via HapTokenInfo DB lookup to determine system-app status.
+            isSystemAppCall = PermissionVerification::GetInstance()->IsSACallByTokenId(specifyTokenId)
+                || PermissionVerification::GetInstance()->IsShellCallByTokenId(specifyTokenId)
+                || PermissionVerification::GetInstance()->IsSystemAppCallByTokenId(specifyTokenId);
+        }
     } else {
         isSystemAppCall = PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI();
     }
@@ -744,7 +754,7 @@ int32_t InsightIntentExecuteManager::CheckCallerPermission(uint64_t specifiedFul
     }
 
     bool isCallingPerm = PermissionVerification::GetInstance()->VerifyCallingPermission(
-        EXECUTE_INSIGHT_INTENT_PERMISSION, specifiedFullTokenId);
+        EXECUTE_INSIGHT_INTENT_PERMISSION, specifyTokenId);
     if (!isCallingPerm) {
         TAG_LOGE(AAFwkTag::INTENT,
             "permission %{public}s verification failed",
