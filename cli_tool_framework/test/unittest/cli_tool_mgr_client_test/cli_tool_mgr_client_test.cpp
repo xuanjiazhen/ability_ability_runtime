@@ -893,5 +893,45 @@ HWTEST_F(CliToolMGRClientTest, ResetNamespaceFunctionsAsync_0200, TestSize.Level
         GET_CLI_TOOL_MGR_SERVICE_FAILED);
 }
 
+// ==================== ExecCmd Cmd Length Limit Tests ====================
+
+/**
+ * @tc.name: ExecCmd_0700
+ * @tc.desc: Test ExecCmd rejects cmd longer than MAX_CMD_LENGTH before IPC dispatch
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, ExecCmd_0700, TestSize.Level1)
+{
+    SetMockService();
+    ExecCmdParam param;
+    param.cmd = std::string(MAX_CMD_LENGTH + 1, 'a');
+
+    auto sessionCallback = std::make_shared<MockSessionCallback>();
+    // Oversized cmd is rejected before AddEventReplyCallback, so no IPC dispatch happens
+    EXPECT_EQ(CliToolMGRClient::GetInstance().ExecCmd(param,
+        [](int32_t, const CliSessionInfo &) {}, sessionCallback), ERR_INVALID_PARAM);
+
+    EXPECT_EQ(CliEventReplyManager::GetInstance().HandleEventReply(
+        CliToolMgrClientFlag::lastEventId, CliEventReplyResult {}), -1);
+}
+
+/**
+ * @tc.name: ExecCmd_0800
+ * @tc.desc: Test ExecCmd accepts cmd whose length equals MAX_CMD_LENGTH (boundary value)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, ExecCmd_0800, TestSize.Level1)
+{
+    SetMockService();
+    ExecCmdParam param;
+    param.cmd = std::string(MAX_CMD_LENGTH, 'a');
+    param.options.timeout = 30;
+
+    CliToolMgrClientFlag::retExecCmd = ERR_OK;
+    auto sessionCallback = std::make_shared<MockSessionCallback>();
+    EXPECT_EQ(CliToolMGRClient::GetInstance().ExecCmd(param,
+        [](int32_t, const CliSessionInfo &) {}, sessionCallback), ERR_OK);
+}
+
 } // namespace CliTool
 } // namespace OHOS

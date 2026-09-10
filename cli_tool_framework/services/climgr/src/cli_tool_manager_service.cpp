@@ -1093,6 +1093,11 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
     if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
         return ret;
     }
+    if (param.cmd.length() > MAX_CMD_LENGTH) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "cmd length %{public}zu exceeds limit %{public}u",
+            param.cmd.length(), MAX_CMD_LENGTH);
+        return ERR_INVALID_PARAM;
+    }
     int32_t callerPid = IPCSkeleton::GetCallingPid();
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
