@@ -433,6 +433,10 @@ public:
     {
         return 0;
     }
+    int32_t ExecuteIntentWithSpecifyTokenId(const Want &want, const sptr<IRemoteObject> &callerAbilityToken, const InsightIntentExecuteParam &param, uint32_t specifyTokenId) override
+    {
+        return 0;
+    }
     int32_t ExecuteInsightIntentDone(const sptr<IRemoteObject> &token, uint64_t intentId,
         const InsightIntentExecuteResult &result) override
     {

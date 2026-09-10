@@ -146,6 +146,10 @@ public:
      
     // distributed intent params
     std::string deviceId_;
+
+    // execute intent client params
+    uint64_t key_ = 0;
+    sptr<IRemoteObject> insightIntentHostClient_;
 };
 } // namespace AppExecFwk
 } // namespace OHOS

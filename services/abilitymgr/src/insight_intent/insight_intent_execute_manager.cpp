@@ -640,9 +640,7 @@ int32_t InsightIntentExecuteManager::GenerateWant(
     if (param->insightIntentParam_ != nullptr) {
         sptr<AAFwk::IWantParams> pExecuteParams = WantParamWrapper::Box(*param->insightIntentParam_);
         if (pExecuteParams != nullptr) {
-            WantParams wantParams;
-            wantParams.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_PARAM, pExecuteParams);
-            want.SetParams(wantParams);
+            want.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_PARAM, pExecuteParams);
         }
     }
 

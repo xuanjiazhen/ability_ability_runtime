@@ -20,6 +20,7 @@
 #include <sstream>
 
 #include "hilog_tag_wrapper.h"
+#include "message_parcel.h"
 #include "hitrace_meter.h"
 #include "insight_intent_constant.h"
 #include "int_wrapper.h"
@@ -161,6 +162,8 @@ bool InsightIntentExecuteParam::ReadFromParcel(Parcel &parcel)
     navDestinationName_ = Str16ToStr8(parcel.ReadString16());
     isServiceMatch_ = parcel.ReadBool();
     deviceId_ = Str16ToStr8(parcel.ReadString16());
+    key_ = parcel.ReadUint64();
+    insightIntentHostClient_ = (static_cast<MessageParcel*>(&parcel))->ReadRemoteObject();
     return true;
 }
 
@@ -202,6 +205,8 @@ bool InsightIntentExecuteParam::Marshalling(Parcel &parcel) const
     parcel.WriteString16(Str8ToStr16(navDestinationName_));
     parcel.WriteBool(isServiceMatch_);
     parcel.WriteString16(Str8ToStr16(deviceId_));
+    parcel.WriteUint64(key_);
+    (static_cast<MessageParcel*>(&parcel))->WriteRemoteObject(insightIntentHostClient_);
     return true;
 }
 

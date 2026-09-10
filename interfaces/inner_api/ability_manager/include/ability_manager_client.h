@@ -2446,6 +2446,17 @@ public:
         uint64_t requestCode, uint64_t specifiedFullTokenId = 0);
 
     /**
+     * @brief Execute intent with specified token id.
+     * @param want The want carrying the card params and intent execution info.
+     * @param callerAbilityToken The caller ability token.
+     * @param param The Intent execute param.
+     * @param specifyTokenId The specified access token id for permission checking.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode ExecuteIntentWithSpecifyTokenId(const Want &want, sptr<IRemoteObject> callerAbilityToken,
+        const InsightIntentExecuteParam &param, uint32_t specifyTokenId = 0);
+
+    /**
      * @brief Query entity info of a target app via insight intent (background
      * call to its entity provider). Cross-user requires account permission and
      * multi-user concurrency. Result is returned asynchronously via the intent
