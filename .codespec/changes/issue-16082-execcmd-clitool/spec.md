@@ -27,7 +27,8 @@
 | ADDED | `ExecCmdOptions.challenge?: string`（System API，默认 `""`） | 调用方从 access token manager 获取并透传给工具进程，服务端不生成、不改值 |
 | ADDED | 工具命令字符串解析能力（长标志子集 + 单引号包裹含空格值 + schema 驱动类型恢复） | 新增行为面：产生 401 / 35600030 两类既有 shell 路径不会出现的错误 |
 | ADDED | 工具名白名单校验（`isalnum ∪ {'-','_'}`） | 拦截路径分隔符与命令拼接字符，拒绝时不创建子进程 |
-| MODIFIED | `cliManager.execCmd` 行为扩展（签名与返回类型不变） | 向后兼容：未传或显式传 `isShellCommand: true` 时行为与既有 shell 路径完全一致；`.d.ts` `@throws` 需补 401 与 35600030 |
+| ADDED | 命令字符串长度上限校验（统一 8192 字节，编译期常量单一来源） | NAPI 入口 / 客户端入口 / 服务端入口三处一致生效，shell 与工具命令两种模式均适用；超限统一 401，不发起 IPC、不创建子进程 |
+| MODIFIED | `cliManager.execCmd` 行为扩展（签名与返回类型不变） | 向后兼容：未传或显式传 `isShellCommand: true` 且 `cmd` ≤ 8192 字节时行为与既有 shell 路径完全一致；超过上限的既有调用失败点由后端前移为入口 401（见「兼容性声明」）；`.d.ts` `@throws` 需补 401 与 35600030，`cmd` 注释需写明长度上限 |
 | MODIFIED | `ExecCmdParam` IPC 序列化（InnerAPI）：Parcel 尾部追加 `isShellCommand`、`challenge` | 旧客户端不写尾部字段时服务端回退默认值；新客户端 → 旧服务端为「兼容但不等价」 |
 | REMOVED | 无 | 不废弃任何既有 API、字段或错误码 |
 
@@ -35,9 +36,9 @@
 
 | 文档 | 路径 | 状态 |
 |------|------|------|
-| Requirement | `.codespec/changes/issue-16082-execcmd-clitool/proposal.md` | Approved（2026-09-09，批准人 zhoulanzhi，baseline_digest `65909407…a3cf`） |
+| Requirement | `.codespec/changes/issue-16082-execcmd-clitool/proposal.md` | v1.0 Approved（2026-09-08，批准人 zhoulanzhi）；**v1.1 候选 AwaitingApproval**（2026-09-10 Q-4 结论变更：新增命令长度上限 8192 字节，新增 AC-1.11）。本文已按 v1.1 同步修订，待 Define 重新批准后与 proposal 一同生效 |
 | 既有代码与声明 | `cli_tool_framework/**`（`interfaces/cli_tool`、`services/climgr`、`frameworks/js/napi/cli_tool_manager`）+ `interface/sdk-js/api/@ohos.app.cli.cliManager.d.ts` | 既有事实核对来源（接口签名、错误码、校验阈值、沙箱语义、NAPI 解包约定） |
-| 设计 | `.codespec/changes/issue-16082-execcmd-clitool/design.md` | 新增事实（New）的落点与依据来源（ADR-1..ADR-8、INV-1..INV-7） |
+| 设计 | `.codespec/changes/issue-16082-execcmd-clitool/design.md` | 新增事实（New）的落点与依据来源（ADR-1..ADR-9、INV-1..INV-8） |
 | 旧模板参考 | `.codespec/changes/issue-16082-execcmd-clitool-legacy-template/spec.md` | 只读参考；与既有代码事实冲突处以本文为准（Q-S1/Q-S2 已按既有代码事实关闭，见「事实冲突与澄清项」） |
 
 > 需求基线、不涉及项、受影响子系统与仓库详见 `proposal.md`，本文档不重复摘录。`design.md` 与本文档并行产出，互不依赖。
@@ -46,7 +47,7 @@
 
 > `WHEN` 为调用方（开发者/上层业务）可触发的输入；`THEN` 为 System API / InnerAPI 边界可观察结果。
 > 各 AC 中的工具名（`ohos-aa` 等）为**已注册 CLI 工具的示例**，本规格适用于工具注册表中任意已注册工具。
-> **AC 编号冻结**：沿用 `AC-1.1`..`AC-1.10` 编号（其中 `1` = 特性序号，非 US 序号），与 proposal「用户故事与 AC」逐条一致，不重编号（`design.md` 的 ADR/INV 与 `execution-plan.md` 的 Task 追溯均按该编号）。
+> **AC 编号冻结**：沿用 `AC-1.1`..`AC-1.11` 编号（其中 `1` = 特性序号，非 US 序号；AC-1.11 为 v1.1 新增，追加在既有编号之后，不重排既有编号），与 proposal「用户故事与 AC」逐条一致，不重编号（`design.md` 的 ADR/INV 与 `execution-plan.md` 的 Task 追溯均按该编号）。
 
 ### US-1: LLM 工具命令直通执行
 
@@ -89,6 +90,7 @@
 | AC-1.5 | WHEN 工具命令模式下 `cmd` 为空或纯空白（`""`、`"   "`）THEN Promise reject `BusinessError` 401 `"Invalid input parameter."`（空串在 NAPI 入口即拒，纯空白在客户端入口即拒，均不发起跨进程调用） | System API / InnerAPI | 异常 |
 | AC-1.6 | WHEN 命令含 schema `properties` 未定义的标志（`"ohos-aa start --unknownFlag=x"`）、标志名为空（`"--=x"`）、值无法恢复为 schema 声明类型（`--count=abc` 而 schema 为 integer）、或存在无法归属到任何标志的孤立值 THEN Promise reject `BusinessError` 401 `"Invalid input parameter."` | System API | 异常 |
 | AC-1.9 | WHEN 当前并发会话数已达配置上限（默认 8，可由系统参数 `const.sys.cli.limit_maximum_concurrency_quantity` 配置）THEN 工具命令模式与 shell 模式同样 reject `BusinessError` 35600031 `"Maximum number of processes has been reached."` | System API | 边界 |
+| AC-1.11 | WHEN `cmd` 的字节长度超过统一上限 8192（如 8193 字节的命令）THEN Promise reject `BusinessError` 401 `"Invalid input parameter."`，且不发起跨进程调用、不创建子进程、不建立会话；WHEN `cmd` 长度恰为 8192 字节 THEN 不因长度被拒（继续执行该模式的其余校验）；shell 模式与工具命令模式表现一致 | System API / InnerAPI | 边界 |
 
 ### US-4: IPC 跨版本兼容
 
@@ -109,7 +111,7 @@
 | AC | 关联规则 | 可观察表面 |
 |----|----------|--------------|
 | AC-1.1 | R-1, R-2, R-9, R-11, R-13 | System API：Promise resolve `CliSessionInfo`（`toolName`/`status`/`sessionId`）；reject 201 / 202 |
-| AC-1.2 | R-3, R-11 | System API：Promise resolve `CliSessionInfo`，与基线 shell 行为一致 |
+| AC-1.2 | R-3, R-11 | System API：Promise resolve `CliSessionInfo`，与既有 shell 行为一致 |
 | AC-1.3 | R-4 | System API：reject 401，且无会话可查 |
 | AC-1.4 | R-5 | System API：reject 35600030 |
 | AC-1.5 | R-6 | System API：reject 401；InnerAPI：客户端返回 `ERR_INVALID_PARAM` 且不发起 IPC |
@@ -117,7 +119,8 @@
 | AC-1.7 | R-7, R-8, R-10 | System API：Promise resolve `CliSessionInfo`（参数按 schema 类型生效）；reject 401 |
 | AC-1.8 | R-11, R-12 | InnerAPI：`ExecCmdParam` 反序列化结果字段值与不失败语义 |
 | AC-1.9 | R-13 | System API：reject 35600031 |
-| AC-1.10 | R-3, R-11 | System API：Promise resolve `CliSessionInfo`，与基线 shell 行为一致 |
+| AC-1.10 | R-3, R-11 | System API：Promise resolve `CliSessionInfo`，与既有 shell 行为一致 |
+| AC-1.11 | R-18 | System API：reject 401；InnerAPI：客户端返回 `ERR_INVALID_PARAM` 且不发起 IPC |
 
 ## 规则定义
 
@@ -141,6 +144,7 @@
 | R-14 | 异常 | 权限门失败：调用方非系统应用 / 未持有 `ohos.permission.EXEC_CLI_TOOL` | 分别 reject 202 `"Not system application."` / 201 `"Permission denied."`；不建立会话、不创建子进程 | 权限门对两条路径共用且先于模式分流；不新增权限、不放宽既有校验 | AC-1.1 |
 | R-15 | 恢复 | 工具命令模式下会话建立过程中任一步失败（订阅失败、子进程创建失败、监控注册失败） | Promise reject 对应错误码（未映射的内部失败统一为 35600050 `"Internal error."`），且不残留可查询会话、不残留孤儿进程组 | 失败后会话不可被 `querySession` 查到；进程组被终止（内部回滚顺序见 design） | AC-1.1 |
 | R-16 | 行为 | 工具命令模式下调用方提供 `ExecCmdOptions.workDir` / `env` / `policy` | 三项**不生效**（工具路径的沙箱配置只注入调用方身份标识，不含调用方 workdir/policy/env，见 BF-3）；shell 模式下三项均生效。**需求方结论（2026-09-09，zhoulanzhi）：预期行为，`.d.ts` 声明不区分模式**，不判定为缺陷、不回 proposal 变更控制 | 调用方需知悉模式差异：工具的执行环境由工具自身与既有工具沙箱语义决定；本规格与 `.d.ts` 不为三项属性增加模式差异标注 | AC-1.1 |
+| R-18 | 边界 | `cmd` 字节长度 > 8192（统一上限，编译期常量单一来源） | reject 401 `"Invalid input parameter."`；NAPI 入口最早拒绝（超长串不进 IPC），客户端入口拒绝（不发 IPC，覆盖 InnerAPI 直连调用方），服务端入口在权限门之后、调度器注册与会话上限之前拒绝（不注册调度器、不占用上限计数、不查表、不创建子进程） | 边界值：长度 = 8192 合法、8193 拒绝；按 UTF-8 字节数计（非字符数）；shell 与工具命令两种模式一致；权限门优先于长度校验（非系统应用 + 超长 → 202）；不新增错误码 |
 | R-17 | 边界 | 调用方传 `ExecCmdOptions` 对象但未传 `timeout` | 生效 `timeout = 1800`（秒），与 `.d.ts` `@default 1800` 一致；**完全不传 options 对象**时生效 `timeout = 0`（不限时）。**需求方结论（2026-09-09，zhoulanzhi）：以既有代码事实为准**，legacy `spec.md` EB-2「未传即 0」的描述作废 | 两条默认路径并存且保持现状不统一；工具命令模式必然携带 options 对象，故其缺省超时为 1800 秒；`timeout = 1800` 为合法边界值，`> 1800` → 401 | AC-1.1, AC-1.2 |
 
 ## 验证映射
@@ -161,6 +165,7 @@
 | VM-10 | R-13 / AC-1.9（会话上限） | 新增 `cli_tool_mgr_service_test.cpp::ExecCmd_ToolMode_SessionLimit_0100`（预置会话记录至上限后以工具模式调用） | 单测 | 实现前工具模式路径不存在，调用会落到 shell 路径：预置满额会话时返回码虽同为上限错误，但断言的「工具模式与 shell 模式共用同一上限入口」不成立（工具查表/解析 mock 会被跳过或误调用） | 返回 `ERR_SESSION_LIMIT_EXCEEDED`（对外 35600031）；上限校验发生在模式分流之前，解析与进程创建 mock 调用次数为 0 |
 | VM-11 | R-9 / AC-1.1（ExecOptions 校验） | `tool_util_test.cpp::ValidateExecOptionsProperties_0100`..`_0800`（既有用例：`_0200` 负 timeout、`_0300` 负 yieldMs、`_0400` timeout > 1800、`_0500` 非后台且 yieldMs > timeout、`_0600` 后台时允许、`_0700` yieldMs == timeout × 1000 边界、`_0800` 两者同时为负） | 回归 | 无 Red 态——既有约束复用守护：工具模式接入后这些用例必须仍绿；若工具模式另设阈值或跳过该校验，用例与实际行为不一致即暴露 | 越界组合均返回 `ERR_INVALID_PARAM`（对外 401）；`timeout = 1800` 与 `yieldMs == timeout × 1000` 为合法边界 |
 | VM-12 | R-15 / AC-1.1（失败恢复） | 新增 `cli_tool_mgr_service_test.cpp::ExecCmd_ToolMode_SubscribeFail_Rollback_0100`、`::ExecCmd_ToolMode_CreateProcessFail_Rollback_0100`、`::ExecCmd_ToolMode_MonitorFail_Rollback_0100` | 单测（故障注入） | 实现前工具模式无会话建立路径，三步失败的回滚次序（订阅 → 进程 → 监控）不存在：注入失败后既得不到对应错误码，也无法断言「无残留会话、无孤儿进程组」 | 分别注入三步失败：返回对应内部码（未映射失败 → 35600050）；`querySession` 查不到该会话；订阅被反注册；已创建进程组被 `Killpg` |
+| VM-14 | R-18 / AC-1.11（命令长度上限） | `cli_tool_mgr_client_test.cpp::ExecCmd_0700`（8193 字节 → `ERR_INVALID_PARAM` 且不发起 IPC）、`::ExecCmd_0800`（8192 字节边界 → 不因长度被拒）、`cli_tool_mgr_service_test.cpp::ExecCmd_CmdTooLong_0100`（shell 模式超长）、`::ExecCmd_CmdTooLong_0200`（工具模式超长）、`::ExecCmd_CmdMaxLength_0300`（服务端 8192 边界）、`exec_cmd_param_test.cpp::ExecCmdParam_MaxCmdLength_0100`（常量值 + 边界长度 Parcel 往返不截断） | 单测（边界 + 安全） | 实现前无长度校验：8193 字节命令在客户端会照常发起 IPC（proxy 被调用），在服务端会进入 shell/工具路径直至 Parcel 传输或 `execve` 阶段失败，断言的「入口 401 且 proxy 调用 0 次」不成立；`MAX_CMD_LENGTH` 常量不存在时用例编译期即失败 | 三处入口对 8193 字节均返回 `ERR_INVALID_PARAM`（对外 401）；客户端 proxy 调用 0 次；服务端查表与进程创建调用 0 次；8192 字节不因长度被拒；常量值 = 8 × 1024；边界长度 Parcel 往返不截断 |
 | VM-13 | R-16, R-17 / AC-1.1（options 语义） | 新增 `cli_tool_mgr_service_test.cpp::ExecCmd_ToolMode_OptionsSemantics_0100`（工具模式传 `workDir`/`env`/`policy`）、`tool_util_test.cpp::GenerateSandboxConfig_NoCallerWorkDir_0100`（工具沙箱配置内容断言）、NAPI 层 `timeout` 缺省值断言 | 单测 | 实现前工具模式不存在，无法构造「传了三项属性但沙箱配置不含 workdir/policy/env」的断言；`GenerateSandboxConfig` 与 `GenerateCmdSandboxConfig` 的差异无用例看护，若误把三项接入工具沙箱（或反向）无信号 | 工具模式沙箱配置只含调用方身份标识（`ohos_cli_callerBundleName`/`callerUid`/`callerTokenId`），不含 `workdir`/`policy`/调用方 `env`；shell 模式三项均写入；传 options 未传 `timeout` → 生效 1800，不传 options → 生效 0 |
 
 ## API 变更分析
@@ -171,12 +176,13 @@
 |----------|----------|----------|--------|------------|----------|---------|
 | `cliManager.ExecCmdOptions.isShellCommand` | System | `isShellCommand?: boolean`，默认 `true` | —（接口属性） | —（属性本身不抛错；取值决定 `execCmd` 的错误面） | `true` = shell 命令；`false` = 已注册 CLI 工具命令字符串 | AC-1.1, AC-1.2, AC-1.8, AC-1.10 |
 | `cliManager.ExecCmdOptions.challenge` | System | `challenge?: string`，默认 `""` | —（接口属性） | — | 调用方从 access token manager 获取的唯一标识，原值透传给工具进程 | AC-1.1 |
+| `MAX_CMD_LENGTH` | InnerAPI | `constexpr uint32_t MAX_CMD_LENGTH = 8 * 1024`（8192 字节） | —（编译期常量） | — | `execCmd` 的 `cmd` 长度上限，NAPI/客户端/服务端三层共用同一来源 | AC-1.11 |
 
 ### 变更/废弃 API
 
 | API 名称 | 当前开放级别 | 目标开放级别 | 变更类型 | 影响场景 | 迁移指引 | 关联 AC |
 |----------|--------------|--------------|----------|----------|----------|---------|
-| `cliManager.execCmd` | System | System | 变更（级别不变；行为扩展向后兼容 + 文档 `@throws` 补充） | 工具命令模式产生既有 shell 路径不存在的 401 与 35600030；既有 `.d.ts` 的 `@throws` 仅列 201/202/35600031/35600050。签名不变：`function execCmd(cmd: string, execCmdOptions?: ExecCmdOptions): Promise<CliSessionInfo>` | 未传或显式传 `isShellCommand: true` 的既有调用无需迁移；使用工具命令模式的调用方需在 `catch` 中新增 401 与 35600030 处理 | AC-1.2, AC-1.3, AC-1.4, AC-1.5, AC-1.6, AC-1.10 |
+| `cliManager.execCmd` | System | System | 变更（级别不变；行为扩展向后兼容 + 文档 `@throws` 补充） | 工具命令模式产生既有 shell 路径不存在的 401 与 35600030；命令长度上限（8192 字节）使超长调用的失败点前移为 401；既有 `.d.ts` 的 `@throws` 仅列 201/202/35600031/35600050。签名不变：`function execCmd(cmd: string, execCmdOptions?: ExecCmdOptions): Promise<CliSessionInfo>` | 未传或显式传 `isShellCommand: true` 的既有调用无需迁移；使用工具命令模式的调用方需在 `catch` 中新增 401 与 35600030 处理 | AC-1.2, AC-1.3, AC-1.4, AC-1.5, AC-1.6, AC-1.10 |
 | `ICliToolManager.ExecCmd / ExecCmdParam` | InnerAPI | InnerAPI | 变更（级别不变；序列化格式尾部追加字段，接口签名不变） | 跨进程 CLI 工具管理调用；新旧客户端/服务端混布 | 无需迁移；新增字段位于 Parcel 尾部，读取失败回退默认值（R-11/R-12） | AC-1.8 |
 
 > **废弃 API：** 无（本特性不废弃任何既有 API、字段或错误码）。
@@ -195,9 +201,10 @@
 | `CliSessionInfo` | Existing API | System | `sessionId: string; toolName: string; status: string（"running" / "completed" / "failed"）; result?: ExecResult` | 命令执行成功建立会话 | Promise resolve 的会话信息，调用方据此判定执行结果 | `cli_tool_framework/interfaces/cli_tool/include/cli_session_info.h:32-35` | AC-1.1, AC-1.2, AC-1.10 |
 | `ERROR_PERMISSION_DENIED` | Existing Error Code | System | `201`（内部码 `ERR_PERMISSION_DENIED = 35700007`） | 调用方为系统应用但未持有 `ohos.permission.EXEC_CLI_TOOL` | reject `BusinessError` 201 `"Permission denied."`，不建立会话 | `cli_manager_error_utils.h:26`、`cli_manager_error_utils.cpp:42`、`cli_error_code.h:63`；触发点 `cli_tool_manager_service.cpp:898-901` | AC-1.1 |
 | `ERROR_NOT_SYSTEM_APP` | Existing Error Code | System | `202`（内部码 `ERR_NOT_SYSTEM_APP = 35700008`） | 调用方非系统应用 | reject `BusinessError` 202 `"Not system application."`，不建立会话 | `cli_manager_error_utils.h:27`、`cli_manager_error_utils.cpp:43`、`cli_error_code.h:68`；触发点 `cli_tool_manager_service.cpp:892-896` | AC-1.1 |
-| `ERROR_INVALID_PARAM` | Existing Error Code | System | `401`（内部码 `ERR_INVALID_PARAM = 35700002`） | 工具名含白名单外字符；`cmd` 空/纯空白；schema 外标志；标志名为空；类型恢复失败；非数组参数重复；裸 token；未闭合引号；`timeout`/`yieldMs` 越界 | reject `BusinessError` 401 `"Invalid input parameter."`，不创建子进程 | 既有：`cli_manager_error_utils.h:28`、`cli_manager_error_utils.cpp:44`、`cli_error_code.h:38`；既有触发点 `tool_util.cpp:93-114 / ValidateExecOptionsProperties`、`js_cli_manager.cpp:192-227 / OnExecCmd`（`cmd` 非空）。New 触发点：工具名白名单与命令解析（`design.md` INV-4/INV-7、ADR-5，落点 `cli_tool_manager_service.cpp / ExecCmdToolMode`、`tool_util.cpp / ParseToolCommand`）、客户端空白命令前置校验（`design.md` TASK-2，落点 `cli_tool_mgr_client.cpp / ExecCmd`） | AC-1.3, AC-1.5, AC-1.6, AC-1.7 |
+| `ERROR_INVALID_PARAM` | Existing Error Code | System | `401`（内部码 `ERR_INVALID_PARAM = 35700002`） | 工具名含白名单外字符；`cmd` 空/纯空白；**`cmd` 字节长度 > 8192**；schema 外标志；标志名为空；类型恢复失败；非数组参数重复；裸 token；未闭合引号；`timeout`/`yieldMs` 越界 | reject `BusinessError` 401 `"Invalid input parameter."`，不创建子进程 | 既有：`cli_manager_error_utils.h:28`、`cli_manager_error_utils.cpp:44`、`cli_error_code.h:38`；既有触发点 `tool_util.cpp:93-114 / ValidateExecOptionsProperties`、`js_cli_manager.cpp:192-227 / OnExecCmd`（`cmd` 非空）。New 触发点：工具名白名单与命令解析（`design.md` INV-4/INV-7、ADR-5，落点 `cli_tool_manager_service.cpp / ExecCmdToolMode`、`tool_util.cpp / ParseToolCommand`）、客户端空白命令前置校验（`design.md` TASK-2，落点 `cli_tool_mgr_client.cpp / ExecCmd`）、三层命令长度上限校验（`design.md` ADR-9/INV-8、TASK-9，落点 `js_cli_manager.cpp / OnExecCmd`、`cli_tool_mgr_client.cpp / ExecCmd`、`cli_tool_manager_service.cpp / ExecCmd`） | AC-1.3, AC-1.5, AC-1.6, AC-1.7 |
 | `ERROR_TOOL_NOT_FOUND` | Existing Error Code | System | `35600030`（内部码 `ERR_TOOL_NOT_EXIST = 35700005`） | 工具名未注册；第二个 token 非标志前缀且不在已声明子命令集合（含工具未声明子命令） | reject `BusinessError` 35600030 `"The tool does not exist."` | 既有：`cli_manager_error_utils.h:30`、`cli_manager_error_utils.cpp:45`、`cli_error_code.h:53`；既有触发点 `cli_tool_manager_service.cpp:917-936 / ValidateAndPrepareTool`、`tool_util.cpp:59-91 / ValidateProperties`（子命令不存在）。New 触发点：工具命令模式的工具查表与子命令解析（`design.md` ADR-3/ADR-5，落点 `ExecCmdToolMode`、`ParseToolCommand`） | AC-1.4 |
 | `ERROR_REACH_LIMIT` | Existing Error Code | System | `35600031`（内部码 `ERR_SESSION_LIMIT_EXCEEDED = 35700001`） | 并发会话数 ≥ 上限（默认 `8`，系统参数 `const.sys.cli.limit_maximum_concurrency_quantity` 可配，非法值回退默认） | reject `BusinessError` 35600031 `"Maximum number of processes has been reached."` | `cli_manager_error_utils.h:31`、`cli_manager_error_utils.cpp:46`、`cli_error_code.h:33`；上限来源 `services/common/include/ccm_util.h:24`、`services/common/src/ccm_util.cpp:24,33-47`；触发点 `cli_tool_manager_service.cpp:906-915` | AC-1.9 |
+| `MAX_CMD_LENGTH` | New API | InnerAPI | `constexpr uint32_t MAX_CMD_LENGTH = 8 * 1024`（8192 字节，按 UTF-8 字节数比较） | `cmd` 长度超过该值 | NAPI 抛 401；客户端与服务端返回 `ERR_INVALID_PARAM`（对外 401），不发起 IPC / 不创建子进程 | New: `proposal.md` v1.1「范围边界（包含）」+ 附录 Q-4（2026-09-10 结论）+ 本文 R-18/AC-1.11；落点 `cli_tool_framework/interfaces/cli_tool/include/exec_cmd_param.h`（三层共用）+ `design.md` ADR-9/INV-8/TASK-9 | AC-1.11 |
 | `ERROR_INNER` | Existing Error Code | System | `35600050` | 会话记录创建失败（`ERR_NO_INIT = 35700004`）、沙箱生成失败（`ERR_NOT_HAP = 35700003`）、子进程创建失败、监控注册失败、服务不可用、配置/KVStore 错误；未映射内部码统一回退至此 | reject `BusinessError` 35600050（`"System Error."` / `"Internal error."` 文案） | 既有：`cli_manager_error_utils.h:35`、`cli_manager_error_utils.cpp:56-59,77,94`；既有触发点 `cli_tool_manager_service.cpp:955-989 / SetupAndStartSession`（会话建立失败与 `Killpg` 回滚范式）、`ExecCmd` 入口 `SetScheduler` 失败 → `ERR_NO_INIT`。New 触发点：工具命令模式会话建立失败路径（`design.md` ADR-4 / INV-3 / TASK-4） | AC-1.1 |
 
 ### 行为事实与约束（非 API/错误码）
@@ -226,13 +233,13 @@
 | 开放级别 | System（`@systemapi`、`@stagemodelonly`、`@syscap SystemCapability.Ability.AgentRuntime.Core`、`@since 26.0.0 dynamiconly`） |
 | 权限 | `ohos.permission.EXEC_CLI_TOOL` |
 | 错误码 | 201、202、401、35600030、35600031、35600050（既有 `.d.ts` 仅声明 201/202/35600031/35600050，需补 401 与 35600030） |
-| 关联 AC | AC-1.1..AC-1.10 |
+| 关联 AC | AC-1.1..AC-1.11 |
 
 **参数约束**
 
 | 参数 | 类型 | 必填 | 默认值 | 约束条件 |
 |------|------|------|--------|---------|
-| `cmd` | `string` | 是 | — | 非空（空串 → 401）；工具命令模式下纯空白 → 401，首个空白分隔 token 为工具名且须满足白名单；无长度上限校验（与 `execTool`/既有 `execCmd` 一致，proposal Q-4 结论） |
+| `cmd` | `string` | 是 | — | 非空（空串 → 401）；字节长度 ≤ 8192（`MAX_CMD_LENGTH`，超限 → 401，恰为 8192 合法）；工具命令模式下纯空白 → 401，首个空白分隔 token 为工具名且须满足白名单 |
 | `execCmdOptions.isShellCommand` | `boolean` | 否 | `true` | `false` 时启用工具命令模式；缺省值在 NAPI 与 IPC 反序列化两处一致 |
 | `execCmdOptions.challenge` | `string` | 否 | `""` | 工具命令模式下原值透传；服务端不生成、不校验内容、不改写 |
 | `execCmdOptions.timeout` | `long`（秒） | 否 | `1800`（传了 options 对象但未传该字段）/ `0`（完全不传 options 对象） | `0` = 不限时；`< 0` 或 `> 1800` → 401；见 R-17 / Q-S2 |
@@ -257,10 +264,12 @@
 | 10 | `execCmd("ohos-aa start -b", { isShellCommand: false })` / `--name 'hello`（未闭合） | System API | reject 401 | AC-1.7 |
 | 11 | 并发会话数已达上限（默认 8）时调用工具命令模式 | System API | reject 35600031 | AC-1.9 |
 | 12 | 旧客户端 Parcel（只写到 `options`）到达新服务端 | InnerAPI | 反序列化成功，`isShellCommand == true`、`challenge == ""`，按 shell 模式执行 | AC-1.8 |
+| 13 | `execCmd(8193 字节命令)`（任一模式） | System API / InnerAPI | reject 401；不发起跨进程调用、不创建子进程、查询不到会话 | AC-1.11 |
+| 14 | `execCmd(8192 字节命令)`（边界值） | System API | 不因长度被拒，继续执行该模式的其余校验 | AC-1.11 |
 
 ## 兼容性声明
 
-- **已有 API 行为变更:** 否（对既有调用方）——`execCmd` 签名与返回类型不变；未传或显式传 `isShellCommand: true` 时行为与既有 shell 路径一致。工具命令模式为**新增行为面**，仅对显式声明 `false` 的调用方生效，并新增 401/35600030 两类可观察错误。
+- **已有 API 行为变更:** 部分是——`execCmd` 签名与返回类型不变；`cmd` ≤ 8192 字节且未传（或显式传 `isShellCommand: true`）时，行为与既有 shell 路径完全一致。**变化点**：`cmd` 超过 8192 字节的既有调用，失败点由后端（Parcel 传输/`execve` 阶段失败，对外 35600050 或执行失败）前移为入口 401，且不再发起跨进程调用；此类调用在变更前同样无法成功执行，故不构成功能回退。工具命令模式为**新增行为面**，仅对显式声明 `false` 的调用方生效，并新增 401/35600030 两类可观察错误。
 - **配置文件格式变更:** 否（沿用既有工具注册信息与沙箱配置格式；会话上限仍由系统参数 `const.sys.cli.limit_maximum_concurrency_quantity` 配置，默认 8）
 - **数据存储格式变更:** 否（无持久化数据格式变更；IPC Parcel 属运行时序列化，单列如下）
 - **IPC 兼容性（旧客户端 → 新服务端）:** 兼容——新增两字段位于 Parcel 尾部，读取失败时回退 `isShellCommand = true` / `challenge = ""`，按 shell 路径执行（R-11 / AC-1.8）
@@ -279,6 +288,7 @@
 | IPC 序列化只可尾部追加 | 新增字段只能追加在既有字段之后，不得调整既有字段顺序或改变既有字段编码方式 | AC-1.8 |
 | 已发布错误码数值不可变 | 复用既有内部码与对外码映射，不新增、不改写错误码数值 | AC-1.3..AC-1.6, AC-1.9 |
 | 不支持语法必须显式拒绝 | 短标志/前缀参数/条件标志/双引号/反斜杠转义一律拒绝，不得静默忽略或按字符串兜底传给工具 | AC-1.6, AC-1.7 |
+| 长度上限三层一致 | 上限值为单一来源的编译期常量（8192 字节），NAPI/客户端/服务端三处引用同一常量，不得各自硬编码不同数值；服务端校验点位于权限门之后、调度器注册与会话上限之前 | AC-1.11 |
 | 会话不留残 | 会话建立过程中任一步失败后，不得残留可查询会话或孤儿进程组 | AC-1.1 |
 
 ## 非功能性需求
@@ -290,8 +300,8 @@
 | 性能 | N/A：按需低频调用路径，非热路径；无每帧/每事件开销，复用既有校验与进程链路 | — | `proposal.md`「不涉及项确认」 |
 | 功耗 | N/A：无常驻任务、无新增定时器（超时/后台化任务沿用既有 `ExecOptions` 语义） | — | 同上 |
 | 内存 | N/A：无常驻结构增量；命令字符串与解析结果为单次调用内临时对象 | — | 同上 |
-| 安全 | 权限门（系统应用 + `ohos.permission.EXEC_CLI_TOOL`）+ 工具名白名单 + schema 校验 + 沙箱执行；命令日志脱敏；不新增权限、不放宽既有校验 | 安全测试（VM-3）+ 单测（VM-1, VM-4, VM-7） | `cli_tool_mgr_service_test.cpp`、`tool_util_test.cpp` |
-| 可靠性 | 会话建立失败不留残（无残留会话、无孤儿进程组）；会话数上限（默认 8）防资源耗尽 | 单测（VM-10, VM-12） | `cli_tool_mgr_service_test.cpp` |
+| 安全 | 权限门（系统应用 + `ohos.permission.EXEC_CLI_TOOL`）+ 工具名白名单 + 命令长度上限（8192 字节，缓解超长输入导致的资源耗尽）+ schema 校验 + 沙箱执行；命令日志脱敏（长度拒绝分支只打印长度 `%{public}zu` 与上限，不打印命令原文）；不新增权限、不放宽既有校验 | 安全测试（VM-3）+ 边界与安全单测（VM-1, VM-4, VM-7, VM-14） | `cli_tool_mgr_service_test.cpp`、`cli_tool_mgr_client_test.cpp`、`tool_util_test.cpp` |
+| 可靠性 | 会话建立失败不留残（无残留会话、无孤儿进程组）；会话数上限（默认 8）与命令长度上限（8192 字节）共同防资源耗尽 | 单测（VM-10, VM-12, VM-14） | `cli_tool_mgr_service_test.cpp`、`cli_tool_mgr_client_test.cpp` |
 | 可测试性 | 命令解析、白名单、IPC 缺省回退、会话上限均可在部件边界独立构造与断言（无需真实工具进程即可覆盖拒绝路径） | 单测（VM-3..VM-9） | `tool_util_test.cpp`、`exec_cmd_param_test.cpp`、`cli_tool_mgr_client_test.cpp` |
 | 自动化维测 | 执行失败上报沿用既有 CLI 执行事件上报通道，携带失败原因分类（工具名非法、工具不存在、参数非法等），不新增 `hisysevent.yaml` 事件定义 | 既有用例 + 上报字段核查 | `cli_event_report`（既有） |
 | 定界定位 | 对外错误码可区分：201/202（权限）、401（命令与参数非法）、35600030（工具/子命令不存在）、35600031（会话上限）、35600050（内部失败）；命令原文日志脱敏、失败原因可分类 | hilog + 错误码 | `cli_manager_error_utils.cpp:40-51` |
@@ -323,12 +333,13 @@ N/A：复杂度为「标准」（L1），按模板二选一规则使用上方「
 
 ## 事实冲突与澄清项
 
-> 依据 `ohos-spec` 规则 10（API/错误码是事实契约，发现事实冲突先回 proposal/spec 澄清）。核对**既有代码与已发布声明**时发现 3 项与 legacy 文档不一致的事实，其中 Q-S1、Q-S2 已由需求方于 2026-09-09 给出结论并关闭；Q-S3 为跨仓交付项，转 `execution-plan.md` 跟踪。三项结论均未改变 `proposal.md` 的范围、AC 或 API 变更项，故不触发基线重新批准。
+> 依据 `ohos-spec` 规则 10（API/错误码是事实契约，发现事实冲突先回 proposal/spec 澄清）。核对**既有代码与已发布声明**时发现 3 项与 legacy 文档不一致的事实（Q-S1..Q-S3）：Q-S1、Q-S2 已由需求方于 2026-09-09 给出结论并关闭，Q-S3 为跨仓交付项转 `execution-plan.md` 跟踪；该三项均未改变范围、AC 或 API 变更项，故未触发基线重新批准。**Q-S4** 由需求方于 2026-09-10 主动变更 Q-4 结论引发，**已改变范围与 AC**（新增 AC-1.11 / R-18），故 proposal 基线升 v1.1 并退回 `awaiting_approval` 重新批准。
 
 | 编号 | 冲突事实（既有代码/声明） | 与何者冲突 | 需求方结论（2026-09-09，zhoulanzhi） | 状态 |
 |------|----------------------|------------|--------------------------------------|------|
 | Q-S1 | 工具命令模式下 `ExecCmdOptions.workDir` / `env` / `policy` **不生效**：工具路径沙箱配置只注入调用方身份标识（`tool_util.cpp:187-219`），三项仅由 shell 路径写入（`tool_util.cpp:221-241`）；`ExecToolParam` 亦无对应字段（`exec_tool_param.h:30-37`） | `.d.ts` 对三项属性的语义声明（`@ohos.app.cli.cliManager.d.ts:86-155`）未区分模式，调用方可能预期两模式均生效 | **不区分即可**：接受现状为预期行为，不判定为缺陷；`.d.ts` 与本文档均不为三项属性增加模式差异标注；不回 `proposal.md` 变更控制 | 已关闭（固化于 R-16 / BF-3 / VM-13） |
 | Q-S2 | 未传 `timeout` 时存在**两条不同默认路径**：传了 options 对象 → `timeout = 1800`（`js_cli_manager_utils.cpp:214-217`，与 `.d.ts` `@default 1800` 一致）；完全不传 options 对象 → `timeout = 0`（`exec_options.h:34`，不限时） | legacy `spec.md` EB-2 记为「`timeout` 未传 → 默认 `0`，不注册超时任务」，未区分两条路径 | **按事实来**：以既有代码事实为准（工具命令模式必然携带 options 对象，故缺省 1800 秒）；legacy EB-2 描述作废；两条默认路径保持现状、不统一 | 已关闭（固化于 R-17 / BF-2 / 接口规格参数约束） |
+| Q-S4 | 命令字符串长度上限：v1.0 基线结论为「暂时忽略、不新增校验」，2026-09-10 需求方变更结论为「新增统一上限 8192 字节」 | `proposal.md` v1.0「范围边界（不包含）」项与本文旧版 `cmd` 参数约束（原写「无长度上限校验」） | **按新结论执行**：基线升 v1.1，新增 AC-1.11 与 R-18；NAPI/客户端/服务端三层一致校验，复用 401 不新增错误码；长度上限参数化（CCM 可配）与 `execTool` 侧长度约束列入后续迭代 | 已关闭（proposal v1.1 附录 Q-4；本文 R-18 / VM-14） |
 | Q-S3 | 既有 `.d.ts` **尚未包含** `isShellCommand` / `challenge`，且 `execCmd` 的 `@throws` 仍只列 201/202/35600031/35600050（`@ohos.app.cli.cliManager.d.ts:85-155,398-415`） | `proposal.md` R-1（跨仓声明同步交付）预期在主仓实现后同步声明 | 属跨仓交付项而非语义冲突：由 `interface_sdk-js` 提交声明 PR（中英同步），内容 = 新增两个可选属性 + `@throws` 补 401 与 35600030；依 Q-S1 结论**不**为 `workDir`/`env`/`policy` 增加模式差异说明 | 待交付（转 `execution-plan.md` 跨仓任务跟踪） |
 
 ## context-references

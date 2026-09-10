@@ -6,11 +6,11 @@ spec_schema: ohos-sdd/v1
 profile: none
 complexity: standard
 lineage: new-on-legacy
-status: approved
+status: implementing
 owner: "CLI 工具框架负责人（团队级）；需求提出人/Define 批准人 zhoulanzhi"
 source_issue: "issue-16082 / REQ-20260626000935"
 created_at: 2026-09-03
-updated_at: 2026-09-09
+updated_at: 2026-09-10
 related:
   - .codespec/changes/issue-16082-execcmd-clitool-legacy-template
   - .codespec/changes/issue-15383-cli-exectool
