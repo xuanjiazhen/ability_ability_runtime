@@ -54,6 +54,9 @@ void AppStateObserverManager::Init()
         handler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler("app_state_task_queue",
             AAFwk::TaskQoS::USER_INTERACTIVE);
     }
+    if (!remoteClientManager_) {
+        remoteClientManager_ = std::make_shared<RemoteClientManager>();
+    }
 }
 
 int32_t AppStateObserverManager::RegisterApplicationStateObserver(const sptr<IApplicationStateObserver> &observer,
@@ -765,11 +768,12 @@ void AppStateObserverManager::HandleStateChangedNotifyObserver(
         "Handle state change, module:%{public}s, bundle:%{public}s, ability:%{public}s, state:%{public}d, "
         "pid:%{public}d ,uid:%{public}d, abilityType:%{public}d, isAbility:%{public}d, callerBundleName:%{public}s, "
         "callerAbilityName:%{public}s, isAtomicService:%{public}d, callerUid:%{public}d, callerPid:%{public}d, "
-        "preloadMode:%{public}d", abilityStateData.moduleName.c_str(), abilityStateData.bundleName.c_str(),
+        "preloadMode:%{public}d, lastUIAbilityCallerUid:%{public}d",
+        abilityStateData.moduleName.c_str(), abilityStateData.bundleName.c_str(),
         abilityStateData.abilityName.c_str(), abilityStateData.abilityState, abilityStateData.pid, abilityStateData.uid,
         abilityStateData.abilityType, isAbility, abilityStateData.callerBundleName.c_str(),
         abilityStateData.callerAbilityName.c_str(), abilityStateData.isAtomicService, abilityStateData.callerUid,
-        abilityStateData.callerPid, abilityStateData.preloadMode);
+        abilityStateData.callerPid, abilityStateData.preloadMode, abilityStateData.lastUIAbilityCallerUid);
     FilterBundleType filterBundleType = GetFilterTypeFromBundleType(bundleType);
     AppStateFilter appStateFilter;
     if (isAbility) {
@@ -923,9 +927,10 @@ void AppStateObserverManager::HandleOnProcessStateChanged(
     }
     TAG_LOGD(AAFwkTag::APPMGR,
         "bundle:%{public}s, pid:%{public}d, uid:%{public}d, state:%{public}d, "
-        "isContinuousTask:%{public}d, gpuPid:%{public}d, preloadMode:%{public}d, isFromScreenOffBackground:%{public}d",
+        "isContinuousTask:%{public}d, gpuPid:%{public}d, preloadMode:%{public}d, isFromScreenOffBackground:%{public}d, "
+        "callerUid:%{public}d",
         data->bundleName.c_str(), data->pid, data->uid, data->state, data->isContinuousTask, data->gpuPid,
-        data->preloadMode, data->isFromScreenOffBackground);
+        data->preloadMode, data->isFromScreenOffBackground, data->callerUid);
     AppStateFilter appStateFilter {FilterCallback::ON_PROCESS_STATE_CHANGED,
         GetFilterTypeFromBundleType(bundleType), FilterAppStateType::NONE,
         GetFilterTypeFromAppProcessState(static_cast<AppProcessState>(data->state)),
@@ -1114,6 +1119,17 @@ std::shared_ptr<ProcessData> AppStateObserverManager::WrapProcessData(
     processData->gpuPid = appRecord->GetGPUPid();
     processData->callerPid = appRecord->GetCallerPid();
     processData->callerUid = appRecord->GetCallerUid();
+    std::string callerBundleName;
+    if (processData->callerUid >= 0 && remoteClientManager_ != nullptr) {
+        auto bundleMgr = remoteClientManager_->GetBundleManagerHelper();
+        if (bundleMgr != nullptr &&
+            IN_PROCESS_CALL(bundleMgr->GetNameForUid(processData->callerUid, callerBundleName)) == ERR_OK) {
+            processData->callerBundleName = callerBundleName;
+        }
+    }
+    if (callerBundleName.empty()) {
+        processData->callerBundleName = "";
+    }
     processData->killReason = appRecord->GetKillReason();
     processData->isFromWindowFocusChanged = isFromWindowFocusChanged;
     processData->isFromScreenOffBackground = isFromScreenOffBackground;
@@ -1388,6 +1404,8 @@ AppStateData AppStateObserverManager::WrapAppStateData(const std::shared_ptr<App
         || appRecord->GetPreloadMode() == PreloadMode::PRE_LAUNCH;
     appStateData.preloadMode = static_cast<int32_t>(appRecord->GetPreloadMode());
     appStateData.callerUid = appRecord->GetCallerUid();
+    appStateData.lastUIAbilityCallerUid = appRecord->GetLastUIAbilityCallerUid();
+    appStateData.lastUIAbilityCallerName = appRecord->GetLastUIAbilityCallerName();
     appStateData.isFromWindowFocusChanged = isFromWindowFocusChanged;
     if (appRecord->GetApplicationInfo() != nullptr) {
         appStateData.accessTokenId = static_cast<uint32_t>(appRecord->GetApplicationInfo()->accessTokenId);
@@ -1402,21 +1420,27 @@ AppStateData AppStateObserverManager::WrapAppStateData(const std::shared_ptr<App
             }
         }
     }
-    std::shared_ptr<RemoteClientManager> remoteClientManager = std::make_shared<RemoteClientManager>();
-    auto bundleMgr = remoteClientManager->GetBundleManagerHelper();
     std::string callerBundleName;
-    if (bundleMgr != nullptr &&
-        IN_PROCESS_CALL(bundleMgr->GetNameForUid(appRecord->GetCallerUid(), callerBundleName)) == ERR_OK) {
-        appStateData.callerBundleName = callerBundleName;
-    } else {
+    if (appRecord->GetCallerUid() >= 0 && remoteClientManager_ != nullptr) {
+        auto bundleMgr = remoteClientManager_->GetBundleManagerHelper();
+        if (bundleMgr != nullptr &&
+            IN_PROCESS_CALL(bundleMgr->GetNameForUid(appRecord->GetCallerUid(), callerBundleName)) == ERR_OK) {
+            appStateData.callerBundleName = callerBundleName;
+        }
+    }
+    if (callerBundleName.empty()) {
         appStateData.callerBundleName = "";
     }
     appStateData.appIndex = appRecord->GetAppIndex();
     appStateData.byCallStatus = appRecord->GetStartedByCallStatus();
-    TAG_LOGD(AAFwkTag::APPMGR, "Handle state change, bundle:%{public}s, state:%{public}d, pid:%{public}d,"
-        "uid:%{public}d, isFocused:%{public}d, callerBUndleName: %{public}s, appIndex:%{public}d, callerUid:%{public}d",
-        appStateData.bundleName.c_str(), appStateData.state, appStateData.pid, appStateData.uid,
-        appStateData.isFocused, appStateData.callerBundleName.c_str(), appStateData.appIndex, appStateData.callerUid);
+    TAG_LOGD(AAFwkTag::APPMGR,
+             "Handle state change, bundle:%{public}s, state:%{public}d, pid:%{public}d,"
+             "uid:%{public}d, isFocused:%{public}d, callerBUndleName: %{public}s, appIndex:%{public}d, "
+             "callerUid:%{public}d, "
+             "lastUIAbilityCallerUid:%{public}d",
+             appStateData.bundleName.c_str(), appStateData.state, appStateData.pid, appStateData.uid,
+             appStateData.isFocused, appStateData.callerBundleName.c_str(), appStateData.appIndex,
+             appStateData.callerUid, appStateData.lastUIAbilityCallerUid);
     return appStateData;
 }
 

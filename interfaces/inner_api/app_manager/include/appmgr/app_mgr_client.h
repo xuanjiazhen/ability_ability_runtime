@@ -118,10 +118,14 @@ public:
      * @param state New ability state, see AbilityState.
      * @param isFromScreenOffBackground True when the change is caused by screen-off
      *        background, default false.
+     * @param callerUid The caller uid in the want of ability record.
+     * @param callerBundleName The caller bundle name in the want of ability record.
+     * @param isCallBySCB Whether the foreground request is initiated by SCB.
      * @return RESULT_OK if dispatched, otherwise ERROR_SERVICE_NOT_CONNECTED.
      */
     virtual AppMgrResultCode UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
-        bool isFromScreenOffBackground = false);
+        bool isFromScreenOffBackground = false, int32_t callerUid = -1,
+        const std::string &callerBundleName = "", bool isCallBySCB = false);
 
     /**
      * Update the running state of an extension ability identified by token.

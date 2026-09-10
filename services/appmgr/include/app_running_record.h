@@ -129,6 +129,34 @@ public:
     void SetCallerTokenId(int32_t tokenId);
 
     /**
+     * @brief Obtains the app record lastUIAbilityCallerUid.
+     *
+     * @return Returns app record lastUIAbilityCallerUid.
+     */
+    int32_t GetLastUIAbilityCallerUid() const;
+
+    /**
+     * @brief Setting the lastUIAbilityCallerUid.
+     *
+     * @param uid the lastUIAbilityCallerUid.
+     */
+    void SetLastUIAbilityCallerUid(int32_t uid);
+
+    /**
+     * @brief Obtains the app record lastUIAbilityCallerName.
+     *
+     * @return Returns app record lastUIAbilityCallerName.
+     */
+    std::string GetLastUIAbilityCallerName() const;
+
+    /**
+     * @brief Setting the lastUIAbilityCallerName.
+     *
+     * @param name the lastUIAbilityCallerName.
+     */
+    void SetLastUIAbilityCallerName(const std::string &name);
+
+    /**
      * @brief Obtains the app record isLauncherApp flag.
      *
      * @return Returns app record isLauncherApp flag.
@@ -535,11 +563,16 @@ public:
      *
      * @param token, the unique identification to update the ability.
      * @param state, ability status that needs to be updated.
+     * @param isFromScreenOffBackground Whether from screen off background.
+     * @param callerUid The caller uid in the want of ability record.
+     * @param callerBundleName The caller bundle name in the want of ability record.
+     * @param isCallBySCB Whether the foreground request is initiated by SCB.
      *
      * @return
      */
     void UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
-        bool isFromScreenOffBackground = false);
+        bool isFromScreenOffBackground = false, int32_t callerUid = -1,
+        const std::string &callerBundleName = "", bool isCallBySCB = false);
 
     /**
      * PopForegroundingAbilityTokens, Extract the token record from the foreground tokens list.
@@ -1347,10 +1380,14 @@ private:
      * AbilityForeground, Handling the ability process when switching to the foreground.
      *
      * @param ability, the ability info.
+     * @param callerUid The caller uid in the want of ability record.
+     * @param callerBundleName The caller bundle name in the want of ability record.
+     * @param isCallBySCB Whether the foreground request is initiated by SCB.
      *
      * @return
      */
-    void AbilityForeground(const std::shared_ptr<AbilityRunningRecord> &ability);
+    void AbilityForeground(const std::shared_ptr<AbilityRunningRecord> &ability, int32_t callerUid = -1,
+        const std::string &callerBundleName = "", bool isCallBySCB = false);
 
     /**
      * AbilityBackground, Handling the ability process when switching to the background.
@@ -1476,6 +1513,9 @@ private:
     int32_t callerPid_ = -1;
     int32_t callerTokenId_ = -1;
     int32_t callerUid_ = -1;
+    int32_t lastUIAbilityCallerUid_ = -1;
+    std::string lastUIAbilityCallerName_;
+    ffrt::mutex lastUIAbilityCallerLock_;
     int32_t exitReason_ = 0;
     std::atomic_int32_t pssValue_ = 0;
     std::atomic<bool> isUIExtensionPreload_ = false;

@@ -267,8 +267,12 @@ public:
      * move ability to foreground.
      *
      * @param token, the token of ability.
+     * @param callerUid, the caller uid in the want of ability record.
+     * @param callerBundleName, the caller bundle name in the want of ability record.
+     * @param isCallBySCB, whether the foreground request is initiated by SCB.
      */
-    void MoveToForeground(const sptr<IRemoteObject> &token);
+    void MoveToForeground(const sptr<IRemoteObject> &token, int32_t callerUid = -1,
+        const std::string &callerBundleName = "", bool isCallBySCB = false);
 
     /**
      * move ability to background.
