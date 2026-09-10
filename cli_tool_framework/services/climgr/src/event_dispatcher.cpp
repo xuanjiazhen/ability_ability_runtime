@@ -227,8 +227,10 @@ void EventDispatcher::DispatchExitEvent(const std::string &sessionId, int32_t ex
 {
     CliToolEvent event;
     event.type = "exit";
-    event.eventData = "";
     event.exitCode = exitCode;
+    json exitData;
+    exitData["exitCode"] = std::to_string(exitCode);
+    event.eventData = exitData.dump();
     event.timestamp = GetCurrentTimeMs();
     DispatchEvent(sessionId, event);
 }
