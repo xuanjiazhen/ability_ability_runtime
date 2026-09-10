@@ -1420,14 +1420,10 @@ std::shared_ptr<SessionRecord> CliToolManagerService::CreateSessionRecord(const 
 int32_t CliToolManagerService::ClearSession(const std::string &sessionId)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
-    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
-    if (!AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Not system app");
-        return ERR_NOT_SYSTEM_APP;
-    }
-
     auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL)) {
+    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL) &&
+        !PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_PUBLIC_CLI_TOOL)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "not granted EXEC_CLI_TOOL or EXEC_PUBLIC_CLI_TOOL");
         return ERR_PERMISSION_DENIED;
     }
 
@@ -1514,14 +1510,10 @@ int32_t CliToolManagerService::SubscribeSession(const std::string &sessionId, co
     const sptr<ICliToolManagerScheduler> &scheduler)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
-    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
-    if (!AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Not system app");
-        return ERR_NOT_SYSTEM_APP;
-    }
-
     auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL)) {
+    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL) &&
+        !PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_PUBLIC_CLI_TOOL)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "not granted EXEC_CLI_TOOL or EXEC_PUBLIC_CLI_TOOL");
         return ERR_PERMISSION_DENIED;
     }
 
@@ -1531,14 +1523,10 @@ int32_t CliToolManagerService::SubscribeSession(const std::string &sessionId, co
 int32_t CliToolManagerService::UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
-    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
-    if (!AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Not system app");
-        return ERR_NOT_SYSTEM_APP;
-    }
-
     auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL)) {
+    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL) &&
+        !PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_PUBLIC_CLI_TOOL)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "not granted EXEC_CLI_TOOL or EXEC_PUBLIC_CLI_TOOL");
         return ERR_PERMISSION_DENIED;
     }
 
@@ -1552,14 +1540,10 @@ int32_t CliToolManagerService::UnsubscribeSession(const std::string &sessionId, 
 int32_t CliToolManagerService::QuerySession(const std::string &sessionId, CliSessionInfo &session)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
-    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
-    if (!AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Not system app");
-        return ERR_NOT_SYSTEM_APP;
-    }
-
     auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL)) {
+    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL) &&
+        !PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_PUBLIC_CLI_TOOL)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "not granted EXEC_CLI_TOOL or EXEC_PUBLIC_CLI_TOOL");
         return ERR_PERMISSION_DENIED;
     }
 
@@ -1580,14 +1564,10 @@ int32_t CliToolManagerService::SendMessage(const std::string &sessionId,
     const sptr<ICliToolManagerScheduler> &scheduler)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
-    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
-    if (!AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Not system app");
-        return ERR_NOT_SYSTEM_APP;
-    }
-
     auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL)) {
+    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL) &&
+        !PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_PUBLIC_CLI_TOOL)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "not granted EXEC_CLI_TOOL or EXEC_PUBLIC_CLI_TOOL");
         return ERR_PERMISSION_DENIED;
     }
 
