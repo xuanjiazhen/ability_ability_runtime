@@ -3152,6 +3152,8 @@ private:
 
     int32_t GetValidUserId(int32_t userId);
 
+    int32_t GetUserIdByCallerToken(const sptr<IRemoteObject> &callerToken);
+
     int DelegatorMoveMissionToFront(int32_t missionId);
 
     bool IsNeedTimeoutForTest(const std::string &abilityName, const std::string &state) const;
