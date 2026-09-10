@@ -91,6 +91,7 @@ constexpr const char* IS_EDM_ENABLE = "persist.edm.edm_enable";
 constexpr const char* IS_DEVELOPER_MODE = "security.developermode.state";
 constexpr const char* SUPPORT_AUTO_STARTUP = "const.abilityms.enable_auto_startup";
 constexpr const char* SUPPORT_DELAYED_PROCESS_EXIT = "const.abilityms.support_delayed_process_exit";
+constexpr const char* WINDOW_FOREGROUND_CHECK_ENABLED = "persist.sys.abilityms.window_foreground_check_enabled";
 // Support prepare terminate
 constexpr int32_t PREPARE_TERMINATE_ENABLE_SIZE = 6;
 constexpr const char* PREPARE_TERMINATE_ENABLE_PARAMETER = "persist.sys.prepare_terminate";
@@ -995,6 +996,16 @@ bool AppUtils::IsBopdOrRescueMode()
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "IsBopdOrRescueMode: %{public}d", isBopdOrRescueMode_.value);
     return isBopdOrRescueMode_.value;
+}
+
+bool AppUtils::IsWindowForegroundCheckEnabled()
+{
+    if (!isWindowForegroundCheckEnabled_.isLoaded) {
+        isWindowForegroundCheckEnabled_.value = system::GetBoolParameter(WINDOW_FOREGROUND_CHECK_ENABLED, false);
+        isWindowForegroundCheckEnabled_.isLoaded = true;
+    }
+    TAG_LOGD(AAFwkTag::DEFAULT, "IsWindowForegroundCheckEnabled: %{public}d", isWindowForegroundCheckEnabled_.value);
+    return isWindowForegroundCheckEnabled_.value;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -2911,6 +2911,8 @@ private:
      */
     int GetTopAbilityByUserId(sptr<IRemoteObject> &token, int32_t userId, uint64_t displayId = 0);
 
+    int GetTopAbilityByUserIdForService(sptr<IRemoteObject> &token, int32_t userId, uint64_t displayId);
+
     /**
      * @brief Get display ID by account ID.
      * @param accountId The account ID.

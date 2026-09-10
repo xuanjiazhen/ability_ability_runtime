@@ -17,9 +17,13 @@
 
 #include "ability_manager_service.h"
 #include "ability_util.h"
+#include "app_utils.h"
 #include "distributed_client.h"
 #include "hitrace_meter.h"
+#include "in_process_call_wrapper.h"
+#include "mock_session_manager_service.h"
 #include "permission_constants.h"
+#include "scene_board_judgement.h"
 #include "session_manager_lite.h"
 #include "utils/app_mgr_util.h"
 #include "wm_common.h"
@@ -850,7 +854,8 @@ bool PendingWantManager::CheckCallerPermission()
         return false;
     }
     if ((!processInfo.isFocused && !processInfo.isAbilityForegrounding) ||
-        (!permission->IsSystemAppCall() && !CheckWindowState(callerPid))) {
+        (!permission->IsSystemAppCall() &&
+            !CheckWindowState(callerPid, processInfo.uid_ / BASE_USER_RANGE))) {
         TAG_LOGW(AAFwkTag::WANTAGENT, "caller unfocused");
         if (!permission->VerifyCallingPermission(PermissionConstants::PERMISSION_START_ABILITIES_FROM_BACKGROUND) &&
             !permission->VerifyCallingPermission(PermissionConstants::PERMISSION_START_ABILIIES_FROM_BACKGROUND) &&
@@ -862,17 +867,29 @@ bool PendingWantManager::CheckCallerPermission()
     return true;
 }
 
-bool PendingWantManager::CheckWindowState(int32_t pid)
+bool PendingWantManager::CheckWindowState(int32_t pid, int32_t userId)
 {
-    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
-    if (sceneSessionManager == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "null manager");
-        return false;
-    }
     std::vector<Rosen::MainWindowState> windowStates;
-    Rosen::WSError ret = sceneSessionManager->GetMainWindowStatesByPid(pid, windowStates);
+    Rosen::WSError ret = Rosen::WSError::WS_ERROR_INVALID_PERMISSION;
+    if (AppUtils::GetInstance().IsWindowForegroundCheckEnabled() &&
+        Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        auto sceneSessionManager = Rosen::MockSessionManagerService::GetInstance()
+            .GetSceneSessionManagerLiteBySA(userId);
+        if (sceneSessionManager == nullptr) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "null sceneSessionManager, userId=%{public}d", userId);
+            return false;
+        }
+        ret = IN_PROCESS_CALL(sceneSessionManager->GetMainWindowStatesByPid(pid, windowStates));
+    } else {
+        auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+        if (sceneSessionManager == nullptr) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "null manager");
+            return false;
+        }
+        ret = sceneSessionManager->GetMainWindowStatesByPid(pid, windowStates);
+    }
     if (ret != Rosen::WSError::WS_OK || windowStates.empty()) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "fail GetWindow");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "fail GetWindow, ret=%{public}d", static_cast<int32_t>(ret));
         return false;
     }
     for (auto &windowState : windowStates) {
