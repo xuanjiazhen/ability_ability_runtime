@@ -166,7 +166,7 @@ void AmsMgrProxy::TerminateAbility(const sptr<IRemoteObject> &token, bool clearM
 }
 
 void AmsMgrProxy::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
-    bool isFromScreenOffBackground)
+    bool isFromScreenOffBackground, int32_t callerUid, const std::string &callerBundleName, bool isCallBySCB)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "start");
     MessageParcel data;
@@ -186,6 +186,10 @@ void AmsMgrProxy::UpdateAbilityState(const sptr<IRemoteObject> &token, const Abi
     }
     if (!data.WriteBool(isFromScreenOffBackground)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Failed to write isFromScreenOffBackground");
+        return;
+    }
+    if (!data.WriteInt32(callerUid) || !data.WriteString(callerBundleName) || !data.WriteBool(isCallBySCB)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write caller info");
         return;
     }
     int32_t ret =

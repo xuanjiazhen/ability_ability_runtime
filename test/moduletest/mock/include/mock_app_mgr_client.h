@@ -29,8 +29,8 @@ public:
     MOCK_METHOD4(LoadAbility, AppMgrResultCode(const AbilityInfo&, const ApplicationInfo&,
         const AAFwk::Want&, AbilityRuntime::LoadParam));
     MOCK_METHOD2(TerminateAbility, AppMgrResultCode(const sptr<IRemoteObject>&, bool));
-    MOCK_METHOD3(UpdateAbilityState, AppMgrResultCode(const sptr<IRemoteObject>& token, const AbilityState state,
-        bool isFromScreenOffBackground));
+    MOCK_METHOD6(UpdateAbilityState, AppMgrResultCode(const sptr<IRemoteObject>& token, const AbilityState state,
+        bool isFromScreenOffBackground, int32_t callerUid, const std::string& callerBundleName, bool isCallBySCB));
     MOCK_METHOD4(KillApplication, AppMgrResultCode(const std::string&, const bool clearPageStack, int32_t,
         const std::string&));
     MOCK_METHOD1(KillProcessByAbilityToken, AppMgrResultCode(const sptr<IRemoteObject>& token));

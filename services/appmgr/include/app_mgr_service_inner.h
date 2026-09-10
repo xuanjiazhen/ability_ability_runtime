@@ -215,11 +215,16 @@ public:
      *
      * @param token, the unique identification to update the ability.
      * @param state, ability status that needs to be updated.
+     * @param isFromScreenOffBackground Whether from screen off background.
+     * @param callerUid The caller uid in the want of ability record.
+     * @param callerBundleName The caller bundle name in the want of ability record.
+     * @param isCallBySCB Whether the foreground request is initiated by SCB.
      *
      * @return
      */
     virtual void UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
-        bool isFromScreenOffBackground = false);
+        bool isFromScreenOffBackground = false, int32_t callerUid = -1,
+        const std::string &callerBundleName = "", bool isCallBySCB = false);
 
     /**
      * UpdateExtensionState, call UpdateExtensionState() through the proxy object, update the extension status.

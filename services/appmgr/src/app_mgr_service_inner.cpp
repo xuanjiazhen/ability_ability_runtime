@@ -5051,7 +5051,7 @@ void AppMgrServiceInner::TerminateAbility(const sptr<IRemoteObject> &token, bool
 }
 
 void AppMgrServiceInner::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
-    bool isFromScreenOffBackground)
+    bool isFromScreenOffBackground, int32_t callerUid, const std::string &callerBundleName, bool isCallBySCB)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "state %{public}d, isFromScreenOffBackground:%{public}d",
@@ -5095,7 +5095,8 @@ void AppMgrServiceInner::UpdateAbilityState(const sptr<IRemoteObject> &token, co
     if (state == AbilityState::ABILITY_STATE_FOREGROUND) {
         ReportAbilityStartInfoForSpecified(appRecord, *abilityInfo);
     }
-    appRecord->UpdateAbilityState(token, state, isFromScreenOffBackground);
+    appRecord->UpdateAbilityState(token, state, isFromScreenOffBackground, callerUid, callerBundleName,
+        isCallBySCB);
     CheckCleanAbilityByUserRequest(appRecord, abilityRecord, state);
 }
 

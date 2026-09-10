@@ -20,6 +20,8 @@
 #include "ability_window_configuration.h"
 #include "app_running_record.h"
 #include "app_utils.h"
+#include "bundle_mgr_helper.h"
+#include "in_process_call_wrapper.h"
 #include "render_record.h"
 #include "app_mgr_service_inner.h"
 #include "app_state_observer_manager.h"
@@ -51,6 +53,7 @@ constexpr int64_t MICROSECONDS = 1000000;    // MICROSECONDS mean 10^6 millias s
 constexpr int32_t MAX_RESTART_COUNT = 3;
 constexpr int32_t RESTART_INTERVAL_TIME = 120000;
 constexpr int32_t HALF_TIMEOUT = 2;
+// SCB（大桌面 / SceneBoard）的 bundle name，用于 SCB 发起前台时 last-caller 兜底记录与保活判断。
 constexpr const char* LAUNCHER_NAME = "com.ohos.sceneboard";
 constexpr const char *EVENT_KEY_VERSION_NAME = "VERSION_NAME";
 constexpr const char *EVENT_KEY_VERSION_CODE = "VERSION_CODE";
@@ -133,6 +136,30 @@ int32_t AppRunningRecord::GetCallerTokenId() const
 void AppRunningRecord::SetCallerTokenId(int32_t tokenId)
 {
     callerTokenId_ = tokenId;
+}
+
+int32_t AppRunningRecord::GetLastUIAbilityCallerUid() const
+{
+    std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+    return lastUIAbilityCallerUid_;
+}
+
+void AppRunningRecord::SetLastUIAbilityCallerUid(int32_t uid)
+{
+    std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+    lastUIAbilityCallerUid_ = uid;
+}
+
+std::string AppRunningRecord::GetLastUIAbilityCallerName() const
+{
+    std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+    return lastUIAbilityCallerName_;
+}
+
+void AppRunningRecord::SetLastUIAbilityCallerName(const std::string &name)
+{
+    std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+    lastUIAbilityCallerName_ = name;
 }
 
 bool AppRunningRecord::IsLauncherApp() const
@@ -829,6 +856,11 @@ void AppRunningRecord::StateChangedNotifyObserver(const std::shared_ptr<AbilityR
         abilityStateData.callerUid = ability->GetWant()->GetIntParam(Want::PARAM_RESV_CALLER_UID, -1);
         abilityStateData.callerPid = ability->GetWant()->GetIntParam(Want::PARAM_RESV_CALLER_PID, -1);
     }
+    {
+        std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+        abilityStateData.lastUIAbilityCallerUid = lastUIAbilityCallerUid_;
+        abilityStateData.lastUIAbilityCallerName = lastUIAbilityCallerName_;
+    }
     if (applicationInfo && applicationInfo->bundleType == AppExecFwk::BundleType::ATOMIC_SERVICE) {
         abilityStateData.isAtomicService = true;
     }
@@ -924,7 +956,7 @@ bool AppRunningRecord::UpdateAbilityFocusState(const sptr<IRemoteObject> &token,
 }
 
 void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
-    bool isFromScreenOffBackground)
+    bool isFromScreenOffBackground, int32_t callerUid, const std::string &callerBundleName, bool isCallBySCB)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "state is :%{public}d", static_cast<int32_t>(state));
     auto abilityRecord = GetAbilityRunningRecordByToken(token);
@@ -943,7 +975,7 @@ void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, cons
     }
 
     if (state == AbilityState::ABILITY_STATE_FOREGROUND) {
-        AbilityForeground(abilityRecord);
+        AbilityForeground(abilityRecord, callerUid, callerBundleName, isCallBySCB);
     } else if (state == AbilityState::ABILITY_STATE_BACKGROUND) {
         AbilityBackground(abilityRecord, isFromScreenOffBackground);
     } else {
@@ -951,7 +983,8 @@ void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, cons
     }
 }
 
-void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRecord> &ability)
+void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRecord> &ability,
+    int32_t callerUid, const std::string &callerBundleName, bool isCallBySCB)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     if (!ability) {
@@ -964,6 +997,33 @@ void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRec
         curAbilityState != AbilityState::ABILITY_STATE_BACKGROUND) {
         TAG_LOGE(AAFwkTag::APPMGR, "ability state(%{public}d) error", static_cast<int32_t>(curAbilityState));
         return;
+    }
+
+    {
+        std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+        lastUIAbilityCallerUid_ = callerUid;
+        lastUIAbilityCallerName_ = callerBundleName;
+    }
+    TAG_LOGI(AAFwkTag::APPMGR, "AbilityForeground set caller info, callerUid:%{public}d, "
+        "callerBundleName:%{public}s, isCallBySCB:%{public}d", callerUid, callerBundleName.c_str(),
+        isCallBySCB);
+
+    if (isCallBySCB) {
+        // SCB 发起的前台请求可能不携带 caller 信息（如 ChangeUIAbilityVisibilityBySCB）
+        auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+        int32_t scbUid = bundleMgrHelper != nullptr ?
+            IN_PROCESS_CALL(bundleMgrHelper->GetUidByBundleName(LAUNCHER_NAME, GetUserId(), 0)) : -1;
+        if (scbUid >= 0) {
+            {
+                std::lock_guard<ffrt::mutex> lock(lastUIAbilityCallerLock_);
+                lastUIAbilityCallerUid_ = scbUid;
+                lastUIAbilityCallerName_ = LAUNCHER_NAME;
+            }
+            TAG_LOGI(AAFwkTag::APPMGR, "AbilityForeground set scb caller info, scbUid:%{public}d, "
+                "scbBundleName:%{public}s", scbUid, LAUNCHER_NAME);
+        } else {
+            TAG_LOGW(AAFwkTag::APPMGR, "AbilityForeground skip scb caller, uid query failed");
+        }
     }
 
     TAG_LOGI(AAFwkTag::APPMGR, "appState: %{public}d, pState: %{public}d, %{public}s/%{public}s",

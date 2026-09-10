@@ -229,7 +229,10 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
             preloadStartCheck, shouldReturnPid);
         abilityRequest.processOptions = sessionInfo->processOptions;
     }
-    auto isCallBySCB = sessionInfo->want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, true);
+    // 产品决策（2026-09-10）：isCallBySCB 三入口统一缺省 false，SCB 路径需显式设置
+    // IS_CALL_BY_SCB=true，避免非 SCB 启动被误记为 SCB 发起（对齐 CallAbilityLocked/
+    // HandleColdAcceptWantDone 的缺省口径）。
+    auto isCallBySCB = sessionInfo->want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, false);
     sessionInfo->want.RemoveParam(ServerConstant::IS_CALL_BY_SCB);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "StartUIAbility session:%{public}d. bundle:%{public}s, ability:%{public}s, "
         "instanceKey:%{public}s, requestId: %{public}d, scbRequestId: %{public}d, isCallBySCB: %{public}d, "
@@ -342,7 +345,7 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
     if (sessionInfo->processOptions != nullptr) {
         options.selfPid = sessionInfo->processOptions->selfPid;
     }
-    uiAbilityRecord->ProcessForegroundAbility(callerTokenId, options);
+    uiAbilityRecord->ProcessForegroundAbility(callerTokenId, options, isCallBySCB);
     if (uiAbilityRecord->GetSpecifiedFlag().empty() && !sessionInfo->specifiedFlag.empty()) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "update specified: %{public}d--%{public}s", sessionInfo->requestId,
             sessionInfo->specifiedFlag.c_str());
@@ -1886,7 +1889,8 @@ int UIAbilityLifecycleManager::CallAbilityLocked(const AbilityRequest &abilityRe
             uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
             ForegroundOptions options;
             options.sceneFlag = SCENE_FLAG_BYCALL;
-            uiAbilityRecord->ProcessForegroundAbility(sessionInfo->callingTokenId, options);
+            uiAbilityRecord->ProcessForegroundAbility(sessionInfo->callingTokenId, options,
+                abilityRequest.want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, false));
             return NotifySCBPendingActivation(sessionInfo, abilityRequest, errMsg);
         } else {
             if ((persistentId != 0) && abilityRequest.want.GetBoolParam(IS_CALLING_FROM_DMS, false)) {
@@ -4365,7 +4369,7 @@ int UIAbilityLifecycleManager::ChangeUIAbilityVisibilityBySCB(sptr<SessionInfo> 
             TAG_LOGD(AAFwkTag::ABILITYMGR, "pending state is not FOREGROUND or BACKGROUND.");
             uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
         }
-        uiAbilityRecord->ProcessForegroundAbility(sessionInfo->callingTokenId);
+        uiAbilityRecord->ProcessForegroundAbility(sessionInfo->callingTokenId, {}, true);
 #endif // SUPPORT_SCREEN
     } else {
         uiAbilityRecord->SetAbilityVisibilityState(AbilityVisibilityState::FOREGROUND_HIDE);
@@ -4779,7 +4783,8 @@ bool UIAbilityLifecycleManager::HandleColdAcceptWantDone(const AAFwk::Want &want
     auto isShellCall = specifiedRequest.abilityRequest.want.GetBoolParam(IS_SHELL_CALL, false);
     ForegroundOptions options = { specifiedRequest.sceneFlag, isShellCall };
     options.requestCode = specifiedRequest.abilityRequest.requestCode;
-    uiAbilityRecord->ProcessForegroundAbility(specifiedRequest.callingTokenId, options);
+    uiAbilityRecord->ProcessForegroundAbility(specifiedRequest.callingTokenId, options,
+        specifiedRequest.abilityRequest.want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, false));
     SendKeyEvent(specifiedRequest.abilityRequest);
     return true;
 }
