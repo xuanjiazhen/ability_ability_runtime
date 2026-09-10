@@ -40,6 +40,13 @@ public:
 
     int32_t DeleteKeepAliveDataWithSetterId(const KeepAliveInfo &info);
 
+    /**
+     * @brief Backs up the whole kv store to a backup file in the storage directory.
+     * Called after successful data mutations so the corrupted-store recovery can
+     * restore keep-alive settings instead of starting empty.
+     */
+    void BackupKvStore();
+
 private:
     AbilityKeepAliveDataManager();
     ~AbilityKeepAliveDataManager();

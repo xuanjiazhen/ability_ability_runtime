@@ -16,6 +16,7 @@
 #include "ability_auto_startup_data_manager.h"
 
 #include <unistd.h>
+#include <map>
 
 #include "ability_manager_constants.h"
 #include "accesstoken_kit.h"
@@ -31,6 +32,7 @@ namespace {
 constexpr int32_t CHECK_INTERVAL = 100000; // 100ms
 constexpr int32_t MAX_TIMES = 5;           // 5 * 100ms = 500ms
 constexpr const char *AUTO_STARTUP_STORAGE_DIR = "/data/service/el1/public/database/auto_startup_service";
+constexpr const char *AUTO_STARTUP_BACKUP_NAME = "auto_startup_backup";
 const std::string JSON_KEY_BUNDLE_NAME = "bundleName";
 const std::string JSON_KEY_ABILITY_NAME = "abilityName";
 const std::string JSON_KEY_MODULE_NAME = "moduleName";
@@ -71,8 +73,32 @@ DistributedKv::Status AbilityAutoStartupDataManager::RestoreKvStore(DistributedK
         TAG_LOGI(AAFwkTag::AUTO_STARTUP, "deleted corrupted db, recreating db");
         status = dataManager_.GetSingleKvStore(options, APP_ID, STORE_ID, kvStorePtr_);
         TAG_LOGI(AAFwkTag::AUTO_STARTUP, "recreate db result:%{public}d", status);
+        if (status == DistributedKv::Status::SUCCESS && kvStorePtr_ != nullptr) {
+            // Import the backup into the fresh store; on failure keep the empty store.
+            DistributedKv::Status restoreStatus =
+                kvStorePtr_->Restore(AUTO_STARTUP_BACKUP_NAME, AUTO_STARTUP_STORAGE_DIR);
+            TAG_LOGI(AAFwkTag::AUTO_STARTUP, "restore from backup result:%{public}d", restoreStatus);
+        }
     }
     return status;
+}
+
+void AbilityAutoStartupDataManager::BackupKvStore()
+{
+    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+    if (!CheckKvStore()) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null kvStore");
+        return;
+    }
+    DistributedKv::Status status = kvStorePtr_->Backup(AUTO_STARTUP_BACKUP_NAME, AUTO_STARTUP_STORAGE_DIR);
+    if (status != DistributedKv::Status::SUCCESS) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "kvStore backup error: %{public}d, delete backup and retry", status);
+        std::vector<std::string> files = { AUTO_STARTUP_BACKUP_NAME };
+        std::map<std::string, DistributedKv::Status> results;
+        kvStorePtr_->DeleteBackup(files, AUTO_STARTUP_STORAGE_DIR, results);
+        status = kvStorePtr_->Backup(AUTO_STARTUP_BACKUP_NAME, AUTO_STARTUP_STORAGE_DIR);
+        TAG_LOGI(AAFwkTag::AUTO_STARTUP, "kvStore backup retry result:%{public}d", status);
+    }
 }
 
 DistributedKv::Status AbilityAutoStartupDataManager::GetKvStore()
@@ -144,10 +170,18 @@ int32_t AbilityAutoStartupDataManager::InsertAutoStartupData(
         if (status != DistributedKv::Status::SUCCESS) {
             TAG_LOGE(AAFwkTag::AUTO_STARTUP, "kvStore insert error: %{public}d", status);
             status = RestoreKvStore(status);
-            return ERR_INVALID_OPERATION;
+            if (status != DistributedKv::Status::SUCCESS || kvStorePtr_ == nullptr) {
+                return ERR_INVALID_OPERATION;
+            }
+            status = kvStorePtr_->Put(key, value);
+            if (status != DistributedKv::Status::SUCCESS) {
+                TAG_LOGE(AAFwkTag::AUTO_STARTUP, "kvStore insert retry error: %{public}d", status);
+                return ERR_INVALID_OPERATION;
+            }
         }
     }
     dbWriteCounter_.UpdateWriteCount(AUTO_STARTUP_STORAGE_DIR);
+    BackupKvStore();
     return ERR_OK;
 }
 
@@ -179,16 +213,31 @@ int32_t AbilityAutoStartupDataManager::UpdateAutoStartupData(const AutoStartupIn
         if (status != DistributedKv::Status::SUCCESS) {
             TAG_LOGE(AAFwkTag::AUTO_STARTUP, "kvStore delete error: %{public}d", status);
             status = RestoreKvStore(status);
-            return ERR_INVALID_OPERATION;
+            if (status != DistributedKv::Status::SUCCESS || kvStorePtr_ == nullptr) {
+                return ERR_INVALID_OPERATION;
+            }
+            status = kvStorePtr_->Delete(originKey);
+            if (status != DistributedKv::Status::SUCCESS) {
+                TAG_LOGE(AAFwkTag::AUTO_STARTUP, "kvStore delete retry error: %{public}d", status);
+                return ERR_INVALID_OPERATION;
+            }
         }
         status = kvStorePtr_->Put(key, value);
         if (status != DistributedKv::Status::SUCCESS) {
             TAG_LOGE(AAFwkTag::AUTO_STARTUP, "kvStore insert error: %{public}d", status);
             status = RestoreKvStore(status);
-            return ERR_INVALID_OPERATION;
+            if (status != DistributedKv::Status::SUCCESS || kvStorePtr_ == nullptr) {
+                return ERR_INVALID_OPERATION;
+            }
+            status = kvStorePtr_->Put(key, value);
+            if (status != DistributedKv::Status::SUCCESS) {
+                TAG_LOGE(AAFwkTag::AUTO_STARTUP, "kvStore insert retry error: %{public}d", status);
+                return ERR_INVALID_OPERATION;
+            }
         }
     }
     dbWriteCounter_.UpdateWriteCount(AUTO_STARTUP_STORAGE_DIR);
+    BackupKvStore();
 
     return ERR_OK;
 }
@@ -218,9 +267,17 @@ int32_t AbilityAutoStartupDataManager::DeleteAutoStartupData(const AutoStartupIn
         if (status != DistributedKv::Status::SUCCESS) {
             TAG_LOGE(AAFwkTag::AUTO_STARTUP, "kvStore delete error: %{public}d", status);
             status = RestoreKvStore(status);
-            return ERR_INVALID_OPERATION;
+            if (status != DistributedKv::Status::SUCCESS || kvStorePtr_ == nullptr) {
+                return ERR_INVALID_OPERATION;
+            }
+            status = kvStorePtr_->Delete(originKey);
+            if (status != DistributedKv::Status::SUCCESS) {
+                TAG_LOGE(AAFwkTag::AUTO_STARTUP, "kvStore delete retry error: %{public}d", status);
+                return ERR_INVALID_OPERATION;
+            }
         }
     }
+    BackupKvStore();
     return ERR_OK;
 }
 
@@ -251,6 +308,7 @@ int32_t AbilityAutoStartupDataManager::DeleteAutoStartupData(const std::string &
         }
     }
 
+    bool deleted = false;
     for (const auto &item : allEntries) {
         if (IsEqual(item.key, accessTokenIdStr)) {
             {
@@ -259,10 +317,21 @@ int32_t AbilityAutoStartupDataManager::DeleteAutoStartupData(const std::string &
                 if (status != DistributedKv::Status::SUCCESS) {
                     TAG_LOGE(AAFwkTag::AUTO_STARTUP, "kvStore delete error: %{public}d", status);
                     status = RestoreKvStore(status);
-                    return ERR_INVALID_OPERATION;
+                    if (status != DistributedKv::Status::SUCCESS || kvStorePtr_ == nullptr) {
+                        return ERR_INVALID_OPERATION;
+                    }
+                    status = kvStorePtr_->Delete(item.key);
+                    if (status != DistributedKv::Status::SUCCESS) {
+                        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "kvStore delete retry error: %{public}d", status);
+                        return ERR_INVALID_OPERATION;
+                    }
                 }
             }
+            deleted = true;
         }
+    }
+    if (deleted) {
+        BackupKvStore();
     }
 
     return ERR_OK;

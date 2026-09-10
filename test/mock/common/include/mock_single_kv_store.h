@@ -196,7 +196,7 @@ public:
 
     DistributedKv::Status Backup(const std::string &file, const std::string &baseDir) override
     {
-        return DistributedKv::Status::SUCCESS;
+        return Backup_;
     };
 
     DistributedKv::Status Restore(const std::string &file, const std::string &baseDir) override
@@ -212,6 +212,7 @@ public:
     DistributedKv::Status GetEntries_ = DistributedKv::Status::SUCCESS;
     DistributedKv::Status Delete_ = DistributedKv::Status::SUCCESS;
     DistributedKv::Status Put_ = DistributedKv::Status::SUCCESS;
+    DistributedKv::Status Backup_ = DistributedKv::Status::SUCCESS;
 };
 } // namespace OHOS
 #endif

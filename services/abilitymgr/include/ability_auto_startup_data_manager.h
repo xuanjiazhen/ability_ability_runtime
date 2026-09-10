@@ -106,6 +106,13 @@ public:
 
     int32_t GetAutoStartupStatusForSelf(uint32_t callerTokenId, bool &isAutoStartEnabled);
 
+    /**
+     * @brief Backs up the whole kv store to a backup file in the storage directory.
+     * Called after successful data mutations so the backup stays fresh, and the
+     * corrupted-store recovery can restore user settings instead of starting empty.
+     */
+    void BackupKvStore();
+
 private:
     /**
      * @brief Restores the key-value store using the provided status.
