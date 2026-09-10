@@ -629,7 +629,7 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateDecoratorParams(
 int32_t InsightIntentExecuteManager::GenerateWant(
     const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
     const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo,
-    Want &want)
+    Want &want, bool flattenParam)
 {
     if (param == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "null param");
@@ -644,6 +644,14 @@ int32_t InsightIntentExecuteManager::GenerateWant(
             wantParams.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_PARAM, pExecuteParams);
             want.SetParams(wantParams);
         }
+    }
+
+    if (flattenParam && param->insightIntentParam_ != nullptr) {
+        WantParams topLevelParams = want.GetParams();
+        for (const auto &[key, value] : param->insightIntentParam_->GetParams()) {
+            topLevelParams.SetParam(key, value);
+        }
+        want.SetParams(topLevelParams);
     }
 
     std::string srcEntry;
