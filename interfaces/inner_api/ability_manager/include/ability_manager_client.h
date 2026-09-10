@@ -84,7 +84,7 @@ public:
      * delayed-process-exit window: the ability is started in the current process which is about
      * to exit (delayed exit). Only supported when the product enables delayed process exit
      * (IsSupportDelayedProcessExit). The want MUST NOT target a remote device, a plugin, or use
-     * implicit start — each is rejected with a dedicated START_UI_ABILITIES_NOT_SUPPORT_* error.
+     * implicit start �?each is rejected with a dedicated START_UI_ABILITIES_NOT_SUPPORT_* error.
      *
      * @param want The want of the ability to start; explicit element required.
      * @return ERR_OK on success; ERR_CAPABILITY_NOT_SUPPORT when delayed process exit is off;
@@ -241,7 +241,7 @@ public:
     AppExecFwk::ElementName GetTopAbility(bool isNeedLocalDeviceId = true);
 
     /**
-     * Get the ElementName of the ability identified by token. No permission check — returns an
+     * Get the ElementName of the ability identified by token. No permission check �?returns an
      * empty ElementName when the token is null or unknown (requires graphics support compiled in).
      *
      * @param token The ability token to query.
@@ -255,7 +255,7 @@ public:
      * have no ability record; application processes should use the callerToken overloads.
      * Notes and restrictions (server enforced):
      * - specifiedFullTokenId is only honored when the caller uid is DMS; otherwise it is IGNORED
-     *   (reset to 0) — do not rely on it from other callers.
+     *   (reset to 0) �?do not rely on it from other callers.
      * - Debug-related want params (flag "backgroundDebug", window rect params ohos.param.window.*
      *   etc.) require developer mode (ERR_NOT_DEVELOPER_MODE) or the local-debug permission
      *   (CHECK_PERMISSION_FAILED); screen must be unlocked (ERR_UNLOCK_SCREEN_FAILED_IN_DEVELOPER_MODE).
@@ -315,7 +315,7 @@ public:
     /**
      * Start an ability triggered by an InsightIntent execution. The callerToken must resolve to
      * an ability record owned by the calling process, the intentId must be known to the intent
-     * manager, and — when the want carries a bundleName — it must equal both the bundle registered
+     * manager, and �?when the want carries a bundleName �?it must equal both the bundle registered
      * for the intent and the caller's bundle. Effectively this can only start the caller's own
      * components; cross-bundle usage returns ERR_INSIGHT_INTENT_START_INVALID_COMPONENT.
      *
@@ -489,10 +489,10 @@ public:
     /**
      * Start 1 to 4 UIAbilities in one atomic request; the abilities are laid out by SCB in one
      * gesture (multi-open). Capability-gated (IsSupportStartAbilities + SceneBoard). wantList
-     * size MUST be within [1, 4] — START_UI_ABILITIES_WANT_LIST_SIZE_ERROR otherwise.
+     * size MUST be within [1, 4] �?START_UI_ABILITIES_WANT_LIST_SIZE_ERROR otherwise.
      * callerToken must be a valid ability token (ERR_INVALID_CALLER otherwise).
      *
-     * @param wantList A list of wants (1–4 entries) describing the abilities to start.
+     * @param wantList A list of wants (1�? entries) describing the abilities to start.
      * @param requestKey The unique key identifying this StartUIAbilities request (echoed by SCB).
      * @param callerToken Token of the calling ability; must be valid.
      * @return ERR_OK on success; ERR_CAPABILITY_NOT_SUPPORT when unsupported;
@@ -517,7 +517,7 @@ public:
     /**
      * Start an ability from a UIExtensionContentSession (the start originates inside a UIExtension
      * component). The server verifies that sessionInfo->callerToken equals the token of the
-     * CURRENT focus ability — starting from a non-focused UIExtension host returns NOT_TOP_ABILITY.
+     * CURRENT focus ability �?starting from a non-focused UIExtension host returns NOT_TOP_ABILITY.
      * callerToken and sessionInfo must be non-null. Standard StartAbility checks apply afterwards.
      *
      * @param want The want of the ability to start.
@@ -558,7 +558,7 @@ public:
 
     /**
      * Start a UIAbility-only request with an explicit caller access-token id (foundation process
-     * only — e.g. free-install / collaborator flows). Non-foundation callers get
+     * only �?e.g. free-install / collaborator flows). Non-foundation callers get
      * CHECK_PERMISSION_FAILED. The target is restricted to UIAbility (isUIAbilityOnly) and the
      * FLAG_ABILITY_CONTINUATION is rejected.
      *
@@ -577,7 +577,7 @@ public:
     /**
      * Start a UIAbility and receive an asynchronous result callback. IMPORTANT: the callback is
      * only honored for SA callers (IsSACall); for non-SA callers the callback is silently dropped
-     * (set to nullptr) — applications must not rely on it. On synchronous failure the callback
+     * (set to nullptr) �?applications must not rely on it. On synchronous failure the callback
      * OnRequestStartAbilityResult(false) is invoked before returning the error code.
      *
      * @param want The want of the ability to start (UIAbility target only).
@@ -593,7 +593,7 @@ public:
     /**
      * Start an ExtensionAbility (service-like, background). Except for UI_SERVICE / APP_SERVICE
      * types, the caller must be a SYSTEM APP. UI_SERVICE additionally requires the system
-     * parameter const.abilityms.enable_uiservice (default false → ERR_CAPABILITY_NOT_SUPPORT).
+     * parameter const.abilityms.enable_uiservice (default false �?ERR_CAPABILITY_NOT_SUPPORT).
      * When extensionType is set (not UNSPECIFIED) the resolved target's extension type must
      * equal it, else ERR_WRONG_INTERFACE_CALL. Extension rate limiting applies for non-SA
      * callers. Static-config permission (permissions in module.json5) and per-type call
@@ -616,9 +616,9 @@ public:
     /**
      * Request a modal UIExtension on top of the CURRENT focus ability. System-app callers only.
      * The server requires that the focus window belongs to a PAGE-type ability whose bundleName
-     * equals the "bundleName" string param in the want — the request is actually delivered to the
+     * equals the "bundleName" string param in the want �?the request is actually delivered to the
      * focus ability's CreateModalUIExtension; with no focus/mismatch the call fails. Not
-     * supported for content URIs — the want must describe a UIExtension component.
+     * supported for content URIs �?the want must describe a UIExtension component.
      *
      * @param want The want of the modal UIExtension; must carry the caller "bundleName" param.
      * @return ERR_OK on success; ERR_NOT_SYSTEM_APP for non-system callers; ERR_INVALID_VALUE when
@@ -629,7 +629,7 @@ public:
 
     /**
      * Request a modal UIExtension in a cross-account scenario: the target runs under accountId.
-     * System-app callers only; cross-account permission (VerifyAccountPermission) is verified —
+     * System-app callers only; cross-account permission (VerifyAccountPermission) is verified �?
      * CHECK_PERMISSION_FAILED otherwise. The focus-ability/bundleName rule of
      * RequestModalUIExtension applies as well.
      *
@@ -642,7 +642,7 @@ public:
 
     /**
      * Preload (warm up) a UIExtensionAbility process without showing any window. System-app
-     * callers only, and the caller must hold ohos.permission.PRELOAD_UI_EXTENSION_ABILITY —
+     * callers only, and the caller must hold ohos.permission.PRELOAD_UI_EXTENSION_ABILITY �?
      * otherwise ERR_PERMISSION_DENIED. hostBundleName is an in/out parameter: pass the caller
      * bundle name; the server may overwrite it while resolving clone indices. The target must be
      * visible (exported) or the call fails. Preloaded extensions are matched by later
@@ -661,7 +661,7 @@ public:
         int32_t requestCode = DEFAULT_INVAL_VALUE);
 
     /**
-     * Change the visibility (show/hide) of a UIAbility's window without destroying the ability —
+     * Change the visibility (show/hide) of a UIAbility's window without destroying the ability �?
      * used by NDK multi-ability / multi-window scenarios. Capability-gated: requires SceneBoard
      * AND the product process-options capability (IsStartOptionsWithProcessOptions); otherwise
      * ERR_CAPABILITY_NOT_SUPPORT.
@@ -675,7 +675,7 @@ public:
 
     /**
      * Change a UIAbility's visibility at SCB's request (window hide from the window manager).
-     * SceneBoard callers ONLY — other callers get ERR_WRONG_INTERFACE_CALL.
+     * SceneBoard callers ONLY �?other callers get ERR_WRONG_INTERFACE_CALL.
      *
      * @param sessionInfo The session info of the target UIAbility; must not be nullptr.
      * @param isShow true to show, false to hide.
@@ -703,7 +703,7 @@ public:
 
     /**
      * Start a UIAbility from the SceneBoard session path (window-session driven start).
-     * SceneBoard callers ONLY — other callers get ERR_WRONG_INTERFACE_CALL. Supports the
+     * SceneBoard callers ONLY �?other callers get ERR_WRONG_INTERFACE_CALL. Supports the
      * free-install flow via the want "sessionId" param (pre-install task resume). params carries
      * SCB-side start parameters (pageConfig, sceneFlag, isRestart...); isColdStart reports
      * whether the start resulted in a cold start. params.isRestart requires the
@@ -756,7 +756,7 @@ public:
     ErrCode TerminateAbility(sptr<IRemoteObject> token, int resultCode, const Want *resultWant);
 
     /**
-     * Re-launch ("self start") the UIAbility identified by token — brings its own instance to
+     * Re-launch ("self start") the UIAbility identified by token �?brings its own instance to
      * front per its launch mode without a Want. Requires the native-UIAbility product capability
      * (IsSupportNativeUIAbility), otherwise ERR_CAPABILITY_NOT_SUPPORT. Only the ability's own
      * process may call it (JudgeSelfCalled), and only UIAbility records are supported.
@@ -811,7 +811,7 @@ public:
         int resultCode = DEFAULT_INVAL_VALUE, const Want *resultWant = nullptr);
 
     /**
-     * Close a UIExtensionAbility at the SceneBoard's request. SceneBoard callers ONLY — others
+     * Close a UIExtensionAbility at the SceneBoard's request. SceneBoard callers ONLY �?others
      * get ERR_PERMISSION_DENIED. The token must be valid and reference a UIExtension type
      * ability; the session is detached from display before termination.
      *
@@ -838,7 +838,7 @@ public:
 
     /**
      * Deliver a startAbilityForResult result to a local ability on behalf of a remote (cross-
-     * device) flow. Distributed-scheduler process ONLY — other callers get ERR_INVALID_VALUE.
+     * device) flow. Distributed-scheduler process ONLY �?other callers get ERR_INVALID_VALUE.
      * The mission id of the target must be carried in resultWant under the DMS mission-id key
      * (removed after read); the ability referenced by that mission receives
      * onAbilityResult(requestCode, resultCode, resultWant).
@@ -863,7 +863,7 @@ public:
     ErrCode MoveAbilityToBackground(sptr<IRemoteObject> token);
 
     /**
-     * Move a UIAbility to background — application self-invoked variant (UIAbility
+     * Move a UIAbility to background �?application self-invoked variant (UIAbility
      * moveAbilityToBackground). Product capability gated (EnableMoveUIAbilityToBackgroundApi),
      * otherwise ERR_OPERATION_NOT_SUPPORTED_ON_CURRENT_DEVICE. Only the ability's own application
      * may call it; the ability MUST currently be foreground and MUST be a PAGE (UIAbility) type.
@@ -879,7 +879,7 @@ public:
      * Close the ability identified by token, delivering a result to its starter. On SceneBoard
      * devices the request is forwarded to the scene-session manager (TerminateSessionNew) and
      * the close is async; otherwise it goes to AMS directly. resultWant is dereferenced on the
-     * SCB path — must not be nullptr there.
+     * SCB path �?must not be nullptr there.
      *
      * @param token The token of the ability to close.
      * @param resultCode Result code returned to the starter; DEFAULT_INVAL_VALUE means none.
@@ -892,7 +892,7 @@ public:
 
     /**
      * Minimize the ability identified by token (window minimized to mission). Self-call only.
-     * PAGE (UIAbility) abilities only — other types get ERR_WRONG_INTERFACE_CALL. Blocked with
+     * PAGE (UIAbility) abilities only �?other types get ERR_WRONG_INTERFACE_CALL. Blocked with
      * ERR_WOULD_BLOCK under ability-controller test mode. fromUser marks whether the minimize
      * originates from a user gesture (affects exit-reason statistics).
      *
@@ -950,13 +950,13 @@ public:
 
     /**
      * Connect to a ServiceExtensionAbility with a load timeout multiplier. loadTimeout
-     * multiplies the ability load timeout (valid range 1–30; 0 = default timeout); it does not
+     * multiplies the ability load timeout (valid range 1�?0; 0 = default timeout); it does not
      * take effect on ASAN builds. Same permission/interceptor rules as ConnectAbility.
      *
      * @param want The want describing the target service extension.
      * @param connect Callback receiving connect/disconnect notifications; must be non-null.
      * @param userId Target user id.
-     * @param loadTimeout Load-stage timeout multiplier, range 1–30; 0 means default; ignored on asan.
+     * @param loadTimeout Load-stage timeout multiplier, range 1�?0; 0 means default; ignored on asan.
      * @return ERR_OK when accepted; ERR_INVALID_VALUE / CHECK_PERMISSION_FAILED / interceptor
      *         errors as ConnectAbility.
      */
@@ -986,7 +986,7 @@ public:
 
     /**
      * Connect to an extension ability while providing indirect caller information (the real
-     * initiator behind the SA). SA callers ONLY when indirectCallerInfo is provided — non-SA
+     * initiator behind the SA). SA callers ONLY when indirectCallerInfo is provided �?non-SA
      * callers passing it get CHECK_PERMISSION_FAILED. extensionType, when set, restricts the
      * target kind.
      *
@@ -1009,7 +1009,7 @@ public:
     
     /**
      * Connect to an extension ability restricting the target to the given extension type
-     * (default SERVICE — designed for APP_SERVICE-style connections). The resolved target type
+     * (default SERVICE �?designed for APP_SERVICE-style connections). The resolved target type
      * must equal extensionType, otherwise the request fails. Same connection rules as
      * ConnectAbility.
      *
@@ -1062,12 +1062,12 @@ public:
 
     /**
      * Connect to an extension ability of any type (UNSPECIFIED) with an optional load timeout
-     * multiplier. loadTimeout range 1–30 (0 = default), not effective on ASAN builds.
+     * multiplier. loadTimeout range 1�?0 (0 = default), not effective on ASAN builds.
      *
      * @param want The want describing the target extension.
      * @param connect Callback receiving connect/disconnect notifications; must be non-null.
      * @param userId Target user id; DEFAULT_INVAL_VALUE means the caller's current user.
-     * @param loadTimeout Load-stage timeout multiplier, range 1–30; 0 means default; ignored on asan.
+     * @param loadTimeout Load-stage timeout multiplier, range 1�?0; 0 means default; ignored on asan.
      * @return ERR_OK when accepted; ABILITY_SERVICE_NOT_CONNECTED when AMS is unreachable;
      *         permission/interceptor errors as ConnectAbility.
      */
@@ -1109,7 +1109,7 @@ public:
      * nullptr is returned. Caller-side visibility and static-config permission checks apply
      * (SA callers bypass the caller checks). tryBind semantics: when true, if the acquired
      * DataAbility process dies, AMS kills THIS client as well (to avoid dangling data access);
-     * pass false to survive provider death. NOT for content:// URIs — use the DataShare stack
+     * pass false to survive provider death. NOT for content:// URIs �?use the DataShare stack
      * for those.
      *
      * @param uri The data ability uri; scheme must be "dataability" with a non-empty path.
@@ -1134,13 +1134,13 @@ public:
     /**
      * Dump ability stack state (user id, mission stacks, mission records, ability info) for
      * debugging (aa dump / hidumper). The call is one-way on the client: the client returns
-     * ERR_OK once the proxy is available; the result arrives in state. Diagnostic use only — no
+     * ERR_OK once the proxy is available; the result arrives in state. Diagnostic use only �?no
      * permission contract is offered to normal apps; intended for hidumper/aa tooling.
      *
      * @param args Dump arguments string (e.g. "-a").
      * @param state Output vector receiving the dump lines.
      * @return ERR_OK once dispatched; ABILITY_SERVICE_NOT_CONNECTED when the AMS proxy is
-     *         unavailable. The server-side dump result is not reflected here — check state.
+     *         unavailable. The server-side dump result is not reflected here �?check state.
      */
     ErrCode DumpState(const std::string &args, std::vector<std::string> &state);
 
@@ -1161,7 +1161,7 @@ public:
         const std::string& args, std::vector<std::string>& state, bool isClient, bool isUserID, int UserID);
     /**
      * Explicitly connect to the ability manager system ability (SA id 180) and register a death
-     * recipient. Normally NOT needed — every public method auto-connects lazily. Useful to
+     * recipient. Normally NOT needed �?every public method auto-connects lazily. Useful to
      * pre-warm the proxy or check service availability.
      *
      * @return ERR_OK on success; GET_ABILITY_SERVICE_FAILED when the registry or service is
@@ -1186,7 +1186,7 @@ public:
     /**
      * Kill all processes of the application identified by bundleName. Permission: the caller
      * must be shell OR hold ohos.permission.KILL_APP_PROCESSES (or pass the app-side
-     * kill-process verification) — otherwise ERR_PERMISSION_DENIED. Keep-alive (persistent)
+     * kill-process verification) �?otherwise ERR_PERMISSION_DENIED. Keep-alive (persistent)
      * applications are NOT killed when memory is sufficient (KILL_PROCESS_KEEP_ALIVE).
      * Collaborator-managed bundles are routed to their collaborator first. clearPageStack also
      * clears the mission stack records; appIndex selects a clone instance (0 = base app).
@@ -1269,7 +1269,7 @@ public:
 
     /**
      * Trigger continuation of a local mission at the DMS's request. Distributed-scheduler
-     * process ONLY — other callers get ERR_INVALID_VALUE. versionCode is the remote target's
+     * process ONLY �?other callers get ERR_INVALID_VALUE. versionCode is the remote target's
      * application version used for compatibility decisions; userId >= 0 selects the user's
      * manager (default -1 = current).
      *
@@ -1315,7 +1315,7 @@ public:
     ErrCode UnlockMissionForCleanup(int32_t missionId);
 
     /**
-     * Set the locked state of an ability record (session) directly. SceneBoard callers ONLY —
+     * Set the locked state of an ability record (session) directly. SceneBoard callers ONLY �?
      * calls from other processes are silently ignored (void return). Internal use.
      *
      * @param sessionId The persistent session/record id of the target ability.
@@ -1449,7 +1449,7 @@ public:
 
     /**
      * Clean all missions in the system (except locked/protected ones). SCB path uses
-     * ClearAllSessions. Affects all applications — use with care.
+     * ClearAllSessions. Affects all applications �?use with care.
      *
      * @return ERR_OK on success; CHECK_PERMISSION_FAILED; ERR_NO_INIT; SCB-mapped errors.
      */
@@ -1538,7 +1538,7 @@ public:
      * Start an ability by call with caller token and account. callToken identifies the caller
      * for self-call/permission checks (must be the caller's own record when provided).
      * accountId selects the target user (0 is treated as unspecified). promotePriority raises
-     * the target process scheduling priority but is honored ONLY for SA callers — silently
+     * the target process scheduling priority but is honored ONLY for SA callers �?silently
      * ignored otherwise. isSilent/isVisible as in the SA overload.
      *
      * @param want The want of the target ability (callee side).
@@ -1577,7 +1577,7 @@ public:
 
     /**
      * Prelaunch (pre-warm) a UIAbility ahead of user interaction. Render-Surface-Service
-     * process ONLY (RSS_UID check) — all other callers get RESOLVE_CALL_NO_PERMISSIONS.
+     * process ONLY (RSS_UID check) �?all other callers get RESOLVE_CALL_NO_PERMISSIONS.
      * SceneBoard must be enabled. The want must be explicit (no implicit start). Target
      * restrictions: stage-model PAGE abilities only, launch mode must NOT be SPECIFIED, and
      * isolated-process abilities are not supported (RESOLVE_CALL_ABILITY_TYPE_ERR /
@@ -1595,7 +1595,7 @@ public:
 
     /**
      * Start a sandbox-clone instance of an application (CLI-tool driven sandbox scenario).
-     * CLI-tool tokens ONLY (AccessTokenKit::IsCliToolToken) — other callers get
+     * CLI-tool tokens ONLY (AccessTokenKit::IsCliToolToken) �?other callers get
      * ERR_PERMISSION_DENIED. The want MUST carry a valid sandbox clone index param
      * (ohos.sandbox.cloneIndex); app-clone-index and DLP-index params in the want are stripped
      * by the server. params carries the invoking CLI tool identity (callerBundleName / uid /
@@ -1613,7 +1613,7 @@ public:
      * Register the callee stub produced by the ability's onCallRequest. Internal use only:
      * invoked by the ability runtime when the application handles a call request, making the
      * stub available to the caller waiting in StartAbilityByCall. Self-call enforced (other
-     * processes are ignored). Void IPC — no return value.
+     * processes are ignored). Void IPC �?no return value.
      *
      * @param token The token of the ability that produced the callee.
      * @param callStub The callee IPC stub returned by the ability.
@@ -2444,6 +2444,17 @@ public:
      */
     ErrCode ExecuteIntentForDistributed(const Want &want, const std::string &srcDeviceId,
         uint64_t requestCode, uint64_t specifiedFullTokenId = 0);
+
+    /**
+     * @brief Execute intent with specified token id.
+     * @param want The want carrying the card params and intent execution info.
+     * @param callerAbilityToken The caller ability token.
+     * @param param The Intent execute param.
+     * @param specifyTokenId The specified access token id for permission checking.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode ExecuteUIAbilityForegroundIntentWithSpecifyTokenId(const Want &want, sptr<IRemoteObject> callerAbilityToken,
+        const InsightIntentExecuteLiteParam &param, uint32_t specifyTokenId = 0);
 
     /**
      * @brief Query entity info of a target app via insight intent (background
