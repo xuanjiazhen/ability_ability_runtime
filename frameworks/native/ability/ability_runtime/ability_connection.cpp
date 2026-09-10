@@ -32,20 +32,19 @@ void AbilityConnection::OnAbilityConnectDone(
     TAG_LOGI(AAFwkTag::CONNECTION,
         "connectDone,b:%{public}s,a:%{public}s,code:%{public}d",
         element.GetBundleName().c_str(), element.GetAbilityName().c_str(), resultCode);
-    std::vector<sptr<AbilityConnectCallback>> callbacks;
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (abilityConnectCallbackList_.empty()) {
-            TAG_LOGW(AAFwkTag::CONNECTION, "empty callbackList");
-            return;
-        }
-
-        SetRemoteObject(remoteObject);
-        SetResultCode(resultCode);
-        SetConnectionState(CONNECTION_STATE_CONNECTED);
-
-        callbacks = GetCallbackList();
+    mutex_.lock();
+    if (abilityConnectCallbackList_.empty()) {
+        TAG_LOGW(AAFwkTag::CONNECTION, "empty callbackList");
+        mutex_.unlock();
+        return;
     }
+
+    SetRemoteObject(remoteObject);
+    SetResultCode(resultCode);
+    SetConnectionState(CONNECTION_STATE_CONNECTED);
+
+    std::vector<sptr<AbilityConnectCallback>> callbacks = GetCallbackList();
+    mutex_.unlock();
     sptr<AbilityConnection> connection(this);
     if (ConnectionManager::GetInstance().DisconnectNonexistentService(element, connection)) {
         TAG_LOGW(AAFwkTag::CONNECTION, "No need onConnect callback");
@@ -64,17 +63,16 @@ void AbilityConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName& e
     TAG_LOGI(AAFwkTag::CONNECTION,
         "disconnectDone,b:%{public}s,a:%{public}s,code:%{public}d",
         element.GetBundleName().c_str(), element.GetAbilityName().c_str(), resultCode);
-    std::vector<sptr<AbilityConnectCallback>> callbacks;
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        SetConnectionState(CONNECTION_STATE_DISCONNECTED);
-        if (abilityConnectCallbackList_.empty()) {
-            TAG_LOGE(AAFwkTag::CONNECTION, "empty callbackList");
-            return;
-        }
-
-        callbacks = GetCallbackList();
+    mutex_.lock();
+    SetConnectionState(CONNECTION_STATE_DISCONNECTED);
+    if (abilityConnectCallbackList_.empty()) {
+        TAG_LOGE(AAFwkTag::CONNECTION, "empty callbackList");
+        mutex_.unlock();
+        return;
     }
+
+    std::vector<sptr<AbilityConnectCallback>> callbacks = GetCallbackList();
+    mutex_.unlock();
 
     // if resultCode < 0 that means the service is dead
     if (resultCode == DIED) {

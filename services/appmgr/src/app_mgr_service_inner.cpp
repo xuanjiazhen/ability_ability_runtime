@@ -339,7 +339,6 @@ constexpr int32_t FOUNDATION_UID = 5523;
 constexpr int32_t QUICKFIX_UID = 5524;
 constexpr int32_t DEFAULT_USER_ID = 0;
 constexpr int32_t RESOURCE_MANAGER_UID = 1096;
-constexpr int32_t FILE_SYSTEM_SERVICE_UID = 7100;
 
 constexpr int32_t BLUETOOTH_GROUPID = 1002;
 
@@ -2261,16 +2260,10 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
             auto hostBundleName = want->GetStringParam(UIEXTENSION_HOST_BUNDLENAME);
             auto userId = want->GetIntParam(UIEXTENSION_HOST_UID, -1) / BASE_USER_RANGE;
             appInfo->bundleName = hostBundleName;
-            std::string absPrefix = std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR) + hostBundleName;
-            if (!hostBundleName.empty()) {
-                auto replaceAbsPrefix = [&absPrefix](std::string &path) {
-                    if (path.find(absPrefix) == 0) {
-                        path.replace(0, absPrefix.length(), LOCAL_CODE_PATH);
-                    }
-                };
-                replaceAbsPrefix(abilityInfo->hapPath);
-                replaceAbsPrefix(abilityInfo->resourcePath);
-            }
+            std::regex pattern(
+                std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR) + hostBundleName);
+            abilityInfo->hapPath = std::regex_replace(abilityInfo->hapPath, pattern, LOCAL_CODE_PATH);
+            abilityInfo->resourcePath = std::regex_replace(abilityInfo->resourcePath, pattern, LOCAL_CODE_PATH);
             GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex);
             appInfo = std::make_shared<ApplicationInfo>(bundleInfo.applicationInfo);
             auto pluginRet = DelayedSingleton<BundleMgrHelper>::GetInstance()->GetPluginHapModuleInfo(
@@ -10064,9 +10057,8 @@ int32_t AppMgrServiceInner::IsAppRunning(const std::string &bundleName, int32_t 
 {
     TAG_LOGD(AAFwkTag::APPMGR,"Called, bundleName: %{public}s, appCloneIndex: %{public}d, userId: %{public}d",
         bundleName.c_str(), appCloneIndex, userId);
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
-    if (callingUid != FOUNDATION_UID && callingUid != FILE_SYSTEM_SERVICE_UID) {
-        TAG_LOGE(AAFwkTag::APPMGR, "not foundation or file system service call");
+    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not foundation call");
         return ERR_PERMISSION_DENIED;
     }
     if (!CheckGetRunningInfoPermission()) {
