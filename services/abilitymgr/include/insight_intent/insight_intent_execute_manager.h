@@ -102,7 +102,7 @@ public:
 
     static int32_t GenerateWant(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo,
-        Want &want);
+        Want &want, bool flattenParam = false);
 
     std::map<int32_t, int64_t> GetAllIntentExemptionInfo() const;
 

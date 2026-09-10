@@ -629,7 +629,7 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateDecoratorParams(
 int32_t InsightIntentExecuteManager::GenerateWant(
     const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
     const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo,
-    Want &want)
+    Want &want, bool flattenParam)
 {
     if (param == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "null param");
@@ -644,6 +644,14 @@ int32_t InsightIntentExecuteManager::GenerateWant(
             wantParams.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_PARAM, pExecuteParams);
             want.SetParams(wantParams);
         }
+    }
+
+    if (flattenParam && param->insightIntentParam_ != nullptr) {
+        WantParams topLevelParams = want.GetParams();
+        for (const auto &[key, value] : param->insightIntentParam_->GetParams()) {
+            topLevelParams.SetParam(key, value);
+        }
+        want.SetParams(topLevelParams);
     }
 
     std::string srcEntry;
@@ -723,10 +731,20 @@ int32_t InsightIntentExecuteManager::CheckCallerPermission(uint64_t specifiedFul
     const std::string &callerBundleName, const std::string &targetBundleName)
 {
     TAG_LOGI(AAFwkTag::INTENT, "specifiedFullTokenId: %{public}" PRIu64, specifiedFullTokenId);
+    uint32_t specifyTokenId = static_cast<uint32_t>(specifiedFullTokenId);
     bool isSystemAppCall = false;
     if (specifiedFullTokenId != 0) {
-        isSystemAppCall = PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPIByTokenId(
-            specifiedFullTokenId);
+        if (specifiedFullTokenId >> 32 != 0) {
+            // DMS distributed path: full token carrying tokenAttr in the high 32 bits.
+            isSystemAppCall = PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPIByTokenId(
+                specifiedFullTokenId);
+        } else {
+            // FMS card path: only a 32-bit access token id is provided, reconstruct the
+            // full token via HapTokenInfo DB lookup to determine system-app status.
+            isSystemAppCall = PermissionVerification::GetInstance()->IsSACallByTokenId(specifyTokenId)
+                || PermissionVerification::GetInstance()->IsShellCallByTokenId(specifyTokenId)
+                || PermissionVerification::GetInstance()->IsSystemAppCallByTokenId(specifyTokenId);
+        }
     } else {
         isSystemAppCall = PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI();
     }
