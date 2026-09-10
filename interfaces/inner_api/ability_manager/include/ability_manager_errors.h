@@ -1199,6 +1199,11 @@ enum {
     ERR_QUERY_DISPOSED_RULE_FAILED = 2099422,
 
     /**
+     * Result(2099423) for StartUIExtensionAbility: invalid extension ability type.
+     */
+    ERR_INVALID_EXTENSION_TYPE = 2099423,
+
+    /**
      * Native error(3000000) for target bundle not exist.
      */
     ERR_CODE_NOT_EXIST = 3000000,

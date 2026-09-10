@@ -15,6 +15,9 @@
 
 #include "js_ui_extension_content_session.h"
 
+#include <atomic>
+
+#include "ability_business_error.h"
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
 #include "event_handler.h"
@@ -942,7 +945,9 @@ napi_value JsUIExtensionContentSession::OnStartAbilityByType(napi_env env, NapiC
     if (completionHandler != nullptr) {
         uiExtensionCallback->SetCompletionHandler(env, completionHandler);
     }
-    NapiAsyncTask::CompleteCallback complete = [uiWindow = uiWindow_, type, want, uiExtensionCallback]
+    napi_value lastParam = (info.argc > ARGC_THREE) ? info.argv[INDEX_THREE] : nullptr;
+    bool holdDeferred = (lastParam == nullptr);
+    NapiAsyncTask::CompleteCallback complete = [uiWindow = uiWindow_, type, want, uiExtensionCallback, holdDeferred]
         (napi_env env, NapiAsyncTask& task, int32_t status) {
             HandleScope handleScope(env);
             if (uiWindow == nullptr || uiWindow->GetUIContent() == nullptr) {
@@ -951,9 +956,26 @@ napi_value JsUIExtensionContentSession::OnStartAbilityByType(napi_env env, NapiC
                 return;
             }
 #ifdef SUPPORT_SCREEN
+            auto errorFired = std::make_shared<std::atomic<bool>>(false);
             Ace::ModalUIExtensionCallbacks callback;
-            callback.onError = [uiExtensionCallback](int arg, const std::string &str1, const std::string &str2) {
+            callback.onError = [uiExtensionCallback](int arg, const std::string &str1,
+                const std::string &str2) {
                 uiExtensionCallback->OnError(arg);
+            };
+            callback.onAbilityErrorCode = [uiExtensionCallback, errorFired](int32_t errorCode,
+                const Ace::UIExtensionOperationPhase& phase) {
+                if (phase != Ace::UIExtensionOperationPhase::FOREGROUND) {
+                    return;
+                }
+                bool expected = false;
+                if (!errorFired->compare_exchange_strong(expected, true)) {
+                    return;
+                }
+                if (errorCode == 0) {
+                    uiExtensionCallback->ResolveDeferred();
+                } else {
+                    uiExtensionCallback->OnAbilityErrorCode(errorCode);
+                }
             };
             callback.onRelease = [uiExtensionCallback](const auto &arg) {
                 uiExtensionCallback->OnRelease(arg);
@@ -983,14 +1005,25 @@ napi_value JsUIExtensionContentSession::OnStartAbilityByType(napi_env env, NapiC
             } else {
                 uiExtensionCallback->SetUIContent(uiWindow->GetUIContent());
                 uiExtensionCallback->SetSessionId(sessionId);
-                task.ResolveWithNoError(env, CreateJsUndefined(env));
+                if (!holdDeferred) {
+                    task.ResolveWithNoError(env, CreateJsUndefined(env));
+                }
             }
 #endif // SUPPORT_SCREEN
         };
-    napi_value lastParam = (info.argc > ARGC_THREE) ? info.argv[INDEX_THREE] : nullptr;
     napi_value result = nullptr;
+    if (lastParam != nullptr) {
+        NapiAsyncTask::ScheduleHighQos("JsUIExtensionContentSession::OnStartAbilityByType",
+            env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
+        return handleEscape.Escape(result);
+    }
+    napi_deferred deferred = nullptr;
+    napi_create_promise(env, &deferred, &result);
+    uiExtensionCallback->SetDeferred(deferred);
     NapiAsyncTask::ScheduleHighQos("JsUIExtensionContentSession::OnStartAbilityByType",
-        env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
+        env, std::make_unique<NapiAsyncTask>(deferred,
+            std::unique_ptr<NapiAsyncTask::ExecuteCallback>(),
+            std::make_unique<NapiAsyncTask::CompleteCallback>(std::move(complete))));
     return handleEscape.Escape(result);
 }
 

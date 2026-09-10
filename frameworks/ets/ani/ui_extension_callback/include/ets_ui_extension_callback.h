@@ -27,6 +27,7 @@ public:
     explicit EtsUIExtensionCallback(ani_vm *vm) : vm_(vm) {}
     ~EtsUIExtensionCallback() override;
     void OnError(int32_t number) override;
+    void OnAbilityErrorCode(int32_t errorCode) override;
     void OnResult(int32_t resultCode, const AAFwk::Want &want) override;
     void SetEtsCallbackObject(ani_object aniObject);
     void SetCompletionHandler(ani_env *env, ani_object completionHandler);

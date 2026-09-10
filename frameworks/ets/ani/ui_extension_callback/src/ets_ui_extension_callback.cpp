@@ -86,6 +86,35 @@ void EtsUIExtensionCallback::OnError(int32_t number)
     CloseModalUIExtension();
 }
 
+void EtsUIExtensionCallback::OnAbilityErrorCode(int32_t errorCode)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "OnAbilityErrorCode call");
+    int32_t jsErrCode = static_cast<int32_t>(GetJsErrorCodeByNativeError(errorCode));
+    std::string finalName;
+    std::string finalMessage = GetErrorMsgByNativeError(errorCode);
+#ifdef SUPPORT_SCREEN
+    finalName = ERROR_MSG_INNER;
+#endif // SUPPORT_SCREEN
+    auto env = GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
+        return;
+    }
+    ani_string aniName = nullptr;
+    ani_status status = env->String_NewUTF8(finalName.c_str(), finalName.length(), &aniName);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "aniName String_NewUTF8 failed, status: %{public}d", status);
+        return;
+    }
+    ani_string aniMsg = nullptr;
+    if ((status = env->String_NewUTF8(finalMessage.c_str(), finalMessage.length(), &aniMsg)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "aniMsg String_NewUTF8 failed, status: %{public}d", status);
+        return;
+    }
+    CallObjectMethod("onError", nullptr, jsErrCode, aniName, aniMsg);
+    CloseModalUIExtension();
+}
+
 void EtsUIExtensionCallback::OnResult(int32_t resultCode, const AAFwk::Want &want)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "OnResult call");
