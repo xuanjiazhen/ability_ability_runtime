@@ -1180,7 +1180,8 @@ int32_t CliToolManagerService::ExecCmdToolMode(const ExecCmdParam &param, CmdSes
     std::string toolName = ExecCmdParam::ExtractToolName(param.cmd);
     if (toolName.empty() || !std::all_of(toolName.begin(), toolName.end(),
         [](char c) { return std::isalnum(static_cast<unsigned char>(c)) || c == '-' || c == '_'; })) {
-        ReportCliExecuteFailed(context.bundleName, toolName, GetFailureReason(ERR_INVALID_PARAM));
+        ReportCliExecuteFailed(context.bundleName, toolName,
+            GetFailureReason(ERR_INVALID_PARAM), "invalid_tool_name");
         return ERR_INVALID_PARAM;
     }
 
