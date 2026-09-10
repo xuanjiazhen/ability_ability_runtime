@@ -500,6 +500,17 @@ AbilityRuntime_ErrorCode DeepCopyStorage(const MoVariantStorage& src, MoVariantS
 {
     dst.value = src.value;
     dst.stringStorage.clear();
+    // For container types, the assignment above shallow-copies foreign pointers from src
+    // into dst. Clear them now so that on deep-copy failure the dst destructor does not
+    // release pointers it does not own (which would cause double-free). A successful deep
+    // copy repopulates these fields with newly-owned handles.
+    if (src.value.vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_ARRAY ||
+        src.value.vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR ||
+        src.value.vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET ||
+        src.value.vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP ||
+        src.value.vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRUCT) {
+        (void)memset_s(&dst.value.u, sizeof(dst.value.u), 0, sizeof(dst.value.u));
+    }
     if (src.value.vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING) {
         dst.stringStorage = src.stringStorage;
         dst.value.u.bstrVal = const_cast<char*>(dst.stringStorage.c_str());
@@ -1198,13 +1209,6 @@ AbilityRuntime_ErrorCode ModObjDispatcherComplexTypeManager::StructCreate(const 
         TAG_LOGE(AAFwkTag::EXT, "StructCreate: null param or handle already initialized");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    {
-        std::lock_guard<std::mutex> lock(g_structMetaMutex);
-        if (g_structFieldTypes.find(structName) == g_structFieldTypes.end()) {
-            TAG_LOGE(AAFwkTag::EXT, "StructCreate: struct '%{public}s' not found in metadata", structName);
-            return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
-        }
-    }
     auto* object = new (std::nothrow) OH_AbilityRuntime_ModularObjectDispatcher_Struct();
     if (object == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "StructCreate: allocate failed for '%{public}s'", structName);
@@ -1214,9 +1218,12 @@ AbilityRuntime_ErrorCode ModObjDispatcherComplexTypeManager::StructCreate(const 
     {
         std::lock_guard<std::mutex> lock(g_structMetaMutex);
         auto iter = g_structFieldTypes.find(object->name);
-        if (iter != g_structFieldTypes.end()) {
-            object->fieldTypes = iter->second;
+        if (iter == g_structFieldTypes.end()) {
+            TAG_LOGE(AAFwkTag::EXT, "StructCreate: struct '%{public}s' not found in metadata", structName);
+            delete object;
+            return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
         }
+        object->fieldTypes = iter->second;
     }
     *ppStruct = object;
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
@@ -1365,6 +1372,17 @@ AbilityRuntime_ErrorCode ModObjDispatcherComplexTypeManager::StoreVariant(
     }
     dst->value = *src;
     dst->stringStorage.clear();
+    // For container types, the assignment above shallow-copies foreign pointers from src
+    // into dst. Clear them now so that on deep-copy failure the dst destructor does not
+    // release pointers it does not own (which would cause double-free). A successful deep
+    // copy repopulates these fields with newly-owned handles.
+    if (src->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_ARRAY ||
+        src->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR ||
+        src->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET ||
+        src->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP ||
+        src->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRUCT) {
+        (void)memset_s(&dst->value.u, sizeof(dst->value.u), 0, sizeof(dst->value.u));
+    }
     std::unordered_set<const void*> visited;
     if (src->vt == OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING) {
         dst->stringStorage = (src->u.bstrVal != nullptr) ? src->u.bstrVal : "";

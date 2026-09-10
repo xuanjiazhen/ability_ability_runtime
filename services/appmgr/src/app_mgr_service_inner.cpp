@@ -3932,8 +3932,8 @@ int32_t AppMgrServiceInner::CheckAppProvisionType(
     ApplicationInfo appInfo;
     if (!IN_PROCESS_CALL(
             bundleMgrHelper->GetApplicationInfoWithAppIndex(bundleName, appCloneIndex, newUserId, appInfo))) {
-        TAG_LOGE(AAFwkTag::APPMGR, "delete user data fail");
-        return AAFwk::ERR_APP_CLONE_INDEX_INVALID;
+        TAG_LOGE(AAFwkTag::APPMGR, "get application info with app index fail");
+        return AAFwk::GET_BUNDLE_INFO_FAILED;
     }
     if (appInfo.appProvisionType != AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG) {
         return AAFwk::CHECK_PERMISSION_FAILED;
@@ -4003,12 +4003,12 @@ int32_t AppMgrServiceInner::ClearUpApplicationDataByUserId(const std::string &bu
     int32_t result = AccessToken::AccessTokenKit::ClearUserGrantedPermissionState(tokenId);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "clearUserGrantedPermissionState fail, ret:%{public}d", result);
-        return AAFwk::ERR_APP_CLONE_INDEX_INVALID;
+        return ERR_INVALID_OPERATION;
     }
     // 2.delete bundle side user data
     if (!IN_PROCESS_CALL(bundleMgrHelper->CleanBundleDataFiles(bundleName, userId, appCloneIndex, callerUid))) {
         TAG_LOGE(AAFwkTag::APPMGR, "delete user data fail");
-        return AAFwk::ERR_APP_CLONE_INDEX_INVALID;
+        return ERR_INVALID_OPERATION;
     }
     // 3.kill application
     // 4.revoke user rights
@@ -10302,6 +10302,10 @@ void AppMgrServiceInner::KillRenderProcess(const std::shared_ptr<AppRunningRecor
 int32_t AppMgrServiceInner::GetProcessMemoryByPid(const int32_t pid, int32_t &memorySize)
 {
     CHECK_CALLER_IS_SYSTEM_APP;
+    if (pid <= 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid pid:%{public}d", pid);
+        return ERR_INVALID_OPERATION;
+    }
     uint64_t memSize = OHOS::MemInfo::GetPssByPid(pid);
     if (memSize > static_cast<uint64_t>(INT32_MAX)) {
         TAG_LOGE(AAFwkTag::APPMGR, "pss overflow: %{public}" PRIu64 " KB, pid:%{public}d", memSize, pid);

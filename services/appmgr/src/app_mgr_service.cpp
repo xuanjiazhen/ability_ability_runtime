@@ -514,10 +514,14 @@ int32_t AppMgrService::ClearUpApplicationData(const std::string &bundleName, int
 {
     bool isDeveloperMode = OHOS::system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
     bool isSACaller = AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI();
-    if (!isSACaller && (!isDeveloperMode || !AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
-        AAFwk::PermissionConstants::PERMISSION_ALLOW_USE_BM))) {
+    if (!isSACaller && !isDeveloperMode) {
         TAG_LOGE(AAFwkTag::APPMGR, "caller is not SA");
         return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    if (!isSACaller && !AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+        AAFwk::PermissionConstants::PERMISSION_ALLOW_USE_BM)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "BM permission denied");
+        return AAFwk::CHECK_PERMISSION_FAILED;
     }
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
@@ -1386,7 +1390,12 @@ int32_t AppMgrService::GetConfiguration(Configuration& config)
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
-    config = *(appMgrServiceInner_->GetConfiguration());
+    auto configPtr = appMgrServiceInner_->GetConfiguration();
+    if (configPtr == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "GetConfiguration return null");
+        return ERR_INVALID_OPERATION;
+    }
+    config = *configPtr;
     return ERR_OK;
 }
 
@@ -1396,7 +1405,12 @@ int32_t AppMgrService::GetConfiguration(Configuration& config, int32_t userId)
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
-    config = *(appMgrServiceInner_->GetConfiguration(userId));
+    auto configPtr = appMgrServiceInner_->GetConfiguration(userId);
+    if (configPtr == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "GetConfiguration return null");
+        return ERR_INVALID_OPERATION;
+    }
+    config = *configPtr;
     return ERR_OK;
 }
 
