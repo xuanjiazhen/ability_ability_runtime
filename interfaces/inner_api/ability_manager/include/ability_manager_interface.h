@@ -40,6 +40,7 @@
 #include "iability_manager_collaborator.h"
 #include "iacquire_share_data_callback_interface.h"
 #include "insight_intent/insight_intent_execute_param.h"
+#include "insight_intent/insight_intent_execute_lite_param.h"
 #include "insight_intent/insight_intent_execute_result.h"
 #include "skill/skill_execute_param.h"
 #include "skill/skill_execute_result.h"
@@ -2050,6 +2051,18 @@ public:
     {
         return 0;
     }
+
+    /**
+     * @brief Execute UIAbility foreground intent with specified token id.
+     * @param want The want carrying the card params and intent execution info.
+     * @param callerAbilityToken The caller ability token.
+     * @param param The lightweight intent execute param.
+     * @param specifyTokenId The specified access token id for permission checking.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t ExecuteUIAbilityForegroundIntentWithSpecifyTokenId(const Want &want,
+        const sptr<IRemoteObject> &callerAbilityToken, const InsightIntentExecuteLiteParam &param,
+        uint32_t specifyTokenId) = 0;
 
     /**
       * @brief Execute intent for distributed scenario.

@@ -2208,6 +2208,18 @@ public:
         uint64_t requestCode, uint64_t specifiedFullTokenId = 0) override;
     int32_t ExecuteIntentByFunctionCall(uint64_t key, const sptr<IRemoteObject> &callerToken,
         const std::string &bundleName, const std::string &intentName, const WantParams &wantParam) override;
+
+    /**
+     * @brief Execute UIAbility foreground intent with specified token id.
+     * @param want The want carrying the card params and intent execution info.
+     * @param callerAbilityToken The caller ability token.
+     * @param param The lightweight intent execute param.
+     * @param specifyTokenId The specified access token id for permission checking.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t ExecuteUIAbilityForegroundIntentWithSpecifyTokenId(const Want &want,
+        const sptr<IRemoteObject> &callerAbilityToken, const InsightIntentExecuteLiteParam &param,
+        uint32_t specifyTokenId) override;
     void RemoveIntentTimeout(uint64_t insightIntentId);
     void RemoveIntentTask(uint64_t insightIntentId);
 
