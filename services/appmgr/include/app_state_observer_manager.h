@@ -43,6 +43,7 @@
 
 namespace OHOS {
 namespace AppExecFwk {
+class RemoteClientManager;
 struct AppStateObserverInfo {
     int32_t uid = 0;
     std::vector<std::string> bundleNames;
@@ -169,6 +170,7 @@ private:
 
 private:
     std::shared_ptr<AAFwk::TaskHandlerWrap> handler_;
+    std::shared_ptr<RemoteClientManager> remoteClientManager_;
     AppStateObserverMap appStateObserverMap_;
     AppForegroundStateObserverMap appForegroundStateObserverMap_;
     AbilityForegroundObserverMap abilityForegroundObserverMap_;

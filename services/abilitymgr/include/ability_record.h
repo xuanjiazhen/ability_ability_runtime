@@ -111,8 +111,12 @@ public:
     /**
      * process request of foregrounding the ability.
      *
+     * @param tokenId the caller token id.
+     * @param options foreground options.
+     * @param isCallBySCB whether the foreground request is initiated by SCB.
      */
-    void ProcessForegroundAbility(uint32_t tokenId, const ForegroundOptions &options = {});
+    void ProcessForegroundAbility(uint32_t tokenId, const ForegroundOptions &options = {},
+        bool isCallBySCB = false);
 
      /**
      * post foreground timeout task for ui ability.
