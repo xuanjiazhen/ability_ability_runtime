@@ -429,7 +429,11 @@ public:
         return 0;
     }
     int32_t ExecuteIntent(uint64_t key, const sptr<IRemoteObject> &callerToken,
-        const InsightIntentExecuteParam &param) override
+        const InsightIntentExecuteLiteParam &param) override
+    {
+        return 0;
+    }
+    int32_t ExecuteUIAbilityForegroundIntentWithSpecifyTokenId(const Want &want, const sptr<IRemoteObject> &callerAbilityToken, const InsightIntentExecuteLiteParam &param, uint32_t specifyTokenId) override
     {
         return 0;
     }

@@ -293,7 +293,8 @@ public:
     MOCK_METHOD2(AttachAppDebug, int32_t(const std::string &bundleName, bool isDebugFromLocal));
     MOCK_METHOD2(DetachAppDebug, int32_t(const std::string &bundleName, bool isDebugFromLocal));
     MOCK_METHOD3(ExecuteIntent, int32_t(uint64_t key, const sptr<IRemoteObject> &callerToken,
-        const InsightIntentExecuteParam &param));
+        const InsightIntentExecuteLiteParam &param));
+    MOCK_METHOD4(ExecuteUIAbilityForegroundIntentWithSpecifyTokenId, int32_t(const Want &want, const sptr<IRemoteObject> &callerAbilityToken, const InsightIntentExecuteLiteParam &param, uint32_t specifyTokenId));
     MOCK_METHOD3(ExecuteInsightIntentDone, int32_t(const sptr<IRemoteObject> &token, uint64_t intentId,
         const InsightIntentExecuteResult &result));
     MOCK_METHOD5(StartAbilityWithSpecifyTokenId, int(const Want& want, const sptr<IRemoteObject>& callerToken,
