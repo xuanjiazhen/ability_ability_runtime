@@ -14987,7 +14987,7 @@ int32_t AbilityManagerService::PrepareFunctionCallParam(const std::string &bundl
 
 int32_t AbilityManagerService::ExecuteIntentByFunctionCall(uint64_t key,
     const sptr<IRemoteObject> &callerToken, const std::string &bundleName,
-    const std::string &intentName, const WantParams &wantParam)
+    const std::string &intentName, const WantParams &wantParam, const std::string &toolCallId)
 {
     TAG_LOGI(AAFwkTag::INTENT, "called, bundleName: %{public}s, intentName: %{public}s, wantParam: %{public}s",
         bundleName.c_str(), intentName.c_str(), wantParam.ToString().c_str());
@@ -15004,6 +15004,7 @@ int32_t AbilityManagerService::ExecuteIntentByFunctionCall(uint64_t key,
         return ret;
     }
     auto param = parseResult.param;
+    param->toolCallId_ = toolCallId;
     bool openLinkExecuteFlag = parseResult.openLinkExecuteFlag;
     bool ignoreAbilityName = parseResult.ignoreAbilityName;
 

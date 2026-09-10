@@ -29,6 +29,7 @@ IntentClient &IntentClient::GetInstance()
 
 int32_t IntentClient::ExecuteIntentByFunctionCall(const ExecuteIntentParam &param)
 {
+    lastToolCallId_ = param.toolCallId;
     if (mockStatus_ != ERR_OK) {
         return mockStatus_;  // simulate a synchronous execute failure (IPC/auth/etc.)
     }

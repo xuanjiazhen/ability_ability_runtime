@@ -32,6 +32,7 @@ struct ExecuteIntentParam {
     std::string bundleName;
     std::string intentName;
     WantParams wantParam;
+    std::string toolCallId;
     std::shared_ptr<AbilityRuntime::InsightIntentExecuteCallbackInterface> callback;
 };
 
@@ -56,7 +57,8 @@ private:
     void ResetRemote(wptr<IRemoteObject> remote);
 
     int32_t SendExecuteRequest(uint64_t key, const sptr<IRemoteObject> &callerToken,
-        const std::string &bundleName, const std::string &intentName, const WantParams &wantParam);
+        const std::string &bundleName, const std::string &intentName, const WantParams &wantParam,
+        const std::string &toolCallId);
 
     class DeathRecipient : public IRemoteObject::DeathRecipient {
     public:
