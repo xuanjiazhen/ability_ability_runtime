@@ -1386,7 +1386,12 @@ int32_t AppMgrService::GetConfiguration(Configuration& config)
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
-    config = *(appMgrServiceInner_->GetConfiguration());
+    auto configPtr = appMgrServiceInner_->GetConfiguration();
+    if (configPtr == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "GetConfiguration return null");
+        return ERR_INVALID_OPERATION;
+    }
+    config = *configPtr;
     return ERR_OK;
 }
 
@@ -1396,7 +1401,12 @@ int32_t AppMgrService::GetConfiguration(Configuration& config, int32_t userId)
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return ERR_INVALID_OPERATION;
     }
-    config = *(appMgrServiceInner_->GetConfiguration(userId));
+    auto configPtr = appMgrServiceInner_->GetConfiguration(userId);
+    if (configPtr == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "GetConfiguration return null");
+        return ERR_INVALID_OPERATION;
+    }
+    config = *configPtr;
     return ERR_OK;
 }
 

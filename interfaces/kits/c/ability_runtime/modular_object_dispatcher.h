@@ -613,6 +613,10 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_QueryMainServiceInte
 /**
  * @brief Call a method.
  *
+ * For one-way (oneway) methods, the IPC request is sent asynchronously and this function
+ * returns {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} immediately after the request is sent;
+ * pResult and pMethodErrCode are not populated for oneway methods.
+ *
  * @param pModObjDispatcher Indicates modular object dispatcher handle.
  * @param memID Indicates method member ID (MemberID).
  * @param pInputParams Indicates parameter structure containing arguments.
@@ -1290,6 +1294,9 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_SetGetElementType(
 
 /**
  * @brief Add an element to set.
+ *
+ * If an element equal to pValue already exists in the set, this is a no-op and
+ * {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} is returned without adding a duplicate.
  *
  * @param pSet Indicates set handle.
  * @param pValue Indicates a pointer to element value variant.

@@ -267,6 +267,7 @@ typedef void (*OH_Ability_OnNativeChildProcessStarted)(int errCode, OHIPCRemoteP
  * Returns {@link NCP_ERR_MULTI_PROCESS_DISABLED} if the multi-process mode is disabled on the device.\n
  * Returns {@link NCP_ERR_ALREADY_IN_CHILD} if it is not allowed to create another child process in the child process.\n
  * Returns {@link NCP_ERR_MAX_CHILD_PROCESSES_REACHED} if the maximum number of native child processes is reached.\n
+ * Returns {@link NCP_ERR_INTERNAL} if an internal error occurs, such as callback stub allocation failure.\n
  * For details, see {@link Ability_NativeChildProcess_ErrCode}.
  * @see OH_Ability_OnNativeChildProcessStarted
  * @since 12
@@ -309,6 +310,7 @@ int OH_Ability_CreateNativeChildProcess(const char* libName,
  * Returns {@link NCP_ERR_MULTI_PROCESS_DISABLED} if the multi-process mode is disabled on the device.
  * Returns {@link NCP_ERR_ALREADY_IN_CHILD} if it is not allowed to create another child process in the child process.
  * Returns {@link NCP_ERR_MAX_CHILD_PROCESSES_REACHED} if the maximum number of native child processes is reached.
+ * Returns {@link NCP_ERR_INTERNAL} if an internal error occurs, such as callback stub allocation failure.
  * For details, see {@link Ability_NativeChildProcess_ErrCode}.
  * @see OH_Ability_OnNativeChildProcessStarted
  * @since 20
