@@ -22,9 +22,9 @@
 
 #include <fuzzer/FuzzedDataProvider.h>
 #include <iostream>
-#include "securec.h"
 #include "ability_fuzz_util.h"
 #include "ability_record.h"
+#include "securec.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;
