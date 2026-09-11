@@ -61,6 +61,7 @@
 #include "extension_running_timeout_monitor.h"
 #include "background_user_extension_monitor.h"
 #include "insight_intent_execute_manager.h"
+#include "insight_intent_execute_lite_param.h"
 #include "insight_intent_db_cache.h"
 #include "skill/skill_execute_manager.h"
 #include "insight_intent_utils.h"
@@ -15014,6 +15015,103 @@ int32_t AbilityManagerService::ExecuteIntentByFunctionCall(uint64_t key,
     return ExecuteIntentCommon(callerToken, param, callerBundleName, options);
 }
 
+int32_t AbilityManagerService::ExecuteUIAbilityForegroundIntentWithSpecifyTokenId(const Want &want,
+    const sptr<IRemoteObject> &callerAbilityToken, const InsightIntentExecuteLiteParam &param,
+    uint32_t specifyTokenId)
+{
+    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+        TAG_LOGE(AAFwkTag::INTENT, "not foundation process, reject");
+        return CHECK_PERMISSION_FAILED;
+    }
+
+    TAG_LOGI(AAFwkTag::INTENT, "called, bundleName: %{public}s, intentName: %{public}s, "
+        "specifyTokenId: %{public}u", want.GetElement().GetBundleName().c_str(),
+        param.insightIntentName.c_str(), specifyTokenId);
+
+    // Rebuild full token id from the 32-bit access token id so that downstream
+    // CheckCallerPermission can read the tokenAttr from the high 32 bits
+    // and correctly determine system-app status via IsSystemAppByFullTokenID.
+    Security::AccessToken::HapTokenInfo hapInfo;
+    uint64_t fullTokenId = specifyTokenId;
+    if (Security::AccessToken::AccessTokenKit::GetHapTokenInfo(specifyTokenId, hapInfo) ==
+        Security::AccessToken::AccessTokenKitRet::RET_SUCCESS) {
+        fullTokenId = (static_cast<uint64_t>(hapInfo.tokenAttr) << 32) + specifyTokenId;
+    }
+
+    auto callerBundlename = InsightIntentGetcallerBundleName();
+    if (callerBundlename.empty()) {
+        TAG_LOGD(AAFwkTag::INTENT, "callerBundlename is null");
+    }
+
+    auto paramCopy = BuildExecuteParamFromWant(want, param);
+
+    int32_t ret = CheckCrossUserPermission(paramCopy->userId_);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    AbilityRuntime::ExtractInsightIntentGenericInfo infos = GetInsightIntentGenericInfo(*paramCopy);
+    bool openLinkExecuteFlag = infos.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_LINK;
+    bool ignoreAbilityName = openLinkExecuteFlag ||
+        (infos.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_PAGE) ||
+        (infos.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_FUNCTION) ||
+        !paramCopy->deviceId_.empty();
+
+    Want localWant = want;
+    ret = PrepareAndGenerateForegroundIntent(paramCopy, infos, callerBundlename,
+        param.key, param.insightIntentHostClient, ignoreAbilityName, fullTokenId, localWant);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    ret = StartAbilityWithInsightIntent(
+        localWant, paramCopy->userId_, DEFAULT_INVAL_VALUE, fullTokenId, callerAbilityToken);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "StartAbilityWithInsightIntent failed: %{public}d", ret);
+        DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->RemoveExecuteIntent(
+            paramCopy->insightIntentId_);
+    }
+    return ret;
+}
+
+int32_t AbilityManagerService::PrepareAndGenerateForegroundIntent(
+    const std::shared_ptr<InsightIntentExecuteParam> &paramCopy,
+    const AbilityRuntime::ExtractInsightIntentGenericInfo &infos, const std::string &callerBundlename,
+    uint64_t key, const sptr<IRemoteObject> &hostClient, bool ignoreAbilityName,
+    uint64_t specifiedFullTokenId, Want &localWant)
+{
+    int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateParam(
+        key, hostClient, paramCopy, callerBundlename,
+        ignoreAbilityName, false, "", 0, specifiedFullTokenId);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    ret = InsightIntentExecuteManager::GenerateWant(paramCopy, infos, localWant);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "GenerateWant failed: %{public}d", ret);
+        DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->RemoveExecuteIntent(
+            paramCopy->insightIntentId_);
+        return ret;
+    }
+    return ERR_OK;
+}
+
+std::shared_ptr<InsightIntentExecuteParam> AbilityManagerService::BuildExecuteParamFromWant(
+    const Want &want, const InsightIntentExecuteLiteParam &param)
+{
+    auto paramCopy = std::make_shared<InsightIntentExecuteParam>();
+    paramCopy->bundleName_ = want.GetElement().GetBundleName();
+    paramCopy->moduleName_ = want.GetElement().GetModuleName();
+    paramCopy->abilityName_ = want.GetElement().GetAbilityName();
+    paramCopy->insightIntentName_ = param.insightIntentName;
+    paramCopy->executeMode_ = AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND;
+    paramCopy->userId_ = want.GetIntParam(INTENT_USER_ID, DEFAULT_INVAL_VALUE);
+    paramCopy->insightIntentParam_ = std::make_shared<WantParams>(param.insightIntentParam);
+    paramCopy->deviceId_ = want.GetElement().GetDeviceID();
+    return paramCopy;
+}
+
 int32_t AbilityManagerService::ExecuteIntentCommon(const sptr<IRemoteObject> &callerToken,
     const std::shared_ptr<InsightIntentExecuteParam> &param, const std::string &callerBundleName,
     const AbilityRuntime::ExecuteIntentCommonOptions &options)
@@ -15335,7 +15433,7 @@ int32_t AbilityManagerService::OnExecuteIntent(AbilityRequest &abilityRequest,
 }
 
 int32_t AbilityManagerService::StartAbilityWithInsightIntent(const Want &want, int32_t userId, int requestCode,
-    uint64_t specifiedFullTokenId)
+    uint64_t specifiedFullTokenId, const sptr<IRemoteObject> &callerToken)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     bool startWithAccount = want.GetBoolParam(START_ABILITY_TYPE, false);
@@ -15350,6 +15448,7 @@ int32_t AbilityManagerService::StartAbilityWithInsightIntent(const Want &want, i
     SendAbilityEvent(EventName::START_ABILITY, HISYSEVENT_BEHAVIOR, eventInfo);
     StartAbilityWrapParam startAbilityWrapParam = {
         .want = want,
+        .callerToken = callerToken,
         .requestCode = requestCode,
         .userId = userId,
         .specifiedFullTokenId = specifiedFullTokenId,
