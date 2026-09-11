@@ -18,6 +18,7 @@
 #include "ability_foreground_state_observer_interface.h"
 #include "app_foreground_state_observer_stub.h"
 #include "app_mgr_proxy.h"
+#include "configuration.h"
 #include "hilog_tag_wrapper.h"
 #include "image_error_handler_stub.h"
 #include "image_process_state_observer_stub.h"

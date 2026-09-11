@@ -17,6 +17,7 @@
 
 #include "configuration.h"
 #include "hilog_tag_wrapper.h"
+#include "session_info.h"
 #include "ipc_capacity_wrap.h"
 
 namespace OHOS {

@@ -22,7 +22,6 @@
 
 #include "nocopyable.h"
 #include "session_info.h"
-#include "window_option.h"
 #include "window_scene.h"
 #include "window.h"
 
@@ -31,6 +30,9 @@
 #endif
 
 namespace OHOS {
+namespace Rosen {
+class WindowOption;
+}
 namespace AppExecFwk {
 class IAbilityEvent;
 class Ability;

@@ -18,10 +18,10 @@
 
 #include "iremote_broker.h"
 #include "iremote_object.h"
-#include "configuration.h"
 
 namespace OHOS {
 namespace AppExecFwk {
+class Configuration;
 class IConfigurationObserver : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.abilityruntime.IConfigurationObserver");

@@ -16,6 +16,7 @@
 #include "app_mgr_stub.h"
 
 #include "ability_info.h"
+#include "configuration.h"
 #include "hyper_snap_error_record.h"
 #include "ability_manager_errors.h"
 #include "app_jsheap_mem_info.h"
