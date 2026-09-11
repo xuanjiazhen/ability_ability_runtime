@@ -21,6 +21,7 @@
 #include "ability_config.h"
 #include "ability_util.h"
 #include "ability_manager_errors.h"
+#include "accesstoken_kit.h"
 #include "distributed_ability_runtime/distributed_client.h"
 #include "extract_insight_intent_profile.h"
 #include "ffrt.h"
@@ -642,7 +643,11 @@ int32_t InsightIntentExecuteManager::GenerateWant(
         if (pExecuteParams != nullptr) {
             WantParams wantParams;
             wantParams.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_PARAM, pExecuteParams);
-            want.SetParams(wantParams);
+            WantParams merged = want.GetParams();
+            for (const auto &p : wantParams.GetParams()) {
+                merged.SetParam(p.first, p.second);
+            }
+            want.SetParams(merged);
         }
     }
 
@@ -724,6 +729,7 @@ int32_t InsightIntentExecuteManager::CheckCallerPermission(uint64_t specifiedFul
 {
     TAG_LOGI(AAFwkTag::INTENT, "specifiedFullTokenId: %{public}" PRIu64, specifiedFullTokenId);
     bool isSystemAppCall = false;
+
     if (specifiedFullTokenId != 0) {
         isSystemAppCall = PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPIByTokenId(
             specifiedFullTokenId);
