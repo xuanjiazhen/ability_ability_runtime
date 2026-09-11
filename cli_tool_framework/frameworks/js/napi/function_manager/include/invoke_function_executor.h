@@ -21,25 +21,10 @@
 #include <memory>
 #include <string>
 
-#include "want_params.h"
+#include "invoke_function_result.h"
 
 namespace OHOS {
 namespace CliTool {
-
-/**
- * @brief Pure-C++ outcome of an invokeFunction run.
- *
- * Carries everything the NAPI layer needs to build a JS result or reject the
- * promise. Deliberately holds NO napi types so the executor can run and be
- * tested without an N-API environment.
- */
-struct InvokeFunctionResult {
-    bool invokeSuccess = false;
-    int32_t errorCode = 0;                             // native err code, used on the reject path
-    int32_t resultCode = 0;                            // executeResult.code (app business level)
-    std::shared_ptr<AAFwk::WantParams> result;         // business data carried into InvokeResult.data
-    std::string message;                               // reserved description
-};
 
 /**
  * @brief Invoked EXACTLY ONCE on completion / failure / timeout.

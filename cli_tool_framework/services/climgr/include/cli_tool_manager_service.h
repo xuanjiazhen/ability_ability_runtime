@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_CLI_TOOL_MGR_SERVICE_H
 
 #include <atomic>
+#include <chrono>
 #include <map>
 #include <memory>
 #include <string>
@@ -30,9 +31,11 @@
 #include "exec_cmd_param.h"
 #include "exec_options.h"
 #include "ffrt.h"
+#include "invoke_function_result.h"
 #include "iremote_object.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
+#include "want_params.h"
 
 #include "io_monitor.h"
 #include "process_manager.h"
@@ -158,6 +161,15 @@ public:
      * @return int32_t ERR_OK on success, error code otherwise
      */
     int32_t GetAllFunctions(FunctionsRawData &functions) override;
+
+    int32_t RegisterCliHook(const sptr<ICliHookScheduler> &hook, int32_t activeMethods) override;
+    int32_t UnregisterCliHook(const sptr<ICliHookScheduler> &hook) override;
+    int32_t RegisterFunctionHook(const sptr<IFunctionHookScheduler> &hook, int32_t activeMethods) override;
+    int32_t UnregisterFunctionHook(const sptr<IFunctionHookScheduler> &hook) override;
+    int32_t BeforeInvokeFunction(const std::string &funcNamespace, const std::string &functionName,
+        AAFwk::WantParams &param) override;
+    int32_t AfterInvokeFunction(const std::string &funcNamespace, const std::string &functionName,
+        InvokeFunctionResult &result) override;
 
     /**
      * @brief Batch register functions (one-way, result not reported to caller)
@@ -287,6 +299,16 @@ private:
     void RemoveCallerPid(int64_t pid);
     int32_t GetCallerPidCount();
 
+    sptr<ICliHookScheduler> GetCliHookSnapshot();
+    sptr<IFunctionHookScheduler> GetFunctionHookSnapshot();
+    bool IsDeveloperMode() const;
+    int32_t VerifyHookCaller() const;
+    void EnsureCliHookDeathRecipient();
+    void EnsureFunctionHookDeathRecipient();
+    void InvokeBeforeCallTool(ExecToolParam &param);
+    void InvokeAfterCallTool(CliSessionInfo &session);
+    void InvokeBeforeCallCmd(ExecCmdParam &param);
+
     bool initialized_ = false;
     std::shared_ptr<IOMonitor> ioMonitor_ = nullptr;
 
@@ -307,6 +329,48 @@ private:
     std::unordered_map<std::string, sptr<AppExecFwk::IApplicationStateObserver>> bundleObservers_;
     ffrt::mutex callerPidsMutex_;
     std::unordered_set<int64_t> callerPids;
+
+    ffrt::mutex hookMutex_;
+    sptr<ICliHookScheduler> cliHook_;
+    sptr<IFunctionHookScheduler> functionHook_;
+    sptr<IRemoteObject::DeathRecipient> cliHookDeathRecipient_;
+    sptr<IRemoteObject::DeathRecipient> functionHookDeathRecipient_;
+
+    uint32_t cliHookActiveMethods_ = 0;
+    uint32_t functionHookActiveMethods_ = 0;
+    static constexpr uint32_t CLI_HOOK_BEFORE_CALL_TOOL = 1 << 0;
+    static constexpr uint32_t CLI_HOOK_AFTER_CALL_TOOL = 1 << 1;
+    static constexpr uint32_t CLI_HOOK_BEFORE_CALL_CMD = 1 << 2;
+    static constexpr uint32_t CLI_HOOK_AFTER_CALL_CMD = 1 << 3;
+    static constexpr uint32_t FUNC_HOOK_BEFORE_INVOKE = 1 << 0;
+    static constexpr uint32_t FUNC_HOOK_AFTER_INVOKE = 1 << 1;
+
+    static constexpr int32_t HOOK_TIMEOUT_SECONDS = 5;
+    template<typename ParamType, typename HookFunc>
+    bool InvokeHookAsync(HookFunc &&hookFunc, ParamType &param)
+    {
+        auto mtx = std::make_shared<ffrt::mutex>();
+        auto cv = std::make_shared<ffrt::condition_variable>();
+        auto completed = std::make_shared<std::atomic<bool>>(false);
+        auto paramCopy = std::make_shared<ParamType>(param);
+
+        ffrt::submit([hookFunc = std::forward<HookFunc>(hookFunc), paramCopy, mtx, cv, completed]() {
+            hookFunc(*paramCopy);
+            {
+                std::lock_guard<ffrt::mutex> lock(*mtx);
+                completed->store(true);
+            }
+            cv->notify_one();
+        });
+
+        std::unique_lock<ffrt::mutex> lock(*mtx);
+        bool ok = cv->wait_for(lock, std::chrono::seconds(HOOK_TIMEOUT_SECONDS),
+            [&] { return completed->load(); });
+        if (ok) {
+            param = *paramCopy;
+        }
+        return ok;
+    }
 };
 
 class SkillCallbackAdapter : public AAFwk::SkillExecuteCallbackStub {
