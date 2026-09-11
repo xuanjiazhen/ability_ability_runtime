@@ -41,7 +41,6 @@ using AppExecFwk::ParamType;
 
 namespace {
 constexpr size_t INSIGHT_INTENT_EXECUTE_RECORDS_MAX_SIZE = 256;
-constexpr char EXECUTE_INSIGHT_INTENT_PERMISSION[] = "ohos.permission.EXECUTE_INSIGHT_INTENT";
 constexpr char PERMISSION_GET_BUNDLE_INFO_PRIVILEGED[] = "ohos.permission.GET_BUNDLE_INFO_PRIVILEGED";
 constexpr const char *KEY_INTERACTION_INFO = "interactionInfo";
 constexpr int32_t OPERATION_DURATION = 10000;
@@ -642,7 +641,11 @@ int32_t InsightIntentExecuteManager::GenerateWant(
         if (pExecuteParams != nullptr) {
             WantParams wantParams;
             wantParams.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_PARAM, pExecuteParams);
-            want.SetParams(wantParams);
+            WantParams merged = want.GetParams();
+            for (const auto &p : wantParams.GetParams()) {
+                merged.SetParam(p.first, p.second);
+            }
+            want.SetParams(merged);
         }
     }
 
@@ -741,6 +744,13 @@ int32_t InsightIntentExecuteManager::CheckCallerPermission(uint64_t specifiedFul
     if (!isSystemAppCall) {
         TAG_LOGE(AAFwkTag::INTENT, "system-api cannot use");
         return ERR_NOT_SYSTEM_APP;
+    }
+
+    // SA caller executing with its own identity (no token override) has already passed
+    // the UID guard at the entry, no need to hold the app-level execute intent permission.
+    if (specifiedFullTokenId == 0 && PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGD(AAFwkTag::INTENT, "sa caller, skip execute intent permission check");
+        return ERR_OK;
     }
 
     bool isCallingPerm = PermissionVerification::GetInstance()->VerifyCallingPermission(

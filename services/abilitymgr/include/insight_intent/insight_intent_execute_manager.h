@@ -29,6 +29,8 @@
 
 namespace OHOS {
 namespace AAFwk {
+constexpr char EXECUTE_INSIGHT_INTENT_PERMISSION[] = "ohos.permission.EXECUTE_INSIGHT_INTENT";
+
 enum class InsightIntentExecuteState {
     UNKNOWN = 0,
     EXECUTING,
