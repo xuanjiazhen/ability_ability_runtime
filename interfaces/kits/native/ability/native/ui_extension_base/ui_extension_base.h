@@ -21,6 +21,7 @@
 #include "extension.h"
 #include "extension_base.h"
 #include "iremote_object.h"
+#include "session_info.h"
 #include "ui_extension_context.h"
 #include "ui_extension_base_impl.h"
 

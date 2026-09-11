@@ -17,6 +17,7 @@
 
 #include "ability_manager_errors.h"
 #include "app_utils.h"
+#include "configuration.h"
 #include "appexecfwk_errors.h"
 #include "app_utils.h"
 #include "hilog_tag_wrapper.h"

@@ -15,6 +15,7 @@
 
 #include "cj_ability_stage.h"
 #include "cj_runtime.h"
+#include "configuration.h"
 #include "context_impl.h"
 #include "hilog_tag_wrapper.h"
 #include "securec.h"

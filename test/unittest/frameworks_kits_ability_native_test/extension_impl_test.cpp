@@ -28,6 +28,7 @@
 #include "event_runner.h"
 #include "mock_ability_token.h"
 #include "ohos_application.h"
+#include "session_info.h"
 #include "ui_extension_context.h"
 #include "ui_extension.h"
 #include "ui_extension_wrapper.h"

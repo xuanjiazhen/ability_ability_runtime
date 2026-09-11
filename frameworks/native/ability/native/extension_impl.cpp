@@ -20,6 +20,7 @@
 #include "ability_transaction_callback_info.h"
 #include "freeze_util.h"
 #include "hitrace_meter.h"
+#include "session_info.h"
 #include "ipc_object_proxy.h"
 #include "extension_context.h"
 #include "hilog_tag_wrapper.h"

@@ -26,6 +26,7 @@
 #undef protected
 #include "event_runner.h"
 #include "mock_ability_token.h"
+#include "session_info.h"
 
 namespace OHOS {
 namespace AppExecFwk {
