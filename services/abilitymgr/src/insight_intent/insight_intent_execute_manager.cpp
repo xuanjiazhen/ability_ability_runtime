@@ -21,6 +21,7 @@
 #include "ability_config.h"
 #include "ability_util.h"
 #include "ability_manager_errors.h"
+#include "accesstoken_kit.h"
 #include "distributed_ability_runtime/distributed_client.h"
 #include "extract_insight_intent_profile.h"
 #include "ffrt.h"
@@ -642,7 +643,11 @@ int32_t InsightIntentExecuteManager::GenerateWant(
         if (pExecuteParams != nullptr) {
             WantParams wantParams;
             wantParams.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_PARAM, pExecuteParams);
-            want.SetParams(wantParams);
+            WantParams merged = want.GetParams();
+            for (const auto &p : wantParams.GetParams()) {
+                merged.SetParam(p.first, p.second);
+            }
+            want.SetParams(merged);
         }
     }
 
@@ -724,6 +729,19 @@ int32_t InsightIntentExecuteManager::CheckCallerPermission(uint64_t specifiedFul
 {
     TAG_LOGI(AAFwkTag::INTENT, "specifiedFullTokenId: %{public}" PRIu64, specifiedFullTokenId);
     bool isSystemAppCall = false;
+
+    // The tokenId points to the target application itself → allow execution.
+    if (specifiedFullTokenId != 0 && !targetBundleName.empty()) {
+        uint32_t specifyTokenId = static_cast<uint32_t>(specifiedFullTokenId);
+        Security::AccessToken::HapTokenInfo hapInfo;
+        if (Security::AccessToken::AccessTokenKit::GetHapTokenInfo(specifyTokenId, hapInfo) ==
+            Security::AccessToken::AccessTokenKitRet::RESULT_SUCCESS &&
+            hapInfo.bundleName == targetBundleName) {
+            TAG_LOGI(AAFwkTag::INTENT, "tokenId matches target, allow execution");
+            return ERR_OK;
+        }
+    }
+
     if (specifiedFullTokenId != 0) {
         isSystemAppCall = PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPIByTokenId(
             specifiedFullTokenId);
