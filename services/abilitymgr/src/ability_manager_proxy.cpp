@@ -18,6 +18,7 @@
 #include "ability_scheduler_stub.h"
 #include "ability_util.h"
 #include "app_utils.h"
+#include "session_info.h"
 #include "freeze_util.h"
 #include "hitrace_chain_utils.h"
 #include "hitrace_meter.h"

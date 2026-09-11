@@ -21,7 +21,6 @@
 #include "app_debug_listener_interface.h"
 #include "app_record_id.h"
 #include "application_info.h"
-#include "configuration.h"
 #include "iapp_state_callback.h"
 #include "iremote_broker.h"
 #include "iremote_object.h"

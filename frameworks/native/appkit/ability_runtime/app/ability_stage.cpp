@@ -16,6 +16,7 @@
 #include "ability_stage.h"
 
 #include "ability_runtime/context/context.h"
+#include "configuration.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #ifdef CJ_FRONTEND

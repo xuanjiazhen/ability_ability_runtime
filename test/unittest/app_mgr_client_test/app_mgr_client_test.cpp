@@ -22,6 +22,7 @@
 #include "app_service_manager.h"
 #include "ability_record.h"
 #include "app_mgr_constants.h"
+#include "configuration.h"
 #include "hilog_tag_wrapper.h"
 #include "mock_ability_debug_response_stub.h"
 #include "mock_app_debug_listener_stub.h"

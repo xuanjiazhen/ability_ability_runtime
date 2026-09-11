@@ -17,6 +17,7 @@
 #include "ability.h"
 #include "ability_handler.h"
 #include "hilog_tag_wrapper.h"
+#include "window_option.h"
 #include "scene_board_judgement.h"
 
 namespace OHOS {

@@ -18,6 +18,7 @@
 #include "ability_manager_collaborator_proxy.h"
 #include "ability_manager_collaborator_stub_mock.h"
 #include "configuration.h"
+#include "session_info.h"
 #include "uri.h"
 
 using namespace testing;

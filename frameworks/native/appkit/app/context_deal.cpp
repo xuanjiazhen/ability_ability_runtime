@@ -27,6 +27,7 @@
 #include "hilog_tag_wrapper.h"
 #include "iservice_registry.h"
 #include "os_account_manager_wrapper.h"
+#include "resource_manager.h"
 #include "sys_mgr_client.h"
 #include "system_ability_definition.h"
 

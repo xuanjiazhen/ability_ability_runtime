@@ -20,7 +20,6 @@
 #include "iremote_broker.h"
 #include "iremote_object.h"
 #include "mission_info.h"
-#include "session_info.h"
 #include "want.h"
 
 namespace OHOS {

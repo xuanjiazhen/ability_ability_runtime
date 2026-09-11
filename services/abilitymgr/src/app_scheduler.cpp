@@ -17,6 +17,7 @@
 
 #include "ability_manager_service.h"
 #include "ability_util.h"
+#include "configuration.h"
 #include "app_utils.h"
 #include "hitrace_meter.h"
 #include "param.h"

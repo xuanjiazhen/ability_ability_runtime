@@ -23,6 +23,7 @@
 #undef private
 #undef protected
 #include "app_debug_listener_stub_mock.h"
+#include "configuration.h"
 #include "app_mgr_client_mock.h"
 #include "app_process_data.h"
 #include "app_state_call_back_mock.h"

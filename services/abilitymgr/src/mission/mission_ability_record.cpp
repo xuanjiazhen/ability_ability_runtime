@@ -17,6 +17,7 @@
 
 #include "ability_manager_service.h"
 #include "ability_util.h"
+#include "configuration.h"
 #include "configuration_convertor.h"
 #include "global_constant.h"
 #include "hilog_tag_wrapper.h"

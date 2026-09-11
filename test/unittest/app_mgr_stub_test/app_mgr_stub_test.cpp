@@ -21,6 +21,7 @@
 #define protected public
 #include "app_foreground_state_observer_stub.h"
 #include "app_mgr_stub.h"
+#include "configuration.h"
 #include "image_error_handler_stub.h"
 #include "image_process_state_observer_stub.h"
 #undef private

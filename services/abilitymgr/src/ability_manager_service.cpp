@@ -15,6 +15,7 @@
 
 #include "ability_manager_service.h"
 
+#include "configuration.h"
 #include <dlfcn.h>
 #include <sys/epoll.h>
 #include <unordered_map>
