@@ -2512,7 +2512,6 @@ private:
         const std::shared_ptr<AppRunningRecord> &appRecord, const UIExtensionProcessBindInfo &bindInfo);
     void UnBindUIExtensionProcess(
         const std::shared_ptr<AppRunningRecord> &appRecord, const UIExtensionProcessBindInfo &bindInfo);
-    std::string GetStoragePath(const std::string& hapPath);
     bool WrapBindInfo(std::shared_ptr<AAFwk::Want> &want, std::shared_ptr<AppRunningRecord> &appRecord,
         UIExtensionProcessBindInfo &bindInfo);
     void ReportEventToRSS(const AppExecFwk::AbilityInfo &abilityInfo,

@@ -1993,6 +1993,22 @@ HWTEST_F(ContextImplTest, ChangeToLocalPath_0400, TestSize.Level1)
     EXPECT_TRUE(localPath == "/data/bundles/+clone-10000+com.example.demo/");
 }
 
+/**
+ * @tc.number: ChangeToLocalPath_0500
+ * @tc.name: ChangeToLocalPath_0500
+ * @tc.desc: ChangeToLocalPath with empty sourceDir (early return branch).
+ */
+HWTEST_F(ContextImplTest, ChangeToLocalPath_0500, TestSize.Level1)
+{
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+    std::string bundleName = "com.ohos.demo";
+    std::string localPath = "/data/app/el1/bundle/public/com.ohos.demo/entry.hap";
+    std::string original = localPath;
+    contextImpl->ChangeToLocalPath(bundleName, "", localPath);
+    EXPECT_EQ(localPath, original);
+}
+
 #ifdef SUPPORT_SCREEN
 /**
  * @tc.number: RegisterGetAllUIAbilitiesCallback_001
