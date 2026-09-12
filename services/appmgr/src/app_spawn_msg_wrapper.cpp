@@ -215,6 +215,11 @@ bool AppSpawnMsgWrapper::VerifyMsg(const AppSpawnStartMsg &startMsg) const
             return false;
         }
 
+        if (startMsg.gids.size() + startMsg.dataGroupInfoList.size() > AppSpawn::ClientSocket::MAX_GIDS) {
+            TAG_LOGE(AAFwkTag::APPMGR, "many app gids with dataGroupInfoList");
+            return false;
+        }
+
         for (uint32_t i = 0; i < startMsg.gids.size(); ++i) {
             if (startMsg.gids[i] < 0) {
                 TAG_LOGE(AAFwkTag::APPMGR, "invalid gids array! [%{public}d]", startMsg.gids[i]);
