@@ -237,7 +237,7 @@ private:
     void UnregisterSessionWithMonitors(const std::string &sessionId);
 
     int32_t ValidateExecToolPermissions();
-    int32_t ValidateExecCmdPublicPermissions(const ExecCmdParam &param);
+    int32_t ValidateExecCmdPublicPermissions();
     int32_t SubscribeSessionInternal(const std::string &sessionId, const std::string &subscriptionId,
         const sptr<ICliToolManagerScheduler> &scheduler);
     int32_t ValidateSessionLimit();

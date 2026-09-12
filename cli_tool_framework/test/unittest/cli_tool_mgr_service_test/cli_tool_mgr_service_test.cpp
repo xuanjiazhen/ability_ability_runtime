@@ -2527,9 +2527,7 @@ HWTEST_F(CliToolManagerServiceTest, ValidateExecCmdPublicPermissions_0200, TestS
     appUtils.isSupportExecCmd_.isLoaded = true;
     appUtils.isSupportExecCmd_.value = false;
 
-    ExecCmdParam param;
-    param.cmd = "echo test";
-    int32_t result = service_->ValidateExecCmdPublicPermissions(param);
+    int32_t result = service_->ValidateExecCmdPublicPermissions();
     EXPECT_EQ(result, AAFwk::ERR_CAPABILITY_NOT_SUPPORT);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateExecCmdPublicPermissions_0200 end");
@@ -2548,9 +2546,7 @@ HWTEST_F(CliToolManagerServiceTest, ValidateExecCmdPublicPermissions_0300, TestS
     appUtils.isSupportExecCmd_.isLoaded = true;
     appUtils.isSupportExecCmd_.value = true;
 
-    ExecCmdParam param;
-    param.cmd = "echo test";
-    int32_t result = service_->ValidateExecCmdPublicPermissions(param);
+    int32_t result = service_->ValidateExecCmdPublicPermissions();
     EXPECT_EQ(result, ERR_OK);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateExecCmdPublicPermissions_0300 end");

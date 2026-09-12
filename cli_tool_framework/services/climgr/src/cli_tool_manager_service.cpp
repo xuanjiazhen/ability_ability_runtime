@@ -904,9 +904,8 @@ int32_t CliToolManagerService::ValidateExecToolPermissions()
     return ERR_OK;
 }
 
-int32_t CliToolManagerService::ValidateExecCmdPublicPermissions(const ExecCmdParam &param)
+int32_t CliToolManagerService::ValidateExecCmdPublicPermissions()
 {
-    (void)param;
     if (!AAFwk::AppUtils::GetInstance().IsSupportExecCmd()) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Capability not supported");
         return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
@@ -1108,7 +1107,7 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecCmd called: cmd=%{public}s", param.cmd.c_str());
-    if (auto ret = ValidateExecCmdPublicPermissions(param); ret != ERR_OK) {
+    if (auto ret = ValidateExecCmdPublicPermissions(); ret != ERR_OK) {
         return ret;
     }
     int32_t callerPid = IPCSkeleton::GetCallingPid();
