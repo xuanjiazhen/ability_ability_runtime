@@ -39,7 +39,7 @@ namespace CliTool {
  * the call to the JS thread via napi_threadsafe_function. The JS callback
  * returns a (possibly modified) object which is parsed back to native data.
  *
- * Timeout: 500ms; on timeout the original parameter is left unchanged.
+ * Timeout: 5000ms; on timeout the original parameter is left unchanged.
  */
 class JsCliHook : public CliHookInterfaceStub {
 public:
@@ -59,7 +59,6 @@ public:
         ExecCmdParam* cmdParam = nullptr;
         ExecResultWrap* execResultWrap = nullptr;
         std::shared_ptr<std::promise<void>> promise;
-        std::atomic<bool> jsExecuted{false};
     };
 
 private:

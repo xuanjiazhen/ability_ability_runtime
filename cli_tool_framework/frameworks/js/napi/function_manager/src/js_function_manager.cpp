@@ -15,6 +15,7 @@
 
 #include "js_function_manager.h"
 
+#include <mutex>
 #include <string>
 
 #include "cli_error_code.h"
@@ -304,6 +305,7 @@ napi_value JSFunctionManager::UnregisterFunctionHook(napi_env env, napi_callback
 
 namespace {
 sptr<JsFunctionHook> g_functionHookStub = nullptr;
+std::mutex g_functionHookMutex;
 
 bool ValidateFunctionHookObject(napi_env env, napi_value obj, uint32_t &activeMethods)
 {
@@ -328,7 +330,7 @@ bool ValidateFunctionHookObject(napi_env env, napi_value obj, uint32_t &activeMe
             activeMethods |= m.bit;
         }
     }
-    return activeMethods != 0;
+    return activeMethods != 0; // 0 means no valid methods found — reject at NAPI layer
 }
 } // namespace
 
@@ -336,22 +338,23 @@ napi_value JSFunctionManager::OnRegisterFunctionHook(napi_env env, size_t argc, 
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "JSFunctionManager::OnRegisterFunctionHook called");
     HandleEscape handleEscape(env);
-    if (argc < INDEX_ONE) {
-        ThrowTooFewParametersError(env);
-        return CreateJsUndefined(env);
-    }
-
     napi_deferred deferred = nullptr;
     napi_value promise = nullptr;
     napi_create_promise(env, &deferred, &promise);
 
-    uint32_t activeMethods = 0;
-    if (!ValidateFunctionHookObject(env, argv[0], activeMethods)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "OnRegisterFunctionHook: invalid hook object");
-        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_INVALID_VALUE));
+    if (argc < INDEX_ONE) {
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_INVALID_PARAM));
         return handleEscape.Escape(promise);
     }
 
+    uint32_t activeMethods = 0;
+    if (!ValidateFunctionHookObject(env, argv[0], activeMethods)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "OnRegisterFunctionHook: invalid hook object");
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_INVALID_PARAM));
+        return handleEscape.Escape(promise);
+    }
+
+    std::lock_guard<std::mutex> lock(g_functionHookMutex);
     if (g_functionHookStub != nullptr) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "OnRegisterFunctionHook: functionHook stub already exists");
         napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_HOOK_ALREADY_REGISTERED));
@@ -385,6 +388,7 @@ napi_value JSFunctionManager::OnUnregisterFunctionHook(napi_env env, size_t argc
         return handleEscape.Escape(promise);
     }
 
+    std::lock_guard<std::mutex> lock(g_functionHookMutex);
     if (g_functionHookStub == nullptr) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "OnUnregisterFunctionHook: no functionHook stub registered");
         napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_HOOK_NOT_REGISTERED));
@@ -397,7 +401,7 @@ napi_value JSFunctionManager::OnUnregisterFunctionHook(napi_env env, size_t argc
     napi_strict_equals(env, argv[0], storedObj, &same);
     if (!same) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "OnUnregisterFunctionHook: hook object does not match registered one");
-        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_INVALID_VALUE));
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_INVALID_PARAM));
         return handleEscape.Escape(promise);
     }
 

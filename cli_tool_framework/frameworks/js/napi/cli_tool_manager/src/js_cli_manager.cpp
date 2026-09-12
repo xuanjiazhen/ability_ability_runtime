@@ -15,6 +15,7 @@
 
 #include "js_cli_manager.h"
 
+#include <mutex>
 #include <string>
 
 #include "cli_error_code.h"
@@ -537,6 +538,7 @@ napi_value JSCliManager::UnregisterCliHook(napi_env env, napi_callback_info info
 
 namespace {
 sptr<JsCliHook> g_cliHookStub = nullptr;
+std::mutex g_cliHookMutex;
 
 bool ValidateCliHookObject(napi_env env, napi_value obj, uint32_t &activeMethods)
 {
@@ -563,7 +565,7 @@ bool ValidateCliHookObject(napi_env env, napi_value obj, uint32_t &activeMethods
             activeMethods |= m.bit;
         }
     }
-    return activeMethods != 0;
+    return activeMethods != 0; // 0 means no valid methods found — reject at NAPI layer
 }
 } // namespace
 
@@ -571,22 +573,23 @@ napi_value JSCliManager::OnRegisterCliHook(napi_env env, size_t argc, napi_value
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "JSCliManager::OnRegisterCliHook called");
     HandleEscape handleEscape(env);
-    if (argc < INDEX_ONE) {
-        ThrowTooFewParametersError(env);
-        return CreateJsUndefined(env);
-    }
-
     napi_deferred deferred = nullptr;
     napi_value promise = nullptr;
     napi_create_promise(env, &deferred, &promise);
 
-    uint32_t activeMethods = 0;
-    if (!ValidateCliHookObject(env, argv[0], activeMethods)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "OnRegisterCliHook: invalid hook object");
-        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_INVALID_VALUE));
+    if (argc < INDEX_ONE) {
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_INVALID_PARAM));
         return handleEscape.Escape(promise);
     }
 
+    uint32_t activeMethods = 0;
+    if (!ValidateCliHookObject(env, argv[0], activeMethods)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "OnRegisterCliHook: invalid hook object");
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_INVALID_PARAM));
+        return handleEscape.Escape(promise);
+    }
+
+    std::lock_guard<std::mutex> lock(g_cliHookMutex);
     if (g_cliHookStub != nullptr) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "OnRegisterCliHook: cliHook stub already exists");
         napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_HOOK_ALREADY_REGISTERED));
@@ -616,10 +619,11 @@ napi_value JSCliManager::OnUnregisterCliHook(napi_env env, size_t argc, napi_val
 
     if (argc < INDEX_ONE) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "OnUnregisterCliHook: missing hook argument");
-        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_INVALID_VALUE));
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_INVALID_PARAM));
         return handleEscape.Escape(promise);
     }
 
+    std::lock_guard<std::mutex> lock(g_cliHookMutex);
     if (g_cliHookStub == nullptr) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "OnUnregisterCliHook: no cliHook stub registered");
         napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_HOOK_NOT_REGISTERED));
@@ -632,7 +636,7 @@ napi_value JSCliManager::OnUnregisterCliHook(napi_env env, size_t argc, napi_val
     napi_strict_equals(env, argv[0], storedObj, &same);
     if (!same) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "OnUnregisterCliHook: hook object does not match registered one");
-        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_INVALID_VALUE));
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_INVALID_PARAM));
         return handleEscape.Escape(promise);
     }
 

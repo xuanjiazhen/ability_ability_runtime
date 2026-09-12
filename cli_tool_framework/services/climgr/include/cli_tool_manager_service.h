@@ -341,8 +341,8 @@ private:
     sptr<IRemoteObject::DeathRecipient> cliHookDeathRecipient_;
     sptr<IRemoteObject::DeathRecipient> functionHookDeathRecipient_;
 
-    uint32_t cliHookActiveMethods_ = 0;
-    uint32_t functionHookActiveMethods_ = 0;
+    uint32_t cliHookActiveMethods_ = 0;     // bitmask: 0 = all methods active (for non-NAPI callers)
+    uint32_t functionHookActiveMethods_ = 0; // bitmask: 0 = all methods active (for non-NAPI callers)
     static constexpr uint32_t CLI_HOOK_BEFORE_CALL_TOOL = 1 << 0;
     static constexpr uint32_t CLI_HOOK_AFTER_CALL_TOOL = 1 << 1;
     static constexpr uint32_t CLI_HOOK_BEFORE_CALL_CMD = 1 << 2;

@@ -37,7 +37,7 @@ namespace CliTool {
  * on a binder thread and synchronously dispatches the call to the JS thread
  * via napi_threadsafe_function.
  *
- * Timeout: 500ms; on timeout the original parameter is left unchanged.
+ * Timeout: 5000ms; on timeout the original parameter is left unchanged.
  */
 class JsFunctionHook : public FunctionHookInterfaceStub {
 public:

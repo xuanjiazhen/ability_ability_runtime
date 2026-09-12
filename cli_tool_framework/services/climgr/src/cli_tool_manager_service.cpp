@@ -1269,6 +1269,7 @@ void CliToolManagerService::InvokeAfterCallTool(CliSessionInfo &session, Session
             TAG_LOGW(AAFwkTag::CLI_TOOL, "InvokeAfterCallTool timeout, using original result");
         }
     }
+    *session.result = execResultWrap.execResult;
 }
 
 int32_t CliToolManagerService::TryDispatchSkillSession(const ExecToolParam &param,

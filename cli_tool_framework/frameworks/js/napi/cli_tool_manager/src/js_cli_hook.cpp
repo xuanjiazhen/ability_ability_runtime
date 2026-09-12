@@ -293,7 +293,7 @@ ErrCode JsCliHook::DispatchToJs(const std::string& method,
 
     auto future = promise->get_future();
     if (future.wait_for(std::chrono::milliseconds(HOOK_TIMEOUT_MS)) != std::future_status::ready) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "DispatchToJs: JS callback timeout (500ms), method=%{public}s", method.c_str());
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "DispatchToJs: JS callback timeout (5000ms), method=%{public}s", method.c_str());
         return ERR_OK;
     }
     return ERR_OK;
@@ -366,7 +366,6 @@ void JsCliHook::CallJs(napi_env env, napi_value jsCb, void* context, void* data)
     }
 
     ParseJsResult(env, *callData, jsResult);
-    callData->jsExecuted.store(true);
     callData->promise->set_value();
 }
 

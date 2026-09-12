@@ -41,12 +41,18 @@
 #include "ccm_util.h"
 #include "cli_tool_manager_scheduler_stub.h"
 #include "cli_tool_data_manager_mock.h"
+#include "cli_hook_interface_stub.h"
+#include "exec_cmd_param.h"
+#include "exec_result_wrap.h"
+#include "exec_tool_param.h"
+#include "function_hook_interface_stub.h"
 #include "event_dispatcher.h"
 #include "exec_options.h"
 #include "function_info.h"
 #include "ipc_skeleton.h"
 #include "io_monitor.h"
 #include "nativetoken_kit.h"
+#include "parameters.h"
 #include "skill/skill_execute_result.h"
 #include "string_wrapper.h"
 #include "token_setproc.h"
@@ -3366,6 +3372,501 @@ HWTEST_F(CliToolManagerServiceTest, ResetNamespaceFunctionsAsync_0200, TestSize.
     IPCSkeleton::Reset();
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ResetNamespaceFunctionsAsync_0200 end");
+}
+
+// ---------------------------------------------------------------------------
+// Hook tests — covers T-P0-1 through T-P0-7, T-P1-1 through T-P1-3, API-01
+// ---------------------------------------------------------------------------
+
+class MockCliHook : public CliHookInterfaceStub {
+public:
+    ErrCode BeforeCallTool(ExecToolParam& param) override
+    {
+        beforeCallToolCount++;
+        if (modifyParam) {
+            param.toolName = "modified_tool";
+        }
+        return ERR_OK;
+    }
+
+    ErrCode AfterCallTool(ExecResultWrap& execResultWrap) override
+    {
+        afterCallToolCount++;
+        if (modifyResult) {
+            execResultWrap.execResult.exitCode = 42;
+            execResultWrap.execResult.outputText = "modified_output";
+        }
+        return ERR_OK;
+    }
+
+    ErrCode BeforeCallCmd(ExecCmdParam& param) override
+    {
+        beforeCallCmdCount++;
+        return ERR_OK;
+    }
+
+    ErrCode AfterCallCmd(ExecResultWrap& execResultWrap) override
+    {
+        afterCallCmdCount++;
+        return ERR_OK;
+    }
+
+    int beforeCallToolCount = 0;
+    int afterCallToolCount = 0;
+    int beforeCallCmdCount = 0;
+    int afterCallCmdCount = 0;
+    bool modifyParam = false;
+    bool modifyResult = false;
+};
+
+class MockFunctionHook : public FunctionHookInterfaceStub {
+public:
+    ErrCode BeforeInvokeFunction(InvokeFunctionHookParam& param) override
+    {
+        beforeInvokeCount++;
+        return ERR_OK;
+    }
+
+    ErrCode AfterInvokeFunction(FunctionResultWrap& functionResultWrap) override
+    {
+        afterInvokeCount++;
+        if (modifyResult) {
+            functionResultWrap.result.invokeSuccess = true;
+            functionResultWrap.result.errorCode = 0;
+        }
+        return ERR_OK;
+    }
+
+    int beforeInvokeCount = 0;
+    int afterInvokeCount = 0;
+    bool modifyResult = false;
+};
+
+static void SetDeveloperMode(bool enabled)
+{
+    system::SetParameter("const.security.developermode.state", enabled ? "true" : "false");
+}
+
+static CliSessionInfo MakeSessionWithResult(int32_t exitCode, const std::string& output)
+{
+    CliSessionInfo session;
+    session.sessionId = "test_session";
+    session.toolName = "test_tool";
+    session.status = "completed";
+    session.result = std::make_shared<ExecResult>();
+    session.result->exitCode = exitCode;
+    session.result->outputText = output;
+    return session;
+}
+
+/**
+ * @tc.name: RegisterCliHook_DeveloperModeOff_0100
+ * @tc.desc: T-P0-2: Register when developer mode is off returns ERR_NOT_DEVELOPER_MODE
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, RegisterCliHook_DeveloperModeOff_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RegisterCliHook_DeveloperModeOff_0100 start");
+    SetDeveloperMode(false);
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    int32_t result = service_->RegisterCliHook(hook, 0x0F);
+
+    EXPECT_EQ(result, ERR_NOT_DEVELOPER_MODE);
+
+    SetDeveloperMode(true);
+    TAG_LOGI(AAFwkTag::TEST, "RegisterCliHook_DeveloperModeOff_0100 end");
+}
+
+/**
+ * @tc.name: RegisterCliHook_Success_0100
+ * @tc.desc: T-P0-1: Register a valid hook in developer mode returns ERR_OK
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, RegisterCliHook_Success_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RegisterCliHook_Success_0100 start");
+    SetDeveloperMode(true);
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    int32_t result = service_->RegisterCliHook(hook, 0x0F);
+
+    EXPECT_EQ(result, ERR_OK);
+
+    service_->UnregisterCliHook(hook);
+    TAG_LOGI(AAFwkTag::TEST, "RegisterCliHook_Success_0100 end");
+}
+
+/**
+ * @tc.name: RegisterCliHook_AlreadyRegistered_0100
+ * @tc.desc: T-P0-2: Register twice returns ERR_HOOK_ALREADY_REGISTERED (failure-style)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, RegisterCliHook_AlreadyRegistered_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RegisterCliHook_AlreadyRegistered_0100 start");
+    SetDeveloperMode(true);
+
+    auto hook1 = sptr<MockCliHook>::MakeSptr();
+    auto hook2 = sptr<MockCliHook>::MakeSptr();
+    service_->RegisterCliHook(hook1, 0x0F);
+    int32_t result = service_->RegisterCliHook(hook2, 0x0F);
+
+    EXPECT_EQ(result, ERR_HOOK_ALREADY_REGISTERED);
+
+    service_->UnregisterCliHook(hook1);
+    TAG_LOGI(AAFwkTag::TEST, "RegisterCliHook_AlreadyRegistered_0100 end");
+}
+
+/**
+ * @tc.name: UnregisterCliHook_Success_0100
+ * @tc.desc: T-P0-3: Unregister a registered hook returns ERR_OK
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterCliHook_Success_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterCliHook_Success_0100 start");
+    SetDeveloperMode(true);
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    service_->RegisterCliHook(hook, 0x0F);
+    int32_t result = service_->UnregisterCliHook(hook);
+
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(service_->cliHook_, nullptr);
+
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterCliHook_Success_0100 end");
+}
+
+/**
+ * @tc.name: UnregisterCliHook_NotRegistered_0100
+ * @tc.desc: Unregister when nothing registered is a no-op returning ERR_OK
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterCliHook_NotRegistered_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterCliHook_NotRegistered_0100 start");
+    SetDeveloperMode(true);
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    int32_t result = service_->UnregisterCliHook(hook);
+
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(service_->cliHook_, nullptr);
+
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterCliHook_NotRegistered_0100 end");
+}
+
+/**
+ * @tc.name: InvokeAfterCallTool_WriteBack_0100
+ * @tc.desc: T-P0-6/API-01: Hook modifies ExecResult, session.result carries modified value
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, InvokeAfterCallTool_WriteBack_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "InvokeAfterCallTool_WriteBack_0100 start");
+    SetDeveloperMode(true);
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    hook->modifyResult = true;
+    service_->RegisterCliHook(hook, 0x0F);
+
+    CliSessionInfo session = MakeSessionWithResult(0, "original_output");
+    service_->InvokeAfterCallTool(session, SessionType::CLI);
+
+    EXPECT_EQ(hook->afterCallToolCount, 1);
+    ASSERT_NE(session.result, nullptr);
+    EXPECT_EQ(session.result->exitCode, 42);
+    EXPECT_EQ(session.result->outputText, "modified_output");
+
+    service_->UnregisterCliHook(hook);
+    TAG_LOGI(AAFwkTag::TEST, "InvokeAfterCallTool_WriteBack_0100 end");
+}
+
+/**
+ * @tc.name: InvokeAfterCallTool_NoHook_0100
+ * @tc.desc: Without hook registered, session.result is unchanged
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, InvokeAfterCallTool_NoHook_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "InvokeAfterCallTool_NoHook_0100 start");
+    SetDeveloperMode(true);
+
+    CliSessionInfo session = MakeSessionWithResult(0, "original_output");
+    service_->InvokeAfterCallTool(session, SessionType::CLI);
+
+    ASSERT_NE(session.result, nullptr);
+    EXPECT_EQ(session.result->exitCode, 0);
+    EXPECT_EQ(session.result->outputText, "original_output");
+
+    TAG_LOGI(AAFwkTag::TEST, "InvokeAfterCallTool_NoHook_0100 end");
+}
+
+/**
+ * @tc.name: InvokeAfterCallTool_DeveloperModeOff_0100
+ * @tc.desc: When developer mode is off, hook is not invoked and result unchanged
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, InvokeAfterCallTool_DeveloperModeOff_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "InvokeAfterCallTool_DeveloperModeOff_0100 start");
+    SetDeveloperMode(true);
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    hook->modifyResult = true;
+    service_->RegisterCliHook(hook, 0x0F);
+
+    SetDeveloperMode(false);
+
+    CliSessionInfo session = MakeSessionWithResult(0, "original_output");
+    service_->InvokeAfterCallTool(session, SessionType::CLI);
+
+    EXPECT_EQ(hook->afterCallToolCount, 0);
+    ASSERT_NE(session.result, nullptr);
+    EXPECT_EQ(session.result->exitCode, 0);
+    EXPECT_EQ(session.result->outputText, "original_output");
+
+    SetDeveloperMode(true);
+    service_->UnregisterCliHook(hook);
+    TAG_LOGI(AAFwkTag::TEST, "InvokeAfterCallTool_DeveloperModeOff_0100 end");
+}
+
+/**
+ * @tc.name: InvokeBeforeCallTool_ModifyParam_0100
+ * @tc.desc: T-P0-4: Hook modifies ExecToolParam before execution
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, InvokeBeforeCallTool_ModifyParam_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "InvokeBeforeCallTool_ModifyParam_0100 start");
+    SetDeveloperMode(true);
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    hook->modifyParam = true;
+    service_->RegisterCliHook(hook, 0x0F);
+
+    ExecToolParam param;
+    param.toolName = "original_tool";
+    service_->InvokeBeforeCallTool(param);
+
+    EXPECT_EQ(hook->beforeCallToolCount, 1);
+    EXPECT_EQ(param.toolName, "modified_tool");
+
+    service_->UnregisterCliHook(hook);
+    TAG_LOGI(AAFwkTag::TEST, "InvokeBeforeCallTool_ModifyParam_0100 end");
+}
+
+/**
+ * @tc.name: InvokeAfterCallCmd_WriteBack_0100
+ * @tc.desc: API-01: AfterCallCmd hook modifies ExecResult, session carries modified value
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, InvokeAfterCallCmd_WriteBack_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "InvokeAfterCallCmd_WriteBack_0100 start");
+    SetDeveloperMode(true);
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    hook->modifyResult = true;
+    service_->RegisterCliHook(hook, 0x0F);
+
+    CliSessionInfo session = MakeSessionWithResult(1, "cmd_original");
+    service_->InvokeAfterCallTool(session, SessionType::CLI_CMD);
+
+    EXPECT_EQ(hook->afterCallCmdCount, 1);
+    ASSERT_NE(session.result, nullptr);
+    EXPECT_EQ(session.result->exitCode, 42);
+    EXPECT_EQ(session.result->outputText, "modified_output");
+
+    service_->UnregisterCliHook(hook);
+    TAG_LOGI(AAFwkTag::TEST, "InvokeAfterCallCmd_WriteBack_0100 end");
+}
+
+/**
+ * @tc.name: RegisterCliHook_ActiveMethodsZero_0100
+ * @tc.desc: T-P1-1: activeMethods=0 means all methods active (service-side semantics)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, RegisterCliHook_ActiveMethodsZero_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RegisterCliHook_ActiveMethodsZero_0100 start");
+    SetDeveloperMode(true);
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    int32_t result = service_->RegisterCliHook(hook, 0);
+
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(service_->cliHookActiveMethods_, 0u);
+
+    CliSessionInfo session = MakeSessionWithResult(0, "original");
+    service_->InvokeAfterCallTool(session, SessionType::CLI);
+
+    EXPECT_EQ(hook->afterCallToolCount, 1);
+
+    service_->UnregisterCliHook(hook);
+    TAG_LOGI(AAFwkTag::TEST, "RegisterCliHook_ActiveMethodsZero_0100 end");
+}
+
+/**
+ * @tc.name: RegisterCliHook_ActiveMethodsPartial_0100
+ * @tc.desc: activeMethods with only AfterCallTool bit — BeforeCallTool skipped
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, RegisterCliHook_ActiveMethodsPartial_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RegisterCliHook_ActiveMethodsPartial_0100 start");
+    SetDeveloperMode(true);
+
+    uint32_t afterToolOnly = service_->CLI_HOOK_AFTER_CALL_TOOL;
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    service_->RegisterCliHook(hook, static_cast<int32_t>(afterToolOnly));
+
+    ExecToolParam param;
+    param.toolName = "test";
+    service_->InvokeBeforeCallTool(param);
+    EXPECT_EQ(hook->beforeCallToolCount, 0);
+
+    CliSessionInfo session = MakeSessionWithResult(0, "output");
+    service_->InvokeAfterCallTool(session, SessionType::CLI);
+    EXPECT_EQ(hook->afterCallToolCount, 1);
+
+    service_->UnregisterCliHook(hook);
+    TAG_LOGI(AAFwkTag::TEST, "RegisterCliHook_ActiveMethodsPartial_0100 end");
+}
+
+/**
+ * @tc.name: RegisterFunctionHook_Success_0100
+ * @tc.desc: T-P0-1: Register a function hook returns ERR_OK
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, RegisterFunctionHook_Success_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RegisterFunctionHook_Success_0100 start");
+    SetDeveloperMode(true);
+
+    auto hook = sptr<MockFunctionHook>::MakeSptr();
+    int32_t result = service_->RegisterFunctionHook(hook, 0x03);
+
+    EXPECT_EQ(result, ERR_OK);
+
+    service_->UnregisterFunctionHook(hook);
+    TAG_LOGI(AAFwkTag::TEST, "RegisterFunctionHook_Success_0100 end");
+}
+
+/**
+ * @tc.name: UnregisterFunctionHook_Success_0100
+ * @tc.desc: T-P0-3: Unregister a function hook returns ERR_OK
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterFunctionHook_Success_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterFunctionHook_Success_0100 start");
+    SetDeveloperMode(true);
+
+    auto hook = sptr<MockFunctionHook>::MakeSptr();
+    service_->RegisterFunctionHook(hook, 0x03);
+    int32_t result = service_->UnregisterFunctionHook(hook);
+
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(service_->functionHook_, nullptr);
+
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterFunctionHook_Success_0100 end");
+}
+
+/**
+ * @tc.name: InvokeAfterFunction_ModifyResult_0100
+ * @tc.desc: T-P0-5: AfterInvokeFunction hook modifies result
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, InvokeAfterFunction_ModifyResult_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "InvokeAfterFunction_ModifyResult_0100 start");
+    SetDeveloperMode(true);
+
+    auto hook = sptr<MockFunctionHook>::MakeSptr();
+    hook->modifyResult = true;
+    service_->RegisterFunctionHook(hook, 0x03);
+
+    FunctionResultWrap wrap;
+    wrap.result.invokeSuccess = false;
+    wrap.result.errorCode = 99;
+    wrap.result.resultCode = 99;
+    service_->AfterInvokeFunction(wrap);
+
+    EXPECT_EQ(hook->afterInvokeCount, 1);
+    EXPECT_TRUE(wrap.result.invokeSuccess);
+    EXPECT_EQ(wrap.result.errorCode, 0);
+
+    service_->UnregisterFunctionHook(hook);
+    TAG_LOGI(AAFwkTag::TEST, "InvokeAfterFunction_ModifyResult_0100 end");
+}
+
+/**
+ * @tc.name: HookDeathRecipient_Cleanup_0100
+ * @tc.desc: T-P0-7: Hook process death triggers auto-cleanup
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, HookDeathRecipient_Cleanup_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "HookDeathRecipient_Cleanup_0100 start");
+    SetDeveloperMode(true);
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    service_->RegisterCliHook(hook, 0x0F);
+    EXPECT_NE(service_->cliHook_, nullptr);
+    EXPECT_NE(service_->cliHookDeathRecipient_, nullptr);
+
+    service_->OnHookDied(hook->AsObject(), HookType::CLI);
+
+    EXPECT_EQ(service_->cliHook_, nullptr);
+    EXPECT_EQ(service_->cliHookActiveMethods_, 0u);
+
+    TAG_LOGI(AAFwkTag::TEST, "HookDeathRecipient_Cleanup_0100 end");
+}
+
+/**
+ * @tc.name: HookDeathRecipient_FunctionHookCleanup_0100
+ * @tc.desc: T-P0-7: FunctionHook process death triggers auto-cleanup
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, HookDeathRecipient_FunctionHookCleanup_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "HookDeathRecipient_FunctionHookCleanup_0100 start");
+    SetDeveloperMode(true);
+
+    auto hook = sptr<MockFunctionHook>::MakeSptr();
+    service_->RegisterFunctionHook(hook, 0x03);
+    EXPECT_NE(service_->functionHook_, nullptr);
+
+    service_->OnHookDied(hook->AsObject(), HookType::FUNCTION);
+
+    EXPECT_EQ(service_->functionHook_, nullptr);
+    EXPECT_EQ(service_->functionHookActiveMethods_, 0u);
+
+    TAG_LOGI(AAFwkTag::TEST, "HookDeathRecipient_FunctionHookCleanup_0100 end");
+}
+
+/**
+ * @tc.name: InvokeAfterCallTool_NullResult_0100
+ * @tc.desc: InvokeAfterCallTool with null session.result returns without crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, InvokeAfterCallTool_NullResult_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "InvokeAfterCallTool_NullResult_0100 start");
+    SetDeveloperMode(true);
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    service_->RegisterCliHook(hook, 0x0F);
+
+    CliSessionInfo session;
+    session.result = nullptr;
+    EXPECT_NO_FATAL_FAILURE(service_->InvokeAfterCallTool(session, SessionType::CLI));
+    EXPECT_EQ(hook->afterCallToolCount, 0);
+
+    service_->UnregisterCliHook(hook);
+    TAG_LOGI(AAFwkTag::TEST, "InvokeAfterCallTool_NullResult_0100 end");
 }
 } // namespace CliTool
 } // namespace OHOS
