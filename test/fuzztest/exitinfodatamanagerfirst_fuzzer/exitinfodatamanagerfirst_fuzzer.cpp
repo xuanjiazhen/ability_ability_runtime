@@ -23,7 +23,6 @@
 #include "exit_info_data_manager.h"
 #undef private
 
-#include "ability_fuzz_util.h"
 #include "ability_record.h"
 #include "securec.h"
 
@@ -45,6 +44,9 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     cacheInfo.abilityNames.emplace_back(fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH));
     cacheInfo.uiExtensionNames.emplace_back(fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH));
     ExitInfoDataManager::GetInstance().GetExitInfo(accessTokenId, cacheInfo);
+    // Merged APIs
+    ExitInfoDataManager::GetInstance().DeleteExitInfo(accessTokenId);
+
     return true;
 }
 }
