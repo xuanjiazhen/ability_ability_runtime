@@ -38,7 +38,7 @@ const std::string KEY_KEEP_ALIVE_CONFIGURED_LIST = "KEEP_ALIVE_CONFIGURED_LIST";
 
 bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 {
-    (void)data;
+    
     struct AmsRdbConfig amsRdbConfig;
     amsRdbConfig.tableName = "resident_process_list";
     AmsResidentProcessRdbCallBack amsCallback(amsRdbConfig);
@@ -46,6 +46,13 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
         std::make_unique<RdbDataManager>(amsRdbConfig);
     rdbMgr->Init(amsCallback);
     rdbMgr->ClearCache();
+    FuzzedDataProvider fdp(data, size);
+    auto fuzzStr = fdp.ConsumeRandomLengthString(256);
+    auto fuzzInt = fdp.ConsumeIntegral<int32_t>();
+    auto fuzzBool = fdp.ConsumeBool();
+    auto fuzzBuf = fdp.ConsumeRemainingBytesAsString();
+    (void)fuzzStr; (void)fuzzInt; (void)fuzzBool; (void)fuzzBuf;
+
     return true;
 }
 }
