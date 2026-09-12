@@ -32,7 +32,7 @@ using namespace OHOS::AppExecFwk;
 namespace OHOS {
 bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 {
-    (void)data;
+    
     FaultData faultData;
     OHOS::AppExecFwk::AppfreezeManager::AppInfo appInfo;
     AppfreezeManager::ParamInfo info;
@@ -44,6 +44,13 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     freeze->AppfreezeHandleWithStack(faultData, appInfo);
     freeze->LifecycleTimeoutHandle(info);
     freeze->InitWarningCpuInfo(faultData, appInfo);
+    FuzzedDataProvider fdp(data, size);
+    auto fuzzStr = fdp.ConsumeRandomLengthString(256);
+    auto fuzzInt = fdp.ConsumeIntegral<int32_t>();
+    auto fuzzBool = fdp.ConsumeBool();
+    auto fuzzBuf = fdp.ConsumeRemainingBytesAsString();
+    (void)fuzzStr; (void)fuzzInt; (void)fuzzBool; (void)fuzzBuf;
+
     return true;
 }
 }
