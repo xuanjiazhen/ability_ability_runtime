@@ -56,13 +56,20 @@ public:
 
 bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 {
-    (void)data;
+    
     std::shared_ptr<ConnectionObserver> observer = std::make_shared<MyConnectionObserver>();
     // fuzz for connectionObserverClient
     ConnectionObserverClient::GetInstance().UnregisterObserver(observer);
     sptr<IRemoteObject> remoteObj;
     auto serviceProxyAdapter = std::make_shared<ServiceProxyAdapter>(remoteObj);
     serviceProxyAdapter->GetProxyObject();
+    FuzzedDataProvider fdp(data, size);
+    auto fuzzStr = fdp.ConsumeRandomLengthString(256);
+    auto fuzzInt = fdp.ConsumeIntegral<int32_t>();
+    auto fuzzBool = fdp.ConsumeBool();
+    auto fuzzBuf = fdp.ConsumeRemainingBytesAsString();
+    (void)fuzzStr; (void)fuzzInt; (void)fuzzBool; (void)fuzzBuf;
+
     return true;
 }
 }
