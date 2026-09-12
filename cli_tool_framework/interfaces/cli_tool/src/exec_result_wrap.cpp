@@ -19,7 +19,8 @@
 
 namespace OHOS::CliTool {
 bool ExecResultWrap::Marshalling(Parcel &parcel) const { return execResult.Marshalling(parcel); }
-ExecResultWrap *ExecResultWrap::Unmarshalling(Parcel &parcel) {
+ExecResultWrap *ExecResultWrap::Unmarshalling(Parcel &parcel)
+{
     auto wrap = std::make_unique<ExecResultWrap>();
     auto result = std::unique_ptr<ExecResult>(ExecResult::Unmarshalling(parcel));
     if (result == nullptr) {

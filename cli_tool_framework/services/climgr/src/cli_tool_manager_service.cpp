@@ -1351,12 +1351,13 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
 
     std::string sandboxConfig;
     std::string detail;
-    if (auto ret = ValidateAndPrepareTool(actualParam, tokenId, toolInfo, sandboxConfig, bundleName, detail); ret != ERR_OK) {
+    auto ret = ValidateAndPrepareTool(actualParam, tokenId, toolInfo, sandboxConfig, bundleName, detail);
+    if (ret != ERR_OK) {
         ReportCliExecuteFailed(bundleName, actualParam.toolName, GetFailureReason(ret), detail);
         return ret;
     }
 
-    auto ret = SetupAndStartSession(actualParam, eventId, toolInfo, sandboxConfig, bundleName);
+    ret = SetupAndStartSession(actualParam, eventId, toolInfo, sandboxConfig, bundleName);
     if (ret != ERR_OK) {
         ReportCliExecuteFailed(bundleName, actualParam.toolName, GetFailureReason(ret));
     }
