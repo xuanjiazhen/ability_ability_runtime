@@ -342,7 +342,7 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
     if (sessionInfo->processOptions != nullptr) {
         options.selfPid = sessionInfo->processOptions->selfPid;
     }
-    uiAbilityRecord->ProcessForegroundAbility(callerTokenId, options);
+    uiAbilityRecord->ProcessForegroundAbility(callerTokenId, options, isCallBySCB);
     if (uiAbilityRecord->GetSpecifiedFlag().empty() && !sessionInfo->specifiedFlag.empty()) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "update specified: %{public}d--%{public}s", sessionInfo->requestId,
             sessionInfo->specifiedFlag.c_str());
@@ -624,13 +624,20 @@ int UIAbilityLifecycleManager::AttachAbilityThread(const sptr<IAbilityScheduler>
         TerminateSession(abilityRecord);
         return ERR_INVALID_VALUE;
     }
+
+    int32_t callerUid = abilityRecord->GetWant().GetIntParam(Want::PARAM_RESV_CALLER_UID, -1);
+    std::string callerBundleName =
+        abilityRecord->GetWant().GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
+    bool isCallBySCB = abilityRecord->GetWant().GetBoolParam(IS_CALL_BY_SCB, false);
+
     if (abilityRecord->IsStartedByCall()) {
         (void)abilityRecord->PromotePriority();
         if (abilityRecord->GetBoolParam(Want::PARAM_RESV_CALL_TO_FOREGROUND, false)) {
             abilityRecord->SetStartToForeground(true);
             abilityRecord->PostForegroundTimeoutTask();
             abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);
-            DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(token);
+            DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(token,
+                {callerUid, callerBundleName, isCallBySCB});
         } else {
             abilityRecord->SetStartToBackground(true);
             MoveToBackground(abilityRecord);
@@ -643,7 +650,8 @@ int UIAbilityLifecycleManager::AttachAbilityThread(const sptr<IAbilityScheduler>
 
     abilityRecord->PostForegroundTimeoutTask();
     abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);
-    DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(token);
+    DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(token,
+        {callerUid, callerBundleName, isCallBySCB});
     return ERR_OK;
 }
 
@@ -1886,7 +1894,8 @@ int UIAbilityLifecycleManager::CallAbilityLocked(const AbilityRequest &abilityRe
             uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
             ForegroundOptions options;
             options.sceneFlag = SCENE_FLAG_BYCALL;
-            uiAbilityRecord->ProcessForegroundAbility(sessionInfo->callingTokenId, options);
+            uiAbilityRecord->ProcessForegroundAbility(sessionInfo->callingTokenId, options,
+                abilityRequest.want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, false));
             return NotifySCBPendingActivation(sessionInfo, abilityRequest, errMsg);
         } else {
             if ((persistentId != 0) && abilityRequest.want.GetBoolParam(IS_CALLING_FROM_DMS, false)) {
@@ -2333,7 +2342,12 @@ void UIAbilityLifecycleManager::CompleteBackground(const UIAbilityRecordPtr &abi
         abilityRecord->PostForegroundTimeoutTask();
         abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);
         abilityRecord->SetShouldUpdateWant(abilityRecord->HasLastWant());
-        DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(abilityRecord->GetToken());
+        int32_t callerUid = abilityRecord->GetWant().GetIntParam(Want::PARAM_RESV_CALLER_UID, -1);
+        std::string callerBundleName =
+            abilityRecord->GetWant().GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
+        bool isCallBySCB = abilityRecord->GetWant().GetBoolParam(IS_CALL_BY_SCB, false);
+        DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(abilityRecord->GetToken(),
+            {callerUid, callerBundleName, isCallBySCB});
     } else if (abilityRecord->GetPendingState() == AbilityState::BACKGROUND) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "not continuous startup.");
         abilityRecord->SetPendingState(AbilityState::INITIAL);
@@ -4365,7 +4379,7 @@ int UIAbilityLifecycleManager::ChangeUIAbilityVisibilityBySCB(sptr<SessionInfo> 
             TAG_LOGD(AAFwkTag::ABILITYMGR, "pending state is not FOREGROUND or BACKGROUND.");
             uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
         }
-        uiAbilityRecord->ProcessForegroundAbility(sessionInfo->callingTokenId);
+        uiAbilityRecord->ProcessForegroundAbility(sessionInfo->callingTokenId, {}, true);
 #endif // SUPPORT_SCREEN
     } else {
         uiAbilityRecord->SetAbilityVisibilityState(AbilityVisibilityState::FOREGROUND_HIDE);
@@ -4779,7 +4793,8 @@ bool UIAbilityLifecycleManager::HandleColdAcceptWantDone(const AAFwk::Want &want
     auto isShellCall = specifiedRequest.abilityRequest.want.GetBoolParam(IS_SHELL_CALL, false);
     ForegroundOptions options = { specifiedRequest.sceneFlag, isShellCall };
     options.requestCode = specifiedRequest.abilityRequest.requestCode;
-    uiAbilityRecord->ProcessForegroundAbility(specifiedRequest.callingTokenId, options);
+    uiAbilityRecord->ProcessForegroundAbility(specifiedRequest.callingTokenId, options,
+        specifiedRequest.abilityRequest.want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, false));
     SendKeyEvent(specifiedRequest.abilityRequest);
     return true;
 }
