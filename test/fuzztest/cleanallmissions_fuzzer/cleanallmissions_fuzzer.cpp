@@ -42,7 +42,7 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     }
 
     return true;
-    FuzzedDataProvider fdp(data, size);
+    FuzzedDataProvider fdp(reinterpret_cast<const uint8_t*>(data), size);
     auto fuzzStr = fdp.ConsumeRandomLengthString(64);
     auto fuzzInt = fdp.ConsumeIntegral<int32_t>();
     auto fuzzBool = fdp.ConsumeBool();

@@ -44,11 +44,12 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     bool updateEnable = fdp.ConsumeBool();
     bool isByEDM = fdp.ConsumeBool();
     bool isInner = fdp.ConsumeBool();
+    KeepAliveAbilityInfo abilityInfo;
     std::vector<BundleInfo> bundleInfos = {info};
     KeepAliveProcessManager::GetInstance().StartKeepAliveProcessWithMainElement(bundleInfos, userId);
     KeepAliveProcessManager::GetInstance().StartKeepAliveAppServiceExtensionPerBundle(info);
     KeepAliveProcessManager::GetInstance().StartKeepAliveAppServiceExtension(bundleInfos);
-    KeepAliveProcessManager::GetInstance().StartKeepAliveAppServiceExtensionInner(info);
+    KeepAliveProcessManager::GetInstance().StartKeepAliveAppServiceExtensionInner(abilityInfo);
     KeepAliveProcessManager::GetInstance().ClearKeepAliveAppServiceExtension(userId);
     KeepAliveProcessManager::GetInstance().CheckPermission();
     KeepAliveProcessManager::GetInstance().CheckPermissionForEDM();
