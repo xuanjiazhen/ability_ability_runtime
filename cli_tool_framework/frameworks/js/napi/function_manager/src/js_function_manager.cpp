@@ -23,8 +23,9 @@
 #include "function_info.h"
 #include "hilog_tag_wrapper.h"
 #include "invoke_function_executor.h"
-#include "js_function_manager_utils.h"
 #include "js_error_utils.h"
+#include "js_function_hook.h"
+#include "js_function_manager_utils.h"
 #include "napi_common_util.h"
 #include "napi_common_want.h"
 
@@ -291,6 +292,126 @@ napi_value JSFunctionManager::OnInvokeFunction(napi_env env, size_t argc, napi_v
     return handleEscape.Escape(promise);
 }
 
+napi_value JSFunctionManager::RegisterFunctionHook(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSFunctionManager, OnRegisterFunctionHook);
+}
+
+napi_value JSFunctionManager::UnregisterFunctionHook(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSFunctionManager, OnUnregisterFunctionHook);
+}
+
+namespace {
+sptr<JsFunctionHook> g_functionHookStub = nullptr;
+
+bool ValidateFunctionHookObject(napi_env env, napi_value obj, uint32_t &activeMethods)
+{
+    activeMethods = 0;
+    napi_valuetype type = napi_undefined;
+    napi_typeof(env, obj, &type);
+    if (type != napi_object) {
+        return false;
+    }
+    static const struct {
+        const char* name;
+        uint32_t bit;
+    } methodBits[] = {
+        {"onBeforeInvokeFunction", 0x01},
+        {"onAfterInvokeFunction",  0x02},
+    };
+    for (auto& m : methodBits) {
+        napi_value fn = nullptr;
+        napi_get_named_property(env, obj, m.name, &fn);
+        napi_typeof(env, fn, &type);
+        if (type == napi_function) {
+            activeMethods |= m.bit;
+        }
+    }
+    return activeMethods != 0;
+}
+} // namespace
+
+napi_value JSFunctionManager::OnRegisterFunctionHook(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "JSFunctionManager::OnRegisterFunctionHook called");
+    HandleEscape handleEscape(env);
+    if (argc < INDEX_ONE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    napi_deferred deferred = nullptr;
+    napi_value promise = nullptr;
+    napi_create_promise(env, &deferred, &promise);
+
+    uint32_t activeMethods = 0;
+    if (!ValidateFunctionHookObject(env, argv[0], activeMethods)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "OnRegisterFunctionHook: invalid hook object");
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_INVALID_VALUE));
+        return handleEscape.Escape(promise);
+    }
+
+    if (g_functionHookStub != nullptr) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "OnRegisterFunctionHook: functionHook stub already exists");
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_HOOK_ALREADY_REGISTERED));
+        return handleEscape.Escape(promise);
+    }
+
+    auto stub = sptr<JsFunctionHook>(new JsFunctionHook(env, argv[0]));
+    ErrCode ret = CliToolMGRClient::GetInstance().RegisterFunctionHook(stub, static_cast<int32_t>(activeMethods));
+    if (ret == ERR_OK) {
+        g_functionHookStub = stub;
+        napi_resolve_deferred(env, deferred, CreateJsUndefined(env));
+    } else {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "RegisterFunctionHook failed: %{public}d", ret);
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ret));
+    }
+    return handleEscape.Escape(promise);
+}
+
+napi_value JSFunctionManager::OnUnregisterFunctionHook(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "JSFunctionManager::OnUnregisterFunctionHook called");
+    HandleEscape handleEscape(env);
+
+    napi_deferred deferred = nullptr;
+    napi_value promise = nullptr;
+    napi_create_promise(env, &deferred, &promise);
+
+    if (argc < INDEX_ONE) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "OnUnregisterFunctionHook: missing hook argument");
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_INVALID_PARAM));
+        return handleEscape.Escape(promise);
+    }
+
+    if (g_functionHookStub == nullptr) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "OnUnregisterFunctionHook: no functionHook stub registered");
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_HOOK_NOT_REGISTERED));
+        return handleEscape.Escape(promise);
+    }
+
+    napi_value storedObj = nullptr;
+    napi_get_reference_value(env, g_functionHookStub->GetCallbackRef(), &storedObj);
+    bool same = false;
+    napi_strict_equals(env, argv[0], storedObj, &same);
+    if (!same) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "OnUnregisterFunctionHook: hook object does not match registered one");
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_INVALID_VALUE));
+        return handleEscape.Escape(promise);
+    }
+
+    auto stub = g_functionHookStub;
+    ErrCode ret = CliToolMGRClient::GetInstance().UnregisterFunctionHook(stub);
+    if (ret == ERR_OK) {
+        g_functionHookStub = nullptr;
+        napi_resolve_deferred(env, deferred, CreateJsUndefined(env));
+    } else {
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ret));
+    }
+    return handleEscape.Escape(promise);
+}
+
 napi_value JSFunctionManagerInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "Init JSFunctionManager");
@@ -312,6 +433,8 @@ napi_value JSFunctionManagerInit(napi_env env, napi_value exportObj)
     const char *moduleName = "FunctionManager";
     BindNativeFunction(env, exportObj, "queryFunctions", moduleName, JSFunctionManager::QueryFunctions);
     BindNativeFunction(env, exportObj, "invokeFunction", moduleName, JSFunctionManager::InvokeFunction);
+    BindNativeFunction(env, exportObj, "registerFunctionHook", moduleName, JSFunctionManager::RegisterFunctionHook);
+    BindNativeFunction(env, exportObj, "unregisterFunctionHook", moduleName, JSFunctionManager::UnregisterFunctionHook);
 
     TAG_LOGD(AAFwkTag::CLI_TOOL, "JSFunctionManagerInit end");
     return CreateJsUndefined(env);

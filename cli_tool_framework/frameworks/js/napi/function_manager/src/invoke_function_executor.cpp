@@ -20,9 +20,11 @@
 #include "cli_tool_mgr_client.h"
 #include "ffrt.h"
 #include "function_info.h"
+#include "function_result_wrap.h"
 #include "hilog_tag_wrapper.h"
 #include "intent_client.h"
 #include "invoke_function_callback_client.h"
+#include "invoke_function_hook_param.h"
 
 namespace OHOS {
 namespace CliTool {
@@ -76,8 +78,6 @@ void InvokeFunctionExecutor::DoExecute(const std::string &funcNamespace, const s
     ErrCode queryErr = CliToolMGRClient::GetInstance().GetFunctionInfo(funcNamespace, functionName, functionInfo);
     if (queryErr != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionInfo failed: %{public}d", queryErr);
-        // Preserve specific error semantics (permission / not-exist / not-system-app);
-        // other errors fall through as inner errors.
         ReportError(queryErr);
         return;
     }
@@ -90,13 +90,32 @@ void InvokeFunctionExecutor::DoExecute(const std::string &funcNamespace, const s
         return;
     }
 
-    // Step 3: Execute
-    auto client = std::make_shared<InvokeFunctionCallbackClient>(completed_, callback_);
+    // Step 3: BeforeInvokeFunction — IPC to service, service dispatches to registered functionHook
+    InvokeFunctionHookParam hookParam;
+    hookParam.functionNamespace = funcNamespace;
+    hookParam.functionName = functionName;
+    hookParam.args = wantParams;
+    CliToolMGRClient::GetInstance().BeforeInvokeFunction(hookParam);
+
+    // Step 4: Execute with (possibly modified) params
+    AAFwk::WantParams hookParams = hookParam.args;
+    auto self = shared_from_this();
+    InvokeResultCallback wrappedCallback = [self](
+        const InvokeFunctionResult &out) {
+        FunctionResultWrap functionResultWrap;
+        functionResultWrap.result = out;
+        CliToolMGRClient::GetInstance().AfterInvokeFunction(functionResultWrap);
+        InvokeFunctionResult hookResult = functionResultWrap.result;
+        if (self->callback_) {
+            self->callback_(hookResult);
+        }
+    };
+    auto client = std::make_shared<InvokeFunctionCallbackClient>(completed_, std::move(wrappedCallback));
 
     AAFwk::ExecuteIntentParam param;
     param.bundleName = funcNamespace;
     param.intentName = functionName;
-    param.wantParam = wantParams;
+    param.wantParam = hookParams;
     param.callback = client;
 
     auto err = AAFwk::IntentClient::GetInstance().ExecuteIntentByFunctionCall(param);
