@@ -44,6 +44,9 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     cacheInfo.abilityNames.emplace_back(fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH));
     cacheInfo.uiExtensionNames.emplace_back(fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH));
     ExitInfoDataManager::GetInstance().GetExitInfo(accessTokenId, cacheInfo);
+    // Merged APIs
+    ExitInfoDataManager::GetInstance().DeleteExitInfo(accessTokenId);
+
     return true;
 }
 }

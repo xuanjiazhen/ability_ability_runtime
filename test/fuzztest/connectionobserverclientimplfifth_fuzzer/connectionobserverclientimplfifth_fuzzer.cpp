@@ -118,6 +118,11 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
         }
         deathRecipient->OnRemoteDied(remote);
     }
+    // Merged APIs
+    AbilityFuzzUtil::GetRandomDlpConnectionInfo(fdp, info);
+    connectionObserverClientImpl->GetDlpConnectionInfos(infos);
+    connectionObserverClientImpl->GetConnectionData(connectionData);
+
 
     return true;
 }

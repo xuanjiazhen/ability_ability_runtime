@@ -168,6 +168,12 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     int32_t int32Param = static_cast<int32_t>(GetU32Data(data));
     BundleMgrHelperFuzztest1(boolParam, stringParam, int32Param);
     BundleMgrHelperFuzztest2(boolParam, stringParam, int32Param);
+    // Merged APIs
+    bmHelper->GetTestRunnerTypeAndPath(bundleName, moduleName, testRunner);
+    // Merged APIs
+    bmHelper->GetPluginInfoForTarget(hostBundleName, pluginBundleName,
+
+
     return true;
 }
 

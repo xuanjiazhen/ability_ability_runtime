@@ -53,6 +53,12 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     binderInfo = fdp.ConsumeRandomLengthString();
     memoryContent = fdp.ConsumeRandomLengthString();
     freeze->NotifyANR(faultData, appInfo, binderInfo, memoryContent);
+    // Merged APIs
+    freeze->FindStackByPid(ret, pid);
+    freeze->CatcherStacktrace(pid);
+    freeze->CatchJsonStacktrace(pid, faultType);
+    AppExecFwk::AppfreezeManager::DestroyInstance();
+
     return true;
 }
 }

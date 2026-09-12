@@ -72,6 +72,9 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     if (fdp.ConsumeBool()) {
         rdbDataMgr->BackupRdb();
     }
+    // Merged APIs
+    DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->IsRetryErrCode(errCode);
+
 
     return true;
 }
