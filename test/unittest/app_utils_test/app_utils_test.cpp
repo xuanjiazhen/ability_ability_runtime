@@ -1278,6 +1278,5 @@ HWTEST_F(AppUtilsTest, IsSupportExecCmd_0300, TestSize.Level2)
         EXPECT_FALSE(result);
     }
 }
-}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
