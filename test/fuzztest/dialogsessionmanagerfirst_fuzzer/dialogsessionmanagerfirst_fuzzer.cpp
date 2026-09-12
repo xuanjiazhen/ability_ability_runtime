@@ -66,6 +66,12 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t *data, size_t size)
     dialogSessionManager->SetQueryERMSInfo(dialogSessionId, info);
     dialogSessionManager->UpdateExtensionWantWithDialogCallerInfo(info, callerToken, isSCBCall);
     dialogSessionManager->OnlySetDialogCallerInfo(info, userId, type, dialogSessionId, needGrantUriPermission);
+    // Merged APIs
+    dialogSessionManager->SetDialogSessionInfo(dialogSessionId, dilogSessionInfo, dialogCallerInfo);
+    dialogSessionManager->NotifyAbilityRequestFailure(dialogSessionId, want);
+    dialogSessionManager->SendDialogResult(want, dialogSessionId, isAllowed);
+    dialogSessionManager->GenerateJumpTargetAbilityInfos(info, targetAbilityInfos);
+
     return true;
 }
 } // namespace OHOS

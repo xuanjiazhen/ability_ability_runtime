@@ -56,6 +56,11 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
         valuesBuckets.emplace_back(valuesBucket);
     }
     rdbMgr->BatchInsert(outNumber, valuesBuckets);
+    // Merged APIs
+    rdbMgr->InsertData(valuesBucket);
+    absRdbPredicates.EqualTo(INTENT_KEY, fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH));
+    rdbMgr->QueryData(absRdbPredicates);
+
     return true;
 }
 }
