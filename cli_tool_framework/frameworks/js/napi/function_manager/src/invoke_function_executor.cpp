@@ -20,9 +20,11 @@
 #include "cli_tool_mgr_client.h"
 #include "ffrt.h"
 #include "function_info.h"
+#include "function_result_wrap.h"
 #include "hilog_tag_wrapper.h"
 #include "intent_client.h"
 #include "invoke_function_callback_client.h"
+#include "invoke_function_hook_param.h"
 
 namespace OHOS {
 namespace CliTool {
@@ -89,15 +91,21 @@ void InvokeFunctionExecutor::DoExecute(const std::string &funcNamespace, const s
     }
 
     // Step 3: BeforeInvokeFunction — IPC to service, service dispatches to registered functionHook
-    AAFwk::WantParams hookParams = wantParams;
-    CliToolMGRClient::GetInstance().BeforeInvokeFunction(funcNamespace, functionName, hookParams);
+    InvokeFunctionHookParam hookParam;
+    hookParam.functionNamespace = funcNamespace;
+    hookParam.functionName = functionName;
+    hookParam.args = wantParams;
+    CliToolMGRClient::GetInstance().BeforeInvokeFunction(hookParam);
 
     // Step 4: Execute with (possibly modified) params
+    AAFwk::WantParams hookParams = hookParam.args;
     auto self = shared_from_this();
-    InvokeResultCallback wrappedCallback = [self, funcNamespace, functionName](
+    InvokeResultCallback wrappedCallback = [self](
         const InvokeFunctionResult &out) {
-        InvokeFunctionResult hookResult = out;
-        CliToolMGRClient::GetInstance().AfterInvokeFunction(funcNamespace, functionName, hookResult);
+        FunctionResultWrap functionResultWrap;
+        functionResultWrap.result = out;
+        CliToolMGRClient::GetInstance().AfterInvokeFunction(functionResultWrap);
+        InvokeFunctionResult hookResult = functionResultWrap.result;
         if (self->callback_) {
             self->callback_(hookResult);
         }

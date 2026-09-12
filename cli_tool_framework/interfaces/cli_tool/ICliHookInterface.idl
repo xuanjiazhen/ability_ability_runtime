@@ -19,11 +19,12 @@ import ICliToolData;
 sequenceable ExecToolParam..OHOS.CliTool.ExecToolParam;
 sequenceable ExecCmdParam..OHOS.CliTool.ExecCmdParam;
 sequenceable ExecResult..OHOS.CliTool.ExecResult;
+sequenceable ExecResultWrap..OHOS.CliTool.ExecResultWrap;
 sequenceable CliSessionInfo..OHOS.CliTool.CliSessionInfo;
 
-interface ICliHookScheduler {
+interface ICliHookInterface {
     void BeforeCallTool([inout] ExecToolParam param);
-    void AfterCallTool([inout] ExecResult execResult);
+    void AfterCallTool([inout] ExecResultWrap execResultWrap);
     void BeforeCallCmd([inout] ExecCmdParam param);
-    void AfterCallCmd([inout] ExecResult execResult);
+    void AfterCallCmd([inout] ExecResultWrap execResultWrap);
 }

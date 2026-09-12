@@ -25,7 +25,7 @@
 #include "exec_result.h"
 #include "hilog_tag_wrapper.h"
 #include "js_cli_event_handler_manager.h"
-#include "js_cli_hook_scheduler_stub.h"
+#include "js_cli_hook.h"
 #include "js_cli_manager_utils.h"
 #include "js_cli_session_event_callback.h"
 #include "js_error_utils.h"
@@ -536,7 +536,7 @@ napi_value JSCliManager::UnregisterCliHook(napi_env env, napi_callback_info info
 }
 
 namespace {
-sptr<JsCliHookSchedulerStub> g_cliHookStub = nullptr;
+sptr<JsCliHook> g_cliHookStub = nullptr;
 
 bool ValidateCliHookObject(napi_env env, napi_value obj, uint32_t &activeMethods)
 {
@@ -593,7 +593,7 @@ napi_value JSCliManager::OnRegisterCliHook(napi_env env, size_t argc, napi_value
         return handleEscape.Escape(promise);
     }
 
-    auto stub = sptr<JsCliHookSchedulerStub>(new JsCliHookSchedulerStub(env, argv[0]));
+    auto stub = sptr<JsCliHook>(new JsCliHook(env, argv[0]));
     ErrCode ret = CliToolMGRClient::GetInstance().RegisterCliHook(stub, static_cast<int32_t>(activeMethods));
     if (ret == ERR_OK) {
         g_cliHookStub = stub;

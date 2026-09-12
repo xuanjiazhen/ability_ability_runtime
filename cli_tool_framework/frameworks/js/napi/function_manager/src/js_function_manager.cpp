@@ -24,7 +24,7 @@
 #include "hilog_tag_wrapper.h"
 #include "invoke_function_executor.h"
 #include "js_error_utils.h"
-#include "js_function_hook_scheduler_stub.h"
+#include "js_function_hook.h"
 #include "js_function_manager_utils.h"
 #include "napi_common_util.h"
 #include "napi_common_want.h"
@@ -303,7 +303,7 @@ napi_value JSFunctionManager::UnregisterFunctionHook(napi_env env, napi_callback
 }
 
 namespace {
-sptr<JsFunctionHookSchedulerStub> g_functionHookStub = nullptr;
+sptr<JsFunctionHook> g_functionHookStub = nullptr;
 
 bool ValidateFunctionHookObject(napi_env env, napi_value obj, uint32_t &activeMethods)
 {
@@ -358,7 +358,7 @@ napi_value JSFunctionManager::OnRegisterFunctionHook(napi_env env, size_t argc, 
         return handleEscape.Escape(promise);
     }
 
-    auto stub = sptr<JsFunctionHookSchedulerStub>(new JsFunctionHookSchedulerStub(env, argv[0]));
+    auto stub = sptr<JsFunctionHook>(new JsFunctionHook(env, argv[0]));
     ErrCode ret = CliToolMGRClient::GetInstance().RegisterFunctionHook(stub, static_cast<int32_t>(activeMethods));
     if (ret == ERR_OK) {
         g_functionHookStub = stub;

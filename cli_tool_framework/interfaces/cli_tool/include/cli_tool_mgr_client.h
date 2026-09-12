@@ -24,7 +24,10 @@
 #include "cli_tool_event.h"
 #include "exec_cmd_param.h"
 #include "exec_options.h"
+#include "exec_result_wrap.h"
+#include "function_result_wrap.h"
 #include "icli_tool_manager.h"
+#include "invoke_function_hook_param.h"
 #include "invoke_function_result.h"
 #include "iremote_object.h"
 #include "want_params.h"
@@ -168,14 +171,12 @@ public:
     ErrCode ResetNamespaceFunctionsAsync(const std::string &functionNamespace,
         const std::vector<FunctionInfo> &functions);
 
-    ErrCode RegisterCliHook(const sptr<ICliHookScheduler> &hook, int32_t activeMethods = 0);
-    ErrCode UnregisterCliHook(const sptr<ICliHookScheduler> &hook);
-    ErrCode RegisterFunctionHook(const sptr<IFunctionHookScheduler> &hook, int32_t activeMethods = 0);
-    ErrCode UnregisterFunctionHook(const sptr<IFunctionHookScheduler> &hook);
-    ErrCode BeforeInvokeFunction(const std::string &funcNamespace, const std::string &functionName,
-        AAFwk::WantParams &param);
-    ErrCode AfterInvokeFunction(const std::string &funcNamespace, const std::string &functionName,
-        InvokeFunctionResult &result);
+    ErrCode RegisterCliHook(const sptr<ICliHookInterface> &hook, int32_t activeMethods = 0);
+    ErrCode UnregisterCliHook(const sptr<ICliHookInterface> &hook);
+    ErrCode RegisterFunctionHook(const sptr<IFunctionHookInterface> &hook, int32_t activeMethods = 0);
+    ErrCode UnregisterFunctionHook(const sptr<IFunctionHookInterface> &hook);
+    ErrCode BeforeInvokeFunction(InvokeFunctionHookParam &param);
+    ErrCode AfterInvokeFunction(FunctionResultWrap &functionResultWrap);
 
     /**
      * @brief Execute a CLI tool with key-value pairs (convenience method).

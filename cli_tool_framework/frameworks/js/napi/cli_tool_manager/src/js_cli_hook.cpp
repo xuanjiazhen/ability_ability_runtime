@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "js_cli_hook_scheduler_stub.h"
+#include "js_cli_hook.h"
 
 #include <chrono>
 
@@ -192,21 +192,21 @@ void ParseJsExecCmdParam(napi_env env, napi_value jsObj, ExecCmdParam& param)
 }
 } // namespace
 
-JsCliHookSchedulerStub::JsCliHookSchedulerStub(napi_env env, napi_value jsHookObj)
+JsCliHook::JsCliHook(napi_env env, napi_value jsHookObj)
     : env_(env)
 {
     if (env == nullptr || jsHookObj == nullptr) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "JsCliHookSchedulerStub: invalid env or jsHookObj");
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "JsCliHook: invalid env or jsHookObj");
         return;
     }
     napi_create_reference(env, jsHookObj, 1, &callbackRef_);
     napi_value resourceName = nullptr;
-    napi_create_string_utf8(env, "JsCliHookScheduler", NAPI_AUTO_LENGTH, &resourceName);
+    napi_create_string_utf8(env, "JsCliHook", NAPI_AUTO_LENGTH, &resourceName);
     napi_create_threadsafe_function(env, nullptr, nullptr, resourceName, 0, 1,
-        this, &JsCliHookSchedulerStub::Finalize, this, &JsCliHookSchedulerStub::CallJs, &tsfn_);
+        this, &JsCliHook::Finalize, this, &JsCliHook::CallJs, &tsfn_);
 }
 
-JsCliHookSchedulerStub::~JsCliHookSchedulerStub()
+JsCliHook::~JsCliHook()
 {
     if (tsfn_ != nullptr && !released_.exchange(true)) {
         napi_release_threadsafe_function(tsfn_, napi_tsfn_abort);
@@ -216,14 +216,14 @@ JsCliHookSchedulerStub::~JsCliHookSchedulerStub()
     }
 }
 
-void JsCliHookSchedulerStub::Finalize(napi_env env, void* data, void* hint)
+void JsCliHook::Finalize(napi_env env, void* data, void* hint)
 {
     // threadsafe_function finalize — nothing extra to do; the Stub is owned by
     // CliToolManagerService and released when unregister or process death occurs.
 }
 
-ErrCode JsCliHookSchedulerStub::DispatchToJs(const std::string& method,
-    ExecToolParam* toolParam, ExecCmdParam* cmdParam, ExecResult* execResult)
+ErrCode JsCliHook::DispatchToJs(const std::string& method,
+    ExecToolParam* toolParam, ExecCmdParam* cmdParam, ExecResultWrap* execResultWrap)
 {
     if (tsfn_ == nullptr || callbackRef_ == nullptr) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "DispatchToJs: tsfn or callbackRef is null, method=%{public}s", method.c_str());
@@ -236,7 +236,7 @@ ErrCode JsCliHookSchedulerStub::DispatchToJs(const std::string& method,
     callData->methodName = method;
     callData->toolParam = toolParam;
     callData->cmdParam = cmdParam;
-    callData->execResult = execResult;
+    callData->execResultWrap = execResultWrap;
     callData->promise = std::make_shared<std::promise<void>>();
 
     napi_status status = napi_call_threadsafe_function(tsfn_, callData, napi_tsfn_blocking);
@@ -254,33 +254,33 @@ ErrCode JsCliHookSchedulerStub::DispatchToJs(const std::string& method,
     return ERR_OK;
 }
 
-ErrCode JsCliHookSchedulerStub::BeforeCallTool(ExecToolParam& param)
+ErrCode JsCliHook::BeforeCallTool(ExecToolParam& param)
 {
     return DispatchToJs("onBeforeCallTool", &param, nullptr, nullptr);
 }
 
-ErrCode JsCliHookSchedulerStub::AfterCallTool(ExecResult& execResult)
+ErrCode JsCliHook::AfterCallTool(ExecResultWrap& execResultWrap)
 {
-    return DispatchToJs("onAfterCallTool", nullptr, nullptr, &execResult);
+    return DispatchToJs("onAfterCallTool", nullptr, nullptr, &execResultWrap);
 }
 
-ErrCode JsCliHookSchedulerStub::BeforeCallCmd(ExecCmdParam& param)
+ErrCode JsCliHook::BeforeCallCmd(ExecCmdParam& param)
 {
     return DispatchToJs("onBeforeCallCmd", nullptr, &param, nullptr);
 }
 
-ErrCode JsCliHookSchedulerStub::AfterCallCmd(ExecResult& execResult)
+ErrCode JsCliHook::AfterCallCmd(ExecResultWrap& execResultWrap)
 {
-    return DispatchToJs("onAfterCallCmd", nullptr, nullptr, &execResult);
+    return DispatchToJs("onAfterCallCmd", nullptr, nullptr, &execResultWrap);
 }
 
-void JsCliHookSchedulerStub::CallJs(napi_env env, napi_value jsCb, void* context, void* data)
+void JsCliHook::CallJs(napi_env env, napi_value jsCb, void* context, void* data)
 {
     auto* callData = static_cast<HookCallData*>(data);
     if (callData == nullptr) {
         return;
     }
-    auto* self = static_cast<JsCliHookSchedulerStub*>(context);
+    auto* self = static_cast<JsCliHook*>(context);
     if (env == nullptr || self == nullptr || self->callbackRef_ == nullptr) {
         callData->promise->set_value();
         delete callData;
@@ -299,14 +299,14 @@ void JsCliHookSchedulerStub::CallJs(napi_env env, napi_value jsCb, void* context
     napi_value jsParam = nullptr;
     if (callData->methodName == "onBeforeCallTool" && callData->toolParam != nullptr) {
         jsParam = CreateJsExecToolParam(env, *callData->toolParam);
-    } else if (callData->methodName == "onAfterCallTool" && callData->execResult != nullptr) {
-        napi_value jsInner = CreateJsExecResult(env, *callData->execResult);
+    } else if (callData->methodName == "onAfterCallTool" && callData->execResultWrap != nullptr) {
+        napi_value jsInner = CreateJsExecResult(env, callData->execResultWrap->execResult);
         napi_create_object(env, &jsParam);
         napi_set_named_property(env, jsParam, "execResult", jsInner);
     } else if (callData->methodName == "onBeforeCallCmd" && callData->cmdParam != nullptr) {
         jsParam = CreateJsExecCmdParam(env, *callData->cmdParam);
-    } else if (callData->methodName == "onAfterCallCmd" && callData->execResult != nullptr) {
-        napi_value jsInner = CreateJsExecResult(env, *callData->execResult);
+    } else if (callData->methodName == "onAfterCallCmd" && callData->execResultWrap != nullptr) {
+        napi_value jsInner = CreateJsExecResult(env, callData->execResultWrap->execResult);
         napi_create_object(env, &jsParam);
         napi_set_named_property(env, jsParam, "execResult", jsInner);
     } else {
@@ -341,19 +341,19 @@ void JsCliHookSchedulerStub::CallJs(napi_env env, napi_value jsCb, void* context
     // Parse JS return value back to native param
     if (callData->methodName == "onBeforeCallTool" && callData->toolParam != nullptr) {
         ParseJsExecToolParam(env, jsResult, *callData->toolParam);
-    } else if (callData->methodName == "onAfterCallTool" && callData->execResult != nullptr) {
+    } else if (callData->methodName == "onAfterCallTool" && callData->execResultWrap != nullptr) {
         napi_value jsInner = nullptr;
         napi_get_named_property(env, jsResult, "execResult", &jsInner);
         if (jsInner != nullptr) {
-            ParseJsExecResult(env, jsInner, *callData->execResult);
+            ParseJsExecResult(env, jsInner, callData->execResultWrap->execResult);
         }
     } else if (callData->methodName == "onBeforeCallCmd" && callData->cmdParam != nullptr) {
         ParseJsExecCmdParam(env, jsResult, *callData->cmdParam);
-    } else if (callData->methodName == "onAfterCallCmd" && callData->execResult != nullptr) {
+    } else if (callData->methodName == "onAfterCallCmd" && callData->execResultWrap != nullptr) {
         napi_value jsInner = nullptr;
         napi_get_named_property(env, jsResult, "execResult", &jsInner);
         if (jsInner != nullptr) {
-            ParseJsExecResult(env, jsInner, *callData->execResult);
+            ParseJsExecResult(env, jsInner, callData->execResultWrap->execResult);
         }
     }
 

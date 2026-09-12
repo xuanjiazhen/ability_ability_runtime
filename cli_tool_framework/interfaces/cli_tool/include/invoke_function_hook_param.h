@@ -13,12 +13,18 @@
  * limitations under the License.
  */
 
-package OHOS.CliTool;
-
-sequenceable WantParams..OHOS.AAFwk.WantParams;
-sequenceable InvokeFunctionResult..OHOS.CliTool.InvokeFunctionResult;
-
-interface IFunctionHookScheduler {
-    void BeforeInvokeFunction([in] String funcNamespace, [in] String functionName, [inout] WantParams param);
-    void AfterInvokeFunction([in] String funcNamespace, [in] String functionName, [inout] InvokeFunctionResult invokeResult);
+#ifndef OHOS_CLI_TOOL_INVOKE_FUNCTION_HOOK_PARAM_H
+#define OHOS_CLI_TOOL_INVOKE_FUNCTION_HOOK_PARAM_H
+#include "parcel.h"
+#include "want_params.h"
+#include "string"
+namespace OHOS::CliTool {
+struct InvokeFunctionHookParam : public Parcelable {
+    std::string functionNamespace;
+    std::string functionName;
+    AAFwk::WantParams args;
+    bool Marshalling(Parcel &parcel) const override;
+    static InvokeFunctionHookParam *Unmarshalling(Parcel &parcel);
+};
 }
+#endif

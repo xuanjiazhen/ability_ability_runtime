@@ -30,7 +30,10 @@
 #include "cli_tool_data_manager.h"
 #include "exec_cmd_param.h"
 #include "exec_options.h"
+#include "exec_result_wrap.h"
 #include "ffrt.h"
+#include "function_result_wrap.h"
+#include "invoke_function_hook_param.h"
 #include "invoke_function_result.h"
 #include "iremote_object.h"
 #include "system_ability.h"
@@ -162,14 +165,12 @@ public:
      */
     int32_t GetAllFunctions(FunctionsRawData &functions) override;
 
-    int32_t RegisterCliHook(const sptr<ICliHookScheduler> &hook, int32_t activeMethods) override;
-    int32_t UnregisterCliHook(const sptr<ICliHookScheduler> &hook) override;
-    int32_t RegisterFunctionHook(const sptr<IFunctionHookScheduler> &hook, int32_t activeMethods) override;
-    int32_t UnregisterFunctionHook(const sptr<IFunctionHookScheduler> &hook) override;
-    int32_t BeforeInvokeFunction(const std::string &funcNamespace, const std::string &functionName,
-        AAFwk::WantParams &param) override;
-    int32_t AfterInvokeFunction(const std::string &funcNamespace, const std::string &functionName,
-        InvokeFunctionResult &result) override;
+    int32_t RegisterCliHook(const sptr<ICliHookInterface> &hook, int32_t activeMethods) override;
+    int32_t UnregisterCliHook(const sptr<ICliHookInterface> &hook) override;
+    int32_t RegisterFunctionHook(const sptr<IFunctionHookInterface> &hook, int32_t activeMethods) override;
+    int32_t UnregisterFunctionHook(const sptr<IFunctionHookInterface> &hook) override;
+    int32_t BeforeInvokeFunction(InvokeFunctionHookParam &param) override;
+    int32_t AfterInvokeFunction(FunctionResultWrap &functionResultWrap) override;
 
     /**
      * @brief Batch register functions (one-way, result not reported to caller)
@@ -299,8 +300,8 @@ private:
     void RemoveCallerPid(int64_t pid);
     int32_t GetCallerPidCount();
 
-    sptr<ICliHookScheduler> GetCliHookSnapshot();
-    sptr<IFunctionHookScheduler> GetFunctionHookSnapshot();
+    sptr<ICliHookInterface> GetCliHookSnapshot();
+    sptr<IFunctionHookInterface> GetFunctionHookSnapshot();
     bool IsDeveloperMode() const;
     int32_t VerifyHookCaller() const;
     void EnsureCliHookDeathRecipient();
@@ -331,8 +332,8 @@ private:
     std::unordered_set<int64_t> callerPids;
 
     ffrt::mutex hookMutex_;
-    sptr<ICliHookScheduler> cliHook_;
-    sptr<IFunctionHookScheduler> functionHook_;
+    sptr<ICliHookInterface> cliHook_;
+    sptr<IFunctionHookInterface> functionHook_;
     sptr<IRemoteObject::DeathRecipient> cliHookDeathRecipient_;
     sptr<IRemoteObject::DeathRecipient> functionHookDeathRecipient_;
 

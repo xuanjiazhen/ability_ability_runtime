@@ -31,12 +31,12 @@
 #include "ccm_util.h"
 #include "cli_error_code.h"
 #include "cli_event_report.h"
-#include "cli_hook_scheduler_proxy.h"
+#include "cli_hook_interface_proxy.h"
 #include "cli_tool_app_state_observer.h"
 #include "cli_function_data_manager.h"
 #include "event_dispatcher.h"
 #include "exec_result.h"
-#include "function_hook_scheduler_proxy.h"
+#include "function_hook_interface_proxy.h"
 #include "function_info.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
@@ -1018,7 +1018,7 @@ void CliToolManagerService::HandleBackgroundSessionReply(
         record->callerPid, record->callerUid, eventId, ERR_OK, session);
 }
 
-int32_t CliToolManagerService::RegisterCliHook(const sptr<ICliHookScheduler> &hook, int32_t activeMethods)
+int32_t CliToolManagerService::RegisterCliHook(const sptr<ICliHookInterface> &hook, int32_t activeMethods)
 {
     auto ret = VerifyHookCaller();
     if (ret != ERR_OK) {
@@ -1046,7 +1046,7 @@ int32_t CliToolManagerService::RegisterCliHook(const sptr<ICliHookScheduler> &ho
     return ERR_OK;
 }
 
-int32_t CliToolManagerService::UnregisterCliHook(const sptr<ICliHookScheduler> &hook)
+int32_t CliToolManagerService::UnregisterCliHook(const sptr<ICliHookInterface> &hook)
 {
     auto ret = VerifyHookCaller();
     if (ret != ERR_OK) {
@@ -1067,7 +1067,7 @@ int32_t CliToolManagerService::UnregisterCliHook(const sptr<ICliHookScheduler> &
     return ERR_OK;
 }
 
-int32_t CliToolManagerService::RegisterFunctionHook(const sptr<IFunctionHookScheduler> &hook, int32_t activeMethods)
+int32_t CliToolManagerService::RegisterFunctionHook(const sptr<IFunctionHookInterface> &hook, int32_t activeMethods)
 {
     auto ret = VerifyHookCaller();
     if (ret != ERR_OK) {
@@ -1094,7 +1094,7 @@ int32_t CliToolManagerService::RegisterFunctionHook(const sptr<IFunctionHookSche
     return ERR_OK;
 }
 
-int32_t CliToolManagerService::UnregisterFunctionHook(const sptr<IFunctionHookScheduler> &hook)
+int32_t CliToolManagerService::UnregisterFunctionHook(const sptr<IFunctionHookInterface> &hook)
 {
     auto ret = VerifyHookCaller();
     if (ret != ERR_OK) {
@@ -1115,8 +1115,7 @@ int32_t CliToolManagerService::UnregisterFunctionHook(const sptr<IFunctionHookSc
     return ERR_OK;
 }
 
-int32_t CliToolManagerService::BeforeInvokeFunction(const std::string &funcNamespace,
-    const std::string &functionName, AAFwk::WantParams &param)
+int32_t CliToolManagerService::BeforeInvokeFunction(InvokeFunctionHookParam &param)
 {
     if (!IsDeveloperMode()) {
         return ERR_OK;
@@ -1129,16 +1128,13 @@ int32_t CliToolManagerService::BeforeInvokeFunction(const std::string &funcNames
         return ERR_OK;
     }
     if (!InvokeHookAsync(
-        [hook, &funcNamespace, &functionName](AAFwk::WantParams &p) {
-            hook->BeforeInvokeFunction(funcNamespace, functionName, p);
-        }, param)) {
+        [hook](InvokeFunctionHookParam &p) { hook->BeforeInvokeFunction(p); }, param)) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "BeforeInvokeFunction hook timeout, using original param");
     }
     return ERR_OK;
 }
 
-int32_t CliToolManagerService::AfterInvokeFunction(const std::string &funcNamespace,
-    const std::string &functionName, InvokeFunctionResult &result)
+int32_t CliToolManagerService::AfterInvokeFunction(FunctionResultWrap &functionResultWrap)
 {
     if (!IsDeveloperMode()) {
         return ERR_OK;
@@ -1151,9 +1147,7 @@ int32_t CliToolManagerService::AfterInvokeFunction(const std::string &funcNamesp
         return ERR_OK;
     }
     if (!InvokeHookAsync(
-        [hook, &funcNamespace, &functionName](InvokeFunctionResult &r) {
-            hook->AfterInvokeFunction(funcNamespace, functionName, r);
-        }, result)) {
+        [hook](FunctionResultWrap &w) { hook->AfterInvokeFunction(w); }, functionResultWrap)) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "AfterInvokeFunction hook timeout, using original result");
     }
     return ERR_OK;
@@ -1221,13 +1215,13 @@ bool CliToolManagerService::IsDeveloperMode() const
     return system::GetBoolParameter("const.security.developermode.state", false);
 }
 
-sptr<ICliHookScheduler> CliToolManagerService::GetCliHookSnapshot()
+sptr<ICliHookInterface> CliToolManagerService::GetCliHookSnapshot()
 {
     std::lock_guard<ffrt::mutex> lock(hookMutex_);
     return cliHook_;
 }
 
-sptr<IFunctionHookScheduler> CliToolManagerService::GetFunctionHookSnapshot()
+sptr<IFunctionHookInterface> CliToolManagerService::GetFunctionHookSnapshot()
 {
     std::lock_guard<ffrt::mutex> lock(hookMutex_);
     return functionHook_;
@@ -1276,20 +1270,22 @@ void CliToolManagerService::InvokeAfterCallTool(CliSessionInfo &session)
     if (hook == nullptr || session.result == nullptr) {
         return;
     }
+    ExecResultWrap execResultWrap;
+    execResultWrap.execResult = *session.result;
     if (session.toolName == "shell") {
         if (cliHookActiveMethods_ != 0 && !(cliHookActiveMethods_ & CLI_HOOK_AFTER_CALL_CMD)) {
             return;
         }
-        if (!InvokeHookAsync([hook](ExecResult &r) { hook->AfterCallCmd(r); },
-            *session.result)) {
+        if (!InvokeHookAsync([hook](ExecResultWrap &w) { hook->AfterCallCmd(w); },
+            execResultWrap)) {
             TAG_LOGW(AAFwkTag::CLI_TOOL, "InvokeAfterCallCmd timeout, using original result");
         }
     } else {
         if (cliHookActiveMethods_ != 0 && !(cliHookActiveMethods_ & CLI_HOOK_AFTER_CALL_TOOL)) {
             return;
         }
-        if (!InvokeHookAsync([hook](ExecResult &r) { hook->AfterCallTool(r); },
-            *session.result)) {
+        if (!InvokeHookAsync([hook](ExecResultWrap &w) { hook->AfterCallTool(w); },
+            execResultWrap)) {
             TAG_LOGW(AAFwkTag::CLI_TOOL, "InvokeAfterCallTool timeout, using original result");
         }
     }

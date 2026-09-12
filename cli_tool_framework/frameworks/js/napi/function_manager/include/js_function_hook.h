@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_CLI_TOOL_JS_FUNCTION_HOOK_SCHEDULER_STUB_H
-#define OHOS_CLI_TOOL_JS_FUNCTION_HOOK_SCHEDULER_STUB_H
+#ifndef OHOS_CLI_TOOL_JS_FUNCTION_HOOK_H
+#define OHOS_CLI_TOOL_JS_FUNCTION_HOOK_H
 
 #include <atomic>
 #include <future>
 #include <memory>
 #include <string>
 
-#include "function_hook_scheduler_stub.h"
-#include "invoke_function_result.h"
+#include "function_hook_interface_stub.h"
+#include "function_result_wrap.h"
+#include "invoke_function_hook_param.h"
 #include "native_engine/native_engine.h"
-#include "want_params.h"
 
 namespace OHOS {
 namespace CliTool {
@@ -39,28 +39,22 @@ namespace CliTool {
  *
  * Timeout: 500ms; on timeout the original parameter is left unchanged.
  */
-class JsFunctionHookSchedulerStub : public FunctionHookSchedulerStub {
+class JsFunctionHook : public FunctionHookInterfaceStub {
 public:
-    explicit JsFunctionHookSchedulerStub(napi_env env, napi_value jsHookObj);
-    ~JsFunctionHookSchedulerStub() override;
+    explicit JsFunctionHook(napi_env env, napi_value jsHookObj);
+    ~JsFunctionHook() override;
 
-    ErrCode BeforeInvokeFunction(
-        const std::string& funcNamespace, const std::string& functionName,
-        AAFwk::WantParams& param) override;
+    ErrCode BeforeInvokeFunction(InvokeFunctionHookParam& param) override;
 
-    ErrCode AfterInvokeFunction(
-        const std::string& funcNamespace, const std::string& functionName,
-        InvokeFunctionResult& invokeResult) override;
+    ErrCode AfterInvokeFunction(FunctionResultWrap& functionResultWrap) override;
 
     napi_ref GetCallbackRef() const { return callbackRef_; }
 
 private:
     struct FunctionHookCallData {
         std::string methodName;
-        std::string funcNamespace;
-        std::string functionName;
-        AAFwk::WantParams* param = nullptr;
-        InvokeFunctionResult* invokeResult = nullptr;
+        InvokeFunctionHookParam* hookParam = nullptr;
+        FunctionResultWrap* functionResultWrap = nullptr;
         std::shared_ptr<std::promise<void>> promise;
     };
 
@@ -72,12 +66,11 @@ private:
     static void CallJs(napi_env env, napi_value jsCb, void* context, void* data);
     static void Finalize(napi_env env, void* data, void* hint);
 
-    ErrCode DispatchToJs(const std::string& method, const std::string& funcNamespace,
-        const std::string& functionName, AAFwk::WantParams* param,
-        InvokeFunctionResult* invokeResult);
+    ErrCode DispatchToJs(const std::string& method,
+        InvokeFunctionHookParam* hookParam, FunctionResultWrap* functionResultWrap);
 };
 
 } // namespace CliTool
 } // namespace OHOS
 
-#endif // OHOS_CLI_TOOL_JS_FUNCTION_HOOK_SCHEDULER_STUB_H
+#endif // OHOS_CLI_TOOL_JS_FUNCTION_HOOK_H

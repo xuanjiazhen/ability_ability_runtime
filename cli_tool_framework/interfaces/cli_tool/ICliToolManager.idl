@@ -17,8 +17,8 @@ package OHOS.CliTool;
 
 import ICliToolData;
 import ICliToolManagerScheduler;
-import ICliHookScheduler;
-import IFunctionHookScheduler;
+import ICliHookInterface;
+import IFunctionHookInterface;
 sequenceable CliSessionInfo..OHOS.CliTool.CliSessionInfo;
 sequenceable ExecCmdParam..OHOS.CliTool.ExecCmdParam;
 sequenceable ExecToolParam..OHOS.CliTool.ExecToolParam;
@@ -29,6 +29,8 @@ sequenceable FunctionInfo..OHOS.CliTool.FunctionInfo;
 rawdata FunctionInfo..OHOS.CliTool.FunctionsRawData;
 sequenceable WantParams..OHOS.AAFwk.WantParams;
 sequenceable InvokeFunctionResult..OHOS.CliTool.InvokeFunctionResult;
+sequenceable InvokeFunctionHookParam..OHOS.CliTool.InvokeFunctionHookParam;
+sequenceable FunctionResultWrap..OHOS.CliTool.FunctionResultWrap;
 
 interface ICliToolManager {
     void GetAllToolSummaries([out] ToolSummary[] summaries);
@@ -53,10 +55,10 @@ interface ICliToolManager {
     [oneway] void BatchRegisterFunctionsAsync([in] FunctionsRawData functions);
     [oneway] void UnregisterIntentFunctionsByNamespaceAsync([in] String functionNamespace);
     [oneway] void ResetNamespaceFunctionsAsync([in] String functionNamespace, [in] FunctionsRawData functions);
-    void RegisterCliHook([in] ICliHookScheduler hook, [in] int activeMethods);
-    void UnregisterCliHook([in] ICliHookScheduler hook);
-    void RegisterFunctionHook([in] IFunctionHookScheduler hook, [in] int activeMethods);
-    void UnregisterFunctionHook([in] IFunctionHookScheduler hook);
-    void BeforeInvokeFunction([in] String funcNamespace, [in] String functionName, [inout] WantParams param);
-    void AfterInvokeFunction([in] String funcNamespace, [in] String functionName, [inout] InvokeFunctionResult invokeResult);
+    void RegisterCliHook([in] ICliHookInterface hook, [in] int activeMethods);
+    void UnregisterCliHook([in] ICliHookInterface hook);
+    void RegisterFunctionHook([in] IFunctionHookInterface hook, [in] int activeMethods);
+    void UnregisterFunctionHook([in] IFunctionHookInterface hook);
+    void BeforeInvokeFunction([inout] InvokeFunctionHookParam param);
+    void AfterInvokeFunction([inout] FunctionResultWrap functionResultWrap);
 }

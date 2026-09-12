@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "js_function_hook_scheduler_stub.h"
+#include "js_function_hook.h"
 
 #include <chrono>
 
@@ -72,21 +72,21 @@ void ParseJsInvokeResult(napi_env env, napi_value jsObj, InvokeFunctionResult& r
 }
 } // namespace
 
-JsFunctionHookSchedulerStub::JsFunctionHookSchedulerStub(napi_env env, napi_value jsHookObj)
+JsFunctionHook::JsFunctionHook(napi_env env, napi_value jsHookObj)
     : env_(env)
 {
     if (env == nullptr || jsHookObj == nullptr) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "JsFunctionHookSchedulerStub: invalid env or jsHookObj");
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "JsFunctionHook: invalid env or jsHookObj");
         return;
     }
     napi_create_reference(env, jsHookObj, 1, &callbackRef_);
     napi_value resourceName = nullptr;
-    napi_create_string_utf8(env, "JsFunctionHookScheduler", NAPI_AUTO_LENGTH, &resourceName);
+    napi_create_string_utf8(env, "JsFunctionHook", NAPI_AUTO_LENGTH, &resourceName);
     napi_create_threadsafe_function(env, nullptr, nullptr, resourceName, 0, 1,
-        this, &JsFunctionHookSchedulerStub::Finalize, this, &JsFunctionHookSchedulerStub::CallJs, &tsfn_);
+        this, &JsFunctionHook::Finalize, this, &JsFunctionHook::CallJs, &tsfn_);
 }
 
-JsFunctionHookSchedulerStub::~JsFunctionHookSchedulerStub()
+JsFunctionHook::~JsFunctionHook()
 {
     if (tsfn_ != nullptr && !released_.exchange(true)) {
         napi_release_threadsafe_function(tsfn_, napi_tsfn_abort);
@@ -96,14 +96,13 @@ JsFunctionHookSchedulerStub::~JsFunctionHookSchedulerStub()
     }
 }
 
-void JsFunctionHookSchedulerStub::Finalize(napi_env env, void* data, void* hint)
+void JsFunctionHook::Finalize(napi_env env, void* data, void* hint)
 {
     // threadsafe_function finalize — nothing extra to do.
 }
 
-ErrCode JsFunctionHookSchedulerStub::DispatchToJs(const std::string& method,
-    const std::string& funcNamespace, const std::string& functionName,
-    AAFwk::WantParams* param, InvokeFunctionResult* invokeResult)
+ErrCode JsFunctionHook::DispatchToJs(const std::string& method,
+    InvokeFunctionHookParam* hookParam, FunctionResultWrap* functionResultWrap)
 {
     if (tsfn_ == nullptr || callbackRef_ == nullptr) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "DispatchToJs: tsfn or callbackRef is null, method=%{public}s", method.c_str());
@@ -114,10 +113,8 @@ ErrCode JsFunctionHookSchedulerStub::DispatchToJs(const std::string& method,
         return ERR_OK;
     }
     callData->methodName = method;
-    callData->funcNamespace = funcNamespace;
-    callData->functionName = functionName;
-    callData->param = param;
-    callData->invokeResult = invokeResult;
+    callData->hookParam = hookParam;
+    callData->functionResultWrap = functionResultWrap;
     callData->promise = std::make_shared<std::promise<void>>();
 
     napi_status status = napi_call_threadsafe_function(tsfn_, callData, napi_tsfn_blocking);
@@ -135,27 +132,23 @@ ErrCode JsFunctionHookSchedulerStub::DispatchToJs(const std::string& method,
     return ERR_OK;
 }
 
-ErrCode JsFunctionHookSchedulerStub::BeforeInvokeFunction(
-    const std::string& funcNamespace, const std::string& functionName,
-    AAFwk::WantParams& param)
+ErrCode JsFunctionHook::BeforeInvokeFunction(InvokeFunctionHookParam& param)
 {
-    return DispatchToJs("onBeforeInvokeFunction", funcNamespace, functionName, &param, nullptr);
+    return DispatchToJs("onBeforeInvokeFunction", &param, nullptr);
 }
 
-ErrCode JsFunctionHookSchedulerStub::AfterInvokeFunction(
-    const std::string& funcNamespace, const std::string& functionName,
-    InvokeFunctionResult& invokeResult)
+ErrCode JsFunctionHook::AfterInvokeFunction(FunctionResultWrap& functionResultWrap)
 {
-    return DispatchToJs("onAfterInvokeFunction", funcNamespace, functionName, nullptr, &invokeResult);
+    return DispatchToJs("onAfterInvokeFunction", nullptr, &functionResultWrap);
 }
 
-void JsFunctionHookSchedulerStub::CallJs(napi_env env, napi_value jsCb, void* context, void* data)
+void JsFunctionHook::CallJs(napi_env env, napi_value jsCb, void* context, void* data)
 {
     auto* callData = static_cast<FunctionHookCallData*>(data);
     if (callData == nullptr) {
         return;
     }
-    auto* self = static_cast<JsFunctionHookSchedulerStub*>(context);
+    auto* self = static_cast<JsFunctionHook*>(context);
     if (env == nullptr || self == nullptr || self->callbackRef_ == nullptr) {
         callData->promise->set_value();
         delete callData;
@@ -171,8 +164,8 @@ void JsFunctionHookSchedulerStub::CallJs(napi_env env, napi_value jsCb, void* co
     }
 
     // Build JS arguments based on method name
-    bool isBefore = (callData->methodName == "onBeforeInvokeFunction" && callData->param != nullptr);
-    bool isAfter = (callData->methodName == "onAfterInvokeFunction" && callData->invokeResult != nullptr);
+    bool isBefore = (callData->methodName == "onBeforeInvokeFunction" && callData->hookParam != nullptr);
+    bool isAfter = (callData->methodName == "onAfterInvokeFunction" && callData->functionResultWrap != nullptr);
     if (!isBefore && !isAfter) {
         callData->promise->set_value();
         delete callData;
@@ -186,16 +179,16 @@ void JsFunctionHookSchedulerStub::CallJs(napi_env env, napi_value jsCb, void* co
         napi_value jsParam = nullptr;
         napi_create_object(env, &jsParam);
         napi_set_named_property(env, jsParam, "functionNamespace",
-            AppExecFwk::WrapStringToJS(env, callData->funcNamespace));
+            AppExecFwk::WrapStringToJS(env, callData->hookParam->functionNamespace));
         napi_set_named_property(env, jsParam, "functionName",
-            AppExecFwk::WrapStringToJS(env, callData->functionName));
+            AppExecFwk::WrapStringToJS(env, callData->hookParam->functionName));
         napi_set_named_property(env, jsParam, "args",
-            AppExecFwk::WrapWantParams(env, *callData->param));
+            AppExecFwk::WrapWantParams(env, callData->hookParam->args));
         argv[0] = jsParam;
         argc = 1;
     } else {
         // Single object: { result: InvokeResult }
-        napi_value jsInner = CreateJsInvokeResult(env, *callData->invokeResult);
+        napi_value jsInner = CreateJsInvokeResult(env, callData->functionResultWrap->result);
         napi_value jsParam = nullptr;
         napi_create_object(env, &jsParam);
         napi_set_named_property(env, jsParam, "result", jsInner);
@@ -229,13 +222,13 @@ void JsFunctionHookSchedulerStub::CallJs(napi_env env, napi_value jsCb, void* co
         // Extract modified args from returned InvokeFunctionHookParam object
         napi_value jsArgs = nullptr;
         napi_get_named_property(env, jsResult, "args", &jsArgs);
-        AppExecFwk::UnwrapWantParams(env, jsArgs, *callData->param);
+        AppExecFwk::UnwrapWantParams(env, jsArgs, callData->hookParam->args);
     } else {
         // Extract result from returned AfterInvokeFunctionParam object
         napi_value jsResult2 = nullptr;
         napi_get_named_property(env, jsResult, "result", &jsResult2);
         if (jsResult2 != nullptr) {
-            ParseJsInvokeResult(env, jsResult2, *callData->invokeResult);
+            ParseJsInvokeResult(env, jsResult2, callData->functionResultWrap->result);
         }
     }
 

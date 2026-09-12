@@ -13,17 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_CLI_TOOL_JS_CLI_HOOK_SCHEDULER_STUB_H
-#define OHOS_CLI_TOOL_JS_CLI_HOOK_SCHEDULER_STUB_H
+#ifndef OHOS_CLI_TOOL_JS_CLI_HOOK_H
+#define OHOS_CLI_TOOL_JS_CLI_HOOK_H
 
 #include <atomic>
 #include <future>
 #include <memory>
 #include <string>
 
-#include "cli_hook_scheduler_stub.h"
+#include "cli_hook_interface_stub.h"
 #include "exec_cmd_param.h"
 #include "exec_result.h"
+#include "exec_result_wrap.h"
 #include "exec_tool_param.h"
 #include "native_engine/native_engine.h"
 
@@ -40,15 +41,15 @@ namespace CliTool {
  *
  * Timeout: 500ms; on timeout the original parameter is left unchanged.
  */
-class JsCliHookSchedulerStub : public CliHookSchedulerStub {
+class JsCliHook : public CliHookInterfaceStub {
 public:
-    explicit JsCliHookSchedulerStub(napi_env env, napi_value jsHookObj);
-    ~JsCliHookSchedulerStub() override;
+    explicit JsCliHook(napi_env env, napi_value jsHookObj);
+    ~JsCliHook() override;
 
     ErrCode BeforeCallTool(ExecToolParam& param) override;
-    ErrCode AfterCallTool(ExecResult& execResult) override;
+    ErrCode AfterCallTool(ExecResultWrap& execResultWrap) override;
     ErrCode BeforeCallCmd(ExecCmdParam& param) override;
-    ErrCode AfterCallCmd(ExecResult& execResult) override;
+    ErrCode AfterCallCmd(ExecResultWrap& execResultWrap) override;
 
     napi_ref GetCallbackRef() const { return callbackRef_; }
 
@@ -57,7 +58,7 @@ private:
         std::string methodName;
         ExecToolParam* toolParam = nullptr;
         ExecCmdParam* cmdParam = nullptr;
-        ExecResult* execResult = nullptr;
+        ExecResultWrap* execResultWrap = nullptr;
         std::shared_ptr<std::promise<void>> promise;
         std::atomic<bool> jsExecuted{false};
     };
@@ -71,10 +72,10 @@ private:
     static void Finalize(napi_env env, void* data, void* hint);
 
     ErrCode DispatchToJs(const std::string& method, ExecToolParam* toolParam,
-        ExecCmdParam* cmdParam, ExecResult* execResult);
+        ExecCmdParam* cmdParam, ExecResultWrap* execResultWrap);
 };
 
 } // namespace CliTool
 } // namespace OHOS
 
-#endif // OHOS_CLI_TOOL_JS_CLI_HOOK_SCHEDULER_STUB_H
+#endif // OHOS_CLI_TOOL_JS_CLI_HOOK_H
