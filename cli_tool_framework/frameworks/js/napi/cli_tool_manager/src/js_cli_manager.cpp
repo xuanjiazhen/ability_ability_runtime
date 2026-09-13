@@ -597,6 +597,11 @@ napi_value JSCliManager::OnRegisterCliHook(napi_env env, size_t argc, napi_value
     }
 
     auto stub = sptr<JsCliHook>(new JsCliHook(env, argv[0]));
+    if (!stub->IsValid()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "OnRegisterCliHook: JsCliHook init failed");
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_NO_INIT));
+        return handleEscape.Escape(promise);
+    }
     ErrCode ret = CliToolMGRClient::GetInstance().RegisterCliHook(stub, static_cast<int32_t>(activeMethods));
     if (ret == ERR_OK) {
         g_cliHookStub = stub;

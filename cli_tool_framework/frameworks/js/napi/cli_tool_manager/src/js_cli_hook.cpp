@@ -202,40 +202,56 @@ napi_value CreateJsExecResultWrap(napi_env env, const ExecResult& result)
 
 napi_value BuildJsParam(napi_env env, const JsCliHook::HookCallData& callData)
 {
-    if (callData.methodName == "onBeforeCallTool" && callData.toolParam != nullptr) {
-        return CreateJsExecToolParam(env, *callData.toolParam);
-    }
-    if (callData.methodName == "onAfterCallTool" && callData.execResultWrap != nullptr) {
-        return CreateJsExecResultWrap(env, callData.execResultWrap->execResult);
-    }
-    if (callData.methodName == "onBeforeCallCmd" && callData.cmdParam != nullptr) {
-        return CreateJsExecCmdParam(env, *callData.cmdParam);
-    }
-    if (callData.methodName == "onAfterCallCmd" && callData.execResultWrap != nullptr) {
-        return CreateJsExecResultWrap(env, callData.execResultWrap->execResult);
+    switch (callData.methodType) {
+        case JsCliHook::HookMethodType::BEFORE_CALL_TOOL:
+            return callData.toolParam != nullptr ? CreateJsExecToolParam(env, *callData.toolParam) : nullptr;
+        case JsCliHook::HookMethodType::AFTER_CALL_TOOL:
+            return callData.execResultWrap != nullptr
+                ? CreateJsExecResultWrap(env, callData.execResultWrap->execResult) : nullptr;
+        case JsCliHook::HookMethodType::BEFORE_CALL_CMD:
+            return callData.cmdParam != nullptr ? CreateJsExecCmdParam(env, *callData.cmdParam) : nullptr;
+        case JsCliHook::HookMethodType::AFTER_CALL_CMD:
+            return callData.execResultWrap != nullptr
+                ? CreateJsExecResultWrap(env, callData.execResultWrap->execResult) : nullptr;
     }
     return nullptr;
 }
 
 void ParseJsResult(napi_env env, const JsCliHook::HookCallData& callData, napi_value jsResult)
 {
-    if (callData.methodName == "onBeforeCallTool" && callData.toolParam != nullptr) {
-        ParseJsExecToolParam(env, jsResult, *callData.toolParam);
-    } else if (callData.methodName == "onAfterCallTool" && callData.execResultWrap != nullptr) {
-        napi_value jsInner = nullptr;
-        napi_get_named_property(env, jsResult, "execResult", &jsInner);
-        if (jsInner != nullptr) {
-            ParseJsExecResult(env, jsInner, callData.execResultWrap->execResult);
-        }
-    } else if (callData.methodName == "onBeforeCallCmd" && callData.cmdParam != nullptr) {
-        ParseJsExecCmdParam(env, jsResult, *callData.cmdParam);
-    } else if (callData.methodName == "onAfterCallCmd" && callData.execResultWrap != nullptr) {
-        napi_value jsInner = nullptr;
-        napi_get_named_property(env, jsResult, "execResult", &jsInner);
-        if (jsInner != nullptr) {
-            ParseJsExecResult(env, jsInner, callData.execResultWrap->execResult);
-        }
+    switch (callData.methodType) {
+        case JsCliHook::HookMethodType::BEFORE_CALL_TOOL:
+            if (callData.toolParam != nullptr) {
+                ParseJsExecToolParam(env, jsResult, *callData.toolParam);
+            }
+            break;
+        case JsCliHook::HookMethodType::AFTER_CALL_TOOL:
+        case JsCliHook::HookMethodType::AFTER_CALL_CMD:
+            if (callData.execResultWrap != nullptr) {
+                napi_value jsInner = nullptr;
+                napi_get_named_property(env, jsResult, "execResult", &jsInner);
+                if (jsInner != nullptr) {
+                    ParseJsExecResult(env, jsInner, callData.execResultWrap->execResult);
+                }
+            }
+            break;
+        case JsCliHook::HookMethodType::BEFORE_CALL_CMD:
+            if (callData.cmdParam != nullptr) {
+                ParseJsExecCmdParam(env, jsResult, *callData.cmdParam);
+            }
+            break;
     }
+}
+
+const char* MethodTypeToName(JsCliHook::HookMethodType type)
+{
+    switch (type) {
+        case JsCliHook::HookMethodType::BEFORE_CALL_TOOL: return "onBeforeCallTool";
+        case JsCliHook::HookMethodType::AFTER_CALL_TOOL: return "onAfterCallTool";
+        case JsCliHook::HookMethodType::BEFORE_CALL_CMD: return "onBeforeCallCmd";
+        case JsCliHook::HookMethodType::AFTER_CALL_CMD: return "onAfterCallCmd";
+    }
+    return "";
 }
 } // namespace
 
@@ -246,11 +262,22 @@ JsCliHook::JsCliHook(napi_env env, napi_value jsHookObj)
         TAG_LOGE(AAFwkTag::CLI_TOOL, "JsCliHook: invalid env or jsHookObj");
         return;
     }
-    napi_create_reference(env, jsHookObj, 1, &callbackRef_);
+    napi_status status = napi_create_reference(env, jsHookObj, 1, &callbackRef_);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "JsCliHook: napi_create_reference failed, status=%{public}d", status);
+        return;
+    }
     napi_value resourceName = nullptr;
     napi_create_string_utf8(env, "JsCliHook", NAPI_AUTO_LENGTH, &resourceName);
-    napi_create_threadsafe_function(env, nullptr, nullptr, resourceName, 0, 1,
+    status = napi_create_threadsafe_function(env, nullptr, nullptr, resourceName, 0, 1,
         this, &JsCliHook::Finalize, this, &JsCliHook::CallJs, &tsfn_);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "JsCliHook: napi_create_threadsafe_function failed, status=%{public}d", status);
+        if (callbackRef_ != nullptr) {
+            napi_delete_reference(env, callbackRef_);
+            callbackRef_ = nullptr;
+        }
+    }
 }
 
 JsCliHook::~JsCliHook()
@@ -269,59 +296,77 @@ void JsCliHook::Finalize(napi_env env, void* data, void* hint)
     // CliToolManagerService and released when unregister or process death occurs.
 }
 
-ErrCode JsCliHook::DispatchToJs(const std::string& method,
-    ExecToolParam* toolParam, ExecCmdParam* cmdParam, ExecResultWrap* execResultWrap)
+bool JsCliHook::DispatchToJs(std::shared_ptr<HookCallData> callData)
 {
-    if (tsfn_ == nullptr || callbackRef_ == nullptr) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "DispatchToJs: tsfn or callbackRef is null, method=%{public}s", method.c_str());
-        return ERR_OK;
-    }
-    auto callData = std::make_unique<HookCallData>();
-    callData->methodName = method;
-    callData->toolParam = toolParam;
-    callData->cmdParam = cmdParam;
-    callData->execResultWrap = execResultWrap;
     callData->promise = std::make_shared<std::promise<void>>();
-    auto promise = callData->promise;
-
-    napi_status status = napi_call_threadsafe_function(tsfn_, callData.get(), napi_tsfn_blocking);
+    auto* wrapper = new std::weak_ptr<HookCallData>(callData);
+    napi_status status = napi_call_threadsafe_function(tsfn_, wrapper, napi_tsfn_blocking);
     if (status != napi_ok) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "DispatchToJs: napi_call_threadsafe_function failed, status=%{public}d", status);
-        return ERR_OK;
+        delete wrapper;
+        return false;
     }
-    callData.release(); // ownership transferred to threadsafe_function
-
-    auto future = promise->get_future();
-    if (future.wait_for(std::chrono::milliseconds(HOOK_TIMEOUT_MS)) != std::future_status::ready) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "DispatchToJs: JS callback timeout (5000ms), method=%{public}s", method.c_str());
-        return ERR_OK;
+    auto future = callData->promise->get_future();
+    if (future.wait_for(std::chrono::milliseconds(HOOK_TIMEOUT_MS)) == std::future_status::ready) {
+        return true;
     }
-    return ERR_OK;
+    TAG_LOGW(AAFwkTag::CLI_TOOL, "DispatchToJs: JS callback timeout (5000ms), method=%{public}s",
+        MethodTypeToName(callData->methodType));
+    return false;
 }
 
 ErrCode JsCliHook::BeforeCallTool(ExecToolParam& param)
 {
-    return DispatchToJs("onBeforeCallTool", &param, nullptr, nullptr);
+    auto callData = std::make_shared<HookCallData>();
+    callData->methodType = HookMethodType::BEFORE_CALL_TOOL;
+    callData->toolParam = std::make_shared<ExecToolParam>(param);
+    if (DispatchToJs(callData)) {
+        param = *callData->toolParam;
+    }
+    return ERR_OK;
 }
 
 ErrCode JsCliHook::AfterCallTool(ExecResultWrap& execResultWrap)
 {
-    return DispatchToJs("onAfterCallTool", nullptr, nullptr, &execResultWrap);
+    auto callData = std::make_shared<HookCallData>();
+    callData->methodType = HookMethodType::AFTER_CALL_TOOL;
+    callData->execResultWrap = std::make_shared<ExecResultWrap>(execResultWrap);
+    if (DispatchToJs(callData)) {
+        execResultWrap = *callData->execResultWrap;
+    }
+    return ERR_OK;
 }
 
 ErrCode JsCliHook::BeforeCallCmd(ExecCmdParam& param)
 {
-    return DispatchToJs("onBeforeCallCmd", nullptr, &param, nullptr);
+    auto callData = std::make_shared<HookCallData>();
+    callData->methodType = HookMethodType::BEFORE_CALL_CMD;
+    callData->cmdParam = std::make_shared<ExecCmdParam>(param);
+    if (DispatchToJs(callData)) {
+        param = *callData->cmdParam;
+    }
+    return ERR_OK;
 }
 
 ErrCode JsCliHook::AfterCallCmd(ExecResultWrap& execResultWrap)
 {
-    return DispatchToJs("onAfterCallCmd", nullptr, nullptr, &execResultWrap);
+    auto callData = std::make_shared<HookCallData>();
+    callData->methodType = HookMethodType::AFTER_CALL_CMD;
+    callData->execResultWrap = std::make_shared<ExecResultWrap>(execResultWrap);
+    if (DispatchToJs(callData)) {
+        execResultWrap = *callData->execResultWrap;
+    }
+    return ERR_OK;
 }
 
 void JsCliHook::CallJs(napi_env env, napi_value jsCb, void* context, void* data)
 {
-    auto callData = std::unique_ptr<HookCallData>(static_cast<HookCallData*>(data));
+    std::unique_ptr<std::weak_ptr<HookCallData>> wrapper(
+        static_cast<std::weak_ptr<HookCallData>*>(data));
+    if (wrapper == nullptr) {
+        return;
+    }
+    auto callData = wrapper->lock();
     if (callData == nullptr) {
         return;
     }
@@ -345,12 +390,12 @@ void JsCliHook::CallJs(napi_env env, napi_value jsCb, void* context, void* data)
     }
 
     napi_value jsMethod = nullptr;
-    napi_get_named_property(env, jsObj, callData->methodName.c_str(), &jsMethod);
+    napi_get_named_property(env, jsObj, MethodTypeToName(callData->methodType), &jsMethod);
     napi_valuetype methodType = napi_undefined;
     napi_typeof(env, jsMethod, &methodType);
     if (methodType != napi_function) {
         TAG_LOGD(AAFwkTag::CLI_TOOL, "CallJs: method %{public}s not a function, skipping",
-            callData->methodName.c_str());
+            MethodTypeToName(callData->methodType));
         callData->promise->set_value();
         return;
     }
@@ -360,7 +405,7 @@ void JsCliHook::CallJs(napi_env env, napi_value jsCb, void* context, void* data)
     napi_status status = napi_call_function(env, jsObj, jsMethod, 1, argv, &jsResult);
     if (status != napi_ok || jsResult == nullptr) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "CallJs: napi_call_function failed, method=%{public}s",
-            callData->methodName.c_str());
+            MethodTypeToName(callData->methodType));
         callData->promise->set_value();
         return;
     }

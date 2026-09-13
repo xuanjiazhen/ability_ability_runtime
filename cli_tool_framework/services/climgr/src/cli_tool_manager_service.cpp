@@ -1030,7 +1030,7 @@ int32_t CliToolManagerService::RegisterCliHook(const sptr<ICliHookInterface> &ho
     }
     if (hook == nullptr || hook->AsObject() == nullptr) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "RegisterCliHook: hook is nullptr");
-        return ERR_INVALID_VALUE;
+        return ERR_INVALID_PARAM;
     }
     auto remote = hook->AsObject();
     std::lock_guard<ffrt::mutex> lock(hookMutex_);
@@ -1053,7 +1053,7 @@ int32_t CliToolManagerService::UnregisterCliHook(const sptr<ICliHookInterface> &
         return ret;
     }
     if (hook == nullptr) {
-        return ERR_INVALID_VALUE;
+        return ERR_INVALID_PARAM;
     }
     std::lock_guard<ffrt::mutex> lock(hookMutex_);
     if (cliHook_ != nullptr && cliHook_->AsObject() == hook->AsObject()) {
@@ -1064,8 +1064,9 @@ int32_t CliToolManagerService::UnregisterCliHook(const sptr<ICliHookInterface> &
         cliHookActiveMethods_ = 0;
         cliHookDeathRecipient_ = nullptr;
         TAG_LOGI(AAFwkTag::CLI_TOOL, "UnregisterCliHook success");
+        return ERR_OK;
     }
-    return ERR_OK;
+    return ERR_HOOK_NOT_REGISTERED;
 }
 
 int32_t CliToolManagerService::RegisterFunctionHook(const sptr<IFunctionHookInterface> &hook, int32_t activeMethods)
@@ -1079,7 +1080,7 @@ int32_t CliToolManagerService::RegisterFunctionHook(const sptr<IFunctionHookInte
         return ERR_NOT_DEVELOPER_MODE;
     }
     if (hook == nullptr || hook->AsObject() == nullptr) {
-        return ERR_INVALID_VALUE;
+        return ERR_INVALID_PARAM;
     }
     auto remote = hook->AsObject();
     std::lock_guard<ffrt::mutex> lock(hookMutex_);
@@ -1102,7 +1103,7 @@ int32_t CliToolManagerService::UnregisterFunctionHook(const sptr<IFunctionHookIn
         return ret;
     }
     if (hook == nullptr) {
-        return ERR_INVALID_VALUE;
+        return ERR_INVALID_PARAM;
     }
     std::lock_guard<ffrt::mutex> lock(hookMutex_);
     if (functionHook_ != nullptr && functionHook_->AsObject() == hook->AsObject()) {
@@ -1113,12 +1114,17 @@ int32_t CliToolManagerService::UnregisterFunctionHook(const sptr<IFunctionHookIn
         functionHookActiveMethods_ = 0;
         functionHookDeathRecipient_ = nullptr;
         TAG_LOGI(AAFwkTag::CLI_TOOL, "UnregisterFunctionHook success");
+        return ERR_OK;
     }
-    return ERR_OK;
+    return ERR_HOOK_NOT_REGISTERED;
 }
 
 int32_t CliToolManagerService::BeforeInvokeFunction(InvokeFunctionHookParam &param)
 {
+    auto ret = VerifyFunctionCaller();
+    if (ret != ERR_OK) {
+        return ret;
+    }
     auto hook = CheckFunctionHook(FUNC_HOOK_BEFORE_INVOKE);
     if (hook == nullptr) {
         return ERR_OK;
@@ -1132,6 +1138,10 @@ int32_t CliToolManagerService::BeforeInvokeFunction(InvokeFunctionHookParam &par
 
 int32_t CliToolManagerService::AfterInvokeFunction(FunctionResultWrap &functionResultWrap)
 {
+    auto ret = VerifyFunctionCaller();
+    if (ret != ERR_OK) {
+        return ret;
+    }
     auto hook = CheckFunctionHook(FUNC_HOOK_AFTER_INVOKE);
     if (hook == nullptr) {
         return ERR_OK;
@@ -1167,13 +1177,34 @@ void CliToolManagerService::OnHookDied(const wptr<IRemoteObject> &remote, HookTy
 int32_t CliToolManagerService::VerifyHookCaller() const
 {
     auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
-    if (!AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "VerifyHookCaller: not a system app");
+    auto callerToken = IPCSkeleton::GetCallingTokenID();
+    bool isSystemApp = AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId);
+    bool isSA = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken) ==
+        Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE;
+    if (!isSystemApp && !isSA) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "VerifyHookCaller: not a system app nor SA");
         return ERR_NOT_SYSTEM_APP;
     }
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_REGISTER_AGENT_HOOK)) {
+    if (!PermissionUtil::VerifyAccessToken(callerToken, PERMISSION_REGISTER_AGENT_HOOK)) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "VerifyHookCaller: permission denied");
+        return ERR_PERMISSION_DENIED;
+    }
+    return ERR_OK;
+}
+
+int32_t CliToolManagerService::VerifyFunctionCaller() const
+{
+    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
+    auto callerToken = IPCSkeleton::GetCallingTokenID();
+    bool isSystemApp = AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId);
+    bool isSA = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken) ==
+        Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE;
+    if (!isSystemApp && !isSA) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "VerifyFunctionCaller: not a system app nor SA");
+        return ERR_NOT_SYSTEM_APP;
+    }
+    if (!PermissionUtil::VerifyAccessToken(callerToken, PERMISSION_ACCESS_FUNCTION)) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "VerifyFunctionCaller: permission denied");
         return ERR_PERMISSION_DENIED;
     }
     return ERR_OK;
@@ -1182,18 +1213,6 @@ int32_t CliToolManagerService::VerifyHookCaller() const
 bool CliToolManagerService::IsDeveloperMode() const
 {
     return system::GetBoolParameter("const.security.developermode.state", false);
-}
-
-sptr<ICliHookInterface> CliToolManagerService::GetCliHookSnapshot()
-{
-    std::lock_guard<ffrt::mutex> lock(hookMutex_);
-    return cliHook_;
-}
-
-sptr<IFunctionHookInterface> CliToolManagerService::GetFunctionHookSnapshot()
-{
-    std::lock_guard<ffrt::mutex> lock(hookMutex_);
-    return functionHook_;
 }
 
 sptr<ICliHookInterface> CliToolManagerService::CheckCliHook(uint32_t flag)
@@ -1311,22 +1330,20 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecTool called: toolName=%{public}s, subcommand=%{public}s",
         param.toolName.c_str(), param.subcommand.c_str());
 
-    ExecToolParam actualParam = param;
-    InvokeBeforeCallTool(actualParam);
-
     std::string bundleName;
     auto tokenId = IPCSkeleton::GetCallingTokenID();
 
-    // Get bundle name for event reporting
     AppExecFwk::BundleInfo bundleInfo;
     if (ToolUtil::GetBundleInfoByTokenId(tokenId, bundleInfo)) {
         bundleName = bundleInfo.name;
     }
 
     if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
-        ReportCliExecuteFailed(bundleName, actualParam.toolName, GetFailureReason(ret));
+        ReportCliExecuteFailed(bundleName, param.toolName, GetFailureReason(ret));
         return ret;
     }
+    ExecToolParam actualParam = param;
+    InvokeBeforeCallTool(actualParam);
     int32_t callerPid = IPCSkeleton::GetCallingPid();
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
@@ -1371,12 +1388,12 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
     InterfaceCallCounter counter(interfaceCalledCount_);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecCmd called: cmd=%{public}s", param.cmd.c_str());
 
-    ExecCmdParam actualParam = param;
-    InvokeBeforeCallCmd(actualParam);
 
     if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
         return ret;
     }
+    ExecCmdParam actualParam = param;
+    InvokeBeforeCallCmd(actualParam);
     int32_t callerPid = IPCSkeleton::GetCallingPid();
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
@@ -1957,7 +1974,7 @@ int32_t CliToolManagerService::ValidateSkillTypeFromParam(ExecToolParam &param, 
     auto skillName = param.args.GetStringParam("skillName");
     if (skillName.empty()) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "skillName is required in args");
-        return ERR_INVALID_VALUE;
+        return ERR_INVALID_PARAM;
     }
     return ValidateSkillType(bundleName, moduleName, skillName, skillType);
 }

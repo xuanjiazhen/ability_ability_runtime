@@ -304,10 +304,9 @@ private:
     void RemoveCallerPid(int64_t pid);
     int32_t GetCallerPidCount();
 
-    sptr<ICliHookInterface> GetCliHookSnapshot();
-    sptr<IFunctionHookInterface> GetFunctionHookSnapshot();
     bool IsDeveloperMode() const;
     int32_t VerifyHookCaller() const;
+    int32_t VerifyFunctionCaller() const;
     sptr<ICliHookInterface> CheckCliHook(uint32_t flag);
     sptr<IFunctionHookInterface> CheckFunctionHook(uint32_t flag);
     void InvokeBeforeCallTool(ExecToolParam &param);
@@ -350,7 +349,7 @@ private:
     static constexpr uint32_t FUNC_HOOK_BEFORE_INVOKE = 1 << 0;
     static constexpr uint32_t FUNC_HOOK_AFTER_INVOKE = 1 << 1;
 
-    static constexpr int32_t HOOK_TIMEOUT_SECONDS = 5;
+    static constexpr int32_t HOOK_TIMEOUT_SECONDS = 6;
     template<typename ParamType, typename HookFunc>
     bool InvokeHookAsync(HookFunc &&hookFunc, ParamType &param)
     {

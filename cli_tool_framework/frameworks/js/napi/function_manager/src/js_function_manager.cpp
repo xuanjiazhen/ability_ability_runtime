@@ -362,6 +362,11 @@ napi_value JSFunctionManager::OnRegisterFunctionHook(napi_env env, size_t argc, 
     }
 
     auto stub = sptr<JsFunctionHook>(new JsFunctionHook(env, argv[0]));
+    if (!stub->IsValid()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "OnRegisterFunctionHook: JsFunctionHook init failed");
+        napi_reject_deferred(env, deferred, CreateCliJsErrorByNativeErr(env, ERR_NO_INIT));
+        return handleEscape.Escape(promise);
+    }
     ErrCode ret = CliToolMGRClient::GetInstance().RegisterFunctionHook(stub, static_cast<int32_t>(activeMethods));
     if (ret == ERR_OK) {
         g_functionHookStub = stub;

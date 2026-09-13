@@ -52,12 +52,20 @@ public:
     ErrCode AfterCallCmd(ExecResultWrap& execResultWrap) override;
 
     napi_ref GetCallbackRef() const { return callbackRef_; }
+    bool IsValid() const { return callbackRef_ != nullptr && tsfn_ != nullptr; }
+
+    enum class HookMethodType : uint8_t {
+        BEFORE_CALL_TOOL,
+        AFTER_CALL_TOOL,
+        BEFORE_CALL_CMD,
+        AFTER_CALL_CMD,
+    };
 
     struct HookCallData {
-        std::string methodName;
-        ExecToolParam* toolParam = nullptr;
-        ExecCmdParam* cmdParam = nullptr;
-        ExecResultWrap* execResultWrap = nullptr;
+        HookMethodType methodType;
+        std::shared_ptr<ExecToolParam> toolParam;
+        std::shared_ptr<ExecCmdParam> cmdParam;
+        std::shared_ptr<ExecResultWrap> execResultWrap;
         std::shared_ptr<std::promise<void>> promise;
     };
 
@@ -71,8 +79,7 @@ private:
     static void CallJs(napi_env env, napi_value jsCb, void* context, void* data);
     static void Finalize(napi_env env, void* data, void* hint);
 
-    ErrCode DispatchToJs(const std::string& method, ExecToolParam* toolParam,
-        ExecCmdParam* cmdParam, ExecResultWrap* execResultWrap);
+    bool DispatchToJs(std::shared_ptr<HookCallData> callData);
 };
 
 } // namespace CliTool
