@@ -31,44 +31,40 @@ constexpr const char* ERROR_MSG_INNER = "Inner error.";
 #endif // SUPPORT_SCREEN
 JsUIExtensionCallback::~JsUIExtensionCallback()
 {
-    if (jsCallbackObject_  == nullptr) {
-        return;
-    }
-
-    uv_loop_t *loop = nullptr;
-    napi_get_uv_event_loop(env_, &loop);
-    if (loop == nullptr) {
-        return;
-    }
-
-    uv_work_t *work = new (std::nothrow) uv_work_t;
-    if (work == nullptr) {
-        return;
-    }
-    work->data = reinterpret_cast<void *>(jsCallbackObject_.release());
-    int ret = uv_queue_work(loop, work, [](uv_work_t *work) {},
-    [](uv_work_t *work, int status) {
-        if (work == nullptr) {
-            return;
+    if (jsCallbackObject_ != nullptr) {
+        uv_loop_t *loop = nullptr;
+        napi_get_uv_event_loop(env_, &loop);
+        if (loop != nullptr) {
+            uv_work_t *work = new (std::nothrow) uv_work_t;
+            if (work != nullptr) {
+                work->data = reinterpret_cast<void *>(jsCallbackObject_.release());
+                int ret = uv_queue_work(loop, work, [](uv_work_t *work) {},
+                [](uv_work_t *work, int status) {
+                    if (work == nullptr) {
+                        return;
+                    }
+                    if (work->data == nullptr) {
+                        delete work;
+                        work = nullptr;
+                        return;
+                    }
+                    delete reinterpret_cast<NativeReference *>(work->data);
+                    work->data = nullptr;
+                    delete work;
+                    work = nullptr;
+                });
+                if (ret != 0) {
+                    delete reinterpret_cast<NativeReference *>(work->data);
+                    work->data = nullptr;
+                    delete work;
+                    work = nullptr;
+                }
+            }
         }
-        if (work->data == nullptr) {
-            delete work;
-            work = nullptr;
-            return;
-        }
-        delete reinterpret_cast<NativeReference *>(work->data);
-        work->data = nullptr;
-        delete work;
-        work = nullptr;
-    });
-    if (ret != 0) {
-        delete reinterpret_cast<NativeReference *>(work->data);
-        work->data = nullptr;
-        delete work;
-        work = nullptr;
     }
     FreeNativeReference(onRequestSuccess_);
     FreeNativeReference(onRequestFailure_);
+    FreeNativeReference(completionCallback_);
 }
 
 void JsUIExtensionCallback::FreeNativeReference(std::unique_ptr<NativeReference>& reference)
@@ -147,20 +143,42 @@ void JsUIExtensionCallback::RejectDeferred(int32_t jsErrCode, const std::string&
         napi_reject_deferred(env_, deferred_, error);
         deferred_ = nullptr;
     }
+    if (completionCallback_ != nullptr) {
+        napi_value callback = completionCallback_->GetNapiValue();
+        if (callback != nullptr) {
+            napi_value error = CreateJsError(env_, jsErrCode, innerMsg);
+            napi_value undefined = CreateJsUndefined(env_);
+            napi_value argv[] = { error, undefined };
+            napi_call_function(env_, nullptr, callback, ArraySize(argv), argv, nullptr);
+        }
+        FreeNativeReference(completionCallback_);
+    }
 }
 
 void JsUIExtensionCallback::ResolveDeferred()
 {
-    if (deferred_ == nullptr) {
+    if (deferred_ == nullptr && completionCallback_ == nullptr) {
         return;
     }
     std::shared_ptr<JsUIExtensionCallback> jsUIExtensionCallback = shared_from_this();
     std::unique_ptr<NapiAsyncTask::CompleteCallback> complete = std::make_unique<NapiAsyncTask::CompleteCallback>
         ([jsUIExtensionCallback](napi_env env, NapiAsyncTask &task, int32_t status) {
-            if (jsUIExtensionCallback != nullptr && jsUIExtensionCallback->deferred_ != nullptr) {
+            if (jsUIExtensionCallback == nullptr) {
+                return;
+            }
+            if (jsUIExtensionCallback->deferred_ != nullptr) {
                 napi_value value = CreateJsUndefined(env);
                 napi_resolve_deferred(env, jsUIExtensionCallback->deferred_, value);
                 jsUIExtensionCallback->deferred_ = nullptr;
+            }
+            if (jsUIExtensionCallback->completionCallback_ != nullptr) {
+                napi_value callback = jsUIExtensionCallback->completionCallback_->GetNapiValue();
+                if (callback != nullptr) {
+                    napi_value undefined = CreateJsUndefined(env);
+                    napi_value argv[] = { undefined, undefined };
+                    napi_call_function(env, nullptr, callback, ArraySize(argv), argv, nullptr);
+                }
+                jsUIExtensionCallback->FreeNativeReference(jsUIExtensionCallback->completionCallback_);
             }
         });
     napi_ref callback = nullptr;
@@ -296,6 +314,23 @@ void JsUIExtensionCallback::CallJsError(int32_t number, const std::string& name,
     napi_value argv[] = { nativeNumber, nativeName, nativeMessage };
     napi_call_function(env_, obj, method, ArraySize(argv), argv, nullptr);
     TAG_LOGI(AAFwkTag::UI_EXT, "end");
+}
+
+void JsUIExtensionCallback::SetCompletionCallback(napi_env env, napi_value callback)
+{
+    AbilityRuntime::HandleScope handleScope(env);
+    TAG_LOGI(AAFwkTag::UI_EXT, "call");
+    if (env == nullptr || callback == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "invalid parameters");
+        return;
+    }
+    napi_ref ref = nullptr;
+    napi_status status = napi_create_reference(env, callback, 1, &ref);
+    if (status == napi_ok) {
+        completionCallback_ = std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(ref));
+    } else {
+        TAG_LOGE(AAFwkTag::UI_EXT, "create completionCallback_ failed: %{public}d", status);
+    }
 }
 
 void JsUIExtensionCallback::SetCompletionHandler(napi_env env, napi_value completionHandler)

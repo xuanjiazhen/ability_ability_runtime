@@ -1711,10 +1711,11 @@ napi_value JsUIExtensionContext::OnStartAbilityByType(napi_env env, NapiCallback
     napi_value lastParam = (info.argc > ARGC_THREE) ? info.argv[INDEX_THREE] : nullptr;
     napi_value result = nullptr;
     if (lastParam != nullptr) {
+        callback->SetCompletionCallback(env, lastParam);
         NapiAsyncTask::CompleteCallback complete =
-            [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+            [innerErrCode, callback](napi_env env, NapiAsyncTask& task, int32_t status) {
                 if (*innerErrCode == ERR_OK) {
-                    task.ResolveWithNoError(env, CreateJsUndefined(env));
+                    // Hold — OnAbilityErrorCode/ResolveDeferred will call completion callback
                 } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
                     task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
                 } else {

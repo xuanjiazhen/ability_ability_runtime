@@ -165,11 +165,15 @@ virtual void ResolveDeferred() {}
 新增成员和方法：
 ```cpp
 napi_deferred deferred_ = nullptr;
+std::unique_ptr<NativeReference> completionCallback_ = nullptr;
 void SetDeferred(napi_deferred deferred) { deferred_ = deferred; }
+void SetCompletionCallback(napi_env env, napi_value callback);
 void RejectDeferred(int32_t jsErrCode, const std::string& innerMsg);
 void ResolveDeferred() override;
 void OnAbilityErrorCode(int32_t errorCode) override;
 ```
+
+`completionCallback_` 存储 Node.js error-first 回调 `(err, result)`，与 `deferred_` 互斥使用（Promise 模式用 `deferred_`，回调模式用 `completionCallback_`）。
 
 **`OnAbilityErrorCode` 实现**：
 1. `GetJsErrorCodeByNativeError(errorCode)` → JS 错误码（如 16000050）
@@ -177,9 +181,15 @@ void OnAbilityErrorCode(int32_t errorCode) override;
 3. 异步调度 `RejectDeferred(jsErrCode, innerMsg)` 到 JS 线程（经 `NapiAsyncTask::Schedule`）
 4. `CloseModalUIExtension()`
 
-**`RejectDeferred` 实现**：`if (deferred_ != nullptr) { napi_reject_deferred(...); deferred_ = nullptr; }`
+**`RejectDeferred` 实现**：
+- `if (deferred_ != nullptr)` → `napi_reject_deferred` + 置 null（Promise reject）
+- `if (completionCallback_ != nullptr)` → `napi_call_function(callback, {error, undefined})` + 释放（回调 error-first）
 
-**`ResolveDeferred` 实现**：经 `NapiAsyncTask::Schedule` 调度到 JS 线程，双重检查 `deferred_ != nullptr` 后 `napi_resolve_deferred`
+**`ResolveDeferred` 实现**：经 `NapiAsyncTask::Schedule` 调度到 JS 线程：
+- `if (deferred_ != nullptr)` → `napi_resolve_deferred` + 置 null（Promise resolve）
+- `if (completionCallback_ != nullptr)` → `napi_call_function(callback, {undefined, undefined})` + 释放（回调 success）
+
+**`SetCompletionCallback` 实现**：`napi_create_reference` 存储 JS 函数引用到 `completionCallback_`
 
 **`CallJsError` 改造**：
 - 签名扩展为 `(int32_t number, const std::string& name = "", const std::string& message = "")`
@@ -232,25 +242,21 @@ callback.onAbilityErrorCode = [uiExtensionCallback, errorFired](int32_t errorCod
 1. `errorFired` CAS — `onAbilityErrorCode` 仅首次 FOREGROUND 结果为准
 2. `deferred_ != nullptr` — `ResolveDeferred`/`RejectDeferred` 一次性，Promise settle 后后续 no-op
 
-## 7. NAPI 入口 Promise 持有
+## 7. NAPI 入口 Promise 持有 + completionCallback
 
-4 个 NAPI 入口改为 Promise 持有模式：
+4 个 NAPI 入口改为持有模式。**回调模式（`lastParam != nullptr`）和 Promise 模式均持有等待异步结果**：
 
-1. `napi_create_promise` 手动创建 Promise，`deferred` 存入 `callback->SetDeferred()`
-2. `NapiAsyncTask(deferred, execute, complete)` 调度 worker 线程执行 `StartAbilityByType`
-3. `complete` 回调：`innerErrCode == ERR_OK` → **不 resolve**（持有 deferred）；`!= ERR_OK` → `task.Reject`
-4. 异步结果通过 `onAbilityErrorCode` resolve/reject deferred
+- **Promise 模式**：`napi_create_promise` → `SetDeferred` → `complete` 不 resolve → `ResolveDeferred`/`RejectDeferred` 操作 `deferred_`
+- **回调模式**：`SetCompletionCallback(env, lastParam)` → `complete` 不 resolve → `ResolveDeferred`/`RejectDeferred` 操作 `completionCallback_`（Node.js error-first `(err, result)`）
 
-利用 `NapiAsyncTask::~NapiAsyncTask()` 不 reject deferred 的特性（仅删除 async_work），deferred 在 `complete` 不 resolve 时安全持有。
-
-`lastParam != nullptr`（callback 模式）保持原行为（立即 resolve/reject）。
+利用 `NapiAsyncTask::~NapiAsyncTask()` 不 reject deferred 的特性，deferred/completionCallback 在 `complete` 不 resolve 时安全持有。
 
 | NAPI 入口 | 文件 | 特点 |
 |-----------|------|------|
-| `JsAbilityContext::OnStartAbilityByType` | `js_ability_context.cpp` | `lastParam` 分支：callback 模式立即 resolve，Promise 模式持有 |
+| `JsAbilityContext::OnStartAbilityByType` | `js_ability_context.cpp` | `lastParam` 分支：回调模式 `SetCompletionCallback`+hold，Promise 模式 `SetDeferred`+hold |
 | `JsUIExtensionContext::OnStartAbilityByType` | `js_ui_extension_context.cpp` | 同上 |
 | `JSUIServiceExtensionContext::OnStartAbilityByType` | `js_ui_service_extension_context.cpp` | 始终 Promise 持有（原 `lastParam` 固定 nullptr） |
-| `JsUIExtensionContentSession::OnStartAbilityByType` | `js_ui_extension_content_session.cpp` | `holdDeferred` 标志，无 execute，complete 内联构造 callback |
+| `JsUIExtensionContentSession::OnStartAbilityByType` | `js_ui_extension_content_session.cpp` | 无 execute，complete 内联构造 callback；回调模式 `SetCompletionCallback`+hold，Promise 模式 `SetDeferred`+hold |
 
 ## 8. 数据流
 
@@ -333,8 +339,8 @@ callback.onAbilityErrorCode = [uiExtensionCallback, errorFired](int32_t errorCod
 | 3 | `ability_manager_service.h` | `SetPickerElementNameAndParams` 返回值 `void` → `ErrCode` |
 | 4 | `ability_manager_service.cpp` | `SetPickerElementNameAndParams` pickerMap 失败返回 `ERR_INVALID_EXTENSION_TYPE`；调用处检查返回值；`UNSPECIFIED` 检查保持 `ERR_INVALID_VALUE` |
 | 4 | `ui_extension_callback.h` | +`OnAbilityErrorCode` +`ResolveDeferred` 虚函数 |
-| 5 | `js_ui_extension_callback.h` | +`deferred_` 成员, +`SetDeferred`/`RejectDeferred`/`ResolveDeferred`/`OnAbilityErrorCode`, CallJsError 扩展签名 |
-| 6 | `js_ui_extension_callback.cpp` | +`RejectDeferred`/`ResolveDeferred`/`OnAbilityErrorCode` 实现, CallJsError 改造 |
+| 5 | `js_ui_extension_callback.h` | +`deferred_` +`completionCallback_` 成员, +`SetDeferred`/`SetCompletionCallback`/`RejectDeferred`/`ResolveDeferred`/`OnAbilityErrorCode`, CallJsError 扩展签名 |
+| 6 | `js_ui_extension_callback.cpp` | +`SetCompletionCallback`/`RejectDeferred`(+callback)/`ResolveDeferred`(+callback)/`OnAbilityErrorCode` 实现, 析构函数释放 `completionCallback_`, CallJsError 改造 |
 | 7 | `ets_ui_extension_callback.h` | +`OnAbilityErrorCode` override |
 | 8 | `ets_ui_extension_callback.cpp` | +`OnAbilityErrorCode` 实现 |
 | 9 | `ability_context_impl.cpp` | +onAbilityErrorCode +errorFired (站点#1) |

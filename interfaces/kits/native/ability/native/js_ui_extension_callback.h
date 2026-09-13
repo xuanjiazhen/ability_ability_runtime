@@ -34,6 +34,7 @@ public:
     void SetJsCallbackObject(napi_value jsCallbackObject);
     void SetDeferred(napi_deferred deferred) { deferred_ = deferred; }
     void RejectDeferred(int32_t jsErrCode, const std::string& innerMsg);
+    void SetCompletionCallback(napi_env env, napi_value callback);
     void CallJsError(int32_t number, const std::string& name = "", const std::string& message = "");
     void SetCompletionHandler(napi_env env, napi_value completionHandler);
     void OnRequestSuccess(const std::string& name) override;
@@ -42,6 +43,7 @@ private:
     napi_env env_ = nullptr;
     napi_deferred deferred_ = nullptr;
     std::unique_ptr<NativeReference> jsCallbackObject_ = nullptr;
+    std::unique_ptr<NativeReference> completionCallback_ = nullptr;
     std::unique_ptr<NativeReference> onRequestSuccess_ = nullptr;
     std::unique_ptr<NativeReference> onRequestFailure_ = nullptr;
     void FreeNativeReference(std::unique_ptr<NativeReference>& reference);

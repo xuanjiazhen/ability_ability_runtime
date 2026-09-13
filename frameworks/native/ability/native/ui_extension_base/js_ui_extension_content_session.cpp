@@ -946,8 +946,7 @@ napi_value JsUIExtensionContentSession::OnStartAbilityByType(napi_env env, NapiC
         uiExtensionCallback->SetCompletionHandler(env, completionHandler);
     }
     napi_value lastParam = (info.argc > ARGC_THREE) ? info.argv[INDEX_THREE] : nullptr;
-    bool holdDeferred = (lastParam == nullptr);
-    NapiAsyncTask::CompleteCallback complete = [uiWindow = uiWindow_, type, want, uiExtensionCallback, holdDeferred]
+    NapiAsyncTask::CompleteCallback complete = [uiWindow = uiWindow_, type, want, uiExtensionCallback]
         (napi_env env, NapiAsyncTask& task, int32_t status) {
             HandleScope handleScope(env);
             if (uiWindow == nullptr || uiWindow->GetUIContent() == nullptr) {
@@ -1005,14 +1004,13 @@ napi_value JsUIExtensionContentSession::OnStartAbilityByType(napi_env env, NapiC
             } else {
                 uiExtensionCallback->SetUIContent(uiWindow->GetUIContent());
                 uiExtensionCallback->SetSessionId(sessionId);
-                if (!holdDeferred) {
-                    task.ResolveWithNoError(env, CreateJsUndefined(env));
-                }
+                // Hold — OnAbilityErrorCode/ResolveDeferred will resolve/reject
             }
 #endif // SUPPORT_SCREEN
         };
     napi_value result = nullptr;
     if (lastParam != nullptr) {
+        uiExtensionCallback->SetCompletionCallback(env, lastParam);
         NapiAsyncTask::ScheduleHighQos("JsUIExtensionContentSession::OnStartAbilityByType",
             env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
         return handleEscape.Escape(result);
