@@ -27,7 +27,7 @@
 #include "exec_result_wrap.h"
 #include "function_result_wrap.h"
 #include "icli_tool_manager.h"
-#include "invoke_function_hook_param.h"
+#include "invoke_function_param.h"
 #include "invoke_function_result.h"
 #include "iremote_object.h"
 #include "want_params.h"
@@ -175,7 +175,7 @@ public:
     ErrCode UnregisterCliHook(const sptr<ICliHookInterface> &hook);
     ErrCode RegisterFunctionHook(const sptr<IFunctionHookInterface> &hook, int32_t activeMethods = 0);
     ErrCode UnregisterFunctionHook(const sptr<IFunctionHookInterface> &hook);
-    ErrCode BeforeInvokeFunction(InvokeFunctionHookParam &param);
+    ErrCode BeforeInvokeFunction(InvokeFunctionParam &param);
     ErrCode AfterInvokeFunction(FunctionResultWrap &functionResultWrap);
 
     /**

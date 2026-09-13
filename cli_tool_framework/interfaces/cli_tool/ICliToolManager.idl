@@ -29,7 +29,7 @@ sequenceable FunctionInfo..OHOS.CliTool.FunctionInfo;
 rawdata FunctionInfo..OHOS.CliTool.FunctionsRawData;
 sequenceable WantParams..OHOS.AAFwk.WantParams;
 sequenceable InvokeFunctionResult..OHOS.CliTool.InvokeFunctionResult;
-sequenceable InvokeFunctionHookParam..OHOS.CliTool.InvokeFunctionHookParam;
+sequenceable InvokeFunctionParam..OHOS.CliTool.InvokeFunctionParam;
 sequenceable FunctionResultWrap..OHOS.CliTool.FunctionResultWrap;
 
 interface ICliToolManager {
@@ -59,6 +59,6 @@ interface ICliToolManager {
     void UnregisterCliHook([in] ICliHookInterface hook);
     void RegisterFunctionHook([in] IFunctionHookInterface hook, [in] int activeMethods);
     void UnregisterFunctionHook([in] IFunctionHookInterface hook);
-    void BeforeInvokeFunction([inout] InvokeFunctionHookParam param);
+    void BeforeInvokeFunction([inout] InvokeFunctionParam param);
     void AfterInvokeFunction([inout] FunctionResultWrap functionResultWrap);
 }

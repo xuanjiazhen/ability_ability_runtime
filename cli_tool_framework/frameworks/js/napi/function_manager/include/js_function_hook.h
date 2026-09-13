@@ -23,7 +23,7 @@
 
 #include "function_hook_interface_stub.h"
 #include "function_result_wrap.h"
-#include "invoke_function_hook_param.h"
+#include "invoke_function_param.h"
 #include "native_engine/native_engine.h"
 
 namespace OHOS {
@@ -44,7 +44,7 @@ public:
     explicit JsFunctionHook(napi_env env, napi_value jsHookObj);
     ~JsFunctionHook() override;
 
-    ErrCode BeforeInvokeFunction(InvokeFunctionHookParam& param) override;
+    ErrCode BeforeInvokeFunction(InvokeFunctionParam& param) override;
 
     ErrCode AfterInvokeFunction(FunctionResultWrap& functionResultWrap) override;
 
@@ -58,7 +58,7 @@ public:
 
     struct FunctionHookCallData {
         HookMethodType methodType;
-        std::shared_ptr<InvokeFunctionHookParam> hookParam;
+        std::shared_ptr<InvokeFunctionParam> hookParam;
         std::shared_ptr<FunctionResultWrap> functionResultWrap;
         std::shared_ptr<std::promise<void>> promise;
     };

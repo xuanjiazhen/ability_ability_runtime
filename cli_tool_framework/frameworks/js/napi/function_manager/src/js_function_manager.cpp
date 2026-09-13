@@ -60,38 +60,31 @@ void InvokeFunctionFinalize(napi_env env, void *finalizeData, void *finalizeHint
 
 void InvokeFunctionCallJs(napi_env env, napi_value jsCb, void *context, void *data)
 {
-    auto *result = static_cast<InvokeFunctionResult *>(data);
-    if (result == nullptr) {
+    auto *holder = static_cast<FunctionResultHolder *>(data);
+    if (holder == nullptr) {
         return;
     }
     if (env == nullptr || context == nullptr) {
-        delete result;
+        delete holder;
         return;
     }
     auto *ctx = static_cast<InvokeFunctionTsfnContext *>(context);
     HandleScope handleScope(env);
 
-    if (result->invokeSuccess) {
-        napi_value jsResult = CreateJsInvokeResult(env, result->resultCode,
-            result->result, result->message);
+    if (holder->innerError == 0) {
+        napi_value jsResult = CreateJsInvokeResult(env, holder->result);
         if (jsResult != nullptr) {
             napi_resolve_deferred(env, ctx->deferred, jsResult);
         } else {
             napi_reject_deferred(env, ctx->deferred, CreateCliJsErrorByNativeErr(env, ERR_INNER_PARAM_INVALID));
         }
     } else {
-        napi_value jsError = CreateCliJsErrorByNativeErr(env, result->errorCode);
+        napi_value jsError = CreateCliJsErrorByNativeErr(env, holder->innerError);
         napi_reject_deferred(env, ctx->deferred, jsError);
     }
     napi_release_threadsafe_function(ctx->tsfn, napi_tsfn_release);
-    delete result;
+    delete holder;
 }
-
-struct InvokeFunctionArgs {
-    std::string funcNamespace;
-    std::string functionName;
-    AAFwk::WantParams wantParams;
-};
 
 bool IsUIAbilityContext(napi_env env, napi_value value)
 {
@@ -151,14 +144,14 @@ bool ValidateOptions(napi_env env, napi_value options)
     return true;
 }
 
-bool ParseInvokeFunctionArgs(napi_env env, size_t argc, napi_value *argv, InvokeFunctionArgs &out)
+bool ParseInvokeFunctionParam(napi_env env, size_t argc, napi_value *argv, InvokeFunctionParam &out)
 {
     if (argc < INDEX_THREE) {
         ThrowTooFewParametersError(env);
         return false;
     }
-    if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ZERO], out.funcNamespace) ||
-        out.funcNamespace.empty()) {
+    if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ZERO], out.functionNamespace) ||
+        out.functionNamespace.empty()) {
         ThrowInvalidParamError(env, "functionNamespace is required");
         return false;
     }
@@ -167,7 +160,7 @@ bool ParseInvokeFunctionArgs(napi_env env, size_t argc, napi_value *argv, Invoke
         ThrowInvalidParamError(env, "functionName is required");
         return false;
     }
-    if (!AppExecFwk::UnwrapWantParams(env, argv[INDEX_TWO], out.wantParams)) {
+    if (!AppExecFwk::UnwrapWantParams(env, argv[INDEX_TWO], out.args)) {
         ThrowInvalidParamError(env, "args is required");
         return false;
     }
@@ -243,8 +236,8 @@ napi_value JSFunctionManager::OnInvokeFunction(napi_env env, size_t argc, napi_v
     TAG_LOGI(AAFwkTag::CLI_TOOL, "JSFunctionManager::OnInvokeFunction called");
     HandleEscape handleEscape(env);
 
-    InvokeFunctionArgs args;
-    if (!ParseInvokeFunctionArgs(env, argc, argv, args)) {
+    InvokeFunctionParam param;
+    if (!ParseInvokeFunctionParam(env, argc, argv, param)) {
         return CreateJsUndefined(env);  // validation already threw a JS exception
     }
 
@@ -280,15 +273,15 @@ napi_value JSFunctionManager::OnInvokeFunction(napi_env env, size_t argc, napi_v
     // Bridge: forward the pure-C++ outcome from the executor (worker/binder thread)
     // into the threadsafe-function payload. InvokeFunctionExecutor owns all business
     // logic and is fully decoupled from napi.
-    InvokeResultCallback bridge = [tsfnContext](const InvokeFunctionResult &outcome) {
-        auto *data = new InvokeFunctionResult(outcome);
+    InvokeResultCallback bridge = [tsfnContext](const FunctionResultHolder &holder) {
+        auto *data = new FunctionResultHolder(holder);
         napi_status status = napi_call_threadsafe_function(tsfnContext->tsfn, data, napi_tsfn_nonblocking);
         if (status != napi_ok) {
             delete data;
         }
     };
 
-    InvokeFunctionExecutor::Create()->Execute(args.funcNamespace, args.functionName, args.wantParams, bridge);
+    InvokeFunctionExecutor::Create()->Execute(param, bridge);
 
     return handleEscape.Escape(promise);
 }

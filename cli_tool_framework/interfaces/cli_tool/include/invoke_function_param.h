@@ -13,18 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_CLI_TOOL_INVOKE_FUNCTION_HOOK_PARAM_H
-#define OHOS_CLI_TOOL_INVOKE_FUNCTION_HOOK_PARAM_H
+#ifndef OHOS_CLI_TOOL_INVOKE_FUNCTION_PARAM_H
+#define OHOS_CLI_TOOL_INVOKE_FUNCTION_PARAM_H
 #include "parcel.h"
 #include "want_params.h"
 #include "string"
 namespace OHOS::CliTool {
-struct InvokeFunctionHookParam : public Parcelable {
+struct InvokeOptions {
+    std::string context;
+};
+
+struct InvokeFunctionParam : public Parcelable {
     std::string functionNamespace;
     std::string functionName;
     AAFwk::WantParams args;
+    InvokeOptions invokeOptions;
     bool Marshalling(Parcel &parcel) const override;
-    static InvokeFunctionHookParam *Unmarshalling(Parcel &parcel);
+    static InvokeFunctionParam *Unmarshalling(Parcel &parcel);
 };
 }
 #endif

@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-#include "invoke_function_hook_param.h"
+#include "invoke_function_param.h"
 
 #include <memory>
 
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS::CliTool {
-bool InvokeFunctionHookParam::Marshalling(Parcel &parcel) const
+bool InvokeFunctionParam::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteString(functionNamespace)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write functionNamespace.");
@@ -34,12 +34,16 @@ bool InvokeFunctionHookParam::Marshalling(Parcel &parcel) const
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write args.");
         return false;
     }
+    if (!parcel.WriteString(invokeOptions.context)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write invokeOptions.context.");
+        return false;
+    }
     return true;
 }
 
-InvokeFunctionHookParam *InvokeFunctionHookParam::Unmarshalling(Parcel &parcel)
+InvokeFunctionParam *InvokeFunctionParam::Unmarshalling(Parcel &parcel)
 {
-    auto param = std::make_unique<InvokeFunctionHookParam>();
+    auto param = std::make_unique<InvokeFunctionParam>();
     if (!parcel.ReadString(param->functionNamespace)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read functionNamespace.");
         return nullptr;
@@ -54,6 +58,10 @@ InvokeFunctionHookParam *InvokeFunctionHookParam::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
     param->args = *args;
+    if (!parcel.ReadString(param->invokeOptions.context)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read invokeOptions.context.");
+        return nullptr;
+    }
     return param.release();
 }
 }

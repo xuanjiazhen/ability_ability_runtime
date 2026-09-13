@@ -33,7 +33,7 @@
 #include "exec_result_wrap.h"
 #include "ffrt.h"
 #include "function_result_wrap.h"
-#include "invoke_function_hook_param.h"
+#include "invoke_function_param.h"
 #include "invoke_function_result.h"
 #include "iremote_object.h"
 #include "system_ability.h"
@@ -171,7 +171,7 @@ public:
     int32_t UnregisterCliHook(const sptr<ICliHookInterface> &hook) override;
     int32_t RegisterFunctionHook(const sptr<IFunctionHookInterface> &hook, int32_t activeMethods) override;
     int32_t UnregisterFunctionHook(const sptr<IFunctionHookInterface> &hook) override;
-    int32_t BeforeInvokeFunction(InvokeFunctionHookParam &param) override;
+    int32_t BeforeInvokeFunction(InvokeFunctionParam &param) override;
     int32_t AfterInvokeFunction(FunctionResultWrap &functionResultWrap) override;
 
     /**

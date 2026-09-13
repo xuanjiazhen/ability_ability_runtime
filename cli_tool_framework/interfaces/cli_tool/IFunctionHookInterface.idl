@@ -17,10 +17,10 @@ package OHOS.CliTool;
 
 sequenceable WantParams..OHOS.AAFwk.WantParams;
 sequenceable InvokeFunctionResult..OHOS.CliTool.InvokeFunctionResult;
-sequenceable InvokeFunctionHookParam..OHOS.CliTool.InvokeFunctionHookParam;
+sequenceable InvokeFunctionParam..OHOS.CliTool.InvokeFunctionParam;
 sequenceable FunctionResultWrap..OHOS.CliTool.FunctionResultWrap;
 
 interface IFunctionHookInterface {
-    void BeforeInvokeFunction([inout] InvokeFunctionHookParam param);
+    void BeforeInvokeFunction([inout] InvokeFunctionParam param);
     void AfterInvokeFunction([inout] FunctionResultWrap functionResultWrap);
 }

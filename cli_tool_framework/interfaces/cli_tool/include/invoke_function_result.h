@@ -26,20 +26,19 @@ namespace OHOS {
 namespace CliTool {
 
 /**
- * @brief Pure-C++ outcome of an invokeFunction run.
+ * @brief Pure-C++ outcome of an invokeFunction run, matching JS InvokeResult.
  *
- * Carries everything the NAPI layer needs to build a JS result or reject the
- * promise. Deliberately holds NO napi types so the executor can run and be
- * tested without an N-API environment. Inherits Parcelable so it can be
- * marshalled across IPC (e.g. IFunctionHookScheduler::AfterInvokeFunction).
+ * Four fields mirror the JS API exactly. The framework-level error code
+ * (for promise rejection) is carried separately in FunctionResultHolder.
+ * Inherits Parcelable so it can be marshalled across IPC
+ * (e.g. AfterInvokeFunction hook parameter).
  */
 class InvokeFunctionResult : public Parcelable {
 public:
-    bool invokeSuccess = false;
-    int32_t errorCode = 0;                       // native err code, used on the reject path
-    int32_t resultCode = 0;                      // executeResult.code (app business level)
-    std::shared_ptr<AAFwk::WantParams> result;   // business data carried into InvokeResult.data
-    std::string message;                          // reserved description
+    bool success = false;
+    int32_t errorCode = 0;
+    std::string errorMsg;
+    std::shared_ptr<AAFwk::WantParams> data;
 
     bool Marshalling(Parcel &parcel) const override;
     static InvokeFunctionResult *Unmarshalling(Parcel &parcel);

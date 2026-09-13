@@ -23,36 +23,32 @@ namespace OHOS {
 namespace CliTool {
 bool InvokeFunctionResult::Marshalling(Parcel &parcel) const
 {
-    if (!parcel.WriteBool(invokeSuccess)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write invokeSuccess.");
+    if (!parcel.WriteBool(success)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write success.");
         return false;
     }
     if (!parcel.WriteInt32(errorCode)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write errorCode.");
         return false;
     }
-    if (!parcel.WriteInt32(resultCode)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write resultCode.");
+    if (!parcel.WriteString(errorMsg)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write errorMsg.");
         return false;
     }
-    if (result != nullptr) {
+    if (data != nullptr) {
         if (!parcel.WriteBool(true)) {
-            TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write result flag.");
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write data flag.");
             return false;
         }
-        if (!parcel.WriteParcelable(result.get())) {
-            TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write result.");
+        if (!parcel.WriteParcelable(data.get())) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write data.");
             return false;
         }
     } else {
         if (!parcel.WriteBool(false)) {
-            TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write result flag.");
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write data flag.");
             return false;
         }
-    }
-    if (!parcel.WriteString(message)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write message.");
-        return false;
     }
     return true;
 }
@@ -60,34 +56,30 @@ bool InvokeFunctionResult::Marshalling(Parcel &parcel) const
 InvokeFunctionResult *InvokeFunctionResult::Unmarshalling(Parcel &parcel)
 {
     auto result = std::make_unique<InvokeFunctionResult>();
-    if (!parcel.ReadBool(result->invokeSuccess)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read invokeSuccess.");
+    if (!parcel.ReadBool(result->success)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read success.");
         return nullptr;
     }
     if (!parcel.ReadInt32(result->errorCode)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read errorCode.");
         return nullptr;
     }
-    if (!parcel.ReadInt32(result->resultCode)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read resultCode.");
+    if (!parcel.ReadString(result->errorMsg)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read errorMsg.");
         return nullptr;
     }
-    bool hasResult = false;
-    if (!parcel.ReadBool(hasResult)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read result flag.");
+    bool hasData = false;
+    if (!parcel.ReadBool(hasData)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read data flag.");
         return nullptr;
     }
-    if (hasResult) {
+    if (hasData) {
         auto wantParams = std::unique_ptr<AAFwk::WantParams>(parcel.ReadParcelable<AAFwk::WantParams>());
         if (wantParams == nullptr) {
-            TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read result.");
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read data.");
             return nullptr;
         }
-        result->result = std::shared_ptr<AAFwk::WantParams>(wantParams.release());
-    }
-    if (!parcel.ReadString(result->message)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read message.");
-        return nullptr;
+        result->data = std::shared_ptr<AAFwk::WantParams>(wantParams.release());
     }
     return result.release();
 }

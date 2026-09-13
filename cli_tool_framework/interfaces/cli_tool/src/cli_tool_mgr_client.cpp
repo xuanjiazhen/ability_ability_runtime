@@ -374,7 +374,7 @@ ErrCode CliToolMGRClient::UnregisterFunctionHook(const sptr<IFunctionHookInterfa
     return proxy->UnregisterFunctionHook(hook);
 }
 
-ErrCode CliToolMGRClient::BeforeInvokeFunction(InvokeFunctionHookParam &param)
+ErrCode CliToolMGRClient::BeforeInvokeFunction(InvokeFunctionParam &param)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "BeforeInvokeFunction: ns=%{public}s, name=%{public}s",
         param.functionNamespace.c_str(), param.functionName.c_str());

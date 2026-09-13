@@ -1119,7 +1119,7 @@ int32_t CliToolManagerService::UnregisterFunctionHook(const sptr<IFunctionHookIn
     return ERR_HOOK_NOT_REGISTERED;
 }
 
-int32_t CliToolManagerService::BeforeInvokeFunction(InvokeFunctionHookParam &param)
+int32_t CliToolManagerService::BeforeInvokeFunction(InvokeFunctionParam &param)
 {
     auto ret = VerifyFunctionCaller();
     if (ret != ERR_OK) {
@@ -1130,7 +1130,7 @@ int32_t CliToolManagerService::BeforeInvokeFunction(InvokeFunctionHookParam &par
         return ERR_OK;
     }
     if (!InvokeHookAsync(
-        [hook](InvokeFunctionHookParam &p) { hook->BeforeInvokeFunction(p); }, param)) {
+        [hook](InvokeFunctionParam &p) { hook->BeforeInvokeFunction(p); }, param)) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "BeforeInvokeFunction hook timeout, using original param");
     }
     return ERR_OK;

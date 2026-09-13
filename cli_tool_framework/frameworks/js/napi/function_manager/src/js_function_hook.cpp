@@ -33,13 +33,13 @@ napi_value CreateJsInvokeResult(napi_env env, const InvokeFunctionResult& result
 {
     napi_value jsObj = nullptr;
     napi_create_object(env, &jsObj);
-    napi_set_named_property(env, jsObj, "success", AppExecFwk::WrapBoolToJS(env, result.invokeSuccess));
-    if (result.result != nullptr) {
-        napi_value jsData = AppExecFwk::WrapWantParams(env, *result.result);
+    napi_set_named_property(env, jsObj, "success", AppExecFwk::WrapBoolToJS(env, result.success));
+    if (result.data != nullptr) {
+        napi_value jsData = AppExecFwk::WrapWantParams(env, *result.data);
         napi_set_named_property(env, jsObj, "data", jsData);
     }
     napi_set_named_property(env, jsObj, "errorCode", AppExecFwk::WrapInt32ToJS(env, result.errorCode));
-    napi_set_named_property(env, jsObj, "errorMsg", AppExecFwk::WrapStringToJS(env, result.message));
+    napi_set_named_property(env, jsObj, "errorMsg", AppExecFwk::WrapStringToJS(env, result.errorMsg));
     return jsObj;
 }
 
@@ -49,7 +49,7 @@ void ParseJsInvokeResult(napi_env env, napi_value jsObj, InvokeFunctionResult& r
     if (napi_has_named_property(env, jsObj, "success", &hasProp) == napi_ok && hasProp) {
         napi_value prop = nullptr;
         napi_get_named_property(env, jsObj, "success", &prop);
-        AppExecFwk::UnwrapBoolFromJS2(env, prop, result.invokeSuccess);
+        AppExecFwk::UnwrapBoolFromJS2(env, prop, result.success);
     }
     if (napi_has_named_property(env, jsObj, "errorCode", &hasProp) == napi_ok && hasProp) {
         napi_value prop = nullptr;
@@ -59,7 +59,7 @@ void ParseJsInvokeResult(napi_env env, napi_value jsObj, InvokeFunctionResult& r
     if (napi_has_named_property(env, jsObj, "errorMsg", &hasProp) == napi_ok && hasProp) {
         napi_value prop = nullptr;
         napi_get_named_property(env, jsObj, "errorMsg", &prop);
-        AppExecFwk::UnwrapStringFromJS2(env, prop, result.message);
+        AppExecFwk::UnwrapStringFromJS2(env, prop, result.errorMsg);
     }
     if (napi_has_named_property(env, jsObj, "data", &hasProp) == napi_ok && hasProp) {
         napi_value prop = nullptr;
@@ -67,7 +67,7 @@ void ParseJsInvokeResult(napi_env env, napi_value jsObj, InvokeFunctionResult& r
         if (prop != nullptr) {
             auto wantParams = std::make_shared<AAFwk::WantParams>();
             AppExecFwk::UnwrapWantParams(env, prop, *wantParams);
-            result.result = wantParams;
+            result.data = wantParams;
         }
     }
 }
@@ -192,11 +192,11 @@ bool JsFunctionHook::DispatchToJs(std::shared_ptr<FunctionHookCallData> callData
     return false;
 }
 
-ErrCode JsFunctionHook::BeforeInvokeFunction(InvokeFunctionHookParam& param)
+ErrCode JsFunctionHook::BeforeInvokeFunction(InvokeFunctionParam& param)
 {
     auto callData = std::make_shared<FunctionHookCallData>();
     callData->methodType = HookMethodType::BEFORE_INVOKE_FUNCTION;
-    callData->hookParam = std::make_shared<InvokeFunctionHookParam>(param);
+    callData->hookParam = std::make_shared<InvokeFunctionParam>(param);
     if (DispatchToJs(callData)) {
         param = *callData->hookParam;
     }

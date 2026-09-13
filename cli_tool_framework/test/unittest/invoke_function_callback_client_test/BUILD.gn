@@ -27,6 +27,8 @@ ohos_unittest("invoke_function_callback_client_test") {
   sources = [
     "invoke_function_callback_client_test.cpp",
     "${cli_tool_framework_path}/frameworks/js/napi/function_manager/src/invoke_function_callback_client.cpp",
+    "${cli_tool_framework_path}/interfaces/cli_tool/src/invoke_function_result.cpp",
+    "${cli_tool_framework_path}/interfaces/cli_tool/src/function_result_wrap.cpp",
   ]
 
   deps = [

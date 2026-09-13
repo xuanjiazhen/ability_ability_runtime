@@ -3421,7 +3421,7 @@ public:
 
 class MockFunctionHook : public FunctionHookInterfaceStub {
 public:
-    ErrCode BeforeInvokeFunction(InvokeFunctionHookParam& param) override
+    ErrCode BeforeInvokeFunction(InvokeFunctionParam& param) override
     {
         beforeInvokeCount++;
         return ERR_OK;
@@ -3431,7 +3431,7 @@ public:
     {
         afterInvokeCount++;
         if (modifyResult) {
-            functionResultWrap.result.invokeSuccess = true;
+            functionResultWrap.result.success = true;
             functionResultWrap.result.errorCode = 0;
         }
         return ERR_OK;
@@ -3540,7 +3540,7 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterCliHook_Success_0100, TestSize.Lev
 
 /**
  * @tc.name: UnregisterCliHook_NotRegistered_0100
- * @tc.desc: Unregister when nothing registered is a no-op returning ERR_OK
+ * @tc.desc: F-11: Unregister when hook not found returns ERR_HOOK_NOT_REGISTERED
  * @tc.type: FUNC
  */
 HWTEST_F(CliToolManagerServiceTest, UnregisterCliHook_NotRegistered_0100, TestSize.Level1)
@@ -3551,7 +3551,7 @@ HWTEST_F(CliToolManagerServiceTest, UnregisterCliHook_NotRegistered_0100, TestSi
     auto hook = sptr<MockCliHook>::MakeSptr();
     int32_t result = service_->UnregisterCliHook(hook);
 
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(result, ERR_HOOK_NOT_REGISTERED);
     EXPECT_EQ(service_->cliHook_, nullptr);
 
     TAG_LOGI(AAFwkTag::TEST, "UnregisterCliHook_NotRegistered_0100 end");
@@ -3789,13 +3789,12 @@ HWTEST_F(CliToolManagerServiceTest, InvokeAfterFunction_ModifyResult_0100, TestS
     service_->RegisterFunctionHook(hook, 0x03);
 
     FunctionResultWrap wrap;
-    wrap.result.invokeSuccess = false;
+    wrap.result.success = false;
     wrap.result.errorCode = 99;
-    wrap.result.resultCode = 99;
     service_->AfterInvokeFunction(wrap);
 
     EXPECT_EQ(hook->afterInvokeCount, 1);
-    EXPECT_TRUE(wrap.result.invokeSuccess);
+    EXPECT_TRUE(wrap.result.success);
     EXPECT_EQ(wrap.result.errorCode, 0);
 
     service_->UnregisterFunctionHook(hook);

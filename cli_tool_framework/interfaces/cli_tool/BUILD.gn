@@ -68,7 +68,7 @@ ohos_shared_library("cli_tool_client") {
     "src/exec_result_wrap.cpp",
     "src/exec_tool_param.cpp",
     "src/function_result_wrap.cpp",
-    "src/invoke_function_hook_param.cpp",
+    "src/invoke_function_param.cpp",
     "src/invoke_function_result.cpp",
     "src/sub_command_info.cpp",
     "src/tool_info.cpp",
