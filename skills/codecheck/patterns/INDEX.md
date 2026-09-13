@@ -1,16 +1,10 @@
-# 缺陷模式全量索引
+# 缺陷模式全量索引（legacy 检索词典）
 
-> 所有 scanner 共享的"已知错误模式词典"入口。不包含执行逻辑，不定义输出格式，纯粹是"代码里长什么样的写法是错误的"。
-> 每个条目格式：编号 + 模式描述 + 信号特征 + grep 线索 + 严重等级 + 历史案例引用。
+> **定位（双模架构下）**：本目录是 Mode A 假设生成时的**可选检索词典**——"代码里长什么样的写法可能有问题"的词汇表，供精读时联想，**不是执行清单、不是定级依据**。
+> 执行载体是 [`../static-checklist.md`](../static-checklist.md)（Mode B）与 [`../verification-playbook.md`](../verification-playbook.md)（Mode A）。
 >
-> **新增一条历史缺陷模式的 SOP**：
-> 1. 从线上 crash/bug 做根因分析
-> 2. 提取信号特征（代码结构/API 调用链/语法模式）
-> 3. 写 grep 线索（一个或多个搜索命令）
-> 4. 按类别找到 `patterns/` 下对应 `.md` 文件，追加条目
-> 5. 在本 INDEX 注册编号
-> 6. 如果是高发模式（需要完整案例叙事），在 `known-defect-patterns/` 新建 `G17_xxx.md`
-> 7. 引用该 pattern 文件的 scanner 下次执行时自动加载
+> **只读不增**：本词典不接受新条目。新知识一律走 orchestrator S7 蒸馏 → static-checklist（每轮 ≤3 条、必须挂真实 finding 来源、总量封顶 60）。
+> （原"新增历史缺陷模式 SOP"与 `known-defect-patterns/` G 库已废除：静态规则堆积被两轮试点证明信噪比低——历史案例知识由 checklist 来源链、`codecheck_reports/*/pilot*_verification_*.md` 验证记录与 websearch 承接。）
 
 ---
 
@@ -139,25 +133,3 @@
 | API-011 | 服务侧 API 行为/副作用 | 隐含限制未声明；权限校验被绕过 | P0/P1 | — |
 | API-012 | 框架实现文件静态/动态混淆 | 把 ets_/cj_ 当 js_ 扫 | — | — |
 | API-013 | BUILD.gn relative_install_dir 区分新旧同名模块 | 新旧 NAPI 模块目录名仅差一层级 | — | — |
-
-## 已知缺陷模式（[known-defect-patterns/](known-defect-patterns/)）
-
-| 编号 | 模式 | 文件 |
-|------|------|------|
-| G01 | 身份信任错误 | [G01_identity_trust.md](known-defect-patterns/G01_identity_trust.md) |
-| G02 | 鉴权遗漏分支 | [G02_auth_missing_branch.md](known-defect-patterns/G02_auth_missing_branch.md) |
-| G03 | 反序列化缺"四件套" | [G03_deserialization_quartet.md](known-defect-patterns/G03_deserialization_quartet.md) |
-| G04 | 同族 API 模式化误用 | [G04_api_family_misuse.md](known-defect-patterns/G04_api_family_misuse.md) |
-| G05 | user 版本隐藏面 | [G05_release_hidden_surface.md](known-defect-patterns/G05_release_hidden_surface.md) |
-| G06 | 路径穿越与 Zip Slip | [G06_path_traversal_zip_slip.md](known-defect-patterns/G06_path_traversal_zip_slip.md) |
-| G07 | 日志红线 | [G07_log_redline.md](known-defect-patterns/G07_log_redline.md) |
-| G08 | 配置级提权 | [G08_config_privilege_escalation.md](known-defect-patterns/G08_config_privilege_escalation.md) |
-| G09 | 沙箱隔离失效 | [G09_sandbox_isolation_failure.md](known-defect-patterns/G09_sandbox_isolation_failure.md) |
-| G10 | 签名/安装管控绕过 | [G10_signature_install_bypass.md](known-defect-patterns/G10_signature_install_bypass.md) |
-| G11 | 生命周期状态机与后台拉起管控 | [G11_lifecycle_state_machine.md](known-defect-patterns/G11_lifecycle_state_machine.md) |
-| G12 | 条件竞争 | [G12_race_condition.md](known-defect-patterns/G12_race_condition.md) |
-| G13 | 机制设计缺陷 | [G13_design_defect.md](known-defect-patterns/G13_design_defect.md) |
-| G14 | 返回值与异常分支处理 | [G14_return_value_exception.md](known-defect-patterns/G14_return_value_exception.md) |
-| G15 | UIExtension / 窗口组件暴露面 | [G15_uiextension_exposure.md](known-defect-patterns/G15_uiextension_exposure.md) |
-| G16 | BundleEventCallback 预置应用 OTA 盲区 | [G16_bundle_event_callback_ota_blind_spot.md](known-defect-patterns/G16_bundle_event_callback_ota_blind_spot.md) |
-| — | 历史复发热点模块清单 | [hotspot-modules.md](known-defect-patterns/hotspot-modules.md) |

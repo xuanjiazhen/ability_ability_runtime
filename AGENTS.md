@@ -237,6 +237,8 @@
 
 ### 检视约束
 
+- **双模审查**：Mode A 真实漏洞审查（假设-验证管线，P0/P1 只能诞生于此且必须附验证状态 Reproduced/Reasoned）+ Mode B 静态编码审查（static-checklist，封顶 P2、hygiene 独立计数）。未指定时默认 A+B 并行；路由与流程见 `skills/codecheck/README.md`。
+- **验证先于定级**：仓内代码阅读得出的高危疑似项一律是"假设"；定级前必须过部署面分诊（systemapi/模式开关/攻击者能力），必要时跨仓拉源（gitcode，仓名映射见 `skills/codecheck/verification-playbook.md` §1）+ harness/UT 复现。推翻 Reproduced 结论需执行级证据。
 - **静态语言实现默认排除**（`frameworks/ets/ani/`、`frameworks/ets/ets/`、`frameworks/cj/ffi/`、`ets_*.cpp`、`cj_*.cpp`），除非用户明确要求包含。
 - **证据要求**：每条发现可追溯到 `file:line` + 触发路径，不收无证据的代码气味项。
 - **检视阶段不改源码**：只产出报告与建议；修复由用户确认后另起任务，并回到本 AGENTS.md 的 Constraints/Verification 章节执行。
