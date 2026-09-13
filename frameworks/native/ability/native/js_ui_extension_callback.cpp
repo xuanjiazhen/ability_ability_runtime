@@ -140,6 +140,58 @@ void JsUIExtensionCallback::OnError(int32_t number)
     CloseModalUIExtension();
 }
 
+void JsUIExtensionCallback::RejectDeferred(int32_t jsErrCode, const std::string& innerMsg)
+{
+    if (deferred_ != nullptr) {
+        napi_value error = CreateJsError(env_, jsErrCode, innerMsg);
+        napi_reject_deferred(env_, deferred_, error);
+        deferred_ = nullptr;
+    }
+}
+
+void JsUIExtensionCallback::ResolveDeferred()
+{
+    if (deferred_ == nullptr) {
+        return;
+    }
+    std::shared_ptr<JsUIExtensionCallback> jsUIExtensionCallback = shared_from_this();
+    std::unique_ptr<NapiAsyncTask::CompleteCallback> complete = std::make_unique<NapiAsyncTask::CompleteCallback>
+        ([jsUIExtensionCallback](napi_env env, NapiAsyncTask &task, int32_t status) {
+            if (jsUIExtensionCallback != nullptr && jsUIExtensionCallback->deferred_ != nullptr) {
+                napi_value value = CreateJsUndefined(env);
+                napi_resolve_deferred(env, jsUIExtensionCallback->deferred_, value);
+                jsUIExtensionCallback->deferred_ = nullptr;
+            }
+        });
+    napi_ref callback = nullptr;
+    std::unique_ptr<NapiAsyncTask::ExecuteCallback> execute = nullptr;
+    NapiAsyncTask::Schedule("JsUIExtensionCallback::ResolveDeferred:",
+        env_, std::make_unique<NapiAsyncTask>(callback, std::move(execute), std::move(complete)));
+}
+
+void JsUIExtensionCallback::OnAbilityErrorCode(int32_t errorCode)
+{
+    TAG_LOGI(AAFwkTag::UI_EXT, "call");
+    if (env_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null env_");
+        return;
+    }
+    int32_t jsErrCode = static_cast<int32_t>(GetJsErrorCodeByNativeError(errorCode));
+    std::string innerMsg = GetErrorMsgByNativeError(errorCode);
+    std::shared_ptr<JsUIExtensionCallback> jsUIExtensionCallback = shared_from_this();
+    std::unique_ptr<NapiAsyncTask::CompleteCallback> complete = std::make_unique<NapiAsyncTask::CompleteCallback>
+        ([jsUIExtensionCallback, jsErrCode, innerMsg](napi_env env, NapiAsyncTask &task, int32_t status) {
+            if (jsUIExtensionCallback != nullptr) {
+                jsUIExtensionCallback->RejectDeferred(jsErrCode, innerMsg);
+            }
+        });
+    napi_ref callback = nullptr;
+    std::unique_ptr<NapiAsyncTask::ExecuteCallback> execute = nullptr;
+    NapiAsyncTask::Schedule("JsUIExtensionCallback::OnAbilityErrorCode:",
+        env_, std::make_unique<NapiAsyncTask>(callback, std::move(execute), std::move(complete)));
+    CloseModalUIExtension();
+}
+
 void JsUIExtensionCallback::OnResult(int32_t resultCode, const AAFwk::Want &want)
 {
     TAG_LOGI(AAFwkTag::UI_EXT, "call");
@@ -199,25 +251,31 @@ void JsUIExtensionCallback::CallJsResult(int32_t resultCode, const AAFwk::Want &
 }
 
 #endif // SUPPORT_SCREEN
-void JsUIExtensionCallback::CallJsError(int32_t number)
+void JsUIExtensionCallback::CallJsError(int32_t number, const std::string& name, const std::string& message)
 {
     TAG_LOGI(AAFwkTag::UI_EXT, "call");
+    if (number == 0) {
+        return;
+    }
     if (env_ == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null env_ ");
         return;
     }
-    std::string name;
-    std::string message;
+    std::string finalName = name;
+    std::string finalMessage = message;
 #ifdef SUPPORT_SCREEN
-    if (number != static_cast<int32_t>(Rosen::WSError::WS_OK)) {
+    if (finalMessage.empty()) {
         number = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
-        name = ERROR_MSG_INNER;
-        message = "StartAbilityByType failed.";
+        finalName = ERROR_MSG_INNER;
+        finalMessage = "StartAbilityByType failed.";
+    } else if (finalName.empty()) {
+        finalName = ERROR_MSG_INNER;
     }
 #endif // SUPPORT_SCREEN
+    RejectDeferred(number, finalMessage);
     napi_value nativeNumber = CreateJsValue(env_, number);
-    napi_value nativeName = CreateJsValue(env_, name);
-    napi_value nativeMessage = CreateJsValue(env_, message);
+    napi_value nativeName = CreateJsValue(env_, finalName);
+    napi_value nativeMessage = CreateJsValue(env_, finalMessage);
     if (jsCallbackObject_ == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null jsCallbackObject_");
         return;
