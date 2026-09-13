@@ -345,3 +345,226 @@ callback.onAbilityErrorCode = [uiExtensionCallback, errorFired](int32_t errorCod
 | 14 | `js_ability_context.cpp` | Promise 持有 (NAPI 入口#1) |
 | 15 | `js_ui_extension_context.cpp` | Promise 持有 (NAPI 入口#2) |
 | 16 | `js_ui_service_extension_context.cpp` | Promise 持有 (NAPI 入口#3) |
+
+
+
+
+
+
+
+
+
+
+
+
+diff --git a/code/foundation/window/window_manager/window_scene/session_manager/src/extension_session_manager.cpp b/code/foundation/window/window_manager/window_scene/session_manager/src/extension_session_manager.cpp
+--- a/code/foundation/window/window_manager/window_scene/session_manager/src/extension_session_manager.cpp
++++ b/code/foundation/window/window_manager/window_scene/session_manager/src/extension_session_manager.cpp
+@@ -158,7 +158,7 @@
+         }
+         if (callback) {
+             auto ret = errorCode == ERR_OK ? WSError::WS_OK : WSError::WS_ERROR_START_UI_EXTENSION_ABILITY_FAILED;
+-            callback(ret, 10000);
++            callback(ret, errorCode);
+             return ret;
+         }
+         return WSError::WS_OK;
+diff --git a/code/foundation/ability/ability_runtime/interfaces/kits/native/ability/native/js_ui_extension_callback.h b/code/foundation/ability/ability_runtime/interfaces/kits/native/ability/native/js_ui_extension_callback.h
+--- a/code/foundation/ability/ability_runtime/interfaces/kits/native/ability/native/js_ui_extension_callback.h
++++ b/code/foundation/ability/ability_runtime/interfaces/kits/native/ability/native/js_ui_extension_callback.h
+@@ -36,6 +36,7 @@
+     void SetJsCallbackObject(napi_value jsCallbackObject);
+     void SetDeferred(napi_deferred deferred) { deferred_ = deferred; }
+     void RejectDeferred(int32_t jsErrCode, const std::string& innerMsg);
++    void SetCompletionCallback(napi_env env, napi_value callback);
+     void CallJsError(int32_t number, const std::string& name = "", const std::string& message = "");
+     void SetCompletionHandler(napi_env env, napi_value completionHandler);
+     void OnRequestSuccess(const std::string& name) override;
+@@ -45,6 +46,7 @@
+     napi_env env_ = nullptr;
+     napi_deferred deferred_ = nullptr;
+     std::unique_ptr<NativeReference> jsCallbackObject_ = nullptr;
++    std::unique_ptr<NativeReference> completionCallback_ = nullptr;
+     std::unique_ptr<NativeReference> onRequestSuccess_ = nullptr;
+     std::unique_ptr<NativeReference> onRequestFailure_ = nullptr;
+     void FreeNativeReference(std::unique_ptr<NativeReference>& reference);
+diff --git a/code/foundation/ability/ability_runtime/frameworks/native/ability/native/js_ui_extension_callback.cpp b/code/foundation/ability/ability_runtime/frameworks/native/ability/native/js_ui_extension_callback.cpp
+--- a/code/foundation/ability/ability_runtime/frameworks/native/ability/native/js_ui_extension_callback.cpp
++++ b/code/foundation/ability/ability_runtime/frameworks/native/ability/native/js_ui_extension_callback.cpp
+@@ -29,39 +29,45 @@
+ #ifdef SUPPORT_SCREEN
+ constexpr const char* ERROR_MSG_INNER = "Inner error.";
+ #endif // SUPPORT_SCREEN
+ JsUIExtensionCallback::~JsUIExtensionCallback()
+ {
+-    if (jsCallbackObject_  == nullptr) {
+-        return;
+-    }
+-
+-    uv_loop_t *loop = nullptr;
+-    napi_get_uv_event_loop(env_, &loop);
+-    if (loop == nullptr) {
+-        return;
+-    }
+-
+-    uv_work_t *work = new (std::nothrow) uv_work_t;
+-    if (work == nullptr) {
+-        return;
+-    }
+-    work->data = reinterpret_cast<void *>(jsCallbackObject_.release());
+-    int ret = uv_queue_work(loop, work, [](uv_work_t *work) {},
+-    [](uv_work_t *work, int status) {
+-        if (work == nullptr) {
+-            return;
+-        }
+-        if (work->data == nullptr) {
+-            delete work;
+-            work = nullptr;
+-            return;
++    if (jsCallbackObject_ != nullptr) {
++        uv_loop_t *loop = nullptr;
++        napi_get_uv_event_loop(env_, &loop);
++        if (loop != nullptr) {
++            uv_work_t *work = new (std::nothrow) uv_work_t;
++            if (work != nullptr) {
++                work->data = reinterpret_cast<void *>(jsCallbackObject_.release());
++                int ret = uv_queue_work(loop, work, [](uv_work_t *work) {},
++                [](uv_work_t *work, int status) {
++                    if (work == nullptr) {
++                        return;
++                    }
++                    if (work->data == nullptr) {
++                        delete work;
++                        work = nullptr;
++                        return;
++                    }
++                    delete reinterpret_cast<NativeReference *>(work->data);
++                    work->data = nullptr;
++                    delete work;
++                    work = nullptr;
++                });
++                if (ret != 0) {
++                    delete reinterpret_cast<NativeReference *>(work->data);
++                    work->data = nullptr;
++                    delete work;
++                    work = nullptr;
++                }
++            }
+         }
+-        delete reinterpret_cast<NativeReference *>(work->data);
+-        work->data = nullptr;
+-        delete work;
+-        work = nullptr;
+-    });
+-    if (ret != 0) {
+-        delete reinterpret_cast<NativeReference *>(work->data);
+-        work->data = nullptr;
+-        delete work;
+-        work = nullptr;
+     }
+     FreeNativeReference(onRequestSuccess_);
+     FreeNativeReference(onRequestFailure_);
++    FreeNativeReference(completionCallback_);
+ }
+
+ void JsUIExtensionCallback::FreeNativeReference(std::unique_ptr<NativeReference>& reference)
+@@ -143,12 +149,22 @@
+ void JsUIExtensionCallback::RejectDeferred(int32_t jsErrCode, const std::string& innerMsg)
+ {
+     if (deferred_ != nullptr) {
+         napi_value error = CreateJsError(env_, jsErrCode, innerMsg);
+         napi_reject_deferred(env_, deferred_, error);
+         deferred_ = nullptr;
+     }
++    if (completionCallback_ != nullptr) {
++        napi_value callback = completionCallback_->GetNapiValue();
++        if (callback != nullptr) {
++            napi_value error = CreateJsError(env_, jsErrCode, innerMsg);
++            napi_value undefined = CreateJsUndefined(env_);
++            napi_value argv[] = { error, undefined };
++            napi_call_function(env_, nullptr, callback, ArraySize(argv), argv, nullptr);
++        }
++        FreeNativeReference(completionCallback_);
++    }
+ }
+
+ void JsUIExtensionCallback::ResolveDeferred()
+ {
+-    if (deferred_ == nullptr) {
++    if (deferred_ == nullptr && completionCallback_ == nullptr) {
+         return;
+     }
+     std::shared_ptr<JsUIExtensionCallback> jsUIExtensionCallback = shared_from_this();
+@@ -156,6 +172,16 @@
+         ([jsUIExtensionCallback](napi_env env, NapiAsyncTask &task, int32_t status) {
+-            if (jsUIExtensionCallback != nullptr && jsUIExtensionCallback->deferred_ != nullptr) {
+-                napi_value value = CreateJsUndefined(env);
+-                napi_resolve_deferred(env, jsUIExtensionCallback->deferred_, value);
+-                jsUIExtensionCallback->deferred_ = nullptr;
++            if (jsUIExtensionCallback == nullptr) {
++                return;
++            }
++            if (jsUIExtensionCallback->deferred_ != nullptr) {
++                napi_value value = CreateJsUndefined(env);
++                napi_resolve_deferred(env, jsUIExtensionCallback->deferred_, value);
++                jsUIExtensionCallback->deferred_ = nullptr;
++            }
++            if (jsUIExtensionCallback->completionCallback_ != nullptr) {
++                napi_value callback = jsUIExtensionCallback->completionCallback_->GetNapiValue();
++                if (callback != nullptr) {
++                    napi_value undefined = CreateJsUndefined(env);
++                    napi_value argv[] = { undefined, undefined };
++                    napi_call_function(env, nullptr, callback, ArraySize(argv), argv, nullptr);
++                }
++                jsUIExtensionCallback->FreeNativeReference(jsUIExtensionCallback->completionCallback_);
+             }
+         });
+     napi_ref callback = nullptr;
+@@ -301,6 +327,21 @@
+     }
+ }
+
++void JsUIExtensionCallback::SetCompletionCallback(napi_env env, napi_value callback)
++{
++    AbilityRuntime::HandleScope handleScope(env);
++    TAG_LOGI(AAFwkTag::UI_EXT, "call");
++    if (env == nullptr || callback == nullptr) {
++        TAG_LOGE(AAFwkTag::UI_EXT, "invalid parameters");
++        return;
++    }
++    napi_ref ref = nullptr;
++    napi_status status = napi_create_reference(env, callback, 1, &ref);
++    if (status == napi_ok) {
++        completionCallback_ = std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(ref));
++    } else {
++        TAG_LOGE(AAFwkTag::UI_EXT, "create completionCallback_ failed: %{public}d", status);
++    }
++}
++
+ void JsUIExtensionCallback::SetCompletionHandler(napi_env env, napi_value completionHandler)
+ {
+     AbilityRuntime::HandleScope handleScope(env);
+diff --git a/code/foundation/ability/ability_runtime/frameworks/native/ability/native/ability_runtime/js_ability_context.cpp b/code/foundation/ability/ability_runtime/frameworks/native/ability/native/ability_runtime/js_ability_context.cpp
+--- a/code/foundation/ability/ability_runtime/frameworks/native/ability/native/ability_runtime/js_ability_context.cpp
++++ b/code/foundation/ability/ability_runtime/frameworks/native/ability/native/ability_runtime/js_ability_context.cpp
+@@ -3149,16 +3149,17 @@
+     napi_value lastParam = (info.argc > ARGC_THREE) ? info.argv[INDEX_THREE] : nullptr;
+     napi_value result = nullptr;
+     if (lastParam != nullptr) {
++        callback->SetCompletionCallback(env, lastParam);
+         NapiAsyncTask::CompleteCallback complete =
+-            [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
++            [innerErrCode, callback](napi_env env, NapiAsyncTask& task, int32_t status) {
+                 HandleScope handleScope(env);
+                 if (*innerErrCode == ERR_OK) {
+-                    task.ResolveWithNoError(env, CreateJsUndefined(env));
++                    // Hold — OnAbilityErrorCode/ResolveDeferred will call completion callback
+                 } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
+                     task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+                 } else {
+                     task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+                 }
+             };
+         NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnStartAbilityByType",
+             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
+         return result;
