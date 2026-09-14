@@ -30,7 +30,7 @@
 
 namespace OHOS {
 namespace AAFwk {
-class KioskManager {
+class KioskManager { //
 public:
     static KioskManager &GetInstance();
 
