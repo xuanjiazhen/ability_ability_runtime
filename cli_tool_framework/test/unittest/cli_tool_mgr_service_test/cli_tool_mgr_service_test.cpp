@@ -3470,7 +3470,7 @@ public:
 
 static void SetDeveloperMode(bool enabled)
 {
-    system::SetParameter("const.security.developermode.state", enabled ? "true" : "false");
+    system::SetBoolParameter("const.security.developermode.state", enabled);
 }
 
 static CliSessionInfo MakeSessionWithResult(int32_t exitCode, const std::string& output)
