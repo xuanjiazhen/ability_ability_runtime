@@ -77,6 +77,18 @@ int32_t AbilityPermissionUtil::GetClosestHapTokenId(uint32_t tokenId, uint32_t &
     return ERR_OK;
 }
 
+int32_t AbilityPermissionUtil::GetUserIdByTokenId(uint32_t tokenId, int32_t &userId)
+{
+    HapTokenInfo hapInfo;
+    int32_t ret = AccessTokenKit::GetHapTokenInfo(tokenId, hapInfo);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to get hap token info: %{public}d", ret);
+        return ERR_INVALID_VALUE;
+    }
+    userId = hapInfo.userID;
+    return ERR_OK;
+}
+
 inline bool AbilityPermissionUtil::IsDelegatorCall(const AppExecFwk::RunningProcessInfo &processInfo,
     const AbilityRequest &abilityRequest) const
 {

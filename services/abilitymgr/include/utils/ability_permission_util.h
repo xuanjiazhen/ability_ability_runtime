@@ -83,6 +83,16 @@ public:
     int32_t GetClosestHapTokenId(uint32_t tokenId, uint32_t &hapTokenId);
 
     /**
+     * GetUserIdByTokenId, resolve the user id of the hap token via
+     * AccessTokenKit::GetHapTokenInfo (HapTokenInfo::userID).
+     *
+     * @param tokenId The access token id of the application.
+     * @param userId The resolved user id.
+     * @return ERR_OK on success, ERR_INVALID_VALUE if the token info cannot be resolved.
+     */
+    int32_t GetUserIdByTokenId(uint32_t tokenId, int32_t &userId);
+
+    /**
      * IsDominateScreen, check dominate screen.
      *
      * @param want The want.

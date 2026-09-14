@@ -676,6 +676,47 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, GetTopAbility_003, TestSize.Level1
 
 /*
  * Feature: AbilityManagerService
+ * Name: GetTopAbility_004
+ * Function: GetTopAbility
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetTopAbility
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, GetTopAbility_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest GetTopAbility_004 start");
+    MyStatus::GetInstance().permPermission_ = 1;
+    MyStatus::GetInstance().sbjIsSceneBoardEnabled_ = true;
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    sptr<IRemoteObject> token = nullptr;
+    int retCode = abilityMs_->GetTopAbility(token, -5);
+    EXPECT_EQ(retCode, ERR_INVALID_VALUE);
+    MyStatus::GetInstance().perJudgeCallerIsAllowedToUseSystemAPI_ = true;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest GetTopAbility_004 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Name: CheckUIExtensionIsFocused_001
+ * Function: CheckUIExtensionIsFocused
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService CheckUIExtensionIsFocused
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, CheckUIExtensionIsFocused_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest CheckUIExtensionIsFocused_001 start");
+    MyStatus::GetInstance().permPermission_ = 1;
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs_, nullptr);
+    bool isFocused = true;
+    auto retCode = abilityMs_->CheckUIExtensionIsFocused(0, isFocused);
+    EXPECT_EQ(retCode, ERR_INVALID_VALUE);
+    MyStatus::GetInstance().perJudgeCallerIsAllowedToUseSystemAPI_ = true;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest CheckUIExtensionIsFocused_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
  * Name: TerminateAbilityWithFlag_001
  * Function: TerminateAbilityWithFlag
  * SubFunction: NA
