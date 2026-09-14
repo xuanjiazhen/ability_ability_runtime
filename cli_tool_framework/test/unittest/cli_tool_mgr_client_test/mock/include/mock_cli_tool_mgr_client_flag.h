@@ -40,6 +40,12 @@ public:
     static int32_t retSendMessage;
     static int32_t retBatchQueryPermission;
     static int32_t retLoadSystemAbility;
+    static int32_t retRegisterCliHook;
+    static int32_t retUnregisterCliHook;
+    static int32_t retRegisterFunctionHook;
+    static int32_t retUnregisterFunctionHook;
+    static int32_t retBeforeInvokeFunction;
+    static int32_t retAfterInvokeFunction;
     static bool nullSystemAbility;
     static bool shouldCallback;
     static sptr<IRemoteObject> cliToolMgr;

@@ -31,6 +31,12 @@ int32_t CliToolMgrClientFlag::retQuerySession = ERR_OK;
 int32_t CliToolMgrClientFlag::retSendMessage = ERR_OK;
 int32_t CliToolMgrClientFlag::retBatchQueryPermission = ERR_OK;
 int32_t CliToolMgrClientFlag::retLoadSystemAbility = ERR_OK;
+int32_t CliToolMgrClientFlag::retRegisterCliHook = ERR_OK;
+int32_t CliToolMgrClientFlag::retUnregisterCliHook = ERR_OK;
+int32_t CliToolMgrClientFlag::retRegisterFunctionHook = ERR_OK;
+int32_t CliToolMgrClientFlag::retUnregisterFunctionHook = ERR_OK;
+int32_t CliToolMgrClientFlag::retBeforeInvokeFunction = ERR_OK;
+int32_t CliToolMgrClientFlag::retAfterInvokeFunction = ERR_OK;
 bool CliToolMgrClientFlag::nullSystemAbility = false;
 bool CliToolMgrClientFlag::shouldCallback = true;
 sptr<IRemoteObject> CliToolMgrClientFlag::cliToolMgr = nullptr;
@@ -64,6 +70,12 @@ void CliToolMgrClientFlag::Reset()
     retSendMessage = ERR_OK;
     retBatchQueryPermission = ERR_OK;
     retLoadSystemAbility = ERR_OK;
+    retRegisterCliHook = ERR_OK;
+    retUnregisterCliHook = ERR_OK;
+    retRegisterFunctionHook = ERR_OK;
+    retUnregisterFunctionHook = ERR_OK;
+    retBeforeInvokeFunction = ERR_OK;
+    retAfterInvokeFunction = ERR_OK;
     nullSystemAbility = false;
     shouldCallback = true;
     cliToolMgr = nullptr;
@@ -235,6 +247,36 @@ int32_t MockCliToolMgrService::BatchQueryPermissionBySubCommand(
 {
     cmdPermissions = CliToolMgrClientFlag::commandPermissions;
     return CliToolMgrClientFlag::retBatchQueryPermission;
+}
+
+int32_t MockCliToolMgrService::RegisterCliHook(const sptr<ICliHookInterface> &, int32_t)
+{
+    return CliToolMgrClientFlag::retRegisterCliHook;
+}
+
+int32_t MockCliToolMgrService::UnregisterCliHook(const sptr<ICliHookInterface> &)
+{
+    return CliToolMgrClientFlag::retUnregisterCliHook;
+}
+
+int32_t MockCliToolMgrService::RegisterFunctionHook(const sptr<IFunctionHookInterface> &, int32_t)
+{
+    return CliToolMgrClientFlag::retRegisterFunctionHook;
+}
+
+int32_t MockCliToolMgrService::UnregisterFunctionHook(const sptr<IFunctionHookInterface> &)
+{
+    return CliToolMgrClientFlag::retUnregisterFunctionHook;
+}
+
+int32_t MockCliToolMgrService::BeforeInvokeFunction(InvokeFunctionParam &)
+{
+    return CliToolMgrClientFlag::retBeforeInvokeFunction;
+}
+
+int32_t MockCliToolMgrService::AfterInvokeFunction(FunctionResultWrap &)
+{
+    return CliToolMgrClientFlag::retAfterInvokeFunction;
 }
 } // namespace CliTool
 } // namespace OHOS
