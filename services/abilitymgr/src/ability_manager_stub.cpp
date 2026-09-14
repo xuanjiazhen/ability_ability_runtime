@@ -48,7 +48,6 @@ constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t MAX_KILL_PROCESS_PID_COUNT = 100;
 constexpr int32_t MAX_UPDATE_CONFIG_SIZE = 100;
 constexpr int32_t MAX_WANT_LIST_SIZE = 4;
-constexpr int32_t INVALID_USER_ID = -1;
 } // namespace
 AbilityManagerStub::AbilityManagerStub()
 {}
@@ -1229,7 +1228,9 @@ int AbilityManagerStub::OnRemoteRequest(uint32_t code, MessageParcel &data, Mess
 int AbilityManagerStub::GetTopAbilityInner(MessageParcel &data, MessageParcel &reply)
 {
     bool isNeedLocalDeviceId = data.ReadBool();
-    AppExecFwk::ElementName result = GetTopAbility(isNeedLocalDeviceId);
+    int32_t userId = INVALID_USER_ID;
+    data.ReadInt32(userId);
+    AppExecFwk::ElementName result = GetTopAbility(isNeedLocalDeviceId, userId);
     if (result.GetDeviceID().empty()) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "GetTopAbilityInner is nullptr");
     }
@@ -3147,8 +3148,10 @@ int AbilityManagerStub::FinishUserTestInner(MessageParcel &data, MessageParcel &
 
 int AbilityManagerStub::GetTopAbilityTokenInner(MessageParcel &data, MessageParcel &reply)
 {
+    int32_t userId = INVALID_USER_ID;
+    data.ReadInt32(userId);
     sptr<IRemoteObject> token;
-    auto result = GetTopAbility(token);
+    auto result = GetTopAbility(token, userId);
     if (!reply.WriteRemoteObject(token)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "data write fail");
         return ERR_INVALID_VALUE;

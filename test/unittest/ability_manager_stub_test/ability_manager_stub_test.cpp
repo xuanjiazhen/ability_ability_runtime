@@ -967,6 +967,8 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_GetTopAbilityInner_001, Test
 {
     MessageParcel data;
     MessageParcel reply;
+    data.WriteBool(true);  // isNeedLocalDeviceId
+    data.WriteInt32(INVALID_USER_ID);  // userId
     auto res = stub_->GetTopAbilityInner(data, reply);
     EXPECT_EQ(res, NO_ERROR);
 }

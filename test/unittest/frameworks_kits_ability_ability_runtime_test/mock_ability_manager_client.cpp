@@ -744,7 +744,8 @@ ErrCode AbilityManagerClient::FreeInstallAbilityFromRemote(const Want &want, spt
     return ERR_OK;
 }
 
-AppExecFwk::ElementName AbilityManagerClient::GetTopAbility(bool isNeedLocalDeviceId)
+AppExecFwk::ElementName AbilityManagerClient::GetTopAbility(bool isNeedLocalDeviceId,
+    int32_t userId)
 {
     return {};
 }
