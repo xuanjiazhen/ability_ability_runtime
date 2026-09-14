@@ -105,6 +105,24 @@
 | HWC-10 | 整数运算无溢出/符号反转/除 0 检查；小类型先运算后提升；有符号数位操作；整数与指针互转未用 intptr_t（整数节 1-4、6） | 算术/位运算表达式 + 类型核对 | P3 | 结果进分配大小/偏移/循环次数 → **必升 A**（对照 NUM-2/INP-4） |
 | HWC-11 | 内存申请大小未校验合法性；malloc 族返回值未检查；引用未初始化内存（内存节 1-3） | `malloc\|calloc\|realloc` 无判空 | P2 | 大小由文件头/外部字段驱动 → 并入 INP-4 必升 A |
 | HWC-12 | 不可重入函数（strtok/localtime/asctime 等）在多线程路径使用（函数节 3） | `strtok\(\|localtime\(\|asctime\(\|ctime\(` | P3 | 确认多线程调用链 → A |
+| HWC-13 | 逃逸出局部作用域的 lambda（传入外部函数/其他线程/异步任务）按引用捕获局部变量或 this → 悬垂访问（地址越界篇建议2） | lambda `\[&\|\[this\]` + 传给 thread/PostTask/async 的调用点 | P2 | 销毁时序可达（对照 RES-6）→ A |
+| HWC-14 | 裸指针解引用前未判空；应优先智能指针（地址越界篇建议3） | `->` 调用点反向核对判空/来源非空保证 | P3 | 指针源自外部输入/可失败函数 → A |
+
+> 去重注：地址越界篇建议1（napi_get_value_string_utf8 等返回值不校验 → 缓冲区无 '\0' → 越界）并入 **ERR-4**，执行 ERR-4 时按该机制核对字符串类 napi 接口。
+
+### 姊妹篇抓取状态（2026-09-14）
+
+| 文档 | URL slug（best-practices/） | 状态 |
+|---|---|---|
+| C++编码规范 | `bpta-stability-coding-standard-cpp` | ✅ 已抓取并合并（HWC-1~12） |
+| 地址越界类问题优化建议 | `bpta-stability-address-sanitizer-opt` | ✅ 已抓取并合并（HWC-13/14 + ERR-4 注记） |
+| HiLog打印规范 | `bpta-stability-log-standard-hilog` | ⏳ 待抓取：服务端对该页只回 SPA 壳（spider UA 亦无效）；执行 Mode B 时重试，仍失败则请用户浏览器打开后粘贴正文入 `references/` |
+| 资源泄漏类问题优化建议 | `bpta-stability-leak-opt` | ⏳ 待抓取：openresty 错误页（重试 6+ 次）；同上任选其一 |
+| CppCrash类问题优化建议 | `bpta-stability-cpp-crash-opt` | ⏳ 待抓取：同上 |
+| 易错API的使用规范 | `bpta-stability-coding-standard-api` | ⏳ 未尝试（涉及 NAPI/系统 API 误用时优先抓） |
+| libuv使用规范及案例 | `bpta-stability-coding-standard-libuv` | ⏳ 未尝试（涉及 uv loop/异步任务时优先抓） |
+
+抓取配方（同前）：`curl -A "Baiduspider/2.0" <URL>` 取 SSR；**服务端各页行为不一致且时变，失败必须换时段重试，禁止凭记忆补写条目内容**。
 
 ---
 
