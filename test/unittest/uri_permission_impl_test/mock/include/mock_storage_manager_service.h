@@ -389,12 +389,12 @@ public:
         return E_OK;
     }
 
-    virtual int32_t MountCloudDiskFuse(int32_t userId, const std::string &path, int32_t &fuseFd) override
+    virtual int32_t MountUdmfClipFuse(int32_t userId, const std::string &path, int32_t &fuseFd) override
     {
         return E_OK;
     }
 
-    virtual int32_t UMountCloudDiskFuse(int32_t userId, const std::string &path) override
+    virtual int32_t UMountUdmfClipFuse(int32_t userId, const std::string &path) override
     {
         return E_OK;
     }
