@@ -318,7 +318,7 @@ void ToolUtil::TransferToCmdParam(const AAFwk::WantParams &args, std::vector<std
 // ============================================================================
 // ParseToolCommand: parse a concatenated tool command string (tool command mode)
 // Supported syntax (long-flag only):
-//   <toolName> [subcommand] [--key=value | --key value | --flag | --flag false]...
+//   <toolName> [subcommand] [--key value | --flag | --flag false]...
 // Single-quoted values are kept as one token and the quotes are stripped.
 // Repeated flags of the same key are collected into an array.
 // ============================================================================
@@ -398,8 +398,12 @@ int32_t ParseArgTokens(const std::vector<std::string> &tokens, size_t start,
             return ERR_INVALID_PARAM;
         }
         std::string flagText = token.substr(FLAG_PREFIX_LEN);
-        auto eqPos = flagText.find('=');
-        std::string key = (eqPos == std::string::npos) ? flagText : flagText.substr(0, eqPos);
+        if (flagText.find('=') != std::string::npos) {
+            // --key=value is not supported, only --key value.
+            detail = DETAIL_PARAM_NOT_FOUND;
+            return ERR_INVALID_PARAM;
+        }
+        const std::string &key = flagText;
         if (key.empty()) {
             detail = DETAIL_PARAM_NOT_FOUND;
             return ERR_INVALID_PARAM;
@@ -413,12 +417,6 @@ int32_t ParseArgTokens(const std::vector<std::string> &tokens, size_t start,
         if (!properties.contains(key)) {
             detail = DETAIL_PARAM_NOT_FOUND;
             return ERR_INVALID_PARAM;
-        }
-        // --key=value
-        if (eqPos != std::string::npos) {
-            parsed.values[key].push_back(flagText.substr(eqPos + 1));
-            ++i;
-            continue;
         }
         // --key with no inline value: decide whether it takes a value or is a boolean flag.
         bool isBool = IsBooleanSchema(properties, key);
