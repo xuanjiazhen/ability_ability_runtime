@@ -527,9 +527,13 @@ void AppMgrServiceInner::Init()
         pThis->nwebPreloadSet_ = AAFwk::ResSchedUtil::GetInstance().GetNWebPreloadSet();
         }, ffrt::task_attr().delay(NWEB_PRELOAD_DELAY)
         .timeout(AbilityRuntime::GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));
-    AppNativeSpawnManager::GetInstance().InitNativeSpawnMsgPipe(appRunningManager_);
-    AppHybridSpawnManager::GetInstance().InitHybridSpawnMsgPipe(weak_from_this());
-    AppPidFdManager::GetInstance().Init(weak_from_this(), taskHandler_);
+    std::weak_ptr<AppMgrServiceInner> weakThis = weak_from_this();
+    taskHandler_->SubmitTask([weakThis, appRunningManager = appRunningManager_,
+        taskHandler = taskHandler_]() {
+        AppNativeSpawnManager::GetInstance().InitNativeSpawnMsgPipe(appRunningManager);
+        AppHybridSpawnManager::GetInstance().InitHybridSpawnMsgPipe(weakThis);
+        AppPidFdManager::GetInstance().Init(weakThis, taskHandler);
+    });
 }
 
 AppMgrServiceInner::~AppMgrServiceInner()
