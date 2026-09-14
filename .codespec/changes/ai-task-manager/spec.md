@@ -23,132 +23,99 @@
 
 | 文档 | 路径 | 状态 |
 |------|------|------|
-| Requirement | `.codespec/changes/ai-task-manager/proposal.md` | Approved（基线通过，2026-08-21 三轮确认） |
+| Requirement | `.codespec/changes/ai-task-manager/proposal.md` | Approved（基线 v1.2，2026-09-14） |
 
 > 需求基线、不涉及项、受影响子系统与仓库详见 proposal.md，本文档不重复摘录。
 
 ## 用户故事
 
-### US-1: 任务创建与生命周期管理
+### US-1: 任务生命周期（最小接口）
 
 **作为** AI 语音助手（系统应用）,
-**我想要** 创建任务（指定类型、优先级、描述），设置任务状态，并在结束时销毁或取消任务,
-**以便** 表达任务执行诉求并按任务级维度控制执行节奏.
+**我想要** 通过三个 System API（@systemapi）管理任务生命周期：startTask 创建并启动任务（指定类型、优先级、可选超时），finishTask/abortTask 结束任务,
+**以便** 表达任务执行诉求，且系统可在超时或创建者死亡时自动收口（无任务状态机）.
 
 **验收标准（AC）：**
 
 | AC编号 | 验收标准 | 类型 |
 |--------|----------|------|
-| AC-1.1 | WHEN 合法调用方调用 CreateTask(type=语音播报, priority=HIGH) THEN 返回成功与不可猜测的 taskId，任务以 UNKNOWN 状态存在且可通过 GetTaskInfo 查询 | 正常 |
-| AC-1.2 | WHEN 调用 SetTaskState(taskId, SUBMITTED→WORKING)（合法流转）THEN 状态更新成功且已注册监听者收到状态回调 | 正常 |
-| AC-1.3 | WHEN 调用 SetTaskState 发起非法流转（终态回退、任意跳转、未创建任务）THEN 返回明确错误码且任务状态不变 | 异常 |
-| AC-1.4 | WHEN 调用 CancelTask/DestroyTask 且任务存在 THEN 任务进入 CANCELED/被清理，纳管进程全部降级（CancelTask 后任务记录保留至 DestroyTask 仍可查询；DestroyTask 后任务记录不可再查询，F-16 修正） | 正常 |
-| AC-1.5 | WHEN 同一创建者连续创建任务至任务数上限 THEN 返回错误码（ERR_TASK_LIMIT_EXCEEDED），不创建新任务 | 边界 |
-| AC-1.6 | WHEN 非任务创建者调用 CancelTask/DestroyTask/SetTaskState THEN 返回权限错误码且任务不受影响 | 异常 |
+| AC-1.1 | WHEN 合法调用方调用 startTask(type, priority[, timeoutSec][, payload]) THEN 返回成功与不可猜测的 taskId，任务立即激活（纳管进程开始按任务优先级受管控），超时计时启动，TASK_START 事件上报 | 正常 |
+| AC-1.2 | WHEN 创建者调用 finishTask/abortTask 且任务存在 THEN 任务结束：纳管进程全部降级（豁免撤销/多任务归属按次高优先级续管）、任务记录清理、超时计时取消、TASK_END 事件（reason=FINISH/ABORT）上报 | 正常 |
+| AC-1.3 | WHEN 任务存活时间超过超时时间（startTask 入参或系统默认，且不超过系统硬上限）THEN 系统自动结束任务（同 AC-1.2 清理路径）并上报 TASK_END（reason=TIMEOUT）与 TASK_ABUSE_WARNING 告警 | 异常 |
+| AC-1.4 | WHEN 创建者进程死亡 THEN 其全部任务由系统自动结束（同清理路径，复用 AppDeathRecipient 链）并上报 TASK_END（reason=CREATOR_DEAD） | 异常 |
+| AC-1.5 | WHEN 非任务创建者调用 finishTask/abortTask THEN 返回 ERR_TASK_PERMISSION_DENIED 且任务不受影响；不存在的 taskId（含跨用户）返回 ERR_TASK_NOT_FOUND | 异常 |
+| AC-1.6 | WHEN 同一创建者活跃（未结束）任务数达到上限（可配，默认 16）THEN startTask 返回 ERR_TASK_LIMIT_EXCEEDED，不创建任务 | 边界 |
+| AC-1.7 | WHEN 系统应用经 System API（@systemapi）调用 startTask/finishTask/abortTask THEN 接口可访问且行为与接口规格一致；三方应用（非系统应用）调用 THEN 返回权限错误（System API 访问控制） | 边界 |
 
-### US-2: 启动链路纳管与进程归属
+### US-2: 工具链路纳管与进程归属（意图工具/CLI 工具/A2A）
 
 **作为** AI 语音助手,
-**我想要** 通过 StartAbility/ConnectAbility/意图框架/Cli/A2A 启动能力时携带 taskId，使目标进程自动纳入任务管控,
+**我想要** 通过意图工具、CLI 工具、A2A 调用工具能力时携带 taskId，使目标进程自动纳入任务管控,
 **以便** 对任务执行涉及的进程统一按任务优先级管控.
 
 **验收标准（AC）：**
 
 | AC编号 | 验收标准 | 类型 |
 |--------|----------|------|
-| AC-2.1 | WHEN 任务存在且任务创建者（或其进程）发起启动、Want 携带 taskId THEN 目标进程注册进该任务（GetTaskInfo 可见纳管 pid） | 正常 |
-| AC-2.2 | WHEN 非任务创建者、非任务内进程发起启动且 Want 携带伪造 taskId THEN 拒绝纳管（返回成功但该进程不纳入任务，启动本身不受影响） | 异常 |
+| AC-2.1 | WHEN 任务处于存活期，任务创建者（或任务内进程）经意图工具/CLI 工具/A2A 调用工具能力且调用参数携带 taskId（CLI `ExecOptions.taskSessionId` / 意图 `ExecuteParam.taskSessionId` / A2A `A2ACallContext.taskSessionId`，task.md 4.2~4.4）THEN 系统侧校验通过（owner 归属+存活态），目标进程（含 CLI 工具进程）自动纳入任务管控 | 正常 |
+| AC-2.2 | WHEN 调用携带伪造或冒用的 taskId（owner 不匹配、任务不存在或已结束/重放）THEN 拒绝执行该次工具调用并上报安全事件（fail-closed）；模型可控通道（execTool args / insightIntentParam / A2A 报文）中出现的任务标识被剥离后正常执行 | 异常 |
 | AC-2.3 | WHEN 同一进程被多个任务纳管 THEN 该进程按最高优先级任务执行管控 | 边界 |
-| AC-2.4 | WHEN 纳管进程死亡 THEN 该进程从任务记录移除，其余进程管控不受影响 | 异常 |
-| AC-2.5 | WHEN 启动的 Want 未携带 taskId THEN 启动行为与改动前完全一致（零影响） | 边界 |
+| AC-2.4 | WHEN 纳管进程死亡 THEN 该进程从任务记录移除，其余进程管控不受影响，任务不自动结束 | 异常 |
+| AC-2.5 | WHEN 三链路调用参数未携带 taskSessionId 字段 THEN 调用行为与现网完全一致（存量调用方零适配） | 边界 |
 
-### US-3: 任务状态查询与监听
-
-**作为** 安全管控/审计/系统状态监控等系统模块（系统应用）,
-**我想要** 监听任务状态变化并查询任务列表/详情,
-**以便** 感知任务生命周期事实（交互态/终态/归属进程变化）供安全与审计使用.（D-21：执行进度展示由 AI 助手自有 AI bar 呈现，不经本通道）
-
-**验收标准（AC）：**
-
-| AC编号 | 验收标准 | 类型 |
-|--------|----------|------|
-| AC-3.1 | WHEN 系统模块注册任务监听（RegisterTaskListener）THEN 任务状态变化（含进入 INPUT_REQUIRED/AUTH_REQUIRED 的 payload）实时回调（D-21：监听消费方=安全等系统模块；PAYLOAD_UPDATED 通知随 D-21 移除——进度由 AI bar 自呈现） | 正常 |
-| AC-3.2 | WHEN 监听方注销监听 THEN 不再收到回调 | 正常 |
-| AC-3.3 | WHEN 查询 GetTaskInfos/GetTaskInfo THEN 返回状态、纳管进程、payload、创建/更新时间戳 | 正常 |
-| AC-3.4 | WHEN 查询不存在的 taskId THEN 返回 ERR_TASK_NOT_FOUND | 异常 |
-
-### US-4: INPUT/AUTH 交互传达
-
-**作为** AI 语音助手与用户,
-**我想要** 在 INPUT_REQUIRED/AUTH_REQUIRED 阶段通过任务传达描述与可选项，并回传用户选择,
-**以便** 完成用户授权或意图确认.
-
-**验收标准（AC）：**
-
-| AC编号 | 验收标准 | 类型 |
-|--------|----------|------|
-| AC-4.1 | WHEN 任务进入 INPUT_REQUIRED/AUTH_REQUIRED 且携带描述与可选项 payload THEN payload 留存任务记录（GetTaskInfo 可查）且监听者收到包含该 payload 的回调（交互事实对安全等模块可观测） | 正常 |
-| AC-4.2 | WHEN 用户经 AI bar 完成选择/输入 THEN 助手（创建者）进程内直接获得响应并 SetTaskState 流转出交互状态（响应可选取流转 payload 携带；~~SubmitTaskInput 回传~~随 D-21 移除） | 正常 |
-| AC-4.3 | WHEN 任务在交互状态被取消/销毁 THEN 交互状态清理（payload 清除），不再回调，任务进入终态 | 异常 |
-
-### US-5: RSS 分级管控与降级恢复
+### US-3: RSS 分级管控与降级恢复
 
 **作为** 任务管理模块（系统）,
-**我想要** 按任务优先级对纳管进程施加 RSS 管控（冻结豁免/解冻），并在任务结束/进程退出后恢复,
-**以便** 保障锁屏/后台场景任务执行且不影响原有调度.
+**我想要** 按任务优先级对纳管进程施加 RSS 管控（冻结豁免/解冻），并在任务结束（finish/abort/超时/创建者死亡）后恢复,
+**以便** 保障锁屏/后台场景任务执行、不影响原有调度、后台执行不扰真实前台（虚拟屏调度抑制为一期分析+预留项，无一期 AC）.
 
 **验收标准（AC）：**
 
 | AC编号 | 验收标准 | 类型 |
 |--------|----------|------|
-| AC-5.1 | WHEN 高优先级任务进入**激活态**（SUBMITTED/WORKING/INPUT_REQUIRED/AUTH_REQUIRED，策略判定激活）THEN 任务管理模块经 RSS 管控层（ResourceControlProxy）向纳管进程下发豁免请求并记录日志（TASK_RSSCONTROL，模块级可验证）；施加后生效校验（查询冻结状态），未生效上报 TASK 告警；RSS 对接完成后端到端豁免生效，后台/锁屏场景进程不被冻结（TASK-6 门禁） | 正常 |
-| AC-5.2 | WHEN 任务结束/取消/销毁 THEN 经 RSS 管控层撤销豁免并记录日志（TASK_RSSCONTROL），恢复任务前的调度状态（多任务归属时按次高优先级继续管控） | 正常 |
-| AC-5.3 | WHEN 低优先级任务或任务处于**非激活态**（UNKNOWN/终态）THEN 不豁免；MEDIUM 任务按配置限时豁免 | 边界 |
-| AC-5.4 | WHEN 同一进程被多任务纳管且高优先级任务结束 THEN 降级至次高优先级任务的管控档位 | 边界 |
-| AC-5.5 | WHEN 豁免数量/时长超过配置上限 THEN 拒绝新增豁免并按策略降级（防滥用） | 边界 |
+| AC-3.1 | WHEN 高优先级任务处于**存活期**（startTask~结束）THEN 任务管理模块经 RSS 管控层（ResourceControlProxy）向纳管进程下发豁免请求并记录日志（TASK_RSSCONTROL，模块级可验证）；施加后生效校验（查询冻结状态），未生效上报 TASK 告警；RSS 对接完成后端到端豁免生效，后台/锁屏场景进程不被冻结（TASK-6 门禁；锁屏端到端前提=任务数据锁屏可访问（EL3~EL5 外部依赖），未满足时仅验证冻结豁免） | 正常 |
+| AC-3.2 | WHEN 任务结束（finishTask/abortTask/超时/创建者死亡）THEN 经 RSS 管控层撤销豁免并记录日志（TASK_RSSCONTROL），恢复任务前的调度状态（多任务归属时按次高优先级继续管控） | 正常 |
+| AC-3.3 | WHEN 低优先级（LOW）任务 THEN 不豁免（与原系统调度行为一致）；时长约束由任务超时时间统一承载 | 边界 |
+| AC-3.4 | WHEN 同一进程被多任务纳管且高优先级任务结束 THEN 降级至次高优先级任务的管控档位 | 边界 |
+| AC-3.5 | WHEN 豁免数量或单任务纳管进程数超过配置上限 THEN 拒绝新增豁免并按策略降级（防滥用） | 边界 |
 
-### US-6: DFX
+### US-4: DFX
 
 **作为** 系统开发者,
-**我想要** 通过 dump 与 hisysevent 查看任务状态与事件,
-**以便** 排查任务执行问题.
+**我想要** 通过 dump 与 hisysevent 查看任务执行事实,
+**以便** 排查任务执行问题（DFX 为唯一可观测面）.
 
 **验收标准（AC）：**
 
 | AC编号 | 验收标准 | 类型 |
 |--------|----------|------|
-| AC-6.1 | WHEN 执行任务相关 dump（hidumper/aa）THEN 输出任务列表、状态、纳管进程、管控生效信息 | 正常 |
-| AC-6.2 | WHEN 任务创建/状态流转/结束 THEN 上报对应 hisysevent 行为事件，可检索 | 正常 |
+| AC-4.1 | WHEN 执行任务相关 dump（hidumper/aa）THEN 输出活跃任务列表：taskId、类型、优先级、纳管进程（pid）、管控档位、剩余超时、创建时间（终态任务随结束即清理，不出现在 dump） | 正常 |
+| AC-4.2 | WHEN 任务 start/结束（含超时/创建者死亡）/纳管/管控动作发生 THEN 上报对应 hisysevent 行为事件，可检索 | 正常 |
+
 
 ## 验收追溯
 
 | AC | 关联规则 | 关联 Task | 验证方式 | 证据 |
 |----|----------|-----------|----------|------|
-| AC-1.1 | R-1, R-2 | TASK-create-task | 单测+集成 | `[test/unittest/task_mgr/…]` |
-| AC-1.2 | R-3 | TASK-state-machine | 单测 | `[…]` |
-| AC-1.3 | R-4 | TASK-state-machine | 单测 | `[…]` |
-| AC-1.4 | R-5, R-9 | TASK-lifecycle | 单测+集成 | `[…]` |
-| AC-1.5 | R-2 | TASK-create-task | 单测 | `[…]` |
-| AC-1.6 | R-6 | TASK-lifecycle | 单测 | `[…]` |
+| AC-1.1 | R-1 | TASK-lifecycle | 单测 | `[test/unittest/task_mgr/…]` |
+| AC-1.2 | R-5, R-9 | TASK-lifecycle | 单测+集成 | `[…]` |
+| AC-1.3 | R-25 | TASK-lifecycle | 单测 | `[…]` |
+| AC-1.4 | R-26 | TASK-lifecycle | 单测+集成 | `[…]` |
+| AC-1.5 | R-6 | TASK-lifecycle | 单测 | `[…]` |
+| AC-1.6 | R-2 | TASK-lifecycle | 单测 | `[…]` |
+| AC-1.7 | R-1, R-6 | TASK-lifecycle | 单测+API 用例 | `[…]` |
 | AC-2.1 | R-7 | TASK-intercept | 集成 | `[…]` |
 | AC-2.2 | R-8 | TASK-intercept | 集成 | `[…]` |
-| AC-2.3 | R-10 | TASK-process-mapping | 单测 | `[…]` |
-| AC-2.4 | R-12 | TASK-process-mapping | 单测+集成 | `[…]` |
+| AC-2.3 | R-10 | TASK-ressched | 单测 | `[…]` |
+| AC-2.4 | R-12 | TASK-ressched | 单测+集成 | `[…]` |
 | AC-2.5 | R-13 | TASK-intercept | 回归 | `[…]` |
-| AC-3.1 | R-14 | TASK-listener | 单测+集成 | `[…]` |
-| AC-3.2 | R-14 | TASK-listener | 单测 | `[…]` |
-| AC-3.3 | R-15 | TASK-listener | 单测 | `[…]` |
-| AC-3.4 | R-15 | TASK-listener | 单测 | `[…]` |
-| AC-4.1 | R-16 | TASK-interaction | 集成 | `[…]` |
-| AC-4.2 | R-17 | TASK-interaction | 集成 | `[…]` |
-| AC-4.3 | R-18 | TASK-interaction | 单测 | `[…]` |
-| AC-5.1 | R-19 | TASK-ressched | 真机+集成 | `[…]` |
-| AC-5.2 | R-9, R-20 | TASK-ressched | 集成+真机 | `[…]` |
-| AC-5.3 | R-21 | TASK-ressched | 单测 | `[…]` |
-| AC-5.4 | R-10, R-20 | TASK-ressched | 单测 | `[…]` |
-| AC-5.5 | R-22 | TASK-ressched | 单测 | `[…]` |
-| AC-6.1 | R-23 | TASK-dfx | 人工+单测 | `[…]` |
-| AC-6.2 | R-24 | TASK-dfx | 集成 | `[…]` |
+| AC-3.1 | R-19 | TASK-ressched | 真机+集成 | `[…]` |
+| AC-3.2 | R-9, R-20 | TASK-ressched | 集成+真机 | `[…]` |
+| AC-3.3 | R-21 | TASK-ressched | 单测 | `[…]` |
+| AC-3.4 | R-10, R-20 | TASK-ressched | 单测 | `[…]` |
+| AC-3.5 | R-22 | TASK-ressched | 单测 | `[…]` |
+| AC-4.1 | R-23 | TASK-dfx | 人工+单测 | `[…]` |
+| AC-4.2 | R-24 | TASK-dfx | 集成 | `[…]` |
 
 > Task 编号为占位，具体任务分解见 execution-plan.md；证据路径为占位，执行阶段填写。
 
@@ -156,78 +123,66 @@
 
 | 规则ID | 类型 | 触发条件 | 预期行为 | 边界/约束 | 关联AC |
 |--------|------|----------|----------|-----------|--------|
-| R-1 | 行为 | 系统应用调用 CreateTask，参数（type/priority/payload）合法 | 返回 ERR_OK 与不可猜测 taskId（随机，≥128bit 熵）；任务以 UNKNOWN 状态创建；同创建者可查询 | type/priority 为枚举值，非法值返回 ERR_INVALID_PARAM | AC-1.1 |
-| R-2 | 边界 | 创建任务时系统中该创建者活跃任务数达到上限（可配，默认 16） | 返回 ERR_TASK_LIMIT_EXCEEDED，不创建任务 | 上限为配置项，默认 16；上限 0 表示禁用创建；**活跃 = 非终态任务**（UNKNOWN~交互态均计入；创建者失联导致的滞留任务同样占用配额，处置见 design §5.2.1 F-43/A-9） | AC-1.1, AC-1.5 |
-| R-3 | 行为 | 调用 SetTaskState 发起合法流转（按状态机表，如 SUBMITTED→WORKING） | 状态更新成功返回 ERR_OK；监听者收到回调（携带 payload） | 状态机合法流转表见 design.md | AC-1.2 |
-| R-4 | 异常 | 调用 SetTaskState 发起非法流转（终态回退、未注册流转、REJECTED 由非创建者设置） | 返回 ERR_TASK_INVALID_STATE_TRANSITION，任务状态不变 | 终态（COMPLETED/CANCELED/FAILED/REJECTED）不可再流转 | AC-1.3 |
-| R-5 | 行为 | 调用 CancelTask/DestroyTask，任务存在且调用方为创建者 | CancelTask：任务进入 CANCELED（非终态时）并触发降级；DestroyTask：任务记录清理并触发降级；返回 ERR_OK | DestroyTask 对任意状态可执行（幂等：不存在返回 ERR_TASK_NOT_FOUND） | AC-1.4 |
-| R-6 | 异常 | 非任务创建者调用 SetTaskState/CancelTask/DestroyTask/SetTaskParams | 返回 ERR_TASK_PERMISSION_DENIED，任务不受影响 | 创建者为 CreateTask 时的调用方 tokenId/uid 绑定（~~SubmitTaskInput 白名单~~随 D-21 移除） | AC-1.6 |
-| R-7 | 行为 | 启动链路（StartAbility/ConnectAbility/意图/Cli/A2A，含代理启动变体）请求中 Want 携带 taskId，且业务发起方为任务创建者或任务内已纳管进程 | 目标进程注册进任务（**条件两段式**：进程已存在→直接注册；未创建→意向登记+attach 补注册），GetTaskInfo 可见；纳管成功不影响启动结果 | 校验身份取业务发起方（asCallerSourceToken/specifyTokenId 优先）；任务不存在时忽略 taskId，不报错不阻断；**Cli = cli_tool_framework（D-22）：Skill 会话路径经 AMS 收敛点天然覆盖（taskId 随 skillArgs 透传）；CLI 工具路径（fork+claw_sandbox，不经 AMS）经 aimgr 挂点注册（design §5.4.3）** | AC-2.1 |
-| R-8 | 异常 | Want 携带 taskId，但发起方既非任务创建者也非任务内进程（伪造/仿冒） | 拒绝纳管：启动正常执行但进程不纳入任务；不上报错误给调用方 | 校验基于发起方 tokenId/uid 与任务创建者绑定；taskId 不可猜测（R-1） | AC-2.2 |
-| R-9 | 行为 | 任务进入终态（COMPLETED/CANCELED/FAILED/REJECTED）或 DestroyTask | 对该任务下全部纳管进程执行降级：撤销冻结豁免（CLEAR_EXEMPT）/恢复调度优先级（CLEAR_QOS，二期 QoS 落地后）；进程归属按剩余任务最高优先级重算（无任务则完全恢复——RSS 按原策略自然回冻，无需显式 re-freeze）；**EDS 待机豁免按 uid 级引用计数撤销（该 uid 无其他激活态任务才 Unapply，F-47）**；任务级 NotifyTaskEnd 通知 RSS 清理任务级策略（R-20） | 降级在状态机事件处理中同步执行；**终态同步取消全部计时器（交互超时/限时/硬上限/续期计数），超时处理器校验任务非终态（双保险，F-47）**；失败重试 ≤3 次后记录告警 | AC-1.4, AC-5.2 |
-| R-10 | 边界 | 进程被多个任务纳管，各任务管控档位不同 | 进程实际管控档位 = 纳管它的任务中最高档位；高任务结束后降至次高档位 | 档位映射：任务优先级→管控档位表见 design.md | AC-2.3, AC-5.4 |
+| R-1 | 行为 | 系统应用调用 startTask，参数（type/priority/timeoutSec 可选/payload 可选）合法 | 返回 ERR_OK 与不可猜测 taskId（随机，≥128bit 熵）；任务立即激活（无状态字段，存活期= startTask 至结束）；按 priority 定档并启动超时计时；上报 TASK_START | type/priority 为枚举值，非法值返回 ERR_INVALID_PARAM；timeoutSec ≤ 系统硬上限（sysparam，默认 3600s），超限取硬上限值；payload ≤4KB（任务描述，供审计） | AC-1.1 |
+| R-2 | 边界 | startTask 时该创建者活跃任务数达上限（可配，默认 16） | 返回 ERR_TASK_LIMIT_EXCEEDED，不创建任务 | **活跃 = 未结束任务**（startTask 后至 finish/abort/超时/创建者死亡前）；超时与创建者死亡自动结束（R-25/R-26）保证配额不滞留（防配额死锁） | AC-1.6 |
+| R-5 | 行为 | 调用 finishTask/abortTask，任务存在且调用方为创建者 | 任务结束：双通道降级（R-9/R-20）+ 超时计时取消 + 任务记录清理（历史经 hisysevent 留痕）+ TASK_END(reason=FINISH/ABORT)；返回 ERR_OK | 幂等语义：任务已结束后记录即清理，二次调用返回 ERR_TASK_NOT_FOUND | AC-1.2 |
+| R-6 | 异常 | 非任务创建者调用 finishTask/abortTask | 返回 ERR_TASK_PERMISSION_DENIED，任务不受影响 | 创建者为 startTask 时的调用方 tokenId/uid 绑定；跨用户 taskId 视为不存在（ERR_TASK_NOT_FOUND） | AC-1.5 |
+| R-7 | 行为 | 任务存活期内，任务创建者（或任务内进程）经三链路调用携带 taskId——CLI `ExecOptions/ExecCmdOptions.taskSessionId`（签名不变）、意图 `ExecuteParam.taskSessionId`（系统保留字段，分发转写为 Want 兜底 `ohos.param.taskSessionId`）、A2A `A2ACallContext.taskSessionId`（带外上下文，不进协议报文） | 系统侧校验（owner 归属比对——IPC 取证身份，不可被参数伪造 + 存活态校验）通过后，目标进程（含 CLI 工具进程及其子进程）自动纳入任务；纳管不影响调用结果 | 通道隔离：taskId 仅走代码受控通道，模型可控通道（execTool args / insightIntentParam / A2A 报文 metadata·parts）出现任务标识一律剥离+安全日志；进程未创建时的补挂时机与内部纳管通道由 design.md 定稿 | AC-2.1 |
+| R-8 | 异常 | 携带 taskId 但 owner 不匹配（冒用他人任务）、任务不存在或已结束（重放） | **fail-closed**：拒绝执行该次工具调用 + 安全事件上报（冒用为攻击信号）；会话不存在→拒绝并提示重建 | 分级处置（task.md §5.4）：owner 不匹配/终态重放 fail-closed；模型输出污染（标识出现在模型可控通道）→ 剥离后正常执行；taskId 不可猜测（R-1，系统 128-bit 签发） | AC-2.2 |
+| R-9 | 行为 | 任务结束（finishTask/abortTask/超时 R-25/创建者死亡 R-26） | 对该任务下全部纳管进程执行降级：撤销冻结豁免（CLEAR_EXEMPT）/恢复调度优先级（CLEAR_QOS，二期 QoS 落地后）；进程归属按剩余任务最高优先级重算（无任务则完全恢复——RSS 按原策略自然回冻，无需显式 re-freeze）；**EDS 待机豁免按 uid 级引用计数撤销（该 uid 无其他存活期任务才 Unapply，F-47）**；任务级 NotifyTaskEnd 通知 RSS 清理任务级策略（R-20） | 降级在任务事件处理中同步执行；**结束同步取消超时计时（超时事件处理器校验任务仍存在，双保险）**；失败重试 ≤3 次后记录告警 | AC-1.2, AC-3.2 |
+| R-10 | 边界 | 进程被多个任务纳管，各任务管控档位不同 | 进程实际管控档位 = 纳管它的任务中最高档位；高任务结束后降至次高档位 | 档位映射：任务优先级→管控档位表见 design.md（档位由 startTask 时的 priority 决定，无动态调档） | AC-2.3, AC-3.4 |
 | R-11 | 边界 | 进程被多个任务纳管且最高档任务冻结豁免与次高任务冲突 | 豁免以最高档任务为准；其余任务豁免申请合并（同进程同类型豁免幂等） | 幂等键：taskId+pid+豁免类型 | AC-2.3 |
-| R-12 | 异常 | 任务内纳管进程死亡（进程退出/被杀） | 该进程从任务记录移除，释放其豁免；任务其余进程与任务状态不受影响 | 进程死亡经 appmgr 既有死亡通知链驱动，延迟 ≤ 1s；**该任务全部纳管进程死亡且无其他激活态任务同 uid 时，EDS 待机豁免按 uid 引用计数撤销（F-47）** | AC-2.4 |
-| R-13 | 边界 | 启动请求 Want 未携带 taskId，或携带非法格式 taskId | 启动行为与改动前完全一致；不产生任何纳管/管控副作用 | 拦截仅做参数解析与校验，失败不阻断启动 | AC-2.5 |
-| R-14 | 行为 | 调用 RegisterTaskListener（系统应用），任务状态发生变更 | 监听者回调收到变更事件（含 taskId、新状态、payload、时间戳）；UnregisterTaskListener 后停止回调 | 回调事件顺序与状态变更顺序一致；监听回调不阻塞状态机；回调按监听者 userId 过滤（跨用户任务不派发，C-3） | AC-3.1, AC-3.2 |
-| R-15 | 行为 | 调用 GetTaskInfo(taskId)/GetTaskInfos() | 返回任务详情（状态、类型、优先级、纳管进程、payload、时间戳）/全部任务列表；不存在的 taskId 返回 ERR_TASK_NOT_FOUND | 查询对系统应用开放；返回数据为快照；按调用方 userId 过滤——跨用户 taskId 视为不存在（ERR_TASK_NOT_FOUND），GetTaskInfos 仅返回同 userId 任务（C-3） | AC-3.3, AC-3.4 |
-| R-16 | 行为 | 任务进入 INPUT_REQUIRED/AUTH_REQUIRED，payload 含描述（text）与可选项（options 数组） | payload 留存任务记录（事实记录，供 AI bar 呈现/查询/审计）；状态回调携带完整 payload（监听者=安全等系统模块，D-21） | payload 大小上限可配（默认 4KB） | AC-4.1 |
-| R-17 | 行为 | 任务处于交互状态，用户经 AI bar 完成选择/输入（助手进程内闭环，D-21） | 助手直接获得响应并 SetTaskState 流转出交互状态；交互响应可选取该次流转 payload 携带（可选，无专用机制/存储）；~~SubmitTaskInput 接口~~随 D-21 移除 | 流转仍受状态机校验（合法流转表）；交互超时处置见 R-21 | AC-4.2 |
-| R-18 | 异常 | 任务处于交互状态时被取消/销毁 | 交互状态清理（payload 清除），不再回调，任务进入终态 | 清理在状态机终态处理中同步完成 | AC-4.3 |
-| R-19 | 行为 | 高优先级任务处于**激活态**（SUBMITTED/WORKING/INPUT_REQUIRED/AUTH_REQUIRED），策略判定需豁免 | 经 RSS 管控层（ResourceControlProxy）对纳管进程下发冻结豁免请求并留存豁免登记（**内存态、不持久化、仅运行中任务**，含 taskId/pid/动作/档位/时间戳/结果——用于 RSS 重启重放与撤销重试，评审决策 2026-08-24；字段集对齐 D-16，F-17 补全）；**施加后生效校验（查询冻结状态，未生效上报 TASK 告警）**；RSS 对接完成后豁免实际生效 | 优先级→豁免档位映射与豁免判定见 design.md 资源调度子模块；ResourceControlProxy 一期为骨架实现（内存登记+告警日志，探测开关默认关），对接策略见 design.md §6.4；激活态集合含 SUBMITTED（F-1：就绪态保障可调度） | AC-5.1 |
-| R-20 | 行为 | 任务降级/结束（终态/DestroyTask） | **双通道清理**：① 进程级——经 ResourceControlProxy 对纳管进程撤销豁免/解冻并记录日志，进程按剩余任务最高档重算；② 任务级——NotifyTaskEnd(taskId, pids, reason) 通知 RSS 清理按任务建立的策略 | 两通道在 taskHandler 串行执行，②在①之后；失败重试 ≤3 次后告警（日志留痕供复核，评审决策 2026-08-24：不持久化，经日志查看） | AC-5.2, AC-5.4 |
-| R-21 | 边界 | 低优先级任务（LOW）或任务处于非激活态（UNKNOWN/终态） | 不豁免（与原系统调度行为一致）；MEDIUM 任务限时豁免（时长可配，默认 30min） | 交互态属激活态且配置交互超时（默认 30min）：超时后先经 OnTaskNotice 通知创建者限期处置（宽限默认 5min），宽限后仍未流转则 task_mgr 主动降档撤销豁免并告警（design.md §6.1 F-5 细化）；豁免时长硬上限可配（默认 60min，最终兜底），到期前可经 SetTaskParams 续期重置计时——**仅 priority 变化触发续期、续期次数上限 N 次（默认 3，可配）**（C-2/A-6，评审决策 2026-08-24）；档位 1 限时豁免（默认 30min）到期未续期 → 撤销豁免并按剩余任务重算档位；交互超时与限时豁免双计时器取先到者触发（design §6.1）；各超时参数（交互/宽限/限时/硬上限/预警提前量/续期次数）默认值**已确认**（2026-08-26 第十三轮用户确认），落地经可配参数（sysparam，design §6.1 F-14）调整 | AC-5.3 |
-| R-22 | 边界 | 系统中活跃豁免数量或单任务豁免时长超过配置上限 | 拒绝新增豁免，任务降级为不豁免档，记录告警 hisysevent | 全局活跃豁免数量上限（默认 64 进程）与单任务纳管进程数上限（默认 16，A-5）——两项上限经可配参数调整（sysparam 落地，design §6.1 F-14；评审决策 2026-08-24）；**豁免粒度按 pid（进程级）计**（评审决策 2026-08-24）；时长与续期次数上限见 R-21 | AC-5.5 |
-| R-23 | 行为 | 执行任务相关 dump（`hidumper -s 501 -a "<任务选项>"` / aa 命令；F-26 修正语法） | 输出任务列表：taskId、状态、类型、优先级、纳管进程（pid）、管控档位、payload 摘要、时间戳 | dump 仅 shell/hidumper 可调用（复用既有校验） | AC-6.1 |
-| R-24 | 行为 | 任务创建、状态流转、终态、豁免施加/撤销 | 上报对应 hisysevent 行为事件（事件名/字段见 hisysevent.yaml 新增定义） | 事件定义不可破坏既有事件（AGENTS.md 约束） | AC-6.2 |
+| R-12 | 异常 | 任务内纳管进程死亡（进程退出/被杀） | 该进程从任务记录移除，释放其豁免；任务其余进程不受影响；**任务不自动结束**（创建者可继续纳管新进程，结束仅由 finish/abort/超时/创建者死亡触发） | 进程死亡经 appmgr 既有死亡通知链驱动，延迟 ≤ 1s；**CLI 工具进程死亡经 cliManager 会话生命周期感知清理，与 AppMS 死亡链互补**；该任务全部纳管进程死亡且无其他存活期任务同 uid 时，EDS 待机豁免按 uid 引用计数撤销（F-47） | AC-2.4 |
+| R-13 | 边界 | 三链路调用参数未携带 taskSessionId 字段 | 调用行为与现网完全一致；不产生任何纳管/管控副作用（存量调用方零适配） | 字段为既有接口的可选扩展，不改变函数签名 | AC-2.5 |
+| R-19 | 行为 | 高优先级任务处于**存活期**（startTask 至结束），策略判定需豁免 | 经 RSS 管控层（ResourceControlProxy）对纳管进程下发冻结豁免请求并留存豁免登记（**内存态、不持久化、仅存活期任务**，含 taskId/pid/动作/档位/时间戳/结果——用于 RSS 重启重放与撤销重试，D-16；字段集对齐，F-17）；**施加后生效校验（查询冻结状态，未生效上报 TASK 告警）**；RSS 对接完成后豁免实际生效 | 优先级→豁免档位映射与豁免判定见 design.md 资源调度子模块；ResourceControlProxy 一期为骨架实现（内存登记+告警日志，探测开关默认关），对接策略见 design.md §6.4 | AC-3.1 |
+| R-20 | 行为 | 任务结束（finish/abort/超时/创建者死亡） | **双通道清理**：① 进程级——经 ResourceControlProxy 对纳管进程撤销豁免/解冻并记录日志，进程按剩余任务最高档重算；② 任务级——NotifyTaskEnd(taskId, pids, reason) 通知 RSS 清理按任务建立的策略 | 两通道在 taskHandler 串行执行，②在①之后；失败重试 ≤3 次后告警（日志留痕供复核，D-16） | AC-3.2, AC-3.4 |
+| R-21 | 边界 | 低优先级任务（LOW） | 不豁免（与原系统调度行为一致）；**时长约束由任务超时时间统一承载（R-25）**，全档位一致 | 档位映射见 design §6.1（LOW=档位 0 不豁免；MEDIUM/HIGH=豁免；CRITICAL=豁免+解冻+QoS 二期）；任务超时默认值与硬上限经 sysparam 配置（design §6.1，F-14/F-37） | AC-3.3 |
+| R-22 | 边界 | 系统中活跃豁免数量或单任务纳管进程数超过配置上限 | 拒绝新增豁免，记录告警 hisysevent | 全局活跃豁免数量上限（默认 64 进程）与单任务纳管进程数上限（默认 16）——经可配参数调整（sysparam，design §6.1 F-14）；**豁免粒度按 pid（进程级）计**；时长约束由 R-25 任务超时统一承载 | AC-3.5 |
+| R-23 | 行为 | 执行任务相关 dump（`hidumper -s 501 -a "<任务选项>"` / aa 命令；F-26 修正语法） | 输出**活跃任务列表**：taskId、类型、优先级、纳管进程（pid）、管控档位、剩余超时、创建时间（终态任务随结束即清理，不出现在 dump）；RSS 活跃豁免内存登记摘要 | dump 仅 shell/hidumper 可调用（复用既有校验） | AC-4.1 |
+| R-24 | 行为 | 任务 start、结束（含超时/创建者死亡）、纳管、豁免施加/撤销 | 上报对应 hisysevent 行为事件（事件集=TASK_START/TASK_END/TASK_RSSCONTROL/TASK_ABUSE_WARNING，字段见 hisysevent.yaml 新增定义） | 事件定义不可破坏既有事件（AGENTS.md 约束） | AC-4.2 |
+| R-25 | 行为 | 任务存活时间超过超时时间（startTask 入参 timeoutSec 或系统默认，均 ≤ 硬上限） | 系统自动结束任务：同 R-5 清理路径（双通道降级+计时取消+记录清理）+ TASK_END(reason=TIMEOUT) + TASK_ABUSE_WARNING(reason=timeout) | 超时默认值与硬上限经 sysparam（`persist.sys.appms.taskmanager.*`）可配；超时事件处理器校验任务仍存在（防与 finish/abort 竞态双保险） | AC-1.3 |
+| R-26 | 行为 | 创建者进程死亡（AppMS 经既有 AppDeathRecipient 链感知） | 其全部任务由系统自动结束：同 R-5 清理路径 + TASK_END(reason=CREATOR_DEAD) | 感知延迟 ≤1s（复用进程死亡通知链）；防止创建者死亡后豁免滞留至超时（防配额/豁免滞留） | AC-1.4 |
 
 ## 验证映射
 
 | 编号 | 对应规格项 | 验证方式 | 验证重点 |
 |------|------------|----------|----------|
-| VM-1 | R-1~R-6 / AC-1.x | 单测（任务管理模块单测）+ 集成 | 任务生命周期、状态机流转合法性、权限校验 |
-| VM-2 | R-7~R-13 / AC-2.x | 集成（AMS 拦截点桩）+ 单测 | 纳管正确性、仿冒拒绝、多任务归属、进程死亡清理、无 taskId 零影响 |
-| VM-3 | R-14~R-15 / AC-3.x | 单测 + 集成 | 监听回调顺序/负载、查询快照 |
-| VM-4 | R-16~R-18 / AC-4.x | 集成 | payload 事实记录与回调、AI bar 交互闭环后流转、交互清理 |
-| VM-5 | R-19~R-22 / AC-5.x | 真机（锁屏/后台切换）+ 集成 | 豁免生效/撤销、多任务最高档、防滥用上限、降级恢复 |
-| VM-6 | R-23~R-24 / AC-6.x | 人工 + 集成 | dump 输出、hisysevent 检索 |
+| VM-1 | R-1~R-6, R-25, R-26 / AC-1.x | 单测（任务管理模块单测）+ 集成 | 任务生命周期（start/finish/abort）、超时自动结束、创建者死亡自动结束、权限校验（含 System API 访问控制）、任务上限 |
+| VM-2 | R-7~R-13 / AC-2.x | 集成（三链路接口桩）+ 单测 | 三链路纳管正确性、冒用/重放拒绝（fail-closed）、多任务归属、进程死亡清理、未携带字段零影响 |
+| VM-3 | R-19~R-22 / AC-3.x | 真机（锁屏/后台切换）+ 集成 | 豁免生效/撤销、多任务最高档、防滥用上限、降级恢复 |
+| VM-4 | R-23~R-24 / AC-4.x | 人工 + 集成 | dump 输出、hisysevent 检索 |
 
 ## API 变更分析
 
-> 全部为新增 InnerApi（无 Public/System API 变更），方法签名与参数结构以 design.md 定稿为准。
+> 公共接口 startTask/finishTask/abortTask 为新增 **SystemApi**（@systemapi 标注、@since 7.1，NAPI 绑定 + d.ts，面向系统应用，d.ts 在 interface_sdk_js 仓提审）；三链路纳管经既有系统接口可选字段扩展承载（签名不变，task.md 4.2~4.4）；系统侧内部纳管通道为内部实现，不在本表展开。方法签名与参数结构以 design.md 定稿为准（System API 签名以 d.ts 定稿为准）。
 
 ### 新增 API
 
 | API 名称 | 开放范围 | 入参概要 | 返回值 | 错误码范围 | 功能描述 | 关联 AC |
 |----------|----------|----------|--------|------------|----------|---------|
-| `ITaskManager::CreateTask` | InnerApi | TaskCreateParams{type, priority, payload} | taskId (string) | ERR_OK / ERR_INVALID_PARAM / ERR_TASK_LIMIT_EXCEEDED / ERR_TASK_PERMISSION_DENIED | 创建任务，返回不可猜测 taskId | AC-1.1 |
-| `ITaskManager::DestroyTask` | InnerApi | taskId | ERR_OK | ERR_OK / ERR_TASK_NOT_FOUND / ERR_TASK_PERMISSION_DENIED | 销毁任务（任意状态可执行），触发降级 | AC-1.4 |
-| `ITaskManager::CancelTask` | InnerApi | taskId | ERR_OK | ERR_OK / ERR_TASK_NOT_FOUND / ERR_TASK_PERMISSION_DENIED / ERR_TASK_INVALID_STATE（终态时） | 取消任务，任务进入 CANCELED 并触发降级 | AC-1.4 |
-| `ITaskManager::SetTaskState` | InnerApi | taskId, state, payload | ERR_OK | ERR_OK / ERR_TASK_NOT_FOUND / ERR_TASK_INVALID_STATE_TRANSITION / ERR_TASK_PERMISSION_DENIED / ERR_INVALID_PARAM | 设置任务状态（校验流转合法性） | AC-1.2, AC-1.3 |
-| `ITaskManager::SetTaskParams` | InnerApi | taskId, params | ERR_OK | ERR_OK / ERR_TASK_NOT_FOUND / ERR_TASK_PERMISSION_DENIED / ERR_TASK_INVALID_STATE / ERR_INVALID_PARAM | 更新任务参数（可调字段仅 priority/payload，type 创建后不可调，F-10 修正对齐 design §5.6） | AC-1.2 |
-| `ITaskManager::GetTaskInfo` | InnerApi | taskId | TaskInfo | ERR_OK / ERR_TASK_NOT_FOUND | 查询任务详情 | AC-3.3 |
-| `ITaskManager::GetTaskInfos` | InnerApi | 无 | List\<TaskInfo\> | ERR_OK | 查询全部任务 | AC-3.3 |
-| `ITaskManager::RegisterTaskListener` | InnerApi | listener (IRemoteObject) | ERR_OK | ERR_OK / ERR_INVALID_PARAM | 注册任务状态监听（安全等系统模块，D-21） | AC-3.1 |
-| `ITaskManager::UnregisterTaskListener` | InnerApi | listener | ERR_OK | ERR_OK / ERR_INVALID_PARAM | 注销任务监听 | AC-3.2 |
-| `ITaskManager::RegisterTaskProcess`（内部） | InnerApi | taskId, pid/token | ERR_OK | ERR_OK / ERR_TASK_NOT_FOUND / ERR_TASK_PERMISSION_DENIED | AMS 拦截点调用：将目标进程纳入任务 | AC-2.1 |
-| `ITaskManager::RegisterTaskIntent`（内部） | InnerApi | taskId, callerTokenId | ERR_OK | ERR_OK / ERR_TASK_NOT_FOUND / ERR_TASK_PERMISSION_DENIED | AMS 拦截点调用：进程未创建时的意向登记（两段式①，30s 超时清理；B-2 补全） | AC-2.1 |
-| `ITaskManager::UnregisterTaskProcess`（内部） | InnerApi | taskId, pid | ERR_OK | ERR_OK / ERR_TASK_NOT_FOUND | 进程死亡/任务移除时解除纳管 | AC-2.4 |
+| `startTask`（System API；底层 `ITaskManager::startTask`） | SystemApi | TaskStartParams{type, priority, timeoutSec?, payload?} | taskId (string) | ERR_OK / ERR_INVALID_PARAM / ERR_TASK_LIMIT_EXCEEDED / ERR_TASK_PERMISSION_DENIED | 创建并启动任务（立即激活，启动超时计时），返回不可猜测 taskId | AC-1.1 |
+| `finishTask`（System API；底层 `ITaskManager::finishTask`） | SystemApi | taskId | ERR_OK | ERR_OK / ERR_TASK_NOT_FOUND / ERR_TASK_PERMISSION_DENIED | 结束任务（正常完成），触发降级与记录清理 | AC-1.2 |
+| `abortTask`（System API；底层 `ITaskManager::abortTask`） | SystemApi | taskId | ERR_OK | ERR_OK / ERR_TASK_NOT_FOUND / ERR_TASK_PERMISSION_DENIED | 中止任务，触发降级与记录清理 | AC-1.2 |
+| `cliManager.ExecOptions.taskSessionId`（CLI 链路扩展，task.md 4.2） | SystemApi（既有接口可选字段） | taskSessionId?: string（= startTask 签发 taskId） | — | 沿用 execTool 既有 | CLI 工具进程任务归因：执行前 owner+存活态校验，工具进程及子进程挂入任务；不传=现网行为 | AC-2.1 |
+| `ExecuteParam.taskSessionId`（意图链路扩展，task.md 4.3） | SystemApi（系统保留字段） | taskSessionId?: string | — | 沿用 execute 既有 | 意图执行任务归因：转写为 Want 兜底 `ohos.param.taskSessionId`，目标进程挂入任务 | AC-2.1 |
+| `A2ACallContext.taskSessionId`（A2A 链路扩展，task.md 4.4） | SDK 调用上下文（带外） | taskSessionId?, localTaskSessionId? | — | 沿用 connect/sendMessage 既有 | A2A 调用任务归因：端侧校验后 Agent 进程挂入任务；对端报文任务 ID 不采信（仅关联映射） | AC-2.1 |
+
 
 ### 变更/废弃 API
 
-无（全部新增，无既有 API 变更/废弃）。
+既有系统接口参数对象新增可选字段（CLI `ExecOptions`/`ExecCmdOptions`、意图 `ExecuteParam`、A2A 调用上下文 `A2ACallContext`）——**函数签名不变、不传字段行为与现网一致**（存量调用方零适配）；无既有 API 废止。
 
 ## 接口规格
 
 > 每个接口的调用语义、参数约束与行为场景。实现细节（d.ts/桩位置、调用链）见 design.md。
 
-### CreateTask
+### startTask
 
 | 属性 | 值 |
 |------|-----|
-| 函数签名 | `int32_t CreateTask(const TaskCreateParams& params, std::string& taskId)` |
+| 函数签名 | `int32_t startTask(const TaskStartParams& params, std::string& taskId)`（native IDL）；System API 侧为 `startTask(params): Promise<string>` 风格（以 d.ts 定稿为准） |
 | 返回值 | `int32_t` — 0=ERR_OK，负值为错误码 |
-| 开放范围 | InnerApi |
+| 开放范围 | SystemApi（@systemapi 标注、@since 7.1；NAPI 绑定 + d.ts，经 TaskManagerClient→ITaskManager IDL 承载，面向系统应用） |
 | 错误码 | ERR_INVALID_PARAM / ERR_TASK_LIMIT_EXCEEDED / ERR_TASK_PERMISSION_DENIED |
 | 关联 AC | AC-1.1 |
 
@@ -237,206 +192,65 @@
 |------|------|------|--------|---------|
 | params.type | TaskType 枚举 | 是 | — | 枚举值，非法值触发 ERR_INVALID_PARAM |
 | params.priority | TaskPriority 枚举 | 是 | — | 枚举值，非法值触发 ERR_INVALID_PARAM |
-| params.payload | string/JSON | 否 | 空 | ≤4KB；超限 ERR_INVALID_PARAM |
+| params.timeoutSec | int32 | 否 | 系统默认（sysparam） | ≤ 系统硬上限（默认 3600s，sysparam），超限取硬上限值 |
+| params.payload | string/JSON | 否 | 空 | ≤4KB（任务描述，供审计/DFX） |
 
 **行为场景**
 
 | # | 触发条件 | 预期行为 | 关联 AC |
 |---|----------|----------|---------|
-| 1 | 系统应用调用，参数合法，未达任务数上限 | 返回 ERR_OK；taskId 为不可猜测随机串（≥128bit 熵）；任务 UNKNOWN 状态创建 | AC-1.1 |
+| 1 | 系统应用调用，参数合法，未达任务数上限 | 返回 ERR_OK；taskId 为不可猜测随机串（≥128bit 熵）；任务立即激活（按 priority 定档、超时计时启动）；TASK_START 上报 | AC-1.1 |
 | 2 | 参数非法（枚举越界/payload 超限） | 返回 ERR_INVALID_PARAM，不创建任务 | AC-1.1 |
-| 3 | 创建者活跃任务数达上限 | 返回 ERR_TASK_LIMIT_EXCEEDED | AC-1.5 |
+| 3 | 创建者活跃任务数达上限 | 返回 ERR_TASK_LIMIT_EXCEEDED | AC-1.6 |
 | 4 | 非系统应用调用 | 返回 ERR_TASK_PERMISSION_DENIED | AC-1.1 |
 
-### SetTaskState
+### finishTask / abortTask
 
 | 属性 | 值 |
 |------|-----|
-| 函数签名 | `int32_t SetTaskState(const std::string& taskId, TaskState state, const std::string& payload)` |
+| 函数签名 | `int32_t finishTask(const std::string& taskId)` / `int32_t abortTask(const std::string& taskId)`（native IDL）；System API 侧为 `finishTask(taskId): Promise<void>` 风格（以 d.ts 定稿为准） |
 | 返回值 | `int32_t` — 0=ERR_OK |
-| 开放范围 | InnerApi |
-| 错误码 | ERR_TASK_NOT_FOUND / ERR_TASK_INVALID_STATE_TRANSITION / ERR_TASK_PERMISSION_DENIED / ERR_INVALID_PARAM |
-| 关联 AC | AC-1.2, AC-1.3 |
-
-**参数约束**
-
-| 参数 | 类型 | 必填 | 默认值 | 约束条件 |
-|------|------|------|--------|---------|
-| taskId | string | 是 | — | 已存在任务，否则 ERR_TASK_NOT_FOUND |
-| state | TaskState 枚举 | 是 | — | 目标状态；从当前状态的合法流转表（design.md）校验 |
-| payload | string/JSON | 否 | 空 | 交互状态（INPUT/AUTH）必填（描述+可选项），≤4KB |
-
-**行为场景**
-
-| # | 触发条件 | 预期行为 | 关联 AC |
-|---|----------|----------|---------|
-| 1 | 合法流转（如 SUBMITTED→WORKING） | 返回 ERR_OK；监听者收到回调 | AC-1.2 |
-| 2 | 非法流转（终态回退/任意跳转） | 返回 ERR_TASK_INVALID_STATE_TRANSITION，状态不变 | AC-1.3 |
-| 3 | 设置 REJECTED 且调用方非创建者 | 返回 ERR_TASK_PERMISSION_DENIED（REJECTED 仅创建者可设） | AC-1.3 |
-| 4 | 任务进入交互状态但 payload 缺失 | 返回 ERR_INVALID_PARAM（交互状态必须携带描述与可选项） | AC-4.1 |
-
-### CancelTask / DestroyTask
-
-| 属性 | 值 |
-|------|-----|
-| 函数签名 | `int32_t CancelTask(const std::string& taskId)` / `int32_t DestroyTask(const std::string& taskId)` |
-| 返回值 | `int32_t` — 0=ERR_OK |
-| 开放范围 | InnerApi |
-| 错误码 | ERR_TASK_NOT_FOUND / ERR_TASK_PERMISSION_DENIED / ERR_TASK_INVALID_STATE（CancelTask 于终态） |
-| 关联 AC | AC-1.4 |
-
-**行为场景**
-
-| # | 触发条件 | 预期行为 | 关联 AC |
-|---|----------|----------|---------|
-| 1 | 任务存在且非终态，创建者调用 CancelTask | 任务进入 CANCELED；纳管进程降级；监听者收到回调 | AC-1.4 |
-| 2 | 任务已终态，调用 CancelTask | 返回 ERR_TASK_INVALID_STATE（幂等策略见 design） | AC-1.4 |
-| 3 | 任意状态调用 DestroyTask | 任务清理；降级；返回 ERR_OK | AC-1.4 |
-| 4 | 任务不存在 | 返回 ERR_TASK_NOT_FOUND | AC-1.4 |
-
-### RegisterTaskProcess（内部，AMS 拦截点调用 / 创建者自注册直调）
-
-| 属性 | 值 |
-|------|-----|
-| 函数签名 | `int32_t RegisterTaskProcess(const std::string& taskId, int32_t pid, int32_t callerTokenId)` |
-| 返回值 | `int32_t` — 0=ERR_OK |
-| 开放范围 | InnerApi（AMS→AppMS 内部通道；创建者显式自注册，design §5.2.1；**aimgr CLI 挂点通道，D-22/design §5.4.3**） |
+| 开放范围 | SystemApi（@systemapi 标注、@since 7.1；NAPI 绑定 + d.ts，经 TaskManagerClient→ITaskManager IDL 承载，面向系统应用） |
 | 错误码 | ERR_TASK_NOT_FOUND / ERR_TASK_PERMISSION_DENIED |
-| 关联 AC | AC-2.1, AC-2.2 |
-
-**参数约束**
-
-| 参数 | 类型 | 必填 | 默认值 | 约束条件 |
-|------|------|------|--------|---------|
-| taskId | string | 是 | — | 任务存在；callerTokenId 需通过 B-2 + 通道鉴权校验 |
-| pid | int32 | 是 | — | 目标进程 pid（>0）；直调路径须通过 pid 归属校验（F-8） |
-| callerTokenId | int32 | 是 | — | 业务发起方 tokenId（AMS 转发）或调用方自身 tokenId（直调，须与 IPC 实际身份一致，F-8） |
+| 关联 AC | AC-1.2, AC-1.5 |
 
 **行为场景**
 
 | # | 触发条件 | 预期行为 | 关联 AC |
 |---|----------|----------|---------|
-| 1 | 发起方为任务创建者或任务内进程，taskId 存在 | 目标 pid 注册进任务；返回 ERR_OK | AC-2.1 |
-| 2 | 发起方身份校验不通过（仿冒） | 拒绝纳管，返回 ERR_TASK_PERMISSION_DENIED（内部通道错误码供 AMS 日志，不透传应用侧——与 R-8"不上报错误"不冲突，C-5 澄清）；启动不受影响 | AC-2.2 |
-| 3 | 进程已在任务中（重复纳管） | 幂等成功 | AC-2.1 |
-| 4 | IPC 调用方非 foundation native 身份且入参 callerTokenId ≠ IPC 实际调用方 tokenId（自报他人身份，通道鉴权） | 返回 ERR_TASK_PERMISSION_DENIED，不纳管（F-8，design §5.3 通道鉴权规则②） | AC-2.2 |
-| 5 | 直调路径注册 pid 归属 uid 与调用方不一致且该 pid 不在目标任务内（注册他人进程） | 返回 ERR_TASK_PERMISSION_DENIED，不纳管（F-8，通道鉴权规则③ pid 归属校验） | AC-2.2 |
-| 6 | aimgr 转发 CLI 工具进程注册（通道鉴权规则 1b：native processName=="aimgr"，D-22） | 信任入参 callerTokenId（ExecTool IPC 现场值）→ B-2 校验（集合匹配接受原始值与 CliBinaryInvoker 标志值）→ 纳管 | AC-2.1 |
+| 1 | 任务存在，创建者调用 | 任务结束：双通道降级（R-9/R-20）+ 超时计时取消 + 记录清理；TASK_END(reason=FINISH/ABORT) 上报；返回 ERR_OK | AC-1.2 |
+| 2 | 任务不存在（含已结束——终态记录即清理）或跨用户 | 返回 ERR_TASK_NOT_FOUND（幂等语义） | AC-1.5 |
+| 3 | 非创建者调用 | 返回 ERR_TASK_PERMISSION_DENIED，任务不受影响 | AC-1.5 |
 
-### ~~SubmitTaskInput~~（随 D-21 移除，2026-08-26 需求变更）
-
-> 交互经 AI bar 在助手进程内闭环（ADR-7/D-21），无外部回传方——接口、INPUT_ARRIVED 通知、input 字段、白名单传递通道（D-11）一并移除；交互响应可选取流转 payload 携带（R-17）。本节保留为变更记录，实现不含此接口。
-
-### SetTaskParams
+### 三链路 taskSessionId 字段扩展（CLI / 意图 / A2A，task.md 4.2~4.4）
 
 | 属性 | 值 |
 |------|-----|
-| 函数签名 | `int32_t SetTaskParams(const std::string& taskId, const TaskParams& params)` |
-| 返回值 | `int32_t` — 0=ERR_OK |
-| 开放范围 | InnerApi |
-| 错误码 | ERR_TASK_NOT_FOUND / ERR_TASK_PERMISSION_DENIED / ERR_TASK_INVALID_STATE / ERR_INVALID_PARAM |
-| 关联 AC | AC-1.2 |
+| 扩展点 | ① CLI：`cliManager.ExecOptions.taskSessionId?`（`ExecCmdOptions` 同步增加同名字段，`execTool` 函数签名不变）；② 意图：`ExecuteParam.taskSessionId?`（系统保留字段，与 `insightIntentParam` 隔离——后者由模型模板渲染）；③ A2A：`A2ACallContext{ taskSessionId?, localTaskSessionId? }`（connect/sendMessage 可选调用上下文，带外传递、不进协议报文/metadata） |
+| 字段语义 | 任务归因主键 = startTask 返回的系统签发 taskId（≥128bit 不可预测；应用自生成 ID 不具注册效力，系统不采信） |
+| 开放范围 | SystemApi（各 Kit/SDK 既有接口的可选参数扩展，d.ts 在 interface_sdk_js 仓提审定稿） |
+| 错误码 | 沿用各既有接口错误码；校验拒绝场景的错误定义以 d.ts 定稿为准 |
+| 关联 AC | AC-2.1, AC-2.2, AC-2.5 |
 
-**参数约束**
-
-| 参数 | 类型 | 必填 | 默认值 | 约束条件 |
-|------|------|------|--------|---------|
-| taskId | string | 是 | — | 已存在任务 |
-| params.priority | TaskPriority 枚举 | 否 | 保持原值 | 非法值触发 ERR_INVALID_PARAM |
-| params.payload | string/JSON | 否 | 保持原值 | ≤4KB |
-
-**行为场景**
+**行为场景（系统侧统一校验，task.md §5 校验矩阵）**
 
 | # | 触发条件 | 预期行为 | 关联 AC |
 |---|----------|----------|---------|
-| 1 | 任务非终态，调用方为创建者，参数合法 | priority/payload 更新；priority 变化联动档位重算（F-6，升档立即施加/降档立即撤销）；**priority 发生变化**的激活态任务触发豁免时长续期（payload-only 变更不续期；计时/续期计数为 TaskRecord 内存态，R-21，评审决策 2026-08-24）；payload 变化仅更新任务记录（~~PAYLOAD_UPDATED 通知~~随 D-21 移除——进度由 AI bar 自呈现） | AC-1.2 |
-| 2 | 任务处于终态 | 返回 ERR_TASK_INVALID_STATE | AC-1.2 |
-| 3 | 调用方非创建者 | 返回 ERR_TASK_PERMISSION_DENIED | AC-1.2 |
-| 4 | 参数非法（枚举越界/payload 超限） | 返回 ERR_INVALID_PARAM | AC-1.2 |
+| 1 | 创建者（或任务内进程）在任务存活期经三链路调用携带 taskSessionId | owner 归属比对（IPC 取证身份）+ 存活态校验通过 → 目标进程（含 CLI 工具进程及其子进程）自动纳入任务管控；纳管不影响调用结果 | AC-2.1 |
+| 2 | owner 不匹配（冒用他人 taskId） | 拒绝执行该次工具调用 + 安全事件上报（fail-closed） | AC-2.2 |
+| 3 | taskId 不存在或任务已结束（重放） | 拒绝执行 + 提示重建 | AC-2.2 |
+| 4 | 调用参数未携带 taskSessionId | 行为与现网完全一致（存量调用方零适配） | AC-2.5 |
+| 5 | 模型可控通道（execTool args / insightIntentParam / A2A 报文 metadata·parts）出现任务标识字段 | 系统侧剥离/过滤覆写后正常执行 + 安全日志（通道隔离，防提示词注入） | AC-2.2 |
 
-> 可调字段仅 priority/payload（type 创建后不可调，design §5.6 受限规则，B-3/B-4 补全）。
-
-### GetTaskInfo / GetTaskInfos
-
-| 属性 | 值 |
-|------|-----|
-| 函数签名 | `int32_t GetTaskInfo(const std::string& taskId, TaskInfo& info)` / `int32_t GetTaskInfos(std::vector<TaskInfo>& infos)` |
-| 返回值 | `int32_t` — 0=ERR_OK |
-| 开放范围 | InnerApi |
-| 错误码 | ERR_TASK_NOT_FOUND / ERR_TASK_PERMISSION_DENIED |
-| 关联 AC | AC-3.3, AC-3.4 |
-
-**行为场景**
-
-| # | 触发条件 | 预期行为 | 关联 AC |
-|---|----------|----------|---------|
-| 1 | 同 userId 调用方查询存在的任务 | 返回任务快照（状态/类型/优先级/纳管进程/payload/时间戳） | AC-3.3 |
-| 2 | taskId 不存在或属于其他 userId | 返回 ERR_TASK_NOT_FOUND（跨用户任务视为不存在，C-3） | AC-3.4 |
-| 3 | GetTaskInfos 全量查询 | 仅返回调用方同 userId 的任务列表 | AC-3.3 |
-
-### RegisterTaskListener / UnregisterTaskListener
-
-| 属性 | 值 |
-|------|-----|
-| 函数签名 | `int32_t RegisterTaskListener(const sptr<IRemoteObject>& listener)` / `int32_t UnregisterTaskListener(const sptr<IRemoteObject>& listener)` |
-| 返回值 | `int32_t` — 0=ERR_OK |
-| 开放范围 | InnerApi |
-| 错误码 | ERR_INVALID_PARAM / ERR_TASK_PERMISSION_DENIED |
-| 关联 AC | AC-3.1, AC-3.2 |
-
-**行为场景**
-
-| # | 触发条件 | 预期行为 | 关联 AC |
-|---|----------|----------|---------|
-| 1 | 系统应用注册监听 | 同 userId 任务的状态回调（OnTaskStateChanged）与通知回调（OnTaskNotice）开始派发；监听者死亡自动移除 | AC-3.1 |
-| 2 | 注销监听 | 停止全部回调 | AC-3.2 |
-| 3 | listener 无效（空/非 ITaskListener） | 返回 ERR_INVALID_PARAM | AC-3.1 |
-| 4 | 同一 listener 重复注册 | 幂等（注册表仅保留一份，不重复派发），返回 ERR_OK（F-18 补全） | AC-3.1 |
-| 5 | 注销未注册的 listener | 幂等返回 ERR_OK（F-18 补全） | AC-3.2 |
-
-### RegisterTaskIntent（内部，AMS 拦截点调用）
-
-| 属性 | 值 |
-|------|-----|
-| 函数签名 | `int32_t RegisterTaskIntent(const std::string& taskId, int32_t callerTokenId)` |
-| 返回值 | `int32_t` — 0=ERR_OK |
-| 开放范围 | InnerApi（AMS→AppMS 内部通道） |
-| 错误码 | ERR_TASK_NOT_FOUND / ERR_TASK_PERMISSION_DENIED |
-| 关联 AC | AC-2.1 |
-
-**行为场景**
-
-| # | 触发条件 | 预期行为 | 关联 AC |
-|---|----------|----------|---------|
-| 1 | 发起方通过 B-2 + 通道鉴权校验，进程未创建 | 意向登记（30s 超时清理；attach 失败主动清理，F-7）；返回 ERR_OK | AC-2.1 |
-| 2 | 发起方身份校验不通过 | 拒绝登记，返回 ERR_TASK_PERMISSION_DENIED（不透传应用侧） | AC-2.2 |
-| 3 | IPC 调用方非 foundation native 身份且入参 callerTokenId ≠ IPC 实际调用方 tokenId | 返回 ERR_TASK_PERMISSION_DENIED（通道鉴权，F-8） | AC-2.2 |
-
-### UnregisterTaskProcess（内部）
-
-| 属性 | 值 |
-|------|-----|
-| 函数签名 | `int32_t UnregisterTaskProcess(const std::string& taskId, int32_t pid)` |
-| 返回值 | `int32_t` — 0=ERR_OK |
-| 开放范围 | InnerApi（AMS→AppMS 内部通道） |
-| 错误码 | ERR_TASK_NOT_FOUND |
-| 关联 AC | AC-2.4 |
-
-**行为场景**
-
-| # | 触发条件 | 预期行为 | 关联 AC |
-|---|----------|----------|---------|
-| 1 | 进程死亡/任务移除时解除纳管 | 进程从任务移除；释放其豁免；档位按剩余任务重算（R-12） | AC-2.4 |
-| 2 | taskId 不存在 | 返回 ERR_TASK_NOT_FOUND | AC-2.4 |
-
+**通道与兜底约束**：taskSessionId 仅走代码受控通道（`ExecOptions` / `ExecuteParam` 系统保留键 / `A2ACallContext` / Want 兜底参数 `ohos.param.taskSessionId`）；Want 兜底字段系统侧校验"值与 caller 当前归因一致才采信，不一致丢弃该字段并以 IPC 取证为准"。进程未创建时的补挂时机与系统侧内部纳管通道（CLI/意图/A2A→AppMS）由 design.md 定稿，不在本规格接口面展开。
 
 ## 兼容性声明
 
-- **已有 API 行为变更:** 否（全部新增；无 taskId 的启动行为与改动前一致，R-13）
+- **已有 API 行为变更:** 否（三链路扩展为可选字段、签名不变，不传字段行为与现网一致，R-13；其余全部新增）
 - **配置文件格式变更:** 否（新增配置项仅增不删，默认值不改变既有行为）
 - **数据存储格式变更:** 否（任务不持久化，无存量数据）
 - **最低支持版本:** 7.1
-- **API 版本号策略:** 新增 InnerApi 按 @systemapi 标注（inner 层无 @since 约束，标注版本号 7.1 供内部追溯）
+- **API 版本号策略:** 公共接口以 SystemApi 开放（@systemapi 标注、@since 7.1，d.ts 在 interface_sdk_js 仓提审）；内部 IDL 无 @since 约束（标注版本号 7.1 供内部追溯）
 
 ## 架构约束
 
@@ -444,21 +258,22 @@
 
 | 关键约束 | 约束说明 | 影响 AC |
 |----------|----------|---------|
-| 仅系统应用可调用任务接口 | 接口入口做基础身份校验（SA/系统应用 tokenId 校验），非系统应用返回 ERR_TASK_PERMISSION_DENIED | AC-1.1, AC-1.6 |
-| 纳管必须经 caller 身份绑定校验 | 防仿冒：仅任务创建者或任务内进程可携带 taskId 纳管新进程（B-2） | AC-2.2 |
+| 仅系统应用可调用任务接口 | 公共接口以 System API 开放（@systemapi 访问控制）+ 接口入口做基础身份校验（SA/系统应用 tokenId 校验），非系统应用返回 ERR_TASK_PERMISSION_DENIED | AC-1.1, AC-1.6, AC-1.7 |
+| 纳管必须经 owner 归属校验 | 防仿冒（task.md 五道防线）：系统签发不可猜测 taskId + owner 归属比对（IPC 取证身份）+ 存活态校验（防重放）+ 通道隔离（模型可控通道禁止任务标识）；仅任务创建者或任务内进程可归因新进程 | AC-2.2 |
 | 不修改 appmgr 既有 IPC 序列化 | 新增独立 ITaskManager IDL，不扩 IAppMgr | AC-2.x |
-| 拦截失败不阻断启动 | Want 解析/校验失败仅不纳管，启动照常 | AC-2.2, AC-2.5 |
-| RSS 经 ResourceControlProxy 代理层对接 | 任务管理模块不直接依赖 RSS 接口细节；RSS 设计由 RSS 团队主导（暂未明确），一期 ResourceControlProxy 骨架实现（内存登记+告警日志，不持久化），对接后替换实现，上层零改动 | AC-5.x |
-| DFX 事件定义不可破坏既有事件 | hisysevent.yaml 仅新增事件，不修改既有事件 | AC-6.2 |
+| 校验失败分级处置（fail-closed / fail-degrade） | 冒用/重放/会话不存在 → 拒绝执行 + 安全事件上报（fail-closed）；模型可控通道污染 → 剥离标识后正常执行；未携带字段 → 现网行为（fail-degrade，存量零适配） | AC-2.2, AC-2.5 |
+| RSS 经 ResourceControlProxy 代理层对接 | 任务管理模块不直接依赖 RSS 接口细节；RSS 设计由 RSS 团队主导（暂未明确），一期 ResourceControlProxy 骨架实现（内存登记+告警日志，不持久化），对接后替换实现，上层零改动 | AC-3.x |
+| 虚拟屏任务进程调度抑制为一期分析项 | 痛点：后台任务经虚拟屏执行被当前台调度，抢占真实前台（帧率/启动）；一期经资源调度子模块输出 134/221 等候选通道适用性分析与 RSS/窗口（屏幕会话）域对齐结论（开放项 O-8），ResourceControlProxy/档位扩展位预留，能力不满足列二期——**无一期 AC** | —（分析项） |
+| DFX 事件定义不可破坏既有事件 | hisysevent.yaml 仅新增事件，不修改既有事件 | AC-4.2 |
 
 ## 非功能性需求
 
 | 类型 | 指标/阈值 | 验证方式 | 证据 |
 |------|-----------|----------|------|
-| 性能 | 任务创建/状态流转/查询响应 < 5ms（ITaskManager 跨进程 IPC，含 Binder 往返）；AMS 拦截点→AppMS 为 foundation 进程内调用（经 IN_PROCESS_CALL 身份重置，F-29）；纳管拦截附加开销不阻塞启动主流程（无 taskId 时零开销） | 单测+benchmark | `[test/unittest/task_mgr/…]` |
-| 并发 | 支持 ≥16 并发任务（配置上限默认 16）；监听回调不阻塞状态机 | 并发单测 | `[…]` |
-| 内存 | 任务记录基础字段 ≤1KB/任务（payload 为变长字段 ≤4KB 另计，单任务记录上限 ~5KB，F-12 修正；input 字段随 D-21 移除） | hidumper | `[…]` |
-| 安全 | 任务接口仅系统应用可调用；taskId 不可猜测；纳管需 caller 校验 | 安全用例 | `[…]` |
+| 性能 | 任务操作（startTask/finishTask/abortTask）< 5ms（ITaskManager 跨进程 IPC，含 Binder 往返）；三链路校验只做身份比对与参数解析，附加开销不阻塞调用主流程（未携带字段时零开销） | 单测+benchmark | `[test/unittest/task_mgr/…]` |
+| 并发 | 支持 ≥16 并发任务（配置上限默认 16）；任务事件处理串行（taskHandler，无状态机） | 并发单测 | `[…]` |
+| 内存 | 任务记录基础字段 ≤1KB/任务（payload 为可选变长字段 ≤4KB 另计，任务描述供审计） | hidumper | `[…]` |
+| 安全 | 任务 System API 仅系统应用可调用（@systemapi + 身份校验）；taskId 系统签发不可猜测；纳管经 owner 归属+存活态校验与通道隔离（task.md 五道防线） | 安全用例 | `[…]` |
 | 可靠性 | 豁免撤销失败重试 ≤3 次并告警；进程死亡清理延迟 ≤1s；AppMS 异常重启后任务记录丢失可接受（foundation 重启清理全部应用进程，RSS 侧豁免随进程消亡，无孤儿豁免——C-1 结论） | 压力/故障注入 | `[…]` |
 | 可测试性 | 全部规则可经单测/集成用例验证；状态机可注入式测试 | 单测 | `[…]` |
 | 自动化维测 | 任务创建/流转/终态/豁免施加撤销全覆盖 hisysevent，可自动化检索 | 自动化测试 | `[…]` |
@@ -478,10 +293,10 @@
 
 | 特性 | 适用？ | 结论 | 关联场景 |
 |------|--------|------|----------|
-| 无障碍 | N/A | 任务机制无 UI 文案；进度展示归 AI 助手 AI bar（D-21） | — |
+| 无障碍 | N/A | 任务机制无 UI 文案（呈现归 AI 助手自有 UI） | — |
 | 大字体 | N/A | 同上 | — |
 | 深色模式 | N/A | 同上 | — |
-| 多窗口/分屏 | N/A | 任务按进程管控，与窗口形态无关 | — |
-| 多用户 | 是 | 任务按 userId 维度隔离（创建者归属用户）：查询/监听/回调均按调用方 userId 过滤，跨用户 taskId 视为不存在（R-14/R-15，C-3 已落地） | AC-1.6 |
+| 多窗口/分屏 | N/A（虚拟屏除外） | 任务按进程管控，与窗口形态无关；**虚拟屏形态相关痛点**：虚拟屏任务进程被当前台调度抢占真实前台——一期接口分析+扩展点预留（开放项 O-8），无一期行为变更 | — |
+| 多用户 | 是 | 任务归属创建者 userId：跨用户 taskId 对 finishTask/abortTask 视为不存在（ERR_TASK_NOT_FOUND，R-6）；隔离语义收敛到归属校验（C-3） | AC-1.5 |
 | 版本升级 | 是 | 全新增能力，无升级迁移；老版本无该接口不受影响 | — |
 | 生态兼容 | 否 | 仅系统应用可用，不开放三方 | — |
