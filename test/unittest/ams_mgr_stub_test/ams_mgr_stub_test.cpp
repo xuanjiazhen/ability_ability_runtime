@@ -305,6 +305,109 @@ HWTEST_F(AmsMgrStubTest, NotifyAppMgrRecordExitReason_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: NotifyAppMgrRecordExitReasonCompability_0100
+ * @tc.desc: Verify stub reads callerPid from the correct parcel slot and forwards it.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AmsMgrStubTest, NotifyAppMgrRecordExitReasonCompability_0100, TestSize.Level1)
+{
+    EXPECT_NE(mockAmsMgrScheduler_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    WriteInterfaceToken(data);
+
+    int32_t pid = 1;
+    int32_t killId = 0;
+    std::string killMsg = "killMsg";
+    std::string innerMsg = "innerMsg";
+    int32_t reason = 0;
+    int32_t callerPid = 12345;
+    data.WriteInt32(pid);
+    data.WriteInt32(killId);
+    data.WriteString16(Str8ToStr16(killMsg));
+    data.WriteString16(Str8ToStr16(innerMsg));
+    data.WriteInt32(reason);
+    data.WriteInt32(callerPid);
+
+    EXPECT_CALL(*mockAmsMgrScheduler_, NotifyAppMgrRecordExitReasonCompability(_, _, _, _, _, callerPid))
+        .Times(1)
+        .WillOnce(Return(NO_ERROR));
+    auto result = mockAmsMgrScheduler_->OnRemoteRequest(
+        static_cast<uint32_t>(IAmsMgr::Message::NOTIFY_APP_MGR_RECORD_EXIT_REASON_COMPABILITY),
+        data, reply, option);
+    EXPECT_EQ(result, NO_ERROR);
+}
+
+/**
+ * @tc.name: NotifyAppMgrRecordExitReasonCompability_0200
+ * @tc.desc: Verify stub forwards an explicit-zero callerPid (exhausted-parcel / old-proxy case).
+ * @tc.type: FUNC
+ */
+HWTEST_F(AmsMgrStubTest, NotifyAppMgrRecordExitReasonCompability_0200, TestSize.Level1)
+{
+    EXPECT_NE(mockAmsMgrScheduler_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    WriteInterfaceToken(data);
+
+    int32_t pid = 1;
+    int32_t killId = 0;
+    std::string killMsg = "killMsg";
+    std::string innerMsg = "innerMsg";
+    int32_t reason = 0;
+    int32_t callerPid = 0;
+    data.WriteInt32(pid);
+    data.WriteInt32(killId);
+    data.WriteString16(Str8ToStr16(killMsg));
+    data.WriteString16(Str8ToStr16(innerMsg));
+    data.WriteInt32(reason);
+    data.WriteInt32(callerPid);
+
+    EXPECT_CALL(*mockAmsMgrScheduler_, NotifyAppMgrRecordExitReasonCompability(_, _, _, _, _, 0))
+        .Times(1)
+        .WillOnce(Return(NO_ERROR));
+    auto result = mockAmsMgrScheduler_->OnRemoteRequest(
+        static_cast<uint32_t>(IAmsMgr::Message::NOTIFY_APP_MGR_RECORD_EXIT_REASON_COMPABILITY),
+        data, reply, option);
+    EXPECT_EQ(result, NO_ERROR);
+}
+
+/**
+ * @tc.name: NotifyAppMgrRecordExitReasonCompability_0300
+ * @tc.desc: Verify backward-compat: when callerPid field is missing, stub reads 0 (exhausted parcel).
+ * @tc.type: FUNC
+ */
+HWTEST_F(AmsMgrStubTest, NotifyAppMgrRecordExitReasonCompability_0300, TestSize.Level1)
+{
+    EXPECT_NE(mockAmsMgrScheduler_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    WriteInterfaceToken(data);
+
+    int32_t pid = 1;
+    int32_t killId = 0;
+    std::string killMsg = "killMsg";
+    std::string innerMsg = "innerMsg";
+    int32_t reason = 0;
+    data.WriteInt32(pid);
+    data.WriteInt32(killId);
+    data.WriteString16(Str8ToStr16(killMsg));
+    data.WriteString16(Str8ToStr16(innerMsg));
+    data.WriteInt32(reason);
+
+    EXPECT_CALL(*mockAmsMgrScheduler_, NotifyAppMgrRecordExitReasonCompability(_, _, _, _, _, 0))
+        .Times(1)
+        .WillOnce(Return(NO_ERROR));
+    auto result = mockAmsMgrScheduler_->OnRemoteRequest(
+        static_cast<uint32_t>(IAmsMgr::Message::NOTIFY_APP_MGR_RECORD_EXIT_REASON_COMPABILITY),
+        data, reply, option);
+    EXPECT_EQ(result, NO_ERROR);
+}
+
+/**
  * @tc.name: HandlePreloadApplicationByPhase_0100
  * @tc.desc: Handle preload application with valid parameters.
  * @tc.type: FUNC
