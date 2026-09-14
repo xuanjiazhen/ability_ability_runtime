@@ -19,6 +19,7 @@
 #include "ability_util.h"
 #include "distributed_client.h"
 #include "hitrace_meter.h"
+#include "mock_session_manager_service.h"
 #include "permission_constants.h"
 #include "session_manager_lite.h"
 #include "utils/app_mgr_util.h"
@@ -866,8 +867,8 @@ bool PendingWantManager::CheckCallerPermission()
 
 bool PendingWantManager::CheckWindowState(int32_t pid, int32_t userId)
 {
-    auto sceneSessionManager =
-        IN_PROCESS_CALL(Rosen::SessionManagerLite::GetInstance(userId).GetSceneSessionManagerLiteProxy());
+    auto sceneSessionManager = IN_PROCESS_CALL(
+        Rosen::MockSessionManagerService::GetInstance().GetSceneSessionManagerLiteBySA(userId));
     if (sceneSessionManager == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "null manager");
         return false;

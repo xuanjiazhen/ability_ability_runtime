@@ -4532,7 +4532,7 @@ int AbilityManagerService::RequestModalUIExtensionInner(Want want)
 
     sptr<IRemoteObject> token = nullptr;
     auto sceneSessionManager = IN_PROCESS_CALL(
-        Rosen::SessionManagerLite::GetInstance(userId).GetSceneSessionManagerLiteProxy());
+        Rosen::MockSessionManagerService::GetInstance().GetSceneSessionManagerLiteBySA(userId));
     if (sceneSessionManager != nullptr) {
         Rosen::FocusChangeInfo focusChangeInfo;
         sceneSessionManager->GetFocusWindowInfo(focusChangeInfo, displayId);
@@ -13425,7 +13425,7 @@ bool AbilityManagerService::CheckStartCallHasFloatingWindowForUIExtension(const 
             return false;
         }
         auto sceneSessionManager = IN_PROCESS_CALL(
-            Rosen::SessionManagerLite::GetInstance(userId).GetSceneSessionManagerLiteProxy());
+            Rosen::MockSessionManagerService::GetInstance().GetSceneSessionManagerLiteBySA(userId));
         CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, CHECK_PERMISSION_FAILED, "sceneSessionManager is nullptr");
         bool hasFloatingWindow = false;
         auto err = sceneSessionManager->HasFloatingWindowForeground(callerToken, hasFloatingWindow);
@@ -14041,7 +14041,7 @@ int AbilityManagerService::CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         int32_t focusUserId = AbilityRuntime::UserController::GetInstance().GetForegroundUserId(displayId);
         auto sceneSessionManager = IN_PROCESS_CALL(
-            Rosen::SessionManagerLite::GetInstance(focusUserId).GetSceneSessionManagerLiteProxy());
+            Rosen::MockSessionManagerService::GetInstance().GetSceneSessionManagerLiteBySA(focusUserId));
         if (sceneSessionManager != nullptr) {
             Rosen::FocusChangeInfo focusChangeInfo;
             sceneSessionManager->GetFocusWindowInfo(focusChangeInfo, displayId);
