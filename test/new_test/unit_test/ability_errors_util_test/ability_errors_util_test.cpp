@@ -15,7 +15,7 @@
 
 #include <gtest/gtest.h>
 
-#include "ability_errors_util.h
+#include "ability_errors_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -96,6 +96,28 @@ HWTEST_F(UserControllerTest, ConvertToOriginErrorCode_Test_005, TestSize.Level1)
 {
     auto oriRet = AAFWK::AbilityErrorUtil::ConvertToOriginErrorCode(ERR_OK);
     EXPECT_EQ(oriRet, ERR_OK);
+}
+
+/**
+ * @tc.name: ConvertToOriginErrorCode_FreqLimit_001
+ * @tc.desc: test ERR_FREQ_START_ABILITY is preserved without refinement.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UserControllerTest, ConvertToOriginErrorCode_FreqLimit_001, TestSize.Level1)
+{
+    auto oriRet = AAFWK::AbilityErrorUtil::ConvertToOriginErrorCode(ERR_FREQ_START_ABILITY);
+    EXPECT_EQ(oriRet, ERR_FREQ_START_ABILITY);
+}
+
+/**
+ * @tc.name: ConvertToOriginErrorCode_FreqLimit_002
+ * @tc.desc: test other codes in INVALID_VALUE range are still refined.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UserControllerTest, ConvertToOriginErrorCode_FreqLimit_002, TestSize.Level1)
+{
+    auto oriRet = AAFWK::AbilityErrorUtil::ConvertToOriginErrorCode(ERR_CONNECT_MANAGER_NULL_ABILITY_RECORD);
+    EXPECT_EQ(oriRet, ERR_INVALID_VALUE);
 }
 } // namespace AppExecFwk
 } // namespace OHOS
