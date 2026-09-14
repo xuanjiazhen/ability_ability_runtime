@@ -19,6 +19,7 @@
 #include "ability_util.h"
 #include "app_utils.h"
 #include "hitrace_meter.h"
+#include "ipc_skeleton.h"
 #include "param.h"
 #include "utils/state_utils.h"
 
@@ -615,8 +616,10 @@ int32_t AppScheduler::NotifyAppMgrRecordExitReasonCompability(
         return ERR_INVALID_VALUE;
     }
     CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
+    // Must be read before IN_PROCESS_CALL, which resets the calling identity to this process.
+    const int32_t callerPid = IPCSkeleton::GetCallingPid();
     auto ret = static_cast<int32_t>(IN_PROCESS_CALL(appMgrClient_->NotifyAppMgrRecordExitReasonCompability(
-        pid, killId, killMsg, innerMsg, reason)));
+        pid, killId, killMsg, innerMsg, reason, callerPid)));
     return ret;
 }
 

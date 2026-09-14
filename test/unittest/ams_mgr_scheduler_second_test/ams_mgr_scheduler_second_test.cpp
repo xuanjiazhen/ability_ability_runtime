@@ -44,6 +44,7 @@ namespace AppExecFwk {
 namespace {
 constexpr const char* SCENE_BOARD_BUNDLE_NAME = "com.ohos.sceneboard";
 constexpr const char* SCENEBOARD_ABILITY_NAME = "com.ohos.sceneboard.MainAbility";
+constexpr int32_t FOUNDATION_UID = 5523;
 }
 
 class AmsMgrSchedulerSecondTest : public testing::Test {
@@ -1097,6 +1098,52 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_NotifyAppMgrRecord
     auto ret = amsMgrScheduler->NotifyAppMgrRecordExitReason(0, 0, "");
     EXPECT_EQ(ret, ERR_NAME_NOT_FOUND); // empty bundlename
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_NotifyAppMgrRecordExitReason_002 end");
+}
+
+/**
+ * @tc.name: AmsMgrSchedulerSecondTest_NotifyAppMgrRecordExitReasonCompability_001
+ * @tc.desc: Test NotifyAppMgrRecordExitReasonCompability forwards the call to the inner when ready.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_NotifyAppMgrRecordExitReasonCompability_001,
+    TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_NotifyAppMgrRecordExitReasonCompability_001 start");
+    auto appMgrServiceInner = std::make_shared<MockAppMgrServiceInner>();
+    auto taskHandler = MockTaskHandlerWrap::CreateQueueHandler("RecordExitReasonCompability_001");
+    std::shared_ptr<AmsMgrScheduler> amsMgrScheduler =
+        std::make_shared<AmsMgrScheduler>(appMgrServiceInner, taskHandler);
+
+    /**
+     * @tc.steps: step1. scheduler is ready; call with a foundation caller and a bogus pid.
+     * @tc.expected: step1. call is forwarded past IsReady and the permission gate to the inner's
+     *               appRecord lookup, which returns ERR_NAME_NOT_FOUND (no appRecord for bogus pid).
+     *               This proves callerUid/callerPid args flow through the scheduler to the real inner.
+     */
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    auto ret = amsMgrScheduler->NotifyAppMgrRecordExitReasonCompability(
+        999999, 0, "killMsg", "innerMsg", 0, 4321);
+    EXPECT_EQ(ret, ERR_NAME_NOT_FOUND);
+    IPCSkeleton::SetCallingUid(0);
+    TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_NotifyAppMgrRecordExitReasonCompability_001 end");
+}
+
+/**
+ * @tc.name: AmsMgrSchedulerSecondTest_NotifyAppMgrRecordExitReasonCompability_002
+ * @tc.desc: Test NotifyAppMgrRecordExitReasonCompability returns ERR_INVALID_OPERATION when not ready.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_NotifyAppMgrRecordExitReasonCompability_002,
+    TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_NotifyAppMgrRecordExitReasonCompability_002 start");
+    auto appMgrServiceInner = std::make_shared<MockAppMgrServiceInner>();
+    std::shared_ptr<AmsMgrScheduler> amsMgrScheduler =
+        std::make_shared<AmsMgrScheduler>(appMgrServiceInner, nullptr); // not ready
+
+    auto ret = amsMgrScheduler->NotifyAppMgrRecordExitReasonCompability(1, 0, "killMsg", "innerMsg", 0, 4321);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+    TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_NotifyAppMgrRecordExitReasonCompability_002 end");
 }
 
 /**

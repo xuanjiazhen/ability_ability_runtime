@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <unistd.h>
 #define private public
 #include "app_mgr_service_inner.h"
 #include "app_running_record.h"
@@ -733,6 +734,154 @@ HWTEST_F(AppMgrServiceInnerEighthTest, ChangeAppGcState_002, TestSize.Level1)
     auto ret = appMgrServiceInner->ChangeAppGcState(pid, state);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "ChangeAppGcState_002 end");
+}
+
+/**
+ * @tc.name: NotifyAppMgrRecordExitReasonCompability_FoundationValidCallerPid_001
+ * @tc.desc: foundation caller with a valid callerPid records caller info and resolves process name.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, NotifyAppMgrRecordExitReasonCompability_FoundationValidCallerPid_001,
+    TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReasonCompability_FoundationValidCallerPid_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = FOUNDATION_UID;
+    auto appRecord = std::make_shared<AppRunningRecord>(nullptr, 0, "");
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = appRecord;
+
+    int32_t pid = 1;
+    int32_t killId = 0; // out of DestroyImage range, no image side effect
+    std::string killMsg = "killMsg";
+    std::string innerMsg = "innerMsg";
+    int32_t reason = 0;
+    int32_t callerPid = getpid(); // /proc/self/cmdline is always readable
+    auto ret = appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(
+        pid, killId, killMsg, innerMsg, reason, callerPid);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(appRecord->GetKillCallerPid(), callerPid);
+    EXPECT_FALSE(appRecord->GetKillCallerProcessName().empty());
+
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReasonCompability_FoundationValidCallerPid_001 end");
+}
+
+/**
+ * @tc.name: NotifyAppMgrRecordExitReasonCompability_CallerPidZero_001
+ * @tc.desc: callerPid == 0 is normalized to -1 sentinel and process name lookup is skipped.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, NotifyAppMgrRecordExitReasonCompability_CallerPidZero_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReasonCompability_CallerPidZero_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = FOUNDATION_UID;
+    auto appRecord = std::make_shared<AppRunningRecord>(nullptr, 0, "");
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = appRecord;
+
+    int32_t callerPid = 0;
+    auto ret = appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(
+        1, 0, "killMsg", "innerMsg", 0, callerPid);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(appRecord->GetKillCallerPid(), -1);
+    EXPECT_EQ(appRecord->GetKillCallerProcessName(), "");
+
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReasonCompability_CallerPidZero_001 end");
+}
+
+/**
+ * @tc.name: NotifyAppMgrRecordExitReasonCompability_CallerPidNegative_001
+ * @tc.desc: negative callerPid is normalized to -1 sentinel and process name lookup is skipped.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, NotifyAppMgrRecordExitReasonCompability_CallerPidNegative_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReasonCompability_CallerPidNegative_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = FOUNDATION_UID;
+    auto appRecord = std::make_shared<AppRunningRecord>(nullptr, 0, "");
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = appRecord;
+
+    auto ret = appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(
+        1, 0, "killMsg", "innerMsg", 0, -1);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(appRecord->GetKillCallerPid(), -1);
+    EXPECT_EQ(appRecord->GetKillCallerProcessName(), "");
+
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReasonCompability_CallerPidNegative_001 end");
+}
+
+/**
+ * @tc.name: NotifyAppMgrRecordExitReasonCompability_NotFoundation_001
+ * @tc.desc: non-foundation caller is rejected and caller info is not written.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, NotifyAppMgrRecordExitReasonCompability_NotFoundation_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReasonCompability_NotFoundation_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = TEST_UID; // not FOUNDATION_UID
+    auto appRecord = std::make_shared<AppRunningRecord>(nullptr, 0, "");
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = appRecord;
+
+    auto ret = appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(
+        1, 0, "killMsg", "innerMsg", 0, getpid());
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    EXPECT_EQ(appRecord->GetKillCallerPid(), -1); // not written, default sentinel
+
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReasonCompability_NotFoundation_001 end");
+}
+
+/**
+ * @tc.name: NotifyAppMgrRecordExitReasonCompability_NoAppRecord_001
+ * @tc.desc: foundation caller but no matching appRecord returns ERR_NAME_NOT_FOUND.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, NotifyAppMgrRecordExitReasonCompability_NoAppRecord_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReasonCompability_NoAppRecord_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = FOUNDATION_UID;
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;
+
+    auto ret = appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(
+        999999, 0, "killMsg", "innerMsg", 0, getpid());
+    EXPECT_EQ(ret, ERR_NAME_NOT_FOUND);
+
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReasonCompability_NoAppRecord_001 end");
+}
+
+/**
+ * @tc.name: NotifyAppMgrRecordExitReasonCompability_Overwrite_001
+ * @tc.desc: a second record call overwrites the previous caller info.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, NotifyAppMgrRecordExitReasonCompability_Overwrite_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReasonCompability_Overwrite_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = FOUNDATION_UID;
+    auto appRecord = std::make_shared<AppRunningRecord>(nullptr, 0, "");
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = appRecord;
+
+    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(1, 0, "killMsg", "innerMsg", 0, 0);
+    EXPECT_EQ(appRecord->GetKillCallerPid(), -1);
+    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(
+        1, 0, "killMsg", "innerMsg", 0, getpid());
+    EXPECT_EQ(appRecord->GetKillCallerPid(), getpid());
+    EXPECT_FALSE(appRecord->GetKillCallerProcessName().empty());
+
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReasonCompability_Overwrite_001 end");
 }
 
 /**

@@ -340,10 +340,12 @@ public:
      * @param killMsg Kill message.
      * @param innerMsg Inner message.
      * @param reason reason enum
+     * @param callerPid The pid of the caller who initiated the kill/record.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t NotifyAppMgrRecordExitReasonCompability(
-        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg, int32_t reason) = 0;
+    virtual int32_t NotifyAppMgrRecordExitReasonCompability(int32_t pid, int32_t killId,
+        const std::string &killMsg, const std::string &innerMsg, int32_t reason,
+        int32_t callerPid) = 0;
 
     /**
      * Set enable start process flag by userId
