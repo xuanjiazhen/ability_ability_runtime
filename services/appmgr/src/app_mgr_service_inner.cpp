@@ -8451,13 +8451,12 @@ int32_t AppMgrServiceInner::NotifyAppMgrRecordExitReason(int32_t pid, int32_t re
 }
 
 int32_t AppMgrServiceInner::NotifyAppMgrRecordExitReasonCompability(
-    int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg, int32_t reason)
+    int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg, int32_t reason,
+    int32_t callerPid)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "NotifyAppMgrRecordExitReasonCompability pid:%{public}d, killId:%{public}d,"
-        "reason:%{public}s, exitMsg:%{public}s.", pid, killId, killMsg.c_str(), innerMsg.c_str());
     auto callerUid = IPCSkeleton::GetCallingUid();
     if (callerUid != FOUNDATION_UID) {
-        TAG_LOGE(AAFwkTag::APPMGR, "not foundation call");
+        TAG_LOGE(AAFwkTag::APPMGR, "not foundation call, pid:%{public}d, killId:%{public}d", pid, killId);
         return ERR_PERMISSION_DENIED;
     }
     auto appRecord = GetAppRunningRecordByPid(pid);
@@ -8470,6 +8469,18 @@ int32_t AppMgrServiceInner::NotifyAppMgrRecordExitReasonCompability(
     appRecord->SetKillMsg(killMsg);
     appRecord->SetInnerMsg(innerMsg);
     appRecord->SetExitReason(reason);
+    // Normalize an unusable pid (e.g. 0 read from an exhausted parcel) to the "not collected" sentinel.
+    const int32_t killCallerPid = callerPid > 0 ? callerPid : DEFAULT_INVAL_VALUE;
+    std::string callerProcessName;
+    if (killCallerPid != DEFAULT_INVAL_VALUE &&
+        !ProcessUtil::ReadProcessName(static_cast<pid_t>(killCallerPid), callerProcessName)) {
+        TAG_LOGW(AAFwkTag::APPMGR, "read caller process name failed, callerPid:%{public}d", killCallerPid);
+    }
+    appRecord->SetKillCallerInfo(killCallerPid, callerProcessName);
+    TAG_LOGI(AAFwkTag::APPMGR, "[EXIT_REASON_TAG] NotifyAppMgrRecordExitReasonCompability pid:%{public}d,"
+        " killId:%{public}d, reason:%{public}d, killMsg:%{public}s, innerMsg:%{public}s,"
+        " callerPid:%{public}d, callerProcessName:%{public}s.",
+        pid, killId, reason, killMsg.c_str(), innerMsg.c_str(), killCallerPid, callerProcessName.c_str());
     return ERR_OK;
 }
 

@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include <thread>
+#include <vector>
 
 #define private public
 #include "app_mgr_service_inner.h"
@@ -902,6 +903,69 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_003, TestSize.Level1)
     killId = 3;
     appMgrServiceInner->SendProcessKillEvent(appRecord);
     TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_003 end");
+}
+
+/**
+ * @tc.name: AppRunningRecord_KillCallerInfo_RoundTrip_001
+ * @tc.desc: SetKillCallerInfo round-trips through GetKillCallerPid/GetKillCallerProcessName (real impl).
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, AppRunningRecord_KillCallerInfo_RoundTrip_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_KillCallerInfo_RoundTrip_001 start");
+    auto appRecord = std::make_shared<AppRunningRecord>(nullptr, 0, "");
+    ASSERT_NE(appRecord, nullptr);
+    appRecord->SetKillCallerInfo(123, "proc_name");
+    EXPECT_EQ(appRecord->GetKillCallerPid(), 123);
+    EXPECT_EQ(appRecord->GetKillCallerProcessName(), "proc_name");
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_KillCallerInfo_RoundTrip_001 end");
+}
+
+/**
+ * @tc.name: AppRunningRecord_KillCallerInfo_Default_001
+ * @tc.desc: Fresh record reports default sentinel pid and empty process name.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, AppRunningRecord_KillCallerInfo_Default_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_KillCallerInfo_Default_001 start");
+    auto appRecord = std::make_shared<AppRunningRecord>(nullptr, 0, "");
+    ASSERT_NE(appRecord, nullptr);
+    EXPECT_EQ(appRecord->GetKillCallerPid(), -1);
+    EXPECT_EQ(appRecord->GetKillCallerProcessName(), "");
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_KillCallerInfo_Default_001 end");
+}
+
+/**
+ * @tc.name: AppRunningRecord_KillCallerInfo_Concurrent_001
+ * @tc.desc: Concurrent Set/Get on kill-caller fields does not crash (ffrt::mutex thread safety).
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, AppRunningRecord_KillCallerInfo_Concurrent_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_KillCallerInfo_Concurrent_001 start");
+    auto appRecord = std::make_shared<AppRunningRecord>(nullptr, 0, "");
+    ASSERT_NE(appRecord, nullptr);
+    constexpr int32_t threadNum = 8;
+    constexpr int32_t loopCount = 200;
+    auto worker = [&appRecord](int32_t base) {
+        for (int32_t i = 0; i < loopCount; ++i) {
+            appRecord->SetKillCallerInfo(base + i, "n" + std::to_string(base + i));
+            (void)appRecord->GetKillCallerPid();
+            (void)appRecord->GetKillCallerProcessName();
+        }
+    };
+    std::vector<std::thread> threads;
+    for (int32_t t = 0; t < threadNum; ++t) {
+        threads.emplace_back(worker, t * 1000);
+    }
+    for (auto &th : threads) {
+        th.join();
+    }
+    // after all writers finish, the record holds one of the written values
+    EXPECT_GT(appRecord->GetKillCallerPid(), 0);
+    EXPECT_FALSE(appRecord->GetKillCallerProcessName().empty());
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_KillCallerInfo_Concurrent_001 end");
 }
 
 /**

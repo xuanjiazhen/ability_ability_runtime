@@ -1349,8 +1349,9 @@ public:
      * @return ERR_OK on success, server error code otherwise;
      *         ERROR_SERVICE_NOT_CONNECTED when the service is unavailable.
      */
-    virtual int32_t NotifyAppMgrRecordExitReasonCompability(
-        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg, int32_t reason);
+    virtual int32_t NotifyAppMgrRecordExitReasonCompability(int32_t pid, int32_t killId,
+        const std::string &killMsg, const std::string &innerMsg, int32_t reason,
+        int32_t callerPid);
 
     /**
      * Preload an application (press-down / pre-make / preload-module /
