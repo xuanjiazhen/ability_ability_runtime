@@ -697,11 +697,61 @@ std::unique_ptr<AppExecFwk::ETSNativeReference> ETSRuntime::LoadEtsModule(const 
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "LoadModule failed");
         return std::unique_ptr<AppExecFwk::ETSNativeReference>();
     }
+    ApplyCachedColdReload();
     auto etsNativeReference = std::make_unique<AppExecFwk::ETSNativeReference>();
     etsNativeReference->aniCls = reinterpret_cast<ani_class>(cls);
     etsNativeReference->aniObj = reinterpret_cast<ani_object>(obj);
     etsNativeReference->aniRef = reinterpret_cast<ani_ref>(ref);
     return etsNativeReference;
+}
+
+bool ETSRuntime::LoadRepairPatch(const std::string &hqfFile, const std::string &hapPath)
+{
+    std::string target = ExtractorUtil::GetLoadFilePath(hapPath);
+    if (g_etsEnvFuncs == nullptr || g_etsEnvFuncs->HotReload == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null g_etsEnvFuncs or HotReload");
+        return false;
+    }
+    return g_etsEnvFuncs->HotReload(target, hqfFile) == 0;
+}
+
+bool ETSRuntime::NotifyHotReloadPage()
+{
+#ifdef SUPPORT_SCREEN
+    Ace::HotReloader::HotReload();
+#endif
+    return true;
+}
+
+void ETSRuntime::RegisterQuickFixQueryFunc(const std::map<std::string, std::string> &moduleAndPath)
+{
+    std::lock_guard<std::mutex> lock(quickFixMutex_);
+    for (const auto &item : moduleAndPath) {
+        cachedPatches_.push_back(GetLoadPath(item.second));
+    }
+}
+
+void ETSRuntime::ApplyCachedColdReload()
+{
+    std::vector<std::string> patches;
+    {
+        std::lock_guard<std::mutex> lock(quickFixMutex_);
+        if (cachedPatches_.empty()) {
+            return;
+        }
+        patches = cachedPatches_;
+    }
+    if (g_etsEnvFuncs == nullptr || g_etsEnvFuncs->ColdReload == nullptr) {
+        return;
+    }
+    for (const auto &patch : patches) {
+        if (g_etsEnvFuncs->ColdReload(patch) != 0) {
+            TAG_LOGE(AAFwkTag::ETSRUNTIME, "ColdReload failed, patch: %{public}s", patch.c_str());
+            return;
+        }
+    }
+    std::lock_guard<std::mutex> lock(quickFixMutex_);
+    cachedPatches_.clear();
 }
 
 bool ETSRuntime::HandleUncaughtError()
