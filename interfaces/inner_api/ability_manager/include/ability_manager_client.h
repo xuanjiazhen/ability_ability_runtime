@@ -236,9 +236,10 @@ public:
      * otherwise from the mission stack.
      *
      * @param isNeedLocalDeviceId If true, fill an empty deviceId field with the local device id.
+     * @param userId The user id.
      * @return The ElementName of the focus ability, or an empty ElementName on failure/no focus.
      */
-    AppExecFwk::ElementName GetTopAbility(bool isNeedLocalDeviceId = true);
+    AppExecFwk::ElementName GetTopAbility(bool isNeedLocalDeviceId = true, int32_t userId = INVALID_USER_ID);
 
     /**
      * Get the ElementName of the ability identified by token. No permission check — returns an
