@@ -32,7 +32,7 @@ private:
     bool IsExtensionStartServiceEnable(std::string extensionTypeName, std::string targetUri);
     bool GetCallerAbilityInfo(const AbilityInterceptorParam& param,
         AppExecFwk::AbilityInfo& callerAbilityInfo);
-    ErrCode GetTargetAbilityInfo(const AbilityInterceptorParam& param,
+    bool GetTargetAbilityInfo(const AbilityInterceptorParam& param,
         AppExecFwk::AbilityInfo& callerAbilityInfo);
     int32_t ProcessInterceptOld(const AbilityInterceptorParam& param,
         const AppExecFwk::AbilityInfo &targetAbilityInfo, const AppExecFwk::AbilityInfo &callerAbilityInfo);

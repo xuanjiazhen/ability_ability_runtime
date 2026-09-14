@@ -1606,17 +1606,7 @@ int32_t AppMgrServiceInner::TryToUseImageInfo(std::shared_ptr<AbilityInfo> abili
     auto spawnClient = remoteClientManager_->GetSpawnClient();
     if (spawnClient == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "spawn client null");
-        AAFwk::ResSchedUtil::GetInstance().ReportForkAllEventToRSS(imageInfo->imagePid, appRecord->GetPid(),
-            imageInfo->abilityInfo, FORK_ALL_LIVING_END);
-        int32_t innerErrCode = ERR_NO_INIT;
-        DelayedSingleton<AppStateObserverManager>::GetInstance()->OnForkAllWorkProcessFailed(imageInfo, innerErrCode);
-        appRunningManager_->RemoveAppRunningRecordById(appRecord->GetRecordId());
-        appRecord = nullptr;
-        SnapshotErrorReport(-1, appInfo->bundleName, appInfo->versionName, innerErrCode, "spawn client null");
-        auto imageError = GetCheckpointRestoreError(imageInfo->imagePid, imageInfo->imageName);
-        SaveHyperSnapError(appInfo->uid, HyperSnapErrorType::FORK_FROM_SNAPSHOT,
-            ConvertImageErrorToHyperSnapCode(imageError));
-        return ERR_OK;
+        return ERR_NO_INIT;
     }
     auto errCode = spawnClient->StartProcess(startMsg, workPid);
     AAFwk::ResSchedUtil::GetInstance().ReportForkAllEventToRSS(imageInfo->imagePid, appRecord->GetPid(),
@@ -3942,26 +3932,11 @@ int32_t AppMgrServiceInner::KillApplicationByUserIdLocked(
 int32_t AppMgrServiceInner::CheckAppProvisionType(
     const std::string &bundleName, int32_t callerUid, int32_t appCloneIndex, int32_t userId)
 {
-    if (bundleName.empty()) {
-        TAG_LOGE(AAFwkTag::APPMGR, "bundleName empty");
-        return ERR_INVALID_VALUE;
-    }
     int32_t newUserId = userId;
     if (userId == DEFAULT_INVAL_VALUE) {
         newUserId = GetUserIdByUid(callerUid);
         if (newUserId == U0_USER_ID || newUserId == U1_USER_ID) {
             newUserId = UserController::GetInstance().GetForegroundUserId(DEFAULT_DISPLAY_ID);
-        }
-    } else {
-        if (userId < 0) {
-            TAG_LOGE(AAFwkTag::APPMGR, "invalid userId: %{public}d", userId);
-            return ERR_INVALID_VALUE;
-        }
-        int32_t callerUserId = GetUserIdByUid(callerUid);
-        if (callerUserId >= 0 && userId != callerUserId) {
-            TAG_LOGE(AAFwkTag::APPMGR, "cross-user not allowed: userId=%{public}d, callerUserId=%{public}d",
-                userId, callerUserId);
-            return AAFwk::CHECK_PERMISSION_FAILED;
         }
     }
     auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
@@ -5750,23 +5725,6 @@ int32_t AppMgrServiceInner::StartPerfProcessByStartMsg(AppSpawnStartMsg &startMs
     if (perfCmd.empty() && debugCmd.empty()) {
         TAG_LOGD(AAFwkTag::APPMGR, "perfCmd is empty");
         return ERR_INVALID_OPERATION;
-    }
-
-    constexpr size_t MAX_RENDER_PARAM_LEN = 1024;
-    auto isValidRenderParam = [](const std::string &cmd) -> bool {
-        if (cmd.size() > MAX_RENDER_PARAM_LEN) {
-            return false;
-        }
-        static const std::string forbiddenChars = ";|&`$(){}[]<>\n\r\"'\\";
-        return cmd.find_first_of(forbiddenChars) == std::string::npos;
-    };
-    if (!perfCmd.empty() && !isValidRenderParam(perfCmd)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "perfCmd invalid or too long");
-        return ERR_INVALID_VALUE;
-    }
-    if (!debugCmd.empty() && !isValidRenderParam(debugCmd)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "debugCmd invalid or too long");
-        return ERR_INVALID_VALUE;
     }
 
     startMsg.code = static_cast<int32_t>(MSG_SPAWN_NATIVE_PROCESS);
@@ -8908,13 +8866,6 @@ int AppMgrServiceInner::StartRenderProcessImpl(const std::shared_ptr<RenderRecor
         RemoveRenderProcessIsolationUid(renderUid);
         AppMgrEventUtil::SendRenderProcessStartFailedEvent(
             renderRecord, ProcessStartFailedReason::APPSPAWN_FAILED, static_cast<int32_t>(spawnErr));
-        return ERR_INVALID_VALUE;
-    }
-    if (pid <= 0) {
-        TAG_LOGE(AAFwkTag::APPMGR, "spawn returned success but invalid pid:%{public}d", pid);
-        RemoveRenderProcessIsolationUid(renderUid);
-        AppMgrEventUtil::SendRenderProcessStartFailedEvent(
-            renderRecord, ProcessStartFailedReason::APPSPAWN_FAILED, ERR_INVALID_VALUE);
         return ERR_INVALID_VALUE;
     }
     renderPid = pid;

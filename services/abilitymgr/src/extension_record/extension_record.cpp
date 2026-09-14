@@ -77,18 +77,6 @@ int32_t ExtensionRecord::RegisterStateObserver(const std::string &hostBundleName
     return ret;
 }
 
-void ExtensionRecord::UnregisterStateObserver()
-{
-    if (preLoadUIExtStateObserver_ == nullptr) {
-        return;
-    }
-    auto ret = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->UnregisterApplicationStateObserver(
-        preLoadUIExtStateObserver_);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "unRegisterObserver error");
-    }
-}
-
 bool ExtensionRecord::ContinueToGetCallerToken()
 {
     return false;

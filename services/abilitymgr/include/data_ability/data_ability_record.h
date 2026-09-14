@@ -163,7 +163,6 @@ private:
     sptr<IAbilityScheduler> scheduler_ {};
     sptr<IRemoteObject::DeathRecipient> callerDeathRecipient_;  // caller binderDied Recipient
     std::list<ClientInfo> clients_ {};
-    mutable std::recursive_mutex clientsMutex_;
     ffrt::condition_variable loadedCond_ {};
     AbilityRequest request_ {};
     AbilityRecordPtr ability_ {};

@@ -16,7 +16,6 @@
 #include "extension_config.h"
 
 #include <fstream>
-#include <limits>
 
 #include "config_policy_utils.h"
 #include "hilog_tag_wrapper.h"
@@ -157,18 +156,12 @@ void ExtensionConfig::LoadExtensionAutoDisconnectTime(const nlohmann::json &obje
         TAG_LOGD(AAFwkTag::ABILITYMGR, "auto disconnect time config null");
         return;
     }
-    int32_t extensionAutoDisconnectTime = 0;
     auto rawValue = object.at(EXTENSION_AUTO_DISCONNECT_TIME);
     if (!rawValue.is_number_integer()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "auto disconnect time is not an integer");
         return;
     }
-    int64_t raw = rawValue.get<int64_t>();
-    if (raw < std::numeric_limits<int32_t>::min() || raw > std::numeric_limits<int32_t>::max()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "auto disconnect time out of int32 range");
-        return;
-    }
-    extensionAutoDisconnectTime = static_cast<int32_t>(raw);
+    int32_t extensionAutoDisconnectTime = rawValue.get<int32_t>();
     configMap_[extensionTypeName].extensionAutoDisconnectTime = extensionAutoDisconnectTime;
 }
 
@@ -181,18 +174,12 @@ void ExtensionConfig::LoadExtensionRunningTimeoutTime(const nlohmann::json &obje
             extensionTypeName.c_str());
         return;
     }
-    int32_t extensionRunningTimeoutTime = 0;
     auto rawValue = object.at(EXTENSION_RUNNING_TIMEOUT_TIME);
     if (!rawValue.is_number_integer()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "running timeout time is not an integer");
         return;
     }
-    int64_t raw = rawValue.get<int64_t>();
-    if (raw < std::numeric_limits<int32_t>::min() || raw > std::numeric_limits<int32_t>::max()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "running timeout time out of int32 range");
-        return;
-    }
-    extensionRunningTimeoutTime = static_cast<int32_t>(raw);
+    int32_t extensionRunningTimeoutTime = rawValue.get<int32_t>();
     configMap_[extensionTypeName].extensionRunningTimeoutTime = extensionRunningTimeoutTime;
     TAG_LOGI(AAFwkTag::ABILITYMGR, "extension %{public}s running timeout time: %{public}d ms",
         extensionTypeName.c_str(), extensionRunningTimeoutTime);

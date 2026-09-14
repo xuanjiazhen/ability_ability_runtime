@@ -82,7 +82,6 @@ int32_t ExtensionRecordManager::GenerateExtensionRecordId(const int32_t extensio
         extensionRecordId_++;
     }
 
-    extensionRecordIdSet_.insert(extensionRecordId_);
     return extensionRecordId_;
 }
 
@@ -112,7 +111,6 @@ void ExtensionRecordManager::RemoveExtensionRecord(const int32_t extensionRecord
     std::lock_guard<std::mutex> lock(mutex_);
     extensionRecords_.erase(extensionRecordId);
     terminateRecords_.erase(extensionRecordId);
-    extensionRecordIdSet_.erase(extensionRecordId);
 
     // Notify running timeout monitor about extension termination
     auto monitor = DelayedSingleton<AAFwk::ExtensionRunningTimeoutMonitor>::GetInstance();
@@ -633,38 +631,6 @@ int32_t ExtensionRecordManager::GetOrCreateExtensionRecordInner(const AAFwk::Abi
     return ERR_OK;
 }
 
-void ExtensionRecordManager::UnregisterPreLoadStateObserver(
-    const std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord,
-    const std::shared_ptr<ExtensionRecord> &extensionRecord)
-{
-    if (abilityRecord == nullptr || extensionRecord == nullptr) {
-        return;
-    }
-    if (abilityRecord->GetBoolParam(IS_PRELOAD_UIEXTENSION_ABILITY, false)) {
-        extensionRecord->UnregisterStateObserver();
-    }
-}
-
-int32_t ExtensionRecordManager::ConfigureExtensionRecord(const AAFwk::AbilityRequest &abilityRequest,
-    const std::string &hostBundleName, const std::shared_ptr<ExtensionRecord> &extensionRecord,
-    const std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord, int32_t extensionRecordId, int32_t hostPid)
-{
-    extensionRecord->extensionRecordId_ = extensionRecordId;
-    extensionRecord->requestCode_ = abilityRequest.requestCode;
-    extensionRecord->hostBundleName_ = hostBundleName;
-    abilityRecord->SetOwnerMissionUserId(userId_);
-    abilityRecord->SetUIExtensionAbilityId(extensionRecordId);
-    extensionRecord->hostPid_ = (hostPid == AAFwk::DEFAULT_INVAL_VALUE) ? IPCSkeleton::GetCallingPid() : hostPid;
-    if (abilityRecord->GetBoolParam(IS_PRELOAD_UIEXTENSION_ABILITY, false)) {
-        auto ret = extensionRecord->RegisterStateObserver(hostBundleName);
-        if (ret != ERR_OK) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "register failed, err: %{public}d", ret);
-            return ERR_INVALID_VALUE;
-        }
-    }
-    return ERR_OK;
-}
-
 int32_t ExtensionRecordManager::SetAbilityProcessName(const AAFwk::AbilityRequest &abilityRequest,
     const std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord,
     std::shared_ptr<ExtensionRecord> &extensionRecord)
@@ -754,15 +720,23 @@ int32_t ExtensionRecordManager::CreateExtensionRecord(const AAFwk::AbilityReques
     std::shared_ptr<AAFwk::BaseExtensionRecord> abilityRecord = extensionRecord->abilityRecord_;
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_NULL_OBJECT);
     extensionRecordId = GenerateExtensionRecordId(extensionRecordId);
-    result = ConfigureExtensionRecord(abilityRequest, hostBundleName, extensionRecord, abilityRecord,
-        extensionRecordId, hostPid);
-    if (result != ERR_OK) {
-        return result;
+    extensionRecord->extensionRecordId_ = extensionRecordId;
+    extensionRecord->requestCode_ = abilityRequest.requestCode;
+    extensionRecord->hostBundleName_ = hostBundleName;
+    abilityRecord->SetOwnerMissionUserId(userId_);
+    abilityRecord->SetUIExtensionAbilityId(extensionRecordId);
+    extensionRecord->hostPid_ = (hostPid == AAFwk::DEFAULT_INVAL_VALUE) ? IPCSkeleton::GetCallingPid() : hostPid;
+    //add uiextension record register state observer object.
+    if (abilityRecord->GetBoolParam(IS_PRELOAD_UIEXTENSION_ABILITY, false)) {
+        auto ret = extensionRecord->RegisterStateObserver(hostBundleName);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "register failed, err: %{public}d", ret);
+            return ERR_INVALID_VALUE;
+        }
     }
     result = UpdateProcessName(abilityRequest, extensionRecord);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "update processname error");
-        UnregisterPreLoadStateObserver(abilityRecord, extensionRecord);
         return result;
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR,
@@ -930,31 +904,19 @@ void ExtensionRecordManager::TerminateTimeout(int32_t extensionRecordId)
 void ExtensionRecordManager::GetCallerTokenList(
     const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, std::list<sptr<IRemoteObject>> &callerList)
 {
-    std::set<int32_t> visitedIds;
-    GetCallerTokenListInner(abilityRecord, callerList, visitedIds, 0);
-}
-
-void ExtensionRecordManager::GetCallerTokenListInner(
-    const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, std::list<sptr<IRemoteObject>> &callerList,
-    std::set<int32_t> &visitedIds, int32_t depth)
-{
     CHECK_POINTER(abilityRecord);
-    if (depth >= MAX_CALLER_DEPTH) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "caller depth exceed limit: %{public}d", depth);
-        callerList.clear();
-        return;
-    }
     auto extensionRecordId = abilityRecord->GetUIExtensionAbilityId();
-    if (extensionRecordId != INVALID_EXTENSION_RECORD_ID && !visitedIds.insert(extensionRecordId).second) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "cycle detected at extensionRecordId: %{public}d", extensionRecordId);
+    auto sessionInfo = abilityRecord->GetSessionInfo();
+    if (!sessionInfo) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "sessionInfo null, id: %{public}d", extensionRecordId);
         callerList.clear();
         return;
     }
-    auto sessionInfo = abilityRecord->GetSessionInfo();
-    auto callerToken = sessionInfo ? sessionInfo->callerToken : nullptr;
+
+    auto callerToken = sessionInfo->callerToken;
     auto callerAbilityRecord = AAFwk::Token::GetAbilityRecordByToken(callerToken);
     if (callerAbilityRecord == nullptr) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "session or callerRecord null, id: %{public}d", extensionRecordId);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callerRecord null, id: %{public}d", extensionRecordId);
         callerList.clear();
         return;
     }
@@ -979,7 +941,7 @@ void ExtensionRecordManager::GetCallerTokenListInner(
     }
 
     callerList.push_front(callerToken);
-    GetCallerTokenListInner(callerAbilityRecord, callerList, visitedIds, depth + 1);
+    GetCallerTokenList(callerAbilityRecord, callerList);
 }
 
 bool ExtensionRecordManager::IsFocused(

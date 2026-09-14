@@ -2487,10 +2487,6 @@ void AppMgrService::CancelDelayedExitTask(int32_t pid)
         TAG_LOGE(AAFwkTag::APPMGR, "Not foundation call.");
         return;
     }
-    if (pid <= 0) {
-        TAG_LOGE(AAFwkTag::APPMGR, "invalid pid: %{public}d", pid);
-        return;
-    }
     appMgrServiceInner_->CancelDelayedExitTask(pid);
 }
 }  // namespace AppExecFwk

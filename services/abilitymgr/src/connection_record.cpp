@@ -33,7 +33,6 @@ const int DISCONNECT_TIMEOUT_MULTIPLE = 75;
 #else
 const int DISCONNECT_TIMEOUT_MULTIPLE = 1;
 #endif
-constexpr size_t MAX_PENDING_LOW_CODE_INVOCATIONS = 100;
 
 ConnectionRecord::ConnectionRecord(const sptr<IRemoteObject> &callerToken,
     const std::shared_ptr<BaseExtensionRecord> &targetService, const sptr<IAbilityConnection> &connCallback,
@@ -141,8 +140,8 @@ int ConnectionRecord::DisconnectAbility()
 
 void ConnectionRecord::CompleteConnect()
 {
-    CHECK_POINTER(targetService_);
     SetConnectState(ConnectionState::CONNECTED);
+    CHECK_POINTER(targetService_);
     targetService_->SetAbilityState(AbilityState::ACTIVE);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Connect,%{public}s", targetService_->GetAbilityInfo().name.c_str());
     const AppExecFwk::AbilityInfo &abilityInfo = targetService_->GetAbilityInfo();
@@ -237,11 +236,6 @@ void ConnectionRecord::QueueLowCodeAgentInvocation(const Want &want, const sptr<
         return;
     }
     std::lock_guard lock(pendingLowCodeMutex_);
-    if (pendingLowCodeInvocations_.size() >= MAX_PENDING_LOW_CODE_INVOCATIONS) {
-        TAG_LOGW(AAFwkTag::CONNECTION, "pending low-code invocations queue full, size=%{public}zu",
-            pendingLowCodeInvocations_.size());
-        return;
-    }
     pendingLowCodeInvocations_.push_back({ want, callback });
 }
 

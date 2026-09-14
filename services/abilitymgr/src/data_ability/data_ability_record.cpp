@@ -218,7 +218,6 @@ int DataAbilityRecord::AddClient(const sptr<IRemoteObject> &client, bool tryBind
     }
 
     // One client can be added multi-times, so 'RemoveClient()' must be called in corresponding times.
-    std::lock_guard<std::recursive_mutex> clientsLock(clientsMutex_);
     auto &clientInfo = clients_.emplace_back();
     clientInfo.client = client;
     clientInfo.tryBind = tryBind;
@@ -252,7 +251,6 @@ int DataAbilityRecord::RemoveClient(const sptr<IRemoteObject> &client, bool isNo
         return ERR_OK;
     }
 
-    std::lock_guard<std::recursive_mutex> clientsLock(clientsMutex_);
     for (auto it(clients_.begin()); it != clients_.end(); ++it) {
         if (it->client == client) {
             clients_.erase(it);
@@ -291,7 +289,6 @@ int DataAbilityRecord::RemoveClients(const std::shared_ptr<AbilityRecord> &clien
         return ERR_NULL_OBJECT;
     }
 
-    std::lock_guard<std::recursive_mutex> clientsLock(clientsMutex_);
     if (client) {
         TAG_LOGD(AAFwkTag::DATA_ABILITY, "Removing with filter");
         auto it = clients_.begin();
@@ -349,12 +346,10 @@ size_t DataAbilityRecord::GetClientCount(const sptr<IRemoteObject> &client) cons
     }
 
     if (client) {
-        std::lock_guard<std::recursive_mutex> clientsLock(clientsMutex_);
         return std::count_if(
             clients_.begin(), clients_.end(), [client](const ClientInfo &ci) { return ci.client == client; });
     }
 
-    std::lock_guard<std::recursive_mutex> clientsLock(clientsMutex_);
     return clients_.size();
 }
 
@@ -374,7 +369,6 @@ int DataAbilityRecord::KillBoundClientProcesses()
         return ERR_INVALID_STATE;
     }
 
-    std::lock_guard<std::recursive_mutex> clientsLock(clientsMutex_);
     for (auto it = clients_.begin(); it != clients_.end(); ++it) {
         if (it->tryBind && !it->isNotHap) {
             auto clientAbilityRecord = Token::GetAbilityRecordByToken(it->client);
@@ -415,7 +409,6 @@ void DataAbilityRecord::Dump() const
 {
     CHECK_POINTER(ability_);
 
-    std::lock_guard<std::recursive_mutex> clientsLock(clientsMutex_);
     TAG_LOGI(AAFwkTag::DATA_ABILITY,
         "attached: %{public}s, clients: %{public}zu, refcnt: %{public}d, state: %{public}s",
         scheduler_ ? "true" : "false",
@@ -453,7 +446,6 @@ void DataAbilityRecord::Dump(std::vector<std::string> &info) const
     info.emplace_back("    bundle name [" + ability_->GetAbilityInfo().bundleName + "]");
     info.emplace_back("    ability type [DATA]");
     info.emplace_back("    app state #" + AbilityRecord::ConvertAppState(ability_->GetAppState()));
-    std::lock_guard<std::recursive_mutex> clientsLock(clientsMutex_);
     info.emplace_back("    Clients: " + std::to_string(clients_.size()));
 
     for (auto &&client : clients_) {
@@ -476,22 +468,16 @@ void DataAbilityRecord::OnSchedulerDied(const wptr<IRemoteObject> &remote)
 {
     TAG_LOGI(AAFwkTag::DATA_ABILITY, "called");
     auto object = remote.promote();
-    int32_t diedPid = 0;
-    {
-        std::lock_guard<std::recursive_mutex> clientsLock(clientsMutex_);
-        diedPid = GetDiedCallerPid(object);
+    DelayedSingleton<ConnectionStateManager>::GetInstance()->HandleDataAbilityCallerDied(GetDiedCallerPid(object));
+
+    if (clients_.empty()) {
+        TAG_LOGD(AAFwkTag::DATA_ABILITY, "no clients");
+        return;
     }
-    DelayedSingleton<ConnectionStateManager>::GetInstance()->HandleDataAbilityCallerDied(diedPid);
 
     auto appScheduler = DelayedSingleton<AppScheduler>::GetInstance();
     if (!appScheduler) {
         TAG_LOGE(AAFwkTag::DATA_ABILITY, "invalid app scheduler");
-        return;
-    }
-
-    std::lock_guard<std::recursive_mutex> clientsLock(clientsMutex_);
-    if (clients_.empty()) {
-        TAG_LOGD(AAFwkTag::DATA_ABILITY, "no clients");
         return;
     }
 
@@ -530,7 +516,6 @@ int32_t DataAbilityRecord::GetDiedCallerPid(const sptr<IRemoteObject> &remote)
     }
 
     int32_t result = 0;
-    std::lock_guard<std::recursive_mutex> clientsLock(clientsMutex_);
     for (auto it = clients_.begin(); it != clients_.end(); it++) {
         if (it->client == remote) {
             result = it->clientPid;
