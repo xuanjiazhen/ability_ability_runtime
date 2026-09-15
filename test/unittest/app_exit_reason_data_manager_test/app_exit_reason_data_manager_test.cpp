@@ -459,5 +459,37 @@ HWTEST_F(AppExitReasonDataManagerTest, AppExitReasonDataManager_ResetRecoverInfo
     }
     EXPECT_EQ(mockKv->kvData[KEY_OTA_FINGERPRINT], instance->GetCurSystemFingerprint());
 }
+
+/**
+ * @tc.name: AppExitReasonDataManager_BackupKvStore_001
+ * @tc.desc: BackupKvStore
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppExitReasonDataManagerTest, AppExitReasonDataManager_BackupKvStore_001, TestSize.Level1)
+{
+    auto instance = DelayedSingleton<AppExitReasonDataManager>::GetInstance();
+    std::shared_ptr<MockSingleKvStore> kvStorePtr = std::make_shared<MockSingleKvStore>();
+    instance->kvStorePtr_ = kvStorePtr;
+    EXPECT_TRUE(instance->CheckKvStore());
+    instance->BackupKvStore();
+    instance->kvStorePtr_ = nullptr;
+}
+
+/**
+ * @tc.name: AppExitReasonDataManager_BackupKvStore_002
+ * @tc.desc: BackupKvStore delete backup then retry
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppExitReasonDataManagerTest, AppExitReasonDataManager_BackupKvStore_002, TestSize.Level1)
+{
+    auto instance = DelayedSingleton<AppExitReasonDataManager>::GetInstance();
+    std::shared_ptr<MockSingleKvStore> kvStorePtr = std::make_shared<MockSingleKvStore>();
+    instance->kvStorePtr_ = kvStorePtr;
+    EXPECT_TRUE(instance->CheckKvStore());
+    kvStorePtr->Backup_ = DistributedKv::Status::ERROR;
+    instance->BackupKvStore();
+    kvStorePtr->Backup_ = DistributedKv::Status::SUCCESS;
+    instance->kvStorePtr_ = nullptr;
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS

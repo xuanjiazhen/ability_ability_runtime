@@ -99,6 +99,13 @@ public:
      */
     int32_t EnsureFunctionsInitialized();
 
+    /**
+     * @brief Backs up the whole kv store to a backup file in the storage directory.
+     * Called after successful data mutations so the corrupted-store recovery can
+     * restore function configs instead of starting empty.
+     */
+    void BackupKvStore();
+
 private:
     CliFunctionDataManager();
     ~CliFunctionDataManager();

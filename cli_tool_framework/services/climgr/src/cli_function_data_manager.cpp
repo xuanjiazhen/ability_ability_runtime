@@ -15,6 +15,7 @@
 
 #include "cli_function_data_manager.h"
 
+#include <map>
 #include <nlohmann/json.hpp>
 #include <unistd.h>
 
@@ -31,6 +32,7 @@ constexpr int32_t MAX_TIMES = 2;           // 2 * 20ms = 40ms
 constexpr const char* KV_STORE_APP_ID = "cli_functions_db";
 constexpr const char* KV_STORE_STORE_ID = "cli_functions_store";
 constexpr const char* STORAGE_DIR = "/data/service/el1/public/database/aimgr/cli_function";
+constexpr const char* CLI_FUNCTIONS_BACKUP_NAME = "cli_function_backup";
 
 const DistributedKv::AppId APP_ID { KV_STORE_APP_ID };
 const DistributedKv::StoreId STORE_ID { KV_STORE_STORE_ID };
@@ -114,32 +116,36 @@ int32_t CliFunctionDataManager::EnsureFunctionsInitialized()
 
 int32_t CliFunctionDataManager::RegisterFunction(const FunctionInfo &function)
 {
-    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
     TAG_LOGD(AAFwkTag::CLI_TOOL, "RegisterFunction called: %{public}s/%{public}s",
         function.functionNamespace.c_str(), function.functionName.c_str());
 
-    if (!CheckKvStore()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready");
-        return ERR_NO_INIT;
-    }
+    int32_t ret;
+    {
+        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        if (!CheckKvStore()) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready");
+            return ERR_NO_INIT;
+        }
 
-    std::string keyStr = GenerateFunctionKey(function.functionNamespace, function.functionName);
-    DistributedKv::Key key(keyStr);
-    DistributedKv::Value value;
-    DistributedKv::Status status = kvStorePtr_->Get(key, value);
-    if (status == DistributedKv::Status::SUCCESS) {
-        TAG_LOGI(AAFwkTag::CLI_TOOL, "Function already exists, will overwrite: %{public}s/%{public}s",
-            function.functionNamespace.c_str(), function.functionName.c_str());
-    }
+        std::string keyStr = GenerateFunctionKey(function.functionNamespace, function.functionName);
+        DistributedKv::Key key(keyStr);
+        DistributedKv::Value value;
+        DistributedKv::Status status = kvStorePtr_->Get(key, value);
+        if (status == DistributedKv::Status::SUCCESS) {
+            TAG_LOGI(AAFwkTag::CLI_TOOL, "Function already exists, will overwrite: %{public}s/%{public}s",
+                function.functionNamespace.c_str(), function.functionName.c_str());
+        }
 
-    int32_t ret = StoreFunctionNoLock(function);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to store function: %{public}d", ret);
-        return ret;
+        ret = StoreFunctionNoLock(function);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to store function: %{public}d", ret);
+            return ret;
+        }
     }
 
     TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully registered function: %{public}s/%{public}s",
         function.functionNamespace.c_str(), function.functionName.c_str());
+    BackupKvStore();
     return ERR_OK;
 }
 
@@ -157,22 +163,29 @@ int32_t CliFunctionDataManager::BatchRegisterFunctions(const std::vector<Functio
     successCount = 0;
 
     // Acquire lock for entire batch operation
-    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+    int32_t ret;
+    {
+        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
 
-    for (const auto &function : functions) {
-        if (!CheckKvStore()) {
-            TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready for function: %{public}s/%{public}s",
-                function.functionNamespace.c_str(), function.functionName.c_str());
-            break;
-        }
+        for (const auto &function : functions) {
+            if (!CheckKvStore()) {
+                TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready for function: %{public}s/%{public}s",
+                    function.functionNamespace.c_str(), function.functionName.c_str());
+                break;
+            }
 
-        int32_t ret = StoreFunctionNoLock(function);
-        if (ret != ERR_OK) {
-            TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to store function: %{public}s/%{public}s, ret=%{public}d",
-                function.functionNamespace.c_str(), function.functionName.c_str(), ret);
-            break;  // Stop batch operation on failure (database may be corrupted)
+            ret = StoreFunctionNoLock(function);
+            if (ret != ERR_OK) {
+                TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to store function: %{public}s/%{public}s, ret=%{public}d",
+                    function.functionNamespace.c_str(), function.functionName.c_str(), ret);
+                break;  // Stop batch operation on failure (database may be corrupted)
+            }
+            successCount++;
         }
-        successCount++;
+    }
+
+    if (successCount > 0) {
+        BackupKvStore();
     }
 
     // Only return ERR_OK if all functions were registered successfully
@@ -362,14 +375,14 @@ int32_t CliFunctionDataManager::DeleteObsoleteFunctions(const std::unordered_set
             }
             DistributedKv::Key key(oldKey);
             DistributedKv::Status deleteStatus = kvStorePtr_->Delete(key);
-            if (deleteStatus != DistributedKv::Status::SUCCESS &&
-                deleteStatus != DistributedKv::Status::KEY_NOT_FOUND) {
+            if (deleteStatus == DistributedKv::Status::SUCCESS) {
+                deletedCount++;
+            } else if (deleteStatus != DistributedKv::Status::KEY_NOT_FOUND) {
                 TAG_LOGW(AAFwkTag::CLI_TOOL, "Failed to delete: %{public}s, status=%{public}d",
                     oldKey.c_str(), static_cast<int>(deleteStatus));
                 RestoreKvStore(deleteStatus);
                 return ERR_KVSTORE_ERROR;
             }
-            deletedCount++;
         }
     }
 
@@ -380,31 +393,34 @@ int32_t CliFunctionDataManager::DeleteObsoleteFunctions(const std::unordered_set
 int32_t CliFunctionDataManager::UnregisterFunction(const std::string &functionNamespace,
     const std::string &functionName)
 {
-    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
     TAG_LOGD(AAFwkTag::CLI_TOOL, "UnregisterFunction called: %{public}s/%{public}s",
         functionNamespace.c_str(), functionName.c_str());
 
-    if (!CheckKvStore()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready");
-        return ERR_NO_INIT;
-    }
-
-    std::string keyStr = GenerateFunctionKey(functionNamespace, functionName);
-    DistributedKv::Key key(keyStr);
-    DistributedKv::Status status = kvStorePtr_->Delete(key);
-    if (status != DistributedKv::Status::SUCCESS) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to delete function: %{public}s/%{public}s, status: %{public}d",
-            functionNamespace.c_str(), functionName.c_str(), static_cast<int>(status));
-        if (status == DistributedKv::Status::KEY_NOT_FOUND) {
-            TAG_LOGW(AAFwkTag::CLI_TOOL, "function not found");
-            return ERR_FUNCTION_NOT_EXIST;
+    {
+        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        if (!CheckKvStore()) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready");
+            return ERR_NO_INIT;
         }
-        RestoreKvStore(status);
-        return ERR_KVSTORE_ERROR;
+
+        std::string keyStr = GenerateFunctionKey(functionNamespace, functionName);
+        DistributedKv::Key key(keyStr);
+        DistributedKv::Status status = kvStorePtr_->Delete(key);
+        if (status != DistributedKv::Status::SUCCESS) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to delete function: %{public}s/%{public}s, status: %{public}d",
+                functionNamespace.c_str(), functionName.c_str(), static_cast<int>(status));
+            if (status == DistributedKv::Status::KEY_NOT_FOUND) {
+                TAG_LOGW(AAFwkTag::CLI_TOOL, "function not found");
+                return ERR_FUNCTION_NOT_EXIST;
+            }
+            RestoreKvStore(status);
+            return ERR_KVSTORE_ERROR;
+        }
     }
 
     TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully unregistered function: %{public}s/%{public}s",
         functionNamespace.c_str(), functionName.c_str());
+    BackupKvStore();
     return ERR_OK;
 }
 
@@ -431,6 +447,28 @@ void CliFunctionDataManager::RestoreKvStore(DistributedKv::Status status)
             return;
         }
         TAG_LOGI(AAFwkTag::CLI_TOOL, "KVStore recreated successfully");
+        // Import the backup into the fresh store; on failure keep the empty store.
+        DistributedKv::Status restoreStatus = kvStorePtr_->Restore(CLI_FUNCTIONS_BACKUP_NAME, STORAGE_DIR);
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "restore from backup result:%{public}d", static_cast<int>(restoreStatus));
+    }
+}
+
+void CliFunctionDataManager::BackupKvStore()
+{
+    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+    if (!CheckKvStore()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "null kvStore");
+        return;
+    }
+    DistributedKv::Status status = kvStorePtr_->Backup(CLI_FUNCTIONS_BACKUP_NAME, STORAGE_DIR);
+    if (status != DistributedKv::Status::SUCCESS) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "kvStore backup error: %{public}d, delete backup and retry",
+            static_cast<int>(status));
+        std::vector<std::string> files = { CLI_FUNCTIONS_BACKUP_NAME };
+        std::map<std::string, DistributedKv::Status> results;
+        kvStorePtr_->DeleteBackup(files, STORAGE_DIR, results);
+        status = kvStorePtr_->Backup(CLI_FUNCTIONS_BACKUP_NAME, STORAGE_DIR);
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "kvStore backup retry result:%{public}d", static_cast<int>(status));
     }
 }
 
@@ -488,13 +526,19 @@ int32_t CliFunctionDataManager::UnregisterIntentFunctionsByNamespace(const std::
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "UnregisterIntentFunctionsByNamespace called: %{public}s", functionNamespace.c_str());
 
-    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
-
     int32_t deletedCount = 0;
-    int32_t ret = DeleteIntentFunctionsByNamespaceNoLock(functionNamespace, deletedCount);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "DeleteIntentFunctionsByNamespaceNoLock failed: %{public}d", ret);
-        return ret;
+    {
+        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+
+        int32_t ret = DeleteIntentFunctionsByNamespaceNoLock(functionNamespace, deletedCount);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "DeleteIntentFunctionsByNamespaceNoLock failed: %{public}d", ret);
+            return ret;
+        }
+    }
+
+    if (deletedCount > 0) {
+        BackupKvStore();
     }
 
     TAG_LOGI(AAFwkTag::CLI_TOOL, "UnregisterIntentFunctionsByNamespace completed: %{public}s, deleted: %{public}d",
@@ -561,24 +605,30 @@ int32_t CliFunctionDataManager::ResetNamespaceFunctions(const std::string &funct
     std::unordered_set<std::string> existingKeys;
     std::unordered_set<std::string> newKeys;
 
-    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+    {
+        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
 
-    // Step 1: Get existing intent functions
-    int32_t ret = GetExistingIntentFunctions(functionNamespace, existingKeys);
-    if (ret != ERR_OK) {
-        return ret;
+        // Step 1: Get existing intent functions
+        int32_t ret = GetExistingIntentFunctions(functionNamespace, existingKeys);
+        if (ret != ERR_OK) {
+            return ret;
+        }
+
+        // Step 2: Add new functions (overwrites existing keys)
+        ret = AddNewFunctions(functions, newKeys, successCount);
+        if (ret != ERR_OK) {
+            return ret;  // Old data preserved on failure
+        }
+
+        // Step 3: Delete obsolete functions (diff set)
+        ret = DeleteObsoleteFunctions(existingKeys, newKeys, deletedCount);
+        if (ret != ERR_OK) {
+            return ret;
+        }
     }
 
-    // Step 2: Add new functions (overwrites existing keys)
-    ret = AddNewFunctions(functions, newKeys, successCount);
-    if (ret != ERR_OK) {
-        return ret;  // Old data preserved on failure
-    }
-
-    // Step 3: Delete obsolete functions (diff set)
-    ret = DeleteObsoleteFunctions(existingKeys, newKeys, deletedCount);
-    if (ret != ERR_OK) {
-        return ret;
+    if (successCount > 0 || deletedCount > 0) {
+        BackupKvStore();
     }
 
     TAG_LOGI(AAFwkTag::CLI_TOOL,

@@ -49,6 +49,13 @@ public:
 
     int32_t QueryAllData(std::vector<StoredAgentCardEntry> &cards);
 
+    /**
+     * @brief Backs up the whole kv store to a backup file in the storage directory.
+     * Called after successful data mutations so the corrupted-store recovery can
+     * restore agent cards instead of starting empty.
+     */
+    void BackupKvStore();
+
 private:
     AgentCardDbMgr();
     ~AgentCardDbMgr();

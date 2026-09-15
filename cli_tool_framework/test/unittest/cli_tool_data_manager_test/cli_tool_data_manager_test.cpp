@@ -1120,5 +1120,39 @@ HWTEST_F(CliToolDataManagerTest, CliToolDataManager_QueryToolSummaries_0100, Tes
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_QueryToolSummaries_0100 end");
 }
 
+/**
+ * @tc.name: CliToolDataManager_BackupKvStore_001
+ * @tc.desc: Test BackupKvStore with mocked KVStore
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_BackupKvStore_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliToolDataManager_BackupKvStore_001 start");
+
+    auto mockStore = std::make_shared<MockSingleKvStore>();
+    CliToolDataManager::GetInstance().kvStorePtr_ = mockStore;
+    CliToolDataManager::GetInstance().BackupKvStore();
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliToolDataManager_BackupKvStore_001 end");
+}
+
+/**
+ * @tc.name: CliToolDataManager_BackupKvStore_002
+ * @tc.desc: Test BackupKvStore delete backup and retry when backup fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_BackupKvStore_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliToolDataManager_BackupKvStore_002 start");
+
+    auto mockStore = std::make_shared<MockSingleKvStore>();
+    CliToolDataManager::GetInstance().kvStorePtr_ = mockStore;
+    mockStore->Backup_ = DistributedKv::Status::ERROR;
+    CliToolDataManager::GetInstance().BackupKvStore();
+    mockStore->Backup_ = DistributedKv::Status::SUCCESS;
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliToolDataManager_BackupKvStore_002 end");
+}
+
 } // namespace CliTool
 } // namespace OHOS

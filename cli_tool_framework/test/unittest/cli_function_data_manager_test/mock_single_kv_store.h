@@ -245,7 +245,7 @@ public:
 
     DistributedKv::Status Backup(const std::string &file, const std::string &baseDir) override
     {
-        return DistributedKv::Status::SUCCESS;
+        return Backup_;
     };
 
     DistributedKv::Status Restore(const std::string &file, const std::string &baseDir) override
@@ -273,6 +273,7 @@ public:
     DistributedKv::Status Delete_ = DistributedKv::Status::SUCCESS;
     DistributedKv::Status Put_ = DistributedKv::Status::SUCCESS;
     DistributedKv::Status Get_ = DistributedKv::Status::SUCCESS;
+    DistributedKv::Status Backup_ = DistributedKv::Status::SUCCESS;
 
     // Callback for dynamic Put behavior (e.g., simulate failure after N calls)
     std::function<DistributedKv::Status(const DistributedKv::Key&, const DistributedKv::Value&)> PutCallback;

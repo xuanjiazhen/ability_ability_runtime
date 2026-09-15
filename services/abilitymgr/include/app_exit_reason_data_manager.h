@@ -87,6 +87,13 @@ public:
     void HandleAbilityMatchAndCleanup(const std::string& abilityName, std::vector<std::string>& abilityList,
         bool& isSetReason, bool cleanFlag);
 
+    /**
+     * @brief Backs up the whole kv store to a backup file in the storage directory.
+     * Called after successful data mutations so the corrupted-store recovery can
+     * restore exit reason and recover info instead of starting empty.
+     */
+    void BackupKvStore();
+
 private:
     DistributedKv::Status GetKvStore();
     bool CheckKvStore();
