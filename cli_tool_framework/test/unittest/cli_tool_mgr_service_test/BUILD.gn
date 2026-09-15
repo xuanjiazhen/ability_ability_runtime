@@ -27,7 +27,9 @@ ohos_unittest("cli_tool_mgr_service_test") {
   module_out_path = module_output_path
 
   include_dirs = [
+    "${ability_runtime_innerkits_path}/ability_manager/include",
     "${ability_runtime_innerkits_path}/app_manager/include/appmgr",
+    "${ability_runtime_services_path}/common/include",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
     "${ability_runtime_path}/test/unittest/cli_tool_mgr/cli_tool_mgr_service_test",
     "${cli_tool_framework_path}/interfaces/cli_tool/include",
@@ -66,6 +68,7 @@ ohos_unittest("cli_tool_mgr_service_test") {
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${cli_tool_framework_path}/interfaces/cli_tool:cli_tool_client",
     "${cli_tool_framework_path}/services/common:cli_common",
+    "${ability_runtime_services_path}/common:app_util",
     "${ability_runtime_services_path}/common:hisysevent_report_static",
   ]
 
