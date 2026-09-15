@@ -11896,12 +11896,12 @@ int AbilityManagerService::FinishUserTest(
     return DelayedSingleton<AppScheduler>::GetInstance()->FinishUserTest(msg, resultCode, bundleName);
 }
 
-int AbilityManagerService::GetTopAbility(sptr<IRemoteObject> &token)
+int AbilityManagerService::GetTopAbility(sptr<IRemoteObject> &token, int32_t userId)
 {
-    return GetTopAbilityInner(token);
+    return GetTopAbilityInner(token, 0, userId);
 }
 
-int AbilityManagerService::GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId)
+int AbilityManagerService::GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId, int32_t userId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
@@ -11912,7 +11912,14 @@ int AbilityManagerService::GetTopAbilityInner(sptr<IRemoteObject> &token, uint64
 #ifdef SUPPORT_SCREEN
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         Rosen::FocusChangeInfo focusChangeInfo;
-        Rosen::WindowManager::GetInstance().GetFocusWindowInfo(focusChangeInfo, displayId);
+        userId = (userId == INVALID_USER_ID) ? GetValidUserId(INVALID_USER_ID) : userId;
+        if (userId < 0) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid userId: %{public}d", userId);
+            return ERR_INVALID_VALUE;
+        }
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "getTopAbility userId: %{public}d, displayId: %{public}lu",
+            userId, displayId);
+        Rosen::WindowManager::GetInstance(userId).GetFocusWindowInfo(focusChangeInfo, displayId);
         token = focusChangeInfo.abilityToken_;
     } else {
         if (!GetWMSHandler()) {
@@ -12433,7 +12440,7 @@ int AbilityManagerService::FreeInstallAbilityFromRemote(const Want &want, const 
     return freeInstallManager_->FreeInstallAbilityFromRemote(want, callback, validUserId, requestCode);
 }
 
-AppExecFwk::ElementName AbilityManagerService::GetTopAbility(bool isNeedLocalDeviceId)
+AppExecFwk::ElementName AbilityManagerService::GetTopAbility(bool isNeedLocalDeviceId, int32_t userId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "%{public}s start.", __func__);
@@ -12449,7 +12456,8 @@ AppExecFwk::ElementName AbilityManagerService::GetTopAbility(bool isNeedLocalDev
     }
 #ifdef SUPPORT_GRAPHICS
     sptr<IRemoteObject> token;
-    int ret = IN_PROCESS_CALL(GetTopAbility(token));
+    uint64_t defaultDisplayId = 0;
+    int ret = IN_PROCESS_CALL(GetTopAbilityInner(token, defaultDisplayId, userId));
     if (ret) {
         return elementName;
     }
@@ -13380,7 +13388,8 @@ bool AbilityManagerService::CheckUIExtensionCallerIsForeground(const AbilityRequ
         if (UIExtensionWrapper::IsUIExtension(callerAbility->GetAbilityInfo().extensionAbilityType)) {
             auto tokenId = callerAbility->GetApplicationInfo().accessTokenId;
             bool isFocused = false;
-            if (CheckUIExtensionIsFocused(tokenId, isFocused) == ERR_OK && isFocused) {
+            if (CheckUIExtensionIsFocusedByUserId(tokenId, isFocused, 0,
+                callerAbility->GetUid() / BASE_USER_RANGE) == ERR_OK && isFocused) {
                 TAG_LOGD(AAFwkTag::ABILITYMGR, "Root caller is foreground");
                 return true;
             }
@@ -14017,8 +14026,14 @@ std::shared_ptr<AbilityRecord> AbilityManagerService::GetFocusAbility()
 
 int AbilityManagerService::CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId, bool& isFocused, uint64_t displayId)
 {
+    return CheckUIExtensionIsFocusedByUserId(uiExtensionTokenId, isFocused, displayId, INVALID_USER_ID);
+}
+
+int AbilityManagerService::CheckUIExtensionIsFocusedByUserId(uint32_t uiExtensionTokenId, bool& isFocused,
+    uint64_t displayId, int32_t userId)
+{
     sptr<IRemoteObject> token;
-    auto ret = GetTopAbilityInner(token, displayId);
+    auto ret = GetTopAbilityInner(token, displayId, userId);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "getTopAbility failed");
         return ret;
@@ -14033,7 +14048,7 @@ int AbilityManagerService::CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId
     }
 
     bool focused = false;
-    int32_t userId = GetValidUserId(DEFAULT_INVAL_VALUE);
+    userId = GetValidUserId(userId);
     auto connectManager = GetUIExtensionAbilityManagerByUserId(userId);
     auto commonExtensionManager = GetCommonExtensionManagerByUserId(userId);
     if (connectManager || commonExtensionManager) {
