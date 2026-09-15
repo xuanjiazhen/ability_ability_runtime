@@ -207,6 +207,11 @@ private:
     static int32_t PendingRecordIdCreate();
     void ClearPendingWantRecordTask(const std::string &bundleName, int32_t uid);
 
+    sptr<PendingWantRecord> ResolveRecord(const sptr<IWantSender> &target);
+    void MarkSharedIfNeeded(PendingWantRecord *record);
+    std::vector<sptr<PendingWantRecord>> TransferSharedRecordsOnDeath(
+        const std::string &bundleName, int32_t pid);
+
     bool CheckCallerPermission();
 
     bool CheckWindowState(int32_t pid);
