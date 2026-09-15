@@ -86,6 +86,23 @@ void EtsUIExtensionCallback::OnError(int32_t number)
     CloseModalUIExtension();
 }
 
+void EtsUIExtensionCallback::ResolveDeferred()
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "ResolveDeferred call — ETS sync return, no-op");
+}
+
+void EtsUIExtensionCallback::OnAbilityErrorCode(int32_t errorCode)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "OnAbilityErrorCode call, errorCode: %{public}d", errorCode);
+    CloseModalUIExtension();
+}
+
+void EtsUIExtensionCallback::OnRelease(int32_t code)
+{
+    TAG_LOGI(AAFwkTag::UI_EXT, "OnRelease call, code:%{public}d", code);
+    CloseModalUIExtension();
+}
+
 void EtsUIExtensionCallback::OnResult(int32_t resultCode, const AAFwk::Want &want)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "OnResult call");
@@ -270,7 +287,7 @@ void EtsUIExtensionCallback::OnRequestFailure(const std::string& name,
     ani_status status = ANI_ERROR;
     ani_ref funRef;
     if ((status = env->Object_GetFieldByName_Ref(reinterpret_cast<ani_object>(completionHandler_),
-        "OnRequestFailure", &funRef)) != ANI_OK) {
+        "onRequestFailure", &funRef)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "Object_GetFieldByName_Ref failed");
         return;
     }

@@ -15,7 +15,10 @@
 
 #include "ui_extension_context.h"
 
+#include <atomic>
+
 #include "ability_business_error.h"
+#include "ability_by_type_completion.h"
 #include "ability_manager_client.h"
 #include "bool_wrapper.h"
 #include "configuration.h"
@@ -786,13 +789,37 @@ ErrCode UIExtensionContext::StartAbilityByType(const std::string &type,
         wantParam.Remove(FLAG_AUTH_READ_URI_PERMISSION);
     }
 
+    auto errorFired = std::make_shared<std::atomic<bool>>(false);
     OHOS::Ace::ModalUIExtensionCallbacks callback;
     OHOS::Ace::ModalUIExtensionConfig config;
-    callback.onError = [uiExtensionCallbacks](int32_t arg, const std::string &str1, const std::string &str2) {
+    callback.onError = [uiExtensionCallbacks](int32_t arg, const std::string &str1,
+        const std::string &str2) {
         uiExtensionCallbacks->OnError(arg);
     };
-    callback.onRelease = [uiExtensionCallbacks](int32_t arg) {
-        uiExtensionCallbacks->OnRelease(arg);
+    auto completion = std::dynamic_pointer_cast<AbilityByTypeCompletion>(uiExtensionCallbacks);
+    callback.onAbilityErrorCode = [completion, errorFired](int32_t errorCode,
+        const OHOS::Ace::UIExtensionOperationPhase& phase) {
+        if (phase != OHOS::Ace::UIExtensionOperationPhase::FOREGROUND) {
+            return;
+        }
+        bool expected = false;
+        if (!errorFired->compare_exchange_strong(expected, true)) {
+            if (errorCode != 0) {
+                TAG_LOGW(AAFwkTag::UI_EXT, "error %{public}d dropped, callback already fired", errorCode);
+            }
+            return;
+        }
+        if (completion == nullptr) {
+            return;
+        }
+        if (errorCode == 0) {
+            completion->ResolveDeferred();
+        } else {
+            completion->OnAbilityErrorCode(errorCode);
+        }
+    };
+    callback.onRelease = [completion](int32_t arg) {
+        if (completion) { completion->OnRelease(arg); }
     };
     callback.onResult = [uiExtensionCallbacks](int32_t arg1, const OHOS::AAFwk::Want arg2) {
         uiExtensionCallbacks->OnResult(arg1, arg2);

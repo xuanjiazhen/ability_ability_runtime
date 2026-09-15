@@ -15,6 +15,10 @@
 
 #include "js_ui_extension_content_session.h"
 
+#include <atomic>
+
+#include "ability_business_error.h"
+#include "ability_by_type_completion.h"
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
 #include "event_handler.h"
@@ -942,21 +946,47 @@ napi_value JsUIExtensionContentSession::OnStartAbilityByType(napi_env env, NapiC
     if (completionHandler != nullptr) {
         uiExtensionCallback->SetCompletionHandler(env, completionHandler);
     }
+    napi_value lastParam = (info.argc > ARGC_THREE) ? info.argv[INDEX_THREE] : nullptr;
     NapiAsyncTask::CompleteCallback complete = [uiWindow = uiWindow_, type, want, uiExtensionCallback]
         (napi_env env, NapiAsyncTask& task, int32_t status) {
             HandleScope handleScope(env);
             if (uiWindow == nullptr || uiWindow->GetUIContent() == nullptr) {
                 task.Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
                     GetInnerErrorMsg(AbilityInnerErrorMsg::INVALID_SESSION)));
+                uiExtensionCallback->ClearDeferred();
                 return;
             }
 #ifdef SUPPORT_SCREEN
+            auto errorFired = std::make_shared<std::atomic<bool>>(false);
             Ace::ModalUIExtensionCallbacks callback;
-            callback.onError = [uiExtensionCallback](int arg, const std::string &str1, const std::string &str2) {
+            callback.onError = [uiExtensionCallback](int arg, const std::string &str1,
+                const std::string &str2) {
                 uiExtensionCallback->OnError(arg);
             };
-            callback.onRelease = [uiExtensionCallback](const auto &arg) {
-                uiExtensionCallback->OnRelease(arg);
+            auto completion = std::dynamic_pointer_cast<AbilityByTypeCompletion>(uiExtensionCallback);
+            callback.onAbilityErrorCode = [completion, errorFired](int32_t errorCode,
+                const Ace::UIExtensionOperationPhase& phase) {
+                if (phase != Ace::UIExtensionOperationPhase::FOREGROUND) {
+                    return;
+                }
+                bool expected = false;
+                if (!errorFired->compare_exchange_strong(expected, true)) {
+                    if (errorCode != 0) {
+                        TAG_LOGW(AAFwkTag::UI_EXT, "error %{public}d dropped, callback already fired", errorCode);
+                    }
+                    return;
+                }
+                if (completion == nullptr) {
+                    return;
+                }
+                if (errorCode == 0) {
+                    completion->ResolveDeferred();
+                } else {
+                    completion->OnAbilityErrorCode(errorCode);
+                }
+            };
+            callback.onRelease = [completion](const auto &arg) {
+                if (completion) { completion->OnRelease(arg); }
             };
             callback.onReceive = [uiExtensionCallback](const AAFwk::WantParams& data) {
                 if (data.HasParam("onRequestSuccess")) {
@@ -980,17 +1010,40 @@ napi_value JsUIExtensionContentSession::OnStartAbilityByType(napi_env env, NapiC
             if (sessionId == 0) {
                 task.Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
                     GetInnerErrorMsg(AbilityInnerErrorMsg::CREATE_MODAL_UI_EXTENSION_FAILED)));
+                uiExtensionCallback->ClearDeferred();
             } else {
                 uiExtensionCallback->SetUIContent(uiWindow->GetUIContent());
                 uiExtensionCallback->SetSessionId(sessionId);
-                task.ResolveWithNoError(env, CreateJsUndefined(env));
+                // Hold — OnAbilityErrorCode/ResolveDeferred will resolve/reject
             }
 #endif // SUPPORT_SCREEN
         };
-    napi_value lastParam = (info.argc > ARGC_THREE) ? info.argv[INDEX_THREE] : nullptr;
+    napi_valuetype lastParamType = napi_undefined;
+    if (lastParam != nullptr && napi_typeof(env, lastParam, &lastParamType) != napi_ok) {
+        return handleEscape.Escape(CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
+    }
     napi_value result = nullptr;
+    if (lastParam != nullptr && lastParamType == napi_function) {
+        uiExtensionCallback->SetCompletionCallback(env, lastParam);
+        napi_get_undefined(env, &result);
+        NapiAsyncTask::ScheduleHighQos("JsUIExtensionContentSession::OnStartAbilityByType",
+            env, std::make_unique<NapiAsyncTask>(nullptr,
+                std::unique_ptr<NapiAsyncTask::ExecuteCallback>(),
+                std::make_unique<NapiAsyncTask::CompleteCallback>(std::move(complete))));
+        return handleEscape.Escape(result);
+    } else if (lastParam != nullptr) {
+        return handleEscape.Escape(CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
+    }
+    napi_deferred deferred = nullptr;
+    napi_status status = napi_create_promise(env, &deferred, &result);
+    if (status != napi_ok || deferred == nullptr) {
+        return handleEscape.Escape(CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+    }
+    uiExtensionCallback->SetDeferred(deferred);
     NapiAsyncTask::ScheduleHighQos("JsUIExtensionContentSession::OnStartAbilityByType",
-        env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
+        env, std::make_unique<NapiAsyncTask>(deferred,
+            std::unique_ptr<NapiAsyncTask::ExecuteCallback>(),
+            std::make_unique<NapiAsyncTask::CompleteCallback>(std::move(complete))));
     return handleEscape.Escape(result);
 }
 

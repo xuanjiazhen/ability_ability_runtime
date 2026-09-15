@@ -43,6 +43,7 @@ namespace {
 constexpr int32_t INDEX_ZERO = 0;
 constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t INDEX_TWO = 2;
+constexpr int32_t INDEX_THREE = 3;
 constexpr int32_t ERROR_CODE_ONE = 1;
 constexpr int32_t ERROR_CODE_TWO = 2;
 constexpr size_t ARGC_ZERO = 0;
@@ -263,22 +264,59 @@ private:
             TAG_LOGD(AAFwkTag::UISERVC_EXT, "JSUIServiceExtensionContext OnStartAbilityByType");
             *innerErrCode = context->StartAbilityByType(type, wantParam, callback);
         };
+        napi_value lastParam = (info.argc > ARGC_THREE) ? info.argv[INDEX_THREE] : nullptr;
+        napi_valuetype lastParamType = napi_undefined;
+        if (lastParam != nullptr && napi_typeof(env, lastParam, &lastParamType) != napi_ok) {
+            return CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        }
+        napi_value result = nullptr;
+        if (lastParam != nullptr && lastParamType == napi_function) {
+            callback->SetCompletionCallback(env, lastParam);
+            NapiAsyncTask::CompleteCallback complete =
+                [innerErrCode, callback](napi_env env, NapiAsyncTask& task, int32_t status) {
+                    HandleScope handleScope(env);
+                    if (*innerErrCode == ERR_OK) {
+                        // Hold — OnAbilityErrorCode/ResolveDeferred will call completion callback
+                    } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
+                        task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+                        callback->ClearDeferred();
+                    } else {
+                        task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+                        callback->ClearDeferred();
+                    }
+                };
+            napi_get_undefined(env, &result);
+            NapiAsyncTask::ScheduleHighQos("JSUIServiceExtensionContext::OnStartAbilityByType",
+                env, std::make_unique<NapiAsyncTask>(nullptr,
+                    std::make_unique<NapiAsyncTask::ExecuteCallback>(std::move(execute)),
+                    std::make_unique<NapiAsyncTask::CompleteCallback>(std::move(complete))));
+            return result;
+        } else if (lastParam != nullptr) {
+            return CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        }
+        napi_deferred deferred = nullptr;
+        napi_status status = napi_create_promise(env, &deferred, &result);
+        if (status != napi_ok || deferred == nullptr) {
+            return CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        }
+        callback->SetDeferred(deferred);
         NapiAsyncTask::CompleteCallback complete =
-            [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+            [innerErrCode, callback](napi_env env, NapiAsyncTask& task, int32_t status) {
                 HandleScope handleScope(env);
                 if (*innerErrCode == ERR_OK) {
-                    task.ResolveWithNoError(env, CreateJsUndefined(env));
+                    // Hold deferred — OnAbilityErrorCode will reject with mapped inner error + msg
                 } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
                     task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+                    callback->ClearDeferred();
                 } else {
                     task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+                    callback->ClearDeferred();
                 }
             };
-
-        napi_value lastParam = nullptr;
-        napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JSUIServiceExtensionContext::OnStartAbilityByType",
-            env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
+            env, std::make_unique<NapiAsyncTask>(deferred,
+                std::make_unique<NapiAsyncTask::ExecuteCallback>(std::move(execute)),
+                std::make_unique<NapiAsyncTask::CompleteCallback>(std::move(complete))));
         return result;
     }
 

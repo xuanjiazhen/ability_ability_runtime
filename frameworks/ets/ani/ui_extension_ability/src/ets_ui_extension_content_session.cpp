@@ -15,7 +15,9 @@
 #include "ets_ui_extension_content_session.h"
 
 #include <array>
+#include <atomic>
 
+#include "ability_business_error.h"
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
 #include "ani_common_start_options.h"
@@ -913,9 +915,29 @@ ani_object EtsUIExtensionContentSession::StartAbilityByTypeSync(
         return aniObject;
     }
 #ifdef SUPPORT_SCREEN
+    auto errorFired = std::make_shared<std::atomic<bool>>(false);
     Ace::ModalUIExtensionCallbacks callback;
-    callback.onError = [uiExtensionCallback](int arg, const std::string &str1, const std::string &str2) {
+    callback.onError = [uiExtensionCallback](int arg, const std::string &str1,
+        const std::string &str2) {
         uiExtensionCallback->OnError(arg);
+    };
+    callback.onAbilityErrorCode = [uiExtensionCallback, errorFired](int32_t errorCode,
+        const Ace::UIExtensionOperationPhase& phase) {
+        if (phase != Ace::UIExtensionOperationPhase::FOREGROUND) {
+            return;
+        }
+        bool expected = false;
+        if (!errorFired->compare_exchange_strong(expected, true)) {
+            if (errorCode != 0) {
+                TAG_LOGW(AAFwkTag::UI_EXT, "error %{public}d dropped, callback already fired", errorCode);
+            }
+            return;
+        }
+        if (errorCode == 0) {
+            uiExtensionCallback->ResolveDeferred();
+            return;
+        }
+        uiExtensionCallback->OnAbilityErrorCode(errorCode);
     };
     callback.onRelease = [uiExtensionCallback](const auto &arg) { uiExtensionCallback->OnRelease(arg); };
     Ace::ModalUIExtensionConfig config;
