@@ -296,7 +296,7 @@ HWTEST_F(ToolUtilTest, ParseToolCommand_SubCommandSchema_0100, TestSize.Level1)
         R"({"properties":{"bundleName":{"type":"string"}}})");
     ExecToolParam param;
     std::string detail;
-    EXPECT_EQ(ToolUtil::ParseToolCommand("ohos-aa start --bundleName=com.x", toolInfo, param, detail),
+    EXPECT_EQ(ToolUtil::ParseToolCommand("ohos-aa start --bundleName com.x", toolInfo, param, detail),
         ERR_OK);
     EXPECT_EQ(param.toolName, "ohos-aa");
     EXPECT_EQ(param.subcommand, "start");
