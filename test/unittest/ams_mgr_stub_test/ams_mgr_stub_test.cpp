@@ -330,7 +330,7 @@ HWTEST_F(AmsMgrStubTest, NotifyAppMgrRecordExitReasonCompability_0100, TestSize.
     data.WriteInt32(reason);
     data.WriteInt32(callerPid);
 
-    EXPECT_CALL(*mockAmsMgrScheduler_, NotifyAppMgrRecordExitReasonCompability(_, _, _, _, _, _))
+    EXPECT_CALL(*mockAmsMgrScheduler_, NotifyAppMgrRecordExitReasonCompability(_, _, _, _, _, callerPid))
         .Times(1)
         .WillOnce(Return(NO_ERROR));
     auto result = mockAmsMgrScheduler_->OnRemoteRequest(
@@ -362,7 +362,7 @@ HWTEST_F(AmsMgrStubTest, NotifyAppMgrRecordExitReasonCompability_0200, TestSize.
     data.WriteString(innerMsg);
     data.WriteInt32(reason);
 
-    EXPECT_CALL(*mockAmsMgrScheduler_, NotifyAppMgrRecordExitReasonCompability(_, _, _, _, _, _))
+    EXPECT_CALL(*mockAmsMgrScheduler_, NotifyAppMgrRecordExitReasonCompability(_, _, _, _, _, 0))
         .Times(1)
         .WillOnce(Return(NO_ERROR));
     auto result = mockAmsMgrScheduler_->OnRemoteRequest(

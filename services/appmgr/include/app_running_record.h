@@ -1638,6 +1638,7 @@ private:
     mutable ffrt::mutex exitMsgLock_;
     mutable ffrt::mutex killMsgLock_;
     mutable ffrt::mutex innerMsgLock_;
+    mutable ffrt::mutex killCallerLock_;
     mutable ffrt::mutex supportMultiProcessDeviceFeatureLock_;
     mutable ffrt::mutex hapModulesLock_;
     mutable std::mutex specifiedMutex_;

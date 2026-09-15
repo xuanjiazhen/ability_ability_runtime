@@ -8487,10 +8487,14 @@ int32_t AppMgrServiceInner::NotifyAppMgrRecordExitReasonCompability(
     appRecord->SetExitReason(reason);
     const int32_t killCallerPid = callerPid > 0 ? callerPid : DEFAULT_INVAL_VALUE;
     std::string callerProcessName;
-    if (killCallerPid != DEFAULT_INVAL_VALUE &&
-        !ProcessUtil::ReadProcessName(static_cast<pid_t>(killCallerPid), callerProcessName)) {
-        TAG_LOGW(AAFwkTag::APPMGR, "read caller process name failed, callerPid:%{public}d", killCallerPid);
-        callerProcessName = "";
+    if (killCallerPid != DEFAULT_INVAL_VALUE) {
+        auto callerRecord = GetAppRunningRecordByPid(killCallerPid);
+        if (callerRecord) {
+            callerProcessName = callerRecord->GetProcessName();
+        } else if (!ProcessUtil::ReadProcessName(static_cast<pid_t>(killCallerPid), callerProcessName)) {
+            TAG_LOGW(AAFwkTag::APPMGR, "read caller process name failed, callerPid:%{public}d", killCallerPid);
+            callerProcessName = "";
+        }
     }
     appRecord->SetKillCallerInfo(killCallerPid, callerProcessName);
     TAG_LOGI(AAFwkTag::APPMGR, "[EXIT_REASON_TAG] NotifyAppMgrRecordExitReasonCompability pid:%{public}d,"

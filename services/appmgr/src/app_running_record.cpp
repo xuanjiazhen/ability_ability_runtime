@@ -2895,17 +2895,20 @@ std::string AppRunningRecord::GetInnerMsg() const
 
 void AppRunningRecord::SetKillCallerInfo(int32_t killCallerPid, const std::string &killCallerProcessName)
 {
+    std::lock_guard<ffrt::mutex> lock(killCallerLock_);
     killCallerPid_ = killCallerPid;
     killCallerProcessName_ = killCallerProcessName;
 }
 
 int32_t AppRunningRecord::GetKillCallerPid() const
 {
+    std::lock_guard<ffrt::mutex> lock(killCallerLock_);
     return killCallerPid_;
 }
 
 std::string AppRunningRecord::GetKillCallerProcessName() const
 {
+    std::lock_guard<ffrt::mutex> lock(killCallerLock_);
     return killCallerProcessName_;
 }
 
