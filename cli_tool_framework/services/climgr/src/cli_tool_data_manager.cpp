@@ -18,6 +18,7 @@
 #include <chrono>
 #include <dirent.h>
 #include <fstream>
+#include <map>
 #include <nlohmann/json.hpp>
 #include <set>
 #include <unistd.h>
@@ -35,6 +36,7 @@ constexpr const char* DEFAULT_CONFIG_DIR = "/system/bin/cli_tool/configs";
 constexpr const char* KV_STORE_APP_ID = "cli_tools_db";
 constexpr const char* KV_STORE_STORE_ID = "cli_tools_store";
 constexpr const char* CLI_TOOLS_STORAGE_DIR = "/data/service/el1/public/database/aimgr/cli_tool";
+constexpr const char* CLI_TOOLS_BACKUP_NAME = "cli_tool_backup";
 constexpr const char* ALL_CLI_TOOL_NAMES_KEY = "AllCliToolNames";
 
 const DistributedKv::AppId APP_ID { KV_STORE_APP_ID };
@@ -159,7 +161,9 @@ int32_t CliToolDataManager::LoadToolsFromDir(const std::string &dirPath)
     closedir(dir);
 
     // Sync tool names and remove tools that no longer exist
-    SyncToolNames(currentToolNames);
+    if (SyncToolNames(currentToolNames) == ERR_OK) {
+        BackupKvStore();
+    }
 
     TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully loaded %{public}d tools from %{public}s",
         totalLoaded, dirPath.c_str());
@@ -429,8 +433,33 @@ DistributedKv::Status CliToolDataManager::RestoreKvStore(DistributedKv::Status s
         dataManager_.DeleteKvStore(APP_ID, STORE_ID, options.baseDir);
         status = dataManager_.GetSingleKvStore(options, APP_ID, STORE_ID, kvStorePtr_);
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Recreated KVStore with status: %{public}d", static_cast<int>(status));
+        if (status == DistributedKv::Status::SUCCESS && kvStorePtr_ != nullptr) {
+            // Import the backup into the fresh store; on failure keep the empty store.
+            DistributedKv::Status restoreStatus =
+                kvStorePtr_->Restore(CLI_TOOLS_BACKUP_NAME, CLI_TOOLS_STORAGE_DIR);
+            TAG_LOGI(AAFwkTag::CLI_TOOL, "restore from backup result:%{public}d", static_cast<int>(restoreStatus));
+        }
     }
     return status;
+}
+
+void CliToolDataManager::BackupKvStore()
+{
+    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+    if (!CheckKvStore()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "null kvStore");
+        return;
+    }
+    DistributedKv::Status status = kvStorePtr_->Backup(CLI_TOOLS_BACKUP_NAME, CLI_TOOLS_STORAGE_DIR);
+    if (status != DistributedKv::Status::SUCCESS) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "kvStore backup error: %{public}d, delete backup and retry",
+            static_cast<int>(status));
+        std::vector<std::string> files = { CLI_TOOLS_BACKUP_NAME };
+        std::map<std::string, DistributedKv::Status> results;
+        kvStorePtr_->DeleteBackup(files, CLI_TOOLS_STORAGE_DIR, results);
+        status = kvStorePtr_->Backup(CLI_TOOLS_BACKUP_NAME, CLI_TOOLS_STORAGE_DIR);
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "kvStore backup retry result:%{public}d", static_cast<int>(status));
+    }
 }
 } // namespace CliTool
 } // namespace OHOS
