@@ -70,7 +70,6 @@ private:
     int32_t userId_ = -1;
     bool cacheLoadFailed_ = false;
     mutable std::mutex genericInfosMutex_;
-    std::map<std::string, std::vector<ExtractInsightIntentGenericInfo>> intentGenericInfos_;
     std::map<std::string, std::string> bundleVersionMap_;
 };
 }  // namespace AbilityRuntime

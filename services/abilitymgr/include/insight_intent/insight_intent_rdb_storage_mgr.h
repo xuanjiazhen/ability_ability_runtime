@@ -35,6 +35,7 @@ struct InsightIntentSaveParam {
 class InsightRdbStorageMgr : public std::enable_shared_from_this<InsightRdbStorageMgr> {
     DECLARE_DELAYED_SINGLETON(InsightRdbStorageMgr)
 public:
+    int32_t LoadInsightIntentBundleInfos(const int32_t userId, std::map<std::string, std::string> &bundleVersionMap);
     int32_t LoadInsightIntentInfos(const int32_t userId, std::map<std::string, std::string> &bundleVersionMap,
         std::vector<ExtractInsightIntentInfo> &totalInfos, std::vector<InsightIntentInfo> &configInfos);
     int32_t LoadConfigInsightIntentInfos(
