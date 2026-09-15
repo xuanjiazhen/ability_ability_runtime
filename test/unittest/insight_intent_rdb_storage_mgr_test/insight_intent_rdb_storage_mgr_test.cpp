@@ -25,6 +25,7 @@ namespace AbilityRuntime {
 void MockQueryData(bool mockRet);
 void MockQueryDataBeginWithKey(bool mockRet);
 void MockInsertData(bool mockRet);
+void MockBatchInsertData(bool mockRet);
 void MockDeleteData(bool mockRet);
 void MockDeleteDataBeginWithKey(bool mockRet);
 void MockQueryDataBeginWithKeyData(const std::string &key, const std::string &value);
@@ -961,6 +962,37 @@ HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_045, Tes
     EXPECT_EQ(result, ERR_OK);
     EXPECT_TRUE(GetMockDeleteDataBeginWithKeyCalled());
     EXPECT_TRUE(totalInfo.intentName.empty());
+}
+
+/**
+ * @tc.name: InsightIntentRdbStorageMgrTest_046
+ * @tc.desc: Test SaveStorageInsightIntentDataBatch
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentRdbStorageMgrTest, InsightIntentRdbStorageMgrTest_046, TestSize.Level0)
+{
+    int32_t userId = 0;
+    std::string bundleName = "testBundle";
+    uint32_t versionCode = 1;
+    InsightIntentSaveParam saveParam;
+    saveParam.moduleName = "testModule";
+    ExtractInsightIntentProfileInfo profileInfo;
+    profileInfo.intentName = "testIntent";
+    saveParam.profileInfos.insightIntents.push_back(profileInfo);
+    std::vector<InsightIntentSaveParam> saveParams;
+    saveParams.push_back(saveParam);
+
+    std::vector<InsightIntentSaveParam> emptyParams;
+    EXPECT_EQ(DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveStorageInsightIntentDataBatch(
+        bundleName, userId, versionCode, emptyParams), ERR_OK);
+
+    MockBatchInsertData(false);
+    EXPECT_EQ(DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveStorageInsightIntentDataBatch(
+        bundleName, userId, versionCode, saveParams), ERR_INVALID_VALUE);
+
+    MockBatchInsertData(true);
+    EXPECT_EQ(DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveStorageInsightIntentDataBatch(
+        bundleName, userId, versionCode, saveParams), ERR_OK);
 }
 }
 }
