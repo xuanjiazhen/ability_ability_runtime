@@ -114,6 +114,7 @@ ohos_unittest("application_test") {
     "runtime_core:ani",
     "samgr:samgr_proxy",
     "zlib:shared_libz",
+    "zlib:libz",
   ]
 
   if (ability_runtime_graphics) {

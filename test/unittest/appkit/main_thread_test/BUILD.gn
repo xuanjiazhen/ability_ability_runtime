@@ -71,6 +71,7 @@ ohos_unittest("main_thread_test") {
     "napi:ace_napi",
     "samgr:samgr_proxy",
     "zlib:shared_libz",
+    "zlib:libz",
   ]
 }
 

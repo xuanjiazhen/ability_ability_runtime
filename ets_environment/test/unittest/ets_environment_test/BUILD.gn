@@ -50,6 +50,7 @@ template("ets_environment_test_template") {
       "runtime_core:ani",
       "ability_base:extractortool",
       "zlib:shared_libz",
+      "zlib:libz",
     ]
   }
 }
