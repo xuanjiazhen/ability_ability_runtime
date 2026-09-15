@@ -17,6 +17,7 @@
 
 #include "hilog_tag_wrapper.h"
 #include "intent_json_safe_get.h"
+#include "json_safe_util.h"
 #include "json_util.h"
 
 namespace OHOS {
@@ -190,7 +191,9 @@ void ProcessIntputParams(const nlohmann::json &jsonObject,
             g_parseResult = ERR_INVALID_VALUE;
             break;
         }
-        insightIntentInfo.inputParams.emplace_back(SafeDump(param));
+        std::string inputParamDump;
+        SafeDump(param, inputParamDump);
+        insightIntentInfo.inputParams.emplace_back(std::move(inputParamDump));
     }
 }
 
@@ -218,7 +221,9 @@ void ProcessOutputParams(const nlohmann::json &jsonObject,
             g_parseResult = ERR_INVALID_VALUE;
             break;
         }
-        insightIntentInfo.outputParams.emplace_back(SafeDump(param));
+        std::string outputParamDump;
+        SafeDump(param, outputParamDump);
+        insightIntentInfo.outputParams.emplace_back(std::move(outputParamDump));
     }
 }
 
@@ -330,7 +335,9 @@ void from_json(const nlohmann::json &jsonObject, InsightIntentProfileInfo &insig
     ProcessOutputParams(jsonObject, insightIntentInfo, g_parseResult);
     if (jsonObject.find(INSIGHT_INTENT_ENTITES) != jsonObjectEnd) {
         if (jsonObject.at(INSIGHT_INTENT_ENTITES).is_object()) {
-            insightIntentInfo.cfgEntities = SafeDump(jsonObject[INSIGHT_INTENT_ENTITES]);
+            std::string cfgEntitiesDump;
+            SafeDump(jsonObject[INSIGHT_INTENT_ENTITES], cfgEntitiesDump);
+            insightIntentInfo.cfgEntities = std::move(cfgEntitiesDump);
         } else {
             TAG_LOGE(AAFwkTag::INTENT, "type error: cfgEntities not object");
             g_parseResult = ERR_INVALID_VALUE;
@@ -409,12 +416,14 @@ bool TransformToInfos(const InsightIntentProfileInfoVec &profileInfos, std::vect
 bool InsightIntentProfile::TransformTo(const std::string &profileStr, std::vector<InsightIntentInfo> &intentInfos)
 {
     TAG_LOGD(AAFwkTag::INTENT, "called");
-    auto jsonObject = nlohmann::json::parse(profileStr, nullptr, false);
-    if (jsonObject.is_discarded()) {
+    nlohmann::json jsonObject;
+    if (!SafeParse(profileStr, jsonObject)) {
         TAG_LOGE(AAFwkTag::INTENT, "discarded jsonObject");
         return false;
     }
-    TAG_LOGD(AAFwkTag::INTENT, "jsonObject : %{public}s", SafeDump(jsonObject, DUMP_LOG_MAX_LEN).c_str());
+    std::string logDump;
+    SafeDump(jsonObject, logDump, DUMP_LOG_MAX_LEN);
+    TAG_LOGD(AAFwkTag::INTENT, "jsonObject : %{public}s", logDump.c_str());
 
     InsightIntentProfileInfoVec profileInfos;
     {
@@ -491,8 +500,8 @@ void to_json(nlohmann::json& jsonObject, const InsightIntentInfo& info)
         if (paramStr.empty()) {
             continue;
         }
-        auto paramJson = nlohmann::json::parse(paramStr, nullptr, false);
-        if (!paramJson.is_discarded()) {
+        nlohmann::json paramJson;
+        if (SafeParse(paramStr, paramJson)) {
             inputArray.emplace_back(paramJson);
         }
     }
@@ -502,15 +511,15 @@ void to_json(nlohmann::json& jsonObject, const InsightIntentInfo& info)
         if (paramStr.empty()) {
             continue;
         }
-        auto paramJson = nlohmann::json::parse(paramStr, nullptr, false);
-        if (!paramJson.is_discarded()) {
+        nlohmann::json paramJson;
+        if (SafeParse(paramStr, paramJson)) {
             outputArray.emplace_back(paramJson);
         }
     }
     jsonObject[INSIGHT_INTENT_OUTPUT_PARAMS] = outputArray;
     if (!info.cfgEntities.empty()) {
-        auto cfgEntities = nlohmann::json::parse(info.cfgEntities, nullptr, false);
-        if (cfgEntities.is_discarded()) {
+        nlohmann::json cfgEntities;
+        if (!SafeParse(info.cfgEntities, cfgEntities)) {
             TAG_LOGE(AAFwkTag::INTENT, "discarded entity parameters");
             return;
         }
@@ -529,7 +538,9 @@ bool InsightIntentProfile::ToJson(const InsightIntentInfo &info, nlohmann::json 
     }
 
     jsonObject[INSIGHT_INTENTS] = nlohmann::json::array({ subJsonObject });
-    TAG_LOGD(AAFwkTag::INTENT, "to json string: %{public}s", SafeDump(jsonObject, DUMP_LOG_MAX_LEN).c_str());
+    std::string logDump;
+    SafeDump(jsonObject, logDump, DUMP_LOG_MAX_LEN);
+    TAG_LOGD(AAFwkTag::INTENT, "to json string: %{public}s", logDump.c_str());
     return true;
 }
 } // namespace AbilityRuntime

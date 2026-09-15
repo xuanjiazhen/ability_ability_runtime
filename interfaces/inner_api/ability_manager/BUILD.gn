@@ -25,6 +25,7 @@ config("ability_manager_public_config") {
   ]
   include_dirs = [
     "include/",
+    "${ability_runtime_path}/utils/global/common/include",
     "include/aa_tools",
     "include/insight_intent",
     "include/skill",
