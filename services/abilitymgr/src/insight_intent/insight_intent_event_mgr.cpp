@@ -139,7 +139,7 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
             return;
         }
         // save database in one batch
-        DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->SaveInsightIntentTotalInfos(
+        DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->SaveBatchInsightIntentTotalInfo(
             bundleName, userId, bundleInfo.versionCode, saveParams);
         TAG_LOGI(AAFwkTag::INTENT, "collected intents for batch update, profile:%{public}zu config:%{public}zu, "
             "bundle:%{public}s", allInfos.insightIntents.size(), allConfigInfos.size(), bundleName.c_str());
