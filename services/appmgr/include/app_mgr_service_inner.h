@@ -110,6 +110,7 @@ using ImageError = IImageErrorHandler::ImageError;
 class WindowFocusChangedListener;
 class WindowVisibilityChangedListener;
 class WindowPidVisibilityChangedListener;
+class BusinessManager;
 using LoadAbilityTaskFunc = std::function<void()>;
 constexpr int32_t BASE_USER_RANGE = 200000;
 
@@ -1273,15 +1274,6 @@ public:
     int32_t NotifyAppFault(const FaultData &faultData);
 
     /**
-     * Transformed Notify Fault Data
-     *
-     * @param faultData Transformed the fault data.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-
-    int32_t TransformedNotifyAppFault(const AppFaultDataBySA &faultData);
-
-    /**
      * Notify Fault Data By SA
      *
      * @param faultData the fault data notified by SA.
@@ -1888,10 +1880,6 @@ private:
     int32_t KillApplicationWithUserIdInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
 
-    std::string FaultTypeToString(FaultDataType type);
-
-    FaultData ConvertDataTypes(const AppFaultDataBySA &faultData);
-
     /**
      * Start a empty resident process
      */
@@ -2305,14 +2293,6 @@ private:
     void SetOverlayInfo(const std::string& bundleName, const int32_t userId, AppSpawnStartMsg& startMsg);
     void SetAppEnvInfo(const BundleInfo &bundleInfo, AppSpawnStartMsg& startMsg);
 
-    void TimeoutNotifyApp(int32_t pid, int32_t uid, const std::string& bundleName, const std::string& processName,
-        const FaultData &faultData, int32_t recordId);
-
-    void AppRecoveryNotifyApp(int32_t pid, const std::string& bundleName,
-        FaultDataType faultType, const std::string& markers, int32_t recordId);
-    
-    void RecordAppRecoveryNotifyAppReason(int32_t pid);
-
     void ProcessAppDebug(const std::shared_ptr<AppRunningRecord> &appRecord, const bool &isDebugStart);
     AppDebugInfo MakeAppDebugInfo(const std::shared_ptr<AppRunningRecord> &appRecord, const bool &isDebugStart);
     int32_t NotifyAbilitiesDebugChange(const std::string &bundleName, const bool &isAppDebug);
@@ -2447,12 +2427,6 @@ private:
     void HandleConfigurationChange(const Configuration &config, const int32_t userId = -1);
     void HandleConfigurationChange(const Configuration &config, const std::set<int32_t> &userIds);
     bool CheckIsThreadInFoundation(pid_t pid);
-    bool CheckAppFault(const std::shared_ptr<AppRunningRecord> &appRecord, const FaultData &faultData);
-    int32_t KillFaultApp(int32_t pid, const std::string &bundleName, const FaultData &faultData,
-        bool isNeedExit = false, int32_t recordId = -1);
-#ifdef APP_MGR_KILL_REASON_TAG
-    void RecordAppfreezeKillReason(int32_t pid, const FaultData &faultData);
-#endif
     void AddUIExtensionLauncherItem(std::shared_ptr<AAFwk::Want> want, std::shared_ptr<AppRunningRecord> appRecord,
         sptr<IRemoteObject> token);
     void NotifyStartResidentProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos);
@@ -2482,7 +2456,6 @@ private:
     void UnSubscribeScreenOffEvent();
     int32_t RestartExitKeepAliveProcess(const std::vector<ExitResidentProcessInfo> &exitProcessInfos);
     bool IsNeedRestartKeepAliveProcess(const std::string &bundleName, int32_t uid);
-    bool IsAsanEnabled(const std::shared_ptr<AppRunningRecord> &record);
     int32_t GetAllRunningInstanceKeysByBundleNameInner(const std::string &bundleName,
         std::vector<std::string> &instanceKeys, int32_t userId);
     int32_t KillProcessByPidInner(const pid_t pid, const std::string& reason,
@@ -2490,13 +2463,6 @@ private:
     void SetKilledEventInfo(std::shared_ptr<AppRunningRecord> appRecord, AAFwk::EventInfo &eventInfo);
     void AddToKillProcessMap(const std::string &processName);
     bool IsAllowedNWebPreload(const std::string &processName);
-    void ParseInfoToAppfreeze(const FaultData &faultData, int32_t pid, int32_t uid, const std::string &bundleName,
-        const std::string &processName, const bool isOccurException = false);
-    int GetExceptionTimerId(const FaultData &faultData, const std::string &bundleName,
-        const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid, const int32_t callerUid);
-    bool UpdateForeground(const std::shared_ptr<AppRunningRecord> &appRecord, const std::string &eventName);
-    int32_t SubmitDfxFaultTask(const FaultData &faultData, const std::string &bundleName,
-        const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid);
     void AddAbilityStageForSpecified(std::shared_ptr<AppRunningRecord> appRecord);
     void ReportAbilityStartInfoForSpecified(std::shared_ptr<AppRunningRecord> appRecord,
         const AbilityInfo &abilityInfo);
@@ -2575,6 +2541,11 @@ private:
 
     void MarkTemplateProcess(const std::shared_ptr<AppRunningRecord> &appRecord, std::string bundleName);
     void UnMarkTemplateProcess(int32_t templatePid);
+
+    // BusinessManager (services/appdfr) backs the NotifyAppFault / NotifyAppFaultBySA
+    // business logic and needs direct access to the DFX task handler and app running
+    // manager without widening the public API surface.
+    friend class BusinessManager;
 
     std::shared_ptr<RemoteClientManager> remoteClientManager_;
     std::shared_ptr<AppRunningManager> appRunningManager_;

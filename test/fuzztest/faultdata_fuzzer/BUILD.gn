@@ -35,7 +35,7 @@ ohos_fuzztest("FaultDataFuzzTest") {
   ]
 
   sources = [
-    "${ability_runtime_innerkits_path}/app_manager/src/appmgr/fault_data.cpp",
+    "${ability_runtime_services_path}/appdfr/src/fault_data.cpp",
     "faultdata_fuzzer.cpp",
   ]
 
