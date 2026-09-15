@@ -163,6 +163,15 @@ int32_t  InsightRdbStorageMgr::SaveStorageInsightIntentData(const std::string &b
     return ERR_INVALID_VALUE;
 }
 
+int32_t  InsightRdbStorageMgr::SaveStorageInsightIntentDataBatch(const std::string &bundleName,
+    const int32_t userId, uint32_t versionCode, const std::vector<InsightIntentSaveParam> &saveParams)
+{
+    if (g_mockSaveStorageInsightIntentDataRet) {
+        return ERR_OK;
+    }
+    return ERR_INVALID_VALUE;
+}
+
 int32_t  InsightRdbStorageMgr::DeleteStorageInsightIntentData(const std::string &bundleName,
     const std::string &moduleName, const int32_t userId)
 {
