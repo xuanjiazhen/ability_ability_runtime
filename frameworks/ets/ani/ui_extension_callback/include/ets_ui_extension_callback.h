@@ -18,15 +18,19 @@
 
 #include <ani.h>
 
+#include "ability_by_type_completion.h"
 #include "ui_extension_callback.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-class EtsUIExtensionCallback : public UIExtensionCallback {
+class EtsUIExtensionCallback : public UIExtensionCallback, public AbilityByTypeCompletion {
 public:
     explicit EtsUIExtensionCallback(ani_vm *vm) : vm_(vm) {}
     ~EtsUIExtensionCallback() override;
     void OnError(int32_t number) override;
+    void OnAbilityErrorCode(int32_t errorCode) override;
+    void ResolveDeferred() override;
+    void OnRelease(int32_t code) override;
     void OnResult(int32_t resultCode, const AAFwk::Want &want) override;
     void SetEtsCallbackObject(ani_object aniObject);
     void SetCompletionHandler(ani_env *env, ani_object completionHandler);
