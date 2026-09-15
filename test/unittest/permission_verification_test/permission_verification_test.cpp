@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <set>
 #define private public
 #define protected public
 #include "ability_manager_errors.h"
@@ -151,6 +152,20 @@ HWTEST_F(PermissionVerificationTest, CheckSpecificSystemAbilityAccessPermission_
 {
     std::string processName;
     bool result = AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(processName);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: CheckSpecificSystemAbilityAccessPermission_0200
+ * @tc.desc: CheckSpecificSystemAbilityAccessPermission set-overload Test
+ * @tc.type: FUNC
+ * @tc.require: issueI5AFTJ
+ */
+HWTEST_F(PermissionVerificationTest, CheckSpecificSystemAbilityAccessPermission_0200, TestSize.Level1)
+{
+    std::set<std::string> processNames = { "foundation", "aimgr" };
+    bool result = AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
+        processNames);
     EXPECT_FALSE(result);
 }
 

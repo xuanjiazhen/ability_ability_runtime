@@ -4347,6 +4347,40 @@ HWTEST_F(AgentManagerServiceTest, VerifyAgentRequestNonce_002, TestSize.Level1)
 }
 
 /**
+* @tc.name  : VerifyAgentConnectRequest_DeniedNonAmsCaller
+* @tc.number: VerifyAgentConnectRequest_DeniedNonAmsCaller
+* @tc.desc  : Test AGENT connect verification rejects non-AMS (foundation/aimgr) caller
+*/
+HWTEST_F(AgentManagerServiceTest, VerifyAgentConnectRequest_DeniedNonAmsCaller, TestSize.Level1)
+{
+    auto service = AgentManagerService::GetInstance();
+    auto serviceConnection = sptr<MockAbilityConnection>::MakeSptr();
+    MyFlag::retCheckSpecificSystemAbilityAccessPermission = false;
+    AAFwk::Want want;
+    std::string callerIdentity;
+    EXPECT_EQ(service->VerifyAgentConnectRequest(want, serviceConnection, callerIdentity),
+        AAFwk::CHECK_PERMISSION_FAILED);
+    MyFlag::retCheckSpecificSystemAbilityAccessPermission = true;
+}
+
+/**
+* @tc.name  : VerifyAgentDisconnectRequests_DeniedNonAmsCaller
+* @tc.number: VerifyAgentDisconnectRequests_DeniedNonAmsCaller
+* @tc.desc  : Test AGENT disconnect verification rejects non-AMS (foundation/aimgr) caller
+*/
+HWTEST_F(AgentManagerServiceTest, VerifyAgentDisconnectRequests_DeniedNonAmsCaller, TestSize.Level1)
+{
+    auto service = AgentManagerService::GetInstance();
+    auto serviceConnection = sptr<MockAbilityConnection>::MakeSptr();
+    MyFlag::retCheckSpecificSystemAbilityAccessPermission = false;
+    AAFwk::Want want;
+    std::string callerIdentity;
+    EXPECT_EQ(service->VerifyAgentDisconnectRequests({ want }, serviceConnection, callerIdentity),
+        AAFwk::CHECK_PERMISSION_FAILED);
+    MyFlag::retCheckSpecificSystemAbilityAccessPermission = true;
+}
+
+/**
 * @tc.name  : VerifyLowCodeAgentConnectRequest_001
 * @tc.number: VerifyLowCodeAgentConnectRequest_001
 * @tc.desc  : Test low-code connect verification matches agentId under a shared host connection

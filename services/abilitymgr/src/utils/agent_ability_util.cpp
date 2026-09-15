@@ -26,6 +26,11 @@ namespace OHOS {
 namespace AAFwk {
 namespace {
 constexpr const char* FOUNDATION_PROCESS_NAME = "foundation";
+constexpr const char* AGENTMGR_PROCESS_NAME = "aimgr";
+const std::set<std::string> AGENT_CONNECT_ALLOWED_CALLERS = {
+    FOUNDATION_PROCESS_NAME,
+    AGENTMGR_PROCESS_NAME,
+};
 }
 
 bool AgentAbilityUtil::IsAgentExtensionType(AppExecFwk::ExtensionAbilityType extensionType)
@@ -89,10 +94,10 @@ int64_t AgentAbilityUtil::GetAgentVerificationNonceParam(const Want &want)
 int32_t AgentAbilityUtil::CheckAgentConnectEntry(const Want &want, AppExecFwk::ExtensionAbilityType extensionType)
 {
     if (IsAgentExtensionType(extensionType)) {
-        bool isFoundationCall =
-            PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS_NAME);
-        if (!isFoundationCall) {
-            TAG_LOGE(AAFwkTag::SER_ROUTER, "AGENT connect only accepts foundation process callers");
+        bool isAllowedCaller = PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
+            AGENT_CONNECT_ALLOWED_CALLERS);
+        if (!isAllowedCaller) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "AGENT connect only accepts foundation/aimgr process callers");
             return CHECK_PERMISSION_FAILED;
         }
         if (want.GetStringParam(AgentRuntime::AGENTID_KEY).empty() ||
