@@ -104,6 +104,55 @@ int32_t InsightIntentDbCache::SaveInsightIntentTotalInfo(const std::string &bund
         bundleName, moduleName, userId, versionCode, profileInfos, configInfos);
 }
 
+int32_t InsightIntentDbCache::SaveInsightIntentTotalInfos(const std::string &bundleName, const int32_t userId,
+    uint32_t versionCode, const std::vector<InsightIntentSaveParam> &saveParams)
+{
+    if (saveParams.empty()) {
+        return ERR_OK;
+    }
+    {
+        std::lock_guard<std::mutex> lock(genericInfosMutex_);
+        if (userId != userId_) {
+            TAG_LOGE(AAFwkTag::INTENT, "The userId %{public}d. is not the cache userId %{public}d.", userId, userId_);
+            return ERR_INVALID_VALUE;
+        }
+        for (const auto &saveParam : saveParams) {
+            std::vector<ExtractInsightIntentGenericInfo> genericInfos;
+            for (auto profileInfo : saveParam.profileInfos.insightIntents) {
+                ExtractInsightIntentInfo info;
+                ExtractInsightIntentProfile::ProfileInfoFormat(profileInfo, info);
+                genericInfos.emplace_back(info.genericInfo);
+            }
+            auto it = intentGenericInfos_.find(bundleName);
+            if (it != intentGenericInfos_.end()) {
+                TAG_LOGW(AAFwkTag::INTENT, "need update, bundleName %{public}s", bundleName.c_str());
+                for (auto iter = intentGenericInfos_[bundleName].begin();
+                    iter != intentGenericInfos_[bundleName].end();) {
+                    if (iter->moduleName == saveParam.moduleName) {
+                        iter = intentGenericInfos_[bundleName].erase(iter);
+                    } else {
+                        iter++;
+                    }
+                }
+                it->second.insert(it->second.end(), genericInfos.begin(), genericInfos.end());
+            } else {
+                intentGenericInfos_[bundleName] = genericInfos;
+            }
+        }
+        bundleVersionMap_[bundleName] = std::to_string(versionCode);
+    }
+    for (const auto &saveParam : saveParams) {
+        int32_t res = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->DeleteStorageInsightIntentData(
+            bundleName, saveParam.moduleName, userId);
+        if (res != ERR_OK) {
+            TAG_LOGW(AAFwkTag::INTENT, "Save before delete key error");
+            return res;
+        }
+    }
+    return DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveStorageInsightIntentDataBatch(
+        bundleName, userId, versionCode, saveParams);
+}
+
 bool InsightIntentDbCache::DeleteInsightIntentTotalInfo(const std::string &bundleName,
     const std::string &moduleName, const int32_t userId)
 {
