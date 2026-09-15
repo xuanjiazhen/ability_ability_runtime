@@ -161,6 +161,7 @@ ohos_shared_library("libappms") {
     "samgr:samgr_proxy",
     "window_manager:session_manager_lite",
     "ability_base:extractortool",
+    "zlib:shared_libz",
   ]
   public_external_deps = [ "kv_store:distributeddata_mgr" ]
 
