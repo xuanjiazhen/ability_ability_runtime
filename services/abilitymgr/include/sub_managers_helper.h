@@ -29,6 +29,7 @@
 #include "data_ability_manager.h"
 #include "mission_list_manager_interface.h"
 #include "nocopyable.h"
+#include "pending_want_global_manager.h"
 #include "pending_want_manager.h"
 #include "scene_board/ui_ability_lifecycle_manager.h"
 #include "task_handler_wrap.h"
@@ -91,6 +92,9 @@ public:
     bool VerificationAllToken(const sptr<IRemoteObject> &token);
     bool VerificationAllTokenForConnectManagers(const sptr<IRemoteObject> &token);
 
+    void HandlePendingWantDeathCleanup(const std::string &bundleName, int32_t pid);
+    std::shared_ptr<PendingWantGlobalManager> GetPendingWantGlobalManager();
+
     std::shared_ptr<MissionListWrap> GetMissionListWrap();
     std::shared_ptr<MissionListManagerInterface> CreateMissionListMgr(int32_t userId);
 private:
@@ -107,6 +111,7 @@ private:
     std::shared_ptr<MissionListWrap> missionListWrap_;
     std::unordered_map<int, std::shared_ptr<DataAbilityManager>> dataAbilityManagers_;
     std::unordered_map<int, std::shared_ptr<PendingWantManager>> pendingWantManagers_;
+    std::shared_ptr<PendingWantGlobalManager> pendingWantGlobalManager_;
     std::unordered_map<int, std::shared_ptr<MissionListManagerInterface>> missionListManagers_;
     std::unordered_map<int, std::shared_ptr<UIAbilityLifecycleManager>> uiAbilityManagers_;
     std::unordered_map<int, std::shared_ptr<UIExtensionAbilityManager>> uiExtensionAbilityManagers_;
