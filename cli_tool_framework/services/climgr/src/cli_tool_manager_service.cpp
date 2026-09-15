@@ -1148,11 +1148,15 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
     auto createRet = ProcessManager::GetInstance().CreateShellProcess(param,
         sandboxConfig, record);
     if (createRet != ERR_OK) {
+        EventDispatcher::GetInstance().UnregisterSubscriber(
+            record->sessionId, subscriptionId, callerPid, callerUid);
         RemoveSessionRecord(record->sessionId);
         return createRet;
     }
     if (!RegisterSessionWithMonitors(record, param.options)) {
         ProcessManager::GetInstance().Killpg(record->processId);
+        EventDispatcher::GetInstance().UnregisterSubscriber(
+            record->sessionId, subscriptionId, callerPid, callerUid);
         RemoveSessionRecord(record->sessionId);
         return ERR_NO_INIT;
     }
