@@ -75,7 +75,7 @@ typedef enum Ability_NativeChildProcess_ErrCode {
 
     /**
      * @error A new child process cannot be created during the startup of another native child process.
-     * You can try again after the child process is started.
+     * You can try again after the child process is started. This function is deprecated since API version 15.
      */
     NCP_ERR_BUSY = 16010001,
 
@@ -187,7 +187,7 @@ Ability_NativeChildProcess_ErrCode OH_Ability_ChildProcessConfigs_SetIsolationMo
 /**
  * @brief Sets the UID isolation flag for the specified child process configs.
  * The isolationUid only takes effect when {@link OH_Ability_ChildProcessConfigs_SetIsolationMode}
- * is set to {@link NCP_ISOLATION_MODE_ISOLATED}.
+ * is set to {@link NCP_ISOLATION_MODE_ISOLATED}. If not set, defaults to false.
  *
  * @param configs Pointer to the child process configs object. Must not be nullptr.
  * @param isolationUid The UID isolation setting to apply.
@@ -267,6 +267,8 @@ typedef void (*OH_Ability_OnNativeChildProcessStarted)(int errCode, OHIPCRemoteP
  * Returns {@link NCP_ERR_MULTI_PROCESS_DISABLED} if the multi-process mode is disabled on the device.\n
  * Returns {@link NCP_ERR_ALREADY_IN_CHILD} if it is not allowed to create another child process in the child process.\n
  * Returns {@link NCP_ERR_MAX_CHILD_PROCESSES_REACHED} if the maximum number of native child processes is reached.\n
+ * Returns {@link NCP_ERR_INTERNAL} if an internal error occurs.\n
+ * Returns {@link NCP_ERR_SERVICE_ERROR} if a server error occurs.\n
  * For details, see {@link Ability_NativeChildProcess_ErrCode}.
  * @see OH_Ability_OnNativeChildProcessStarted
  * @since 12
@@ -309,6 +311,8 @@ int OH_Ability_CreateNativeChildProcess(const char* libName,
  * Returns {@link NCP_ERR_MULTI_PROCESS_DISABLED} if the multi-process mode is disabled on the device.
  * Returns {@link NCP_ERR_ALREADY_IN_CHILD} if it is not allowed to create another child process in the child process.
  * Returns {@link NCP_ERR_MAX_CHILD_PROCESSES_REACHED} if the maximum number of native child processes is reached.
+ * Returns {@link NCP_ERR_INTERNAL} if an internal error occurs.
+ * Returns {@link NCP_ERR_SERVICE_ERROR} if a server error occurs.
  * For details, see {@link Ability_NativeChildProcess_ErrCode}.
  * @see OH_Ability_OnNativeChildProcessStarted
  * @since 20
@@ -324,7 +328,12 @@ typedef struct NativeChildProcess_Fd {
     /** the key of the file descriptor. */
     char* fdName;
 
-    /** the value of the file descriptor. */
+    /**
+     * the value of the file descriptor. The ownership of this fd is not transferred to the framework: the caller
+     * must keep the fd valid during the call of the child process startup API. After the API returns, the fd has
+     * been duplicated to the system service via IPC and will be passed on to the child process, and the caller
+     * can close the fd.
+     */
     int32_t fd;
 
     /** the next pointer of the linked list. */
@@ -441,7 +450,8 @@ Ability_NativeChildProcess_ErrCode OH_Ability_StartNativeChildProcessWithConfigs
     const char* entry, NativeChildProcess_Args args, Ability_ChildProcessConfigs* configs, int32_t* pid);
 
 /**
- * @brief Child process get self NativeChildProcess_Args.
+ * @brief Child process get self NativeChildProcess_Args after being started by calling
+ * {@link OH_Ability_StartNativeChildProcess} or {@link OH_Ability_StartNativeChildProcessWithConfigs}.
  *
  * @return Returns a pointer to the arguments passed to current child process.\n
  * For details, see {@link NativeChildProcess_Args}.

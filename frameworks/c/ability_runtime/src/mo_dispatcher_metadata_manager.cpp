@@ -753,15 +753,15 @@ AbilityRuntime_ErrorCode ModObjDispatcherMetadataManager::GetInterfaceName(uint3
         TAG_LOGE(AAFwkTag::EXT, "GetInterfaceName: null param");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    if (index >= interfaces_.size()) {
-        TAG_LOGE(AAFwkTag::EXT, "GetInterfaceName: out of range, index=%{public}u, size=%{public}zu",
-            index, interfaces_.size());
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
-    }
     std::lock_guard<std::mutex> lock(mutex_);
     if (!loaded_) {
         TAG_LOGE(AAFwkTag::EXT, "GetInterfaceName: not loaded");
         return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+    if (index >= interfaces_.size()) {
+        TAG_LOGE(AAFwkTag::EXT, "GetInterfaceName: out of range, index=%{public}u, size=%{public}zu",
+            index, interfaces_.size());
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
     *name = interfaces_[index].name;
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
@@ -832,14 +832,14 @@ AbilityRuntime_ErrorCode ModObjDispatcherMetadataManager::GetEnumName(uint32_t i
         TAG_LOGE(AAFwkTag::EXT, "GetEnumName: null param");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    if (index >= enums_.size()) {
-        TAG_LOGE(AAFwkTag::EXT, "GetEnumName: out of range, index=%{public}u, size=%{public}zu", index, enums_.size());
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
-    }
     std::lock_guard<std::mutex> lock(mutex_);
     if (!loaded_) {
         TAG_LOGE(AAFwkTag::EXT, "GetEnumName: not loaded");
         return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+    if (index >= enums_.size()) {
+        TAG_LOGE(AAFwkTag::EXT, "GetEnumName: out of range, index=%{public}u, size=%{public}zu", index, enums_.size());
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
     *name = enums_[index].name;
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;

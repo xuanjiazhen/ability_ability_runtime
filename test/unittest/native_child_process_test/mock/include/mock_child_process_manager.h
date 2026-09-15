@@ -49,7 +49,7 @@ public:
         const AppExecFwk::ChildProcessOptions &options, bool isStaticChildProcess = false);
     ChildProcessManagerErrorCode CreateNativeChildProcessByAppSpawnFork(
         const std::string &libName, const sptr<IRemoteObject> &callbackStub, const std::string &customProcessName = "",
-        const bool isolationMode = false, const bool isIsolationUid = false);
+        const bool isolationMode = false, const bool isolationUid = false);
     bool GetBundleInfo(AppExecFwk::BundleInfo &bundleInfo);
     bool GetEntryHapModuleInfo(const AppExecFwk::BundleInfo &bundleInfo, AppExecFwk::HapModuleInfo &hapModuleInfo);
     bool GetHapModuleInfo(const AppExecFwk::BundleInfo &bundleInfo, const std::string &moduleName,
