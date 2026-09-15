@@ -51,7 +51,7 @@ rg -n "isOpen_|isInitialized" --type cpp
 
 **典型后果**：double-init、UAF、数据损坏，P0/P1。
 
-**历史案例**：G12（`ExtractorUtil::GetExtractor` 非原子 DCL）、高影响清单 6.2。
+**历史案例**：`ExtractorUtil::GetExtractor` 非原子 DCL、高影响清单 6.2。
 
 ---
 
@@ -78,7 +78,7 @@ rg -n "static\s+.*_\s*;" --type cpp   # 静态可变状态
 
 **典型后果**：UAF、记录丢失、内存破坏，P0/P1。
 
-**历史案例**：G12（`pending_want_record.cpp` `mCancelCallbacks_`、`LocalCallContainer` `callProxyRecords_`、AMS `wmsHandler_` 竞争）、高影响清单 6.1/6.4。
+**历史案例**：`pending_want_record.cpp` `mCancelCallbacks_`、`LocalCallContainer` `callProxyRecords_`、AMS `wmsHandler_` 竞争、高影响清单 6.1/6.4。
 
 ---
 
@@ -104,4 +104,4 @@ rg -n "RestartApp|force-stop|ForceStop" --type cpp
 
 **典型后果**：进程杀不死、霸屏、保活，P0/P1。
 
-**历史案例**：G11（毒王霸屏、RestartApp 状态校验不严、death 通知竞争保活）。
+**历史案例**：毒王霸屏、RestartApp 状态校验不严、death 通知竞争保活。

@@ -3,7 +3,7 @@ name: security-scanner
 description: >
   合并版 security scanner：高影响缺陷审计 + 商用前安全审查。
   按最终结果影响（崩溃/挂死/OOM/UAF/死锁/数据损坏/权限绕过/敏感数据泄漏）优先级排序，
-  并对命中历史缺陷模式（G1-G16）做全库同类横扫。
+  并对命中写法做全库同类横扫（同类横扫是推理习惯，不依赖静态模式库）。
   Use when asked to find, review, scan, investigate, or prioritize P0/P1 risks
   (crashes, hangs, deadlocks, OOM, illegal memory access, data corruption,
   destructive side effects, resource leaks, state pollution, permission bypass,
@@ -11,6 +11,9 @@ description: >
   lifecycle bugs, concurrency races), OR when the user wants 安全审查、安全审计、
   漏洞扫描、商用前 review、内存/权限/敏感数据/IPC 鉴权专项排查。
 ---
+
+> **双模架构定位（orchestrator/SKILL.md）**：本 scanner 是 **Mode A 的 S2 假设生成透镜**——产出为假设卡（source→传播链 file:line→sink→部署面猜想→建议验证方式），**不自行定级 P0/P1**（定级权归 S6 验证状态：Reproduced/Reasoned/Unverified/Refuted，见 conventions.md §7.4）。"注册了≠会被调"：每条假设必须给出部署面猜想（谁启用/谁调用/量产态还是调试态）。同时本 scanner 命中的编码卫生类问题按 [`../../static-checklist.md`](../../static-checklist.md) 条目 ID 归类移交 Mode B（封顶 P2，不占假设额度）；命中清单"必升 A"条件的直接转假设卡。验证配方见 [`../../verification-playbook.md`](../../verification-playbook.md)。
+
 
 # Security Scanner — 高影响缺陷 + 安全审查合并扫描器
 
@@ -26,7 +29,8 @@ description: >
 - [`patterns/ipc-serialization.md`](../../patterns/ipc-serialization.md) — IPC-001~010
 - [`patterns/privilege-auth.md`](../../patterns/privilege-auth.md) — AUTH-001~008
 - [`patterns/error-handling.md`](../../patterns/error-handling.md) — ERR-001~009
-- [`patterns/known-defect-patterns/`](../../patterns/known-defect-patterns/) — G01~G16 + hotspot-modules
+- [`static-checklist.md`](../../static-checklist.md) — Mode B 卫生项清单（执行载体，条目挂真实来源）
+- [`verification-playbook.md`](../../verification-playbook.md) — Mode A 验证配方（跨仓/harness/样本构造）
 
 ---
 
@@ -76,15 +80,13 @@ description: >
 
 > **完成标准**：11 项每一条均已给出结论（命中 / 不适用），不得跳过未判。
 
-### Step 3: 已知缺陷模式同类横扫（G 类）
+### Step 3: 同类横扫 + checklist 移交
 
-加载 `patterns/known-defect-patterns/` 全部文件。对命中模式做全库 grep，列出同类写法。
+**同类横扫是推理习惯，不是规则库**：发现一处可疑写法即追问"库中还有没有同样写法"（全库 grep 同型），禁止只报单点。无需加载任何静态模式库——横扫对象就是本轮命中的写法本身。
 
-涉及热点模块（见 `patterns/known-defect-patterns/hotspot-modules.md`）时提高审查强度，并对历史问题做回归确认。
+卫生类命中（敏感打印/无守卫解析/判空死代码等）按 [`static-checklist.md`](../../static-checklist.md) 条目 ID 归类移交 Mode B，不占假设额度；命中清单"必升 A"条件的转为假设卡。
 
-> **同类横扫是本 scanner 的核心行为**：发现一处即追问"库中还有没有同样写法"，禁止只报单点。这是 predictability 引擎——每一次命中都要把同类挖尽。
->
-> **完成标准**：命中模式的同类写法已全部列出，或已声明全库搜索确认无其他同类点。
+> **完成标准**：命中写法的同类点已全部列出，或已声明全库搜索确认无其他同类点；卫生项已挂 checklist ID。
 
 ### Step 4: 双视角标注 + 证据分级
 
@@ -100,7 +102,7 @@ description: >
 
 **security 视角**：
 - 所属审计维度：A（内存/执行）/ B（输入校验）/ C（敏感信息）/ D（系统框架）/ E（类与对象）/ F（IPC 鉴权）
-- G 类编号（如命中 G01-G16）
+- Mode B 移交项的 checklist 条目 ID（如命中 static-checklist）
 - 同类清单（全库 grep 结果）
 
 > 一个发现可以同时是高优先级崩溃风险和安全攻击面。
@@ -141,7 +143,7 @@ bug 视角：
   根本原因：
 security 视角：
   审计维度：A/B/C/D/E/F
-  G 类编号：（如命中）
+  checklist 条目 ID：（如移交 Mode B）
 同类排查结果：（命中 G 时必填）全库同类写法 file:line 清单
 证据：
 推荐修复：
@@ -175,7 +177,7 @@ security 视角：
 ## 守则
 
 - **中文报告**：统一报告与原始发现清单全文中文。
-- **修复方式审查**：对已有补丁、特判、豁免保持怀疑——验证是"机制性根治"还是"点位封堵"，后者按 G6 上报绕过风险。
+- **修复方式审查**：对已有补丁、特判、豁免保持怀疑——验证是"机制性根治"还是"点位封堵"，后者按"可被绕过"上报（对照 static-checklist INP-1/DOM-12）。
 - **不动代码**：本阶段只产报告与建议，不直接改源码（修复另起任务）。
 - **全量覆盖**：A-F 每一条均已给出结论，不得跳过未判。
 - **≥80 字推演**：每条发现含 ≥80 字技术推演 + 代码位置 + 同类清单（如命中 G）+ 修复建议。

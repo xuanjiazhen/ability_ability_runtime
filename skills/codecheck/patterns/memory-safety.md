@@ -26,7 +26,7 @@ rg -n "ReadParcelable|iface_cast|QueryAbilityInfo|GetBundleInfo" --type cpp
 
 **典型后果**：进程崩溃（SIGSEGV），P0。
 
-**历史案例**：G14（返回值与异常分支处理）、`ability_manager_stub.cpp` ReadParcelable 空指针。
+**历史案例**：返回值与异常分支处理、`ability_manager_stub.cpp` ReadParcelable 空指针。
 
 ---
 
@@ -54,7 +54,7 @@ rg -n "data\s*\+\s*offset|startPos\s*\+\s*bufferSize" --type cpp
 
 **典型后果**：堆/栈越界读写，可导致 RCE，P0。
 
-**历史案例**：G03（`EncodeBase64(srcLen=0)` 堆越界）、高影响清单 1.5/1.6。
+**历史案例**：`EncodeBase64(srcLen=0)` 堆越界、高影响清单 1.5/1.6。
 
 ---
 
@@ -82,7 +82,7 @@ rg -n "\.get\(\)" --type cpp   # 智能指针 get() 后可能 delete
 
 **典型后果**：UAF / double-free，可导致 RCE，P0。
 
-**历史案例**：G04（智能指针 double free）、G12（death recipient 竞争致保活）、高影响清单 3.6。
+**历史案例**：智能指针 double free、death recipient 竞争致保活、高影响清单 3.6。
 
 ---
 
@@ -112,7 +112,7 @@ rg -n "WriteInt32.*size_t|WriteInt32.*\.size\(\)" --type cpp
 
 **典型后果**：越界读写、绕过范围校验、逻辑错误，P0/P1。
 
-**历史案例**：G14（`request_id_util.cpp` 整数上溢）、高影响清单 9.1-9.4。
+**历史案例**：`request_id_util.cpp` 整数上溢、高影响清单 9.1-9.4。
 
 ---
 
@@ -131,4 +131,4 @@ rg -n "bool\s+\w+;" --type cpp
 
 **触发后果**：读取未初始化值 UB，P0/P1。
 
-**历史案例**：G14（返回值与异常分支处理）、未初始化变量 UB。
+**历史案例**：返回值与异常分支处理、未初始化变量 UB。

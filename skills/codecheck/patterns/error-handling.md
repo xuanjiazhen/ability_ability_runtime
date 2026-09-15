@@ -22,7 +22,7 @@ rg -n "fopen" --type cpp   # 检查是否检查返回值
 
 **典型后果**：使用失败结果/空数据继续执行，P0/P1。
 
-**历史案例**：G14（`ReadFromParcelWantParamWrapper` 忽略返回值）、高影响清单 7.1/7.2/7.5。
+**历史案例**：`ReadFromParcelWantParamWrapper` 忽略返回值、高影响清单 7.1/7.2/7.5。
 
 ---
 
@@ -41,7 +41,7 @@ rg -n "default:" --type cpp   # 检查是否 fallthrough 成功
 
 **典型后果**：异常路径影响正常流程、逻辑绕过，P0/P1。
 
-**历史案例**：G14（`bundleMgrHelper->QueryAbilityInfo` 失败分支打印日志返回 `true`）、高影响清单 4.4/7.3/7.4。
+**历史案例**：`bundleMgrHelper->QueryAbilityInfo` 失败分支打印日志返回 `true`、高影响清单 4.4/7.3/7.4。
 
 ---
 
@@ -62,7 +62,7 @@ rg -n "\.at\(\)|\.value\(\)" --type cpp
 
 **典型后果**：进程崩溃（DoS），P0。
 
-**历史案例**：G3（`std::stoi` 未 try-catch 历史高发 DoS 点）、高影响清单阶段 2 未捕获异常。
+**历史案例**：`std::stoi` 未 try-catch 历史高发 DoS 点、高影响清单阶段 2 未捕获异常。
 
 ---
 

@@ -7,6 +7,9 @@ description: >
   边界条件检查、错误处理检查、并发逻辑检查，或"这段改动会影响什么"。
 ---
 
+> **双模架构定位（orchestrator/SKILL.md）**：本 scanner 是 **Mode A 的 S2 假设生成透镜**——产出为假设卡（source→传播链 file:line→sink→部署面猜想→建议验证方式），**不自行定级 P0/P1**（定级权归 S6 验证状态：Reproduced/Reasoned/Unverified/Refuted，见 conventions.md §7.4）。"注册了≠会被调"：每条假设必须给出部署面猜想（谁启用/谁调用/量产态还是调试态）。同时本 scanner 命中的编码卫生类问题按 [`../../static-checklist.md`](../../static-checklist.md) 条目 ID 归类移交 Mode B（封顶 P2，不占假设额度）；命中清单"必升 A"条件的直接转假设卡。验证配方见 [`../../verification-playbook.md`](../../verification-playbook.md)。
+
+
 # Logic Scanner — 代码逻辑变更分析
 
 ## 定位

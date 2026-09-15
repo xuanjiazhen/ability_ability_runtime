@@ -21,7 +21,7 @@ rg -n "http://|https://" --type cpp
 
 **典型后果**：凭据泄露，P0。凭据视同已泄露，需评估轮换。
 
-**历史案例**：G7（`process_manager.cpp` 打印完整 cmdLine 含会话 challenge）。
+**历史案例**：`process_manager.cpp` 打印完整 cmdLine 含会话 challenge。
 
 ---
 
@@ -45,7 +45,7 @@ rg -n "%\{public\}s" --type cpp
 
 **典型后果**：敏感信息泄露，P0。
 
-**历史案例**：G7（`distributed_data_storage.cpp` 打印 udid、`ability_record.cpp`/`ui_ability_lifecycle_manager.cpp` 打印 networkid、aa/AMS 打印 SN 多版本复发、Context 打印文件名）。
+**历史案例**：`distributed_data_storage.cpp` 打印 udid、`ability_record.cpp`/`ui_ability_lifecycle_manager.cpp` 打印 networkid、aa/AMS 打印 SN 多版本复发、Context 打印文件名。
 
 ---
 
@@ -67,7 +67,7 @@ rg -n "CheckPermission|VerifyAccessToken|PermissionVerification" --type cpp
 
 **典型后果**：越权访问，P0/P1。
 
-**历史案例**：G8（`ohos.permission.cli.START_ABILITY` 含 `START_INVISIBLE_ABILITY` → 调起任意应用非暴露组件）。
+**历史案例**：`ohos.permission.cli.START_ABILITY` 含 `START_INVISIBLE_ABILITY` → 调起任意应用非暴露组件。
 
 ---
 
@@ -92,7 +92,7 @@ rg -n "DEBUG|debug|TEST|test" --type cpp --glob '!*test*'
 
 **典型后果**：隐藏攻击面、权限提升，P0/P1。
 
-**历史案例**：G5（`aa -s` crash、`-C`/`-c` 冷启动/持续启动、`stop-service`/`force-stop` 隐藏参数、`ability_tool -D` 拉起 release 签名应用、`bm` 未公开子命令、`aa pre-start` 未文档化、双空间禁装 debug 签名驱动判断被绕过）。
+**历史案例**：`aa -s` crash、`-C`/`-c` 冷启动/持续启动、`stop-service`/`force-stop` 隐藏参数、`ability_tool -D` 拉起 release 签名应用、`bm` 未公开子命令、`aa pre-start` 未文档化、双空间禁装 debug 签名驱动判断被绕过。
 
 ---
 
@@ -105,7 +105,7 @@ rg -n "DEBUG|debug|TEST|test" --type cpp --glob '!*test*'
 
 **典型后果**：提权、篡改系统配置，P0/P1。
 
-**历史案例**：G8（`auto_startup_service.db`/`ability_manager_service.db`/`bmsdb.db` 标签过大、小艺 Claw CLI 无独立标签）。
+**历史案例**：`auto_startup_service.db`/`ability_manager_service.db`/`bmsdb.db` 标签过大、小艺 Claw CLI 无独立标签。
 
 ---
 
@@ -147,7 +147,7 @@ rg -n "resv|callerNativeName|debug" --type cpp
 
 **典型后果**：绕过鉴权、身份伪造，P0/P1。
 
-**历史案例**：G13（`UriPermissionManagerService` 硬编码 19 个系统应用包名白名单 → 无需授权访问任意应用私有目录；15 个 `resv` 字段未 reset；`callerNativeName` 未 reset → 跨调用链伪造 caller；`want.debug` 字段被篡改绕过启动超时）。
+**历史案例**：`UriPermissionManagerService` 硬编码 19 个系统应用包名白名单 → 无需授权访问任意应用私有目录；15 个 `resv` 字段未 reset；`callerNativeName` 未 reset → 跨调用链伪造 caller；`want.debug` 字段被篡改绕过启动超时。
 
 ---
 
@@ -166,4 +166,4 @@ rg -n "resv|callerNativeName|debug" --type cpp
 
 **典型后果**：任意代码执行、签名绕过，P0。
 
-**历史案例**：G10（`app_bin_file` ownerid 豁免 + `LD_PRELOAD` 提权、ArkTS abc offset 外部可控绕过 MAP_XPM + 云端 Verifier、`ohos-arkTSScript` CLI 加载未签名 abc、installd profile 缺 pkcs7 根 CA 校验 → 伪造自签名 profile、`allowPatchDowngrade` 无校验 → hdc shell 降级安装）。
+**历史案例**：`app_bin_file` ownerid 豁免 + `LD_PRELOAD` 提权、ArkTS abc offset 外部可控绕过 MAP_XPM + 云端 Verifier、`ohos-arkTSScript` CLI 加载未签名 abc、installd profile 缺 pkcs7 根 CA 校验 → 伪造自签名 profile、`allowPatchDowngrade` 无校验 → hdc shell 降级安装。

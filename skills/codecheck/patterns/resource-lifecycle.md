@@ -32,7 +32,7 @@ rg -n "AddCallback|RegisterObserver|AddListener" --type cpp
 
 **典型后果**：持续性泄漏导致 OOM / 句柄耗尽，P1。
 
-**历史案例**：高影响清单 3.1-3.6、G4（NAPI 引用泄漏）。
+**历史案例**：高影响清单 3.1-3.6、NAPI 引用泄漏。
 
 ---
 
@@ -141,7 +141,7 @@ rg -n "iface_cast" --type cpp   # 全库统计其误用模式
 
 **典型后果**：UB、内存损坏，P0/P1。
 
-**历史案例**：G14（`iface_cast` 返回值未判空）、类型转换 UB。
+**历史案例**：`iface_cast` 返回值未判空、类型转换 UB。
 
 ---
 

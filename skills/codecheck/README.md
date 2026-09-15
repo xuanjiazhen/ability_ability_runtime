@@ -1,6 +1,17 @@
 # codecheck — 代码检视技能集
 
-本目录是 ability_runtime 仓库的**代码检视工作台**。当用户说"检视一下代码""帮我审一下""做一次 code review""深度扫描"时，从这里出发：先读本 README 了解三层架构，由 orchestrator 自动探测路径特征、选择 scanner 组合、并行调度、Refute 对抗性验证、合并为一份统一报告。
+本目录是 ability_runtime 仓库的**代码检视工作台**。当用户说"检视一下代码""帮我审一下""做一次 code review""深度扫描"时，从这里出发。
+
+## 双模审查（先选模式，再进编排）
+
+| 模式 | 名称 | 回答的问题 | 定级权 |
+|------|------|-----------|--------|
+| **Mode A** | 真实漏洞审查（假设-验证管线 S0-S7） | "这个缺陷在量产态真的可达吗？"——websearch 影响定标 → 面推导 → 假设卡 → 部署面分诊 → 跨仓拉源 → harness/UT 复现 | **P0/P1 只能诞生于此**，验证状态（Reproduced/Reasoned/Refuted/Unverified）驱动定级 |
+| **Mode B** | 静态编码审查（scalable checklist） | "基础编码卫生达标吗？"——敏感打印/解析无守卫/入参无校验/资源不回滚等机械化清单 | 封顶 P2、hygiene 独立计数不参与评分；命中攻击面数据流时升格转 Mode A |
+
+未指定时默认 **A+B 并行**：B 廉价全量出 hygiene 清单，A 定向打高价值面。编排细节见 [`orchestrator/SKILL.md`](orchestrator/SKILL.md)；Mode A 验证配方见 [`verification-playbook.md`](verification-playbook.md)；Mode B 清单见 [`static-checklist.md`](static-checklist.md)。
+
+> 架构依据（两轮试点实证）：scanner 仅凭仓内阅读的 P1 有 2/3 被跨仓验证证伪或机制重写（详见 `codecheck_reports/frameworks_native_runtime_20260908/pilot*_verification_*.md`）；而 53 条混合产出中约 48 条属 checklist 类卫生项。**发现问题的归假设，定级的归验证，卫生的归清单。**
 
 > 入口指引：`AGENTS.md` 的「代码检视」章节把"检视代码"这一意图路由到本 README。本 README 只负责**导航与编排**，具体方法论在各层文件中。
 
@@ -15,7 +26,9 @@ skills/codecheck/
 │
 ├── README.md                              # 总入口（本文件）
 ├── codecheck_report_TEMPLATE.md           # 统一报告模板（门禁合约）
-├── conventions.md                         # 跨模块公约
+├── conventions.md                         # 跨模块公约（§7.4 验证状态定级门禁 / §9.1 双车道评分）
+├── static-checklist.md                    # Mode B：静态编码审查清单（scalable，条目须挂真实来源）
+├── verification-playbook.md               # Mode A：验证手册（跨仓拉源/harness 配方/样本构造/验证纪律）
 │
 ├── patterns/                              # 第一层：中央缺陷模式知识库
 │   ├── INDEX.md                           #   全量模式索引
@@ -27,10 +40,8 @@ skills/codecheck/
 │   ├── privilege-auth.md                  #   权限与鉴权（AUTH-001~008）
 │   ├── error-handling.md                  #   错误处理（ERR-001~009）
 │   ├── logic-correctness.md               #   逻辑正确性（LOG-001~012）
-│   ├── api-consistency.md                 #   API 一致性反模式（API-001~013）
-│   └── known-defect-patterns/             #   G01–G16 历史缺陷模式库
-│       ├── G01_xxx.md ... G16_xxx.md       #   每模式一文件：信号特征 + grep 线索 + 历史案例 + 检查点
-│       └── hotspot-modules.md             #   热区模块清单
+│   └── api-consistency.md                 #   API 一致性反模式（API-001~013）
+│                                          #   （定位：Mode A 检索词典，只读不增；领域安全检查点见 static-checklist DOM 节）
 │
 ├── scanners/                              # 第二层：检视扫描器（4 个薄层）
 │   ├── security-scanner/SKILL.md          #   高影响缺陷 + 安全审查（合并版）
@@ -91,8 +102,7 @@ skills/codecheck/
              input-validation,
              resource-lifecycle,
              ipc-serialization,
-             privilege-auth,
-             known-defect-patterns/G01-G16)
+             privilege-auth)
 ```
 
 > - `orchestrator` 是**唯一编排器**，自动探测路径特征（IPC/持久化/API 信号）后选择 scanner 组合，并行调度，Refute 验证，合并统一报告。通用"检视代码"/"深度扫描"的默认入口。

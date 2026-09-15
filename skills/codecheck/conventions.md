@@ -122,6 +122,21 @@ echo "$(git log -1 --format='%b' | grep -o 'Change-Id: I[0-9a-f]\{40\}' || git r
 - 每条发现进入统一报告时，YAML `findings_by_severity` 必须用归一化后的等级；第 1 节门禁结论的必须修复/建议跟进计数与之对应。
 - 各 scanner 自有原始产出可保留内部等级（如 Excel"风险等级"列、api md 的 ❌/⚠️），但统一报告第 3/4 节"优先级"列与第 6 节 finding 卡片 severity 必须填 P0–P3。
 
+### 7.4 验证状态驱动的定级门禁（双模架构）
+
+> 两轮试点实证：scanner 仅凭仓内代码阅读定出的 P1，经跨仓验证 2/3 被证伪或机制重写。故定级权与验证状态绑定。
+
+| 验证状态 | 定义 | 定级上限 |
+|---------|------|---------|
+| **Reproduced** | harness/UT/POC 实证复现（附运行日志） | P0/P1 |
+| **Reasoned** | 跨仓完整故障链推理（每环 file:line），未运行复现 | P1 须标 conditional，否则 P2 |
+| **Unverified** | 仅仓内代码阅读 | P2-hypothesis（不进 §3 必须立即处理） |
+| **Refuted** | 硬证据证伪（跨仓源码/执行级/部署面门禁） | 留档 refute_log，不进报告正文 |
+
+- P0/P1 **只能来自 Mode A**（假设-验证管线）且验证状态 ∈ {Reproduced, Reasoned-conditional}；**纯仓内阅读不得推翻 Reproduced 项**。
+- Mode B（static-checklist）产出封顶 P2、单独 hygiene 计数，不计入 `findings_by_severity` 与评分；升格项走 Mode A 后按本表定级。
+- P0/P1 卡片必填 `verification_status` + 验证包路径（harness/runlog/忠实度声明），见 verification-playbook.md §4-§5。
+
 ---
 
 ## 8. 必检维度自检
@@ -161,13 +176,16 @@ ls <path>/frameworks/js/napi/ 2>/dev/null
 
 ## 9. 评分与门禁计算规程
 
-### 9.1 评分公式
+### 9.1 评分公式（双车道制）
 
 ```
-score = max(0, 100 − (30×P0 + 12×P1 + 5×P2 + 2×P3))
+score = max(0, 100 − (30×P0v + 12×P1v + 5×P2a))
 ```
 
-P0/P1/P2/P3 为第 7 节归一化后的计数。
+- `P0v/P1v` = Mode A 验证状态 ∈ {Reproduced, Reasoned-conditional} 的 P0/P1 计数
+- `P2a` = Mode A 的 P2（含 Reasoned 未达 P1 门槛项、Unverified-hypothesis 项）
+- **Mode B（static-checklist）hygiene 项不参与评分**，以独立计数呈现于报告 §5（避免第一轮"34 条 P3 把 score 打到 0"的失真）；其中升格进 Mode A 的项按 Mode A 计数
+- 旧公式 `100 − (30×P0 + 12×P1 + 5×P2 + 2×P3)` 仅适用于纯 scanner 历史报告的向后对比
 
 ### 9.2 决策矩阵（自上而下判定，命中即止）
 

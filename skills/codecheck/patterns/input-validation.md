@@ -31,7 +31,7 @@ rg -n "ParseWantParams|ParseJson|nlohmann::json" --type cpp
 
 **典型后果**：IPC 致 foundation CPU/内存耗尽、OOM、栈耗尽不开机、死循环，P0。
 
-**历史案例**：G3（`SkillExecuteResult::ReadFromParcel` 未校验 uriCount、`InsightIntentExecuteResult` OOM、`ParseWantParams` 递归无限制不开机、44 字节 JSON 死循环 600s+、`EncodeBase64(srcLen=0)` 堆越界）。
+**历史案例**：`SkillExecuteResult::ReadFromParcel` 未校验 uriCount、`InsightIntentExecuteResult` OOM、`ParseWantParams` 递归无限制不开机、44 字节 JSON 死循环 600s+、`EncodeBase64(srcLen=0)` 堆越界。
 
 ---
 
@@ -77,7 +77,7 @@ rg -n "unzip|ExtractFile|ZipFile" --type cpp
 
 **典型后果**：覆盖目标目录外任意文件，P0。
 
-**历史案例**：G6（`FileUtils.unzipFile` Zip Slip、hnp 解压路径穿越两轮复发、临时目录竞争覆盖 `/data/system/`）。
+**历史案例**：`FileUtils.unzipFile` Zip Slip、hnp 解压路径穿越两轮复发、临时目录竞争覆盖 `/data/system/`。
 
 ---
 
@@ -199,4 +199,4 @@ rg -n "static_cast<.*Parcel|static_cast<.*MessageParcel" --type cpp
 
 **典型后果**：内存溢出、参数走私、类型混淆 RCE，P0。
 
-**历史案例**：G1（CLI-SA 与沙箱间序列化/反序列化参数处理不一致 → 命令行参数走私）。
+**历史案例**：CLI-SA 与沙箱间序列化/反序列化参数处理不一致 → 命令行参数走私。

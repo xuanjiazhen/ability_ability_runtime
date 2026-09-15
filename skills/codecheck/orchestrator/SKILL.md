@@ -1,172 +1,118 @@
----
-name: codecheck-orchestrator
-description: |
-  代码检视唯一编排器：对指定路径或 Kit，自动探测路径特征并选择 scanner 组合（security/logic/input/api），
-  并行调度各 scanner 执行扫描，收集原始产出后执行 Refute 对抗性验证（触发路径证伪 + 影响夸大证伪 + 跨 scanner 根因去重），
-  过滤后的发现按 codecheck_report_TEMPLATE.md 合并为一份统一报告。
-  当用户表达通用代码检视意图时触发："检视一下代码"、"帮我审一下"、"做一次 code review"、"代码审查"、
-  "review 一下"、"审一下这块代码"、"codecheck"、"代码检视"、"全面检视"、"生成检视报告"、
-  "深度扫描"、"对某某路径做全面排查/安全审计/bug audit"。
-  当用户指定单一维度（纯安全/纯 API/纯外部输入/纯逻辑）时，可绕过本编排器直接调对应 scanner；此时 scanner 自行按 [`../conventions.md`](../conventions.md) §5–§13 生成统一报告（双产出：原始发现清单 + 统一报告），本编排器不介入。
----
+# Skill: codecheck-orchestrator
 
-# Codecheck Orchestrator — 唯一编排器
+# Codecheck Orchestrator — 双模审查编排器
 
 ## 定位
 
-本 skill 是 [`skills/codecheck/`](..) 工作台的**唯一调度与报告合并层**。它解决一个问题：用户说"检视一下代码"或"深度扫描"时，按范围**自动探测路径特征、选择 scanner 组合、并行调度、Refute 对抗性验证、合并成一份统一报告**。
+本 skill 是 [`skills/codecheck/`](..) 工作台的**唯一调度层**。两种审查模式并行编排、一份统一报告：
 
-> 导航中枢是 [README.md](../README.md)。本 skill 是 README 中"检视流程"的可执行版本。
+| 模式 | 名称 | 目标 | 产出定级权 |
+|------|------|------|-----------|
+| **Mode A** | 真实漏洞审查（假设-验证管线） | 端到端可达的攻击链/故障链：崩溃、挂死、提权、代码加载绕过、资源耗尽 | **P0/P1 只能诞生于此**，且必须附验证状态 |
+| **Mode B** | 静态编码审查（scalable checklist） | 基础编码卫生：敏感信息打印、解析无守卫、入参无校验、资源不回滚等 | 封顶 P2；命中攻击面数据流时**升格**为 Mode A 假设 |
 
-## 与 scanner 的关系
-
-| Scanner | 本编排器何时调用 |
-|---------|-----------------|
-| `security-scanner` | 默认：通用检视必调（一次拿 bug+security 双视角） |
-| `logic-scanner` | 默认：通用检视必调（逻辑影响分析） |
-| `input-scanner` | 目标路径在服务侧（`services/`）或 IPC/DB/文件/配置密集区时调 |
-| `api-scanner` | 目标涉及对外 API（`interfaces/kits/`、`frameworks/*/napi|ani|c/`、或用户指定 Kit）时调 |
-
-原则：scanner 之间无数据依赖，全部并行执行，保留各自原始产出，不在中间改写。
+设计原则（两轮试点实证，见 [`verification-playbook.md`](../verification-playbook.md)）：
+- **scanner 产出是假设，不是结论**。"注册了≠会被调"，分级依据是验证状态，不是代码内缺陷存在性。
+- **Pattern not rules**：知识以"共性原因+推理方法"沉淀（playbook/checklist 条目均须挂真实 finding 来源），不做规则堆积。
+- **验证闭环**：跨仓拉源 → 完整故障链推理 → harness/UT 复现 → 才给最终审查结论。
 
 ---
 
-## 工作流
+## Step 0: 模式路由
 
-### Step 1: 界定范围（缺则向用户确认）
+| 用户意图 | 路由 |
+|---|---|
+| "检视一下 / code review / 深度扫描"（未指定） | **A+B 并行**（B 廉价全量，A 定向高价值面） |
+| "找真实漏洞 / 高危 / 攻击链 / 安全审计" | 仅 Mode A |
+| "编码规范 / 卫生检查 / checklist review" | 仅 Mode B |
+| 指定单一 scanner 维度 | 对应维度作为 Mode A 的 S2 假设生成透镜 |
 
-必明确三项：
-1. **目标**：路径（如 `services/abilitymgr/src/`）或 Kit 名（如 `abilityKit`）。
-2. **检视重点**：未指定时默认"通用检视"。
-3. **版本信息**：从 git 获取完整 commit-id（full SHA, 40 位十六进制）和 Change-Id，记入报告头部。
+范围界定三项不变：目标路径/Kit、重点、版本信息（`git rev-parse HEAD`、Change-Id、subject）。
 
-```bash
-# 获取 commit-id（完整 40 位）
-git rev-parse HEAD
-# 获取 Change-Id
-git log -1 --format="%b" | grep -o 'Change-Id: I[0-9a-f]\{40\}'
-# 获取 commit message 第一行（subject）
-git log -1 --format="%s"
+---
+
+## Mode A — 假设-验证管线（S0-S7）
+
+### S0 影响定标
+一句话方法论（不建静态事故库）：**websearch 对标系统（安卓 AOSP/CVE/Security Bulletin）中与目标模块同位的真实事故根因类**，倒排本模块最坏结果（不开机/bootloop/黑屏/跨应用提权/解析面 RCE/资源耗尽）。
+
+### S1 面推导
+面清单 = **机械穷举部分** + **推理推导部分**，产出"面清单"而非"文件清单"。
+
+**机械基底——注册点穷举 + 三面问**（命令配方与暴露级分层见 [`../verification-playbook.md`](../verification-playbook.md) §1.2；**全仓头文件**穷举，本仓实测 ≈104 个 hook，有限集合）：
+1. 穷举全仓 `*.h` 的回调注册点（hook）：`Set*/Register*/Install*/Add*/Subscribe*` × `Tracker/Callback/Func/Handler/Delegate/Hook/Listener/Observer`，排除 cj_*/ets_*/frameworks/ets|cj/test/mock（静态语言绑定按 AGENTS 约定默认排除；实测不排除会混入 40+ 噪音）。基线 ≈131 个，有限集合。
+2. **暴露级按构建元数据判定，不按目录猜**：GN `public_configs` 头文件公开性 + `version_script`(.map) 符号导出 + BUILD.gn 依赖反查（仓内/跨仓）三步判据（命令见 playbook §1.2）；目录启发只用于排序。
+3. 每个入选 hook 回答**三面问**：谁注册（本仓 file:line）／谁消费（跨仓面必查对端仓，走 S4 配方，拉不到标 `pending(仓名)`；仓内面本仓全量 grep）／什么模式开关决定它被调（唯一生产设置点）。
+4. 任何一问答不出的 hook **显式记为 pending 面**列入报告"盲区欠账"——盲区从"不知道不知道"变成清单上可见的欠账，禁止静默跳过。
+
+**推理推导**：从 S0 最坏结果倒排入口面：模式开关、IPC 入口（逐 code）、文件/包解析汇点、动态加载通道；目标模块命中 [`../static-checklist.md`](../static-checklist.md) **附录一历史复发热点清单**时强制纳入并提高强度。
+
+**覆盖限度（如实声明）**：穷举覆盖结构性面；**时序面**（销毁×在途竞态）靠精读交叉分析（模板：FIND-002 证伪链），**业务语义面**靠热点清单+用户点名——后两类不受穷举保障，报告中不得以"面清单已穷举"暗示全覆盖。
+
+### S2 假设生成（scanner 的新职责）
+对每个面**精读 + 攻击者视角输入面枚举**，产出假设卡：
 ```
-
-若用户只说"检视一下代码"未给范围，**必须先问**，不要默认全仓。
-
-### Step 2: 自动探测 + 选择 scanner 组合 🔥 新增
-
-#### 2.1 路径特征探测
-
-```bash
-# IPC 信号
-rg "Parcel::Read|OnRemoteRequest|WriteRemoteObject" --type cpp <path>
-
-# 持久化信号
-rg "Insert\s*\(|ExecuteSql|fopen|write\s*\(" --type cpp <path>
-
-# API 信号：检查 interfaces/kits/ 或 frameworks/js/napi/ 下是否有 .d.ts/.h
-ls <path>/interfaces/kits/ 2>/dev/null
-ls <path>/frameworks/js/napi/ 2>/dev/null
+HYP-xxx: source(攻击者可控输入) → 传播链(file:line) → sink(危险汇点) → 预期影响
+         部署面猜想: 谁启用/谁调用/什么产品形态
+         建议验证方式: 分诊可证伪? 跨仓? harness?
 ```
+一轮每模块 5-10 条高质量假设，**不追求数量**。三个 scanner（security/logic/input）作为假设生成的三个透镜并行，但产出统一为假设卡格式，**不自行定级 P0/P1**。
 
-#### 2.2 按特征 + 用户意图决策
+### S3 部署面分诊（廉价证伪，先于昂贵验证）
+每条假设过三元组，缺一即降级或标记 conditional：
+1. **部署面**：入口是公开 API / systemapi / 仅系统进程？模式开关的生产设置点在哪（必须找到唯一调用点级证据）？
+2. **攻击者能力**：量产默认态下谁能把恶意数据送到入口？自攻自身（无权限增益）→ 证伪。
+3. **可达性**：真实调用链 file:line；跨仓不可证 → 标 `Reasoned-pending`，不定 P1。
 
-| 条件 | 调用组合 |
-|------|---------|
-| 用户指定单一维度 → | 只调对应 scanner，跳过推断 |
-| `services/` + IPC 信号 + 持久化信号 → | `security-scanner` + `logic-scanner` + `input-scanner` |
-| `interfaces/` 或 `frameworks/js/napi/` 且存在 `.d.ts` → | `security-scanner` + `logic-scanner` + `api-scanner` |
-| 通用路径无特殊信号 → | `security-scanner` + `logic-scanner` |
-| 用户说"全面"/"最大覆盖" → | `security-scanner` + `logic-scanner` + `input-scanner` + `api-scanner` |
-| 用户说"深度扫描" → | `security-scanner` + `logic-scanner` |
+### S4 跨仓追踪
+按 [`verification-playbook.md`](../verification-playbook.md) §1 执行：依赖解析（BUILD.gn/bundle.json）→ 本地兄弟目录 → 持久缓存 → gitcode 拉仓（仓名映射表见 playbook）→ **追到唯一设置点/调用点**。clone 与 S3 并行，超时预算 5min，失败标 pending 继续。
 
-#### 2.3 告知用户选择结果
+### S5 执行验证
+按 playbook §2-§4 执行：harness 直编**真实被测源码**+通用桩包 → 对照组先行 → 恶意/边界样本构造 → 红灯不变式用例（修复后转绿=回归用例）→ 资源约束多形态（默认/ulimit）。无法构建时如实停在 Reasoned 并附可复跑 UT 设计。
 
-选定的 scanner 组合写入报告元数据 YAML 块（dimensions_executed）；探测到的信号、决策依据纳入第 1 节门禁结论一句话结论。
+### S6 分级交付（验证状态驱动）
+| 验证状态 | 定义 | 定级上限 |
+|---|---|---|
+| **Reproduced** | harness/UT/POC 实证复现 | P0/P1 |
+| **Reasoned** | 跨仓完整故障链推理（每环 file:line），未运行复现 | P1(conditional)/P2 |
+| **Refuted** | 硬证据证伪（不可达/防护成立/自攻自身） | 留档不进报告正文 |
+| **Unverified** | 仅仓内代码阅读 | 最高 P2-hypothesis |
 
-### Step 3: 并行调度 scanner
+P0/P1 交付必附**验证包**：证据链 file:line + harness 路径 + 运行日志 + 忠实度边界声明 + 攻击成本标注。
 
-子 scanner 之间无数据依赖，全部并行执行（多个 Agent 或多个工具调用并发）。保留各 scanner 原始产出（md/csv/excel），不在中间改写。
+### S7 蒸馏回灌
+每轮结束两件事：
+1. ≤3 条新 checklist 项回灌 [`../static-checklist.md`](../static-checklist.md)（必须挂本轮 finding ID）+ 一句话方法论共性（写入 playbook，不建新规则文件）。
+2. 命中附录一热点模块的新发现，回填该模块行的问题特征计数。
 
-记录每个 scanner 的：
-- 产出文件路径
-- 发现总数与分级（P0/P1/P2/P3 或 Confirmed/Likely/Suspicious）
-
-### Step 4: 收集各 scanner 原始产出
-
-### Step 5: Refute — 对抗性验证 🔥 新增
-
-对每条发现执行三层质疑。详细规则见 [`refute-rules.md`](refute-rules.md)。
-
-**第一层：触发路径证伪** — "真的能被触发吗？"
-- 上游空指针防护：追溯发现点函数的调用者，检查传入参数前是否有 `if (ptr == nullptr) return`
-- 不可达路径：检查发现点是否在 `#ifdef DEBUG`、已废弃函数、仅测试代码路径
-- 数据来源为常量：标注为"外部输入"的变量，上游是否为 `static const` 或编译期已知值
-- IPC 接口暴露面：检查 IPC 接口的调用方权限（是否仅系统进程可调、是否有 SELinux 策略保护）
-- 断言/protobuf 防护：上游有 `assert` 或 protobuf 解析自带边界校验（assert release 不生效 → 维持；protobuf 可靠 → 推翻）
-- 弱防护：上游有检查但不完整（如仅检查 nullptr 但没检查空字符串、仅检查长度上限但没检查下限）
-
-**第二层：影响夸大证伪** — "后果真的这么严重吗？"
-- Defensive double-free：`free(ptr); ptr = nullptr;` 再 free → 检查两次 free 之间 ptr 是否被置 null → 有 → 推翻
-- 进程退出时资源泄漏：静态资源在进程退出时未释放 → 检查是否在 exit() 路径 → OS 自动回收 → 降级为 P3
-- 整数溢出不可达：`int a = b + c` 溢出，但 b 和 c 均来自 `uint8_t` → 计算实际输入范围 → 不可溢出 → 推翻
-- UAF 仅涉及日志打印：释放后使用仅在 `HILOG_INFO` 中读整数值 → 检查 use 点是否影响控制流 → 仅日志 → 降两级
-- 回调泄漏但数量有限：回调总数有上限 → 计算实际泄漏上限 → 上限小 → 降级
-- 静态 bool 标志位无锁：标志位用于一次性初始化 → 检查是否只在单线程初始化阶段设置 → 单次设置 → 降级为 P3
-
-**第三层：跨 scanner 根因去重** — "这两个发现本质是同一个根因吗？"
-- 不同于 `file:line` 机械去重，基于修复方案反推
-- 同一修复改动 → 合并（例：SEC-005 空指针 + LOG-004 状态更新异常 + SEC-007 异常路径未释放锁 → 根因是 `mission_list_manager.cpp:412` 缺一次 nullptr 检查，合并为一条）
-- 连锁影响 → 合并到根因（例：缺少边界校验 → 越界写入 → 相邻内存损坏 → 合并为一条"缺少边界校验"）
-- 独立发现（即使同文件，修复需改动不同位置）→ 维持独立
-
-**产出 `refute_log.md`**，记录每条发现的判定：✅ 维持 | ⬇️ 降级 | ❌ 推翻 | 🔀 合并。详见 [`refute-rules.md`](refute-rules.md)。
-
-### Step 6: 合并为统一报告
-
-基于 `refute_log.md` 过滤后的发现列表，按 [`codecheck_report_TEMPLATE.md`](../codecheck_report_TEMPLATE.md) 生成最终报告。
-
-**必须使用权威模板**。模板固定了：
-- 头部 **YAML 报告元数据块**（机器可读，字段名/取值域固定，`risk_level` 仅 `low|medium|high|unknown`，`gate_decision` 仅 `approve|conditional|block|insufficient`）。
-- **固定章节**：1 门禁结论 → 2 扣分原因 → 3 必须立即处理（P0/P1）→ 4 建议跟进（P2/P3）→ 5 分维度速览 → 6 关键发现详情。评分与门禁规则见 conventions.md §9。
-- **评分与决策矩阵**（见 conventions.md §9）：`评分 = max(0, 100 − (30×P0 + 12×P1 + 5×P2 + 2×P3))`；存在 P0 → block，存在 P1 → conditional，评分 ≥90 → approve，≥70 → conditional，否则 block；必检维度缺失 → insufficient。严重等级统一归一化为 P0–P3。
-
-**执行合并时**：
-1. 跨维度去重以 `file:line` 为第一键；同位置多维度命中合并为一条，标注全部维度来源。
-2. 不同 `file:line` 但同根因 → 由 refuter 在 Step 5 合并。
-3. 按 conventions.md §9 计算 `score` / `risk_level` / `gate_decision`，同时写入 YAML 元数据块与第 1 节门禁结论表格（两者必须一致）。
-4. 必检维度缺失时，决策为 `insufficient`；维度无适用面（如文档仅提交无代码）时该维度仍计入 `dimensions_executed` 并在 §5 分维度速览注明 N/A 理由，不计为缺失。
-
-### Step 7: 交付
-
-向用户交付：
-1. 统一报告路径。
-2. Executive Summary 摘要：各维度结果、总分、上库决策。
-3. Top 高危项（P0 问题）及其阻塞原因。
-4. 各 scanner 原始产出路径（便于深入查阅）。
-5. `refute_log.md` 路径（对抗性验证记录）。
-
-不直接改源码——修复由用户确认后另起任务。
+**防重犯机制**（不在 S7，在修复闭环）：确认的 P0/P1 修复任务合入时**必须附红绿回归 UT**（harness 转正为仓库 test/ 用例，修复前 FAIL、修复后 PASS）——这是"犯过一次不重犯"的唯一硬载体。附录二案例索引为**用户指定制**：仅用户明确点名的严重案例登记，日常扫描结果不自动进表。
 
 ---
 
-## 必检维度
+## Mode B — 静态编码审查（checklist lane）
 
-| 目标特征 | 必检维度（缺失即 insufficient） |
-|---------|-------------------------------|
-| 通用路径/提交 | `security-scanner` + `logic-scanner` |
-| `services/` 下、IPC/DB/文件/配置密集区 | `security-scanner` + `logic-scanner` + `input-scanner` |
-| `interfaces/kits/`、NAPI/ANI/C 绑定、指定 Kit | `api-scanner` + 实现侧 `security-scanner` + `logic-scanner` |
+1. **执行**：按 [`static-checklist.md`](../static-checklist.md) 逐类跑 grep 种子 → **LLM 精读确认**（去误报，不收无证据项）。可并行子代理，按类别分片。
+2. **定级**：默认 P3；敏感信息/未守卫解析等清单标注 P2 的从其标注；**封顶 P2，不走 refute**（证据可 grep 直核，抽检 10% 复核）。
+3. **升格阀**：命中点位于攻击者可控数据流（want 参数/包内容/IPC 入参/文件路径）且汇点危险（路径拼接/分配大小/条件判断/加载执行）→ 生成 HYP 卡转入 Mode A S3。
+4. **产出**：hygiene 清单（ID/类别/file:line/建议/来源 finding），单独计数，不参与门禁评分。
 
 ---
 
-## 约定
+## 合并报告
 
-- **静态语言实现默认排除**：`frameworks/ets/ani/`、`frameworks/ets/ets/`、`frameworks/cj/ffi/`、`ets_*.cpp`、`cj_*.cpp`，除非用户明确要求包含。
-- **证据要求**：每条发现可追溯到 `file:line` + 触发路径，不收无证据代码气味项。
-- **去重**：跨 scanner 去重以 `file:line` 为第一键；同位置多 scanner 命中合并为一条，标注全部维度来源。
-- **让位**：用户指定单一维度（纯安全/纯 API/纯外部输入/纯逻辑）时，可绕过本编排器，直接路由到对应 scanner。
-- **不动代码**：检视阶段只产出报告与建议，不直接改源码；修复由用户确认后另起任务。
-- **Refute 只质疑不发现**：refuter 不能新增任何 scanner 未报告的发现。
-- **Refute 必须有代码证据**：推翻或降级必须引用具体 file:line。
-- **被推翻的发现保留在 refute_log.md**：不进入统一报告正文，仅在 refute_log.md 记录条目和理由，便于人工复核捞回。
-- **P0 推翻需更严格证据**：不能仅凭"极难触发"推翻 P0，必须是"确认不可达"（上游硬 guard 或编译器保证）。
-- **refute_log.md 与最终报告一并交付**。
+仍按 [`codecheck_report_TEMPLATE.md`](../codecheck_report_TEMPLATE.md) 统一模板：
+- YAML `dimensions_executed` 词表增加 `vuln-hypothesis-verification`（Mode A）与 `static-checklist`（Mode B）
+- §3 必须立即处理：**仅 Mode A 已验证 P0/P1**，每条卡片必填 `verification_status`
+- §4 建议跟进：Mode A Reasoned/Unverified 项 + Mode B P2 项（标注 `[B]`）
+- §5 分维度速览：两模式各一行 + Mode B 按类别聚合计数
+- §6 详情卡片：P0/P1 全量（含验证包路径）；hygiene 项不占卡片
+- 评分（conventions §9 双车道制）：`score = max(0, 100 − (30×P0v + 12×P1v + 5×P2a))`，仅计 Mode A 验证项（P0v/P1v）与 Mode A P2；**Mode B 不计分**，以独立 hygiene 计数呈现
+- 门禁：存在 Reproduced P0 → block；P1（Reproduced 或 Reasoned-conditional）→ conditional；其余按 score
+
+## Refute 公约（保留，权限收紧）
+
+[`refute-rules.md`](refute-rules.md) 三层质疑继续适用于 Mode A 假设与 Mode B 升格项；新增约束：**仓内代码阅读只能把 P1 降到 Unverified/P2-hypothesis，推翻 P1 必须有跨仓源码或执行级证据**；Reproduced 项不可被纯阅读推翻。
+
+## 不动代码
+
+两模式均只产出报告/假设/验证包，修复由用户确认后另起任务。

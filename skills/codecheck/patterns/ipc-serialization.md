@@ -51,7 +51,7 @@ rg -n "resize\(|new\s+\w+\[" --type cpp
 
 **典型后果**：OOM、越界，P0。
 
-**历史案例**：G3（`InsightIntentExecuteResult::ReadFromParcel` int32 直传 `resize` → OOM）。
+**历史案例**：`InsightIntentExecuteResult::ReadFromParcel` int32 直传 `resize` → OOM。
 
 ---
 
@@ -87,7 +87,7 @@ rg -n "case\s+.*:" --type cpp   # 检查每个 code 分支
 
 **典型后果**：权限绕过，P0。
 
-**历史案例**：G2（`CliToolManagerService::ExecTool` 未鉴权路径、`StartUIExtensionAbility` 未校验调用者）。
+**历史案例**：`CliToolManagerService::ExecTool` 未鉴权路径、`StartUIExtensionAbility` 未校验调用者。
 
 ---
 
@@ -109,7 +109,7 @@ rg -n "TOKEN_NATIVE|ROOT_UID|SHELL_UID" --type cpp
 
 **典型后果**：身份伪造、任意操作，P0。
 
-**历史案例**：G1（`UninstallAppInner` 用 pid 校验 → 卸载任意应用、`specifiedFullTokenId` 外部可控 → token 伪造）。
+**历史案例**：`UninstallAppInner` 用 pid 校验 → 卸载任意应用、`specifiedFullTokenId` 外部可控 → token 伪造。
 
 ---
 
@@ -147,7 +147,7 @@ rg -n "try\s*\{|catch\s*\(" --type cpp
 
 **典型后果**：未授权操作、绕过校验，P0。
 
-**历史案例**：G14（异常分支打印日志后返回 `true`/`ERR_OK`）、高影响清单 4.4/7.3/7.4。
+**历史案例**：异常分支打印日志后返回 `true`/`ERR_OK`、高影响清单 4.4/7.3/7.4。
 
 ---
 
