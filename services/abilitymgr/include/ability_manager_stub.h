@@ -156,6 +156,7 @@ private:
     int GetPendingRequestWantInner(MessageParcel &data, MessageParcel &reply);
     int GetPendingRequestWantFromProxyInner(MessageParcel &data, MessageParcel &reply);
     int GetWantSenderInfoInner(MessageParcel &data, MessageParcel &reply);
+    int RegisterWantAgentHolderInner(MessageParcel &data, MessageParcel &reply);
 
     int GetAppMemorySizeInner(MessageParcel &data, MessageParcel &reply);
     int IsRamConstrainedDeviceInner(MessageParcel &data, MessageParcel &reply);
