@@ -70,7 +70,7 @@ void ExerciseRecordPaths(FuzzedDataProvider &fdp, const std::shared_ptr<AppExitR
     AppExecFwk::RunningProcessInfo invalidInfo;
     processInfoList.emplace_back(invalidInfo);
 
-    helper->RecordAppWithReason(param.pid, param.uid, exitReason);
+    helper->RecordAppWithReason(param.pid, param.uid, exitReason, DEFAULT_INVAL_VALUE);
     helper->RecordAppsWithReasonByProcessInfoList(exitReason, processInfoList);
     helper->RecordInvalidKillId(param.pid, exitReason, param.bundleName, param.userId);
     helper->RecordInvalidKillId(param.pid, exitReason);
@@ -99,15 +99,15 @@ void ExerciseAddPaths(FuzzedDataProvider &fdp, const std::shared_ptr<AppExitReas
     params.fromKillWithReason = fdp.ConsumeBool();
     helper->AddProcessExitReason(params);
 
-    helper->AddAppExitReason(param.bundleName, param.pid, param.uid, param.appIndex, exitReason);
-    helper->AddBundleExitReason(param.bundleName, param.userId, param.appIndex, exitReason);
+    helper->AddAppExitReason(param.bundleName, param.pid, param.uid, param.appIndex, exitReason, DEFAULT_INVAL_VALUE);
+    helper->AddBundleExitReason(param.bundleName, param.userId, param.appIndex, exitReason, DEFAULT_INVAL_VALUE);
 
     std::vector<AppExecFwk::RunningProcessInfo> infos = helper->GetRunningProcessInfos(param.userId,
         param.bundleName);
     (void)infos;
-    helper->RecordAppWithReasonInner(exitReason, processInfo);
+    helper->RecordAppWithReasonInner(exitReason, processInfo, DEFAULT_INVAL_VALUE);
     AppExecFwk::RunningProcessInfo emptyInfo;
-    helper->RecordAppWithReasonInner(exitReason, emptyInfo);
+    helper->RecordAppWithReasonInner(exitReason, emptyInfo, DEFAULT_INVAL_VALUE);
 }
 
 bool DoSomethingInterestingWithMyAPI(const uint8_t *data, size_t size)
