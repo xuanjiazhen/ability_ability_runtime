@@ -79,7 +79,8 @@ void IntentClient::DeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remot
 }
 
 int32_t IntentClient::SendExecuteRequest(uint64_t key, const sptr<IRemoteObject> &callerToken,
-    const std::string &bundleName, const std::string &intentName, const WantParams &wantParam)
+    const std::string &bundleName, const std::string &intentName, const WantParams &wantParam,
+    const std::string &toolCallId)
 {
     auto remote = GetAbilityManagerRemote();
     if (remote == nullptr) {
@@ -113,6 +114,10 @@ int32_t IntentClient::SendExecuteRequest(uint64_t key, const sptr<IRemoteObject>
         TAG_LOGE(AAFwkLogTag::INTENT, "write wantParam failed");
         return INNER_ERR;
     }
+    if (!data.WriteString(toolCallId)) {
+        TAG_LOGE(AAFwkLogTag::INTENT, "write toolCallId failed");
+        return INNER_ERR;
+    }
     int32_t err = remote->SendRequest(
         static_cast<uint32_t>(AbilityManagerInterfaceCode::EXECUTE_INTENT_BY_FUNCTION_CALL),
         data, reply, option);
@@ -133,7 +138,8 @@ int32_t IntentClient::ExecuteIntentByFunctionCall(const ExecuteIntentParam &para
     auto hostClient = AbilityRuntime::InsightIntentHostClient::GetInstance();
     uint64_t key = hostClient->AddInsightIntentExecute(param.callback);
 
-    int32_t err = SendExecuteRequest(key, hostClient, param.bundleName, param.intentName, param.wantParam);
+    int32_t err = SendExecuteRequest(key, hostClient, param.bundleName, param.intentName, param.wantParam,
+        param.toolCallId);
     if (err != ERR_OK) {
         hostClient->RemoveInsightIntentExecute(key);
     }

@@ -94,6 +94,12 @@ bool JsInsightIntentExecutor::Init(const InsightIntentExecutorInfo& insightInten
     napi_value jsInstanceId = nullptr;
     napi_create_int64(env, context->GetIntentId(), &jsInstanceId);
     napi_set_named_property(env, contextNapiVal, "instanceId", jsInstanceId);
+    std::string toolCallId = context->GetToolCallId();
+    if (!toolCallId.empty()) {
+        napi_value jsToolCallId = nullptr;
+        napi_create_string_utf8(env, toolCallId.c_str(), toolCallId.size(), &jsToolCallId);
+        napi_set_named_property(env, contextNapiVal, "toolCallId", jsToolCallId);
+    }
     if (!CheckTypeForNapiValue(env, executorNapiVal, napi_object) ||
         !CheckTypeForNapiValue(env, contextNapiVal, napi_object) ||
         napi_set_named_property(env, executorNapiVal, "context", contextNapiVal) != napi_ok) {

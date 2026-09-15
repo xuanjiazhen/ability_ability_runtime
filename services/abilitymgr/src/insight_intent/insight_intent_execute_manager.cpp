@@ -644,6 +644,16 @@ int32_t InsightIntentExecuteManager::GenerateWant(
     }
     want.SetElementName("", param->bundleName_, param->abilityName_, param->moduleName_);
 
+    // write toolCallId into insightIntentParam (single write point for both entry paths);
+    // an empty toolCallId means not passed, no key is written
+    if (!param->toolCallId_.empty()) {
+        if (param->insightIntentParam_ == nullptr) {
+            param->insightIntentParam_ = std::make_shared<WantParams>();
+        }
+        param->insightIntentParam_->SetParam(INSIGHT_INTENT_TOOL_CALL_ID, param->toolCallId_);
+        TAG_LOGI(AAFwkTag::INTENT, "GenerateWant with toolCallId: %{public}s", param->toolCallId_.c_str());
+    }
+
     if (param->insightIntentParam_ != nullptr) {
         sptr<AAFwk::IWantParams> pExecuteParams = WantParamWrapper::Box(*param->insightIntentParam_);
         if (pExecuteParams != nullptr) {

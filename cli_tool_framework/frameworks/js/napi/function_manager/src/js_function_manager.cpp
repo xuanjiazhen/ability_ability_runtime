@@ -89,6 +89,7 @@ struct InvokeFunctionArgs {
     std::string funcNamespace;
     std::string functionName;
     AAFwk::WantParams wantParams;
+    std::string toolCallId;
 };
 
 bool IsUIAbilityContext(napi_env env, napi_value value)
@@ -149,6 +150,31 @@ bool ValidateOptions(napi_env env, napi_value options)
     return true;
 }
 
+// toolCallId is pass-through only: read the optional "toolCallId" property from the options
+// object when it is a string; absent / undefined / null / non-string values are ignored
+// without any validation or error (treated as not passed).
+void ExtractOptionalToolCallId(napi_env env, napi_value options, std::string &toolCallId)
+{
+    napi_valuetype optionsType = napi_undefined;
+    napi_typeof(env, options, &optionsType);
+    if (optionsType != napi_object) {
+        return;
+    }
+    napi_value toolCallIdValue = nullptr;
+    if (napi_get_named_property(env, options, "toolCallId", &toolCallIdValue) != napi_ok) {
+        return;
+    }
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, toolCallIdValue, &valueType);
+    if (valueType == napi_undefined || valueType == napi_null) {
+        return;
+    }
+    if (valueType == napi_string && AppExecFwk::UnwrapStringFromJS2(env, toolCallIdValue, toolCallId)) {
+        return;
+    }
+    TAG_LOGW(AAFwkTag::CLI_TOOL, "toolCallId is not a string, ignored");
+}
+
 bool ParseInvokeFunctionArgs(napi_env env, size_t argc, napi_value *argv, InvokeFunctionArgs &out)
 {
     if (argc < INDEX_THREE) {
@@ -169,9 +195,12 @@ bool ParseInvokeFunctionArgs(napi_env env, size_t argc, napi_value *argv, Invoke
         ThrowInvalidParamError(env, "args is required");
         return false;
     }
-    if (argc >= INDEX_FOUR && !ValidateOptions(env, argv[INDEX_THREE])) {
-        ThrowInvalidParamError(env, "option invalid");
-        return false;
+    if (argc >= INDEX_FOUR) {
+        if (!ValidateOptions(env, argv[INDEX_THREE])) {
+            ThrowInvalidParamError(env, "option invalid");
+            return false;
+        }
+        ExtractOptionalToolCallId(env, argv[INDEX_THREE], out.toolCallId);
     }
     return true;
 }
@@ -286,7 +315,8 @@ napi_value JSFunctionManager::OnInvokeFunction(napi_env env, size_t argc, napi_v
         }
     };
 
-    InvokeFunctionExecutor::Create()->Execute(args.funcNamespace, args.functionName, args.wantParams, bridge);
+    InvokeFunctionExecutor::Create()->Execute(args.funcNamespace, args.functionName, args.wantParams,
+        args.toolCallId, bridge);
 
     return handleEscape.Escape(promise);
 }
