@@ -65,14 +65,13 @@ private:
 };
 }  // namespace
 
-inline bool SafeParse(const std::string &jsonStr, nlohmann::json &jsonObject,
-    size_t maxLen = JSON_SAFE_PARSE_MAX_LEN, size_t maxDepth = JSON_SAFE_MAX_DEPTH)
+inline bool SafeParse(const std::string &jsonStr, nlohmann::json &jsonObject)
 {
-    if (jsonStr.size() > maxLen) {
+    if (jsonStr.size() > JSON_SAFE_PARSE_MAX_LEN) {
         HiLogError(JSON_SAFE_UTIL_LABEL, "json size exceeds limit: %{public}zu", jsonStr.size());
         return false;
     }
-    JsonDepthLimitSax handler(maxDepth);
+    JsonDepthLimitSax handler(JSON_SAFE_MAX_DEPTH);
     if (!nlohmann::json::sax_parse(jsonStr, &handler)) {
         HiLogError(JSON_SAFE_UTIL_LABEL, "json depth exceeds limit or parse error");
         return false;

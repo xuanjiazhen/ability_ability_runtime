@@ -75,29 +75,32 @@ HWTEST_F(JsonSafeUtilTest, SafeParse_0200, TestSize.Level1)
 
 /**
  * @tc.name: SafeParse_0300
- * @tc.desc: Input longer than maxLen is rejected.
+ * @tc.desc: Input longer than the built-in length limit is rejected.
  * @tc.type: FUNC
  */
 HWTEST_F(JsonSafeUtilTest, SafeParse_0300, TestSize.Level1)
 {
     nlohmann::json jsonObject;
-    std::string bigJson = R"({"key":")" + std::string(64, 'a') + "\"}";
-    EXPECT_TRUE(SafeParse(bigJson, jsonObject, 128));
-    EXPECT_FALSE(SafeParse(bigJson, jsonObject, 16));
+    std::string okJson = R"({"key":")" + std::string(64, 'a') + "\"}";
+    EXPECT_TRUE(SafeParse(okJson, jsonObject));
+    std::string bigJson = R"({"key":")" + std::string(JSON_SAFE_PARSE_MAX_LEN, 'a') + "\"}";
+    EXPECT_FALSE(SafeParse(bigJson, jsonObject));
 }
 
 /**
  * @tc.name: SafeParse_0400
- * @tc.desc: Input deeper than maxDepth is rejected by the SAX pre-check.
+ * @tc.desc: Input deeper than the built-in depth limit is rejected by the SAX pre-check.
  * @tc.type: FUNC
  */
 HWTEST_F(JsonSafeUtilTest, SafeParse_0400, TestSize.Level1)
 {
     nlohmann::json jsonObject;
-    // depth 4 array nesting, within default depth
-    EXPECT_TRUE(SafeParse("[[[[\"deep\"]]]]", jsonObject, JSON_SAFE_PARSE_MAX_LEN, 8));
-    // same input rejected when the depth limit is lower
-    EXPECT_FALSE(SafeParse("[[[[\"deep\"]]]]", jsonObject, JSON_SAFE_PARSE_MAX_LEN, 2));
+    std::string shallowPrefix(JSON_SAFE_MAX_DEPTH, '[');
+    std::string shallowSuffix(JSON_SAFE_MAX_DEPTH, ']');
+    EXPECT_TRUE(SafeParse(shallowPrefix + R"("deep")" + shallowSuffix, jsonObject));
+    std::string deepPrefix(JSON_SAFE_MAX_DEPTH + 1, '[');
+    std::string deepSuffix(JSON_SAFE_MAX_DEPTH + 1, ']');
+    EXPECT_FALSE(SafeParse(deepPrefix + R"("deep")" + deepSuffix, jsonObject));
 }
 
 /**
