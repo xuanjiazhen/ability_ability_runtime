@@ -105,7 +105,7 @@ bool InsightIntentSysEventReceiver::SaveInsightIntentInfos(const std::string &bu
     }
 
     // save database in one batch
-    ret = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->SaveInsightIntentTotalInfos(
+    ret = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->SaveBatchInsightIntentTotalInfo(
         bundleName, userId, versionCode, saveParams);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "save intent infos failed, bundleName: %{public}s, userId: %{public}d, "
