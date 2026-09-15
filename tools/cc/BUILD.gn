@@ -20,7 +20,6 @@ config("cc_command_config") {
     "include",
     "${ability_runtime_innerkits_path}/ability_manager/include",
     "${ability_runtime_innerkits_path}/app_manager/include/appmgr",
-    "${ability_runtime_services_path}/abilitymgr/include",
   ]
 }
 
@@ -47,8 +46,6 @@ ohos_static_library("tools_cc_source_set") {
   public_configs = [
     ":cc_command_config",
     ":cc_command_exception_config",
-    "${ability_runtime_services_path}/abilitymgr:abilityms_config",
-    "${ability_runtime_services_path}/common:common_config",
   ]
 
   cflags = []
@@ -73,6 +70,10 @@ ohos_static_library("tools_cc_source_set") {
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_config",
+    "${ability_runtime_services_path}/common:common_config",
+  ]
 }
 
 ohos_cli_executable("ohos-claw-cc") {
