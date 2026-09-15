@@ -53,8 +53,6 @@ ohos_static_library("ohos_agent_cli_source_set") {
   public_configs = [
     ":ohos_agent_command_config",
     ":ohos_agent_command_exception_config",
-    "${ability_runtime_services_path}/abilitymgr:abilityms_config",
-    "${ability_runtime_services_path}/common:common_config",
   ]
 
   cflags = []
@@ -95,6 +93,10 @@ ohos_static_library("ohos_agent_cli_source_set") {
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
+  configs = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_config",
+    "${ability_runtime_services_path}/common:common_config",
+  ]
 }
 
 ohos_cli_executable("ohos-agent") {

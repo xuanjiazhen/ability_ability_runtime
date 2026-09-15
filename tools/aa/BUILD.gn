@@ -18,8 +18,6 @@ config("ability_command_config") {
   include_dirs = [
     "include",
     "${ability_runtime_innerkits_path}/app_manager/include/appmgr",
-    "${ability_runtime_services_path}/abilitymgr/include/utils",
-    "${ability_runtime_services_path}/abilitymgr/include",
   ]
 }
 
@@ -46,8 +44,6 @@ ohos_static_library("tools_aa_source_set") {
   public_configs = [
     ":ability_command_config",
     ":ability_command_exception_config",
-    "${ability_runtime_services_path}/abilitymgr:abilityms_config",
-    "${ability_runtime_services_path}/common:common_config",
   ]
 
   cflags = []
@@ -87,7 +83,11 @@ ohos_static_library("tools_aa_source_set") {
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
-  configs = [ "${ability_runtime_services_path}/common:size_optimize_config" ]
+  configs = [
+    "${ability_runtime_services_path}/abilitymgr:abilityms_config",
+    "${ability_runtime_services_path}/common:common_config",
+    "${ability_runtime_services_path}/common:size_optimize_config",
+  ]
 }
 
 ohos_executable("aa") {
