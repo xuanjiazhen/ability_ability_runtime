@@ -851,8 +851,10 @@ bool PendingWantManager::CheckCallerPermission()
         return false;
     }
     bool isForeground = processInfo.isFocused || processInfo.isAbilityForegrounding ||
-        (!permission->IsSystemAppCall() &&
-            CheckWindowState(callerPid, processInfo.uid_ / BASE_USER_RANGE));
+        CheckWindowState(callerPid, processInfo.uid_ / BASE_USER_RANGE);
+    TAG_LOGI(AAFwkTag::WANTAGENT,
+        "isFocused=%{public}d, isAbilityForegrounding=%{public}d, isSystemApp=%{public}d, isForeground=%{public}d",
+        processInfo.isFocused, processInfo.isAbilityForegrounding, permission->IsSystemAppCall(), isForeground);
     if (!isForeground) {
         TAG_LOGW(AAFwkTag::WANTAGENT, "caller unfocused");
         if (!permission->VerifyCallingPermission(PermissionConstants::PERMISSION_START_ABILITIES_FROM_BACKGROUND) &&
@@ -870,18 +872,24 @@ bool PendingWantManager::CheckWindowState(int32_t pid, int32_t userId)
     auto sceneSessionManager = IN_PROCESS_CALL(
         Rosen::MockSessionManagerService::GetInstance().GetSceneSessionManagerLiteBySA(userId));
     if (sceneSessionManager == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "null manager");
+        TAG_LOGE(AAFwkTag::WANTAGENT, "null manager, userId=%{public}d, pid=%{public}d", userId, pid);
         return false;
     }
     std::vector<Rosen::MainWindowState> windowStates;
     Rosen::WSError ret = sceneSessionManager->GetMainWindowStatesByPid(pid, windowStates);
+    TAG_LOGI(AAFwkTag::WANTAGENT,
+        "GetMainWindowStatesByPid ret=%{public}d, windowCount=%{public}zu, userId=%{public}d, pid=%{public}d",
+        static_cast<int32_t>(ret), windowStates.size(), userId, pid);
     if (ret != Rosen::WSError::WS_OK || windowStates.empty()) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "fail GetWindow");
         return false;
     }
     for (auto &windowState : windowStates) {
+        TAG_LOGI(AAFwkTag::WANTAGENT,
+            "windowState: isForegroundInteractive=%{public}d, isPcOrPadEnableActivation=%{public}d",
+            windowState.isForegroundInteractive_, windowState.isPcOrPadEnableActivation_);
         if (!windowState.isPcOrPadEnableActivation_ && !windowState.isForegroundInteractive_) {
-            TAG_LOGI(AAFwkTag::WANTAGENT, "window interactive");
+            TAG_LOGI(AAFwkTag::WANTAGENT, "window not interactive");
             return false;
         }
     }
