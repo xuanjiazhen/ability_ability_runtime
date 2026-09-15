@@ -907,6 +907,18 @@ HWTEST_F(AbilityPermissionUtilTest, GetClosestHapTokenId_0400, TestSize.Level2)
 }
 
 /**
+ * @tc.name: GetUserIdByTokenId_0100
+ * @tc.desc: tokenId 0 (invalid) -> ERR_INVALID_VALUE, out-param untouched on failure
+ */
+HWTEST_F(AbilityPermissionUtilTest, GetUserIdByTokenId_0100, TestSize.Level2)
+{
+    uint32_t tokenId = 0;
+    int32_t userId = 12345; // ensure it stays untouched on failure
+    EXPECT_EQ(AbilityPermissionUtil::GetInstance().GetUserIdByTokenId(tokenId, userId), ERR_INVALID_VALUE);
+    EXPECT_EQ(userId, 12345);
+}
+
+/**
  * @tc.name: StartSelfUIAbilityRecordGuard_0100
  * @tc.desc: StartSelfUIAbilityRecordGuard_0100 Test
  * @tc.type: FUNC
