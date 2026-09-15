@@ -134,6 +134,25 @@ bool PermissionVerification::CheckSpecificSystemAbilityAccessPermission(const st
     return true;
 }
 
+bool PermissionVerification::CheckSpecificSystemAbilityAccessPermission(
+    const std::set<std::string> &processNames) const
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::DEFAULT, "called");
+    if (!IsSACall()) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "verify fail");
+        return false;
+    }
+    auto callerToken = GetCallingTokenID();
+    Security::AccessToken::NativeTokenInfo nativeTokenInfo;
+    int32_t result = Security::AccessToken::AccessTokenKit::GetNativeTokenInfo(callerToken, nativeTokenInfo);
+    if (result != ERR_OK || processNames.find(nativeTokenInfo.processName) == processNames.end()) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "check process fail");
+        return false;
+    }
+    return true;
+}
+
 bool PermissionVerification::CheckObserverCallerPermission() const
 {
     TAG_LOGD(AAFwkTag::DEFAULT, "called");

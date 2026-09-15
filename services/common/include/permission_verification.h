@@ -20,6 +20,8 @@
 #include "singleton.h"
 #include "want.h"
 
+#include <set>
+
 namespace OHOS {
 namespace AAFwk {
 class PermissionVerification : public DelayedSingleton<PermissionVerification> {
@@ -54,6 +56,7 @@ struct VerificationInfo {
     bool IsShellCallByTokenId(uint32_t callerTokenId) const;
 
     bool CheckSpecificSystemAbilityAccessPermission(const std::string &processName) const;
+    bool CheckSpecificSystemAbilityAccessPermission(const std::set<std::string> &processNames) const;
 
     bool CheckObserverCallerPermission() const;
 
