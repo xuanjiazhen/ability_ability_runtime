@@ -172,7 +172,7 @@ ToolInfo BuildSubCommandToolInfo(const std::string &name, const std::string &sub
 
 /**
  * @tc.name: ToolUtil_ParseToolCommand_KeyEqualsValue_0100
- * @tc.desc: Test ParseToolCommand with --key=value format
+ * @tc.desc: Test ParseToolCommand rejects --key=value format (only --key value is supported)
  * @tc.type: FUNC
  */
 HWTEST_F(ToolUtilTest, ParseToolCommand_KeyEqualsValue_0100, TestSize.Level1)
@@ -180,9 +180,9 @@ HWTEST_F(ToolUtilTest, ParseToolCommand_KeyEqualsValue_0100, TestSize.Level1)
     auto toolInfo = BuildParseToolInfo("ohos-aa", R"({"properties":{"bundleName":{"type":"string"}}})");
     ExecToolParam param;
     std::string detail;
-    EXPECT_EQ(ToolUtil::ParseToolCommand("ohos-aa --bundleName=com.example", toolInfo, param, detail), ERR_OK);
-    EXPECT_EQ(param.toolName, "ohos-aa");
-    EXPECT_NE(param.args.GetParam("bundleName"), nullptr);
+    // --key=value format is not supported
+    EXPECT_EQ(ToolUtil::ParseToolCommand("ohos-aa --bundleName=com.example", toolInfo, param, detail),
+        ERR_INVALID_PARAM);
 }
 
 /**

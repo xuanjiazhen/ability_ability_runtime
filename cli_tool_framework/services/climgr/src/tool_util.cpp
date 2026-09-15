@@ -407,8 +407,11 @@ int32_t ParseArgTokens(const std::vector<std::string> &tokens, size_t start,
             return ERR_INVALID_PARAM;
         }
         std::string flagText = token.substr(FLAG_PREFIX_LEN);
-        auto eqPos = flagText.find('=');
-        std::string key = (eqPos == std::string::npos) ? flagText : flagText.substr(0, eqPos);
+        if (flagText.find('=') != std::string::npos) {
+            detail = DETAIL_PARAM_NOT_FOUND;
+            return ERR_INVALID_PARAM;
+        }
+        const std::string &key = flagText;
         if (key.empty()) {
             detail = DETAIL_PARAM_NOT_FOUND;
             return ERR_INVALID_PARAM;
@@ -422,12 +425,6 @@ int32_t ParseArgTokens(const std::vector<std::string> &tokens, size_t start,
         if (!properties.contains(key)) {
             detail = DETAIL_PARAM_NOT_FOUND;
             return ERR_INVALID_PARAM;
-        }
-        // --key=value
-        if (eqPos != std::string::npos) {
-            parsed.values[key].push_back(flagText.substr(eqPos + 1));
-            ++i;
-            continue;
         }
         // --key with no inline value: decide whether it takes a value or is a boolean flag.
         bool isBool = IsBooleanSchema(properties, key);
@@ -620,6 +617,8 @@ int32_t ToolUtil::ParseToolCommand(const std::string &cmd, const ToolInfo &toolI
     // Stage 2: resolve subcommand.
     SubCommandResult subResult;
     if (auto ret = ResolveSubCommand(tokens, toolInfo, subResult, detail); ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "resolve subcommand failed, tool=%{public}s, detail=%{public}s",
+            toolName.c_str(), detail.c_str());
         return ret;
     }
     param.subcommand = std::move(subResult.subcommand);

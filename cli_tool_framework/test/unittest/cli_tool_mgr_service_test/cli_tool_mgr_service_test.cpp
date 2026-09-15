@@ -3502,7 +3502,7 @@ HWTEST_F(CliToolManagerServiceTest, ExecCmd_DefaultShellDispatch_0100, TestSize.
 
 /**
  * @tc.name: CliToolManagerService_ExecCmd_CmdTooLong_0100
- * @tc.desc: Test ExecCmd rejects oversized cmd in shell mode before scheduler registration
+ * @tc.desc: Test ExecCmd rejects oversized cmd in tool command mode before tool lookup
  * @tc.type: FUNC
  */
 HWTEST_F(CliToolManagerServiceTest, ExecCmd_CmdTooLong_0100, TestSize.Level1)
@@ -3511,6 +3511,7 @@ HWTEST_F(CliToolManagerServiceTest, ExecCmd_CmdTooLong_0100, TestSize.Level1)
 
     ExecCmdParam param;
     param.cmd = std::string(MAX_CMD_LENGTH + 1, 'a');
+    param.isShellCommand = false;
     sptr<TestScheduler> scheduler = new TestScheduler();
     int32_t result = service_->ExecCmd(param, "event_cmd_too_long", scheduler, "sub_cmd_too_long");
     EXPECT_TRUE(result == ERR_INVALID_PARAM || IsPermissionGateResult(result));
