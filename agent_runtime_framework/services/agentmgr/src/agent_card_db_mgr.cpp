@@ -26,7 +26,7 @@ namespace AgentRuntime {
 namespace {
 constexpr int32_t CHECK_INTERVAL = 100000; // 100ms
 constexpr int32_t MAX_TIMES = 5;           // 5 * 100ms = 500ms
-constexpr const char *KEEP_ALIVE_STORAGE_DIR = "/data/service/el1/public/database/ability_manager_service";
+constexpr const char *KEEP_ALIVE_STORAGE_DIR = "/data/service/el1/public/database/aimgr";
 const std::string JSON_KEY_BUNDLE_NAME = "bundleName";
 const std::string JSON_KEY_CARD = "card";
 const std::string JSON_KEY_CARDS = "cards";

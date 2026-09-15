@@ -88,6 +88,11 @@ const bool REGISTER_RESULT = SystemAbility::MakeAndRegisterAbility(AgentManagerS
 constexpr int32_t BASE_USER_RANGE = 200000;
 constexpr const char *AGENT_CONNECT_PREFLIGHT_CLEANUP_TASK = "AgentConnectPreflightCleanup";
 constexpr const char *FOUNDATION_PROCESS_NAME = "foundation";
+constexpr const char *AGENTMGR_PROCESS_NAME = "aimgr";
+const std::set<std::string> AGENT_CONFIRM_CALLERS = {
+    FOUNDATION_PROCESS_NAME,
+    AGENTMGR_PROCESS_NAME,
+};
 
 sptr<AgentManagerService> AgentManagerService::GetInstance()
 {
@@ -1154,8 +1159,8 @@ int32_t AgentManagerService::VerifyAgentConnectRequest(const AAFwk::Want &want,
     const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity)
 {
     if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
-        FOUNDATION_PROCESS_NAME)) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "non-foundation AMS confirmation caller");
+        AGENT_CONFIRM_CALLERS)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "non-foundation/aimgr AMS confirmation caller");
         return AAFwk::CHECK_PERMISSION_FAILED;
     }
     if (connection == nullptr) {
@@ -1173,8 +1178,8 @@ int32_t AgentManagerService::VerifyAgentDisconnectRequests(const std::vector<AAF
     const sptr<AAFwk::IAbilityConnection> &connection, std::string &callerIdentity)
 {
     if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
-        FOUNDATION_PROCESS_NAME)) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "non-foundation AMS confirmation caller");
+        AGENT_CONFIRM_CALLERS)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "non-foundation/aimgr AMS confirmation caller");
         return AAFwk::CHECK_PERMISSION_FAILED;
     }
     if (connection == nullptr || wants.empty()) {

@@ -48,8 +48,16 @@ public:
 
 class AgentAbilityUtilTest : public testing::Test {
 public:
-    void SetUp() override { g_mockGrantFoundationPermission = false; }
-    void TearDown() override { g_mockGrantFoundationPermission = false; }
+    void SetUp() override
+    {
+        g_mockGrantFoundationPermission = false;
+        g_lastCheckedProcessNames.clear();
+    }
+    void TearDown() override
+    {
+        g_mockGrantFoundationPermission = false;
+        g_lastCheckedProcessNames.clear();
+    }
 };
 
 // ===================== IsAgentExtensionType =====================
@@ -264,6 +272,33 @@ HWTEST_F(AgentAbilityUtilTest, CheckAgentConnectEntryAgentAcceptsFixedWidthNonce
     AgentAbilityUtil::SetAgentVerificationNonceParam(want, nonce);
 
     EXPECT_EQ(AgentAbilityUtil::CheckAgentConnectEntry(want, ExtensionAbilityType::AGENT), ERR_OK);
+}
+
+HWTEST_F(AgentAbilityUtilTest, CheckAgentConnectEntryAgentUsesFoundationAndAimgrProcessSet, TestSize.Level1)
+{
+    g_mockGrantFoundationPermission = true;
+    g_lastCheckedProcessNames.clear();
+    Want want;
+    want.SetParam(AGENTID_KEY, std::string("agent-1"));
+    want.SetParam(AGENT_CARD_TYPE_KEY, static_cast<int32_t>(AgentCardType::APP));
+    sptr<IRemoteObject> hostProxy = sptr<AgentAbilityUtilRemoteObject>::MakeSptr();
+    want.SetParam(AGENTEXTENSIONHOSTPROXY_KEY, hostProxy);
+    AgentAbilityUtil::SetAgentVerificationNonceParam(want, 1L);
+
+    EXPECT_EQ(AgentAbilityUtil::CheckAgentConnectEntry(want, ExtensionAbilityType::AGENT), ERR_OK);
+    EXPECT_TRUE(g_lastCheckedProcessNames.count("foundation") > 0);
+    EXPECT_TRUE(g_lastCheckedProcessNames.count("aimgr") > 0);
+}
+
+HWTEST_F(AgentAbilityUtilTest, CheckAgentConnectEntryAgentDenyStillConsultsFoundationAndAimgrSet, TestSize.Level1)
+{
+    g_mockGrantFoundationPermission = false;
+    g_lastCheckedProcessNames.clear();
+    Want want;
+    EXPECT_EQ(AgentAbilityUtil::CheckAgentConnectEntry(want, ExtensionAbilityType::AGENT),
+        CHECK_PERMISSION_FAILED);
+    EXPECT_TRUE(g_lastCheckedProcessNames.count("foundation") > 0);
+    EXPECT_TRUE(g_lastCheckedProcessNames.count("aimgr") > 0);
 }
 
 // ===================== CheckConnectAgentResolvedTarget =====================
