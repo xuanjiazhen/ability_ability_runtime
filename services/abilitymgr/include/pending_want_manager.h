@@ -19,6 +19,7 @@
 #include <mutex>
 #include <memory>
 #include <map>
+#include <set>
 #include <vector>
 #include <string>
 #include "cpp/mutex.h"
@@ -207,6 +208,11 @@ private:
     static int32_t PendingRecordIdCreate();
     void ClearPendingWantRecordTask(const std::string &bundleName, int32_t uid);
 
+    sptr<PendingWantRecord> ResolveRecord(const sptr<IWantSender> &target);
+    void MarkSharedIfNeeded(PendingWantRecord *record);
+    std::vector<sptr<PendingWantRecord>> TransferSharedRecordsOnDeath(
+        const std::string &bundleName, int32_t pid);
+
     bool CheckCallerPermission();
 
     bool CheckWindowState(int32_t pid);
@@ -216,6 +222,7 @@ private:
     std::shared_ptr<TaskHandlerWrap> taskHandler_;
     std::unordered_map<std::string, AgentCount> wantAgentCount_;
     std::map<std::shared_ptr<PendingWantKey>, sptr<PendingWantRecord>> wantRecords_;
+    std::unordered_map<int32_t, std::set<std::shared_ptr<PendingWantKey>>> pidToWantRecords_;
     ffrt::mutex mutex_;
     ffrt::mutex countMutex_;
 };

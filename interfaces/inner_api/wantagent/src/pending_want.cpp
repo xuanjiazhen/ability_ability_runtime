@@ -21,6 +21,8 @@
 #include "want_agent_client.h"
 #include "want_sender_info.h"
 
+#include <thread>
+
 using namespace OHOS::AppExecFwk;
 using namespace OHOS::AAFwk;
 using namespace OHOS::AbilityRuntime;
@@ -465,6 +467,12 @@ PendingWant *PendingWant::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
     pendingWant->SetTarget(target);
+
+    auto targetCopy = target;
+    std::thread holderTask([targetCopy]() {
+        WantAgentClient::GetInstance().RegisterWantAgentHolder(targetCopy);
+    });
+    holderTask.detach();
 
     return pendingWant;
 }

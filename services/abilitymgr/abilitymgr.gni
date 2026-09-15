@@ -59,6 +59,7 @@ abilityms_files = [
   "src/pending_want_record.cpp",
   "src/pending_want_key.cpp",
   "src/pending_want_manager.cpp",
+  "src/pending_want_global_manager.cpp",
   "src/pending_want_common_event.cpp",
   "src/restart_app_manager.cpp",
   "src/ams_configuration_parameter.cpp",

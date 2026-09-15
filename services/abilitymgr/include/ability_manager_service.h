@@ -43,6 +43,7 @@
 #include "app_exit_reason_helper.h"
 #include "app_mgr_interface.h"
 #include "app_scheduler.h"
+#include "application_state_observer_stub.h"
 #include "auto_startup_info.h"
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
 #include "background_task_observer.h"
@@ -1171,6 +1172,12 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int GetWantSenderInfo(const sptr<IWantSender> &target, std::shared_ptr<WantSenderInfo> &info) override;
+
+    /**
+     * @brief Register the holder of a want sender for shared detection.
+     * @param target The target want sender.
+     */
+    virtual void RegisterWantAgentHolder(const sptr<IWantSender> &target) override;
 
     /**
      * @brief Register an observer for connection state changes.
@@ -2793,6 +2800,18 @@ protected:
     void OnStartProcessFailed(const std::vector<sptr<IRemoteObject>> &abilityTokens) override;
 
     /**
+     * @brief Handle want agent death cleanup for a died app process.
+     * @param bundleName the died app's bundle name.
+     * @param pid the died app process pid.
+     */
+    void HandleWantAgentAppDied(const std::string &bundleName, int32_t pid);
+
+    /**
+     * @brief Init the want agent app state observer.
+     */
+    void InitWantAgentAppStateObserver();
+
+    /**
      * @brief Notify one ability is being terminated.
      * @param token ability token.
      */
@@ -3627,6 +3646,30 @@ private:
     std::shared_ptr<FreeInstallManager> freeInstallManager_;
     std::shared_ptr<SubManagersHelper> subManagersHelper_;
     sptr<AppExecFwk::IAbilityController> abilityController_ = nullptr;
+
+    class WantAgentAppStateObserver final : public AppExecFwk::ApplicationStateObserverStub {
+    public:
+        explicit WantAgentAppStateObserver(std::shared_ptr<SubManagersHelper> subHelper)
+            : subHelper_(subHelper) {}
+        ~WantAgentAppStateObserver() = default;
+        void OnForegroundApplicationChanged(const AppExecFwk::AppStateData &appStateData) override {}
+        void OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData) override {}
+        void OnExtensionStateChanged(const AppExecFwk::AbilityStateData &abilityStateData) override {}
+        void OnProcessCreated(const AppExecFwk::ProcessData &processData) override {}
+        void OnProcessStateChanged(const AppExecFwk::ProcessData &processData) override {}
+        void OnApplicationStateChanged(const AppExecFwk::AppStateData &appStateData) override {}
+        void OnProcessDied(const AppExecFwk::ProcessData &processData) override
+        {
+            auto helper = subHelper_.lock();
+            if (helper) {
+                helper->HandlePendingWantDeathCleanup(
+                    processData.bundleName, processData.pid);
+            }
+        }
+    private:
+        std::weak_ptr<SubManagersHelper> subHelper_;
+    };
+    sptr<WantAgentAppStateObserver> wantAgentAppStateObserver_;
 
     std::multimap<std::string, std::string> timeoutMap_;
     std::map<std::string, sptr<SessionInfo>> preStartSessionMap_;
