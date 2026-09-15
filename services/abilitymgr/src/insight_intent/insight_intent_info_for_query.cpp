@@ -17,7 +17,7 @@
 
 #include "string_wrapper.h"
 #include "hilog_tag_wrapper.h"
-#include "intent_json_safe_get.h"
+#include "json_safe_util.h"
 #include "json_util.h"
 
 namespace OHOS {
@@ -28,7 +28,7 @@ namespace {
 int32_t g_parseResult = ERR_OK;
 constexpr size_t MAX_IPC_REWDATA_SIZE = 100 * 1024 * 1024;      // max ipc size 100MB
 std::mutex g_extraMutex;
-constexpr int32_t MAX_INTENT_SIZE = 10000;
+constexpr int32_t MAX_INTENT_SIZE = 100000;
 
 const std::map<AppExecFwk::ExecuteMode, std::string> EXECUTE_MODE_STRING_MAP = {
     {AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND, "UI_ABILITY_FOREGROUND"},
@@ -122,8 +122,9 @@ void FillExecuteModesFromJson(const nlohmann::json &modeArray,
         if (it != modeMap.end()) {
             outModes.push_back(it->second);
         } else {
-            TAG_LOGW(AAFwkTag::INTENT, "Unknown ExecuteMode: %{public}s",
-                SafeDump(modeStr, DUMP_TOKEN_MAX_LEN).c_str());
+            std::string modeDump;
+            SafeDump(modeStr, modeDump, DUMP_TOKEN_MAX_LEN);
+            TAG_LOGW(AAFwkTag::INTENT, "Unknown ExecuteMode: %{public}s", modeDump.c_str());
         }
     }
 }
@@ -375,7 +376,9 @@ void ProcessIntputParams(const nlohmann::json &jsonObject,
             g_parseResult = ERR_INVALID_VALUE;
             break;
         }
-        insightIntentInfo.inputParams.emplace_back(SafeDump(param));
+        std::string inputParamDump;
+        SafeDump(param, inputParamDump);
+        insightIntentInfo.inputParams.emplace_back(std::move(inputParamDump));
     }
 }
 
@@ -403,7 +406,9 @@ void ProcessOutputParams(const nlohmann::json &jsonObject,
             g_parseResult = ERR_INVALID_VALUE;
             break;
         }
-        insightIntentInfo.outputParams.emplace_back(SafeDump(param));
+        std::string outputParamDump;
+        SafeDump(param, outputParamDump);
+        insightIntentInfo.outputParams.emplace_back(std::move(outputParamDump));
     }
 }
 
@@ -560,7 +565,9 @@ void from_json(const nlohmann::json &jsonObject, InsightIntentInfoForQuery &insi
 
     if (jsonObject.find(INSIGHT_INTENT_ENTITES) != jsonObjectEnd) {
         if (jsonObject.at(INSIGHT_INTENT_ENTITES).is_object()) {
-            insightIntentInfo.cfgEntities = SafeDump(jsonObject[INSIGHT_INTENT_ENTITES]);
+            std::string cfgEntitiesDump;
+            SafeDump(jsonObject[INSIGHT_INTENT_ENTITES], cfgEntitiesDump);
+            insightIntentInfo.cfgEntities = std::move(cfgEntitiesDump);
         } else {
             TAG_LOGE(AAFwkTag::INTENT, "type error: cfgEntities not object");
             g_parseResult = ERR_INVALID_VALUE;
@@ -614,8 +621,8 @@ void toJsonArray(nlohmann::json& jsonObject, const InsightIntentInfoForQuery &in
         if (paramStr.empty()) {
             continue;
         }
-        auto paramJson = nlohmann::json::parse(paramStr, nullptr, false);
-        if (!paramJson.is_discarded()) {
+        nlohmann::json paramJson;
+        if (SafeParse(paramStr, paramJson)) {
             inputArray.emplace_back(paramJson);
         }
     }
@@ -625,8 +632,8 @@ void toJsonArray(nlohmann::json& jsonObject, const InsightIntentInfoForQuery &in
         if (paramStr.empty()) {
             continue;
         }
-        auto paramJson = nlohmann::json::parse(paramStr, nullptr, false);
-        if (!paramJson.is_discarded()) {
+        nlohmann::json paramJson;
+        if (SafeParse(paramStr, paramJson)) {
             outputArray.emplace_back(paramJson);
         }
     }
@@ -666,8 +673,8 @@ void to_json(nlohmann::json& jsonObject, const InsightIntentInfoForQuery &info)
     };
     toJsonArray(jsonObject, info);
     if (!info.cfgEntities.empty()) {
-        auto cfgEntities = nlohmann::json::parse(info.cfgEntities, nullptr, false);
-        if (cfgEntities.is_discarded()) {
+        nlohmann::json cfgEntities;
+        if (!SafeParse(info.cfgEntities, cfgEntities)) {
             TAG_LOGE(AAFwkTag::INTENT, "discarded entity parameters");
             return;
         }
@@ -698,8 +705,8 @@ bool InsightIntentInfoForQuery::ReadFromParcel(Parcel &parcel)
         return false;
     }
     TAG_LOGD(AAFwkTag::INTENT, "ReadFromParcel data: %{public}s", data);
-    nlohmann::json jsonObject = nlohmann::json::parse(data, nullptr, false);
-    if (jsonObject.is_discarded()) {
+    nlohmann::json jsonObject;
+    if (!SafeParse(data, jsonObject)) {
         TAG_LOGE(AAFwkTag::INTENT, "failed to parse BundleInfo");
         return false;
     }
@@ -728,8 +735,8 @@ bool InsightIntentInfoForQuery::Marshalling(Parcel &parcel) const
     }
     nlohmann::json jsonObject = *this;
     std::string str;
-    if (!SafeDumpTo(jsonObject, str)) {
-        TAG_LOGE(AAFwkTag::INTENT, "SafeDumpTo failed");
+    if (!SafeDump(jsonObject, str)) {
+        TAG_LOGE(AAFwkTag::INTENT, "SafeDump failed");
         return false;
     }
     if (str.size() + 1 > MAX_IPC_REWDATA_SIZE) {
@@ -776,8 +783,8 @@ bool InsightIntentInfoForQuery::MarshallingVector(
         jsonArray.push_back(item);
     }
     std::string str;
-    if (!SafeDumpTo(jsonArray, str)) {
-        TAG_LOGE(AAFwkTag::INTENT, "SafeDumpTo failed");
+    if (!SafeDump(jsonArray, str)) {
+        TAG_LOGE(AAFwkTag::INTENT, "SafeDump failed");
         return false;
     }
     TAG_LOGD(AAFwkTag::INTENT, "MarshallingVector size: %{public}zu", str.size());
@@ -818,8 +825,8 @@ bool InsightIntentInfoForQuery::UnmarshallingVector(
         TAG_LOGE(AAFwkTag::INTENT, "Fail read raw length = %{public}u", length);
         return false;
     }
-    nlohmann::json jsonArray = nlohmann::json::parse(data, nullptr, false);
-    if (jsonArray.is_discarded() || !jsonArray.is_array() || jsonArray.size() >= MAX_INTENT_SIZE) {
+    nlohmann::json jsonArray;
+    if (!SafeParse(data, jsonArray) || !jsonArray.is_array() || jsonArray.size() >= MAX_INTENT_SIZE) {
         TAG_LOGE(AAFwkTag::INTENT, "Failed to parse JSON array");
         return false;
     }
