@@ -18,7 +18,7 @@
 #include <sstream>
 
 #include "hilog_tag_wrapper.h"
-#include "intent_json_safe_get.h"
+#include "json_safe_util.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -44,6 +44,28 @@ std::vector<std::string> SplitStringBySlash(const std::string& inputStr)
         result.push_back(tempStr);
     }
     return result;
+}
+
+int32_t InsightRdbStorageMgr::LoadInsightIntentBundleInfos(const int32_t userId,
+    std::map<std::string, std::string> &bundleVersionMap)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "Load intent bundle infos for userId:%{public}d", userId);
+    std::unordered_map<std::string, std::string> value;
+    std::string key = std::to_string(userId).append("/");
+    bool result = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance()->QueryDataBeginWithKey(key, value);
+    if (!result) {
+        TAG_LOGE(AAFwkTag::INTENT, "get entries error");
+        return ERR_INVALID_VALUE;
+    }
+    for (const auto &item : value) {
+        std::vector<std::string> res = SplitStringBySlash(item.first);
+        if (res.size() < INTENT_KEY_LENGTH) {
+            TAG_LOGW(AAFwkTag::INTENT, "invalid intent key");
+            continue;
+        }
+        bundleVersionMap[res[BUNDLE_NAME]] = res[VERSION];
+    }
+    return ERR_OK;
 }
 
 int32_t InsightRdbStorageMgr::LoadInsightIntentInfos(const int32_t userId,
@@ -230,7 +252,7 @@ int32_t InsightRdbStorageMgr::SaveStorageInsightIntentData(const std::string &bu
             return ERR_INVALID_VALUE;
         }
         std::string value;
-        if (!SafeDumpTo(jsonObject, value)) {
+        if (!SafeDump(jsonObject, value)) {
             TAG_LOGE(AAFwkTag::INTENT, "dump error, key: %{private}s", key.c_str());
             return ERR_INVALID_VALUE;
         }
@@ -250,7 +272,7 @@ int32_t InsightRdbStorageMgr::SaveStorageInsightIntentData(const std::string &bu
             return ERR_INVALID_VALUE;
         }
         std::string value;
-        if (!SafeDumpTo(jsonObject, value)) {
+        if (!SafeDump(jsonObject, value)) {
             TAG_LOGE(AAFwkTag::INTENT, "dump error, key: %{private}s", key.c_str());
             return ERR_INVALID_VALUE;
         }
@@ -278,7 +300,7 @@ int32_t InsightRdbStorageMgr::SaveStorageInsightIntentDataBatch(const std::strin
                 return ERR_INVALID_VALUE;
             }
             std::string value;
-            if (!SafeDumpTo(jsonObject, value)) {
+            if (!SafeDump(jsonObject, value)) {
                 TAG_LOGE(AAFwkTag::INTENT, "dump error, key: %{private}s", key.c_str());
                 return ERR_INVALID_VALUE;
             }
@@ -296,7 +318,7 @@ int32_t InsightRdbStorageMgr::SaveStorageInsightIntentDataBatch(const std::strin
                 return ERR_INVALID_VALUE;
             }
             std::string value;
-            if (!SafeDumpTo(jsonObject, value)) {
+            if (!SafeDump(jsonObject, value)) {
                 TAG_LOGE(AAFwkTag::INTENT, "dump error, key: %{private}s", key.c_str());
                 return ERR_INVALID_VALUE;
             }
