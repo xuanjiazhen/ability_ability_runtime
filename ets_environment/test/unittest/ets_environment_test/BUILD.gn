@@ -48,6 +48,8 @@ template("ets_environment_test_template") {
       "hilog:libhilog",
       "napi:ace_napi",
       "runtime_core:ani",
+      "ability_base:extractortool",
+      "zlib:shared_libz",
     ]
   }
 }
