@@ -52,6 +52,10 @@ EtsUIExtensionCallback::~EtsUIExtensionCallback()
         env->GlobalReference_Delete(completionHandler_);
         completionHandler_ = nullptr;
     }
+    if (asyncCallback_ != nullptr) {
+        env->GlobalReference_Delete(asyncCallback_);
+        asyncCallback_ = nullptr;
+    }
 }
 
 void EtsUIExtensionCallback::OnError(int32_t number)
@@ -84,6 +88,53 @@ void EtsUIExtensionCallback::OnError(int32_t number)
     }
     CallObjectMethod("onError", nullptr, number, aniName, aniMsg);
     CloseModalUIExtension();
+}
+
+void EtsUIExtensionCallback::OnAbilityByTypeResult(int32_t errorCode)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "OnAbilityByTypeResult call, errorCode: %{public}d", errorCode);
+    InvokeAsyncCallback(errorCode);
+#ifdef SUPPORT_SCREEN
+    CloseModalUIExtension();
+#endif
+}
+
+void EtsUIExtensionCallback::SetAsyncCallback(ani_env *env, ani_object asyncCallback)
+{
+    if (env == nullptr || asyncCallback == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "invalid parameters");
+        return;
+    }
+    if (asyncCallback_ != nullptr) {
+        env->GlobalReference_Delete(asyncCallback_);
+        asyncCallback_ = nullptr;
+    }
+    ani_ref asyncCallbackRef = nullptr;
+    ani_status status = env->GlobalReference_Create(asyncCallback, &asyncCallbackRef);
+    if (status == ANI_OK) {
+        asyncCallback_ = asyncCallbackRef;
+    } else {
+        TAG_LOGE(AAFwkTag::UI_EXT, "GlobalReference_Create failed, status: %{public}d", status);
+    }
+}
+
+void EtsUIExtensionCallback::InvokeAsyncCallback(int32_t errCode)
+{
+    if (asyncCallback_ == nullptr) {
+        return;
+    }
+    auto env = GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
+        return;
+    }
+    ani_object errorObj = nullptr;
+    if (errCode != 0) {
+        errorObj = EtsErrorUtil::CreateErrorByNativeErr(env, errCode);
+    }
+    AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(asyncCallback_), errorObj, nullptr);
+    env->GlobalReference_Delete(asyncCallback_);
+    asyncCallback_ = nullptr;
 }
 
 void EtsUIExtensionCallback::OnResult(int32_t resultCode, const AAFwk::Want &want)
@@ -270,7 +321,7 @@ void EtsUIExtensionCallback::OnRequestFailure(const std::string& name,
     ani_status status = ANI_ERROR;
     ani_ref funRef;
     if ((status = env->Object_GetFieldByName_Ref(reinterpret_cast<ani_object>(completionHandler_),
-        "OnRequestFailure", &funRef)) != ANI_OK) {
+        "onRequestFailure", &funRef)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "Object_GetFieldByName_Ref failed");
         return;
     }

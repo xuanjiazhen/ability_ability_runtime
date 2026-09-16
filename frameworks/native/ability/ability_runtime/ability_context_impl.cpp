@@ -15,8 +15,11 @@
 
 #include "ability_context_impl.h"
 
+#include <atomic>
+
 #include <native_engine/native_engine.h>
 
+#include "ability_business_error.h"
 #include "ability_manager_client.h"
 #include "app_utils.h"
 #include "application_configuration_manager.h"
@@ -1230,13 +1233,29 @@ ErrCode AbilityContextImpl::StartAbilityByType(
         want.SetFlags(flag);
         wantParams.Remove(FLAG_AUTH_READ_URI_PERMISSION);
     }
+    auto errorFired = std::make_shared<std::atomic<bool>>(false);
     Ace::ModalUIExtensionCallbacks callback;
     if (uiExtensionCallback == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null uiExtensionCallback");
         return ERR_INVALID_VALUE;
     }
-    callback.onError = [uiExtensionCallback](int32_t arg, const std::string &str1, const std::string &str2) {
+    callback.onError = [uiExtensionCallback](int32_t arg, const std::string &str1,
+        const std::string &str2) {
         uiExtensionCallback->OnError(arg);
+    };
+    callback.onAbilityErrorCode = [uiExtensionCallback, errorFired](int32_t errorCode,
+        const Ace::UIExtensionOperationPhase& phase) {
+        if (phase != Ace::UIExtensionOperationPhase::FOREGROUND) {
+            return;
+        }
+        bool expected = false;
+        if (!errorFired->compare_exchange_strong(expected, true)) {
+            if (errorCode != 0) {
+                TAG_LOGW(AAFwkTag::CONTEXT, "error %{public}d dropped, callback already fired", errorCode);
+            }
+            return;
+        }
+        uiExtensionCallback->OnAbilityByTypeResult(errorCode);
     };
     callback.onRelease = [uiExtensionCallback](int32_t arg) {
         uiExtensionCallback->OnRelease(arg);
