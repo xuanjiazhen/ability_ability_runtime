@@ -429,6 +429,7 @@ std::vector<std::shared_ptr<SessionRecord>> CliToolManagerService::GetSessionRec
 
 void CliToolManagerService::RemoveSessionRecord(const std::string &sessionId)
 {
+    EventDispatcher::GetInstance().UnregisterTraceIds(sessionId);
     std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
     sessionRecords_.erase(sessionId);
 }
@@ -969,6 +970,8 @@ int32_t CliToolManagerService::SetupAndStartSession(const ExecToolParam &param, 
         return createRet;
     }
     AddSessionRecord(record);
+    EventDispatcher::GetInstance().RegisterTraceIds(
+        record->sessionId, record->toolCallId, record->dmSessionId);
 
     if (!RegisterSessionWithMonitors(record, param.options)) {
         ProcessManager::GetInstance().Killpg(record->processId);
@@ -1034,6 +1037,13 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
     InterfaceCallCounter counter(interfaceCalledCount_);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecTool called: toolName=%{public}s, subcommand=%{public}s",
         param.toolName.c_str(), param.subcommand.c_str());
+    // Server-side validation of IPC input: untrusted Parcel data must never reach
+    // logs or child-process environments (empty means "not provided" and is valid).
+    if (!IsValidTraceId(param.options.toolCallId) || !IsValidTraceId(param.options.dmSessionId)) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "ExecTool rejected: invalid trace id, length: %{public}zu/%{public}zu",
+            param.options.toolCallId.length(), param.options.dmSessionId.length());
+        return ERR_INVALID_VALUE;
+    }
 
     std::string bundleName;
     auto tokenId = IPCSkeleton::GetCallingTokenID();
@@ -1047,6 +1057,13 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
     if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
         ReportCliExecuteFailed(bundleName, param.toolName, GetFailureReason(ret));
         return ret;
+    }
+    // Trace-id logging stays behind the permission check: only authenticated
+    // callers may emit identifiers into the service's hilog stream.
+    if (!param.options.toolCallId.empty() || !param.options.dmSessionId.empty()) {
+        TAG_LOGI(AAFwkTag::CLI_TOOL,
+            "ExecTool trace ids: toolCallId=%{public}s, dmSessionId=%{public}s",
+            param.options.toolCallId.c_str(), param.options.dmSessionId.c_str());
     }
     int32_t callerPid = IPCSkeleton::GetCallingPid();
     int32_t callerUid = IPCSkeleton::GetCallingUid();
@@ -1090,6 +1107,12 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecCmd called: cmd=%{private}s", param.cmd.c_str());
+    // Server-side validation of IPC input (see ExecTool).
+    if (!IsValidTraceId(param.options.toolCallId) || !IsValidTraceId(param.options.dmSessionId)) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "ExecCmd rejected: invalid trace id, length: %{public}zu/%{public}zu",
+            param.options.toolCallId.length(), param.options.dmSessionId.length());
+        return ERR_INVALID_VALUE;
+    }
     if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
         return ret;
     }
@@ -1097,6 +1120,12 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
         TAG_LOGE(AAFwkTag::CLI_TOOL, "cmd length %{public}zu exceeds limit %{public}u",
             param.cmd.length(), MAX_CMD_LENGTH);
         return ERR_INVALID_PARAM;
+    }
+    // Trace-id logging stays behind the permission check (see ExecTool).
+    if (!param.options.toolCallId.empty() || !param.options.dmSessionId.empty()) {
+        TAG_LOGI(AAFwkTag::CLI_TOOL,
+            "ExecCmd trace ids: toolCallId=%{public}s, dmSessionId=%{public}s",
+            param.options.toolCallId.c_str(), param.options.dmSessionId.c_str());
     }
     int32_t callerPid = IPCSkeleton::GetCallingPid();
     int32_t callerUid = IPCSkeleton::GetCallingUid();
@@ -1140,11 +1169,15 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
     record->callerBundleName = bundleName;
     record->sessionId = ToolUtil::GenerateCliSessionId("shell", record);
     record->toolName = "shell";
+    record->toolCallId = param.options.toolCallId;
+    record->dmSessionId = param.options.dmSessionId;
     record->timeoutMs = param.options.timeout * COEFFICIENT;
     record->SetState(SessionState::RUNNING);
     record->SetBackground(param.options.background);
     record->eventId = eventId;
     AddSessionRecord(record);
+    EventDispatcher::GetInstance().RegisterTraceIds(
+        record->sessionId, record->toolCallId, record->dmSessionId);
     auto subscribeRet = SubscribeSession(record->sessionId, subscriptionId, scheduler);
     if (subscribeRet != ERR_OK) {
         RemoveSessionRecord(record->sessionId);
@@ -1286,6 +1319,9 @@ void CliToolManagerService::WaitPid(pid_t pid, int32_t status, int32_t sig)
         for (auto iter = sessionRecords_.begin(); iter != sessionRecords_.end();) {
             if (iter->second == nullptr) {
                 std::string sessionId = iter->first;
+                // Registry invariant: keep the trace-id registry consistent with
+                // sessionRecords_ even on the defensive null-record cleanup path.
+                EventDispatcher::GetInstance().UnregisterTraceIds(sessionId);
                 iter = sessionRecords_.erase(iter);
                 TAG_LOGW(AAFwkTag::CLI_TOOL, "delete leak sessionId:%{public}s", sessionId.c_str());
                 continue;
@@ -1419,6 +1455,7 @@ void CliToolManagerService::OnProcessDied(const std::string &bundleName, pid_t d
         bundleObservers_.erase(bundleName);
     }
     std::vector<pid_t> activePids;
+    std::vector<std::string> removedSessionIds;
     // Iterate through sessionRecords_ to find matching SessionRecord by callerPid
     {
         std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
@@ -1426,6 +1463,9 @@ void CliToolManagerService::OnProcessDied(const std::string &bundleName, pid_t d
             auto sessionRecord = iter->second;
             if (sessionRecord == nullptr) {
                 std::string sessionId = iter->first;
+                // Registry invariant: keep the trace-id registry consistent with
+                // sessionRecords_ even on the defensive null-record cleanup path.
+                EventDispatcher::GetInstance().UnregisterTraceIds(sessionId);
                 iter = sessionRecords_.erase(iter);
                 TAG_LOGW(AAFwkTag::CLI_TOOL, "delete leak sessionId:%{public}s", sessionId.c_str());
                 continue;
@@ -1440,8 +1480,13 @@ void CliToolManagerService::OnProcessDied(const std::string &bundleName, pid_t d
             if (sessionRecord->processId > 0 && !sessionRecord->HasProcessExited()) {
                 activePids.emplace_back(sessionRecord->processId);
             }
+            removedSessionIds.emplace_back(iter->first);
             iter = sessionRecords_.erase(iter);
         }
+    }
+
+    for (const auto &sessionId : removedSessionIds) {
+        EventDispatcher::GetInstance().UnregisterTraceIds(sessionId);
     }
 
     for (pid_t pid : activePids) {
@@ -1509,6 +1554,8 @@ std::shared_ptr<SessionRecord> CliToolManagerService::CreateSessionRecord(const 
     }
     record->sessionId = ToolUtil::GenerateCliSessionId(param.toolName, record);
     record->toolName = param.toolName;
+    record->toolCallId = param.options.toolCallId;
+    record->dmSessionId = param.options.dmSessionId;
     record->timeoutMs = param.options.timeout * COEFFICIENT;
     record->SetState(SessionState::RUNNING);
     record->SetBackground(param.options.background);
@@ -1828,6 +1875,8 @@ int32_t CliToolManagerService::SetupAndStartSkillSession(const ExecToolParam &pa
     }
     record->sessionType = SessionType::SKILL;
     AddSessionRecord(record);
+    EventDispatcher::GetInstance().RegisterTraceIds(
+        record->sessionId, record->toolCallId, record->dmSessionId);
 
     auto callerTokenId = IPCSkeleton::GetCallingTokenID();
     auto adaptor = sptr<SkillCallbackAdapter>::MakeSptr(

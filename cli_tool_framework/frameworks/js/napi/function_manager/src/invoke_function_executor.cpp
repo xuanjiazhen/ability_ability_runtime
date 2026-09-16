@@ -23,11 +23,28 @@
 #include "hilog_tag_wrapper.h"
 #include "intent_client.h"
 #include "invoke_function_callback_client.h"
+#include "string_wrapper.h"
 
 namespace OHOS {
 namespace CliTool {
 namespace {
 constexpr int32_t INVOKE_FUNCTION_TIMEOUT_US = 30000000;
+
+// Read a string-typed want parameter; returns an empty string when the key is
+// absent or holds a non-string value.
+std::string GetWantParamString(const AAFwk::WantParams &wantParams, const std::string &key)
+{
+    const auto &params = wantParams.GetParams();
+    auto it = params.find(key);
+    if (it == params.end() || it->second == nullptr) {
+        return "";
+    }
+    auto *iStr = AAFwk::IString::Query(it->second);
+    if (iStr == nullptr) {
+        return "";
+    }
+    return AAFwk::String::Unbox(iStr);
+}
 } // namespace
 
 std::shared_ptr<InvokeFunctionExecutor> InvokeFunctionExecutor::Create()
@@ -93,10 +110,33 @@ void InvokeFunctionExecutor::DoExecute(const std::string &funcNamespace, const s
     // Step 3: Execute
     auto client = std::make_shared<InvokeFunctionCallbackClient>(completed_, callback_);
 
+    // The trace identifiers parsed at the invokeFunction entry ride in wantParams
+    // under the reserved keys; capture them as value copies for the execution-side
+    // trace below.
+    std::string toolCallId = GetWantParamString(wantParams, "ohos.insightIntent.toolCallId");
+    std::string dmSessionId = GetWantParamString(wantParams, "ohos.insightIntent.dmSessionId");
+    if (!toolCallId.empty() || !dmSessionId.empty()) {
+        TAG_LOGI(AAFwkTag::CLI_TOOL,
+            "invokeFunction execute, toolCallId=%{public}s, dmSessionId=%{public}s",
+            toolCallId.c_str(), dmSessionId.c_str());
+    }
+
     AAFwk::ExecuteIntentParam param;
     param.bundleName = funcNamespace;
     param.intentName = functionName;
     param.wantParam = wantParams;
+    // Dual injection points, by design (ADR-8): the NAPI layer pre-injects the
+    // validated identifiers into wantParams as the IPC transport; this executor
+    // re-asserts them right before the intent call as the authoritative injection
+    // point (idempotent SetParam; future non-NAPI callers are covered here).
+    // After the NAPI-layer strip of smuggled reserved keys, the values captured
+    // above can only originate from the validated InvokeOptions.
+    if (!toolCallId.empty()) {
+        param.wantParam.SetParam("ohos.insightIntent.toolCallId", AAFwk::String::Box(toolCallId));
+    }
+    if (!dmSessionId.empty()) {
+        param.wantParam.SetParam("ohos.insightIntent.dmSessionId", AAFwk::String::Box(dmSessionId));
+    }
     param.callback = client;
 
     auto err = AAFwk::IntentClient::GetInstance().ExecuteIntentByFunctionCall(param);

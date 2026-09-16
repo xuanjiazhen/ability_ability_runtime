@@ -32,6 +32,7 @@ namespace OHOS {
 namespace CliTool {
 namespace {
 constexpr int64_t MAX_TIMEOUT = 30 * 60; // 30 m
+constexpr size_t MAX_TRACE_ID_LENGTH = 256; // max length of toolCallId/dmSessionId
 
 // Forward declarations
 napi_value ConvertJsonToNapiValue(napi_env env, const nlohmann::json &value);
@@ -74,6 +75,52 @@ napi_value ParseJsonStringToJsObject(napi_env env, const std::string &jsonStr)
     }
 
     return jsValue;
+}
+
+// Helper: Unwrap an optional trace id (toolCallId/dmSessionId) property from JavaScript object.
+// Property absent means not passed and the output keeps the default empty string;
+// property present but with an empty or invalid value is invalid.
+bool UnwrapOptionalTraceId(napi_env env, napi_value obj, const char *name,
+    std::string &value, std::string &msg)
+{
+    bool hasProperty = false;
+    if (napi_has_named_property(env, obj, name, &hasProperty) != napi_ok) {
+        msg = std::string("has ") + name + " failed";
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+        return false;
+    }
+    if (!hasProperty) {
+        return true;
+    }
+    napi_value prop = nullptr;
+    if (napi_get_named_property(env, obj, name, &prop) != napi_ok) {
+        msg = std::string("invalid ") + name + " property";
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+        return false;
+    }
+    // Explicit undefined/null is treated as absent (spec AC-1.7: "not provided").
+    napi_valuetype valueType = napi_undefined;
+    if (napi_typeof(env, prop, &valueType) != napi_ok) {
+        msg = std::string("invalid ") + name + " property";
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+        return false;
+    }
+    if (valueType == napi_undefined || valueType == napi_null) {
+        return true;
+    }
+    std::string traceId;
+    if (!AppExecFwk::UnwrapStringFromJS2(env, prop, traceId)) {
+        msg = std::string("Parameter error. The type of \"") + name + "\" must be string.";
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+        return false;
+    }
+    if (!IsValidTraceId(traceId)) {
+        msg = std::string("Parameter error. The ") + name + " is invalid.";
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+        return false;
+    }
+    value = std::move(traceId);
+    return true;
 }
 
 // Helper: Convert single JSON value to N-API value
@@ -151,7 +198,21 @@ bool UnwrapStringMap(napi_env env, napi_value obj,
     return true;
 }
 
-bool UnwrapExecOptions(napi_env env, napi_value obj, ExecOptions &options)
+bool IsValidTraceId(const std::string &id)
+{
+    if (id.empty() || id.length() > MAX_TRACE_ID_LENGTH) {
+        return false;
+    }
+    for (char c : id) {
+        if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+            (c >= '0' && c <= '9') || c == '_' || c == '-')) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool UnwrapExecOptions(napi_env env, napi_value obj, ExecOptions &options, std::string &msg)
 {
     if (obj == nullptr) {
         return true;
@@ -213,6 +274,14 @@ bool UnwrapExecOptions(napi_env env, napi_value obj, ExecOptions &options)
         }
     } else {
         options.timeout = MAX_TIMEOUT;
+    }
+
+    if (!UnwrapOptionalTraceId(env, obj, "toolCallId", options.toolCallId, msg)) {
+        return false;
+    }
+
+    if (!UnwrapOptionalTraceId(env, obj, "dmSessionId", options.dmSessionId, msg)) {
+        return false;
     }
     return true;
 }
@@ -354,8 +423,8 @@ bool UnwrapExecCmdOptions(napi_env env, napi_value obj, ExecCmdParam &param,
         }
     }
 
-    // Reuse UnwrapExecOptions for background, yieldMs, timeout
-    if (!UnwrapExecOptions(env, obj, param.options)) {
+    // Reuse UnwrapExecOptions for background, yieldMs, timeout, toolCallId, dmSessionId
+    if (!UnwrapExecOptions(env, obj, param.options, msg)) {
         return false;
     }
 
@@ -458,6 +527,16 @@ napi_value CreateJsCliSessionInfo(napi_env env, const CliSessionInfo &session)
     napi_set_named_property(env, jsObj, "sessionId", AppExecFwk::WrapStringToJS(env, session.sessionId));
     napi_set_named_property(env, jsObj, "toolName", AppExecFwk::WrapStringToJS(env, session.toolName));
     napi_set_named_property(env, jsObj, "status", AppExecFwk::WrapStringToJS(env, session.status));
+
+    // Set toolCallId only when present
+    if (!session.toolCallId.empty()) {
+        napi_set_named_property(env, jsObj, "toolCallId", AppExecFwk::WrapStringToJS(env, session.toolCallId));
+    }
+
+    // Set dmSessionId only when present
+    if (!session.dmSessionId.empty()) {
+        napi_set_named_property(env, jsObj, "dmSessionId", AppExecFwk::WrapStringToJS(env, session.dmSessionId));
+    }
 
     // Set result if present
     if (session.status != "running" && session.result != nullptr) {

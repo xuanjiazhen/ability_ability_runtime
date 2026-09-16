@@ -27,6 +27,7 @@
 #include "js_error_utils.h"
 #include "napi_common_util.h"
 #include "napi_common_want.h"
+#include "string_wrapper.h"
 
 using namespace OHOS::AbilityRuntime;
 
@@ -44,6 +45,8 @@ constexpr int32_t ERR_CONTEXT_NOT_ABILITY = 16000020;
 struct InvokeFunctionTsfnContext {
     napi_deferred deferred = nullptr;
     napi_threadsafe_function tsfn = nullptr;
+    std::string toolCallId;   // captured at invoke time, echoed on InvokeResult
+    std::string dmSessionId;  // captured at invoke time, echoed on InvokeResult
 };
 
 void InvokeFunctionFinalize(napi_env env, void *finalizeData, void *finalizeHint)
@@ -71,7 +74,7 @@ void InvokeFunctionCallJs(napi_env env, napi_value jsCb, void *context, void *da
 
     if (result->invokeSuccess) {
         napi_value jsResult = CreateJsInvokeResult(env, result->resultCode,
-            result->result, result->message);
+            result->result, result->message, ctx->toolCallId, ctx->dmSessionId);
         if (jsResult != nullptr) {
             napi_resolve_deferred(env, ctx->deferred, jsResult);
         } else {
@@ -89,6 +92,8 @@ struct InvokeFunctionArgs {
     std::string funcNamespace;
     std::string functionName;
     AAFwk::WantParams wantParams;
+    std::string toolCallId;
+    std::string dmSessionId;
 };
 
 bool IsUIAbilityContext(napi_env env, napi_value value)
@@ -169,9 +174,22 @@ bool ParseInvokeFunctionArgs(napi_env env, size_t argc, napi_value *argv, Invoke
         ThrowInvalidParamError(env, "args is required");
         return false;
     }
-    if (argc >= INDEX_FOUR && !ValidateOptions(env, argv[INDEX_THREE])) {
-        ThrowInvalidParamError(env, "option invalid");
-        return false;
+    // Defense in depth: the reserved trace-id keys below are owned by the transport
+    // channel and re-injected exclusively from the validated InvokeOptions; any
+    // same-named keys passed by the caller inside args are dropped here so
+    // unvalidated values can never ride this channel (attribution forgery).
+    out.wantParams.Remove("ohos.insightIntent.toolCallId");
+    out.wantParams.Remove("ohos.insightIntent.dmSessionId");
+    if (argc >= INDEX_FOUR) {
+        if (!ValidateOptions(env, argv[INDEX_THREE])) {
+            ThrowInvalidParamError(env, "option invalid");
+            return false;
+        }
+        std::string optionsMsg;
+        if (!UnwrapInvokeOptions(env, argv[INDEX_THREE], out.toolCallId, out.dmSessionId, optionsMsg)) {
+            ThrowInvalidParamError(env, optionsMsg.empty() ? "option invalid" : optionsMsg.c_str());
+            return false;
+        }
     }
     return true;
 }
@@ -256,9 +274,12 @@ napi_value JSFunctionManager::OnInvokeFunction(napi_env env, size_t argc, napi_v
         return CreateJsUndefined(env);
     }
 
-    // Create threadsafe function context
+    // Create threadsafe function context; capture the trace identifiers so the
+    // resolved InvokeResult echoes exactly what the caller passed.
     auto tsfnContext = std::make_shared<InvokeFunctionTsfnContext>();
     tsfnContext->deferred = deferred;
+    tsfnContext->toolCallId = args.toolCallId;
+    tsfnContext->dmSessionId = args.dmSessionId;
 
     // Create threadsafe function
     napi_value workName = nullptr;
@@ -285,6 +306,15 @@ napi_value JSFunctionManager::OnInvokeFunction(napi_env env, size_t argc, napi_v
             delete data;
         }
     };
+
+    // Carry the trace identifiers to the executor through the reserved wantParam
+    // keys (insight intent channel namespace); only non-empty values are injected.
+    if (!args.toolCallId.empty()) {
+        args.wantParams.SetParam("ohos.insightIntent.toolCallId", AAFwk::String::Box(args.toolCallId));
+    }
+    if (!args.dmSessionId.empty()) {
+        args.wantParams.SetParam("ohos.insightIntent.dmSessionId", AAFwk::String::Box(args.dmSessionId));
+    }
 
     InvokeFunctionExecutor::Create()->Execute(args.funcNamespace, args.functionName, args.wantParams, bridge);
 

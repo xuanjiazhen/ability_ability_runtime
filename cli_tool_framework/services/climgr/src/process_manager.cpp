@@ -17,6 +17,7 @@
 
 #include <cerrno>
 #include <chrono>
+#include <cstdlib>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/prctl.h>
@@ -44,6 +45,38 @@ namespace OHOS {
 namespace CliTool {
 namespace {
 #define ACCESS_TOKENID_SET_HAP_PTOKENID _IOW('A', 0x1A, uint64_t)
+
+// Trace identifiers reach the tool process via env only (never argv, ADR-2).
+constexpr char ENV_TOOL_CALL_ID[] = "TOOL_CALL_ID";
+constexpr char ENV_DM_SESSION_ID[] = "DM_SESSION_ID";
+
+// PARENT-only helper (heap allocation allowed): builds the child environment as
+// environ + the two trace-id variables. Any stale TOOL_CALL_ID/DM_SESSION_ID
+// entries inherited from the service's own environment are dropped so the
+// child env is exclusively owned by this code path.
+void BuildChildEnv(const SessionRecord &record, std::vector<std::string> &envStorage,
+    std::vector<char *> &envp)
+{
+    const std::string toolCallKey = std::string(ENV_TOOL_CALL_ID) + "=";
+    const std::string dmSessionKey = std::string(ENV_DM_SESSION_ID) + "=";
+    for (char **entry = environ; entry != nullptr && *entry != nullptr; ++entry) {
+        std::string current(*entry);
+        if (current.rfind(toolCallKey, 0) == 0 || current.rfind(dmSessionKey, 0) == 0) {
+            continue;
+        }
+        envStorage.push_back(std::move(current));
+    }
+    if (!record.toolCallId.empty()) {
+        envStorage.push_back(toolCallKey + record.toolCallId);
+    }
+    if (!record.dmSessionId.empty()) {
+        envStorage.push_back(dmSessionKey + record.dmSessionId);
+    }
+    for (auto &entry : envStorage) {
+        envp.push_back(entry.data());
+    }
+    envp.push_back(nullptr);
+}
 
 // Upper bound for the fallback fd-sweep when RLIMIT_NOFILE is RLIM_INFINITY. Bounded so the
 // loop stays cheap; any fd that genuinely needs to survive into claw_sandbox is dup2'd onto
@@ -140,7 +173,7 @@ void ProcessManager::CloseNonStdFds() const
 }
 
 void ProcessManager::SetupChildPipesAndExec(const SessionRecord &record,
-    std::vector<char *> &execArgs) const
+    std::vector<char *> &execArgs, std::vector<char *> &envp) const
 {
     close(record.stdinPipe[1]);
     close(record.stdoutPipe[0]);
@@ -152,8 +185,11 @@ void ProcessManager::SetupChildPipesAndExec(const SessionRecord &record,
     close(record.stdoutPipe[1]);
     close(record.stderrPipe[1]);
     CloseNonStdFds();
-    execvp(execArgs[0], execArgs.data());
-    static const char msg[] = "claw_sandbox execvp failed\n";
+    // Trace ids reach the tool process via the prebuilt envp only (never argv, ADR-2).
+    // execve is async-signal-safe: no malloc, no environ mutation in the fork child,
+    // so a malloc arena lock inherited from another thread at fork() cannot deadlock us.
+    execve(execArgs[0], execArgs.data(), envp.data());
+    static const char msg[] = "claw_sandbox execve failed\n";
     (void)write(STDERR_FILENO, msg, sizeof(msg) - 1);
     _exit(EXIT_FAILURE);
 }
@@ -189,6 +225,12 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std
     for (const auto &element : tmpExecArgs) {
         TAG_LOGI(AAFwkTag::CLI_TOOL, "%{public}s", element.c_str());
     }
+    // PARENT (pre-fork): build the child environment here so the child only passes
+    // the prebuilt array to execve (async-signal-safe, no malloc in child).
+    std::vector<std::string> envStorage;
+    std::vector<char *> envp;
+    BuildChildEnv(*record, envStorage, envp);
+
     TAG_LOGI(AAFwkTag::CLI_TOOL, "Before fork");
 
     pid_t pid = fork();
@@ -199,7 +241,7 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std
         return ERR_NO_INIT;
     }
     if (pid == 0) {
-        SetupChildPipesAndExec(*record, execArgs);
+        SetupChildPipesAndExec(*record, execArgs, envp);
     }
 
     // Parent process: close write ends of pipes
@@ -233,6 +275,10 @@ int32_t ProcessManager::CreateShellProcess(const ExecCmdParam &param, const std:
         const_cast<char *>(param.cmd.c_str()),
         nullptr,
     };
+    // PARENT (pre-fork): build the child environment here (see CreateChildProcess).
+    std::vector<std::string> envStorage;
+    std::vector<char *> envp;
+    BuildChildEnv(*record, envStorage, envp);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "Before fork");
     TAG_LOGD(AAFwkTag::CLI_TOOL, "sandboxConfig: %{public}s", sandboxConfig.c_str());
 
@@ -253,7 +299,7 @@ int32_t ProcessManager::CreateShellProcess(const ExecCmdParam &param, const std:
             (void)ioctl(tfd, ACCESS_TOKENID_SET_HAP_PTOKENID, &atmTokenId);
             (void)close(tfd);
         }
-        SetupChildPipesAndExec(*record, execArgs);
+        SetupChildPipesAndExec(*record, execArgs, envp);
     }
     // Parent process: close write ends of pipes
     close(record->stdoutPipe[1]);

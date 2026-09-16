@@ -54,6 +54,8 @@ public:
     std::string sessionId = "";
     std::string toolName = "";
     std::string eventId = "";
+    std::string toolCallId = "";
+    std::string dmSessionId = "";
     pid_t processId = -1;
     int64_t startTime = 0;
     int32_t timeoutMs = 0;
