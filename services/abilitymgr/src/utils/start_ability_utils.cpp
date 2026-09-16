@@ -296,10 +296,10 @@ std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateStartAbilityInfo(const
         // try to find extension
         std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
         if (appIndex == 0) {
-            IN_PROCESS_CALL_WITHOUT_RET(bms->QueryExtensionAbilityInfos(want, abilityInfoFlag,
+            IN_PROCESS_CALL_WITHOUT_RET(bms->QueryExtensionAbilityInfoOptimal(want, abilityInfoFlag,
                 userId, extensionInfos));
         } else {
-            IN_PROCESS_CALL_WITHOUT_RET(bms->GetSandboxExtAbilityInfos(want, appIndex,
+            IN_PROCESS_CALL_WITHOUT_RET(bms->GetSandboxExtAbilityInfoOptimal(want, appIndex,
                 abilityInfoFlag, userId, extensionInfos));
         }
         ExtensionQueryEventUtil::ReportExtensionQueryMultiResult(extensionInfos, appIndex != 0);
@@ -338,17 +338,18 @@ std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateStartExtensionInfo(con
     }
 
     std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
+    AppExecFwk::ExtensionAbilityInfo extensionInfo = extensionInfos.front();
     if (appIndex == 0) {
         if (AbilityRuntime::StartupUtil::IsStartPlugin(want)) {
             AppExecFwk::ExtensionAbilityInfo pluginExtensionInfo;
             IN_PROCESS_CALL_WITHOUT_RET(bms->GetPluginExtensionInfo(hostBundleName, want, userId, pluginExtensionInfo));
             extensionInfos.push_back(pluginExtensionInfo);
         } else {
-            IN_PROCESS_CALL_WITHOUT_RET(bms->QueryExtensionAbilityInfos(want, abilityInfoFlag, userId, extensionInfos));
+            IN_PROCESS_CALL_WITHOUT_RET(bms->QueryExtensionAbilityInfoOptimal(want, abilityInfoFlag, userId, extensionInfo));
         }
     } else {
-        IN_PROCESS_CALL_WITHOUT_RET(bms->GetSandboxExtAbilityInfos(want, appIndex,
-            abilityInfoFlag, userId, extensionInfos));
+        IN_PROCESS_CALL_WITHOUT_RET(bms->GetSandboxExtAbilityInfoOptimal(want, appIndex,
+            abilityInfoFlag, userId, extensionInfo));
     }
     ExtensionQueryEventUtil::ReportExtensionQueryMultiResult(extensionInfos, appIndex != 0);
     if (extensionInfos.size() <= 0) {
@@ -356,8 +357,7 @@ std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateStartExtensionInfo(con
         abilityInfo->status = RESOLVE_ABILITY_ERR;
         return abilityInfo;
     }
-
-    AppExecFwk::ExtensionAbilityInfo extensionInfo = extensionInfos.front();
+    
     if (extensionInfo.bundleName.empty() || extensionInfo.name.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "extensionInfo empty");
         abilityInfo->status = RESOLVE_ABILITY_ERR;
