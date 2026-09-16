@@ -8876,28 +8876,35 @@ void AbilityManagerService::OnAppStateChanged(const AppInfo &info)
     }
 
     auto commonExtensionManager = GetCommonExtensionManagerByUserId(userId);
-    CHECK_POINTER_LOG(commonExtensionManager, "commonExtensionManager not init.");
-    commonExtensionManager->OnAppStateChanged(info);
+    if (commonExtensionManager != nullptr) {
+        commonExtensionManager->OnAppStateChanged(info);
+    }
+    
     auto uiExtensionAbilityManager = GetUIExtensionAbilityManagerByUserId(userId);
-    CHECK_POINTER_LOG(uiExtensionAbilityManager, "uiExtensionAbilityManager not init.");
-    uiExtensionAbilityManager->OnAppStateChanged(info);
+    if (uiExtensionAbilityManager != nullptr) {
+        uiExtensionAbilityManager->OnAppStateChanged(info);
+    }
 
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         auto uiAbilityManager = GetUIAbilityManagerByUserId(userId);
-        CHECK_POINTER(uiAbilityManager);
-        uiAbilityManager->OnAppStateChanged(info);
+        if (uiAbilityManager != nullptr) {
+            uiAbilityManager->OnAppStateChanged(info);
+        }
     } else {
         auto missionListManager = GetMissionListManagerByUserId(userId);
-        CHECK_POINTER_LOG(missionListManager, "Current mission list manager not init.");
-        missionListManager->OnAppStateChanged(info);
+        if (missionListManager != nullptr) {
+            missionListManager->OnAppStateChanged(info);
+        }
     }
     auto dataAbilityManager = GetCurrentDataAbilityManager();
-    CHECK_POINTER(dataAbilityManager);
-    dataAbilityManager->OnAppStateChanged(info);
+    if (dataAbilityManager != nullptr) {
+        dataAbilityManager->OnAppStateChanged(info);
+    }
 
     auto residentProcessMgr = DelayedSingleton<ResidentProcessManager>::GetInstance();
-    CHECK_POINTER(residentProcessMgr);
-    residentProcessMgr->OnAppStateChanged(info);
+    if (residentProcessMgr != nullptr) {
+        residentProcessMgr->OnAppStateChanged(info);
+    }
 
     if (system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false)) {
         KeepAliveProcessManager::GetInstance().OnAppStateChanged(info);
