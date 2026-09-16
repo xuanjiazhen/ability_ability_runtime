@@ -102,6 +102,7 @@ ohos_unittest("AmsRecentAppListTest") {
     "samgr:samgr_proxy",
     "json:nlohmann_json_static",
     "window_manager:session_manager_lite",
+    "ability_base:extractortool",
   ]
 
   if (os_dlp_part_enabled) {

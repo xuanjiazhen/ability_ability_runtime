@@ -35,6 +35,7 @@
 #include "application_info.h"
 #include "mock_app_scheduler.h"
 #include "parameters.h"
+#include "extractor.h"
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::AAFwk;

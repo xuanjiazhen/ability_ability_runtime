@@ -69,8 +69,6 @@ ohos_shared_library("ets_environment") {
     "libuv:uv",
     "node:node_header_notice",
     "ability_base:extractortool",
-    "zlib:shared_libz",
-    "zlib:libz",
   ]
 
   if (ability_runtime_graphics) {

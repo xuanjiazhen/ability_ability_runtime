@@ -103,6 +103,7 @@ ohos_unittest("AmsAbilityRunningRecordTest") {
     "samgr:samgr_proxy",
     "json:nlohmann_json_static",
     "window_manager:session_manager_lite",
+    "ability_base:extractortool",
   ]
 
   defines = []

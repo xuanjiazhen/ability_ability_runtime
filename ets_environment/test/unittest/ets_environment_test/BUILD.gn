@@ -49,8 +49,6 @@ template("ets_environment_test_template") {
       "napi:ace_napi",
       "runtime_core:ani",
       "ability_base:extractortool",
-      "zlib:shared_libz",
-      "zlib:libz",
     ]
   }
 }
