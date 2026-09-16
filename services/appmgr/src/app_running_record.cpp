@@ -1029,7 +1029,8 @@ void AppRunningRecord::UpdateLastCallerInfo(const UiAbilityLastCallerInfo &calle
         "callerBundleName:%{public}s, isCallBySCB:%{public}d", callerInfo.callerUid,
         callerInfo.callerBundleName.c_str(), callerInfo.isCallBySCB);
 
-    if (callerInfo.isCallBySCB) {
+    if (callerInfo.isCallBySCB ||
+        (!callerInfo.isCallBySCB && callerInfo.callerUid == -1 && callerInfo.callerBundleName.empty())) {
         int32_t scbUid = -1;
         {
             std::lock_guard<ffrt::mutex> lock(scbUidLock_);
