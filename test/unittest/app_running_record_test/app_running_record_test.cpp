@@ -1857,6 +1857,89 @@ HWTEST_F(AppRunningRecordTest, AppRunningRecord_SetKillAppReason_0100, TestSize.
 }
 
 /**
+ * @tc.name: AppRunningRecord_SetKillCallerInfo_0100
+ * @tc.desc: Test SetKillCallerInfo and getters with valid values.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_SetKillCallerInfo_0100, TestSize.Level1)
+{
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    ASSERT_NE(appInfo, nullptr);
+    int32_t recordId = RECORD_ID;
+    std::string processName;
+    auto appRunningRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    ASSERT_NE(appRunningRecord, nullptr);
+
+    int32_t callerPid = 12345;
+    std::string callerProcessName = "com.test.caller";
+    appRunningRecord->SetKillCallerInfo(callerPid, callerProcessName);
+    EXPECT_EQ(appRunningRecord->GetKillCallerPid(), callerPid);
+    EXPECT_EQ(appRunningRecord->GetKillCallerProcessName(), callerProcessName);
+}
+
+/**
+ * @tc.name: AppRunningRecord_SetKillCallerInfo_0200
+ * @tc.desc: Test default values of kill caller info before SetKillCallerInfo is called.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_SetKillCallerInfo_0200, TestSize.Level1)
+{
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    ASSERT_NE(appInfo, nullptr);
+    int32_t recordId = RECORD_ID;
+    std::string processName;
+    auto appRunningRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    ASSERT_NE(appRunningRecord, nullptr);
+
+    EXPECT_EQ(appRunningRecord->GetKillCallerPid(), -1);
+    EXPECT_EQ(appRunningRecord->GetKillCallerProcessName(), "");
+}
+
+/**
+ * @tc.name: AppRunningRecord_SetKillCallerInfo_0300
+ * @tc.desc: Test SetKillCallerInfo overwrites previous values.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_SetKillCallerInfo_0300, TestSize.Level1)
+{
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    ASSERT_NE(appInfo, nullptr);
+    int32_t recordId = RECORD_ID;
+    std::string processName;
+    auto appRunningRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    ASSERT_NE(appRunningRecord, nullptr);
+
+    appRunningRecord->SetKillCallerInfo(100, "proc1");
+    appRunningRecord->SetKillCallerInfo(200, "proc2");
+    EXPECT_EQ(appRunningRecord->GetKillCallerPid(), 200);
+    EXPECT_EQ(appRunningRecord->GetKillCallerProcessName(), "proc2");
+}
+
+/**
+ * @tc.name: AppRunningRecord_SetKillCallerInfo_0400
+ * @tc.desc: Test SetKillCallerInfo with empty process name and DEFAULT_INVAL_VALUE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_SetKillCallerInfo_0400, TestSize.Level1)
+{
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    ASSERT_NE(appInfo, nullptr);
+    int32_t recordId = RECORD_ID;
+    std::string processName;
+    auto appRunningRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    ASSERT_NE(appRunningRecord, nullptr);
+
+    constexpr int32_t DEFAULT_INVAL_VALUE = -1;
+    appRunningRecord->SetKillCallerInfo(DEFAULT_INVAL_VALUE, "");
+    EXPECT_EQ(appRunningRecord->GetKillCallerPid(), DEFAULT_INVAL_VALUE);
+    EXPECT_EQ(appRunningRecord->GetKillCallerProcessName(), "");
+
+    appRunningRecord->SetKillCallerInfo(100, "");
+    EXPECT_EQ(appRunningRecord->GetKillCallerPid(), 100);
+    EXPECT_EQ(appRunningRecord->GetKillCallerProcessName(), "");
+}
+
+/**
  * @tc.name: GetAllAbilityInfos_0100
  * @tc.desc: Test GetAllAbilityInfos with empty ability list
  * @tc.type: FUNC

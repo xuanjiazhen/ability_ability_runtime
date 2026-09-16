@@ -1456,5 +1456,19 @@ bool AppRunningRecord::HasAgentExtensionAbility()
 void AppRunningRecord::GetAllAbilityInfos(std::vector<AppExecFwk::AbilityStateData> &infos)
 {
 }
+
+void AppRunningRecord::SetKillCallerInfo(int32_t killCallerPid, const std::string &killCallerProcessName)
+{
+}
+
+int32_t AppRunningRecord::GetKillCallerPid() const
+{
+    return -1;
+}
+
+std::string AppRunningRecord::GetKillCallerProcessName() const
+{
+    return "";
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
