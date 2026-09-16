@@ -889,19 +889,183 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_003, TestSize.Level1)
     int pid = getpid();
     int killId = 0;
     int32_t exitreason = 0;
-    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason);
+    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason, DEFAULT_INVAL_VALUE);
     appMgrServiceInner->SendProcessKillEvent(appRecord);
     killId = -1;
-    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason);
+    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason, DEFAULT_INVAL_VALUE);
     appMgrServiceInner->SendProcessKillEvent(appRecord);
     killId = -2;
-    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason);
+    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason, DEFAULT_INVAL_VALUE);
     appMgrServiceInner->SendProcessKillEvent(appRecord);
     killId = 1;
     appMgrServiceInner->SendProcessKillEvent(appRecord);
     killId = 3;
     appMgrServiceInner->SendProcessKillEvent(appRecord);
     TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_003 end");
+}
+
+/**
+ * @tc.name: NotifyAppMgrRecordExitReasonCompability_CallerPid_001
+ * @tc.desc: Test NotifyAppMgrRecordExitReasonCompability with positive callerPid.
+ * @tc.type: FUNC
+ * @tc.Function: NotifyAppMgrRecordExitReasonCompability
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, NotifyAppMgrRecordExitReasonCompability_CallerPid_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReasonCompability_CallerPid_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->Init();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.test.callerpid";
+    appInfo->name = "CallerPidApp";
+    int32_t recordId = 200;
+    std::string processName = "CallerPid_001";
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    ASSERT_NE(appRecord, nullptr);
+    int32_t pid = getpid();
+    appRecord->GetPriorityObject()->SetPid(pid);
+    appMgrServiceInner->appRunningManager_->appRunningRecordMap_[pid] = appRecord;
+
+    std::string killMsg = "test_kill";
+    std::string innerMsg = "test_inner";
+    int32_t callerPid = getpid();
+    auto result = appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(
+        pid, 1, killMsg, innerMsg, 0, callerPid);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(appRecord->GetKillCallerPid(), callerPid);
+    EXPECT_FALSE(appRecord->GetKillCallerProcessName().empty());
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReasonCompability_CallerPid_001 end");
+}
+
+/**
+ * @tc.name: NotifyAppMgrRecordExitReasonCompability_CallerPid_002
+ * @tc.desc: Test NotifyAppMgrRecordExitReasonCompability with negative callerPid.
+ * @tc.type: FUNC
+ * @tc.Function: NotifyAppMgrRecordExitReasonCompability
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, NotifyAppMgrRecordExitReasonCompability_CallerPid_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReasonCompability_CallerPid_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->Init();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.test.callerpid";
+    appInfo->name = "CallerPidApp";
+    int32_t recordId = 201;
+    std::string processName = "CallerPid_002";
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    ASSERT_NE(appRecord, nullptr);
+    int32_t pid = getpid();
+    appRecord->GetPriorityObject()->SetPid(pid);
+    appMgrServiceInner->appRunningManager_->appRunningRecordMap_[pid] = appRecord;
+
+    int32_t callerPid = -1;
+    auto result = appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(
+        pid, 1, "kill", "inner", 0, callerPid);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(appRecord->GetKillCallerPid(), DEFAULT_INVAL_VALUE);
+    EXPECT_EQ(appRecord->GetKillCallerProcessName(), "");
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReasonCompability_CallerPid_002 end");
+}
+
+/**
+ * @tc.name: NotifyAppMgrRecordExitReasonCompability_CallerPid_003
+ * @tc.desc: Test NotifyAppMgrRecordExitReasonCompability with zero callerPid.
+ * @tc.type: FUNC
+ * @tc.Function: NotifyAppMgrRecordExitReasonCompability
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, NotifyAppMgrRecordExitReasonCompability_CallerPid_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReasonCompability_CallerPid_003 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->Init();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.test.callerpid";
+    appInfo->name = "CallerPidApp";
+    int32_t recordId = 202;
+    std::string processName = "CallerPid_003";
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    ASSERT_NE(appRecord, nullptr);
+    int32_t pid = getpid();
+    appRecord->GetPriorityObject()->SetPid(pid);
+    appMgrServiceInner->appRunningManager_->appRunningRecordMap_[pid] = appRecord;
+
+    int32_t callerPid = 0;
+    auto result = appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(
+        pid, 1, "kill", "inner", 0, callerPid);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(appRecord->GetKillCallerPid(), DEFAULT_INVAL_VALUE);
+    EXPECT_EQ(appRecord->GetKillCallerProcessName(), "");
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReasonCompability_CallerPid_003 end");
+}
+
+/**
+ * @tc.name: NotifyAppMgrRecordExitReasonCompability_CallerPid_004
+ * @tc.desc: Test NotifyAppMgrRecordExitReasonCompability with non-existent callerPid.
+ * @tc.type: FUNC
+ * @tc.Function: NotifyAppMgrRecordExitReasonCompability
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, NotifyAppMgrRecordExitReasonCompability_CallerPid_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReasonCompability_CallerPid_004 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->Init();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.test.callerpid";
+    appInfo->name = "CallerPidApp";
+    int32_t recordId = 203;
+    std::string processName = "CallerPid_004";
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    ASSERT_NE(appRecord, nullptr);
+    int32_t pid = getpid();
+    appRecord->GetPriorityObject()->SetPid(pid);
+    appMgrServiceInner->appRunningManager_->appRunningRecordMap_[pid] = appRecord;
+
+    int32_t nonExistentCallerPid = 999999;
+    auto result = appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(
+        pid, 1, "kill", "inner", 0, nonExistentCallerPid);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(appRecord->GetKillCallerPid(), nonExistentCallerPid);
+    EXPECT_EQ(appRecord->GetKillCallerProcessName(), "");
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReasonCompability_CallerPid_004 end");
+}
+
+/**
+ * @tc.name: NotifyAppMgrRecordExitReasonCompability_CallerPid_005
+ * @tc.desc: Test NotifyAppMgrRecordExitReasonCompability when appRecord not found.
+ * @tc.type: FUNC
+ * @tc.Function: NotifyAppMgrRecordExitReasonCompability
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, NotifyAppMgrRecordExitReasonCompability_CallerPid_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReasonCompability_CallerPid_005 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->Init();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    int32_t nonExistentPid = 888888;
+    auto result = appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(
+        nonExistentPid, 1, "kill", "inner", 0, 100);
+    EXPECT_EQ(result, ERR_NAME_NOT_FOUND);
+    TAG_LOGI(AAFwkTag::TEST, "NotifyAppMgrRecordExitReasonCompability_CallerPid_005 end");
 }
 
 /**
@@ -1860,11 +2024,11 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_008, TestSize.Level1)
     int pid = getpid();
     int killId = 2;
     int32_t exitreason = 0;
-    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason);
+    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason, DEFAULT_INVAL_VALUE);
     appMgrServiceInner->SendProcessKillEvent(appRecord);
 
     killId = 5;
-    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason);
+    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason, exitreason, DEFAULT_INVAL_VALUE);
     appMgrServiceInner->SendProcessKillEvent(appRecord);
     TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_008 end");
 }
