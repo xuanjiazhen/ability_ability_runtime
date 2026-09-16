@@ -1220,7 +1220,7 @@ int32_t CliToolManagerService::ExecCmdToolMode(const ExecCmdParam &param, CmdSes
     std::string sandboxConfig;
     if (!ToolUtil::GenerateSandboxConfig(toolParam, context.tokenId, sandboxConfig,
         context.callerBundleName)) {
-        ReportCliExecuteFailed(context.callerBundleName, toolName, GetFailureReason(ERR_NOT_HAP));
+        ReportCliExecuteFailed(context.callerBundleName, toolName, GetFailureReason(ERR_NOT_HAP), detail);
         return ERR_NOT_HAP;
     }
 

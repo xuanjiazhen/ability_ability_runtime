@@ -327,7 +327,7 @@ void ToolUtil::TransferToCmdParam(const AAFwk::WantParams &args, std::vector<std
 // ============================================================================
 // ParseToolCommand: parse a concatenated tool command string (tool command mode)
 // Supported syntax (long-flag only):
-//   <toolName> [subcommand] [--key=value | --key value | --flag | --flag false]...
+//   <toolName> [subcommand] [--key value | --flag | --flag false]...
 // Single-quoted values are kept as one token and the quotes are stripped.
 // Repeated flags of the same key are collected into an array.
 // ============================================================================
@@ -340,7 +340,7 @@ constexpr char HELP_KEY[] = "help";
 constexpr size_t ARG_START_TOOLNAME_ONLY = 1;       // no subcommand
 constexpr size_t ARG_START_WITH_SUBCOMMAND = 2;     // tokens[1] is subcommand
 // Tokens consumed by "--key value": the flag token plus its value token at i + 1.
-// "--key=value", boolean "--key" and "--help" consume only the flag token.
+// boolean "--key" and "--help" consume only the flag token. "--key=value" is rejected; use "--key value" instead.
 constexpr size_t FLAG_WITH_VALUE_TOKEN_COUNT = 2;
 
 struct ParsedCommandArgs {
@@ -408,7 +408,7 @@ int32_t ParseArgTokens(const std::vector<std::string> &tokens, size_t start,
         }
         std::string flagText = token.substr(FLAG_PREFIX_LEN);
         if (flagText.find('=') != std::string::npos) {
-            detail = DETAIL_PARAM_NOT_FOUND;
+            detail = DETAIL_UNSUPPORTED_FORMAT;
             return ERR_INVALID_PARAM;
         }
         const std::string &key = flagText;

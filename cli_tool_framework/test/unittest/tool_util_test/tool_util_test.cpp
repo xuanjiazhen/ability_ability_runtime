@@ -253,7 +253,7 @@ HWTEST_F(ToolUtilTest, ParseToolCommand_UnknownFlag_0100, TestSize.Level2)
     auto toolInfo = BuildParseToolInfo("ohos-aa", R"({"properties":{"bundleName":{"type":"string"}}})");
     ExecToolParam param;
     std::string detail;
-    EXPECT_EQ(ToolUtil::ParseToolCommand("ohos-aa --unknownFlag=foo", toolInfo, param, detail),
+    EXPECT_EQ(ToolUtil::ParseToolCommand("ohos-aa --unknownFlag foo", toolInfo, param, detail),
         ERR_INVALID_PARAM);
 }
 
