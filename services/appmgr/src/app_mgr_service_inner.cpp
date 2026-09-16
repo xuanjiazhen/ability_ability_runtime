@@ -120,6 +120,7 @@
 #include "res_sched_util.h"
 #include "session_manager_lite.h"
 #include "user_controller/user_controller.h"
+#include "extractor.h"
 #ifdef APP_NO_RESPONSE_DIALOG
 #include "fault_data.h"
 #include "modal_system_app_freeze_uiextension.h"
@@ -198,9 +199,6 @@ constexpr const int32_t API15 = 15;
 constexpr const int32_t API_VERSION_MOD = 100;
 constexpr const int32_t U0_USER_ID = 0;
 constexpr const int32_t U1_USER_ID = 1;
-constexpr const char* ABS_CODE_PATH = "/data/app/el1/bundle/public";
-constexpr const char* LOCAL_CODE_PATH = "/data/storage/el1/bundle";
-constexpr const char* FILE_SEPARATOR = "/";
 constexpr const char* CLASS_NAME = "ohos.app.MainThread";
 constexpr const char* FUNC_NAME = "main";
 constexpr const char* RENDER_PARAM = "invalidparam";
@@ -2267,16 +2265,10 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
             auto element = want->GetElement();
             auto hostBundleName = want->GetStringParam(UIEXTENSION_HOST_BUNDLENAME);
             auto userId = want->GetIntParam(UIEXTENSION_HOST_UID, -1) / BASE_USER_RANGE;
-            appInfo->bundleName = hostBundleName;
-            std::string absPrefix = std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR) + hostBundleName;
             if (!hostBundleName.empty()) {
-                auto replaceAbsPrefix = [&absPrefix](std::string &path) {
-                    if (path.find(absPrefix) == 0) {
-                        path.replace(0, absPrefix.length(), LOCAL_CODE_PATH);
-                    }
-                };
-                replaceAbsPrefix(abilityInfo->hapPath);
-                replaceAbsPrefix(abilityInfo->resourcePath);
+                appInfo->bundleName = hostBundleName;
+                abilityInfo->hapPath = AbilityBase::ExtractorUtil::GetLoadFilePath(abilityInfo->hapPath);
+                abilityInfo->resourcePath = AbilityBase::ExtractorUtil::GetLoadFilePath(abilityInfo->resourcePath);
             }
             GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex);
             appInfo = std::make_shared<ApplicationInfo>(bundleInfo.applicationInfo);

@@ -112,6 +112,7 @@
 #endif
 
 #include "sleep_clean.h"
+#include "extractor.h"
 
 #if defined(NWEB)
 #include <thread>
@@ -149,7 +150,7 @@ constexpr char FORM_RENDER_LIB_PATH[] = "/system/lib64/libformrender.z.so";
 #else
 constexpr char FORM_RENDER_LIB_PATH[] = "/system/lib64/libformrender.z.so";
 #endif
-
+using ExtractorUtil = AbilityBase::ExtractorUtil;
 constexpr int32_t DELIVERY_TIME = 200;
 constexpr int32_t DISTRIBUTE_TIME = 100;
 constexpr int32_t START_HIGH_SENSITIVE = 1;
@@ -1291,11 +1292,10 @@ void MainThread::OnStartAbility(const std::string &bundleName,
     std::shared_ptr<Global::Resource::ResourceManager> &resourceManager,
     const AppExecFwk::HapModuleInfo &entryHapModuleInfo, const bool isDebugApp)
 {
-    std::regex pattern(std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR) + bundleName);
     std::string loadPath =
         (!entryHapModuleInfo.hapPath.empty()) ? entryHapModuleInfo.hapPath : entryHapModuleInfo.resourcePath;
     if (!loadPath.empty()) {
-        loadPath = std::regex_replace(loadPath, pattern, std::string(LOCAL_CODE_PATH));
+        loadPath = ExtractorUtil::GetLoadFilePath(loadPath);
         TAG_LOGD(AAFwkTag::APPKIT, "ModuleResPath: %{public}s", loadPath.c_str());
         // getOverlayPath
         if (overlayModuleInfos_.empty()) {
@@ -1312,7 +1312,7 @@ void MainThread::OnStartAbility(const std::string &bundleName,
         }
         std::string hqfPath = entryHapModuleInfo.hqfInfo.hqfFilePath;
         if (!hqfPath.empty() && isDebugApp) {
-            hqfPath = std::regex_replace(hqfPath, pattern, std::string(LOCAL_CODE_PATH));
+            hqfPath = ExtractorUtil::GetLoadFilePath(hqfPath);
             TAG_LOGI(AAFwkTag::APPKIT, "AddPatchResource hapPath:%{public}s, patchPath:%{public}s",
                 loadPath.c_str(), hqfPath.c_str());
             if (!resourceManager->AddPatchResource(loadPath.c_str(), hqfPath.c_str())) {
@@ -1328,8 +1328,7 @@ std::vector<std::string> MainThread::GetOverlayPaths(const std::string &bundleNa
     std::vector<std::string> overlayPaths;
     for (auto &it : overlayModuleInfos_) {
         if (std::regex_search(it.hapPath, std::regex(bundleName))) {
-            it.hapPath = std::regex_replace(it.hapPath, std::regex(std::string(ABS_CODE_PATH) +
-                std::string(FILE_SEPARATOR) + bundleName), std::string(LOCAL_CODE_PATH));
+            it.hapPath = ExtractorUtil::GetLoadFilePath(it.hapPath);
         } else {
             it.hapPath = std::regex_replace(it.hapPath, std::regex(ABS_CODE_PATH), LOCAL_BUNDLES);
         }
@@ -2109,8 +2108,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     auto moduleName = entryHapModuleInfo.moduleName;
     std::string loadPath =
         entryHapModuleInfo.hapPath.empty() ? entryHapModuleInfo.resourcePath : entryHapModuleInfo.hapPath;
-    std::regex inner_pattern(std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR) + bundleInfo.name);
-    loadPath = std::regex_replace(loadPath, inner_pattern, LOCAL_CODE_PATH);
+    loadPath = ExtractorUtil::GetLoadFilePath(loadPath);
     application_->SetEntryLoadPath(loadPath);
     auto res = GetOverlayModuleInfos(bundleInfo.name, moduleName, overlayModuleInfos_);
     std::vector<std::string> overlayPaths;
@@ -2543,21 +2541,17 @@ void MainThread::LoadNativeLibrary(const BundleInfo &bundleInfo, std::string &na
 void MainThread::ChangeToLocalPath(const std::string &bundleName,
     const std::vector<std::string> &sourceDirs, std::vector<std::string> &localPath)
 {
-    std::regex pattern(std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR) + bundleName
-        + std::string(FILE_SEPARATOR));
     for (auto item : sourceDirs) {
         if (item.empty()) {
             continue;
         }
-        localPath.emplace_back(
-            std::regex_replace(item, pattern, std::string(LOCAL_CODE_PATH) + std::string(FILE_SEPARATOR)));
+        localPath.emplace_back(ExtractorUtil::GetLoadFilePath(item));
     }
 }
 
 void MainThread::ChangeToLocalPath(const std::string &bundleName,
     const std::string &sourceDir, std::string &localPath)
 {
-    std::regex pattern(std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR) + bundleName);
     if (sourceDir.empty()) {
         return;
     }
@@ -2569,7 +2563,7 @@ void MainThread::ChangeToLocalPath(const std::string &bundleName,
             localPath.c_str(), bundleName.c_str());
     }
     if (isExist) {
-        localPath = std::regex_replace(localPath, pattern, std::string(LOCAL_CODE_PATH));
+        localPath = ExtractorUtil::GetLoadFilePath(localPath);
     } else {
         localPath = std::regex_replace(localPath, std::regex(ABS_CODE_PATH), LOCAL_BUNDLES);
     }

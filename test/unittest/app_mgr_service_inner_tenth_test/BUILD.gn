@@ -155,6 +155,9 @@ ohos_unittest("app_mgr_service_inner_tenth_test") {
     "selinux_adapter:librestorecon",
     "window_manager:libdm",
     "window_manager:session_manager_lite",
+    "ability_base:extractortool",
+    "zlib:shared_libz",
+    "zlib:libz",
   ]
   defines = []
   if (ability_runtime_child_process) {
