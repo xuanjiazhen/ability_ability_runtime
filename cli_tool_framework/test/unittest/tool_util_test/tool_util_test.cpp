@@ -230,6 +230,34 @@ HWTEST_F(ToolUtilTest, ParseToolCommand_BooleanFalse_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ToolUtil_ParseToolCommand_HelpWithOtherArgs_0100
+ * @tc.desc: Test ParseToolCommand rejects --help combined with other args
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, ParseToolCommand_HelpWithOtherArgs_0100, TestSize.Level1)
+{
+    auto toolInfo = BuildParseToolInfo("ohos-aa", R"({"properties":{"bundleName":{"type":"string"}}})");
+    ExecToolParam param;
+    std::string detail;
+    EXPECT_EQ(ToolUtil::ParseToolCommand("ohos-aa --help --bundleName com.x", toolInfo, param, detail),
+        ERR_INVALID_PARAM);
+}
+
+/**
+ * @tc.name: ToolUtil_ParseToolCommand_HelpAlone_0100
+ * @tc.desc: Test ParseToolCommand accepts --help alone
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, ParseToolCommand_HelpAlone_0100, TestSize.Level1)
+{
+    auto toolInfo = BuildParseToolInfo("ohos-aa", R"({"properties":{"bundleName":{"type":"string"}}})");
+    ExecToolParam param;
+    std::string detail;
+    EXPECT_EQ(ToolUtil::ParseToolCommand("ohos-aa --help", toolInfo, param, detail), ERR_OK);
+    EXPECT_NE(param.args.GetParam("help"), nullptr);
+}
+
+/**
  * @tc.name: ToolUtil_ParseToolCommand_SingleQuoteSpace_0100
  * @tc.desc: Test ParseToolCommand with single-quoted value containing spaces
  * @tc.type: FUNC

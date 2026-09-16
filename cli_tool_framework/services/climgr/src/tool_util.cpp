@@ -528,6 +528,10 @@ int32_t ConvertArrayArg(const nlohmann::json &prop, const std::vector<std::strin
 int32_t ConvertParsedArgs(const ParsedCommandArgs &parsed, const nlohmann::json &properties,
     AAFwk::WantParams &args, std::string &detail)
 {
+    if (parsed.values.count(HELP_KEY) > 0 && parsed.values.size() > 1) {
+        detail = DETAIL_PARAM_NOT_FOUND;
+        return ERR_INVALID_PARAM;
+    }
     for (const auto &[key, values] : parsed.values) {
         if (key == HELP_KEY) {
             args.SetParam(key, AAFwk::Boolean::Box(true));
