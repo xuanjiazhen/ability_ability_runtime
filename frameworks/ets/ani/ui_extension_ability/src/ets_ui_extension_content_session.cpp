@@ -52,8 +52,8 @@ const char* UI_EXTENSION_CONTENT_SESSION_CLEANER_CLASS_NAME =
 const std::string UIEXTENSION_TARGET_TYPE_KEY = "ability.want.params.uiExtensionTargetType";
 const std::string FLAG_AUTH_READ_URI_PERMISSION = "ability.want.params.uriPermissionFlag";
 constexpr const char *SIGNATURE_START_ABILITY_BY_TYPE =
-    "C{std.core.String}C{std.core.Record}C{application.AbilityStartCallback.AbilityStartCallback}:C{@ohos.base."
-    "BusinessError}";
+    "C{std.core.String}C{std.core.Record}C{application.AbilityStartCallback.AbilityStartCallback}"
+    "C{utils.AbilityUtils.AsyncCallbackWrapper}:";
 constexpr const char *SIGNATURE_GET_UI_EXTENSION_HOST_WINDOW_PROXY =
     ":C{@ohos.uiExtensionHost.uiExtensionHost.UIExtensionHostWindowProxy}";
 constexpr const char *SIGNATURE_GET_UI_EXTENSION_WINDOW_PROXY =
@@ -280,15 +280,15 @@ ani_object EtsUIExtensionContentSession::NativeGetUIExtensionWindowProxy(ani_env
     return etsContentSession->GetUIExtensionWindowProxy(env, obj);
 }
 
-ani_object EtsUIExtensionContentSession::NativeStartAbilityByTypeSync(
-    ani_env *env, ani_object obj, ani_string type, ani_ref wantParam, ani_object startCallback)
+void EtsUIExtensionContentSession::NativeStartAbilityByType(ani_env *env, ani_object obj,
+    ani_string type, ani_ref wantParam, ani_object startCallback, ani_object asyncCallback)
 {
     auto etsContentSession = EtsUIExtensionContentSession::GetEtsContentSession(env, obj);
     if (etsContentSession == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null etsContentSession");
-        return nullptr;
+        return;
     }
-    return etsContentSession->StartAbilityByTypeSync(env, type, wantParam, startCallback);
+    etsContentSession->StartAbilityByType(env, type, wantParam, startCallback, asyncCallback);
 }
 
 void EtsUIExtensionContentSession::NativeSetWindowPrivacyMode(
@@ -394,8 +394,8 @@ ani_status EtsUIExtensionContentSession::BindNativeMethod(ani_env *env, ani_clas
             reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeSetReceiveDataCallback)},
         ani_native_function {"nativeSetReceiveDataForResultCallback", nullptr,
             reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeSetReceiveDataForResultCallback)},
-        ani_native_function {"nativeStartAbilityByTypeSync", SIGNATURE_START_ABILITY_BY_TYPE,
-            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeStartAbilityByTypeSync)},
+        ani_native_function {"nativeStartAbilityByType", SIGNATURE_START_ABILITY_BY_TYPE,
+            reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeStartAbilityByType)},
         ani_native_function {"nativeSetWindowPrivacyMode", SIGNATURE_SET_WINDOW_PRIVACY_MODE,
             reinterpret_cast<void *>(EtsUIExtensionContentSession::NativeSetWindowPrivacyMode)},
         ani_native_function {"loadContentByName",
@@ -876,14 +876,16 @@ void EtsUIExtensionContentSession::SetReceiveDataForResultCallbackRegister(ani_e
     isSyncRegistered_ = true;
 }
 
-ani_object EtsUIExtensionContentSession::StartAbilityByTypeSync(
-    ani_env *env, ani_string aniType, ani_ref aniWantParam, ani_object startCallback)
+void EtsUIExtensionContentSession::StartAbilityByType(
+    ani_env *env, ani_string aniType, ani_ref aniWantParam, ani_object startCallback, ani_object asyncCallback)
 {
     std::string type;
     AAFwk::WantParams wantParam;
     if (!CheckStartAbilityByTypeParam(env, aniType, aniWantParam, type, wantParam)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "check startAbilityByCall param failed");
-        return nullptr;
+        AppExecFwk::AsyncCallback(env, asyncCallback,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM), nullptr);
+        return;
     }
     wantParam.SetParam(UIEXTENSION_TARGET_TYPE_KEY, AAFwk::String::Box(type));
     AAFwk::Want want;
@@ -895,13 +897,13 @@ ani_object EtsUIExtensionContentSession::StartAbilityByTypeSync(
 #ifdef SUPPORT_SCREEN
     InitDisplayId(want);
 #endif
-    ani_object aniObject = EtsErrorUtil::CreateError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
-        GetInnerErrorMsg(AbilityInnerErrorMsg::CREATE_MODAL_UI_EXTENSION_FAILED));
     ani_vm *vm = nullptr;
     if (env->GetVM(&vm) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "get vm failed");
         EtsErrorUtil::ThrowInvalidParamError(env, "Get vm failed.");
-        return aniObject;
+        AppExecFwk::AsyncCallback(env, asyncCallback,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER), nullptr);
+        return;
     }
     std::shared_ptr<EtsUIExtensionCallback> uiExtensionCallback = std::make_shared<EtsUIExtensionCallback>(vm);
     uiExtensionCallback->SetEtsCallbackObject(startCallback);
@@ -912,7 +914,10 @@ ani_object EtsUIExtensionContentSession::StartAbilityByTypeSync(
         uiExtensionCallback->SetCompletionHandler(env, static_cast<ani_object>(completionHandler));
     }
     if (uiWindow_ == nullptr || uiWindow_->GetUIContent() == nullptr) {
-        return aniObject;
+        AppExecFwk::AsyncCallback(env, asyncCallback,
+            EtsErrorUtil::CreateError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::CREATE_MODAL_UI_EXTENSION_FAILED)), nullptr);
+        return;
     }
 #ifdef SUPPORT_SCREEN
     auto errorFired = std::make_shared<std::atomic<bool>>(false);
@@ -943,14 +948,15 @@ ani_object EtsUIExtensionContentSession::StartAbilityByTypeSync(
     Ace::ModalUIExtensionConfig config;
     int32_t sessionId = uiWindow_->GetUIContent()->CreateModalUIExtension(want, callback, config);
     if (sessionId == 0) {
-        return aniObject;
+        AppExecFwk::AsyncCallback(env, asyncCallback,
+            EtsErrorUtil::CreateError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::CREATE_MODAL_UI_EXTENSION_FAILED)), nullptr);
     } else {
         uiExtensionCallback->SetUIContent(uiWindow_->GetUIContent());
         uiExtensionCallback->SetSessionId(sessionId);
-        return EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
+        uiExtensionCallback->SetAsyncCallback(env, asyncCallback);
     }
 #endif // SUPPORT_SCREEN
-    return aniObject;
 }
 
 void EtsUIExtensionContentSession::SetWindowPrivacyMode(

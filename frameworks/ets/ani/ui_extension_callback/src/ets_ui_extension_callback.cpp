@@ -52,6 +52,10 @@ EtsUIExtensionCallback::~EtsUIExtensionCallback()
         env->GlobalReference_Delete(completionHandler_);
         completionHandler_ = nullptr;
     }
+    if (asyncCallback_ != nullptr) {
+        env->GlobalReference_Delete(asyncCallback_);
+        asyncCallback_ = nullptr;
+    }
 }
 
 void EtsUIExtensionCallback::OnError(int32_t number)
@@ -88,19 +92,60 @@ void EtsUIExtensionCallback::OnError(int32_t number)
 
 void EtsUIExtensionCallback::ResolveDeferred()
 {
-    TAG_LOGD(AAFwkTag::UI_EXT, "ResolveDeferred call — ETS sync return, no-op");
+    TAG_LOGD(AAFwkTag::UI_EXT, "ResolveDeferred call");
+    InvokeAsyncCallback(0);
 }
 
 void EtsUIExtensionCallback::OnAbilityErrorCode(int32_t errorCode)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "OnAbilityErrorCode call, errorCode: %{public}d", errorCode);
+    InvokeAsyncCallback(errorCode);
     CloseModalUIExtension();
 }
 
 void EtsUIExtensionCallback::OnRelease(int32_t code)
 {
     TAG_LOGI(AAFwkTag::UI_EXT, "OnRelease call, code:%{public}d", code);
+    InvokeAsyncCallback(static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER));
     CloseModalUIExtension();
+}
+
+void EtsUIExtensionCallback::SetAsyncCallback(ani_env *env, ani_object asyncCallback)
+{
+    if (env == nullptr || asyncCallback == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "invalid parameters");
+        return;
+    }
+    if (asyncCallback_ != nullptr) {
+        env->GlobalReference_Delete(asyncCallback_);
+        asyncCallback_ = nullptr;
+    }
+    ani_ref asyncCallbackRef = nullptr;
+    ani_status status = env->GlobalReference_Create(asyncCallback, &asyncCallbackRef);
+    if (status == ANI_OK) {
+        asyncCallback_ = asyncCallbackRef;
+    } else {
+        TAG_LOGE(AAFwkTag::UI_EXT, "GlobalReference_Create failed, status: %{public}d", status);
+    }
+}
+
+void EtsUIExtensionCallback::InvokeAsyncCallback(int32_t errCode)
+{
+    if (asyncCallback_ == nullptr) {
+        return;
+    }
+    auto env = GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null env");
+        return;
+    }
+    ani_object errorObj = nullptr;
+    if (errCode != 0) {
+        errorObj = EtsErrorUtil::CreateErrorByNativeErr(env, errCode);
+    }
+    AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(asyncCallback_), errorObj, nullptr);
+    env->GlobalReference_Delete(asyncCallback_);
+    asyncCallback_ = nullptr;
 }
 
 void EtsUIExtensionCallback::OnResult(int32_t resultCode, const AAFwk::Want &want)
