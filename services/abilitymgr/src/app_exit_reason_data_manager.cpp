@@ -186,6 +186,10 @@ int32_t AppExitReasonDataManager::DeleteAppExitReason(const std::string &bundleN
     DistributedKv::Status status = kvStorePtr_->GetEntries(nullptr, allEntries);
     if (status != DistributedKv::Status::SUCCESS) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "error: %{public}d", status);
+        {
+            std::lock_guard lock(kvStorePtrMutex_);
+            RestoreKvStore(status);
+        }
         return ERR_INVALID_OPERATION;
     }
 
@@ -198,6 +202,16 @@ int32_t AppExitReasonDataManager::DeleteAppExitReason(const std::string &bundleN
 
         std::lock_guard lock(kvStorePtrMutex_);
         auto errCode = kvStorePtr_->Delete(item.key);
+        if (errCode != DistributedKv::Status::SUCCESS) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "kvStore delete error: %{public}d", errCode);
+            errCode = RestoreKvStore(errCode);
+            if (errCode == DistributedKv::Status::SUCCESS && kvStorePtr_ != nullptr) {
+                errCode = kvStorePtr_->Delete(item.key);
+                if (errCode != DistributedKv::Status::SUCCESS) {
+                    TAG_LOGE(AAFwkTag::ABILITYMGR, "kvStore delete retry error: %{public}d", errCode);
+                }
+            }
+        }
         status = (errCode != DistributedKv::Status::SUCCESS) ? errCode : status;
     }
 
@@ -230,6 +244,10 @@ int32_t AppExitReasonDataManager::GetAppExitReason(const std::string &bundleName
     DistributedKv::Status status = kvStorePtr_->GetEntries(nullptr, allEntries);
     if (status != DistributedKv::Status::SUCCESS) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "get entries error: %{public}d", status);
+        {
+            std::lock_guard lock(kvStorePtrMutex_);
+            RestoreKvStore(status);
+        }
         return ERR_INVALID_VALUE;
     }
 
@@ -873,6 +891,10 @@ bool AppExitReasonDataManager::GetUIExtensionAbilityExitReason(const std::string
     DistributedKv::Status status = kvStorePtr_->GetEntries(nullptr, allEntries);
     if (status != DistributedKv::Status::SUCCESS) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "error: %{public}d", status);
+        {
+            std::lock_guard lock(kvStorePtrMutex_);
+            RestoreKvStore(status);
+        }
         return false;
     }
     std::vector<std::string> abilityList;
@@ -1033,7 +1055,7 @@ void AppExitReasonDataManager::InnerDeleteSessionId(const int sessionId)
         std::lock_guard lock(kvStorePtrMutex_);
         status = kvStorePtr_->Delete(key);
     }
- 
+
     if (status != DistributedKv::Status::SUCCESS) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "DeleteSessionId error: %{public}d", status);
     }
@@ -1110,7 +1132,7 @@ DistributedKv::Status AppExitReasonDataManager::RestoreKvStore(DistributedKv::St
     TAG_LOGI(AAFwkTag::ABILITYMGR, "deleted corrupted db, recreating db");
     status = dataManager_.GetSingleKvStore(options, appId_, storeId_, kvStorePtr_);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "recreate db result:%{public}d", status);
-    
+
     return status;
 }
 
@@ -1134,6 +1156,10 @@ int32_t AppExitReasonDataManager::GetRecordAppAbilityNames(const uint32_t access
     DistributedKv::Status status = kvStorePtr_->GetEntries(nullptr, allEntries);
     if (status != DistributedKv::Status::SUCCESS) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "get entries error: %{public}d", status);
+        {
+            std::lock_guard lock(kvStorePtrMutex_);
+            RestoreKvStore(status);
+        }
         return AAFwk::ERR_GET_EXIT_INFO_FAILED;
     }
 
@@ -1161,17 +1187,20 @@ void AppExitReasonDataManager::PutAsync(const DistributedKv::Key &key, const Dis
             TAG_LOGE(AAFwkTag::ABILITYMGR, "null pThis");
             return;
         }
-        std::lock_guard lock(pThis->kvStorePtrMutex_);
-        if (!pThis->kvStorePtr_) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStorePtr_");
-            return;
+        DistributedKv::Status status = DistributedKv::Status::ERROR;
+        {
+            std::lock_guard lock(pThis->kvStorePtrMutex_);
+            if (!pThis->kvStorePtr_) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStorePtr_");
+                return;
+            }
+            status = pThis->kvStorePtr_->Put(key, value);
+            if (status != DistributedKv::Status::SUCCESS) {
+                TAG_LOGW(AAFwkTag::ABILITYMGR, "insert error: %{public}d", status);
+            }
+            pThis->dbWriteCounter_.UpdateWriteCount(APP_EXIT_REASON_STORAGE_DIR);
         }
-        auto status = pThis->kvStorePtr_->Put(key, value);
-        if (status != DistributedKv::Status::SUCCESS) {
-            TAG_LOGW(AAFwkTag::ABILITYMGR, "insert error: %{public}d", status);
-        }
-        pThis->dbWriteCounter_.UpdateWriteCount(APP_EXIT_REASON_STORAGE_DIR);
-        }, ffrt::task_attr().name(PUT_TASK_NAME));
+    }, ffrt::task_attr().name(PUT_TASK_NAME));
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
