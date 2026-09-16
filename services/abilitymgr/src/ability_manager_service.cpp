@@ -3343,7 +3343,7 @@ int AbilityManagerService::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, Ab
         return ERR_INVALID_VALUE;
     }
 #ifdef ENABLE_CLONE_FOR_ACCOUNT
-    if (sessionInfo->want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, true)) {
+    if (sessionInfo->want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, true) || sessionInfo->requestId == -1) {
         auto currentUserId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
         CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(sessionInfo->want, currentUserId),
             RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
@@ -3503,7 +3503,7 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
     if (!HandleExecuteSAInterceptor(sessionInfo->want, sessionInfo->callerToken, abilityRequest, result)) {
         return result;
     }
-    if (sessionInfo->want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, true)) {
+    if (sessionInfo->want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, true) || sessionInfo->requestId == -1) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "interceptorExecuter_ called");
         (sessionInfo->want).RemoveParam(IS_CALLING_FROM_DMS);
         auto shouldBlockFunc = [aams = shared_from_this()]() { return aams->ShouldBlockAllAppStart(); };
@@ -3519,7 +3519,7 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
         abilityRequest.userId = currentUserId;
         abilityRequest.sessionInfo = sessionInfo;
     }
-    if (sessionInfo->want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, true)) {
+    if (sessionInfo->want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, true) || sessionInfo->requestId == -1) {
         if (sessionInfo->startSetting != nullptr) {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "Start by scb, last not.");
             sessionInfo->startSetting->AddProperty(AbilityStartSetting::IS_START_BY_SCB_KEY, "true");
@@ -3544,7 +3544,7 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
         return ERR_INVALID_VALUE;
     }
 
-    if (sessionInfo->want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, true)) {
+    if (sessionInfo->want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, true) || sessionInfo->requestId == -1) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "afterCheckExecuter_ called");
         if (sessionInfo->want.GetBoolParam("ohos.ability.params.isSkipErmsFromSCB", false)) {
             abilityRequest.want.RemoveParam("ohos.ability.params.isSkipErmsFromSCB");
