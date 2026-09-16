@@ -5816,7 +5816,8 @@ int32_t AbilityManagerProxy::ExecuteIntentForDistributed(const Want &want, const
 }
 
 int32_t AbilityManagerProxy::ExecuteIntentByFunctionCall(uint64_t key, const sptr<IRemoteObject> &callerToken,
-    const std::string &bundleName, const std::string &intentName, const WantParams &wantParam)
+    const std::string &bundleName, const std::string &intentName, const WantParams &wantParam,
+    const std::string &toolCallId)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     MessageParcel data;
@@ -5844,6 +5845,10 @@ int32_t AbilityManagerProxy::ExecuteIntentByFunctionCall(uint64_t key, const spt
     }
     if (!data.WriteParcelable(&wantParam)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write wantParam fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteString(toolCallId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write toolCallId fail");
         return INNER_ERR;
     }
     int32_t error = SendRequest(

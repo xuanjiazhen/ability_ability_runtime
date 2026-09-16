@@ -4459,7 +4459,12 @@ int32_t AbilityManagerStub::ExecuteIntentByFunctionCallInner(MessageParcel &data
         TAG_LOGE(AAFwkTag::ABILITYMGR, "wantParam null");
         return ERR_INVALID_VALUE;
     }
-    auto result = ExecuteIntentByFunctionCall(key, callerToken, bundleName, intentName, *wantParam);
+    // toolCallId is an optional tail field: legacy messages without it are parsed as empty
+    std::string toolCallId;
+    if (data.ReadableBytes() > 0) {
+        toolCallId = data.ReadString();
+    }
+    auto result = ExecuteIntentByFunctionCall(key, callerToken, bundleName, intentName, *wantParam, toolCallId);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
         return ERR_INVALID_VALUE;

@@ -36,13 +36,13 @@ std::shared_ptr<InvokeFunctionExecutor> InvokeFunctionExecutor::Create()
 }
 
 void InvokeFunctionExecutor::Execute(const std::string &funcNamespace, const std::string &functionName,
-    const AAFwk::WantParams &wantParams, InvokeResultCallback callback)
+    const AAFwk::WantParams &wantParams, InvokeResultCallback callback, const std::string &toolCallId)
 {
     callback_ = std::move(callback);
     auto self = shared_from_this();
     SetupTimeout();
-    ffrt::submit([self, funcNamespace, functionName, wantParams]() {
-        self->DoExecute(funcNamespace, functionName, wantParams);
+    ffrt::submit([self, funcNamespace, functionName, wantParams, toolCallId]() {
+        self->DoExecute(funcNamespace, functionName, wantParams, toolCallId);
     });
 }
 
@@ -69,7 +69,7 @@ void InvokeFunctionExecutor::ReportError(int32_t errorCode)
 }
 
 void InvokeFunctionExecutor::DoExecute(const std::string &funcNamespace, const std::string &functionName,
-    const AAFwk::WantParams &wantParams)
+    const AAFwk::WantParams &wantParams, const std::string &toolCallId)
 {
     // Step 1: Query function info
     FunctionInfo functionInfo;
@@ -97,6 +97,7 @@ void InvokeFunctionExecutor::DoExecute(const std::string &funcNamespace, const s
     param.bundleName = funcNamespace;
     param.intentName = functionName;
     param.wantParam = wantParams;
+    param.toolCallId = toolCallId;
     param.callback = client;
 
     auto err = AAFwk::IntentClient::GetInstance().ExecuteIntentByFunctionCall(param);

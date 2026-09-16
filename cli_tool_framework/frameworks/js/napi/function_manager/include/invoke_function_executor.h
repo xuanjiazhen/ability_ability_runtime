@@ -76,13 +76,15 @@ public:
      * @param functionName Function unique identifier.
      * @param wantParams Input arguments (Record -> WantParams).
      * @param callback Invoked exactly once with the outcome. Must be thread-safe.
+     * @param toolCallId Optional tool call id, pass-through only (empty means not passed).
      */
     void Execute(const std::string &funcNamespace, const std::string &functionName,
-        const AAFwk::WantParams &wantParams, InvokeResultCallback callback);
+        const AAFwk::WantParams &wantParams, InvokeResultCallback callback,
+        const std::string &toolCallId = "");
 
 private:
     void DoExecute(const std::string &funcNamespace, const std::string &functionName,
-        const AAFwk::WantParams &wantParams);
+        const AAFwk::WantParams &wantParams, const std::string &toolCallId);
     void ReportError(int32_t errorCode);
     void SetupTimeout();
 
