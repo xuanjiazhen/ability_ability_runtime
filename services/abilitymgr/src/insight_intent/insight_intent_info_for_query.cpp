@@ -17,7 +17,6 @@
 
 #include "string_wrapper.h"
 #include "hilog_tag_wrapper.h"
-#include "intent_json_safe_get.h"
 #include "json_safe_util.h"
 #include "json_util.h"
 
@@ -714,10 +713,12 @@ bool InsightIntentInfoForQuery::ReadFromParcel(Parcel &parcel)
     std::lock_guard<std::mutex> lock(g_extraMutex);
     g_parseResult = ERR_OK;
     InsightIntentInfoForQuery tmp;
-    if (!SafeJsonGet(jsonObject, tmp, "InsightIntentInfoForQuery")) {
+    if (!jsonObject.is_object()) {
+        TAG_LOGE(AAFwkTag::INTENT, "InsightIntentInfoForQuery json object expected");
         g_parseResult = ERR_OK;
         return false;
     }
+    from_json(jsonObject, tmp);
     if (g_parseResult != ERR_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "parse result: %{public}d", g_parseResult);
         g_parseResult = ERR_OK;
@@ -836,11 +837,12 @@ bool InsightIntentInfoForQuery::UnmarshallingVector(
     infos.clear();
     for (const auto &item : jsonArray) {
         InsightIntentInfoForQuery info;
-        if (!SafeJsonGet(item, info, "InsightIntentInfoForQueryListItem")) {
+        if (!item.is_object()) {
             TAG_LOGW(AAFwkTag::INTENT, "skip corrupt list item");
             g_parseResult = ERR_OK;
             continue;
         }
+        from_json(item, info);
         if (g_parseResult != ERR_OK) {
             TAG_LOGE(AAFwkTag::INTENT, "parse result: %{public}d", g_parseResult);
             g_parseResult = ERR_OK;

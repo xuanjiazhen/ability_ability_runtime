@@ -18,7 +18,6 @@
 #include "array_wrapper.h"
 #include "hilog_tag_wrapper.h"
 #include "int_wrapper.h"
-#include "intent_json_safe_get.h"
 #include "json_safe_util.h"
 #include "nlohmann/json.hpp"
 #include "string_wrapper.h"

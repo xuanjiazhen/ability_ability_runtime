@@ -16,7 +16,6 @@
 #include "insight_intent_profile.h"
 
 #include "hilog_tag_wrapper.h"
-#include "intent_json_safe_get.h"
 #include "json_safe_util.h"
 #include "json_util.h"
 
@@ -429,10 +428,12 @@ bool InsightIntentProfile::TransformTo(const std::string &profileStr, std::vecto
     {
         std::lock_guard<std::mutex> lock(g_mutex);
         g_parseResult = ERR_OK;
-        if (!SafeJsonGet(jsonObject, profileInfos, "InsightIntentProfileInfoVec")) {
+        if (!jsonObject.is_object()) {
+            TAG_LOGE(AAFwkTag::INTENT, "InsightIntentProfileInfoVec json object expected");
             g_parseResult = ERR_OK;
             return false;
         }
+        from_json(jsonObject, profileInfos);
         if (g_parseResult != ERR_OK) {
             TAG_LOGE(AAFwkTag::INTENT, "g_parseResult :%{public}d", g_parseResult);
             g_parseResult = ERR_OK;

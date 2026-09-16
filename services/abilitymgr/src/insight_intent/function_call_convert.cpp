@@ -23,7 +23,6 @@
 #include "cli_tool_mgr_client.h"
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_execute_param.h"
-#include "intent_json_safe_get.h"
 #include "json_safe_util.h"
 
 namespace OHOS {

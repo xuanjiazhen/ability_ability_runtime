@@ -24,12 +24,14 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+constexpr size_t DUMP_TOKEN_MAX_LEN = 50;
+constexpr size_t DUMP_LOG_MAX_LEN = 1000;
 constexpr size_t JSON_SAFE_PARSE_MAX_LEN = 1024 * 1024;
 constexpr size_t JSON_SAFE_MAX_DEPTH = 100;
 
-namespace {
-constexpr OHOS::HiviewDFX::HiLogLabel JSON_SAFE_UTIL_LABEL = { LOG_CORE, 0xD001306, "JsonSafeUtil" };
+inline constexpr OHOS::HiviewDFX::HiLogLabel JSON_SAFE_UTIL_LABEL = { LOG_CORE, 0xD001306, "JsonSafeUtil" };
 
+namespace JsonSafe {
 class JsonDepthLimitSax : public nlohmann::json_sax<nlohmann::json> {
 public:
     explicit JsonDepthLimitSax(size_t maxDepth) : maxDepth_(maxDepth) {}
@@ -63,7 +65,7 @@ private:
     size_t depth_ = 0;
     size_t maxDepth_ = 0;
 };
-}  // namespace
+}  // namespace JsonSafe
 
 inline bool SafeParse(const std::string &jsonStr, nlohmann::json &jsonObject)
 {
@@ -71,7 +73,7 @@ inline bool SafeParse(const std::string &jsonStr, nlohmann::json &jsonObject)
         HiLogError(JSON_SAFE_UTIL_LABEL, "json size exceeds limit: %{public}zu", jsonStr.size());
         return false;
     }
-    JsonDepthLimitSax handler(JSON_SAFE_MAX_DEPTH);
+    JsonSafe::JsonDepthLimitSax handler(JSON_SAFE_MAX_DEPTH);
     if (!nlohmann::json::sax_parse(jsonStr, &handler)) {
         HiLogError(JSON_SAFE_UTIL_LABEL, "json depth exceeds limit or parse error");
         return false;

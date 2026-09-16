@@ -18,7 +18,6 @@
 #include <algorithm>
 
 #include "hilog_tag_wrapper.h"
-#include "intent_json_safe_get.h"
 #include "json_safe_util.h"
 #include "json_util.h"
 
@@ -678,10 +677,12 @@ bool ExtractInsightIntentProfile::TransformTo(const std::string &profileStr,
 
     std::lock_guard<std::mutex> lock(g_extraMutex);
     g_extraParseResult = ERR_OK;
-    if (!SafeJsonGet(jsonObject, intentInfos, "ExtractInsightIntentProfileInfoVec")) {
+    if (!jsonObject.is_object()) {
+        TAG_LOGE(AAFwkTag::INTENT, "ExtractInsightIntentProfileInfoVec json object expected");
         g_extraParseResult = ERR_OK;
         return false;
     }
+    from_json(jsonObject, intentInfos);
     if (g_extraParseResult != ERR_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "parse result: %{public}d, profileStr: %{public}s",
             g_extraParseResult, profileStr.c_str());
