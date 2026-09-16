@@ -1233,5 +1233,127 @@ HWTEST_F(EtsRuntimeTest, StartProfilerTask_003, TestSize.Level1)
     dOption.perfCmd = "dumpheap";
     etsRuntime->StartProfilerTask(dOption);
 }
+
+/**
+ * @tc.name: LoadRepairPatch_0100
+ * @tc.desc: EtsRuntime test for LoadRepairPatch with null g_etsEnvFuncs.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, LoadRepairPatch_0100, TestSize.Level2)
+{
+    std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
+    ASSERT_NE(etsRuntime, nullptr);
+    std::string hqfFile = "<hqfFile>";
+    std::string hapPath = "<hapPath>";
+    bool result = etsRuntime->LoadRepairPatch(hqfFile, hapPath);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: NotifyHotReloadPage_0100
+ * @tc.desc: EtsRuntime test for NotifyHotReloadPage.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, NotifyHotReloadPage_0100, TestSize.Level2)
+{
+    std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
+    ASSERT_NE(etsRuntime, nullptr);
+    bool result = etsRuntime->NotifyHotReloadPage();
+#ifdef SUPPORT_SCREEN
+    EXPECT_EQ(result, true);
+#else
+    EXPECT_EQ(result, false);
+#endif
+}
+
+/**
+ * @tc.name: UnLoadRepairPatch_0100
+ * @tc.desc: EtsRuntime test for UnLoadRepairPatch.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, UnLoadRepairPatch_0100, TestSize.Level2)
+{
+    std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
+    ASSERT_NE(etsRuntime, nullptr);
+    std::string hqfFile = "<hqfFile>";
+    bool result = etsRuntime->UnLoadRepairPatch(hqfFile);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: RegisterQuickFixQueryFunc_0100
+ * @tc.desc: EtsRuntime test for RegisterQuickFixQueryFunc caches patches when g_etsEnvFuncs null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, RegisterQuickFixQueryFunc_0100, TestSize.Level2)
+{
+    std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
+    ASSERT_NE(etsRuntime, nullptr);
+    std::string moduleName = "<moduleName>";
+    std::string hqfFile = "<hqfFile>";
+    std::map<std::string, std::string> moduleAndPath;
+    moduleAndPath.insert(std::make_pair(moduleName, hqfFile));
+    etsRuntime->RegisterQuickFixQueryFunc(moduleAndPath);
+    EXPECT_FALSE(etsRuntime->cachedPatches_.empty());
+}
+
+/**
+ * @tc.name: RegisterQuickFixQueryFunc_0200
+ * @tc.desc: EtsRuntime test for RegisterQuickFixQueryFunc with empty map.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, RegisterQuickFixQueryFunc_0200, TestSize.Level1)
+{
+    std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
+    ASSERT_NE(etsRuntime, nullptr);
+    std::map<std::string, std::string> moduleAndPath;
+    etsRuntime->RegisterQuickFixQueryFunc(moduleAndPath);
+    EXPECT_TRUE(etsRuntime->cachedPatches_.empty());
+}
+
+/**
+ * @tc.name: RegisterQuickFixQueryFunc_0300
+ * @tc.desc: EtsRuntime test for RegisterQuickFixQueryFunc deduplication.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, RegisterQuickFixQueryFunc_0300, TestSize.Level2)
+{
+    std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
+    ASSERT_NE(etsRuntime, nullptr);
+    std::string moduleName = "<moduleName>";
+    std::string hqfFile = "<hqfFile>";
+    std::map<std::string, std::string> moduleAndPath;
+    moduleAndPath.insert(std::make_pair(moduleName, hqfFile));
+    etsRuntime->RegisterQuickFixQueryFunc(moduleAndPath);
+    etsRuntime->RegisterQuickFixQueryFunc(moduleAndPath);
+    EXPECT_EQ(etsRuntime->cachedPatches_.size(), static_cast<size_t>(1));
+}
+
+/**
+ * @tc.name: ApplyCachedColdReload_0100
+ * @tc.desc: EtsRuntime test for ApplyCachedColdReload with empty cache.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, ApplyCachedColdReload_0100, TestSize.Level2)
+{
+    std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
+    ASSERT_NE(etsRuntime, nullptr);
+    etsRuntime->ApplyCachedColdReload();
+    EXPECT_TRUE(etsRuntime->cachedPatches_.empty());
+}
+
+/**
+ * @tc.name: ApplyCachedColdReload_0200
+ * @tc.desc: EtsRuntime test for ApplyCachedColdReload with cache but null g_etsEnvFuncs restores cache.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, ApplyCachedColdReload_0200, TestSize.Level2)
+{
+    std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
+    ASSERT_NE(etsRuntime, nullptr);
+    etsRuntime->cachedPatches_.push_back("<patchPath>");
+    etsRuntime->ApplyCachedColdReload();
+    EXPECT_FALSE(etsRuntime->cachedPatches_.empty());
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
