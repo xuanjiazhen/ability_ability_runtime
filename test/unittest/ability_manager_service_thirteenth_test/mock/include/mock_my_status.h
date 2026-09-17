@@ -54,6 +54,7 @@ public:
     uint32_t ipcGetSelfTokenID_ = 1;
     int permPermission_ = 1;
     bool permVerifyBlockAllAppStartPermission_ = false;
+    bool permVerifySAInterceptorPermission_ = false;
     bool perJudgeCallerIsAllowedToUseSystemAPI_ = true;
     bool paramGetBoolParameter_ = true;
     std::shared_ptr<BaseExtensionRecord> acmGetUIExtensionBySessionInfo_ = nullptr;

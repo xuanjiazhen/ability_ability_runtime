@@ -921,6 +921,17 @@ HWTEST_F(PermissionVerificationTest, VerifyBlockAllAppStartPermission_0100, Test
 }
 
 /**
+ * @tc.name: VerifySAInterceptorPermission_0100
+ * @tc.desc: VerifySAInterceptorPermission Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(PermissionVerificationTest, VerifySAInterceptorPermission_0100, TestSize.Level1)
+{
+    int result = AAFwk::PermissionVerification::GetInstance()->VerifySAInterceptorPermission();
+    EXPECT_FALSE(result);
+}
+
+/**
  * @tc.name: VerifySuperviseKiaServicePermission_0100
  * @tc.desc: VerifySuperviseKiaServicePermission Test
  * @tc.type: FUNC

@@ -278,6 +278,12 @@ bool PermissionVerification::VerifyBlockAllAppStartPermission() const
     return true;
 }
 
+bool PermissionVerification::VerifySAInterceptorPermission() const
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s enter", __func__);
+    return true;
+}
+
 bool PermissionVerification::VerifyStartUIAbilityToHiddenPermission() const
 {
     return true;

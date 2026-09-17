@@ -19246,7 +19246,7 @@ std::shared_ptr<AbilityInterceptorExecuter> AbilityManagerService::GetAbilityInt
 int32_t AbilityManagerService::RegisterSAInterceptor(sptr<AbilityRuntime::ISAInterceptor> interceptor)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call RegisterSaInterceptor, callingPid:%{public}d", IPCSkeleton::GetCallingPid());
-    if (IPCSkeleton::GetCallingUid() != PENG_LAI_UID && IPCSkeleton::GetCallingUid() != TASKMGR_UID) {
+    if (!PermissionVerification::GetInstance()->VerifySAInterceptorPermission()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no permission call");
         return CHECK_PERMISSION_FAILED;
     }
@@ -19257,7 +19257,7 @@ int32_t AbilityManagerService::RegisterSAInterceptor(sptr<AbilityRuntime::ISAInt
 int32_t AbilityManagerService::UnregisterSAInterceptor(sptr<IRemoteObject> interceptor)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call UnregisterSaInterceptor");
-    if (IPCSkeleton::GetCallingUid() != TASKMGR_UID) {
+    if (!PermissionVerification::GetInstance()->VerifySAInterceptorPermission()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no permission call");
         return CHECK_PERMISSION_FAILED;
     }
