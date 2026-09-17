@@ -131,6 +131,8 @@ void SessionRecord::BuildSessionInfo(CliSessionInfo &session) const
 {
     session.sessionId = sessionId;
     session.toolName = toolName;
+    session.toolCallId = toolCallId;
+    session.dmSessionId = dmSessionId;
 
     if ((!HasProcessExited() || !OutputDrained()) && !timeout_) {
         session.status = "running";
