@@ -2071,9 +2071,9 @@ HWTEST_F(ToolUtilTest, GenerateCmdSandboxConfig_0100, TestSize.Level1)
 
     ExecCmdParam param;
     param.cmd = "echo hello";
-    param.policy = "allow";
-    param.workDir = "/data/local/tmp";
-    param.env = "PATH=/bin";
+    param.execCmdOptions.policy = "allow";
+    param.execCmdOptions.workDir = "/data/local/tmp";
+    param.execCmdOptions.env = "PATH=/bin";
 
     std::string sandboxConfig;
     std::string bundleName;
@@ -2099,9 +2099,9 @@ HWTEST_F(ToolUtilTest, GenerateCmdSandboxConfig_0200, TestSize.Level1)
 
     ExecCmdParam param;
     param.cmd = "";
-    param.policy = "";
-    param.workDir = "";
-    param.env = "";
+    param.execCmdOptions.policy = "";
+    param.execCmdOptions.workDir = "";
+    param.execCmdOptions.env = "";
 
     std::string sandboxConfig;
     std::string bundleName;
@@ -2125,9 +2125,9 @@ HWTEST_F(ToolUtilTest, GenerateCmdSandboxConfig_0300, TestSize.Level1)
 
     ExecCmdParam param;
     param.cmd = "ls /data";
-    param.policy = "strict";
-    param.workDir = "/data/local/tmp";
-    param.env = "LANG=en_US.UTF-8";
+    param.execCmdOptions.policy = "strict";
+    param.execCmdOptions.workDir = "/data/local/tmp";
+    param.execCmdOptions.env = "LANG=en_US.UTF-8";
 
     std::string sandboxConfig;
     std::string bundleName;
@@ -2151,9 +2151,9 @@ HWTEST_F(ToolUtilTest, GenerateCmdSandboxConfig_0400, TestSize.Level1)
 
     ExecCmdParam param;
     param.cmd = "pwd";
-    param.policy = "allow";
-    param.workDir = "";  // empty workDir
-    param.env = "";
+    param.execCmdOptions.policy = "allow";
+    param.execCmdOptions.workDir = "";  // empty workDir
+    param.execCmdOptions.env = "";
 
     std::string sandboxConfig;
     std::string bundleName;
