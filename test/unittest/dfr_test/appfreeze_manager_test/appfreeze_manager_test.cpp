@@ -14,7 +14,7 @@
  */
 
 #include <gtest/gtest.h>
-
+..
 #define private public
 #include "appfreeze_manager.h"
 #undef private
