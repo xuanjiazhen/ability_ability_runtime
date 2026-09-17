@@ -168,6 +168,10 @@ bool FunctionInfo::Marshalling(Parcel &parcel) const
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Write functionType failed");
         return false;
     }
+    if (!parcel.WriteString(visibility)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Write visibility failed");
+        return false;
+    }
     return true;
 }
 
@@ -212,18 +216,36 @@ FunctionInfo *FunctionInfo::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
     function->functionType = static_cast<FunctionType>(typeValue);
+    // Backward-compat: visibility may be absent in older parcels
+    if (!parcel.ReadString(function->visibility)) {
+        // default "private" already set by member initializer
+    }
     return function.release();
 }
 
 bool FunctionInfo::ParseFromJson(const nlohmann::json &json, FunctionInfo &function)
 {
-    return ParseRequiredStringField(json, "functionName", function.functionName) &&
-           ParseRequiredStringField(json, "functionNamespace", function.functionNamespace) &&
-           ParseRequiredStringField(json, "version", function.version, true) &&
-           ParseRequiredStringField(json, "description", function.description, true) &&
-           ParseInputSchema(json, function.inputSchema) &&
-           ParseOutputSchema(json, function.outputSchema) &&
-           ParseFunctionType(json, function.functionType);
+    if (!ParseRequiredStringField(json, "functionName", function.functionName) ||
+        !ParseRequiredStringField(json, "functionNamespace", function.functionNamespace) ||
+        !ParseRequiredStringField(json, "version", function.version, true) ||
+        !ParseRequiredStringField(json, "description", function.description, true) ||
+        !ParseInputSchema(json, function.inputSchema) ||
+        !ParseOutputSchema(json, function.outputSchema) ||
+        !ParseFunctionType(json, function.functionType)) {
+        return false;
+    }
+    if (json.contains("visibility")) {
+        if (!json["visibility"].is_string()) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "ParseFromJson failed: visibility is not a string");
+            return false;
+        }
+        function.visibility = json["visibility"].get<std::string>();
+        if (function.visibility != "public" && function.visibility != "private") {
+            TAG_LOGW(AAFwkTag::CLI_TOOL, "ParseFromJson: invalid visibility value, falling back to private");
+            function.visibility = "private";
+        }
+    }
+    return true;
 }
 
 nlohmann::json FunctionInfo::ParseToJson() const
@@ -244,6 +266,7 @@ nlohmann::json FunctionInfo::ParseToJson() const
     }
 
     j["functionType"] = static_cast<int32_t>(functionType);
+    j["visibility"] = visibility;
 
     return j;
 }

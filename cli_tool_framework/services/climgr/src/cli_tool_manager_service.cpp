@@ -686,15 +686,22 @@ int32_t CliToolManagerService::GetFunctionInfo(const std::string &functionNamesp
         functionNamespace.c_str(), functionName.c_str());
     InterfaceCallCounter counter(interfaceCalledCount_);
 
-    auto ret = PermissionUtil::CheckSystemAndPermission(PERMISSION_ACCESS_FUNCTION);
-    if (ret != ERR_OK) {
-        return ret;
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_ACCESS_FUNCTION)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionInfo: Permission denied");
+        return ERR_PERMISSION_DENIED;
     }
 
     auto retCode = CliFunctionDataManager::GetInstance().GetFunctionByName(functionNamespace, functionName, function);
     if (retCode != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionInfo: Failed to get function, ret=%{public}d", retCode);
         return retCode;
+    }
+
+    // Visibility check: non-system app cannot access private functions
+    if (!PermissionUtil::IsSystemApp() && function.visibility == "private") {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionInfo: Not system app, function is private");
+        return ERR_FUNCTION_NOT_EXIST;
     }
 
     TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully got function: %{public}s/%{public}s",
@@ -841,6 +848,40 @@ int32_t CliToolManagerService::GetAllFunctions(FunctionsRawData &functions)
         return retCode;
     }
     TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully got all functions (raw): %{public}zu", functionList.size());
+    return ERR_OK;
+}
+
+int32_t CliToolManagerService::GetPublicFunctions(FunctionsRawData &functions)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "GetPublicFunctions called");
+    InterfaceCallCounter counter(interfaceCalledCount_);
+
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_ACCESS_FUNCTION)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetPublicFunctions: Permission denied");
+        return ERR_PERMISSION_DENIED;
+    }
+
+    std::vector<FunctionInfo> functionList;
+    int32_t retCode = CliFunctionDataManager::GetInstance().GetAllFunctions(functionList);
+    if (retCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetPublicFunctions: Failed to get functions, ret=%{public}d", retCode);
+        return retCode;
+    }
+
+    std::vector<FunctionInfo> publicFunctions;
+    for (const auto &func : functionList) {
+        if (func.visibility == "public") {
+            publicFunctions.push_back(func);
+        }
+    }
+
+    retCode = FunctionsRawData::FromFunctionInfoVec(publicFunctions, functions);
+    if (retCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "FromFunctionInfoVec failed: %{public}d", retCode);
+        return retCode;
+    }
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully got public functions: %{public}zu", publicFunctions.size());
     return ERR_OK;
 }
 
