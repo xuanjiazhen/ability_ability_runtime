@@ -788,40 +788,39 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetProcessKillReason_Test001
         .timestamp = 0,
     };
     int32_t killId = -2;
-    bool foreground = false;
     int32_t pid = getpid();
     std::string killMsg = "AppfreezeManagerTest_GetProcessKillReason_Test001";
-    killInfo = appfreezeManager->GetProcessKillReason(killId, pid, killMsg, foreground);
+    appfreezeManager->GetProcessKillReason(killInfo, killId, pid, killMsg);
     EXPECT_EQ(killInfo.killReason, "InvalidKillId");
     EXPECT_EQ(killInfo.killId, killId);
     killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_THREAD_BLOCK_6S;
-    killInfo = appfreezeManager->GetProcessKillReason(killId, pid, killMsg, foreground);
+    appfreezeManager->GetProcessKillReason(killInfo, killId, pid, killMsg);
     EXPECT_EQ(killInfo.killReason, "THREAD_BLOCK_6S");
     EXPECT_EQ(killInfo.killId, killId);
     killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_CPP_CRASH;
-    killInfo = appfreezeManager->GetProcessKillReason(killId, pid, killMsg, foreground);
+    appfreezeManager->GetProcessKillReason(killInfo, killId, pid, killMsg);
     EXPECT_EQ(killInfo.killReason, "Cpp Crash");
     EXPECT_EQ(killInfo.killId, killId);
     killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_JS_ERROR;
-    killInfo = appfreezeManager->GetProcessKillReason(killId, pid, killMsg, foreground);
+    appfreezeManager->GetProcessKillReason(killInfo, killId, pid, killMsg);
     EXPECT_EQ(killInfo.killReason, "Js Error");
     EXPECT_EQ(killInfo.killId, killId);
     killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_LIFECYCLE_TIMEOUT;
-    killInfo = appfreezeManager->GetProcessKillReason(killId, pid, killMsg, foreground);
+    appfreezeManager->GetProcessKillReason(killInfo, killId, pid, killMsg);
     EXPECT_EQ(killInfo.killReason, "LIFECYCLE_TIMEOUT");
     EXPECT_EQ(killInfo.killId, killId);
     killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_APP_INPUT_BLOCK;
-    killInfo = appfreezeManager->GetProcessKillReason(killId, pid, killMsg, foreground);
+    appfreezeManager->GetProcessKillReason(killInfo, killId, pid, killMsg);
     EXPECT_EQ(killInfo.killReason, "APP_INPUT_BLOCK");
     EXPECT_EQ(killInfo.killId, killId);
     killId = -1;
-    foreground = true;
-    appfreezeManager->GetProcessKillReason(killId, pid, killMsg, foreground);
+    killInfo.foreground = true;
+    appfreezeManager->GetProcessKillReason(killInfo, killId, pid, killMsg);
     printf("killInfo killId: %d", killInfo.killId);
     killId = 0;
-    appfreezeManager->GetProcessKillReason(killId, pid, killMsg, foreground);
+    appfreezeManager->GetProcessKillReason(killInfo, killId, pid, killMsg);
     killId = 4000;
-    appfreezeManager->GetProcessKillReason(killId, pid, killMsg, foreground);
+    appfreezeManager->GetProcessKillReason(killInfo, killId, pid, killMsg);
 }
 
 /**
