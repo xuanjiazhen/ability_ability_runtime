@@ -153,7 +153,9 @@
                         "type": "string"
                     }
                 }
-            }
+            },
+            "visibility": "public",
+            "supportedDevices": ["default"]
         },
         "force-stop": {
             "description": "ohos-aa force-stop - Stop an application on the system.",
