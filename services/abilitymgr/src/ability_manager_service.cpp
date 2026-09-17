@@ -4927,7 +4927,7 @@ ErrCode AbilityManagerService::SetPickerElementNameAndParams(const sptr<SessionI
         auto it = pickerMap.find(targetType);
         if (it == pickerMap.end()) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "can not find targetType:%{public}s", targetType.c_str());
-            return ERR_PICKER_TARGET_TYPE_NOT_FOUND;
+            return ERR_INVALID_EXTENSION_TYPE;
         }
         pickerType = it->second;
         auto bms = AbilityUtil::GetBundleManagerHelper();
