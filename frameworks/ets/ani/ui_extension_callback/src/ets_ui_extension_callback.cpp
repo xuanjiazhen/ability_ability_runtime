@@ -95,9 +95,6 @@ void EtsUIExtensionCallback::OnAbilityByTypeResult(int32_t errorCode)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "OnAbilityByTypeResult call, errorCode: %{public}d", errorCode);
     InvokeAsyncCallback(errorCode);
-#ifdef SUPPORT_SCREEN
-    CloseModalUIExtension();
-#endif
 }
 
 void EtsUIExtensionCallback::SetAsyncCallback(ani_env *env, ani_object asyncCallback)

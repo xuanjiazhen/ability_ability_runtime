@@ -17,6 +17,7 @@
 #include <memory>
 
 #include "ability_handler.h"
+#include "ability_business_error.h"
 #include "app_module_checker.h"
 #include "context_deal.h"
 #include "js_environment.h"
