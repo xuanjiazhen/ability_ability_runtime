@@ -44,6 +44,8 @@ public:
     int32_t ExecuteIntentByFunctionCall(const ExecuteIntentParam &param);
 
     int32_t mockStatus_ = 0;
+    // Capture the existing WantParams transport used by functionManager.
+    WantParams lastWantParam_;
 };
 
 } // namespace AAFwk

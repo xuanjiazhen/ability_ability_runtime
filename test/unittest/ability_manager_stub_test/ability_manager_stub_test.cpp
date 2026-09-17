@@ -20,6 +20,7 @@
 #include "accesstoken_kit.h"
 #include "app_debug_listener_stub_mock.h"
 #include "hilog_tag_wrapper.h"
+#include "insight_intent_execute_param.h"
 #include "iremote_proxy.h"
 #include "mock_ability_connect_callback.h"
 #include "mock_ability_token.h"
@@ -27,6 +28,7 @@
 #include "nativetoken_kit.h"
 #include "process_options.h"
 #include "sandbox_clone_params.h"
+#include "string_wrapper.h"
 #include "token_setproc.h"
 
 using namespace testing::ext;
@@ -6162,6 +6164,73 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_SendLocalWantSenderInner_San
     auto res = stub->SendLocalWantSenderInner(data, reply);
     EXPECT_EQ(res, NO_ERROR);
     ExpectSystemFieldsSanitized(capture->capturedOpts);
+}
+
+namespace {
+class ExecuteIntentByFunctionCallCapturingStub : public AbilityManagerStubImplMock {
+public:
+    WantParams capturedWantParam;
+    bool called = false;
+
+    int32_t ExecuteIntentByFunctionCall(uint64_t key, const sptr<IRemoteObject> &callerToken,
+        const std::string &bundleName, const std::string &intentName, const WantParams &wantParam) override
+    {
+        called = true;
+        capturedWantParam = wantParam;
+        return 0;
+    }
+};
+}  // namespace
+
+/*
+ * Function: ExecuteIntentByFunctionCallInner
+ * CaseDescription: the unchanged IPC layout accepts a request without the reserved toolCallId key.
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_ExecuteIntentByFunctionCall_WithoutToolCallId_0100, TestSize.Level1)
+{
+    auto stub = sptr<AbilityManagerStubImplMock>(new ExecuteIntentByFunctionCallCapturingStub());
+    auto capture = static_cast<ExecuteIntentByFunctionCallCapturingStub*>(stub.GetRefPtr());
+    MessageParcel data;
+    MessageParcel reply;
+    sptr<IRemoteObject> token = sptr<AppExecFwk::MockAbilityToken>(new (std::nothrow) AppExecFwk::MockAbilityToken());
+    data.WriteUint64(1);
+    data.WriteRemoteObject(token);
+    data.WriteString("test.bundleName");
+    data.WriteString("PlayMusic");
+    WantParams wantParam;
+    data.WriteParcelable(&wantParam);
+    auto res = stub->ExecuteIntentByFunctionCallInner(data, reply);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_TRUE(capture->called);
+    EXPECT_FALSE(capture->capturedWantParam.HasParam(AppExecFwk::INSIGHT_INTENT_TOOL_CALL_ID));
+    EXPECT_EQ(data.GetReadableBytes(), 0u);
+}
+
+/*
+ * Function: ExecuteIntentByFunctionCallInner
+ * CaseDescription: toolCallId travels in the existing WantParams parcel, without an extra IPC field.
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_ExecuteIntentByFunctionCall_WithToolCallId_0200, TestSize.Level1)
+{
+    auto stub = sptr<AbilityManagerStubImplMock>(new ExecuteIntentByFunctionCallCapturingStub());
+    auto capture = static_cast<ExecuteIntentByFunctionCallCapturingStub*>(stub.GetRefPtr());
+    MessageParcel data;
+    MessageParcel reply;
+    sptr<IRemoteObject> token = sptr<AppExecFwk::MockAbilityToken>(new (std::nothrow) AppExecFwk::MockAbilityToken());
+    data.WriteUint64(1);
+    data.WriteRemoteObject(token);
+    data.WriteString("test.bundleName");
+    data.WriteString("PlayMusic");
+    WantParams wantParam;
+    wantParam.SetParam(AppExecFwk::INSIGHT_INTENT_TOOL_CALL_ID, String::Box("tc-003"));
+    wantParam.SetParam("city", String::Box("Shanghai"));
+    data.WriteParcelable(&wantParam);
+    auto res = stub->ExecuteIntentByFunctionCallInner(data, reply);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_TRUE(capture->called);
+    EXPECT_EQ(capture->capturedWantParam.GetStringParam(AppExecFwk::INSIGHT_INTENT_TOOL_CALL_ID), "tc-003");
+    EXPECT_EQ(capture->capturedWantParam.GetStringParam("city"), "Shanghai");
+    EXPECT_EQ(data.GetReadableBytes(), 0u);
 }
 } // namespace AAFwk
 } // namespace OHOS
