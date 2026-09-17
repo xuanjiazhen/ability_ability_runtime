@@ -5438,7 +5438,7 @@ int AbilityManagerService::TerminateAbility(const sptr<IRemoteObject> &token, in
     if (AppUtils::GetInstance().IsLauncher(elementName.GetBundleName()) &&
         AppUtils::GetInstance().IsLauncherAbility(elementName.GetAbilityName())) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "cannot terminate launcher ability");
-        return ERR_OK;
+        return TERMINATE_LAUNCHER_DENIED;
     }
     return TerminateAbilityWithFlag(token, resultCode, resultWant, true);
 }
@@ -12669,21 +12669,21 @@ int AbilityManagerService::SetMissionIcon(const sptr<IRemoteObject> &token,
     auto abilityRecord = Token::GetAbilityRecordByToken(token);
     if (!abilityRecord) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no such ability record");
-        return -1;
+        return ERR_INVALID_VALUE;
     }
 
     auto callingTokenId = IPCSkeleton::GetCallingTokenID();
     auto tokenID = abilityRecord->GetApplicationInfo().accessTokenId;
     if (callingTokenId != tokenID) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not self, not enable set mission icon");
-        return -1;
+        return ERR_INVALID_VALUE;
     }
 
     auto userId = abilityRecord->GetOwnerMissionUserId();
     auto missionListManager = GetMissionListManagerByUserId(userId);
     if (!missionListManager) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "find missionListManager failed");
-        return -1;
+        return ERR_INVALID_VALUE;
     }
 
     return missionListManager->SetMissionIcon(token, icon);

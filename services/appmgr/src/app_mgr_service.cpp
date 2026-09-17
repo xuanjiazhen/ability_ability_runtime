@@ -591,7 +591,7 @@ int32_t AppMgrService::GetRunningMultiAppInfoByBundleName(const std::string &bun
 
     if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "caller is not SA");
-        return ERR_INVALID_OPERATION;
+        return AAFwk::ERR_NOT_SYSTEM_APP;
     }
 
     bool isCallingPermission = AAFwk::PermissionVerification::GetInstance()->VerifyRunningInfoPerm();

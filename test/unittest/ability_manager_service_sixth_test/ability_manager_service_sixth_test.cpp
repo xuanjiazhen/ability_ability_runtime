@@ -684,7 +684,7 @@ HWTEST_F(AbilityManagerServiceSixthTest, TerminateAbility_001, TestSize.Level1)
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
     ret = abilityMs->TerminateAbility(token, resultCode, &resultWant);
-    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(ret, TERMINATE_LAUNCHER_DENIED);
 
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         resultWant.SetElementName(BUNDLE_NAME_SCENEBOARD, "");
@@ -692,7 +692,7 @@ HWTEST_F(AbilityManagerServiceSixthTest, TerminateAbility_001, TestSize.Level1)
         resultWant.SetElementName(BUNDLE_NAME_LAUNCHER, "");
     }
     ret = abilityMs->TerminateAbility(token, resultCode, &resultWant);
-    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(ret, TERMINATE_LAUNCHER_DENIED);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest TerminateAbility_001 start");
 }
 
