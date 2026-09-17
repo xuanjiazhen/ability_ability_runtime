@@ -73,6 +73,7 @@ ohos_static_library("tools_aa_source_set") {
     "eventhandler:libeventhandler",
     "hicollie:libhicollie",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "init:libbegetutil",
     "ipc:ipc_core",
   ]

@@ -26,6 +26,7 @@
 #include "ability_tool_convert_util.h"
 #include "accesstoken_kit.h"
 #include "app_mgr_client.h"
+#include "event_report.h"
 #include "token_setproc.h"
 #include "hilog_tag_wrapper.h"
 #include "iservice_registry.h"
@@ -1370,6 +1371,9 @@ ErrCode AbilityManagerShellCommand::CheckReservedPerfCmd(
     std::string validated;
     if (!CheckPerfCmdString(value.c_str(), PARAM_LENGTH, validated)) {
         TAG_LOGE(AAFwkTag::AA_TOOL, "input perfCmd invalid via --ps %{public}s", value.c_str());
+        EventInfo eventInfo;
+        eventInfo.uri = "input perfCmd invalid";
+        EventReport::SendGrantUriPermissionEvent(EventName::GRANT_URI_PERMISSION, eventInfo);
         resultReceiver_.append("invalid perfCmd for option --ps\n");
         return OHOS::ERR_INVALID_VALUE;
     }
