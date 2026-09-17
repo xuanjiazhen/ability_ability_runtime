@@ -56,6 +56,7 @@ namespace CliTool {
 namespace {
 constexpr const char* PERMISSION_EXEC_CLI_TOOL = "ohos.permission.EXEC_CLI_TOOL";
 constexpr const char* PERMISSION_QUERY_CLI_TOOL = "ohos.permission.QUERY_CLI_TOOL";
+constexpr const char* PERMISSION_QUERY_PUBLIC_CLI_TOOL = "ohos.permission.QUERY_PUBLIC_CLI_TOOL";
 constexpr const char* PERMISSION_REGISTER_CLI_TOOL = "ohos.permission.REGISTER_CLI_TOOL";
 constexpr const char* PERMISSION_ACCESS_FUNCTION = "ohos.permission.ACCESS_FUNCTION";
 constexpr const char* PERMISSION_REGISTER_AGENT_HOOK = "ohos.permission.REGISTER_AGENT_HOOK";
@@ -542,54 +543,79 @@ int32_t CliToolManagerService::GetAllToolInfos(ToolsRawData &tools)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllToolInfos called");
     InterfaceCallCounter counter(interfaceCalledCount_);
-    if (!PermissionUtil::IsSystemApp()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolInfos: Not system app");
-        return ERR_NOT_SYSTEM_APP;
-    }
-
     auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_QUERY_CLI_TOOL)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolInfos: Permission denied");
-        return ERR_PERMISSION_DENIED;
+    if (PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_QUERY_CLI_TOOL)) {
+        return CliToolDataManager::GetInstance().GetAllToolsRawData(tools);
     }
-
-    return CliToolDataManager::GetInstance().GetAllToolsRawData(tools);
+    if (PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_QUERY_PUBLIC_CLI_TOOL)) {
+        std::vector<ToolInfo> allTools;
+        int32_t ret = CliToolDataManager::GetInstance().GetAllTools(allTools);
+        if (ret != ERR_OK) {
+            return ret;
+        }
+        std::vector<ToolInfo> publicTools;
+        for (const auto &tool : allTools) {
+            if (tool.visibility == "public") {
+                publicTools.push_back(tool);
+            }
+        }
+        ToolsRawData::FromToolInfoVec(publicTools, tools);
+        return ERR_OK;
+    }
+    TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolInfos: Permission denied");
+    return ERR_PERMISSION_DENIED;
 }
 
 int32_t CliToolManagerService::GetAllToolSummaries(std::vector<ToolSummary> &summaries)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllToolSummaries called");
     InterfaceCallCounter counter(interfaceCalledCount_);
-    if (!PermissionUtil::IsSystemApp()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolSummaries: Not system app");
-        return ERR_NOT_SYSTEM_APP;
-    }
-
     auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_QUERY_CLI_TOOL)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolSummaries: Permission denied");
-        return ERR_PERMISSION_DENIED;
+    if (PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_QUERY_CLI_TOOL)) {
+        return CliToolDataManager::GetInstance().QueryToolSummaries(summaries);
     }
-
-    return CliToolDataManager::GetInstance().QueryToolSummaries(summaries);
+    if (PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_QUERY_PUBLIC_CLI_TOOL)) {
+        std::vector<ToolInfo> allTools;
+        int32_t ret = CliToolDataManager::GetInstance().GetAllTools(allTools);
+        if (ret != ERR_OK) {
+            return ret;
+        }
+        summaries.clear();
+        for (const auto &tool : allTools) {
+            if (tool.visibility == "public") {
+                ToolSummary summary;
+                summary.name = tool.name;
+                summary.version = tool.version;
+                summary.description = tool.description;
+                summaries.push_back(std::move(summary));
+            }
+        }
+        return ERR_OK;
+    }
+    TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolSummaries: Permission denied");
+    return ERR_PERMISSION_DENIED;
 }
 
 int32_t CliToolManagerService::GetToolInfoByName(const std::string &name, ToolInfo &tool)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "GetToolInfoByName called, name='%{public}s'", name.c_str());
     InterfaceCallCounter counter(interfaceCalledCount_);
-    if (!PermissionUtil::IsSystemApp()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetToolInfoByName: Not system app");
-        return ERR_NOT_SYSTEM_APP;
-    }
-
     auto tokenId = IPCSkeleton::GetCallingTokenID();
-    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_QUERY_CLI_TOOL)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetToolInfoByName: Permission denied");
-        return ERR_PERMISSION_DENIED;
+    if (PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_QUERY_CLI_TOOL)) {
+        return CliToolDataManager::GetInstance().GetToolByName(name, tool);
     }
-
-    return CliToolDataManager::GetInstance().GetToolByName(name, tool);
+    if (PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_QUERY_PUBLIC_CLI_TOOL)) {
+        int32_t ret = CliToolDataManager::GetInstance().GetToolByName(name, tool);
+        if (ret != ERR_OK) {
+            return ret;
+        }
+        if (tool.visibility == "private") {
+            return ERR_TOOL_NOT_EXIST;
+        }
+        return ERR_OK;
+    }
+    TAG_LOGE(AAFwkTag::CLI_TOOL, "GetToolInfoByName: Permission denied");
+    return ERR_PERMISSION_DENIED;
 }
 
 int32_t CliToolManagerService::RegisterFunction(const FunctionInfo &function)

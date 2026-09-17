@@ -3492,5 +3492,151 @@ HWTEST_F(ToolInfoTest, ToolsRawData_RoundTrip_0100, TestSize.Level1)
     GTEST_LOG_(INFO) << "ToolsRawData_RoundTrip_0100 end";
 }
 
+// ==================== Visibility / SupportedDevices Tests ====================
+
+/**
+ * @tc.name: ToolInfo_ParseFromJson_Visibility_0100
+ * @tc.desc: Test ParseFromJson with visibility="public" and supportedDevices=["default"]
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_ParseFromJson_Visibility_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_ParseFromJson_Visibility_0100 start";
+
+    nlohmann::json json = R"({
+        "name": "ohos-test",
+        "version": "1.0.0",
+        "description": "Test tool",
+        "executablePath": "/bin/test",
+        "requirePermissions": [],
+        "inputSchema": {},
+        "outputSchema": {},
+        "visibility": "public",
+        "supportedDevices": ["default", "tablet"]
+    })"_json;
+
+    ToolInfo tool;
+    ASSERT_TRUE(ToolInfo::ParseFromJson(json, tool));
+    EXPECT_EQ(tool.visibility, "public");
+    EXPECT_EQ(tool.supportedDevices.size(), 2u);
+    EXPECT_EQ(tool.supportedDevices[0], "default");
+    EXPECT_EQ(tool.supportedDevices[1], "tablet");
+
+    GTEST_LOG_(INFO) << "ToolInfo_ParseFromJson_Visibility_0100 end";
+}
+
+/**
+ * @tc.name: ToolInfo_ParseFromJson_Visibility_0200
+ * @tc.desc: Test ParseFromJson without visibility/supportedDevices — defaults private/[]
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_ParseFromJson_Visibility_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_ParseFromJson_Visibility_0200 start";
+
+    nlohmann::json json = R"({
+        "name": "ohos-test",
+        "version": "1.0.0",
+        "description": "Test tool",
+        "executablePath": "/bin/test",
+        "requirePermissions": [],
+        "inputSchema": {},
+        "outputSchema": {}
+    })"_json;
+
+    ToolInfo tool;
+    ASSERT_TRUE(ToolInfo::ParseFromJson(json, tool));
+    EXPECT_EQ(tool.visibility, "private");
+    EXPECT_TRUE(tool.supportedDevices.empty());
+
+    GTEST_LOG_(INFO) << "ToolInfo_ParseFromJson_Visibility_0200 end";
+}
+
+/**
+ * @tc.name: ToolInfo_ParseFromJson_Visibility_0300
+ * @tc.desc: Test ParseFromJson with invalid visibility value — falls back to private
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_ParseFromJson_Visibility_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_ParseFromJson_Visibility_0300 start";
+
+    nlohmann::json json = R"({
+        "name": "ohos-test",
+        "version": "1.0.0",
+        "description": "Test tool",
+        "executablePath": "/bin/test",
+        "requirePermissions": [],
+        "inputSchema": {},
+        "outputSchema": {},
+        "visibility": "invalid"
+    })"_json;
+
+    ToolInfo tool;
+    ASSERT_TRUE(ToolInfo::ParseFromJson(json, tool));
+    EXPECT_EQ(tool.visibility, "private");
+
+    GTEST_LOG_(INFO) << "ToolInfo_ParseFromJson_Visibility_0300 end";
+}
+
+/**
+ * @tc.name: ToolInfo_ParseToJson_Visibility_0100
+ * @tc.desc: Test ParseToJson includes visibility and supportedDevices
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_ParseToJson_Visibility_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_ParseToJson_Visibility_0100 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-test";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    tool.visibility = "public";
+    tool.supportedDevices = {"default"};
+
+    nlohmann::json json = tool.ParseToJson();
+    EXPECT_EQ(json["visibility"], "public");
+    EXPECT_EQ(json["supportedDevices"], nlohmann::json::array({"default"}));
+
+    GTEST_LOG_(INFO) << "ToolInfo_ParseToJson_Visibility_0100 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Marshalling_Visibility_0100
+ * @tc.desc: Test Marshalling/Unmarshalling round-trip with visibility/supportedDevices
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Marshalling_Visibility_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Marshalling_Visibility_0100 start";
+
+    ToolInfo original;
+    original.name = "ohos-test";
+    original.version = "1.0.0";
+    original.description = "Test";
+    original.executablePath = "/bin/test";
+    original.inputSchema = "{}";
+    original.outputSchema = "{}";
+    original.visibility = "public";
+    original.supportedDevices = {"default", "tv"};
+
+    Parcel parcel;
+    ASSERT_TRUE(original.Marshalling(parcel));
+    parcel.RewindRead(0);
+
+    std::unique_ptr<ToolInfo> result(ToolInfo::Unmarshalling(parcel));
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->visibility, "public");
+    EXPECT_EQ(result->supportedDevices.size(), 2u);
+    EXPECT_EQ(result->supportedDevices[0], "default");
+    EXPECT_EQ(result->supportedDevices[1], "tv");
+
+    GTEST_LOG_(INFO) << "ToolInfo_Marshalling_Visibility_0100 end";
+}
+
 } // namespace CliTool
 } // namespace OHOS

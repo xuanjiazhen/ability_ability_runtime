@@ -4,6 +4,7 @@
     "description": "ohos-aa - Ability management utility for starting an ability or stopping an application on the system.",
     "executablePath": "/system/bin/cli_tool/executable/ohos-aa",
     "requirePermissions": [],
+    "visibility": "private",
     "inputSchema": {
         "type": "object",
         "description": "Sub-options of the ohos-aa command.",
