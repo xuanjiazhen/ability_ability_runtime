@@ -58,7 +58,7 @@ public:
     void OnDisconnected(AbilityRuntime::ForegroundAppConnectionData &data);
     void OnCallerStarted(int32_t callerPid, int32_t callerUid, const std::string &bundleName);
 
-    void AbilityAddPidConnection(ForegroundAppConnectionInfo &info, int32_t abilityRecordId);
+    void AbilityAddPidConnection(ForegroundAppConnectionInfo &info, int32_t abilityRecordId, int32_t windowId = 0);
     void AbilityRemovePidConnection(int32_t callerPid, int32_t targetPid, int32_t abilityRecordId);
     void ProcessRemovePidConnection(int32_t diedPid);
 

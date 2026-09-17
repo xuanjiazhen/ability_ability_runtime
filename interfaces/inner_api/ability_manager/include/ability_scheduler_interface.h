@@ -319,6 +319,20 @@ public:
         int32_t resultCode) = 0;
 
     /**
+     * @brief Called when the UIAbility start completed (onForeground done), carrying the windowId.
+     * @param requestId The request id to correlate with the caller's completionHandler.
+     * @param windowId The main window id of the target UIAbility.
+     */
+    virtual void ScheduleStartAbilityCompleted(const std::string &requestId, int32_t windowId) {}
+
+    /**
+     * @brief Called when the UIAbility start failed, carrying the error code.
+     * @param requestId The request id to correlate with the caller's completionHandler.
+     * @param errorCode The error code indicating failure reason.
+     */
+    virtual void ScheduleStartAbilityFailed(const std::string &requestId, int32_t errorCode) {}
+
+    /**
      * @brief Called when a skill needs to be executed on an already-started ability.
      * @param want The Want containing skill execution parameters.
      */
@@ -430,6 +444,10 @@ public:
         SCHEDULE_ABILITY_REQUEST_SUCCESS,
 
         SCHEDULE_ABILITIES_REQUEST_DONE,
+
+        SCHEDULE_START_ABILITY_COMPLETED,
+
+        SCHEDULE_START_ABILITY_FAILED,
     };
 };
 }  // namespace AAFwk

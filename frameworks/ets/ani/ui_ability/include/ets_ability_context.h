@@ -61,6 +61,8 @@ public:
     std::weak_ptr<AbilityContext> GetContext() { return context_; }
 
     static void StartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object call);
+    static void StartAbilityWithCompletionHandler(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_object completionHandlerObj, ani_object call);
     static void StartAbilityWithOptions(
         ani_env *env, ani_object aniObj, ani_object wantObj, ani_object opt, ani_object call);
     static void StartAbilitySyncCheck(ani_env *env, ani_object aniObj, ani_object opt);
@@ -186,6 +188,8 @@ private:
     void InheritWindowMode(AAFwk::Want &want);
     void OnStartAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object opt, ani_object call,
         bool isStartRecent = false);
+    void OnStartAbilityWithCompletionHandler(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_object completionHandlerObj, ani_object call);
     void OnStartAbilityForResult(
         ani_env *env, ani_object aniObj, ani_object wantObj, ani_object startOptionsObj, ani_object callback);
     void OnTerminateSelf(ani_env *env, ani_object aniObj, ani_object callback);

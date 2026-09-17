@@ -821,6 +821,58 @@ void UIAbilityThread::ScheduleAbilityRequestSuccess(const std::string &requestId
     }
 }
 
+void UIAbilityThread::ScheduleStartAbilityCompleted(const std::string &requestId, int32_t windowId)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "ScheduleStartAbilityCompleted called");
+    if (abilityImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
+        return;
+    }
+    wptr<UIAbilityThread> weak = this;
+    auto task = [weak, requestId, windowId]() {
+        auto abilityThread = weak.promote();
+        if (abilityThread == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "null abilityThread");
+            return;
+        }
+        if (abilityThread->abilityImpl_ != nullptr) {
+            abilityThread->abilityImpl_->ScheduleStartAbilityCompleted(requestId, windowId);
+            return;
+        }
+    };
+    bool ret = abilityHandler_->PostTask(task, "UIAbilityThread:ScheduleStartAbilityCompleted");
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "postTask error");
+        return;
+    }
+}
+
+void UIAbilityThread::ScheduleStartAbilityFailed(const std::string &requestId, int32_t errorCode)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "ScheduleStartAbilityFailed called");
+    if (abilityImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
+        return;
+    }
+    wptr<UIAbilityThread> weak = this;
+    auto task = [weak, requestId, errorCode]() {
+        auto abilityThread = weak.promote();
+        if (abilityThread == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "null abilityThread");
+            return;
+        }
+        if (abilityThread->abilityImpl_ != nullptr) {
+            abilityThread->abilityImpl_->ScheduleStartAbilityFailed(requestId, errorCode);
+            return;
+        }
+    };
+    bool ret = abilityHandler_->PostTask(task, "UIAbilityThread:ScheduleStartAbilityFailed");
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "postTask error");
+        return;
+    }
+}
+
 #ifdef SUPPORT_SCREEN
 std::shared_ptr<UIAbility> UIAbilityThread::GetUIAbility()
 {

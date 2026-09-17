@@ -708,6 +708,20 @@ public:
         const std::string &message);
 
     /**
+     * @brief Called when startAbility with completionHandler succeeded (onForeground completed).
+     * @param requestId, the requestId.
+     * @param windowId, the main window id of the target UIAbility.
+     */
+    virtual void OnStartAbilitySuccess(const std::string &requestId, int32_t windowId);
+
+    /**
+     * @brief Called when startAbility with completionHandler failed.
+     * @param requestId, the requestId.
+     * @param errorCode, the error code.
+     */
+    virtual void OnStartAbilityFailure(const std::string &requestId, int32_t errorCode);
+
+    /**
      * @brief Execute skill by loading ArkTS script and calling the target function.
      *
      * @param want Want.

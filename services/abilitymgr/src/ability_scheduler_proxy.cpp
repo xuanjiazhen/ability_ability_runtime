@@ -1346,5 +1346,51 @@ void AbilitySchedulerProxy::ScheduleAbilitiesRequestDone(const std::string &requ
     }
     return;
 }
+
+void AbilitySchedulerProxy::ScheduleStartAbilityCompleted(const std::string &requestId, int32_t windowId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write interface token failed");
+        return;
+    }
+    if (!data.WriteString(requestId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write requestId failed");
+        return;
+    }
+    if (!data.WriteInt32(windowId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write windowId failed");
+        return;
+    }
+    int32_t err = SendTransactCmd(IAbilityScheduler::SCHEDULE_START_ABILITY_COMPLETED, data, reply, option);
+    if (err != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "fail, err: %{public}d", err);
+    }
+}
+
+void AbilitySchedulerProxy::ScheduleStartAbilityFailed(const std::string &requestId, int32_t errorCode)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write interface token failed");
+        return;
+    }
+    if (!data.WriteString(requestId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write requestId failed");
+        return;
+    }
+    if (!data.WriteInt32(errorCode)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write errorCode failed");
+        return;
+    }
+    int32_t err = SendTransactCmd(IAbilityScheduler::SCHEDULE_START_ABILITY_FAILED, data, reply, option);
+    if (err != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "fail, err: %{public}d", err);
+    }
+}
 }  // namespace AAFwk
 }  // namespace OHOS

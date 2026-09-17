@@ -197,6 +197,10 @@ public:
 
     void ScheduleAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element);
 
+    void ScheduleStartAbilityCompleted(const std::string &requestId, int32_t windowId);
+
+    void ScheduleStartAbilityFailed(const std::string &requestId, int32_t errorCode);
+
 #ifdef SUPPORT_SCREEN
     /**
      * @brief Get the UIability of the current thread.
