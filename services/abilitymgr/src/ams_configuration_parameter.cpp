@@ -246,6 +246,7 @@ int AmsConfigurationParameter::LoadAppConfigurationForStartUpService(nlohmann::j
     UpdateStartUpServiceConfigInteger(Object, AmsConfig::BOOT_ANIMATION_TIMEOUT_TIME, bootAnimationTime_);
     UpdateStartUpServiceConfigInteger(Object, AmsConfig::TIMEOUT_UNIT_TIME, timeoutUnitTime_);
     UpdateStartUpServiceConfigInteger(Object, AmsConfig::MULTI_USER_TYPE, multiUserType_);
+    UpdateStartUpServiceConfigInteger(Object, AmsConfig::WANT_AGENT_GLOBAL_MAX_COUNT, wantAgentGlobalMaxCount_);
     return LOAD_CONFIGURATION_SUCCESS;
 }
 
@@ -365,6 +366,11 @@ void AmsConfigurationParameter::UpdateStartUpServiceConfigString(nlohmann::json&
 int AmsConfigurationParameter::MultiUserType() const
 {
     return multiUserType_;
+}
+
+int AmsConfigurationParameter::GetWantAgentGlobalMaxCount() const
+{
+    return wantAgentGlobalMaxCount_;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

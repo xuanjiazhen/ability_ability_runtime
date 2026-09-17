@@ -286,6 +286,38 @@ int32_t PendingWantRecord::GetPublisherUid() const
     return publisherUid_;
 }
 
+void PendingWantRecord::SetCreatorPid(int32_t pid)
+{
+    creatorPid_ = pid;
+}
+
+int32_t PendingWantRecord::GetCreatorPid() const
+{
+    return creatorPid_;
+}
+
+void PendingWantRecord::SetShared(bool shared)
+{
+    std::lock_guard<std::mutex> guard(sharedMutex_);
+    isShared_ = shared;
+}
+
+bool PendingWantRecord::GetShared() const
+{
+    std::lock_guard<std::mutex> guard(sharedMutex_);
+    return isShared_;
+}
+
+void PendingWantRecord::SetIsThirdParty(bool isThirdParty)
+{
+    isThirdParty_ = isThirdParty;
+}
+
+bool PendingWantRecord::GetIsThirdParty() const
+{
+    return isThirdParty_;
+}
+
 std::list<sptr<IWantReceiver>> PendingWantRecord::GetCancelCallbacks()
 {
     std::lock_guard guard(mCancelCallbacksMutex_);

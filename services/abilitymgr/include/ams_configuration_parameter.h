@@ -51,6 +51,7 @@ constexpr const char* MULTI_USER_TYPE = "multiUserType";
 constexpr const char* SUPPORT_BACK_TO_CALLER = "supportBackToCaller";
 constexpr const char* SUPPORT_SCB_CRASH_REBOOT = "supportSCBCrashReboot";
 constexpr const char* SUPPORT_AA_KILL_WITH_REASON = "supportAAKillWithReason";
+constexpr const char* WANT_AGENT_GLOBAL_MAX_COUNT = "want_agent_global_max_count";
 }  // namespace AmsConfig
 
 enum class SatrtUiMode { STATUSBAR = 1, NAVIGATIONBAR = 2, STARTUIBOTH = 3 };
@@ -137,6 +138,11 @@ public:
 
     int MultiUserType() const;
 
+    /**
+     * get the global want agent max count threshold.
+     */
+    int GetWantAgentGlobalMaxCount() const;
+
     const std::map<std::string, std::string>& GetPickerMap() const;
 
 private:
@@ -176,6 +182,7 @@ private:
     int bootAnimationTime_ {5};
     int timeoutUnitTime_ {1000};
     int multiUserType_ {0};
+    int wantAgentGlobalMaxCount_ {100000};
 
     std::string orientation_ {""};
     std::string bundleName_ {""};
