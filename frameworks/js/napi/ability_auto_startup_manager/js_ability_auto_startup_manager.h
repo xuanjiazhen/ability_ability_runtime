@@ -33,6 +33,7 @@ public:
     static napi_value UnregisterAutoStartupCallback(napi_env env, napi_callback_info info);
     static napi_value SetApplicationAutoStartup(napi_env env, napi_callback_info info);
     static napi_value CancelApplicationAutoStartup(napi_env env, napi_callback_info info);
+    static napi_value SetPreBootLaunch(napi_env env, napi_callback_info info);
     static napi_value QueryAllAutoStartupApplications(napi_env env, napi_callback_info info);
     static napi_value GetAutoStartupStatusForSelf(napi_env env, napi_callback_info info);
     static napi_value IsAutoStartupSupported(napi_env env, napi_callback_info info);
@@ -42,6 +43,7 @@ private:
     napi_value OnUnregisterAutoStartupCallback(napi_env env, NapiCallbackInfo &info);
     napi_value OnSetApplicationAutoStartup(napi_env env, NapiCallbackInfo &info);
     napi_value OnCancelApplicationAutoStartup(napi_env env, NapiCallbackInfo &info);
+    napi_value OnSetPreBootLaunch(napi_env env, NapiCallbackInfo &info);
     napi_value OnQueryAllAutoStartupApplications(napi_env env, const NapiCallbackInfo &info);
     napi_value OnGetAutoStartupStatusForSelf(napi_env env, const NapiCallbackInfo &info);
     napi_value OnIsAutoStartupSupported(napi_env env, const NapiCallbackInfo &info);

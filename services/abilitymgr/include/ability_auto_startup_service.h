@@ -127,6 +127,23 @@ public:
      */
     int32_t CancelApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag);
 
+    /**
+     * @brief Set pre-boot launch flag for application.
+     * Only system_basic APL applications on PC devices can call this.
+     * @param info The auto startup info, include bundle name, module name, ability name.
+     * @param isEnable Indicate whether to enable pre-boot launch.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t SetPreBootLaunch(const AutoStartupInfo &info, bool isEnable);
+
+    /**
+     * @brief Query all pre-boot startup applications for the specified user.
+     * @param infoList Output parameters, return pre-boot startup info list.
+     * @param userId Input parameters, return userid.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t QueryPreBootStartupApps(std::vector<AutoStartupInfo> &infoList, int32_t userId);
+
     void AddHandledAutoStartupUsers(int32_t userId);
     void RemoveHandledAutoStartupUsers(int32_t userId);
     bool FindHandledAutoStartupUsers(int32_t userId);
@@ -174,6 +191,7 @@ private:
     std::shared_ptr<AppExecFwk::BundleMgrClient> GetBundleMgrClient();
     int32_t CheckPermissionForSystem();
     int32_t CheckPermissionForEDM();
+    int32_t CheckPreBootLaunchPermission();
     int32_t VerifyCrossUserAccountPermission(const AutoStartupAbilityData &abilityData);
     int32_t InnerApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool isSet, bool flag);
     int32_t GetAbilityInfo(const AutoStartupInfo &info, AutoStartupAbilityData &abilityData);

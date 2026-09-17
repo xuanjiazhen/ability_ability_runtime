@@ -33,6 +33,8 @@ public:
     int32_t userId = -1;
     int32_t setterUserId = -1;
     bool canUserModify = false;
+    bool isHiddenStart = false;
+    bool isPreBootLaunch = false;
     std::string bundleName;
     std::string abilityName;
     std::string moduleName;
@@ -62,6 +64,8 @@ struct AutoStartupStatus {
     int32_t setterUserId = -1;
     AutoStartupSetterType setterType = AutoStartupSetterType::UNSPECIFIED;
     int32_t code = -1;
+    bool isHiddenStart = false;
+    bool isPreBootLaunch = false;
 };
 
 struct AutoStartupAbilityData {

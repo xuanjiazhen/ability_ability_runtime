@@ -35,6 +35,7 @@ constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr int32_t INDEX_ZERO = 0;
 constexpr int32_t INDEX_ONE = 1;
+constexpr int32_t INDEX_TWO = 2;
 constexpr int32_t INVALID_PARAM = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
 constexpr const char *ON_OFF_TYPE_SYSTEM = "systemAutoStartup";
 } // namespace
@@ -58,6 +59,11 @@ napi_value JsAbilityAutoStartupManager::UnregisterAutoStartupCallback(napi_env e
 napi_value JsAbilityAutoStartupManager::SetApplicationAutoStartup(napi_env env, napi_callback_info info)
 {
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityAutoStartupManager, OnSetApplicationAutoStartup);
+}
+
+napi_value JsAbilityAutoStartupManager::SetPreBootLaunch(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityAutoStartupManager, OnSetPreBootLaunch);
 }
 
 napi_value JsAbilityAutoStartupManager::CancelApplicationAutoStartup(napi_env env, napi_callback_info info)
@@ -241,6 +247,68 @@ napi_value JsAbilityAutoStartupManager::OnSetApplicationAutoStartup(napi_env env
     return handleEscape.Escape(result);
 }
 
+napi_value JsAbilityAutoStartupManager::OnSetPreBootLaunch(napi_env env, NapiCallbackInfo &info)
+{
+    TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null env");
+        return nullptr;
+    }
+    AbilityRuntime::HandleEscape handleEscape(env);
+    if (info.argc < ARGC_TWO) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "invalid argc");
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    if (!CheckCallerIsSystemApp()) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "not system app");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
+        return CreateJsUndefined(env);
+    }
+
+    AutoStartupInfo autoStartupInfo;
+    if (!UnwrapAutoStartupInfo(env, info.argv[INDEX_ZERO], autoStartupInfo)) {
+        ThrowError(env, INVALID_PARAM, "unwrap AutoStartupInfo failed");
+        return CreateJsUndefined(env);
+    }
+
+    bool isEnable = false;
+    if (!ConvertFromJsValue(env, info.argv[INDEX_ONE], isEnable)) {
+        ThrowError(env, INVALID_PARAM, "parse isEnable failed");
+        return CreateJsUndefined(env);
+    }
+
+    auto retVal = std::make_shared<int32_t>(0);
+    NapiAsyncTask::ExecuteCallback execute = [autoStartupInfo, isEnable, ret = retVal] () {
+        if (ret == nullptr) {
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null ret");
+            return;
+        }
+        *ret = AbilityManagerClient::GetInstance()->SetPreBootLaunch(autoStartupInfo, isEnable);
+    };
+    NapiAsyncTask::CompleteCallback complete = [ret = retVal](napi_env env, NapiAsyncTask &task, int32_t status) {
+        AbilityRuntime::HandleScope handleScope(env);
+        if (ret == nullptr) {
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null ret");
+            task.Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(INNER_ERR)));
+            return;
+        }
+        if (*ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "error:%{public}d", *ret);
+            task.Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(*ret)));
+            return;
+        }
+        task.ResolveWithNoError(env, CreateJsUndefined(env));
+    };
+
+    napi_value lastParam = (info.argc > ARGC_TWO) ? info.argv[INDEX_TWO] : nullptr;
+    napi_value result = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsAbilityAutoStartupManager::OnSetPreBootLaunch", env,
+        CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
+    return handleEscape.Escape(result);
+}
+
 napi_value JsAbilityAutoStartupManager::OnCancelApplicationAutoStartup(napi_env env, NapiCallbackInfo &info)
 {
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called");
@@ -413,6 +481,8 @@ napi_value JsAbilityAutoStartupManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "off", moduleName, JsAbilityAutoStartupManager::UnregisterAutoStartupCallback);
     BindNativeFunction(env, exportObj, "setApplicationAutoStartup", moduleName,
         JsAbilityAutoStartupManager::SetApplicationAutoStartup);
+    BindNativeFunction(env, exportObj, "setPreBootLaunch", moduleName,
+        JsAbilityAutoStartupManager::SetPreBootLaunch);
     BindNativeFunction(env, exportObj, "cancelApplicationAutoStartup", moduleName,
         JsAbilityAutoStartupManager::CancelApplicationAutoStartup);
     BindNativeFunction(env, exportObj, "queryAllAutoStartupApplications", moduleName,

@@ -2123,6 +2123,17 @@ public:
     virtual int32_t CancelApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag) = 0;
 
     /**
+     * @brief Set pre-boot launch flag for application.
+     * @param info The auto startup info, include bundle name, module name, ability name.
+     * @param isEnable Indicate whether to enable pre-boot launch.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t SetPreBootLaunch(const AutoStartupInfo &info, bool isEnable)
+    {
+        return 0;
+    }
+
+    /**
      * @brief Get foreground ui abilities.
      * @param list Foreground ui abilities.
      * @return Returns ERR_OK on success, others on failure.

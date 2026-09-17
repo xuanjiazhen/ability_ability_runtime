@@ -791,6 +791,9 @@ enum class AbilityManagerInterfaceCode {
 
     // delete caller's own kiosk application list entries
     DELETE_KIOSK_APP_FROM_LIST = 6180,
+
+    // ipc id for set pre-boot launch
+    SET_PRE_BOOT_LAUNCH = 6181,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

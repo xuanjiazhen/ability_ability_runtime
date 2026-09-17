@@ -26,6 +26,7 @@ public:
     ~ScreenUnlockInterceptor() = default;
     ErrCode DoProcess(const AbilityInterceptorParam &param) override;
 private:
+    ErrCode CheckPreBootLaunchBypass(const AbilityInterceptorParam &param);
     bool GetTargetAbilityInfo(const AbilityInterceptorParam &param, AppExecFwk::AbilityInfo &targetAbilityInfo);
     bool QueryTargetAbilityInfoByUri(const AbilityInterceptorParam &param, AppExecFwk::AbilityInfo &targetAbilityInfo);
     void QueryTargetAbilityInfo(const AbilityInterceptorParam &param, AppExecFwk::AbilityInfo &targetAbilityInfo);

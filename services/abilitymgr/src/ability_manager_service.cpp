@@ -276,6 +276,7 @@ constexpr const char* PARAM_SPECIFIED_PROCESS_FLAG = "ohosSpecifiedProcessFlag";
 constexpr const char* EXPECT_WINDOW_MODE = "expectWindowMode";
 #endif
 constexpr const char* AUTO_STARTUP_READY = "persist.sys.abilityms.if_startup_ready";
+constexpr const char* PRE_BOOT_READY = "persist.sys.abilityms.pre_boot_ready";
 
 constexpr char ASSERT_FAULT_DETAIL[] = "assertFaultDialogDetail";
 constexpr char PRODUCT_ASSERT_FAULT_DIALOG_ENABLED[] = "persisit.sys.abilityms.support_assert_fault_dialog";
@@ -309,6 +310,7 @@ constexpr const char* APPSPAWN_STARTED = "startup.service.ctl.appspawn.pid";
 constexpr const char* APP_LINKING_ONLY = "appLinkingOnly";
 constexpr const char* SCREENCONFIG_SCREENMODE = "ohos.verticalpanel.screenconfig.screenmode";
 constexpr const char* UD_KEY = "ability.want.params.udKey";
+constexpr const char* PRE_BOOT_LAUNCH_PARAM = "preBootLaunch";
 constexpr const char* UI_EXTENSION_CONTEXT_TRANSFER_ROOT_HOST_TOKEN = "ohos.ability.params.transferRootHostToken";
 constexpr const char* UI_EXTENSION_TARGET_USER_ID = "ohos.ability.params.uiExtensionTargetUserId";
 constexpr int32_t INSTALL_TYPE_UPGRADE = 2;
@@ -715,6 +717,11 @@ void AbilityManagerService::AddWatchParameters()
         TAG_LOGW(AAFwkTag::ABILITYMGR, "watch parameter %{public}s fail with %{public}d",
             AUTO_STARTUP_READY, ret);
     }
+    ret = WatchParameter(PRE_BOOT_READY, AbilityManagerService::HandlePreBootReadyCallback, nullptr);
+    if (ret != 0) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "watch parameter %{public}s fail with %{public}d",
+            PRE_BOOT_READY, ret);
+    }
 }
 
 void AbilityManagerService::HandleAutoStartupReadyCallback(const char *key, const char *value, void *context)
@@ -731,6 +738,22 @@ void AbilityManagerService::HandleAutoStartupReadyCallback(const char *key, cons
     }
     int32_t userId = abilityMgr->GetValidUserId(DEFAULT_INVAL_VALUE);
     abilityMgr->StartAutoStartupApps(userId);
+}
+
+void AbilityManagerService::HandlePreBootReadyCallback(const char *key, const char *value, void *context)
+{
+    bool changed = system::GetBoolParameter(PRE_BOOT_READY, false);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "HandlePreBootReadyCallback key %{public}s, value %{public}d", key, changed);
+    if (strcmp(key, PRE_BOOT_READY) != 0 || !changed) {
+        return;
+    }
+    auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
+    if (abilityMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityMgr is nullptr.");
+        return;
+    }
+    int32_t userId = abilityMgr->GetValidUserId(DEFAULT_INVAL_VALUE);
+    abilityMgr->StartPreBootStartupApps(userId);
 }
 
 int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int requestCode,
@@ -10101,6 +10124,80 @@ void AbilityManagerService::StartAutoStartupApps(std::queue<AutoStartupInfo> inf
     taskHandler_->SubmitTask(nextStartAutoStartupAppsTask, "StartAutoStartupApps", START_AUTO_START_APP_DELAY_TIME);
 }
 
+void AbilityManagerService::StartPreBootStartupApps(int32_t userId)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartPreBootStartupApps userId: %{public}d", userId);
+    if (abilityAutoStartupService_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityAutoStartupService_ null");
+        return;
+    }
+    if (taskHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "taskHandler null");
+        return;
+    }
+
+    std::vector<AutoStartupInfo> infoList;
+    int32_t result = abilityAutoStartupService_->QueryPreBootStartupApps(infoList, userId);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "QueryPreBootStartupApps fail: %{public}d", result);
+        return;
+    }
+
+    std::queue<AutoStartupInfo> infoQueue;
+    for (auto &info : infoList) {
+        info.retryCount = START_AUTO_START_APP_RETRY_MAX_TIMES;
+        infoQueue.push(info);
+    }
+    StartPreBootStartupApps(infoQueue, userId);
+}
+
+void AbilityManagerService::StartPreBootStartupApps(std::queue<AutoStartupInfo> infoQueue, int32_t userId)
+{
+    if (infoQueue.empty()) {
+        return;
+    }
+    if (taskHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "taskHandler null");
+        return;
+    }
+    auto info = infoQueue.front();
+    infoQueue.pop();
+    AppExecFwk::ElementName element;
+    element.SetBundleName(info.bundleName);
+    element.SetAbilityName(info.abilityName);
+    element.SetModuleName(info.moduleName);
+    Want want;
+    want.SetElement(element);
+    want.SetParam(PRE_BOOT_LAUNCH_PARAM, true);
+    if (info.appCloneIndex >= 0 && info.appCloneIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+        want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, info.appCloneIndex);
+    }
+
+    int32_t result = ERR_OK;
+    if (info.abilityTypeName == AbilityRuntime::EXTENSION_TYPE_APP_SERVICE) {
+        result = StartExtensionAbility(
+            want, nullptr, userId, AppExecFwk::ExtensionAbilityType::APP_SERVICE);
+    } else if (info.isHiddenStart && info.abilityTypeName == AbilityRuntime::ABILITY_TYPE_UI_ABILITY) {
+        result = abilityAutoStartupService_->HiddenStartAutoStartupApp(want, userId);
+    } else {
+        result = StartAbility(want, userId);
+    }
+
+    if ((result != ERR_OK) && (info.retryCount > 0)) {
+        info.retryCount--;
+        infoQueue.push(info);
+    }
+    auto nextStartPreBootTask = [aams = weak_from_this(), infoQueue, userId]() {
+        auto obj = aams.lock();
+        if (obj == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "start pre-boot app error, obj null");
+            return;
+        }
+        obj->StartPreBootStartupApps(infoQueue, userId);
+    };
+    taskHandler_->SubmitTask(nextStartPreBootTask, "StartPreBootStartupApps", START_AUTO_START_APP_DELAY_TIME);
+}
+
 void AbilityManagerService::SubscribeUserUnlockedEvent()
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "SubscribeUserUnlockedEvent called");
@@ -15855,6 +15952,15 @@ int32_t AbilityManagerService::CancelApplicationAutoStartupByEDM(const AutoStart
         return ERR_NO_INIT;
     }
     return abilityAutoStartupService_->CancelApplicationAutoStartupByEDM(info, flag);
+}
+
+int32_t AbilityManagerService::SetPreBootLaunch(const AutoStartupInfo &info, bool isEnable)
+{
+    if (abilityAutoStartupService_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityAutoStartupService_ null");
+        return ERR_NO_INIT;
+    }
+    return abilityAutoStartupService_->SetPreBootLaunch(info, isEnable);
 }
 
 int32_t AbilityManagerService::GetForegroundUIAbilities(std::vector<AppExecFwk::AbilityStateData> &list)

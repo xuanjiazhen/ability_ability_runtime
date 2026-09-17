@@ -6216,6 +6216,32 @@ int32_t AbilityManagerProxy::CancelApplicationAutoStartupByEDM(const AutoStartup
     return reply.ReadInt32();
 }
 
+int32_t AbilityManagerProxy::SetPreBootLaunch(const AutoStartupInfo &info, bool isEnable)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteParcelable(&info)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write AutoStartupInfo fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteBool(isEnable)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write isEnable fail");
+        return INNER_ERR;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AbilityManagerInterfaceCode::SET_PRE_BOOT_LAUNCH, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
 int32_t AbilityManagerProxy::RestartApp(const AAFwk::Want &want, bool isAppRecovery)
 {
     MessageParcel data;
