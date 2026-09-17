@@ -29,6 +29,7 @@
 #include "js_function_manager_utils.h"
 #include "napi_common_util.h"
 #include "napi_common_want.h"
+#include "string_wrapper.h"
 
 using namespace OHOS::AbilityRuntime;
 
@@ -46,6 +47,8 @@ constexpr int32_t ERR_CONTEXT_NOT_ABILITY = 16000020;
 struct InvokeFunctionTsfnContext {
     napi_deferred deferred = nullptr;
     napi_threadsafe_function tsfn = nullptr;
+    std::string toolCallId;   // captured at invoke time, echoed on InvokeResult
+    std::string dmSessionId;  // captured at invoke time, echoed on InvokeResult
 };
 
 void InvokeFunctionFinalize(napi_env env, void *finalizeData, void *finalizeHint)
@@ -72,7 +75,10 @@ void InvokeFunctionCallJs(napi_env env, napi_value jsCb, void *context, void *da
     HandleScope handleScope(env);
 
     if (holder->innerError == 0) {
-        napi_value jsResult = CreateJsInvokeResult(env, holder->result);
+        // Echo the trace identifiers captured at invoke time (entry values;
+        // hook modifications do not flow back to the caller echo).
+        napi_value jsResult = CreateJsInvokeResult(env, holder->result,
+            ctx->toolCallId, ctx->dmSessionId);
         if (jsResult != nullptr) {
             napi_resolve_deferred(env, ctx->deferred, jsResult);
         } else {
@@ -164,9 +170,23 @@ bool ParseInvokeFunctionParam(napi_env env, size_t argc, napi_value *argv, Invok
         ThrowInvalidParamError(env, "args is required");
         return false;
     }
-    if (argc >= INDEX_FOUR && !ValidateOptions(env, argv[INDEX_THREE])) {
-        ThrowInvalidParamError(env, "option invalid");
-        return false;
+    // Defense in depth: the reserved trace-id keys below are owned by the transport
+    // channel and re-injected exclusively from the validated InvokeOptions; any
+    // same-named keys passed by the caller inside args are dropped here so
+    // unvalidated values can never ride this channel (attribution forgery).
+    out.args.Remove("ohos.insightIntent.toolCallId");
+    out.args.Remove("ohos.insightIntent.dmSessionId");
+    if (argc >= INDEX_FOUR) {
+        if (!ValidateOptions(env, argv[INDEX_THREE])) {
+            ThrowInvalidParamError(env, "option invalid");
+            return false;
+        }
+        std::string optionsMsg;
+        if (!UnwrapInvokeOptions(env, argv[INDEX_THREE],
+            out.invokeOptions.toolCallId, out.invokeOptions.dmSessionId, optionsMsg)) {
+            ThrowInvalidParamError(env, optionsMsg.empty() ? "option invalid" : optionsMsg.c_str());
+            return false;
+        }
     }
     return true;
 }
@@ -251,9 +271,12 @@ napi_value JSFunctionManager::OnInvokeFunction(napi_env env, size_t argc, napi_v
         return CreateJsUndefined(env);
     }
 
-    // Create threadsafe function context
+    // Create threadsafe function context; capture the trace identifiers so the
+    // resolved InvokeResult echoes exactly what the caller passed.
     auto tsfnContext = std::make_shared<InvokeFunctionTsfnContext>();
     tsfnContext->deferred = deferred;
+    tsfnContext->toolCallId = param.invokeOptions.toolCallId;
+    tsfnContext->dmSessionId = param.invokeOptions.dmSessionId;
 
     // Create threadsafe function
     napi_value workName = nullptr;
@@ -280,6 +303,19 @@ napi_value JSFunctionManager::OnInvokeFunction(napi_env env, size_t argc, napi_v
             delete data;
         }
     };
+
+    // Carry the trace identifiers to the executor through the reserved wantParam
+    // keys (insight intent channel namespace); only non-empty values are injected.
+    // This is the IPC transport leg of the dual injection design (ADR-8); the
+    // executor re-asserts them as the authoritative injection point.
+    if (!param.invokeOptions.toolCallId.empty()) {
+        param.args.SetParam("ohos.insightIntent.toolCallId",
+            AAFwk::String::Box(param.invokeOptions.toolCallId));
+    }
+    if (!param.invokeOptions.dmSessionId.empty()) {
+        param.args.SetParam("ohos.insightIntent.dmSessionId",
+            AAFwk::String::Box(param.invokeOptions.dmSessionId));
+    }
 
     InvokeFunctionExecutor::Create()->Execute(param, bridge);
 

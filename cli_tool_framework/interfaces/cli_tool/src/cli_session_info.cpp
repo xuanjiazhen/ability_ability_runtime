@@ -43,6 +43,14 @@ bool CliSessionInfo::Marshalling(Parcel &parcel) const
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write ExecResult parcelable.");
         return false;
     }
+    if (!parcel.WriteString(toolCallId)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write toolCallId.");
+        return false;
+    }
+    if (!parcel.WriteString(dmSessionId)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write dmSessionId.");
+        return false;
+    }
     return true;
 }
 
@@ -83,6 +91,16 @@ CliSessionInfo *CliSessionInfo::Unmarshalling(Parcel &parcel)
             return nullptr;
         }
         info->result = execResult;
+    }
+    if (!parcel.ReadString(info->toolCallId)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read toolCallId.");
+        delete info;
+        return nullptr;
+    }
+    if (!parcel.ReadString(info->dmSessionId)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read dmSessionId.");
+        delete info;
+        return nullptr;
     }
     return info;
 }

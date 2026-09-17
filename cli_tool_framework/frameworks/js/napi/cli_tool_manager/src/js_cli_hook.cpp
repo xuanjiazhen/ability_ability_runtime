@@ -57,7 +57,11 @@ void ParseJsExecToolParam(napi_env env, napi_value jsObj, ExecToolParam& param)
     if (napi_has_named_property(env, jsObj, "execOptions", &hasProp) == napi_ok && hasProp) {
         napi_value prop = nullptr;
         napi_get_named_property(env, jsObj, "execOptions", &prop);
-        UnwrapExecOptions(env, prop, param.options);
+        // Trace identifiers parsed back too: per the "returned object replaces the
+        // original" contract, hook modifications propagate and are re-validated
+        // server-side (SanitizeTraceIds) before reaching logs or the child env.
+        std::string optionsMsg;
+        UnwrapExecOptions(env, prop, param.options, optionsMsg);
     }
 }
 
@@ -99,12 +103,12 @@ napi_value BuildJsParam(napi_env env, const JsCliHook::HookCallData& callData)
             return callData.toolParam != nullptr ? CreateJsExecToolParam(env, *callData.toolParam) : nullptr;
         case JsCliHook::HookMethodType::AFTER_CALL_TOOL:
             return callData.execResultWrap != nullptr
-                ? CreateJsExecResultWrap(env, callData.execResultWrap->execResult) : nullptr;
+                ? CreateJsExecResultWrap(env, *callData.execResultWrap) : nullptr;
         case JsCliHook::HookMethodType::BEFORE_CALL_CMD:
             return callData.cmdParam != nullptr ? CreateJsExecCmdParam(env, *callData.cmdParam) : nullptr;
         case JsCliHook::HookMethodType::AFTER_CALL_CMD:
             return callData.execResultWrap != nullptr
-                ? CreateJsExecResultWrap(env, callData.execResultWrap->execResult) : nullptr;
+                ? CreateJsExecResultWrap(env, *callData.execResultWrap) : nullptr;
     }
     return nullptr;
 }

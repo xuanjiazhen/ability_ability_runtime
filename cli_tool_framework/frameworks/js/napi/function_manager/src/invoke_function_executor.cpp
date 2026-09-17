@@ -17,6 +17,7 @@
 
 #include "ability_manager_errors.h"
 #include "cli_error_code.h"
+#include "exec_options.h"
 #include "cli_tool_mgr_client.h"
 #include "ffrt.h"
 #include "function_info.h"
@@ -25,11 +26,28 @@
 #include "intent_client.h"
 #include "invoke_function_callback_client.h"
 #include "invoke_function_param.h"
+#include "string_wrapper.h"
 
 namespace OHOS {
 namespace CliTool {
 namespace {
 constexpr int32_t INVOKE_FUNCTION_TIMEOUT_US = 30000000;
+
+// Read a string-typed want parameter; returns an empty string when the key is
+// absent or holds a non-string value.
+std::string GetWantParamString(const AAFwk::WantParams &wantParams, const std::string &key)
+{
+    const auto &params = wantParams.GetParams();
+    auto it = params.find(key);
+    if (it == params.end() || it->second == nullptr) {
+        return "";
+    }
+    auto *iStr = AAFwk::IString::Query(it->second);
+    if (iStr == nullptr) {
+        return "";
+    }
+    return AAFwk::String::Unbox(iStr);
+}
 } // namespace
 
 std::shared_ptr<InvokeFunctionExecutor> InvokeFunctionExecutor::Create()
@@ -90,11 +108,38 @@ void InvokeFunctionExecutor::DoExecute(const InvokeFunctionParam &param)
     CliToolMGRClient::GetInstance().BeforeInvokeFunction(hookParam);
 
     AAFwk::WantParams hookParams = hookParam.args;
+    // Capture the trace identifiers from the post-before-hook args: these are the
+    // identifiers the execution actually runs with (R-3: the after-hook Wrap and
+    // the execution-side log must reflect actual values, not entry values).
+    // A hook-supplied value that fails validation is dropped (treated as absent)
+    // so unvalidated data never reaches logs, wantParams or the Wrap.
+    std::string toolCallId = GetWantParamString(hookParams, "ohos.insightIntent.toolCallId");
+    std::string dmSessionId = GetWantParamString(hookParams, "ohos.insightIntent.dmSessionId");
+    if (!IsValidTraceId(toolCallId) || !IsValidTraceId(dmSessionId)) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL,
+            "invokeFunction execute: invalid hook-modified trace id dropped, length: %{public}zu/%{public}zu",
+            toolCallId.length(), dmSessionId.length());
+        if (!IsValidTraceId(toolCallId)) {
+            toolCallId.clear();
+        }
+        if (!IsValidTraceId(dmSessionId)) {
+            dmSessionId.clear();
+        }
+    }
+    if (!toolCallId.empty() || !dmSessionId.empty()) {
+        TAG_LOGI(AAFwkTag::CLI_TOOL,
+            "invokeFunction execute, toolCallId=%{public}s, dmSessionId=%{public}s",
+            toolCallId.c_str(), dmSessionId.c_str());
+    }
     auto self = shared_from_this();
-    InvokeResultCallback wrappedCallback = [self](
+    // Stamp the actual execution identifiers onto the after-hook Wrap (R-3);
+    // the caller echo is unaffected (entry values travel via the tsfn context).
+    InvokeResultCallback wrappedCallback = [self, toolCallId, dmSessionId](
         const FunctionResultHolder &holder) {
         FunctionResultWrap functionResultWrap;
         functionResultWrap.result = holder.result;
+        functionResultWrap.toolCallId = toolCallId;
+        functionResultWrap.dmSessionId = dmSessionId;
         CliToolMGRClient::GetInstance().AfterInvokeFunction(functionResultWrap);
         FunctionResultHolder out = holder;
         out.result = functionResultWrap.result;
@@ -108,6 +153,18 @@ void InvokeFunctionExecutor::DoExecute(const InvokeFunctionParam &param)
     execParam.bundleName = hookParam.functionNamespace;
     execParam.intentName = hookParam.functionName;
     execParam.wantParam = hookParams;
+    // Authoritative injection point of the dual injection design (ADR-8): the NAPI
+    // layer pre-injects the validated identifiers as the IPC transport; the
+    // executor re-asserts the captured (post-hook, re-validated) values right
+    // before the intent call (idempotent SetParam; future non-NAPI callers are
+    // covered here). After the NAPI-layer strip of smuggled reserved keys, these
+    // values can only originate from the validated InvokeOptions or the hook.
+    if (!toolCallId.empty()) {
+        execParam.wantParam.SetParam("ohos.insightIntent.toolCallId", AAFwk::String::Box(toolCallId));
+    }
+    if (!dmSessionId.empty()) {
+        execParam.wantParam.SetParam("ohos.insightIntent.dmSessionId", AAFwk::String::Box(dmSessionId));
+    }
     execParam.callback = client;
 
     auto err = AAFwk::IntentClient::GetInstance().ExecuteIntentByFunctionCall(execParam);
