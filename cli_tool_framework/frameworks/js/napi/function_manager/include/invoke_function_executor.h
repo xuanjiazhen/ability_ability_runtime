@@ -50,10 +50,11 @@ public:
 
     static std::shared_ptr<InvokeFunctionExecutor> Create();
 
-    void Execute(const InvokeFunctionParam &param, InvokeResultCallback callback);
+    void Execute(const InvokeFunctionParam &param, InvokeResultCallback callback,
+        const std::string &toolCallId = "");
 
 private:
-    void DoExecute(const InvokeFunctionParam &param);
+    void DoExecute(const InvokeFunctionParam &param, const std::string &toolCallId);
     void ReportError(int32_t errorCode);
     void SetupTimeout();
 

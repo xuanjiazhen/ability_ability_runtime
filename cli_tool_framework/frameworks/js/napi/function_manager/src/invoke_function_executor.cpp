@@ -37,13 +37,14 @@ std::shared_ptr<InvokeFunctionExecutor> InvokeFunctionExecutor::Create()
     return std::make_shared<InvokeFunctionExecutor>();
 }
 
-void InvokeFunctionExecutor::Execute(const InvokeFunctionParam &param, InvokeResultCallback callback)
+void InvokeFunctionExecutor::Execute(const InvokeFunctionParam &param, InvokeResultCallback callback,
+    const std::string &toolCallId)
 {
     callback_ = std::move(callback);
     auto self = shared_from_this();
     SetupTimeout();
-    ffrt::submit([self, param]() {
-        self->DoExecute(param);
+    ffrt::submit([self, param, toolCallId]() {
+        self->DoExecute(param, toolCallId);
     });
 }
 
@@ -68,7 +69,7 @@ void InvokeFunctionExecutor::ReportError(int32_t errorCode)
     }
 }
 
-void InvokeFunctionExecutor::DoExecute(const InvokeFunctionParam &param)
+void InvokeFunctionExecutor::DoExecute(const InvokeFunctionParam &param, const std::string &toolCallId)
 {
     FunctionInfo functionInfo;
     ErrCode queryErr = CliToolMGRClient::GetInstance().GetFunctionInfo(
@@ -108,6 +109,7 @@ void InvokeFunctionExecutor::DoExecute(const InvokeFunctionParam &param)
     execParam.bundleName = hookParam.functionNamespace;
     execParam.intentName = hookParam.functionName;
     execParam.wantParam = hookParams;
+    execParam.toolCallId = toolCallId;
     execParam.callback = client;
 
     auto err = AAFwk::IntentClient::GetInstance().ExecuteIntentByFunctionCall(execParam);

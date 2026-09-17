@@ -1552,11 +1552,13 @@ public:
      * @param callerToken Caller ability token.
      * @param bundleName The target bundle name.
      * @param intentName The insight intent name.
-     * @param wantParam The execution arguments.
-     * @return Returns ERR_OK on success, others on failure.
-     */
+      * @param wantParam The execution arguments.
+      * @param toolCallId The tool call id passed by the caller, empty means not passed.
+      * @return Returns ERR_OK on success, others on failure.
+      */
     int32_t ExecuteIntentByFunctionCall(uint64_t key, const sptr<IRemoteObject> &callerToken,
-        const std::string &bundleName, const std::string &intentName, const WantParams &wantParam) override;
+        const std::string &bundleName, const std::string &intentName, const WantParams &wantParam,
+        const std::string &toolCallId) override;
 
     /**
      * @brief Execute intent with specified token id.

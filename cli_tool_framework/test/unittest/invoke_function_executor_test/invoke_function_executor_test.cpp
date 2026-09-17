@@ -68,6 +68,7 @@ protected:
         CliToolMGRClient::GetInstance().mockStatus_ = ERR_OK;
         CliToolMGRClient::GetInstance().mockFunctionType_ = FunctionType::INTENT_FUNCTION;
         AAFwk::IntentClient::GetInstance().mockStatus_ = ERR_OK;
+        AAFwk::IntentClient::GetInstance().lastToolCallId_.clear();
     }
 
     // Build a callback that records the single outcome into a shared capture.
@@ -92,14 +93,14 @@ protected:
     }
 
     // Kick off an executor run and return the capture the callback will report into.
-    static std::shared_ptr<ResultCapture> Run()
+    static std::shared_ptr<ResultCapture> Run(const std::string &toolCallId = "")
     {
         auto capture = std::make_shared<ResultCapture>();
         auto executor = InvokeFunctionExecutor::Create();
         InvokeFunctionParam param;
         param.functionNamespace = BUNDLE_NAME;
         param.functionName = FUNCTION_NAME;
-        executor->Execute(param, MakeCallback(capture));
+        executor->Execute(param, MakeCallback(capture), toolCallId);
         return capture;
     }
 };
@@ -251,6 +252,33 @@ HWTEST_F(InvokeFunctionExecutorTest, InvokeFunctionExecutor_1000, TestSize.Level
     ASSERT_TRUE(WaitForResult(capture));
     EXPECT_FALSE(capture->result.result.success);
     EXPECT_EQ(capture->result.innerError, OHOS::AAFwk::ERR_NOT_SYSTEM_APP);
+}
+
+/**
+  * @tc.name: InvokeFunctionExecutor_ToolCallIdPassthrough_1100
+  * @tc.desc: toolCallId from options is passed through verbatim to the client execute param.
+  * @tc.type: FUNC
+  */
+HWTEST_F(InvokeFunctionExecutorTest, InvokeFunctionExecutor_ToolCallIdPassthrough_1100, TestSize.Level1)
+{
+    auto capture = Run("tc-003");
+    ASSERT_TRUE(WaitForResult(capture));
+    EXPECT_TRUE(capture->result.result.success);
+    EXPECT_EQ(AAFwk::IntentClient::GetInstance().lastToolCallId_, "tc-003");
+}
+
+/**
+  * @tc.name: InvokeFunctionExecutor_ToolCallIdEmptyCompat_1200
+  * @tc.desc: when toolCallId is absent the executor passes an empty string and
+  *           behaves exactly as before (3-param / options-without-toolCallId compat).
+  * @tc.type: FUNC
+  */
+HWTEST_F(InvokeFunctionExecutorTest, InvokeFunctionExecutor_ToolCallIdEmptyCompat_1200, TestSize.Level1)
+{
+    auto capture = Run();
+    ASSERT_TRUE(WaitForResult(capture));
+    EXPECT_TRUE(capture->result.result.success);
+    EXPECT_EQ(AAFwk::IntentClient::GetInstance().lastToolCallId_, "");
 }
 } // namespace
 } // namespace CliTool

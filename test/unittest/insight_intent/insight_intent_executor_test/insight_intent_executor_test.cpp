@@ -24,6 +24,7 @@
 #undef private
 #undef protected
 #include "mock_runtime.h"
+#include "string_wrapper.h"
 #include "want_params.h"
 
 using namespace testing;
@@ -303,6 +304,44 @@ HWTEST_F(InsightIntentExecutorTest, JsInsightIntentPageInit_001, TestSize.Level1
     info.executeParam = std::make_shared<AppExecFwk::InsightIntentExecuteParam>();
     auto res = insightIntentExecutor->Init(info);
     EXPECT_TRUE(res);
+}
+
+/*
+* Feature: InsightIntentExecutor
+* Function: Init
+* SubFunction: toolCallId read from execute param into context
+*/
+HWTEST_F(InsightIntentExecutorTest, Init_ToolCallIdFromWantParams_001, TestSize.Level1)
+{
+    auto insightIntentExecutor = std::make_shared<MockInsightIntentExecutor>();
+    InsightIntentExecutorInfo info;
+    info.executeParam = std::make_shared<AppExecFwk::InsightIntentExecuteParam>();
+    info.executeParam->insightIntentParam_ = std::make_shared<AAFwk::WantParams>();
+    info.executeParam->insightIntentParam_->SetParam(AppExecFwk::INSIGHT_INTENT_TOOL_CALL_ID,
+        AAFwk::String::Box("tc-002"));
+    auto res = insightIntentExecutor->Init(info);
+    EXPECT_TRUE(res);
+    auto context = insightIntentExecutor->GetContext();
+    ASSERT_NE(context, nullptr);
+    EXPECT_EQ(context->GetToolCallId(), "tc-002");
+}
+
+/*
+* Feature: InsightIntentExecutor
+* Function: Init
+* SubFunction: toolCallId absent -> context returns empty (undefined downstream)
+*/
+HWTEST_F(InsightIntentExecutorTest, Init_ToolCallIdAbsent_002, TestSize.Level1)
+{
+    auto insightIntentExecutor = std::make_shared<MockInsightIntentExecutor>();
+    InsightIntentExecutorInfo info;
+    info.executeParam = std::make_shared<AppExecFwk::InsightIntentExecuteParam>();
+    info.executeParam->insightIntentParam_ = std::make_shared<AAFwk::WantParams>();
+    auto res = insightIntentExecutor->Init(info);
+    EXPECT_TRUE(res);
+    auto context = insightIntentExecutor->GetContext();
+    ASSERT_NE(context, nullptr);
+    EXPECT_EQ(context->GetToolCallId(), "");
 }
 
 /*

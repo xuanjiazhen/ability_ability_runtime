@@ -144,7 +144,27 @@ bool ValidateOptions(napi_env env, napi_value options)
     return true;
 }
 
-bool ParseInvokeFunctionParam(napi_env env, size_t argc, napi_value *argv, InvokeFunctionParam &out)
+// toolCallId is pass-through only: read the optional "toolCallId" property when it is a string.
+// Absent / undefined / null / non-object options all fall into "not passed" and are silently
+// ignored; only a present non-string value is worth a warning (developer mistake).
+void ExtractOptionalToolCallId(napi_env env, napi_value options, std::string &toolCallId)
+{
+    napi_value toolCallIdValue = nullptr;
+    if (napi_get_named_property(env, options, "toolCallId", &toolCallIdValue) != napi_ok) {
+        return; // options is not an object or property read failed: treat as not passed
+    }
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, toolCallIdValue, &valueType);
+    if (valueType == napi_undefined || valueType == napi_null) {
+        return; // absent or null: normal "not passed" path, stay silent
+    }
+    if (valueType != napi_string || !AppExecFwk::UnwrapStringFromJS2(env, toolCallIdValue, toolCallId)) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "toolCallId is not a string, ignored");
+    }
+}
+
+bool ParseInvokeFunctionParam(napi_env env, size_t argc, napi_value *argv, InvokeFunctionParam &out,
+    std::string &toolCallId)
 {
     if (argc < INDEX_THREE) {
         ThrowTooFewParametersError(env);
@@ -164,9 +184,12 @@ bool ParseInvokeFunctionParam(napi_env env, size_t argc, napi_value *argv, Invok
         ThrowInvalidParamError(env, "args is required");
         return false;
     }
-    if (argc >= INDEX_FOUR && !ValidateOptions(env, argv[INDEX_THREE])) {
-        ThrowInvalidParamError(env, "option invalid");
-        return false;
+    if (argc >= INDEX_FOUR) {
+        if (!ValidateOptions(env, argv[INDEX_THREE])) {
+            ThrowInvalidParamError(env, "option invalid");
+            return false;
+        }
+        ExtractOptionalToolCallId(env, argv[INDEX_THREE], toolCallId);
     }
     return true;
 }
@@ -237,7 +260,8 @@ napi_value JSFunctionManager::OnInvokeFunction(napi_env env, size_t argc, napi_v
     HandleEscape handleEscape(env);
 
     InvokeFunctionParam param;
-    if (!ParseInvokeFunctionParam(env, argc, argv, param)) {
+    std::string toolCallId;
+    if (!ParseInvokeFunctionParam(env, argc, argv, param, toolCallId)) {
         return CreateJsUndefined(env);  // validation already threw a JS exception
     }
 
@@ -281,7 +305,7 @@ napi_value JSFunctionManager::OnInvokeFunction(napi_env env, size_t argc, napi_v
         }
     };
 
-    InvokeFunctionExecutor::Create()->Execute(param, bridge);
+    InvokeFunctionExecutor::Create()->Execute(param, bridge, toolCallId);
 
     return handleEscape.Escape(promise);
 }
