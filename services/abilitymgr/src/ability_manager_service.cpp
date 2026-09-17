@@ -11744,14 +11744,21 @@ bool AbilityManagerService::IsRunningInStabilityTest()
 bool AbilityManagerService::IsAbilityControllerStart(const Want &want, const std::string &bundleName)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "method call, controllerIsAStabilityTest_: %{public}d", controllerIsAStabilityTest_);
-    if (abilityController_ == nullptr) {
+    sptr<IAbilityController> abilityController;
+    bool controllerIsAStabilityTest = false;
+    {
+        std::lock_guard<ffrt::mutex> guard(globalLock_);
+        abilityController = abilityController_;
+        controllerIsAStabilityTest = controllerIsAStabilityTest_;
+    }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "method call, controllerIsAStabilityTest: %{public}d", controllerIsAStabilityTest);
+    if (abilityController == nullptr) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "abilityController_ is nullptr");
         return true;
     }
 
-    if (controllerIsAStabilityTest_) {
-        bool isStart = abilityController_->AllowAbilityStart(want, bundleName);
+    if (controllerIsAStabilityTest) {
+        bool isStart = abilityController->AllowAbilityStart(want, bundleName);
         if (!isStart) {
             TAG_LOGI(AAFwkTag::ABILITYMGR,
                 "controller starting can't start ability:%{public}s", bundleName.c_str());
@@ -11763,14 +11770,21 @@ bool AbilityManagerService::IsAbilityControllerStart(const Want &want, const std
 
 bool AbilityManagerService::IsAbilityControllerForeground(const std::string &bundleName)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "method call, controllerIsAStabilityTest_: %{public}d", controllerIsAStabilityTest_);
-    if (abilityController_ == nullptr) {
+    sptr<IAbilityController> abilityController;
+    bool controllerIsAStabilityTest = false;
+    {
+        std::lock_guard<ffrt::mutex> guard(globalLock_);
+        abilityController = abilityController_;
+        controllerIsAStabilityTest = controllerIsAStabilityTest_;
+    }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "method call, controllerIsAStabilityTest: %{public}d", controllerIsAStabilityTest);
+    if (abilityController == nullptr) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "abilityController_ is nullptr");
         return true;
     }
 
-    if (controllerIsAStabilityTest_) {
-        bool isResume = abilityController_->AllowAbilityBackground(bundleName);
+    if (controllerIsAStabilityTest) {
+        bool isResume = abilityController->AllowAbilityBackground(bundleName);
         if (!isResume) {
             TAG_LOGI(AAFwkTag::ABILITYMGR,
                 "controller resuming can't terminate ability:%{public}s", bundleName.c_str());
