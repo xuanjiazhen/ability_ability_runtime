@@ -53,6 +53,7 @@
 #include "ffrt_inner.h"
 #include "foreground_app_connection_manager.h"
 #include "freeze_util.h"
+#include "exec_options.h"
 #include "utils/oe_extension_utils.h"
 #include "global_constant.h"
 #include "hidden_start_observer_manager.h"
@@ -338,6 +339,12 @@ bool IsEmbeddableStart(int32_t screenMode)
 {
     return screenMode == AAFwk::EMBEDDED_FULL_SCREEN_MODE ||
         screenMode == AAFwk::EMBEDDED_HALF_SCREEN_MODE;
+}
+
+bool IsValidToolCallId(const std::string &toolCallId)
+{
+    // Shared rule (CliTool::IsValidTraceId, interfaces/cli_tool); empty means not provided and is not logged.
+    return !toolCallId.empty() && CliTool::IsValidTraceId(toolCallId);
 }
 } // namespace
 
@@ -738,6 +745,10 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetBundleNameRef().c_str());
         return INNER_ERR;
+    }
+    std::string toolCallId = want.GetStringParam("ohos.aafwk.param.toolCallId");
+    if (IsValidToolCallId(toolCallId)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "start ability with toolCallId: %{public}s", toolCallId.c_str());
     }
     if (specifiedFullTokenId != 0 && IPCSkeleton::GetCallingUid() != DMS_UID) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "specifiedFullTokenId only support for DMS");
