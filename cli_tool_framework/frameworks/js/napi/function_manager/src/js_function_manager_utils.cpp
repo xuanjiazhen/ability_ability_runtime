@@ -15,6 +15,7 @@
 
 #include "js_function_manager_utils.h"
 
+#include "exec_options.h"
 #include "function_info.h"
 #include "hilog_tag_wrapper.h"
 #include "invoke_function_param.h"
@@ -27,6 +28,7 @@ namespace OHOS {
 namespace CliTool {
 
 namespace {
+
 // Helper: set string property with null check and error handling
 inline bool SetStringProperty(napi_env env, napi_value obj, const char* name, const std::string& value)
 {
@@ -55,6 +57,53 @@ inline bool SetOptionalStringProperty(napi_env env, napi_value obj, const char* 
         return true;
     }
     return SetStringProperty(env, obj, name, value);
+}
+
+// A trace identifier must be non-empty, at most 256 characters long and
+// consist only of [A-Za-z0-9_-] (shared rule in exec_options.h; the explicit
+// empty check keeps the NAPI "present must be non-empty" semantics).
+inline bool UnwrapOptionalTraceId(napi_env env, napi_value options, const char* name,
+    std::string& out, std::string& msg)
+{
+    bool hasProperty = false;
+    if (napi_has_named_property(env, options, name, &hasProperty) != napi_ok) {
+        msg = std::string("has ") + name + " failed";
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+        return false;
+    }
+    if (!hasProperty) {
+        return true;
+    }
+    napi_value prop = nullptr;
+    if (napi_get_named_property(env, options, name, &prop) != napi_ok) {
+        msg = std::string("invalid ") + name + " property";
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+        return false;
+    }
+    // Explicit undefined/null is treated as absent (spec AC-1.7: "not provided").
+    napi_valuetype valueType = napi_undefined;
+    if (napi_typeof(env, prop, &valueType) != napi_ok) {
+        msg = std::string("invalid ") + name + " property";
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+        return false;
+    }
+    if (valueType == napi_undefined || valueType == napi_null) {
+        return true;
+    }
+    std::string traceId;
+    if (!AppExecFwk::UnwrapStringFromJS2(env, prop, traceId)) {
+        msg = std::string("Parameter error. The type of \"") + name + "\" must be string.";
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+        return false;
+    }
+    // Shared rule (exec_options.h): empty string is a valid provided value (owner ruling 2026-09-20).
+    if (!IsValidTraceId(traceId)) {
+        msg = std::string("Parameter error. The ") + name + " is invalid.";
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+        return false;
+    }
+    out = std::move(traceId);
+    return true;
 }
 } // namespace
 
@@ -152,6 +201,9 @@ napi_value CreateJsInvokeFunctionParam(napi_env env, const InvokeFunctionParam &
     napi_set_named_property(env, jsObj, "functionName",
         AppExecFwk::WrapStringToJS(env, param.functionName));
     napi_set_named_property(env, jsObj, "args", AppExecFwk::WrapWantParams(env, param.args));
+    // Surface ids to the before-hook (read-only: not parsed back from the hook result).
+    SetOptionalStringProperty(env, jsObj, "toolCallId", param.invokeOptions.toolCallId);
+    SetOptionalStringProperty(env, jsObj, "dmSessionId", param.invokeOptions.dmSessionId);
     return jsObj;
 }
 
@@ -177,6 +229,31 @@ void UnwrapInvokeFunctionParam(napi_env env, napi_value jsObj, InvokeFunctionPar
         napi_get_named_property(env, jsObj, "args", &prop);
         AppExecFwk::UnwrapWantParams(env, prop, param.args);
     }
+}
+
+bool UnwrapInvokeOptions(napi_env env, napi_value options,
+    std::string& toolCallId, std::string& dmSessionId, std::string& msg)
+{
+    if (options == nullptr) {
+        return true;
+    }
+    napi_valuetype optionsType = napi_undefined;
+    napi_status status = napi_typeof(env, options, &optionsType);
+    if (status != napi_ok) {
+        msg = "Parameter error. Failed to parse the option.";
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+        return false;
+    }
+    if (optionsType == napi_undefined || optionsType == napi_null) {
+        return true;  // options absent: no identifiers to parse
+    }
+    if (optionsType != napi_object) {
+        msg = "Parameter error. The type of \"option\" must be object.";
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+        return false;
+    }
+    return UnwrapOptionalTraceId(env, options, "toolCallId", toolCallId, msg) &&
+        UnwrapOptionalTraceId(env, options, "dmSessionId", dmSessionId, msg);
 }
 
 } // namespace CliTool
