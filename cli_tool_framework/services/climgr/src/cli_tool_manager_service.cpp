@@ -55,6 +55,7 @@ namespace OHOS {
 namespace CliTool {
 namespace {
 constexpr const char* PERMISSION_EXEC_CLI_TOOL = "ohos.permission.EXEC_CLI_TOOL";
+constexpr const char* PERMISSION_EXEC_PUBLIC_CLI_TOOL = "ohos.permission.EXEC_PUBLIC_CLI_TOOL";
 constexpr const char* PERMISSION_QUERY_CLI_TOOL = "ohos.permission.QUERY_CLI_TOOL";
 constexpr const char* PERMISSION_REGISTER_CLI_TOOL = "ohos.permission.REGISTER_CLI_TOOL";
 constexpr const char* PERMISSION_ACCESS_FUNCTION = "ohos.permission.ACCESS_FUNCTION";
@@ -898,6 +899,17 @@ int32_t CliToolManagerService::ValidateExecToolPermissions()
         return ERR_PERMISSION_DENIED;
     }
     return ERR_OK;
+}
+
+int32_t CliToolManagerService::ValidateSessionPermissions()
+{
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    if (PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_CLI_TOOL) ||
+        PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_EXEC_PUBLIC_CLI_TOOL)) {
+        return ERR_OK;
+    }
+    TAG_LOGE(AAFwkTag::CLI_TOOL, "ValidateSessionPermissions: Permission denied");
+    return ERR_PERMISSION_DENIED;
 }
 
 int32_t CliToolManagerService::ValidateSessionLimit()
@@ -1769,7 +1781,7 @@ std::shared_ptr<SessionRecord> CliToolManagerService::CreateSessionRecord(const 
 int32_t CliToolManagerService::ClearSession(const std::string &sessionId)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
-    auto ret = ValidateExecToolPermissions();
+    auto ret = ValidateSessionPermissions();
     if (ret != ERR_OK) {
         return ret;
     }
@@ -1818,7 +1830,7 @@ int32_t CliToolManagerService::SubscribeSession(const std::string &sessionId, co
     const sptr<ICliToolManagerScheduler> &scheduler)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
-    auto ret = ValidateExecToolPermissions();
+    auto ret = ValidateSessionPermissions();
     if (ret != ERR_OK) {
         return ret;
     }
@@ -1877,7 +1889,7 @@ int32_t CliToolManagerService::UnsubscribeSession(const std::string &sessionId, 
 int32_t CliToolManagerService::QuerySession(const std::string &sessionId, CliSessionInfo &session)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
-    auto ret = ValidateExecToolPermissions();
+    auto ret = ValidateSessionPermissions();
     if (ret != ERR_OK) {
         return ret;
     }
@@ -1899,7 +1911,7 @@ int32_t CliToolManagerService::SendMessage(const std::string &sessionId,
     const sptr<ICliToolManagerScheduler> &scheduler)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
-    auto ret = ValidateExecToolPermissions();
+    auto ret = ValidateSessionPermissions();
     if (ret != ERR_OK) {
         return ret;
     }

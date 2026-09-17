@@ -54,6 +54,7 @@
 #include "io_monitor.h"
 #include "nativetoken_kit.h"
 #include "parameters.h"
+#include "permission_util_mock.h"
 #include "skill/skill_execute_result.h"
 #include "string_wrapper.h"
 #include "token_setproc.h"
@@ -80,6 +81,7 @@ namespace CliTool {
 namespace {
 const char *CLI_TOOL_PERMS[] = {
     "ohos.permission.EXEC_CLI_TOOL",
+    "ohos.permission.EXEC_PUBLIC_CLI_TOOL",
     "ohos.permission.QUERY_CLI_TOOL",
 };
 
@@ -574,6 +576,130 @@ HWTEST_F(CliToolManagerServiceTest, ValidateExecToolPermissions_0100, TestSize.L
     EXPECT_TRUE(result == ERR_OK || IsPermissionGateResult(result));
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateExecToolPermissions_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ValidateSessionPermissions_0100
+ * @tc.desc: Test ValidateSessionPermissions returns ERR_OK when EXEC_CLI_TOOL is granted
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ValidateSessionPermissions_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateSessionPermissions_0100 start");
+
+    PermissionMockState::Reset();
+    PermissionMockState::overrideEnabled = true;
+    PermissionMockState::execCliToolGranted = true;
+    PermissionMockState::execPublicCliToolGranted = false;
+
+    EXPECT_EQ(service_->ValidateSessionPermissions(), ERR_OK);
+
+    PermissionMockState::Reset();
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateSessionPermissions_0100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ValidateSessionPermissions_0200
+ * @tc.desc: Test ValidateSessionPermissions returns ERR_OK when only EXEC_PUBLIC_CLI_TOOL is granted
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ValidateSessionPermissions_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateSessionPermissions_0200 start");
+
+    PermissionMockState::Reset();
+    PermissionMockState::overrideEnabled = true;
+    PermissionMockState::execCliToolGranted = false;
+    PermissionMockState::execPublicCliToolGranted = true;
+
+    EXPECT_EQ(service_->ValidateSessionPermissions(), ERR_OK);
+
+    PermissionMockState::Reset();
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateSessionPermissions_0200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ValidateSessionPermissions_0300
+ * @tc.desc: Test ValidateSessionPermissions returns ERR_OK when both permissions are granted
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ValidateSessionPermissions_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateSessionPermissions_0300 start");
+
+    PermissionMockState::Reset();
+    PermissionMockState::overrideEnabled = true;
+    PermissionMockState::execCliToolGranted = true;
+    PermissionMockState::execPublicCliToolGranted = true;
+
+    EXPECT_EQ(service_->ValidateSessionPermissions(), ERR_OK);
+
+    PermissionMockState::Reset();
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateSessionPermissions_0300 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ValidateSessionPermissions_0400
+ * @tc.desc: Test ValidateSessionPermissions returns ERR_PERMISSION_DENIED when neither permission is granted
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ValidateSessionPermissions_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateSessionPermissions_0400 start");
+
+    PermissionMockState::Reset();
+    PermissionMockState::overrideEnabled = true;
+    PermissionMockState::execCliToolGranted = false;
+    PermissionMockState::execPublicCliToolGranted = false;
+
+    EXPECT_EQ(service_->ValidateSessionPermissions(), ERR_PERMISSION_DENIED);
+
+    PermissionMockState::Reset();
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateSessionPermissions_0400 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ValidateSessionPermissions_0500
+ * @tc.desc: Test ValidateSessionPermissions does NOT check IsSystemApp - non-system app with permission passes
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ValidateSessionPermissions_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateSessionPermissions_0500 start");
+
+    PermissionMockState::Reset();
+    PermissionMockState::overrideEnabled = true;
+    PermissionMockState::execCliToolGranted = true;
+    PermissionMockState::execPublicCliToolGranted = false;
+
+    IPCSkeleton::callingFullTokenId = 1; // non-zero -> IsSystemApp() returns false
+    EXPECT_EQ(service_->ValidateSessionPermissions(), ERR_OK);
+
+    IPCSkeleton::Reset();
+    PermissionMockState::Reset();
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateSessionPermissions_0500 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ValidateSessionPermissions_0600
+ * @tc.desc: Test ValidateSessionPermissions passes for non-system app with only EXEC_PUBLIC_CLI_TOOL
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ValidateSessionPermissions_0600, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateSessionPermissions_0600 start");
+
+    PermissionMockState::Reset();
+    PermissionMockState::overrideEnabled = true;
+    PermissionMockState::execCliToolGranted = false;
+    PermissionMockState::execPublicCliToolGranted = true;
+
+    IPCSkeleton::callingFullTokenId = 1; // non-zero -> IsSystemApp() returns false
+    EXPECT_EQ(service_->ValidateSessionPermissions(), ERR_OK);
+
+    IPCSkeleton::Reset();
+    PermissionMockState::Reset();
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ValidateSessionPermissions_0600 end");
 }
 
 /**
