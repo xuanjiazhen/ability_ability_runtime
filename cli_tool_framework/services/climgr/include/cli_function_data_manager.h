@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_CLI_FUNCTION_DATA_MANAGER_H
 #define OHOS_ABILITY_RUNTIME_CLI_FUNCTION_DATA_MANAGER_H
 
+#include <chrono>
 #include <mutex>
 #include <string>
 #include <unordered_set>
@@ -98,6 +99,13 @@ public:
      * @return int32_t ERR_OK on success, error code otherwise
      */
     int32_t EnsureFunctionsInitialized();
+
+    /**
+     * @brief Backs up the whole kv store to a backup file in the storage directory.
+     * Called after successful data mutations so the corrupted-store recovery can
+     * restore function configs instead of starting empty.
+     */
+    void BackupKvStore();
 
 private:
     CliFunctionDataManager();
@@ -204,6 +212,8 @@ private:
     DistributedKv::DistributedKvDataManager dataManager_;
     std::shared_ptr<DistributedKv::SingleKvStore> kvStorePtr_;
     mutable std::mutex kvStorePtrMutex_;
+    std::chrono::steady_clock::time_point lastBackupTime_{};
+    bool backupFlushScheduled_ = false;
     std::atomic<bool> functionsInitialized_ = false;
 };
 
