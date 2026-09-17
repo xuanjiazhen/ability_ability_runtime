@@ -209,9 +209,6 @@ void JsUIExtensionCallback::OnAbilityByTypeResult(int32_t errorCode)
     std::unique_ptr<NapiAsyncTask::ExecuteCallback> execute = nullptr;
     NapiAsyncTask::Schedule("JsUIExtensionCallback::OnAbilityByTypeResult:",
         env_, std::make_unique<NapiAsyncTask>(callback, std::move(execute), std::move(complete)));
-#ifdef SUPPORT_SCREEN
-    CloseModalUIExtension();
-#endif
 }
 
 void JsUIExtensionCallback::OnResult(int32_t resultCode, const AAFwk::Want &want)
