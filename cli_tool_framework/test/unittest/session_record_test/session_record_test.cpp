@@ -141,6 +141,32 @@ HWTEST_F(SessionRecordTest, SessionRecord_BuildSessionInfo_0100, TestSize.Level1
 }
 
 /**
+ * @tc.name: SessionRecord_BuildSessionInfo_0200
+ * @tc.desc: Test BuildSessionInfo echoes trace identifiers and defaults them to empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(SessionRecordTest, SessionRecord_BuildSessionInfo_0200, TestSize.Level1)
+{
+    SessionRecord record;
+    record.sessionId = "trace-session";
+    record.toolCallId = "call_0123-ABC";
+    record.dmSessionId = "dm-session_456";
+
+    CliSessionInfo session;
+    record.BuildSessionInfo(session);
+    EXPECT_EQ(session.sessionId, "trace-session");
+    EXPECT_EQ(session.toolCallId, "call_0123-ABC");
+    EXPECT_EQ(session.dmSessionId, "dm-session_456");
+
+    SessionRecord defaultRecord;
+    CliSessionInfo defaultSession;
+    defaultRecord.BuildSessionInfo(defaultSession);
+    EXPECT_EQ(defaultSession.sessionId, "");
+    EXPECT_EQ(defaultSession.toolCallId, "");
+    EXPECT_EQ(defaultSession.dmSessionId, "");
+}
+
+/**
  * @tc.name: SessionRecord_SetSkillResult_0100
  * @tc.desc: Test skill result closes output and builds terminal result
  * @tc.type: FUNC
