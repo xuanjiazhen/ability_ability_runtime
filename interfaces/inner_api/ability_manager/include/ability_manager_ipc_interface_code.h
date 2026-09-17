@@ -791,6 +791,9 @@ enum class AbilityManagerInterfaceCode {
 
     // delete caller's own kiosk application list entries
     DELETE_KIOSK_APP_FROM_LIST = 6180,
+
+    // extend game prelaunch timeout
+    EXTEND_GAME_PRELAUNCH_TIMEOUT = 6181,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

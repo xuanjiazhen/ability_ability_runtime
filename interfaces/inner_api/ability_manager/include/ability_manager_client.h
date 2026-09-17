@@ -1879,6 +1879,17 @@ public:
     ErrCode SetGamePreLaunchCompleteTime(int32_t userId, int64_t completeTime);
 
     /**
+     * @brief Extend game prelaunch timeout (reset the pre-launch foreground countdown).
+     * Internal: only game SA (GAME_SA_UID) may call.
+     * @param userId User id.
+     * @param extendTime Extended time in microseconds, must be in range (30s, 4h).
+     * @return Returns ERR_OK on success; ERR_INVALID_VALUE for out-of-range extendTime;
+     *         CHECK_PERMISSION_FAILED for non-game-SA callers; ABILITY_SERVICE_NOT_CONNECTED
+     *         when the AMS proxy is unavailable.
+     */
+    ErrCode ExtendGamePreLaunchTimeout(int32_t userId, int64_t extendTime);
+
+    /**
      * @brief Query whether a UIAbility's onPrepareToTerminate allows termination.
      * SCB only (IsCallerSceneBoard); sessionInfo with valid sessionToken required.
      * @param sessionInfo Session info of the ability to terminate.
