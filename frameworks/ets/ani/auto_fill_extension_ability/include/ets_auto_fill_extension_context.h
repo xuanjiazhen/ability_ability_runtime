@@ -30,11 +30,19 @@ public:
     static EtsAutoFillExtensionContext *GetEtsAutoFillExtensionContext(ani_env *env, ani_object object);
     static void Clean(ani_env *env, ani_object object);
     static void ReloadInModal(ani_env *env, ani_object object, ani_object customDataObj, ani_object callback);
+    static ani_long ConnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_object connectOptionsObj);
+    static void DisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_long connectId,
+        ani_object callback);
     static ani_object CreateEtsAutoFillExtensionContext(ani_env *env,
         std::shared_ptr<AutoFillExtensionContext> context);
 
 private:
     void OnReloadInModal(ani_env *env, ani_object object, ani_object customDataObj, ani_object callback);
+    ani_long OnConnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
+        ani_object connectOptionsObj);
+    void OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_long connectId,
+        ani_object callback);
     std::weak_ptr<AutoFillExtensionContext> context_;
 };
 } // namespace AbilityRuntime

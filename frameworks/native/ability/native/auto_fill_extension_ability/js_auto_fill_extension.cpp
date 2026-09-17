@@ -299,6 +299,8 @@ void JsAutoFillExtension::OnStopCallBack()
         TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "service connection not disconnected");
     }
 
+    JsAutoFillExtensionContext::DisconnectAllConnections(context);
+
     auto applicationContext = Context::GetApplicationContext();
     if (applicationContext != nullptr) {
         JsAbilityLifecycleCallbackArgs ability(jsObj_);

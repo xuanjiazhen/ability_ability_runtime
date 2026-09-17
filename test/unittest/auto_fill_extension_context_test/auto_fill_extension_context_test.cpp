@@ -22,6 +22,7 @@
 #undef private
 #undef protected
 #include "hilog_tag_wrapper.h"
+#include "js_auto_fill_extension_context.h"
 #include "js_auto_fill_extension_util.h"
 #include "mock_window.h"
 
@@ -226,6 +227,25 @@ HWTEST_F(AutoFillExtensionContextTest, ConnectUIServiceExtensionAbility_0100, Te
     EXPECT_EQ(context->ConnectUIServiceExtensionAbility(want, connectCallback), AAFwk::ERR_INVALID_CALLER);
 
     TAG_LOGI(AAFwkTag::TEST, "ConnectUIServiceExtensionAbility_0100 end");
+}
+
+/**
+ * @tc.number: DisconnectAllConnections_0100
+ * @tc.name: DisconnectAllConnections
+ * @tc.desc: DisconnectAllConnections with null context and zero established connections completes safely.
+ */
+HWTEST_F(AutoFillExtensionContextTest, DisconnectAllConnections_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DisconnectAllConnections_0100 start");
+
+    std::shared_ptr<AutoFillExtensionContext> nullContext = nullptr;
+    JsAutoFillExtensionContext::DisconnectAllConnections(nullContext);
+
+    std::shared_ptr<AutoFillExtensionContext> context = std::make_shared<AutoFillExtensionContext>();
+    ASSERT_NE(context, nullptr);
+    JsAutoFillExtensionContext::DisconnectAllConnections(context);
+
+    TAG_LOGI(AAFwkTag::TEST, "DisconnectAllConnections_0100 end");
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

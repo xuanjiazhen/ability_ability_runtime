@@ -15,12 +15,19 @@
 
 #include "ets_auto_fill_extension_context.h"
 
+#include <algorithm>
+#include <cstdint>
+#include <map>
+#include <mutex>
+
 #include "ani_common_util.h"
 #include "ani_common_want.h"
+#include "errors.h"
 #include "ets_auto_fill_extension_util.h"
 #include "ets_context_utils.h"
 #include "ets_error_utils.h"
 #include "ets_extension_context.h"
+#include "ets_ui_extension_context.h"
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {
@@ -29,6 +36,52 @@ namespace {
 constexpr const char* AUTO_FILL_EXTENSION_CONTEXT_CLASS_NAME =
     "application.AutoFillExtensionContext.AutoFillExtensionContext";
 constexpr const char* CLEANER_CLASS = "application.AutoFillExtensionContext.Cleaner";
+constexpr const int FAILED_CODE = -1;
+constexpr const char *SIGNATURE_CONNECT_SERVICE_EXTENSION =
+    "C{@ohos.app.ability.Want.Want}C{ability.connectOptions.ConnectOptions}:l";
+constexpr const char *SIGNATURE_DISCONNECT_SERVICE_EXTENSION = "lC{utils.AbilityUtils.AsyncCallbackWrapper}:";
+static std::mutex g_connectsMutex;
+static int32_t g_serialNumber = 0;
+static std::map<EtsUIExtensionConnectionKey, sptr<EtsUIExtensionConnection>, Etskey_compare> g_connects;
+
+bool CheckConnectionParam(ani_env *env, ani_object connectOptionsObj,
+    sptr<EtsUIExtensionConnection> &connection, AAFwk::Want &want)
+{
+    ani_type type = nullptr;
+    ani_boolean res = ANI_FALSE;
+    ani_status status = ANI_ERROR;
+    if ((status = env->Object_GetType(connectOptionsObj, &type)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "Failed to Object_GetType, status: %{public}d", status);
+        return false;
+    }
+    if (type == nullptr) {
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null type");
+        return false;
+    }
+    if ((status = env->Object_InstanceOf(connectOptionsObj, type, &res)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "Failed to Object_InstanceOf, status: %{public}d", status);
+        return false;
+    }
+    if (res != ANI_TRUE) {
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "Failed to CheckConnectionParam");
+        return false;
+    }
+    connection->SetConnectionRef(connectOptionsObj);
+    EtsUIExtensionConnectionKey key;
+    {
+        std::lock_guard guard(g_connectsMutex);
+        key.id = g_serialNumber;
+        key.want = want;
+        connection->SetConnectionId(key.id);
+        g_connects.emplace(key, connection);
+        if (g_serialNumber < INT32_MAX) {
+            g_serialNumber++;
+        } else {
+            g_serialNumber = 0;
+        }
+    }
+    return true;
+}
 }
 
 ani_object EtsAutoFillExtensionContext::SetEtsAutoFillExtensionContext(ani_env *env,
@@ -164,6 +217,114 @@ void EtsAutoFillExtensionContext::OnReloadInModal(ani_env *env, ani_object objec
         AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret)), nullptr);
 }
 
+ani_long EtsAutoFillExtensionContext::ConnectServiceExtensionAbility(ani_env *env, ani_object aniObj,
+    ani_object wantObj, ani_object connectOptionsObj)
+{
+    TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "ConnectServiceExtensionAbility");
+    auto etsAutoFillExtensionContext = GetEtsAutoFillExtensionContext(env, aniObj);
+    if (etsAutoFillExtensionContext == nullptr) {
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null etsAutoFillExtensionContext");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return FAILED_CODE;
+    }
+    return etsAutoFillExtensionContext->OnConnectServiceExtensionAbility(env, aniObj, wantObj, connectOptionsObj);
+}
+
+ani_long EtsAutoFillExtensionContext::OnConnectServiceExtensionAbility(ani_env *env, ani_object aniObj,
+    ani_object wantObj, ani_object connectOptionsObj)
+{
+    ani_status status = ANI_ERROR;
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null context");
+        EtsErrorUtil::ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+        return FAILED_CODE;
+    }
+    AAFwk::Want want;
+    if (!OHOS::AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "Failed to UnwrapWant");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Failed to UnwrapWant");
+        return FAILED_CODE;
+    }
+    ani_vm *etsVm = nullptr;
+    if ((status = env->GetVM(&etsVm)) != ANI_OK || etsVm == nullptr) {
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "Failed to getVM, status: %{public}d", status);
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return FAILED_CODE;
+    }
+    sptr<EtsUIExtensionConnection> connection = new (std::nothrow) EtsUIExtensionConnection(etsVm);
+    if (connection == nullptr) {
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null connection");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return FAILED_CODE;
+    }
+    if (!CheckConnectionParam(env, connectOptionsObj, connection, want)) {
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "Failed to CheckConnectionParam");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Failed to CheckConnectionParam");
+        return FAILED_CODE;
+    }
+    auto innerErrCode = context->ConnectAbility(want, connection);
+    int32_t errcode = static_cast<int32_t>(GetJsErrorCodeByNativeError(innerErrCode));
+    double connectId = connection->GetConnectionId();
+    if (errcode) {
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "Failed to ConnectAbility, innerErrCode is %{public}d", innerErrCode);
+        connection->CallEtsFailed(errcode);
+        return FAILED_CODE;
+    }
+    return static_cast<ani_long>(connectId);
+}
+
+void EtsAutoFillExtensionContext::DisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj,
+    ani_long connectId, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "DisconnectServiceExtensionAbility");
+    auto etsAutoFillExtensionContext = GetEtsAutoFillExtensionContext(env, aniObj);
+    if (etsAutoFillExtensionContext == nullptr) {
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null etsAutoFillExtensionContext");
+        return;
+    }
+    etsAutoFillExtensionContext->OnDisconnectServiceExtensionAbility(env, aniObj, connectId, callback);
+}
+
+void EtsAutoFillExtensionContext::OnDisconnectServiceExtensionAbility(ani_env *env, ani_object aniObj,
+    ani_long connectId, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "OnDisconnectServiceExtensionAbility");
+    ani_object aniObject = nullptr;
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null context");
+        aniObject = EtsErrorUtil::CreateErrorByNativeErr(env,
+            static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+        return;
+    }
+    AAFwk::Want want;
+    sptr<EtsUIExtensionConnection> connection = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(g_connectsMutex);
+        auto item = std::find_if(
+            g_connects.begin(), g_connects.end(), [&connectId](const auto &obj) { return connectId == obj.first.id; });
+        if (item != g_connects.end()) {
+            want = item->first.want;
+            connection = item->second;
+            g_connects.erase(item);
+        } else {
+            TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "Failed to found connection");
+        }
+    }
+    if (!connection) {
+        aniObject = EtsErrorUtil::CreateError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+            GetInnerErrorMsg(AbilityInnerErrorMsg::CONNECTION_NOT_FOUND));
+        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null connection");
+        return;
+    }
+    ErrCode ret = context->DisconnectAbility(want, connection);
+    aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
+    AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+}
+
 ani_object EtsAutoFillExtensionContext::CreateEtsAutoFillExtensionContext(ani_env *env,
     std::shared_ptr<AutoFillExtensionContext> context)
 {
@@ -181,6 +342,10 @@ ani_object EtsAutoFillExtensionContext::CreateEtsAutoFillExtensionContext(ani_en
         ani_native_function { "nativeReloadInModal",
             "C{application.CustomData.CustomData}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void*>(EtsAutoFillExtensionContext::ReloadInModal) },
+        ani_native_function { "nativeConnectServiceExtensionAbility", SIGNATURE_CONNECT_SERVICE_EXTENSION,
+            reinterpret_cast<void*>(EtsAutoFillExtensionContext::ConnectServiceExtensionAbility) },
+        ani_native_function { "nativeDisconnectServiceExtensionAbilitySync", SIGNATURE_DISCONNECT_SERVICE_EXTENSION,
+            reinterpret_cast<void*>(EtsAutoFillExtensionContext::DisconnectServiceExtensionAbility) },
     };
     if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK
         && status != ANI_ALREADY_BINDED) {
