@@ -2147,6 +2147,101 @@ HWTEST_F(CliToolManagerServiceTest, ExecTool_0900, TestSize.Level1)
     GTEST_LOG_(INFO) << "CliToolManagerService_ExecTool_0900 end";
 }
 
+// ==================== ExecTool Trace Id Validation Tests ====================
+
+/**
+ * @tc.name: CliToolManagerService_ExecTool_1000
+ * @tc.desc: Test ExecTool rejects toolCallId containing illegal characters with ERR_INVALID_VALUE
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecTool_1000, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_1000 start");
+
+    ExecToolParam param;
+    param.toolName = "non_existent_tool";
+    param.options.toolCallId = "call@id;rm -rf";
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecTool(param, "event_exec_invalid_call_id", scheduler);
+
+    // Entry validation runs before the permission gate, so the result is exactly ERR_INVALID_VALUE
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    EXPECT_FALSE(IsPermissionGateResult(result));
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_1000 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecTool_1100
+ * @tc.desc: Test ExecTool rejects toolCallId longer than 256 characters with ERR_INVALID_VALUE
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecTool_1100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_1100 start");
+
+    ExecToolParam param;
+    param.toolName = "non_existent_tool";
+    param.options.toolCallId = std::string(257, 'a'); // 257 chars, all in the legal character set
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecTool(param, "event_exec_call_id_too_long", scheduler);
+
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    EXPECT_FALSE(IsPermissionGateResult(result));
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_1100 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecTool_1200
+ * @tc.desc: Test ExecTool rejects dmSessionId containing illegal characters with ERR_INVALID_VALUE
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecTool_1200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_1200 start");
+
+    ExecToolParam param;
+    param.toolName = "non_existent_tool";
+    param.options.toolCallId = "valid_call_id";
+    param.options.dmSessionId = "dm session/id";
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecTool(param, "event_exec_invalid_dm_session_id", scheduler);
+
+    // toolCallId is valid, only dmSessionId is invalid
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    EXPECT_FALSE(IsPermissionGateResult(result));
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_1200 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecTool_1300
+ * @tc.desc: Test ExecTool accepts trace ids whose length equals 256 (boundary value)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecTool_1300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_1300 start");
+
+    ExecToolParam param;
+    param.toolName = "non_existent_tool";
+    param.options.toolCallId = std::string(256, 'a');   // exactly 256 chars, legal
+    param.options.dmSessionId = std::string(256, '0'); // exactly 256 chars, legal
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecTool(param, "event_exec_max_length_trace_ids", scheduler);
+
+    // Trace ids pass entry validation; the request proceeds to the tool lookup / permission gate
+    EXPECT_NE(result, ERR_INVALID_VALUE);
+    EXPECT_TRUE(result == ERR_TOOL_NOT_EXIST || IsPermissionGateResult(result));
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecTool_1300 end");
+}
+
 // ==================== ValidateAndPrepareCmd Tests ====================
 
 /**
@@ -3561,6 +3656,81 @@ HWTEST_F(CliToolManagerServiceTest, ExecCmd_CmdMaxLength_0300, TestSize.Level2)
     EXPECT_NE(result, ERR_INVALID_PARAM);
 
     TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_CmdMaxLength_0300 end");
+}
+
+// ==================== ExecCmd Trace Id Validation Tests ====================
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_0800
+ * @tc.desc: Test ExecCmd rejects execCmdOptions.toolCallId containing illegal characters with ERR_INVALID_VALUE
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_0800, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_0800 start");
+
+    ExecCmdParam param;
+    param.cmd = "echo test";
+    param.execCmdOptions.toolCallId = "call id with space";
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecCmd(param, "event_exec_cmd_invalid_call_id", scheduler, "sub_invalid_call_id");
+
+    // Entry validation runs before the permission gate, so the result is exactly ERR_INVALID_VALUE
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    EXPECT_FALSE(IsPermissionGateResult(result));
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_0800 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_0900
+ * @tc.desc: Test ExecCmd rejects execCmdOptions.dmSessionId longer than 256 characters with ERR_INVALID_VALUE
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_0900, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_0900 start");
+
+    ExecCmdParam param;
+    param.cmd = "echo test";
+    param.execCmdOptions.toolCallId = "valid_call_id";
+    param.execCmdOptions.dmSessionId = std::string(257, 'd'); // 257 chars, all in the legal character set
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecCmd(param, "event_exec_cmd_dm_session_too_long", scheduler, "sub_dm_too_long");
+
+    // toolCallId is valid, only dmSessionId is oversized
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    EXPECT_FALSE(IsPermissionGateResult(result));
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_0900 end");
+}
+
+/**
+ * @tc.name: CliToolManagerService_ExecCmd_1000
+ * @tc.desc: Test ExecCmd accepts trace ids whose length equals 256 (boundary value)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ExecCmd_1000, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_1000 start");
+
+    ExecCmdParam param;
+    param.cmd = "echo test";
+    param.execCmdOptions.toolCallId = std::string(256, 'a');   // exactly 256 chars, legal
+    param.execCmdOptions.dmSessionId = std::string(256, '0'); // exactly 256 chars, legal
+
+    sptr<TestScheduler> scheduler = new TestScheduler();
+    int32_t result = service_->ExecCmd(param, "event_exec_cmd_max_length_trace_ids", scheduler,
+        "sub_max_length_trace_ids");
+
+    // Trace ids pass entry validation; the request proceeds to later validation / permission gates
+    EXPECT_NE(result, ERR_INVALID_VALUE);
+    EXPECT_TRUE(result == ERR_NO_INIT || result == ERR_NOT_HAP ||
+        result == ERR_INVALID_PARAM || IsPermissionGateResult(result));
+
+    TAG_LOGI(AAFwkTag::TEST, "CliToolManagerService_ExecCmd_1000 end");
 }
 
 // ---------------------------------------------------------------------------

@@ -33,6 +33,8 @@ public:
     std::string toolName;
     std::string status;            // "running", "completed", "failed"
     std::shared_ptr<ExecResult> result = nullptr;  // optional, only when status="completed" and status="failed"
+    std::string toolCallId;
+    std::string dmSessionId;
 
     CliSessionInfo() = default;
 
