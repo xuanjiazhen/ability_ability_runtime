@@ -25,6 +25,8 @@ namespace OHOS {
 namespace CliTool {
 namespace {
 constexpr int32_t TEST_EXIT_CODE = 7;
+const std::string TEST_TOOL_CALL_ID = "tool-call-123_ABC";
+const std::string TEST_DM_SESSION_ID = "dm-session-456_xyz";
 }
 
 class CliSessionInfoTest : public testing::Test {};
@@ -105,6 +107,79 @@ HWTEST_F(CliSessionInfoTest, CliSessionInfo_Unmarshalling_0200, TestSize.Level1)
     ASSERT_TRUE(missingResultParcel.WriteBool(true));
     missingResultParcel.RewindRead(0);
     EXPECT_EQ(CliSessionInfo::Unmarshalling(missingResultParcel), nullptr);
+}
+
+/**
+ * @tc.name: CliSessionInfo_Parcelable_0300
+ * @tc.desc: Test CliSessionInfo round-trip with both / no trace identifiers
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliSessionInfoTest, CliSessionInfo_Parcelable_0300, TestSize.Level1)
+{
+    // Both identifiers provided.
+    CliSessionInfo withIds;
+    withIds.sessionId = "session-with-ids";
+    withIds.toolName = "tool";
+    withIds.status = "running";
+    withIds.toolCallId = TEST_TOOL_CALL_ID;
+    withIds.dmSessionId = TEST_DM_SESSION_ID;
+
+    Parcel withIdsParcel;
+    ASSERT_TRUE(withIds.Marshalling(withIdsParcel));
+    withIdsParcel.RewindRead(0);
+    std::unique_ptr<CliSessionInfo> withIdsResult(CliSessionInfo::Unmarshalling(withIdsParcel));
+    ASSERT_NE(withIdsResult, nullptr);
+    EXPECT_EQ(withIdsResult->sessionId, "session-with-ids");
+    EXPECT_EQ(withIdsResult->toolName, "tool");
+    EXPECT_EQ(withIdsResult->status, "running");
+    EXPECT_EQ(withIdsResult->toolCallId, TEST_TOOL_CALL_ID);
+    EXPECT_EQ(withIdsResult->dmSessionId, TEST_DM_SESSION_ID);
+    EXPECT_EQ(withIdsResult->result, nullptr);
+
+    // Identifiers not provided: empty strings survive a round trip.
+    CliSessionInfo withoutIds;
+    withoutIds.sessionId = "session-without-ids";
+    withoutIds.toolName = "tool";
+    withoutIds.status = "failed";
+
+    Parcel withoutIdsParcel;
+    ASSERT_TRUE(withoutIds.Marshalling(withoutIdsParcel));
+    withoutIdsParcel.RewindRead(0);
+    std::unique_ptr<CliSessionInfo> withoutIdsResult(CliSessionInfo::Unmarshalling(withoutIdsParcel));
+    ASSERT_NE(withoutIdsResult, nullptr);
+    EXPECT_EQ(withoutIdsResult->sessionId, "session-without-ids");
+    EXPECT_TRUE(withoutIdsResult->toolCallId.empty());
+    EXPECT_TRUE(withoutIdsResult->dmSessionId.empty());
+}
+
+/**
+ * @tc.name: CliSessionInfo_Unmarshalling_0300
+ * @tc.desc: Test CliSessionInfo strict tail read rejects legacy parcels without trace identifiers
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliSessionInfoTest, CliSessionInfo_Unmarshalling_0300, TestSize.Level1)
+{
+    // Legacy sender format: sessionId + toolName + status + hasResult(false), no trace ids.
+    Parcel legacyNoResultParcel;
+    ASSERT_TRUE(legacyNoResultParcel.WriteString("session"));
+    ASSERT_TRUE(legacyNoResultParcel.WriteString("tool"));
+    ASSERT_TRUE(legacyNoResultParcel.WriteString("running"));
+    ASSERT_TRUE(legacyNoResultParcel.WriteBool(false));
+    legacyNoResultParcel.RewindRead(0);
+    EXPECT_EQ(CliSessionInfo::Unmarshalling(legacyNoResultParcel), nullptr);
+
+    // Legacy sender format with an ExecResult parcelable but no trace ids.
+    Parcel legacyResultParcel;
+    ASSERT_TRUE(legacyResultParcel.WriteString("session"));
+    ASSERT_TRUE(legacyResultParcel.WriteString("tool"));
+    ASSERT_TRUE(legacyResultParcel.WriteString("completed"));
+    ASSERT_TRUE(legacyResultParcel.WriteBool(true));
+    ExecResult execResult;
+    execResult.exitCode = TEST_EXIT_CODE;
+    execResult.outputText = "ok";
+    ASSERT_TRUE(legacyResultParcel.WriteParcelable(&execResult));
+    legacyResultParcel.RewindRead(0);
+    EXPECT_EQ(CliSessionInfo::Unmarshalling(legacyResultParcel), nullptr);
 }
 } // namespace CliTool
 } // namespace OHOS

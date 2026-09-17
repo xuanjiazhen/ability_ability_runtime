@@ -339,6 +339,20 @@ bool IsEmbeddableStart(int32_t screenMode)
     return screenMode == AAFwk::EMBEDDED_FULL_SCREEN_MODE ||
         screenMode == AAFwk::EMBEDDED_HALF_SCREEN_MODE;
 }
+
+bool IsValidToolCallId(const std::string &toolCallId)
+{
+    if (toolCallId.empty() || toolCallId.size() > 256) { // 256: max length of toolCallId
+        return false;
+    }
+    for (char c : toolCallId) {
+        if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+            (c >= '0' && c <= '9') || c == '_' || c == '-')) {
+            return false;
+        }
+    }
+    return true;
+}
 } // namespace
 
 using namespace std::chrono;
@@ -738,6 +752,10 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetBundleNameRef().c_str());
         return INNER_ERR;
+    }
+    std::string toolCallId = want.GetStringParam("ohos.aafwk.param.toolCallId");
+    if (IsValidToolCallId(toolCallId)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "start ability with toolCallId: %{public}s", toolCallId.c_str());
     }
     if (specifiedFullTokenId != 0 && IPCSkeleton::GetCallingUid() != DMS_UID) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "specifiedFullTokenId only support for DMS");
