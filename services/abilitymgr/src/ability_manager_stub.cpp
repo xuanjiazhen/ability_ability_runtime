@@ -1079,6 +1079,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     if (interfaceCode == AbilityManagerInterfaceCode::QUERY_SKILL_TYPE) {
         return QuerySkillTypeInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::SET_PRE_BOOT_LAUNCH) {
+        return SetPreBootLaunchInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -4748,6 +4751,18 @@ int32_t AbilityManagerStub::CancelApplicationAutoStartupByEDMInner(MessageParcel
     }
     auto flag = data.ReadBool();
     int32_t result = CancelApplicationAutoStartupByEDM(*info, flag);
+    return reply.WriteInt32(result);
+}
+
+int32_t AbilityManagerStub::SetPreBootLaunchInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<AutoStartupInfo> info = data.ReadParcelable<AutoStartupInfo>();
+    if (info == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "info null");
+        return ERR_INVALID_VALUE;
+    }
+    auto isEnable = data.ReadBool();
+    int32_t result = SetPreBootLaunch(*info, isEnable);
     return reply.WriteInt32(result);
 }
 

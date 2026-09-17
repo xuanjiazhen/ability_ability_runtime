@@ -114,6 +114,14 @@ public:
      */
     void BackupKvStore();
 
+    /**
+     * @brief Queries all pre-boot startup applications for the specified user.
+     * @param infoList Output parameter that will be filled with the queried pre-boot startup information.
+     * @param userId The ID of the user for whom to query pre-boot startup applications.
+     * @return Returns 0 on success, non-zero on failure.
+     */
+    int32_t QueryPreBootStartupApplications(std::vector<AutoStartupInfo> &infoList, int32_t userId);
+
 private:
     /**
      * @brief Restores the key-value store using the provided status.

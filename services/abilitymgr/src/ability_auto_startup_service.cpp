@@ -20,12 +20,15 @@
 #include "app_utils.h"
 #include "auto_startup_callback_proxy.h"
 #include "auto_startup_interface.h"
+#include "accesstoken_kit.h"
 #include "distributed_kv_data_manager.h"
 #include "display_util.h"
 #include "exit_reason.h"
 #include "global_constant.h"
 #include "hilog_tag_wrapper.h"
 #include "in_process_call_wrapper.h"
+#include "ipc_skeleton.h"
+#include "parameters.h"
 #include "permission_constants.h"
 #include "process_options.h"
 #include "server_constant.h"
@@ -39,6 +42,10 @@ namespace AbilityRuntime {
 using namespace OHOS::AAFwk;
 namespace {
 constexpr const char* HIDDEN_START_AUTOSTARTUP = "hiddenStartAutoStartup";
+constexpr const char* SYSTEM_BASIC = "system_basic";
+constexpr const char* SYSTEM_CORE = "system_core";
+constexpr const char* DEVICE_TYPE_PC = "pc";
+constexpr const char* DEVICE_TYPE_TWO_IN_ONE = "2in1";
 }
 
 AbilityAutoStartupService::AbilityAutoStartupService() {}
@@ -883,6 +890,93 @@ std::function<void()> AbilityAutoStartupService::CreateHiddenStartCheckTask(
         std::vector<pid_t> pids = { pid };
         (void)DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->KillProcessesByPids(pids);
     };
+}
+
+int32_t AbilityAutoStartupService::CheckPreBootLaunchPermission()
+{
+    auto callerTokenId = IPCSkeleton::GetCallingTokenID();
+    Security::AccessToken::HapTokenInfo hapInfo;
+    auto ret = Security::AccessToken::AccessTokenKit::GetHapTokenInfo(callerTokenId, hapInfo);
+    if (ret != Security::AccessToken::AccessTokenKitRet::RET_SUCCESS) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "GetHapTokenInfo failed, ret:%{public}d", ret);
+        return ERR_PRE_BOOT_LAUNCH_PERMISSION_DENIED;
+    }
+    AppExecFwk::BundleInfo callerBundleInfo;
+    if (!GetBundleInfo(hapInfo.bundleName, hapInfo.userID, hapInfo.instIndex, callerBundleInfo)) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "get caller bundleInfo failed");
+        return ERR_PRE_BOOT_LAUNCH_PERMISSION_DENIED;
+    }
+    const std::string &apl = callerBundleInfo.applicationInfo.appPrivilegeLevel;
+    if (apl != SYSTEM_BASIC && apl != SYSTEM_CORE) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "caller is not system_basic or system_core, apl:%{public}s", apl.c_str());
+        return ERR_PRE_BOOT_LAUNCH_PERMISSION_DENIED;
+    }
+    return ERR_OK;
+}
+
+int32_t AbilityAutoStartupService::SetPreBootLaunch(const AutoStartupInfo &info, bool isEnable)
+{
+    TAG_LOGI(AAFwkTag::AUTO_STARTUP,
+        "bundleName: %{public}s, abilityName: %{public}s, isEnable: %{public}d",
+        info.bundleName.c_str(), info.abilityName.c_str(), isEnable);
+
+    int32_t code = CheckPreBootLaunchPermission();
+    if (code != ERR_OK) {
+        return code;
+    }
+
+    std::string deviceType = system::GetParameter("const.product.devicetype", "");
+    if (deviceType != DEVICE_TYPE_PC && deviceType != DEVICE_TYPE_TWO_IN_ONE) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "not supported on device: %{public}s", deviceType.c_str());
+        return ERR_PRE_BOOT_LAUNCH_NOT_SUPPORTED;
+    }
+
+    if (info.bundleName.empty() || info.abilityName.empty()) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "bundleName or abilityName is empty");
+        return ERR_INVALID_VALUE;
+    }
+
+    AutoStartupAbilityData abilityData;
+    code = GetAbilityInfo(info, abilityData);
+    if (code != ERR_OK) {
+        return code;
+    }
+
+    AutoStartupInfo fullInfo(info);
+    fullInfo.abilityTypeName = abilityData.abilityTypeName;
+    fullInfo.setterUserId = abilityData.setterUserId;
+    fullInfo.accessTokenId = abilityData.accessTokenId;
+    fullInfo.userId = abilityData.userId;
+    fullInfo.canUserModify = true;
+    fullInfo.setterType = AutoStartupSetterType::USER;
+    fullInfo.isPreBootLaunch = isEnable;
+
+    DistributedKv::Key originKey;
+    AutoStartupStatus status =
+        DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->QueryAutoStartupData(fullInfo, originKey);
+    if (status.code == ERR_OK) {
+        TAG_LOGD(AAFwkTag::AUTO_STARTUP, "record exists, update");
+        int32_t result = DelayedSingleton<AbilityAutoStartupDataManager>::
+            GetInstance()->UpdateAutoStartupData(fullInfo, originKey, status.isAutoStartup, status.isEdmForce);
+        return result;
+    }
+
+    if (status.code == ERR_NAME_NOT_FOUND) {
+        TAG_LOGD(AAFwkTag::AUTO_STARTUP, "record not found, insert new");
+        int32_t result = DelayedSingleton<AbilityAutoStartupDataManager>::
+            GetInstance()->InsertAutoStartupData(fullInfo, false, false);
+        return result;
+    }
+
+    TAG_LOGE(AAFwkTag::AUTO_STARTUP, "QueryAutoStartupData fail, code: %{public}d", status.code);
+    return status.code;
+}
+
+int32_t AbilityAutoStartupService::QueryPreBootStartupApps(
+    std::vector<AutoStartupInfo> &infoList, int32_t userId)
+{
+    return DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->
+        QueryPreBootStartupApplications(infoList, userId);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

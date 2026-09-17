@@ -2303,6 +2303,14 @@ public:
     int32_t CancelApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag) override;
 
     /**
+     * @brief Set pre-boot launch flag for application.
+     * @param info The auto startup info, include bundle name, module name, ability name.
+     * @param isEnable Indicate whether to enable pre-boot launch.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t SetPreBootLaunch(const AutoStartupInfo &info, bool isEnable) override;
+
+    /**
      * @brief Get foreground ui abilities.
      * @param list Foreground ui abilities.
      * @return Returns ERR_OK on success, others on failure.
@@ -2864,6 +2872,7 @@ protected:
         std::shared_ptr<BaseExtensionRecord> targetService, bool isFromConnect);
 
     static void HandleAutoStartupReadyCallback(const char *key, const char *value, void *context);
+    static void HandlePreBootReadyCallback(const char *key, const char *value, void *context);
 
     /**
      * UnPreload UIExtension with want, send want to ability manager service.
@@ -3208,6 +3217,8 @@ private:
 
     void StartAutoStartupApps(int32_t userId, bool isEDMStart = false);
     void StartAutoStartupApps(std::queue<AutoStartupInfo> infoList, int32_t userId);
+    void StartPreBootStartupApps(int32_t userId);
+    void StartPreBootStartupApps(std::queue<AutoStartupInfo> infoQueue, int32_t userId);
     bool IsAutoStartupAllowed(int32_t userId, bool isEDMStart);
     void SubscribeUserUnlockedEvent();
     void SubscribeScreenUnlockedEvent();

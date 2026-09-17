@@ -2088,6 +2088,14 @@ ErrCode AbilityManagerClient::CancelApplicationAutoStartup(const AutoStartupInfo
     return abms->CancelApplicationAutoStartup(info);
 }
 
+ErrCode AbilityManagerClient::SetPreBootLaunch(const AutoStartupInfo &info, bool isEnable)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->SetPreBootLaunch(info, isEnable);
+}
+
 ErrCode AbilityManagerClient::QueryAllAutoStartupApplications(std::vector<AutoStartupInfo> &infoList)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");

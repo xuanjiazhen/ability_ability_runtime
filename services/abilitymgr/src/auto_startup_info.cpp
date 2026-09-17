@@ -29,6 +29,7 @@ bool AutoStartupInfo::ReadFromParcel(Parcel &parcel)
     setterUserId = parcel.ReadInt32();
     canUserModify = parcel.ReadBool();
     isHiddenStart = parcel.ReadBool();
+    isPreBootLaunch = parcel.ReadBool();
     return true;
 }
 
@@ -75,6 +76,7 @@ bool AutoStartupInfo::Marshalling(Parcel &parcel) const
     if (!parcel.WriteBool(isHiddenStart)) {
         return false;
     }
+    parcel.WriteBool(isPreBootLaunch);
     return true;
 }
 } // namespace AbilityRuntime

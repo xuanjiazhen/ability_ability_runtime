@@ -1199,6 +1199,16 @@ enum {
     ERR_NOT_NATIVE_UI_ABILITY = 2099423,
 
     /**
+     * Result(2099424) for pre-boot launch permission denied.
+     */
+    ERR_PRE_BOOT_LAUNCH_PERMISSION_DENIED = 2099424,
+
+    /**
+     * Result(2099425) for pre-boot launch not supported on current device.
+     */
+    ERR_PRE_BOOT_LAUNCH_NOT_SUPPORTED = 2099425,
+
+    /**
      * Native error(3000000) for target bundle not exist.
      */
     ERR_CODE_NOT_EXIST = 3000000,

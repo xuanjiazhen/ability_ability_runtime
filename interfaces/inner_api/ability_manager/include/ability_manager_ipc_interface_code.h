@@ -791,6 +791,9 @@ enum class AbilityManagerInterfaceCode {
     
     // register want agent holder for shared detection
     REGISTER_WANT_AGENT_HOLDER = 6181,
+
+    // ipc id for set pre-boot launch
+    SET_PRE_BOOT_LAUNCH = 6182,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

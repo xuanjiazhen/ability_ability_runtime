@@ -49,6 +49,7 @@ const std::string JSON_KEY_SETTER_USERID = "setterUserId";
 const std::string JSON_KEY_USERID = "userId";
 const std::string JSON_KEY_SETTER_TYPE = "setterType";
 const std::string JSON_KEY_IS_HIDDEN_START = "isHiddenStart";
+const std::string JSON_KEY_IS_PRE_BOOT_LAUNCH = "isPreBootLaunch";
 } // namespace
 const DistributedKv::AppId AbilityAutoStartupDataManager::APP_ID = { "auto_startup_storage" };
 const DistributedKv::StoreId AbilityAutoStartupDataManager::STORE_ID = { "auto_startup_infos" };
@@ -575,6 +576,41 @@ int32_t AbilityAutoStartupDataManager::GetAutoStartupStatusForSelf(uint32_t call
     return ERR_OK;
 }
 
+int32_t AbilityAutoStartupDataManager::QueryPreBootStartupApplications(
+    std::vector<AutoStartupInfo> &infoList, int32_t userId)
+{
+    TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called, userId: %{public}d", userId);
+
+    std::vector<DistributedKv::Entry> allEntries;
+    DistributedKv::Status status;
+    {
+        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        if (!CheckKvStore()) {
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null kvStore");
+            return ERR_NO_INIT;
+        }
+        status = kvStorePtr_->GetEntries(nullptr, allEntries);
+        if (status != DistributedKv::Status::SUCCESS) {
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "GetEntries error: %{public}d", status);
+            status = RestoreKvStore(status);
+            return ERR_INVALID_OPERATION;
+        }
+    }
+
+    for (const auto &item : allEntries) {
+        if (!IsEqual(item.key, userId)) {
+            continue;
+        }
+        AutoStartupStatus startupStatus;
+        ConvertAutoStartupStatusFromValue(item.value, startupStatus);
+        if (startupStatus.isPreBootLaunch) {
+            infoList.emplace_back(ConvertAutoStartupInfoFromKeyAndValue(item.key, item.value));
+        }
+    }
+    TAG_LOGD(AAFwkTag::AUTO_STARTUP, "PreBoot infoList.size: %{public}zu", infoList.size());
+    return ERR_OK;
+}
+
 DistributedKv::Value AbilityAutoStartupDataManager::ConvertAutoStartupStatusToValue(
     const AutoStartupInfo &info, bool isAutoStartup, bool isEdmForce)
 {
@@ -585,6 +621,7 @@ DistributedKv::Value AbilityAutoStartupDataManager::ConvertAutoStartupStatusToVa
         { JSON_KEY_SETTER_USERID, info.setterUserId },
         { JSON_KEY_SETTER_TYPE, info.setterType },
         { JSON_KEY_IS_HIDDEN_START, info.isHiddenStart },
+        { JSON_KEY_IS_PRE_BOOT_LAUNCH, info.isPreBootLaunch },
     };
     DistributedKv::Value value(jsonObject.dump());
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "value: %{public}s", value.ToString().c_str());
@@ -620,6 +657,9 @@ void AbilityAutoStartupDataManager::ConvertAutoStartupStatusFromValue(
     }
     if (jsonObject.contains(JSON_KEY_IS_HIDDEN_START) && jsonObject[JSON_KEY_IS_HIDDEN_START].is_boolean()) {
         startupStatus.isHiddenStart = jsonObject.at(JSON_KEY_IS_HIDDEN_START).get<bool>();
+    }
+    if (jsonObject.contains(JSON_KEY_IS_PRE_BOOT_LAUNCH) && jsonObject[JSON_KEY_IS_PRE_BOOT_LAUNCH].is_boolean()) {
+        startupStatus.isPreBootLaunch = jsonObject.at(JSON_KEY_IS_PRE_BOOT_LAUNCH).get<bool>();
     }
 }
 
@@ -704,6 +744,11 @@ void AbilityAutoStartupDataManager::ConvertAutoStartupInfoFromValue(
 
     if (jsonValueObject.contains(JSON_KEY_IS_HIDDEN_START) && jsonValueObject[JSON_KEY_IS_HIDDEN_START].is_boolean()) {
         info.isHiddenStart = jsonValueObject.at(JSON_KEY_IS_HIDDEN_START).get<bool>();
+    }
+
+    if (jsonValueObject.contains(JSON_KEY_IS_PRE_BOOT_LAUNCH) &&
+        jsonValueObject[JSON_KEY_IS_PRE_BOOT_LAUNCH].is_boolean()) {
+        info.isPreBootLaunch = jsonValueObject.at(JSON_KEY_IS_PRE_BOOT_LAUNCH).get<bool>();
     }
 }
 

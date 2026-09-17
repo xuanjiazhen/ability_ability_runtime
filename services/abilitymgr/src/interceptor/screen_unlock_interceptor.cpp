@@ -29,6 +29,10 @@
 namespace OHOS {
 namespace AAFwk {
 
+namespace {
+constexpr const char* PRE_BOOT_LAUNCH_PARAM = "preBootLaunch";
+}
+
 std::string ScreenUnlockInterceptor::GetAppIdentifier(const std::string &bundleName)
 {
     if (bundleName.empty()) {
@@ -65,6 +69,10 @@ ErrCode ScreenUnlockInterceptor::DoProcess(AbilityInterceptorParam &param)
     if (!OHOS::ScreenLock::ScreenLockManager::GetInstance()->IsScreenLocked()) {
         return ERR_OK;
     }
+    if (CheckPreBootLaunchBypass(param) == ERR_OK) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "pre-boot launch bypass, allow");
+        return ERR_OK;
+    }
 #endif
 #endif
 
@@ -74,6 +82,14 @@ ErrCode ScreenUnlockInterceptor::DoProcess(AbilityInterceptorParam &param)
         return ProcessSystemApp(targetAbilityInfo);
     }
     return ProcessNonSystemApp(targetAbilityInfo);
+}
+
+ErrCode ScreenUnlockInterceptor::CheckPreBootLaunchBypass(const AbilityInterceptorParam &param)
+{
+    if (param.want.GetBoolParam(PRE_BOOT_LAUNCH_PARAM, false)) {
+        return ERR_OK;
+    }
+    return ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK;
 }
 
 ErrCode ScreenUnlockInterceptor::ProcessSystemApp(const AppExecFwk::AbilityInfo &targetAbilityInfo)

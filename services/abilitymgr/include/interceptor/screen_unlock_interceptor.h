@@ -26,6 +26,7 @@ public:
     ~ScreenUnlockInterceptor() = default;
     ErrCode DoProcess(AbilityInterceptorParam &param) override;
 private:
+    ErrCode CheckPreBootLaunchBypass(const AbilityInterceptorParam &param);
     ErrCode ProcessSystemApp(const AppExecFwk::AbilityInfo &targetAbilityInfo);
     ErrCode ProcessNonSystemApp(const AppExecFwk::AbilityInfo &targetAbilityInfo);
     void ReportSystemAppUIAbilityEvent(const AppExecFwk::AbilityInfo &targetAbilityInfo);

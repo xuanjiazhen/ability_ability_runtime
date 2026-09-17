@@ -1820,6 +1820,14 @@ public:
     ErrCode CancelApplicationAutoStartup(const AutoStartupInfo &info);
 
     /**
+     * @brief Set pre-boot launch flag for application.
+     * @param info bundle/module/ability name identifying the target component.
+     * @param isEnable true to enable pre-boot launch, false to disable.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode SetPreBootLaunch(const AutoStartupInfo &info, bool isEnable);
+
+    /**
      * @brief Query auto-startup info of all applications for every foreground user.
      * System API with the same MANAGE_APP_BOOT permission requirement.
      * @param infoList Output, auto startup info list.
