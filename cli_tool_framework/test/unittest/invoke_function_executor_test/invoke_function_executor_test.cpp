@@ -25,8 +25,10 @@
 #include "cli_tool_mgr_client.h"
 #include "errors.h"
 #include "function_info.h"
+#include "insight_intent_execute_param.h"
 #include "intent_client.h"
 #include "invoke_function_executor.h"
+#include "string_wrapper.h"
 #include "want_params.h"
 
 using namespace testing::ext;
@@ -68,6 +70,7 @@ protected:
         CliToolMGRClient::GetInstance().mockStatus_ = ERR_OK;
         CliToolMGRClient::GetInstance().mockFunctionType_ = FunctionType::INTENT_FUNCTION;
         AAFwk::IntentClient::GetInstance().mockStatus_ = ERR_OK;
+        AAFwk::IntentClient::GetInstance().lastWantParam_ = AAFwk::WantParams();
     }
 
     // Build a callback that records the single outcome into a shared capture.
@@ -92,13 +95,18 @@ protected:
     }
 
     // Kick off an executor run and return the capture the callback will report into.
-    static std::shared_ptr<ResultCapture> Run()
+    static std::shared_ptr<ResultCapture> Run(const std::string &toolCallId = "")
     {
         auto capture = std::make_shared<ResultCapture>();
         auto executor = InvokeFunctionExecutor::Create();
         InvokeFunctionParam param;
         param.functionNamespace = BUNDLE_NAME;
         param.functionName = FUNCTION_NAME;
+        // Populate the reserved toolCallId key as the NAPI entry does.
+        if (!toolCallId.empty()) {
+            param.args.SetParam(AppExecFwk::INSIGHT_INTENT_TOOL_CALL_ID, AAFwk::String::Box(toolCallId));
+        }
+        param.args.SetParam("city", AAFwk::String::Box("Shanghai"));
         executor->Execute(param, MakeCallback(capture));
         return capture;
     }
@@ -252,6 +260,36 @@ HWTEST_F(InvokeFunctionExecutorTest, InvokeFunctionExecutor_1000, TestSize.Level
     EXPECT_FALSE(capture->result.result.success);
     EXPECT_EQ(capture->result.innerError, OHOS::AAFwk::ERR_NOT_SYSTEM_APP);
 }
+
+/**
+  * @tc.name: InvokeFunctionExecutor_ToolCallIdPassthrough_1100
+  * @tc.desc: toolCallId in the reserved WantParams key reaches IntentClient with business args intact.
+  * @tc.type: FUNC
+  */
+HWTEST_F(InvokeFunctionExecutorTest, InvokeFunctionExecutor_ToolCallIdPassthrough_1100, TestSize.Level1)
+{
+    auto capture = Run("tc-003");
+    ASSERT_TRUE(WaitForResult(capture));
+    EXPECT_TRUE(capture->result.result.success);
+    const auto &wantParam = AAFwk::IntentClient::GetInstance().lastWantParam_;
+    EXPECT_EQ(wantParam.GetStringParam(AppExecFwk::INSIGHT_INTENT_TOOL_CALL_ID), "tc-003");
+    EXPECT_EQ(wantParam.GetStringParam("city"), "Shanghai");
+}
+
+/**
+  * @tc.name: InvokeFunctionExecutor_ToolCallIdEmptyCompat_1200
+  * @tc.desc: an absent toolCallId does not introduce the reserved key into WantParams.
+  * @tc.type: FUNC
+  */
+HWTEST_F(InvokeFunctionExecutorTest, InvokeFunctionExecutor_ToolCallIdEmptyCompat_1200, TestSize.Level1)
+{
+    auto capture = Run();
+    ASSERT_TRUE(WaitForResult(capture));
+    EXPECT_TRUE(capture->result.result.success);
+    EXPECT_FALSE(AAFwk::IntentClient::GetInstance().lastWantParam_.HasParam(
+        AppExecFwk::INSIGHT_INTENT_TOOL_CALL_ID));
+}
+
 } // namespace
 } // namespace CliTool
 } // namespace OHOS

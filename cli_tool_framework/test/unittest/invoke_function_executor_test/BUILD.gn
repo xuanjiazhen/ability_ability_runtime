@@ -48,6 +48,7 @@ ohos_unittest("invoke_function_executor_test") {
     "mock/src/cli_tool_mgr_client.cpp",
     "${cli_tool_framework_path}/frameworks/js/napi/function_manager/src/invoke_function_callback_client.cpp",
     "${cli_tool_framework_path}/frameworks/js/napi/function_manager/src/invoke_function_executor.cpp",
+    "${cli_tool_framework_path}/interfaces/cli_tool/src/exec_options.cpp",
     "${cli_tool_framework_path}/interfaces/cli_tool/src/invoke_function_result.cpp",
     "${cli_tool_framework_path}/interfaces/cli_tool/src/invoke_function_param.cpp",
     "${cli_tool_framework_path}/interfaces/cli_tool/src/function_result_wrap.cpp",
