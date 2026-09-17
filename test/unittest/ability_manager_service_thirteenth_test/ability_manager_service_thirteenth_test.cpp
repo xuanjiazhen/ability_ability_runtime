@@ -3503,6 +3503,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, RegisterSAInterceptor_001, TestSiz
     ASSERT_NE(interceptor, nullptr);
     auto abilityManagerService = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().permVerifySAInterceptorPermission_ = false;
     auto result = abilityManagerService->RegisterSAInterceptor(interceptor);
     EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
 }
@@ -3518,7 +3519,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, RegisterSAInterceptor_002, TestSiz
     ASSERT_NE(interceptor, nullptr);
     auto abilityManagerService = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityManagerService, nullptr);
-    MyStatus::GetInstance().ipcGetCallingUid_ = PENG_LAI_UID;
+    MyStatus::GetInstance().permVerifySAInterceptorPermission_ = true;
     auto result = abilityManagerService->RegisterSAInterceptor(interceptor);
     EXPECT_EQ(result, ERR_OK);
 }
@@ -3534,6 +3535,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, UnregisterSAInterceptor_001, TestS
     ASSERT_NE(interceptor, nullptr);
     auto abilityManagerService = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().permVerifySAInterceptorPermission_ = false;
     auto result = abilityManagerService->UnregisterSAInterceptor(interceptor->AsObject());
     EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
 }
@@ -3549,7 +3551,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, UnregisterSAInterceptor_002, TestS
     ASSERT_NE(interceptor, nullptr);
     auto abilityManagerService = std::make_shared<AbilityManagerService>();
     ASSERT_NE(abilityManagerService, nullptr);
-    MyStatus::GetInstance().ipcGetCallingUid_ = TASKMGR_UID;
+    MyStatus::GetInstance().permVerifySAInterceptorPermission_ = true;
     auto result = abilityManagerService->UnregisterSAInterceptor(interceptor->AsObject());
     EXPECT_EQ(result, ERR_NULL_SA_INTERCEPTOR_EXECUTER);
 }

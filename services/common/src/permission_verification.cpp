@@ -633,6 +633,16 @@ bool PermissionVerification::VerifyBlockAllAppStartPermission() const
     return false;
 }
 
+bool PermissionVerification::VerifySAInterceptorPermission() const
+{
+    if (IsSACall() && VerifyCallingPermission(PermissionConstants::PERMISSION_SA_INTERCEPTOR)) {
+        TAG_LOGD(AAFwkTag::DEFAULT, "Permission granted");
+        return true;
+    }
+    TAG_LOGE(AAFwkTag::DEFAULT, "Permission denied");
+    return false;
+}
+
 bool PermissionVerification::VerifyStartUIAbilityToHiddenPermission() const
 {
     if (IsSACall() && VerifyCallingPermission(PermissionConstants::PERMISSION_START_UIABILITY_TO_HIDDEN)) {

@@ -123,6 +123,8 @@ struct VerificationInfo {
 
     bool VerifyBlockAllAppStartPermission() const;
 
+    bool VerifySAInterceptorPermission() const;
+
     bool VerifyStartUIAbilityToHiddenPermission() const;
 
     bool VerifySuperviseKiaServicePermission() const;
