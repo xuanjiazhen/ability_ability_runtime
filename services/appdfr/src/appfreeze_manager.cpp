@@ -23,7 +23,7 @@
 #include <fstream>
 #include <sstream>
 #include <sys/ioctl.h>
-..
+
 #include "faultloggerd_client.h"
 #include "file_ex.h"
 #include "ffrt.h"
@@ -1395,7 +1395,7 @@ bool AppfreezeManager::GetExitKernelReason(int32_t pid, ProcessKillInfo& killInf
     KillInfo info = {0};
     info.pid = pid;
     info.structSize = sizeof(struct KillInfo);
- 
+
     struct timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
     int64_t currentTimeNs = ((int64_t)ts.tv_sec * 1000000000) + ts.tv_nsec;
