@@ -29,6 +29,7 @@ struct ExecuteIntentParam {
     std::string bundleName;
     std::string intentName;
     WantParams wantParam;
+    std::string toolCallId;
     std::shared_ptr<AbilityRuntime::InsightIntentExecuteCallbackInterface> callback;
 };
 
@@ -44,6 +45,8 @@ public:
     int32_t ExecuteIntentByFunctionCall(const ExecuteIntentParam &param);
 
     int32_t mockStatus_ = 0;
+    // captures the toolCallId of the last client function-call execution for assertions
+    std::string lastToolCallId_;
 };
 
 } // namespace AAFwk

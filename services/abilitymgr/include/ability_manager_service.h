@@ -2208,7 +2208,8 @@ public:
     int32_t ExecuteIntentForDistributed(const Want &want, const std::string &srcDeviceId,
         uint64_t requestCode, uint64_t specifiedFullTokenId = 0) override;
     int32_t ExecuteIntentByFunctionCall(uint64_t key, const sptr<IRemoteObject> &callerToken,
-        const std::string &bundleName, const std::string &intentName, const WantParams &wantParam) override;
+        const std::string &bundleName, const std::string &intentName, const WantParams &wantParam,
+        const std::string &toolCallId) override;
 
     /**
      * @brief Execute UIAbility foreground intent with specified token id.

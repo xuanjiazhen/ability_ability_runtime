@@ -6163,5 +6163,70 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_SendLocalWantSenderInner_San
     EXPECT_EQ(res, NO_ERROR);
     ExpectSystemFieldsSanitized(capture->capturedOpts);
 }
+
+namespace {
+class ExecuteIntentByFunctionCallCapturingStub : public AbilityManagerStubImplMock {
+public:
+    std::string capturedToolCallId;
+    bool called = false;
+
+    int32_t ExecuteIntentByFunctionCall(uint64_t key, const sptr<IRemoteObject> &callerToken,
+        const std::string &bundleName, const std::string &intentName, const WantParams &wantParam,
+        const std::string &toolCallId) override
+    {
+        called = true;
+        capturedToolCallId = toolCallId;
+        return 0;
+    }
+};
+}  // namespace
+
+/*
+ * Function: ExecuteIntentByFunctionCallInner
+ * CaseDescription: legacy message without the toolCallId tail field parses OK, toolCallId empty.
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_ExecuteIntentByFunctionCall_Legacy_0100, TestSize.Level1)
+{
+    auto stub = sptr<AbilityManagerStubImplMock>(new ExecuteIntentByFunctionCallCapturingStub());
+    auto capture = static_cast<ExecuteIntentByFunctionCallCapturingStub*>(stub.GetRefPtr());
+    MessageParcel data;
+    MessageParcel reply;
+    sptr<IRemoteObject> token = sptr<AppExecFwk::MockAbilityToken>(new (std::nothrow) AppExecFwk::MockAbilityToken());
+    data.WriteUint64(1);
+    data.WriteRemoteObject(token);
+    data.WriteString("test.bundleName");
+    data.WriteString("PlayMusic");
+    WantParams wantParam;
+    data.WriteParcelable(&wantParam);
+    // no toolCallId written -> simulates a legacy caller
+    auto res = stub->ExecuteIntentByFunctionCallInner(data, reply);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_TRUE(capture->called);
+    EXPECT_EQ(capture->capturedToolCallId, "");
+}
+
+/*
+ * Function: ExecuteIntentByFunctionCallInner
+ * CaseDescription: new message with the toolCallId tail field parses and passes it through.
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_ExecuteIntentByFunctionCall_WithToolCallId_0200, TestSize.Level1)
+{
+    auto stub = sptr<AbilityManagerStubImplMock>(new ExecuteIntentByFunctionCallCapturingStub());
+    auto capture = static_cast<ExecuteIntentByFunctionCallCapturingStub*>(stub.GetRefPtr());
+    MessageParcel data;
+    MessageParcel reply;
+    sptr<IRemoteObject> token = sptr<AppExecFwk::MockAbilityToken>(new (std::nothrow) AppExecFwk::MockAbilityToken());
+    data.WriteUint64(1);
+    data.WriteRemoteObject(token);
+    data.WriteString("test.bundleName");
+    data.WriteString("PlayMusic");
+    WantParams wantParam;
+    data.WriteParcelable(&wantParam);
+    data.WriteString("tc-003");
+    auto res = stub->ExecuteIntentByFunctionCallInner(data, reply);
+    EXPECT_EQ(res, NO_ERROR);
+    EXPECT_TRUE(capture->called);
+    EXPECT_EQ(capture->capturedToolCallId, "tc-003");
+}
 } // namespace AAFwk
 } // namespace OHOS

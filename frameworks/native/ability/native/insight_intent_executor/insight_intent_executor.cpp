@@ -83,8 +83,15 @@ bool InsightIntentExecutor::Init(const InsightIntentExecutorInfo& intentInfo)
         return false;
     }
 
+    // toolCallId is carried inside the execute param (written on the service side);
+    // absent key yields empty string, which keeps the context property undefined downstream.
+    std::string toolCallId;
+    if (executeParam->insightIntentParam_ != nullptr) {
+        toolCallId = executeParam->insightIntentParam_->GetStringParam(AppExecFwk::INSIGHT_INTENT_TOOL_CALL_ID);
+    }
+
     context_ = std::make_shared<InsightIntentContext>(intentInfo.token, executeParam->bundleName_,
-        intentInfo.windowMode, executeParam->insightIntentId_);
+        intentInfo.windowMode, executeParam->insightIntentId_, toolCallId);
     return true;
 }
 
