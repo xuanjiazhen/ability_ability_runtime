@@ -263,22 +263,31 @@ private:
             TAG_LOGD(AAFwkTag::UISERVC_EXT, "JSUIServiceExtensionContext OnStartAbilityByType");
             *innerErrCode = context->StartAbilityByType(type, wantParam, callback);
         };
+        napi_value result = nullptr;
+        napi_deferred deferred = nullptr;
+        napi_status status = napi_create_promise(env, &deferred, &result);
+        if (status != napi_ok || deferred == nullptr) {
+            return CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        }
+        callback->SetDeferred(deferred);
         NapiAsyncTask::CompleteCallback complete =
-            [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+            [innerErrCode, callback](napi_env env, NapiAsyncTask& task, int32_t status) {
                 HandleScope handleScope(env);
                 if (*innerErrCode == ERR_OK) {
-                    task.ResolveWithNoError(env, CreateJsUndefined(env));
+                    // Hold — OnAbilityByTypeResult will resolve/reject
                 } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
-                    task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+                    callback->RejectAsyncResult(
+                        static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT),
+                        GetErrorMsg(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
                 } else {
-                    task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+                    callback->RejectAsyncResult(static_cast<int32_t>(GetJsErrorCodeByNativeError(*innerErrCode)),
+                        GetErrorMsgByNativeError(*innerErrCode));
                 }
             };
-
-        napi_value lastParam = nullptr;
-        napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JSUIServiceExtensionContext::OnStartAbilityByType",
-            env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
+            env, std::make_unique<NapiAsyncTask>(static_cast<napi_deferred>(nullptr),
+                std::make_unique<NapiAsyncTask::ExecuteCallback>(std::move(execute)),
+                std::make_unique<NapiAsyncTask::CompleteCallback>(std::move(complete))));
         return result;
     }
 
