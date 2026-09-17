@@ -71,7 +71,11 @@ bool DoSomethingInterestingWithMyAPI(const char *data, size_t size)
     auto shouldBlockFunc = []() { return false; };
     AbilityInterceptorParam param = AbilityInterceptorParam(want, intParam, int32Param, boolParam, token,
         shouldBlockFunc);
+    auto fuzzAbilityInfo = std::make_shared<AbilityInfo>();
+    AbilityInterceptorParam param2 = AbilityInterceptorParam(want, intParam, int32Param, boolParam, token,
+        fuzzAbilityInfo);
     extensionControlInterceptor->DoProcess(param);
+    extensionControlInterceptor->DoProcess(param2);
     return true;
 }
 } // namespace OHOS

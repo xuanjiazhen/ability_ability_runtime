@@ -121,25 +121,22 @@ HWTEST_F(ExtensionControlInterceptorTest, DoProcess_003, TestSize.Level1)
     int32_t userId = 100;
     bool isWithUI = false;
     sptr<IRemoteObject> token = GetAbilityToken();
-    auto shouldBlockFunc = []() { return false; };
     auto callerInfo = std::make_shared<StartAbilityInfo>();
     callerInfo->abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
     callerInfo->abilityInfo.bundleName = "com.example.different";
     callerInfo->abilityInfo.extensionTypeName = "testExtension";
     StartAbilityUtils::callerAbilityInfo = callerInfo;
     StatusSingleton::GetInstance().SetHasAbilityAccess(true);
-    auto targetInfo = std::make_shared<StartAbilityInfo>();
-    targetInfo->abilityInfo.bundleName = "com.example.target";
-    targetInfo->abilityInfo.name = "TargetAbility";
-    targetInfo->abilityInfo.applicationInfo.isSystemApp = true;
-    StartAbilityUtils::startAbilityInfo = targetInfo;
+    auto targetAbilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    targetAbilityInfo->bundleName = "com.example.target";
+    targetAbilityInfo->name = "TargetAbility";
+    targetAbilityInfo->applicationInfo.isSystemApp = true;
     StatusSingleton::GetInstance().SetHasDefaultAccessFlag(true);
     StatusSingleton::GetInstance().SetExtensionStartDefaultEnable(true);
     AbilityInterceptorParam param = AbilityInterceptorParam(want, requestCode, userId, isWithUI, token,
-        shouldBlockFunc);
+        targetAbilityInfo);
     EXPECT_EQ(extensionControlInterceptor->DoProcess(param), ERR_OK);
     StartAbilityUtils::callerAbilityInfo.reset();
-    StartAbilityUtils::startAbilityInfo.reset();
     StatusSingleton::GetInstance().Reset();
 }
 
@@ -583,7 +580,7 @@ HWTEST_F(ExtensionControlInterceptorTest, GetCallerAbilityInfo_003, TestSize.Lev
 /*
  * Feature: ExtensionControlInterceptorTest
  * Function: GetTargetAbilityInfo
- * TestPoint: Test when startAbilityInfo exists and matches the Want parameters
+ * TestPoint: Test when param.abilityInfo is populated, verify it is copied correctly
  */
 HWTEST_F(ExtensionControlInterceptorTest, GetTargetAbilityInfo_001, TestSize.Level1)
 {
@@ -594,25 +591,22 @@ HWTEST_F(ExtensionControlInterceptorTest, GetTargetAbilityInfo_001, TestSize.Lev
     int requestCode = 1;
     int32_t userId = 100;
     bool isWithUI = false;
-    auto shouldBlockFunc = []() { return false; };
+    auto targetAbilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    targetAbilityInfo->bundleName = "com.example.target";
+    targetAbilityInfo->name = "TargetAbility";
     AbilityInterceptorParam param = AbilityInterceptorParam(want, requestCode, userId, isWithUI, nullptr,
-        shouldBlockFunc);
-    auto startAbilityInfo = std::make_shared<StartAbilityInfo>();
-    startAbilityInfo->abilityInfo.bundleName = "com.example.target";
-    startAbilityInfo->abilityInfo.name = "TargetAbility";
-    StartAbilityUtils::startAbilityInfo = startAbilityInfo;
-    AppExecFwk::AbilityInfo targetAbilityInfo;
-    bool result = interceptor->GetTargetAbilityInfo(param, targetAbilityInfo);
-    StartAbilityUtils::startAbilityInfo.reset();
+        targetAbilityInfo);
+    AppExecFwk::AbilityInfo resultAbilityInfo;
+    bool result = interceptor->GetTargetAbilityInfo(param, resultAbilityInfo);
     EXPECT_FALSE(result);
-    EXPECT_EQ(targetAbilityInfo.bundleName, "com.example.target");
-    EXPECT_EQ(targetAbilityInfo.name, "TargetAbility");
+    EXPECT_EQ(resultAbilityInfo.bundleName, "com.example.target");
+    EXPECT_EQ(resultAbilityInfo.name, "TargetAbility");
 }
 
 /*
  * Feature: ExtensionControlInterceptorTest
  * Function: GetTargetAbilityInfo
- * TestPoint: Test when startAbilityInfo doesn't match and we go through normal QueryAbilityInfo path
+ * TestPoint: Test when param.abilityInfo is nullptr, verify it returns true (skip interception)
  */
 HWTEST_F(ExtensionControlInterceptorTest, GetTargetAbilityInfo_002, TestSize.Level1)
 {
@@ -626,10 +620,9 @@ HWTEST_F(ExtensionControlInterceptorTest, GetTargetAbilityInfo_002, TestSize.Lev
     auto shouldBlockFunc = []() { return false; };
     AbilityInterceptorParam param = AbilityInterceptorParam(want, requestCode, userId, isWithUI, nullptr,
         shouldBlockFunc);
-    StartAbilityUtils::startAbilityInfo.reset();
     AppExecFwk::AbilityInfo targetAbilityInfo;
     bool result = interceptor->GetTargetAbilityInfo(param, targetAbilityInfo);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 }

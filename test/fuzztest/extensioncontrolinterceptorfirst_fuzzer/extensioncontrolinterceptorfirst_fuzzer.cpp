@@ -57,13 +57,18 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     boolParam = fdp.ConsumeBool();
     AbilityInterceptorParam param = AbilityInterceptorParam(want, intParam, int32Param, boolParam, token,
         shouldBlockFunc);
+    auto fuzzAbilityInfo = std::make_shared<AbilityInfo>();
+    AbilityInterceptorParam param2 = AbilityInterceptorParam(want, intParam, int32Param, boolParam, token,
+        fuzzAbilityInfo);
     AbilityInfo targetAbilityInfo;
     AbilityInfo callerAbilityInfo;
     extensionControlInterceptor->DoProcess(param);
+    extensionControlInterceptor->DoProcess(param2);
     extensionControlInterceptor->ProcessInterceptOld(param, targetAbilityInfo, callerAbilityInfo);
     extensionControlInterceptor->ProcessInterceptNew(param, targetAbilityInfo, callerAbilityInfo);
     extensionControlInterceptor->GetCallerAbilityInfo(param, callerAbilityInfo);
     extensionControlInterceptor->GetTargetAbilityInfo(param, targetAbilityInfo);
+    extensionControlInterceptor->GetTargetAbilityInfo(param2, targetAbilityInfo);
     return true;
 }
 }
