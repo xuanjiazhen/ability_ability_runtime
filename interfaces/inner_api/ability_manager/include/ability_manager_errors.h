@@ -1491,6 +1491,11 @@ enum NativeFreeInstallError {
      */
     ERR_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY = 29360272,
 
+    /*
+     * Result (29360273) The specified extension ability type is not found in picker map.
+     */
+    ERR_PICKER_TARGET_TYPE_NOT_FOUND = 29360273,
+
     /**
      * Undefine error code.
      */

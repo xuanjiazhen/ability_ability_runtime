@@ -344,6 +344,8 @@ constexpr const char* ERROR_MSG_FILE_TYPE_ERROR =
 
 constexpr const char* ERROR_MSG_EVICT_CONFIG_PARSE_ERROR =
     "Failed to parse configuration file.";
+constexpr const char* ERROR_MSG_INVALID_EXTENSION_TYPE = "Internal error. Invalid extension ability type.";
+constexpr const char* ERROR_MSG_PICKER_TARGET_TYPE_NOT_FOUND = "The specified extension ability type is not supported.";
 
 static std::unordered_map<AbilityErrorCode, const char*> ERR_CODE_MAP = {
     { AbilityErrorCode::ERROR_OK, ERROR_MSG_OK },
@@ -594,6 +596,8 @@ static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP 
     {ERR_DELAYED_PROCESS_EXIT_NO_UIABILITY, AbilityErrorCode::ERROR_CODE_DELAYED_PROCESS_EXIT_NO_UIABILITY},
     {ERR_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY,
         AbilityErrorCode::ERROR_CODE_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY},
+    {ERR_INVALID_EXTENSION_TYPE, AbilityErrorCode::ERROR_CODE_INNER},
+    {ERR_PICKER_TARGET_TYPE_NOT_FOUND, AbilityErrorCode::ERROR_CODE_INNER},
 };
 
 static std::unordered_map<int32_t, const char*> INNER_ERROR_MSG_BY_NATIVE_CODE {
@@ -638,6 +642,8 @@ static std::unordered_map<int32_t, const char*> INNER_ERROR_MSG_BY_NATIVE_CODE {
     {ERR_WRITE_RESULT_CODE_FAILED, ERROR_MSG_IPC_FAILED},
     {ERR_WRITE_KIOSK_STATUS_FAILED, ERROR_MSG_IPC_FAILED},
     {ERR_WRITE_CALLER_TOKEN_FAILED, ERROR_MSG_IPC_FAILED},
+    {ERR_INVALID_EXTENSION_TYPE, ERROR_MSG_INVALID_EXTENSION_TYPE},
+    {ERR_PICKER_TARGET_TYPE_NOT_FOUND, ERROR_MSG_PICKER_TARGET_TYPE_NOT_FOUND},
 };
 
 static std::unordered_map<AbilityInnerErrorMsg, const char*> INNER_ERROR_MSG_BY_SCENE {
