@@ -54,6 +54,26 @@
 namespace OHOS {
 namespace CliTool {
 namespace {
+// Post-before-hook defense: drop hook-supplied ids that fail validation (INP-001 invariant).
+template <typename OptionsT>
+void SanitizeTraceIds(OptionsT &options)
+{
+    if (!IsValidTraceId(options.toolCallId)) {
+        if (!options.toolCallId.empty()) {
+            TAG_LOGW(AAFwkTag::CLI_TOOL, "hook-modified toolCallId invalid, dropped, length: %{public}zu",
+                options.toolCallId.length());
+        }
+        options.toolCallId.clear();
+    }
+    if (!IsValidTraceId(options.dmSessionId)) {
+        if (!options.dmSessionId.empty()) {
+            TAG_LOGW(AAFwkTag::CLI_TOOL, "hook-modified dmSessionId invalid, dropped, length: %{public}zu",
+                options.dmSessionId.length());
+        }
+        options.dmSessionId.clear();
+    }
+}
+
 constexpr const char* PERMISSION_EXEC_CLI_TOOL = "ohos.permission.EXEC_CLI_TOOL";
 constexpr const char* PERMISSION_QUERY_CLI_TOOL = "ohos.permission.QUERY_CLI_TOOL";
 constexpr const char* PERMISSION_REGISTER_CLI_TOOL = "ohos.permission.REGISTER_CLI_TOOL";
@@ -431,6 +451,8 @@ std::shared_ptr<SessionRecord> CliToolManagerService::GetSessionRecord(const std
         return nullptr;
     }
     if (it->second == nullptr) {
+        // Defensive cleanup (LOG-006-R2): unregister trace ids before erasing a null record.
+        EventDispatcher::GetInstance().UnregisterTraceIds(sessionId);
         sessionRecords_.erase(it); // for leak
         return nullptr;
     }
@@ -452,6 +474,7 @@ std::vector<std::shared_ptr<SessionRecord>> CliToolManagerService::GetSessionRec
 
 void CliToolManagerService::RemoveSessionRecord(const std::string &sessionId)
 {
+    EventDispatcher::GetInstance().UnregisterTraceIds(sessionId);
     std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
     sessionRecords_.erase(sessionId);
 }
@@ -966,6 +989,8 @@ int32_t CliToolManagerService::SetupAndStartSession(const ExecToolParam &param, 
         return createRet;
     }
     AddSessionRecord(record);
+    EventDispatcher::GetInstance().RegisterTraceIds(
+        record->sessionId, record->toolCallId, record->dmSessionId);
 
     if (!RegisterSessionWithMonitors(record, param.options)) {
         ProcessManager::GetInstance().Killpg(record->processId);
@@ -1231,6 +1256,10 @@ void CliToolManagerService::InvokeAfterCallTool(CliSessionInfo &session, Session
     }
     ExecResultWrap execResultWrap;
     execResultWrap.execResult = *session.result;
+    // Stamp the identifiers actually used by the execution (R-3): the session
+    // record carries the post-before-hook values the process ran with.
+    execResultWrap.toolCallId = session.toolCallId;
+    execResultWrap.dmSessionId = session.dmSessionId;
     if (sessionType == SessionType::CLI_CMD &&
         !InvokeHookAsync([hook](ExecResultWrap &w) { hook->AfterCallCmd(w); }, execResultWrap)) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "InvokeAfterCallCmd timeout, using original result");
@@ -1279,6 +1308,13 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
     InterfaceCallCounter counter(interfaceCalledCount_);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecTool called: toolName=%{public}s, subcommand=%{public}s",
         param.toolName.c_str(), param.subcommand.c_str());
+    // Server-side validation of IPC input: untrusted Parcel data must never reach
+    // logs or child-process environments (empty means "not provided" and is valid).
+    if (!IsValidTraceId(param.options.toolCallId) || !IsValidTraceId(param.options.dmSessionId)) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "ExecTool rejected: invalid trace id, length: %{public}zu/%{public}zu",
+            param.options.toolCallId.length(), param.options.dmSessionId.length());
+        return ERR_INVALID_VALUE;
+    }
 
     std::string bundleName;
     auto tokenId = IPCSkeleton::GetCallingTokenID();
@@ -1294,6 +1330,14 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
     }
     ExecToolParam actualParam = param;
     InvokeBeforeCallTool(actualParam);
+    // The before-hook may have modified the options; re-sanitize (INP-001).
+    SanitizeTraceIds(actualParam.options);
+    // Trace-id logging stays behind the permission check; values are post-before-hook (R-3).
+    if (!actualParam.options.toolCallId.empty() || !actualParam.options.dmSessionId.empty()) {
+        TAG_LOGI(AAFwkTag::CLI_TOOL,
+            "ExecTool trace ids: toolCallId=%{public}s, dmSessionId=%{public}s",
+            actualParam.options.toolCallId.c_str(), actualParam.options.dmSessionId.c_str());
+    }
     int32_t callerPid = IPCSkeleton::GetCallingPid();
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
@@ -1337,6 +1381,12 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecCmd called: cmd=%{private}s", param.cmd.c_str());
+    // Server-side validation of IPC input (see ExecTool).
+    if (!IsValidTraceId(param.execCmdOptions.toolCallId) || !IsValidTraceId(param.execCmdOptions.dmSessionId)) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "ExecCmd rejected: invalid trace id, length: %{public}zu/%{public}zu",
+            param.execCmdOptions.toolCallId.length(), param.execCmdOptions.dmSessionId.length());
+        return ERR_INVALID_VALUE;
+    }
     if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
         return ret;
     }
@@ -1344,6 +1394,12 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
         TAG_LOGE(AAFwkTag::CLI_TOOL, "cmd length %{public}zu exceeds limit %{public}u",
             param.cmd.length(), MAX_CMD_LENGTH);
         return ERR_INVALID_PARAM;
+    }
+    // Trace-id logging stays behind the permission check (see ExecTool).
+    if (!param.execCmdOptions.toolCallId.empty() || !param.execCmdOptions.dmSessionId.empty()) {
+        TAG_LOGI(AAFwkTag::CLI_TOOL,
+            "ExecCmd trace ids: toolCallId=%{public}s, dmSessionId=%{public}s",
+            param.execCmdOptions.toolCallId.c_str(), param.execCmdOptions.dmSessionId.c_str());
     }
     int32_t callerPid = IPCSkeleton::GetCallingPid();
     int32_t callerUid = IPCSkeleton::GetCallingUid();
@@ -1376,6 +1432,9 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
 
     ExecCmdParam actualParam = param;
     InvokeBeforeCallCmd(actualParam);
+    // Defense in depth (see ExecTool): drop hook-supplied identifiers that fail
+    // validation so unvalidated data never reaches logs or the child env.
+    SanitizeTraceIds(actualParam.execCmdOptions);
     // Shell path (original logic)
     std::string sandboxConfig;
     if (auto ret = ValidateAndPrepareCmd(actualParam, tokenId, sandboxConfig, bundleName); ret != ERR_OK) {
@@ -1390,11 +1449,15 @@ int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::str
     record->sessionId = ToolUtil::GenerateCliSessionId("shell", record);
     record->toolName = "shell";
     record->sessionType = SessionType::CLI_CMD;
+    record->toolCallId = actualParam.execCmdOptions.toolCallId;
+    record->dmSessionId = actualParam.execCmdOptions.dmSessionId;
     record->timeoutMs = actualParam.execCmdOptions.timeout * COEFFICIENT;
     record->SetState(SessionState::RUNNING);
     record->SetBackground(actualParam.execCmdOptions.background);
     record->eventId = eventId;
     AddSessionRecord(record);
+    EventDispatcher::GetInstance().RegisterTraceIds(
+        record->sessionId, record->toolCallId, record->dmSessionId);
     auto subscribeRet = SubscribeSession(record->sessionId, subscriptionId, scheduler);
     if (subscribeRet != ERR_OK) {
         RemoveSessionRecord(record->sessionId);
@@ -1536,6 +1599,9 @@ void CliToolManagerService::WaitPid(pid_t pid, int32_t status, int32_t sig)
         for (auto iter = sessionRecords_.begin(); iter != sessionRecords_.end();) {
             if (iter->second == nullptr) {
                 std::string sessionId = iter->first;
+                // Registry invariant: keep the trace-id registry consistent with
+                // sessionRecords_ even on the defensive null-record cleanup path.
+                EventDispatcher::GetInstance().UnregisterTraceIds(sessionId);
                 iter = sessionRecords_.erase(iter);
                 TAG_LOGW(AAFwkTag::CLI_TOOL, "delete leak sessionId:%{public}s", sessionId.c_str());
                 continue;
@@ -1669,6 +1735,7 @@ void CliToolManagerService::OnProcessDied(const std::string &bundleName, pid_t d
         bundleObservers_.erase(bundleName);
     }
     std::vector<pid_t> activePids;
+    std::vector<std::string> removedSessionIds;
     // Iterate through sessionRecords_ to find matching SessionRecord by callerPid
     {
         std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
@@ -1676,6 +1743,9 @@ void CliToolManagerService::OnProcessDied(const std::string &bundleName, pid_t d
             auto sessionRecord = iter->second;
             if (sessionRecord == nullptr) {
                 std::string sessionId = iter->first;
+                // Registry invariant: keep the trace-id registry consistent with
+                // sessionRecords_ even on the defensive null-record cleanup path.
+                EventDispatcher::GetInstance().UnregisterTraceIds(sessionId);
                 iter = sessionRecords_.erase(iter);
                 TAG_LOGW(AAFwkTag::CLI_TOOL, "delete leak sessionId:%{public}s", sessionId.c_str());
                 continue;
@@ -1690,8 +1760,13 @@ void CliToolManagerService::OnProcessDied(const std::string &bundleName, pid_t d
             if (sessionRecord->processId > 0 && !sessionRecord->HasProcessExited()) {
                 activePids.emplace_back(sessionRecord->processId);
             }
+            removedSessionIds.emplace_back(iter->first);
             iter = sessionRecords_.erase(iter);
         }
+    }
+
+    for (const auto &sessionId : removedSessionIds) {
+        EventDispatcher::GetInstance().UnregisterTraceIds(sessionId);
     }
 
     for (pid_t pid : activePids) {
@@ -1759,6 +1834,8 @@ std::shared_ptr<SessionRecord> CliToolManagerService::CreateSessionRecord(const 
     }
     record->sessionId = ToolUtil::GenerateCliSessionId(param.toolName, record);
     record->toolName = param.toolName;
+    record->toolCallId = param.options.toolCallId;
+    record->dmSessionId = param.options.dmSessionId;
     record->timeoutMs = param.options.timeout * COEFFICIENT;
     record->SetState(SessionState::RUNNING);
     record->SetBackground(param.options.background);
@@ -2048,6 +2125,8 @@ int32_t CliToolManagerService::SetupAndStartSkillSession(const ExecToolParam &pa
     }
     record->sessionType = SessionType::SKILL;
     AddSessionRecord(record);
+    EventDispatcher::GetInstance().RegisterTraceIds(
+        record->sessionId, record->toolCallId, record->dmSessionId);
 
     auto callerTokenId = IPCSkeleton::GetCallingTokenID();
     auto adaptor = sptr<SkillCallbackAdapter>::MakeSptr(

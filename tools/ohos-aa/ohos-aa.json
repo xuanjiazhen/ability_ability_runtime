@@ -120,6 +120,10 @@
                     "psn": {
                         "type": "string",
                         "description": "For the string-type value corresponding to an empty key."
+                    },
+                    "tool-call-id": {
+                        "type": "string",
+                        "description": "Tool call identifier for log correlation (1-256 characters, [A-Za-z0-9_-]). Optional; the TOOL_CALL_ID environment variable set by the CLI framework is used when absent."
                     }
                 }
             },
@@ -171,6 +175,10 @@
                     "bundlename": {
                         "type": "string",
                         "description": "bundleName"
+                    },
+                    "tool-call-id": {
+                        "type": "string",
+                        "description": "Tool call identifier for log correlation (1-256 characters, [A-Za-z0-9_-]). Optional; the TOOL_CALL_ID environment variable set by the CLI framework is used when absent."
                     }
                 }
             },
