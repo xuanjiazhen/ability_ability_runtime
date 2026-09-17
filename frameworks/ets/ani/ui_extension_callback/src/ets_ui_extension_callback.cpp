@@ -19,6 +19,7 @@
 #include "ani_common_ability_result.h"
 #include "ani_common_util.h"
 #include "ani_enum_convert.h"
+#include "ets_error_utils.h"
 #include "hilog_tag_wrapper.h"
 #ifdef SUPPORT_SCREEN
 #include "ui_content.h"

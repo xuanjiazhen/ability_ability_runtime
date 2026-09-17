@@ -38,6 +38,7 @@ public:
 private:
     void InvokeAsyncCallback(int32_t errCode);
     void CallObjectMethod(const char *name, const char *signature, ...);
+    ani_env* GetAniEnv();
 
     ani_vm *vm_ = nullptr;
     ani_ref callback_ = nullptr;

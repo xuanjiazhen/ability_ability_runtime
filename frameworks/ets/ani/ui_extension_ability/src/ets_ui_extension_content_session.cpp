@@ -926,8 +926,8 @@ void EtsUIExtensionContentSession::StartAbilityByType(
         const std::string &str2) {
         uiExtensionCallback->OnError(arg);
     };
-    callback.onAbilityErrorCode = [uiExtensionCallback, errorFired](int32_t errorCode,
-        const Ace::UIExtensionOperationPhase& phase) {
+    callback.onAbilityErrorCode = [uiExtensionCallback, errorFired](
+        const Ace::UIExtensionOperationPhase& phase, int32_t errorCode) {
         if (phase != Ace::UIExtensionOperationPhase::FOREGROUND) {
             return;
         }
