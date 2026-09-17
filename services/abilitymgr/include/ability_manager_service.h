@@ -3771,6 +3771,7 @@ private:
     int32_t wFd_ = -1;
     std::shared_ptr<int32_t> ptrRFd_ = std::make_shared<int32_t>(-1);
     ffrt::mutex globalLock_;
+    ffrt::mutex abilityControllerLock_;
     ffrt::mutex bgtaskObserverMutex_;
     ffrt::mutex abilityTokenLock_;
     ffrt::mutex preStartSessionMapLock_;
