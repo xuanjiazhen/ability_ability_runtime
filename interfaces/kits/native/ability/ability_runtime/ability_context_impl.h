@@ -429,6 +429,13 @@ public:
     ErrCode AddCompletionHandlerForOpenLink(const std::string &requestId,
         OnRequestResult onRequestSucc, OnRequestResult onRequestFail) override;
 
+    ErrCode AddStartCompletionHandler(const std::string &requestId, OnStartResult onStartSucc,
+        OnStartResult onStartFail) override;
+
+    void OnStartSuccess(const std::string &requestId, int32_t windowId) override;
+
+    void OnStartFailure(const std::string &requestId, int32_t errorCode) override;
+
     ErrCode StartSelfUIAbilityInCurrentProcess(const AAFwk::Want &want, const std::string &specifiedFlag,
         const AAFwk::StartOptions &startOptions, bool hasOptions) override;
 
@@ -473,9 +480,11 @@ private:
     std::mutex onRequestResultMutex_;
     std::mutex onAtomicRequestResultMutex_;
     std::mutex onOpenLinkRequestResultMutex_;
+    std::mutex onStartResultMutex_;
     std::vector<std::shared_ptr<OnRequestResultElement>> onRequestResults_;
     std::vector<std::shared_ptr<OnAtomicRequestResult>> onAtomicRequestResults_;
     std::vector<std::shared_ptr<AAFwk::OnOpenLinkRequestResult>> onOpenLinkRequestResults_;
+    std::vector<std::shared_ptr<OnStartResultElement>> onStartResults_;
     std::mutex contentStorageMutex_;
 };
 } // namespace AbilityRuntime

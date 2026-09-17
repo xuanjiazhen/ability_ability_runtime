@@ -170,6 +170,7 @@ public:
     int32_t GetWantSenderInfo(const sptr<IWantSender> &target, std::shared_ptr<WantSenderInfo> &info);
 
     void CancelWantSenderLocked(PendingWantRecord &record, bool cleanAbility);
+
     int32_t PendingWantStartAbility(const Want &want, const sptr<StartOptions> &startOptions,
         const sptr<IRemoteObject> &callerToken, int32_t requestCode, const int32_t callerUid, int32_t callerTokenId,
         int32_t userId);
@@ -189,6 +190,7 @@ public:
     int32_t GetAllRunningInstanceKeysByBundleName(const std::string &bundleName, std::vector<std::string> &appKey);
 
 private:
+    void CleanStartCompletionHandler(PendingWantRecord &record);
     sptr<IWantSender> GetWantSenderLocked(const int32_t callingUid, const int32_t uid, const int32_t userId,
         WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, int32_t appIndex = 0,
         int32_t publisherUid = 0);

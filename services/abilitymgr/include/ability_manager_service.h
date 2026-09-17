@@ -100,6 +100,7 @@ constexpr int32_t BASE_USER_RANGE = 200000;
 constexpr int32_t INVALID_USER_ID = -1;
 constexpr const char* KEY_SESSION_ID = "com.ohos.param.sessionId";
 constexpr const char* KEY_REQUEST_ID = "com.ohos.param.requestId";
+constexpr const char* KEY_START_REQUEST_ID = "com.ohos.param.startRequestId";
 using OHOS::AppExecFwk::IAbilityController;
 struct StartAbilityInfo;
 struct StartAbilityWrapParam;

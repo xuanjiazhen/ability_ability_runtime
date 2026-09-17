@@ -1078,7 +1078,12 @@ int32_t UIAbilityLifecycleManager::BatchNotifySCBPendingActivations(const Abilit
         if (!requestId.empty()) {
             callerAbilityRecord->NotifyAbilityRequestSuccess(requestId, sessionInfo->want.GetElement());
         }
+        auto startRequestId = sessionInfo->want.GetStringParam(KEY_START_REQUEST_ID);
+        if (!startRequestId.empty()) {
+            callerAbilityRecord->NotifyStartAbilitySuccess(startRequestId, sessionInfo->persistentId);
+        }
         sessionInfo->want.RemoveParam(KEY_REQUEST_ID);
+        sessionInfo->want.RemoveParam(KEY_START_REQUEST_ID);
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, StartUIAbilities BatchPendingSessionsActivation for callerSession");
     return static_cast<int>(callerSession->BatchPendingSessionsActivation(sessionInfoList));
@@ -2122,6 +2127,10 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         if (!requestId.empty()) {
             abilityRecord->NotifyAbilityRequestSuccess(requestId, abilityRequest.want.GetElement());
         }
+        auto startRequestId = abilityRequest.want.GetStringParam(KEY_START_REQUEST_ID);
+        if (!startRequestId.empty()) {
+            abilityRecord->NotifyStartAbilitySuccess(startRequestId, sessionInfo->persistentId);
+        }
         if (abilityRequest.requestCallback != nullptr) {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "callback request ability");
             abilityRequest.requestCallback->OnRequestStartAbilityResult(true);
@@ -2151,6 +2160,11 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         if (!requestId.empty()) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "notify request success, requestId:%{public}s", requestId.c_str());
             callerRecord->NotifyAbilityRequestSuccess(requestId, abilityRequest.want.GetElement());
+        }
+        auto startRequestId = abilityRequest.want.GetStringParam(KEY_START_REQUEST_ID);
+        if (!startRequestId.empty()) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "notify start success, startRequestId:%{public}s", startRequestId.c_str());
+            callerRecord->NotifyStartAbilitySuccess(startRequestId, sessionInfo->persistentId);
         }
     }
     if (abilityRequest.requestCallback != nullptr) {
@@ -3255,6 +3269,11 @@ int UIAbilityLifecycleManager::SendSessionInfoToSCB(UIAbilityRecordPtr &callerAb
             TAG_LOGI(AAFwkTag::ABILITYMGR, "notify request success, requestId:%{public}s", requestId.c_str());
             callerAbility->NotifyAbilityRequestSuccess(requestId, sessionInfo->want.GetElement());
         }
+        auto startRequestId = sessionInfo->want.GetStringParam(KEY_START_REQUEST_ID);
+        if (!startRequestId.empty()) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "notify start success, startRequestId:%{public}s", startRequestId.c_str());
+            callerAbility->NotifyStartAbilitySuccess(startRequestId, sessionInfo->persistentId);
+        }
         if (sessionInfo->requestCallback != nullptr) {
             auto requestCallback = iface_cast<IRequestStartAbilityCallback>(sessionInfo->requestCallback);
             if (requestCallback != nullptr) {
@@ -3280,7 +3299,13 @@ int UIAbilityLifecycleManager::SendSessionInfoToSCB(UIAbilityRecordPtr &callerAb
             TAG_LOGI(AAFwkTag::ABILITYMGR, "notify request success, requestId:%{public}s", requestId.c_str());
             abilityRecord->NotifyAbilityRequestSuccess(requestId, sessionInfo->want.GetElement());
         }
+        auto startRequestId = sessionInfo->want.GetStringParam(KEY_START_REQUEST_ID);
+        if (!startRequestId.empty()) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "notify start success, startRequestId:%{public}s", startRequestId.c_str());
+            abilityRecord->NotifyStartAbilitySuccess(startRequestId, sessionInfo->persistentId);
+        }
         sessionInfo->want.RemoveParam(KEY_REQUEST_ID);
+        sessionInfo->want.RemoveParam(KEY_START_REQUEST_ID);
         if (sessionInfo->requestCallback != nullptr) {
             auto requestCallback = iface_cast<IRequestStartAbilityCallback>(sessionInfo->requestCallback);
             if (requestCallback != nullptr) {

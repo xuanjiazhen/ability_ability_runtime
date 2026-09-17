@@ -72,6 +72,9 @@ constexpr const char* SIGNATURE_OPEN_LINK = "C{std.core.String}C{utils.AbilityUt
     "C{@ohos.app.ability.OpenLinkOptions.OpenLinkOptions}C{utils.AbilityUtils.AsyncCallbackWrapper}:";
 constexpr const char *SIGNATURE_CONNECT_SERVICE_EXTENSION =
     "C{@ohos.app.ability.Want.Want}C{ability.connectOptions.ConnectOptions}:l";
+constexpr const char *SIGNATURE_START_ABILITY_WITH_COMPLETION_HANDLER =
+    "C{@ohos.app.ability.Want.Want}C{application.UIAbilityContext.CompletionHandler}C{utils.AbilityUtils."
+    "AsyncCallbackWrapper}:";
 constexpr const char *SIGNATURE_DISCONNECT_SERVICE_EXTENSION = "lC{utils.AbilityUtils.AsyncCallbackWrapper}:";
 constexpr const char *SIGNATURE_OPEN_ATOMIC_SERVICE = "C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}"
     "C{@ohos.app.ability.AtomicServiceOptions.AtomicServiceOptions}:";
@@ -110,6 +113,7 @@ constexpr int32_t ARGC_TWO = 2;
 constexpr int32_t ARGC_THREE = 3;
 constexpr const char* SIGNATURE_RESTORE_WINDOW_STAGE = "C{arkui.stateManagement.storage.localStorage.LocalStorage}:";
 constexpr const char* KEY_REQUEST_ID = "com.ohos.param.requestId";
+constexpr const char* KEY_START_REQUEST_ID = "com.ohos.param.startRequestId";
 
 int64_t RequestCodeFromStringToInt64(const std::string &requestCode)
 {
@@ -324,6 +328,19 @@ void EtsAbilityContext::StartAbilityWithOptions(
         return;
     }
     etsContext->OnStartAbility(env, aniObj, wantObj, opt, call);
+}
+
+void EtsAbilityContext::StartAbilityWithCompletionHandler(ani_env *env, ani_object aniObj, ani_object wantObj,
+    ani_object completionHandlerObj, ani_object call)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::CONTEXT, "StartAbilityWithCompletionHandler called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnStartAbilityWithCompletionHandler(env, aniObj, wantObj, completionHandlerObj, call);
 }
 
 void EtsAbilityContext::StartAbilitySyncCheck(ani_env *env, ani_object aniObj, ani_object opt)
@@ -1009,6 +1026,124 @@ void EtsAbilityContext::OnStartAbility(
             "Failed to call startRecentAbility" : "Failed to call startAbility";
         nlohmann::json jsonObject = nlohmann::json { { JSON_KEY_ERR_MSG, errMsg } };
         context->OnRequestFailure(startOptions.requestId_, want.GetElement(), jsonObject.dump());
+    }
+}
+
+void EtsAbilityContext::OnStartAbilityWithCompletionHandler(ani_env *env, ani_object aniObj,
+    ani_object wantObj, ani_object completionHandlerObj, ani_object call)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param want failed, must be a Want");
+        return;
+    }
+    InheritWindowMode(want);
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        EtsErrorUtil::ThrowInvalidParamError(env, "null context");
+        return;
+    }
+    if (completionHandlerObj == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null completionHandler");
+        EtsErrorUtil::ThrowInvalidParamError(env, "null completionHandler");
+        return;
+    }
+    ani_ref completionHandler = static_cast<ani_ref>(completionHandlerObj);
+    ani_ref refCompletionHandler = nullptr;
+    if (env->GlobalReference_Create(completionHandler, &refCompletionHandler) != ANI_OK ||
+        !refCompletionHandler) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to create global ref for completionHandler");
+        return;
+    }
+    ani_vm *etsVm = nullptr;
+    if (env->GetVM(&etsVm) != ANI_OK || etsVm == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "GetVM failed");
+        env->GlobalReference_Delete(refCompletionHandler);
+        return;
+    }
+    AbilityRuntime::OnStartResult onStartSucc;
+    AbilityRuntime::OnStartResult onStartFail;
+    onStartSucc = [etsVm, refCompletionHandler](int32_t windowId) {
+        ani_status status = ANI_ERROR;
+        ani_env *cbEnv = nullptr;
+        if ((status = etsVm->GetEnv(ANI_VERSION_1, &cbEnv)) != ANI_OK || cbEnv == nullptr) {
+            TAG_LOGE(AAFwkTag::ANI, "GetEnv failed, status: %{public}d", status);
+            return;
+        }
+        ani_ref funRef;
+        if ((status = cbEnv->Object_GetFieldByName_Ref(reinterpret_cast<ani_object>(refCompletionHandler),
+            "onStartSuccess", &funRef)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::ANI, "Get onStartSuccess failed, status: %{public}d", status);
+            cbEnv->GlobalReference_Delete(refCompletionHandler);
+            return;
+        }
+        if (!AppExecFwk::IsValidProperty(cbEnv, funRef)) {
+            cbEnv->GlobalReference_Delete(refCompletionHandler);
+            return;
+        }
+        ani_int aniWindowId = static_cast<ani_int>(windowId);
+        ani_object aniWindowObj = AppExecFwk::CreateInt(cbEnv, aniWindowId);
+        if (aniWindowObj == nullptr) {
+            cbEnv->GlobalReference_Delete(refCompletionHandler);
+            return;
+        }
+        ani_ref result = nullptr;
+        std::vector<ani_ref> argv = { static_cast<ani_ref>(aniWindowObj) };
+        if ((status = cbEnv->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), 1, argv.data(),
+            &result)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::ANI, "Call onStartSuccess failed, status: %{public}d", status);
+        }
+        cbEnv->GlobalReference_Delete(refCompletionHandler);
+    };
+    onStartFail = [etsVm, refCompletionHandler](int32_t errorCode) {
+        ani_status status = ANI_ERROR;
+        ani_env *cbEnv = nullptr;
+        if ((status = etsVm->GetEnv(ANI_VERSION_1, &cbEnv)) != ANI_OK || cbEnv == nullptr) {
+            TAG_LOGE(AAFwkTag::ANI, "GetEnv failed, status: %{public}d", status);
+            return;
+        }
+        ani_ref funRef;
+        if ((status = cbEnv->Object_GetFieldByName_Ref(reinterpret_cast<ani_object>(refCompletionHandler),
+            "onStartFailure", &funRef)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::ANI, "Get onStartFailure failed, status: %{public}d", status);
+            cbEnv->GlobalReference_Delete(refCompletionHandler);
+            return;
+        }
+        if (!AppExecFwk::IsValidProperty(cbEnv, funRef)) {
+            cbEnv->GlobalReference_Delete(refCompletionHandler);
+            return;
+        }
+        ani_int aniErrorCode = static_cast<ani_int>(errorCode);
+        ani_object aniErrorObj = AppExecFwk::CreateInt(cbEnv, aniErrorCode);
+        if (aniErrorObj == nullptr) {
+            cbEnv->GlobalReference_Delete(refCompletionHandler);
+            return;
+        }
+        ani_ref result = nullptr;
+        std::vector<ani_ref> argv = { static_cast<ani_ref>(aniErrorObj) };
+        if ((status = cbEnv->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), 1, argv.data(),
+            &result)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::ANI, "Call onStartFailure failed, status: %{public}d", status);
+        }
+        cbEnv->GlobalReference_Delete(refCompletionHandler);
+    };
+    uint64_t time = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::high_resolution_clock::now().time_since_epoch()).count());
+    std::string requestId = std::to_string(time);
+    if (context->AddStartCompletionHandler(requestId, onStartSucc, onStartFail) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "add start completionHandler failed");
+        env->GlobalReference_Delete(refCompletionHandler);
+        return;
+    }
+    want.SetParam(KEY_START_REQUEST_ID, requestId);
+    ErrCode innerErrCode = context->StartAbility(want, -1);
+    ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
+    AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
+    if (innerErrCode != ERR_OK) {
+        TAG_LOGI(AAFwkTag::CONTEXT, "StartAbility failed, notify start failure, err=%{public}d", innerErrCode);
+        context->OnStartFailure(requestId, static_cast<int32_t>(innerErrCode));
     }
 }
 
@@ -3126,6 +3261,9 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 "C{@ohos.app.ability.Want.Want}C{@ohos.app.ability.StartOptions.StartOptions}C{utils.AbilityUtils."
                 "AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsAbilityContext::StartAbilityWithOptions) },
+            ani_native_function { "nativeStartAbilityWithCompletionHandler",
+                SIGNATURE_START_ABILITY_WITH_COMPLETION_HANDLER,
+                reinterpret_cast<void *>(EtsAbilityContext::StartAbilityWithCompletionHandler) },
             ani_native_function { "nativeStartAbilitySyncCheck",
                 "C{@ohos.app.ability.StartOptions.StartOptions}:",
                 reinterpret_cast<void *>(EtsAbilityContext::StartAbilitySyncCheck) },

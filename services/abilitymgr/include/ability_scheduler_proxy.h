@@ -342,6 +342,10 @@ public:
 
     void ScheduleAbilitiesRequestDone(const std::string &requestKey, int32_t resultCode) override;
 
+    void ScheduleStartAbilityCompleted(const std::string &requestId, int32_t windowId) override;
+
+    void ScheduleStartAbilityFailed(const std::string &requestId, int32_t errorCode) override;
+
 private:
     bool WriteInterfaceToken(MessageParcel &data);
     int32_t SendTransactCmd(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);

@@ -54,6 +54,18 @@ struct OnAtomicRequestResult {
         onRequestFailure_(onRequestFail)
     {}
 };
+
+using OnStartResult = std::function<void(int32_t)>;
+struct OnStartResultElement {
+    std::string requestId_;
+    OnStartResult onStartSuccess_;
+    OnStartResult onStartFailure_;
+
+    OnStartResultElement(const std::string &requestId, OnStartResult onStartSucc,
+        OnStartResult onStartFail) : requestId_(requestId), onStartSuccess_(onStartSucc),
+        onStartFailure_(onStartFail)
+    {}
+};
 enum class FailureCode {
     FAILURE_CODE_SYSTEM_MALFUNCTION = 0,
     FAILURE_CODE_USER_CANCEL = 1,

@@ -3407,6 +3407,18 @@ void AbilityRecord::NotifyAbilityRequestSuccess(const std::string &requestId, co
     lifecycleDeal_->NotifyAbilityRequestSuccess(requestId, element);
 }
 
+void AbilityRecord::NotifyStartAbilitySuccess(const std::string &requestId, int32_t windowId)
+{
+    CHECK_POINTER(lifecycleDeal_);
+    lifecycleDeal_->NotifyStartAbilitySuccess(requestId, windowId);
+}
+
+void AbilityRecord::NotifyStartAbilityFailure(const std::string &requestId, int32_t errorCode)
+{
+    CHECK_POINTER(lifecycleDeal_);
+    lifecycleDeal_->NotifyStartAbilityFailure(requestId, errorCode);
+}
+
 void AbilityRecord::SendAppStartupTypeEvent(const AppExecFwk::AppStartType startType,
     const AppExecFwk::AppStartReason startReason)
 {

@@ -15,6 +15,7 @@
 
 #include "pending_want_manager.h"
 
+#include "ability_record.h"
 #include "ability_manager_service.h"
 #include "ability_util.h"
 #include "distributed_client.h"
@@ -390,10 +391,31 @@ void PendingWantManager::CancelWantSenderLocked(PendingWantRecord &record, bool 
     TAG_LOGD(AAFwkTag::WANTAGENT, "begin");
     std::lock_guard<ffrt::mutex> locker(mutex_);
     MakeWantSenderCanceledLocked(record);
+    CleanStartCompletionHandler(record);
     if (cleanAbility) {
         ReduceWantAgentNumber(record.GetKey());
         wantRecords_.erase(record.GetKey());
     }
+}
+
+void PendingWantManager::CleanStartCompletionHandler(PendingWantRecord &record)
+{
+    auto key = record.GetKey();
+    if (key == nullptr) {
+        return;
+    }
+    Want requestWant = key->GetRequestWant();
+    auto startRequestId = requestWant.GetStringParam(KEY_START_REQUEST_ID);
+    if (startRequestId.empty()) {
+        return;
+    }
+    auto callerRecord = Token::GetAbilityRecordByToken(record.callerToken_);
+    if (callerRecord == nullptr) {
+        TAG_LOGW(AAFwkTag::WANTAGENT, "null caller ability record for start completion cleanup");
+        return;
+    }
+    TAG_LOGI(AAFwkTag::WANTAGENT, "clean start completionHandler, requestId=%{public}s", startRequestId.c_str());
+    callerRecord->NotifyStartAbilityFailure(startRequestId, INNER_ERR);
 }
 
 int32_t PendingWantManager::DeviceIdDetermine(const Want &want, const sptr<StartOptions> &startOptions,

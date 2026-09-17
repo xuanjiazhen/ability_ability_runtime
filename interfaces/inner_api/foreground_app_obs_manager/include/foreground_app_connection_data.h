@@ -49,6 +49,7 @@ struct ForegroundAppConnectionData : public Parcelable {
     int32_t targetUid_ = 0;
     std::string callerBundleName_ = "";
     std::string targetBundleName_ = "";
+    int32_t windowId_ = 0;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS
