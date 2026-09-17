@@ -54,7 +54,9 @@ bool ToolInfo::Marshalling(Parcel &parcel) const
            parcel.WriteStringVector(eventTypes) &&
            parcel.WriteBool(hasSubCommand) &&
            parcel.WriteString(subcommandsJson) &&
-           parcel.WriteBool(isLockScreenExecutionAllowed);
+           parcel.WriteBool(isLockScreenExecutionAllowed) &&
+           parcel.WriteString(visibility) &&
+           parcel.WriteStringVector(supportedDevices);
 }
 
 ToolInfo *ToolInfo::Unmarshalling(Parcel &parcel)
@@ -79,6 +81,14 @@ ToolInfo *ToolInfo::Unmarshalling(Parcel &parcel)
         !parcel.ReadBool(tool->isLockScreenExecutionAllowed)) {
         delete tool;
         return nullptr;
+    }
+
+    // Backward-compat: visibility/supportedDevices may be absent in older parcels.
+    if (!parcel.ReadString(tool->visibility)) {
+        // default "private" already set by member initializer
+    }
+    if (!parcel.ReadStringVector(&tool->supportedDevices)) {
+        // default empty vector already set by member initializer
     }
 
     // Parse subcommands JSON string to map using SubCommandInfo::ParseFromJson
@@ -325,6 +335,38 @@ bool ToolInfo::ParseFromJson(const nlohmann::json &json, ToolInfo &tool)
         tool.isLockScreenExecutionAllowed = json["isLockScreenExecutionAllowed"];
     }
 
+    if (json.contains("visibility")) {
+        if (!json["visibility"].is_string()) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "ParseFromJson failed: visibility is not a string");
+            return false;
+        }
+        std::string vis = json["visibility"];
+        if (vis == "public" || vis == "private") {
+            tool.visibility = vis;
+        } else {
+            TAG_LOGW(AAFwkTag::CLI_TOOL, "ParseFromJson: invalid visibility value, falling back to private");
+            tool.visibility = "private";
+        }
+    }
+    if (json.contains("supportedDevices")) {
+        if (!json["supportedDevices"].is_array()) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "ParseFromJson failed: supportedDevices is not an array");
+            return false;
+        }
+        std::vector<std::string> devices;
+        for (const auto &item : json["supportedDevices"]) {
+            if (!item.is_string()) {
+                TAG_LOGE(AAFwkTag::CLI_TOOL, "ParseFromJson failed: supportedDevices contains non-string item");
+                return false;
+            }
+            std::string dev = item.get<std::string>();
+            if (!dev.empty()) {
+                devices.push_back(std::move(dev));
+            }
+        }
+        tool.supportedDevices = std::move(devices);
+    }
+
     return true;
 }
 
@@ -371,6 +413,8 @@ nlohmann::json ToolInfo::ParseToJson() const
         j["subcommands"] = subcommandsJson;
     }
     j["isLockScreenExecutionAllowed"] = isLockScreenExecutionAllowed;
+    j["visibility"] = visibility;
+    j["supportedDevices"] = supportedDevices;
 
     return j;
 }

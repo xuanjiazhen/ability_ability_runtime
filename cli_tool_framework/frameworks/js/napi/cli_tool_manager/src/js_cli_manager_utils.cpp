@@ -850,6 +850,18 @@ napi_value CreateJsToolInfo(napi_env env, const ToolInfo &tool)
     napi_value jsIsLockScreenExecutionAllowed = AppExecFwk::WrapBoolToJS(env, tool.isLockScreenExecutionAllowed);
     napi_set_named_property(env, jsObj, "isLockScreenExecutionAllowed", jsIsLockScreenExecutionAllowed);
 
+    // Set visibility
+    napi_set_named_property(env, jsObj, "visibility", AppExecFwk::WrapStringToJS(env, tool.visibility));
+
+    // Set supportedDevices (array)
+    napi_value jsSupportedDevices = nullptr;
+    napi_create_array_with_length(env, tool.supportedDevices.size(), &jsSupportedDevices);
+    for (size_t i = 0; i < tool.supportedDevices.size(); i++) {
+        napi_value jsDevice = AppExecFwk::WrapStringToJS(env, tool.supportedDevices[i]);
+        napi_set_element(env, jsSupportedDevices, i, jsDevice);
+    }
+    napi_set_named_property(env, jsObj, "supportedDevices", jsSupportedDevices);
+
     return jsObj;
 }
 
