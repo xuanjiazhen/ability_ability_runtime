@@ -1044,6 +1044,38 @@ HWTEST_F(DialogSessionManagerTest, GenerateDialogCallerInfo_0200, TestSize.Level
 }
 
 /**
+ * @tc.name: GenerateDialogCallerInfo_0300
+ * @tc.desc: Test GenerateDialogCallerInfo preserves all StartOptions fields
+ * @tc.type: FUNC
+ */
+HWTEST_F(DialogSessionManagerTest, GenerateDialogCallerInfo_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GenerateDialogCallerInfo_0300 start";
+    DialogSessionManager dialogSessionManager;
+    AbilityRequest abilityRequest;
+    abilityRequest.callType = AbilityCallType::START_OPTIONS_TYPE;
+    abilityRequest.startOptions.SetDisplayID(1);
+    abilityRequest.startOptions.SetWindowMode(1);
+    abilityRequest.startOptions.SetWindowLeft(100);
+    abilityRequest.startOptions.SetWindowTop(200);
+    abilityRequest.startOptions.SetWindowWidth(800);
+    abilityRequest.startOptions.SetWindowHeight(600);
+    abilityRequest.startOptions.requestId_ = "test-request-id";
+    auto dialogCallerInfo = std::make_shared<DialogCallerInfo>();
+    dialogSessionManager.GenerateDialogCallerInfo(abilityRequest, TEST_USER_ID, dialogCallerInfo,
+        SelectorType::WITHOUT_SELECTOR, false);
+    ASSERT_NE(dialogCallerInfo->startOptions, nullptr);
+    EXPECT_EQ(dialogCallerInfo->startOptions->GetDisplayID(), 1);
+    EXPECT_EQ(dialogCallerInfo->startOptions->GetWindowMode(), 1);
+    EXPECT_EQ(dialogCallerInfo->startOptions->GetWindowLeft(), 100);
+    EXPECT_EQ(dialogCallerInfo->startOptions->GetWindowTop(), 200);
+    EXPECT_EQ(dialogCallerInfo->startOptions->GetWindowWidth(), 800);
+    EXPECT_EQ(dialogCallerInfo->startOptions->GetWindowHeight(), 600);
+    EXPECT_EQ(dialogCallerInfo->startOptions->requestId_, "test-request-id");
+    GTEST_LOG_(INFO) << "GenerateDialogCallerInfo_0300 end";
+}
+
+/**
  * @tc.name: HandleErmsResultBySCB_001
  * @tc.desc: test HandleErmsResultBySCB function
  * @tc.type: FUNC
