@@ -100,6 +100,7 @@ ohos_unittest("AmsServiceEventDriveTest") {
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "window_manager:session_manager_lite",
+    "ability_base:extractortool",
   ]
 
   if (ability_runtime_child_process) {

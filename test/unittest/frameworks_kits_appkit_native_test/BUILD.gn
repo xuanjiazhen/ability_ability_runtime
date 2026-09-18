@@ -113,6 +113,7 @@ ohos_unittest("application_test") {
     "resource_management:librawfile",
     "runtime_core:ani",
     "samgr:samgr_proxy",
+    "ability_base:extractortool",
   ]
 
   if (ability_runtime_graphics) {

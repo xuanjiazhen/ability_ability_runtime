@@ -68,6 +68,7 @@ ohos_shared_library("ets_environment") {
     "ets_runtime:libark_jsruntime",
     "libuv:uv",
     "node:node_header_notice",
+    "ability_base:extractortool",
   ]
 
   if (ability_runtime_graphics) {

@@ -86,6 +86,7 @@ ohos_unittest("AmsWorkFlowTest") {
     "resource_schedule_service:ressched_client",
     "json:nlohmann_json_static",
     "window_manager:session_manager_lite",
+    "ability_base:extractortool",
   ]
 
   if (os_dlp_part_enabled) {

@@ -323,6 +323,7 @@ ohos_unittest("ets_runtime_test") {
     "runtime_core:ani",
     "runtime_core:common_interfaces_header",
     "runtime_core:libarkruntime",
+    "ability_base:extractortool",
   ]
 
   if (ability_runtime_graphics) {

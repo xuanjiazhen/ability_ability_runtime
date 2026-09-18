@@ -148,6 +148,7 @@ ohos_unittest("app_mgr_service_inner_seventh_test") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "selinux_adapter:librestorecon",
+    "ability_base:extractortool",
   ]
   defines = []
   if (ability_runtime_child_process) {
