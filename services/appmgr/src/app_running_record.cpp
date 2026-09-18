@@ -729,7 +729,7 @@ void AppRunningRecord::ScheduleMemoryLevel(int32_t level, bool isShellCall)
 {
     if (makeImageState_ > MakeImageState::NONE &&
         makeImageState_ < MakeImageState::MAKE_IMAGE_FINISH) {
-        TAG_LOGI(AAFwkTag::APPMGR, "skip memory level schedule, makeImageState is %{public}d", makeImageState);
+        TAG_LOGI(AAFwkTag::APPMGR, "skip memory level schedule, makeImageState is %{public}d", makeImageState_);
         return;
     }
     if (appLifeCycleDeal_) {

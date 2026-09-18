@@ -1021,6 +1021,20 @@ int32_t AppMgrServiceInner::KillImageProcess(uint64_t checkpointId)
     return ERR_OK;
 }
 
+int32_t AppMgrServiceInner::HandleForkAll(int32_t pid)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::APPMGR, "HandleForkAll call, pid:%{public}d", pid);
+    auto appRecord = GetAppRunningRecordByPid(pid);
+    CHECK_POINTER_AND_RETURN_VALUE(appRecord, -1);
+    auto ret = HandleForkAllInner(appRecord, pid);
+    if (ret != ImageError::ERR_OK) {
+        HandleMakeImageFailed(appRecord, ret);
+        return -1;
+    }
+    return ERR_OK;
+}
+
 int32_t AppMgrServiceInner::HandlePreTemplateProcessDeepFrozen(int32_t pid)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
@@ -1053,20 +1067,6 @@ void AppMgrServiceInner::HandleNotifyTemplateProcessReadyDone(int32_t pid)
     int32_t uid = appRecord->GetUid();
     std::string bundleName = appRecord->GetBundleName();
     AAFwk::ResSchedUtil::GetInstance().ReportTemplateProcessReadyToRSS(pid, uid, bundleName);
-}
-
-int32_t AppMgrServiceInner::HandleForkAll(int32_t pid)
-{
-    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::APPMGR, "HandleForkAll call, pid:%{public}d", pid);
-    auto appRecord = GetAppRunningRecordByPid(pid);
-    CHECK_POINTER_AND_RETURN_VALUE(appRecord, -1);
-    auto ret = HandleForkAllInner(appRecord, pid);
-    if (ret != ImageError::ERR_OK) {
-        HandleMakeImageFailed(appRecord, ret);
-        return -1;
-    }
-    return ERR_OK;
 }
 
 ImageError AppMgrServiceInner::HandleForkAllInner(std::shared_ptr<AppRunningRecord> appRecord, int32_t pid)
