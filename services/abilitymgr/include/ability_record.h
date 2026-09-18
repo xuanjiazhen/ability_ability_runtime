@@ -904,6 +904,8 @@ protected:
     void SetDebugAppByWaitingDebugFlag();
     void AfterLoaded();
 
+    void SetInsightIntentTargetPid();
+
     void CancelPrepareTerminate();
 
     void BuildTerminateAbilityEventInfo(EventInfo &eventInfo, int32_t errCode);
