@@ -3243,6 +3243,48 @@ HWTEST_F(AmsAppRunningRecordTest, GetPageAbilitySize_001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetAbilitySize_001
+ * @tc.desc: verify that GetAbilitySize returns correct count for empty, single, and multiple abilities.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AmsAppRunningRecordTest, GetAbilitySize_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetAbilitySize_001 start.";
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    EXPECT_NE(appInfo, nullptr);
+    appInfo->name = GetTestAppName();
+    appInfo->bundleName = GetTestAppName();
+
+    std::shared_ptr<ModuleRunningRecord> moduleRecord = std::make_shared<ModuleRunningRecord>(appInfo, nullptr);
+    EXPECT_NE(moduleRecord, nullptr);
+
+    int32_t ret = moduleRecord->GetAbilitySize();
+    EXPECT_EQ(ret, 0);
+
+    auto abilityInfo = std::make_shared<AbilityInfo>();
+    EXPECT_NE(abilityInfo, nullptr);
+    abilityInfo->name = GetTestAbilityName();
+    abilityInfo->type = AbilityType::PAGE;
+    auto token = GetMockToken();
+    auto abilityRecord = std::make_shared<AbilityRunningRecord>(abilityInfo, token, 0);
+    EXPECT_NE(abilityRecord, nullptr);
+    moduleRecord->abilities_.emplace(token, abilityRecord);
+    ret = moduleRecord->GetAbilitySize();
+    EXPECT_EQ(ret, 1);
+
+    auto token2 = GetMockToken();
+    auto abilityInfo2 = std::make_shared<AbilityInfo>();
+    abilityInfo2->name = GetTestAbilityName();
+    abilityInfo2->type = AbilityType::SERVICE;
+    auto abilityRecord2 = std::make_shared<AbilityRunningRecord>(abilityInfo2, token2, 0);
+    EXPECT_NE(abilityRecord2, nullptr);
+    moduleRecord->abilities_.emplace(token2, abilityRecord2);
+    ret = moduleRecord->GetAbilitySize();
+    EXPECT_EQ(ret, 2);
+    GTEST_LOG_(INFO) << "GetAbilitySize_001 end.";
+}
+
+/**
  * @tc.name: ExtensionAbilityRecordExists_001
  * @tc.desc: verify that ExtensionAbilityRecordExists works.
  * @tc.type: FUNC
