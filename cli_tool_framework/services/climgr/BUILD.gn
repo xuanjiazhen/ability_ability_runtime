@@ -85,6 +85,7 @@ ohos_shared_library("climgr") {
     "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "memmgr:memmgrclient",
   ]
 
   innerapi_tags = [ "platformsdk" ]

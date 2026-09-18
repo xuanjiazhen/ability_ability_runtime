@@ -33,6 +33,7 @@
 #include "ccm_util.h"
 #include "cli_error_code.h"
 #include "cli_event_report.h"
+#include "mem_mgr_client.h"
 #include "cli_hook_interface_proxy.h"
 #include "cli_tool_app_state_observer.h"
 #include "cli_function_data_manager.h"
