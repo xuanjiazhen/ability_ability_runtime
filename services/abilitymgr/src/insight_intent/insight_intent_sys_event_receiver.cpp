@@ -47,6 +47,7 @@ bool InsightIntentSysEventReceiver::SaveInsightIntentInfos(const std::string &bu
     std::string profile;
     AbilityRuntime::ExtractInsightIntentProfileInfoVec infos = {};
     std::vector<InsightIntentInfo> configIntentInfos = {};
+    std::vector<InsightIntentSaveParam> saveParams;
     TAG_LOGI(AAFwkTag::INTENT, "save insight intent infos, bundle:%{public}s module:%{public}s",
         bundleName.c_str(), moduleName.c_str());
     ErrCode ret;
@@ -94,18 +95,26 @@ bool InsightIntentSysEventReceiver::SaveInsightIntentInfos(const std::string &bu
             item.moduleName = moduleNameLocal;
         }
 
-        // save database
-        ret = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->SaveInsightIntentTotalInfo(
-            bundleName, moduleNameLocal, userId, versionCode, infos, configIntentInfos);
-        if (ret != ERR_OK) {
-            TAG_LOGE(AAFwkTag::INTENT, "save intent info failed, bundleName: %{public}s, moduleName: %{public}s, "
-                "userId: %{public}d", bundleName.c_str(), moduleNameLocal.c_str(), userId);
-            continue;
-        }
+        // collect module data for batch save
+        InsightIntentSaveParam saveParam;
+        saveParam.moduleName = moduleNameLocal;
+        saveParam.profileInfos = infos;
+        saveParam.configInfos = configIntentInfos;
+        saveParams.emplace_back(std::move(saveParam));
         anySaved = true;
+    }
 
-        TAG_LOGI(AAFwkTag::INTENT, "save intent info success, bundleName: %{public}s, moduleName: %{public}s, "
-            "userId: %{public}d", bundleName.c_str(), moduleNameLocal.c_str(), userId);
+    // save database in one batch
+    ret = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->SaveBatchInsightIntentTotalInfo(
+        bundleName, userId, versionCode, saveParams);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "save intent infos failed, bundleName: %{public}s, userId: %{public}d, "
+            "ret: %{public}d", bundleName.c_str(), userId, ret);
+        return false;
+    }
+    if (anySaved) {
+        TAG_LOGI(AAFwkTag::INTENT, "save intent infos success, bundleName: %{public}s, moduleName: %{public}s, "
+            "userId: %{public}d", bundleName.c_str(), moduleName.c_str(), userId);
     }
     return anySaved;
 }
@@ -199,11 +208,15 @@ void InsightIntentSysEventReceiver::LoadInsightIntentInfos(int32_t userId)
             newBundles.emplace_back(bundleInfo.name, bundleInfo.versionCode);
             continue;
         }
-        bool anySaved = false;
+        std::string moduleNames;
         for (const auto &hapInfo : bundleInfo.hapModuleInfos) {
-            anySaved = SaveInsightIntentInfos(bundleInfo.name, hapInfo.moduleName,
-                bundleInfo.versionCode, userId) || anySaved;
+            if (!moduleNames.empty()) {
+                moduleNames += ",";
+            }
+            moduleNames += hapInfo.moduleName;
         }
+        bool anySaved = SaveInsightIntentInfos(bundleInfo.name, moduleNames,
+            bundleInfo.versionCode, userId);
         if (anySaved) {
             newBundles.emplace_back(bundleInfo.name, bundleInfo.versionCode);
         }
