@@ -1021,6 +1021,7 @@ int32_t AppMgrServiceInner::KillImageProcess(uint64_t checkpointId)
     return ERR_OK;
 }
 
+
 int32_t AppMgrServiceInner::HandlePreTemplateProcessDeepFrozen(int32_t pid)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
