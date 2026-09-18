@@ -290,6 +290,7 @@ bool UnwrapExecCmdOptions(napi_env env, napi_value obj, ExecCmdOptions &options)
     }
     UnwrapBoolProperty(env, obj, "isShellCommand", options.isShellCommand);
     UnwrapStringProperty(env, obj, "challenge", options.challenge);
+    UnwrapStringProperty(env, obj, "subjectId", options.subjectId);
     return true;
 }
 
@@ -567,6 +568,8 @@ napi_value CreateJsExecCmdParam(napi_env env, const ExecCmdParam &param)
         AppExecFwk::WrapBoolToJS(env, param.execCmdOptions.isShellCommand));
     napi_set_named_property(env, jsOpts, "challenge",
         AppExecFwk::WrapStringToJS(env, param.execCmdOptions.challenge));
+    napi_set_named_property(env, jsOpts, "subjectId",
+        AppExecFwk::WrapStringToJS(env, param.execCmdOptions.subjectId));
     napi_set_named_property(env, jsObj, "execCmdOptions", jsOpts);
     return jsObj;
 }

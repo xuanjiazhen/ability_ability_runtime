@@ -43,6 +43,7 @@ public:
     std::string inputSchema;
     std::string outputSchema;
     FunctionType functionType;
+    std::string visibility = "private";  // "public" or "private"
 
     FunctionInfo() : functionType(FunctionType::INTENT_FUNCTION) {}
     ~FunctionInfo() override = default;

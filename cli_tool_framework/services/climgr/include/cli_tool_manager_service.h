@@ -167,6 +167,13 @@ public:
      */
     int32_t GetAllFunctions(FunctionsRawData &functions) override;
 
+    /**
+     * @brief Get public functions via raw data (for third-party applications)
+     * @param functions Output FunctionsRawData (only visibility="public")
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    int32_t GetPublicFunctions(FunctionsRawData &functions) override;
+
     int32_t RegisterCliHook(const sptr<ICliHookInterface> &hook, int32_t activeMethods) override;
     int32_t UnregisterCliHook(const sptr<ICliHookInterface> &hook) override;
     int32_t RegisterFunctionHook(const sptr<IFunctionHookInterface> &hook, int32_t activeMethods) override;

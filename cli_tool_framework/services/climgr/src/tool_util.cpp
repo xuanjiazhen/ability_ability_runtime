@@ -248,6 +248,7 @@ bool ToolUtil::GenerateCmdSandboxConfig(const ExecCmdParam &param, AccessToken::
         config["workdir"] = param.execCmdOptions.workDir;
     }
     config["env"] = param.execCmdOptions.env;
+    config["subjectId"] = param.execCmdOptions.subjectId;
     config["nsFlags"] = {"pid"};
     sandboxConfig = config.dump();
     bundleName = bundleInfo.name;

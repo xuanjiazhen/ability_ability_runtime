@@ -52,6 +52,7 @@ public:
     int64_t timeout = 0;
     bool isShellCommand = true;
     std::string challenge;
+    std::string subjectId;
 
     bool Marshalling(Parcel &parcel) const;
     static ExecCmdOptions *Unmarshalling(Parcel &parcel);

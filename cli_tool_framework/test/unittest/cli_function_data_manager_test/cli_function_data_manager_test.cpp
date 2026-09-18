@@ -1571,5 +1571,73 @@ HWTEST_F(CliFunctionDataManagerTest, CliFunctionDataManager_ResetNamespaceFuncti
     TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_ResetNamespaceFunctions_008 end");
 }
 
+// ==================== FunctionInfo Visibility Tests ====================
+
+HWTEST_F(CliFunctionDataManagerTest, FunctionInfo_ParseFromJson_Visibility_0100, TestSize.Level1)
+{
+    nlohmann::json json = R"({
+        "functionName": "test_func",
+        "functionNamespace": "test_ns",
+        "version": "1.0.0",
+        "description": "test",
+        "functionType": 0,
+        "visibility": "public"
+    })"_json;
+
+    FunctionInfo function;
+    ASSERT_TRUE(FunctionInfo::ParseFromJson(json, function));
+    EXPECT_EQ(function.visibility, "public");
+}
+
+HWTEST_F(CliFunctionDataManagerTest, FunctionInfo_ParseFromJson_Visibility_0200, TestSize.Level1)
+{
+    nlohmann::json json = R"({
+        "functionName": "test_func",
+        "functionNamespace": "test_ns",
+        "version": "1.0.0",
+        "description": "test",
+        "functionType": 0
+    })"_json;
+
+    FunctionInfo function;
+    ASSERT_TRUE(FunctionInfo::ParseFromJson(json, function));
+    EXPECT_EQ(function.visibility, "private");
+}
+
+HWTEST_F(CliFunctionDataManagerTest, FunctionInfo_ParseFromJson_Visibility_0300, TestSize.Level1)
+{
+    nlohmann::json json = R"({
+        "functionName": "test_func",
+        "functionNamespace": "test_ns",
+        "version": "1.0.0",
+        "description": "test",
+        "functionType": 0,
+        "visibility": "invalid"
+    })"_json;
+
+    FunctionInfo function;
+    ASSERT_TRUE(FunctionInfo::ParseFromJson(json, function));
+    EXPECT_EQ(function.visibility, "private");
+}
+
+HWTEST_F(CliFunctionDataManagerTest, FunctionInfo_Marshalling_Visibility_0100, TestSize.Level1)
+{
+    FunctionInfo original;
+    original.functionName = "test_func";
+    original.functionNamespace = "test_ns";
+    original.version = "1.0.0";
+    original.description = "test";
+    original.functionType = FunctionType::INTENT_FUNCTION;
+    original.visibility = "public";
+
+    Parcel parcel;
+    ASSERT_TRUE(original.Marshalling(parcel));
+    parcel.RewindRead(0);
+
+    std::unique_ptr<FunctionInfo> result(FunctionInfo::Unmarshalling(parcel));
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->visibility, "public");
+}
+
 } // namespace CliTool
 } // namespace OHOS

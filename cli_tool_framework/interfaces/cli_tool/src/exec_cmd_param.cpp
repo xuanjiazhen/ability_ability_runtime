@@ -53,6 +53,10 @@ bool ExecCmdOptions::Marshalling(Parcel &parcel) const
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Write challenge failed.");
         return false;
     }
+    if (!parcel.WriteString(subjectId)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Write subjectId failed.");
+        return false;
+    }
     return true;
 }
 
@@ -79,6 +83,10 @@ ExecCmdOptions *ExecCmdOptions::Unmarshalling(Parcel &parcel)
     result->challenge = "";
     if (!parcel.ReadString(result->challenge)) {
         TAG_LOGD(AAFwkTag::CLI_TOOL, "challenge not present, using default(\"\").");
+    }
+    result->subjectId = "";
+    if (!parcel.ReadString(result->subjectId)) {
+        TAG_LOGD(AAFwkTag::CLI_TOOL, "subjectId not present, using default(\"\").");
     }
     return result;
 }
