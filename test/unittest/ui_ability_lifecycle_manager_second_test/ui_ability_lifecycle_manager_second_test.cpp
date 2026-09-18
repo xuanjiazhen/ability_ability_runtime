@@ -1201,7 +1201,7 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, SetSandboxCloneParamsForSession_00
 
 /**
  * @tc.name: UIAbilityLifecycleManager_SetSandboxCloneParamsForSession_0200
- * @tc.desc: SetSandboxCloneParamsForSession with isWebSandBoxClone false sets no params.
+ * @tc.desc: SetSandboxCloneParamsForSession with isWebSandBoxClone false caches specifyTokenId only.
  * @tc.type: FUNC
  */
 HWTEST_F(UIAbilityLifecycleManagerSecondTest, SetSandboxCloneParamsForSession_002, TestSize.Level1)
@@ -1211,14 +1211,20 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, SetSandboxCloneParamsForSession_00
     ASSERT_NE(sessionInfo, nullptr);
     AbilityRequest abilityRequest;
     abilityRequest.isWebSandBoxClone = false;
+    abilityRequest.specifyTokenId = 13579;
     abilityRequest.abilityInfo.applicationInfo.appIndex = 2000;
 
     mgr->SetSandboxCloneParamsForSession(sessionInfo, abilityRequest);
 
+    // Clone-specific params must not be set for non-clone launches.
     EXPECT_EQ(sessionInfo->want.GetIntParam(
         AbilityRuntime::GlobalConstant::SANDBOX_CLONE_INDEX, -1), -1);
+    // specifyTokenId is always cached for trusted SCB callback retrieval.
     AbilitySessionInfo info;
-    EXPECT_FALSE(mgr->GetAbilitySessionInfo(sessionInfo->requestId, info));
+    EXPECT_TRUE(mgr->GetAbilitySessionInfo(sessionInfo->requestId, info));
+    EXPECT_FALSE(info.isWebSandBoxClone);
+    EXPECT_EQ(info.specifyTokenId, 13579u);
+    mgr->RemoveAbilitySessionInfo(sessionInfo->requestId);
 }
 
 /**
@@ -1238,6 +1244,8 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, SetSandboxCloneParamsForSession_00
     abilityRequest.abilityInfo.applicationInfo.appIndex = 2000;
     const std::string callerBundleName = "com.test.cli.caller";
     const uint32_t callerTokenId = 537919265;
+    const uint32_t specifyTokenId = 24680;
+    abilityRequest.specifyTokenId = specifyTokenId;
     abilityRequest.sandboxCloneParams = std::make_shared<SandboxCloneParams>();
     abilityRequest.sandboxCloneParams->callerBundleName = callerBundleName;
     abilityRequest.sandboxCloneParams->callerTokenId = callerTokenId;
@@ -1254,6 +1262,7 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, SetSandboxCloneParamsForSession_00
     EXPECT_EQ(info.callerTokenId, callerTokenId);
     EXPECT_TRUE(info.isWebSandBoxClone);
     EXPECT_EQ(info.sandBoxCloneIndex, abilityRequest.abilityInfo.applicationInfo.appIndex);
+    EXPECT_EQ(info.specifyTokenId, specifyTokenId);
     mgr->RemoveAbilitySessionInfo(sessionInfo->requestId);
 }
 
