@@ -109,8 +109,12 @@ napi_value AttachUIExtensionContext(napi_env env, void *value, void *)
         TAG_LOGE(AAFwkTag::UI_EXT, "null contextObj");
         return nullptr;
     }
-    napi_coerce_to_native_binding_object(env, contextObj, DetachNewUIExtensionContext,
+    napi_status coerceStatus = napi_coerce_to_native_binding_object(env, contextObj, DetachNewUIExtensionContext,
         AttachUIExtensionContext, value, nullptr);
+    if (coerceStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "coerce ui extension context failed: %{public}d", coerceStatus);
+        return nullptr;
+    }
     napi_add_detached_finalizer(env, contextObj, DetachFinalizeUIExtensionContext, nullptr);
     auto workContext = new (std::nothrow) std::weak_ptr<UIExtensionContext>(ptr);
     napi_status status = napi_wrap(env, contextObj, workContext,
@@ -252,8 +256,13 @@ void JsUIExtension::BindContext(napi_env env, napi_value obj, std::shared_ptr<AA
     }
     auto workContext = new (std::nothrow) std::weak_ptr<UIExtensionContext>(context);
     CHECK_POINTER(workContext);
-    napi_coerce_to_native_binding_object(
+    napi_status coerceStatus = napi_coerce_to_native_binding_object(
         env, contextObj, DetachNewUIExtensionContext, AttachUIExtensionContext, workContext, nullptr);
+    if (coerceStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "coerce ui extension context failed: %{public}d", coerceStatus);
+        delete workContext;
+        return;
+    }
     napi_add_detached_finalizer(env, contextObj, DetachFinalizeUIExtensionContext, nullptr);
     context->Bind(jsRuntime_, shellContextRef_.get());
     napi_set_named_property(env, obj, "context", contextObj);
