@@ -214,6 +214,7 @@ public:
     {
         return 0;
     }
+    void RegisterWantAgentHolder(const sptr<IWantSender> &target) override {}
     int StartContinuation(const Want& want, const sptr<IRemoteObject>& abilityToken, int32_t status) override
     {
         return 0;
