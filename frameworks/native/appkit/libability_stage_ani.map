@@ -13,22 +13,19 @@
 
 {
   global:
+    extern "C" {
+      OHOS_ETS_Ability_Stage_Create;
+      OHOS_CreateEtsStartupConfig;
+      OHOS_CreateEtsStartupTask;
+      ANI_Constructor;
+    };
     extern "C++" {
-      *AgentBundleEventCallback*;
-      *AgentCardDbMgr*;
-      *AgentCardMgr*;
-      *AgentCardUtils*;
-      *AgentConnectManager*;
-      *AgentEventHandler*;
-      *AgentHostConnection*;
-      *AgentHostKey*;
-      *AgentHostKeyEqual*;
-      *AgentManagerCallerIdentityScope*;
-      *AgentManagerService*;
-      *AgentOwnerKey*;
-      *AgentQuotaKey*;
-      *AgentServiceConnection*;
-      *AgentStandardConnectRequestBuilder*;
+      *ETSAbilityStage*;
+      *ETSAbilityStageContext*;
+      *ETSStartupConfig*;
+      *EtsStartupTask*;
+      *ETSStartupTaskExecutor*;
+      *ETSStartupTaskResult*;
     };
   local:
     *;
