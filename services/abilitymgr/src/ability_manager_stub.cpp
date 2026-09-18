@@ -1080,6 +1080,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     if (interfaceCode == AbilityManagerInterfaceCode::QUERY_SKILL_TYPE) {
         return QuerySkillTypeInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::BACK_TO_CALLER_WITH_RESULT) {
+        return BackToCallerWithResultInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -1316,6 +1319,26 @@ int AbilityManagerStub::BackToCallerInner(MessageParcel &data, MessageParcel &re
     }
     int64_t callerRequestCode = data.ReadInt64();
     int32_t result = BackToCallerAbilityWithResult(token, resultCode, resultWant, callerRequestCode);
+    reply.WriteInt32(result);
+    if (resultWant != nullptr) {
+        delete resultWant;
+    }
+    return NO_ERROR;
+}
+
+int AbilityManagerStub::BackToCallerWithResultInner(MessageParcel &data, MessageParcel &reply)
+{
+    sptr<IRemoteObject> token = nullptr;
+    if (data.ReadBool()) {
+        token = data.ReadRemoteObject();
+    }
+    int resultCode = data.ReadInt32();
+    Want *resultWant = data.ReadParcelable<Want>();
+    if (resultWant != nullptr) {
+        SanitizeWantParams(*resultWant);
+    }
+    int64_t callerRequestCode = data.ReadInt64();
+    int32_t result = BackToCallerWithResult(token, resultCode, resultWant, callerRequestCode);
     reply.WriteInt32(result);
     if (resultWant != nullptr) {
         delete resultWant;

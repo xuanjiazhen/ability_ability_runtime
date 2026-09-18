@@ -157,6 +157,8 @@ export default class UIAbilityContext extends Context {
 
   private native nativeBackToCallerAbilityWithResult(abilityResult: AbilityResult, requestCode: string, callback: AsyncCallbackWrapper<void>): void;
 
+  private native nativeBackToCallerWithResult(abilityResult: AbilityResult, requestCode: string, callback: AsyncCallbackWrapper<void>): void;
+
   private native nativeSetMissionLabel(label: string, callback: AsyncCallbackWrapper<void>): void;
 
   private native nativeConnectServiceExtensionAbility(want: Want, options: ConnectOptions): long;
@@ -490,6 +492,10 @@ export default class UIAbilityContext extends Context {
     });
   }
 
+  /**
+   * backToCallerAbilityWithResult, return result to caller ability.
+   * @deprecated since 7.1, use backToCallerWithResult instead.
+   */
   backToCallerAbilityWithResult(abilityResult: AbilityResult, requestCode: string): Promise<void> {
     return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
       let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
@@ -501,6 +507,21 @@ export default class UIAbilityContext extends Context {
       });
       taskpool.execute(() => {
         this.nativeBackToCallerAbilityWithResult(abilityResult, requestCode, syncCall);
+      });
+    });
+  }
+
+  backToCallerWithResult(abilityResult: AbilityResult, requestCode: string): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute(() => {
+        this.nativeBackToCallerWithResult(abilityResult, requestCode, syncCall);
       });
     });
   }

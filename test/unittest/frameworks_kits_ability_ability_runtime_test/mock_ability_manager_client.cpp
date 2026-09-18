@@ -221,6 +221,12 @@ ErrCode AbilityManagerClient::BackToCallerAbilityWithResult(const sptr<IRemoteOb
     return ERR_OK;
 }
 
+ErrCode AbilityManagerClient::BackToCallerWithResult(const sptr<IRemoteObject> &token, int resultCode,
+    const Want *resultWant, int64_t callerRequestCode)
+{
+    return ERR_OK;
+}
+
 ErrCode AbilityManagerClient::TerminateUIServiceExtensionAbility(sptr<IRemoteObject> token)
 {
     return ERR_OK;

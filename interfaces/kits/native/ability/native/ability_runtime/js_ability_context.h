@@ -58,6 +58,7 @@ public:
     static napi_value TerminateSelf(napi_env env, napi_callback_info info);
     static napi_value TerminateSelfWithResult(napi_env env, napi_callback_info info);
     static napi_value BackToCallerAbilityWithResult(napi_env env, napi_callback_info info);
+    static napi_value BackToCallerWithResult(napi_env env, napi_callback_info info);
     static napi_value RestoreWindowStage(napi_env env, napi_callback_info info);
     static napi_value RequestDialogService(napi_env env, napi_callback_info info);
     static napi_value IsTerminating(napi_env env, napi_callback_info info);
@@ -130,6 +131,7 @@ private:
     napi_value OnStopExtensionAbilityWithAccount(napi_env env, NapiCallbackInfo& info);
     napi_value OnTerminateSelfWithResult(napi_env env, NapiCallbackInfo& info);
     napi_value OnBackToCallerAbilityWithResult(napi_env env, NapiCallbackInfo& info);
+    napi_value OnBackToCallerWithResult(napi_env env, NapiCallbackInfo& info);
     napi_value OnConnectAbility(napi_env env, NapiCallbackInfo& info);
     napi_value OnConnectAbilityWithAccount(napi_env env, NapiCallbackInfo& info);
     napi_value OnDisconnectAbility(napi_env env, NapiCallbackInfo& info);

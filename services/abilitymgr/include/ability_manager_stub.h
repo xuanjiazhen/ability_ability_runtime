@@ -83,6 +83,7 @@ protected:
 private:
     int TerminateAbilityInner(MessageParcel &data, MessageParcel &reply);
     int BackToCallerInner(MessageParcel &data, MessageParcel &reply);
+    int BackToCallerWithResultInner(MessageParcel &data, MessageParcel &reply);
     int32_t TerminateUIServiceExtensionAbilityInner(MessageParcel &data, MessageParcel &reply);
     int TerminateUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply);
     int CloseUIExtensionAbilityBySCBInner(MessageParcel &data, MessageParcel &reply);

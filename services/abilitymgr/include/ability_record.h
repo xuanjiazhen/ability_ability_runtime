@@ -433,6 +433,16 @@ public:
      */
     void SendResultByBackToCaller(const std::shared_ptr<AbilityResult> &result);
 
+    inline void SetBackToCallerWithResultCalled(bool called)
+    {
+        isBackToCallerWithResultCalled_ = called;
+    }
+
+    inline bool IsBackToCallerWithResultCalled() const
+    {
+        return isBackToCallerWithResultCalled_;
+    }
+
     /**
      * send result object to caller ability thread for sandbox app file saving.
      */
@@ -867,6 +877,7 @@ protected:
     std::unique_ptr<LifecycleDeal> lifecycleDeal_ = {};    // life manager used to schedule life
     sptr<Token> token_ = {};                               // used to interact with kit and wms
     std::atomic<AbilityState> currentState_ = AbilityState::INITIAL;    // current life state
+    bool isBackToCallerWithResultCalled_ = false;          // single-call limit for BackToCallerWithResult
 
     /**
      * get the type of ability.

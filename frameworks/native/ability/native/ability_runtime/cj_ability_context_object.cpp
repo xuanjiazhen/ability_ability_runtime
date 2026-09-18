@@ -972,6 +972,8 @@ void BindJsAbilityContextOther(napi_env env, napi_value result)
         (napi_env)env, result, "terminateSelfWithResult", moduleName, JsAbilityContext::TerminateSelfWithResult);
     BindNativeFunction((napi_env)env, result, "backToCallerAbilityWithResult", moduleName,
         JsAbilityContext::BackToCallerAbilityWithResult);
+    BindNativeFunction((napi_env)env, result, "backToCallerWithResult", moduleName,
+        JsAbilityContext::BackToCallerWithResult);
     BindNativeFunction((napi_env)env, result, "restoreWindowStage", moduleName, JsAbilityContext::RestoreWindowStage);
     BindNativeFunction((napi_env)env, result, "isTerminating", moduleName, JsAbilityContext::IsTerminating);
     BindNativeFunction((napi_env)env, result, "startRecentAbility", moduleName, JsAbilityContext::StartRecentAbility);

@@ -97,6 +97,11 @@ public:
     {
         return 0;
     }
+    int32_t BackToCallerWithResult(std::shared_ptr<AbilityRecord> abilityRecord, int32_t resultCode,
+        const Want* resultWant, int64_t callerRequestCode) override
+    {
+        return 0;
+    }
     int TerminateAbility(
         const std::shared_ptr<AbilityRecord>& abilityRecord, int resultCode, const Want* resultWant, bool flag) override
     {

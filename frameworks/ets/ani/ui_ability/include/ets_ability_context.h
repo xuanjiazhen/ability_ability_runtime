@@ -84,6 +84,8 @@ public:
         ani_int accountId, ani_object callbackobj);
     static void BackToCallerAbilityWithResult(ani_env *env, ani_object aniObj,
         ani_object abilityResultObj, ani_string requestCodeObj, ani_object callBackObj);
+    static void BackToCallerWithResult(ani_env *env, ani_object aniObj,
+        ani_object abilityResultObj, ani_string requestCodeObj, ani_object callBackObj);
     static void SetMissionLabel(ani_env *env, ani_object aniObj, ani_string labelObj,
         ani_object callbackObj);
     static ani_long ConnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,
@@ -209,6 +211,8 @@ private:
     void OnRequestModalUIExtensionWithAccount(ani_env *env, ani_object aniObj, ani_object pickerWantObj,
         ani_int accountId, ani_object callbackObj);
     void OnBackToCallerAbilityWithResult(ani_env *env, ani_object aniObj,
+        ani_object abilityResultObj, ani_string requestCodeObj, ani_object callBackObj);
+    void OnBackToCallerWithResult(ani_env *env, ani_object aniObj,
         ani_object abilityResultObj, ani_string requestCodeObj, ani_object callBackObj);
     void OnSetMissionLabel(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object callbackObj);
     ani_long OnConnectServiceExtensionAbility(ani_env *env, ani_object aniObj, ani_object wantObj,

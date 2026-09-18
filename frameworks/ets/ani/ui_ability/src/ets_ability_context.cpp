@@ -516,6 +516,18 @@ void EtsAbilityContext::BackToCallerAbilityWithResult(ani_env *env, ani_object a
     etsContext->OnBackToCallerAbilityWithResult(env, aniObj, abilityResultObj, requestCodeObj, callBackObj);
 }
 
+void EtsAbilityContext::BackToCallerWithResult(ani_env *env, ani_object aniObj,
+    ani_object abilityResultObj, ani_string requestCodeObj, ani_object callBackObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "BackToCallerWithResult called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnBackToCallerWithResult(env, aniObj, abilityResultObj, requestCodeObj, callBackObj);
+}
+
 void EtsAbilityContext::SetMissionLabel(ani_env *env, ani_object aniObj, ani_string labelObj,
     ani_object callbackObj)
 {
@@ -1531,6 +1543,46 @@ void EtsAbilityContext::OnBackToCallerAbilityWithResult(ani_env *env, ani_object
 
     ErrCode ret = ERR_OK;
     ret = context->BackToCallerAbilityWithResult(want, resultCode, requestCode);
+    errorObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
+    AppExecFwk::AsyncCallback(env, callBackObj, errorObject, nullptr);
+}
+
+void EtsAbilityContext::OnBackToCallerWithResult(ani_env *env, ani_object aniObj,
+    ani_object abilityResultObj, ani_string requestCodeObj, ani_object callBackObj)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnBackToCallerWithResult call");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        return;
+    }
+    ani_object errorObject = nullptr;
+    AAFwk::Want want;
+    int resultCode = 0;
+    if (!OHOS::AppExecFwk::UnWrapAbilityResult(env, abilityResultObj, resultCode, want)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "UnWrapAbilityResult failed");
+        errorObject = EtsErrorUtil::CreateInvalidParamError(env, "Failed to parse abilityResult.");
+        AppExecFwk::AsyncCallback(env, callBackObj, errorObject, nullptr);
+        return;
+    }
+    std::string requestCodeStr;
+    if (!AppExecFwk::GetStdString(env, requestCodeObj, requestCodeStr)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to parse label");
+        errorObject = EtsErrorUtil::CreateInvalidParamError(env, "Failed to parse label.");
+        AppExecFwk::AsyncCallback(env, callBackObj, errorObject, nullptr);
+        return;
+    }
+    auto requestCode = RequestCodeFromStringToInt64(requestCodeStr);
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        AppExecFwk::AsyncCallback(env, callBackObj,
+            EtsErrorUtil::CreateErrorByNativeErr(env,
+            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)), nullptr);
+        return;
+    }
+
+    ErrCode ret = ERR_OK;
+    ret = context->BackToCallerWithResult(want, resultCode, requestCode);
     errorObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
     AppExecFwk::AsyncCallback(env, callBackObj, errorObject, nullptr);
 }
@@ -3166,6 +3218,9 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
             ani_native_function { "nativeBackToCallerAbilityWithResult",
                 "C{ability.abilityResult.AbilityResult}C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::BackToCallerAbilityWithResult) },
+            ani_native_function { "nativeBackToCallerWithResult",
+                "C{ability.abilityResult.AbilityResult}C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                reinterpret_cast<void*>(EtsAbilityContext::BackToCallerWithResult) },
             ani_native_function { "nativeSetMissionLabel",
                 "C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsAbilityContext::SetMissionLabel) },

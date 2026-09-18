@@ -791,6 +791,9 @@ enum class AbilityManagerInterfaceCode {
 
     // delete caller's own kiosk application list entries
     DELETE_KIOSK_APP_FROM_LIST = 6180,
+
+    // back to caller with result, independent from BACK_TO_CALLER_UIABILITY(82)
+    BACK_TO_CALLER_WITH_RESULT = 6181,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

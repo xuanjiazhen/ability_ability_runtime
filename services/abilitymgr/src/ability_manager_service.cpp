@@ -5573,6 +5573,35 @@ int AbilityManagerService::BackToCallerAbilityWithResult(const sptr<IRemoteObjec
     return missionListManager->BackToCallerAbilityWithResult(abilityRecord, resultCode, resultWant, callerRequestCode);
 }
 
+int AbilityManagerService::BackToCallerWithResult(const sptr<IRemoteObject> &token, int resultCode,
+    const Want *resultWant, int64_t callerRequestCode)
+{
+    auto abilityRecord = Token::GetAbilityRecordByToken(token);
+    if (!abilityRecord) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityRecord null");
+        return ERR_INVALID_VALUE;
+    }
+    if (!JudgeSelfCalled(abilityRecord)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not self called");
+        return CHECK_PERMISSION_FAILED;
+    }
+    if (abilityRecord->IsBackToCallerWithResultCalled()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "already called, ignore");
+        return ERR_OK;
+    }
+    abilityRecord->SetBackToCallerWithResultCalled(true);
+    auto ownerUserId = abilityRecord->GetOwnerMissionUserId();
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        auto uiAbilityManager = GetUIAbilityManagerByUserId(ownerUserId);
+        CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
+        return uiAbilityManager->BackToCallerWithResult(abilityRecord, resultCode, resultWant,
+            callerRequestCode);
+    }
+    auto missionListManager = GetMissionListManagerByUserId(ownerUserId);
+    CHECK_POINTER_AND_RETURN(missionListManager, ERR_INVALID_VALUE);
+    return missionListManager->BackToCallerWithResult(abilityRecord, resultCode, resultWant, callerRequestCode);
+}
+
 int AbilityManagerService::CloseAbility(const sptr<IRemoteObject> &token, int resultCode, const Want *resultWant)
 {
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
