@@ -3508,9 +3508,8 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
     }
 
     abilityRequest.collaboratorType = sessionInfo->collaboratorType;
-    uint32_t specifyTokenId = static_cast<uint32_t>(sessionInfo->want.GetIntParam(SPECIFY_TOKEN_ID, 0));
+    abilityRequest.specifyTokenId = abilitySessionInfo.specifyTokenId;
     (sessionInfo->want).RemoveParam(SPECIFY_TOKEN_ID);
-    abilityRequest.specifyTokenId = specifyTokenId;
 
     const auto &abilityInfo = abilityRequest.abilityInfo;
     if (abilityInfo.type != AppExecFwk::AbilityType::PAGE) {
