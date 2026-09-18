@@ -13,22 +13,16 @@
 
 {
   global:
+    extern "C" {
+      OHOS_ETS_Ability_Create;
+      OHOS_CreateAndBindETSUIAbilityContext;
+    };
     extern "C++" {
-      *AgentBundleEventCallback*;
-      *AgentCardDbMgr*;
-      *AgentCardMgr*;
-      *AgentCardUtils*;
-      *AgentConnectManager*;
-      *AgentEventHandler*;
-      *AgentHostConnection*;
-      *AgentHostKey*;
-      *AgentHostKeyEqual*;
-      *AgentManagerCallerIdentityScope*;
-      *AgentManagerService*;
-      *AgentOwnerKey*;
-      *AgentQuotaKey*;
-      *AgentServiceConnection*;
-      *AgentStandardConnectRequestBuilder*;
+      *EtsUIAbility*;
+      *ETSAbilityConnection*;
+      *EtsAbilityContext*;
+      *EtsUIAbilityServiceHostStubImpl*;
+      *EtsUIServiceExtAbilityConnection*;
     };
   local:
     *;
