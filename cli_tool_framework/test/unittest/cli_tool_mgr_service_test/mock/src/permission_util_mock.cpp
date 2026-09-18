@@ -20,8 +20,22 @@
 
 namespace OHOS {
 namespace CliTool {
-bool PermissionUtil::VerifyAccessToken(Security::AccessToken::AccessTokenID, const std::string &)
+// Test-only toggles consumed by the mocked VerifyAccessToken below. They allow
+// individual test cases to flip the permission verdict without touching real
+// AccessToken machinery. Defined here (not in the test body) so every
+// translation unit that includes the extern declaration in the test file links
+// against the same definition.
+bool g_execCliToolPermittedForTest = true;
+bool g_execPublicCliToolPermittedForTest = true;
+
+bool PermissionUtil::VerifyAccessToken(Security::AccessToken::AccessTokenID, const std::string &perm)
 {
+    if (perm == "ohos.permission.EXEC_CLI_TOOL") {
+        return g_execCliToolPermittedForTest;
+    }
+    if (perm == "ohos.permission.EXEC_PUBLIC_CLI_TOOL") {
+        return g_execPublicCliToolPermittedForTest;
+    }
     return true;
 }
 

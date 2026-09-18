@@ -24,4 +24,19 @@ bool GetBoolParameter(const std::string &key, bool def)
     return CliTool::CliToolMgrClientFlag::devModeEnabled;
 }
 } // namespace system
+namespace CliTool {
+bool g_execCliToolPermittedForTest = true;
+bool g_execPublicCliToolPermittedForTest = true;
+
+bool PermissionUtil::VerifyAccessToken(Security::AccessToken::AccessTokenID, const std::string &perm)
+{
+    if (perm == "ohos.permission.EXEC_CLI_TOOL") {
+        return g_execCliToolPermittedForTest;
+    }
+    if (perm == "ohos.permission.EXEC_PUBLIC_CLI_TOOL") {
+        return g_execPublicCliToolPermittedForTest;
+    }
+    return true;
+}
+} // namespace system
 } // namespace OHOS
