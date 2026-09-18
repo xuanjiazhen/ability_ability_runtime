@@ -2193,6 +2193,83 @@ HWTEST_F(ToolUtilTest, GenerateCmdSandboxConfig_0400, TestSize.Level1)
     GTEST_LOG_(INFO) << "ToolUtil_GenerateCmdSandboxConfig_0400 end";
 }
 
+/**
+ * @tc.name: ToolUtil_GenerateCmdSandboxConfig_SubjectId_0100
+ * @tc.desc: GenerateCmdSandboxConfig writes subjectId into sandbox config JSON when provided
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, GenerateCmdSandboxConfig_SubjectId_0100, TestSize.Level1)
+{
+    using json = nlohmann::json;
+    CliToolTest::AccessTokenKitMock::getTokenTypeFlagIsHap = true;
+    CliToolTest::AccessTokenKitMock::getHapTokenInfoRet = 0;
+    CliToolTest::AccessTokenKitMock::hapBundleName = "com.test.agent";
+    CliToolTest::AccessTokenKitMock::hapInstIndex = 0;
+    CliToolTest::AccessTokenKitMock::hapUserID = 100;
+    AppExecFwk::BundleMgrHelper::getBundleInfoResult = 0;
+    AppExecFwk::BundleMgrHelper::gid = 2000;
+    AppExecFwk::BundleMgrHelper::appId = "app-id-xxx";
+    AppExecFwk::BundleMgrHelper::bundleName = "com.test.agent";
+    IPCSkeleton::callingIdentity = "caller-id-str";
+    IPCSkeleton::callingUid = 12345;
+    IPCSkeleton::callingPid = 1000;
+    IPCSkeleton::callingTokenId = 999;
+    IPCSkeleton::callingFullTokenId = 88888;
+
+    ExecCmdParam param;
+    param.cmd = "ls /data";
+    param.execCmdOptions.policy = "strict";
+    param.execCmdOptions.env = "LANG=en_US.UTF-8";
+    param.execCmdOptions.subjectId = "test_agent_subject_id";
+
+    std::string sandboxConfig;
+    std::string bundleName;
+    AccessToken::AccessTokenID tokenId = 12345;
+    EXPECT_TRUE(ToolUtil::GenerateCmdSandboxConfig(param, tokenId, sandboxConfig, bundleName));
+
+    auto cfg = json::parse(sandboxConfig, nullptr, false);
+    ASSERT_FALSE(cfg.is_discarded());
+    EXPECT_EQ(cfg["subjectId"].get<std::string>(), "test_agent_subject_id");
+}
+
+/**
+ * @tc.name: ToolUtil_GenerateCmdSandboxConfig_SubjectId_0200
+ * @tc.desc: GenerateCmdSandboxConfig writes empty subjectId when not provided (backward compatible)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, GenerateCmdSandboxConfig_SubjectId_0200, TestSize.Level1)
+{
+    using json = nlohmann::json;
+    CliToolTest::AccessTokenKitMock::getTokenTypeFlagIsHap = true;
+    CliToolTest::AccessTokenKitMock::getHapTokenInfoRet = 0;
+    CliToolTest::AccessTokenKitMock::hapBundleName = "com.test.agent";
+    CliToolTest::AccessTokenKitMock::hapInstIndex = 0;
+    CliToolTest::AccessTokenKitMock::hapUserID = 100;
+    AppExecFwk::BundleMgrHelper::getBundleInfoResult = 0;
+    AppExecFwk::BundleMgrHelper::gid = 2000;
+    AppExecFwk::BundleMgrHelper::appId = "app-id-xxx";
+    AppExecFwk::BundleMgrHelper::bundleName = "com.test.agent";
+    IPCSkeleton::callingIdentity = "caller-id-str";
+    IPCSkeleton::callingUid = 12345;
+    IPCSkeleton::callingPid = 1000;
+    IPCSkeleton::callingTokenId = 999;
+    IPCSkeleton::callingFullTokenId = 88888;
+
+    ExecCmdParam param;
+    param.cmd = "pwd";
+    param.execCmdOptions.policy = "allow";
+    EXPECT_TRUE(param.execCmdOptions.subjectId.empty());
+
+    std::string sandboxConfig;
+    std::string bundleName;
+    AccessToken::AccessTokenID tokenId = 12345;
+    EXPECT_TRUE(ToolUtil::GenerateCmdSandboxConfig(param, tokenId, sandboxConfig, bundleName));
+
+    auto cfg = json::parse(sandboxConfig, nullptr, false);
+    ASSERT_FALSE(cfg.is_discarded());
+    EXPECT_EQ(cfg["subjectId"].get<std::string>(), "");
+}
+
 // ---- GenerateSandboxConfig: ForCli callerIdentity env injection (issue-16055) ----
 // The callerIdentity env branch lives in GenerateSandboxConfig (type="cli"), distinct from
 // GenerateCmdSandboxConfig (type="shell"). These cover the success path (env injection) + the

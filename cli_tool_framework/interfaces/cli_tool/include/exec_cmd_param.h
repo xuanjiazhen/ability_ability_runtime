@@ -55,6 +55,7 @@ public:
     // Trace identifiers for log correlation; empty means "not provided".
     std::string toolCallId;
     std::string dmSessionId;
+    std::string subjectId;
 
     bool Marshalling(Parcel &parcel) const;
     static ExecCmdOptions *Unmarshalling(Parcel &parcel);

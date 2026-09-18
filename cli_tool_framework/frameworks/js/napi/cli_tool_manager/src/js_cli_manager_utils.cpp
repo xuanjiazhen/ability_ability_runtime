@@ -353,6 +353,7 @@ bool UnwrapExecCmdOptions(napi_env env, napi_value obj, ExecCmdOptions &options,
         TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
         return false;
     }
+    UnwrapStringProperty(env, obj, "subjectId", options.subjectId);
     return true;
 }
 
@@ -650,6 +651,8 @@ napi_value CreateJsExecCmdParam(napi_env env, const ExecCmdParam &param)
         napi_set_named_property(env, jsOpts, "dmSessionId",
             AppExecFwk::WrapStringToJS(env, param.execCmdOptions.dmSessionId));
     }
+    napi_set_named_property(env, jsOpts, "subjectId",
+        AppExecFwk::WrapStringToJS(env, param.execCmdOptions.subjectId));
     napi_set_named_property(env, jsObj, "execCmdOptions", jsOpts);
     return jsObj;
 }
