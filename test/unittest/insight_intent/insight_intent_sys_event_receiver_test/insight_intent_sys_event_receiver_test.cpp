@@ -33,6 +33,7 @@ const std::string INVALID_BUNDLE_NAME = "";
 const std::string TEST_BUNDLE_NAME = "com.test.insightintent";
 const std::string TEST_MODULE_NAME = "testmodule";
 const std::string MULTI_MODULE_NAME = "module1,module2,module3";
+const std::vector<std::string> MULTI_MODULE_NAMES = {"module1", "module2", "module3"};
 const std::string EMPTY_MODULE_NAME = "";
 
 class InsightIntentSysEventReceiverTest : public testing::Test {
@@ -119,23 +120,23 @@ HWTEST_F(InsightIntentSysEventReceiverTest, SaveInsightIntentInfos_0002, TestSiz
     auto sysEventReceiver = std::make_shared<AbilityRuntime::InsightIntentSysEventReceiver>(subscribeInfo);
 
     // Test 1: Invalid bundle name
-    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(INVALID_BUNDLE_NAME, TEST_MODULE_NAME, ver, MAIN_USER_ID));
+    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(INVALID_BUNDLE_NAME, {TEST_MODULE_NAME}, ver, MAIN_USER_ID));
     EXPECT_EQ(sysEventReceiver->lastUserId_, 0); // Verify object state is normal and not affected by exceptions
 
     // Test 2: Empty module name
-    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, EMPTY_MODULE_NAME, ver, MAIN_USER_ID));
+    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, {EMPTY_MODULE_NAME}, ver, MAIN_USER_ID));
     EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
 
     // Test 3: Multiple module names
-    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, MULTI_MODULE_NAME, ver, MAIN_USER_ID));
+    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, MULTI_MODULE_NAMES, ver, MAIN_USER_ID));
     EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
 
     // Test 4: Invalid user ID
-    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, TEST_MODULE_NAME, ver, INVALID_USER_ID));
+    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, {TEST_MODULE_NAME}, ver, INVALID_USER_ID));
     EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
 
     // Test 5: Valid parameters
-    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, TEST_MODULE_NAME, ver, MAIN_USER_ID));
+    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, {TEST_MODULE_NAME}, ver, MAIN_USER_ID));
     EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
 }
 
@@ -296,23 +297,23 @@ HWTEST_F(InsightIntentSysEventReceiverTest, DeleteInsightIntent_0008, TestSize.L
 
     // Test scenario 1: SaveInsightIntentInfos failure triggers DeleteInsightIntent
     // When bundleName or moduleName is invalid, system should handle gracefully without crashing
-    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos("", TEST_MODULE_NAME, ver, MAIN_USER_ID));
+    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos("", {TEST_MODULE_NAME}, ver, MAIN_USER_ID));
     EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
 
-    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, "", ver, MAIN_USER_ID));
+    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, {""}, ver, MAIN_USER_ID));
     EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
 
     // Test scenario 2: Use invalid userId
-    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, TEST_MODULE_NAME, ver, INVALID_USER_ID));
+    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, {TEST_MODULE_NAME}, ver, INVALID_USER_ID));
     EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
 
     // Test scenario 3: Use non-existent bundle (GetJsonProfile will fail, triggering DeleteInsightIntent)
     EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(
-        "com.nonexistent.bundle", TEST_MODULE_NAME, ver, MAIN_USER_ID));
+        "com.nonexistent.bundle", {TEST_MODULE_NAME}, ver, MAIN_USER_ID));
     EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
 
     // Test scenario 4: Multi-module scenario with partial failures
-    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, MULTI_MODULE_NAME, ver, MAIN_USER_ID));
+    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, MULTI_MODULE_NAMES, ver, MAIN_USER_ID));
     EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
 }
 
@@ -328,21 +329,21 @@ HWTEST_F(InsightIntentSysEventReceiverTest, SaveInsightIntentInfos_EdgeCases_000
     auto sysEventReceiver = std::make_shared<AbilityRuntime::InsightIntentSysEventReceiver>(subscribeInfo);
 
     // Test boundary condition: versionCode is 0
-    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, TEST_MODULE_NAME, ver, MAIN_USER_ID));
+    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, {TEST_MODULE_NAME}, ver, MAIN_USER_ID));
     EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
 
     // Test boundary condition: versionCode is maximum value
     uint32_t maxVer = UINT32_MAX;
-    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, TEST_MODULE_NAME, maxVer, MAIN_USER_ID));
+    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, {TEST_MODULE_NAME}, maxVer, MAIN_USER_ID));
     EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
 
     // Test module name with special characters
-    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, "module@#$%", ver, MAIN_USER_ID));
+    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, {"module@#$%"}, ver, MAIN_USER_ID));
     EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
 
     // Test extra long module name
     std::string longModuleName(1000, 'a');
-    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, longModuleName, ver, MAIN_USER_ID));
+    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, {longModuleName}, ver, MAIN_USER_ID));
     EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
 }
 
@@ -358,14 +359,14 @@ HWTEST_F(InsightIntentSysEventReceiverTest, DeleteInsightIntent_MultiUser_0010, 
     auto sysEventReceiver = std::make_shared<AbilityRuntime::InsightIntentSysEventReceiver>(subscribeInfo);
 
     // Test DeleteInsightIntent behavior in multi-user scenarios
-    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, TEST_MODULE_NAME, ver, MAIN_USER_ID));
+    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, {TEST_MODULE_NAME}, ver, MAIN_USER_ID));
     EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
 
-    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, TEST_MODULE_NAME, ver, OTHER_USER_ID));
+    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, {TEST_MODULE_NAME}, ver, OTHER_USER_ID));
     EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
 
     // Test case when userId is 0
-    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, TEST_MODULE_NAME, ver, ZERO_USER_ID));
+    EXPECT_FALSE(sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, {TEST_MODULE_NAME}, ver, ZERO_USER_ID));
     EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
 }
 
