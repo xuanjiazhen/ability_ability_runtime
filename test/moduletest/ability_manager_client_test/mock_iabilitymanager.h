@@ -220,6 +220,7 @@ public:
     {
         return 0;
     }
+    void RegisterWantAgentHolder(const sptr<IWantSender> &target) override {}
     int ContinueMission(const std::string &srcDeviceId, const std::string &dstDeviceId, int32_t missionId,
         const sptr<IRemoteObject> &callBack, AAFwk::WantParams &wantParams) override
     {

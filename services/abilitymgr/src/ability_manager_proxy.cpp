@@ -2784,6 +2784,25 @@ int AbilityManagerProxy::GetWantSenderInfo(const sptr<IWantSender> &target, std:
     return NO_ERROR;
 }
 
+void AbilityManagerProxy::RegisterWantAgentHolder(const sptr<IWantSender> &target)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "write Token fail");
+        return;
+    }
+    if (target == nullptr || !data.WriteRemoteObject(target->AsObject())) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "target write fail");
+        return;
+    }
+    auto error = SendRequest(AbilityManagerInterfaceCode::REGISTER_WANT_AGENT_HOLDER, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "request error:%{public}d", error);
+    }
+}
+
 int AbilityManagerProxy::GetAppMemorySize()
 {
     MessageParcel data;
