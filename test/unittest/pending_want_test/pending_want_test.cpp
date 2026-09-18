@@ -39,9 +39,12 @@
 #include "wants_info.h"
 #include "want_params.h"
 #include "want_receiver_stub.h"
+#define private public
 #include "want_agent_client.h"
+#undef private
 #include "want_agent_helper.h"
 #include "want_sender_info.h"
+#include "ability_manager_ipc_interface_code.h"
 #include "bool_wrapper.h"
 #include "zchar_wrapper.h"
 #include "byte_wrapper.h"
@@ -1382,5 +1385,157 @@ HWTEST_F(PendingWantTest, PendingWant_7500, Function | MediumTest | Level1)
     std::shared_ptr<PendingWant> pendingWant = nullptr;
     PendingWant::GetServiceExtension(nullptr, requestCode, want, flags, pendingWant);
     EXPECT_EQ(pendingWant, nullptr);
+}
+
+namespace {
+class MockAbilityManagerRemote : public IRemoteObject {
+public:
+    MockAbilityManagerRemote() : IRemoteObject {u"MockAbilityManagerRemote"}
+    {
+    }
+
+    ~MockAbilityManagerRemote()
+    {
+    }
+
+    int32_t GetObjectRefCount()
+    {
+        return 0;
+    }
+
+    int SendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
+    {
+        code_ = code;
+        return sendResult_;
+    }
+
+    bool IsProxyObject() const
+    {
+        return false;
+    }
+
+    bool CheckObjectLegality() const
+    {
+        return true;
+    }
+
+    bool AddDeathRecipient(const sptr<DeathRecipient>& recipient)
+    {
+        return true;
+    }
+
+    bool RemoveDeathRecipient(const sptr<DeathRecipient>& recipient)
+    {
+        return true;
+    }
+
+    bool AddRefreshRecipient(const sptr<RefreshRecipient> &recipient)
+    {
+        return true;
+    }
+
+    bool RemoveRefreshRecipient(const sptr<RefreshRecipient> &recipient)
+    {
+        return true;
+    }
+
+    sptr<IRemoteBroker> AsInterface()
+    {
+        return nullptr;
+    }
+
+    int Dump(int fd, const std::vector<std::u16string>& args)
+    {
+        return 0;
+    }
+
+    uint32_t code_ = 0;
+    int sendResult_ = 0;
+};
+} // namespace
+
+/*
+ * @tc.number    : WantAgentClient_RegisterWantAgentHolder_0100
+ * @tc.name      : RegisterWantAgentHolder
+ * @tc.desc      : target is null, return before GetAbilityManager
+ */
+HWTEST_F(PendingWantTest, WantAgentClient_RegisterWantAgentHolder_0100, Function | MediumTest | Level1)
+{
+    auto &client = WantAgentClient::GetInstance();
+    client.proxy_ = nullptr;
+    sptr<AAFwk::IWantSender> target = nullptr;
+    EXPECT_NO_FATAL_FAILURE(client.RegisterWantAgentHolder(target));
+    client.proxy_ = nullptr;
+}
+
+/*
+ * @tc.number    : WantAgentClient_RegisterWantAgentHolder_0200
+ * @tc.name      : RegisterWantAgentHolder
+ * @tc.desc      : ability manager unavailable, return after CHECK_POINTER(abms)
+ */
+HWTEST_F(PendingWantTest, WantAgentClient_RegisterWantAgentHolder_0200, Function | MediumTest | Level1)
+{
+    auto &client = WantAgentClient::GetInstance();
+    client.proxy_ = nullptr;
+    sptr<AAFwk::IWantSender> target = new (std::nothrow) PendingWantRecord();
+    ASSERT_NE(target, nullptr);
+    EXPECT_NO_FATAL_FAILURE(client.RegisterWantAgentHolder(target));
+    client.proxy_ = nullptr;
+}
+
+/*
+ * @tc.number    : WantAgentClient_RegisterWantAgentHolder_0300
+ * @tc.name      : RegisterWantAgentHolder
+ * @tc.desc      : SendRequest succeeds, verify interface code
+ */
+HWTEST_F(PendingWantTest, WantAgentClient_RegisterWantAgentHolder_0300, Function | MediumTest | Level1)
+{
+    auto &client = WantAgentClient::GetInstance();
+    auto mock = sptr<MockAbilityManagerRemote>::MakeSptr();
+    ASSERT_NE(mock, nullptr);
+    mock->sendResult_ = 0;
+    client.proxy_ = mock;
+    sptr<AAFwk::IWantSender> target = new (std::nothrow) PendingWantRecord();
+    ASSERT_NE(target, nullptr);
+    client.RegisterWantAgentHolder(target);
+    EXPECT_EQ(mock->code_, static_cast<uint32_t>(AbilityManagerInterfaceCode::REGISTER_WANT_AGENT_HOLDER));
+    client.proxy_ = nullptr;
+}
+
+/*
+ * @tc.number    : WantAgentClient_RegisterWantAgentHolder_0400
+ * @tc.name      : RegisterWantAgentHolder
+ * @tc.desc      : SendRequest fails, no crash
+ */
+HWTEST_F(PendingWantTest, WantAgentClient_RegisterWantAgentHolder_0400, Function | MediumTest | Level1)
+{
+    auto &client = WantAgentClient::GetInstance();
+    auto mock = sptr<MockAbilityManagerRemote>::MakeSptr();
+    ASSERT_NE(mock, nullptr);
+    mock->sendResult_ = -1;
+    client.proxy_ = mock;
+    sptr<AAFwk::IWantSender> target = new (std::nothrow) PendingWantRecord();
+    ASSERT_NE(target, nullptr);
+    EXPECT_NO_FATAL_FAILURE(client.RegisterWantAgentHolder(target));
+    EXPECT_EQ(mock->code_, static_cast<uint32_t>(AbilityManagerInterfaceCode::REGISTER_WANT_AGENT_HOLDER));
+    client.proxy_ = nullptr;
+}
+
+/*
+ * @tc.number    : PendingWant_Unmarshalling_NonEmpty_0100
+ * @tc.name      : Unmarshalling
+ * @tc.desc      : unmarshal non-null target triggers ffrt holder registration submit
+ */
+HWTEST_F(PendingWantTest, PendingWant_Unmarshalling_NonEmpty_0100, Function | MediumTest | Level1)
+{
+    WantAgentClient::GetInstance().proxy_ = nullptr;
+    sptr<AAFwk::IWantSender> target = new (std::nothrow) PendingWantRecord();
+    ASSERT_NE(target, nullptr);
+    MessageParcel parcel;
+    ASSERT_TRUE(parcel.WriteRemoteObject(target->AsObject()));
+    parcel.RewindRead(0);
+    std::unique_ptr<PendingWant> pendingWant(PendingWant::Unmarshalling(parcel));
+    ASSERT_NE(pendingWant, nullptr);
+    EXPECT_NE(pendingWant->GetTarget(), nullptr);
 }
 }  // namespace OHOS::AbilityRuntime::WantAgent
