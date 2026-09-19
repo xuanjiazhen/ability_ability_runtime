@@ -16,7 +16,9 @@
 #include "ability_keep_alive_data_manager.h"
 
 #include <unistd.h>
+#include <map>
 
+#include "ffrt.h"
 #include "hilog_tag_wrapper.h"
 #include "json_utils.h"
 
@@ -27,6 +29,10 @@ constexpr int32_t CHECK_INTERVAL = 100000; // 100ms
 constexpr int32_t MAX_TIMES = 5;           // 5 * 100ms = 500ms
 constexpr int32_t U1_USER_ID = 1;
 constexpr const char *KEEP_ALIVE_STORAGE_DIR = "/data/service/el1/public/database/keep_alive_service";
+constexpr const char *KEEP_ALIVE_BACKUP_NAME = "keep_alive_backup";
+constexpr std::chrono::milliseconds BACKUP_MIN_INTERVAL(5000); // 5s
+constexpr int32_t RESTORE_RETRY_TIMES = 3;                     // restore attempts before treating backup as corrupted
+constexpr useconds_t RESTORE_RETRY_INTERVAL = 100000;          // 100ms
 const std::string JSON_KEY_BUNDLE_NAME = "bundleName";
 const std::string JSON_KEY_USERID = "userId";
 const std::string JSON_KEY_APP_TYPE = "appType";
@@ -80,26 +86,92 @@ AbilityKeepAliveDataManager::~AbilityKeepAliveDataManager()
     }
 }
 
+bool AbilityKeepAliveDataManager::IsRecoverableStatus(DistributedKv::Status status)
+{
+    return status == DistributedKv::Status::DATA_CORRUPTED ||
+           status == DistributedKv::Status::DB_CANT_OPEN ||
+           status == DistributedKv::Status::DB_ERROR ||
+           status == DistributedKv::Status::INVALID_QUERY_FORMAT ||
+           status == DistributedKv::Status::STORE_NOT_OPEN;
+}
+
 DistributedKv::Status AbilityKeepAliveDataManager::RestoreKvStore(DistributedKv::Status status)
 {
-    if (status == DistributedKv::Status::DATA_CORRUPTED) {
-        DistributedKv::Options options = {
-            .createIfMissing = true,
-            .encrypt = false,
-            .autoSync = false,
-            .syncable = false,
-            .securityLevel = DistributedKv::SecurityLevel::S2,
-            .area = DistributedKv::EL1,
-            .kvStoreType = DistributedKv::KvStoreType::SINGLE_VERSION,
-            .baseDir = KEEP_ALIVE_STORAGE_DIR,
-        };
-        TAG_LOGI(AAFwkTag::KEEP_ALIVE, "corrupted, deleting db");
-        dataManager_.DeleteKvStore(APP_ID, STORE_ID, options.baseDir);
-        TAG_LOGI(AAFwkTag::KEEP_ALIVE, "deleted corrupted db, recreating db");
-        status = dataManager_.GetSingleKvStore(options, APP_ID, STORE_ID, kvStorePtr_);
-        TAG_LOGI(AAFwkTag::KEEP_ALIVE, "recreate db result:%{public}d", status);
+    if (!IsRecoverableStatus(status)) {
+        return status;
+    }
+    DistributedKv::Options options = {
+        .createIfMissing = true,
+        .encrypt = false,
+        .autoSync = false,
+        .syncable = false,
+        .securityLevel = DistributedKv::SecurityLevel::S2,
+        .area = DistributedKv::EL1,
+        .kvStoreType = DistributedKv::KvStoreType::SINGLE_VERSION,
+        .baseDir = KEEP_ALIVE_STORAGE_DIR,
+    };
+    TAG_LOGE(AAFwkTag::KEEP_ALIVE, "kvStore unrecoverable, deleting db");
+    if (kvStorePtr_ != nullptr) {
+        dataManager_.CloseKvStore(APP_ID, kvStorePtr_);
+        kvStorePtr_ = nullptr;
+    }
+    dataManager_.DeleteKvStore(APP_ID, STORE_ID, options.baseDir);
+    TAG_LOGE(AAFwkTag::KEEP_ALIVE, "deleted corrupted db, recreating db");
+    status = dataManager_.GetSingleKvStore(options, APP_ID, STORE_ID, kvStorePtr_);
+    TAG_LOGE(AAFwkTag::KEEP_ALIVE, "recreate db result:%{public}d", status);
+    if (status == DistributedKv::Status::SUCCESS && kvStorePtr_ != nullptr) {
+        // Import the backup into the fresh store; on failure keep the empty store.
+        DistributedKv::Status restoreStatus = DistributedKv::Status::ERROR;
+        for (int32_t retry = 0; retry < RESTORE_RETRY_TIMES; ++retry) {
+            restoreStatus = kvStorePtr_->Restore(KEEP_ALIVE_BACKUP_NAME, KEEP_ALIVE_STORAGE_DIR);
+            if (restoreStatus == DistributedKv::Status::SUCCESS) {
+                break;
+            }
+            TAG_LOGW(AAFwkTag::KEEP_ALIVE,
+                "restore from backup failed, retry: %{public}d, result: %{public}d", retry, restoreStatus);
+            usleep(RESTORE_RETRY_INTERVAL);
+        }
+        TAG_LOGI(AAFwkTag::KEEP_ALIVE, "restore from backup result:%{public}d", restoreStatus);
     }
     return status;
+}
+
+void AbilityKeepAliveDataManager::BackupKvStore()
+{
+    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+    auto now = std::chrono::steady_clock::now();
+    if (now - lastBackupTime_ < BACKUP_MIN_INTERVAL) {
+        if (!backupFlushScheduled_) {
+            backupFlushScheduled_ = true;
+            auto delayUs = std::chrono::duration_cast<std::chrono::microseconds>(
+                BACKUP_MIN_INTERVAL - (now - lastBackupTime_)).count();
+            TAG_LOGI(AAFwkTag::KEEP_ALIVE, "kvStore backup deferred, flush task scheduled");
+            ffrt::submit([]() {
+                auto &instance = AbilityKeepAliveDataManager::GetInstance();
+                {
+                    std::lock_guard<std::mutex> instanceLock(instance.kvStorePtrMutex_);
+                    instance.backupFlushScheduled_ = false;
+                }
+                instance.BackupKvStore();
+            }, ffrt::task_attr().name("KeepAliveBackupFlush")
+                .delay(static_cast<uint64_t>(delayUs > 0 ? delayUs : 0)));
+        }
+        return;
+    }
+    if (!CheckKvStore()) {
+        TAG_LOGE(AAFwkTag::KEEP_ALIVE, "null kvStore");
+        return;
+    }
+    DistributedKv::Status status = kvStorePtr_->Backup(KEEP_ALIVE_BACKUP_NAME, KEEP_ALIVE_STORAGE_DIR);
+    if (status != DistributedKv::Status::SUCCESS) {
+        // Never delete the previous backup on failure: it is the last recoverable snapshot.
+        TAG_LOGE(AAFwkTag::KEEP_ALIVE, "kvStore backup error: %{public}d, retry", status);
+        status = kvStorePtr_->Backup(KEEP_ALIVE_BACKUP_NAME, KEEP_ALIVE_STORAGE_DIR);
+        TAG_LOGI(AAFwkTag::KEEP_ALIVE, "kvStore backup retry result:%{public}d", status);
+    }
+    TAG_LOGI(AAFwkTag::KEEP_ALIVE, "kvStore backup result:%{public}d, backup name: %{public}s, baseDir: %{public}s",
+        status, KEEP_ALIVE_BACKUP_NAME, KEEP_ALIVE_STORAGE_DIR);
+    lastBackupTime_ = now;
 }
 
 DistributedKv::Status AbilityKeepAliveDataManager::GetKvStore()
@@ -120,6 +192,24 @@ DistributedKv::Status AbilityKeepAliveDataManager::GetKvStore()
         TAG_LOGE(AAFwkTag::KEEP_ALIVE, "Error: %{public}d", status);
         status = RestoreKvStore(status);
         return status;
+    }
+
+    std::vector<DistributedKv::Entry> entries;
+    DistributedKv::Status entriesStatus = kvStorePtr_->GetEntries(nullptr, entries);
+    if (entriesStatus == DistributedKv::Status::SUCCESS && entries.empty()) {
+        // Store file was lost or recreated empty; import backup if one exists, keep empty store otherwise.
+        DistributedKv::Status restoreStatus = DistributedKv::Status::ERROR;
+        for (int32_t retry = 0; retry < RESTORE_RETRY_TIMES; ++retry) {
+            restoreStatus = kvStorePtr_->Restore(KEEP_ALIVE_BACKUP_NAME, KEEP_ALIVE_STORAGE_DIR);
+            if (restoreStatus == DistributedKv::Status::SUCCESS) {
+                break;
+            }
+            TAG_LOGW(AAFwkTag::KEEP_ALIVE,
+                "restore from backup on empty store failed, retry: %{public}d, result: %{public}d",
+                retry, restoreStatus);
+            usleep(RESTORE_RETRY_INTERVAL);
+        }
+        TAG_LOGI(AAFwkTag::KEEP_ALIVE, "restore from backup on empty store result:%{public}d", restoreStatus);
     }
 
     TAG_LOGD(AAFwkTag::KEEP_ALIVE, "Get kvStore success");
@@ -170,10 +260,11 @@ int32_t AbilityKeepAliveDataManager::InsertKeepAliveData(const KeepAliveInfo &in
         status = kvStorePtr_->Put(key, value);
         if (status != DistributedKv::Status::SUCCESS) {
             TAG_LOGE(AAFwkTag::KEEP_ALIVE, "kvStore insert error: %{public}d", status);
-            status = RestoreKvStore(status);
+            RestoreKvStore(status);
             return ERR_INVALID_OPERATION;
         }
     }
+    BackupKvStore();
     return ERR_OK;
 }
 
@@ -205,6 +296,7 @@ int32_t AbilityKeepAliveDataManager::DeleteKeepAliveData(const KeepAliveInfo &in
         }
     }
 
+    bool deleted = false;
     for (const auto &item : allEntries) {
         if (IsEqual(item.key, info)) {
             {
@@ -212,11 +304,15 @@ int32_t AbilityKeepAliveDataManager::DeleteKeepAliveData(const KeepAliveInfo &in
                 status = kvStorePtr_->Delete(item.key);
                 if (status != DistributedKv::Status::SUCCESS) {
                     TAG_LOGE(AAFwkTag::KEEP_ALIVE, "kvStore delete error: %{public}d", status);
-                    status = RestoreKvStore(status);
+                    RestoreKvStore(status);
                     return ERR_INVALID_OPERATION;
                 }
             }
+            deleted = true;
         }
+    }
+    if (deleted) {
+        BackupKvStore();
     }
 
     return ERR_OK;
@@ -323,6 +419,7 @@ int32_t AbilityKeepAliveDataManager::DeleteKeepAliveDataWithSetterId(const KeepA
         }
     }
 
+    bool deleted = false;
     for (const auto &item : allEntries) {
         if (IsEqualSetterId(item.key, info)) {
             {
@@ -330,11 +427,15 @@ int32_t AbilityKeepAliveDataManager::DeleteKeepAliveDataWithSetterId(const KeepA
                 status = kvStorePtr_->Delete(item.key);
                 if (status != DistributedKv::Status::SUCCESS) {
                     TAG_LOGE(AAFwkTag::KEEP_ALIVE, "kvStore delete error: %{public}d", status);
-                    status = RestoreKvStore(status);
+                    RestoreKvStore(status);
                     return ERR_INVALID_OPERATION;
                 }
             }
+            deleted = true;
         }
+    }
+    if (deleted) {
+        BackupKvStore();
     }
 
     return ERR_OK;
