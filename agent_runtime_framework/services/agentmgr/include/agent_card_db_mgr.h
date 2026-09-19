@@ -16,6 +16,8 @@
 #ifndef OHOS_AGENT_RUNTIME_AGENT_CARD_DB_MGR_H
 #define OHOS_AGENT_RUNTIME_AGENT_CARD_DB_MGR_H
 
+#include <atomic>
+#include <chrono>
 #include <mutex>
 #include <vector>
 
@@ -37,7 +39,7 @@ struct StoredAgentCardEntry {
     AgentCardUpdateSource updateSource = AgentCardUpdateSource::BUNDLE;
 };
 
-class AgentCardDbMgr {
+class AgentCardDbMgr : public std::enable_shared_from_this<AgentCardDbMgr> {
 public:
     static AgentCardDbMgr &GetInstance();
 
@@ -49,12 +51,22 @@ public:
 
     int32_t QueryAllData(std::vector<StoredAgentCardEntry> &cards);
 
+    /**
+     * @brief Backs up the whole kv store to a backup file in the storage directory.
+     * Called after successful data mutations so the corrupted-store recovery can
+     * restore agent cards instead of starting empty.
+     */
+    void BackupKvStore();
+
 private:
     AgentCardDbMgr();
     ~AgentCardDbMgr();
     DistributedKv::Options CreateKvStoreOptions();
     DistributedKv::Status RestoreCorruptedKvStore(const DistributedKv::Options& options);
     DistributedKv::Status RestoreKvStore(DistributedKv::Status status);
+    bool IsRecoverableStatus(DistributedKv::Status status);
+    DistributedKv::Status RestoreFromBackupWithRetry();
+    void RestoreIfStoreEmpty();
     DistributedKv::Status GetKvStore();
     bool CheckKvStore();
     DistributedKv::Value ConvertValue(const std::vector<StoredAgentCardEntry> &cards);
@@ -65,6 +77,8 @@ private:
     DistributedKv::DistributedKvDataManager dataManager_;
     std::shared_ptr<DistributedKv::SingleKvStore> kvStorePtr_;
     mutable std::mutex kvStorePtrMutex_;
+    std::chrono::steady_clock::time_point lastBackupTime_{};
+    bool backupFlushScheduled_ = false;
 };
 } // namespace AgentRuntime
 } // namespace OHOS
