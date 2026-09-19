@@ -16,8 +16,10 @@
 #include "agent_card_db_mgr.h"
 
 #include <unistd.h>
+#include <map>
 
 #include "ability_manager_errors.h"
+#include "ffrt.h"
 #include "hilog_tag_wrapper.h"
 #include "json_utils.h"
 
@@ -26,7 +28,11 @@ namespace AgentRuntime {
 namespace {
 constexpr int32_t CHECK_INTERVAL = 100000; // 100ms
 constexpr int32_t MAX_TIMES = 5;           // 5 * 100ms = 500ms
-constexpr const char *KEEP_ALIVE_STORAGE_DIR = "/data/service/el1/public/database/ability_manager_service";
+constexpr std::chrono::milliseconds BACKUP_MIN_INTERVAL(5000); // 5s
+constexpr int32_t RESTORE_RETRY_TIMES = 3;                     // restore attempts before treating backup as corrupted
+constexpr useconds_t RESTORE_RETRY_INTERVAL = 100000;          // 100ms
+constexpr const char *AGENT_CARD_STORAGE_DIR = "/data/service/el1/public/database/ability_manager_service";
+constexpr const char *AGENT_CARD_BACKUP_NAME = "agent_card_backup";
 const std::string JSON_KEY_BUNDLE_NAME = "bundleName";
 const std::string JSON_KEY_CARD = "card";
 const std::string JSON_KEY_CARDS = "cards";
@@ -127,27 +133,98 @@ DistributedKv::Options AgentCardDbMgr::CreateKvStoreOptions()
         .securityLevel = DistributedKv::SecurityLevel::S2,
         .area = DistributedKv::EL1,
         .kvStoreType = DistributedKv::KvStoreType::SINGLE_VERSION,
-        .baseDir = KEEP_ALIVE_STORAGE_DIR,
+        .baseDir = AGENT_CARD_STORAGE_DIR,
     };
 }
 
 DistributedKv::Status AgentCardDbMgr::RestoreCorruptedKvStore(const DistributedKv::Options &options)
 {
-    TAG_LOGE(AAFwkTag::SER_ROUTER, "corrupted, deleting db");
+    TAG_LOGE(AAFwkTag::SER_ROUTER, "kvStore unrecoverable, deleting db");
+    if (kvStorePtr_ != nullptr) {
+        dataManager_.CloseKvStore(APP_ID, kvStorePtr_);
+        kvStorePtr_ = nullptr;
+    }
     dataManager_.DeleteKvStore(APP_ID, STORE_ID, options.baseDir);
     TAG_LOGE(AAFwkTag::SER_ROUTER, "deleted corrupted db, recreating db");
     DistributedKv::Status status = dataManager_.GetSingleKvStore(options, APP_ID, STORE_ID, kvStorePtr_);
     TAG_LOGE(AAFwkTag::SER_ROUTER, "recreate db result:%{public}d", status);
+    if (status == DistributedKv::Status::SUCCESS && kvStorePtr_ != nullptr) {
+        // Import the backup into the fresh store; on failure keep the empty store.
+        DistributedKv::Status restoreStatus = DistributedKv::Status::ERROR;
+        for (int32_t retry = 0; retry < RESTORE_RETRY_TIMES; ++retry) {
+            restoreStatus = kvStorePtr_->Restore(AGENT_CARD_BACKUP_NAME, AGENT_CARD_STORAGE_DIR);
+            if (restoreStatus == DistributedKv::Status::SUCCESS) {
+                break;
+            }
+            TAG_LOGW(AAFwkTag::SER_ROUTER,
+                "restore from backup failed, retry: %{public}d, result: %{public}d", retry, restoreStatus);
+            usleep(RESTORE_RETRY_INTERVAL);
+        }
+        TAG_LOGI(AAFwkTag::SER_ROUTER, "restore from backup result:%{public}d", restoreStatus);
+    }
     return status;
+}
+
+void AgentCardDbMgr::BackupKvStore()
+{
+    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+    auto now = std::chrono::steady_clock::now();
+    if (now - lastBackupTime_ < BACKUP_MIN_INTERVAL) {
+        if (!backupFlushScheduled_) {
+            backupFlushScheduled_ = true;
+            auto delayUs = std::chrono::duration_cast<std::chrono::microseconds>(
+                BACKUP_MIN_INTERVAL - (now - lastBackupTime_)).count();
+            TAG_LOGI(AAFwkTag::SER_ROUTER, "kvStore backup deferred, flush task scheduled");
+            ffrt::submit([]() {
+                auto &instance = AgentCardDbMgr::GetInstance();
+                {
+                    std::lock_guard<std::mutex> instanceLock(instance.kvStorePtrMutex_);
+                    instance.backupFlushScheduled_ = false;
+                }
+                instance.BackupKvStore();
+            }, ffrt::task_attr().name("AgentCardBackupFlush")
+                .delay(static_cast<uint64_t>(delayUs > 0 ? delayUs : 0)));
+        }
+        return;
+    }
+    if (!CheckKvStore()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null kvStore");
+        return;
+    }
+    DistributedKv::Status status = kvStorePtr_->Backup(AGENT_CARD_BACKUP_NAME, AGENT_CARD_STORAGE_DIR);
+    if (status != DistributedKv::Status::SUCCESS) {
+        // Never delete the previous backup on failure: it is the last recoverable snapshot.
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "kvStore backup error: %{public}d, retry", status);
+        status = kvStorePtr_->Backup(AGENT_CARD_BACKUP_NAME, AGENT_CARD_STORAGE_DIR);
+        TAG_LOGI(AAFwkTag::SER_ROUTER, "kvStore backup retry result:%{public}d", status);
+        if (status == DistributedKv::Status::DATA_CORRUPTED) {
+            // Backup is a full-database scan: DATA_CORRUPTED here means the store itself is
+            // corrupted even though regular operations may still succeed. Rebuild and restore.
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "backup detected corrupted store, rebuild and restore");
+            RestoreKvStore(DistributedKv::Status::DATA_CORRUPTED);
+        }
+    }
+    TAG_LOGI(AAFwkTag::SER_ROUTER, "kvStore backup result:%{public}d, backup name: %{public}s, baseDir: %{public}s",
+        status, AGENT_CARD_BACKUP_NAME, AGENT_CARD_STORAGE_DIR);
+    lastBackupTime_ = now;
+}
+
+bool AgentCardDbMgr::IsRecoverableStatus(DistributedKv::Status status)
+{
+    return status == DistributedKv::Status::DATA_CORRUPTED ||
+           status == DistributedKv::Status::DB_CANT_OPEN ||
+           status == DistributedKv::Status::DB_ERROR ||
+           status == DistributedKv::Status::INVALID_QUERY_FORMAT ||
+           status == DistributedKv::Status::STORE_NOT_OPEN;
 }
 
 DistributedKv::Status AgentCardDbMgr::RestoreKvStore(DistributedKv::Status status)
 {
-    if (status == DistributedKv::Status::DATA_CORRUPTED) {
-        DistributedKv::Options options = CreateKvStoreOptions();
-        status = RestoreCorruptedKvStore(options);
+    if (!IsRecoverableStatus(status)) {
+        return status;
     }
-    return status;
+    DistributedKv::Options options = CreateKvStoreOptions();
+    return RestoreCorruptedKvStore(options);
 }
 
 DistributedKv::Status AgentCardDbMgr::GetKvStore()
@@ -160,7 +237,7 @@ DistributedKv::Status AgentCardDbMgr::GetKvStore()
         .securityLevel = DistributedKv::SecurityLevel::S2,
         .area = DistributedKv::EL1,
         .kvStoreType = DistributedKv::KvStoreType::SINGLE_VERSION,
-        .baseDir = KEEP_ALIVE_STORAGE_DIR,
+        .baseDir = AGENT_CARD_STORAGE_DIR,
     };
 
     DistributedKv::Status status = dataManager_.GetSingleKvStore(options, APP_ID, STORE_ID, kvStorePtr_);
@@ -168,6 +245,24 @@ DistributedKv::Status AgentCardDbMgr::GetKvStore()
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Error: %{public}d", status);
         status = RestoreKvStore(status);
         return status;
+    }
+
+    std::vector<DistributedKv::Entry> entries;
+    DistributedKv::Status entriesStatus = kvStorePtr_->GetEntries(nullptr, entries);
+    if (entriesStatus == DistributedKv::Status::SUCCESS && entries.empty()) {
+        // Store file was lost or recreated empty; import backup if one exists, keep empty store otherwise.
+        DistributedKv::Status restoreStatus = DistributedKv::Status::ERROR;
+        for (int32_t retry = 0; retry < RESTORE_RETRY_TIMES; ++retry) {
+            restoreStatus = kvStorePtr_->Restore(AGENT_CARD_BACKUP_NAME, AGENT_CARD_STORAGE_DIR);
+            if (restoreStatus == DistributedKv::Status::SUCCESS) {
+                break;
+            }
+            TAG_LOGW(AAFwkTag::SER_ROUTER,
+                "restore from backup on empty store failed, retry: %{public}d, result: %{public}d",
+                retry, restoreStatus);
+            usleep(RESTORE_RETRY_INTERVAL);
+        }
+        TAG_LOGI(AAFwkTag::SER_ROUTER, "restore from backup on empty store result:%{public}d", restoreStatus);
     }
 
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Get kvStore success");
@@ -195,39 +290,44 @@ bool AgentCardDbMgr::CheckKvStore()
 int32_t AgentCardDbMgr::InsertData(const std::string &bundleName, int32_t userId,
     const std::vector<StoredAgentCardEntry> &cards)
 {
-    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
-    if (!CheckKvStore()) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "null kvStore");
-        return ERR_NO_INIT;
-    }
-
     DistributedKv::Key key = ConvertKey(bundleName, userId);
     DistributedKv::Value value = ConvertValue(cards);
-    DistributedKv::Status status = kvStorePtr_->Put(key, value);
-    if (status != DistributedKv::Status::SUCCESS) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "kvStore insert error: %{public}d", status);
-        status = RestoreKvStore(status);
-        return ERR_INVALID_OPERATION;
+    {
+        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        if (!CheckKvStore()) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "null kvStore");
+            return ERR_NO_INIT;
+        }
+
+        DistributedKv::Status status = kvStorePtr_->Put(key, value);
+        if (status != DistributedKv::Status::SUCCESS) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "kvStore insert error: %{public}d", status);
+            status = RestoreKvStore(status);
+            return ERR_INVALID_OPERATION;
+        }
     }
+    BackupKvStore();
     return ERR_OK;
 }
 
 int32_t AgentCardDbMgr::DeleteData(const std::string &bundleName, int32_t userId)
 {
-    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
-    if (!CheckKvStore()) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "null kvStore");
-        return ERR_NO_INIT;
-    }
+    {
+        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        if (!CheckKvStore()) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "null kvStore");
+            return ERR_NO_INIT;
+        }
 
-    DistributedKv::Key key = ConvertKey(bundleName, userId);
-    DistributedKv::Status status = kvStorePtr_->Delete(key);
-    if (status != DistributedKv::Status::SUCCESS) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "kvStore delete error: %{public}d", status);
-        status = RestoreKvStore(status);
-        return ERR_INVALID_OPERATION;
+        DistributedKv::Key key = ConvertKey(bundleName, userId);
+        DistributedKv::Status status = kvStorePtr_->Delete(key);
+        if (status != DistributedKv::Status::SUCCESS) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "kvStore delete error: %{public}d", status);
+            status = RestoreKvStore(status);
+            return ERR_INVALID_OPERATION;
+        }
     }
-
+    BackupKvStore();
     return ERR_OK;
 }
 

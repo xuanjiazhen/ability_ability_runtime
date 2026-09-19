@@ -777,5 +777,60 @@ HWTEST_F(AbilityKeepAliveDataManagerTest, IsEqualSetterId_400, TestSize.Level1)
     EXPECT_FALSE(result);
     GTEST_LOG_(INFO) << "IsEqualSetterId_400 end";
 }
+
+/**
+ * Feature: AbilityKeepAliveDataManager
+ * Function: BackupKvStore
+ * SubFunction: NA
+ * FunctionPoints: AbilityKeepAliveDataManager BackupKvStore
+ */
+HWTEST_F(AbilityKeepAliveDataManagerTest, BackupKvStore_100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "BackupKvStore_100 start";
+    AbilityKeepAliveDataManager abilityKeepAliveDataManager;
+    std::shared_ptr<MockSingleKvStore> kvStorePtr = std::make_shared<MockSingleKvStore>();
+    abilityKeepAliveDataManager.kvStorePtr_ = kvStorePtr;
+    EXPECT_EQ(true, abilityKeepAliveDataManager.CheckKvStore());
+    abilityKeepAliveDataManager.BackupKvStore();
+    GTEST_LOG_(INFO) << "BackupKvStore_100 end";
+}
+
+/**
+ * Feature: AbilityKeepAliveDataManager
+ * Function: BackupKvStore
+ * SubFunction: NA
+ * FunctionPoints: AbilityKeepAliveDataManager BackupKvStore delete backup then retry
+ */
+HWTEST_F(AbilityKeepAliveDataManagerTest, BackupKvStore_200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "BackupKvStore_200 start";
+    AbilityKeepAliveDataManager abilityKeepAliveDataManager;
+    std::shared_ptr<MockSingleKvStore> kvStorePtr = std::make_shared<MockSingleKvStore>();
+    abilityKeepAliveDataManager.kvStorePtr_ = kvStorePtr;
+    EXPECT_EQ(true, abilityKeepAliveDataManager.CheckKvStore());
+    kvStorePtr->Backup_ = DistributedKv::Status::ERROR;
+    abilityKeepAliveDataManager.BackupKvStore();
+    kvStorePtr->Backup_ = DistributedKv::Status::SUCCESS;
+    GTEST_LOG_(INFO) << "BackupKvStore_200 end";
+}
+
+/**
+ * Feature: AbilityKeepAliveDataManager
+ * Function: RestoreKvStore
+ * SubFunction: NA
+ * FunctionPoints: AbilityKeepAliveDataManager restore on recoverable status
+ */
+HWTEST_F(AbilityKeepAliveDataManagerTest, RestoreKvStore_100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RestoreKvStore_100 start";
+    AbilityKeepAliveDataManager abilityKeepAliveDataManager;
+    std::shared_ptr<MockSingleKvStore> kvStorePtr = std::make_shared<MockSingleKvStore>();
+    abilityKeepAliveDataManager.kvStorePtr_ = kvStorePtr;
+    auto result = abilityKeepAliveDataManager.RestoreKvStore(DistributedKv::Status::DB_ERROR);
+    EXPECT_NE(result, DistributedKv::Status::DB_ERROR);
+    result = abilityKeepAliveDataManager.RestoreKvStore(DistributedKv::Status::INVALID_ARGUMENT);
+    EXPECT_EQ(result, DistributedKv::Status::INVALID_ARGUMENT);
+    GTEST_LOG_(INFO) << "RestoreKvStore_100 end";
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
