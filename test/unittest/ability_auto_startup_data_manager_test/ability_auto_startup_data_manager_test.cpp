@@ -1546,5 +1546,58 @@ HWTEST_F(AbilityAutoStartupDataManagerTest, GetAutoStartupStatusForSelf_200, Tes
     kvStorePtr->GetEntries_ = DistributedKv::Status::SUCCESS;
     GTEST_LOG_(INFO) << "GetAutoStartupStatusForSelf_200 end";
 }
+
+/**
+ * Feature: AbilityAutoStartupDataManager
+ * Function: BackupKvStore
+ * SubFunction: NA
+ * FunctionPoints: AbilityAutoStartupDataManager BackupKvStore
+ */
+HWTEST_F(AbilityAutoStartupDataManagerTest, BackupKvStore_100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "BackupKvStore_100 start";
+    AbilityAutoStartupDataManager abilityAutoStartupDataManager;
+    std::shared_ptr<MockSingleKvStore> kvStorePtr = std::make_shared<MockSingleKvStore>();
+    abilityAutoStartupDataManager.kvStorePtr_ = kvStorePtr;
+    EXPECT_EQ(true, abilityAutoStartupDataManager.CheckKvStore());
+    abilityAutoStartupDataManager.BackupKvStore();
+    GTEST_LOG_(INFO) << "BackupKvStore_100 end";
+}
+
+/**
+ * Feature: AbilityAutoStartupDataManager
+ * Function: BackupKvStore
+ * SubFunction: NA
+ * FunctionPoints: AbilityAutoStartupDataManager BackupKvStore delete backup then retry
+ */
+HWTEST_F(AbilityAutoStartupDataManagerTest, BackupKvStore_200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "BackupKvStore_200 start";
+    AbilityAutoStartupDataManager abilityAutoStartupDataManager;
+    std::shared_ptr<MockSingleKvStore> kvStorePtr = std::make_shared<MockSingleKvStore>();
+    abilityAutoStartupDataManager.kvStorePtr_ = kvStorePtr;
+    EXPECT_EQ(true, abilityAutoStartupDataManager.CheckKvStore());
+    kvStorePtr->Backup_ = DistributedKv::Status::ERROR;
+    abilityAutoStartupDataManager.BackupKvStore();
+    kvStorePtr->Backup_ = DistributedKv::Status::SUCCESS;
+    GTEST_LOG_(INFO) << "BackupKvStore_200 end";
+}
+
+/**
+ * Feature: AbilityAutoStartupDataManager
+ * Function: RestoreKvStore
+ * SubFunction: NA
+ * FunctionPoints: AbilityAutoStartupDataManager restore on recoverable status
+ */
+HWTEST_F(AbilityAutoStartupDataManagerTest, RestoreKvStore_300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RestoreKvStore_300 start";
+    AbilityAutoStartupDataManager abilityAutoStartupDataManager;
+    DistributedKv::Status status = DistributedKv::Status::DB_ERROR;
+
+    auto result = abilityAutoStartupDataManager.RestoreKvStore(status);
+    EXPECT_NE(result, status);
+    GTEST_LOG_(INFO) << "RestoreKvStore_300 end";
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

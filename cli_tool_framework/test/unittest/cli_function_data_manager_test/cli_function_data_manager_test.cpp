@@ -1571,5 +1571,56 @@ HWTEST_F(CliFunctionDataManagerTest, CliFunctionDataManager_ResetNamespaceFuncti
     TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_ResetNamespaceFunctions_008 end");
 }
 
+/**
+ * @tc.name: CliFunctionDataManager_BackupKvStore_001
+ * @tc.desc: Test BackupKvStore with mocked KVStore
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliFunctionDataManagerTest, CliFunctionDataManager_BackupKvStore_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_BackupKvStore_001 start");
+
+    auto mockStore = std::make_shared<MockSingleKvStore>();
+    CliFunctionDataManager::GetInstance().kvStorePtr_ = mockStore;
+    CliFunctionDataManager::GetInstance().BackupKvStore();
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_BackupKvStore_001 end");
+}
+
+/**
+ * @tc.name: CliFunctionDataManager_BackupKvStore_002
+ * @tc.desc: Test BackupKvStore delete backup and retry when backup fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliFunctionDataManagerTest, CliFunctionDataManager_BackupKvStore_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_BackupKvStore_002 start");
+
+    auto mockStore = std::make_shared<MockSingleKvStore>();
+    CliFunctionDataManager::GetInstance().kvStorePtr_ = mockStore;
+    mockStore->Backup_ = DistributedKv::Status::ERROR;
+    CliFunctionDataManager::GetInstance().BackupKvStore();
+    mockStore->Backup_ = DistributedKv::Status::SUCCESS;
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_BackupKvStore_002 end");
+}
+
+/**
+ * @tc.name: CliFunctionDataManager_RestoreKvStore_003
+ * @tc.desc: Test RestoreKvStore rebuilds store on recoverable status only
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliFunctionDataManagerTest, CliFunctionDataManager_RestoreKvStore_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_RestoreKvStore_003 start");
+
+    auto mockStore = std::make_shared<MockSingleKvStore>();
+    CliFunctionDataManager::GetInstance().kvStorePtr_ = mockStore;
+    CliFunctionDataManager::GetInstance().RestoreKvStore(DistributedKv::Status::DB_ERROR);
+    CliFunctionDataManager::GetInstance().RestoreKvStore(DistributedKv::Status::INVALID_ARGUMENT);
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_RestoreKvStore_003 end");
+}
+
 } // namespace CliTool
 } // namespace OHOS
