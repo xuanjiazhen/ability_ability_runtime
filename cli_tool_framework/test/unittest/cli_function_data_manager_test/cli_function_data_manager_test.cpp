@@ -1571,5 +1571,152 @@ HWTEST_F(CliFunctionDataManagerTest, CliFunctionDataManager_ResetNamespaceFuncti
     TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_ResetNamespaceFunctions_008 end");
 }
 
+/**
+ * @tc.name: CliFunctionDataManager_BackupKvStore_001
+ * @tc.desc: Test BackupKvStore with mocked KVStore
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliFunctionDataManagerTest, CliFunctionDataManager_BackupKvStore_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_BackupKvStore_001 start");
+
+    auto mockStore = std::make_shared<MockSingleKvStore>();
+    CliFunctionDataManager::GetInstance().kvStorePtr_ = mockStore;
+    CliFunctionDataManager::GetInstance().BackupKvStore();
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_BackupKvStore_001 end");
+}
+
+/**
+ * @tc.name: CliFunctionDataManager_BackupKvStore_002
+ * @tc.desc: Test BackupKvStore delete backup and retry when backup fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliFunctionDataManagerTest, CliFunctionDataManager_BackupKvStore_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_BackupKvStore_002 start");
+
+    auto mockStore = std::make_shared<MockSingleKvStore>();
+    CliFunctionDataManager::GetInstance().kvStorePtr_ = mockStore;
+    mockStore->Backup_ = DistributedKv::Status::ERROR;
+    CliFunctionDataManager::GetInstance().BackupKvStore();
+    mockStore->Backup_ = DistributedKv::Status::SUCCESS;
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_BackupKvStore_002 end");
+}
+
+/**
+ * @tc.name: CliFunctionDataManager_RestoreKvStore_003
+ * @tc.desc: Test RestoreKvStore rebuilds store on recoverable status only
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliFunctionDataManagerTest, CliFunctionDataManager_RestoreKvStore_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_RestoreKvStore_003 start");
+
+    auto mockStore = std::make_shared<MockSingleKvStore>();
+    CliFunctionDataManager::GetInstance().kvStorePtr_ = mockStore;
+    CliFunctionDataManager::GetInstance().RestoreKvStore(DistributedKv::Status::DB_ERROR);
+    CliFunctionDataManager::GetInstance().RestoreKvStore(DistributedKv::Status::INVALID_ARGUMENT);
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_RestoreKvStore_003 end");
+}
+
+/**
+ * @tc.name: CliFunctionDataManager_BackupKvStore_003
+ * @tc.desc: Test backup failure with DATA_CORRUPTED triggers rebuild and restore
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliFunctionDataManagerTest, CliFunctionDataManager_BackupKvStore_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_BackupKvStore_003 start");
+
+    auto mockStore = std::make_shared<MockSingleKvStore>();
+    CliFunctionDataManager::GetInstance().kvStorePtr_ = mockStore;
+    mockStore->Backup_ = DistributedKv::Status::DATA_CORRUPTED;
+    CliFunctionDataManager::GetInstance().BackupKvStore();
+    EXPECT_EQ(mockStore->BackupCallCount_, 2);
+    EXPECT_EQ(CliFunctionDataManager::GetInstance().kvStorePtr_, nullptr);
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_BackupKvStore_003 end");
+}
+
+/**
+ * @tc.name: CliFunctionDataManager_BackupKvStore_004
+ * @tc.desc: Test backup DB_ERROR with readable store does not trigger rebuild
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliFunctionDataManagerTest, CliFunctionDataManager_BackupKvStore_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_BackupKvStore_004 start");
+
+    auto mockStore = std::make_shared<MockSingleKvStore>();
+    CliFunctionDataManager::GetInstance().kvStorePtr_ = mockStore;
+    mockStore->Backup_ = DistributedKv::Status::DB_ERROR;
+    CliFunctionDataManager::GetInstance().BackupKvStore();
+    EXPECT_EQ(mockStore->BackupCallCount_, 2);
+    EXPECT_EQ(CliFunctionDataManager::GetInstance().kvStorePtr_, mockStore);
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_BackupKvStore_004 end");
+}
+
+/**
+ * @tc.name: CliFunctionDataManager_BackupKvStore_005
+ * @tc.desc: Test backup DB_ERROR with corrupted probe triggers rebuild and restore
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliFunctionDataManagerTest, CliFunctionDataManager_BackupKvStore_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_BackupKvStore_005 start");
+
+    auto mockStore = std::make_shared<MockSingleKvStore>();
+    CliFunctionDataManager::GetInstance().kvStorePtr_ = mockStore;
+    mockStore->Backup_ = DistributedKv::Status::DB_ERROR;
+    mockStore->GetEntries_ = DistributedKv::Status::DATA_CORRUPTED;
+    CliFunctionDataManager::GetInstance().BackupKvStore();
+    EXPECT_EQ(mockStore->BackupCallCount_, 2);
+    EXPECT_EQ(CliFunctionDataManager::GetInstance().kvStorePtr_, nullptr);
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_BackupKvStore_005 end");
+}
+
+/**
+ * @tc.name: CliFunctionDataManager_RestoreFromBackupWithRetry_001
+ * @tc.desc: Test no backup file stops retrying immediately
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliFunctionDataManagerTest, CliFunctionDataManager_RestoreFromBackupWithRetry_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_RestoreFromBackupWithRetry_001 start");
+
+    auto mockStore = std::make_shared<MockSingleKvStore>();
+    CliFunctionDataManager::GetInstance().kvStorePtr_ = mockStore;
+    mockStore->Restore_ = DistributedKv::Status::INVALID_ARGUMENT;
+    auto result = CliFunctionDataManager::GetInstance().RestoreFromBackupWithRetry();
+    EXPECT_EQ(result, DistributedKv::Status::INVALID_ARGUMENT);
+    EXPECT_EQ(mockStore->RestoreCallCount_, 1);
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_RestoreFromBackupWithRetry_001 end");
+}
+
+/**
+ * @tc.name: CliFunctionDataManager_RestoreFromBackupWithRetry_002
+ * @tc.desc: Test transient restore failure retries up to 3 attempts
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliFunctionDataManagerTest, CliFunctionDataManager_RestoreFromBackupWithRetry_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_RestoreFromBackupWithRetry_002 start");
+
+    auto mockStore = std::make_shared<MockSingleKvStore>();
+    CliFunctionDataManager::GetInstance().kvStorePtr_ = mockStore;
+    mockStore->Restore_ = DistributedKv::Status::DB_ERROR;
+    auto result = CliFunctionDataManager::GetInstance().RestoreFromBackupWithRetry();
+    EXPECT_EQ(result, DistributedKv::Status::DB_ERROR);
+    EXPECT_EQ(mockStore->RestoreCallCount_, 3);
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliFunctionDataManager_RestoreFromBackupWithRetry_002 end");
+}
+
 } // namespace CliTool
 } // namespace OHOS
