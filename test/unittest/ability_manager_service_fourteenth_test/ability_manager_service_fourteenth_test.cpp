@@ -560,7 +560,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, SetMissionIcon_002, TestSize.Level
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
     int retCode = abilityMs_->SetMissionIcon(nullptr, nullptr);
-    EXPECT_EQ(retCode, -1);
+    EXPECT_EQ(retCode, ERR_INVALID_VALUE);
     MyStatus::GetInstance().perJudgeCallerIsAllowedToUseSystemAPI_ = true;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest SetMissionIcon_002 end");
 }
@@ -583,7 +583,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, SetMissionIcon_003, TestSize.Level
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
     int retCode = abilityMs_->SetMissionIcon(nullptr, nullptr);
-    EXPECT_EQ(retCode, -1);
+    EXPECT_EQ(retCode, ERR_INVALID_VALUE);
     MyStatus::GetInstance().perJudgeCallerIsAllowedToUseSystemAPI_ = true;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest SetMissionIcon_003 end");
 }
@@ -606,7 +606,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, SetMissionIcon_004, TestSize.Level
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs_, nullptr);
     int retCode = abilityMs_->SetMissionIcon(nullptr, nullptr);
-    EXPECT_EQ(retCode, -1);
+    EXPECT_EQ(retCode, ERR_INVALID_VALUE);
     MyStatus::GetInstance().perJudgeCallerIsAllowedToUseSystemAPI_ = true;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest SetMissionIcon_004 end");
 }

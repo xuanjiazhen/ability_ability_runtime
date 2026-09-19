@@ -4022,6 +4022,10 @@ int32_t AppMgrServiceInner::ClearUpApplicationDataByUserId(const std::string &bu
     TAG_LOGD(AAFwkTag::APPMGR, "userId: %{public}d, bundleName: %{public}s, appCloneIndex: %{public}d",
         userId, bundleName.c_str(), appCloneIndex);
     auto tokenId = AccessToken::AccessTokenKit::GetHapTokenID(userId, bundleName, appCloneIndex);
+    if (tokenId == 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid tokenId, GetHapTokenID failed");
+        return ERR_INVALID_OPERATION;
+    }
     int32_t result = AccessToken::AccessTokenKit::ClearUserGrantedPermissionState(tokenId);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "clearUserGrantedPermissionState fail, ret:%{public}d", result);
