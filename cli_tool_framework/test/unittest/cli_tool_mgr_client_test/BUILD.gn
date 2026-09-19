@@ -30,6 +30,7 @@ ohos_unittest("cli_tool_mgr_client_test") {
     "mock/include",
     "${cli_tool_framework_path}/interfaces/cli_tool/include",
     "${cli_tool_framework_path}/interfaces/function/include",
+    "${cli_tool_framework_path}/services/common/include",
     "${ability_runtime_innerkits_path}/ability_manager/include",
     "${ability_runtime_services_path}/common/include",
   ]
@@ -71,6 +72,7 @@ ohos_unittest("cli_tool_mgr_client_test") {
 
   external_deps = [
     "ability_base:want",
+    "access_token:libaccesstoken_sdk",
     "bounds_checking_function:libsec_shared",
     "c_utils:utils",
     "googletest:gmock_main",
