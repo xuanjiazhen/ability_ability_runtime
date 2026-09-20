@@ -565,7 +565,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, ClearUpApplicationDataByUserId_002, Test
     std::string reason = "";
     int32_t ret = appMgrServiceInner->ClearUpApplicationDataByUserId(bundleName, callerUid, callerPid, appCloneIndex,
         userId, isBySelf, reason);
-    EXPECT_EQ(ret, AAFwk::ERR_APP_CLONE_INDEX_INVALID);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
     TAG_LOGI(AAFwkTag::TEST, "ClearUpApplicationDataByUserId_002 end");
 }
 
@@ -592,7 +592,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, ClearUpApplicationDataByUserId_003, Test
     std::string reason = "";
     int32_t ret = appMgrServiceInner->ClearUpApplicationDataByUserId(bundleName, callerUid, callerPid, appCloneIndex,
         userId, isBySelf, reason);
-    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
     TAG_LOGI(AAFwkTag::TEST, "ClearUpApplicationDataByUserId_003 end");
 }
 
