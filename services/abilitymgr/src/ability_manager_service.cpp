@@ -4896,9 +4896,12 @@ bool AbilityManagerService::JudgeSystemParamsForPicker(const WantParams &paramet
     return false;
 }
 
-void AbilityManagerService::SetPickerElementNameAndParams(const sptr<SessionInfo> &extensionSessionInfo, int32_t userId)
+ErrCode AbilityManagerService::SetPickerElementNameAndParams(const sptr<SessionInfo> &extensionSessionInfo, int32_t userId)
 {
-    CHECK_POINTER_IS_NULLPTR(extensionSessionInfo);
+    if (extensionSessionInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "nullptr");
+        return ERR_INVALID_VALUE;
+    }
     std::string targetType = extensionSessionInfo->want.GetStringParam(UIEXTENSION_TARGET_TYPE_KEY);
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled() &&
         extensionSessionInfo->want.GetBundleNameRef().empty() &&
@@ -4914,10 +4917,11 @@ void AbilityManagerService::SetPickerElementNameAndParams(const sptr<SessionInfo
             extensionSessionInfo->want.RemoveParam(SCREENCONFIG_SCREENMODE);
         }
         extensionSessionInfo->want.SetParams(parameters);
-        return;
+        return ERR_OK;
     }
     if (extensionSessionInfo->want.GetBundleNameRef().empty() &&
-        extensionSessionInfo->want.GetAbilityNameRef().empty() && !targetType.empty()) {
+        extensionSessionInfo->want.GetAbilityNameRef().empty() &&
+        extensionSessionInfo->want.HasParameter(UIEXTENSION_TARGET_TYPE_KEY)) {
         std::string abilityName;
         std::string bundleName;
         std::string pickerType;
@@ -4930,7 +4934,10 @@ void AbilityManagerService::SetPickerElementNameAndParams(const sptr<SessionInfo
         }
         pickerType = it->second;
         auto bms = AbilityUtil::GetBundleManagerHelper();
-        CHECK_POINTER(bms);
+        if (bms == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "bms is nullptr");
+            return ABILITY_SERVICE_NOT_CONNECTED;
+        }
         int32_t validUserId = GetValidUserId(userId);
         TAG_LOGI(AAFwkTag::ABILITYMGR, "targetType: %{public}s, pickerType: %{public}s, userId: %{public}d",
             targetType.c_str(), pickerType.c_str(), validUserId);
@@ -4942,7 +4949,11 @@ void AbilityManagerService::SetPickerElementNameAndParams(const sptr<SessionInfo
             extensionInfos));
         if (ret != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "queryExtensionAbilityInfosOnlyWithTypeName failed");
-            return;
+            return RESOLVE_ABILITY_ERR;
+        }
+        if (extensionInfos.empty()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "extensionInfos is empty");
+            return RESOLVE_ABILITY_ERR;
         }
         abilityName = extensionInfos[0].name;
         bundleName = extensionInfos[0].bundleName;
@@ -4958,6 +4969,7 @@ void AbilityManagerService::SetPickerElementNameAndParams(const sptr<SessionInfo
         }
         extensionSessionInfo->want.SetParams(parameters);
     }
+    return ERR_OK;
 }
 
 void AbilityManagerService::SetAutoFillElementName(const sptr<SessionInfo> &extensionSessionInfo)
@@ -5017,7 +5029,15 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::UI_EXT, "StartUIExtensionAbility begin");
     CHECK_POINTER_AND_RETURN(extensionSessionInfo, ERR_INVALID_VALUE);
-    SetPickerElementNameAndParams(extensionSessionInfo, userId);
+    auto pickerRet = SetPickerElementNameAndParams(extensionSessionInfo, userId);
+    if (pickerRet != ERR_OK) {
+        auto failEventInfo = BuildEventInfo(extensionSessionInfo->want, userId);
+        failEventInfo->persistentId = extensionSessionInfo->persistentId;
+        failEventInfo->lifeCycle = LIFE_CYCLE_START;
+        failEventInfo->calleeId = static_cast<int32_t>(CalleeId::START_UI_EXTENSION_ABILITY);
+        SendAbilityEvent(EventName::START_ABILITY, HISYSEVENT_BEHAVIOR, failEventInfo);
+        return pickerRet;
+    }
     SetAutoFillElementName(extensionSessionInfo);
     auto eventInfo = BuildEventInfo(extensionSessionInfo->want, userId);
     eventInfo->persistentId = extensionSessionInfo->persistentId;

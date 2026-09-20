@@ -15,6 +15,9 @@
 
 #include "ui_service_extension_context.h"
 
+#include <atomic>
+
+#include "ability_business_error.h"
 #include "ability_connection.h"
 #include "ability_manager_client.h"
 #include "hilog_tag_wrapper.h"
@@ -96,10 +99,26 @@ ErrCode UIServiceExtensionContext::StartAbilityByType(
         wantParam.Remove(FLAG_AUTH_READ_URI_PERMISSION);
     }
 
+    auto errorFired = std::make_shared<std::atomic<bool>>(false);
     OHOS::Ace::ModalUIExtensionCallbacks callback;
     OHOS::Ace::ModalUIExtensionConfig config;
-    callback.onError = [uiExtensionCallback](int32_t arg, const std::string &str1, const std::string &str2) {
+    callback.onError = [uiExtensionCallback](int32_t arg, const std::string &str1,
+        const std::string &str2) {
         uiExtensionCallback->OnError(arg);
+    };
+    callback.onAbilityErrorCode = [uiExtensionCallback, errorFired](const OHOS::Ace::UIExtensionOperationPhase& phase,
+        int32_t errorCode) {
+        if (phase != OHOS::Ace::UIExtensionOperationPhase::FOREGROUND) {
+            return;
+        }
+        bool expected = false;
+        if (!errorFired->compare_exchange_strong(expected, true)) {
+            if (errorCode != 0) {
+                TAG_LOGW(AAFwkTag::UISERVC_EXT, "error %{public}d dropped, callback already fired", errorCode);
+            }
+            return;
+        }
+        uiExtensionCallback->OnAbilityByTypeResult(errorCode);
     };
     callback.onRelease = [uiExtensionCallback](int32_t arg) {
         uiExtensionCallback->OnRelease(arg);

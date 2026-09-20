@@ -344,7 +344,6 @@ constexpr const char* ERROR_MSG_FILE_TYPE_ERROR =
 
 constexpr const char* ERROR_MSG_EVICT_CONFIG_PARSE_ERROR =
     "Failed to parse configuration file.";
-
 constexpr const char* ERROR_MSG_INVALID_EXTENSION_TYPE = "Internal error. Invalid extension ability type.";
 
 static std::unordered_map<AbilityErrorCode, const char*> ERR_CODE_MAP = {
@@ -641,10 +640,7 @@ static std::unordered_map<int32_t, const char*> INNER_ERROR_MSG_BY_NATIVE_CODE {
     {ERR_WRITE_RESULT_CODE_FAILED, ERROR_MSG_IPC_FAILED},
     {ERR_WRITE_KIOSK_STATUS_FAILED, ERROR_MSG_IPC_FAILED},
     {ERR_WRITE_CALLER_TOKEN_FAILED, ERROR_MSG_IPC_FAILED},
-<<<<<<<
-=======
     {ERR_INVALID_EXTENSION_TYPE, ERROR_MSG_INVALID_EXTENSION_TYPE},
->>>>>>>
 };
 
 static std::unordered_map<AbilityInnerErrorMsg, const char*> INNER_ERROR_MSG_BY_SCENE {
