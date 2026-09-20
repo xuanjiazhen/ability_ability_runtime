@@ -63,7 +63,10 @@ public:
 
     ErrCode GetWantSenderInfo(const sptr<IWantSender> &target, std::shared_ptr<WantSenderInfo> &info);
 
+    void RegisterWantAgentHolder(const sptr<IWantSender> &target);
+
     void RemoveDeathRecipient();
+
 private:
     class WantAgentDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
