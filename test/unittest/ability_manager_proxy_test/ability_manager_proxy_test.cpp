@@ -31,6 +31,7 @@
 #include "hilog_tag_wrapper.h"
 #include "mission_snapshot.h"
 #include "want_sender_info.h"
+#include "pending_want_record.h"
 #include "mission_listener_interface.h"
 #include "mission_snapshot.h"
 #include "snapshot.h"
@@ -1386,6 +1387,23 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_GetWantSenderInfo_001, Tes
     auto info = std::make_shared<WantSenderInfo>();
     auto res = proxy_->GetWantSenderInfo(target, info);
     EXPECT_EQ(res, INNER_ERR);
+}
+
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_RegisterWantAgentHolder_001, TestSize.Level1)
+{
+    sptr<IWantSender> target = nullptr;
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _)).Times(0);
+    proxy_->RegisterWantAgentHolder(target);
+}
+
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_RegisterWantAgentHolder_002, TestSize.Level1)
+{
+    sptr<IWantSender> target = new PendingWantRecord();
+    ASSERT_NE(target, nullptr);
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _)).Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    proxy_->RegisterWantAgentHolder(target);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::REGISTER_WANT_AGENT_HOLDER), mock_->code_);
 }
 
 /*
