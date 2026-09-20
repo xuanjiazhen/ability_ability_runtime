@@ -1206,7 +1206,6 @@ void AppMgrServiceInner::HandleMakeImageFailed(const std::string& bundleName, co
     NotifyMakeImageFailed(imageInfo->bundleInfo.uid, imageInfo->errorHandler, err);
     auto appRecord = GetAppRunningRecordByPid(imageInfo->templatePid);
     if (appRecord != nullptr) {
-        appRecord->NotifyMakeImageFailed();
         appRecord->SetMakeImageState(MakeImageState::NONE);
     }
 }
