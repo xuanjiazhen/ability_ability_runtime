@@ -807,6 +807,8 @@ public:
 
     virtual int GetWantSenderInfo(const sptr<IWantSender> &target, std::shared_ptr<WantSenderInfo> &info) override;
 
+    virtual void RegisterWantAgentHolder(const sptr<IWantSender> &target) override;
+
     virtual int GetAppMemorySize() override;
 
     virtual bool IsRamConstrainedDevice() override;
