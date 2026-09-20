@@ -16,6 +16,7 @@
 #ifndef OHOS_AGENT_RUNTIME_FRAMEWORK_AGENT_MANAGER_SERVICE_H
 #define OHOS_AGENT_RUNTIME_FRAMEWORK_AGENT_MANAGER_SERVICE_H
 
+#include <atomic>
 #include <chrono>
 #include <cstdint>
 #include <map>
@@ -197,6 +198,7 @@ private:
     std::shared_ptr<AgentEventHandler> eventHandler_;
     sptr<AgentBundleEventCallback> bundleEventCallback_;
     BackfillState backfillState_;
+    std::atomic<bool> memMgrNotified_ = false;  // guarantee paired NotifyProcessStatus start/died
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS
