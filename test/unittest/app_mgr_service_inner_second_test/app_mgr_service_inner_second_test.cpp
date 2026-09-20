@@ -1385,7 +1385,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, ClearUpApplicationData_0100, TestSize.Lev
     int32_t appCloneIndex = 0;
     int32_t userId = DEFAULT_INVAL_VALUE;
     auto ret = appMgrServiceInner->ClearUpApplicationData(bundleName, callerUid, callerPid, appCloneIndex, userId);
-    EXPECT_EQ(ret, ERR_APP_CLONE_INDEX_INVALID);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
     callerUid = -1;
     ret = appMgrServiceInner->ClearUpApplicationData(bundleName, callerUid, callerPid, appCloneIndex, userId);
     EXPECT_EQ(ret, ERR_INVALID_OPERATION);
@@ -1421,7 +1421,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, ClearUpApplicationDataByUserId_0100, Test
     callerUid = 1;
     res = appMgrServiceInner->ClearUpApplicationDataByUserId(bundleName, callerUid, callerPid, appCloneIndex, userId,
                                                              isBySelf);
-    EXPECT_EQ(res, ERR_APP_CLONE_INDEX_INVALID); //clearUserGrantedPermissionState fail
+    EXPECT_EQ(res, ERR_INVALID_OPERATION); //tokenId is 0, GetHapTokenID failed
     Security::AccessToken::HapInfoParams info;
     info.userID = userId;
     info.bundleName = bundleName;
