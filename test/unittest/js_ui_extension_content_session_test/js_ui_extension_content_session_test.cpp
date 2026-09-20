@@ -20,7 +20,6 @@
 #include "context_impl.h"
 #include "js_runtime_lite.h"
 #include "js_ui_extension_content_session.h"
-#include "napi_common_want_agent.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "napi_common_util.h"
@@ -1653,48 +1652,70 @@ HWTEST_F(JsUIExtensionContentSessionTest, SetCallbackForTerminateWithResultTest_
 }
 
 /**
- * @tc.number: WrapWantAgentTest_0100
- * @tc.name: WrapWantAgent test
- * @tc.desc: WrapWantAgent test
+ * @tc.number: IsArrayForNapiValue_NullParam_0100
+ * @tc.name: IsArrayForNapiValue with null param
+ * @tc.desc: Test IsArrayForNapiValue returns false for null param without crash
  */
-HWTEST_F(JsUIExtensionContentSessionTest, WrapWantAgentTest_0100, Function | MediumTest | Level1)
+HWTEST_F(JsUIExtensionContentSessionTest, IsArrayForNapiValue_NullParam_0100, Function | MediumTest | Level1)
 {
-    GTEST_LOG_(INFO) << "WrapWantAgentTest_0100 start";
+    GTEST_LOG_(INFO) << "IsArrayForNapiValue_NullParam_0100 start";
 
     OHOS::AbilityRuntime::Runtime::Options options;
     std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
     auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
     EXPECT_EQ(err, napi_status::napi_ok);
     napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
-    EXPECT_NE(OHOS::AppExecFwk::WrapWantAgent(env, nullptr, nullptr), nullptr);
-    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
 
-    GTEST_LOG_(INFO) << "WrapWantAgentTest_0100 end";
+    uint32_t arraySize = 0;
+    bool result = AppExecFwk::IsArrayForNapiValue(env, nullptr, arraySize);
+    EXPECT_FALSE(result);
+    EXPECT_EQ(arraySize, 0);
+
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    GTEST_LOG_(INFO) << "IsArrayForNapiValue_NullParam_0100 end";
 }
 
 /**
- * @tc.number: UnwrapWantAgentTest_0100
- * @tc.name: UnwrapWantAgent test
- * @tc.desc: UnwrapWantAgent test
+ * @tc.number: GetUIExtensionHostWindowProxy_NullUiWindow_0100
+ * @tc.name: OnGetUIExtensionHostWindowProxy/WindowProxy return undefined on null uiWindow_
+ * @tc.desc: Call OnGetUIExtensionHostWindowProxy and OnGetUIExtensionWindowProxy with
+ *           non-null sessionInfo but null uiWindow_; expect non-crash and undefined return.
  */
-HWTEST_F(JsUIExtensionContentSessionTest, UnwrapWantAgentTest_0100, Function | MediumTest | Level1)
+HWTEST_F(JsUIExtensionContentSessionTest, GetUIExtensionHostWindowProxy_NullUiWindow_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "UnwrapWantAgentTest_0100 start";
+    GTEST_LOG_(INFO) << "GetUIExtensionHostWindowProxy_NullUiWindow_0100 start";
 
-    OHOS::AbilityRuntime::Runtime::Options options;
-    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
-    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
-    EXPECT_EQ(err, napi_status::napi_ok);
+    AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<JsEnv::JsEnvironment> jsEnv = nullptr;
+    JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    ASSERT_NE(jsEnv, nullptr);
     napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
-    std::string test = "test";
-    void* myPointer = static_cast<void*>(&test);
-    void** result = reinterpret_cast<void**>(&myPointer);
-    napi_value jSObject = AppExecFwk::CreateJSObject(env);
-    OHOS::AppExecFwk::UnwrapWantAgent(env, jSObject, result);
-    EXPECT_EQ(myPointer, nullptr);
-    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    EXPECT_NE(env, nullptr);
 
-    GTEST_LOG_(INFO) << "UnwrapWantAgentTest_0100 end";
+    sptr<AAFwk::SessionInfo> sessionInfo = new (std::nothrow) AAFwk::SessionInfo();
+    ASSERT_NE(sessionInfo, nullptr);
+    sptr<Rosen::Window> uiWindow = nullptr;
+    std::weak_ptr<AbilityRuntime::Context> contextWeak;
+    std::shared_ptr<AbilityResultListeners> abilityResultListeners = nullptr;
+    auto session = std::make_shared<JsUIExtensionContentSession>(
+        sessionInfo, uiWindow, contextWeak, abilityResultListeners);
+    ASSERT_NE(session, nullptr);
+    ASSERT_EQ(session->uiWindow_, nullptr);
+
+    NapiCallbackInfo info;
+    napi_valuetype valueType = napi_undefined;
+    napi_value hostRet = session->OnGetUIExtensionHostWindowProxy(env, info);
+    EXPECT_NE(hostRet, nullptr);
+    EXPECT_EQ(napi_typeof(env, hostRet, &valueType), napi_ok);
+    EXPECT_EQ(valueType, napi_undefined);
+
+    napi_value windowRet = session->OnGetUIExtensionWindowProxy(env, info);
+    EXPECT_NE(windowRet, nullptr);
+    EXPECT_EQ(napi_typeof(env, windowRet, &valueType), napi_ok);
+    EXPECT_EQ(valueType, napi_undefined);
+
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+    GTEST_LOG_(INFO) << "GetUIExtensionHostWindowProxy_NullUiWindow_0100 end";
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
