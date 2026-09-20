@@ -263,6 +263,14 @@ private:
             TAG_LOGD(AAFwkTag::UISERVC_EXT, "JSUIServiceExtensionContext OnStartAbilityByType");
             *innerErrCode = context->StartAbilityByType(type, wantParam, callback);
         };
+        return ScheduleStartAbilityByType(env, info, callback, innerErrCode, std::move(execute));
+    }
+
+    napi_value ScheduleStartAbilityByType(napi_env env, NapiCallbackInfo& info,
+        const std::shared_ptr<JsUIExtensionCallback>& callback,
+        const std::shared_ptr<ErrCode>& innerErrCode,
+        NapiAsyncTask::ExecuteCallback execute)
+    {
         napi_value lastParam = (info.argc > ARGC_THREE) ? info.argv[INDEX_THREE] : nullptr;
         napi_valuetype lastParamType = napi_undefined;
         if (lastParam != nullptr && napi_typeof(env, lastParam, &lastParamType) != napi_ok) {
