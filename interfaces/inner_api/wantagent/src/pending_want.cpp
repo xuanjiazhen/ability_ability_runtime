@@ -15,11 +15,14 @@
 
 #include "pending_want.h"
 
+#include "ability_manager_interface.h"
 #include "ability_runtime_error_util.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "want_agent_client.h"
 #include "want_sender_info.h"
+
+#include "ffrt.h"
 
 using namespace OHOS::AppExecFwk;
 using namespace OHOS::AAFwk;
@@ -465,6 +468,20 @@ PendingWant *PendingWant::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
     pendingWant->SetTarget(target);
+
+    ffrt::submit([target]() {
+        sptr<IRemoteObject> remoteObj = WantAgentClient::GetInstance().GetAbilityManager();
+        if (remoteObj == nullptr) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "get ability manager fail");
+            return;
+        }
+        sptr<IAbilityManager> abms = iface_cast<IAbilityManager>(remoteObj);
+        if (abms == nullptr) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "iface_cast ability manager fail");
+            return;
+        }
+        abms->RegisterWantAgentHolder(target);
+    });
 
     return pendingWant;
 }

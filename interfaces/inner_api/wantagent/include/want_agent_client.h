@@ -64,6 +64,8 @@ public:
     ErrCode GetWantSenderInfo(const sptr<IWantSender> &target, std::shared_ptr<WantSenderInfo> &info);
 
     void RemoveDeathRecipient();
+
+    sptr<IRemoteObject> GetAbilityManager();
 private:
     class WantAgentDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
@@ -77,7 +79,6 @@ private:
     virtual ~WantAgentClient();
     DISALLOW_COPY_AND_MOVE(WantAgentClient);
 
-    sptr<IRemoteObject> GetAbilityManager();
     void ResetProxy(const wptr<IRemoteObject>& remote);
     bool WriteInterfaceToken(MessageParcel &data);
     bool CheckSenderAndRecevier(const sptr<IWantSender> &sender, const sptr<IWantReceiver> &receiver);
