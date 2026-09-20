@@ -31,6 +31,7 @@
 #include "hilog_tag_wrapper.h"
 #include "mission_snapshot.h"
 #include "want_sender_info.h"
+#include "pending_want_record.h"
 #include "mission_listener_interface.h"
 #include "mission_snapshot.h"
 #include "snapshot.h"
