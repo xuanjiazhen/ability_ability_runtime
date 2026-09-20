@@ -797,7 +797,7 @@ ErrCode UIExtensionContext::StartAbilityByType(const std::string &type,
     };
     callback.onAbilityErrorCode = [uiExtensionCallbacks, errorFired](const OHOS::Ace::UIExtensionOperationPhase& phase,
         int32_t errorCode) {
-        if (phase != OHOS::Ace::UIExtensionOperationPhase::FOREGROUND) {
+        if (phase != OHOS::Ace::UIExtensionOperationPhase::FOREGROUND && errorCode == 0) {
             return;
         }
         bool expected = false;
@@ -809,7 +809,11 @@ ErrCode UIExtensionContext::StartAbilityByType(const std::string &type,
         }
         uiExtensionCallbacks->OnAbilityByTypeResult(errorCode);
     };
-    callback.onRelease = [uiExtensionCallbacks](int32_t arg) {
+    callback.onRelease = [uiExtensionCallbacks, errorFired](int32_t arg) {
+        bool expected = false;
+        if (errorFired->compare_exchange_strong(expected, true)) {
+            uiExtensionCallbacks->OnAbilityByTypeResult(0);
+        }
         uiExtensionCallbacks->OnRelease(arg);
     };
     callback.onResult = [uiExtensionCallbacks](int32_t arg1, const OHOS::AAFwk::Want arg2) {

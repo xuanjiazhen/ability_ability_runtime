@@ -318,21 +318,22 @@ void JsUIExtensionCallback::CallJsError(int32_t number)
     TAG_LOGI(AAFwkTag::UI_EXT, "end");
 }
 
-void JsUIExtensionCallback::SetCompletionCallback(napi_env env, napi_value callback)
+bool JsUIExtensionCallback::SetCompletionCallback(napi_env env, napi_value callback)
 {
     AbilityRuntime::HandleScope handleScope(env);
     TAG_LOGI(AAFwkTag::UI_EXT, "call");
     if (env == nullptr || callback == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "invalid parameters");
-        return;
+        return false;
     }
     napi_ref ref = nullptr;
     napi_status status = napi_create_reference(env, callback, 1, &ref);
     if (status == napi_ok) {
         completionCallback_ = std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(ref));
-    } else {
-        TAG_LOGE(AAFwkTag::UI_EXT, "create completionCallback_ failed: %{public}d", status);
+        return true;
     }
+    TAG_LOGE(AAFwkTag::UI_EXT, "create completionCallback_ failed: %{public}d", status);
+    return false;
 }
 
 void JsUIExtensionCallback::SetCompletionHandler(napi_env env, napi_value completionHandler)

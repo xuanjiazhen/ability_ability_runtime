@@ -3158,7 +3158,9 @@ napi_value JsAbilityContext::OnStartAbilityByType(napi_env env, NapiCallbackInfo
     }
     napi_value result = nullptr;
     if (lastParam != nullptr && lastParamType == napi_function) {
-        callback->SetCompletionCallback(env, lastParam);
+        if (!callback->SetCompletionCallback(env, lastParam)) {
+            return CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        }
         NapiAsyncTask::CompleteCallback complete =
             [innerErrCode, callback](napi_env env, NapiAsyncTask& task, int32_t status) {
                 HandleScope handleScope(env);

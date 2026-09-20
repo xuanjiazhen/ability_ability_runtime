@@ -263,13 +263,11 @@ private:
             TAG_LOGD(AAFwkTag::UISERVC_EXT, "JSUIServiceExtensionContext OnStartAbilityByType");
             *innerErrCode = context->StartAbilityByType(type, wantParam, callback);
         };
-        napi_value result = nullptr;
-        napi_deferred deferred = nullptr;
-        napi_status status = napi_create_promise(env, &deferred, &result);
-        if (status != napi_ok || deferred == nullptr) {
-            return CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        napi_value lastParam = (info.argc > ARGC_THREE) ? info.argv[INDEX_THREE] : nullptr;
+        napi_valuetype lastParamType = napi_undefined;
+        if (lastParam != nullptr && napi_typeof(env, lastParam, &lastParamType) != napi_ok) {
+            return CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
         }
-        callback->SetDeferred(deferred);
         NapiAsyncTask::CompleteCallback complete =
             [innerErrCode, callback](napi_env env, NapiAsyncTask& task, int32_t status) {
                 HandleScope handleScope(env);
@@ -284,6 +282,26 @@ private:
                         GetErrorMsgByNativeError(*innerErrCode));
                 }
             };
+        napi_value result = nullptr;
+        if (lastParam != nullptr && lastParamType == napi_function) {
+            if (!callback->SetCompletionCallback(env, lastParam)) {
+                return CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER);
+            }
+            napi_get_undefined(env, &result);
+            NapiAsyncTask::ScheduleHighQos("JSUIServiceExtensionContext::OnStartAbilityByType",
+                env, std::make_unique<NapiAsyncTask>(static_cast<napi_deferred>(nullptr),
+                    std::make_unique<NapiAsyncTask::ExecuteCallback>(std::move(execute)),
+                    std::make_unique<NapiAsyncTask::CompleteCallback>(std::move(complete))));
+            return result;
+        } else if (lastParam != nullptr && lastParamType != napi_undefined) {
+            return CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        }
+        napi_deferred deferred = nullptr;
+        napi_status status = napi_create_promise(env, &deferred, &result);
+        if (status != napi_ok || deferred == nullptr) {
+            return CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        }
+        callback->SetDeferred(deferred);
         NapiAsyncTask::ScheduleHighQos("JSUIServiceExtensionContext::OnStartAbilityByType",
             env, std::make_unique<NapiAsyncTask>(static_cast<napi_deferred>(nullptr),
                 std::make_unique<NapiAsyncTask::ExecuteCallback>(std::move(execute)),

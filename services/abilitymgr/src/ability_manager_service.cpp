@@ -4903,6 +4903,10 @@ ErrCode AbilityManagerService::SetPickerElementNameAndParams(const sptr<SessionI
         return ERR_INVALID_VALUE;
     }
     std::string targetType = extensionSessionInfo->want.GetStringParam(UIEXTENSION_TARGET_TYPE_KEY);
+    if (targetType.find_first_of("\r\n\0") != std::string::npos) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid targetType with control chars");
+        return ERR_INVALID_EXTENSION_TYPE;
+    }
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled() &&
         extensionSessionInfo->want.GetBundleNameRef().empty() &&
         extensionSessionInfo->want.GetAbilityNameRef().empty() &&

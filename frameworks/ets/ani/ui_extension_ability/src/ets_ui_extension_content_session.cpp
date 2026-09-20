@@ -928,7 +928,7 @@ void EtsUIExtensionContentSession::StartAbilityByType(
     };
     callback.onAbilityErrorCode = [uiExtensionCallback, errorFired](
         const Ace::UIExtensionOperationPhase& phase, int32_t errorCode) {
-        if (phase != Ace::UIExtensionOperationPhase::FOREGROUND) {
+        if (phase != Ace::UIExtensionOperationPhase::FOREGROUND && errorCode == 0) {
             return;
         }
         bool expected = false;
@@ -940,7 +940,13 @@ void EtsUIExtensionContentSession::StartAbilityByType(
         }
         uiExtensionCallback->OnAbilityByTypeResult(errorCode);
     };
-    callback.onRelease = [uiExtensionCallback](const auto &arg) { uiExtensionCallback->OnRelease(arg); };
+    callback.onRelease = [uiExtensionCallback, errorFired](const auto &arg) {
+        bool expected = false;
+        if (errorFired->compare_exchange_strong(expected, true)) {
+            uiExtensionCallback->OnAbilityByTypeResult(0);
+        }
+        uiExtensionCallback->OnRelease(arg);
+    };
     Ace::ModalUIExtensionConfig config;
     int32_t sessionId = uiWindow_->GetUIContent()->CreateModalUIExtension(want, callback, config);
     if (sessionId == 0) {

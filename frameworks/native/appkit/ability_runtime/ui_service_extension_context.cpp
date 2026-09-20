@@ -108,7 +108,7 @@ ErrCode UIServiceExtensionContext::StartAbilityByType(
     };
     callback.onAbilityErrorCode = [uiExtensionCallback, errorFired](const OHOS::Ace::UIExtensionOperationPhase& phase,
         int32_t errorCode) {
-        if (phase != OHOS::Ace::UIExtensionOperationPhase::FOREGROUND) {
+        if (phase != OHOS::Ace::UIExtensionOperationPhase::FOREGROUND && errorCode == 0) {
             return;
         }
         bool expected = false;
@@ -120,7 +120,11 @@ ErrCode UIServiceExtensionContext::StartAbilityByType(
         }
         uiExtensionCallback->OnAbilityByTypeResult(errorCode);
     };
-    callback.onRelease = [uiExtensionCallback](int32_t arg) {
+    callback.onRelease = [uiExtensionCallback, errorFired](int32_t arg) {
+        bool expected = false;
+        if (errorFired->compare_exchange_strong(expected, true)) {
+            uiExtensionCallback->OnAbilityByTypeResult(0);
+        }
         uiExtensionCallback->OnRelease(arg);
     };
     callback.onResult = [uiExtensionCallback](int32_t arg1, const OHOS::AAFwk::Want arg2) {

@@ -963,7 +963,7 @@ napi_value JsUIExtensionContentSession::OnStartAbilityByType(napi_env env, NapiC
             };
             callback.onAbilityErrorCode = [uiExtensionCallback, errorFired](const Ace::UIExtensionOperationPhase& phase,
                 int32_t errorCode) {
-                if (phase != Ace::UIExtensionOperationPhase::FOREGROUND) {
+                if (phase != Ace::UIExtensionOperationPhase::FOREGROUND && errorCode == 0) {
                     return;
                 }
                 bool expected = false;
@@ -975,7 +975,11 @@ napi_value JsUIExtensionContentSession::OnStartAbilityByType(napi_env env, NapiC
                 }
                 uiExtensionCallback->OnAbilityByTypeResult(errorCode);
             };
-            callback.onRelease = [uiExtensionCallback](const auto &arg) {
+            callback.onRelease = [uiExtensionCallback, errorFired](const auto &arg) {
+                bool expected = false;
+                if (errorFired->compare_exchange_strong(expected, true)) {
+                    uiExtensionCallback->OnAbilityByTypeResult(0);
+                }
                 uiExtensionCallback->OnRelease(arg);
             };
             callback.onReceive = [uiExtensionCallback](const AAFwk::WantParams& data) {
@@ -1016,7 +1020,9 @@ napi_value JsUIExtensionContentSession::OnStartAbilityByType(napi_env env, NapiC
     }
     napi_value result = nullptr;
     if (lastParam != nullptr && lastParamType == napi_function) {
-        uiExtensionCallback->SetCompletionCallback(env, lastParam);
+        if (!uiExtensionCallback->SetCompletionCallback(env, lastParam)) {
+            return handleEscape.Escape(CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+        }
         napi_get_undefined(env, &result);
         NapiAsyncTask::ScheduleHighQos("JsUIExtensionContentSession::OnStartAbilityByType",
             env, std::make_unique<NapiAsyncTask>(static_cast<napi_deferred>(nullptr),

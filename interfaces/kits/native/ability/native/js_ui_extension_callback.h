@@ -34,7 +34,7 @@ public:
     void SetDeferred(napi_deferred deferred) { deferred_ = deferred; }
     void ClearAsyncResult();
     void RejectAsyncResult(int32_t jsErrCode, const std::string& innerMsg);
-    void SetCompletionCallback(napi_env env, napi_value callback);
+    bool SetCompletionCallback(napi_env env, napi_value callback);
     void CallJsError(int32_t number);
     void SetCompletionHandler(napi_env env, napi_value completionHandler);
     void OnRequestSuccess(const std::string& name) override;
