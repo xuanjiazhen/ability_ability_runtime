@@ -86,7 +86,7 @@ HWTEST_F(AppMgrServiceThirdTest, GetRunningMultiAppInfoByBundleName_001, TestSiz
     appMgrService->eventHandler_ = std::make_shared<AMSEventHandler>(taskHandler_, appMgrService->appMgrServiceInner_);
     AAFwk::MyFlag::flag_ = 0;
     res = appMgrService->GetRunningMultiAppInfoByBundleName(bundleName, info);
-    EXPECT_EQ(res, ERR_INVALID_OPERATION);
+    EXPECT_EQ(res, AAFwk::ERR_NOT_SYSTEM_APP);
 
     AAFwk::MyFlag::flag_ = 1;
     AAFwk::MyFlag::perm = false;
