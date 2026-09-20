@@ -175,8 +175,6 @@ export default class UIExtensionContentSession {
       });
       taskpool.execute((): void => {
         this.nativeStartAbilityByType(type, wantParam, startCallback, myCall);
-      }).then(() => {}, (err: Error): void => {
-        myCall(err as BusinessError);
       });
     });
     return p;
