@@ -162,6 +162,16 @@ public:
         return 0;
     }
 
+    virtual int32_t RegisterFocusedApplicationObserver(const sptr<IFocusedApplicationObserver> &observer)
+    {
+        return 0;
+    }
+
+    virtual int32_t UnregisterFocusedApplicationObserver(const sptr<IFocusedApplicationObserver> &observer)
+    {
+        return 0;
+    }
+
     MOCK_METHOD1(StartNativeProcessForDebugger, int32_t(const AAFwk::Want &));
     MOCK_METHOD3(FinishUserTest, int32_t(const std::string &, const int64_t &, const std::string &));
     MOCK_METHOD1(GetProcessRunningInformation, int32_t(RunningProcessInfo &));
