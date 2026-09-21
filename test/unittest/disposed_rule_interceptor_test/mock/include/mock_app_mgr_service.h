@@ -20,6 +20,7 @@
 #include "gmock/gmock.h"
 
 #include "app_mgr_interface.h"
+class IFocusedApplicationObserver;
 #include "iremote_object.h"
 #include "iremote_proxy.h"
 #include "iremote_stub.h"
@@ -77,6 +78,8 @@ public:
     MOCK_METHOD2(RegisterApplicationStateObserver, int32_t(const sptr<IApplicationStateObserver>&,
         const std::vector<std::string>&));
     MOCK_METHOD1(UnregisterApplicationStateObserver, int32_t(const sptr<IApplicationStateObserver>&));
+    MOCK_METHOD1(RegisterFocusedApplicationObserver, int32_t(const sptr<IFocusedApplicationObserver>&));
+    MOCK_METHOD1(UnregisterFocusedApplicationObserver, int32_t(const sptr<IFocusedApplicationObserver>&));
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
