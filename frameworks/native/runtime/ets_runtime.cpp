@@ -631,7 +631,8 @@ bool ETSRuntime::CreateEtsEnv(const Options &options)
         return false;
     }
 
-    if (!g_etsEnvFuncs->Initialize(options.eventRunner, options.isStartWithDebug, options.bundleName)) {
+    if (!g_etsEnvFuncs->Initialize(options.eventRunner, options.isStartWithDebug, options.bundleName,
+        options.enableHotReload)) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Initialize failed");
         return false;
     }

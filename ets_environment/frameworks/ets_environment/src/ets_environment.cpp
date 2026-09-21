@@ -258,8 +258,40 @@ void ETSEnvironment::InitETSSysNS(const std::string &path)
     dlns_inherit(&ns, &ndk, "allow_all_shared_libs");
 }
 
+namespace {
+/*
+ * Appends the session-shaped VM options: the debug suite for debug launches, and the reload
+ * authorization. Reload (hot/cold) is disabled by default in the runtime; the process is
+ * authorized only when the launch decision allows it -- a debug-signed build (dev session),
+ * or an app with a deployed quickfix patch (production cold path). The option is fixed for
+ * the process lifetime; without it the runtime refuses every reload entry with NOT_ENABLED.
+ *
+ * The option strings are function-level statics on purpose: an ani_option holds a raw
+ * pointer, so the storage must outlive the ANI_CreateVM call the caller performs.
+ */
+void AppendSessionOptions(std::vector<ani_option> &options, bool isStartWithDebug, bool enableReload)
+{
+    static const std::vector<std::string> debugOptions = {
+        "--ext:--interpreter-type=cpp",
+        "--ext:--debugger-enable=true",
+        "--ext:--debugger-library-path=/system/lib64/libarkinspector.so",
+        "--ext:--debugger-break-on-start",
+    };
+    static const std::string enableReloadOption = "--ext:--enable-reload";
+
+    if (isStartWithDebug) {
+        for (const auto &option : debugOptions) {
+            options.push_back(ani_option { option.c_str(), nullptr });
+        }
+    }
+    if (enableReload) {
+        options.push_back(ani_option { enableReloadOption.c_str(), nullptr });
+    }
+}
+}  // namespace
+
 bool ETSEnvironment::Initialize(const std::shared_ptr<AppExecFwk::EventRunner> eventRunner, bool isStartWithDebug,
-    const std::string &bundleName)
+    const std::string &bundleName, bool enableReload)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Initialize called, bundleName: %{public}s", bundleName.c_str());
     if (!LoadRuntimeApis()) {
@@ -287,16 +319,7 @@ bool ETSEnvironment::Initialize(const std::shared_ptr<AppExecFwk::EventRunner> e
         processPackageNameOption = "--ext:--process-package-name=" + bundleName;
         options.push_back(ani_option { processPackageNameOption.data(), nullptr });
     }
-    std::string interpreerMode = "--ext:--interpreter-type=cpp";
-    std::string debugEnalbeMode = "--ext:--debugger-enable=true";
-    std::string debugLibraryPathMode = "--ext:--debugger-library-path=/system/lib64/libarkinspector.so";
-    std::string breadonstartMode = "--ext:--debugger-break-on-start";
-    if (isStartWithDebug) {
-        options.push_back(ani_option { interpreerMode.data(), nullptr });
-        options.push_back(ani_option { debugEnalbeMode.data(), nullptr });
-        options.push_back(ani_option { debugLibraryPathMode.data(), nullptr });
-        options.push_back(ani_option { breadonstartMode.data(), nullptr });
-    }
+    AppendSessionOptions(options, isStartWithDebug, enableReload);
     ani_options optionsPtr = { options.size(), options.data() };
     ani_status status = ANI_ERROR;
     if ((status = lazyApis_.ANI_CreateVM(&optionsPtr, ANI_VERSION_1, &vmEntry_.aniVm_)) != ANI_OK) {
@@ -843,8 +866,9 @@ ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
             ETSEnvironment::InitETSSysNS(path);
         },
         .Initialize = [](const std::shared_ptr<AppExecFwk::EventRunner> eventRunner, bool isStartWithDebug,
-            const std::string &bundleName) {
-            return ETSEnvironment::GetInstance()->Initialize(eventRunner, isStartWithDebug, bundleName);
+            const std::string &bundleName, bool enableReload) {
+            return ETSEnvironment::GetInstance()->Initialize(eventRunner, isStartWithDebug, bundleName,
+                enableReload);
         },
         .RegisterUncaughtExceptionHandler = [](const ETSUncaughtExceptionInfo &exceptionInfo) {
             ETSEnvironment::GetInstance()->RegisterUncaughtExceptionHandler(exceptionInfo);
