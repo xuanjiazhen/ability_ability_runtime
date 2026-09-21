@@ -69,6 +69,10 @@ public:
         bool preload = false;
         bool isBundle = true;
         bool isDebugVersion = false;
+        // Reload (hot/cold) is disabled by default in the runtime; true authorizes this process
+        // at VM creation: a debug-signed build (dev session) or an app with a deployed quickfix
+        // patch (production cold path). Consumed by ETSRuntime only.
+        bool enableHotReload = false;
         bool isJsFramework = false;
         bool isStageModel = true;
         bool isTestFramework = false;

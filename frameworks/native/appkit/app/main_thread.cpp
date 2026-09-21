@@ -1880,6 +1880,11 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         options.apiTargetVersion = appInfo.apiTargetVersion;
         options.pkgContextInfoJsonStringMap = pkgContextInfoJsonStringMap;
         options.isStartWithDebug = appLaunchData.GetDebugApp();
+        // Reload (hot/cold) is disabled by default in the runtime; authorize the process at VM
+        // creation: a debug-signed build (dev session), or an app with a deployed quickfix patch
+        // (production cold path). Passed down as the `enable-hotreload` VM option.
+        options.enableHotReload = options.isDebugVersion ||
+            !appInfo.appQuickFix.deployedAppqfInfo.hqfInfos.empty();
         options.allowArkTsLargeHeap = appInfo.allowArkTsLargeHeap;
         options.versionCode = appInfo.versionCode;
         options.arkTSMode = appInfo.arkTSMode;
