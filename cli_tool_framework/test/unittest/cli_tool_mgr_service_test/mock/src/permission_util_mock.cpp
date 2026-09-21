@@ -12,17 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "permission_util.h"
+
+#include <set>
+#include <string>
 
 #include "cli_error_code.h"
 #include "ipc_skeleton.h"
 
 namespace OHOS {
 namespace CliTool {
-bool PermissionUtil::VerifyAccessToken(Security::AccessToken::AccessTokenID, const std::string &)
+// Test-only deny-list: permissions listed here fail verification, everything else is granted
+std::set<std::string> g_mockDeniedPermissions;
+
+bool PermissionUtil::VerifyAccessToken(Security::AccessToken::AccessTokenID,
+    const std::string &requirePermission)
 {
-    return true;
+    return g_mockDeniedPermissions.find(requirePermission) == g_mockDeniedPermissions.end();
 }
 
 bool PermissionUtil::IsSystemApp()

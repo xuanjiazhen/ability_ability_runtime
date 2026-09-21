@@ -135,6 +135,20 @@ bool ParseFunctionType(const nlohmann::json &json, FunctionType &output)
     return true;
 }
 
+bool ParseUserId(const nlohmann::json &json, int32_t &output)
+{
+    // userId is optional for compatibility with legacy entries written without it
+    if (!json.contains("userId")) {
+        return true;
+    }
+    if (!json["userId"].is_number_integer()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Invalid userId in JSON, must be integer");
+        return false;
+    }
+    output = json["userId"].get<int32_t>();
+    return true;
+}
+
 } // namespace
 
 bool FunctionInfo::Marshalling(Parcel &parcel) const
@@ -166,6 +180,10 @@ bool FunctionInfo::Marshalling(Parcel &parcel) const
     }
     if (!parcel.WriteInt32(typeValue)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Write functionType failed");
+        return false;
+    }
+    if (!parcel.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Write userId failed");
         return false;
     }
     return true;
@@ -212,6 +230,10 @@ FunctionInfo *FunctionInfo::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
     function->functionType = static_cast<FunctionType>(typeValue);
+    if (!parcel.ReadInt32(function->userId)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Read userId failed");
+        return nullptr;
+    }
     return function.release();
 }
 
@@ -223,7 +245,8 @@ bool FunctionInfo::ParseFromJson(const nlohmann::json &json, FunctionInfo &funct
            ParseRequiredStringField(json, "description", function.description, true) &&
            ParseInputSchema(json, function.inputSchema) &&
            ParseOutputSchema(json, function.outputSchema) &&
-           ParseFunctionType(json, function.functionType);
+           ParseFunctionType(json, function.functionType) &&
+           ParseUserId(json, function.userId);
 }
 
 nlohmann::json FunctionInfo::ParseToJson() const
@@ -244,6 +267,7 @@ nlohmann::json FunctionInfo::ParseToJson() const
     }
 
     j["functionType"] = static_cast<int32_t>(functionType);
+    j["userId"] = userId;
 
     return j;
 }
@@ -267,6 +291,12 @@ bool FunctionInfo::Validate(const FunctionInfo &function)
 
     if (function.functionNamespace.find('/') != std::string::npos) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: functionNamespace contains illegal character '/'");
+        return false;
+    }
+
+    // -1 is the unset default; write paths (foundation interfaces) must carry an explicit userId
+    if (function.userId < 0) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: userId is not set");
         return false;
     }
 

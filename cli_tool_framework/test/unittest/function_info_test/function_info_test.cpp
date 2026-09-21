@@ -1098,6 +1098,7 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_Validate_0100, TestSize.Level1)
     function.inputSchema = R"({"type": "object"})";
     function.outputSchema = R"({"type": "string"})";
     function.functionType = FunctionType::INTENT_FUNCTION;
+    function.userId = 100;
 
     EXPECT_TRUE(FunctionInfo::Validate(function));
 
@@ -1161,6 +1162,7 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_Validate_0400, TestSize.Level1)
     function.inputSchema = "";
     function.outputSchema = R"({"type": "string"})";
     function.functionType = FunctionType::INTENT_FUNCTION;
+    function.userId = 100;
 
     EXPECT_TRUE(FunctionInfo::Validate(function));
 
@@ -1203,6 +1205,7 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_Validate_0600, TestSize.Level1)
     function.inputSchema = R"({"type": "object"})";
     function.outputSchema = "";
     function.functionType = FunctionType::INTENT_FUNCTION;
+    function.userId = 100;
 
     EXPECT_TRUE(FunctionInfo::Validate(function));
 
@@ -1247,6 +1250,7 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_Validate_0800, TestSize.Level1)
     function.inputSchema = R"({"type": "object", "properties": {"input": {"type": "string"}}})";
     function.outputSchema = R"({"type": "array", "items": {"type": "string"}})";
     function.functionType = FunctionType::INTENT_FUNCTION;
+    function.userId = 100;
 
     EXPECT_TRUE(FunctionInfo::Validate(function));
 
@@ -1266,10 +1270,30 @@ HWTEST_F(FunctionInfoTest, FunctionInfo_Validate_0900, TestSize.Level1)
     function.functionName = "minimalFunction";
     function.functionNamespace = "com.test.minimal";
     function.functionType = FunctionType::INTENT_FUNCTION;
+    function.userId = 100;
 
     EXPECT_TRUE(FunctionInfo::Validate(function));
 
     TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_Validate_0900 end");
+}
+
+/**
+ * @tc.name: FunctionInfo_Validate_1000
+ * @tc.desc: Test FunctionInfo::Validate with unset userId
+ * @tc.type: FUNC
+ */
+HWTEST_F(FunctionInfoTest, FunctionInfo_Validate_1000, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_Validate_1000 start");
+
+    FunctionInfo function;
+    function.functionName = "noUserFunction";
+    function.functionNamespace = "com.test.nouser";
+    function.functionType = FunctionType::INTENT_FUNCTION;
+
+    EXPECT_FALSE(FunctionInfo::Validate(function));
+
+    TAG_LOGI(AAFwkTag::TEST, "FunctionInfo_Validate_1000 end");
 }
 
 // ==================== FunctionsRawData Tests ====================

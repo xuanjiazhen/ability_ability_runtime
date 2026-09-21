@@ -60,6 +60,8 @@ constexpr const char* PERMISSION_QUERY_CLI_TOOL = "ohos.permission.QUERY_CLI_TOO
 constexpr const char* PERMISSION_REGISTER_CLI_TOOL = "ohos.permission.REGISTER_CLI_TOOL";
 constexpr const char* PERMISSION_ACCESS_FUNCTION = "ohos.permission.ACCESS_FUNCTION";
 constexpr const char* PERMISSION_REGISTER_AGENT_HOOK = "ohos.permission.REGISTER_AGENT_HOOK";
+constexpr const char* PERMISSION_INTERACT_ACROSS_LOCAL_ACCOUNTS =
+    "ohos.permission.INTERACT_ACROSS_LOCAL_ACCOUNTS";
 
 constexpr int32_t FOUNDATION_UID = 5523;
 constexpr int32_t COEFFICIENT = 1000;
@@ -85,6 +87,12 @@ public:
 private:
     HookType type_;
 };
+constexpr int32_t BASE_USER_RANGE = 200000; // uid range per user, same as appmgr
+
+int32_t GetCallingUserId()
+{
+    return static_cast<int32_t>(IPCSkeleton::GetCallingUid()) / BASE_USER_RANGE;
+}
 } // namespace
 
 std::mutex g_mutex;
@@ -596,6 +604,50 @@ int32_t CliToolManagerService::GetToolInfoByName(const std::string &name, ToolIn
     return CliToolDataManager::GetInstance().GetToolByName(name, tool);
 }
 
+int32_t CliToolManagerService::ValidateFoundationCaller(const char *apiName)
+{
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    auto callerToken = IPCSkeleton::GetCallingTokenID();
+    auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken);
+    if (callingUid != FOUNDATION_UID ||
+        tokenType != Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s: Permission denied, uid=%{public}d, tokenType=%{public}d",
+            apiName, callingUid, static_cast<int32_t>(tokenType));
+        return ERR_PERMISSION_DENIED;
+    }
+    return ERR_OK;
+}
+
+int32_t CliToolManagerService::FilterFunctionsForReset(int32_t userId, const std::string &functionNamespace,
+    const std::vector<FunctionInfo> &functionList, std::vector<FunctionInfo> &validFunctions)
+{
+    validFunctions.reserve(functionList.size());
+    for (const auto &function : functionList) {
+        if (!FunctionInfo::Validate(function)) {
+            TAG_LOGW(AAFwkTag::CLI_TOOL, "Invalid function info, will skip: %{public}s/%{public}s",
+                function.functionNamespace.c_str(), function.functionName.c_str());
+            continue;
+        }
+
+        // Verify namespace matches
+        if (function.functionNamespace != functionNamespace) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "ResetNamespaceFunctions: Function namespace mismatch: expected=%{public}s,"
+                " got=%{public}s", functionNamespace.c_str(), function.functionNamespace.c_str());
+            return ERR_INVALID_PARAM;
+        }
+        if (function.userId != userId) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "ResetNamespaceFunctions: userId mismatch: expected=%{public}d, "
+                "got=%{public}d", userId, function.userId);
+            return ERR_INVALID_PARAM;
+        }
+        validFunctions.push_back(function);
+    }
+
+    // An empty result (empty input or every entry skipped) is valid: the data layer
+    // treats it as "delete all existing functions under (userId, namespace)"
+    return ERR_OK;
+}
+
 int32_t CliToolManagerService::RegisterFunction(const FunctionInfo &function)
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "RegisterFunction called: %{public}s/%{public}s",
@@ -603,13 +655,9 @@ int32_t CliToolManagerService::RegisterFunction(const FunctionInfo &function)
 
     InterfaceCallCounter counter(interfaceCalledCount_);
 
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    auto callerToken = IPCSkeleton::GetCallingTokenID();
-    if (callingUid != FOUNDATION_UID ||
-        Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken) !=
-        Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "RegisterFunction: Permission denied, uid=%{public}d", callingUid);
-        return ERR_PERMISSION_DENIED;
+    int32_t ret = ValidateFoundationCaller("RegisterFunction");
+    if (ret != ERR_OK) {
+        return ret;
     }
 
     if (!FunctionInfo::Validate(function)) {
@@ -617,7 +665,8 @@ int32_t CliToolManagerService::RegisterFunction(const FunctionInfo &function)
         return ERR_INVALID_PARAM;
     }
 
-    int32_t ret = CliFunctionDataManager::GetInstance().RegisterFunction(function);
+    // userId is caller-supplied (validated above) and used as-is for both key and record
+    ret = CliFunctionDataManager::GetInstance().RegisterFunction(function);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "RegisterFunction: Failed to register function, ret=%{public}d", ret);
         return ret;
@@ -637,15 +686,9 @@ int32_t CliToolManagerService::BatchRegisterFunctions(const FunctionsRawData &fu
 
     InterfaceCallCounter counter(interfaceCalledCount_);
 
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    auto callerToken = IPCSkeleton::GetCallingTokenID();
-    if (callingUid != FOUNDATION_UID ||
-        Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken) !=
-        Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "BatchRegisterFunctions: Permission denied, uid=%{public}d, tokenType=%{public}d",
-            callingUid, static_cast<int32_t>(
-                Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken)));
-        return ERR_PERMISSION_DENIED;
+    int32_t ret = ValidateFoundationCaller("BatchRegisterFunctions");
+    if (ret != ERR_OK) {
+        return ret;
     }
 
     std::vector<FunctionInfo> functionList;
@@ -672,7 +715,7 @@ int32_t CliToolManagerService::BatchRegisterFunctions(const FunctionsRawData &fu
         return ERR_INVALID_PARAM;
     }
 
-    int32_t ret = CliFunctionDataManager::GetInstance().BatchRegisterFunctions(validFunctions, successCount);
+    ret = CliFunctionDataManager::GetInstance().BatchRegisterFunctions(validFunctions, successCount);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "BatchRegisterFunctions: Failed, ret=%{public}d", ret);
         return ret;
@@ -683,22 +726,47 @@ int32_t CliToolManagerService::BatchRegisterFunctions(const FunctionsRawData &fu
     return ERR_OK;
 }
 
-int32_t CliToolManagerService::GetFunctionInfo(const std::string &functionNamespace,
+int32_t CliToolManagerService::GetFunctionInfo(int32_t userId, const std::string &functionNamespace,
     const std::string &functionName, FunctionInfo &function)
 {
-    TAG_LOGD(AAFwkTag::CLI_TOOL, "GetFunctionInfo called: %{public}s/%{public}s",
-        functionNamespace.c_str(), functionName.c_str());
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "GetFunctionInfo called: userId=%{public}d, %{public}s/%{public}s",
+        userId, functionNamespace.c_str(), functionName.c_str());
     InterfaceCallCounter counter(interfaceCalledCount_);
 
-    auto ret = PermissionUtil::CheckSystemAndPermission(PERMISSION_ACCESS_FUNCTION);
-    if (ret != ERR_OK) {
-        return ret;
+    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
+    auto callerToken = IPCSkeleton::GetCallingTokenID();
+    bool isSystemApp = AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId);
+    bool isSA = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken) ==
+        Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE;
+    if (!isSystemApp && !isSA) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionInfo: Not system app nor SA");
+        return ERR_NOT_SYSTEM_APP;
     }
 
-    auto retCode = CliFunctionDataManager::GetInstance().GetFunctionByName(functionNamespace, functionName, function);
-    if (retCode != ERR_OK) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionInfo: Failed to get function, ret=%{public}d", retCode);
-        return retCode;
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_ACCESS_FUNCTION)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionInfo: Permission denied");
+        return ERR_PERMISSION_DENIED;
+    }
+
+    // An explicit userId (>= 0) targets that user's records; the invalid default (< 0)
+    // falls back to the IPC caller's user. Applications are scoped to their own user;
+    // only an SA caller may query another user, and it must hold the cross-account permission
+    int32_t queryUserId = GetCallingUserId();
+    if (userId >= 0 && userId != queryUserId) {
+        if (!isSA || !PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_INTERACT_ACROSS_LOCAL_ACCOUNTS)) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL,
+                "GetFunctionInfo: Cross-user query denied, caller user=%{public}d, target userId=%{public}d",
+                queryUserId, userId);
+            return ERR_PERMISSION_DENIED;
+        }
+        queryUserId = userId;
+    }
+    int32_t ret = CliFunctionDataManager::GetInstance().GetFunctionByName(
+        queryUserId, functionNamespace, functionName, function);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetFunctionInfo: Failed to get function, ret=%{public}d", ret);
+        return ret;
     }
 
     TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully got function: %{public}s/%{public}s",
@@ -706,23 +774,24 @@ int32_t CliToolManagerService::GetFunctionInfo(const std::string &functionNamesp
     return ERR_OK;
 }
 
-int32_t CliToolManagerService::UnregisterFunction(const std::string &functionNamespace,
+int32_t CliToolManagerService::UnregisterFunction(int32_t userId, const std::string &functionNamespace,
     const std::string &functionName)
 {
-    TAG_LOGD(AAFwkTag::CLI_TOOL, "UnregisterFunction called: %{public}s/%{public}s",
-        functionNamespace.c_str(), functionName.c_str());
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "UnregisterFunction called: userId=%{public}d, %{public}s/%{public}s",
+        userId, functionNamespace.c_str(), functionName.c_str());
     InterfaceCallCounter counter(interfaceCalledCount_);
 
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    auto callerToken = IPCSkeleton::GetCallingTokenID();
-    if (callingUid != FOUNDATION_UID ||
-        Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken) !=
-        Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "UnregisterFunction: Permission denied, uid=%{public}d", callingUid);
-        return ERR_PERMISSION_DENIED;
+    int32_t ret = ValidateFoundationCaller("UnregisterFunction");
+    if (ret != ERR_OK) {
+        return ret;
     }
 
-    int32_t ret = CliFunctionDataManager::GetInstance().UnregisterFunction(functionNamespace, functionName);
+    if (userId < 0) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "UnregisterFunction: Invalid userId: %{public}d", userId);
+        return ERR_INVALID_PARAM;
+    }
+
+    ret = CliFunctionDataManager::GetInstance().UnregisterFunction(userId, functionNamespace, functionName);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "UnregisterFunction: Failed to unregister function, ret=%{public}d", ret);
         return ret;
@@ -733,22 +802,30 @@ int32_t CliToolManagerService::UnregisterFunction(const std::string &functionNam
     return ERR_OK;
 }
 
-int32_t CliToolManagerService::UnregisterIntentFunctionsByNamespace(const std::string &functionNamespace)
+int32_t CliToolManagerService::UnregisterIntentFunctionsByNamespace(int32_t userId,
+    const std::string &functionNamespace)
 {
-    TAG_LOGD(AAFwkTag::CLI_TOOL, "UnregisterIntentFunctionsByNamespace called: %{public}s", functionNamespace.c_str());
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "UnregisterIntentFunctionsByNamespace called: userId=%{public}d, %{public}s",
+        userId, functionNamespace.c_str());
     InterfaceCallCounter counter(interfaceCalledCount_);
 
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    auto callerToken = IPCSkeleton::GetCallingTokenID();
-    if (callingUid != FOUNDATION_UID ||
-        Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken) !=
-        Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "UnregisterIntentFunctionsByNamespace: Permission denied, uid=%{public}d",
-            callingUid);
-        return ERR_PERMISSION_DENIED;
+    int32_t ret = ValidateFoundationCaller("UnregisterIntentFunctionsByNamespace");
+    if (ret != ERR_OK) {
+        return ret;
     }
 
-    int32_t ret = CliFunctionDataManager::GetInstance().UnregisterIntentFunctionsByNamespace(functionNamespace);
+    if (userId < 0) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "UnregisterIntentFunctionsByNamespace: Invalid userId: %{public}d", userId);
+        return ERR_INVALID_PARAM;
+    }
+
+    if (functionNamespace.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "UnregisterIntentFunctionsByNamespace: Invalid namespace");
+        return ERR_INVALID_PARAM;
+    }
+
+    ret = CliFunctionDataManager::GetInstance().UnregisterIntentFunctionsByNamespace(
+        userId, functionNamespace);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "UnregisterIntentFunctionsByNamespace: Failed, ret=%{public}d", ret);
         return ret;
@@ -759,20 +836,17 @@ int32_t CliToolManagerService::UnregisterIntentFunctionsByNamespace(const std::s
     return ERR_OK;
 }
 
-int32_t CliToolManagerService::ResetNamespaceFunctions(const std::string &functionNamespace,
+int32_t CliToolManagerService::ResetNamespaceFunctions(int32_t userId, const std::string &functionNamespace,
     const FunctionsRawData &functions, int32_t &successCount)
 {
     successCount = 0;
-    TAG_LOGD(AAFwkTag::CLI_TOOL, "ResetNamespaceFunctions called: %{public}s, %{public}u bytes",
-        functionNamespace.c_str(), functions.size);
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "ResetNamespaceFunctions called: userId=%{public}d, %{public}s, %{public}u bytes",
+        userId, functionNamespace.c_str(), functions.size);
     InterfaceCallCounter counter(interfaceCalledCount_);
 
-    auto callingUid = IPCSkeleton::GetCallingUid();
-    auto callerToken = IPCSkeleton::GetCallingTokenID();
-    if (callingUid != FOUNDATION_UID || Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken) !=
-        Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "ResetNamespaceFunctions: Permission denied, uid=%{public}d", callingUid);
-        return ERR_PERMISSION_DENIED;
+    int32_t ret = ValidateFoundationCaller("ResetNamespaceFunctions");
+    if (ret != ERR_OK) {
+        return ret;
     }
 
     if (functionNamespace.empty()) {
@@ -780,38 +854,30 @@ int32_t CliToolManagerService::ResetNamespaceFunctions(const std::string &functi
         return ERR_INVALID_PARAM;
     }
 
+    if (userId < 0) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "ResetNamespaceFunctions: Invalid userId: %{public}d", userId);
+        return ERR_INVALID_PARAM;
+    }
+
     std::vector<FunctionInfo> functionList;
-    int32_t ret = FunctionsRawData::ToFunctionInfoVec(functions, functionList);
+    ret = FunctionsRawData::ToFunctionInfoVec(functions, functionList);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "ResetNamespaceFunctions: Failed to parse functions, ret=%{public}d", ret);
         return ret;
     }
 
-    if (functionList.empty()) {
-        TAG_LOGI(AAFwkTag::CLI_TOOL, "No functions to update for namespace: %{public}s", functionNamespace.c_str());
-        // Allow empty list - this means delete all existing functions
-    }
+    // An empty list is allowed and degrades the reset to deleting all existing
+    // functions under (userId, functionNamespace)
 
+    // Every function must carry the explicitly targeted userId (Validate ensures it is set)
     std::vector<FunctionInfo> validFunctions;
-    validFunctions.reserve(functionList.size());
-    for (const auto &function : functionList) {
-        if (!FunctionInfo::Validate(function)) {
-            TAG_LOGW(AAFwkTag::CLI_TOOL, "Invalid function info, will skip: %{public}s/%{public}s",
-                function.functionNamespace.c_str(), function.functionName.c_str());
-            continue;
-        }
-
-        // Verify namespace matches
-        if (function.functionNamespace != functionNamespace) {
-            TAG_LOGE(AAFwkTag::CLI_TOOL, "ResetNamespaceFunctions: Function namespace mismatch: expected=%{public}s,"
-                " got=%{public}s", functionNamespace.c_str(), function.functionNamespace.c_str());
-            return ERR_INVALID_PARAM;
-        }
-        validFunctions.push_back(function);
+    ret = FilterFunctionsForReset(userId, functionNamespace, functionList, validFunctions);
+    if (ret != ERR_OK) {
+        return ret;
     }
 
     ret = CliFunctionDataManager::GetInstance().ResetNamespaceFunctions(
-        functionNamespace, validFunctions, successCount);
+        userId, functionNamespace, validFunctions, successCount);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "ResetNamespaceFunctions: Failed, ret=%{public}d", ret);
         return ret;
@@ -822,27 +888,51 @@ int32_t CliToolManagerService::ResetNamespaceFunctions(const std::string &functi
     return ERR_OK;
 }
 
-int32_t CliToolManagerService::GetAllFunctions(FunctionsRawData &functions)
+int32_t CliToolManagerService::GetAllFunctions(int32_t userId, FunctionsRawData &functions)
 {
-    TAG_LOGD(AAFwkTag::CLI_TOOL, "GetAllFunctions called");
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "GetAllFunctions called: userId=%{public}d", userId);
     InterfaceCallCounter counter(interfaceCalledCount_);
 
-    auto ret = PermissionUtil::CheckSystemAndPermission(PERMISSION_ACCESS_FUNCTION);
+    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
+    auto callerToken = IPCSkeleton::GetCallingTokenID();
+    bool isSystemApp = AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId);
+    bool isSA = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken) ==
+        Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE;
+    if (!isSystemApp && !isSA) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllFunctions: Not system app nor SA");
+        return ERR_NOT_SYSTEM_APP;
+    }
+
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    if (!PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_ACCESS_FUNCTION)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllFunctions: Permission denied");
+        return ERR_PERMISSION_DENIED;
+    }
+
+    // An explicit userId (>= 0) targets that user's records; the invalid default (< 0)
+    // falls back to the IPC caller's user. Applications are scoped to their own user;
+    // only an SA caller may query another user, and it must hold the cross-account permission
+    int32_t queryUserId = GetCallingUserId();
+    if (userId >= 0 && userId != queryUserId) {
+        if (!isSA || !PermissionUtil::VerifyAccessToken(tokenId, PERMISSION_INTERACT_ACROSS_LOCAL_ACCOUNTS)) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL,
+                "GetAllFunctions: Cross-user query denied, caller user=%{public}d, target userId=%{public}d",
+                queryUserId, userId);
+            return ERR_PERMISSION_DENIED;
+        }
+        queryUserId = userId;
+    }
+    std::vector<FunctionInfo> functionList;
+    int32_t ret = CliFunctionDataManager::GetInstance().GetAllFunctions(queryUserId, functionList);
     if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllFunctions: Failed to get functions, ret=%{public}d", ret);
         return ret;
     }
 
-    std::vector<FunctionInfo> functionList;
-    int32_t retCode = CliFunctionDataManager::GetInstance().GetAllFunctions(functionList);
-    if (retCode != ERR_OK) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllFunctions: Failed to get functions, ret=%{public}d", retCode);
-        return retCode;
-    }
-
-    retCode = FunctionsRawData::FromFunctionInfoVec(functionList, functions);
-    if (retCode != ERR_OK) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "FromFunctionInfoVec failed: %{public}d", retCode);
-        return retCode;
+    ret = FunctionsRawData::FromFunctionInfoVec(functionList, functions);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "FromFunctionInfoVec failed: %{public}d", ret);
+        return ret;
     }
     TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully got all functions (raw): %{public}zu", functionList.size());
     return ERR_OK;
@@ -851,7 +941,6 @@ int32_t CliToolManagerService::GetAllFunctions(FunctionsRawData &functions)
 int32_t CliToolManagerService::BatchRegisterFunctionsAsync(const FunctionsRawData &functions)
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "BatchRegisterFunctionsAsync called: %{public}u bytes", functions.size);
-
     int32_t successCount = 0;
     int32_t ret = BatchRegisterFunctions(functions, successCount);
     if (ret != ERR_OK) {
@@ -862,26 +951,25 @@ int32_t CliToolManagerService::BatchRegisterFunctionsAsync(const FunctionsRawDat
     return ret;
 }
 
-int32_t CliToolManagerService::UnregisterIntentFunctionsByNamespaceAsync(const std::string &functionNamespace)
+int32_t CliToolManagerService::UnregisterIntentFunctionsByNamespaceAsync(int32_t userId,
+    const std::string &functionNamespace)
 {
-    TAG_LOGD(AAFwkTag::CLI_TOOL, "UnregisterIntentFunctionsByNamespaceAsync called: %{public}s",
-        functionNamespace.c_str());
-
-    int32_t ret = UnregisterIntentFunctionsByNamespace(functionNamespace);
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "UnregisterIntentFunctionsByNamespaceAsync called: userId=%{public}d, %{public}s",
+        userId, functionNamespace.c_str());
+    int32_t ret = UnregisterIntentFunctionsByNamespace(userId, functionNamespace);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "UnregisterIntentFunctionsByNamespaceAsync: Failed, ret=%{public}d", ret);
     }
     return ret;
 }
 
-int32_t CliToolManagerService::ResetNamespaceFunctionsAsync(const std::string &functionNamespace,
+int32_t CliToolManagerService::ResetNamespaceFunctionsAsync(int32_t userId, const std::string &functionNamespace,
     const FunctionsRawData &functions)
 {
-    TAG_LOGD(AAFwkTag::CLI_TOOL, "ResetNamespaceFunctionsAsync called: %{public}s, %{public}u bytes",
-        functionNamespace.c_str(), functions.size);
-
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "ResetNamespaceFunctionsAsync called: userId=%{public}d, %{public}s, "
+        "%{public}u bytes", userId, functionNamespace.c_str(), functions.size);
     int32_t successCount = 0;
-    int32_t ret = ResetNamespaceFunctions(functionNamespace, functions, successCount);
+    int32_t ret = ResetNamespaceFunctions(userId, functionNamespace, functions, successCount);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "ResetNamespaceFunctionsAsync: Failed, ret=%{public}d", ret);
     } else {
