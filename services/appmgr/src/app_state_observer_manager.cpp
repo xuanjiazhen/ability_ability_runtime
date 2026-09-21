@@ -18,6 +18,8 @@
 #include "ability_foreground_state_observer_stub.h"
 #include "app_foreground_state_observer_stub.h"
 #include "application_state_observer_stub.h"
+#include "bundle_mgr_helper.h"
+#include "focus_state_observer_stub.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "image_process_state_observer_stub.h"
@@ -36,6 +38,8 @@ constexpr int OBSERVER_SINGLE_STEP_LOG = 10;
 constexpr int OBSERVER_UID_COUNT_LOG = 3;
 constexpr int OBSERVER_AMOUNT_COUNT_LOG = 70;
 constexpr int32_t RESOURCE_MANAGER_UID = 1096;
+constexpr int32_t MAX_FOCUS_OBSERVER_PER_APP = 10;
+constexpr int32_t ERR_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT = 16000165;
 constexpr const char* DEVELOPER_MODE_STATE = "const.security.developermode.state";
 } // namespace
 AppStateObserverManager::AppStateObserverManager()
@@ -211,6 +215,79 @@ int32_t AppStateObserverManager::UnregisterAppForegroundStateObserver(const sptr
         if (it != nullptr && it->AsObject() == observer->AsObject()) {
             DecreaseObserverCount(uid);
             appForegroundStateObserverMap_.erase(it);
+            RemoveObserverDeathRecipient(observer);
+            return ERR_OK;
+        }
+    }
+    return ERR_INVALID_VALUE;
+}
+
+int32_t AppStateObserverManager::RegisterFocusStateObserver(const sptr<IFocusStateObserver> &observer)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (observer == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null observer");
+        return ERR_INVALID_VALUE;
+    }
+    if (AAFwk::PermissionVerification::GetInstance()->VerifyAppStateObserverPermission() == ERR_PERMISSION_DENIED) {
+        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+        return ERR_PERMISSION_DENIED;
+    }
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    std::string callingBundleName;
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr ||
+        IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callingUid, callingBundleName)) != ERR_OK) {
+        TAG_LOGW(AAFwkTag::APPMGR, "GetNameForUid failed, fallback to uid string, uid: %{public}d", callingUid);
+        callingBundleName = std::to_string(callingUid);
+    }
+    std::lock_guard lockRegister(focusStateObserverLock_);
+    bool exist = false;
+    for (const auto &[it, pair] : focusStateObserverMap_) {
+        if (it != nullptr && it->AsObject() == observer->AsObject()) {
+            exist = true;
+            break;
+        }
+    }
+    if (exist) {
+        TAG_LOGW(AAFwkTag::APPMGR, "observer exist");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t count = 0;
+    for (const auto &[it, pair] : focusStateObserverMap_) {
+        if (it != nullptr && pair.second == callingBundleName) {
+            count++;
+        }
+    }
+    if (count >= MAX_FOCUS_OBSERVER_PER_APP) {
+        TAG_LOGE(AAFwkTag::APPMGR, "focus observer count reach upper limit, bundleName: %{public}s",
+            callingBundleName.c_str());
+        return ERR_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT;
+    }
+    focusStateObserverMap_.emplace(observer, std::make_pair(callingUid, callingBundleName));
+    AddObserverDeathRecipient(observer, ObserverType::FOCUS_STATE_OBSERVER);
+    AddObserverCount(callingUid);
+    return ERR_OK;
+}
+
+int32_t AppStateObserverManager::UnregisterFocusStateObserver(const sptr<IFocusStateObserver> &observer)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (observer == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null observer");
+        return ERR_INVALID_VALUE;
+    }
+    if (AAFwk::PermissionVerification::GetInstance()->VerifyAppStateObserverPermission() == ERR_PERMISSION_DENIED) {
+        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
+        return ERR_PERMISSION_DENIED;
+    }
+    std::lock_guard lockUnregister(focusStateObserverLock_);
+    for (const auto &[it, pair] : focusStateObserverMap_) {
+        if (it != nullptr && it->AsObject() == observer->AsObject()) {
+            DecreaseObserverCount(pair.first);
+            focusStateObserverMap_.erase(it);
             RemoveObserverDeathRecipient(observer);
             return ERR_OK;
         }
@@ -1230,6 +1307,21 @@ bool AppStateObserverManager::IsImageProcessObserverExist(const sptr<IRemoteBrok
     return false;
 }
 
+bool AppStateObserverManager::IsFocusStateObserverExist(const sptr<IRemoteBroker> &observer)
+{
+    if (observer == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null observer");
+        return false;
+    }
+    std::lock_guard lockRegister(focusStateObserverLock_);
+    for (const auto &[it, pair] : focusStateObserverMap_) {
+        if (it != nullptr && it->AsObject() == observer->AsObject()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void AppStateObserverManager::AddObserverDeathRecipient(const sptr<IRemoteBroker> &observer, const ObserverType &type)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -1260,6 +1352,8 @@ void AppStateObserverManager::AddObserverDeathRecipient(const sptr<IRemoteBroker
             deathRecipient = new (std::nothrow) AbilityForegroundStateObserverRecipient(deathRecipientFunc);
         } else if (type == ObserverType::IMAGE_PROCESS_STATE_OBSERVER) {
             deathRecipient = new (std::nothrow) ImageProcessStateObserverRecipient(deathRecipientFunc);
+        } else if (type == ObserverType::FOCUS_STATE_OBSERVER) {
+            deathRecipient = new (std::nothrow) FocusStateObserverRecipient(deathRecipientFunc);
         } else {
             TAG_LOGW(AAFwkTag::APPMGR, "null ObserverType");
             return;
@@ -1355,6 +1449,12 @@ ImageProcessObserverMap AppStateObserverManager::GetImageProcessObserverMapCopy(
     return imageProcessStateObserverMap_;
 }
 
+FocusStateObserverMap AppStateObserverManager::GetFocusStateObserverMapCopy()
+{
+    std::lock_guard lock(focusStateObserverLock_);
+    return focusStateObserverMap_;
+}
+
 void AppStateObserverManager::OnObserverDied(const wptr<IRemoteObject> &remote, const ObserverType &type)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -1377,6 +1477,9 @@ void AppStateObserverManager::OnObserverDied(const wptr<IRemoteObject> &remote, 
     } else if (type == ObserverType::IMAGE_PROCESS_STATE_OBSERVER) {
         sptr<IImageProcessStateObserver> observer = iface_cast<IImageProcessStateObserver>(object);
         UnregisterImageProcessStateObserver(observer);
+    } else if (type == ObserverType::FOCUS_STATE_OBSERVER) {
+        sptr<IFocusStateObserver> observer = iface_cast<IFocusStateObserver>(object);
+        UnregisterFocusStateObserver(observer);
     } else {
         TAG_LOGW(AAFwkTag::APPMGR, "null ObserverType");
         return;
@@ -1935,6 +2038,41 @@ void AppStateObserverManager::HandleOnPreForkAllWorkProcess(std::shared_ptr<Imag
     for (auto it = imageProcessStateObserverMapCopy.begin(); it != imageProcessStateObserverMapCopy.end(); ++it) {
         if (it->first) {
             it->first->OnPreForkAllWorkProcess(*data);
+        }
+    }
+}
+
+void AppStateObserverManager::NotifyFocusChanged(const FocusStateData &focusStateData)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (handler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null handler");
+        return;
+    }
+
+    auto task = [weak = weak_from_this(), focusStateData]() {
+        auto self = weak.lock();
+        if (self == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "null self");
+            return;
+        }
+        TAG_LOGD(AAFwkTag::APPMGR, "NotifyFocusChanged come.");
+        self->HandleNotifyFocusChanged(focusStateData);
+    };
+    AAFwk::TaskAttribute taskAttribute{ .taskName_ = "NotifyFocusChanged", .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE };
+    handler_->SubmitTask(task, taskAttribute);
+}
+
+void AppStateObserverManager::HandleNotifyFocusChanged(const FocusStateData &focusStateData)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APPMGR,
+        "focusedUid:%{public}d, unfocusedUid:%{public}d, focusedBundleName:%{public}s",
+        focusStateData.focusedUid, focusStateData.unfocusedUid, focusStateData.focusedBundleName.c_str());
+    auto focusStateObserverMap = GetFocusStateObserverMapCopy();
+    for (const auto &entry : focusStateObserverMap) {
+        if (entry.first != nullptr) {
+            entry.first->OnFocusStateChanged(focusStateData);
         }
     }
 }
