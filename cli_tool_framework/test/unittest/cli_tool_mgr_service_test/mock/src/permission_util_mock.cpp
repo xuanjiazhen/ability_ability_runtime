@@ -12,8 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "permission_util.h"
+
+#include <set>
+#include <string>
 
 #include "cli_error_code.h"
 #include "ipc_skeleton.h"
@@ -23,19 +25,25 @@ namespace OHOS {
 namespace CliTool {
 bool PermissionUtilMock::execCliToolPermitted = true;
 bool PermissionUtilMock::execPublicCliToolPermitted = true;
+// Test-only deny-list: permissions listed here fail verification, everything else is granted
+std::set<std::string> g_mockDeniedPermissions;
 
 void PermissionUtilMock::Reset()
 {
     execCliToolPermitted = true;
     execPublicCliToolPermitted = true;
+    g_mockDeniedPermissions.clear();
 }
 
-bool PermissionUtil::VerifyAccessToken(Security::AccessToken::AccessTokenID, const std::string &perm)
+bool PermissionUtil::VerifyAccessToken(Security::AccessToken::AccessTokenID, const std::string &requirePermission)
 {
-    if (perm == "ohos.permission.EXEC_CLI_TOOL") {
+    if (g_mockDeniedPermissions.find(requirePermission) != g_mockDeniedPermissions.end()) {
+        return false;
+    }
+    if (requirePermission == "ohos.permission.EXEC_CLI_TOOL") {
         return PermissionUtilMock::execCliToolPermitted;
     }
-    if (perm == "ohos.permission.EXEC_PUBLIC_CLI_TOOL") {
+    if (requirePermission == "ohos.permission.EXEC_PUBLIC_CLI_TOOL") {
         return PermissionUtilMock::execPublicCliToolPermitted;
     }
     return true;

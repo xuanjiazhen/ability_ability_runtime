@@ -16,6 +16,9 @@
 #ifndef OHOS_ABILITY_RUNTIME_PERMISSION_UTIL_MOCK_H
 #define OHOS_ABILITY_RUNTIME_PERMISSION_UTIL_MOCK_H
 
+#include <set>
+#include <string>
+
 namespace OHOS {
 namespace CliTool {
 // Test-only toggle state consumed by the mocked PermissionUtil::VerifyAccessToken
@@ -29,6 +32,11 @@ public:
 
     static void Reset();
 };
+
+// Test-only deny-list seam: permissions inserted here fail VerifyAccessToken
+// regardless of the per-permission toggles above. Defined in
+// permission_util_mock.cpp; Reset() clears it.
+extern std::set<std::string> g_mockDeniedPermissions;
 } // namespace CliTool
 } // namespace OHOS
 
