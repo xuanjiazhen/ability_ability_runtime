@@ -113,7 +113,7 @@ bool InsightIntentSysEventReceiver::SaveInsightIntentInfos(const std::string &bu
 void InsightIntentSysEventReceiver::RegisterAllFunctions(
     const std::vector<std::pair<std::string, uint32_t>> &newBundles,
     const std::vector<ExtractInsightIntentInfo> &allIntentInfos,
-    const std::vector<InsightIntentInfo> &allConfigInfos)
+    const std::vector<InsightIntentInfo> &allConfigInfos, int32_t userId)
 {
     TAG_LOGI(AAFwkTag::INTENT, "register all functions, bundles:%{public}zu intent:%{public}zu config:%{public}zu",
         newBundles.size(), allIntentInfos.size(), allConfigInfos.size());
@@ -126,7 +126,7 @@ void InsightIntentSysEventReceiver::RegisterAllFunctions(
         bundleVersionMap[entry.first] = entry.second;
     }
     CliTool::BatchRegisterInsightIntentFunctions(
-        allIntentInfos, allConfigInfos, bundleVersionMap);
+        allIntentInfos, allConfigInfos, bundleVersionMap, userId);
     TAG_LOGI(AAFwkTag::INTENT, "register all functions request done");
 }
 
@@ -138,7 +138,7 @@ void InsightIntentSysEventReceiver::DeleteInsightIntent(const std::string &bundl
         return;
     }
     TAG_LOGI(AAFwkTag::INTENT, "update bundleName: %{public}s to no insight intent", bundleName.c_str());
-    CliTool::UnregisterInsightIntentFunctions(bundleName);
+    CliTool::UnregisterInsightIntentFunctions(bundleName, userId);
 }
 
 int32_t InsightIntentSysEventReceiver::ResolveLoadUserId(int32_t userId)
@@ -167,7 +167,7 @@ void InsightIntentSysEventReceiver::BackupAndScheduleRegister(
             userId, allIntentInfos, allConfigInfos);
         TAG_LOGI(AAFwkTag::INTENT, "GetAllForRegister done, intent:%{public}zu config:%{public}zu bundles:%{public}zu",
             allIntentInfos.size(), allConfigInfos.size(), newBundles.size());
-        self->RegisterAllFunctions(newBundles, allIntentInfos, allConfigInfos);
+        self->RegisterAllFunctions(newBundles, allIntentInfos, allConfigInfos, userId);
     };
     ffrt::submit(task);
 }
