@@ -21,6 +21,7 @@
 #include "ams_mgr_interface.h"
 #include "app_foreground_state_observer_interface.h"
 #include "app_malloc_info.h"
+#include "focus_state_observer_interface.h"
 #include "app_mem_dump_info.h"
 #include "app_mgr_ipc_interface_code.h"
 #include "app_record_id.h"
@@ -869,6 +870,20 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UnregisterAppForegroundStateObserver(const sptr<IAppForegroundStateObserver> &observer) = 0;
+
+    /**
+     * Register focus state observer.
+     * @param observer Is focus state observer
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RegisterFocusStateObserver(const sptr<IFocusStateObserver> &observer) = 0;
+
+    /**
+     * Unregister focus state observer.
+     * @param observer Is focus state observer.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t UnregisterFocusStateObserver(const sptr<IFocusStateObserver> &observer) = 0;
 
     /**
      * Check whether the bundle is running.
