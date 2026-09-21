@@ -18,6 +18,7 @@
 
 #include <gmock/gmock.h>
 
+#include "appexecfwk_errors.h"
 #include "ipc_skeleton.h"
 #include "mock_my_flag.h"
 #include "singleton.h"
@@ -33,6 +34,7 @@ public:
 
     bool VerifyUpdateConfigurationPerm() const;
     bool CheckSpecificSystemAbilityAccessPermission(const std::string &processName) const;
+    int32_t VerifyAppStateObserverPermission() const;
 };
 } // namespace AAFwk
 } // namespace OHOS
