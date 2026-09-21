@@ -767,6 +767,9 @@ public:
      */
     int32_t UnregisterAppForegroundStateObserver(const sptr<IAppForegroundStateObserver> &observer) override;
 
+    int32_t RegisterFocusStateObserver(const sptr<IFocusStateObserver> &observer) override;
+    int32_t UnregisterFocusStateObserver(const sptr<IFocusStateObserver> &observer) override;
+
 #ifdef SUPPORT_CHILD_PROCESS
     /**
      * Start child process, called by ChildProcessManager.
