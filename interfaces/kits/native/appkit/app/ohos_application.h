@@ -340,6 +340,7 @@ private:
     std::shared_ptr<AbilityRecordMgr> abilityRecordMgr_ = nullptr;
     std::shared_ptr<AbilityRuntime::ApplicationContext> abilityRuntimeContext_ = nullptr;
     std::unordered_map<std::string, std::shared_ptr<AbilityRuntime::AbilityStage>> abilityStages_;
+    mutable std::mutex abilityStagesMutex_;
     std::unique_ptr<AbilityRuntime::Runtime> runtime_ = nullptr;
     mutable std::mutex runtimeMutex_;
     std::shared_ptr<Configuration> configuration_ = nullptr;

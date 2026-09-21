@@ -326,9 +326,16 @@ MainThread::MainThread()
 MainThread::~MainThread()
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
-    if (watchdog_ != nullptr && !watchdog_->IsStopWatchdog()) {
-        watchdog_->Stop();
-        watchdog_ = nullptr;
+    std::shared_ptr<Watchdog> oldWatchdog;
+    {
+        std::lock_guard<std::mutex> lock(watchdogMutex_);
+        if (watchdog_ != nullptr && !watchdog_->IsStopWatchdog()) {
+            oldWatchdog = watchdog_;
+            watchdog_ = nullptr;
+        }
+    }
+    if (oldWatchdog != nullptr) {
+        oldWatchdog->Stop();
     }
 }
 
@@ -522,7 +529,11 @@ bool MainThread::ScheduleForegroundApplication()
     if (!mainHandler_->PostTask(task, "MainThread:ForegroundApplication")) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
     }
-    auto tmpWatchdog = watchdog_;
+    std::shared_ptr<Watchdog> tmpWatchdog;
+    {
+        std::lock_guard<std::mutex> lock(watchdogMutex_);
+        tmpWatchdog = watchdog_;
+    }
     if (tmpWatchdog == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null Watch dog");
     } else {
@@ -553,7 +564,11 @@ void MainThread::ScheduleBackgroundApplication()
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
     }
 
-    auto tmpWatchdog = watchdog_;
+    std::shared_ptr<Watchdog> tmpWatchdog;
+    {
+        std::lock_guard<std::mutex> lock(watchdogMutex_);
+        tmpWatchdog = watchdog_;
+    }
     if (tmpWatchdog == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null Watch dog");
         return;
@@ -892,7 +907,11 @@ void MainThread::ScheduleLaunchAbility(const AbilityInfo &info, const sptr<IRemo
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>(info);
     auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, token, want, abilityRecordId);
     abilityRecord->SetSkipAbilityStageLifecycle(skipAbilityStageLifecycle);
-    auto tmpWatchdog = watchdog_;
+    std::shared_ptr<Watchdog> tmpWatchdog;
+    {
+        std::lock_guard<std::mutex> lock(watchdogMutex_);
+        tmpWatchdog = watchdog_;
+    }
     if (tmpWatchdog != nullptr) {
         tmpWatchdog->SetBgWorkingThreadStatus(IsBgWorkingThread(info));
         tmpWatchdog = nullptr;
@@ -1042,9 +1061,16 @@ void MainThread::HandleTerminateApplicationLocal()
         return;
     }
 
-    if (watchdog_ != nullptr && !watchdog_->IsStopWatchdog()) {
-        watchdog_->Stop();
-        watchdog_ = nullptr;
+    std::shared_ptr<Watchdog> oldWatchdog;
+    {
+        std::lock_guard<std::mutex> lock(watchdogMutex_);
+        if (watchdog_ != nullptr && !watchdog_->IsStopWatchdog()) {
+            oldWatchdog = watchdog_;
+            watchdog_ = nullptr;
+        }
+    }
+    if (oldWatchdog != nullptr) {
+        oldWatchdog->Stop();
     }
 
     int ret = runner->Stop();
@@ -1669,10 +1695,19 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         return;
     }
 
-    if (appLaunchData.GetDebugApp() && watchdog_ != nullptr && !watchdog_->IsStopWatchdog()) {
-        SetAppDebug(AbilityRuntime::AppFreezeState::AppFreezeFlag::DEBUG_LAUNCH_MODE, true);
-        watchdog_->Stop();
-        watchdog_.reset();
+    if (appLaunchData.GetDebugApp()) {
+        std::shared_ptr<Watchdog> oldWatchdog;
+        {
+            std::lock_guard<std::mutex> lock(watchdogMutex_);
+            if (watchdog_ != nullptr && !watchdog_->IsStopWatchdog()) {
+                oldWatchdog = watchdog_;
+                watchdog_.reset();
+            }
+        }
+        if (oldWatchdog != nullptr) {
+            SetAppDebug(AbilityRuntime::AppFreezeState::AppFreezeFlag::DEBUG_LAUNCH_MODE, true);
+            oldWatchdog->Stop();
+        }
     }
 
     auto appInfo = appLaunchData.GetApplicationInfo();
@@ -1694,7 +1729,11 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         TAG_LOGE(AAFwkTag::APPKIT, "get bundleInfo failed");
         return;
     }
-    auto tmpWatchdog = watchdog_;
+    std::shared_ptr<Watchdog> tmpWatchdog;
+    {
+        std::lock_guard<std::mutex> lock(watchdogMutex_);
+        tmpWatchdog = watchdog_;
+    }
     bool isSystemApp = bundleInfo.applicationInfo.isSystemApp;
     if (tmpWatchdog != nullptr) {
         tmpWatchdog->SetBundleInfo(bundleName, appInfo.versionName, isSystemApp);
@@ -3163,9 +3202,16 @@ void MainThread::HandleTerminateApplication(bool isLastProcess)
         return;
     }
 
-    if (watchdog_ != nullptr && !watchdog_->IsStopWatchdog()) {
-        watchdog_->Stop();
-        watchdog_ = nullptr;
+    std::shared_ptr<Watchdog> oldWatchdog;
+    {
+        std::lock_guard<std::mutex> lock(watchdogMutex_);
+        if (watchdog_ != nullptr && !watchdog_->IsStopWatchdog()) {
+            oldWatchdog = watchdog_;
+            watchdog_ = nullptr;
+        }
+    }
+    if (oldWatchdog != nullptr) {
+        oldWatchdog->Stop();
     }
 
     int ret = runner->Stop();
@@ -3263,6 +3309,7 @@ void MainThread::Init(const std::shared_ptr<EventRunner> &runner)
     bool isRescueMode = (system::GetParameter("soc.boot.mode", "") == "rescue");
     if (!isRescueMode) {
         TAG_LOGE(AAFwkTag::APPKIT, "is not in rescue mode");
+        std::lock_guard<std::mutex> lock(watchdogMutex_);
         watchdog_ = std::make_shared<Watchdog>();
     }
 
@@ -3290,7 +3337,14 @@ void MainThread::Init(const std::shared_ptr<EventRunner> &runner)
 
     if (!isRescueMode) {
         TAG_LOGE(AAFwkTag::APPKIT, "is not in rescue mode");
-        watchdog_->Init(mainHandler_);
+        std::shared_ptr<Watchdog> tmpWatchdog;
+        {
+            std::lock_guard<std::mutex> lock(watchdogMutex_);
+            tmpWatchdog = watchdog_;
+        }
+        if (tmpWatchdog != nullptr) {
+            tmpWatchdog->Init(mainHandler_);
+        }
     }
 
     AppExecFwk::AppfreezeInner::GetInstance()->SetMainHandler(mainHandler_);
@@ -3868,7 +3922,11 @@ void MainThread::ScheduleNewProcessRequest(const AAFwk::Want &want, const std::s
 
 void MainThread::CheckMainThreadIsAlive()
 {
-    auto tmpWatchdog = watchdog_;
+    std::shared_ptr<Watchdog> tmpWatchdog;
+    {
+        std::lock_guard<std::mutex> lock(watchdogMutex_);
+        tmpWatchdog = watchdog_;
+    }
     if (tmpWatchdog == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null Watch dog");
         return;
@@ -4401,7 +4459,11 @@ int32_t MainThread::ScheduleDumpArkWeb(const std::string &customArgs, std::strin
  */
 void MainThread::SetWatchdogBackgroundStatus(bool status)
 {
-    auto tmpWatchdog = watchdog_;
+    std::shared_ptr<Watchdog> tmpWatchdog;
+    {
+        std::lock_guard<std::mutex> lock(watchdogMutex_);
+        tmpWatchdog = watchdog_;
+    }
     if (tmpWatchdog == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null Watch dog");
         return;

@@ -83,6 +83,7 @@ private:
     GpuHookSize ParseGpuHookSize(const std::string &gpuHookSizeStr);
     void LogGpuHookSize(const GpuHookSize &gpuHookSize);
     std::shared_ptr<IErrorObserver> errorObserver_;
+    std::mutex errorObserverMutex_;
     std::atomic_bool isUncatchable_;
     LeakObserverFunction leakObserver_ = nullptr;
     std::mutex leakObserverMutex_;
