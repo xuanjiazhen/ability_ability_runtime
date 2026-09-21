@@ -20,6 +20,7 @@
 #include "gmock/gmock.h"
 
 #include "app_mgr_interface.h"
+#include "focused_application_observer_interface.h"
 #include "iremote_object.h"
 #include "iremote_proxy.h"
 #include "iremote_stub.h"
@@ -32,6 +33,16 @@ public:
     virtual ~AppMgrStub() = default;
 
     virtual int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+    {
+        return 0;
+    }
+
+    virtual int32_t RegisterFocusedApplicationObserver(const sptr<IFocusedApplicationObserver> &observer)
+    {
+        return 0;
+    }
+
+    virtual int32_t UnregisterFocusedApplicationObserver(const sptr<IFocusedApplicationObserver> &observer)
     {
         return 0;
     }

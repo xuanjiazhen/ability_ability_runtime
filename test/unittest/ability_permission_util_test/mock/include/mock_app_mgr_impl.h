@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_MOCK_APP_MGR_IMPL_H
 
 #include "app_mgr_stub.h"
+#include "focused_application_observer_interface.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -40,6 +41,16 @@ public:
      */
     virtual int32_t GetAllRunningInstanceKeysByBundleName(const std::string &bundleName,
         std::vector<std::string> &instanceKeys, int32_t userId = -1) override;
+
+    virtual int32_t RegisterFocusedApplicationObserver(const sptr<IFocusedApplicationObserver> &observer)
+    {
+        return 0;
+    }
+
+    virtual int32_t UnregisterFocusedApplicationObserver(const sptr<IFocusedApplicationObserver> &observer)
+    {
+        return 0;
+    }
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
