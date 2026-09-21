@@ -311,5 +311,68 @@ HWTEST_F(NapiCommonWantTest, WrapWant_SystemApp_KeepsPassThroughFlag_0100, Funct
     AbilityRuntime::JsRuntimeLite::GetInstance().RemoveJsEnv(env);
     SetSelfTokenID(originalToken);
 }
+
+/**
+ * @tc.name: WrapWantParams_NonSystemApp_StripsPassThroughFlag_0100
+ * @tc.desc: WrapWantParams is invoked directly (bypassing WrapWant); the
+ *          pass-through flag must still be stripped for a non-system app.
+ */
+HWTEST_F(NapiCommonWantTest, WrapWantParams_NonSystemApp_StripsPassThroughFlag_0100, Function | MediumTest | Level1)
+{
+    uint64_t originalToken = GetSelfTokenID();
+    SetSelfTokenID(0);
+
+    AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<JsEnv::JsEnvironment> jsEnv = nullptr;
+    AbilityRuntime::JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    ASSERT_NE(jsEnv, nullptr);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+    ASSERT_NE(env, nullptr);
+
+    AAFwk::Want want;
+    want.SetParam(AAFwk::Want::PARAM_SET_URI_WITH_ORIGIN_STRING, true);
+    napi_value jsParams = WrapWantParams(env, want.GetParams());
+    ASSERT_NE(jsParams, nullptr);
+    EXPECT_FALSE(IsExistsByPropertyName(env, jsParams,
+        AAFwk::Want::PARAM_SET_URI_WITH_ORIGIN_STRING.c_str()));
+
+    AbilityRuntime::JsRuntimeLite::GetInstance().RemoveJsEnv(env);
+    SetSelfTokenID(originalToken);
+}
+
+/**
+ * @tc.name: WrapWantParams_SystemApp_KeepsPassThroughFlag_0100
+ * @tc.desc: WrapWantParams is invoked directly (bypassing WrapWant); the
+ *          pass-through flag must be preserved for a system app.
+ */
+HWTEST_F(NapiCommonWantTest, WrapWantParams_SystemApp_KeepsPassThroughFlag_0100, Function | MediumTest | Level1)
+{
+    uint64_t originalToken = GetSelfTokenID();
+
+    uint64_t systemAppMask = (static_cast<uint64_t>(1) << 32);
+    uint32_t tokenID = Security::AccessToken::DEFAULT_TOKEN_VERSION;
+    Security::AccessToken::AccessTokenIDInner *idInner =
+        reinterpret_cast<Security::AccessToken::AccessTokenIDInner *>(&tokenID);
+    idInner->type = Security::AccessToken::TOKEN_HAP;
+    uint64_t fullTokenId = systemAppMask | tokenID;
+    SetSelfTokenID(fullTokenId);
+
+    AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<JsEnv::JsEnvironment> jsEnv = nullptr;
+    AbilityRuntime::JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    ASSERT_NE(jsEnv, nullptr);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+    ASSERT_NE(env, nullptr);
+
+    AAFwk::Want want;
+    want.SetParam(AAFwk::Want::PARAM_SET_URI_WITH_ORIGIN_STRING, true);
+    napi_value jsParams = WrapWantParams(env, want.GetParams());
+    ASSERT_NE(jsParams, nullptr);
+    EXPECT_TRUE(IsExistsByPropertyName(env, jsParams,
+        AAFwk::Want::PARAM_SET_URI_WITH_ORIGIN_STRING.c_str()));
+
+    AbilityRuntime::JsRuntimeLite::GetInstance().RemoveJsEnv(env);
+    SetSelfTokenID(originalToken);
+}
 } // namespace AppExecFwk
 } // namespace OHOS
