@@ -178,17 +178,49 @@ HWTEST_F(AbilityResidentProcessRdbTest, VerifySaConfigurationPermissions_002, Te
 
 /*
  * Feature: AbilityResidentProcessRdb
- * Function: GetSaResidentProcessRawData
+ * Function: SyncResidentProcessData
  * SubFunction: NA
- * FunctionPoints: AbilityResidentProcessRdb GetSaResidentProcessRawData_001
+ * FunctionPoints: AbilityResidentProcessRdb SyncResidentProcessData
  */
-HWTEST_F(AbilityResidentProcessRdbTest, GetSaResidentProcessRawData_001, TestSize.Level1) {
-    EXPECT_EQ(AmsResidentProcessRdb::GetInstance().GetSaResidentProcessRawData("", 1234), Rdb_Parameter_Err);
-    EXPECT_EQ(AmsResidentProcessRdb::GetInstance().GetSaResidentProcessRawData("test.com", -1),
-        Rdb_Parameter_Err);
-    // the capability config file is absent in ut, so the raw data list is empty
-    EXPECT_EQ(AmsResidentProcessRdb::GetInstance().GetSaResidentProcessRawData(
-        "com.target.bundle", 1234), Rdb_Parameter_Err);
+HWTEST_F(AbilityResidentProcessRdbTest, SyncResidentProcessData_001, TestSize.Level1) {
+    EXPECT_EQ(AmsResidentProcessRdb::GetInstance().Init(), Rdb_OK);
+    // The capability config file is absent in ut, so the json list is empty; sync must
+    // abort (treat as read failure) instead of wiping the table, returning Rdb_Parse_File_Err.
+    EXPECT_EQ(AmsResidentProcessRdb::GetInstance().SyncResidentProcessData(), Rdb_Parse_File_Err);
+}
+
+/*
+ * Feature: AbilityResidentProcessRdb
+ * Function: IsOtaUpgrade
+ * SubFunction: NA
+ * FunctionPoints: AbilityResidentProcessRdb IsOtaUpgrade
+ */
+HWTEST_F(AbilityResidentProcessRdbTest, IsOtaUpgrade_001, TestSize.Level1) {
+    EXPECT_EQ(AmsResidentProcessRdb::GetInstance().Init(), Rdb_OK);
+    // A missing marker (empty stored fingerprint) is treated as an OTA so that the first
+    // run after deploying the feature reconciles stale data.
+    EXPECT_TRUE(AmsResidentProcessRdb::GetInstance().IsOtaUpgrade("", "any"));
+    // A matching fingerprint is not an OTA (test-upgrade override is inactive in ut).
+    EXPECT_FALSE(AmsResidentProcessRdb::GetInstance().IsOtaUpgrade("same", "same"));
+    // An empty current fingerprint means system params are not ready yet; must not trigger
+    // OTA, otherwise an empty marker would be written and every boot would re-sync.
+    EXPECT_FALSE(AmsResidentProcessRdb::GetInstance().IsOtaUpgrade("stored", ""));
+    EXPECT_FALSE(AmsResidentProcessRdb::GetInstance().IsOtaUpgrade("", ""));
+}
+
+/*
+ * Feature: AbilityResidentProcessRdb
+ * Function: GetOtaFingerprint / SetOtaFingerprint
+ * SubFunction: NA
+ * FunctionPoints: AbilityResidentProcessRdb OtaFingerprint round-trip
+ */
+HWTEST_F(AbilityResidentProcessRdbTest, OtaFingerprint_001, TestSize.Level1) {
+    EXPECT_EQ(AmsResidentProcessRdb::GetInstance().Init(), Rdb_OK);
+    std::string value = "test_fingerprint_v1";
+    EXPECT_EQ(AmsResidentProcessRdb::GetInstance().SetOtaFingerprint(value), Rdb_OK);
+    std::string stored;
+    EXPECT_EQ(AmsResidentProcessRdb::GetInstance().GetOtaFingerprint(stored), Rdb_OK);
+    EXPECT_EQ(stored, value);
 }
 
 /*

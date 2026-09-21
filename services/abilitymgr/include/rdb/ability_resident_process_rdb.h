@@ -18,6 +18,9 @@
 
 #include "rdb_data_manager.h"
 
+#include <tuple>
+#include <unordered_map>
+
 namespace OHOS {
 namespace AbilityRuntime {
 enum RdbResult : int32_t {
@@ -93,6 +96,9 @@ private:
     AmsRdbConfig rdbConfig_;
 };
 
+// Maps a bundle name to (keepAliveEnable, keepAliveConfiguredList, keepAliveSaUidList).
+using BundleInfoMap = std::unordered_map<std::string, std::tuple<std::string, std::string, std::string>>;
+
 class AmsResidentProcessRdb final {
 public:
     /**
@@ -147,30 +153,12 @@ public:
     int32_t RemoveData(const std::string &bundleName);
 
     /**
-     * @brief Retrieves raw data for a resident process.
-     *
-     * @param bundleName The name of the bundle associated with the resident process.
-     * @param callerName The name of the caller requesting the resident process data.
-     * @return An integer indicating the result of the operation (e.g., success or error code).
-     */
-    int32_t GetResidentProcessRawData(const std::string &bundleName, const std::string &callerName);
-
-    /**
      * @brief Verifies the sa configuration permissions for the specified bundle.
      * @param bundleName The name of the bundle to verify.
      * @param callerUid The uid of the sa caller making the verification request.
      * @return Returns 0 on success, non-zero on failure.
      */
     int32_t VerifySaConfigurationPermissions(const std::string &bundleName, int32_t callerUid);
-
-    /**
-     * @brief Retrieves raw data of sa configuration permissions for a resident process.
-     *
-     * @param bundleName The name of the bundle associated with the resident process.
-     * @param callerUid The uid of the sa caller requesting the resident process data.
-     * @return An integer indicating the result of the operation (e.g., success or error code).
-     */
-    int32_t GetSaResidentProcessRawData(const std::string &bundleName, int32_t callerUid);
 private:
     /*
      * Verify callerUid against the sa uid list which is stored as a JSON array text.
@@ -179,6 +167,35 @@ private:
      * failure and is treated as an empty list (deny).
      */
     bool VerifyUidInJsonArray(const std::string &jsonArrayText, int32_t callerUid);
+
+    // Reconciles the resident_process_list table with the latest install_list_capability.json.
+    // Adds new bundles, deletes stale ones, and refreshes caller/SA-UID lists while
+    // preserving the runtime KEEP_ALIVE_ENABLE toggle for existing rows.
+    int32_t SyncResidentProcessData();
+
+    // Builds the jsonMap from install_list_capability.json. Returns Rdb_Parse_File_Err
+    // (without touching the DB) when the config is empty/missing to avoid wiping the table.
+    int32_t BuildJsonMap(BundleInfoMap &jsonMap);
+
+    // Queries all rows of resident_process_list into dbMap.
+    int32_t BuildDbMap(BundleInfoMap &dbMap);
+
+    // Deletes DB bundles absent from jsonMap; tracks the first failure in syncResult.
+    void RemoveStaleBundles(const BundleInfoMap &dbMap, const BundleInfoMap &jsonMap, int32_t &syncResult);
+
+    // Inserts new bundles and refreshes caller/SA-UID lists for existing ones while
+    // preserving the runtime KEEP_ALIVE_ENABLE toggle; tracks the first failure in syncResult.
+    void UpsertBundles(const BundleInfoMap &jsonMap, const BundleInfoMap &dbMap, int32_t &syncResult);
+
+    // Detects whether the system has been OTA-upgraded since the last sync by comparing
+    // the current system fingerprint (via AppExitReasonDataManager) with the stored marker.
+    bool IsOtaUpgrade(const std::string &storedFingerprint, const std::string &curFingerprint);
+
+    // Reads the stored OTA fingerprint marker from the resident_process_meta table.
+    int32_t GetOtaFingerprint(std::string &fingerprint);
+
+    // Writes the OTA fingerprint marker into the resident_process_meta table.
+    int32_t SetOtaFingerprint(const std::string &fingerprint);
 
     // Pointer to the RDB data manager, responsible for managing RDB operations.
     std::unique_ptr<RdbDataManager> rdbMgr_ = nullptr;
