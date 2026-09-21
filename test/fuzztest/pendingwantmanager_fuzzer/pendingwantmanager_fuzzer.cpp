@@ -105,7 +105,10 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     pendingWantManager->GetWantSender(int32Param, int32Param, boolParam, wantSenderInfo, token);
     pendingWantManager->GetWantSenderLocked(int32Param, int32Param, int32Param, wantSenderInfo, token);
     PendingWantRecord pendingWantRecord;
-    pendingWantManager->MakeWantSenderCanceledLocked(pendingWantRecord);
+    std::vector<sptr<IWantReceiver>> cancelCallbacks;
+    int32_t requestCode = 0;
+    pendingWantManager->MakeWantSenderCanceledLocked(pendingWantRecord, cancelCallbacks, requestCode);
+    pendingWantManager->SendCancelCallbacks(cancelCallbacks, requestCode);
     pendingWantManager->GetPendingWantRecordByKey(pendingWantKey);
     pendingWantManager->CheckPendingWantRecordByKey(pendingWantKey, pendingWantKey);
     sptr<IWantSender> wantSenderPtr;
