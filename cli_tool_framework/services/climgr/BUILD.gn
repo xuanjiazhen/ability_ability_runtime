@@ -59,6 +59,10 @@ ohos_shared_library("climgr") {
   ]
   defines = [ "AMS_LOG_TAG = \"CliToolManager\"" ]
 
+  if (memmgr_override_enable) {
+    defines += [ "MEMMGR_OVERRIDE_ENABLE" ]
+  }
+
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
@@ -90,4 +94,8 @@ ohos_shared_library("climgr") {
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
+
+  if (memmgr_override_enable) {
+    external_deps += [ "memmgr:memmgrclient" ]
+  }
 }
