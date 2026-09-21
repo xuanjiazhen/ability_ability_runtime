@@ -759,7 +759,7 @@ HWTEST_F(InsightIntentExecuteResultTest, FromJsonString_InvalidInteractionInfo_R
  */
 HWTEST_F(InsightIntentExecuteResultTest, FromJsonString_Oversize_Discarded_1900, TestSize.Level1)
 {
-    std::string huge(1024 * 1024 + 100, 'a');
+    std::string huge(1024 * 1024 * 128 + 100, 'a');
     std::string json = R"({"code":1,"uris":[")" + huge + R"("]})";
     InsightIntentExecuteResult result;
     EXPECT_FALSE(result.FromJsonString(json));
