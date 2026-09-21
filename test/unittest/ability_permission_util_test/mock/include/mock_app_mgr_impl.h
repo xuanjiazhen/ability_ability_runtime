@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_MOCK_APP_MGR_IMPL_H
 
 #include "app_mgr_stub.h"
+class IFocusedApplicationObserver;
 
 namespace OHOS {
 namespace AppExecFwk {
