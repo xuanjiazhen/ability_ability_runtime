@@ -134,6 +134,8 @@ HWTEST_F(JsInsightIntentFuncSecondTest, JsInsightIntentFuncLoadJsCode_001, TestS
     auto jsInsightIntentFunc = JsInsightIntentFunc::Create(*jsRuntime);
     InsightIntentExecutorInfo info;
     info.executeParam = std::make_shared<AppExecFwk::InsightIntentExecuteParam>();
+    info.executeParam->moduleName_ = "entry";
+    info.executeParam->srcEntrance_ = "ets/pages/Index";
     MyFlag::isExecuteSecureWithOhmUrl_ = true;
     auto runTime = std::make_shared<JsRuntime>();
     auto ret = jsInsightIntentFunc->LoadJsCode(info, *runTime);
