@@ -340,6 +340,9 @@ enum class AbilityErrorCode {
     // Failed to parse configuration file.
     ERROR_CODE_EVICT_CONFIG_PARSE_ERROR = 16000164,
 
+    // The observer does not exist.
+    ERROR_CODE_OBSERVER_NOT_EXIST = 16300004,
+
     // target bundle is not in u1
     ERROR_CODE_NO_U1 = 16000204,
 

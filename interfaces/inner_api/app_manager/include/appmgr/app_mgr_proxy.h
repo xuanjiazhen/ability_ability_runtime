@@ -684,6 +684,9 @@ public:
      */
     int32_t UnregisterAppForegroundStateObserver(const sptr<IAppForegroundStateObserver> &observer) override;
 
+    int32_t RegisterFocusedApplicationObserver(const sptr<IFocusedApplicationObserver> &observer) override;
+    int32_t UnregisterFocusedApplicationObserver(const sptr<IFocusedApplicationObserver> &observer) override;
+
     /**
      * Check whether the bundle is running.
      *
