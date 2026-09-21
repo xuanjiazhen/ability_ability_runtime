@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_PENDING_WANT_RECORD_H
 #define OHOS_ABILITY_RUNTIME_PENDING_WANT_RECORD_H
 
+#include <atomic>
 #include <list>
 #include <mutex>
 #include "cpp/mutex.h"
@@ -69,7 +70,7 @@ private:
     std::list<sptr<IWantReceiver>> mCancelCallbacks_ = {};
     int32_t callerUid_ = 0;
     int32_t publisherUid_ = 0;
-    bool canceled_ = false;
+    std::atomic<bool> canceled_ = false;
     ffrt::mutex lock_ = {};
     std::mutex mCancelCallbacksMutex_;
 };

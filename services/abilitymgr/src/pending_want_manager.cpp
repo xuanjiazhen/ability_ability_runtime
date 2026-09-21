@@ -190,58 +190,81 @@ sptr<IWantSender> PendingWantManager::GetWantSenderLocked(const int32_t callingU
         pendingKey->SetRequestResolvedType(wantSenderInfo.allWants.back().resolvedTypes);
         pendingKey->SetAllWantsInfos(wantSenderInfo.allWants);
     }
-    std::lock_guard<ffrt::mutex> locker(mutex_);
-    auto ref = GetPendingWantRecordByKey(pendingKey);
-    if (ref != nullptr) {
-        if (!needCancel) {
-            if (needUpdate && wantSenderInfo.allWants.size() > 0) {
-                ref->GetKey()->SetRequestWant(wantSenderInfo.allWants.back().want);
-                ref->GetKey()->SetRequestResolvedType(wantSenderInfo.allWants.back().resolvedTypes);
-                wantSenderInfo.allWants.back().want = ref->GetKey()->GetRequestWant();
-                wantSenderInfo.allWants.back().resolvedTypes = ref->GetKey()->GetRequestResolvedType();
-                ref->GetKey()->SetAllWantsInfos(wantSenderInfo.allWants);
-                ref->SetCallerUid(callingUid);
-                ref->SetPublisherUid(publisherUid);
+    std::vector<sptr<IWantReceiver>> cancelCallbacks;
+    int32_t cancelRequestCode = 0;
+    sptr<PendingWantRecord> result;
+    {
+        std::lock_guard<ffrt::mutex> locker(mutex_);
+        auto ref = GetPendingWantRecordByKey(pendingKey);
+        if (ref != nullptr) {
+            if (!needCancel) {
+                if (needUpdate && wantSenderInfo.allWants.size() > 0) {
+                    ref->GetKey()->SetRequestWant(wantSenderInfo.allWants.back().want);
+                    ref->GetKey()->SetRequestResolvedType(wantSenderInfo.allWants.back().resolvedTypes);
+                    wantSenderInfo.allWants.back().want = ref->GetKey()->GetRequestWant();
+                    wantSenderInfo.allWants.back().resolvedTypes = ref->GetKey()->GetRequestResolvedType();
+                    ref->GetKey()->SetAllWantsInfos(wantSenderInfo.allWants);
+                    ref->SetCallerUid(callingUid);
+                    ref->SetPublisherUid(publisherUid);
+                }
+                result = ref;
+            } else {
+                MakeWantSenderCanceledLocked(*ref, cancelCallbacks, cancelRequestCode);
+                ReduceWantAgentNumber(ref->GetKey());
+                wantRecords_.erase(ref->GetKey());
+                if (!needCreate) {
+                    result = ref;
+                }
             }
-            return ref;
         }
-        MakeWantSenderCanceledLocked(*ref);
-        ReduceWantAgentNumber(ref->GetKey());
-        wantRecords_.erase(ref->GetKey());
-    }
 
-    if (!needCreate) {
-        return (ref != nullptr) ? ref : nullptr;
+        if (result == nullptr && needCreate) {
+            sptr<PendingWantRecord> rec =
+                new (std::nothrow) PendingWantRecord(shared_from_this(), uid, IPCSkeleton::GetCallingTokenID(),
+                callerToken, pendingKey);
+            if (rec != nullptr) {
+                rec->SetCallerUid(callingUid);
+                rec->SetPublisherUid(publisherUid);
+                pendingKey->SetCode(PendingRecordIdCreate());
+                AddWantAgentNumber(pendingKey, callingUid);
+                wantRecords_.insert(std::make_pair(pendingKey, rec));
+                TAG_LOGI(AAFwkTag::WANTAGENT,
+                    "wantRecords_ size %{public}zu, bundleName=%{public}s, flags=%{public}d, type=%{public}d, "
+                    "code=%{public}d",
+                    wantRecords_.size(), pendingKey->GetBundleName().c_str(), pendingKey->GetFlags(),
+                    pendingKey->GetType(), pendingKey->GetCode());
+                result = rec;
+            }
+        }
     }
-
-    sptr<PendingWantRecord> rec =
-        new (std::nothrow) PendingWantRecord(shared_from_this(), uid, IPCSkeleton::GetCallingTokenID(),
-        callerToken, pendingKey);
-    if (rec != nullptr) {
-        rec->SetCallerUid(callingUid);
-        rec->SetPublisherUid(publisherUid);
-        pendingKey->SetCode(PendingRecordIdCreate());
-        AddWantAgentNumber(pendingKey, callingUid);
-        wantRecords_.insert(std::make_pair(pendingKey, rec));
-        TAG_LOGI(AAFwkTag::WANTAGENT,
-            "wantRecords_ size %{public}zu, bundleName=%{public}s, flags=%{public}d, type=%{public}d, code=%{public}d",
-            wantRecords_.size(), pendingKey->GetBundleName().c_str(), pendingKey->GetFlags(), pendingKey->GetType(),
-            pendingKey->GetCode());
-        return rec;
-    }
-    return nullptr;
+    SendCancelCallbacks(cancelCallbacks, cancelRequestCode);
+    return result;
 }
 
-void PendingWantManager::MakeWantSenderCanceledLocked(PendingWantRecord &record)
+void PendingWantManager::MakeWantSenderCanceledLocked(PendingWantRecord &record,
+    std::vector<sptr<IWantReceiver>> &cancelCallbacks, int32_t &requestCode)
 {
     TAG_LOGI(AAFwkTag::WANTAGENT, "cancel");
 
     record.SetCanceled();
-    for (auto &callback : record.GetCancelCallbacks()) {
-        callback->Send(record.GetKey()->GetRequestCode());
+    auto callbacks = record.GetCancelCallbacks();
+    cancelCallbacks.clear();
+    cancelCallbacks.reserve(callbacks.size());
+    cancelCallbacks.insert(cancelCallbacks.end(), callbacks.begin(), callbacks.end());
+    if (record.GetKey() != nullptr) {
+        requestCode = record.GetKey()->GetRequestCode();
+        if (record.GetKey()->GetCode() > 0) {
+            record.GetKey()->ClearAllWantsInfosFd();
+        }
     }
-    if (record.GetKey() != nullptr && record.GetKey()->GetCode() > 0) {
-        record.GetKey()->ClearAllWantsInfosFd();
+}
+
+void PendingWantManager::SendCancelCallbacks(const std::vector<sptr<IWantReceiver>> &cancelCallbacks, int32_t requestCode)
+{
+    for (const auto &callback : cancelCallbacks) {
+        if (callback != nullptr) {
+            callback->Send(requestCode);
+        }
     }
 }
 
@@ -387,12 +410,17 @@ void PendingWantManager::CancelWantSenderLocked(PendingWantRecord &record, bool 
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::WANTAGENT, "begin");
-    std::lock_guard<ffrt::mutex> locker(mutex_);
-    MakeWantSenderCanceledLocked(record);
-    if (cleanAbility) {
-        ReduceWantAgentNumber(record.GetKey());
-        wantRecords_.erase(record.GetKey());
+    std::vector<sptr<IWantReceiver>> cancelCallbacks;
+    int32_t requestCode = 0;
+    {
+        std::lock_guard<ffrt::mutex> locker(mutex_);
+        MakeWantSenderCanceledLocked(record, cancelCallbacks, requestCode);
+        if (cleanAbility) {
+            ReduceWantAgentNumber(record.GetKey());
+            wantRecords_.erase(record.GetKey());
+        }
     }
+    SendCancelCallbacks(cancelCallbacks, requestCode);
 }
 
 int32_t PendingWantManager::DeviceIdDetermine(const Want &want, const sptr<StartOptions> &startOptions,
@@ -643,9 +671,8 @@ void PendingWantManager::RegisterCancelListener(const sptr<IWantSender> &sender,
             targetRecord->GetKey()->GetCode());
         return;
     }
-    bool cancel = record->GetCanceled();
     std::lock_guard<ffrt::mutex> locker(mutex_);
-    if (!cancel) {
+    if (!record->GetCanceled()) {
         record->RegisterCancelListener(recevier);
     }
 }

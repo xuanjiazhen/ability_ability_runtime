@@ -906,7 +906,10 @@ HWTEST_F(PendingWantManagerSecondTest, MakeWantSenderCanceledLocked_WithCallback
 
     // Act
     auto record = iface_cast<PendingWantRecord>(sender->AsObject());
-    pendingManager_->MakeWantSenderCanceledLocked(*record);
+    std::vector<sptr<IWantReceiver>> cancelCallbacks;
+    int32_t requestCode = 0;
+    pendingManager_->MakeWantSenderCanceledLocked(*record, cancelCallbacks, requestCode);
+    pendingManager_->SendCancelCallbacks(cancelCallbacks, requestCode);
 
     // Assert - Both callbacks should be notified
     EXPECT_EQ(CancelReceiver::sendCount, DEFAULT_COUNT);

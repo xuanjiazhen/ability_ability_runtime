@@ -192,7 +192,9 @@ private:
     sptr<IWantSender> GetWantSenderLocked(const int32_t callingUid, const int32_t uid, const int32_t userId,
         WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, int32_t appIndex = 0,
         int32_t publisherUid = 0);
-    void MakeWantSenderCanceledLocked(PendingWantRecord &record);
+    void MakeWantSenderCanceledLocked(PendingWantRecord &record,
+        std::vector<sptr<IWantReceiver>> &cancelCallbacks, int32_t &requestCode);
+    static void SendCancelCallbacks(const std::vector<sptr<IWantReceiver>> &cancelCallbacks, int32_t requestCode);
 
     void HandleAddWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey, int32_t callerUid);
     void HandleReduceWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey);
