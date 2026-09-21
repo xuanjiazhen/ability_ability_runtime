@@ -29,6 +29,7 @@ ohos_shared_library("appmanager") {
     "js_app_manager.cpp",
     "js_app_manager_utils.cpp",
     "js_app_state_observer.cpp",
+    "js_focus_state_observer.cpp",
   ]
 
   if (ability_runtime_graphics) {

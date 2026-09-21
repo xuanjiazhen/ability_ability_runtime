@@ -32,6 +32,7 @@
 #include "iservice_registry.h"
 #include "js_app_foreground_state_observer.h"
 #include "js_app_manager_utils.h"
+#include "js_focus_state_observer.h"
 #include "js_app_state_observer.h"
 #ifdef SUPPORT_GRAPHICS
 #include "js_ability_first_frame_state_observer.h"
@@ -77,6 +78,9 @@ public:
         }
         if (observerForeground_ != nullptr) {
             observerForeground_->SetValid(false);
+        }
+        if (observerFocus_ != nullptr) {
+            observerFocus_->SetValid(false);
         }
     }
 
@@ -259,12 +263,23 @@ public:
         GET_CB_INFO_AND_CALL(env, info, JsAppManager, OnPreloadApplication);
     }
 
+    static napi_value OnAppFocusStateChange(napi_env env, napi_callback_info info)
+    {
+        GET_CB_INFO_AND_CALL(env, info, JsAppManager, HandleOnAppFocusStateChange);
+    }
+
+    static napi_value OffAppFocusStateChange(napi_env env, napi_callback_info info)
+    {
+        GET_CB_INFO_AND_CALL(env, info, JsAppManager, HandleOffAppFocusStateChange);
+    }
+
 private:
     sptr<OHOS::AppExecFwk::IAppMgr> appManager_ = nullptr;
     sptr<OHOS::AAFwk::IAbilityManager> abilityManager_ = nullptr;
     sptr<JSAppStateObserver> observer_ = nullptr;
     sptr<JSAppStateObserver> observerSync_ = nullptr;
     sptr<JSAppForegroundStateObserver> observerForeground_ = nullptr;
+    sptr<JSFocusStateObserver> observerFocus_ = nullptr;
     int32_t serialNumber_ = 0;
 
     napi_value OnOn(napi_env env, size_t argc, napi_value* argv)
@@ -398,6 +413,81 @@ private:
             }
         }
         observerForeground_->AddJsObserverObject(argv[INDEX_ONE]);
+        return CreateJsUndefined(env);
+    }
+
+    napi_value HandleOnAppFocusStateChange(napi_env env, size_t argc, napi_value *argv)
+    {
+        TAG_LOGD(AAFwkTag::APPMGR, "called");
+        if (argc < ARGC_ONE) {
+            TAG_LOGE(AAFwkTag::APPMGR, "invalid argc");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+        if (!AppExecFwk::IsTypeForNapiValue(env, argv[INDEX_ZERO], napi_object)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "invalid param");
+            ThrowInvalidParamError(env, "Parse param observer failed, must be a AppFocusStateObserver.");
+            return CreateJsUndefined(env);
+        }
+        if (observerFocus_ == nullptr) {
+            observerFocus_ = new (std::nothrow) JSFocusStateObserver(env);
+        }
+        if (appManager_ == nullptr || observerFocus_ == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "null appMgr or observer");
+            ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::MEMORY_ALLOC_FAILED));
+            return CreateJsUndefined(env);
+        }
+        if (observerFocus_->IsEmpty()) {
+            int32_t ret = appManager_->RegisterFocusStateObserver(observerFocus_);
+            if (ret != NO_ERROR) {
+                TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d", ret);
+                napi_throw(env, CreateJsErrorByNativeErr(env, ret, "",
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::REGISTER_OBSERVER_FAILED)));
+                return CreateJsUndefined(env);
+            }
+        }
+        int32_t observerId = serialNumber_++;
+        observerFocus_->AddJsObserverObjectWithId(observerId, argv[INDEX_ZERO]);
+        TAG_LOGI(AAFwkTag::APPMGR, "observerId: %{public}d", observerId);
+        return CreateJsValue(env, observerId);
+    }
+
+    napi_value HandleOffAppFocusStateChange(napi_env env, size_t argc, napi_value *argv)
+    {
+        TAG_LOGD(AAFwkTag::APPMGR, "called");
+        if (argc < ARGC_ONE) {
+            TAG_LOGE(AAFwkTag::APPMGR, "invalid argc");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+        if (!AppExecFwk::IsTypeForNapiValue(env, argv[INDEX_ZERO], napi_number)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "invalid param");
+            ThrowInvalidParamError(env, "Parse param observerId failed, must be a number.");
+            return CreateJsUndefined(env);
+        }
+        if (observerFocus_ == nullptr || appManager_ == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "null observer or appMgr");
+            ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::OPERATION_FAILED));
+            return CreateJsUndefined(env);
+        }
+        int32_t observerId = 0;
+        if (napi_get_value_int32(env, argv[INDEX_ZERO], &observerId) != napi_ok) {
+            TAG_LOGE(AAFwkTag::APPMGR, "parse observerId failed");
+            ThrowInvalidParamError(env, "Parse param observerId failed, must be a number.");
+            return CreateJsUndefined(env);
+        }
+        observerFocus_->RemoveJsObserverObjectById(observerId);
+        if (observerFocus_->IsEmpty()) {
+            int32_t ret = appManager_->UnregisterFocusStateObserver(observerFocus_);
+            if (ret != NO_ERROR) {
+                TAG_LOGE(AAFwkTag::APPMGR, "err: %{public}d.", ret);
+                napi_throw(env, CreateJsErrorByNativeErr(env, ret, "",
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::UNREGISTER_OBSERVER_FAILED)));
+                return CreateJsUndefined(env);
+            }
+        }
         return CreateJsUndefined(env);
     }
 
@@ -1844,6 +1934,8 @@ napi_value JsAppManagerInit(napi_env env, napi_value exportObj)
     const char *moduleName = "AppManager";
     BindNativeFunction(env, exportObj, "on", moduleName, JsAppManager::On);
     BindNativeFunction(env, exportObj, "off", moduleName, JsAppManager::Off);
+    BindNativeFunction(env, exportObj, "onAppFocusStateChange", moduleName, JsAppManager::OnAppFocusStateChange);
+    BindNativeFunction(env, exportObj, "offAppFocusStateChange", moduleName, JsAppManager::OffAppFocusStateChange);
     BindNativeFunction(env, exportObj, "getForegroundApplications", moduleName,
         JsAppManager::GetForegroundApplications);
     BindNativeFunction(env, exportObj, "getProcessRunningInfos", moduleName,

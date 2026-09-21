@@ -160,6 +160,8 @@ private:
     int32_t HandleUnregisterAppRunningStatusListener(MessageParcel &data, MessageParcel &reply);
     int32_t HandleRegisterAppForegroundStateObserver(MessageParcel &data, MessageParcel &reply);
     int32_t HandleUnregisterAppForegroundStateObserver(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleRegisterFocusStateObserver(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleUnregisterFocusStateObserver(MessageParcel &data, MessageParcel &reply);
     int32_t HandleIsApplicationRunning(MessageParcel &data, MessageParcel &reply);
 #ifdef SUPPORT_CHILD_PROCESS
     int32_t HandleStartChildProcess(MessageParcel &data, MessageParcel &reply);
