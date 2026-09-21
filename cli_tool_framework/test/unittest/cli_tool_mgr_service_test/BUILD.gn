@@ -90,6 +90,13 @@ ohos_unittest("cli_tool_mgr_service_test") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+
+  defines = []
+
+  if (memmgr_override_enable) {
+    defines += [ "MEMMGR_OVERRIDE_ENABLE" ]
+    external_deps += [ "memmgr:memmgrclient" ]
+  }
 }
 
 group("unittest") {

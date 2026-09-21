@@ -33,6 +33,9 @@
 #include "ccm_util.h"
 #include "cli_error_code.h"
 #include "cli_event_report.h"
+#ifdef MEMMGR_OVERRIDE_ENABLE
+#include "mem_mgr_client.h"
+#endif
 #include "cli_hook_interface_proxy.h"
 #include "cli_tool_app_state_observer.h"
 #include "cli_function_data_manager.h"
@@ -312,6 +315,29 @@ void CliToolManagerService::Init()
     initialized_ = true;
 }
 
+void CliToolManagerService::OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId)
+{
+    (void)deviceId;
+#ifdef MEMMGR_OVERRIDE_ENABLE
+    if (systemAbilityId == MEMORY_MANAGER_SA_ID) {
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "memmgrservice ready, notify process status");
+        auto pid = static_cast<int32_t>(getpid());
+        int32_t ret = Memory::MemMgrClient::GetInstance().NotifyProcessStatus(pid, 1, 1, CLI_TOOL_MGR_SERVICE_ID);
+        if (ret != ERR_OK) {
+            TAG_LOGW(AAFwkTag::CLI_TOOL, "NotifyProcessStatus start failed, ret=%{public}d", ret);
+        }
+        memMgrNotified_.store(true);
+        // Re-establish critical state after memmgr restart while sessions are active.
+        if (criticalSessionCount_.load() > 0) {
+            ret = Memory::MemMgrClient::GetInstance().SetCritical(pid, true, CLI_TOOL_MGR_SERVICE_ID);
+            if (ret != ERR_OK) {
+                TAG_LOGW(AAFwkTag::CLI_TOOL, "SetCritical(true) re-establish failed, ret=%{public}d", ret);
+            }
+        }
+    }
+#endif
+}
+
 void CliToolManagerService::OnStart()
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "climgr start");
@@ -343,6 +369,10 @@ void CliToolManagerService::OnStart()
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Publish failed");
         return;
     }
+#ifdef MEMMGR_OVERRIDE_ENABLE
+    // Listen for memmgrservice startup; notify process status once it is ready.
+    AddSystemAbilityListener(MEMORY_MANAGER_SA_ID);
+#endif
     DelayUnloadTask();
     TAG_LOGI(AAFwkTag::CLI_TOOL, "climgr start success");
 }
@@ -350,6 +380,23 @@ void CliToolManagerService::OnStart()
 void CliToolManagerService::OnStop()
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "climgr stop");
+#ifdef MEMMGR_OVERRIDE_ENABLE
+    if (memMgrNotified_.exchange(false)) {
+        shuttingDown_.store(true);
+        auto pid = static_cast<int32_t>(getpid());
+        // Clear critical state before exit; critical must not last the whole process lifetime.
+        if (criticalSessionCount_.exchange(0) > 0) {
+            int32_t ret = Memory::MemMgrClient::GetInstance().SetCritical(pid, false, CLI_TOOL_MGR_SERVICE_ID);
+            if (ret != ERR_OK) {
+                TAG_LOGW(AAFwkTag::CLI_TOOL, "SetCritical(false) on stop failed, ret=%{public}d", ret);
+            }
+        }
+        int32_t ret = Memory::MemMgrClient::GetInstance().NotifyProcessStatus(pid, 1, 0, CLI_TOOL_MGR_SERVICE_ID);
+        if (ret != ERR_OK) {
+            TAG_LOGW(AAFwkTag::CLI_TOOL, "NotifyProcessStatus died failed, ret=%{public}d", ret);
+        }
+    }
+#endif
     initialized_ = false;
 
     // Collect active PIDs before clearing sessions.
@@ -418,8 +465,21 @@ int32_t CliToolManagerService::OnIdle(const SystemAbilityOnDemandReason &idlReas
 
 void CliToolManagerService::AddSessionRecord(const std::shared_ptr<SessionRecord> &record)
 {
-    std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
-    sessionRecords_[record->sessionId] = record;
+    {
+        std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
+        sessionRecords_[record->sessionId] = record;
+    }
+#ifdef MEMMGR_OVERRIDE_ENABLE
+    // Tool execution is critical: protect climgr from low-memory kill while sessions exist.
+    if (!shuttingDown_.load() &&
+        criticalSessionCount_.fetch_add(1, std::memory_order_acq_rel) == 0) {
+        auto pid = static_cast<int32_t>(getpid());
+        int32_t ret = Memory::MemMgrClient::GetInstance().SetCritical(pid, true, CLI_TOOL_MGR_SERVICE_ID);
+        if (ret != ERR_OK) {
+            TAG_LOGW(AAFwkTag::CLI_TOOL, "SetCritical(true) failed, ret=%{public}d", ret);
+        }
+    }
+#endif
 }
 
 std::shared_ptr<SessionRecord> CliToolManagerService::GetSessionRecord(const std::string &sessionId)
@@ -452,8 +512,25 @@ std::vector<std::shared_ptr<SessionRecord>> CliToolManagerService::GetSessionRec
 
 void CliToolManagerService::RemoveSessionRecord(const std::string &sessionId)
 {
-    std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
-    sessionRecords_.erase(sessionId);
+    // Erase first; only the caller whose erase actually removed the record owns the
+    // critical refcount release, so concurrent removal paths cannot double-decrement.
+    bool removed = false;
+    {
+        std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
+        removed = sessionRecords_.erase(sessionId) > 0;
+    }
+#ifdef MEMMGR_OVERRIDE_ENABLE
+    if (removed && !shuttingDown_.load()) {
+        int32_t prev = criticalSessionCount_.fetch_sub(1, std::memory_order_acq_rel);
+        if (prev == 1) {
+            auto pid = static_cast<int32_t>(getpid());
+            int32_t ret = Memory::MemMgrClient::GetInstance().SetCritical(pid, false, CLI_TOOL_MGR_SERVICE_ID);
+            if (ret != ERR_OK) {
+                TAG_LOGW(AAFwkTag::CLI_TOOL, "SetCritical(false) failed, ret=%{public}d", ret);
+            }
+        }
+    }
+#endif
 }
 
 bool CliToolManagerService::IsSessionOwner(const std::shared_ptr<SessionRecord> &record, const char *action) const
@@ -1682,29 +1759,32 @@ void CliToolManagerService::OnProcessDied(const std::string &bundleName, pid_t d
         bundleObservers_.erase(bundleName);
     }
     std::vector<pid_t> activePids;
-    // Iterate through sessionRecords_ to find matching SessionRecord by callerPid
+    std::vector<std::string> removedSessionIds;
+    // Collect sessionIds owned by the dead caller; do NOT erase here — RemoveSessionRecord
+    // owns both the erase and the critical refcount release, so concurrent removal paths
+    // (e.g. FinalizeBackgroundSession) cannot double-decrement.
     {
         std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
-        for (auto iter = sessionRecords_.begin(); iter != sessionRecords_.end();) {
-            auto sessionRecord = iter->second;
+        for (const auto &[sessionId, sessionRecord] : sessionRecords_) {
             if (sessionRecord == nullptr) {
-                std::string sessionId = iter->first;
-                iter = sessionRecords_.erase(iter);
                 TAG_LOGW(AAFwkTag::CLI_TOOL, "delete leak sessionId:%{public}s", sessionId.c_str());
+                removedSessionIds.push_back(sessionId);
                 continue;
             }
 
             // Check if this session's callerPid matches the diedPid
             if (sessionRecord->GetCallerPid() != diedPid) {
-                ++iter;
                 continue;
             }
 
             if (sessionRecord->processId > 0 && !sessionRecord->HasProcessExited()) {
                 activePids.emplace_back(sessionRecord->processId);
             }
-            iter = sessionRecords_.erase(iter);
+            removedSessionIds.push_back(sessionId);
         }
+    }
+    for (const auto &sessionId : removedSessionIds) {
+        RemoveSessionRecord(sessionId);
     }
 
     for (pid_t pid : activePids) {

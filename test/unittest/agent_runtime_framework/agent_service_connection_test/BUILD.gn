@@ -92,6 +92,13 @@ ohos_unittest("agent_service_connection_test") {
     "samgr:samgr_proxy",
   ]
 
+  defines = []
+
+  if (memmgr_override_enable) {
+    defines += [ "MEMMGR_OVERRIDE_ENABLE" ]
+    external_deps += [ "memmgr:memmgrclient" ]
+  }
+
   cflags_cc = []
 
   configs = []
