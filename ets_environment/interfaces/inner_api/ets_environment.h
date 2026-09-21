@@ -54,7 +54,7 @@ public:
     static ETSEnvFuncs *RegisterFuncs();
 
     bool Initialize(const std::shared_ptr<AppExecFwk::EventRunner> eventRunner, bool isDebug,
-        const std::string &bundleName = "");
+        const std::string &bundleName = "", bool enableReload = false);
     void RegisterUncaughtExceptionHandler(const ETSUncaughtExceptionInfo &handle);
     ani_env *GetAniEnv();
     bool HandleUncaughtError();
