@@ -37,6 +37,7 @@
 #include "global_constant.h"
 #include "hitrace_meter.h"
 #include "image_source.h"
+#include "insight_intent_execute_manager.h"
 #include "json_utils.h"
 #include "last_exit_detail_info.h"
 #include "main_element_utils.h"
@@ -1102,6 +1103,7 @@ void AbilityRecord::SetScheduler(const sptr<IAbilityScheduler> &scheduler)
             TAG_LOGE(AAFwkTag::ABILITYMGR, "AddDeathRecipient failed");
         }
         SetPid(IPCSkeleton::GetCallingPid()); // set pid when ability attach to service.
+        SetInsightIntentTargetPid();
         AfterLoaded();
         // add collaborator mission bind pid
         NotifyMissionBindPid();
@@ -2167,6 +2169,20 @@ std::string AbilityRecord::GetAbilityName() const
 {
     std::lock_guard guard(wantLock_);
     return want_.GetAbilityNameRef();
+}
+
+void AbilityRecord::SetInsightIntentTargetPid()
+{
+    Want want = GetWant();
+    if (!InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
+        return;
+    }
+    auto intentIdStr = want.GetStringParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID);
+    uint64_t intentId = 0;
+    auto res = std::from_chars(intentIdStr.c_str(), intentIdStr.c_str() + intentIdStr.size(), intentId);
+    if (res.ec == std::errc()) {
+        DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->SetTargetPid(intentId, GetPid());
+    }
 }
 
 std::string AbilityRecord::GetBundleName() const
