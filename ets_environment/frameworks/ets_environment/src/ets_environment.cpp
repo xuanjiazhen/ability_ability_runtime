@@ -259,7 +259,7 @@ void ETSEnvironment::InitETSSysNS(const std::string &path)
 }
 
 bool ETSEnvironment::Initialize(const std::shared_ptr<AppExecFwk::EventRunner> eventRunner, bool isStartWithDebug,
-    const std::string &bundleName)
+    const std::string &bundleName, bool enableHotReload)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Initialize called, bundleName: %{public}s", bundleName.c_str());
     if (!LoadRuntimeApis()) {
@@ -296,6 +296,15 @@ bool ETSEnvironment::Initialize(const std::shared_ptr<AppExecFwk::EventRunner> e
         options.push_back(ani_option { debugEnalbeMode.data(), nullptr });
         options.push_back(ani_option { debugLibraryPathMode.data(), nullptr });
         options.push_back(ani_option { breadonstartMode.data(), nullptr });
+    }
+    /*
+     * Reload (hot/cold) is disabled by default in the runtime; authorize the process only when
+     * the launch decision allows it: a debug-signed build (dev session), or an app with a
+     * deployed quickfix patch (production cold path). The option is fixed for the process
+     * lifetime; the runtime refuses every reload entry with NOT_ENABLED without it.
+     */
+    if (enableHotReload) {
+        options.push_back(ani_option { "--ext:--enable-hotreload", nullptr });
     }
     ani_options optionsPtr = { options.size(), options.data() };
     ani_status status = ANI_ERROR;
@@ -843,8 +852,9 @@ ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
             ETSEnvironment::InitETSSysNS(path);
         },
         .Initialize = [](const std::shared_ptr<AppExecFwk::EventRunner> eventRunner, bool isStartWithDebug,
-            const std::string &bundleName) {
-            return ETSEnvironment::GetInstance()->Initialize(eventRunner, isStartWithDebug, bundleName);
+            const std::string &bundleName, bool enableHotReload) {
+            return ETSEnvironment::GetInstance()->Initialize(eventRunner, isStartWithDebug, bundleName,
+                enableHotReload);
         },
         .RegisterUncaughtExceptionHandler = [](const ETSUncaughtExceptionInfo &exceptionInfo) {
             ETSEnvironment::GetInstance()->RegisterUncaughtExceptionHandler(exceptionInfo);
