@@ -34,6 +34,7 @@
 #include "app_debug_listener_interface.h"
 #include "app_debug_manager.h"
 #include "app_foreground_state_observer_interface.h"
+#include "focus_state_observer_interface.h"
 #include "app_malloc_info.h"
 #include "app_mgr_constants.h"
 #include "app_mgr_event.h"
@@ -1228,6 +1229,8 @@ public:
 #ifdef SUPPORT_SCREEN
     void HandleFocused(const sptr<OHOS::Rosen::FocusChangeInfo> &focusChangeInfo);
     void HandleUnfocused(const sptr<OHOS::Rosen::FocusChangeInfo> &focusChangeInfo);
+    void NotifyFocusChanged(int32_t focusedUid, int32_t unfocusedUid, int32_t displayId,
+        const std::shared_ptr<AppRunningRecord> &appRecord);
 
     /**
      * Handle window visibility changed.
@@ -1504,6 +1507,9 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t UnregisterAppForegroundStateObserver(const sptr<IAppForegroundStateObserver> &observer);
+
+    int32_t RegisterFocusStateObserver(const sptr<IFocusStateObserver> &observer);
+    int32_t UnregisterFocusStateObserver(const sptr<IFocusStateObserver> &observer);
 
 #ifdef SUPPORT_CHILD_PROCESS
     /**
@@ -2599,6 +2605,7 @@ private:
     sptr<WindowFocusChangedListener> focusListener_;
     sptr<WindowVisibilityChangedListener> windowVisibilityChangedListener_;
     sptr<WindowPidVisibilityChangedListener> windowPidVisibilityChangedListener_;
+    int32_t lastFocusedUid_ = -1;
 #endif //SUPPORT_SCREEN
     std::atomic<bool> sceneBoardAttachFlag_ = true;
     std::atomic<int32_t> willKillPidsNum_ = 0;

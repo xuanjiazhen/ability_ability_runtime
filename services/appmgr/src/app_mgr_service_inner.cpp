@@ -60,6 +60,7 @@
 #include "distributed_data_mgr.h"
 #include "extension_ability_info.h"
 #include "ffrt.h"
+#include "focus_state_data.h"
 #include "freeze_util.h"
 #include "global_constant.h"
 #include "hap_token_info.h"
@@ -7375,6 +7376,18 @@ int32_t AppMgrServiceInner::UnregisterAppForegroundStateObserver(const sptr<IApp
     return DelayedSingleton<AppStateObserverManager>::GetInstance()->UnregisterAppForegroundStateObserver(observer);
 }
 
+int32_t AppMgrServiceInner::RegisterFocusStateObserver(const sptr<IFocusStateObserver> &observer)
+{
+    CHECK_CALLER_IS_SYSTEM_APP;
+    return DelayedSingleton<AppStateObserverManager>::GetInstance()->RegisterFocusStateObserver(observer);
+}
+
+int32_t AppMgrServiceInner::UnregisterFocusStateObserver(const sptr<IFocusStateObserver> &observer)
+{
+    CHECK_CALLER_IS_SYSTEM_APP;
+    return DelayedSingleton<AppStateObserverManager>::GetInstance()->UnregisterFocusStateObserver(observer);
+}
+
 int32_t AppMgrServiceInner::RegisterAbilityForegroundStateObserver(
     const sptr<IAbilityForegroundStateObserver> &observer)
 {
@@ -9144,6 +9157,35 @@ void AppMgrServiceInner::HandleFocused(const sptr<OHOS::Rosen::FocusChangeInfo> 
         OnAppStateChanged(appRecord, ApplicationState::APP_STATE_FOREGROUND, needNotifyApp, true, false);
     }
     DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessStateChanged(appRecord, true);
+    int32_t unfocusedUid = lastFocusedUid_;
+    NotifyFocusChanged(focusChangeInfo->uid_, unfocusedUid,
+        static_cast<int32_t>(focusChangeInfo->displayId_), appRecord);
+    lastFocusedUid_ = focusChangeInfo->uid_;
+}
+
+void AppMgrServiceInner::NotifyFocusChanged(int32_t focusedUid, int32_t unfocusedUid, int32_t displayId,
+    const std::shared_ptr<AppRunningRecord> &appRecord)
+{
+    if (displayId < 0) {
+        TAG_LOGW(AAFwkTag::APPMGR, "invalid displayId:%{public}d, skip notify", displayId);
+        return;
+    }
+    if (focusedUid == unfocusedUid) {
+        TAG_LOGD(AAFwkTag::APPMGR, "same uid focus change, skip notify");
+        return;
+    }
+    FocusStateData data;
+    data.focusedUid = focusedUid;
+    data.unfocusedUid = unfocusedUid;
+    if (appRecord) {
+        data.focusedBundleName = appRecord->GetBundleName();
+    }
+    if (unfocusedUid == -1) {
+        data.unfocusedBundleName = std::string();
+    }
+    TAG_LOGI(AAFwkTag::APPMGR, "NotifyFocusChanged focusedUid:%{public}d, unfocusedUid:%{public}d, "
+        "focusedBundleName:%{public}s", focusedUid, unfocusedUid, data.focusedBundleName.c_str());
+    DelayedSingleton<AppStateObserverManager>::GetInstance()->NotifyFocusChanged(data);
 }
 
 void AppMgrServiceInner::HandleUnfocused(const sptr<OHOS::Rosen::FocusChangeInfo> &focusChangeInfo)
