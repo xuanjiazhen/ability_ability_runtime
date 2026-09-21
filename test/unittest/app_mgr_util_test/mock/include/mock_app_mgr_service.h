@@ -20,6 +20,7 @@
 #include "gmock/gmock.h"
 
 #include "app_mgr_interface.h"
+class IFocusedApplicationObserver;
 #include "iremote_object.h"
 #include "iremote_proxy.h"
 #include "iremote_stub.h"
