@@ -175,6 +175,16 @@ public:
         return 0;
     }
 
+    virtual int32_t RegisterFocusedApplicationObserver(const sptr<IFocusedApplicationObserver> &observer)
+    {
+        return 0;
+    }
+
+    virtual int32_t UnregisterFocusedApplicationObserver(const sptr<IFocusedApplicationObserver> &observer)
+    {
+        return 0;
+    }
+
     virtual int32_t StartNativeProcessForDebugger(const AAFwk::Want &want) override
     {
         return 0;
