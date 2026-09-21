@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_JS_APPLICATION_CONTEXT_UTILS_H
 #define OHOS_ABILITY_RUNTIME_JS_APPLICATION_CONTEXT_UTILS_H
 
+#include <map>
 #include <memory>
 #include <mutex>
 
@@ -26,6 +27,7 @@
 #include "js_ability_lifecycle_callback.h"
 #include "js_system_configuration_updated_callback.h"
 #include "native_engine/native_engine.h"
+#include "process_lifecycle_callback.h"
 #include "running_process_info.h"
 #include "child_process_info.h"
 
@@ -46,6 +48,8 @@ public:
     static napi_value UnregisterEnvironmentCallback(napi_env env, napi_callback_info info);
     static napi_value On(napi_env env, napi_callback_info info);
     static napi_value Off(napi_env env, napi_callback_info info);
+    static napi_value OnProcessLifecycle(napi_env env, napi_callback_info info);
+    static napi_value OffProcessLifecycle(napi_env env, napi_callback_info info);
     static napi_value CreateBundleContext(napi_env env, napi_callback_info info);
     static napi_value SwitchArea(napi_env env, napi_callback_info info);
     static napi_value GetArea(napi_env env, napi_callback_info info);
@@ -77,6 +81,8 @@ public:
         napi_env env, NapiCallbackInfo& info, int32_t callbackId);
     napi_value OnOnApplicationStateChange(napi_env env, NapiCallbackInfo& info);
     napi_value OnOffApplicationStateChange(napi_env env, NapiCallbackInfo& info);
+    napi_value OnOnProcessLifecycle(napi_env env, NapiCallbackInfo& info);
+    napi_value OnOffProcessLifecycle(napi_env env, NapiCallbackInfo& info);
     napi_value OnSystemConfigurationUpdated(napi_env env, NapiCallbackInfo& info);
     napi_value OffSystemConfigurationUpdated(napi_env env, NapiCallbackInfo& info);
 
@@ -171,6 +177,8 @@ private:
     std::shared_ptr<JsEnvironmentCallback> envCallback_;
     std::shared_ptr<JsApplicationStateChangeCallback> applicationStateCallback_;
     std::mutex applicationStateCallbackLock_;
+    std::map<int32_t, std::shared_ptr<JsProcessLifecycleCallback>> processLifecycleCallbacks_;
+    std::mutex processLifecycleCallbackLock_;
     sptr<JsAbilityAutoStartupCallBack> jsAutoStartupCallback_;
     std::shared_ptr<JsSystemConfigurationUpdatedCallback> systemConfigurationUpdatedCallback_;
     std::mutex systemConfigurationUpdatedCallbackLock_;

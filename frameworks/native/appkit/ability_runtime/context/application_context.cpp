@@ -40,6 +40,9 @@ std::vector<std::shared_ptr<InteropAbilityLifecycleCallback>> ApplicationContext
 std::vector<std::shared_ptr<EnvironmentCallback>> ApplicationContext::envCallbacks_;
 std::vector<std::weak_ptr<ApplicationStateChangeCallback>> ApplicationContext::applicationStateCallback_;
 std::vector<std::weak_ptr<SystemConfigurationUpdatedCallback>> ApplicationContext::systemConfigurationUpdatedCallbacks_;
+std::map<int32_t, std::weak_ptr<ProcessLifecycleCallback>> ApplicationContext::processLifecycleCallbacks_;
+std::recursive_mutex ApplicationContext::processLifecycleCallbackLock_;
+int32_t ApplicationContext::nextProcessLifecycleObserverId_ = 0;
 
 std::shared_ptr<ApplicationContext> ApplicationContext::GetInstance()
 {
@@ -717,6 +720,48 @@ void ApplicationContext::NotifyApplicationBackground()
         auto callbackSptr = callback.lock();
         if (callbackSptr != nullptr) {
             callbackSptr->NotifyApplicationBackground();
+        }
+    }
+}
+
+int32_t ApplicationContext::RegisterProcessLifecycleCallback(const std::weak_ptr<ProcessLifecycleCallback> &callback)
+{
+    std::lock_guard<std::recursive_mutex> lock(processLifecycleCallbackLock_);
+    int32_t observerId = ++nextProcessLifecycleObserverId_;
+    processLifecycleCallbacks_[observerId] = callback;
+    return observerId;
+}
+
+bool ApplicationContext::UnregisterProcessLifecycleCallback(int32_t observerId)
+{
+    std::lock_guard<std::recursive_mutex> lock(processLifecycleCallbackLock_);
+    return processLifecycleCallbacks_.erase(observerId) != 0;
+}
+
+void ApplicationContext::DispatchOnProcessCreated(const ProcessLifecycleInfo &info)
+{
+    std::lock_guard<std::recursive_mutex> lock(processLifecycleCallbackLock_);
+    for (auto it = processLifecycleCallbacks_.begin(); it != processLifecycleCallbacks_.end();) {
+        auto callbackSptr = it->second.lock();
+        if (callbackSptr != nullptr) {
+            callbackSptr->OnProcessCreated(info);
+            ++it;
+        } else {
+            it = processLifecycleCallbacks_.erase(it);
+        }
+    }
+}
+
+void ApplicationContext::DispatchOnProcessExited(const ProcessLifecycleInfo &info)
+{
+    std::lock_guard<std::recursive_mutex> lock(processLifecycleCallbackLock_);
+    for (auto it = processLifecycleCallbacks_.begin(); it != processLifecycleCallbacks_.end();) {
+        auto callbackSptr = it->second.lock();
+        if (callbackSptr != nullptr) {
+            callbackSptr->OnProcessExited(info);
+            ++it;
+        } else {
+            it = processLifecycleCallbacks_.erase(it);
         }
     }
 }

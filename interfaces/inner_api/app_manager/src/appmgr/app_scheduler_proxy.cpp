@@ -1078,5 +1078,38 @@ int32_t AppSchedulerProxy::SchedulePreTemplateProcessDeepFrozen()
     }
     return ERR_OK;
 }
+
+void AppSchedulerProxy::ScheduleProcessLifecycleEvent(
+    int32_t pid, const std::string &processName, int32_t uid, const std::string &state)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "AppSchedulerProxy::ScheduleProcessLifecycleEvent start");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!WriteInterfaceToken(data)) {
+        return;
+    }
+    if (!data.WriteInt32(pid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write pid failed");
+        return;
+    }
+    if (!data.WriteString(processName)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write processName failed");
+        return;
+    }
+    if (!data.WriteInt32(uid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write uid failed");
+        return;
+    }
+    if (!data.WriteString(state)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write state failed");
+        return;
+    }
+    int32_t ret = SendTransactCmd(
+        static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_PROCESS_LIFECYCLE_EVENT), data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+    }
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_APPLICATION_CONTEXT_H
 #define OHOS_ABILITY_RUNTIME_APPLICATION_CONTEXT_H
 
+#include <map>
 #include <vector>
 #include <shared_mutex>
 #include <unordered_map>
@@ -24,6 +25,7 @@
 #include "ability_lifecycle_callback.h"
 #include "application_state_change_callback.h"
 #include "application_update_callback.h"
+#include "process_lifecycle_callback.h"
 #include "context.h"
 #include "context_impl.h"
 #include "ability_native_thread.h"
@@ -56,6 +58,10 @@ public:
         const std::weak_ptr<ApplicationStateChangeCallback> &applicationStateChangeCallback);
     void RegisterApplicationUpdateCallback(
         const std::weak_ptr<ApplicationUpdateCallback> &applicationUpdateCallback);
+    int32_t RegisterProcessLifecycleCallback(const std::weak_ptr<ProcessLifecycleCallback> &callback);
+    bool UnregisterProcessLifecycleCallback(int32_t observerId);
+    void DispatchOnProcessCreated(const ProcessLifecycleInfo &info);
+    void DispatchOnProcessExited(const ProcessLifecycleInfo &info);
     void DispatchOnAbilityCreate(const AbilityLifecycleCallbackArgs &ability);
     void DispatchOnAbilityCreate(std::shared_ptr<InteropObject> ability);
     void DispatchOnWindowStageCreate(const AbilityLifecycleCallbackArgs &ability,
@@ -269,6 +275,9 @@ private:
     static std::vector<std::shared_ptr<EnvironmentCallback>> envCallbacks_;
     static std::vector<std::weak_ptr<ApplicationStateChangeCallback>> applicationStateCallback_;
     static std::vector<std::weak_ptr<SystemConfigurationUpdatedCallback>> systemConfigurationUpdatedCallbacks_;
+    static std::map<int32_t, std::weak_ptr<ProcessLifecycleCallback>> processLifecycleCallbacks_;
+    static std::recursive_mutex processLifecycleCallbackLock_;
+    static int32_t nextProcessLifecycleObserverId_;
     std::recursive_mutex callbackLock_;
     std::mutex interopCallbackLock_;
     std::recursive_mutex envCallbacksLock_;

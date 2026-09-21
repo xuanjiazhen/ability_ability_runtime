@@ -381,6 +381,18 @@ public:
         return 0;
     }
 
+    /**
+     * @brief Schedule process lifecycle event to the application process. Called by AppMgrService to notify
+     * a surviving application process that another process of the same application was created or exited.
+     *
+     * @param pid The pid of the process whose lifecycle changed.
+     * @param processName The name of the process whose lifecycle changed.
+     * @param uid The uid of the process whose lifecycle changed.
+     * @param state The lifecycle state, "CREATED" or "EXITED".
+     */
+    virtual void ScheduleProcessLifecycleEvent(int32_t pid, const std::string &processName,
+        int32_t uid, const std::string &state) {}
+
     enum class Message {
         SCHEDULE_FOREGROUND_APPLICATION_TRANSACTION = 0,
         SCHEDULE_BACKGROUND_APPLICATION_TRANSACTION,
@@ -422,6 +434,7 @@ public:
         SCHEDULE_MEM_APPLICATION_TRANSACTION,
         SCHEDULE_JSHANDLE_MAP_APPLICATION_TRANSACTION,
         SCHEDULE_PRE_TEMPLATE_PROCESS_DEEP_FROZEN,
+        SCHEDULE_PROCESS_LIFECYCLE_EVENT,
     };
 };
 }  // namespace AppExecFwk

@@ -106,6 +106,7 @@
 #include "hisysevent_report.h"
 #include "js_runtime_utils.h"
 #include "context/application_context.h"
+#include "context/process_lifecycle_callback.h"
 #include "os_account_manager_wrapper.h"
 #ifdef SUPPORT_HIPERF
 #include "appcapture_perf.h"
@@ -4668,6 +4669,37 @@ void MainThread::RegisterHybridException(const std::unique_ptr<AbilityRuntime::R
 void MainThread::OnLoadAbilityFinished(uint64_t callbackId, int32_t pid)
 {
     LoadAbilityCallbackManager::GetInstance().OnLoadAbilityFinished(callbackId, pid);
+}
+
+void MainThread::ScheduleProcessLifecycleEvent(
+    int32_t pid, const std::string &processName, int32_t uid, const std::string &state)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "ScheduleProcessLifecycleEvent pid:%{public}d, state:%{public}s",
+        pid, state.c_str());
+    auto applicationContext = AbilityRuntime::ApplicationContext::GetInstance();
+    if (applicationContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
+        return;
+    }
+    AbilityRuntime::ProcessLifecycleInfo info;
+    info.pid = pid;
+    info.processName = processName;
+    info.uid = uid;
+    info.state = state;
+    auto task = [applicationContext, info]() {
+        if (info.state == "CREATED") {
+            applicationContext->DispatchOnProcessCreated(info);
+        } else {
+            applicationContext->DispatchOnProcessExited(info);
+        }
+    };
+    if (mainHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null handler");
+        return;
+    }
+    if (!mainHandler_->PostTask(task, "MainThread:ScheduleProcessLifecycleEvent")) {
+        TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
+    }
 }
 
 void MainThread::ScheduleUpdateWorkProcessInfo(std::shared_ptr<AppUpdateInfo> updateInfo)

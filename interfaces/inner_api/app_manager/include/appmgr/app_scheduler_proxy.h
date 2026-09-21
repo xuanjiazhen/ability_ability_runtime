@@ -359,6 +359,9 @@ public:
 
     virtual int32_t SchedulePreTemplateProcessDeepFrozen() override;
 
+    virtual void ScheduleProcessLifecycleEvent(int32_t pid, const std::string &processName,
+        int32_t uid, const std::string &state) override;
+
 private:
     bool WriteInterfaceToken(MessageParcel &data);
     void ScheduleMemoryCommon(const int32_t level, const uint32_t operation, bool isShellCall = false);

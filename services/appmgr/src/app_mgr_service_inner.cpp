@@ -6345,6 +6345,7 @@ int32_t AppMgrServiceInner::StartProcess(const std::string &appName, const std::
     }
     OnAppStateChanged(appRecord, ApplicationState::APP_STATE_CREATE, false, false, false);
     DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessCreated(appRecord, isPreload);
+    DispatchProcessLifecycleEvent(pid, processName, appRecord->GetUid(), "CREATED");
     if (AAFwk::UIExtensionWrapper::IsUIExtension(extensionAbilityType)) {
         AddUIExtensionBindItem(want, appRecord, token);
     }
@@ -8913,6 +8914,7 @@ int AppMgrServiceInner::StartRenderProcessImpl(const std::shared_ptr<RenderRecor
         userId,
         isPreload);
     DelayedSingleton<AppStateObserverManager>::GetInstance()->OnRenderProcessCreated(renderRecord, isPreload);
+    DispatchProcessLifecycleEvent(pid, renderRecord->GetProcessName(), renderRecord->GetHostUid(), "CREATED");
     PostRenderAttachTimeoutTask(renderRecord);
     return 0;
 }
@@ -9029,6 +9031,8 @@ void AppMgrServiceInner::OnRenderProcessDied(std::shared_ptr<RenderRecord> rende
     if (renderProcessRecord) {
         RemoveRenderProcessIsolationUid(renderProcessRecord->GetUid());
         DelayedSingleton<AppStateObserverManager>::GetInstance()->OnRenderProcessDied(renderProcessRecord);
+        DispatchProcessLifecycleEvent(renderProcessRecord->GetPid(),
+            renderProcessRecord->GetProcessName(), renderProcessRecord->GetHostUid(), "EXITED");
     }
 }
 
@@ -11228,6 +11232,7 @@ int32_t AppMgrServiceInner::StartChildProcessImpl(const std::shared_ptr<ChildPro
         "processName:%{public}s", pid, childProcessRecord->GetHostPid(), startMsg.uid,
         childProcessRecord->GetProcessName().c_str());
     DelayedSingleton<AppStateObserverManager>::GetInstance()->OnChildProcessCreated(childProcessRecord);
+    DispatchProcessLifecycleEvent(pid, childProcessRecord->GetProcessName(), appRecord->GetUid(), "CREATED");
     PostChildProcessAttachTimeoutTask(childProcessRecord);
     return ERR_OK;
 }
@@ -11450,6 +11455,43 @@ void AppMgrServiceInner::OnChildProcessDied(std::shared_ptr<ChildProcessRecord> 
     if (childProcessRecord) {
         RemoveChildProcessIsolationUid(childProcessRecord->GetUid());
         DelayedSingleton<AppStateObserverManager>::GetInstance()->OnChildProcessDied(childProcessRecord);
+        auto hostRecord = childProcessRecord->GetHostRecord();
+        if (hostRecord != nullptr) {
+            DispatchProcessLifecycleEvent(childProcessRecord->GetPid(),
+                childProcessRecord->GetProcessName(), hostRecord->GetUid(), "EXITED");
+        }
+    }
+}
+
+void AppMgrServiceInner::DispatchProcessLifecycleEvent(
+    int32_t pid, const std::string &processName, int32_t uid, const std::string &state)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "DispatchProcessLifecycleEvent pid:%{public}d, uid:%{public}d, state:%{public}s",
+        pid, uid, state.c_str());
+    if (appRunningManager_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ is null");
+        return;
+    }
+    auto appRecordMap = appRunningManager_->GetAppRunningRecordMap();
+    for (const auto &item : appRecordMap) {
+        auto appRecord = item.second;
+        if (appRecord == nullptr) {
+            continue;
+        }
+        // uid 过滤：仅同应用进程收到回调 (AC-7)
+        if (appRecord->GetUid() != uid) {
+            continue;
+        }
+        // 排除事件进程自身 (AC-5, AC-13)
+        if (appRecord->GetPid() == pid) {
+            continue;
+        }
+        auto appClient = appRecord->GetApplicationClient();
+        if (appClient == nullptr) {
+            TAG_LOGW(AAFwkTag::APPMGR, "null application client, pid:%{public}d", appRecord->GetPid());
+            continue;
+        }
+        appClient->ScheduleProcessLifecycleEvent(pid, processName, uid, state);
     }
 }
 
@@ -13190,6 +13232,7 @@ void AppMgrServiceInner::OnProcessDied(std::shared_ptr<AppRunningRecord> appReco
         OnAppStateChanged(appRecord, ApplicationState::APP_STATE_BACKGROUND, true, false, false);
     }
     DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessDied(appRecord);
+    DispatchProcessLifecycleEvent(appRecord->GetPid(), appRecord->GetProcessName(), appRecord->GetUid(), "EXITED");
 }
 
 bool AppMgrServiceInner::IsBlockedByDisposeRules(const std::string &bundleName, int32_t userId,

@@ -437,6 +437,9 @@ public:
 
     void OnLoadAbilityFinished(uint64_t callbackId, int32_t pid) override;
 
+    void ScheduleProcessLifecycleEvent(int32_t pid, const std::string &processName,
+        int32_t uid, const std::string &state) override;
+
 private:
     /**
      *

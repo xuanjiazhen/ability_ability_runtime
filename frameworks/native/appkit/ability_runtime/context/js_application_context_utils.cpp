@@ -1606,6 +1606,18 @@ napi_value JsApplicationContextUtils::Off(napi_env env, napi_callback_info info)
     GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils, OnOff, APPLICATION_CONTEXT_NAME);
 }
 
+napi_value JsApplicationContextUtils::OnProcessLifecycle(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_WITH_NAME_AND_CALL(
+        env, info, JsApplicationContextUtils, OnOnProcessLifecycle, APPLICATION_CONTEXT_NAME);
+}
+
+napi_value JsApplicationContextUtils::OffProcessLifecycle(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_WITH_NAME_AND_CALL(
+        env, info, JsApplicationContextUtils, OnOffProcessLifecycle, APPLICATION_CONTEXT_NAME);
+}
+
 napi_value JsApplicationContextUtils::RegisterSystemConfigurationUpdated(napi_env env, napi_callback_info info)
 {
     GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils, OnSystemConfigurationUpdated,
@@ -2080,6 +2092,66 @@ napi_value JsApplicationContextUtils::OnOffApplicationStateChange(
     return CreateJsUndefined(env);
 }
 
+napi_value JsApplicationContextUtils::OnOnProcessLifecycle(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "onProcessLifecycle called");
+    if (info.argc != ARGC_ONE) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Not enough params");
+        ThrowInvalidParamError(env, "Not enough params.");
+        return CreateJsUndefined(env);
+    }
+    if (!CheckTypeForNapiValue(env, info.argv[INDEX_ZERO], napi_object)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "param invalid");
+        ThrowInvalidParamError(env, "Parse param type failed, type must be ProcessLifecycleCallback.");
+        return CreateJsUndefined(env);
+    }
+    auto applicationContext = applicationContext_.lock();
+    if (applicationContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INTERNAL_ERROR);
+        return CreateJsUndefined(env);
+    }
+    auto callback = std::make_shared<JsProcessLifecycleCallback>(env, info.argv[INDEX_ZERO]);
+    int32_t observerId = applicationContext->RegisterProcessLifecycleCallback(callback);
+    if (observerId <= 0) {
+        TAG_LOGE(AAFwkTag::APPKIT, "RegisterProcessLifecycleCallback failed");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INTERNAL_ERROR);
+        return CreateJsUndefined(env);
+    }
+    std::lock_guard<std::mutex> lock(processLifecycleCallbackLock_);
+    processLifecycleCallbacks_[observerId] = callback;
+    napi_value result = nullptr;
+    napi_create_int32(env, observerId, &result);
+    return result;
+}
+
+napi_value JsApplicationContextUtils::OnOffProcessLifecycle(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGI(AAFwkTag::APPKIT, "offProcessLifecycle called");
+    if (info.argc != ARGC_ONE) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Not enough params");
+        ThrowInvalidParamError(env, "Not enough params.");
+        return CreateJsUndefined(env);
+    }
+    if (!CheckTypeForNapiValue(env, info.argv[INDEX_ZERO], napi_number)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "param invalid");
+        ThrowInvalidParamError(env, "Parse param type failed, type must be number.");
+        return CreateJsUndefined(env);
+    }
+    int32_t observerId = 0;
+    napi_get_value_int32(env, info.argv[INDEX_ZERO], &observerId);
+    auto applicationContext = applicationContext_.lock();
+    if (applicationContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INTERNAL_ERROR);
+        return CreateJsUndefined(env);
+    }
+    applicationContext->UnregisterProcessLifecycleCallback(observerId);
+    std::lock_guard<std::mutex> lock(processLifecycleCallbackLock_);
+    processLifecycleCallbacks_.erase(observerId);
+    return CreateJsUndefined(env);
+}
+
 napi_value JsApplicationContextUtils::GetApplicationContext(napi_env env, napi_callback_info info)
 {
     GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils,
@@ -2314,6 +2386,10 @@ void JsApplicationContextUtils::BindNativeApplicationContextOne(napi_env env, na
         JsApplicationContextUtils::CreateModuleResourceManager);
     BindNativeFunction(env, object, "on", MD_NAME, JsApplicationContextUtils::On);
     BindNativeFunction(env, object, "off", MD_NAME, JsApplicationContextUtils::Off);
+    BindNativeFunction(env, object, "onProcessLifecycle", MD_NAME,
+        JsApplicationContextUtils::OnProcessLifecycle);
+    BindNativeFunction(env, object, "offProcessLifecycle", MD_NAME,
+        JsApplicationContextUtils::OffProcessLifecycle);
     BindNativeFunction(env, object, "getApplicationContext", MD_NAME,
         JsApplicationContextUtils::GetApplicationContext);
     BindNativeFunction(env, object, "killAllProcesses", MD_NAME, JsApplicationContextUtils::KillProcessBySelf);

@@ -2220,6 +2220,17 @@ private:
     void OnChildProcessDied(std::shared_ptr<ChildProcessRecord> childProcessRecord);
 
     /**
+     * @brief Dispatch process lifecycle event to all surviving processes of the same application (filtered by uid).
+     *        The event process itself (matching pid) is excluded from the dispatch.
+     * @param pid The pid of the process whose lifecycle changed.
+     * @param processName The name of the process whose lifecycle changed.
+     * @param uid The uid of the host application, used for filtering same-application processes.
+     * @param state The lifecycle state, "CREATED" or "EXITED".
+     */
+    void DispatchProcessLifecycleEvent(int32_t pid, const std::string &processName,
+        int32_t uid, const std::string &state);
+
+    /**
      * kill all child processed of a main process
      * @param appRecord indicates the main process
      */
