@@ -304,7 +304,6 @@ ErrCode AmsMgrStub::HandleUpdateAbilityState(MessageParcel &data, MessageParcel 
     UiAbilityLastCallerInfo callerInfo;
     callerInfo.callerUid = data.ReadInt32();
     callerInfo.callerBundleName = data.ReadString();
-    callerInfo.isCallBySCB = data.ReadBool();
     UpdateAbilityState(token, static_cast<AbilityState>(state), isFromScreenOffBackground, callerInfo);
     return NO_ERROR;
 }
@@ -675,7 +674,8 @@ int32_t AmsMgrStub::HandleNotifyAppMgrRecordExitReasonCompability(MessageParcel 
     std::string killMsg = data.ReadString();
     std::string innerMsg = data.ReadString();
     int32_t reason = data.ReadInt32();
-    int32_t result = NotifyAppMgrRecordExitReasonCompability(pid, killId, killMsg, innerMsg, reason);
+    int32_t callerPid = data.ReadInt32();
+    int32_t result = NotifyAppMgrRecordExitReasonCompability(pid, killId, killMsg, innerMsg, reason, callerPid);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write result failed.");
         return IPC_PROXY_ERR;

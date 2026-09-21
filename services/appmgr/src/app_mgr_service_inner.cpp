@@ -60,6 +60,7 @@
 #include "distributed_data_mgr.h"
 #include "extension_ability_info.h"
 #include "ffrt.h"
+#include "focus_state_data.h"
 #include "freeze_util.h"
 #include "global_constant.h"
 #include "hap_token_info.h"
@@ -2268,15 +2269,9 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
             auto hostBundleName = want->GetStringParam(UIEXTENSION_HOST_BUNDLENAME);
             auto userId = want->GetIntParam(UIEXTENSION_HOST_UID, -1) / BASE_USER_RANGE;
             appInfo->bundleName = hostBundleName;
-            std::string absPrefix = std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR) + hostBundleName;
             if (!hostBundleName.empty()) {
-                auto replaceAbsPrefix = [&absPrefix](std::string &path) {
-                    if (path.find(absPrefix) == 0) {
-                        path.replace(0, absPrefix.length(), LOCAL_CODE_PATH);
-                    }
-                };
-                replaceAbsPrefix(abilityInfo->hapPath);
-                replaceAbsPrefix(abilityInfo->resourcePath);
+                abilityInfo->hapPath = GetStoragePath(abilityInfo->hapPath);
+                abilityInfo->resourcePath = GetStoragePath(abilityInfo->resourcePath);
             }
             GetBundleAndHapInfo(*abilityInfo, appInfo, bundleInfo, hapModuleInfo, appIndex);
             appInfo = std::make_shared<ApplicationInfo>(bundleInfo.applicationInfo);
@@ -7375,6 +7370,18 @@ int32_t AppMgrServiceInner::UnregisterAppForegroundStateObserver(const sptr<IApp
     return DelayedSingleton<AppStateObserverManager>::GetInstance()->UnregisterAppForegroundStateObserver(observer);
 }
 
+int32_t AppMgrServiceInner::RegisterFocusStateObserver(const sptr<IFocusStateObserver> &observer)
+{
+    CHECK_CALLER_IS_SYSTEM_APP;
+    return DelayedSingleton<AppStateObserverManager>::GetInstance()->RegisterFocusStateObserver(observer);
+}
+
+int32_t AppMgrServiceInner::UnregisterFocusStateObserver(const sptr<IFocusStateObserver> &observer)
+{
+    CHECK_CALLER_IS_SYSTEM_APP;
+    return DelayedSingleton<AppStateObserverManager>::GetInstance()->UnregisterFocusStateObserver(observer);
+}
+
 int32_t AppMgrServiceInner::RegisterAbilityForegroundStateObserver(
     const sptr<IAbilityForegroundStateObserver> &observer)
 {
@@ -8465,7 +8472,8 @@ int32_t AppMgrServiceInner::NotifyAppMgrRecordExitReason(int32_t pid, int32_t re
 }
 
 int32_t AppMgrServiceInner::NotifyAppMgrRecordExitReasonCompability(
-    int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg, int32_t reason)
+    int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg,
+    int32_t reason, int32_t callerPid)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "NotifyAppMgrRecordExitReasonCompability pid:%{public}d, killId:%{public}d,"
         "reason:%{public}s, exitMsg:%{public}s.", pid, killId, killMsg.c_str(), innerMsg.c_str());
@@ -8484,6 +8492,22 @@ int32_t AppMgrServiceInner::NotifyAppMgrRecordExitReasonCompability(
     appRecord->SetKillMsg(killMsg);
     appRecord->SetInnerMsg(innerMsg);
     appRecord->SetExitReason(reason);
+    const int32_t killCallerPid = callerPid > 0 ? callerPid : DEFAULT_INVAL_VALUE;
+    std::string callerProcessName;
+    if (killCallerPid != DEFAULT_INVAL_VALUE) {
+        auto callerRecord = GetAppRunningRecordByPid(killCallerPid);
+        if (callerRecord) {
+            callerProcessName = callerRecord->GetProcessName();
+        } else if (!ProcessUtil::ReadProcessName(static_cast<pid_t>(killCallerPid), callerProcessName)) {
+            TAG_LOGW(AAFwkTag::APPMGR, "read caller process name failed, callerPid:%{public}d", killCallerPid);
+            callerProcessName = "";
+        }
+    }
+    appRecord->SetKillCallerInfo(killCallerPid, callerProcessName);
+    TAG_LOGI(AAFwkTag::APPMGR, "[EXIT_REASON_TAG] NotifyAppMgrRecordExitReasonCompability pid:%{public}d,"
+        " killId:%{public}d, reason:%{public}d, killMsg:%{public}s, innerMsg:%{public}s,"
+        " callerPid:%{public}d, callerProcessName:%{public}s.",
+        pid, killId, reason, killMsg.c_str(), innerMsg.c_str(), killCallerPid, callerProcessName.c_str());
     return ERR_OK;
 }
 
@@ -9114,6 +9138,7 @@ void AppMgrServiceInner::FreeFocusListener()
     TAG_LOGI(AAFwkTag::APPMGR, "freeFocusListener end");
 }
 #ifdef SUPPORT_SCREEN
+constexpr int64_t MAIN_DISPLAY_ID = 0;
 void AppMgrServiceInner::HandleFocused(const sptr<OHOS::Rosen::FocusChangeInfo> &focusChangeInfo)
 {
     if (!focusChangeInfo) {
@@ -9144,6 +9169,65 @@ void AppMgrServiceInner::HandleFocused(const sptr<OHOS::Rosen::FocusChangeInfo> 
         OnAppStateChanged(appRecord, ApplicationState::APP_STATE_FOREGROUND, needNotifyApp, true, false);
     }
     DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessStateChanged(appRecord, true);
+    int32_t unfocusedUid = lastFocusedUid_;
+    NotifyFocusChanged(focusChangeInfo->uid_, unfocusedUid,
+        static_cast<int64_t>(focusChangeInfo->displayId_), appRecord);
+    if (static_cast<int64_t>(focusChangeInfo->displayId_) == MAIN_DISPLAY_ID) {
+        lastFocusedUid_ = focusChangeInfo->uid_;
+    }
+}
+
+void AppMgrServiceInner::NotifyFocusChanged(int32_t focusedUid, int32_t unfocusedUid, int64_t displayId,
+    const std::shared_ptr<AppRunningRecord> &appRecord)
+{
+    if (displayId < 0) {
+        TAG_LOGW(AAFwkTag::APPMGR, "invalid displayId:%{public}" PRId64 ", skip notify", displayId);
+        return;
+    }
+    if (displayId != MAIN_DISPLAY_ID) {
+        TAG_LOGD(AAFwkTag::APPMGR, "non-main display group, displayId:%{public}" PRId64 ", skip notify", displayId);
+        return;
+    }
+    if (focusedUid == unfocusedUid) {
+        TAG_LOGD(AAFwkTag::APPMGR, "same uid focus change, skip notify");
+        return;
+    }
+    FocusStateData data;
+    data.focusedUid = focusedUid;
+    data.unfocusedUid = unfocusedUid;
+    if (appRecord) {
+        data.focusedBundleName = appRecord->GetBundleName();
+    }
+    if (unfocusedUid == -1) {
+        data.unfocusedBundleName = std::string();
+    } else {
+        data.unfocusedBundleName = GetBundleNameByUid(unfocusedUid);
+    }
+    TAG_LOGI(AAFwkTag::APPMGR, "NotifyFocusChanged focusedUid:%{public}d, unfocusedUid:%{public}d, "
+        "focusedBundleName:%{public}s, unfocusedBundleName:%{public}s",
+        focusedUid, unfocusedUid, data.focusedBundleName.c_str(), data.unfocusedBundleName.c_str());
+    DelayedSingleton<AppStateObserverManager>::GetInstance()->NotifyFocusChanged(data);
+}
+
+std::string AppMgrServiceInner::GetBundleNameByUid(int32_t uid)
+{
+    if (uid < 0) {
+        TAG_LOGW(AAFwkTag::APPMGR, "invalid uid:%{public}d", uid);
+        return std::string();
+    }
+    if (appRunningManager_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null appRunningManager_");
+        return std::string();
+    }
+    auto recordMap = appRunningManager_->GetAppRunningRecordMap();
+    for (const auto &item : recordMap) {
+        const auto &record = item.second;
+        if (record && record->GetUid() == uid) {
+            return record->GetBundleName();
+        }
+    }
+    TAG_LOGW(AAFwkTag::APPMGR, "no app running record found, uid:%{public}d", uid);
+    return std::string();
 }
 
 void AppMgrServiceInner::HandleUnfocused(const sptr<OHOS::Rosen::FocusChangeInfo> &focusChangeInfo)
@@ -13424,6 +13508,23 @@ void AppMgrServiceInner::CheckRenderAttachTimeout(std::shared_ptr<RenderRecord> 
         pid, elapsedMs);
     AppMgrEventUtil::SendRenderProcessStartFailedEvent(renderRecord,
         ProcessStartFailedReason::ATTACH_TIMEOUT, elapsedMs);
+}
+
+std::string AppMgrServiceInner::GetStoragePath(const std::string& hapPath) {
+    if (hapPath.empty()) {
+        return hapPath;
+    }
+    std::string absPrefix = std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR);
+    size_t prefixPos = hapPath.find(absPrefix);
+    if (prefixPos != 0) {
+        return hapPath;
+    }
+    std::string loadPath = hapPath.substr(prefixPos + absPrefix.length());
+    size_t slashPos = loadPath.find(std::string(FILE_SEPARATOR));
+    if (slashPos == std::string::npos) {
+        return std::string(LOCAL_CODE_PATH);
+    }
+    return std::string(LOCAL_CODE_PATH) + loadPath.substr(slashPos);
 }
 
 void AppMgrServiceInner::HandleForegroundAbilityDied(

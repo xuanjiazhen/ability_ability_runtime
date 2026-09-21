@@ -99,6 +99,10 @@ constexpr const char* ERROR_MSG_FREE_INSTALL_TASK_NOT_EXIST = "The target free-i
 constexpr const char* ERROR_MSG_MULTI_INSTANCE_NOT_SUPPORTED = "Multi-instance is not supported.";
 constexpr const char* ERROR_MSG_INVALID_APP_INSTANCE_KEY = "The app instance key does not exist.";
 constexpr const char* ERROR_MSG_UPPER_LIMIT = "The number of app instances reaches the limit.";
+constexpr const char* ERROR_MSG_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT =
+    "The number of registered observers for the current application has reached the upper limit.";
+constexpr int32_t ERR_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT =
+    static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT);
 constexpr const char* ERROR_MSG_APP_INSTANCE_KEY_NOT_SUPPORT = "The APP_INSTANCE_KEY cannot be specified.";
 constexpr const char* ERROR_MSG_CREATE_NEW_INSTANCE_NOT_SUPPORT = "Creating a new instance is not supported.";
 constexpr const char* ERROR_MSG_UI_ABILITY_IS_STARTING = "The UIAbility is being started.";
@@ -344,6 +348,7 @@ constexpr const char* ERROR_MSG_FILE_TYPE_ERROR =
 
 constexpr const char* ERROR_MSG_EVICT_CONFIG_PARSE_ERROR =
     "Failed to parse configuration file.";
+constexpr const char* ERROR_MSG_INVALID_EXTENSION_TYPE = "Internal error. Invalid extension ability type.";
 
 static std::unordered_map<AbilityErrorCode, const char*> ERR_CODE_MAP = {
     { AbilityErrorCode::ERROR_OK, ERROR_MSG_OK },
@@ -465,6 +470,8 @@ static std::unordered_map<AbilityErrorCode, const char*> ERR_CODE_MAP = {
     { AbilityErrorCode::ERROR_CODE_DELAYED_PROCESS_EXIT_NOT_PENDING, ERROR_MSG_DELAYED_PROCESS_EXIT_NOT_PENDING },
     { AbilityErrorCode::ERROR_CODE_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY,
         ERROR_MSG_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY },
+    { AbilityErrorCode::ERROR_CODE_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT,
+        ERROR_MSG_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT },
 };
 
 static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP {
@@ -594,6 +601,9 @@ static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP 
     {ERR_DELAYED_PROCESS_EXIT_NO_UIABILITY, AbilityErrorCode::ERROR_CODE_DELAYED_PROCESS_EXIT_NO_UIABILITY},
     {ERR_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY,
         AbilityErrorCode::ERROR_CODE_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY},
+    {ERR_INVALID_EXTENSION_TYPE, AbilityErrorCode::ERROR_CODE_INNER},
+    {ERR_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT,
+        AbilityErrorCode::ERROR_CODE_REGISTERED_FOCUS_OBSERVER_EXCEED_LIMIT},
 };
 
 static std::unordered_map<int32_t, const char*> INNER_ERROR_MSG_BY_NATIVE_CODE {
@@ -638,6 +648,7 @@ static std::unordered_map<int32_t, const char*> INNER_ERROR_MSG_BY_NATIVE_CODE {
     {ERR_WRITE_RESULT_CODE_FAILED, ERROR_MSG_IPC_FAILED},
     {ERR_WRITE_KIOSK_STATUS_FAILED, ERROR_MSG_IPC_FAILED},
     {ERR_WRITE_CALLER_TOKEN_FAILED, ERROR_MSG_IPC_FAILED},
+    {ERR_INVALID_EXTENSION_TYPE, ERROR_MSG_INVALID_EXTENSION_TYPE},
 };
 
 static std::unordered_map<AbilityInnerErrorMsg, const char*> INNER_ERROR_MSG_BY_SCENE {
