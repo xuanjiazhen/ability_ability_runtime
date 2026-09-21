@@ -194,7 +194,12 @@ private:
     sptr<IWantSender> GetWantSenderLocked(const int32_t callingUid, const int32_t uid, const int32_t userId,
         WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, int32_t appIndex = 0,
         int32_t publisherUid = 0);
-    void MakeWantSenderCanceledLocked(PendingWantRecord &record);
+    void MakeWantSenderCanceledLocked(PendingWantRecord &record,
+        std::vector<sptr<IWantReceiver>> &cancelCallbacks, int32_t &requestCode);
+    void NotifyCancelCallbacksAsync(std::vector<sptr<IWantReceiver>> cancelCallbacks, int32_t requestCode);
+    void CollectCancelCallbacksLocked(const sptr<PendingWantRecord> &record,
+        std::vector<std::pair<int32_t, sptr<IWantReceiver>>> &cancelCallbacks);
+    void NotifyCancelCallbacksAsync(std::vector<std::pair<int32_t, sptr<IWantReceiver>>> cancelCallbacks);
 
     void HandleAddWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey, int32_t callerUid);
     void HandleReduceWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey);
@@ -206,6 +211,7 @@ private:
         const std::shared_ptr<PendingWantKey> &inputKey, const std::shared_ptr<PendingWantKey> &key);
 
     sptr<PendingWantRecord> GetPendingWantRecordByCode(int32_t code);
+    sptr<PendingWantRecord> GetPendingWantRecordByCodeLocked(int32_t code);
     static int32_t PendingRecordIdCreate();
     void ClearPendingWantRecordTask(const std::string &bundleName, int32_t uid);
 
