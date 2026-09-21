@@ -2992,5 +2992,29 @@ HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_SetMissionWindowIcon_0100,
         EXPECT_EQ(ret, AAFwk::ERR_CAPABILITY_NOT_SUPPORT);
     }
 }
+#ifdef SUPPORT_SCREEN
+/**
+ * @tc.number: Ability_Context_Impl_SetupModalUIExtensionCallbacks_0100
+ * @tc.name: SetupModalUIExtensionCallbacks
+ * @tc.desc: Verify SetupModalUIExtensionCallbacks sets all callbacks non-null.
+ */
+HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_SetupModalUIExtensionCallbacks_0100,
+    Function | MediumTest | Level1)
+{
+    napi_env env = nullptr;
+    auto uiExtensionCallback = std::make_shared<JsUIExtensionCallback>(env);
+    ASSERT_NE(uiExtensionCallback, nullptr);
+    auto errorFired = std::make_shared<std::atomic<bool>>(false);
+    ASSERT_NE(errorFired, nullptr);
+
+    auto callback = context_->SetupModalUIExtensionCallbacks(uiExtensionCallback, errorFired);
+    EXPECT_TRUE(callback.onError != nullptr);
+    EXPECT_TRUE(callback.onAbilityErrorCode != nullptr);
+    EXPECT_TRUE(callback.onRelease != nullptr);
+    EXPECT_TRUE(callback.onResult != nullptr);
+    EXPECT_TRUE(callback.onReceive != nullptr);
+}
+#endif
+
 } // namespace AppExecFwk
 } // namespace OHOS
