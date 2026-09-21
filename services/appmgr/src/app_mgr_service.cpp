@@ -1803,6 +1803,26 @@ int32_t AppMgrService::UnregisterAppForegroundStateObserver(const sptr<IAppForeg
     return appMgrServiceInner_->UnregisterAppForegroundStateObserver(observer);
 }
 
+int32_t AppMgrService::RegisterFocusStateObserver(const sptr<IFocusStateObserver> &observer)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->RegisterFocusStateObserver(observer);
+}
+
+int32_t AppMgrService::UnregisterFocusStateObserver(const sptr<IFocusStateObserver> &observer)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->UnregisterFocusStateObserver(observer);
+}
+
 int32_t AppMgrService::IsApplicationRunning(const std::string &bundleName, bool &isRunning)
 {
     if (!IsReady()) {
