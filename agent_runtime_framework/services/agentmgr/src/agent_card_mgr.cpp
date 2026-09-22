@@ -217,15 +217,12 @@ int32_t AgentCardMgr::HandleBundleRemove(const std::string &bundleName, int32_t 
 void AgentCardMgr::BackfillPreInstallCards()
 {
     std::vector<int32_t> userIds;
-    ErrCode ret = OHOS::AppExecFwk::OsAccountManagerWrapper::QueryAllCreatedOsAccounts(userIds);
+    ErrCode ret = OHOS::AppExecFwk::OsAccountManagerWrapper::GetOsAccountLocalIds(userIds);
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "QueryAllCreatedOsAccounts failed: %{public}d, skip backfill", ret);
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "GetOsAccountLocalIds failed: %{public}d, skip backfill", ret);
         return;
     }
-    if (userIds.empty()) {
-        TAG_LOGW(AAFwkTag::SER_ROUTER, "no created OS account, skip backfill");
-        return;
-    }
+    userIds.insert(userIds.begin(), 0);
     for (int32_t userId : userIds) {
         ffrt::submit([userId] {
             AgentCardMgr::GetInstance().HandlePreInstallBackfill(userId);
