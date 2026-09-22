@@ -378,7 +378,7 @@ public:
         return 0;
     }
 
-    int GetTopAbility(sptr<IRemoteObject>& token) override
+    int GetTopAbility(sptr<IRemoteObject>& token, int32_t userId = INVALID_USER_ID) override
     {
         return 0;
     }
@@ -437,9 +437,6 @@ public:
         const InsightIntentExecuteLiteParam &param, uint64_t specifiedFullTokenId));
     MOCK_METHOD3(ExecuteInsightIntentDone, int32_t(const sptr<IRemoteObject> &token, uint64_t intentId,
         const InsightIntentExecuteResult &result));
-    MOCK_METHOD7(ExecuteInAppSkill, int32_t(const std::string &, const std::string &,
-        const std::string &, const std::string &, const std::string &,
-        const std::shared_ptr<AAFwk::WantParams> &, const sptr<ISkillExecuteCallback> &));
     MOCK_METHOD4(ExecuteSkillDone, int32_t(const sptr<IRemoteObject> &, const std::string &,
         int32_t, const AppExecFwk::SkillExecuteResult &));
     MOCK_METHOD4(QuerySkillType, int32_t(const std::string &, const std::string &,

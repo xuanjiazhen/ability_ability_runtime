@@ -268,7 +268,7 @@ public:
      * move ability to foreground.
      *
      * @param token, the token of ability.
-     * @param callerInfo, the caller info including uid, bundle name and isCallBySCB.
+     * @param callerInfo, the caller info including uid and bundle name.
      */
     void MoveToForeground(const sptr<IRemoteObject> &token, const AppExecFwk::UiAbilityLastCallerInfo &callerInfo = {});
 
@@ -593,7 +593,8 @@ public:
     virtual int32_t NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg);
 
     virtual int32_t NotifyAppMgrRecordExitReasonCompability(
-        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg, int32_t reason);
+        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg,
+        int32_t reason, int32_t callerPid);
 
     /**
      * Set enable start process flag by userId
