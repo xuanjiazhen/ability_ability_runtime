@@ -33,6 +33,7 @@ ohos_unittest("agent_manager_service_test") {
     "mock/src/mock_ipc_skeleton.cpp",
     "mock/src/mock_app_mgr_client.cpp",
     "mock/src/mock_bundle_mgr_helper.cpp",
+    "mock/src/mock_mem_mgr_client.cpp",
     "mock/src/mock_permission_verification.cpp",
     "mock/src/mock_accesstoken_kit.cpp",
     "mock/src/mock_parameters.cpp",

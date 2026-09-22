@@ -40,8 +40,10 @@
 #include "ipc_object_stub.h"
 #include "ipc_skeleton.h"
 #include "iremote_object.h"
+#include "mem_mgr_client.h"
 #include "mock_my_flag.h"
 #include "system_ability.h"
+#include "system_ability_definition.h"
 #include "utils/agent_ability_util.h"
 #include "agent_utils.h"
 #include "want.h"
@@ -411,6 +413,78 @@ HWTEST_F(AgentManagerServiceTest, OnStop_001, TestSize.Level1)
     EXPECT_TRUE(AgentConnectManager::GetInstance().trackedConnections_.empty());
     EXPECT_TRUE(AgentConnectManager::GetInstance().callerQuotas_.empty());
 }
+
+#ifdef MEMMGR_OVERRIDE_ENABLE
+/**
+* @tc.name  : MemMgrNotifyStatus_001
+* @tc.number: MemMgrNotifyStatus_001
+* @tc.desc  : memmgr ready sends NotifyProcessStatus start once; OnStop sends the paired died exactly once.
+*/
+HWTEST_F(AgentManagerServiceTest, MemMgrNotifyStatus_001, TestSize.Level1)
+{
+    auto service = AgentManagerService::GetInstance();
+    service->memMgrNotified_.store(false);
+    Memory::MemMgrClient::Reset();
+
+    service->OnAddSystemAbility(MEMORY_MANAGER_SA_ID, "123");
+    EXPECT_TRUE(service->memMgrNotified_.load());
+    ASSERT_EQ(Memory::MemMgrClient::notifyStatusCalls_.size(), 1);
+    EXPECT_EQ(Memory::MemMgrClient::notifyStatusCalls_[0].type, 1);
+    EXPECT_EQ(Memory::MemMgrClient::notifyStatusCalls_[0].status, 1);
+    EXPECT_EQ(Memory::MemMgrClient::notifyStatusCalls_[0].saId, AGENT_MGR_SERVICE_ID);
+
+    service->OnStop();
+    EXPECT_FALSE(service->memMgrNotified_.load());
+    ASSERT_EQ(Memory::MemMgrClient::notifyStatusCalls_.size(), 2);
+    EXPECT_EQ(Memory::MemMgrClient::notifyStatusCalls_[1].type, 1);
+    EXPECT_EQ(Memory::MemMgrClient::notifyStatusCalls_[1].status, 0);
+    EXPECT_EQ(Memory::MemMgrClient::notifyStatusCalls_[1].saId, AGENT_MGR_SERVICE_ID);
+
+    service->OnStop();
+    EXPECT_EQ(Memory::MemMgrClient::notifyStatusCalls_.size(), 2);
+}
+
+/**
+* @tc.name  : MemMgrNotifyStatus_002
+* @tc.number: MemMgrNotifyStatus_002
+* @tc.desc  : OnStop without a prior memmgr ready notify sends no died, avoiding an unpaired notify.
+*/
+HWTEST_F(AgentManagerServiceTest, MemMgrNotifyStatus_002, TestSize.Level1)
+{
+    auto service = AgentManagerService::GetInstance();
+    service->memMgrNotified_.store(false);
+    Memory::MemMgrClient::Reset();
+
+    service->OnStop();
+
+    EXPECT_FALSE(service->memMgrNotified_.load());
+    EXPECT_TRUE(Memory::MemMgrClient::notifyStatusCalls_.empty());
+}
+
+/**
+* @tc.name  : MemMgrNotifyStatus_003
+* @tc.number: MemMgrNotifyStatus_003
+* @tc.desc  : IPC failure on NotifyProcessStatus only logs; the notified flag is still maintained for pairing.
+*/
+HWTEST_F(AgentManagerServiceTest, MemMgrNotifyStatus_003, TestSize.Level1)
+{
+    auto service = AgentManagerService::GetInstance();
+    service->memMgrNotified_.store(false);
+    Memory::MemMgrClient::Reset();
+    Memory::MemMgrClient::SetForcedReturn(1);
+
+    service->OnAddSystemAbility(MEMORY_MANAGER_SA_ID, "123");
+    EXPECT_TRUE(service->memMgrNotified_.load());
+    ASSERT_EQ(Memory::MemMgrClient::notifyStatusCalls_.size(), 1);
+
+    service->OnStop();
+    EXPECT_FALSE(service->memMgrNotified_.load());
+    ASSERT_EQ(Memory::MemMgrClient::notifyStatusCalls_.size(), 2);
+    EXPECT_EQ(Memory::MemMgrClient::notifyStatusCalls_[1].status, 0);
+
+    Memory::MemMgrClient::SetForcedReturn(0);
+}
+#endif
 
 /**
 * @tc.name  : OnAddSystemAbility_001
