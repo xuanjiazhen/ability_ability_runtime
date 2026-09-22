@@ -14,7 +14,11 @@
  */
 
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 #include "iremote_proxy.h"
+
+#include "ability_connect_callback_stub.h"
+
 #include "mock_ability_connect_callback_stub.h"
 #include "ability_connect_callback_proxy.h"
 
@@ -174,4 +178,55 @@ HWTEST_F(AbilityConnectCallBackStubTest, AbilityConnectionCallBack_IPC_005, Test
     EXPECT_TRUE(mockAbilityConnectStub != nullptr);
     AppExecFwk::ElementName element;
     mockAbilityConnectStub->OnRemoteStateChanged(element, 10);
+}
+
+/*
+ * Feature: AbilityConnectionStub
+ * Function: CompareDMSDescriptor
+ * SubFunction: NA
+ * FunctionPoints: first call enters the one-time load block
+ * EnvConditions: remote descriptor does not match the stub descriptor nor any DMS descriptor
+ * CaseDescription: CompareDMSDescriptor is invoked directly with a descriptor that is neither
+ *                 the stub descriptor nor any DMS descriptor. The result must be false on every
+ *                 device regardless of whether libabilitywantadapter.z.so exists: when the .so
+ *                 is absent dlopen fails and dmsDescriptors_ stays empty; when present the test
+ *                 descriptor is not in the list. No assertion is made on the dlopen result itself.
+ *                 dmsDescriptorLoaded_ is set true before dlopen, so it is true after the first
+ *                 call independent of the .so presence. Covers the first-call load-block entry
+ *                 (!dmsDescriptorLoaded_ == true) and the no-match return false branch.
+ */
+HWTEST_F(AbilityConnectCallBackStubTest, AbilityConnectionCallBack_DMS_001, TestSize.Level1)
+{
+    sptr<MockAbilityConnectCallback> mockAbilityConnectStub(new MockAbilityConnectCallback());
+    std::u16string nonMatchDescriptor = u"NOT_A_DMS_DESCRIPTOR";
+
+    bool res = mockAbilityConnectStub->CompareDMSDescriptor(nonMatchDescriptor);
+    EXPECT_FALSE(res);
+    EXPECT_TRUE(mockAbilityConnectStub->dmsDescriptorLoaded_);
+}
+
+/*
+ * Feature: AbilityConnectionStub
+ * Function: CompareDMSDescriptor
+ * SubFunction: NA
+ * FunctionPoints: DMS descriptor imported only once, second call skips the load block
+ * EnvConditions: remote descriptor does not match the stub descriptor nor any DMS descriptor
+ * CaseDescription: The DMS descriptor table is designed to be imported only once. The second call
+ *                 with a non-matching descriptor must skip the load block (!dmsDescriptorLoaded_
+ *                 == false) and still return false. dmsDescriptorLoaded_ is unchanged (still true
+ *                 from the first call) and is independent of the dlopen result. The second call
+ *                 must not re-load the .so. Covers the skip-load branch.
+ */
+HWTEST_F(AbilityConnectCallBackStubTest, AbilityConnectionCallBack_DMS_002, TestSize.Level1)
+{
+    sptr<MockAbilityConnectCallback> mockAbilityConnectStub(new MockAbilityConnectCallback());
+    std::u16string nonMatchDescriptor = u"NOT_A_DMS_DESCRIPTOR";
+
+    mockAbilityConnectStub->CompareDMSDescriptor(nonMatchDescriptor);
+    bool firstFlag = mockAbilityConnectStub->dmsDescriptorLoaded_;
+
+    bool res = mockAbilityConnectStub->CompareDMSDescriptor(nonMatchDescriptor);
+    EXPECT_FALSE(res);
+    EXPECT_EQ(mockAbilityConnectStub->dmsDescriptorLoaded_, firstFlag);
+    EXPECT_TRUE(mockAbilityConnectStub->dmsDescriptorLoaded_);
 }
