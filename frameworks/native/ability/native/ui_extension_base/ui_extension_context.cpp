@@ -813,7 +813,7 @@ Ace::ModalUIExtensionCallbacks UIExtensionContext::SetupModalUIExtensionCallback
     };
     callback.onAbilityErrorCode = [uiExtensionCallbacks, errorFired](const OHOS::Ace::UIExtensionOperationPhase& phase,
         int32_t errorCode) {
-        if (phase != OHOS::Ace::UIExtensionOperationPhase::FOREGROUND && errorCode == 0) {
+        if (phase != OHOS::Ace::UIExtensionOperationPhase::FOREGROUND) {
             return;
         }
         bool expected = false;

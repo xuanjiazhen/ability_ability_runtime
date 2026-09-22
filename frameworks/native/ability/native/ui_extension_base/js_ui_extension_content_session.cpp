@@ -994,7 +994,7 @@ void JsUIExtensionContentSession::SetupModalUIExtensionCallbacks(
     };
     callback.onAbilityErrorCode = [uiExtensionCallback, errorFired](const Ace::UIExtensionOperationPhase& phase,
         int32_t errorCode) {
-        if (phase != Ace::UIExtensionOperationPhase::FOREGROUND && errorCode == 0) {
+        if (phase != Ace::UIExtensionOperationPhase::FOREGROUND) {
             return;
         }
         bool expected = false;

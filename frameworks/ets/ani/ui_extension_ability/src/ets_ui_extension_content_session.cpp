@@ -935,7 +935,11 @@ void EtsUIExtensionContentSession::CreateAndSetupModalUIExtension(
     auto errorFired = std::make_shared<std::atomic<bool>>(false);
     Ace::ModalUIExtensionCallbacks callback = SetupModalUIExtensionCallbacks(uiExtensionCallback, errorFired);
     Ace::ModalUIExtensionConfig config;
-    int32_t sessionId = uiWindow_->GetUIContent()->CreateModalUIExtension(want, callback, config);
+    int32_t sessionId = 0;
+    auto uiConten = uiWindow_->GetUIContent();
+    if (uiConten != nullptr) {
+        sessionId = uiConten->CreateModalUIExtension(want, callback, config);
+    }
     if (sessionId == 0) {
         AppExecFwk::AsyncCallback(env, asyncCallback,
             EtsErrorUtil::CreateError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
@@ -957,7 +961,7 @@ Ace::ModalUIExtensionCallbacks EtsUIExtensionContentSession::SetupModalUIExtensi
     };
     callback.onAbilityErrorCode = [uiExtensionCallback, errorFired](
         const Ace::UIExtensionOperationPhase& phase, int32_t errorCode) {
-        if (phase != Ace::UIExtensionOperationPhase::FOREGROUND && errorCode == 0) {
+        if (phase != Ace::UIExtensionOperationPhase::FOREGROUND) {
             return;
         }
         bool expected = false;

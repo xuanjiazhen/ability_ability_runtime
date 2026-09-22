@@ -1240,7 +1240,11 @@ ErrCode AbilityContextImpl::StartAbilityByType(
     }
     Ace::ModalUIExtensionCallbacks callback = SetupModalUIExtensionCallbacks(uiExtensionCallback, errorFired);
     Ace::ModalUIExtensionConfig config;
-    int32_t sessionId = uiContent->CreateModalUIExtension(want, callback, config);
+    int32_t sessionId = 0;
+    auto uiConten = uiWindow_->GetUIContent();
+    if (uiConten != nullptr) {
+        sessionId = uiConten->CreateModalUIExtension(want, callback, config);
+    }
     if (sessionId == 0) {
         TAG_LOGE(AAFwkTag::CONTEXT, "createModalUIExtension failed");
         return ERR_INVALID_VALUE;
