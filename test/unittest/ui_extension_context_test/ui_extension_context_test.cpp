@@ -1977,5 +1977,97 @@ HWTEST_F(UIExtensionContextTest, SetupModalUIExtensionCallbacks_0100, TestSize.L
     TAG_LOGI(AAFwkTag::TEST, "SetupModalUIExtensionCallbacks_0100 end");
 }
 
+/**
+ * @tc.number: SetupModalUIExtensionCallbacks_OnAbilityErrorCode_Foreground_0100
+ * @tc.name: SetupModalUIExtensionCallbacks onAbilityErrorCode with FOREGROUND phase
+ * @tc.desc: Verify onAbilityErrorCode with FOREGROUND phase fires OnAbilityByTypeResult
+ *           and sets errorFired to true, for both zero and non-zero error codes.
+ */
+HWTEST_F(UIExtensionContextTest, SetupModalUIExtensionCallbacks_OnAbilityErrorCode_Foreground_0100,
+    TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetupModalUIExtensionCallbacks_OnAbilityErrorCode_Foreground_0100 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+
+    napi_env env = nullptr;
+    auto uiExtensionCallbacks = std::make_shared<JsUIExtensionCallback>(env);
+    ASSERT_NE(uiExtensionCallbacks, nullptr);
+    auto errorFired = std::make_shared<std::atomic<bool>>(false);
+    ASSERT_NE(errorFired, nullptr);
+
+    auto callback = context->SetupModalUIExtensionCallbacks(uiExtensionCallbacks, errorFired);
+    ASSERT_TRUE(callback.onAbilityErrorCode != nullptr);
+
+    callback.onAbilityErrorCode(Ace::UIExtensionOperationPhase::FOREGROUND, 100);
+    EXPECT_TRUE(errorFired->load());
+
+    TAG_LOGI(AAFwkTag::TEST, "SetupModalUIExtensionCallbacks_OnAbilityErrorCode_Foreground_0100 end");
+}
+
+/**
+ * @tc.number: SetupModalUIExtensionCallbacks_OnAbilityErrorCode_NonForegroundNonZero_0100
+ * @tc.name: SetupModalUIExtensionCallbacks onAbilityErrorCode with non-FOREGROUND phase
+ * @tc.desc: Verify onAbilityErrorCode with non-FOREGROUND phase and non-zero errorCode
+ *           does NOT fire OnAbilityByTypeResult (errorFired stays false).
+ *           Before the fix: condition was (phase != FOREGROUND && errorCode == 0),
+ *           which evaluated to false for non-zero errorCode, so the callback fired incorrectly.
+ *           After the fix: condition is (phase != FOREGROUND), which always returns early
+ *           for non-FOREGROUND phases regardless of errorCode.
+ */
+HWTEST_F(UIExtensionContextTest, SetupModalUIExtensionCallbacks_OnAbilityErrorCode_NonForegroundNonZero_0100,
+    TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetupModalUIExtensionCallbacks_OnAbilityErrorCode_NonForegroundNonZero_0100 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+
+    napi_env env = nullptr;
+    auto uiExtensionCallbacks = std::make_shared<JsUIExtensionCallback>(env);
+    ASSERT_NE(uiExtensionCallbacks, nullptr);
+    auto errorFired = std::make_shared<std::atomic<bool>>(false);
+    ASSERT_NE(errorFired, nullptr);
+
+    auto callback = context->SetupModalUIExtensionCallbacks(uiExtensionCallbacks, errorFired);
+    ASSERT_TRUE(callback.onAbilityErrorCode != nullptr);
+
+    auto nonForegroundPhase = static_cast<Ace::UIExtensionOperationPhase>(1);
+    callback.onAbilityErrorCode(nonForegroundPhase, 100);
+    EXPECT_FALSE(errorFired->load());
+
+    TAG_LOGI(AAFwkTag::TEST, "SetupModalUIExtensionCallbacks_OnAbilityErrorCode_NonForegroundNonZero_0100 end");
+}
+
+/**
+ * @tc.number: UIExtensionCallback_OnAbilityByTypeResult_DefaultImpl_0100
+ * @tc.name: UIExtensionCallback OnAbilityByTypeResult default implementation
+ * @tc.desc: Verify that UIExtensionCallback::OnAbilityByTypeResult has a default empty
+ *           implementation (not pure virtual), so subclasses that don't override it
+ *           can be instantiated and the method can be called without crash.
+ */
+HWTEST_F(UIExtensionContextTest, UIExtensionCallback_OnAbilityByTypeResult_DefaultImpl_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionCallback_OnAbilityByTypeResult_DefaultImpl_0100 start");
+
+    class TestExtensionCallback : public UIExtensionCallback {
+    public:
+        int callCount = 0;
+        void OnError(int32_t number) override { callCount++; }
+        void OnResult(int32_t resultCode, const AAFwk::Want &want) override { callCount++; }
+    };
+
+    auto callback = std::make_shared<TestExtensionCallback>();
+    ASSERT_NE(callback, nullptr);
+
+    callback->OnAbilityByTypeResult(0);
+    callback->OnAbilityByTypeResult(100);
+
+    EXPECT_EQ(callback->callCount, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionCallback_OnAbilityByTypeResult_DefaultImpl_0100 end");
+}
+
 } // namespace AbilityRuntime
 } // namespace OHOS
