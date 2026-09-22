@@ -1,0 +1,125 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans CJK SC, PingFang SC, Microsoft YaHei, Source Han Sans SC, sans-serif">
+  <defs>
+    <filter id="shadow" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0F172A" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arrowR" markerWidth="12" markerHeight="12" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#DC2626"/>
+    </marker>
+    <marker id="arrowG" markerWidth="12" markerHeight="12" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#059669"/>
+    </marker>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#F5F7FA"/>
+
+  <!-- Header -->
+  <rect x="80" y="84" width="12" height="104" rx="6" fill="#059669"/>
+  <text x="122" y="138" font-size="50" font-weight="700" fill="#0F172A">方案：去 NAPI 模块化，ABC 迁入独立内部库直接加载</text>
+  <text x="122" y="188" font-size="25" fill="#475569">NAPI 流程内部本就通过 JSNApi::ExecuteModuleFromBuffer 执行 .so 内嵌 ABC —— 框架可绕过 NAPI 模块管理器直接使用同一入口</text>
+
+  <!-- Principle banner -->
+  <rect x="80" y="236" width="1760" height="92" rx="16" fill="#ECFDF5" stroke="#A7F3D0"/>
+  <rect x="80" y="236" width="8" height="92" rx="4" fill="#059669"/>
+  <text x="120" y="278" font-size="27" font-weight="700" fill="#047857">核心原则：框架内部 JS 不注册任何模块名，不落入任何 NAPI 搜索路径</text>
+  <text x="120" y="312" font-size="21" fill="#065F46">注意：/system/lib{,64}/module/** 与 /system/etc/abc/** 均为 NAPI 搜索路径 —— 装入 /system/etc/abc 同样会被 requireNapi 命中</text>
+
+  <!-- Before row -->
+  <rect x="80" y="356" width="1760" height="252" rx="16" fill="#FFFFFF" stroke="#FECACA" filter="url(#shadow)"/>
+  <rect x="110" y="380" width="216" height="40" rx="20" fill="#FEF2F2" stroke="#FECACA"/>
+  <text x="218" y="407" font-size="21" font-weight="700" fill="#DC2626" text-anchor="middle">现状 Before</text>
+  <text x="348" y="407" font-size="21" fill="#7F1D1D">应用与框架走同一条公开加载链路</text>
+
+  <rect x="110" y="436" width="288" height="128" rx="12" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="134" y="478" font-size="22" font-weight="700" fill="#0F172A">appkit（C++）</text>
+  <text x="134" y="510" font-size="19" fill="#64748B">js_startup_task.cpp</text>
+  <text x="134" y="538" font-size="19" fill="#64748B">框架侧加载入口</text>
+
+  <line x1="402" y1="500" x2="436" y2="500" stroke="#DC2626" stroke-width="3" marker-end="url(#arrowR)"/>
+
+  <rect x="443" y="436" width="288" height="128" rx="12" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="467" y="478" font-size="22" font-weight="700" fill="#0F172A">requireNapi(...)</text>
+  <text x="467" y="508" font-size="19" fill="#64748B">全局函数按名加载</text>
+  <text x="467" y="536" font-size="16" fill="#94A3B8">app.appstartup.</text>
+  <text x="467" y="558" font-size="16" fill="#94A3B8">AsyncTaskExcutor</text>
+
+  <line x1="735" y1="500" x2="769" y2="500" stroke="#DC2626" stroke-width="3" marker-end="url(#arrowR)"/>
+
+  <rect x="776" y="436" width="288" height="128" rx="12" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="800" y="478" font-size="22" font-weight="700" fill="#0F172A">NativeModuleManager</text>
+  <text x="800" y="510" font-size="17" fill="#64748B">按名搜索 / 进程内缓存</text>
+  <text x="800" y="538" font-size="17" fill="#94A3B8">native_module_manager.cpp</text>
+
+  <line x1="1068" y1="500" x2="1102" y2="500" stroke="#DC2626" stroke-width="3" marker-end="url(#arrowR)"/>
+
+  <rect x="1109" y="436" width="288" height="128" rx="12" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="1133" y="478" font-size="22" font-weight="700" fill="#0F172A">dlopen 独立 .so</text>
+  <text x="1133" y="510" font-size="16" fill="#64748B">libasynctaskexcutor_napi.so</text>
+  <text x="1133" y="538" font-size="19" fill="#94A3B8">位于 module/ 搜索路径</text>
+
+  <line x1="1401" y1="500" x2="1435" y2="500" stroke="#DC2626" stroke-width="3" marker-end="url(#arrowR)"/>
+
+  <rect x="1442" y="436" width="288" height="128" rx="12" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="1466" y="478" font-size="22" font-weight="700" fill="#0F172A">执行内嵌 ABC</text>
+  <text x="1466" y="510" font-size="18" fill="#64748B">ExecuteModuleFromBuffer</text>
+  <text x="1466" y="538" font-size="19" fill="#94A3B8">返回模块实例</text>
+
+  <text x="110" y="596" font-size="22" font-weight="700" fill="#DC2626">✗ 应用进程走同一条路即可加载 —— 私有实现对外可达</text>
+
+  <!-- After row -->
+  <rect x="80" y="632" width="1760" height="252" rx="16" fill="#FFFFFF" stroke="#A7F3D0" filter="url(#shadow)"/>
+  <rect x="110" y="656" width="216" height="40" rx="20" fill="#ECFDF5" stroke="#A7F3D0"/>
+  <text x="218" y="683" font-size="21" font-weight="700" fill="#059669" text-anchor="middle">目标 After</text>
+  <text x="348" y="683" font-size="21" fill="#065F46">加载链路完全收进框架进程内部，无任何对外入口</text>
+
+  <rect x="110" y="712" width="288" height="128" rx="12" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="134" y="754" font-size="22" font-weight="700" fill="#0F172A">appkit_native（C++）</text>
+  <text x="134" y="786" font-size="19" fill="#64748B">js_startup_task.cpp</text>
+  <text x="134" y="814" font-size="19" fill="#94A3B8">经 getter 取 ABC buffer</text>
+
+  <line x1="402" y1="776" x2="436" y2="776" stroke="#059669" stroke-width="3" marker-end="url(#arrowG)"/>
+
+  <rect x="443" y="712" width="288" height="128" rx="12" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="467" y="754" font-size="22" font-weight="700" fill="#0F172A">独立内部库</text>
+  <text x="467" y="786" font-size="16" fill="#64748B">libappkit_startup_task.z.so</text>
+  <text x="467" y="814" font-size="17" fill="#94A3B8">普通lib目录·非NAPI路径</text>
+
+  <line x1="735" y1="776" x2="769" y2="776" stroke="#059669" stroke-width="3" marker-end="url(#arrowG)"/>
+
+  <rect x="776" y="712" width="288" height="128" rx="12" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="800" y="754" font-size="22" font-weight="700" fill="#0F172A">ExecuteModuleBuffer</text>
+  <text x="800" y="786" font-size="19" fill="#64748B">JSNApi 直接执行 ABC</text>
+  <text x="800" y="814" font-size="19" fill="#94A3B8">jsnapi_expo.h:1871</text>
+
+  <line x1="1068" y1="776" x2="1102" y2="776" stroke="#059669" stroke-width="3" marker-end="url(#arrowG)"/>
+
+  <rect x="1109" y="712" width="288" height="128" rx="12" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="1133" y="754" font-size="22" font-weight="700" fill="#0F172A">GetExportObject</text>
+  <text x="1133" y="786" font-size="19" fill="#64748B">取 "default" 导出类</text>
+  <text x="1133" y="814" font-size="19" fill="#94A3B8">jsnapi_expo.h:1888</text>
+
+  <line x1="1401" y1="776" x2="1435" y2="776" stroke="#059669" stroke-width="3" marker-end="url(#arrowG)"/>
+
+  <rect x="1442" y="712" width="288" height="128" rx="12" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="1466" y="754" font-size="22" font-weight="700" fill="#0F172A">napi_new_instance</text>
+  <text x="1466" y="786" font-size="19" fill="#64748B">NativeReference 持有实例</text>
+  <text x="1466" y="814" font-size="19" fill="#94A3B8">生命周期管理不变</text>
+
+  <text x="110" y="872" font-size="22" font-weight="700" fill="#059669">✓ 不注册模块名、不落任何 NAPI 搜索路径（module/** 与 /system/etc/abc/**）—— 应用不可达；执行语义不变</text>
+
+  <!-- Bottom strip -->
+  <rect x="80" y="900" width="1760" height="160" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <text x="116" y="942" font-size="25" font-weight="700" fill="#2563EB">实施三步</text>
+  <text x="116" y="978" font-size="21" fill="#334155">① 删除两个 napi 模块目标与注册代码（含 napi_packages 依赖项）</text>
+  <text x="116" y="1010" font-size="21" fill="#334155">② 新增内部库 appkit_startup_task（.o + getter 链入，appkit_native DT_NEEDED 依赖）</text>
+  <text x="116" y="1042" font-size="21" fill="#334155">③ 重写两个 Load 函数，经 getter + LoadInternalModuleByBuffer 加载</text>
+
+  <line x1="1120" y1="920" x2="1120" y2="1040" stroke="#E2E8F0" stroke-width="2"/>
+
+  <text x="1156" y="942" font-size="25" font-weight="700" fill="#DC2626">否决备选</text>
+  <text x="1156" y="976" font-size="18" fill="#334155">· Checker 黑名单：无法区分来源</text>
+  <text x="1500" y="976" font-size="18" fill="#334155">· 挪路径保留注册：缓存仍可命中</text>
+  <text x="1156" y="1010" font-size="18" fill="#334155">· 装入 /system/etc/abc：同为搜索路径</text>
+  <text x="1500" y="1010" font-size="18" fill="#334155">· 改隐蔽模块名：安全靠隐蔽</text>
+  <text x="1156" y="1042" font-size="17" fill="#94A3B8">详见方案文档 3.4 节</text>
+</svg>

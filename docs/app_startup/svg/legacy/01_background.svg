@@ -1,0 +1,82 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans CJK SC, PingFang SC, Microsoft YaHei, Source Han Sans SC, sans-serif">
+  <defs>
+    <filter id="shadow" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0F172A" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arrowGray" markerWidth="12" markerHeight="12" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#94A3B8"/>
+    </marker>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#F5F7FA"/>
+
+  <!-- Header -->
+  <rect x="80" y="84" width="12" height="104" rx="6" fill="#2563EB"/>
+  <text x="122" y="138" font-size="50" font-weight="700" fill="#0F172A">背景：AppStartup 框架内部模块被当作公共 NAPI 模块暴露</text>
+  <text x="122" y="188" font-size="25" fill="#475569">asynctaskcallback_napi / asynctaskexcutor_napi 仅供框架使用，开发者不应使用，却以 NAPI 模块形态随系统镜像对外发布</text>
+
+  <!-- Left column: what they are -->
+  <text x="80" y="272" font-size="30" font-weight="700" fill="#2563EB">它们是什么</text>
+
+  <rect x="80" y="296" width="840" height="176" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <rect x="80" y="296" width="8" height="176" rx="4" fill="#2563EB"/>
+  <text x="116" y="342" font-size="28" font-weight="700" fill="#0F172A">libasynctaskexcutor_napi.so</text>
+  <text x="116" y="380" font-size="21" fill="#64748B">NAPI 模块名：app.appstartup.AsyncTaskExcutor</text>
+  <text x="116" y="416" font-size="23" fill="#334155">TS 胶水层：把 StartupTask.init 推入 taskpool 并发执行，</text>
+  <text x="116" y="450" font-size="23" fill="#334155">并通过 Task.sendData 把启动结果发回宿主线程</text>
+
+  <rect x="80" y="496" width="840" height="176" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <rect x="80" y="496" width="8" height="176" rx="4" fill="#2563EB"/>
+  <text x="116" y="542" font-size="28" font-weight="700" fill="#0F172A">libasynctaskcallback_napi.so</text>
+  <text x="116" y="580" font-size="21" fill="#64748B">NAPI 模块名：app.appstartup.AsyncTaskCallback</text>
+  <text x="116" y="616" font-size="23" fill="#334155">sendable 包装类：在 taskpool 线程持有回调，</text>
+  <text x="116" y="650" font-size="23" fill="#334155">触发 onAsyncTaskCompleted 通知框架 C++ 侧</text>
+
+  <rect x="80" y="692" width="840" height="188" rx="16" fill="#EFF6FF" stroke="#BFDBFE"/>
+  <text x="116" y="736" font-size="26" font-weight="700" fill="#1D4ED8">关键事实</text>
+  <circle cx="128" cy="772" r="5" fill="#2563EB"/>
+  <text x="146" y="780" font-size="22" fill="#334155">唯一使用方：frameworks/native/appkit 的 js_startup_task.cpp</text>
+  <circle cx="128" cy="812" r="5" fill="#2563EB"/>
+  <text x="146" y="820" font-size="22" fill="#334155">SDK（interface/sdk-js）中没有任何对应 d.ts 声明</text>
+  <circle cx="128" cy="852" r="5" fill="#2563EB"/>
+  <text x="146" y="860" font-size="22" fill="#334155">纯私有实现：开发者不应感知、更不应调用</text>
+
+  <!-- Right column: internal flow -->
+  <text x="980" y="272" font-size="30" font-weight="700" fill="#2563EB">设计用途：仅框架内部调用链</text>
+
+  <rect x="980" y="296" width="860" height="76" rx="12" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <text x="1010" y="328" font-size="22" font-weight="700" fill="#0F172A">① C++ 框架入口</text>
+  <text x="1010" y="356" font-size="20" fill="#64748B">JsStartupTask::RunTaskInit（js_startup_task.cpp）</text>
+
+  <line x1="1410" y1="372" x2="1410" y2="396" stroke="#94A3B8" stroke-width="2.5" marker-end="url(#arrowGray)"/>
+
+  <rect x="980" y="400" width="860" height="76" rx="12" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <text x="1010" y="432" font-size="22" font-weight="700" fill="#0F172A">② 框架加载两个系统模块</text>
+  <text x="1010" y="460" font-size="17" fill="#64748B">LoadSystemModuleByEngine → requireNapi("app.appstartup.AsyncTaskExcutor")</text>
+
+  <line x1="1410" y1="476" x2="1410" y2="500" stroke="#94A3B8" stroke-width="2.5" marker-end="url(#arrowGray)"/>
+
+  <rect x="980" y="504" width="860" height="76" rx="12" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <text x="1010" y="536" font-size="22" font-weight="700" fill="#0F172A">③ 推入 taskpool</text>
+  <text x="1010" y="564" font-size="20" fill="#64748B">AsyncTaskExcutor.asyncPushTask() → new taskPool.Task(concurrentFunc)</text>
+
+  <line x1="1410" y1="580" x2="1410" y2="604" stroke="#94A3B8" stroke-width="2.5" marker-end="url(#arrowGray)"/>
+
+  <rect x="980" y="608" width="860" height="76" rx="12" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <text x="1010" y="640" font-size="22" font-weight="700" fill="#0F172A">④ taskpool 线程执行启动任务</text>
+  <text x="1010" y="668" font-size="20" fill="#64748B">await startup.init(context)（'use concurrent' 并发函数）</text>
+
+  <line x1="1410" y1="684" x2="1410" y2="708" stroke="#94A3B8" stroke-width="2.5" marker-end="url(#arrowGray)"/>
+
+  <rect x="980" y="712" width="860" height="76" rx="12" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <text x="1010" y="744" font-size="22" font-weight="700" fill="#0F172A">⑤ 结果回传框架</text>
+  <text x="1010" y="772" font-size="20" fill="#64748B">AsyncTaskCallback（sendable）→ onAsyncTaskCompleted → C++ 回调</text>
+
+  <text x="980" y="828" font-size="21" fill="#64748B">整条链路都在框架内部闭环，不涉及任何开发者接口。</text>
+
+  <!-- Bottom banner -->
+  <rect x="80" y="908" width="1760" height="112" rx="16" fill="#FEF2F2" stroke="#FECACA"/>
+  <rect x="80" y="908" width="8" height="112" rx="4" fill="#DC2626"/>
+  <text x="120" y="956" font-size="29" font-weight="700" fill="#DC2626">问题：两个模块以公共 NAPI 模块形态随系统镜像发布</text>
+  <text x="120" y="994" font-size="23" fill="#7F1D1D">任何三方应用都可在运行时通过 requireNapi('app.appstartup.AsyncTaskExcutor') 直接加载并调用框架私有实现 —— 私有 API 暴露</text>
+</svg>

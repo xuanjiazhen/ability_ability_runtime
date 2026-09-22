@@ -1,0 +1,104 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans CJK SC, PingFang SC, Microsoft YaHei, Source Han Sans SC, sans-serif">
+  <defs>
+    <filter id="shadow" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0F172A" flood-opacity="0.08"/>
+    </filter>
+    <marker id="aG" markerWidth="12" markerHeight="12" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#059669"/>
+    </marker>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#F5F7FA"/>
+
+  <!-- Header -->
+  <rect x="80" y="84" width="12" height="104" rx="6" fill="#059669"/>
+  <text x="122" y="132" font-size="44" font-weight="700" fill="#0F172A">TO-BE：优化方案（R1 评审稿）</text>
+  <text x="122" y="176" font-size="22" fill="#475569">去 NAPI 模块化 · ABC 迁入独立内部库；等价性为推断（附前提），验证状态分列已完成/待验证</text>
+  <rect x="1300" y="104" width="120" height="36" rx="18" fill="#ECFDF5" stroke="#A7F3D0"/>
+  <text x="1360" y="128" font-size="18" font-weight="700" fill="#059669" text-anchor="middle">代码 实证</text>
+  <rect x="1434" y="104" width="120" height="36" rx="18" fill="#FFFBEB" stroke="#FDE68A"/>
+  <text x="1494" y="128" font-size="18" font-weight="700" fill="#D97706" text-anchor="middle">推断 有前提</text>
+  <rect x="1568" y="104" width="120" height="36" rx="18" fill="#F5F3FF" stroke="#DDD6FE"/>
+  <text x="1628" y="128" font-size="18" font-weight="700" fill="#7C3AED" text-anchor="middle">假设 待验证</text>
+  <rect x="1702" y="104" width="120" height="36" rx="18" fill="#FEF2F2" stroke="#FECACA"/>
+  <text x="1762" y="128" font-size="18" font-weight="700" fill="#DC2626" text-anchor="middle">未知 未查到</text>
+
+  <!-- Architecture row -->
+  <rect x="110" y="206" width="216" height="38" rx="19" fill="#ECFDF5" stroke="#A7F3D0"/>
+  <text x="218" y="232" font-size="20" font-weight="700" fill="#059669" text-anchor="middle">加载链路（R1）</text>
+  <text x="348" y="232" font-size="20" fill="#065F46">appkit_native 经 DT_NEEDED 依赖新库；框架进程内闭环</text>
+
+  <rect x="110" y="258" width="288" height="122" rx="12" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="134" y="298" font-size="21" font-weight="700" fill="#0F172A">appkit_native（C++）</text>
+  <text x="134" y="330" font-size="18" fill="#64748B">js_startup_task.cpp</text>
+  <text x="134" y="358" font-size="18" fill="#94A3B8">经 getter 取 ABC buffer</text>
+  <line x1="402" y1="319" x2="436" y2="319" stroke="#059669" stroke-width="3" marker-end="url(#aG)"/>
+
+  <rect x="443" y="258" width="288" height="122" rx="12" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="467" y="298" font-size="21" font-weight="700" fill="#0F172A">独立内部库</text>
+  <text x="467" y="330" font-size="15" fill="#64748B">libappkit_startup_task.z.so</text>
+  <text x="467" y="358" font-size="16" fill="#94A3B8">platformsdk 目录·非 NAPI 路径</text>
+  <line x1="735" y1="319" x2="769" y2="319" stroke="#059669" stroke-width="3" marker-end="url(#aG)"/>
+
+  <rect x="776" y="258" width="288" height="122" rx="12" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="800" y="298" font-size="21" font-weight="700" fill="#0F172A">ExecuteModuleBuffer</text>
+  <text x="800" y="330" font-size="18" fill="#64748B">JSNApi 直接执行 ABC</text>
+  <text x="800" y="358" font-size="18" fill="#94A3B8">jsnapi_expo.h:1871</text>
+  <line x1="1068" y1="319" x2="1102" y2="319" stroke="#059669" stroke-width="3" marker-end="url(#aG)"/>
+
+  <rect x="1109" y="258" width="288" height="122" rx="12" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="1133" y="298" font-size="21" font-weight="700" fill="#0F172A">GetExportObject</text>
+  <text x="1133" y="330" font-size="18" fill="#64748B">取 "default" 导出类</text>
+  <text x="1133" y="358" font-size="18" fill="#94A3B8">jsnapi_expo.h:1888</text>
+  <line x1="1401" y1="319" x2="1435" y2="319" stroke="#059669" stroke-width="3" marker-end="url(#aG)"/>
+
+  <rect x="1442" y="258" width="288" height="122" rx="12" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="1466" y="298" font-size="21" font-weight="700" fill="#0F172A">napi_new_instance</text>
+  <text x="1466" y="330" font-size="18" fill="#64748B">NativeReference 持有实例</text>
+  <text x="1466" y="358" font-size="18" fill="#94A3B8">生命周期管理不变</text>
+
+  <!-- Row 2 left: equivalence argument -->
+  <rect x="80" y="410" width="880" height="270" rx="16" fill="#FFFFFF" stroke="#FDE68A" filter="url(#shadow)"/>
+  <rect x="80" y="410" width="880" height="8" rx="4" fill="#D97706"/>
+  <text x="120" y="460" font-size="25" font-weight="700" fill="#92400E">行为等价性论证【推断】——前提与结论</text>
+  <text x="120" y="502" font-size="19" fill="#059669" font-weight="700">P1【代码】NAPI 内部执行入口即 ExecuteModuleFromBuffer（ark_native_engine.cpp:3545）</text>
+  <text x="120" y="536" font-size="19" fill="#059669" font-weight="700">P2【代码】es2abc 编译参数一致（--module；本次仅迁移目录，未改 .ts 内容）</text>
+  <text x="120" y="570" font-size="19" fill="#059669" font-weight="700">P3【代码】sendable 类定义与回调链零改动（git diff 范围核对）</text>
+  <text x="120" y="604" font-size="19" fill="#059669" font-weight="700">P4【代码】napi_new_instance 构造尾段与原实现一致（js_runtime.cpp:650-660）</text>
+  <text x="120" y="642" font-size="19" fill="#D97706" font-weight="700">⇒ 推断结论：异步任务执行语义等价——依赖 P1–P4 成立；运行时实测未做（见右下）</text>
+
+  <!-- Row 2 right: R0 vs R1 tradeoff -->
+  <rect x="1000" y="410" width="840" height="270" rx="16" fill="#FFFFFF" stroke="#BFDBFE" filter="url(#shadow)"/>
+  <rect x="1000" y="410" width="840" height="8" rx="4" fill="#2563EB"/>
+  <text x="1040" y="460" font-size="25" font-weight="700" fill="#1D4ED8">R0 vs R1 关键权衡（评审决策点）</text>
+  <text x="1040" y="502" font-size="19" fill="#334155">R1 本稿：独立库 platformsdk；appkit 体积不变；</text>
+  <text x="1040" y="530" font-size="19" fill="#D97706" font-weight="700">【推断】dlopen 理论可达 native getter（仅返回只读 buffer，无 JS 执行入口）</text>
+  <text x="1040" y="564" font-size="19" fill="#334155">R0 备选：ABC 内嵌 appkit_native；appkit 增约数十 KB；无独立 .so（零暴露）</text>
+  <text x="1040" y="598" font-size="19" fill="#059669" font-weight="700">共同点：requireNapi（JS 模块实例级）通道两者均关闭【代码】</text>
+  <text x="1040" y="636" font-size="19" fill="#0F172A" font-weight="700">决策点：体积归属 vs 暴露严格度——由评审裁定（相关未知项 U4）</text>
+
+  <!-- Row 3 left: verified -->
+  <rect x="80" y="706" width="880" height="314" rx="16" fill="#FFFFFF" stroke="#A7F3D0" filter="url(#shadow)"/>
+  <rect x="80" y="706" width="880" height="8" rx="4" fill="#059669"/>
+  <text x="120" y="756" font-size="25" font-weight="700" fill="#047857">已完成验证【代码】（2026-09-11 会话内真实执行）</text>
+  <text x="120" y="798" font-size="19" fill="#334155">V1 gn 解析：旧目标 0 处 / 新目标 18 处；appkit_native DT_NEEDED 含新库</text>
+  <text x="120" y="832" font-size="19" fill="#334155">V2 编译：3 个修改文件真实工具链 -Werror 通过（修复 2 处真实缺陷）</text>
+  <text x="136" y="860" font-size="17" fill="#64748B">（缺陷：EcmaVM 拼写 / extern 误置匿名 namespace——由编译验证发现并修复）</text>
+  <text x="120" y="894" font-size="19" fill="#334155">V3 链接：镜像 GN solink 参数手动链接成功；getter 为全局 T 符号</text>
+  <text x="136" y="922" font-size="17" fill="#64748B">ABC 数据未被 --gc-sections 裁剪（_binary_*_abc_start/_end 全保留）</text>
+  <text x="120" y="956" font-size="19" fill="#334155">V4 符号负向：无 napi_module / NAPI_* 任何导出符号（llvm-nm -D）</text>
+  <text x="120" y="994" font-size="17" fill="#94A3B8">局限：全量 ninja 因 out 目录异机损坏不可用（环境问题，与本变更无关）</text>
+
+  <!-- Row 3 right: pending + alternatives -->
+  <rect x="1000" y="706" width="840" height="314" rx="16" fill="#FFFFFF" stroke="#FECACA" filter="url(#shadow)"/>
+  <rect x="1000" y="706" width="840" height="8" rx="4" fill="#DC2626"/>
+  <text x="1040" y="756" font-size="25" font-weight="700" fill="#B91C1C">待验证【未知】与被否备选（供评审复核）</text>
+  <text x="1040" y="794" font-size="19" fill="#DC2626" font-weight="700">待验证：设备 E2E（正向任务 + 负向 requireNapi）</text>
+  <text x="1056" y="822" font-size="18" fill="#DC2626" font-weight="700">单测回归；CI 全量构建；DevTools / sourcemap 兼容性</text>
+  <text x="1040" y="856" font-size="19" fill="#334155">备选 C · Checker 黑名单：框架自身同走 requireNapi（js_runtime.cpp:591）</text>
+  <text x="1056" y="884" font-size="17" fill="#64748B">【代码】isAppModule 同为 false，checker 无法区分调用来源</text>
+  <text x="1040" y="916" font-size="19" fill="#334155">备选 D · 挪路径保留注册：进程内按名缓存仍可命中</text>
+  <text x="1056" y="944" font-size="17" fill="#64748B">【代码】FindNativeModuleByCache 按模块名匹配（native_module_manager.cpp）</text>
+  <text x="1040" y="976" font-size="19" fill="#334155">备选 E · 隐蔽命名：【推断】安全依赖隐蔽性，不可持续</text>
+  <text x="1040" y="1008" font-size="17" fill="#94A3B8">备选 B · 内嵌 appkit_native（R0）：非否决项，见左上权衡框——评审可改选</text>
+</svg>

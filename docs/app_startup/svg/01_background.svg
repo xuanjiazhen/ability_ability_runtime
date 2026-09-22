@@ -1,0 +1,75 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans CJK SC, PingFang SC, Microsoft YaHei, Source Han Sans SC, sans-serif">
+  <defs>
+    <filter id="shadow" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0F172A" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#F5F7FA"/>
+
+  <!-- Header -->
+  <rect x="80" y="84" width="12" height="104" rx="6" fill="#2563EB"/>
+  <text x="122" y="132" font-size="44" font-weight="700" fill="#0F172A">背景：AppStartup AsyncTask 私有 NAPI 模块</text>
+  <text x="122" y="176" font-size="22" fill="#475569">对外评审版 · 立场中立：陈述按证据分级标注，结论由评审裁定</text>
+  <!-- Legend chips -->
+  <rect x="1300" y="104" width="120" height="36" rx="18" fill="#ECFDF5" stroke="#A7F3D0"/>
+  <text x="1360" y="128" font-size="18" font-weight="700" fill="#059669" text-anchor="middle">代码 实证</text>
+  <rect x="1434" y="104" width="120" height="36" rx="18" fill="#FFFBEB" stroke="#FDE68A"/>
+  <text x="1494" y="128" font-size="18" font-weight="700" fill="#D97706" text-anchor="middle">推断 有前提</text>
+  <rect x="1568" y="104" width="120" height="36" rx="18" fill="#F5F3FF" stroke="#DDD6FE"/>
+  <text x="1628" y="128" font-size="18" font-weight="700" fill="#7C3AED" text-anchor="middle">假设 待验证</text>
+  <rect x="1702" y="104" width="120" height="36" rx="18" fill="#FEF2F2" stroke="#FECACA"/>
+  <text x="1762" y="128" font-size="18" font-weight="700" fill="#DC2626" text-anchor="middle">未知 未查到</text>
+
+  <!-- Left column: what the modules are -->
+  <text x="80" y="248" font-size="28" font-weight="700" fill="#2563EB">两个模块是什么</text>
+
+  <rect x="80" y="272" width="880" height="158" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <rect x="80" y="272" width="8" height="158" rx="4" fill="#2563EB"/>
+  <text x="116" y="314" font-size="26" font-weight="700" fill="#0F172A">libasynctaskexcutor_napi.so</text>
+  <text x="116" y="350" font-size="19" fill="#059669" font-weight="700">【代码】模块名 app.appstartup.AsyncTaskExcutor（*_module.cpp:24，基线 53cfaad1e7）</text>
+  <text x="116" y="384" font-size="20" fill="#334155">TS 胶水层：把 StartupTask.init 推入 taskpool 并发执行并回传结果</text>
+  <text x="116" y="414" font-size="19" fill="#64748B">服务于 AppStartup 异步启动任务（应用启动框架）能力</text>
+
+  <rect x="80" y="450" width="880" height="158" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <rect x="80" y="450" width="8" height="158" rx="4" fill="#2563EB"/>
+  <text x="116" y="492" font-size="26" font-weight="700" fill="#0F172A">libasynctaskcallback_napi.so</text>
+  <text x="116" y="528" font-size="19" fill="#059669" font-weight="700">【代码】模块名 app.appstartup.AsyncTaskCallback（*_module.cpp:24，基线同上）</text>
+  <text x="116" y="562" font-size="20" fill="#334155">sendable 包装类：在 taskpool 线程持有回调，通知框架 C++ 侧</text>
+  <text x="116" y="592" font-size="19" fill="#64748B">两者均随系统镜像以 NAPI 模块形态发布</text>
+
+  <rect x="80" y="628" width="880" height="132" rx="16" fill="#EFF6FF" stroke="#BFDBFE"/>
+  <text x="116" y="670" font-size="24" font-weight="700" fill="#1D4ED8">设计定位：框架内部专用</text>
+  <text x="116" y="704" font-size="20" fill="#059669" font-weight="700">【代码】唯一消费方 js_startup_task.cpp（全仓 grep 仅 1 处引用模块名）</text>
+  <text x="116" y="736" font-size="20" fill="#059669" font-weight="700">【代码】SDK 零声明：interface/sdk-js 全库检索无 AsyncTask d.ts</text>
+
+  <!-- Right column: why under review -->
+  <text x="1000" y="248" font-size="28" font-weight="700" fill="#2563EB">为什么进入评审（判定链 · 主张待确认）</text>
+
+  <rect x="1000" y="272" width="840" height="296" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <rect x="1000" y="272" width="8" height="296" rx="4" fill="#D97706"/>
+  <text x="1036" y="316" font-size="23" font-weight="700" fill="#0F172A">① 无声明</text>
+  <text x="1036" y="348" font-size="20" fill="#059669" font-weight="700">【代码】不在公共/内部 API 清单（检索 interface/sdk-js 为空）</text>
+  <text x="1036" y="384" font-size="23" font-weight="700" fill="#0F172A">② 运行时可达（推断）</text>
+  <text x="1036" y="416" font-size="20" fill="#D97706" font-weight="700">【推断】requireNapi 按名可加载——前提：解析规则 + 无拦截</text>
+  <text x="1036" y="444" font-size="18" fill="#64748B">（前提的证据链见 02 页 F3/F4；设备实测未做，标注见 02 页 U2）</text>
+  <text x="1036" y="480" font-size="23" font-weight="700" fill="#0F172A">③ 治理主张（由评审确认）</text>
+  <text x="1036" y="512" font-size="20" fill="#334155">未声明即发布 ⇒ "私有 API 暴露"，违反 API 治理口径</text>
+  <text x="1036" y="544" font-size="18" fill="#64748B">（主张成立与否取决于 ①② 证据是否被评审采纳）</text>
+
+  <rect x="1000" y="590" width="840" height="170" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <rect x="1000" y="590" width="8" height="170" rx="4" fill="#64748B"/>
+  <text x="1036" y="632" font-size="23" font-weight="700" fill="#0F172A">影响陈述（中立两分支）</text>
+  <text x="1036" y="668" font-size="20" fill="#D97706" font-weight="700">【推断】若无外部使用：删除无兼容性负担（前提：全仓检索结论）</text>
+  <text x="1036" y="702" font-size="20" fill="#DC2626" font-weight="700">【未知】若有外部使用：升级即破坏且无迁移指引</text>
+  <text x="1036" y="730" font-size="18" fill="#64748B">（存量使用无法静态排除——获取途径见 02 页 U1）</text>
+
+  <!-- Bottom strip -->
+  <rect x="80" y="790" width="1760" height="230" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <rect x="80" y="790" width="8" height="230" rx="4" fill="#2563EB"/>
+  <text x="120" y="838" font-size="26" font-weight="700" fill="#0F172A">材料构成与证据纪律</text>
+  <text x="120" y="878" font-size="21" fill="#334155">材料：01 背景 · 02 AS-IS 现状与问题分析（含已证实事实/未决问题） · 03 TO-BE 优化方案（含验证状态与备选） · 04 SWOT 与决策问题</text>
+  <text x="120" y="914" font-size="21" fill="#334155">证据分级：【代码】附 file:line（运行/日志证据优先）＞文档＞记忆；【推断】写明依赖前提；【假设】写明验证方法；【未知】如实标注不编造</text>
+  <text x="120" y="950" font-size="21" fill="#334155">立场：本材料不预设结论——方案是否采用、是否需修改、R0/R1 如何取舍，由评审基于证据裁定（决策问题清单见 04 页）</text>
+  <text x="120" y="990" font-size="18" fill="#94A3B8">基线说明：问题态代码引自 53cfaad1e7（变更前）；方案态验证数据来自 2026-09-11 会话内真实执行（详见 03 页）</text>
+</svg>

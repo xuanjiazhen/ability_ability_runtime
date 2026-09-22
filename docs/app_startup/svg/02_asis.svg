@@ -1,0 +1,124 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans CJK SC, PingFang SC, Microsoft YaHei, Source Han Sans SC, sans-serif">
+  <defs>
+    <filter id="shadow" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0F172A" flood-opacity="0.08"/>
+    </filter>
+    <marker id="aR" markerWidth="12" markerHeight="12" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#DC2626"/>
+    </marker>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#F5F7FA"/>
+
+  <!-- Header -->
+  <rect x="80" y="84" width="12" height="104" rx="6" fill="#DC2626"/>
+  <text x="122" y="132" font-size="44" font-weight="700" fill="#0F172A">AS-IS：现状与问题分析（暴露链路）</text>
+  <text x="122" y="176" font-size="22" fill="#475569">五环链路逐项附证据；左右两栏分别列出「已证实的事实」与「未决问题」</text>
+  <rect x="1300" y="104" width="120" height="36" rx="18" fill="#ECFDF5" stroke="#A7F3D0"/>
+  <text x="1360" y="128" font-size="18" font-weight="700" fill="#059669" text-anchor="middle">代码 实证</text>
+  <rect x="1434" y="104" width="120" height="36" rx="18" fill="#FFFBEB" stroke="#FDE68A"/>
+  <text x="1494" y="128" font-size="18" font-weight="700" fill="#D97706" text-anchor="middle">推断 有前提</text>
+  <rect x="1568" y="104" width="120" height="36" rx="18" fill="#F5F3FF" stroke="#DDD6FE"/>
+  <text x="1628" y="128" font-size="18" font-weight="700" fill="#7C3AED" text-anchor="middle">假设 待验证</text>
+  <rect x="1702" y="104" width="120" height="36" rx="18" fill="#FEF2F2" stroke="#FECACA"/>
+  <text x="1762" y="128" font-size="18" font-weight="700" fill="#DC2626" text-anchor="middle">未知 未查到</text>
+
+  <!-- Chain: 5 cards x=80,440,800,1160,1520 w=320 -->
+  <!-- Card 1 -->
+  <rect x="80" y="216" width="320" height="230" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <circle cx="128" cy="262" r="22" fill="#DC2626"/>
+  <text x="128" y="270" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle">1</text>
+  <text x="164" y="270" font-size="24" font-weight="700" fill="#0F172A">自动注册</text>
+  <text x="108" y="318" font-size="20" fill="#334155">构造函数自动注册</text>
+  <text x="108" y="348" font-size="17" fill="#475569">napi_module_register</text>
+  <text x="108" y="378" font-size="20" fill="#334155">模块名入进程注册表</text>
+  <text x="108" y="408" font-size="15" fill="#475569">app.appstartup.AsyncTask*</text>
+  <text x="108" y="436" font-size="14" fill="#059669" font-weight="700">【代码】*_module.cpp:21-30</text>
+
+  <line x1="404" y1="331" x2="436" y2="331" stroke="#DC2626" stroke-width="3" marker-end="url(#aR)"/>
+
+  <!-- Card 2 -->
+  <rect x="440" y="216" width="320" height="230" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <circle cx="488" cy="262" r="22" fill="#DC2626"/>
+  <text x="488" y="270" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle">2</text>
+  <text x="524" y="270" font-size="24" font-weight="700" fill="#0F172A">落入搜索路径</text>
+  <text x="468" y="318" font-size="16" fill="#475569">relative_install_dir</text>
+  <text x="468" y="348" font-size="16" fill="#475569">"module/app/appstartup"</text>
+  <text x="468" y="378" font-size="16" fill="#475569">→ /system/lib{,64}/module/</text>
+  <text x="468" y="408" font-size="19" fill="#334155">NAPI 标准搜索路径</text>
+  <text x="468" y="436" font-size="14" fill="#059669" font-weight="700">【代码】BUILD.gn:59（已删除）</text>
+
+  <line x1="764" y1="331" x2="796" y2="331" stroke="#DC2626" stroke-width="3" marker-end="url(#aR)"/>
+
+  <!-- Card 3 -->
+  <rect x="800" y="216" width="320" height="230" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <circle cx="848" cy="262" r="22" fill="#DC2626"/>
+  <text x="848" y="270" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle">3</text>
+  <text x="884" y="270" font-size="24" font-weight="700" fill="#0F172A">按名可解析</text>
+  <text x="828" y="318" font-size="16" fill="#475569">requireNapi(name)</text>
+  <text x="828" y="348" font-size="17" fill="#334155">按名映射 lib&lt;name&gt;_napi.so</text>
+  <text x="828" y="378" font-size="18" fill="#334155">dlopen → 执行内嵌 ABC</text>
+  <text x="828" y="408" font-size="19" fill="#334155">无需知道路径即可加载</text>
+  <text x="828" y="436" font-size="14" fill="#059669" font-weight="700">【代码】native_module_manager.cpp</text>
+
+  <line x1="1124" y1="331" x2="1156" y2="331" stroke="#DC2626" stroke-width="3" marker-end="url(#aR)"/>
+
+  <!-- Card 4 -->
+  <rect x="1160" y="216" width="320" height="230" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <circle cx="1208" cy="262" r="22" fill="#DC2626"/>
+  <text x="1208" y="270" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle">4</text>
+  <text x="1244" y="270" font-size="24" font-weight="700" fill="#0F172A">无运行时拦截</text>
+  <text x="1188" y="318" font-size="16" fill="#475569">ModuleCheckerDelegate</text>
+  <text x="1188" y="348" font-size="19" fill="#334155">默认 nullptr</text>
+  <text x="1188" y="378" font-size="19" fill="#334155">仅 Extension 场景注册</text>
+  <text x="1188" y="408" font-size="18" fill="#334155">requireNapi 无白名单</text>
+  <text x="1188" y="436" font-size="14" fill="#059669" font-weight="700">【代码】runtime.h:85 / ext_cfg:110</text>
+
+  <line x1="1484" y1="331" x2="1516" y2="331" stroke="#DC2626" stroke-width="3" marker-end="url(#aR)"/>
+
+  <!-- Card 5 -->
+  <rect x="1520" y="216" width="320" height="230" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <circle cx="1568" cy="262" r="22" fill="#DC2626"/>
+  <text x="1568" y="270" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle">5</text>
+  <text x="1604" y="270" font-size="24" font-weight="700" fill="#0F172A">无声明保护</text>
+  <text x="1548" y="318" font-size="20" fill="#334155">SDK 无 d.ts 声明</text>
+  <text x="1548" y="348" font-size="20" fill="#334155">不在公共 API 清单</text>
+  <text x="1548" y="378" font-size="19" fill="#334155">删除无兼容性负担</text>
+  <text x="1548" y="408" font-size="19" fill="#334155">但当前也无任何保护</text>
+  <text x="1548" y="436" font-size="14" fill="#059669" font-weight="700">【代码】interface/sdk-js 检索为空</text>
+
+  <!-- Left: verified facts -->
+  <rect x="80" y="480" width="880" height="540" rx="16" fill="#FFFFFF" stroke="#A7F3D0" filter="url(#shadow)"/>
+  <rect x="80" y="480" width="880" height="8" rx="4" fill="#059669"/>
+  <text x="120" y="534" font-size="27" font-weight="700" fill="#047857">已证实的事实（全部可复核）</text>
+
+  <text x="120" y="584" font-size="19" fill="#059669" font-weight="700">F1【代码】注册源：nm_modname 双模块（async_task_*_module.cpp:24，基线 53cfaad1e7）</text>
+  <text x="120" y="618" font-size="19" fill="#059669" font-weight="700">F2【代码】安装：module/app/appstartup（BUILD.gn:59）→ NAPI 搜索路径</text>
+  <text x="120" y="652" font-size="19" fill="#059669" font-weight="700">F3【代码】解析规则：module/ 下 lib&lt;name&gt;_napi.so、etc/abc 下 &lt;name&gt;.abc</text>
+  <text x="136" y="680" font-size="17" fill="#64748B">（native_module_manager.cpp:1022 / 1216-1233：sysPrefix=module，sysAbcPrefix=etc/abc）</text>
+  <text x="120" y="714" font-size="19" fill="#059669" font-weight="700">F4【代码】无运行时拦截：checker 默认 nullptr（runtime.h:85）；仅 Extension 注册</text>
+  <text x="136" y="742" font-size="17" fill="#64748B">（extension_config_mgr.cpp:110 为全仓唯一注册点）</text>
+  <text x="120" y="776" font-size="19" fill="#059669" font-weight="700">F5【代码】镜像基线：rk3568 产物存在 libasynctask{excutor,callback}_napi.z.so</text>
+  <text x="120" y="812" font-size="19" fill="#D97706" font-weight="700">F6【推断】主暴露通道是 requireNapi → 完整 JS 模块实例（asyncPushTask 可直接调用）</text>
+  <text x="136" y="840" font-size="17" fill="#64748B">前提：F3 解析规则 + F4 无拦截；requireNapi 为应用加载系统模块的标准通道</text>
+  <text x="120" y="874" font-size="19" fill="#D97706" font-weight="700">F7【推断】系统 lib 目录均在 linker 搜索路径（ld-musl-namespace-arm.ini:8）</text>
+  <text x="136" y="902" font-size="17" fill="#64748B">——dlopen 可达是平台既有状态（module/ 与 platformsdk 均在 lib.paths），非本问题独有</text>
+  <text x="120" y="940" font-size="17" fill="#94A3B8">复核途径：以上 file:line 均在当前仓库可查；F5 产物可由任一产品构建复现</text>
+
+  <!-- Right: open questions -->
+  <rect x="1000" y="480" width="840" height="540" rx="16" fill="#FFFFFF" stroke="#FECACA" filter="url(#shadow)"/>
+  <rect x="1000" y="480" width="840" height="8" rx="4" fill="#DC2626"/>
+  <text x="1040" y="534" font-size="27" font-weight="700" fill="#B91C1C">未决问题（含获取途径）</text>
+
+  <text x="1040" y="586" font-size="20" fill="#DC2626" font-weight="700">U1【未知】存量外部应用是否已依赖该私有路径？</text>
+  <text x="1056" y="614" font-size="18" fill="#475569">静态分析无法排除仓外调用方 → 途径：应用市场扫描 / 线上故障监控</text>
+  <text x="1040" y="656" font-size="20" fill="#DC2626" font-weight="700">U2【未知】设备实测 requireNapi 返回值</text>
+  <text x="1056" y="684" font-size="18" fill="#475569">可达性当前仅为代码级推断（F3+F4） → 途径：真机 demo 负向用例</text>
+  <text x="1040" y="726" font-size="20" fill="#DC2626" font-weight="700">U3【未知】是否曾有安全审计/扫描记录此暴露</text>
+  <text x="1056" y="754" font-size="18" fill="#475569">本材料未获取 → 途径：API 治理平台 / 安全审计记录</text>
+  <text x="1040" y="796" font-size="20" fill="#DC2626" font-weight="700">U4【未知】dlopen 通道的实际利用面与风险定级</text>
+  <text x="1056" y="824" font-size="18" fill="#475569">F7 表明系统 .so 可被 dlopen（平台既有）→ 安全影响评估未做</text>
+  <text x="1056" y="852" font-size="18" fill="#475569">→ 途径：安全团队定性（影响 TO-BE 页 R0/R1 权衡，见 03 页）</text>
+  <text x="1040" y="896" font-size="20" fill="#DC2626" font-weight="700">U5【未知】三仓/工具链是否有隐性引用</text>
+  <text x="1056" y="924" font-size="18" fill="#475569">（如 IDE 自动补全、调试器符号列表） → 途径：工具链团队确认</text>
+</svg>

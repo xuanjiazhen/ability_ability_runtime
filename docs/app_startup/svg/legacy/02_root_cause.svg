@@ -1,0 +1,105 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans CJK SC, PingFang SC, Microsoft YaHei, Source Han Sans SC, sans-serif">
+  <defs>
+    <filter id="shadow" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0F172A" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arrowRed" markerWidth="12" markerHeight="12" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#DC2626"/>
+    </marker>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#F5F7FA"/>
+
+  <!-- Header -->
+  <rect x="80" y="84" width="12" height="104" rx="6" fill="#DC2626"/>
+  <text x="122" y="138" font-size="50" font-weight="700" fill="#0F172A">根因：五环暴露链路</text>
+  <text x="122" y="188" font-size="25" fill="#475569">从自动注册、安装路径、按名解析、拦截缺失到声明缺失 —— 私有实现对外可达的完整链路</text>
+
+  <!-- Chain: 5 cards, w=320 gap=40, x: 80, 440, 800, 1160, 1520 -->
+  <!-- Card 1 -->
+  <rect x="80" y="252" width="320" height="360" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <circle cx="128" cy="300" r="24" fill="#DC2626"/>
+  <text x="128" y="309" font-size="24" font-weight="700" fill="#FFFFFF" text-anchor="middle">1</text>
+  <text x="166" y="309" font-size="26" font-weight="700" fill="#0F172A">自动注册</text>
+  <text x="108" y="364" font-size="21" fill="#334155">构造函数调用</text>
+  <text x="108" y="394" font-size="17" fill="#475569">napi_module_register</text>
+  <text x="108" y="424" font-size="21" fill="#334155">模块名写入进程注册表</text>
+  <rect x="108" y="478" width="264" height="112" rx="8" fill="#F8FAFC"/>
+  <text x="124" y="506" font-size="15" fill="#64748B">app.appstartup.</text>
+  <text x="124" y="528" font-size="15" fill="#64748B">AsyncTaskExcutor /</text>
+  <text x="124" y="550" font-size="15" fill="#64748B">AsyncTaskCallback</text>
+  <text x="124" y="574" font-size="13" fill="#94A3B8">*_module.cpp:21-30</text>
+
+  <line x1="404" y1="432" x2="436" y2="432" stroke="#DC2626" stroke-width="3" marker-end="url(#arrowRed)"/>
+
+  <!-- Card 2 -->
+  <rect x="440" y="252" width="320" height="360" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <circle cx="488" cy="300" r="24" fill="#DC2626"/>
+  <text x="488" y="309" font-size="24" font-weight="700" fill="#FFFFFF" text-anchor="middle">2</text>
+  <text x="526" y="309" font-size="26" font-weight="700" fill="#0F172A">落入搜索路径</text>
+  <text x="468" y="364" font-size="17" fill="#475569">relative_install_dir =</text>
+  <text x="468" y="394" font-size="17" fill="#475569">"module/app/appstartup"</text>
+  <text x="468" y="424" font-size="21" fill="#334155">安装到系统 NAPI 搜索路径</text>
+  <text x="468" y="454" font-size="18" fill="#475569">/system/lib{,64}/module/</text>
+  <rect x="468" y="478" width="264" height="112" rx="8" fill="#F8FAFC"/>
+  <text x="484" y="514" font-size="14" fill="#64748B">async_task_excutor/</text>
+  <text x="484" y="542" font-size="14" fill="#64748B">BUILD.gn:59（两处相同）</text>
+
+  <line x1="764" y1="432" x2="796" y2="432" stroke="#DC2626" stroke-width="3" marker-end="url(#arrowRed)"/>
+
+  <!-- Card 3 -->
+  <rect x="800" y="252" width="320" height="360" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <circle cx="848" cy="300" r="24" fill="#DC2626"/>
+  <text x="848" y="309" font-size="24" font-weight="700" fill="#FFFFFF" text-anchor="middle">3</text>
+  <text x="886" y="309" font-size="26" font-weight="700" fill="#0F172A">按名即可解析</text>
+  <text x="828" y="364" font-size="17" fill="#475569">requireNapi(name)</text>
+  <text x="828" y="394" font-size="21" fill="#334155">按名解析，命中：</text>
+  <text x="828" y="424" font-size="16" fill="#475569">libasynctaskexcutor_napi.so</text>
+  <text x="828" y="454" font-size="20" fill="#334155">→ dlopen → 执行内嵌 ABC</text>
+  <rect x="828" y="478" width="264" height="112" rx="8" fill="#F8FAFC"/>
+  <text x="844" y="514" font-size="14" fill="#64748B">native_module_manager.cpp</text>
+  <text x="844" y="542" font-size="14" fill="#64748B">:1022（规则 1216-1222 行）</text>
+
+  <line x1="1124" y1="432" x2="1156" y2="432" stroke="#DC2626" stroke-width="3" marker-end="url(#arrowRed)"/>
+
+  <!-- Card 4 -->
+  <rect x="1160" y="252" width="320" height="360" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <circle cx="1208" cy="300" r="24" fill="#DC2626"/>
+  <text x="1208" y="309" font-size="24" font-weight="700" fill="#FFFFFF" text-anchor="middle">4</text>
+  <text x="1246" y="309" font-size="26" font-weight="700" fill="#0F172A">无运行时拦截</text>
+  <text x="1188" y="364" font-size="16" fill="#475569">ModuleCheckerDelegate</text>
+  <text x="1188" y="394" font-size="21" fill="#334155">仅 Extension 场景注册</text>
+  <text x="1188" y="424" font-size="19" fill="#334155">Runtime::Options 中</text>
+  <text x="1188" y="454" font-size="21" fill="#334155">该字段默认 nullptr</text>
+  <rect x="1188" y="478" width="264" height="112" rx="8" fill="#F8FAFC"/>
+  <text x="1204" y="514" font-size="13" fill="#64748B">extension_config_mgr.cpp:110</text>
+  <text x="1204" y="542" font-size="13" fill="#64748B">runtime.h:85（默认 nullptr）</text>
+
+  <line x1="1484" y1="432" x2="1516" y2="432" stroke="#DC2626" stroke-width="3" marker-end="url(#arrowRed)"/>
+
+  <!-- Card 5 -->
+  <rect x="1520" y="252" width="320" height="360" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <circle cx="1568" cy="300" r="24" fill="#DC2626"/>
+  <text x="1568" y="309" font-size="24" font-weight="700" fill="#FFFFFF" text-anchor="middle">5</text>
+  <text x="1606" y="309" font-size="26" font-weight="700" fill="#0F172A">无声明约束</text>
+  <text x="1548" y="364" font-size="21" fill="#334155">SDK 无 d.ts，不在公共</text>
+  <text x="1548" y="394" font-size="21" fill="#334155">API 清单 —— 未文档化的</text>
+  <text x="1548" y="424" font-size="21" fill="#334155">私有路径：删除无兼容性</text>
+  <text x="1548" y="454" font-size="21" fill="#334155">负担，但当前无任何保护</text>
+  <rect x="1548" y="478" width="264" height="112" rx="8" fill="#F8FAFC"/>
+  <text x="1564" y="514" font-size="14" fill="#64748B">interface/sdk-js 中</text>
+  <text x="1564" y="542" font-size="14" fill="#64748B">无 AsyncTask 相关 d.ts</text>
+
+  <!-- Detail strip -->
+  <rect x="80" y="648" width="1760" height="170" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <text x="116" y="694" font-size="26" font-weight="700" fill="#0F172A">requireNapi 解析细节（三方应用视角）</text>
+  <text x="116" y="736" font-size="22" fill="#334155" font-family="ui-monospace, Consolas, monospace">requireNapi("app.appstartup.AsyncTaskExcutor")</text>
+  <text x="146" y="772" font-size="21" fill="#475569" font-family="ui-monospace, Consolas, monospace">→ NativeModuleManager::GetNativeModulePath()  →  /system/lib64/module/app/appstartup/libasynctaskexcutor_napi.so</text>
+  <text x="146" y="802" font-size="21" fill="#475569" font-family="ui-monospace, Consolas, monospace">→ dlopen  →  NAPI_..._GetABCCode()  →  执行内嵌 ABC  →  返回模块实例（可任意调用）</text>
+
+  <!-- Conclusion -->
+  <rect x="80" y="856" width="1760" height="120" rx="16" fill="#FEF2F2" stroke="#FECACA"/>
+  <rect x="80" y="856" width="8" height="120" rx="4" fill="#DC2626"/>
+  <text x="120" y="908" font-size="29" font-weight="700" fill="#DC2626">结论：暴露是"注册 + 安装路径 + 按名解析 + 无拦截 + 无声明"共同作用的结果</text>
+  <text x="120" y="948" font-size="23" fill="#7F1D1D">治理必须让模块名从 NAPI 体系中彻底消失（不注册、不落盘、不可按名解析）—— 仅靠拦截或挪路径均不彻底</text>
+</svg>

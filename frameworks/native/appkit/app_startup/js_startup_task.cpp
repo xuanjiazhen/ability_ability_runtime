@@ -21,12 +21,20 @@
 #include "js_runtime_utils.h"
 #include "js_startup_task_executor.h"
 
+// ABC bytecode getters exported by framework-internal library libapp_startup_task_js.so,
+// which is not registered as a napi module and not installed in napi module search paths,
+// so these modules are not reachable via requireNapi by applications.
+extern "C" const uint8_t* GetAsyncTaskExcutorAbc(int32_t* len);
+extern "C" const uint8_t* GetAsyncTaskCallbackAbc(int32_t* len);
+
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 constexpr size_t ARGC_TWO = 2;
 constexpr int32_t INDEX_ZERO = 0;
 constexpr int32_t INDEX_ONE = 1;
+constexpr char ASYNC_TASK_EXCUTOR_FILE_NAME[] = "async_task_excutor.abc";
+constexpr char ASYNC_TASK_CALLBACK_FILE_NAME[] = "async_task_callback.abc";
 
 class AsyncTaskCallBack {
 public:
@@ -171,8 +179,18 @@ int32_t JsStartupTask::LoadJsAsyncTaskExecutor()
         return ERR_STARTUP_INTERNAL_ERROR;
     }
 
-    AsyncTaskExecutorJsRef_ =
-        JsRuntime::LoadSystemModuleByEngine(env, "app.appstartup.AsyncTaskExcutor", &object, 1);
+    int32_t abcLen = 0;
+    const uint8_t* abcBuf = GetAsyncTaskExcutorAbc(&abcLen);
+    if (abcBuf == nullptr || abcLen <= 0) {
+        TAG_LOGE(AAFwkTag::STARTUP, "invalid async task excutor abc");
+        return ERR_STARTUP_INTERNAL_ERROR;
+    }
+    AsyncTaskExecutorJsRef_ = JsRuntime::LoadInternalModuleByBuffer(env, jsRuntime_.GetEcmaVm(),
+        abcBuf, static_cast<size_t>(abcLen), ASYNC_TASK_EXCUTOR_FILE_NAME, &object, 1);
+    if (AsyncTaskExecutorJsRef_ == nullptr) {
+        TAG_LOGE(AAFwkTag::STARTUP, "load async task excutor failed");
+        return ERR_STARTUP_INTERNAL_ERROR;
+    }
     return ERR_OK;
 }
 
@@ -194,8 +212,14 @@ void JsStartupTask::LoadJsAsyncTaskCallback()
     napi_value asyncTaskCallbackClass = nullptr;
     napi_define_sendable_class(env, "AsyncTaskCallback", NAPI_AUTO_LENGTH, AsyncTaskCallBack::Constructor,
         nullptr, sizeof(props) / sizeof(props[0]), props, nullptr, &asyncTaskCallbackClass);
-    AsyncTaskExecutorCallbackJsRef_ =
-        JsRuntime::LoadSystemModuleByEngine(env, "app.appstartup.AsyncTaskCallback", &asyncTaskCallbackClass, 1);
+    int32_t abcLen = 0;
+    const uint8_t* abcBuf = GetAsyncTaskCallbackAbc(&abcLen);
+    if (abcBuf == nullptr || abcLen <= 0) {
+        TAG_LOGE(AAFwkTag::STARTUP, "invalid async task callback abc");
+        return;
+    }
+    AsyncTaskExecutorCallbackJsRef_ = JsRuntime::LoadInternalModuleByBuffer(env, jsRuntime_.GetEcmaVm(),
+        abcBuf, static_cast<size_t>(abcLen), ASYNC_TASK_CALLBACK_FILE_NAME, &asyncTaskCallbackClass, 1);
 }
 
 void JsStartupTask::OnAsyncTaskCompleted(const std::shared_ptr<StartupTaskResult> &result)

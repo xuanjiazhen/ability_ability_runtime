@@ -629,6 +629,41 @@ std::unique_ptr<NativeReference> JsRuntime::LoadSystemModuleByEngine(
     return std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(resultRef));
 }
 
+std::unique_ptr<NativeReference> JsRuntime::LoadInternalModuleByBuffer(napi_env env,
+    panda::ecmascript::EcmaVM* vm, const uint8_t* buf, size_t len,
+    const std::string& fileName, const napi_value* argv, size_t argc)
+{
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "fileName: %{public}s", fileName.c_str());
+    if (env == nullptr || vm == nullptr || buf == nullptr || len == 0 || fileName.empty()) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "invalid args");
+        return nullptr;
+    }
+    if (!panda::JSNApi::ExecuteModuleFromBuffer(vm, buf, static_cast<int32_t>(len), fileName)) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "execute module failed, fileName: %{public}s", fileName.c_str());
+        return nullptr;
+    }
+    panda::Local<panda::ObjectRef> exportObj = panda::JSNApi::GetExportObjectFromBuffer(vm, fileName, "default");
+    if (exportObj->IsNull()) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "get default export failed, fileName: %{public}s", fileName.c_str());
+        return nullptr;
+    }
+    napi_value classValue = ArkNativeEngine::ArkValueToNapiValue(env, exportObj);
+    if (classValue == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "convert export failed, fileName: %{public}s", fileName.c_str());
+        return nullptr;
+    }
+    napi_value instanceValue = nullptr;
+    napi_new_instance(env, classValue, argc, argv, &instanceValue);
+    if (instanceValue == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null instanceValue, fileName: %{public}s", fileName.c_str());
+        return nullptr;
+    }
+
+    napi_ref resultRef = nullptr;
+    napi_create_reference(env, instanceValue, 1, &resultRef);
+    return std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(resultRef));
+}
+
 void JsRuntime::FinishPreload()
 {
     auto vm = GetEcmaVm();

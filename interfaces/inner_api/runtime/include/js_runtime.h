@@ -160,6 +160,11 @@ public:
 
     static std::unique_ptr<NativeReference> LoadSystemModuleByEngine(napi_env env,
         const std::string& moduleName, const napi_value* argv, size_t argc);
+    // Load framework-internal module from in-process buffer without registering a napi module,
+    // so that internal implementations are not reachable via requireNapi by applications.
+    static std::unique_ptr<NativeReference> LoadInternalModuleByBuffer(napi_env env,
+        panda::ecmascript::EcmaVM* vm, const uint8_t* buf, size_t len,
+        const std::string& fileName, const napi_value* argv, size_t argc);
     std::unique_ptr<NativeReference> LoadModule(const std::string& moduleName, const std::string& modulePath,
         const std::string& hapPath, bool esmodule = false, bool useCommonChunk = false,
         const std::string& srcEntrance = "");

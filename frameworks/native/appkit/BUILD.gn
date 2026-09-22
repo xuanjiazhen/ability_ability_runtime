@@ -26,6 +26,77 @@ ohos_abc("delegator_mgmt") {
   part_name = "ability_runtime"
 }
 
+es2abc_gen_abc("gen_app_startup_async_task_excutor_abc") {
+  src_js = rebase_path("${ability_runtime_native_path}/appkit/app_startup/async_task_excutor.ts")
+  dst_file = rebase_path(target_out_dir + "/async_task_excutor.abc")
+  in_puts = [ "${ability_runtime_native_path}/appkit/app_startup/async_task_excutor.ts" ]
+  out_puts = [ target_out_dir + "/async_task_excutor.abc" ]
+  extra_args = [ "--module" ]
+}
+
+gen_js_obj("app_startup_async_task_excutor_js") {
+  input = "${ability_runtime_native_path}/appkit/app_startup/async_task_excutor.ts"
+  output = target_out_dir + "/async_task_excutor.o"
+}
+
+gen_js_obj("app_startup_async_task_excutor_abc") {
+  input = get_label_info(":gen_app_startup_async_task_excutor_abc", "target_out_dir") +
+          "/async_task_excutor.abc"
+  output = target_out_dir + "/async_task_excutor_abc.o"
+  dep = ":gen_app_startup_async_task_excutor_abc"
+}
+
+es2abc_gen_abc("gen_app_startup_async_task_callback_abc") {
+  src_js = rebase_path("${ability_runtime_native_path}/appkit/app_startup/async_task_callback.ts")
+  dst_file = rebase_path(target_out_dir + "/async_task_callback.abc")
+  in_puts = [ "${ability_runtime_native_path}/appkit/app_startup/async_task_callback.ts" ]
+  out_puts = [ target_out_dir + "/async_task_callback.abc" ]
+  extra_args = [ "--module" ]
+}
+
+gen_js_obj("app_startup_async_task_callback_js") {
+  input = "${ability_runtime_native_path}/appkit/app_startup/async_task_callback.ts"
+  output = target_out_dir + "/async_task_callback.o"
+}
+
+gen_js_obj("app_startup_async_task_callback_abc") {
+  input = get_label_info(":gen_app_startup_async_task_callback_abc", "target_out_dir") +
+          "/async_task_callback.abc"
+  output = target_out_dir + "/async_task_callback_abc.o"
+  dep = ":gen_app_startup_async_task_callback_abc"
+}
+
+# Framework-internal startup task JS library: embeds the ABC bytecode and exposes getters only.
+# Deliberately NOT a napi module: no napi_module_register, no install into napi module search
+# paths (default system lib dir), so applications cannot reach it via requireNapi.
+ohos_shared_library("appkit_startup_task") {
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    cfi_policy = "adaptive"
+    debug = false
+  }
+  branch_protector_ret = "pac_ret"
+
+  sources = [ "app_startup/appkit_startup_task.cpp" ]
+
+  deps = [
+    ":app_startup_async_task_callback_abc",
+    ":app_startup_async_task_callback_js",
+    ":app_startup_async_task_excutor_abc",
+    ":app_startup_async_task_excutor_js",
+  ]
+
+  configs = [ "//foundation/ability/ability_runtime/services/common:size_optimize_config" ]
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
 config("appkit_exception_config") {
   cflags_cc = [ "-fexceptions" ]
 }
@@ -168,6 +239,7 @@ ohos_shared_library("appkit_native") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   deps = [
+    ":appkit_startup_task",
     ":appkit_delegator",
     "${ability_runtime_abilitymgr_path}/:abilityms",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",

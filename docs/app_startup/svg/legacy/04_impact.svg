@@ -1,0 +1,86 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans CJK SC, PingFang SC, Microsoft YaHei, Source Han Sans SC, sans-serif">
+  <defs>
+    <filter id="shadow" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0F172A" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#F5F7FA"/>
+
+  <!-- Header -->
+  <rect x="80" y="84" width="12" height="104" rx="6" fill="#2563EB"/>
+  <text x="122" y="138" font-size="50" font-weight="700" fill="#0F172A">影响评估与验证计划</text>
+  <text x="122" y="188" font-size="25" fill="#475569">无公共 API 变更、框架行为不变、私有模块彻底不可达 —— 以编译 / 单测 / E2E 双向用例闭环</text>
+
+  <!-- Card 1: compatibility -->
+  <rect x="80" y="250" width="860" height="310" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <rect x="80" y="250" width="860" height="8" rx="4" fill="#059669"/>
+  <circle cx="136" cy="316" r="26" fill="#ECFDF5"/>
+  <text x="136" y="326" font-size="26" font-weight="700" fill="#059669" text-anchor="middle">✓</text>
+  <text x="184" y="326" font-size="30" font-weight="700" fill="#0F172A">兼容性：无公共 API 变更</text>
+  <circle cx="132" cy="382" r="5" fill="#059669"/>
+  <text x="152" y="390" font-size="22" fill="#334155">两模块从未有 d.ts，不在任何 SDK 声明中</text>
+  <circle cx="132" cy="424" r="5" fill="#059669"/>
+  <text x="152" y="432" font-size="22" fill="#334155">无 IPC Stub/Proxy 序列化格式变更</text>
+  <circle cx="132" cy="466" r="5" fill="#059669"/>
+  <text x="152" y="474" font-size="22" fill="#334155">无错误码、HiSysEvent 事件变更</text>
+  <circle cx="132" cy="508" r="5" fill="#059669"/>
+  <text x="152" y="516" font-size="22" fill="#334155">删除的只是未文档化的私有加载路径</text>
+  <rect x="112" y="536" width="796" height="0" fill="none"/>
+  <text x="112" y="540" font-size="19" fill="#94A3B8">符合 AGENTS.md 公共 API 兼容性边界要求（interfaces/kits 无任何改动）</text>
+
+  <!-- Card 2: framework behavior -->
+  <rect x="980" y="250" width="860" height="310" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <rect x="980" y="250" width="860" height="8" rx="4" fill="#2563EB"/>
+  <circle cx="1036" cy="316" r="26" fill="#EFF6FF"/>
+  <text x="1036" y="326" font-size="24" font-weight="700" fill="#2563EB" text-anchor="middle">≡</text>
+  <text x="1084" y="326" font-size="30" font-weight="700" fill="#0F172A">框架行为：语义完全不变</text>
+  <circle cx="1032" cy="382" r="5" fill="#2563EB"/>
+  <text x="1052" y="390" font-size="22" fill="#334155">异步启动任务语义不变：taskpool 并发执行 + sendable 回调</text>
+  <circle cx="1032" cy="424" r="5" fill="#2563EB"/>
+  <text x="1052" y="432" font-size="22" fill="#334155">'use concurrent' / 'use sendable' 字节码执行语义一致</text>
+  <circle cx="1032" cy="466" r="5" fill="#2563EB"/>
+  <text x="1052" y="474" font-size="22" fill="#334155">（与 NAPI 流程走同一 JSNApi 执行入口）</text>
+  <circle cx="1032" cy="508" r="5" fill="#2563EB"/>
+  <text x="1052" y="516" font-size="22" fill="#334155">仅加载入口由 requireNapi 替换为等价的 buffer 执行</text>
+  <text x="1012" y="540" font-size="19" fill="#94A3B8">LoadJsAsyncTaskExecutor failed 故障归因分支保留（DFX 无变更）</text>
+
+  <!-- Card 3: security -->
+  <rect x="80" y="590" width="860" height="310" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <rect x="80" y="590" width="860" height="8" rx="4" fill="#DC2626"/>
+  <circle cx="136" cy="656" r="26" fill="#FEF2F2"/>
+  <text x="136" y="666" font-size="24" font-weight="700" fill="#DC2626" text-anchor="middle">🔒</text>
+  <text x="184" y="666" font-size="30" font-weight="700" fill="#0F172A">安全性：私有模块彻底不可达</text>
+  <circle cx="132" cy="722" r="5" fill="#DC2626"/>
+  <text x="152" y="730" font-size="22" fill="#334155">两个 napi .so 从系统 NAPI 搜索路径彻底移除</text>
+  <circle cx="132" cy="764" r="5" fill="#DC2626"/>
+  <text x="152" y="772" font-size="22" fill="#334155">替代内部库无任何 NAPI 注册符号（llvm-nm 验证）</text>
+  <circle cx="132" cy="806" r="5" fill="#DC2626"/>
+  <text x="152" y="814" font-size="22" fill="#334155">任何应用 requireNapi 均返回"模块不存在"</text>
+  <circle cx="132" cy="848" r="5" fill="#DC2626"/>
+  <text x="152" y="856" font-size="22" fill="#334155">不依赖黑名单/隐蔽名，治理结果确定且可验证</text>
+
+  <!-- Card 4: verification -->
+  <rect x="980" y="590" width="860" height="310" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <rect x="980" y="590" width="860" height="8" rx="4" fill="#D97706"/>
+  <circle cx="1036" cy="656" r="26" fill="#FFFBEB"/>
+  <text x="1036" y="666" font-size="24" font-weight="700" fill="#D97706" text-anchor="middle">✓</text>
+  <text x="1084" y="666" font-size="30" font-weight="700" fill="#0F172A">验证计划</text>
+  <text x="1012" y="722" font-size="21" font-weight="700" fill="#334155">编译</text>
+  <text x="1080" y="722" font-size="19" fill="#475569">./build.sh --product-name &lt;product&gt; --build-target ability_runtime</text>
+  <text x="1012" y="760" font-size="21" font-weight="700" fill="#334155">单测</text>
+  <text x="1080" y="760" font-size="21" fill="#475569">AppStartup / 启动框架相关用例（run -t UT -tp ability_runtime）</text>
+  <text x="1012" y="798" font-size="21" font-weight="700" fill="#334155">正向</text>
+  <text x="1080" y="798" font-size="21" fill="#475569">异步启动任务执行与 onAsyncTaskCompleted 回调正常</text>
+  <text x="1012" y="836" font-size="21" font-weight="700" fill="#334155">负向</text>
+  <text x="1080" y="836" font-size="21" fill="#475569">requireNapi('app.appstartup.AsyncTaskExcutor') 返回模块不存在</text>
+  <text x="1012" y="874" font-size="21" font-weight="700" fill="#334155">镜像</text>
+  <text x="1080" y="874" font-size="21" fill="#475569">module/app/appstartup/ 下不再有 libasynctask*_napi.so</text>
+
+  <!-- Bottom strip -->
+  <rect x="80" y="930" width="1760" height="110" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <rect x="80" y="930" width="8" height="110" rx="4" fill="#64748B"/>
+  <text x="120" y="976" font-size="26" font-weight="700" fill="#0F172A">遗留风险与后续项</text>
+  <text x="120" y="1006" font-size="20" fill="#475569">模拟器（frameworks/simulator）加载链路需同步确认 · ABC 迁入独立内部库 libappkit_startup_task.z.so，appkit_native 体积不变，镜像 .so 净减 1</text>
+  <text x="120" y="1032" font-size="20" fill="#475569">内部库经 DT_NEEDED 常驻应用进程（约 10KB 量级，成本可忽略）· 调试栈文件名变化需在 sourcemap / DevTools 侧确认无回归</text>
+</svg>

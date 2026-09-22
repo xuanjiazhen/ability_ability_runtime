@@ -1,0 +1,72 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans CJK SC, PingFang SC, Microsoft YaHei, Source Han Sans SC, sans-serif">
+  <defs>
+    <filter id="shadow" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0F172A" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#F5F7FA"/>
+
+  <!-- Header -->
+  <rect x="80" y="84" width="12" height="104" rx="6" fill="#2563EB"/>
+  <text x="122" y="132" font-size="44" font-weight="700" fill="#0F172A">SWOT 分析（对 R1 方案）</text>
+  <text x="122" y="176" font-size="22" fill="#475569">优势/劣势基于已验证证据；机会为假设（附验证法）；威胁如实列未决项——供评审独立判断</text>
+  <rect x="1300" y="104" width="120" height="36" rx="18" fill="#ECFDF5" stroke="#A7F3D0"/>
+  <text x="1360" y="128" font-size="18" font-weight="700" fill="#059669" text-anchor="middle">代码 实证</text>
+  <rect x="1434" y="104" width="120" height="36" rx="18" fill="#FFFBEB" stroke="#FDE68A"/>
+  <text x="1494" y="128" font-size="18" font-weight="700" fill="#D97706" text-anchor="middle">推断 有前提</text>
+  <rect x="1568" y="104" width="120" height="36" rx="18" fill="#F5F3FF" stroke="#DDD6FE"/>
+  <text x="1628" y="128" font-size="18" font-weight="700" fill="#7C3AED" text-anchor="middle">假设 待验证</text>
+  <rect x="1702" y="104" width="120" height="36" rx="18" fill="#FEF2F2" stroke="#FECACA"/>
+  <text x="1762" y="128" font-size="18" font-weight="700" fill="#DC2626" text-anchor="middle">未知 未查到</text>
+
+  <!-- S -->
+  <rect x="80" y="210" width="880" height="316" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <rect x="80" y="210" width="880" height="10" rx="5" fill="#059669"/>
+  <text x="120" y="264" font-size="28" font-weight="700" fill="#047857">S 优势（Strengths）</text>
+  <text x="120" y="312" font-size="19" fill="#059669" font-weight="700">S1【代码】requireNapi 通道关闭且经符号级验证：无注册符号、不在</text>
+  <text x="136" y="340" font-size="19" fill="#059669" font-weight="700">module/ 与 etc/abc 任何搜索路径、无模块名（03 页 V1–V4）</text>
+  <text x="120" y="380" font-size="19" fill="#059669" font-weight="700">S2【代码】等价前提 P1–P4 全部代码级成立（03 页，无记忆性证据）</text>
+  <text x="120" y="420" font-size="19" fill="#059669" font-weight="700">S3【代码】编译/链接/gn 真实工具链验证通过，过程中发现并修复 2 处缺陷</text>
+  <text x="120" y="460" font-size="19" fill="#059669" font-weight="700">S4【代码】公共 API / IPC / 错误码 / HiSysEvent 零变更（interfaces/kits 零文件）</text>
+  <text x="120" y="502" font-size="18" fill="#94A3B8">注：以上为"静态可验证项"的优势，不等于运行时正确性已证明</text>
+
+  <!-- W -->
+  <rect x="1000" y="210" width="840" height="316" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <rect x="1000" y="210" width="840" height="10" rx="5" fill="#D97706"/>
+  <text x="1040" y="264" font-size="28" font-weight="700" fill="#92400E">W 劣势（Weaknesses）</text>
+  <text x="1040" y="312" font-size="19" fill="#DC2626" font-weight="700">W1【未知】运行时等价未实测：单测与设备 E2E 均未运行</text>
+  <text x="1040" y="352" font-size="19" fill="#D97706" font-weight="700">W2【推断】新库非零暴露：dlopen 理论可达 native getter</text>
+  <text x="1056" y="380" font-size="17" fill="#64748B">前提：platformsdk 在 linker lib.paths（ld-musl-namespace-arm.ini:8）</text>
+  <text x="1040" y="420" font-size="19" fill="#059669" font-weight="700">W3【代码】DT_NEEDED 随 appkit_native 常驻全部应用进程（约 10KB 级）</text>
+  <text x="1040" y="460" font-size="19" fill="#DC2626" font-weight="700">W4【未知】调试栈记录名变化（libasynctask*_napi.so/… → async_task_*.abc）</text>
+  <text x="1056" y="488" font-size="17" fill="#64748B">对 DevTools / sourcemap 的影响未验证</text>
+
+  <!-- O -->
+  <rect x="80" y="552" width="880" height="316" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <rect x="80" y="552" width="880" height="10" rx="5" fill="#2563EB"/>
+  <text x="120" y="606" font-size="28" font-weight="700" fill="#1D4ED8">O 机会（Opportunities）</text>
+  <text x="120" y="654" font-size="19" fill="#7C3AED" font-weight="700">O1【假设】模式可复用于其他"无 d.ts 的私有 ABC 模块"治理</text>
+  <text x="136" y="682" font-size="17" fill="#64748B">验证法：全仓 napi 目标与 interface/sdk-js d.ts 差集扫描（本材料未做）</text>
+  <text x="120" y="722" font-size="19" fill="#059669" font-weight="700">O2【代码】镜像 .so 净减 1（2 个 napi 模块 → 1 个约 10KB 内部库）</text>
+  <text x="120" y="762" font-size="19" fill="#7C3AED" font-weight="700">O3【假设】沉淀为框架内部 JS 资产管理惯例（appkit_ 族命名 + getter 导出）</text>
+  <text x="136" y="790" font-size="17" fill="#64748B">验证法：其他子系统采纳情况跟踪</text>
+  <text x="120" y="830" font-size="18" fill="#94A3B8">注：机会均为假设级，不构成采用理由；是否成立需另行验证</text>
+
+  <!-- T -->
+  <rect x="1000" y="552" width="840" height="316" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <rect x="1000" y="552" width="840" height="10" rx="5" fill="#DC2626"/>
+  <text x="1040" y="606" font-size="28" font-weight="700" fill="#B91C1C">T 威胁（Threats）</text>
+  <text x="1040" y="654" font-size="19" fill="#DC2626" font-weight="700">T1【未知】存量外部依赖若存在：升级即行为破坏且无迁移指引</text>
+  <text x="1056" y="682" font-size="17" fill="#64748B">（U1：无法静态排除；缓解：灰度发布 + 线上监控）</text>
+  <text x="1040" y="722" font-size="19" fill="#DC2626" font-weight="700">T2【未知】异构 CI 全量构建兼容性（本环境 out 损坏，仅 gn + 单文件编译）</text>
+  <text x="1040" y="762" font-size="19" fill="#D97706" font-weight="700">T3【推断】平台若后续对 platformsdk 引入 dlopen 审计/白名单，新库需跟进</text>
+  <text x="1056" y="790" font-size="17" fill="#64748B">前提：dlopen 可达为平台既有状态（02 页 F7），策略演进不受本变更控制</text>
+
+  <!-- Bottom: decision questions -->
+  <rect x="80" y="896" width="1760" height="124" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <rect x="80" y="896" width="8" height="124" rx="4" fill="#2563EB"/>
+  <text x="120" y="942" font-size="26" font-weight="700" fill="#0F172A">评审决策问题（请评审会裁定）</text>
+  <text x="120" y="982" font-size="20" fill="#334155">Q1 是否接受"静态等价论证先行、设备/CI 验证后置"的合入顺序？　Q2 是否存在已知存量依赖（应用/工具链/审计记录，对应 U1/U3/U5）？</text>
+  <text x="120" y="1012" font-size="20" fill="#334155">Q3 R0（内嵌·零暴露·体积并入 appkit）与 R1（独立库·getter 级暴露·体积独立）如何取舍？　Q4 是否要求单测先行作为合入门槛？</text>
+</svg>
