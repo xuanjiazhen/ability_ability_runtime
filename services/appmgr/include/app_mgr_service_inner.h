@@ -37,6 +37,7 @@
 #include "app_malloc_info.h"
 #include "app_mgr_constants.h"
 #include "app_mgr_event.h"
+#include "app_query_manager.h"
 #include "hyper_snap_error_record.h"
 #include "app_preloader.h"
 #include "app_record_id.h"
@@ -2150,10 +2151,6 @@ private:
      */
     void GetRenderProcesses(const std::shared_ptr<AppRunningRecord> &appRecord, std::vector<RenderProcessInfo> &info);
 
-#ifdef SUPPORT_CHILD_PROCESS
-    void GetChildrenProcesses(const std::shared_ptr<AppRunningRecord> &appRecord, std::vector<ChildProcessInfo> &info);
-#endif // SUPPORT_CHILD_PROCESS
-
 #ifdef ABILITY_PLATFORM_CHECK_PERMISSION
     int CheckStablePermission(const BundleInfo &bundleInfo);
     bool CheckDeviceStatus(Security::AccessToken::PermissionStateFull &status,
@@ -2650,6 +2647,8 @@ private:
 
     std::mutex imageInfoLock_;
     std::unordered_map<MakeImageRequest, std::shared_ptr<ForkImageInfo>, MakeImageRequest::Hash> imageInfoMap_;
+
+    std::shared_ptr<AppQueryManager> appQueryManager_;
 
     // Minimal in-memory error state: only what cannot be derived later.
     // Error message is generated from the code at query time to save memory.
