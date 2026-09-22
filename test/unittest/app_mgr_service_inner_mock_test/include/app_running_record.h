@@ -34,7 +34,13 @@ public:
         return pid_;
     }
 
+    inline int GetUserId() const
+    {
+        return userId_;
+    }
+
     int pid_ = -1;
+    int userId_ = 0;
 };
 
 }  // namespace AppExecFwk
