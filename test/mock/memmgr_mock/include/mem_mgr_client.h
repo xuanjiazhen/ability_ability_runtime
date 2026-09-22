@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-#ifndef MOCK_AGENT_RUNTIME_MEM_MGR_CLIENT_H
-#define MOCK_AGENT_RUNTIME_MEM_MGR_CLIENT_H
+#ifndef OHOS_ABILITY_RUNTIME_TEST_MOCK_MEM_MGR_CLIENT_H
+#define OHOS_ABILITY_RUNTIME_TEST_MOCK_MEM_MGR_CLIENT_H
 
 #include <cstdint>
 #include <vector>
 
 namespace OHOS {
 namespace Memory {
-// UT mock shadowing the real memmgr mem_mgr_client.h: records NotifyProcessStatus/SetCritical
+// Shared UT mock shadowing the real memmgr mem_mgr_client.h: records NotifyProcessStatus/SetCritical
 // calls so tests can assert the critical-refcount pairing without real memmgrservice IPC.
 class MemMgrClient {
 public:
@@ -76,4 +76,4 @@ public:
 };
 } // namespace Memory
 } // namespace OHOS
-#endif // MOCK_AGENT_RUNTIME_MEM_MGR_CLIENT_H
+#endif // OHOS_ABILITY_RUNTIME_TEST_MOCK_MEM_MGR_CLIENT_H
