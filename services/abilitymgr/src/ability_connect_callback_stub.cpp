@@ -15,6 +15,9 @@
 
 #include "ability_connect_callback_stub.h"
 
+#include <dlfcn.h>
+#include <string>
+
 #include "ability_connect_callback_proxy.h"
 #include "hilog_tag_wrapper.h"
 
@@ -118,7 +121,8 @@ int AbilityConnectionStub::OnRemoteRequest(
     TAG_LOGD(AAFwkTag::ABILITYMGR, "code: %{public}u", code);
     std::u16string descriptor = AbilityConnectionStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
-    if (descriptor != remoteDescriptor) {
+    if (descriptor != remoteDescriptor &&
+        !CompareDMSDescriptor(remoteDescriptor)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "descriptor not equal to remote");
         return ERR_INVALID_STATE;
     }
@@ -162,6 +166,45 @@ int AbilityConnectionStub::OnRemoteRequest(
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
     }
+}
+
+static constexpr const char* DMS_DESCRIPTOR_LIB_PATH = "/system/lib64/libabilitywantadapter.z.so";
+
+bool AbilityConnectionStub::CompareDMSDescriptor(std::u16string& remoteDescriptor)
+{
+    std::lock_guard<std::mutex> lock(dmsDescriptorMutex_);
+    if (!dmsDescriptorLoaded_) {
+        dmsDescriptorLoaded_ = true;
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "dms Descriptor dlopen");
+        void* handle = dlopen(DMS_DESCRIPTOR_LIB_PATH, RTLD_NOW);
+        if (handle == nullptr) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "dlopen descriptor failed");
+            return false;
+        }
+        typedef size_t (*GetDmsDescriptorCountFunc)();
+        typedef const char16_t* (*GetDmsDescriptorByIndexFunc)(size_t);
+
+        auto getCountFunc = reinterpret_cast<GetDmsDescriptorCountFunc>(dlsym(handle, "GetDmsDescriptorCount"));
+        auto getByIndexFunc = reinterpret_cast<GetDmsDescriptorByIndexFunc>(dlsym(handle, "GetDmsDescriptorByIndex"));
+        if (getCountFunc == nullptr || getByIndexFunc == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "dms Descriptor get func failed");
+            return false;
+        }
+        size_t count = getCountFunc();
+        for (size_t i = 0; i < count; ++i) {
+            const char16_t* desc = getByIndexFunc(i);
+            if (desc != nullptr) {
+                dmsDescriptors_.emplace_back(desc);
+            }
+        }
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "dms Descriptor loaded");
+    for (const auto& dmsDescriptor : dmsDescriptors_) {
+        if (dmsDescriptor == remoteDescriptor) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void AbilityConnectCallbackRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
