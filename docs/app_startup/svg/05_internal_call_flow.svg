@@ -1,0 +1,170 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans CJK SC, PingFang SC, Microsoft YaHei, Source Han Sans SC, sans-serif">
+  <defs>
+    <filter id="shadow" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0F172A" flood-opacity="0.08"/>
+    </filter>
+    <marker id="aB" markerWidth="12" markerHeight="12" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#94A3B8"/>
+    </marker>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#F5F7FA"/>
+
+  <!-- Header -->
+  <rect x="80" y="84" width="12" height="104" rx="6" fill="#2563EB"/>
+  <text x="122" y="132" font-size="44" font-weight="700" fill="#0F172A">源码级调用流程：libappkit_startup_task.z.so 内部库</text>
+  <text x="122" y="176" font-size="22" fill="#475569">步骤 ①-⑩ 按【代码】file:line 标注（均为当前 HEAD 可复核）；泳道按模块分色</text>
+  <!-- Lane legend -->
+  <rect x="1160" y="104" width="168" height="36" rx="18" fill="#EFF6FF" stroke="#BFDBFE"/>
+  <text x="1244" y="128" font-size="17" font-weight="700" fill="#2563EB" text-anchor="middle">appkit_native（C++）</text>
+  <rect x="1340" y="104" width="188" height="36" rx="18" fill="#ECFDF5" stroke="#A7F3D0"/>
+  <text x="1434" y="128" font-size="17" font-weight="700" fill="#059669" text-anchor="middle">appkit_startup_task（库）</text>
+  <rect x="1538" y="104" width="140" height="36" rx="18" fill="#FFFBEB" stroke="#FDE68A"/>
+  <text x="1608" y="128" font-size="17" font-weight="700" fill="#D97706" text-anchor="middle">libruntime</text>
+  <rect x="1688" y="104" width="140" height="36" rx="18" fill="#EEF2FF" stroke="#C7D2FE"/>
+  <text x="1758" y="128" font-size="17" font-weight="700" fill="#4F46E5" text-anchor="middle">TS·taskpool</text>
+
+  <!-- Stage 1 pill -->
+  <rect x="110" y="212" width="256" height="38" rx="19" fill="#EFF6FF" stroke="#BFDBFE"/>
+  <text x="238" y="238" font-size="20" font-weight="700" fill="#2563EB" text-anchor="middle">加载阶段（主线程）</text>
+  <text x="388" y="238" font-size="19" fill="#475569">RunTaskInit 触发，两模块实例就绪</text>
+
+  <!-- Stage 1 boxes -->
+  <rect x="110" y="260" width="288" height="128" rx="12" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="2" filter="url(#shadow)"/>
+  <text x="134" y="298" font-size="20" font-weight="700" fill="#2563EB">① RunTaskInit 入口</text>
+  <text x="134" y="326" font-size="15" fill="#64748B">js_startup_task.cpp:107</text>
+  <text x="134" y="350" font-size="14" fill="#334155">callCreateOnMainThread=false</text>
+  <text x="134" y="372" font-size="14" fill="#334155">失败→16000050+事件(:121-127)</text>
+
+  <line x1="402" y1="324" x2="436" y2="324" stroke="#94A3B8" stroke-width="3" marker-end="url(#aB)"/>
+
+  <rect x="443" y="260" width="288" height="128" rx="12" fill="#FFFFFF" stroke="#A7F3D0" stroke-width="2" filter="url(#shadow)"/>
+  <text x="467" y="298" font-size="20" font-weight="700" fill="#059669">② 跨库取 ABC</text>
+  <text x="467" y="326" font-size="14" fill="#334155">GetAsyncTask{Excutor,Callback}Abc</text>
+  <text x="467" y="350" font-size="15" fill="#64748B">appkit_startup_task.cpp:38-52</text>
+  <text x="467" y="372" font-size="14" fill="#334155">DT_NEEDED 直调·返回内嵌区间</text>
+
+  <line x1="735" y1="324" x2="769" y2="324" stroke="#94A3B8" stroke-width="3" marker-end="url(#aB)"/>
+
+  <rect x="776" y="260" width="288" height="128" rx="12" fill="#FFFFFF" stroke="#FDE68A" stroke-width="2" filter="url(#shadow)"/>
+  <text x="800" y="298" font-size="20" font-weight="700" fill="#D97706">③ 执行 ABC</text>
+  <text x="800" y="326" font-size="14" fill="#334155">ExecuteModuleFromBuffer</text>
+  <text x="800" y="350" font-size="15" fill="#64748B">js_runtime.cpp:641</text>
+  <text x="800" y="372" font-size="14" fill="#334155">JSNApi·与NAPI流程同入口</text>
+
+  <line x1="1068" y1="324" x2="1102" y2="324" stroke="#94A3B8" stroke-width="3" marker-end="url(#aB)"/>
+
+  <rect x="1109" y="260" width="288" height="128" rx="12" fill="#FFFFFF" stroke="#FDE68A" stroke-width="2" filter="url(#shadow)"/>
+  <text x="1133" y="298" font-size="20" font-weight="700" fill="#D97706">④ 取默认导出类</text>
+  <text x="1133" y="326" font-size="14" fill="#334155">GetExportObjectFromBuffer</text>
+  <text x="1133" y="350" font-size="15" fill="#64748B">js_runtime.cpp:645</text>
+  <text x="1133" y="372" font-size="14" fill="#334155">ArkValueToNapiValue(:650)</text>
+
+  <line x1="1401" y1="324" x2="1435" y2="324" stroke="#94A3B8" stroke-width="3" marker-end="url(#aB)"/>
+
+  <rect x="1442" y="260" width="288" height="128" rx="12" fill="#FFFFFF" stroke="#FDE68A" stroke-width="2" filter="url(#shadow)"/>
+  <text x="1466" y="298" font-size="20" font-weight="700" fill="#D97706">⑤ 实例化并持有</text>
+  <text x="1466" y="326" font-size="14" fill="#334155">napi_new_instance(:656)</text>
+  <text x="1466" y="350" font-size="14" fill="#334155">napi_create_reference(:663)</text>
+  <text x="1466" y="372" font-size="14" fill="#334155">NativeReference→成员变量</text>
+
+  <!-- Stage transition arrow -->
+  <line x1="940" y1="396" x2="940" y2="496" stroke="#94A3B8" stroke-width="3" marker-end="url(#aB)"/>
+  <text x="956" y="440" font-size="18" fill="#64748B">两实例就绪（excutor + callback），推入 taskpool</text>
+  <text x="956" y="466" font-size="17" fill="#94A3B8">注：callback 实例持有 C++ 侧 sendable 类（:209）</text>
+
+  <!-- Stage 2 pill -->
+  <rect x="110" y="502" width="300" height="38" rx="19" fill="#EEF2FF" stroke="#C7D2FE"/>
+  <text x="260" y="528" font-size="20" font-weight="700" fill="#4F46E5" text-anchor="middle">执行与回调（taskpool↔主线程）</text>
+
+  <!-- Stage 2 boxes -->
+  <rect x="110" y="550" width="288" height="128" rx="12" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="2" filter="url(#shadow)"/>
+  <text x="134" y="588" font-size="20" font-weight="700" fill="#2563EB">⑥ RunOnTaskPool</text>
+  <text x="134" y="616" font-size="14" fill="#64748B">js_startup_task_executor.cpp:43</text>
+  <text x="134" y="640" font-size="14" fill="#334155">取 asyncPushTask 并调用(:64-79)</text>
+  <text x="134" y="662" font-size="14" fill="#334155">napi_call_function 传 4 参</text>
+
+  <line x1="402" y1="614" x2="436" y2="614" stroke="#94A3B8" stroke-width="3" marker-end="url(#aB)"/>
+
+  <rect x="443" y="550" width="288" height="128" rx="12" fill="#FFFFFF" stroke="#C7D2FE" stroke-width="2" filter="url(#shadow)"/>
+  <text x="467" y="588" font-size="20" font-weight="700" fill="#4F46E5">⑦ asyncPushTask</text>
+  <text x="467" y="616" font-size="14" fill="#64748B">async_task_excutor.ts:45,31</text>
+  <text x="467" y="640" font-size="14" fill="#334155">new taskPool.Task(...)</text>
+  <text x="467" y="662" font-size="14" fill="#334155">onReceiveData+execute(:35-37)</text>
+
+  <line x1="735" y1="614" x2="769" y2="614" stroke="#94A3B8" stroke-width="3" marker-end="url(#aB)"/>
+
+  <rect x="776" y="550" width="288" height="128" rx="12" fill="#FFFFFF" stroke="#C7D2FE" stroke-width="2" filter="url(#shadow)"/>
+  <text x="800" y="588" font-size="20" font-weight="700" fill="#4F46E5">⑧ taskpool 并发执行</text>
+  <text x="800" y="616" font-size="14" fill="#64748B">concurrentFunc ts:16-22</text>
+  <text x="800" y="640" font-size="14" fill="#334155">'use concurrent'</text>
+  <text x="800" y="662" font-size="14" fill="#334155">await init + sendData(:21)</text>
+
+  <line x1="1068" y1="614" x2="1102" y2="614" stroke="#94A3B8" stroke-width="3" marker-end="url(#aB)"/>
+
+  <rect x="1109" y="550" width="288" height="128" rx="12" fill="#FFFFFF" stroke="#C7D2FE" stroke-width="2" filter="url(#shadow)"/>
+  <text x="1133" y="588" font-size="20" font-weight="700" fill="#4F46E5">⑨ sendable 回调</text>
+  <text x="1133" y="616" font-size="14" fill="#64748B">async_task_callback.ts:23-25</text>
+  <text x="1133" y="640" font-size="14" fill="#334155">__impl__.onAsyncTaskCompleted</text>
+  <text x="1133" y="662" font-size="14" fill="#334155">'use sendable'(:19) 跨线程</text>
+
+  <line x1="1401" y1="614" x2="1435" y2="614" stroke="#94A3B8" stroke-width="3" marker-end="url(#aB)"/>
+
+  <rect x="1442" y="550" width="288" height="128" rx="12" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="2" filter="url(#shadow)"/>
+  <text x="1466" y="588" font-size="20" font-weight="700" fill="#2563EB">⑩ 结果回传框架</text>
+  <text x="1466" y="616" font-size="14" fill="#64748B">AsyncTaskCompleted cpp:44</text>
+  <text x="1466" y="640" font-size="14" fill="#334155">→OnAsyncTaskCompleted(:72,225)</text>
+  <text x="1466" y="662" font-size="14" fill="#334155">驱动依赖任务/监听器</text>
+
+  <!-- Bottom left: build-time pipeline -->
+  <rect x="80" y="712" width="1040" height="300" rx="16" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <rect x="80" y="712" width="1040" height="10" rx="5" fill="#059669"/>
+  <text x="120" y="762" font-size="25" font-weight="700" fill="#047857">构建期：ABC 如何进入内部库（编译流水线）</text>
+
+  <rect x="104" y="788" width="216" height="92" rx="10" fill="#F8FAFC" stroke="#C7D2FE"/>
+  <text x="124" y="822" font-size="15" font-weight="700" fill="#4F46E5">async_task_*.ts</text>
+  <text x="124" y="848" font-size="13" fill="#64748B">excutor / callback 胶水源码</text>
+  <text x="124" y="868" font-size="13" fill="#64748B">（appkit/app_startup/）</text>
+
+  <line x1="328" y1="834" x2="356" y2="834" stroke="#94A3B8" stroke-width="3" marker-end="url(#aB)"/>
+  <text x="330" y="822" font-size="12" fill="#94A3B8">es2abc</text>
+  <text x="330" y="852" font-size="12" fill="#94A3B8">--module</text>
+
+  <rect x="360" y="788" width="216" height="92" rx="10" fill="#F8FAFC" stroke="#FDE68A"/>
+  <text x="380" y="822" font-size="15" font-weight="700" fill="#D97706">.abc 字节码</text>
+  <text x="380" y="848" font-size="13" fill="#64748B">excutor 2212B</text>
+  <text x="380" y="868" font-size="13" fill="#64748B">callback 1212B</text>
+
+  <line x1="584" y1="834" x2="612" y2="834" stroke="#94A3B8" stroke-width="3" marker-end="url(#aB)"/>
+  <text x="586" y="822" font-size="12" fill="#94A3B8">objcopy</text>
+
+  <rect x="616" y="788" width="216" height="92" rx="10" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="636" y="822" font-size="15" font-weight="700" fill="#334155">_abc.o 目标文件</text>
+  <text x="636" y="848" font-size="13" fill="#64748B">_binary_*_abc_start/_end</text>
+  <text x="636" y="868" font-size="13" fill="#64748B">（全局 D 符号）</text>
+
+  <line x1="840" y1="834" x2="868" y2="834" stroke="#94A3B8" stroke-width="3" marker-end="url(#aB)"/>
+  <text x="842" y="822" font-size="12" fill="#94A3B8">link</text>
+
+  <rect x="872" y="788" width="224" height="92" rx="10" fill="#ECFDF5" stroke="#A7F3D0" stroke-width="2"/>
+  <text x="892" y="822" font-size="15" font-weight="700" fill="#059669">内部库 .so</text>
+  <text x="892" y="848" font-size="13" fill="#64748B">libappkit_startup_task.z.so</text>
+  <text x="892" y="868" font-size="13" fill="#64748B">安装于 platformsdk/</text>
+
+  <text x="120" y="924" font-size="16" fill="#334155">getter 引用 _binary_* 符号（appkit_startup_task.cpp:33-36 extern 声明，:38-52 visibility("default") 导出）</text>
+  <text x="120" y="950" font-size="16" fill="#334155">——getter 活引用保证 ABC 数据不被 --gc-sections 裁剪；无 version_script，符号经 llvm-nm -D 验证为全局导出</text>
+  <text x="120" y="984" font-size="15" fill="#94A3B8">注：.ts/.abc/.o 为构建中间产物（不进镜像）；镜像制品仅 libappkit_startup_task.z.so（platformsdk）</text>
+
+  <!-- Bottom right: code excerpts -->
+  <rect x="1160" y="712" width="680" height="300" rx="16" fill="#0F172A" filter="url(#shadow)"/>
+  <text x="1196" y="756" font-size="21" font-weight="700" fill="#E2E8F0">关键源码摘录（可复制核对）</text>
+  <text x="1196" y="792" font-size="13" fill="#94A3B8" font-family="ui-monospace, Consolas, monospace">// appkit_startup_task.cpp:38-43（内部库导出）</text>
+  <text x="1196" y="814" font-size="13" fill="#7DD3FC" font-family="ui-monospace, Consolas, monospace">extern "C" __attribute__((visibility("default")))</text>
+  <text x="1196" y="836" font-size="13" fill="#7DD3FC" font-family="ui-monospace, Consolas, monospace">const uint8_t* GetAsyncTaskExcutorAbc(int32_t* len)</text>
+  <text x="1196" y="864" font-size="13" fill="#94A3B8" font-family="ui-monospace, Consolas, monospace">// js_startup_task.cpp:183-189（调用点）</text>
+  <text x="1196" y="886" font-size="13" fill="#86EFAC" font-family="ui-monospace, Consolas, monospace">const uint8_t* abcBuf = GetAsyncTaskExcutorAbc(&amp;abcLen);</text>
+  <text x="1196" y="908" font-size="13" fill="#86EFAC" font-family="ui-monospace, Consolas, monospace">if (abcBuf == nullptr || abcLen &lt;= 0) { return 16000050; }</text>
+  <text x="1196" y="936" font-size="13" fill="#94A3B8" font-family="ui-monospace, Consolas, monospace">// js_startup_task.cpp:189-190 → js_runtime.cpp:632</text>
+  <text x="1196" y="958" font-size="13" fill="#FDE68A" font-family="ui-monospace, Consolas, monospace">AsyncTaskExecutorJsRef_ = JsRuntime::LoadInternalModuleByBuffer(</text>
+  <text x="1196" y="980" font-size="13" fill="#FDE68A" font-family="ui-monospace, Consolas, monospace">    env, vm, abcBuf, abcLen, "async_task_excutor.abc", ...);</text>
+</svg>

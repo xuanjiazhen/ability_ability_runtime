@@ -251,6 +251,7 @@ std::unique_ptr<NativeReference> JsRuntime::LoadInternalModuleByBuffer(
 - `svg/02_asis.svg`（1920×1080）——AS-IS 现状与问题分析（五环链路 + 已证实事实/未决问题分列）
 - `svg/03_tobe.svg`（1920×1080）——TO-BE 优化方案（R1 架构 + 等价性论证前提链 + R0/R1 权衡 + 验证状态分列）
 - `svg/04_swot.svg`（1920×1080）——SWOT 分析（逐项证据分级标注 + 评审决策问题）
+- `svg/05_internal_call_flow.svg`（1920×1080）——源码级调用流程（步骤 ①-⑩ 泳道分色：加载阶段 getter→LoadInternalModuleByBuffer 四步、执行阶段 taskpool↔sendable 回调链、构建期 .ts→.abc→.o→.so 流水线、关键源码摘录）
 
 > 评审版材料立场中立：陈述按【代码】【推断】【假设】【未知】分级标注，方案取舍（含 R0/R1）由评审裁定，不预设结论。事实修正记录：新库实际安装于 `/system/lib{,64}/platformsdk/`（appkit 系库目录，非 lib 根目录）；platformsdk 在 linker `lib.paths`（`ld-musl-namespace-arm.ini:8`），新库存在 dlopen 理论可达的 native getter 级暴露（非零暴露），此为 R0/R1 的真实权衡点。
 
