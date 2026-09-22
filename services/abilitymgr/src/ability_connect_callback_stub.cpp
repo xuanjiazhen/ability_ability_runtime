@@ -15,6 +15,9 @@
 
 #include "ability_connect_callback_stub.h"
 
+#include <dlfcn.h>
+#include <string>
+
 #include "ability_connect_callback_proxy.h"
 #include "hilog_tag_wrapper.h"
 
@@ -118,7 +121,8 @@ int AbilityConnectionStub::OnRemoteRequest(
     TAG_LOGD(AAFwkTag::ABILITYMGR, "code: %{public}u", code);
     std::u16string descriptor = AbilityConnectionStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
-    if (descriptor != remoteDescriptor) {
+    if (descriptor != remoteDescriptor &&
+        !CompareDMSDescriptor(remoteDescriptor)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "descriptor not equal to remote");
         return ERR_INVALID_STATE;
     }
@@ -162,6 +166,28 @@ int AbilityConnectionStub::OnRemoteRequest(
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
     }
+}
+
+bool CompareDMSDescriptor(std::u16string& remoteDescriptor)
+{
+    if(dmsDescriptorLoaded_) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "dms Descriptor loaded");
+        return std::u16string(dmsDescriptor_) == remoteDescriptor;
+    }
+
+    dmsDescriptorLoaded_ = true;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "dms Descriptor dlopen");
+    void* handle = dlopen("/system/lib64/libabilitywantadapter.so", RTLD_NOW);
+    if (handle == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "dlopen descriptor failed");
+        return false;
+    }
+    typedef char16_t* (*GetDmsDescroptorFunc)();
+    auto func = reinterpret_cast<GetDmsDescroptorFunc>(dlsym(handle, "GetDmsDescriptor"));
+    if (func != nullptr) {
+        dmsDescriptor_ = func();
+    }
+    return std::u16string(dmsDescriptor_) == remoteDescriptor;
 }
 
 void AbilityConnectCallbackRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)

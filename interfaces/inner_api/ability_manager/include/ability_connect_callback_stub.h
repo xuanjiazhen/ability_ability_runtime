@@ -41,6 +41,10 @@ public:
     }
 private:
     DISALLOW_COPY_AND_MOVE(AbilityConnectionStub);
+    bool CompareDMSDescriptor(std::u16string& remoteDescriptor);
+    bool dmsDescriptorLoaded_ = false;
+    char16_t* dmsDescriptor_ = nullptr;
+
 };
 
 /**
