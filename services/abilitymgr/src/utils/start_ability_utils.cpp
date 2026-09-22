@@ -246,11 +246,11 @@ std::shared_ptr<StartAbilityInfo> QueryAbilityInfo(const Want &want, int32_t use
     abilityInfoFlag |= static_cast<uint32_t>(AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_FUSION);
     auto request = std::make_shared<StartAbilityInfo>();
     if (AbilityRuntime::GlobalConstant::IsAppCloneIndex(appIndex)) {
-        IN_PROCESS_CALL_WITHOUT_RET(bms->QueryCloneAbilityInfo(want.GetElement(), abilityInfoFlag, appIndex,
-            request->abilityInfo, userId));
-        if (appIndex != request->abilityInfo.applicationInfo.appIndex) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "query appIndex no equal: want_%{public}d, bundle_%{public}d",
-                appIndex, request->abilityInfo.applicationInfo.appIndex);
+        auto queryRet = IN_PROCESS_CALL(
+            bms->QueryCloneAbilityInfo(want.GetElement(), abilityInfoFlag, appIndex, request->abilityInfo, userId));
+        if (queryRet != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "query err: %{public}d", queryRet);
+            request->status = RESOLVE_ABILITY_ERR;
         }
         return request;
     }
