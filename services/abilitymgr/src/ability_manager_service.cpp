@@ -615,6 +615,11 @@ ErrCode AbilityManagerService::ExecuteBlockAllAppStartInterceptor(AbilityRequest
 
 void AbilityManagerService::CloseAppSpawnMsgPipe()
 {
+    RemoveParameterWatcher(APPSPAWN_STARTED, ExitReasonUtil::AppSpawnStartCallback, &appSpawnContext_);
+    std::lock_guard<ffrt::mutex> lock(appSpawnPipeMutex_);
+    if (ptrRFd_ != nullptr) {
+        *ptrRFd_ = -1;
+    }
     if (rFd_ != -1) {
         fdsan_close_with_tag(rFd_, static_cast<uint32_t>(AAFwkTag::ABILITYMGR));
         rFd_ = -1;
@@ -623,10 +628,14 @@ void AbilityManagerService::CloseAppSpawnMsgPipe()
         fdsan_close_with_tag(wFd_, static_cast<uint32_t>(AAFwkTag::ABILITYMGR));
         wFd_ = -1;
     }
-    if (ptrRFd_ != nullptr) {
-        *ptrRFd_ = -1;
-    }
     appSpawnContext_.reset();
+}
+
+void AbilityManagerService::GetAppSpawnFdsWithLock(int32_t &rFd, int32_t &wFd)
+{
+    std::lock_guard<ffrt::mutex> lock(appSpawnPipeMutex_);
+    rFd = rFd_;
+    wFd = wFd_;
 }
 
 void AbilityManagerService::InitInterceptorForScreenUnlock()
@@ -688,6 +697,7 @@ void AbilityManagerService::InitStartupFlag()
 void AbilityManagerService::OnStop()
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "stop");
+    CloseAppSpawnMsgPipe();
     DelayedSingleton<AAFwk::BackgroundUserExtensionMonitor>::GetInstance()->StopMonitor();
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
     std::unique_lock<ffrt::mutex> lock(bgtaskObserverMutex_);
