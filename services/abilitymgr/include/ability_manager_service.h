@@ -997,6 +997,8 @@ public:
     {
         return wFd_;
     }
+    void GetAppSpawnFdsWithLock(int32_t &rFd, int32_t &wFd);
+    void CloseAppSpawnMsgPipe();
 
     /**
      * GetEventHandler, get the ability manager service's handler.
@@ -3481,7 +3483,6 @@ private:
     void UpdateScreenUnlockInterceptor(int32_t userId);
     void InitPushTask();
     void InitAppSpawnMsgPipe();
-    void CloseAppSpawnMsgPipe();
     void InitDeepLinkReserve();
 
     bool CheckSenderWantInfo(int32_t callerUid, const WantSenderInfo &wantSenderInfo);
@@ -3789,6 +3790,7 @@ private:
     int32_t wFd_ = -1;
     std::shared_ptr<int32_t> ptrRFd_ = std::make_shared<int32_t>(-1);
     std::weak_ptr<AbilityManagerService> appSpawnContext_;
+    ffrt::mutex appSpawnPipeMutex_;
     ffrt::mutex globalLock_;
     ffrt::mutex bgtaskObserverMutex_;
     ffrt::mutex abilityTokenLock_;

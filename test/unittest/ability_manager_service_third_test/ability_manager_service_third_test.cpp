@@ -1109,26 +1109,26 @@ HWTEST_F(AbilityManagerServiceThirdTest, SetPickerElementNameAndParams_004, Test
  */
 HWTEST_F(AbilityManagerServiceThirdTest, CloseAppSpawnMsgPipe_001, TestSize.Level1)
 {
-    auto ams = std::make_shared<AbilityManagerService>();
+    auto abilityMgrService = std::make_shared<AbilityManagerService>();
     int32_t pipeFd[2];
     ASSERT_EQ(pipe(pipeFd), 0);
     fdsan_exchange_owner_tag(pipeFd[0], 0, static_cast<uint32_t>(AAFwkTag::ABILITYMGR));
     fdsan_exchange_owner_tag(pipeFd[1], 0, static_cast<uint32_t>(AAFwkTag::ABILITYMGR));
-    ams->rFd_ = pipeFd[0];
-    ams->wFd_ = pipeFd[1];
-    *ams->ptrRFd_ = pipeFd[0];
-    ams->appSpawnContext_ = ams;
-    EXPECT_NE(ams->rFd_, -1);
-    EXPECT_NE(ams->wFd_, -1);
-    EXPECT_FALSE(ams->appSpawnContext_.expired());
+    abilityMgrService->rFd_ = pipeFd[0];
+    abilityMgrService->wFd_ = pipeFd[1];
+    *abilityMgrService->ptrRFd_ = pipeFd[0];
+    abilityMgrService->appSpawnContext_ = abilityMgrService;
+    EXPECT_NE(abilityMgrService->rFd_, -1);
+    EXPECT_NE(abilityMgrService->wFd_, -1);
+    EXPECT_FALSE(abilityMgrService->appSpawnContext_.expired());
 
-    ams->CloseAppSpawnMsgPipe();
+    abilityMgrService->CloseAppSpawnMsgPipe();
 
-    EXPECT_EQ(ams->rFd_, -1);
-    EXPECT_EQ(ams->wFd_, -1);
-    ASSERT_NE(ams->ptrRFd_, nullptr);
-    EXPECT_EQ(*ams->ptrRFd_, -1);
-    EXPECT_TRUE(ams->appSpawnContext_.expired());
+    EXPECT_EQ(abilityMgrService->rFd_, -1);
+    EXPECT_EQ(abilityMgrService->wFd_, -1);
+    ASSERT_NE(abilityMgrService->ptrRFd_, nullptr);
+    EXPECT_EQ(*abilityMgrService->ptrRFd_, -1);
+    EXPECT_TRUE(abilityMgrService->appSpawnContext_.expired());
 }
 
 /*
