@@ -190,7 +190,7 @@ public:
      */
     virtual int StartAbility(
         const Want &want, int32_t userId = DEFAULT_INVAL_VALUE, int requestCode = DEFAULT_INVAL_VALUE,
-        uint64_t specifiedFullTokenId = 0) override;
+        uint64_t specifiedFullTokenId = 0, bool isSCBCall = false) override;
 
     /**
      * StartAbility with want, send want to ability manager service.

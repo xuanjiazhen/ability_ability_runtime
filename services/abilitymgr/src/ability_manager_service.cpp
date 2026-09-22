@@ -734,7 +734,7 @@ void AbilityManagerService::HandleAutoStartupReadyCallback(const char *key, cons
 }
 
 int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int requestCode,
-    uint64_t specifiedFullTokenId)
+    uint64_t specifiedFullTokenId, bool isSCBCall)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetBundleNameRef().c_str());
@@ -809,6 +809,7 @@ int AbilityManagerService::StartAbility(const Want &want, int32_t userId, int re
         .requestCode = requestCode,
         .userId = userId,
         .specifiedFullTokenId = specifiedFullTokenId,
+        .isSCBCall = isSCBCall,
     };
     int32_t ret = StartAbilityInner(startAbilityWrapParam);
     AAFWK::ContinueRadar::GetInstance().ClickIconStartAbility("StartAbilityInner", want.GetFlags(), ret);
@@ -1518,16 +1519,18 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
             remoteTargetInfo = std::make_shared<AppExecFwk::AbilityInfo>(
                 StartAbilityUtils::startAbilityInfo->abilityInfo);
         }
-        AbilityInterceptorParam interceptorParam = InterceptorParamBuilder(param.want, param.requestCode,
-            validUserId).WithUI(true).Visible(true).CallerToken(param.callerToken)
-            .AbilityInfo(remoteTargetInfo)
-            .Context<AbilityInterceptorParam::RemoteDispatchCtx>({}).Build();
-        result = interceptorExecuter_ == nullptr ? ERR_NULL_INTERCEPTOR_EXECUTER :
-            interceptorExecuter_->DoProcess(interceptorParam);
-        if (result != ERR_OK) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "remote dispatch intercepted, result:%{public}d", result);
-            AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, result, "remote dispatch intercepted");
-            return result;
+        if (!param.isSCBCall) {
+            AbilityInterceptorParam interceptorParam = InterceptorParamBuilder(param.want, param.requestCode,
+                validUserId).WithUI(true).Visible(true).CallerToken(param.callerToken)
+                .AbilityInfo(remoteTargetInfo)
+                .Context<AbilityInterceptorParam::RemoteDispatchCtx>({}).Build();
+            result = interceptorExecuter_ == nullptr ? ERR_NULL_INTERCEPTOR_EXECUTER :
+                interceptorExecuter_->DoProcess(interceptorParam);
+            if (result != ERR_OK) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "remote dispatch intercepted, result:%{public}d", result);
+                AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, result, "remote dispatch intercepted");
+                return result;
+            }
         }
         result = StartRemoteAbility(param.want, param.requestCode, validUserId, param.callerToken,
             param.specifyTokenId);
@@ -1718,21 +1721,23 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
             return result;
         }
 #endif // SUPPORT_SCREEN
-        AbilityInterceptorParam interceptorParam = InterceptorParamBuilder(newWant, param.requestCode,
-            validUserId).WithUI(true).Visible(true).CallerToken(param.callerToken)
-            .AbilityInfo(std::make_shared<AppExecFwk::AbilityInfo>(abilityInfo))
-            .Context<AbilityInterceptorParam::EcologicalCtx>(
-                {param.isStartAsCaller, isTargetPlugin, param.hostBundleName})
-            .Context<AbilityInterceptorParam::DisposedCtx>({appIndex, nullptr}).Build();
-        result = interceptorExecuter_ == nullptr ? ERR_NULL_INTERCEPTOR_EXECUTER :
-            interceptorExecuter_->DoProcess(interceptorParam);
-        newWant = interceptorParam.want;
-        bool isReplaceWantExist = newWant.GetBoolParam("queryWantFromErms", false);
-        newWant.RemoveParam("queryWantFromErms");
-        if (result != ERR_OK && !isReplaceWantExist) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "doProcess failed or replaceWant absent");
-            AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, result, "doProcess failed or replaceWant absent");
-            return result;
+        if (!param.isSCBCall) {
+            AbilityInterceptorParam interceptorParam = InterceptorParamBuilder(newWant, param.requestCode,
+                validUserId).WithUI(true).Visible(true).CallerToken(param.callerToken)
+                .AbilityInfo(std::make_shared<AppExecFwk::AbilityInfo>(abilityInfo))
+                .Context<AbilityInterceptorParam::EcologicalCtx>(
+                    {param.isStartAsCaller, isTargetPlugin, param.hostBundleName})
+                .Context<AbilityInterceptorParam::DisposedCtx>({appIndex, nullptr}).Build();
+            result = interceptorExecuter_ == nullptr ? ERR_NULL_INTERCEPTOR_EXECUTER :
+                interceptorExecuter_->DoProcess(interceptorParam);
+            newWant = interceptorParam.want;
+            bool isReplaceWantExist = newWant.GetBoolParam("queryWantFromErms", false);
+            newWant.RemoveParam("queryWantFromErms");
+            if (result != ERR_OK && !isReplaceWantExist) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "doProcess failed or replaceWant absent");
+                AbilityEventUtil::SendStartAbilityErrorEvent(*eventInfo, result, "doProcess failed or replaceWant absent");
+                return result;
+            }
         }
 #ifdef SUPPORT_SCREEN
         if (result != ERR_OK && isReplaceWantExist && callerBundleName != BUNDLE_NAME_DIALOG) {
@@ -9001,7 +9006,7 @@ int AbilityManagerService::StartHighestPriorityAbility(int32_t userId, uint64_t 
         abilityWant.SetParam("ohos.app.logout_recovery", true);
     }
     /* note: OOBE APP need disable itself, otherwise, it will be started when restart system everytime */
-    return StartAbility(abilityWant, userId, DEFAULT_INVAL_VALUE);
+    return StartAbility(abilityWant, userId, DEFAULT_INVAL_VALUE, 0, true);
 }
 #endif
 int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestCode, AbilityRequest &request,
