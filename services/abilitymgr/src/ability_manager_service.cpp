@@ -595,14 +595,11 @@ ErrCode AbilityManagerService::ExecuteBlockAllAppStartInterceptor(AbilityRequest
      fdsan_exchange_owner_tag(rFd_, 0, static_cast<uint32_t>(AAFwkTag::ABILITYMGR));
      fdsan_exchange_owner_tag(wFd_, 0, static_cast<uint32_t>(AAFwkTag::ABILITYMGR));
      *ptrRFd_ = rFd_;
-     auto context = new (std::nothrow) std::weak_ptr<AbilityManagerService>(shared_from_this());
-     if (context == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "context null");
-        return;
-     }
-     int32_t ret = WatchParameter(APPSPAWN_STARTED, ExitReasonUtil::AppSpawnStartCallback, context);
+     appSpawnContext_ = shared_from_this();
+     int32_t ret = WatchParameter(APPSPAWN_STARTED, ExitReasonUtil::AppSpawnStartCallback, &appSpawnContext_);
      if (ret != 0) {
          TAG_LOGE(AAFwkTag::ABILITYMGR, "watch parameter ret: %{public}d", ret);
+         CloseAppSpawnMsgPipe();
          return;
      }
      ffrt_qos_t taskQos = 0;
@@ -610,11 +607,27 @@ ErrCode AbilityManagerService::ExecuteBlockAllAppStartInterceptor(AbilityRequest
         ExitReasonUtil::ProcessSignalData);
      if (ret != 0) {
          TAG_LOGE(AAFwkTag::ABILITYMGR, "ffrt_epoll_ctl failed, ret: %{public}d", ret);
-         fdsan_close_with_tag(rFd_, static_cast<uint32_t>(AAFwkTag::ABILITYMGR));
+         CloseAppSpawnMsgPipe();
          return;
      }
      TAG_LOGI(AAFwkTag::ABILITYMGR, "Listen signal msg ...");
  }
+
+void AbilityManagerService::CloseAppSpawnMsgPipe()
+{
+    if (rFd_ != -1) {
+        fdsan_close_with_tag(rFd_, static_cast<uint32_t>(AAFwkTag::ABILITYMGR));
+        rFd_ = -1;
+    }
+    if (wFd_ != -1) {
+        fdsan_close_with_tag(wFd_, static_cast<uint32_t>(AAFwkTag::ABILITYMGR));
+        wFd_ = -1;
+    }
+    if (ptrRFd_ != nullptr) {
+        *ptrRFd_ = -1;
+    }
+    appSpawnContext_.reset();
+}
 
 void AbilityManagerService::InitInterceptorForScreenUnlock()
 {
@@ -4953,6 +4966,10 @@ void AbilityManagerService::SetPickerElementNameAndParams(const sptr<SessionInfo
             extensionInfos));
         if (ret != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "queryExtensionAbilityInfosOnlyWithTypeName failed");
+            return;
+        }
+        if (extensionInfos.empty()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "no picker extension ability found");
             return;
         }
         abilityName = extensionInfos[0].name;

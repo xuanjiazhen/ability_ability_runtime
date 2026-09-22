@@ -68,7 +68,7 @@ int32_t RdbDataManager::BatchInsert(int64_t &outInsertNum, const std::vector<Nat
     if (ret == NativeRdb::E_OK) {
         dbWriteCounter_.UpdateWriteCount(ABILITY_RDB_PATH);
     }
-    return ret == NativeRdb::E_OK;
+    return ret;
 }
 
 int32_t RdbDataManager::UpdateData(

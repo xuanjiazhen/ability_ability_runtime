@@ -85,6 +85,10 @@ void ExitReasonUtil::AppSpawnStartCallback(const char *key, const char *value, v
     int32_t rFd = ams->GetRfd();
     int32_t wFd = ams->GetWfd();
     TAG_LOGI(AAFwkTag::ABILITYMGR, "rFd is: %{public}d, wFd is: %{public}d", rFd, wFd);
+    if (rFd < 0 || wFd < 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid appspawn msg pipe fd");
+        return;
+    }
     // send fd
     int32_t ret = SpawnListenFdSet(wFd);
     if (ret != 0) {
