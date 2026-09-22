@@ -2549,10 +2549,10 @@ HWTEST_F(AppMgrServiceInnerTest, CheckGetRunningInfoPermission_001, TestSize.Lev
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
 
-    appMgrServiceInner->CheckGetRunningInfoPermission();
+    appMgrServiceInner->appQueryHelper_.CheckGetRunningInfoPermission();
 
     appMgrServiceInner->appRunningManager_ = nullptr;
-    appMgrServiceInner->CheckGetRunningInfoPermission();
+    appMgrServiceInner->appQueryHelper_.CheckGetRunningInfoPermission();
 
     TAG_LOGI(AAFwkTag::TEST, "CheckGetRunningInfoPermission_001 end");
 }
