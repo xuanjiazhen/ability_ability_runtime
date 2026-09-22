@@ -76,6 +76,10 @@ ohos_unittest("ability_context_impl_test") {
       "window_manager:libwsutils",
       "window_manager:scene_session",
     ]
+    defines = [
+      "SUPPORT_GRAPHICS",
+      "SUPPORT_SCREEN",
+    ]
   }
 }
 

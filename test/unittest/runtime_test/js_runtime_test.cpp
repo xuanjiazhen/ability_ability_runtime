@@ -211,6 +211,87 @@ HWTEST_F(JsRuntimeTest, JsRuntimeUtilsTest_0100, TestSize.Level0)
 }
 
 /**
+ * @tc.name: NapiAsyncTask_StartWithDefaultQos_NullEnv_0100
+ * @tc.desc: Test StartWithDefaultQos with null env returns false and env_ stays nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, NapiAsyncTask_StartWithDefaultQos_NullEnv_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NapiAsyncTask_StartWithDefaultQos_NullEnv_0100 start");
+
+    auto execute = std::make_unique<NapiAsyncTask::ExecuteCallback>([]() {});
+    auto complete = std::make_unique<NapiAsyncTask::CompleteCallback>(
+        [](napi_env env, NapiAsyncTask &task, int32_t status) {});
+    auto task = std::make_unique<NapiAsyncTask>(nullptr, std::move(execute), std::move(complete));
+    ASSERT_NE(task, nullptr);
+
+    EXPECT_EQ(task->env_, nullptr);
+
+    bool ret = task->StartWithDefaultQos("test_null_env", nullptr);
+    EXPECT_FALSE(ret);
+    EXPECT_EQ(task->env_, nullptr);
+
+    TAG_LOGI(AAFwkTag::TEST, "NapiAsyncTask_StartWithDefaultQos_NullEnv_0100 end");
+}
+
+/**
+ * @tc.name: NapiAsyncTask_StartWithDefaultQos_SetsEnv_0100
+ * @tc.desc: Test StartWithDefaultQos sets env_ to the provided env to prevent async work leak.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, NapiAsyncTask_StartWithDefaultQos_SetsEnv_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NapiAsyncTask_StartWithDefaultQos_SetsEnv_0100 start");
+
+    auto env = (static_cast<AbilityRuntime::JsRuntime &>(*jsRuntimePtr)).GetNapiEnv();
+    ASSERT_NE(env, nullptr);
+
+    auto execute = std::make_unique<NapiAsyncTask::ExecuteCallback>([]() {});
+    auto complete = std::make_unique<NapiAsyncTask::CompleteCallback>(
+        [](napi_env env, NapiAsyncTask &task, int32_t status) {});
+    auto task = std::make_unique<NapiAsyncTask>(nullptr, std::move(execute), std::move(complete));
+    ASSERT_NE(task, nullptr);
+
+    EXPECT_EQ(task->env_, nullptr);
+
+    bool ret = task->StartWithDefaultQos("test_sets_env", env);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(task->env_, env);
+
+    task.release();
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    TAG_LOGI(AAFwkTag::TEST, "NapiAsyncTask_StartWithDefaultQos_SetsEnv_0100 end");
+}
+
+/**
+ * @tc.name: NapiAsyncTask_StartWithDefaultQos_NullExecute_SetsEnv_0100
+ * @tc.desc: Test StartWithDefaultQos sets env_ even when execute_ is null (SendNapiEvent path).
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, NapiAsyncTask_StartWithDefaultQos_NullExecute_SetsEnv_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NapiAsyncTask_StartWithDefaultQos_NullExecute_SetsEnv_0100 start");
+
+    auto env = (static_cast<AbilityRuntime::JsRuntime &>(*jsRuntimePtr)).GetNapiEnv();
+    ASSERT_NE(env, nullptr);
+
+    auto task = std::make_unique<NapiAsyncTask>(nullptr, nullptr, nullptr);
+    ASSERT_NE(task, nullptr);
+
+    EXPECT_EQ(task->env_, nullptr);
+
+    bool ret = task->StartWithDefaultQos("test_null_execute", env);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(task->env_, env);
+
+    task.release();
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+    TAG_LOGI(AAFwkTag::TEST, "NapiAsyncTask_StartWithDefaultQos_NullExecute_SetsEnv_0100 end");
+}
+
+/**
  * @tc.name: JsRuntimeGetLanguageTest_0100
  * @tc.desc: JsRuntime Test
  * @tc.type: FUNC
