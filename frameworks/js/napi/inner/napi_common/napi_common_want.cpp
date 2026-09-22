@@ -38,6 +38,9 @@ namespace OHOS {
 namespace AppExecFwk {
 using namespace OHOS::AbilityRuntime;
 const int PROPERTIES_SIZE = 2;
+
+static napi_value WrapWantParamsInner(
+    napi_env env, const AAFwk::WantParams &wantParams, bool eraseUriWithOrigin);
 /**
  * @brief Init param of wantOptions.
  *
@@ -304,7 +307,7 @@ bool InnerWrapWantParamsWantParams(
     }
 
     AAFwk::WantParams wp = AAFwk::WantParamWrapper::Unbox(o);
-    napi_value jsValue = WrapWantParams(env, wp);
+    napi_value jsValue = WrapWantParamsInner(env, wp, false);
     if (jsValue == nullptr) {
         return false;
     }
@@ -559,7 +562,7 @@ napi_value WrapArrayWantParamsToJS(napi_env env, const std::vector<WantParams> &
 
     NAPI_CALL(env, napi_create_array(env, &jsArray));
     for (uint32_t i = 0; i < value.size(); i++) {
-        jsValue = WrapWantParams(env, value[i]);
+        jsValue = WrapWantParamsInner(env, value[i], false);
         if (jsValue != nullptr) {
             if (napi_set_element(env, jsArray, index, jsValue) == napi_ok) {
                 index++;
@@ -652,7 +655,8 @@ bool InnerWrapWantParamsArray(napi_env env, napi_value jsObject, const std::stri
     }
 }
 
-napi_value WrapWantParams(napi_env env, const AAFwk::WantParams &wantParams)
+static napi_value WrapWantParamsInner(
+    napi_env env, const AAFwk::WantParams &wantParams, bool eraseUriWithOrigin)
 {
     AbilityRuntime::HandleEscape handleEscape(env);
     napi_value jsObject = nullptr;
@@ -662,6 +666,9 @@ napi_value WrapWantParams(napi_env env, const AAFwk::WantParams &wantParams)
     const std::map<std::string, sptr<AAFwk::IInterface>> paramList = wantParams.GetParams();
     for (auto iter = paramList.begin(); iter != paramList.end(); iter++) {
         jsValue = nullptr;
+        if (eraseUriWithOrigin && iter->first == Want::PARAM_SET_URI_WITH_ORIGIN_STRING) {
+            continue;
+        }
         if (AAFwk::IString::Query(iter->second) != nullptr) {
             InnerWrapWantParamsString(env, jsObject, iter->first, wantParams);
         } else if (AAFwk::IBoolean::Query(iter->second) != nullptr) {
@@ -693,6 +700,17 @@ napi_value WrapWantParams(napi_env env, const AAFwk::WantParams &wantParams)
         }
     }
     return handleEscape.Escape(jsObject);
+}
+
+napi_value WrapWantParams(napi_env env, const AAFwk::WantParams &wantParams)
+{
+    // PARAM_SET_URI_WITH_ORIGIN_STRING is an internal system parameter used to
+    // pass through an origin uri that bypasses scheme validation. It is only set
+    // at the first layer of the want parameters, and is not visible to third-party
+    // apps, so it is stripped here (first layer only) for non-system apps.
+    bool isSystemApp = Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(
+        IPCSkeleton::GetSelfTokenID());
+    return WrapWantParamsInner(env, wantParams, !isSystemApp);
 }
 
 bool InnerSetWantParamsArrayObject(napi_env env, const std::string &key,
@@ -1097,18 +1115,9 @@ napi_value WrapWant(napi_env env, const Want &want)
     napi_value jsObject = nullptr;
     napi_value jsValue = nullptr;
 
-    // PARAM_SET_URI_WITH_ORIGIN_STRING is an internal system parameter used to
-    // pass through an origin uri that bypasses scheme validation. It must not be
-    // exposed to third-party apps, so it is stripped here for non-system apps.
-    Want wrapWant = want;
-    auto selfToken = IPCSkeleton::GetSelfTokenID();
-    if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(selfToken)) {
-        wrapWant.RemoveParam(Want::PARAM_SET_URI_WITH_ORIGIN_STRING);
-    }
-
     NAPI_CALL(env, napi_create_object(env, &jsObject));
 
-    napi_value jsElementName = WrapElementName(env, wrapWant.GetElement());
+    napi_value jsElementName = WrapElementName(env, want.GetElement());
     if (jsElementName == nullptr) {
         TAG_LOGI(AAFwkTag::JSNAPI, "null jsElementName");
         return nullptr;
@@ -1130,31 +1139,31 @@ napi_value WrapWant(napi_env env, const Want &want)
     SetPropertyValueByPropertyName(env, jsObject, "moduleName", jsValue);
 
     jsValue = nullptr;
-    jsValue = WrapStringToJS(env, wrapWant.GetUriString());
+    jsValue = WrapStringToJS(env, want.GetUriString());
     SetPropertyValueByPropertyName(env, jsObject, "uri", jsValue);
 
     jsValue = nullptr;
-    jsValue = WrapStringToJS(env, wrapWant.GetType());
+    jsValue = WrapStringToJS(env, want.GetType());
     SetPropertyValueByPropertyName(env, jsObject, "type", jsValue);
 
     jsValue = nullptr;
-    jsValue = WrapInt32ToJS(env, wrapWant.GetFlags());
+    jsValue = WrapInt32ToJS(env, want.GetFlags());
     SetPropertyValueByPropertyName(env, jsObject, "flags", jsValue);
 
     jsValue = nullptr;
-    jsValue = WrapStringToJS(env, wrapWant.GetAction());
+    jsValue = WrapStringToJS(env, want.GetAction());
     SetPropertyValueByPropertyName(env, jsObject, "action", jsValue);
 
     jsValue = nullptr;
-    jsValue = WrapWantParams(env, wrapWant.GetParams());
+    jsValue = WrapWantParams(env, want.GetParams());
     SetPropertyValueByPropertyName(env, jsObject, "parameters", jsValue);
 
     jsValue = nullptr;
-    jsValue = WrapWantParamsFD(env, wrapWant.GetParams());
+    jsValue = WrapWantParamsFD(env, want.GetParams());
     SetPropertyValueByPropertyName(env, jsObject, "fds", jsValue);
 
     jsValue = nullptr;
-    jsValue = WrapArrayStringToJS(env, wrapWant.GetEntities());
+    jsValue = WrapArrayStringToJS(env, want.GetEntities());
     SetPropertyValueByPropertyName(env, jsObject, "entities", jsValue);
 
     return handleEscape.Escape(jsObject);
