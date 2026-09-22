@@ -37,6 +37,7 @@
 #include "app_malloc_info.h"
 #include "app_mgr_constants.h"
 #include "app_mgr_event.h"
+#include "app_query_manager.h"
 #include "hyper_snap_error_record.h"
 #include "app_preloader.h"
 #include "app_record_id.h"
@@ -2134,26 +2135,6 @@ private:
 
     void InitGlobalConfiguration();
 
-    /**
-     * @brief Another way of GetRunningProcess, only one item will be filled into the info
-     */
-    void GetRunningProcesses(const std::shared_ptr<AppRunningRecord> &appRecord, std::vector<RunningProcessInfo> &info);
-    /**
-     * @brief Retrieve a process's running info
-     */
-    void GetRunningProcess(const std::shared_ptr<AppRunningRecord> &appRecord, RunningProcessInfo &info);
-
-    /**
-     * @brief query a process's render process info
-     * @param appRecord the main process
-     * @param info to retrieve render process info
-     */
-    void GetRenderProcesses(const std::shared_ptr<AppRunningRecord> &appRecord, std::vector<RenderProcessInfo> &info);
-
-#ifdef SUPPORT_CHILD_PROCESS
-    void GetChildrenProcesses(const std::shared_ptr<AppRunningRecord> &appRecord, std::vector<ChildProcessInfo> &info);
-#endif // SUPPORT_CHILD_PROCESS
-
 #ifdef ABILITY_PLATFORM_CHECK_PERMISSION
     int CheckStablePermission(const BundleInfo &bundleInfo);
     bool CheckDeviceStatus(Security::AccessToken::PermissionStateFull &status,
@@ -2174,16 +2155,12 @@ private:
 
     void AddWatchParameter();
 
-    bool VerifyAPL() const;
-
     /**
      * Register a focus listener to window manager
      */
     void RegisterFocusListener();
 
     static void PointerDeviceEventCallback(const char *key, const char *value, void *context);
-
-    int32_t VerifyKillProcessPermissionCommon() const;
 
     void ApplicationTerminatedSendProcessEvent(const std::shared_ptr<AppRunningRecord> &appRecord);
     void ClearAppRunningDataForKeepAlive(const std::shared_ptr<AppRunningRecord> &appRecord);
@@ -2238,6 +2215,20 @@ private:
 
     void RemoveRenderRecordNoAttach(const std::shared_ptr<AppRunningRecord> &hostRecord, int32_t renderPid);
 
+    bool CheckGetRunningInfoPermission() const;
+    bool VerifyAPL() const;
+    int32_t VerifyKillProcessPermissionCommon() const;
+    int32_t GetAllRunningInstanceKeysByBundleNameInner(const std::string &bundleName,
+        std::vector<std::string> &instanceKeys, int32_t userId);
+    void GetRunningProcesses(const std::shared_ptr<AppRunningRecord> &appRecord,
+        std::vector<RunningProcessInfo> &info);
+    void GetRunningProcess(const std::shared_ptr<AppRunningRecord> &appRecord,
+        RunningProcessInfo &info);
+    void GetRenderProcesses(const std::shared_ptr<AppRunningRecord> &appRecord,
+        std::vector<RenderProcessInfo> &info);
+    void GetRunningMultiInstanceKeys(const std::shared_ptr<AppRunningRecord> &appRecord,
+        std::vector<std::string> &instanceKeys);
+
     void HandleExistingAppRecordAfterFound(std::shared_ptr<AppRunningRecord> appRecord,
         std::shared_ptr<AbilityInfo> abilityInfo, const HapModuleInfo &hapModuleInfo,
         std::shared_ptr<AAFwk::Want> want, bool isProcCache,
@@ -2263,8 +2254,6 @@ private:
     int32_t ClearUpApplicationDataByUserId(const std::string &bundleName,
         int32_t callerUid, pid_t callerPid, int32_t appCloneIndex, int32_t userId, bool isBySelf = false,
         const std::string& reason = "ClearUpApplicationDataByUserId");
-
-    bool CheckGetRunningInfoPermission() const;
 
     /**
      * kill all processes of a bundleName
@@ -2346,8 +2335,6 @@ private:
         RunningMultiAppInfo &info);
 #endif // SUPPORT_CHILD_PROCESS
 
-    void GetRunningMultiInstanceKeys(const std::shared_ptr<AppRunningRecord> &appRecord,
-        std::vector<std::string> &instanceKeys);
     /**
      * To Prevent process being killed when ability is starting in an existing process,
      * we need notify memmgr to increase process priority.
@@ -2487,8 +2474,6 @@ private:
     int32_t RestartExitKeepAliveProcess(const std::vector<ExitResidentProcessInfo> &exitProcessInfos);
     bool IsNeedRestartKeepAliveProcess(const std::string &bundleName, int32_t uid);
     bool IsAsanEnabled(const std::shared_ptr<AppRunningRecord> &record);
-    int32_t GetAllRunningInstanceKeysByBundleNameInner(const std::string &bundleName,
-        std::vector<std::string> &instanceKeys, int32_t userId);
     int32_t KillProcessByPidInner(const pid_t pid, const std::string& reason,
         const std::string& killReason, std::shared_ptr<AppRunningRecord> appRecord, bool isKillPrecedeStart);
     void SetKilledEventInfo(std::shared_ptr<AppRunningRecord> appRecord, AAFwk::EventInfo &eventInfo);
@@ -2651,8 +2636,9 @@ private:
     std::mutex imageInfoLock_;
     std::unordered_map<MakeImageRequest, std::shared_ptr<ForkImageInfo>, MakeImageRequest::Hash> imageInfoMap_;
 
-    // Minimal in-memory error state: only what cannot be derived later.
-    // Error message is generated from the code at query time to save memory.
+    std::shared_ptr<AppQueryManager> appQueryManager_;
+
+    // HyperSnap in-memory error state (query + Save/Clear accessors kept on inner)
     struct HyperSnapStoredError {
         HyperSnapErrorCode code = HyperSnapErrorCode::ERR_OK;
         int64_t occurTimeStamp = 0;
