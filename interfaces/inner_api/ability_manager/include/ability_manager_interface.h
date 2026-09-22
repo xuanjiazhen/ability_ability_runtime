@@ -112,6 +112,7 @@ using InsightIntentInfoForQuery = AbilityRuntime::InsightIntentInfoForQuery;
 
 constexpr const char* ABILITY_MANAGER_SERVICE_NAME = "AbilityManagerService";
 const int DEFAULT_INVAL_VALUE = -1;
+constexpr int32_t INVALID_USER_ID = -1;
 const int DELAY_LOCAL_FREE_INSTALL_TIMEOUT = 40000;
 const int DELAY_REMOTE_FREE_INSTALL_TIMEOUT = 30000 + DELAY_LOCAL_FREE_INSTALL_TIMEOUT;
 constexpr const char* FROM_REMOTE_KEY = "freeInstallFromRemote";
@@ -626,7 +627,7 @@ public:
         return false;
     }
 
-    virtual AppExecFwk::ElementName GetTopAbility(bool isNeedLocalDeviceId = true)
+    virtual AppExecFwk::ElementName GetTopAbility(bool isNeedLocalDeviceId = true, int32_t userId = INVALID_USER_ID)
     {
         return {};
     }
@@ -1523,7 +1524,7 @@ public:
      * @param token, the token of top ability.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int GetTopAbility(sptr<IRemoteObject> &token) = 0;
+    virtual int GetTopAbility(sptr<IRemoteObject> &token, int32_t userId = INVALID_USER_ID) = 0;
 
     virtual int CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId, bool& isFocused, uint64_t displayId = 0)
     {
@@ -2901,25 +2902,6 @@ public:
     virtual int32_t SetAppRecoveryFlag(const sptr<IRemoteObject>& token, int flag)
     {
         return 0;
-    }
-
-    /**
-     * @brief Start skill by HDC, launch target ability.
-     * @param bundleName The target bundle name.
-     * @param moduleName The target module name.
-     * @param skillName The skill name to execute.
-     * @param arkTSPath The target ArkTS file path.
-     * @param funcName The target function name.
-     * @param argv The arguments for skill execution.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    virtual int32_t ExecuteInAppSkill(const std::string &bundleName, const std::string &moduleName,
-        const std::string &skillName, const std::string &arkTSPath = "",
-        const std::string &funcName = "",
-        const std::shared_ptr<AAFwk::WantParams> &skillArgs = nullptr,
-        const sptr<ISkillExecuteCallback> &callback = nullptr)
-    {
-        return ERR_OK;
     }
 
     /**

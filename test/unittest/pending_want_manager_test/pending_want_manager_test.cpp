@@ -1293,7 +1293,7 @@ HWTEST_F(PendingWantManagerTest, PendingWantManagerTest_5300, TestSize.Level1)
     Want want;
 
     auto ret = pendingManager_->PendingWantStartServiceExtension(want, nullptr);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_EQ(ret, ERR_IMPLICIT_START_ABILITY_FAIL);
 }
 
 /*
@@ -1430,7 +1430,7 @@ HWTEST_F(PendingWantManagerTest, PendingWantManagerTest_6200, TestSize.Level1)
     EXPECT_NE(pendingManager_, nullptr);
 
     std::shared_ptr<PendingWantKey> key = MakeWantKey(wantSenderInfo);
-    pendingManager_->HandleAddWantAgentNumber(key);
+    pendingManager_->HandleAddWantAgentNumber(key, 100);
 
     auto it = pendingManager_->wantAgentCount_.find(key->GetBundleName());
     EXPECT_EQ(it->second.currentNumber, 1);
@@ -1440,7 +1440,7 @@ HWTEST_F(PendingWantManagerTest, PendingWantManagerTest_6200, TestSize.Level1)
     ElementName element2("device", bundleName, "abilityName2");
     WantSenderInfo wantSenderInfo2 = MakeWantSenderInfo(want, static_cast<int32_t>(Flags::NO_BUILD_FLAG), 0);
     std::shared_ptr<PendingWantKey> key2 = MakeWantKey(wantSenderInfo2);
-    pendingManager_->HandleAddWantAgentNumber(key2);
+    pendingManager_->HandleAddWantAgentNumber(key2, 100);
 
     auto it2 = pendingManager_->wantAgentCount_.find(key2->GetBundleName());
     EXPECT_EQ(it->second.currentNumber, 290);
@@ -1463,7 +1463,7 @@ HWTEST_F(PendingWantManagerTest, PendingWantManagerTest_6300, TestSize.Level1)
     EXPECT_NE(pendingManager_, nullptr);
 
     std::shared_ptr<PendingWantKey> key = MakeWantKey(wantSenderInfo);
-    pendingManager_->HandleAddWantAgentNumber(key);
+    pendingManager_->HandleAddWantAgentNumber(key, 100);
 
     auto it = pendingManager_->wantAgentCount_.find(key->GetBundleName());
     EXPECT_EQ(it->second.currentNumber, 1);
@@ -1559,6 +1559,28 @@ HWTEST_F(PendingWantManagerTest, PendingWantManagerTest_6700, TestSize.Level1)
     EXPECT_EQ(getWantInfo->GetElement().GetBundleName(), "bundleName");
     EXPECT_EQ(getWantInfo->GetElement().GetAbilityName(), "abilityName");
     EXPECT_EQ(getWantInfo->GetParams().GetStringParam("test_key"), "test_value");
+}
+
+HWTEST_F(PendingWantManagerTest, GetWantSenderLocked_MarkShared_0100, TestSize.Level1)
+{
+    Want want;
+    ElementName element("device", "com.ix.hiMusic", "MusicSAbility");
+    want.SetElement(element);
+    WantSenderInfo wantSenderInfo = MakeWantSenderInfo(want, 0, 0);
+    pendingManager_ = std::make_shared<PendingWantManager>();
+    ASSERT_NE(pendingManager_, nullptr);
+
+    auto sender = pendingManager_->GetWantSenderLocked(1, 1, wantSenderInfo.userId, wantSenderInfo, nullptr);
+    ASSERT_NE(sender, nullptr);
+    EXPECT_EQ(pendingManager_->wantRecords_.size(), 1u);
+    auto record = pendingManager_->wantRecords_.begin()->second;
+    ASSERT_NE(record, nullptr);
+    EXPECT_FALSE(record->GetShared());
+
+    auto sender2 = pendingManager_->GetWantSenderLocked(1, 1, wantSenderInfo.userId, wantSenderInfo, nullptr);
+    ASSERT_NE(sender2, nullptr);
+    EXPECT_EQ(pendingManager_->wantRecords_.size(), 1u);
+    EXPECT_FALSE(record->GetShared());
 }
 }  // namespace AAFwk
 }  // namespace OHOS

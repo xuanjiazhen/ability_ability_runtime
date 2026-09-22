@@ -188,15 +188,17 @@ public:
     void DumpByRecordId(std::vector<std::string> &info, const std::string &args);
     int32_t GetAllRunningInstanceKeysByBundleName(const std::string &bundleName, std::vector<std::string> &appKey);
 
+    void DeleteUnsharedRecordsOnDeath(const std::string &bundleName, int32_t pid);
+
 private:
     sptr<IWantSender> GetWantSenderLocked(const int32_t callingUid, const int32_t uid, const int32_t userId,
         WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, int32_t appIndex = 0,
         int32_t publisherUid = 0);
     void MakeWantSenderCanceledLocked(PendingWantRecord &record);
 
-    void HandleAddWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey);
+    void HandleAddWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey, int32_t callerUid);
     void HandleReduceWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey);
-    void AddWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey);
+    void AddWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey, int32_t callerUid);
     void ReduceWantAgentNumber(std::shared_ptr<PendingWantKey> pendingKey);
 
     sptr<PendingWantRecord> GetPendingWantRecordByKey(const std::shared_ptr<PendingWantKey> &key);
