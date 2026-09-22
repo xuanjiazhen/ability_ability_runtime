@@ -3015,6 +3015,55 @@ HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_SetupModalUIExtensionCallb
     EXPECT_TRUE(callback.onResult != nullptr);
     EXPECT_TRUE(callback.onReceive != nullptr);
 }
+
+/**
+ * @tc.number: Ability_Context_Impl_OnAbilityErrorCode_Foreground_0100
+ * @tc.name: SetupModalUIExtensionCallbacks onAbilityErrorCode with FOREGROUND phase
+ * @tc.desc: Verify onAbilityErrorCode with FOREGROUND phase fires OnAbilityByTypeResult
+ *           and sets errorFired to true.
+ */
+HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_OnAbilityErrorCode_Foreground_0100,
+    Function | MediumTest | Level1)
+{
+    napi_env env = nullptr;
+    auto uiExtensionCallback = std::make_shared<JsUIExtensionCallback>(env);
+    ASSERT_NE(uiExtensionCallback, nullptr);
+    auto errorFired = std::make_shared<std::atomic<bool>>(false);
+    ASSERT_NE(errorFired, nullptr);
+
+    auto callback = context_->SetupModalUIExtensionCallbacks(uiExtensionCallback, errorFired);
+    ASSERT_TRUE(callback.onAbilityErrorCode != nullptr);
+
+    callback.onAbilityErrorCode(Ace::UIExtensionOperationPhase::FOREGROUND, 100);
+    EXPECT_TRUE(errorFired->load());
+}
+
+/**
+ * @tc.number: Ability_Context_Impl_OnAbilityErrorCode_NonForegroundNonZero_0100
+ * @tc.name: SetupModalUIExtensionCallbacks onAbilityErrorCode with non-FOREGROUND phase
+ * @tc.desc: Verify onAbilityErrorCode with non-FOREGROUND phase and non-zero errorCode
+ *           does NOT fire OnAbilityByTypeResult (errorFired stays false).
+ *           Before the fix: condition was (phase != FOREGROUND && errorCode == 0),
+ *           which evaluated to false for non-zero errorCode, incorrectly firing the callback.
+ *           After the fix: condition is (phase != FOREGROUND), always returns early
+ *           for non-FOREGROUND phases regardless of errorCode.
+ */
+HWTEST_F(AbilityContextImplTest, Ability_Context_Impl_OnAbilityErrorCode_NonForegroundNonZero_0100,
+    Function | MediumTest | Level1)
+{
+    napi_env env = nullptr;
+    auto uiExtensionCallback = std::make_shared<JsUIExtensionCallback>(env);
+    ASSERT_NE(uiExtensionCallback, nullptr);
+    auto errorFired = std::make_shared<std::atomic<bool>>(false);
+    ASSERT_NE(errorFired, nullptr);
+
+    auto callback = context_->SetupModalUIExtensionCallbacks(uiExtensionCallback, errorFired);
+    ASSERT_TRUE(callback.onAbilityErrorCode != nullptr);
+
+    auto nonForegroundPhase = static_cast<Ace::UIExtensionOperationPhase>(1);
+    callback.onAbilityErrorCode(nonForegroundPhase, 100);
+    EXPECT_FALSE(errorFired->load());
+}
 #endif
 
 } // namespace AppExecFwk
