@@ -18,6 +18,8 @@
 
 #include <iremote_object.h>
 #include <iremote_stub.h>
+#include <mutex>
+#include <vector>
 
 #include "ability_connect_callback_interface.h"
 #include "nocopyable.h"
@@ -41,6 +43,10 @@ public:
     }
 private:
     DISALLOW_COPY_AND_MOVE(AbilityConnectionStub);
+    bool CompareDMSDescriptor(std::u16string& remoteDescriptor);
+    bool dmsDescriptorLoaded_ = false;
+    std::vector<std::u16string> dmsDescriptors_ = nullptr;
+    std::mutex dmsDescriptorMutex_;
 };
 
 /**
