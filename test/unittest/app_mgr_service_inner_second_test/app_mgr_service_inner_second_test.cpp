@@ -1896,7 +1896,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, GetRunningMultiInstanceKeys_001, TestSize
     std::shared_ptr<AppRunningRecord> appRecord = nullptr;
     std::vector<std::string> instanceKeys;
     AppMgrServiceInner appMgrServiceInner;
-    appMgrServiceInner.GetRunningMultiInstanceKeys(appRecord, instanceKeys);
+    appMgrServiceInner.appQueryManager_->GetRunningMultiInstanceKeys(appRecord, instanceKeys);
     EXPECT_TRUE(instanceKeys.empty());
 
     BundleInfo bundleInfo;
@@ -1907,15 +1907,15 @@ HWTEST_F(AppMgrServiceInnerSecondTest, GetRunningMultiInstanceKeys_001, TestSize
     appRecord = appMgrServiceInner.CreateAppRunningRecord(
         loadParam, applicationInfo_, abilityInfo_, TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
     EXPECT_NE(appRecord, nullptr);
-    appMgrServiceInner.GetRunningMultiInstanceKeys(appRecord, instanceKeys);
+    appMgrServiceInner.appQueryManager_->GetRunningMultiInstanceKeys(appRecord, instanceKeys);
     EXPECT_FALSE(instanceKeys.empty());
 
     instanceKeys.push_back(appRecord->GetInstanceKey());
-    appMgrServiceInner.GetRunningMultiInstanceKeys(appRecord, instanceKeys);
+    appMgrServiceInner.appQueryManager_->GetRunningMultiInstanceKeys(appRecord, instanceKeys);
     EXPECT_FALSE(instanceKeys.size() == 1);
 
     appRecord->priorityObject_ = nullptr;
-    appMgrServiceInner.GetRunningMultiInstanceKeys(appRecord, instanceKeys);
+    appMgrServiceInner.appQueryManager_->GetRunningMultiInstanceKeys(appRecord, instanceKeys);
     EXPECT_FALSE(instanceKeys.size() == 1 && instanceKeys[0] == appRecord->GetInstanceKey());
     TAG_LOGI(AAFwkTag::TEST, "GetRunningMultiInstanceKeys_001 end");
 }
