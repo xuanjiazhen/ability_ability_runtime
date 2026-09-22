@@ -39,6 +39,7 @@ ErrCode ControlInterceptor::DoProcess(const AbilityInterceptorParam &param)
             TAG_LOGE(AAFwkTag::ABILITYMGR, "no control want");
             return AbilityUtil::EdmErrorType(controlRule.isEdm);
         }
+        auto wantEle = param.want.GetElement();
         if (controlRule.controlWant->GetBoolParam(IS_FROM_PARENTCONTROL, false)) {
             auto controlWant = controlRule.controlWant;
             auto controlParam = controlWant->GetParams();
@@ -47,10 +48,15 @@ ErrCode ControlInterceptor::DoProcess(const AbilityInterceptorParam &param)
                 controlParam.SetParam(INTERCEPT_PARAMETERS, interceptParam);
             }
             controlWant->SetParams(controlParam);
-            auto wantEle = param.want.GetElement();
             controlWant->SetParam(INTERCEPT_BUNDLE_NAME, wantEle.GetBundleName());
             controlWant->SetParam(INTERCEPT_ABILITY_NAME, wantEle.GetAbilityName());
             controlWant->SetParam(INTERCEPT_MODULE_NAME, wantEle.GetModuleNameRef());
+        }
+        auto controlWantEle = controlRule.controlWant->GetElement();
+        if (wantEle.GetBundleName() == controlWantEle.GetBundleName() &&
+            wantEle.GetAbilityName() == controlWantEle.GetAbilityName()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "ControlInterceptor target is the same as the intercepted ability, skip");
+            return AbilityUtil::EdmErrorType(controlRule.isEdm);
         }
         int ret = IN_PROCESS_CALL(AbilityManagerClient::GetInstance()->StartAbility(*controlRule.controlWant,
             param.requestCode, param.userId));
