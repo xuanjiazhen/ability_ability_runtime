@@ -19,6 +19,10 @@
 
 namespace OHOS {
 namespace CliTool {
+namespace {
+constexpr int32_t MAX_ARG_KEYS_COUNT = 1024;
+} // namespace
+
 bool ExecToolParam::Marshalling(Parcel &parcel) const
 {
     if (!parcel.WriteString(toolName)) {
@@ -37,6 +41,16 @@ bool ExecToolParam::Marshalling(Parcel &parcel) const
     if (!parcel.WriteParcelable(&args)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Write args failed.");
         return false;
+    }
+    if (!parcel.WriteInt32(static_cast<int32_t>(argKeys.size()))) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Write argKeys size failed.");
+        return false;
+    }
+    for (const auto &key : argKeys) {
+        if (!parcel.WriteString(key)) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "Write argKeys failed.");
+            return false;
+        }
     }
     return true;
 }
@@ -74,6 +88,24 @@ ExecToolParam *ExecToolParam::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
     result->args = *args;
+
+    int32_t argKeysSize = 0;
+    if (!parcel.ReadInt32(argKeysSize)) {
+        delete result;
+        return nullptr;
+    }
+    if (argKeysSize < 0 || argKeysSize > MAX_ARG_KEYS_COUNT) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "invalid argKeysSize: %{public}d", argKeysSize);
+        delete result;
+        return nullptr;
+    }
+    result->argKeys.resize(static_cast<size_t>(argKeysSize));
+    for (int32_t i = 0; i < argKeysSize; i++) {
+        if (!parcel.ReadString(result->argKeys[i])) {
+            delete result;
+            return nullptr;
+        }
+    }
     return result;
 }
 } // namespace CliTool

@@ -48,6 +48,7 @@ constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t MAX_KILL_PROCESS_PID_COUNT = 100;
 constexpr int32_t MAX_UPDATE_CONFIG_SIZE = 100;
 constexpr int32_t MAX_WANT_LIST_SIZE = 4;
+constexpr int32_t MAX_SKILL_ARG_KEYS_COUNT = 1024;
 } // namespace
 AbilityManagerStub::AbilityManagerStub()
 {}
@@ -5996,6 +5997,18 @@ int32_t AbilityManagerStub::ExecuteInAppSkillWithTokenIdInner(MessageParcel &dat
         request.skillArgs = std::shared_ptr<AAFwk::WantParams>(args);
     } else {
         request.skillArgs = std::make_shared<AAFwk::WantParams>();
+    }
+
+    int32_t skillArgKeysSize = data.ReadInt32();
+    if (skillArgKeysSize < 0 || skillArgKeysSize > MAX_SKILL_ARG_KEYS_COUNT) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid skillArgKeysSize: %{public}d", skillArgKeysSize);
+        return ERR_INVALID_VALUE;
+    }
+    if (skillArgKeysSize > 0) {
+        request.skillArgKeys.resize(static_cast<size_t>(skillArgKeysSize));
+        for (int32_t i = 0; i < skillArgKeysSize; i++) {
+            request.skillArgKeys[i] = Str16ToStr8(data.ReadString16());
+        }
     }
 
     sptr<ISkillExecuteCallback> callback = nullptr;
