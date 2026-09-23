@@ -126,7 +126,15 @@ bool PermissionVerification::JudgeCallerIsAllowedToUseSystemAPIByTokenId(uint64_
 }
 bool PermissionVerification::IsSystemAppCall() const
 {
-    return true;
+    return (MyFlag::flag_ & MyFlag::FLAG::IS_NOT_SYSTEM_APP_CALL) == 0;
+}
+bool IsLocalDebugOtherAppsCall(const uint32_t specifyTokenId) const
+{
+    return false;
+}
+bool IsCustomSandboxCall(const uint32_t specifyTokenId) const
+{
+    return false;
 }
 } // namespace AAFwk
 } // namespace OHOS

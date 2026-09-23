@@ -213,7 +213,7 @@ HWTEST_F(AaCommandSendMemoryLevelTest, ParsePidMemoryLevel_0600, TestSize.Level1
     std::string pid = "";
     std::string level = "";
     auto ret = cmd.ParsePidMemoryLevel(pid, level);
-    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
 
 /**
