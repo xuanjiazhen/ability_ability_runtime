@@ -411,9 +411,14 @@ int32_t CliToolManagerService::OnIdle(const SystemAbilityOnDemandReason &idlReas
     }
     int32_t calledCount = interfaceCalledCount_.load();
     int32_t callerPidSize = GetCallerPidCount();
-    if (calledCount != 0 || sessionSize != 0 || callerPidSize != 0) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "service busy, calledCount=%{public}d, sessionSize=%{public}d",
-            calledCount, sessionSize);
+    bool hasHook = false;
+    {
+        std::lock_guard<ffrt::mutex> guard(hookMutex_);
+        hasHook = (cliHook_ != nullptr) || (functionHook_ != nullptr);
+    }
+    if (calledCount != 0 || sessionSize != 0 || callerPidSize != 0 || hasHook) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "service busy, calledCount=%{public}d, sessionSize=%{public}d, hasHook=%{public}d",
+            calledCount, sessionSize, hasHook);
         if (!CancelIdle()) {
             TAG_LOGW(AAFwkTag::CLI_TOOL, "Fail to cancel idle");
         }
@@ -491,7 +496,12 @@ void CliToolManagerService::DelayUnloadTask()
         }
         int32_t calledCount = service->interfaceCalledCount_.load();
         int32_t callerPidSize = service->GetCallerPidCount();
-        if (calledCount == 0 && sessionSize == 0 && callerPidSize == 0) {
+        bool hasHook = false;
+        {
+            std::lock_guard<ffrt::mutex> guard(service->hookMutex_);
+            hasHook = (service->cliHook_ != nullptr) || (service->functionHook_ != nullptr);
+        }
+        if (calledCount == 0 && sessionSize == 0 && callerPidSize == 0 && !hasHook) {
             TAG_LOGI(AAFwkTag::CLI_TOOL, "UnloadSA start");
             sptr<ISystemAbilityManager> saManager =
                 OHOS::SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
@@ -506,8 +516,8 @@ void CliToolManagerService::DelayUnloadTask()
             }
             TAG_LOGI(AAFwkTag::CLI_TOOL, "UnloadSA success");
         } else {
-            TAG_LOGI(AAFwkTag::CLI_TOOL, "Service still busy (calledCount=%{public}d, sessionSize=%{public}d), "
-                "reschedule delay unload task", calledCount, sessionSize);
+            TAG_LOGI(AAFwkTag::CLI_TOOL, "Service still busy (calledCount=%{public}d, sessionSize=%{public}d, "
+                "hasHook=%{public}d), reschedule delay unload task", calledCount, sessionSize, hasHook);
             service->DelayUnloadTask();
         }
     };
@@ -1034,7 +1044,7 @@ void CliToolManagerService::HandleBackgroundSessionReply(
 
 int32_t CliToolManagerService::RegisterCliHook(const sptr<ICliHookInterface> &hook, int32_t activeMethods)
 {
-    auto ret = PermissionUtil::CheckSystemAndPermission(PERMISSION_REGISTER_AGENT_HOOK);
+    auto ret = PermissionUtil::CheckSystemAppAndPermission(PERMISSION_REGISTER_AGENT_HOOK);
     if (ret != ERR_OK) {
         return ret;
     }
@@ -1062,7 +1072,7 @@ int32_t CliToolManagerService::RegisterCliHook(const sptr<ICliHookInterface> &ho
 
 int32_t CliToolManagerService::UnregisterCliHook(const sptr<ICliHookInterface> &hook)
 {
-    auto ret = PermissionUtil::CheckSystemAndPermission(PERMISSION_REGISTER_AGENT_HOOK);
+    auto ret = PermissionUtil::CheckSystemAppAndPermission(PERMISSION_REGISTER_AGENT_HOOK);
     if (ret != ERR_OK) {
         return ret;
     }
@@ -1089,7 +1099,7 @@ int32_t CliToolManagerService::UnregisterCliHook(const sptr<ICliHookInterface> &
 
 int32_t CliToolManagerService::RegisterFunctionHook(const sptr<IFunctionHookInterface> &hook, int32_t activeMethods)
 {
-    auto ret = PermissionUtil::CheckSystemAndPermission(PERMISSION_REGISTER_AGENT_HOOK);
+    auto ret = PermissionUtil::CheckSystemAppAndPermission(PERMISSION_REGISTER_AGENT_HOOK);
     if (ret != ERR_OK) {
         return ret;
     }
@@ -1116,7 +1126,7 @@ int32_t CliToolManagerService::RegisterFunctionHook(const sptr<IFunctionHookInte
 
 int32_t CliToolManagerService::UnregisterFunctionHook(const sptr<IFunctionHookInterface> &hook)
 {
-    auto ret = PermissionUtil::CheckSystemAndPermission(PERMISSION_REGISTER_AGENT_HOOK);
+    auto ret = PermissionUtil::CheckSystemAppAndPermission(PERMISSION_REGISTER_AGENT_HOOK);
     if (ret != ERR_OK) {
         return ret;
     }

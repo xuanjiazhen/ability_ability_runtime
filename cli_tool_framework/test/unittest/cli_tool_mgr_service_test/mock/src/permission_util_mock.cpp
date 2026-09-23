@@ -59,5 +59,13 @@ int32_t PermissionUtil::CheckSystemAndPermission(const std::string &)
     return ERR_OK;
 }
 
+int32_t PermissionUtil::CheckSystemAppAndPermission(const std::string &)
+{
+    if (!IsSystemApp()) {
+        return ERR_NOT_SYSTEM_APP;
+    }
+    return ERR_OK;
+}
+
 } // namespace CliTool
 } // namespace OHOS

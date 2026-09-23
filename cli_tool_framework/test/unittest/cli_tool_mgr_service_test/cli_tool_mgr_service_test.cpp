@@ -185,6 +185,15 @@ void CliToolManagerServiceTest::SetUp()
     std::lock_guard<ffrt::mutex> guard(service_->sessionsMutex_);
     service_->sessionRecords_.clear();
     service_->bundleObservers_.clear();
+    {
+        std::lock_guard<ffrt::mutex> hookGuard(service_->hookMutex_);
+        service_->cliHook_ = nullptr;
+        service_->functionHook_ = nullptr;
+        service_->cliHookDeathRecipient_ = nullptr;
+        service_->functionHookDeathRecipient_ = nullptr;
+        service_->cliHookActiveMethods_ = 0;
+        service_->functionHookActiveMethods_ = 0;
+    }
     auto &ccmUtil = CcmUtil::GetInstance();
     ccmUtil.isSupportExecCmd_.isLoaded = false;
     ccmUtil.isSupportExecCmd_.value = false;
@@ -210,6 +219,15 @@ void CliToolManagerServiceTest::TearDown()
         std::lock_guard<ffrt::mutex> guard(service_->sessionsMutex_);
         service_->sessionRecords_.clear();
         service_->bundleObservers_.clear();
+    }
+    {
+        std::lock_guard<ffrt::mutex> hookGuard(service_->hookMutex_);
+        service_->cliHook_ = nullptr;
+        service_->functionHook_ = nullptr;
+        service_->cliHookDeathRecipient_ = nullptr;
+        service_->functionHookDeathRecipient_ = nullptr;
+        service_->cliHookActiveMethods_ = 0;
+        service_->functionHookActiveMethods_ = 0;
     }
     // Safety net (outside sessionsMutex_: StopReaper joins the reaper, whose WaitPid takes sessionsMutex_):
     // stop the reaper if a test started it and did not stop it. No-op if never started.
@@ -5111,6 +5129,136 @@ HWTEST_F(CliToolManagerServiceTest, InvokeAfterCallTool_Timeout_0100, TestSize.L
 
     service_->UnregisterCliHook(hook);
     TAG_LOGI(AAFwkTag::TEST, "InvokeAfterCallTool_Timeout_0100 end");
+}
+
+/**
+ * @tc.name: RegisterCliHook_SARejected_0100
+ * @tc.desc: RegisterCliHook rejects SA (native token) caller — agenthook not open to SA
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, RegisterCliHook_SARejected_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RegisterCliHook_SARejected_0100 start");
+    SetDeveloperMode(true);
+
+    IPCSkeleton::callingFullTokenId = 1;
+    IPCSkeleton::callingTokenId = TOKEN_NATIVE;
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    int32_t result = service_->RegisterCliHook(hook, 0x0F);
+    EXPECT_EQ(result, ERR_NOT_SYSTEM_APP);
+    EXPECT_EQ(service_->cliHook_, nullptr);
+
+    IPCSkeleton::Reset();
+    TAG_LOGI(AAFwkTag::TEST, "RegisterCliHook_SARejected_0100 end");
+}
+
+/**
+ * @tc.name: UnregisterCliHook_SARejected_0100
+ * @tc.desc: UnregisterCliHook rejects SA (native token) caller — agenthook not open to SA
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterCliHook_SARejected_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterCliHook_SARejected_0100 start");
+    SetDeveloperMode(true);
+
+    IPCSkeleton::callingFullTokenId = 1;
+    IPCSkeleton::callingTokenId = TOKEN_NATIVE;
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    int32_t result = service_->UnregisterCliHook(hook);
+    EXPECT_EQ(result, ERR_NOT_SYSTEM_APP);
+
+    IPCSkeleton::Reset();
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterCliHook_SARejected_0100 end");
+}
+
+/**
+ * @tc.name: RegisterFunctionHook_SARejected_0100
+ * @tc.desc: RegisterFunctionHook rejects SA (native token) caller — agenthook not open to SA
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, RegisterFunctionHook_SARejected_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RegisterFunctionHook_SARejected_0100 start");
+    SetDeveloperMode(true);
+
+    IPCSkeleton::callingFullTokenId = 1;
+    IPCSkeleton::callingTokenId = TOKEN_NATIVE;
+
+    auto hook = sptr<MockFunctionHook>::MakeSptr();
+    int32_t result = service_->RegisterFunctionHook(hook, 0x03);
+    EXPECT_EQ(result, ERR_NOT_SYSTEM_APP);
+    EXPECT_EQ(service_->functionHook_, nullptr);
+
+    IPCSkeleton::Reset();
+    TAG_LOGI(AAFwkTag::TEST, "RegisterFunctionHook_SARejected_0100 end");
+}
+
+/**
+ * @tc.name: UnregisterFunctionHook_SARejected_0100
+ * @tc.desc: UnregisterFunctionHook rejects SA (native token) caller — agenthook not open to SA
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnregisterFunctionHook_SARejected_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterFunctionHook_SARejected_0100 start");
+    SetDeveloperMode(true);
+
+    IPCSkeleton::callingFullTokenId = 1;
+    IPCSkeleton::callingTokenId = TOKEN_NATIVE;
+
+    auto hook = sptr<MockFunctionHook>::MakeSptr();
+    int32_t result = service_->UnregisterFunctionHook(hook);
+    EXPECT_EQ(result, ERR_NOT_SYSTEM_APP);
+
+    IPCSkeleton::Reset();
+    TAG_LOGI(AAFwkTag::TEST, "UnregisterFunctionHook_SARejected_0100 end");
+}
+
+/**
+ * @tc.name: OnIdle_BlocksUnload_WhenCliHookRegistered_0100
+ * @tc.desc: OnIdle returns -1 (cancel idle) when a cliHook is registered — don't auto-unload with hooks
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, OnIdle_BlocksUnload_WhenCliHookRegistered_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnIdle_BlocksUnload_WhenCliHookRegistered_0100 start");
+    SetDeveloperMode(true);
+
+    SystemAbilityOnDemandReason idleReason;
+    EXPECT_EQ(service_->OnIdle(idleReason), 0);
+
+    auto hook = sptr<MockCliHook>::MakeSptr();
+    service_->RegisterCliHook(hook, 0x0F);
+    EXPECT_EQ(service_->OnIdle(idleReason), -1);
+
+    service_->UnregisterCliHook(hook);
+    EXPECT_EQ(service_->OnIdle(idleReason), 0);
+    TAG_LOGI(AAFwkTag::TEST, "OnIdle_BlocksUnload_WhenCliHookRegistered_0100 end");
+}
+
+/**
+ * @tc.name: OnIdle_BlocksUnload_WhenFunctionHookRegistered_0100
+ * @tc.desc: OnIdle returns -1 (cancel idle) when a functionHook is registered — don't auto-unload with hooks
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, OnIdle_BlocksUnload_WhenFunctionHookRegistered_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnIdle_BlocksUnload_WhenFunctionHookRegistered_0100 start");
+    SetDeveloperMode(true);
+
+    SystemAbilityOnDemandReason idleReason;
+    EXPECT_EQ(service_->OnIdle(idleReason), 0);
+
+    auto hook = sptr<MockFunctionHook>::MakeSptr();
+    service_->RegisterFunctionHook(hook, 0x03);
+    EXPECT_EQ(service_->OnIdle(idleReason), -1);
+
+    service_->UnregisterFunctionHook(hook);
+    EXPECT_EQ(service_->OnIdle(idleReason), 0);
+    TAG_LOGI(AAFwkTag::TEST, "OnIdle_BlocksUnload_WhenFunctionHookRegistered_0100 end");
 }
 } // namespace CliTool
 } // namespace OHOS
