@@ -119,7 +119,8 @@ int32_t SkillExecuteManager::GenerateSkillWant(const AppExecFwk::SkillInfo &skil
     int32_t userId, const std::string &requestCode, AppExecFwk::ExtensionAbilityType &targetType,
     const std::string &scriptPath, const std::string &functionName,
     const std::shared_ptr<AAFwk::WantParams> &skillArgs,
-    const std::string &toolCallId)
+    const std::string &toolCallId,
+    const std::vector<std::string> &skillArgKeys)
 {
     std::string abilityName = skillInfo.abilityName;
     if (abilityName.empty()) {
@@ -141,8 +142,8 @@ int32_t SkillExecuteManager::GenerateSkillWant(const AppExecFwk::SkillInfo &skil
 
     want.SetElementName("", skillInfo.bundleName, abilityName, skillInfo.moduleName);
     AppExecFwk::SkillExecuteParam::WriteToWant(want, skillInfo.bundleName, skillInfo.moduleName,
-        skillInfo.skillName, scriptPath, functionName, skillArgs, skillInfo.srcEntries, requestCode,
-        skillInfo.hapPath, toolCallId);
+        skillInfo.skillName, scriptPath, functionName, skillArgs, skillInfo.srcEntries,
+        requestCode, skillInfo.hapPath, toolCallId, skillArgKeys);
     return ERR_OK;
 }
 

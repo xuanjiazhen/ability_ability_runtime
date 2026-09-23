@@ -5998,6 +5998,14 @@ int32_t AbilityManagerStub::ExecuteInAppSkillWithTokenIdInner(MessageParcel &dat
         request.skillArgs = std::make_shared<AAFwk::WantParams>();
     }
 
+    int32_t skillArgKeysSize = data.ReadInt32();
+    if (skillArgKeysSize > 0) {
+        request.skillArgKeys.resize(static_cast<size_t>(skillArgKeysSize));
+        for (int32_t i = 0; i < skillArgKeysSize; i++) {
+            request.skillArgKeys[i] = Str16ToStr8(data.ReadString16());
+        }
+    }
+
     sptr<ISkillExecuteCallback> callback = nullptr;
     bool hasCallback = data.ReadBool();
     if (hasCallback) {

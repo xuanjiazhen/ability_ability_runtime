@@ -37,6 +37,7 @@ struct SkillExecuteRequest {
     std::string functionName;
     std::shared_ptr<WantParams> skillArgs;
     std::string toolCallId;
+    std::vector<std::string> skillArgKeys;
 };
 
 // Want parameter keys for skill execution
@@ -74,7 +75,8 @@ public:
         const std::shared_ptr<AAFwk::WantParams> &skillArgs = nullptr,
         const std::vector<std::string> &srcEntries = {},
         const std::string &requestCode = "", const std::string &hapPath = "",
-        const std::string &toolCallId = "");
+        const std::string &toolCallId = "",
+        const std::vector<std::string> &skillArgKeys = {});
 
     std::string SrcEntriesToString() const
     {
@@ -94,6 +96,7 @@ public:
     std::string scriptPath_;
     std::string functionName_;
     std::shared_ptr<AAFwk::WantParams> skillArgs_;
+    std::vector<std::string> skillArgKeys_;
     std::vector<std::string> srcEntries_;
     std::string hapPath_;
     std::string requestCode_;
