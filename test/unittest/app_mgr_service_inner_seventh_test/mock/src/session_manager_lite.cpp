@@ -29,6 +29,12 @@ SessionManagerLite &SessionManagerLite::GetInstance()
     return instance_;
 }
 
+SessionManagerLite &SessionManagerLite::GetInstance(int32_t userId)
+{
+    GetInstance().lastGetInstanceUserId_ = userId;
+    return GetInstance();
+}
+
 std::shared_ptr<SceneSessionManagerLite> SessionManagerLite::GetSceneSessionManagerLiteProxy()
 {
     return sceneSessionManagerLiteProxy_;

@@ -72,8 +72,10 @@ public:
 class SessionManagerLite {
 public:
     static SessionManagerLite &GetInstance();
+    static SessionManagerLite &GetInstance(int32_t userId);
     std::shared_ptr<SceneSessionManagerLite> GetSceneSessionManagerLiteProxy();
     std::shared_ptr<SceneSessionManagerLite> sceneSessionManagerLiteProxy_ = nullptr;
+    int32_t lastGetInstanceUserId_ = -1;
 };
 }  // namespace OHOS::Rosen
 
