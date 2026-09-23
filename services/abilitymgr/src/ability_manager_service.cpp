@@ -32,6 +32,7 @@
 #include "agent_card.h"
 #include "agent_extension_connection_constants.h"
 #include "agent_manager_client.h"
+#include "ams_want_param_filter.h"
 #include "app_utils.h"
 #include "app_exit_reason_data_manager.h"
 #include "app_mgr_constants.h"
@@ -430,6 +431,7 @@ void AbilityManagerService::OnStart()
         return;
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "starting");
+    AMSWantParamFilter::GetInstance().InstallFilter();
     if (!Init()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed  init");
         return;
