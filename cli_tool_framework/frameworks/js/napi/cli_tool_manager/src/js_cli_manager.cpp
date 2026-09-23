@@ -44,6 +44,31 @@ constexpr int32_t INDEX_TWO = 2;
 constexpr int32_t INDEX_THREE = 3;
 constexpr int32_t INDEX_FOUR = 4;
 
+void GetWantParamKeys(napi_env env, napi_value param, std::vector<std::string> &keys)
+{
+    napi_valuetype type = napi_undefined;
+    if (napi_typeof(env, param, &type) != napi_ok || type != napi_object) {
+        return;
+    }
+    napi_value jsProNameList = nullptr;
+    uint32_t jsProCount = 0;
+    if (napi_get_property_names(env, param, &jsProNameList) != napi_ok ||
+        napi_get_array_length(env, jsProNameList, &jsProCount) != napi_ok) {
+        return;
+    }
+    keys.clear();
+    for (uint32_t index = 0; index < jsProCount; index++) {
+        napi_value jsProName = nullptr;
+        if (napi_get_element(env, jsProNameList, index, &jsProName) != napi_ok) {
+            continue;
+        }
+        std::string key = AppExecFwk::UnwrapStringFromJS(env, jsProName);
+        if (!key.empty()) {
+            keys.push_back(key);
+        }
+    }
+}
+
 int32_t DispatchCliTool(const ExecToolParam &param, napi_env env,
     std::shared_ptr<NapiAsyncTask> asyncTask)
 {
@@ -167,6 +192,7 @@ napi_value JSCliManager::OnExecTool(napi_env env, size_t argc, napi_value *argv)
         ThrowInvalidParamError(env, "Tool args is required");
         return CreateJsUndefined(env);
     }
+    GetWantParamKeys(env, argv[INDEX_TWO], param.argKeys);
 
     if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_THREE], param.challenge) || param.challenge.empty()) {
         ThrowInvalidParamError(env, "Tool challenge is required");

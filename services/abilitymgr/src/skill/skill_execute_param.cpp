@@ -132,6 +132,7 @@ bool SkillExecuteParam::GenerateFromWant(const AAFwk::Want &want, SkillExecutePa
             auto it = wantParams.GetParams().find(wantKey);
             if (it != wantParams.GetParams().end()) {
                 param.skillArgs_->SetParam(key, it->second);
+                param.skillArgKeys_.push_back(key);
             }
         }
     }
@@ -190,7 +191,8 @@ void SkillExecuteParam::WriteToWant(AAFwk::Want &want, const std::string &bundle
     const std::string &scriptPath, const std::string &functionName,
     const std::shared_ptr<AAFwk::WantParams> &skillArgs,
     const std::vector<std::string> &srcEntries,
-    const std::string &requestCode, const std::string &hapPath)
+    const std::string &requestCode, const std::string &hapPath,
+    const std::vector<std::string> &skillArgKeys)
 {
     want.SetParam(SKILL_EXECUTE_PARAM_BUNDLE_NAME, bundleName);
     want.SetParam(SKILL_EXECUTE_PARAM_MODULE_NAME, moduleName);
@@ -204,11 +206,24 @@ void SkillExecuteParam::WriteToWant(AAFwk::Want &want, const std::string &bundle
     if (skillArgs != nullptr && !skillArgs->GetParams().empty()) {
         std::string argsKeys;
         auto params = want.GetParams();
-        for (auto &[key, value] : skillArgs->GetParams()) {
-            if (!argsKeys.empty()) { argsKeys += ";"; }
-            argsKeys += key;
-            auto wantKey = std::string(SKILL_EXECUTE_PARAM_ARGS_PREFIX) + key;
-            params.SetParam(wantKey, value);
+        if (!skillArgKeys.empty()) {
+            for (const auto &key : skillArgKeys) {
+                auto it = skillArgs->GetParams().find(key);
+                if (it == skillArgs->GetParams().end()) {
+                    continue;
+                }
+                if (!argsKeys.empty()) { argsKeys += ";"; }
+                argsKeys += key;
+                auto wantKey = std::string(SKILL_EXECUTE_PARAM_ARGS_PREFIX) + key;
+                params.SetParam(wantKey, it->second);
+            }
+        } else {
+            for (auto &[key, value] : skillArgs->GetParams()) {
+                if (!argsKeys.empty()) { argsKeys += ";"; }
+                argsKeys += key;
+                auto wantKey = std::string(SKILL_EXECUTE_PARAM_ARGS_PREFIX) + key;
+                params.SetParam(wantKey, value);
+            }
         }
         params.SetParam(SKILL_EXECUTE_PARAM_ARGS_KEYS, AAFwk::String::Box(argsKeys));
         want.SetParams(params);

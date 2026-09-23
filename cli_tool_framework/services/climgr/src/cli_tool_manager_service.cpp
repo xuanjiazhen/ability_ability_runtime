@@ -2119,6 +2119,11 @@ int32_t CliToolManagerService::SetupAndStartSkillSession(const ExecToolParam &pa
     skillRequest.scriptPath = scriptPath;
     skillRequest.functionName = funcName;
     skillRequest.skillArgs = skillArgs;
+    for (const auto &key : param.argKeys) {
+        if (skillArgs->HasParam(key)) {
+            skillRequest.skillArgKeys.push_back(key);
+        }
+    }
 
     TAG_LOGD(AAFwkTag::CLI_TOOL, "execSkill before ExecuteInAppSkillWithTokenId");
     int32_t ret = AAFwk::AbilityManagerClient::GetInstance()->ExecuteInAppSkillWithTokenId(

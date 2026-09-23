@@ -8469,6 +8469,16 @@ int32_t AbilityManagerProxy::ExecuteInAppSkillWithTokenId(const AppExecFwk::Skil
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write skillArgs fail");
         return INNER_ERR;
     }
+    if (!data.WriteInt32(static_cast<int32_t>(request.skillArgKeys.size()))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write skillArgKeys size fail");
+        return INNER_ERR;
+    }
+    for (const auto &key : request.skillArgKeys) {
+        if (!data.WriteString16(Str8ToStr16(key))) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write skillArgKeys fail");
+            return INNER_ERR;
+        }
+    }
     bool hasCallback = callback != nullptr;
     if (!data.WriteBool(hasCallback) ||
         (hasCallback && !data.WriteRemoteObject(callback->AsObject()))) {

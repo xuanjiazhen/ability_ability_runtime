@@ -2775,7 +2775,20 @@ std::vector<napi_value> JsUIAbility::BuildSkillCallArgs(napi_env env,
     args.push_back(info);
     if (param->skillArgs_ != nullptr && !param->skillArgs_->GetParams().empty()) {
         napi_value wrappedObj = AppExecFwk::WrapWantParams(env, *param->skillArgs_);
-        for (const auto &[key, value] : param->skillArgs_->GetParams()) {
+        std::vector<std::string> argKeys;
+        if (!param->skillArgKeys_.empty()) {
+            argKeys = param->skillArgKeys_;
+        } else {
+            for (const auto &[key, value] : param->skillArgs_->GetParams()) {
+                argKeys.push_back(key);
+            }
+        }
+        for (const auto &key : argKeys) {
+            auto it = param->skillArgs_->GetParams().find(key);
+            if (it == param->skillArgs_->GetParams().end()) {
+                continue;
+            }
+            const auto &value = it->second;
             auto typeId = AppExecFwk::WantParams::GetDataType(value);
             auto valStr = AppExecFwk::WantParams::GetStringByType(value, typeId);
             TAG_LOGI(AAFwkTag::UIABILITY, "skillArg key:%{public}s value:%{public}s",

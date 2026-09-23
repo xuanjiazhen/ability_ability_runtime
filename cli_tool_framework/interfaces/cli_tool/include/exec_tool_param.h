@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_EXEC_TOOL_PARAM_H
 
 #include <string>
+#include <vector>
 
 #include "exec_options.h"
 #include "parcel.h"
@@ -34,6 +35,7 @@ public:
     std::string challenge;
     ExecOptions options;
     AAFwk::WantParams args;
+    std::vector<std::string> argKeys;
 
     bool Marshalling(Parcel &parcel) const;
     static ExecToolParam *Unmarshalling(Parcel &parcel);
