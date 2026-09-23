@@ -15,6 +15,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <chrono>
 #include <thread>
 
 #define private public
@@ -129,6 +130,8 @@ void AgentCardMgrTest::SetUp(void)
     MyFlag::getBundleInfoV9CallNames.clear();
     MyFlag::lastGetBundleInfosUserId = 0;
     MyFlag::insertDataCallNames.clear();
+    MyFlag::retGetOsAccountLocalIds = 0;
+    MyFlag::mockOsAccountLocalIds.clear();
 }
 
 void AgentCardMgrTest::TearDown(void)
@@ -1776,6 +1779,66 @@ HWTEST_F(AgentCardMgrTest, HandlePreInstallBackfill_009, TestSize.Level1)
 
     EXPECT_EQ(agentCardMgr.HandlePreInstallBackfill(101), ERR_OK);
     EXPECT_EQ(MyFlag::lastGetBundleInfosUserId, 101);
+}
+
+/**
+ * @tc.name: BackfillPreInstallCards_001
+ * @tc.desc: BackfillPreInstallCards always dispatches the system account (user 0) even when
+ *           GetOsAccountLocalIds returns no accounts (UT env without os_account subsystem).
+ * @tc.type: FUNC
+ */
+HWTEST_F(AgentCardMgrTest, BackfillPreInstallCards_001, TestSize.Level1)
+{
+    MyFlag::retGetBundleInfos = false;
+    MyFlag::lastGetBundleInfosUserId = -1;
+
+    AgentCardMgr::BackfillPreInstallCards();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+    EXPECT_EQ(MyFlag::lastGetBundleInfosUserId, 0);
+}
+
+/**
+ * @tc.name: BackfillPreInstallCards_002
+ * @tc.desc: BackfillPreInstallCards installs AgentCards for pre-installed bundles under user 0.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AgentCardMgrTest, BackfillPreInstallCards_002, TestSize.Level1)
+{
+    AppExecFwk::BundleInfo preBundle = BuildPreInstallBundleInfo("pre.bundle", 0);
+    MyFlag::mockBundleInfos = { preBundle };
+    MyFlag::retGetBundleInfos = true;
+    MyFlag::retGetBundleInfo = true;
+    MyFlag::insertDataCallNames.clear();
+
+    AgentCardMgr::BackfillPreInstallCards();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+    ASSERT_EQ(MyFlag::insertDataCallNames.size(), 1);
+    EXPECT_EQ(MyFlag::insertDataCallNames[0], "pre.bundle");
+}
+
+/**
+ * @tc.name: BackfillPreInstallCards_003
+ * @tc.desc: BackfillPreInstallCards does not duplicate user 0 when GetOsAccountLocalIds
+ *           already returns it.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AgentCardMgrTest, BackfillPreInstallCards_003, TestSize.Level1)
+{
+    MyFlag::retGetOsAccountLocalIds = 0;
+    MyFlag::mockOsAccountLocalIds = {0};
+    AppExecFwk::BundleInfo preBundle = BuildPreInstallBundleInfo("pre.bundle", 0);
+    MyFlag::mockBundleInfos = { preBundle };
+    MyFlag::retGetBundleInfos = true;
+    MyFlag::retGetBundleInfo = true;
+    MyFlag::insertDataCallNames.clear();
+
+    AgentCardMgr::BackfillPreInstallCards();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+    ASSERT_EQ(MyFlag::insertDataCallNames.size(), 1);
+    EXPECT_EQ(MyFlag::insertDataCallNames[0], "pre.bundle");
 }
 } // namespace AgentRuntime
 } // namespace OHOS
