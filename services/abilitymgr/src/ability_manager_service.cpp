@@ -9436,6 +9436,10 @@ int AbilityManagerService::KillProcess(const std::string &bundleName, bool clear
     int32_t userId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
     AppExecFwk::BundleInfo bundleInfo;
     if (appIndex == -1) {
+        bms->GetBundleInfoV9(bundleName, 0, bundleInfo, userId);
+    }
+
+    if (appIndex == -1) {
         bms->GetDualModeBundleInfo(bundleName, userId, appIndex);
     }
     if (IN_PROCESS_CALL(bms->GetCloneBundleInfoExt(bundleName,
