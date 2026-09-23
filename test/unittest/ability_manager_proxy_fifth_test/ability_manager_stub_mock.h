@@ -49,7 +49,8 @@ public:
     int code_ = 0;
 
     virtual int StartAbility(
-        const Want& want, int32_t userId = DEFAULT_INVAL_VALUE, int requestCode = -1, uint64_t specifiedFullTokenId = 0)
+        const Want& want, int32_t userId = DEFAULT_INVAL_VALUE, int requestCode = -1, uint64_t specifiedFullTokenId = 0,
+        bool isLaunchSCB = false)
     {
         return 0;
     }

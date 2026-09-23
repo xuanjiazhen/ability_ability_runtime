@@ -28,7 +28,7 @@ MockAbilityDelegatorStub::MockAbilityDelegatorStub()
 {}
 
 int MockAbilityDelegatorStub::StartAbility(
-    const Want& want, int32_t userId, int requestCode, uint64_t specifiedFullTokenId)
+    const Want& want, int32_t userId, int requestCode, uint64_t specifiedFullTokenId, bool isLaunchSCB)
 {
     return 0;
 }
@@ -224,7 +224,7 @@ MockAbilityDelegatorStub2::MockAbilityDelegatorStub2()
 {}
 
 int MockAbilityDelegatorStub2::StartAbility(
-    const Want& want, int32_t userId, int requestCode, uint64_t specifiedFullTokenId)
+    const Want& want, int32_t userId, int requestCode, uint64_t specifiedFullTokenId, bool isLaunchSCB)
 {
     return 0;
 }

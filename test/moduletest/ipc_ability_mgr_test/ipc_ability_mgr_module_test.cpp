@@ -33,6 +33,7 @@ using namespace OHOS::AppExecFwk;
 using OHOS::iface_cast;
 using OHOS::sptr;
 using testing::_;
+using testing::A;
 using testing::Invoke;
 using testing::InvokeWithoutArgs;
 class IpcAbilityMgrModuleTest : public testing::Test {
@@ -99,7 +100,8 @@ HWTEST_F(IpcAbilityMgrModuleTest, AbilityMgrService_IPC_001, TestSize.Level1)
         sptr<IAbilityManager> abilityMgrClient = iface_cast<IAbilityManager>(mockAbilityMgr);
         const Want want;
 
-        EXPECT_CALL(*mockAbilityMgr, StartAbility(_, _, _, _))
+        EXPECT_CALL(*mockAbilityMgr, StartAbility(
+            A<const Want&>(), A<int32_t>(), A<int>(), A<uint64_t>(), A<bool>()))
             .Times(1)
             .WillOnce(InvokeWithoutArgs(mockAbilityMgr.GetRefPtr(), &MockAbilityMgrService::Post));
         abilityMgrClient->StartAbility(want, -1, 0);

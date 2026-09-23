@@ -34,7 +34,7 @@ MockAbilityManagerService::~MockAbilityManagerService()
 {}
 
 int MockAbilityManagerService::StartAbility(
-    const Want& want, int32_t userId, int requestCode, uint64_t specifiedFullTokenId)
+    const Want& want, int32_t userId, int requestCode, uint64_t specifiedFullTokenId, bool isLaunchSCB)
 {
     AbilityLifeCycleState state = AbilityLifeCycleState::ABILITY_STATE_INITIAL;
     RequestCode request = static_cast<RequestCode>(requestCode);
