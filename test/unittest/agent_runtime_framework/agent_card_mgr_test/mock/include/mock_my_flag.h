@@ -57,6 +57,10 @@ public:
     static int32_t lastGetBundleInfosUserId;
     static std::vector<std::string> insertDataCallNames;
 
+    // Mock data for GetOsAccountLocalIds
+    static int32_t retGetOsAccountLocalIds;
+    static std::vector<int32_t> mockOsAccountLocalIds;
+
     // Mock data for GetResConfigFile
     static std::vector<std::string> mockProfileInfos;
 

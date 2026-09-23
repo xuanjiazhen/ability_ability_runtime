@@ -126,5 +126,17 @@ HWTEST_F(OsAccountManagerWrapperTest, GetCurrentActiveAccountId_0100, TestSize.L
     int ret = OsAccountManagerWrapper::GetCurrentActiveAccountId();
     EXPECT_EQ(ret, 100);
 }
-}  // namespace AAFwk
+
+/**
+ * @tc.name: GetOsAccountLocalIds_0100
+ * @tc.desc: Get os account local ids.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OsAccountManagerWrapperTest, GetOsAccountLocalIds_0100, TestSize.Level1)
+{
+    std::vector<int32_t> ids;
+    int ret = OsAccountManagerWrapper::GetOsAccountLocalIds(ids);
+    EXPECT_EQ(ret, RESULT_OK);
+}
+} // namespace AAFwk
 }  // namespace OHOS
