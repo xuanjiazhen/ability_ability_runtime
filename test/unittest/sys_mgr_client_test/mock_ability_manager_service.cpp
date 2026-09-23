@@ -36,7 +36,7 @@ MockAbilityManagerService::~MockAbilityManagerService()
 {}
 
 int MockAbilityManagerService::StartAbility(
-    const Want& want, int32_t userId, int requestCode, uint64_t specifiedFullTokenId)
+    const Want& want, int32_t userId, int requestCode, uint64_t specifiedFullTokenId, bool isLaunchSCB)
 {
     GTEST_LOG_(INFO) << "MockAbilityManagerService::StartAbility called";
     curstate_ = AbilityLifeCycleState::ABILITY_STATE_INITIAL;

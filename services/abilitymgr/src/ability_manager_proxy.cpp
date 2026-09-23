@@ -72,7 +72,8 @@ bool AbilityManagerProxy::ExtendMaxIpcCapacityForWant(const Want &want, MessageP
     return false;
 }
 
-int AbilityManagerProxy::StartAbility(const Want &want, int32_t userId, int requestCode, uint64_t specifiedFullTokenId)
+int AbilityManagerProxy::StartAbility(const Want &want, int32_t userId,
+    int requestCode, uint64_t specifiedFullTokenId, bool isLaunchSCB)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());

@@ -24,7 +24,7 @@ namespace OHOS {
 namespace AAFwk {
 class MockAbilityMgrService : public AbilityManagerStub {
 public:
-    MOCK_METHOD4(StartAbility, int(const Want& want, int32_t userId, int requestCode, uint64_t specifiedFullTokenId));
+    MOCK_METHOD5(StartAbility, int(const Want& want, int32_t userId, int requestCode, uint64_t specifiedFullTokenId, bool isLaunchSCB));
     MOCK_METHOD5(StartAbility, int(const Want& want, const sptr<IRemoteObject>& callerToken, int32_t userId,
         int requestCode, uint64_t specifiedFullTokenId));
     MOCK_METHOD5(StartAbility, int(const Want& want, const AbilityStartSetting& abilityStartSetting,
