@@ -43,7 +43,7 @@ const std::string STRING_BUNDLE_NAME_INVALID = "invalid_bundle";
 }  // namespace
 
 int MockAbilityManagerStub::StartAbility(
-    const Want& want, int32_t userId, int requestCode, uint64_t specifiedFullTokenId)
+    const Want& want, int32_t userId, int requestCode, uint64_t specifiedFullTokenId, bool isLaunchSCB)
 {
     TAG_LOGI(AAFwkTag::TEST, "[%{public}s(%{public}s)] enter", __FILE__, __FUNCTION__);
 

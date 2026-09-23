@@ -34,7 +34,7 @@ MockServiceAbilityManagerService::~MockServiceAbilityManagerService()
 {}
 
 int MockServiceAbilityManagerService::StartAbility(
-    const Want& want, int32_t userId, int requestCode, uint64_t specifiedFullTokenId)
+    const Want& want, int32_t userId, int requestCode, uint64_t specifiedFullTokenId, bool isLaunchSCB)
 {
     return 0;
 }

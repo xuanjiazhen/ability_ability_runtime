@@ -36,7 +36,7 @@ public:
     MockAbilityManagerService();
     ~MockAbilityManagerService();
     int StartAbility(const Want& want, int32_t userId = DEFAULT_INVAL_VALUE, int requestCode = -1,
-        uint64_t specifiedFullTokenId = 0) override;
+        uint64_t specifiedFullTokenId = 0, bool isLaunchSCB = false) override;
     int StartAbility(const Want& want,
         const sptr<IRemoteObject>& callerToken,
         int32_t userId = DEFAULT_INVAL_VALUE,
