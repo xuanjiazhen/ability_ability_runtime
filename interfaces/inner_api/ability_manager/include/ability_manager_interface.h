@@ -210,7 +210,8 @@ public:
         const Want &want,
         int32_t userId = DEFAULT_INVAL_VALUE,
         int requestCode = DEFAULT_INVAL_VALUE,
-        uint64_t specifiedFullTokenId = 0) = 0;
+        uint64_t specifiedFullTokenId = 0,
+        bool isLaunchSCB = false) = 0;
 
     /**
      * StartAbility with want, send want to ability manager service.
