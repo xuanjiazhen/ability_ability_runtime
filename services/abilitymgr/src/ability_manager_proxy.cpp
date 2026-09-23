@@ -42,6 +42,21 @@ namespace {
             return INNER_ERR;                                             \
         }                                                                 \
     } while (0)
+
+bool WriteSkillArgKeys(MessageParcel &data, const std::vector<std::string> &skillArgKeys)
+{
+    if (!data.WriteInt32(static_cast<int32_t>(skillArgKeys.size()))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write skillArgKeys size fail");
+        return false;
+    }
+    for (const auto &key : skillArgKeys) {
+        if (!data.WriteString16(Str8ToStr16(key))) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write skillArgKeys fail");
+            return false;
+        }
+    }
+    return true;
+}
 }
 using AutoStartupInfo = AbilityRuntime::AutoStartupInfo;
 constexpr int32_t CYCLE_LIMIT = 1000;
@@ -8467,6 +8482,9 @@ int32_t AbilityManagerProxy::ExecuteInAppSkillWithTokenId(const AppExecFwk::Skil
         ? request.skillArgs : std::make_shared<AAFwk::WantParams>();
     if (!data.WriteParcelable(paramsToWrite.get())) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write skillArgs fail");
+        return INNER_ERR;
+    }
+    if (!WriteSkillArgKeys(data, request.skillArgKeys)) {
         return INNER_ERR;
     }
     bool hasCallback = callback != nullptr;

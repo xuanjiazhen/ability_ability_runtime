@@ -2651,6 +2651,48 @@ bool IsBlockedSkillKeyName(const std::string &name)
     };
     return BLOCKED.count(name) > 0;
 }
+
+void AppendSkillCallArgs(napi_env env, const std::shared_ptr<AppExecFwk::SkillExecuteParam> &param,
+    std::vector<napi_value> &args)
+{
+    if (param->skillArgs_ == nullptr || param->skillArgs_->GetParams().empty()) {
+        return;
+    }
+    napi_value wrappedObj = AppExecFwk::WrapWantParams(env, *param->skillArgs_);
+    std::vector<std::string> argKeys;
+    if (!param->skillArgKeys_.empty()) {
+        argKeys = param->skillArgKeys_;
+    } else {
+        for (const auto &[key, value] : param->skillArgs_->GetParams()) {
+            argKeys.push_back(key);
+        }
+    }
+    for (const auto &key : argKeys) {
+        auto it = param->skillArgs_->GetParams().find(key);
+        if (it == param->skillArgs_->GetParams().end()) {
+            continue;
+        }
+        const auto &value = it->second;
+        auto typeId = AppExecFwk::WantParams::GetDataType(value);
+        auto valStr = AppExecFwk::WantParams::GetStringByType(value, typeId);
+        TAG_LOGI(AAFwkTag::UIABILITY, "skillArg key:%{public}s value:%{public}s",
+            key.c_str(), valStr.c_str());
+        if (IsBlockedSkillKeyName(key)) {
+            TAG_LOGW(AAFwkTag::UIABILITY, "skip blocked skillArg key:%{public}s", key.c_str());
+            continue;
+        }
+        napi_value keyName = nullptr;
+        napi_create_string_utf8(env, key.c_str(), NAPI_AUTO_LENGTH, &keyName);
+        bool hasOwn = false;
+        if (napi_has_own_property(env, wrappedObj, keyName, &hasOwn) != napi_ok || !hasOwn) {
+            TAG_LOGW(AAFwkTag::UIABILITY, "skip non-own skillArg key:%{public}s", key.c_str());
+            continue;
+        }
+        napi_value val = nullptr;
+        napi_get_named_property(env, wrappedObj, key.c_str(), &val);
+        args.push_back(val);
+    }
+}
 } // namespace
 
 napi_value JsUIAbility::LoadSkillFunction(
@@ -2773,29 +2815,7 @@ std::vector<napi_value> JsUIAbility::BuildSkillCallArgs(napi_env env,
 
     std::vector<napi_value> args;
     args.push_back(info);
-    if (param->skillArgs_ != nullptr && !param->skillArgs_->GetParams().empty()) {
-        napi_value wrappedObj = AppExecFwk::WrapWantParams(env, *param->skillArgs_);
-        for (const auto &[key, value] : param->skillArgs_->GetParams()) {
-            auto typeId = AppExecFwk::WantParams::GetDataType(value);
-            auto valStr = AppExecFwk::WantParams::GetStringByType(value, typeId);
-            TAG_LOGI(AAFwkTag::UIABILITY, "skillArg key:%{public}s value:%{public}s",
-                key.c_str(), valStr.c_str());
-            if (IsBlockedSkillKeyName(key)) {
-                TAG_LOGW(AAFwkTag::UIABILITY, "skip blocked skillArg key:%{public}s", key.c_str());
-                continue;
-            }
-            napi_value keyName = nullptr;
-            napi_create_string_utf8(env, key.c_str(), NAPI_AUTO_LENGTH, &keyName);
-            bool hasOwn = false;
-            if (napi_has_own_property(env, wrappedObj, keyName, &hasOwn) != napi_ok || !hasOwn) {
-                TAG_LOGW(AAFwkTag::UIABILITY, "skip non-own skillArg key:%{public}s", key.c_str());
-                continue;
-            }
-            napi_value val = nullptr;
-            napi_get_named_property(env, wrappedObj, key.c_str(), &val);
-            args.push_back(val);
-        }
-    }
+    AppendSkillCallArgs(env, param, args);
     return args;
 }
 
