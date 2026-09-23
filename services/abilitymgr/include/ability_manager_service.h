@@ -245,7 +245,8 @@ public:
         uint32_t specifyTokenId,
         bool isPendingWantCaller,
         int32_t userId = DEFAULT_INVAL_VALUE,
-        int requestCode = DEFAULT_INVAL_VALUE);
+        int requestCode = DEFAULT_INVAL_VALUE,
+        bool isLaunchSCB = false);
 
     /**
      * Starts a new ability with specific start options and specialId, send want to ability manager service.
