@@ -31,6 +31,8 @@ bool AgentRuntime::MyFlag::retGetBundleInfos = false;
 std::vector<AppExecFwk::BundleInfo> AgentRuntime::MyFlag::mockBundleInfos;
 std::vector<std::string> AgentRuntime::MyFlag::getBundleInfoV9CallNames;
 int32_t AgentRuntime::MyFlag::lastGetBundleInfosUserId = 0;
+int32_t AgentRuntime::MyFlag::retGetOsAccountLocalIds = 0;
+std::vector<int32_t> AgentRuntime::MyFlag::mockOsAccountLocalIds;
 
 namespace AppExecFwk {
 BundleMgrClient::BundleMgrClient() {}

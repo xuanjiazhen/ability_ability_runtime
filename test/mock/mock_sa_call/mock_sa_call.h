@@ -215,6 +215,7 @@ public:
             perms[96] = "ohos.permission.DATA_IDENTIFY_ANONYMIZE",
             perms[97] = "ohos.permission.SUBSCRIBE_NOTIFICATION_WINDOW_STATE",
             perms[98] = "ohos.permission.NFC_CARD_EMULATION",
+            perms[99] = "ohos.permission.GET_LOCAL_ACCOUNT_IDENTIFIERS",
         };
 
         NativeTokenInfoParams infoInstance = {
