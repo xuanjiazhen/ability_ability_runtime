@@ -821,5 +821,46 @@ napi_value CreateJsSessionStatus(napi_env env)
     return objValue;
 }
 
+napi_value CreateJsToolEventType(napi_env env)
+{
+    napi_value objValue = nullptr;
+    napi_status createStatus = napi_create_object(env, &objValue);
+    if (createStatus != napi_ok || objValue == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "napi_create_object failed, %{public}d", createStatus);
+        return nullptr;
+    }
+
+    napi_value stdoutVal = CreateJsValue(env, std::string("stdout"));
+    napi_value stderrVal = CreateJsValue(env, std::string("stderr"));
+    napi_value exitVal = CreateJsValue(env, std::string("exit"));
+    napi_value errorVal = CreateJsValue(env, std::string("error"));
+    if (stdoutVal == nullptr || stderrVal == nullptr || exitVal == nullptr || errorVal == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "CreateJsValue failed");
+        return nullptr;
+    }
+    napi_status setStatus = napi_set_named_property(env, objValue, "STDOUT", stdoutVal);
+    if (setStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "napi_set_named_property STDOUT failed");
+        return nullptr;
+    }
+    setStatus = napi_set_named_property(env, objValue, "STDERR", stderrVal);
+    if (setStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "napi_set_named_property STDERR failed");
+        return nullptr;
+    }
+    setStatus = napi_set_named_property(env, objValue, "EXIT", exitVal);
+    if (setStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "napi_set_named_property EXIT failed");
+        return nullptr;
+    }
+    setStatus = napi_set_named_property(env, objValue, "ERROR", errorVal);
+    if (setStatus != napi_ok) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "napi_set_named_property ERROR failed");
+        return nullptr;
+    }
+
+    return objValue;
+}
+
 } // namespace CliTool
 } // namespace OHOS

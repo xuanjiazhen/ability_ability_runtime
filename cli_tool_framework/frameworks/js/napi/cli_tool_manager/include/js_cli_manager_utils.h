@@ -124,6 +124,13 @@ napi_value CreateJsToolSummary(napi_env env, const ToolSummary &summary);
 napi_value CreateJsSessionStatus(napi_env env);
 
 /**
+ * @brief Create JavaScript ToolEventType enum object.
+ * @param env The N-API environment.
+ * @return Returns the JavaScript object representing ToolEventType enum.
+ */
+napi_value CreateJsToolEventType(napi_env env);
+
+/**
  * @brief Create JavaScript ExecResult object from native ExecResult.
  *
  * @param env The N-API environment.

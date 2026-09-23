@@ -73,6 +73,7 @@ napi_value FilterAppStateTypeInit(napi_env env);
 napi_value FilterProcessStateTypeInit(napi_env env);
 napi_value FilterAbilityStateTypeInit(napi_env env);
 napi_value FilterCallbackInit(napi_env env);
+napi_value MultiAppModeInit(napi_env env);
 }  // namespace AbilityRuntime
 }  // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_JS_APP_MANAGER_UTILS_H
