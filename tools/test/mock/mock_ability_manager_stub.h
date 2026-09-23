@@ -27,7 +27,7 @@ namespace AAFwk {
 class MockAbilityManagerStub : public AbilityManagerStub {
 public:
     int StartAbility(const Want& want, int32_t userId = DEFAULT_INVAL_VALUE, int requestCode = -1,
-        uint64_t specifiedFullTokenId = 0);
+        uint64_t specifiedFullTokenId = 0, bool isLaunchSCB = false);
 
     MOCK_METHOD5(StartAbility, int(const Want& want, const sptr<IRemoteObject>& callerToken,
         int32_t userId, int requestCode, uint64_t specifiedFullTokenId));
