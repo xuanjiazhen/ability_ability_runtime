@@ -24,6 +24,7 @@
 #include "insight_intent_delay_result_callback_mgr.h"
 #include "insight_intent_execute_result.h"
 #include "js_insight_intent_context.h"
+#include "js_insight_intent_utils.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
 #include "napi_common_execute_result.h"
@@ -96,15 +97,7 @@ bool JsInsightIntentExecutor::Init(const InsightIntentExecutorInfo& insightInten
     napi_create_int64(env, context->GetIntentId(), &jsInstanceId);
     napi_set_named_property(env, contextNapiVal, "instanceId", jsInstanceId);
     std::string toolCallId = context->GetToolCallId();
-    if (!toolCallId.empty()) {
-        napi_value jsToolCallId = nullptr;
-        napi_status status = napi_create_string_utf8(env, toolCallId.c_str(), toolCallId.size(), &jsToolCallId);
-        if (status == napi_ok && jsToolCallId != nullptr) {
-            napi_set_named_property(env, contextNapiVal, "toolCallId", jsToolCallId);
-        } else {
-            TAG_LOGE(AAFwkTag::INTENT, "create toolCallId string failed, status: %{public}d", status);
-        }
-    }
+    JsInsightIntentUtils::SetToolCallId(env, contextNapiVal, toolCallId);
     if (!CheckTypeForNapiValue(env, executorNapiVal, napi_object) ||
         !CheckTypeForNapiValue(env, contextNapiVal, napi_object) ||
         napi_set_named_property(env, executorNapiVal, "context", contextNapiVal) != napi_ok) {

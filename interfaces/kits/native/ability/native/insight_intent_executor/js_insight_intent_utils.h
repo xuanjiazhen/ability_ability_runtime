@@ -56,6 +56,8 @@ public:
         std::shared_ptr<AppExecFwk::InsightIntentExecuteResult> resultCpp);
 
     static std::string StringifyObject(napi_env env, napi_value result);
+
+    static void SetToolCallId(napi_env env, napi_value contextNapiVal, const std::string& toolCallId);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

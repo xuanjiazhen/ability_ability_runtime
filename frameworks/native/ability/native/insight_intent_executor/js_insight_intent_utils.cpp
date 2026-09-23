@@ -23,6 +23,19 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+void JsInsightIntentUtils::SetToolCallId(napi_env env, napi_value contextNapiVal, const std::string& toolCallId)
+{
+    if (!toolCallId.empty()) {
+        napi_value jsToolCallId = nullptr;
+        napi_status status = napi_create_string_utf8(env, toolCallId.c_str(), toolCallId.size(), &jsToolCallId);
+        if (status == napi_ok && jsToolCallId != nullptr) {
+            napi_set_named_property(env, contextNapiVal, "toolCallId", jsToolCallId);
+        } else {
+            TAG_LOGE(AAFwkTag::INTENT, "create toolCallId string failed, status: %{public}d", status);
+        }
+    }
+}
+
 napi_value JsInsightIntentUtils::CallJsFunctionWithResult(
     napi_env env,
     napi_value obj,
