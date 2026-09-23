@@ -1203,6 +1203,12 @@ void EtsUIExtensionContentSession::OnStartAbilityForResult(ani_env *env, ani_obj
         AddFreeInstallObserver(env, want, callback, context, true);
     }
 
+    if (listener_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null listener_");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return;
+    }
+
     ani_vm *etsVm = nullptr;
     ani_ref callbackRef = CreateCallbackRef(env, callback, etsVm);
     if (callbackRef == nullptr) {

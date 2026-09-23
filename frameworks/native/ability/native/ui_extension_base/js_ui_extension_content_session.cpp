@@ -711,6 +711,9 @@ napi_value JsUIExtensionContentSession::OnSetReceiveDataForResultCallback(napi_e
 
     if (!isSyncRegistered) {
         RegisterReceiveDataForResultListener(env);
+        if (receiveDataForResultCallback_ == nullptr) {
+            return CreateJsUndefined(env);
+        }
     }
     napi_value callback = info.argv[INDEX_ZERO];
     if (receiveDataForResultCallback_ == nullptr) {
