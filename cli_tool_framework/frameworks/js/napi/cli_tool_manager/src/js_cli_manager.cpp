@@ -727,6 +727,15 @@ napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
         TAG_LOGE(AAFwkTag::CLI_TOOL, "napi_set_named_property SessionStatus failed");
     }
 
+    napi_value toolEventType = CreateJsToolEventType(env);
+    if (toolEventType == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "CreateJsToolEventType failed");
+        return CreateJsUndefined(env);
+    }
+    if (napi_set_named_property(env, exportObj, "ToolEventType", toolEventType) != napi_ok) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "napi_set_named_property ToolEventType failed");
+    }
+
     TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManagerInit end");
     return CreateJsUndefined(env);
 }

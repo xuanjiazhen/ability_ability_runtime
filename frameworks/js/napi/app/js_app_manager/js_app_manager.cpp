@@ -1894,6 +1894,7 @@ void JsAppManagerInitProperty(napi_env env, napi_value exportObj)
     napi_set_named_property(env, exportObj, "FilterProcessStateType", FilterProcessStateTypeInit(env));
     napi_set_named_property(env, exportObj, "FilterAbilityStateType", FilterAbilityStateTypeInit(env));
     napi_set_named_property(env, exportObj, "FilterCallback", FilterCallbackInit(env));
+    napi_set_named_property(env, exportObj, "MultiAppMode", MultiAppModeInit(env));
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

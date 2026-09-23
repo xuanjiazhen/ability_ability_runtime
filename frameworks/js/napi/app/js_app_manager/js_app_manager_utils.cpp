@@ -569,5 +569,29 @@ napi_value FilterCallbackInit(napi_env env)
 
     return handleEscape.Escape(object);
 }
+
+napi_value MultiAppModeInit(napi_env env)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null env");
+        return nullptr;
+    }
+
+    HandleEscape handleEscape(env);
+    napi_value object = nullptr;
+    napi_create_object(env, &object);
+    if (object == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null obj");
+        return nullptr;
+    }
+
+    napi_set_named_property(env, object, "NOT_SUPPORTED", CreateJsValue(env, 0));
+    napi_set_named_property(env, object, "MULTI_INSTANCE", CreateJsValue(env, 1));
+    napi_set_named_property(env, object, "APP_CLONE", CreateJsValue(env, 2));
+
+    return handleEscape.Escape(object);
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
