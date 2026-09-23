@@ -399,7 +399,7 @@ ErrCode ClawAaShellCommand::RunAsForceStop()
         std::string bundleName = argList_[1];
         std::string inputReason = "ohos-aa force-stop";
         TAG_LOGI(AAFwkTag::AA_TOOL, "Bundle name %{public}s", bundleName.c_str());
-        ErrCode result = AbilityManagerClient::GetInstance()->KillProcess(bundleName, false, 0, inputReason);
+        ErrCode result = AbilityManagerClient::GetInstance()->KillProcess(bundleName, false, -1, inputReason);
         if (result == OHOS::ERR_OK) {
             TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s", STRING_FORCE_STOP_OK.c_str());
             PrintSuccess(STRING_FORCE_STOP_OK);
