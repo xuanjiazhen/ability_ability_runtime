@@ -114,6 +114,10 @@ struct FaultData : public Parcelable {
     std::string callbackLog;
     AppTelemetryLeakType atLeakType;
     std::string gpuHookSize;
+    std::string heaviestStack;
+    // Service-side diagnostics; never read from or written to the application parcel.
+    int64_t ipcLatency = 0;
+    std::string logValidity;
 };
 
 /**

@@ -80,7 +80,21 @@ bool FaultData::ReadFromParcel(Parcel &parcel)
 
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "AppfreezeInfo read string failed.");
     appfreezeInfo = strValue;
-    return ReadContent(parcel);
+    if (!ReadContent(parcel)) {
+        return false;
+    }
+    heaviestStack.clear();
+    // Older applications end the parcel here. A missing or malformed optional tail
+    // must not discard their existing freeze report.
+    constexpr size_t maxHeaviestStackSize = 128 * 1024;
+    constexpr size_t parcelStringOverhead = 8;
+    if (parcel.GetReadableBytes() > 0 &&
+        parcel.GetReadableBytes() <= maxHeaviestStackSize + parcelStringOverhead &&
+        parcel.ReadString(strValue) && strValue.size() <= maxHeaviestStackSize &&
+        strValue.find('\0') == std::string::npos) {
+        heaviestStack = std::move(strValue);
+    }
+    return true;
 }
 
 bool FaultData::ReadContent(Parcel &parcel)
@@ -392,7 +406,10 @@ bool FaultData::Marshalling(Parcel &parcel) const
         "Tid [%{public}u] write int32 failed.", tid
     );
 
-    return WriteContent(parcel);
+    constexpr size_t maxHeaviestStackSize = 128 * 1024;
+    return WriteContent(parcel) && parcel.WriteString(
+        heaviestStack.size() <= maxHeaviestStackSize && heaviestStack.find('\0') == std::string::npos ?
+        heaviestStack : "");
 }
 
 bool AppFaultDataBySA::ReadFromParcel(Parcel &parcel)

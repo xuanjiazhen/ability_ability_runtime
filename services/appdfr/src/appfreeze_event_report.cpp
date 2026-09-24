@@ -72,7 +72,7 @@ int AppfreezeEventReport::LogAppInputBlockEvent(const std::string &name, HiSysEv
     const AppfreezeEventInfo &eventInfo)
 {
     int ret = -1;
-    auto hisyseventReport = std::make_shared<AAFwk::HisyseventReport>(25);
+    auto hisyseventReport = std::make_shared<AAFwk::HisyseventReport>(28);
     hisyseventReport->InsertParam(EVENT_UID, eventInfo.uid);
     hisyseventReport->InsertParam(EVENT_PID, eventInfo.pid);
     hisyseventReport->InsertParam(EVENT_IS_FROZEN, eventInfo.isFrozen);
@@ -97,6 +97,9 @@ int AppfreezeEventReport::LogAppInputBlockEvent(const std::string &name, HiSysEv
     hisyseventReport->InsertParam(EVENT_LAST_PROCESS_EVENTID, std::to_string(eventInfo.processedId));
     hisyseventReport->InsertParam(EVENT_LAST_MARKED_EVENTID, std::to_string(eventInfo.markedId));
     hisyseventReport->InsertParam(EVENT_EXTERNAL_LOG, eventInfo.externalLog);
+    hisyseventReport->InsertParam("HEAVIEST_STACK", eventInfo.heaviestStack);
+    hisyseventReport->InsertParam("SAMPLER_COUNT", eventInfo.samplerCount);
+    hisyseventReport->InsertParam("LOG_VALIDITY", eventInfo.logValidity);
     ret = hisyseventReport->Report("AAFWK", name.c_str(), type);
     return ret;
 }
@@ -105,7 +108,7 @@ int AppfreezeEventReport::LogThreadBlockEvent(const std::string &name, HiSysEven
     const AppfreezeEventInfo &eventInfo)
 {
     int ret = -1;
-    auto hisyseventReport = std::make_shared<AAFwk::HisyseventReport>(25);
+    auto hisyseventReport = std::make_shared<AAFwk::HisyseventReport>(28);
     hisyseventReport->InsertParam(EVENT_UID, eventInfo.uid);
     hisyseventReport->InsertParam(EVENT_PID, eventInfo.pid);
     hisyseventReport->InsertParam(EVENT_TID, eventInfo.tid);
@@ -128,6 +131,9 @@ int AppfreezeEventReport::LogThreadBlockEvent(const std::string &name, HiSysEven
     hisyseventReport->InsertParam(EVENT_IS_BLOCK_IN_GC, eventInfo.isBlockInGc);
     hisyseventReport->InsertParam(EVENT_PROCESS_LIFECYCLE_INFO, eventInfo.processLifeTime);
     hisyseventReport->InsertParam(EVENT_EXTERNAL_LOG, eventInfo.externalLog);
+    hisyseventReport->InsertParam("HEAVIEST_STACK", eventInfo.heaviestStack);
+    hisyseventReport->InsertParam("SAMPLER_COUNT", eventInfo.samplerCount);
+    hisyseventReport->InsertParam("LOG_VALIDITY", eventInfo.logValidity);
     if (name == AppFreezeType::THREAD_BLOCK_6S) {
         hisyseventReport->InsertParam(EVENT_TRACE_ID, eventInfo.hitraceInfo);
     }
@@ -139,7 +145,7 @@ int AppfreezeEventReport::LogLifeCycleTimeoutEvent(const std::string &name, HiSy
     const AppfreezeEventInfo &eventInfo)
 {
     int ret = -1;
-    auto hisyseventReport = std::make_shared<AAFwk::HisyseventReport>(25);
+    auto hisyseventReport = std::make_shared<AAFwk::HisyseventReport>(28);
     hisyseventReport->InsertParam(EVENT_UID, eventInfo.uid);
     hisyseventReport->InsertParam(EVENT_PID, eventInfo.pid);
     hisyseventReport->InsertParam(EVENT_TID, eventInfo.tid);
@@ -155,6 +161,9 @@ int AppfreezeEventReport::LogLifeCycleTimeoutEvent(const std::string &name, HiSy
     hisyseventReport->InsertParam(EVENT_FREEZE_INFO_PATH, eventInfo.freezeInfoFile);
     hisyseventReport->InsertParam(EVENT_ENABLE_MAINTHREAD_SAMPLE, eventInfo.enableFreeze);
     hisyseventReport->InsertParam(EVENT_EXTERNAL_LOG, eventInfo.externalLog);
+    hisyseventReport->InsertParam("HEAVIEST_STACK", eventInfo.heaviestStack);
+    hisyseventReport->InsertParam("SAMPLER_COUNT", eventInfo.samplerCount);
+    hisyseventReport->InsertParam("LOG_VALIDITY", eventInfo.logValidity);
     hisyseventReport->InsertParam(EVENT_REPORT_LIFECYCLE_AS_APPFREEZE, eventInfo.reportLifecycleToFreeze);
     hisyseventReport->InsertParam(EVENT_FOREGROUND, eventInfo.foregroundState);
     hisyseventReport->InsertParam(EVENT_APPLICATION_HEAP_INFO, eventInfo.applicationHeapInfo);
@@ -170,7 +179,7 @@ int AppfreezeEventReport::LogGeneralEvent(const std::string &name, HiSysEventEve
     const AppfreezeEventInfo &eventInfo)
 {
     int ret = -1;
-    auto hisyseventReport = std::make_shared<AAFwk::HisyseventReport>(20);
+    auto hisyseventReport = std::make_shared<AAFwk::HisyseventReport>(23);
     hisyseventReport->InsertParam(EVENT_UID, eventInfo.uid);
     hisyseventReport->InsertParam(EVENT_PID, eventInfo.pid);
     hisyseventReport->InsertParam(EVENT_TID, eventInfo.tid);
@@ -185,6 +194,9 @@ int AppfreezeEventReport::LogGeneralEvent(const std::string &name, HiSysEventEve
     hisyseventReport->InsertParam(EVENT_FREEZE_INFO_PATH, eventInfo.freezeInfoFile);
     hisyseventReport->InsertParam(EVENT_ENABLE_MAINTHREAD_SAMPLE, eventInfo.enableFreeze);
     hisyseventReport->InsertParam(EVENT_EXTERNAL_LOG, eventInfo.externalLog);
+    hisyseventReport->InsertParam("HEAVIEST_STACK", eventInfo.heaviestStack);
+    hisyseventReport->InsertParam("SAMPLER_COUNT", eventInfo.samplerCount);
+    hisyseventReport->InsertParam("LOG_VALIDITY", eventInfo.logValidity);
     ret = hisyseventReport->Report("AAFWK", name.c_str(), type);
     return ret;
 }
