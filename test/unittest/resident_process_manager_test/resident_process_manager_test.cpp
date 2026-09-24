@@ -148,9 +148,6 @@ HWTEST_F(ResidentProcessManagerTest, SetResidentProcessEnableForSA_002, TestSize
     EXPECT_CALL(AmsResidentProcessRdb::GetInstance(), VerifySaConfigurationPermissions(bundleName, 1234))
         .Times(1)
         .WillOnce(Return(RdbResult::Rdb_Permissions_Err));
-    EXPECT_CALL(AmsResidentProcessRdb::GetInstance(), GetSaResidentProcessRawData(bundleName, 1234))
-        .Times(1)
-        .WillOnce(Return(RdbResult::Rdb_Parameter_Err));
     EXPECT_EQ(manager->SetResidentProcessEnabledForSA(bundleName, 1234, false), ERR_NO_RESIDENT_PERMISSION);
 }
 
