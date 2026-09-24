@@ -245,7 +245,9 @@ sptr<IWantSender> PendingWantManager::GetWantSenderLocked(const int32_t callingU
             }
         }
     }
-    NotifyCancelCallbacksAsync(std::move(cancelCallbacks));
+    if (needCancel) {
+        NotifyCancelCallbacksAsync(std::move(cancelCallbacks));
+    }
     return result;
 }
 
