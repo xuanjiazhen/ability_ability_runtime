@@ -18,6 +18,8 @@
 #include "ability_foreground_state_observer_stub.h"
 #include "app_foreground_state_observer_stub.h"
 #include "application_state_observer_stub.h"
+#include "bundle_mgr_helper.h"
+#include "process_lifecycle_observer_stub.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "image_process_state_observer_stub.h"
@@ -211,6 +213,47 @@ int32_t AppStateObserverManager::UnregisterAppForegroundStateObserver(const sptr
         if (it != nullptr && it->AsObject() == observer->AsObject()) {
             DecreaseObserverCount(uid);
             appForegroundStateObserverMap_.erase(it);
+            RemoveObserverDeathRecipient(observer);
+            return ERR_OK;
+        }
+    }
+    return ERR_INVALID_VALUE;
+}
+
+int32_t AppStateObserverManager::RegisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (observer == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null observer");
+        return ERR_INVALID_VALUE;
+    }
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    pid_t callingPid = IPCSkeleton::GetCallingPid();
+    std::lock_guard lockRegister(processLifecycleObserverLock_);
+    for (const auto &[it, pair] : processLifecycleObserverMap_) {
+        if (it != nullptr && it->AsObject() == observer->AsObject()) {
+            TAG_LOGW(AAFwkTag::APPMGR, "observer exist");
+            return ERR_INVALID_VALUE;
+        }
+    }
+    processLifecycleObserverMap_.emplace(observer, std::make_pair(callingUid, callingPid));
+    AddObserverDeathRecipient(observer, ObserverType::PROCESS_LIFECYCLE_OBSERVER);
+    return ERR_OK;
+}
+
+int32_t AppStateObserverManager::UnregisterProcessLifecycleObserver(const sptr<IProcessLifecycleObserver> &observer)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (observer == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null observer");
+        return ERR_INVALID_VALUE;
+    }
+    std::lock_guard lockUnregister(processLifecycleObserverLock_);
+    for (const auto &[it, pair] : processLifecycleObserverMap_) {
+        if (it != nullptr && it->AsObject() == observer->AsObject()) {
+            processLifecycleObserverMap_.erase(it);
             RemoveObserverDeathRecipient(observer);
             return ERR_OK;
         }
@@ -918,9 +961,13 @@ void AppStateObserverManager::HandleOnProcessCreated(const std::shared_ptr<Proce
             it->first->OnProcessCreated(*data);
 }
     }
+    ProcessLifecycleData lifecycleData;
+    lifecycleData.pid = data->pid;
+    lifecycleData.processName = data->processName;
+    lifecycleData.uid = data->uid;
+    lifecycleData.state = "CREATED";
+    DispatchProcessLifecycleCreated(lifecycleData);
 }
-
-void AppStateObserverManager::HandleOnProcessStateChanged(
     const std::shared_ptr<ProcessData> &data, BundleType bundleType, bool isByCall)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -1088,6 +1135,12 @@ void AppStateObserverManager::HandleOnProcessDied(const std::shared_ptr<ProcessD
             it->first->OnProcessDied(*data);
 }
     }
+    ProcessLifecycleData lifecycleData;
+    lifecycleData.pid = data->pid;
+    lifecycleData.processName = data->processName;
+    lifecycleData.uid = data->uid;
+    lifecycleData.state = "EXITED";
+    DispatchProcessLifecycleExited(lifecycleData);
 }
 
 std::shared_ptr<ProcessData> AppStateObserverManager::WrapProcessData(
@@ -1230,6 +1283,21 @@ bool AppStateObserverManager::IsImageProcessObserverExist(const sptr<IRemoteBrok
     return false;
 }
 
+bool AppStateObserverManager::IsProcessLifecycleObserverExist(const sptr<IRemoteBroker> &observer)
+{
+    if (observer == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null observer");
+        return false;
+    }
+    std::lock_guard lockRegister(processLifecycleObserverLock_);
+    for (const auto &[it, pair] : processLifecycleObserverMap_) {
+        if (it != nullptr && it->AsObject() == observer->AsObject()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void AppStateObserverManager::AddObserverDeathRecipient(const sptr<IRemoteBroker> &observer, const ObserverType &type)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -1260,6 +1328,8 @@ void AppStateObserverManager::AddObserverDeathRecipient(const sptr<IRemoteBroker
             deathRecipient = new (std::nothrow) AbilityForegroundStateObserverRecipient(deathRecipientFunc);
         } else if (type == ObserverType::IMAGE_PROCESS_STATE_OBSERVER) {
             deathRecipient = new (std::nothrow) ImageProcessStateObserverRecipient(deathRecipientFunc);
+        } else if (type == ObserverType::PROCESS_LIFECYCLE_OBSERVER) {
+            deathRecipient = new (std::nothrow) ProcessLifecycleObserverRecipient(deathRecipientFunc);
         } else {
             TAG_LOGW(AAFwkTag::APPMGR, "null ObserverType");
             return;
@@ -1355,6 +1425,46 @@ ImageProcessObserverMap AppStateObserverManager::GetImageProcessObserverMapCopy(
     return imageProcessStateObserverMap_;
 }
 
+ProcessLifecycleObserverMap AppStateObserverManager::GetProcessLifecycleObserverMapCopy()
+{
+    std::lock_guard lock(processLifecycleObserverLock_);
+    return processLifecycleObserverMap_;
+}
+
+void AppStateObserverManager::DispatchProcessLifecycleCreated(const ProcessLifecycleData &data)
+{
+    auto observerMap = GetProcessLifecycleObserverMapCopy();
+    for (const auto &[observer, pair] : observerMap) {
+        if (observer == nullptr) {
+            continue;
+        }
+        if (pair.first != data.uid) {
+            continue;
+        }
+        if (pair.second == data.pid) {
+            continue;
+        }
+        observer->OnProcessCreated(data);
+    }
+}
+
+void AppStateObserverManager::DispatchProcessLifecycleExited(const ProcessLifecycleData &data)
+{
+    auto observerMap = GetProcessLifecycleObserverMapCopy();
+    for (const auto &[observer, pair] : observerMap) {
+        if (observer == nullptr) {
+            continue;
+        }
+        if (pair.first != data.uid) {
+            continue;
+        }
+        if (pair.second == data.pid) {
+            continue;
+        }
+        observer->OnProcessExited(data);
+    }
+}
+
 void AppStateObserverManager::OnObserverDied(const wptr<IRemoteObject> &remote, const ObserverType &type)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -1377,6 +1487,9 @@ void AppStateObserverManager::OnObserverDied(const wptr<IRemoteObject> &remote, 
     } else if (type == ObserverType::IMAGE_PROCESS_STATE_OBSERVER) {
         sptr<IImageProcessStateObserver> observer = iface_cast<IImageProcessStateObserver>(object);
         UnregisterImageProcessStateObserver(observer);
+    } else if (type == ObserverType::PROCESS_LIFECYCLE_OBSERVER) {
+        sptr<IProcessLifecycleObserver> observer = iface_cast<IProcessLifecycleObserver>(object);
+        UnregisterProcessLifecycleObserver(observer);
     } else {
         TAG_LOGW(AAFwkTag::APPMGR, "null ObserverType");
         return;
