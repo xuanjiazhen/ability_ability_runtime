@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_JS_APPLICATION_CONTEXT_UTILS_H
 #define OHOS_ABILITY_RUNTIME_JS_APPLICATION_CONTEXT_UTILS_H
 
+#include <atomic>
 #include <memory>
 #include <mutex>
 
@@ -24,6 +25,7 @@
 #include "interop_ability_lifecycle_callback.h"
 #include "js_ability_auto_startup_callback.h"
 #include "js_ability_lifecycle_callback.h"
+#include "js_process_lifecycle_observer.h"
 #include "js_system_configuration_updated_callback.h"
 #include "native_engine/native_engine.h"
 #include "running_process_info.h"
@@ -111,6 +113,8 @@ public:
     napi_value OnEnableDelayedProcessExit(napi_env env, NapiCallbackInfo& info);
     napi_value OnDisableDelayedProcessExit(napi_env env, NapiCallbackInfo& info);
     napi_value OnStartSelfUIAbility(napi_env env, NapiCallbackInfo& info);
+    napi_value OnOnProcessLifecycle(napi_env env, NapiCallbackInfo& info);
+    napi_value OnOffProcessLifecycle(napi_env env, NapiCallbackInfo& info);
 
     static napi_value GetCacheDir(napi_env env, napi_callback_info info);
     static napi_value GetTempDir(napi_env env, napi_callback_info info);
@@ -147,6 +151,8 @@ public:
     static napi_value EnableDelayedProcessExit(napi_env env, napi_callback_info info);
     static napi_value DisableDelayedProcessExit(napi_env env, napi_callback_info info);
     static napi_value StartSelfUIAbility(napi_env env, napi_callback_info info);
+    static napi_value OnProcessLifecycle(napi_env env, napi_callback_info info);
+    static napi_value OffProcessLifecycle(napi_env env, napi_callback_info info);
 
 protected:
     std::weak_ptr<ApplicationContext> applicationContext_;
@@ -171,6 +177,9 @@ private:
     std::shared_ptr<JsEnvironmentCallback> envCallback_;
     std::shared_ptr<JsApplicationStateChangeCallback> applicationStateCallback_;
     std::mutex applicationStateCallbackLock_;
+    sptr<JsProcessLifecycleObserver> processLifecycleObserver_;
+    std::mutex processLifecycleObserverLock_;
+    std::atomic<int32_t> processLifecycleObserverId_ {1};
     sptr<JsAbilityAutoStartupCallBack> jsAutoStartupCallback_;
     std::shared_ptr<JsSystemConfigurationUpdatedCallback> systemConfigurationUpdatedCallback_;
     std::mutex systemConfigurationUpdatedCallbackLock_;
