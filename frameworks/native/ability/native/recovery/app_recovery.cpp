@@ -370,7 +370,7 @@ bool AppRecovery::DoRecoverMainApp(StateReason reason)
     want->SetParam(AAFwk::Want::PARAM_ABILITY_RECOVERY_RESTART, false);
     auto token = token_.promote();
     if (token == nullptr) {
-        TAG_LOGE(AAFwkTag::RECOVERY, "lsclsclsc DoReciverMainApp token is null, recovery aborted");
+        TAG_LOGE(AAFwkTag::RECOVERY, "DoReciverMainApp token is null, recovery aborted");
         return false;
     }
     auto abilityMgr = AAFwk::AbilityManagerClient::GetInstance();
