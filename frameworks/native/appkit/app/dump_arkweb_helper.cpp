@@ -50,6 +50,7 @@ int DumpArkWebHelper::DumpArkWeb(const std::string &customArgs, std::string &res
 void DumpArkWebHelper::DumpArkWebJSHeap(int32_t appPid, int32_t renderPid, bool needSnapshot, bool needGC, bool needRaw)
 {
     int32_t fd = -1;
+    const uint64_t fdTag = reinterpret_cast<uint64_t>(&fd);
     if (needSnapshot) {
         int32_t type = needRaw ? static_cast<int32_t>(FaultLoggerType::ARKWEB_JS_RAW_SNAPSHOT) :
                                  static_cast<int32_t>(FaultLoggerType::ARKWEB_JS_HEAP_SNAPSHOT);
@@ -62,13 +63,14 @@ void DumpArkWebHelper::DumpArkWebJSHeap(int32_t appPid, int32_t renderPid, bool 
         if (fd < 0) {
             return;
         }
+        fdsan_exchange_owner_tag(fd, 0, fdTag);
     }
 #if defined(NWEB)
     OHOS::NWeb::NWebHelper &nWebHelper = OHOS::NWeb::NWebHelper::Instance();
     nWebHelper.DumpArkWebJSHeap(fd, renderPid, needSnapshot, needGC, needRaw);
 #endif
     if (fd >= 0) {
-        close(fd);
+        fdsan_close_with_tag(fd, fdTag);
         fd = -1;
     }
 }
