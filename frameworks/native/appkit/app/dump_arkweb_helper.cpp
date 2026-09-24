@@ -21,6 +21,7 @@
 #include <unistd.h>
 
 #include "dfx_socket_request.h"
+#include "dump_fd_guard.h"
 #include "faultloggerd_client.h"
 
 #if defined(NWEB)
@@ -63,14 +64,13 @@ void DumpArkWebHelper::DumpArkWebJSHeap(int32_t appPid, int32_t renderPid, bool 
             return;
         }
     }
+    // RAII: claims the fd with the module fdsan tag on construction (fd may be
+    // -1 when needSnapshot is false) and always closes it with the same tag.
+    OHOS::AppExecFwk::DumpFdGuard fdGuard(fd);
 #if defined(NWEB)
     OHOS::NWeb::NWebHelper &nWebHelper = OHOS::NWeb::NWebHelper::Instance();
-    nWebHelper.DumpArkWebJSHeap(fd, renderPid, needSnapshot, needGC, needRaw);
+    nWebHelper.DumpArkWebJSHeap(fdGuard.Get(), renderPid, needSnapshot, needGC, needRaw);
 #endif
-    if (fd >= 0) {
-        close(fd);
-        fd = -1;
-    }
 }
 
 }  // namespace AppExecFwk
