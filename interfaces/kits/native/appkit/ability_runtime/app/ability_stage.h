@@ -24,12 +24,12 @@
 
 #include "ability_local_record.h"
 #include "ability_transaction_callback_info.h"
-#include "configuration.h"
 #include "hap_module_info.h"
 #include "want.h"
 
 namespace OHOS {
 namespace AppExecFwk {
+class Configuration;
 class OHOSApplication;
 }
 namespace AbilityRuntime {

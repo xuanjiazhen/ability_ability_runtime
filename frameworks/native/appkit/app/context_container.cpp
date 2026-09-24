@@ -24,6 +24,7 @@
 #include "constants.h"
 #include "hilog_tag_wrapper.h"
 #include "parameters.h"
+#include "resource_manager.h"
 
 namespace OHOS {
 namespace AppExecFwk {

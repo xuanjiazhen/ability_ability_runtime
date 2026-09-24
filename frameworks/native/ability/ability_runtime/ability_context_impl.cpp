@@ -20,6 +20,12 @@
 #include <native_engine/native_engine.h>
 
 #include "ability_business_error.h"
+#ifdef SUPPORT_GRAPHICS
+#ifdef SUPPORT_SCREEN
+#include "pixel_map.h"
+#endif
+#endif
+
 #include "ability_manager_client.h"
 #include "app_utils.h"
 #include "application_configuration_manager.h"

@@ -28,6 +28,7 @@
 #include "array_wrapper.h"
 #include "accesstoken_kit.h"
 #include "bundle_mgr_helper.h"
+#include "configuration.h"
 #include "configuration_convertor.h"
 #include "connection_state_manager.h"
 #include "common_event_manager.h"

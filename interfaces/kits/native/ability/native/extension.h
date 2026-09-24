@@ -21,13 +21,15 @@
 #include "ability_transaction_callback_info.h"
 #include "napi_remote_object.h"
 #include "iremote_object.h"
-#include "session_info.h"
 #include "wm/window.h"
 #include "launch_param.h"
 #include "ui_extension_window_command.h"
 #include "want.h"
 
 namespace OHOS {
+namespace AAFwk {
+class SessionInfo;
+}
 namespace AppExecFwk {
 struct AbilityInfo;
 class OHOSApplication;

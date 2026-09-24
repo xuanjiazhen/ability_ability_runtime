@@ -21,6 +21,7 @@
 #include "connection_manager.h"
 #include "ets_ui_extension_instance.h"
 #include "hilog_tag_wrapper.h"
+#include "session_info.h"
 #include "hitrace_meter.h"
 #include "insight_intent_delay_result_callback_mgr.h"
 #include "int_wrapper.h"

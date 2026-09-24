@@ -20,16 +20,20 @@
 
 #include "ability_info.h"
 #include "ability_manager_interface.h"
-#include "bundle_mgr_interface.h"
 #include "dummy_hap_module_info.h"
 #include "hap_module_info.h"
 #include "process_info.h"
-#include "resource_manager.h"
 #include "task/task_priority.h"
 
 namespace OHOS {
 namespace DataShare {
 class DataShareHelper;
+}
+namespace Global {
+namespace Resource {
+class ResourceManager;
+class ResConfig;
+}
 }
 namespace AppExecFwk {
 class BundleMgrHelper;
