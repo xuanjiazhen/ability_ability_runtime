@@ -30,6 +30,7 @@
 #include "start_ability_utils.h"
 #include "start_options.h"
 #include "bundle_mgr_interface.h"
+#include "bundle_info.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -48,7 +49,7 @@ PreloadManagerService::~PreloadManagerService() {}
 
 int32_t PreloadManagerService::PreloadApplication(const std::string &bundleName, int32_t userId, int32_t appIndex)
 {
-    CHECK_TRUE_RETURN_RET(!AppUtils::GetInstance().IsPreloadApplicationEnabled() || appIndex != 0,
+    CHECK_TRUE_RETURN_RET(!AppUtils::GetInstance().IsPreloadApplicationEnabled(),
         ERR_CAPABILITY_NOT_SUPPORT, "preload application not supported");
     CHECK_TRUE_RETURN_RET(!PermissionVerification::GetInstance()->VerifyPreloadApplicationPermission(),
         ERR_PERMISSION_DENIED, "no preload permission");
@@ -140,6 +141,13 @@ int32_t PreloadManagerService::PreloadApplicationVerification(const std::string 
         AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION |
         AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_METADATA, userId, abilityInfo)),
         RESOLVE_ABILITY_ERR, "failed to get abilityInfo");
+    if (appIndex > 0) {
+        AppExecFwk::BundleInfo cloneBundleInfo;
+        CHECK_TRUE_RETURN_RET(IN_PROCESS_CALL(bundleMgrHelper->GetCloneBundleInfo(bundleName,
+            AppExecFwk::BundleFlag::GET_BUNDLE_WITH_REQUESTED_PERMISSION, appIndex,
+            cloneBundleInfo, userId)) != ERR_OK, RESOLVE_ABILITY_ERR, "GetCloneBundleInfo failed");
+        abilityInfo.applicationInfo = cloneBundleInfo.applicationInfo;
+    }
     CHECK_TRUE_RETURN_RET(NativeAbilityMetaData::IsWithNative(abilityInfo),
         ERR_CAPABILITY_NOT_SUPPORT, "Native ability not supported");
     return ERR_OK;
