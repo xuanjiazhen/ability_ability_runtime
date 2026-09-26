@@ -150,5 +150,27 @@ bool FUDUtils::IsBrokerCaller()
 {
     return false;
 }
-}  // namespace AAFwk
+
+bool FUDUtils::IsSAOrBrokerCall()
+{
+    return MyFlag::isSAOrBrokerCall_ || (MyFlag::IS_SA_CALL & MyFlag::flag_) != 0;
+}
+
+bool FUDUtils::GetUserIdByTokenId(uint32_t tokenId, int32_t &userId)
+{
+    userId = MyFlag::getUserIdByTokenIdUserId_;
+    return MyFlag::getUserIdByTokenIdRet_;
+}
+
+int32_t FUDUtils::ResolveUserIdForSAOrBroker(int32_t userId)
+{
+    if (userId == UPMS_INVALID_USER_ID) {
+        return GetCurrentAccountId();
+    }
+    if (userId >= 0) {
+        return userId;
+    }
+    return UPMS_INVALID_USER_ID;
+}
+} // namespace AAFwk
 }  // namespace OHOS
