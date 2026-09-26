@@ -587,7 +587,7 @@ HWTEST_F(AppPreloaderTest, AppPreloaderTest_GetBundleAndHapInfo_0300, TestSize.L
     AbilityInfo abilityInfo;
     BundleInfo bundleInfo;
     HapModuleInfo hapModuleInfo;
-    auto ret = manager->GetBundleAndHapInfo(bundleName, userId, abilityInfo, bundleInfo, hapModuleInfo);
+    auto ret = manager->GetBundleAndHapInfo(bundleName, userId, 0, abilityInfo, bundleInfo, hapModuleInfo);
     manager->remoteClientManager_ = remoteClientManager_;
     EXPECT_FALSE(ret);
 }
