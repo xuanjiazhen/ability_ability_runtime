@@ -15212,8 +15212,8 @@ int32_t AbilityManagerService::ExecuteUIAbilityForegroundIntentWithSpecifyTokenI
     const sptr<IRemoteObject> &callerAbilityToken, const InsightIntentExecuteLiteParam &param,
     uint64_t specifiedFullTokenId)
 {
-    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
-        TAG_LOGE(AAFwkTag::INTENT, "not foundation process, reject");
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGE(AAFwkTag::INTENT, "not system sa call, reject");
         return CHECK_PERMISSION_FAILED;
     }
 
@@ -15221,7 +15221,7 @@ int32_t AbilityManagerService::ExecuteUIAbilityForegroundIntentWithSpecifyTokenI
         "specifiedFullTokenId: %{public}" PRIu64 "", want.GetElement().GetBundleName().c_str(),
         param.insightIntentName.c_str(), specifiedFullTokenId);
 
-    // caller is foundation (FMS), which has no bundle name; pass empty string.
+    // caller is system sa (e.g. card service), which has no bundle name; pass empty string.
     std::string callerBundlename;
 
     auto executeParam = BuildExecuteParamFromWant(want, param);

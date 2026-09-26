@@ -671,7 +671,7 @@ HWTEST_F(AbilityManagerServiceMockTest, QueryEntityInfo_0500, TestSize.Level1)
 
 /**
  * @tc.name: ExecuteUIAbilityForegroundIntentWithSpecifyTokenId_0100
- * @tc.desc: Test UID guard rejects non-foundation caller.
+ * @tc.desc: Test SA-call guard rejects non-system caller.
  * @tc.type: FUNC
  */
 HWTEST_F(AbilityManagerServiceMockTest,
