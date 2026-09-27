@@ -94,6 +94,18 @@ void AgentManagerClientTest::SetUp(void)
 void AgentManagerClientTest::TearDown(void)
 {}
 
+namespace {
+// Restores the singleton cache and the mock flag no matter how a test exits: ASSERT_*
+// returns from the test body early, so plain trailing cleanup lines would be skipped.
+struct AgentClientTestGuard {
+    ~AgentClientTestGuard()
+    {
+        AgentManagerClient::GetInstance().SetAgentMgr(nullptr);
+        MyFlag::agentMgr = nullptr;
+    }
+};
+} // namespace
+
 /**
 * @tc.name  : GetAllAgentCards_ShouldReturnError_WhenProxyIsNull
 * @tc.number: GetAllAgentCards_001
@@ -582,19 +594,173 @@ HWTEST_F(AgentManagerClientTest, GetAgentMgrProxy_004, TestSize.Level1)
 }
 
 /**
-* @tc.name  : ClearProxy_ShouldSetAgentMgrToNull_WhenCalled
-* @tc.number: ClearProxy_001
-* @tc.desc  : Verify that the agentMgr_ pointer is set to nullptr when ClearProxy is called.
+* @tc.name  : ClearProxyIfMatch_ShouldIgnore_WhenProxyIsNull
+* @tc.number: ClearProxyIfMatch_001
+* @tc.desc  : Verify that a death notification is ignored and nothing crashes when no proxy is cached.
 */
-HWTEST_F(AgentManagerClientTest, ClearProxy_001, TestSize.Level1)
+HWTEST_F(AgentManagerClientTest, ClearProxyIfMatch_001, TestSize.Level1)
+{
+    AgentManagerClient client;
+    client.agentMgr_ = nullptr;
+    auto deadRemote = sptr<MockAgentManagerService>::MakeSptr();
+    ASSERT_NE(deadRemote, nullptr);
+
+    client.ClearProxyIfMatch(deadRemote);
+
+    EXPECT_EQ(client.agentMgr_, nullptr);
+}
+
+/**
+* @tc.name  : ClearProxyIfMatch_ShouldIgnore_WhenRemoteIsStale
+* @tc.number: ClearProxyIfMatch_002
+* @tc.desc  : Verify that a stale death notification (remote does not match the cached proxy) keeps the cached proxy.
+*/
+HWTEST_F(AgentManagerClientTest, ClearProxyIfMatch_002, TestSize.Level1)
 {
     AgentManagerClient client;
     auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    ASSERT_NE(mockAgentMgr, nullptr);
+    client.agentMgr_ = mockAgentMgr;
+    auto staleRemote = sptr<MockAgentManagerService>::MakeSptr();
+    ASSERT_NE(staleRemote, nullptr);
+
+    client.ClearProxyIfMatch(staleRemote);
+
+    EXPECT_NE(client.agentMgr_, nullptr);
+    EXPECT_EQ(client.agentMgr_->AsObject(), mockAgentMgr->AsObject());
+}
+
+/**
+* @tc.name  : ClearProxyIfMatch_ShouldClearCache_WhenRemoteMatchesCachedProxy
+* @tc.number: ClearProxyIfMatch_003
+* @tc.desc  : Verify that a genuine death notification clears the cached proxy.
+*/
+HWTEST_F(AgentManagerClientTest, ClearProxyIfMatch_003, TestSize.Level1)
+{
+    AgentManagerClient client;
+    auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    ASSERT_NE(mockAgentMgr, nullptr);
     client.agentMgr_ = mockAgentMgr;
 
-    // Act: Call ClearProxy
-    client.ClearProxy();
+    client.ClearProxyIfMatch(mockAgentMgr);
+
     EXPECT_EQ(client.agentMgr_, nullptr);
+}
+
+/**
+* @tc.name  : GetAgentMgrProxy_ShouldInstallSelfHealingDeathNotification
+* @tc.number: GetAgentMgrProxy_005
+* @tc.desc  : Verify GetAgentMgrProxy registers a death recipient whose real callback chain clears
+*            the cached proxy on service death (end-to-end: registration -> OnRemoteDied -> ClearProxyIfMatch),
+*            and that a stale notification afterwards does not resurrect or clear anything.
+*/
+HWTEST_F(AgentManagerClientTest, GetAgentMgrProxy_005, TestSize.Level1)
+{
+    AgentClientTestGuard guard;
+    auto &instance = AgentManagerClient::GetInstance();
+    instance.SetAgentMgr(nullptr);
+    MyFlag::nullSystemAbility = false;
+    auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    MyFlag::agentMgr = mockAgentMgr;
+
+    auto proxy = instance.GetAgentMgrProxy();
+    ASSERT_NE(proxy, nullptr);
+    ASSERT_NE(mockAgentMgr->GetDeathRecipient(), nullptr);
+
+    // Simulate the service death through the recipient installed by GetAgentMgrProxy: the real
+    // no-capture lambda must route to ClearProxyIfMatch and clear the singleton cache.
+    mockAgentMgr->GetDeathRecipient()->OnRemoteDied(mockAgentMgr);
+    EXPECT_EQ(instance.GetAgentMgr(), nullptr);
+
+    // A duplicated notification after the cache was already cleared must be a harmless no-op
+    // (ClearProxyIfMatch takes the "already cleared" branch here).
+    mockAgentMgr->GetDeathRecipient()->OnRemoteDied(mockAgentMgr);
+    EXPECT_EQ(instance.GetAgentMgr(), nullptr);
+}
+
+/**
+* @tc.name  : GetAgentMgrProxy_ShouldNotCacheProxy_WhenDeathRecipientRegistrationFails
+* @tc.number: GetAgentMgrProxy_006
+* @tc.desc  : When AddDeathRecipient fails (the remote is already dead), the loaded proxy must not
+*            stay cached: without the rollback the cache would hold a proxy whose death can never
+*            be observed, so it would never self-heal.
+*/
+HWTEST_F(AgentManagerClientTest, GetAgentMgrProxy_006, TestSize.Level1)
+{
+    AgentClientTestGuard guard;
+    auto &instance = AgentManagerClient::GetInstance();
+    instance.SetAgentMgr(nullptr);
+    MyFlag::nullSystemAbility = false;
+    auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    MyFlag::agentMgr = mockAgentMgr;
+    mockAgentMgr->SetAddDeathRecipientResult(false);
+
+    EXPECT_EQ(instance.GetAgentMgrProxy(), nullptr);
+    EXPECT_EQ(instance.GetAgentMgr(), nullptr);
+}
+
+/**
+* @tc.name  : OnLoadSystemAbilitySuccess_ShouldInstallProxyAndRegisterRecipient
+* @tc.number: OnLoadSystemAbilitySuccess_004
+* @tc.desc  : A load callback on an empty cache installs the proxy AND registers its death
+*            recipient, so the proxy installed via this path can self-heal on service death.
+*/
+HWTEST_F(AgentManagerClientTest, OnLoadSystemAbilitySuccess_004, TestSize.Level1)
+{
+    AgentClientTestGuard guard;
+    auto &instance = AgentManagerClient::GetInstance();
+    instance.SetAgentMgr(nullptr);
+    auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    ASSERT_NE(mockAgentMgr, nullptr);
+
+    instance.OnLoadSystemAbilitySuccess(mockAgentMgr);
+
+    EXPECT_EQ(instance.GetAgentMgr()->AsObject(), mockAgentMgr->AsObject());
+    EXPECT_EQ(mockAgentMgr->GetDeathRecipientCount(), 1);
+}
+
+/**
+* @tc.name  : OnLoadSystemAbilitySuccess_ShouldNotClobberLiveProxy_WhenCallbackIsStale
+* @tc.number: OnLoadSystemAbilitySuccess_002
+* @tc.desc  : A late or replayed callback for an older service instance must not overwrite a live
+*            proxy installed by another path: the stale remote is dead, cannot register a death
+*            recipient, and the cache would never recover (R2-01).
+*/
+HWTEST_F(AgentManagerClientTest, OnLoadSystemAbilitySuccess_002, TestSize.Level1)
+{
+    AgentClientTestGuard guard;
+    auto &instance = AgentManagerClient::GetInstance();
+    auto liveRemote = sptr<MockAgentManagerService>::MakeSptr();
+    auto lateRemote = sptr<MockAgentManagerService>::MakeSptr();
+    ASSERT_NE(liveRemote, nullptr);
+    ASSERT_NE(lateRemote, nullptr);
+    instance.SetAgentMgr(liveRemote);
+
+    instance.OnLoadSystemAbilitySuccess(lateRemote);
+
+    EXPECT_EQ(instance.GetAgentMgr()->AsObject(), liveRemote->AsObject());
+    EXPECT_EQ(lateRemote->GetDeathRecipientCount(), 0);
+}
+
+/**
+* @tc.name  : OnLoadSystemAbilitySuccess_ShouldRegisterRecipientOnlyOnce_WhenCallbackIsRedelivered
+* @tc.number: OnLoadSystemAbilitySuccess_003
+* @tc.desc  : An idempotent re-delivery of the load callback for the same remote must not attach a
+*            second death recipient (R2-03).
+*/
+HWTEST_F(AgentManagerClientTest, OnLoadSystemAbilitySuccess_003, TestSize.Level1)
+{
+    AgentClientTestGuard guard;
+    auto &instance = AgentManagerClient::GetInstance();
+    instance.SetAgentMgr(nullptr);
+    auto mockAgentMgr = sptr<MockAgentManagerService>::MakeSptr();
+    ASSERT_NE(mockAgentMgr, nullptr);
+
+    instance.OnLoadSystemAbilitySuccess(mockAgentMgr);
+    instance.OnLoadSystemAbilitySuccess(mockAgentMgr);
+
+    EXPECT_EQ(mockAgentMgr->GetDeathRecipientCount(), 1);
+    EXPECT_EQ(instance.GetAgentMgr()->AsObject(), mockAgentMgr->AsObject());
 }
 
 /**
