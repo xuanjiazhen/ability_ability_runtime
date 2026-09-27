@@ -119,18 +119,25 @@ void AgentConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &ele
     for (auto &callback : callbacks) {
         callback->OnAbilityDisconnectDone(element, resultCode);
     }
-    // Null remoteObject under agentMutex_ so concurrent readers (HandleExistingConnectionLocked via
-    // GetRemoteObjectLocked) are serialized and never observe a half-cleared sptr control block.
+    // Null remoteObject under agentMutex_ so concurrent readers (SnapshotConnectedState) are
+    // serialized and never observe a half-cleared sptr control block.
     {
         std::lock_guard<std::mutex> lock(agentMutex_);
         SetRemoteObject(nullptr);
     }
 }
 
-sptr<IRemoteObject> AgentConnection::GetRemoteObjectLocked()
+bool AgentConnection::SnapshotConnectedState(sptr<IRemoteObject> &remoteObject, int32_t &resultCode)
 {
     std::lock_guard<std::mutex> lock(agentMutex_);
-    return GetRemoteObject();
+    if (GetConnectionState() != CONNECTION_STATE_CONNECTED) {
+        return false;
+    }
+    // The snapshot keeps its own sptr strong reference, so a concurrent SetRemoteObject(nullptr)
+    // cannot free the remote while the caller fires the replay callback.
+    remoteObject = GetRemoteObject();
+    resultCode = GetResultCode();
+    return true;
 }
 
 AgentConnectionManager &AgentConnectionManager::GetInstance()
@@ -359,14 +366,12 @@ ErrCode AgentConnectionManager::HandleExistingConnectionLocked(AgentConnectionLi
     TAG_LOGI(AAFwkTag::SER_ROUTER, "agentConnectionsSize: %{public}zu, ConnectionState: %{public}d",
         agentConnections_.size(), agentConnection->GetConnectionState());
     TAG_LOGD(AAFwkTag::SER_ROUTER, "agentConnection exist, callbackSize:%{public}zu", callbacks.size());
-    if (agentConnection->GetConnectionState() == CONNECTION_STATE_CONNECTED) {
-        // Snapshot under the caller's connectionsLock_ + agentMutex_ (GetRemoteObjectLocked); the connect
-        // callback is fired by ConnectAbilityInner OUTSIDE connectionsLock_ to avoid deadlock if it
-        // re-enters AgentConnectionManager. The snapshot holds its own sptr ref so a concurrent
-        // SetRemoteObject(nullptr) cannot free the remote mid-callback.
+    if (agentConnection->SnapshotConnectedState(replayRemote, replayCode)) {
+        // Atomic snapshot under agentMutex_ (state + remote + result code in one critical section):
+        // a concurrent OnAbilityDisconnectDone can no longer turn this into a "connected + null
+        // remote" replay. The connect callback is fired by ConnectAbilityInner OUTSIDE
+        // connectionsLock_ to avoid deadlock if it re-enters AgentConnectionManager.
         replayConnect = true;
-        replayRemote = agentConnection->GetRemoteObjectLocked();
-        replayCode = agentConnection->GetResultCode();
         replayElement = want.GetElement();
         return ERR_OK;
     }
@@ -409,12 +414,16 @@ void AgentConnectionManager::ReplayLowCodeConnectDoneIfReady(const AAFwk::Want &
         std::lock_guard<std::recursive_mutex> lock(connectionsLock_);
         agentConnection = FindLowCodeReuseConnectionLocked(want, connectCallback);
     }
-    if (agentConnection == nullptr || agentConnection->GetConnectionState() != CONNECTION_STATE_CONNECTED) {
+    if (agentConnection == nullptr) {
         return;
     }
-    // Snapshot under agentMutex_ so concurrent SetRemoteObject(nullptr) can't free it mid-callback.
-    sptr<IRemoteObject> replayRemote = agentConnection->GetRemoteObjectLocked();
-    int replayCode = agentConnection->GetResultCode();
+    // Atomic snapshot under agentMutex_: a concurrent disconnect must not produce a
+    // "connected + null remote" replay here either.
+    sptr<IRemoteObject> replayRemote;
+    int32_t replayCode = 0;
+    if (!agentConnection->SnapshotConnectedState(replayRemote, replayCode)) {
+        return;
+    }
     connectCallback->OnAbilityConnectDone(want.GetElement(), replayRemote, replayCode);
 }
 

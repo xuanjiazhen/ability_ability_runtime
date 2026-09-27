@@ -67,6 +67,38 @@ public:
 
     virtual int32_t DisconnectAgentExtensionAbilityForCli(const sptr<AAFwk::IAbilityConnection> &connection,
         const std::string &callerIdentity) override;
+
+    // Records death recipients registered on this mock so tests can fire the real callback chain
+    // (GetAgentMgrProxy registration -> AgentManagerServiceDeathRecipient::OnRemoteDied ->
+    // ClearProxyIfMatch) without a real binder death. The counter and the result flag let tests
+    // assert how many recipients were attached and simulate a dead remote (AddDeathRecipient
+    // returning false).
+    bool AddDeathRecipient(const sptr<IRemoteObject::DeathRecipient> &recipient) override
+    {
+        deathRecipientCount_++;
+        deathRecipient_ = recipient;
+        return addDeathRecipientResult_;
+    }
+
+    sptr<IRemoteObject::DeathRecipient> GetDeathRecipient() const
+    {
+        return deathRecipient_;
+    }
+
+    int32_t GetDeathRecipientCount() const
+    {
+        return deathRecipientCount_;
+    }
+
+    void SetAddDeathRecipientResult(bool result)
+    {
+        addDeathRecipientResult_ = result;
+    }
+
+private:
+    sptr<IRemoteObject::DeathRecipient> deathRecipient_;
+    int32_t deathRecipientCount_ = 0;
+    bool addDeathRecipientResult_ = true;
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS

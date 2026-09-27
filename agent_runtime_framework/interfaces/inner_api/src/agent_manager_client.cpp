@@ -241,6 +241,16 @@ sptr<IAgentManager> AgentManagerClient::GetAgentMgrProxy()
         return agentMgr;
     }
 
+    // Serialize load + registration: without this, two concurrent first callers both pass the
+    // empty-cache check, both load, and both register a death recipient on the same remote, so a
+    // later service death fires the notification twice (the second one only produces noise in
+    // ClearProxyIfMatch). Re-check the cache after acquiring the lock.
+    std::lock_guard<std::mutex> registerLock(registerMutex_);
+    agentMgr = GetAgentMgr();
+    if (agentMgr != nullptr) {
+        return agentMgr;
+    }
+
     if (!LoadAgentMgrService()) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Load agent manager service failed");
         return nullptr;
@@ -252,24 +262,70 @@ sptr<IAgentManager> AgentManagerClient::GetAgentMgrProxy()
         return nullptr;
     }
 
-    auto self = weak_from_this();
-    const auto &onClearProxyCallback = [self](const wptr<IRemoteObject> &remote) {
-        auto impl = self.lock();
-        if (impl && impl->agentMgr_ == remote) {
-            impl->ClearProxy();
-        }
-    };
-
-    sptr<AgentManagerServiceDeathRecipient> recipient =
-        new (std::nothrow) AgentManagerServiceDeathRecipient(onClearProxyCallback);
-    agentMgr->AsObject()->AddDeathRecipient(recipient);
+    if (!RegisterDeathRecipient(agentMgr->AsObject())) {
+        // The remote died between GetSystemAbility and registration. Drop the cached proxy so the
+        // next call retries the load instead of serving a proxy whose death can never be observed.
+        SetAgentMgr(nullptr);
+        return nullptr;
+    }
 
     return agentMgr;
 }
 
-void AgentManagerClient::ClearProxy()
+bool AgentManagerClient::RegisterDeathRecipient(const sptr<IRemoteObject> &remoteObject)
+{
+    if (remoteObject == nullptr) {
+        return false;
+    }
+    sptr<IRemoteObject> registered = registeredRemote_.promote();
+    auto cached = GetAgentMgr();
+    if (cached != nullptr && cached->AsObject() == remoteObject && registered == remoteObject) {
+        // This live remote is the one currently cached and already carries our recipient
+        // (idempotent re-delivery, or a sequential install of the same remote through another
+        // path): do not attach a second recipient.
+        return true;
+    }
+    // The singleton is a function-local static whose lifetime covers every thread, so capturing
+    // nothing and using GetInstance() inside the callback is safe. (enable_shared_from_this /
+    // weak_from_this is unusable here: the instance is never owned by a shared_ptr, so the weak
+    // would always be empty and the death notification a no-op.) ClearProxyIfMatch compares and
+    // clears under mutex_ so check-and-clear is a single critical section.
+    const auto &onClearProxyCallback = [](const wptr<IRemoteObject> &remote) {
+        GetInstance().ClearProxyIfMatch(remote);
+    };
+
+    sptr<AgentManagerServiceDeathRecipient> recipient =
+        new (std::nothrow) AgentManagerServiceDeathRecipient(onClearProxyCallback);
+    if (recipient == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "Failed to create death recipient");
+        return false;
+    }
+    // AddDeathRecipient is a binder call issued while the caller holds registerMutex_; the death
+    // callback only takes mutex_, so even an immediate notification cannot deadlock. A false
+    // return usually means the remote is already dead: report it so callers do not cache the proxy.
+    if (!remoteObject->AddDeathRecipient(recipient)) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER, "AddDeathRecipient failed");
+        return false;
+    }
+    registeredRemote_ = remoteObject;
+    return true;
+}
+
+void AgentManagerClient::ClearProxyIfMatch(const wptr<IRemoteObject> &remote)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    // agentMgr_ is an iface_cast broker proxy, NOT the remote object itself: comparing
+    // agentMgr_ == remote would compare two different heap objects and always be false. Compare
+    // the proxy's underlying remote (AsObject()) with the died remote instead.
+    if (agentMgr_ == nullptr) {
+        TAG_LOGI(AAFwkTag::SER_ROUTER, "agentmgr death notification after proxy already cleared, ignore");
+        return;
+    }
+    if (agentMgr_->AsObject() != remote) {
+        TAG_LOGI(AAFwkTag::SER_ROUTER, "stale agentmgr death notification, ignore");
+        return;
+    }
+    TAG_LOGI(AAFwkTag::SER_ROUTER, "agentmgr service died, clear cached proxy");
     agentMgr_ = nullptr;
 }
 
@@ -317,11 +373,31 @@ sptr<IAgentManager> AgentManagerClient::GetAgentMgr()
 
 void AgentManagerClient::OnLoadSystemAbilitySuccess(const sptr<IRemoteObject> &remoteObject)
 {
+    // Take registerMutex_ so this path cannot interleave with GetAgentMgrProxy's load+register
+    // sequence, and register the death recipient here as well: without it, proxies installed via
+    // this callback would never self-heal after a service death (stale cache until process exit).
+    std::lock_guard<std::mutex> registerLock(registerMutex_);
+    // A late or replayed callback for an older service instance must not clobber a live proxy
+    // installed by another path: overwriting it with a dead remote would leave the cache holding
+    // a proxy whose death can never be observed, so the cache would never recover.
+    auto cached = GetAgentMgr();
+    if (cached != nullptr && cached->AsObject() != remoteObject) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER, "Ignore stale load callback: cached proxy differs");
+        return;
+    }
+    // Register before caching: if the remote is already dead, AddDeathRecipient fails and the
+    // cache must not be populated with a proxy that can never self-heal.
+    if (!RegisterDeathRecipient(remoteObject)) {
+        return;
+    }
     SetAgentMgr(remoteObject);
 }
 
 void AgentManagerClient::OnLoadSystemAbilityFail()
 {
+    // Same serialization as the success path so load callbacks of both kinds stay ordered
+    // against GetAgentMgrProxy's load+register sequence.
+    std::lock_guard<std::mutex> registerLock(registerMutex_);
     SetAgentMgr(nullptr);
 }
 }  // namespace AgentRuntime
