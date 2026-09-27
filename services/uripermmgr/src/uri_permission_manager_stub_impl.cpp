@@ -506,7 +506,8 @@ int32_t UriPermissionManagerStubImpl::GrantBatchUriPermissionImplByPolicy(const 
         TAG_LOGD(AAFwkTag::URIPERMMGR, "Insert an uri policy info, path is %{private}s",
             policyInfoVec[i].path.c_str());
         if (needCachePolicyPermissionInfo) {
-            AddPolicyRecordCache(callerInfo.tokenId, targetInfo.tokenId, policyInfoVec[i].path);
+            AddPolicyRecordCache(callerInfo.tokenId, targetInfo.tokenId,
+                policyInfoVec[i].path, targetInfo.userId);
         }
         successCount++;
     }
@@ -557,12 +558,12 @@ int32_t UriPermissionManagerStubImpl::SandboxManagerSetPolicy(const std::vector<
 #endif
 
 void UriPermissionManagerStubImpl::AddPolicyRecordCache(uint32_t callerTokenId, uint32_t targetTokenId,
-    const std::string &path)
+    const std::string &path, int32_t userId)
 {
     if (FUDUtils::IsUdmfOrPasteboardCall()) {
         callerTokenId = IPCSkeleton::GetCallingTokenID();
     }
-    GrantPolicyInfo grantPolicyInfo = { callerTokenId, targetTokenId };
+    GrantPolicyInfo grantPolicyInfo = { callerTokenId, targetTokenId, userId };
     std::lock_guard<std::mutex> guard(policyMapMutex_);
     auto it = policyMap_.find(path);
     if (it == policyMap_.end()) {
@@ -572,7 +573,11 @@ void UriPermissionManagerStubImpl::AddPolicyRecordCache(uint32_t callerTokenId, 
     }
     auto &grantPolicyInfoList = it->second;
     for (auto it = grantPolicyInfoList.begin(); it != grantPolicyInfoList.end(); it++) {
-        if (it->Equal(callerTokenId, targetTokenId)) {
+        if (it->Equal(callerTokenId, targetTokenId) &&
+            (it->userId == userId || it->userId == -1 || userId == -1)) {
+            if (it->userId == -1 && userId != -1) {
+                it->userId = userId;
+            }
             return;
         }
     }
@@ -699,7 +704,7 @@ void UriPermissionManagerStubImpl::RemoveContentTokenIdRecord(uint32_t tokenId)
 }
 
 int32_t UriPermissionManagerStubImpl::GrantBatchUriPermissionImpl(const std::vector<std::string> &uriVec,
-    uint32_t flag, TokenId callerTokenId, TokenId targetTokenId)
+    uint32_t flag, TokenId callerTokenId, TokenId targetTokenId, int32_t userId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (uriVec.empty()) {
@@ -733,7 +738,7 @@ int32_t UriPermissionManagerStubImpl::GrantBatchUriPermissionImpl(const std::vec
             TAG_LOGE(AAFwkTag::URIPERMMGR, "CreateShareFile failed, ret:%{public}d", ret);
             continue;
         }
-        AddTempUriPermission(uriVec[i], flag, callerTokenId, targetTokenId);
+        AddTempUriPermission(uriVec[i], flag, callerTokenId, targetTokenId, userId);
         successCount++;
     }
     TAG_LOGI(AAFwkTag::URIPERMMGR, "total %{public}d uri permissions added", successCount);
@@ -747,11 +752,11 @@ int32_t UriPermissionManagerStubImpl::GrantBatchUriPermissionImpl(const std::vec
 }
 
 int32_t UriPermissionManagerStubImpl::AddTempUriPermission(const std::string &uri, uint32_t flag,
-    TokenId fromTokenId, TokenId targetTokenId)
+    TokenId fromTokenId, TokenId targetTokenId, int32_t userId)
 {
     std::lock_guard<std::mutex> guard(mutex_);
     auto search = uriMap_.find(uri);
-    GrantInfo info = { flag, fromTokenId, targetTokenId };
+    GrantInfo info = { flag, fromTokenId, targetTokenId, userId };
     if (search == uriMap_.end()) {
         std::list<GrantInfo> infoList = { info };
         uriMap_.emplace(uri, infoList);
@@ -761,6 +766,12 @@ int32_t UriPermissionManagerStubImpl::AddTempUriPermission(const std::string &ur
     for (auto& item : infoList) {
         if (item.fromTokenId == fromTokenId && item.targetTokenId == targetTokenId) {
             TAG_LOGD(AAFwkTag::URIPERMMGR, "Item: flag:%{public}u", item.flag);
+            if (item.userId != userId && item.userId != -1 && userId != -1) {
+                continue;
+            }
+            if (item.userId == -1 && userId != -1) {
+                item.userId = userId;
+            }
             if ((item.flag & flag) != flag) {
                 item.flag |= flag;
                 return ERR_OK;
@@ -963,7 +974,8 @@ int32_t UriPermissionManagerStubImpl::GrantUriPermissionPrivilegedImpl(BatchStri
     const FUDAppInfo &callerInfo, const FUDAppInfo &targetAppInfo, int32_t hideSensitiveType)
 {
     int32_t result = INNER_ERR;
-    if (GrantBatchUriPermissionImpl(batchUris.uriStrVec, flag, callerInfo.tokenId, targetAppInfo.tokenId) == ERR_OK) {
+    if (GrantBatchUriPermissionImpl(batchUris.uriStrVec, flag, callerInfo.tokenId,
+        targetAppInfo.tokenId, targetAppInfo.userId) == ERR_OK) {
         result = ERR_OK;
     }
     if (GrantBatchMediaUriPermissionImpl(batchUris.mediaUriVec, flag, callerInfo.tokenId, targetAppInfo.tokenId,
@@ -1507,9 +1519,23 @@ ErrCode UriPermissionManagerStubImpl::RevokeUriPermissionManually(const Uri& uri
         funcResult = ERR_CODE_INVALID_URI_TYPE;
         return ERR_OK;
     }
-    int32_t curUserId = FUDUtils::GetCurrentAccountId();
+    // Resolve target userId from caller's token ID for multi-foreground user isolation.
+    // Previously used GetCurrentAccountId() which only returns the first active account,
+    // causing wrong user resolution in multi-foreground scenarios.
+    // Fallback to GetCurrentAccountId() when caller's userId cannot be resolved (SA calls).
+    auto callerTokenId = IPCSkeleton::GetCallingTokenID();
+    int32_t targetUserId = FUDUtils::GetCurrentAccountId();
+    FUDAppInfo callerInfo;
+    callerInfo.tokenId = callerTokenId;
+    if (FUDUtils::GenerateFUDAppInfo(callerInfo)) {
+        if (callerInfo.userId >= 0) {
+            targetUserId = callerInfo.userId;
+        }
+    }
+    TAG_LOGI(AAFwkTag::URIPERMMGR, "resolved targetUserId:%{public}d from callerTokenId:%{public}u",
+        targetUserId, callerTokenId);
     uint32_t targetTokenId = 0;
-    auto ret = FUDUtils::GetTokenIdByBundleName(bundleName, appIndex, curUserId, targetTokenId);
+    auto ret = FUDUtils::GetTokenIdByBundleName(bundleName, appIndex, targetUserId, targetTokenId);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "get tokenId by bundleName fail");
         funcResult = ret;

@@ -498,6 +498,7 @@ group("unittest") {
       "pending_want_manager_test:unittest",
       "pending_want_record_test:unittest",
       "pending_want_test:unittest",
+      "want_agent_foreground_check_test:unittest",
       "permission_verification_test:unittest",
       "preload_manager_service_test:unittest",
       "preload_uiext_state_observer_test:unittest",
@@ -663,6 +664,7 @@ group("unittest") {
         "uri_perm_mgr_test:unittest",
         "uri_permission_manager_test:unittest",
         "uri_permission_test:unittest",
+        "uri_perm_user_id_isolation_test:unittest",
       ]
     }
 

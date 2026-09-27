@@ -114,6 +114,7 @@
 #include "app_mgr_service_dump_error_code.h"
 #include "param.h"
 #include "window_focus_changed_listener.h"
+#include "multi_foreground_observer_adapter.h"
 #include "window_visibility_changed_listener.h"
 #include "window_pid_visibility_changed_listener.h"
 #include "cache_process_manager.h"
@@ -9090,6 +9091,9 @@ void AppMgrServiceInner::InitFocusListener()
     }
 
     focusListener_ = new WindowFocusChangedListener(shared_from_this(), taskHandler_);
+    if (!multiForegroundObserverAdapter_) {
+        multiForegroundObserverAdapter_ = std::make_unique<MultiForegroundObserverAdapter>();
+    }
 #endif // SUPPORT_SCREEN
     auto registerTask = [innerServiceWeak = weak_from_this()]() {
         auto innerService = innerServiceWeak.lock();
@@ -9112,7 +9116,13 @@ void AppMgrServiceInner::RegisterFocusListener()
         TAG_LOGE(AAFwkTag::APPMGR, "no focusListener_");
         return;
     }
-    WindowManager::GetInstance().RegisterFocusChangedListener(focusListener_);
+    if (multiForegroundObserverAdapter_) {
+        if (!multiForegroundObserverAdapter_->RegisterMultiForegroundFocusListener(focusListener_)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "registerMultiForegroundFocusListener failed");
+        }
+    } else {
+        WindowManager::GetInstance().RegisterFocusChangedListener(focusListener_);
+    }
 #endif // SUPPORT_SCREEN
     TAG_LOGI(AAFwkTag::APPMGR, "registerFocusListener end");
 }
@@ -9125,7 +9135,11 @@ void AppMgrServiceInner::FreeFocusListener()
         TAG_LOGE(AAFwkTag::APPMGR, "no focusListener_");
         return;
     }
-    WindowManager::GetInstance().UnregisterFocusChangedListener(focusListener_);
+    if (multiForegroundObserverAdapter_) {
+        multiForegroundObserverAdapter_->UnregisterMultiForegroundFocusListener(focusListener_);
+    } else {
+        WindowManager::GetInstance().UnregisterFocusChangedListener(focusListener_);
+    }
     focusListener_ = nullptr;
 #endif // SUPPORT_SCREEN
     TAG_LOGI(AAFwkTag::APPMGR, "freeFocusListener end");

@@ -50,11 +50,13 @@ struct GrantInfo {
     uint32_t flag;
     uint32_t fromTokenId;
     uint32_t targetTokenId;
+    int32_t userId = -1;
 };
 
 struct GrantPolicyInfo {
     uint32_t callerTokenId;
     uint32_t targetTokenId;
+    int32_t userId = -1;
     bool Equal(uint32_t cTokenId, uint32_t tTokenId)
     {
         return callerTokenId == cTokenId && targetTokenId == tTokenId;
@@ -158,7 +160,8 @@ private:
 
     bool VerifySingleUriPermissionByMap(const std::string &uri, uint32_t flag, uint32_t tokenId);
 
-    int32_t AddTempUriPermission(const std::string &uri, uint32_t flag, TokenId fromTokenId, TokenId targetTokenId);
+    int32_t AddTempUriPermission(const std::string &uri, uint32_t flag, TokenId fromTokenId,
+        TokenId targetTokenId, int32_t userId = -1);
 
     int32_t GrantUriPermissionInner(BatchUri &batchUri, const std::vector<std::string> &uriVec, uint32_t flag,
         const FUDAppInfo &callerInfo, const FUDAppInfo &targetInfo);
@@ -193,7 +196,8 @@ private:
 
     void RemoveContentTokenIdRecord(uint32_t tokenId);
 
-    void AddPolicyRecordCache(uint32_t callerTokenId, uint32_t targetTokenId, const std::string &path);
+    void AddPolicyRecordCache(uint32_t callerTokenId, uint32_t targetTokenId,
+        const std::string &path, int32_t userId = -1);
 
 #ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
     int32_t SandboxManagerSetPolicy(const std::vector<PolicyInfo> &policyInfoVec, uint32_t flag,
@@ -202,7 +206,7 @@ private:
 #endif
 
     int32_t GrantBatchUriPermissionImpl(const std::vector<std::string> &uriVec,
-        uint32_t flag, TokenId callerTokenId, TokenId targetTokenId);
+        uint32_t flag, TokenId callerTokenId, TokenId targetTokenId, int32_t userId = -1);
 
     int32_t CheckUriPermission(BatchUri &batchUri, uint32_t flag, uint32_t callerTokenId,
         const std::string &callerAlterableBundleName = "", uint32_t targetTokenId = 0);
