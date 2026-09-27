@@ -252,12 +252,13 @@ sptr<IAgentManager> AgentManagerClient::GetAgentMgrProxy()
         return nullptr;
     }
 
-    auto self = weak_from_this();
-    const auto &onClearProxyCallback = [self](const wptr<IRemoteObject> &remote) {
-        auto impl = self.lock();
-        if (impl && impl->agentMgr_ == remote) {
-            impl->ClearProxy();
-        }
+    // The singleton is a function-local static whose lifetime covers every thread, so capturing
+    // nothing and using GetInstance() inside the callback is safe. (enable_shared_from_this /
+    // weak_from_this is unusable here: the instance is never owned by a shared_ptr, so the weak
+    // would always be empty and the death notification a no-op.) ClearProxyIfMatch compares and
+    // clears under mutex_ so check-and-clear is a single critical section.
+    const auto &onClearProxyCallback = [](const wptr<IRemoteObject> &remote) {
+        GetInstance().ClearProxyIfMatch(remote);
     };
 
     sptr<AgentManagerServiceDeathRecipient> recipient =
@@ -270,6 +271,20 @@ sptr<IAgentManager> AgentManagerClient::GetAgentMgrProxy()
 void AgentManagerClient::ClearProxy()
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    agentMgr_ = nullptr;
+}
+
+void AgentManagerClient::ClearProxyIfMatch(const wptr<IRemoteObject> &remote)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    // agentMgr_ is an iface_cast broker proxy, NOT the remote object itself: comparing
+    // agentMgr_ == remote would compare two different heap objects and always be false. Compare
+    // the proxy's underlying remote (AsObject()) with the died remote instead.
+    if (agentMgr_ == nullptr || agentMgr_->AsObject() != remote) {
+        TAG_LOGI(AAFwkTag::SER_ROUTER, "stale agentmgr death notification, ignore");
+        return;
+    }
+    TAG_LOGI(AAFwkTag::SER_ROUTER, "agentmgr service died, clear cached proxy");
     agentMgr_ = nullptr;
 }
 

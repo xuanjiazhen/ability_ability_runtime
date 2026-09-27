@@ -17,7 +17,6 @@
 #define OHOS_AGENT_RUNTIME_AGENT_MANAGER_CLIENT_H
 
 #include <functional>
-#include <memory>
 #include <vector>
 
 #include "iagent_manager.h"
@@ -26,7 +25,7 @@ namespace OHOS {
 namespace AgentRuntime {
 using ClearProxyCallback = std::function<void(const wptr<IRemoteObject>&)>;
 
-class AgentManagerClient final : public std::enable_shared_from_this<AgentManagerClient> {
+class AgentManagerClient final {
 public:
     AgentManagerClient() = default;
     virtual ~AgentManagerClient() = default;
@@ -88,6 +87,10 @@ public:
 private:
     sptr<IAgentManager> GetAgentMgrProxy();
     void ClearProxy();
+    // Death-notification entry: compare the cached proxy's remote with the died remote and clear
+    // the cache under mutex_ in one critical section. A stale notification (old proxy died after a
+    // new proxy was reloaded) must not clobber the fresh proxy.
+    void ClearProxyIfMatch(const wptr<IRemoteObject> &remote);
     bool LoadAgentMgrService();
     void SetAgentMgr(const sptr<IRemoteObject> &remoteObject);
     sptr<IAgentManager> GetAgentMgr();
