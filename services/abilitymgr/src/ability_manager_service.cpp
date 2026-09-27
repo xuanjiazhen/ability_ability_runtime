@@ -4551,42 +4551,58 @@ int AbilityManagerService::GetDisplayIdByAccount(int32_t accountId, uint64_t &di
 
 int AbilityManagerService::RequestModalUIExtensionInner(Want want)
 {
+    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    int32_t userId = callerUid / BASE_USER_RANGE;
+    if (want.HasParameter(UI_EXTENSION_TARGET_USER_ID)) {
+        int32_t target = want.GetIntParam(UI_EXTENSION_TARGET_USER_ID, DEFAULT_INVAL_VALUE);
+        if (target != DEFAULT_INVAL_VALUE) {
+            userId = target;
+        }
+    }
+    if (userId == U0_USER_ID || userId == U1_USER_ID) {
+        userId = AbilityRuntime::UserController::GetInstance().GetForegroundUserId(
+            ServerConstant::DEFAULT_DISPLAY_ID);
+    }
+    uint64_t displayId = ServerConstant::DEFAULT_DISPLAY_ID;
+    if (!AbilityRuntime::UserController::GetInstance().GetDisplayIdByForegroundUserId(userId, displayId)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "no display for userId=%{public}d, using default display", userId);
+    }
+
     sptr<IRemoteObject> token = nullptr;
-    int ret = IN_PROCESS_CALL(GetTopAbility(token));
-    if (ret == ERR_OK && token != nullptr) {
-        // Gets the record corresponding to the current focus appliaction
+    auto sceneSessionManager = IN_PROCESS_CALL(
+        Rosen::MockSessionManagerService::GetInstance().GetSceneSessionManagerLiteBySA(userId));
+    if (sceneSessionManager != nullptr) {
+        Rosen::FocusChangeInfo focusChangeInfo;
+        sceneSessionManager->GetFocusWindowInfo(focusChangeInfo, displayId);
+        token = focusChangeInfo.abilityToken_;
+    }
+    if (token != nullptr) {
         auto record = Token::GetAbilityRecordByToken(token);
         if (!record) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "record null");
             return ERR_INVALID_VALUE;
         }
 
-        // Gets the bundleName corresponding to the
-        // current focus appliaction
         std::string focusName = record->GetAbilityInfo().bundleName;
-
-        // Gets the bundleName corresponding to the
-        // current focus appliaction
         std::string callerName = want.GetParams().GetStringParam("bundleName");
 
         TAG_LOGI(AAFwkTag::ABILITYMGR,
-               "focusbundlename: %{public}s, callerbundlename: %{public}s",
-               focusName.c_str(), callerName.c_str());
+               "focusbundlename: %{public}s, callerbundlename: %{public}s, userId=%{public}d",
+               focusName.c_str(), callerName.c_str(), userId);
 
-        // Compare
         if (record->GetAbilityInfo().type == AppExecFwk::AbilityType::PAGE &&
             focusName == callerName) {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "CreateModalUIExtension is called!");
             return record->CreateModalUIExtension(want);
         }
     } else {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "token null");
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "token null, userId=%{public}d", userId);
     }
 
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Window Modal System Create UIExtension is called!");
     want.SetParam(UIEXTENSION_MODAL_TYPE, 1);
     auto connection = std::make_shared<Rosen::ModalSystemUiExtension>();
-    return connection->CreateModalUIExtension(want) ? ERR_OK : INNER_ERR;
+    return connection->CreateModalUIExtension(want, userId) ? ERR_OK : INNER_ERR;
 }
 
 int AbilityManagerService::RequestModalUIExtensionWithAccountInner(Want want, int32_t accountId)
@@ -11903,6 +11919,16 @@ int32_t AbilityManagerService::GetValidUserId(int32_t userId)
     return DEFAULT_INVAL_VALUE == userId ? AbilityRuntime::UserController::GetInstance().GetCallerUserId() : userId;
 }
 
+int32_t AbilityManagerService::GetUserIdByCallerToken(const sptr<IRemoteObject> &callerToken)
+{
+    auto callerAbility = Token::GetAbilityRecordByToken(callerToken);
+    if (callerAbility == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callerAbility is nullptr");
+        return DEFAULT_INVAL_VALUE;
+    }
+    return callerAbility->GetUid() / BASE_USER_RANGE;
+}
+
 int AbilityManagerService::SetAbilityController(const sptr<IAbilityController> &abilityController,
     bool imAStabilityTest)
 {
@@ -13572,7 +13598,12 @@ bool AbilityManagerService::CheckUIExtensionCallerIsForeground(const AbilityRequ
 bool AbilityManagerService::CheckStartCallHasFloatingWindowForUIExtension(const sptr<IRemoteObject> &callerToken)
 {
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
-        auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+        int32_t userId = GetUserIdByCallerToken(callerToken);
+        if (userId < 0) {
+            return false;
+        }
+        auto sceneSessionManager = IN_PROCESS_CALL(
+            Rosen::MockSessionManagerService::GetInstance().GetSceneSessionManagerLiteBySA(userId));
         CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, CHECK_PERMISSION_FAILED, "sceneSessionManager is nullptr");
         bool hasFloatingWindow = false;
         auto err = sceneSessionManager->HasFloatingWindowForeground(callerToken, hasFloatingWindow);
