@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <unistd.h>
 #include <utility>
 
 #include "ability_manager_client.h"
@@ -44,6 +45,9 @@
 #include "permission_constants.h"
 #include "permission_verification.h"
 #include "system_ability_definition.h"
+#ifdef MEMMGR_OVERRIDE_ENABLE
+#include "mem_mgr_client.h"
+#endif
 
 namespace OHOS {
 namespace AgentRuntime {
@@ -132,11 +136,28 @@ void AgentManagerService::OnStart() noexcept
     if (!addAccountMgr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "addAccountMgr failed");
     }
+#ifdef MEMMGR_OVERRIDE_ENABLE
+    // Listen for memmgrservice startup; notify process status once it is ready.
+    bool addMemMgr = AddSystemAbilityListener(MEMORY_MANAGER_SA_ID);
+    if (!addMemMgr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "addMemMgr failed");
+    }
+#endif
 }
 
 void AgentManagerService::OnStop() noexcept
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "agentmgr stop");
+#ifdef MEMMGR_OVERRIDE_ENABLE
+    if (memMgrNotified_.exchange(false)) {
+        auto pid = static_cast<int32_t>(getpid());
+        int32_t ret = Memory::MemMgrClient::GetInstance().NotifyProcessStatus(pid, 1, 0, AGENT_MGR_SERVICE_ID);
+        if (ret != ERR_OK) {
+            TAG_LOGW(AAFwkTag::SER_ROUTER, "NotifyProcessStatus died failed, ret=%{public}d", ret);
+        }
+        TAG_LOGI(AAFwkTag::SER_ROUTER, "NotifyProcessStatus died");
+    }
+#endif
     AgentConnectManager::GetInstance().Clear();
     // Service is stopping: reset the one-shot backfill state so a restart re-listens and re-backfills.
     std::lock_guard<std::mutex> lock(backfillState_.mutex);
@@ -168,6 +189,17 @@ void AgentManagerService::OnAddSystemAbility(int32_t systemAbilityId, const std:
         }
         TryBackfillPreInstallCards();
     }
+#ifdef MEMMGR_OVERRIDE_ENABLE
+    if (systemAbilityId == MEMORY_MANAGER_SA_ID) {
+        auto pid = static_cast<int32_t>(getpid());
+        int32_t ret = Memory::MemMgrClient::GetInstance().NotifyProcessStatus(pid, 1, 1, AGENT_MGR_SERVICE_ID);
+        if (ret != ERR_OK) {
+            TAG_LOGW(AAFwkTag::SER_ROUTER, "NotifyProcessStatus start failed, ret=%{public}d", ret);
+        }
+        memMgrNotified_.store(true);
+        TAG_LOGI(AAFwkTag::SER_ROUTER, "NotifyProcessStatus start, memmgrservice ready");
+    }
+#endif
 }
 
 void AgentManagerService::OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) noexcept

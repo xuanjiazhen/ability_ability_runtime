@@ -212,6 +212,7 @@ protected:
     void OnStart() override;
     void OnStop() override;
     int32_t OnIdle(const SystemAbilityOnDemandReason &idlReason) override;
+    void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
 
 private:
     CliToolManagerService() : SystemAbility(CLI_TOOL_MGR_SERVICE_ID, false) {};
@@ -380,6 +381,10 @@ private:
     std::unordered_map<std::string, sptr<AppExecFwk::IApplicationStateObserver>> bundleObservers_;
     ffrt::mutex callerPidsMutex_;
     std::unordered_set<int64_t> callerPids;
+
+    std::atomic<bool> memMgrNotified_ = false;       // guarantee paired NotifyProcessStatus start/died
+    std::atomic<bool> shuttingDown_{false};          // set in OnStop; skips critical release during teardown
+    std::atomic<int32_t> criticalSessionCount_{0};   // SetCritical refcount for concurrent sessions
 
     ffrt::mutex hookMutex_;
     sptr<ICliHookInterface> cliHook_;

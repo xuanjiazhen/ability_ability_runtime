@@ -33,6 +33,7 @@ ohos_unittest("agent_manager_service_test") {
     "mock/src/mock_ipc_skeleton.cpp",
     "mock/src/mock_app_mgr_client.cpp",
     "mock/src/mock_bundle_mgr_helper.cpp",
+    "${ability_runtime_test_path}/mock/memmgr_mock/src/mock_mem_mgr_client.cpp",
     "mock/src/mock_permission_verification.cpp",
     "mock/src/mock_accesstoken_kit.cpp",
     "mock/src/mock_parameters.cpp",
@@ -52,6 +53,7 @@ ohos_unittest("agent_manager_service_test") {
 
   include_dirs = [
     "mock/include",
+    "${ability_runtime_test_path}/mock/memmgr_mock/include",
     "${ability_runtime_innerkits_path}/ability_manager/include",
     "${ability_runtime_innerkits_path}/app_manager/include/appmgr",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
@@ -92,6 +94,13 @@ ohos_unittest("agent_manager_service_test") {
     "kv_store:distributeddata_inner",
     "samgr:samgr_proxy",
   ]
+
+  defines = []
+
+  if (memmgr_override_enable) {
+    defines += [ "MEMMGR_OVERRIDE_ENABLE" ]
+    external_deps += [ "memmgr:memmgrclient" ]
+  }
 
   cflags_cc = []
 
