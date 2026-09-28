@@ -76,7 +76,7 @@ namespace{
         if (bundleName.empty() || bundleName.find("..") != std::string::npos ||
             bundleName.find("/") != std::string::npos || sandboxRoot.empty()) {
             return path;
-79:     }
+        }
         std::string result = sandboxRoot + std::string(FILE_SEPARATOR) + bundleName + rest;
         TAG_LOGI(AAFwkTag::APPKIT, "t30080585 GetSandboxPath before: %{public}s, after: %{public}s",
         path.c_str(),result.c_str());
