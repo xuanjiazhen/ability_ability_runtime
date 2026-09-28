@@ -8551,17 +8551,21 @@ int32_t AppMgrServiceInner::NotifyAppMgrRecordExitReasonCompability(
         auto callerRecord = GetAppRunningRecordByPid(killCallerPid);
         if (callerRecord) {
             callerProcessName = callerRecord->GetProcessName();
-        } else {
+        }
+        if (callerProcessName.empty()) {
             errno = 0;
-            if (!ProcessUtil::ReadProcessName(static_cast<pid_t>(killCallerPid), callerProcessName) &&
-                !ProcessUtil::ReadProcessNameFromComm(static_cast<pid_t>(killCallerPid), callerProcessName)) {
-                int32_t readErrno = errno;
-                bool processExist = ProcessUtil::ProcessExist(static_cast<pid_t>(killCallerPid));
-                TAG_LOGW(AAFwkTag::APPMGR, "read caller process name failed, callerPid:%{public}d, "
-                    "processExist:%{public}d, errno:%{public}d", killCallerPid,
-                    static_cast<int32_t>(processExist), readErrno);
-                callerProcessName = "";
-            }
+            ProcessUtil::ReadProcessName(static_cast<pid_t>(killCallerPid), callerProcessName);
+        }
+        if (callerProcessName.empty()) {
+            ProcessUtil::ReadProcessNameFromComm(static_cast<pid_t>(killCallerPid), callerProcessName);
+        }
+        if (callerProcessName.empty()) {
+            int32_t readErrno = errno;
+            bool processExist = ProcessUtil::ProcessExist(static_cast<pid_t>(killCallerPid));
+            TAG_LOGW(AAFwkTag::APPMGR, "read caller process name failed, callerPid:%{public}d, "
+                "callerRecordExist:%{public}d, processExist:%{public}d, errno:%{public}d",
+                killCallerPid, static_cast<int32_t>(callerRecord != nullptr),
+                static_cast<int32_t>(processExist), readErrno);
         }
     }
     appRecord->SetKillCallerInfo(killCallerPid, callerProcessName);
