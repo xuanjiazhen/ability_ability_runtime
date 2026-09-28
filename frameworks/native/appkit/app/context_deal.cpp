@@ -216,7 +216,6 @@ std::string ContextDeal::GetBundleResourcePath()
     if (abilityInfo_ == nullptr) {
         return "";
     }
-
     std::string dir;
     if (isCreateBySystemApp_) {
         dir = GetSandboxPath(abilityInfo_->resourcePath, LOCAL_BUNDLES, abilityInfo_->bundleName);
