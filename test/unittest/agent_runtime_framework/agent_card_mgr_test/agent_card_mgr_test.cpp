@@ -129,6 +129,7 @@ void AgentCardMgrTest::SetUp(void)
     MyFlag::getBundleInfoV9CallNames.clear();
     MyFlag::lastGetBundleInfosUserId = 0;
     MyFlag::insertDataCallNames.clear();
+    MyFlag::deleteDataCallNames.clear();
 }
 
 void AgentCardMgrTest::TearDown(void)
@@ -1777,5 +1778,58 @@ HWTEST_F(AgentCardMgrTest, HandlePreInstallBackfill_009, TestSize.Level1)
     EXPECT_EQ(agentCardMgr.HandlePreInstallBackfill(101), ERR_OK);
     EXPECT_EQ(MyFlag::lastGetBundleInfosUserId, 101);
 }
+/**
+ * @tc.name: HandleBundleInstallTest_022
+ * @tc.desc: HandleBundleInstall calls DeleteData when finalEntries is empty and QueryData returned ERR_OK
+ * @tc.type: FUNC
+ */
+HWTEST_F(AgentCardMgrTest, HandleBundleInstallTest_022, TestSize.Level1)
+{
+    AgentCardMgr agentCardMgr;
+    MyFlag::retDeleteData = ERR_OK;
+
+    int ret = agentCardMgr.HandleBundleInstall("test.bundle", 100);
+    EXPECT_EQ(ret, ERR_OK);
+    ASSERT_EQ(MyFlag::deleteDataCallNames.size(), 1);
+    EXPECT_EQ(MyFlag::deleteDataCallNames[0], "test.bundle");
+    EXPECT_TRUE(MyFlag::insertDataCallNames.empty());
+}
+
+/**
+ * @tc.name: HandleBundleInstallTest_023
+ * @tc.desc: HandleBundleInstall propagates DeleteData error when finalEntries is empty and QueryData returned ERR_OK
+ * @tc.type: FUNC
+ */
+HWTEST_F(AgentCardMgrTest, HandleBundleInstallTest_023, TestSize.Level1)
+{
+    AgentCardMgr agentCardMgr;
+    MyFlag::retDeleteData = ERR_INVALID_OPERATION;
+
+    int ret = agentCardMgr.HandleBundleInstall("test.bundle", 100);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+    ASSERT_EQ(MyFlag::deleteDataCallNames.size(), 1);
+    EXPECT_EQ(MyFlag::deleteDataCallNames[0], "test.bundle");
+    EXPECT_TRUE(MyFlag::insertDataCallNames.empty());
+}
+
+/**
+ * @tc.name: HandleBundleInstallTest_024
+ * @tc.desc: HandleBundleInstall calls InsertData instead of DeleteData when QueryData returns ERR_NAME_NOT_FOUND
+ *           with empty finalEntries
+ * @tc.type: FUNC
+ */
+HWTEST_F(AgentCardMgrTest, HandleBundleInstallTest_024, TestSize.Level1)
+{
+    AgentCardMgr agentCardMgr;
+    MyFlag::retQueryData = ERR_NAME_NOT_FOUND;
+    MyFlag::retInsertData = ERR_OK;
+
+    int ret = agentCardMgr.HandleBundleInstall("test.bundle", 100);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(MyFlag::deleteDataCallNames.empty());
+    ASSERT_EQ(MyFlag::insertDataCallNames.size(), 1);
+    EXPECT_EQ(MyFlag::insertDataCallNames[0], "test.bundle");
+}
+
 } // namespace AgentRuntime
 } // namespace OHOS
