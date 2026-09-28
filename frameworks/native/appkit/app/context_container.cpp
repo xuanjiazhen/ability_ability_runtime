@@ -33,7 +33,7 @@ const int32_t TYPE_RESERVE = 1;
 const int32_t TYPE_OTHERS = 2;
 
 namespace {
-    std::string GetSandboxPath(const std::string& path, const std::string& sandboxRoot, const std::string& bundleName) 
+    std::string GetSandboxPath(const std::string& path, const std::string& sandboxRoot, const std::string& bundleName)
     {
         std::string absPrefix = std::string(AbilityBase::Constants::ABS_CODE_PATH)
             + std::string(AbilityBase::Constants::FILE_SEPARATOR);
