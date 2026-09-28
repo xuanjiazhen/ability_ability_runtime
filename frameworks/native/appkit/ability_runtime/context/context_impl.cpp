@@ -63,7 +63,7 @@ using namespace OHOS::AbilityBase::Constants;
 using ExtractorUtil = AbilityBase::ExtractorUtil;
 
 namespace {
-    std::string GetSandboxPath(const std::string &path, const std::string &sandboxRoot, const std::string &bundleName) 
+    std::string GetSandboxPath(const std::string& path, const std::string& sandboxRoot, const std::string& bundleName) 
     {
         std::string absPrefix = std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR);
         if (path.find(absPrefix) != 0) {
@@ -81,11 +81,11 @@ namespace {
         }
         std::string result = sandboxRoot + std::string(FILE_SEPARATOR) + bundleName + rest;
         TAG_LOGI(AAFwkTag::APPKIT, "t30080585 GetSandboxPath before: %{public}s, after: %{public}s",
-            path.c_str(),result.c_str());
+            path.c_str(), result.c_str());
         return result;
     }
 
-    std::string GetHspSandboxPath(const std::string &path, const std::string &hspSandbox) 
+    std::string GetHspSandboxPath(const std::string& path, const std::string& hspSandbox) 
     {
         std::string absPrefix = std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR);
         if (path.find(absPrefix) != 0) {

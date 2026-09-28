@@ -35,7 +35,7 @@
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
-    std::string GetSandboxPath(const std::string &path, const std::string &sandboxRoot, const std::string &bundleName) 
+    std::string GetSandboxPath(const std::string& path, const std::string& sandboxRoot, const std::string& bundleName) 
     {
         std::string absPrefix = std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR);
         if (path.find(absPrefix) != 0) {
