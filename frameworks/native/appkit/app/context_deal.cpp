@@ -37,12 +37,13 @@ namespace AppExecFwk {
 namespace {
     std::string GetSandboxPath(const std::string& path, const std::string& sandboxRoot, const std::string& bundleName)
     {
-        std::string absPrefix = std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR);
+        std::string absPrefix = std::string(AbilityBase::Constants::ABS_CODE_PATH) 
+            + std::string(AbilityBase::Constants::FILE_SEPARATOR);
         if (path.find(absPrefix) != 0) {
             return path;
         }
         std::string remaining = path.substr(absPrefix.length());
-        size_t slashPos = remaining.find(std::string(FILE_SEPARATOR));
+        size_t slashPos = remaining.find(std::string(AbilityBase::Constants::FILE_SEPARATOR));
         std::string rest;
         if (slashPos != std::string::npos) {
             rest = remaining.substr(slashPos);
@@ -56,6 +57,8 @@ namespace {
 
 using namespace OHOS::AbilityBase::Constants;
 using ExtractorUtil = AbilityBase::ExtractorUtil;
+using AbilityBase::Constants::ABS_CODE_PATH;
+using AbilityBase::Constants::FILE_SEPARATOR;
 const std::string ContextDeal::CONTEXT_DEAL_FILE_SEPARATOR("/");
 const std::string ContextDeal::CONTEXT_DEAL_Files("files");
 const int64_t ContextDeal::CONTEXT_CREATE_BY_SYSTEM_APP(0x00000001);
