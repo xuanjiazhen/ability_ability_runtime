@@ -66,28 +66,6 @@ static bool ReadProcessName(pid_t pid, std::string &pidProcessName)
     return true;
 }
 
-// comm 最长 15 字节，超长进程名会被截断
-static bool ReadProcessNameFromComm(pid_t pid, std::string &pidProcessName)
-{
-    pidProcessName.clear();
-    char pidPath[128] = {0};
-    if (snprintf_s(pidPath, sizeof(pidPath), sizeof(pidPath) - 1, "/proc/%d/comm", pid) < 0) {
-        return false;
-    }
-    std::string name;
-    std::string processPath = pidPath;
-    if (!OHOS::LoadStringFromFile(processPath, name) || name.empty()) {
-        return false;
-    }
-    for (char c : name) {
-        if (c == '\0' || c == '\n') {
-            break;
-        }
-        pidProcessName += c;
-    }
-    return !pidProcessName.empty();
-}
-
 static bool ProcessExist(pid_t pid, const std::string &processName)
 {
     if (!ProcessExist(pid)) {

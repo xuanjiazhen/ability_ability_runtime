@@ -43,6 +43,7 @@
 #include "app_state_observer_manager.h"
 #include "app_utils.h"
 #include "appfreeze_manager.h"
+#include "appfreeze_util.h"
 #ifdef ABILITY_CLOUD_PUSH_ENABLE
 #include "param_update/ability_cloud_push_manager.h"
 #endif
@@ -8557,7 +8558,7 @@ int32_t AppMgrServiceInner::NotifyAppMgrRecordExitReasonCompability(
             ProcessUtil::ReadProcessName(static_cast<pid_t>(killCallerPid), callerProcessName);
         }
         if (callerProcessName.empty()) {
-            ProcessUtil::ReadProcessNameFromComm(static_cast<pid_t>(killCallerPid), callerProcessName);
+            callerProcessName = AppfreezeUtil::GetProcessNameByPid(killCallerPid);
         }
         if (callerProcessName.empty()) {
             int32_t readErrno = errno;
