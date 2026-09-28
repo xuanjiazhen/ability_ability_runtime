@@ -33,8 +33,9 @@ const int32_t TYPE_RESERVE = 1;
 const int32_t TYPE_OTHERS = 2;
 
 namespace {
-    std::string GetSandboxPath(const std::string &path, const std::string &sandboxRoot, const std::string &bundleName) {
-        std::string absPrefix = std::string(AbilityBase::Constants::ABS_CODE_PATH) 
+    std::string GetSandboxPath(const std::string &path, const std::string &sandboxRoot, const std::string &bundleName) 
+    {
+        std::string absPrefix = std::string(AbilityBase::Constants::ABS_CODE_PATH)
             + std::string(AbilityBase::Constants::FILE_SEPARATOR);
         if (path.find(absPrefix) != 0) {
             return path;
@@ -46,7 +47,7 @@ namespace {
             rest = remaining.substr(slashPos);
         }
         std::string result = sandboxRoot + std::string(AbilityBase::Constants::FILE_SEPARATOR) + bundleName + rest;
-        TAG_LOGI(AAFwkTag::APPKIT, "t30080585 GetSandboxPath before: %{public}s, after: %{public}s", 
+        TAG_LOGI(AAFwkTag::APPKIT, "t30080585 GetSandboxPath before: %{public}s, after: %{public}s",
             path.c_str(), result.c_str());
         return result;
     }
