@@ -731,6 +731,8 @@ int32_t UriPermissionManagerStubImpl::GrantBatchUriPermissionImpl(const std::vec
         TAG_LOGE(AAFwkTag::URIPERMMGR, "CreateShareFile failed, invalid resVec, ret:%{public}u", resVec[0]);
         return resVec[0];
     }
+    // index that targetTokenId is granted
+    std::lock_guard<std::mutex> lock(ptMapMutex_);
     int successCount = 0;
     for (size_t i = 0; i < uriVec.size(); i++) {
         auto ret = resVec[i];
@@ -745,8 +747,6 @@ int32_t UriPermissionManagerStubImpl::GrantBatchUriPermissionImpl(const std::vec
     if (successCount == 0) {
         return INNER_ERR;
     }
-    // index that targetTokenId is granted
-    std::lock_guard<std::mutex> lock(ptMapMutex_);
     permissionTokenMap_.insert(targetTokenId);
     return ERR_OK;
 }
@@ -1423,29 +1423,31 @@ void UriPermissionManagerStubImpl::RevokeMapUriPermission(uint32_t tokenId)
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     // revoke uri permission record cache of tokenId when application exit
     TAG_LOGD(AAFwkTag::URIPERMMGR, "RevokeMapUriPermission call");
-    std::lock_guard<std::mutex> guard(mutex_);
     std::vector<std::string> uriList;
     int32_t deleteCount = 0;
-    for (auto iter = uriMap_.begin(); iter != uriMap_.end();) {
-        auto& list = iter->second;
-        bool findUriRecord = false;
-        for (auto it = list.begin(); it != list.end();) {
-            if (it->targetTokenId == tokenId) {
-                deleteCount++;
-                it = list.erase(it);
-                findUriRecord = true;
+    {
+        std::lock_guard<std::mutex> guard(mutex_);
+        for (auto iter = uriMap_.begin(); iter != uriMap_.end();) {
+            auto& list = iter->second;
+            bool findUriRecord = false;
+            for (auto it = list.begin(); it != list.end();) {
+                if (it->targetTokenId == tokenId) {
+                    deleteCount++;
+                    it = list.erase(it);
+                    findUriRecord = true;
+                    continue;
+                }
+                it++;
+            }
+            if (findUriRecord) {
+                uriList.emplace_back(iter->first);
+            }
+            if (list.empty()) {
+                iter = uriMap_.erase(iter);
                 continue;
             }
-            it++;
+            ++iter;
         }
-        if (findUriRecord) {
-            uriList.emplace_back(iter->first);
-        }
-        if (list.empty()) {
-            iter = uriMap_.erase(iter);
-            continue;
-        }
-        ++iter;
     }
     if (!uriList.empty()) {
         DeleteShareFile(tokenId, uriList);
@@ -1791,10 +1793,13 @@ ErrCode UriPermissionManagerStubImpl::ClearPermissionTokenByMap(uint32_t tokenId
 int32_t UriPermissionManagerStubImpl::RevokeFileUriPermission(uint32_t tokenId, int32_t& funcResult)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    std::lock_guard<std::mutex> lock(ptMapMutex_);
-    if (permissionTokenMap_.find(tokenId) == permissionTokenMap_.end()) {
-        TAG_LOGD(AAFwkTag::URIPERMMGR, "permissionTokenMap_ empty");
-        return ERR_OK;
+    {
+        std::lock_guard<std::mutex> lock(ptMapMutex_);
+        if (permissionTokenMap_.find(tokenId) == permissionTokenMap_.end()) {
+            TAG_LOGD(AAFwkTag::URIPERMMGR, "permissionTokenMap_ empty");
+            return ERR_OK;
+        }
+        permissionTokenMap_.erase(tokenId);
     }
     RevokeMapUriPermission(tokenId);
 #ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
@@ -1806,10 +1811,16 @@ int32_t UriPermissionManagerStubImpl::RevokeFileUriPermission(uint32_t tokenId, 
     auto ret = SandboxManagerKit::UnSetAllPolicyByTokenAsync(tokenId, timeNow);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "UnSetAllPolicyByTokenAsync failed, ret: %{public}d", ret);
+        {
+            std::lock_guard<std::mutex> lock(ptMapMutex_);
+            if (permissionTokenMap_.find(tokenId) == permissionTokenMap_.end()) {
+                TAG_LOGD(AAFwkTag::URIPERMMGR, "permissionTokenMap_ empty");
+                permissionTokenMap_.insert(tokenId);
+            }
+        }
         return WrapErrorCode(ret, funcResult);
     }
 #endif // ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
-    permissionTokenMap_.erase(tokenId);
     return ERR_OK;
 }
 
