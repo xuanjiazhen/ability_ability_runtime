@@ -34,6 +34,26 @@
 #define MODE 0771
 namespace OHOS {
 namespace AppExecFwk {
+namespace {
+    std::string GetSandboxPath(const std::string& path, const std::string& sandboxRoot, const std::string& bundleName)
+    {
+        std::string absPrefix = std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR);
+        if (path.find(absPrefix) != 0) {
+            return path;
+        }
+        std::string remaining = path.substr(absPrefix.length());
+        size_t slashPos = remaining.find(std::string(FILE_SEPARATOR));
+        std::string rest;
+        if (slashPos != std::string::npos) {
+            rest = remaining.substr(slashPos);
+        }
+        std::string result = sandboxRoot + std::string(FILE_SEPARATOR) + bundleName + rest;
+        TAG_LOGI(AAFwkTag::APPKIT, "t30080585 GetSandboxPath before:%{public}s, after:%{public}s",
+            path.c_str(), result.c_str());
+        return result;
+    }
+} // namespace
+
 using namespace OHOS::AbilityBase::Constants;
 using ExtractorUtil = AbilityBase::ExtractorUtil;
 const std::string ContextDeal::CONTEXT_DEAL_FILE_SEPARATOR("/");
@@ -85,7 +105,7 @@ std::string ContextDeal::GetBundleCodePath()
 
     std::string dir;
     if (isCreateBySystemApp_) {
-        dir = std::regex_replace(applicationInfo_->codePath, std::regex(ABS_CODE_PATH), LOCAL_BUNDLES);
+        dir = GetSandboxPath(applicationInfo_->codePath, LOCAL_BUNDLES, applicationInfo_->bundleName);
     } else {
         dir = LOCAL_CODE_PATH;
     }
@@ -199,7 +219,7 @@ std::string ContextDeal::GetBundleResourcePath()
 
     std::string dir;
     if (isCreateBySystemApp_) {
-        dir = std::regex_replace(abilityInfo_->resourcePath, std::regex(ABS_CODE_PATH), LOCAL_BUNDLES);
+        dir = GetSandboxPath(abilityInfo_-> resourcePath, LOCAL_BUNDLES, abilityInfo_->bundleName);
     } else {
         dir = ExtractorUtil::GetLoadFilePath(abilityInfo_->resourcePath);
     }
