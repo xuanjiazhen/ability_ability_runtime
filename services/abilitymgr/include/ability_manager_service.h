@@ -3743,6 +3743,9 @@ private:
         int32_t userId, AppExecFwk::BundleInfo &bundleInfo);
     bool IsExitReasonValid(const ExitReasonCompability &reason);
     void RecordAppRestartExitReason(bool isAppRecovery, int32_t callerPid, int32_t callerUid);
+    // 内部路径专用：callerPid 由调用方显式传入，避免被 IN_PROCESS_CALL 重置调用身份后取到本进程 pid
+    int32_t RecordAppWithReasonWithCaller(const int32_t pid, const int32_t uid,
+        const ExitReasonCompability &exitReason, int32_t callerPid);
     void SetAppDeathRecipient(const sptr<IRemoteObject>& abilityToken);
     void HandleAppDiedForRecovery(const sptr<IRemoteObject>& remote, const AbilityInfo& abilityInfo,
         int32_t pid, int32_t uid, int32_t userId);

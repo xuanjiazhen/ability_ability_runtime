@@ -3866,6 +3866,8 @@ int32_t AbilityManagerService::ForceExitApp(const int32_t pid, const ExitReason 
         return ERR_PERMISSION_DENIED;
     }
 
+    const int32_t callerPid = IPCSkeleton::GetCallingPid();
+
     AppExecFwk::ApplicationInfo application;
     bool debug = false;
     auto ret = IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->GetApplicationInfoByProcessID(pid,
@@ -3881,7 +3883,7 @@ int32_t AbilityManagerService::ForceExitApp(const int32_t pid, const ExitReason 
 
     ExitReasonCompability exitReasonCompability(exitReason);
     exitReasonCompability.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_AA_FORCE_STOP;
-    IN_PROCESS_CALL(RecordAppWithReason(NO_PID, uid, exitReasonCompability));
+    IN_PROCESS_CALL(RecordAppWithReasonWithCaller(NO_PID, uid, exitReasonCompability, callerPid));
 
     return DelayedSingleton<AppScheduler>::GetInstance()->KillApplication(bundleName, false, appIndex);
 }
@@ -4002,6 +4004,18 @@ int32_t AbilityManagerService::RecordAppWithReason(
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     int32_t callerPid = IPCSkeleton::GetCallingPid();
+    if (callerPid == getpid() || callerPid <= 0) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "[EXIT_REASON_TAG] RecordAppWithReason in-process call, "
+            "callerPid normalized to %{public}d", DEFAULT_INVAL_VALUE);
+        callerPid = DEFAULT_INVAL_VALUE;
+    }
+    return RecordAppWithReasonWithCaller(pid, uid, exitReason, callerPid);
+}
+
+int32_t AbilityManagerService::RecordAppWithReasonWithCaller(const int32_t pid, const int32_t uid,
+    const ExitReasonCompability &exitReason, int32_t callerPid)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (callerPid == getpid() || callerPid <= 0) {
         callerPid = DEFAULT_INVAL_VALUE;
     }
@@ -16714,7 +16728,7 @@ void AbilityManagerService::RecordAppRestartExitReason(bool isAppRecovery, int32
     }
     int32_t killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_RESTART;
     AAFwk::ExitReasonCompability exitReason(killId);
-    auto result = IN_PROCESS_CALL(RecordAppWithReason(callerPid, callerUid, exitReason));
+    auto result = IN_PROCESS_CALL(RecordAppWithReasonWithCaller(callerPid, callerUid, exitReason, callerPid));
     if (result != ERR_OK) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "RecordAppRestartExitReason failed, result: %{public}d", result);
     }
