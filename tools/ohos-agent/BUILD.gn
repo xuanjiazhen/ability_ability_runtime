@@ -39,8 +39,6 @@ ohos_static_library("ohos_agent_cli_source_set") {
     "src/ohos_agent_command.cpp",
     "src/session_protocol.cpp",
     "${ability_runtime_path}/tools/aa/src/shell_command.cpp",
-    "${ability_runtime_path}/tools/aa/src/shell_command_config_loader.cpp",
-    "${ability_runtime_path}/tools/aa/src/shell_command_executor.cpp",
     "${ability_runtime_path}/tools/aa/src/shell_command_result.cpp",
   ]
 
@@ -64,12 +62,11 @@ ohos_static_library("ohos_agent_cli_source_set") {
   }
 
   # TASK-2: connect logic depends on AgentManagerClient (inner_api :agent_manager) + the
-  # agent extension connection kit (:agent_extension_connection).
+  # agent extension connection kit (:agent_extension_connection). Only the shell framework base
+  # (shell_command.cpp / shell_command_result.cpp) is reused from tools/aa; the executor and the
+  # config loader are aa-specific (popen / aa command whitelist) and unreferenced here.
   deps = [
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
-    "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
-    "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${agent_runtime_framework_path}/interfaces/inner_api:agent_manager",
     "${agent_runtime_framework_path}/interfaces/kits/native/agent_extension/connection:agent_extension_connection",
   ]
@@ -77,26 +74,18 @@ ohos_static_library("ohos_agent_cli_source_set") {
   external_deps = [
     "ability_base:base",
     "ability_base:want",
-    "bundle_framework:appexecfwk_core",
     # snprintf_s (EscapeJsonString) comes from securec.
     "bounds_checking_function:libsec_shared",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
-    "hicollie:libhicollie",
     "hilog:libhilog",
-    "init:libbegetutil",
     "ipc:ipc_core",
     "json:nlohmann_json_static",
-  ]
-  external_deps += [
-    "ability_base:session_info",
-    "bundle_framework:appexecfwk_base",
-    "samgr:samgr_proxy",
   ]
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
   configs = [
+    "${ability_runtime_services_path}/common:size_optimize_config",
     "${ability_runtime_services_path}/abilitymgr:abilityms_config",
     "${ability_runtime_services_path}/common:common_config",
   ]
@@ -122,17 +111,19 @@ ohos_cli_executable("ohos-agent") {
   deps = [ ":ohos_agent_cli_source_set" ]
 
   external_deps = [
-    "ability_base:base",
-    "ability_base:configuration",
-    "ability_base:session_info",
+    "ability_base:want",
     "c_utils:utils",
     "hicollie:libhicollie",
     "hilog:libhilog",
     "ipc:ipc_core",
-    "json:nlohmann_json_static",
-    "ability_base:want",
-    "bundle_framework:appexecfwk_base",
   ]
+
+  # Self-contained ThinLTO backend optimization: appexecfwk_base used to be linked solely to
+  # inherit "-Wl,--lto-O2" from its config; keeping the flag locally avoids depending on another
+  # part's linker config (a BMS-side flag move would silently regress this binary by ~9.6KB).
+  ldflags = [ "-Wl,--lto-O2" ]
+
+  configs = [ "${ability_runtime_services_path}/common:size_optimize_config" ]
 
   defines = []
 
