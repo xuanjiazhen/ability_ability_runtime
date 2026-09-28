@@ -55,6 +55,7 @@ constexpr int32_t QUICKFIX_UID = 5524;
 constexpr int32_t DEAD_APP_RECORD_CLEAR_TIME = 3000; // ms
 constexpr int32_t DEAD_CHILD_RELATION_CLEAR_TIME = 3000; // ms
 constexpr const char* DEVELOPER_MODE_STATE = "const.security.developermode.state";
+constexpr int32_t DEFAULT_KILL_ID = -1;
 }
 using EventFwk::CommonEventSupport;
 
@@ -971,6 +972,10 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
         if (pid < 0) {
             TAG_LOGE(AAFwkTag::APPMGR, "pid error");
             return;
+        }
+        if (appRecordSptr->GetKillId() == DEFAULT_KILL_ID) {
+            appRecordSptr->SetKillId(HiviewDFX::ProcessKillReason::KillEventId::REASON_APP_EXIT);
+            appRecordSptr->SetKillMsg("Kill Reason:app exit");
         }
         auto result = inner->KillProcessByPid(pid, "TerminateAbility", false, appRecordSptr->GetRecordId());
         if (result < 0) {
