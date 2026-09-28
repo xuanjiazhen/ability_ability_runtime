@@ -218,7 +218,19 @@ std::string ContextDeal::GetBundleResourcePath()
     }
     std::string dir;
     if (isCreateBySystemApp_) {
+<<<<<<< HEAD
         dir = GetSandboxPath(abilityInfo_->resourcePath, LOCAL_BUNDLES, abilityInfo_->bundleName);
+=======
+<<<<<<< HEAD
+        dir = GetSandboxPath(abilityInfo_->resourcePath, LOCAL_BUNDLES, abilityInfo_->bundleName);
+=======
+<<<<<<< HEAD
+        dir = GetSandboxPath(abilityInfo_->resourcePath, LOCAL_BUNDLES, abilityInfo_->bundleName);
+=======
+        dir = GetSandboxPath(abilityInfo_-> resourcePath, LOCAL_BUNDLES, abilityInfo_->bundleName);
+>>>>>>> 9036ace45d118ddaa070639a3074d5a85fc9d3a3
+>>>>>>> fe0fa3ecff2227fe78162d186ffa278e4973c2c1
+>>>>>>> 881c9e16c30067c349050aa4790b35c7659b34f1
     } else {
         dir = ExtractorUtil::GetLoadFilePath(abilityInfo_->resourcePath);
     }
