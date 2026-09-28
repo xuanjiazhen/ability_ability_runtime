@@ -61,6 +61,7 @@ GetAllUIAbilitiesCallback ContextImpl::getAllUIAbilitiesCallback_ = nullptr;
 #endif
 using namespace OHOS::AbilityBase::Constants;
 using ExtractorUtil = AbilityBase::ExtractorUtil;
+
 namespace {
     std::string GetSandboxPath(const std::string &path, const std::string &sandboxRoot, const std::string &bundleName) {
         std::string absPrefix = std::string(ABS_CODE_PATH) + std::string(FILE_SEPARATOR);
