@@ -1219,5 +1219,18 @@ HWTEST_F(AbilityAutoStartupServiceTest, FindHandledAutoStartupUsers_001, TestSiz
     EXPECT_FALSE(isHandled);
     GTEST_LOG_(INFO) << "AbilityAutoStartupServiceTest FindHandledAutoStartupUsers_001 end";
 }
+/*
+ * Feature: AbilityAutoStartupService
+ * Function: CheckBootAppPermission
+ * FunctionPoints: A target without a granted token fails permission verification on every device type.
+ */
+HWTEST_F(AbilityAutoStartupServiceTest, BootAppPermissionWithoutToken, TestSize.Level1)
+{
+    AbilityAutoStartupService service;
+    AutoStartupInfo info;
+    info.bundleName = "nonexistent.boot.permission.target";
+    info.userId = 100;
+    EXPECT_EQ(service.CheckBootAppPermission(info), CHECK_PERMISSION_FAILED);
+}
 } // namespace AAFwk
 } // namespace OHOS

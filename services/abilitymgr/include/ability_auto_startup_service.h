@@ -127,6 +127,7 @@ public:
      */
     int32_t CancelApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag);
 
+    bool CanStartBootApp(const AutoStartupInfo &info);
     void AddHandledAutoStartupUsers(int32_t userId);
     void RemoveHandledAutoStartupUsers(int32_t userId);
     bool FindHandledAutoStartupUsers(int32_t userId);
@@ -172,6 +173,7 @@ private:
     std::string GetAbilityTypeName(const AppExecFwk::AbilityInfo &abilityInfo);
     std::string GetExtensionTypeName(const AppExecFwk::ExtensionAbilityInfo &extensionInfo);
     std::shared_ptr<AppExecFwk::BundleMgrClient> GetBundleMgrClient();
+    int32_t CheckBootAppPermission(const AutoStartupInfo &info);
     int32_t CheckPermissionForSystem();
     int32_t CheckPermissionForEDM();
     int32_t VerifyCrossUserAccountPermission(const AutoStartupAbilityData &abilityData);
@@ -180,6 +182,7 @@ private:
     int32_t CheckHiddenStartConditions(bool isHiddenStart, const AutoStartupAbilityData &abilityData);
     void GetCallbackVector(std::vector<sptr<IRemoteObject>>& callbackVector);
 
+    std::mutex autoStartupDataMutex_;
     mutable std::mutex autoStartUpMutex_;
     mutable std::mutex deathRecipientsMutex_;
     std::vector<int32_t> handledAutoStartupUsers_;

@@ -17,6 +17,7 @@
 
 #include "ability_auto_startup_data_manager.h"
 #include "ability_manager_service.h"
+#include "accesstoken_kit.h"
 #include "app_utils.h"
 #include "auto_startup_callback_proxy.h"
 #include "auto_startup_interface.h"
@@ -165,11 +166,22 @@ int32_t AbilityAutoStartupService::SetApplicationAutoStartup(const AutoStartupIn
     fullInfo.canUserModify = true;
     fullInfo.setterType = AutoStartupSetterType::USER;
 
-    return InnerSetApplicationAutoStartup(fullInfo);
+    if (fullInfo.isBootApp) {
+        code = CheckBootAppPermission(fullInfo);
+        if (code != ERR_OK) {
+            return code;
+        }
+    }
+    code = InnerSetApplicationAutoStartup(fullInfo);
+    TAG_LOGI(AAFwkTag::AUTO_STARTUP, "set auto startup bundle:%{public}s user:%{public}d "
+        "boot:%{public}d ret:%{public}d",
+        fullInfo.bundleName.c_str(), fullInfo.userId, fullInfo.isBootApp, code);
+    return code;
 }
 
 int32_t AbilityAutoStartupService::InnerSetApplicationAutoStartup(const AutoStartupInfo &info)
 {
+    std::unique_lock<std::mutex> lock(autoStartupDataMutex_);
     DistributedKv::Key originKey;
     AutoStartupStatus status =
         DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->QueryAutoStartupData(info, originKey);
@@ -183,6 +195,7 @@ int32_t AbilityAutoStartupService::InnerSetApplicationAutoStartup(const AutoStar
         TAG_LOGI(AAFwkTag::AUTO_STARTUP, "Not found");
         result =
             DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->InsertAutoStartupData(info, true, false);
+        lock.unlock();
         if (result == ERR_OK) {
             ExecuteCallbacks(true, info);
         }
@@ -195,6 +208,7 @@ int32_t AbilityAutoStartupService::InnerSetApplicationAutoStartup(const AutoStar
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "normal update originKey: %{public}s", originKey.ToString().c_str());
     result = DelayedSingleton<AbilityAutoStartupDataManager>::
         GetInstance()->UpdateAutoStartupData(info, originKey, true, false);
+    lock.unlock();
     if (result == ERR_OK) {
         ExecuteCallbacks(true, info);
     }
@@ -238,6 +252,7 @@ int32_t AbilityAutoStartupService::CancelApplicationAutoStartup(const AutoStartu
 
 int32_t AbilityAutoStartupService::InnerCancelApplicationAutoStartup(const AutoStartupInfo &info)
 {
+    std::unique_lock<std::mutex> lock(autoStartupDataMutex_);
     DistributedKv::Key originKey;
     AutoStartupStatus status =
         DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->QueryAutoStartupData(info, originKey);
@@ -261,8 +276,11 @@ int32_t AbilityAutoStartupService::InnerCancelApplicationAutoStartup(const AutoS
         TAG_LOGD(AAFwkTag::AUTO_STARTUP, "normal cancel originKey: %{public}s", originKey.ToString().c_str());
         int32_t result = DelayedSingleton<AbilityAutoStartupDataManager>::
             GetInstance()->DeleteAutoStartupData(info, originKey);
+        lock.unlock();
         if (result == ERR_OK) {
-            ExecuteCallbacks(false, info);
+            AutoStartupInfo callbackInfo(info);
+            callbackInfo.isBootApp = status.isBootApp;
+            ExecuteCallbacks(false, callbackInfo);
         }
         return result;
     }
@@ -610,6 +628,36 @@ std::shared_ptr<AppExecFwk::BundleMgrClient> AbilityAutoStartupService::GetBundl
     return bundleMgrClient_;
 }
 
+int32_t AbilityAutoStartupService::CheckBootAppPermission(const AutoStartupInfo &info)
+{
+    auto tokenId = Security::AccessToken::AccessTokenKit::GetHapTokenID(
+        info.userId, info.bundleName, info.appCloneIndex);
+    if (tokenId == Security::AccessToken::INVALID_TOKENID) {
+        TAG_LOGW(AAFwkTag::AUTO_STARTUP, "invalid boot app token");
+        return CHECK_PERMISSION_FAILED;
+    }
+    if (Security::AccessToken::AccessTokenKit::VerifyAccessToken(tokenId,
+        PermissionConstants::PERMISSION_START_BEFORE_UNLOCK) != Security::AccessToken::PERMISSION_GRANTED) {
+        TAG_LOGW(AAFwkTag::AUTO_STARTUP, "target lacks START_BEFORE_UNLOCK: %{public}s", info.bundleName.c_str());
+        return CHECK_PERMISSION_FAILED;
+    }
+    return ERR_OK;
+}
+
+bool AbilityAutoStartupService::CanStartBootApp(const AutoStartupInfo &info)
+{
+    DistributedKv::Key originKey;
+    auto status = DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->QueryAutoStartupData(info, originKey);
+    if (status.code != ERR_OK || !status.isAutoStartup || !status.isBootApp) {
+        return false;
+    }
+    AutoStartupAbilityData abilityData;
+    if (GetAbilityInfo(info, abilityData) != ERR_OK || abilityData.accessTokenId != info.accessTokenId) {
+        return false;
+    }
+    return CheckBootAppPermission(info) == ERR_OK;
+}
+
 int32_t AbilityAutoStartupService::CheckPermissionForSystem()
 {
     if (!AAFwk::AppUtils::GetInstance().IsAutoStartupSupported()) {
@@ -735,6 +783,7 @@ int32_t AbilityAutoStartupService::InnerApplicationAutoStartupByEDM(const AutoSt
         " setterUserId: %{public}d, isHiddenStart: %{public}d, isSet: %{public}d, flag: %{public}d",
         info.bundleName.c_str(), info.moduleName.c_str(), info.abilityName.c_str(),
         info.accessTokenId.c_str(), info.setterUserId, info.isHiddenStart, isSet, flag);
+    std::unique_lock<std::mutex> lock(autoStartupDataMutex_);
     DistributedKv::Key originKey;
     AutoStartupStatus status =
         DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->QueryAutoStartupData(info, originKey);
@@ -743,21 +792,26 @@ int32_t AbilityAutoStartupService::InnerApplicationAutoStartupByEDM(const AutoSt
         return status.code;
     }
 
+    AutoStartupInfo fullInfo(info);
+    // EDM changes its own policy. It cannot grant the target's pre-unlock capability.
+    fullInfo.isBootApp = status.code == ERR_OK && status.isBootApp;
     int32_t result = ERR_OK;
     if (status.code == ERR_NAME_NOT_FOUND) {
         result = DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->InsertAutoStartupData(
-            info, isSet, flag);
+            fullInfo, isSet, flag);
+        lock.unlock();
         if (result == ERR_OK && isSet) {
-            ExecuteCallbacks(isSet, info);
+            ExecuteCallbacks(isSet, fullInfo);
         }
         return result;
     }
     // Always update record regardless of whether there is a difference
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "edm update originKey: %{public}s", originKey.ToString().c_str());
     result = DelayedSingleton<AbilityAutoStartupDataManager>::
-        GetInstance()->UpdateAutoStartupData(info, originKey, isSet, flag);
+        GetInstance()->UpdateAutoStartupData(fullInfo, originKey, isSet, flag);
+    lock.unlock();
     if (result == ERR_OK) {
-        ExecuteCallbacks(isSet, info);
+        ExecuteCallbacks(isSet, fullInfo);
     }
     return result;
 }
