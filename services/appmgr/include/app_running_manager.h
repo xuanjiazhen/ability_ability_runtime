@@ -364,6 +364,7 @@ public:
 
     bool ProcessExitByBundleNameAndUid(
         const std::string &bundleName, const int uid, std::list<pid_t> &pids, const KillProcessConfig &config = {});
+    bool IsProcessProtectedByEdm(const std::string &bundleName, int uid);
     bool ProcessExitByBundleNameAndAppIndex(const std::string &bundleName, int32_t appIndex, std::list<pid_t> &pids,
         bool clearPageStack);
     bool ProcessExitByTokenIdAndInstance(uint32_t accessTokenId, const std::string &instanceKey, std::list<pid_t> &pids,

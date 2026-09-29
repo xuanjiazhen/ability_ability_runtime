@@ -994,6 +994,14 @@ void AppMgrClient::SetKeepAliveAppService(const std::string &bundleName, bool en
     amsService_->SetKeepAliveAppService(bundleName, enable, uid);
 }
 
+void AppMgrClient::SetKeepAliveProtectedByEdm(const std::string &bundleName, bool enable, int32_t uid)
+{
+    if (!IsAmsServiceReady()) {
+        return;
+    }
+    amsService_->SetKeepAliveProtectedByEdm(bundleName, enable, uid);
+}
+
 void AppMgrClient::StartSpecifiedProcess(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
     int32_t requestId, const std::string &customProcess)
 {

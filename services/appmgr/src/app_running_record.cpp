@@ -1599,6 +1599,11 @@ bool AppRunningRecord::IsKeepAliveAppService() const
     return isKeepAliveAppService_;
 }
 
+bool AppRunningRecord::IsKeepAliveProtectedByEdm() const
+{
+    return isKeepAliveProtectedByEdm_;
+}
+
 void AppRunningRecord::SetKeepAliveEnableState(bool isKeepAliveEnable)
 {
     isKeepAliveRdb_ = isKeepAliveEnable;
@@ -1607,6 +1612,11 @@ void AppRunningRecord::SetKeepAliveEnableState(bool isKeepAliveEnable)
 void AppRunningRecord::SetKeepAliveDkv(bool isKeepAliveDkv)
 {
     isKeepAliveDkv_ = isKeepAliveDkv;
+}
+
+void AppRunningRecord::SetKeepAliveProtectedByEdm(bool isKeepAliveProtectedByEdm)
+{
+    isKeepAliveProtectedByEdm_ = isKeepAliveProtectedByEdm;
 }
 
 void AppRunningRecord::SetMainElementRunning(bool isMainElementRunning)
