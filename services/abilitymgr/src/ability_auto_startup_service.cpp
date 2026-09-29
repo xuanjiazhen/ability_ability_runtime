@@ -169,7 +169,11 @@ int32_t AbilityAutoStartupService::SetApplicationAutoStartup(const AutoStartupIn
     if (fullInfo.isBootApp && CheckBootAppPermission(fullInfo) != ERR_OK) {
         return CHECK_PERMISSION_FAILED;
     }
-    return InnerSetApplicationAutoStartup(fullInfo);
+    code = InnerSetApplicationAutoStartup(fullInfo);
+    TAG_LOGI(AAFwkTag::AUTO_STARTUP, "set auto startup bundle:%{public}s user:%{public}d "
+        "boot:%{public}d ret:%{public}d",
+        fullInfo.bundleName.c_str(), fullInfo.userId, fullInfo.isBootApp, code);
+    return code;
 }
 
 int32_t AbilityAutoStartupService::InnerSetApplicationAutoStartup(const AutoStartupInfo &info)
