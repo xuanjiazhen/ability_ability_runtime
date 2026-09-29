@@ -4143,5 +4143,23 @@ HWTEST_F(AbilityManagerServiceFirstTest, ResolvePickerByTargetType_0200, TestSiz
     pickerMap.erase(targetType);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest ResolvePickerByTargetType_0200 end");
 }
+
+/**
+ * Feature: AbilityManagerService
+ * Function: ClearBootStartupUser
+ * FunctionPoints: Stopping one user invalidates its old tasks without invalidating another user's cycle.
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, BootStartupUserCycle, TestSize.Level1)
+{
+    auto service = std::make_shared<AbilityManagerService>();
+    service->bootStartupStates_[100].scheduled = true;
+    service->bootStartupStates_[101].scheduled = true;
+    service->ClearBootStartupUser(100);
+    EXPECT_FALSE(service->IsBootStartupTaskActive(100, 0));
+    EXPECT_TRUE(service->IsBootStartupTaskActive(100, 1));
+    EXPECT_TRUE(service->IsBootStartupTaskActive(101, 0));
+    EXPECT_FALSE(service->bootStartupStates_[100].scheduled);
+    EXPECT_TRUE(service->bootStartupStates_[101].scheduled);
+}
 } // namespace AAFwk
 } // namespace OHOS
