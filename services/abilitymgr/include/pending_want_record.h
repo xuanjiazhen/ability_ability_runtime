@@ -51,6 +51,7 @@ public:
     void SetPublisherUid(int32_t publisherUid);
     int32_t GetPublisherUid() const;
     void SetCanceled();
+    void ResetCanceled();
     bool GetCanceled();
     std::list<sptr<IWantReceiver>> GetCancelCallbacks();
     void BuildSendWant(SenderInfo &senderInfo, Want &want);

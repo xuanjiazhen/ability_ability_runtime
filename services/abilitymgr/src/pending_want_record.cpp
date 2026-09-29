@@ -266,6 +266,12 @@ void PendingWantRecord::SetCanceled()
 {
     canceled_.store(true);
 }
+
+void PendingWantRecord::ResetCanceled()
+{
+    canceled_.store(false);
+}
+
 bool PendingWantRecord::GetCanceled()
 {
     return canceled_.load();

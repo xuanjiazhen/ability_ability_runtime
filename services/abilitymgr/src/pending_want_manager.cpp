@@ -212,6 +212,7 @@ sptr<IWantSender> PendingWantManager::GetWantSenderLocked(const int32_t callingU
                     ref->SetIsThirdParty(false);
                 }
                 ref->MarkSharedIfNeeded(IPCSkeleton::GetCallingPid());
+                ref->ResetCanceled();
                 result = ref;
             } else {
                 CollectCancelCallbacksLocked(*ref, cancelCallbacks);

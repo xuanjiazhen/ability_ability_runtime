@@ -540,8 +540,8 @@ HWTEST_F(PendingWantRecordTest, PendingWantRecordTest_1700, TestSize.Level1)
 
 /*
  * @tc.number    : PendingWantRecordTest_1800
- * @tc.name      : PendingWantManager SetCanceled/GetCanceled
- * @tc.desc      : 1.SetCanceled/GetCanceled
+ * @tc.name      : PendingWantManager SetCanceled/ResetCanceled/GetCanceled
+ * @tc.desc      : 1.SetCanceled/ResetCanceled/GetCanceled
  */
 HWTEST_F(PendingWantRecordTest, PendingWantRecordTest_1800, TestSize.Level1)
 {
@@ -559,6 +559,8 @@ HWTEST_F(PendingWantRecordTest, PendingWantRecordTest_1800, TestSize.Level1)
     EXPECT_EQ(pendingWantRecord->GetCanceled(), false);
     pendingWantRecord->SetCanceled();
     EXPECT_EQ(pendingWantRecord->GetCanceled(), true);
+    pendingWantRecord->ResetCanceled();
+    EXPECT_EQ(pendingWantRecord->GetCanceled(), false);
 }
 
 /*
