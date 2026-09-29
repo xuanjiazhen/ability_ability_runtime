@@ -227,7 +227,7 @@ HWTEST_F(QuickFixManagerServiceTest, GetQuickFixInfo_0100, TestSize.Level1)
     std::string bundleName = "com.ohos.quickfix";
     auto patchExists = false;
     auto isSoContained = false;
-    auto ret = quickFixMs_->GetQuickFixInfo(bundleName, patchExists, isSoContained);
+    auto ret = quickFixMs_->GetQuickFixInfo(bundleName, patchExists, isSoContained, 0);
     EXPECT_NE(ret, QUICK_FIX_OK);
     EXPECT_NE(patchExists, true);
     EXPECT_NE(isSoContained, true);
@@ -520,7 +520,7 @@ HWTEST_F(QuickFixManagerServiceTest, GetQuickFixInfo_0200, TestSize.Level1)
     std::string bundleName = "";
     auto patchExists = false;
     auto isSoContained = false;
-    auto ret = quickFixMs_->GetQuickFixInfo(bundleName, patchExists, isSoContained);
+    auto ret = quickFixMs_->GetQuickFixInfo(bundleName, patchExists, isSoContained, 0);
     EXPECT_EQ(ret, QUICK_FIX_OK);
     EXPECT_FALSE(patchExists);
     EXPECT_FALSE(isSoContained);
@@ -549,7 +549,7 @@ HWTEST_F(QuickFixManagerServiceTest, GetQuickFixInfo_0300, TestSize.Level1)
     std::string bundleName = "non.existent.bundle";
     auto patchExists = false;
     auto isSoContained = false;
-    auto ret = quickFixMs_->GetQuickFixInfo(bundleName, patchExists, isSoContained);
+    auto ret = quickFixMs_->GetQuickFixInfo(bundleName, patchExists, isSoContained, 0);
     EXPECT_EQ(ret, QUICK_FIX_OK);
     EXPECT_FALSE(patchExists);
     EXPECT_FALSE(isSoContained);
