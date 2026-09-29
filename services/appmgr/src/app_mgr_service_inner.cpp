@@ -2198,6 +2198,12 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
             return;
         }
         isProcCache = DelayedSingleton<CacheProcessManager>::GetInstance()->ReuseCachedProcess(appRecord);
+        if (isProcCache && abilityInfo->type == AppExecFwk::AbilityType::PAGE) {
+            if (!NotifyMemMgrPriorityChanged(appRecord)) {
+                TAG_LOGW(AAFwkTag::APPMGR, "selfPid reuse: memmgr sync check failed, pid:%{public}d",
+                    loadParam->selfPid);
+            }
+        }
         HandleExistingAppRecordAfterFound(appRecord, abilityInfo, hapModuleInfo, want, isProcCache, loadParam);
         return;
     }
@@ -2339,8 +2345,10 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         appRecord = nullptr;
     }
     if (appRecord && abilityInfo->type == AppExecFwk::AbilityType::PAGE) {
-        NotifyMemMgrPriorityChanged(appRecord);
-        if (appRecord->GetPreloadMode() == AppExecFwk::PreloadMode::GAME_PRELAUNCH) {
+        if (!NotifyMemMgrPriorityChanged(appRecord)) {
+            TAG_LOGW(AAFwkTag::APPMGR, "memmgr sync check failed, skip reuse");
+            appRecord = nullptr;
+        } else if (appRecord->GetPreloadMode() == AppExecFwk::PreloadMode::GAME_PRELAUNCH) {
             (void)KillProcessByPid(appRecord->GetPid(), "GameSAPreLaunch kill Process");
             appRecord = nullptr;
         }
@@ -11969,7 +11977,7 @@ bool AppMgrServiceInner::NotifyMemMgrPriorityChanged(const std::shared_ptr<AppRu
     int32_t result = ERR_OK;
     {
         HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-        result = Memory::MemMgrClient::GetInstance().NotifyProcessStateChangedAsync(info);
+        result = Memory::MemMgrClient::GetInstance().NotifyProcessStateChangedSync(info);
     }
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "notifyPriorityChangedSync error, result:%{public}d", result);
