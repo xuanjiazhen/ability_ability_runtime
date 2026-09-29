@@ -60,13 +60,19 @@ ApplicationDataManager &ApplicationDataManager::GetInstance()
 
 void ApplicationDataManager::AddErrorObserver(const std::shared_ptr<IErrorObserver> &observer)
 {
+    std::lock_guard<std::mutex> lock(errorObserverMutex_);
     errorObserver_ = observer;
 }
 
 bool ApplicationDataManager::NotifyUnhandledException(const std::string &errMsg)
 {
-    if (errorObserver_) {
-        errorObserver_->OnUnhandledException(errMsg);
+    std::shared_ptr<IErrorObserver> observer;
+    {
+        std::lock_guard<std::mutex> lock(errorObserverMutex_);
+        observer = errorObserver_;
+    }
+    if (observer) {
+        observer->OnUnhandledException(errMsg);
         return true;
     }
 
@@ -77,8 +83,13 @@ bool ApplicationDataManager::NotifyUnhandledException(const std::string &errMsg)
 
 bool ApplicationDataManager::NotifyCJUnhandledException(const std::string &errMsg)
 {
-    if (errorObserver_) {
-        errorObserver_->OnUnhandledException(errMsg);
+    std::shared_ptr<IErrorObserver> observer;
+    {
+        std::lock_guard<std::mutex> lock(errorObserverMutex_);
+        observer = errorObserver_;
+    }
+    if (observer) {
+        observer->OnUnhandledException(errMsg);
         return true;
     }
 
@@ -89,8 +100,13 @@ bool ApplicationDataManager::NotifyCJUnhandledException(const std::string &errMs
 
 bool ApplicationDataManager::NotifyETSUnhandledException(const std::string &errMsg)
 {
-    if (errorObserver_) {
-        errorObserver_->OnUnhandledException(errMsg);
+    std::shared_ptr<IErrorObserver> observer;
+    {
+        std::lock_guard<std::mutex> lock(errorObserverMutex_);
+        observer = errorObserver_;
+    }
+    if (observer) {
+        observer->OnUnhandledException(errMsg);
         return true;
     }
     return AppRecovery::GetInstance().TryRecoverApp(StateReason::JS_ERROR);
@@ -98,13 +114,19 @@ bool ApplicationDataManager::NotifyETSUnhandledException(const std::string &errM
 
 void ApplicationDataManager::RemoveErrorObserver()
 {
+    std::lock_guard<std::mutex> lock(errorObserverMutex_);
     errorObserver_ = nullptr;
 }
 
 bool ApplicationDataManager::NotifyExceptionObject(const AppExecFwk::ErrorObject &errorObj)
 {
-    if (errorObserver_) {
-        errorObserver_->OnExceptionObject(errorObj);
+    std::shared_ptr<IErrorObserver> observer;
+    {
+        std::lock_guard<std::mutex> lock(errorObserverMutex_);
+        observer = errorObserver_;
+    }
+    if (observer) {
+        observer->OnExceptionObject(errorObj);
         return true;
     }
 
@@ -116,8 +138,13 @@ bool ApplicationDataManager::NotifyExceptionObject(const AppExecFwk::ErrorObject
 bool ApplicationDataManager::NotifyCJExceptionObject(const AppExecFwk::ErrorObject &errorObj)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "Notify Exception error observer come");
-    if (errorObserver_) {
-        errorObserver_->OnExceptionObject(errorObj);
+    std::shared_ptr<IErrorObserver> observer;
+    {
+        std::lock_guard<std::mutex> lock(errorObserverMutex_);
+        observer = errorObserver_;
+    }
+    if (observer) {
+        observer->OnExceptionObject(errorObj);
         return true;
     }
 
@@ -129,8 +156,13 @@ bool ApplicationDataManager::NotifyCJExceptionObject(const AppExecFwk::ErrorObje
 bool ApplicationDataManager::NotifyETSExceptionObject(const AppExecFwk::ErrorObject &errorObj)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "Notify Exception error observer come");
-    if (errorObserver_) {
-        errorObserver_->OnExceptionObject(errorObj);
+    std::shared_ptr<IErrorObserver> observer;
+    {
+        std::lock_guard<std::mutex> lock(errorObserverMutex_);
+        observer = errorObserver_;
+    }
+    if (observer) {
+        observer->OnExceptionObject(errorObj);
         return true;
     }
     return AppRecovery::GetInstance().TryRecoverApp(StateReason::JS_ERROR);
@@ -139,8 +171,13 @@ bool ApplicationDataManager::NotifyETSExceptionObject(const AppExecFwk::ErrorObj
 bool ApplicationDataManager::NotifyETSErrorObject(const AppExecFwk::ErrorObject &errorObj)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "Notify Exception error observer start");
-    if (errorCallback_) {
-        errorCallback_(errorObj);
+    EtsErrorCallback callback;
+    {
+        std::lock_guard<std::mutex> lock(errorCallbackMutex_);
+        callback = errorCallback_;
+    }
+    if (callback) {
+        callback(errorObj);
         return true;
     }
     return AppRecovery::GetInstance().TryRecoverApp(StateReason::JS_ERROR);
@@ -148,6 +185,7 @@ bool ApplicationDataManager::NotifyETSErrorObject(const AppExecFwk::ErrorObject 
 
 void ApplicationDataManager::SetErrorHandlerCallback(EtsErrorCallback errorCallback)
 {
+    std::lock_guard<std::mutex> lock(errorCallbackMutex_);
     errorCallback_ = errorCallback;
 }
 

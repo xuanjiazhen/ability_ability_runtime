@@ -762,5 +762,157 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_LogGpuHookSize_002,
 
     GTEST_LOG_(INFO) << "ApplicationDataManager_LogGpuHookSize_002 end";
 }
+
+/**
+* @tc.number: ApplicationDataManager_ErrorObserver_Concurrent_001
+* @tc.name: ApplicationDataManager ErrorObserver Concurrent Access
+* @tc.desc: Test thread safety of errorObserver_ with concurrent Add/Remove and Notify
+*/
+HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_ErrorObserver_Concurrent_001,
+         Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "ApplicationDataManager_ErrorObserver_Concurrent_001 start";
+
+    std::shared_ptr<MyObserver> observer = std::make_shared<MyObserver>();
+    AppExecFwk::ErrorObject errorObj;
+    errorObj.name = "errorName";
+    errorObj.message = "errorMessage";
+    errorObj.stack = "errorStack";
+
+    std::atomic<int> notifyCount{0};
+    std::atomic<bool> stopTest{false};
+
+    auto addRemoveThread = [&]() {
+        for (int i = 0; i < 100 && !stopTest.load(); ++i) {
+            ApplicationDataManager::GetInstance().AddErrorObserver(observer);
+            std::this_thread::sleep_for(std::chrono::microseconds(10));
+            ApplicationDataManager::GetInstance().RemoveErrorObserver();
+            std::this_thread::sleep_for(std::chrono::microseconds(10));
+        }
+    };
+
+    auto notifyThread = [&]() {
+        for (int i = 0; i < 100 && !stopTest.load(); ++i) {
+            ApplicationDataManager::GetInstance().NotifyUnhandledException("test");
+            ApplicationDataManager::GetInstance().NotifyExceptionObject(errorObj);
+            ApplicationDataManager::GetInstance().NotifyETSUnhandledException("test");
+            ApplicationDataManager::GetInstance().NotifyETSExceptionObject(errorObj);
+            notifyCount++;
+        }
+    };
+
+    std::thread t1(addRemoveThread);
+    std::thread t2(notifyThread);
+    std::thread t3(notifyThread);
+
+    t1.join();
+    stopTest.store(true);
+    t2.join();
+    t3.join();
+
+    ApplicationDataManager::GetInstance().RemoveErrorObserver();
+    EXPECT_GT(notifyCount.load(), 0);
+
+    GTEST_LOG_(INFO) << "ApplicationDataManager_ErrorObserver_Concurrent_001 end";
+}
+
+/**
+* @tc.number: ApplicationDataManager_ErrorCallback_Concurrent_001
+* @tc.name: ApplicationDataManager ErrorCallback Concurrent Access
+* @tc.desc: Test thread safety of errorCallback_ with concurrent Set and Notify
+*/
+HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_ErrorCallback_Concurrent_001,
+         Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "ApplicationDataManager_ErrorCallback_Concurrent_001 start";
+
+    std::atomic<int> callbackCount{0};
+    auto errorCallback = [&callbackCount](const AppExecFwk::ErrorObject &errorObj) {
+        callbackCount++;
+    };
+
+    AppExecFwk::ErrorObject errorObj;
+    errorObj.name = "errorName";
+    errorObj.message = "errorMessage";
+    errorObj.stack = "errorStack";
+
+    std::atomic<bool> stopTest{false};
+
+    auto setCallbackThread = [&]() {
+        for (int i = 0; i < 100 && !stopTest.load(); ++i) {
+            ApplicationDataManager::GetInstance().SetErrorHandlerCallback(errorCallback);
+            std::this_thread::sleep_for(std::chrono::microseconds(10));
+            ApplicationDataManager::GetInstance().SetErrorHandlerCallback(nullptr);
+            std::this_thread::sleep_for(std::chrono::microseconds(10));
+        }
+    };
+
+    auto notifyThread = [&]() {
+        for (int i = 0; i < 100 && !stopTest.load(); ++i) {
+            ApplicationDataManager::GetInstance().NotifyETSErrorObject(errorObj);
+        }
+    };
+
+    std::thread t1(setCallbackThread);
+    std::thread t2(notifyThread);
+    std::thread t3(notifyThread);
+
+    t1.join();
+    stopTest.store(true);
+    t2.join();
+    t3.join();
+
+    ApplicationDataManager::GetInstance().SetErrorHandlerCallback(nullptr);
+
+    GTEST_LOG_(INFO) << "ApplicationDataManager_ErrorCallback_Concurrent_001 end";
+}
+
+/**
+* @tc.number: ApplicationDataManager_ErrorObserver_CJ_Concurrent_001
+* @tc.name: ApplicationDataManager ErrorObserver CJ Concurrent Access
+* @tc.desc: Test thread safety of errorObserver_ with concurrent CJ Notify methods
+*/
+HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_ErrorObserver_CJ_Concurrent_001,
+         Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "ApplicationDataManager_ErrorObserver_CJ_Concurrent_001 start";
+
+    std::shared_ptr<MyObserver> observer = std::make_shared<MyObserver>();
+    AppExecFwk::ErrorObject errorObj;
+    errorObj.name = "errorName";
+    errorObj.message = "errorMessage";
+    errorObj.stack = "errorStack";
+
+    std::atomic<bool> stopTest{false};
+
+    auto addRemoveThread = [&]() {
+        for (int i = 0; i < 100 && !stopTest.load(); ++i) {
+            ApplicationDataManager::GetInstance().AddErrorObserver(observer);
+            std::this_thread::sleep_for(std::chrono::microseconds(10));
+            ApplicationDataManager::GetInstance().RemoveErrorObserver();
+            std::this_thread::sleep_for(std::chrono::microseconds(10));
+        }
+    };
+
+    auto notifyThread = [&]() {
+        for (int i = 0; i < 100 && !stopTest.load(); ++i) {
+            ApplicationDataManager::GetInstance().NotifyCJUnhandledException("test");
+            ApplicationDataManager::GetInstance().NotifyCJExceptionObject(errorObj);
+        }
+    };
+
+    std::thread t1(addRemoveThread);
+    std::thread t2(notifyThread);
+    std::thread t3(notifyThread);
+
+    t1.join();
+    stopTest.store(true);
+    t2.join();
+    t3.join();
+
+    ApplicationDataManager::GetInstance().RemoveErrorObserver();
+
+    GTEST_LOG_(INFO) << "ApplicationDataManager_ErrorObserver_CJ_Concurrent_001 end";
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
