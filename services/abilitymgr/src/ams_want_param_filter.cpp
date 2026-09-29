@@ -67,6 +67,14 @@ const std::map<std::string, std::string> THIRD_PARTY_PARAMS_TO_STRIP = {
     { AppExecFwk::INSIGHT_INTENT_PAGE_PARAM_NAVIGATIONID, "insight intent navigation id" },
     { AppExecFwk::INSIGHT_INTENT_PAGE_PARAM_NAVDESTINATIONNAME, "insight intent nav destination name" },
     { AppExecFwk::INSIGHT_INTENT_QUERY_ENTITY_CLASS_NAME, "insight intent query entity class name" },
+
+    // UIAbility-internal token param, written by AMS into the Want.
+    { "specifyTokenId", "specify token id" },
+
+    // Reserved caller-identity params, written by AMS from SignatureInfo
+    // (update_caller_info_util.cpp); a third-party forging them is stripped.
+    { Want::PARAM_RESV_CALLER_APP_ID, "caller app id" },
+    { Want::PARAM_RESV_CALLER_APP_IDENTIFIER, "caller app identifier" },
 };
 
 // Dynamic system-internal params (e.g. skill args / src entries) are constructed
