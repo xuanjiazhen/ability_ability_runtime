@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <future>
 #include <map>
+#include <set>
 #include <memory>
 #include <shared_mutex>
 #include <singleton.h>
@@ -3206,8 +3207,12 @@ private:
 
     void StartKeepAliveApps(int32_t userId);
 
-    void StartAutoStartupApps(int32_t userId, bool isEDMStart = false);
-    void StartAutoStartupApps(std::queue<AutoStartupInfo> infoList, int32_t userId);
+    void StartAutoStartupApps(int32_t userId, bool isEDMStart = false,
+        bool isBootApp = false, uint64_t bootGeneration = 0);
+    void StartAutoStartupApps(std::queue<AutoStartupInfo> infoList, int32_t userId,
+        bool isBootApp = false, uint64_t bootGeneration = 0);
+    bool IsBootStartupTaskActive(int32_t userId, uint64_t bootGeneration);
+    void ClearBootStartupUser(int32_t userId);
     bool IsAutoStartupAllowed(int32_t userId, bool isEDMStart);
     void SubscribeUserUnlockedEvent();
     void SubscribeScreenUnlockedEvent();
@@ -3672,6 +3677,9 @@ private:
     std::mutex subscribedMutex_;
 
     std::shared_ptr<AbilityAutoStartupService> abilityAutoStartupService_;
+    std::mutex bootStartupMutex_;
+    std::set<int32_t> bootStartupUsers_;
+    std::map<int32_t, uint64_t> bootStartupGenerations_;
 
     std::map<std::string, std::list<std::string>> whiteListMap_;
 

@@ -45,6 +45,11 @@ bool UnwrapAutoStartupInfo(napi_env env, napi_value param, AutoStartupInfo &info
         }
     }
     
+    if (AppExecFwk::IsExistsByPropertyName(env, param, "isBootApp") &&
+        !AppExecFwk::UnwrapBooleanByPropertyName(env, param, "isBootApp", info.isBootApp)) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "convert isBootApp failed");
+        return false;
+    }
     AppExecFwk::UnwrapStringByPropertyName(env, param, "moduleName", info.moduleName);
     return true;
 }
@@ -188,6 +193,11 @@ napi_value CreateJsAutoStartupInfo(napi_env env, const AutoStartupInfo &info)
         return nullptr;
     }
 
+    auto isBootApp = AppExecFwk::WrapBoolToJS(env, info.isBootApp);
+    if (isBootApp == nullptr ||
+        !AppExecFwk::SetPropertyValueByPropertyName(env, object, "isBootApp", isBootApp)) {
+        return nullptr;
+    }
     if (!AddBasicProperties(env, object, info)) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "failed to add basic properties");
         return nullptr;
