@@ -10122,6 +10122,7 @@ void AbilityManagerService::ClearBootStartupUser(int32_t userId)
     std::lock_guard<std::mutex> lock(bootStartupMutex_);
     // A new cycle receives a fresh generation, so erasing also invalidates queued work.
     bootStartupStates_.erase(userId);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "clear boot startup user:%{public}d", userId);
 }
 
 bool AbilityManagerService::IsAutoStartupAllowed(int32_t userId, bool isEDMStart, bool isBootApp)
@@ -10191,11 +10192,14 @@ void AbilityManagerService::StartAutoStartupApps(int32_t userId, bool isEDMStart
         std::lock_guard<std::mutex> lock(bootStartupMutex_);
         auto it = bootStartupStates_.find(userId);
         if (it == bootStartupStates_.end() || it->second.generation != bootGeneration || it->second.scheduled) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "skip repeated or stopped boot startup user:%{public}d", userId);
             return;
         }
         it->second.scheduled = true;
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAutoStartupApps userId:%{public}d", userId);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAutoStartupApps user:%{public}d boot:%{public}d "
+        "total:%{public}zu queued:%{public}zu",
+        userId, isBootApp, infoList.size(), infoQueue.size());
     StartAutoStartupApps(std::move(infoQueue), userId, isBootApp, bootGeneration);
     if (isEDMStart || isBootApp) {
         return;
@@ -10252,6 +10256,10 @@ void AbilityManagerService::StartAutoStartupApps(std::queue<AutoStartupInfo> inf
             userId, info.bundleName.c_str());
     } else {
         int32_t result = StartAutoStartupApp(info, userId);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "auto startup user:%{public}d boot:%{public}d bundle:%{public}s "
+            "ability:%{public}s type:%{public}s hidden:%{public}d ret:%{public}d retry:%{public}d",
+            userId, isBootApp, info.bundleName.c_str(), info.abilityName.c_str(), info.abilityTypeName.c_str(),
+            info.isHiddenStart, result, info.retryCount);
         if (result != ERR_OK && info.retryCount > 0) {
             --info.retryCount;
             infoQueue.push(info);
@@ -14517,6 +14525,7 @@ void AbilityManagerService::SetRootSceneSession(const sptr<IRemoteObject> &rootS
         }
         bootGeneration = it->second.generation;
     }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SCB root session ready, boot startup user:%{public}d", userId);
     taskHandler_->SubmitTask([weak = weak_from_this(), userId, bootGeneration]() {
         auto service = weak.lock();
         if (service != nullptr) {
