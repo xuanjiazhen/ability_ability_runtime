@@ -196,7 +196,6 @@ ohos_shared_library("abilityms") {
     "ability_base:view_data",
     "ability_base:want",
     "ability_base:zuri",
-    "appspawn:appspawn_client",
     "access_token:libaccesstoken_sdk",
     "access_token:libtokenid_sdk",
     "bundle_framework:appexecfwk_base",
@@ -233,6 +232,10 @@ ohos_shared_library("abilityms") {
     "window_manager:sms",
   ]
   public_external_deps = [ "background_task_mgr:bgtaskmgr_innerkits" ]
+
+  if (init_appspawn_client_module) {
+    external_deps += [ "appspawn:appspawn_client" ]
+  }
 
   if (background_task_mgr_continuous_task_enable) {
     external_deps += [ "background_task_mgr:bgtaskmgr_innerkits" ]
