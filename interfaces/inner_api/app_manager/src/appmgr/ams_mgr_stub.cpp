@@ -105,6 +105,8 @@ int32_t AmsMgrStub::OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data
             return HandleKillProcessesByUserId(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::KILL_PROCESS_WITH_ACCOUNT):
             return HandleKillProcessWithAccount(data, reply);
+        case static_cast<uint32_t>(IAmsMgr::Message::KILL_PROCESS_WITH_ACCOUNT_SAFELY):
+            return HandleKillProcessWithAccountSafely(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::KILL_APPLICATION):
             return HandleKillApplication(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::ABILITY_ATTACH_TIMEOUT):
@@ -231,6 +233,8 @@ int32_t AmsMgrStub::OnRemoteRequestInnerFourth(uint32_t code, MessageParcel &dat
             return HandleSetKeepAliveDkv(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::SET_KEEP_ALIVE_APP_SERVICE):
             return HandleSetKeepAliveAppService(data, reply);
+        case static_cast<uint32_t>(IAmsMgr::Message::SET_KEEP_ALIVE_PROTECTED_BY_EDM):
+            return HandleSetKeepAliveProtectedByEdm(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::KILL_PROCESSES_IN_BATCH):
             return HandleKillProcessesInBatch(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::PRELOAD_APPLICATION_BY_PHASE):
@@ -414,6 +418,18 @@ ErrCode AmsMgrStub::HandleKillProcessWithAccount(MessageParcel &data, MessagePar
 
     TAG_LOGI(AAFwkTag::APPMGR, "end");
 
+    return NO_ERROR;
+}
+
+ErrCode AmsMgrStub::HandleKillProcessWithAccountSafely(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "HandleKillProcessWithAccountSafely enter");
+    std::string bundleName = data.ReadString();
+    int accountId = data.ReadInt32();
+    bool clearPageStack = data.ReadBool();
+    auto appIndex = data.ReadInt32();
+    int32_t result = KillProcessWithAccountSafely(bundleName, accountId, clearPageStack, appIndex);
+    reply.WriteInt32(result);
     return NO_ERROR;
 }
 
@@ -891,6 +907,15 @@ int32_t AmsMgrStub::HandleSetKeepAliveAppService(MessageParcel &data, MessagePar
     auto enable = data.ReadBool();
     auto uid = data.ReadInt32();
     SetKeepAliveAppService(bundleName, enable, uid);
+    return NO_ERROR;
+}
+
+int32_t AmsMgrStub::HandleSetKeepAliveProtectedByEdm(MessageParcel &data, MessageParcel &reply)
+{
+    auto bundleName = data.ReadString();
+    auto enable = data.ReadBool();
+    auto uid = data.ReadInt32();
+    SetKeepAliveProtectedByEdm(bundleName, enable, uid);
     return NO_ERROR;
 }
 

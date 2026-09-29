@@ -1050,6 +1050,29 @@ HWTEST_F(AppRunningManagerTest, AppRunningManager_ProcessExitByBundleNameAndUid_
 }
 
 /**
+ * @tc.name: AppRunningManager_IsProcessProtectedByEdm_0100
+ * @tc.desc: Test protection lookup by bundle name and uid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningManagerTest, AppRunningManager_IsProcessProtectedByEdm_0100, TestSize.Level1)
+{
+    auto appRunningManager = std::make_shared<AppRunningManager>();
+    ASSERT_NE(appRunningManager, nullptr);
+
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.test.app";
+    auto appRunningRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "test_process");
+    appRunningRecord->SetUid(1000);
+    appRunningManager->appRunningRecordMap_.emplace(RECORD_ID, appRunningRecord);
+
+    EXPECT_FALSE(appRunningManager->IsProcessProtectedByEdm("com.test.app", 1000));
+    appRunningRecord->SetKeepAliveProtectedByEdm(true);
+    EXPECT_TRUE(appRunningManager->IsProcessProtectedByEdm("com.test.app", 1000));
+    EXPECT_FALSE(appRunningManager->IsProcessProtectedByEdm("com.other.app", 1000));
+    EXPECT_FALSE(appRunningManager->IsProcessProtectedByEdm("com.test.app", 1001));
+}
+
+/**
  * @tc.name: GetAllAbilityInfos_0100
  * @tc.desc: Test GetAllAbilityInfos with empty map
  * @tc.type: FUNC

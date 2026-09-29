@@ -598,6 +598,22 @@ bool AppRunningManager::ProcessExitByBundleNameAndUid(
     return (pids.empty() ? false : true);
 }
 
+bool AppRunningManager::IsProcessProtectedByEdm(const std::string &bundleName, int uid)
+{
+    auto appRunningMap = GetAppRunningRecordMap();
+    for (const auto &item : appRunningMap) {
+        const auto &appRecord = item.second;
+        if (appRecord == nullptr || appRecord->GetUid() != uid ||
+            appRecord->GetBundleName() != bundleName) {
+            continue;
+        }
+        if (appRecord->IsKeepAliveProtectedByEdm()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool AppRunningManager::ProcessExitByPid(int32_t pid, const KillProcessConfig &config)
 {
     auto appRunningMap = GetAppRunningRecordMap();

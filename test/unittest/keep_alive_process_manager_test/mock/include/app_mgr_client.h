@@ -58,6 +58,8 @@ public:
 
     void SetKeepAliveAppService(const std::string &bundleName, bool enable, int32_t uid);
     
+    void SetKeepAliveProtectedByEdm(const std::string &bundleName, bool enable, int32_t uid);
+
     int32_t GetProcessRunningInfosByUserId(std::vector<RunningProcessInfo> &info, int32_t userId);
 public:
     static int32_t isAppRunningReturnCode;

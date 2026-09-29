@@ -1492,6 +1492,11 @@ enum NativeFreeInstallError {
     ERR_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY = 29360272,
 
     /**
+     * Result (16000210) for a process protected by an MDM keep-alive policy.
+     */
+    KILL_PROCESS_PROTECTED_BY_EDM = 16000210,
+
+    /**
      * Undefine error code.
      */
     UNDEFINE_ERROR_CODE = 3,

@@ -3923,6 +3923,38 @@ int32_t AppMgrServiceInner::KillApplicationByUserId(
     return KillApplicationByUserIdLocked(bundleName, appCloneIndex, userId, config);
 }
 
+int32_t AppMgrServiceInner::KillApplicationByUserIdSafely(
+    const std::string &bundleName, int32_t appCloneIndex, const int userId,
+    const bool clearPageStack, const std::string& reason)
+{
+    CHECK_CALLER_IS_SYSTEM_APP;
+    if (VerifyAccountPermission(
+            AAFwk::PermissionConstants::PERMISSION_KILL_APP_PROCESSES, userId) == ERR_PERMISSION_DENIED &&
+        VerifyAccountPermission(
+            AAFwk::PermissionConstants::PERMISSION_CLEAN_BACKGROUND_PROCESSES, userId) == ERR_PERMISSION_DENIED) {
+        TAG_LOGE(AAFwkTag::APPMGR, "permission verify fail");
+        return ERR_PERMISSION_DENIED;
+    }
+
+    if (!appRunningManager_ || remoteClientManager_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "manager is not initialized");
+        return ERR_NO_INIT;
+    }
+    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
+        return ERR_NO_INIT;
+    }
+    int uid = IN_PROCESS_CALL(bundleMgrHelper->GetUidByBundleName(bundleName, userId, appCloneIndex));
+    if (appRunningManager_->IsProcessProtectedByEdm(bundleName, uid)) {
+        TAG_LOGI(AAFwkTag::APPMGR, "process protected by EDM keep-alive policy");
+        return AAFwk::KILL_PROCESS_PROTECTED_BY_EDM;
+    }
+
+    KillProcessConfig config{clearPageStack, true, reason};
+    return KillApplicationByUserIdLocked(bundleName, appCloneIndex, userId, config);
+}
+
 int32_t AppMgrServiceInner::KillApplicationByUserIdLocked(
     const std::string &bundleName, int32_t appCloneIndex, const int userId, const KillProcessConfig &config)
 {
@@ -12218,6 +12250,24 @@ void AppMgrServiceInner::SetKeepAliveAppService(const std::string& bundleName, b
             TAG_LOGD(AAFwkTag::APPMGR, "%{public}s update app service keep alive state: %{public}d", bundleName.c_str(),
                 static_cast<int32_t>(enable));
             SetKeepAliveAppServiceAndNotify(appRecord, enable);
+        }
+    }
+}
+
+void AppMgrServiceInner::SetKeepAliveProtectedByEdm(const std::string &bundleName, bool enable, int32_t uid)
+{
+    if (bundleName.empty() || appRunningManager_ == nullptr) {
+        return;
+    }
+    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+        TAG_LOGE(AAFwkTag::APPMGR, "SetKeepAliveProtectedByEdm not foundation call");
+        return;
+    }
+    for (const auto &item : appRunningManager_->GetAppRunningRecordMap()) {
+        const auto &appRecord = item.second;
+        if (appRecord != nullptr && appRecord->GetBundleName() == bundleName &&
+            (uid == 0 || appRecord->GetUid() == uid)) {
+            appRecord->SetKeepAliveProtectedByEdm(enable);
         }
     }
 }

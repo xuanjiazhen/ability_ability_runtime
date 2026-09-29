@@ -212,6 +212,9 @@ enum class AbilityErrorCode {
     // the target has not been started yet.
     ERROR_CODE_TARGET_NOT_STARTED = 16000201,
 
+    // the target process is protected by an MDM keep-alive policy.
+    ERROR_CODE_KEEP_ALIVE_PROTECTED = 16000210,
+
     // The context is not UIAbilityContext.
     ERROR_CODE_NOT_UI_ABILITY_CONTEXT = 16000086,
 

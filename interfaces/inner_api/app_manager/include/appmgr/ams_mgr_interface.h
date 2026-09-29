@@ -161,6 +161,12 @@ public:
     virtual int KillProcessWithAccount(const std::string &bundleName, const int accountId,
         const bool clearPageStack = false, int32_t appIndex = -1) = 0;
 
+    virtual int32_t KillProcessWithAccountSafely(const std::string &bundleName, const int accountId,
+        const bool clearPageStack = false, int32_t appIndex = 0)
+    {
+        return KillProcessWithAccount(bundleName, accountId, clearPageStack, appIndex);
+    }
+
     /**
      * KillProcessesInBatch, kill processes in batch, call KillProcessesInBatch() through proxy object;
      * the killed bundle won't be started by the watcher.
@@ -465,6 +471,8 @@ public:
      */
     virtual void SetKeepAliveAppService(const std::string &bundleName, bool enable, int32_t uid) {};
 
+    virtual void SetKeepAliveProtectedByEdm(const std::string &bundleName, bool enable, int32_t uid) {};
+
     /**
      * To clear the process by ability token.
      *
@@ -632,6 +640,8 @@ public:
         NOTIFY_LOAD_ABILITY_FINISHED,
         NOTIFY_APP_MGR_RECORD_EXIT_REASON_COMPABILITY,
         KILL_APPLICATION_WITH_USER_ID,
+        KILL_PROCESS_WITH_ACCOUNT_SAFELY,
+        SET_KEEP_ALIVE_PROTECTED_BY_EDM,
         // Add enumeration values above
         END
     };

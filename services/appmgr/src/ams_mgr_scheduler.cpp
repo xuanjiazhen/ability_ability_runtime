@@ -334,6 +334,18 @@ int32_t AmsMgrScheduler::KillProcessWithAccount(
         "KillProcessWithAccount");
 }
 
+int32_t AmsMgrScheduler::KillProcessWithAccountSafely(
+    const std::string &bundleName, const int accountId, const bool clearPageStack, int32_t appIndex)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "safe kill bundle=%{public}s, appIndex=%{public}d, userId=%{public}d",
+        bundleName.c_str(), appIndex, accountId);
+    if (!IsReady()) {
+        return ERR_INVALID_OPERATION;
+    }
+    return amsMgrServiceInner_->KillApplicationByUserIdSafely(bundleName, appIndex, accountId, clearPageStack,
+        "KillProcessWithAccountSafely");
+}
+
 int32_t AmsMgrScheduler::KillProcessesInBatch(const std::vector<int32_t> &pids)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "pids.size=%{public}zu", pids.size());
@@ -757,6 +769,15 @@ void AmsMgrScheduler::SetKeepAliveAppService(const std::string &bundleName, bool
         return;
     }
     amsMgrServiceInner_->SetKeepAliveAppService(bundleName, enable, uid);
+}
+
+void AmsMgrScheduler::SetKeepAliveProtectedByEdm(const std::string &bundleName, bool enable, int32_t uid)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return;
+    }
+    amsMgrServiceInner_->SetKeepAliveProtectedByEdm(bundleName, enable, uid);
 }
 
 void AmsMgrScheduler::ClearProcessByToken(sptr<IRemoteObject> token)
