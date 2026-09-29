@@ -431,6 +431,12 @@ void PendingWantManager::CancelWantSenderLocked(PendingWantRecord &record, bool 
     std::vector<std::pair<int32_t, sptr<IWantReceiver>>> cancelCallbacks;
     {
         std::lock_guard<ffrt::mutex> locker(mutex_);
+        auto key = record.GetKey();
+        auto it = (key == nullptr) ? wantRecords_.end() : wantRecords_.find(key);
+        if (it == wantRecords_.end() || it->second.GetRefPtr() != &record) {
+            TAG_LOGE(AAFwkTag::WANTAGENT, "record not found in wantRecords_, cancel failed");
+            return;
+        }
         CollectCancelCallbacksLocked(record, cancelCallbacks);
         if (cleanAbility) {
             ReduceWantAgentNumber(record.GetKey());
