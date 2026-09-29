@@ -17,6 +17,7 @@
 
 #include "ability_auto_startup_data_manager.h"
 #include "ability_manager_service.h"
+#include "accesstoken_kit.h"
 #include "app_utils.h"
 #include "auto_startup_callback_proxy.h"
 #include "auto_startup_interface.h"
@@ -165,6 +166,9 @@ int32_t AbilityAutoStartupService::SetApplicationAutoStartup(const AutoStartupIn
     fullInfo.canUserModify = true;
     fullInfo.setterType = AutoStartupSetterType::USER;
 
+    if (fullInfo.isBootApp && CheckBootAppPermission(fullInfo) != ERR_OK) {
+        return CHECK_PERMISSION_FAILED;
+    }
     return InnerSetApplicationAutoStartup(fullInfo);
 }
 
@@ -608,6 +612,36 @@ std::shared_ptr<AppExecFwk::BundleMgrClient> AbilityAutoStartupService::GetBundl
         bundleMgrClient_ = DelayedSingleton<AppExecFwk::BundleMgrClient>::GetInstance();
     }
     return bundleMgrClient_;
+}
+
+int32_t AbilityAutoStartupService::CheckBootAppPermission(const AutoStartupInfo &info)
+{
+    auto tokenId = Security::AccessToken::AccessTokenKit::GetHapTokenID(
+        info.userId, info.bundleName, info.appCloneIndex);
+    if (tokenId == Security::AccessToken::INVALID_TOKENID) {
+        TAG_LOGW(AAFwkTag::AUTO_STARTUP, "invalid boot app token");
+        return CHECK_PERMISSION_FAILED;
+    }
+    if (Security::AccessToken::AccessTokenKit::VerifyAccessToken(tokenId,
+        PermissionConstants::PERMISSION_START_BEFORE_UNLOCK) != Security::AccessToken::PERMISSION_GRANTED) {
+        TAG_LOGW(AAFwkTag::AUTO_STARTUP, "target lacks START_BEFORE_UNLOCK: %{public}s", info.bundleName.c_str());
+        return CHECK_PERMISSION_FAILED;
+    }
+    return ERR_OK;
+}
+
+bool AbilityAutoStartupService::CanStartBootApp(const AutoStartupInfo &info)
+{
+    DistributedKv::Key originKey;
+    auto status = DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->QueryAutoStartupData(info, originKey);
+    if (status.code != ERR_OK || !status.isAutoStartup || !status.isBootApp) {
+        return false;
+    }
+    AutoStartupAbilityData abilityData;
+    if (GetAbilityInfo(info, abilityData) != ERR_OK || abilityData.accessTokenId != info.accessTokenId) {
+        return false;
+    }
+    return CheckBootAppPermission(info) == ERR_OK;
 }
 
 int32_t AbilityAutoStartupService::CheckPermissionForSystem()
