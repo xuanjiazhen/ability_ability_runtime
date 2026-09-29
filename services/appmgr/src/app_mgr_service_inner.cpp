@@ -3988,6 +3988,13 @@ int32_t AppMgrServiceInner::ClearUpApplicationData(const std::string &bundleName
     int32_t callerUid, pid_t callerPid, int32_t appCloneIndex, int32_t userId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    // Ownership check: a non-system caller can only clear the data of its own user.
+    int32_t callerUserId = GetUserIdByUid(callerUid);
+    if (callerUserId > U1_USER_ID && userId >= 0 && callerUserId != userId) {
+        TAG_LOGE(AAFwkTag::APPMGR, "clear data across users is not allowed, callerUserId: %{public}d, userId: %{public}d",
+            callerUserId, userId);
+        return AAFwk::CHECK_PERMISSION_FAILED;
+    }
     int32_t newUserId = userId;
     if (userId == DEFAULT_INVAL_VALUE) {
         newUserId = GetUserIdByUid(callerUid);
@@ -4003,6 +4010,13 @@ int32_t AppMgrServiceInner::ClearUpApplicationData(const std::string &bundleName
 
 int32_t AppMgrServiceInner::ClearUpApplicationDataBySelf(int32_t callerUid, pid_t callerPid, int32_t userId)
 {
+    // Ownership check: a non-system caller can only clear the data of its own user.
+    int32_t callerUserId = GetUserIdByUid(callerUid);
+    if (callerUserId > U1_USER_ID && userId >= 0 && callerUserId != userId) {
+        TAG_LOGE(AAFwkTag::APPMGR, "clear data across users is not allowed, callerUserId: %{public}d, userId: %{public}d",
+            callerUserId, userId);
+        return AAFwk::CHECK_PERMISSION_FAILED;
+    }
     auto appRecord = GetAppRunningRecordByPid(callerPid);
     if (!appRecord) {
         TAG_LOGE(AAFwkTag::APPMGR, "no appRecord, callerPid:%{public}d", callerPid);

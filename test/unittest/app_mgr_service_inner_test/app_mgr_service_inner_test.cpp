@@ -1404,6 +1404,33 @@ HWTEST_F(AppMgrServiceInnerTest, ClearUpApplicationData_001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ClearUpApplicationData_002
+ * @tc.desc: clear up application data across users should be rejected.
+ * @tc.type: FUNC
+ * @tc.require: issue16399
+ */
+HWTEST_F(AppMgrServiceInnerTest, ClearUpApplicationData_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ClearUpApplicationData_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+
+    // caller belongs to user 100, clear data of user 0 should be rejected.
+    int32_t callerUid = 100 * 200000; // 100 * BASE_USER_RANGE
+    std::string bundleName = "test_bundleName";
+    auto ret = appMgrServiceInner->ClearUpApplicationData(bundleName, callerUid, 1, 0, 0);
+    EXPECT_EQ(ret, AAFwk::CHECK_PERMISSION_FAILED);
+    // caller belongs to user 100, clear data of user 101 should also be rejected.
+    ret = appMgrServiceInner->ClearUpApplicationData(bundleName, callerUid, 1, 0, 101);
+    EXPECT_EQ(ret, AAFwk::CHECK_PERMISSION_FAILED);
+    // clear data of the caller's own user should not be rejected by ownership check.
+    ret = appMgrServiceInner->ClearUpApplicationData(bundleName, callerUid, 1, 0, 100);
+    EXPECT_NE(ret, AAFwk::CHECK_PERMISSION_FAILED);
+
+    TAG_LOGI(AAFwkTag::TEST, "ClearUpApplicationData_002 end");
+}
+
+/**
  * @tc.name: ClearUpApplicationDataByUserId_001
  * @tc.desc: clear up application data by user id.
  * @tc.type: FUNC
