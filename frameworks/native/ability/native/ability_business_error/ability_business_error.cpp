@@ -110,6 +110,8 @@ constexpr const char* ERROR_MSG_FROM_WINDOW =
 constexpr const char* ERROR_TARGET_NOT_IN_APP_IDENTIFIER_ALLOW_LIST =
     "The caller is not in the appIdentifierAllowList of the target appliaction.";
 constexpr const char* ERROR_TARGET_NOT_STARTED = "The target service has not been started yet.";
+constexpr const char* ERROR_MSG_KEEP_ALIVE_PROTECTED =
+    "The target process is protected by an MDM application and cannot be terminated.";
 constexpr const char* ERROR_MSG_CALLER_NOT_ATOMIC_SERVICE =
     "The caller is not an atomic service.";
 constexpr const char* ERROR_MSG_AGENT_ID_NOT_EXIST =
@@ -425,6 +427,7 @@ static std::unordered_map<AbilityErrorCode, const char*> ERR_CODE_MAP = {
     { AbilityErrorCode::ERROR_CODE_TARGET_NOT_IN_APP_IDENTIFIER_ALLOW_LIST,
         ERROR_TARGET_NOT_IN_APP_IDENTIFIER_ALLOW_LIST},
     { AbilityErrorCode::ERROR_CODE_TARGET_NOT_STARTED, ERROR_TARGET_NOT_STARTED},
+    { AbilityErrorCode::ERROR_CODE_KEEP_ALIVE_PROTECTED, ERROR_MSG_KEEP_ALIVE_PROTECTED},
     { AbilityErrorCode::ERROR_CODE_CALLER_NOT_ATOMIC_SERVICE, ERROR_MSG_CALLER_NOT_ATOMIC_SERVICE},
     { AbilityErrorCode::ERROR_CODE_AGENT_ID_NOT_EXIST, ERROR_MSG_AGENT_ID_NOT_EXIST},
     { AbilityErrorCode::ERROR_CODE_AGENT_CARD_LIST_OUT_OF_RANGE, ERROR_MSG_AGENT_CARD_LIST_OUT_OF_RANGE},
@@ -554,6 +557,7 @@ static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP 
     {ERR_INVALID_CONTEXT, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT},
     {ERR_TARGET_NOT_IN_APP_IDENTIFIER_ALLOW_LIST, AbilityErrorCode::ERROR_CODE_TARGET_NOT_IN_APP_IDENTIFIER_ALLOW_LIST},
     {ERR_TARGET_NOT_STARTED, AbilityErrorCode::ERROR_CODE_TARGET_NOT_STARTED},
+    {KILL_PROCESS_PROTECTED_BY_EDM, AbilityErrorCode::ERROR_CODE_KEEP_ALIVE_PROTECTED},
     {ERR_CALLER_NOT_ATOMIC_SERVICE, AbilityErrorCode::ERROR_CODE_CALLER_NOT_ATOMIC_SERVICE},
     {ERR_INVALID_AGENT_CARD_ID, AbilityErrorCode::ERROR_CODE_AGENT_ID_NOT_EXIST},
     {ERR_AGENT_CARD_LIST_OUT_OF_RANGE, AbilityErrorCode::ERROR_CODE_AGENT_CARD_LIST_OUT_OF_RANGE},

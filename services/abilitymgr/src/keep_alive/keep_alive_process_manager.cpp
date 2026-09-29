@@ -288,6 +288,9 @@ int32_t KeepAliveProcessManager::SetApplicationKeepAlive(const std::string &bund
     result = AbilityKeepAliveService::GetInstance().SetApplicationKeepAlive(info, updateEnable);
     CHECK_RET_RETURN_RET(result, "set keep-alive failed");
     IN_PROCESS_CALL_WITHOUT_RET(appMgrClient->SetKeepAliveDkv(bundleName, updateEnable, 0));
+    if (isByEDM) {
+        IN_PROCESS_CALL_WITHOUT_RET(appMgrClient->SetKeepAliveProtectedByEdm(bundleName, updateEnable, 0));
+    }
     if (!updateEnable && localEnable) {
         TAG_LOGI(AAFwkTag::KEEP_ALIVE, "unsetting keep-alive");
         if (!isInner) {
@@ -453,6 +456,9 @@ int32_t KeepAliveProcessManager::SetAppServiceExtensionKeepAlive(const std::stri
     result = AbilityKeepAliveService::GetInstance().SetAppServiceExtensionKeepAlive(info, updateEnable);
     CHECK_RET_RETURN_RET(result, "set keep-alive failed");
     IN_PROCESS_CALL_WITHOUT_RET(appMgrClient->SetKeepAliveAppService(bundleName, updateEnable, bundleInfo.uid));
+    if (isByEDM) {
+        IN_PROCESS_CALL_WITHOUT_RET(appMgrClient->SetKeepAliveProtectedByEdm(bundleName, updateEnable, bundleInfo.uid));
+    }
     return ERR_OK;
 }
 

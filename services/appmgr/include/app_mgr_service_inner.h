@@ -499,6 +499,9 @@ public:
     virtual int32_t KillApplicationByUserId(const std::string &bundleName, int32_t appCloneIndex, int userId,
         const bool clearPageStack = false, const std::string& reason = "KillApplicationByUserId");
 
+    virtual int32_t KillApplicationByUserIdSafely(const std::string &bundleName, int32_t appCloneIndex, int userId,
+        const bool clearPageStack = false, const std::string& reason = "KillApplicationByUserIdSafely");
+
     /**
      * update process rss and pss value.
      *
@@ -1682,6 +1685,7 @@ public:
     void SetKeepAliveDkv(const std::string &bundleName, bool enable, int32_t uid);
 
     void SetKeepAliveAppService(const std::string &bundleName, bool enable, int32_t uid);
+    void SetKeepAliveProtectedByEdm(const std::string &bundleName, bool enable, int32_t uid);
 
     int32_t GetAppRunningUniqueIdByPid(pid_t pid, std::string &appRunningUniqueId);
 
