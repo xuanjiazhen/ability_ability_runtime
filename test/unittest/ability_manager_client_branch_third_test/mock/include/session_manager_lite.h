@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,4 +13,9 @@
  * limitations under the License.
  */
 
-FUZZ
+#ifndef ABILITY_MANAGER_CLIENT_BRANCH_THIRD_SESSION_MANAGER_LITE_ALIAS_H
+#define ABILITY_MANAGER_CLIENT_BRANCH_THIRD_SESSION_MANAGER_LITE_ALIAS_H
+
+#include "mock_session_manager_lite.h"
+
+#endif // ABILITY_MANAGER_CLIENT_BRANCH_THIRD_SESSION_MANAGER_LITE_ALIAS_H

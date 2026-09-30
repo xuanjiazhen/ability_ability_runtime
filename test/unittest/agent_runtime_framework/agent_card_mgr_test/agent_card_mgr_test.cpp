@@ -88,6 +88,21 @@ AppExecFwk::BundleInfo BuildPreInstallBundleInfo(const std::string &bundleName, 
     info.uid = userId * BASE_USER_RANGE;
     return info;
 }
+
+AppExecFwk::BundleInfo BuildPreInstallBundleInfoWithAgent(const std::string &bundleName, int32_t userId = 100)
+{
+    AppExecFwk::BundleInfo info = BuildPreInstallBundleInfo(bundleName, userId);
+    AppExecFwk::HapModuleInfo hapModuleInfo;
+    hapModuleInfo.moduleName = "testModule";
+    hapModuleInfo.extensionInfos.push_back(BuildAgentExtensionInfo(bundleName));
+    info.hapModuleInfos.push_back(hapModuleInfo);
+    return info;
+}
+
+constexpr const char *TEST_PROFILE_CONTENT =
+    R"({"agentCards":[{"agentId":"testAgent","name":"Test","description":"d",)"
+    R"("version":"1.0.0","category":"productivity","defaultInputModes":["text"],)"
+    R"("defaultOutputModes":["text"]}]})";
 }
 
 class AgentCardMgrTest : public testing::Test {
@@ -130,8 +145,7 @@ void AgentCardMgrTest::SetUp(void)
     MyFlag::getBundleInfoV9CallNames.clear();
     MyFlag::lastGetBundleInfosUserId = 0;
     MyFlag::insertDataCallNames.clear();
-    MyFlag::retGetOsAccountLocalIds = 0;
-    MyFlag::mockOsAccountLocalIds.clear();
+    MyFlag::deleteDataCallNames.clear();
 }
 
 void AgentCardMgrTest::TearDown(void)
@@ -218,6 +232,8 @@ HWTEST_F(AgentCardMgrTest, HandleBundleInstallTest_003, TestSize.Level1)
 HWTEST_F(AgentCardMgrTest, HandleBundleInstallTest_004, TestSize.Level1)
 {
     AgentCardMgr agentCardMgr;
+    MyFlag::mockExtensionInfos.push_back(BuildAgentExtensionInfo());
+    MyFlag::mockProfileInfoContent = TEST_PROFILE_CONTENT;
     MyFlag::retInsertData = -1;
     int ret = agentCardMgr.HandleBundleInstall("test", 100);
     EXPECT_TRUE(ret == -1);
@@ -1614,13 +1630,14 @@ HWTEST_F(AgentCardMgrTest, HandlePreInstallBackfill_001, TestSize.Level1)
 HWTEST_F(AgentCardMgrTest, HandlePreInstallBackfill_002, TestSize.Level1)
 {
     AgentCardMgr agentCardMgr;
-    AppExecFwk::BundleInfo preBundle = BuildPreInstallBundleInfo("pre.bundle");
+    AppExecFwk::BundleInfo preBundle = BuildPreInstallBundleInfoWithAgent("pre.bundle");
     AppExecFwk::BundleInfo normalBundle;
     normalBundle.name = "normal.bundle";
     normalBundle.isPreInstallApp = false;
     MyFlag::mockBundleInfos = { preBundle, normalBundle };
     MyFlag::retGetBundleInfos = true;
     MyFlag::retGetBundleInfo = true;
+    MyFlag::mockProfileInfoContent = TEST_PROFILE_CONTENT;
     MyFlag::getBundleInfoV9CallNames.clear();
 
     EXPECT_EQ(agentCardMgr.HandlePreInstallBackfill(100), ERR_OK);
@@ -1636,14 +1653,15 @@ HWTEST_F(AgentCardMgrTest, HandlePreInstallBackfill_002, TestSize.Level1)
 HWTEST_F(AgentCardMgrTest, HandlePreInstallBackfill_003, TestSize.Level1)
 {
     AgentCardMgr agentCardMgr;
-    AppExecFwk::BundleInfo pre1 = BuildPreInstallBundleInfo("pre1");
-    AppExecFwk::BundleInfo pre2 = BuildPreInstallBundleInfo("pre2");
+    AppExecFwk::BundleInfo pre1 = BuildPreInstallBundleInfoWithAgent("pre1");
+    AppExecFwk::BundleInfo pre2 = BuildPreInstallBundleInfoWithAgent("pre2");
     AppExecFwk::BundleInfo normal;
     normal.name = "normal";
     normal.isPreInstallApp = false;
     MyFlag::mockBundleInfos = { pre1, pre2, normal };
     MyFlag::retGetBundleInfos = true;
     MyFlag::retGetBundleInfo = true;
+    MyFlag::mockProfileInfoContent = TEST_PROFILE_CONTENT;
     MyFlag::getBundleInfoV9CallNames.clear();
 
     EXPECT_EQ(agentCardMgr.HandlePreInstallBackfill(100), ERR_OK);
@@ -1710,10 +1728,11 @@ HWTEST_F(AgentCardMgrTest, HandlePreInstallBackfill_005, TestSize.Level1)
 HWTEST_F(AgentCardMgrTest, HandlePreInstallBackfill_006, TestSize.Level1)
 {
     AgentCardMgr agentCardMgr;
-    AppExecFwk::BundleInfo pre1 = BuildPreInstallBundleInfo("pre1");
-    AppExecFwk::BundleInfo pre2 = BuildPreInstallBundleInfo("pre2");
+    AppExecFwk::BundleInfo pre1 = BuildPreInstallBundleInfoWithAgent("pre1");
+    AppExecFwk::BundleInfo pre2 = BuildPreInstallBundleInfoWithAgent("pre2");
     MyFlag::mockBundleInfos = { pre1, pre2 };
     MyFlag::retGetBundleInfos = true;
+    MyFlag::mockProfileInfoContent = TEST_PROFILE_CONTENT;
     MyFlag::retInsertData = -1; // every per-bundle HandleBundleInstall fails at InsertData
 
     // Backfill swallows per-bundle failures (warn+continue) and still returns OK.
@@ -1731,9 +1750,10 @@ HWTEST_F(AgentCardMgrTest, HandlePreInstallBackfill_006, TestSize.Level1)
 HWTEST_F(AgentCardMgrTest, HandlePreInstallBackfill_007, TestSize.Level1)
 {
     AgentCardMgr agentCardMgr;
-    AppExecFwk::BundleInfo pre = BuildPreInstallBundleInfo("pre.bundle");
+    AppExecFwk::BundleInfo pre = BuildPreInstallBundleInfoWithAgent("pre.bundle");
     MyFlag::mockBundleInfos = { pre };
     MyFlag::retGetBundleInfos = true;
+    MyFlag::mockProfileInfoContent = TEST_PROFILE_CONTENT;
 
     EXPECT_EQ(agentCardMgr.HandlePreInstallBackfill(100), ERR_OK);
     EXPECT_EQ(agentCardMgr.HandlePreInstallBackfill(100), ERR_OK);
@@ -1751,10 +1771,11 @@ HWTEST_F(AgentCardMgrTest, HandlePreInstallBackfill_008, TestSize.Level1)
 {
     AgentCardMgr agentCardMgr;
     // user-100 pre-install bundle -> kept; user-101 pre-install bundle -> filtered out
-    AppExecFwk::BundleInfo keep = BuildPreInstallBundleInfo("keep.bundle");
-    AppExecFwk::BundleInfo skip = BuildPreInstallBundleInfo("skip.bundle", 101);
+    AppExecFwk::BundleInfo keep = BuildPreInstallBundleInfoWithAgent("keep.bundle");
+    AppExecFwk::BundleInfo skip = BuildPreInstallBundleInfoWithAgent("skip.bundle", 101);
     MyFlag::mockBundleInfos = { keep, skip };
     MyFlag::retGetBundleInfos = true;
+    MyFlag::mockProfileInfoContent = TEST_PROFILE_CONTENT;
 
     EXPECT_EQ(agentCardMgr.HandlePreInstallBackfill(100), ERR_OK);
     ASSERT_EQ(MyFlag::insertDataCallNames.size(), 1);
@@ -1780,47 +1801,58 @@ HWTEST_F(AgentCardMgrTest, HandlePreInstallBackfill_009, TestSize.Level1)
     EXPECT_EQ(agentCardMgr.HandlePreInstallBackfill(101), ERR_OK);
     EXPECT_EQ(MyFlag::lastGetBundleInfosUserId, 101);
 }
-
 /**
- * @tc.name: BackfillPreInstallCards_001
- * @tc.desc: BackfillPreInstallCards dispatches HandlePreInstallBackfill for each userId
- *           returned by GetOsAccountLocalIds.
+ * @tc.name: HandleBundleInstallTest_022
+ * @tc.desc: HandleBundleInstall calls DeleteData when finalEntries is empty and QueryData returned ERR_OK
  * @tc.type: FUNC
  */
-HWTEST_F(AgentCardMgrTest, BackfillPreInstallCards_001, TestSize.Level1)
+HWTEST_F(AgentCardMgrTest, HandleBundleInstallTest_022, TestSize.Level1)
 {
-    MyFlag::retGetOsAccountLocalIds = 0;
-    MyFlag::mockOsAccountLocalIds = {100};
-    MyFlag::retGetBundleInfos = false;
-    MyFlag::lastGetBundleInfosUserId = -1;
+    AgentCardMgr agentCardMgr;
+    MyFlag::retDeleteData = ERR_OK;
 
-    AgentCardMgr::BackfillPreInstallCards();
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-
-    EXPECT_EQ(MyFlag::lastGetBundleInfosUserId, 100);
+    int ret = agentCardMgr.HandleBundleInstall("test.bundle", 100);
+    EXPECT_EQ(ret, ERR_OK);
+    ASSERT_EQ(MyFlag::deleteDataCallNames.size(), 1);
+    EXPECT_EQ(MyFlag::deleteDataCallNames[0], "test.bundle");
+    EXPECT_TRUE(MyFlag::insertDataCallNames.empty());
 }
 
 /**
- * @tc.name: BackfillPreInstallCards_002
- * @tc.desc: BackfillPreInstallCards installs AgentCards for pre-installed bundles under the
- *           returned userId.
+ * @tc.name: HandleBundleInstallTest_023
+ * @tc.desc: HandleBundleInstall propagates DeleteData error when finalEntries is empty and QueryData returned ERR_OK
  * @tc.type: FUNC
  */
-HWTEST_F(AgentCardMgrTest, BackfillPreInstallCards_002, TestSize.Level1)
+HWTEST_F(AgentCardMgrTest, HandleBundleInstallTest_023, TestSize.Level1)
 {
-    MyFlag::retGetOsAccountLocalIds = 0;
-    MyFlag::mockOsAccountLocalIds = {100};
-    AppExecFwk::BundleInfo preBundle = BuildPreInstallBundleInfo("pre.bundle", 100);
-    MyFlag::mockBundleInfos = { preBundle };
-    MyFlag::retGetBundleInfos = true;
-    MyFlag::retGetBundleInfo = true;
-    MyFlag::insertDataCallNames.clear();
+    AgentCardMgr agentCardMgr;
+    MyFlag::retDeleteData = ERR_INVALID_OPERATION;
 
-    AgentCardMgr::BackfillPreInstallCards();
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    int ret = agentCardMgr.HandleBundleInstall("test.bundle", 100);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+    ASSERT_EQ(MyFlag::deleteDataCallNames.size(), 1);
+    EXPECT_EQ(MyFlag::deleteDataCallNames[0], "test.bundle");
+    EXPECT_TRUE(MyFlag::insertDataCallNames.empty());
+}
 
+/**
+ * @tc.name: HandleBundleInstallTest_024
+ * @tc.desc: HandleBundleInstall calls InsertData instead of DeleteData when QueryData returns ERR_NAME_NOT_FOUND
+ *           with empty finalEntries
+ * @tc.type: FUNC
+ */
+HWTEST_F(AgentCardMgrTest, HandleBundleInstallTest_024, TestSize.Level1)
+{
+    AgentCardMgr agentCardMgr;
+    MyFlag::retQueryData = ERR_NAME_NOT_FOUND;
+    MyFlag::retInsertData = ERR_OK;
+
+    int ret = agentCardMgr.HandleBundleInstall("test.bundle", 100);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(MyFlag::deleteDataCallNames.empty());
     ASSERT_EQ(MyFlag::insertDataCallNames.size(), 1);
-    EXPECT_EQ(MyFlag::insertDataCallNames[0], "pre.bundle");
+    EXPECT_EQ(MyFlag::insertDataCallNames[0], "test.bundle");
 }
+
 } // namespace AgentRuntime
 } // namespace OHOS

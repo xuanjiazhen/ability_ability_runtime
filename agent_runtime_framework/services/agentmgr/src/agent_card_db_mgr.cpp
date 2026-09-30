@@ -280,12 +280,16 @@ void AgentCardDbMgr::RestoreIfStoreEmpty()
 {
     std::vector<DistributedKv::Entry> entries;
     DistributedKv::Status entriesStatus = kvStorePtr_->GetEntries(nullptr, entries);
-    if (entriesStatus != DistributedKv::Status::SUCCESS || !entries.empty()) {
-        return;
+    if (entriesStatus == DistributedKv::Status::SUCCESS && !entries.empty()) {
+        return;   // Store has data; normal service.
     }
-    // Store file was lost or recreated empty; import backup if one exists, keep empty store otherwise.
+    // Empty store (file lost and recreated) or unreadable store (corrupted):
+    // recover from the backup; keep the empty store if no backup exists.
+    if (entriesStatus != DistributedKv::Status::SUCCESS) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER, "GetEntries failed: %{public}d, try restore from backup", entriesStatus);
+    }
     DistributedKv::Status restoreStatus = RestoreFromBackupWithRetry();
-    TAG_LOGI(AAFwkTag::SER_ROUTER, "restore from backup on empty store result:%{public}d", restoreStatus);
+    TAG_LOGI(AAFwkTag::SER_ROUTER, "restore from backup result:%{public}d", restoreStatus);
 }
 
 DistributedKv::Status AgentCardDbMgr::GetKvStore()
@@ -340,6 +344,9 @@ bool AgentCardDbMgr::CheckKvStore()
 int32_t AgentCardDbMgr::InsertData(const std::string &bundleName, int32_t userId,
     const std::vector<StoredAgentCardEntry> &cards)
 {
+    if (cards.empty()) {
+        return ERR_OK;
+    }
     DistributedKv::Key key = ConvertKey(bundleName, userId);
     DistributedKv::Value value = ConvertValue(cards);
     {
@@ -362,6 +369,7 @@ int32_t AgentCardDbMgr::InsertData(const std::string &bundleName, int32_t userId
 
 int32_t AgentCardDbMgr::DeleteData(const std::string &bundleName, int32_t userId)
 {
+    TAG_LOGI(AAFwkTag::SER_ROUTER, "DeleteData bundleName: %{public}s, userId: %{public}d", bundleName.c_str(), userId);
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
         if (!CheckKvStore()) {

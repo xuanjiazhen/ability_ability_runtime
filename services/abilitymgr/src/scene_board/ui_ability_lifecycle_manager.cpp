@@ -1659,7 +1659,7 @@ int32_t UIAbilityLifecycleManager::NotifySCBToMinimizeUIAbility(const sptr<IRemo
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "notifySCBToMinimizeUIAbility");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance(userId_).GetSceneSessionManagerLiteProxy();
     CHECK_POINTER_AND_RETURN(sceneSessionManager, ERR_NULL_OBJECT);
     Rosen::WSError ret = sceneSessionManager->PendingSessionToBackgroundForDelegator(token, shouldBackToCaller,
         notifyScbBackgroundReason);
@@ -1740,7 +1740,7 @@ int32_t UIAbilityLifecycleManager::StartSelf(const UIAbilityRecordPtr &abilityRe
 
     if (abilityRecord->GetNativeState() == AbilityNativeState::NONE) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "not a NativeModule ability");
-        return ERR_CAPABILITY_NOT_SUPPORT;
+        return ERR_NOT_NATIVE_UI_ABILITY;
     }
 
     if (abilityRecord->GetNativeState() == AbilityNativeState::ON_FOREGROUND) {
@@ -1933,6 +1933,9 @@ int UIAbilityLifecycleManager::CallAbilityLocked(const AbilityRequest &abilityRe
             }
             uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
             ForegroundOptions options;
+            options.callerUid = abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_UID, -1);
+            options.callerBundleName =
+                abilityRequest.want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
             options.sceneFlag = SCENE_FLAG_BYCALL;
             uiAbilityRecord->ProcessForegroundAbility(sessionInfo->callingTokenId, options,
                 abilityRequest.want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, false));
@@ -3191,7 +3194,7 @@ int32_t UIAbilityLifecycleManager::StartSpecifiedProcessRequest(const AbilityReq
 {
     auto isCreating = abilityRequest.want.GetBoolParam(Want::CREATE_APP_INSTANCE_KEY, false);
     const auto &abilityInfo = abilityRequest.abilityInfo;
-    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance(userId_).GetSceneSessionManagerLiteProxy();
     if (AppUtils::GetInstance().InOnNewProcessEnableList(abilityRequest.abilityInfo.bundleName) &&
         abilityInfo.applicationInfo.multiAppMode.multiAppModeType == AppExecFwk::MultiAppModeType::MULTI_INSTANCE &&
         isCreating && sceneSessionManager != nullptr) {
@@ -4728,7 +4731,7 @@ void UIAbilityLifecycleManager::RemoveInstanceKey(const AbilityRequest &abilityR
     if (!abilityRequest.want.HasParameter(Want::APP_INSTANCE_KEY)) {
         return;
     }
-    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+    auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance(userId_).GetSceneSessionManagerLiteProxy();
     if (sceneSessionManager != nullptr) {
         Rosen::WMError ret = sceneSessionManager->RemoveInstanceKey(abilityRequest.want.GetBundleNameRef(),
             abilityRequest.want.GetStringParam(Want::APP_INSTANCE_KEY));

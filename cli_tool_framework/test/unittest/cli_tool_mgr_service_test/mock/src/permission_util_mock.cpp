@@ -12,8 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "permission_util.h"
+
+#include <string>
 
 #include "cli_error_code.h"
 #include "ipc_skeleton.h"
@@ -23,20 +24,25 @@ namespace OHOS {
 namespace CliTool {
 bool PermissionUtilMock::execCliToolPermitted = true;
 bool PermissionUtilMock::execPublicCliToolPermitted = true;
+bool PermissionUtilMock::registerAgentHookPermitted = true;
 
 void PermissionUtilMock::Reset()
 {
     execCliToolPermitted = true;
     execPublicCliToolPermitted = true;
+    registerAgentHookPermitted = true;
 }
 
-bool PermissionUtil::VerifyAccessToken(Security::AccessToken::AccessTokenID, const std::string &perm)
+bool PermissionUtil::VerifyAccessToken(Security::AccessToken::AccessTokenID, const std::string &requirePermission)
 {
-    if (perm == "ohos.permission.EXEC_CLI_TOOL") {
+    if (requirePermission == "ohos.permission.EXEC_CLI_TOOL") {
         return PermissionUtilMock::execCliToolPermitted;
     }
-    if (perm == "ohos.permission.EXEC_PUBLIC_CLI_TOOL") {
+    if (requirePermission == "ohos.permission.EXEC_PUBLIC_CLI_TOOL") {
         return PermissionUtilMock::execPublicCliToolPermitted;
+    }
+    if (requirePermission == "ohos.permission.REGISTER_AGENT_HOOK") {
+        return PermissionUtilMock::registerAgentHookPermitted;
     }
     return true;
 }
@@ -55,6 +61,18 @@ int32_t PermissionUtil::CheckSystemAndPermission(const std::string &)
 {
     if (!IsSystemApp() && !IsSystemSA()) {
         return ERR_NOT_SYSTEM_APP;
+    }
+    return ERR_OK;
+}
+
+int32_t PermissionUtil::CheckSystemAppAndPermission(const std::string &permissionName)
+{
+    if (!IsSystemApp()) {
+        return ERR_NOT_SYSTEM_APP;
+    }
+    auto callerToken = IPCSkeleton::GetCallingTokenID();
+    if (!VerifyAccessToken(callerToken, permissionName)) {
+        return ERR_PERMISSION_DENIED;
     }
     return ERR_OK;
 }
