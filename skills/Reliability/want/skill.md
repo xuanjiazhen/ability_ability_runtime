@@ -23,8 +23,8 @@ metadata:
 
 | 代码路径 | 说明 |
 | --- | --- |
-| E:\ability\ability_ability_base-master\...\interfaces\kits\native\want\src\ | Want核心实现 |
-| E:\ability\ability_ability_base-master\...\interfaces\kits\native\want\include\ | Want头文件 |
+| ability_base仓 `interfaces/kits/native/want/src/`（want.cpp、want_params.cpp、array_wrapper.cpp、pac_map.cpp 等） | Want核心实现 |
+| ability_base仓 `interfaces/kits/native/want/include/` | Want头文件 |
 
 ## 基础库健壮性原则
 
@@ -142,9 +142,9 @@ Grep检索关键词：
 - 检查每个key的设置路径是否限制了调用方来源
 ```
 
-## 资源限制规格（22条 - ability_base）
+## 资源限制规格（14条：ability_base 11条 + ability_runtime 3条）
 
-### Want IPC序列化限制
+### Want IPC序列化限制（ability_base，11条）
 
 | 限制项 | 规格值 | 超限影响 | 代码位置 |
 |---|---|---|---|
@@ -160,7 +160,7 @@ Grep检索关键词：
 | PacMap递归深度 | 100层 | ToJson/ParseJson返回false | pac_map.h:61 |
 | PacMap数组元素数 | 1024 | JSON解析返回false | pac_map.cpp:57 |
 
-### Want IPC容量限制（ability_runtime）
+### Want IPC容量限制（ability_runtime，3条）
 
 | 限制项 | 规格值 | 超限影响 | 代码位置 |
 |---|---|---|---|

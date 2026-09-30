@@ -20,15 +20,19 @@ metadata:
 
 ## 核心功能
 
-基于元能力子系统故障模式库（11条故障模式）和资源限制规格（89条），在开发/设计时主动提醒可靠性关注点，并根据模块路由到对应的模块级skill。
+基于元能力子系统故障模式库和资源限制规格，在开发/设计时主动提醒可靠性关注点，并根据模块路由到对应的模块级skill。
 
 ### 数据来源
 
-| 数据 | 文件 | 条目数 |
-| --- | --- | --- |
-| 故障模式库 | `references/ams-fault-modes.md` | 11条 |
-| ability_runtime资源限制 | `references/ability-runtime-resource-limits.md` | 67条 |
-| ability_base资源限制 | `references/ability-base-resource-limits.md` | 22条 |
+故障模式和资源限制规格内嵌于各模块级skill，本skill汇总跨模块关注点：
+
+| 数据 | 位置 |
+| --- | --- |
+| Want 故障模式（3条）与资源限制（14条） | `want/skill.md` |
+| InsightIntent 故障模式（1条）与资源限制（2条） | `insight-intent/skill.md` |
+| 跨模块关键关注点（AMS/APPMS/Want） | 本文件"关键可靠性关注点"章节 |
+
+注：完整故障模式库（11条）与资源限制规格（89条）来源于线下Excel，当前仅Want/InsightIntent模块完成入库，其余模块随子skill建设逐步补充。
 
 ### 模块路由
 
@@ -36,7 +40,7 @@ metadata:
 
 | 模块 | 子skill路径 | 代码路径 | 故障模式 | 资源限制 |
 | --- | --- | --- | --- | --- |
-| Want | want/skill.md | ability_base + abilitymgr want相关 | 3条(I-04,F-06,数据注入) | 22条(ability_base) |
+| Want | want/skill.md | ability_base + abilitymgr want相关 | 3条(I-04,F-06,数据注入) | 14条(ability_base 11条 + ability_runtime 3条) |
 | InsightIntent | insight-intent/skill.md | services/abilitymgr/src/insight_intent/ | 1条(D-06) | 2条(执行记录/IPC回传) |
 
 ## 工作流程
@@ -59,7 +63,7 @@ metadata:
 
 读取对应模块的子skill文件（`want/skill.md` 或 `insight-intent/skill.md`），执行模块级可靠性分析。
 
-如果未找到对应模块级skill，使用本skill的通用故障模式库和资源限制规格进行分析。
+如果未找到对应模块级skill，使用本文件"关键可靠性关注点"章节的跨模块故障模式进行分析。
 
 ### 步骤3：输出可靠性关注点
 
@@ -103,7 +107,7 @@ metadata:
 
 ## 注意事项
 
-- 故障模式库和资源限制规格来源为Excel文件，已转换为references中的markdown格式
+- 故障模式库和资源限制规格来源为线下Excel（完整11条故障模式/89条资源限制），已入库部分内嵌于各模块级skill
 - 模块级skill提供更精确的可靠性关注点，本skill作为元能力子系统的入口和跨模块关注点汇总
 - 与通用代码可靠性评审skill(sd-code-dfr-reliability-review)互补：本skill聚焦元能力已知故障模式和资源限制，通用skill聚焦代码构造级别风险
 - 11条故障模式中I级9条（涉及不开机/设备重启），必须优先关注
