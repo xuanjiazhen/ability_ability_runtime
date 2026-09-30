@@ -28,6 +28,10 @@ bool UIExtensionHostInfo::ReadFromParcel(Parcel &parcel)
 
     elementName_ = *abilityInfo;
     sessionName = parcel.ReadString();
+    if (!parcel.ReadInt32(persistentId_)) {
+        persistentId_ = 0;
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "read persistentId failed, use default value");
+    }
     return true;
 }
 
@@ -56,6 +60,11 @@ bool UIExtensionHostInfo::Marshalling(Parcel &parcel) const
 
     if (!parcel.WriteString(sessionName)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write sessionName failed");
+        return false;
+    }
+
+    if (!parcel.WriteInt32(persistentId_)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write persistentId failed");
         return false;
     }
 

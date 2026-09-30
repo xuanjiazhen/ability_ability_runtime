@@ -427,6 +427,9 @@ enum class AbilityManagerInterfaceCode {
 
     START_UI_ABILITIES_IN_SPLIT_WINDOW_MODE = 1074,
 
+    // get ui extension host info by ability record id
+    GET_UI_EXTENSION_HOST_INFO_BY_ID = 1075,
+
     // ipc id for get want from proxy
     GET_PENDING_REQUEST_WANT_FROM_PROXY = 1075,
 

@@ -133,5 +133,101 @@ HWTEST_F(UIExtensionGetHostInfoTest, GetUIExtensionRootHostInfo_0400, TestSize.L
     SetSelfTokenID(currentID);
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
+
+/**
+ * @tc.name: GetUIExtensionHostInfoById_0100
+ * @tc.desc: get ui extension host info by id with invalid param zero.
+ * @tc.type: FUNC
+ * @tc.require: issueRM025
+ */
+HWTEST_F(UIExtensionGetHostInfoTest, GetUIExtensionHostInfoById_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    UIExtensionHostInfo hostInfo;
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->GetUIExtensionHostInfoById(0, hostInfo);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: GetUIExtensionHostInfoById_0200
+ * @tc.desc: get ui extension host info by id with negative param.
+ * @tc.type: FUNC
+ * @tc.require: issueRM025
+ */
+HWTEST_F(UIExtensionGetHostInfoTest, GetUIExtensionHostInfoById_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    UIExtensionHostInfo hostInfo;
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->GetUIExtensionHostInfoById(-1, hostInfo);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: GetUIExtensionHostInfoById_0300
+ * @tc.desc: get ui extension host info by id without permission.
+ * @tc.type: FUNC
+ * @tc.require: issueRM025
+ */
+HWTEST_F(UIExtensionGetHostInfoTest, GetUIExtensionHostInfoById_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    UIExtensionHostInfo hostInfo;
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->GetUIExtensionHostInfoById(1, hostInfo);
+    if (ret != ERR_PERMISSION_DENIED) {
+        TAG_LOGI(AAFwkTag::TEST, "ability manager not ready in this env, ret: %{public}d.", ret);
+        return;
+    }
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: GetUIExtensionHostInfoById_0400
+ * @tc.desc: get ui extension host info by id which record not existed.
+ * @tc.type: FUNC
+ * @tc.require: issueRM025
+ */
+HWTEST_F(UIExtensionGetHostInfoTest, GetUIExtensionHostInfoById_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    auto currentID = GetSelfTokenID();
+    AppExecFwk::MockNativeToken::SetNativeToken();
+
+    UIExtensionHostInfo hostInfo;
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->GetUIExtensionHostInfoById(999999, hostInfo);
+    EXPECT_NE(ret, ERR_OK);
+    EXPECT_EQ(hostInfo.persistentId_, 0);
+
+    SetSelfTokenID(currentID);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: GetUIExtensionHostInfoById_0500
+ * @tc.desc: default value and parcel round trip of persistentId_.
+ * @tc.type: FUNC
+ * @tc.require: issueRM025
+ */
+HWTEST_F(UIExtensionGetHostInfoTest, GetUIExtensionHostInfoById_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    UIExtensionHostInfo hostInfo;
+    EXPECT_EQ(hostInfo.persistentId_, 0);
+    EXPECT_EQ(hostInfo.sessionName.empty(), true);
+
+    hostInfo.sessionName = "session_test";
+    hostInfo.persistentId_ = 100;
+    Parcel parcel;
+    EXPECT_EQ(hostInfo.Marshalling(parcel), true);
+    auto readInfo = UIExtensionHostInfo::Unmarshalling(parcel);
+    ASSERT_NE(readInfo, nullptr);
+    EXPECT_EQ(readInfo->sessionName, "session_test");
+    EXPECT_EQ(readInfo->persistentId_, 100);
+    delete readInfo;
+    readInfo = nullptr;
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
 } // namespace AAFwk
 } // namespace OHOS

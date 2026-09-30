@@ -2281,6 +2281,14 @@ ErrCode AbilityManagerClient::GetUIExtensionRootHostInfo(const sptr<IRemoteObjec
     return abms->GetUIExtensionRootHostInfo(token, hostInfo, userId);
 }
 
+ErrCode AbilityManagerClient::GetUIExtensionHostInfoById(int32_t abilityRecordId, UIExtensionHostInfo &hostInfo)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Get ui extension host info by id: %{public}d.", abilityRecordId);
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->GetUIExtensionHostInfoById(abilityRecordId, hostInfo);
+}
+
 ErrCode AbilityManagerClient::GetUIExtensionSessionInfo(const sptr<IRemoteObject> token,
     UIExtensionSessionInfo &uiExtensionSessionInfo, int32_t userId)
 {
