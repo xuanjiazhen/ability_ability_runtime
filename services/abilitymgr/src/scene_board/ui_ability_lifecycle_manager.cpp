@@ -1809,6 +1809,15 @@ int UIAbilityLifecycleManager::PrelaunchAbilityLocked(const AbilityRequest &abil
     NotifyAbilityToken(uiAbilityRecord->GetToken(), abilityRequest);
     uiAbilityRecord->SetPrelaunchFlag(true);
 
+    if (abilityRequest.connect != nullptr) {
+        auto resolveRet = ResolveAbility(uiAbilityRecord, abilityRequest);
+        if (resolveRet == ResolveResultType::NG_INNER_ERROR) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "prelaunch resolve failed, bundle:%{public}s, ability:%{public}s",
+                abilityRequest.abilityInfo.bundleName.c_str(), abilityRequest.abilityInfo.name.c_str());
+            return RESOLVE_CALL_ABILITY_INNER_ERR;
+        }
+    }
+
     auto sessionInfo = CreateSessionInfo(abilityRequest, RequestIdUtil::GetRequestId());
     CHECK_POINTER_AND_RETURN_LOG(sessionInfo, ERR_NO_MEMORY, "Failed to create SessionInfo.");
     sessionInfo->persistentId = persistentId;
