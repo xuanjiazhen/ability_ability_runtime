@@ -20,7 +20,9 @@
 #include <csignal>
 #include <cstdint>
 #include <cerrno>
+#include <chrono>
 #include <fcntl.h>
+#include <future>
 #include <mutex>
 #include <queue>
 #include <securec.h>
@@ -145,6 +147,8 @@ using namespace OHOS::Security;
 using namespace OHOS::Rosen;
 
 namespace {
+constexpr int32_t PROCESS_AVAILABLE_QUERY_TIMEOUT_MS = 100;
+
 #define CHECK_CALLER_IS_SYSTEM_APP                                                             \
     if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) { \
         TAG_LOGE(AAFwkTag::APPMGR, "can't use SA");    \
@@ -2336,6 +2340,10 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
     if (appRecord && appRecord->GetProcessCacheLocked()) {
         TAG_LOGI(AAFwkTag::APPMGR, "process %{public}s is locked", processName.c_str());
         DelayedSingleton<CacheProcessManager>::GetInstance()->OnAppProcessCacheBlocked(appRecord);
+        appRecord = nullptr;
+    }
+    if (appRecord && !CheckProcessAvailable(appRecord)) {
+        TAG_LOGI(AAFwkTag::APPMGR, "process %{public}s is being killed by memmgr, skip reuse", processName.c_str());
         appRecord = nullptr;
     }
     if (appRecord && abilityInfo->type == AppExecFwk::AbilityType::PAGE) {
@@ -11973,6 +11981,54 @@ bool AppMgrServiceInner::NotifyMemMgrPriorityChanged(const std::shared_ptr<AppRu
     }
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "notifyPriorityChangedSync error, result:%{public}d", result);
+        return false;
+    }
+    return true;
+}
+
+bool AppMgrServiceInner::CheckProcessAvailable(const std::shared_ptr<AppRunningRecord> &appRecord)
+{
+    if (!appRecord) {
+        return true;
+    }
+    auto priorityObject = appRecord->GetPriorityObject();
+    if (!priorityObject) {
+        return true;
+    }
+    int32_t pid = priorityObject->GetPid();
+    if (!taskHandler_) {
+        TAG_LOGW(AAFwkTag::APPMGR, "taskHandler_ null, skip check, pid:%{public}d", pid);
+        return true;
+    }
+
+    struct QueryResult {
+        int32_t result{-1};
+        bool isAvailable{false};
+    };
+    auto queryResult = std::make_shared<QueryResult>();
+    auto promisePtr = std::make_shared<std::promise<void>>();
+    auto future = promisePtr->get_future();
+
+    auto task = [pid, queryResult, promisePtr]() {
+        HITRACE_METER_NAME(HITRACE_TAG_APP, "IsProcessAvailable");
+        queryResult->result = Memory::MemMgrClient::GetInstance().IsProcessAvailable(pid, queryResult->isAvailable);
+        promisePtr->set_value();
+    };
+    taskHandler_->SubmitTask(task, "IsProcessAvailable");
+
+    if (future.wait_for(std::chrono::milliseconds(PROCESS_AVAILABLE_QUERY_TIMEOUT_MS)) ==
+        std::future_status::timeout) {
+        TAG_LOGW(AAFwkTag::APPMGR, "IsProcessAvailable timeout, pid:%{public}d, use default", pid);
+        return true;
+    }
+
+    if (queryResult->result != ERR_OK) {
+        TAG_LOGW(AAFwkTag::APPMGR, "IsProcessAvailable failed, result:%{public}d, pid:%{public}d",
+            queryResult->result, pid);
+        return true;
+    }
+    if (!queryResult->isAvailable) {
+        TAG_LOGW(AAFwkTag::APPMGR, "process pid:%{public}d is not available, skip reuse", pid);
         return false;
     }
     return true;
