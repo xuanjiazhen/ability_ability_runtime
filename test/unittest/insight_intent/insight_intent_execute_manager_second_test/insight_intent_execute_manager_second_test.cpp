@@ -1237,7 +1237,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_001, TestSize.L
     manager->AddRecord(key, callToken, bundleName, intentId, callerBundleName);
     ASSERT_EQ(manager->records_.size(), 1);
 
-    manager->OnInsightAppDied(bundleName);
+    manager->OnInsightAppDied(bundleName, 0);
 
     EXPECT_TRUE(WaitUntil([&manager]() {
         return manager->records_.size() == 0;
@@ -1269,7 +1269,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_002, TestSize.L
 
     ASSERT_EQ(manager->records_.size(), 3);
 
-    manager->OnInsightAppDied("test.bundle1");
+    manager->OnInsightAppDied("test.bundle1", 0);
 
     EXPECT_TRUE(WaitUntil([&manager]() {
         return manager->records_.size() == 1;
@@ -1299,7 +1299,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_003, TestSize.L
     manager->AddRecord(key, callback, "test.bundle.callback", intentId, "caller.bundle");
     ASSERT_EQ(manager->records_.size(), 1);
 
-    manager->OnInsightAppDied("test.bundle.callback");
+    manager->OnInsightAppDied("test.bundle.callback", 0);
 
     EXPECT_TRUE(WaitUntil([&callback, key]() {
         return callback->callbackCount.load() == 1 && callback->lastKey == key;
@@ -1334,7 +1334,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_004, TestSize.L
     manager->AddRecord(key, callback, "test.bundle.race", intentId, "caller.bundle");
     ASSERT_EQ(manager->records_.size(), 1);
 
-    manager->OnInsightAppDied("test.bundle.race");
+    manager->OnInsightAppDied("test.bundle.race", 0);
     AppExecFwk::InsightIntentExecuteResult result;
     auto ret = manager->ExecuteIntentDone(intentId, ERR_OK, result);
     EXPECT_TRUE(ret == ERR_OK || ret == ERR_INVALID_VALUE);
@@ -1375,7 +1375,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_005, TestSize.L
     ASSERT_NE(callback, nullptr);
 
     manager->AddRecord(key, callback, "test.bundle.destroy", intentId, "caller.bundle");
-    manager->OnInsightAppDied("test.bundle.destroy");
+    manager->OnInsightAppDied("test.bundle.destroy", 0);
     manager.reset();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_APP_DIED_CLEANUP_MS));
@@ -1409,7 +1409,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_010, TestSize.L
     ASSERT_EQ(callback->lastResultCode, ERR_OK);
     ASSERT_EQ(callback->lastInnerErr, 0);
 
-    manager->OnInsightAppDied("test.bundle.done");
+    manager->OnInsightAppDied("test.bundle.done", 0);
 
     EXPECT_TRUE(WaitUntil([&manager]() {
         return manager->records_.size() == 0;
@@ -1433,7 +1433,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_011, TestSize.L
     ASSERT_NE(manager, nullptr);
     ASSERT_EQ(manager->records_.size(), 0);
 
-    manager->OnInsightAppDied("test.bundle.empty");
+    manager->OnInsightAppDied("test.bundle.empty", 0);
 
     EXPECT_EQ(manager->records_.size(), 0);
     TAG_LOGI(AAFwkTag::TEST, "OnInsightAppDied_011 end");
@@ -1459,7 +1459,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_012, TestSize.L
     ASSERT_EQ(manager->records_.count(intentId), 1);
     manager->records_[intentId]->deathRecipient = nullptr;
 
-    manager->OnInsightAppDied("test.bundle.norecipient");
+    manager->OnInsightAppDied("test.bundle.norecipient", 0);
 
     EXPECT_TRUE(WaitUntil([&manager, intentId]() {
         return manager->records_.count(intentId) == 0;
@@ -1489,7 +1489,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_013, TestSize.L
     ASSERT_EQ(manager->records_[intentId]->state, InsightIntentExecuteState::REMOTE_DIED);
     ASSERT_EQ(manager->records_[intentId]->callerToken, nullptr);
 
-    manager->OnInsightAppDied("test.bundle.remotedied");
+    manager->OnInsightAppDied("test.bundle.remotedied", 0);
 
     EXPECT_TRUE(WaitUntil([&manager, intentId]() {
         return manager->records_.count(intentId) == 0;
@@ -1524,7 +1524,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_014, TestSize.L
     manager->AddRecord(41, callback, "test.bundle.mixed", secondIntentId, "caller.bundle");
     manager->AddRecord(42, otherToken, "test.bundle.other", thirdIntentId, "caller.bundle");
 
-    manager->OnInsightAppDied("test.bundle.mixed");
+    manager->OnInsightAppDied("test.bundle.mixed", 0);
 
     EXPECT_TRUE(WaitUntil([&manager, secondIntentId]() {
         return manager->records_.count(secondIntentId) == 0;
@@ -1557,7 +1557,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_015, TestSize.L
     manager->records_[nullIntentId] = nullptr;
     manager->AddRecord(45, callback, "test.bundle.chain", callbackIntentId, "caller.bundle");
 
-    manager->OnInsightAppDied("test.bundle.chain");
+    manager->OnInsightAppDied("test.bundle.chain", 0);
 
     EXPECT_TRUE(WaitUntil([&callback]() {
         return callback->callbackCount.load() == 1;
@@ -1589,7 +1589,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_006, TestSize.L
     manager->AddRecord(key, callToken, "test.bundle.other", intentId, "caller.bundle");
     ASSERT_EQ(manager->records_.size(), 2);
 
-    manager->OnInsightAppDied("test.bundle.target");
+    manager->OnInsightAppDied("test.bundle.target", 0);
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_APP_DIED_CLEANUP_MS));
     EXPECT_EQ(manager->records_.size(), 2);
     EXPECT_EQ(manager->records_.count(31), 1);
@@ -1615,7 +1615,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_007, TestSize.L
     ASSERT_NE(callToken, nullptr);
     manager->AddRecord(key, callToken, "test.bundle.remove", intentId, "caller.bundle");
 
-    manager->OnInsightAppDied("test.bundle.remove");
+    manager->OnInsightAppDied("test.bundle.remove", 0);
     manager->RemoveExecuteIntent(intentId);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_APP_DIED_CLEANUP_MS));
@@ -1641,7 +1641,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_008, TestSize.L
     ASSERT_NE(callToken, nullptr);
     manager->AddRecord(key, callToken, "test.bundle.null", intentId, "caller.bundle");
 
-    manager->OnInsightAppDied("test.bundle.null");
+    manager->OnInsightAppDied("test.bundle.null", 0);
     manager->records_[intentId] = nullptr;
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_APP_DIED_CLEANUP_MS));
@@ -1670,7 +1670,7 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_009, TestSize.L
     ASSERT_EQ(manager->records_.count(intentId), 1);
     manager->records_[intentId]->deathRecipient = nullptr;
 
-    manager->OnInsightAppDied("test.bundle.deathrecipient");
+    manager->OnInsightAppDied("test.bundle.deathrecipient", 0);
 
     EXPECT_TRUE(WaitUntil([&callback, key]() {
         return callback->callbackCount.load() == 1 && callback->lastKey == key;
@@ -2398,6 +2398,168 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, CheckCanQueryEntity_0900, TestSi
     EXPECT_TRUE(ret);
 
     TAG_LOGI(AAFwkTag::TEST, "CheckCanQueryEntity_0900 end.");
+}
+
+/**
+ * @tc.name: SetTargetPid_0100
+ * @tc.desc: Test SetTargetPid sets targetPid on an existing record.
+ * @tc.type: FUNC
+ * @tc.require: issueI8ZRAG
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, SetTargetPid_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetTargetPid_0100 begin.");
+    auto manager = std::make_shared<InsightIntentExecuteManager>();
+    ASSERT_NE(manager, nullptr);
+
+    uint64_t key = 100;
+    uint64_t intentId = 0;
+    sptr<IRemoteObject> callToken = new AppExecFwk::MockAbilityToken();
+    ASSERT_NE(callToken, nullptr);
+    std::string bundleName = "test.bundle.setpid";
+    manager->AddRecord(key, callToken, bundleName, intentId, "caller.bundle");
+    ASSERT_EQ(manager->records_.count(intentId), 1);
+    EXPECT_EQ(manager->records_[intentId]->targetPid, 0);
+
+    pid_t pid = 12345;
+    manager->SetTargetPid(intentId, pid);
+    EXPECT_EQ(manager->records_[intentId]->targetPid, pid);
+    TAG_LOGI(AAFwkTag::TEST, "SetTargetPid_0100 end.");
+}
+
+/**
+ * @tc.name: SetTargetPid_0200
+ * @tc.desc: Test SetTargetPid ignores a non-existent intentId.
+ * @tc.type: FUNC
+ * @tc.require: issueI8ZRAG
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, SetTargetPid_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetTargetPid_0200 begin.");
+    auto manager = std::make_shared<InsightIntentExecuteManager>();
+    ASSERT_NE(manager, nullptr);
+
+    uint64_t invalidIntentId = 99999;
+    manager->SetTargetPid(invalidIntentId, 12345);
+    EXPECT_EQ(manager->records_.size(), 0);
+    TAG_LOGI(AAFwkTag::TEST, "SetTargetPid_0200 end.");
+}
+
+/**
+ * @tc.name: SetTargetPid_0300
+ * @tc.desc: Test SetTargetPid ignores a null record.
+ * @tc.type: FUNC
+ * @tc.require: issueI8ZRAG
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, SetTargetPid_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetTargetPid_0300 begin.");
+    auto manager = std::make_shared<InsightIntentExecuteManager>();
+    ASSERT_NE(manager, nullptr);
+
+    uint64_t intentId = 888;
+    manager->records_[intentId] = nullptr;
+    manager->SetTargetPid(intentId, 12345);
+    EXPECT_EQ(manager->records_[intentId], nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "SetTargetPid_0300 end.");
+}
+
+/**
+ * @tc.name: OnInsightAppDied_016
+ * @tc.desc: Test cleanup only removes the record whose targetPid matches the died pid.
+ * @tc.type: FUNC
+ * @tc.require: issueI8ZRAG
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_016, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnInsightAppDied_016 begin.");
+    auto manager = std::make_shared<InsightIntentExecuteManager>();
+    ASSERT_NE(manager, nullptr);
+
+    const std::string bundleName = "test.bundle.multiprocess";
+    sptr<IRemoteObject> callToken = new AppExecFwk::MockAbilityToken();
+    ASSERT_NE(callToken, nullptr);
+
+    uint64_t intentIdA = 0;
+    uint64_t intentIdB = 0;
+    manager->AddRecord(100, callToken, bundleName, intentIdA, "caller.bundle");
+    manager->AddRecord(101, callToken, bundleName, intentIdB, "caller.bundle");
+    ASSERT_EQ(manager->records_.size(), 2);
+
+    pid_t pidA = 1000;
+    pid_t pidB = 2000;
+    manager->SetTargetPid(intentIdA, pidA);
+    manager->SetTargetPid(intentIdB, pidB);
+
+    manager->OnInsightAppDied(bundleName, pidA);
+
+    EXPECT_TRUE(WaitUntil([&manager, intentIdA]() {
+        return manager->records_.count(intentIdA) == 0;
+    }, WAIT_APP_DIED_CLEANUP_MS));
+    EXPECT_EQ(manager->records_.count(intentIdA), 0);
+    EXPECT_EQ(manager->records_.count(intentIdB), 1);
+    TAG_LOGI(AAFwkTag::TEST, "OnInsightAppDied_016 end.");
+}
+
+/**
+ * @tc.name: OnInsightAppDied_017
+ * @tc.desc: Test cleanup skips a record whose targetPid is still 0 (not dispatched).
+ * @tc.type: FUNC
+ * @tc.require: issueI8ZRAG
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_017, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnInsightAppDied_017 begin.");
+    auto manager = std::make_shared<InsightIntentExecuteManager>();
+    ASSERT_NE(manager, nullptr);
+
+    const std::string bundleName = "test.bundle.notdispatched";
+    sptr<IRemoteObject> callToken = new AppExecFwk::MockAbilityToken();
+    ASSERT_NE(callToken, nullptr);
+
+    uint64_t intentId = 0;
+    manager->AddRecord(100, callToken, bundleName, intentId, "caller.bundle");
+    ASSERT_EQ(manager->records_.count(intentId), 1);
+    EXPECT_EQ(manager->records_[intentId]->targetPid, 0);
+
+    manager->OnInsightAppDied(bundleName, 3000);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_APP_DIED_CLEANUP_MS));
+    EXPECT_EQ(manager->records_.count(intentId), 1);
+    EXPECT_EQ(manager->records_[intentId]->targetPid, 0);
+    TAG_LOGI(AAFwkTag::TEST, "OnInsightAppDied_017 end.");
+}
+
+/**
+ * @tc.name: OnInsightAppDied_018
+ * @tc.desc: Test cleanup falls back to bundle-wide removal when died pid is 0.
+ * @tc.type: FUNC
+ * @tc.require: issueI8ZRAG
+ */
+HWTEST_F(InsightIntentExecuteManagerSecondTest, OnInsightAppDied_018, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnInsightAppDied_018 begin.");
+    auto manager = std::make_shared<InsightIntentExecuteManager>();
+    ASSERT_NE(manager, nullptr);
+
+    const std::string bundleName = "test.bundle.legacy";
+    sptr<IRemoteObject> callToken = new AppExecFwk::MockAbilityToken();
+    ASSERT_NE(callToken, nullptr);
+
+    uint64_t intentIdA = 0;
+    uint64_t intentIdB = 0;
+    manager->AddRecord(100, callToken, bundleName, intentIdA, "caller.bundle");
+    manager->AddRecord(101, callToken, bundleName, intentIdB, "caller.bundle");
+    manager->SetTargetPid(intentIdA, 1000);
+    manager->SetTargetPid(intentIdB, 2000);
+
+    manager->OnInsightAppDied(bundleName, 0);
+
+    EXPECT_TRUE(WaitUntil([&manager]() {
+        return manager->records_.size() == 0;
+    }, WAIT_APP_DIED_CLEANUP_MS));
+    EXPECT_EQ(manager->records_.size(), 0);
+    TAG_LOGI(AAFwkTag::TEST, "OnInsightAppDied_018 end.");
 }
 
 } // namespace AAFwk

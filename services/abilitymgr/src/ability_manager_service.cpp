@@ -8858,7 +8858,7 @@ void AbilityManagerService::OnAppStateChanged(const AppInfo &info)
         userId = AbilityRuntime::UserController::GetInstance().GetForegroundUserId(ServerConstant::DEFAULT_DISPLAY_ID);
     }
     if (info.state == AppState::TERMINATED) {
-        DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->OnInsightAppDied(info.bundleName);
+        DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->OnInsightAppDied(info.bundleName, info.pid);
     }
 
     auto commonExtensionManager = GetCommonExtensionManagerByUserId(userId);
@@ -15733,6 +15733,14 @@ int32_t AbilityManagerService::NotifySkillFunctionInvoked(const sptr<IRemoteObje
         return CHECK_PERMISSION_FAILED;
     }
     DelayedSingleton<SkillExecuteManager>::GetInstance()->OnLaunchCompleted(requestCode);
+    return ERR_OK;
+}
+
+int32_t AbilityManagerService::SetInsightIntentTargetPid(uint64_t intentId)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "set insight intent target pid, intentId:%{public}" PRIu64, intentId);
+    DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->SetTargetPid(
+        intentId, IPCSkeleton::GetCallingPid());
     return ERR_OK;
 }
 
