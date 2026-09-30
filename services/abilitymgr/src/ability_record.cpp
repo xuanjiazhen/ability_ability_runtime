@@ -3595,7 +3595,11 @@ bool AbilityRecord::GetPromotePriority()
 bool AbilityRecord::PromotePriority()
 {
     if (GetPromotePriority()) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "promoting priority: %{public}s", GetAbilityInfo().bundleName.c_str());
+        TAG_LOGI(AAFwkTag::ABILITYMGR,
+            "promoting priority: %{public}s, callerUid:%{public}d, callerPid:%{public}d, targetUid:%{public}d, "
+            "targetPid:%{public}d",
+            GetAbilityInfo().bundleName.c_str(), uiAbilityProperty_->byCallCallerSaUid,
+            uiAbilityProperty_->byCallCallerSaPid, GetUid(), GetPid());
         ResSchedUtil::GetInstance().PromotePriorityToRSS(uiAbilityProperty_->byCallCallerSaUid,
             uiAbilityProperty_->byCallCallerSaPid, GetAbilityInfo().bundleName, GetUid(), GetPid());
         return true;

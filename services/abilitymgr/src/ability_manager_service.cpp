@@ -4840,6 +4840,13 @@ int32_t AbilityManagerService::StartExtensionAbilityInner(const Want &want, cons
 
     abilityRequest.skillCallerTokenId = skillCallerTokenId;
     abilityRequest.userId = validUserId;
+    if (extensionType == AppExecFwk::ExtensionAbilityType::SERVICE &&
+        want.GetBoolParam(Want::PARAM_PROMOTE_BACKGROUND_PROCESS_PRIORITY, false)) {
+        abilityRequest.promotePriority = PermissionVerification::GetInstance()->VerifyCallingPermission(
+            PermissionConstants::PERMISSION_PROMOTE_BACKGROUND_PROCESS_PRIORITY);
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "promoteBackgroundProcessPriority:%{public}d",
+            static_cast<int32_t>(abilityRequest.promotePriority));
+    }
     if (!HandleExecuteSAInterceptor(want, callerToken, abilityRequest, result)) {
         return result;
     }
