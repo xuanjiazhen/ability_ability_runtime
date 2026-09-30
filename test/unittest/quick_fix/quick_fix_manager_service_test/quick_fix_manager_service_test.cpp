@@ -581,5 +581,77 @@ HWTEST_F(QuickFixManagerServiceTest, ApplyQuickFix_0200, TestSize.Level1)
     EXPECT_EQ(ret, QUICK_FIX_OK);
     TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
+
+/**
+ * @tc.name: GetApplyedQuickFixInfoForApply_0100
+ * @tc.desc: isCheckDebugApp=false uses ANY_USERID, debug check skipped.
+ * @tc.type: FUNC
+ */
+HWTEST_F(QuickFixManagerServiceTest, GetApplyedQuickFixInfoForApply_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    auto mockGetSystemAbility = [bms = mockBundleMgr, saMgr = iSystemAbilityMgr_](int32_t systemAbilityId) {
+        if (systemAbilityId == BUNDLE_MGR_SERVICE_SYS_ABILITY_ID) {
+            return bms->AsObject();
+        }
+        return saMgr->GetSystemAbility(systemAbilityId);
+    };
+    ON_CALL(*mockSystemAbility_, GetSystemAbility(testing::_))
+        .WillByDefault(testing::Invoke(mockGetSystemAbility));
+
+    std::string bundleName = "";
+    ApplicationQuickFixInfo quickFixInfo;
+    auto ret = quickFixMs_->GetApplyedQuickFixInfoForApply(bundleName, quickFixInfo, 100, false);
+    EXPECT_EQ(ret, QUICK_FIX_OK);
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: GetApplyedQuickFixInfoForApply_0200
+ * @tc.desc: isCheckDebugApp=true runs debug provision type check.
+ * @tc.type: FUNC
+ */
+HWTEST_F(QuickFixManagerServiceTest, GetApplyedQuickFixInfoForApply_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    auto mockGetSystemAbility = [bms = mockBundleMgr, saMgr = iSystemAbilityMgr_](int32_t systemAbilityId) {
+        if (systemAbilityId == BUNDLE_MGR_SERVICE_SYS_ABILITY_ID) {
+            return bms->AsObject();
+        }
+        return saMgr->GetSystemAbility(systemAbilityId);
+    };
+    ON_CALL(*mockSystemAbility_, GetSystemAbility(testing::_))
+        .WillByDefault(testing::Invoke(mockGetSystemAbility));
+
+    std::string bundleName = "";
+    ApplicationQuickFixInfo quickFixInfo;
+    auto ret = quickFixMs_->GetApplyedQuickFixInfoForApply(bundleName, quickFixInfo, 100, true);
+    EXPECT_EQ(ret, QUICK_FIX_VERIFY_PERMISSION_FAILED);
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: GetApplyedQuickFixInfoForApply_0300
+ * @tc.desc: non-existent bundle returns GET_BUNDLE_INFO_FAILED.
+ * @tc.type: FUNC
+ */
+HWTEST_F(QuickFixManagerServiceTest, GetApplyedQuickFixInfoForApply_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    auto mockGetSystemAbility = [bms = mockBundleMgr, saMgr = iSystemAbilityMgr_](int32_t systemAbilityId) {
+        if (systemAbilityId == BUNDLE_MGR_SERVICE_SYS_ABILITY_ID) {
+            return bms->AsObject();
+        }
+        return saMgr->GetSystemAbility(systemAbilityId);
+    };
+    ON_CALL(*mockSystemAbility_, GetSystemAbility(testing::_))
+        .WillByDefault(testing::Invoke(mockGetSystemAbility));
+
+    std::string bundleName = "com.ohos.quickfix";
+    ApplicationQuickFixInfo quickFixInfo;
+    auto ret = quickFixMs_->GetApplyedQuickFixInfoForApply(bundleName, quickFixInfo, 100, false);
+    EXPECT_EQ(ret, QUICK_FIX_GET_BUNDLE_INFO_FAILED);
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
 } // namespace AppExecFwk
 } // namespace OHOS
