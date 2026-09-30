@@ -76,6 +76,8 @@ private:
     int32_t HandleOnLoadAbilityFinished(MessageParcel &data, MessageParcel &reply);
     int32_t HandleScheduleUpdateWorkProcessInfo(MessageParcel &data, MessageParcel &reply);
     int32_t HandleSchedulePreTemplateProcessDeepFrozen(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleScheduleProcessCreated(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleScheduleProcessDied(MessageParcel &data, MessageParcel &reply);
     int32_t OnRemoteRequestInner(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);
     int32_t OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data,

@@ -361,6 +361,10 @@ public:
 
     int32_t ScheduleNotifyAppFault(const FaultData &faultData) override;
     int32_t SchedulePreTemplateProcessDeepFrozen() override;
+    void ScheduleProcessCreated(int32_t pid, const std::string &processName, int32_t uid,
+        int32_t state) override;
+    void ScheduleProcessDied(int32_t pid, const std::string &processName, int32_t uid,
+        int32_t state) override;
 #ifdef CJ_FRONTEND
     CJUncaughtExceptionInfo CreateCjExceptionInfo(const std::string &bundleName, uint32_t versionCode,
         const std::string &hapPath, const std::string &appRunningId);
@@ -559,6 +563,9 @@ private:
      *
      */
     void HandleBackgroundApplication();
+
+    void HandleProcessCreated(int32_t pid, const std::string &processName, int32_t uid, int32_t state);
+    void HandleProcessDied(int32_t pid, const std::string &processName, int32_t uid, int32_t state);
 
     /**
      *

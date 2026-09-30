@@ -172,6 +172,10 @@ int32_t AppSchedulerHost::OnRemoteRequestInnerThird(uint32_t code, MessageParcel
             return HandleScheduleUpdateWorkProcessInfo(data, reply);
         case static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_PRE_TEMPLATE_PROCESS_DEEP_FROZEN):
             return HandleSchedulePreTemplateProcessDeepFrozen(data, reply);
+        case static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_PROCESS_CREATED):
+            return HandleScheduleProcessCreated(data, reply);
+        case static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_PROCESS_DIED):
+            return HandleScheduleProcessDied(data, reply);
     }
     return INVALID_FD;
 }
@@ -618,6 +622,28 @@ int32_t AppSchedulerHost::HandleSchedulePreTemplateProcessDeepFrozen(MessageParc
 {
     HITRACE_METER(HITRACE_TAG_APP);
     SchedulePreTemplateProcessDeepFrozen();
+    return NO_ERROR;
+}
+
+int32_t AppSchedulerHost::HandleScheduleProcessCreated(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    int32_t pid = data.ReadInt32();
+    std::string processName = data.ReadString();
+    int32_t uid = data.ReadInt32();
+    int32_t state = data.ReadInt32();
+    ScheduleProcessCreated(pid, processName, uid, state);
+    return NO_ERROR;
+}
+
+int32_t AppSchedulerHost::HandleScheduleProcessDied(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    int32_t pid = data.ReadInt32();
+    std::string processName = data.ReadString();
+    int32_t uid = data.ReadInt32();
+    int32_t state = data.ReadInt32();
+    ScheduleProcessDied(pid, processName, uid, state);
     return NO_ERROR;
 }
 }  // namespace AppExecFwk

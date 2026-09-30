@@ -39,6 +39,7 @@ std::vector<std::shared_ptr<AbilityLifecycleCallback>> ApplicationContext::callb
 std::vector<std::shared_ptr<InteropAbilityLifecycleCallback>> ApplicationContext::interopCallbacks_;
 std::vector<std::shared_ptr<EnvironmentCallback>> ApplicationContext::envCallbacks_;
 std::vector<std::weak_ptr<ApplicationStateChangeCallback>> ApplicationContext::applicationStateCallback_;
+std::vector<std::shared_ptr<ProcessLifecycleCallback>> ApplicationContext::processLifecycleCallbacks_;
 std::vector<std::weak_ptr<SystemConfigurationUpdatedCallback>> ApplicationContext::systemConfigurationUpdatedCallbacks_;
 
 std::shared_ptr<ApplicationContext> ApplicationContext::GetInstance()
@@ -146,6 +147,29 @@ void ApplicationContext::RegisterApplicationStateChangeCallback(
 {
     std::lock_guard<std::recursive_mutex> lock(applicationStateCallbackLock_);
     applicationStateCallback_.push_back(applicationStateChangeCallback);
+}
+
+void ApplicationContext::RegisterProcessLifecycleCallback(const std::shared_ptr<ProcessLifecycleCallback> &callback)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    if (callback == nullptr) {
+        return;
+    }
+    std::lock_guard<std::recursive_mutex> lock(processLifecycleCallbackLock_);
+    processLifecycleCallbacks_.push_back(callback);
+}
+
+void ApplicationContext::UnregisterProcessLifecycleCallback(const std::shared_ptr<ProcessLifecycleCallback> &callback)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    if (callback == nullptr) {
+        return;
+    }
+    std::lock_guard<std::recursive_mutex> lock(processLifecycleCallbackLock_);
+    auto it = std::find(processLifecycleCallbacks_.begin(), processLifecycleCallbacks_.end(), callback);
+    if (it != processLifecycleCallbacks_.end()) {
+        processLifecycleCallbacks_.erase(it);
+    }
 }
 
 void ApplicationContext::RegisterSystemConfigurationUpdatedCallback(
@@ -717,6 +741,34 @@ void ApplicationContext::NotifyApplicationBackground()
         auto callbackSptr = callback.lock();
         if (callbackSptr != nullptr) {
             callbackSptr->NotifyApplicationBackground();
+        }
+    }
+}
+
+void ApplicationContext::NotifyProcessCreated(const ProcessLifecycleData &data)
+{
+    std::vector<std::shared_ptr<ProcessLifecycleCallback>> callbacks;
+    {
+        std::lock_guard<std::recursive_mutex> lock(processLifecycleCallbackLock_);
+        callbacks = processLifecycleCallbacks_;
+    }
+    for (const auto &callback : callbacks) {
+        if (callback != nullptr) {
+            callback->OnProcessCreated(data);
+        }
+    }
+}
+
+void ApplicationContext::NotifyProcessExited(const ProcessLifecycleData &data)
+{
+    std::vector<std::shared_ptr<ProcessLifecycleCallback>> callbacks;
+    {
+        std::lock_guard<std::recursive_mutex> lock(processLifecycleCallbackLock_);
+        callbacks = processLifecycleCallbacks_;
+    }
+    for (const auto &callback : callbacks) {
+        if (callback != nullptr) {
+            callback->OnProcessExited(data);
         }
     }
 }

@@ -26,6 +26,7 @@
 #include "js_ability_lifecycle_callback.h"
 #include "js_system_configuration_updated_callback.h"
 #include "native_engine/native_engine.h"
+#include "process_lifecycle_callback.h"
 #include "running_process_info.h"
 #include "child_process_info.h"
 
@@ -77,6 +78,8 @@ public:
         napi_env env, NapiCallbackInfo& info, int32_t callbackId);
     napi_value OnOnApplicationStateChange(napi_env env, NapiCallbackInfo& info);
     napi_value OnOffApplicationStateChange(napi_env env, NapiCallbackInfo& info);
+    napi_value OnOnProcessLifecycle(napi_env env, NapiCallbackInfo& info);
+    napi_value OnOffProcessLifecycle(napi_env env, NapiCallbackInfo& info);
     napi_value OnSystemConfigurationUpdated(napi_env env, NapiCallbackInfo& info);
     napi_value OffSystemConfigurationUpdated(napi_env env, NapiCallbackInfo& info);
 
@@ -171,6 +174,7 @@ private:
     std::shared_ptr<JsEnvironmentCallback> envCallback_;
     std::shared_ptr<JsApplicationStateChangeCallback> applicationStateCallback_;
     std::mutex applicationStateCallbackLock_;
+    std::shared_ptr<JsProcessLifecycleCallback> processLifecycleCallback_;
     sptr<JsAbilityAutoStartupCallBack> jsAutoStartupCallback_;
     std::shared_ptr<JsSystemConfigurationUpdatedCallback> systemConfigurationUpdatedCallback_;
     std::mutex systemConfigurationUpdatedCallbackLock_;

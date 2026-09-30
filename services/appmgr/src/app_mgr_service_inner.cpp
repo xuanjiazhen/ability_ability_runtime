@@ -11291,6 +11291,14 @@ int32_t AppMgrServiceInner::StartChildProcessImpl(const std::shared_ptr<ChildPro
         "processName:%{public}s", pid, childProcessRecord->GetHostPid(), startMsg.uid,
         childProcessRecord->GetProcessName().c_str());
     DelayedSingleton<AppStateObserverManager>::GetInstance()->OnChildProcessCreated(childProcessRecord);
+    auto hostRecord = childProcessRecord->GetHostRecord();
+    if (hostRecord != nullptr) {
+        auto appThread = hostRecord->GetApplicationClient();
+        if (appThread != nullptr) {
+            appThread->ScheduleProcessCreated(childProcessRecord->GetPid(),
+                childProcessRecord->GetProcessName(), childProcessRecord->GetUid(), 0);
+        }
+    }
     PostChildProcessAttachTimeoutTask(childProcessRecord);
     return ERR_OK;
 }
@@ -11513,6 +11521,14 @@ void AppMgrServiceInner::OnChildProcessDied(std::shared_ptr<ChildProcessRecord> 
     if (childProcessRecord) {
         RemoveChildProcessIsolationUid(childProcessRecord->GetUid());
         DelayedSingleton<AppStateObserverManager>::GetInstance()->OnChildProcessDied(childProcessRecord);
+        auto hostRecord = childProcessRecord->GetHostRecord();
+        if (hostRecord != nullptr) {
+            auto appThread = hostRecord->GetApplicationClient();
+            if (appThread != nullptr) {
+                appThread->ScheduleProcessDied(childProcessRecord->GetPid(),
+                    childProcessRecord->GetProcessName(), childProcessRecord->GetUid(), 1);
+            }
+        }
     }
 }
 

@@ -381,6 +381,26 @@ public:
         return 0;
     }
 
+    /**
+     * @brief Notify application that a process spawned by AMS is created.
+     *
+     * @param pid The process id.
+     * @param processName The process name.
+     * @param uid The process uid.
+     * @param state The process lifecycle state (0=CREATED, 1=EXITED).
+     */
+    virtual void ScheduleProcessCreated(int32_t pid, const std::string &processName, int32_t uid, int32_t state) {}
+
+    /**
+     * @brief Notify application that a process spawned by AMS is exited.
+     *
+     * @param pid The process id.
+     * @param processName The process name.
+     * @param uid The process uid.
+     * @param state The process lifecycle state (0=CREATED, 1=EXITED).
+     */
+    virtual void ScheduleProcessDied(int32_t pid, const std::string &processName, int32_t uid, int32_t state) {}
+
     enum class Message {
         SCHEDULE_FOREGROUND_APPLICATION_TRANSACTION = 0,
         SCHEDULE_BACKGROUND_APPLICATION_TRANSACTION,
@@ -422,6 +442,8 @@ public:
         SCHEDULE_MEM_APPLICATION_TRANSACTION,
         SCHEDULE_JSHANDLE_MAP_APPLICATION_TRANSACTION,
         SCHEDULE_PRE_TEMPLATE_PROCESS_DEEP_FROZEN,
+        SCHEDULE_PROCESS_CREATED,
+        SCHEDULE_PROCESS_DIED,
     };
 };
 }  // namespace AppExecFwk

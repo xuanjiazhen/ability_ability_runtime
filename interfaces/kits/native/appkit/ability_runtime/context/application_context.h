@@ -29,6 +29,7 @@
 #include "ability_native_thread.h"
 #include "environment_callback.h"
 #include "interop_ability_lifecycle_callback.h"
+#include "process_lifecycle_callback.h"
 #include "system_configuration_updated_callback.h"
 
 namespace OHOS {
@@ -54,6 +55,8 @@ public:
     void UnregisterEnvironmentCallback(const std::shared_ptr<EnvironmentCallback> &environmentCallback);
     void RegisterApplicationStateChangeCallback(
         const std::weak_ptr<ApplicationStateChangeCallback> &applicationStateChangeCallback);
+    void RegisterProcessLifecycleCallback(const std::shared_ptr<ProcessLifecycleCallback> &callback);
+    void UnregisterProcessLifecycleCallback(const std::shared_ptr<ProcessLifecycleCallback> &callback);
     void RegisterApplicationUpdateCallback(
         const std::weak_ptr<ApplicationUpdateCallback> &applicationUpdateCallback);
     void DispatchOnAbilityCreate(const AbilityLifecycleCallbackArgs &ability);
@@ -100,6 +103,8 @@ public:
     void DispatchMemoryLevel(const int level);
     void NotifyApplicationForeground();
     void NotifyApplicationBackground();
+    void NotifyProcessCreated(const ProcessLifecycleData &data);
+    void NotifyProcessExited(const ProcessLifecycleData &data);
     void NotifySystemConfigurationUpdated(const AppExecFwk::Configuration& configuration);
     void RegisterSystemConfigurationUpdatedCallback(const std::weak_ptr<SystemConfigurationUpdatedCallback> &Callback);
     void DispatchOnWillNewWant(const AbilityLifecycleCallbackArgs &ability);
@@ -268,11 +273,13 @@ private:
     static std::vector<std::shared_ptr<InteropAbilityLifecycleCallback>> interopCallbacks_;
     static std::vector<std::shared_ptr<EnvironmentCallback>> envCallbacks_;
     static std::vector<std::weak_ptr<ApplicationStateChangeCallback>> applicationStateCallback_;
+    static std::vector<std::shared_ptr<ProcessLifecycleCallback>> processLifecycleCallbacks_;
     static std::vector<std::weak_ptr<SystemConfigurationUpdatedCallback>> systemConfigurationUpdatedCallbacks_;
     std::recursive_mutex callbackLock_;
     std::mutex interopCallbackLock_;
     std::recursive_mutex envCallbacksLock_;
     std::recursive_mutex applicationStateCallbackLock_;
+    std::recursive_mutex processLifecycleCallbackLock_;
     bool applicationInfoUpdateFlag_ = false;
     AppConfigUpdateCallback appConfigChangeCallback_ = nullptr;
     AppConfigUpdateCallback appFontCallback_ = nullptr;

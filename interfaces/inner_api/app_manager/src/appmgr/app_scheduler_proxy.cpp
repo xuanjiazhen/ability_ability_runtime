@@ -1078,5 +1078,45 @@ int32_t AppSchedulerProxy::SchedulePreTemplateProcessDeepFrozen()
     }
     return ERR_OK;
 }
+
+void AppSchedulerProxy::ScheduleProcessCreated(int32_t pid, const std::string &processName, int32_t uid,
+    int32_t state)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!WriteInterfaceToken(data)) {
+        return;
+    }
+    data.WriteInt32(pid);
+    data.WriteString(processName);
+    data.WriteInt32(uid);
+    data.WriteInt32(state);
+    int32_t ret = SendTransactCmd(
+        static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_PROCESS_CREATED), data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+    }
+}
+
+void AppSchedulerProxy::ScheduleProcessDied(int32_t pid, const std::string &processName, int32_t uid,
+    int32_t state)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!WriteInterfaceToken(data)) {
+        return;
+    }
+    data.WriteInt32(pid);
+    data.WriteString(processName);
+    data.WriteInt32(uid);
+    data.WriteInt32(state);
+    int32_t ret = SendTransactCmd(
+        static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_PROCESS_DIED), data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest is failed, error code: %{public}d", ret);
+    }
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

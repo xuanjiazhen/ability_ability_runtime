@@ -1656,6 +1656,9 @@ napi_value JsApplicationContextUtils::OnOn(napi_env env, NapiCallbackInfo& info)
     if (type == "applicationStateChange") {
         return OnOnApplicationStateChange(env, info);
     }
+    if (type == "processLifecycle") {
+        return OnOnProcessLifecycle(env, info);
+    }
     if (type == "interopAbilityLifecycle") {
         return OnOnInteropAbilityLifecycle(env, info);
     }
@@ -1760,6 +1763,9 @@ napi_value JsApplicationContextUtils::OnOff(napi_env env, NapiCallbackInfo& info
 
     if (type == "applicationStateChange") {
         return OnOffApplicationStateChange(env, info);
+    }
+    if (type == "processLifecycle") {
+        return OnOffProcessLifecycle(env, info);
     }
 
     if (info.argc != ARGC_TWO && info.argc != ARGC_THREE) {
@@ -2076,6 +2082,55 @@ napi_value JsApplicationContextUtils::OnOffApplicationStateChange(
 
     if (applicationStateCallback_->IsEmpty()) {
         applicationStateCallback_.reset();
+    }
+    return CreateJsUndefined(env);
+}
+
+napi_value JsApplicationContextUtils::OnOnProcessLifecycle(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    auto applicationContext = applicationContext_.lock();
+    if (applicationContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return CreateJsUndefined(env);
+    }
+    std::lock_guard<std::mutex> lock(applicationStateCallbackLock_);
+    if (processLifecycleCallback_ != nullptr) {
+        processLifecycleCallback_->Register(info.argv[INDEX_ONE]);
+        return CreateJsUndefined(env);
+    }
+    processLifecycleCallback_ = std::make_shared<JsProcessLifecycleCallback>(env);
+    processLifecycleCallback_->Register(info.argv[INDEX_ONE]);
+    applicationContext->RegisterProcessLifecycleCallback(processLifecycleCallback_);
+    return CreateJsUndefined(env);
+}
+
+napi_value JsApplicationContextUtils::OnOffProcessLifecycle(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGI(AAFwkTag::APPKIT, "off processLifecycle");
+    auto applicationContext = applicationContext_.lock();
+    if (applicationContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return CreateJsUndefined(env);
+    }
+    std::lock_guard<std::mutex> lock(applicationStateCallbackLock_);
+    if (processLifecycleCallback_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null processLifecycleCallback_");
+        ThrowInvalidParamError(env, "Parse processLifecycleCallback failed.");
+        return CreateJsUndefined(env);
+    }
+    if (info.argc == ARGC_ONE || !CheckTypeForNapiValue(env, info.argv[INDEX_ONE], napi_object)) {
+        processLifecycleCallback_->UnRegister();
+    } else if (!processLifecycleCallback_->UnRegister(info.argv[INDEX_ONE])) {
+        TAG_LOGE(AAFwkTag::APPKIT, "call UnRegister failed");
+        ThrowInvalidParamError(env, "Parse param call UnRegister failed.");
+        return CreateJsUndefined(env);
+    }
+    if (processLifecycleCallback_->IsEmpty()) {
+        applicationContext->UnregisterProcessLifecycleCallback(processLifecycleCallback_);
+        processLifecycleCallback_.reset();
     }
     return CreateJsUndefined(env);
 }

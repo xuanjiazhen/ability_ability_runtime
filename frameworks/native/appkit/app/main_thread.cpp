@@ -563,6 +563,40 @@ void MainThread::ScheduleBackgroundApplication()
     tmpWatchdog = nullptr;
 }
 
+void MainThread::ScheduleProcessCreated(int32_t pid, const std::string &processName, int32_t uid, int32_t state)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called, pid=%{public}d", pid);
+    wptr<MainThread> weak = this;
+    auto task = [weak, pid, processName, uid, state]() {
+        auto appThread = weak.promote();
+        if (appThread == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
+            return;
+        }
+        appThread->HandleProcessCreated(pid, processName, uid, state);
+    };
+    if (!mainHandler_->PostTask(task, "MainThread:ProcessCreated")) {
+        TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
+    }
+}
+
+void MainThread::ScheduleProcessDied(int32_t pid, const std::string &processName, int32_t uid, int32_t state)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called, pid=%{public}d", pid);
+    wptr<MainThread> weak = this;
+    auto task = [weak, pid, processName, uid, state]() {
+        auto appThread = weak.promote();
+        if (appThread == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
+            return;
+        }
+        appThread->HandleProcessDied(pid, processName, uid, state);
+    };
+    if (!mainHandler_->PostTask(task, "MainThread:ProcessDied")) {
+        TAG_LOGE(AAFwkTag::APPKIT, "PostTask task failed");
+    }
+}
+
 /**
  *
  * @brief Schedule the terminate lifecycle of application.
@@ -3134,6 +3168,38 @@ void MainThread::HandleBackgroundApplication()
 #endif
 
     appMgr_->ApplicationBackgrounded(applicationImpl_->GetRecordId());
+}
+
+void MainThread::HandleProcessCreated(int32_t pid, const std::string &processName, int32_t uid, int32_t state)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called, pid=%{public}d, processName=%{public}s", pid, processName.c_str());
+    auto applicationContext = AbilityRuntime::ApplicationContext::GetInstance();
+    if (applicationContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
+        return;
+    }
+    AbilityRuntime::ProcessLifecycleData data;
+    data.pid = pid;
+    data.processName = processName;
+    data.uid = uid;
+    data.state = static_cast<AbilityRuntime::ProcessLifecycleState>(state);
+    applicationContext->NotifyProcessCreated(data);
+}
+
+void MainThread::HandleProcessDied(int32_t pid, const std::string &processName, int32_t uid, int32_t state)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called, pid=%{public}d, processName=%{public}s", pid, processName.c_str());
+    auto applicationContext = AbilityRuntime::ApplicationContext::GetInstance();
+    if (applicationContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applicationContext");
+        return;
+    }
+    AbilityRuntime::ProcessLifecycleData data;
+    data.pid = pid;
+    data.processName = processName;
+    data.uid = uid;
+    data.state = static_cast<AbilityRuntime::ProcessLifecycleState>(state);
+    applicationContext->NotifyProcessExited(data);
 }
 
 /**
