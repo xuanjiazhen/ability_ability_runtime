@@ -1270,9 +1270,12 @@ public:
      *
      * @param want, Special want for service type's ability.
      * @param frameNum, Special frameNum for remove start window num.
+     * @param connect, Optional callback to receive the target ability's RemoteObject;
+     *        null preserves existing prelaunch behavior (no callback delivery).
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int StartAbilityForPrelaunch(const Want &want, const int32_t frameNum)
+    virtual int StartAbilityForPrelaunch(const Want &want, const int32_t frameNum,
+        const sptr<IAbilityConnection> &connect = nullptr)
     {
         return 0;
     };

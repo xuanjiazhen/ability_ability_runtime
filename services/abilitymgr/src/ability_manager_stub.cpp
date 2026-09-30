@@ -2811,7 +2811,8 @@ int AbilityManagerStub::StartAbilityForPrelaunchInner(MessageParcel &data, Messa
     }
     SanitizeWantParams(*want);
     int32_t frameNum = data.ReadInt32();
-    int32_t result = StartAbilityForPrelaunch(*want, frameNum);
+    auto connect = iface_cast<IAbilityConnection>(data.ReadRemoteObject());
+    int32_t result = StartAbilityForPrelaunch(*want, frameNum, connect);
 
     TAG_LOGD(AAFwkTag::ABILITYMGR, "resolve call ability ret = %{public}d", result);
     reply.WriteInt32(result);
