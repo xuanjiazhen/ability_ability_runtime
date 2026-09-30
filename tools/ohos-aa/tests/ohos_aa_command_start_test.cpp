@@ -736,11 +736,13 @@ HWTEST_F(OhosAaCommandStartTest, Ohos_Aa_Command_Start_3000, Function | MediumTe
 /**
  * @tc.number: Ohos_Aa_Command_Start_3100
  * @tc.name: ExecCommand
- * @tc.desc: Verify start with valid --tool-call-id sets the toolCallId want parameter.
+ * @tc.desc: Verify start with a valid TOOL_CALL_ID env sets the toolCallId want parameter.
  */
 HWTEST_F(OhosAaCommandStartTest, Ohos_Aa_Command_Start_3100, Function | MediumTest | Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "Ohos_Aa_Command_Start_3100");
+
+    ASSERT_EQ(setenv(ENV_TOOL_CALL_ID.c_str(), STRING_TOOL_CALL_ID.c_str(), 1), 0);
 
     char* argv[] = {
         (char*)TOOL_NAME.c_str(),
@@ -749,8 +751,6 @@ HWTEST_F(OhosAaCommandStartTest, Ohos_Aa_Command_Start_3100, Function | MediumTe
         (char*)STRING_ABILITY_NAME.c_str(),
         (char*)"--bundlename",
         (char*)STRING_BUNDLE_NAME.c_str(),
-        (char*)"--tool-call-id",
-        (char*)STRING_TOOL_CALL_ID.c_str(),
         (char*)"",
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
@@ -763,18 +763,19 @@ HWTEST_F(OhosAaCommandStartTest, Ohos_Aa_Command_Start_3100, Function | MediumTe
     EXPECT_TRUE(MockAbilityManagerStub::HasCapturedWant());
     EXPECT_EQ(MockAbilityManagerStub::GetCapturedWant().GetStringParam(STRING_TOOL_CALL_ID_PARAM_KEY),
         STRING_TOOL_CALL_ID);
+
+    unsetenv(ENV_TOOL_CALL_ID.c_str());
 }
 
 /**
  * @tc.number: Ohos_Aa_Command_Start_3200
  * @tc.name: ExecCommand
- * @tc.desc: Verify start without --tool-call-id does not set the toolCallId want parameter.
+ * @tc.desc: Verify start without the TOOL_CALL_ID env does not set the toolCallId want parameter.
  */
 HWTEST_F(OhosAaCommandStartTest, Ohos_Aa_Command_Start_3200, Function | MediumTest | Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "Ohos_Aa_Command_Start_3200");
 
-    // isolate from a possible TOOL_CALL_ID environment variable
     unsetenv(ENV_TOOL_CALL_ID.c_str());
 
     char* argv[] = {
@@ -800,11 +801,13 @@ HWTEST_F(OhosAaCommandStartTest, Ohos_Aa_Command_Start_3200, Function | MediumTe
 /**
  * @tc.number: Ohos_Aa_Command_Start_3300
  * @tc.name: ExecCommand
- * @tc.desc: Verify start with invalid --tool-call-id (space in value) is rejected and StartAbility is not called.
+ * @tc.desc: Verify an invalid TOOL_CALL_ID env value is dropped and the want carries no toolCallId.
  */
 HWTEST_F(OhosAaCommandStartTest, Ohos_Aa_Command_Start_3300, Function | MediumTest | Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "Ohos_Aa_Command_Start_3300");
+
+    ASSERT_EQ(setenv(ENV_TOOL_CALL_ID.c_str(), "bad id", 1), 0);
 
     char* argv[] = {
         (char*)TOOL_NAME.c_str(),
@@ -813,8 +816,6 @@ HWTEST_F(OhosAaCommandStartTest, Ohos_Aa_Command_Start_3300, Function | MediumTe
         (char*)STRING_ABILITY_NAME.c_str(),
         (char*)"--bundlename",
         (char*)STRING_BUNDLE_NAME.c_str(),
-        (char*)"--tool-call-id",
-        (char*)"bad id",
         (char*)"",
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
@@ -823,21 +824,25 @@ HWTEST_F(OhosAaCommandStartTest, Ohos_Aa_Command_Start_3300, Function | MediumTe
     cmd.CreateErrorInfoMap();
     MockAbilityManagerStub::ResetCapturedWant();
     std::string result = cmd.ExecCommand();
-    EXPECT_NE(result.find("invalid parameter for '--tool-call-id' option."), std::string::npos);
-    EXPECT_EQ(result.find("start ability successfully"), std::string::npos);
-    EXPECT_FALSE(MockAbilityManagerStub::HasCapturedWant());
+    EXPECT_NE(result.find("start ability successfully"), std::string::npos);
+    EXPECT_TRUE(MockAbilityManagerStub::HasCapturedWant());
+    EXPECT_FALSE(MockAbilityManagerStub::GetCapturedWant().HasParameter(STRING_TOOL_CALL_ID_PARAM_KEY));
+
+    unsetenv(ENV_TOOL_CALL_ID.c_str());
 }
 
 /**
  * @tc.number: Ohos_Aa_Command_Start_3400
  * @tc.name: ExecCommand
- * @tc.desc: Verify start with --tool-call-id longer than 256 characters is rejected.
+ * @tc.desc: Verify a TOOL_CALL_ID env longer than 256 characters is dropped.
  */
 HWTEST_F(OhosAaCommandStartTest, Ohos_Aa_Command_Start_3400, Function | MediumTest | Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "Ohos_Aa_Command_Start_3400");
 
     std::string tooLongId(257, 'a');
+    ASSERT_EQ(setenv(ENV_TOOL_CALL_ID.c_str(), tooLongId.c_str(), 1), 0);
+
     char* argv[] = {
         (char*)TOOL_NAME.c_str(),
         (char*)cmd_.c_str(),
@@ -845,8 +850,6 @@ HWTEST_F(OhosAaCommandStartTest, Ohos_Aa_Command_Start_3400, Function | MediumTe
         (char*)STRING_ABILITY_NAME.c_str(),
         (char*)"--bundlename",
         (char*)STRING_BUNDLE_NAME.c_str(),
-        (char*)"--tool-call-id",
-        (char*)tooLongId.c_str(),
         (char*)"",
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
@@ -855,21 +858,25 @@ HWTEST_F(OhosAaCommandStartTest, Ohos_Aa_Command_Start_3400, Function | MediumTe
     cmd.CreateErrorInfoMap();
     MockAbilityManagerStub::ResetCapturedWant();
     std::string result = cmd.ExecCommand();
-    EXPECT_NE(result.find("invalid parameter for '--tool-call-id' option."), std::string::npos);
-    EXPECT_EQ(result.find("start ability successfully"), std::string::npos);
-    EXPECT_FALSE(MockAbilityManagerStub::HasCapturedWant());
+    EXPECT_NE(result.find("start ability successfully"), std::string::npos);
+    EXPECT_TRUE(MockAbilityManagerStub::HasCapturedWant());
+    EXPECT_FALSE(MockAbilityManagerStub::GetCapturedWant().HasParameter(STRING_TOOL_CALL_ID_PARAM_KEY));
+
+    unsetenv(ENV_TOOL_CALL_ID.c_str());
 }
 
 /**
  * @tc.number: Ohos_Aa_Command_Start_3500
  * @tc.name: ExecCommand
- * @tc.desc: Verify start with --tool-call-id of exactly 256 characters succeeds and sets the want parameter.
+ * @tc.desc: Verify a TOOL_CALL_ID env of exactly 256 characters sets the want parameter.
  */
 HWTEST_F(OhosAaCommandStartTest, Ohos_Aa_Command_Start_3500, Function | MediumTest | Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "Ohos_Aa_Command_Start_3500");
 
     std::string maxLengthId(256, 'a');
+    ASSERT_EQ(setenv(ENV_TOOL_CALL_ID.c_str(), maxLengthId.c_str(), 1), 0);
+
     char* argv[] = {
         (char*)TOOL_NAME.c_str(),
         (char*)cmd_.c_str(),
@@ -877,8 +884,6 @@ HWTEST_F(OhosAaCommandStartTest, Ohos_Aa_Command_Start_3500, Function | MediumTe
         (char*)STRING_ABILITY_NAME.c_str(),
         (char*)"--bundlename",
         (char*)STRING_BUNDLE_NAME.c_str(),
-        (char*)"--tool-call-id",
-        (char*)maxLengthId.c_str(),
         (char*)"",
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
@@ -890,21 +895,52 @@ HWTEST_F(OhosAaCommandStartTest, Ohos_Aa_Command_Start_3500, Function | MediumTe
     EXPECT_NE(result.find("start ability successfully"), std::string::npos);
     EXPECT_TRUE(MockAbilityManagerStub::HasCapturedWant());
     EXPECT_EQ(MockAbilityManagerStub::GetCapturedWant().GetStringParam(STRING_TOOL_CALL_ID_PARAM_KEY), maxLengthId);
+
+    unsetenv(ENV_TOOL_CALL_ID.c_str());
 }
 
 /**
  * @tc.number: Ohos_Aa_Command_Start_3600
  * @tc.name: ExecCommand
- * @tc.desc: Verify start accepts an explicitly empty --tool-call-id and the want carries no
- *           toolCallId parameter.
+ * @tc.desc: Verify an empty TOOL_CALL_ID env behaves as not provided.
  */
 HWTEST_F(OhosAaCommandStartTest, Ohos_Aa_Command_Start_3600, Function | MediumTest | Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "Ohos_Aa_Command_Start_3600");
 
-    // Isolate from a possible TOOL_CALL_ID environment variable: an empty parameter value
-    // must behave like "not provided" rather than falling back to the environment.
+    ASSERT_EQ(setenv(ENV_TOOL_CALL_ID.c_str(), "", 1), 0);
+
+    char* argv[] = {
+        (char*)TOOL_NAME.c_str(),
+        (char*)cmd_.c_str(),
+        (char*)"--abilityname",
+        (char*)STRING_ABILITY_NAME.c_str(),
+        (char*)"--bundlename",
+        (char*)STRING_BUNDLE_NAME.c_str(),
+        (char*)"",
+    };
+    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+
+    ClawAaShellCommand cmd(argc, argv);
+    cmd.CreateErrorInfoMap();
+    MockAbilityManagerStub::ResetCapturedWant();
+    std::string result = cmd.ExecCommand();
+    EXPECT_NE(result.find("start ability successfully"), std::string::npos);
+    EXPECT_TRUE(MockAbilityManagerStub::HasCapturedWant());
+    EXPECT_FALSE(MockAbilityManagerStub::GetCapturedWant().HasParameter(STRING_TOOL_CALL_ID_PARAM_KEY));
+
     unsetenv(ENV_TOOL_CALL_ID.c_str());
+}
+
+
+/**
+ * @tc.number: Ohos_Aa_Command_Start_3700
+ * @tc.name: ExecCommand
+ * @tc.desc: The removed --tool-call-id option is ignored by start and carries no anchor.
+ */
+HWTEST_F(OhosAaCommandStartTest, Ohos_Aa_Command_Start_3700, Function | MediumTest | Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "Ohos_Aa_Command_Start_3700");
 
     char* argv[] = {
         (char*)TOOL_NAME.c_str(),
@@ -914,7 +950,7 @@ HWTEST_F(OhosAaCommandStartTest, Ohos_Aa_Command_Start_3600, Function | MediumTe
         (char*)"--bundlename",
         (char*)STRING_BUNDLE_NAME.c_str(),
         (char*)"--tool-call-id",
-        (char*)"",
+        (char*)"invalid-anchor",
         (char*)"",
     };
     int argc = sizeof(argv) / sizeof(argv[0]) - 1;
