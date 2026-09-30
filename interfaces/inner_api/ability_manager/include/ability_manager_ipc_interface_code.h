@@ -782,6 +782,9 @@ enum class AbilityManagerInterfaceCode {
 
     // unregister sa interceptor
     UNREGISTER_SA_INTERCEPTOR = 6178,
+
+    // notify the target process pid of an insight intent execution
+    SET_INSIGHT_INTENT_TARGET_PID = 6179,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
