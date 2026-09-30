@@ -455,6 +455,26 @@ int32_t AmsMgrProxy::KillProcessWithAccount(
     return reply.ReadInt32();
 }
 
+int32_t AmsMgrProxy::KillProcessWithAccountSafely(
+    const std::string &bundleName, const int accountId, const bool clearPageStack, int32_t appIndex)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data) || !data.WriteString(bundleName) || !data.WriteInt32(accountId) ||
+        !data.WriteBool(clearPageStack) || !data.WriteInt32(appIndex)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write safe kill request failed");
+        return ERR_FLATTEN_OBJECT;
+    }
+    int32_t ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::KILL_PROCESS_WITH_ACCOUNT_SAFELY),
+        data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "safe kill request failed: %{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
 int32_t AmsMgrProxy::KillProcessesInBatch(const std::vector<int32_t> &pids)
 {
     MessageParcel data;
@@ -1291,6 +1311,23 @@ void AmsMgrProxy::SetKeepAliveAppService(const std::string &bundleName, bool ena
         data, reply, option);
     if (ret != NO_ERROR) {
         TAG_LOGE(AAFwkTag::APPMGR, "Send request err: %{public}d", ret);
+    }
+}
+
+void AmsMgrProxy::SetKeepAliveProtectedByEdm(const std::string &bundleName, bool enable, int32_t uid)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data) || bundleName.empty() || !data.WriteString(bundleName) ||
+        !data.WriteBool(enable) || !data.WriteInt32(uid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write EDM keep-alive state failed");
+        return;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::SET_KEEP_ALIVE_PROTECTED_BY_EDM),
+        data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "send EDM keep-alive state failed: %{public}d", ret);
     }
 }
 

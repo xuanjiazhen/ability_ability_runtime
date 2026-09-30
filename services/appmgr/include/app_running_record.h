@@ -660,6 +660,7 @@ public:
      * @brief Whether the process is non-resident keep-alive app service extension.
      */
     bool IsKeepAliveAppService() const;
+    bool IsKeepAliveProtectedByEdm() const;
 
     /**
      * @brief Whether the process can keep empty alive.
@@ -694,6 +695,7 @@ public:
      * @param isKeepAliveDkv new value
      */
     void SetKeepAliveDkv(bool isKeepAliveDkv);
+    void SetKeepAliveProtectedByEdm(bool isKeepAliveProtectedByEdm);
 
     void SetMainElementRunning(bool isMainElementRunning);
 
@@ -1563,6 +1565,7 @@ private:
     bool isKeepAliveAppService_ = false;
     bool isKeepAliveBundle_ = false;
     bool isKeepAliveDkv_ = false; // Only non-resident keep-alive processes can be set to true, please choose carefully
+    bool isKeepAliveProtectedByEdm_ = false;
     bool isKia_ = false;
     bool isMainElementRunning_ = false;
     std::atomic_bool isMainProcess_ = true; // Only MainProcess can be keepalive

@@ -49,6 +49,8 @@ void AppMgrClient::SetKeepAliveAppService(const std::string &bundleName, bool en
     isKeepAliveAppservice = enable;
 }
 
+void AppMgrClient::SetKeepAliveProtectedByEdm(const std::string &bundleName, bool enable, int32_t uid) {}
+
 int32_t AppMgrClient::GetProcessRunningInfosByUserId(std::vector<RunningProcessInfo> &info, int32_t userId)
 {
     info = infos;

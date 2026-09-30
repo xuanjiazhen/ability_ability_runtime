@@ -194,6 +194,21 @@ std::map<const int32_t, const std::shared_ptr<AppRunningRecord>> AppRunningManag
     return AAFwk::MyStatus::GetInstance().getAppRunningRecordMap_;
 }
 
+bool AppRunningManager::IsProcessProtectedByEdm(const std::string &bundleName, int uid)
+{
+    auto appRunningMap = GetAppRunningRecordMap();
+    for (const auto &item : appRunningMap) {
+        const auto &appRecord = item.second;
+        if (appRecord == nullptr || appRecord->GetUid() != uid || appRecord->GetBundleName() != bundleName) {
+            continue;
+        }
+        if (appRecord->IsKeepAliveProtectedByEdm()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void AppRunningManager::RemoveAppRunningRecordById(const int32_t recordId)
 {
 }

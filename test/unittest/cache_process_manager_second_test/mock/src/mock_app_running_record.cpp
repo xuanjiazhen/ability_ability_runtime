@@ -1473,9 +1473,19 @@ bool AppRunningRecord::IsKeepAliveAppService() const
     return isKeepAliveAppService_;
 }
 
+bool AppRunningRecord::IsKeepAliveProtectedByEdm() const
+{
+    return isKeepAliveProtectedByEdm_;
+}
+
 void AppRunningRecord::SetKeepAliveAppService(bool isKeepAliveAppService)
 {
     isKeepAliveAppService_ = isKeepAliveAppService;
+}
+
+void AppRunningRecord::SetKeepAliveProtectedByEdm(bool isKeepAliveProtectedByEdm)
+{
+    isKeepAliveProtectedByEdm_ = isKeepAliveProtectedByEdm;
 }
 
 void AppRunningRecord::SetPreForeground(bool isPreForeground)

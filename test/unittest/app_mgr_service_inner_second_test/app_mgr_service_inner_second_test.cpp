@@ -2796,6 +2796,35 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_SetKeepAlive
 }
 
 /**
+ * @tc.name: AppMgrServiceInnerSecondTest_SetKeepAliveProtectedByEdm_0100
+ * @tc.desc: Test setting and clearing EDM keep-alive protection.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_SetKeepAliveProtectedByEdm_0100,
+    TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    const BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    hapModuleInfo.isStageBasedModel = true;
+    hapModuleInfo.process = TEST_PROCESS_NAME;
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    loadParam->token = token_;
+    loadParam->preToken = preToken_;
+    auto appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
+        TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
+    ASSERT_NE(appRecord, nullptr);
+
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    appMgrServiceInner->SetKeepAliveProtectedByEdm(TEST_BUNDLE_NAME, true, 0);
+    EXPECT_TRUE(appRecord->IsKeepAliveProtectedByEdm());
+
+    appMgrServiceInner->SetKeepAliveProtectedByEdm(TEST_BUNDLE_NAME, false, 0);
+    EXPECT_FALSE(appRecord->IsKeepAliveProtectedByEdm());
+    IPCSkeleton::SetCallingUid(0);
+}
+
+/**
  * @tc.name: PreCheckStartProcess_001
  * @tc.desc: Test PreCheckStartProcess
  * @tc.type: FUNC

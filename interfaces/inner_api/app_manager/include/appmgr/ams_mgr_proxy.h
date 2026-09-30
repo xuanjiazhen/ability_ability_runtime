@@ -148,6 +148,9 @@ public:
     virtual int32_t KillProcessWithAccount(const std::string &bundleName, const int accountId,
         const bool clearPageStack = false, int32_t appIndex = -1) override;
 
+    int32_t KillProcessWithAccountSafely(const std::string &bundleName, const int accountId,
+        const bool clearPageStack = false, int32_t appIndex = 0) override;
+
     /**
      * KillProcessesInBatch, kill processes in batch, call KillProcessesInBatch() through proxy object;
      * the killed bundle won't be started by the watcher.
@@ -427,6 +430,7 @@ public:
      * @param uid indicates user.
      */
     virtual void SetKeepAliveAppService(const std::string &bundleName, bool enable, int32_t uid) override;
+    void SetKeepAliveProtectedByEdm(const std::string &bundleName, bool enable, int32_t uid) override;
 
     /**
      * To clear the process by ability token.

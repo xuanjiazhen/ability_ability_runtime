@@ -126,6 +126,11 @@ public:
         GET_CB_INFO_AND_CALL(env, info, JsAppManager, OnKillProcessWithAccount);
     }
 
+    static napi_value KillProcessWithAccountSafely(napi_env env, napi_callback_info info)
+    {
+        GET_CB_INFO_AND_CALL(env, info, JsAppManager, OnKillProcessWithAccountSafely);
+    }
+
     static napi_value KillProcessesInBatch(napi_env env, napi_callback_info info)
     {
         GET_CB_INFO_AND_CALL(env, info, JsAppManager, OnKillProcessesInBatch);
@@ -1131,6 +1136,63 @@ private:
         return result;
     }
 
+    napi_value OnKillProcessWithAccountSafely(napi_env env, size_t argc, napi_value* argv)
+    {
+        TAG_LOGD(AAFwkTag::APPMGR, "called");
+        if (argc < ARGC_TWO) {
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+        std::string bundleName;
+        if (!ConvertFromJsValue(env, argv[INDEX_ZERO], bundleName)) {
+            ThrowInvalidParamError(env, "Parse param bundleName failed, must be a string.");
+            return CreateJsUndefined(env);
+        }
+        int32_t accountId = -1;
+        if (!ConvertFromJsValue(env, argv[INDEX_ONE], accountId)) {
+            ThrowInvalidParamError(env, "Parse param accountId failed, must be a number.");
+            return CreateJsUndefined(env);
+        }
+        bool clearPageStack = true;
+        bool hasClearPageStack = false;
+        if (argc > ARGC_TWO && ConvertFromJsValue(env, argv[INDEX_TWO], clearPageStack)) {
+            hasClearPageStack = true;
+        }
+        int32_t appIndex = 0;
+        if (hasClearPageStack && argc == ARGC_FOUR && !ConvertFromJsValue(env, argv[INDEX_THREE], appIndex)) {
+            ThrowInvalidParamError(env, "Parse param appIndex failed, must be a number.");
+            return CreateJsUndefined(env);
+        }
+        napi_value lastParam = (argc == ARGC_THREE && !hasClearPageStack) ? argv[INDEX_TWO] : nullptr;
+        napi_value result = nullptr;
+        std::unique_ptr<NapiAsyncTask> napiAsyncTask = CreateEmptyAsyncTask(env, lastParam, &result);
+        auto asyncTask = [appManager = appManager_, bundleName, appIndex, accountId, clearPageStack,
+            env, task = napiAsyncTask.get()]() {
+            HandleScope handleScope(env);
+            if (appManager == nullptr || appManager->GetAmsMgr() == nullptr) {
+                task->Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::SERVICE_UNAVAILABLE)));
+                delete task;
+                return;
+            }
+            auto ret = appManager->GetAmsMgr()->KillProcessWithAccountSafely(
+                bundleName, accountId, clearPageStack, appIndex);
+            if (ret == 0) {
+                task->ResolveWithNoError(env, CreateJsUndefined(env));
+            } else {
+                task->Reject(env, CreateJsErrorByNativeErr(env, ret, "Kill processes safely failed."));
+            }
+            delete task;
+        };
+        if (napi_status::napi_ok != napi_send_event(env, asyncTask, napi_eprio_immediate)) {
+            napiAsyncTask->Reject(env, CreateJsErrorByNativeErr(env,
+                static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER), "send event failed!"));
+        } else {
+            napiAsyncTask.release();
+        }
+        return result;
+    }
+
     napi_value OnKillProcessesInBatch(napi_env env, size_t argc, napi_value* argv)
     {
         TAG_LOGD(AAFwkTag::APPMGR, "called");
@@ -1852,6 +1914,8 @@ napi_value JsAppManagerInit(napi_env env, napi_value exportObj)
         JsAppManager::GetRunningProcessInformation);
     BindNativeFunction(env, exportObj, "isRunningInStabilityTest", moduleName, JsAppManager::IsRunningInStabilityTest);
     BindNativeFunction(env, exportObj, "killProcessWithAccount", moduleName, JsAppManager::KillProcessWithAccount);
+    BindNativeFunction(env, exportObj, "killProcessWithAccountSafely", moduleName,
+        JsAppManager::KillProcessWithAccountSafely);
     BindNativeFunction(env, exportObj, "killProcessesInBatch", moduleName, JsAppManager::KillProcessesInBatch);
     BindNativeFunction(env, exportObj, "killProcessesByBundleName", moduleName,
         JsAppManager::KillProcessesByBundleName);

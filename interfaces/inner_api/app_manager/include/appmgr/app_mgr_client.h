@@ -1116,6 +1116,7 @@ public:
      * @param uid Indicates the user: 0 for all users, otherwise a specific uid.
      */
     void SetKeepAliveAppService(const std::string &bundleName, bool enable, int32_t uid);
+    void SetKeepAliveProtectedByEdm(const std::string &bundleName, bool enable, int32_t uid);
 
     /**
      * Register an observer for application/process state changes.
