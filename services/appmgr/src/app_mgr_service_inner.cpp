@@ -2338,6 +2338,10 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         DelayedSingleton<CacheProcessManager>::GetInstance()->OnAppProcessCacheBlocked(appRecord);
         appRecord = nullptr;
     }
+    if (appRecord && !CheckProcessAvailable(appRecord)) {
+        TAG_LOGI(AAFwkTag::APPMGR, "process %{public}s is being killed by memmgr, skip reuse", processName.c_str());
+        appRecord = nullptr;
+    }
     if (appRecord && abilityInfo->type == AppExecFwk::AbilityType::PAGE) {
         NotifyMemMgrPriorityChanged(appRecord);
         if (appRecord->GetPreloadMode() == AppExecFwk::PreloadMode::GAME_PRELAUNCH) {
@@ -11973,6 +11977,30 @@ bool AppMgrServiceInner::NotifyMemMgrPriorityChanged(const std::shared_ptr<AppRu
     }
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "notifyPriorityChangedSync error, result:%{public}d", result);
+        return false;
+    }
+    return true;
+}
+
+bool AppMgrServiceInner::CheckProcessAvailable(const std::shared_ptr<AppRunningRecord> &appRecord)
+{
+    if (!appRecord) {
+        return true;
+    }
+    auto priorityObject = appRecord->GetPriorityObject();
+    if (!priorityObject) {
+        return true;
+    }
+    int32_t pid = priorityObject->GetPid();
+    bool isAvailable = false;
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    int32_t result = Memory::MemMgrClient::GetInstance().IsProcessAvailable(pid, isAvailable);
+    if (result != ERR_OK) {
+        TAG_LOGW(AAFwkTag::APPMGR, "IsProcessAvailable failed, result:%{public}d, pid:%{public}d", result, pid);
+        return true;
+    }
+    if (!isAvailable) {
+        TAG_LOGW(AAFwkTag::APPMGR, "process pid:%{public}d is not available, skip reuse", pid);
         return false;
     }
     return true;

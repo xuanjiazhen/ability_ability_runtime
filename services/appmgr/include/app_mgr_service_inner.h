@@ -2358,6 +2358,15 @@ private:
      */
     bool NotifyMemMgrPriorityChanged(const std::shared_ptr<AppRunningRecord> appRecord);
 
+    /**
+     * Sync query memmgr whether the process is available for reuse.
+     * If memmgr is unreachable, tolerate and return true (backward compatible).
+     *
+     * @param appRecord Current app running record.
+     * @return true if process is available or memmgr unreachable; false if being killed.
+     */
+    bool CheckProcessAvailable(const std::shared_ptr<AppRunningRecord> &appRecord);
+
     int32_t PreloadApplication(const AAFwk::Want &want, int32_t userId, int32_t appIndex,
         AppExecFwk::PreloadMode preloadMode, AppExecFwk::PreloadPhase preloadPhase, bool needMakeImage = false,
         sptr<IImageErrorHandler> errorHandler = nullptr);
